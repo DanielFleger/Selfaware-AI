@@ -1,0 +1,1138 @@
+### 0x00516b80 processDamageToBuilding | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00516B80
+ BOOLEnum TileMapState::processDamageToBuilding(int tile, uint xPosition, uint yPosition, int damageUnk, int param_5,
+ int playerID, BOOLEnum aiBuildDelayRelated, int unitID)
+ {
+ short* psVar1;
+ int* piVar2;
+ BuildingTypeShort BVar3;
+ ushort uVar4;
+ ushort uVar5;
+ short sVar6;
+ bool bVar7;
+ bool bVar8;
+ byte bVar9;
+ int _drawbridgeBuildingID;
+ int _drawbridgeBuildingID_2;
+ int _owner;
+ BOOLEnum BVar10;
+ int _drawbridgeID;
+ uint _buildingOwnerZeroBased;
+ BuildingTypeInt _buildingType3;
+ int _x;
+ int _buildingIDAtTile;
+ int iVar11;
+ int iVar12;
+ int _y;
+ int _owner2;
+ MappersEnum cbt;
+ BOOLEnum local_8;
+ int _pitch;
+ int _microY;
+ int _microX;
+ ushort _gatehouseX;
+ ushort _gatehouseY;
+ short _health;
+ short _health2;
+ BuildingTypeShort _buildingType;
+ BuildingTypeShort _buildingType2;
+ BuildingLogicalStateShort _logicalState;
+ _owner = 0;
+ bVar7 = false;
+ local_8 = FALSE;
+ bVar9 = 0;
+ bVar8 = false;
+ if ((playerID < 0)
+ && (iVar11 = -playerID, iVar12 = playerID * -4, playerID = iVar11,
+ *(int*)((int)DAT_GameSynchronyState + iVar12 + 0x6a8) == -1)) {
+ bVar7 = true;
+ bVar8 = true;
+ }
+ _buildingOwnerZeroBased = this->LogicLayer[tile];
+ if (((_buildingOwnerZeroBased & 0x10000400) == 0) && (this->BuildingLayer[tile] == 0)) {
+ if ((_buildingOwnerZeroBased & 0x100) != 0) {
+ if (((_buildingOwnerZeroBased & 2) != 0)
+ || ((_buildingOwnerZeroBased = this->WallOwnerLayer[tile] & 7,
+ bVar7
+ && (DAT_GameState.mapAndTime.playerTeams[playerID]
+ == DAT_GameState.mapAndTime.playerTeams[_buildingOwnerZeroBased + 1])))) {
+ return FALSE;
+ }
+ DAT_GameState.playerDataArray[_buildingOwnerZeroBased + 1].defensesDamagedByPlayer
+ = (short)playerID;
+ if (unitID != 0) {
+ if (DAT_GameState.mapAndTime.playerTeams[_buildingOwnerZeroBased + 1]
+ == DAT_GameState.mapAndTime.playerTeams[playerID]) {
+ psVar1 = &DAT_UnitsState.units[unitID].friendlyFireCounterUnk;
+ *psVar1 = *psVar1 + 1;
+ } else {
+ DAT_UnitsState.units[unitID].friendlyFireCounterUnk = 0;
+ }
+ }
+ /*
+ checks if there are other wall tiles around this wall in a plus (cardinal directions)
+ */
+ countLogicPropertyInSurroundingTiles(
+ tile, yPosition, (uint)((int)(268435712)));
+ if (this->DAT_CardinalTilesAroundTile < 2) {
+ damageUnk = damageUnk + damageUnk / 2;
+ } else if (2 < this->DAT_CardinalTilesAroundTile) {
+ damageUnk = damageUnk / 2;
+ }
+ if (param_5 != 0) {
+ damageUnk = 0;
+ }
+ DAT_TroopValueState.attackInfo.field128059_0x469e0
+ = DAT_TroopValueState.attackInfo.field128059_0x469e0 + 1;
+ DAT_GameCore.cowPoisonTrackerUnk
+ = DAT_GameCore.cowPoisonTrackerUnk + damageUnk * 10;
+ if ((((param_5 == 0) && ((this->LogicLayer[tile] & L_UNKNOWN_WALL_RELATED) == 0))
+ && (this->DamageLayer[tile] == 0))
+ && (this->DefaultHeightLayer[tile] + 60 < (uint)this->HeightLayer[tile])) {
+ this->HeightLayer[tile] = this->HeightLayer[tile] - 20;
+ }
+ if (damageUnk < 1) {
+ LAB_00516d9a:
+ updatePathLinkagesInAllEightDirections(yPosition, tile);
+ } else {
+ do {
+ if (this->HeightLayer[tile] <= this->DefaultHeightLayer[tile]) {
+ destroyEntitiesOnTile(tile);
+ this->LogicLayer[tile] = this->LogicLayer[tile]
+ & ~(L_WALL_OR_GATEHOUSE | L_CRENEL | L_STAIRS | L_UNKNOWN_WALL_RELATED
+ | L_CRENEL_VARIATIONUnk);
+ this->HeightLayer[tile] = this->DefaultHeightLayer[tile];
+ this->DamageLayer[tile] = 0;
+ DAT_PathFindingState.toggleUpdateSeparateAreaTileMap = 1;
+ this->field204_0x554a30 = 1;
+ local_8 = TRUE;
+ goto LAB_00516d9a;
+ }
+ this->HeightLayer[tile] = this->HeightLayer[tile] - 1;
+ if ((char)this->DamageLayer[tile] < 200) {
+ this->DamageLayer[tile] = this->DamageLayer[tile] + 1;
+ }
+ _owner = _owner + 1;
+ } while (_owner < damageUnk);
+ updatePathLinkagesInAllEightDirections(yPosition, tile);
+ }
+ goto LAB_0051769a;
+ }
+ goto LAB_005175ec;
+ }
+ _buildingIDAtTile = (int)this->BuildingLayer[tile];
+ _logicalState = DAT_BuildingsState.buildings[_buildingIDAtTile].logicalState;
+ if (((_logicalState == ((BuildingLogicalState)0)) || (_logicalState == BLS_REMOVE))
+ || (_health = DAT_BuildingsState.buildings[_buildingIDAtTile].currentHealth, _health == 0)) {
+ return TRUE;
+ }
+ DAT_GameCore.cowPoisonTrackerUnk = DAT_GameCore.cowPoisonTrackerUnk + damageUnk * 10;
+ _buildingType = DAT_BuildingsState.buildings[_buildingIDAtTile].buildingType;
+ if (DAT_BuildingDefinedData.BuildingTypeHasHealth[(short)_buildingType] == 0) {
+ return TRUE;
+ }
+ if ((this->LogicLayer[tile] & 0xf000000U) != 0) {
+ return TRUE;
+ }
+ if ((bVar8)
+ && (DAT_GameState.mapAndTime.playerTeams[playerID]
+ == DAT_GameState.mapAndTime
+ .playerTeams[DAT_BuildingsState.buildings[_buildingIDAtTile].owner])) {
+ return FALSE;
+ }
+ DAT_BuildingsState.buildings[_buildingIDAtTile].currentHealth = _health - (short)damageUnk;
+ if ((aiBuildDelayRelated == TRUE)
+ && (((_buildingType == BT_GATEHOUSELARGE
+ || (_buildingType == BT_GATEHOUSESMALL))
+ && (_drawbridgeBuildingID
+ = findParticularBuilding((int)DAT_BuildingsState.buildings[_buildingIDAtTile].owner,
+ (int)((int)((short)DAT_BuildingsState.buildings[_buildingIDAtTile].x)),
+ (int)((int)((short)DAT_BuildingsState.buildings[_buildingIDAtTile].y)),
+ DAT_BuildingsState.buildings[_buildingIDAtTile].widthOrHeight,
+ BT_DRAWBRIDGE, 0),
+ _drawbridgeBuildingID != 0)))) {
+ this->showNoRubbleWhenDestroyingBuilding
+ = (int)(DAT_BuildingDefinedData.BuildingShowRubbleWhenDestroyed
+ [(short)DAT_BuildingsState.buildings[_drawbridgeBuildingID].buildingType]
+ == 0);
+ destroyBuilding(
+ _drawbridgeBuildingID);
+ _drawbridgeBuildingID_2
+ = findParticularBuilding((int)DAT_BuildingsState.buildings[_buildingIDAtTile].owner,
+ (int)((int)((short)DAT_BuildingsState.buildings[_buildingIDAtTile].x)),
+ (int)((int)((short)DAT_BuildingsState.buildings[_buildingIDAtTile].y)),
+ DAT_BuildingsState.buildings[_buildingIDAtTile].widthOrHeight,
+ BT_DRAWBRIDGE, _drawbridgeBuildingID);
+ if (_drawbridgeBuildingID_2 != 0) {
+ this->showNoRubbleWhenDestroyingBuilding
+ = (int)(DAT_BuildingDefinedData.BuildingShowRubbleWhenDestroyed
+ [(short)DAT_BuildingsState.buildings[_drawbridgeBuildingID_2].buildingType]
+ == 0);
+ destroyBuilding(_drawbridgeBuildingID_2);
+ }
+ }
+ _buildingType2 = DAT_BuildingsState.buildings[_buildingIDAtTile].buildingType;
+ switch (_buildingType2) {
+ case BT_GATEHOUSELARGE:
+ case BT_GATEHOUSESMALL:
+ case BT_TOWER1:
+ case BT_TOWER2:
+ case BT_TOWER3:
+ case BT_TOWER4:
+ case BT_TOWER5:
+ DAT_GameState.playerDataArray[DAT_BuildingsState.buildings[_buildingIDAtTile].owner]
+ .defensesDamagedByPlayer = (short)playerID;
+ break;
+ default:
+ }
+ if (unitID != 0) {
+ if (DAT_GameState.mapAndTime
+ .playerTeams[DAT_BuildingsState.buildings[_buildingIDAtTile].owner]
+ == DAT_GameState.mapAndTime.playerTeams[playerID]) {
+ psVar1 = &DAT_UnitsState.units[unitID].friendlyFireCounterUnk;
+ *psVar1 = *psVar1 + 1;
+ } else {
+ DAT_UnitsState.units[unitID].friendlyFireCounterUnk = 0;
+ }
+ }
+ _health2 = DAT_BuildingsState.buildings[_buildingIDAtTile].currentHealth;
+ if (0 < _health2) {
+ if (((_buildingType2 == BT_SIEGETOWER_PLACED)
+ && (_owner = (int)DAT_BuildingsState.buildings[_buildingIDAtTile].unitRefID, _owner != 0))
+ && ((DAT_BuildingsState.buildings[_buildingIDAtTile].unitRefUID
+ == DAT_UnitsState.units[_owner].uid
+ && (sVar6 = DAT_BuildingsState.buildings[_buildingIDAtTile].maxHealth, sVar6 != 0)))) {
+ DAT_UnitsState.units[_owner].health
+ = ((int)_health2 * DAT_UnitsState.units[_owner].maxHealth) / (int)sVar6;
+ }
+ goto LAB_0051769a;
+ }
+ if (DAT_BuildingsState.buildings[_buildingIDAtTile].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ UpdateDestroyedBuildingCountData(1);
+ }
+ _owner = (int)DAT_BuildingsState.buildings[_buildingIDAtTile].owner;
+ if ((aiBuildDelayRelated == TRUE)
+ && (DAT_GameState.playerDataArray[_owner].resourceRebuildDelay == 0)) {
+ DAT_GameState.playerDataArray[_owner].resourceRebuildDelay = 1;
+ }
+ _buildingType3 = (BuildingTypeInt)(short)DAT_BuildingsState.buildings[_buildingIDAtTile].buildingType;
+ if ((_buildingType3 != BT_UNKNOWN3)
+ && (((int)_buildingType3 < 0x56 || (0x59 < (int)_buildingType3)))) {
+ piVar2 = DAT_GameSynchronyState.finalResults.finalBuildingsBurned + playerID;
+ *piVar2 = *piVar2 + 1;
+ piVar2 = DAT_GameSynchronyState.finalResults.finalBuildingsDestroyedWeighted + playerID;
+ *piVar2 = *piVar2 + DAT_BuildingDefinedData.field42_0x4154[_buildingType3];
+ piVar2 = DAT_GameSynchronyState.finalResults.finalBuidingsDestroyed + _owner;
+ *piVar2 = *piVar2 + 1;
+ piVar2 = (int*)(_owner * 0x39f4 + 0x115e9d8 + playerID * 0x20);
+ *piVar2 = *piVar2 + 1;
+ }
+ switch (DAT_BuildingsState.buildings[_buildingIDAtTile].buildingType) {
+ case BT_OILSMELTER:
+ case BT_GATEHOUSELARGE:
+ case BT_GATEHOUSESMALL:
+ case BT_TOWER1:
+ case BT_TOWER2:
+ case BT_TOWER3:
+ case BT_TOWER4:
+ case BT_TOWER5:
+ playAnger2BikFromPlayerToPlayer(
+ _owner, playerID);
+ break;
+ default
+ : playVictory2BikFromPlayerToPlayer(
+ _owner, playerID);
+ }
+ if ((((((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ && (playerID == DAT_GameSynchronyState.currentPlayerSlotID))
+ && (DAT_GameState.mapAndTime.playerTeams[_owner]
+ != DAT_GameState.mapAndTime
+ .playerTeams[DAT_GameSynchronyState.currentPlayerSlotID]))
+ && (((BVar3 = DAT_BuildingsState.buildings[_buildingIDAtTile].buildingType,
+ BVar3 == BT_TOWER4 || (BVar3 == BT_TOWER5))
+ || ((BVar3 == BT_GATEHOUSELARGE
+ || ((BVar3 == BT_CHURCH
+ || (BVar3 == BT_CATHEDRAL))))))))
+ && (BVar10 = shouldSoundXNotBePlaying(),
+ BVar10 == FALSE))
+ && (nextRandomNumber1(),
+ DAT_GameCore.genieVoiceActive != FALSE)) {
+ /*
+ "Watch it crumble"
+ */
+ playWAVSFX("Genie_36.wav");
+ }
+ switch (DAT_BuildingsState.buildings[_buildingIDAtTile].buildingType) {
+ case BT_OILSMELTER:
+ _pitch = DAT_BuildingsState.buildings[_buildingIDAtTile].resources[7];
+ if (_pitch != 0) {
+ _x = (int)(short)DAT_BuildingsState.buildings[_buildingIDAtTile].x;
+ _owner2 = (int)DAT_BuildingsState.buildings[_buildingIDAtTile].owner;
+ _buildingOwnerZeroBased
+ = DAT_BuildingsState.buildings[_buildingIDAtTile].currentTilePositionAdjusted;
+ DAT_BuildingsState.buildings[_buildingIDAtTile].noRubble = 0;
+ _y = (int)(short)DAT_BuildingsState.buildings[_buildingIDAtTile].y;
+ deleteBuilding(_buildingIDAtTile);
+ if (_pitch < 5) {
+ SetPlaceOnFire(_owner2, _x * 8 + 0x10, _y * 8 + 0x10,
+ (int)((int)((uint)this->HeightLayer[_buildingOwnerZeroBased])), 3);
+ } else {
+ _microY = _y * 8 + 0x10;
+ _microX = _x * 8 + 0x10;
+ SetPlaceOnFire(
+ _owner2, _microX, _microY, (int)((int)((uint)this->HeightLayer[_buildingOwnerZeroBased])), 5);
+ spawnProjectileEntity(0, (undefined4)((int)(_owner2)), 0, _microX, _microY,
+ (int)((int)((uint)this->HeightLayer[_buildingOwnerZeroBased])), 0, 0, 0,
+ 0x1a, 0);
+ }
+ playSFXAtLocation(
+ _x, _y, FX_IGNITE_PITCH);
+ local_8 = TRUE;
+ goto LAB_0051769a;
+ }
+ default : goto switchD_00517137_caseD_1d;
+ case BT_GATEHOUSELARGE:
+ case BT_GATEHOUSESMALL:
+ _drawbridgeID = findParticularBuilding((int)DAT_BuildingsState.buildings[_buildingIDAtTile].owner,
+ (int)((int)((short)DAT_BuildingsState.buildings[_buildingIDAtTile].x)),
+ (int)((int)((short)DAT_BuildingsState.buildings[_buildingIDAtTile].y)),
+ DAT_BuildingsState.buildings[_buildingIDAtTile].widthOrHeight,
+ BT_DRAWBRIDGE, 0);
+ if (_drawbridgeID != 0) {
+ this->showNoRubbleWhenDestroyingBuilding
+ = (int)(DAT_BuildingDefinedData.BuildingShowRubbleWhenDestroyed
+ [(short)DAT_BuildingsState.buildings[_drawbridgeID].buildingType]
+ == 0);
+ destroyBuilding(_drawbridgeID);
+ _owner = findParticularBuilding((int)DAT_BuildingsState.buildings[_buildingIDAtTile].owner,
+ (int)((int)((short)DAT_BuildingsState.buildings[_buildingIDAtTile].x)),
+ (int)((int)((short)DAT_BuildingsState.buildings[_buildingIDAtTile].y)),
+ DAT_BuildingsState.buildings[_buildingIDAtTile].widthOrHeight,
+ BT_DRAWBRIDGE, _drawbridgeID);
+ if (_owner != 0) {
+ this->showNoRubbleWhenDestroyingBuilding
+ = (int)(DAT_BuildingDefinedData.BuildingShowRubbleWhenDestroyed
+ [(short)DAT_BuildingsState.buildings[_owner].buildingType]
+ == 0);
+ destroyBuilding(_owner);
+ }
+ }
+ _gatehouseY = DAT_BuildingsState.buildings[_buildingIDAtTile].y;
+ _gatehouseX = DAT_BuildingsState.buildings[_buildingIDAtTile].x;
+ processDamageToUnitsOnBuilding(_buildingIDAtTile, 50);
+ this->showNoRubbleWhenDestroyingBuilding
+ = (int)(DAT_BuildingDefinedData.BuildingShowRubbleWhenDestroyed
+ [(short)DAT_BuildingsState.buildings[_buildingIDAtTile].buildingType]
+ == 0);
+ destroyBuilding(
+ _buildingIDAtTile);
+ playSFXAtLocation(
+ (int)(short)_gatehouseX, (int)((int)((short)_gatehouseY)), FX_TOWER_SMASH);
+ local_8 = TRUE;
+ goto LAB_0051769a;
+ case BT_TUNNEL:
+ _buildingOwnerZeroBased = (uint)DAT_BuildingsState.buildings[_buildingIDAtTile].unitRefID;
+ if (DAT_UnitsState.units[_buildingOwnerZeroBased].state.generic
+ != (US_STAND_UPUnk | US_IDLEUnk)) {
+ DAT_UnitsState.units[_buildingOwnerZeroBased].totalSizeOfPathPlan
+ = DAT_UnitsState.units[_buildingOwnerZeroBased].currentIndexInPathPlan;
+ applyTunnelDamageAlongPathPlan(_buildingOwnerZeroBased);
+ }
+ DAT_UnitsState.units[_buildingOwnerZeroBased].state.generic
+ = US_DISAPPEAR;
+ DAT_UnitsState.units[_buildingOwnerZeroBased].disappearFadeAlphaCountdown = 0x20;
+ DAT_UnitsState.units[_buildingOwnerZeroBased].updateTickTracker = 0x20;
+ goto switchD_00517137_caseD_1d;
+ case BT_SIEGETOWER_PLACED:
+ _owner = (int)DAT_BuildingsState.buildings[_buildingIDAtTile].unitRefID;
+ if ((_owner != 0)
+ && (DAT_BuildingsState.buildings[_buildingIDAtTile].unitRefUID
+ == DAT_UnitsState.units[_owner].uid)) {
+ DAT_UnitsState.units[_owner].state.generic = US_DISAPPEAR;
+ DAT_UnitsState.units[_owner].disappearFadeAlphaCountdown = 0;
+ DAT_UnitsState.units[_owner].updateTickTracker = 0;
+ DAT_UnitsState.units[_owner].workplaceBuildingID_1 = 0;
+ }
+ DAT_BuildingsState.buildings[_buildingIDAtTile].noRubble = 0;
+ deleteBuilding(
+ _buildingIDAtTile);
+ local_8 = TRUE;
+ goto LAB_0051769a;
+ case BT_TOWER1:
+ processDamageToUnitsOnBuilding(_buildingIDAtTile, 0x19);
+ sVar6 = DAT_BuildingsState.buildings[_buildingIDAtTile].owner;
+ uVar4 = DAT_BuildingsState.buildings[_buildingIDAtTile].x;
+ DAT_BuildingsState.buildings[_buildingIDAtTile].noRubble = 0;
+ uVar5 = DAT_BuildingsState.buildings[_buildingIDAtTile].y;
+ deleteBuilding(
+ _buildingIDAtTile);
+ iVar11 = 3;
+ cbt = M_MAPPER_TOWER1_DESTROYED;
+ goto LAB_0051717e;
+ case BT_TOWER2:
+ processDamageToUnitsOnBuilding(_buildingIDAtTile, 0x32);
+ damageUnk = (int)DAT_BuildingsState.buildings[_buildingIDAtTile].owner;
+ _owner = (int)(short)DAT_BuildingsState.buildings[_buildingIDAtTile].x;
+ DAT_BuildingsState.buildings[_buildingIDAtTile].noRubble = 0;
+ iVar12 = (int)(short)DAT_BuildingsState.buildings[_buildingIDAtTile].y;
+ deleteBuilding(
+ _buildingIDAtTile);
+ iVar11 = 4;
+ cbt = M_MAPPER_TOWER2_DESTROYED;
+ break;
+ case BT_TOWER3:
+ processDamageToUnitsOnBuilding(_buildingIDAtTile, 0x32);
+ damageUnk = (int)DAT_BuildingsState.buildings[_buildingIDAtTile].owner;
+ _owner = (int)(short)DAT_BuildingsState.buildings[_buildingIDAtTile].x;
+ DAT_BuildingsState.buildings[_buildingIDAtTile].noRubble = 0;
+ iVar12 = (int)(short)DAT_BuildingsState.buildings[_buildingIDAtTile].y;
+ deleteBuilding(
+ _buildingIDAtTile);
+ iVar11 = 5;
+ cbt = M_MAPPER_TOWER3_DESTROYED;
+ break;
+ case BT_TOWER4:
+ processDamageToUnitsOnBuilding(_buildingIDAtTile, 0x32);
+ sVar6 = DAT_BuildingsState.buildings[_buildingIDAtTile].owner;
+ uVar4 = DAT_BuildingsState.buildings[_buildingIDAtTile].x;
+ DAT_BuildingsState.buildings[_buildingIDAtTile].noRubble = 0;
+ uVar5 = DAT_BuildingsState.buildings[_buildingIDAtTile].y;
+ deleteBuilding(
+ _buildingIDAtTile);
+ iVar11 = 6;
+ cbt = M_MAPPER_TOWER4_DESTROYED;
+ LAB_0051717e:
+ damageUnk = (int)sVar6;
+ iVar12 = (int)(short)uVar5;
+ _owner = (int)(short)uVar4;
+ break;
+ case BT_TOWER5:
+ processDamageToUnitsOnBuilding(_buildingIDAtTile, 0x32);
+ damageUnk = (int)DAT_BuildingsState.buildings[_buildingIDAtTile].owner;
+ _owner = (int)(short)DAT_BuildingsState.buildings[_buildingIDAtTile].x;
+ DAT_BuildingsState.buildings[_buildingIDAtTile].noRubble = 0;
+ iVar12 = (int)(short)DAT_BuildingsState.buildings[_buildingIDAtTile].y;
+ deleteBuilding(
+ _buildingIDAtTile);
+ iVar11 = 6;
+ cbt = M_MAPPER_TOWER5_DESTROYED;
+ }
+ placeBuilding(
+ damageUnk, _owner, iVar12, cbt, iVar11, 0xf);
+ playSFXAtLocation(
+ _owner, iVar12, FX_TOWER_SMASH);
+ bVar9 = 1;
+ local_8 = TRUE;
+ LAB_0051769a:
+ updateWalkAndPathLayer(7, xPosition, yPosition);
+ return ~-(uint)bVar9 & local_8;
+ switchD_00517137_caseD_1d:
+ _owner = (int)(short)DAT_BuildingsState.buildings[_buildingIDAtTile].buildingType;
+ sVar6 = DAT_BuildingsState.buildings[_buildingIDAtTile].owner;
+ this->showNoRubbleWhenDestroyingBuilding
+ = (int)(DAT_BuildingDefinedData.BuildingShowRubbleWhenDestroyed[_owner] == 0);
+ destroyBuilding(
+ _buildingIDAtTile);
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[_buildingIDAtTile].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[_buildingIDAtTile].y)),
+ FX_BUILDING_SMASH);
+ if ((((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ && (playerID == DAT_GameSynchronyState.currentPlayerSlotID))
+ && (DAT_GameState.mapAndTime.playerTeams[sVar6]
+ != DAT_GameState.mapAndTime
+ .playerTeams[DAT_GameSynchronyState.currentPlayerSlotID]))
+ && (DAT_GameCore.genieVoiceActive != FALSE)) {
+ if ((_owner == 0x13) || (_owner == 0xb)) {
+ /*
+ "Excellent"
+ */
+ playWAVSFX("Genie_23.wav");
+ }
+ if ((_owner == 8) || (_owner == 9)) {
+ /*
+ "Bravo"
+ */
+ playWAVSFX("Genie_24.wav");
+ }
+ }
+ LAB_005175ec:
+ local_8 = TRUE;
+ goto LAB_0051769a;
+ }
+}
+}
+
+### 0x00517790 processEntityDamageToBuildingCollateral | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00517790
+ void TileMapState::processEntityDamageToBuildingCollateral(
+ int tile, uint x_2, uint y_2, int damage, int playerID, undefined4 unused, int unitID)
+ {
+ short* psVar1;
+ int x;
+ int* piVar2;
+ BuildingLogicalStateShort BVar3;
+ short sVar4;
+ ushort uVar5;
+ ushort uVar6;
+ bool bVar7;
+ short _newHealth;
+ uint _defensiveStructureOwner;
+ uint uVar8;
+ int iVar9;
+ int _buildingType;
+ int _OilSmelterXPosition;
+ int _oilSmelterOwnerPlayerIndex;
+ int _OilSmelterYPosition;
+ int _buildingID;
+ int _iter0till8;
+ int _tile;
+ short _ownerPlayerIndex;
+ uint _oilSmelterTilePosition;
+ int _tile_2;
+ uint _y;
+ _y = y_2;
+ _tile_2 = tile;
+ bVar7 = false;
+ if ((playerID < 0)
+ && (_OilSmelterYPosition = -playerID, iVar9 = playerID * -4, playerID = _OilSmelterYPosition,
+ *(int*)((int)DAT_GameSynchronyState + iVar9 + 0x6a8) == -1)) {
+ bVar7 = true;
+ }
+ _iter0till8 = 0;
+ do {
+ /*
+ relative lookaround by modifying tile and y
+ */
+ getTileForBrush(
+ 0, _iter0till8, &tile, (int*)&y_2, _tile_2, _y);
+ _tile = tile;
+ uVar8 = this->LogicLayer[tile];
+ if (((uVar8 & 0x10000400) == 0) && (this->BuildingLayer[tile] == 0)) {
+ if ((((uVar8 & 0x100) != 0) && ((uVar8 & 2) == 0))
+ && ((_defensiveStructureOwner = this->WallOwnerLayer[tile] & 7,
+ !bVar7
+ || (DAT_GameState.mapAndTime.playerTeams[playerID]
+ != DAT_GameState.mapAndTime.playerTeams[_defensiveStructureOwner + 1])))) {
+ DAT_GameState.playerDataArray[_defensiveStructureOwner + 1].defensesDamagedByPlayer
+ = (short)playerID;
+ if (unitID != 0) {
+ if (DAT_GameState.mapAndTime.playerTeams[_defensiveStructureOwner + 1]
+ == DAT_GameState.mapAndTime.playerTeams[playerID]) {
+ psVar1 = &DAT_UnitsState.units[unitID].friendlyFireCounterUnk;
+ *psVar1 = *psVar1 + 1;
+ } else {
+ DAT_UnitsState.units[unitID].friendlyFireCounterUnk = 0;
+ }
+ }
+ DAT_GameCore.cowPoisonTrackerUnk
+ = DAT_GameCore.cowPoisonTrackerUnk + damage * 10;
+ iVar9 = 0;
+ if (0 < damage) {
+ do {
+ if (this->HeightLayer[tile] <= this->DefaultHeightLayer[tile]) {
+ destroyEntitiesOnTile(tile);
+ this->LogicLayer[_tile] = this->LogicLayer[_tile] & 0xffbef4ff;
+ this->HeightLayer[_tile] = this->DefaultHeightLayer[_tile];
+ this->DamageLayer[_tile] = 0;
+ MACRO_CALL_MEMBER(
+ updatePathLinkagesInAllEightDirections,
+ DAT_PathFindingState)(y_2, _tile);
+ DAT_PathFindingState.toggleUpdateSeparateAreaTileMap = 1;
+ this->field204_0x554a30 = 1;
+ break;
+ }
+ this->HeightLayer[tile] = this->HeightLayer[tile] - 1;
+ if ((char)this->DamageLayer[tile] < 200) {
+ this->DamageLayer[tile] = this->DamageLayer[tile] + 1;
+ }
+ iVar9 = iVar9 + 1;
+ } while (iVar9 < damage);
+ }
+ }
+ } else {
+ _buildingID = (int)this->BuildingLayer[tile];
+ BVar3 = DAT_BuildingsState.buildings[_buildingID].logicalState;
+ if (((BVar3 != ((BuildingLogicalState)0))
+ && ((((BVar3 != BLS_REMOVE
+ && (sVar4 = DAT_BuildingsState.buildings[_buildingID].currentHealth,
+ sVar4 != 0))
+ && (_buildingType
+ = (int)(short)DAT_BuildingsState.buildings[_buildingID].buildingType,
+ DAT_BuildingDefinedData.BuildingTypeHasHealth[_buildingType] != 0))
+ && (((uVar8 & 0xf000000) == 0 && ((uVar8 & 2) == 0))))))
+ && ((!bVar7
+ || (DAT_GameState.mapAndTime.playerTeams[playerID]
+ != DAT_GameState.mapAndTime
+ .playerTeams[DAT_BuildingsState.buildings[_buildingID].owner])))) {
+ _newHealth = sVar4 - (short)damage;
+ DAT_GameCore.cowPoisonTrackerUnk
+ = DAT_GameCore.cowPoisonTrackerUnk + damage * 10;
+ DAT_BuildingsState.buildings[_buildingID].currentHealth = _newHealth;
+ switch (_buildingType) {
+ case 0x2d:
+ case 0x2e:
+ case 0x4a:
+ case 0x4b:
+ case 0x4c:
+ case 0x4d:
+ case 0x4e:
+ DAT_GameState
+ .playerDataArray[DAT_BuildingsState.buildings[_buildingID].owner]
+ .defensesDamagedByPlayer = (short)playerID;
+ }
+ if (unitID != 0) {
+ if (DAT_GameState.mapAndTime
+ .playerTeams[DAT_BuildingsState.buildings[_buildingID].owner]
+ == DAT_GameState.mapAndTime.playerTeams[playerID]) {
+ psVar1 = &DAT_UnitsState.units[unitID].friendlyFireCounterUnk;
+ *psVar1 = *psVar1 + 1;
+ } else {
+ DAT_UnitsState.units[unitID].friendlyFireCounterUnk = 0;
+ }
+ }
+ if (_newHealth < 1) {
+ if ((_buildingType != 0x4f) && ((_buildingType < 0x56 || (0x59 < _buildingType)))) {
+ _ownerPlayerIndex = DAT_BuildingsState.buildings[_buildingID].owner;
+ piVar2 = DAT_GameSynchronyState.finalResults.finalBuildingsBurned + playerID;
+ *piVar2 = *piVar2 + 1;
+ piVar2 = DAT_GameSynchronyState.finalResults.finalBuidingsDestroyed
+ + _ownerPlayerIndex;
+ *piVar2 = *piVar2 + 1;
+ piVar2 = (int*)(_ownerPlayerIndex * 0x39f4 + 0x115e9d8 + playerID * 0x20);
+ *piVar2 = *piVar2 + 1;
+ }
+ switch (_buildingType) {
+ case 0x1c:
+ case 0x2d:
+ case 0x2e:
+ case 0x4a:
+ case 0x4b:
+ case 0x4c:
+ case 0x4d:
+ case 0x4e:
+ playAnger2BikFromPlayerToPlayer(
+ (int)DAT_BuildingsState.buildings[_buildingID].owner, playerID);
+ break;
+ default:
+ playVictory2BikFromPlayerToPlayer(
+ (int)DAT_BuildingsState.buildings[_buildingID].owner, playerID);
+ }
+ switch (DAT_BuildingsState.buildings[_buildingID].buildingType) {
+ case BT_OILSMELTER:
+ iVar9 = DAT_BuildingsState.buildings[_buildingID].resources[7];
+ if (iVar9 == 0)
+ goto switchD_00517b1f_caseD_1d;
+ _oilSmelterTilePosition
+ = DAT_BuildingsState.buildings[_buildingID].currentTilePositionAdjusted;
+ _OilSmelterXPosition = (int)(short)DAT_BuildingsState.buildings[_buildingID].x;
+ _oilSmelterOwnerPlayerIndex
+ = (int)DAT_BuildingsState.buildings[_buildingID].owner;
+ DAT_BuildingsState.buildings[_buildingID].noRubble = 0;
+ _OilSmelterYPosition = (int)(short)DAT_BuildingsState.buildings[_buildingID].y;
+ deleteBuilding(_buildingID);
+ if (iVar9 < 5) {
+ SetPlaceOnFire(_oilSmelterOwnerPlayerIndex,
+ _OilSmelterXPosition * 8 + 0x10, _OilSmelterYPosition * 8 + 0x10,
+ (int)((int)((uint)this->HeightLayer[_oilSmelterTilePosition])), 3);
+ } else {
+ iVar9 = _OilSmelterYPosition * 8 + 0x10;
+ x = _OilSmelterXPosition * 8 + 0x10;
+ SetPlaceOnFire(_oilSmelterOwnerPlayerIndex, x,
+ iVar9, (int)((int)((uint)this->HeightLayer[_oilSmelterTilePosition])), 5);
+ spawnProjectileEntity(0, (undefined4)((int)(_oilSmelterOwnerPlayerIndex)), 0, x,
+ iVar9, (int)((int)((uint)this->HeightLayer[_oilSmelterTilePosition])), 0, 0, 0,
+ 0x1a, 0);
+ }
+ playSFXAtLocation(
+ _OilSmelterXPosition, _OilSmelterYPosition, FX_IGNITE_PITCH);
+ break;
+ case BT_GATEHOUSELARGE:
+ case BT_GATEHOUSESMALL:
+ iVar9 = findParticularBuilding((int)DAT_BuildingsState.buildings[_buildingID].owner,
+ (int)((int)((short)DAT_BuildingsState.buildings[_buildingID].x)),
+ (int)((int)((short)DAT_BuildingsState.buildings[_buildingID].y)),
+ DAT_BuildingsState.buildings[_buildingID].widthOrHeight,
+ BT_DRAWBRIDGE, 0);
+ if (iVar9 != 0) {
+ this->showNoRubbleWhenDestroyingBuilding
+ = (int)(DAT_BuildingDefinedData.BuildingShowRubbleWhenDestroyed
+ [(short)DAT_BuildingsState.buildings[iVar9].buildingType]
+ == 0);
+ destroyBuilding(iVar9);
+ iVar9 = findParticularBuilding(
+ (int)DAT_BuildingsState.buildings[_buildingID].owner,
+ (int)((int)((short)DAT_BuildingsState.buildings[_buildingID].x)),
+ (int)((int)((short)DAT_BuildingsState.buildings[_buildingID].y)),
+ DAT_BuildingsState.buildings[_buildingID].widthOrHeight,
+ BT_DRAWBRIDGE, iVar9);
+ if (iVar9 != 0) {
+ this->showNoRubbleWhenDestroyingBuilding
+ = (int)(DAT_BuildingDefinedData.BuildingShowRubbleWhenDestroyed
+ [(short)DAT_BuildingsState.buildings[iVar9].buildingType]
+ == 0);
+ destroyBuilding(iVar9);
+ }
+ }
+ uVar5 = DAT_BuildingsState.buildings[_buildingID].y;
+ uVar6 = DAT_BuildingsState.buildings[_buildingID].x;
+ processDamageToUnitsOnBuilding(_buildingID, 0x32);
+ this->showNoRubbleWhenDestroyingBuilding
+ = (int)(DAT_BuildingDefinedData.BuildingShowRubbleWhenDestroyed
+ [(short)DAT_BuildingsState.buildings[_buildingID].buildingType]
+ == 0);
+ destroyBuilding(_buildingID);
+ playSFXAtLocation(
+ (int)(short)uVar6, (int)((int)((short)uVar5)), FX_TOWER_SMASH);
+ break;
+ case BT_TUNNEL:
+ uVar8 = (uint)DAT_BuildingsState.buildings[_buildingID].unitRefID;
+ if (DAT_UnitsState.units[uVar8].state.generic
+ != (US_STAND_UPUnk
+ | US_IDLEUnk)) {
+ DAT_UnitsState.units[uVar8].totalSizeOfPathPlan
+ = DAT_UnitsState.units[uVar8].currentIndexInPathPlan;
+ applyTunnelDamageAlongPathPlan(uVar8);
+ }
+ DAT_UnitsState.units[uVar8].state.generic
+ = US_DISAPPEAR;
+ DAT_UnitsState.units[uVar8].disappearFadeAlphaCountdown = 0x20;
+ DAT_UnitsState.units[uVar8].updateTickTracker = 0x20;
+ default : switchD_00517b1f_caseD_1d
+ : iVar9 = (int)(short)DAT_BuildingsState.buildings[_buildingID].buildingType;
+ sVar4 = DAT_BuildingsState.buildings[_buildingID].owner;
+ this->showNoRubbleWhenDestroyingBuilding
+ = (int)(DAT_BuildingDefinedData.BuildingShowRubbleWhenDestroyed[iVar9] == 0);
+ destroyBuilding(_buildingID);
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[_buildingID].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[_buildingID].y)),
+ FX_BUILDING_SMASH);
+ if ((((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ && (playerID == DAT_GameSynchronyState.currentPlayerSlotID))
+ && (DAT_GameState.mapAndTime.playerTeams[sVar4]
+ != DAT_GameState.mapAndTime
+ .playerTeams[DAT_GameSynchronyState.currentPlayerSlotID]))
+ && (DAT_GameCore.genieVoiceActive != FALSE)) {
+ if ((iVar9 == 0x13) || (iVar9 == 0xb)) {
+ /*
+ "Excellent"
+ */
+ playWAVSFX("Genie_23.wav");
+ }
+ if ((iVar9 == 8) || (iVar9 == 9)) {
+ /*
+ "Bravo"
+ */
+ playWAVSFX("Genie_24.wav");
+ }
+ }
+ break;
+ case BT_SIEGETOWER_PLACED:
+ iVar9 = (int)DAT_BuildingsState.buildings[_buildingID].unitRefID;
+ if ((iVar9 != 0)
+ && (DAT_BuildingsState.buildings[_buildingID].unitRefUID
+ == DAT_UnitsState.units[iVar9].uid)) {
+ DAT_UnitsState.units[iVar9].state.generic
+ = US_DISAPPEAR;
+ DAT_UnitsState.units[iVar9].disappearFadeAlphaCountdown = 0;
+ DAT_UnitsState.units[iVar9].updateTickTracker = 0;
+ DAT_UnitsState.units[iVar9].workplaceBuildingID_1 = 0;
+ }
+ DAT_BuildingsState.buildings[_buildingID].noRubble = 0;
+ deleteBuilding(_buildingID);
+ break;
+ case BT_TOWER1:
+ processDamageToUnitsOnBuilding(_buildingID, 0x19);
+ uVar5 = DAT_BuildingsState.buildings[_buildingID].x;
+ sVar4 = DAT_BuildingsState.buildings[_buildingID].owner;
+ DAT_BuildingsState.buildings[_buildingID].noRubble = 0;
+ uVar6 = DAT_BuildingsState.buildings[_buildingID].y;
+ deleteBuilding(_buildingID);
+ placeBuilding((int)sVar4,
+ (int)((int)((short)uVar5)), (int)((int)((short)uVar6)),
+ M_MAPPER_TOWER1_DESTROYED, 3, 0xf);
+ break;
+ case BT_TOWER2:
+ processDamageToUnitsOnBuilding(_buildingID, 0x32);
+ uVar5 = DAT_BuildingsState.buildings[_buildingID].x;
+ sVar4 = DAT_BuildingsState.buildings[_buildingID].owner;
+ DAT_BuildingsState.buildings[_buildingID].noRubble = 0;
+ uVar6 = DAT_BuildingsState.buildings[_buildingID].y;
+ deleteBuilding(_buildingID);
+ placeBuilding((int)sVar4,
+ (int)((int)((short)uVar5)), (int)((int)((short)uVar6)),
+ M_MAPPER_TOWER2_DESTROYED, 4, 0xf);
+ break;
+ case BT_TOWER3:
+ processDamageToUnitsOnBuilding(_buildingID, 0x32);
+ uVar5 = DAT_BuildingsState.buildings[_buildingID].x;
+ sVar4 = DAT_BuildingsState.buildings[_buildingID].owner;
+ DAT_BuildingsState.buildings[_buildingID].noRubble = 0;
+ uVar6 = DAT_BuildingsState.buildings[_buildingID].y;
+ deleteBuilding(_buildingID);
+ placeBuilding((int)sVar4,
+ (int)((int)((short)uVar5)), (int)((int)((short)uVar6)),
+ M_MAPPER_TOWER3_DESTROYED, 5, 0xf);
+ break;
+ case BT_TOWER4:
+ processDamageToUnitsOnBuilding(_buildingID, 0x32);
+ uVar5 = DAT_BuildingsState.buildings[_buildingID].x;
+ sVar4 = DAT_BuildingsState.buildings[_buildingID].owner;
+ DAT_BuildingsState.buildings[_buildingID].noRubble = 0;
+ uVar6 = DAT_BuildingsState.buildings[_buildingID].y;
+ deleteBuilding(_buildingID);
+ placeBuilding((int)sVar4,
+ (int)((int)((short)uVar5)), (int)((int)((short)uVar6)),
+ M_MAPPER_TOWER4_DESTROYED, 6, 0xf);
+ break;
+ case BT_TOWER5:
+ processDamageToUnitsOnBuilding(_buildingID, 0x32);
+ uVar5 = DAT_BuildingsState.buildings[_buildingID].x;
+ sVar4 = DAT_BuildingsState.buildings[_buildingID].owner;
+ DAT_BuildingsState.buildings[_buildingID].noRubble = 0;
+ uVar6 = DAT_BuildingsState.buildings[_buildingID].y;
+ deleteBuilding(_buildingID);
+ placeBuilding((int)sVar4,
+ (int)((int)((short)uVar5)), (int)((int)((short)uVar6)),
+ M_MAPPER_TOWER5_DESTROYED, 6, 0xf);
+ }
+ }
+ }
+ }
+ _iter0till8 = _iter0till8 + 1;
+ if (8 < _iter0till8) {
+ updateWalkAndPathLayer(9, x_2, _y);
+ return;
+ }
+ } while (true);
+ }
+}
+}
+
+### 0x004f2380 UpdateTree1 | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F2380
+ void Trees::UpdateTree1()
+ {
+ short sVar1;
+ short _rng2;
+ short _rng2_2;
+ short _rng2_3;
+ short _isZero1_1;
+ short _isZero1_2;
+ short _rng2_4;
+ short _isZero1_stage2;
+ short _rng2_stage2;
+ byte _rng2Data;
+ int _rng2_2_data;
+ int _tree;
+ _tree = DAT_CurrentTreeID;
+ if (DAT_LandscapeState.trees[DAT_CurrentTreeID].zeroUpTo2 == 0) {
+ _rng2 = DAT_LandscapeState.trees[DAT_CurrentTreeID].animationFrameIndex;
+ if (DAT_LandscapeState.trees[DAT_CurrentTreeID].flag == FALSE) {
+ _rng2Data = DAT_OrganismDefinedData.Tree_1_A[_rng2];
+ } else {
+ _rng2Data = DAT_OrganismDefinedData.Tree_1_B[_rng2];
+ }
+ if ((char)_rng2Data < '\x01') {
+ DAT_LandscapeState.trees[DAT_CurrentTreeID].animationFrameIndex = 0;
+ DAT_LandscapeState.trees[_tree].flag
+ = (uint)(DAT_LandscapeState.trees[_tree].one == 2);
+ }
+ } else {
+ _rng2_2 = DAT_LandscapeState.trees[DAT_CurrentTreeID].animationFrameIndex;
+ if (DAT_LandscapeState.trees[DAT_CurrentTreeID].stage == 0) {
+ _rng2_2_data = DAT_OrganismDefinedData.Tree_2_A[_rng2_2];
+ } else {
+ _rng2_2_data = DAT_OrganismDefinedData.Tree_2_B[_rng2_2];
+ }
+ if (_rng2_2_data < 1) {
+ DAT_LandscapeState.trees[DAT_CurrentTreeID].animationFrameIndex = _rng2_2 + -1;
+ }
+ }
+ switch (DAT_LandscapeState.trees[_tree].stage) {
+ case 0:
+ _isZero1_1 = DAT_LandscapeState.trees[_tree].zeroUpTo2;
+ if (_isZero1_1 == 1) {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = DAT_OrganismDefinedData
+ .Tree_2_A[DAT_LandscapeState.trees[_tree].animationFrameIndex]
+ + 0x8b;
+ break;
+ }
+ if (_isZero1_1 != 2) {
+ _rng2_3 = DAT_LandscapeState.trees[_tree].animationFrameIndex;
+ if (DAT_LandscapeState.trees[_tree].flag == FALSE) {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = (char)DAT_OrganismDefinedData.Tree_1_A[_rng2_3] + 0x4b;
+ } else {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = (char)DAT_OrganismDefinedData.Tree_1_B[_rng2_3] + 0x4b;
+ }
+ break;
+ }
+ default:
+ DAT_LandscapeState.trees[_tree].animationFrameUnk = 0x92;
+ break;
+ case 1:
+ _isZero1_2 = DAT_LandscapeState.trees[_tree].zeroUpTo2;
+ if (_isZero1_2 == 1) {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = DAT_OrganismDefinedData
+ .Tree_2_B[DAT_LandscapeState.trees[_tree].animationFrameIndex]
+ + 0x81;
+ } else if (_isZero1_2 == 2) {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = 0x8c - (short)DAT_LandscapeState.trees[_tree].treeAdultHoodStageRelatedVisual3;
+ } else {
+ _rng2_4 = DAT_LandscapeState.trees[_tree].animationFrameIndex;
+ if (DAT_LandscapeState.trees[_tree].flag == FALSE) {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = (char)DAT_OrganismDefinedData.Tree_1_A[_rng2_4] + 0x32;
+ } else {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = (char)DAT_OrganismDefinedData.Tree_1_B[_rng2_4] + 0x32;
+ }
+ }
+ break;
+ case 2:
+ _isZero1_stage2 = DAT_LandscapeState.trees[_tree].zeroUpTo2;
+ if (_isZero1_stage2 == 1) {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = DAT_OrganismDefinedData
+ .Tree_2_B[DAT_LandscapeState.trees[_tree].animationFrameIndex]
+ + 0x75;
+ } else if (_isZero1_stage2 == 2) {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = 0x82 - (short)DAT_LandscapeState.trees[_tree].treeAdultHoodStageRelatedVisual3;
+ } else {
+ _rng2_stage2 = DAT_LandscapeState.trees[_tree].animationFrameIndex;
+ if (DAT_LandscapeState.trees[_tree].flag == FALSE) {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = (char)DAT_OrganismDefinedData.Tree_1_A[_rng2_stage2] + 0x19;
+ } else {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = (char)DAT_OrganismDefinedData.Tree_1_B[_rng2_stage2] + 0x19;
+ }
+ }
+ break;
+ case 3:
+ case 4:
+ sVar1 = DAT_LandscapeState.trees[_tree].zeroUpTo2;
+ if (sVar1 == 1) {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = DAT_OrganismDefinedData
+ .Tree_2_B[DAT_LandscapeState.trees[_tree].animationFrameIndex]
+ + 100;
+ } else if (sVar1 == 2) {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = 0x76 - (short)DAT_LandscapeState.trees[_tree].treeAdultHoodStageRelatedVisual3;
+ } else {
+ sVar1 = DAT_LandscapeState.trees[_tree].animationFrameIndex;
+ if (DAT_LandscapeState.trees[_tree].flag == FALSE) {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = (int)(char)DAT_OrganismDefinedData.Tree_1_A[sVar1];
+ } else {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = (int)(char)DAT_OrganismDefinedData.Tree_1_B[sVar1];
+ }
+ }
+ }
+ if (DAT_LandscapeState.field0_0x0 != 0) {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk = 0x94;
+ }
+ return;
+ }
+}
+}
+
+### 0x004f2640 UpdateTree5 | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F2640
+ void Trees::UpdateTree5()
+ {
+ byte _frame;
+ short _rng2;
+ int _tree;
+ _tree = DAT_CurrentTreeID;
+ _rng2 = DAT_LandscapeState.trees[DAT_CurrentTreeID].animationFrameIndex;
+ if (DAT_LandscapeState.trees[DAT_CurrentTreeID].flag == FALSE) {
+ _frame = DAT_OrganismDefinedData.Tree_1_A[_rng2];
+ } else {
+ _frame = DAT_OrganismDefinedData.Tree_1_B[_rng2];
+ }
+ if ((char)_frame < '\x01') {
+ DAT_LandscapeState.trees[DAT_CurrentTreeID].animationFrameIndex = 0;
+ DAT_LandscapeState.trees[_tree].flag = (uint)(DAT_LandscapeState.trees[_tree].one == 2);
+ }
+ _rng2 = DAT_LandscapeState.trees[_tree].animationFrameIndex;
+ if (DAT_LandscapeState.trees[_tree].flag == FALSE) {
+ _frame = DAT_OrganismDefinedData.Tree_1_A[_rng2];
+ } else {
+ _frame = DAT_OrganismDefinedData.Tree_1_B[_rng2];
+ }
+ DAT_LandscapeState.trees[_tree].animationFrameUnk = (int)(char)_frame;
+ if (DAT_LandscapeState.field0_0x0 != 0) {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk = 0;
+ }
+ return;
+ }
+}
+}
+
+### 0x004f26c0 UpdateAppleTree | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F26C0
+ void Trees::UpdateAppleTree()
+ {
+ int* piVar1;
+ byte bVar2;
+ uint _rng1_0to8;
+ int _frame;
+ int _stage;
+ short _index;
+ int _treeID;
+ _treeID = DAT_CurrentTreeID;
+ if (DAT_LandscapeState.trees[DAT_CurrentTreeID].stage < 6) {
+ piVar1 = &DAT_LandscapeState.trees[DAT_CurrentTreeID].stageTracker;
+ *piVar1 = *piVar1 + 1;
+ if (DAT_OrganismDefinedData
+ .TreeStageLevels[0xf][DAT_LandscapeState.trees[_treeID].stage + 1]
+ <= DAT_LandscapeState.trees[_treeID].stageTracker) {
+ DAT_LandscapeState.trees[_treeID].stageTracker = 0;
+ piVar1 = &DAT_LandscapeState.trees[_treeID].stage;
+ /*
+ This updates the apple tree season state
+ */
+ *piVar1 = *piVar1 + 1;
+ if (5 < DAT_LandscapeState.trees[_treeID].stage) {
+ DAT_LandscapeState.trees[_treeID].stage = 0;
+ }
+ }
+ _rng1_0to8 = DAT_LandscapeState.trees[_treeID].rng1 & 7;
+ DAT_LandscapeState.trees[_treeID].appleTreeColorVariation = _rng1_0to8;
+ _stage = DAT_LandscapeState.trees[_treeID].stage;
+ if ((_stage == 0) && (DAT_LandscapeState.trees[_treeID].stageTracker < 0xfa)) {
+ if (_rng1_0to8 == 0) {
+ DAT_LandscapeState.trees[_treeID].appleTreeColorVariation = 2;
+ } else {
+ LAB_004f274d:
+ if (_rng1_0to8 == 1) {
+ DAT_LandscapeState.trees[_treeID].appleTreeColorVariation = 4;
+ } else {
+ DAT_LandscapeState.trees[_treeID].appleTreeColorVariation
+ = (uint)(_rng1_0to8 != 3) * 2 + 5;
+ }
+ }
+ } else if (_stage == 5) {
+ if (_rng1_0to8 != 0)
+ goto LAB_004f274d;
+ DAT_LandscapeState.trees[_treeID].appleTreeColorVariation = 2;
+ } else if (_rng1_0to8 == 2) {
+ DAT_LandscapeState.trees[_treeID].appleTreeColorVariation = 0;
+ } else if (_rng1_0to8 == 4) {
+ DAT_LandscapeState.trees[_treeID].appleTreeColorVariation = 1;
+ } else {
+ DAT_LandscapeState.trees[_treeID].appleTreeColorVariation
+ = (-(uint)(_rng1_0to8 != 5) & 3) + 3;
+ }
+ } else {
+ DAT_LandscapeState.trees[DAT_CurrentTreeID].appleTreeColorVariation = 0;
+ piVar1 = &DAT_LandscapeState.trees[_treeID].stageTracker;
+ *piVar1 = *piVar1 + 1;
+ if (0x4b0 < DAT_LandscapeState.trees[_treeID].stageTracker) {
+ DAT_LandscapeState.trees[_treeID].state = 3;
+ }
+ }
+ _index = DAT_LandscapeState.trees[_treeID].animationFrameIndex;
+ if (DAT_LandscapeState.trees[_treeID].flag == FALSE) {
+ bVar2 = DAT_OrganismDefinedData.Tree_1_A[_index];
+ } else {
+ bVar2 = DAT_OrganismDefinedData.Tree_1_B[_index];
+ }
+ if ((char)bVar2 < '\x01') {
+ DAT_LandscapeState.trees[_treeID].animationFrameIndex = 0;
+ DAT_LandscapeState.trees[_treeID].flag
+ = (uint)(DAT_LandscapeState.trees[_treeID].one == 2);
+ }
+ switch (DAT_LandscapeState.trees[_treeID].stage) {
+ case 0:
+ case 6:
+ _index = DAT_LandscapeState.trees[_treeID].animationFrameIndex;
+ if (DAT_LandscapeState.trees[_treeID].flag == FALSE) {
+ _frame = (int)(char)DAT_OrganismDefinedData.Tree_1_A[_index];
+ } else {
+ _frame = (int)(char)DAT_OrganismDefinedData.Tree_1_B[_index];
+ }
+ break;
+ case 1:
+ _index = DAT_LandscapeState.trees[_treeID].animationFrameIndex;
+ if (DAT_LandscapeState.trees[_treeID].flag == FALSE) {
+ _frame = (char)DAT_OrganismDefinedData.Tree_1_A[_index] + 0x19;
+ } else {
+ _frame = (char)DAT_OrganismDefinedData.Tree_1_B[_index] + 0x19;
+ }
+ break;
+ case 2:
+ case 4:
+ case 5:
+ _index = DAT_LandscapeState.trees[_treeID].animationFrameIndex;
+ if (DAT_LandscapeState.trees[_treeID].flag == FALSE) {
+ _frame = (char)DAT_OrganismDefinedData.Tree_1_A[_index] + 0x4b;
+ } else {
+ _frame = (char)DAT_OrganismDefinedData.Tree_1_B[_index] + 0x4b;
+ }
+ break;
+ case 3:
+ _index = DAT_LandscapeState.trees[_treeID].animationFrameIndex;
+ if (DAT_LandscapeState.trees[_treeID].flag == FALSE) {
+ bVar2 = DAT_OrganismDefinedData.Tree_1_A[_index];
+ } else {
+ bVar2 = DAT_OrganismDefinedData.Tree_1_B[_index];
+ }
+ _frame = (char)bVar2 + 0x32;
+ break;
+ default:
+ goto switchD_004f281e_caseD_7;
+ }
+ DAT_LandscapeState.trees[_treeID].animationFrameUnk = _frame;
+ switchD_004f281e_caseD_7:
+ if (DAT_LandscapeState.field0_0x0 != 0) {
+ DAT_LandscapeState.trees[_treeID].animationFrameUnk = 0;
+ }
+ return;
+ }
+}
+}
+
+### 0x004f28f0 UpdateTree16 | quelle=nachgebaut | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F28F0
+ void Trees::UpdateTree16()
+ {
+ int const frame = (DAT_LandscapeState.trees[DAT_CurrentTreeID].rng1 & 7U) + 10;
+ DAT_LandscapeState.trees[DAT_CurrentTreeID].animationFrameUnk = frame;
+ DAT_LandscapeState.trees[DAT_CurrentTreeID].animationFrame2Unk = frame;
+ }
+}
+}
+
+### 0x004f2920 UpdateTree17 | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F2920
+ void Trees::UpdateTree17()
+ {
+ int iVar1;
+ int iVar2;
+ iVar1 = DAT_CurrentTreeID;
+ iVar2 = (DAT_LandscapeState.trees[DAT_CurrentTreeID].rng1 & 3U) + 1;
+ DAT_LandscapeState.trees[DAT_CurrentTreeID].animationFrameUnk = iVar2;
+ if (iVar2 == 4) {
+ DAT_LandscapeState.trees[iVar1].animationFrameUnk = 3;
+ DAT_LandscapeState.trees[iVar1].animationFrame2Unk
+ = DAT_LandscapeState.trees[iVar1].animationFrameUnk;
+ return;
+ }
+ DAT_LandscapeState.trees[iVar1].animationFrame2Unk = iVar2;
+ return;
+ }
+}
+}
+

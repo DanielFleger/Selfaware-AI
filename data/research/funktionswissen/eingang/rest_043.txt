@@ -1,0 +1,1419 @@
+### 0x004643f0 MenuItemRenderFunction_InGameMenu_MainButtons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004643F0
+ void InGameMenu::MenuItemRenderFunction_InGameMenu_MainButtons(int param_1, ...)
+ {
+ ButtonGmData* this;
+ int iVar1;
+ int iVar2;
+ int _digitSet2;
+ int _color2;
+ int iVar3;
+ bool bVar4;
+ int drawY;
+ iVar3 = 0;
+ DAT_ButtonUnknownZero = 0;
+ if ((DAT_GameCore.currentMenuViewType == MVT_BUILDING_AND_STATUS_MENU)
+ && ((((DAT_GameCore.activeMenuTab.tabType
+ == BASMTT_BARRACKS_OR_MPMENU_MODEM
+ || (DAT_GameCore.activeMenuTab.tabType == BASMTT_MERCENARYPOST))
+ && (param_1 != 0x47))
+ && ((param_1 != -4 && (-10 < param_1)))))) {
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ if (DAT_GameCore.activeMenuTab.tabType == param_1) {
+ if (param_1 != 0x47) {
+ iVar3 = 2;
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ goto LAB_00464449;
+ }
+ LAB_0046444e:
+ if (DAT_GameCore.gameMode_2 == GM_EDITOR) {
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ if (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT) {
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ } else {
+ LAB_00464449:
+ if (param_1 == 0x47)
+ goto LAB_0046444e;
+ }
+ if (param_1 == -4) {
+ if ((DAT_GameCore.gameMode_2 != GM_EDITOR)
+ && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)) {
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ goto LAB_00464732;
+ }
+ if (param_1 == -5) {
+ if ((DAT_GameCore.gameMode_2 == GM_CAMPAIGN_MISSION)
+ && (DAT_GameCore.field24_0x6c != 0)) {
+ DAT_ButtonUnknownZero = 1;
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ } else if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ if ((DAT_GameCore.gameMode_2 == GM_CRUSADER_TUTORIAL)
+ || ((DAT_GameCore.gameMode_2 != GM_CAMPAIGN_MISSION
+ && (DAT_GameCore.gameMode_2 != GM_BUILDERUnk)))) {
+ LAB_004644dc:
+ DAT_ButtonUnknownZero = 1;
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ }
+ } else {
+ if (DAT_GameSynchronyState.currentGameMode != GM_SKIRMISH_SINGLE_PLAYER)
+ goto LAB_004644dc;
+ if (DAT_GameCore.gameMode_2 != GM_CAMPAIGN_MISSION) {
+ bVar4 = DAT_GameCore.isSkirmishTrail == TRUE;
+ goto LAB_004644d6;
+ }
+ }
+ LAB_004645b6:
+ if ((DAT_GameCore.currentMenuViewType == MVT_BUILD_MENU)
+ && (DAT_GameCore.activeMenuTab.tabType
+ == BASMTT_SIEGETENT_BATTERINGRAM)) {
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ LAB_004645c8:
+ if ((param_1 == -0x5a) || (param_1 == -0x5b)) {
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ if ((DAT_GameCore.gameMode_2 != GM_CAMPAIGN_MISSION)
+ || (DAT_GameSynchronyState.currentGameMode
+ != GM_SKIRMISH_SINGLE_PLAYER))
+ goto LAB_004645f5;
+ if (param_1 == -0x5a) {
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ } else {
+ LAB_004645f5:
+ if (param_1 == -0x5a)
+ goto LAB_00464611;
+ }
+ if ((param_1 == -0x5b) || ((9 < param_1 && (param_1 < 0x32))))
+ goto LAB_00464611;
+ } else {
+ if (((param_1 < -9) && (param_1 != -0x5a)) && (param_1 != -0x5b)) {
+ if (DAT_GameCore.gameMode_2 != GM_EDITOR) {
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ if (-100 < param_1) {
+ iVar1 = -9 - param_1;
+ if (DAT_GameCore.U2_mapType_singleOrMulti == 0) {
+ if (DAT_MapPropertiesState.SEC_U3_MapType2_1 == MT_INVASION) {
+ if (5 < iVar1) {
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ } else if (iVar1 != 1) {
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ }
+ if (iVar1 == DAT_GameSynchronyState.currentPlayerSlotID) {
+ iVar3 = 8;
+ }
+ }
+ }
+ if (param_1 == -1) {
+ if ((DAT_GameCore.gameMode_2 == GM_EDITOR)
+ || (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT)) {
+ DAT_ButtonUnknownZero = 1;
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ }
+ if ((DAT_MenuModalComposition1.activeModalDialogID == MMT_QUIT_DIALOG)
+ && (DAT_MenuTextInputState.DAT_MenuOptionsActionParameter == 0x2f)) {
+ DAT_ButtonUnknownZero = 1;
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ }
+ goto LAB_004645b6;
+ }
+ if (param_1 == -6) {
+ if (DAT_GameCore.gameMode_2 != GM_EDITOR) {
+ bVar4 = DAT_GameCore.gameMode_2 == GM_SIEGE_THAT;
+ LAB_004644d6:
+ if (!bVar4)
+ goto LAB_004644dc;
+ }
+ goto LAB_004645b6;
+ }
+ if ((param_1 == 0x1d) || (param_1 == 0x1a)) {
+ LAB_004645a4:
+ if ((DAT_GameCore.gameMode_2 != GM_EDITOR)
+ && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)) {
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ LAB_004645ad:
+ if ((param_1 < 0) && (-10 < param_1))
+ goto LAB_004645b6;
+ goto LAB_004645c8;
+ }
+ if (param_1 != 0x1b)
+ goto LAB_004645ad;
+ if (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)
+ goto LAB_004645a4;
+ LAB_00464611:
+ if ((DAT_GameCore.gameMode_2 == GM_EDITOR)
+ || (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT)) {
+ if (DAT_GameCore.activeMenuTab.buildMenuTab == BMTT_SOLDIERS) {
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ } else {
+ if ((DAT_GameCore.currentMenuViewType == MVT_BUILD_MENU)
+ && (DAT_GameCore.activeMenuTab.buildMenuTab == BMTT_SOLDIERS)) {
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ iVar1
+ = singlePlayerHasKeepAndGranaryCheck();
+ if ((iVar1 < 1)
+ || ((DAT_GameCore.currentMenuViewType == MVT_BUILD_MENU
+ && (DAT_GameCore.activeMenuTab.tabType == BASMTT_STOCKS)))) {
+ if ((param_1 != -0x5a) && (param_1 != -0x5b)) {
+ DAT_ButtonUnknownZero = 1;
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ iVar3 = 1;
+ switch (param_1) {
+ case 10:
+ iVar3 = 0x36;
+ break;
+ case 0x14:
+ iVar3 = 0x37;
+ break;
+ case 0x19:
+ iVar3 = 0x3b;
+ break;
+ case 0x1c:
+ iVar3 = 0x3a;
+ break;
+ case 0x1e:
+ iVar3 = 0x39;
+ break;
+ case 0x28:
+ iVar3 = 0x38;
+ }
+ renderGM(
+ DAT_UIButtonDefinedData
+ .ButtonGmDataArray[DAT_CurrentButtonGmDataIndex]
+ .gmId_0x0,
+ iVar3, DAT_ButtonX, DAT_ButtonY);
+ DAT_CurrentButtonPictureInGm = iVar3;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ return;
+ }
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ return;
+ }
+ }
+ }
+ if ((param_1 == -2) && (DAT_WallAndPitchState.countdown == 0)) {
+ DAT_ButtonUnknownZero = 1;
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ iVar3 = 2;
+ }
+ LAB_00464732:
+ this = DAT_UIButtonDefinedData.ButtonGmDataArray + DAT_CurrentButtonGmDataIndex;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ iVar1 = DAT_ButtonX;
+ drawY = DAT_ButtonY;
+ iVar2 = getPictureNumberInGm(
+ DAT_ButtonCurrentlyInteracting);
+ renderGM(this->gmId_0x0, iVar2 + iVar3, iVar1, drawY);
+ DAT_CurrentButtonPictureInGm
+ = DAT_UIButtonDefinedData.ButtonGmDataArray[DAT_CurrentButtonGmDataIndex]
+ .pictureInGm_0x4
+ + iVar3;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ if (param_1 == -4) {
+ drawLine(
+ DAT_ButtonX + -1, DAT_ButtonY + 0x11,
+ DAT_ButtonX + -1,
+ DAT_ButtonH + -1 + DAT_ButtonY,
+ (ushort)((int)(COL_BLACK::instance.shortValue)));
+ drawLine(
+ DAT_ButtonX + -2, DAT_ButtonY + 0x11,
+ DAT_ButtonX + -2,
+ DAT_ButtonH + -1 + DAT_ButtonY,
+ (ushort)((int)(COL_BLACK::instance.shortValue)));
+ return;
+ }
+ if (param_1 != 0x47) {
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ RenderScribeFrame();
+ RenderGoldValue();
+ return;
+ }
+ }
+}
+}
+
+### 0x004b6530 MenuItemActionHandler_InGameMenu_MapEventIconUnk | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B6530
+ void InGameMenu::MenuItemActionHandler_InGameMenu_MapEventIconUnk(int param_1, ...)
+ {
+ int iVar1;
+ focusOnCoordinate(DAT_MinimapViewState.spawnMomentX[0],
+ DAT_MinimapViewState.spawnMomentY[0]);
+ iVar1 = 1;
+ if (1 < DAT_MinimapViewState.spawnMomentCount) {
+ do {
+ DAT_MinimapViewState.spawnMomentX[iVar1 + -1]
+ = DAT_MinimapViewState.spawnMomentX[iVar1];
+ DAT_MinimapViewState.spawnMomentX[iVar1 + 0x13]
+ = DAT_MinimapViewState.spawnMomentY[iVar1];
+ DAT_MinimapViewState.spawnMomentY[iVar1 + 0x13]
+ = DAT_MinimapViewState.spawnMoment[iVar1];
+ iVar1 = iVar1 + 1;
+ } while (iVar1 < DAT_MinimapViewState.spawnMomentCount);
+ }
+ DAT_MinimapViewState.spawnMomentCount = DAT_MinimapViewState.spawnMomentCount + -1;
+ return;
+ }
+ }
+}
+}
+
+### 0x004b65a0 MenuItemRenderFunction_InGameMenu_KeepEnclosedSymbol | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B65A0
+ void InGameMenu::MenuItemRenderFunction_InGameMenu_KeepEnclosedSymbol(int param_1, ...)
+ {
+ BOOLEnum BVar1;
+ BVar1 = checkKeepEnclosed(
+ DAT_GameSynchronyState.currentPlayerSlotID);
+ if (BVar1 != DAT_MiniMapDefinedData.field91_0x2bc) {
+ DAT_GameCore.countdown = 2;
+ }
+ DAT_MiniMapDefinedData.field91_0x2bc = BVar1;
+ if (BVar1 == FALSE) {
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ DAT_ButtonUnknownZero = 0;
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ return;
+ }
+ }
+}
+}
+
+### 0x004b65f0 MenuItemRenderFunction_InGameMenu_BikMessagePlayerShield | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B65F0
+ void InGameMenu::MenuItemRenderFunction_InGameMenu_BikMessagePlayerShield(int param_1, ...)
+ {
+ dword dVar1;
+ if (DAT_VideoBikQueue.mbr_0x928 != 0) {
+ dVar1 = DAT_VideoBikQueue.mbr_0x928;
+ if ((int)DAT_VideoBikQueue.mbr_0x928 < 0) {
+ dVar1 = -DAT_VideoBikQueue.mbr_0x928;
+ }
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ renderGM(GM_INTERFACE_ICONS2,
+ dVar1 + 0x1d5, DAT_ButtonX,
+ DAT_ButtonY);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00467f50 Constructor_Empty | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00467F50
+ void* Init::Constructor_Empty()
+ {
+ void* in_ECX;
+ return in_ECX;
+ }
+}
+}
+
+### 0x0059a170 Constructor_MenuView_Reduced | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A170
+ void Init::Constructor_MenuView_Reduced()
+ {
+ Constructor_MenuView_Reduced(
+ MVT_NO_VIEW);
+ _atexit(Meta::Destructor_0059cd30::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a190 Constructor_MenuView_IntroLogos | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A190
+ void Init::Constructor_MenuView_IntroLogos()
+ {
+ Constructor_MenuView(
+ MVT_INTRO_LOGOS,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::IntroLogos::MenuView_IntroLogos_Prepare::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::IntroLogos::MenuView_IntroLogos_DoInitial::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::IntroLogos::MenuView_IntroLogos_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_IntroLogos::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a1c0 Constructor_MenuView_HistoricMissionSelect | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A1C0
+ void Init::Constructor_MenuView_HistoricMissionSelect()
+ {
+ Constructor_MenuView(
+ MVT_HISTORIC_MISSION_SELECT,
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::HistoricMissionSelect::MenuView_HistoricMissionSelect_Prepare::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::General::MenuView_General_DoInitial_DefaultMainMenuStructure::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::MissionSelect::MenuView_MissionSelect_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_HistoricMissionSelect::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a1f0 Constructor_MenuView_UnusedEconomicMissionSelect | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A1F0
+ void Init::Constructor_MenuView_UnusedEconomicMissionSelect()
+ {
+ Constructor_MenuView(
+ MVT_UNUSED_ECONOMIC_MISSION_SELECTUnk,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::UnusedEconomicMissionSelect::
+ MenuView_UnusedEconomicMissionSelect_Prepare::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::General::MenuView_General_DoInitial_DefaultMainMenuStructure::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::MissionSelect::MenuView_MissionSelect_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_UnusedEconomicMissionSelect::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a220 Constructor_MenuView_UnusedSomeMissionStartUnk | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A220
+ void Init::Constructor_MenuView_UnusedSomeMissionStartUnk()
+ {
+ Constructor_MenuView(
+ MVT_UNUSED_SOME_MISSION_STARTUnk,
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::UnusedSomeMissionStartUnk::MenuView_UnusedSomeMissionStartUnk_Prepare::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::General::MenuView_General_DoInitial_DefaultMainMenuStructure::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::General::MenuView_General_DoEveryFrame_FirstGfxCentered::instance)));
+ _atexit(Meta::Destructor_MenuView_UnusedSomeMissionStartUnk::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a250 Constructor_MenuView_UnusedOldTitleMenu | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A250
+ void Init::Constructor_MenuView_UnusedOldTitleMenu()
+ {
+ Constructor_MenuView(
+ MVT_UNUSED_OLD_TITLE_MENU,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::UnusedOldTitleMenu::MenuView_UnusedOldTitleMenu_Prepare::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::UnusedOldTitleMenu::MenuView_UnusedOldTitleMenu_DoInitial::instance)),
+ (cdeclVoidFunc*)((int)(DoNothing::instance)));
+ _atexit(Meta::Destructor_MenuView_UnusedOldTitleMenu::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a280 Constructor_MenuView_MpConnection | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A280
+ void Init::Constructor_MenuView_MpConnection()
+ {
+ Constructor_MenuView(
+ MVT_MP_CONNECTION,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::MpConnection::MenuView_MpConnection_Prepare::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::General::MenuView_General_DoInitial_DefaultMainMenuStructure::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::General::MenuView_General_DoEveryFrame_FirstGfxCentered::instance)));
+ _atexit(Meta::Destructor_MenuView_MpConnection::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a2b0 Constructor_MenuView_Unknown21 | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A2B0
+ void Init::Constructor_MenuView_Unknown21()
+ {
+ Constructor_MenuView(
+ MVT_UNKNOWN_21,
+ (cdeclVoidFunc*)((int)(UI::Helpers::MainMenu_Unknown21_Prepare::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::General::MenuView_General_DoInitial_DefaultMainMenuStructure::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::General::MenuView_General_DoEveryFrame_FirstGfxCentered::instance)));
+ _atexit(Meta::Destructor_MenuView_Unknown21::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a2e0 Constructor_MenuView_LobbyMenu | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A2E0
+ void Init::Constructor_MenuView_LobbyMenu()
+ {
+ Constructor_MenuView(20,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::LobbyMenu::MenuView_LobbyMenu_Prepare::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::General::MenuView_General_DoInitial_DefaultMainMenuStructure::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::LobbyMenu::MenuView_LobbyMenu_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_LobbyMenu::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a310 Constructor_MenuView_Unknown33 | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A310
+ void Init::Constructor_MenuView_Unknown33()
+ {
+ Constructor_MenuView(
+ MVT_UNKNOWN_33, (cdeclVoidFunc*)((int)(DoNothing::instance)),
+ (cdeclVoidFunc*)((int)(DoNothing::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::Unknown33::MenuView_Unknown33_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_Unknown33::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a340 Constructor_MenuView_Unknown61ReturnToSkrimishMenuUnk | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A340
+ void Init::Constructor_MenuView_Unknown61ReturnToSkrimishMenuUnk()
+ {
+ Constructor_MenuView(
+ MVT_UNKNOWN_61_RETURN_TO_SKIRMISH_MENUUnk,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::Unknown61ReturnToSkrimishMenuUnk::
+ MenuView_Unknown61ReturnToSkrimishMenuUnk_Prepare::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::Unknown61ReturnToSkrimishMenuUnk::
+ MenuView_Unknown61ReturnToSkrimishMenuUnk_DoInitial::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::Unknown61ReturnToSkrimishMenuUnk::
+ MenuView_Unknown61ReturnToSkrimishMenuUnk_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_Unknown61ReturnToSkrimishMenuUnk::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a370 Constructor_MenuView_SingleplayerMapChoice | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A370
+ void Init::Constructor_MenuView_SingleplayerMapChoice()
+ {
+ Constructor_MenuView(
+ MVT_SINGLEPLAYER_MAP_CHOICE,
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::SingleplayerMapChoice::MenuView_SingleplayerMapChoice_Prepare::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::General::MenuView_General_DoInitial_DefaultMainMenuStructure::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::SingleplayerMapChoice::MenuView_SingleplayerMapChoice_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_SingleplayerMapChoice::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a3a0 Constructor_MenuView_Unknown49DoesNothingUnk | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A3A0
+ void Init::Constructor_MenuView_Unknown49DoesNothingUnk()
+ {
+ Constructor_MenuView(
+ MVT_UNKNOWN_49_DOES_NOTHINGUnk, (cdeclVoidFunc*)((int)(DoNothing::instance)),
+ (cdeclVoidFunc*)((int)(DoNothing::instance)), (cdeclVoidFunc*)((int)(DoNothing::instance)));
+ _atexit(Meta::Destructor_MenuView_Unknown49DoesNothingUnk::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a3d0 Constructor_MenuView_MapEditorLandscaping | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A3D0
+ void Init::Constructor_MenuView_MapEditorLandscaping()
+ {
+ Constructor_MenuView(
+ MVT_MAP_EDITOR_LANDSCAPING,
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::MapEditorLandscaping::MenuView_MapEditorLandscaping_Prepare::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::MapEditorLandscaping::MenuView_MapEditorLandscaping_DoInitial::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::MapEditorLandscaping::MenuView_MapEditorLandscaping_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_MapEditorLandscaping::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a400 Constructor_MenuView_BuildMenu | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A400
+ void Init::Constructor_MenuView_BuildMenu()
+ {
+ Constructor_MenuView(
+ MVT_BUILD_MENU,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::BuildMenu::MenuView_BuildMenu_Prepare::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::BuildMenu::MenuView_BuildMenu_DoInitial::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::BuildMenu::MenuView_BuildMenu_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_BuildMenu::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a430 Constructor_MenuView_BuildingAndStatusMenu | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A430
+ void Init::Constructor_MenuView_BuildingAndStatusMenu()
+ {
+ Constructor_MenuView(
+ MVT_BUILDING_AND_STATUS_MENU,
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::BuildingAndStatusMenu::MenuView_BuildingAndStatusMenu_Prepare::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::BuildingAndStatusMenu::MenuView_BuildingAndStatusMenu_DoInitial::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::BuildingAndStatusMenu::MenuView_BuildingAndStatusMenu_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_BuildingAndStatusMenu::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a460 Constructor_MenuView_UnusedHelpTextEditor | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A460
+ void Init::Constructor_MenuView_UnusedHelpTextEditor()
+ {
+ Constructor_MenuView(
+ MVT_UNUSED_HELP_TEXT_EDITOR,
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::UnusedHelpTextEditor::MenuView_UnusedHelpTextEditor_Prepare::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::General::MenuView_General_DoInitial_OnlySetMenuXY::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::UnusedHelpTextEditor::MenuView_UnusedHelpTextEditor_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_UnusedHelpTextEditor::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a490 Constructor_MenuView_MapEditorProperties | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A490
+ void Init::Constructor_MenuView_MapEditorProperties()
+ {
+ Constructor_MenuView(
+ MVT_MAP_EDITOR_PROPERTIES,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::MapEditorProperties::MenuView_MapEditorProperties_Prepare::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::General::MenuView_General_DoInitial_DefaultMainMenuStructure::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::MapEditorProperties::MenuView_MapEditorProperties_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_MapEditorProperties::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a4c0 Constructor_MenuView_NewMapMaptype | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A4C0
+ void Init::Constructor_MenuView_NewMapMaptype()
+ {
+ Constructor_MenuView(
+ MVT_NEW_MAP_MAPTYPE,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::NewMapMaptype::MenuView_NewMapMaptype_Prepare::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::General::MenuView_General_DoInitial_DefaultMainMenuStructure::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::General::MenuView_General_DoEveryFrame_FirstGfxCentered::instance)));
+ _atexit(Meta::Destructor_MenuView_NewMapMaptype::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a4f0 Constructor_MenuView_NewMapMapsize | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A4F0
+ void Init::Constructor_MenuView_NewMapMapsize()
+ {
+ Constructor_MenuView(
+ MVT_NEW_MAP_MAPSIZE,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::NewMapMapsize::MenuView_NewMapMapsize_Prepare::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::General::MenuView_General_DoInitial_DefaultMainMenuStructure::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::NewMapMapsize::MenuView_NewMapMapsize_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_NewMapMapsize::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a520 Constructor_MenuView_UnusedChooseAvailableKeeps | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A520
+ void Init::Constructor_MenuView_UnusedChooseAvailableKeeps()
+ {
+ Constructor_MenuView(
+ MVT_UNUSED_CHOOSE_AVAILABLE_KEEPS,
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::UnusedChooseAvailableKeeps::MenuView_UnusedChooseAvailableKeeps_Prepare::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::General::MenuView_General_DoInitial_ScreenToBlack::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::UnusedChooseAvailableKeeps::
+ MenuView_UnusedChooseAvailableKeeps_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_UnusedChooseAvailableKeeps::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a550 Constructor_MenuView_UnusedChooseGameType | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A550
+ void Init::Constructor_MenuView_UnusedChooseGameType()
+ {
+ Constructor_MenuView(
+ MVT_UNUSED_CHOOSE_GAME_TYPE, (cdeclVoidFunc*)((int)(DoNothing::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::General::MenuView_General_DoInitial_ScreenToBlack::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::UnusedChooseGameType::MenuView_UnusedChooseGameType_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_UnusedChooseGameType::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a580 Constructor_MenuView_UnusedCreateSiege | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A580
+ void Init::Constructor_MenuView_UnusedCreateSiege()
+ {
+ Constructor_MenuView(
+ MVT_UNUSED_CREATE_SIEGE,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::UnusedCreateSiege::MenuView_UnusedCreateSiege_Prepare::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::General::MenuView_General_DoInitial_DefaultMainMenuStructure::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::UnusedCreateSiege::MenuView_UnusedCreateSiege_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_UnusedCreateSiege::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a5b0 Constructor_MenuView_Unknown26_CampaignRelatedUnk | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A5B0
+ void Init::Constructor_MenuView_Unknown26_CampaignRelatedUnk()
+ {
+ Constructor_MenuView(
+ MVT_UNKNOWN_26_CAMPAIGN_RELATEDUnk,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::Unknown26::MenuView_Unknown26_CampaignRelatedUnk_Prepare::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::Unknown26::MenuView_Unknown26_CampaignRelatedUnk_DoInitial::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::Unknown26::MenuView_Unknown26_CampaignRelatedUnk_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_Unknown26_CampaignRelatedUnk::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a5e0 Constructor_MenuView_CampaignUnk | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A5E0
+ void Init::Constructor_MenuView_CampaignUnk()
+ {
+ Constructor_MenuView(
+ MVT_UNKNOWN_27_CAMPAIGNUnk,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::CampaignUnk::MenuView_CampaignUnk_Prepare::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::CampaignUnk::MenuView_CampaignUnk_DoInitial::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::CampaignUnk::MenuView_CampaignUnk_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_CampaignUnk::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a610 Constructor_MenuView_ScenarioDescription | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A610
+ void Init::Constructor_MenuView_ScenarioDescription()
+ {
+ Constructor_MenuView(
+ MVT_SCENARIO_DESCRIPTION,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::ScenarioDescription::MenuView_ScenarioDescription_Prepare::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::ScenarioDescription::MenuView_ScenarioDescription_DoInitial::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::ScenarioDescription::MenuView_ScenarioDescription_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_ScenarioDescription::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a640 Constructor_MenuView_MissionFinishedTransition | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A640
+ void Init::Constructor_MenuView_MissionFinishedTransition()
+ {
+ Constructor_MenuView(
+ MVT_MISSION_FINISHED_TRANSITION,
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::MissionFinishedTransition::MenuView_MissionFinishedTransition_Prepare::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::General::MenuView_General_DoInitial_DefaultMainMenuStructure::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::MissionFinishedTransition::
+ MenuView_MissionFinishedTransition_DoEveryFrame::instance)));
+ _atexit(Destructor_MenuView_MissionFinishedTransition::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a670 Constructor_MenuView_GameLost | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A670
+ void Init::Constructor_MenuView_GameLost()
+ {
+ Constructor_MenuView(
+ MVT_GAME_LOSTUnk,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::GameLost::MenuView_GameLost_Prepare::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::General::MenuView_General_DoInitial_DefaultMainMenuStructure::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::GameLost::MenuView_GameLost_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_GameLost::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a6a0 Constructor_MenuView_UnusedExtremeAd | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A6A0
+ void Init::Constructor_MenuView_UnusedExtremeAd()
+ {
+ Constructor_MenuView(
+ MVT_UNUSED_EXTREME_AD,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::UnusedExtremeAd::MenuView_UnusedExtremeAd_Prepare::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::UnusedExtremeAd::MenuView_UnusedExtremeAd_DoInitial::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::UnusedExtremeAd::MenuView_UnusedExtremeAd_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_UnusedExtremeAd::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a6d0 Constructor_MenuView_EditScenario | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A6D0
+ void Init::Constructor_MenuView_EditScenario()
+ {
+ Constructor_MenuView(
+ MVT_EDIT_SCENARIO,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::EditScenario::MenuView_EditScenario_Prepare::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::General::MenuView_General_DoInitial_OnlySetMenuXY::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::EditScenario::MenuView_EditScenario_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_EditScenario::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a700 Constructor_MenuView_GameStartEnterName | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A700
+ void Init::Constructor_MenuView_GameStartEnterName()
+ {
+ Constructor_MenuView(
+ MVT_GAME_START_ENTER_NAME,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::GameStartEnterName::MenuView_GameStartEnterName_Prepare::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::GameStartEnterName::MenuView_GameStartEnterName_DoInitial::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::GameStartEnterName::MenuView_GameStartEnterName_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_GameStartEnterName::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a730 Constructor_MenuView_MainMenu | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A730
+ void Init::Constructor_MenuView_MainMenu()
+ {
+ Constructor_MenuView(
+ MVT_MAIN_MENU,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::MainMenu::MenuView_MainMenu_Prepare::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::MainMenu::MenuView_MainMenu_DoInitial::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::MainMenu::MenuView_MainMenu_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_MainMenu::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a760 Constructor_MenuView_HistoricCampaignSelect | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A760
+ void Init::Constructor_MenuView_HistoricCampaignSelect()
+ {
+ Constructor_MenuView(
+ MVT_HISTORIC_CAMPAIGN_SELECT,
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::HistoricCampaignSelect::MenuView_HistoricCampaignSelect_Prepare::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::General::MenuView_General_DoInitial_BlackBoxDefaultBorderAndPicture::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::HistoricCampaignSelect::MenuView_HistoricCampaignSelect_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_HistoricCampaignSelect::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a790 Constructor_MenuView_UnusedEconomicGametypeSelect | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A790
+ void Init::Constructor_MenuView_UnusedEconomicGametypeSelect()
+ {
+ Constructor_MenuView(
+ MVT_UNUSED_ECONOMIC_GAMETYPE_SELECT,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::UnusedEconomicGametypeSelect::
+ MenuView_UnusedEconomicGametypeSelect_Prepare::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::UnusedEconomicGametypeSelect::
+ MenuView_UnusedEconomicGametypeSelect_DoInitial::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::General::MenuView_General_DoEveryFrame_FirstGfxCentered::instance)));
+ _atexit(Meta::Destructor_MenuView_UnusedEconomicGametypeSelect::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a7c0 Constructor_MenuView_CustomScenarios | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A7C0
+ void Init::Constructor_MenuView_CustomScenarios()
+ {
+ Constructor_MenuView(
+ MVT_CUSTOM_SCENARIOS,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::CustomScenarios::MenuView_CustomScenarios_Prepare::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::General::MenuView_General_DoInitial_BlackBoxDefaultBorderAndPicture::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::CustomScenarios::MenuView_CustomScenarios_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_CustomScenarios::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a7f0 Constructor_MenuView_Credits | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A7F0
+ void Init::Constructor_MenuView_Credits()
+ {
+ Constructor_MenuView(
+ MVT_CREDITS,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::Credits::MenuView_Credits_Prepare::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::Credits::MenuView_Credits_DoInitial::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::Credits::MenuView_Credits_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_Credits::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a820 Constructor_MenuView_UnusedDemoBuyItScreen | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A820
+ void Init::Constructor_MenuView_UnusedDemoBuyItScreen()
+ {
+ Constructor_MenuView(
+ MVT_UNUSED_DEMO_BUY_IT_SCREEN,
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::UnusedDemoBuyItScreen::MenuView_UnusedDemoBuyItScreen_Prepare::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::UnusedDemoBuyItScreen::MenuView_UnusedDemoBuyItScreen_DoInitial::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::UnusedDemoBuyItScreen::MenuView_UnusedDemoBuyItScreen_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_UnusedDemoBuyItScreen::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a850 Constructor_MenuView_IntroVideo | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A850
+ void Init::Constructor_MenuView_IntroVideo()
+ {
+ Constructor_MenuView(
+ MVT_INTRO_VIDEO,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::IntroVideo::MenuView_IntroVideo_Prepare::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::General::MenuView_General_DoInitial_OnlySetMenuXY::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::IntroVideo::MenuView_IntroVideo_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_IntroVideo::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a880 Constructor_MenuView_HistoricMissionPicture | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A880
+ void Init::Constructor_MenuView_HistoricMissionPicture()
+ {
+ Constructor_MenuView(
+ MVT_HISTORIC_MISSION_PICTURE,
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::HistoricMissionPicture::MenuView_HistoricMissionPicture_Prepare::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::General::MenuView_General_DoInitial_BlackBorderAndGfx::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::HistoricMissionPicture::MenuView_HistoricMissionPicture_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_HistoricMissionPicture::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a8b0 Constructor_MenuView_HistoricMissionIntro | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A8B0
+ void Init::Constructor_MenuView_HistoricMissionIntro()
+ {
+ Constructor_MenuView(
+ MVT_HISTORIC_MISSION_INTRO,
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::HistoricMissionIntro::MenuView_HistoricMissionIntro_Prepare::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::General::MenuView_General_DoInitial_BlackBorderAndGfx::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::HistoricMissionIntro::MenuView_HistoricMissionIntro_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_HistoricMissionIntro::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a8e0 Constructor_MenuView_HistoricCampaignIntro | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A8E0
+ void Init::Constructor_MenuView_HistoricCampaignIntro()
+ {
+ Constructor_MenuView(
+ MVT_HISTORIC_CAMPAIGN_INTRO,
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::HistoricCampaignIntro::MenuView_HistoricCampaignIntro_Prepare::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::General::MenuView_General_DoInitial_BlackBorderAndGfx::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::HistoricCampaignIntro::MenuView_HistoricCampaignIntro_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_HistoricCampaignIntro::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a910 Constructor_MenuView_HistoricCampaignOutro | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A910
+ void Init::Constructor_MenuView_HistoricCampaignOutro()
+ {
+ Constructor_MenuView(
+ MVT_HISTORIC_CAMPAIGN_OUTRO,
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::HistoricCampaignOutro::MenuView_HistoricCampaignOutro_Prepare::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::General::MenuView_General_DoInitial_BlackBorderAndGfx::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::HistoricCampaignOutro::MenuView_HistoricCampaignOutro_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_HistoricCampaignOutro::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a940 Constructor_MenuView_UnusedSelectRandomNumberOfEnemies | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A940
+ void Init::Constructor_MenuView_UnusedSelectRandomNumberOfEnemies()
+ {
+ Constructor_MenuView(
+ MVT_UNUSED_SELECT_RANDOM_NUMBER_OF_ENEMIES,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::General::MenuView_General_Prepare_SwordShieldAndBorder::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::General::MenuView_General_DoInitial_DefaultMainMenuStructure::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::UnusedSelectRandomNumberOfEnemies::
+ MenuView_UnusedSelectRandomNumberOfEnemies_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_UnusedSelectRandomNumberOfEnemies::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a970 Constructor_MenuView_SelectCrusade | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A970
+ void Init::Constructor_MenuView_SelectCrusade()
+ {
+ Constructor_MenuView(
+ MVT_SELECT_CRUSADE,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::General::MenuView_General_Prepare_SwordShieldAndBorder::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::SelectCrusade::MenuView_SelectCrusade_DoInitial::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::SelectCrusade::MenuView_SelectCrusade_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_SelectCrusade::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a9a0 Constructor_MenuView_CrusadeMissionIntro | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A9A0
+ void Init::Constructor_MenuView_CrusadeMissionIntro()
+ {
+ Constructor_MenuView(
+ MVT_CRUSADE_MISSION_INTRO,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::CrusadeMissionIntro::MenuView_CrusadeMissionIntro_Prepare::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::General::MenuView_General_DoInitial_CrusadeAndRankMenu::instance)),
+ (cdeclVoidFunc*)((
+ int)(UI::MenuViews::CrusadeMissionIntro::MenuView_CrusadeMissionIntro_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_CrusadeMissionIntro::instance);
+ return;
+ }
+}
+}
+
+### 0x0059a9d0 Constructor_MenuView_CrusadeMap | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059A9D0
+ void Init::Constructor_MenuView_CrusadeMap()
+ {
+ Constructor_MenuView(
+ MVT_CRUSADE_MAP,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::CrusadeMap::MenuView_CrusadeMap_Prepare::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::General::MenuView_General_DoInitial_CrusadeAndRankMenu::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::CrusadeMap::MenuView_CrusadeMap_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_CrusadeMap::instance);
+ return;
+ }
+}
+}
+
+### 0x0059aa00 Constructor_MenuView_RankingGames | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059AA00
+ void Init::Constructor_MenuView_RankingGames()
+ {
+ Constructor_MenuView(
+ MVT_RANKING_GAMES,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::RankingGames::MenuView_RankingGames_Prepare::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::General::MenuView_General_DoInitial_CrusadeAndRankMenu::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::RankingGames::MenuView_RankingGames_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_RankingGames::instance);
+ return;
+ }
+}
+}
+
+### 0x0059aa30 Constructor_MenuView_CrusadeEndscreen | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059AA30
+ void Init::Constructor_MenuView_CrusadeEndscreen()
+ {
+ Constructor_MenuView(
+ MVT_CRUSADE_ENDSCREEN,
+ (cdeclVoidFunc*)((int)(UI::MenuViews::CrusadeEndscreen::MenuView_CrusadeEndscreen_Prepare::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::CrusadeEndscreen::MenuView_CrusadeEndscreen_DoInitial::instance)),
+ (cdeclVoidFunc*)((int)(UI::MenuViews::CrusadeEndscreen::MenuView_CrusadeEndscreen_DoEveryFrame::instance)));
+ _atexit(Meta::Destructor_MenuView_CrusadeEndscreen::instance);
+ return;
+ }
+}
+}
+
+### 0x0059aa60 Constructor_Menu_Unknown_ManyThings | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059AA60
+ void Init::Constructor_Menu_Unknown_ManyThings()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_Unknown_ManyThings);
+ return;
+ }
+}
+}
+
+### 0x0059aa70 Constructor_Menu_IntroLogos | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059AA70
+ void Init::Constructor_Menu_IntroLogos()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_IntroLogos);
+ return;
+ }
+}
+}
+
+### 0x0059aa80 Constructor_Menu_IntroVideo | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059AA80
+ void Init::Constructor_Menu_IntroVideo()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_IntroVideo);
+ return;
+ }
+}
+}
+
+### 0x0059aa90 Constructor_Menu_StartEnterName | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059AA90
+ void Init::Constructor_Menu_StartEnterName()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_StartEnterName);
+ return;
+ }
+}
+}
+
+### 0x0059aaa0 Constructor_Menu_MainMenu | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059AAA0
+ void Init::Constructor_Menu_MainMenu()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_MainMenu);
+ return;
+ }
+}
+}
+
+### 0x0059aab0 Constructor_Menu_HistoricCampaignSelect | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059AAB0
+ void Init::Constructor_Menu_HistoricCampaignSelect()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_HistoricCampaignSelect);
+ return;
+ }
+}
+}
+
+### 0x0059aac0 Constructor_Menu_UnusedEconomicGametypeSelect | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059AAC0
+ void Init::Constructor_Menu_UnusedEconomicGametypeSelect()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_UnusedEconomicGametypeSelect);
+ return;
+ }
+}
+}
+
+### 0x0059aad0 Constructor_Menu_CustomScenarios | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059AAD0
+ void Init::Constructor_Menu_CustomScenarios()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_CustomScenarios);
+ return;
+ }
+}
+}
+
+### 0x0059aae0 Constructor_Menu_UnusedSomeMissionStartUnk | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059AAE0
+ void Init::Constructor_Menu_UnusedSomeMissionStartUnk()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_UnusedSomeMissionStartUnk);
+ return;
+ }
+}
+}
+
+### 0x0059aaf0 Constructor_Menu_HistoricMissionSelect | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059AAF0
+ void Init::Constructor_Menu_HistoricMissionSelect()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_HistoricMissionSelect);
+ return;
+ }
+}
+}
+
+### 0x0059ab00 Constructor_Menu_UnusedEconomicMissionSelect | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059AB00
+ void Init::Constructor_Menu_UnusedEconomicMissionSelect()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_UnusedEconomicMissionSelect);
+ return;
+ }
+}
+}
+
+### 0x0059ab10 Constructor_Menu_UnusedSetName | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059AB10
+ void Init::Constructor_Menu_UnusedSetName()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_UnusedSetName);
+ return;
+ }
+}
+}
+
+### 0x0059ab20 Constructor_Menu_UnusedOldTitleMenu | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059AB20
+ void Init::Constructor_Menu_UnusedOldTitleMenu()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_UnusedOldTitleMenu);
+ return;
+ }
+}
+}
+
+### 0x0059ab30 Constructor_Menu_LobbyMenu | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059AB30
+ void Init::Constructor_Menu_LobbyMenu()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_LobbyMenu);
+ return;
+ }
+}
+}
+
+### 0x0059ab40 Constructor_Menu_SkirmishConnectionOptions | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059AB40
+ void Init::Constructor_Menu_SkirmishConnectionOptions()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_SkirmishConnectionOptions);
+ return;
+ }
+}
+}
+
+### 0x0059ab50 Constructor_Menu_SkirmishPlayOptions | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059AB50
+ void Init::Constructor_Menu_SkirmishPlayOptions()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_SkirmishPlayOptions);
+ return;
+ }
+}
+}
+
+### 0x0059ab60 Constructor_Menu_SendMapTo | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059AB60
+ void Init::Constructor_Menu_SendMapTo()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_SendMapTo);
+ return;
+ }
+}
+}
+
+### 0x0059ab70 Constructor_Menu_ReceiveMapFrom | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059AB70
+ void Init::Constructor_Menu_ReceiveMapFrom()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_ReceiveMapFrom);
+ return;
+ }
+}
+}
+
+### 0x0059ab80 Constructor_Menu_UnusedSelectRandomNumberOfEnemies | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059AB80
+ void Init::Constructor_Menu_UnusedSelectRandomNumberOfEnemies()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_UnusedSelectRandomNumberOfEnemies);
+ return;
+ }
+}
+}
+
+### 0x0059ab90 Constructor_Menu_ChooseRandomNumberOfEnemies | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059AB90
+ void Init::Constructor_Menu_ChooseRandomNumberOfEnemies()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_ChooseRandomNumberOfEnemies);
+ return;
+ }
+}
+}
+
+### 0x0059aba0 Constructor_Menu_SelectCrusade | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059ABA0
+ void Init::Constructor_Menu_SelectCrusade()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_SelectCrusade);
+ return;
+ }
+}
+}
+
+### 0x0059abb0 Constructor_Menu_BasicAiLordSelect | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059ABB0
+ void Init::Constructor_Menu_BasicAiLordSelect()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_BasicAiLordSelect);
+ return;
+ }
+}
+}
+
+### 0x0059abc0 Constructor_Menu_ExtendedAiLordSelect | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059ABC0
+ void Init::Constructor_Menu_ExtendedAiLordSelect()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_ExtendedAiLordSelect);
+ return;
+ }
+}
+}
+
+### 0x0059abd0 Constructor_Menu_Roundtable | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059ABD0
+ void Init::Constructor_Menu_Roundtable()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_Roundtable);
+ return;
+ }
+}
+}
+
+### 0x0059abe0 Constructor_Menu_OverlaySlider | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059ABE0
+ void Init::Constructor_Menu_OverlaySlider()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_OverlaySlider);
+ return;
+ }
+}
+}
+
+### 0x0059abf0 Constructor_Menu_UnusedWinCondition | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059ABF0
+ void Init::Constructor_Menu_UnusedWinCondition()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_UnusedWinCondition);
+ return;
+ }
+}
+}
+
+### 0x0059ac00 Constructor_Menu_SingleplayerMapChoice | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0059AC00
+ void Init::Constructor_Menu_SingleplayerMapChoice()
+ {
+ Constructor_Menu(
+ DAT_RenderingDefinedData.MenuItems_SingleplayerMapChoice);
+ return;
+ }
+}
+}
+

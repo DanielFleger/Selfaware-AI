@@ -1,0 +1,1480 @@
+### 0x00531220 processUnitAttackOtherUnit | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00531220
+ undefined4 UnitsState::processUnitAttackOtherUnit(int unitID, int unit2ID)
+ {
+ byte bVar1;
+ bool bVar2;
+ short _healthPercentage;
+ int _tribeID;
+ int _damage;
+ int _xPosition;
+ uint uVar3;
+ int _yPosition;
+ UnitTypeInt _unit2Type;
+ int _health;
+ int _maxHealth;
+ int* _newHealth;
+ short _playerID;
+ eSFX _soundEffect;
+ UnitTypeShort _unit1Type;
+ _tribeID = (int)this->units[unit2ID].tribeID;
+ _unit1Type = this->units[unitID].unitType;
+ /*
+ get the unit type of unit2
+ */
+ _unit2Type = (UnitTypeInt)(short)this->units[unit2ID].unitType;
+ /*
+ get the damage from the array based: row is unit1ID type, column is unit2ID type
+ */
+ _damage = DAT_UnitPropertiesDefinedData.MELEE_DAMAGE[(short)_unit1Type][_unit2Type];
+ /*
+ if unit 1 is not a lord
+ */
+ if (_unit1Type != UT_LORD) {
+ _damage = computeDamageFearFactorBonus(
+ _damage, this->units[unitID].owner);
+ }
+ /*
+ offset 150
+ */
+ _playerID = this->units[unitID].owner;
+ if ((_playerID != 0) && (this->units[unit2ID].owner != _playerID)) {
+ /*
+ offset 1024
+ */
+ this->units[unit2ID].lastEncounteredEnemyPlayerID = _playerID;
+ /*
+ let unit 2 know we attacked them?
+ */
+ this->units[unit2ID].lastEncounteredEnemyUnitIDUnk = (short)unitID;
+ }
+ _newHealth = &this->units[unit2ID].health;
+ /*
+ decrement the health of unit 2 by damage
+ */
+ *_newHealth = *_newHealth - _damage;
+ if (this->units[unit2ID].health < 1) {
+ this->units[unit2ID].health = 0;
+ }
+ /*
+ get the hitpoints of unit 2
+ */
+ _maxHealth = this->units[unit2ID].maxHealth;
+ /*
+ compute the health bar in percentages
+ */
+ if (_maxHealth == 0) {
+ _healthPercentage = 100;
+ } else {
+ _healthPercentage = (short)((this->units[unit2ID].health * 100) / _maxHealth);
+ }
+ this->units[unit2ID].healthPercentage = _healthPercentage;
+ _health = this->units[unit2ID].health;
+ this->units[unit2ID].healthbar = _healthPercentage / 10;
+ /*
+ if unit2 has health left, take the go
+ */
+ if (0 < _health)
+ goto LAB_005317e8;
+ /*
+ offset 812
+ */
+ if (this->units[unit2ID].isStalked == 0)
+ goto switchD_00531340_caseD_4;
+ /*
+ switch unit 1 unit type
+ */
+ switch (this->units[unitID].unitType) {
+ case UT_WOODCUTTER:
+ case UT_LORD:
+ _soundEffect = FX_LORD_HIT;
+ break;
+ default : goto switchD_00531340_caseD_4;
+ case UT_E_SPEAR:
+ case UT_A_ARCHER:
+ case UT_A_SLINGER:
+ case UT_A_HARCHER:
+ case UT_A_FIRETHROWER:
+ _soundEffect = FX_SPEAR_HIT;
+ goto LAB_0053138c;
+ case UT_E_PIKE:
+ _yPosition = (int)this->units[unitID].y;
+ _xPosition = (int)this->units[unitID].x;
+ _soundEffect = FX_PIKE_HIT;
+ goto LAB_0053139e;
+ case UT_E_MACE:
+ _soundEffect = FX_MACE_HIT;
+ break;
+ case UT_E_SWORD:
+ case UT_E_KNIGHT:
+ case UT_A_ASSASSIN:
+ case UT_A_SWORDSMAN:
+ _soundEffect = FX_SWORD_HIT;
+ LAB_0053138c:
+ _yPosition = (int)this->units[unitID].y;
+ _xPosition = (int)this->units[unitID].x;
+ goto LAB_0053139e;
+ }
+ /*
+ current Y Position
+ */
+ _yPosition = (int)this->units[unitID].y;
+ /*
+ current X Position
+ */
+ _xPosition = (int)this->units[unitID].x;
+ LAB_0053139e:
+ playSFXAtLocation(
+ _xPosition, _yPosition, _soundEffect);
+ switchD_00531340_caseD_4:
+ /*
+ health
+ */
+ if (0 < this->units[unit2ID].health) {
+ LAB_005317e8:
+ if ((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ && (this->units[unit2ID].owner == DAT_GameSynchronyState.currentPlayerSlotID)) {
+ playSFXWeAreUnderAttack();
+ }
+ return (undefined4)(0);
+ }
+ /*
+ unit offset 672
+ */
+ this->units[unit2ID].dying = 1;
+ if (0 < _tribeID) {
+ DAT_TribesState.tribes[_tribeID].field133_0x278 = 1;
+ }
+ /*
+ offset 688
+ */
+ this->units[unit2ID].animationCycleNumber = 0;
+ /*
+ unit type
+ */
+ _unit1Type = this->units[unitID].unitType;
+ /*
+ swordsman
+ */
+ if (_unit1Type == UT_E_SWORD) {
+ /*
+ offset 704
+ */
+ this->units[unit2ID].state.generic = US_DEATH_03;
+ } else {
+ /*
+ knight
+ */
+ if (_unit1Type == UT_E_KNIGHT) {
+ this->units[unit2ID].state.generic = US_DEATH_03;
+ } else {
+ /*
+ spearman
+ */
+ if (_unit1Type == UT_E_SPEAR) {
+ this->units[unit2ID].state.generic = US_DEATH_03;
+ } else {
+ /*
+ pikeman
+ */
+ if (_unit1Type == UT_E_PIKE) {
+ this->units[unit2ID].state.generic = US_DEATH_03;
+ } else {
+ /*
+ crossbow
+ */
+ if (_unit1Type == UT_E_XBOW) {
+ this->units[unit2ID].state.generic = US_DEATH_03;
+ } else {
+ /*
+ archer
+ */
+ if (_unit1Type == UT_E_ARCHER) {
+ this->units[unit2ID].state.generic = US_DEATH_03;
+ } else {
+ /*
+ arabian archer
+ */
+ if (_unit1Type == UT_A_ARCHER) {
+ this->units[unit2ID].state.generic = US_DEATH_03;
+ } else {
+ /*
+ assassin
+ */
+ if (_unit1Type == UT_A_ASSASSIN) {
+ this->units[unit2ID].state.generic
+ = US_DEATH_03;
+ } else {
+ /*
+ horse archer
+ */
+ if (_unit1Type == UT_A_HARCHER) {
+ this->units[unit2ID].state.generic
+ = US_DEATH_03;
+ } else {
+ /*
+ arabian swordsman
+ */
+ if (_unit1Type == UT_A_SWORDSMAN) {
+ this->units[unit2ID].state.generic
+ = US_DEATH_03;
+ } else {
+ /*
+ fire thrower
+ */
+ this->units[unit2ID].state.generic
+ = (_unit1Type != UT_A_FIRETHROWER)
+ + US_DEATH_03;
+ }
+ }
+ }
+ }
+ }
+ }
+ }
+ }
+ }
+ }
+ /*
+ offset 900
+ */
+ uVar3 = this->units[unit2ID].fixedRng & 1;
+ bVar1 = this->units[unit2ID].isStalked;
+ /*
+ offset 246
+ */
+ this->units[unit2ID].tunnelerFinishedDigging = 1;
+ /*
+ offset 812
+ */
+ if (bVar1 != 0) {
+ return (undefined4)(1);
+ }
+ /*
+ unit type of unit 2
+ */
+ switch (_unit2Type) {
+ case UT_S_CATAPULT:
+ case UT_S_MANGONEL:
+ case UT_S_TOWER:
+ case UT_S_BATTERINGRAM:
+ case UT_S_BALLISTA:
+ case UT_S_FBALLISTA:
+ _soundEffect = FX_SIEGE_DIE;
+ goto LAB_005317bf;
+ case UT_S_TREBUCHET:
+ _soundEffect = FX_TR_DIE;
+ goto LAB_00531509;
+ case UT_S_SHIELD:
+ if (0 < this->units[unitID].digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300) {
+ _soundEffect = FX_BODY_HIT;
+ goto LAB_00531509;
+ }
+ _soundEffect = FX_SIEGE_DIE;
+ goto LAB_00531534;
+ }
+ if ((((_unit2Type == UT_BREWER) || (_unit2Type == UT_TANNER))
+ || (_unit2Type == UT_LADY))
+ || (_unit2Type == UT_MOTHER)) {
+ LAB_00531591:
+ bVar2 = true;
+ playSFXAtLocation(
+ (int)this->units[unit2ID].x, this->units[unit2ID].y, FX_GIRL_DIE);
+ LAB_005315bd:
+ if (_unit2Type == UT_LORD) {
+ if (this->units[unit2ID].owner == DAT_GameSynchronyState.currentPlayerSlotID) {
+ setUpSFXToPlayUnk(
+ SEID_PLAYER_LORD_DEATH);
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ setSomeSoundTime();
+ bVar2 = true;
+ goto LAB_00531641;
+ }
+ } else {
+ setUpSFXToPlayUnk(
+ SEID_AI_LORD_DEATH);
+ }
+ bVar2 = true;
+ } else if (_unit2Type == UT_JESTER) {
+ playSFXAtLocation(
+ (int)this->units[unit2ID].x, this->units[unit2ID].y,
+ FX_JESTER_DIE);
+ bVar2 = true;
+ }
+ } else {
+ if (_unit2Type != UT_CHILD) {
+ bVar2 = false;
+ goto LAB_005315bd;
+ }
+ if (this->units[unitID].spriteID == 0x81)
+ goto LAB_00531591;
+ bVar2 = false;
+ }
+ LAB_00531641:
+ switch (this->units[unitID].unitType) {
+ case UT_WOODCUTTER:
+ if (bVar2) {
+ _soundEffect = FX_LORD_HIT;
+ LAB_00531534:
+ playSFXAtLocation(
+ (int)this->units[unit2ID].x, this->units[unit2ID].y, _soundEffect);
+ return (undefined4)(1);
+ }
+ _soundEffect = FX_LORD_KILL;
+ break;
+ default : if (bVar2) { return (undefined4)(1); }
+ uVar3 = this->units[unit2ID].fixedRng & 7;
+ if (uVar3 == 0) {
+ _soundEffect = FX_BODY_HIT;
+ goto LAB_00531534;
+ }
+ if (uVar3 == 1) {
+ _soundEffect = FX_BODY_HIT2;
+ } else {
+ if (uVar3 == 2) {
+ _soundEffect = FX_BODY_HIT3;
+ goto LAB_00531509;
+ }
+ if (uVar3 == 3) {
+ _soundEffect = FX_BODY_HIT4;
+ goto LAB_00531534;
+ }
+ if (uVar3 == 4) {
+ _soundEffect = FX_BODY_HIT5;
+ } else {
+ if (uVar3 == 5) {
+ _soundEffect = FX_BODY_HIT6;
+ goto LAB_00531509;
+ }
+ if (uVar3 == 6) {
+ _soundEffect = FX_BODY_HIT7;
+ goto LAB_00531534;
+ }
+ if (uVar3 != 7) {
+ return (undefined4)(1);
+ }
+ _soundEffect = FX_BODY_HIT8;
+ }
+ }
+ break;
+ case UT_E_SPEAR:
+ case UT_A_ARCHER:
+ case UT_A_SLINGER:
+ case UT_A_HARCHER:
+ case UT_A_FIRETHROWER:
+ if (bVar2) {
+ _soundEffect = FX_SPEAR_HIT;
+ goto LAB_00531509;
+ }
+ goto LAB_005316c4;
+ case UT_E_PIKE:
+ if (bVar2) {
+ _soundEffect = FX_PIKE_HIT;
+ goto LAB_00531534;
+ }
+ LAB_005316c4:
+ if (uVar3 != 0) {
+ if (uVar3 != 1) {
+ return (undefined4)(1);
+ }
+ _soundEffect = FX_DEATH_SPEAR2;
+ LAB_00531509:
+ playSFXAtLocation(
+ (int)this->units[unit2ID].x, this->units[unit2ID].y, _soundEffect);
+ return (undefined4)(1);
+ }
+ _soundEffect = FX_DEATH_SPEAR;
+ break;
+ case UT_E_MACE:
+ if (bVar2) {
+ _soundEffect = FX_MACE_HIT;
+ goto LAB_00531534;
+ }
+ if (uVar3 != 0) {
+ if (uVar3 != 1) {
+ return (undefined4)(1);
+ }
+ _soundEffect = FX_DEATH_CLUB2;
+ goto LAB_00531509;
+ }
+ _soundEffect = FX_DEATH_CLUB;
+ break;
+ case UT_E_SWORD:
+ case UT_E_KNIGHT:
+ case UT_A_ASSASSIN:
+ case UT_A_SWORDSMAN:
+ if (bVar2) {
+ _soundEffect = FX_SWORD_HIT;
+ goto LAB_00531534;
+ }
+ if (uVar3 != 0) {
+ if (uVar3 != 1) {
+ return (undefined4)(1);
+ }
+ _soundEffect = FX_DEATH_SWORD2;
+ goto LAB_00531509;
+ }
+ _soundEffect = FX_DEATH_SWORD;
+ break;
+ case UT_LORD:
+ if (bVar2) {
+ _soundEffect = FX_LORD_HIT;
+ goto LAB_00531509;
+ }
+ if (this->units[unitID].unknownLordTypeBasedMissionSpecificValue_01 == 0) {
+ _soundEffect = FX_LORD_KILL;
+ goto LAB_00531534;
+ }
+ _soundEffect = FX_ARAB_LORD_KILL;
+ }
+ LAB_005317bf:
+ playSFXAtLocation(
+ (int)this->units[unit2ID].x, this->units[unit2ID].y, _soundEffect);
+ return (undefined4)(1);
+ }
+ }
+}
+}
+
+### 0x00531920 processEntityDamageToUnit | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00531920
+ BOOLEnum UnitsState::processEntityDamageToUnit(int unitID, int entityID, int tileDistance)
+ {
+ short* psVar1;
+ byte bVar2;
+ short sVar3;
+ bool bVar4;
+ int _cowDiseaseDamage;
+ int _healthPercentage;
+ int _unitAltitude;
+ int _healthPercentage_2;
+ int _unitYPosition_2;
+ uint uVar5;
+ int _unknown;
+ int _entityShootingUnitID_2;
+ int _cowDiseaseDamage_buff;
+ int _unitHeight;
+ int _damage;
+ int _unitXPosition_2;
+ bool _shootingUnitID;
+ eSFX sfxOffsetInArray;
+ short _entityPlayerID;
+ short _unitXPosition;
+ short _unitYPosition;
+ int _unitHealth;
+ int _healerCount;
+ UnitTypeShort _targetUnitType;
+ bool _siegeProjectile;
+ short _unitPlayerID;
+ short _entityShootingUnitID;
+ EntityTypeShort _entityType;
+ UnitTypeShort _entityType_2;
+ int* _unitHealth_ptr;
+ bool _unitIsSiegeEngine;
+ UnitTypeShort _unitType;
+ /*
+ unclear what it does, but this function removes health from a unit, ranged and melee
+ */
+ _unknown = (int)this->units[unitID].tribeID;
+ _unitIsSiegeEngine = false;
+ _siegeProjectile = false;
+ bVar4 = false;
+ _unitType = this->units[unitID].unitType;
+ _entityShootingUnitID = DAT_EntityState.entityArray[entityID].unitID_OR_seaGullID;
+ _entityShootingUnitID_2 = (int)_entityShootingUnitID;
+ if (unitID < 1) {
+ return FALSE;
+ }
+ if (_entityShootingUnitID_2 == unitID) {
+ return FALSE;
+ }
+ _entityType = DAT_EntityState.entityArray[entityID].entityType;
+ if (_entityType == ET_FIRE) {
+ return FALSE;
+ }
+ if (_entityType == ET_FIRETHROWER) {
+ return FALSE;
+ }
+ if (_entityType == ET_COW_POISON_CLOUD) {
+ /*
+ if the unit is dead, don't bother
+ */
+ if (this->units[unitID].dying != 0) {
+ return FALSE;
+ }
+ _entityShootingUnitID_2 = this->units[unitID].tile;
+ /*
+ if the tile that the unit is on has some properties, don't bother either.
+ */
+ if ((DAT_TileMapState.LogicLayer[_entityShootingUnitID_2] & 0x10000100U) != 0) {
+ return FALSE;
+ }
+ /*
+ if the unit is standing on a building, and that building is a defensive building, return 0
+ */
+ if (DAT_TileMapState.BuildingLayer[_entityShootingUnitID_2] != 0) {
+ switch (DAT_BuildingsState
+ .buildings[DAT_TileMapState.BuildingLayer[_entityShootingUnitID_2]]
+ .buildingType) {
+ case BT_MANORHOUSE:
+ case BT_STONEKEEP:
+ case BT_STRONGHOLD:
+ case BT_KEEPFOUR:
+ case BT_KEEPFIVE:
+ case BT_GATEHOUSELARGE:
+ case BT_GATEHOUSESMALL:
+ case BT_WOODGATE1:
+ case BT_TOWER1:
+ case BT_TOWER2:
+ case BT_TOWER3:
+ case BT_TOWER4:
+ case BT_TOWER5:
+ goto switchD_005319e7_caseD_28;
+ }
+ }
+ /*
+ if the unit is of a type that is invulnerable to disease clouds, return 0
+ */
+ if (DAT_UnitPropertiesDefinedData.UnitClimbStateFlags[0][(short)this->units[unitID].unitType]
+ == 0) {
+ return FALSE;
+ }
+ if (tileDistance == 0) {
+ _cowDiseaseDamage = 400;
+ } else {
+ _cowDiseaseDamage = (-(uint)(tileDistance != 1) & 0xffffffce) + 200;
+ }
+ _healerCount = DAT_GameState.playerDataArray[this->units[unitID].owner].healerCount;
+ if (_healerCount < 3) {
+ if (_healerCount == 2) {
+ /*
+ * 60
+ */
+ _cowDiseaseDamage = (_cowDiseaseDamage * 0x3c) / 100;
+ goto LAB_00531a94;
+ }
+ if (_healerCount != 1)
+ goto LAB_00531a94;
+ /*
+ * 80
+ */
+ _cowDiseaseDamage_buff = _cowDiseaseDamage * 0x50;
+ } else {
+ /*
+ * 40
+ */
+ _cowDiseaseDamage_buff = _cowDiseaseDamage * 0x28;
+ }
+ _cowDiseaseDamage = _cowDiseaseDamage_buff / 100;
+ LAB_00531a94:
+ _unitHealth_ptr = &this->units[unitID].health;
+ *_unitHealth_ptr = *_unitHealth_ptr - _cowDiseaseDamage;
+ if (this->units[unitID].health < 1) {
+ this->units[unitID].health = 0;
+ this->units[unitID].dying = 1;
+ this->units[unitID].animationCycleNumber = 0;
+ this->units[unitID].state.generic = US_STONE_DEATH_02;
+ this->units[unitID].tunnelerFinishedDigging = 1;
+ }
+ _healthPercentage
+ = computeHealthPercentage(this->units[unitID].health, this->units[unitID].maxHealth);
+ this->units[unitID].healthPercentage = (short)_healthPercentage;
+ this->units[unitID].healthbar = (short)_healthPercentage / 10;
+ return FALSE;
+ }
+ if (_unitType == UT_S_TREBUCHET) {
+ _unitHeight = (-(uint)(tileDistance != 0) & 0xffffffd8) + 0x50;
+ _unitIsSiegeEngine = true;
+ } else if (_unitType == UT_S_TOWER) {
+ _unitHeight = 0x50;
+ _unitIsSiegeEngine = true;
+ } else if (_unitType == UT_S_CATAPULT) {
+ _unitHeight = 0x32;
+ _unitIsSiegeEngine = true;
+ } else if (_unitType == UT_S_SHIELD) {
+ _unitHeight = 0x5a;
+ _unitIsSiegeEngine = true;
+ } else if (_unitType == UT_S_BATTERINGRAM) {
+ _unitHeight = 0x28;
+ _unitIsSiegeEngine = true;
+ } else if (_unitType == UT_S_MANGONEL) {
+ _unitHeight = 0x46;
+ _unitIsSiegeEngine = true;
+ } else {
+ if ((_unitType == UT_S_BALLISTA)
+ || (_unitType == UT_S_FBALLISTA)) {
+ _unitIsSiegeEngine = true;
+ }
+ _unitHeight = 42;
+ }
+ if ((((_entityType == ET_TREBUCHET)
+ || (_entityType == ET_CATAPULT))
+ || (_entityType == ET_MANGONEL))
+ || ((_entityType == ET_BALLISTA
+ || (_entityType == ET_FIREBALLISTA)))) {
+ _siegeProjectile = true;
+ }
+ _unitPlayerID = this->units[unitID].owner;
+ _entityPlayerID = DAT_EntityState.entityArray[entityID].owner;
+ if (((DAT_GameState.mapAndTime.playerTeams[_entityPlayerID]
+ == DAT_GameState.mapAndTime.playerTeams[_unitPlayerID])
+ && ((
+ ((!_siegeProjectile
+ || (_entityType = DAT_EntityState.entityArray[entityID].entityType,
+ _entityType == ET_BALLISTA))
+ || ((_entityType == ET_MANGONEL
+ && (DAT_GameSynchronyState.currentPlayerFullIDArray[_entityPlayerID] == -1))))
+ || ((((_entityType == ET_FIREBALLISTA
+ || (_unitType == UT_S_SHIELD))
+ || (_unitType == UT_S_TOWER))
+ || (_unitType == UT_S_BATTERINGRAM))))))
+ || (this->units[unitID].dying != 0)) {
+ switchD_005319e7_caseD_28:
+ return FALSE;
+ }
+ _unitAltitude = (int)this->units[unitID].terrainOrClimbHeight + (int)this->units[unitID].buildingHeight;
+ _damage = (int)DAT_EntityState.entityArray[entityID].height;
+ if (_damage < _unitAltitude) {
+ return FALSE;
+ }
+ if (_unitAltitude + _unitHeight < _damage) {
+ return FALSE;
+ }
+ if ((_entityPlayerID != 0) && (_entityPlayerID != this->units[unitID].owner)) {
+ this->units[unitID].lastEncounteredEnemyPlayerID = _entityPlayerID;
+ this->units[unitID].lastEncounteredEnemyUnitIDUnk
+ = DAT_EntityState.entityArray[entityID].unitID_OR_seaGullID;
+ }
+ if ((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ && (_unitPlayerID == DAT_GameSynchronyState.currentPlayerSlotID)) {
+ playSFXWeAreUnderAttack();
+ }
+ _entityType = DAT_EntityState.entityArray[entityID].entityType;
+ if (_siegeProjectile) {
+ if (_entityType == ET_COW_FLYING) {
+ _entityType_2 = this->units[unitID].unitType;
+ if (_entityType_2 == UT_LORD) {
+ _damage = 0x32;
+ } else {
+ uVar5 = -(uint)(_entityType_2 != UT_S_SHIELD) & 0x1c2;
+ LAB_00531f5d:
+ _damage = uVar5 + 0x32;
+ }
+ } else if (_entityType == ET_MANGONEL) {
+ /*
+ mangonel damage
+ */
+ _entityType_2 = this->units[unitID].unitType;
+ if (_entityType_2 == UT_LORD) {
+ _damage = 0x32;
+ } else if (_entityType_2 == UT_S_SHIELD) {
+ _damage = 1500;
+ } else if (_entityType_2 == UT_S_BALLISTA) {
+ _damage = 1000;
+ } else if (_entityType_2 == UT_S_FBALLISTA) {
+ _damage = 1000;
+ } else if (_entityType_2 == UT_S_MANGONEL) {
+ _damage = 500;
+ } else if (_entityType_2 == UT_S_CATAPULT) {
+ _damage = 5000;
+ } else if (_entityType_2 == UT_S_TREBUCHET) {
+ _damage = 5000;
+ } else if (_entityType_2 == UT_S_BATTERINGRAM) {
+ _damage = 10000;
+ } else {
+ _damage = (-(uint)(_entityType_2 != UT_S_TOWER) & 20000) + 10000;
+ }
+ } else {
+ if (_entityType != ET_BALLISTA) {
+ uVar5 = -(uint)(this->units[unitID].unitType != UT_LORD) & 0x74fe;
+ goto LAB_00531f5d;
+ }
+ /*
+ tower ballista and fire ballista damage
+ */
+ _targetUnitType = this->units[unitID].unitType;
+ if (_targetUnitType == UT_LORD) {
+ _damage = 0x32;
+ } else if (_targetUnitType == UT_S_SHIELD) {
+ _damage = 500;
+ } else if (_targetUnitType == UT_S_BALLISTA) {
+ _damage = 2000;
+ } else if (_targetUnitType == UT_S_MANGONEL) {
+ _damage = 2000;
+ } else if (_targetUnitType == UT_S_FBALLISTA) {
+ _damage = 2000;
+ } else if (_targetUnitType == UT_S_CATAPULT) {
+ _damage = 0x9c4;
+ } else if (_targetUnitType == UT_S_TREBUCHET) {
+ _damage = 4000;
+ } else if (_targetUnitType == UT_S_BATTERINGRAM) {
+ _damage = 20000;
+ } else {
+ /*
+ 10000 if not siege tower else 20000
+ */
+ _damage = (-(uint)(_targetUnitType != UT_S_TOWER) & 0xffffd8f0) + 20000;
+ }
+ if (DAT_EntityState.entityArray[entityID].field90_0xd0 != 0) {
+ /*
+ if is fire ballista
+ */
+ _damage = (_damage * 2) / 3;
+ }
+ }
+ DAT_GameCore.cowPoisonTrackerUnk = DAT_GameCore.cowPoisonTrackerUnk + 0x32;
+ if (20000 < _damage) {
+ this->units[unitID].dying = 1;
+ if (0 < _unknown) {
+ DAT_TribesState.tribes[_unknown].field133_0x278 = 1;
+ }
+ _unitYPosition = this->units[unitID].y;
+ _unitXPosition = this->units[unitID].x;
+ this->units[unitID].animationCycleNumber = 0;
+ this->units[unitID].state.generic = US_STONE_DEATH_01;
+ this->units[unitID].tunnelerFinishedDigging = 1;
+ playSFXAtLocation(
+ (int)_unitXPosition, _unitYPosition, FX_SPLAT);
+ this->units[unitID].health = 0;
+ return TRUE;
+ }
+ } else {
+ if (_entityType == ET_ARROW_AND_DEFAULT) {
+ _entityType_2 = this->units[unitID].unitType;
+ _damage = DAT_UnitPropertiesDefinedData.ARROW_DAMAGE[(short)_entityType_2];
+ if ((_entityType_2 == UT_E_LADDER)
+ && (this->units[unitID].state.generic == ((UnitState)3))) {
+ _damage = (int)(_damage + (_damage >> 0x1f & 3U)) >> 2;
+ }
+ } else if (_entityType == ET_SLINGER) {
+ _damage = DAT_UnitPropertiesDefinedData.STONE_DAMAGE[(short)this->units[unitID].unitType];
+ } else {
+ _damage = DAT_UnitPropertiesDefinedData.BOLT_DAMAGE[(short)this->units[unitID].unitType];
+ }
+ _damage = computeDamageFearFactorBonus(
+ _damage, DAT_EntityState.entityArray[entityID].owner);
+ if (_unitIsSiegeEngine) {
+ _damage = _damage / 2;
+ }
+ if (this->units[unitID].isStalked == 0) {
+ DAT_GameCore.cowPoisonTrackerUnk = DAT_GameCore.cowPoisonTrackerUnk + 0x32;
+ }
+ }
+ if ((int)DAT_EntityState.entityArray[entityID].startingHeight
+ < DAT_EntityState.entityArray[entityID].targetZ + -0x1e) {
+ if ((this->units[unitID].unitType == UT_E_ENGINEER)
+ && (this->units[unitID].resourceToDeposit != 0)) {
+ _damage = _damage / 0x14;
+ } else if (_entityType == ET_BALLISTA) {
+ _damage = _damage / 2;
+ } else {
+ _damage = _damage / 3;
+ }
+ }
+ _unitHealth_ptr = &this->units[unitID].health;
+ *_unitHealth_ptr = *_unitHealth_ptr - _damage;
+ if (this->units[unitID].health < 1) {
+ this->units[unitID].health = 0;
+ }
+ if (_entityShootingUnitID_2 != 0) {
+ sVar3 = this->units[unitID].field97_0xd0;
+ if (sVar3 < 1000) {
+ this->units[unitID].field97_0xd0 = sVar3 + 200;
+ }
+ psVar1 = &DAT_TribesState.tribes[_unknown].someUnitArrayIndex;
+ *psVar1 = *psVar1 + 1;
+ sVar3 = DAT_TribesState.tribes[_unknown].someUnitArrayIndex;
+ DAT_TribesState.tribes[_unknown].countdown = 100;
+ if (9 < sVar3) {
+ DAT_TribesState.tribes[_unknown].someUnitArrayIndex = 0;
+ }
+ DAT_TribesState.tribes[_unknown]
+ .someUnitArray[DAT_TribesState.tribes[_unknown].someUnitArrayIndex]
+ = _entityShootingUnitID;
+ DAT_TribesState.tribes[_unknown]
+ .someUnitUIDArray[DAT_TribesState.tribes[_unknown].someUnitArrayIndex]
+ = this->units[_entityShootingUnitID_2].uid;
+ }
+ _unitHealth = this->units[unitID].health;
+ _healthPercentage_2
+ = computeHealthPercentage(_unitHealth, this->units[unitID].maxHealth);
+ _entityShootingUnitID = (short)_healthPercentage_2;
+ this->units[unitID].healthPercentage = _entityShootingUnitID;
+ this->units[unitID].healthbar = (_entityShootingUnitID / 10 + (_entityShootingUnitID >> 0xf))
+ - (short)((longlong)(int)_entityShootingUnitID * 0x66666667 >> 0x3f);
+ if ((((_unitType == UT_BREWER) || (_unitType == UT_TANNER))
+ || (_unitType == UT_LADY))
+ || ((_unitType == UT_MOTHER
+ || ((_unitType == UT_CHILD && (this->units[unitID].spriteID == 0x81)))))) {
+ bVar4 = true;
+ }
+ _shootingUnitID = this->units[_entityShootingUnitID_2].unitType == UT_A_SLINGER;
+ if ((_unitHealth < 1) && (this->units[unitID].dying == 0)) {
+ this->units[unitID].dying = 1;
+ if (0 < _unknown) {
+ DAT_TribesState.tribes[_unknown].field133_0x278 = 1;
+ }
+ this->units[unitID].animationCycleNumber = 0;
+ _entityType = DAT_EntityState.entityArray[entityID].entityType;
+ if (_entityType == ET_COW_FLYING) {
+ this->units[unitID].state.generic = US_STONE_DEATH_01;
+ } else {
+ this->units[unitID].state.generic
+ = (-(ushort)(_entityType != ET_SLINGER) & 0xfffd)
+ + US_STONE_DEATH_01;
+ }
+ bVar2 = this->units[unitID].isStalked;
+ this->units[unitID].tunnelerFinishedDigging = 1;
+ if (bVar2 == 0) {
+ switch (this->units[unitID].unitType) {
+ case UT_S_CATAPULT:
+ case UT_S_MANGONEL:
+ case UT_S_TOWER:
+ case UT_S_BATTERINGRAM:
+ case UT_S_BALLISTA:
+ case UT_S_FBALLISTA:
+ sfxOffsetInArray = FX_SIEGE_DIE;
+ goto LAB_0053223d;
+ case UT_S_TREBUCHET:
+ playSFXAtLocation(
+ (int)this->units[unitID].x, this->units[unitID].y,
+ FX_TR_DIE);
+ break;
+ case UT_S_SHIELD:
+ if ((this->units[unitID].digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300
+ != 0)
+ && (!_shootingUnitID)) {
+ sfxOffsetInArray = FX_DEATH_ARROW;
+ goto LAB_00532394;
+ }
+ sfxOffsetInArray = FX_SIEGE_DIE;
+ goto LAB_005321ec;
+ }
+ if (bVar4) {
+ playSFXAtLocation(
+ (int)this->units[unitID].x, this->units[unitID].y,
+ FX_GIRL_DIE);
+ if (_shootingUnitID) {
+ sfxOffsetInArray = FX_HIT_SLINGSTONE;
+ goto LAB_00532394;
+ }
+ sfxOffsetInArray = FX_ARROW_HIT;
+ } else {
+ if (!_shootingUnitID) {
+ sfxOffsetInArray = FX_DEATH_ARROW;
+ goto LAB_005321ec;
+ }
+ if (!_shootingUnitID) {
+ return TRUE;
+ }
+ sfxOffsetInArray = FX_DEATH_SLINGSTONE;
+ }
+ goto LAB_0053223d;
+ }
+ LAB_005321d1:
+ if (_shootingUnitID) {
+ if (!_shootingUnitID) {
+ return TRUE;
+ }
+ sfxOffsetInArray = FX_HIT_SLINGSTONE;
+ LAB_005321ec:
+ _unitYPosition_2 = (int)this->units[unitID].y;
+ _unitXPosition_2 = (int)this->units[unitID].x;
+ } else {
+ sfxOffsetInArray = FX_ARROW_HIT_ANIMAL;
+ LAB_00532394:
+ _unitYPosition_2 = (int)this->units[unitID].y;
+ _unitXPosition_2 = (int)this->units[unitID].x;
+ }
+ } else {
+ if (this->units[unitID].isStalked != 0)
+ goto LAB_005321d1;
+ switch (this->units[unitID].unitType) {
+ case UT_S_CATAPULT:
+ case UT_S_TREBUCHET:
+ case UT_S_MANGONEL:
+ case UT_S_TOWER:
+ case UT_S_BATTERINGRAM:
+ case UT_S_BALLISTA:
+ case UT_S_FBALLISTA:
+ sfxOffsetInArray = FX_WOOD_HIT;
+ goto LAB_005321ec;
+ default : uVar5 = this->units[unitID].fixedRng & 7;
+ if (uVar5 != 0) {
+ if (uVar5 == 1)
+ goto LAB_0053231d;
+ if (uVar5 == 2) {
+ sfxOffsetInArray = FX_BODY_HIT3;
+ goto LAB_005321ec;
+ }
+ if (uVar5 == 3) {
+ sfxOffsetInArray = FX_BODY_HIT4;
+ goto LAB_0053223d;
+ }
+ if (uVar5 == 4) {
+ sfxOffsetInArray = FX_BODY_HIT5;
+ } else {
+ if (uVar5 == 5) {
+ sfxOffsetInArray = FX_BODY_HIT6;
+ goto LAB_005321ec;
+ }
+ if (uVar5 == 6) {
+ sfxOffsetInArray = FX_BODY_HIT7;
+ goto LAB_0053223d;
+ }
+ if (uVar5 != 7) {
+ return TRUE;
+ }
+ sfxOffsetInArray = FX_BODY_HIT8;
+ }
+ goto LAB_00532394;
+ }
+ sfxOffsetInArray = FX_BODY_HIT;
+ LAB_0053223d:
+ _unitYPosition_2 = (int)this->units[unitID].y;
+ _unitXPosition_2 = (int)this->units[unitID].x;
+ break;
+ case UT_LORD:
+ goto switchD_00532307_caseD_37;
+ case UT_S_SHIELD:
+ if (this->units[unitID].digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300
+ < 1) {
+ return TRUE;
+ }
+ LAB_0053231d:
+ sfxOffsetInArray = FX_BODY_HIT2;
+ goto LAB_00532394;
+ }
+ }
+ playSFXAtLocation(
+ _unitXPosition_2, _unitYPosition_2, sfxOffsetInArray);
+ switchD_00532307_caseD_37:
+ return TRUE;
+ }
+ }
+}
+}
+
+### 0x00532460 processFireDamageToUnit | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00532460
+ undefined4 UnitsState::processFireDamageToUnit(int unitID, int playerID, int halfTheDamage)
+ {
+ int* piVar1;
+ int iVar2;
+ short _healthbar;
+ uint _damage;
+ UnitTypeInt _unitTypeInt;
+ UnitTypeShort _unitType;
+ if (unitID < 1) {
+ return (undefined4)(0);
+ }
+ if (this->units[unitID].dying != 0) {
+ return (undefined4)(0);
+ }
+ _unitType = this->units[unitID].unitType;
+ if (_unitType == UT_LORD) {
+ _damage = 25;
+ } else if (_unitType == UT_FIREFIGHTER) {
+ _damage = 1;
+ } else {
+ /*
+ damage = if unitType == A_FIRETHROWER 10 else 100
+ */
+ _damage = (-(uint)(_unitType != UT_A_FIRETHROWER) & 90) + 10;
+ }
+ if (halfTheDamage != 0) {
+ _damage = _damage / 2;
+ }
+ if ((playerID != 0) && (playerID != this->units[unitID].owner)) {
+ this->units[unitID].lastEncounteredEnemyPlayerID = (short)playerID;
+ this->units[unitID].lastEncounteredEnemyUnitIDUnk = 0;
+ }
+ piVar1 = &this->units[unitID].health;
+ *piVar1 = *piVar1 - _damage;
+ if (this->units[unitID].health < 1) {
+ this->units[unitID].health = 0;
+ }
+ iVar2 = this->units[unitID].maxHealth;
+ if (iVar2 == 0) {
+ _healthbar = 100;
+ } else {
+ _healthbar = (short)((this->units[unitID].health * 100) / iVar2);
+ }
+ this->units[unitID].healthPercentage = _healthbar;
+ iVar2 = this->units[unitID].health;
+ this->units[unitID].healthbar
+ = (_healthbar / 10 + (_healthbar >> 0xf)) - (short)((longlong)(int)_healthbar * 0x66666667 >> 0x3f);
+ if (0 < iVar2) {
+ return (undefined4)(1);
+ }
+ this->units[unitID].animationCycleNumber = 0;
+ this->units[unitID].field323_0x442 = 1;
+ if (_unitType == UT_LORD) {
+ this->units[unitID].dying = 1;
+ this->units[unitID].tunnelerFinishedDigging = 1;
+ this->units[unitID].health = 0;
+ this->units[unitID].animationCycleNumber = 0;
+ this->units[unitID].state.generic = US_STONE_DEATH_01;
+ return (undefined4)(1);
+ }
+ _unitTypeInt = (UnitTypeInt)(short)_unitType;
+ this->units[unitID].logicalState = ULS_TRANSITIONING;
+ this->units[unitID].state_2 = 0;
+ switch (_unitTypeInt) {
+ default : this->units[unitID].unitTypeToChangeInto
+ = UT_BURNINGMAN;
+ break;
+ case UT_ANTELOPESHDEER:
+ if (this->units[unitID].antelopeBasedRngValue == 2)
+ goto switchD_005325b4_caseD_2e;
+ case UT_QUARRYOX:
+ case UT_LIONSHWOLF:
+ case UT_CAMELSHBEAR:
+ case UT_COW:
+ case UT_CAGEDOG:
+ this->units[unitID].unitTypeToChangeInto = UT_BURNING_ANIMAL_BIG;
+ this->units[unitID].state_2 = 1;
+ break;
+ case UT_RABBIT:
+ case UT_HUNTERDOG:
+ case UT_CHICKEN:
+ switchD_005325b4_caseD_2e:
+ this->units[unitID].unitTypeToChangeInto = UT_BURNING_ANIMAL_SMALL;
+ this->units[unitID].state_2 = 1;
+ }
+ if (this->units[unitID].isStalked == 0) {
+ /*
+ if a male
+ */
+ if ((((_unitTypeInt != UT_BREWER)
+ && (_unitTypeInt != UT_TANNER))
+ && (_unitTypeInt != UT_LADY))
+ && ((_unitTypeInt != UT_MOTHER
+ && ((_unitTypeInt != UT_CHILD
+ || (this->units[unitID].spriteID != 0x81)))))) {
+ nextRandomNumber1();
+ if (((byte)SEC_RNG::instance.currentNumber1 & 1) == 0) {
+ playSFXAtLocation(
+ (int)this->units[unitID].x, this->units[unitID].y,
+ FX_MAN_BURN2);
+ return (undefined4)(1);
+ }
+ playSFXAtLocation(
+ (int)this->units[unitID].x, this->units[unitID].y,
+ FX_MAN_BURN);
+ return (undefined4)(1);
+ }
+ /*
+ if female
+ */
+ playSFXAtLocation(
+ (int)this->units[unitID].x, this->units[unitID].y,
+ FX_GIRL_SCREAM);
+ }
+ return (undefined4)(1);
+ }
+ }
+}
+}
+
+### 0x00532700 shootProjectile | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00532700
+ void UnitsState::shootProjectile(
+ int unitID, EntityType projectileType, int targetX, int targetY, int targetZUnk)
+ {
+ short sVar1;
+ short sVar2;
+ short sVar3;
+ int iVar4;
+ int _playerID;
+ int iVar5;
+ int* piVar6;
+ int iVar7;
+ int iVar8;
+ int _microX;
+ int _microY;
+ int _totalHeight;
+ int _ownerColor;
+ iVar4 = 0;
+ iVar5 = 0;
+ if (projectileType == ET_TREBUCHET) {
+ piVar6 = this->unitCountOfSelection + unitID * 0x124 + -9;
+ iVar8 = 0;
+ if (this->units[unitID].field243_0x3b0 == 0) {
+ projectileType = ET_TREBUCHET;
+ _totalHeight
+ = this->units[unitID].buildingHeight + 0x82 + (int)this->units[unitID].terrainOrClimbHeight;
+ _microY = (int)this->units[unitID].microYPosition;
+ _microX = (int)this->units[unitID].microXPosition;
+ _ownerColor = this->units[unitID].calculatedOwnerPlayerIndex;
+ _playerID = (int)this->units[unitID].owner;
+ } else {
+ projectileType = ET_COW_FLYING;
+ _totalHeight
+ = this->units[unitID].buildingHeight + 0x82 + (int)this->units[unitID].terrainOrClimbHeight;
+ _microY = (int)this->units[unitID].microYPosition;
+ _microX = (int)this->units[unitID].microXPosition;
+ _ownerColor = this->units[unitID].calculatedOwnerPlayerIndex;
+ _playerID = (int)this->units[unitID].owner;
+ }
+ goto LAB_00532b15;
+ }
+ if (projectileType == ET_CATAPULT) {
+ piVar6 = this->unitCountOfSelection + unitID * 0x124 + -9;
+ switch (this->units[unitID].facingDirection) {
+ case 0:
+ iVar5 = -7;
+ break;
+ case 1:
+ iVar4 = 4;
+ iVar5 = -4;
+ break;
+ case 2:
+ iVar4 = 7;
+ break;
+ case 3:
+ iVar4 = 4;
+ iVar5 = 4;
+ break;
+ case 4:
+ iVar5 = 7;
+ break;
+ case 5:
+ iVar4 = -4;
+ iVar5 = 4;
+ break;
+ case 6:
+ iVar4 = -7;
+ break;
+ case 7:
+ iVar4 = -4;
+ iVar5 = -4;
+ }
+ iVar7 = (int)this->units[unitID].terrainOrClimbHeight;
+ iVar8 = 0;
+ if (this->units[unitID].field243_0x3b0 == 0) {
+ projectileType = ET_CATAPULT;
+ _totalHeight = this->units[unitID].buildingHeight + 0x38 + iVar7;
+ _microY = this->units[unitID].microYPosition + iVar5;
+ _playerID = (int)this->units[unitID].owner;
+ _microX = this->units[unitID].microXPosition + iVar4;
+ _ownerColor = this->units[unitID].calculatedOwnerPlayerIndex;
+ } else {
+ projectileType = ET_COW_FLYING;
+ _totalHeight = this->units[unitID].buildingHeight + 0x38 + iVar7;
+ _microY = this->units[unitID].microYPosition + iVar5;
+ _playerID = (int)this->units[unitID].owner;
+ _microX = this->units[unitID].microXPosition + iVar4;
+ _ownerColor = this->units[unitID].calculatedOwnerPlayerIndex;
+ }
+ goto LAB_00532b15;
+ }
+ if (projectileType == ET_MANGONEL) {
+ piVar6 = this->unitCountOfSelection + unitID * 0x124 + -9;
+ switch (this->units[unitID].facingDirection) {
+ case 0:
+ iVar5 = -2;
+ break;
+ case 1:
+ case 4:
+ iVar4 = 0;
+ iVar5 = 0;
+ break;
+ case 2:
+ case 6:
+ iVar4 = 0;
+ break;
+ case 3:
+ iVar4 = -1;
+ iVar5 = 1;
+ break;
+ case 5:
+ iVar4 = -2;
+ iVar5 = 2;
+ break;
+ case 7:
+ iVar4 = 1;
+ iVar5 = -1;
+ }
+ iVar8 = 0;
+ projectileType = ET_MANGONEL;
+ _totalHeight = this->units[unitID].buildingHeight + 64 + (int)this->units[unitID].terrainOrClimbHeight;
+ _microY = this->units[unitID].microYPosition + iVar5;
+ _playerID = (int)this->units[unitID].owner;
+ _microX = this->units[unitID].microXPosition + iVar4;
+ _ownerColor = this->units[unitID].calculatedOwnerPlayerIndex;
+ goto LAB_00532b15;
+ }
+ if ((projectileType == ET_BALLISTA)
+ || (projectileType == ET_FIREBALLISTA)) {
+ piVar6 = this->unitCountOfSelection + unitID * 0x124 + -9;
+ iVar8 = 0;
+ _totalHeight = this->units[unitID].buildingHeight + 25 + (int)this->units[unitID].terrainOrClimbHeight;
+ LAB_00532af4:
+ sVar1 = (short)piVar6[0x1b3];
+ sVar2 = *(short*)((int)piVar6 + 0x6ca);
+ _ownerColor = piVar6[0x189];
+ sVar3 = *(short*)((int)piVar6 + 0x6aa);
+ LAB_00532b14:
+ _microY = (int)sVar1;
+ _microX = (int)sVar2;
+ _playerID = (int)sVar3;
+ goto LAB_00532b15;
+ }
+ if ((projectileType != ((EntityType)8)) && (projectileType != ~ET_UNKNOWN)) {
+ piVar6 = this->unitCountOfSelection + unitID * 0x124 + -9;
+ if (this->units[unitID].unitType == UT_A_HARCHER) {
+ iVar8 = (int)this->units[unitID].shootTargetedUnit;
+ _totalHeight
+ = this->units[unitID].buildingHeight + 45 + (int)this->units[unitID].terrainOrClimbHeight;
+ goto LAB_00532af4;
+ }
+ iVar8 = (int)this->units[unitID].shootTargetedUnit;
+ /*
+ This limits the range of arrow type projectiles
+ */
+ _totalHeight = this->units[unitID].buildingHeight + 30 + (int)this->units[unitID].terrainOrClimbHeight;
+ sVar1 = this->units[unitID].microYPosition;
+ sVar2 = this->units[unitID].microXPosition;
+ _ownerColor = this->units[unitID].calculatedOwnerPlayerIndex;
+ sVar3 = this->units[unitID].owner;
+ goto LAB_00532b14;
+ }
+ piVar6 = this->unitCountOfSelection + unitID * 0x124 + -9;
+ switch (this->units[unitID].facingDirection) {
+ case 0:
+ goto switchD_00532a3f_caseD_0;
+ case 1:
+ iVar4 = 10;
+ switchD_00532a3f_caseD_0:
+ iVar5 = -4;
+ break;
+ case 2:
+ iVar4 = 10;
+ break;
+ case 3:
+ iVar4 = 10;
+ case 4:
+ iVar5 = 4;
+ break;
+ case 5:
+ iVar5 = 4;
+ case 6:
+ switchD_00532a3f_caseD_6:
+ iVar4 = -10;
+ break;
+ case 7:
+ iVar5 = -4;
+ goto switchD_00532a3f_caseD_6;
+ }
+ iVar8 = 0;
+ _totalHeight = this->units[unitID].buildingHeight + 12 + (int)this->units[unitID].terrainOrClimbHeight;
+ _microY = this->units[unitID].microYPosition + iVar5;
+ _playerID = (int)this->units[unitID].owner;
+ _microX = this->units[unitID].microXPosition + iVar4;
+ _ownerColor = this->units[unitID].calculatedOwnerPlayerIndex;
+ LAB_00532b15:
+ spawnProjectileEntity(
+ unitID, (undefined4)((int)(_playerID)), (uint)((int)(_ownerColor)), _microX, _microY, _totalHeight,
+ targetX, targetY, targetZUnk, projectileType, iVar8);
+ if (*(short*)(piVar6 + 0x23b) != 0) {
+ DAT_TribesState.tribes[*(short*)(piVar6 + 0x23b)].countdown2 = 500;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00532ba0 recomputeTroopValuesForPlayer | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00532BA0
+ void UnitsState::recomputeTroopValuesForPlayer(int playerID)
+ {
+ int* piVar1;
+ Unit* _pUnit;
+ int _troopValue;
+ int _troopValue_2;
+ int _troopValue_3;
+ int _troopValue_4;
+ int _enemyNumber;
+ UnitTypeShort* _unitType;
+ bool bVar2;
+ int _unitID;
+ UnitTypeShort _unitType_2;
+ UnitTypeShort _yPosition;
+ UnitTypeShort _unitPlayerID;
+ UnitTypeShort _unitType_3;
+ int* _pTotalTeamTroopValue;
+ int _campfireX;
+ int _campfireY;
+ undefined4 _unit_field_0x98;
+ UnitTypeShort _xPosition;
+ _campfireY = DAT_GameState.playerDataArray[playerID].campground.yEntry;
+ bVar2 = DAT_GameSynchronyState.currentGameMode == GM_SOLITARY;
+ DAT_GameState.playerDataArray[playerID].enemies = 0;
+ DAT_GameState.playerDataArray[playerID].totalEnemyUnitsCount = 0;
+ DAT_GameState.playerDataArray[playerID].sumOfTotalEnemyUnitsCount = 0;
+ _campfireX = DAT_GameState.playerDataArray[playerID].campground.xEntry;
+ DAT_GameState.playerDataArray[playerID].totalEnemyTroopValueByPlayerID[1] = 0;
+ DAT_GameState.playerDataArray[playerID].totalEnemyTroopValueByPlayerID[2] = 0;
+ DAT_GameState.playerDataArray[playerID].totalEnemyTroopValueByPlayerID[3] = 0;
+ DAT_GameState.playerDataArray[playerID].totalEnemyTroopValueByPlayerID[4] = 0;
+ DAT_GameState.playerDataArray[playerID].totalEnemyTroopValueByPlayerID[5] = 0;
+ DAT_GameState.playerDataArray[playerID].totalEnemyTroopValueByPlayerID[6] = 0;
+ DAT_GameState.playerDataArray[playerID].totalEnemyTroopValueByPlayerID[7] = 0;
+ DAT_GameState.playerDataArray[playerID].totalEnemyTroopValueByPlayerID[8] = 0;
+ DAT_GameState.playerDataArray[playerID].totalEnemyTroopValue = 0;
+ DAT_GameState.playerDataArray[playerID].totalTeamTroopValue = 0;
+ DAT_GameState.playerDataArray[playerID].totalEnemyRangedTroopValue = 0;
+ if ((((bVar2) || (playerID == 0))
+ || (DAT_GameSynchronyState.currentPlayerFullIDArray[playerID] != -1))
+ || (DAT_GameSynchronyState.currentAIArray[playerID] != 0)) {
+ fillMemory_ByteValue(
+ 5000, '\0', (void*)((int)(DAT_GameState.playerDataArray[playerID].enemyIDArray)));
+ _unitID = 1;
+ if (1 < (int)this->maxUnitCount) {
+ _pUnit = &this->units[1];
+ _unitType = &this->units[1].unitType;
+ do {
+ /*
+ dying[-0x10a] == logicalState
+ */
+ if (((_pUnit->logicalState == ULS_NORMAL) && (_pUnit->dying == 0))
+ && (_pUnit->unknownTestAgainst0_2 == 0)) {
+ /*
+ dying[-0x105] == unit playerID
+ */
+ if (DAT_GameState.mapAndTime.playerTeams[_pUnit->owner]
+ == DAT_GameState.mapAndTime.playerTeams[playerID]) {
+ if (_pUnit->isSelectable_OR_matchTime == 0)
+ goto CODE_continueToNextUnit;
+ setAxisBasedDistanceResult(_campfireX, _campfireY,
+ (int)((int)((short)_unitType[0x1b])), (int)((int)((short)_unitType[0x1c])));
+ if (DAT_DirectionAlgorithmState.distanceHigh < 60) {
+ _troopValue = getValueOfTroopType((int)(short)*_unitType);
+ _pTotalTeamTroopValue
+ = &DAT_GameState.playerDataArray[playerID].totalTeamTroopValue;
+ *_pTotalTeamTroopValue = *_pTotalTeamTroopValue + _troopValue;
+ }
+ } else {
+ /*
+ unit not in our team dying[-0x109] == unitType
+ */
+ _unitType_2 = _pUnit->unitType;
+ switch (_unitType_2) {
+ case UT_TRADER:
+ case UT_TRADERHORSE:
+ case UT_CAMELSHBEAR:
+ case UT_GHOST:
+ case UT_MOTHER:
+ case UT_CHILD:
+ break;
+ default : if (_pUnit->owner != 0)
+ {
+ switch (_unitType_2) {
+ case UT_S_CATAPULT:
+ case UT_S_TREBUCHET:
+ case UT_S_MANGONEL:
+ case UT_S_TOWER:
+ case UT_S_SHIELD:
+ case UT_S_BALLISTA:
+ case UT_S_FBALLISTA:
+ /*
+ count of currently manning engineers
+ */
+ if (_pUnit
+ ->digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300
+ == 0)
+ goto switchD_00532d4a_caseD_2a;
+ }
+ /*
+ dying[2] == isSelectable
+ */
+ if (_pUnit->isSelectable_OR_matchTime == 0) {
+ if (_unitType_2 == UT_LORD) {
+ piVar1 = &DAT_GameState.playerDataArray[playerID]
+ .totalEnemyUnitsCount;
+ *piVar1 = *piVar1 + 1;
+ }
+ } else {
+ _yPosition = _unitType[0x1c];
+ _xPosition = _unitType[0x1b];
+ piVar1 = &DAT_GameState.playerDataArray[playerID]
+ .totalEnemyUnitsCount;
+ *piVar1 = *piVar1 + 1;
+ MACRO_CALL_MEMBER(
+ setAxisBasedDistanceResult,
+ DAT_DirectionAlgorithmState)(_campfireX, _campfireY,
+ (int)((int)((short)_xPosition)), (int)((int)((short)_yPosition)));
+ /*
+ unitType[4] == playerID
+ */
+ /*
+ dying[0xc9] == siegeTargetPlayerID
+ */
+ if ((DAT_DirectionAlgorithmState.distanceHigh < 60)
+ && (((DAT_GameSynchronyState
+ .currentPlayerFullIDArray[(short)_unitType[4]]
+ != -1
+ || (DAT_GameSynchronyState
+ .currentAIArray[(short)_unitType[4]]
+ == 0))
+ || (_pUnit->siegeTargetPlayerID == playerID)))) {
+ _unitPlayerID = _unitType[4];
+ piVar1 = DAT_GameState.playerDataArray[playerID]
+ .totalEnemyTroopValueByPlayerID
+ + (short)_unitPlayerID;
+ _troopValue_2 = getValueOfTroopType((int)(short)*_unitType);
+ *piVar1 = *piVar1 + _troopValue_2;
+ _troopValue_3 = getValueOfTroopType((int)(short)*_unitType);
+ piVar1 = &DAT_GameState.playerDataArray[playerID]
+ .totalEnemyTroopValue;
+ *piVar1 = *piVar1 + _troopValue_3;
+ _unitType_3 = *_unitType;
+ if (((((_unitType_3 != UT_E_ARCHER)
+ && (_unitType_3 != UT_E_XBOW))
+ && (_unitType_3 != UT_A_ARCHER))
+ && ((_unitType_3 != UT_A_SLINGER
+ && (_unitType_3 != UT_A_HARCHER))))
+ && (_unitType_3 != UT_A_FIRETHROWER)) {
+ _troopValue_4 = getValueOfTroopType((int)(short)_unitType_3);
+ piVar1 = &DAT_GameState.playerDataArray[playerID]
+ .totalEnemyRangedTroopValue;
+ *piVar1 = *piVar1 + _troopValue_4;
+ }
+ }
+ }
+ }
+ _enemyNumber = DAT_GameState.playerDataArray[playerID].enemies;
+ if (_enemyNumber < 2499) {
+ DAT_GameState.playerDataArray[playerID].enemies = _enemyNumber + 1;
+ } else {
+ _enemyNumber = (int)SEC_RNG::instance.currentNumber2 % 2500;
+ nextRandomNumber2();
+ if (2499 < _enemyNumber)
+ break;
+ }
+ _unit_field_0x98 = *(undefined4*)(_unitType + 5);
+ DAT_GameState.playerDataArray[playerID].enemyIDArray[_enemyNumber]
+ = (short)_unitID;
+ DAT_GameState.mapAndTime
+ .playerEnemenyUnitUIDShortList[playerID][_enemyNumber] = _unit_field_0x98;
+ }
+ }
+ switchD_00532d4a_caseD_2a:
+ }
+ CODE_continueToNextUnit:
+ _unitID = _unitID + 1;
+ _pUnit = _pUnit + 0x248;
+ _unitType = _unitType + 0x248;
+ } while (_unitID < (int)this->maxUnitCount);
+ }
+ piVar1 = &DAT_GameState.playerDataArray[playerID].sumOfTotalEnemyUnitsCount;
+ *piVar1 = *piVar1 + DAT_GameState.playerDataArray[playerID].totalEnemyUnitsCount;
+ }
+ return;
+ }
+ }
+}
+}
+

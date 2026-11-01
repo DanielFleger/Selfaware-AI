@@ -1,0 +1,1276 @@
+### 0x00402e20 computeLineOfSightDistance | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00402E20
+ uint EntityState::computeLineOfSightDistance(
+ int x, int y, int height, int targetX, int targetY, int targetHeight, int param_7)
+ {
+ int iVar1;
+ int iVar2;
+ short sVar3;
+ bool bVar4;
+ bool bVar5;
+ int iVar6;
+ int iVar7;
+ uint uVar8;
+ int iVar9;
+ int iVar10;
+ int iVar11;
+ uint uVar12;
+ int iVar13;
+ int iVar14;
+ int* piVar15;
+ uint local_44;
+ uint local_40;
+ int local_3c;
+ int local_38;
+ uint local_30;
+ int local_1c;
+ iVar9 = y;
+ local_1c = -1;
+ uVar12 = 0;
+ local_44 = 100000;
+ local_30 = 0;
+ local_40 = 0;
+ bVar4 = true;
+ bVar5 = false;
+ if (targetHeight + 0x36 < height) {
+ uVar12 = 100;
+ local_40 = 100;
+ }
+ iVar6 = (int)(y + (y >> 0x1f & 7U)) >> 3;
+ iVar10 = (int)((x >> 0x1f & 7U) + x) >> 3;
+ iVar7 = DAT_ViewportRenderState.translationMatrix[iVar6].addXgetTile + iVar10;
+ local_3c = x;
+ local_38 = y;
+ if ((DAT_TileMapState.LogicLayer[iVar7] & 0x10000000U) != 0) {
+ height = height + 10;
+ }
+ sVar3 = -1;
+ if (DAT_TileMapState.BuildingLayer[iVar7] != 0) {
+ sVar3 = DAT_TileMapState.BuildingLayer[iVar7];
+ }
+ if (targetY < y) {
+ iVar7 = y - targetY;
+ } else {
+ iVar7 = targetY - y;
+ }
+ if (targetX < x) {
+ iVar11 = x - targetX;
+ } else {
+ iVar11 = targetX - x;
+ }
+ iVar1 = (uint)(x <= targetX) * 2 + -1;
+ iVar2 = (uint)(y <= targetY) * 2 + -1;
+ if (iVar11 == 0) {
+ if (iVar7 != 0) {
+ if (0x1b < uVar12) {
+ uVar12 = 0x1c;
+ }
+ uVar8 = 0;
+ local_40 = uVar12 / 2;
+ local_44 = 0;
+ iVar9 = -1;
+ this->lineOfSightClearanceSteps = uVar12;
+ do {
+ local_38 = local_38 + iVar2;
+ iVar6 = iVar9;
+ if (((local_44 & 1) != 0) && (param_7 == 0)) {
+ iVar6 = DAT_ViewportRenderState
+ .translationMatrix[(int)(local_38 + (local_38 >> 0x1f & 7U)) >> 3]
+ .addXgetTile
+ + iVar10;
+ if ((DAT_TileMapState.LogicLayer[iVar6] & 0x400300U) == 0) {
+ bVar4 = false;
+ this->lineOfSightClearanceSteps = local_44;
+ }
+ if (local_40 == 0) {
+ if (iVar9 == iVar6) {
+ if (bVar5) {
+ uVar12 = local_38 - y >> 0x1f;
+ iVar9 = ((local_38 - y ^ uVar12) - uVar12) * (targetHeight - height);
+ goto LAB_004033cf;
+ }
+ } else {
+ bVar5 = false;
+ if (((char)DAT_TileMapState.LogicLayer[iVar6] < '\0')
+ || ((sVar3 != DAT_TileMapState.BuildingLayer[iVar6]
+ && ((!bVar4
+ || ((DAT_TileMapState.LogicLayer[iVar6] & 0x400200U)
+ == 0)))))) {
+ bVar5 = true;
+ uVar8 = returnSomeHeight(iVar6, 1);
+ uVar12 = local_38 - y >> 0x1f;
+ iVar9 = ((local_38 - y ^ uVar12) - uVar12) * (targetHeight - height);
+ LAB_004033cf:
+ if (iVar9 / iVar7 + height < (int)uVar8) {
+ return 0;
+ }
+ }
+ }
+ } else {
+ local_40 = local_40 - 1;
+ }
+ }
+ if ((x == targetX) && (local_38 == targetY)) {
+ return local_44;
+ }
+ local_44 = local_44 + 1;
+ iVar9 = iVar6;
+ if (999 < (int)local_44) {
+ return local_44;
+ }
+ } while (true);
+ }
+ } else {
+ if (iVar7 == 0) {
+ if (0x1b < uVar12) {
+ uVar12 = 0x1c;
+ }
+ uVar8 = uVar12 / 2;
+ local_44 = 0;
+ this->lineOfSightClearanceSteps = uVar12;
+ while (true) {
+ local_3c = local_3c + iVar1;
+ if (((local_44 & 1) != 0) && (param_7 == 0)) {
+ iVar9 = ((int)(local_3c + (local_3c >> 0x1f & 7U)) >> 3)
+ + DAT_ViewportRenderState.translationMatrix[iVar6].addXgetTile;
+ if ((DAT_TileMapState.LogicLayer[iVar9] & 0x400300U) == 0) {
+ bVar4 = false;
+ this->lineOfSightClearanceSteps = local_44;
+ }
+ if (uVar8 == 0) {
+ if (local_1c == iVar9) {
+ local_1c = iVar9;
+ if ((bVar5)
+ && (uVar12 = local_3c - x >> 0x1f,
+ (int)(((local_3c - x ^ uVar12) - uVar12) * (targetHeight - height)) / iVar11
+ + height
+ < (int)local_30)) {
+ return 0;
+ }
+ } else {
+ bVar5 = false;
+ if (((char)DAT_TileMapState.LogicLayer[iVar9] < '\0')
+ || ((local_1c = iVar9,
+ sVar3 != DAT_TileMapState.BuildingLayer[iVar9]
+ && ((!bVar4
+ || ((DAT_TileMapState.LogicLayer[iVar9] & 0x400200U)
+ == 0)))))) {
+ bVar5 = true;
+ local_30 = returnSomeHeight(iVar9, 1);
+ uVar12 = local_3c - x >> 0x1f;
+ local_1c = iVar9;
+ if ((int)(((local_3c - x ^ uVar12) - uVar12) * (targetHeight - height)) / iVar11
+ + height
+ < (int)local_30) {
+ return 0;
+ }
+ }
+ }
+ } else {
+ uVar8 = uVar8 - 1;
+ local_1c = iVar9;
+ }
+ }
+ if ((local_3c == targetX) && (y == targetY))
+ break;
+ local_44 = local_44 + 1;
+ if (999 < (int)local_44) {
+ return local_44;
+ }
+ }
+ return local_44;
+ }
+ if (iVar7 <= iVar11) {
+ iVar7 = iVar7 * 2;
+ iVar6 = iVar7 - iVar11;
+ if ((targetHeight < height) && (uVar12 != 0)) {
+ uVar8 = targetX - x >> 0x1f;
+ iVar10 = (targetX - x ^ uVar8) - uVar8;
+ iVar10 = ((int)(iVar10 + (iVar10 >> 0x1f & 7U)) >> 3) + -1;
+ if (4 < iVar10) {
+ iVar10 = 4;
+ }
+ if (1 < iVar10) {
+ y = iVar10 + -1;
+ iVar10 = iVar1;
+ do {
+ local_30 = returnSomeHeight((((int)(targetX + (targetX >> 0x1f & 7U)) >> 3) - iVar10)
+ + DAT_ViewportRenderState
+ .translationMatrix[(int)(targetY + (targetY >> 0x1f & 7U)) >> 3]
+ .addXgetTile,
+ 1);
+ if (targetHeight < (int)local_30) {
+ uVar12 = 0x1c;
+ }
+ iVar10 = iVar10 + iVar1;
+ y = y + -1;
+ } while (y != 0);
+ }
+ }
+ local_40 = uVar12 / 2;
+ local_44 = 0;
+ iVar10 = x;
+ iVar14 = -1;
+ this->lineOfSightClearanceSteps = uVar12;
+ while (true) {
+ iVar10 = iVar10 + iVar1;
+ iVar13 = iVar7;
+ if (0 < iVar6) {
+ iVar9 = iVar9 + iVar2;
+ iVar13 = iVar7 + iVar11 * -2;
+ local_38 = iVar9;
+ }
+ iVar6 = iVar6 + iVar13;
+ iVar13 = iVar14;
+ if (((local_44 & 1) != 0) && (param_7 == 0)) {
+ iVar13 = ((int)(iVar10 + (iVar10 >> 0x1f & 7U)) >> 3)
+ + DAT_ViewportRenderState
+ .translationMatrix[(int)(iVar9 + (iVar9 >> 0x1f & 7U)) >> 3]
+ .addXgetTile;
+ if ((DAT_TileMapState.LogicLayer[iVar13] & 0x400300U) == 0) {
+ bVar4 = false;
+ this->lineOfSightClearanceSteps = local_44;
+ }
+ if (local_40 == 0) {
+ if (iVar14 == iVar13) {
+ if ((bVar5)
+ && (uVar12 = iVar10 - x >> 0x1f,
+ (int)(((iVar10 - x ^ uVar12) - uVar12) * (targetHeight - height)) / iVar11
+ + height
+ < (int)local_30)) {
+ return 0;
+ }
+ } else {
+ bVar5 = false;
+ if (((char)DAT_TileMapState.LogicLayer[iVar13] < '\0')
+ || ((sVar3 != DAT_TileMapState.BuildingLayer[iVar13]
+ && ((!bVar4
+ || ((DAT_TileMapState.LogicLayer[iVar13] & 0x400200U)
+ == 0)))))) {
+ bVar5 = true;
+ local_30 = returnSomeHeight(iVar13, 1);
+ uVar12 = iVar10 - x >> 0x1f;
+ iVar9 = local_38;
+ if ((int)(((iVar10 - x ^ uVar12) - uVar12) * (targetHeight - height)) / iVar11
+ + height
+ < (int)local_30) {
+ return 0;
+ }
+ }
+ }
+ } else {
+ local_40 = local_40 - 1;
+ }
+ }
+ if ((iVar10 == targetX) && (iVar9 == targetY))
+ break;
+ local_44 = local_44 + 1;
+ iVar14 = iVar13;
+ if (999 < (int)local_44) {
+ return local_44;
+ }
+ }
+ return local_44;
+ }
+ iVar11 = iVar11 * 2;
+ iVar9 = iVar11 - iVar7;
+ if ((targetHeight < height) && (local_40 != 0)) {
+ uVar12 = targetY - y >> 0x1f;
+ iVar6 = (targetY - y ^ uVar12) - uVar12;
+ iVar6 = ((int)(iVar6 + (iVar6 >> 0x1f & 7U)) >> 3) + -1;
+ if (4 < iVar6) {
+ iVar6 = 4;
+ }
+ if (1 < iVar6) {
+ piVar15 = (int*)((int)DAT_ViewportRenderState
+ + (((int)(targetY + (targetY >> 0x1f & 7U)) >> 3) - iVar2) * 0xc + 0x188728);
+ iVar6 = iVar6 + -1;
+ do {
+ local_30 = returnSomeHeight(*piVar15 + ((int)(targetX + (targetX >> 0x1f & 7U)) >> 3), 1);
+ if (targetHeight < (int)local_30) {
+ local_40 = 0x1c;
+ }
+ piVar15 = piVar15 + iVar2 * -3;
+ iVar6 = iVar6 + -1;
+ } while (iVar6 != 0);
+ }
+ }
+ this->lineOfSightClearanceSteps = local_40;
+ local_40 = local_40 / 2;
+ local_44 = 0;
+ iVar6 = y;
+ iVar10 = -1;
+ do {
+ iVar6 = iVar6 + iVar2;
+ iVar14 = iVar11;
+ if (0 < iVar9) {
+ x = x + iVar1;
+ iVar14 = iVar11 + iVar7 * -2;
+ local_3c = x;
+ }
+ iVar9 = iVar9 + iVar14;
+ iVar14 = iVar10;
+ if (((local_44 & 1) != 0) && (param_7 == 0)) {
+ iVar14 = ((int)(x + (x >> 0x1f & 7U)) >> 3)
+ + DAT_ViewportRenderState
+ .translationMatrix[(int)(iVar6 + (iVar6 >> 0x1f & 7U)) >> 3]
+ .addXgetTile;
+ if ((DAT_TileMapState.LogicLayer[iVar14] & 0x400300U) == 0) {
+ bVar4 = false;
+ this->lineOfSightClearanceSteps = local_44;
+ }
+ if (local_40 == 0) {
+ if (iVar10 == iVar14) {
+ if ((bVar5)
+ && (uVar12 = iVar6 - y >> 0x1f,
+ (int)(((iVar6 - y ^ uVar12) - uVar12) * (targetHeight - height)) / iVar7
+ + height
+ < (int)local_30)) {
+ return 0;
+ }
+ } else {
+ bVar5 = false;
+ if (((char)DAT_TileMapState.LogicLayer[iVar14] < '\0')
+ || ((sVar3 != DAT_TileMapState.BuildingLayer[iVar14]
+ && ((!bVar4
+ || ((DAT_TileMapState.LogicLayer[iVar14] & 0x400200U) == 0)))))) {
+ bVar5 = true;
+ local_30 = returnSomeHeight(iVar14, 1);
+ uVar12 = iVar6 - y >> 0x1f;
+ x = local_3c;
+ if ((int)(((iVar6 - y ^ uVar12) - uVar12) * (targetHeight - height)) / iVar7
+ + height
+ < (int)local_30) {
+ return 0;
+ }
+ }
+ }
+ } else {
+ local_40 = local_40 - 1;
+ }
+ }
+ } while (((x != targetX) || (iVar6 != targetY))
+ && (local_44 = local_44 + 1, iVar10 = iVar14, (int)local_44 < 1000));
+ }
+ return local_44;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00402e20", "name": "computeLineOfSightDistance", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Läuft eine Gerade von Start zu Ziel ab, zählt die Schritte und prüft (optional), ob Gelände oder Gebäude die Sicht versperren."}, "p2": {"ein": "x, y, height, targetX, targetY, targetHeight, param_7 (1 = keine Prüfung)", "aus": "Schrittzahl (höchstens 1000) oder 0 bei versperrter Sicht", "liest": ["TileMapState.LogicLayer", "BuildingLayer", "ViewportRenderState.translationMatrix", "Höhe der Kacheln über returnSomeHeight"], "schreibt": ["this->lineOfSightClearanceSteps"], "ruft": ["returnSomeHeight"], "regeln": ["Koordinaten sind Unterkacheln, 8 pro Kachel (Kachel = Wert >> 3)", "Der Linienlauf folgt Bresenham: Hauptachse x, Hauptachse y, oder gerade Linie; ein Schritt je Unterkachel der Hauptachse", "Bei param_7 != 0 wird nur gezählt, es gibt keine Sichtprüfung (so ruft sie initializeProjectileVelocities auf)", "Bei param_7 == 0 werden nur gerade Schritte geprüft; die ersten Schritte (Schutzbereich) werden übersprungen", "Schutzbereich: 100, begrenzt auf 0x1c (28), wenn targetHeight + 0x36 (54) < height, sonst 0; Hälfte davon wird übersprungen", "Sicht gilt als versperrt (Rückgabe 0), wenn die Kachelhöhe über der Sichtlinie (linear von height nach targetHeight) liegt; Start in LogicLayer mit Bit 0x10000000 hebt height um 10", "Kacheln ohne Bits 0x400300 im LogicLayer setzen lineOfSightClearanceSteps auf den aktuellen Schritt", "Nach 1000 Schritten Abbruch mit 1000 (999 < Schritt)"], "offen": ["Bedeutung der LogicLayer-Bits 0x400300, 0x400200, 0x10000000 und Vorzeichen-Bit", "Grund der Sonderbehandlung rund um das Ziel bei Höhen (Schleife bis 4 Kacheln)"]}, "p3": {"erklaerung": "Zählt die Schritte zwischen Schütze und Ziel und kann auch sagen, ob Mauern oder Hügel die Sicht verdecken. Für Geschosse zählt meist nur die Schrittzahl.", "gehirn": "Für eigene Reichweiten-Rechnungen reicht die Hauptachsen-Entfernung; die Sichtprüfung selbst ist aufwendig und nicht nötig.", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x00403a20 initializeProjectileVelocities | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00403A20
+ void EntityState::initializeProjectileVelocities(
+ int entityID, int x, int y, int height, int targetX, int targetY, int targetZ)
+ {
+ float fVar1;
+ short sVar2;
+ ushort uVar3;
+ EntityTypeShort EVar4;
+ short sVar5;
+ uint uVar6;
+ int iVar7;
+ undefined4 uVar8;
+ short sVar9;
+ short sVar10;
+ int iVar11;
+ float10 fVar12;
+ float10 fVar13;
+ sVar5 = (short)targetY;
+ if (targetY < y) {
+ this->entityArray[entityID].field42_0x64 = (short)y - sVar5;
+ } else {
+ this->entityArray[entityID].field42_0x64 = sVar5 - (short)y;
+ }
+ sVar10 = (short)targetX;
+ if (targetX < x) {
+ sVar9 = (short)x - sVar10;
+ } else {
+ sVar9 = sVar10 - (short)x;
+ }
+ sVar2 = this->entityArray[entityID].targetZ;
+ this->entityArray[entityID].field39_0x5e = sVar9;
+ sVar9 = this->entityArray[entityID].height;
+ if (sVar9 < sVar2) {
+ this->entityArray[entityID].field44_0x68 = sVar2 - sVar9;
+ } else {
+ this->entityArray[entityID].field44_0x68 = sVar9 - sVar2;
+ }
+ sVar9 = this->entityArray[entityID].field39_0x5e;
+ this->entityArray[entityID].field38_0x5c = sVar10;
+ this->entityArray[entityID].field41_0x62 = sVar5;
+ this->entityArray[entityID].someMicroX = (ushort)(x <= targetX) * 2 + -1;
+ this->entityArray[entityID].someMicroY = (ushort)(y <= targetY) * 2 + -1;
+ if (sVar9 == 0) {
+ if (this->entityArray[entityID].field42_0x64 == 0) {
+ this->entityArray[entityID].field50_0x74 = 0;
+ } else {
+ this->entityArray[entityID].field50_0x74 = 1;
+ }
+ } else {
+ sVar5 = this->entityArray[entityID].field42_0x64;
+ if (sVar5 == 0) {
+ this->entityArray[entityID].field50_0x74 = 2;
+ } else if (sVar9 < sVar5) {
+ this->entityArray[entityID].field50_0x74 = 3;
+ } else {
+ this->entityArray[entityID].field50_0x74 = 4;
+ }
+ }
+ sVar5 = this->entityArray[entityID].field50_0x74;
+ if (sVar5 == 3) {
+ sVar10 = sVar9 * 2;
+ sVar9 = this->entityArray[entityID].field42_0x64;
+ this->entityArray[entityID].field47_0x6e = sVar10;
+ sVar5 = this->entityArray[entityID].field42_0x64;
+ this->entityArray[entityID].field48_0x70 = sVar10 + sVar9 * -2;
+ LAB_00403b64:
+ this->entityArray[entityID].field49_0x72 = sVar10 - sVar5;
+ } else if (sVar5 == 4) {
+ sVar10 = this->entityArray[entityID].field42_0x64 * 2;
+ this->entityArray[entityID].field47_0x6e = sVar10;
+ sVar5 = this->entityArray[entityID].field39_0x5e;
+ this->entityArray[entityID].field48_0x70 = sVar10 + sVar9 * -2;
+ goto LAB_00403b64;
+ }
+ iVar7 = DAT_EntityDefinedData
+ .EntityArrayCurveTypeForProjectileType[(short)this->entityArray[entityID].entityType];
+ if (iVar7 == 0) {
+ uVar6 = computeLineOfSightDistance(
+ x, y, height, targetX, targetY, targetZ, 1);
+ sVar5 = (short)uVar6;
+ this->entityArray[entityID].field62_0x94 = sVar5;
+ this->entityArray[entityID].field58_0x8c = sVar5;
+ this->entityArray[entityID].field80_0xba = (short)this->lineOfSightClearanceSteps;
+ sVar10 = this->entityArray[entityID].velocityUnk;
+ } else {
+ if (iVar7 == 1) {
+ uVar6 = computeLineOfSightDistance(x, y, height, targetX, targetY, targetZ, 1);
+ iVar7 = this->entityArray[entityID].heightDifference;
+ sVar5 = (short)uVar6;
+ this->entityArray[entityID].field62_0x94 = sVar5;
+ this->entityArray[entityID].field58_0x8c = sVar5;
+ this->entityArray[entityID].field80_0xba = (short)this->lineOfSightClearanceSteps;
+ iVar7 = computeVelocity(
+ (int)(short)this->entityArray[entityID].entityType,
+ (double)((int)((int)this->entityArray[entityID].startingAngle)), sVar5, iVar7);
+ this->entityArray[entityID].velocityUnk = (short)iVar7;
+ goto LAB_00403f37;
+ }
+ if (iVar7 == 2) {
+ uVar6 = computeLineOfSightDistance(x, y, height, targetX, targetY, targetZ, 1);
+ sVar5 = this->entityArray[entityID].height;
+ sVar10 = this->entityArray[entityID].targetZ;
+ sVar9 = (short)uVar6;
+ this->entityArray[entityID].field62_0x94 = sVar9;
+ this->entityArray[entityID].field58_0x8c = sVar9;
+ this->entityArray[entityID].field80_0xba = (short)this->lineOfSightClearanceSteps;
+ if (sVar10 < sVar5) {
+ this->entityArray[entityID].startingAngle = 3;
+ }
+ iVar7 = this->entityArray[entityID].heightDifference;
+ iVar11 = computeVelocity(
+ (int)(short)this->entityArray[entityID].entityType,
+ (double)((int)((int)this->entityArray[entityID].startingAngle)), sVar9, iVar7);
+ this->entityArray[entityID].velocityUnk = (short)iVar11;
+ if ((short)iVar11 < 1) {
+ EVar4 = this->entityArray[entityID].entityType;
+ this->entityArray[entityID].startingAngle = 0xf;
+ iVar7 = computeVelocity(
+ (int)(short)EVar4, 15.0, sVar9, iVar7);
+ this->entityArray[entityID].velocityUnk = (short)iVar7;
+ }
+ goto LAB_00403f37;
+ }
+ if (iVar7 == 3) {
+ uVar3 = (ushort)this->entityArray[entityID].rng_1;
+ this->entityArray[entityID].startingAngle = (uVar3 & 0xf) + 8;
+ this->entityArray[entityID].velocityUnk = (uVar3 & 7) + 0x15;
+ goto LAB_00403f37;
+ }
+ if (iVar7 == 4) {
+ uVar6 = this->entityArray[entityID].rng_1;
+ sVar5 = (short)((int)uVar6 % 0x14) + 0x10;
+ this->entityArray[entityID].startingAngle = sVar5;
+ if ((char)uVar6 < '\0') {
+ this->entityArray[entityID].startingAngle = -sVar5;
+ }
+ sVar5 = (short)(((int)uVar6 >> 8) % 0x14) + 0x10;
+ this->entityArray[entityID].velocityUnk = sVar5;
+ if ((uVar6 & 0x8000) == 0) {
+ return;
+ }
+ this->entityArray[entityID].velocityUnk = -sVar5;
+ return;
+ }
+ if (iVar7 == 5) {
+ iVar11 = this->entityArray[entityID].rng_1;
+ iVar7 = this->entityArray[entityID].rng_1;
+ this->entityArray[entityID].velocityUnk = 0;
+ this->entityArray[entityID].startingAngle = (byte)iVar11 & 7;
+ this->entityArray[entityID].graphicRotationUnk = (ushort)((uint)iVar7 >> 8) & 0x3f;
+ return;
+ }
+ if (iVar7 != 6) {
+ if (iVar7 == 7) {
+ return;
+ }
+ if (iVar7 == 10) {
+ return;
+ }
+ if (iVar7 == 8) {
+ sVar5 = this->entityArray[entityID].unitID_OR_seaGullID;
+ if (sVar5 == 0) {
+ this->entityArray[entityID].startingAngle
+ = (short)(this->entityArray[entityID].rng_1 % 0x3c) + 8;
+ this->entityArray[entityID].velocityUnk
+ = ((byte)this->entityArray[entityID].rng_1 & 7) + 0x23;
+ } else {
+ if (sVar5 == 4) {
+ this->entityArray[entityID].startingAngle
+ = (short)(this->entityArray[entityID].rng_1 % 0x1e) + 0xf;
+ sVar5 = ((byte)this->entityArray[entityID].rng_1 & 7) + 0xf;
+ } else {
+ iVar7 = this->entityArray[entityID].rng_1;
+ if (sVar5 == 5) {
+ this->entityArray[entityID].startingAngle = (short)(iVar7 % 0x1e) + 0x2d;
+ this->entityArray[entityID].velocityUnk
+ = ((byte)this->entityArray[entityID].rng_1 & 7) + 0x23;
+ goto LAB_00403f37;
+ }
+ this->entityArray[entityID].startingAngle = (short)(iVar7 % 0x23) + 0x14;
+ sVar5 = ((byte)this->entityArray[entityID].rng_1 & 7) + 0x19;
+ }
+ fVar1 = this->entityArray[entityID]._elapsedTimeOrGravityAccumulator;
+ this->entityArray[entityID].velocityUnk = sVar5;
+ this->entityArray[entityID]._elapsedTimeOrGravityAccumulator = fVar1 * 0.75;
+ }
+ } else if (iVar7 == 9) {
+ this->entityArray[entityID].startingAngle = 0;
+ }
+ goto LAB_00403f37;
+ }
+ uVar6 = computeLineOfSightDistance(
+ x, y, height, targetX, targetY, targetZ, 1);
+ sVar5 = (short)uVar6;
+ this->entityArray[entityID].field62_0x94 = sVar5;
+ this->entityArray[entityID].field58_0x8c = sVar5;
+ this->entityArray[entityID].field80_0xba = (short)this->lineOfSightClearanceSteps;
+ if (0x96 < sVar5) {
+ this->entityArray[entityID].velocityUnk = 0x7d;
+ }
+ sVar10 = this->entityArray[entityID].velocityUnk;
+ }
+ iVar7 = math_atan_1(
+ (int)(short)this->entityArray[entityID].entityType, (double)((int)((int)sVar10)), sVar5,
+ this->entityArray[entityID].heightDifference);
+ this->entityArray[entityID].startingAngle = (short)iVar7;
+ LAB_00403f37:
+ EVar4 = this->entityArray[entityID].entityType;
+ if ((((EVar4 == ET_ARROW_AND_DEFAULT)
+ || (EVar4 == ET_CROSSBOWARROW))
+ && (height + 0x36 < targetZ))
+ && (this->entityArray[entityID].rng_1 % 10 == 5)) {
+ this->entityArray[entityID].hasDoneEffectUnk = 1;
+ }
+ iVar11 = (int)this->entityArray[entityID].startingAngle;
+ this->entityArray[entityID].speedUnk = 0;
+ iVar7 = (int)this->entityArray[entityID].velocityUnk;
+ this->entityArray[entityID].travelledDistance = 0;
+ fVar12 = ((float10)iVar11 * (float10)3.1415926535) / (float10)180.0;
+ fVar13 = _math_cos(fVar12);
+ this->entityArray[entityID].vCos = (float)(fVar13 * (float10)iVar7);
+ fVar12 = _math_sin((float10)(double)fVar12);
+ this->entityArray[entityID].vSin = (float)(fVar12 * (float10)iVar7);
+ uVar8
+ = angleToRotationFrameIndex(iVar11);
+ this->entityArray[entityID].field45_0x6a = (short)uVar8;
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00403a20", "name": "initializeProjectileVelocities", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Legt für ein Geschoss Flugrichtung, Winkel und Geschwindigkeit fest."}, "p2": {"ein": "entityID, x, y, height, targetX, targetY, targetZ", "aus": "-", "liest": ["EntityArrayCurveTypeForProjectileType[entityType]", "entityArray[].velocityUnk/startingAngle/heightDifference/rng_1/targetZ/height/unitID_OR_seaGullID/_elapsedTimeOrGravityAccumulator", "lineOfSightClearanceSteps"], "schreibt": ["field38..field50 (Linienwerte, Abstände, Modus)", "someMicroX/someMicroY", "field58_0x8c/field62_0x94 (Entfernung)", "field80_0xba", "startingAngle", "velocityUnk", "speedUnk = 0", "travelledDistance = 0", "vCos", "vSin", "field45_0x6a", "hasDoneEffectUnk", "graphicRotationUnk"], "ruft": ["computeLineOfSightDistance", "computeVelocity", "math_atan_1", "angleToRotationFrameIndex"], "regeln": ["Zuerst Linienwerte wie bei der Möwe: Abstände dx und dy, Richtungen ±1, Modus 0 bis 4, Bresenham-Werte für Modus 3 und 4", "Der Flugbahn-Typ kommt aus EntityArrayCurveTypeForProjectileType[entityType], Werte 0 bis 10", "Typ 0: Entfernung über computeLineOfSightDistance (ohne Prüfung), Geschwindigkeit bleibt, Winkel über math_atan_1", "Typ 1: Entfernung wie Typ 0, Geschwindigkeit über computeVelocity aus dem festen startingAngle", "Typ 2: wie Typ 1; liegt das Ziel tiefer als der Start (targetZ < height), startingAngle = 3; ist die Geschwindigkeit kleiner als 1, startingAngle = 15 und neu rechnen", "Typ 3 (Zufall): Winkel = (rng_1 & 15) + 8 (8 bis 23), Geschwindigkeit = (rng_1 & 7) + 21 (21 bis 28)", "Typ 4 (Zufall): Winkel = rng_1 % 20 + 16, negativ wenn Bit 7 des niederen Bytes gesetzt; Geschwindigkeit = ((rng_1 >> 8) % 20) + 16, negativ wenn Bit 0x8000 gesetzt; Rückkehr ohne vCos/vSin", "Typ 5: Geschwindigkeit 0, Winkel = rng_1 & 7, graphicRotationUnk = (rng_1 >> 8) & 0x3f; Rückkehr ohne vCos/vSin", "Typ 6: Entfernung über computeLineOfSightDistance; Entfernung über 0x96 (150) setzt Geschwindigkeit 0x7d (125); Winkel über math_atan_1", "Typ 7 und 10: keine Änderung, sofortige Rückkehr", "Typ 8 (Zufall nach unitID_OR_seaGullID): 0: Winkel rng%60+8, Geschw. (rng&7)+35; 4: Winkel rng%30+15, Geschw. (rng&7)+15, Gravitationswert mal 0,75; 5: Winkel rng%30+45, Geschw. (rng&7)+35; sonst: Winkel rng%35+20, Geschw. (rng&7)+25, Gravitationswert mal 0,75", "Typ 9: Winkel = 0", "Bei ET_ARROW_AND_DEFAULT und ET_CROSSBOWARROW mit height + 0x36 (54) < targetZ und rng_1 % 10 == 5: hasDoneEffectUnk = 1", "Zum Schluss (außer bei den Rückkehrfällen): vCos = cos(Winkel) * Geschwindigkeit, vSin = sin(Winkel) * Geschwindigkeit, Rahmenindex über angleToRotationFrameIndex"], "offen": ["Welcher Geschosstyp zu welchem Flugbahn-Typ gehört: Tabelle nicht gelesen", "Bedeutung von hasDoneEffectUnk (vermutlich Sondereffekt bei Bergauf-Schüssen)", "Typ 8 vermutlich Trümmer oder Splitter (Zufallswerte), nicht belegt", "Einheit der Geschwindigkeit"]}, "p3": {"erklaerung": "Gibt jedem Geschoss seine Startwerte: Pfeile fliegen auf einer berechneten Bahn zum Ziel, Trümmer und Streuteile bekommen Zufallswerte. Auf höher gelegene Ziele können Pfeile zufällig (1 von 10) einen Sondereffekt auslösen.", "gehirn": "Hinweis für Reichweiten und Trefferrechnung: Der Bahntyp je Geschoss steht in einer festen Tabelle.", "beleg": "code", "live": "EntityArrayCurveTypeForProjectileType einmal aus dem Speicher lesen → Wert je Geschosstyp → Werte 0 bis 10 den Geschossarten zuordnen", "live_art": "tabelle"}}
+
+### 0x00403ff0 handleProjectileWallBounce | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00403FF0
+ void EntityState::handleProjectileWallBounce(int param_1)
+ {
+ word wVar1;
+ byte _bitFlag;
+ uint y;
+ undefined4 uVar2;
+ uint x;
+ uint uVar3;
+ short sVar4;
+ int iVar5;
+ uint uVar6;
+ short sVar7;
+ short sVar8;
+ int iVar9;
+ bool bVar10;
+ bool bVar11;
+ bool bVar12;
+ float10 fVar13;
+ float10 fVar14;
+ sVar4 = this->entityArray[param_1].microY;
+ y = (uint)sVar4;
+ sVar8 = this->entityArray[param_1].microX;
+ x = (uint)sVar8;
+ uVar3 = x & 7;
+ iVar5 = 0;
+ iVar9 = 0;
+ uVar6 = y & 7;
+ _bitFlag = setBitFlagBasedOnWallTowerGatehouseOrKeep(
+ (int)(x + ((int)x >> 0x1f & 7U)) >> 3, (int)((int)((y + (y >> 0x1f & 7U)) >> 3)));
+ switch (this->entityArray[param_1].orientation) {
+ case 0x3c:
+ case 0x40:
+ case 0x44:
+ case 0x48:
+ switchD_0040405c_caseD_3c:
+ iVar9 = (int)this->entityArray[param_1].y_2;
+ LAB_004042e5:
+ iVar5 = (int)this->entityArray[param_1].x_2;
+ break;
+ case 0x3d:
+ uVar6 = 7 - uVar6;
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = false;
+ if (uVar3 == uVar6) {
+ switch (_bitFlag & 10) {
+ case 0:
+ case 8:
+ switchD_00404081_caseD_0:
+ uVar6 = 100;
+ break;
+ case 2:
+ switchD_00404081_caseD_2:
+ uVar3 = 100;
+ break;
+ case 10:
+ goto switchD_0040405c_caseD_3c;
+ }
+ switchD_00404081_caseD_4:
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = uVar3 == uVar6;
+ }
+ goto LAB_0040408f;
+ case 0x3e:
+ uVar6 = 7 - uVar6;
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = false;
+ if (uVar3 == uVar6) {
+ switch (_bitFlag & 10) {
+ case 0:
+ case 8:
+ goto switchD_00404081_caseD_0;
+ case 2:
+ goto switchD_00404081_caseD_2;
+ default:
+ goto switchD_00404081_caseD_4;
+ case 10:
+ goto switchD_0040405c_caseD_3c;
+ }
+ }
+ goto LAB_0040408f;
+ case 0x3f:
+ uVar6 = 7 - uVar6;
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = false;
+ if (uVar3 == uVar6) {
+ switch (_bitFlag & 10) {
+ case 0:
+ case 2:
+ goto switchD_00404081_caseD_2;
+ default:
+ goto switchD_00404081_caseD_4;
+ case 8:
+ goto switchD_00404081_caseD_0;
+ case 10:
+ goto switchD_0040405c_caseD_3c;
+ }
+ }
+ goto LAB_0040408f;
+ case 0x41:
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = false;
+ if (uVar3 == uVar6) {
+ switch (_bitFlag & 0x82) {
+ case 0:
+ case 2:
+ switchD_0040410f_caseD_0:
+ uVar6 = 100;
+ default:
+ switchD_0040410f_caseD_4:
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = uVar3 == uVar6;
+ break;
+ case 0x80:
+ switchD_0040410f_caseD_80:
+ bVar12 = (100 < uVar6);
+ bVar11 = (int)(100 - uVar6) < 0;
+ bVar10 = uVar6 == 100;
+ break;
+ case 0x82:
+ goto switchD_0040405c_caseD_3c;
+ }
+ }
+ goto LAB_0040408f;
+ case 0x42:
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = false;
+ if (uVar3 == uVar6) {
+ switch (_bitFlag & 0x82) {
+ case 0:
+ case 2:
+ goto switchD_0040410f_caseD_0;
+ default:
+ goto switchD_0040410f_caseD_4;
+ case 0x80:
+ goto switchD_0040410f_caseD_80;
+ case 0x82:
+ goto switchD_0040405c_caseD_3c;
+ }
+ }
+ goto LAB_0040408f;
+ case 0x43:
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = false;
+ if (uVar3 == uVar6) {
+ switch (_bitFlag & 0x82) {
+ case 0:
+ case 0x80:
+ switchD_00404173_caseD_0:
+ uVar3 = 100;
+ default:
+ switchD_00404173_caseD_4:
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = uVar3 == uVar6;
+ break;
+ case 2:
+ switchD_00404173_caseD_2:
+ bVar12 = (uVar3 < 100);
+ bVar11 = (int)(uVar3 - 100) < 0;
+ bVar10 = uVar3 == 100;
+ break;
+ case 0x82:
+ goto switchD_0040405c_caseD_3c;
+ }
+ }
+ goto LAB_0040408f;
+ case 0x45:
+ uVar3 = 7 - uVar3;
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = false;
+ if (uVar3 == uVar6) {
+ switch (_bitFlag & 0xa0) {
+ case 0:
+ case 0x80:
+ goto switchD_0040410f_caseD_0;
+ case 0x20:
+ goto switchD_0040410f_caseD_80;
+ default:
+ goto switchD_0040410f_caseD_4;
+ case 0xa0:
+ goto switchD_0040405c_caseD_3c;
+ }
+ }
+ goto LAB_0040408f;
+ case 0x46:
+ uVar3 = 7 - uVar3;
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = false;
+ if (uVar3 == uVar6) {
+ switch (_bitFlag & 0xa0) {
+ case 0:
+ case 0x80:
+ goto switchD_0040410f_caseD_0;
+ case 0x20:
+ goto switchD_0040410f_caseD_80;
+ default:
+ goto switchD_0040410f_caseD_4;
+ case 0xa0:
+ goto switchD_0040405c_caseD_3c;
+ }
+ }
+ goto LAB_0040408f;
+ case 0x47:
+ uVar3 = 7 - uVar3;
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = false;
+ if (uVar3 == uVar6) {
+ switch (_bitFlag & 0xa0) {
+ case 0:
+ case 0x20:
+ goto switchD_00404173_caseD_0;
+ default:
+ goto switchD_00404173_caseD_4;
+ case 0x80:
+ goto switchD_00404173_caseD_2;
+ case 0xa0:
+ goto switchD_0040405c_caseD_3c;
+ }
+ }
+ goto LAB_0040408f;
+ case 0x49:
+ iVar5 = -uVar3 + 7;
+ iVar9 = 7 - uVar6;
+ bVar12 = (iVar5 < iVar9);
+ bVar11 = iVar5 - iVar9 < 0;
+ bVar10 = false;
+ if (iVar5 == iVar9) {
+ switch (_bitFlag & 0x28) {
+ case 0:
+ case 0x20:
+ iVar5 = 100;
+ default:
+ bVar12 = (iVar5 < iVar9);
+ bVar11 = iVar5 - iVar9 < 0;
+ bVar10 = iVar5 == iVar9;
+ break;
+ case 8:
+ bVar12 = (iVar5 < 100);
+ bVar11 = (int)(-uVar3 + -0x5d) < 0;
+ bVar10 = iVar5 == 100;
+ break;
+ case 0x28:
+ goto switchD_0040405c_caseD_3c;
+ }
+ }
+ LAB_0040408f:
+ if (bVar10 || bVar12 != bVar11) {
+ iVar9 = this->entityArray[param_1].microY * 2 - (int)this->entityArray[param_1].y_2;
+ goto LAB_004042e5;
+ }
+ iVar9 = (int)this->entityArray[param_1].y_2;
+ iVar5 = this->entityArray[param_1].microX * 2 - (int)this->entityArray[param_1].x_2;
+ break;
+ case 0x4a:
+ uVar3 = 7 - uVar3;
+ uVar6 = 7 - uVar6;
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = false;
+ if (uVar3 == uVar6) {
+ switch (_bitFlag & 0x28) {
+ case 0:
+ case 8:
+ goto switchD_00404081_caseD_0;
+ default:
+ goto switchD_00404081_caseD_4;
+ case 0x20:
+ goto switchD_00404081_caseD_2;
+ case 0x28:
+ goto switchD_0040405c_caseD_3c;
+ }
+ }
+ goto LAB_0040408f;
+ case 0x4b:
+ uVar3 = 7 - uVar3;
+ uVar6 = 7 - uVar6;
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = false;
+ if (uVar3 == uVar6) {
+ switch (_bitFlag & 0x28) {
+ case 0:
+ case 8:
+ goto switchD_00404081_caseD_0;
+ default:
+ goto switchD_00404081_caseD_4;
+ case 0x20:
+ goto switchD_00404081_caseD_2;
+ case 0x28:
+ goto switchD_0040405c_caseD_3c;
+ }
+ }
+ goto LAB_0040408f;
+ default:
+ break;
+ }
+ somethingWithProjectileDistance(x, y, iVar5, iVar9);
+ this->entityArray[param_1].orientation = DAT_DirectionAlgorithmState.orientation;
+ sVar7 = (short)iVar9;
+ if (iVar9 < (int)y) {
+ this->entityArray[param_1].field42_0x64 = sVar4 - sVar7;
+ } else {
+ this->entityArray[param_1].field42_0x64 = sVar7 - sVar4;
+ }
+ sVar4 = (short)iVar5;
+ if (iVar5 < (int)x) {
+ this->entityArray[param_1].field39_0x5e = sVar8 - sVar4;
+ } else {
+ this->entityArray[param_1].field39_0x5e = sVar4 - sVar8;
+ }
+ sVar8 = this->entityArray[param_1].field39_0x5e;
+ this->entityArray[param_1].field38_0x5c = sVar4;
+ this->entityArray[param_1].someMicroX = (ushort)((int)x <= iVar5) * 2 + -1;
+ this->entityArray[param_1].field41_0x62 = sVar7;
+ this->entityArray[param_1].someMicroY = (ushort)((int)y <= iVar9) * 2 + -1;
+ if (sVar8 == 0) {
+ if (this->entityArray[param_1].field42_0x64 == 0) {
+ this->entityArray[param_1].field50_0x74 = 0;
+ } else {
+ this->entityArray[param_1].field50_0x74 = 1;
+ }
+ } else {
+ sVar4 = this->entityArray[param_1].field42_0x64;
+ if (sVar4 == 0) {
+ this->entityArray[param_1].field50_0x74 = 2;
+ } else if (sVar8 < sVar4) {
+ this->entityArray[param_1].field50_0x74 = 3;
+ } else {
+ this->entityArray[param_1].field50_0x74 = 4;
+ }
+ }
+ sVar4 = this->entityArray[param_1].field50_0x74;
+ if (sVar4 == 3) {
+ sVar4 = this->entityArray[param_1].field42_0x64;
+ sVar8 = sVar8 * 2;
+ this->entityArray[param_1].field47_0x6e = sVar8;
+ sVar7 = sVar8 + sVar4 * -2;
+ this->entityArray[param_1].field49_0x72 = sVar8 - sVar4;
+ } else {
+ if (sVar4 != 4)
+ goto LAB_0040440f;
+ sVar4 = this->entityArray[param_1].field42_0x64 * 2;
+ this->entityArray[param_1].field47_0x6e = sVar4;
+ sVar7 = sVar4 + sVar8 * -2;
+ this->entityArray[param_1].field49_0x72 = sVar4 - sVar8;
+ }
+ this->entityArray[param_1].field48_0x70 = sVar7;
+ LAB_0040440f:
+ wVar1 = this->entityArray[param_1].graphicRotationUnk;
+ this->entityArray[param_1].startingAngle = wVar1;
+ if ((short)wVar1 < -0x50) {
+ this->entityArray[param_1].startingAngle = -0x50;
+ }
+ iVar9 = (int)this->entityArray[param_1].startingAngle;
+ this->entityArray[param_1].speedUnk = 0;
+ iVar5 = (int)this->entityArray[param_1].velocityUnk;
+ fVar13 = ((float10)iVar9 * (float10)3.1415926535) / (float10)180.0;
+ sVar4 = this->entityArray[param_1].height;
+ sVar8 = (short)((int)(iVar5 + (iVar5 >> 0x1f & 7U)) >> 3);
+ this->entityArray[param_1].velocityUnk = sVar8;
+ this->entityArray[param_1].startingHeight = sVar4;
+ this->entityArray[param_1].travelledDistance = 0;
+ fVar14 = _math_cos(fVar13);
+ this->entityArray[param_1].vCos = (float)((float10)(int)sVar8 * fVar14);
+ fVar13 = _math_sin((float10)(double)fVar13);
+ this->entityArray[param_1].vSin = (float)((float10)(int)sVar8 * fVar13);
+ uVar2 = angleToRotationFrameIndex(iVar9);
+ sVar4 = this->entityArray[param_1].xPosition;
+ this->entityArray[param_1].field45_0x6a = (short)uVar2;
+ sVar8 = this->entityArray[param_1].yPosition;
+ this->entityArray[param_1].gmLookupValue = 0;
+ playSFXAtLocation(
+ (int)sVar4, sVar8, FX_ARROW_BOUNCE);
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00403ff0", "name": "handleProjectileWallBounce", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Lässt ein Geschoss an einer Mauer, einem Turm, Torhaus oder Bergfried abprallen und setzt seine Flugbahn neu."}, "p2": {"ein": "param_1 = Entity-Nummer des Geschosses", "aus": "nichts", "liest": ["entityArray[e].microX/microY/x_2/y_2/orientation/graphicRotationUnk/height/velocityUnk/xPosition/yPosition", "Bit-Flags des Feldes (setBitFlagBasedOnWallTowerGatehouseOrKeep)"], "schreibt": ["entityArray[e].orientation", "field42_0x64", "field39_0x5e", "field38_0x5c", "field41_0x62", "someMicroX/someMicroY (+1 oder -1)", "field50_0x74 (Fall 0-4)", "field47_0x6e/field48_0x70/field49_0x72", "startingAngle", "speedUnk=0", "velocityUnk (durch 8)", "startingHeight", "travelledDistance=0", "vCos/vSin", "field45_0x6a", "gmLookupValue=0"], "ruft": ["setBitFlagBasedOnWallTowerGatehouseOrKeep", "somethingWithProjectileDistance", "angleToRotationFrameIndex", "playSFXAtLocation (FX_ARROW_BOUNCE)", "_math_cos", "_math_sin"], "regeln": ["Feld = micro / 8; Lage im Feld = micro & 7", "Orientierungen 0x3c, 0x40, 0x44, 0x48 (gerade Richtungen) und alle nicht aufgeführten: Ziel = alter Punkt (x_2, y_2) bzw. (0,0) bei den übrigen", "Diagonalen 0x3d-0x3f, 0x41-0x43, 0x45-0x47, 0x49-0x4b: Vergleich der Lage im Feld (x&7 gegen y&7, je nach Richtung gespiegelt als 7-Wert); je nach Ergebnis wird entweder y oder x am Aufprallpunkt gespiegelt (2*micro - alter Wert)", "Bei Gleichstand entscheiden die Mauer-Flags des Feldes über den Vergleichswert 100; Flags voll gesetzt (10, 0x82, 0xa0, 0x28) = Rückwurf an den alten Punkt", "Neue Startgeschwindigkeit = velocityUnk / 8", "Startwinkel = graphicRotationUnk, nach unten auf -0x50 begrenzt", "field50_0x74: 0 wenn Ziel = Start, 1 nur y-Weg, 2 nur x-Weg, 3 wenn x-Weg < y-Weg, sonst 4"], "offen": ["Genaue Bedeutung der Flag-Bits 0x02/0x08/0x20/0x80 (vermutlich Mauerseiten)", "Feldnamen field38 bis field50 und graphicRotationUnk sind ungesichert", "Der Ablauf der Ghidra-Übersetzung ist an den Sprungstellen schwer lesbar"]}, "p3": {"erklaerung": "Trifft ein Pfeil oder Stein die Kante einer Mauer, wird er an ihr zurückgeworfen: Er fliegt mit einem Achtel der Fluggeschwindigkeit spiegelbildlich weiter und es gibt den Abprall-Ton.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x00404ae0 spawnProjectileEntity | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00404AE0
+ uint EntityState::spawnProjectileEntity(int unitID, undefined4 playerID1, uint ownerColorUnk, int microX,
+ int microY, int totalHeight, int targetX, int targetY, int targetZUnk, EntityType entityType, int param_11)
+ {
+ bool bVar1;
+ dword dVar2;
+ short* psVar3;
+ EntityTypeShort* pEVar4;
+ uint uVar5;
+ uint uVar6;
+ short sVar7;
+ uint entityID;
+ bVar1 = false;
+ if (((0x2b < (int)entityType) && ((int)entityType < 0x5b)) || (0x5e < (int)entityType)) {
+ return 0;
+ }
+ if (entityType == ~ET_UNKNOWN) {
+ entityID = 0;
+ entityType = ((EntityType)8);
+ } else if (entityType - ((EntityType)0x28) < 8) {
+ entityID = 1;
+ psVar3 = &this->entityArray[1].logicalState;
+ do {
+ if (*psVar3 == 0)
+ break;
+ if (0x17 < (int)entityID) {
+ return 0;
+ }
+ entityID = entityID + 1;
+ psVar3 = psVar3 + 0x74;
+ } while ((int)entityID < 0x19);
+ } else {
+ entityID = this->every10Ticks;
+ if ((int)this->every10Ticks < 3000) {
+ psVar3 = &this->entityArray[this->every10Ticks].logicalState;
+ do {
+ if (*psVar3 == 0)
+ break;
+ if (0xbb6 < (int)entityID) {
+ switch (entityType) {
+ case ET_ARROW_AND_DEFAULT:
+ case ET_CATAPULT:
+ case ET_TREBUCHET:
+ case ET_MANGONEL:
+ case ET_CROSSBOWARROW:
+ case ((EntityType)8):
+ case ET_COW_POISON_CLOUD:
+ case ET_COW_FLYING:
+ case ((EntityType)0x18):
+ case ((EntityType)0x19):
+ case 0x1a:
+ case ET_SLINGER:
+ case ET_FIRETHROWER:
+ case ET_FIRETHROWER | ET_ARROW_AND_DEFAULT:
+ case ET_FIRETHROWER_UNTARGETED:
+ case ET_FIREBALLISTA:
+ case 0x5b:
+ case 0x5c:
+ case 0x5d:
+ case 0x5e:
+ this->maxEntityCount = 3000;
+ entityID = 0x19;
+ pEVar4 = &this->entityArray[0x19].entityType;
+ break;
+ default : goto switchD_00404bac_caseD_5;
+ }
+ goto LAB_00404bc5;
+ }
+ entityID = entityID + 1;
+ psVar3 = psVar3 + 0x74;
+ } while ((int)entityID < 3000);
+ }
+ this->every10Ticks = entityID;
+ if (this->maxEntityCount <= (int)entityID) {
+ this->maxEntityCount = entityID + 1;
+ }
+ }
+ LAB_00404c16:
+ this->entityArray[entityID].rng_2 = 0;
+ if (entityType == 0x5b) {
+ bVar1 = true;
+ this->entityArray[entityID].rng_2 = 1;
+ entityType = ET_ARROW_AND_DEFAULT;
+ } else if (entityType == ET_FIREBALLISTA) {
+ bVar1 = true;
+ this->entityArray[entityID].field90_0xd0 = 1;
+ entityType = ET_BALLISTA;
+ } else {
+ if ((entityType == ET_FIRETHROWER)
+ || (entityType == ET_FIRETHROWER_UNTARGETED)) {
+ bVar1 = true;
+ }
+ if (entityType == 0x5c) {
+ bVar1 = true;
+ this->entityArray[entityID].rng_2 = 1;
+ entityType = ((EntityType)0x18);
+ } else if (entityType == 0x5d) {
+ bVar1 = true;
+ this->entityArray[entityID].rng_2 = 2;
+ entityType = ET_ARROW_AND_DEFAULT;
+ } else if (entityType == 0x5e) {
+ bVar1 = true;
+ this->entityArray[entityID].rng_2 = 2;
+ entityType = ((EntityType)0x18);
+ } else if (entityType == 0x1b) {
+ targetX = targetX + -0xa0 + ((int)SEC_RNG::instance.currentNumber2 % 0x50) * 4;
+ targetY = targetY + -0xa0 + (((int)SEC_RNG::instance.currentNumber2 >> 8) % 0x50) * 4;
+ } else if (entityType == ((EntityType)0x20)) {
+ targetX = targetX + -0x18 + (int)SEC_RNG::instance.currentNumber2 % 0x30;
+ targetY = targetY + -0x18 + ((int)SEC_RNG::instance.currentNumber2 >> 8) % 0x30;
+ }
+ }
+ switch (entityType) {
+ case ET_ARROW_AND_DEFAULT:
+ case ET_CATAPULT:
+ case ET_TREBUCHET:
+ case ET_MANGONEL:
+ case ET_CROSSBOWARROW:
+ case ET_BALLISTA:
+ case ET_COW_FLYING:
+ case ((EntityType)0x18):
+ case ((EntityType)0x19):
+ case 0x1b:
+ case ((EntityType)0x20):
+ case ET_SLINGER:
+ case ET_FIRETHROWER:
+ case ET_FIRETHROWER | ET_ARROW_AND_DEFAULT:
+ case ET_FIRETHROWER_UNTARGETED:
+ case ET_FIREBALLISTA:
+ case 0x5b:
+ case 0x5c:
+ case 0x5d:
+ case 0x5e:
+ uVar5 = (int)(microX + (microX >> 0x1f & 7U)) >> 3;
+ uVar6 = (int)(microY + (microY >> 0x1f & 7U)) >> 3;
+ if (((399 < uVar5) || (399 < uVar6)) || (*(char*)(uVar6 * 400 + 0x21aec98 + uVar5) == '\0')) {
+ return 0;
+ }
+ uVar5 = (int)(targetX + (targetX >> 0x1f & 7U)) >> 3;
+ uVar6 = (int)(targetY + (targetY >> 0x1f & 7U)) >> 3;
+ if (399 < uVar5) {
+ return 0;
+ }
+ if (399 < uVar6) {
+ return 0;
+ }
+ if (*(char*)(uVar6 * 400 + 0x21aec98 + uVar5) == '\0') {
+ return 0;
+ }
+ }
+ if ((int)entityID < 0x19) {
+ this->entityArray[entityID].uid = 0;
+ } else {
+ this->entityArray[entityID].uid = DAT_GameCore.uniqueGameObjectTracker;
+ DAT_GameCore.uniqueGameObjectTracker = DAT_GameCore.uniqueGameObjectTracker + 1;
+ }
+ dVar2 = DAT_GameCore.mapTimeInTicks;
+ this->entityArray[entityID].unitID_OR_seaGullID = (short)unitID;
+ this->entityArray[entityID].targetX = (short)targetX;
+ this->entityArray[entityID].targetY = (short)targetY;
+ this->entityArray[entityID].targetZ = (short)targetZUnk;
+ this->entityArray[entityID].heightDifference = targetZUnk - totalHeight;
+ this->entityArray[entityID].field21_0x34 = dVar2;
+ this->entityArray[entityID].unitID = (short)param_11;
+ this->entityArray[entityID].owner = (short)playerID1;
+ this->entityArray[entityID].microX = (short)microX;
+ this->entityArray[entityID].x_2 = (short)microX;
+ this->entityArray[entityID].logicalState = 1;
+ this->entityArray[entityID].microY = (short)microY;
+ this->entityArray[entityID].y_2 = (short)microY;
+ sVar7 = (short)totalHeight;
+ this->entityArray[entityID].height = sVar7;
+ this->entityArray[entityID].startingHeight_2 = sVar7;
+ this->entityArray[entityID].height_2 = sVar7;
+ this->entityArray[entityID].startingHeight = sVar7;
+ this->entityArray[entityID].unkMinusOne = 0;
+ /*
+ sets DAT_TempBuildingOrientation
+ */
+ somethingWithProjectileDistance(microX, microY, targetX, targetY);
+ this->entityArray[entityID].orientation = DAT_DirectionAlgorithmState.orientation;
+ this->entityArray[entityID].colorUnk = 0;
+ if ((((entityType == ET_FLAG_1)
+ || (entityType == ET_FLAG_4))
+ || (entityType == ET_FLAG_2))
+ || (entityType == ET_FLAG_3)) {
+ this->entityArray[entityID].colorUnk = ownerColorUnk;
+ }
+ setProjectileEntityValues2(
+ entityID, entityType);
+ if (this->entityArray[entityID].rng_2 != 0) {
+ this->entityArray[entityID].gmID = 0x91;
+ }
+ this->entityArray[entityID].field7_0x12 = 0;
+ this->entityArray[entityID].unknownAnimationFrameRelated = 0;
+ if (entityType == ET_DUST_CLOUD) {
+ if (param_11 == 1) {
+ this->entityArray[entityID].unknownAnimationFrameRelated = 200;
+ }
+ LAB_00404efa:
+ this->entityArray[entityID].rng_1 = (int)SEC_RNG::instance.currentNumber2;
+ if (25 < (int)entityID) {
+ nextRandomNumber2();
+ }
+ if (entityType == ET_SEAGULLUnk) {
+ this->entityArray[entityID].rng_2 = SEC_RNG::instance.currentNumber2 % 100 + 120;
+ goto LAB_00404f8c;
+ }
+ if (entityType == 0x1f) {
+ if (unitID != 0) {
+ this->entityArray[entityID].unkOne_1 = 2;
+ }
+ goto LAB_00404f8c;
+ }
+ if (entityType != ET_HEADS_ON_SPIKES)
+ goto LAB_00404f8c;
+ this->entityArray[entityID].rng_2 = SEC_RNG::instance.currentNumber2 % 500 + 300;
+ } else {
+ if (entityType != ((EntityType)8))
+ goto LAB_00404efa;
+ ownerColorUnk = DAT_UnitsState.units[unitID].fixedRng;
+ }
+ this->entityArray[entityID].rng_1 = ownerColorUnk;
+ LAB_00404f8c:
+ initializeProjectileVelocities(
+ entityID, microX, microY, totalHeight, targetX, targetY, targetZUnk);
+ if (this->entityArray[entityID].entityType == ((EntityType)0x18)) {
+ this->entityArray[entityID].entityType = ET_ARROW_AND_DEFAULT;
+ }
+ if (this->entityArray[entityID].entityType == ((EntityType)0x19)) {
+ this->entityArray[entityID].entityType = ET_CROSSBOWARROW;
+ }
+ if (this->entityArray[entityID].entityType
+ == (ET_FIRETHROWER | ET_ARROW_AND_DEFAULT)) {
+ this->entityArray[entityID].entityType = ET_SLINGER;
+ }
+ if (this->entityArray[entityID].entityType == ET_FIRETHROWER_UNTARGETED) {
+ this->entityArray[entityID].entityType = ET_FIRETHROWER;
+ }
+ if (bVar1) {
+ this->entityArray[entityID].gmLookupValue = 1;
+ }
+ if (entityID != 0) {
+ processEntityHitBuildingOrUnit(
+ entityID);
+ calculateEntityDrawOffset(entityID);
+ uVar5 = DAT_CurrentEntityID;
+ DAT_CurrentEntityID = entityID;
+ (*(code*)DAT_EntityDefinedData
+ .EntityCallbacks[(short)this->entityArray[entityID].entityType])();
+ DAT_CurrentEntityID = uVar5;
+ }
+ return entityID;
+ LAB_00404bc5:
+ if (pEVar4[-1] == 0)
+ goto LAB_00404c16;
+ switch (*pEVar4) {
+ case ET_FIRE:
+ case ET_DUST_CLOUD:
+ case 0x1b:
+ case 0x1e:
+ case 0x1f:
+ deleteEntity(entityID);
+ goto LAB_00404c16;
+ default : entityID = entityID + 1;
+ pEVar4 = pEVar4 + 0x74;
+ if (2999 < (int)entityID) {
+ switchD_00404bac_caseD_5:
+ this->every10Ticks = 2999;
+ return 0;
+ }
+ }
+ goto LAB_00404bc5;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00404ae0", "name": "spawnProjectileEntity", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Erzeugt ein Geschoss oder einen Effekt (Pfeil, Stein, Feuer, Staub, Möwe ...) in einem freien Entity-Platz."}, "p2": {"ein": "unitID, playerID1, ownerColorUnk, microX/microY, totalHeight, targetX/Y/ZUnk, entityType, param_11", "aus": "Entity-Nummer oder 0 bei Fehlschlag", "liest": ["entityArray[].logicalState/entityType", "every10Ticks", "maxEntityCount", "Tabelle bei 0x21aec98 (400x400 Bytes)", "SEC_RNG.currentNumber2", "units[unitID].fixedRng", "DAT_GameCore.uniqueGameObjectTracker/mapTimeInTicks"], "schreibt": ["entityArray[id] (unitID, owner, micro, Höhen, Ziel, uid, orientation, rng_1, rng_2, gmID, gmLookupValue, entityType, logicalState=1)", "every10Ticks", "maxEntityCount", "uniqueGameObjectTracker"], "ruft": ["somethingWithProjectileDistance", "setProjectileEntityValues2", "initializeProjectileVelocities", "processEntityHitBuildingOrUnit", "calculateEntityDrawOffset", "deleteEntity", "nextRandomNumber2", "EntityCallbacks[entityType]"], "regeln": ["Typ 0x2c-0x5a und alles über 0x5e: sofort 0", "Typ ~ET_UNKNOWN: Platz 0, Typ wird 8", "Typen 0x28-0x2f: Plätze 1 bis 24, erster freier (logicalState=0), sonst 0", "Alle anderen: Suche ab every10Ticks bis 2999 nach einem freien Platz; Obergrenze 3000 Entities", "Ist nichts frei, dürfen Pfeil-, Katapult-, Wurf-, Feuer- und Sondertypen ab Platz 0x19 vorhandene Feuer-, Staub- und Typ-0x1b/0x1e/0x1f-Entities löschen und deren Platz nehmen; sonst every10Ticks=2999 und 0", "Plätze unter 0x19 bekommen uid 0, höhere eine laufende uid", "Flugtypen (u.a. Pfeil, Katapult, Trebuchet, Schleuder, Feuerwerfer): Start- und Zielfeld müssen im Bereich 0-399 liegen und in der Tabelle bei 0x21aec98 ungleich 0 sein, sonst 0", "Sondertypen 0x5b bis 0x5e und Feuerballista werden auf Pfeil/0x18/Ballista zurückgeführt; rng_2 = 1 oder 2 (Brandmarke) bzw. field90=1; gmLookupValue=1 bei Brand- und Feuerwerfer-Typen", "Typ 0x1b: Ziel streut um bis zu -160 bis +156 Mikroeinheiten; Typ 0x20: um -24 bis +23", "Möwe: rng_2 = Zufall%100+120; Spießköpfe: rng_2 = Zufall%500+300; Staubwolke mit param_11=1: Animationswert 200", "Nach dem Setzen: Typ 0x18 wird zu Pfeil, 0x19 zu Armbrustpfeil, Feuerwerfer|Pfeil zu Schleuder, Feuerwerfer-ungezielt zu Feuerwerfer"], "offen": ["Wert von ~ET_UNKNOWN", "every10Ticks dient hier als Such-Startplatz; der Name täuscht", "Bedeutung von 0x21aec98-Tabelle (vermutlich Karte begehbar/gültig)", "Namen unkMinusOne, colorUnk, targetZUnk ungesichert"]}, "p3": {"erklaerung": "Zentrale Stelle, an der jedes Geschoss und viele Effekte entstehen. Es gibt höchstens 3000 solcher Objekte gleichzeitig; ist alles voll, kann ein neues Geschoss ausfallen.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+

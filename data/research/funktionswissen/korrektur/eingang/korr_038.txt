@@ -1,0 +1,859 @@
+### 0x004bc1c0 spawnAttackWaveForPlayer | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004BC1C0
+ void MapPropertiesState::spawnAttackWaveForPlayer(
+ int param_1, int param_2, int param_3, int param_4, int param_5, int param_6)
+ {
+ byte(*pabVar1)[10];
+ byte* pbVar2;
+ int iVar3;
+ int iVar4;
+ int iVar5;
+ char cVar6;
+ int iVar7;
+ int iVar8;
+ UnitType UVar9;
+ int local_10;
+ int local_c;
+ int local_8;
+ iVar3 = DAT_GameState.mapAndTime.signpostsMapEdgeDataCounter;
+ DAT_TroopValueState.attackInfo.inv_count = DAT_TroopValueState.attackInfo.inv_count + 1;
+ local_c = 0;
+ if (0x31 < DAT_TroopValueState.attackInfo.inv_count) {
+ DAT_TroopValueState.attackInfo.inv_count = 1;
+ }
+ initializeAttackWaveSlot(DAT_TroopValueState.attackInfo.inv_count, 0);
+ local_8 = 0;
+ DAT_TroopValueState.attackInfo
+ .attackWavePlayerIDArray[DAT_TroopValueState.attackInfo.inv_count] = (byte)param_1;
+ iVar7 = param_1;
+ iVar8 = param_1;
+ UVar9 = param_1;
+ do {
+ iVar4 = param_2;
+ iVar5 = param_3;
+ if ((local_8 != 0) && (iVar4 = param_4, iVar5 = param_5, param_4 < 1)) {
+ return;
+ }
+ switch (iVar4) {
+ case 5:
+ iVar8 = 2;
+ UVar9 = UT_TUNNELER;
+ break;
+ default:
+ goto switchD_004bc254_caseD_6;
+ case 0x16:
+ iVar8 = 3;
+ UVar9 = UT_E_ARCHER;
+ break;
+ case 0x17:
+ iVar8 = 7;
+ UVar9 = UT_E_XBOW;
+ break;
+ case 0x18:
+ iVar8 = 5;
+ UVar9 = UT_E_SPEAR;
+ break;
+ case 0x19:
+ iVar8 = 6;
+ UVar9 = UT_E_PIKE;
+ break;
+ case 0x1a:
+ iVar8 = 9;
+ UVar9 = UT_E_MACE;
+ break;
+ case 0x1b:
+ iVar8 = 8;
+ UVar9 = UT_E_SWORD;
+ break;
+ case 0x1c:
+ iVar8 = 10;
+ UVar9 = UT_E_KNIGHT;
+ iVar7 = 10;
+ goto switchD_004bc254_caseD_6;
+ case 0x1d:
+ iVar8 = 4;
+ UVar9 = UT_E_LADDER;
+ break;
+ case 0x1e:
+ iVar8 = 0xb;
+ UVar9 = UT_E_ENGINEER;
+ break;
+ case 0x25:
+ iVar8 = 0xc;
+ UVar9 = UT_E_MONK;
+ break;
+ case 0x27:
+ iVar8 = 0x16;
+ UVar9 = UT_S_CATAPULT;
+ break;
+ case 0x28:
+ iVar8 = 0x17;
+ UVar9 = UT_S_TREBUCHET;
+ break;
+ case 0x3a:
+ iVar8 = 0x14;
+ UVar9 = UT_S_TOWER;
+ break;
+ case 0x3b:
+ iVar8 = 0x13;
+ UVar9 = UT_S_BATTERINGRAM;
+ break;
+ case 0x3c:
+ iVar8 = 0x15;
+ UVar9 = UT_S_SHIELD;
+ break;
+ case 0x46:
+ iVar8 = 0x19;
+ UVar9 = UT_A_ARCHER;
+ break;
+ case 0x47:
+ iVar8 = 0x1a;
+ UVar9 = UT_A_SLAVE;
+ iVar7 = 0x14;
+ goto switchD_004bc254_caseD_6;
+ case 0x48:
+ iVar8 = 0x1b;
+ UVar9 = UT_A_SLINGER;
+ iVar7 = 0x14;
+ goto switchD_004bc254_caseD_6;
+ case 0x49:
+ iVar8 = 0x1c;
+ UVar9 = UT_A_ASSASSIN;
+ iVar7 = 2;
+ goto switchD_004bc254_caseD_6;
+ case 0x4a:
+ iVar8 = 0x1d;
+ UVar9 = UT_A_HARCHER;
+ break;
+ case 0x4b:
+ iVar8 = 0x1e;
+ UVar9 = UT_A_SWORDSMAN;
+ iVar7 = 8;
+ goto switchD_004bc254_caseD_6;
+ case 0x4c:
+ iVar8 = 0x1f;
+ UVar9 = UT_A_FIRETHROWER;
+ iVar7 = 4;
+ goto switchD_004bc254_caseD_6;
+ case 0x4d:
+ iVar8 = 0x18;
+ UVar9 = UT_S_FBALLISTA;
+ }
+ iVar7 = 10;
+ switchD_004bc254_caseD_6:
+ iVar4 = 100;
+ if (DAT_GameState.mapAndTime.difficulty == 0) {
+ iVar4 = 0x32;
+ } else if (DAT_GameState.mapAndTime.difficulty == 2) {
+ iVar4 = 0x8c;
+ } else if (DAT_GameState.mapAndTime.difficulty == 3) {
+ iVar4 = 200;
+ }
+ iVar4 = (iVar4 * iVar5) / 100;
+ cVar6 = (char)iVar4;
+ if (iVar8 == 0x16) {
+ pabVar1 = DAT_TroopValueState.attackInfo.someSinglePlayerScore
+ + DAT_TroopValueState.attackInfo.inv_count;
+ (*pabVar1)[0] = (*pabVar1)[0] + cVar6;
+ } else if (iVar8 == 0x17) {
+ pbVar2 = DAT_TroopValueState.attackInfo
+ .someSinglePlayerScore[DAT_TroopValueState.attackInfo.inv_count]
+ + 1;
+ *pbVar2 = *pbVar2 + cVar6;
+ } else if (iVar8 == 0x13) {
+ pbVar2 = DAT_TroopValueState.attackInfo
+ .someSinglePlayerScore[DAT_TroopValueState.attackInfo.inv_count]
+ + 2;
+ *pbVar2 = *pbVar2 + cVar6;
+ } else if (iVar8 == 0x14) {
+ pbVar2 = DAT_TroopValueState.attackInfo
+ .someSinglePlayerScore[DAT_TroopValueState.attackInfo.inv_count]
+ + 3;
+ *pbVar2 = *pbVar2 + cVar6;
+ } else if (iVar8 == 0x15) {
+ pbVar2 = DAT_TroopValueState.attackInfo
+ .someSinglePlayerScore[DAT_TroopValueState.attackInfo.inv_count]
+ + 4;
+ *pbVar2 = *pbVar2 + cVar6;
+ } else if (iVar8 == 0x18) {
+ pbVar2 = DAT_TroopValueState.attackInfo
+ .someSinglePlayerScore[DAT_TroopValueState.attackInfo.inv_count]
+ + 8;
+ *pbVar2 = *pbVar2 + cVar6;
+ } else {
+ local_10 = iVar4 / (iVar4 / iVar7 + 1);
+ while (0 < iVar4) {
+ if (iVar4 < local_10) {
+ local_10 = iVar4;
+ }
+ iVar5 = (&DAT_TroopValueState.attackInfo
+ .unknownSignpostRelatedArray)[DAT_TroopValueState.attackInfo.inv_count];
+ spawnUnitsForAITribe(iVar8,
+ DAT_GameState.mapAndTime.signpostsMapEdge[iVar5][local_c].x,
+ DAT_GameState.mapAndTime.signpostsMapEdge[iVar5][local_c].y, param_1, UVar9, local_10,
+ param_6);
+ iVar4 = iVar4 - local_10;
+ local_c = local_c + 1;
+ if (iVar3 <= local_c) {
+ local_c = 0;
+ }
+ }
+ }
+ local_8 = local_8 + 1;
+ if (1 < local_8) {
+ return;
+ }
+ } while (true);
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004bc1c0", "name": "spawnAttackWaveForPlayer", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Erzeugt eine KI-Angriffswelle aus bis zu zwei Einheitenarten am Kartenrand."}, "p2": {"ein": "param_1 = Spieler, param_2/param_3 = Einheitenart und Menge 1, param_4/param_5 = Art und Menge 2, param_6 unbekannt (wird an spawnUnitsForAITribe durchgereicht)", "aus": "-", "liest": ["mapAndTime.difficulty", "mapAndTime.signpostsMapEdgeDataCounter", "mapAndTime.signpostsMapEdge[][].x/y", "attackInfo.unknownSignpostRelatedArray"], "schreibt": ["attackInfo.inv_count", "attackInfo.attackWavePlayerIDArray[inv_count]", "attackInfo.someSinglePlayerScore[inv_count][0,1,2,3,4,8]"], "ruft": ["initializeAttackWaveSlot", "spawnUnitsForAITribe"], "regeln": ["inv_count steigt je Welle um 1; über 49 (0x31) springt es auf 1, es gibt also 49 Wellenplätze", "Es gibt zwei Durchläufe; der zweite nur, wenn param_4 >= 1", "Menge nach Schwierigkeit: Stufe 0 = 50 %, Stufe 1 (sonst) = 100 %, Stufe 2 = 140 %, Stufe 3 = 200 %; Ergebnis = Prozent * Menge / 100, ganzzahlig", "Belagerungsgeräte werden nicht erzeugt, nur gezählt: Katapult (0x27) auf Zähler 0, Trebuchet (0x28) auf 1, Ramme (0x3b) auf 2, Belagerungsturm (0x3a) auf 3, Schild (0x3c) auf 4, Feuerballista (0x4d) auf 8", "Alle anderen Arten (Tunnelgräber 5, europäische 0x16-0x1e und 0x25, arabische 0x46-0x4c) werden in Gruppen erzeugt", "Gruppengröße = Menge / (Menge / Grundgröße + 1); Grundgröße 10 für die meisten, Ritter 10, Sklave 20, Schleuderer 20, Assassine 2, arab. Schwertkämpfer 8, Feuerwerfer 4", "Jede Gruppe erscheint an einem Kartenrand-Wegweiser; die Wegweiser werden der Reihe nach durchlaufen und beginnen von vorn"], "offen": ["Bedeutung von param_6", "Verhalten bei unbekannter Einheitenart (Sprungziel mit unbelegten Werten)", "Welche Art 0x27/0x28/0x3a… im Spiel heißt, ist aus den UT_-Namen im Code abgeleitet"]}, "p3": {"erklaerung": "So entsteht eine Angriffswelle der KI aus der Karte heraus: Die Mengen werden mit der Schwierigkeit skaliert und auf mehrere Eintrittspunkte am Kartenrand verteilt. Belagerungsgeräte werden nur vermerkt.", "gehirn": "Die Stärke von Wellen skaliert mit der Schwierigkeit (50/100/140/200 %). Die Zahl der Wellen steht in attackInfo.inv_count.", "beleg": "code", "live": "Eine Invasionswelle auslösen bei Schwierigkeit 0 und 2 → Einheitenzahl der Welle → 50 % bzw. 140 % der Editor-Menge", "live_art": "ki-welle"}}
+
+### 0x004bde40 computeMissionCompletionScore | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004BDE40
+ void MapPropertiesState::computeMissionCompletionScore()
+ {
+ bool bVar1;
+ int* piVar2;
+ int iVar3;
+ uint uVar4;
+ int iVar5;
+ int iVar6;
+ char* pcVar7;
+ short* psVar8;
+ int local_8;
+ int local_4;
+ local_4 = 0;
+ local_8 = 0;
+ this->field91_0x14554 = 0xffffffff;
+ this->field94_0x14560 = 0;
+ iVar5 = 0;
+ if (0 < this->eventsCount) {
+ pcVar7 = (char*)((int)&this->scenarioEvents[0].data + 0xf);
+ iVar6 = 1;
+ do {
+ if (*(int*)(pcVar7 + -0x17) != 3)
+ goto LAB_004be33e;
+ if (((*(int*)(pcVar7 + -0xb) == 1) || (*(int*)(pcVar7 + -0xb) == 0x1b)) && (*pcVar7 != '\0')) {
+ local_4 = *(int*)(pcVar7 + -0x1f);
+ local_8 = *(int*)(pcVar7 + -0x1b);
+ }
+ if ((*(int*)(pcVar7 + -0xb) != 0) && (*(int*)(pcVar7 + -0xb) != 0x1a))
+ goto LAB_004be33e;
+ if (iVar6 < this->eventsCount) {
+ piVar2 = (int*)(pcVar7 + 0xd9);
+ iVar5 = iVar6;
+ do {
+ if ((piVar2[-3] == 3) && ((*piVar2 == 0 || (*piVar2 == 0x1a))))
+ goto LAB_004be33e;
+ iVar5 = iVar5 + 1;
+ piVar2 = piVar2 + 0x39;
+ } while (iVar5 < this->eventsCount);
+ }
+ if (pcVar7[0x18] == '\0')
+ goto LAB_004bdfd7;
+ this->invasionEventContent.unitCountsPerUnitType[this->field94_0x14560 + -0x16] = (int)pcVar7[0x17];
+ iVar5 = this->field94_0x14560;
+ iVar3 = getDifficultyMultipliedValue(
+ (int)*(short*)(pcVar7 + 0x15));
+ this->unknownArray_01[iVar5 + 0x3f1]
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[this->invasionEventContent.unitCountsPerUnitType[iVar5 + -0x16]]
+ - iVar3;
+ switch (this->invasionEventContent.unitCountsPerUnitType[this->field94_0x14560 + -0x16]) {
+ case 2:
+ case 10:
+ case 0xb:
+ case 0xc:
+ case 0xd:
+ iVar5 = this->unknownArray_01[this->field94_0x14560 + 0x3f1] * 5;
+ goto LAB_004bdfb7;
+ default:
+ iVar5 = this->unknownArray_01[this->field94_0x14560 + 0x3f1] * 10;
+ LAB_004bdfb7:
+ this->invasionEventContent.unitCountsPerUnitType[this->field94_0x14560 + -0x1d] = iVar5;
+ break;
+ case 6:
+ this->invasionEventContent.unitCountsPerUnitType[this->field94_0x14560 + -0x1d]
+ = this->unknownArray_01[this->field94_0x14560 + 0x3f1] * 0x14;
+ break;
+ case 0x11:
+ case 0x12:
+ case 0x13:
+ case 0x14:
+ case 0x15:
+ case 0x16:
+ case 0x17:
+ case 0x18:
+ this->invasionEventContent.unitCountsPerUnitType[this->field94_0x14560 + -0x1d]
+ = this->unknownArray_01[this->field94_0x14560 + 0x3f1] * 0x32;
+ }
+ if (0 < this->unknownArray_01[this->field94_0x14560 + 0x3f1]) {
+ this->field94_0x14560 = this->field94_0x14560 + 1;
+ }
+ LAB_004bdfd7:
+ if (pcVar7[0x44] == '\0')
+ goto LAB_004be0ae;
+ this->invasionEventContent.unitCountsPerUnitType[this->field94_0x14560 + -0x16] = (int)pcVar7[0x43];
+ iVar5 = this->field94_0x14560;
+ iVar3 = getDifficultyMultipliedValue(
+ (int)*(short*)(pcVar7 + 0x41));
+ this->unknownArray_01[iVar5 + 0x3f1]
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[this->invasionEventContent.unitCountsPerUnitType[iVar5 + -0x16]]
+ - iVar3;
+ switch (this->invasionEventContent.unitCountsPerUnitType[this->field94_0x14560 + -0x16]) {
+ case 2:
+ case 10:
+ case 0xb:
+ case 0xc:
+ case 0xd:
+ iVar5 = this->unknownArray_01[this->field94_0x14560 + 0x3f1] * 5;
+ goto LAB_004be08e;
+ default:
+ iVar5 = this->unknownArray_01[this->field94_0x14560 + 0x3f1] * 10;
+ LAB_004be08e:
+ this->invasionEventContent.unitCountsPerUnitType[this->field94_0x14560 + -0x1d] = iVar5;
+ break;
+ case 6:
+ this->invasionEventContent.unitCountsPerUnitType[this->field94_0x14560 + -0x1d]
+ = this->unknownArray_01[this->field94_0x14560 + 0x3f1] * 0x14;
+ break;
+ case 0x11:
+ case 0x12:
+ case 0x13:
+ case 0x14:
+ case 0x15:
+ case 0x16:
+ case 0x17:
+ case 0x18:
+ this->invasionEventContent.unitCountsPerUnitType[this->field94_0x14560 + -0x1d]
+ = this->unknownArray_01[this->field94_0x14560 + 0x3f1] * 0x32;
+ }
+ if (0 < this->unknownArray_01[this->field94_0x14560 + 0x3f1]) {
+ this->field94_0x14560 = this->field94_0x14560 + 1;
+ }
+ LAB_004be0ae:
+ if (pcVar7[0x14] == '\0')
+ goto LAB_004be185;
+ this->invasionEventContent.unitCountsPerUnitType[this->field94_0x14560 + -0x16] = (int)pcVar7[0x13];
+ iVar5 = this->field94_0x14560;
+ iVar3 = getDifficultyMultipliedValue(
+ (int)*(short*)(pcVar7 + 0x11));
+ this->unknownArray_01[iVar5 + 0x3f1]
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[this->invasionEventContent.unitCountsPerUnitType[iVar5 + -0x16]]
+ - iVar3;
+ switch (this->invasionEventContent.unitCountsPerUnitType[this->field94_0x14560 + -0x16]) {
+ case 2:
+ case 10:
+ case 0xb:
+ case 0xc:
+ case 0xd:
+ iVar5 = this->unknownArray_01[this->field94_0x14560 + 0x3f1] * 5;
+ goto LAB_004be165;
+ default:
+ iVar5 = this->unknownArray_01[this->field94_0x14560 + 0x3f1] * 10;
+ LAB_004be165:
+ this->invasionEventContent.unitCountsPerUnitType[this->field94_0x14560 + -0x1d] = iVar5;
+ break;
+ case 6:
+ this->invasionEventContent.unitCountsPerUnitType[this->field94_0x14560 + -0x1d]
+ = this->unknownArray_01[this->field94_0x14560 + 0x3f1] * 0x14;
+ break;
+ case 0x11:
+ case 0x12:
+ case 0x13:
+ case 0x14:
+ case 0x15:
+ case 0x16:
+ case 0x17:
+ case 0x18:
+ this->invasionEventContent.unitCountsPerUnitType[this->field94_0x14560 + -0x1d]
+ = this->unknownArray_01[this->field94_0x14560 + 0x3f1] * 0x32;
+ }
+ if (0 < this->unknownArray_01[this->field94_0x14560 + 0x3f1]) {
+ this->field94_0x14560 = this->field94_0x14560 + 1;
+ }
+ LAB_004be185:
+ if (pcVar7[0x1c] == '\0')
+ goto LAB_004be25c;
+ this->invasionEventContent.unitCountsPerUnitType[this->field94_0x14560 + -0x16] = (int)pcVar7[0x1b];
+ iVar5 = this->field94_0x14560;
+ iVar3 = getDifficultyMultipliedValue(
+ (int)*(short*)(pcVar7 + 0x19));
+ this->unknownArray_01[iVar5 + 0x3f1]
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[this->invasionEventContent.unitCountsPerUnitType[iVar5 + -0x16]]
+ - iVar3;
+ switch (this->invasionEventContent.unitCountsPerUnitType[this->field94_0x14560 + -0x16]) {
+ case 2:
+ case 10:
+ case 0xb:
+ case 0xc:
+ case 0xd:
+ iVar5 = this->unknownArray_01[this->field94_0x14560 + 0x3f1] * 5;
+ goto LAB_004be23c;
+ default:
+ iVar5 = this->unknownArray_01[this->field94_0x14560 + 0x3f1] * 10;
+ LAB_004be23c:
+ this->invasionEventContent.unitCountsPerUnitType[this->field94_0x14560 + -0x1d] = iVar5;
+ break;
+ case 6:
+ this->invasionEventContent.unitCountsPerUnitType[this->field94_0x14560 + -0x1d]
+ = this->unknownArray_01[this->field94_0x14560 + 0x3f1] * 0x14;
+ break;
+ case 0x11:
+ case 0x12:
+ case 0x13:
+ case 0x14:
+ case 0x15:
+ case 0x16:
+ case 0x17:
+ case 0x18:
+ this->invasionEventContent.unitCountsPerUnitType[this->field94_0x14560 + -0x1d]
+ = this->unknownArray_01[this->field94_0x14560 + 0x3f1] * 0x32;
+ }
+ if (0 < this->unknownArray_01[this->field94_0x14560 + 0x3f1]) {
+ this->field94_0x14560 = this->field94_0x14560 + 1;
+ }
+ LAB_004be25c:
+ if (pcVar7[0x10] != '\0') {
+ this->invasionEventContent.unitCountsPerUnitType[this->field94_0x14560 + -0x16] = 0xf;
+ iVar5 = getDifficultyMultipliedValue((int)*(short*)(pcVar7 + 0xd));
+ this->unknownArray_01[this->field94_0x14560 + 0x3f1]
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[0xf]
+ - iVar5;
+ this->invasionEventContent.unitCountsPerUnitType[this->field94_0x14560 + -0x1d]
+ = this->unknownArray_01[this->field94_0x14560 + 0x3f1];
+ if (0 < this->unknownArray_01[this->field94_0x14560 + 0x3f1]) {
+ this->field94_0x14560 = this->field94_0x14560 + 1;
+ }
+ }
+ if (pcVar7[4] != '\0') {
+ this->invasionEventContent.unitCountsPerUnitType[this->field94_0x14560 + -0x16] = -1;
+ iVar5 = getDifficultyMultipliedValue((int)*(short*)(pcVar7 + 1));
+ this->unknownArray_01[this->field94_0x14560 + 0x3f1]
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentPopulation
+ - iVar5;
+ this->invasionEventContent.unitCountsPerUnitType[this->field94_0x14560 + -0x1d]
+ = this->unknownArray_01[this->field94_0x14560 + 0x3f1];
+ if (0 < this->unknownArray_01[this->field94_0x14560 + 0x3f1]) {
+ this->field94_0x14560 = this->field94_0x14560 + 1;
+ }
+ }
+ LAB_004be33e:
+ pcVar7 = pcVar7 + 0xe4;
+ bVar1 = iVar6 < this->eventsCount;
+ iVar5 = local_8;
+ iVar6 = iVar6 + 1;
+ } while (bVar1);
+ }
+ iVar6 = 0;
+ this->field92_0x14558 = 0;
+ this->field93_0x1455c = 0;
+ if (iVar5 != 0) {
+ uVar4 = ((iVar5 - DAT_GameState.mapAndTime.year) * 0xc - DAT_GameState.mapAndTime.month)
+ + local_4;
+ this->field92_0x14558 = uVar4 & ((int)uVar4 < 1) - 1;
+ this->field93_0x1455c = this->field92_0x14558 * 100;
+ }
+ this->field91_0x14554
+ = DAT_MissionAestheticsDefinedData.field1225_0x21a4[DAT_GameState.mapAndTime.difficulty]
+ + this->field93_0x1455c;
+ iVar5 = 0;
+ if (0 < this->field94_0x14560) {
+ piVar2 = &this->field102_0x14580;
+ do {
+ this->field91_0x14554 = this->field91_0x14554 + *piVar2;
+ iVar5 = iVar5 + 1;
+ piVar2 = piVar2 + 1;
+ } while (iVar5 < this->field94_0x14560);
+ }
+ this->field122_0x145b8 = 0;
+ if ((DAT_GameCore.gameMode_2 == GM_CAMPAIGN_MISSION)
+ || ((DAT_GameCore.gameMode_2 == GM_BUILDERUnk
+ && ((int)this->SEC_U3_MapType2_1 < 2)))) {
+ psVar8 = &DAT_UnitsState.units[1].owner;
+ iVar5 = DAT_GameSynchronyState.currentPlayerSlotID;
+ do {
+ if (((psVar8[-5] != ULS_INVISIBLE) && (*psVar8 == iVar5))
+ && (psVar8[0x107] != 0)) {
+ iVar5 = getValueOfTroopType((int)psVar8[-4]);
+ iVar6 = iVar6 + iVar5;
+ iVar5 = DAT_GameSynchronyState.currentPlayerSlotID;
+ }
+ psVar8 = psVar8 + 0x248;
+ } while ((int)psVar8 < 0x1651422);
+ iVar5 = DAT_GameState.playerDataArray[iVar5].weightedLosses;
+ iVar6 = iVar5 + iVar6;
+ if (iVar6 != 0) {
+ this->field123_0x145bc = (iVar5 * 100) / iVar6;
+ this->field122_0x145b8 = (100 - this->field123_0x145bc) * 100;
+ this->field91_0x14554 = this->field91_0x14554 + this->field122_0x145b8;
+ }
+ }
+ if (DAT_GameCore.mapU4Int1 != 0) {
+ iVar5 = 0;
+ psVar8 = &DAT_UnitsState.units[1].owner;
+ do {
+ if (((psVar8[-5] != ULS_INVISIBLE) && (*psVar8 == 1)) && (psVar8[0x107] != 0)) {
+ iVar6 = getValueOfTroopType((int)psVar8[-4]);
+ iVar5 = iVar5 + iVar6;
+ }
+ psVar8 = psVar8 + 0x248;
+ } while ((int)psVar8 < 0x1651422);
+ this->field126_0x145c8 = DAT_GameState.playerDataArray[2].weightedLosses;
+ this->field124_0x145c0 = DAT_GameState.playerDataArray[2].weightedLosses + iVar5;
+ this->field125_0x145c4 = iVar5;
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004bde40", "name": "computeMissionCompletionScore", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Berechnet die Punktzahl am Missionsende aus Zielübererfüllung, Restzeit und Verlusten."}, "p2": {"ein": "-", "aus": "-", "liest": ["scenarioEvents[] (tl_type 3, ScenarioEventType 0/1/0x1a/0x1b mit Zielbedingungen)", "DAT_GameState.playerDataArray[Spieler].currentResources/currentPopulation/weightedLosses", "mapAndTime.month/year/difficulty", "DAT_MissionAestheticsDefinedData.field1225_0x21a4[difficulty]", "DAT_UnitsState.units[] (eigene lebende Einheiten)", "DAT_GameCore.gameMode_2, mapU4Int1", "getDifficultyMultipliedValue, getValueOfTroopType"], "schreibt": ["field91_0x14554 (Gesamtpunkte)", "field92_0x14558 (Restmonate)", "field93_0x1455c (Zeitpunkte)", "field94_0x14560 (Zahl der gewerteten Ziele)", "field102_0x14580… (Punkte je Ziel)", "invasionEventContent.unitCountsPerUnitType (als Zwischenspeicher missbraucht)", "field122_0x145b8, field123_0x145bc (Verlustwertung)", "field124_0x145c0, field125_0x145c4, field126_0x145c8"], "ruft": ["getDifficultyMultipliedValue", "getValueOfTroopType"], "regeln": ["Ereignisse mit ScenarioEventType 1 oder 0x1b und gesetztem Merker liefern den Zielzeitpunkt (Monat und Jahr)", "Gewertet werden nur Ziele des letzten Ereignisses vom Typ 0 oder 0x1a: bis zu 4 Warenziele, Ziel 15 (Ware 0xf) und Bevölkerungsziel", "Überschuss je Ziel = Spielerbestand - Zielwert (Zielwert nach Schwierigkeit umgerechnet)", "Punkte je Ziel: Überschuss mal 5 bei den Waren 2, 10, 11, 12, 13; mal 20 bei Ware 6; mal 50 bei den Waren 0x11 bis 0x18; sonst mal 10; Ware 0xf und Bevölkerung mal 1", "Nur Ziele mit Überschuss über 0 zählen weiter (field94 steigt)", "Restmonate = (Zieljahr - Jahr) * 12 - Monat + Zielmonat, nicht unter 0; Zeitpunkte = Restmonate * 100", "Gesamtpunkte = field1225[Schwierigkeit] + Zeitpunkte + Summe der Zielpunkte", "Kampagne (oder GM_BUILDERUnk mit mapType < 2): Verlustwertung = (100 - Verlustanteil in Prozent) * 100 wird addiert; Verlustanteil = weightedLosses * 100 / (weightedLosses + Wert der lebenden eigenen Einheiten)", "Wenn mapU4Int1 != 0: zusätzlich Werte von Spieler 2 (field124-126)"], "offen": ["Welche Ware 0xf und welche Nummern 2/6/10-13/0x11-0x18 sind (Warenindizes nicht geprüft)", "Bedeutung der Einheitenbedingung psVar8[0x107] != 0", "Ob field91 die auf dem Ergebnisbildschirm gezeigte Punktzahl ist (vermutlich)"]}, "p3": {"erklaerung": "Am Ende einer Wirtschaftsmission gibt es Punkte für übererfüllte Ziele, noch nicht verbrauchte Zeit und geringe Verluste, jeweils nach Schwierigkeit.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x004be590 setStartingYearAndStartingResources | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004BE590
+ void MapPropertiesState::setStartingYearAndStartingResources()
+ {
+ int iVar1;
+ short* psVar2;
+ char local_10[12];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)local_10;
+ this->SEC_StartingYear = 1181;
+ DAT_GameState.mapAndTime.year = 1181;
+ this->SEC_StartingResources[0] = 0;
+ this->SEC_StartingResources[1] = 0;
+ this->SEC_StartingResources[2] = 0;
+ this->SEC_StartingResources[3] = 0;
+ this->SEC_StartingResources[4] = 0;
+ this->SEC_StartingResources[5] = 0;
+ this->SEC_StartingResources[6] = 0;
+ this->SEC_StartingResources[7] = 0;
+ this->SEC_StartingResources[8] = 0;
+ this->SEC_StartingResources[9] = 0;
+ this->SEC_StartingResources[10] = 0;
+ this->SEC_StartingResources[0xb] = 0;
+ this->SEC_StartingResources[0xc] = 0;
+ this->SEC_StartingResources[0xd] = 0;
+ this->SEC_StartingResources[0xe] = 0;
+ this->SEC_StartingResources[0xf] = 0;
+ this->SEC_StartingResources[0x10] = 0;
+ this->SEC_StartingResources[0x11] = 0;
+ this->SEC_StartingResources[0x12] = 0;
+ this->SEC_StartingResources[0x13] = 0;
+ this->SEC_StartingResources[0x14] = 0;
+ this->SEC_StartingResources[0x15] = 0;
+ this->SEC_StartingResources[0x16] = 0;
+ this->SEC_StartingResources[0x17] = 0;
+ this->SEC_StartingResources[0x18] = 0;
+ this->SEC_Section1065.tradeabilityArray[0] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[1] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[2] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[3] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[4] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[5] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[6] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[7] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[8] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[9] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[10] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0xb] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0xc] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0xd] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0xe] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0xf] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0x10] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0x11] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0x12] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0x13] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0x14] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0x15] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0x16] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0x17] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0x18] = TRUE;
+ this->SEC_StartingMonth = 0;
+ DAT_GameState.mapAndTime.month = 0;
+ this->eventsCount = 0;
+ this->SEC_SiegeInformation.archers = 0;
+ this->SEC_SiegeInformation.field1_0x4 = 0;
+ this->SEC_SiegeInformation.field2_0x8 = 0;
+ this->SEC_SiegeInformation.field3_0xc = 0;
+ this->SEC_SiegeInformation.field4_0x10 = 0;
+ this->SEC_SiegeInformation.field5_0x14 = 0;
+ this->SEC_SiegeInformation.field6_0x18 = 0;
+ this->SEC_SiegeInformation.field7_0x1c = 0;
+ this->SEC_SiegeInformation.field8_0x20 = 0;
+ this->SEC_SiegeInformation.field9_0x24 = 0;
+ this->SEC_SiegeInformation.field10_0x28 = 0;
+ this->SEC_SiegeInformation.field11_0x2c = 0;
+ this->SEC_SiegeInformation.field12_0x30 = 0;
+ this->SEC_SiegeInformation.field13_0x34 = 0;
+ this->SEC_SiegeInformation.field14_0x38 = 0;
+ this->SEC_SiegeInformation.field15_0x3c = 0;
+ this->SEC_SiegeInformation.field16_0x40 = 0;
+ this->SEC_SiegeInformation.field17_0x44 = 0;
+ this->SEC_SiegeInformation.field18_0x48 = 0;
+ this->SEC_SiegeInformation.field19_0x4c = 0;
+ this->SEC_Section1067.field0_0x0 = 0;
+ this->SEC_Section1067.field1_0x4 = 0;
+ this->SEC_Section1067.field2_0x8 = 0;
+ this->SEC_Section1067.field3_0xc = 0;
+ this->SEC_Section1067.field4_0x10 = 0;
+ this->SEC_Section1067.field5_0x14 = 0;
+ this->SEC_StartingPopularity = 100;
+ resetToTextIndex(10);
+ _sprintf(local_10, "%d", this->SEC_StartingYear);
+ copyIntoTextArray(
+ local_10);
+ this->field48_0x13560 = -1;
+ this->field47_0x1355c = 0;
+ psVar2 = this->buildingAvailability;
+ /*
+ bitmask for setting the availability of two shorts
+ */
+ for (iVar1 = 50; iVar1 != 0; iVar1 = iVar1 + -1) {
+ psVar2[0] = 1;
+ psVar2[1] = 1;
+ psVar2 = psVar2 + 2;
+ }
+ commitBuildingAvailability();
+ resetToTextIndex(9);
+ ;
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004be590", "name": "setStartingYearAndStartingResources", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Setzt die Startwerte einer neuen Karte (Jahr, Warenbestand, Handelbarkeit, Beliebtheit, Bauverfügbarkeit) auf Standard zurück."}, "p2": {"ein": "-", "aus": "-", "liest": [], "schreibt": ["SEC_StartingYear", "DAT_GameState.mapAndTime.year/month", "SEC_StartingResources[0..24]", "SEC_Section1065.tradeabilityArray[0..24]", "SEC_StartingMonth", "eventsCount", "SEC_SiegeInformation (archers, field1..field19)", "SEC_Section1067 (field0..field5)", "SEC_StartingPopularity", "buildingAvailability[0..99]", "field47_0x1355c", "field48_0x13560"], "ruft": ["resetToTextIndex", "_sprintf", "copyIntoTextArray", "commitBuildingAvailability"], "regeln": ["Startjahr 1181, Startmonat 0", "Alle 25 Startwaren (Index 0..0x18) auf 0", "Alle 25 Handelbarkeits-Einträge auf TRUE", "eventsCount = 0 (keine Karten-Ereignisse)", "SEC_StartingPopularity = 100", "Alle 100 buildingAvailability-Einträge (50 Schleifenschritte zu je 2 Shorts) auf 1 = verfügbar", "field48_0x13560 = -1, field47_0x1355c = 0 (Bedeutung unklar)", "Das Startjahr wird als Text in die Textliste (Index 10) kopiert, am Ende Textindex 9"], "offen": ["Bedeutung von SEC_SiegeInformation.field1..19 und SEC_Section1067 (nur auf 0 gesetzt)", "Bedeutung von field47_0x1355c und field48_0x13560", "Was die Textindizes 9 und 10 bedeuten"]}, "p3": {"erklaerung": "Das ist der Grundzustand einer leeren Karte im Karteneditor: Jahr 1181, keine Startwaren, alles handelbar, alle Gebäude baubar, Beliebtheit 100.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x004c13f0 spawnInvasionEventAttackWave | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004C13F0
+ void MapPropertiesState::spawnInvasionEventAttackWave()
+ {
+ byte(*pabVar1)[10];
+ byte* pbVar2;
+ int iVar3;
+ char cVar4;
+ int _sliderValue;
+ int _unitCount;
+ int _unitTypeOther;
+ UnitTypeInt _unitType;
+ char* eventVideoBik;
+ char* eventWavFile;
+ int local_10;
+ int local_c;
+ int _sliderIndex;
+ DAT_TroopValueState.attackInfo.inv_count = DAT_TroopValueState.attackInfo.inv_count + 1;
+ local_c = 0;
+ local_10 = 0;
+ if (0x31 < DAT_TroopValueState.attackInfo.inv_count) {
+ DAT_TroopValueState.attackInfo.inv_count = 1;
+ }
+ initializeAttackWaveSlot(DAT_TroopValueState.attackInfo.inv_count, 0);
+ DAT_TroopValueState.attackInfo
+ .attackWavePlayerIDArray[DAT_TroopValueState.attackInfo.inv_count]
+ = (char)this->invasionEventContent.crusaderArabian + 2;
+ _sliderIndex = 0;
+ do {
+ _sliderValue = this->invasionEventContent.unitCountsPerUnitType[_sliderIndex];
+ if (_sliderValue == 0)
+ goto LAB_004c16b3;
+ _unitTypeOther = 0;
+ _unitType = ((UnitType)0);
+ iVar3 = 0;
+ switch (_sliderIndex) {
+ case 0:
+ _unitTypeOther = 3;
+ _unitType = UT_E_ARCHER;
+ break;
+ case 1:
+ _unitTypeOther = 7;
+ _unitType = UT_E_XBOW;
+ break;
+ case 2:
+ _unitTypeOther = 5;
+ _unitType = UT_E_SPEAR;
+ break;
+ case 3:
+ _unitTypeOther = 6;
+ _unitType = UT_E_PIKE;
+ break;
+ case 4:
+ _unitTypeOther = 9;
+ _unitType = UT_E_MACE;
+ break;
+ case 5:
+ _unitTypeOther = 8;
+ _unitType = UT_E_SWORD;
+ break;
+ case 6:
+ _unitTypeOther = 10;
+ _unitType = UT_E_KNIGHT;
+ iVar3 = 10;
+ goto switchD_004c146e_caseD_18;
+ case 7:
+ _unitTypeOther = 4;
+ _unitType = UT_E_LADDER;
+ break;
+ case 8:
+ _unitTypeOther = 0xb;
+ _unitType = UT_E_ENGINEER;
+ break;
+ case 9:
+ _unitTypeOther = 0x16;
+ _unitType = UT_S_CATAPULT;
+ break;
+ case 10:
+ _unitTypeOther = 0x17;
+ _unitType = UT_S_TREBUCHET;
+ break;
+ case 0xb:
+ _unitTypeOther = 0x13;
+ _unitType = UT_S_BATTERINGRAM;
+ break;
+ case 0xc:
+ _unitTypeOther = 0x14;
+ _unitType = UT_S_TOWER;
+ break;
+ case 0xd:
+ _unitTypeOther = 0x15;
+ _unitType = UT_S_SHIELD;
+ break;
+ case 0xe:
+ _unitTypeOther = 0xc;
+ _unitType = UT_E_MONK;
+ break;
+ case 0xf:
+ _unitTypeOther = 2;
+ _unitType = UT_TUNNELER;
+ break;
+ case 0x10:
+ _unitTypeOther = 0x19;
+ _unitType = UT_A_ARCHER;
+ break;
+ case 0x11:
+ _unitTypeOther = 0x1a;
+ _unitType = UT_A_SLAVE;
+ break;
+ case 0x12:
+ _unitTypeOther = 0x1b;
+ _unitType = UT_A_SLINGER;
+ break;
+ case 0x13:
+ _unitTypeOther = 0x1c;
+ _unitType = UT_A_ASSASSIN;
+ break;
+ case 0x14:
+ _unitTypeOther = 0x1d;
+ _unitType = UT_A_HARCHER;
+ break;
+ case 0x15:
+ _unitTypeOther = 0x1e;
+ _unitType = UT_A_SWORDSMAN;
+ break;
+ case 0x16:
+ _unitTypeOther = 0x1f;
+ _unitType = UT_A_FIRETHROWER;
+ break;
+ case 0x17:
+ _unitTypeOther = 0x18;
+ _unitType = UT_S_FBALLISTA;
+ break;
+ default:
+ goto switchD_004c146e_caseD_18;
+ }
+ /*
+ if a siege engine...
+ */
+ iVar3 = 10;
+ switchD_004c146e_caseD_18:
+ cVar4 = (char)_sliderValue;
+ if (_unitTypeOther == 0x16) {
+ pabVar1 = DAT_TroopValueState.attackInfo.someSinglePlayerScore
+ + DAT_TroopValueState.attackInfo.inv_count;
+ (*pabVar1)[0] = (*pabVar1)[0] + cVar4;
+ } else if (_unitTypeOther == 0x17) {
+ pbVar2 = DAT_TroopValueState.attackInfo
+ .someSinglePlayerScore[DAT_TroopValueState.attackInfo.inv_count]
+ + 1;
+ *pbVar2 = *pbVar2 + cVar4;
+ } else if (_unitTypeOther == 0x13) {
+ pbVar2 = DAT_TroopValueState.attackInfo
+ .someSinglePlayerScore[DAT_TroopValueState.attackInfo.inv_count]
+ + 2;
+ *pbVar2 = *pbVar2 + cVar4;
+ } else if (_unitTypeOther == 0x14) {
+ pbVar2 = DAT_TroopValueState.attackInfo
+ .someSinglePlayerScore[DAT_TroopValueState.attackInfo.inv_count]
+ + 3;
+ *pbVar2 = *pbVar2 + cVar4;
+ } else if (_unitTypeOther == 0x15) {
+ pbVar2 = DAT_TroopValueState.attackInfo
+ .someSinglePlayerScore[DAT_TroopValueState.attackInfo.inv_count]
+ + 4;
+ *pbVar2 = *pbVar2 + cVar4;
+ } else if (_unitTypeOther == 0x18) {
+ pbVar2 = DAT_TroopValueState.attackInfo
+ .someSinglePlayerScore[DAT_TroopValueState.attackInfo.inv_count]
+ + 8;
+ *pbVar2 = *pbVar2 + cVar4;
+ } else {
+ /*
+ if not a siege engine...
+ */
+ _unitCount = _sliderValue / (_sliderValue / iVar3 + 1);
+ while (0 < _sliderValue) {
+ if (_sliderValue < _unitCount) {
+ _unitCount = _sliderValue;
+ }
+ iVar3 = (&DAT_TroopValueState.attackInfo
+ .unknownSignpostRelatedArray)[DAT_TroopValueState.attackInfo.inv_count];
+ spawnUnitsIntoNewTribe(local_c,
+ _unitTypeOther, DAT_GameState.mapAndTime.signpostsMapEdge[iVar3][local_10].x,
+ DAT_GameState.mapAndTime.signpostsMapEdge[iVar3][local_10].y,
+ this->invasionEventContent.crusaderArabian + 2, (UnitType)((int)(_unitType)), ((UnitType)0),
+ _unitCount, 0);
+ local_c = local_c + 1;
+ local_10 = local_10 + 1;
+ _sliderValue = _sliderValue - _unitCount;
+ if (DAT_GameState.mapAndTime.signpostsMapEdgeDataCounter <= local_10) {
+ local_10 = 0;
+ }
+ }
+ }
+ LAB_004c16b3:
+ _sliderIndex = _sliderIndex + 1;
+ if (0x18 < _sliderIndex) {
+ if (this->invasionEventContent.crusaderArabian == 0) {
+ eventWavFile = "infidel_attack.wav";
+ eventVideoBik = "sultan_nervous.bik";
+ } else {
+ if (this->invasionEventContent.crusaderArabian != 1) {
+ this->eventsCount = 0;
+ return;
+ }
+ eventWavFile = "arabian_attack.wav";
+ eventVideoBik = "good_soldier_nervous.bik";
+ }
+ playEventVideoBik("", eventVideoBik, eventWavFile);
+ this->eventsCount = 0;
+ return;
+ }
+ } while (true);
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004c13f0", "name": "spawnInvasionEventAttackWave", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Erzeugt die Truppen eines Invasions-Ereignisses der Karte an den Kartenrand-Wegweisern."}, "p2": {"ein": "-", "aus": "-", "liest": ["invasionEventContent.unitCountsPerUnitType[0..24]", "invasionEventContent.crusaderArabian", "attackInfo.inv_count", "attackInfo.unknownSignpostRelatedArray", "mapAndTime.signpostsMapEdge[][]", "mapAndTime.signpostsMapEdgeDataCounter"], "schreibt": ["attackInfo.inv_count", "attackInfo.attackWavePlayerIDArray[inv_count]", "attackInfo.someSinglePlayerScore[inv_count][0..4 und 8]", "eventsCount"], "ruft": ["initializeAttackWaveSlot", "spawnUnitsIntoNewTribe", "playEventVideoBik"], "regeln": ["inv_count wird um 1 erhöht; über 49 (0x31) springt er auf 1 zurück", "Der Angreifer ist Spieler crusaderArabian + 2, also Spieler 2 bei Wert 0 und Spieler 3 bei Wert 1", "Pro Regler 0..23 gibt es eine Anzahl; Regler mit 0 werden übersprungen", "Reglerzuordnung: 0 E_ARCHER, 1 E_XBOW, 2 E_SPEAR, 3 E_PIKE, 4 E_MACE, 5 E_SWORD, 6 E_KNIGHT, 7 E_LADDER, 8 E_ENGINEER, 9 S_CATAPULT, 10 S_TREBUCHET, 11 S_BATTERINGRAM, 12 S_TOWER, 13 S_SHIELD, 14 E_MONK, 15 TUNNELER, 16 A_ARCHER, 17 A_SLAVE, 18 A_SLINGER, 19 A_ASSASSIN, 20 A_HARCHER, 21 A_SWORDSMAN, 22 A_FIRETHROWER, 23 S_FBALLISTA", "Belagerungsgeräte (Katapult, Tribok, Ramme, Turm, Schutzschild, Feuerballiste) werden hier nicht erzeugt, sondern nur als Zähler in someSinglePlayerScore[inv_count] an Stelle 0, 1, 2, 3, 4 und 8 hochgezählt", "Alle anderen Einheiten kommen in Gruppen: Gruppengröße = n / (n/10 + 1) (ganzzahlig), z. B. n=25 ergibt 3 Gruppen zu je 8 und den Rest; für Ritter und alle Zweige mit Zuweisung gilt der Teiler 10", "Die Gruppen werden reihum an den Kartenrand-Wegweisern erzeugt (Zähler springt nach signpostsMapEdgeDataCounter auf 0)", "Danach Ereignis-Video: Wert 0 spielt infidel_attack.wav mit sultan_nervous.bik, Wert 1 arabian_attack.wav mit good_soldier_nervous.bik, andere Werte keins; in jedem Fall eventsCount = 0"], "offen": ["Regler 24 (Schleife läuft bis 0x18): fällt in den Zweig default mit Teiler 0 und wäre bei einem Wert ungleich 0 eine Division durch 0; vermutlich nie belegt", "Warum Belagerungsgeräte nur gezählt und nicht erzeugt werden (vermutlich baut die KI-Welle sie selbst)", "Bedeutung von someSinglePlayerScore und unknownSignpostRelatedArray"]}, "p3": {"erklaerung": "Wenn ein Karten-Ereignis eine Invasion auslöst, tauchen die eingestellten Truppen in Gruppen von höchstens etwa 10 Mann an den Kartenrändern auf. Belagerungsgeräte werden nur vorgemerkt.", "gehirn": "Nur für Szenarien mit Invasions-Ereignissen wichtig; im Gefecht spielt es keine Rolle.", "beleg": "code", "live": "Invasions-Ereignis einer Szenariokarte auslösen → attackInfo.inv_count vorher/nachher → steigt um 1 (nach 49 wieder 1)", "live_art": "ki-welle"}}
+

@@ -1,0 +1,850 @@
+### 0x00441270 LaunchSkirmishGame | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00441270
+ void Actions::LaunchSkirmishGame(int whichCastle)
+ {
+ char cVar1;
+ byte bVar2;
+ ushort uVar3;
+ short sVar4;
+ int iVar5;
+ int iVar6;
+ int iVar7;
+ int iVar8;
+ int iVar9;
+ int iVar10;
+ int iVar11;
+ int iVar12;
+ BOOLEnum BVar13;
+ char* pcVar14;
+ uint uVar15;
+ int _charIndex;
+ char* pcVar16;
+ int _playerIDby4;
+ int iVar17;
+ int iVar18;
+ int _playerPosition;
+ int _fitPercentage;
+ uint uVar19;
+ int _lordType;
+ int _aiNumber;
+ int _index;
+ BuySellPair* pBVar20;
+ int _finalResultsIndex;
+ int _arrayIndex1;
+ int _indexFinalResults;
+ int _counter;
+ PlayerData* _pKeepPlayer2;
+ int _resourceIndex;
+ char (*pacVar21)[250];
+ int* _ptrAIVID;
+ int _advantage;
+ SkirmishLobbySetupStructure* _ptrSection1124;
+ GameSynchronyState* _pFinalResults;
+ undefined4* puVar22;
+ dword* pdVar23;
+ PlayerData* piVar14;
+ int _playerID;
+ StartingResourceStructureInt* pSVar24;
+ int (*_startingTroopsPlayerData)[20];
+ int iVar25;
+ SkirmishStatistics* pSVar26;
+ PlayerData* pAVar27;
+ int* piVar27;
+ int _ptrFinalResults;
+ int (*_killMatrix)[9];
+ undefined1 auStack_d8c[4];
+ dword _playerIndex;
+ char (*_aiType2)[250];
+ int* local_d80;
+ int _whichCastle;
+ int _s1023;
+ int _section1093;
+ int _autoSaveMinutes;
+ int _storedCurrentAIArray[9];
+ int _storedLordTypes[9];
+ int _storedArray1[9];
+ int _playerTeams[9];
+ int local_ca0;
+ int local_c9c;
+ dword _mapMagicU4Int2[66];
+ undefined4 local_b78[477];
+ char uStack1025;
+ char _mapName[1000];
+ int _keepBuildingID;
+ uint _keepID;
+ int _delay;
+ int _anotherPlayerIDUnk;
+ GameModeInt _gameMode;
+ int _seed;
+ uVar15 = MSVC_SecurityCookie::instance ^ (uint)auStack_d8c;
+ _whichCastle = whichCastle;
+ commitSkirmishSettings();
+ _gameMode = DAT_GameSynchronyState.currentGameMode;
+ _ptrSection1124 = SEC_SkirmishLobbySetupStructure::ptr;
+ pdVar23 = _mapMagicU4Int2;
+ for (_arrayIndex1 = 66; _arrayIndex1 != 0; _arrayIndex1 = _arrayIndex1 + -1) {
+ *pdVar23 = _ptrSection1124->mapu4int2;
+ _ptrSection1124 = (SkirmishLobbySetupStructure*)&_ptrSection1124->mbr_0x4;
+ pdVar23 = pdVar23 + 1;
+ }
+ _s1023 = DAT_GameState.mapAndTime.skirmishFogOfWar;
+ _autoSaveMinutes = DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes;
+ DAT_AIVPlacementFit[0] = -10;
+ DAT_AIVPlacementFit[1] = -10;
+ DAT_AIVPlacementFit[2] = -10;
+ DAT_AIVPlacementFit[3] = -10;
+ DAT_AIVPlacementFit[4] = -10;
+ DAT_AIVPlacementFit[5] = -10;
+ DAT_AIVPlacementFit[6] = -10;
+ DAT_AIVPlacementFit[7] = -10;
+ DAT_AIVPlacementFit[8] = -10;
+ _section1093 = DAT_GameSynchronyState.skirmishPoints;
+ DAT_GameCore.missionNumber1to20 = 1;
+ _charIndex = 0;
+ do {
+ cVar1 = DAT_GameSynchronyState.mapName[_charIndex];
+ _mapName[_charIndex] = cVar1;
+ _charIndex = _charIndex + 1;
+ } while (cVar1 != '\0');
+ /*
+ this appends .map to the map name
+ */
+ pcVar14 = &uStack1025;
+ do {
+ pcVar16 = pcVar14;
+ pcVar14 = pcVar16 + 1;
+ } while (pcVar16[1] != '\0');
+ /*
+ .map
+ */
+ builtin_strncpy(pcVar16 + 1, ".map", 5);
+ resolveResourceFileName(
+ FRT_MAPS, (CHAR_CONST*)((int)(_mapName)));
+ setupAllMapSections();
+ _playerID = 0;
+ _playerIDby4 = 1;
+ do {
+ bVar2 = DAT_GameSynchronyState.DAT_PlayerGroupArray[_playerIDby4];
+ iVar25 = (int)(char)bVar2;
+ DAT_GameState.mapAndTime.playerGroupArray[_playerIDby4] = iVar25;
+ if (('\0' < (char)bVar2)
+ && (DAT_GameState.mapAndTime.playerTeams[_playerIDby4] = iVar25, _playerID < iVar25)) {
+ _playerID = iVar25;
+ }
+ bVar2 = DAT_GameSynchronyState.DAT_PlayerGroupArray[_playerIDby4 + 1];
+ iVar25 = (int)(char)bVar2;
+ DAT_GameState.mapAndTime.playerGroupArray[_playerIDby4 + 1] = iVar25;
+ if (('\0' < (char)bVar2)
+ && (DAT_GameState.mapAndTime.playerTeams[_playerIDby4 + 1] = iVar25, _playerID < iVar25)) {
+ _playerID = iVar25;
+ }
+ bVar2 = DAT_GameSynchronyState.DAT_PlayerGroupArray[_playerIDby4 + 2];
+ iVar25 = (int)(char)bVar2;
+ DAT_GameState.mapAndTime.playerGroupArray[_playerIDby4 + 2] = iVar25;
+ if (('\0' < (char)bVar2)
+ && (DAT_GameState.mapAndTime.playerTeams[_playerIDby4 + 2] = iVar25, _playerID < iVar25)) {
+ _playerID = iVar25;
+ }
+ bVar2 = DAT_GameSynchronyState.DAT_PlayerGroupArray[_playerIDby4 + 3];
+ iVar25 = (int)(char)bVar2;
+ DAT_GameState.mapAndTime.playerGroupArray[_playerIDby4 + 3] = iVar25;
+ if (('\0' < (char)bVar2)
+ && (DAT_GameState.mapAndTime.playerTeams[_playerIDby4 + 3] = iVar25, _playerID < iVar25)) {
+ _playerID = iVar25;
+ }
+ BVar13 = DAT_GameCore.isSkirmishTrail;
+ _seed = SEC_RNG::instance.seed;
+ iVar12 = DAT_GameSynchronyState.currentPlayerSlotID;
+ iVar11 = DAT_GameSynchronyState.skirmishGameIntensityType;
+ iVar10 = DAT_GameSynchronyState.aiVariationArray[8];
+ iVar9 = DAT_GameSynchronyState.aiVariationArray[7];
+ iVar8 = DAT_GameSynchronyState.aiVariationArray[6];
+ iVar7 = DAT_GameSynchronyState.aiVariationArray[5];
+ iVar6 = DAT_GameSynchronyState.aiVariationArray[4];
+ iVar5 = DAT_GameSynchronyState.aiVariationArray[3];
+ iVar18 = DAT_GameSynchronyState.aiVariationArray[2];
+ iVar17 = DAT_GameSynchronyState.aiVariationArray[1];
+ iVar25 = DAT_GameSynchronyState.aiVariationArray[0];
+ _playerIDby4 = _playerIDby4 + 4;
+ } while (_playerIDby4 < 9);
+ if (DAT_GameSynchronyState.DAT_PlayerGroupArray[1] == 0) {
+ _playerID = _playerID + 1;
+ DAT_GameState.mapAndTime.playerTeams[1] = _playerID;
+ }
+ if (DAT_GameSynchronyState.DAT_PlayerGroupArray[2] == 0) {
+ _playerID = _playerID + 1;
+ DAT_GameState.mapAndTime.playerTeams[2] = _playerID;
+ }
+ if (DAT_GameSynchronyState.DAT_PlayerGroupArray[3] == 0) {
+ _playerID = _playerID + 1;
+ DAT_GameState.mapAndTime.playerTeams[3] = _playerID;
+ }
+ if (DAT_GameSynchronyState.DAT_PlayerGroupArray[4] == 0) {
+ _playerID = _playerID + 1;
+ DAT_GameState.mapAndTime.playerTeams[4] = _playerID;
+ }
+ if (DAT_GameSynchronyState.DAT_PlayerGroupArray[5] == 0) {
+ _playerID = _playerID + 1;
+ DAT_GameState.mapAndTime.playerTeams[5] = _playerID;
+ }
+ if (DAT_GameSynchronyState.DAT_PlayerGroupArray[6] == 0) {
+ _playerID = _playerID + 1;
+ DAT_GameState.mapAndTime.playerTeams[6] = _playerID;
+ }
+ if (DAT_GameSynchronyState.DAT_PlayerGroupArray[7] == 0) {
+ _playerID = _playerID + 1;
+ DAT_GameState.mapAndTime.playerTeams[7] = _playerID;
+ }
+ if (DAT_GameSynchronyState.DAT_PlayerGroupArray[8] == 0) {
+ DAT_GameState.mapAndTime.playerTeams[8] = _playerID + 1;
+ }
+ local_d80 = (int*)DAT_GameSynchronyState.skirmishCurrentAdvantageBalance;
+ _playerIndex = DAT_GameCore.skirmishTrailProgress;
+ _aiType2 = (char (*)[250])DAT_GameCore.currentTrailType;
+ if (DAT_GameCore.currentTrailType == TT_WARCHEST) {
+ _playerIndex = DAT_GameCore.warchestTrailProgress;
+ } else if (DAT_GameCore.currentTrailType == TT_EXTREME) {
+ _playerIndex = DAT_GameCore.extremeTrailProgress;
+ }
+ _playerTeams[0] = DAT_GameState.mapAndTime.playerTeams[0];
+ _storedArray1[0] = DAT_GameState.mapAndTime.playerGroupArray[0];
+ _storedCurrentAIArray[0] = DAT_GameSynchronyState.currentAIArray[0];
+ _storedLordTypes[0] = DAT_GameCore.selectedLordTypes[0];
+ _playerTeams[1] = DAT_GameState.mapAndTime.playerTeams[1];
+ _storedArray1[1] = DAT_GameState.mapAndTime.playerGroupArray[1];
+ _storedCurrentAIArray[1] = DAT_GameSynchronyState.currentAIArray[1];
+ _storedLordTypes[1] = DAT_GameCore.selectedLordTypes[1];
+ _playerTeams[2] = DAT_GameState.mapAndTime.playerTeams[2];
+ _storedArray1[2] = DAT_GameState.mapAndTime.playerGroupArray[2];
+ _storedCurrentAIArray[2] = DAT_GameSynchronyState.currentAIArray[2];
+ _storedLordTypes[2] = DAT_GameCore.selectedLordTypes[2];
+ _playerTeams[3] = DAT_GameState.mapAndTime.playerTeams[3];
+ _storedArray1[3] = DAT_GameState.mapAndTime.playerGroupArray[3];
+ _storedCurrentAIArray[3] = DAT_GameSynchronyState.currentAIArray[3];
+ _storedLordTypes[3] = DAT_GameCore.selectedLordTypes[3];
+ _playerTeams[4] = DAT_GameState.mapAndTime.playerTeams[4];
+ _storedArray1[4] = DAT_GameState.mapAndTime.playerGroupArray[4];
+ _storedCurrentAIArray[4] = DAT_GameSynchronyState.currentAIArray[4];
+ _storedLordTypes[4] = DAT_GameCore.selectedLordTypes[4];
+ _playerTeams[5] = DAT_GameState.mapAndTime.playerTeams[5];
+ _storedArray1[5] = DAT_GameState.mapAndTime.playerGroupArray[5];
+ _storedCurrentAIArray[5] = DAT_GameSynchronyState.currentAIArray[5];
+ _storedLordTypes[5] = DAT_GameCore.selectedLordTypes[5];
+ _playerTeams[6] = DAT_GameState.mapAndTime.playerTeams[6];
+ _storedArray1[6] = DAT_GameState.mapAndTime.playerGroupArray[6];
+ _storedCurrentAIArray[6] = DAT_GameSynchronyState.currentAIArray[6];
+ _storedLordTypes[6] = DAT_GameCore.selectedLordTypes[6];
+ _playerTeams[7] = DAT_GameState.mapAndTime.playerTeams[7];
+ _storedArray1[7] = DAT_GameState.mapAndTime.playerGroupArray[7];
+ _storedCurrentAIArray[7] = DAT_GameSynchronyState.currentAIArray[7];
+ _storedLordTypes[7] = DAT_GameCore.selectedLordTypes[7];
+ _storedArray1[8] = DAT_GameState.mapAndTime.playerGroupArray[8];
+ _storedLordTypes[8] = DAT_GameCore.selectedLordTypes[8];
+ _playerTeams[8] = DAT_GameState.mapAndTime.playerTeams[8];
+ _pFinalResults = &DAT_GameSynchronyState.finalResults;
+ puVar22 = local_b78;
+ for (_indexFinalResults = 478; _indexFinalResults != 0; _indexFinalResults = _indexFinalResults + -1) {
+ *puVar22 = *(undefined4*)_pFinalResults->names[0];
+ _pFinalResults = (GameSynchronyState*)(_pFinalResults->names[0] + 4);
+ puVar22 = puVar22 + 1;
+ }
+ _storedCurrentAIArray[8] = DAT_GameSynchronyState.currentAIArray[8];
+ readMapOrSavFile(
+ DAT_MapDefinedData.MapSectionAddressArray);
+ mapLoadingAndLaunchGameRelated1();
+ puVar22 = local_b78;
+ pSVar26 = &DAT_GameSynchronyState.finalResults;
+ for (_playerID = 0x1de; _playerID != 0; _playerID = _playerID + -1) {
+ *(undefined4*)pSVar26->names[0] = *puVar22;
+ puVar22 = puVar22 + 1;
+ pSVar26 = (SkirmishStatistics*)(pSVar26->names[0] + 4);
+ }
+ pdVar23 = _mapMagicU4Int2;
+ _ptrSection1124 = SEC_SkirmishLobbySetupStructure::ptr;
+ for (_playerID = 0x42; _playerID != 0; _playerID = _playerID + -1) {
+ _ptrSection1124->mapu4int2 = *pdVar23;
+ pdVar23 = pdVar23 + 1;
+ _ptrSection1124 = (SkirmishLobbySetupStructure*)&_ptrSection1124->mbr_0x4;
+ }
+ DAT_GameSynchronyState.skirmishCurrentAdvantageBalance = (int)local_d80;
+ DAT_GameCore.mapTimeInTicks = 1;
+ DAT_GameCore.section1127 = 1;
+ DAT_GameCore.currentTrailType = (TrailTypeInt)_aiType2;
+ DAT_GameCore.isVictoryOrDefeatUnk = 0;
+ if (_aiType2 == (char (*)[250])0x2) {
+ DAT_GameCore.extremeTrailProgress = _playerIndex;
+ } else if (_aiType2 == (char (*)[250])0x1) {
+ DAT_GameCore.warchestTrailProgress = _playerIndex;
+ } else {
+ DAT_GameCore.skirmishTrailProgress = _playerIndex;
+ }
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[0] == -1) && (_storedCurrentAIArray[0] != 0)) {
+ DAT_GameSynchronyState.aiVariationArray[0] = iVar25;
+ }
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[1] == -1) && (_storedCurrentAIArray[1] != 0)) {
+ DAT_GameSynchronyState.aiVariationArray[1] = iVar17;
+ }
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[2] == -1) && (_storedCurrentAIArray[2] != 0)) {
+ DAT_GameSynchronyState.aiVariationArray[2] = iVar18;
+ }
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[3] == -1) && (_storedCurrentAIArray[3] != 0)) {
+ DAT_GameSynchronyState.aiVariationArray[3] = iVar5;
+ }
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[4] == -1) && (_storedCurrentAIArray[4] != 0)) {
+ DAT_GameSynchronyState.aiVariationArray[4] = iVar6;
+ }
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[5] == -1) && (_storedCurrentAIArray[5] != 0)) {
+ DAT_GameSynchronyState.aiVariationArray[5] = iVar7;
+ }
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[6] == -1) && (_storedCurrentAIArray[6] != 0)) {
+ DAT_GameSynchronyState.aiVariationArray[6] = iVar8;
+ }
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[7] == -1) && (_storedCurrentAIArray[7] != 0)) {
+ DAT_GameSynchronyState.aiVariationArray[7] = iVar9;
+ }
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[8] == -1) && (_storedCurrentAIArray[8] != 0)) {
+ DAT_GameSynchronyState.aiVariationArray[8] = iVar10;
+ }
+ DAT_GameSynchronyState.skirmishGameIntensityType = iVar11;
+ DAT_GameCore.isSkirmishTrail = BVar13;
+ wipeAIVsAndHeatMaps();
+ DAT_GameCore.isTimeHalted = FALSE;
+ DAT_GameCore.section1095 = 0;
+ DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes = _autoSaveMinutes;
+ DAT_GameSynchronyState.currentPlayerSlotID = iVar12;
+ SEC_RNG::instance.seed = _seed;
+ populateRNG1040();
+ DAT_GameSynchronyState.skirmishPoints = _section1093;
+ DAT_GameState.mapAndTime.skirmishFogOfWar = _s1023;
+ DAT_GameState.mapAndTime.playerTeams[0] = _playerTeams[0];
+ DAT_GameState.mapAndTime.playerGroupArray[0] = _storedArray1[0];
+ DAT_GameSynchronyState.currentAIArray[0] = _storedCurrentAIArray[0];
+ DAT_GameCore.selectedLordTypes[0] = _storedLordTypes[0];
+ DAT_GameState.mapAndTime.playerTeams[1] = _playerTeams[1];
+ DAT_GameState.mapAndTime.playerGroupArray[1] = _storedArray1[1];
+ DAT_GameSynchronyState.currentAIArray[1] = _storedCurrentAIArray[1];
+ DAT_GameCore.selectedLordTypes[1] = _storedLordTypes[1];
+ DAT_GameState.mapAndTime.playerTeams[2] = _playerTeams[2];
+ DAT_GameState.mapAndTime.playerGroupArray[2] = _storedArray1[2];
+ DAT_GameSynchronyState.currentAIArray[2] = _storedCurrentAIArray[2];
+ DAT_GameCore.selectedLordTypes[2] = _storedLordTypes[2];
+ DAT_GameState.mapAndTime.playerTeams[3] = _playerTeams[3];
+ DAT_GameState.mapAndTime.playerGroupArray[3] = _storedArray1[3];
+ DAT_GameSynchronyState.currentAIArray[3] = _storedCurrentAIArray[3];
+ DAT_GameCore.selectedLordTypes[3] = _storedLordTypes[3];
+ DAT_GameState.mapAndTime.playerTeams[4] = _playerTeams[4];
+ DAT_GameState.mapAndTime.playerGroupArray[4] = _storedArray1[4];
+ DAT_GameSynchronyState.currentAIArray[4] = _storedCurrentAIArray[4];
+ DAT_GameCore.selectedLordTypes[4] = _storedLordTypes[4];
+ DAT_GameState.mapAndTime.playerTeams[5] = _playerTeams[5];
+ DAT_GameState.mapAndTime.playerGroupArray[5] = _storedArray1[5];
+ DAT_GameSynchronyState.currentAIArray[5] = _storedCurrentAIArray[5];
+ DAT_GameCore.selectedLordTypes[5] = _storedLordTypes[5];
+ DAT_GameCore.gameMode_2 = GM_SKIRMISH_AND_MULTIPLAYER;
+ DAT_GameCore.xbowProducible_logic = 1;
+ DAT_GameCore.bowProducible_logic = 1;
+ DAT_GameCore.spearProducible_logic = 1;
+ DAT_GameCore.maceProducible_logic = 1;
+ DAT_GameState.mapAndTime.unitJesterRelated = 1;
+ DAT_GameState.mapAndTime.unitLadyRelated = 0;
+ DAT_GameState.mapAndTime.difficulty = 1;
+ DAT_GameSynchronyState.skirmishTroopsCostGold = 1;
+ DAT_GameState.mapAndTime.playerTeams[6] = _playerTeams[6];
+ DAT_GameState.mapAndTime.playerGroupArray[6] = _storedArray1[6];
+ DAT_GameSynchronyState.currentAIArray[6] = _storedCurrentAIArray[6];
+ DAT_GameCore.selectedLordTypes[6] = _storedLordTypes[6];
+ DAT_GameState.mapAndTime.playerTeams[7] = _playerTeams[7];
+ DAT_GameSynchronyState.currentAIArray[7] = _storedCurrentAIArray[7];
+ DAT_GameState.mapAndTime.playerGroupArray[7] = _storedArray1[7];
+ DAT_GameCore.selectedLordTypes[7] = _storedLordTypes[7];
+ DAT_GameState.mapAndTime.playerGroupArray[8] = _storedArray1[8];
+ DAT_GameState.mapAndTime.playerTeams[8] = _playerTeams[8];
+ DAT_GameSynchronyState.currentAIArray[8] = _storedCurrentAIArray[8];
+ DAT_GameCore.missionNumber1to20 = DAT_GameSynchronyState.skirmishTechLevel + 0x16;
+ DAT_GameCore.selectedLordTypes[8] = _storedLordTypes[8];
+ DAT_GameCore.swordProducible_logic = (int)(DAT_GameSynchronyState.skirmishTechLevel != 2);
+ DAT_GameCore.pikeProducible_logic = (int)(DAT_GameSynchronyState.skirmishTechLevel != 2);
+ _aiType2 = (char (*)[250])0x0;
+ _playerIndex = 0;
+ local_d80 = DAT_GameSynchronyState.currentAIArray + 1;
+ piVar14 = &DAT_GameState.playerDataArray[1];
+ piVar27 = _playerTeams + 3;
+ do {
+ _keepID = (piVar14->keep).id;
+ piVar27[-1] = -1;
+ *piVar27 = -1;
+ if (_keepID != 0) {
+ _aiType2 = (char (*)[250])((int)_aiType2 + 1);
+ uVar3 = DAT_BuildingsState.buildings[_keepID].y;
+ piVar27[-1] = (int)(short)DAT_BuildingsState.buildings[_keepID].x;
+ *piVar27 = (int)(short)uVar3;
+ DAT_TileMapState.showNoRubbleWhenDestroyingBuilding = 1;
+ destroyBuildingAndLinkedDuplicates(_keepID);
+ DAT_TileMapState.showNoRubbleWhenDestroyingBuilding = 1;
+ destroyBuildingAndLinkedDuplicates((piVar14->stockpile).id);
+ uVar19 = piVar14->lordID;
+ if (uVar19 != 0) {
+ if (piVar14->lordUID == DAT_UnitsState.units[uVar19].uid) {
+ deleteUnit(
+ uVar19);
+ }
+ piVar14->lordID = 0;
+ piVar14->lordUID = 0;
+ }
+ piVar14->lordKilledByPlayerID = 0;
+ }
+ if ((local_d80[-0x1b] != -1) || (*local_d80 != 0)) {
+ _playerIndex = _playerIndex + 1;
+ }
+ piVar14 = piVar14 + 0xe7d;
+ local_d80 = local_d80 + 1;
+ piVar27 = piVar27 + 2;
+ } while ((int)piVar14 < 0x117e984);
+ if ((int)_playerIndex < (int)_aiType2) {
+ _playerID = 1;
+ piVar27 = _playerTeams;
+ do {
+ piVar27 = piVar27 + 2;
+ if (((char)DAT_GameSynchronyState.field294_0x109e5f[_playerID + 8] < '\0')
+ && (*piVar27 != -1)) {
+ destroyPlayerCompletely(_playerID);
+ }
+ _playerID = _playerID + 1;
+ } while (_playerID < 9);
+ }
+ _playerID = 1;
+ pAVar27 = &DAT_GameState.playerDataArray[1];
+ do {
+ iVar25 = DAT_GameSynchronyState.currentPlayerFullIDArray[_playerID];
+ _storedLordTypes[_playerID] = 0;
+ pAVar27->aiType = AIT_NULL;
+ if ((iVar25 != -1) || (DAT_GameSynchronyState.currentAIArray[_playerID] != 0)) {
+ iVar25 = GetPlayerPosition(_playerID);
+ _storedLordTypes[_playerID] = iVar25;
+ if (_playerID == iVar25) {
+ swapOwnership(
+ _playerID, _playerID);
+ _storedLordTypes[_playerID] = 0;
+ }
+ }
+ pAVar27 = pAVar27 + 0xe7d;
+ _playerID = _playerID + 1;
+ } while ((int)pAVar27 < 0x117ea8c);
+ local_d80 = (int*)0x8;
+ do {
+ _playerID = 1;
+ do {
+ if (((DAT_GameSynchronyState.currentPlayerFullIDArray[_playerID] != -1)
+ || (DAT_GameSynchronyState.currentAIArray[_playerID] != 0))
+ && (iVar25 = _storedLordTypes[_playerID], iVar25 != 0)) {
+ swapOwnership(
+ iVar25, _playerID);
+ iVar17 = 1;
+ do {
+ if (_storedLordTypes[iVar17] == _playerID) {
+ _storedLordTypes[iVar17] = iVar25;
+ break;
+ }
+ iVar17 = iVar17 + 1;
+ } while (iVar17 < 9);
+ _storedLordTypes[_playerID] = 0;
+ }
+ _playerID = _playerID + 1;
+ } while (_playerID < 9);
+ local_d80 = (int*)((int)local_d80 + -1);
+ } while (local_d80 != (int*)0x0);
+ setAIVFilePresenceByFileHashArray();
+ _section1093 = _whichCastle + -0x191de14;
+ _playerID = 1;
+ _ptrAIVID = &DAT_GameState.playerDataArray[1].aivID;
+ do {
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[_playerID] == -1) {
+ if (DAT_GameSynchronyState.currentAIArray[_playerID] != 0) {
+ _playerPosition = GetPlayerPosition(_playerID);
+ _ptrAIVID[-0x18] = DAT_GameSynchronyState.skirmishPoints;
+ DAT_TileMapState.field195_0x554a24 = 1;
+ DAT_TileMapState.field122_0x554930 = 1;
+ DAT_TileMapState.buildingPlacementFail = FALSE;
+ /*
+ set aiType to 1 + ai
+ */
+ _ptrAIVID[1] = DAT_GameSynchronyState.currentAIArray[_playerID] + 1;
+ iVar25
+ = setupAIVMetadata(_playerID);
+ _s1023 = _playerTeams[_playerPosition * 2 + 1];
+ _autoSaveMinutes = _playerTeams[_playerPosition * 2];
+ *_ptrAIVID = iVar25;
+ setKeepOffsetAndOrientation(
+ iVar25, _autoSaveMinutes, _s1023);
+ if (_whichCastle == 0) {
+ selectBestAIVwithRandomStart(
+ *_ptrAIVID);
+ } else {
+ /*
+ local_d74 = param_1 - 4 or something
+ */
+ _fitPercentage
+ = tryPlaceAIVAndReturnFitPercentage(*_ptrAIVID, *(int*)(_section1093 + 0x191de10 + _playerID * 4));
+ DAT_AIVPlacementFit[_playerID] = _fitPercentage;
+ }
+ _anotherPlayerIDUnk = *_ptrAIVID;
+ if (DAT_AIVState.aivs[_anotherPlayerIDUnk].aivSubType == 0) {
+ /*
+ aiv placement failed, choose default castle
+ */
+ placeBuilding(
+ _playerID, _autoSaveMinutes, _s1023, M_MAPPER_KEEP2, 7, 0xf);
+ } else {
+ /*
+ successfull aiv placement trying
+ */
+ applyAIV(
+ _anotherPlayerIDUnk, _playerID);
+ placeBuilding(
+ _playerID, DAT_AIVState.keepX, DAT_AIVState.keepY,
+ M_MAPPER_KEEP2, 7,
+ DAT_AIVState.aivs[_anotherPlayerIDUnk].keepOrientation);
+ _keepBuildingID = _ptrAIVID[-0x89a];
+ if (_keepBuildingID != 0) {
+ iVar17 = (int)(short)DAT_BuildingsState.buildings[_keepBuildingID].y;
+ iVar25 = (int)(short)DAT_BuildingsState.buildings[_keepBuildingID].x;
+ iVar18 = DAT_TileMapState.DefaultHeightLayer
+ [DAT_ViewportRenderState.translationMatrix[iVar17].addXgetTile
+ + iVar25 + 6]
+ + 0x5a;
+ iVar17 = iVar17 * 8;
+ iVar25 = iVar25 * 8 + 0x37;
+ spawnProjectileEntity(0, (undefined4)((int)(_playerID)), (uint)((int)(_playerID)),
+ iVar25, iVar17, iVar18, iVar25, iVar17, iVar18, ET_FLAG_4, 0);
+ }
+ }
+ }
+ } else {
+ iVar18 = GetPlayerPosition(_playerID);
+ iVar25 = DAT_GameSynchronyState.skirmishPoints;
+ iVar17 = _playerTeams[iVar18 * 2 + 1];
+ _s1023 = _playerTeams[iVar18 * 2];
+ _ptrAIVID[0x5b6] = 0;
+ DAT_TileMapState.buildingPlacementFail = FALSE;
+ DAT_TileMapState.field195_0x554a24 = 1;
+ DAT_TileMapState.field122_0x554930 = 1;
+ _ptrAIVID[-0x18] = iVar25;
+ placeBuilding(
+ _playerID, _s1023, iVar17, M_MAPPER_KEEP2, 7, 0xf);
+ iVar18 = DAT_TileMapState
+ .DefaultHeightLayer[DAT_ViewportRenderState.translationMatrix[iVar17].addXgetTile
+ + _s1023]
+ + 0x5a;
+ iVar25 = _s1023 * 8 + 0x37;
+ spawnProjectileEntity(0, (undefined4)((int)(_playerID)), (uint)((int)(_playerID)), iVar25,
+ iVar17 * 8, iVar18, iVar25, iVar17 * 8, iVar18, ET_FLAG_4, 0);
+ if (_playerID == DAT_GameSynchronyState.currentPlayerSlotID) {
+ focusOnCoordinate(
+ (short)DAT_BuildingsState.buildings[_ptrAIVID[-0x89a]].x + 2,
+ (int)((int)((short)DAT_BuildingsState.buildings[_ptrAIVID[-0x89a]].y + 2)));
+ }
+ }
+ _playerID = _playerID + 1;
+ _ptrAIVID = _ptrAIVID + 0xe7d;
+ } while (_playerID < 9);
+ if (DAT_GameCore.mapU4Int0 != 0) {
+ _playerID = 1;
+ do {
+ /*
+ produce the startup keep destroyal visual effects?
+ */
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[_playerID] == -1)
+ && (DAT_GameSynchronyState.currentAIArray[_playerID] == 0)) {
+ DAT_TileMapState.buildingPlacementFail = FALSE;
+ DAT_GameState.mapAndTime.somePlayerID = _playerID;
+ placeBuilding(
+ _playerID, local_ca0, local_c9c, M_MAPPER_KEEP2, 7, 0xf);
+ iVar25 = DAT_ViewportRenderState.translationMatrix[local_c9c].addXgetTile + local_ca0;
+ sVar4 = DAT_TileMapState.BuildingLayer[iVar25];
+ iVar17 = DAT_TileMapState.DefaultHeightLayer[iVar25] + 0x7c;
+ iVar25 = local_ca0 * 8 + 0x37;
+ DAT_GameState.playerDataArray[_playerID].keep.id = 0;
+ uVar19 = spawnProjectileEntity(0, (undefined4)((int)(_playerID)), 5, iVar25, local_c9c * 8, iVar17,
+ iVar25, local_c9c * 8, iVar17, ET_FLAG_4, 0);
+ *(short*)&DAT_BuildingsState.buildings[sVar4].field_0x2c2 = (short)uVar19;
+ break;
+ }
+ _playerID = _playerID + 1;
+ } while (_playerID < 9);
+ }
+ /*
+ copy start gold, note that this value is written after the goods, event thoguh in the decompiler it shows up
+ as if written before (and then overwritten by the goods...)
+ */
+ DAT_GameState.mapAndTime.startGoods[0xf]
+ = (int)(PTR_s_bad_allocation_005c2a68::ptr)[DAT_GameSynchronyState.skirmishGameIntensityType];
+ /*
+ copy start goods
+ */
+ pSVar24 = DAT_RenderingDefinedData.StartGoods
+ + DAT_GameSynchronyState.skirmishGameIntensityType + -1;
+ piVar27 = DAT_GameState.mapAndTime.startGoods;
+ for (_counter = 0x19; _counter != 0; _counter = _counter + -1) {
+ *piVar27 = pSVar24->invalid1;
+ pSVar24 = (StartingResourceStructureInt*)&pSVar24->invalid2;
+ piVar27 = piVar27 + 1;
+ }
+ DAT_GameState.mapAndTime.euroRecruitable[0] = 1;
+ DAT_GameState.mapAndTime.mercRecruitable[0] = 1;
+ DAT_GameState.mapAndTime.euroRecruitable[1] = 1;
+ DAT_GameState.mapAndTime.mercRecruitable[1] = 1;
+ DAT_GameState.mapAndTime.euroRecruitable[2] = 1;
+ DAT_GameState.mapAndTime.mercRecruitable[2] = 1;
+ DAT_GameState.mapAndTime.euroRecruitable[3] = 1;
+ DAT_GameState.mapAndTime.mercRecruitable[3] = 1;
+ DAT_GameState.mapAndTime.euroRecruitable[4] = 1;
+ DAT_GameState.mapAndTime.mercRecruitable[4] = 1;
+ DAT_GameState.mapAndTime.euroRecruitable[5] = 1;
+ DAT_GameState.mapAndTime.mercRecruitable[5] = 1;
+ DAT_GameState.mapAndTime.euroRecruitable[6] = 1;
+ DAT_GameState.mapAndTime.mercRecruitable[6] = 1;
+ _playerIndex = 1;
+ _startingTroopsPlayerData = DAT_GameState.mapAndTime.startingTroops;
+ _aiType2 = (char (*)[250]) & DAT_GameState.playerDataArray[1].aiType;
+ _playerID = _whichCastle;
+ do {
+ _whichCastle = _playerID;
+ _advantage = 100;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[_playerIndex] == -1) {
+ if (DAT_GameSynchronyState.currentAIArray[_playerIndex] == 0) {
+ _aiNumber = 0;
+ } else {
+ _advantage = *(int*)((int)(DAT_RenderingDefinedData.StartingTroops + -1)
+ + (DAT_GameSynchronyState.skirmishCurrentAdvantageBalance + 0x35) * 4);
+ _aiNumber = *(AITypeInt*)_aiType2 + ~AIT_NULL;
+ }
+ } else {
+ _lordType = getLordTypeForPlayer(_playerIndex);
+ _advantage = *(int*)((int)(DAT_RenderingDefinedData.StartingTroops + -1)
+ + (DAT_GameSynchronyState.skirmishCurrentAdvantageBalance + 0x2f) * 4);
+ _aiNumber = 19 - (uint)(_lordType != 1);
+ }
+ /*
+ This points to the starting troops array.
+ */
+ piVar27 = (int*)((int)DAT_RenderingDefinedData.StartGoods
+ + (DAT_GameSynchronyState.skirmishGameIntensityType + _aiNumber * 3) * 0x50 + 0x110);
+ _whichCastle = 20;
+ do {
+ (*_startingTroopsPlayerData)[0] = (*piVar27 * _advantage) / 100;
+ piVar27 = piVar27 + 1;
+ _startingTroopsPlayerData = (int (*)[20])(*_startingTroopsPlayerData + 1);
+ _whichCastle = _whichCastle + -1;
+ } while (_whichCastle != 0);
+ _aiType2 = (char (*)[250])((int)_aiType2 + 0x39f4);
+ _playerIndex = _playerIndex + 1;
+ _playerID = 0;
+ } while ((int)_playerIndex < 9);
+ DAT_GameState.mapAndTime.startingPopularity
+ = DAT_GameSynchronyState.skirmishDefaultPopularity * 10;
+ prepareMap();
+ clearWildlifeState();
+ DAT_GameSynchronyState.currentGameMode = _gameMode;
+ DAT_GameState.mapAndTime.rawDeerCount
+ = getRawDeerCount();
+ /*
+ This applies the start goods!
+ */
+ clearEnemyRelatedStructures();
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 0;
+ DAT_GameState.mapAndTime.field3183_0x27dc = 0;
+ DAT_GameState.mapAndTime.field3180_0x27d6 = 0;
+ DAT_GameState.mapAndTime.yearCopy = 0;
+ DAT_GameState.mapAndTime.monthCopy = 0;
+ DAT_GameState.mapAndTime.field3184_0x27de = 0;
+ setMonthAndYear(
+ 6, 1181);
+ DAT_GameState.mapAndTime.traderRelated1 = 4;
+ DAT_GameState.mapAndTime.traderRelatedCounter2 = 4;
+ DAT_GameState.mapAndTime.field1363_0x71c = 1;
+ DAT_GameState.mapAndTime.field1364_0x720 = 0;
+ DAT_GameState.mapAndTime.traderRelated2 = 0;
+ DAT_GameState.mapAndTime.traderRelatedCounter1 = 0;
+ _pKeepPlayer2 = &DAT_GameState.playerDataArray[2];
+ _index = 0;
+ do {
+ if (((*(int*)((int)DAT_GameSynchronyState.currentPlayerFullIDArray + _index + 4) != -1)
+ || (*(int*)((int)DAT_GameSynchronyState.currentAIArray + _index + 4) != 0))
+ && (*(int*)((int)(_pKeepPlayer2 + -0x173) + 4) != 0)) {
+ *(uint*)((int)DAT_GameState.mapAndTime.field22_0x58[0] + _index + 4)
+ = DAT_BuildingsState.buildings[*(int*)((int)(_pKeepPlayer2 + -0x173) + 4)]
+ .currentTilePositionAdjusted;
+ }
+ if (((*(int*)((int)DAT_GameSynchronyState.currentPlayerFullIDArray + _index + 8) != -1)
+ || (*(int*)((int)DAT_GameSynchronyState.currentAIArray + _index + 8) != 0))
+ && (_pKeepPlayer2->id != 0)) {
+ *(uint*)((int)DAT_GameState.mapAndTime.field22_0x58[0] + _index + 8)
+ = DAT_BuildingsState.buildings[_pKeepPlayer2->id].currentTilePositionAdjusted;
+ }
+ if (((*(int*)((int)DAT_GameSynchronyState.currentPlayerFullIDArray + _index + 0xc) != -1)
+ || (*(int*)((int)DAT_GameSynchronyState.currentAIArray + _index + 0xc) != 0))
+ && (*(int*)((int)(_pKeepPlayer2 + 0x172) + 0x24) != 0)) {
+ *(uint*)((int)DAT_GameState.mapAndTime.field22_0x58[0] + _index + 0xc)
+ = DAT_BuildingsState.buildings[*(int*)((int)(_pKeepPlayer2 + 0x172) + 0x24)]
+ .currentTilePositionAdjusted;
+ }
+ if (((*(int*)((int)DAT_GameSynchronyState.currentPlayerFullIDArray + _index + 0x10) != -1)
+ || (*(int*)((int)DAT_GameSynchronyState.currentAIArray + _index + 0x10) != 0))
+ && (*(int*)((int)(_pKeepPlayer2 + 0x2e5) + 0x20) != 0)) {
+ *(uint*)((int)DAT_GameState.mapAndTime.field22_0x58[0] + _index + 0x10)
+ = DAT_BuildingsState.buildings[*(int*)((int)(_pKeepPlayer2 + 0x2e5) + 0x20)]
+ .currentTilePositionAdjusted;
+ }
+ _pKeepPlayer2 = (PlayerData*)((int)(_pKeepPlayer2 + 0x5cb) + 0x18);
+ _index = _index + 16;
+ } while ((int)_pKeepPlayer2 < 0x1180214);
+ pBVar20 = DAT_GameState.mapAndTime.copyOfBuyAndSalesPrice;
+ _resourceIndex = 0;
+ do {
+ /*
+ this code resets the buy and sell prices to the default
+ */
+ _playerID = *(int*)((int)DAT_RenderingDefinedData.BuyPricePerResource + _resourceIndex);
+ pBVar20[0x19].buyPrice = _playerID;
+ pBVar20->buyPrice = _playerID;
+ _playerID = *(int*)((int)DAT_RenderingDefinedData.SalesPricePerResource + _resourceIndex);
+ pBVar20[0x19].salesPrice = _playerID;
+ pBVar20->salesPrice = _playerID;
+ /*
+ this code sets every trade good as tradeable
+ */
+ *(undefined4*)((int)DAT_GameState.mapAndTime.isResourceTradeable + _resourceIndex) = 1;
+ *(undefined4*)((int)DAT_GameState.mapAndTime.unknownResouceFlagArray1 + _resourceIndex) = 0;
+ *(undefined4*)((int)DAT_GameState.mapAndTime.unknownResourceFlagArray2 + _resourceIndex) = 0;
+ pBVar20 = pBVar20 + 1;
+ _resourceIndex = _resourceIndex + 4;
+ } while ((int)pBVar20 < 0x117cfd4);
+ if (DAT_GameSynchronyState.skirmishTechLevel < 3) {
+ DAT_GameState.mapAndTime.isResourceTradeable[0x10] = 0;
+ }
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_0 = 1;
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_2 = 1;
+ DAT_GameState.mapAndTime.field2257_0xda8 = 1;
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_1_b = 1;
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_3_b = 1;
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_6_a = 1;
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_1_a = 1;
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_3_a_and_6_b = 1;
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_6_c = 1;
+ SetAIPlayerNickNames();
+ if ((DAT_GameSynchronyState.currentGameMode == GM_SKIRMISH_SINGLE_PLAYER)
+ && (DAT_GameSynchronyState.currentPlayerSlotID == 0)) {
+ DAT_GameState.playerDataArray[0].playerDeathRelated = 1;
+ }
+ _finalResultsIndex = 1;
+ _aiType2 = DAT_GameSynchronyState.DAT_PlayerNames + 1;
+ _ptrFinalResults = 0x1a26d86;
+ do {
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[_finalResultsIndex] == -1)
+ && (DAT_GameSynchronyState.currentAIArray[_finalResultsIndex] == 0)) {
+ DAT_GameSynchronyState.finalResults.active[_finalResultsIndex] = 0;
+ } else {
+ DAT_GameSynchronyState.finalResults.active[_finalResultsIndex] = 1;
+ pacVar21 = _aiType2;
+ do {
+ cVar1 = (*pacVar21)[0];
+ *(char*)((int)pacVar21 + (_ptrFinalResults - (int)_aiType2)) = cVar1;
+ pacVar21 = (char (*)[250])(*pacVar21 + 1);
+ } while (cVar1 != '\0');
+ DAT_GameSynchronyState.finalResults.finalGold[_finalResultsIndex] = 0;
+ DAT_GameSynchronyState.finalResults.finalMaxPopulation[_finalResultsIndex] = 0;
+ DAT_GameSynchronyState.finalResults.finalMaxGoodThings[_finalResultsIndex] = 0;
+ DAT_GameSynchronyState.finalResults.finalMaxBadThings[_finalResultsIndex] = 0;
+ DAT_GameSynchronyState.finalResults.finalBuildingsBurned[_finalResultsIndex] = 0;
+ DAT_GameSynchronyState.finalResults.finalBuidingsDestroyed[_finalResultsIndex] = 0;
+ DAT_GameSynchronyState.finalResults.finalFoodProduced[_finalResultsIndex] = 0;
+ DAT_GameSynchronyState.finalResults.finalWeaponsProduced[_finalResultsIndex] = 0;
+ DAT_GameSynchronyState.finalResults.finalIronProduced[_finalResultsIndex] = 0;
+ DAT_GameSynchronyState.finalResults.finalStoneProduced[_finalResultsIndex] = 0;
+ DAT_GameSynchronyState.finalResults.finalWoodProduced[_finalResultsIndex] = 0;
+ DAT_GameSynchronyState.finalResults.finalPitchProduced[_finalResultsIndex] = 0;
+ DAT_GameSynchronyState.finalResults.finalKilledLords[_finalResultsIndex] = 0;
+ DAT_GameSynchronyState.finalResults.finalTroopsKilledWeighted[_finalResultsIndex] = 0;
+ DAT_GameSynchronyState.finalResults.finalBuildingsDestroyedWeighted[_finalResultsIndex] = 0;
+ /*
+ monthStart
+ */
+ DAT_GameSynchronyState.finalResults.finalDateOfDeathInMonths[_finalResultsIndex + 9] = 0;
+ }
+ _aiType2 = _aiType2 + 1;
+ _ptrFinalResults = _ptrFinalResults + 90;
+ _finalResultsIndex = _finalResultsIndex + 1;
+ } while (_ptrFinalResults < 0x1a27056);
+ _killMatrix = DAT_GameSynchronyState.finalResults.finalKillMatrix;
+ for (_playerID = 81; _playerID != 0; _playerID = _playerID + -1) {
+ (*_killMatrix)[0] = 0;
+ _killMatrix = (int (*)[9])(*_killMatrix + 1);
+ }
+ DAT_GameSynchronyState.finalResults.monthStart = DAT_GameState.mapAndTime.month;
+ DAT_GameSynchronyState.finalResults.yearStart = DAT_GameState.mapAndTime.year;
+ clearAttackInfo();
+ recomputeHeatmaps(1);
+ recomputeAttackAIZone();
+ _playerID = 1;
+ do {
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[_playerID] == -1)
+ && (DAT_GameSynchronyState.currentAIArray[_playerID] != 0)) {
+ recomputeAIAvailableGridTiles(
+ _playerID);
+ }
+ _playerID = _playerID + 1;
+ } while (_playerID < 9);
+ playNextStoredBinkVideo();
+ DAT_GameState.mapAndTime.skirmishStrongWalls = DAT_GameSynchronyState.skirmishStrongWalls;
+ DAT_GameState.mapAndTime.skirmishAlliances = DAT_GameSynchronyState.skirmishAlliances;
+ DAT_GameState.mapAndTime.skirmishNoDogs = DAT_GameSynchronyState.skirmishNoDogs;
+ DAT_GameState.mapAndTime.skirmishNoCowThrowing
+ = DAT_GameSynchronyState.skirmishNoCowThrowing;
+ DAT_GameState.mapAndTime.skirmishExtremeMode = DAT_GameSynchronyState.skirmishExtremeMode;
+ DAT_GameState.mapAndTime.skirmishNoRushTicks
+ = DAT_RenderingDefinedData.NoRushTicks[DAT_GameSynchronyState.skirmishNoRushSetting];
+ DAT_GameState.mapAndTime.skirmishExtremeMode2 = DAT_GameSynchronyState.skirmishExtremeMode2;
+ DAT_GameState.mapAndTime.countUpTo201 = 0;
+ DAT_GameState.mapAndTime.skirmishNoRushTicksLeft
+ = DAT_GameState.mapAndTime.skirmishNoRushTicks;
+ clearModalDialog2to6();
+ DAT_GameSynchronyState.timeSkirmishGameStart = MACRO_CALL(timeGetTime)();
+ DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType = BASMTT_HUNTERSHUT;
+ DAT_MissionDefinedData.field26_0xaf8 = false;
+ if ((DAT_GameCore.currentMenuViewType == MVT_SELECT_CRUSADE)
+ || (DAT_GameCore.currentMenuViewType == MVT_CRUSADE_MISSION_INTRO)) {
+ _delay = 0;
+ } else {
+ _delay = 10000;
+ }
+ switchToMenuView(
+ MVT_BUILD_MENU, _delay);
+ DAT_UIDragDropDefinedData.MenuView_TriggerInitial = TRUE;
+ DAT_WindowAndDirectDraw.unk_resetViewportRelated = 1;
+ DWORD_00b95b1c::instance = MACRO_CALL(timeGetTime)();
+ DAT_00b960dc = 1;
+ recomputeHashesAndSendResync(0);
+ DAT_GameSynchronyState.DAT_TwoIfNotHost = 0;
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[0] = 0;
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[1] = 0;
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[2] = 0;
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[3] = 0;
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[4] = 0;
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[5] = 0;
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[6] = 0;
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[7] = 0;
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[8] = 0;
+ DAT_GameCore.timeSum_2 = MACRO_CALL(timeGetTime)();
+ DAT_GameCore.gameDuration = 0;
+ TIME_ReceivedMessage_2::instance = 0;
+ DAT_00b960f8 = 0;
+ INT_00b960f0::instance = 0;
+ ;
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00441270", "name": "LaunchSkirmishGame", "quelle": "ghidra", "p1": {"bereich": "Spielablauf", "zweck": "Richtet ein Gefecht ein und startet es: Karte laden, Spieler und Burgen setzen, Startwaren, Truppen, Preise und Regeln festlegen."}, "p2": {"ein": "whichCastle (0 = KI-Burgen zufällig wählen, sonst vorgegebene Burgen mit Passungsprüfung)", "aus": "-", "liest": ["GameSynchronyState (Karte, Spieler, KI-Arten, Gefechtseinstellungen)", "RenderingDefinedData.StartGoods/StartingTroops/BuyPricePerResource/SalesPricePerResource/NoRushTicks", "playerDataArray[].keep/stockpile/lordID"], "schreibt": ["GameState.mapAndTime (Teams, Gruppen, startGoods, startingTroops, Preise, Flags)", "GameCore.missionNumber1to20 und die producible-Flags", "playerDataArray[].aiType/aivID", "finalResults (Ergebnisse auf 0)"], "ruft": ["commitSkirmishSettings", "readMapOrSavFile", "destroyBuildingAndLinkedDuplicates", "swapOwnership", "GetPlayerPosition", "setupAIVMetadata", "selectBestAIVwithRandomStart", "tryPlaceAIVAndReturnFitPercentage", "applyAIV", "placeBuilding", "prepareMap", "clearWildlifeState", "setMonthAndYear", "SetAIPlayerNickNames", "clearAttackInfo", "recomputeHeatmaps", "recomputeAttackAIZone", "recomputeAIAvailableGridTiles", "switchToMenuView", "recomputeHashesAndSendResync"], "regeln": ["Große Funktion; Ablauf in Schritten: (1) Einstellungen sichern, Karte laden, Kartenwerte zurückschreiben; (2) alte Burgen und Lords der Karte zerstören, Spielerplätze mit swapOwnership umordnen; (3) je Spieler 1 bis 8 die Burg setzen: KI mit AIV-Vorlage (applyAIV), sonst Standardburg M_MAPPER_KEEP2 mit Ausrichtung 0xf; (4) Startwaren, Startgold, Truppen, Preise, Zeit, Regeln setzen; (5) Statistiken nullen, Karten neu berechnen, Menü zum Bauen schalten", "Ist die AIV-Vorlage nicht platzierbar (aivSubType == 0), wird die Standardburg gesetzt", "Fest gesetzt: difficulty = 1, skirmishTroopsCostGold = 1, Schwert und Pike nur wenn skirmishTechLevel != 2, missionNumber1to20 = skirmishTechLevel + 0x16 (22 plus Techstufe)", "Bogen, Armbrust, Speer, Streitkolben immer herstellbar; euroRecruitable und mercRecruitable Einträge 0 bis 6 alle auf 1", "Startdatum: Monat 6, Jahr 1181; startingPopularity = skirmishDefaultPopularity * 10", "Startgold (startGoods[0xf]) stammt aus einer Tabelle, indiziert mit skirmishGameIntensityType; die übrigen 25 Startwaren aus RenderingDefinedData.StartGoods, ebenfalls nach Intensität", "Starttruppen je Spieler: 20 Werte aus der Tabelle, mal Vorteil / 100; Vorteil 100, bei KI aus skirmishCurrentAdvantageBalance (Versatz 0x35), bei Menschen (Versatz 0x2f); Tabellenzeile Mensch 19 bei Lordtyp 1, sonst 18", "Preise aller Waren werden auf die Grundpreise zurückgesetzt, alle Waren handelbar; Ware 0x10 nicht handelbar, wenn skirmishTechLevel < 3", "skirmishNoRushTicks = NoRushTicks[skirmishNoRushSetting]; Menüwechsel mit 10000 Verzögerung, bei Kreuzzugsmenüs 0"], "offen": ["Bedeutung vieler Felder mit Unk, field…, traderRelated…", "Warum der Startgold-Zeiger PTR_s_bad_allocation heißt (täuschender Name, vermutlich falsch benannte Tabelle)", "Bedeutung von Ware 0x10 (nicht handelbar unter Techstufe 3)"]}, "p3": {"erklaerung": "Hier entsteht jedes Gefecht: Startgold, Startwaren und Starttruppen kommen aus festen Tabellen und hängen von der Einstellung Intensität und dem Vorteilswert ab. Alle Preise beginnen bei den Grundwerten.", "gehirn": "Start-Truppen und Gold lassen sich aus den Tabellen vorab berechnen; das Gefecht setzt skirmishTroopsCostGold = 1, Truppen kosten also Gold. Tabellenwerte sind Grundwerte, UCP kann sie ändern.", "beleg": "code", "live": "Tabellen StartGoods, StartingTroops, NoRushTicks einmal aus dem Speicher lesen → Werte je Intensität → mit startGoods und startingTroops zu Spielbeginn vergleichen", "live_art": "tabelle"}}
+

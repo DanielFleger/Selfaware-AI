@@ -1,0 +1,1179 @@
+### 0x00424f50 MenuItemRenderFunction_MainMenu_Main | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00424F50
+ void MainMenu::MenuItemRenderFunction_MainMenu_Main(int param_1, ...)
+ {
+ char* _textAddress;
+ int _y;
+ int _x;
+ uint uVar1;
+ int iVar2;
+ BOOLEnum BVar3;
+ int iVar4;
+ TextAlignment _aligntment;
+ uint _color;
+ if (DAT_UnknownGFXIndex == 1) {
+ return;
+ }
+ if (param_1 == 5) {
+ if ((DAT_ButtonCurrentlyInteracting != FALSE) && (BOOL_WasInteracting::instance == FALSE)) {
+ setUpSFXToPlayUnk(
+ SEID_UNIT_DAMAGE3 | SEID_WOOD_SAW);
+ }
+ BOOL_WasInteracting::instance = DAT_ButtonCurrentlyInteracting;
+ LAB_00424fed:
+ if ((DAT_TextureRenderCoreObject.unknownSfxAndGmRelatedFlag != FALSE)
+ && (((param_1 == 1 || (param_1 == 2)) || ((param_1 == 3 || (param_1 == 9)))))) {
+ DAT_CurrentButtonGmDataIndex = 0x161;
+ }
+ if (param_1 < 10) {
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ } else {
+ RenderCurrentButtonOnScreenMenu();
+ }
+ DAT_CurrentButtonPictureInGm
+ = DAT_UIButtonDefinedData.ButtonGmDataArray[DAT_CurrentButtonGmDataIndex]
+ .pictureInGm_0x4;
+ if (((param_1 < 5) || (param_1 == 9)) && (DAT_ButtonCurrentlyInteracting != FALSE)) {
+ if (INT_00b95abc::instance != param_1) {
+ setUpSFXToPlayUnk(
+ SEID_CHILDREN_PLAY_MAYPOLE | SEID_WOOD_CHOP);
+ }
+ INT_00b95abc::instance = param_1;
+ }
+ } else {
+ if ((((DAT_ButtonCurrentlyInteracting != FALSE) || (param_1 == 6)) || (param_1 == 7))
+ || ((param_1 == 8 || (param_1 == 9))))
+ goto LAB_00424fed;
+ if (param_1 == INT_00b95abc::instance) {
+ INT_00b95abc::instance = -1;
+ }
+ if ((DAT_TextureRenderCoreObject.unknownSfxAndGmRelatedFlag != FALSE)
+ && (((param_1 == 1 || (param_1 == 2)) || (param_1 == 3)))) {
+ DAT_CurrentButtonGmDataIndex = 0x161;
+ }
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ }
+ if (param_1 < 5) {
+ if ((param_1 == 4) && ((int)DAT_GameCore.directDrawStatus < 0x700)) {
+ /*
+ added by script: "Multiplayer"
+ */
+ renderText(
+ TEXT_MAINOPTIONS, 0x1d, DAT_ButtonX + 0x1e,
+ DAT_ButtonY + 0xf, TTA_LEFT, 0x7f7f7f, 0, 0x10, FALSE);
+ goto LAB_00425150;
+ }
+ iVar4 = 0;
+ BVar3 = FALSE;
+ iVar2 = 0x10;
+ uVar1 = 0;
+ _color = 0xc2f0eb;
+ _y = DAT_ButtonY + 0xf;
+ _aligntment = TTA_LEFT;
+ _x = DAT_ButtonX + 0x1e;
+ _textAddress = getTextStringInGroupAtOffset(TEXT_MAINOPTIONS, param_1 + 0x19);
+ renderInGameTextWithShadow(_textAddress, _x, _y, _aligntment, _color, uVar1, iVar2, BVar3, iVar4);
+ }
+ if (param_1 == 9) {
+ iVar4 = 0;
+ BVar3 = FALSE;
+ iVar2 = 0x10;
+ uVar1 = 0;
+ _color = 0xc2f0eb;
+ _aligntment = TTA_LEFT;
+ _y = DAT_ButtonY + 0xf;
+ _x = DAT_ButtonX + 0x1e;
+ /*
+ added by script: "Custom Scenarios"
+ */
+ _textAddress = getTextStringInGroupAtOffset(TEXT_MAINOPTIONS, 0x1e);
+ renderInGameTextWithShadow(_textAddress, _x, _y, _aligntment, _color, uVar1, iVar2, BVar3, iVar4);
+ } else if (4 < param_1) {
+ return;
+ }
+ LAB_00425150:
+ if (DAT_ButtonCurrentlyInteracting != FALSE) {
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ renderGMWithAlphaMask(GID_ICONS_FRONT_END, 1,
+ DAT_ButtonX + -0x55, DAT_ButtonY + -0x1c,
+ GID_ICONS_FRONT_END, 2, 0);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004251a0 MenuItemActionHandler_MainMenu_Main | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004251A0
+ void MainMenu::MenuItemActionHandler_MainMenu_Main(int param_1, ...)
+ {
+ int iVar1;
+ int iVar2;
+ int iVar3;
+ MenuViewType menuID;
+ switch (param_1) {
+ case 1:
+ /*
+ historical campagins
+ */
+ DAT_GameCore.field22_0x64 = 0;
+ DAT_GameState.mapAndTime.difficulty = DAT_GameCore.missionDifficulty;
+ switchToMenuView(
+ MVT_HISTORIC_CAMPAIGN_SELECT, 0);
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[0]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[0];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[1]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[1];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[2]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[2];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[3]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[3];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[4]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[4];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[5]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[5];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[6]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[6];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[7]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[7];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[8]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[8];
+ return;
+ case 2:
+ /*
+ crusader
+ */
+ switchToMenuView(
+ MVT_SELECT_CRUSADE, 0);
+ return;
+ case 3:
+ /*
+ castle builder
+ */
+ DAT_GameCore.missionNumber1to20 = 0;
+ DAT_GameCore.gameMode_2 = GM_BUILDERUnk;
+ DAT_GameCore.xbowProducible_logic = 1;
+ DAT_GameCore.pikeProducible_logic = 1;
+ DAT_GameCore.swordProducible_logic = 1;
+ DAT_GameCore.bowProducible_logic = 1;
+ DAT_GameCore.spearProducible_logic = 1;
+ DAT_GameCore.maceProducible_logic = 1;
+ resetTeams();
+ DAT_MapMissionType = 0;
+ INT_00b95b64::instance = 1;
+ DAT_GameCore.standaloneFilename[0] = '\0';
+ DAT_GameState.mapAndTime.difficulty = DAT_GameCore.missionDifficulty_0;
+ DAT_GameCore.menuTabToSwitchTo.tabType = ((BuildingsAndStatusMenuTabType)0);
+ menuID = MVT_SINGLEPLAYER_MAP_CHOICE;
+ break;
+ case 4:
+ /*
+ multiplayer
+ */
+ if ((int)DAT_GameCore.directDrawStatus < 0x700) {
+ return;
+ }
+ clearEntry(5);
+ clearEntry(6);
+ DAT_GameSynchronyState.nextModalDialog
+ = MMT_CHOOSE_NETWORK_SERVICE_PROVIDER;
+ DAT_GameSynchronyState.kickedAtTime = 0;
+ DAT_GameSynchronyState.ipArrayIndex = 0;
+ DAT_GameCore.gameMode_2 = GM_SKIRMISH_AND_MULTIPLAYER;
+ DAT_GameCore.xbowProducible_logic = 1;
+ DAT_GameCore.pikeProducible_logic = 1;
+ DAT_GameCore.swordProducible_logic = 1;
+ DAT_GameCore.bowProducible_logic = 1;
+ DAT_GameCore.spearProducible_logic = 1;
+ DAT_GameCore.maceProducible_logic = 1;
+ menuID = MVT_MP_CONNECTION;
+ break;
+ case 5:
+ /*
+ quit
+ */
+ DAT_MenuTextInputState.DAT_MenuOptionsActionParameter = 9;
+ activateModalDialogAndClearText(MMT_YES_NO_DIALOG);
+ stopBinkPlayback(0);
+ return;
+ case 6:
+ /*
+ tutorial
+ */
+ DAT_GameCore.missionNumber1to20 = 0x1e;
+ DAT_GameCore.gameMode_2 = GM_CRUSADER_TUTORIAL;
+ DAT_GameCore.xbowProducible_logic = 0;
+ DAT_GameCore.pikeProducible_logic = 0;
+ DAT_GameCore.swordProducible_logic = 0;
+ DAT_GameCore.bowProducible_logic = 0;
+ DAT_GameCore.spearProducible_logic = 0;
+ DAT_GameCore.maceProducible_logic = 0;
+ resetTeams();
+ DAT_GameSynchronyState.currentPlayerSlotID = 1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[1] = 1;
+ loadMap(
+ "Crusader_tutorial.map");
+ DAT_GameCore.buildmenuMenuTabToSwitchTo.buildMenuTab = BMTT_CASTLE;
+ switchToMenuView(
+ MVT_BUILD_MENU, 0);
+ clearModalDialog2to6();
+ activateModalDialog(MMT_TUTORIAL_BOX, FALSE);
+ InitTutorialStepTransition(1);
+ DAT_00df555c = DAT_MissionAestheticsDefinedData.field1249_0x5324[0];
+ INT_DisableTutorialRestrictions::instance = 0;
+ DAT_TutorialCurrentStep = 0;
+ DAT_00df5554 = 0x20;
+ DAT_00df5558 = 0;
+ DAT_00df5560 = 0;
+ DAT_00df5564 = 0;
+ DAT_00df556c = 0x24;
+ iVar2 = 1;
+ iVar3 = 0;
+ do {
+ iVar1 = *(int*)((int)DAT_MissionAestheticsDefinedData.field1249_0x5324 + iVar3);
+ *(int*)((int)INT_ARRAY_00df5598::instance + iVar3) = iVar2 + 1;
+ iVar3 = iVar3 + 4;
+ iVar2 = iVar2 + 2 + iVar1;
+ } while (iVar3 < 128);
+ ResetTutorialActionTrackers();
+ return;
+ case 7:
+ /*
+ credits
+ */
+ DAT_00b95954 = 0;
+ switchToMenuView(
+ MVT_CREDITS, 0);
+ return;
+ case 8:
+ /*
+ options
+ */
+ DAT_GameSynchronyState.currentPlayerSlotID = 0;
+ queueCommand(GCT_ASK_FOR_SLOT_ASSIGNMENT);
+ activateModalDialogAndClearText(MMT_MAIN_MENU_OPTIONS);
+ setUpSFXToPlayUnk(
+ ((SoundEffectID)0x101));
+ return;
+ case 9:
+ /*
+ custom scenarios
+ */
+ DAT_GameCore.gameMode_2 = GM_EDITOR;
+ switchToMenuView(
+ MVT_CUSTOM_SCENARIOS, 0);
+ return;
+ default:
+ return;
+ }
+ /*
+ castle builder or multiplayer
+ */
+ switchToMenuView(menuID, 0);
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[0]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[0];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[1]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[1];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[2]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[2];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[3]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[3];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[4]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[4];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[5]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[5];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[6]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[6];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[7]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[7];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[8]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[8];
+ return;
+ }
+ }
+}
+}
+
+### 0x00430ce0 MenuView_MapEditorLandscaping_DoInitial | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00430CE0
+ void MapEditorLandscaping::MenuView_MapEditorLandscaping_DoInitial()
+ {
+ Menu* pMVar1;
+ DAT_MenuHandlerState.x = DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ pMVar1 = DAT_MenuHandlerState.currentMenu;
+ DAT_MenuHandlerState.y = DAT_WindowAndDirectDraw.resolutionY + -600;
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_640x480) {
+ (DAT_MenuHandlerState.currentMenu)->xPosition = 0;
+ pMVar1->yPosition = DAT_MenuHandlerState.y;
+ DAT_MenuHandlerState.x = 0;
+ } else {
+ (DAT_MenuHandlerState.currentMenu)->xPosition
+ = DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ pMVar1->yPosition = DAT_MenuHandlerState.y;
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_800x600) {
+ drawColorBox(
+ 0, 0x1b2, 799, 599, (ushort)((int)(COL_MAGENTA::instance.shortValue)));
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1024x768) {
+ drawColorBox(DAT_MenuHandlerState.x, 0x25a,
+ DAT_MenuHandlerState.x + 799, 0x2ff,
+ (ushort)((int)(COL_MAGENTA::instance.shortValue)));
+ }
+ }
+ if ((DAT_GameCore.activeMenuTab.tabType != BASMTT_SIEGETENT_SIEGETOWER)
+ && (DAT_GameCore.activeMenuTab.tabType != BASMTT_SIEGETENT_SHIELD)) {
+ setMenuTabIndexUnk(2);
+ }
+ if (DAT_WindowAndDirectDraw.field37_0xdc != 0) {
+ DAT_WindowAndDirectDraw.field37_0xdc = 0;
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1024x768) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1024l.tgx");
+ loadGfxFile("edge1024l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x300 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x390, 0x300 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1024x600) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1024l.tgx");
+ loadGfxFile("edge1024l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 600 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x390, 600 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1280x1024) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1280l.tgx");
+ loadGfxFile("edge1280l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x400 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x410, 0x400 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1600x1200) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1600l.tgx");
+ loadGfxFile("edge1600l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x4b0 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x4b0, 0x4b0 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1280x720) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1280l.tgx");
+ loadGfxFile("edge1280l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x2d0 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x410, 0x2d0 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1440x900) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1440l.tgx");
+ loadGfxFile("edge1440l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 900 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x460, 900 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1920x1080) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1920l.tgx");
+ loadGfxFile("edge1920l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x438 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x550, 0x438 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1920x1200) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1920l.tgx");
+ loadGfxFile("edge1920l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x4b0 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x550, 0x4b0 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_2560x1440) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge2560l.tgx");
+ loadGfxFile("edge2560l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x5a0 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x690, 0x5a0 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_2560x1600) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge2560l.tgx");
+ loadGfxFile("edge2560l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x640 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x690, 0x640 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1366x768) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1366l.tgx");
+ loadGfxFile("edge1366l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x300 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x43a, 0x300 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1360x768) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1360l.tgx");
+ loadGfxFile("edge1360l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x300 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x438, 0x300 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1680x1050) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1680l.tgx");
+ loadGfxFile("edge1680l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x41a - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x4d8, 0x41a - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1600x900) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1600l.tgx");
+ loadGfxFile("edge1600l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 900 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x4b0, 900 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004313c0 MenuView_MapEditorLandscaping_DoEveryFrame | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004313C0
+ void MapEditorLandscaping::MenuView_MapEditorLandscaping_DoEveryFrame()
+ {
+ if (DAT_GameCore.activeMenuTab.tabType == BASMTT_SIEGETENT_SIEGETOWER) {
+ return;
+ }
+ if (DAT_GameCore.activeMenuTab.tabType == BASMTT_SIEGETENT_SHIELD) {
+ return;
+ }
+ if (DAT_MinimapViewState.field3_0xc == 0) {
+ DAT_WindowAndDirectDraw.unk_resetViewportRelated = 2;
+ } else if (DAT_WindowAndDirectDraw.unk_resetViewportRelated != 2)
+ goto LAB_00431429;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ renderGM(GM_INTERFACE_PANELS, 3,
+ DAT_MenuHandlerState.x, DAT_MenuHandlerState.y + 0x1b2);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ LAB_00431429:
+ DAT_MinimapViewState.field0_0x0 = 1;
+ renderMinimapLandscaping(
+ DAT_MenuHandlerState.x + 0x298, DAT_MenuHandlerState.y + 0x1d0, 0x80, 0x80);
+ return;
+ }
+ }
+}
+}
+
+### 0x00431460 MenuItemActionHandler_MapEditorLandscaping_CategoryButtons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00431460
+ void MapEditorLandscaping::MenuItemActionHandler_MapEditorLandscaping_CategoryButtons(int param_1, ...)
+ {
+ if (param_1 == -1) {
+ if (DAT_MenuTextInputState.currentModalDialog == MMT_NO_MENU) {
+ activateModalDialogAndClearText(MMT_PAUSE_MENU);
+ return;
+ }
+ } else {
+ if ((param_1 == 0xed) && (0 < (int)DAT_GameCore.U2_mapType_singleOrMulti)) {
+ param_1 = 0xef;
+ }
+ if ((DAT_GameCore.currentMenuViewType != MVT_MAP_EDITOR_LANDSCAPING)
+ || (param_1 != DAT_GameCore.activeMenuTab.tabType)) {
+ DAT_GameCore.landscapingmenuMenuTabToSwitchTo = param_1;
+ switchToMenuView(
+ MVT_MAP_EDITOR_LANDSCAPING, 0);
+ DAT_TileMapState.currentMapperCommand = M_MAPPER_NULL;
+ DAT_UIDragDropDefinedData.MenuView_TriggerInitial = TRUE;
+ DAT_WindowAndDirectDraw.unk_resetViewportRelated = 1;
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004314e0 MenuItemActionHandler_MapEditorLandscaping_GeneralButtons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004314E0
+ void MapEditorLandscaping::MenuItemActionHandler_MapEditorLandscaping_GeneralButtons(MappersEnum param_1, ...)
+ {
+ if (0x14b < (int)param_1) {
+ switchD_0043150b_caseD_ca:
+ DAT_GameSynchronyState.field299_0x109e7c = 1;
+ DAT_TileMapState.currentMapperCommand = param_1;
+ return;
+ }
+ if (param_1 == M_MAPPER_AREA_BACK) {
+ DAT_TileMapState.editorActiveBrush = DAT_TileMapState.editorActiveBrush + -1;
+ if (DAT_TileMapState.editorActiveBrush < 1) {
+ DAT_TileMapState.editorActiveBrush = 7;
+ }
+ if ((((DAT_TileMapState.currentMapperCommand != M_MAPPER_BIGROCK1)
+ && (DAT_TileMapState.currentMapperCommand != M_MAPPER_BIGROCK2))
+ && (DAT_TileMapState.currentMapperCommand != M_MAPPER_BIGROCK3))
+ && ((DAT_TileMapState.currentMapperCommand != M_MAPPER_BIGROCK4
+ && (DAT_TileMapState.currentMapperCommand != M_MAPPER_BIGROCK5))))
+ goto LAB_004315c1;
+ if (DAT_TileMapState.editorActiveBrush == 2) {
+ DAT_TileMapState.editorActiveBrush = 1;
+ goto LAB_004315c1;
+ }
+ if (DAT_TileMapState.editorActiveBrush == 4)
+ goto LAB_004315a2;
+ if (DAT_TileMapState.editorActiveBrush != 6)
+ goto LAB_004315c1;
+ LAB_00431832:
+ DAT_TileMapState.editorActiveBrush = 5;
+ LAB_004315c1:
+ DAT_TileMapState.unknownBrushRelated = DAT_TileMapState.editorActiveBrush >> 1;
+ DAT_StopHandlingMenuItems = 0;
+ return;
+ }
+ switch (param_1) {
+ case M_MAPPER_AREA:
+ DAT_TileMapState.editorActiveBrush = DAT_TileMapState.editorActiveBrush + 1;
+ if (7 < DAT_TileMapState.editorActiveBrush) {
+ DAT_TileMapState.editorActiveBrush = 1;
+ }
+ if (((DAT_TileMapState.currentMapperCommand != M_MAPPER_BIGROCK1)
+ && (DAT_TileMapState.currentMapperCommand != M_MAPPER_BIGROCK2))
+ && ((DAT_TileMapState.currentMapperCommand != M_MAPPER_BIGROCK3
+ && ((DAT_TileMapState.currentMapperCommand != M_MAPPER_BIGROCK4
+ && (DAT_TileMapState.currentMapperCommand
+ != M_MAPPER_BIGROCK5))))))
+ goto LAB_004315c1;
+ if (DAT_TileMapState.editorActiveBrush == 2) {
+ LAB_004315a2:
+ DAT_TileMapState.editorActiveBrush = 3;
+ goto LAB_004315c1;
+ }
+ if (DAT_TileMapState.editorActiveBrush != 4) {
+ if (DAT_TileMapState.editorActiveBrush == 6) {
+ DAT_TileMapState.editorActiveBrush = 7;
+ }
+ goto LAB_004315c1;
+ }
+ goto LAB_00431832;
+ default : goto switchD_0043150b_caseD_ca;
+ case M_MAPPER_MIN:
+ DAT_TileMapState.mapperMax = FALSE;
+ DAT_TileMapState.currentMapperCommand = param_1;
+ return;
+ case M_MAPPER_MAX:
+ DAT_TileMapState.mapperMax = TRUE;
+ DAT_TileMapState.currentMapperCommand = param_1;
+ return;
+ case M_MAPPER_EXIT:
+ switchToMenuView(
+ MVT_UNUSED_OLD_TITLE_MENU, 0);
+ return;
+ case M_MAPPER_TOMAIN:
+ DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType = BASMTT_HUNTERSHUT;
+ switchToMenuView(
+ MVT_BUILD_MENU, 0);
+ return;
+ case M_MAPPER_AFFECT_TYPE:
+ if (DAT_TileMapState.unknownZero_0x554904 + 1 < 2) {
+ DAT_TileMapState.unknownZero_0x554904
+ = DAT_TileMapState.unknownZero_0x554904 + 1;
+ return;
+ }
+ DAT_TileMapState.unknownZero_0x554904 = 0;
+ return;
+ case M_MAPPER_TO_MAP_EDIT:
+ switchToMenuView(
+ MVT_MAP_EDITOR_PROPERTIES, 0);
+ return;
+ case M_MAPPER_TEST:
+ goto switchD_0043150b_caseD_ca;
+ case M_MAPPER_REBUILD:
+ forceFullTileMapRedraw();
+ return;
+ case M_MAPPER_SNAP_TO:
+ if (DAT_TileMapState.unknownZero_0x5548fc != 0) {
+ DAT_TileMapState.unknownZero_0x5548fc
+ = (-(uint)(DAT_TileMapState.unknownZero_0x5548fc != 1) & 0xfffffffe) + 2;
+ return;
+ }
+ DAT_TileMapState.unknownZero_0x5548fc = 1;
+ return;
+ case M_MAPPER_BIGROCK1:
+ DAT_TileMapState.field80_0x554894 = 1;
+ DAT_TileMapState.rockOrientation = 0;
+ break;
+ case M_MAPPER_BIGROCK2:
+ DAT_TileMapState.field80_0x554894 = 2;
+ DAT_TileMapState.rockOrientation = 2;
+ break;
+ case M_MAPPER_BIGROCK3:
+ DAT_TileMapState.currentMapperCommand = param_1;
+ DAT_TileMapState.field80_0x554894 = 3;
+ DAT_TileMapState.rockOrientation = 4;
+ if (DAT_TileMapState.editorActiveBrush == 2) {
+ DAT_TileMapState.editorActiveBrush = 3;
+ return;
+ }
+ goto LAB_00431642;
+ case M_MAPPER_BIGROCK4:
+ DAT_TileMapState.field80_0x554894 = 4;
+ DAT_TileMapState.rockOrientation = 6;
+ break;
+ case M_MAPPER_BIGROCK5:
+ DAT_TileMapState.currentMapperCommand = param_1;
+ DAT_TileMapState.field80_0x554894 = 5;
+ DAT_TileMapState.rockOrientation = 0;
+ if (DAT_TileMapState.editorActiveBrush == 2) {
+ DAT_TileMapState.rockOrientation = 0;
+ DAT_TileMapState.field80_0x554894 = 5;
+ DAT_TileMapState.editorActiveBrush = 3;
+ return;
+ }
+ if (DAT_TileMapState.editorActiveBrush == 4) {
+ DAT_TileMapState.editorActiveBrush = 5;
+ return;
+ }
+ goto LAB_00431652;
+ case M_MAPPER_MAP_SIZE:
+ if (DAT_TileMapState.mapSize == 0) {
+ DAT_TileMapState.mapSize = 400;
+ }
+ setMapSize(
+ DAT_TileMapState.mapSize);
+ resetHeightAndMapBorders(
+ DAT_TileMapState.mapSize);
+ DAT_PathFindingState.toggleUpdateSeparateAreaTileMap = 1;
+ forceFullTileMapRedraw();
+ setTileColorsDependingOnMapSize(0, 100);
+ setMapPropertyDependingOnMapSize(0, 100);
+ setViewportBasedOnMapSize();
+ return;
+ case M_MAPPER_MP_KEEP1:
+ case M_MAPPER_MP_KEEP2:
+ case M_MAPPER_MP_KEEP3:
+ case M_MAPPER_MP_KEEP4:
+ case M_MAPPER_MP_KEEP5:
+ case M_MAPPER_MP_KEEP6:
+ case M_MAPPER_MP_KEEP7:
+ case M_MAPPER_MP_KEEP8:
+ DAT_GameSynchronyState.field299_0x109e7c
+ = param_1 - M_MAPPER_SUB_MODE_FEATURE_MP;
+ if (DAT_GameCore.mapU2MiddleBytes[2] == 0) {
+ DAT_TileMapState.currentMapperCommand
+ = (DAT_GameCore.mapU2MiddleBytes[1] != 0) + M_MAPPER_KEEP1;
+ return;
+ }
+ DAT_TileMapState.currentMapperCommand = M_MAPPER_KEEP3;
+ return;
+ }
+ if (DAT_TileMapState.editorActiveBrush == 2) {
+ DAT_TileMapState.currentMapperCommand = param_1;
+ DAT_TileMapState.editorActiveBrush = 3;
+ return;
+ }
+ LAB_00431642:
+ DAT_TileMapState.currentMapperCommand = param_1;
+ if (DAT_TileMapState.editorActiveBrush == 4) {
+ DAT_TileMapState.editorActiveBrush = 5;
+ return;
+ }
+ LAB_00431652:
+ DAT_TileMapState.currentMapperCommand = param_1;
+ if (DAT_TileMapState.editorActiveBrush == 6) {
+ DAT_TileMapState.editorActiveBrush = 7;
+ return;
+ }
+ switchD_0043150b_caseD_ca:
+ return;
+ }
+ }
+}
+}
+
+### 0x00443a30 MenuItemActionHandler_MapEditorLandscaping_QueueCommandCallback | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00443A30
+ void MapEditorLandscaping::MenuItemActionHandler_MapEditorLandscaping_QueueCommandCallback()
+ {
+ int iVar1;
+ int iVar2;
+ BOOLEnum BVar3;
+ int _clickedX;
+ bool bVar4;
+ GameCommandType commandType;
+ MappersEnumInt unionfacet4_443ced;
+ int _orientation;
+ int _clickedY;
+ MappersEnumInt unionfacet2_443cc0;
+ if (DAT_MouseState.mouseBasedEvent == 1) {
+ triggerLoweredView(3);
+ LAB_00443aed:
+ INT_00b9844c::instance = 1;
+ } else {
+ if ((((DAT_MouseState.rightClickState != FALSE)
+ && (DAT_MouseState.mouseBasedEvent != 2))
+ || ((DAT_ModifierKeyState.ctrl != 0
+ && (DAT_ModifierKeyState.downArrow != 0))))
+ || (DAT_ModifierKeyState.v != 0)) {
+ if (DAT_MouseState.mouseBasedEvent == 3) {
+ setMapRotation(
+ DAT_MouseState.mapOrientationCopy3);
+ } else if (DAT_MouseState.mouseBasedEvent == 4) {
+ DAT_MouseState.field51_0x198 = 2;
+ resetupViewport(
+ (uint)(DAT_ViewportRenderState.viewportState.isZoomedOutUnk == 0));
+ DAT_WindowAndDirectDraw.unk_resetViewportRelated = 2;
+ DAT_UIDragDropDefinedData.MenuView_TriggerInitial = TRUE;
+ } else {
+ if (DAT_MouseState.mouseBasedEvent != 5)
+ goto LAB_00443af3;
+ DAT_MouseState.field52_0x19c = 2;
+ toggleFlatView(
+ DAT_TileMapState.flatViewToggleValue1 ^ 1);
+ }
+ goto LAB_00443aed;
+ }
+ triggerLoweredView(4);
+ }
+ LAB_00443af3:
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_PEOPLE_LEFT_TO_PLACE,
+ (dword)((int)((uint)(2300 < (int)DAT_UnitsState.unitCount))));
+ if (DAT_TileMapState.currentMapperCommand == M_MAPPER_RIPPLE) {
+ HandleWallTerrainMouseDrag();
+ return;
+ }
+ if (DAT_ViewportRenderState.viewportState.field0_0x0 == 0) {
+ storeXYAndResetMouseState();
+ return;
+ }
+ if (DAT_MouseState.rightClickStop != 0) {
+ if (INT_00b9844c::instance == 0) {
+ DAT_TileMapState.currentMapperCommand = M_MAPPER_NULL;
+ return;
+ }
+ INT_00b9844c::instance = 0;
+ }
+ if (DAT_MouseState.leftClickState == FALSE) {
+ setupMouseTileXY();
+ noop1(
+ DAT_ViewportRenderState.viewportState.mouseTile);
+ if ((((DAT_TileMapState.currentMapperCommand != M_MAPPER_BIGROCK1)
+ && (DAT_TileMapState.currentMapperCommand != M_MAPPER_BIGROCK2))
+ && (DAT_TileMapState.currentMapperCommand != M_MAPPER_BIGROCK3))
+ && ((DAT_TileMapState.currentMapperCommand != M_MAPPER_BIGROCK4
+ && (DAT_TileMapState.currentMapperCommand
+ != M_MAPPER_BIGROCK5)))) {
+ if (DAT_TileMapState.currentMapperCommand == M_MAPPER_NULL) {
+ return;
+ }
+ renderPreviewMapperWithBrush(DAT_ViewportRenderState.viewportState.mouseTileX,
+ (uint)((int)(DAT_ViewportRenderState.viewportState.mouseTileY)),
+ DAT_TileMapState.currentMapperCommand);
+ return;
+ }
+ renderWallPlacementPreview(
+ DAT_ViewportRenderState.viewportState.mouseTileX,
+ (uint)((int)(DAT_ViewportRenderState.viewportState.mouseTileY)),
+ (short)((int)(DAT_TileMapState.rockFlagStartNumber
+ + DAT_TileMapState.unknownBrushRelated * 4)));
+ return;
+ }
+ if ((DAT_MouseState.leftClickStart == 0)
+ && (DAT_ViewportRenderState.viewportState.field4_0x10
+ == DAT_ViewportRenderState.viewportState.mouseTile)) {
+ return;
+ }
+ DAT_ViewportRenderState.viewportState.field4_0x10
+ = DAT_ViewportRenderState.viewportState.mouseTile;
+ setupMouseTileXY();
+ iVar2 = DAT_ViewportRenderState.viewportState.mouseTileY;
+ _clickedX = DAT_ViewportRenderState.viewportState.mouseTileX;
+ iVar1 = DAT_TileMapState.unknownZero_0x5548fc;
+ _orientation = DAT_TileMapState.mapOrientation;
+ if (DAT_MouseState.leftClickStart != 0) {
+ DAT_TileMapState.DAT_ClickedTileX
+ = DAT_ViewportRenderState.viewportState.mouseTileX;
+ DAT_TileMapState.DAT_ClickedTileY
+ = DAT_ViewportRenderState.viewportState.mouseTileY;
+ BVar3 = xyAreValid(DAT_ViewportRenderState.viewportState.mouseTileX,
+ (uint)((int)(DAT_ViewportRenderState.viewportState.mouseTileY)));
+ if ((BVar3 != FALSE)
+ && (DAT_TileMapState.unknownZero_0x554904 = 0,
+ (DAT_TileMapState
+ .LogicLayer[DAT_ViewportRenderState.translationMatrix[iVar2].addXgetTile
+ + _clickedX]
+ & 0x41)
+ != 0)) {
+ DAT_TileMapState.unknownZero_0x554904 = 1;
+ }
+ }
+ _clickedY = DAT_TileMapState.DAT_ClickedTileY;
+ if ((_orientation == 0) || (_orientation == 4)) {
+ if (iVar1 != 1) {
+ bVar4 = iVar1 == 2;
+ goto LAB_00443cb1;
+ }
+ } else if (iVar1 != 2) {
+ bVar4 = iVar1 == 1;
+ LAB_00443cb1:
+ _clickedY = iVar2;
+ if (bVar4) {
+ _clickedX = DAT_TileMapState.DAT_ClickedTileX;
+ }
+ }
+ if (0x154 < (int)DAT_TileMapState.currentMapperCommand) {
+ if (DAT_TileMapState.currentMapperCommand != M_MAPPER_SCRUBGRASS) {
+ return;
+ }
+ DAT_GameSynchronyState.DAT_GameCommandParam4 = 0xffffff80;
+ goto LAB_00444270;
+ }
+ if (DAT_TileMapState.currentMapperCommand == M_MAPPER_DUNES) {
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = DAT_TileMapState.editorActiveBrush;
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 0;
+ DAT_GameSynchronyState.DAT_GameCommandParam4 = 0x40;
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = _clickedX;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = _clickedY;
+ queueCommand(GCT_SET_TERRAIN);
+ return;
+ }
+ switch (DAT_TileMapState.currentMapperCommand) {
+ case M_MAPPER_RAISE:
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = DAT_TileMapState.editorActiveBrush;
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 1;
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = _clickedX;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = _clickedY;
+ queueCommand(GCT_RAISE_LAND);
+ return;
+ case M_MAPPER_LOWER:
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 0xffffffff;
+ commandType = GCT_RAISE_LAND;
+ goto LAB_0044427c;
+ case M_MAPPER_SEA:
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = DAT_TileMapState.editorActiveBrush;
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 1;
+ DAT_GameSynchronyState.DAT_GameCommandParam4 = 0;
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = _clickedX;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = _clickedY;
+ queueCommand(GCT_SET_TERRAIN);
+ return;
+ case M_MAPPER_LAND:
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = DAT_TileMapState.editorActiveBrush;
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = _clickedX;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = _clickedY;
+ queueCommand(GCT_SET_LAND);
+ return;
+ default:
+ goto switchD_00443ced_caseD_6;
+ case M_MAPPER_SCRUB:
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = DAT_TileMapState.editorActiveBrush;
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 0;
+ DAT_GameSynchronyState.DAT_GameCommandParam4 = 1;
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = _clickedX;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = _clickedY;
+ queueCommand(GCT_SET_TERRAIN);
+ return;
+ case M_MAPPER_BEACH:
+ DAT_GameSynchronyState.DAT_GameCommandParam4 = 0x20;
+ goto LAB_00444270;
+ case M_MAPPER_ROCKY:
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 0x80;
+ DAT_GameSynchronyState.DAT_GameCommandParam4 = 0;
+ goto LAB_0044427a;
+ case M_MAPPER_STONES:
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = DAT_TileMapState.editorActiveBrush;
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 0;
+ DAT_GameSynchronyState.DAT_GameCommandParam4 = 0x40;
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = _clickedX;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = _clickedY;
+ queueCommand(GCT_SET_TERRAIN);
+ return;
+ case M_MAPPER_BOULDERS:
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = DAT_TileMapState.editorActiveBrush;
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 131072;
+ DAT_GameSynchronyState.DAT_GameCommandParam4 = 0;
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = _clickedX;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = _clickedY;
+ queueCommand(GCT_SET_TERRAIN);
+ return;
+ case M_MAPPER_PEBBLES:
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = DAT_TileMapState.editorActiveBrush;
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 0x40000;
+ DAT_GameSynchronyState.DAT_GameCommandParam4 = 0;
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = _clickedX;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = _clickedY;
+ queueCommand(GCT_SET_TERRAIN);
+ return;
+ case M_MAPPER_RIVER:
+ case M_MAPPER_FOAM:
+ case M_MAPPER_RIPPLE:
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = DAT_TileMapState.editorActiveBrush;
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 0x100000;
+ DAT_GameSynchronyState.DAT_GameCommandParam4 = 0;
+ if (DAT_TileMapState.currentMapperCommand != M_MAPPER_FOAM) {
+ if (DAT_TileMapState.currentMapperCommand == M_MAPPER_RIPPLE) {
+ DAT_GameSynchronyState.DAT_GameCommandParam4 = 0x20;
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = M_MAPPER_AREA;
+ }
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = _clickedX;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = _clickedY;
+ queueCommand(GCT_SET_TERRAIN);
+ return;
+ }
+ DAT_GameSynchronyState.DAT_GameCommandParam4 = 0x10;
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = _clickedX;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = _clickedY;
+ queueCommand(GCT_SET_TERRAIN);
+ return;
+ case M_MAPPER_FORD:
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 0x200000;
+ DAT_GameSynchronyState.DAT_GameCommandParam4 = 0;
+ goto LAB_0044427a;
+ case M_MAPPER_IRON:
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 0x80000;
+ DAT_GameSynchronyState.DAT_GameCommandParam4 = 0;
+ goto LAB_0044427a;
+ case M_MAPPER_MARSH:
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = DAT_TileMapState.editorActiveBrush;
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 0x20000000;
+ DAT_GameSynchronyState.DAT_GameCommandParam4 = 0;
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = _clickedX;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = _clickedY;
+ queueCommand(GCT_SET_TERRAIN);
+ return;
+ case M_MAPPER_DIRT:
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = DAT_TileMapState.editorActiveBrush;
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 0;
+ DAT_GameSynchronyState.DAT_GameCommandParam4 = 2;
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = _clickedX;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = _clickedY;
+ queueCommand(GCT_SET_TERRAIN);
+ return;
+ case M_MAPPER_GRASS:
+ DAT_GameSynchronyState.DAT_GameCommandParam4 = 0x10;
+ LAB_00444270:
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 0;
+ goto LAB_0044427a;
+ case M_MAPPER_MIN:
+ case M_MAPPER_MAX:
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = DAT_TileMapState.mapperMax;
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = DAT_TileMapState.editorActiveBrush;
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = _clickedX;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = _clickedY;
+ queueCommand(GCT_TERRAIN_MIN_MAX);
+ return;
+ case M_MAPPER_EQUALISE:
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = DAT_TileMapState.editorActiveBrush;
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 1;
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = _clickedX;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = _clickedY;
+ queueCommand(GCT_TERRAIN_EQUALIZE);
+ return;
+ case M_MAPPER_MOUNTAIN:
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = M_MAPPER_LAND;
+ commandType = GCT_RAISE_LAND2Unk;
+ break;
+ case M_MAPPER_HILL:
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = M_MAPPER_LOWER;
+ commandType = GCT_RAISE_LAND2Unk;
+ break;
+ case M_MAPPER_DELETE:
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = DAT_TileMapState.editorActiveBrush;
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = _clickedX;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = _clickedY;
+ queueCommand(GCT_UNIT_ERASE);
+ return;
+ case M_MAPPER_CHESTNUT:
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = M_MAPPER_CHESTNUT;
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 0;
+ commandType = GCT_PLACE_TREE_OR_ROCKUnk;
+ break;
+ case M_MAPPER_OAK:
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = M_MAPPER_OAK;
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 0;
+ commandType = GCT_PLACE_TREE_OR_ROCKUnk;
+ break;
+ case M_MAPPER_PINE:
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = M_MAPPER_PINE;
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 0;
+ commandType = GCT_PLACE_TREE_OR_ROCKUnk;
+ break;
+ case M_MAPPER_BIRCH:
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = M_MAPPER_BIRCH;
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 0;
+ commandType = GCT_PLACE_TREE_OR_ROCKUnk;
+ break;
+ case M_MAPPER_UNDUGMOAT:
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = DAT_TileMapState.editorActiveBrush;
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 0x40000000;
+ DAT_GameSynchronyState.DAT_GameCommandParam4 = 3;
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = _clickedX;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = _clickedY;
+ queueCommand(GCT_SET_TERRAIN);
+ return;
+ case M_MAPPER_DUGMOAT:
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 0x40000000;
+ DAT_GameSynchronyState.DAT_GameCommandParam4 = 2;
+ LAB_0044427a:
+ commandType = GCT_SET_TERRAIN;
+ LAB_0044427c:
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = DAT_TileMapState.editorActiveBrush;
+ break;
+ case M_MAPPER_PLAIN1:
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = DAT_TileMapState.editorActiveBrush;
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 4;
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = _clickedX;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = _clickedY;
+ queueCommand(GCT_CREATE_PLATEAU);
+ return;
+ case M_MAPPER_PLAIN2:
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 8;
+ commandType = GCT_CREATE_PLATEAU;
+ goto LAB_0044427c;
+ case M_MAPPER_OIL:
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = DAT_TileMapState.editorActiveBrush;
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 0x80000000;
+ DAT_GameSynchronyState.DAT_GameCommandParam4 = 0;
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = _clickedX;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = _clickedY;
+ queueCommand(GCT_SET_TERRAIN);
+ return;
+ case M_MAPPER_SHRUB1A:
+ case M_MAPPER_SHRUB1B:
+ case M_MAPPER_SHRUB1C:
+ case M_MAPPER_SHRUB1D:
+ case M_MAPPER_SHRUB1E:
+ case M_MAPPER_SHRUB2A:
+ case M_MAPPER_SHRUB2B:
+ case M_MAPPER_SHRUB2C:
+ case M_MAPPER_SHRUB2D:
+ case M_MAPPER_SHRUB2E:
+ case M_MAPPER_SHRUB3A:
+ case M_MAPPER_SHRUB3B:
+ case M_MAPPER_SHRUB3C:
+ case M_MAPPER_SHRUB3D:
+ DAT_GameSynchronyState.DAT_GameCommandParam2
+ = DAT_TileMapState.currentMapperCommand;
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 0;
+ commandType = GCT_PLACE_TREE_OR_ROCKUnk;
+ break;
+ case M_MAPPER_BIGROCK1:
+ case M_MAPPER_BIGROCK2:
+ case M_MAPPER_BIGROCK3:
+ case M_MAPPER_BIGROCK4:
+ case M_MAPPER_BIGROCK5:
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = DAT_TileMapState.rockFlagStartNumber
+ + DAT_TileMapState.unknownBrushRelated * 4;
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = 0x14;
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = _clickedX;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = _clickedY;
+ queueCommand(GCT_PLACE_TREE_OR_ROCKUnk);
+ if (DAT_TileMapState.rockFlagStartNumber + 1 < 4) {
+ DAT_TileMapState.rockFlagStartNumber = DAT_TileMapState.rockFlagStartNumber + 1;
+ return;
+ }
+ DAT_TileMapState.rockFlagStartNumber = 0;
+ return;
+ case M_MAPPER_DEER:
+ case M_MAPPER_LION:
+ case M_MAPPER_RABBIT:
+ case M_MAPPER_CAMEL:
+ case M_MAPPER_CROW_SEAGULL:
+ case M_MAPPER_SEAGULL:
+ DAT_GameSynchronyState.DAT_GameCommandParam2
+ = DAT_TileMapState.currentMapperCommand;
+ commandType = GCT_CREATE_ANIMAL;
+ }
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = _clickedX;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = _clickedY;
+ queueCommand(
+ commandType);
+ switchD_00443ced_caseD_6:
+ return;
+ }
+ }
+}
+}
+

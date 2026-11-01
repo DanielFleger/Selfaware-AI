@@ -1,0 +1,749 @@
+### 0x00506370 updateBuildingGraphicsLayer | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00506370
+ void TileMapState::updateBuildingGraphicsLayer(int buildingID)
+ {
+ ushort uVar1;
+ ushort uVar2;
+ BuildingTypeShort BVar3;
+ short sVar4;
+ short sVar5;
+ short sVar6;
+ int iVar7;
+ int iVar8;
+ uint uVar9;
+ ushort uVar10;
+ int targetedTile;
+ int local_c;
+ uVar1 = DAT_BuildingsState.buildings[buildingID].x;
+ uVar2 = DAT_BuildingsState.buildings[buildingID].y;
+ DAT_BuildingsState.buildings[buildingID].field62_0xb0 = 0;
+ local_c = 0;
+ if ((this->refreshRelatedOne == 0) && (DAT_BuildingsState.buildings[buildingID].gfxOffset != 0)) {
+ DAT_BuildingsState.buildings[buildingID].field62_0xb0 = 1;
+ }
+ iVar7 = DAT_BuildingsState.buildings[buildingID].currentNumberOfResource
+ - (int)DAT_BuildingsState.buildings[buildingID].someResourceNumber;
+ do {
+ getBuildingSizeIndexMappingData(
+ local_c, DAT_BuildingsState.buildings[buildingID].widthOrHeight);
+ targetedTile
+ = DAT_ViewportRenderState.translationMatrix[this->buildingY + (short)uVar2].addXgetTile
+ + (int)(short)uVar1 + this->buildingX;
+ if (this->field93_0x5548c8 == 0) {
+ BVar3 = DAT_BuildingsState.buildings[buildingID].buildingType;
+ if ((BVar3 == BT_STOCKPILE)
+ || (BVar3 == BT_QUARRYSTOCKPILE)) {
+ if (iVar7 < 1) {
+ uVar10 = (short)this->buildingRotationRelatedValue
+ + (short)GMTotalPicturesProcessed::instance[0xf] + 4;
+ goto LAB_00506aa2;
+ }
+ sVar5 = DAT_BuildingsState.buildings[buildingID].currentStoredResourceType;
+ if (DAT_TerrainDefinedData.field1001_0x8b4[sVar5] == 2) {
+ iVar8 = DAT_BuildingsState.buildings[buildingID].currentLimitOfResource - iVar7;
+ sVar6 = (short)this->buildingRotationRelatedValue
+ + ((short)((int)(iVar8 + (iVar8 >> 0x1f & 3U)) >> 2) + ((ushort)iVar8 & 3) * 0xc) * 4;
+ } else if (DAT_TerrainDefinedData.field1001_0x8b4[sVar5] == 0) {
+ sVar6 = (short)this->buildingRotationRelatedValue + -4 + (short)iVar7 * 4;
+ } else {
+ sVar6 = (short)this->buildingRotationRelatedValue
+ + ((short)DAT_BuildingsState.buildings[buildingID].currentLimitOfResource
+ - (short)iVar7)
+ * 4;
+ }
+ this->GfxLayer[targetedTile] = (short)GMTotalPicturesProcessed::instance[0xf]
+ + (short)DAT_TerrainDefinedData.field996_0x84c[sVar5] + -1 + sVar6;
+ } else if (((BVar3 == BT_MERCENARYPOST)
+ || (BVar3 == BT_BARRACKS))
+ || (BVar3 == BT_OUTPOST_EUROPEAN)) {
+ LAB_005065bd:
+ this->GfxLayer[targetedTile]
+ = ((short)GMTotalPicturesProcessed::instance
+ [(short)DAT_BuildingsState.buildings[buildingID].spriteSheetID]
+ + (short)DAT_BuildingsState.buildings[buildingID].spriteID
+ + (short)this->buildingRotationRelatedValue)
+ - 1;
+ } else if ((BVar3 == BT_KEEPDOOR_LEFT)
+ || (BVar3 == BT_KEEPDOOR_RIGHT)) {
+ sVar5 = DAT_BuildingsState.buildings[buildingID].orientation;
+ if (((sVar5 == 6) || (uVar9 = this->mapOrientation, sVar5 == 2))
+ && (uVar9 = this->mapOrientation + 2U & 0x80000007, (int)uVar9 < 0)) {
+ uVar9 = (uVar9 - 1 | 0xfffffff8) + 1;
+ }
+ if (DAT_BuildingsState.buildings[buildingID].field62_0xb0 == 0) {
+ if ((uVar9 == 2) || (uVar9 == 6)) {
+ uVar10 = (short)GMTotalPicturesProcessed::instance
+ [(short)DAT_BuildingsState.buildings[buildingID].spriteSheetID]
+ + (short)DAT_BuildingsState.buildings[buildingID]
+ .unknownManorHouseOrStoneKeepRelated
+ + (short)DAT_BuildingsState.buildings[buildingID].spriteID;
+ goto LAB_00506aa2;
+ }
+ this->GfxLayer[targetedTile]
+ = ((short)GMTotalPicturesProcessed::instance
+ [(short)DAT_BuildingsState.buildings[buildingID].spriteSheetID]
+ + (short)DAT_BuildingsState.buildings[buildingID]
+ .unknownManorHouseOrStoneKeepRelated
+ + (short)DAT_BuildingsState.buildings[buildingID].spriteID)
+ - 1;
+ } else if ((uVar9 == 2) || (uVar9 == 6)) {
+ this->GfxLayer[targetedTile]
+ = (short)GMTotalPicturesProcessed::instance
+ [(short)DAT_BuildingsState.buildings[buildingID].spriteSheetID]
+ + (short)DAT_BuildingsState.buildings[buildingID].gfxOffset;
+ } else {
+ uVar10 = ((short)GMTotalPicturesProcessed::instance
+ [(short)DAT_BuildingsState.buildings[buildingID].spriteSheetID]
+ + (short)DAT_BuildingsState.buildings[buildingID].gfxOffset)
+ - 1;
+ LAB_00506aa2:
+ this->GfxLayer[targetedTile] = uVar10;
+ }
+ } else if (BVar3 == BT_KEEPDOOR) {
+ if (DAT_BuildingsState.buildings[buildingID].field62_0xb0 == 0) {
+ if ((this->mapOrientation != 2) && (this->mapOrientation != 6)) {
+ uVar10 = ((short)GMTotalPicturesProcessed::instance
+ [(short)DAT_BuildingsState.buildings[buildingID].spriteSheetID]
+ + (short)DAT_BuildingsState.buildings[buildingID]
+ .unknownManorHouseOrStoneKeepRelated
+ + (short)DAT_BuildingsState.buildings[buildingID].spriteID)
+ - 1;
+ goto LAB_00506aa2;
+ }
+ this->GfxLayer[targetedTile]
+ = (short)GMTotalPicturesProcessed::instance
+ [(short)DAT_BuildingsState.buildings[buildingID].spriteSheetID]
+ + (short)DAT_BuildingsState.buildings[buildingID]
+ .unknownManorHouseOrStoneKeepRelated
+ + (short)DAT_BuildingsState.buildings[buildingID].spriteID;
+ } else {
+ this->GfxLayer[targetedTile]
+ = ((short)GMTotalPicturesProcessed::instance
+ [(short)DAT_BuildingsState.buildings[buildingID].spriteSheetID]
+ + (short)DAT_BuildingsState.buildings[buildingID]
+ .unknownManorHouseOrStoneKeepRelated
+ + (short)DAT_BuildingsState.buildings[buildingID].gfxOffset)
+ - 1;
+ }
+ } else if (((BVar3 == BT_GATEHOUSELARGE)
+ || (BVar3 == BT_GATEHOUSESMALL))
+ || (BVar3 == BT_WOODGATE1)) {
+ if ((this->mapOrientation == 2) || (this->mapOrientation == 6)) {
+ iVar8 = (DAT_BuildingsState.buildings[buildingID].buildingVariation == 0x50) + 0x50;
+ } else {
+ iVar8 = (int)DAT_BuildingsState.buildings[buildingID].buildingVariation;
+ }
+ if (DAT_BuildingsState.buildings[buildingID].field62_0xb0 == 0) {
+ if (iVar8 == 0x50)
+ goto LAB_005065bd;
+ sVar5 = (short)GMTotalPicturesProcessed::instance
+ [(short)DAT_BuildingsState.buildings[buildingID].spriteSheetID]
+ + (short)DAT_BuildingsState.buildings[buildingID].gfxOffset2;
+ } else {
+ if (iVar8 != 0x50) {
+ uVar10 = ((short)GMTotalPicturesProcessed::instance
+ [(short)DAT_BuildingsState.buildings[buildingID].spriteSheetID]
+ + (short)DAT_BuildingsState.buildings[buildingID].gfxOffset3
+ + (short)this->buildingRotationRelatedValue)
+ - 1;
+ goto LAB_00506aa2;
+ }
+ LAB_0050657d:
+ sVar5 = (short)GMTotalPicturesProcessed::instance
+ [(short)DAT_BuildingsState.buildings[buildingID].spriteSheetID]
+ + (short)DAT_BuildingsState.buildings[buildingID].gfxOffset;
+ }
+ this->GfxLayer[targetedTile] = (sVar5 + (short)this->buildingRotationRelatedValue) - 1;
+ } else if (BVar3 == BT_MANORHOUSE) {
+ if ((this->mapOrientation == 2) || (iVar8 = 0x50, this->mapOrientation == 6)) {
+ iVar8 = 0x51;
+ }
+ if (DAT_BuildingsState.buildings[buildingID].field62_0xb0 != 0) {
+ if (iVar8 == 0x50)
+ goto LAB_0050657d;
+ uVar10 = (short)GMTotalPicturesProcessed::instance
+ [(short)DAT_BuildingsState.buildings[buildingID].spriteSheetID]
+ + (short)this->buildingRotationRelatedValue + 0x298;
+ goto LAB_00506aa2;
+ }
+ if (iVar8 == 0x50)
+ goto LAB_005065bd;
+ this->GfxLayer[targetedTile]
+ = (short)GMTotalPicturesProcessed::instance
+ [(short)DAT_BuildingsState.buildings[buildingID].spriteSheetID]
+ + (short)this->buildingRotationRelatedValue + 0x236;
+ } else if (BVar3 == BT_DRAWBRIDGE) {
+ iVar8
+ = DAT_TerrainDefinedData.field2467_0x1fec
+ [(int)DAT_BuildingsState.buildings[buildingID].buildingVariation / 2][local_c];
+ if (iVar8 == 0) {
+ iVar8 = returnOwnedMoatAtTile(
+ targetedTile);
+ if (iVar8 == 0) {
+ this->GfxLayer[targetedTile] = ((byte)this->RandomLayer[targetedTile] & 3)
+ + (ushort)this->LuminesenceLayer[targetedTile] * 4
+ + (short)GMTotalPicturesProcessed::instance[2];
+ } else {
+ this->GfxLayer[targetedTile] = ((byte)this->RandomLayer[targetedTile] & 3)
+ + (this->LuminesenceLayer[targetedTile] + 0x33) * 4
+ + (short)GMTotalPicturesProcessed::instance[5];
+ }
+ } else {
+ this->GfxLayer[targetedTile]
+ = (short)GMTotalPicturesProcessed::instance
+ [(short)DAT_BuildingsState.buildings[buildingID].spriteSheetID]
+ + (short)iVar8 + 0x61e;
+ }
+ } else if ((((BVar3 != BT_KILLINGPIT)
+ || (0 < DAT_BuildingsState.buildings[buildingID].state))
+ || ((DAT_GameState.mapAndTime
+ .playerTeams[DAT_BuildingsState.buildings[buildingID].owner]
+ == DAT_GameState.mapAndTime
+ .playerTeams[DAT_GameSynchronyState.currentPlayerSlotID]
+ || (DAT_GameCore.gameMode_2 == GM_EDITOR))))
+ && (BVar3 != BT_SIEGETOWER_PLACED)) {
+ sVar5 = DAT_BuildingsState.buildings[buildingID].buildingVariation;
+ if (sVar5 == 0xf) {
+ if (DAT_BuildingsState.buildings[buildingID].field62_0xb0 == 0) {
+ if (DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive == 0) {
+ this->GfxLayer[targetedTile]
+ = ((short)GMTotalPicturesProcessed::instance
+ [(short)DAT_BuildingsState.buildings[buildingID].spriteSheetID]
+ + (short)DAT_BuildingsState.buildings[buildingID]
+ .unknownManorHouseOrStoneKeepRelated
+ + (short)DAT_BuildingsState.buildings[buildingID].spriteID
+ + (short)this->buildingRotationRelatedValue)
+ - 1;
+ } else {
+ this->GfxLayer[targetedTile]
+ = ((short)GMTotalPicturesProcessed::instance
+ [(short)DAT_BuildingsState.buildings[buildingID].spriteSheetID]
+ + (short)DAT_BuildingsState.buildings[buildingID]
+ .visuallyActiveSpriteID
+ + (short)this->buildingRotationRelatedValue)
+ - 1;
+ }
+ } else {
+ this->GfxLayer[targetedTile]
+ = ((short)GMTotalPicturesProcessed::instance
+ [(short)DAT_BuildingsState.buildings[buildingID].spriteSheetID]
+ + (short)DAT_BuildingsState.buildings[buildingID].gfxOffset
+ + (short)this->buildingRotationRelatedValue)
+ - 1;
+ }
+ this->AlphaGFXLayer[targetedTile]
+ = ((short)GMTotalPicturesProcessed::instance
+ [(short)DAT_BuildingsState.buildings[buildingID].spriteSheetID]
+ + (short)DAT_BuildingsState.buildings[buildingID]
+ .unknownManorHouseOrStoneKeepRelated
+ + (short)DAT_BuildingsState.buildings[buildingID].spriteID
+ + (short)this->buildingRotationRelatedValue)
+ - 1;
+ } else {
+ iVar8 = sVar5 - this->mapOrientation;
+ if (iVar8 < 0) {
+ iVar8 = iVar8 + 8;
+ }
+ sVar6 = (short)iVar8;
+ if (sVar5 == 8) {
+ sVar6 = (short)DAT_BuildingsState.buildings[buildingID].widthOrHeight;
+ sVar5 = sVar6 * 8;
+ } else {
+ sVar5 = (short)DAT_BuildingsState.buildings[buildingID].widthOrHeight;
+ sVar5 = sVar5 * sVar5;
+ }
+ if (DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive == 0) {
+ sVar4 = (short)DAT_BuildingsState.buildings[buildingID].spriteID;
+ } else {
+ sVar4 = (short)DAT_BuildingsState.buildings[buildingID].visuallyActiveSpriteID;
+ }
+ this->GfxLayer[targetedTile]
+ = ((short)GMTotalPicturesProcessed::instance
+ [(short)DAT_BuildingsState.buildings[buildingID].spriteSheetID]
+ + sVar4 + (short)this->buildingRotationRelatedValue + sVar5 * sVar6)
+ - 1;
+ this->AlphaGFXLayer[targetedTile]
+ = ((short)GMTotalPicturesProcessed::instance
+ [(short)DAT_BuildingsState.buildings[buildingID].spriteSheetID]
+ + (short)DAT_BuildingsState.buildings[buildingID].spriteID
+ + (short)this->buildingRotationRelatedValue + sVar5 * sVar6)
+ - 1;
+ }
+ }
+ } else {
+ sVar5 = (short)DAT_TerrainDefinedData
+ .BrushSizeArray[DAT_BuildingsState.buildings[buildingID].widthOrHeight + 7]
+ + (short)this->buildingRotationRelatedValue + (short)GMTotalPicturesProcessed::instance[0x9d];
+ this->AlphaGFXLayer[targetedTile] = 0;
+ this->GfxLayer[targetedTile] = sVar5 - 1;
+ }
+ local_c = local_c + 1;
+ if (this->constructionTileCount <= local_c) {
+ return;
+ }
+ } while (true);
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00506370", "name": "updateBuildingGraphicsLayer", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Trägt das aktuelle Bild eines fertigen Gebäudes für alle seine Felder in die Grafikebenen der Karte ein."}, "p2": {"ein": "buildingID", "aus": "-", "liest": ["buildings[id].x/y/widthOrHeight/buildingType/buildingVariation/state/owner", "buildings[id].spriteSheetID/spriteID/gfxOffset/gfxOffset2/gfxOffset3", "buildings[id].buildingIsVisuallyActive/visuallyActiveSpriteID", "buildings[id].currentNumberOfResource/someResourceNumber/currentStoredResourceType/currentLimitOfResource", "playerTeams", "gameMode_2", "mapOrientation", "refreshRelatedOne", "field93_0x5548c8", "RandomLayer", "LuminesenceLayer", "BrushSizeArray"], "schreibt": ["buildings[id].field62_0xb0", "GfxLayer[Feld]", "AlphaGFXLayer[Feld]"], "ruft": ["getBuildingSizeIndexMappingData", "returnOwnedMoatAtTile"], "regeln": ["field62_0xb0 wird auf 1 gesetzt, wenn refreshRelatedOne == 0 und gfxOffset != 0, sonst auf 0 (Bedeutung ungesichert)", "Warenfüllstand = currentNumberOfResource - someResourceNumber", "Lager (BT_STOCKPILE, BT_QUARRYSTOCKPILE): Füllstand unter 1 zeigt das Leerbild (Blatt 0xf, +4); sonst Bild nach Warenart und Füllstand, je nach Tabelle field1001_0x8b4 in drei Berechnungsweisen", "Burgtore, Torhäuser, Holztor, Gutshaus (BT_MANORHOUSE), Burgfried-Türen und Zugbrücke haben eigene Bildwahl; bei Kartendrehung 2 oder 6 wird die andere Variante (0x50 oder 0x51) genommen", "Zugbrücke: Je Feld wird aus einer Tabelle gewählt; Wert 0 heißt Wassergraben oder Gelände (Bild nach RandomLayer & 3 und LuminesenceLayer), sonst Brückenbild", "Alle übrigen Gebäude: Bild = Blattanfang + Sprite (aktiv: visuallyActiveSpriteID) + buildingRotationRelatedValue + Breite² × Drehung - 1; Variation 0xf und 8 haben Sonderformeln", "Ersatzbild statt Gebäude (BrushSizeArray, Blatt 0x9d, Alpha 0): bei field93_0x5548c8 ungleich 0, für Tötungsgrube (BT_KILLINGPIT) mit state ≤ 0 eines fremden Teams außerhalb des Editors, und für BT_SIEGETOWER_PLACED"], "offen": ["Bedeutung von field62_0xb0, refreshRelatedOne und field93_0x5548c8", "Ob field93_0x5548c8 einen Zustand wie Baugerüst oder Abriss anzeigt"]}, "p3": {"erklaerung": "Ordnet jedem Feld eines Gebäudes das richtige Bild zu: Lagerfüllung, Torstellung, Zugbrücke. Fremde, noch nicht aufgedeckte Tötungsgruben zeigt das Spiel nicht als Grube, sondern als Ersatzbild.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x005076a0 placeBarracks | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x005076A0
+ void TileMapState::placeBarracks(int playerID, uint xPosition, int* yPosition_param, undefined4 buildingType,
+ uint buildingSize, int buildingOrientation, undefined4 param_7)
+ {
+ int* piVar1;
+ int _buildingID;
+ int iVar2;
+ int iVar3;
+ uint uVar4;
+ int iVar5;
+ uint uVar6;
+ int iVar7;
+ int local_c;
+ piVar1 = yPosition_param;
+ iVar7 = DAT_GameCore.uniqueGameObjectTracker;
+ iVar5 = 0;
+ if (buildingOrientation == 0xf) {
+ local_c = 0;
+ } else {
+ local_c = buildingOrientation / 2;
+ }
+ _buildingID = setupBuildingData(playerID, xPosition, (uint)((int)(yPosition_param)), (undefined4)((int)(param_7)),
+ (BuildingType)((int)((int)(short)buildingType)), buildingSize, playerID, 0xf);
+ iVar2 = (int)(short)_buildingID;
+ this->placedBuildingID = iVar2;
+ DAT_BuildingsState.buildings[iVar2].uidWhenPlaced = iVar7;
+ yPosition_param = &DAT_BuildingsState.buildings[iVar2].tileRef1;
+ do {
+ getBuildingSizeIndexMappingData(
+ iVar5, buildingSize);
+ iVar3 = DAT_ViewportRenderState.translationMatrix[this->buildingY + (int)piVar1].addXgetTile
+ + this->buildingX + xPosition;
+ *yPosition_param = iVar3;
+ this->HeightLayer[iVar3] = (byte)param_7;
+ this->LogicLayer[iVar3] = this->LogicLayer[iVar3] | 0x400;
+ this->BuildingLayer[iVar3] = (short)_buildingID;
+ iVar5 = iVar5 + 1;
+ yPosition_param = yPosition_param + 1;
+ this->BuildingWasLayer[iVar3] = (uchar)buildingType;
+ this->ChangedLayer[iVar3] = 2;
+ } while (iVar5 < this->constructionTileCount);
+ setMiscDisplayLayer(iVar2);
+ updatePathLinkagesForBuilding(iVar2);
+ uVar6 = (int)piVar1 + DAT_TerrainDefinedData.BuildingPartsOffsets[local_c][0].y;
+ uVar4 = xPosition + DAT_TerrainDefinedData.BuildingPartsOffsets[local_c][0].x;
+ iVar5 = setupBuildingData(playerID, uVar4,
+ uVar6, (undefined4)((int)(param_7)), BT_PARADEGROUND3, 5, playerID, 0xf);
+ _buildingID = (int)(short)iVar5;
+ DAT_BuildingsState.buildings[_buildingID].uidWhenPlaced = iVar7;
+ DAT_BuildingsState.buildings[_buildingID].quarryStockpileID = (undefined2)this->placedBuildingID;
+ buildingSize = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ buildingSize, DAT_BuildingsState.buildings[_buildingID].widthOrHeight);
+ iVar2 = DAT_ViewportRenderState.translationMatrix[this->buildingY + uVar6].addXgetTile
+ + this->buildingX + uVar4;
+ resetTileAndClearMoat(iVar2);
+ this->HeightLayer[iVar2] = (byte)param_7;
+ if ((this->buildingX == 2) && (this->buildingY == 2)) {
+ this->LogicLayer[iVar2] = this->LogicLayer[iVar2] | 0x400;
+ }
+ this->BuildingLayer[iVar2] = (short)iVar5;
+ buildingSize = buildingSize + 1;
+ this->BuildingWasLayer[iVar2] = (uchar)buildingType;
+ this->ChangedLayer[iVar2] = 2;
+ } while ((int)buildingSize < this->constructionTileCount);
+ setMiscDisplayLayer(_buildingID);
+ updatePathLinkagesForBuilding(_buildingID);
+ updateWalkAndPathLayer(8, uVar4, uVar6);
+ uVar6 = DAT_TerrainDefinedData.BuildingPartsOffsets[local_c][1].y + (int)piVar1;
+ uVar4 = DAT_TerrainDefinedData.BuildingPartsOffsets[local_c][1].x + xPosition;
+ iVar5 = setupBuildingData(playerID, uVar4,
+ uVar6, (undefined4)((int)(param_7)), BT_PARADEGROUND4, 5, playerID, 0xf);
+ _buildingID = (int)(short)iVar5;
+ DAT_BuildingsState.buildings[_buildingID].uidWhenPlaced = iVar7;
+ DAT_BuildingsState.buildings[_buildingID].quarryStockpileID = (undefined2)this->placedBuildingID;
+ buildingSize = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ buildingSize, DAT_BuildingsState.buildings[_buildingID].widthOrHeight);
+ iVar2 = DAT_ViewportRenderState.translationMatrix[this->buildingY + uVar6].addXgetTile
+ + this->buildingX + uVar4;
+ resetTileAndClearMoat(iVar2);
+ this->HeightLayer[iVar2] = (byte)param_7;
+ if ((this->buildingX == 2) && (this->buildingY == 2)) {
+ this->LogicLayer[iVar2] = this->LogicLayer[iVar2] | 0x400;
+ }
+ this->BuildingLayer[iVar2] = (short)iVar5;
+ buildingSize = buildingSize + 1;
+ this->BuildingWasLayer[iVar2] = (uchar)buildingType;
+ this->ChangedLayer[iVar2] = 2;
+ } while ((int)buildingSize < this->constructionTileCount);
+ setMiscDisplayLayer(_buildingID);
+ updatePathLinkagesForBuilding(_buildingID);
+ updateWalkAndPathLayer(8, uVar4, uVar6);
+ uVar6 = DAT_TerrainDefinedData.BuildingPartsOffsets[local_c][2].y + (int)piVar1;
+ uVar4 = DAT_TerrainDefinedData.BuildingPartsOffsets[local_c][2].x + xPosition;
+ iVar5 = setupBuildingData(playerID, uVar4,
+ uVar6, (undefined4)((int)(param_7)), BT_PARADEGROUND2, 5, playerID, 0xf);
+ _buildingID = (int)(short)iVar5;
+ DAT_BuildingsState.buildings[_buildingID].uidWhenPlaced = iVar7;
+ DAT_BuildingsState.buildings[_buildingID].quarryStockpileID = (undefined2)this->placedBuildingID;
+ buildingSize = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ buildingSize, DAT_BuildingsState.buildings[_buildingID].widthOrHeight);
+ iVar7 = DAT_ViewportRenderState.translationMatrix[this->buildingY + uVar6].addXgetTile
+ + this->buildingX + uVar4;
+ resetTileAndClearMoat(iVar7);
+ this->HeightLayer[iVar7] = (byte)param_7;
+ if ((this->buildingX == 2) && (this->buildingY == 2)) {
+ this->LogicLayer[iVar7] = this->LogicLayer[iVar7] | 0x400;
+ }
+ this->BuildingLayer[iVar7] = (short)iVar5;
+ this->BuildingWasLayer[iVar7] = (uchar)buildingType;
+ buildingSize = buildingSize + 1;
+ this->ChangedLayer[iVar7] = 2;
+ } while ((int)buildingSize < this->constructionTileCount);
+ setMiscDisplayLayer(_buildingID);
+ updatePathLinkagesForBuilding(_buildingID);
+ updateWalkAndPathLayer(8, uVar4, uVar6);
+ if ((short)buildingType == 8) {
+ setupMercenaryPostCampgroundPositions(playerID);
+ } else {
+ setupBarracksCampgroundPositions(playerID);
+ }
+ if (((playerID == DAT_GameSynchronyState.currentPlayerSlotID)
+ && (DAT_GameState.playerDataArray[playerID].availablePeasantsAtFire
+ < (int)DAT_BuildingsState.buildings[_buildingID].buildingTypeBasedEmployeeCount))
+ && ((DAT_GameState.playerDataArray[playerID].populationCap
+ <= DAT_GameState.playerDataArray[playerID].currentPopulation
+ || (DAT_GameState.playerDataArray[playerID].popularity < 5000)))) {
+ setBottomLeftTextDisplayText(1, 0x4d, 1, (TextMessageBLLookupStructUnion)0x0, 100, 6000);
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x005076a0", "name": "placeBarracks", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Setzt Kaserne oder Söldnerposten samt drei Exerzierplatz-Teilen und Lagerplätzen."}, "p2": {"ein": "playerID, xPosition, yPosition_param, buildingType, buildingSize, buildingOrientation, param_7=Höhe", "aus": "-", "liest": ["BuildingPartsOffsets[ausrichtung/2][0..2]", "uniqueGameObjectTracker", "constructionTileCount", "availablePeasantsAtFire", "populationCap", "currentPopulation", "popularity"], "schreibt": ["buildings[].uidWhenPlaced", "buildings[].tileRef1...", "buildings[Teil].quarryStockpileID", "HeightLayer", "LogicLayer", "BuildingLayer", "BuildingWasLayer", "ChangedLayer=2"], "ruft": ["setupBuildingData", "getBuildingSizeIndexMappingData", "resetTileAndClearMoat", "setMiscDisplayLayer", "updatePathLinkagesForBuilding", "updateWalkAndPathLayer", "setupMercenaryPostCampgroundPositions", "setupBarracksCampgroundPositions", "setBottomLeftTextDisplayText"], "regeln": ["Ausrichtungsindex = 0 bei Ausrichtung 0xf, sonst Ausrichtung / 2", "Das Hauptgebäude wird immer mit Ausrichtung 0xf angelegt, der Parameter gilt nur für die Teile-Offsets", "Drei Teile der Größe 5: BT_PARADEGROUND3, BT_PARADEGROUND4, BT_PARADEGROUND2, jeweils um BuildingPartsOffsets[index][0..2] versetzt", "Jeder Teil speichert die ID der Kaserne im Feld quarryStockpileID (hier zweckentfremdet)", "Auf Teilkacheln: resetTileAndClearMoat, Höhe setzen; Bit 0x400 nur dort, wo buildingX und buildingY beide 2 sind", "Typ 8 (Söldnerposten): setupMercenaryPostCampgroundPositions, sonst setupBarracksCampgroundPositions", "Meldung 0x4d wie bei anderen Gebäuden, geprüft wird aber die ID des zuletzt angelegten Exerzierplatz-Teils, nicht der Kaserne"], "offen": ["Ob der Arbeiter-Test mit der ID des letzten Teils ein Fehler im Original ist (vermutlich ja)", "Was die Zahl der Arbeiter bei einem Exerzierplatz-Teil ergibt"]}, "p3": {"erklaerung": "Eine Kaserne besteht aus dem Gebäude und drei Exerzierplatz-Teilen, die sich ihr Gebäude merken. Danach werden die Sammelplätze der Truppen neu berechnet.", "gehirn": "-", "beleg": "code", "live": "Kaserne bauen → buildings[Exerzierplatz].quarryStockpileID → ID der Kaserne", "live_art": "bauen"}}
+
+### 0x00508250 placeQuarry | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00508250
+ void TileMapState::placeQuarry(int playerID, uint x, uint y, undefined4 buildingType, uint buildingSize,
+ int buildingOrientation, uint heightUnk)
+ {
+ int _newQuarryBuildingID;
+ int _tile;
+ uint uVar1;
+ int _newStockpileID;
+ int _stockpileY;
+ int _stockpileX;
+ int _tileIndex;
+ int iVar2;
+ uint uVar3;
+ int iVar4;
+ uVar3 = y;
+ iVar4 = DAT_GameCore.uniqueGameObjectTracker;
+ _tileIndex = 0;
+ _newQuarryBuildingID = setupBuildingData(playerID, x, y, (undefined4)((int)(heightUnk)),
+ (BuildingType)((int)((int)(short)buildingType)), buildingSize, playerID, buildingOrientation);
+ this->placedBuildingID = _newQuarryBuildingID;
+ DAT_BuildingsState.buildings[_newQuarryBuildingID].uidWhenPlaced = iVar4;
+ do {
+ getBuildingSizeIndexMappingData(
+ _tileIndex, buildingSize);
+ y._0_2_ = (short)_newQuarryBuildingID;
+ _tile = DAT_ViewportRenderState.translationMatrix[this->buildingY + uVar3].addXgetTile + x
+ + this->buildingX;
+ _tileIndex = _tileIndex + 1;
+ this->HeightLayer[_tile] = (byte)heightUnk;
+ this->LogicLayer[_tile] = this->LogicLayer[_tile] | 1024;
+ /*
+ = id (y is reused here)
+ */
+ this->BuildingLayer[_tile] = (short)y;
+ this->BuildingWasLayer[_tile] = (uchar)buildingType;
+ this->ChangedLayer[_tile] = 2;
+ } while (_tileIndex < this->constructionTileCount);
+ setMiscDisplayLayer(_newQuarryBuildingID);
+ updatePathLinkagesForBuilding(_newQuarryBuildingID);
+ iVar2 = 1;
+ do {
+ /*
+ apparently there are 9 attempts, sometimes the pile is placed immediately near, sometimes a bit off.
+ */
+ findQuarryPileLocation(playerID, x, uVar3, buildingSize, 2,
+ iVar2, M_MAPPER_QUARRYPILE);
+ /*
+ if successful
+ */
+ if (this->buildingPlacementFail == FALSE)
+ goto LAB_00508369;
+ iVar2 = iVar2 + 1;
+ } while (iVar2 < 10);
+ if (this->buildingPlacementFail == FALSE) {
+ LAB_00508369:
+ /*
+ location of quarry stockpile to quarry
+ */
+ _stockpileX = x + DAT_BuildingsState.DAT_TempXOffset;
+ _stockpileY = uVar3 + DAT_BuildingsState.DAT_TempYOffset;
+ buildingSize = 0;
+ heightUnk = 1000;
+ uVar3 = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ buildingSize, 2);
+ uVar1 = (uint)
+ * (byte*)(DAT_ViewportRenderState.translationMatrix[this->buildingY + _stockpileY]
+ .addXgetTile
+ + _stockpileX + 0x1d32c38 + this->buildingX);
+ if (uVar3 < uVar1) {
+ uVar3 = uVar1;
+ }
+ if (uVar1 < heightUnk) {
+ heightUnk = uVar1;
+ }
+ buildingSize = buildingSize + 1;
+ } while ((int)buildingSize < this->constructionTileCount);
+ iVar2 = (int)(uVar3 - heightUnk) / 2 + heightUnk;
+ /*
+ reuse!
+ */
+ buildingSize = 0;
+ /*
+ place the quarry stockpile
+ */
+ _newStockpileID = setupBuildingData(playerID,
+ (uint)((int)(_stockpileX)), (uint)((int)(_stockpileY)), (undefined4)((int)(iVar2)),
+ BT_QUARRYSTOCKPILE, 2, playerID, buildingOrientation);
+ incrementStructureHeatMapTile(
+ _stockpileX, _stockpileY);
+ DAT_BuildingsState.buildings[_newStockpileID].uidWhenPlaced = iVar4;
+ DAT_BuildingsState.buildings[_newQuarryBuildingID].quarryStockpileID = (short)_newStockpileID;
+ do {
+ getBuildingSizeIndexMappingData(
+ buildingSize, 2);
+ iVar4 = DAT_ViewportRenderState.translationMatrix[this->buildingY + _stockpileY].addXgetTile
+ + _stockpileX + this->buildingX;
+ resetTileAndClearMoat(iVar4);
+ heightUnk._0_1_ = (byte)iVar2;
+ this->HeightLayer[iVar4] = (byte)heightUnk;
+ this->LogicLayer[iVar4] = this->LogicLayer[iVar4] | 1024;
+ this->BuildingLayer[iVar4] = (short)_newStockpileID;
+ buildingSize = buildingSize + 1;
+ this->BuildingWasLayer[iVar4] = (uchar)buildingType;
+ this->ChangedLayer[iVar4] = 2;
+ } while ((int)buildingSize < this->constructionTileCount);
+ setMiscDisplayLayer(_newStockpileID);
+ updatePathLinkagesForBuilding(_newStockpileID);
+ if (((playerID == DAT_GameSynchronyState.currentPlayerSlotID)
+ && (DAT_GameState.playerDataArray[playerID].availablePeasantsAtFire
+ < (int)DAT_BuildingsState.buildings[_newStockpileID].buildingTypeBasedEmployeeCount))
+ && ((DAT_GameState.playerDataArray[playerID].populationCap
+ <= DAT_GameState.playerDataArray[playerID].currentPopulation
+ || (DAT_GameState.playerDataArray[playerID].popularity < 5000)))) {
+ /*
+ trigger "Not enough workers available to run this building."
+ */
+ setBottomLeftTextDisplayText(
+ 1, 0x4d, 1, (TextMessageBLLookupStructUnion)0x0, 100, 6000);
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00508250", "name": "placeQuarry", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Setzt einen Steinbruch und sucht für ihn einen Platz für die Steinhalde."}, "p2": {"ein": "playerID, x, y, buildingType, buildingSize, buildingOrientation, heightUnk", "aus": "-", "liest": ["DAT_TempXOffset/YOffset", "HeightLayer an der Halden-Position", "uniqueGameObjectTracker", "constructionTileCount", "availablePeasantsAtFire", "populationCap", "currentPopulation", "popularity"], "schreibt": ["buildings[].uidWhenPlaced", "buildings[Steinbruch].quarryStockpileID", "HeightLayer", "LogicLayer (Bit 0x400)", "BuildingLayer", "BuildingWasLayer", "ChangedLayer=2"], "ruft": ["setupBuildingData", "getBuildingSizeIndexMappingData", "findQuarryPileLocation", "incrementStructureHeatMapTile", "resetTileAndClearMoat", "setMiscDisplayLayer", "updatePathLinkagesForBuilding", "setBottomLeftTextDisplayText"], "regeln": ["findQuarryPileLocation wird mit Versuchsnummer 1 bis 9 gerufen (Größe 2, M_MAPPER_QUARRYPILE), bis ein Versuch gelingt", "Gelingt keiner der 9 Versuche, bleibt der Steinbruch ohne Halde stehen und die Arbeiter-Meldung unterbleibt", "Haldenhöhe = Mittelwert aus kleinster und größter Höhe der Haldenkacheln, gerechnet als (max minus min) / 2 plus min", "Halde: Größe 2, Typ BT_QUARRYSTOCKPILE, merkt sich per quarryStockpileID den Steinbruch (der Steinbruch auch die Halde)", "Meldung 0x4d wird mit den Daten der Halde geprüft, nicht des Steinbruchs"], "offen": ["Ob die Meldung bei Haldenfehlschlag bewusst fehlt"]}, "p3": {"erklaerung": "Die Steinhalde wird nahe am Steinbruch gesucht, bis zu neun Versuche mit wachsendem Abstand. Findet sich nichts, gibt es keine Halde.", "gehirn": "Ein Steinbruch ohne Halde liefert keine Steine; beim Planen von Steinbrüchen auf freien Platz daneben achten.", "beleg": "code", "live": "Steinbruch eng zwischen Hindernissen bauen → buildings[Steinbruch].quarryStockpileID → 0 oder ID", "live_art": "bauen"}}
+
+### 0x00508a00 renderPreviewMapperWithBrush | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00508A00
+ void TileMapState::renderPreviewMapperWithBrush(uint x, uint y, MappersEnum param_3)
+ {
+ uint uVar1;
+ uint y_00;
+ MappersEnum MVar2;
+ int baseTile;
+ BOOLEnum BVar3;
+ ushort _gfx;
+ int iVar4;
+ MVar2 = param_3;
+ y_00 = y;
+ if (399 < x) {
+ return;
+ }
+ if (399 < y) {
+ return;
+ }
+ if (*(char*)(y * 400 + 0x21aec98 + x) == '\0') {
+ return;
+ }
+ uVar1 = DAT_TerrainDefinedData.BrushSizeArray[this->editorActiveBrush];
+ baseTile = DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x;
+ if (param_3 == M_MAPPER_POND1) {
+ this->buildingPlacementFail = FALSE;
+ return;
+ }
+ if (param_3 == M_MAPPER_POND2_SMALL) {
+ this->buildingPlacementFail = FALSE;
+ return;
+ }
+ if (param_3 == M_MAPPER_POND3_LARGE1) {
+ this->buildingPlacementFail = FALSE;
+ return;
+ }
+ if (param_3 == M_MAPPER_POND4_LARGE2) {
+ this->buildingPlacementFail = FALSE;
+ return;
+ }
+ this->buildingPlacementFail = TRUE;
+ if (param_3 == M_MAPPER_SIGNPOST) {
+ this->buildingPlacementFail = TRUE;
+ return;
+ }
+ y = uVar1;
+ if (0x154 < (int)param_3) {
+ switchD_00508acb_caseD_5:
+ _gfx = 0x38;
+ goto LAB_00508b05;
+ }
+ if (param_3 == M_MAPPER_DUNES) {
+ switchD_00508acb_caseD_7:
+ _gfx = 0x3c;
+ } else {
+ switch (param_3) {
+ case M_MAPPER_SEA:
+ case M_MAPPER_SHALLOWS:
+ case M_MAPPER_RIVER:
+ case M_MAPPER_MARSH:
+ case M_MAPPER_DUGMOAT:
+ case M_MAPPER_MOAT:
+ _gfx = 0x39;
+ break;
+ default : goto switchD_00508acb_caseD_5;
+ case M_MAPPER_SCRUB:
+ case M_MAPPER_DIRT:
+ goto switchD_00508acb_caseD_7;
+ case M_MAPPER_BEACH:
+ case M_MAPPER_FORD:
+ _gfx = 0x3a;
+ break;
+ case M_MAPPER_ROCKY:
+ case M_MAPPER_STONES:
+ case M_MAPPER_BOULDERS:
+ case M_MAPPER_PEBBLES:
+ case M_MAPPER_IRON:
+ _gfx = 0x3b;
+ break;
+ case M_MAPPER_CHESTNUT:
+ case M_MAPPER_OAK:
+ case M_MAPPER_PINE:
+ case M_MAPPER_BIRCH:
+ case M_MAPPER_SHRUB1A:
+ case M_MAPPER_SHRUB1B:
+ case M_MAPPER_SHRUB1C:
+ case M_MAPPER_SHRUB1D:
+ case M_MAPPER_SHRUB1E:
+ case M_MAPPER_SHRUB2A:
+ case M_MAPPER_SHRUB2B:
+ case M_MAPPER_SHRUB2C:
+ case M_MAPPER_SHRUB2D:
+ case M_MAPPER_SHRUB2E:
+ case M_MAPPER_SHRUB3A:
+ case M_MAPPER_SHRUB3B:
+ case M_MAPPER_SHRUB3C:
+ case M_MAPPER_SHRUB3D:
+ case M_MAPPER_DEER:
+ case M_MAPPER_LION:
+ case M_MAPPER_RABBIT:
+ case M_MAPPER_CAMEL:
+ case M_MAPPER_CROW_SEAGULL:
+ case M_MAPPER_SEAGULL:
+ y = 1;
+ case M_MAPPER_RAISE:
+ case M_MAPPER_LOWER:
+ case M_MAPPER_EQUALISE:
+ case M_MAPPER_MOUNTAIN:
+ case M_MAPPER_HILL:
+ case M_MAPPER_DELETE:
+ _gfx = 0x3e;
+ break;
+ case M_MAPPER_UNDUGMOAT:
+ case M_MAPPER_OIL:
+ _gfx = 0x3d;
+ }
+ }
+ LAB_00508b05:
+ switch (param_3) {
+ case M_MAPPER_UNDUGMOAT:
+ case M_MAPPER_DUGMOAT:
+ case M_MAPPER_MOAT:
+ case M_MAPPER_ANTIMOAT:
+ if ((DAT_GameCore.gameMode_2 != GM_EDITOR)
+ && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)) {
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ iVar4 = 0x1e;
+ param_3 = M_MAPPER_TOWER | M_MAPPER_RAISE;
+ } else {
+ iVar4 = 0xf;
+ param_3 = M_MAPPER_SCRUB;
+ }
+ BVar3 = isEnemyTooCloseUnk(DAT_GameSynchronyState.currentPlayerSlotID, x, y_00, iVar4);
+ if (BVar3 != FALSE) {
+ _gfx = 0x3e;
+ }
+ BVar3 = isSignPostWithinDistance(x, y_00, DAT_GameState.mapAndTime.unk_signpostDistance + 5);
+ if (BVar3 != FALSE) {
+ _gfx = 0x3e;
+ }
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ iVar4 = getCastleBuildRangeForMapSize();
+ iVar4
+ = isOpponentBuildingInRange(DAT_GameSynchronyState.currentPlayerSlotID,
+ x, y_00, param_3, -1, -1, iVar4 + 5);
+ if (iVar4 != 0) {
+ _gfx = 0x3e;
+ }
+ }
+ }
+ }
+ x = DAT_ViewportRenderState.translationMatrix[y_00].addXgetTile + x;
+ if ((((MVar2 == M_MAPPER_DUGMOAT) || (MVar2 == M_MAPPER_UNDUGMOAT))
+ || (MVar2 == M_MAPPER_MOAT))
+ || (MVar2 == M_MAPPER_ANTIMOAT)) {
+ iVar4 = 0;
+ param_3 = y_00;
+ do {
+ getTileForBrush(
+ 0, iVar4, (int*)&x, (int*)&param_3, baseTile, y_00);
+ iVar4 = iVar4 + 1;
+ this->ConstructionGFXLayer[x] = _gfx;
+ } while (iVar4 < 9);
+ } else {
+ iVar4 = 0;
+ param_3 = y_00;
+ if (0 < (int)y) {
+ do {
+ getTileForBrush(
+ 1, iVar4, (int*)&x, (int*)&param_3, baseTile, y_00);
+ iVar4 = iVar4 + 1;
+ this->ConstructionGFXLayer[x] = _gfx;
+ } while (iVar4 < (int)y);
+ return;
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00508a00", "name": "renderPreviewMapperWithBrush", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Zeichnet die Vorschau-Markierung des Karteneditors (Pinsel) und setzt buildingPlacementFail; bei Gräben auch Abstandsprüfungen zu Gegnern."}, "p2": {"ein": "x, y (Feld), param_3 = MappersEnum (Pinselart)", "aus": "-", "liest": ["BrushSizeArray[editorActiveBrush]", "translationMatrix[y].addXgetTile", "gameMode_2", "currentGameMode", "currentPlayerSlotID", "mapAndTime.unk_signpostDistance"], "schreibt": ["buildingPlacementFail", "ConstructionGFXLayer[tile]"], "ruft": ["getTileForBrush", "isEnemyTooCloseUnk", "isSignPostWithinDistance", "getCastleBuildRangeForMapSize", "isOpponentBuildingInRange"], "regeln": ["Bricht ab, wenn x oder y 400 oder größer ist, oder wenn das Byte an Adresse 0x21aec98 + y*400 + x gleich 0 ist", "Teiche (POND1, POND2_SMALL, POND3_LARGE1, POND4_LARGE2): buildingPlacementFail = FALSE, keine Zeichnung", "Alle anderen Arten setzen buildingPlacementFail = TRUE; SIGNPOST bricht danach ab", "Grafikcode je Art: 0x39 Wasser (SEA, SHALLOWS, RIVER, MARSH, DUGMOAT, MOAT); 0x3a BEACH, FORD; 0x3b ROCKY, STONES, BOULDERS, PEBBLES, IRON; 0x3c DUNES, SCRUB, DIRT; 0x3d UNDUGMOAT, OIL; 0x3e Bäume, Büsche, Tiere, RAISE, LOWER, EQUALISE, MOUNTAIN, HILL, DELETE; 0x38 alle übrigen Arten und alle Werte über 0x154", "Bäume, Büsche und Tiere zeichnen nur 1 Feld (y = 1), alle anderen Arten BrushSizeArray[editorActiveBrush] Felder", "Graben-Arten (UNDUGMOAT, DUGMOAT, MOAT, ANTIMOAT) außerhalb von Editor und SIEGE_THAT werden rot (0x3e), wenn ein Gegner zu nah ist: Abstand 30 im Einzelspieler-Modus (GM_SOLITARY), sonst 15", "Rot (0x3e) auch, wenn ein Wegweiser innerhalb von unk_signpostDistance + 5 liegt", "Außerhalb des Einzelspieler-Modus zusätzlich rot, wenn ein gegnerisches Gebäude innerhalb von getCastleBuildRangeForMapSize() + 5 liegt", "Graben-Arten zeichnen immer 9 Felder (Pinselform 0 in getTileForBrush)"], "offen": ["Die Anweisung param_3 = M_MAPPER_TOWER | M_MAPPER_RAISE ist vermutlich ein Anzeigefehler von Ghidra bei den Enum-Werten; die Wirkung auf isOpponentBuildingInRange ist ungeklärt", "Bedeutung der Tabelle bei 0x21aec98 (vermutlich Karten-Gültigkeitsmaske)", "Genaue Bedeutung der Grafikcodes 0x38 bis 0x3e (vermutlich Farben der Vorschau)"]}, "p3": {"erklaerung": "Reine Editor- und Vorschau-Darstellung: Sie färbt die Felder unter dem Pinsel und prüft beim Graben-Ziehen, ob ein Gegner, Wegweiser oder gegnerisches Gebäude zu nah ist. Auf den Spielverlauf wirkt sie nicht.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+

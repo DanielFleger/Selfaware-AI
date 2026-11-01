@@ -1,0 +1,898 @@
+### 0x005154d0 placeDairyfarm | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x005154D0
+ void TileMapState::placeDairyfarm(int param_1, uint param_2, uint param_3, undefined4 param_4, undefined4 param_5,
+ int* param_6, undefined4 param_7)
+ {
+ int iVar1;
+ uint uVar2;
+ int buildingID;
+ int iVar3;
+ int* piVar4;
+ int iVar5;
+ uVar2 = param_3;
+ iVar3 = 0;
+ buildingID = setupBuildingData(param_1, param_2, param_3, (undefined4)((int)(param_7)),
+ (BuildingType)((int)((int)(short)param_4)), 3, param_1, param_6);
+ this->placedBuildingID = buildingID;
+ markBuildingFootprintFlag(
+ param_2, param_3, 10);
+ iVar5 = 0;
+ param_6 = &DAT_BuildingsState.buildings[buildingID].tileRef1;
+ do {
+ iVar1 = DAT_GameState.playerDataArray[param_1].dairyFarmVariationMod4;
+ /*
+ 0 to 3*27 + 26 = 107
+ */
+ iVar1 = DAT_ViewportRenderState
+ .translationMatrix[DAT_TerrainDefinedData.field1009_0xf5c[iVar1][iVar5].offset.y
+ + param_3]
+ .addXgetTile
+ + DAT_TerrainDefinedData.field1009_0xf5c[iVar1][iVar5].offset.x + param_2;
+ *param_6 = iVar1;
+ resetTileAndClearMoat(iVar1);
+ if (3 < iVar5) {
+ this->DamageLayer[*param_6]
+ = (byte)DAT_TerrainDefinedData
+ .field1009_0xf5c[DAT_GameState.playerDataArray[param_1].dairyFarmVariationMod4]
+ [iVar5]
+ .property;
+ }
+ param_6 = param_6 + 1;
+ iVar5 = iVar5 + 1;
+ } while (iVar5 < 27);
+ piVar4 = &DAT_GameState.playerDataArray[param_1].dairyFarmVariationMod4;
+ *piVar4 = *piVar4 + 1;
+ if (3 < DAT_GameState.playerDataArray[param_1].dairyFarmVariationMod4) {
+ DAT_GameState.playerDataArray[param_1].dairyFarmVariationMod4 = 0;
+ }
+ do {
+ getBuildingSizeIndexMappingData(iVar3, 3);
+ param_3._0_2_ = (short)buildingID;
+ iVar5 = DAT_ViewportRenderState.translationMatrix[this->buildingY + uVar2].addXgetTile
+ + this->buildingX + param_2;
+ this->HeightLayer[iVar5] = (byte)param_7;
+ this->LogicLayer[iVar5] = this->LogicLayer[iVar5] | 0x400;
+ this->BuildingLayer[iVar5] = (short)param_3;
+ this->BuildingWasLayer[iVar5] = (uchar)param_4;
+ this->ChangedLayer[iVar5] = 2;
+ setTerrain(param_1, iVar5,
+ this->buildingY + uVar2, 2, L_NONE,
+ L2_THICK_SCRUB);
+ iVar3 = iVar3 + 1;
+ } while (iVar3 < this->constructionTileCount);
+ piVar4 = &DAT_BuildingsState.buildings[buildingID].tileRef5;
+ iVar3 = 23;
+ do {
+ iVar5 = *piVar4;
+ this->LogicLayer[iVar5] = this->LogicLayer[iVar5] | 0x8000000;
+ this->BuildingLayer[iVar5] = (short)param_3;
+ updatePathLinkagesInAllEightDirections(
+ (int)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[iVar5], iVar5);
+ piVar4 = piVar4 + 1;
+ iVar3 = iVar3 + -1;
+ this->BuildingWasLayer[iVar5] = (uchar)param_4;
+ this->ChangedLayer[iVar5] = 2;
+ } while (iVar3 != 0);
+ setMiscDisplayLayer(buildingID);
+ updatePathLinkagesForBuilding(buildingID);
+ if (((param_1 == DAT_GameSynchronyState.currentPlayerSlotID)
+ && (DAT_GameState.playerDataArray[param_1].availablePeasantsAtFire
+ < (int)DAT_BuildingsState.buildings[buildingID].buildingTypeBasedEmployeeCount))
+ && ((DAT_GameState.playerDataArray[param_1].populationCap
+ <= DAT_GameState.playerDataArray[param_1].currentPopulation
+ || (DAT_GameState.playerDataArray[param_1].popularity < 5000)))) {
+ setBottomLeftTextDisplayText(1, 0x4d, 1, (TextMessageBLLookupStructUnion)0x0, 100, 6000);
+ }
+ return;
+ }
+}
+}
+
+### 0x00515740 placeApplefarm | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00515740
+ void TileMapState::placeApplefarm(
+ int playerID, uint x, uint y, BuildingType buildingType, undefined4 param_5, int param_6, int* param_7)
+ {
+ int _buildingID;
+ int iVar1;
+ int local_4;
+ int _buildingTileRef;
+ local_4 = 0;
+ _buildingID = setupBuildingData(
+ playerID, x, y, (undefined4)((int)(param_7)), (int)(short)(undefined2)buildingType, 3, playerID, param_6);
+ this->placedBuildingID = _buildingID;
+ markBuildingFootprintFlag(x, y, 10);
+ _buildingTileRef = DAT_TerrainDefinedData.AppleFarmOffsets[1].y;
+ DAT_BuildingsState.buildings[_buildingID].tileRef1
+ = DAT_ViewportRenderState
+ .translationMatrix[DAT_TerrainDefinedData.AppleFarmOffsets[0].y + y]
+ .addXgetTile
+ + DAT_TerrainDefinedData.AppleFarmOffsets[0].x + x;
+ iVar1 = DAT_TerrainDefinedData.AppleFarmOffsets[2].y + y;
+ DAT_BuildingsState.buildings[_buildingID].tileRef2
+ = DAT_ViewportRenderState.translationMatrix[_buildingTileRef + y].addXgetTile
+ + DAT_TerrainDefinedData.AppleFarmOffsets[1].x + x;
+ _buildingTileRef = DAT_TerrainDefinedData.AppleFarmOffsets[3].y;
+ DAT_BuildingsState.buildings[_buildingID].tileRef3
+ = DAT_ViewportRenderState.translationMatrix[iVar1].addXgetTile
+ + DAT_TerrainDefinedData.AppleFarmOffsets[2].x + x;
+ iVar1 = DAT_TerrainDefinedData.AppleFarmOffsets[4].y + y;
+ DAT_BuildingsState.buildings[_buildingID].tileRef4
+ = DAT_ViewportRenderState.translationMatrix[_buildingTileRef + y].addXgetTile
+ + DAT_TerrainDefinedData.AppleFarmOffsets[3].x + x;
+ _buildingTileRef = DAT_TerrainDefinedData.AppleFarmOffsets[5].y;
+ DAT_BuildingsState.buildings[_buildingID].tileRef5
+ = DAT_ViewportRenderState.translationMatrix[iVar1].addXgetTile
+ + DAT_TerrainDefinedData.AppleFarmOffsets[4].x + x;
+ iVar1 = DAT_TerrainDefinedData.AppleFarmOffsets[6].y + y;
+ DAT_BuildingsState.buildings[_buildingID].tileRef6
+ = DAT_ViewportRenderState.translationMatrix[_buildingTileRef + y].addXgetTile
+ + DAT_TerrainDefinedData.AppleFarmOffsets[5].x + x;
+ DAT_BuildingsState.buildings[_buildingID].tileRef7
+ = DAT_ViewportRenderState.translationMatrix[iVar1].addXgetTile
+ + DAT_TerrainDefinedData.AppleFarmOffsets[6].x + x;
+ DAT_BuildingsState.buildings[_buildingID].tileRef8
+ = DAT_ViewportRenderState
+ .translationMatrix[DAT_TerrainDefinedData.AppleFarmOffsets[7].y + y]
+ .addXgetTile
+ + DAT_TerrainDefinedData.AppleFarmOffsets[7].x + x;
+ do {
+ getBuildingSizeIndexMappingData(local_4, 3);
+ param_6._0_2_ = (short)_buildingID;
+ _buildingTileRef = DAT_ViewportRenderState.translationMatrix[this->buildingY + y].addXgetTile + x
+ + this->buildingX;
+ this->HeightLayer[_buildingTileRef] = (byte)param_7;
+ this->LogicLayer[_buildingTileRef] = this->LogicLayer[_buildingTileRef] | 0x400;
+ this->BuildingLayer[_buildingTileRef] = (short)param_6;
+ this->BuildingWasLayer[_buildingTileRef] = (undefined1)buildingType;
+ setTerrain(playerID, _buildingTileRef,
+ this->buildingY + y, 2, L_NONE, L2_THICK_SCRUB);
+ local_4 = local_4 + 1;
+ this->ChangedLayer[_buildingTileRef] = 2;
+ } while (local_4 < this->constructionTileCount);
+ /*
+ &tileRef1 of buildingID
+ */
+ buildingType = _buildingID * 0x32c + 0xf986fc;
+ /*
+ apple tree relative coordinates
+ */
+ param_7 = &DAT_TerrainDefinedData.AppleFarmOffsets[0].x;
+ do {
+ _buildingTileRef = *(int*)buildingType;
+ resetTileAndClearMoat(_buildingTileRef);
+ this->LogicLayer[_buildingTileRef] = this->LogicLayer[_buildingTileRef] | 0x4000000;
+ this->ChangedLayer[_buildingTileRef] = 2;
+ placeAppleTree(
+ _buildingID, (undefined4)((int)(*param_7 + x)), (undefined4)((int)(param_7[1] + y)));
+ buildingType = buildingType + BT_OXTETHER;
+ param_7 = param_7 + 2;
+ } while ((int)param_7 < 0xb49eb0);
+ setMiscDisplayLayer(_buildingID);
+ updatePathLinkagesForBuilding(_buildingID);
+ if (((playerID == DAT_GameSynchronyState.currentPlayerSlotID)
+ && (DAT_GameState.playerDataArray[playerID].availablePeasantsAtFire
+ < (int)DAT_BuildingsState.buildings[_buildingID].buildingTypeBasedEmployeeCount))
+ && ((DAT_GameState.playerDataArray[playerID].populationCap
+ <= DAT_GameState.playerDataArray[playerID].currentPopulation
+ || (DAT_GameState.playerDataArray[playerID].popularity < 5000)))) {
+ setBottomLeftTextDisplayText(1, 0x4d, 1, (TextMessageBLLookupStructUnion)0x0, 100, 6000);
+ }
+ return;
+ }
+}
+}
+
+### 0x00515a20 clearBuildingFromTerrain | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00515A20
+ void TileMapState::clearBuildingFromTerrain(int buildingID)
+ {
+ uint _y;
+ uint _size;
+ uint _x;
+ int _surfaceArea;
+ BuildingTypeShort _type;
+ _y = (uint)(short)DAT_BuildingsState.buildings[buildingID].y;
+ _size = DAT_BuildingsState.buildings[buildingID].widthOrHeight;
+ _x = (uint)(short)DAT_BuildingsState.buildings[buildingID].x;
+ if ((DAT_BuildingsState.buildings[buildingID].buildingType != BT_KILLINGPIT)
+ && (validateBuildingPlacementAtTile(
+ (int)DAT_BuildingsState.buildings[buildingID].owner, _x, _y),
+ this->buildingPlacementFail != FALSE)) {
+ return;
+ }
+ _type = DAT_BuildingsState.buildings[buildingID].buildingType;
+ if (_type == BT_STOCKPILE) {
+ if (DAT_BuildingsState.buildings[buildingID].field125_0x190 == 1) {
+ clearStockpileFootprintTiles(
+ _x, _y);
+ }
+ clearFixedSizeTwoBuildingFootprint(
+ _x, _y);
+ LAB_00515c15:
+ updateAreaBasedOnSurrounding(
+ _x, _y, _size);
+ } else {
+ if (_type == BT_WHEATFARM) {
+ clearBuildingFootprintAndResetUnits(
+ _x, _y, _size);
+ clearBuildingDisplayFlagsAndEntities(
+ buildingID, 1);
+ _surfaceArea = 36;
+ } else {
+ if (_type != BT_HOPFARM) {
+ if (_type == BT_DAIRYFARM) {
+ clearBuildingFootprintAndResetUnits(
+ _x, _y, _size);
+ clearBuildingDisplayFlagsAndEntities(
+ buildingID, 1);
+ clearBuildingTilesAndTrees(
+ buildingID, 0x1b);
+ unmarkBuildingFootprintFlag(
+ _x, _y, 10);
+ updateAreaBasedOnSurrounding(
+ _x, _y, 10);
+ _size = 6;
+ goto LAB_00515c1d;
+ }
+ if (_type == BT_APPLEFARM) {
+ clearBuildingFootprintAndResetUnits(
+ _x, _y, _size);
+ clearBuildingDisplayFlagsAndEntities(
+ buildingID, 1);
+ clearBuildingTilesAndTrees(
+ buildingID, 8);
+ unmarkBuildingFootprintFlag(
+ _x, _y, 0xb);
+ updateAreaBasedOnSurrounding(
+ _x, _y, 0xb);
+ _size = 6;
+ goto LAB_00515c1d;
+ }
+ if (_type == BT_DRAWBRIDGE) {
+ clearSizeFiveBuildingFootprintAndMoats(_x, _y);
+ } else if ((((_type == BT_CATAPULT)
+ || (_type == BT_TREBUCHET))
+ || (_type == BT_BATTERINGRAM))
+ || (((_type == BT_SIEGETOWER
+ || (_type == BT_SHIELD))
+ || (_type == BT_FIREBALLISTA)))) {
+ clearBuildingFootprintWithEdgeRubble(
+ _x, _y, _size);
+ } else if (_type == BT_SIEGETOWER_PLACED) {
+ clearBuildingFootprintAndRemoveSiegeTower(_x, _y, _size);
+ clearBuildingFootprintAndResetUnits(
+ _x, _y, _size);
+ } else {
+ clearBuildingFootprintAndResetUnits(
+ _x, _y, _size);
+ }
+ clearBuildingDisplayFlagsAndEntities(
+ buildingID, 1);
+ goto LAB_00515c15;
+ }
+ clearBuildingFootprintAndResetUnits(
+ _x, _y, _size);
+ clearBuildingDisplayFlagsAndEntities(
+ buildingID, 1);
+ _surfaceArea = 24;
+ }
+ clearBuildingTilesAndTrees(
+ buildingID, _surfaceArea);
+ unmarkBuildingFootprintFlag(
+ _x, _y, 9);
+ updateAreaBasedOnSurrounding(
+ _x, _y, 9);
+ _size = 6;
+ }
+ LAB_00515c1d:
+ if (DAT_BuildingsState.buildings[buildingID].buildingType
+ != BT_SIEGETOWER_PLACED) {
+ updatePathLinkagesForBuilding(buildingID);
+ }
+ updateWalkAndPathLayer(_size + 6, _x, _y);
+ DAT_PathFindingState.toggleUpdateSeparateAreaTileMap = 1;
+ this->field204_0x554a30 = 1;
+ triggerMinimapRedraw(1);
+ return;
+ }
+}
+}
+
+### 0x00515c80 createWaterForDrawBridge | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00515C80
+ void TileMapState::createWaterForDrawBridge(int buildingID)
+ {
+ uint y;
+ uint uVar1;
+ uint xPosition;
+ uint yPosition;
+ int (*paiVar2)[25];
+ int tile;
+ int local_10;
+ xPosition = (uint)(short)DAT_BuildingsState.buildings[buildingID].x;
+ uVar1 = DAT_BuildingsState.buildings[buildingID].widthOrHeight;
+ yPosition = (uint)(short)DAT_BuildingsState.buildings[buildingID].y;
+ local_10 = 0;
+ paiVar2 = DAT_TerrainDefinedData.DrawbridgeOrientationMapping
+ + (int)DAT_BuildingsState.buildings[buildingID].buildingVariation / 2;
+ do {
+ getBuildingSizeIndexMappingData(local_10, 5);
+ y = yPosition + this->buildingY;
+ tile = DAT_ViewportRenderState.translationMatrix[y].addXgetTile + this->buildingX + xPosition;
+ if ((*paiVar2)[0] != 0) {
+ createMoatData(
+ (int)DAT_BuildingsState.buildings[buildingID].owner, this->buildingX + xPosition, y, 1);
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xbfffffff;
+ setMoatVisualStateAtTile(tile, 0);
+ this->HeightLayer[tile] = 0;
+ }
+ local_10 = local_10 + 1;
+ paiVar2 = (int (*)[25])(*paiVar2 + 1);
+ } while (local_10 < this->constructionTileCount);
+ updateBuildingGraphicsLayer(buildingID);
+ updatePathLinkagesForBuilding(buildingID);
+ updateWalkAndPathLayer(uVar1 + 6, xPosition, yPosition);
+ DAT_PathFindingState.toggleUpdateSeparateAreaTileMap = 1;
+ return;
+ }
+}
+}
+
+### 0x00515da0 placeTree | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00515DA0
+ void TileMapState::placeTree(uint x, uint y, undefined4 treeType)
+ {
+ uint uVar1;
+ uint y_00;
+ undefined4 treeType_00;
+ uint _treeType;
+ int _treeID;
+ int iVar2;
+ uint local_c;
+ int local_8;
+ int local_4;
+ uint _tile;
+ y_00 = y;
+ if (((x < 400) && (y < 400)) && (*(char*)(y * 400 + 0x21aec98 + x) != '\0')) {
+ iVar2 = 3;
+ treeType_00 = mapUITreeTypeToLogicalTreeType((int)(short)treeType);
+ local_4 = getValueFrom0UpTo3ForTreeTypeAndTreeStage(treeType_00, iVar2);
+ _tile = DAT_ViewportRenderState.translationMatrix[y_00].addXgetTile + x;
+ local_8 = DAT_TerrainDefinedData.BrushSizeArray[local_4];
+ if ((this->LogicLayer[_tile] & L_SEA | L_PLAIN1_AND_FARM | L_BORDER | L_BORDER_EDGE | L_ROCKY
+ | L_WALL_OR_GATEHOUSE | L_BUILDING | L_TREE_VARIATION | L_BOULDERS | L_PEBBLES | L_IRON | L_RIVER
+ | L_FORD | L_KEEP_NON_MANOR_HOUSE | L_MARSH | L_MOAT)
+ == 0) {
+ iVar2 = 0;
+ local_c = y_00;
+ y = _tile;
+ if (0 < local_8) {
+ do {
+ getTileForBrush(
+ 1, iVar2, (int*)&y, (int*)&local_c, _tile, y_00);
+ uVar1 = this->LogicLayer[y];
+ if ((uVar1 & L_BORDER) != 0)
+ break;
+ if ((uVar1 & L_WALL_OR_GATEHOUSE | L_BUILDING | L_RIVER | L_KEEP_NON_MANOR_HOUSE) != 0) {
+ return;
+ }
+ if ((char)uVar1 < '\0') {
+ return;
+ }
+ if (this->OrganismLayer[y] != 0) {
+ return;
+ }
+ iVar2 = iVar2 + 1;
+ } while (iVar2 < local_8);
+ }
+ _treeType = mapUITreeTypeToLogicalTreeType((int)(short)treeType);
+ _treeID = createTree(x,
+ (undefined4)((int)(y_00)), (TreeType)((int)((int)(short)_treeType)), (undefined4)((int)(local_4)),
+ 0, 0, 3);
+ this->LogicLayer[DAT_LandscapeState.trees[_treeID].tile]
+ = this->LogicLayer[DAT_LandscapeState.trees[_treeID].tile] & ~(L_ROCKY);
+ this->LogicLayer[DAT_LandscapeState.trees[_treeID].tile]
+ = this->LogicLayer[DAT_LandscapeState.trees[_treeID].tile] | 4096;
+ this->OrganismLayer[DAT_LandscapeState.trees[_treeID].tile] = (short)_treeID;
+ applyTreeBrushToLogicalLayer(_treeID, 0);
+ updatePathLinkagesInAllEightDirections((int)(short)DAT_LandscapeState.trees[_treeID].yPosition,
+ DAT_LandscapeState.trees[_treeID].tile);
+ DAT_PathFindingState.toggleUpdateSeparateAreaTileMap = 1;
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x00515f40 Constructor_TileMapState | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00515F40
+ TileMapState* TileMapState::Constructor_TileMapState()
+ {
+ setupMovementDirectionTranslationMatrix();
+ setupBuildingSizeIndexMapping();
+ setupTileMapSections();
+ this->editorActiveBrush = 7;
+ this->refreshCertainTileMap = 2;
+ this->counter1 = 0;
+ this->mapperMax = FALSE;
+ this->unknownZero_0x5548fc = 0;
+ this->unknownZero_0x554904 = 0;
+ this->unknownZero_0x554900 = 0;
+ this->currentMapperCommand = M_MAPPER_NULL;
+ this->refreshRelatedOne = 1;
+ this->field93_0x5548c8 = 0;
+ this->refreshRelatedTwo = 0;
+ this->forceUpdateLogicalAndMiscDisplayLayers = 1;
+ this->forceUpdateTextureTilemap = 1;
+ this->forceUpdateGFXLayers = 1;
+ this->refreshCertainTileMap_old = 4;
+ setChangedLayerToThreeAndMapping0x40x40();
+ this->moatTileCount = 0;
+ this->field122_0x554930 = 0;
+ this->field78_0x55488c = 0x50;
+ this->lastTime = MACRO_CALL(timeGetTime)();
+ this->rockOrientation = 0;
+ this->field80_0x554894 = 0;
+ this->unknownTime_0x5549bc = MACRO_CALL(timeGetTime)();
+ this->field161_0x5549c0 = 1;
+ this->temporaryTerrainTypeIndex = 0;
+ this->field188_0x554a14 = 0;
+ DAT_GameCore.isTimeHalted = FALSE;
+ DAT_GameState.mapAndTime.skirmishFogOfWar = 0;
+ this->ptr_LogicLayer = (undefined*)this->LogicLayer;
+ this->ptr_ChangedLayer = this->ChangedLayer;
+ this->ptr_TerrainTypeTileMap = this->Logic2Layer;
+ this->ptr_TerrainHeightTileMap = this->HeightLayer;
+ this->ptr_PathConnectionLayer = (undefined*)this->PathConnectionLayer;
+ this->ptr_OccupancyLayer = this->OccupancyLayer;
+ this->ptr_DamageLayer = this->DamageLayer;
+ this->ptr_MiscDisplayLayer = (undefined*)this->MiscDisplayLayer;
+ this->ptr_MovementDirectionTranslationMatrix = (undefined*)this;
+ this->ptr_SpecialAreasArray = (undefined*)this->specialAreasArray;
+ this->ptr_AIZoneLayer = this->AIZoneLayer;
+ this->currentMoatCount = 16000;
+ this->maxPitchDitchCount = 4000;
+ return this;
+ }
+}
+}
+
+### 0x005160c0 prepareAreaForBuildingPlacement | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x005160C0
+ BOOLEnum TileMapState::prepareAreaForBuildingPlacement(
+ int playerID, uint x, uint y, MappersEnum commandBuildingType, int buildingWidthOrHeight)
+ {
+ uint uVar1;
+ BuildingTypeShort BVar2;
+ int _tile2;
+ int _isAllowedZero;
+ int _tile;
+ int buildingSizeTileIndex;
+ int _buildingID;
+ BOOLEnum _result;
+ buildingSizeTileIndex = 0;
+ _result = FALSE;
+ storeMinAndMaxHeightOfArea(
+ x, y, buildingWidthOrHeight);
+ do {
+ getBuildingSizeIndexMappingData(
+ buildingSizeTileIndex, buildingWidthOrHeight);
+ uVar1 = y + this->buildingY;
+ /*
+ Any border is hit
+ */
+ if ((((399 < x + this->buildingX) || (399 < uVar1))
+ || (*(char*)(uVar1 * 400 + 0x21aec98 + x + this->buildingX) == '\0'))
+ || (_tile2
+ = DAT_ViewportRenderState.translationMatrix[uVar1].addXgetTile + this->buildingX + x,
+ (this->LogicLayer[_tile2] & 0x30) != 0)) {
+ return FALSE;
+ }
+ _isAllowedZero = isBuildingPlacementAllowedAtTile(
+ _tile2, playerID, (int)(short)(undefined2)commandBuildingType, 1);
+ if (_isAllowedZero == 1) {
+ return FALSE;
+ }
+ buildingSizeTileIndex = buildingSizeTileIndex + 1;
+ } while (buildingSizeTileIndex < this->constructionTileCount);
+ commandBuildingType = M_MAPPER_NULL;
+ do {
+ getBuildingSizeIndexMappingData(
+ commandBuildingType, buildingWidthOrHeight);
+ _tile = DAT_ViewportRenderState.translationMatrix[this->buildingY + y].addXgetTile + x
+ + this->buildingX;
+ _buildingID = (int)this->BuildingLayer[_tile];
+ if (_buildingID == 0) {
+ if (((this->LogicLayer[_tile] & FARM_FIELD_APPLE) != 0)
+ && (_buildingID
+ = getFarmThatHasTile(_tile),
+ _buildingID != 0)) {
+ giveBackResourceForDestroyedBuilding(_buildingID, playerID, 0x32);
+ clearBuildingFromTerrain(_buildingID);
+ updatePrimaryBuildingPlayerDataReferences(_buildingID);
+ goto LAB_ClearBuilding;
+ }
+ } else {
+ BVar2 = DAT_BuildingsState.buildings[_buildingID].buildingType;
+ if (((BVar2 == BT_WOODCUTTERSHUT)
+ || (BVar2 == BT_OXTETHER))
+ || ((BVar2 == BT_QUARRY
+ || ((((BVar2 == BT_IRONMINE
+ || (BVar2 == BT_WHEATFARM))
+ || (BVar2 == BT_HOPFARM))
+ || ((BVar2 == BT_APPLEFARM
+ || (BVar2 == BT_DAIRYFARM)))))))) {
+ giveBackResourceForDestroyedBuilding(_buildingID, playerID, 50);
+ clearBuildingFromTerrain(_buildingID);
+ updatePrimaryBuildingPlayerDataReferences(_buildingID);
+ LAB_ClearBuilding:
+ fillMemory_ByteValue(
+ 0x32c, '\0', (void*)((int)(DAT_BuildingsState.buildings + _buildingID)));
+ _result = TRUE;
+ }
+ }
+ commandBuildingType = commandBuildingType + M_MAPPER_AREA;
+ if (this->constructionTileCount <= (int)commandBuildingType) {
+ return _result;
+ }
+ } while (true);
+ }
+}
+}
+
+### 0x005162d0 placeBuilding | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x005162D0
+ void TileMapState::placeBuilding(
+ PlayerID playerID, int x, int y, MappersEnum cbt, int buildingSize, int buildingOrientation)
+ {
+ int* piVar1;
+ int yPosition_param;
+ BuildingTypeShort _buildingType2;
+ BuildingType _realBuildingType;
+ BuildingType _buildingType_dup2;
+ BOOLEnum BVar2;
+ int iVar3;
+ uint _height;
+ BuildingTypeInt _buildingType_2;
+ uint uVar4;
+ MappersEnum _commandBuildingType;
+ int _tile;
+ int _averageHeight;
+ int local_4;
+ int _x;
+ yPosition_param = y;
+ _x = x;
+ _commandBuildingType = (MappersEnum)(short)cbt;
+ local_4 = 0;
+ if (this->field122_0x554930 == 0) {
+ if (buildingOrientation == 0xf) {
+ this->DAT_TempBuildingRotation = 0;
+ } else {
+ this->DAT_TempBuildingRotation = buildingOrientation / 2;
+ }
+ checkBuildingCanBePlacedHere(
+ playerID, (uint)((int)(x)), (uint)((int)(y)), cbt, buildingSize);
+ if (this->buildingPlacementFail != FALSE) {
+ return;
+ }
+ }
+ this->field122_0x554930 = 0;
+ _realBuildingType
+ = convertCommandBuildingTypeToBuildingType(_commandBuildingType);
+ _buildingType_dup2 = _realBuildingType & 0xffff;
+ _buildingType2 = (BuildingTypeShort)_realBuildingType;
+ if (DAT_GameCore.gameMode_2 == GM_CRUSADER_TUTORIAL) {
+ BVar2 = Tutorial_IsActionAllowed(2, (int)((int)((short)_buildingType2)));
+ if (BVar2 == FALSE) {
+ SetTutorialHintActiveWithTimestamp();
+ return;
+ }
+ SetTutorialBuildingActionState(
+ 7, (BuildingType)((int)((int)(short)_buildingType2)));
+ }
+ y = 0;
+ do {
+ getBuildingSizeIndexMappingData(y, buildingSize);
+ _tile = DAT_ViewportRenderState.translationMatrix[this->buildingY + yPosition_param].addXgetTile
+ + this->buildingX + x;
+ if ((DAT_GameCore.gameMode_2 == GM_SIEGE_THAT)
+ && ((this->LogicLayer[_tile] & 0x100U) != 0)) {
+ piVar1 = DAT_GameState.playerDataArray[playerID].startResources + 4;
+ *piVar1 = *piVar1 + 1;
+ }
+ if (((this->LogicLayer[_tile] & 0x80) != 0) && (1999 < this->OrganismLayer[_tile])) {
+ removeRock(
+ this->OrganismLayer[_tile] + -2000);
+ getBuildingSizeIndexMappingData(
+ y, buildingSize);
+ updateWalkAndPathLayer(
+ 8, (uint)((int)(this->buildingX + x)), (uint)((int)(this->buildingY + yPosition_param)));
+ }
+ this->LogicLayer[_tile] = this->LogicLayer[_tile] & 0xffbef4f7;
+ this->HeightLayer[_tile] = this->DefaultHeightLayer[_tile];
+ this->DamageLayer[_tile] = 0;
+ if (((this->LogicLayer[_tile] & 0x1000U) != 0) && (iVar3 = (int)this->OrganismLayer[_tile], iVar3 < 2000)) {
+ switch (DAT_LandscapeState.trees[iVar3].treeType) {
+ case ((TreeType)5):
+ case ((TreeType)6):
+ case ((TreeType)7):
+ case ((TreeType)8):
+ case ((TreeType)9):
+ case ((TreeType)10):
+ case 0xb:
+ case 0xc:
+ case 0xd:
+ case 0xe:
+ case ((TreeType)0x10):
+ case ((TreeType)0x11):
+ case ((TreeType)0x12):
+ case ((TreeType)0x13):
+ removeTree(iVar3);
+ updateWalkAndPathLayer(3, (uint)((int)(x)), (uint)((int)(yPosition_param)));
+ break;
+ default : removeTree(iVar3);
+ updateWalkAndPathLayer(3, (uint)((int)(x)), (uint)((int)(yPosition_param)));
+ }
+ getBuildingSizeIndexMappingData(
+ y, buildingSize);
+ }
+ if ((int)(short)this->UnitLayer[_tile] != 0) {
+ switch (_buildingType2) {
+ case BT_GATEHOUSELARGE:
+ case BT_GATEHOUSESMALL:
+ case BT_DRAWBRIDGE:
+ case BT_CAMPFIRE:
+ case BT_PARADEGROUND:
+ case BT_CAMPGROUND:
+ case BT_PARADEGROUND2:
+ case BT_PARADEGROUND3:
+ case BT_PARADEGROUND4:
+ case BT_PARADEGROUND5:
+ case BT_KILLINGPIT:
+ case BT_PITCHDITCH:
+ case BT_SIEGETOWER_PLACED:
+ case BT_TOWER1:
+ case BT_TOWER2:
+ case BT_TOWER3:
+ case BT_TOWER4:
+ case BT_TOWER5:
+ break;
+ default
+ : deleteUnit(
+ (int)(short)this->UnitLayer[_tile]);
+ }
+ }
+ if ((this->LogicLayer[_tile] & 0x40004000U) != 0) {
+ clearMoatDataAtTile(
+ this->buildingX + x, this->buildingY + yPosition_param);
+ this->LogicLayer[_tile] = this->LogicLayer[_tile] & 0xbfffbfff;
+ }
+ this->MiscDisplayLayer[_tile] = this->MiscDisplayLayer[_tile] & 0xfc3f;
+ y = y + 1;
+ DAT_PathFindingState.toggleUpdateSeparateAreaTileMap = 1;
+ this->field204_0x554a30 = 1;
+ } while (y < this->constructionTileCount);
+ iVar3 = 0;
+ /*
+ /*
+ These parameters now become min and max height on the terrain covered by the building
+ */
+ */ y = 1000;
+ x = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ iVar3, buildingSize);
+ _height = (uint)this->HeightLayer[DAT_ViewportRenderState
+ .translationMatrix[this->buildingY + yPosition_param]
+ .addXgetTile
+ + this->buildingX + _x];
+ if ((uint)x < _height) {
+ x = _height;
+ }
+ if (_height < (uint)y) {
+ y = _height;
+ }
+ iVar3 = iVar3 + 1;
+ } while (iVar3 < this->constructionTileCount);
+ _averageHeight = (x - y) / 2 + y;
+ if ((_buildingType2 == BT_TUNNEL)
+ && (playerID == DAT_GameSynchronyState.currentPlayerSlotID)) {
+ playTunnelerCommandSpeech();
+ }
+ _buildingType_2 = (BuildingTypeInt)(short)_buildingType2;
+ switch (_buildingType_2) {
+ case BT_MERCENARYPOST:
+ case BT_BARRACKS:
+ placeBarracks(playerID, (uint)((int)(_x)),
+ (int*)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)), (uint)((int)(buildingSize)),
+ buildingOrientation, (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_STOCKPILE:
+ placeStockpile(playerID, _x, yPosition_param,
+ (undefined4)((int)(_buildingType_dup2)), (undefined4)((int)(buildingSize)), buildingOrientation,
+ _averageHeight);
+ break;
+ default
+ : placeWorkshopOrHovel(playerID,
+ (uint)((int)(_x)), (uint)((int)(yPosition_param)), _buildingType_dup2,
+ (uint)((int)(buildingSize)), buildingOrientation, (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_QUARRY:
+ placeQuarry(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)), (uint)((int)(buildingSize)),
+ buildingOrientation, (uint)((int)(_averageHeight)));
+ break;
+ case BT_ENGINEERSGUILD:
+ placeEngineersguild(playerID, (int*)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)), (uint)((int)(buildingSize)),
+ buildingOrientation, (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_TUNNELERSGUILD:
+ placeTunnelersguild(playerID, (int*)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)), (uint)((int)(buildingSize)),
+ buildingOrientation, (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_OILSMELTER:
+ placeOilsmelter(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)), (uint)((int)(buildingSize)),
+ buildingOrientation, (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_WHEATFARM:
+ placeWheatfarm(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)),
+ (undefined4)((int)(buildingSize)), buildingOrientation, (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_HOPFARM:
+ placeHopfarm(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)),
+ (undefined4)((int)(buildingSize)), buildingOrientation, _averageHeight);
+ break;
+ case BT_APPLEFARM:
+ placeApplefarm(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), _buildingType_dup2, (undefined4)((int)(buildingSize)),
+ buildingOrientation, (int*)((int)(_averageHeight)));
+ break;
+ case BT_DAIRYFARM:
+ placeDairyfarm(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)),
+ (undefined4)((int)(buildingSize)), (int*)((int)(buildingOrientation)),
+ (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_UNKNOWN1:
+ stampBuildingOntoTileMap(playerID,
+ (uint)((int)(_x)), (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)),
+ (undefined4)((int)(_commandBuildingType + ~M_MAPPER_MP_KEEP8)),
+ (uint)((int)(buildingSize)), (undefined4)((int)(buildingOrientation)),
+ (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_MANORHOUSE:
+ case BT_STONEKEEP:
+ case BT_STRONGHOLD:
+ case BT_KEEPFOUR:
+ case BT_KEEPFIVE:
+ placeKeep(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), _buildingType_dup2, (uint)((int)(buildingSize)), buildingOrientation,
+ _averageHeight);
+ break;
+ case BT_GATEHOUSELARGE:
+ placeGatehouseLarge(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)), (uint)((int)(buildingSize)),
+ buildingOrientation, (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_GATEHOUSESMALL:
+ placeGatehouseSmall(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)), (uint)((int)(buildingSize)),
+ buildingOrientation, (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_WOODGATE1:
+ break;
+ case BT_DRAWBRIDGE:
+ placeDrawbridge(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)), (uint)((int)(buildingSize)),
+ (int*)((int)(buildingOrientation)), (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_FIREBALLISTA:
+ case BT_CATAPULT:
+ case BT_TREBUCHET:
+ case BT_BATTERINGRAM:
+ case BT_SIEGETOWER:
+ case BT_SHIELD:
+ placeSiegeTent(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)), (uint)((int)(buildingSize)),
+ buildingOrientation, (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_GARDEN:
+ placePositiveFearfactor(playerID,
+ (uint)((int)(_x)), (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)),
+ (undefined4)((int)(_commandBuildingType - M_MAPPER_GARDEN1)),
+ (uint)((int)(buildingSize)), (undefined4)((int)(buildingOrientation)),
+ (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_KILLINGPIT:
+ placeKillingPit(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)), (uint)((int)(buildingSize)),
+ buildingOrientation, _averageHeight);
+ break;
+ case BT_PITCHDITCH:
+ local_4 = placePitchDitch(
+ playerID, (uint)((int)(_x)), (uint)((int)(yPosition_param)));
+ break;
+ case BT_SIEGETOWER_PLACED:
+ placeSiegetowerPlaced(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)), (uint)((int)(buildingSize)),
+ buildingOrientation, (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_TOWER1:
+ case BT_TOWER2:
+ case BT_TOWER3:
+ case BT_TOWER4:
+ case BT_TOWER5:
+ placeTower(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)), (uint)((int)(buildingSize)),
+ buildingOrientation, (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_CESSPIT:
+ placePositiveFearfactor(playerID,
+ (uint)((int)(_x)), (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)),
+ (undefined4)((int)(_commandBuildingType - M_MAPPER_CESS_PIT1)),
+ (uint)((int)(buildingSize)), (undefined4)((int)(buildingOrientation)),
+ (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_STATUE:
+ placePositiveFearfactor(playerID,
+ (uint)((int)(_x)), (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)),
+ (undefined4)((int)(_commandBuildingType - M_MAPPER_STATUE1)),
+ (uint)((int)(buildingSize)), (undefined4)((int)(buildingOrientation)),
+ (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_SHRINE:
+ placePositiveFearfactor(playerID,
+ (uint)((int)(_x)), (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)),
+ (undefined4)((int)(_commandBuildingType - M_MAPPER_SHRINE1)),
+ (uint)((int)(buildingSize)), (undefined4)((int)(buildingOrientation)),
+ (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_POND:
+ placePositiveFearfactor(playerID,
+ (uint)((int)(_x)), (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)),
+ (undefined4)((int)(_commandBuildingType - M_MAPPER_POND1)),
+ (uint)((int)(buildingSize)), (undefined4)((int)(buildingOrientation)),
+ (undefined4)((int)(_averageHeight)));
+ }
+ /*
+ /*** Now PlacedBuildingID has been set ***/
+ */ if (playerID == DAT_GameSynchronyState.currentPlayerSlotID)
+ {
+ if (_buildingType2 == BT_PITCHDITCH) {
+ if (local_4 != 0) {
+ placePitchDitch(local_4);
+ }
+ } else {
+ startBuildingDestructionConfirmation(this->placedBuildingID);
+ }
+ }
+ processPlacementResourceLossForBuildingType(playerID, (BuildingType)((int)(_buildingType_2)), 0);
+ uVar4 = hasLessWoodThanTheCostOfAWoodcuttersHutAndNoWoodcutters(playerID, _buildingType_2);
+ if (uVar4 != 0) {
+ DAT_BuildingsState.buildings[this->placedBuildingID].field203_0x288 = 1;
+ }
+ triggerMinimapRedraw(1);
+ if (buildingSize < 6) {
+ iVar3 = 9;
+ } else {
+ iVar3 = buildingSize + 5;
+ }
+ updateWalkAndPathLayer(iVar3, (uint)((int)(_x)), (uint)((int)(yPosition_param)));
+ DAT_PathFindingState.toggleUpdateSeparateAreaTileMap = 1;
+ this->field204_0x554a30 = 1;
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ this->forceUpdateMacroLayerFlag = 1;
+ this->field68_0x55487c = 200;
+ }
+ return;
+ }
+}
+}
+

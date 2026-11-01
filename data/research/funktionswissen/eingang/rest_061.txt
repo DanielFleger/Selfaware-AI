@@ -1,0 +1,1233 @@
+### 0x00442f40 MenuItemActionHandler_SingleplayerMapChoice_Scrollbar | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00442F40
+ void SinglePlayerMapChoice::MenuItemActionHandler_SingleplayerMapChoice_Scrollbar(
+ int param_1, int param_2, int* minValue, int* maxValue, int* currentValue)
+ {
+ switch (param_2) {
+ case 1:
+ *minValue = 0;
+ *maxValue = DAT_GameSynchronyState.DAT_MapSelectionTotalNumber + -0xd;
+ *currentValue = DAT_GameSynchronyState.DAT_MapSelectionScrollOffset;
+ return;
+ case 2:
+ case 3:
+ if (*currentValue != DAT_GameSynchronyState.DAT_MapSelectionScrollOffset) {
+ MACRO_CALL(
+ MenuItemActionHandler_SingleplayerMapChoice_MapTable)(
+ DAT_GameSynchronyState.DAT_MapSelectionRelativeSelected);
+ }
+ DAT_GameSynchronyState.DAT_MapSelectionScrollOffset = *currentValue;
+ return;
+ case 4:
+ if (*currentValue != DAT_GameSynchronyState.DAT_MapSelectionScrollOffset) {
+ MACRO_CALL(
+ MenuItemActionHandler_SingleplayerMapChoice_MapTable)(
+ DAT_GameSynchronyState.DAT_MapSelectionRelativeSelected);
+ }
+ *currentValue = DAT_GameSynchronyState.DAT_MapSelectionScrollOffset;
+ *maxValue = DAT_GameSynchronyState.DAT_MapSelectionTotalNumber + -0xd;
+ return;
+ case 5:
+ if (0 < DAT_GameSynchronyState.DAT_MapSelectionScrollOffset) {
+ DAT_GameSynchronyState.DAT_MapSelectionScrollOffset
+ = DAT_GameSynchronyState.DAT_MapSelectionScrollOffset + -1;
+ MACRO_CALL(
+ MenuItemActionHandler_SingleplayerMapChoice_MapTable)(
+ DAT_GameSynchronyState.DAT_MapSelectionRelativeSelected);
+ }
+ *currentValue = DAT_GameSynchronyState.DAT_MapSelectionScrollOffset;
+ return;
+ case 6:
+ if (DAT_GameSynchronyState.DAT_MapSelectionScrollOffset
+ < DAT_GameSynchronyState.DAT_MapSelectionTotalNumber + -0xd) {
+ DAT_GameSynchronyState.DAT_MapSelectionScrollOffset
+ = DAT_GameSynchronyState.DAT_MapSelectionScrollOffset + 1;
+ MACRO_CALL(
+ MenuItemActionHandler_SingleplayerMapChoice_MapTable)(
+ DAT_GameSynchronyState.DAT_MapSelectionRelativeSelected);
+ }
+ *currentValue = DAT_GameSynchronyState.DAT_MapSelectionScrollOffset;
+ break;
+ case 7:
+ *currentValue = 0xc;
+ return;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00449290 MenuItemActionHandler_SingleplayerMapChoice_MapTableHeader | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00449290
+ void SinglePlayerMapChoice::MenuItemActionHandler_SingleplayerMapChoice_MapTableHeader(int param_1, ...)
+ {
+ int iVar1;
+ undefined4* puVar2;
+ int iVar3;
+ int iVar4;
+ int iVar5;
+ iVar5 = DAT_GameSynchronyState.DAT_MapSelectionTotalNumber;
+ if (param_1 == 0) {
+ iVar3 = 0;
+ if (DAT_MenuTextInputState.field33_0x78 == 0) {
+ if (0 < DAT_GameSynchronyState.DAT_MapSelectionTotalNumber) {
+ puVar2 = DAT_MenuTextInputState.DAT_ArrayOfMapIndices
+ + DAT_GameSynchronyState.DAT_MapSelectionTotalNumber + 0x1f2;
+ do {
+ DAT_MenuTextInputState.DAT_ArrayOfMapIndices[iVar3 + -1] = *puVar2;
+ iVar3 = iVar3 + 1;
+ puVar2 = puVar2 + -1;
+ } while (iVar3 < iVar5);
+ }
+ DAT_MenuTextInputState.field33_0x78 = 1;
+ } else {
+ if (0 < DAT_GameSynchronyState.DAT_MapSelectionTotalNumber) {
+ do {
+ DAT_MenuTextInputState.DAT_ArrayOfMapIndices[iVar3 + -1]
+ = DAT_MenuTextInputState.DAT_ArrayOfMapIndices[iVar3 + 499];
+ iVar3 = iVar3 + 1;
+ } while (iVar3 < iVar5);
+ }
+ DAT_MenuTextInputState.field33_0x78 = 0;
+ }
+ } else if (param_1 == 1) {
+ iVar5 = DAT_GameSynchronyState.DAT_MapSelectionTotalNumber + -1;
+ if (DAT_MenuTextInputState.field33_0x78 == 2) {
+ do {
+ iVar4 = 0;
+ iVar3 = 0;
+ if (iVar5 < 1)
+ break;
+ do {
+ iVar1 = DAT_MenuTextInputState.DAT_ArrayOfMapIndices[iVar3 + -1];
+ if ((int)DAT_ResourceManager
+ .mapFileTimes[DAT_MenuTextInputState.DAT_ArrayOfMapIndices[iVar3]]
+ < (int)DAT_ResourceManager.mapFileTimes[iVar1]) {
+ DAT_MenuTextInputState.DAT_ArrayOfMapIndices[iVar3 + -1]
+ = DAT_MenuTextInputState.DAT_ArrayOfMapIndices[iVar3];
+ DAT_MenuTextInputState.DAT_ArrayOfMapIndices[iVar3] = iVar1;
+ iVar4 = iVar4 + 1;
+ }
+ iVar3 = iVar3 + 1;
+ } while (iVar3 < iVar5);
+ } while (iVar4 != 0);
+ DAT_MenuTextInputState.field33_0x78 = 3;
+ } else {
+ do {
+ iVar4 = 0;
+ iVar3 = 0;
+ if (iVar5 < 1)
+ break;
+ do {
+ iVar1 = DAT_MenuTextInputState.DAT_ArrayOfMapIndices[iVar3 + -1];
+ if ((int)DAT_ResourceManager.mapFileTimes[iVar1]
+ < (int)DAT_ResourceManager
+ .mapFileTimes[DAT_MenuTextInputState.DAT_ArrayOfMapIndices[iVar3]]) {
+ DAT_MenuTextInputState.DAT_ArrayOfMapIndices[iVar3 + -1]
+ = DAT_MenuTextInputState.DAT_ArrayOfMapIndices[iVar3];
+ DAT_MenuTextInputState.DAT_ArrayOfMapIndices[iVar3] = iVar1;
+ iVar4 = iVar4 + 1;
+ }
+ iVar3 = iVar3 + 1;
+ } while (iVar3 < iVar5);
+ } while (iVar4 != 0);
+ DAT_MenuTextInputState.field33_0x78 = 2;
+ }
+ } else if (param_1 == 2) {
+ iVar5 = DAT_GameSynchronyState.DAT_MapSelectionTotalNumber + -1;
+ if (DAT_GameSynchronyState.field248_0x109250 == 5) {
+ do {
+ iVar4 = 0;
+ iVar3 = 0;
+ if (iVar5 < 1)
+ break;
+ do {
+ iVar1 = DAT_MenuTextInputState.DAT_ArrayOfMapIndices[iVar3 + -1];
+ if ((int)DAT_MenuTextInputState.DAT_ArrayOfMapU3EndInt2[iVar1]
+ < (int)DAT_MenuTextInputState.DAT_ArrayOfMapU3EndInt2
+ [DAT_MenuTextInputState.DAT_ArrayOfMapIndices[iVar3]]) {
+ DAT_MenuTextInputState.DAT_ArrayOfMapIndices[iVar3 + -1]
+ = DAT_MenuTextInputState.DAT_ArrayOfMapIndices[iVar3];
+ DAT_MenuTextInputState.DAT_ArrayOfMapIndices[iVar3] = iVar1;
+ iVar4 = iVar4 + 1;
+ }
+ iVar3 = iVar3 + 1;
+ } while (iVar3 < iVar5);
+ } while (iVar4 != 0);
+ DAT_GameSynchronyState.field248_0x109250 = 6;
+ } else {
+ do {
+ iVar4 = 0;
+ iVar3 = 0;
+ if (iVar5 < 1)
+ break;
+ do {
+ iVar1 = DAT_MenuTextInputState.DAT_ArrayOfMapIndices[iVar3 + -1];
+ if ((int)DAT_MenuTextInputState.DAT_ArrayOfMapU3EndInt2
+ [DAT_MenuTextInputState.DAT_ArrayOfMapIndices[iVar3]]
+ < (int)DAT_MenuTextInputState.DAT_ArrayOfMapU3EndInt2[iVar1]) {
+ DAT_MenuTextInputState.DAT_ArrayOfMapIndices[iVar3 + -1]
+ = DAT_MenuTextInputState.DAT_ArrayOfMapIndices[iVar3];
+ DAT_MenuTextInputState.DAT_ArrayOfMapIndices[iVar3] = iVar1;
+ iVar4 = iVar4 + 1;
+ }
+ iVar3 = iVar3 + 1;
+ } while (iVar3 < iVar5);
+ } while (iVar4 != 0);
+ DAT_GameSynchronyState.field248_0x109250 = 5;
+ }
+ }
+ MACRO_CALL(
+ MenuItemActionHandler_SingleplayerMapChoice_MapTable)(
+ DAT_GameSynchronyState.DAT_MapSelectionRelativeSelected);
+ DAT_MenuTextInputState.field38_0x8c = 0xffffffff;
+ return;
+ }
+ }
+}
+}
+
+### 0x00448d40 MenuView_SingleplayerMapChoice_Prepare | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00448D40
+ void SingleplayerMapChoice::MenuView_SingleplayerMapChoice_Prepare()
+ {
+ Menu* pMVar1;
+ char* tgxFileName;
+ Menu_SingleplayerMapChoice::instance.thousand = 0;
+ DAT_MenuTextInputState.field39_0x90 = 0;
+ DAT_MenuTextInputState.field38_0x8c = 0xffffffff;
+ DAT_GameSynchronyState.currentGameMode = GM_SOLITARY;
+ DAT_GameCore.gameMode_2 = GM_BUILDERUnk;
+ if (INT_00b95b64::instance == 0) {
+ MACRO_CALL(
+ MenuItemActionHandler_SingleplayerMapChoice_MapTable)(
+ DAT_GameSynchronyState.DAT_MapSelectionRelativeSelected);
+ DAT_GameSynchronyState.skirmishRelated1 = 1;
+ } else {
+ DAT_MenuTextInputState.field33_0x78 = 0;
+ DAT_GameSynchronyState.isHost = TRUE;
+ DAT_GameSynchronyState.currentPlayerSlotID = 1;
+ DAT_GameCore.currentlyInGameUnk_0xa4 = FALSE;
+ DAT_GameSynchronyState.skirmishRelated1 = -1;
+ DAT_GameSynchronyState.DAT_MapSelectionRelativeSelected = -1;
+ DAT_GameSynchronyState.mapName[0] = '\0';
+ DAT_GameCore.mapDescription[0] = '\0';
+ _memset(DAT_MinimapViewState.loadedMiniMap, 0, 80000);
+ DAT_GameSynchronyState.reparseMaps = TRUE;
+ DAT_SH1_SiegeAdvancedMode = 0;
+ DAT_SiegeRemainingPoints = 0;
+ }
+ DAT_ButtonBackgroundBlendStrength = 0x20;
+ DAT_00b960dc = 0xfffffffd;
+ DWORD_00b95b1c::instance = timeGetTime();
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ if (DAT_MapMissionType < 2) {
+ tgxFileName = "frontend_economics2.tgx";
+ } else {
+ tgxFileName = "frontend_combat2.tgx";
+ }
+ loadGfxFile(tgxFileName);
+ LoadTGX_shc_back();
+ DAT_MenuHandlerState.y = DAT_WindowAndDirectDraw.mainMenuBorderHeight;
+ DAT_MenuHandlerState.x = DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ pMVar1 = DAT_MenuHandlerState.currentMenu;
+ (DAT_MenuHandlerState.currentMenu)->xPosition
+ = DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ pMVar1->yPosition = DAT_MenuHandlerState.y;
+ resetToTextIndex(4);
+ setupAllMapSections();
+ INT_00b95b64::instance = 0;
+ DAT_GameCore.activeMenuTab.tabType._1_3_ = 0;
+ DAT_GameCore.activeMenuTab.tabType._0_1_ = DAT_MapMissionType != 0;
+ return;
+ }
+ }
+}
+}
+
+### 0x00448e90 MenuView_SingleplayerMapChoice_DoEveryFrame | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00448E90
+ void SingleplayerMapChoice::MenuView_SingleplayerMapChoice_DoEveryFrame()
+ {
+ int top;
+ char cVar1;
+ DWORD DVar2;
+ char* pcVar3;
+ int iVar4;
+ int iVar5;
+ char* pcVar6;
+ int iVar7;
+ dword id;
+ int iVar8;
+ int bottom;
+ undefined4 local_3f8;
+ char local_3f4[4];
+ char local_3f0[1004];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)&local_3f8;
+ drawGfxOnFlaggedSurface(0,
+ (DAT_WindowAndDirectDraw.resolutionX
+ - DAT_TextureRenderCoreObject.loadedGfxArray[0].width)
+ / 2,
+ (DAT_WindowAndDirectDraw.resolutionY
+ - DAT_TextureRenderCoreObject.loadedGfxArray[0].height)
+ / 2);
+ if (DAT_00b960dc != 0) {
+ DAT_GameCore.hasMenuRenderedUnk = 1;
+ if (DAT_00b960dc < 0) {
+ DVar2 = timeGetTime();
+ DAT_ButtonBackgroundBlendStrength
+ = DAT_ButtonBackgroundBlendStrength - (DVar2 - DWORD_00b95b1c::instance) / 0x28;
+ if (DAT_ButtonBackgroundBlendStrength < 1) {
+ DAT_ButtonBackgroundBlendStrength = 0;
+ DAT_00b960dc = 0;
+ }
+ } else {
+ DVar2 = timeGetTime();
+ DAT_ButtonBackgroundBlendStrength
+ = DAT_ButtonBackgroundBlendStrength + (DVar2 - DWORD_00b95b1c::instance) / 0x28;
+ if (0x1f < DAT_ButtonBackgroundBlendStrength) {
+ DAT_ButtonBackgroundBlendStrength = 0x20;
+ DAT_GameCore.menuSwitchDelay = 0;
+ }
+ }
+ }
+ if (DAT_GameSynchronyState.reparseMaps != FALSE) {
+ DAT_GameSynchronyState.reparseMaps = FALSE;
+ DAT_MouseState.waitCursorToggle = 1;
+ SetCursorDependingOnProgramState();
+ mapNames_syncLoadedMapNames();
+ iVar8 = 0;
+ iVar7 = -1;
+ id = 0;
+ if (0 < DAT_ResourceManager.mapFileCounter) {
+ do {
+ pcVar3 = mapNames_getLoadedMapNameForIndex(id);
+ pcVar6 = local_3f4;
+ do {
+ cVar1 = *pcVar3;
+ *pcVar6 = cVar1;
+ pcVar3 = pcVar3 + 1;
+ pcVar6 = pcVar6 + 1;
+ } while (cVar1 != '\0');
+ pcVar6 = (char*)((int)&local_3f8 + 3);
+ do {
+ pcVar3 = pcVar6;
+ pcVar6 = pcVar3 + 1;
+ } while (pcVar3[1] != '\0');
+ builtin_strncpy(pcVar3 + 1, ".map", 5);
+ resolveResourceFileName(FRT_MAPS, (CHAR_CONST*)((int)(local_3f4)));
+ loadMapMetaByID(
+ id);
+ iVar4 = DAT_GameCore.savedMapEndInt2;
+ switch (DAT_MapPropertiesState.scenarioMissionSiegeOrInvasion) {
+ case MT_SIEGE:
+ DAT_MapPropertiesState.scenarionMissionType = 2;
+ break;
+ case MT_INVASION:
+ DAT_MapPropertiesState.scenarionMissionType = 3;
+ break;
+ case MT_ECONOMIC:
+ DAT_MapPropertiesState.scenarionMissionType = 1;
+ break;
+ case MT_JUST_BUILD:
+ DAT_MapPropertiesState.scenarionMissionType = 0;
+ }
+ if (((DAT_GameCore.mapType == 0)
+ && (DAT_MapPropertiesState.scenarionMissionType
+ == DAT_MapMissionType))
+ && ((int)DAT_GameCore.savedMapLocked < 2)) {
+ DAT_MenuTextInputState.DAT_ArrayOfMapIndices[iVar8 + -1] = id;
+ pcVar3 = DAT_GameCore.standaloneFilename;
+ DAT_MenuTextInputState.DAT_ArrayOfMapIndices[iVar8 + 499] = id;
+ DAT_MenuTextInputState.DAT_ArrayOfMapU3EndInt2[id] = iVar4;
+ pcVar6 = mapNames_getLoadedMapNameForIndex(id);
+ iVar4 = __stricmp(pcVar6, (CHAR_CONST*)((int)(pcVar3)));
+ if (iVar4 == 0) {
+ iVar7 = iVar8;
+ }
+ iVar8 = iVar8 + 1;
+ }
+ id = id + 1;
+ } while ((int)id < DAT_ResourceManager.mapFileCounter);
+ }
+ DAT_MouseState.waitCursorToggle = 0;
+ DAT_GameSynchronyState.DAT_MapSelectionScrollOffset = 0;
+ DAT_GameSynchronyState.DAT_MapSelectionRelativeSelected = -1;
+ DAT_GameSynchronyState.skirmishRelated1 = 0;
+ DAT_GameSynchronyState.DAT_MapSelectionTotalNumber = iVar8;
+ if (iVar8 != 0) {
+ pcVar6 = DAT_GameCore.standaloneFilename;
+ DAT_GameSynchronyState.DAT_MapSelectionRelativeSelected = 0;
+ do {
+ cVar1 = *pcVar6;
+ pcVar6 = pcVar6 + 1;
+ } while (cVar1 != '\0');
+ if ((pcVar6 != DAT_GameCore.standaloneFilename + 1) && (iVar8 = 0, -1 < iVar7)) {
+ while (DAT_GameSynchronyState.DAT_MapSelectionRelativeSelected = iVar7,
+ DAT_GameSynchronyState.DAT_MapSelectionScrollOffset = iVar8,
+ 0xc < DAT_GameSynchronyState.DAT_MapSelectionRelativeSelected) {
+ iVar8 = DAT_GameSynchronyState.DAT_MapSelectionScrollOffset + 1;
+ iVar7 = DAT_GameSynchronyState.DAT_MapSelectionRelativeSelected + -1;
+ }
+ }
+ MACRO_CALL(
+ MenuItemActionHandler_SingleplayerMapChoice_MapTable)(
+ DAT_GameSynchronyState.DAT_MapSelectionRelativeSelected);
+ DAT_GameSynchronyState.skirmishRelated1 = 1;
+ DAT_GameCore.standaloneFilename[0] = '\0';
+ }
+ DWORD_00b95b1c::instance = timeGetTime();
+ }
+ iVar4 = DAT_WindowAndDirectDraw.mainMenuBorderHeight;
+ iVar8 = DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ iVar7 = DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x118;
+ if (DAT_MapMissionType != 2) {
+ iVar7 = DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x8c;
+ }
+ iVar5 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x10;
+ top = DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0xfd;
+ local_3f8 = DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x294;
+ bottom = DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x216;
+ drawBlendedBlackBox(iVar7, top, DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x280,
+ bottom, ((int)(iVar5 + (iVar5 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ if (DAT_00b960dc == 0) {
+ iVar8 = iVar8 + 0x295;
+ iVar7 = iVar7 + -1;
+ drawLine(
+ iVar7, iVar4 + 0xfc, iVar8, iVar4 + 0xfc,
+ (ushort)((int)(COL_VERY_SOFT_YELLOW::instance.shortValue)));
+ drawLine(
+ iVar7, iVar4 + 0x217, iVar8, iVar4 + 0x217,
+ (ushort)((int)(COL_VERY_SOFT_YELLOW::instance.shortValue)));
+ drawLine(
+ iVar7, iVar4 + 0x111, iVar8, iVar4 + 0x111,
+ (ushort)((int)(COL_VERY_SOFT_YELLOW::instance.shortValue)));
+ drawLine(
+ iVar7, top, iVar7, bottom, (ushort)((int)(COL_VERY_SOFT_YELLOW::instance.shortValue)));
+ drawLine(
+ iVar8, top, iVar8, bottom, (ushort)((int)(COL_VERY_SOFT_YELLOW::instance.shortValue)));
+ drawLine(
+ local_3f8 + -0x14, top, local_3f8 + -0x14, bottom,
+ (ushort)((int)(COL_VERY_SOFT_YELLOW::instance.shortValue)));
+ drawLine(
+ local_3f8 + -0x13, iVar4 + 0x202, local_3f8, iVar4 + 0x202,
+ (ushort)((int)(COL_VERY_SOFT_YELLOW::instance.shortValue)));
+ };
+ return;
+ }
+ }
+}
+}
+
+### 0x00492690 MenuItemRenderFunction_SoundOptions_Buttons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00492690
+ void SoundOptions::MenuItemRenderFunction_SoundOptions_Buttons(int param_1, ...)
+ {
+ int xParam;
+ char* textAddress;
+ int yParam;
+ eTextSections offsetIndex;
+ int iVar1;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ if (param_1 == -10) {
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ color = 0xc2f0eb;
+ yParam = DAT_ButtonY + 7;
+ xParam = DAT_ButtonW / 2 + DAT_ButtonX;
+ iVar1 = 0xc;
+ offsetIndex = TEXT_SKIRMISH_MISC;
+ } else {
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ color = 0xccfaff;
+ yParam = DAT_ButtonY + 7;
+ xParam = DAT_ButtonW / 2 + DAT_ButtonX;
+ iVar1 = 0xc;
+ offsetIndex = TEXT_SKIRMISH_MISC;
+ }
+ } else {
+ if ((param_1 < -1) && (param_1 != -5)) {
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ return;
+ }
+ if (-1 < param_1) {
+ if (param_1 - 0x23U < 3) {
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ renderText2(
+ TEXT_GAME_OPTIONS, param_1,
+ DAT_ButtonW / 2 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_CENTER, 0xccfaff, 0x12, FALSE);
+ return;
+ }
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ renderText2(
+ TEXT_GAME_OPTIONS, param_1,
+ DAT_ButtonW / 2 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_CENTER, 0xc2f0eb, 0x12, FALSE);
+ return;
+ }
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ renderText2(
+ TEXT_GAME_OPTIONS, param_1,
+ DAT_ButtonW / 2 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_CENTER, 0xccfaff, 0x12, FALSE);
+ return;
+ }
+ iVar1 = DAT_MenuTextInputState.DAT_GenieVoiceActiveMenuVar;
+ if ((param_1 != -5)
+ && (iVar1 = DAT_MenuTextInputState.DAT_SoundActiveMenuVar, param_1 != -1)) {
+ return;
+ }
+ if (iVar1 == 0) {
+ iVar1 = 0xe;
+ } else {
+ if (iVar1 != 1) {
+ return;
+ }
+ iVar1 = 0xd;
+ }
+ color = 0xccfaff;
+ yParam = DAT_ButtonY + 7;
+ xParam = DAT_ButtonW / 2 + DAT_ButtonX;
+ offsetIndex = TEXT_GAME_OPTIONS;
+ }
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x12;
+ alignment = TTA_CENTER;
+ textAddress = getTextStringInGroupAtOffset(offsetIndex, iVar1);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+ }
+}
+}
+
+### 0x00492890 MenuItemActionHandler_SoundOptions_VolumeSlider | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00492890
+ void SoundOptions::MenuItemActionHandler_SoundOptions_VolumeSlider(
+ int param_1, int param_2, int* minValue, int* maxValue, int* currentValue)
+ {
+ switch (param_2) {
+ case 1:
+ *minValue = 0;
+ *maxValue = 100;
+ break;
+ case 2:
+ case 3:
+ if (param_1 == 0) {
+ if (DAT_MenuTextInputState.field20_0x44 != *currentValue) {
+ setVolumeUnk(0, *currentValue);
+ }
+ DAT_MenuTextInputState.field20_0x44 = *currentValue;
+ return;
+ }
+ if (param_1 != 1) {
+ if (param_1 != 2) {
+ return;
+ }
+ if (DAT_MenuTextInputState.field22_0x4c != *currentValue) {
+ setVolumeUnk(3, *currentValue);
+ setVolumeUnk(4, *currentValue);
+ }
+ DAT_MenuTextInputState.field22_0x4c = *currentValue;
+ return;
+ }
+ if (DAT_MenuTextInputState.field21_0x48 != *currentValue) {
+ setVolumeUnk(
+ 1, *currentValue);
+ setVolumeUnk(
+ 2, *currentValue);
+ setVolumeUnk(
+ -1, *currentValue);
+ }
+ DAT_MenuTextInputState.field21_0x48 = *currentValue;
+ return;
+ case 4:
+ break;
+ default:
+ goto switchD_0049289c_caseD_4;
+ }
+ if (param_1 == 0) {
+ *currentValue = DAT_MenuTextInputState.field20_0x44;
+ return;
+ }
+ if (param_1 == 1) {
+ *currentValue = DAT_MenuTextInputState.field21_0x48;
+ return;
+ }
+ if (param_1 == 2) {
+ *currentValue = DAT_MenuTextInputState.field22_0x4c;
+ return;
+ }
+ switchD_0049289c_caseD_4:
+ return;
+ }
+ }
+}
+}
+
+### 0x004929c0 MenuItemRenderFunction_SoundOptions_VolumeSlider | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004929C0
+ void SoundOptions::MenuItemRenderFunction_SoundOptions_VolumeSlider(
+ int param_1, int thumbYPos, int param_3, int thumbHeight, BOOL isDragged)
+ {
+ undefined2 color;
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ renderBasicButton(-1, RT_CONTEXT_BASED);
+ color = COL_GREYISH_YELLOW::instance.shortValue;
+ if (isDragged != 0) {
+ color = COL_DARK_LIME::instance.shortValue;
+ }
+ drawColorBox(
+ thumbYPos + DAT_ButtonX + 1, DAT_ButtonY + 2,
+ thumbYPos + DAT_ButtonX + -2 + thumbHeight,
+ DAT_ButtonH + -4 + DAT_ButtonY, (ushort)((int)(color)));
+ renderNumber2(param_3,
+ DAT_ButtonW + 0x14 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_CENTER, 0xccfaff, 0, 0x12, FALSE, 0);
+ return;
+ }
+ }
+}
+}
+
+### 0x004940b0 MenuItemActionHandler_SoundOptions_Buttons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004940B0
+ void SoundOptions::MenuItemActionHandler_SoundOptions_Buttons(SoundMenuClickType param_1, ...)
+ {
+ bool bVar1;
+ int local_8;
+ int local_4;
+ switch (param_1) {
+ case SMCT_SOUND_MENU_RETURNUnk:
+ popModalDialog();
+ return;
+ case SMCT_TOGGLE_SOUND_ACTIVEUnk:
+ break;
+ case SMCT_TOGGLE_GENIE:
+ bVar1 = DAT_MenuTextInputState.DAT_GenieVoiceActiveMenuVar == 0;
+ DAT_MenuTextInputState.DAT_GenieVoiceActiveMenuVar = (uint)bVar1;
+ DAT_GameCore.genieVoiceActive = (uint)bVar1;
+ return;
+ default : return;
+ case SMCT_RESET_SPEECH_VOLUME:
+ param_1 = ((SoundMenuClickType)0x55);
+ MenuItemActionHandler_SoundOptions_VolumeSlider(
+ 2, 3, &local_4, &local_8, (int*)&param_1);
+ return;
+ case SMCT_RESET_SFX_VOLUME:
+ param_1 = ((SoundMenuClickType)0x50);
+ MenuItemActionHandler_SoundOptions_VolumeSlider(
+ 1, 3, &local_4, &local_8, (int*)&param_1);
+ return;
+ case SMCT_RESET_MUSIC_VOLUME:
+ param_1 = 0x5a;
+ MenuItemActionHandler_SoundOptions_VolumeSlider(
+ 0, 3, &local_4, &local_8, (int*)&param_1);
+ return;
+ }
+ if (DAT_MenuTextInputState.DAT_SoundActiveMenuVar == 0) {
+ DAT_MenuTextInputState.DAT_SoundActiveMenuVar = 1;
+ activateSoundFromMenuFuncUnk();
+ return;
+ }
+ DAT_MenuTextInputState.DAT_SoundActiveMenuVar = 0;
+ deactivateSoundFromMenuFuncUnk();
+ return;
+ }
+ }
+}
+}
+
+### 0x0043e6c0 RenderStatusMenu_Popularity | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043E6C0
+ void StatusMenus::RenderStatusMenu_Popularity()
+ {
+ short sVar1;
+ short sVar2;
+ short sVar3;
+ short sVar4;
+ short sVar5;
+ short sVar6;
+ int iVar7;
+ char* pcVar8;
+ int iVar9;
+ uint uVar10;
+ uint uVar11;
+ int iVar12;
+ byte bVar13;
+ TextAlignment TVar14;
+ BGR24 BVar15;
+ int iVar16;
+ int iVar17;
+ int iVar18;
+ int iVar19;
+ BOOLEnum BVar20;
+ int iVar21;
+ int iVar22;
+ int local_2c;
+ int local_1c;
+ uint local_18;
+ uint local_14;
+ uint local_10;
+ uint local_c;
+ uint local_8;
+ uint local_4;
+ iVar12 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[0xf];
+ iVar21 = 0;
+ BVar20 = FALSE;
+ iVar16 = 0x11;
+ BVar15 = 0;
+ TVar14 = TTA_LEFT;
+ iVar7 = DAT_MenuHandlerState.y + 0x1d3;
+ iVar9 = DAT_MenuHandlerState.x + 0x19;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ /*
+ added by script: "Popularity"
+ */
+ pcVar8 = getTextStringInGroupAtOffset(TEXT_REPORTS, 1);
+ renderTextToScreen(
+ pcVar8, iVar9, iVar7, TVar14, BVar15, iVar16, BVar20, iVar21);
+ BVar20 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .areCarnivalUnitsPresent;
+ bVar13 = BVar20 != FALSE;
+ if ((bool)bVar13) {
+ local_1c = 0;
+ }
+ uVar11 = (uint)bVar13;
+ sVar1
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].someCount58;
+ uVar10 = uVar11;
+ if (sVar1 != 0) {
+ bVar13 = bVar13 + 1;
+ uVar10 = uVar11 + 1;
+ local_18 = uVar11;
+ }
+ sVar2
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].someCount59;
+ uVar11 = uVar10;
+ if (sVar2 != 0) {
+ bVar13 = bVar13 + 1;
+ uVar11 = uVar10 + 1;
+ local_14 = uVar10;
+ }
+ sVar3
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].someCount54;
+ uVar10 = uVar11;
+ if (sVar3 != 0) {
+ bVar13 = bVar13 + 1;
+ uVar10 = uVar11 + 1;
+ local_10 = uVar11;
+ }
+ sVar4
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].someCount55;
+ uVar11 = uVar10;
+ if (sVar4 != 0) {
+ bVar13 = bVar13 + 1;
+ uVar11 = uVar10 + 1;
+ local_c = uVar10;
+ }
+ sVar5
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].someCount56;
+ uVar10 = uVar11;
+ if (sVar5 != 0) {
+ bVar13 = bVar13 + 1;
+ uVar10 = uVar11 + 1;
+ local_8 = uVar11;
+ }
+ sVar6
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].someCount57;
+ if (sVar6 != 0) {
+ bVar13 = bVar13 + 1;
+ local_4 = uVar10;
+ }
+ DAT_GameCore.field78_0x148 = (2 < bVar13) + 1;
+ if (DAT_GameCore.field78_0x148 <= DAT_GameCore.field77_0x144) {
+ DAT_GameCore.field77_0x144 = 0;
+ }
+ local_2c = (int)sVar6 + (int)sVar5 + (int)sVar4 + (int)sVar3 + (int)sVar2 + (int)sVar1;
+ if (BVar20 != FALSE) {
+ local_2c = local_2c + 400;
+ }
+ if (DAT_GameCore.field77_0x144 == 0) {
+ iVar21 = 0x12;
+ iVar9 = DAT_MenuHandlerState.y + 0x1db;
+ iVar16 = DAT_MenuHandlerState.x + 0xc1;
+ TVar14 = DAT_GameCore.field77_0x144;
+ BVar15 = DAT_GameCore.field77_0x144;
+ BVar20 = DAT_GameCore.field77_0x144;
+ iVar7 = DAT_GameCore.field77_0x144;
+ /*
+ added by script: "Food"
+ */
+ pcVar8 = getTextStringInGroupAtOffset(TEXT_REPORTS, 5);
+ renderTextToScreen(
+ pcVar8, iVar16, iVar9, TVar14, BVar15, iVar21, BVar20, iVar7);
+ }
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentPopulation
+ == 0) {
+ uVar10 = 0;
+ } else if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .foodTypesInStock
+ == 0) {
+ uVar10 = 0xffffff38;
+ } else {
+ iVar7 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .rationsSetting;
+ if (iVar7 == 4) {
+ uVar10 = 200;
+ } else if (iVar7 == 3) {
+ uVar10 = 100;
+ } else if (iVar7 == 2) {
+ uVar10 = 0;
+ } else if (iVar7 == 1) {
+ uVar10 = 0xffffff9c;
+ } else {
+ uVar10 = 0xffffff38;
+ if (iVar7 != 0) {
+ uVar10 = local_4;
+ }
+ }
+ }
+ iVar7 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .foodTypesCurrentlyEaten;
+ if ((iVar7 != 0) && (iVar7 != 1)) {
+ if (iVar7 == 2) {
+ uVar10 = uVar10 + 0x19;
+ } else if (iVar7 == 3) {
+ uVar10 = uVar10 + 0x32;
+ } else if (iVar7 == 4) {
+ uVar10 = uVar10 + 0x4b;
+ }
+ }
+ if (DAT_GameCore.field77_0x144 == 0) {
+ TransformAndRenderPercentage(
+ DAT_MenuHandlerState.x + 0xab, DAT_MenuHandlerState.y + 0x1da, uVar10,
+ FALSE);
+ }
+ if (DAT_GameCore.field77_0x144 == 0) {
+ iVar21 = 0x12;
+ iVar9 = DAT_MenuHandlerState.y + 499;
+ iVar16 = DAT_MenuHandlerState.x + 0xc1;
+ TVar14 = DAT_GameCore.field77_0x144;
+ BVar15 = DAT_GameCore.field77_0x144;
+ BVar20 = DAT_GameCore.field77_0x144;
+ iVar7 = DAT_GameCore.field77_0x144;
+ /*
+ added by script: "Tax"
+ */
+ pcVar8 = getTextStringInGroupAtOffset(TEXT_REPORTS, 6);
+ renderTextToScreen(
+ pcVar8, iVar16, iVar9, TVar14, BVar15, iVar21, BVar20, iVar7);
+ }
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentPopulation
+ == 0) {
+ iVar12 = 0;
+ } else if ((DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .taxesSliderUI
+ < 3)
+ && (iVar12 < 1)) {
+ iVar12 = 0x19;
+ } else {
+ iVar12 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .taxesSetting;
+ if (iVar12 == 0) {
+ iVar12 = 0xaf;
+ } else if (iVar12 == 1) {
+ iVar12 = 0x7d;
+ } else if (iVar12 == 2) {
+ iVar12 = 0x4b;
+ } else if (iVar12 == 3) {
+ iVar12 = 0x19;
+ } else if (iVar12 == 4) {
+ iVar12 = -0x32;
+ } else if (iVar12 == 5) {
+ iVar12 = -100;
+ } else if (iVar12 == 6) {
+ iVar12 = -0x96;
+ } else if (iVar12 == 7) {
+ iVar12 = -200;
+ } else if (iVar12 == 8) {
+ iVar12 = -300;
+ } else if (iVar12 == 9) {
+ iVar12 = -400;
+ } else {
+ iVar12 = (-(uint)(iVar12 != 10) & 0xffffff9c) - 500;
+ }
+ }
+ if (DAT_GameCore.field77_0x144 == 0) {
+ TransformAndRenderPercentage(
+ DAT_MenuHandlerState.x + 0xab, DAT_MenuHandlerState.y + 0x1f2, iVar12, FALSE);
+ }
+ if (DAT_GameCore.field77_0x144 == 0) {
+ iVar21 = 0x12;
+ iVar9 = DAT_MenuHandlerState.y + 0x20b;
+ iVar16 = DAT_MenuHandlerState.x + 0xc1;
+ TVar14 = DAT_GameCore.field77_0x144;
+ BVar15 = DAT_GameCore.field77_0x144;
+ BVar20 = DAT_GameCore.field77_0x144;
+ iVar7 = DAT_GameCore.field77_0x144;
+ /*
+ added by script: "Crowding"
+ */
+ pcVar8 = getTextStringInGroupAtOffset(TEXT_REPORTS, 7);
+ renderTextToScreen(
+ pcVar8, iVar16, iVar9, TVar14, BVar15, iVar21, BVar20, iVar7);
+ }
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentPopulation
+ == 0) {
+ iVar7 = 0;
+ } else {
+ iVar7 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .crowding;
+ if (iVar7 < 0x65) {
+ iVar7 = 0;
+ } else if (iVar7 < 0x79) {
+ iVar7 = -0x32;
+ } else if (iVar7 < 0x8d) {
+ iVar7 = -100;
+ } else if (iVar7 < 0xa1) {
+ iVar7 = -0x96;
+ } else {
+ iVar7 = ((0xb4 < iVar7) - 1 & 0x32) - 0xfa;
+ }
+ }
+ if (DAT_GameCore.field77_0x144 == 0) {
+ TransformAndRenderPercentage(
+ DAT_MenuHandlerState.x + 0xab, DAT_MenuHandlerState.y + 0x20a, iVar7, FALSE);
+ }
+ if (DAT_GameCore.field77_0x144 == 0) {
+ iVar17 = 0x12;
+ iVar16 = DAT_MenuHandlerState.y + 0x223;
+ iVar21 = DAT_MenuHandlerState.x + 0xc1;
+ TVar14 = DAT_GameCore.field77_0x144;
+ BVar15 = DAT_GameCore.field77_0x144;
+ BVar20 = DAT_GameCore.field77_0x144;
+ iVar9 = DAT_GameCore.field77_0x144;
+ /*
+ added by script: "Fear Factor"
+ */
+ pcVar8 = getTextStringInGroupAtOffset(TEXT_REPORTS, 0xc);
+ renderTextToScreen(
+ pcVar8, iVar21, iVar16, TVar14, BVar15, iVar17, BVar20, iVar9);
+ }
+ uVar11 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .fearFactorLevel;
+ if ((int)uVar11 < 1) {
+ if (uVar11 < 0x80000000) {
+ iVar9 = 0;
+ } else {
+ iVar9 = uVar11 * 0x19;
+ }
+ } else {
+ iVar9 = uVar11 * 0x19;
+ }
+ if (DAT_GameCore.field77_0x144 == 0) {
+ TransformAndRenderPercentage(
+ DAT_MenuHandlerState.x + 0xab, DAT_MenuHandlerState.y + 0x222, iVar9, FALSE);
+ }
+ if (DAT_GameCore.field77_0x144 == 0) {
+ iVar18 = 0x12;
+ iVar21 = DAT_MenuHandlerState.y + 0x1db;
+ iVar17 = DAT_MenuHandlerState.x + 0x163;
+ TVar14 = DAT_GameCore.field77_0x144;
+ BVar15 = DAT_GameCore.field77_0x144;
+ BVar20 = DAT_GameCore.field77_0x144;
+ iVar16 = DAT_GameCore.field77_0x144;
+ /*
+ added by script: "Religion"
+ */
+ pcVar8 = getTextStringInGroupAtOffset(TEXT_REPORTS, 10);
+ renderTextToScreen(
+ pcVar8, iVar17, iVar21, TVar14, BVar15, iVar18, BVar20, iVar16);
+ }
+ iVar16 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .blessedPeoplePercentage;
+ if (iVar16 < 0x19) {
+ iVar16 = 0;
+ } else if (iVar16 < 0x32) {
+ iVar16 = 0x32;
+ } else if (iVar16 < 0x4b) {
+ iVar16 = 100;
+ } else {
+ iVar16 = ((0x5e < iVar16) - 1 & 0xffffffce) + 200;
+ }
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].ownsChurchUnk
+ != 0) {
+ iVar16 = iVar16 + 0x19;
+ }
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .ownsCathedralUnk
+ != 0) {
+ iVar16 = iVar16 + 0x32;
+ }
+ if (DAT_GameCore.field77_0x144 == 0) {
+ TransformAndRenderPercentage(
+ DAT_MenuHandlerState.x + 0x14d, DAT_MenuHandlerState.y + 0x1da, iVar16, FALSE);
+ }
+ if (DAT_GameCore.field77_0x144 == 0) {
+ iVar19 = 0x12;
+ iVar17 = DAT_MenuHandlerState.y + 499;
+ iVar18 = DAT_MenuHandlerState.x + 0x163;
+ TVar14 = DAT_GameCore.field77_0x144;
+ BVar15 = DAT_GameCore.field77_0x144;
+ BVar20 = DAT_GameCore.field77_0x144;
+ iVar21 = DAT_GameCore.field77_0x144;
+ /*
+ added by script: "Ale coverage"
+ */
+ pcVar8 = getTextStringInGroupAtOffset(TEXT_REPORTS, 0xb);
+ renderTextToScreen(
+ pcVar8, iVar18, iVar17, TVar14, BVar15, iVar19, BVar20, iVar21);
+ }
+ iVar21 = computeAleCoverage(
+ DAT_GameSynchronyState.currentPlayerSlotID);
+ if (iVar21 < 0x19) {
+ iVar21 = 0;
+ } else if (iVar21 < 0x32) {
+ iVar21 = 0x32;
+ } else if (iVar21 < 0x4b) {
+ iVar21 = 100;
+ } else {
+ iVar21 = ((99 < iVar21) - 1 & 0xffffffce) + 200;
+ }
+ if (DAT_GameCore.field77_0x144 == 0) {
+ TransformAndRenderPercentage(
+ DAT_MenuHandlerState.x + 0x14d, DAT_MenuHandlerState.y + 0x1f2, iVar21, FALSE);
+ }
+ if ((DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .areCarnivalUnitsPresent
+ != FALSE)
+ && (DAT_RenderingDefinedData.field1049_0x556cc[local_1c][0]
+ == DAT_GameCore.field77_0x144)) {
+ iVar17
+ = DAT_RenderingDefinedData.field1049_0x556cc[local_1c][2] + DAT_MenuHandlerState.y;
+ iVar18
+ = DAT_RenderingDefinedData.field1049_0x556cc[local_1c][1] + DAT_MenuHandlerState.x;
+ iVar22 = 0;
+ BVar20 = FALSE;
+ iVar19 = 0x12;
+ BVar15 = 0;
+ TVar14 = TTA_LEFT;
+ /*
+ added by script: "Fair"
+ */
+ pcVar8 = getTextStringInGroupAtOffset(TEXT_REPORTS, 9);
+ renderTextToScreen(
+ pcVar8, iVar18, iVar17, TVar14, BVar15, iVar19, BVar20, iVar22);
+ TransformAndRenderPercentage(DAT_MenuHandlerState.x
+ + -0x16 + DAT_RenderingDefinedData.field1049_0x556cc[local_1c][1],
+ DAT_MenuHandlerState.y + -1
+ + DAT_RenderingDefinedData.field1049_0x556cc[local_1c][2],
+ 400, FALSE);
+ }
+ if ((DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].someCount58
+ != 0)
+ && (DAT_RenderingDefinedData.field1049_0x556cc[local_18][0]
+ == DAT_GameCore.field77_0x144)) {
+ iVar17
+ = DAT_RenderingDefinedData.field1049_0x556cc[local_18][2] + DAT_MenuHandlerState.y;
+ iVar18
+ = DAT_RenderingDefinedData.field1049_0x556cc[local_18][1] + DAT_MenuHandlerState.x;
+ iVar22 = 0;
+ BVar20 = FALSE;
+ iVar19 = 0x12;
+ BVar15 = 0;
+ TVar14 = TTA_LEFT;
+ /*
+ added by script: "Marriage"
+ */
+ pcVar8 = getTextStringInGroupAtOffset(TEXT_SCENARIO, 0x95);
+ renderTextToScreen(
+ pcVar8, iVar18, iVar17, TVar14, BVar15, iVar19, BVar20, iVar22);
+ TransformAndRenderPercentage(
+ DAT_RenderingDefinedData.field1049_0x556cc[local_18][1] + -0x16
+ + DAT_MenuHandlerState.x,
+ DAT_RenderingDefinedData.field1049_0x556cc[local_18][2] + -1
+ + DAT_MenuHandlerState.y,
+ (int)((
+ int)(DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .someCount58)),
+ FALSE);
+ }
+ if ((DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].someCount59
+ != 0)
+ && (DAT_RenderingDefinedData.field1049_0x556cc[local_14][0]
+ == DAT_GameCore.field77_0x144)) {
+ iVar17
+ = DAT_RenderingDefinedData.field1049_0x556cc[local_14][2] + DAT_MenuHandlerState.y;
+ iVar18
+ = DAT_RenderingDefinedData.field1049_0x556cc[local_14][1] + DAT_MenuHandlerState.x;
+ iVar22 = 0;
+ BVar20 = FALSE;
+ iVar19 = 0x12;
+ BVar15 = 0;
+ TVar14 = TTA_LEFT;
+ /*
+ added by script: "Jester"
+ */
+ pcVar8 = getTextStringInGroupAtOffset(TEXT_SCENARIO, 0x96);
+ renderTextToScreen(
+ pcVar8, iVar18, iVar17, TVar14, BVar15, iVar19, BVar20, iVar22);
+ TransformAndRenderPercentage(
+ DAT_RenderingDefinedData.field1049_0x556cc[local_14][1] + -0x16
+ + DAT_MenuHandlerState.x,
+ DAT_RenderingDefinedData.field1049_0x556cc[local_14][2] + -1
+ + DAT_MenuHandlerState.y,
+ (int)((
+ int)(DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .someCount59)),
+ FALSE);
+ }
+ if ((DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].someCount54
+ != 0)
+ && (DAT_RenderingDefinedData.field1049_0x556cc[local_10][0]
+ == DAT_GameCore.field77_0x144)) {
+ iVar17
+ = DAT_RenderingDefinedData.field1049_0x556cc[local_10][2] + DAT_MenuHandlerState.y;
+ iVar18
+ = DAT_RenderingDefinedData.field1049_0x556cc[local_10][1] + DAT_MenuHandlerState.x;
+ iVar22 = 0;
+ BVar20 = FALSE;
+ iVar19 = 0x12;
+ BVar15 = 0;
+ TVar14 = TTA_LEFT;
+ /*
+ added by script: "Plague"
+ */
+ pcVar8 = getTextStringInGroupAtOffset(TEXT_SCENARIO, 0x8b);
+ renderTextToScreen(
+ pcVar8, iVar18, iVar17, TVar14, BVar15, iVar19, BVar20, iVar22);
+ TransformAndRenderPercentage(
+ DAT_RenderingDefinedData.field1049_0x556cc[local_10][1] + -0x16
+ + DAT_MenuHandlerState.x,
+ DAT_RenderingDefinedData.field1049_0x556cc[local_10][2] + -1
+ + DAT_MenuHandlerState.y,
+ (int)((
+ int)(DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .someCount54)),
+ FALSE);
+ }
+ if ((DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].someCount55
+ != 0)
+ && (DAT_RenderingDefinedData.field1049_0x556cc[local_c][0]
+ == DAT_GameCore.field77_0x144)) {
+ iVar17
+ = DAT_RenderingDefinedData.field1049_0x556cc[local_c][2] + DAT_MenuHandlerState.y;
+ iVar18
+ = DAT_RenderingDefinedData.field1049_0x556cc[local_c][1] + DAT_MenuHandlerState.x;
+ iVar22 = 0;
+ BVar20 = FALSE;
+ iVar19 = 0x12;
+ BVar15 = 0;
+ TVar14 = TTA_LEFT;
+ /*
+ added by script: "Lion Attack"
+ */
+ pcVar8 = getTextStringInGroupAtOffset(TEXT_SCENARIO, 0x91);
+ renderTextToScreen(
+ pcVar8, iVar18, iVar17, TVar14, BVar15, iVar19, BVar20, iVar22);
+ TransformAndRenderPercentage(DAT_MenuHandlerState.x
+ + -0x16 + DAT_RenderingDefinedData.field1049_0x556cc[local_c][1],
+ DAT_MenuHandlerState.y + -1
+ + DAT_RenderingDefinedData.field1049_0x556cc[local_c][2],
+ (int)((
+ int)(DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .someCount55)),
+ FALSE);
+ }
+ if ((DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].someCount56
+ != 0)
+ && (DAT_RenderingDefinedData.field1049_0x556cc[local_8][0]
+ == DAT_GameCore.field77_0x144)) {
+ iVar17
+ = DAT_RenderingDefinedData.field1049_0x556cc[local_8][2] + DAT_MenuHandlerState.y;
+ iVar18
+ = DAT_RenderingDefinedData.field1049_0x556cc[local_8][1] + DAT_MenuHandlerState.x;
+ iVar22 = 0;
+ BVar20 = FALSE;
+ iVar19 = 0x12;
+ BVar15 = 0;
+ TVar14 = TTA_LEFT;
+ /*
+ added by script: "Bandits"
+ */
+ pcVar8 = getTextStringInGroupAtOffset(TEXT_SCENARIO, 0x92);
+ renderTextToScreen(
+ pcVar8, iVar18, iVar17, TVar14, BVar15, iVar19, BVar20, iVar22);
+ TransformAndRenderPercentage(
+ DAT_RenderingDefinedData.field1049_0x556cc[local_8][1] + -0x16
+ + DAT_MenuHandlerState.x,
+ DAT_RenderingDefinedData.field1049_0x556cc[local_8][2] + -1
+ + DAT_MenuHandlerState.y,
+ (int)((
+ int)(DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .someCount56)),
+ FALSE);
+ }
+ if ((DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].someCount57
+ != 0)
+ && (DAT_RenderingDefinedData.field1049_0x556cc[local_4][0]
+ == DAT_GameCore.field77_0x144)) {
+ iVar17
+ = DAT_RenderingDefinedData.field1049_0x556cc[local_4][2] + DAT_MenuHandlerState.y;
+ iVar18
+ = DAT_RenderingDefinedData.field1049_0x556cc[local_4][1] + DAT_MenuHandlerState.x;
+ iVar22 = 0;
+ BVar20 = FALSE;
+ iVar19 = 0x12;
+ BVar15 = 0;
+ TVar14 = TTA_LEFT;
+ /*
+ added by script: "Fire!"
+ */
+ pcVar8 = getTextStringInGroupAtOffset(TEXT_SCENARIO, 0xb3);
+ renderTextToScreen(
+ pcVar8, iVar18, iVar17, TVar14, BVar15, iVar19, BVar20, iVar22);
+ TransformAndRenderPercentage(
+ DAT_RenderingDefinedData.field1049_0x556cc[local_4][1] + -0x16
+ + DAT_MenuHandlerState.x,
+ DAT_RenderingDefinedData.field1049_0x556cc[local_4][2] + -1
+ + DAT_MenuHandlerState.y,
+ (int)((
+ int)(DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .someCount57)),
+ FALSE);
+ }
+ iVar22 = 0;
+ BVar20 = FALSE;
+ iVar19 = 0x12;
+ BVar15 = 0;
+ TVar14 = TTA_LEFT;
+ iVar17 = DAT_MenuHandlerState.y + 0x241;
+ iVar18 = DAT_MenuHandlerState.x + 0xdc;
+ /*
+ added by script: "In the coming month"
+ */
+ pcVar8 = getTextStringInGroupAtOffset(TEXT_REPORTS, 4);
+ renderTextToScreen(
+ pcVar8, iVar18, iVar17, TVar14, BVar15, iVar19, BVar20, iVar22);
+ TransformAndRenderPercentage(
+ DAT_TextManagerObject.currentXOffset_0x0 + 0xfa + DAT_MenuHandlerState.x,
+ DAT_MenuHandlerState.y + 0x241, local_2c + uVar10 + iVar12 + iVar7 + iVar9 + iVar16 + iVar21,
+ TRUE);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+}
+}
+

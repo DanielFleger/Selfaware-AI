@@ -1,0 +1,1224 @@
+### 0x00532ba0 recomputeTroopValuesForPlayer | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00532BA0
+ void UnitsState::recomputeTroopValuesForPlayer(int playerID)
+ {
+ int* piVar1;
+ Unit* _pUnit;
+ int _troopValue;
+ int _troopValue_2;
+ int _troopValue_3;
+ int _troopValue_4;
+ int _enemyNumber;
+ UnitTypeShort* _unitType;
+ bool bVar2;
+ int _unitID;
+ UnitTypeShort _unitType_2;
+ UnitTypeShort _yPosition;
+ UnitTypeShort _unitPlayerID;
+ UnitTypeShort _unitType_3;
+ int* _pTotalTeamTroopValue;
+ int _campfireX;
+ int _campfireY;
+ undefined4 _unit_field_0x98;
+ UnitTypeShort _xPosition;
+ _campfireY = DAT_GameState.playerDataArray[playerID].campground.yEntry;
+ bVar2 = DAT_GameSynchronyState.currentGameMode == GM_SOLITARY;
+ DAT_GameState.playerDataArray[playerID].enemies = 0;
+ DAT_GameState.playerDataArray[playerID].totalEnemyUnitsCount = 0;
+ DAT_GameState.playerDataArray[playerID].sumOfTotalEnemyUnitsCount = 0;
+ _campfireX = DAT_GameState.playerDataArray[playerID].campground.xEntry;
+ DAT_GameState.playerDataArray[playerID].totalEnemyTroopValueByPlayerID[1] = 0;
+ DAT_GameState.playerDataArray[playerID].totalEnemyTroopValueByPlayerID[2] = 0;
+ DAT_GameState.playerDataArray[playerID].totalEnemyTroopValueByPlayerID[3] = 0;
+ DAT_GameState.playerDataArray[playerID].totalEnemyTroopValueByPlayerID[4] = 0;
+ DAT_GameState.playerDataArray[playerID].totalEnemyTroopValueByPlayerID[5] = 0;
+ DAT_GameState.playerDataArray[playerID].totalEnemyTroopValueByPlayerID[6] = 0;
+ DAT_GameState.playerDataArray[playerID].totalEnemyTroopValueByPlayerID[7] = 0;
+ DAT_GameState.playerDataArray[playerID].totalEnemyTroopValueByPlayerID[8] = 0;
+ DAT_GameState.playerDataArray[playerID].totalEnemyTroopValue = 0;
+ DAT_GameState.playerDataArray[playerID].totalTeamTroopValue = 0;
+ DAT_GameState.playerDataArray[playerID].totalEnemyRangedTroopValue = 0;
+ if ((((bVar2) || (playerID == 0))
+ || (DAT_GameSynchronyState.currentPlayerFullIDArray[playerID] != -1))
+ || (DAT_GameSynchronyState.currentAIArray[playerID] != 0)) {
+ fillMemory_ByteValue(
+ 5000, '\0', (void*)((int)(DAT_GameState.playerDataArray[playerID].enemyIDArray)));
+ _unitID = 1;
+ if (1 < (int)this->maxUnitCount) {
+ _pUnit = &this->units[1];
+ _unitType = &this->units[1].unitType;
+ do {
+ /*
+ dying[-0x10a] == logicalState
+ */
+ if (((_pUnit->logicalState == ULS_NORMAL) && (_pUnit->dying == 0))
+ && (_pUnit->unknownTestAgainst0_2 == 0)) {
+ /*
+ dying[-0x105] == unit playerID
+ */
+ if (DAT_GameState.mapAndTime.playerTeams[_pUnit->owner]
+ == DAT_GameState.mapAndTime.playerTeams[playerID]) {
+ if (_pUnit->isSelectable_OR_matchTime == 0)
+ goto CODE_continueToNextUnit;
+ setAxisBasedDistanceResult(_campfireX, _campfireY,
+ (int)((int)((short)_unitType[0x1b])), (int)((int)((short)_unitType[0x1c])));
+ if (DAT_DirectionAlgorithmState.distanceHigh < 60) {
+ _troopValue = getValueOfTroopType((int)(short)*_unitType);
+ _pTotalTeamTroopValue
+ = &DAT_GameState.playerDataArray[playerID].totalTeamTroopValue;
+ *_pTotalTeamTroopValue = *_pTotalTeamTroopValue + _troopValue;
+ }
+ } else {
+ /*
+ unit not in our team dying[-0x109] == unitType
+ */
+ _unitType_2 = _pUnit->unitType;
+ switch (_unitType_2) {
+ case UT_TRADER:
+ case UT_TRADERHORSE:
+ case UT_CAMELSHBEAR:
+ case UT_GHOST:
+ case UT_MOTHER:
+ case UT_CHILD:
+ break;
+ default : if (_pUnit->owner != 0)
+ {
+ switch (_unitType_2) {
+ case UT_S_CATAPULT:
+ case UT_S_TREBUCHET:
+ case UT_S_MANGONEL:
+ case UT_S_TOWER:
+ case UT_S_SHIELD:
+ case UT_S_BALLISTA:
+ case UT_S_FBALLISTA:
+ /*
+ count of currently manning engineers
+ */
+ if (_pUnit
+ ->digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300
+ == 0)
+ goto switchD_00532d4a_caseD_2a;
+ }
+ /*
+ dying[2] == isSelectable
+ */
+ if (_pUnit->isSelectable_OR_matchTime == 0) {
+ if (_unitType_2 == UT_LORD) {
+ piVar1 = &DAT_GameState.playerDataArray[playerID]
+ .totalEnemyUnitsCount;
+ *piVar1 = *piVar1 + 1;
+ }
+ } else {
+ _yPosition = _unitType[0x1c];
+ _xPosition = _unitType[0x1b];
+ piVar1 = &DAT_GameState.playerDataArray[playerID]
+ .totalEnemyUnitsCount;
+ *piVar1 = *piVar1 + 1;
+ MACRO_CALL_MEMBER(
+ setAxisBasedDistanceResult,
+ DAT_DirectionAlgorithmState)(_campfireX, _campfireY,
+ (int)((int)((short)_xPosition)), (int)((int)((short)_yPosition)));
+ /*
+ unitType[4] == playerID
+ */
+ /*
+ dying[0xc9] == siegeTargetPlayerID
+ */
+ if ((DAT_DirectionAlgorithmState.distanceHigh < 60)
+ && (((DAT_GameSynchronyState
+ .currentPlayerFullIDArray[(short)_unitType[4]]
+ != -1
+ || (DAT_GameSynchronyState
+ .currentAIArray[(short)_unitType[4]]
+ == 0))
+ || (_pUnit->siegeTargetPlayerID == playerID)))) {
+ _unitPlayerID = _unitType[4];
+ piVar1 = DAT_GameState.playerDataArray[playerID]
+ .totalEnemyTroopValueByPlayerID
+ + (short)_unitPlayerID;
+ _troopValue_2 = getValueOfTroopType((int)(short)*_unitType);
+ *piVar1 = *piVar1 + _troopValue_2;
+ _troopValue_3 = getValueOfTroopType((int)(short)*_unitType);
+ piVar1 = &DAT_GameState.playerDataArray[playerID]
+ .totalEnemyTroopValue;
+ *piVar1 = *piVar1 + _troopValue_3;
+ _unitType_3 = *_unitType;
+ if (((((_unitType_3 != UT_E_ARCHER)
+ && (_unitType_3 != UT_E_XBOW))
+ && (_unitType_3 != UT_A_ARCHER))
+ && ((_unitType_3 != UT_A_SLINGER
+ && (_unitType_3 != UT_A_HARCHER))))
+ && (_unitType_3 != UT_A_FIRETHROWER)) {
+ _troopValue_4 = getValueOfTroopType((int)(short)_unitType_3);
+ piVar1 = &DAT_GameState.playerDataArray[playerID]
+ .totalEnemyRangedTroopValue;
+ *piVar1 = *piVar1 + _troopValue_4;
+ }
+ }
+ }
+ }
+ _enemyNumber = DAT_GameState.playerDataArray[playerID].enemies;
+ if (_enemyNumber < 2499) {
+ DAT_GameState.playerDataArray[playerID].enemies = _enemyNumber + 1;
+ } else {
+ _enemyNumber = (int)SEC_RNG::instance.currentNumber2 % 2500;
+ nextRandomNumber2();
+ if (2499 < _enemyNumber)
+ break;
+ }
+ _unit_field_0x98 = *(undefined4*)(_unitType + 5);
+ DAT_GameState.playerDataArray[playerID].enemyIDArray[_enemyNumber]
+ = (short)_unitID;
+ DAT_GameState.mapAndTime
+ .playerEnemenyUnitUIDShortList[playerID][_enemyNumber] = _unit_field_0x98;
+ }
+ }
+ switchD_00532d4a_caseD_2a:
+ }
+ CODE_continueToNextUnit:
+ _unitID = _unitID + 1;
+ _pUnit = _pUnit + 0x248;
+ _unitType = _unitType + 0x248;
+ } while (_unitID < (int)this->maxUnitCount);
+ }
+ piVar1 = &DAT_GameState.playerDataArray[playerID].sumOfTotalEnemyUnitsCount;
+ *piVar1 = *piVar1 + DAT_GameState.playerDataArray[playerID].totalEnemyUnitsCount;
+ }
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00532ba0", "name": "recomputeTroopValuesForPlayer", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Zählt für einen Spieler die Truppenwerte eigener Mannschaft und aller Feinde im Umkreis seines Lagers."}, "p2": {"ein": "playerID", "aus": "nichts", "liest": ["units[1..maxUnitCount].logicalState/dying/owner/unitType/isSelectable_OR_matchTime/x/y/siegeTargetPlayerID", "unknownTestAgainst0_2", "playerDataArray[].campground.xEntry/yEntry", "mapAndTime.playerTeams", "currentPlayerFullIDArray", "currentAIArray", "getValueOfTroopType"], "schreibt": ["playerDataArray[].enemies", "totalEnemyUnitsCount", "sumOfTotalEnemyUnitsCount", "totalEnemyTroopValueByPlayerID[1..8]", "totalEnemyTroopValue", "totalTeamTroopValue", "totalEnemyRangedTroopValue", "enemyIDArray[0..2499]", "mapAndTime.playerEnemenyUnitUIDShortList"], "ruft": ["fillMemory_ByteValue", "setAxisBasedDistanceResult", "getValueOfTroopType", "nextRandomNumber2"], "regeln": ["Setzt zuerst alle Zähler des Spielers auf 0 und leert enemyIDArray (5000 Byte)", "Läuft nur, wenn Spielmodus GM_SOLITARY, playerID 0, der Platz nicht leer (currentPlayerFullIDArray != -1) oder eine KI (currentAIArray != 0) ist", "Zählt nur Einheiten im Normalzustand, nicht sterbend und mit unknownTestAgainst0_2 gleich 0", "Gleiche Mannschaft: ist die Einheit auswählbar und der Abstand zum Lagereingang (distanceHigh) unter 60, wird ihr Truppenwert zu totalTeamTroopValue addiert", "Feind: ausgenommen Händler, Händlerpferd, Kamel, Geist, Mutter, Kind und Besitzer 0; Belagerungsgerät ohne Bedienung wird übersprungen", "Feindlicher Lord zählt auch nicht auswählbar in totalEnemyUnitsCount; andere Feinde nur wenn auswählbar", "Feind mit Abstand unter 60 zum Lagereingang und (Besitzer ist Mensch oder keine KI, oder Ziel der Belagerung ist playerID): Wert in totalEnemyTroopValueByPlayerID[Besitzer] und totalEnemyTroopValue; Einheiten, die kein Bogenschütze/Armbrust/Schleuderer/Pferdebogen/Feuerwerfer sind, zählen in totalEnemyRangedTroopValue", "Feinde werden in enemyIDArray (höchstens 2500 Plätze) mit ihrer UID eingetragen; zum Schluss wird totalEnemyUnitsCount auf sumOfTotalEnemyUnitsCount addiert"], "offen": ["Maß von distanceHigh (achsenbasierter Abstand) und ob die Zahl 60 Felder bedeutet", "Ghidra-Klammern sind verrutscht: ob der Eintrag in enemyIDArray für alle Feinde oder nur für die im Umkreis gilt", "Feld isSelectable_OR_matchTime: Doppelname, Bedeutung im Spielverlauf unklar"]}, "p3": {"erklaerung": "Das Spiel misst regelmäßig, wie stark die eigene Mannschaft und die Feinde in der Nähe des Lagerfeuers sind. Diese Werte steuern vermutlich die Entscheidungen der KI.", "gehirn": "totalEnemyTroopValue und totalTeamTroopValue geben ein fertiges Stärkeverhältnis im Lagerumkreis. Der Name totalEnemyRangedTroopValue täuscht: Er zählt die Nicht-Fernkämpfer. Nicht ohne Gegenprobe nutzen.", "beleg": "code", "live": "Feindliche Truppen im Umkreis des Lagers erscheinen lassen → playerDataArray[sp].totalEnemyTroopValue und totalEnemyRangedTroopValue lesen → totalEnemyRangedTroopValue wächst nur bei Nahkämpfern", "live_art": "kampf"}}
+
+### 0x005330a0 setRandomShootLocation | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x005330A0
+ void UnitsState::setRandomShootLocation(int unitID, int microX, int microY, int z)
+ {
+ int _microX;
+ int _microY;
+ int iVar1;
+ uint uVar2;
+ int iVar3;
+ int iVar4;
+ uint uVar5;
+ int _microXDiff;
+ uint _rng;
+ int _unitID;
+ UnitTypeShort _unitType;
+ _unitID = unitID;
+ _microX = (int)this->units[unitID].microXPosition;
+ if (_microX < microX) {
+ _microXDiff = microX - _microX;
+ } else {
+ _microXDiff = _microX - microX;
+ }
+ _microY = (int)this->units[unitID].microYPosition;
+ if (_microY < microY) {
+ /*
+ unitID becomes _microYDiff
+ */
+ unitID = microY - _microY;
+ } else {
+ unitID = _microY - microY;
+ }
+ if (unitID <= _microXDiff) {
+ unitID = _microXDiff;
+ }
+ _rng = (uint)SEC_RNG::instance.currentNumber2;
+ nextRandomNumber2();
+ _unitType = this->units[_unitID].unitType;
+ uVar2 = (int)_rng >> 0x1f;
+ if (_unitType == UT_S_TREBUCHET) {
+ iVar4 = 0;
+ if ((_rng & 3) == 0) {
+ iVar4 = (int)_rng % 0x60 + -0x30;
+ }
+ iVar1 = _rng + (uVar2 & 0xff);
+ iVar1 = (int)(CONCAT44(iVar1 >> 0x1f, iVar1 >> 8) % 0x60) + -0x30;
+ uVar2 = (int)(_rng + (uVar2 & 0x7f)) >> 7 & 0x8000001f;
+ if ((int)uVar2 < 0) {
+ uVar2 = (uVar2 - 1 | 0xffffffe0) + 1;
+ }
+ z = z + -0x10 + uVar2;
+ } else if (_unitType == UT_S_CATAPULT) {
+ uVar5 = _rng & 0x8000007f;
+ if ((int)uVar5 < 0) {
+ uVar5 = (uVar5 - 1 | 0xffffff80) + 1;
+ }
+ iVar1 = _rng + (uVar2 & 0xff);
+ iVar4 = uVar5 - 0x60;
+ iVar1 = (int)(CONCAT44(iVar1 >> 0x1f, iVar1 >> 8) % 0x60) + -0x30;
+ uVar2 = (int)(_rng + (uVar2 & 0x7f)) >> 7 & 0x8000003f;
+ if ((int)uVar2 < 0) {
+ uVar2 = (uVar2 - 1 | 0xffffffc0) + 1;
+ }
+ z = z + -0x30 + uVar2;
+ } else if (_unitType == UT_S_MANGONEL) {
+ iVar4 = (int)_rng % 0xe0 + -0x70;
+ uVar5 = (int)(_rng + (uVar2 & 0xff)) >> 8 & 0x8000007f;
+ if ((int)uVar5 < 0) {
+ uVar5 = (uVar5 - 1 | 0xffffff80) + 1;
+ }
+ iVar1 = uVar5 - 0x40;
+ uVar2 = (int)(_rng + (uVar2 & 0x7f)) >> 7 & 0x8000007f;
+ if ((int)uVar2 < 0) {
+ uVar2 = (uVar2 - 1 | 0xffffff80) + 1;
+ }
+ z = z + -0x40 + uVar2;
+ } else if (_unitType == UT_S_BALLISTA) {
+ if (this->units[_unitID].targetingType == UIT_ATTACK_LAND) {
+ uVar5 = _rng & 0x8000001f;
+ if ((int)uVar5 < 0) {
+ uVar5 = (uVar5 - 1 | 0xffffffe0) + 1;
+ }
+ iVar1 = _rng + (uVar2 & 0xff);
+ iVar4 = uVar5 - 0x18;
+ iVar3 = _rng + (uVar2 & 0x7f);
+ iVar1 = (int)(CONCAT44(iVar1 >> 0x1f, iVar1 >> 8) % 0x28) + -0x14;
+ z = z + -0x14 + (int)(CONCAT44(iVar3 >> 0x1f, iVar3 >> 7) % 0x28);
+ } else {
+ iVar4 = 0;
+ iVar1 = 0;
+ }
+ } else if ((_unitType == UT_S_FBALLISTA)
+ && (this->units[_unitID].targetingType != UIT_ATTACK_LAND)) {
+ iVar3 = _rng + (uVar2 & 0x7f);
+ iVar4 = 0;
+ iVar1 = 0;
+ z = z + (int)(CONCAT44(iVar3 >> 0x1f, iVar3 >> 7) % 0x1e);
+ } else {
+ iVar1 = _rng + (uVar2 & 0xff);
+ iVar4 = (int)_rng % 0x60 + -0x30;
+ iVar3 = _rng + (uVar2 & 0x7f);
+ iVar1 = (int)(CONCAT44(iVar1 >> 0x1f, iVar1 >> 8) % 0x50) + -0x28;
+ z = z + -0x28 + (int)(CONCAT44(iVar3 >> 0x1f, iVar3 >> 7) % 0x50);
+ }
+ if (z < 8) {
+ z = 8;
+ } else if (250 < z) {
+ z = 250;
+ }
+ if (unitID / 2 < iVar4) {
+ iVar4 = iVar4 / 2;
+ iVar1 = iVar1 / 2;
+ }
+ if (unitID < iVar4) {
+ iVar4 = -iVar4;
+ }
+ switch (this->units[_unitID].facingDirection) {
+ case 0:
+ microY = microY + iVar4;
+ microX = microX + iVar1;
+ break;
+ case 1:
+ iVar3 = (int)(iVar1 * 3 + (iVar1 * 3 >> 0x1f & 3U)) >> 2;
+ iVar1 = (int)(iVar4 * 3 + (iVar4 * 3 >> 0x1f & 3U)) >> 2;
+ microX = microX + (iVar3 - iVar1);
+ microY = microY + iVar1 + iVar3;
+ break;
+ case 2:
+ microX = microX - iVar4;
+ goto LAB_0053344e;
+ case 3:
+ iVar1 = (int)(iVar1 * 3 + (iVar1 * 3 >> 0x1f & 3U)) >> 2;
+ iVar3 = -((int)(iVar4 * 3 + (iVar4 * 3 >> 0x1f & 3U)) >> 2) - iVar1;
+ goto LAB_00533440;
+ case 4:
+ microY = microY - iVar4;
+ microX = microX + iVar1;
+ break;
+ case 5:
+ iVar1 = (int)(iVar1 * 3 + (iVar1 * 3 >> 0x1f & 3U)) >> 2;
+ iVar3 = ((int)(iVar4 * 3 + (iVar4 * 3 >> 0x1f & 3U)) >> 2) - iVar1;
+ iVar1 = -iVar1;
+ LAB_00533440:
+ microX = microX + iVar3;
+ iVar1 = iVar1 - ((int)(iVar4 * 3 + (iVar4 * 3 >> 0x1f & 3U)) >> 2);
+ goto LAB_0053344e;
+ case 6:
+ microX = microX + iVar4;
+ LAB_0053344e:
+ microY = microY + iVar1;
+ break;
+ case 7:
+ iVar3 = (int)(iVar1 * 3 + (iVar1 * 3 >> 0x1f & 3U)) >> 2;
+ iVar1 = (int)(iVar4 * 3 + (iVar4 * 3 >> 0x1f & 3U)) >> 2;
+ microX = microX + iVar1 + iVar3;
+ microY = microY + (iVar1 - iVar3);
+ }
+ this->units[_unitID].shootTargetZ = (short)z;
+ this->units[_unitID].shootTargetMicroY = (short)microY;
+ this->units[_unitID].shootTargetMicroX = (short)microX;
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x005330a0", "name": "setRandomShootLocation", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Würfelt den Zufallsversatz (Streuung) für den Einschlagpunkt eines Schusses."}, "p2": {"ein": "unitID, microX, microY, z (Zielpunkt)", "aus": "-", "liest": ["units[id].microXPosition/microYPosition/unitType/targetingType/facingDirection", "SEC_RNG.currentNumber2"], "schreibt": ["units[id].shootTargetMicroX/MicroY/Z", "SEC_RNG (nextRandomNumber2)"], "ruft": ["nextRandomNumber2"], "regeln": ["Abstand = größerer Achsenabstand zwischen Schütze und Ziel", "Trebuchet: in 1 von 4 Fällen Versatz rng%96-48, sonst 0; zweiter Versatz (rng>>8)%96-48; z -16 bis +15", "Catapult: Versatz (rng&127)-96 (also -96 bis +31); zweiter (rng>>8)%96-48; z -48 bis +15", "Mangonel: Versatz rng%224-112; zweiter (rng>>8)&127 minus 64; z -64 bis +63", "Ballista bei UIT_ATTACK_LAND: Versatz (rng&31)-24; zweiter (rng>>8)%40-20; z -20 bis +19; sonst kein Versatz", "UT_S_FBALLISTA ohne UIT_ATTACK_LAND: kein Seitenversatz, z nur +0 bis +29", "Alle anderen (auch FBALLISTA bei ATTACK_LAND): Versatz rng%96-48; zweiter (rng>>8)%80-40; z -40 bis +39", "z wird auf 8 bis 250 begrenzt", "Ist der erste Versatz größer als der halbe Abstand, werden beide halbiert; ist er größer als der volle Abstand, wird er negativ", "Beide Versätze werden je nach facingDirection (0-7) auf X und Y verteilt, Diagonalen mit Faktor 3/4"], "offen": ["Welcher Versatz vorn/hinten und welcher seitlich wirkt", "Aufrufer"]}, "p3": {"erklaerung": "Belagerungsmaschinen und Schützen treffen nicht genau: Der Einschlagpunkt streut zufällig, je nach Maschine verschieden stark. Bei kurzer Entfernung streut er weniger.", "gehirn": "Streuweiten je Maschine als Treffergenauigkeit einplanen: Mangonel streut am meisten, Ballista am wenigsten.", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x005347e0 applyDragBoxSelectionByPriority | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x005347E0
+ void UnitsState::applyDragBoxSelectionByPriority()
+ {
+ short sVar1;
+ UnitTypeShort UVar2;
+ UnitStateShort UVar3;
+ uint uVar4;
+ int iVar5;
+ int iVar6;
+ int iVar7;
+ bool bVar8;
+ int local_3c;
+ uint local_38;
+ int local_34;
+ int local_30;
+ int local_2c;
+ int local_28;
+ int local_24;
+ int local_20;
+ int local_1c;
+ int local_18;
+ int local_14;
+ LONG local_10;
+ LONG local_c;
+ LONG local_8;
+ LONG local_4;
+ this->field14_0x55c = 0;
+ local_3c = 0;
+ local_30 = 0;
+ local_2c = 0;
+ local_28 = 0;
+ local_24 = 0;
+ local_20 = 0;
+ local_1c = 0;
+ local_18 = 0;
+ local_14 = 0;
+ local_38 = 0;
+ local_34 = 0;
+ if (DAT_MouseState.selectionBox.right < DAT_MouseState.selectionBox.left) {
+ local_8 = DAT_MouseState.selectionBox.right;
+ local_10 = DAT_MouseState.selectionBox.left;
+ } else {
+ local_8 = DAT_MouseState.selectionBox.left;
+ local_10 = DAT_MouseState.selectionBox.right;
+ }
+ if (DAT_MouseState.selectionBox.bottom < DAT_MouseState.selectionBox.top) {
+ local_4 = DAT_MouseState.selectionBox.bottom;
+ local_c = DAT_MouseState.selectionBox.top;
+ } else {
+ local_4 = DAT_MouseState.selectionBox.top;
+ local_c = DAT_MouseState.selectionBox.bottom;
+ }
+ DAT_CurrentUnitSlotID = 1;
+ if (1 < (int)this->maxUnitCount) {
+ do {
+ if (((((this->units[DAT_CurrentUnitSlotID].logicalState
+ == ULS_NORMAL)
+ && (this->units[DAT_CurrentUnitSlotID].dying == 0))
+ && (this->units[DAT_CurrentUnitSlotID].isSelectable_OR_matchTime != 0))
+ && ((this->units[DAT_CurrentUnitSlotID].unknownTestAgainst0_2 == 0
+ && (this->units[DAT_CurrentUnitSlotID].state.generic
+ != US_JESTER_ROAM_TO))))
+ && ((sVar1 = this->units[DAT_CurrentUnitSlotID].drawX,
+ sVar1 != 0 || (this->units[DAT_CurrentUnitSlotID].drawY != 0)))) {
+ iVar5 = (int)this->units[DAT_CurrentUnitSlotID].drawXOffset;
+ if ((((sVar1 + iVar5 < local_10)
+ && ((int)this->units[DAT_CurrentUnitSlotID].drawY
+ + (int)this->units[DAT_CurrentUnitSlotID].someDrawYOffset
+ < local_c))
+ && (local_8 <= (int)this->units[DAT_CurrentUnitSlotID].spriteWidthUnk
+ + (int)sVar1 + iVar5))
+ && ((local_4 <= (int)this->units[DAT_CurrentUnitSlotID].spriteHeightUnk
+ + (int)this->units[DAT_CurrentUnitSlotID].drawY
+ + (int)this->units[DAT_CurrentUnitSlotID].someDrawYOffset
+ && ((UVar2 = this->units[DAT_CurrentUnitSlotID].unitType,
+ UVar2 != UT_TUNNELER
+ || ((UVar3 = this->units[DAT_CurrentUnitSlotID].state.generic,
+ UVar3 != US_LOOK_AROUNDUnk
+ && (UVar3 != US_STAND_UPUnk)))))))) {
+ sVar1 = this->units[DAT_CurrentUnitSlotID].owner;
+ if (sVar1 == DAT_GameSynchronyState.currentPlayerSlotID) {
+ if (UVar2 == UT_LORD) {
+ local_38 = DAT_CurrentUnitSlotID;
+ LAB_00534999:
+ local_3c = local_3c + 1;
+ } else {
+ local_34 = local_34 + 1;
+ if (UVar2 == UT_S_CATAPULT) {
+ local_30 = local_30 + 1;
+ } else if (UVar2 == UT_S_TREBUCHET) {
+ local_2c = local_2c + 1;
+ } else if (UVar2 == UT_S_TOWER) {
+ local_28 = local_28 + 1;
+ } else if (UVar2 == UT_S_BATTERINGRAM) {
+ local_24 = local_24 + 1;
+ } else if (UVar2 == UT_S_SHIELD) {
+ local_20 = local_20 + 1;
+ } else if (UVar2 == UT_S_MANGONEL) {
+ local_1c = local_1c + 1;
+ } else if (UVar2 == UT_S_BALLISTA) {
+ local_18 = local_18 + 1;
+ } else {
+ if (UVar2 != UT_S_FBALLISTA)
+ goto LAB_00534999;
+ local_14 = local_14 + 1;
+ }
+ }
+ } else if (sVar1 != 0) {
+ this->field14_0x55c = (int)sVar1;
+ }
+ }
+ }
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1;
+ } while ((int)DAT_CurrentUnitSlotID < (int)this->maxUnitCount);
+ if ((local_38 != 0) && (local_34 != 0)) {
+ local_3c = local_3c + -1;
+ local_38 = 0;
+ }
+ if (((((local_3c != 0) || (local_30 != 0)) || (local_2c != 0)) || ((local_28 != 0 || (local_24 != 0))))
+ || (((local_20 != 0 || ((local_1c != 0 || (local_18 != 0)))) || (local_14 != 0)))) {
+ local_14 = 0;
+ goto LAB_00534a7c;
+ }
+ }
+ local_14 = 9;
+ LAB_00534a7c:
+ this->totalUnitsInSelection = 0;
+ DAT_CurrentUnitSlotID = 1;
+ if (1 < (int)this->maxUnitCount) {
+ do {
+ this->units[DAT_CurrentUnitSlotID].isSelected = 0;
+ if ((((this->units[DAT_CurrentUnitSlotID].logicalState == ULS_NORMAL)
+ && (this->units[DAT_CurrentUnitSlotID].dying == 0))
+ && (this->units[DAT_CurrentUnitSlotID].isSelectable_OR_matchTime != 0))
+ && (((this->units[DAT_CurrentUnitSlotID].unknownTestAgainst0_2 == 0
+ && (this->units[DAT_CurrentUnitSlotID].state.generic
+ != US_JESTER_ROAM_TO))
+ && ((sVar1 = this->units[DAT_CurrentUnitSlotID].drawX,
+ sVar1 != 0 || (this->units[DAT_CurrentUnitSlotID].drawY != 0)))))) {
+ iVar5 = (int)this->units[DAT_CurrentUnitSlotID].drawXOffset;
+ if (sVar1 + iVar5 < local_10) {
+ iVar7 = (int)this->units[DAT_CurrentUnitSlotID].someDrawYOffset;
+ iVar6 = (int)this->units[DAT_CurrentUnitSlotID].drawY;
+ if (((iVar6 + iVar7 < local_c)
+ && (local_8 <= (int)this->units[DAT_CurrentUnitSlotID].spriteWidthUnk
+ + (int)sVar1 + iVar5))
+ && ((local_4
+ <= this->units[DAT_CurrentUnitSlotID].spriteHeightUnk + iVar6 + iVar7
+ && ((UVar2 = this->units[DAT_CurrentUnitSlotID].unitType,
+ UVar2 != UT_TUNNELER
+ || ((UVar3 = this->units[DAT_CurrentUnitSlotID].state.generic,
+ UVar3 != US_LOOK_AROUNDUnk
+ && (UVar3 != US_STAND_UPUnk)))))))) {
+ switch (local_14) {
+ case 0:
+ if (this->units[DAT_CurrentUnitSlotID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ uVar4 = local_38;
+ if (UVar2 == UT_LORD)
+ goto LAB_00534bc5;
+ goto LAB_00534bcb;
+ }
+ break;
+ case 1:
+ if (this->units[DAT_CurrentUnitSlotID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ bVar8 = UVar2 == UT_S_CATAPULT;
+ LAB_00534bf6:
+ if (bVar8) {
+ this->units[DAT_CurrentUnitSlotID].isSelected = 1;
+ this->totalUnitsInSelection = this->totalUnitsInSelection + 1;
+ }
+ }
+ break;
+ case 2:
+ if (this->units[DAT_CurrentUnitSlotID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ bVar8 = UVar2 == UT_S_TREBUCHET;
+ goto LAB_00534bf6;
+ }
+ break;
+ case 3:
+ if (this->units[DAT_CurrentUnitSlotID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ bVar8 = UVar2 == UT_S_TOWER;
+ goto LAB_00534bf6;
+ }
+ break;
+ case 4:
+ if (this->units[DAT_CurrentUnitSlotID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ bVar8 = UVar2 == UT_S_BATTERINGRAM;
+ goto LAB_00534bf6;
+ }
+ break;
+ case 5:
+ if (this->units[DAT_CurrentUnitSlotID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ bVar8 = UVar2 == UT_S_SHIELD;
+ goto LAB_00534bf6;
+ }
+ break;
+ case 6:
+ if (this->units[DAT_CurrentUnitSlotID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ bVar8 = UVar2 == UT_S_MANGONEL;
+ goto LAB_00534bf6;
+ }
+ break;
+ case 7:
+ if (this->units[DAT_CurrentUnitSlotID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ bVar8 = UVar2 == UT_S_BALLISTA;
+ goto LAB_00534bf6;
+ }
+ break;
+ case 8:
+ if (this->units[DAT_CurrentUnitSlotID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ bVar8 = UVar2 == UT_S_FBALLISTA;
+ goto LAB_00534bf6;
+ }
+ break;
+ case 9:
+ uVar4 = this->units[DAT_CurrentUnitSlotID].owner
+ - DAT_GameSynchronyState.currentPlayerSlotID;
+ LAB_00534bc5:
+ if (uVar4 != 0) {
+ LAB_00534bcb:
+ this->units[DAT_CurrentUnitSlotID].isSelected = 1;
+ this->totalUnitsInSelection = this->totalUnitsInSelection + 1;
+ }
+ }
+ }
+ }
+ }
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1;
+ } while ((int)DAT_CurrentUnitSlotID < (int)this->maxUnitCount);
+ }
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x005347e0", "name": "applyDragBoxSelectionByPriority", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Markiert beim Aufziehen eines Auswahlrahmens bevorzugt eigene Einheiten, sonst fremde."}, "p2": {"ein": "-", "aus": "-", "liest": ["DAT_MouseState.selectionBox", "units[].logicalState/dying/isSelectable_OR_matchTime/unknownTestAgainst0_2/state/drawX/drawY/drawXOffset/someDrawYOffset/spriteWidthUnk/spriteHeightUnk/unitType/owner", "DAT_GameSynchronyState.currentPlayerSlotID"], "schreibt": ["units[].isSelected", "totalUnitsInSelection", "field14_0x55c"], "ruft": [], "regeln": ["Rahmen wird zuerst so geordnet, dass links<rechts und oben<unten gilt", "Zwei Durchgänge: Durchgang 1 zählt die Einheiten im Rahmen, Durchgang 2 setzt isSelected", "Berücksichtigt werden nur Einheiten im Normalzustand, nicht sterbend, mit isSelectable_OR_matchTime != 0, unknownTestAgainst0_2 == 0, nicht im Zustand US_JESTER_ROAM_TO und mit drawX oder drawY != 0", "Tunnelgräber in den Zuständen US_LOOK_AROUNDUnk und US_STAND_UPUnk werden ausgelassen", "Liegt mindestens eine eigene Einheit im Rahmen (Lord, Truppen oder Belagerungsgerät), werden alle eigenen Einheiten im Rahmen markiert; der Lord nur, wenn er allein im Rahmen ist", "Liegt keine eigene Einheit im Rahmen, werden alle Einheiten anderer Besitzer (auch Besitzer 0) im Rahmen markiert", "field14_0x55c erhält den Besitzer der zuletzt gefundenen fremden Einheit, sonst 0", "Die Fälle 1-8 der Auswahlart (nur Katapult, Triböck, Turm, Ramme, Schild, Mangonel, Ballista, Feuerballiste) werden nie erreicht, denn die Art wird nur auf 0 oder 9 gesetzt"], "offen": ["Bedeutung von field14_0x55c (vermutlich Besitzer der angezeigten Fremdeinheit)", "Die toten Fälle 1-8: vermutlich Rest einer früheren Auswahl nach Gerätetyp"]}, "p3": {"erklaerung": "So entscheidet das Spiel, was ein Ziehrahmen auswählt: Eigene Einheiten haben Vorrang, der Lord wird nur genommen, wenn er allein im Rahmen steht. Gibt es keine eigenen, wählt der Rahmen fremde Einheiten zum Ansehen aus.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x00535240 recountUnitsInSelection | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00535240
+ void UnitsState::recountUnitsInSelection()
+ {
+ int* piVar1;
+ int iVar2;
+ int iVar3;
+ Unit* psVar4;
+ int* piVar4;
+ piVar1 = &this->selectionEuropeanArchers;
+ this->selectionEuropeanArchers = 0;
+ this->selectionSpearmen = 0;
+ this->selectionMacemen = 0;
+ this->selectionCrossbowmen = 0;
+ this->selectionPikemen = 0;
+ this->selectionSwordsmen = 0;
+ this->selectionKnights = 0;
+ this->selectionEngineers = 0;
+ this->selectionLaddermen = 0;
+ this->selectionTunnelers = 0;
+ this->selectionMonks = 0;
+ this->selectionCatapults = 0;
+ this->selectionTrebuchets = 0;
+ this->selectionBatteringRam = 0;
+ this->selectionSiegeTower = 0;
+ this->selectionShield = 0;
+ this->selectionMangonel = 0;
+ this->selectionBallista = 0;
+ this->nSelectionFireBallistas = 0;
+ this->selectionArabArcher = 0;
+ this->selectionArabSlave = 0;
+ this->selectionArabSlinger = 0;
+ this->selectionArabAssassin = 0;
+ this->selectionArabHorseArchers = 0;
+ this->selectionArabSwordsman = 0;
+ this->selectionArabFireThrower = 0;
+ this->selectionFireBallista = 0;
+ iVar2 = 1;
+ if (1 < (int)this->maxUnitCount) {
+ psVar4 = &this->units[1];
+ do {
+ if ((((psVar4->logicalState == ULS_NORMAL) && (psVar4->dying == 0))
+ && (psVar4->owner == DAT_GameSynchronyState.currentPlayerSlotID))
+ && (psVar4->isSelected != 0)) {
+ switch (psVar4->unitType) {
+ case UT_TUNNELER:
+ this->selectionTunnelers = this->selectionTunnelers + 1;
+ break;
+ default : goto switchD_00535303_caseD_6;
+ case UT_E_ARCHER:
+ this->selectionEuropeanArchers = this->selectionEuropeanArchers + 1;
+ break;
+ case UT_E_XBOW:
+ this->selectionCrossbowmen = this->selectionCrossbowmen + 1;
+ break;
+ case UT_E_SPEAR:
+ this->selectionSpearmen = this->selectionSpearmen + 1;
+ break;
+ case UT_E_PIKE:
+ this->selectionPikemen = this->selectionPikemen + 1;
+ break;
+ case UT_E_MACE:
+ this->selectionMacemen = this->selectionMacemen + 1;
+ break;
+ case UT_E_SWORD:
+ this->selectionSwordsmen = this->selectionSwordsmen + 1;
+ break;
+ case UT_E_KNIGHT:
+ this->selectionKnights = this->selectionKnights + 1;
+ break;
+ case UT_E_LADDER:
+ this->selectionLaddermen = this->selectionLaddermen + 1;
+ break;
+ case UT_E_ENGINEER:
+ this->selectionEngineers = this->selectionEngineers + 1;
+ break;
+ case UT_E_MONK:
+ this->selectionMonks = this->selectionMonks + 1;
+ break;
+ case UT_S_CATAPULT:
+ this->selectionCatapults = this->selectionCatapults + 1;
+ break;
+ case UT_S_TREBUCHET:
+ this->selectionTrebuchets = this->selectionTrebuchets + 1;
+ break;
+ case UT_S_MANGONEL:
+ this->selectionMangonel = this->selectionMangonel + 1;
+ break;
+ case UT_S_TOWER:
+ this->selectionSiegeTower = this->selectionSiegeTower + 1;
+ break;
+ case UT_S_BATTERINGRAM:
+ this->selectionBatteringRam = this->selectionBatteringRam + 1;
+ break;
+ case UT_S_SHIELD:
+ this->selectionShield = this->selectionShield + 1;
+ break;
+ case UT_S_BALLISTA:
+ this->selectionBallista = this->selectionBallista + 1;
+ break;
+ case UT_A_ARCHER:
+ this->selectionArabArcher = this->selectionArabArcher + 1;
+ break;
+ case UT_A_SLAVE:
+ this->selectionArabSlave = this->selectionArabSlave + 1;
+ break;
+ case UT_A_SLINGER:
+ this->selectionArabSlinger = this->selectionArabSlinger + 1;
+ break;
+ case UT_A_ASSASSIN:
+ this->selectionArabAssassin = this->selectionArabAssassin + 1;
+ break;
+ case UT_A_HARCHER:
+ this->selectionArabHorseArchers = this->selectionArabHorseArchers + 1;
+ break;
+ case UT_A_SWORDSMAN:
+ this->selectionArabSwordsman = this->selectionArabSwordsman + 1;
+ break;
+ case UT_A_FIRETHROWER:
+ this->selectionArabFireThrower = this->selectionArabFireThrower + 1;
+ break;
+ case UT_S_FBALLISTA:
+ this->selectionFireBallista = this->selectionFireBallista + 1;
+ }
+ this->nHasOwnedUnitInSelection = 1;
+ }
+ switchD_00535303_caseD_6:
+ iVar2 = iVar2 + 1;
+ psVar4 = psVar4 + 0x248;
+ } while (iVar2 < (int)this->maxUnitCount);
+ }
+ piVar4 = this->selectionSlots;
+ iVar3 = 0;
+ this->selectionSlots[1] = -1;
+ this->selectionSlots[2] = -1;
+ this->selectionSlots[3] = -1;
+ this->selectionSlots[4] = -1;
+ this->selectionSlots[5] = -1;
+ this->selectionSlots[6] = -1;
+ this->selectionSlots[7] = -1;
+ this->selectionSlots[0] = -1;
+ iVar2 = 0;
+ do {
+ if (*piVar1 != 0) {
+ *piVar4 = iVar2;
+ iVar3 = iVar3 + 1;
+ piVar4 = piVar4 + 1;
+ if (7 < iVar3) {
+ return;
+ }
+ }
+ iVar2 = iVar2 + 1;
+ piVar1 = piVar1 + 1;
+ } while (iVar2 < 0x1b);
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00535240", "name": "recountUnitsInSelection", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Zählt die markierten eigenen Einheiten je Art neu und merkt sich bis zu acht vorkommende Arten."}, "p2": {"ein": "-", "aus": "-", "liest": ["units[].logicalState/dying/owner/isSelected/unitType", "currentPlayerSlotID", "maxUnitCount"], "schreibt": ["selectionEuropeanArchers und die weiteren selection…-Zähler (27 Stück)", "nHasOwnedUnitInSelection", "selectionSlots[0..7]"], "ruft": [], "regeln": ["Alle 27 Zähler werden zuerst auf 0 gesetzt", "Gezählt wird nur, was Normalzustand hat, nicht stirbt, dem aktuellen Spieler gehört und markiert ist", "Je Einheitenart zählt ein eigener Zähler (Bogen, Speer, Keule, Armbrust, Pike, Schwert, Ritter, Ingenieur, Leiterträger, Tunnelgräber, Mönch, Katapult, Triböck, Ramme, Turm, Schild, Mangonel, Ballista, arab. Bogen, Sklave, Schleuderer, Assassine, Pferdebogen, arab. Schwert, Feuerwerfer, Feuerballiste)", "Der Lord und andere Arten außerhalb der Liste werden nicht gezählt und setzen nHasOwnedUnitInSelection nicht", "nHasOwnedUnitInSelection wird bei jeder gezählten Einheit auf 1 gesetzt, hier aber nie auf 0 zurück", "selectionSlots[0..7] beginnen mit -1; danach erhalten sie die Indizes (0 bis 26) der Arten mit Zähler != 0 in Indexreihenfolge, höchstens 8"], "offen": ["Die Zähler bilden vermutlich dasselbe Feld wie selectionUnitType[0..26], das die selection…-Prüfungen lesen", "nSelectionFireBallistas wird nur auf 0 gesetzt; gezählt wird selectionFireBallista"]}, "p3": {"erklaerung": "Das Spiel zählt, welche Einheitenarten gerade markiert sind. Daraus entscheiden sich die Befehlsknöpfe, etwa für Ingenieure oder Bogenschützen.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x00536a60 selectionContainsCombatUnit | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00536A60
+ int UnitsState::selectionContainsCombatUnit(uint unitID)
+ {
+ UnitTypeShort UVar1;
+ bool bVar2;
+ int iVar3;
+ uint* puVar4;
+ uint selectedUnitsMap[80];
+ puVar4 = selectedUnitsMap;
+ /*
+ create a unittype array of length 80 and initialize it with 0's
+ */
+ for (iVar3 = 80; iVar3 != 0; iVar3 = iVar3 + -1) {
+ *puVar4 = 0;
+ puVar4 = puVar4 + 1;
+ }
+ bVar2 = false;
+ /*
+ for every unit in the game, we check whether it is owned by the current player, whether the unit has 3
+ properties, and whether it has not been mentioned in the size 80 array. Then, we put that ID at that
+ location. map<unit_type, unit_id>
+ */
+ DAT_CurrentUnitSlotID = unitID;
+ if ((int)unitID < (int)this->maxUnitCount) {
+ do {
+ if ((((this->units[unitID].logicalState == ULS_NORMAL)
+ && (this->units[unitID].dying == 0))
+ && (this->units[unitID].owner == DAT_GameSynchronyState.currentPlayerSlotID))
+ && ((this->units[unitID].isSelected != 0
+ && (UVar1 = this->units[unitID].unitType, selectedUnitsMap[(short)UVar1] == 0)))) {
+ selectedUnitsMap[(short)UVar1] = unitID;
+ bVar2 = true;
+ }
+ unitID = unitID + 1;
+ } while ((int)unitID < (int)this->maxUnitCount);
+ DAT_CurrentUnitSlotID = unitID;
+ /*
+ if we have at least 1 match, return it. the order of returning seems really arbitrary, but maybe it
+ means something
+ */
+ if (bVar2) {
+ /*
+ E_ARCHER
+ */
+ if (selectedUnitsMap[0x16] != 0) {
+ return (int)(selectedUnitsMap[0x16]);
+ }
+ if (selectedUnitsMap[0x26] != 0) {
+ return (int)(selectedUnitsMap[0x26]);
+ }
+ /*
+ E_XBOW
+ */
+ if (selectedUnitsMap[0x17] != 0) {
+ return (int)(selectedUnitsMap[0x17]);
+ }
+ /*
+ A_ARCHER
+ */
+ if (selectedUnitsMap[0x46] != 0) {
+ return (int)(selectedUnitsMap[0x46]);
+ }
+ /*
+ A_HARCHER
+ */
+ if (selectedUnitsMap[0x4a] != 0) {
+ return (int)(selectedUnitsMap[0x4a]);
+ }
+ /*
+ A_SLINGER
+ */
+ if (selectedUnitsMap[0x48] != 0) {
+ return (int)(selectedUnitsMap[0x48]);
+ }
+ /*
+ A_FIRETHROWER
+ */
+ if (selectedUnitsMap[0x4c] != 0) {
+ return (int)(selectedUnitsMap[0x4c]);
+ }
+ /*
+ S_FBALLISTA
+ */
+ if (selectedUnitsMap[0x4d] != 0) {
+ return (int)(selectedUnitsMap[0x4d]);
+ }
+ /*
+ S_CATAPULT
+ */
+ if (selectedUnitsMap[0x27] != 0) {
+ return (int)(selectedUnitsMap[0x27]);
+ }
+ /*
+ S_TREBUCHET
+ */
+ if (selectedUnitsMap[0x28] != 0) {
+ return (int)(selectedUnitsMap[0x28]);
+ }
+ /*
+ S_MANGONEL
+ */
+ if (selectedUnitsMap[0x29] != 0) {
+ return (int)(selectedUnitsMap[0x29]);
+ }
+ /*
+ S_BALLISTA
+ */
+ if (selectedUnitsMap[0x3d] != 0) {
+ return (int)(selectedUnitsMap[0x3d]);
+ }
+ /*
+ E_SPEARMAN
+ */
+ if (selectedUnitsMap[0x18] != 0) {
+ return (int)(selectedUnitsMap[0x18]);
+ }
+ /*
+ E_PIKEMAN
+ */
+ if (selectedUnitsMap[0x19] != 0) {
+ return (int)(selectedUnitsMap[0x19]);
+ }
+ /*
+ E_MACEMAN
+ */
+ if (selectedUnitsMap[0x1a] != 0) {
+ return (int)(selectedUnitsMap[0x1a]);
+ }
+ /*
+ E_SWORDSMAN
+ */
+ if (selectedUnitsMap[0x1b] != 0) {
+ return (int)(selectedUnitsMap[0x1b]);
+ }
+ /*
+ E_KNIGHT
+ */
+ if (selectedUnitsMap[0x1c] != 0) {
+ return (int)(selectedUnitsMap[0x1c]);
+ }
+ /*
+ TUNNELER
+ */
+ if (selectedUnitsMap[5] != 0) {
+ return (int)(selectedUnitsMap[5]);
+ }
+ /*
+ E_LADDERMAN
+ */
+ if (selectedUnitsMap[0x1d] != 0) {
+ return (int)(selectedUnitsMap[0x1d]);
+ }
+ /*
+ E_ENGINEER
+ */
+ if (selectedUnitsMap[0x1e] != 0) {
+ return (int)(selectedUnitsMap[0x1e]);
+ }
+ /*
+ E_MONK
+ */
+ if (selectedUnitsMap[0x25] != 0) {
+ return (int)(selectedUnitsMap[0x25]);
+ }
+ /*
+ A_SLAVE
+ */
+ if (selectedUnitsMap[0x47] != 0) {
+ return (int)(selectedUnitsMap[0x47]);
+ }
+ /*
+ A_ASSASSIN
+ */
+ if (selectedUnitsMap[0x49] != 0) {
+ return (int)(selectedUnitsMap[0x49]);
+ }
+ /*
+ A_SWORDSMAN
+ */
+ if (selectedUnitsMap[0x4b] != 0) {
+ return (int)(selectedUnitsMap[0x4b]);
+ }
+ /*
+ LORD
+ */
+ if (selectedUnitsMap[0x37] != 0) {
+ return (int)(selectedUnitsMap[0x37]);
+ }
+ /*
+ S_TOWER
+ */
+ if (selectedUnitsMap[0x3a] != 0) {
+ return (int)(selectedUnitsMap[0x3a]);
+ }
+ /*
+ S_BATTERINGRAM
+ */
+ if (selectedUnitsMap[0x3b] != 0) {
+ return (int)(selectedUnitsMap[0x3b]);
+ }
+ /*
+ S_SHIELD
+ */
+ if (selectedUnitsMap[0x3c] != 0) {
+ return (int)(selectedUnitsMap[0x3c]);
+ }
+ }
+ }
+ return -1;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00536a60", "name": "selectionContainsCombatUnit", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Wählt aus der Auswahl eine Einheit nach fester Rangfolge der Typen aus."}, "p2": {"ein": "unitID (Startslot der Suche)", "aus": "unitID oder -1", "liest": ["units[].logicalState/dying/owner/isSelected/unitType", "currentPlayerSlotID", "maxUnitCount"], "schreibt": ["DAT_CurrentUnitSlotID", "lokales Feld je Typ"], "ruft": [], "regeln": ["Sucht ab dem übergebenen Slot; merkt sich je Typ nur die erste ausgewählte, eigene, normale, nicht sterbende Einheit", "Rangfolge der Rückgabe: E_ARCHER 0x16, 0x26 (Name unklar), E_XBOW 0x17, A_ARCHER 0x46, A_HARCHER 0x4a, A_SLINGER 0x48, A_FIRETHROWER 0x4c, S_FBALLISTA 0x4d, S_CATAPULT 0x27, S_TREBUCHET 0x28, S_MANGONEL 0x29, S_BALLISTA 0x3d", "Danach: E_SPEARMAN 0x18, E_PIKEMAN 0x19, E_MACEMAN 0x1a, E_SWORDSMAN 0x1b, E_KNIGHT 0x1c, TUNNELER 5, E_LADDERMAN 0x1d, E_ENGINEER 0x1e, E_MONK 0x25, A_SLAVE 0x47, A_ASSASSIN 0x49, A_SWORDSMAN 0x4b, LORD 0x37, S_TOWER 0x3a, S_BATTERINGRAM 0x3b, S_SHIELD 0x3c", "Ohne Treffer: -1", "Fremde ausgewählte Einheiten werden hier übersprungen (anders als bei den Nachbarfunktionen)"], "offen": ["Was Typ 0x26 ist", "Bei -1 greift giveMoveCommand trotzdem auf units[-1] zu; ob das je vorkommt, ist offen"]}, "p3": {"erklaerung": "Der Name täuscht: Die Funktion liefert keine Ja/Nein-Antwort, sondern eine Einheiten-Nummer, und auch Ingenieure, Mönche und Sklaven zählen als 'Kampfeinheit'. Fernkämpfer haben Vorrang.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x005371f0 findFreeTileNearby | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x005371F0
+ uint UnitsState::findFreeTileNearby(uint unitID, uint tile)
+ {
+ uint uVar1;
+ short sVar2;
+ int iVar3;
+ uint uVar4;
+ dword _area;
+ int _y;
+ XYPair* pXVar5;
+ int fromYPosition;
+ int _offset;
+ int iVar6;
+ uint local_10;
+ uint local_c;
+ Unit* _ptrUnit;
+ uint _unitID;
+ _unitID = unitID;
+ _area = (dword)(short)DAT_TileMapState.PathConnectionLayer[this->units[unitID].tile];
+ _ptrUnit = this->units + unitID;
+ _y = (int)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile];
+ _offset = tile - DAT_ViewportRenderState.translationMatrix[_y].addXgetTile;
+ /*
+ original_y-2
+ */
+ unitID = DAT_ViewportRenderState.translationMatrix[_y + -2].addXgetTile + _offset;
+ /*
+ the separatearea part can't be right ? how is the sum of both variables the tile index again?
+ */
+ iVar3 = calculateCanPlayerUnitsNavigateToAreaFromArea((int)_ptrUnit->owner, (dword)((int)(_area)),
+ (dword)((int)((int)*(short*)((int)DAT_TileMapState + unitID * 2 + 0x363ed0))), 0);
+ if (iVar3 == 0) {
+ unitID = 0;
+ }
+ /*
+ original_x+2
+ */
+ local_10 = DAT_ViewportRenderState.translationMatrix[_y].addXgetTile + 2 + _offset;
+ iVar3 = calculateCanPlayerUnitsNavigateToAreaFromArea((int)this->units[_unitID].owner, (dword)((int)(_area)),
+ (dword)((int)((int)*(short*)((int)DAT_TileMapState + local_10 * 2 + 0x363ed0))), 0);
+ if (iVar3 == 0) {
+ local_10 = 0;
+ }
+ /*
+ original_y+2
+ */
+ tile = DAT_ViewportRenderState.translationMatrix[_y + 2].addXgetTile + _offset;
+ iVar3 = calculateCanPlayerUnitsNavigateToAreaFromArea((int)this->units[_unitID].owner, (dword)((int)(_area)),
+ (dword)((int)((int)*(short*)((int)DAT_TileMapState + tile * 2 + 0x363ed0))), 0);
+ if (iVar3 == 0) {
+ tile = 0;
+ }
+ /*
+ original_x-2
+ */
+ local_c = DAT_ViewportRenderState.translationMatrix[_y].addXgetTile + -2 + _offset;
+ iVar3 = calculateCanPlayerUnitsNavigateToAreaFromArea((int)this->units[_unitID].owner, (dword)((int)(_area)),
+ (dword)((int)((int)*(short*)((int)DAT_TileMapState + local_c * 2 + 0x363ed0))), 0);
+ if (iVar3 == 0) {
+ local_c = 0;
+ }
+ if (((local_c == 0 && tile == 0) && local_10 == 0) && unitID == 0) {
+ return 0;
+ }
+ if (((unitID != 0) || (tile != 0))
+ && ((iVar3 = (DAT_ViewportRenderState.translationMatrix[_y].addXgetTile + _offset) * 4,
+ (*(uint*)((int)DAT_TileMapState + iVar3 + 0x16515c) & 0x100) == 0
+ || ((*(uint*)((int)DAT_TileMapState + iVar3 + 0x165164) & 0x100) == 0)))) {
+ tile = 0;
+ unitID = 0;
+ }
+ if (((local_c != 0) || (local_10 != 0))
+ && (((*(uint*)((int)DAT_TileMapState
+ + (DAT_ViewportRenderState.translationMatrix[_y + -1].addXgetTile + _offset) * 4
+ + 0x165160)
+ & 0x100)
+ == 0
+ || ((*(uint*)((int)DAT_TileMapState
+ + (DAT_ViewportRenderState.translationMatrix[_y + 1].addXgetTile + _offset) * 4
+ + 0x165160)
+ & 0x100)
+ == 0)))) {
+ local_10 = 0;
+ local_c = 0;
+ }
+ if (unitID != 0) {
+ pXVar5 = DAT_UnitPropertiesDefinedData.field120_0x1213c;
+ do {
+ uVar1 = pXVar5->x + _offset;
+ uVar4 = pXVar5->y + _y;
+ if (((uVar1 < 400) && (uVar4 < 400)) && (*(char*)(uVar1 + 0x21aec98 + uVar4 * 400) != '\0')) {
+ iVar3 = DAT_ViewportRenderState.translationMatrix[uVar4].addXgetTile + pXVar5->x
+ + _offset;
+ uVar1 = *(uint*)((int)DAT_TileMapState + iVar3 * 4 + 0x165160);
+ if ((((uVar1 & 0x100) != 0) || ((uVar1 & 0x4a5014b1) != 0))
+ || ((sVar2 = *(short*)((int)DAT_TileMapState + iVar3 * 2 + 0x2029b0),
+ sVar2 != 0
+ && (DAT_BuildingsState.buildings[sVar2].buildingType
+ != BT_KILLINGPIT)))) {
+ unitID = 0;
+ break;
+ }
+ }
+ pXVar5 = pXVar5 + 1;
+ } while ((int)pXVar5 < 0xb600d0);
+ }
+ if (local_10 != 0) {
+ pXVar5 = DAT_UnitPropertiesDefinedData.field121_0x12184;
+ do {
+ uVar1 = pXVar5->y + _y;
+ uVar4 = pXVar5->x + _offset;
+ if (((uVar4 < 400) && (uVar1 < 400)) && (*(char*)(uVar4 + 0x21aec98 + uVar1 * 400) != '\0')) {
+ iVar3 = DAT_ViewportRenderState.translationMatrix[uVar1].addXgetTile + pXVar5->x
+ + _offset;
+ uVar1 = *(uint*)((int)DAT_TileMapState + iVar3 * 4 + 0x165160);
+ if ((((uVar1 & 0x100) != 0) || ((uVar1 & 0x4a5014b1) != 0))
+ || ((sVar2 = *(short*)((int)DAT_TileMapState + iVar3 * 2 + 0x2029b0),
+ sVar2 != 0
+ && (DAT_BuildingsState.buildings[sVar2].buildingType
+ != BT_KILLINGPIT)))) {
+ local_10 = 0;
+ break;
+ }
+ }
+ pXVar5 = pXVar5 + 1;
+ } while ((int)pXVar5 < 0xb60118);
+ }
+ if (tile != 0) {
+ pXVar5 = DAT_UnitPropertiesDefinedData.field122_0x121cc;
+ do {
+ uVar1 = pXVar5->y + _y;
+ uVar4 = pXVar5->x + _offset;
+ if (((uVar4 < 400) && (uVar1 < 400)) && (*(char*)(uVar4 + 0x21aec98 + uVar1 * 400) != '\0')) {
+ iVar3 = DAT_ViewportRenderState.translationMatrix[uVar1].addXgetTile + pXVar5->x
+ + _offset;
+ uVar1 = *(uint*)((int)DAT_TileMapState + iVar3 * 4 + 0x165160);
+ if ((((uVar1 & 0x100) != 0) || ((uVar1 & 0x4a5014b1) != 0))
+ || ((sVar2 = *(short*)((int)DAT_TileMapState + iVar3 * 2 + 0x2029b0),
+ sVar2 != 0
+ && (DAT_BuildingsState.buildings[sVar2].buildingType
+ != BT_KILLINGPIT)))) {
+ tile = 0;
+ break;
+ }
+ }
+ pXVar5 = pXVar5 + 1;
+ } while ((int)pXVar5 < 0xb60160);
+ }
+ if (local_c != 0) {
+ pXVar5 = DAT_UnitPropertiesDefinedData.field123_0x12214;
+ do {
+ uVar1 = pXVar5->y + _y;
+ uVar4 = pXVar5->x + _offset;
+ if (((uVar4 < 400) && (uVar1 < 400)) && (*(char*)(uVar4 + 0x21aec98 + uVar1 * 400) != '\0')) {
+ iVar3 = DAT_ViewportRenderState.translationMatrix[uVar1].addXgetTile + pXVar5->x
+ + _offset;
+ uVar1 = *(uint*)((int)DAT_TileMapState + iVar3 * 4 + 0x165160);
+ if ((((uVar1 & 0x100) != 0) || ((uVar1 & 0x4a5014b1) != 0))
+ || ((sVar2 = *(short*)((int)DAT_TileMapState + iVar3 * 2 + 0x2029b0),
+ sVar2 != 0
+ && (DAT_BuildingsState.buildings[sVar2].buildingType
+ != BT_KILLINGPIT)))) {
+ local_c = 0;
+ break;
+ }
+ }
+ pXVar5 = pXVar5 + 1;
+ } while ((int)pXVar5 < 0xb601a8);
+ }
+ iVar3 = this->units[_unitID].tile;
+ fromYPosition = (int)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[iVar3];
+ iVar3 = iVar3 - DAT_ViewportRenderState.translationMatrix[fromYPosition].addXgetTile;
+ _unitID = 0;
+ iVar6 = 100000;
+ if ((unitID != 0)
+ && (setAxisBasedDistanceResult(unitID
+ - DAT_ViewportRenderState
+ .translationMatrix[DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[unitID]]
+ .addXgetTile,
+ DAT_ViewportRenderState.tileTranslationMatrix_YComponent[unitID], iVar3,
+ fromYPosition),
+ DAT_DirectionAlgorithmState.distanceHigh < 100000)) {
+ _unitID = unitID;
+ iVar6 = DAT_DirectionAlgorithmState.distanceHigh;
+ }
+ if ((tile != 0)
+ && (setAxisBasedDistanceResult(tile
+ - DAT_ViewportRenderState
+ .translationMatrix[DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[tile]]
+ .addXgetTile,
+ DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile], iVar3,
+ fromYPosition),
+ DAT_DirectionAlgorithmState.distanceHigh < iVar6)) {
+ _unitID = tile;
+ iVar6 = DAT_DirectionAlgorithmState.distanceHigh;
+ }
+ if ((local_10 != 0)
+ && (setAxisBasedDistanceResult(local_10
+ - DAT_ViewportRenderState
+ .translationMatrix[DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[local_10]]
+ .addXgetTile,
+ DAT_ViewportRenderState.tileTranslationMatrix_YComponent[local_10],
+ iVar3, fromYPosition),
+ DAT_DirectionAlgorithmState.distanceHigh < iVar6)) {
+ _unitID = local_10;
+ iVar6 = DAT_DirectionAlgorithmState.distanceHigh;
+ }
+ if ((local_c != 0)
+ && (setAxisBasedDistanceResult(local_c
+ - DAT_ViewportRenderState
+ .translationMatrix[DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[local_c]]
+ .addXgetTile,
+ DAT_ViewportRenderState.tileTranslationMatrix_YComponent[local_c],
+ iVar3, fromYPosition),
+ DAT_DirectionAlgorithmState.distanceHigh < iVar6)) {
+ _unitID = local_c;
+ }
+ return _unitID;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x005371f0", "name": "findFreeTileNearby", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Sucht neben einer Kachel eine freie, erreichbare Kachel im Abstand von zwei Feldern."}, "p2": {"ein": "unitID, tile (Kachelindex)", "aus": "Kachelindex oder 0", "liest": ["units[id].tile/owner", "PathConnectionLayer", "TileMapState-Flags (Ebene bei +0x165160 und Nachbarn)", "BuildingLayer", "buildings[].buildingType", "UnitPropertiesDefinedData.field120_0x1213c bis field123_0x12214 (Offsetlisten)", "Gültigkeitskarte 400x400 bei 0x21aec98"], "schreibt": ["Schleifenhilfen"], "ruft": ["calculateCanPlayerUnitsNavigateToAreaFromArea", "setAxisBasedDistanceResult"], "regeln": ["Vier Kandidaten: y-2, y+2, x+2, x-2 um die Zielkachel", "Ein Kandidat entfällt, wenn die Einheit ihn laut Wegverbindung nicht erreichen kann (ohne Klettern)", "Sind alle vier weg: Ergebnis 0", "Die Kandidaten y-2/y+2 entfallen, wenn die Zwischenkachel das Bit 0x100 nicht in beiden geprüften Ebenen trägt; x+2/x-2 entfallen, wenn Bit 0x100 bei y-1 oder y+1 fehlt", "Für jeden Kandidaten werden die Kacheln einer Offsetliste (Gültigkeitskarte innerhalb 0 bis 399) geprüft; Fehlschlag bei Bit 0x100, Maske 0x4a5014b1 oder einem Gebäude, das keine Todesgrube ist", "Von den übrigen gewinnt die kleinste Entfernung (distanceHigh < 100000) zur Kachel der Einheit; bei Gleichstand gilt die Reihenfolge y-2, y+2, x+2, x-2"], "offen": ["Bedeutung der Flag-Bits 0x100 und der Maske 0x4a5014b1", "Aufrufer und Zweck der Suche", "Rohe Adressen in der Ghidra-Fassung (Rechenwege vermutlich fehlerhaft übersetzt)"]}, "p3": {"erklaerung": "Findet für eine Einheit einen freien Platz in der Nähe, etwa zum Weichen. Es werden nur vier Punkte im Abstand 2 geprüft, nicht ein ganzer Kreis.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+

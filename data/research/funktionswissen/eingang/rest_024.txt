@@ -1,0 +1,1310 @@
+### 0x004652d0 MenuItemRenderFunction_BuildingAndStatusMenu_DrawbridgeOpenClose | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004652D0
+ void BuildingAndStatusMenu::MenuItemRenderFunction_BuildingAndStatusMenu_DrawbridgeOpenClose(int param_1, ...)
+ {
+ ButtonGmData* this;
+ int iVar1;
+ uint uVar2;
+ int drawX;
+ int drawY;
+ uVar2 = (uint)(DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .gateOpenOrCloseClick
+ == param_1);
+ this = DAT_UIButtonDefinedData.ButtonGmDataArray + DAT_CurrentButtonGmDataIndex;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ drawX = DAT_ButtonX;
+ drawY = DAT_ButtonY;
+ iVar1 = getPictureNumberInGm(
+ DAT_ButtonCurrentlyInteracting);
+ renderGM(this->gmId_0x0, iVar1 + uVar2, drawX, drawY);
+ DAT_CurrentButtonPictureInGm
+ = DAT_UIButtonDefinedData.ButtonGmDataArray[DAT_CurrentButtonGmDataIndex]
+ .pictureInGm_0x4
+ + uVar2;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ }
+}
+}
+
+### 0x00465360 MenuItemActionHandler_BuildingAndStatusMenu_DrawbridgeOpenClose | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00465360
+ void BuildingAndStatusMenu::MenuItemActionHandler_BuildingAndStatusMenu_DrawbridgeOpenClose(int param_1, ...)
+ {
+ DAT_GameSynchronyState.DAT_GameCommandParam0
+ = DAT_BuildingsState.menuSelectedBuildingID;
+ DAT_GameSynchronyState.DAT_GameCommandParam2
+ = DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID].uid;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = param_1;
+ queueCommand(
+ ((GameCommandType)0x25));
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .gateOpenOrCloseClick = param_1;
+ return;
+ }
+ }
+}
+}
+
+### 0x004653f0 MenuItemRenderFunction_BuildingAndStatusMenu_GatehouseOpenClose | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004653F0
+ void BuildingAndStatusMenu::MenuItemRenderFunction_BuildingAndStatusMenu_GatehouseOpenClose(int param_1, ...)
+ {
+ ButtonGmData* this;
+ int iVar1;
+ uint uVar2;
+ int drawX;
+ int drawY;
+ uVar2 = (uint)(DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .openOrCloseGateClick
+ == param_1);
+ this = DAT_UIButtonDefinedData.ButtonGmDataArray + DAT_CurrentButtonGmDataIndex;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ drawX = DAT_ButtonX;
+ drawY = DAT_ButtonY;
+ iVar1 = getPictureNumberInGm(
+ DAT_ButtonCurrentlyInteracting);
+ renderGM(this->gmId_0x0, iVar1 + uVar2, drawX, drawY);
+ DAT_CurrentButtonPictureInGm
+ = DAT_UIButtonDefinedData.ButtonGmDataArray[DAT_CurrentButtonGmDataIndex]
+ .pictureInGm_0x4
+ + uVar2;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ }
+}
+}
+
+### 0x00465480 MenuItemActionHandler_BuildingAndStatusMenu_GatehouseOpenClose | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00465480
+ void BuildingAndStatusMenu::MenuItemActionHandler_BuildingAndStatusMenu_GatehouseOpenClose(int param_1, ...)
+ {
+ DAT_GameSynchronyState.DAT_GameCommandParam0
+ = DAT_BuildingsState.menuSelectedBuildingID;
+ DAT_GameSynchronyState.DAT_GameCommandParam2
+ = DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID].uid;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = param_1;
+ queueCommand(
+ GCT_OPEN_OR_CLOSE_GATE);
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .openOrCloseGateClick = param_1;
+ if (param_1 == 10) {
+ setUpSFXToPlayUnk(
+ 0x8c);
+ return;
+ }
+ if (param_1 == 0xb) {
+ setUpSFXToPlayUnk(
+ 0x8e);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00465560 MenuItemActionHandler_BuildingAndStatusMenu_TaxSlider | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00465560
+ void BuildingAndStatusMenu::MenuItemActionHandler_BuildingAndStatusMenu_TaxSlider(
+ int param_1, int param_2, int* minValue, int* maxValue, int* currentValue)
+ {
+ int* piVar1;
+ int iVar2;
+ switch (param_2) {
+ case 1:
+ *minValue = 0;
+ *maxValue = 11;
+ case 4:
+ *currentValue
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .taxesSliderUI;
+ return;
+ case 2:
+ case 3:
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .taxesSliderUI = *currentValue;
+ return;
+ case 5:
+ iVar2 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .taxesSliderUI;
+ piVar1 = &DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .taxesSliderUI;
+ if (0 < iVar2) {
+ *piVar1 = iVar2 + -1;
+ }
+ *currentValue = *piVar1;
+ return;
+ case 6:
+ iVar2 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .taxesSliderUI;
+ piVar1 = &DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .taxesSliderUI;
+ if (iVar2 < 0xb) {
+ *piVar1 = iVar2 + 1;
+ }
+ *currentValue = *piVar1;
+ default:
+ return;
+ }
+ }
+ }
+}
+}
+
+### 0x00465630 MenuItemRenderFunction_BuildingAndStatusMenu_HorizontalSlider | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00465630
+ void BuildingAndStatusMenu::MenuItemRenderFunction_BuildingAndStatusMenu_HorizontalSlider(
+ int param_1, int thumbYPos, int param_3, int thumbHeight, BOOL isDragged)
+ {
+ int iVar1;
+ iVar1 = 0;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ if (0 < DAT_ButtonW) {
+ do {
+ renderGM(GM_INTERFACE_ICONS2, 0x119,
+ DAT_ButtonX + iVar1, DAT_ButtonY);
+ iVar1 = iVar1 + 0x1a;
+ } while (iVar1 < DAT_ButtonW);
+ }
+ renderGM(GM_INTERFACE_ICONS2, 0x118,
+ DAT_ButtonX + thumbYPos, DAT_ButtonY + -5);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ }
+}
+}
+
+### 0x004656a0 MenuItemActionHandler_BuildingAndStatusMenu_TaxArrowButtons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004656A0
+ void BuildingAndStatusMenu::MenuItemActionHandler_BuildingAndStatusMenu_TaxArrowButtons(int param_1, ...)
+ {
+ int iVar1;
+ if (param_1 == -2) {
+ iVar1 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .taxesSliderUI;
+ if (iVar1 < 0xb) {
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .taxesSliderUI = iVar1 + 1;
+ }
+ } else if (param_1 == -1) {
+ iVar1 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .taxesSliderUI;
+ if (0 < iVar1) {
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .taxesSliderUI = iVar1 + -1;
+ return;
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004657b0 MenuItemRenderFunction_BuildingAndStatusMenu_TaxArrowButtons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004657B0
+ void BuildingAndStatusMenu::MenuItemRenderFunction_BuildingAndStatusMenu_TaxArrowButtons(int param_1, ...)
+ {
+ int xParam;
+ char* textAddress;
+ int yParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ if (-1 < param_1) {
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x11;
+ color = 0;
+ alignment = TTA_CENTER;
+ yParam = DAT_ButtonY + 4;
+ xParam = DAT_ButtonW / 2 + DAT_ButtonX;
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_KEEP, param_1);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00465820 MenuItemActionHandler_BuildingAndStatusMenu_ChangeRations | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00465820
+ void BuildingAndStatusMenu::MenuItemActionHandler_BuildingAndStatusMenu_ChangeRations(int param_1, ...)
+ {
+ BOOLEnum BVar1;
+ DWORD DVar2;
+ if (DAT_GameCore.gameMode_2 == GM_CRUSADER_TUTORIAL) {
+ BVar1 = Tutorial_IsActionAllowed(3, param_1);
+ if (BVar1 == FALSE) {
+ SetTutorialHintActiveWithTimestamp();
+ return;
+ }
+ SetTutorialBuildingActionState(
+ 0xc, (BuildingType)((int)(param_1)));
+ }
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = param_1;
+ queueCommand(
+ GCT_CHANGE_RATIONS);
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .rationsSetting3 = param_1;
+ DVar2 = timeGetTime();
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .timeTaxesOrRationsChange = DVar2;
+ return;
+ }
+ }
+}
+}
+
+### 0x004658b0 MenuItemRenderFunction_BuildingAndStatusMenu_GeneralButtonRender | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004658B0
+ void BuildingAndStatusMenu::MenuItemRenderFunction_BuildingAndStatusMenu_GeneralButtonRender(int param_1, ...)
+ {
+ int imageID;
+ int drawX;
+ int drawY;
+ ButtonGmData* _gmObject;
+ _gmObject = DAT_UIButtonDefinedData.ButtonGmDataArray + DAT_CurrentButtonGmDataIndex;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ drawX = DAT_ButtonX;
+ drawY = DAT_ButtonY;
+ imageID = getPictureNumberInGm(
+ DAT_ButtonCurrentlyInteracting);
+ renderGM(_gmObject->gmId_0x0, imageID, drawX, drawY);
+ DAT_CurrentButtonPictureInGm
+ = DAT_UIButtonDefinedData.ButtonGmDataArray[DAT_CurrentButtonGmDataIndex]
+ .pictureInGm_0x4;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ }
+}
+}
+
+### 0x00465950 MenuItemRenderFunction_BuildingAndStatusMenu_SelectBuySellGoods | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00465950
+ void BuildingAndStatusMenu::MenuItemRenderFunction_BuildingAndStatusMenu_SelectBuySellGoods(int param_1, ...)
+ {
+ ButtonGmData* this;
+ BOOLEnum BVar1;
+ int imageID;
+ int drawX;
+ int drawY;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ BVar1 = isResourceTypeTradeable(param_1);
+ if (BVar1 == FALSE) {
+ DAT_ButtonCurrentlyInteracting = BVar1;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ this = DAT_UIButtonDefinedData.ButtonGmDataArray + DAT_CurrentButtonGmDataIndex;
+ drawX = DAT_ButtonX;
+ drawY = DAT_ButtonY;
+ imageID = getPictureNumberInGm(
+ DAT_ButtonCurrentlyInteracting);
+ renderGM(this->gmId_0x0, imageID, drawX, drawY);
+ DAT_CurrentButtonPictureInGm
+ = DAT_UIButtonDefinedData.ButtonGmDataArray[DAT_CurrentButtonGmDataIndex]
+ .pictureInGm_0x4;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ }
+}
+}
+
+### 0x004659e0 MenuItemActionHandler_BuildingAndStatusMenu_SelectBuySellGoods | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004659E0
+ void BuildingAndStatusMenu::MenuItemActionHandler_BuildingAndStatusMenu_SelectBuySellGoods(int param_1, ...)
+ {
+ BOOLEnum BVar1;
+ BVar1 = isResourceTypeTradeable(param_1);
+ if (BVar1 != FALSE) {
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .marketSelectedResourceType = param_1;
+ DAT_GameCore.buildingandstatusmenuMenuTabToSwitchTo = 0x39;
+ switchToMenuView(
+ MVT_BUILDING_AND_STATUS_MENU, 0);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00465a20 MenuItemRenderFunction_BuildingAndStatusMenu_BuySellMenuButtonsAndHands | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00465A20
+ void BuildingAndStatusMenu::MenuItemRenderFunction_BuildingAndStatusMenu_BuySellMenuButtonsAndHands(
+ int param_1, ...)
+ {
+ ResourceTypeInt RVar1;
+ char* pcVar2;
+ int iVar3;
+ int iVar4;
+ DWORD _now;
+ int iVar5;
+ TextAlignment TVar6;
+ uint uVar7;
+ uint uVar8;
+ int iVar9;
+ BOOLEnum BVar10;
+ int iVar11;
+ int iVar12;
+ if ((param_1 == 2) || (param_1 == 3)) {
+ DAT_ButtonUnknownZero = 1;
+ BVar10 = anyGoodsAreAllowedForSale();
+ if (BVar10 != FALSE) {
+ DAT_ButtonUnknownZero = 0;
+ if ((DAT_ButtonCurrentlyInteracting != FALSE) && (param_1 == 2)) {
+ DAT_ButtonX = DAT_ButtonX + -4;
+ }
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ return;
+ }
+ } else {
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ iVar4 = param_1 + 5;
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ iVar11 = 0x11;
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_TRADEPOST, iVar4);
+ iVar11 = computeTextWidth(pcVar2, iVar11);
+ iVar12 = 0;
+ BVar10 = FALSE;
+ iVar9 = 0x11;
+ uVar8 = 0;
+ uVar7 = 0xffffff;
+ TVar6 = TTA_LEFT;
+ iVar5 = DAT_ButtonY + 0xb;
+ iVar3 = (DAT_ButtonW - (iVar11 + 0x35)) / 2 + DAT_ButtonX;
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_TRADEPOST, iVar4);
+ renderInGameTextWithShadow(pcVar2, iVar3, iVar5, TVar6, uVar7, uVar8, iVar9, BVar10, iVar12);
+ RVar1
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .marketSelectedResourceType;
+ if (param_1 == 0) {
+ iVar4 = getBatchBuyPrice(
+ DAT_GameSynchronyState.currentPlayerSlotID, RVar1);
+ } else {
+ iVar4 = getSalesPrice(
+ DAT_GameSynchronyState.currentPlayerSlotID, RVar1);
+ }
+ renderNumberToScreen2(iVar4,
+ (int)((int)((DAT_ButtonW - (iVar11 + 0x35)) / 2 + 0x14 + DAT_ButtonX)),
+ DAT_ButtonY + 10, TTA_LEFT, 0, 0x11, TRUE, 0);
+ return;
+ }
+ iVar11 = 0x11;
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_TRADEPOST, iVar4);
+ iVar11 = computeTextWidth(pcVar2, iVar11);
+ iVar12 = 0;
+ BVar10 = FALSE;
+ iVar9 = 0x11;
+ uVar8 = 0;
+ uVar7 = 0xffffff;
+ TVar6 = TTA_LEFT;
+ iVar5 = DAT_ButtonY + 0xb;
+ iVar3 = (DAT_ButtonW - (iVar11 + 0x35)) / 2 + DAT_ButtonX;
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_TRADEPOST, iVar4);
+ renderInGameTextWithShadow(pcVar2, iVar3, iVar5, TVar6, uVar7, uVar8, iVar9, BVar10, iVar12);
+ RVar1 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .marketSelectedResourceType;
+ if (param_1 == 0) {
+ iVar3 = getBatchBuyPrice(DAT_GameSynchronyState.currentPlayerSlotID, RVar1);
+ } else {
+ iVar3 = getSalesPrice(DAT_GameSynchronyState.currentPlayerSlotID, RVar1);
+ }
+ renderNumberToScreen2(
+ iVar3, (int)((int)((DAT_ButtonW - (iVar11 + 0x35)) / 2 + 0x14 + DAT_ButtonX)),
+ DAT_ButtonY + 10, TTA_LEFT, 0, 0x11, TRUE, 0);
+ if (param_1 == 1) {
+ iVar11 = getSellResourceAmount(DAT_GameSynchronyState.currentPlayerSlotID,
+ DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .marketSelectedResourceType);
+ } else {
+ iVar11 = 5;
+ }
+ iVar5 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .storageMarketFailState;
+ if (iVar5 == 0) {
+ renderText2(
+ TEXT_IN_TRADEPOST, iVar4, DAT_MenuHandlerState.x + 0xdc,
+ DAT_MenuHandlerState.y + 0x243, TTA_LEFT, 0, 0x12, FALSE);
+ renderNumberToScreen2(iVar11, DAT_MenuHandlerState.x + 0xde,
+ DAT_MenuHandlerState.y + 0x243, TTA_LEFT, 0, 0x12, TRUE, 0);
+ renderText2(
+ TEXT_GOODS,
+ DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .marketSelectedResourceType,
+ DAT_MenuHandlerState.x + 0xe0, DAT_MenuHandlerState.y + 0x243,
+ TTA_LEFT, 0, 0x12, TRUE);
+ renderNumberToScreen2(iVar3, DAT_MenuHandlerState.x + 0xf0,
+ DAT_MenuHandlerState.y + 0x243, TTA_LEFT, 0, 0x12, TRUE, 0);
+ /*
+ added by script: "gold"
+ */
+ renderText2(
+ TEXT_IN_TRADEPOST, 0xc, DAT_MenuHandlerState.x + 0xf4,
+ DAT_MenuHandlerState.y + 0x243, TTA_LEFT, 0, 0x12, TRUE);
+ return;
+ }
+ renderText2(
+ TEXT_IN_TRADEPOST, iVar5 + 8, DAT_MenuHandlerState.x + 0xdc,
+ DAT_MenuHandlerState.y + 0x243, TTA_LEFT, 0, 0x12, FALSE);
+ _now = timeGetTime();
+ if (1000 < (int)(_now
+ - DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .timeStorageMarketFailState)) {
+ /*
+ Resets the market fail state after 1 second
+ */
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .storageMarketFailState = 0;
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00466160 MenuItemActionHandler_BuildingAndStatusMenu_RepairBuildingButton | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00466160
+ void BuildingAndStatusMenu::MenuItemActionHandler_BuildingAndStatusMenu_RepairBuildingButton()
+ {
+ BOOLEnum _buildingDamaged;
+ BOOLEnum _enemyTooClose;
+ int _buildingID;
+ _buildingDamaged
+ = updateRepairCostAndReturnIfDamaged(DAT_BuildingsState.menuSelectedBuildingID);
+ _buildingID = DAT_BuildingsState.menuSelectedBuildingID;
+ _enemyTooClose = isEnemyTooCloseUnk(
+ (int)DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID].owner,
+ (uint)((int)((int)(short)DAT_BuildingsState
+ .buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .x)),
+ (uint)((int)((int)(short)DAT_BuildingsState
+ .buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .y)),
+ (int)((int)((-(uint)(DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ & 0xfffffff1)
+ + 0x1e)));
+ if ((_enemyTooClose == FALSE) && (_buildingDamaged != FALSE)) {
+ updateRepairCostAndReturnIfDamaged(DAT_BuildingsState.menuSelectedBuildingID);
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[2]
+ < DAT_BuildingsState.INT_SelectedBuildingStoneWoodCost) {
+ playResourceLackSFX(1, RLSFX_WOOD);
+ return;
+ }
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[4]
+ < DAT_BuildingsState.INT_SelectedBuildingStoneRepairCost) {
+ playResourceLackSFX(1, RLSFX_STONE);
+ return;
+ }
+ DAT_GameSynchronyState.DAT_GameCommandParam2
+ = DAT_BuildingsState.INT_SelectedBuildingStoneRepairCost;
+ DAT_GameSynchronyState.DAT_GameCommandParam3
+ = DAT_BuildingsState.buildings[_buildingID].uid;
+ DAT_GameSynchronyState.DAT_GameCommandParam0
+ = DAT_BuildingsState.menuSelectedBuildingID;
+ DAT_GameSynchronyState.DAT_GameCommandParam1
+ = DAT_BuildingsState.INT_SelectedBuildingStoneWoodCost;
+ queueCommand(GCT_REPAIR_TOWER);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00466320 MenuItemRenderFunction_BuildingAndStatusMenu_RepairBuildingButton | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00466320
+ void BuildingAndStatusMenu::MenuItemRenderFunction_BuildingAndStatusMenu_RepairBuildingButton(int param_1, ...)
+ {
+ BOOLEnum BVar1;
+ BOOLEnum BVar2;
+ int iVar3;
+ char* textAddress;
+ int yParam;
+ TextAlignment alignment;
+ BGR24 color_00;
+ int fontSize;
+ int blendStrength;
+ uint color;
+ iVar3 = DAT_BuildingsState.menuSelectedBuildingID;
+ DAT_ButtonUnknownZero
+ = (int)(DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .owner
+ != DAT_GameSynchronyState.currentPlayerSlotID);
+ BVar1 = updateRepairCostAndReturnIfDamaged(DAT_BuildingsState.menuSelectedBuildingID);
+ BVar2 = isEnemyTooCloseUnk((int)DAT_BuildingsState.buildings[iVar3].owner,
+ (uint)((int)((int)(short)DAT_BuildingsState.buildings[iVar3].x)),
+ (uint)((int)((int)(short)DAT_BuildingsState.buildings[iVar3].y)),
+ (int)((int)((-(uint)(DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ & 0xfffffff1)
+ + 0x1e)));
+ if ((BVar2 == FALSE) && (BVar1 != FALSE)) {
+ renderBasicButton(0, RT_SCREEN_MENU);
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ color_00 = 0xc2f0eb;
+ } else {
+ color_00 = 0xccfaff;
+ }
+ } else {
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ renderBasicButton(8, RT_SCREEN_MENU);
+ color_00 = 0x7caaaf;
+ }
+ blendStrength = 0;
+ BVar1 = FALSE;
+ fontSize = 0x12;
+ alignment = TTA_CENTER;
+ yParam = DAT_ButtonY + 7;
+ iVar3 = DAT_ButtonW / 2 + DAT_ButtonX;
+ /*
+ added by script: "Repair"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_BUBBLE_HELP_TEXT, 0x101);
+ renderTextToScreen(
+ textAddress, iVar3, yParam, alignment, color_00, fontSize, BVar1, blendStrength);
+ return;
+ }
+ }
+}
+}
+
+### 0x00466620 MenuItemRenderFunction_BuildingAndStatusMenu_OutpostUnitSelection | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00466620
+ void BuildingAndStatusMenu::MenuItemRenderFunction_BuildingAndStatusMenu_OutpostUnitSelection(int param_1, ...)
+ {
+ int xParam;
+ char* textAddress;
+ int yParam;
+ uint uVar1;
+ int iVar2;
+ TextAlignment alignment;
+ uint backgroundColor;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ uVar1 = 1 << ((byte)param_1 & 0x1f);
+ iVar2 = 0;
+ if (DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID].buildingType
+ == BT_OUTPOST_ARABIAN) {
+ iVar2 = 9;
+ }
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ if ((DAT_BuildingsState.menuSelectedBuildingID == 0)
+ || (DAT_ButtonCurrentlyInteracting = TRUE,
+ (uVar1
+ & (int)DAT_BuildingsState
+ .buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .outpostRelatedUnk1)
+ == 0)) {
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ }
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ backgroundColor = 0x3e66;
+ uVar1 = 0xc2f0eb;
+ } else {
+ if ((DAT_BuildingsState.menuSelectedBuildingID == 0)
+ || (DAT_ButtonCurrentlyInteracting = TRUE,
+ (uVar1
+ & (int)DAT_BuildingsState
+ .buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .outpostRelatedUnk1)
+ == 0)) {
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ }
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ backgroundColor = 0;
+ uVar1 = 0xccfaff;
+ }
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x12;
+ alignment = TTA_CENTER;
+ yParam = DAT_ButtonY + 7;
+ xParam = DAT_ButtonW / 2 + DAT_ButtonX;
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_OUTPOST, iVar2 + 1 + param_1);
+ renderInGameTextWithShadow(
+ textAddress, xParam, yParam, alignment, uVar1, backgroundColor, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+ }
+}
+}
+
+### 0x00466730 MenuItemActionHandler_BuildingAndStatusMenu_OutpostSliderSize | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00466730
+ void BuildingAndStatusMenu::MenuItemActionHandler_BuildingAndStatusMenu_OutpostSliderSize(
+ int param_1, int param_2, int* minValue, int* maxValue, int* currentValue)
+ {
+ short* psVar1;
+ short sVar2;
+ int iVar3;
+ iVar3 = DAT_BuildingsState.menuSelectedBuildingID;
+ switch (param_2) {
+ case 1:
+ *minValue = 0;
+ *maxValue = 5;
+ *currentValue = (int)DAT_BuildingsState.buildings[iVar3].outpostRelatedUnk2;
+ return;
+ case 2:
+ case 3:
+ DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .outpostRelatedUnk2 = (short)*currentValue;
+ return;
+ case 4:
+ *currentValue
+ = (int)DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .outpostRelatedUnk2;
+ return;
+ case 5:
+ sVar2 = DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .outpostRelatedUnk2;
+ psVar1 = &DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .outpostRelatedUnk2;
+ if (0 < sVar2) {
+ *psVar1 = sVar2 + -1;
+ }
+ *currentValue = (int)*psVar1;
+ return;
+ case 6:
+ sVar2 = DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .outpostRelatedUnk2;
+ psVar1 = &DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .outpostRelatedUnk2;
+ if (sVar2 < 5) {
+ *psVar1 = sVar2 + 1;
+ }
+ *currentValue = (int)*psVar1;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00466810 MenuItemActionHandler_BuildingAndStatusMenu_OutpostSliderDelay | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00466810
+ void BuildingAndStatusMenu::MenuItemActionHandler_BuildingAndStatusMenu_OutpostSliderDelay(
+ int param_1, int param_2, int* minValue, int* maxValue, int* currentValue)
+ {
+ short* psVar1;
+ short sVar2;
+ int _selectedBuildingID;
+ _selectedBuildingID = DAT_BuildingsState.menuSelectedBuildingID;
+ switch (param_2) {
+ case 1:
+ *minValue = 0;
+ *maxValue = 24000;
+ *currentValue = (int)DAT_BuildingsState.buildings[_selectedBuildingID].outpostRelatedUnk3;
+ return;
+ case 2:
+ case 3:
+ DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .outpostRelatedUnk3 = (short)*currentValue;
+ return;
+ case 4:
+ *currentValue
+ = (int)DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .outpostRelatedUnk3;
+ return;
+ case 5:
+ sVar2 = DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .outpostRelatedUnk3;
+ psVar1 = &DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .outpostRelatedUnk3;
+ if (0 < sVar2) {
+ *psVar1 = sVar2 + -1;
+ }
+ *currentValue = (int)*psVar1;
+ return;
+ case 6:
+ sVar2 = DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .outpostRelatedUnk3;
+ psVar1 = &DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .outpostRelatedUnk3;
+ if (sVar2 < 24000) {
+ *psVar1 = sVar2 + 1;
+ }
+ *currentValue = (int)*psVar1;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00466950 MenuItemActionHandler_BuildingAndStatusMenu_BarrackUnitPortraits | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00466950
+ void BuildingAndStatusMenu::MenuItemActionHandler_BuildingAndStatusMenu_BarrackUnitPortraits(int param_1, ...)
+ {
+ BOOLEnum buttonIsInteracting;
+ EuroRecruitableState EVar1;
+ int _resourceImageID;
+ int iVar2;
+ ButtonGmData* this;
+ int _yPosition;
+ int _xPosition;
+ if (((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ && (DAT_GameSynchronyState.currentGameMode != GM_SKIRMISH_SINGLE_PLAYER))
+ && (DAT_GameState.mapAndTime.skirmishNoRushTicks != 0)) {
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ DAT_ButtonUnknownZero = 0;
+ if (DAT_EnoughGoldForRequestedUnit == FALSE) {
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ return;
+ }
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ EVar1 = IsEuroUnitRecruitableUnk(param_1);
+ iVar2 = DAT_CurrentButtonGmDataIndex;
+ buttonIsInteracting = DAT_ButtonCurrentlyInteracting;
+ _yPosition = DAT_ButtonY;
+ if (DAT_ButtonCurrentlyInteracting != FALSE) {
+ DAT_00df3350 = param_1 + -0x16;
+ }
+ if (EVar1 == ERS_CAN_RECRUITUnk) {
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ DAT_UIButtonDefinedData.ButtonGmDataArray[DAT_CurrentButtonGmDataIndex]
+ .stateTransitionTimeBaseUnk_0x18 = 0;
+ this = DAT_UIButtonDefinedData.ButtonGmDataArray + iVar2;
+ _xPosition = DAT_ButtonX;
+ _resourceImageID = getPictureNumberInGm(FALSE);
+ } else {
+ if ((param_1 < 0x16) || (0x1c < param_1))
+ goto LAB_00466a7d;
+ DAT_UIButtonDefinedData.ButtonGmDataArray[DAT_CurrentButtonGmDataIndex]
+ .stateTransitionTimeBaseUnk_0x18 = 0;
+ this = DAT_UIButtonDefinedData.ButtonGmDataArray + iVar2;
+ _xPosition = DAT_ButtonX;
+ _yPosition = DAT_ButtonY;
+ _resourceImageID = getPictureNumberInGm(buttonIsInteracting);
+ }
+ } else {
+ if (((EVar1 != ERS_CAN_NOT_RECRUIT)
+ && (EVar1 != ERS_UNABLE_MISSING_PEASANTS))
+ && (EVar1 != ERS_UNABLE_BECAUSE_MAX_ARMY))
+ goto LAB_00466a7d;
+ this = DAT_UIButtonDefinedData.ButtonGmDataArray + DAT_CurrentButtonGmDataIndex;
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ _xPosition = DAT_ButtonX;
+ iVar2 = getPictureNumberInGm(FALSE);
+ _resourceImageID = iVar2 + 7;
+ }
+ renderGM(this->gmId_0x0, _resourceImageID, _xPosition, _yPosition);
+ LAB_00466a7d:
+ DAT_CurrentButtonPictureInGm
+ = DAT_UIButtonDefinedData.ButtonGmDataArray[DAT_CurrentButtonGmDataIndex]
+ .pictureInGm_0x4;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ }
+}
+}
+
+### 0x00466ab0 MenuItemRenderFunction_BuildingAndStatusMenu_MercenaryPostPortraits | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00466AB0
+ void BuildingAndStatusMenu::MenuItemRenderFunction_BuildingAndStatusMenu_MercenaryPostPortraits(
+ int param_1, ...)
+ {
+ ButtonGmData* this;
+ int iVar1;
+ int iVar2;
+ BOOLEnum buttonIsInteracting;
+ int iVar3;
+ int iVar4;
+ if (((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ && (DAT_GameSynchronyState.currentGameMode != GM_SKIRMISH_SINGLE_PLAYER))
+ && (DAT_GameState.mapAndTime.skirmishNoRushTicks != 0)) {
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ DAT_ButtonUnknownZero = 0;
+ if (DAT_DisableMercPostPortraits == 0) {
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ return;
+ }
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ iVar1 = GetUnitRecruitPermission(param_1);
+ iVar4 = DAT_CurrentButtonGmDataIndex;
+ buttonIsInteracting = DAT_ButtonCurrentlyInteracting;
+ iVar3 = DAT_ButtonY;
+ if (DAT_ButtonCurrentlyInteracting != FALSE) {
+ DAT_00df3350 = param_1 + -0x46;
+ }
+ if (iVar1 == 1) {
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ DAT_UIButtonDefinedData.ButtonGmDataArray[DAT_CurrentButtonGmDataIndex]
+ .stateTransitionTimeBaseUnk_0x18 = 0;
+ buttonIsInteracting = FALSE;
+ } else {
+ if ((param_1 < 0x46) || (0x4c < param_1))
+ goto LAB_00466bec;
+ DAT_UIButtonDefinedData.ButtonGmDataArray[DAT_CurrentButtonGmDataIndex]
+ .stateTransitionTimeBaseUnk_0x18 = 0;
+ iVar3 = DAT_ButtonY;
+ }
+ iVar1 = DAT_ButtonX;
+iVar2 = getPictureNumberInGm().ButtonGmDataArray + iVar4,buttonIsInteracting);
+renderGM(
+ DAT_UIButtonDefinedData.ButtonGmDataArray[iVar4].gmId_0x0, iVar2, iVar1, iVar3);
+ } else if (((iVar1 == 0) || (iVar1 == 4)) || (iVar1 == 3)) {
+ iVar2 = 0x10;
+ this = DAT_UIButtonDefinedData.ButtonGmDataArray + DAT_CurrentButtonGmDataIndex;
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ iVar3 = DAT_ButtonX;
+ iVar4 = DAT_ButtonY;
+ iVar1 = getPictureNumberInGm(FALSE);
+ renderGMWithBlending(this->gmId_0x0, iVar1 + 7, iVar3, iVar4, iVar2);
+ }
+ LAB_00466bec:
+ DAT_CurrentButtonPictureInGm
+ = DAT_UIButtonDefinedData.ButtonGmDataArray[DAT_CurrentButtonGmDataIndex]
+ .pictureInGm_0x4;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ }
+}
+}
+
+### 0x00466c20 MenuItemRenderFunction_BuildingAndStatusMenu_EngineerAndMonkPortraits | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00466C20
+ void BuildingAndStatusMenu::MenuItemRenderFunction_BuildingAndStatusMenu_EngineerAndMonkPortraits(
+ int param_1, ...)
+ {
+ ButtonGmData* pBVar1;
+ BOOLEnum BVar2;
+ int iVar3;
+ int iVar4;
+ int iVar5;
+ int blendStrengthUnk;
+ if (((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ && (DAT_GameSynchronyState.currentGameMode != GM_SKIRMISH_SINGLE_PLAYER))
+ && (DAT_GameState.mapAndTime.skirmishNoRushTicks != 0)) {
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ DAT_ButtonUnknownZero = 0;
+ if (DAT_EnoughGoldForRequestedUnit != FALSE) {
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ BVar2 = HasEnoughGold(param_1);
+ if (BVar2 == FALSE) {
+ blendStrengthUnk = 0x16;
+ pBVar1
+ = DAT_UIButtonDefinedData.ButtonGmDataArray + DAT_CurrentButtonGmDataIndex;
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ iVar4 = DAT_ButtonX;
+ iVar5 = DAT_ButtonY;
+ iVar3 = getPictureNumberInGm(
+ FALSE);
+ renderGMWithBlending(pBVar1->gmId_0x0, iVar3, iVar4, iVar5, blendStrengthUnk);
+ } else {
+ pBVar1
+ = DAT_UIButtonDefinedData.ButtonGmDataArray + DAT_CurrentButtonGmDataIndex;
+ iVar4 = DAT_ButtonX;
+ iVar5 = DAT_ButtonY;
+ iVar3 = getPictureNumberInGm(
+ DAT_ButtonCurrentlyInteracting);
+ renderGM(pBVar1->gmId_0x0, iVar3, iVar4, iVar5);
+ }
+ DAT_CurrentButtonPictureInGm
+ = DAT_UIButtonDefinedData.ButtonGmDataArray[DAT_CurrentButtonGmDataIndex]
+ .pictureInGm_0x4;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ return;
+ }
+ }
+}
+}
+
+### 0x00466d10 MenuItemRenderFunction_BuildingAndStatusMenu_TunnelerPortrait | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00466D10
+ void BuildingAndStatusMenu::MenuItemRenderFunction_BuildingAndStatusMenu_TunnelerPortrait(int param_1, ...)
+ {
+ ButtonGmData* pBVar1;
+ BOOLEnum BVar2;
+ int iVar3;
+ int iVar4;
+ int iVar5;
+ int blendStrengthUnk;
+ if (((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ && (DAT_GameSynchronyState.currentGameMode != GM_SKIRMISH_SINGLE_PLAYER))
+ && (DAT_GameState.mapAndTime.skirmishNoRushTicks != 0)) {
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ DAT_ButtonUnknownZero = 0;
+ if (DAT_EnoughGoldForRequestedUnit != FALSE) {
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ BVar2 = CheckGoldResource(param_1);
+ if (BVar2 == FALSE) {
+ blendStrengthUnk = 0x16;
+ pBVar1
+ = DAT_UIButtonDefinedData.ButtonGmDataArray + DAT_CurrentButtonGmDataIndex;
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ iVar4 = DAT_ButtonX;
+ iVar5 = DAT_ButtonY;
+ iVar3 = getPictureNumberInGm(
+ FALSE);
+ renderGMWithBlending(pBVar1->gmId_0x0, iVar3, iVar4, iVar5, blendStrengthUnk);
+ } else {
+ pBVar1
+ = DAT_UIButtonDefinedData.ButtonGmDataArray + DAT_CurrentButtonGmDataIndex;
+ iVar4 = DAT_ButtonX;
+ iVar5 = DAT_ButtonY;
+ iVar3 = getPictureNumberInGm(
+ DAT_ButtonCurrentlyInteracting);
+ renderGM(pBVar1->gmId_0x0, iVar3, iVar4, iVar5);
+ }
+ DAT_CurrentButtonPictureInGm
+ = DAT_UIButtonDefinedData.ButtonGmDataArray[DAT_CurrentButtonGmDataIndex]
+ .pictureInGm_0x4;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ return;
+ }
+ }
+}
+}
+
+### 0x00466e20 MenuItemActionHandler_BuildingAndStatusMenu_EngineerAndMonkPortraits | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00466E20
+ void BuildingAndStatusMenu::MenuItemActionHandler_BuildingAndStatusMenu_EngineerAndMonkPortraits(
+ int param_1, ...)
+ {
+ int iVar1;
+ DWORD DVar2;
+ bool bVar3;
+ bool bVar4;
+ char* wav_filename;
+ if ((DAT_EnoughGoldForRequestedUnit == FALSE)
+ || (DAT_GameState.mapAndTime.armySizeLimit
+ <= DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .count_2
+ + DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .armySize)) {
+ return;
+ }
+ iVar1 = nonEuroRecruit(
+ param_1,
+ (undefined4)((
+ int)(DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .engineersGuild.id)),
+ DAT_GameSynchronyState.currentPlayerSlotID, 1);
+ if (iVar1 != 0) {
+ DAT_GameSynchronyState.DAT_GameCommandParam1
+ = DAT_BuildingsState.menuSelectedBuildingID;
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = param_1;
+ queueCommand(GCT_RECRUIT_UNIT);
+ CheckIfEnoughGoldForLadderman();
+ setUpSFXToPlayUnk(
+ SEID_BUTTON_CLICK_01);
+ if ((param_1 == INT_00df3368::instance)
+ && (DVar2 = MACRO_CALL(timeGetTime)(), DVar2 - DWORD_00df3364::instance < 0x1f41)) {
+ return;
+ }
+ if (param_1 == 0x1d) {
+ /*
+ "Okay, sir"
+ */
+ wav_filename = "ladder_s1.wav";
+ } else {
+ /*
+ "Your grace"
+ */
+ wav_filename = "engineer_s2.wav";
+ }
+ playWAVSFX(wav_filename);
+ INT_00df3368::instance = param_1;
+ DWORD_00df3364::instance = MACRO_CALL(timeGetTime)();
+ return;
+ }
+ if (param_1 == 0x1d) {
+ iVar1 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[0xf];
+ bVar4 = (iVar1 < 4);
+ bVar3 = iVar1 + -4 < 0;
+ } else if (param_1 == 0x1e) {
+ iVar1 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[0xf];
+ bVar4 = (iVar1 < 0x1e);
+ bVar3 = iVar1 + -0x1e < 0;
+ } else {
+ if (param_1 != 0x25)
+ goto LAB_00466f49;
+ iVar1 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[0xf];
+ bVar4 = (iVar1 < 10);
+ bVar3 = iVar1 + -10 < 0;
+ }
+ if (bVar4 != bVar3) {
+ /*
+ "You do not have enough gold to train this unit"
+ */
+ playWAVSFX(
+ "units_warning3.wav");
+ return;
+ }
+ LAB_00466f49:
+ /*
+ "Recruits needed sire"
+ */
+ playWAVSFX("other_warning5.wav");
+ return;
+ }
+ }
+}
+}
+
+### 0x00466f60 MenuItemActionHandler_BuildingAndStatusMenu_TunnelerPortrait | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00466F60
+ void BuildingAndStatusMenu::MenuItemActionHandler_BuildingAndStatusMenu_TunnelerPortrait(int param_1, ...)
+ {
+ int iVar1;
+ DWORD DVar2;
+ if ((DAT_EnoughGoldForRequestedUnit != FALSE)
+ && (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .count_2
+ + DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .armySize
+ < DAT_GameState.mapAndTime.armySizeLimit)) {
+ iVar1 = nonEuroRecruit(
+ param_1,
+ (undefined4)((int)(DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .tunnelersGuild.id)),
+ DAT_GameSynchronyState.currentPlayerSlotID, 1);
+ if (iVar1 == 0) {
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[0xf]
+ < 0x1e) {
+ /*
+ "You do not have enough gold to train this unit"
+ */
+ playWAVSFX(
+ "units_warning3.wav");
+ return;
+ }
+ /*
+ "Recruits needed sire"
+ */
+ playWAVSFX(
+ "other_warning5.wav");
+ } else {
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = param_1;
+ queueCommand(GCT_RECRUIT_UNIT);
+ CheckIfEnoughGoldForTunneler();
+ setUpSFXToPlayUnk(
+ SEID_BUTTON_CLICK_01);
+ DVar2 = MACRO_CALL(timeGetTime)();
+ if (8000 < DVar2 - DWORD_00df336c::instance) {
+ /*
+ "Yeeeess?"
+ */
+ playWAVSFX(
+ "tunnel_s2.wav");
+ DWORD_00df336c::instance = MACRO_CALL(timeGetTime)();
+ return;
+ }
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00467040 MenuItemActionHandler_BuildingAndStatusMenu_BuySellMenuButtonsAndHands | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00467040
+ void BuildingAndStatusMenu::MenuItemActionHandler_BuildingAndStatusMenu_BuySellMenuButtonsAndHands(
+ int param_1, ...)
+ {
+ int _buyingPrice;
+ int _space;
+ int _player;
+ ResourceType _resource;
+ if (param_1 == 2) {
+ _buyingPrice = getPreviousGoodsFilteringUnallowed(
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .marketSelectedResourceType);
+ if (_buyingPrice == 8) {
+ _buyingPrice = 7;
+ }
+ MACRO_CALL(
+ MenuItemActionHandler_BuildingAndStatusMenu_SelectBuySellGoods)(_buyingPrice);
+ return;
+ }
+ if (param_1 == 3) {
+ _buyingPrice = getNextGoodFilteringUnallowed(
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .marketSelectedResourceType);
+ if (_buyingPrice == 8) {
+ _buyingPrice = 7;
+ }
+ MACRO_CALL(
+ MenuItemActionHandler_BuildingAndStatusMenu_SelectBuySellGoods)(_buyingPrice);
+ return;
+ }
+ BOOL_CurrentMenuClickState::instance = FALSE;
+ if (param_1 == 0) {
+ /*
+ Buying
+ */
+ _buyingPrice = getBatchBuyPrice(DAT_GameSynchronyState.currentPlayerSlotID,
+ DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .marketSelectedResourceType);
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[0xf]
+ < _buyingPrice) {
+ SetStorageMarketFailState(1,
+ (ResourceType)((int)(DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .marketSelectedResourceType)));
+ /*
+ "Not enough gold"
+ */
+ playWAVSFX(
+ "space_warning8.wav");
+ return;
+ }
+ _space = getResourceSpace(DAT_GameSynchronyState.currentPlayerSlotID,
+ (int*)((int)(DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .marketSelectedResourceType)));
+ if (_space == -1) {
+ SetStorageMarketFailState(3,
+ (ResourceType)((int)(DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .marketSelectedResourceType)));
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .storageMarketFailState
+ == 6) {
+ /*
+ "No stockpile built"
+ */
+ playWAVSFX(
+ "space_warning2.wav");
+ }
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .storageMarketFailState
+ == 5) {
+ /*
+ "No Granary built"
+ */
+ playWAVSFX(
+ "space_warning1.wav");
+ }
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .storageMarketFailState
+ != 7) {
+ return;
+ }
+ /*
+ "No Armory built"
+ */
+ playWAVSFX(
+ "space_warning3.wav");
+ return;
+ }
+ if (_space < 5) {
+ SetStorageMarketFailState(4,
+ (ResourceType)((int)(DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .marketSelectedResourceType)));
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .storageMarketFailState
+ == 9) {
+ /*
+ "No space in the stockpile"
+ */
+ playWAVSFX(
+ "space_warning5.wav");
+ }
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .storageMarketFailState
+ == 8) {
+ /*
+ "No space in the granary"
+ */
+ playWAVSFX(
+ "space_warning4.wav");
+ }
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .storageMarketFailState
+ != 10) {
+ return;
+ }
+ /*
+ "No space in the armory"
+ */
+ playWAVSFX(
+ "space_warning6.wav");
+ return;
+ }
+ } else {
+ _player = DAT_GameSynchronyState.currentPlayerSlotID;
+ /*
+ Selling
+ */
+ if (param_1 != 1)
+ goto LAB_004672c0;
+ _resource
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .marketSelectedResourceType;
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[_resource]
+ < 1) {
+ SetStorageMarketFailState(2, _resource);
+ /*
+ "Not enough goods"
+ */
+ playWAVSFX(
+ "space_warning7.wav");
+ return;
+ }
+ }
+ setUpSFXToPlayUnk(
+ SEID_DRAWBRIDGE_CONTROL);
+ _player = DAT_GameSynchronyState.currentPlayerSlotID;
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .storageMarketFailState = 0;
+ LAB_004672c0:
+ DAT_GameSynchronyState.DAT_GameCommandParam1
+ = DAT_GameState.playerDataArray[_player].marketSelectedResourceType;
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = param_1;
+ queueCommand(
+ GCT_BUY_OR_SELL);
+ return;
+ }
+ }
+}
+}
+

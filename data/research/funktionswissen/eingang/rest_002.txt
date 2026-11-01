@@ -1,0 +1,1218 @@
+### 0x00469a70 getWidthOfText | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00469A70
+ int FontSizeClass::getWidthOfText(char* text, int length)
+ {
+ int _currentLineWidthUnk = 0;
+ int _maxSingleLineWidth = -1;
+ int local_c = DAT_TextManagerObject.field9_0x24;
+ if (DAT_TextManagerObject.field9_0x24 <= DAT_TextManagerObject.field10_0x28) {
+ local_c = DAT_TextManagerObject.field10_0x28;
+ }
+ int iVar1 = 0;
+ if (this->fontStartImageId_0x8 == -1) {
+ this->fontStartImageId_0x8
+ = GMTotalPicturesProcessed::instance[this->fontGmID_0x0] + -1 + this->numberOfFontStartInGm_0x4;
+ }
+ for (int _textIndex = 0; _textIndex < length; ++_textIndex) {
+ byte _char = text[_textIndex];
+ int imageID
+ = DAT_TextInputDefinedData
+ .CharToImageSeqIDMapping[DAT_TextManagerObject.alternativeCodePageUsedUnk][_char];
+ if (imageID == -1) {
+ if (_char >= ' ') {
+ _currentLineWidthUnk += this->whiteSpaceWidth_0x1c;
+ } else if (_char == '\n' && _currentLineWidthUnk > _maxSingleLineWidth) {
+ _maxSingleLineWidth = _currentLineWidthUnk;
+ _currentLineWidthUnk = 0;
+ }
+ } else {
+ imageID += this->fontStartImageId_0x8;
+ if (local_c != 0) {
+ local_c = 0;
+ if (this->lineHeight_0x14 == 27) {
+ iVar1 = 19;
+ }
+ if (this->lineHeight_0x14 == 20) {
+ iVar1 = 20;
+ }
+ if (iVar1 != 0) {
+ _currentLineWidthUnk += 3
+ + DAT_GMImageHeaders.imh[GMTotalPicturesProcessed::instance[156] + iVar1 - 1]
+ .width
+ - DAT_GMImageHeaders.imh[imageID].width - this->letterSpacing_0x18;
+ }
+ }
+ _currentLineWidthUnk += DAT_GMImageHeaders.imh[imageID].width + this->letterSpacing_0x18;
+ }
+ }
+ if (_currentLineWidthUnk <= _maxSingleLineWidth) {
+ _currentLineWidthUnk = _maxSingleLineWidth;
+ }
+ return _currentLineWidthUnk;
+ }
+}
+}
+
+### 0x00469b90 getWordStartingFromPos | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00469B90
+ int FontSizeClass::getWordStartingFromPos(
+ char* text, int startAndRunIndex, char* wordReceiver, int maxWordBufferSize, int* wordStartIndexOutPtr)
+ {
+ if (!text || !wordReceiver || text[startAndRunIndex] == '\0') {
+ return 0;
+ }
+ if (DAT_TextManagerObject.field12_0x30) {
+ *wordReceiver = text[startAndRunIndex];
+ wordReceiver[1] = '\0';
+ *wordStartIndexOutPtr = 0;
+ return 1;
+ }
+ int wordStartIndex = -1;
+ char _charHolder;
+ do {
+ _charHolder = text[startAndRunIndex];
+ ++startAndRunIndex;
+ ++wordStartIndex;
+ if (_charHolder == '\0') {
+ return 0;
+ }
+ } while (_charHolder == ' ');
+ *wordStartIndexOutPtr = wordStartIndex;
+ *wordReceiver = _charHolder;
+ int wordIndexAndLength;
+ for (wordIndexAndLength = 1; wordIndexAndLength < maxWordBufferSize; ++wordIndexAndLength) {
+ char currentChar = text[startAndRunIndex];
+ ++startAndRunIndex;
+ if (currentChar == '\0' || currentChar == ' ') {
+ break;
+ }
+ wordReceiver[wordIndexAndLength] = currentChar;
+ }
+ wordReceiver[wordIndexAndLength] = '\0';
+ return wordIndexAndLength;
+ }
+}
+}
+
+### 0x00469c40 wrapTextIntoLines | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00469C40
+ void FontSizeClass::wrapTextIntoLines(char* text, int allowedWidth)
+ {
+ int const _textLength = strlen(text);
+ int const _textWidth
+ = getWidthOfText(text, _textLength);
+ int currentIndexInLine = 0;
+ int wordCutIndex = 0;
+ int currentWidthOfLine = 0;
+ int wordsInLine = 0;
+ int const whiteSpaceWidth = this->whiteSpaceWidth_0x1c;
+ int lineIndex = 0;
+ DAT_TextManagerObject.count1 = 0;
+ if (_textLength <= 0) {
+ return;
+ }
+ if (_textWidth <= allowedWidth && _textLength <= 127) {
+ strcpy(DAT_TextManagerObject.stringArray1[0], text);
+ DAT_TextManagerObject.count1 = 1;
+ } else if (_textWidth > allowedWidth) {
+ do {
+ char _wordReceiver[64];
+ int _wordStartIndex;
+ int _wordLengthWithoutNull
+ = getWordStartingFromPos(
+ text, wordCutIndex, _wordReceiver, sizeof(_wordReceiver) - 1, &_wordStartIndex);
+ if (_wordLengthWithoutNull == 0)
+ break;
+ wordCutIndex += _wordStartIndex + _wordLengthWithoutNull;
+ int _wordWidth = getWidthOfText(
+ _wordReceiver, _wordLengthWithoutNull);
+ if (_wordWidth > allowedWidth) {
+ DAT_TextManagerObject.count1 = 0;
+ return;
+ }
+ if (_wordWidth + currentWidthOfLine > allowedWidth && wordsInLine) {
+ DAT_TextManagerObject.stringArray1[lineIndex][currentIndexInLine] = '\0';
+ ++lineIndex;
+ currentWidthOfLine = 0;
+ wordsInLine = 0;
+ if (32 <= lineIndex) {
+ lineIndex = 31;
+ break;
+ }
+ currentIndexInLine = 0;
+ }
+ _sprintf(
+ &DAT_TextManagerObject.stringArray1[lineIndex][currentIndexInLine], s__s_005a5a08,
+ _wordReceiver);
+ ++wordsInLine;
+ currentWidthOfLine += _wordWidth + whiteSpaceWidth; // printf adds "%s "
+ currentIndexInLine += 1 + _wordLengthWithoutNull; // printf adds "%s "
+ } while (wordCutIndex < _textLength);
+ DAT_TextManagerObject.stringArray1[lineIndex][currentIndexInLine] = '\0';
+ DAT_TextManagerObject.count1 = lineIndex + 1;
+ }
+ }
+}
+}
+
+### 0x00469e10 getCharWidthUnk | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00469E10
+ int FontSizeClass::getCharWidthUnk(byte charUnk)
+ {
+ int _width = 0;
+ if (this->fontStartImageId_0x8 == -1) {
+ this->fontStartImageId_0x8
+ = GMTotalPicturesProcessed::instance[this->fontGmID_0x0] + this->numberOfFontStartInGm_0x4 - 1;
+ }
+ int const imageSeqID
+ = DAT_TextInputDefinedData
+ .CharToImageSeqIDMapping[DAT_TextManagerObject.alternativeCodePageUsedUnk][charUnk];
+ if (imageSeqID == -1) {
+ if (charUnk >= ' ') {
+ return this->whiteSpaceWidth_0x1c;
+ }
+ } else {
+ _width = DAT_GMImageHeaders.imh[this->fontStartImageId_0x8 + imageSeqID].width
+ + this->letterSpacing_0x18;
+ }
+ return _width;
+ }
+}
+}
+
+### 0x00471610 getWidthOfWideText | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00471610
+ int FontSizeClass::getWidthOfWideText(LPWSTR wideText, int numberOfChars)
+ {
+ CHAR _charStringBuffer[3000];
+ wideCharToMultiByteWithSize(_charStringBuffer, wideText, numberOfChars);
+ return getWidthOfText(_charStringBuffer, numberOfChars);
+ }
+}
+}
+
+### 0x00471670 getWideCharWidth | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00471670
+ dword FontSizeClass::getWideCharWidth(WCHAR wChar)
+ {
+ return getCharWidthUnk(singleWideCharToMultiByte(wChar));
+ }
+}
+}
+
+### 0x00472d60 renderText | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00472D60
+ int FontSizeClass::renderText(char* text, int textLength, int xPos, int yPos, BGR24 color, int blendStrength)
+ {
+ int _xPos = xPos;
+ int _yPos = yPos;
+ Rendering::Colors::RGB15 const fillColor
+ = transformBGR24ToScreenColor(color);
+ Rendering::Enums::RenderTarget const _drawBufferTempUnk
+ = (Rendering::Enums::RenderTarget)DAT_TextureRenderCoreObject.drawBufferChoiceValue;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = DAT_TextManagerObject.textSurfaceTarget;
+ if (this->fontStartImageId_0x8 == -1) {
+ this->fontStartImageId_0x8
+ = GMTotalPicturesProcessed::instance[this->fontGmID_0x0] + this->numberOfFontStartInGm_0x4 - 1;
+ }
+ for (int i = 0; i < textLength; ++i) {
+ byte const currentChar = text[i];
+ int imageSeqId
+ = DAT_TextInputDefinedData
+ .CharToImageSeqIDMapping[DAT_TextManagerObject.alternativeCodePageUsedUnk][currentChar];
+ if (_xPos + this->whiteSpaceWidth_0x1c * 5 > DAT_TextManagerObject.textClipMin
+ && _xPos < DAT_TextManagerObject.textClipMax) {
+ if (imageSeqId == -1) {
+ if (currentChar >= ' ') {
+ if (DAT_TextManagerObject.helpTextLinkActive) {
+ int const lineY = this->baselineOffset_0x10 + _yPos + 2;
+ drawLine(
+ _xPos, lineY, _xPos + this->whiteSpaceWidth_0x1c, lineY, fillColor);
+ }
+ _xPos += this->whiteSpaceWidth_0x1c;
+ } else if (currentChar == '\n') {
+ _yPos += this->baselineOffset_0x10 / 3 + this->baselineOffset_0x10;
+ _xPos = xPos;
+ }
+ } else {
+ imageSeqId += this->fontStartImageId_0x8;
+ renderTextChar(_xPos, this->baselineOffset_0x10 + _yPos, imageSeqId,
+ (FontRenderType)this->renderType_0xc, this->lineHeight_0x14, fillColor, blendStrength);
+ _xPos += DAT_GMImageHeaders.imh[imageSeqId].width + this->letterSpacing_0x18
+ + DAT_TextureRenderCoreObject.mbr_0x6c;
+ }
+ } else if (imageSeqId == -1) {
+ if (currentChar >= ' ') {
+ _xPos += this->whiteSpaceWidth_0x1c;
+ } else if (currentChar == '\n') {
+ _yPos += this->baselineOffset_0x10 / 3 + this->baselineOffset_0x10;
+ _xPos = xPos;
+ }
+ } else {
+ _xPos += DAT_GMImageHeaders.imh[this->fontStartImageId_0x8 + imageSeqId].width
+ + this->letterSpacing_0x18;
+ }
+ }
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = _drawBufferTempUnk;
+ return _xPos;
+ }
+}
+}
+
+### 0x00472ef0 renderMultilineTextUnk | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00472EF0
+ int FontSizeClass::renderMultilineTextUnk(
+ char* text, int xPos, int yPos, int maxWidth, BGR24 color, int blendStrength, int modeUnk)
+ {
+ int _textLength = strlen(text);
+ int _widthOfWholeText = getWidthOfText(text, _textLength);
+ int _runXPos = xPos;
+ int _runYPos = yPos;
+ int maxXPosition = xPos + maxWidth;
+ int finalTextWidth = 0;
+ int _nextWordCutStartIndex = 0;
+ int writtenWords = 0;
+ int local_68 = 0;
+ int _wordWidth = 0;
+ int singleLineHeight = (this->lineHeight_0x14 * 38) >> 5;
+ int yLineOffset = singleLineHeight;
+ int whiteSpaceWidth = this->whiteSpaceWidth_0x1c;
+ int alternateLineHeight = DAT_TextManagerObject.field13_0x34;
+ if (alternateLineHeight) {
+ singleLineHeight = alternateLineHeight;
+ }
+ if (DAT_TextManagerObject.field12_0x30) {
+ whiteSpaceWidth = 0;
+ }
+ DAT_TextManagerObject.field1_0x4 = 0;
+ if (_textLength <= 0) {
+ return 0;
+ }
+ if (_widthOfWholeText <= maxWidth) {
+ DAT_TextManagerObject.field1_0x4 += singleLineHeight;
+ if (modeUnk == 0) {
+ renderText(
+ text, _textLength, _runXPos, _runYPos, color, blendStrength);
+ return _widthOfWholeText;
+ } else if (modeUnk == 1) {
+ return yLineOffset;
+ } else if (modeUnk == 2) {
+ return _widthOfWholeText;
+ }
+ }
+ do {
+ char _wordReceiver[64];
+ int _wordStartIndex;
+ int wordLength = getWordStartingFromPos(
+ text, _nextWordCutStartIndex, _wordReceiver, sizeof(_wordReceiver) - 1, &_wordStartIndex);
+ if (!wordLength) {
+ break;
+ }
+ _nextWordCutStartIndex += _wordStartIndex + wordLength;
+ int _wordWidth = getWidthOfText(_wordReceiver, wordLength);
+ if (_wordWidth > maxWidth) {
+ int charWidth = getCharWidthUnk('-');
+ int renderedChars = 0;
+ do {
+ int remainingWidth = maxXPosition - charWidth - _runXPos;
+ int wordReceiverBufferLength = strlen(_wordReceiver) + 1;
+ int length = 1;
+ for (; length < wordReceiverBufferLength; ++length) {
+ if (getWidthOfText(_wordReceiver, length)
+ > remainingWidth) {
+ break;
+ }
+ }
+ --length;
+ if (length < 1) {
+ if (writtenWords == 0) {
+ break;
+ }
+ } else {
+ int iVar1 = getWidthOfText(_wordReceiver, length);
+ if (modeUnk == 0) {
+ renderText(
+ _wordReceiver, length, _runXPos, _runYPos, color, blendStrength);
+ }
+ renderedChars += length;
+ _runXPos += iVar1;
+ if (renderedChars >= wordLength) {
+ break;
+ }
+ if (modeUnk == 0) {
+ renderText(
+ "-", sizeof(char), _runXPos, _runYPos, color, blendStrength);
+ }
+ for (int i = 0; i < (int)sizeof(_wordReceiver); ++i) {
+ _wordReceiver[i] = _wordReceiver[length + i];
+ if (_wordReceiver[i] == '\0') {
+ break;
+ }
+ }
+ }
+ int possibleWidth = _runXPos - xPos;
+ if (possibleWidth > finalTextWidth) {
+ finalTextWidth = possibleWidth;
+ }
+ _runXPos = xPos;
+ _runYPos += singleLineHeight;
+ yLineOffset += singleLineHeight;
+ writtenWords = 0;
+ if (DAT_TextManagerObject.field12_0x30) {
+ local_68 = 1;
+ }
+ } while (renderedChars < wordLength && local_68 == 0);
+ ++writtenWords;
+ _runXPos += whiteSpaceWidth;
+ continue;
+ }
+ if (_wordWidth + _runXPos > maxXPosition && writtenWords != 0) {
+ int possibleWidth = _runXPos - xPos;
+ if (possibleWidth > finalTextWidth) {
+ finalTextWidth = possibleWidth;
+ }
+ _runXPos = xPos;
+ _runYPos += singleLineHeight;
+ yLineOffset += singleLineHeight;
+ writtenWords = 0;
+ DAT_TextManagerObject.field1_0x4 += singleLineHeight;
+ if (DAT_TextManagerObject.field12_0x30) {
+ break;
+ }
+ }
+ if (modeUnk == 0) {
+ renderText(
+ _wordReceiver, wordLength, _runXPos, _runYPos, color, blendStrength);
+ }
+ ++writtenWords;
+ _runXPos += _wordWidth + whiteSpaceWidth;
+ } while (_nextWordCutStartIndex < _textLength && local_68 == 0);
+ int possibleWidth = _runXPos - xPos;
+ if (possibleWidth > finalTextWidth) {
+ finalTextWidth = possibleWidth;
+ }
+ if (writtenWords != 0) {
+ DAT_TextManagerObject.field1_0x4 += singleLineHeight;
+ }
+ if (modeUnk == 1) {
+ if (writtenWords == 0) {
+ yLineOffset -= singleLineHeight;
+ }
+ return yLineOffset;
+ }
+ return finalTextWidth;
+ }
+}
+}
+
+### 0x00473300 renderMultilineWideTextUnk | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00473300
+ int FontSizeClass::renderMultilineWideTextUnk(
+ LPWSTR _wideText, int xPos, int yPos, int maxWidth, uint color, int blendStrength, int modeUnk)
+ {
+ CHAR _convertedText[3000];
+ wideCharToMultiByteWithSize(_convertedText, _wideText, wcslen(_wideText));
+ return renderMultilineTextUnk(
+ _convertedText, xPos, yPos, maxWidth, color, blendStrength, modeUnk);
+ }
+}
+}
+
+### 0x004733a0 renderSomeSpecificTextUnk | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004733A0
+ void FontSizeClass::renderSomeSpecificTextUnk(
+ int lengthUnk, int otherBlendValueUnk, int xPos, int yPos, BGR24 color)
+ {
+ char strBuffer[128];
+ int _runXPos = xPos;
+ int _runYPos = yPos;
+ int lineHeight = (this->lineHeight_0x14 * 38) >> 5;
+ int blendValue = (otherBlendValueUnk * 32) / 100;
+ if (1 > DAT_TextManagerObject.count1 || DAT_TextManagerObject.count1 > 32
+ || lengthUnk < 1) {
+ return;
+ }
+ if (DAT_TextManagerObject.count1 == 1) {
+ int lengthStr = strlen(DAT_TextManagerObject.stringArray1[0]);
+ if (1 <= lengthStr) {
+ if (lengthUnk > lengthStr) {
+ renderText(
+ DAT_TextManagerObject.stringArray1[0], lengthStr, _runXPos, yPos, color, 0);
+ } else {
+ if (0 < lengthUnk - 1) {
+ _memcpy(
+ strBuffer, DAT_TextManagerObject.stringArray1[0], lengthStr);
+ strBuffer[lengthUnk - 1] = '\0';
+ renderText(
+ strBuffer, lengthUnk - 1, _runXPos, yPos, color, 0);
+ _runXPos = getWidthOfText(
+ strBuffer, lengthUnk - 1);
+ _runXPos += xPos;
+ }
+ strBuffer[0] = DAT_TextManagerObject.stringArray1[0][lengthUnk - 1];
+ strBuffer[1] = '\0';
+ renderText(
+ strBuffer, 1, _runXPos, yPos, color, blendValue);
+ }
+ }
+ } else {
+ for (int _index = 0; _index < (int)DAT_TextManagerObject.count1; ++_index) {
+ int lengthStr = strlen(DAT_TextManagerObject.stringArray1[_index]);
+ if (lengthStr < 1) {
+ break;
+ }
+ if (lengthUnk > lengthStr) {
+ renderText(
+ DAT_TextManagerObject.stringArray1[_index], lengthStr, xPos, _runYPos, color, 0);
+ _runYPos += lineHeight;
+ lengthUnk -= lengthStr;
+ continue;
+ }
+ if (0 < lengthUnk + -1) {
+ _memcpy(
+ strBuffer, DAT_TextManagerObject.stringArray1[_index], lengthStr);
+ strBuffer[lengthUnk + -1] = '\0';
+ renderText(
+ strBuffer, lengthUnk + -1, xPos, _runYPos, color, 0);
+ _runXPos = getWidthOfText(
+ strBuffer, lengthUnk + -1);
+ _runXPos += xPos;
+ }
+ strBuffer[0] = DAT_TextManagerObject.stringArray1[_index][lengthUnk - 1];
+ strBuffer[1] = '\0';
+ renderText(
+ strBuffer, 1, _runXPos, _runYPos, color, blendValue);
+ break;
+ }
+ }
+ }
+}
+}
+
+### 0x00473640 renderCharUnk | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00473640
+ int FontSizeClass::renderCharUnk(byte charId, int xPos, int yPosUnk, int bgr24, int blendStrengthUnk)
+ {
+ int _xPos = xPos;
+ int _yPos = yPosUnk;
+ Rendering::Enums::RenderTarget renderTargetTemp
+ = (Rendering::Enums::RenderTarget)DAT_TextureRenderCoreObject.drawBufferChoiceValue;
+ Rendering::Colors::RGB15 const _fillColorUnk
+ = transformBGR24ToScreenColor(bgr24);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = DAT_TextManagerObject.textSurfaceTarget;
+ if (this->fontStartImageId_0x8 == -1) {
+ this->fontStartImageId_0x8
+ = GMTotalPicturesProcessed::instance[this->fontGmID_0x0] + this->numberOfFontStartInGm_0x4 - 1;
+ }
+ int imageSeqID
+ = DAT_TextInputDefinedData
+ .CharToImageSeqIDMapping[DAT_TextManagerObject.alternativeCodePageUsedUnk][charId];
+ if (_xPos + this->whiteSpaceWidth_0x1c * 5 > DAT_TextManagerObject.textClipMin
+ && _xPos < DAT_TextManagerObject.textClipMax) {
+ if (imageSeqID == -1) {
+ if (charId >= ' ') {
+ if (DAT_TextManagerObject.helpTextLinkActive != 0) {
+ drawLine(
+ _xPos, this->baselineOffset_0x10 + 2 + _yPos, this->whiteSpaceWidth_0x1c + _xPos,
+ this->baselineOffset_0x10 + 2 + _yPos, _fillColorUnk);
+ }
+ _xPos += this->whiteSpaceWidth_0x1c;
+ }
+ } else {
+ imageSeqID += this->fontStartImageId_0x8;
+ renderTextChar(_xPos, _yPos + this->baselineOffset_0x10, imageSeqID,
+ (FontRenderType)this->renderType_0xc, this->lineHeight_0x14, _fillColorUnk, blendStrengthUnk);
+ _xPos += DAT_GMImageHeaders.imh[imageSeqID].width + this->letterSpacing_0x18
+ + DAT_TextureRenderCoreObject.mbr_0x6c;
+ }
+ } else {
+ if (imageSeqID == -1) {
+ if (charId >= ' ') {
+ _xPos += this->whiteSpaceWidth_0x1c;
+ }
+ } else {
+ imageSeqID += this->fontStartImageId_0x8;
+ _xPos += DAT_GMImageHeaders.imh[imageSeqID].width + this->letterSpacing_0x18;
+ }
+ }
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = renderTargetTemp;
+ return _xPos;
+ }
+}
+}
+
+### 0x004737b0 renderWideText | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004737B0
+ int FontSizeClass::renderWideText(
+ LPWSTR wideText, int textLength, int xPos, int yPos, BGR24 color, int blendStrength)
+ {
+ CHAR _text[3000];
+ wideCharToMultiByteWithSize(_text, wideText, textLength);
+ return renderText(
+ _text, textLength, xPos, yPos, color, blendStrength);
+ }
+}
+}
+
+### 0x00473830 renderWideChar | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00473830
+ int FontSizeClass::renderWideChar(WCHAR wideChar, int xPos, int yPos, int bgr24, int blendStrengthUnk)
+ {
+ return renderCharUnk(
+ singleWideCharToMultiByte(wideChar),
+ xPos, yPos, bgr24, blendStrengthUnk);
+ }
+}
+}
+
+### 0x004347f0 SomeUnitAndViewportCheck | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004347F0
+ undefined4 Helpers::SomeUnitAndViewportCheck(int unitID)
+ {
+ int iVar1;
+ int iVar2;
+ int iVar3;
+ int iVar4;
+ int iVar5;
+ int iVar6;
+ int iVar7;
+ if (((DAT_MinimapViewState.field15_0x3c == 0)
+ && (DAT_ViewportRenderState.viewportState.mouseAtomRefFloorTile != 0))
+ && ((DAT_TileMapState
+ .LogicLayer[DAT_ViewportRenderState.viewportState.mouseAtomRefFloorTile]
+ & 0x10000300U)
+ != 0)) {
+ iVar1 = (int)DAT_ViewportRenderState.tileTranslationMatrix_YComponent
+ [DAT_ViewportRenderState.viewportState.mouseAtomRefFloorTile];
+ iVar2 = DAT_ViewportRenderState.viewportState.mouseAtomRefFloorTile
+ - DAT_ViewportRenderState.translationMatrix[iVar1].addXgetTile;
+ iVar3 = (int)DAT_UnitsState.units[unitID].x;
+ iVar5 = (int)DAT_UnitsState.units[unitID].y;
+ if (DAT_TileMapState.mapOrientation == 2) {
+ iVar6 = 400 - iVar2;
+ iVar7 = 400 - iVar3;
+ iVar2 = iVar1;
+ iVar4 = iVar5;
+ } else if (DAT_TileMapState.mapOrientation == 4) {
+ iVar6 = 400 - iVar1;
+ iVar7 = 400 - iVar5;
+ iVar2 = 400 - iVar2;
+ iVar4 = 400 - iVar3;
+ } else {
+ iVar6 = iVar1;
+ iVar4 = iVar3;
+ iVar7 = iVar5;
+ if (DAT_TileMapState.mapOrientation == 6) {
+ iVar6 = iVar2;
+ iVar2 = 400 - iVar1;
+ iVar4 = 400 - iVar5;
+ iVar7 = iVar3;
+ }
+ }
+ if (iVar7 + iVar4 < iVar2 + iVar6) {
+ return (undefined4)(0);
+ }
+ }
+ return (undefined4)(1);
+ }
+}
+}
+
+### 0x00493050 SetupPreviewMinimapDataUnk | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00493050
+ void Helpers::SetupPreviewMinimapDataUnk()
+ {
+ char cVar1;
+ int iVar2;
+ char* pcVar3;
+ undefined4 uVar4;
+ char* pcVar5;
+ FileResourceType resourceType;
+ char local_3f4[4];
+ char local_3f0[1004];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)local_3f4;
+ iVar2 = DAT_MenuTextInputState.DAT_MenuLoadGameRelativeSelectionIndex
+ + DAT_MenuTextInputState.DAT_MenuLoadGameRelativeSelectionOffset;
+ if ((iVar2 == -1) || (DAT_MenuTextInputState.field43_0xa0 == iVar2))
+ goto LAB_00493187;
+ DAT_MenuTextInputState.field43_0xa0 = iVar2;
+ pcVar3 = mapNames_getLoadedMapNameForIndex(DAT_MenuTextInputState.DAT_ArrayOfMapIndices[iVar2 + -1]);
+ pcVar5 = local_3f4;
+ do {
+ cVar1 = *pcVar3;
+ *pcVar5 = cVar1;
+ pcVar3 = pcVar3 + 1;
+ pcVar5 = pcVar5 + 1;
+ } while (cVar1 != '\0');
+ if (DAT_GameCore.currentMenuViewType == MVT_UNUSED_CREATE_SIEGE) {
+ pcVar3 = &stack0xfffffc0b;
+ do {
+ pcVar5 = pcVar3 + 1;
+ pcVar3 = pcVar3 + 1;
+ } while (*pcVar5 != '\0');
+ uVar4._0_1_ = '.';
+ uVar4._1_1_ = 't';
+ uVar4._2_1_ = 'm';
+ uVar4._3_1_ = 'p';
+ LAB_00493166:
+ *(undefined4*)pcVar3 = uVar4;
+ pcVar3[4] = '\0';
+ resourceType = FRT_MAPS;
+ } else {
+ if (DAT_GameCore.currentMenuViewType == MVT_CUSTOM_SCENARIOS) {
+ pcVar3 = &stack0xfffffc0b;
+ do {
+ pcVar5 = pcVar3 + 1;
+ pcVar3 = pcVar3 + 1;
+ } while (*pcVar5 != '\0');
+ uVar4._0_1_ = '.';
+ uVar4._1_1_ = 'm';
+ uVar4._2_1_ = 'a';
+ uVar4._3_1_ = 'p';
+ goto LAB_00493166;
+ }
+ if ((DAT_GameSynchronyState.currentGameMode == GM_SOLITARY)
+ || (DAT_GameSynchronyState.currentGameMode == GM_SKIRMISH_SINGLE_PLAYER)) {
+ pcVar3 = &stack0xfffffc0b;
+ do {
+ pcVar5 = pcVar3;
+ pcVar3 = pcVar5 + 1;
+ } while (pcVar5[1] != '\0');
+ builtin_strncpy(pcVar5 + 1, ".sav", 5);
+ resourceType = FRT_UNKNOWN;
+ } else {
+ pcVar3 = &stack0xfffffc0b;
+ do {
+ pcVar5 = pcVar3;
+ pcVar3 = pcVar5 + 1;
+ } while (pcVar5[1] != '\0');
+ builtin_strncpy(pcVar5 + 1, ".msv", 5);
+ resourceType = FRT_UNKNOWN;
+ }
+ }
+ resolveResourceFileName(
+ resourceType, (CHAR_CONST*)((int)(local_3f4)));
+ readMapHeader(TRUE);
+ LAB_00493187:;
+ return;
+ }
+}
+}
+
+### 0x0057b9c0 PlayJokeVideoBasedOnCurrentTimeAndPlayTime | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0057B9C0
+ void Helpers::PlayJokeVideoBasedOnCurrentTimeAndPlayTime()
+ {
+ BOOLEnum BVar1;
+ DWORD _now;
+ tm* _localtime64;
+ int iVar2;
+ __time64_t _time64;
+ if ((BOOLEnum_02427470::instance & TRUE) == FALSE) {
+ BOOLEnum_02427470::instance = BOOLEnum_02427470::instance | TRUE;
+ DWORD_0242746c::instance = MACRO_CALL(timeGetTime)();
+ }
+ BVar1 = getAreWeInAInGameMenu();
+ if ((((BVar1 != FALSE) && (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY))
+ && (TIME_ReceivedMessage_1::instance == 0))
+ && (_now = MACRO_CALL(timeGetTime)(), 9999 < _now - DWORD_0242746c::instance)) {
+ DWORD_0242746c::instance = _now;
+ __time64(&_time64);
+ _localtime64 = _localtime(&_time64);
+ if (((FLAG_ChristmasAIMessage01to04::instance == FALSE) && (_localtime64->tm_mon == 11))
+ && (_localtime64->tm_mday == 25)) {
+ /*
+ is christmas day
+ */
+ iVar2 = 4;
+ do {
+ BVar1 = aiOfTypeInCurrentGame(
+ iVar2);
+ if (BVar1 != FALSE) {
+ playJokeBikFromAIToHuman(
+ DAT_GameSynchronyState.currentPlayerSlotID, iVar2);
+ FLAG_ChristmasAIMessage01to04::instance = TRUE;
+ break;
+ }
+ iVar2 = iVar2 + -1;
+ } while (0 < iVar2);
+ }
+ /*
+ From here on it is all based on play time length
+ */
+ if (((FLAG_JokeAIMessage16::instance == FALSE)
+ && (BVar1
+ = aiOfTypeInCurrentGame(16),
+ BVar1 != FALSE))
+ && (86400000 < _now - TIME_Sum_1::instance)) {
+ playJokeBikFromAIToHuman(
+ DAT_GameSynchronyState.currentPlayerSlotID, 16);
+ FLAG_JokeAIMessage16::instance = TRUE;
+ }
+ if ((((FLAG_JokeAIMessage06::instance == FALSE)
+ && (BVar1
+ = aiOfTypeInCurrentGame(6),
+ BVar1 != FALSE))
+ && (10800000 < _now - TIME_Sum_1::instance))
+ && (iVar2 = IfAiGreatestLordGetAiType(), iVar2 == 6)) {
+ playJokeBikFromAIToHuman(
+ DAT_GameSynchronyState.currentPlayerSlotID, 6);
+ FLAG_JokeAIMessage06::instance = TRUE;
+ }
+ if (((FLAG_JokeAIMessage12::instance == FALSE)
+ && (BVar1
+ = aiOfTypeInCurrentGame(0xc),
+ BVar1 != FALSE))
+ && (18000000 < _now - TIME_Sum_1::instance)) {
+ playJokeBikFromAIToHuman(
+ DAT_GameSynchronyState.currentPlayerSlotID, 0xc);
+ FLAG_JokeAIMessage12::instance = TRUE;
+ }
+ if (((FLAG_JokeAIMessage09::instance == FALSE)
+ && (BVar1
+ = aiOfTypeInCurrentGame(9),
+ BVar1 != FALSE))
+ && ((7200000 < _now - TIME_Sum_1::instance
+ && ((_localtime64->tm_hour == 2 && (_localtime64->tm_min == 0)))))) {
+ playJokeBikFromAIToHuman(
+ DAT_GameSynchronyState.currentPlayerSlotID, 9);
+ FLAG_JokeAIMessage09::instance = TRUE;
+ }
+ if (((INT_00ee238c::instance == 0)
+ && (BVar1
+ = aiOfTypeInCurrentGame(0xf),
+ BVar1 != FALSE))
+ && (14400000 < _now - TIME_Sum_1::instance)) {
+ playJokeBikFromAIToHuman(
+ DAT_GameSynchronyState.currentPlayerSlotID, 0xf);
+ INT_00ee238c::instance = 1;
+ }
+ if (((INT_00ee2384::instance == 0)
+ && (BVar1
+ = aiOfTypeInCurrentGame(0xd),
+ BVar1 != FALSE))
+ && ((7200000 < _now - TIME_Sum_1::instance
+ && ((_localtime64->tm_hour == 3 && (_localtime64->tm_min == 0)))))) {
+ playJokeBikFromAIToHuman(
+ DAT_GameSynchronyState.currentPlayerSlotID, 0xd);
+ INT_00ee2384::instance = 1;
+ }
+ if ((((INT_00ee2378::instance == 0)
+ && (BVar1
+ = aiOfTypeInCurrentGame(10),
+ BVar1 != FALSE))
+ && (7200000 < _now - TIME_Sum_1::instance))
+ && ((_localtime64->tm_hour == 0 && (_localtime64->tm_min == 0)))) {
+ playJokeBikFromAIToHuman(
+ DAT_GameSynchronyState.currentPlayerSlotID, 10);
+ INT_00ee2378::instance = 1;
+ }
+ if (((INT_00ee2370::instance == 0)
+ && (BVar1
+ = aiOfTypeInCurrentGame(8),
+ BVar1 != FALSE))
+ && ((7200000 < _now - TIME_Sum_1::instance
+ && ((_localtime64->tm_hour == 4 && (_localtime64->tm_min == 0)))))) {
+ playJokeBikFromAIToHuman(
+ DAT_GameSynchronyState.currentPlayerSlotID, 8);
+ INT_00ee2370::instance = 1;
+ }
+ if ((((FLAG_JokeAIMessage05::instance == FALSE)
+ && (BVar1
+ = aiOfTypeInCurrentGame(5),
+ BVar1 != FALSE))
+ && (7200000 < _now - TIME_Sum_1::instance))
+ && ((_localtime64->tm_hour == 5 && (_localtime64->tm_min == 0)))) {
+ playJokeBikFromAIToHuman(
+ DAT_GameSynchronyState.currentPlayerSlotID, 5);
+ FLAG_JokeAIMessage05::instance = TRUE;
+ }
+ if (((INT_00ee2388::instance == 0)
+ && (BVar1
+ = aiOfTypeInCurrentGame(0xe),
+ BVar1 != FALSE))
+ && ((12000000 < _now - TIME_Sum_1::instance
+ && (iVar2 = IfAiGreatestLordGetAiType(),
+ iVar2 == 0xe)))) {
+ playJokeBikFromAIToHuman(
+ DAT_GameSynchronyState.currentPlayerSlotID, 0xe);
+ INT_00ee2388::instance = 1;
+ }
+ if ((((INT_00ee236c::instance == 0)
+ && (BVar1
+ = aiOfTypeInCurrentGame(7),
+ BVar1 != FALSE))
+ && (7200000 < _now - TIME_Sum_1::instance))
+ && ((_localtime64->tm_hour == 1 && (_localtime64->tm_min == 0)))) {
+ playJokeBikFromAIToHuman(
+ DAT_GameSynchronyState.currentPlayerSlotID, 7);
+ INT_00ee236c::instance = 1;
+ }
+ if (((INT_00ee237c::instance == 0)
+ && (BVar1
+ = aiOfTypeInCurrentGame(0xb),
+ BVar1 != FALSE))
+ && ((12600000 < _now - TIME_Sum_1::instance
+ && (iVar2 = IfAiGreatestLordGetAiType(),
+ iVar2 == 0xb)))) {
+ playJokeBikFromAIToHuman(
+ DAT_GameSynchronyState.currentPlayerSlotID, 0xb);
+ INT_00ee237c::instance = 1;
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x004b5100 Constructor_MinimapViewState | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004B5100
+ MinimapViewState* MinimapViewState::Constructor_MinimapViewState()
+ {
+ this->field14_0x38 = 0;
+ this->DAT_SomeMiniMapCounterTill4 = 0;
+ return this;
+ }
+}
+}
+
+### 0x004b5110 scrollViewportToMinimapClick | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004B5110
+ void MinimapViewState::scrollViewportToMinimapClick()
+ {
+ if ((DAT_GameCore.currentMenuViewType == MVT_BUILD_MENU)
+ && (((DAT_GameCore.activeMenuTab.buildMenuTab == BMTT_SOLDIERS
+ || (DAT_TileMapState.shiftRelated0or3 == 1))
+ && (DAT_MouseState.rightClickState == FALSE)))) {
+ return;
+ }
+ DAT_ViewportRenderState.viewportState.viewportX
+ = ((((DAT_MouseState.screenSpaceX - this->x) / this->widthFactor) * this->oneOrTwo
+ - (DAT_ViewportRenderState.viewportState.viewportHeight + -5) / 2)
+ + this->field5_0x14)
+ * 0x20;
+ DAT_ViewportRenderState.viewportState.viewportY
+ = ((((DAT_MouseState.screenSpaceY - this->y) / this->heightFactor) * this->oneOrTwo
+ - DAT_ViewportRenderState.viewportState.viewportWidth / 2)
+ + this->field4_0x10)
+ * 8;
+ setViewportBasedOnMapSize();
+ return;
+ }
+}
+}
+
+### 0x004b51a0 convertMinimapClickToTileXY | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004B51A0
+ void MinimapViewState::convertMinimapClickToTileXY(int* param_1, int* param_2)
+ {
+ short sVar1;
+ int iVar2;
+ int iVar3;
+ if (this->field15_0x3c != 0) {
+ iVar2 = DAT_MouseState.screenSpaceY - this->y;
+ iVar3 = 0;
+ *param_1 = (((DAT_MouseState.screenSpaceX - this->x) * this->oneOrTwo) / this->widthFactor + 6
+ + this->field5_0x14)
+ * 0x20;
+ iVar2 = ((this->oneOrTwo * iVar2) / this->heightFactor + this->field4_0x10) * 8;
+ *param_2 = iVar2;
+ if (DAT_TileMapState.mapOrientation != 0) {
+ if (DAT_TileMapState.mapOrientation == 6) {
+ iVar3 = 0x13a10;
+ } else if (DAT_TileMapState.mapOrientation == 4) {
+ iVar3 = 0x27420;
+ } else if (DAT_TileMapState.mapOrientation == 2) {
+ iVar3 = 0x3ae30;
+ }
+ }
+ iVar2 = DAT_ViewportRenderState
+ .screenPointToTileNumber[((int)(*param_1 + (*param_1 >> 0x1f & 0x1fU)) >> 5)
+ + ((int)(iVar2 + (iVar2 >> 0x1f & 0xfU)) >> 4) * 0x191 + iVar3 + -6];
+ sVar1 = DAT_ViewportRenderState.tileTranslationMatrix_YComponent[iVar2];
+ *param_2 = (int)sVar1;
+ *param_1 = iVar2 - DAT_ViewportRenderState.translationMatrix[sVar1].addXgetTile;
+ return;
+ }
+ *param_1 = -1;
+ *param_2 = -1;
+ return;
+ }
+}
+}
+
+### 0x004b5280 renderMinimapPreview | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004B5280
+ void MinimapViewState::renderMinimapPreview(int screenX, int screenY)
+ {
+ int iVar1;
+ int iVar2;
+ int iVar3;
+ int iVar4;
+ int iVar5;
+ setupPencilSurface();
+ iVar5 = (int)DAT_PencilRenderCore.surfacePtr
+ + screenY * DAT_PencilRenderCore.horizontalByteSize + screenX * 2;
+ iVar4 = 0x1a7f854;
+ iVar2 = 200;
+ do {
+ iVar1 = 200;
+ iVar3 = 0;
+ do {
+ if (*(short*)(iVar4 + iVar3) != 0) {
+ *(short*)(iVar5 + iVar3) = *(short*)(iVar4 + iVar3);
+ }
+ iVar3 = iVar3 + 2;
+ iVar1 = iVar1 + -1;
+ } while (iVar1 != 0);
+ iVar4 = iVar4 + 400;
+ iVar5 = iVar5 + DAT_PencilRenderCore.horizontalByteSize;
+ iVar2 = iVar2 + -1;
+ } while (iVar2 != 0);
+ return;
+ }
+}
+}
+
+### 0x004b5300 triggerMinimapRedraw | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004B5300
+ void MinimapViewState::triggerMinimapRedraw(int unknown)
+ {
+ if (this->field14_0x38 == 0) {
+ this->field13_0x34 = 0;
+ this->field14_0x38 = 2;
+ return;
+ }
+ this->field14_0x38 = 1;
+ }
+}
+}
+
+### 0x004b5330 renderMinimapTileStripWithLuminescence | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004B5330
+ void MinimapViewState::renderMinimapTileStripWithLuminescence(
+ uint param_1, int param_2, int param_3, uint param_4, int param_5)
+ {
+ int iVar1;
+ int iVar2;
+ uint uVar3;
+ uint uVar4;
+ int iVar5;
+ uint uVar6;
+ int _yOffset;
+ int iVar7;
+ int iVar8;
+ uint uVar9;
+ uint uVar10;
+ int iVar11;
+ int iVar12;
+ uint uVar13;
+ uint _isRGB565;
+ int local_58;
+ int* local_50;
+ int local_4c;
+ uint local_48;
+ int local_44;
+ int local_40;
+ int local_3c;
+ int local_38;
+ int local_2c;
+ int local_24;
+ int _tile;
+ uint _tile1003;
+ int _paramSum;
+ int _vpHeight;
+ _vpHeight = DAT_ViewportRenderState.viewportState.viewportHeight;
+ _yOffset = param_4 * 400;
+ _paramSum = param_4 + param_5;
+ uVar10 = 0;
+ iVar8 = 1;
+ local_58 = 1;
+ local_3c = 2;
+ if ((param_1 & 4) != 0) {
+ local_58 = 2;
+ iVar8 = 2;
+ }
+ iVar1 = (int)(400 / (longlong)param_2) * iVar8;
+ _isRGB565 = (uint)(DAT_WindowAndDirectDraw.colorBitMode == 1381);
+ if (DAT_TileMapState.mapSize < 200) {
+ uVar10 = 100;
+ local_3c = 1;
+ }
+ iVar2 = DAT_ViewportRenderState.viewportState.viewportHeight + 1;
+ iVar12 = 8;
+ if (DAT_TileMapState.mapOrientation != 0) {
+ if (DAT_TileMapState.mapOrientation == 6) {
+ iVar12 = 80408;
+ } else if (DAT_TileMapState.mapOrientation == 4) {
+ iVar12 = 160808;
+ } else {
+ iVar12 = 8;
+ if (DAT_TileMapState.mapOrientation == 2) {
+ iVar12 = 241208;
+ }
+ }
+ }
+ uVar3 = uVar10 / 2;
+ local_44 = iVar12 + 1 + uVar3 * 0x191;
+ iVar8 = iVar8 * 200 - uVar10;
+ if ((int)uVar10 < iVar8) {
+ local_48 = 0;
+ param_5 = 0;
+ local_40 = iVar2;
+ do {
+ if (local_40 == iVar2) {
+ local_40 = _vpHeight;
+ iVar12 = param_2 / 2;
+ local_24 = 200;
+ } else {
+ iVar12 = 0;
+ local_24 = 201;
+ local_40 = iVar2;
+ }
+ if (_yOffset / 100 <= (int)uVar10) {
+ if ((_paramSum * 400) / 100 <= (int)uVar10) {
+ return;
+ }
+ if ((local_58 != 2) || ((local_48 & 1) == 0)) {
+ iVar11 = uVar3 - 2;
+ local_2c = iVar1 / local_3c - uVar3;
+ if (iVar11 < local_2c) {
+ uVar6 = (iVar11 - uVar3) * param_2 + iVar12;
+ local_50
+ = DAT_ViewportRenderState.screenPointToTileNumber + uVar3 + local_44 + -10;
+ local_2c = local_2c - iVar11;
+ do {
+ _tile = *local_50;
+ _tile1003 = DAT_TileMapState.LogicLayer[_tile];
+ iVar12 = 0;
+ if ((_tile1003 & 0x40000000) == 0) {
+ if ((_tile1003 & 0x3000) == 0) {
+ uVar9 = DAT_MiniMapDefinedData.field90_0x27c[0].integer;
+ if ((_tile1003 & 8) == 0) {
+ while ((uVar9 & _tile1003) == 0) {
+ if (uVar9 == 0)
+ goto LAB_004b55d3;
+ iVar11 = iVar12 + 1;
+ iVar12 = iVar12 + 1;
+ uVar9 = DAT_MiniMapDefinedData.field90_0x27c[iVar11].integer;
+ }
+ param_4 = (uint)DAT_MiniMapDefinedData.field90_0x27c[iVar12]
+ .colorModeSpecificValue[_isRGB565];
+ } else if ((DAT_TileMapState.MiscDisplayLayer[_tile] & 0x2000) == 0) {
+ LAB_004b55d3:
+ param_4 = 0;
+ } else {
+ param_4 = (uint)DAT_MiniMapDefinedData.field1_0x20[_isRGB565];
+ }
+ } else {
+ param_4 = (uint)DAT_MiniMapDefinedData.field16_0x144[_isRGB565
+ + ((int)(short)DAT_TileMapState.RandomLayer[_tile] & 3U) * 2];
+ }
+ } else {
+ param_4 = (uint)DAT_MiniMapDefinedData.field6_0x74[_isRGB565
+ + ((int)(short)DAT_TileMapState.RandomLayer[_tile] & 3U) * 2];
+ }
+ if (((DAT_TileMapState.LuminesenceLayer[_tile] != 2) && ((short)param_4 != 0))
+ && ((_tile1003 & 2) == 0)) {
+ iVar12 = DAT_MiniMapDefinedData
+ .field0_0x0[DAT_TileMapState.LuminesenceLayer[_tile]];
+ if (_isRGB565 == 0) {
+ uVar9 = (int)((param_4 & 0x7c00) * iVar12) / 100;
+ if (0x7c00 < (int)uVar9) {
+ uVar9 = 0x7c00;
+ }
+ uVar13 = (int)((param_4 & 0x3e0) * iVar12) / 100;
+ uVar9 = uVar9 & 0x7c00;
+ if (0x3e0 < (int)uVar13) {
+ uVar13 = 0x3e0;
+ }
+ uVar13 = uVar13 & 0x3e0;
+ } else {
+ uVar9 = (int)((param_4 & 0xf800) * iVar12) / 100;
+ if (0xf800 < (int)uVar9) {
+ uVar9 = 0xf800;
+ }
+ uVar13 = (int)((param_4 & 0x7e0) * iVar12) / 100;
+ uVar9 = uVar9 & 0xf800;
+ if (0x7e0 < (int)uVar13) {
+ uVar13 = 0x7e0;
+ }
+ uVar13 = uVar13 & 0x7e0;
+ }
+ uVar4 = (int)((param_4 & 0x1f) * iVar12) / 100;
+ if (0x1f < (int)uVar4) {
+ uVar4 = 0x1f;
+ }
+ param_4 = uVar4 & 0x1f | uVar13 | uVar9;
+ }
+ if (local_58 == 1) {
+ local_38 = 0;
+ uVar9 = param_4;
+ if (0 < param_2) {
+ do {
+ if (((-1 < (int)(uVar6 + local_38))
+ && ((int)(uVar6 + local_38) < iVar1 * param_2))
+ && (local_4c = 0, 0 < param_3)) {
+ do {
+ if ((short)uVar9 == 0) {
+ uVar9 = (uint)this
+ ->field18_0x27144[((param_5 + local_4c) * 400) / 2
+ + uVar6 + local_38];
+ param_4 = uVar9;
+ }
+ *(undefined2*)((uVar6 + local_38) * 2 + 0x1a31654
+ + (param_5 + local_4c) * 400) = (undefined2)param_4;
+ local_4c = local_4c + 1;
+ } while (local_4c < param_3);
+ }
+ local_38 = local_38 + 1;
+ } while (local_38 < param_2);
+ }
+ } else {
+ uVar9 = uVar6 & 1;
+ if ((int)uVar9 < param_2) {
+ iVar11 = ((param_2 - uVar9) - 1 >> 1) + 1;
+ iVar12 = uVar6 + uVar9;
+ uVar9 = param_4;
+ do {
+ if ((-1 < iVar12) && (iVar12 < iVar1 * param_2)) {
+ iVar7 = 0;
+ if (0 < param_3) {
+ do {
+ iVar5 = (param_5 + iVar7) / local_58;
+ if ((short)uVar9 == 0) {
+ uVar9 = (uint)this->field18_0x27144[(iVar5 * 400) / 2
+ + iVar12 / local_58];
+ param_4 = uVar9;
+ }
+ *(undefined2*)((iVar12 / local_58) * 2 + 0x1a31654
+ + iVar5 * 400) = (undefined2)param_4;
+ iVar7 = iVar7 + 1;
+ } while (iVar7 < param_3);
+ }
+ }
+ iVar12 = iVar12 + 2;
+ iVar11 = iVar11 + -1;
+ } while (iVar11 != 0);
+ }
+ }
+ uVar6 = uVar6 + param_2;
+ local_50 = local_50 + 1;
+ local_2c = local_2c + -1;
+ } while (local_2c != 0);
+ }
+ }
+ }
+ local_48 = local_48 + param_3;
+ param_5 = param_5 + param_3;
+ local_44 = local_44 + local_24;
+ uVar10 = uVar10 + 1;
+ } while ((int)uVar10 < iVar8);
+ }
+ return;
+ }
+}
+}
+

@@ -1,0 +1,1153 @@
+### 0x004df2e0 MenuView_CrusadeEndscreen_Prepare | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004DF2E0
+ void CrusadeEndscreen::MenuView_CrusadeEndscreen_Prepare()
+ {
+ char* pcVar1;
+ undefined4 uVar2;
+ SHC_SoundStream SVar3;
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("sktrail_win.tgx");
+ loadGfxFile("endframe1.tgx");
+ loadGfxFile("endframe2.tgx");
+ loadGfxFile("endframe3.tgx");
+ loadGfxFile("endframe4.tgx");
+ loadGfxFile("endframe5.tgx");
+ loadGfxFile("endframe6.tgx");
+ loadGfxFile("endframe7.tgx");
+ loadGfxFile("endframe8.tgx");
+ loadGfxFile("jesterlast.tgx");
+ ResetCredits();
+ DAT_NumberOfStoredMenuStrings = 0;
+ /*
+ added by script: "Congratulations!"
+ */
+ pcVar1 = getTextStringInGroupAtOffset(TEXT_SKTRAIL_WIN, 0);
+ StoreStringInMenuStringArray(pcVar1);
+ /*
+ added by script: "Many have set out..."
+ */
+ pcVar1 = getTextStringInGroupAtOffset(TEXT_SKTRAIL_WIN, 1);
+ StoreStringInMenuStringArray(pcVar1);
+ /*
+ added by script: "...but few will have survived this journey."
+ */
+ pcVar1 = getTextStringInGroupAtOffset(TEXT_SKTRAIL_WIN, 2);
+ StoreStringInMenuStringArray(pcVar1);
+ /*
+ added by script: "You have bested the Crusader Trail!"
+ */
+ pcVar1 = getTextStringInGroupAtOffset(TEXT_SKTRAIL_WIN, 3);
+ StoreStringInMenuStringArray(pcVar1);
+ /*
+ added by script: "You have bested the Crusader Extreme Trail!"
+ */
+ pcVar1 = getTextStringInGroupAtOffset(TEXT_SKTRAIL_WIN, 4);
+ StoreStringInMenuStringArray(pcVar1);
+ AppendCreditsSoundEntry(1, 0);
+ AppendCreditsShowImageCommand(
+ 0x29, 0, 0xe6, 0xcb, 0x150, 0xa8, 0, 1);
+ AppendCreditsTextCommand(0xf, 0, 0xf, 1, 0x192, 0xea, 0, 1);
+ AppendCreditsTextCommand(0xf, 0, 0xf, 0, 400, 0xe8, 0, 1);
+ AppendCreditsImageTransitionCommand(5, 1, 0x6a, 0x35, 4);
+ AppendCreditsBinkVideoCommand(0xc, "rt_vict1.bik", 0x6a, 0x35, 0, 0);
+ AppendCreditsBinkVideoWithAudioCommand(
+ "fx\\speech\\rt_anger_04.wav", 3, 0, 100);
+ AppendCreditsSoundStreamCommand(
+ 0x18, SND_STR_MUSIC);
+ AppendCreditsSoundStreamCommand(
+ 4, SND_STR_SPEECH_1);
+ AppendCreditsImageTransitionCommand(5, 2, 0x14b, 0x18, 4);
+ AppendCreditsBinkVideoCommand(
+ 0xc, "sn_vict2.bik", 0x14b, 0x18, 0, 0);
+ AppendCreditsBinkVideoWithAudioCommand(
+ "fx\\speech\\sn_add_player.wav", 3, 0, 100);
+ AppendCreditsSoundStreamCommand(
+ 0x18, SND_STR_MUSIC);
+ AppendCreditsSoundStreamCommand(
+ 4, SND_STR_SPEECH_1);
+ AppendCreditsImageTransitionCommand(5, 3, 0x22d, 0x35, 4);
+ AppendCreditsBinkVideoCommand(
+ 0xc, "pg_taunt2.bik", 0x22d, 0x35, 0, 0);
+ AppendCreditsBinkVideoWithAudioCommand(
+ "fx\\speech\\pg_add_player.wav", 3, 0, 100);
+ AppendCreditsSoundStreamCommand(
+ 0x18, SND_STR_MUSIC);
+ AppendCreditsSoundStreamCommand(
+ 4, SND_STR_SPEECH_1);
+ AppendCreditsImageTransitionCommand(5, 4, 0x280, 0xdf, 4);
+ AppendCreditsBinkVideoCommand(
+ 0xc, "wf_anger1.bik", 0x280, 0xdf, 0, 0);
+ AppendCreditsBinkVideoWithAudioCommand(
+ "fx\\speech\\wf_anger_04.wav", 3, 0, 100);
+ AppendCreditsSoundStreamCommand(
+ 0x18, SND_STR_MUSIC);
+ AppendCreditsSoundStreamCommand(
+ 4, SND_STR_SPEECH_1);
+ AppendCreditsImageTransitionCommand(5, 5, 0x22d, 0x18a, 4);
+ AppendCreditsBinkVideoCommand(
+ 0xc, "saladin_angry.bik", 0x22d, 0x18a, 0, 0);
+ AppendCreditsBinkVideoWithAudioCommand(
+ "fx\\speech\\sa_extra_01.wav", 3, 0, 100);
+ AppendCreditsSoundStreamCommand(
+ 0x18, SND_STR_MUSIC);
+ AppendCreditsSoundStreamCommand(
+ 4, SND_STR_SPEECH_1);
+ AppendCreditsImageTransitionCommand(5, 6, 0x14c, 0x1b4, 4);
+ AppendCreditsBinkVideoCommand(
+ 0xc, "sultan_natural.bik", 0x14c, 0x1b4, 0, 0);
+ AppendCreditsBinkVideoWithAudioCommand(
+ "fx\\speech\\su_congrats_01.wav", 3, 0, 100);
+ AppendCreditsSoundStreamCommand(
+ 0x18, SND_STR_MUSIC);
+ AppendCreditsSoundStreamCommand(
+ 4, SND_STR_SPEECH_1);
+ AppendCreditsImageTransitionCommand(5, 7, 0x6a, 0x18a, 4);
+ AppendCreditsBinkVideoCommand(
+ 0xc, "richard_taunting.bik", 0x6a, 0x18a, 0, 0);
+ AppendCreditsBinkVideoWithAudioCommand(
+ "fx\\speech\\ri_congrats_01.wav", 3, 0, 100);
+ AppendCreditsSoundStreamCommand(
+ 0x18, SND_STR_MUSIC);
+ AppendCreditsSoundStreamCommand(
+ 4, SND_STR_SPEECH_1);
+ AppendCreditsImageTransitionCommand(5, 8, 0x23, 0xdf, 4);
+ AppendCreditsBinkVideoCommand(
+ 0xc, "bad_arab_taunt.bik", 0x23, 0xdf, 0, 0);
+ AppendCreditsBinkVideoWithAudioCommand(
+ "fx\\speech\\ca_add_player_01.wav", 3, 0, 100);
+ AppendCreditsSoundStreamCommand(
+ 0x18, SND_STR_MUSIC);
+ AppendCreditsSoundStreamCommand(
+ 4, SND_STR_SPEECH_1);
+ uVar2 = 0x10;
+ if (DAT_TextManagerObject.gameLanguage == GL_ITALIAN) {
+ uVar2 = 0x11;
+ }
+ AppendCreditsTextEndCommand(0x10, 0);
+ AppendCreditsSoundStreamCommand(
+ 3, SND_STR_MUSIC);
+ AppendCreditsTextCommand(
+ 0xf, 1, (undefined4)((int)(uVar2)), 1, 0x106, 0xee, 0x11a, 0);
+ AppendCreditsTextCommand(
+ 0xf, 1, (undefined4)((int)(uVar2)), 0, 0x104, 0xec, 0x11a, 0);
+ AppendCreditsSoundStreamCommand(
+ 3, SND_STR_SFX_1Unk);
+ AppendCreditsSoundStreamCommand(1, 0x5a);
+ AppendCreditsTextEndCommand(0x10, 1);
+ AppendCreditsSoundStreamCommand(
+ 3, SND_STR_SFX_1Unk);
+ AppendCreditsTextCommand(
+ 0xf, 2, (undefined4)((int)(uVar2)), 1, 0x106, 0xee, 0x11a, 0);
+ AppendCreditsTextCommand(
+ 0xf, 2, (undefined4)((int)(uVar2)), 0, 0x104, 0xec, 0x11a, 0);
+ AppendCreditsSoundStreamCommand(
+ 3, SND_STR_SFX_2Unk);
+ AppendCreditsSoundStreamCommand(1, 0x5a);
+ AppendCreditsTextEndCommand(0x10, 2);
+ AppendCreditsSoundStreamCommand(
+ 3, SND_STR_SFX_2Unk);
+ if (DAT_GameCore.currentTrailType == TT_EXTREME) {
+ AppendCreditsTextCommand(
+ 0xf, 4, (undefined4)((int)(uVar2)), 1, 0x106, 0xee, 0x11a, 0);
+ AppendCreditsTextCommand(
+ 0xf, 4, (undefined4)((int)(uVar2)), 0, 0x104, 0xec, 0x11a, 0);
+ SVar3 = SND_STR_SPEECH_2;
+ } else {
+ AppendCreditsTextCommand(
+ 0xf, 3, (undefined4)((int)(uVar2)), 1, 0x106, 0xee, 0x11a, 0);
+ AppendCreditsTextCommand(
+ 0xf, 3, (undefined4)((int)(uVar2)), 0, 0x104, 0xec, 0x11a, 0);
+ SVar3 = SND_STR_SPEECH_1;
+ }
+ AppendCreditsSoundStreamCommand(3, SVar3);
+ AppendCreditsSoundStreamCommand(
+ 8, SND_STR_SFX_1Unk);
+ AppendCreditsImageTransitionCommand(5, 9, 0x6a, 0x35, 4);
+ AppendCreditsBinkVideoCommand(
+ 0xc, "action_jester.bik", 0x6a, 0x35, 0, 0);
+ AppendCreditsSoundStreamCommand(
+ 0x18, SND_STR_MUSIC);
+ AppendCreditsSoundStreamCommand(
+ 8, SND_STR_SFX_2Unk);
+ AppendCreditsImageTransitionCommand(5, 9, 0x14b, 0x18, 4);
+ AppendCreditsBinkVideoCommand(
+ 0xc, "action_jester.bik", 0x14b, 0x18, 0, 0);
+ AppendCreditsSoundStreamCommand(
+ 0x18, SND_STR_MUSIC);
+ AppendCreditsSoundStreamCommand(
+ 8, SND_STR_SPEECH_1);
+ AppendCreditsImageTransitionCommand(5, 9, 0x22d, 0x35, 4);
+ AppendCreditsBinkVideoCommand(
+ 0xc, "action_jester.bik", 0x22d, 0x35, 0, 0);
+ AppendCreditsSoundStreamCommand(
+ 0x18, SND_STR_MUSIC);
+ AppendCreditsSoundStreamCommand(
+ 8, SND_STR_SPEECH_2);
+ AppendCreditsImageTransitionCommand(5, 9, 0x280, 0xdf, 4);
+ AppendCreditsBinkVideoCommand(
+ 0xc, "action_jester.bik", 0x280, 0xdf, 0, 0);
+ AppendCreditsSoundStreamCommand(
+ 0x18, SND_STR_MUSIC);
+ AppendCreditsSoundStreamCommand(
+ 8, SND_STR_SPEECH_2 | SND_STR_SFX_1Unk);
+ AppendCreditsImageTransitionCommand(5, 9, 0x22d, 0x18a, 4);
+ AppendCreditsBinkVideoCommand(
+ 0xc, "action_jester.bik", 0x22d, 0x18a, 0, 0);
+ AppendCreditsSoundStreamCommand(
+ 0x18, SND_STR_MUSIC);
+ AppendCreditsSoundStreamCommand(
+ 8, SND_STR_SPEECH_2 | SND_STR_SFX_2Unk);
+ AppendCreditsImageTransitionCommand(5, 9, 0x14c, 0x1b4, 4);
+ AppendCreditsBinkVideoCommand(
+ 0xc, "action_jester.bik", 0x14c, 0x1b4, 0, 0);
+ AppendCreditsSoundStreamCommand(
+ 0x18, SND_STR_MUSIC);
+ AppendCreditsSoundStreamCommand(
+ 8, SND_STR_SPEECH_2 | SND_STR_SPEECH_1);
+ AppendCreditsImageTransitionCommand(5, 9, 0x6a, 0x18a, 4);
+ AppendCreditsBinkVideoCommand(
+ 0xc, "action_jester.bik", 0x6a, 0x18a, 0, 0);
+ AppendCreditsSoundStreamCommand(
+ 0x18, SND_STR_MUSIC);
+ AppendCreditsSoundStreamCommand(8, ((SHC_SoundStream)8));
+ AppendCreditsImageTransitionCommand(5, 9, 0x23, 0xdf, 4);
+ AppendCreditsBinkVideoCommand(
+ 0xc, "action_jester.bik", 0x23, 0xdf, 0, 0);
+ AppendCreditsSoundStreamCommand(
+ 0x18, SND_STR_MUSIC);
+ AppendCreditsImageEndCommand(0x2a, 0);
+ AppendCreditsTextEndCommand(0x10, 3);
+ AppendCreditsSegmentEndCommand();
+ AppendCreditsBinkVideoCommand(
+ 0xc, "action_jester.bik", 0x6a, 0x35, 0, 0);
+ AppendCreditsSoundStreamCommand(
+ 0x18, SND_STR_MUSIC);
+ AppendCreditsBinkVideoCommand(
+ 0xc, "action_jester.bik", 0x14b, 0x18, 0, 0);
+ AppendCreditsSoundStreamCommand(
+ 0x18, SND_STR_MUSIC);
+ AppendCreditsBinkVideoCommand(
+ 0xc, "action_jester.bik", 0x22d, 0x35, 0, 0);
+ AppendCreditsSoundStreamCommand(
+ 0x18, SND_STR_MUSIC);
+ AppendCreditsBinkVideoCommand(
+ 0xc, "action_jester.bik", 0x280, 0xdf, 0, 0);
+ AppendCreditsSoundStreamCommand(
+ 0x18, SND_STR_MUSIC);
+ AppendCreditsBinkVideoCommand(
+ 0xc, "action_jester.bik", 0x22d, 0x18a, 0, 0);
+ AppendCreditsSoundStreamCommand(
+ 0x18, SND_STR_MUSIC);
+ AppendCreditsBinkVideoCommand(
+ 0xc, "action_jester.bik", 0x14c, 0x1b4, 0, 0);
+ AppendCreditsSoundStreamCommand(
+ 0x18, SND_STR_MUSIC);
+ AppendCreditsBinkVideoCommand(
+ 0xc, "action_jester.bik", 0x6a, 0x18a, 0, 0);
+ AppendCreditsSoundStreamCommand(
+ 0x18, SND_STR_MUSIC);
+ AppendCreditsBinkVideoCommand(
+ 0xc, "action_jester.bik", 0x23, 0xdf, 0, 0);
+ AppendCreditsSoundStreamCommand(
+ 0x18, SND_STR_MUSIC);
+ AppendCreditsClearImageCommand();
+ TicksStartCounter();
+ LoadTGX_shc_back();
+ return;
+ }
+ }
+}
+}
+
+### 0x004e1f50 MenuView_CrusadeEndscreen_DoEveryFrame | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004E1F50
+ void CrusadeEndscreen::MenuView_CrusadeEndscreen_DoEveryFrame()
+ {
+ int iVar1;
+ iVar1 = TicksSinceCounterStart();
+ if (iVar1 != 0) {
+ ProcessCreditsScriptCommands();
+ if ((0x3a < DAT_UnknownBinkIndex) && (INT_00ed27b8::instance == 0)) {
+ setSomeSoundTime();
+ setupVolumeAndSoundID(MUSIC_GERMAN_EGG);
+ INT_00ed27b8::instance = 1;
+ }
+ RenderActiveCreditsElements();
+ return;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004d8cb0 MenuView_CrusadeMap_Prepare | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004D8CB0
+ void CrusadeMap::MenuView_CrusadeMap_Prepare()
+ {
+ int iVar1;
+ char* tgxFileName;
+ DWORD_00ed311c::instance = 0;
+ if (DAT_GameCore.currentTrailType == TT_EXTREME) {
+ tgxFileName = "shcx_map.tgx";
+ } else if (DAT_GameCore.currentTrailType == TT_WARCHEST) {
+ tgxFileName = "skirmish_trail2.tgx";
+ } else {
+ tgxFileName = "skirmish_trail.tgx";
+ }
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile(tgxFileName);
+ LoadTGX_shc_back();
+ if (0x31 < (int)DAT_GameCore.skirmishTrailProgress) {
+ DAT_GameCore.skirmishTrailProgress = 0x31;
+ }
+ if (0x1d < (int)DAT_GameCore.warchestTrailProgress) {
+ DAT_GameCore.warchestTrailProgress = 0x1d;
+ }
+ if (0x13 < DAT_GameCore.extremeTrailProgress) {
+ DAT_GameCore.warchestTrailProgress = 0x13;
+ }
+ INT_00eb9b48::instance = 1;
+ DWORD_00ed27a8::instance = timeGetTime();
+ DAT_SkirmishTrailRelated1 = 3;
+ if (DAT_GameCore.currentTrailType == TT_FIRST_EDITION) {
+ iVar1 = 0;
+ if (DAT_GameCore.furthestSkirmishTrailMission < 1) {
+ DAT_SkirmishTrailRelated1 = 3;
+ INT_00ed2bdc::instance = 0;
+ return;
+ }
+ do {
+ if (DAT_GameCore.skirmishTrailMonthsTakenOrChicken[iVar1] == -0x4b0) {
+ DAT_SkirmishTrailRelated1 = DAT_SkirmishTrailRelated1 + -1;
+ }
+ iVar1 = iVar1 + 1;
+ } while (iVar1 < DAT_GameCore.furthestSkirmishTrailMission);
+ } else if (DAT_GameCore.currentTrailType == TT_WARCHEST) {
+ iVar1 = 0;
+ if (DAT_GameCore.furthestWarchestTrailMission < 1) {
+ DAT_SkirmishTrailRelated1 = 3;
+ INT_00ed2bdc::instance = 0;
+ return;
+ }
+ do {
+ if (DAT_GameCore.warchestTrailMonthsTakenOrChicken[iVar1] == -0x4b0) {
+ DAT_SkirmishTrailRelated1 = DAT_SkirmishTrailRelated1 + -1;
+ }
+ iVar1 = iVar1 + 1;
+ } while (iVar1 < DAT_GameCore.furthestWarchestTrailMission);
+ } else {
+ if (DAT_GameCore.currentTrailType != TT_EXTREME) {
+ DAT_SkirmishTrailRelated1 = 3;
+ INT_00ed2bdc::instance = 0;
+ return;
+ }
+ iVar1 = 0;
+ if (DAT_GameCore.furthestExtremeTrailMission < 1) {
+ DAT_SkirmishTrailRelated1 = 3;
+ INT_00ed2bdc::instance = 0;
+ return;
+ }
+ do {
+ if (DAT_GameCore.extremeTrailMonthsTakenOrChicken[iVar1] == -0x4b0) {
+ DAT_SkirmishTrailRelated1 = DAT_SkirmishTrailRelated1 + -1;
+ }
+ iVar1 = iVar1 + 1;
+ } while (iVar1 < DAT_GameCore.furthestExtremeTrailMission);
+ }
+ if (DAT_SkirmishTrailRelated1 < 0) {
+ DAT_SkirmishTrailRelated1 = 0;
+ }
+ INT_00ed2bdc::instance = 0;
+ return;
+ }
+ }
+}
+}
+
+### 0x004d8ec0 MenuItemActionHandler_CrusadeMap_Main | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004D8EC0
+ void CrusadeMap::MenuItemActionHandler_CrusadeMap_Main(int param_1, ...)
+ {
+ int iVar1;
+ int iVar2;
+ dword dVar3;
+ dword dVar4;
+ int _clickX;
+ int _clickY;
+ int iVar5;
+ if (param_1 == 1000) {
+ if (0 < DAT_SkirmishTrailRelated1) {
+ if (DAT_GameCore.currentTrailType == TT_FIRST_EDITION) {
+ if (((DAT_GameCore.furthestSkirmishTrailMission < 0x31)
+ && (DAT_GameCore.skirmishTrailProgress
+ = DAT_GameCore.furthestSkirmishTrailMission,
+ DAT_GameCore.skirmishTrailMonthsTakenOrChicken[DAT_GameCore
+ .furthestSkirmishTrailMission]
+ == -1))
+ && (DAT_GameCore.skirmishTrailMonthsTakenOrChicken[DAT_GameCore
+ .furthestSkirmishTrailMission] = -0x4b0,
+ DAT_GameCore.skirmishTrailProgress != 0x31)) {
+ DAT_GameCore.skirmishTrailProgress
+ = DAT_GameCore.skirmishTrailProgress + 1;
+ DAT_GameCore.furthestSkirmishTrailMission
+ = DAT_GameCore.furthestSkirmishTrailMission + 1;
+ iVar5 = 1;
+ goto LAB_004d8f31;
+ }
+ } else if (DAT_GameCore.currentTrailType == TT_WARCHEST) {
+ if (((DAT_GameCore.furthestWarchestTrailMission < 0x1d)
+ && (DAT_GameCore.warchestTrailProgress
+ = DAT_GameCore.furthestWarchestTrailMission,
+ DAT_GameCore.warchestTrailMonthsTakenOrChicken[DAT_GameCore
+ .furthestWarchestTrailMission]
+ == -1))
+ && (DAT_GameCore.warchestTrailMonthsTakenOrChicken[DAT_GameCore
+ .furthestWarchestTrailMission] = -0x4b0,
+ DAT_GameCore.warchestTrailProgress != 0x1d)) {
+ DAT_GameCore.warchestTrailProgress
+ = DAT_GameCore.warchestTrailProgress + 1;
+ DAT_GameCore.furthestWarchestTrailMission
+ = DAT_GameCore.furthestWarchestTrailMission + 1;
+ iVar5 = 2;
+ LAB_004d8f31:
+ setStartDateUnk(iVar5);
+ DAT_SkirmishTrailRelated1 = DAT_SkirmishTrailRelated1 + -1;
+ DWORD_00ed311c::instance = timeGetTime();
+ setSoundWithVariation(258, 100);
+ return;
+ }
+ } else if ((((DAT_GameCore.currentTrailType == TT_EXTREME)
+ && (DAT_GameCore.furthestExtremeTrailMission < 0x13))
+ && (DAT_GameCore.extremeTrailProgress
+ = DAT_GameCore.furthestExtremeTrailMission,
+ DAT_GameCore.extremeTrailMonthsTakenOrChicken[DAT_GameCore
+ .furthestExtremeTrailMission]
+ == -1))
+ && (DAT_GameCore
+ .extremeTrailMonthsTakenOrChicken[DAT_GameCore.furthestExtremeTrailMission]
+ = -0x4b0,
+ DAT_GameCore.extremeTrailProgress != 0x13)) {
+ DAT_GameCore.extremeTrailProgress = DAT_GameCore.extremeTrailProgress + 1;
+ DAT_GameCore.furthestExtremeTrailMission
+ = DAT_GameCore.furthestExtremeTrailMission + 1;
+ iVar5 = 3;
+ goto LAB_004d8f31;
+ }
+ }
+ } else {
+ if (param_1 == 10) {
+ /*
+ copy bitmap of icon
+ */
+ _memcpy(
+ (void*)((DAT_GameSynchronyState.currentPlayerSlotID + 0x13) * 0x2100
+ + (int)DAT_TextureRenderCoreObject.bitmapsFaces_0x94),
+ (void*)((DAT_GameCore.lordIconUnk + -2) * 0x2100
+ + (int)DAT_TextureRenderCoreObject.bitmapsFaces_0x94),
+ 0x2100);
+ DAT_TextureRenderCoreObject
+ .field69_0x98[DAT_GameSynchronyState.currentPlayerSlotID + 0x13] = 0x2100;
+ switchToMenuView(
+ MVT_CRUSADE_MISSION_INTRO, 0);
+ return;
+ }
+ if (param_1 == 0xb) {
+ switchToMenuView(
+ MVT_SELECT_CRUSADE, 0);
+ return;
+ }
+ if (param_1 == 1) {
+ _clickX = DAT_MouseState.screenSpaceX - DAT_ButtonX;
+ _clickY = DAT_MouseState.screenSpaceY - DAT_ButtonY;
+ dVar4 = DAT_GameCore.warchestTrailProgress;
+ iVar5 = DAT_GameCore.extremeTrailProgress;
+ if (DAT_GameCore.currentTrailType == TT_FIRST_EDITION) {
+ dVar3 = 0;
+ do {
+ if (DAT_GameCore.furthestSkirmishTrailMission < (int)dVar3) {
+ return;
+ }
+ iVar1 = DAT_MissionDefinedData.field32_0xbbc[dVar3][0];
+ iVar2 = DAT_MissionDefinedData.field32_0xbbc[dVar3][1];
+ if (((iVar1 + -10 <= _clickX) && (_clickX <= iVar1 + 10))
+ && ((iVar2 + -10 <= _clickY && (_clickY <= iVar2 + 10)))) {
+ LAB_004d9190:
+ DAT_GameCore.extremeTrailProgress = iVar5;
+ DAT_GameCore.warchestTrailProgress = dVar4;
+ DAT_GameCore.skirmishTrailProgress = dVar3;
+ INT_00eb9b48::instance = 1;
+ DWORD_00ed27a8::instance = timeGetTime();
+ return;
+ }
+ dVar3 = dVar3 + 1;
+ } while ((int)dVar3 < 50);
+ } else {
+ dVar3 = DAT_GameCore.skirmishTrailProgress;
+ if (DAT_GameCore.currentTrailType == TT_WARCHEST) {
+ dVar4 = 0;
+ while ((int)dVar4 <= DAT_GameCore.furthestWarchestTrailMission) {
+ iVar1 = DAT_MissionDefinedData.field33_0xd4c[dVar4][0];
+ iVar2 = DAT_MissionDefinedData.field33_0xd4c[dVar4][1];
+ if (((iVar1 + -10 <= _clickX) && (_clickX <= iVar1 + 10))
+ && ((iVar2 + -10 <= _clickY && (_clickY <= iVar2 + 10))))
+ goto LAB_004d9190;
+ dVar4 = dVar4 + 1;
+ if (30 < (int)dVar4) {
+ return;
+ }
+ }
+ } else if (DAT_GameCore.currentTrailType == TT_EXTREME) {
+ iVar5 = 0;
+ while (iVar5 <= DAT_GameCore.furthestExtremeTrailMission) {
+ iVar1 = DAT_MissionDefinedData.field34_0xe3c[iVar5][0];
+ iVar2 = DAT_MissionDefinedData.field34_0xe3c[iVar5][1];
+ if ((((iVar1 + -10 <= _clickX) && (_clickX <= iVar1 + 10)) && (iVar2 + -10 <= _clickY))
+ && (_clickY <= iVar2 + 10))
+ goto LAB_004d9190;
+ iVar5 = iVar5 + 1;
+ if (20 < iVar5) {
+ return;
+ }
+ }
+ }
+ }
+ } else if (param_1 == 99) {
+ switchToMenuView(
+ MVT_RANKING_GAMES, 0);
+ setUpSFXToPlayUnk(
+ SEID_UNIT_DAMAGE3 | SEID_ARROW_SHOOT);
+ return;
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004de300 MenuView_CrusadeMap_DoEveryFrame | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004DE300
+ void CrusadeMap::MenuView_CrusadeMap_DoEveryFrame()
+ {
+ int (*paiVar1)[2];
+ int (*paiVar2)[2];
+ DWORD DVar3;
+ DWORD DVar4;
+ char* pcVar5;
+ int drawX;
+ int iVar6;
+ int iVar7;
+ int* piVar8;
+ dword dVar9;
+ uint uVar10;
+ int iVar11;
+ int iVar12;
+ int iVar13;
+ int iVar14;
+ bool bVar15;
+ TextAlignment TVar16;
+ BGR24 BVar17;
+ eGM eVar18;
+ BOOLEnum BVar19;
+ uint local_8;
+ int* local_4;
+ if ((BOOLEnum_00ed313c::instance & TRUE) == FALSE) {
+ BOOLEnum_00ed313c::instance = BOOLEnum_00ed313c::instance | TRUE;
+ DWORD_00ed3138::instance = MACRO_CALL(timeGetTime)();
+ }
+ DVar3 = MACRO_CALL(timeGetTime)();
+ if ((DWORD_00ed311c::instance != 0)
+ && (DVar4 = MACRO_CALL(timeGetTime)(), 1000 < DVar4 - DWORD_00ed311c::instance)) {
+ DWORD_00ed311c::instance = 0;
+ /*
+ "Afraid?"
+ */
+ playWAVSFX(
+ "ri_kick_player_01.wav");
+ }
+ local_8 = (DVar3 - DWORD_00ed3138::instance) / 0x32;
+ if (0xf < local_8) {
+ local_8 = 0;
+ DWORD_00ed3138::instance = MACRO_CALL(timeGetTime)();
+ }
+ piVar8 = local_4;
+ if (INT_00eb9b48::instance == 0) {
+ uVar10 = (DVar3 - DWORD_00ed27a8::instance) / 100;
+ if (21 < uVar10) {
+ uVar10 = 0;
+ DWORD_00ed27a8::instance = MACRO_CALL(timeGetTime)();
+ }
+ piVar8 = (int*)DAT_MissionDefinedData.field37_0x1314[uVar10];
+ }
+ if (0 < INT_00eb9b48::instance) {
+ piVar8 = (int*)((DVar3 - DWORD_00ed27a8::instance) / 0x28);
+ if (piVar8 < 0x2d) {
+ if (piVar8 < 0x25)
+ goto LAB_004de3ed;
+ } else {
+ INT_00eb9b48::instance = 0;
+ DWORD_00ed27a8::instance = MACRO_CALL(timeGetTime)();
+ }
+ piVar8 = (int*)0x24;
+ }
+ LAB_004de3ed:
+ RenderGfxHelperUnk(0, 0, 0);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ iVar11 = DAT_WindowAndDirectDraw.mainMenuBorderWidth
+ - DAT_TextureRenderCoreObject.gmFileHeaderColorpaletteArray[0xcc].originX;
+ iVar13 = DAT_WindowAndDirectDraw.mainMenuBorderHeight
+ - DAT_TextureRenderCoreObject.gmFileHeaderColorpaletteArray[0xcc].originY;
+ iVar12 = iVar11 + -0xb;
+ iVar14 = iVar13 + 0x12;
+ local_4 = (int*)0x0;
+ if (DAT_GameCore.currentTrailType == TT_FIRST_EDITION) {
+ dVar9 = 0;
+ if (0 < DAT_GameCore.furthestSkirmishTrailMission) {
+ do {
+ if (0x30 < (int)dVar9)
+ break;
+ if (dVar9 == DAT_GameCore.skirmishTrailProgress) {
+ if ((dVar9 == 0x22)
+ && (DAT_WindowAndDirectDraw.currentGameResolution
+ == SRE_800x600)) {
+ iVar11 = DAT_MissionDefinedData.field32_0xbbc[0x22][0] + -0x14;
+ iVar6 = DAT_MissionDefinedData.field32_0xbbc[0x22][1];
+ } else {
+ iVar6 = DAT_MissionDefinedData.field32_0xbbc[dVar9][1];
+ iVar11 = DAT_MissionDefinedData.field32_0xbbc[dVar9][0] + 10;
+ }
+ renderGMWithBlending(GID_SKIRMISH_TRAIL_ICONS,
+ piVar8 + 0x5e, iVar11 + iVar12, iVar6 + -0x1a + iVar14, 0x10);
+ }
+ if (DAT_GameCore.skirmishTrailMonthsTakenOrChicken[dVar9] != -0x4b0) {
+ if ((dVar9 == 0x12) || (dVar9 == 0x22)) {
+ local_4 = (int*)((int)local_4 + 4);
+ }
+ renderGMWithBlending(GID_SKIRMISH_TRAIL_ICONS,
+ DAT_MissionDefinedData.field35_0xf2c[dVar9] + 0x2d + local_4,
+ DAT_MissionDefinedData.field32_0xbbc[dVar9][0] + iVar12,
+ DAT_MissionDefinedData.field32_0xbbc[dVar9][1] + iVar14, 0x10);
+ }
+ if (dVar9 == DAT_GameCore.skirmishTrailProgress) {
+ if ((dVar9 == 0x22)
+ && (DAT_WindowAndDirectDraw.currentGameResolution
+ == SRE_800x600)) {
+ iVar11 = DAT_MissionDefinedData.field32_0xbbc[0x22][0] + -0x14;
+ iVar6 = DAT_MissionDefinedData.field32_0xbbc[0x22][1];
+ } else {
+ iVar6 = DAT_MissionDefinedData.field32_0xbbc[dVar9][1];
+ iVar11 = DAT_MissionDefinedData.field32_0xbbc[dVar9][0] + 10;
+ }
+ renderGM(
+ GM_TREE_CACTII | GM_SEA_CHEVRONS,
+ piVar8 + 0x39, iVar11 + iVar12, iVar6 + -0x1a + iVar14);
+ }
+ if (DAT_GameCore.skirmishTrailMonthsTakenOrChicken[dVar9] == -0x4b0) {
+ iVar6 = DAT_MissionDefinedData.field36_0xff4[dVar9][3]
+ + DAT_MissionDefinedData.field32_0xbbc[dVar9][1];
+ DAT_CurrentlyRenderedSpriteID
+ = DAT_MissionDefinedData.field36_0xff4[dVar9][0];
+ iVar7 = DAT_MissionDefinedData.field36_0xff4[dVar9][2]
+ + DAT_MissionDefinedData.field32_0xbbc[dVar9][0];
+ iVar11 = DAT_MissionDefinedData.field36_0xff4[dVar9][1];
+ DAT_RenderedUnitOwner = 0;
+ eVar18 = DAT_CurrentlyRenderedSpriteID;
+ } else {
+ iVar6 = DAT_MissionDefinedData.field32_0xbbc[dVar9][1];
+ iVar7 = DAT_MissionDefinedData.field32_0xbbc[dVar9][0];
+ iVar11 = DAT_MissionDefinedData.field35_0xf2c[dVar9] + 0x21 + (int)local_4;
+ eVar18 = GM_TREE_CACTII | GM_SEA_CHEVRONS;
+ }
+ renderGM(eVar18, iVar11, iVar7 + iVar12, iVar6 + iVar14);
+ dVar9 = dVar9 + 1;
+ } while ((int)dVar9 < DAT_GameCore.furthestSkirmishTrailMission);
+ }
+ if ((DAT_GameCore.skirmishTrailProgress
+ == DAT_GameCore.furthestSkirmishTrailMission)
+ || (DAT_GameCore.skirmishTrailProgress == 0x31)) {
+ paiVar2
+ = DAT_MissionDefinedData.field32_0xbbc + DAT_GameCore.skirmishTrailProgress;
+ paiVar1
+ = DAT_MissionDefinedData.field32_0xbbc + DAT_GameCore.skirmishTrailProgress;
+ renderGMWithBlending(GID_SKIRMISH_TRAIL_ICONS,
+ piVar8 + 0x5e, (*paiVar1)[0] + 10 + iVar12,
+ iVar13 + -8
+ + DAT_MissionDefinedData
+ .field32_0xbbc[DAT_GameCore.skirmishTrailProgress][1],
+ 0x10);
+ renderGM(
+ GM_TREE_CACTII | GM_SEA_CHEVRONS,
+ piVar8 + 0x39, (*paiVar1)[0] + 10 + iVar12,
+ (int)((int)(iVar13 + -8 + (*paiVar2)[1])));
+ }
+ dVar9 = DAT_GameCore.furthestSkirmishTrailMission;
+ if (0x31 < DAT_GameCore.furthestSkirmishTrailMission) {
+ dVar9 = 0x31;
+ }
+ iVar12 = DAT_WindowAndDirectDraw.mainMenuBorderWidth
+ - DAT_TextureRenderCoreObject.gmFileHeaderColorpaletteArray[0xcc].originX;
+ iVar11 = DAT_WindowAndDirectDraw.mainMenuBorderHeight
+ - DAT_TextureRenderCoreObject.gmFileHeaderColorpaletteArray[0xcc].originY;
+ if (dVar9 != DAT_GameCore.skirmishTrailProgress) {
+ renderGMWithBlending(GID_SKIRMISH_TRAIL_ICONS,
+ local_8 + 0x11, DAT_MissionDefinedData.field32_0xbbc[dVar9][0] + iVar12,
+ DAT_MissionDefinedData.field32_0xbbc[dVar9][1] + iVar11, 0x10);
+ }
+ renderGM(
+ GM_TREE_CACTII | GM_SEA_CHEVRONS, local_8 + 1,
+ DAT_MissionDefinedData.field32_0xbbc[dVar9][0] + iVar12,
+ DAT_MissionDefinedData.field32_0xbbc[dVar9][1] + iVar11);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ renderNumberToScreen2(
+ DAT_GameCore.skirmishTrailProgress + 1,
+ DAT_WindowAndDirectDraw.mainMenuBorderWidth + 10,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x10, TTA_LEFT, 0xccfaff,
+ 0x10, FALSE, 0);
+ renderTextToScreen(".",
+ DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0xb,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x10, TTA_LEFT, 0xccfaff,
+ 0x10, TRUE, 0);
+ iVar14 = 0;
+ BVar19 = TRUE;
+ iVar13 = 0x10;
+ BVar17 = 0xccfaff;
+ TVar16 = TTA_LEFT;
+ iVar11 = DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x10;
+ iVar12 = DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x10;
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_TRAIL_NAMES_CRU,
+ DAT_GameCore.skirmishTrailProgress + 1);
+ renderTextToScreen(
+ pcVar5, iVar12, iVar11, TVar16, BVar17, iVar13, BVar19, iVar14);
+ renderNumberToScreen2(
+ DAT_GameCore.skirmishTrailStartDateInMonths[DAT_GameCore.skirmishTrailProgress]
+ / 0xc,
+ DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x10,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x30, TTA_LEFT, 0xccfaff,
+ 0x12, FALSE, 0);
+ if (DAT_TextManagerObject.gameLanguage == GL_GERMAN) {
+ pcVar5 = " n. Chr.";
+ } else {
+ pcVar5 = " A.D.";
+ }
+ renderTextToScreen(
+ pcVar5, DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x11,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x30, TTA_LEFT, 0xccfaff,
+ 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ (int)DAT_GameCore.skirmishTrailYearReached / 0xc,
+ DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x2b7,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x10, TTA_LEFT, 0xccfaff,
+ 0x11, FALSE, 0);
+ iVar14 = 0;
+ BVar19 = FALSE;
+ iVar13 = 0x11;
+ BVar17 = 0xccfaff;
+ TVar16 = TTA_RIGHT;
+ iVar11 = DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x10;
+ iVar12 = DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x2b2;
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_MONTHS,
+ DAT_GameCore.skirmishTrailYearReached % 0xc);
+ renderTextToScreen(
+ pcVar5, iVar12, iVar11, TVar16, BVar17, iVar13, BVar19, iVar14);
+ if (DAT_TextManagerObject.gameLanguage == GL_GERMAN) {
+ pcVar5 = " n. Chr.";
+ } else {
+ pcVar5 = " A.D.";
+ }
+ renderTextToScreen(
+ pcVar5, DAT_WindowAndDirectDraw.mainMenuBorderWidth + 700,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x15, TTA_LEFT, 0xccfaff,
+ 0x12, TRUE, 0);
+ bVar15 = DAT_GameCore.furthestSkirmishTrailMission == 0x32;
+ } else if (DAT_GameCore.currentTrailType == TT_WARCHEST) {
+ dVar9 = 0;
+ if (0 < DAT_GameCore.furthestWarchestTrailMission) {
+ local_4 = DAT_MissionDefinedData.field36_0xff4[0] + 2;
+ do {
+ if (0x1c < (int)dVar9)
+ break;
+ if (dVar9 == DAT_GameCore.warchestTrailProgress) {
+ renderGMWithBlending(GID_SKIRMISH_TRAIL_ICONS,
+ piVar8 + 0x5e,
+ DAT_MissionDefinedData.field33_0xd4c[dVar9][0] + 10 + iVar12,
+ DAT_MissionDefinedData.field33_0xd4c[dVar9][1] + -0x1a + iVar14, 0x10);
+ }
+ if (DAT_GameCore.warchestTrailMonthsTakenOrChicken[dVar9] != -0x4b0) {
+ renderGMWithBlending(GID_SKIRMISH_TRAIL_ICONS,
+ DAT_MissionDefinedData.field35_0xf2c[dVar9] + 0x2d,
+ DAT_MissionDefinedData.field33_0xd4c[dVar9][0] + iVar12,
+ DAT_MissionDefinedData.field33_0xd4c[dVar9][1] + iVar14, 0x10);
+ }
+ if (dVar9 == DAT_GameCore.warchestTrailProgress) {
+ renderGM(
+ GM_TREE_CACTII | GM_SEA_CHEVRONS,
+ piVar8 + 0x39,
+ DAT_MissionDefinedData.field33_0xd4c[dVar9][0] + 10 + iVar12,
+ DAT_MissionDefinedData.field33_0xd4c[dVar9][1] + -0x1a + iVar14);
+ }
+ iVar11 = DAT_MissionDefinedData.field33_0xd4c[dVar9][1];
+ if (DAT_GameCore.warchestTrailMonthsTakenOrChicken[dVar9] == -0x4b0) {
+ iVar11 = iVar11 + local_4[1];
+ DAT_CurrentlyRenderedSpriteID = (*(int (*)[4])(local_4 + -2))[0];
+ iVar13 = DAT_MissionDefinedData.field33_0xd4c[dVar9][0] + *local_4;
+ iVar6 = local_4[-1];
+ DAT_RenderedUnitOwner = 0;
+ eVar18 = DAT_CurrentlyRenderedSpriteID;
+ } else {
+ iVar13 = DAT_MissionDefinedData.field33_0xd4c[dVar9][0];
+ iVar6 = DAT_MissionDefinedData.field35_0xf2c[dVar9] + 0x21;
+ eVar18 = GM_TREE_CACTII | GM_SEA_CHEVRONS;
+ }
+ renderGM(eVar18, iVar6, iVar13 + iVar12, iVar11 + iVar14);
+ local_4 = local_4 + 4;
+ dVar9 = dVar9 + 1;
+ } while ((int)dVar9 < DAT_GameCore.furthestWarchestTrailMission);
+ }
+ if ((DAT_GameCore.warchestTrailProgress
+ == DAT_GameCore.furthestWarchestTrailMission)
+ || (DAT_GameCore.warchestTrailProgress == 0x1d)) {
+ paiVar2
+ = DAT_MissionDefinedData.field33_0xd4c + DAT_GameCore.warchestTrailProgress;
+ paiVar1
+ = DAT_MissionDefinedData.field33_0xd4c + DAT_GameCore.warchestTrailProgress;
+ renderGMWithBlending(GID_SKIRMISH_TRAIL_ICONS,
+ piVar8 + 0x5e, (*paiVar1)[0] + 10 + iVar12,
+ DAT_MissionDefinedData.field33_0xd4c[DAT_GameCore.warchestTrailProgress][1]
+ + -0x1a + iVar14,
+ 0x10);
+ renderGM(
+ GM_TREE_CACTII | GM_SEA_CHEVRONS,
+ piVar8 + 0x39, (*paiVar1)[0] + 10 + iVar12, (*paiVar2)[1] + -0x1a + iVar14);
+ }
+ dVar9 = DAT_GameCore.furthestWarchestTrailMission;
+ if (0x1d < DAT_GameCore.furthestWarchestTrailMission) {
+ dVar9 = 0x1d;
+ }
+ iVar12 = DAT_WindowAndDirectDraw.mainMenuBorderWidth
+ - DAT_TextureRenderCoreObject.gmFileHeaderColorpaletteArray[0xcc].originX;
+ iVar11 = DAT_WindowAndDirectDraw.mainMenuBorderHeight
+ - DAT_TextureRenderCoreObject.gmFileHeaderColorpaletteArray[0xcc].originY;
+ if (dVar9 != DAT_GameCore.warchestTrailProgress) {
+ renderGMWithBlending(GID_SKIRMISH_TRAIL_ICONS,
+ local_8 + 0x11, DAT_MissionDefinedData.field33_0xd4c[dVar9][0] + iVar12,
+ DAT_MissionDefinedData.field33_0xd4c[dVar9][1] + iVar11, 0x10);
+ }
+ renderGM(
+ GM_TREE_CACTII | GM_SEA_CHEVRONS, local_8 + 1,
+ DAT_MissionDefinedData.field33_0xd4c[dVar9][0] + iVar12,
+ DAT_MissionDefinedData.field33_0xd4c[dVar9][1] + iVar11);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ renderNumberToScreen2(
+ DAT_GameCore.warchestTrailProgress + 0x33,
+ DAT_WindowAndDirectDraw.mainMenuBorderWidth + 10,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x10, TTA_LEFT, 0xccfaff,
+ 0x10, FALSE, 0);
+ renderTextToScreen(".",
+ DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0xb,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x10, TTA_LEFT, 0xccfaff,
+ 0x10, TRUE, 0);
+ iVar14 = 0;
+ BVar19 = TRUE;
+ iVar13 = 0x10;
+ BVar17 = 0xccfaff;
+ TVar16 = TTA_LEFT;
+ iVar11 = DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x10;
+ iVar12 = DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x10;
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_TRAIL_NAMES_CRU,
+ DAT_GameCore.warchestTrailProgress + 0x33);
+ renderTextToScreen(
+ pcVar5, iVar12, iVar11, TVar16, BVar17, iVar13, BVar19, iVar14);
+ renderNumberToScreen2(
+ DAT_GameCore.warchestTrailStartDatesInMonths[DAT_GameCore.warchestTrailProgress]
+ / 0xc,
+ DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x10,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x30, TTA_LEFT, 0xccfaff,
+ 0x12, FALSE, 0);
+ if (DAT_TextManagerObject.gameLanguage == GL_GERMAN) {
+ pcVar5 = " n. Chr.";
+ } else {
+ pcVar5 = " A.D.";
+ }
+ renderTextToScreen(
+ pcVar5, DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x11,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x30, TTA_LEFT, 0xccfaff,
+ 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ (int)DAT_GameCore.warchestTrailYearReached / 0xc,
+ DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x2b7,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x10, TTA_LEFT, 0xccfaff,
+ 0x11, FALSE, 0);
+ iVar14 = 0;
+ BVar19 = FALSE;
+ iVar13 = 0x11;
+ BVar17 = 0xccfaff;
+ TVar16 = TTA_RIGHT;
+ iVar11 = DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x10;
+ iVar12 = DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x2b2;
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_MONTHS,
+ DAT_GameCore.warchestTrailYearReached % 0xc);
+ renderTextToScreen(
+ pcVar5, iVar12, iVar11, TVar16, BVar17, iVar13, BVar19, iVar14);
+ if (DAT_TextManagerObject.gameLanguage == GL_GERMAN) {
+ pcVar5 = " n. Chr.";
+ } else {
+ pcVar5 = " A.D.";
+ }
+ renderTextToScreen(
+ pcVar5, DAT_WindowAndDirectDraw.mainMenuBorderWidth + 700,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x15, TTA_LEFT, 0xccfaff,
+ 0x12, TRUE, 0);
+ bVar15 = DAT_GameCore.furthestWarchestTrailMission == 0x1e;
+ } else {
+ if (DAT_GameCore.currentTrailType != TT_EXTREME) {
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ return;
+ }
+ iVar13 = 0;
+ if (0 < DAT_GameCore.furthestExtremeTrailMission) {
+ local_4 = DAT_MissionDefinedData.field36_0xff4[0] + 2;
+ do {
+ if (0x12 < iVar13)
+ break;
+ if (iVar13 == DAT_GameCore.extremeTrailProgress) {
+ renderGMWithBlending(GID_SKIRMISH_TRAIL_ICONS,
+ piVar8 + 0x5e,
+ DAT_MissionDefinedData.field34_0xe3c[iVar13][0] + 10 + iVar12,
+ DAT_MissionDefinedData.field34_0xe3c[iVar13][1] + -0x1a + iVar14, 0x10);
+ }
+ if (DAT_GameCore.extremeTrailMonthsTakenOrChicken[iVar13] != -0x4b0) {
+ renderGMWithBlending(GID_SKIRMISH_TRAIL_ICONS,
+ DAT_MissionDefinedData.field35_0xf2c[iVar13] + 0x2d,
+ DAT_MissionDefinedData.field34_0xe3c[iVar13][0] + iVar12,
+ DAT_MissionDefinedData.field34_0xe3c[iVar13][1] + iVar14, 0x10);
+ }
+ if (iVar13 == DAT_GameCore.extremeTrailProgress) {
+ renderGM(
+ GM_TREE_CACTII | GM_SEA_CHEVRONS,
+ piVar8 + 0x39,
+ DAT_MissionDefinedData.field34_0xe3c[iVar13][0] + 10 + iVar12,
+ DAT_MissionDefinedData.field34_0xe3c[iVar13][1] + -0x1a + iVar14);
+ }
+ iVar6 = DAT_MissionDefinedData.field34_0xe3c[iVar13][1];
+ if (DAT_GameCore.extremeTrailMonthsTakenOrChicken[iVar13] == -0x4b0) {
+ iVar6 = iVar6 + local_4[1];
+ DAT_CurrentlyRenderedSpriteID = (*(int (*)[4])(local_4 + -2))[0];
+ drawX = DAT_MissionDefinedData.field34_0xe3c[iVar13][0] + iVar12 + *local_4;
+ iVar7 = local_4[-1];
+ DAT_RenderedUnitOwner = 0;
+ eVar18 = DAT_CurrentlyRenderedSpriteID;
+ } else {
+ drawX = DAT_MissionDefinedData.field34_0xe3c[iVar13][0] + iVar12;
+ iVar7 = DAT_MissionDefinedData.field35_0xf2c[iVar13] + 0x21;
+ eVar18 = GM_TREE_CACTII | GM_SEA_CHEVRONS;
+ }
+ renderGM(eVar18, iVar7, drawX, iVar6 + iVar14);
+ local_4 = local_4 + 4;
+ iVar13 = iVar13 + 1;
+ } while (iVar13 < DAT_GameCore.furthestExtremeTrailMission);
+ }
+ if ((DAT_GameCore.extremeTrailProgress == DAT_GameCore.furthestExtremeTrailMission)
+ || (DAT_GameCore.extremeTrailProgress == 0x13)) {
+ paiVar2
+ = DAT_MissionDefinedData.field34_0xe3c + DAT_GameCore.extremeTrailProgress;
+ paiVar1
+ = DAT_MissionDefinedData.field34_0xe3c + DAT_GameCore.extremeTrailProgress;
+ renderGMWithBlending(GID_SKIRMISH_TRAIL_ICONS,
+ piVar8 + 0x5e, (int)((int)(iVar11 + -1 + (*paiVar1)[0])),
+ DAT_MissionDefinedData.field34_0xe3c[DAT_GameCore.extremeTrailProgress][1]
+ + -0x1a + iVar14,
+ 0x10);
+ renderGM(
+ GM_TREE_CACTII | GM_SEA_CHEVRONS,
+ piVar8 + 0x39, (int)((int)(iVar11 + -1 + (*paiVar1)[0])),
+ (*paiVar2)[1] + -0x1a + iVar14);
+ }
+ iVar11 = DAT_GameCore.furthestExtremeTrailMission;
+ if (0x13 < DAT_GameCore.furthestExtremeTrailMission) {
+ iVar11 = 0x13;
+ }
+ iVar13 = DAT_WindowAndDirectDraw.mainMenuBorderWidth
+ - DAT_TextureRenderCoreObject.gmFileHeaderColorpaletteArray[0xcc].originX;
+ iVar12 = DAT_WindowAndDirectDraw.mainMenuBorderHeight
+ - DAT_TextureRenderCoreObject.gmFileHeaderColorpaletteArray[0xcc].originY;
+ if (iVar11 != DAT_GameCore.extremeTrailProgress) {
+ renderGMWithBlending(GID_SKIRMISH_TRAIL_ICONS,
+ local_8 + 0x11,
+ DAT_MissionDefinedData.field34_0xe3c[iVar11][0] + iVar13,
+ DAT_MissionDefinedData.field34_0xe3c[iVar11][1] + iVar12, 0x10);
+ }
+ renderGM(
+ GM_TREE_CACTII | GM_SEA_CHEVRONS, local_8 + 1,
+ DAT_MissionDefinedData.field34_0xe3c[iVar11][0] + iVar13,
+ DAT_MissionDefinedData.field34_0xe3c[iVar11][1] + iVar12);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ renderNumberToScreen2(
+ DAT_GameCore.extremeTrailProgress + 1,
+ DAT_WindowAndDirectDraw.mainMenuBorderWidth + 10,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x10, TTA_LEFT, 0xccfaff,
+ 0x10, FALSE, 0);
+ renderTextToScreen(".",
+ DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0xb,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x10, TTA_LEFT, 0xccfaff,
+ 0x10, TRUE, 0);
+ iVar14 = 0;
+ BVar19 = TRUE;
+ iVar13 = 0x10;
+ BVar17 = 0xccfaff;
+ TVar16 = TTA_LEFT;
+ iVar11 = DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x10;
+ iVar12 = DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x10;
+ pcVar5 = getTextStringInGroupAtOffset(
+ TEXT_TRAIL_NAMES_CRU, DAT_GameCore.extremeTrailProgress + 0x51);
+ renderTextToScreen(
+ pcVar5, iVar12, iVar11, TVar16, BVar17, iVar13, BVar19, iVar14);
+ renderNumberToScreen2(
+ DAT_GameCore.extremeTrailStartDatesInMonths[DAT_GameCore.extremeTrailProgress]
+ / 0xc,
+ DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x10,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x30, TTA_LEFT, 0xccfaff,
+ 0x12, FALSE, 0);
+ if (DAT_TextManagerObject.gameLanguage == GL_GERMAN) {
+ pcVar5 = " n. Chr.";
+ } else {
+ pcVar5 = " A.D.";
+ }
+ renderTextToScreen(
+ pcVar5, DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x11,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x30, TTA_LEFT, 0xccfaff,
+ 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ (int)DAT_GameCore.extremeTrailYearReached / 0xc,
+ DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x2b7,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x10, TTA_LEFT, 0xccfaff,
+ 0x11, FALSE, 0);
+ iVar14 = 0;
+ BVar19 = FALSE;
+ iVar13 = 0x11;
+ BVar17 = 0xccfaff;
+ TVar16 = TTA_RIGHT;
+ iVar11 = DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x10;
+ iVar12 = DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x2b2;
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_MONTHS,
+ DAT_GameCore.extremeTrailYearReached % 0xc);
+ renderTextToScreen(
+ pcVar5, iVar12, iVar11, TVar16, BVar17, iVar13, BVar19, iVar14);
+ if (DAT_TextManagerObject.gameLanguage == GL_GERMAN) {
+ pcVar5 = " n. Chr.";
+ } else {
+ pcVar5 = " A.D.";
+ }
+ renderTextToScreen(
+ pcVar5, DAT_WindowAndDirectDraw.mainMenuBorderWidth + 700,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x15, TTA_LEFT, 0xccfaff,
+ 0x12, TRUE, 0);
+ bVar15 = DAT_GameCore.furthestExtremeTrailMission == 0x1e;
+ }
+ if (bVar15) {
+ iVar14 = 0;
+ BVar19 = FALSE;
+ iVar13 = 0x12;
+ BVar17 = 0xccfaff;
+ TVar16 = TTA_CENTER;
+ iVar11 = DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x23e;
+ iVar12 = DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0xdc;
+ /*
+ added by script: "Crusader Trail Completed!"
+ */
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_SKIRMISH_CHOOSE, 6);
+ renderTextToScreen(
+ pcVar5, iVar12, iVar11, TVar16, BVar17, iVar13, BVar19, iVar14);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004d8bb0 MenuItemRenderFunction_CrusadeMissionIntro_Main | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004D8BB0
+ void CrusadeMissionIntro::MenuItemRenderFunction_CrusadeMissionIntro_Main(int param_1, ...)
+ {
+ bool bVar1;
+ bool bVar2;
+ bool bVar3;
+ bVar1 = false;
+ DAT_ButtonUnknownZero = 0;
+ if (DAT_GameCore.currentTrailType == TT_EXTREME) {
+ bVar3 = (DAT_GameCore.extremeTrailProgress < 0x14);
+ bVar2 = DAT_GameCore.extremeTrailProgress + -0x14 < 0;
+ } else if (DAT_GameCore.currentTrailType == TT_WARCHEST) {
+ bVar3 = (DAT_GameCore.warchestTrailProgress < 0x1e);
+ bVar2 = (int)(DAT_GameCore.warchestTrailProgress - 0x1e) < 0;
+ } else {
+ if (DAT_GameCore.currentTrailType != TT_FIRST_EDITION)
+ goto LAB_004d8bee;
+ bVar3 = (DAT_GameCore.skirmishTrailProgress < 0x32);
+ bVar2 = (int)(DAT_GameCore.skirmishTrailProgress - 0x32) < 0;
+ }
+ if (bVar3 == bVar2) {
+ bVar1 = true;
+ }
+ LAB_004d8bee:
+ if ((param_1 == 10) && (bVar1)) {
+ DAT_ButtonUnknownZero = 1;
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ }
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ return;
+ }
+ }
+}
+}
+
+### 0x004d8c10 MenuItemActionHandler_CrusadeMissionIntro_Main | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004D8C10
+ void CrusadeMissionIntro::MenuItemActionHandler_CrusadeMissionIntro_Main(int param_1, ...)
+ {
+ dword skirmishTrailMission;
+ bool bVar1;
+ bool bVar2;
+ if (param_1 != 10) {
+ if (param_1 == 0xb) {
+ if (DAT_GameCore.field22_0x64 == 1) {
+ DAT_MenuTextInputState.DAT_MenuOptionsActionParameter = 7;
+ activateModalDialogAndClearText(MMT_YES_NO_DIALOG);
+ return;
+ }
+ switchToMenuView(
+ MVT_CRUSADE_MAP, 0);
+ }
+ return;
+ }
+ if (DAT_GameCore.field22_0x64 == 1) {
+ switchToMenuView(
+ MVT_BUILD_MENU, 0);
+ resetMouseState2();
+ return;
+ }
+ if (DAT_GameCore.currentTrailType == TT_EXTREME) {
+ bVar2 = (DAT_GameCore.extremeTrailProgress < 20);
+ bVar1 = DAT_GameCore.extremeTrailProgress + 20 < 0;
+ skirmishTrailMission = DAT_GameCore.extremeTrailProgress;
+ } else if (DAT_GameCore.currentTrailType == TT_WARCHEST) {
+ bVar2 = (DAT_GameCore.warchestTrailProgress < 30);
+ bVar1 = (int)(DAT_GameCore.warchestTrailProgress - 30) < 0;
+ skirmishTrailMission = DAT_GameCore.warchestTrailProgress;
+ } else {
+ bVar2 = (DAT_GameCore.skirmishTrailProgress < 50);
+ bVar1 = (int)(DAT_GameCore.skirmishTrailProgress - 50) < 0;
+ skirmishTrailMission = DAT_GameCore.skirmishTrailProgress;
+ }
+ if (bVar2 != bVar1) {
+ SetupSkirmishMode(skirmishTrailMission);
+ }
+ resetMouseState2();
+ return;
+ }
+ }
+}
+}
+

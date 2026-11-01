@@ -1,0 +1,1012 @@
+### 0x00440360 CountPlayerUnitsByType | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00440360
+ void Helpers::CountPlayerUnitsByType()
+ {
+ int iVar1;
+ UnitTypeInt _unitType;
+ Unit* _unit;
+ int iVar2;
+ iVar1 = DAT_GameSynchronyState.currentPlayerSlotID;
+ _memset(DAT_UnitTypeRelatedCounter, 0, (size_t)((int)(320)));
+ if (1 < (int)DAT_UnitsState.maxUnitCount) {
+ iVar2 = DAT_UnitsState.maxUnitCount - 1;
+ _unit = &DAT_UnitsState.units[1];
+ do {
+ if ((((_unit->logicalState != ULS_INVISIBLE) && (_unit->owner == iVar1))
+ && (_unit->isStalked == 0))
+ && ((_unitType = (UnitTypeInt)(short)_unit->unitType,
+ 0 < (int)_unitType && (((int)_unitType < 66 || (70 < (int)_unitType)))))) {
+ DAT_UnitTypeRelatedCounter[_unitType]
+ = DAT_UnitTypeRelatedCounter[_unitType] + 1;
+ }
+ _unit = _unit + 0x248;
+ iVar2 = iVar2 + -1;
+ } while (iVar2 != 0);
+ }
+ return;
+ }
+}
+}
+
+### 0x00464da0 IsEuroUnitRecruitableUnk | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00464DA0
+ EuroRecruitableState Helpers::IsEuroUnitRecruitableUnk(int barrackUnitIdUnk)
+ {
+ ResourceTypeInt _unitGoldCost;
+ int* _unitResourceCostPtr;
+ int _loopCounterUnk;
+ bool _noResourceUnk;
+ int _resourceCost;
+ _unitGoldCost = DAT_TroopDefinedData.MarketResourceCycleArray[barrackUnitIdUnk + -1];
+ if ((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ && (DAT_GameSynchronyState.skirmishTroopsCostGold == 0)) {
+ _unitGoldCost = ((ResourceType)0);
+ }
+ if (DAT_GameState.mapAndTime.euroRecruitable[barrackUnitIdUnk + -0x16] == 0) {
+ return ERS_NOT_ALLOWED_TO_RECRUIT;
+ }
+ if (DAT_GameState.mapAndTime.armySizeLimit
+ <= DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].count_2
+ + DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .armySize) {
+ return ERS_UNABLE_BECAUSE_MAX_ARMY;
+ }
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[0xf]
+ < (int)_unitGoldCost) {
+ return ERS_CAN_NOT_RECRUIT;
+ }
+ _loopCounterUnk = 0;
+ _unitResourceCostPtr = DAT_UnitPropertiesDefinedData.MELEE_DAMAGE[0x4e] + barrackUnitIdUnk * 4 + 0x48;
+ do {
+ _resourceCost = *_unitResourceCostPtr;
+ if (_resourceCost == -1) {
+ _noResourceUnk
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .availableHorses
+ == 0;
+ LAB_00464e3f:
+ if (_noResourceUnk) {
+ return ERS_CAN_NOT_RECRUIT;
+ }
+ } else if (_resourceCost != 0) {
+ _noResourceUnk
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[_resourceCost]
+ == 0;
+ goto LAB_00464e3f;
+ }
+ _loopCounterUnk = _loopCounterUnk + 1;
+ _unitResourceCostPtr = _unitResourceCostPtr + 1;
+ if (3 < _loopCounterUnk) {
+ _loopCounterUnk
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .availablePeasantsOrHousedPeasants;
+ _resourceCost
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .count;
+ return ((_loopCounterUnk != _resourceCost && -1 < _loopCounterUnk - _resourceCost) - 1 & 3)
+ + ERS_CAN_RECRUITUnk;
+ }
+ } while (true);
+ }
+}
+}
+
+### 0x00464e80 GetUnitRecruitPermission | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00464E80
+ int Helpers::GetUnitRecruitPermission(int param_1)
+ {
+ int iVar1;
+ int iVar2;
+ if (*(int*)(DAT_GameState.mapAndTime.playerIsAlive + param_1 * 2 + 0x16) == 0) {
+ return 2;
+ }
+ if (DAT_GameState.mapAndTime.armySizeLimit
+ <= DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].count_2
+ + DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .armySize) {
+ return 3;
+ }
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[0xf]
+ < DAT_TroopDefinedData.field279_0x210[param_1]) {
+ /*
+ not enough gold
+ */
+ return 0;
+ }
+ iVar1 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .availablePeasantsOrHousedPeasants;
+ iVar2 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].count;
+ return ((iVar1 != iVar2 && -1 < iVar1 - iVar2) - 1 & 3) + 1;
+ }
+}
+}
+
+### 0x004650a0 CheckIfEnoughGoldForMonk | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x004650A0
+ void Helpers::CheckIfEnoughGoldForMonk()
+ {
+ DAT_EnoughGoldForRequestedUnit
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[RT_GOLD]
+ >= 10;
+ }
+}
+}
+
+### 0x004650f0 CheckIfEnoughGoldForTunneler | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x004650F0
+ void Helpers::CheckIfEnoughGoldForTunneler()
+ {
+ DAT_EnoughGoldForRequestedUnit
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[RT_GOLD]
+ >= 30;
+ }
+}
+}
+
+### 0x00466e00 SetEnoughGoldForRequestedUnitToTrueUnk | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00466E00
+ void Helpers::SetEnoughGoldForRequestedUnitToTrueUnk() { DAT_EnoughGoldForRequestedUnit = TRUE; }
+}
+}
+
+### 0x004b8200 SumUnitPoints | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x004B8200
+ void Helpers::SumUnitPoints()
+ {
+ sumUnitPoints();
+ }
+}
+}
+
+### 0x004fa460 getRubbleGraphicStageForDamageLevel | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x004FA460
+ undefined4 TileMapState::getRubbleGraphicStageForDamageLevel(int param_1)
+ {
+ if (this->mapOrientation == 0) {
+ if (param_1 == 0x50) {
+ return (undefined4)(1);
+ }
+ if (param_1 == 0x51) {
+ return (undefined4)(0);
+ }
+ if (param_1 == 1) {
+ return (undefined4)(2);
+ }
+ if (param_1 != 7) {
+ if (param_1 == 3) {
+ return (undefined4)(3);
+ }
+ if (param_1 != 5) {
+ return (undefined4)(0);
+ }
+ return (undefined4)(4);
+ }
+ } else if (this->mapOrientation == 4) {
+ if (param_1 == 0x50) {
+ return (undefined4)(1);
+ }
+ if (param_1 == 0x51) {
+ return (undefined4)(0);
+ }
+ if (param_1 == 1) {
+ return (undefined4)(4);
+ }
+ if (param_1 == 7) {
+ return (undefined4)(3);
+ }
+ if (param_1 != 3) {
+ if (param_1 != 5) {
+ return (undefined4)(0);
+ }
+ return (undefined4)(2);
+ }
+ } else if (this->mapOrientation == 2) {
+ if (param_1 == 0x50) {
+ return (undefined4)(0);
+ }
+ if (param_1 == 0x51) {
+ return (undefined4)(1);
+ }
+ if (param_1 != 1) {
+ if (param_1 == 7) {
+ return (undefined4)(4);
+ }
+ if (param_1 != 3) {
+ if (param_1 != 5) {
+ return (undefined4)(0);
+ }
+ return (undefined4)(3);
+ }
+ return (undefined4)(2);
+ }
+ } else {
+ if (this->mapOrientation != 6) {
+ return (undefined4)(0);
+ }
+ if (param_1 == 0x50) {
+ return (undefined4)(0);
+ }
+ if (param_1 == 0x51) {
+ return (undefined4)(1);
+ }
+ if (param_1 == 1) {
+ return (undefined4)(3);
+ }
+ if (param_1 == 7) {
+ return (undefined4)(2);
+ }
+ if (param_1 == 3) {
+ return (undefined4)(4);
+ }
+ if (param_1 != 5) {
+ return (undefined4)(0);
+ }
+ }
+ return (undefined4)(5);
+ }
+}
+}
+
+### 0x00530d50 CheckUnitProductionPaused | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00530D50
+ BOOLEnum Units::CheckUnitProductionPaused(int unitID)
+ {
+ return DAT_UnitsState.units[unitID].field166_0x2fe == 1;
+ }
+}
+}
+
+### 0x0053a020 CurrentUnitHasHealer | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x0053A020
+ BOOLEnum Units::CurrentUnitHasHealer()
+ {
+ Unit* psVar1;
+ int iVar1;
+ iVar1 = 1;
+ if (1 < (int)DAT_UnitsState.maxUnitCount) {
+ psVar1 = &DAT_UnitsState.units[1];
+ do {
+ if (((psVar1->logicalState != ULS_INVISIBLE)
+ && (psVar1->owner == DAT_GameSynchronyState.currentPlayerSlotID))
+ && (psVar1->unitType == UT_HEALER)) {
+ return TRUE;
+ }
+ iVar1 = iVar1 + 1;
+ psVar1 = psVar1 + 0x248;
+ } while (iVar1 < (int)DAT_UnitsState.maxUnitCount);
+ }
+ return FALSE;
+ }
+}
+}
+
+### 0x0053bc20 UpdateBurningMan | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x0053BC20
+ void Units::UpdateBurningMan()
+ {
+ byte* pbVar1;
+ short* psVar2;
+ UnitStateShort UVar3;
+ uint uVar4;
+ BOOLEnum BVar5;
+ int iVar6;
+ bool bVar7;
+ uVar4 = DAT_CurrentUnitSlotID;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].stateBasedSpeed = 0;
+ DAT_UnitsState.units[uVar4].owner = 0;
+ DAT_UnitsState.units[uVar4].calculatedOwnerPlayerIndex = 0;
+ DAT_UnitsState.units[uVar4].dying = 1;
+ DAT_UnitsState.units[uVar4].isSelected = 0;
+ UVar3 = DAT_UnitsState.units[uVar4].state.generic;
+ if (UVar3 == US_DETERMINE_NEXT_STATEUnk) {
+ DAT_UnitsState.units[uVar4].field_0x30_animRelated = 0;
+ DAT_UnitsState.units[uVar4].gfxNumber
+ = DAT_UnitsState.units[uVar4].facingDirectionMapOrientationCorrected + 1;
+ BVar5 = computeLadderClimbPath(uVar4, 0, 0, 0);
+ uVar4 = DAT_CurrentUnitSlotID;
+ if (BVar5 == FALSE) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationCycleNumber = 0;
+ DAT_UnitsState.units[uVar4].substate = 0;
+ DAT_UnitsState.units[uVar4].state.generic = US_STONE_DEATH_03;
+ makeUnitStopWalkingByClearingPathProgressState(uVar4);
+ return;
+ }
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_DEATH_02 | US_STAND_UPUnk;
+ changeDestinationByAmount(
+ uVar4, 4);
+ return;
+ }
+ if (UVar3 == (US_DEATH_02 | US_STAND_UPUnk)) {
+ DAT_UnitsState.units[uVar4].movementSpeed = 2;
+ DAT_UnitsState.units[uVar4].stateBasedSpeed = 0;
+ DAT_UnitsState.units[uVar4].animationSheetFrameOffset = 1;
+ DAT_UnitsState.units[uVar4].field_0x30_animRelated = 0x10;
+ BVar5 = hasTunnelerNotFinishedDigging(uVar4);
+ if (BVar5 != FALSE) {
+ DAT_UnitsState.units[uVar4].animationCycleNumber = 0;
+ DAT_UnitsState.units[uVar4].substate = 0;
+ DAT_UnitsState.units[uVar4].state.generic = US_STONE_DEATH_03;
+ return;
+ }
+ } else {
+ BVar5 = checkIfCitizenUnitIsAliveBasedOnState(uVar4);
+ if (BVar5 != FALSE) {
+ DAT_UnitsState.units[uVar4].animationSpeed = 3;
+ DAT_UnitsState.units[uVar4].field_0x30_animRelated = 0;
+ iVar6 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field17_0xb2c[DAT_UnitsState.units[uVar4].animationCycleNumber];
+ DAT_UnitsState.units[uVar4].animationFrame = iVar6;
+ if (iVar6 < 1) {
+ DAT_UnitHasBecomeIdle = 1;
+ } else {
+ bVar7 = DAT_UnitHasBecomeIdle == 0;
+ DAT_UnitsState.units[uVar4].gfxNumber
+ = DAT_UnitsState.units[uVar4].facingDirectionMapOrientationCorrected + 0x79
+ + iVar6 * 8;
+ if (bVar7) {
+ return;
+ }
+ }
+ DAT_UnitsState.units[uVar4].state.generic = US_DISAPPEAR;
+ DAT_UnitsState.units[uVar4].disappearFadeAlphaCountdown = 0;
+ DAT_UnitsState.units[uVar4].updateTickTracker = 0;
+ return;
+ }
+ if (UVar3 == US_DISAPPEAR) {
+ pbVar1 = &DAT_UnitsState.units[uVar4].disappearFadeAlphaCountdown;
+ *pbVar1 = *pbVar1 + 1;
+ if (' ' < (char)DAT_UnitsState.units[uVar4].disappearFadeAlphaCountdown) {
+ DAT_UnitsState.units[uVar4].disappearFadeAlphaCountdown = 0x20;
+ }
+ psVar2 = &DAT_UnitsState.units[uVar4].updateTickTracker;
+ *psVar2 = *psVar2 + 1;
+ if (0x20 < DAT_UnitsState.units[uVar4].updateTickTracker) {
+ DAT_UnitsState.units[uVar4].logicalState = ULS_REMOVE;
+ return;
+ }
+ } else {
+ DAT_UnitsState.units[uVar4].state.generic
+ = US_DETERMINE_NEXT_STATEUnk;
+ makeUnitStopWalkingByClearingPathProgressState(uVar4);
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x0053eaa0 UpdatePeasant | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x0053EAA0
+ void Units::UpdatePeasant()
+ {
+ int* piVar1;
+ byte* pbVar2;
+ short* psVar3;
+ byte bVar4;
+ UnitStateShort UVar5;
+ short sVar6;
+ int iVar7;
+ BOOLEnum BVar8;
+ uint uVar9;
+ int iVar10;
+ int iVar11;
+ int _playerID;
+ bool bVar12;
+ uint _currentUnitID;
+ _currentUnitID = DAT_CurrentUnitSlotID;
+ _playerID = (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner;
+ iVar7 = DAT_GameState.playerDataArray[_playerID].campground.id;
+ piVar1 = &DAT_GameState.playerDataArray[_playerID].availablePeasantsOrHousedPeasants;
+ *piVar1 = *piVar1 + 1;
+ clearHiddenFlagAndUpdatePosition(
+ _currentUnitID);
+ _currentUnitID = DAT_CurrentUnitSlotID;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].calculatedOwnerPlayerIndex
+ = DAT_UnitsState.units[DAT_CurrentUnitSlotID].fixedRng & 7;
+ UVar5 = DAT_UnitsState.units[_currentUnitID].state.generic;
+ if (UVar5 == US_DETERMINE_NEXT_STATEUnk) {
+ DAT_UnitsState.units[_currentUnitID].facingDirection = 4;
+ DAT_UnitsState.units[_currentUnitID].tribeID = 0;
+ DAT_UnitsState.units[_currentUnitID].animationSpeed = 2;
+ DAT_UnitsState.units[_currentUnitID].field_0x30_animRelated = 0;
+ sVar6 = DAT_UnitsState.units[_currentUnitID].facingDirectionMapOrientationCorrected;
+ piVar1 = &DAT_GameState.playerDataArray[_playerID].availablePeasantsAtFire;
+ *piVar1 = *piVar1 + 1;
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = (int)sVar6 / 2 + 0x81;
+ if (DAT_UnitsState.units[_currentUnitID].isDisappearingUnk != 0) {
+ piVar1 = &DAT_GameState.playerDataArray[_playerID].count;
+ *piVar1 = *piVar1 + 1;
+ DAT_UnitsState.units[_currentUnitID].state.generic
+ = US_JESTER_ROAM_TO;
+ DAT_UnitsState.units[_currentUnitID].disappearFadeAlphaCountdown = 0x20;
+ DAT_UnitsState.units[_currentUnitID].engineerManningSiegeStateRef_checkType = 0xff;
+ DAT_UnitsState.units[_currentUnitID].cachedState
+ = US_RELOAD_WEAPONUnk;
+ return;
+ }
+ iVar7 = moveUnitAroundCampfire(
+ _currentUnitID, DAT_GameState.playerDataArray[_playerID].availablePeasantsOrHousedPeasants);
+ if (iVar7 == -1) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].logicalState
+ = ULS_REMOVE;
+ return;
+ }
+ iVar7 = moveUnitAroundCampfire(DAT_CurrentUnitSlotID,
+ DAT_GameState.playerDataArray[_playerID].availablePeasantsOrHousedPeasants);
+ _currentUnitID = DAT_CurrentUnitSlotID;
+ if (0 < iVar7) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].idInTribe
+ = (short)DAT_GameState.playerDataArray[_playerID].availablePeasantsOrHousedPeasants;
+ setDestinationForUnit(
+ _currentUnitID, (uint)((int)((int)DAT_UnitsState.units[_currentUnitID].targetX_2)),
+ (uint)((int)((int)DAT_UnitsState.units[_currentUnitID].targetY_2)), 0);
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_LOOK_AROUNDUnk;
+ return;
+ }
+ LAB_0053f215:
+ DAT_UnitsState.units[_currentUnitID].animationCycleNumber = 0;
+ DAT_UnitsState.units[_currentUnitID].state.generic = US_STAND_UPUnk;
+ DAT_UnitsState.units[_currentUnitID].substate = -1;
+ return;
+ }
+ if (UVar5 == US_RELOAD_WEAPONUnk) {
+ piVar1 = &DAT_GameState.playerDataArray[_playerID].count;
+ *piVar1 = *piVar1 + 1;
+ DAT_UnitsState.units[_currentUnitID].field_0x30_animRelated = 0x10;
+ DAT_UnitsState.units[_currentUnitID].animationSheetFrameOffset = 1;
+ DAT_UnitsState.units[_currentUnitID].stateBasedSpeed = 0;
+ BVar8 = hasUnitReachedDestination(_currentUnitID);
+ if (BVar8 == FALSE) {
+ return;
+ }
+ DAT_UnitsState.units[_currentUnitID].isDisappearingUnk = 0;
+ DAT_UnitsState.units[_currentUnitID].animationCycleNumber = 0;
+ DAT_UnitsState.units[_currentUnitID].state.generic
+ = US_AIM_WEAPONUnk;
+ DAT_UnitsState.units[_currentUnitID].facingDirection = 0;
+ return;
+ }
+ if (UVar5 == US_AIM_WEAPONUnk) {
+ DAT_UnitsState.units[_currentUnitID].animationSpeed = 2;
+ DAT_UnitsState.units[_currentUnitID].field_0x30_animRelated = 0;
+ DAT_UnitsState.units[_currentUnitID].seated = 0;
+ iVar10 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .useWeapon[DAT_UnitsState.units[_currentUnitID].animationCycleNumber];
+ piVar1 = &DAT_GameState.playerDataArray[_playerID].count;
+ *piVar1 = *piVar1 + 1;
+ DAT_UnitsState.units[_currentUnitID].animationFrame = iVar10;
+ if (iVar10 < 1) {
+ DAT_UnitsState.units[_currentUnitID].animationCycleNumber = 0;
+ DAT_UnitsState.units[_currentUnitID].state.generic
+ = US_DETERMINE_NEXT_STATEUnk;
+ DAT_UnitHasBecomeIdle = 1;
+ return;
+ }
+ sVar6 = DAT_BuildingsState.buildings[iVar7].orientation;
+ uVar9 = (uint)DAT_UnitsState.units[_currentUnitID].facingDirectionMapOrientationCorrected;
+ if (sVar6 == 4) {
+ uVar9 = uVar9 + 4;
+ } else {
+ if (sVar6 == 2) {
+ uVar9 = uVar9 + 6 & 0x80000007;
+ if ((int)uVar9 < 0) {
+ uVar9 = (uVar9 - 1 | 0xfffffff8) + 1;
+ }
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = (int)uVar9 / 2 + 0x155 + iVar10 * 4;
+ goto LAB_0053ed2a;
+ }
+ if (sVar6 == 6) {
+ uVar9 = uVar9 + 2 & 0x80000007;
+ if ((int)uVar9 < 0) {
+ uVar9 = (uVar9 - 1 | 0xfffffff8) + 1;
+ }
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = (int)uVar9 / 2 + 0x155 + iVar10 * 4;
+ goto LAB_0053ed2a;
+ }
+ }
+ uVar9 = uVar9 & 0x80000007;
+ if ((int)uVar9 < 0) {
+ uVar9 = (uVar9 - 1 | 0xfffffff8) + 1;
+ }
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = (int)uVar9 / 2 + 0x155 + iVar10 * 4;
+ LAB_0053ed2a:
+ if (DAT_UnitHasBecomeIdle == 0) {
+ return;
+ }
+ DAT_UnitsState.units[_currentUnitID].animationCycleNumber = 0;
+ DAT_UnitsState.units[_currentUnitID].state.generic
+ = US_DETERMINE_NEXT_STATEUnk;
+ return;
+ }
+ if (UVar5 == US_MOVE_TO_DESTINATION) {
+ DAT_UnitsState.units[_currentUnitID].field_0x30_animRelated = 0x10;
+ if (DAT_UnitsState.units[_currentUnitID].moveInstructionSpeedDelayTracker == 0) {
+ DAT_UnitsState.units[_currentUnitID].animationSheetFrameOffset = 1;
+ } else {
+ DAT_UnitsState.units[_currentUnitID].animationSheetFrameOffset = 1;
+ if (0x46 < DAT_UnitsState.units[_currentUnitID].moveInstructionSpeedDelayTracker) {
+ DAT_UnitsState.units[_currentUnitID].stateBasedSpeed = -1;
+ DAT_UnitsState.units[_currentUnitID].field_0x30_animRelated = 0;
+ goto LAB_0053edfa;
+ }
+ }
+ DAT_UnitsState.units[_currentUnitID].stateBasedSpeed = 0;
+ LAB_0053edfa:
+ BVar8 = hasUnitReachedDestination(_currentUnitID);
+ if (BVar8 == FALSE) {
+ return;
+ }
+ DAT_UnitsState.units[_currentUnitID].stateBasedSpeed = 0;
+ DAT_UnitsState.units[_currentUnitID].animationCycleNumber = 0;
+ DAT_UnitsState.units[_currentUnitID].state
+ = (UnitStateUnion)DAT_UnitsState.units[_currentUnitID].cachedState;
+ return;
+ }
+ if (UVar5 == 0x6c) {
+ DAT_UnitsState.units[_currentUnitID].stateBasedSpeed = 0;
+ DAT_UnitsState.units[_currentUnitID].field_0x30_animRelated = 0;
+ DAT_UnitsState.units[_currentUnitID].animationSheetFrameOffset = 1;
+ return;
+ }
+ if (UVar5 == US_JESTER_ROAM_TO) {
+ pbVar2 = &DAT_UnitsState.units[_currentUnitID].disappearFadeAlphaCountdown;
+ *pbVar2 = *pbVar2 + DAT_UnitsState.units[_currentUnitID].engineerManningSiegeStateRef_checkType;
+ if ((char)*pbVar2 < '\0') {
+ DAT_UnitsState.units[_currentUnitID].disappearFadeAlphaCountdown = 0;
+ } else if ('\x1f' < (char)DAT_UnitsState.units[_currentUnitID].disappearFadeAlphaCountdown) {
+ DAT_UnitsState.units[_currentUnitID].disappearFadeAlphaCountdown = 0x1f;
+ }
+ if (DAT_UnitsState.units[_currentUnitID].cachedState
+ == US_RELOAD_WEAPONUnk) {
+ piVar1 = &DAT_GameState.playerDataArray[_playerID].count;
+ *piVar1 = *piVar1 + 1;
+ }
+ if (('\0' < (char)DAT_UnitsState.units[_currentUnitID].engineerManningSiegeStateRef_checkType)
+ && (DAT_UnitsState.units[_currentUnitID].isDisappearingUnk != 0)) {
+ switch (DAT_UnitsState.units[_currentUnitID].unitTypeToChangeInto) {
+ case UT_TUNNELER:
+ case UT_E_ARCHER:
+ case UT_E_XBOW:
+ case UT_E_SPEAR:
+ case UT_E_PIKE:
+ case UT_E_MACE:
+ case UT_E_SWORD:
+ case UT_E_KNIGHT:
+ case UT_E_LADDER:
+ case UT_E_ENGINEER:
+ case UT_E_MONK:
+ case UT_S_CATAPULT:
+ case UT_S_TOWER:
+ case UT_S_BATTERINGRAM:
+ case UT_S_SHIELD:
+ case UT_S_BALLISTA:
+ case UT_A_ARCHER:
+ case UT_A_SLAVE:
+ case UT_A_SLINGER:
+ case UT_A_ASSASSIN:
+ case UT_A_HARCHER:
+ case UT_A_SWORDSMAN:
+ case UT_A_FIRETHROWER:
+ case UT_S_FBALLISTA:
+ piVar1 = &DAT_GameState.playerDataArray[_playerID].count_2;
+ *piVar1 = *piVar1 + 1;
+ }
+ }
+ psVar3 = &DAT_UnitsState.units[_currentUnitID].updateTickTracker;
+ *psVar3 = *psVar3 + 1;
+ if (DAT_UnitsState.units[_currentUnitID].updateTickTracker < 0x21) {
+ return;
+ }
+ DAT_UnitsState.units[_currentUnitID].updateTickTracker = 0;
+ DAT_UnitsState.units[_currentUnitID].disappearFadeAlphaCountdown = 0;
+ DAT_UnitsState.units[_currentUnitID].state
+ = (UnitStateUnion)DAT_UnitsState.units[_currentUnitID].cachedState;
+ bVar4 = DAT_UnitsState.units[_currentUnitID].engineerManningSiegeStateRef_checkType;
+ if ((char)bVar4 < '\0') {
+ if (DAT_UnitsState.units[_currentUnitID].isDisappearingUnk == 0) {
+ return;
+ }
+ prepareCampgroundCoords(_playerID);
+ setDestinationForUnit(
+ DAT_CurrentUnitSlotID, (uint)((int)(DAT_BuildingsState.DAT_TempXOffset)),
+ (uint)((int)(DAT_BuildingsState.DAT_TempYOffset)), 0);
+ return;
+ }
+ if ((char)bVar4 < '\x01') {
+ return;
+ }
+ if (DAT_UnitsState.units[_currentUnitID].isDisappearingUnk == 0) {
+ return;
+ }
+ DAT_UnitsState.units[_currentUnitID].logicalState = ULS_TRANSITIONING;
+ DAT_UnitsState.units[_currentUnitID].disappearFadeAlphaCountdown = 0x20;
+ return;
+ }
+ if (UVar5 == US_DISAPPEAR) {
+ pbVar2 = &DAT_UnitsState.units[_currentUnitID].disappearFadeAlphaCountdown;
+ *pbVar2 = *pbVar2 + 1;
+ if (' ' < (char)DAT_UnitsState.units[_currentUnitID].disappearFadeAlphaCountdown) {
+ DAT_UnitsState.units[_currentUnitID].disappearFadeAlphaCountdown = 0x20;
+ }
+ psVar3 = &DAT_UnitsState.units[_currentUnitID].updateTickTracker;
+ *psVar3 = *psVar3 + 1;
+ if (DAT_UnitsState.units[_currentUnitID].updateTickTracker < 0x21) {
+ return;
+ }
+ DAT_UnitsState.units[_currentUnitID].logicalState = ULS_REMOVE;
+ return;
+ }
+ if (UVar5 == US_DEATH_01) {
+ DAT_UnitsState.units[_currentUnitID].facingDirection = 0;
+ DAT_UnitsState.units[_currentUnitID].animationSpeed = 2;
+ DAT_UnitsState.units[_currentUnitID].field_0x30_animRelated = 0;
+ iVar7 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .ANIM_Frames_UnitDeath[DAT_UnitsState.units[_currentUnitID].animationCycleNumber];
+ DAT_UnitsState.units[_currentUnitID].animationFrame = iVar7;
+ if (iVar7 < 1) {
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = 0x1a0;
+ DAT_UnitsState.units[_currentUnitID].state.generic
+ = US_DISAPPEAR;
+ DAT_UnitsState.units[_currentUnitID].updateTickTracker = 0;
+ DAT_UnitHasBecomeIdle = 1;
+ return;
+ }
+ iVar7 = iVar7 + 0x188;
+ LAB_0053f094:
+ bVar12 = DAT_UnitHasBecomeIdle == 0;
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = iVar7;
+ if (bVar12) {
+ return;
+ }
+ DAT_UnitsState.units[_currentUnitID].state.generic = US_DISAPPEAR;
+ DAT_UnitsState.units[_currentUnitID].updateTickTracker = 0;
+ return;
+ }
+ if (UVar5 == US_DEATH_03) {
+ DAT_UnitsState.units[_currentUnitID].facingDirection = 0;
+ DAT_UnitsState.units[_currentUnitID].animationSpeed = 2;
+ DAT_UnitsState.units[_currentUnitID].field_0x30_animRelated = 0;
+ iVar7 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .ANIM_Frames_UnitDeath[DAT_UnitsState.units[_currentUnitID].animationCycleNumber];
+ DAT_UnitsState.units[_currentUnitID].animationFrame = iVar7;
+ if (iVar7 < 1) {
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = 0x1b8;
+ DAT_UnitsState.units[_currentUnitID].state.generic
+ = US_DISAPPEAR;
+ DAT_UnitsState.units[_currentUnitID].updateTickTracker = 0;
+ DAT_UnitHasBecomeIdle = 1;
+ return;
+ }
+ iVar7 = iVar7 + 0x1a0;
+ goto LAB_0053f094;
+ }
+ BVar8 = checkIfCitizenUnitIsAliveBasedOnState(_currentUnitID);
+ if (BVar8 != FALSE) {
+ DAT_UnitsState.units[_currentUnitID].facingDirection = 0;
+ DAT_UnitsState.units[_currentUnitID].animationSpeed = 2;
+ DAT_UnitsState.units[_currentUnitID].field_0x30_animRelated = 0;
+ iVar7 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .ANIM_Frames_UnitDeath[DAT_UnitsState.units[_currentUnitID].animationCycleNumber];
+ DAT_UnitsState.units[_currentUnitID].animationFrame = iVar7;
+ if (iVar7 < 1) {
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = 0x1d0;
+ DAT_UnitHasBecomeIdle = 1;
+ } else {
+ bVar12 = DAT_UnitHasBecomeIdle == 0;
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = iVar7 + 0x1b8;
+ if (bVar12) {
+ return;
+ }
+ }
+ DAT_UnitsState.units[_currentUnitID].state.generic = US_DISAPPEAR;
+ DAT_UnitsState.units[_currentUnitID].updateTickTracker = 0;
+ return;
+ }
+ if (UVar5 == US_LOOK_AROUNDUnk) {
+ psVar3 = &DAT_BuildingsState.buildings[iVar7].field193_0x272;
+ *psVar3 = *psVar3 + 1;
+ piVar1 = &DAT_GameState.playerDataArray[_playerID].idlePeasantsCount;
+ *piVar1 = *piVar1 + 1;
+ piVar1 = &DAT_GameState.playerDataArray[_playerID].availablePeasantsAtFire;
+ *piVar1 = *piVar1 + 1;
+ iVar7 = DAT_GameState.playerDataArray[_playerID].availablePeasantsOrHousedPeasants;
+ DAT_UnitsState.units[_currentUnitID].animationSheetFrameOffset = 1;
+ DAT_UnitsState.units[_currentUnitID].field_0x30_animRelated = 0x10;
+ iVar7 = moveUnitAroundCampfire(_currentUnitID, iVar7);
+ _currentUnitID = DAT_CurrentUnitSlotID;
+ if (iVar7 == -1) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].logicalState
+ = ULS_REMOVE;
+ }
+ BVar8 = getDestination2EqualsGivenCoordinates(_currentUnitID,
+ DAT_UnitsState.units[_currentUnitID].targetX_2,
+ DAT_UnitsState.units[_currentUnitID].targetY_2);
+ if (BVar8 != FALSE) {
+ DAT_UnitsState.units[_currentUnitID].idInTribe
+ = (short)DAT_GameState.playerDataArray[_playerID].availablePeasantsOrHousedPeasants;
+ setDestinationForUnit(
+ _currentUnitID, (uint)((int)((int)DAT_UnitsState.units[_currentUnitID].targetX_2)),
+ (uint)((int)((int)DAT_UnitsState.units[_currentUnitID].targetY_2)), 0);
+ _currentUnitID = DAT_CurrentUnitSlotID;
+ }
+ BVar8 = hasUnitReachedDestination(_currentUnitID);
+ if (BVar8 == FALSE) {
+ return;
+ }
+ goto LAB_0053f215;
+ }
+ if (UVar5 != US_STAND_UPUnk) {
+ return;
+ }
+ sVar6 = DAT_UnitsState.units[_currentUnitID].field38_0x56;
+ piVar1 = &DAT_GameState.playerDataArray[_playerID].idlePeasantsCount;
+ *piVar1 = *piVar1 + 1;
+ piVar1 = &DAT_GameState.playerDataArray[_playerID].availablePeasantsAtFire;
+ *piVar1 = *piVar1 + 1;
+ psVar3 = &DAT_BuildingsState.buildings[iVar7].field192_0x270;
+ *psVar3 = *psVar3 + 1;
+ DAT_UnitsState.units[_currentUnitID].facingDirection = sVar6;
+ DAT_UnitsState.units[_currentUnitID].animationSpeed = 2;
+ DAT_UnitsState.units[_currentUnitID].field_0x30_animRelated = 0;
+ if (DAT_UnitsState.units[_currentUnitID].substate == -1) {
+ DAT_UnitsState.units[_currentUnitID].substate = 0x66;
+ }
+ sVar6 = DAT_UnitsState.units[_currentUnitID].substate;
+ if (sVar6 == 0x66) {
+ DAT_UnitsState.units[_currentUnitID].seated = 0;
+ iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field233_0x451c[DAT_UnitsState.units[_currentUnitID].animationCycleNumber];
+ DAT_UnitsState.units[_currentUnitID].animationFrame = iVar11;
+ iVar10 = (int)DAT_UnitsState.units[_currentUnitID].facingDirectionMapOrientationCorrected / 2;
+ if (0 < iVar11) {
+ LAB_0053f484:
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = iVar10 + 0x7d + iVar11 * 4;
+ goto LAB_0053f71c;
+ }
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = iVar10 + 0x81;
+ } else if (sVar6 == 0x67) {
+ DAT_UnitsState.units[_currentUnitID].seated = 0;
+ iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field234_0x45ac[DAT_UnitsState.units[_currentUnitID].animationCycleNumber];
+ DAT_UnitsState.units[_currentUnitID].animationFrame = iVar11;
+ iVar10 = (int)DAT_UnitsState.units[_currentUnitID].facingDirectionMapOrientationCorrected / 2;
+ if (0 < iVar11) {
+ LAB_0053f4d3:
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = iVar10 + 0x7d + iVar11 * 4;
+ goto LAB_0053f71c;
+ }
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = iVar10 + 0x81;
+ } else if (sVar6 == 0x65) {
+ iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field235_0x4610[DAT_UnitsState.units[_currentUnitID].animationCycleNumber];
+ DAT_UnitsState.units[_currentUnitID].animationFrame = iVar11;
+ iVar10 = (int)DAT_UnitsState.units[_currentUnitID].facingDirectionMapOrientationCorrected / 2;
+ if (0 < iVar11) {
+ LAB_0053f435:
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = iVar10 + 0x7d + iVar11 * 4;
+ goto LAB_0053f71c;
+ }
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = iVar10 + 0xad;
+ DAT_UnitsState.units[_currentUnitID].seated = 1;
+ } else if (sVar6 == 100) {
+ iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field236_0x4638[DAT_UnitsState.units[_currentUnitID].animationCycleNumber];
+ DAT_UnitsState.units[_currentUnitID].animationFrame = iVar11;
+ iVar10 = (int)DAT_UnitsState.units[_currentUnitID].facingDirectionMapOrientationCorrected / 2;
+ if (0 < iVar11)
+ goto LAB_0053f484;
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = iVar10 + 0x81;
+ DAT_UnitsState.units[_currentUnitID].seated = 0;
+ } else if (sVar6 == 0x6a) {
+ DAT_UnitsState.units[_currentUnitID].seated = 1;
+ iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field237_0x466c[DAT_UnitsState.units[_currentUnitID].animationCycleNumber];
+ DAT_UnitsState.units[_currentUnitID].animationFrame = iVar11;
+ iVar10 = (int)DAT_UnitsState.units[_currentUnitID].facingDirectionMapOrientationCorrected / 2;
+ if (0 < iVar11)
+ goto LAB_0053f4d3;
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = iVar10 + 0xad;
+ } else if (sVar6 == 0x6b) {
+ DAT_UnitsState.units[_currentUnitID].seated = 1;
+ iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field238_0x46c4[DAT_UnitsState.units[_currentUnitID].animationCycleNumber];
+ DAT_UnitsState.units[_currentUnitID].animationFrame = iVar11;
+ iVar10 = (int)DAT_UnitsState.units[_currentUnitID].facingDirectionMapOrientationCorrected / 2;
+ if (0 < iVar11)
+ goto LAB_0053f435;
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = iVar10 + 0xad;
+ } else if (sVar6 == 0x6e) {
+ DAT_UnitsState.units[_currentUnitID].seated = 1;
+ iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field239_0x4724[DAT_UnitsState.units[_currentUnitID].animationCycleNumber];
+ DAT_UnitsState.units[_currentUnitID].animationFrame = iVar11;
+ iVar10 = (int)DAT_UnitsState.units[_currentUnitID].facingDirectionMapOrientationCorrected / 2;
+ if (0 < iVar11)
+ goto LAB_0053f484;
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = iVar10 + 0xad;
+ } else if (sVar6 == 0x6f) {
+ DAT_UnitsState.units[_currentUnitID].seated = 1;
+ iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field240_0x4794[DAT_UnitsState.units[_currentUnitID].animationCycleNumber];
+ DAT_UnitsState.units[_currentUnitID].animationFrame = iVar11;
+ iVar10 = (int)DAT_UnitsState.units[_currentUnitID].facingDirectionMapOrientationCorrected / 2;
+ if (0 < iVar11)
+ goto LAB_0053f4d3;
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = iVar10 + 0xad;
+ } else if (sVar6 == 0x72) {
+ DAT_UnitsState.units[_currentUnitID].seated = 0;
+ iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field241_0x4804[DAT_UnitsState.units[_currentUnitID].animationCycleNumber];
+ DAT_UnitsState.units[_currentUnitID].animationFrame = iVar11;
+ iVar10 = (int)DAT_UnitsState.units[_currentUnitID].facingDirectionMapOrientationCorrected / 2;
+ if (0 < iVar11) {
+ LAB_0053f60a:
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = iVar10 + 0xb1 + iVar11 * 4;
+ goto LAB_0053f71c;
+ }
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = iVar10 + 0xb5;
+ } else if (sVar6 == 0x73) {
+ DAT_UnitsState.units[_currentUnitID].seated = 0;
+ iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field242_0x485c[DAT_UnitsState.units[_currentUnitID].animationCycleNumber];
+ DAT_UnitsState.units[_currentUnitID].animationFrame = iVar11;
+ iVar10 = (int)DAT_UnitsState.units[_currentUnitID].facingDirectionMapOrientationCorrected / 2;
+ if (0 < iVar11) {
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = iVar10 + 0xb1 + iVar11 * 4;
+ goto LAB_0053f71c;
+ }
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = iVar10 + 0xb5;
+ } else if (sVar6 == 0x74) {
+ DAT_UnitsState.units[_currentUnitID].seated = 0;
+ iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field243_0x489c[DAT_UnitsState.units[_currentUnitID].animationCycleNumber];
+ DAT_UnitsState.units[_currentUnitID].animationFrame = iVar11;
+ iVar10 = (int)DAT_UnitsState.units[_currentUnitID].facingDirectionMapOrientationCorrected / 2;
+ if (0 < iVar11) {
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = iVar10 + 0xb1 + iVar11 * 4;
+ goto LAB_0053f71c;
+ }
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = iVar10 + 0xb5;
+ } else if (sVar6 == 0x75) {
+ DAT_UnitsState.units[_currentUnitID].seated = 0;
+ iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field244_0x4904[DAT_UnitsState.units[_currentUnitID].animationCycleNumber];
+ DAT_UnitsState.units[_currentUnitID].animationFrame = iVar11;
+ iVar10 = (int)DAT_UnitsState.units[_currentUnitID].facingDirectionMapOrientationCorrected / 2;
+ if (0 < iVar11)
+ goto LAB_0053f60a;
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = iVar10 + 0xb5;
+ } else if (sVar6 == 0x76) {
+ DAT_UnitsState.units[_currentUnitID].seated = 0;
+ iVar10 = (int)DAT_UnitsState.units[_currentUnitID].facingDirectionMapOrientationCorrected / 2;
+ if ((DAT_UnitsState.units[_currentUnitID].fixedRng & 1) != 0) {
+ iVar10 = iVar10 + 1;
+ }
+ if (3 < iVar10) {
+ iVar10 = 0;
+ }
+ iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field245_0x498c[DAT_UnitsState.units[_currentUnitID].animationCycleNumber];
+ DAT_UnitsState.units[_currentUnitID].animationFrame = iVar11;
+ if (iVar11 < 1) {
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = iVar10 + 0x141;
+ } else {
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = iVar10 + 0x13d + iVar11 * 4;
+ LAB_0053f71c:
+ if (DAT_UnitHasBecomeIdle == 0) {
+ return;
+ }
+ }
+ } else {
+ if (sVar6 == 0x77) {
+ DAT_UnitsState.units[_currentUnitID].seated = 0;
+ iVar11 = (int)DAT_UnitsState.units[_currentUnitID].facingDirectionMapOrientationCorrected / 2;
+ iVar10 = iVar11 + 1;
+ if (3 < iVar10) {
+ iVar10 = 0;
+ }
+ if ((DAT_UnitsState.units[_currentUnitID].fixedRng & 1) == 0) {
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = iVar10 + 0x155;
+ } else {
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = iVar11 + 0x155;
+ }
+ goto LAB_0053f71c;
+ }
+ if (sVar6 == 0x78) {
+ DAT_UnitsState.units[_currentUnitID].seated = 0;
+ iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field246_0x49c4[DAT_UnitsState.units[_currentUnitID].animationCycleNumber];
+ DAT_UnitsState.units[_currentUnitID].animationFrame = iVar11;
+ iVar10 = (int)DAT_UnitsState.units[_currentUnitID].facingDirectionMapOrientationCorrected / 2;
+ if (0 < iVar11) {
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = iVar10 + 0xed + iVar11 * 4;
+ goto LAB_0053f71c;
+ }
+ DAT_UnitsState.units[_currentUnitID].gfxNumber = iVar10 + 0xf1;
+ } else if (DAT_UnitsState.units[_currentUnitID].animationCycleNumber < 0x11)
+ goto LAB_0053f71c;
+ }
+ DAT_UnitsState.units[_currentUnitID].animationCycleNumber = 0;
+ DAT_UnitHasBecomeIdle = 0;
+ if (DAT_UnitsState.units[_currentUnitID].workplaceBuildingUID
+ != DAT_BuildingsState.buildings[iVar7].uid) {
+ DAT_UnitsState.units[_currentUnitID].state.generic
+ = US_DETERMINE_NEXT_STATEUnk;
+ }
+ if ((int)DAT_UnitsState.units[_currentUnitID].idInTribe
+ != DAT_GameState.playerDataArray[_playerID].availablePeasantsOrHousedPeasants) {
+ DAT_UnitsState.units[_currentUnitID].state.generic
+ = US_DETERMINE_NEXT_STATEUnk;
+ }
+ sVar6 = DAT_BuildingsState.buildings[iVar7].field194_0x274;
+ if (sVar6 == 1) {
+ DAT_UnitsState.units[_currentUnitID].substate = 0x66;
+ } else if (sVar6 == 2) {
+ if (DAT_UnitsState.units[_currentUnitID].seated == 0) {
+ DAT_UnitsState.units[_currentUnitID].substate
+ = (DAT_UnitsState.units[_currentUnitID].substate == 0x66) + 0x66;
+ } else {
+ DAT_UnitsState.units[_currentUnitID].substate = 100;
+ }
+ } else if (sVar6 == 4) {
+ DAT_UnitsState.units[_currentUnitID].substate
+ = (-(ushort)(DAT_UnitsState.units[_currentUnitID].seated != 0) & 0xffec) + 0x78;
+ } else {
+ if (sVar6 == 3) {
+ if (DAT_UnitsState.units[_currentUnitID].seated == 0) {
+ DAT_UnitsState.units[_currentUnitID].substate = 0x65;
+ goto LAB_0053f8b2;
+ }
+ sVar6 = (DAT_UnitsState.units[_currentUnitID].substate == 0x6a) + 0x6a;
+ } else {
+ if ((sVar6 != 5) && (sVar6 != 6))
+ goto LAB_0053f8b2;
+ if (DAT_UnitsState.units[_currentUnitID].peasantAlwaysZero == 0) {
+ if (DAT_UnitsState.units[_currentUnitID].seated == 0) {
+ DAT_UnitsState.units[_currentUnitID].substate = 0x65;
+ goto LAB_0053f8b2;
+ }
+ sVar6 = DAT_UnitsState.units[_currentUnitID].substate;
+ if (sVar6 == 0x6a) {
+ DAT_UnitsState.units[_currentUnitID].substate = 0x6e;
+ goto LAB_0053f8b2;
+ }
+ sVar6 = (-(ushort)(sVar6 != 0x6e) & 0xfffb) + 0x6f;
+ } else {
+ if (DAT_UnitsState.units[_currentUnitID].seated != 0) {
+ DAT_UnitsState.units[_currentUnitID].substate = 100;
+ goto LAB_0053f8b2;
+ }
+ sVar6 = DAT_UnitsState.units[_currentUnitID].substate;
+ if (sVar6 == 0x72) {
+ DAT_UnitsState.units[_currentUnitID].substate = 0x73;
+ goto LAB_0053f8b2;
+ }
+ if (sVar6 == 0x73) {
+ DAT_UnitsState.units[_currentUnitID].substate = 0x74;
+ goto LAB_0053f8b2;
+ }
+ sVar6 = (-(ushort)(sVar6 != 0x74) & 0xfffd) + 0x75;
+ }
+ }
+ DAT_UnitsState.units[_currentUnitID].substate = sVar6;
+ }
+ LAB_0053f8b2:
+ if (DAT_TileMapState.PathConnectionLayer[DAT_UnitsState.units[_currentUnitID].tile] != 0) {
+ return;
+ }
+ DAT_UnitsState.units[_currentUnitID].state.generic = US_DISAPPEAR;
+ DAT_UnitsState.units[_currentUnitID].disappearFadeAlphaCountdown = 0;
+ DAT_UnitsState.units[_currentUnitID].updateTickTracker = 0;
+ return;
+ }
+}
+}
+

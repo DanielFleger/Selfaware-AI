@@ -1,0 +1,395 @@
+### 0x00437ed0 MenuItemActionHandler_InGameMenu_TriggerPlaceWallCommand | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00437ED0
+ void InGameMenu::MenuItemActionHandler_InGameMenu_TriggerPlaceWallCommand()
+ {
+ if ((((DAT_GameSynchronyState.syncStatus == 0)
+ && (DAT_GameSynchronyState.saveRelated == 0))
+ && ((DAT_TileMapState.currentMapperCommand == M_MAPPER_WALL
+ || (((DAT_TileMapState.currentMapperCommand == M_MAPPER_WOODWALL
+ || (DAT_TileMapState.currentMapperCommand
+ == M_MAPPER_STAIR))
+ || (DAT_TileMapState.currentMapperCommand
+ == M_MAPPER_CRENAL))))))
+ && (DAT_ViewportRenderState.viewportState.field0_0x0 != 0)) {
+ DAT_MouseState.field68_0x1dc = 1000;
+ if (DAT_TileMapState.flatViewToggleValue1 == 0) {
+ /*
+ set up currently hovering x and y
+ */
+ setupMouseTileXY();
+ } else {
+ setupMouseTileXY2();
+ }
+ if (DAT_MouseState.leftClickStart == 0) {
+ if ((DAT_MouseState.draggingStopped == FALSE)
+ && (DAT_MouseState.leftClickState == FALSE)) {
+ if (DAT_ScrollingHandler.isScrolling_0x0 != FALSE) {
+ return;
+ }
+ DAT_TileMapState.dragStartX
+ = DAT_ViewportRenderState.viewportState.mouseTileX;
+ DAT_TileMapState.dragStartY
+ = DAT_ViewportRenderState.viewportState.mouseTileY;
+ DAT_TileMapState.dragEndX
+ = DAT_ViewportRenderState.viewportState.mouseTileX;
+ DAT_TileMapState.dragEndY
+ = DAT_ViewportRenderState.viewportState.mouseTileY;
+ } else {
+ DAT_TileMapState.dragEndX
+ = DAT_ViewportRenderState.viewportState.mouseTileX;
+ DAT_TileMapState.dragEndY
+ = DAT_ViewportRenderState.viewportState.mouseTileY;
+ }
+ } else {
+ DAT_TileMapState.dragStartX = DAT_ViewportRenderState.viewportState.mouseTileX;
+ DAT_TileMapState.dragStartY = DAT_ViewportRenderState.viewportState.mouseTileY;
+ }
+ DAT_TileMapState.buildingPlacementFailReason
+ = BFRE_DEFAULT_CANT_PLACE_THAT_THERE;
+ DAT_TileMapState.wallPlacementCost = 0;
+ DAT_TileMapState.constructionTileCount
+ = getWallTilesThatCanBeBuilt(DAT_GameSynchronyState.currentPlayerSlotID, 4);
+ validateWallBuildPath(
+ DAT_GameSynchronyState.currentPlayerSlotID,
+ (uint)((int)(DAT_TileMapState.dragStartX)),
+ (uint)((int)(DAT_TileMapState.dragStartY)),
+ (uint)((int)(DAT_TileMapState.dragEndX)),
+ (uint)((int)(DAT_TileMapState.dragEndY)),
+ (undefined4)((int)(DAT_TileMapState.currentMapperCommand & 0xffff)));
+ if (DAT_MouseState.draggingStopped == FALSE) {
+ DAT_TileMapState.field145_0x554980
+ = (uint)(DAT_MouseState.leftClickState == FALSE);
+ renderWallDragPreview(
+ DAT_GameSynchronyState.currentPlayerSlotID,
+ (uint)((int)(DAT_TileMapState.dragStartX)),
+ (uint)((int)(DAT_TileMapState.dragStartY)),
+ (uint)((int)(DAT_TileMapState.dragEndX)),
+ (uint)((int)(DAT_TileMapState.dragEndY)),
+ (undefined4)((int)(DAT_TileMapState.currentMapperCommand & 0xffff)));
+ return;
+ }
+ if (DAT_TileMapState.illegalBuild == FALSE) {
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = DAT_TileMapState.dragStartY;
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = DAT_TileMapState.dragStartX;
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = DAT_TileMapState.dragEndX;
+ DAT_GameSynchronyState.DAT_GameCommandParam4
+ = DAT_TileMapState.currentMapperCommand;
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = DAT_TileMapState.dragEndY;
+ DAT_GameSynchronyState.DAT_GameCommandParam5
+ = DAT_TileMapState.constructionTileCount;
+ queueCommand(GCT_PLACE_WALL);
+ } else if (DAT_TileMapState.buildingPlacementFailReason
+ != BFRE_DEFAULT_CANT_PLACE_THAT_THERE) {
+ setBottomLeftTextDisplayText(1, 0x4d,
+ DAT_TileMapState.buildingPlacementFailReason,
+ (TextMessageBLLookupStructUnion)0x0, 100, 6000);
+ return;
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00438b60 MenuItemActionHandler_InGameMenu_RightClickMenuAndMaybeResets | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00438B60
+ void InGameMenu::MenuItemActionHandler_InGameMenu_RightClickMenuAndMaybeResets(int param_1, ...)
+ {
+ DAT_MouseState.mouseBasedEvent = 0;
+ if (DAT_ViewportRenderState.viewportState.field0_0x0 != 0) {
+ if ((DAT_MouseState.rightClickStart == 0)
+ || ((DAT_GameCore.currentMenuViewType == MVT_BUILD_MENU
+ && ((DAT_GameCore.activeMenuTab.tabType
+ == BASMTT_SIEGETENT_BATTERINGRAM
+ || (DAT_GameCore.activeMenuTab.tabType
+ == BASMTT_SIEGETENT_SHIELD)))))) {
+ if ((DAT_MouseState.rightClickState != FALSE)
+ && (DAT_MouseState.previewEnabled != 0)) {
+ updateRightDragCameraControl();
+ return;
+ }
+ } else if (DAT_TileMapState.currentMapperCommand == M_MAPPER_NULL) {
+ storeXYAndResetMouseState();
+ DAT_MouseState.previewEnabled = 1;
+ DAT_GameSynchronyState.field299_0x109e7c = 1;
+ return;
+ }
+ DAT_MouseState.previewEnabled = 0;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00444b80 MenuItemActionHandler_InGameMenu_MainButtons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00444B80
+ void InGameMenu::MenuItemActionHandler_InGameMenu_MainButtons(int param_1, ...)
+ {
+ int iVar1;
+ BOOLEnum BVar2;
+ MenuViewType menuID;
+ if ((param_1 == -1) || (param_1 == -6)) {
+ if (DAT_GameCore.gameMode_2 == GM_EDITOR) {
+ activateModalDialog(MMT_NONE, FALSE);
+ switchToMenuView(
+ MVT_MAP_EDITOR_PROPERTIES, 0);
+ return;
+ }
+ if (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT) {
+ activateModalDialog(MMT_NONE, FALSE);
+ switchToMenuView(
+ MVT_UNUSED_CREATE_SIEGE, 0);
+ return;
+ }
+ if (((DAT_GameCore.currentMenuViewType != MVT_BUILDING_AND_STATUS_MENU)
+ || ((DAT_GameCore.activeMenuTab.tabType
+ != BASMTT_BARRACKS_OR_MPMENU_MODEM
+ && (DAT_GameCore.activeMenuTab.tabType
+ != BASMTT_MERCENARYPOST))))
+ && (DAT_MenuTextInputState.currentModalDialog == MMT_NO_MENU)) {
+ activateModalDialogAndClearText(MMT_PAUSE_MENU);
+ setUpSFXToPlayUnk(
+ ((SoundEffectID)0x101));
+ }
+ } else if (param_1 == -2) {
+ if (((((DAT_GameSynchronyState.syncStatus == 0)
+ && (DAT_GameSynchronyState.saveRelated == 0))
+ && (DAT_GameCore.gamePausedLogical == 0))
+ && ((DAT_GameCore.currentMenuViewType
+ != MVT_BUILDING_AND_STATUS_MENU
+ || ((DAT_GameCore.activeMenuTab.tabType
+ != BASMTT_BARRACKS_OR_MPMENU_MODEM
+ && (DAT_GameCore.activeMenuTab.tabType
+ != BASMTT_MERCENARYPOST))))))
+ && ((DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .lordKilledByPlayerID
+ == 0
+ && (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .playerDeathRelated
+ == 0)))) {
+ confirmAndQueueDestructionCommand();
+ return;
+ }
+ } else if (param_1 == -3) {
+ if ((((((DAT_GameSynchronyState.syncStatus == 0)
+ && (DAT_GameSynchronyState.saveRelated == 0))
+ && (DAT_GameCore.gamePausedLogical == 0))
+ && ((DAT_GameCore.currentMenuViewType
+ != MVT_BUILDING_AND_STATUS_MENU
+ || ((DAT_GameCore.activeMenuTab.tabType
+ != BASMTT_BARRACKS_OR_MPMENU_MODEM
+ && (DAT_GameCore.activeMenuTab.tabType
+ != BASMTT_MERCENARYPOST))))))
+ && (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .lordKilledByPlayerID
+ == 0))
+ && ((DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .playerDeathRelated
+ == 0
+ || ((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY
+ && (DAT_GameState.mapAndTime.gameOver
+ == DAT_GameSynchronyState.currentPlayerSlotID)))))) {
+ MenuItemActionHandler_General_ToolbarButtonPressed(
+ M_MAPPER_DELETE);
+ return;
+ }
+ } else if (param_1 == -5) {
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .playerDeathRelated
+ == 0) {
+ DAT_GameCore.field22_0x64 = 1;
+ DAT_VideoBikQueue.storedMessages_0x924 = 0;
+ endSpeechStreamsAndResetLoopFlags();
+ stopBinkPlayback(1);
+ DAT_GameCore.isBinkVideoPlaying = 0;
+ if ((DAT_GameSynchronyState.currentGameMode == GM_SKIRMISH_SINGLE_PLAYER)
+ && (DAT_GameCore.isSkirmishTrail == TRUE)) {
+ menuID = MVT_CRUSADE_MISSION_INTRO;
+ } else {
+ menuID = MVT_SCENARIO_DESCRIPTION;
+ }
+ switchToMenuView(menuID, 0);
+ activateModalDialog(MMT_NONE, FALSE);
+ activateModalDialog(MMT_NONE, FALSE);
+ activateModalDialog(MMT_NONE, FALSE);
+ return;
+ }
+ } else {
+ if (param_1 == -4) {
+ DAT_StopHandlingMenuItems = 0;
+ return;
+ }
+ if (param_1 == -90) {
+ activateModalDialog(MMT_ALLIES, FALSE);
+ if (DAT_GameCore.genieVoiceActive != FALSE) {
+ /*
+ "Your allies"
+ */
+ playWAVSFX(
+ "Genie_11.wav");
+ return;
+ }
+ } else {
+ if (param_1 == -0x5b) {
+ DAT_GreatestLordDefinedData.tableSortBy = -1;
+ activateModalDialog(MMT_GREATEST_LORD, FALSE);
+ return;
+ }
+ if (param_1 < -9) {
+ if (DAT_GameCore.gameMode_2 == GM_EDITOR) {
+ if (-100 < param_1) {
+ DAT_GameSynchronyState.currentPlayerFullIDArray[0] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[1] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[2] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[3] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[4] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[5] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[6] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[7] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[8] = -1;
+ *(undefined4*)((int)DAT_GameSynchronyState + (-9 - param_1) * 4 + 0x6a8) = 1;
+ DAT_GameSynchronyState.currentPlayerSlotID = -9 - param_1;
+ return;
+ }
+ if (param_1 != -100) {
+ if (param_1 == -0x65) {
+ DAT_PathFindingState.toggleUpdateSeparateAreaTileMap = 1;
+ DAT_TileMapState.field101_0x5548dc
+ = DAT_TileMapState.editorActiveBrush;
+ MACRO_CALL(
+ MenuItemActionHandler_MapEditorLandscaping_GeneralButtons)(
+ M_MAPPER_TOMAIN);
+ return;
+ }
+ if (param_1 == -0x66) {
+ DAT_TileMapState.editorActiveBrush
+ = DAT_TileMapState.field101_0x5548dc;
+ DAT_UnitsState.lastSelectedUnitID = 0;
+ deselectAllUnitsOneByOne();
+ clearSelectionCountsAndPlayerIDs();
+ MACRO_CALL(
+ MenuItemActionHandler_General_ToolbarButtonPressed)(
+ M_MAPPER_TOTEST);
+ return;
+ }
+ }
+ }
+ } else if (param_1 - 0x47U < 9) {
+ if ((DAT_GameSynchronyState.syncStatus == 0)
+ && (DAT_GameCore.gamePausedLogical == 0)) {
+ if (DAT_GameCore.gameMode_2 == GM_EDITOR) {
+ DAT_StopHandlingMenuItems = 0;
+ return;
+ }
+ if (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT) {
+ DAT_StopHandlingMenuItems = 0;
+ return;
+ }
+ if (DAT_MenuModalComposition1.activeModalDialogID
+ == MMT_BUILDING_HELP_TEXT) {
+ closeHelpDialogAndReturnToMenu();
+ }
+ if ((((((DAT_GameCore.gameMode_2 == GM_BUILDERUnk)
+ || (DAT_GameCore.gameMode_2 == GM_CRUSADER_TUTORIAL))
+ && (DAT_GameSynchronyState.currentPlayerSlotID == 2))
+ || (((DAT_GameSynchronyState.currentPlayerSlotID == TRUE
+ && (iVar1 = MACRO_CALL_MEMBER(
+ singlePlayerHasKeepAndGranaryCheck,
+ DAT_GameState)(),
+ iVar1 == 0))
+ && (iVar1
+ = getArmySize(
+ DAT_GameSynchronyState.currentPlayerSlotID),
+ iVar1 != 0))))
+ || ((DAT_GameCore.gameMode_2 == GM_BUILDERUnk
+ && (DAT_MapPropertiesState.SEC_U3_MapType2_1
+ == MT_SIEGE))))
+ && (BVar2
+ = GetIfDisplayElementStateNotZero(
+ DEID_KEEP_AND_GRANERY_PLACEMENT_INFO),
+ BVar2 == FALSE)) {
+ param_1 = 0x4c;
+ }
+ DAT_TileMapState.currentMapperCommand = M_MAPPER_NULL;
+ if (0 < DAT_UnitsState
+ .unitCountOfSelection[DAT_GameSynchronyState.currentPlayerSlotID]) {
+ DAT_GameCore.buildmenuMenuTabToSwitchTo.buildMenuTab
+ = DAT_GameCore.tabTypeSiegeSubset;
+ switchToMenuView(
+ MVT_BUILD_MENU, 0);
+ }
+ deselectAllUnitsOneByOne();
+ queueEscapeCommand();
+ DAT_GameCore.buildingandstatusmenuMenuTabToSwitchTo = param_1;
+ switchToMenuView(
+ MVT_BUILDING_AND_STATUS_MENU, 0);
+ DAT_UIDragDropDefinedData.MenuView_TriggerInitial = TRUE;
+ DAT_WindowAndDirectDraw.unk_resetViewportRelated = 1;
+ DAT_BuildingsState.newSelectedBuildingID = 0;
+ DAT_BuildingsState.newSelectedUnitID = 0;
+ if ((DAT_GameCore.gameMode_2 == GM_CRUSADER_TUTORIAL)
+ && (param_1 == 0x47)) {
+ SetTutorialBuildingActionState(
+ 0xe, BT_HOVEL);
+ return;
+ }
+ }
+ } else if ((DAT_GameCore.currentMenuViewType != MVT_BUILD_MENU)
+ || (param_1 != DAT_GameCore.activeMenuTab.tabType)) {
+ DAT_TileMapState.currentMapperCommand = M_MAPPER_NULL;
+ if (0 < DAT_UnitsState
+ .unitCountOfSelection[DAT_GameSynchronyState.currentPlayerSlotID]) {
+ DAT_GameCore.buildmenuMenuTabToSwitchTo.buildMenuTab
+ = DAT_GameCore.tabTypeSiegeSubset;
+ switchToMenuView(
+ MVT_BUILD_MENU, 0);
+ }
+ deselectAllUnitsOneByOne();
+ queueEscapeCommand();
+ DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType = param_1;
+ switchToMenuView(
+ MVT_BUILD_MENU, 0);
+ DAT_UIDragDropDefinedData.MenuView_TriggerInitial = TRUE;
+ DAT_WindowAndDirectDraw.unk_resetViewportRelated = 1;
+ switch (param_1) {
+ case 10:
+ setUpSFXToPlayUnk(
+ 0x7b);
+ return;
+ case 0x14:
+ setUpSFXToPlayUnk(
+ SEID_SIEGE_EQUIPMENT_DESTROYED | SEID_INN);
+ return;
+ case 0x19:
+ setUpSFXToPlayUnk(
+ SEID_SIEGE_EQUIPMENT_DESTROYED
+ | SEID_QUARRY_STONE_LIFT_01);
+ return;
+ case 0x1c:
+ setUpSFXToPlayUnk(
+ ((SoundEffectID)0x80));
+ return;
+ case 0x1e:
+ setUpSFXToPlayUnk(
+ SEID_SIEGE_EQUIPMENT_DESTROYED
+ | SEID_QUARRY_STONE_CHIP);
+ return;
+ case 0x28:
+ setUpSFXToPlayUnk(
+ SEID_SIEGE_EQUIPMENT_DESTROYED
+ | SEID_QUARRY_STONE_BREAK);
+ return;
+ }
+ }
+ }
+ }
+ return;
+ }
+ }
+}
+}
+

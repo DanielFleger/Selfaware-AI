@@ -1,0 +1,825 @@
+### 0x00511020 updateMacroLayer | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00511020
+ void TileMapState::updateMacroLayer()
+ {
+ if (0 < this->forceUpdateMacroLayerFlag) {
+ this->forceUpdateMacroLayerFlag = 0;
+ updateMacroLayerRelated(32768, 1, 0);
+ updateMacroLayerRelated(536870912, 0, 0);
+ updateMacroLayerRelated(0, 2, 0);
+ updateMacroLayerRelated(0, 0x10, 0);
+ updateMacroLayerRelated(0, 0x20, 0);
+ updateMacroLayerRelated(0, 4, 0);
+ updateMacroLayerRelated(0, 8, 0);
+ updateMacroLayerRelated2();
+ this->forceUpdateTextureTilemap = 1;
+ }
+ return;
+ }
+}
+}
+
+### 0x005110b0 createMoatData | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x005110B0
+ int TileMapState::createMoatData(undefined4 playerID, uint x, uint y, int filled)
+ {
+ int iVar1;
+ uint _hasGold;
+ int _moatID;
+ Moat* _playerIDPointer;
+ if (((399 < x) || (399 < y)) || (*(char*)(y * 400 + 0x21aec98 + x) == '\0')) {
+ return 0;
+ }
+ iVar1 = returnOwnedMoatAtTile(
+ DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x);
+ if (iVar1 != 0) {
+ return iVar1;
+ }
+ if ((DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)
+ || (_hasGold = hasEnoughGoldForMoat(),
+ _hasGold != 0)) {
+ _moatID = 1;
+ _playerIDPointer = &this->moats[1];
+ do {
+ if (_playerIDPointer->owner == '\0') {
+ if (this->currentMoatCount <= _moatID) {
+ this->currentMoatCount = _moatID + 1;
+ }
+ this->moats[_moatID].owner = (char)playerID;
+ this->moats[_moatID].x = (short)x;
+ this->moats[_moatID].y = (short)y;
+ /*
+ tile
+ */
+ *(uint*)(this->moats + _moatID)
+ = DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x;
+ this->moats[_moatID].zeroOrTwo = 2;
+ if (filled == 0) {
+ this->moats[_moatID].stage = 1;
+ this->moats[_moatID].fillProgress = 0;
+ this->moatTileCount = this->moatTileCount + 1;
+ return _moatID;
+ }
+ this->moats[_moatID].stage = 2;
+ this->moats[_moatID].fillProgress = 4;
+ this->moatTileCount = this->moatTileCount + 1;
+ return _moatID;
+ }
+ _moatID = _moatID + 1;
+ _playerIDPointer = _playerIDPointer + 0x10;
+ } while (_moatID < 16000);
+ }
+ return 0;
+ }
+}
+}
+
+### 0x005111d0 findNearestFriendlyMoatTileForDigging | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x005111D0
+ BOOLEnum TileMapState::findNearestFriendlyMoatTileForDigging(int playerID, int unitID, int number)
+ {
+ char* pcVar1;
+ byte bVar2;
+ short sVar3;
+ int iVar4;
+ BOOLEnum BVar5;
+ int iVar6;
+ int iVar7;
+ int destinationYPosition;
+ int destinationXPosition;
+ TileMapState* pMVar8;
+ int _minimumValue;
+ BOOLEnum _minimumValueMoatID;
+ int _tile;
+ ushort _area;
+ iVar4 = unitID;
+ destinationXPosition = (int)DAT_UnitsState.units[unitID].x;
+ destinationYPosition = (int)DAT_UnitsState.units[unitID].y;
+ _area = this->PathConnectionLayer[DAT_ViewportRenderState.translationMatrix[destinationYPosition]
+ .addXgetTile
+ + destinationXPosition];
+ _minimumValue = 1000;
+ _minimumValueMoatID = ~FALSE;
+ unitID = 0;
+ BVar5 = ~FALSE;
+ if (0 < this->currentMoatCount) {
+ pMVar8 = (TileMapState*)this->moats;
+ do {
+ if (number == 1) {
+ if (DAT_GameState.mapAndTime.playerTeams[pMVar8->moats[0].owner]
+ == DAT_GameState.mapAndTime.playerTeams[playerID]) {
+ LAB_00511287:
+ /*
+ fixme
+ */
+ if ((((char)pMVar8->moats[0].stage == number)
+ && (((_tile = *(int*)pMVar8->moats,
+ this->BuildingLayer[_tile] == 0 || (pMVar8->moats[0].zeroOrTwo != 0))
+ && ((this->LogicLayer[_tile] & L_MOAT_DUG_OR_PLANNED | L_MOAT) != 0))))
+ && ((pMVar8->moats[0].someCountDown < 'd'
+ && (((this->UnitLayer[_tile] == 0
+ || (DAT_UnitsState.units[(short)this->UnitLayer[_tile]].someUnitStat4
+ != 0))
+ && ((number != 2
+ || (BVar5 = MACRO_CALL_MEMBER(
+ findTileInSameAreaAndNoTooHeightDifference,
+ this)(
+ (int)(short)_area, _tile, (int)((int)((short)pMVar8->moats[0].y))),
+ BVar5 != FALSE)))))))) {
+ bVar2 = *(byte*)(pMVar8->moats[0].owner * 0x13a10 + 0x1ee2998 + _tile);
+ setAxisBasedDistanceResult(destinationXPosition, destinationYPosition,
+ (int)((int)((short)pMVar8->moats[0].x)), (int)((int)((short)pMVar8->moats[0].y)));
+ iVar7 = DAT_DirectionAlgorithmState.distanceHigh;
+ sVar3 = DAT_UnitsState.units[iVar4].targetX;
+ if (sVar3 < 1) {
+ iVar6 = 0;
+ } else {
+ iVar6 = setAxisBasedDistanceResult((int)sVar3,
+ DAT_UnitsState.units[iVar4].targetY,
+ (int)((int)((short)pMVar8->moats[0].x)), (int)((int)((short)pMVar8->moats[0].y)));
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[playerID] == -1) {
+ iVar7 = iVar7 + (uint)bVar2 * 10;
+ }
+ iVar7 = iVar6 / 2 + pMVar8->moats[0].someCountDown + iVar7;
+ if (iVar7 < _minimumValue) {
+ _minimumValueMoatID = unitID;
+ _minimumValue = iVar7;
+ }
+ }
+ }
+ } else if ((number != 2)
+ || (DAT_GameState.mapAndTime.playerTeams[pMVar8->moats[0].owner]
+ != DAT_GameState.mapAndTime.playerTeams[playerID]))
+ goto LAB_00511287;
+ unitID = unitID + 1;
+ pMVar8 = (TileMapState*)(pMVar8->moats + 1);
+ } while (unitID < this->currentMoatCount);
+ BVar5 = _minimumValueMoatID;
+ if (_minimumValueMoatID == FALSE) {
+ return FALSE;
+ }
+ }
+ pcVar1 = &this->moats[BVar5].someCountDown;
+ *pcVar1 = *pcVar1 + 20;
+ return BVar5;
+ }
+}
+}
+
+### 0x005113f0 removeMoat | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x005113F0
+ BOOLEnum TileMapState::removeMoat(uint moatID, int param_2)
+ {
+ Moat* pMVar1;
+ byte* pbVar2;
+ int iVar3;
+ pbVar2 = &this->moats[moatID].fillProgress;
+ *pbVar2 = *pbVar2 - 1;
+ if ((char)this->moats[moatID].fillProgress < '\x01') {
+ pMVar1 = this->moats + moatID;
+ this->HeightLayer[*(int*)(this->moats + moatID)] = 8;
+ this->LogicLayer[*(int*)pMVar1] = this->LogicLayer[*(int*)pMVar1] & 0xbfffffff;
+ updateWalkAndPathLayer(
+ 2, (uint)((int)((int)(short)this->moats[moatID].x)), (uint)((int)((int)(short)this->moats[moatID].y)));
+ updatePathLinkagesInAllEightDirections((int)(short)this->moats[moatID].y, (int)((int)(*(int*)pMVar1)));
+ DAT_PathFindingState.toggleUpdateSeparateAreaTileMap = 1;
+ iVar3 = *(int*)pMVar1;
+ clearMoatData(moatID);
+ if (this->BuildingLayer[iVar3] != 0) {
+ updateBuildingGraphicsLayer(
+ (int)this->BuildingLayer[iVar3]);
+ }
+ triggerMinimapRedraw(1);
+ return TRUE;
+ }
+ return FALSE;
+ }
+}
+}
+
+### 0x005114c0 updatePitchDitches | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x005114C0
+ void TileMapState::updatePitchDitches()
+ {
+ byte bVar1;
+ short sVar2;
+ int iVar3;
+ int iVar4;
+ uint uVar5;
+ PitchDitch* _pDitches1;
+ uint uVar6;
+ PitchDitch* _pDitches2;
+ XYPair* local_c;
+ int local_8;
+ if (DAT_GameState.gameTicksLoadBalancer % 10 == 3) {
+ iVar3 = 1;
+ this->maxPitchDitchCount = 0;
+ _pDitches1 = &this->pitchDitches[1];
+ do {
+ if (_pDitches1->owner != 0) {
+ this->maxPitchDitchCount = iVar3 + 1;
+ }
+ iVar3 = iVar3 + 1;
+ _pDitches1 = _pDitches1 + 10;
+ } while (iVar3 < 4000);
+ }
+ local_8 = 1;
+ if (1 < this->maxPitchDitchCount) {
+ _pDitches2 = &this->pitchDitches[1];
+ do {
+ if (_pDitches2->owner != 0) {
+ iVar3 = _pDitches2.tile;
+ if (((this->LogicLayer[iVar3] & L_PLAIN2_AND_PITCH) == 0)
+ || (sVar2 = _pDitches2->state, sVar2 == -1)) {
+ destroyPitchDitch(local_8);
+ } else if (sVar2 == 0) {
+ _pDitches2->state = 1;
+ _pDitches2->field7_0x12 = 0;
+ } else if (sVar2 == 2) {
+ _pDitches2->field7_0x12 = _pDitches2->field7_0x12 + 1;
+ if (_pDitches2->field7_0x12 == 0x14) {
+ _pDitches2->state = 3;
+ _pDitches2->field7_0x12 = 0;
+ bVar1 = this->HeightLayer[iVar3];
+ local_c = DAT_TerrainDefinedData.field2477_0x376c;
+ do {
+ iVar3 = DAT_ViewportRenderState
+ .translationMatrix[(int)_pDitches2->y + local_c->y]
+ .addXgetTile
+ + (int)_pDitches2->x + local_c->x;
+ if (((((this->LogicLayer[iVar3] & L_PLAIN2_AND_PITCH) != 0)
+ && (iVar4 = getPitchDitchIDForTile(iVar3),
+ iVar4 != 0))
+ && (this->pitchDitches[iVar4].state == 1))
+ && (uVar5 = (uint)bVar1 - (uint)this->HeightLayer[iVar3],
+ uVar6 = (int)uVar5 >> 0x1f, (int)((uVar5 ^ uVar6) - uVar6) < 0x19)) {
+ SetPlaceOnFire(
+ (int)this->pitchDitches[iVar4].owner,
+ this->pitchDitches[iVar4].x * 8,
+ this->pitchDitches[iVar4].y * 8,
+ (int)((int)((uint)this->HeightLayer[this->pitchDitches[iVar4].tile])), 3);
+ this->pitchDitches[iVar4].state = 2;
+ }
+ local_c = local_c + 1;
+ } while ((int)local_c < 0xb4c6e0);
+ }
+ } else if ((sVar2 == 3)
+ && (_pDitches2->field7_0x12 = _pDitches2->field7_0x12 + 1, _pDitches2->field7_0x12 == 200)) {
+ this->HeightLayer[iVar3] = this->DefaultHeightLayer[iVar3];
+ _pDitches2->state = -1;
+ }
+ }
+ local_8 = local_8 + 1;
+ _pDitches2 = _pDitches2 + 10;
+ } while (local_8 < this->maxPitchDitchCount);
+ }
+ return;
+ }
+}
+}
+
+### 0x005116e0 placePitchDitch | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x005116E0
+ int TileMapState::placePitchDitch(undefined4 playerID, uint x, uint y)
+ {
+ PitchDitch* pPVar1;
+ byte* pbVar2;
+ int _pitchDitchID;
+ PitchDitch* psVar3;
+ int iVar3;
+ int iVar4;
+ if (((x < 400) && (y < 400)) && (*(char*)(y * 400 + 0x21aec98 + x) != '\0')) {
+ _pitchDitchID = getPitchDitchIDForTile(
+ DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x);
+ if (_pitchDitchID == 0) {
+ iVar4 = 1;
+ psVar3 = &this->pitchDitches[1];
+ do {
+ if (psVar3->owner == 0) {
+ if (this->maxPitchDitchCount <= iVar4) {
+ this->maxPitchDitchCount = iVar4 + 1;
+ }
+ this->pitchDitches[iVar4].owner = (short)playerID;
+ this->pitchDitches[iVar4].uid = DAT_GameCore.uniqueGameObjectTracker;
+ DAT_GameCore.uniqueGameObjectTracker
+ = DAT_GameCore.uniqueGameObjectTracker + 1;
+ this->pitchDitches[iVar4].y = (short)y;
+ pPVar1 = this->pitchDitches + iVar4;
+ this->pitchDitches[iVar4].x = (short)x;
+ iVar3 = DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x;
+ this->pitchDitches[iVar4].state = 0;
+ this->pitchDitches[iVar4].field7_0x12 = 0;
+ /*
+ set tile
+ */
+ pPVar1->tile = iVar3;
+ this->pitchDitches[iVar4].rng = SEC_RNG::instance.currentNumber2;
+ pbVar2 = this->HeightLayer + iVar3;
+ if (this->HeightLayer[iVar3] < 5) {
+ *pbVar2 = 0;
+ } else {
+ *pbVar2 = *pbVar2 - 4;
+ }
+ nextRandomNumber2();
+ this->LogicLayer[pPVar1->tile] = this->LogicLayer[pPVar1->tile] | 8;
+ this->MiscDisplayLayer[pPVar1->tile] = this->MiscDisplayLayer[pPVar1->tile] & 0xbfff;
+ this->MiscDisplayLayer[pPVar1->tile] = this->MiscDisplayLayer[pPVar1->tile] & 0xdfff;
+ this->ChangedLayer[pPVar1->tile] = 2;
+ return iVar4;
+ }
+ iVar4 = iVar4 + 1;
+ psVar3 = psVar3 + 10;
+ } while (iVar4 < 4000);
+ _pitchDitchID = 0;
+ }
+ return _pitchDitchID;
+ }
+ return 0;
+ }
+}
+}
+
+### 0x00511850 updateGameRelatedValue | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00511850
+ void TileMapState::updateGameRelatedValue()
+ {
+ int iVar1;
+ if (DAT_GameState.mapAndTime.gameEventRelatedCountdown != 0) {
+ if (DAT_GameState.mapAndTime.gameEventRelatedCountdown == 0x28) {
+ this->field187_0x554a10 = -1;
+ }
+ DAT_GameState.mapAndTime.gameEventRelatedCountdown
+ = DAT_GameState.mapAndTime.gameEventRelatedCountdown + -1;
+ setSignpostDistanceForCampaignMission();
+ iVar1 = ((0x28 - DAT_GameState.mapAndTime.gameEventRelatedCountdown)
+ * DAT_GameState.mapAndTime.unk_signpostDistance)
+ / 0x28;
+ if (iVar1 != this->field187_0x554a10) {
+ this->field187_0x554a10 = iVar1;
+ pathfindingUpdate_0x4a8ab0(iVar1);
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x00511d70 upgradeMapFormatLogicLayer | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00511D70
+ void TileMapState::upgradeMapFormatLogicLayer(
+ PackagedFileMagicNum receivedMapVersion, PackagedFileMagicNum packagerMapVersion)
+ {
+ UpgradeMapLogicToVersion_Unknown1();
+ UpgradeMapLogicToVersion_Unknown2();
+ UpgradeMapLogicToVersion_Unknown3();
+ if (this->mapSize == 0) {
+ this->mapSize = 400;
+ }
+ if (receivedMapVersion != packagerMapVersion) {
+ if ((int)receivedMapVersion < 0x66) {
+ UpgradeMapLogicToVersion_102();
+ }
+ if ((int)receivedMapVersion < 0x78) {
+ UpgradeMapLogicToVersion_120();
+ }
+ if ((int)receivedMapVersion < 0x7d) {
+ UpgradeMapLogicToVersion_125();
+ }
+ if ((int)receivedMapVersion < 0x80) {
+ UpgradeMapLogicToVersion_128();
+ }
+ if ((int)receivedMapVersion < 0x91) {
+ UpgradeMapLogicToVersion_145();
+ }
+ if ((int)receivedMapVersion < 0x93) {
+ UpgradeMapLogicToVersion_147();
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x00511df0 setupTileMapSections | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00511DF0
+ void TileMapState::setupTileMapSections()
+ {
+ int iVar1;
+ ushort* puVar2;
+ fillMemory_ByteValue(
+ 0x27420, '\0', (void*)((int)(this->GfxLayer)));
+ fillMemory_ByteValue(
+ 0x27420, '\0', (void*)((int)(this->AlphaGFXLayer)));
+ fillMemory_ByteValue(
+ 0x27420, '\0', (void*)((int)(this->ConstructionGFXLayer)));
+ fillMemory_ByteValue(
+ 0x27420, '\0', (void*)((int)(this->PillarGFXLayer)));
+ fillMemory_ByteValue(
+ 0x27420, '\0', (void*)((int)(this->WallGFXLayer)));
+ fillMemory_ByteValue(
+ 0x27420, '\0', (void*)((int)(this->FloatingLayer)));
+ fillMemory_ByteValue(
+ 0x27420, '\0', (void*)((int)(this->UnitLayer)));
+ fillMemory_ByteValue(
+ 0x27420, '\0', (void*)((int)(this->EntityLayer)));
+ fillMemory_ByteValue(
+ 0x13a10, '\0', (void*)((int)(this->EntityLayerLT25)));
+ fillMemory_ByteValue(
+ 0x27420, '\0', (void*)((int)(this->BuildingLayer)));
+ fillMemory_ByteValue(
+ 0x4e840, '\0', (void*)((int)(this->LogicLayer)));
+ fillMemory_ByteValue(
+ 0x13a10, '\0', (void*)((int)(this->Logic2Layer)));
+ fillMemory_ByteValue(
+ 0x13a10, '\0', (void*)((int)(this->ChangedLayer)));
+ fillMemory_ByteValue(
+ 0x27420, '\0', (void*)((int)(this->OrganismLayer)));
+ fillMemory_ByteValue(
+ 0x13a10, '\0', (void*)((int)(this->DamageLayer)));
+ fillMemory_ByteValue(
+ 0x27420, '\0', (void*)((int)(this->MacroLayer)));
+ fillMemory_ByteValue(
+ 0x13a10, '\0', (void*)((int)(this->HeightLayer)));
+ fillMemory_ByteValue(
+ 0x13a10, '\0', (void*)((int)(this->DefaultHeightLayer)));
+ fillMemory_ByteValue(
+ 0x13a10, '\0', (void*)((int)(this->ShowHiLayer)));
+ fillMemory_ByteValue(
+ 0x27420, '\0', (void*)((int)(this->MiscDisplayLayer)));
+ fillMemory_ByteValue(
+ 0x13a10, '\0', (void*)((int)(this->LuminesenceLayer)));
+ fillMemory_ByteValue(
+ 0x13a10, '\0', (void*)((int)(this->WallOwnerLayer)));
+ fillMemory_ByteValue(
+ 0x13a10, '\0', (void*)((int)(this->BuildingWasLayer)));
+ fillMemory_ByteValue(
+ 0x13a10, '\0', (void*)((int)(this->OccupancyLayer)));
+ fillMemory_ByteValue(
+ 0x13a10, '\0', (void*)((int)(this->AIZoneLayer)));
+ fillMemory_ByteValue(
+ 0x13a10, '\0', (void*)((int)(this->AIInfoLayer)));
+ fillMemory_ByteValue(
+ 0x13a10, '\0', (void*)((int)(this->unitDeathHeatMap)));
+ fillMemory_ByteValue(
+ 0x13a10, '\0', (void*)((int)(this->SEC_TileMap1104)));
+ fillMemory_ByteValue(
+ 0xb0a90, '\0', (void*)((int)(this->SEC_PathfindingCostTileMap1105)));
+ puVar2 = this->RandomLayer;
+ iVar1 = 80400;
+ do {
+ nextRandomNumber2();
+ *puVar2 = SEC_RNG::instance.currentNumber2;
+ puVar2 = puVar2 + 1;
+ iVar1 = iVar1 + -1;
+ } while (iVar1 != 0);
+ changeMapOrientation(0);
+ this->DAT_FutureMapOrientation = 8;
+ return;
+ }
+}
+}
+
+### 0x00512100 setupAllMapSections | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00512100
+ void TileMapState::setupAllMapSections()
+ {
+ ushort* puVar1;
+ short* psVar2;
+ ushort uVar3;
+ int* piVar4;
+ int iVar5;
+ this->temporaryTerrainTypeIndex = 0;
+ this->SEC_Section1052 = 0;
+ this->SEC_Section1053 = 0;
+ this->SEC_Section1054 = 0;
+ setupTileMapSections();
+ DAT_WallAndPitchState.countdown = 0;
+ setTileSystemMemoryLookupArrays();
+ tweakValidTilesToExcludeMapBorders();
+ setupViewport(0,
+ 0, (undefined4)((int)(DAT_WindowAndDirectDraw.resolutionX)),
+ (undefined4)((int)(DAT_WindowAndDirectDraw.resolutionY + -128)));
+ setupLogicalMapBorders();
+ updateShowHiLayerOrResetChangedLayer();
+ puVar1 = this->GfxLayer + 1;
+ piVar4 = this->LogicLayer + 1;
+ iVar5 = 13400;
+ do {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2];
+ if (piVar4[-1] != 0x10) {
+ if (piVar4[-1] == 0x20) {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 1;
+ } else {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 2;
+ }
+ }
+ puVar1[-1] = uVar3;
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2];
+ if (*piVar4 != 0x10) {
+ if (*piVar4 == 0x20) {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 1;
+ } else {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 2;
+ }
+ }
+ *puVar1 = uVar3;
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2];
+ if (piVar4[1] != 0x10) {
+ if (piVar4[1] == 0x20) {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 1;
+ } else {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 2;
+ }
+ }
+ puVar1[1] = uVar3;
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2];
+ if (piVar4[2] != 0x10) {
+ if (piVar4[2] == 0x20) {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 1;
+ } else {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 2;
+ }
+ }
+ puVar1[2] = uVar3;
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2];
+ if (piVar4[3] != 0x10) {
+ if (piVar4[3] == 0x20) {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 1;
+ } else {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 2;
+ }
+ }
+ puVar1[3] = uVar3;
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2];
+ if (piVar4[4] != 0x10) {
+ if (piVar4[4] == 0x20) {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 1;
+ } else {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 2;
+ }
+ }
+ puVar1[4] = uVar3;
+ piVar4 = piVar4 + 6;
+ puVar1 = puVar1 + 6;
+ iVar5 = iVar5 + -1;
+ } while (iVar5 != 0);
+ fillMemory_ShortValue(
+ 80400, 1, (void*)((int)(this->PillarGFXLayer)));
+ fillMemory_ByteValue(
+ 80400, '\b', (void*)((int)(this->HeightLayer)));
+ fillMemory_ByteValue(
+ 80400, '\b', (void*)((int)(this->DefaultHeightLayer)));
+ DAT_PathFindingState.searchGeneration = 1;
+ fillMemory_ByteValue(
+ 160800, '\0', (void*)((int)(this->WalkLayer)));
+ setChangedLayerZeroBasedOn40x40Layer(0);
+ updateLogicalTileMapRelatedSections();
+ updateGfxLayer();
+ updateGFXLayers();
+ resetMoatArray();
+ resetPitchDitchArray();
+ toggleFlatView(0);
+ this->_5589200_4_ = 0;
+ this->flatViewToggleValue2 = 0;
+ clearBuildings();
+ clearRocksAndTrees();
+ resetWind();
+ DoNothing();
+ clearAllUnits();
+ clearAllTribes();
+ clearMapAndTimeAndPlayerData();
+ resetVariousCountsAndStatisticsAndStartGoodsAndResources();
+ clearCurrentResourcesAndStrongWalls();
+ initializeGameStateAfterMapLoad();
+ fillWith0xFF();
+ clearAnimalSpawnLocationsUnk();
+ piVar4 = DAT_AICState.tribeUIDArray;
+ psVar2 = DAT_AICState.tribeIDArray;
+ do {
+ *psVar2 = 0;
+ *piVar4 = 0;
+ psVar2 = psVar2 + 1;
+ piVar4 = piVar4 + 1;
+ } while ((int)psVar2 < 0x24026cc);
+ DoNothing();
+ DoNothing();
+ clearEntityArrayAndSeagullArray();
+ setChangedLayerToThreeAndMapping0x40x40();
+ this->forceUpdateLogicalAndMiscDisplayLayers = 1;
+ this->forceUpdateTextureTilemap = 1;
+ this->forceUpdateGFXLayers = 1;
+ this->forceUpdateMacroLayerFlag = 1;
+ this->field68_0x55487c = 200;
+ updatePathLinkageLayerForEachBuildingAtEachTile();
+ updateSeparateAreaTileMap(1);
+ this->forceUpdateMacroLayerFlag = 1;
+ this->field68_0x55487c = 500;
+ setTileColorsDependingOnMapSize(0, 100);
+ setMapPropertyDependingOnMapSize(0, 100);
+ DAT_GameCore.currentlyInGameUnk_0xa4 = FALSE;
+ ResetSomeValuesFunctionUnk();
+ return;
+ }
+}
+}
+
+### 0x00512450 prepareMap | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00512450
+ void TileMapState::prepareMap()
+ {
+ char cVar1;
+ char* pcVar2;
+ char (*pacVar3)[250];
+ int _viewportY;
+ int _viewportX;
+ _viewportX = DAT_ViewportRenderState.viewportState.viewportY;
+ _viewportY = DAT_ViewportRenderState.viewportState.viewportX;
+ if (DAT_GameSynchronyState.currentGameModeCopy_SEC_Section1106
+ == GM_SKIRMISH_SINGLE_PLAYER) {
+ DAT_GameSynchronyState.currentGameMode = GM_SKIRMISH_SINGLE_PLAYER;
+ DAT_GameSynchronyState.isHost = TRUE;
+ pcVar2 = getTextArrayPointer(0);
+ pacVar3 = DAT_GameSynchronyState.DAT_PlayerNames + 1;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ syncAIPlayerNamesAndBuildIntervals();
+ DAT_GameSynchronyState.currentPlayerSlotID = 1;
+ } else {
+ if (DAT_GameCore.gameMode_2 == GM_CAMPAIGN_MISSION) {
+ if (0xf < DAT_GameCore.missionNumber1to20)
+ goto LAB_005124d2;
+ } else if (DAT_GameCore.gameMode_2 != GM_BUILDERUnk)
+ goto LAB_005124d2;
+ DAT_GameSynchronyState.currentGameMode = GM_SOLITARY;
+ }
+ LAB_005124d2:
+ changeMapOrientation(this->mapOrientation);
+ DAT_PathFindingState.searchGeneration = 1;
+ fillMemory_ByteValue(
+ 0x27420, '\0', (void*)((int)(this->WalkLayer)));
+ DAT_ViewportRenderState.viewportState.viewportX = _viewportY;
+ DAT_ViewportRenderState.viewportState.viewportY = _viewportX;
+ setViewportBasedOnMapSize();
+ setTileSystemMemoryLookupArrays();
+ tweakValidTilesToExcludeMapBorders();
+ DAT_BuildingsState.maxBuildingsCount = 2000;
+ DAT_UnitsState.maxUnitCount = 2500;
+ DAT_PathFindingState.maxClimbDataCount = 200;
+ DAT_EntityState.maxEntityCount = 3000;
+ this->currentMoatCount = 16000;
+ DAT_LandscapeState.maxTreeCount = 2000;
+ this->maxPitchDitchCount = 4000;
+ resetHeightAndMapBorders(this->mapSize);
+ toggleFlatView(0);
+ this->_5589200_4_ = 0;
+ this->flatViewToggleValue2 = 0;
+ setChangedLayerToThreeAndMapping0x40x40();
+ this->forceUpdateLogicalAndMiscDisplayLayers = 1;
+ this->forceUpdateTextureTilemap = 1;
+ this->forceUpdateGFXLayers = 1;
+ this->forceUpdateMacroLayerFlag = 1;
+ this->field68_0x55487c = 500;
+ upgradeTribeArrayLayoutForMapVersion(FilePackagerObj::instance.versionNumOfCurrentFileTypeUnk,
+ (PackagedFileMagicNum)((int)(FilePackagerObj::instance.packagerMapVersionNumUnk)));
+ uselessFunction(
+ FilePackagerObj::instance.versionNumOfCurrentFileTypeUnk,
+ (PackagedFileMagicNum)((int)(FilePackagerObj::instance.packagerMapVersionNumUnk)));
+ upgradeMapFormatForUnits(
+ FilePackagerObj::instance.versionNumOfCurrentFileTypeUnk,
+ (PackagedFileMagicNum)((int)(FilePackagerObj::instance.packagerMapVersionNumUnk)));
+ upgradeMapFormatLogicLayer(
+ FilePackagerObj::instance.versionNumOfCurrentFileTypeUnk,
+ (PackagedFileMagicNum)((int)(FilePackagerObj::instance.packagerMapVersionNumUnk)));
+ upgradeBuildingsForMapVersion(FilePackagerObj::instance.versionNumOfCurrentFileTypeUnk,
+ (PackagedFileMagicNum)((int)(FilePackagerObj::instance.packagerMapVersionNumUnk)));
+ upgradeTreesAndRocksForMapVersion(FilePackagerObj::instance.versionNumOfCurrentFileTypeUnk,
+ (PackagedFileMagicNum)((int)(FilePackagerObj::instance.packagerMapVersionNumUnk)));
+ upgradeMapTribesState(
+ FilePackagerObj::instance.versionNumOfCurrentFileTypeUnk,
+ (PackagedFileMagicNum)((int)(FilePackagerObj::instance.packagerMapVersionNumUnk)));
+ migrateGameStateForMapVersion(
+ FilePackagerObj::instance.versionNumOfCurrentFileTypeUnk,
+ (PackagedFileMagicNum)((int)(FilePackagerObj::instance.packagerMapVersionNumUnk)));
+ handleMapVersionUpgrade(
+ FilePackagerObj::instance.versionNumOfCurrentFileTypeUnk,
+ (PackagedFileMagicNum)((int)(FilePackagerObj::instance.packagerMapVersionNumUnk)));
+ recountTotalOwnedMoats();
+ updatePathLinkageLayerForEachBuildingAtEachTile();
+ updateSeparateAreaTileMap(1);
+ updatePathLinkageLayerForAllBuildings();
+ updateClimbData();
+ clearBuildingValueWhenStateIsTwo();
+ setCurrentTimeOnSomeTrees();
+ resetWind();
+ collectCliffEdgeTilesForClimbData();
+ clearInvalidMoatEntries();
+ initializeGameStateAfterMapLoad();
+ sortEventsByDate();
+ applyVersionUpgradeAccessibilityRecompute(FilePackagerObj::instance.versionNumOfCurrentFileTypeUnk,
+ (PackagedFileMagicNum)((int)(FilePackagerObj::instance.packagerMapVersionNumUnk)));
+ updateSeparateAreaTileMap(1);
+ updatePathLinkageLayerForAllBuildings();
+ _viewportX = 0;
+ do {
+ updateWildlifeGrid(_viewportX);
+ _viewportX = _viewportX + 1;
+ } while (_viewportX < 40);
+ updateWildlife();
+ updateSection1034Info();
+ updateNofFpoints();
+ ResetSomeValuesFunctionUnk();
+ DAT_WallAndPitchState.countdown = 0;
+ clearHoveredState();
+ DAT_GameCore.gamePausedLogical = 0xffffffff;
+ processGameTick();
+ updateSeparateAreaTileMap(1);
+ setTileColorsDependingOnMapSize(0, 100);
+ setMapPropertyDependingOnMapSize(0, 100);
+ return;
+ }
+}
+}
+
+### 0x005127b0 resetAreaBasedOnLogicalLayer | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x005127B0
+ void TileMapState::resetAreaBasedOnLogicalLayer()
+ {
+ ushort* puVar1;
+ int iVar2;
+ int* local_4;
+ iVar2 = 0;
+ local_4 = this->LogicLayer;
+ puVar1 = this->AlphaGFXLayer;
+ do {
+ if ((*local_4 & 0x30) != 0) {
+ useEraserBrush(iVar2
+ - DAT_ViewportRenderState
+ .translationMatrix[DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[iVar2]]
+ .addXgetTile,
+ (uint)((int)((int)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[iVar2])), 1);
+ puVar1[-0x13a10] = 0;
+ *puVar1 = 0;
+ puVar1[0x13a10] = 0;
+ puVar1[0x27420] = 1;
+ puVar1[0x3ae30] = 0;
+ puVar1[0x4e840] = 0;
+ puVar1[0xe1fa0] = 0;
+ puVar1[0xf59b0] = 0;
+ this->EntityLayerLT25[iVar2] = '\0';
+ puVar1[0xc4888] = 0;
+ *local_4 = 0;
+ this->Logic2Layer[iVar2] = 0;
+ this->ChangedLayer[iVar2] = 0;
+ puVar1[0xb0e78] = 0;
+ this->DamageLayer[iVar2] = 0;
+ puVar1[0x161908] = 0;
+ this->HeightLayer[iVar2] = 8;
+ this->DefaultHeightLayer[iVar2] = 8;
+ this->ShowHiLayer[iVar2] = '\0';
+ puVar1[0x1441f0] = 0;
+ this->LuminesenceLayer[iVar2] = '\0';
+ this->WallOwnerLayer[iVar2] = 0;
+ this->BuildingWasLayer[iVar2] = '\0';
+ this->OccupancyLayer[iVar2] = '\0';
+ this->AIZoneLayer[iVar2] = 0;
+ this->AIInfoLayer[iVar2] = '\0';
+ this->unitDeathHeatMap[iVar2] = '\0';
+ this->SEC_TileMap1104[iVar2] = '\0';
+ this->SEC_PathfindingCostTileMap1105[0][iVar2] = '\0';
+ this->SEC_PathfindingCostTileMap1105[1][iVar2] = '\0';
+ this->SEC_PathfindingCostTileMap1105[2][iVar2] = '\0';
+ this->SEC_PathfindingCostTileMap1105[3][iVar2] = '\0';
+ this->SEC_PathfindingCostTileMap1105[4][iVar2] = '\0';
+ this->SEC_PathfindingCostTileMap1105[5][iVar2] = '\0';
+ this->SEC_PathfindingCostTileMap1105[6][iVar2] = '\0';
+ this->SEC_PathfindingCostTileMap1105[7][iVar2] = '\0';
+ this->SEC_PathfindingCostTileMap1105[8][iVar2] = '\0';
+ }
+ local_4 = local_4 + 1;
+ iVar2 = iVar2 + 1;
+ puVar1 = puVar1 + 1;
+ } while (iVar2 < 80400);
+ return;
+ }
+}
+}
+
+### 0x00512920 processMapOrientationChange | quelle=nachgebaut | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00512920
+ void TileMapState::processMapOrientationChange()
+ {
+ if ((int)this->DAT_FutureMapOrientation < 8) {
+ changeMapOrientation(
+ this->DAT_FutureMapOrientation);
+ this->DAT_FutureMapOrientation = 8;
+ }
+ }
+}
+}
+

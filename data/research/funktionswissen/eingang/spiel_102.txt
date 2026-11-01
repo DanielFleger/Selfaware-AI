@@ -1,0 +1,1072 @@
+### 0x00506bd0 placeWorkshopOrHovel | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00506BD0
+ void TileMapState::placeWorkshopOrHovel(
+ int playerID, uint x, uint y, BuildingType type, uint size, int orientation, undefined4 averageHeight)
+ {
+ int _buildingID;
+ int _tile;
+ int _tileIndex;
+ _tileIndex = 0;
+ _buildingID = setupBuildingData(playerID, x, y,
+ (undefined4)((int)(averageHeight)), (int)(short)(undefined2)type, size, playerID, orientation);
+ *(short*)&DAT_BuildingsState.buildings[_buildingID].hovelVisualStyle
+ = (short)DAT_GameState.playerDataArray[playerID].hovelCountUpToEight;
+ this->placedBuildingID = _buildingID;
+ if ((undefined2)type == BT_HOVEL) {
+ /*
+ hovel
+ */
+ DAT_GameState.playerDataArray[playerID].hovelCountUpToEight
+ = (DAT_GameState.playerDataArray[playerID].hovelCountUpToEight + 1) % 7;
+ }
+ do {
+ getBuildingSizeIndexMappingData(
+ _tileIndex, size);
+ _tile = DAT_ViewportRenderState.translationMatrix[this->buildingY + y].addXgetTile
+ + this->buildingX + x;
+ if (_tileIndex < 36) {
+ /*
+ set tileref
+ */
+ *(int*)(DAT_BuildingsState.buildings[_buildingID].workers + _tileIndex * 2 + 8) = _tile;
+ }
+ this->HeightLayer[_tile] = (byte)averageHeight;
+ this->LogicLayer[_tile] = this->LogicLayer[_tile] | 1024;
+ this->BuildingLayer[_tile] = (short)_buildingID;
+ _tileIndex = _tileIndex + 1;
+ this->BuildingWasLayer[_tile] = (undefined1)type;
+ this->ChangedLayer[_tile] = 2;
+ } while (_tileIndex < this->constructionTileCount);
+ setMiscDisplayLayer(_buildingID);
+ updatePathLinkagesForBuilding(_buildingID);
+ if (((playerID == DAT_GameSynchronyState.currentPlayerSlotID)
+ && (DAT_GameState.playerDataArray[playerID].availablePeasantsAtFire
+ < (int)DAT_BuildingsState.buildings[_buildingID].buildingTypeBasedEmployeeCount))
+ && ((DAT_GameState.playerDataArray[playerID].populationCap
+ <= DAT_GameState.playerDataArray[playerID].currentPopulation
+ || (DAT_GameState.playerDataArray[playerID].popularity < 5000)))) {
+ setBottomLeftTextDisplayText(1, 0x4d, 1, (TextMessageBLLookupStructUnion)0x0, 100, 6000);
+ }
+ return;
+ }
+}
+}
+
+### 0x00506d40 placeSiegetowerPlaced | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00506D40
+ void TileMapState::placeSiegetowerPlaced(
+ int param_1, uint param_2, uint param_3, undefined4 param_4, uint param_5, int param_6, undefined4 param_7)
+ {
+ int buildingID;
+ int iVar1;
+ int buildingSizeTileIndex;
+ buildingSizeTileIndex = 0;
+ buildingID = setupBuildingData(param_1, param_2, param_3, (undefined4)((int)(param_7)),
+ (BuildingType)((int)((int)(short)param_4)), param_5, param_1, param_6);
+ this->placedBuildingID = buildingID;
+ do {
+ getBuildingSizeIndexMappingData(
+ buildingSizeTileIndex, param_5);
+ iVar1 = DAT_ViewportRenderState.translationMatrix[this->buildingY + param_3].addXgetTile
+ + this->buildingX + param_2;
+ if (buildingSizeTileIndex < 0x24) {
+ *(int*)(DAT_BuildingsState.buildings[buildingID].workers + buildingSizeTileIndex * 2 + 8)
+ = iVar1;
+ }
+ this->HeightLayer[iVar1] = (byte)param_7;
+ this->LogicLayer[iVar1] = this->LogicLayer[iVar1] | 268435456;
+ this->BuildingLayer[iVar1] = (short)buildingID;
+ buildingSizeTileIndex = buildingSizeTileIndex + 1;
+ this->BuildingWasLayer[iVar1] = (uchar)(short)param_4;
+ this->ChangedLayer[iVar1] = 2;
+ } while (buildingSizeTileIndex < this->constructionTileCount);
+ setMiscDisplayLayer(buildingID);
+ updatePathLinkagesForBuilding(buildingID);
+ return;
+ }
+}
+}
+
+### 0x00506e10 placeSiegeTent | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00506E10
+ void TileMapState::placeSiegeTent(
+ int param_1, uint param_2, uint param_3, undefined4 param_4, uint param_5, int param_6, undefined4 param_7)
+ {
+ int buildingID;
+ int iVar1;
+ int buildingSizeTileIndex;
+ buildingSizeTileIndex = 0;
+ buildingID = setupBuildingData(param_1, param_2, param_3, (undefined4)((int)(param_7)),
+ (BuildingType)((int)((int)(short)param_4)), param_5, param_1, param_6);
+ this->placedBuildingID = buildingID;
+ do {
+ getBuildingSizeIndexMappingData(
+ buildingSizeTileIndex, param_5);
+ iVar1 = DAT_ViewportRenderState.translationMatrix[this->buildingY + param_3].addXgetTile
+ + this->buildingX + param_2;
+ if (buildingSizeTileIndex < 0x24) {
+ *(int*)(DAT_BuildingsState.buildings[buildingID].workers + buildingSizeTileIndex * 2 + 8)
+ = iVar1;
+ }
+ this->HeightLayer[iVar1] = (byte)param_7;
+ this->LogicLayer[iVar1] = this->LogicLayer[iVar1] | 1024;
+ this->BuildingLayer[iVar1] = (short)buildingID;
+ buildingSizeTileIndex = buildingSizeTileIndex + 1;
+ this->BuildingWasLayer[iVar1] = (uchar)(short)param_4;
+ this->ChangedLayer[iVar1] = 2;
+ } while (buildingSizeTileIndex < this->constructionTileCount);
+ setMiscDisplayLayer(buildingID);
+ updatePathLinkagesForBuilding(buildingID);
+ if (((param_1 == DAT_GameSynchronyState.currentPlayerSlotID)
+ && (DAT_GameState.playerDataArray[param_1].availablePeasantsAtFire
+ < (int)DAT_BuildingsState.buildings[buildingID].buildingTypeBasedEmployeeCount))
+ && ((DAT_GameState.playerDataArray[param_1].populationCap
+ <= DAT_GameState.playerDataArray[param_1].currentPopulation
+ || (DAT_GameState.playerDataArray[param_1].popularity < 5000)))) {
+ setBottomLeftTextDisplayText(1, 0x4d, 1, (TextMessageBLLookupStructUnion)0x0, 100, 6000);
+ }
+ return;
+ }
+}
+}
+
+### 0x00506f40 placePositiveFearfactor | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00506F40
+ void TileMapState::placePositiveFearfactor(int playerID, uint x, uint y, undefined4 buildingType,
+ undefined4 variation, uint buildingSize, undefined4 param_7, undefined4 height)
+ {
+ int buildingID;
+ int iVar1;
+ int buildingSizeTileIndex;
+ buildingSizeTileIndex = 0;
+ buildingID = setupBuildingData(playerID, x, y, (undefined4)((int)(height)),
+ (BuildingType)((int)((int)(short)buildingType)), buildingSize, playerID, (int)((int)((short)variation)));
+ this->placedBuildingID = buildingID;
+ do {
+ getBuildingSizeIndexMappingData(
+ buildingSizeTileIndex, buildingSize);
+ iVar1 = DAT_ViewportRenderState.translationMatrix[this->buildingY + y].addXgetTile
+ + this->buildingX + x;
+ if (buildingSizeTileIndex < 0x24) {
+ *(int*)(DAT_BuildingsState.buildings[buildingID].workers + buildingSizeTileIndex * 2 + 8)
+ = iVar1;
+ }
+ this->HeightLayer[iVar1] = (byte)height;
+ this->LogicLayer[iVar1] = this->LogicLayer[iVar1] | 1024;
+ this->BuildingLayer[iVar1] = (short)buildingID;
+ buildingSizeTileIndex = buildingSizeTileIndex + 1;
+ this->ChangedLayer[iVar1] = 2;
+ } while (buildingSizeTileIndex < this->constructionTileCount);
+ setMiscDisplayLayer(buildingID);
+ updatePathLinkagesForBuilding(buildingID);
+ if (((playerID == DAT_GameSynchronyState.currentPlayerSlotID)
+ && (DAT_GameState.playerDataArray[playerID].availablePeasantsAtFire
+ < (int)DAT_BuildingsState.buildings[buildingID].buildingTypeBasedEmployeeCount))
+ && ((DAT_GameState.playerDataArray[playerID].populationCap
+ <= DAT_GameState.playerDataArray[playerID].currentPopulation
+ || (DAT_GameState.playerDataArray[playerID].popularity < 5000)))) {
+ setBottomLeftTextDisplayText(1, 0x4d, 1, (TextMessageBLLookupStructUnion)0x0, 100, 6000);
+ }
+ return;
+ }
+}
+}
+
+### 0x00507060 stampBuildingOntoTileMap | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00507060
+ void TileMapState::stampBuildingOntoTileMap(int param_1, uint param_2, uint param_3, undefined4 param_4,
+ undefined4 param_5, uint param_6, undefined4 param_7, undefined4 param_8)
+ {
+ int buildingID;
+ int iVar1;
+ int buildingSizeTileIndex;
+ buildingSizeTileIndex = 0;
+ buildingID = setupBuildingData(param_1, param_2, param_3, (undefined4)((int)(param_8)),
+ (BuildingType)((int)((int)(short)param_4)), param_6, param_1, (int)((int)((short)param_5)));
+ this->placedBuildingID = buildingID;
+ do {
+ getBuildingSizeIndexMappingData(
+ buildingSizeTileIndex, param_6);
+ iVar1 = DAT_ViewportRenderState.translationMatrix[this->buildingY + param_3].addXgetTile
+ + this->buildingX + param_2;
+ if (buildingSizeTileIndex < 0x24) {
+ *(int*)(DAT_BuildingsState.buildings[buildingID].workers + buildingSizeTileIndex * 2 + 8)
+ = iVar1;
+ }
+ this->HeightLayer[iVar1] = (byte)param_8;
+ this->LogicLayer[iVar1] = this->LogicLayer[iVar1] | 0x400;
+ this->BuildingLayer[iVar1] = (short)buildingID;
+ buildingSizeTileIndex = buildingSizeTileIndex + 1;
+ this->ChangedLayer[iVar1] = 2;
+ } while (buildingSizeTileIndex < this->constructionTileCount);
+ setMiscDisplayLayer(buildingID);
+ updatePathLinkagesForBuilding(buildingID);
+ return;
+ }
+}
+}
+
+### 0x00507130 placeTower | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00507130
+ void TileMapState::placeTower(
+ int param_1, uint param_2, uint param_3, undefined4 param_4, uint size, int param_6, undefined4 param_7)
+ {
+ int buildingID;
+ int iVar1;
+ int _index;
+ iVar1 = DAT_GameCore.uniqueGameObjectTracker;
+ _index = 0;
+ buildingID = setupBuildingData(param_1, param_2,
+ param_3, (undefined4)((int)(param_7)), (BuildingType)((int)((int)(short)param_4)), size, param_1, param_6);
+ this->placedBuildingID = buildingID;
+ DAT_BuildingsState.buildings[buildingID].uidWhenPlaced = iVar1;
+ do {
+ getBuildingSizeIndexMappingData(
+ _index, size);
+ iVar1 = DAT_ViewportRenderState.translationMatrix[this->buildingY + param_3].addXgetTile + param_2
+ + this->buildingX;
+ if (_index < 0x24) {
+ *(int*)(DAT_BuildingsState.buildings[buildingID].workers + _index * 2 + 8) = iVar1;
+ }
+ this->HeightLayer[iVar1] = (byte)param_7;
+ if (DAT_TerrainDefinedData.TowerTileOffsetsBySize[size][0] == _index) {
+ this->LogicLayer[iVar1] = this->LogicLayer[iVar1] | 1024;
+ } else if (DAT_TerrainDefinedData.TowerTileOffsetsBySize[size][1] == _index) {
+ this->LogicLayer[iVar1] = this->LogicLayer[iVar1] | 1024;
+ } else if (DAT_TerrainDefinedData.TowerTileOffsetsBySize[size][2] == _index) {
+ this->LogicLayer[iVar1] = this->LogicLayer[iVar1] | 1024;
+ } else if (DAT_TerrainDefinedData.TowerTileOffsetsBySize[size][3] == _index) {
+ this->LogicLayer[iVar1] = this->LogicLayer[iVar1] | 1024;
+ } else {
+ this->LogicLayer[iVar1] = this->LogicLayer[iVar1] | 268435456;
+ }
+ this->BuildingLayer[iVar1] = (short)buildingID;
+ _index = _index + 1;
+ this->BuildingWasLayer[iVar1] = (uchar)param_4;
+ this->ChangedLayer[iVar1] = 2;
+ } while (_index < this->constructionTileCount);
+ setMiscDisplayLayer(buildingID);
+ updatePathLinkagesForBuilding(buildingID);
+ return;
+ }
+}
+}
+
+### 0x00507280 upgradeTowerLogicLayer | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00507280
+ void TileMapState::upgradeTowerLogicLayer(int param_1)
+ {
+ uint uVar1;
+ int iVar2;
+ uint uVar3;
+ int buildingSizeTileIndex;
+ buildingSizeTileIndex = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ buildingSizeTileIndex, DAT_BuildingsState.buildings[param_1].widthOrHeight);
+ iVar2 = DAT_ViewportRenderState
+ .translationMatrix[(short)DAT_BuildingsState.buildings[param_1].y + this->buildingY]
+ .addXgetTile
+ + (int)(short)DAT_BuildingsState.buildings[param_1].x + this->buildingX;
+ this->LogicLayer[iVar2] = this->LogicLayer[iVar2] & ~(L_BUILDING);
+ uVar1 = DAT_BuildingsState.buildings[param_1].widthOrHeight;
+ uVar3 = this->LogicLayer[iVar2];
+ if (DAT_TerrainDefinedData.TowerTileOffsetsBySize[uVar1][0] == buildingSizeTileIndex) {
+ uVar3 = uVar3 | 1024;
+ } else if (DAT_TerrainDefinedData.TowerTileOffsetsBySize[uVar1][1] == buildingSizeTileIndex) {
+ uVar3 = uVar3 | 1024;
+ } else if (DAT_TerrainDefinedData.TowerTileOffsetsBySize[uVar1][2] == buildingSizeTileIndex) {
+ uVar3 = uVar3 | 1024;
+ } else if (DAT_TerrainDefinedData.TowerTileOffsetsBySize[uVar1][3] == buildingSizeTileIndex) {
+ uVar3 = uVar3 | 1024;
+ } else {
+ uVar3 = uVar3 | 268435456;
+ }
+ buildingSizeTileIndex = buildingSizeTileIndex + 1;
+ this->LogicLayer[iVar2] = uVar3;
+ } while (buildingSizeTileIndex < this->constructionTileCount);
+ updatePathLinkagesForBuilding(param_1);
+ return;
+ }
+}
+}
+
+### 0x00507350 resetTileAndClearMoat | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00507350
+ void TileMapState::resetTileAndClearMoat(int tile)
+ {
+ short sVar1;
+ int iVar2;
+ int iVar3;
+ sVar1 = DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile];
+ iVar2 = DAT_ViewportRenderState.translationMatrix[sVar1].addXgetTile;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffbef4f7;
+ this->HeightLayer[tile] = this->DefaultHeightLayer[tile];
+ this->DamageLayer[tile] = 0;
+ if (((this->LogicLayer[tile] & 0x1000U) != 0) && (iVar3 = (int)this->OrganismLayer[tile], iVar3 < 2000)) {
+ switch (DAT_LandscapeState.trees[iVar3].treeType) {
+ case ((TreeType)5):
+ case ((TreeType)6):
+ case ((TreeType)7):
+ case ((TreeType)8):
+ case ((TreeType)9):
+ case ((TreeType)10):
+ case 0xb:
+ case 0xc:
+ case 0xd:
+ case 0xe:
+ case ((TreeType)0x10):
+ case ((TreeType)0x11):
+ case ((TreeType)0x12):
+ case ((TreeType)0x13):
+ DAT_LandscapeState.trees[iVar3].state = 3;
+ }
+ }
+ if ((this->LogicLayer[tile] & 0x40004000U) != 0) {
+ clearMoatDataAtTile(
+ tile - iVar2, sVar1);
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xbfffbfff;
+ }
+ this->MiscDisplayLayer[tile] = this->MiscDisplayLayer[tile] & 0xfc3f;
+ return;
+ }
+}
+}
+
+### 0x00507420 placeGatehouseSmall | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00507420
+ void TileMapState::placeGatehouseSmall(
+ int param_1, uint param_2, uint param_3, undefined4 param_4, uint param_5, int param_6, undefined4 param_7)
+ {
+ int buildingID;
+ int iVar1;
+ int buildingSizeTileIndex;
+ iVar1 = DAT_GameCore.uniqueGameObjectTracker;
+ buildingSizeTileIndex = 0;
+ buildingID = setupBuildingData(param_1, param_2, param_3, (undefined4)((int)(param_7)),
+ (BuildingType)((int)((int)(short)param_4)), param_5, param_1, param_6);
+ this->placedBuildingID = buildingID;
+ DAT_BuildingsState.buildings[buildingID].uidWhenPlaced = iVar1;
+ do {
+ getBuildingSizeIndexMappingData(
+ buildingSizeTileIndex, param_5);
+ iVar1 = DAT_ViewportRenderState.translationMatrix[this->buildingY + param_3].addXgetTile + param_2
+ + this->buildingX;
+ if (buildingSizeTileIndex < 0x24) {
+ *(int*)(DAT_BuildingsState.buildings[buildingID].workers + buildingSizeTileIndex * 2 + 8)
+ = iVar1;
+ }
+ this->HeightLayer[iVar1] = (char)param_7 + 0x5a;
+ this->LogicLayer[iVar1] = this->LogicLayer[iVar1] | 256;
+ this->WallOwnerLayer[iVar1] = this->WallOwnerLayer[iVar1] & 0xf8 | (char)param_1 - 1U;
+ this->MiscDisplayLayer[iVar1] = this->MiscDisplayLayer[iVar1] | 0x20;
+ this->BuildingLayer[iVar1] = (short)buildingID;
+ buildingSizeTileIndex = buildingSizeTileIndex + 1;
+ this->BuildingWasLayer[iVar1] = (uchar)param_4;
+ this->ChangedLayer[iVar1] = 2;
+ } while (buildingSizeTileIndex < this->constructionTileCount);
+ if (param_6 == 0x50) {
+ iVar1 = 2;
+ } else {
+ iVar1 = 0;
+ }
+ createClimbData(
+ 4, buildingID, 0, iVar1, 0);
+ setMiscDisplayLayer(buildingID);
+ updatePathLinkagesForBuilding(buildingID);
+ return;
+ }
+}
+}
+
+### 0x00507560 placeGatehouseLarge | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00507560
+ void TileMapState::placeGatehouseLarge(
+ int param_1, uint param_2, uint param_3, undefined4 param_4, uint param_5, int param_6, undefined4 param_7)
+ {
+ int buildingID;
+ int iVar1;
+ int buildingSizeTileIndex;
+ iVar1 = DAT_GameCore.uniqueGameObjectTracker;
+ buildingSizeTileIndex = 0;
+ buildingID = setupBuildingData(param_1, param_2, param_3, (undefined4)((int)(param_7)),
+ (BuildingType)((int)((int)(short)param_4)), param_5, param_1, param_6);
+ this->placedBuildingID = buildingID;
+ DAT_BuildingsState.buildings[buildingID].uidWhenPlaced = iVar1;
+ do {
+ getBuildingSizeIndexMappingData(
+ buildingSizeTileIndex, param_5);
+ iVar1 = DAT_ViewportRenderState.translationMatrix[this->buildingY + param_3].addXgetTile + param_2
+ + this->buildingX;
+ if (buildingSizeTileIndex < 0x24) {
+ *(int*)(DAT_BuildingsState.buildings[buildingID].workers + buildingSizeTileIndex * 2 + 8)
+ = iVar1;
+ }
+ this->HeightLayer[iVar1] = (char)param_7 + 0x5a;
+ this->LogicLayer[iVar1] = this->LogicLayer[iVar1] | 256;
+ this->WallOwnerLayer[iVar1] = this->WallOwnerLayer[iVar1] & 0xf8 | (char)param_1 - 1U;
+ this->MiscDisplayLayer[iVar1] = this->MiscDisplayLayer[iVar1] | 0x20;
+ this->BuildingLayer[iVar1] = (short)buildingID;
+ buildingSizeTileIndex = buildingSizeTileIndex + 1;
+ this->BuildingWasLayer[iVar1] = (uchar)param_4;
+ this->ChangedLayer[iVar1] = 2;
+ } while (buildingSizeTileIndex < this->constructionTileCount);
+ if (param_6 == 0x50) {
+ iVar1 = 2;
+ } else {
+ iVar1 = 0;
+ }
+ createClimbData(
+ 3, buildingID, 0, iVar1, 0);
+ setMiscDisplayLayer(buildingID);
+ updatePathLinkagesForBuilding(buildingID);
+ return;
+ }
+}
+}
+
+### 0x005076a0 placeBarracks | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x005076A0
+ void TileMapState::placeBarracks(int playerID, uint xPosition, int* yPosition_param, undefined4 buildingType,
+ uint buildingSize, int buildingOrientation, undefined4 param_7)
+ {
+ int* piVar1;
+ int _buildingID;
+ int iVar2;
+ int iVar3;
+ uint uVar4;
+ int iVar5;
+ uint uVar6;
+ int iVar7;
+ int local_c;
+ piVar1 = yPosition_param;
+ iVar7 = DAT_GameCore.uniqueGameObjectTracker;
+ iVar5 = 0;
+ if (buildingOrientation == 0xf) {
+ local_c = 0;
+ } else {
+ local_c = buildingOrientation / 2;
+ }
+ _buildingID = setupBuildingData(playerID, xPosition, (uint)((int)(yPosition_param)), (undefined4)((int)(param_7)),
+ (BuildingType)((int)((int)(short)buildingType)), buildingSize, playerID, 0xf);
+ iVar2 = (int)(short)_buildingID;
+ this->placedBuildingID = iVar2;
+ DAT_BuildingsState.buildings[iVar2].uidWhenPlaced = iVar7;
+ yPosition_param = &DAT_BuildingsState.buildings[iVar2].tileRef1;
+ do {
+ getBuildingSizeIndexMappingData(
+ iVar5, buildingSize);
+ iVar3 = DAT_ViewportRenderState.translationMatrix[this->buildingY + (int)piVar1].addXgetTile
+ + this->buildingX + xPosition;
+ *yPosition_param = iVar3;
+ this->HeightLayer[iVar3] = (byte)param_7;
+ this->LogicLayer[iVar3] = this->LogicLayer[iVar3] | 0x400;
+ this->BuildingLayer[iVar3] = (short)_buildingID;
+ iVar5 = iVar5 + 1;
+ yPosition_param = yPosition_param + 1;
+ this->BuildingWasLayer[iVar3] = (uchar)buildingType;
+ this->ChangedLayer[iVar3] = 2;
+ } while (iVar5 < this->constructionTileCount);
+ setMiscDisplayLayer(iVar2);
+ updatePathLinkagesForBuilding(iVar2);
+ uVar6 = (int)piVar1 + DAT_TerrainDefinedData.BuildingPartsOffsets[local_c][0].y;
+ uVar4 = xPosition + DAT_TerrainDefinedData.BuildingPartsOffsets[local_c][0].x;
+ iVar5 = setupBuildingData(playerID, uVar4,
+ uVar6, (undefined4)((int)(param_7)), BT_PARADEGROUND3, 5, playerID, 0xf);
+ _buildingID = (int)(short)iVar5;
+ DAT_BuildingsState.buildings[_buildingID].uidWhenPlaced = iVar7;
+ DAT_BuildingsState.buildings[_buildingID].quarryStockpileID = (undefined2)this->placedBuildingID;
+ buildingSize = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ buildingSize, DAT_BuildingsState.buildings[_buildingID].widthOrHeight);
+ iVar2 = DAT_ViewportRenderState.translationMatrix[this->buildingY + uVar6].addXgetTile
+ + this->buildingX + uVar4;
+ resetTileAndClearMoat(iVar2);
+ this->HeightLayer[iVar2] = (byte)param_7;
+ if ((this->buildingX == 2) && (this->buildingY == 2)) {
+ this->LogicLayer[iVar2] = this->LogicLayer[iVar2] | 0x400;
+ }
+ this->BuildingLayer[iVar2] = (short)iVar5;
+ buildingSize = buildingSize + 1;
+ this->BuildingWasLayer[iVar2] = (uchar)buildingType;
+ this->ChangedLayer[iVar2] = 2;
+ } while ((int)buildingSize < this->constructionTileCount);
+ setMiscDisplayLayer(_buildingID);
+ updatePathLinkagesForBuilding(_buildingID);
+ updateWalkAndPathLayer(8, uVar4, uVar6);
+ uVar6 = DAT_TerrainDefinedData.BuildingPartsOffsets[local_c][1].y + (int)piVar1;
+ uVar4 = DAT_TerrainDefinedData.BuildingPartsOffsets[local_c][1].x + xPosition;
+ iVar5 = setupBuildingData(playerID, uVar4,
+ uVar6, (undefined4)((int)(param_7)), BT_PARADEGROUND4, 5, playerID, 0xf);
+ _buildingID = (int)(short)iVar5;
+ DAT_BuildingsState.buildings[_buildingID].uidWhenPlaced = iVar7;
+ DAT_BuildingsState.buildings[_buildingID].quarryStockpileID = (undefined2)this->placedBuildingID;
+ buildingSize = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ buildingSize, DAT_BuildingsState.buildings[_buildingID].widthOrHeight);
+ iVar2 = DAT_ViewportRenderState.translationMatrix[this->buildingY + uVar6].addXgetTile
+ + this->buildingX + uVar4;
+ resetTileAndClearMoat(iVar2);
+ this->HeightLayer[iVar2] = (byte)param_7;
+ if ((this->buildingX == 2) && (this->buildingY == 2)) {
+ this->LogicLayer[iVar2] = this->LogicLayer[iVar2] | 0x400;
+ }
+ this->BuildingLayer[iVar2] = (short)iVar5;
+ buildingSize = buildingSize + 1;
+ this->BuildingWasLayer[iVar2] = (uchar)buildingType;
+ this->ChangedLayer[iVar2] = 2;
+ } while ((int)buildingSize < this->constructionTileCount);
+ setMiscDisplayLayer(_buildingID);
+ updatePathLinkagesForBuilding(_buildingID);
+ updateWalkAndPathLayer(8, uVar4, uVar6);
+ uVar6 = DAT_TerrainDefinedData.BuildingPartsOffsets[local_c][2].y + (int)piVar1;
+ uVar4 = DAT_TerrainDefinedData.BuildingPartsOffsets[local_c][2].x + xPosition;
+ iVar5 = setupBuildingData(playerID, uVar4,
+ uVar6, (undefined4)((int)(param_7)), BT_PARADEGROUND2, 5, playerID, 0xf);
+ _buildingID = (int)(short)iVar5;
+ DAT_BuildingsState.buildings[_buildingID].uidWhenPlaced = iVar7;
+ DAT_BuildingsState.buildings[_buildingID].quarryStockpileID = (undefined2)this->placedBuildingID;
+ buildingSize = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ buildingSize, DAT_BuildingsState.buildings[_buildingID].widthOrHeight);
+ iVar7 = DAT_ViewportRenderState.translationMatrix[this->buildingY + uVar6].addXgetTile
+ + this->buildingX + uVar4;
+ resetTileAndClearMoat(iVar7);
+ this->HeightLayer[iVar7] = (byte)param_7;
+ if ((this->buildingX == 2) && (this->buildingY == 2)) {
+ this->LogicLayer[iVar7] = this->LogicLayer[iVar7] | 0x400;
+ }
+ this->BuildingLayer[iVar7] = (short)iVar5;
+ this->BuildingWasLayer[iVar7] = (uchar)buildingType;
+ buildingSize = buildingSize + 1;
+ this->ChangedLayer[iVar7] = 2;
+ } while ((int)buildingSize < this->constructionTileCount);
+ setMiscDisplayLayer(_buildingID);
+ updatePathLinkagesForBuilding(_buildingID);
+ updateWalkAndPathLayer(8, uVar4, uVar6);
+ if ((short)buildingType == 8) {
+ setupMercenaryPostCampgroundPositions(playerID);
+ } else {
+ setupBarracksCampgroundPositions(playerID);
+ }
+ if (((playerID == DAT_GameSynchronyState.currentPlayerSlotID)
+ && (DAT_GameState.playerDataArray[playerID].availablePeasantsAtFire
+ < (int)DAT_BuildingsState.buildings[_buildingID].buildingTypeBasedEmployeeCount))
+ && ((DAT_GameState.playerDataArray[playerID].populationCap
+ <= DAT_GameState.playerDataArray[playerID].currentPopulation
+ || (DAT_GameState.playerDataArray[playerID].popularity < 5000)))) {
+ setBottomLeftTextDisplayText(1, 0x4d, 1, (TextMessageBLLookupStructUnion)0x0, 100, 6000);
+ }
+ return;
+ }
+}
+}
+
+### 0x00507bd0 placeEngineersguild | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00507BD0
+ void TileMapState::placeEngineersguild(
+ int param_1, int* param_2, uint param_3, undefined4 param_4, uint param_5, int param_6, undefined4 param_7)
+ {
+ int* piVar1;
+ int iVar2;
+ int buildingID;
+ int iVar3;
+ uint y;
+ uint x;
+ int iVar4;
+ int iVar5;
+ int local_8;
+ piVar1 = param_2;
+ iVar5 = DAT_GameCore.uniqueGameObjectTracker;
+ iVar4 = 0;
+ if (param_6 == 0xf) {
+ local_8 = 0;
+ } else {
+ local_8 = param_6 / 2;
+ }
+ iVar2 = setupBuildingData(param_1, (uint)((int)(param_2)), param_3, (undefined4)((int)(param_7)),
+ (BuildingType)((int)((int)(short)param_4)), param_5, param_1, 0xf);
+ buildingID = (int)(short)iVar2;
+ this->placedBuildingID = buildingID;
+ DAT_BuildingsState.buildings[buildingID].uidWhenPlaced = iVar5;
+ param_2 = &DAT_BuildingsState.buildings[buildingID].tileRef1;
+ do {
+ getBuildingSizeIndexMappingData(
+ iVar4, param_5);
+ iVar3 = DAT_ViewportRenderState.translationMatrix[this->buildingY + param_3].addXgetTile
+ + this->buildingX + (int)piVar1;
+ *param_2 = iVar3;
+ this->HeightLayer[iVar3] = (byte)param_7;
+ this->LogicLayer[iVar3] = this->LogicLayer[iVar3] | 1024;
+ this->BuildingLayer[iVar3] = (short)iVar2;
+ iVar4 = iVar4 + 1;
+ param_2 = param_2 + 1;
+ this->BuildingWasLayer[iVar3] = (uchar)param_4;
+ this->ChangedLayer[iVar3] = 2;
+ } while (iVar4 < this->constructionTileCount);
+ setMiscDisplayLayer(buildingID);
+ updatePathLinkagesForBuilding(buildingID);
+ x = (int)piVar1 + DAT_TerrainDefinedData.BuildingPartsOffsets[local_8][1].x;
+ y = param_3 + DAT_TerrainDefinedData.BuildingPartsOffsets[local_8][1].y;
+ iVar4 = setupBuildingData(
+ param_1, x, y, (undefined4)((int)(param_7)), BT_PARADEGROUND, 5, param_1, 0xf);
+ iVar2 = (int)(short)iVar4;
+ DAT_BuildingsState.buildings[iVar2].uidWhenPlaced = iVar5;
+ DAT_BuildingsState.buildings[iVar2].quarryStockpileID = (undefined2)this->placedBuildingID;
+ param_5 = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ param_5, DAT_BuildingsState.buildings[iVar2].widthOrHeight);
+ iVar5 = DAT_ViewportRenderState.translationMatrix[this->buildingY + y].addXgetTile
+ + this->buildingX + x;
+ resetTileAndClearMoat(iVar5);
+ this->HeightLayer[iVar5] = (byte)param_7;
+ this->BuildingLayer[iVar5] = (short)iVar4;
+ param_5 = param_5 + 1;
+ this->BuildingWasLayer[iVar5] = (uchar)param_4;
+ this->ChangedLayer[iVar5] = 2;
+ } while ((int)param_5 < this->constructionTileCount);
+ setMiscDisplayLayer(iVar2);
+ updatePathLinkagesForBuilding(iVar2);
+ updateWalkAndPathLayer(8, x, y);
+ setupEngineersGuildParagroundPositions(param_1);
+ return;
+ }
+}
+}
+
+### 0x00507e00 placeTunnelersguild | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00507E00
+ void TileMapState::placeTunnelersguild(
+ int param_1, int* param_2, uint param_3, undefined4 param_4, uint param_5, int param_6, undefined4 param_7)
+ {
+ int* piVar1;
+ int iVar2;
+ int buildingID;
+ int iVar3;
+ uint y;
+ uint x;
+ int iVar4;
+ int iVar5;
+ int local_8;
+ piVar1 = param_2;
+ iVar5 = DAT_GameCore.uniqueGameObjectTracker;
+ iVar4 = 0;
+ if (param_6 == 0xf) {
+ local_8 = 0;
+ } else {
+ local_8 = param_6 / 2;
+ }
+ iVar2 = setupBuildingData(param_1, (uint)((int)(param_2)), param_3, (undefined4)((int)(param_7)),
+ (BuildingType)((int)((int)(short)param_4)), param_5, param_1, 0xf);
+ buildingID = (int)(short)iVar2;
+ this->placedBuildingID = buildingID;
+ DAT_BuildingsState.buildings[buildingID].uidWhenPlaced = iVar5;
+ param_2 = &DAT_BuildingsState.buildings[buildingID].tileRef1;
+ do {
+ getBuildingSizeIndexMappingData(
+ iVar4, param_5);
+ iVar3 = DAT_ViewportRenderState.translationMatrix[this->buildingY + param_3].addXgetTile
+ + this->buildingX + (int)piVar1;
+ *param_2 = iVar3;
+ this->HeightLayer[iVar3] = (byte)param_7;
+ this->LogicLayer[iVar3] = this->LogicLayer[iVar3] | 1024;
+ this->BuildingLayer[iVar3] = (short)iVar2;
+ iVar4 = iVar4 + 1;
+ param_2 = param_2 + 1;
+ this->BuildingWasLayer[iVar3] = (uchar)param_4;
+ this->ChangedLayer[iVar3] = 2;
+ } while (iVar4 < this->constructionTileCount);
+ setMiscDisplayLayer(buildingID);
+ updatePathLinkagesForBuilding(buildingID);
+ x = (int)piVar1 + DAT_TerrainDefinedData.BuildingPartsOffsets[local_8][1].x;
+ y = param_3 + DAT_TerrainDefinedData.BuildingPartsOffsets[local_8][1].y;
+ iVar4 = setupBuildingData(
+ param_1, x, y, (undefined4)((int)(param_7)), BT_PARADEGROUND5, 5, param_1, 0xf);
+ iVar2 = (int)(short)iVar4;
+ DAT_BuildingsState.buildings[iVar2].uidWhenPlaced = iVar5;
+ DAT_BuildingsState.buildings[iVar2].quarryStockpileID = (undefined2)this->placedBuildingID;
+ param_5 = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ param_5, DAT_BuildingsState.buildings[iVar2].widthOrHeight);
+ iVar5 = DAT_ViewportRenderState.translationMatrix[this->buildingY + y].addXgetTile
+ + this->buildingX + x;
+ resetTileAndClearMoat(iVar5);
+ this->HeightLayer[iVar5] = (byte)param_7;
+ this->BuildingLayer[iVar5] = (short)iVar4;
+ param_5 = param_5 + 1;
+ this->BuildingWasLayer[iVar5] = (uchar)param_4;
+ this->ChangedLayer[iVar5] = 2;
+ } while ((int)param_5 < this->constructionTileCount);
+ setMiscDisplayLayer(iVar2);
+ updatePathLinkagesForBuilding(iVar2);
+ updateWalkAndPathLayer(8, x, y);
+ setupTunnelersGuildCampgroundPositions(param_1);
+ return;
+ }
+}
+}
+
+### 0x00508030 placeOilsmelter | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00508030
+ void TileMapState::placeOilsmelter(
+ int param_1, uint param_2, uint param_3, undefined4 param_4, uint param_5, int param_6, undefined4 param_7)
+ {
+ short sVar1;
+ int iVar2;
+ int buildingID;
+ int iVar3;
+ uint y;
+ uint x;
+ int iVar4;
+ int iVar5;
+ int local_8;
+ iVar5 = DAT_GameCore.uniqueGameObjectTracker;
+ iVar4 = 0;
+ if (param_6 == 0xf) {
+ local_8 = 0;
+ } else {
+ local_8 = param_6 / 2;
+ }
+ iVar2 = setupBuildingData(param_1, param_2,
+ param_3, (undefined4)((int)(param_7)), (BuildingType)((int)((int)(short)param_4)), param_5, param_1, 0xf);
+ buildingID = (int)(short)iVar2;
+ this->placedBuildingID = buildingID;
+ DAT_BuildingsState.buildings[buildingID].uidWhenPlaced = iVar5;
+ do {
+ getBuildingSizeIndexMappingData(
+ iVar4, param_5);
+ iVar3 = DAT_ViewportRenderState.translationMatrix[this->buildingY + param_3].addXgetTile
+ + this->buildingX + param_2;
+ this->HeightLayer[iVar3] = (byte)param_7;
+ this->LogicLayer[iVar3] = this->LogicLayer[iVar3] | 1024;
+ this->BuildingLayer[iVar3] = (short)iVar2;
+ iVar4 = iVar4 + 1;
+ this->BuildingWasLayer[iVar3] = (uchar)param_4;
+ this->ChangedLayer[iVar3] = 2;
+ } while (iVar4 < this->constructionTileCount);
+ setMiscDisplayLayer(buildingID);
+ updatePathLinkagesForBuilding(buildingID);
+ x = param_2 + DAT_TerrainDefinedData.field63_0x19c[local_8].x;
+ y = param_3 + DAT_TerrainDefinedData.field63_0x19c[local_8].y;
+ iVar4 = setupBuildingData(
+ param_1, x, y, (undefined4)((int)(param_7)), BT_CAMPFIRE, 4, param_1, 0xf);
+ sVar1 = (short)iVar4;
+ iVar4 = (int)sVar1;
+ DAT_BuildingsState.buildings[iVar4].uidWhenPlaced = iVar5;
+ DAT_BuildingsState.buildings[iVar4].quarryStockpileID = (undefined2)this->placedBuildingID;
+ DAT_BuildingsState.buildings[buildingID].quarryStockpileID = sVar1;
+ param_5 = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ param_5, DAT_BuildingsState.buildings[iVar4].widthOrHeight);
+ iVar5 = DAT_ViewportRenderState.translationMatrix[this->buildingY + y].addXgetTile
+ + this->buildingX + x;
+ resetTileAndClearMoat(iVar5);
+ this->HeightLayer[iVar5] = (byte)param_7;
+ this->BuildingLayer[iVar5] = sVar1;
+ param_5 = param_5 + 1;
+ this->BuildingWasLayer[iVar5] = (uchar)param_4;
+ this->ChangedLayer[iVar5] = 2;
+ } while ((int)param_5 < this->constructionTileCount);
+ setTileRefsForOilSmelter(iVar4);
+ setMiscDisplayLayer(iVar4);
+ updatePathLinkagesForBuilding(iVar4);
+ updateWalkAndPathLayer(8, x, y);
+ return;
+ }
+}
+}
+
+### 0x00508250 placeQuarry | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00508250
+ void TileMapState::placeQuarry(int playerID, uint x, uint y, undefined4 buildingType, uint buildingSize,
+ int buildingOrientation, uint heightUnk)
+ {
+ int _newQuarryBuildingID;
+ int _tile;
+ uint uVar1;
+ int _newStockpileID;
+ int _stockpileY;
+ int _stockpileX;
+ int _tileIndex;
+ int iVar2;
+ uint uVar3;
+ int iVar4;
+ uVar3 = y;
+ iVar4 = DAT_GameCore.uniqueGameObjectTracker;
+ _tileIndex = 0;
+ _newQuarryBuildingID = setupBuildingData(playerID, x, y, (undefined4)((int)(heightUnk)),
+ (BuildingType)((int)((int)(short)buildingType)), buildingSize, playerID, buildingOrientation);
+ this->placedBuildingID = _newQuarryBuildingID;
+ DAT_BuildingsState.buildings[_newQuarryBuildingID].uidWhenPlaced = iVar4;
+ do {
+ getBuildingSizeIndexMappingData(
+ _tileIndex, buildingSize);
+ y._0_2_ = (short)_newQuarryBuildingID;
+ _tile = DAT_ViewportRenderState.translationMatrix[this->buildingY + uVar3].addXgetTile + x
+ + this->buildingX;
+ _tileIndex = _tileIndex + 1;
+ this->HeightLayer[_tile] = (byte)heightUnk;
+ this->LogicLayer[_tile] = this->LogicLayer[_tile] | 1024;
+ /*
+ = id (y is reused here)
+ */
+ this->BuildingLayer[_tile] = (short)y;
+ this->BuildingWasLayer[_tile] = (uchar)buildingType;
+ this->ChangedLayer[_tile] = 2;
+ } while (_tileIndex < this->constructionTileCount);
+ setMiscDisplayLayer(_newQuarryBuildingID);
+ updatePathLinkagesForBuilding(_newQuarryBuildingID);
+ iVar2 = 1;
+ do {
+ /*
+ apparently there are 9 attempts, sometimes the pile is placed immediately near, sometimes a bit off.
+ */
+ findQuarryPileLocation(playerID, x, uVar3, buildingSize, 2,
+ iVar2, M_MAPPER_QUARRYPILE);
+ /*
+ if successful
+ */
+ if (this->buildingPlacementFail == FALSE)
+ goto LAB_00508369;
+ iVar2 = iVar2 + 1;
+ } while (iVar2 < 10);
+ if (this->buildingPlacementFail == FALSE) {
+ LAB_00508369:
+ /*
+ location of quarry stockpile to quarry
+ */
+ _stockpileX = x + DAT_BuildingsState.DAT_TempXOffset;
+ _stockpileY = uVar3 + DAT_BuildingsState.DAT_TempYOffset;
+ buildingSize = 0;
+ heightUnk = 1000;
+ uVar3 = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ buildingSize, 2);
+ uVar1 = (uint)
+ * (byte*)(DAT_ViewportRenderState.translationMatrix[this->buildingY + _stockpileY]
+ .addXgetTile
+ + _stockpileX + 0x1d32c38 + this->buildingX);
+ if (uVar3 < uVar1) {
+ uVar3 = uVar1;
+ }
+ if (uVar1 < heightUnk) {
+ heightUnk = uVar1;
+ }
+ buildingSize = buildingSize + 1;
+ } while ((int)buildingSize < this->constructionTileCount);
+ iVar2 = (int)(uVar3 - heightUnk) / 2 + heightUnk;
+ /*
+ reuse!
+ */
+ buildingSize = 0;
+ /*
+ place the quarry stockpile
+ */
+ _newStockpileID = setupBuildingData(playerID,
+ (uint)((int)(_stockpileX)), (uint)((int)(_stockpileY)), (undefined4)((int)(iVar2)),
+ BT_QUARRYSTOCKPILE, 2, playerID, buildingOrientation);
+ incrementStructureHeatMapTile(
+ _stockpileX, _stockpileY);
+ DAT_BuildingsState.buildings[_newStockpileID].uidWhenPlaced = iVar4;
+ DAT_BuildingsState.buildings[_newQuarryBuildingID].quarryStockpileID = (short)_newStockpileID;
+ do {
+ getBuildingSizeIndexMappingData(
+ buildingSize, 2);
+ iVar4 = DAT_ViewportRenderState.translationMatrix[this->buildingY + _stockpileY].addXgetTile
+ + _stockpileX + this->buildingX;
+ resetTileAndClearMoat(iVar4);
+ heightUnk._0_1_ = (byte)iVar2;
+ this->HeightLayer[iVar4] = (byte)heightUnk;
+ this->LogicLayer[iVar4] = this->LogicLayer[iVar4] | 1024;
+ this->BuildingLayer[iVar4] = (short)_newStockpileID;
+ buildingSize = buildingSize + 1;
+ this->BuildingWasLayer[iVar4] = (uchar)buildingType;
+ this->ChangedLayer[iVar4] = 2;
+ } while ((int)buildingSize < this->constructionTileCount);
+ setMiscDisplayLayer(_newStockpileID);
+ updatePathLinkagesForBuilding(_newStockpileID);
+ if (((playerID == DAT_GameSynchronyState.currentPlayerSlotID)
+ && (DAT_GameState.playerDataArray[playerID].availablePeasantsAtFire
+ < (int)DAT_BuildingsState.buildings[_newStockpileID].buildingTypeBasedEmployeeCount))
+ && ((DAT_GameState.playerDataArray[playerID].populationCap
+ <= DAT_GameState.playerDataArray[playerID].currentPopulation
+ || (DAT_GameState.playerDataArray[playerID].popularity < 5000)))) {
+ /*
+ trigger "Not enough workers available to run this building."
+ */
+ setBottomLeftTextDisplayText(
+ 1, 0x4d, 1, (TextMessageBLLookupStructUnion)0x0, 100, 6000);
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x00508540 placeStockpile | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00508540
+ void TileMapState::placeStockpile(
+ int playerID, int x, int y, undefined4 buildingType, undefined4 param_5, int variation, int averageHeight)
+ {
+ short sVar1;
+ byte _height;
+ int _buildingID;
+ int _curTile;
+ byte _wallOwner;
+ int _index;
+ XYPair* pXVar2;
+ int _uid;
+ _uid = DAT_GameCore.uniqueGameObjectTracker;
+ _height = (char)averageHeight + 10;
+ _wallOwner = (char)playerID - 1;
+ sVar1 = 0;
+ /*
+ building parts
+ */
+ pXVar2 = DAT_TerrainDefinedData.Stockpile_BuildingPartsOffsets;
+ do {
+ _buildingID = setupBuildingData(playerID,
+ (uint)((int)(pXVar2->x + x)), (uint)((int)(pXVar2->y + y)), (undefined4)((int)(averageHeight + 10)),
+ (BuildingType)((int)((int)(short)buildingType)), 2, playerID, variation);
+ DAT_BuildingsState.buildings[_buildingID].uidWhenPlaced = _uid;
+ DAT_BuildingsState.buildings[_buildingID].field125_0x190 = sVar1 + 1;
+ _index = 0;
+ do {
+ getBuildingSizeIndexMappingData(_index, 2);
+ _index = _index + 1;
+ _curTile
+ = DAT_ViewportRenderState.translationMatrix[pXVar2->y + this->buildingY + y].addXgetTile
+ + pXVar2->x + x + this->buildingX;
+ this->HeightLayer[_curTile] = _height;
+ /*
+ Not walkable
+ */
+ this->LogicLayer[_curTile] = this->LogicLayer[_curTile] | 1282;
+ this->WallOwnerLayer[_curTile] = this->WallOwnerLayer[_curTile] & 0xf8 | _wallOwner;
+ this->BuildingLayer[_curTile] = (ushort)_buildingID;
+ this->BuildingWasLayer[_curTile] = (uchar)buildingType;
+ this->ChangedLayer[_curTile] = 2;
+ } while (_index < this->constructionTileCount);
+ updatePathLinkagesForBuilding(_buildingID);
+ sVar1 = sVar1 + 1;
+ pXVar2 = pXVar2 + 1;
+ } while ((int)pXVar2 < 0xb49130);
+ /*
+ Pathable parts
+ */
+ pXVar2 = DAT_TerrainDefinedData.StockpilePathableOffsets;
+ this->placedBuildingID = _buildingID;
+ do {
+ _curTile = DAT_ViewportRenderState.translationMatrix[pXVar2->y + y].addXgetTile + pXVar2->x + x;
+ /*
+ increment array pointer
+ */
+ pXVar2 = pXVar2 + 1;
+ /*
+ Walkable
+ */
+ this->LogicLayer[_curTile] = this->LogicLayer[_curTile] | 258;
+ this->HeightLayer[_curTile] = _height;
+ this->AlphaGFXLayer[_curTile] = (ushort)_buildingID;
+ this->BuildingWasLayer[_curTile] = (uchar)buildingType;
+ this->WallOwnerLayer[_curTile] = this->WallOwnerLayer[_curTile] & 0b11111000 | _wallOwner;
+ this->ChangedLayer[_curTile] = 2;
+ } while ((int)pXVar2 < 0xb49178);
+ if (((playerID == DAT_GameSynchronyState.currentPlayerSlotID)
+ && (DAT_GameState.playerDataArray[playerID].availablePeasantsAtFire
+ < (int)DAT_BuildingsState.buildings[_buildingID].buildingTypeBasedEmployeeCount))
+ && ((DAT_GameState.playerDataArray[playerID].populationCap
+ <= DAT_GameState.playerDataArray[playerID].currentPopulation
+ || (DAT_GameState.playerDataArray[playerID].popularity < 5000)))) {
+ setBottomLeftTextDisplayText(1, 0x4d, 1, (TextMessageBLLookupStructUnion)0x0, 100, 6000);
+ }
+ return;
+ }
+}
+}
+
+### 0x00508760 clearSizeFiveBuildingFootprintAndMoats | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00508760
+ void TileMapState::clearSizeFiveBuildingFootprintAndMoats(int param_1, int param_2)
+ {
+ short sVar1;
+ uint moatID;
+ int buildingSizeTileIndex;
+ int targetedTile;
+ short _variation;
+ buildingSizeTileIndex = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ buildingSizeTileIndex, 5);
+ targetedTile = DAT_ViewportRenderState.translationMatrix[this->buildingY + param_2].addXgetTile
+ + this->buildingX + param_1;
+ sVar1 = this->BuildingLayer[targetedTile];
+ _variation = DAT_BuildingsState.buildings[sVar1].buildingVariation;
+ this->LogicLayer[targetedTile] = this->LogicLayer[targetedTile] & ~(L_BUILDING);
+ if (DAT_TerrainDefinedData
+ .DrawbridgeOrientationMapping[(int)_variation / 2][buildingSizeTileIndex]
+ != 0) {
+ moatID = returnOwnedMoatAtTile(targetedTile);
+ if (moatID != 0) {
+ if (DAT_BuildingsState.buildings[sVar1].noRubble == 0) {
+ clearMoatData(moatID);
+ this->LogicLayer[targetedTile] = this->LogicLayer[targetedTile] & ~(L_MOAT);
+ this->Logic2Layer[targetedTile] = this->Logic2Layer[targetedTile] | 2;
+ this->BuildingWasLayer[targetedTile] = '\0';
+ this->HeightLayer[targetedTile] = 8;
+ } else {
+ this->LogicLayer[targetedTile] = this->LogicLayer[targetedTile] | 1073741824;
+ }
+ }
+ }
+ if ((this->LogicLayer[targetedTile] & L_MOAT) == 0) {
+ this->Logic2Layer[targetedTile] = this->Logic2Layer[targetedTile] | 2;
+ this->BuildingWasLayer[targetedTile] = '\0';
+ }
+ this->BuildingLayer[targetedTile] = 0;
+ buildingSizeTileIndex = buildingSizeTileIndex + 1;
+ this->ChangedLayer[targetedTile] = 2;
+ } while (buildingSizeTileIndex < this->constructionTileCount);
+ return;
+ }
+}
+}
+
+### 0x00508870 clearDrawBridgeWater | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00508870
+ void TileMapState::clearDrawBridgeWater(int x, int y)
+ {
+ uint moatID;
+ int buildingSizeTileIndex;
+ int targetedTile;
+ buildingSizeTileIndex = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ buildingSizeTileIndex, 5);
+ targetedTile = DAT_ViewportRenderState.translationMatrix[this->buildingY + y].addXgetTile
+ + this->buildingX + x;
+ this->LogicLayer[targetedTile] = this->LogicLayer[targetedTile] & ~(L_MOAT);
+ this->HeightLayer[targetedTile] = 8;
+ moatID = returnOwnedMoatAtTile(targetedTile);
+ if (moatID != 0) {
+ clearMoatData(moatID);
+ this->LogicLayer[targetedTile] = this->LogicLayer[targetedTile] & ~(L_MOAT);
+ this->BuildingWasLayer[targetedTile] = '\0';
+ }
+ this->BuildingLayer[targetedTile] = 0;
+ buildingSizeTileIndex = buildingSizeTileIndex + 1;
+ this->BuildingWasLayer[targetedTile] = '\0';
+ this->ChangedLayer[targetedTile] = 2;
+ } while (buildingSizeTileIndex < this->constructionTileCount);
+ return;
+ }
+}
+}
+

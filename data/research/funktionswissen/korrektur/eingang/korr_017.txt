@@ -1,0 +1,709 @@
+### 0x00423cd0 UpdateGateHouseSmall | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00423CD0
+ void Buildings::UpdateGateHouseSmall()
+ {
+ byte bVar1;
+ int iVar2;
+ uint uVar3;
+ int iVar4;
+ uint uVar5;
+ uint uVar6;
+ uint uVar7;
+ int local_14;
+ int local_10[4];
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ local_14 = (int)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingVariation;
+ updateGateDrawBridgeOpenCloseLogic();
+ iVar2 = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].someX
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x + 3;
+ DAT_BuildingsState.buildings[iVar2].someY = DAT_BuildingsState.buildings[iVar2].y + 2;
+ if ((DAT_TileMapState.mapOrientation == 2) || (DAT_TileMapState.mapOrientation == 6)) {
+ local_14 = local_14 + 1;
+ }
+ if (0x51 < local_14) {
+ local_14 = 0x50;
+ }
+ DAT_BuildingsState.buildings[iVar2].renderAnimation = 0;
+ DAT_BuildingsState.buildings[iVar2].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[iVar2].field20_0x38 = 0;
+ DAT_BuildingsState.buildings[iVar2].field21_0x3c = 0;
+ DAT_BuildingsState.buildings[iVar2].field22_0x40 = 0;
+ DAT_BuildingsState.buildings[iVar2].field23_0x44 = 0;
+ if (local_14 == 0x50) {
+ DAT_BuildingsState.buildings[iVar2].field22_0x40 = 0xb;
+ } else {
+ DAT_BuildingsState.buildings[iVar2].field23_0x44 = 0xc;
+ }
+ DAT_BuildingsState.buildings[iVar2].field33_0x6c = 0;
+ DAT_BuildingsState.buildings[iVar2].field34_0x70 = 0;
+ DAT_BuildingsState.buildings[iVar2].field35_0x74 = 0;
+ DAT_BuildingsState.buildings[iVar2].field36_0x78 = 0;
+ DAT_BuildingsState.buildings[iVar2].field37_0x7c = 0;
+ DAT_BuildingsState.buildings[iVar2].ownerFlagFrame = 0;
+ DAT_BuildingsState.buildings[iVar2].field39_0x84 = 0;
+ local_10[1] = 0;
+ DAT_BuildingsState.buildings[iVar2].field40_0x88 = 0;
+ local_10[0] = 0;
+ local_10[2] = 0;
+ local_10[3] = 0;
+ iVar4 = 5
+ - (DAT_BuildingsState.buildings[iVar2].currentHealth * 5)
+ / (int)DAT_BuildingsState.buildings[iVar2].maxHealth;
+ if (iVar4 < 5) {
+ if (iVar4 == 0)
+ goto LAB_00423e8d;
+ } else {
+ iVar4 = 4;
+ }
+ if (0 < iVar4) {
+ uVar6 = DAT_BuildingsState.buildings[iVar2].fireRelatedRNG1;
+ uVar3 = (int)uVar6 >> 8;
+ do {
+ uVar7 = uVar6 & 0xf;
+ uVar5 = uVar3 & 3;
+ uVar6 = uVar6 + 1;
+ uVar3 = uVar3 + 1;
+ iVar4 = iVar4 + -1;
+ local_10[uVar5] = uVar7 + 1;
+ } while (iVar4 != 0);
+ }
+ if (local_14 == 0x50) {
+ DAT_BuildingsState.buildings[iVar2].field33_0x6c = local_10[0];
+ DAT_BuildingsState.buildings[iVar2].field34_0x70 = local_10[1];
+ DAT_BuildingsState.buildings[iVar2].field35_0x74 = local_10[2];
+ DAT_BuildingsState.buildings[iVar2].field36_0x78 = local_10[3];
+ } else {
+ DAT_BuildingsState.buildings[iVar2].field37_0x7c = local_10[0];
+ DAT_BuildingsState.buildings[iVar2].ownerFlagFrame = local_10[1];
+ DAT_BuildingsState.buildings[iVar2].field39_0x84 = local_10[2];
+ DAT_BuildingsState.buildings[iVar2].field40_0x88 = local_10[3];
+ }
+ LAB_00423e8d:
+ DAT_BuildingsState.buildings[iVar2].field29_0x5c = 0;
+ DAT_BuildingsState.buildings[iVar2].shouldRenderRoof = 0;
+ DAT_BuildingsState.buildings[iVar2].animationIncrement = 1;
+ DAT_BuildingsState.buildings[iVar2].renderAnimation = 1;
+ bVar1 = DAT_BuildingsState.buildings[iVar2].pathLinkageRelated2;
+ if (bVar1 == 0) {
+ if (DAT_BuildingsState.buildings[iVar2].gateState == 10) {
+ DAT_BuildingsState.buildings[iVar2].pathLinkageRelated2 = 1;
+ DAT_BuildingsState.buildings[iVar2].gateState = 0xc;
+ DAT_BuildingsState.buildings[iVar2].animationIndex = 0;
+ return;
+ }
+ } else {
+ if (bVar1 == 2) {
+ if (DAT_BuildingsState.buildings[iVar2].gateState == 0xb) {
+ DAT_BuildingsState.buildings[iVar2].pathLinkageRelated2 = 3;
+ DAT_BuildingsState.buildings[iVar2].gateState = 0xc;
+ DAT_BuildingsState.buildings[iVar2].animationIndex = 0;
+ }
+ if (local_14 != 0x50) {
+ DAT_BuildingsState.buildings[iVar2].shouldRenderRoof = 6;
+ return;
+ }
+ DAT_BuildingsState.buildings[iVar2].field29_0x5c = 0xc;
+ return;
+ }
+ if (bVar1 == 1) {
+ if (DAT_BuildingsState.buildings[iVar2].animationActive != 0) {
+ if (DAT_BuildingsState.buildings[iVar2].animationIndex == 1) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[iVar2].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[iVar2].y)),
+ FX_PC_DROP);
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex
+ == 0x14) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ (int)((
+ int)((short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y)),
+ FX_PC_SLAM);
+ }
+ }
+ iVar2 = DAT_CurrentBuildingID;
+ bVar1 = DAT_BuildingDefinedData.field142_0x6b44
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if ('\0' < (char)bVar1) {
+ if (local_14 != 0x50) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].shouldRenderRoof
+ = (int)(char)bVar1;
+ return;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field29_0x5c
+ = (char)bVar1 + 6;
+ return;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].pathLinkageRelated2 = 2;
+ updatePathLinkageTileMapRelatedToGates(iVar2);
+ if (local_14 != 0x50) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].shouldRenderRoof = 6;
+ return;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field29_0x5c = 0xc;
+ return;
+ }
+ if (bVar1 == 3) {
+ if ((DAT_BuildingsState.buildings[iVar2].animationActive != 0)
+ && (DAT_BuildingsState.buildings[iVar2].animationIndex == 1)) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[iVar2].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[iVar2].y)),
+ FX_PC_LIFT);
+ }
+ iVar2 = DAT_CurrentBuildingID;
+ bVar1 = DAT_BuildingDefinedData.field141_0x6b28
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if ((char)bVar1 < '\x01') {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].pathLinkageRelated2 = 0;
+ updatePathLinkageTileMapRelatedToGates(iVar2);
+ return;
+ }
+ if (local_14 == 0x50) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field29_0x5c
+ = (char)bVar1 + 6;
+ return;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].shouldRenderRoof
+ = (int)(char)bVar1;
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00423cd0", "name": "UpdateGateHouseSmall", "quelle": "ghidra", "p1": {"bereich": "Gebaeude", "zweck": "Takt-Aktualisierung eines kleinen Torhauses: Darstellung, Schadensbilder und Auf-/Zu-Ablauf."}, "p2": {"ein": "- (nutzt DAT_CurrentBuildingID)", "aus": "-", "liest": ["buildings[cur].buildingVariation/currentHealth/maxHealth/fireRelatedRNG1/gateState/pathLinkageRelated2/animationIndex/animationActive", "DAT_TileMapState.mapOrientation", "DAT_BuildingDefinedData.field142_0x6b44[]", "DAT_BuildingDefinedData.field141_0x6b28[]"], "schreibt": ["buildings[cur].someX=x+3, someY=y+2", "buildings[cur].pathLinkageRelated2", "buildings[cur].gateState", "buildings[cur].animationIndex", "Darstellungsfelder field20..field40, field29_0x5c, shouldRenderRoof, renderAnimation, animationIncrement"], "ruft": ["addBuildingInRegistry", "updateGateDrawBridgeOpenCloseLogic", "updatePathLinkageTileMapRelatedToGates", "playSFXAtLocation"], "regeln": ["Bei Kartendrehung 2 oder 6 wird die Variante um 1 erhöht; Werte über 0x51 werden auf 0x50 begrenzt", "Schadensstufe = 5 - (currentHealth*5/maxHealth); ab 5 gilt 4; Stufe 0 (voll heil) setzt keine Schadensbilder", "Je Stufe wird ein Schadensbild mit Wert (fireRelatedRNG1 & 0xf)+1 auf einen von 4 Plätzen gesetzt", "Zustand pathLinkageRelated2 0 (zu): bei gateState 10 wechselt er auf 1 (öffnet), gateState wird 0xc, animationIndex 0", "Zustand 1 (öffnet): Ton FX_PC_DROP bei animationIndex 1, FX_PC_SLAM bei 0x14; ist der Tabellenwert field142_0x6b44[idx] nicht mehr positiv, wechselt er auf 2 und die Wegeverknüpfung wird aktualisiert", "Zustand 2 (offen): bei gateState 0xb wechselt er auf 3, gateState 0xc, animationIndex 0", "Zustand 3 (schließt): Ton FX_PC_LIFT bei animationIndex 1; ist field141_0x6b28[idx] nicht mehr positiv, wechselt er auf 0 und die Wegeverknüpfung wird aktualisiert"], "offen": ["Bedeutung von gateState 10, 11 und 12 (vermutlich: Öffnen angefordert, Schließen angefordert, in Bewegung)", "Die Namen der Zustände von pathLinkageRelated2 sind abgeleitet, nicht belegt"]}, "p3": {"erklaerung": "Steuert, wie sich ein kleines Torhaus öffnet und schließt, und zeigt Schäden an. Die Wege über das Tor werden erst am Ende der Animation freigegeben oder gesperrt.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x00429710 SetupSkirmishBalanceAndOrIntensity | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00429710
+ void Skirmish::SetupSkirmishBalanceAndOrIntensity()
+ {
+ int _index;
+ switch (DAT_GameSynchronyState.skirmishTechLevel) {
+ case 0:
+ DAT_GameSynchronyState.skirmishGameIntensityType = 1;
+ DAT_GameSynchronyState.skirmishGameIntensityType2 = 0;
+ break;
+ case 1:
+ DAT_GameSynchronyState.skirmishGameIntensityType = 1;
+ DAT_GameSynchronyState.skirmishGameIntensityType2 = 1;
+ break;
+ case 2:
+ DAT_GameSynchronyState.skirmishGameIntensityType = 2;
+ DAT_GameSynchronyState.skirmishGameIntensityType2 = 1;
+ break;
+ case 3:
+ DAT_GameSynchronyState.skirmishGameIntensityType = 2;
+ DAT_GameSynchronyState.skirmishGameIntensityType2 = 2;
+ break;
+ case 4:
+ DAT_GameSynchronyState.skirmishGameIntensityType = 3;
+ DAT_GameSynchronyState.skirmishGameIntensityType2 = 3;
+ break;
+ default:
+ goto switchD_00429720_caseD_5;
+ }
+ DAT_GameSynchronyState.skirmishDefaultPopularity = 80;
+ DAT_GameSynchronyState.skirmishUnknownSetting1[0] = 1;
+ DAT_GameSynchronyState.skirmishUnknownSetting1[1] = 1;
+ DAT_GameSynchronyState.skirmishUnknownSetting1[3] = 1;
+ switchD_00429720_caseD_5:
+ if (DAT_GameSynchronyState.skirmishGameIntensityType == 1) {
+ _index = 0;
+ do {
+ DAT_GameSynchronyState.skirmishIntensityRelatedArray[_index]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray[0][DAT_GameSynchronyState.skirmishTechLevel][_index];
+ _index = _index + 1;
+ } while (_index < 0x14);
+ } else if (DAT_GameSynchronyState.skirmishGameIntensityType == 2) {
+ _index = 0;
+ do {
+ DAT_GameSynchronyState.skirmishIntensityRelatedArray[_index]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray[1][DAT_GameSynchronyState.skirmishTechLevel][_index];
+ _index = _index + 1;
+ } while (_index < 0x14);
+ } else if (DAT_GameSynchronyState.skirmishGameIntensityType == 3) {
+ _index = 0;
+ do {
+ DAT_GameSynchronyState.skirmishIntensityRelatedArray[_index]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray[2][DAT_GameSynchronyState.skirmishTechLevel][_index];
+ _index = _index + 1;
+ } while (_index < 20);
+ }
+ switch (DAT_GameSynchronyState.skirmishGameIntensityType2) {
+ case 0:
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[0] = 0;
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[1] = 0;
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[2] = 0;
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[3] = 0;
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[4] = 0;
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[5] = 0;
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[6] = 0;
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[7] = 0;
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[8] = 0;
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[9] = 0;
+ break;
+ case 1:
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[0]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel][0];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[1]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel][1];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[2]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel][2];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[3]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel][3];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[4]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel][4];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[5]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel][5];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[6]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel][6];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[7]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel][7];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[8]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel][8];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[9]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel][9];
+ break;
+ case 2:
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[0]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 5][0];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[1]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 5][1];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[2]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 5][2];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[3]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 5][3];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[4]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 5][4];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[5]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 5][5];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[6]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 5][6];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[7]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 5][7];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[8]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 5][8];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[9]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 5][9];
+ break;
+ case 3:
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[0]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 10][0];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[1]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 10][1];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[2]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 10][2];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[3]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 10][3];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[4]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 10][4];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[5]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 10][5];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[6]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 10][6];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[7]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 10][7];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[8]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 10][8];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[9]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 10][9];
+ }
+ queueCommand(
+ GCT_CHANGE_GAME_INTENSITY_OR_BALANCE);
+ DAT_GameSynchronyState.field235_0x1072e8 = -1;
+ DAT_GameSynchronyState.field236_0x1072ec = -1;
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00429710", "name": "SetupSkirmishBalanceAndOrIntensity", "quelle": "ghidra", "p1": {"bereich": "Spielablauf", "zweck": "Setzt aus der gewählten Gefechts-Stufe (skirmishTechLevel) die Start-Voreinstellungen und meldet sie als Befehl an."}, "p2": {"ein": "-", "aus": "-", "liest": ["DAT_GameSynchronyState.skirmishTechLevel", "skirmishGameIntensityType", "skirmishGameIntensityType2", "DAT_RenderingDefinedData.SkirmishIntensityRelatedArray[3][5][20]", "DAT_RenderingDefinedData.SkirmishIntensityRelatedArray2[15][10]"], "schreibt": ["skirmishGameIntensityType", "skirmishGameIntensityType2", "skirmishDefaultPopularity", "skirmishUnknownSetting1[0,1,3]", "skirmishIntensityRelatedArray[0..19]", "skirmishBalanceRelatedArrayUnk1[0..9]", "field235_0x1072e8", "field236_0x1072ec"], "ruft": ["queueCommand(GCT_CHANGE_GAME_INTENSITY_OR_BALANCE)"], "regeln": ["Stufe 0: Type=1, Type2=0", "Stufe 1: Type=1, Type2=1", "Stufe 2: Type=2, Type2=1", "Stufe 3: Type=2, Type2=2", "Stufe 4: Type=3, Type2=3", "Bei Stufe 0-4 zusätzlich: skirmishDefaultPopularity=80 und skirmishUnknownSetting1[0], [1], [3] = 1", "Andere Stufen: Type/Type2 und Beliebtheit bleiben unverändert", "Type 1/2/3 kopiert 20 Werte (0x14) aus SkirmishIntensityRelatedArray[Type-1][Stufe][0..19] nach skirmishIntensityRelatedArray", "Type2=0: skirmishBalanceRelatedArrayUnk1[0..9] alle 0", "Type2=1/2/3: 10 Werte aus SkirmishIntensityRelatedArray2[Stufe + 0/5/10][0..9]", "Am Ende werden field235_0x1072e8 und field236_0x1072ec auf -1 gesetzt"], "offen": ["Bedeutung der 20 und 10 Tabellenwerte (Startmengen? Balance?)", "Bedeutung von skirmishUnknownSetting1 und field235/236", "Wirkung bei Stufe über 4 (Type bleibt, Tabellenzugriff mit unverändertem Type)"]}, "p3": {"erklaerung": "Die Gefechts-Stufe legt über feste Tabellen fest, wie stark die Startvorteile ausfallen, und setzt dabei die Start-Beliebtheit auf 80. Die Änderung wird als Spielbefehl an alle Teilnehmer gemeldet.", "gehirn": "Nur als Hintergrund für die Gefechts-Startwerte; für laufende Entscheidungen ohne Nutzen.", "beleg": "code", "live": "Die Tabellen SkirmishIntensityRelatedArray und SkirmishIntensityRelatedArray2 einmal aus dem Speicher lesen und mit den Startwerten eines Gefechts vergleichen", "live_art": "tabelle"}}
+
+### 0x0042a8e0 SetAIPlayerNickNames | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0042A8E0
+void Synchrony::SetAIPlayerNickNames()
+{
+ char cVar1;
+ char* pcVar2;
+ char (*pacVar3)[250];
+ GameSynchronyState* piVar4;
+ char (*pacVar4)[250];
+ pacVar4 = DAT_GameSynchronyState.DAT_PlayerNames;
+ piVar4 = (GameSynchronyState*)(&DAT_GameSynchronyState.aiVariationArray + 1);
+ do {
+ pacVar4 = pacVar4 + 1;
+ if ((piVar4->currentPlayerFullIDArray[1] == -1) && (piVar4->currentAIArray[1] != 0)) {
+ switch (piVar4->currentAIArray[1]) {
+ case 1:
+ /*
+ AI Nicknames: rat
+ */
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0x6f);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 2:
+ /*
+ AI Nicknames: snake
+ */
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0x77);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 3:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0x7f);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 4:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0x87);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 5:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0x8f);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 6:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0x97);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 7:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0x9f);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 8:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0xa7);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 9:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0xaf);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 10:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0xb7);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 0xb:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0xbf);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 0xc:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 199);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 0xd:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0xcf);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 0xe:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0xd7);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 0xf:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0xdf);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 0x10:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0xe7);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ }
+ }
+ piVar4 = (GameSynchronyState*)(piVar4->aiVariationArray + 2);
+ } while ((int)piVar4 < 0x191dec4);
+ return;
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0042a8e0", "name": "SetAIPlayerNickNames", "quelle": "ghidra", "p1": {"bereich": "KI", "zweck": "Setzt für jeden KI-Slot den Spielernamen aus dem Textbaustein des KI-Typs."}, "p2": {"ein": "-", "aus": "-", "liest": ["currentPlayerFullIDArray", "currentAIArray", "aiVariationArray", "Textgruppe TEXT_XPLAY_WAITING_ROOM"], "schreibt": ["DAT_GameSynchronyState.DAT_PlayerNames[slot]"], "ruft": ["getTextStringInGroupAtOffset"], "regeln": ["Nur Slots ohne menschlichen Spieler (currentPlayerFullIDArray gleich -1) und mit KI-Typ ungleich 0", "Textnummer = Basis(KI-Typ) + aiVariationArray[slot]", "Basis je KI-Typ 1 bis 16: 0x6f, 0x77, 0x7f, 0x87, 0x8f, 0x97, 0x9f, 0xa7, 0xaf, 0xb7, 0xbf, 0xc7, 0xcf, 0xd7, 0xdf, 0xe7", "Die Basen liegen 8 auseinander: Jeder KI-Typ hat 8 Namens-Varianten", "Typ 1 ist laut Ghidra-Kommentar Ratte, Typ 2 Schlange"], "offen": ["Anzahl durchlaufener Slots (Schleifenende nur als Speicheradresse sichtbar)"]}, "p3": {"erklaerung": "Die bekannten KI-Gegner (Ratte, Schlange und so weiter) bekommen im Mehrspieler und Gefecht ihren Namen aus der Textdatei, je Typ und Variante.", "gehirn": "Zuordnung KI-Typ 1 bis 16 zu den Namen: Basis plus Variante gibt die Textnummer. Damit lässt sich ein Gegner einem Typ zuordnen.", "beleg": "code", "live": "Gefecht mit mehreren KI-Typen starten → aiVariationArray und currentAIArray je Slot lesen → Slot-Name passt zur Textnummer Basis+Variante", "live_art": "tabelle"}}
+
+### 0x0042c1e0 SomeSiegeUnitsComputation | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0042C1E0
+ void Helpers::SomeSiegeUnitsComputation(int param_1)
+ {
+ int iVar1;
+ int iVar2;
+ int iVar3;
+ int iVar4;
+ int iVar5;
+ int iVar6;
+ int (*paaiVar7)[7][3];
+ int iVar8;
+ int iVar9;
+ int iVar10;
+ int iVar11;
+ int iVar12;
+ int iVar13;
+ int* piVar14;
+ int local_18;
+ int* local_14;
+ int local_10[4];
+ iVar2 = DAT_SiegeInformationArray[0x14];
+ iVar1 = DAT_SiegeInformationArray[0x13];
+ iVar9 = DAT_SiegeInformationArray[0x12];
+ iVar11 = DAT_SiegeInformationArray[0x11];
+ iVar12 = DAT_SiegeInformationArray[0x10];
+ iVar6 = 0;
+ iVar13 = DAT_00b960bc;
+ do {
+ iVar8 = iVar6 + 0x74;
+ iVar10 = iVar6 + 0x70;
+ iVar3 = iVar6 + 8;
+ iVar4 = iVar6 + 4;
+ piVar14 = (int*)((int)DAT_SiegeInformationArray_2[1][0] + iVar6);
+ iVar5 = iVar6 + 0x6c;
+ iVar6 = iVar6 + 12;
+ iVar13 = *piVar14 * *(int*)((int)DAT_RenderingDefinedData.NoRushTicks + iVar5) + iVar13
+ + *(int*)((int)DAT_RenderingDefinedData.NoRushTicks + iVar8)
+ * *(int*)((int)DAT_SiegeInformationArray_2[1][0] + iVar3)
+ + *(int*)((int)DAT_RenderingDefinedData.NoRushTicks + iVar10)
+ * *(int*)((int)DAT_SiegeInformationArray_2[1][0] + iVar4);
+ } while (iVar6 < 84);
+ local_10[0] = (DAT_RenderingDefinedData.field1003_0x548dc * iVar13) / 100;
+ local_10[1] = (DAT_RenderingDefinedData.field1004_0x548e0 * iVar13) / 100;
+ local_10[2] = (DAT_RenderingDefinedData.field1005_0x548e4 * iVar13) / 100;
+ local_10[3] = (DAT_RenderingDefinedData.field1006_0x548e8 * iVar13) / 100;
+ INT_00b960b8::instance = DAT_SiegeRemainingPoints;
+ DAT_00b960bc = DAT_SiegeRemainingPoints;
+ INT_00b960c0::instance = DAT_SiegeRemainingPoints;
+ INT_00b960c4::instance = DAT_SiegeRemainingPoints;
+ paaiVar7 = DAT_SiegeInformationArray_2;
+ do {
+ (*paaiVar7)[0][0] = DAT_SiegeInformationArray[0];
+ (*paaiVar7)[0][1] = DAT_SiegeInformationArray[1];
+ (*paaiVar7)[0][2] = DAT_SiegeInformationArray[2];
+ (*paaiVar7)[1][0] = DAT_SiegeInformationArray[3];
+ (*paaiVar7)[1][1] = DAT_SiegeInformationArray[4];
+ (*paaiVar7)[1][2] = DAT_SiegeInformationArray[5];
+ (*paaiVar7)[2][0] = DAT_SiegeInformationArray[6];
+ (*paaiVar7)[2][1] = DAT_SiegeInformationArray[7];
+ (*paaiVar7)[2][2] = DAT_SiegeInformationArray[8];
+ (*paaiVar7)[3][0] = DAT_SiegeInformationArray[9];
+ (*paaiVar7)[3][1] = DAT_SiegeInformationArray[10];
+ (*paaiVar7)[3][2] = DAT_SiegeInformationArray[0xb];
+ (*paaiVar7)[4][0] = DAT_SiegeInformationArray[0xc];
+ (*paaiVar7)[4][1] = DAT_SiegeInformationArray[0xd];
+ (*paaiVar7)[4][2] = DAT_SiegeInformationArray[0xe];
+ (*paaiVar7)[5][0] = DAT_SiegeInformationArray[0xf];
+ (*paaiVar7)[5][1] = iVar12;
+ (*paaiVar7)[5][2] = iVar11;
+ (*paaiVar7)[6][0] = iVar9;
+ (*paaiVar7)[6][1] = iVar1;
+ (*paaiVar7)[6][2] = iVar2;
+ paaiVar7 = paaiVar7 + 1;
+ } while ((int)paaiVar7 < 0xb95ab8);
+ if (param_1 != 1) {
+ iVar11 = DAT_RenderingDefinedData.field1027_0x5493c[param_1 + -0x18];
+ iVar12 = 0;
+ iVar9 = 0;
+ piVar14 = DAT_SiegeInformationArray_2[param_1][0] + 1;
+ do {
+ iVar1 = *(int*)((int)DAT_RenderingDefinedData.NoRushTicks + iVar9 + 0x74);
+ iVar10 = iVar9 + 0xc;
+ *(int*)((int)DAT_SiegeInformationArray_2[1][0] + iVar9)
+ = ((*(int (*)[3])(piVar14 + -1))[0] * 100) / iVar11;
+ *(int*)((int)DAT_SiegeInformationArray_2[1][0] + iVar9 + 4) = (*piVar14 * 100) / iVar11;
+ iVar8 = (piVar14[1] * 100) / iVar11;
+ iVar2 = *(int*)((int)DAT_RenderingDefinedData.NoRushTicks + iVar9 + 0x6c);
+ iVar6 = *(int*)((int)DAT_SiegeInformationArray_2[1][0] + iVar9);
+ *(int*)((int)DAT_SiegeInformationArray_2[1][0] + iVar9 + 8) = iVar8;
+ iVar12 = *(int*)((int)DAT_RenderingDefinedData.NoRushTicks + iVar9 + 0x70)
+ * *(int*)((int)DAT_SiegeInformationArray_2[1][0] + iVar9 + 4)
+ + iVar12 + iVar2 * iVar6 + iVar1 * iVar8;
+ iVar9 = iVar10;
+ piVar14 = piVar14 + 3;
+ } while (iVar10 < 0x54);
+ DAT_00b960bc = iVar13 - iVar12;
+ if (DAT_00b960bc < 0) {
+ DAT_00b960bc = 0;
+ }
+ }
+ local_18 = 0;
+ local_14 = DAT_SiegeInformationArray_2[0][0] + 1;
+ do {
+ if ((local_18 != param_1) && (local_18 != 1)) {
+ iVar12 = DAT_RenderingDefinedData.field1027_0x5493c[local_18 + -0x18];
+ iVar13 = 0;
+ iVar11 = 0;
+ piVar14 = local_14;
+ do {
+ (*(int (*)[3])(piVar14 + -1))[0]
+ = (*(int*)((int)DAT_SiegeInformationArray_2[1][0] + iVar11) * iVar12) / 100;
+ *piVar14 = (*(int*)((int)DAT_SiegeInformationArray_2[1][0] + iVar11 + 4) * iVar12) / 100;
+ iVar9 = *(int*)((int)DAT_RenderingDefinedData.NoRushTicks + iVar11 + 0x6c);
+ iVar1 = (*(int (*)[3])(piVar14 + -1))[0];
+ iVar10 = (*(int*)((int)DAT_SiegeInformationArray_2[1][0] + iVar11 + 8) * iVar12) / 100;
+ iVar2 = *(int*)((int)DAT_RenderingDefinedData.NoRushTicks + iVar11 + 0x70);
+ iVar6 = *piVar14;
+ iVar8 = *(int*)((int)DAT_RenderingDefinedData.NoRushTicks + iVar11 + 0x74);
+ piVar14[1] = iVar10;
+ iVar11 = iVar11 + 0xc;
+ piVar14 = piVar14 + 3;
+ iVar13 = iVar2 * iVar6 + iVar9 * iVar1 + iVar8 * iVar10 + iVar13;
+ } while (iVar11 < 0x54);
+ iVar12 = local_10[local_18];
+ (INT_00b960b8::ptr)[local_18] = iVar12 - iVar13;
+ if (iVar12 - iVar13 < 0) {
+ (INT_00b960b8::ptr)[local_18] = 0;
+ }
+ }
+ local_14 = local_14 + 0x15;
+ local_18 = local_18 + 1;
+ } while ((int)local_14 < 0xb95abc);
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0042c1e0", "name": "SomeSiegeUnitsComputation", "quelle": "ghidra", "p1": {"bereich": "Gebaeude", "zweck": "Rechnet aus einer Grundaufstellung vier prozentual skalierte Aufstellungen samt Restpunkten (Punkte-Budget) aus."}, "p2": {"ein": "param_1 Index des maßgeblichen Eintrags (0 bis 3, 1 ist der Grundeintrag)", "aus": "-", "liest": ["DAT_SiegeInformationArray[0..0x14]", "DAT_SiegeRemainingPoints", "DAT_00b960bc", "DAT_RenderingDefinedData ab Byte 0x6c (21 Gewichte, Feld heißt irreführend NoRushTicks)", "DAT_RenderingDefinedData.field1003 bis 1006 (4 Prozentwerte, 0x548dc bis 0x548e8)", "DAT_SiegeInformationArray_2"], "schreibt": ["DAT_SiegeInformationArray_2 (alle 4 Einträge)", "INT_00b960b8 / b960bc / b960c0 / b960c4 (vier Restpunkte)"], "ruft": [], "regeln": ["Gesamtwert = DAT_00b960bc + Summe über 7 Zeilen mal 3 Spalten von (Eintrag 1 Zahl mal Gewicht) mit den 21 Gewichten ab Byte 0x6c", "Budget je Stufe i (0 bis 3) = Prozent[i] mal Gesamtwert geteilt durch 100 (ganzzahlig, abgerundet)", "Alle vier Einträge werden zuerst mit den 21 Zahlen aus DAT_SiegeInformationArray überschrieben, alle vier Restpunkte mit DAT_SiegeRemainingPoints", "Bei param_1 != 1: Eintrag 1 wird aus Eintrag param_1 zurückgerechnet (Zahl mal 100 durch Prozent[param_1]); Restpunkte Eintrag 1 = Gesamtwert minus neuer gewichteter Summe, mindestens 0", "Alle Einträge außer param_1 und 1 werden als Eintrag 1 mal Prozent[i] durch 100 neu berechnet; Restpunkte = Budget[i] minus gewichtete Summe, mindestens 0", "Bei param_1 == 1 bleibt Eintrag 1 die Grundlage und alle anderen werden skaliert"], "offen": ["Was die 7 Zeilen und 3 Spalten sind (vermutlich Truppenarten und Stufen im Belagerungs-Spielmodus)", "Was die vier Prozentwerte sind (vermutlich Stufen oder Schwierigkeiten)", "Ob die Einträge wirklich genau 4 sind (nur aus der Schleife abgeleitet)"]}, "p3": {"erklaerung": "Rechnet eine Truppenaufstellung in vier Stufen um, wobei jede Stufe einen Prozentsatz des Punkte-Budgets bekommt. Was übrig bleibt, merkt sich das Spiel als Restpunkte.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+

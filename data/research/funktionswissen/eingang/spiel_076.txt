@@ -1,0 +1,1301 @@
+### 0x004d28b0 aiGiveOuterPatrolCommand | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004D28B0
+ void AICState::aiGiveOuterPatrolCommand(int playerID)
+ {
+ int* piVar1;
+ short sVar2;
+ int iVar3;
+ short* psVar4;
+ int _buildingID;
+ int _buildingID2;
+ int _tile;
+ BOOLEnum _canNavigate;
+ int _aicOffset;
+ int _tribeID;
+ int _index;
+ int _count;
+ int _aiType;
+ _aiType = DAT_GameState.playerDataArray[playerID].aiType;
+ if (_aiType != 0) {
+ _aicOffset = (_aiType + -1) * 0x2a4;
+ /*
+ OuterPatrolGroupsCount
+ */
+ _count = *(int*)((int)this + _aicOffset + 0x174);
+ _index = 0;
+ /*
+ OuterPatrolRallyDelay
+ */
+ if (((0 < _count)
+ && (piVar1 = &DAT_GameState.playerDataArray[playerID].outerPatrolRallyDelayTracker,
+ *piVar1 = *piVar1 + 1,
+ *(int*)((int)this + _aicOffset + 0x17c)
+ <= DAT_GameState.playerDataArray[playerID].outerPatrolRallyDelayTracker))
+ && (DAT_GameState.playerDataArray[playerID].outerPatrolRallyDelayTracker = 0, 0 < _count)) {
+ psVar4 = DAT_GameState.playerDataArray[playerID].aiTribeIDs + 0xaa;
+ do {
+ _tribeID = (int)*psVar4;
+ DAT_TribesState.tribes[_tribeID].unitStance
+ = USE_AGGRESSIVE;
+ if (((_tribeID != 0)
+ && (DAT_TribesState.tribes[_tribeID].uid
+ == DAT_GameState.playerDataArray[playerID].aiTribeUIDs[_index + 0xaa]))
+ && ((DAT_TribesState.tribes[_tribeID].percentageMovingUnk < 0xb
+ && ((DAT_TribesState.tribes[_tribeID].percentageShootingUnk < 0xb
+ && (DAT_TribesState.tribes[_tribeID].percentageAttackingUnk < 0xb)))))) {
+ /*
+ OuterPatrolGroupsMove
+ */
+ if ((*(int*)((int)this + _aicOffset + 0x178) == 0)
+ || (_buildingID
+ = getTargetableBuildingForPlayerID(
+ playerID, _index),
+ _buildingID == 0)) {
+ _buildingID2 = selectBuildingFromAListOfBuildingTypes(playerID);
+ if (_buildingID2 == 0)
+ goto LAB_004d2a44;
+ _tile = (int)DAT_BuildingsState.buildings[_buildingID2].buildingEntryX
+ + DAT_ViewportRenderState
+ .translationMatrix[DAT_BuildingsState.buildings[_buildingID2]
+ .buildingEntryY]
+ .addXgetTile;
+ } else {
+ _tile = (int)DAT_BuildingsState.buildings[_buildingID].buildingEntryX
+ + DAT_ViewportRenderState
+ .translationMatrix[DAT_BuildingsState.buildings[_buildingID]
+ .buildingEntryY]
+ .addXgetTile;
+ }
+ if (_tile != 0) {
+ sVar2 = DAT_ViewportRenderState.tileTranslationMatrix_YComponent[_tile];
+ iVar3 = DAT_ViewportRenderState.translationMatrix[sVar2].addXgetTile;
+ _canNavigate
+ = canNavigateUnitsFromTileToTargetTile(_tribeID, _tile);
+ if (_canNavigate == FALSE) {
+ sendUnitsToCampfire(
+ _tribeID, playerID);
+ } else {
+ commandUnitsToLocation(
+ _tribeID, (uint)((int)(_tile - iVar3)), (uint)((int)((int)sVar2)), 0);
+ }
+ }
+ }
+ LAB_004d2a44:
+ _index = _index + 1;
+ psVar4 = psVar4 + 1;
+ } while (_index < _count);
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x004d2a70 aiGiveRaidInstructions | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004D2A70
+ void AICState::aiGiveRaidInstructions(int playerID)
+ {
+ int* piVar1;
+ short sVar2;
+ int iVar3;
+ int _isAlive;
+ int _buildingID_2;
+ int _buildingID;
+ int iVar4;
+ int _buildingTile;
+ BOOLEnum BVar5;
+ int _tribeID3;
+ BOOLEnum _indexTo6;
+ short* _ptrTribeID3;
+ int _aiType;
+ _aiType = DAT_GameState.playerDataArray[playerID].aiType;
+ if (_aiType != 0) {
+ piVar1 = &DAT_GameState.playerDataArray[playerID].raidRetargetDelayCounter;
+ *piVar1 = *piVar1 + 1;
+ /*
+ AIC: RaidRetargetDelay
+ */
+ _indexTo6 = FALSE;
+ if (*(int*)((int)this + (_aiType + -1) * 0x2a4 + 0x1f0)
+ <= DAT_GameState.playerDataArray[playerID].raidRetargetDelayCounter) {
+ DAT_GameState.playerDataArray[playerID].raidRetargetDelayCounter = 0;
+ }
+ if (DAT_GameState.playerDataArray[playerID].totalRaidingTroopsUnk == 0) {
+ DAT_GameState.playerDataArray[playerID].someTotalDefenseTroopsRelatedCountdown = 0;
+ } else {
+ iVar4 = DAT_GameState.playerDataArray[playerID].someTotalDefenseTroopsRelatedCountdown;
+ if (0 < iVar4) {
+ DAT_GameState.playerDataArray[playerID].someTotalDefenseTroopsRelatedCountdown
+ = iVar4 + -1;
+ }
+ }
+ _ptrTribeID3 = DAT_GameState.playerDataArray[playerID].aiTribeIDs + 0xb4;
+ do {
+ _tribeID3 = (int)*_ptrTribeID3;
+ DAT_TribesState.tribes[_tribeID3].unitStance = USE_AGGRESSIVE;
+ if ((_tribeID3 != 0)
+ && (DAT_TribesState.tribes[_tribeID3].uid
+ == DAT_GameState.playerDataArray[playerID].aiTribeUIDs[_indexTo6 + 0xb4])) {
+ if ((DAT_GameState.playerDataArray[playerID].requestStateUnk == 2)
+ && (_isAlive = getAliveLordForPlayer(
+ DAT_GameState.playerDataArray[playerID].playerID_askerUnk),
+ _isAlive != 0)) {
+ if (DAT_GameState.playerDataArray[playerID].raidRetargetDelayCounter == 0) {
+ _buildingID_2 = selectRandomBuildingIDFromListOfBuildingTypes(
+ DAT_GameState.playerDataArray[playerID].playerID_askerUnk,
+ (undefined4)((int)(_indexTo6)));
+ if (_buildingID_2 == 0) {
+ _buildingID = selectBuildingFromAListOfBuildingTypes(playerID);
+ LAB_004d2d6b:
+ if (_buildingID != 0)
+ goto LAB_004d2d6f;
+ } else {
+ LAB_004d2c00:
+ _buildingTile
+ = (int)DAT_BuildingsState.buildings[_buildingID_2].buildingEntryX
+ + DAT_ViewportRenderState
+ .translationMatrix[DAT_BuildingsState.buildings[_buildingID_2]
+ .buildingEntryY]
+ .addXgetTile;
+ LAB_004d2d8d:
+ if (_buildingTile != 0) {
+ sVar2 = DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[_buildingTile];
+ iVar4 = DAT_ViewportRenderState.translationMatrix[sVar2].addXgetTile;
+ BVar5 = canNavigateUnitsFromTileToTargetTile(
+ _tribeID3, _buildingTile);
+ if (BVar5 == FALSE) {
+ sendUnitsToCampfire(
+ _tribeID3, playerID);
+ } else {
+ commandUnitsToLocation(_tribeID3, (uint)((int)(_buildingTile - iVar4)),
+ (uint)((int)((int)sVar2)), 0);
+ }
+ }
+ }
+ }
+ } else if ((DAT_GameState.playerDataArray[playerID].someTotalDefenseTroopsRelatedCountdown
+ == 0)
+ && (iVar4 = getCurrentDesiredAttackRaidUnitCount(_aiType + -1, playerID),
+ DAT_GameState.playerDataArray[playerID].totalRaidingTroopsUnk < iVar4)) {
+ if ((DAT_GameState.playerDataArray[playerID].raidRetargetDelayCounter == 0)
+ && (BVar5 = checkTribeActivityPercentages(_tribeID3, _indexTo6, TRUE),
+ BVar5 == FALSE)) {
+ _buildingID = selectRandomBuildingIDFromListOfBuildingTypes(
+ playerID, (undefined4)((int)(_indexTo6)));
+ if (_buildingID != 0) {
+ LAB_004d2d6f:
+ _buildingTile = (int)DAT_BuildingsState.buildings[_buildingID].buildingEntryX
+ + DAT_ViewportRenderState
+ .translationMatrix[DAT_BuildingsState.buildings[_buildingID]
+ .buildingEntryY]
+ .addXgetTile;
+ goto LAB_004d2d8d;
+ }
+ _buildingID_2 = selectBuildingFromAListOfBuildingTypes(playerID);
+ if (_buildingID_2 != 0)
+ goto LAB_004d2c00;
+ }
+ } else if ((DAT_SkirmishDefinedData.TribeTypeID[_indexTo6] == 0xb6)
+ || (DAT_SkirmishDefinedData.TribeTypeID[_indexTo6] == 0xb5)) {
+ if ((DAT_GameState.playerDataArray[playerID].raidRetargetDelayCounter == 0)
+ && (BVar5 = checkTribeActivityPercentages(_tribeID3, _indexTo6, FALSE),
+ BVar5 == FALSE)) {
+ _buildingID = selectRandomBuildingIDFromListOfBuildingTypes(
+ DAT_GameState.playerDataArray[playerID].attackedPlayerID_2Unk,
+ (undefined4)((int)(_indexTo6)));
+ if (_buildingID == 0) {
+ _buildingID = chooseRandomBuildingIDFromPlayersArrayOfBuildings(DAT_GameState.playerDataArray[playerID].attackedPlayerID_2Unk);
+ goto LAB_004d2d6b;
+ }
+ goto LAB_004d2d6f;
+ }
+ } else {
+ BVar5 = checkTribeActivityPercentages(
+ _tribeID3, _indexTo6, FALSE);
+ if (BVar5 == FALSE) {
+ iVar4 = (int)DAT_TribesState.tribes[_tribeID3].targetBuildingID;
+ if ((((iVar4 == 0)
+ || (DAT_BuildingsState.buildings[iVar4].uid
+ != DAT_TribesState.tribes[_tribeID3].targetBuildingUID))
+ || (DAT_BuildingsState.buildings[iVar4].fireDuration != 0))
+ || (BVar5 = checkTribeActivityPercentages(_tribeID3, _indexTo6, TRUE),
+ BVar5 == FALSE)) {
+ iVar4 = chooseRandomBuildingIDFromPlayersArrayOfBuildings(DAT_GameState.playerDataArray[playerID].attackedPlayerID_2Unk);
+ if (iVar4 == 0) {
+ DAT_TribesState.tribes[_tribeID3].targetBuildingID = 0;
+ DAT_GameState.playerDataArray[playerID]
+ .someTotalDefenseTroopsRelatedCountdown = 0;
+ } else {
+ relayTribeInstruction(_tribeID3, UIT_ATTACK_BUILDING, iVar4,
+ DAT_BuildingsState.buildings[iVar4].uid, 0);
+ iVar3 = DAT_BuildingsState.buildings[iVar4].uid;
+ DAT_TribesState.tribes[_tribeID3].targetBuildingID = (short)iVar4;
+ DAT_TribesState.tribes[_tribeID3].targetBuildingUID = iVar3;
+ DAT_GameState.playerDataArray[playerID]
+ .someTotalDefenseTroopsRelatedCountdown = 100;
+ }
+ } else {
+ if (DAT_GameState.mapAndTime.yearChanged != 0) {
+ DAT_TribesState.tribes[_tribeID3].targetBuildingID = 0;
+ }
+ DAT_GameState.playerDataArray[playerID].someTotalDefenseTroopsRelatedCountdown
+ = 100;
+ }
+ }
+ }
+ }
+ _ptrTribeID3 = _ptrTribeID3 + 1;
+ _indexTo6 = _indexTo6 + TRUE;
+ } while ((int)_indexTo6 < 6);
+ }
+ return;
+ }
+}
+}
+
+### 0x004d2e00 sendTribeToAIVLocationSlot | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004D2E00
+ void AICState::sendTribeToAIVLocationSlot(int tribeID, AIVUnitType aivUnitType, int slotIndex)
+ {
+ int const owner = DAT_TribesState.tribes[tribeID].owner;
+ // Find the slotIndex-th non-empty slot
+ int tile = 0;
+ for (int i = 0; i < 10; i++) {
+ if (DAT_GameState.playerDataArray[owner].aivUnitLocationSlots[aivUnitType][i] == 0) {
+ continue;
+ }
+ slotIndex--;
+ if (slotIndex < 0) {
+ tile = DAT_GameState.playerDataArray[owner].aivUnitLocationSlots[aivUnitType][i];
+ break;
+ }
+ }
+ int const y = DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile];
+ int const x = tile - DAT_ViewportRenderState.translationMatrix[y].addXgetTile;
+ if (canNavigateUnitsFromTileToTargetTile(tribeID, tile)
+ != FALSE) {
+ commandUnitsToLocation(
+ tribeID, x, y, 0);
+ return;
+ }
+ sendUnitsToKeep(tribeID, owner);
+ }
+}
+}
+
+### 0x004d2ec0 computeAttackPossibilities | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004D2EC0
+ void AICState::computeAttackPossibilities(int playerID)
+ {
+ PlayerData* piVar1;
+ piVar1 = &DAT_GameState.playerDataArray[playerID];
+ fillMemory_ByteValue(
+ 80400, '\0', (void*)((int)(DAT_TileMapState.AIInfoLayer)));
+ setAttackPrimeInfo(playerID, piVar1->attackedPlayerID);
+ recomputeTargetedBuildingTilesArray(playerID);
+ recomputeAttackInfo(
+ playerID, piVar1->attackedPlayerID);
+ computeSiegeSpotScores(
+ piVar1->attackedPlayerID, playerID);
+ setScale3(1, playerID);
+ setTown2(1, playerID);
+ setGate2(1, playerID);
+ setWide3(1, playerID);
+ setMoat3(1, playerID);
+ calculateAttackVectorsToCampFireOfPlayer(piVar1->attackedPlayerID);
+ return;
+ }
+}
+}
+
+### 0x004d2f80 moveAttackingUnitsToNextRallyPoint | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004D2F80
+ void AICState::moveAttackingUnitsToNextRallyPoint(int playerID)
+ {
+ if (DAT_GameState.playerDataArray[playerID].aiType == AIT_NULL)
+ return;
+ for (int i = 0; i < 2; i++) {
+ int const tribeID = DAT_GameState.playerDataArray[playerID].aiTribeIDs[190 + i];
+ if (tribeID == 0)
+ continue;
+ if (DAT_TribesState.tribes[tribeID].uid
+ != DAT_GameState.playerDataArray[playerID].aiTribeUIDs[i + 190])
+ continue;
+ DAT_TribesState.tribes[tribeID].unitStance = USE_AGGRESSIVE;
+ if (allUnitsReachedTheirDestination(tribeID)
+ == FALSE)
+ continue;
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ addRallyPointForTribe(tribeID);
+ short const rallyPointCount = DAT_TribesState.tribes[tribeID].rallyPointCount;
+ int rallyPointIndex = DAT_TribesState.tribes[tribeID].currentRallyPointIndex + 1;
+ if (rallyPointIndex >= rallyPointCount)
+ rallyPointIndex = 0;
+ int const x = DAT_TribesState.tribes[tribeID].rallyPointArray[rallyPointIndex][0];
+ int const y = DAT_TribesState.tribes[tribeID].rallyPointArray[rallyPointIndex][1];
+ int const targetUnitID = DAT_TribesState.tribes[tribeID].selectionTargetUnitID;
+ DAT_TribesState.tribes[tribeID].currentRallyPointIndex = rallyPointIndex;
+ if (rallyPointCount <= 0)
+ continue;
+ if (rallyPointCount <= 1) {
+ setAxisBasedDistanceResult(DAT_UnitsState.units[targetUnitID].x,
+ DAT_UnitsState.units[targetUnitID].y, x, y);
+ if (DAT_DirectionAlgorithmState.distanceHigh <= 5)
+ continue;
+ } else {
+ if (DAT_UnitsState.units[targetUnitID].closestEnemyMicroDistance <= 96)
+ continue;
+ }
+ giveTribeMoveInstruction(
+ tribeID, x, y, 0, 0, UMSE_0);
+ }
+ }
+}
+}
+
+### 0x004d30e0 sendUnitsToAttackBreachedCastle | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004D30E0
+ BOOLEnum AICState::sendUnitsToAttackBreachedCastle(int attackingPlayerIndex)
+ {
+ int vector = 0;
+ if (DAT_GameState.playerDataArray[attackingPlayerIndex].aiType == AIT_NULL) {
+ return TRUE;
+ }
+ BOOLEnum sentUnitsToAttackLord = FALSE;
+ int const defendingLordID = getAliveLordForPlayer(DAT_GameState.playerDataArray[attackingPlayerIndex].attackedPlayerID);
+ for (int i = 0; i < 11; i++) {
+ int const tribeType = DAT_SkirmishDefinedData.MaxBreachTribes[i].tribeType;
+ int const tribeCount = DAT_SkirmishDefinedData.MaxBreachTribes[i].tribeCount;
+ if (tribeType == 18 || tribeType == 14 || tribeType == 13) {
+ continue;
+ }
+ for (int j = 0; j < tribeCount; j++) {
+ int const tribeID
+ = DAT_GameState.playerDataArray[attackingPlayerIndex].aiTribeIDs[tribeType + j];
+ if (tribeID == 0) {
+ continue;
+ }
+ if (DAT_TribesState.tribes[tribeID].uid
+ != DAT_GameState.playerDataArray[attackingPlayerIndex].aiTribeUIDs[j + tribeType]) {
+ continue;
+ }
+ int const targetUnitID = (short)DAT_TribesState.tribes[tribeID].selectionTargetUnitID;
+ DAT_TribesState.tribes[tribeID].unitStance = USE_DEFENSIVE;
+ if (sentUnitsToAttackLord != FALSE || defendingLordID == 0 || tribeType == 186) {
+ if (giveSomeRaidCommand(tribeID, tribeType)
+ != 0) {
+ continue;
+ }
+ if (tribeType == 186) {
+ vector += 4;
+ }
+ DAT_TribesState.tribes[tribeID].tribeBehaviorType = STBT_8;
+ DAT_TribesState.tribes[tribeID].unitStance
+ = USE_AGGRESSIVE;
+ int attackedPlayerID
+ = DAT_GameState.playerDataArray[attackingPlayerIndex].attackedPlayerID;
+ setAxisBasedDistanceResult(DAT_UnitsState.units[targetUnitID].x,
+ DAT_UnitsState.units[targetUnitID].y,
+ DAT_GameState.mapAndTime.attackVectors[attackedPlayerID][vector].x,
+ DAT_GameState.mapAndTime.attackVectors[attackedPlayerID][vector].y);
+ if (DAT_DirectionAlgorithmState.distanceHigh > 4) {
+ attackedPlayerID
+ = DAT_GameState.playerDataArray[attackingPlayerIndex].attackedPlayerID;
+ giveTribeMoveInstruction(tribeID,
+ DAT_GameState.mapAndTime.attackVectors[attackedPlayerID][vector].x,
+ DAT_GameState.mapAndTime.attackVectors[attackedPlayerID][vector].y, 0, 0,
+ UMSE_0);
+ }
+ vector += 1;
+ } else {
+ // Send units to attack lord
+ int const lordY = DAT_UnitsState.units[defendingLordID].y;
+ int const lordX = DAT_UnitsState.units[defendingLordID].x;
+ if (giveTribeMoveInstruction(
+ tribeID, lordX, lordY, 0, 0, UMSE_0)
+ == 0) {
+ return FALSE;
+ }
+ sentUnitsToAttackLord = TRUE;
+ }
+ }
+ }
+ return TRUE;
+ }
+}
+}
+
+### 0x004d3320 updateAIStrengthState | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004D3320
+ void AICState::updateAIStrengthState(int playerID, int aiRecruitUnitChoicePreference)
+ {
+ int* piVar1;
+ short* psVar2;
+ int _totalTroopCount;
+ int _aicOffset;
+ int _rng;
+ int _raidUnitCount;
+ BOOLEnum _teamWeak;
+ BOOLEnum _outOfSupplies2;
+ BOOLEnum _teamWeak2;
+ BOOLEnum _outOfSupplies;
+ int _totalRecruitProb;
+ bool bVar3;
+ int _totalDefenseTroops;
+ int _aiType;
+ int _currentPopulation;
+ int _totalFood;
+ int _aiStrengthState;
+ int _aiRecruitUnitChoiceState;
+ int _subtraction;
+ int _aiType_2;
+ int _totalRaidTroops;
+ int _defTotal;
+ int _currentGold_2;
+ int _aiNervousActionsTracker;
+ AINervousDestroyBuildingCategoryInt _cat;
+ int _aiNervousActionsTracker2;
+ int _aiBuildingDestroyActionsTracker;
+ int _currentGold;
+ int _aiTypeMin1;
+ AINervousDestroyBuildingCategory _cat2;
+ int _recruitProbDefensive;
+ int _recruitProbRaid;
+ _aiType = DAT_GameState.playerDataArray[playerID].aiType;
+ /*
+ is human
+ */
+ if (_aiType == 0) {
+ return;
+ }
+ if ((char)aiRecruitUnitChoicePreference == '\0') {
+ if (DAT_GameCore.gameMode_2 != GM_SKIRMISH_AND_MULTIPLAYER) {
+ return;
+ }
+ if (DAT_GameCore.isSkirmishTrail != TRUE) {
+ return;
+ }
+ if (DAT_GameCore.currentTrailType != TT_EXTREME) {
+ return;
+ }
+ }
+ _aiTypeMin1 = _aiType + -1;
+ _currentGold = DAT_GameState.playerDataArray[playerID].currentResources[0xf];
+ DAT_GameState.playerDataArray[playerID].aiStrengthState = 0;
+ /*
+ check if current gold less than 200
+ */
+ if (_currentGold < 200) {
+ DAT_GameState.playerDataArray[playerID].aiStrengthState = 0;
+ } else {
+ /*
+ 2 if currentGold > 1999 else 1
+ */
+ DAT_GameState.playerDataArray[playerID].aiStrengthState = (1999 < _currentGold) + 1;
+ }
+ _currentPopulation = DAT_GameState.playerDataArray[playerID].currentPopulation;
+ if (15 < _currentPopulation) {
+ /*
+ if currentPopulation more than 14
+ */
+ if (_currentPopulation < 40) {
+ piVar1 = &DAT_GameState.playerDataArray[playerID].aiStrengthState;
+ /*
+ if currentPopulation less than 40
+ */
+ *piVar1 = *piVar1 + 1;
+ } else {
+ piVar1 = &DAT_GameState.playerDataArray[playerID].aiStrengthState;
+ /*
+ if current Population more than 40
+ */
+ *piVar1 = *piVar1 + 2;
+ }
+ }
+ /*
+ check if total food higher than 20
+ */
+ _totalFood = DAT_GameState.playerDataArray[playerID].totalFood;
+ if (20 < _totalFood) {
+ if (_totalFood < 200) {
+ piVar1 = &DAT_GameState.playerDataArray[playerID].aiStrengthState;
+ *piVar1 = *piVar1 + 1;
+ } else {
+ piVar1 = &DAT_GameState.playerDataArray[playerID].aiStrengthState;
+ *piVar1 = *piVar1 + 2;
+ }
+ }
+ _totalTroopCount = DAT_GameState.playerDataArray[playerID].totalAttackTroops
+ + DAT_GameState.playerDataArray[playerID].totalRaidingTroopsUnk
+ + DAT_GameState.playerDataArray[playerID].totalDefensiveTroopsUnk;
+ /*
+ check if troop strength above 7
+ */
+ if (7 < _totalTroopCount) {
+ /*
+ check if troop strength smaller than 40
+ */
+ if (_totalTroopCount < 40) {
+ piVar1 = &DAT_GameState.playerDataArray[playerID].aiStrengthState;
+ *piVar1 = *piVar1 + 2;
+ } else {
+ piVar1 = &DAT_GameState.playerDataArray[playerID].aiStrengthState;
+ *piVar1 = *piVar1 + 4;
+ }
+ }
+ _aiStrengthState = DAT_GameState.playerDataArray[playerID].aiStrengthState;
+ if (_aiStrengthState < 3) {
+ DAT_GameState.playerDataArray[playerID].aiStrengthFeeling = AIST_WEAK;
+ } else if (_aiStrengthState < 8) {
+ DAT_GameState.playerDataArray[playerID].aiStrengthFeeling = AIST_DEFAULT;
+ } else {
+ DAT_GameState.playerDataArray[playerID].aiStrengthFeeling = AIST_STRONG;
+ }
+ if ((DAT_GameState.playerDataArray[playerID].aivCurrentPauseIndex == 1)
+ && (0 < DAT_GameState.playerDataArray[playerID].aivPauses[1])) {
+ /*
+ if pausing at first pause
+ */
+ DAT_GameState.playerDataArray[playerID].aiStrengthFeeling = AIST_WEAK;
+ }
+ /*
+ add the aiStrengthFeeling to (aiType * 169). The AI Personality struct is a 169*4 long element of an array
+ of 16 elements (all ai types, maybe more?)
+ */
+ _aicOffset = DAT_GameState.playerDataArray[playerID].aiStrengthFeeling + _aiTypeMin1 * 169;
+ /*
+ fetch RecruitProbRaid<Strength> for current aiType
+ */
+ _recruitProbRaid = *(int*)((int)this + _aicOffset * 4 + 0x134);
+ /*
+ fetch RecruitProbDefensive<Strength>
+ */
+ _recruitProbDefensive = *(int*)((int)this + _aicOffset * 4 + 0x128);
+ /*
+ add RecruitProbAttack<Strength> to the other two probs
+ */
+ _totalRecruitProb = *(int*)((int)this + _aicOffset * 4 + 0x140) + _recruitProbRaid + _recruitProbDefensive;
+ /*
+ check if recruitProb = 0
+ */
+ if (_totalRecruitProb == 0) {
+ _aiRecruitUnitChoiceState = aiRecruitUnitChoicePreference;
+ if (aiRecruitUnitChoicePreference == 1) {
+ LAB_004d34e9:
+ _raidUnitCount = getCurrentDesiredAttackRaidUnitCount(_aiTypeMin1, playerID);
+ _totalDefenseTroops = DAT_GameState.playerDataArray[playerID].totalRaidingTroopsUnk;
+ bVar3 = (_totalDefenseTroops < _raidUnitCount);
+ _subtraction = _totalDefenseTroops - _raidUnitCount;
+ goto LAB_004d3515;
+ }
+ if (aiRecruitUnitChoicePreference == 0)
+ goto LAB_004d3502;
+ } else {
+ _rng = (int)SEC_RNG::instance.currentNumber2;
+ nextRandomNumber2();
+ /*
+ if DAT_01fe7da8 < 4800
+ */
+ if ((int)DAT_GameCore.mapTimeInTicks < 4800) {
+ _aiRecruitUnitChoiceState = AIRUC_DEFENSIVE;
+ LAB_004d3502:
+ _totalRaidTroops = DAT_GameState.playerDataArray[playerID].totalDefensiveTroopsUnk;
+ /*
+ true if param1 > param0
+ */
+ _defTotal = *(int*)((int)this + _aiTypeMin1 * 676 + 0x170);
+ bVar3 = (_totalRaidTroops < _defTotal);
+ _subtraction = _totalRaidTroops - _defTotal;
+ LAB_004d3515:
+ if (bVar3 != _subtraction < 0)
+ goto LAB_004d351c;
+ } else {
+ /*
+ if RecruitProbDefensive > RandomizedRecruitProb
+ */
+ if (_rng % _totalRecruitProb < _recruitProbDefensive) {
+ _aiRecruitUnitChoiceState = AIRUC_DEFENSIVE;
+ goto LAB_004d3502;
+ }
+ if (_rng % _totalRecruitProb < _recruitProbRaid + _recruitProbDefensive) {
+ _aiRecruitUnitChoiceState = AIRUC_RAIDING;
+ goto LAB_004d34e9;
+ }
+ }
+ _aiRecruitUnitChoiceState = AIRUC_ATTACKING;
+ }
+ LAB_004d351c:
+ if (DAT_GameState.playerDataArray[playerID].aiRecruitUnitChoiceState != _aiRecruitUnitChoiceState) {
+ DAT_GameState.playerDataArray[playerID].aiRecruitUnitChoiceState = _aiRecruitUnitChoiceState;
+ }
+ if ((char)aiRecruitUnitChoicePreference == '\0') {
+ return;
+ }
+ if (0 < DAT_GameState.playerDataArray[playerID].aiNervousActionsTracker) {
+ _teamWeak = teamIsWeakRelativeToEnemy(playerID, TRUE);
+ if (_teamWeak == FALSE) {
+ DAT_GameState.playerDataArray[playerID].aiNervousActionsTracker = 0;
+ return;
+ }
+ _currentGold_2 = DAT_GameState.playerDataArray[playerID].currentResources[0xf];
+ DAT_GameState.playerDataArray[playerID].aiStrengthFeeling = AIST_WEAK;
+ DAT_GameState.playerDataArray[playerID].aiRecruitUnitChoiceState = AIRUC_DEFENSIVE;
+ /*
+ if gold <= 500
+ */
+ if (_currentGold_2 < 500) {
+ _aiNervousActionsTracker = DAT_GameState.playerDataArray[playerID].aiNervousActionsTracker;
+ if (_aiNervousActionsTracker < 8) {
+ /*
+ destroy a good or bad thing
+ */
+ destroyAnyBuildingInCategory(
+ playerID, AINDBC_FEAR_FACTOR_BUILDINGS);
+ _cat = AINDBC_WORKSHOPS_AND_RELIGIOUS_BUILDINGS;
+ } else {
+ if (5 < _aiNervousActionsTracker)
+ goto LAB_004d35fb;
+ /*
+ fixme: does this line ever happen?
+ */
+ _cat = AINDBC_RESOURCE_BUILDINGS;
+ }
+ /*
+ destroy a workshop (2) or a resource building (iron mine... bakery) (6)
+ */
+ destroyAnyBuildingInCategory(
+ playerID, (AINervousDestroyBuildingCategory)((int)(_cat)));
+ } else {
+ /*
+ if gold > 2500 and...
+ */
+ if (((2500 < _currentGold_2)
+ && (psVar2 = &DAT_GameState.playerDataArray[playerID].aiStateCounter,
+ *psVar2 = *psVar2 + 1,
+ (DAT_GameState.playerDataArray[playerID].aiStateCounter & 1U) != 0))
+ && (DAT_GameState.playerDataArray[playerID].relativeStrengthOfTeamComparedToEnemy < 20)) {
+ shareGoldAmongTeamMembers(
+ playerID, _currentGold_2 / 10);
+ }
+ }
+ LAB_004d35fb:
+ _aiNervousActionsTracker2 = DAT_GameState.playerDataArray[playerID].aiNervousActionsTracker;
+ if (_aiNervousActionsTracker2 < 2) {
+ return;
+ }
+ DAT_GameState.playerDataArray[playerID].aiNervousActionsTracker = _aiNervousActionsTracker2 + -1;
+ return;
+ }
+ /*
+ ********************************************************* * From here on we process logic for destroying
+ * buildings *********************************************************
+ */
+ _aiBuildingDestroyActionsTracker
+ = DAT_GameState.playerDataArray[playerID].aiBuildingDestroyChoiceTracker;
+ if (_aiBuildingDestroyActionsTracker < 1) {
+ _teamWeak2
+ = teamIsWeakRelativeToEnemy(playerID, FALSE);
+ if (_teamWeak2 != FALSE) {
+ playNervous2BikFromPlayer(playerID);
+ DAT_GameState.playerDataArray[playerID].aiNervousActionsTracker = 8;
+ DAT_GameState.playerDataArray[playerID].aiStateCounter = 0;
+ return;
+ }
+ _outOfSupplies = hasNotEnoughSupplies(playerID);
+ if (_outOfSupplies == FALSE) {
+ return;
+ }
+ DAT_GameState.playerDataArray[playerID].aiBuildingDestroyChoiceTracker = 8;
+ return;
+ }
+ _outOfSupplies2 = hasNotEnoughSupplies(playerID);
+ if (_outOfSupplies2 == FALSE) {
+ DAT_GameState.playerDataArray[playerID].aiBuildingDestroyChoiceTracker = 0;
+ return;
+ }
+ DAT_GameState.playerDataArray[playerID].resourcesToAcquireArray[2] = 20;
+ DAT_GameState.playerDataArray[playerID].aiStrengthFeeling = AIST_WEAK;
+ DAT_GameState.playerDataArray[playerID].aiRecruitUnitChoiceState = AIRUC_DEFENSIVE;
+ if (_aiBuildingDestroyActionsTracker == 8) {
+ _cat2 = AINDBC_FEAR_FACTOR_BUILDINGS;
+ } else {
+ if (_aiBuildingDestroyActionsTracker == 7) {
+ destroyAnyBuildingInCategory(
+ playerID, AINDBC_WORKSHOPS_AND_RELIGIOUS_BUILDINGS);
+ piVar1 = &DAT_GameState.playerDataArray[playerID].aiBuildingDestroyChoiceTracker;
+ *piVar1 = *piVar1 + -1;
+ return;
+ }
+ if (_aiBuildingDestroyActionsTracker == 6) {
+ destroyAnyBuildingInCategory(
+ playerID, AINDBC_GATEHOUSES_TOWERS_GUILDS);
+ destroyAnyBuildingInCategory(
+ playerID, AINDBC_BARRACKS_MERCPOST_STABLES);
+ destroyAnyBuildingInCategory(
+ playerID, AINDBC_WATER_BUILDINGS);
+ piVar1 = &DAT_GameState.playerDataArray[playerID].aiBuildingDestroyChoiceTracker;
+ *piVar1 = *piVar1 + -1;
+ return;
+ }
+ if (_aiBuildingDestroyActionsTracker == 5) {
+ destroyAnyBuildingInCategory(
+ playerID, AINDBC_RESOURCE_BUILDINGS);
+ piVar1 = &DAT_GameState.playerDataArray[playerID].aiBuildingDestroyChoiceTracker;
+ *piVar1 = *piVar1 + -1;
+ return;
+ }
+ if (_aiBuildingDestroyActionsTracker != 4)
+ goto LAB_004d3707;
+ _cat2 = AINDBC_FARMS;
+ }
+ destroyAnyBuildingInCategory(playerID, _cat2);
+ LAB_004d3707:
+ piVar1 = &DAT_GameState.playerDataArray[playerID].aiBuildingDestroyChoiceTracker;
+ *piVar1 = *piVar1 + -1;
+ return;
+ }
+}
+}
+
+### 0x004d3780 computeNervousness | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004D3780
+ void AICState::computeNervousness(int playerID)
+ {
+ int const troopValueNearKeep
+ = DAT_TroopValueState.attackInfo.playerTotalTroopValueOfTroopsNearKeep[playerID];
+ int const enemyTroopValue = DAT_GameState.playerDataArray[playerID].totalEnemyTroopValue;
+ BOOLEnum isNotNervous = TRUE;
+ int margin;
+ if (enemyTroopValue < 50)
+ margin = -20;
+ else if (enemyTroopValue < 100)
+ margin = 0;
+ else if (enemyTroopValue < 200)
+ margin = 20;
+ else if (enemyTroopValue < 400)
+ margin = 100;
+ else if (enemyTroopValue < 600)
+ margin = 200;
+ else if (enemyTroopValue < 800)
+ margin = 300;
+ else
+ margin = 500;
+ if (troopValueNearKeep > enemyTroopValue + margin) {
+ isNotNervous = FALSE;
+ } else if (!DAT_GameState.playerDataArray[playerID].isNotNervousByEnemyTroopValue) {
+ if (DAT_GameState.playerDataArray[playerID]
+ .totalEnemyTroopValueByPlayerID[DAT_GameSynchronyState.currentPlayerSlotID]
+ > troopValueNearKeep)
+ playNervous1BikFromPlayer(playerID);
+ playRequestHelpBikFromPlayer(playerID);
+ }
+ DAT_GameState.playerDataArray[playerID].isNotNervousByEnemyTroopValue = isNotNervous;
+ }
+}
+}
+
+### 0x004d3850 determineAIPlayerHelp | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004D3850
+ BOOLEnum AICState::determineAIPlayerHelp(int playerID, int requestedByPlayerID)
+ {
+ if (DAT_GameState.playerDataArray[playerID].aiType == AIT_NULL)
+ return FALSE;
+ int const aicIndex = DAT_GameState.playerDataArray[playerID].aiType - 1;
+ if (DAT_GameState.playerDataArray[playerID].isNotNervousByEnemyTroopValue) {
+ playWillNotHelp1BikFromPlayerToPlayer(
+ playerID, requestedByPlayerID);
+ return FALSE;
+ }
+ if (DAT_GameState.playerDataArray[playerID].totalAttackTroops
+ < this->aics[aicIndex].AttForceSupportAllyThreshold) {
+ playWillNotHelp2BikFromPlayerToPlayer(
+ playerID, requestedByPlayerID);
+ return FALSE;
+ }
+ playWillHelpBikFromPlayerToPlayer(playerID, requestedByPlayerID);
+ return TRUE;
+ }
+}
+}
+
+### 0x004d38c0 determineAIPlayerAttackRequestResponse | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004D38C0
+ BOOLEnum AICState::determineAIPlayerAttackRequestResponse(
+ int playerID, undefined4 targetPlayerID, int requestedByPlayerID)
+ {
+ if (DAT_GameState.playerDataArray[playerID].aiType == AIT_NULL)
+ return FALSE;
+ int const aicIndex = DAT_GameState.playerDataArray[playerID].aiType - 1;
+ if (DAT_GameState.playerDataArray[playerID].isNotNervousByEnemyTroopValue) {
+ playWillNotAttack1BikFromPlayerToPlayer(
+ playerID, requestedByPlayerID);
+ return FALSE;
+ }
+ if (DAT_GameState.playerDataArray[playerID].totalAttackTroops
+ - DAT_GameState.playerDataArray[playerID].totalAttackingEngineerTroops
+ < this->aics[aicIndex].AttForceSupportAllyThreshold) {
+ playWillNotAttack2BikFromPlayerToPlayer(
+ playerID, requestedByPlayerID);
+ return FALSE;
+ }
+ playWillAttackBikFromPlayerToPlayer(playerID, requestedByPlayerID);
+ return TRUE;
+ }
+}
+}
+
+### 0x004d3940 Constructor_AICState | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004D3940
+ AICState* AICState::Constructor_AICState()
+ {
+ setInitialAIC();
+ this->aiTauntResponseTimeWindow = 0;
+ return this;
+ }
+}
+}
+
+### 0x004d3960 makeOutpostTribesAttack | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004D3960
+ void AICState::makeOutpostTribesAttack()
+ {
+ for (int i = 0; i < 1000; i++) {
+ int const tribeID = this->tribeIDArray[i];
+ if (tribeID == 0)
+ continue;
+ if (DAT_TribesState.tribes[tribeID].uid != this->tribeUIDArray[i])
+ continue;
+ decideOnTribeAttackLocation(tribeID);
+ }
+ }
+}
+}
+
+### 0x004d39b0 buyRequiredGoods | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004D39B0
+ void AICState::buyRequiredGoods(int param_1)
+ {
+ AITypeInt AVar1;
+ int amount;
+ int playerID;
+ int iVar2;
+ BOOLEnum BVar3;
+ ResourceTypeInt resourceType;
+ playerID = param_1;
+ /*
+ buying
+ */
+ AVar1 = DAT_GameState.playerDataArray[param_1].aiType;
+ if (AVar1 == AIT_NULL) {
+ return;
+ }
+ /*
+ reused! playerID now means a counter
+ */
+ param_1 = 0;
+ do {
+ resourceType = DAT_SkirmishDefinedData.ResourceAcquisitionPreferenceOrder[param_1];
+ /*
+ If nervous, only buy from entry 12 onwards, which are weapons
+ */
+ if ((DAT_GameState.playerDataArray[playerID].aiNervousActionsTracker < 1) || (12 < param_1)) {
+ if ((DAT_GameState.playerDataArray[playerID].aiBuildingDestroyChoiceTracker != 0)
+ && (DAT_GameState.playerDataArray[playerID].currentResources[2] < 20)) {
+ /*
+ if short on wood, buy wood!
+ */
+ resourceType = RT_WOOD;
+ }
+ amount = DAT_GameState.playerDataArray[playerID].resourcesToAcquireArray[resourceType];
+ if ((amount != 0)
+ && ((((param_1 < 4
+ && (DAT_GameState.playerDataArray[playerID].popularity
+ < *(int*)((int)this + (AVar1 + ~AIT_NULL) * 0x2a4 + 0x18)))
+ || (0 < DAT_GameState.playerDataArray[playerID].aiNervousActionsTracker))
+ || (DAT_GameState.playerDataArray[playerID].canStartSpending != 0)))) {
+ iVar2 = getBuyPrice(
+ playerID, resourceType, amount);
+ if (DAT_GameState.playerDataArray[playerID].currentResources[0xf] < iVar2) {
+ requestGoods(
+ playerID, (ResourceType)((int)(resourceType)), amount * 2);
+ } else {
+ BVar3 = buyGoods(
+ playerID, (ResourceType)((int)(resourceType)), amount);
+ if (BVar3 != FALSE) {
+ DAT_GameState.playerDataArray[playerID].resourcesToAcquireArray[resourceType] = 0;
+ return;
+ }
+ }
+ }
+ }
+ param_1 = param_1 + 1;
+ } while (param_1 < 25);
+ return;
+ }
+}
+}
+
+### 0x004d3ae0 aiRecruitUnits | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004D3AE0
+ void AICState::aiRecruitUnits(int playerID)
+ {
+ int* piVar1;
+ AIRecruitUnitChoiceInt AVar2;
+ bool bVar3;
+ int iVar4;
+ int iVar5;
+ int _tribeID_defDiggingUnitMax;
+ int _unitID;
+ UnitType _unitType;
+ int iVar6;
+ AICState* _pAICState;
+ int local_8;
+ int _aicRecruitInterval;
+ int _nervousActionTracker;
+ int _buildingID;
+ int _unitChoiceIndex;
+ AIRecruitUnitChoiceInt _unitTypeChoice;
+ int _defTotal;
+ AITypeInt _aiType;
+ int _playerID2;
+ bool _recruitDefDiggingUnit;
+ _playerID2 = playerID;
+ _aiType = DAT_GameState.playerDataArray[playerID].aiType;
+ _unitType = ((UnitType)0);
+ _pAICState = this;
+ if (_aiType != AIT_NULL) {
+ bVar3 = false;
+ _recruitDefDiggingUnit = false;
+ iVar6 = _aiType + ~AIT_NULL;
+ if (((DAT_GameCore.gameMode_2 == GM_SKIRMISH_AND_MULTIPLAYER)
+ && (DAT_GameCore.isSkirmishTrail == TRUE))
+ && (DAT_GameCore.currentTrailType == TT_EXTREME)) {
+ bVar3 = true;
+ }
+ iVar4 = iVar6 * 0xa9;
+ _aicRecruitInterval = *(int*)((int)this
+ + (DAT_GameState.playerDataArray[playerID].aiStrengthFeeling + iVar4) * 4 + 0x164);
+ local_8 = -(uint)(_aicRecruitInterval != 0) + 2;
+ if (bVar3) {
+ local_8 = -(uint)(_aicRecruitInterval != 0) + 3;
+ }
+ _nervousActionTracker = DAT_GameState.playerDataArray[playerID].aiNervousActionsTracker;
+ if (_nervousActionTracker < 1) {
+ piVar1 = &DAT_GameState.playerDataArray[playerID].aiRecruitIntervalTracker;
+ *piVar1 = *piVar1 + 1;
+ if (DAT_GameState.playerDataArray[playerID].aiRecruitIntervalTracker < _aicRecruitInterval) {
+ return;
+ }
+ } else {
+ local_8 = 4;
+ }
+ iVar5 = DAT_GameState.playerDataArray[playerID].idlePeasantsCount;
+ DAT_GameState.playerDataArray[playerID].aiRecruitIntervalTracker = 0;
+ if ((0 < iVar5) && (DAT_GameState.playerDataArray[playerID].canStartSpending != 0)) {
+ AVar2 = DAT_GameState.playerDataArray[playerID].aiRecruitUnitChoiceState;
+ if (AVar2 == AIRUC_DEFENSIVE) {
+ _defTotal = *(int*)((int)this + iVar6 * 0x2a4 + 0x170);
+ if (bVar3) {
+ _defTotal = (_defTotal * 4) / 3;
+ }
+ if (0 < _nervousActionTracker) {
+ _defTotal = _defTotal * 4;
+ }
+ if (_defTotal <= DAT_GameState.playerDataArray[playerID].totalDefensiveTroopsUnk) {
+ return;
+ }
+ } else if (AVar2 == AIRUC_RAIDING) {
+ iVar5 = getCurrentDesiredAttackRaidUnitCount(
+ iVar6, playerID);
+ if (iVar5 <= DAT_GameState.playerDataArray[playerID].totalRaidingTroopsUnk) {
+ return;
+ }
+ } else if ((AVar2 == AIRUC_ATTACKING)
+ && (DAT_GameState.playerDataArray[playerID].aiPlayerState != 0)) {
+ return;
+ }
+ iVar6 = iVar6 * 0x2a4;
+ /*
+ DefDiggingUnitMax
+ */
+ /*
+ DefDiggingUnitMax
+ */
+ if (((*(int*)((int)this + iVar6 + 0x15c) != 0)
+ && (iVar5
+ = countUnfinishedMoatTilesForPlayer(playerID),
+ iVar5 != 0))
+ && ((_tribeID_defDiggingUnitMax
+ = (int)DAT_GameState.playerDataArray[playerID].aiTribeIDs[10],
+ _tribeID_defDiggingUnitMax == 0
+ || ((DAT_GameState.playerDataArray[playerID].aiTribeUIDs[10]
+ != DAT_TribesState.tribes[_tribeID_defDiggingUnitMax].uid
+ || ((int)DAT_TribesState.tribes[_tribeID_defDiggingUnitMax].size
+ < *(int*)((int)this + iVar6 + 0x15c))))))) {
+ _recruitDefDiggingUnit = true;
+ }
+ playerID = 0;
+ if (0 < local_8) {
+ do {
+ if (_recruitDefDiggingUnit) {
+ if (((byte)SEC_RNG::instance.currentNumber2 & 1) != 0) {
+ _recruitDefDiggingUnit = false;
+ goto LAB_004d3cc1;
+ }
+ if (DAT_GameState.playerDataArray[_playerID2].barracks.id == 0) {
+ if (DAT_GameState.playerDataArray[_playerID2].mercenaryPost.id == 0) {
+ return;
+ }
+ /*
+ DefDiggingUnit
+ */
+ _unitType = *(UnitType*)((int)this + iVar6 + 0x160);
+ } else {
+ /*
+ DefDiggingUnit
+ */
+ _unitType = *(UnitType*)((int)this + iVar6 + 0x160);
+ }
+ } else {
+ LAB_004d3cc1:
+ _unitTypeChoice
+ = DAT_GameState.playerDataArray[_playerID2].aiRecruitUnitChoiceState;
+ if (_unitTypeChoice == AIRUC_DEFENSIVE) {
+ if (7 < DAT_GameState.playerDataArray[_playerID2].aiDefUnitChoiceIndex) {
+ DAT_GameState.playerDataArray[_playerID2].aiDefUnitChoiceIndex = 0;
+ }
+ /*
+ DefUnit 1 up to 8
+ */
+ if (*(int*)((int)this
+ + (DAT_GameState.playerDataArray[_playerID2].aiDefUnitChoiceIndex
+ + iVar4)
+ * 4
+ + 0x184)
+ == 0) {
+ DAT_GameState.playerDataArray[_playerID2].aiDefUnitChoiceIndex = 0;
+ }
+ _unitChoiceIndex
+ = DAT_GameState.playerDataArray[_playerID2].aiDefUnitChoiceIndex;
+ /*
+ DefUnit 1 up to 8
+ */
+ _unitType = *(UnitType*)((int)this + (iVar4 + _unitChoiceIndex) * 4 + 0x184);
+ DAT_GameState.playerDataArray[_playerID2].aiDefUnitChoiceIndex
+ = _unitChoiceIndex + 1;
+ } else if (_unitTypeChoice == AIRUC_RAIDING) {
+ if (7 < DAT_GameState.playerDataArray[_playerID2].aiRaidUnitChoiceIndex) {
+ DAT_GameState.playerDataArray[_playerID2].aiRaidUnitChoiceIndex = 0;
+ }
+ if (*(int*)((int)this
+ + (DAT_GameState.playerDataArray[_playerID2].aiRaidUnitChoiceIndex
+ + iVar4)
+ * 4
+ + 0x1ac)
+ == 0) {
+ DAT_GameState.playerDataArray[_playerID2].aiRaidUnitChoiceIndex = 0;
+ }
+ iVar5 = DAT_GameState.playerDataArray[_playerID2].aiRaidUnitChoiceIndex;
+ _unitType = *(UnitType*)((int)this + (iVar4 + iVar5) * 4 + 0x1ac);
+ DAT_GameState.playerDataArray[_playerID2].aiRaidUnitChoiceIndex = iVar5 + 1;
+ } else if (_unitTypeChoice == AIRUC_ATTACKING) {
+ _pAICState = (AICState*)randomlySelectAttackUnitTypeToRecruit(
+ _playerID2);
+ _unitType
+ = getUnitTypeForUnitBehaviourType(_playerID2, (AIUnitBehaviourType)((int)(_pAICState)));
+ }
+ }
+ if (_unitType == ((UnitType)0)) {
+ return;
+ }
+ if (_unitType == UT_E_ENGINEER) {
+ _buildingID = DAT_GameState.playerDataArray[_playerID2].engineersGuild.id;
+ } else if (_unitType == UT_E_LADDER) {
+ _buildingID = DAT_GameState.playerDataArray[_playerID2].engineersGuild.id;
+ } else if (_unitType == UT_TUNNELER) {
+ _buildingID = DAT_GameState.playerDataArray[_playerID2].tunnelersGuild.id;
+ } else if (_unitType == UT_E_MONK) {
+ _buildingID = findFirstBuildingIDForPlayerAndType(_playerID2, BT_CATHEDRAL);
+ } else if ((int)_unitType < 0x46) {
+ _buildingID = DAT_GameState.playerDataArray[_playerID2].barracks.id;
+ } else {
+ _buildingID = DAT_GameState.playerDataArray[_playerID2].mercenaryPost.id;
+ }
+ if (_buildingID == 0) {
+ return;
+ }
+ if ((((_unitType == UT_E_ENGINEER)
+ || (_unitType == UT_E_LADDER))
+ || (_unitType == UT_TUNNELER))
+ || ((_unitType == UT_E_MONK || (0x45 < (int)_unitType)))) {
+ _unitID = nonEuroRecruit(_unitType, (undefined4)((int)(_buildingID)), _playerID2, 0);
+ } else {
+ _unitID = euroRecruit(_unitType, (undefined4)((int)(_buildingID)), _playerID2, 0);
+ }
+ if (_unitID == 0) {
+ /*
+ tradeAmountEquipment
+ */
+ iVar6 = *(int*)((int)this + iVar6 + 0x9c);
+ if (iVar6 < 1) {
+ return;
+ }
+ if (DAT_UnitsState.euroUnitAcquisitionFailReason != 2) {
+ return;
+ }
+ if (DAT_GameState.playerDataArray[_playerID2].aiNervousActionsTracker < 1) {
+ DAT_GameState.playerDataArray[_playerID2]
+ .resourcesToAcquireArray[DAT_UnitsState.euroUnitRequiredResource] = iVar6;
+ return;
+ }
+ DAT_GameState.playerDataArray[_playerID2]
+ .resourcesToAcquireArray[DAT_UnitsState.euroUnitRequiredResource] = 5;
+ return;
+ }
+ if (_recruitDefDiggingUnit) {
+ /*
+ digging units?
+ */
+ aiAddUnitToMoatDiggerTribe(_unitID);
+ } else {
+ AVar2 = DAT_GameState.playerDataArray[_playerID2].aiRecruitUnitChoiceState;
+ /*
+ 0 = defensive, 1 = raid, 2 = army
+ */
+ if (AVar2 == AIRUC_DEFENSIVE) {
+ if (DAT_GameState.playerDataArray[_playerID2].totalDefensiveTroopsUnk
+ < *(int*)((int)this + iVar6 + 0x180)) {
+ assignUnitToATribe(_unitID);
+ } else {
+ addUnitToSmallestPatrolTribe(
+ _unitID);
+ }
+ } else if (AVar2 == AIRUC_RAIDING) {
+ aiAssignUnitToDefensiveTribe(
+ _unitID);
+ } else if (AVar2 == AIRUC_ATTACKING) {
+ addUnitToItsTribe(
+ _unitID, _pAICState);
+ }
+ }
+ playerID = playerID + 1;
+ if (local_8 <= playerID) {
+ return;
+ }
+ } while (true);
+ }
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x004d3f20 aiAssignMoatDiggers | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004D3F20
+ void AICState::aiAssignMoatDiggers(int playerID)
+ {
+ Unit* _ptrUnit;
+ int _unitID;
+ AITypeInt _aiType;
+ UnitTypeShort _unitType;
+ _aiType = DAT_GameState.playerDataArray[playerID].aiType;
+ if (((_aiType != AIT_NULL)
+ && (0 < DAT_GameState.playerDataArray[playerID].totalTroopsType0))
+ && (_unitID = 1, 1 < (int)DAT_UnitsState.maxUnitCount)) {
+ _ptrUnit = &DAT_UnitsState.units[1];
+ do {
+ if ((((((_ptrUnit->logicalState != ULS_INVISIBLE) && (_ptrUnit->owner == playerID))
+ && ((_ptrUnit->isSelectable_OR_matchTime != 0
+ && ((_ptrUnit->aiUnitBehaviourType == 0 && (_ptrUnit->dying == 0))))))
+ && (_unitType = _ptrUnit->unitType, _unitType != UT_LORD))
+ && ((((_unitType != UT_E_ENGINEER
+ && (_unitType != UT_TUNNELER))
+ && (_unitType != UT_S_CATAPULT))
+ && ((_unitType != UT_S_TREBUCHET
+ && (_unitType != UT_S_MANGONEL))))))
+ && (((_unitType != UT_S_TOWER
+ && ((_unitType != UT_S_BATTERINGRAM
+ && (_unitType != UT_S_SHIELD))))
+ && ((_unitType != UT_S_BALLISTA
+ && (_unitType != UT_S_FBALLISTA)))))) {
+ if ((((*(int*)((int)this + (_aiType + ~AIT_NULL) * 0x2a4 + 0x15c) == 0)
+ || (_unitType == UT_E_ARCHER))
+ || (_unitType == UT_E_XBOW))
+ || (_ptrUnit->someUnitStat4 == 0)) {
+ assignUnitToATribe(_unitID);
+ } else {
+ aiAddUnitToMoatDiggerTribe(_unitID);
+ }
+ }
+ _unitID = _unitID + 1;
+ _ptrUnit = _ptrUnit + 0x248;
+ } while (_unitID < (int)DAT_UnitsState.maxUnitCount);
+ }
+ return;
+ }
+}
+}
+
+### 0x004d4040 addEngineersToTribe | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004D4040
+ void AICState::addEngineersToTribe(int playerID)
+ {
+ Unit* psVar1;
+ int unitID;
+ unitID = 1;
+ if (1 < (int)DAT_UnitsState.maxUnitCount) {
+ psVar1 = &DAT_UnitsState.units[1];
+ do {
+ /*
+ if logicalState == normal && owner == playerID && unitType == 0x1e (engineer) && aiUnitBehaviourType
+ == 10
+ */
+ if ((((psVar1->logicalState == ULS_NORMAL) && (psVar1->owner == playerID))
+ && (psVar1->dying == 0))
+ && (((psVar1->unitType == UT_E_ENGINEER && (psVar1->aiUnitBehaviourType == 10))
+ && (psVar1->tribeID == 0)))) {
+ addUnitToItsTribe(unitID, 10);
+ }
+ unitID = unitID + 1;
+ psVar1 = psVar1 + 0x248;
+ } while (unitID < (int)DAT_UnitsState.maxUnitCount);
+ }
+ return;
+ }
+}
+}
+
+### 0x004d40b0 aiReassignTunnelersToTribe | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004D40B0
+ void AICState::aiReassignTunnelersToTribe(int param_1)
+ {
+ Unit* psVar1;
+ uint unitID;
+ unitID = 1;
+ if (1 < (int)DAT_UnitsState.maxUnitCount) {
+ psVar1 = &DAT_UnitsState.units[1];
+ do {
+ /*
+ logicalState == normal && playerID == playerID && unitType == 5 (tunneler) && aiUnitBehaviourType ==
+ 0xf
+ */
+ if ((((psVar1->logicalState == ULS_NORMAL) && (psVar1->owner == param_1))
+ && (psVar1->dying == 0))
+ && ((psVar1->unitType == UT_TUNNELER
+ && (psVar1->aiUnitBehaviourType == 0xf)))) {
+ if (psVar1->tribeID != 0) {
+ removeUnitFromTribe(unitID, psVar1->tribeID);
+ }
+ addUnitToItsTribe(unitID, 0xf);
+ }
+ unitID = unitID + 1;
+ psVar1 = psVar1 + 0x248;
+ } while ((int)unitID < (int)DAT_UnitsState.maxUnitCount);
+ }
+ return;
+ }
+}
+}
+

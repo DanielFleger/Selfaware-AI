@@ -1,0 +1,1170 @@
+### 0x0040dc70 createEntityForAssemblyPointsForActiveTabType | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040DC70
+ void BuildingsState::createEntityForAssemblyPointsForActiveTabType()
+ {
+ // Shows the rally point flags and unit previews of the building whose menu is open
+ if (DAT_GameCore.activeMenuTab.tabType == BASMTT_BARRACKS_OR_MPMENU_MODEM) {
+ for (int i = 0; i < 7; ++i) {
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .barracksAssemblyPoints[i]
+ .x
+ == 0) {
+ continue;
+ }
+ int tile
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .barracksAssemblyPoints[i]
+ .x
+ + DAT_ViewportRenderState
+ .translationMatrix[DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .barracksAssemblyPoints[i]
+ .y]
+ .addXgetTile;
+ createFloatingLayerElement(GID_FLOATS_NEW,
+ (int)DAT_TileMapState.flagAnimationFrame % 10 + 97, 18, -1, tile, 0xa0022);
+ createFloatingLayerElement((GmID)DAT_BuildingDefinedData.field382_0x9e1c[i][0],
+ DAT_BuildingDefinedData.field382_0x9e1c[i][1],
+ DAT_BuildingDefinedData.field382_0x9e1c[i][2] + 41,
+ DAT_BuildingDefinedData.field382_0x9e1c[i][3] - 40, tile, 0xc0006);
+ if (i == 6) {
+ createFloatingLayerElement((GmID)DAT_BuildingDefinedData.field383_0x9e8c[0],
+ DAT_BuildingDefinedData.field383_0x9e8c[1],
+ DAT_BuildingDefinedData.field383_0x9e8c[2] + 41,
+ DAT_BuildingDefinedData.field383_0x9e8c[3] - 40, tile, 0xc0006);
+ }
+ }
+ return;
+ }
+ if (DAT_GameCore.activeMenuTab.tabType == BASMTT_MERCENARYPOST) {
+ for (int i = 0; i < 7; ++i) {
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .mercenaryAssemblyPoints[i][0]
+ == 0) {
+ continue;
+ }
+ int tile
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .mercenaryAssemblyPoints[i][0]
+ + DAT_ViewportRenderState
+ .translationMatrix[DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .mercenaryAssemblyPoints[i][1]]
+ .addXgetTile;
+ createFloatingLayerElement(GID_FLOATS_NEW,
+ (int)DAT_TileMapState.flagAnimationFrame % 10 + 97, 18, -1, tile, 0xa0022);
+ createFloatingLayerElement((GmID)DAT_BuildingDefinedData.field384_0x9e9c[i][0],
+ DAT_BuildingDefinedData.field384_0x9e9c[i][1],
+ DAT_BuildingDefinedData.field384_0x9e9c[i][2] + 41,
+ DAT_BuildingDefinedData.field384_0x9e9c[i][3] - 40, tile, 0xc0006);
+ if (i == 1) {
+ createFloatingLayerElement((GmID)DAT_BuildingDefinedData.field383_0x9e8c[0],
+ DAT_BuildingDefinedData.field383_0x9e8c[1],
+ DAT_BuildingDefinedData.field383_0x9e8c[2] + 41,
+ DAT_BuildingDefinedData.field383_0x9e8c[3] - 40, tile, 0xc0006);
+ }
+ }
+ return;
+ }
+ if (DAT_GameCore.activeMenuTab.tabType == BASMTT_ENGINEERSGUILD) {
+ for (int i = 0; i < 2; ++i) {
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .specialBuildingAssemblyPoints[i]
+ .x
+ == 0) {
+ continue;
+ }
+ int tile
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .specialBuildingAssemblyPoints[i]
+ .x
+ + DAT_ViewportRenderState
+ .translationMatrix[DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .specialBuildingAssemblyPoints[i]
+ .y]
+ .addXgetTile;
+ createFloatingLayerElement(GID_FLOATS_NEW,
+ (int)DAT_TileMapState.flagAnimationFrame % 10 + 97, 18, -1, tile, 0xa0022);
+ createFloatingLayerElement((GmID)DAT_BuildingDefinedData.field401_0x9f1c[i][0],
+ DAT_BuildingDefinedData.field401_0x9f1c[i][1],
+ DAT_BuildingDefinedData.field401_0x9f1c[i][2] + 41,
+ DAT_BuildingDefinedData.field401_0x9f1c[i][3] - 40, tile, 0xc0006);
+ }
+ return;
+ }
+ if (DAT_GameCore.activeMenuTab.tabType == BASMTT_TUNNELERSGUILD) {
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .specialBuildingAssemblyPoints[2]
+ .x
+ == 0) {
+ return;
+ }
+ int tile = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .specialBuildingAssemblyPoints[2]
+ .x
+ + DAT_ViewportRenderState
+ .translationMatrix[DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .specialBuildingAssemblyPoints[2]
+ .y]
+ .addXgetTile;
+ createFloatingLayerElement(GID_FLOATS_NEW,
+ (int)DAT_TileMapState.flagAnimationFrame % 10 + 97, 18, -1, tile, 0xa0022);
+ createFloatingLayerElement(GID_BODY_TUNNELOR, 3, 14, -40, tile, 0xc0006);
+ return;
+ }
+ if (DAT_GameCore.activeMenuTab.tabType == BASMTT_CATHEDRAL) {
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .specialBuildingAssemblyPoints[3]
+ .x
+ == 0) {
+ return;
+ }
+ int tile = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .specialBuildingAssemblyPoints[3]
+ .x
+ + DAT_ViewportRenderState
+ .translationMatrix[DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .specialBuildingAssemblyPoints[3]
+ .y]
+ .addXgetTile;
+ createFloatingLayerElement(GID_FLOATS_NEW,
+ (int)DAT_TileMapState.flagAnimationFrame % 10 + 97, 18, -1, tile, 0xa0022);
+ createFloatingLayerElement(
+ GID_BODY_FIGHTING_MONK, 3, 14, -40, tile, 0xc0006);
+ }
+ }
+ }
+}
+}
+
+### 0x0040e040 setupEngineersGuildParagroundPositions | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040E040
+ void BuildingsState::setupEngineersGuildParagroundPositions(int playerID)
+ {
+ int paradeGroundID = 0;
+ fillMemory_ByteValue(
+ sizeof(DAT_GameState.playerDataArray[playerID].engineersParadegroundLocations), 0,
+ DAT_GameState.playerDataArray[playerID].engineersParadegroundLocations);
+ DAT_GameState.playerDataArray[playerID].engineersParadegroundLocationsTotal = 0;
+ if (DAT_GameState.playerDataArray[playerID].engineersGuild.id <= 0) {
+ return;
+ }
+ for (int buildingID = 1; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (this->buildings[buildingID].logicalState != 0
+ && this->buildings[buildingID].logicalState != BLS_REMOVE
+ && this->buildings[buildingID].owner == playerID
+ && this->buildings[buildingID].buildingType == BT_PARADEGROUND) {
+ paradeGroundID = buildingID;
+ }
+ }
+ if (paradeGroundID == 0) {
+ return;
+ }
+ DAT_GameState.playerDataArray[playerID].engineersParadegroundLocationsTotal = 25;
+ int const x = this->buildings[paradeGroundID].x;
+ int const y = this->buildings[paradeGroundID].y;
+ for (int i = 0; i < 25; ++i) {
+ DAT_GameState.playerDataArray[playerID].engineersParadegroundLocations[i].x
+ = DAT_BuildingDefinedData.EngineersParagroundOffsets[i].x + x;
+ DAT_GameState.playerDataArray[playerID].engineersParadegroundLocations[i].y
+ = DAT_BuildingDefinedData.EngineersParagroundOffsets[i].y + y;
+ }
+ }
+ }
+}
+}
+
+### 0x0040e120 findFreeEngineerAssemblyTile | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040E120
+ int BuildingsState::findFreeEngineerAssemblyTile(int playerID, int unitID)
+ {
+ int const laddermenCount = (short)DAT_GameState.playerDataArray[playerID].someCount28;
+ int index = (int)DAT_GameState.playerDataArray[playerID].someCount27 - laddermenCount;
+ int isLadderman = 0;
+ int assemblyIndex = 0;
+ if (DAT_UnitsState.units[unitID].unitType == Units::UT_E_LADDER) {
+ isLadderman = 1;
+ assemblyIndex = 1;
+ index = laddermenCount;
+ }
+ if (DAT_GameState.playerDataArray[playerID].specialBuildingAssemblyPoints[assemblyIndex].x != 0) {
+ int const assemblyX
+ = DAT_GameState.playerDataArray[playerID].specialBuildingAssemblyPoints[assemblyIndex].x;
+ int const assemblyY
+ = DAT_GameState.playerDataArray[playerID].specialBuildingAssemblyPoints[assemblyIndex].y;
+ for (int i = index; i < 49; ++i) {
+ int const x = DAT_BuildingDefinedData.SearchRelatedXYOffsets_1[i].x + assemblyX;
+ int const y = DAT_BuildingDefinedData.SearchRelatedXYOffsets_1[i].y + assemblyY;
+ int const tile = DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x;
+ int const occupantID = DAT_TileMapState.UnitLayer[tile];
+ if (occupantID != 0 && occupantID != unitID
+ && DAT_UnitsState.units[unitID].movementRelated == 8) {
+ continue;
+ }
+ if (calculateCanPlayerUnitsNavigateToAreaFromArea(playerID,
+ (short)DAT_TileMapState
+ .PathConnectionLayer[DAT_UnitsState.units[unitID].tile],
+ (short)DAT_TileMapState.PathConnectionLayer[tile], 0)
+ != 0) {
+ this->DAT_TempXOffset = x;
+ this->DAT_TempYOffset = y;
+ if (x == DAT_UnitsState.units[unitID].x
+ && y == DAT_UnitsState.units[unitID].y) {
+ return 0;
+ }
+ return 1;
+ }
+ }
+ return 0;
+ }
+ for (int i = index; i < 25; ++i) {
+ int x;
+ int y;
+ if (isLadderman != 0) {
+ x = DAT_GameState.playerDataArray[playerID].engineersParadegroundLocations[24 - i].x;
+ y = DAT_GameState.playerDataArray[playerID].engineersParadegroundLocations[24 - i].y;
+ } else {
+ x = DAT_GameState.playerDataArray[playerID].engineersParadegroundLocations[i].x;
+ y = DAT_GameState.playerDataArray[playerID].engineersParadegroundLocations[i].y;
+ }
+ if ((uint)x > 399 || (uint)y > 399
+ || DAT_ViewportRenderState.DAT_BinaryTileMap400x400[y * 400 + x] == 0) {
+ continue;
+ }
+ int const occupantID
+ = DAT_TileMapState
+ .UnitLayer[DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x];
+ if (occupantID != 0 && occupantID != unitID
+ && DAT_UnitsState.units[unitID].movementRelated == 8) {
+ continue;
+ }
+ this->DAT_TempXOffset = x;
+ this->DAT_TempYOffset = y;
+ if (x == DAT_UnitsState.units[unitID].x && y == DAT_UnitsState.units[unitID].y) {
+ return 0;
+ }
+ return 1;
+ }
+ return 0;
+ }
+ }
+}
+}
+
+### 0x0040e330 setupTunnelersGuildCampgroundPositions | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040E330
+ void BuildingsState::setupTunnelersGuildCampgroundPositions(int playerID)
+ {
+ int paradeGroundID = 0;
+ fillMemory_ByteValue(
+ sizeof(DAT_GameState.playerDataArray[playerID].tunnelersGuildParadegroundLocations), 0,
+ DAT_GameState.playerDataArray[playerID].tunnelersGuildParadegroundLocations);
+ DAT_GameState.playerDataArray[playerID].tunnelersGuildParadegroundLocationsTotal = 0;
+ if (DAT_GameState.playerDataArray[playerID].tunnelersGuild.id <= 0) {
+ return;
+ }
+ for (int buildingID = 1; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (this->buildings[buildingID].logicalState != 0
+ && this->buildings[buildingID].logicalState != BLS_REMOVE
+ && this->buildings[buildingID].owner == playerID
+ && this->buildings[buildingID].buildingType == BT_PARADEGROUND5) {
+ paradeGroundID = buildingID;
+ }
+ }
+ if (paradeGroundID == 0) {
+ return;
+ }
+ DAT_GameState.playerDataArray[playerID].tunnelersGuildParadegroundLocationsTotal = 25;
+ int const x = this->buildings[paradeGroundID].x;
+ int const y = this->buildings[paradeGroundID].y;
+ for (int i = 0; i < 25; ++i) {
+ DAT_GameState.playerDataArray[playerID].tunnelersGuildParadegroundLocations[i].x
+ = DAT_BuildingDefinedData.TunnelersGuildParadegroundLocationOffsets[i].x + x;
+ DAT_GameState.playerDataArray[playerID].tunnelersGuildParadegroundLocations[i].y
+ = DAT_BuildingDefinedData.TunnelersGuildParadegroundLocationOffsets[i].y + y;
+ }
+ }
+ }
+}
+}
+
+### 0x0040e410 findFreeTunnelerAssemblyTile | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040E410
+ BOOLEnum BuildingsState::findFreeTunnelerAssemblyTile(int playerID, int unitID)
+ {
+ int const index = (int)DAT_GameState.playerDataArray[playerID].someCount29;
+ if (DAT_GameState.playerDataArray[playerID].specialBuildingAssemblyPoints[2].x != 0) {
+ int const assemblyX
+ = DAT_GameState.playerDataArray[playerID].specialBuildingAssemblyPoints[2].x;
+ int const assemblyY
+ = DAT_GameState.playerDataArray[playerID].specialBuildingAssemblyPoints[2].y;
+ for (int i = index; i < 49; ++i) {
+ int const x = DAT_BuildingDefinedData.SearchRelatedXYOffsets_1[i].x + assemblyX;
+ int const y = DAT_BuildingDefinedData.SearchRelatedXYOffsets_1[i].y + assemblyY;
+ int const tile = DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x;
+ int const occupantID = (short)DAT_TileMapState.UnitLayer[tile];
+ if (occupantID != 0 && occupantID != unitID
+ && DAT_UnitsState.units[unitID].movementRelated == 8) {
+ continue;
+ }
+ if (calculateCanPlayerUnitsNavigateToAreaFromArea(playerID,
+ (short)DAT_TileMapState
+ .PathConnectionLayer[DAT_UnitsState.units[unitID].tile],
+ (short)DAT_TileMapState.PathConnectionLayer[tile], 0)
+ != 0) {
+ this->DAT_TempXOffset = x;
+ this->DAT_TempYOffset = y;
+ if (x == DAT_UnitsState.units[unitID].x
+ && y == DAT_UnitsState.units[unitID].y) {
+ return FALSE;
+ }
+ return TRUE;
+ }
+ }
+ return FALSE;
+ }
+ for (int i = index; i < 25; ++i) {
+ int const x
+ = DAT_GameState.playerDataArray[playerID].tunnelersGuildParadegroundLocations[i].x;
+ int const y
+ = DAT_GameState.playerDataArray[playerID].tunnelersGuildParadegroundLocations[i].y;
+ if ((uint)x > MC_MAP_XY_LIMIT_MIN_1 || (uint)y > MC_MAP_XY_LIMIT_MIN_1
+ || DAT_ViewportRenderState.DAT_BinaryTileMap400x400[y * MC_MAP_XY_LIMIT + x]
+ == 0) {
+ continue;
+ }
+ int const occupantID
+ = (short)DAT_TileMapState
+ .UnitLayer[DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x];
+ if (occupantID != 0 && occupantID != unitID
+ && DAT_UnitsState.units[unitID].movementRelated == 8) {
+ continue;
+ }
+ this->DAT_TempXOffset = x;
+ this->DAT_TempYOffset = y;
+ if (x == DAT_UnitsState.units[unitID].x && y == DAT_UnitsState.units[unitID].y) {
+ return FALSE;
+ }
+ return TRUE;
+ }
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x0040e610 findFreeCathedralAssemblyTile | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040E610
+ BOOLEnum BuildingsState::findFreeCathedralAssemblyTile(int playerID, int unitID)
+ {
+ if (DAT_GameState.playerDataArray[playerID].specialBuildingAssemblyPoints[3].x != 0) {
+ int const assemblyX
+ = DAT_GameState.playerDataArray[playerID].specialBuildingAssemblyPoints[3].x;
+ int const assemblyY
+ = DAT_GameState.playerDataArray[playerID].specialBuildingAssemblyPoints[3].y;
+ for (int i = (short)DAT_GameState.playerDataArray[playerID].someCount30; i < 49; ++i) {
+ // The original reads the fixed offset [3] on every iteration instead of offset [i].
+ int const x = DAT_BuildingDefinedData.SearchRelatedXYOffsets_1[3].x + assemblyX;
+ int const y = DAT_BuildingDefinedData.SearchRelatedXYOffsets_1[3].y + assemblyY;
+ int const tile = DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x;
+ int const occupantID = DAT_TileMapState.UnitLayer[tile];
+ if (occupantID != 0 && occupantID != unitID
+ && DAT_UnitsState.units[unitID].movementRelated == 8) {
+ continue;
+ }
+ if (calculateCanPlayerUnitsNavigateToAreaFromArea(playerID,
+ (short)DAT_TileMapState
+ .PathConnectionLayer[DAT_UnitsState.units[unitID].tile],
+ (short)DAT_TileMapState.PathConnectionLayer[tile], 0)
+ != 0) {
+ this->DAT_TempXOffset = x;
+ this->DAT_TempYOffset = y;
+ if (x == DAT_UnitsState.units[unitID].x
+ && y == DAT_UnitsState.units[unitID].y) {
+ return FALSE;
+ }
+ return TRUE;
+ }
+ }
+ return FALSE;
+ }
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x0040e740 setTileRefsForOilSmelter | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040E740
+ void BuildingsState::setTileRefsForOilSmelter(int buildingID)
+ {
+ for (int i = 0; i < 16; ++i) {
+ uint x = DAT_BuildingDefinedData.field412_0xa00c[i].x + (short)this->buildings[buildingID].x;
+ uint y = DAT_BuildingDefinedData.field412_0xa00c[i].y + (short)this->buildings[buildingID].y;
+ if (x <= MC_MAP_XY_LIMIT_MIN_1 && y <= MC_MAP_XY_LIMIT_MIN_1
+ && DAT_ViewportRenderState.DAT_BinaryTileMap400x400[x + y * MC_MAP_XY_LIMIT]
+ != 0) {
+ this->buildings[buildingID].tileRefs[i]
+ = DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0040e900 isEngineerNotAtAssignedWorkTile | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040E900
+ BOOLEnum BuildingsState::isEngineerNotAtAssignedWorkTile(int param_1, int param_2, int param_3)
+ {
+ int tileIndex;
+ if (DAT_UnitsState.units[param_2].field252_0x3c4 != 0) {
+ tileIndex = 0;
+ } else if (DAT_UnitsState.units[param_2].resourceToDeposit != 0) {
+ tileIndex = 15 - param_3;
+ } else {
+ tileIndex = param_3;
+ }
+ int const tile = this->buildings[param_1].tileRefs[tileIndex];
+ int const y = DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile];
+ this->DAT_TempXOffset = tile - DAT_ViewportRenderState.translationMatrix[y].addXgetTile;
+ this->DAT_TempYOffset = y;
+ if (this->DAT_TempXOffset == DAT_UnitsState.units[param_2].x
+ && y == DAT_UnitsState.units[param_2].y) {
+ return FALSE;
+ }
+ return TRUE;
+ }
+ }
+}
+}
+
+### 0x0040e990 getActiveEngineerForBuilding | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040E990
+ uint BuildingsState::getActiveEngineerForBuilding(int buildingID)
+ {
+ int const unitID = DAT_BuildingsState.buildings[buildingID].workerID[0];
+ if (DAT_BuildingsState.buildings[buildingID].workerUID[0]
+ != DAT_UnitsState.units[unitID].uid) {
+ return 0;
+ }
+ if (DAT_UnitsState.units[unitID].logicalState != Units::ULS_NORMAL) {
+ return 0;
+ }
+ if (DAT_UnitsState.units[unitID].unitType != Units::UT_E_ENGINEER) {
+ return 0;
+ }
+ if (DAT_UnitsState.units[unitID].dying != 0) {
+ return 0;
+ }
+ if (DAT_UnitsState.units[unitID].workplaceBuildingID_1 != buildingID) {
+ return 0;
+ }
+ return DAT_UnitsState.units[unitID].field252_0x3c4 != 0 ? unitID : 0;
+ }
+ }
+}
+}
+
+### 0x0040ea00 setNewOnFarmDestination | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040EA00
+ BOOLEnum BuildingsState::setNewOnFarmDestination(int buildingID)
+ {
+ uint const entryX = this->buildings[buildingID].buildingEntryX;
+ uint const entryY = this->buildings[buildingID].buildingEntryY;
+ bool const onMap = entryX <= 399 && entryY <= 399
+ && DAT_ViewportRenderState.DAT_BinaryTileMap400x400[entryY * 400 + entryX] != 0;
+ if (!onMap) {
+ return FALSE;
+ }
+ int const entryArea
+ = (short)DAT_TileMapState
+ .PathConnectionLayer[DAT_ViewportRenderState.translationMatrix[entryY].addXgetTile
+ + entryX];
+ // The header has no field for the short at 0x26e.
+ int direction = this->buildings[buildingID].someFarmRelatedState == 0x51 ? 4 : 2;
+ for (int i = 0; i < 24; ++i) {
+ int const tile = this->buildings[buildingID].tileRefs[i];
+ int const row = DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile];
+ int const damage = (char)DAT_TileMapState.DamageLayer[tile];
+ DAT_BuildingsState.farmerDestinationTile = tile;
+ int const height
+ = getTotalHeightAtTile(tile);
+ if (this->buildings[buildingID].farmGrowState == 5) {
+ if (damage < 14 || damage > 27) {
+ continue;
+ }
+ for (int k = 0; k < 4; ++k) {
+ int const target = DAT_TileMapState.directionTranslationMatrix[row][direction] + tile;
+ DAT_BuildingsState.hopFarmerDestinationOffsetX
+ = DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[direction]
+ .int_.xOffset;
+ DAT_BuildingsState.hopFarmerDestinationOffsetY
+ = DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[direction]
+ .int_.yOffset;
+ if ((short)DAT_TileMapState.PathConnectionLayer[target] == entryArea
+ && abs((int)getTotalHeightAtTile(target)
+ - height)
+ < 16) {
+ return TRUE;
+ }
+ direction += 2;
+ if (direction >= 8) {
+ direction = 0;
+ }
+ }
+ } else if (this->buildings[buildingID].farmGrowState == 3) {
+ if (damage < 0 || damage > 1) {
+ continue;
+ }
+ for (int k = 0; k < 4; ++k) {
+ int const target = DAT_TileMapState.directionTranslationMatrix[row][direction] + tile;
+ DAT_BuildingsState.hopFarmerDestinationOffsetX
+ = DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[direction]
+ .int_.xOffset;
+ DAT_BuildingsState.hopFarmerDestinationOffsetY
+ = DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[direction]
+ .int_.yOffset;
+ if ((short)DAT_TileMapState.PathConnectionLayer[target] == entryArea
+ && abs((int)getTotalHeightAtTile(target)
+ - height)
+ < 16) {
+ return TRUE;
+ }
+ direction += 2;
+ if (direction >= 8) {
+ direction = 0;
+ }
+ }
+ } else {
+ return FALSE;
+ }
+ }
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x0040ebf0 growHops | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040EBF0
+ void BuildingsState::growHops(int buildingID)
+ {
+ // The damage layer holds the growth stage of the hops on the field tiles
+ int empty = 0;
+ int young = 0;
+ int growing = 0;
+ int grown = 0;
+ int ripe = 0;
+ for (int i = 0; i < 24; ++i) {
+ int tile = this->buildings[buildingID].tileRefs[i];
+ if ((char)DAT_TileMapState.DamageLayer[tile] >= 2) {
+ if ((char)DAT_TileMapState.DamageLayer[tile] > 84) {
+ DAT_TileMapState.DamageLayer[tile] = 0;
+ } else if ((char)DAT_TileMapState.DamageLayer[tile] < 80
+ && (char)DAT_TileMapState.DamageLayer[tile] >= 32) {
+ DAT_TileMapState.DamageLayer[tile] = 0;
+ } else {
+ ++DAT_TileMapState.DamageLayer[tile];
+ }
+ }
+ char stage = DAT_TileMapState.DamageLayer[tile];
+ if (stage < 2) {
+ ++empty;
+ } else if (stage < 14) {
+ ++young;
+ } else if (stage < 28) {
+ ++growing;
+ } else if (stage <= 80) {
+ ++grown;
+ } else {
+ ++ripe;
+ }
+ }
+ if (growing >= 6) {
+ this->buildings[buildingID].farmGrowState = 5;
+ return;
+ }
+ if (growing != 0 && ripe != 0) {
+ this->buildings[buildingID].farmGrowState = 5;
+ return;
+ }
+ this->buildings[buildingID].farmGrowState = empty != 0 ? 3 : 2;
+ }
+ }
+}
+}
+
+### 0x0040edf0 updateHopsFieldTileGraphics | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040EDF0
+ void BuildingsState::updateHopsFieldTileGraphics(int buildingID)
+ {
+ byte bVar1;
+ int iVar2;
+ uint uVar3;
+ int iVar4;
+ int iVar5;
+ int local_8;
+ iVar4 = 0;
+ local_8 = 3;
+ if (this->field14_0x18e024 == 0) {
+ iVar4 = (int)*(short*)&this->buildings[buildingID].field_0x2fc;
+ }
+ iVar5 = 0;
+ do {
+ iVar2 = *(int*)(this->buildings[buildingID].workers + ((iVar5 + iVar4) % 0x18) * 2 + 8);
+ bVar1 = DAT_TileMapState.DamageLayer[iVar2];
+ if (bVar1 == 0) {
+ uVar3 = 0;
+ } else if ((char)bVar1 < '\x02') {
+ uVar3 = 0;
+ } else if ((char)bVar1 < '\x04') {
+ uVar3 = 1;
+ } else if ((char)bVar1 < '\x06') {
+ uVar3 = 2;
+ } else if ((char)bVar1 < '\b') {
+ uVar3 = 3;
+ } else if ((char)bVar1 < '\n') {
+ uVar3 = 4;
+ } else if ((char)bVar1 < '\f') {
+ uVar3 = 5;
+ } else if ((char)bVar1 < '\x0e') {
+ uVar3 = 6;
+ } else if ((char)bVar1 < '\x1c') {
+ uVar3 = 7;
+ } else {
+ uVar3 = ('\x1f' < (char)bVar1) - 1 & 8;
+ }
+ uVar3 = GMTotalPicturesProcessed::instance[0xe]
+ + ((byte)DAT_TileMapState.RandomLayer[iVar2] & 1) * 9 + 0x25 + uVar3;
+ if (uVar3 == DAT_TileMapState.GfxLayer[iVar2]) {
+ local_8 = local_8 + -1;
+ if (local_8 != 0)
+ goto LAB_0040eef3;
+ } else {
+ DAT_TileMapState.GfxLayer[iVar2] = (ushort)uVar3;
+ LAB_0040eef3:
+ if (this->field14_0x18e024 == 0) {
+ *(short*)&this->buildings[buildingID].field_0x2fc = (short)((iVar5 + 1 + iVar4) % 0x24);
+ return;
+ }
+ }
+ iVar5 = iVar5 + 1;
+ if (0x17 < iVar5) {
+ return;
+ }
+ } while (true);
+ }
+ }
+}
+}
+
+### 0x0040ef40 harmHopFarmsOfPlayer | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040EF40
+ void BuildingsState::harmHopFarmsOfPlayer(int param_1)
+ {
+ for (int buildingID = 0; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (this->buildings[buildingID].logicalState != 0 && this->buildings[buildingID].owner == param_1
+ && this->buildings[buildingID].buildingType == BT_HOPFARM) {
+ for (int tileIndex = 0; tileIndex != 24; ++tileIndex) {
+ int const tile = this->buildings[buildingID].tileRefs[tileIndex];
+ DAT_TileMapState.DamageLayer[tile]
+ = (char)DAT_TileMapState.DamageLayer[tile] < 6 ? 0 : 28;
+ }
+ this->buildings[buildingID].growCounter = -1800;
+ this->buildings[buildingID].farmGrowState = 2;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0040efd0 updateBuildingAreaTileGraphics | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040EFD0
+ void BuildingsState::updateBuildingAreaTileGraphics(int param_1)
+ {
+ for (int i = 0; i < 23; ++i) {
+ int tile = this->buildings[param_1].tileRefs[4 + i];
+ int const damage = (char)DAT_TileMapState.DamageLayer[tile];
+ int const stage
+ = getRubbleGraphicStageForDamageLevel(damage);
+ int gfx = GMTotalPicturesProcessed::instance[14] + 55 + stage;
+ if (gfx != DAT_TileMapState.GfxLayer[tile]) {
+ DAT_TileMapState.GfxLayer[tile] = gfx;
+ DAT_TileMapState.MiscDisplayLayer[tile] &= 0xfff3;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0040f040 setDairyFarmCheeseCounter | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040F040
+ void BuildingsState::setDairyFarmCheeseCounter(int playerID)
+ {
+ for (int buildingID = 0; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (this->buildings[buildingID].logicalState != 0 && this->buildings[buildingID].owner == playerID
+ && this->buildings[buildingID].buildingType == BT_DAIRYFARM) {
+ this->buildings[buildingID].flagonsOfAleOrCheeseOrReleaseDogs = 1600;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0040f090 harmAppleFarmTreesOfPlayer | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040F090
+ void BuildingsState::harmAppleFarmTreesOfPlayer(int param_1)
+ {
+ for (int i = 0; i < this->maxBuildingsCount; ++i) {
+ if (this->buildings[i].logicalState == 0 || this->buildings[i].owner != param_1
+ || this->buildings[i].buildingType != BT_APPLEFARM) {
+ continue;
+ }
+ for (int t = 0; t < 8; ++t) {
+ int tree = DAT_TileMapState.OrganismLayer[this->buildings[i].tileRefs[t]];
+ DAT_LandscapeState.trees[tree].stage = 4;
+ DAT_LandscapeState.trees[tree].stageTracker = -1200;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0040f1e0 setSignpostDataForBuildings | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040F1E0
+ void BuildingsState::setSignpostDataForBuildings()
+ {
+ for (int buildingID = 0; buildingID < 2000; ++buildingID) {
+ if (this->buildings[buildingID].logicalState != 0
+ && this->buildings[buildingID].buildingType == BT_SIGNPOST) {
+ bool alreadyListed = false;
+ for (int slot = 0; slot < 8; ++slot) {
+ if (DAT_GameState.mapAndTime.signpostIDs[slot] == buildingID) {
+ alreadyListed = true;
+ break;
+ }
+ }
+ if (!alreadyListed) {
+ for (int slot = 0; slot < 8; ++slot) {
+ if (DAT_GameState.mapAndTime.signpostIDs[slot] <= 0) {
+ DAT_GameState.mapAndTime.signpostIDs[slot] = buildingID;
+ break;
+ }
+ }
+ }
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0040f360 updateBuildingSignpostCounter | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040F360
+ int BuildingsState::updateBuildingSignpostCounter(int buildingID, int animation)
+ {
+ if (animation == 2) {
+ this->buildings[buildingID].animationCycleCompleted = 0;
+ this->buildings[buildingID].state = 0;
+ this->buildings[buildingID].animationIndex = 0;
+ return 0;
+ }
+ if (animation == 3) {
+ this->buildings[buildingID].animationIncrement = 0;
+ } else {
+ this->buildings[buildingID].animationIncrement = 1;
+ }
+ this->buildings[buildingID].renderAnimation = animation;
+ if (this->buildings[buildingID].unknownStockpileOrSignpostRelated == 0) {
+ this->buildings[buildingID].renderAnimation = 0;
+ }
+ if (this->buildings[buildingID].renderAnimation == 0) {
+ this->buildings[buildingID].animationIndex = 0;
+ this->buildings[buildingID].animationCycleCount = 0;
+ this->buildings[buildingID].animationCycleCompleted = 0;
+ }
+ return this->buildings[buildingID].animationCycleCompleted;
+ }
+ }
+}
+}
+
+### 0x0040f3d0 setBuildingToAppleFarm | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040F3D0
+ void BuildingsState::setBuildingToAppleFarm(int buildingID)
+ {
+ this->buildings[buildingID].renderBlendStrength = 32;
+ }
+ }
+}
+}
+
+### 0x0040f3f0 clearBuildingValueWhenStateIsTwo | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040F3F0
+ void BuildingsState::clearBuildingValueWhenStateIsTwo()
+ {
+ for (int buildingID = 1; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (this->buildings[buildingID].logicalState == BLS_NORMAL) {
+ this->buildings[buildingID].animStateCounterTracker = 0;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0040f420 getBuildingFlag3 | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040F420
+ int BuildingsState::getBuildingFlag3(int buildingID) { return this->buildings[buildingID].unknownFlag3; }
+ }
+}
+}
+
+### 0x0040f440 getBuildingFlag1 | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040F440
+ int BuildingsState::getBuildingFlag1(int buildingID) { return this->buildings[buildingID].flag1; }
+ }
+}
+}
+
+### 0x0040f460 determinePeasantSitPosition | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040F460
+ BOOLEnum BuildingsState::determinePeasantSitPosition(int campfireID, int availablePeasants)
+ {
+ if (availablePeasants >= 24) {
+ availablePeasants = 23;
+ }
+ int const centerX = DAT_BuildingsState.buildings[campfireID].x + 3;
+ int const centerY = DAT_BuildingsState.buildings[campfireID].y + 3;
+ int const tile = DAT_BuildingsState.buildings[campfireID].tileRefs[availablePeasants];
+ int const y = DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile];
+ int const x = tile - DAT_ViewportRenderState.translationMatrix[y].addXgetTile;
+ this->campfireSpotY = y;
+ this->campfireSpotX = x;
+ calculatePreferredRelativeOrientation(x, y, centerX, centerY);
+ this->campfireSpotOrientation = DAT_DirectionAlgorithmState.orientation;
+ return TRUE;
+ }
+ }
+}
+}
+
+### 0x0040f4f0 refreshAllBuildingTileDisplays | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040F4F0
+ void BuildingsState::refreshAllBuildingTileDisplays()
+ {
+ for (int buildingID = 1; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (this->buildings[buildingID].logicalState != 0) {
+ clearBuildingDisplayFlagsAndEntities(buildingID, 0);
+ setMiscDisplayLayer(
+ buildingID);
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0040f5c0 assignWorkerToBuilding | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040F5C0
+ void BuildingsState::assignWorkerToBuilding(int buildingID, int unitID, int workerIndex)
+ {
+ this->buildings[buildingID].workerID[workerIndex] = unitID;
+ this->buildings[buildingID].workerUID[workerIndex] = DAT_UnitsState.units[unitID].uid;
+ DAT_UnitsState.units[unitID].workerIndex = workerIndex;
+ DAT_UnitsState.units[unitID].buildingID = buildingID;
+ }
+ }
+}
+}
+
+### 0x0040f620 updateNeededEmployeeCount | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040F620
+ void BuildingsState::updateNeededEmployeeCount(int buildingID)
+ {
+ if (this->buildings[buildingID].buildingTypeBasedEmployeeCount <= 0) {
+ return;
+ }
+ this->buildings[buildingID].currentlyNeededEmployeeCount = 0;
+ if (this->buildings[buildingID].sleeping) {
+ return;
+ }
+ if (this->buildings[buildingID].buildingType == BT_MERCENARYPOST
+ || this->buildings[buildingID].buildingType == BT_BARRACKS) {
+ return;
+ }
+ int const owner = this->buildings[buildingID].owner;
+ this->buildings[buildingID].currentEmployeeCount = 0;
+ for (int workerSlot = 0; workerSlot < this->buildings[buildingID].buildingTypeBasedEmployeeCount;
+ ++workerSlot) {
+ if (hasWorker(buildingID, workerSlot) == FALSE) {
+ this->buildings[buildingID].workerUID[workerSlot] = 0;
+ this->buildings[buildingID].workerID[workerSlot] = 0;
+ } else {
+ this->buildings[buildingID].currentEmployeeCount += 1;
+ }
+ }
+ this->buildings[buildingID].currentlyNeededEmployeeCount
+ = this->buildings[buildingID].buildingTypeBasedEmployeeCount
+ - this->buildings[buildingID].currentEmployeeCount;
+ DAT_GameState.playerDataArray[owner].countEconomyBuilding_fixme
+ += this->buildings[buildingID].currentlyNeededEmployeeCount;
+ }
+ }
+}
+}
+
+### 0x0040f700 getBuildingPriority | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040F700
+ int BuildingsState::getBuildingPriority(int buildingType, int hasBurningBuilding)
+ {
+ if (hasBurningBuilding != 0) {
+ for (int priority = 0; priority < 30; ++priority) {
+ if (DAT_BuildingDefinedData.BuildingPrioritiesWhenFire[priority] == buildingType) {
+ return priority;
+ }
+ }
+ return 30;
+ }
+ for (int priority = 0; priority < 30; ++priority) {
+ if (DAT_BuildingDefinedData.BuildingPrioritiesWhenNoFire[priority] == buildingType) {
+ return priority;
+ }
+ }
+ return 30;
+ }
+ }
+}
+}
+
+### 0x0040f750 updateAllBuildingsSnoozedState | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040F750
+ void BuildingsState::updateAllBuildingsSnoozedState(int playerID, int buildingType)
+ {
+ // Applies the snoozed setting of the building type and resets the production of the buildings
+ if (buildingType >= 91) {
+ return;
+ }
+ for (int i = 1; i < this->maxBuildingsCount; ++i) {
+ if (this->buildings[i].logicalState != BLS_NORMAL || this->buildings[i].owner != playerID
+ || this->buildings[i].buildingType != buildingType) {
+ continue;
+ }
+ this->buildings[i].sleeping
+ = DAT_GameState.playerDataArray[playerID].snoozedBuildings[buildingType];
+ this->buildings[i].currentEmployeeCount = 0;
+ this->buildings[i].animationIndex = 0;
+ this->buildings[i].renderAnimation = 0;
+ // state/field117_0x11a and killingPitField/field119_0x11e are cleared as ints
+ *(int*)&this->buildings[i].state = 0;
+ *(int*)&this->buildings[i].killingPitField = 0;
+ for (int r = 0; r < 25; ++r) {
+ this->buildings[i].resources[r] = 0;
+ }
+ for (int w = 0; w < 4; ++w) {
+ this->buildings[i].workerUID[w] = 0;
+ this->buildings[i].workerID[w] = 0;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0040f8a0 applySnoozedStateBasedOnPlayerData | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040F8A0
+ void BuildingsState::applySnoozedStateBasedOnPlayerData()
+ {
+ Building* pBVar1;
+ int iVar1;
+ int iVar2;
+ int* piVar3;
+ short* psVar4;
+ bool _isBuildingTypeSnoozed;
+ iVar2 = 1;
+ if (1 < this->maxBuildingsCount) {
+ pBVar1 = &this->buildings[1];
+ do {
+ if (pBVar1->logicalState == BLS_NORMAL) {
+ if ((short)pBVar1->buildingType < 91) {
+ /*
+ *(char*)(PlayerDataArray[building.ownerPlayerIndex].buildingSnoozedState + buildingType)
+ */
+ _isBuildingTypeSnoozed
+ = *(bool*)(pBVar1->owner * 0x39f4 + 0x115df8c + (int)(short)pBVar1->buildingType);
+ if (pBVar1->sleeping != _isBuildingTypeSnoozed) {
+ /*
+ if it was not snoozed, set it to snoozed
+ */
+ pBVar1->sleeping = _isBuildingTypeSnoozed;
+ /*
+ currentemployeecount
+ */
+ pBVar1->currentEmployeeCount = 0;
+ pBVar1->animationIndex = 0;
+ pBVar1->renderAnimation = 0;
+ /*
+ fixme: set resources to 0?
+ */
+ *(undefined4*)&pBVar1->state = 0;
+ *(undefined4*)&pBVar1->killingPitField = 0;
+ pBVar1->resources[0] = 0;
+ pBVar1->resources[1] = 0;
+ pBVar1->resources[2] = 0;
+ pBVar1->resources[3] = 0;
+ pBVar1->resources[4] = 0;
+ pBVar1->resources[5] = 0;
+ pBVar1->resources[6] = 0;
+ pBVar1->resources[7] = 0;
+ pBVar1->resources[8] = 0;
+ pBVar1->resources[9] = 0;
+ pBVar1->resources[10] = 0;
+ pBVar1->resources[0xb] = 0;
+ pBVar1->resources[0xc] = 0;
+ pBVar1->resources[0xd] = 0;
+ pBVar1->resources[0xe] = 0;
+ pBVar1->resources[0xf] = 0;
+ pBVar1->resources[0x10] = 0;
+ pBVar1->resources[0x11] = 0;
+ pBVar1->resources[0x12] = 0;
+ pBVar1->resources[0x13] = 0;
+ pBVar1->resources[0x14] = 0;
+ pBVar1->resources[0x15] = 0;
+ pBVar1->resources[0x16] = 0;
+ pBVar1->resources[0x17] = 0;
+ pBVar1->resources[0x18] = 0;
+ psVar4 = pBVar1->workerID;
+ piVar3 = pBVar1->workerUID;
+ iVar1 = 4;
+ do {
+ *piVar3 = 0;
+ *psVar4 = 0;
+ piVar3 = piVar3 + 1;
+ psVar4 = psVar4 + 1;
+ iVar1 = iVar1 + -1;
+ } while (iVar1 != 0);
+ }
+ } else {
+ pBVar1->sleeping = false;
+ }
+ }
+ iVar2 = iVar2 + 1;
+ pBVar1 = pBVar1 + 0x196;
+ } while (iVar2 < this->maxBuildingsCount);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x0040f9d0 processBuildingIDsNeedPeasantsQueue | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040F9D0
+ void BuildingsState::processBuildingIDsNeedPeasantsQueue(undefined4 playerID)
+ {
+ // Assigns peasants to the free worker slots of the queued buildings
+ for (int i = 0; i < this->DAT_CountOfBuildingsNeedPeasants; ++i) {
+ int buildingID = this->DAT_BuildingIDsNeedPeasantsQueue[i];
+ if (this->buildings[buildingID].buildingTypeBasedEmployeeCount == 1) {
+ UnitType workerType = (UnitType)DAT_BuildingDefinedData
+ .WorkerTypeForBuildingType[this->buildings[buildingID].buildingType];
+ int unitID = assignPeasantToBuilding(workerType, buildingID, playerID, 0);
+ assignWorkerToBuilding(
+ buildingID, unitID, 0);
+ continue;
+ }
+ if (this->buildings[buildingID].buildingType == BT_QUARRY) {
+ if (hasWorker(buildingID, 0)
+ == FALSE) {
+ int unitID = assignPeasantToBuilding(UT_QUARRYMASON, buildingID, playerID, 0);
+ assignWorkerToBuilding(
+ buildingID, unitID, 0);
+ }
+ if (hasWorker(buildingID, 1)
+ == FALSE) {
+ int unitID = assignPeasantToBuilding(UT_QUARRYMASON, buildingID, playerID, 1);
+ assignWorkerToBuilding(
+ buildingID, unitID, 1);
+ }
+ if (hasWorker(buildingID, 2)
+ == FALSE) {
+ int unitID = assignPeasantToBuilding(UT_QUARRYMASON, buildingID, playerID, 2);
+ assignWorkerToBuilding(
+ buildingID, unitID, 2);
+ }
+ } else if (this->buildings[buildingID].buildingType == BT_IRONMINE) {
+ if (hasWorker(buildingID, 0)
+ == FALSE) {
+ int unitID = assignPeasantToBuilding(UT_MINER, buildingID, playerID, 0);
+ assignWorkerToBuilding(
+ buildingID, unitID, 0);
+ }
+ if (hasWorker(buildingID, 1)
+ == FALSE) {
+ int unitID = assignPeasantToBuilding(UT_TRANSPORTMINER, buildingID, playerID, 1);
+ assignWorkerToBuilding(
+ buildingID, unitID, 1);
+ }
+ } else {
+ // The mill, water pot and cathedral share the code for their three workers
+ UnitType workerType;
+ if (this->buildings[buildingID].buildingType == BT_MILL) {
+ workerType = (UnitType)DAT_BuildingDefinedData.WorkerTypeForBuildingType[BT_MILL];
+ } else if (this->buildings[buildingID].buildingType == BT_WATERPOT) {
+ workerType = (UnitType)DAT_BuildingDefinedData.WorkerTypeForBuildingType[BT_WATERPOT];
+ } else if (this->buildings[buildingID].buildingType == BT_CHURCH) {
+ workerType = (UnitType)DAT_BuildingDefinedData.WorkerTypeForBuildingType[BT_CHURCH];
+ if (hasWorker(
+ buildingID, 0)
+ == FALSE) {
+ int unitID
+ = assignPeasantToBuilding(workerType, buildingID, playerID, 0);
+ assignWorkerToBuilding(buildingID, unitID, 0);
+ }
+ if (hasWorker(
+ buildingID, 1)
+ == FALSE) {
+ int unitID
+ = assignPeasantToBuilding(workerType, buildingID, playerID, 1);
+ assignWorkerToBuilding(buildingID, unitID, 1);
+ }
+ continue;
+ } else if (this->buildings[buildingID].buildingType == BT_CATHEDRAL) {
+ workerType
+ = (UnitType)DAT_BuildingDefinedData.WorkerTypeForBuildingType[BT_CATHEDRAL];
+ } else {
+ continue;
+ }
+ if (hasWorker(buildingID, 0)
+ == FALSE) {
+ int unitID = assignPeasantToBuilding(workerType, buildingID, playerID, 0);
+ assignWorkerToBuilding(
+ buildingID, unitID, 0);
+ }
+ if (hasWorker(buildingID, 1)
+ == FALSE) {
+ int unitID = assignPeasantToBuilding(workerType, buildingID, playerID, 1);
+ assignWorkerToBuilding(
+ buildingID, unitID, 1);
+ }
+ if (hasWorker(buildingID, 2)
+ == FALSE) {
+ int unitID = assignPeasantToBuilding(workerType, buildingID, playerID, 2);
+ assignWorkerToBuilding(
+ buildingID, unitID, 2);
+ }
+ }
+ }
+ }
+ }
+}
+}
+

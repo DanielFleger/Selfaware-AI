@@ -1,0 +1,905 @@
+### 0x004ad110 ProcessAllyAcceptsRequest | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004AD110
+ void Actions::ProcessAllyAcceptsRequest(int param_1, int param_2)
+ {
+ char cVar1;
+ char* pcVar2;
+ char* pcVar3;
+ int iVar4;
+ iVar4 = DAT_GameState.playerDataArray[param_2].requestStateUnk;
+ if (iVar4 == 2) {
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[param_1] == -1)
+ || (param_1 != DAT_GameSynchronyState.currentPlayerSlotID))
+ goto LAB_004ad1b5;
+ /*
+ added by script: "Will come you your aid"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_ALLIES2, 4);
+ pcVar3 = DAT_GameSynchronyState.receivedChatMessage;
+ do {
+ cVar1 = *pcVar2;
+ *pcVar3 = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pcVar3 = pcVar3 + 1;
+ } while (cVar1 != '\0');
+ iVar4 = 0;
+ } else {
+ if (((iVar4 != 1) || (DAT_GameSynchronyState.currentPlayerFullIDArray[param_1] == -1))
+ || (param_1 != DAT_GameSynchronyState.currentPlayerSlotID))
+ goto LAB_004ad1b5;
+ /*
+ added by script: "Will Attack"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_ALLIES2, 3);
+ pcVar3 = DAT_GameSynchronyState.receivedChatMessage;
+ do {
+ cVar1 = *pcVar2;
+ *pcVar3 = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pcVar3 = pcVar3 + 1;
+ } while (cVar1 != '\0');
+ iVar4 = DAT_GameState.playerDataArray[param_2].requestedAttackTargetUnk;
+ }
+ addChatMessageToDisplayList(param_2, iVar4);
+ LAB_004ad1b5:
+ DAT_GameState.playerDataArray[param_2].requestStateUnk = 0;
+ DAT_GameState.playerDataArray[param_1].isNotNervousByEnemyTroopValue = 0;
+ return;
+ }
+}
+}
+
+### 0x004ad1e0 ProcessAllyDeniesRequest2 | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004AD1E0
+ void Actions::ProcessAllyDeniesRequest2(int param_1, int param_2)
+ {
+ char cVar1;
+ char* pcVar2;
+ char* pcVar3;
+ int iVar4;
+ iVar4 = DAT_GameState.playerDataArray[param_2].requestStateUnk;
+ if (iVar4 == 2) {
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[param_1] == -1)
+ || (param_1 != DAT_GameSynchronyState.currentPlayerSlotID))
+ goto LAB_004ad285;
+ /*
+ added by script: "Will not come to your aid"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_ALLIES2, 6);
+ pcVar3 = DAT_GameSynchronyState.receivedChatMessage;
+ do {
+ cVar1 = *pcVar2;
+ *pcVar3 = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pcVar3 = pcVar3 + 1;
+ } while (cVar1 != '\0');
+ iVar4 = 0;
+ } else {
+ if (((iVar4 != 1) || (DAT_GameSynchronyState.currentPlayerFullIDArray[param_1] == -1))
+ || (param_1 != DAT_GameSynchronyState.currentPlayerSlotID))
+ goto LAB_004ad285;
+ /*
+ added by script: "Will not Attack"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_ALLIES2, 5);
+ pcVar3 = DAT_GameSynchronyState.receivedChatMessage;
+ do {
+ cVar1 = *pcVar2;
+ *pcVar3 = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pcVar3 = pcVar3 + 1;
+ } while (cVar1 != '\0');
+ iVar4 = DAT_GameState.playerDataArray[param_2].requestedAttackTargetUnk;
+ }
+ addChatMessageToDisplayList(param_2, iVar4);
+ LAB_004ad285:
+ DAT_GameState.playerDataArray[param_2].requestStateUnk = 0;
+ DAT_GameState.playerDataArray[param_1].isNotNervousByEnemyTroopValue = 0;
+ return;
+ }
+}
+}
+
+### 0x004ae010 ProcessAllyDeniesRequest | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004AE010
+ void Actions::ProcessAllyDeniesRequest(int param_1, int param_2)
+ {
+ char cVar1;
+ char* pcVar2;
+ char* pcVar3;
+ bool bVar4;
+ bVar4 = param_1 == DAT_GameSynchronyState.currentPlayerSlotID;
+ DAT_GameState.playerDataArray[param_2].requestedGoodsArray1Unk[param_1] = 0;
+ DAT_GameState.playerDataArray[param_2].requestedGoodsArray2Unk[param_1] = 0;
+ if (bVar4) {
+ /*
+ added by script: "Ally Denies Request"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_ALLIES2, 0);
+ pcVar3 = DAT_GameSynchronyState.receivedChatMessage;
+ do {
+ cVar1 = *pcVar2;
+ *pcVar3 = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pcVar3 = pcVar3 + 1;
+ } while (cVar1 != '\0');
+ addChatMessageToDisplayList(param_1, 0);
+ }
+ return;
+ }
+}
+}
+
+### 0x004113c0 UpdateMercenaryPost | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004113C0
+ void Buildings::UpdateMercenaryPost()
+ {
+ DAT_GameState
+ .playerDataArray[DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner]
+ .someCount04 += 5;
+ addBuildingToTargetableBuildings(
+ DAT_CurrentBuildingID);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ if (DAT_GameSynchronyState.currentGameMode != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage += 1;
+ if (DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage / 2]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage = 0;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].overlayImageID
+ = DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage
+ / 2];
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].overlayImageID = 0;
+ }
+ }
+}
+}
+
+### 0x00415a80 UpdateApothecary | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00415A80
+ void Buildings::UpdateApothecary()
+ {
+ int* piVar1;
+ int iVar2;
+ int iVar3;
+ iVar2 = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 0;
+ addBuildingToTargetableBuildings(iVar2);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ iVar2 = DAT_CurrentBuildingID;
+ iVar3 = (int)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workerID[0];
+ if ((iVar3 == 0) || (DAT_UnitsState.units[iVar3].state.generic != ((UnitState)2))) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive = 0;
+ DAT_BuildingsState.buildings[iVar2].renderAnimation = 0;
+ DAT_BuildingsState.buildings[iVar2].animationIndex = 0;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive = 1;
+ DAT_BuildingsState.buildings[iVar2].renderAnimation = 1;
+ }
+ updateVisuallyActiveState(iVar2);
+ DAT_BuildingsState.buildings[iVar2].animationIncrement = 1;
+ if ((char)DAT_BuildingDefinedData
+ .field171_0x7bd4[DAT_BuildingsState.buildings[iVar2].animationIndex]
+ < '\0') {
+ DAT_BuildingsState.buildings[iVar2].animationIndex = 0;
+ piVar1 = &DAT_BuildingsState.buildings[iVar2].field13_0x28;
+ *piVar1 = *piVar1 + 1;
+ DAT_BuildingsState.buildings[iVar2].field14_0x2c = 1;
+ } else {
+ DAT_BuildingsState.buildings[iVar2].field14_0x2c = 0;
+ }
+ DAT_BuildingsState.buildings[iVar2].animationFrame
+ = (int)(char)DAT_BuildingDefinedData
+ .field171_0x7bd4[DAT_BuildingsState.buildings[iVar2].animationIndex];
+ if (DAT_BuildingsState.buildings[iVar2].buildingIsVisuallyActive
+ != DAT_BuildingsState.buildings[iVar2].oldVisualActiveState) {
+ updateBuildingGraphicsLayer(
+ iVar2);
+ iVar2 = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive;
+ }
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ DAT_BuildingsState.buildings[iVar2].displayOwnerFlag = 1;
+ piVar1 = &DAT_BuildingsState.buildings[iVar2].ownerFlagFrame;
+ *piVar1 = *piVar1 + 1;
+ if ((char)DAT_BuildingDefinedData
+ .field177_0x7e1c[DAT_BuildingsState.buildings[iVar2].ownerFlagFrame / 2]
+ < '\x01') {
+ DAT_BuildingsState.buildings[iVar2].ownerFlagFrame = 0;
+ }
+ DAT_BuildingsState.buildings[iVar2].field39_0x84
+ = (int)(char)DAT_BuildingDefinedData
+ .field177_0x7e1c[DAT_BuildingsState.buildings[iVar2].ownerFlagFrame / 2];
+ return;
+ }
+ DAT_BuildingsState.buildings[iVar2].field39_0x84 = 0;
+ return;
+ }
+}
+}
+
+### 0x00415e80 UpdateOilSmelter | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00415E80
+ void Buildings::UpdateOilSmelter()
+ {
+ int* piVar1;
+ byte bVar2;
+ short sVar3;
+ int iVar4;
+ int iVar5;
+ int iVar6;
+ int iVar7;
+ addBuildingToTargetableBuildings(
+ DAT_CurrentBuildingID);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ iVar5 = DAT_CurrentBuildingID;
+ iVar6 = DAT_CurrentBuildingID * 0x32c;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[iVar5].field14_0x2c = 0;
+ DAT_BuildingsState.buildings[iVar5].currentEmployeeCount = 0;
+ piVar1 = &DAT_BuildingsState.buildings[iVar5].field28_0x58;
+ *piVar1 = *piVar1 + 1;
+ if (1 < DAT_BuildingsState.buildings[iVar5].field28_0x58) {
+ DAT_BuildingsState.buildings[iVar5].field28_0x58 = 0;
+ }
+ DAT_BuildingsState.buildings[iVar5].buildingIsVisuallyActive = 1;
+ sVar3 = DAT_BuildingsState.buildings[iVar5].state;
+ if (sVar3 == 0) {
+ DAT_BuildingsState.buildings[iVar5].animationIndex = 0;
+ DAT_BuildingsState.buildings[iVar5].animationFrame = 0;
+ DAT_BuildingsState.buildings[iVar5].state = 2;
+ } else if (sVar3 == 1) {
+ DAT_BuildingsState.buildings[iVar5].animationIndex = 0;
+ DAT_BuildingsState.buildings[iVar5].animationFrame = 0;
+ } else if (sVar3 == 2) {
+ DAT_BuildingsState.buildings[iVar5].spriteOffetX = -0x10;
+ DAT_BuildingsState.buildings[iVar5].spriteOffetY = -0x5c;
+ DAT_BuildingsState.buildings[iVar5].animationFrame = 1;
+ DAT_BuildingsState.buildings[iVar5].field66_0xbe = 0x1f;
+ DAT_BuildingsState.buildings[iVar5].animationIndex = 0;
+ DAT_BuildingsState.buildings[iVar5].state = 3;
+ } else if (sVar3 == 3) {
+ DAT_BuildingsState.buildings[iVar5].spriteOffetX = -0x10;
+ DAT_BuildingsState.buildings[iVar5].spriteOffetY = -0x5c;
+ if ((char)DAT_BuildingDefinedData
+ .field148_0x73e0[DAT_BuildingsState.buildings[iVar5].animationIndex]
+ < 1) {
+ DAT_BuildingsState.buildings[iVar5].animationIndex = 0;
+ DAT_BuildingsState.buildings[iVar5].state = 4;
+ } else {
+ DAT_BuildingsState.buildings[iVar5].animationFrame
+ = (char)DAT_BuildingDefinedData
+ .field148_0x73e0[DAT_BuildingsState.buildings[iVar5].animationIndex]
+ + 0x20;
+ }
+ sVar3 = DAT_BuildingsState.buildings[iVar5].field66_0xbe;
+ if (sVar3 < 1) {
+ DAT_BuildingsState.buildings[iVar5].animationIndex = 0;
+ DAT_BuildingsState.buildings[iVar5].state = 4;
+ } else {
+ LAB_004160fb:
+ DAT_BuildingsState.buildings[iVar5].field66_0xbe = sVar3 + -1;
+ }
+ } else if (sVar3 == 4) {
+ DAT_BuildingsState.buildings[iVar5].spriteOffetX = -0x10;
+ DAT_BuildingsState.buildings[iVar5].spriteOffetY = -0x5c;
+ if ((char)DAT_BuildingDefinedData
+ .field149_0x7414[DAT_BuildingsState.buildings[iVar5].animationIndex]
+ < 1) {
+ DAT_BuildingsState.buildings[iVar5].animationIndex = 0;
+ DAT_BuildingsState.buildings[iVar5].state = 5;
+ } else {
+ DAT_BuildingsState.buildings[iVar5].animationFrame
+ = (char)DAT_BuildingDefinedData
+ .field149_0x7414[DAT_BuildingsState.buildings[iVar5].animationIndex]
+ + 0x20;
+ }
+ if ((DAT_BuildingsState.buildings[iVar5].animationIndex == 0x1c)
+ && (DAT_BuildingsState.buildings[iVar5].animationActive != 0)) {
+ DAT_BuildingsState.buildings[iVar5].field117_0x11a = 1;
+ DAT_BuildingsState.buildings[iVar5].field25_0x4c = 0;
+ piVar1 = DAT_BuildingsState.buildings[iVar5].resources + 7;
+ *piVar1 = *piVar1 + 1;
+ }
+ } else if (sVar3 == 5) {
+ DAT_BuildingsState.buildings[iVar5].spriteOffetX = -0x10;
+ DAT_BuildingsState.buildings[iVar5].spriteOffetY = -0x5c;
+ if ((char)DAT_BuildingDefinedData
+ .field150_0x7464[DAT_BuildingsState.buildings[iVar5].animationIndex]
+ < 1) {
+ LAB_0041622f:
+ DAT_BuildingsState.buildings[iVar5].animationIndex = 0;
+ DAT_BuildingsState.buildings[iVar5].field14_0x2c = 1;
+ DAT_BuildingsState.buildings[iVar5].state = 1;
+ } else {
+ iVar4 = (char)DAT_BuildingDefinedData
+ .field150_0x7464[DAT_BuildingsState.buildings[iVar5].animationIndex]
+ + 0x20;
+ LAB_00416072:
+ DAT_BuildingsState.buildings[iVar5].animationFrame = iVar4;
+ }
+ sVar3 = DAT_BuildingsState.buildings[iVar5].field66_0xbe;
+ if (sVar3 < 0x1f) {
+ DAT_BuildingsState.buildings[iVar5].field66_0xbe = sVar3 + 1;
+ } else {
+ DAT_BuildingsState.buildings[iVar5].animationIndex = 0;
+ DAT_BuildingsState.buildings[iVar5].field14_0x2c = 1;
+ DAT_BuildingsState.buildings[iVar5].state = 1;
+ }
+ } else if (sVar3 == 6) {
+ DAT_BuildingsState.buildings[iVar5].spriteOffetX = -0x48;
+ DAT_BuildingsState.buildings[iVar5].spriteOffetY = -0x54;
+ if ((char)DAT_BuildingDefinedData
+ .field151_0x7494[DAT_BuildingsState.buildings[iVar5].animationIndex]
+ < 1) {
+ DAT_BuildingsState.buildings[iVar5].animationIndex = 0;
+ DAT_BuildingsState.buildings[iVar5].state = 7;
+ } else {
+ DAT_BuildingsState.buildings[iVar5].animationFrame
+ = (int)(char)DAT_BuildingDefinedData
+ .field151_0x7494[DAT_BuildingsState.buildings[iVar5].animationIndex];
+ }
+ sVar3 = DAT_BuildingsState.buildings[iVar5].field66_0xbe;
+ if (0 < sVar3)
+ goto LAB_004160fb;
+ DAT_BuildingsState.buildings[iVar5].animationIndex = 0;
+ DAT_BuildingsState.buildings[iVar5].state = 7;
+ } else if (sVar3 == 7) {
+ if ((DAT_BuildingsState.buildings[iVar5].animationActive != 0)
+ && (DAT_BuildingsState.buildings[iVar5].animationIndex == 10)) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[iVar5].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[iVar5].y)),
+ FX_POT_OPEN);
+ }
+ if ((DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationActive != 0)
+ && (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 0xd)) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y)),
+ FX_OIL_REFILL);
+ }
+ iVar5 = DAT_CurrentBuildingID;
+ iVar6 = DAT_CurrentBuildingID * 0x32c;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].spriteOffetX = -0x48;
+ DAT_BuildingsState.buildings[iVar5].spriteOffetY = -0x54;
+ if ((char)DAT_BuildingDefinedData
+ .field152_0x74c4[DAT_BuildingsState.buildings[iVar5].animationIndex]
+ < 1) {
+ DAT_BuildingsState.buildings[iVar5].animationIndex = 0;
+ DAT_BuildingsState.buildings[iVar5].state = 8;
+ piVar1 = DAT_BuildingsState.buildings[iVar5].resources + 7;
+ *piVar1 = *piVar1 + -1;
+ iVar5 = (int)*(short*)&DAT_BuildingsState.buildings[iVar5].field_0x2a0;
+ if (((iVar5 != 0)
+ && (DAT_UnitsState.units[iVar5].unitType == UT_E_ENGINEER))
+ && (DAT_UnitsState.units[iVar5].state.generic
+ == (US_STAND_UPUnk | US_IDLEUnk))) {
+ DAT_UnitsState.units[iVar5].resourceToDeposit = 1;
+ }
+ } else {
+ DAT_BuildingsState.buildings[iVar5].animationFrame
+ = (int)(char)DAT_BuildingDefinedData
+ .field152_0x74c4[DAT_BuildingsState.buildings[iVar5].animationIndex];
+ }
+ } else if (sVar3 == 8) {
+ DAT_BuildingsState.buildings[iVar5].spriteOffetX = -0x48;
+ DAT_BuildingsState.buildings[iVar5].spriteOffetY = -0x54;
+ iVar4 = (int)(char)DAT_BuildingDefinedData
+ .field153_0x74f4[DAT_BuildingsState.buildings[iVar5].animationIndex];
+ if (iVar4 < 1)
+ goto LAB_0041622f;
+ goto LAB_00416072;
+ }
+ iVar5 = *(int*)((int)&DAT_BuildingsState.buildings[0].campgroundVclock + iVar6);
+ if (*(int*)((int)DAT_BuildingsState.buildings[0].resources + iVar6 + 0x1c) < 1) {
+ bVar2 = DAT_BuildingDefinedData.field154_0x7524[iVar5];
+ } else {
+ bVar2 = DAT_BuildingDefinedData.field155_0x7554[iVar5];
+ }
+ *(int*)((int)&DAT_BuildingsState.buildings[0].campgroundVclock + iVar6) = iVar5 + 1;
+ if ((char)bVar2 < 1) {
+ *(undefined4*)((int)&DAT_BuildingsState.buildings[0].campgroundVclock + iVar6) = 0;
+ } else {
+ *(int*)((int)&DAT_BuildingsState.buildings[0].field20_0x38 + iVar6) = (char)bVar2 + 0x3d;
+ }
+ if (*(short*)((int)DAT_BuildingsState.buildings[0].resources + iVar6 + -6) == 1) {
+ if (*(int*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6) == 1) {
+ playSFXAtLocation(
+ (int)*(short*)((int)DAT_BuildingsState.buildings[0].resources + iVar6 + -0x32),
+ (int)*(short*)((int)DAT_BuildingsState.buildings[0].resources + iVar6 + -0x30),
+ FX_POT_FLARE_UP);
+ }
+ iVar4 = DAT_CurrentBuildingID;
+ iVar6 = DAT_CurrentBuildingID * 0x32c;
+ iVar5 = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field25_0x4c;
+ bVar2 = DAT_BuildingDefinedData.field157_0x75ac[iVar5];
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field25_0x4c = iVar5 + 1;
+ if ((char)bVar2 < 1) {
+ DAT_BuildingsState.buildings[iVar4].field25_0x4c = 0;
+ DAT_BuildingsState.buildings[iVar4].field117_0x11a = 0;
+ goto LAB_004164bc;
+ }
+ iVar7 = (char)bVar2 + 0x7a;
+ } else {
+ iVar5 = *(int*)((int)DAT_BuildingsState.buildings[0].resources + iVar6 + 0x1c);
+ if (iVar5 < 1) {
+ *(undefined4*)((int)&DAT_BuildingsState.buildings[0].field21_0x3c + iVar6) = 0;
+ *(undefined4*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6) = 0;
+ goto LAB_004164bc;
+ }
+ if (iVar5 < 2) {
+ iVar5 = *(int*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6);
+ bVar2 = DAT_BuildingDefinedData.field156_0x7584[iVar5];
+ *(int*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6) = iVar5 + 1;
+ if ((char)bVar2 < 1) {
+ *(undefined4*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6) = 0;
+ goto LAB_004164bc;
+ }
+ iVar7 = (char)bVar2 + 0x4d;
+ } else if (iVar5 < 3) {
+ iVar5 = *(int*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6);
+ bVar2 = DAT_BuildingDefinedData.field156_0x7584[iVar5];
+ *(int*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6) = iVar5 + 1;
+ if ((char)bVar2 < 1) {
+ *(undefined4*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6) = 0;
+ goto LAB_004164bc;
+ }
+ iVar7 = (char)bVar2 + 0x52;
+ } else if (iVar5 < 4) {
+ iVar5 = *(int*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6);
+ bVar2 = DAT_BuildingDefinedData.field156_0x7584[iVar5];
+ *(int*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6) = iVar5 + 1;
+ if ((char)bVar2 < 1) {
+ *(undefined4*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6) = 0;
+ goto LAB_004164bc;
+ }
+ iVar7 = (char)bVar2 + 0x57;
+ } else if (iVar5 < 5) {
+ iVar5 = *(int*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6);
+ bVar2 = DAT_BuildingDefinedData.field156_0x7584[iVar5];
+ *(int*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6) = iVar5 + 1;
+ if ((char)bVar2 < 1) {
+ *(undefined4*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6) = 0;
+ goto LAB_004164bc;
+ }
+ iVar7 = (char)bVar2 + 0x5c;
+ } else if (iVar5 < 6) {
+ iVar5 = *(int*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6);
+ bVar2 = DAT_BuildingDefinedData.field156_0x7584[iVar5];
+ *(int*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6) = iVar5 + 1;
+ if ((char)bVar2 < 1) {
+ *(undefined4*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6) = 0;
+ goto LAB_004164bc;
+ }
+ iVar7 = (char)bVar2 + 0x61;
+ } else if (iVar5 < 7) {
+ iVar5 = *(int*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6);
+ bVar2 = DAT_BuildingDefinedData.field156_0x7584[iVar5];
+ *(int*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6) = iVar5 + 1;
+ if ((char)bVar2 < 1) {
+ *(undefined4*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6) = 0;
+ goto LAB_004164bc;
+ }
+ iVar7 = (char)bVar2 + 0x66;
+ } else if (iVar5 < 8) {
+ iVar5 = *(int*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6);
+ bVar2 = DAT_BuildingDefinedData.field156_0x7584[iVar5];
+ *(int*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6) = iVar5 + 1;
+ if ((char)bVar2 < 1) {
+ *(undefined4*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6) = 0;
+ goto LAB_004164bc;
+ }
+ iVar7 = (char)bVar2 + 0x6b;
+ } else {
+ iVar4 = *(int*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6);
+ iVar7 = (int)(char)DAT_BuildingDefinedData.field156_0x7584[iVar4];
+ if (iVar5 < 9) {
+ *(int*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6) = iVar4 + 1;
+ if (iVar7 < 1) {
+ *(undefined4*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6) = 0;
+ goto LAB_004164bc;
+ }
+ iVar7 = iVar7 + 0x70;
+ } else {
+ *(int*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6) = iVar4 + 1;
+ if (iVar7 < 1) {
+ *(undefined4*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar6) = 0;
+ goto LAB_004164bc;
+ }
+ iVar7 = iVar7 + 0x75;
+ }
+ }
+ }
+ *(int*)((int)&DAT_BuildingsState.buildings[0].field21_0x3c + iVar6) = iVar7;
+ LAB_004164bc:
+ if (*(short*)((int)DAT_BuildingsState.buildings[0].resources + iVar6 + -0x52) == -1) {
+ updateBuildingGraphicsLayer(
+ DAT_CurrentBuildingID);
+ iVar6 = DAT_CurrentBuildingID * 0x32c;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState = 0;
+ }
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ *(undefined4*)((int)&DAT_BuildingsState.buildings[0].displayOwnerFlag + iVar6) = 1;
+ piVar1 = (int*)((int)&DAT_BuildingsState.buildings[0].ownerFlagFrame + iVar6);
+ *piVar1 = *piVar1 + 1;
+ if ((char)DAT_BuildingDefinedData
+ .field177_0x7e1c[*(int*)((int)&DAT_BuildingsState.buildings[0].ownerFlagFrame + iVar6)
+ / 2]
+ < '\x01') {
+ *(undefined4*)((int)&DAT_BuildingsState.buildings[0].ownerFlagFrame + iVar6) = 0;
+ }
+ *(int*)((int)&DAT_BuildingsState.buildings[0].field39_0x84 + iVar6)
+ = (int)(char)DAT_BuildingDefinedData
+ .field177_0x7e1c[*(int*)((int)&DAT_BuildingsState.buildings[0].ownerFlagFrame + iVar6)
+ / 2];
+ return;
+ }
+ *(undefined4*)((int)&DAT_BuildingsState.buildings[0].field39_0x84 + iVar6) = 0;
+ return;
+ }
+}
+}
+
+### 0x004174e0 UpdateStables | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004174E0
+ void Buildings::UpdateStables()
+ {
+ addBuildingToTargetableBuildings(
+ DAT_CurrentBuildingID);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 0;
+ validateBuildingTetheredUnits(DAT_CurrentBuildingID);
+ // A new horse every 550 ticks, up to four
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].numberOfAnimals < 4) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].outpostRelatedUnk4 += 1;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].outpostRelatedUnk4 > 550) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].numberOfAnimals += 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].outpostRelatedUnk4 = 0;
+ recountStablesAndHorses();
+ }
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationTickCounter += 1;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationTickCounter > 5) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationTickCounter = 0;
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationTickCounter >= 1) {
+ return;
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].numberOfAnimals > 0) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].randomOutpostField > 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1 = 42;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock += 1;
+ if (DAT_BuildingDefinedData.StablesAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock = 0;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1
+ = DAT_BuildingDefinedData.StablesAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock];
+ }
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1 = 0;
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].numberOfAnimals > 1) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].randomOutpostField > 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite2 = 41;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1 += 1;
+ if (DAT_BuildingDefinedData.StablesAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1 = 0;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite2
+ = DAT_BuildingDefinedData.StablesAnimationFrames[DAT_BuildingsState
+ .buildings[DAT_CurrentBuildingID]
+ .extraAnimationFrame1];
+ }
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite2 = 0;
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].numberOfAnimals > 2) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].randomOutpostField > 2) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite3 = 40;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame2 += 1;
+ if (DAT_BuildingDefinedData.StablesAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame2]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame2 = 0;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite3
+ = DAT_BuildingDefinedData.StablesAnimationFrames[DAT_BuildingsState
+ .buildings[DAT_CurrentBuildingID]
+ .extraAnimationFrame2];
+ }
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite3 = 0;
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].numberOfAnimals > 3) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].randomOutpostField > 3) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite4 = 39;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3 += 1;
+ if (DAT_BuildingDefinedData.StablesAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3 = 0;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite4
+ = DAT_BuildingDefinedData.StablesAnimationFrames[DAT_BuildingsState
+ .buildings[DAT_CurrentBuildingID]
+ .extraAnimationFrame3];
+ }
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite4 = 0;
+ }
+ if (DAT_GameSynchronyState.currentGameMode != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage += 1;
+ if (DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage / 2]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage = 0;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].overlayImageID
+ = DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage
+ / 2];
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].overlayImageID = 0;
+ }
+ }
+}
+}
+
+### 0x004177e0 UpdateCathedral | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004177E0
+ void Buildings::UpdateCathedral()
+ {
+ addBuildingToTargetableBuildings(
+ DAT_CurrentBuildingID);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ int const buildingID = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 0;
+ if (DAT_GameSynchronyState.currentGameMode != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[buildingID].flagSlot.overlayImage += 1;
+ if (DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[buildingID].flagSlot.overlayImage / 2]
+ <= 0) {
+ DAT_BuildingsState.buildings[buildingID].flagSlot.overlayImage = 0;
+ }
+ DAT_BuildingsState.buildings[buildingID].overlayImageID
+ = DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[buildingID].flagSlot.overlayImage / 2];
+ } else {
+ DAT_BuildingsState.buildings[buildingID].overlayImageID = 0;
+ }
+ if (DAT_GameCore.gameMode_2 != 0 || DAT_GameCore.missionNumber1to20 != 7) {
+ return;
+ }
+ if (DAT_BuildingsState.buildings[buildingID].currentHealth
+ <= DAT_BuildingsState.buildings[buildingID].maxHealth * 3 / 10) {
+ if (DAT_BuildingsState.buildings[buildingID].field208_0x2da == 0
+ || DAT_BuildingsState.buildings[buildingID].spriteID != 0x11f) {
+ DAT_BuildingsState.buildings[buildingID].field208_0x2da = 1;
+ DAT_BuildingsState.buildings[buildingID].spriteID = 0x11f;
+ updateBuildingGraphicsLayer(
+ buildingID);
+ }
+ } else {
+ DAT_BuildingsState.buildings[buildingID].field208_0x2da = 0;
+ }
+ }
+}
+}
+
+### 0x00418100 UpdateCampGround | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00418100
+ void Buildings::UpdateCampGround()
+ {
+ // CampGroundAnimationFrames is declared byte, but the original reads it signed
+ int const owner = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIncrement = 1;
+ if ((char)DAT_BuildingDefinedData.CampGroundAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationCycleCount += 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationCycleCompleted = 1;
+ DAT_SFX_Interval_Campfire += 1;
+ if ((int)DAT_SFX_Interval_Campfire >= 1) {
+ DAT_SFX_Interval_Campfire = 0;
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_CAMPFIRE);
+ }
+ }
+ if (DAT_ViewportRenderState.viewportState.mouseAtomRefFloorTile != 0
+ && DAT_TileMapState
+ .BuildingLayer[DAT_ViewportRenderState.viewportState.mouseAtomRefFloorTile]
+ == DAT_CurrentBuildingID) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 0;
+ }
+ // The fire burns according to the owner's popularity clock
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock
+ = DAT_GameState.playerDataArray[owner].vclock;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock < 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock = 0;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock > 4000) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock = 4000;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock / 40 - 50;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock < 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1
+ = DAT_BuildingDefinedData.field416_0xa46c
+ [-DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock]
+ + 51;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1
+ = DAT_BuildingDefinedData.field415_0xa39c
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock];
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field155_0x270 != 0) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation == 0) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraOverlayImage10 >= 40) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 1;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraOverlayImage10 += 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraOverlayImage10 = 40;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame
+ = (char)DAT_BuildingDefinedData.CampGroundAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex]
+ + 11;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field156_0x272 != 0) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation == 0) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraOverlayImage10 >= 40) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 1;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraOverlayImage10 += 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraOverlayImage10 = 40;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame
+ = (char)DAT_BuildingDefinedData.CampGroundAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex]
+ + 11;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation != 0) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraOverlayImage10 <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 0;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraOverlayImage10 -= 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame
+ = (char)DAT_BuildingDefinedData.CampGroundAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex]
+ + 11;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraOverlayImage10 = 0;
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field155_0x270 <= 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStagePrevious = 1;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field155_0x270 <= 4) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage = 3;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStagePrevious = 3;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage == 3) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].timeAlive > 1000) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].timeAlive = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStagePrevious
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage = 5;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingProgress = 0;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage == 2) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].timeAlive > 200) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].timeAlive = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStagePrevious
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage = 4;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingProgress = 0;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage == 4) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].timeAlive > 600) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].timeAlive = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStagePrevious
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage = 3;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingProgress = 0;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage == 5) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].timeAlive == 1) {
+ updatePeasantSeatingAtBuilding(DAT_CurrentBuildingID,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field155_0x270, 1);
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].timeAlive > 300) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].timeAlive = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingProgress += 1;
+ int nextStage;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingProgress > 5) {
+ nextStage = 6;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingProgress = 0;
+ } else {
+ nextStage = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStagePrevious
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage = nextStage;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage == 6) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].timeAlive == 1) {
+ updatePeasantSeatingAtBuilding(DAT_CurrentBuildingID,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field155_0x270, 100);
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].timeAlive > 80) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].timeAlive = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingProgress += 1;
+ int nextStage;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingProgress > 12) {
+ nextStage = 2;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingProgress = 0;
+ } else {
+ nextStage = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStagePrevious
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage = nextStage;
+ }
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field155_0x270 = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field156_0x272 = 0;
+ }
+}
+}
+
+### 0x004184a0 UpdateParadeGround2 | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004184A0
+ void Buildings::UpdateParadeGround2()
+ {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIncrement = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = 0x20;
+ }
+}
+}
+
+### 0x004184d0 UpdateParadeGround3 | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004184D0
+ void Buildings::UpdateParadeGround3()
+ {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIncrement = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = 0x1f;
+ }
+}
+}
+
+### 0x00418500 UpdateParadeGround4 | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00418500
+ void Buildings::UpdateParadeGround4()
+ {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIncrement = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = 0x21;
+ }
+}
+}
+

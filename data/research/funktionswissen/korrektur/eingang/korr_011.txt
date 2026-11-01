@@ -1,0 +1,867 @@
+### 0x004174e0 UpdateStables | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004174E0
+ void Buildings::UpdateStables()
+ {
+ addBuildingToTargetableBuildings(
+ DAT_CurrentBuildingID);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 0;
+ validateBuildingTetheredUnits(DAT_CurrentBuildingID);
+ // A new horse every 550 ticks, up to four
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].numberOfAnimals < 4) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].outpostRelatedUnk4 += 1;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].outpostRelatedUnk4 > 550) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].numberOfAnimals += 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].outpostRelatedUnk4 = 0;
+ recountStablesAndHorses();
+ }
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationTickCounter += 1;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationTickCounter > 5) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationTickCounter = 0;
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationTickCounter >= 1) {
+ return;
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].numberOfAnimals > 0) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].randomOutpostField > 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1 = 42;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock += 1;
+ if (DAT_BuildingDefinedData.StablesAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock = 0;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1
+ = DAT_BuildingDefinedData.StablesAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock];
+ }
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1 = 0;
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].numberOfAnimals > 1) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].randomOutpostField > 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite2 = 41;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1 += 1;
+ if (DAT_BuildingDefinedData.StablesAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1 = 0;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite2
+ = DAT_BuildingDefinedData.StablesAnimationFrames[DAT_BuildingsState
+ .buildings[DAT_CurrentBuildingID]
+ .extraAnimationFrame1];
+ }
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite2 = 0;
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].numberOfAnimals > 2) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].randomOutpostField > 2) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite3 = 40;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame2 += 1;
+ if (DAT_BuildingDefinedData.StablesAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame2]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame2 = 0;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite3
+ = DAT_BuildingDefinedData.StablesAnimationFrames[DAT_BuildingsState
+ .buildings[DAT_CurrentBuildingID]
+ .extraAnimationFrame2];
+ }
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite3 = 0;
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].numberOfAnimals > 3) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].randomOutpostField > 3) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite4 = 39;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3 += 1;
+ if (DAT_BuildingDefinedData.StablesAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3 = 0;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite4
+ = DAT_BuildingDefinedData.StablesAnimationFrames[DAT_BuildingsState
+ .buildings[DAT_CurrentBuildingID]
+ .extraAnimationFrame3];
+ }
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite4 = 0;
+ }
+ if (DAT_GameSynchronyState.currentGameMode != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage += 1;
+ if (DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage / 2]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage = 0;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].overlayImageID
+ = DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage
+ / 2];
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].overlayImageID = 0;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004174e0", "name": "UpdateStables", "quelle": "nachgebaut", "p1": {"bereich": "Spielablauf", "zweck": "Taktfunktion des Pferdestalls: Pferde nachwachsen lassen und Pferdebilder animieren."}, "p2": {"ein": "- (arbeitet an DAT_CurrentBuildingID)", "aus": "-", "liest": ["buildings[cur].numberOfAnimals", "outpostRelatedUnk4", "animationTickCounter", "randomOutpostField", "StablesAnimationFrames", "currentGameMode"], "schreibt": ["numberOfAnimals", "outpostRelatedUnk4", "animationTickCounter", "extraAnimationSprite1..4", "extraAnimationFrame1..3", "campgroundVclock", "flagSlot.overlayImage", "overlayImageID", "renderAnimation = 0", "displayOwnerFlag = 1"], "ruft": ["addBuildingToTargetableBuildings", "addBuildingInRegistry", "validateBuildingTetheredUnits", "recountStablesAndHorses"], "regeln": ["Pro Stall höchstens 4 Pferde (numberOfAnimals < 4 nötig)", "Zähler outpostRelatedUnk4 steigt je Aufruf um 1; bei Wert > 550 (also im 551. Aufruf) kommt 1 Pferd dazu, Zähler = 0, danach recountStablesAndHorses", "Bei vollem Stall (4) läuft der Zähler nicht", "Die Pferdeanimation wird nur jeden 6. Aufruf bewegt (animationTickCounter zählt 0 bis 5)", "Pferd i (1 bis 4) ist vorhanden, wenn numberOfAnimals >= i; ist randomOutpostField >= i, bekommt es ein festes Bild (42, 41, 40, 39), sonst läuft die Tabelle StablesAnimationFrames", "Fehlt ein Pferd, ist das Bild 0", "Flaggenanimation nur bei currentGameMode != 0"], "offen": ["randomOutpostField und outpostRelatedUnk4 haben irreführende Namen (hier Stall-Zähler); die Namen stammen offenbar von einer anderen Gebäudeart", "Ob 550 ein Spieltakt oder ein anderes Zeitmaß ist"]}, "p3": {"erklaerung": "Jeder Stall bekommt etwa alle 551 Aufrufe ein neues Pferd, bis zu vier. Das ist der Nachschub für Ritter.", "gehirn": "Ritter-Planung: pro Stall höchstens 4 Pferde, Nachschub etwa 1 Pferd je 551 Takte und Stall. Mehrere Ställe verteilen den Nachschub.", "beleg": "nachgebaut", "live": "Stall steht, leer → buildings[stall].numberOfAnimals alle paar Sekunden → steigt um 1 etwa alle 551 Takte bis 4", "live_art": "anwerben"}}
+
+### 0x00418100 UpdateCampGround | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00418100
+ void Buildings::UpdateCampGround()
+ {
+ // CampGroundAnimationFrames is declared byte, but the original reads it signed
+ int const owner = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIncrement = 1;
+ if ((char)DAT_BuildingDefinedData.CampGroundAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationCycleCount += 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationCycleCompleted = 1;
+ DAT_SFX_Interval_Campfire += 1;
+ if ((int)DAT_SFX_Interval_Campfire >= 1) {
+ DAT_SFX_Interval_Campfire = 0;
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_CAMPFIRE);
+ }
+ }
+ if (DAT_ViewportRenderState.viewportState.mouseAtomRefFloorTile != 0
+ && DAT_TileMapState
+ .BuildingLayer[DAT_ViewportRenderState.viewportState.mouseAtomRefFloorTile]
+ == DAT_CurrentBuildingID) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 0;
+ }
+ // The fire burns according to the owner's popularity clock
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock
+ = DAT_GameState.playerDataArray[owner].vclock;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock < 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock = 0;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock > 4000) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock = 4000;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock / 40 - 50;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock < 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1
+ = DAT_BuildingDefinedData.field416_0xa46c
+ [-DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock]
+ + 51;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1
+ = DAT_BuildingDefinedData.field415_0xa39c
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock];
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field155_0x270 != 0) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation == 0) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraOverlayImage10 >= 40) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 1;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraOverlayImage10 += 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraOverlayImage10 = 40;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame
+ = (char)DAT_BuildingDefinedData.CampGroundAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex]
+ + 11;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field156_0x272 != 0) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation == 0) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraOverlayImage10 >= 40) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 1;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraOverlayImage10 += 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraOverlayImage10 = 40;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame
+ = (char)DAT_BuildingDefinedData.CampGroundAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex]
+ + 11;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation != 0) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraOverlayImage10 <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 0;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraOverlayImage10 -= 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame
+ = (char)DAT_BuildingDefinedData.CampGroundAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex]
+ + 11;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraOverlayImage10 = 0;
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field155_0x270 <= 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStagePrevious = 1;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field155_0x270 <= 4) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage = 3;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStagePrevious = 3;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage == 3) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].timeAlive > 1000) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].timeAlive = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStagePrevious
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage = 5;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingProgress = 0;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage == 2) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].timeAlive > 200) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].timeAlive = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStagePrevious
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage = 4;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingProgress = 0;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage == 4) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].timeAlive > 600) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].timeAlive = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStagePrevious
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage = 3;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingProgress = 0;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage == 5) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].timeAlive == 1) {
+ updatePeasantSeatingAtBuilding(DAT_CurrentBuildingID,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field155_0x270, 1);
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].timeAlive > 300) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].timeAlive = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingProgress += 1;
+ int nextStage;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingProgress > 5) {
+ nextStage = 6;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingProgress = 0;
+ } else {
+ nextStage = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStagePrevious
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage = nextStage;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage == 6) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].timeAlive == 1) {
+ updatePeasantSeatingAtBuilding(DAT_CurrentBuildingID,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field155_0x270, 100);
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].timeAlive > 80) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].timeAlive = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingProgress += 1;
+ int nextStage;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingProgress > 12) {
+ nextStage = 2;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingProgress = 0;
+ } else {
+ nextStage = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStagePrevious
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campStage = nextStage;
+ }
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field155_0x270 = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field156_0x272 = 0;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00418100", "name": "UpdateCampGround", "quelle": "nachgebaut", "p1": {"bereich": "Spielablauf", "zweck": "Taktfunktion des Lagerplatzes (Feuerstelle): Feuer nach Beliebtheit und Ablauf der Sitzplatz-Stufen für Bauern."}, "p2": {"ein": "- (arbeitet an DAT_CurrentBuildingID)", "aus": "-", "liest": ["buildings[cur].owner", "playerDataArray[owner].vclock", "CampGroundAnimationFrames", "field415_0xa39c / field416_0xa46c", "field155_0x270", "field156_0x272", "campStage", "timeAlive", "buildingProgress", "mouseAtomRefFloorTile / BuildingLayer"], "schreibt": ["campgroundVclock", "extraAnimationSprite1", "extraOverlayImage10", "renderAnimation", "animationFrame", "animationIndex", "animationCycleCount", "animationCycleCompleted", "campStage", "campStagePrevious", "timeAlive", "buildingProgress", "field155_0x270 = 0", "field156_0x272 = 0", "displayOwnerFlag"], "ruft": ["playSFXAtLocation (FX_CAMPFIRE)", "updatePeasantSeatingAtBuilding"], "regeln": ["Feuerstärke: vclock des Besitzers wird auf 0 bis 4000 begrenzt, dann Wert = vclock / 40 - 50, also -50 bis +50", "Wert < 0: Feuerbild = field416[-Wert] + 51; sonst Feuerbild = field415[Wert]", "Besitzerflagge nur sichtbar, wenn die Maus über diesem Gebäude steht", "Ende der Animationstabelle (Wert <= 0): Index 0, Durchlaufzähler + 1, FX_CAMPFIRE bei jedem Durchlauf", "field155_0x270 <= 1: campStage = 1; <= 4: campStage = 3; ab 5 läuft der Stufenwechsel", "Stufenwechsel (nur ab field155 >= 5), jeweils nach timeAlive-Schwelle: Stufe 3 nach > 1000 -> Stufe 5; Stufe 2 nach > 200 -> Stufe 4; Stufe 4 nach > 600 -> Stufe 3", "Stufe 5: bei timeAlive == 1 updatePeasantSeatingAtBuilding(id, field155, 1); nach > 300 buildingProgress + 1; ab Fortschritt > 5 Stufe 6", "Stufe 6: bei timeAlive == 1 updatePeasantSeatingAtBuilding(id, field155, 100); nach > 80 buildingProgress + 1; ab Fortschritt > 12 Stufe 2", "Am Ende jedes Aufrufs: field155_0x270 und field156_0x272 = 0 (andere Funktionen füllen sie neu)"], "offen": ["Bedeutung von field155_0x270 (vermutlich Zahl der Bauern am Lagerplatz) und field156_0x272", "Stufe 1 hat bei field155 >= 5 keinen Ausgang im Code", "Ob timeAlive in Takten gezählt wird und wo es erhöht wird", "Bedeutung der Werte 1 und 100 bei updatePeasantSeatingAtBuilding"]}, "p3": {"erklaerung": "Der Lagerplatz zeigt mit dem Feuer die Beliebtheit seines Besitzers an. Kommen genug Bauern zusammen, durchläuft er Stufen, in denen sie sich setzen und wieder aufstehen.", "gehirn": "Die Feuerstärke ist ein bildlicher Beliebtheitsmesser; Beliebtheit selbst besser direkt aus vclock lesen.", "beleg": "nachgebaut", "live": "Lagerplatz mit Bauern → campStage und field155_0x270 über mehrere hundert Takte → Stufenfolge 3, 5, 6, 2, 4, 3 mit den Schwellen 1000/300/80/200/600", "live_art": "sonstiges"}}
+
+### 0x0041a8d0 swapOwnersOfCastle | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0041A8D0
+ void BuildingsState::swapOwnersOfCastle(int param_1, int param_2)
+ {
+ // Swaps all buildings of the players param_1 and param_2
+ int swapped = 0;
+ for (int i = 1; i < 2000; ++i) {
+ if (this->buildings[i].logicalState != BLS_NORMAL) {
+ continue;
+ }
+ if (this->buildings[i].owner == param_1) {
+ this->buildings[i].owner = param_2;
+ swapped = 1;
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ this->buildings[i].playerColorUnk = param_2;
+ }
+ } else if (this->buildings[i].owner == param_2) {
+ this->buildings[i].owner = param_1;
+ swapped = 1;
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ this->buildings[i].playerColorUnk = param_1;
+ }
+ }
+ }
+ if (swapped <= 0) {
+ return;
+ }
+ // Swap the special buildings as well
+ SwapInts(&DAT_GameState.playerDataArray[param_2].keep.id,
+ &DAT_GameState.playerDataArray[param_1].keep.id);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].keep.xEntry,
+ &DAT_GameState.playerDataArray[param_1].keep.xEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].keep.yEntry,
+ &DAT_GameState.playerDataArray[param_1].keep.yEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].keep.tileEntry,
+ &DAT_GameState.playerDataArray[param_1].keep.tileEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].keep.areaEntry,
+ &DAT_GameState.playerDataArray[param_1].keep.areaEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].marketplace.id,
+ &DAT_GameState.playerDataArray[param_1].marketplace.id);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].marketplace.xEntry,
+ &DAT_GameState.playerDataArray[param_1].marketplace.xEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].marketplace.yEntry,
+ &DAT_GameState.playerDataArray[param_1].marketplace.yEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].marketplace.tileEntry,
+ &DAT_GameState.playerDataArray[param_1].marketplace.tileEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].marketplace.areaEntry,
+ &DAT_GameState.playerDataArray[param_1].marketplace.areaEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].engineersGuild.id,
+ &DAT_GameState.playerDataArray[param_1].engineersGuild.id);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].engineersGuild.xEntry,
+ &DAT_GameState.playerDataArray[param_1].engineersGuild.xEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].engineersGuild.yEntry,
+ &DAT_GameState.playerDataArray[param_1].engineersGuild.yEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].engineersGuild.tileEntry,
+ &DAT_GameState.playerDataArray[param_1].engineersGuild.tileEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].engineersGuild.areaEntry,
+ &DAT_GameState.playerDataArray[param_1].engineersGuild.areaEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].tunnelersGuild.id,
+ &DAT_GameState.playerDataArray[param_1].tunnelersGuild.id);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].tunnelersGuild.xEntry,
+ &DAT_GameState.playerDataArray[param_1].tunnelersGuild.xEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].tunnelersGuild.yEntry,
+ &DAT_GameState.playerDataArray[param_1].tunnelersGuild.yEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].tunnelersGuild.tileEntry,
+ &DAT_GameState.playerDataArray[param_1].tunnelersGuild.tileEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].tunnelersGuild.areaEntry,
+ &DAT_GameState.playerDataArray[param_1].tunnelersGuild.areaEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].stockpile.id,
+ &DAT_GameState.playerDataArray[param_1].stockpile.id);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].stockpile.xEntry,
+ &DAT_GameState.playerDataArray[param_1].stockpile.xEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].stockpile.yEntry,
+ &DAT_GameState.playerDataArray[param_1].stockpile.yEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].stockpile.tileEntry,
+ &DAT_GameState.playerDataArray[param_1].stockpile.tileEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].stockpile.areaEntry,
+ &DAT_GameState.playerDataArray[param_1].stockpile.areaEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].armory.id,
+ &DAT_GameState.playerDataArray[param_1].armory.id);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].armory.xEntry,
+ &DAT_GameState.playerDataArray[param_1].armory.xEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].armory.yEntry,
+ &DAT_GameState.playerDataArray[param_1].armory.yEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].armory.tileEntry,
+ &DAT_GameState.playerDataArray[param_1].armory.tileEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].armory.areaEntry,
+ &DAT_GameState.playerDataArray[param_1].armory.areaEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].granary.id,
+ &DAT_GameState.playerDataArray[param_1].granary.id);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].granary.xEntry,
+ &DAT_GameState.playerDataArray[param_1].granary.xEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].granary.yEntry,
+ &DAT_GameState.playerDataArray[param_1].granary.yEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].granary.tileEntry,
+ &DAT_GameState.playerDataArray[param_1].granary.tileEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].granary.areaEntry,
+ &DAT_GameState.playerDataArray[param_1].granary.areaEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].barracks.id,
+ &DAT_GameState.playerDataArray[param_1].barracks.id);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].barracks.xEntry,
+ &DAT_GameState.playerDataArray[param_1].barracks.xEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].barracks.yEntry,
+ &DAT_GameState.playerDataArray[param_1].barracks.yEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].barracks.tileEntry,
+ &DAT_GameState.playerDataArray[param_1].barracks.tileEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].barracks.areaEntry,
+ &DAT_GameState.playerDataArray[param_1].barracks.areaEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].mercenaryPost.id,
+ &DAT_GameState.playerDataArray[param_1].mercenaryPost.id);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].mercenaryPost.xEntry,
+ &DAT_GameState.playerDataArray[param_1].mercenaryPost.xEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].mercenaryPost.yEntry,
+ &DAT_GameState.playerDataArray[param_1].mercenaryPost.yEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].mercenaryPost.tileEntry,
+ &DAT_GameState.playerDataArray[param_1].mercenaryPost.tileEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].mercenaryPost.areaEntry,
+ &DAT_GameState.playerDataArray[param_1].mercenaryPost.areaEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].campground.id,
+ &DAT_GameState.playerDataArray[param_1].campground.id);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].campground.xEntry,
+ &DAT_GameState.playerDataArray[param_1].campground.xEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].campground.yEntry,
+ &DAT_GameState.playerDataArray[param_1].campground.yEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].campground.tileEntry,
+ &DAT_GameState.playerDataArray[param_1].campground.tileEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].campground.areaEntry,
+ &DAT_GameState.playerDataArray[param_1].campground.areaEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].unknown6.id,
+ &DAT_GameState.playerDataArray[param_1].unknown6.id);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].unknown6.xEntry,
+ &DAT_GameState.playerDataArray[param_1].unknown6.xEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].unknown6.yEntry,
+ &DAT_GameState.playerDataArray[param_1].unknown6.yEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].unknown6.tileEntry,
+ &DAT_GameState.playerDataArray[param_1].unknown6.tileEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].unknown6.areaEntry,
+ &DAT_GameState.playerDataArray[param_1].unknown6.areaEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].oilSmelter.id,
+ &DAT_GameState.playerDataArray[param_1].oilSmelter.id);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].oilSmelter.xEntry,
+ &DAT_GameState.playerDataArray[param_1].oilSmelter.xEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].oilSmelter.yEntry,
+ &DAT_GameState.playerDataArray[param_1].oilSmelter.yEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].oilSmelter.tileEntry,
+ &DAT_GameState.playerDataArray[param_1].oilSmelter.tileEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].oilSmelter.areaEntry,
+ &DAT_GameState.playerDataArray[param_1].oilSmelter.areaEntry);
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0041a8d0", "name": "swapOwnersOfCastle", "quelle": "nachgebaut", "p1": {"bereich": "Gebaeude", "zweck": "Tauscht alle Gebäude und Sondergebäude-Einträge zweier Spieler."}, "p2": {"ein": "param_1, param_2 (zwei Spieler)", "aus": "-", "liest": ["buildings[1..1999].logicalState/owner", "DAT_GameSynchronyState.currentGameMode"], "schreibt": ["buildings[i].owner", "buildings[i].playerColorUnk", "playerDataArray[sp].keep/marketplace/engineersGuild/tunnelersGuild/stockpile/armory/granary/barracks/mercenaryPost/campground/unknown6/oilSmelter (je id, xEntry, yEntry, tileEntry, areaEntry)"], "ruft": ["SwapInts"], "regeln": ["Nur Gebäude im Normalzustand (BLS_NORMAL) werden getauscht", "Schleife läuft fest von 1 bis 1999, nicht bis maxBuildingsCount", "Die Farbe (playerColorUnk) wird nur gesetzt, wenn der Spielmodus nicht GM_SOLITARY ist", "Die 12 Sondergebäude-Einträge werden nur getauscht, wenn mindestens ein Gebäude den Besitzer gewechselt hat"], "offen": ["Aufrufer: wann das Spiel Burgen tauscht (vermutlich Mehrspieler-Sonderfall)", "Bedeutung von unknown6"]}, "p3": {"erklaerung": "Zwei Spieler tauschen ihre komplette Burg samt Lager, Kaserne und Co. Danach gehören alle Gebäude dem jeweils anderen.", "gehirn": "-", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x0041ade0 determineBuildingEntranceFromKeepArea | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0041ADE0
+ undefined4 BuildingsState::determineBuildingEntranceFromKeepArea(
+ int buildingID, int workerIndexPlus1, BOOLEnum flag)
+ {
+ int buildingSize;
+ ushort* puVar1;
+ ushort* puVar2;
+ short sVar3;
+ int _playerID;
+ int _buildingAtCandidateHeight;
+ dword _candidateArea;
+ dword _canNav;
+ int iVar4;
+ dword toArea;
+ int iVar5;
+ dword _keepArea;
+ int _index;
+ int _height;
+ int _candidateTile;
+ int iVar6;
+ uint _heightAtCandidate;
+ uint uVar7;
+ short _flagCopy;
+ ushort* local_2c;
+ int local_28;
+ ushort* local_24;
+ int _heightStep;
+ short _buildingAtCandidate;
+ int _buildingID;
+ int _index2;
+ int _count2;
+ int _accessibleTilesCount;
+ BOOLEnum _flag;
+ Building* _pBuilding1;
+ Building* _pBuilding2;
+ short* _pEntranceX;
+ short* _pEntranceY;
+ _flag = flag;
+ _buildingID = buildingID;
+ _playerID = (int)this->buildings[buildingID].owner;
+ _keepArea
+ = (dword)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_GameState.playerDataArray[_playerID].campground.tileEntry];
+ _index = 0;
+ local_28 = 0;
+ _heightStep = 0x10;
+ if (this->buildings[buildingID].buildingType == BT_QUARRY) {
+ _heightStep = 0x20;
+ }
+ buildingSize = this->buildings[buildingID].widthOrHeight + flag * 2;
+ _accessibleTilesCount = DAT_BuildingDefinedData.BuildingAccessibleTilesCount[buildingSize];
+ if (0 < _accessibleTilesCount) {
+ /*
+ this modulates what angle is chosen or at least makes sure it doesn't overflow
+ */
+ _index = (int)(short)this->buildings[buildingID].entranceAttemptTileIndex % _accessibleTilesCount;
+ this->buildings[buildingID].entranceAttemptTileIndex = (ushort)_index;
+ }
+ _pEntranceX = &this->buildings[buildingID].buildingEntryX;
+ _height = (int)this->buildings[buildingID].terrainHeightUnk;
+ *_pEntranceX = 0;
+ _pEntranceY = &this->buildings[buildingID].buildingEntryY;
+ *_pEntranceY = 0;
+ flag = FALSE;
+ _flagCopy = (short)_flag;
+ _index2 = _index;
+ if (0 < _accessibleTilesCount) {
+ _pBuilding1 = this->buildings + buildingID;
+ _pBuilding2 = this->buildings + buildingID;
+ /*
+ todo: feat: set this value based on direction of keep
+ */
+ buildingID = _index;
+ do {
+ /*
+ offset is set here, for each try a different location is tried
+ */
+ setupBuildingEntrancesOffset(
+ buildingSize, 1, buildingID, 0);
+ _candidateTile
+ = ((*(int*)((int)DAT_ViewportRenderState
+ + (((int)(short)_pBuilding1->y - _flag) + this->DAT_TempYOffset) * 0xc + 0x188728)
+ + (int)(short)_pBuilding2->x)
+ - _flag)
+ + this->DAT_TempXOffset;
+ _buildingAtCandidate = *(short*)((int)DAT_TileMapState + _candidateTile * 2 + 0x2029b0);
+ _heightAtCandidate = (uint) * (byte*)((int)DAT_TileMapState + _candidateTile + 0x29fa30);
+ if (_buildingAtCandidate != 0) {
+ _buildingAtCandidateHeight = getBuildingHeightForBuildingID(
+ (int)_buildingAtCandidate);
+ _heightAtCandidate = _heightAtCandidate + _buildingAtCandidateHeight;
+ }
+ if (((((*(uint*)((int)DAT_TileMapState + _candidateTile * 4 + 0x165160) & 0x50501481) == 0)
+ && (_height <= (int)(_heightStep + _heightAtCandidate)))
+ && ((int)(_heightAtCandidate - _heightStep) <= _height))
+ && ((((_keepArea == 0
+ || (_candidateArea
+ = (dword) * (short*)((int)DAT_TileMapState + _candidateTile * 2 + 0x363ed0),
+ _candidateArea == _keepArea))
+ || ((_canNav = MACRO_CALL_MEMBER(
+ calculateCanPlayerUnitsNavigateToAreaFromArea,
+ DAT_PathFindingState)(
+ _playerID, (dword)((int)(_keepArea)), (dword)((int)(_candidateArea)), 0),
+ _canNav != 0
+ || (DAT_BuildingDefinedData.ABuildingTypeValueArray
+ [(short)this->buildings[_buildingID].buildingType]
+ != FALSE))))
+ && (local_28 = local_28 + 1, workerIndexPlus1 <= local_28))))
+ goto LAB_0041b11e_done;
+ buildingID = buildingID + 1;
+ if (_accessibleTilesCount <= buildingID) {
+ buildingID = 0;
+ }
+ flag = flag + TRUE;
+ _index2 = buildingID;
+ } while ((int)flag < _accessibleTilesCount);
+ }
+ buildingID = _index2;
+ _count2 = DAT_BuildingDefinedData.BuildingAccessibleTilesCountForOneLarger[buildingSize];
+ flag = FALSE;
+ if (0 < _count2) {
+ do {
+ setupNextCandidateLocationComputeOffsets2(
+ buildingSize, 1, buildingID, 0);
+ iVar6 = ((*(int*)((int)DAT_ViewportRenderState
+ + (((int)(short)this->buildings[_buildingID].y - _flag) + this->DAT_TempYOffset) * 0xc
+ + 0x188728)
+ + (int)(short)this->buildings[_buildingID].x)
+ - _flag)
+ + this->DAT_TempXOffset;
+ sVar3 = *(short*)((int)DAT_TileMapState + iVar6 * 2 + 0x2029b0);
+ uVar7 = (uint) * (byte*)((int)DAT_TileMapState + iVar6 + 0x29fa30);
+ if (sVar3 != 0) {
+ iVar4 = getBuildingHeightForBuildingID(
+ (int)sVar3);
+ uVar7 = uVar7 + iVar4;
+ }
+ if ((((*(uint*)((int)DAT_TileMapState + iVar6 * 4 + 0x165160) & 0x50501481) == 0)
+ && (_height <= (int)(uVar7 + 0x10)))
+ && ((((int)(uVar7 - 0x10) <= _height
+ && ((((_keepArea == 0
+ || (toArea
+ = (dword) * (short*)((int)DAT_TileMapState + iVar6 * 2 + 0x363ed0),
+ toArea == _keepArea))
+ || (iVar6
+ = MACRO_CALL_MEMBER(
+ calculateCanPlayerUnitsNavigateToAreaFromArea,
+ DAT_PathFindingState)(
+ _playerID, (dword)((int)(_keepArea)), (dword)((int)(toArea)), 0),
+ iVar6 != 0))
+ || (DAT_BuildingDefinedData
+ .ABuildingTypeValueArray[(short)this->buildings[_buildingID].buildingType]
+ != FALSE))))
+ && (local_28 = local_28 + 1, workerIndexPlus1 <= local_28)))) {
+ LAB_0041b11e_done:
+ local_24 = &this->buildings[_buildingID].x;
+ local_2c = &this->buildings[_buildingID].y;
+ *_pEntranceX = (*local_24 - _flagCopy) + (short)this->DAT_TempXOffset;
+ *_pEntranceY = (*local_2c - _flagCopy) + (short)this->DAT_TempYOffset;
+ return (undefined4)(1);
+ }
+ buildingID = buildingID + 1;
+ if (_count2 <= buildingID) {
+ buildingID = 0;
+ }
+ flag = flag + TRUE;
+ } while ((int)flag < _count2);
+ }
+ iVar6 = DAT_BuildingDefinedData.BuildingAccessibleTilesCount[buildingSize];
+ if (iVar6 < 1) {
+ buildingID = 0;
+ } else {
+ buildingID = (int)(short)this->buildings[_buildingID].entranceAttemptTileIndex % iVar6;
+ this->buildings[_buildingID].entranceAttemptTileIndex = (ushort)buildingID;
+ }
+ flag = FALSE;
+ if (0 < iVar6) {
+ puVar1 = &this->buildings[_buildingID].y;
+ puVar2 = &this->buildings[_buildingID].x;
+ do {
+ setupBuildingEntrancesOffset(
+ buildingSize, 1, buildingID, 0);
+ iVar4 = ((*(int*)((int)DAT_ViewportRenderState
+ + (((int)(short)*puVar1 - _flag) + this->DAT_TempYOffset) * 0xc + 0x188728)
+ + (int)(short)*puVar2)
+ - _flag)
+ + this->DAT_TempXOffset;
+ sVar3 = *(short*)((int)DAT_TileMapState + iVar4 * 2 + 0x2029b0);
+ uVar7 = (uint) * (byte*)((int)DAT_TileMapState + iVar4 + 0x29fa30);
+ if (sVar3 != 0) {
+ iVar5 = getBuildingHeightForBuildingID(
+ (int)sVar3);
+ uVar7 = uVar7 + iVar5;
+ }
+ if ((((*(uint*)((int)DAT_TileMapState + iVar4 * 4 + 0x165160) & 0x50501481) == 0)
+ && (_height <= (int)(uVar7 + 0x10)))
+ && (((int)(uVar7 - 0x10) <= _height
+ && ((*(short*)((int)DAT_TileMapState + iVar4 * 2 + 0x363ed0) != 0
+ && (local_28 = local_28 + 1, workerIndexPlus1 <= local_28)))))) {
+ *_pEntranceX = (*puVar2 - _flagCopy) + (short)this->DAT_TempXOffset;
+ *_pEntranceY = (*puVar1 - _flagCopy) + (short)this->DAT_TempYOffset;
+ return (undefined4)(2);
+ }
+ buildingID = buildingID + 1;
+ if (iVar6 <= buildingID) {
+ buildingID = 0;
+ }
+ flag = flag + TRUE;
+ } while ((int)flag < iVar6);
+ }
+ return (undefined4)(0);
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0041ade0", "name": "determineBuildingEntranceFromKeepArea", "quelle": "ghidra", "p1": {"bereich": "Gebaeude", "zweck": "Sucht einen begehbaren Eingangsfeld-Platz am Gebäude, erreichbar vom Lagerplatz (campground) des Besitzers."}, "p2": {"ein": "buildingID, workerIndexPlus1 (wievielter passender Platz gewünscht), flag (0 oder 1, verkleinert die Gebäudegröße um 2·flag und verschiebt den Eingang)", "aus": "1 = Platz in erreichbarem Gebiet, 2 = Notlösung, 0 = nichts gefunden", "liest": ["buildings[id].owner/buildingType/widthOrHeight/entranceAttemptTileIndex/terrainHeightUnk/x/y", "playerDataArray[owner].campground.tileEntry", "PathConnectionLayer", "BuildingAccessibleTilesCount[größe]", "BuildingAccessibleTilesCountForOneLarger[größe]", "ABuildingTypeValueArray[typ]", "Tile-Flags (Maske 0x50501481)", "Geländehöhe und Gebäudehöhe am Kandidaten"], "schreibt": ["buildings[id].buildingEntryX/Y (erst 0)", "buildings[id].entranceAttemptTileIndex (Rest durch Anzahl)", "DAT_TempXOffset/YOffset (über setupBuildingEntrancesOffset)"], "ruft": ["setupBuildingEntrancesOffset", "setupNextCandidateLocationComputeOffsets2", "getBuildingHeightForBuildingID", "calculateCanPlayerUnitsNavigateToAreaFromArea"], "regeln": ["Erlaubte Höhendifferenz zum Kandidatenfeld: 16 (0x10), beim Steinbruch (BT_QUARRY) 32 (0x20)", "Kandidat gilt nur, wenn Tile-Flags & 0x50501481 gleich 0 sind", "Stufe 1: Ringfelder in Größe widthOrHeight+2·flag, Start bei entranceAttemptTileIndex mod Anzahl, reihum; Gebiet muss gleich dem Lagergebiet sein, oder Lagergebiet ist 0, oder Einheiten können dorthin laufen, oder ABuildingTypeValueArray[typ] ist nicht FALSE; Rückgabe 1", "Stufe 2: gleiche Prüfung am nächstgrößeren Ring (BuildingAccessibleTilesCountForOneLarger), Höhengrenze hier fest 16, auch beim Steinbruch; Rückgabe 1", "Stufe 3: Ring wie Stufe 1, aber nur Höhenprüfung und Gebiet ungleich 0, keine Wegprüfung; Rückgabe 2", "Zählt gültige Kandidaten und nimmt erst den workerIndexPlus1-ten", "Rückgabe 0, wenn keine Stufe einen Platz liefert (buildingEntryX/Y bleiben 0)"], "offen": ["Bedeutung von ABuildingTypeValueArray (Typen, die ohne Wegprüfung gelten)", "Der Feldname campground.tileEntry als Bezugspunkt der Wegprüfung ist nach Namen angenommen", "Zahlen der Tile-Flag-Maske nicht aufgeschlüsselt"]}, "p3": {"erklaerung": "Das Spiel sucht rund ums Gebäude ein Feld, an dem Arbeiter hinein und heraus können. Es nimmt zuerst eines, das vom Lagerplatz aus erreichbar ist, und sonst eine Notlösung.", "gehirn": "Hilft zu verstehen, warum ein Gebäude keinen Eingang bekommt (Rückgabe 0): Gelände zu steil (Höhe 16, Steinbruch 32) oder zugebaut. Beim Platzieren Eingangsring frei lassen.", "beleg": "code", "live": "BuildingAccessibleTilesCount[größe], BuildingAccessibleTilesCountForOneLarger[größe] und ABuildingTypeValueArray[typ] aus dem Speicher lesen → Tabellenwerte je Größe/Typ", "live_art": "tabelle"}}
+
+### 0x0041b2b0 determineBuildingEntranceFromCustomArea | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0041B2B0
+ undefined4 BuildingsState::determineBuildingEntranceFromCustomArea(
+ int buildingID, int param_2, int param_3, int x, int y)
+ {
+ int buildingSize;
+ short* psVar1;
+ short* psVar2;
+ ushort* puVar3;
+ ushort* puVar4;
+ short sVar5;
+ int playerID;
+ int iVar6;
+ dword dVar7;
+ dword fromArea;
+ int iVar8;
+ int iVar9;
+ int iVar10;
+ int iVar11;
+ uint uVar12;
+ short sVar13;
+ int local_24;
+ int local_18;
+ int _accessibleTiles;
+ iVar11 = buildingID;
+ playerID = (int)this->buildings[buildingID].owner;
+ iVar8 = 0;
+ fromArea = (dword)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x];
+ local_24 = 0;
+ local_18 = 0x10;
+ if (this->buildings[buildingID].buildingType == BT_QUARRY) {
+ local_18 = 0x20;
+ }
+ buildingSize = this->buildings[buildingID].widthOrHeight + param_3 * 2;
+ iVar10 = DAT_BuildingDefinedData.BuildingAccessibleTilesCount[buildingSize];
+ if (0 < iVar10) {
+ iVar8 = (int)(short)this->buildings[buildingID].entranceAttemptTileIndex % iVar10;
+ this->buildings[buildingID].entranceAttemptTileIndex = (ushort)iVar8;
+ }
+ psVar1 = &this->buildings[buildingID].buildingEntryX;
+ iVar9 = (int)this->buildings[buildingID].terrainHeightUnk;
+ *psVar1 = 0;
+ psVar2 = &this->buildings[buildingID].buildingEntryY;
+ *psVar2 = 0;
+ y = 0;
+ sVar13 = (short)param_3;
+ if (0 < iVar10) {
+ puVar3 = &this->buildings[buildingID].y;
+ puVar4 = &this->buildings[buildingID].x;
+ buildingID = iVar8;
+ do {
+ setupBuildingEntrancesOffset(
+ buildingSize, 1, buildingID, 0);
+ iVar8 = (*(int*)((int)DAT_ViewportRenderState
+ + (((short)*puVar3 - param_3) + this->DAT_TempYOffset) * 0xc + 0x188728)
+ - param_3)
+ + (int)(short)*puVar4 + this->DAT_TempXOffset;
+ sVar5 = *(short*)((int)DAT_TileMapState + iVar8 * 2 + 0x2029b0);
+ uVar12 = (uint) * (byte*)((int)DAT_TileMapState + iVar8 + 0x29fa30);
+ if (sVar5 != 0) {
+ iVar6 = getBuildingHeightForBuildingID(
+ (int)sVar5);
+ uVar12 = uVar12 + iVar6;
+ }
+ if ((((((*(uint*)((int)DAT_TileMapState + iVar8 * 4 + 0x165160) & 0x50501481) == 0)
+ && (iVar9 <= (int)(local_18 + uVar12)))
+ && ((int)(uVar12 - local_18) <= iVar9))
+ && (((fromArea == 0
+ || (dVar7 = (dword) * (short*)((int)DAT_TileMapState + iVar8 * 2 + 0x363ed0),
+ dVar7 == fromArea))
+ || (iVar8 = MACRO_CALL_MEMBER(
+ calculateCanPlayerUnitsNavigateToAreaFromArea,
+ DAT_PathFindingState)(
+ playerID, (dword)((int)(fromArea)), (dword)((int)(dVar7)), 0),
+ iVar8 != 0))))
+ && (local_24 = local_24 + 1, param_2 <= local_24)) {
+ *psVar1 = ((short)this->DAT_TempXOffset - sVar13) + *puVar4;
+ *psVar2 = (*puVar3 - sVar13) + (short)this->DAT_TempYOffset;
+ return (undefined4)(1);
+ }
+ buildingID = buildingID + 1;
+ if (iVar10 <= buildingID) {
+ buildingID = 0;
+ }
+ y = y + 1;
+ iVar8 = buildingID;
+ } while (y < iVar10);
+ }
+ buildingID = iVar8;
+ iVar8 = DAT_BuildingDefinedData.BuildingAccessibleTilesCountForOneLarger[buildingSize];
+ y = 0;
+ if (0 < iVar8) {
+ puVar3 = &this->buildings[iVar11].y;
+ puVar4 = &this->buildings[iVar11].x;
+ do {
+ setupNextCandidateLocationComputeOffsets2(
+ buildingSize, 1, buildingID, 0);
+ iVar10 = (*(int*)((int)DAT_ViewportRenderState
+ + (((short)*puVar3 - param_3) + this->DAT_TempYOffset) * 0xc + 0x188728)
+ - param_3)
+ + (int)(short)*puVar4 + this->DAT_TempXOffset;
+ sVar5 = *(short*)((int)DAT_TileMapState + iVar10 * 2 + 0x2029b0);
+ uVar12 = (uint) * (byte*)((int)DAT_TileMapState + iVar10 + 0x29fa30);
+ if (sVar5 != 0) {
+ iVar6 = getBuildingHeightForBuildingID(
+ (int)sVar5);
+ uVar12 = uVar12 + iVar6;
+ }
+ if (((((*(uint*)((int)DAT_TileMapState + iVar10 * 4 + 0x165160) & 0x50501481) == 0)
+ && (iVar9 <= (int)(uVar12 + 0x10)))
+ && (((int)(uVar12 - 0x10) <= iVar9
+ && ((((fromArea == 0
+ || (dVar7
+ = (dword) * (short*)((int)DAT_TileMapState + iVar10 * 2 + 0x363ed0),
+ dVar7 == fromArea))
+ || (iVar10
+ = MACRO_CALL_MEMBER(
+ calculateCanPlayerUnitsNavigateToAreaFromArea,
+ DAT_PathFindingState)(
+ playerID, (dword)((int)(fromArea)), (dword)((int)(dVar7)), 0),
+ iVar10 != 0))
+ || (DAT_BuildingDefinedData
+ .ABuildingTypeValueArray[(short)this->buildings[iVar11].buildingType]
+ != FALSE))))))
+ && (local_24 = local_24 + 1, param_2 <= local_24)) {
+ *psVar1 = ((short)this->DAT_TempXOffset - sVar13) + *puVar4;
+ *psVar2 = (*puVar3 - sVar13) + (short)this->DAT_TempYOffset;
+ return (undefined4)(1);
+ }
+ buildingID = buildingID + 1;
+ if (iVar8 <= buildingID) {
+ buildingID = 0;
+ }
+ y = y + 1;
+ } while (y < iVar8);
+ }
+ _accessibleTiles = DAT_BuildingDefinedData.BuildingAccessibleTilesCount[buildingSize];
+ if (_accessibleTiles < 1) {
+ buildingID = 0;
+ } else {
+ buildingID = (int)(short)this->buildings[iVar11].entranceAttemptTileIndex % _accessibleTiles;
+ this->buildings[iVar11].entranceAttemptTileIndex = (ushort)buildingID;
+ }
+ y = 0;
+ if (0 < _accessibleTiles) {
+ puVar3 = &this->buildings[iVar11].y;
+ puVar4 = &this->buildings[iVar11].x;
+ do {
+ setupBuildingEntrancesOffset(
+ buildingSize, 1, buildingID, 0);
+ iVar11 = (*(int*)((int)DAT_ViewportRenderState
+ + (((short)*puVar3 - param_3) + this->DAT_TempYOffset) * 0xc + 0x188728)
+ - param_3)
+ + (int)(short)*puVar4 + this->DAT_TempXOffset;
+ sVar5 = *(short*)((int)DAT_TileMapState + iVar11 * 2 + 0x2029b0);
+ uVar12 = (uint) * (byte*)((int)DAT_TileMapState + iVar11 + 0x29fa30);
+ if (sVar5 != 0) {
+ iVar8 = getBuildingHeightForBuildingID(
+ (int)sVar5);
+ uVar12 = uVar12 + iVar8;
+ }
+ if ((((*(uint*)((int)DAT_TileMapState + iVar11 * 4 + 0x165160) & 0x50501481) == 0)
+ && (iVar9 <= (int)(uVar12 + 0x10)))
+ && (((int)(uVar12 - 0x10) <= iVar9
+ && ((*(short*)((int)DAT_TileMapState + iVar11 * 2 + 0x363ed0) != 0
+ && (local_24 = local_24 + 1, param_2 <= local_24)))))) {
+ *psVar1 = ((short)this->DAT_TempXOffset - sVar13) + *puVar4;
+ *psVar2 = (*puVar3 - sVar13) + (short)this->DAT_TempYOffset;
+ return (undefined4)(2);
+ }
+ buildingID = buildingID + 1;
+ if (_accessibleTiles <= buildingID) {
+ buildingID = 0;
+ }
+ y = y + 1;
+ } while (y < _accessibleTiles);
+ }
+ return (undefined4)(0);
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0041b2b0", "name": "determineBuildingEntranceFromCustomArea", "quelle": "ghidra", "p1": {"bereich": "Gebaeude", "zweck": "Wie determineBuildingEntranceFromKeepArea, aber das Bezugsgebiet kommt von einem frei gegebenen Feld (x, y)."}, "p2": {"ein": "buildingID, param_2 (wievielter passender Platz), param_3 (flag 0 oder 1), x, y (Bezugsfeld)", "aus": "1 = Platz gefunden, 2 = Notlösung, 0 = nichts gefunden", "liest": ["PathConnectionLayer am Feld (x,y)", "buildings[id].owner/buildingType/widthOrHeight/entranceAttemptTileIndex/terrainHeightUnk/x/y", "BuildingAccessibleTilesCount[größe]", "BuildingAccessibleTilesCountForOneLarger[größe]", "ABuildingTypeValueArray[typ]", "Tile-Flags (Maske 0x50501481)"], "schreibt": ["buildings[id].buildingEntryX/Y (erst 0)", "buildings[id].entranceAttemptTileIndex", "DAT_TempXOffset/YOffset"], "ruft": ["setupBuildingEntrancesOffset", "setupNextCandidateLocationComputeOffsets2", "getBuildingHeightForBuildingID", "calculateCanPlayerUnitsNavigateToAreaFromArea"], "regeln": ["Höhengrenze 16 (0x10), beim Steinbruch (BT_QUARRY) 32 in Stufe 1", "Stufe 1: Ringfelder, Gebiet gleich Bezugsgebiet oder Bezugsgebiet 0 oder Einheiten können dorthin laufen; hier ohne Ausnahme über ABuildingTypeValueArray; Rückgabe 1", "Stufe 2: nächstgrößerer Ring, Höhengrenze fest 16, mit der Ausnahme über ABuildingTypeValueArray[typ] != FALSE; Rückgabe 1", "Stufe 3: Ring wie Stufe 1, nur Höhe und Gebiet ungleich 0; Rückgabe 2", "Der param_2-te gültige Kandidat wird genommen", "Rückgabe 0, wenn nichts passt"], "offen": ["Aufrufer und Sinn der freien Bezugsfelder", "Bedeutung von ABuildingTypeValueArray"]}, "p3": {"erklaerung": "Gleiche Eingangssuche wie bei der Burg-Variante, nur dass das Gebiet, von dem aus man zum Gebäude kommen muss, selbst gewählt wird.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+

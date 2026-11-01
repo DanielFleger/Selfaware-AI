@@ -1,0 +1,935 @@
+### 0x00480be0 AnnounceTeamsAndPositions | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x00480BE0
+ void Commands::AnnounceTeamsAndPositions()
+ {
+ int _isHost;
+ byte local_10[4];
+ byte local_c[4];
+ byte local_8;
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)&_isHost;
+ DAT_GameSynchronyState.DAT_CommandSize = 33;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue
+ + DAT_GameSynchronyState.currentPlayerSlotID,
+ 4, GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(
+ DAT_GameSynchronyState.currentAIArray + DAT_GameSynchronyState.currentPlayerSlotID,
+ 4, GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.aiVariationArray
+ + DAT_GameSynchronyState.currentPlayerSlotID,
+ 4, GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.isHost, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.DAT_PlayerGroupArray, 9,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.playerPositionsArray, 8,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ ;
+ return;
+ }
+ if ((DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE)
+ && (DAT_GameSynchronyState.protocolInvokerPlayerID - 1U < 8)) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue
+ + DAT_GameSynchronyState.protocolInvokerPlayerID,
+ 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(
+ DAT_GameSynchronyState.currentAIArray + DAT_GameSynchronyState.currentPlayerSlotID,
+ 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.aiVariationArray
+ + DAT_GameSynchronyState.currentPlayerSlotID,
+ 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&_isHost, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(local_10, 9, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.playerPositionsArray, 8,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ if (_isHost != 0) {
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[0] = local_10[0];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[1] = local_10[1];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[2] = local_10[2];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[3] = local_10[3];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[4] = local_c[0];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[5] = local_c[1];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[6] = local_c[2];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[7] = local_c[3];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[8] = local_8;
+ }
+ };
+ return;
+ }
+}
+}
+
+### 0x00481050 ClickErase | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x00481050
+ void Commands::ClickErase()
+ {
+ DAT_GameSynchronyState.DAT_CommandSize = 5;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ DAT_GameSynchronyState.DAT_GameCommandParam0
+ = DAT_GameSynchronyState.DAT_CommandActionPlan;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ eraseAreaWithBrush(
+ DAT_GameSynchronyState.DAT_GameCommandParam0,
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam1)),
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam2)));
+ }
+ return;
+ }
+}
+}
+
+### 0x00481120 ClickSetLand | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x00481120
+ void Commands::ClickSetLand()
+ {
+ DAT_GameSynchronyState.DAT_CommandSize = 5;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ DAT_GameSynchronyState.DAT_GameCommandParam0
+ = DAT_GameSynchronyState.DAT_CommandActionPlan;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ if (((DAT_GameSynchronyState.DAT_GameCommandParam0 < ((GameCommandScheduling)400))
+ && (DAT_GameSynchronyState.DAT_GameCommandParam1 < 400))
+ && (*(char*)(DAT_GameSynchronyState.DAT_GameCommandParam1 * 400 + 0x21aec98
+ + DAT_GameSynchronyState.DAT_GameCommandParam0)
+ != '\0')) {
+ setLand(
+ DAT_ViewportRenderState
+ .translationMatrix[DAT_GameSynchronyState.DAT_GameCommandParam1]
+ .addXgetTile
+ + DAT_GameSynchronyState.DAT_GameCommandParam0,
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam1)),
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam2)));
+ updateWalkAndPathLayer(9, (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam0)),
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam1)));
+ DAT_TileMapState.forceUpdateMacroLayerFlag = 1;
+ triggerMinimapRedraw(
+ 2);
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x00481250 ClickRaiseLand | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x00481250
+ void Commands::ClickRaiseLand()
+ {
+ char local_1;
+ DAT_GameSynchronyState.DAT_CommandSize = 6;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam3, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ DAT_GameSynchronyState.DAT_GameCommandParam0
+ = DAT_GameSynchronyState.DAT_CommandActionPlan;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&local_1, 1, GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = (int)local_1;
+ if (((DAT_GameSynchronyState.DAT_GameCommandParam0 < ((GameCommandScheduling)400))
+ && (DAT_GameSynchronyState.DAT_GameCommandParam1 < 400))
+ && (*(char*)(DAT_GameSynchronyState.DAT_GameCommandParam1 * 400 + 0x21aec98
+ + DAT_GameSynchronyState.DAT_GameCommandParam0)
+ != '\0')) {
+ raiseLand(
+ DAT_ViewportRenderState
+ .translationMatrix[DAT_GameSynchronyState.DAT_GameCommandParam1]
+ .addXgetTile
+ + DAT_GameSynchronyState.DAT_GameCommandParam0,
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam1)),
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam2)),
+ DAT_GameSynchronyState.DAT_GameCommandParam3);
+ updateWalkAndPathLayer(9, (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam0)),
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam1)));
+ DAT_TileMapState.forceUpdateMacroLayerFlag = 1;
+ triggerMinimapRedraw(
+ 2);
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x00481860 ClickCreatePlateau | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x00481860
+ void Commands::ClickCreatePlateau()
+ {
+ DAT_GameSynchronyState.DAT_CommandSize = 6;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam3, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ DAT_GameSynchronyState.DAT_GameCommandParam0
+ = DAT_GameSynchronyState.DAT_CommandActionPlan;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam3, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ if (((DAT_GameSynchronyState.DAT_GameCommandParam0 < ((GameCommandScheduling)400))
+ && (DAT_GameSynchronyState.DAT_GameCommandParam1 < 400))
+ && (*(char*)(DAT_GameSynchronyState.DAT_GameCommandParam1 * 400 + 0x21aec98
+ + DAT_GameSynchronyState.DAT_GameCommandParam0)
+ != '\0')) {
+ createPlateau(
+ DAT_ViewportRenderState
+ .translationMatrix[DAT_GameSynchronyState.DAT_GameCommandParam1]
+ .addXgetTile
+ + DAT_GameSynchronyState.DAT_GameCommandParam0,
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam1)),
+ DAT_GameSynchronyState.DAT_GameCommandParam2,
+ DAT_GameSynchronyState.DAT_GameCommandParam3);
+ updateWalkAndPathLayer(9, (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam0)),
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam1)));
+ DAT_TileMapState.forceUpdateMacroLayerFlag = 1;
+ triggerMinimapRedraw(
+ 2);
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x00482c80 ShareDesyncedHashes | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x00482C80
+ void Commands::ShareDesyncedHashes()
+ {
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ DAT_GameSynchronyState.DAT_CommandSize = 0;
+ if (DAT_GameSynchronyState.sharedDesyncFlags[0] != 0) {
+ DAT_GameSynchronyState.DAT_CommandSize = 10000;
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[1] != 0) {
+ DAT_GameSynchronyState.DAT_CommandSize = DAT_GameSynchronyState.DAT_CommandSize + 8000;
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[2] != 0) {
+ DAT_GameSynchronyState.DAT_CommandSize = DAT_GameSynchronyState.DAT_CommandSize + 8000;
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[3] != 0) {
+ DAT_GameSynchronyState.DAT_CommandSize = DAT_GameSynchronyState.DAT_CommandSize + 5000;
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[4] != 0) {
+ DAT_GameSynchronyState.DAT_CommandSize = DAT_GameSynchronyState.DAT_CommandSize + 36;
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[5] != 0) {
+ DAT_GameSynchronyState.DAT_CommandSize = DAT_GameSynchronyState.DAT_CommandSize + 80;
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[6] != 0) {
+ DAT_GameSynchronyState.DAT_CommandSize = DAT_GameSynchronyState.DAT_CommandSize + 15360;
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[7] != 0) {
+ DAT_GameSynchronyState.DAT_CommandSize = DAT_GameSynchronyState.DAT_CommandSize + 12000;
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[8] != 0) {
+ DAT_GameSynchronyState.DAT_CommandSize = DAT_GameSynchronyState.DAT_CommandSize + 640;
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[9] != 0) {
+ DAT_GameSynchronyState.DAT_CommandSize = DAT_GameSynchronyState.DAT_CommandSize + 800;
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[10] != 0) {
+ DAT_GameSynchronyState.DAT_CommandSize = DAT_GameSynchronyState.DAT_CommandSize + 160;
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[0xc] != 0) {
+ DAT_GameSynchronyState.DAT_CommandSize = DAT_GameSynchronyState.DAT_CommandSize + 36;
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[0xd] != 0) {
+ DAT_GameSynchronyState.DAT_CommandSize = DAT_GameSynchronyState.DAT_CommandSize + 320;
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[0xb] != 0) {
+ DAT_GameSynchronyState.DAT_CommandSize = DAT_GameSynchronyState.DAT_CommandSize + 160;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ if (DAT_GameSynchronyState.sharedDesyncFlags[0] != 0) {
+ serializeOrDeserializeCommandParameter(
+ DAT_GameSynchronyState.HASH_Units + DAT_GameSynchronyState.currentPlayerSlotID,
+ (size_t)((int)(10000)), GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[1] != 0) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.HASH_Buildings
+ + DAT_GameSynchronyState.currentPlayerSlotID,
+ 8000, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[2] != 0) {
+ serializeOrDeserializeCommandParameter(
+ DAT_GameSynchronyState.HASH_Trees + DAT_GameSynchronyState.currentPlayerSlotID,
+ 8000, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[3] != 0) {
+ serializeOrDeserializeCommandParameter(
+ DAT_GameSynchronyState.HASH_Tribes + DAT_GameSynchronyState.currentPlayerSlotID,
+ 5000, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[4] != 0) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.HASH_PlayerDatas
+ + DAT_GameSynchronyState.currentPlayerSlotID,
+ (size_t)((int)(36)), GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[5] != 0) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.HASH_Section1023
+ + DAT_GameSynchronyState.currentPlayerSlotID,
+ (size_t)((int)(80)), GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[6] != 0) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.HASH_LogicalTileMap
+ + DAT_GameSynchronyState.currentPlayerSlotID,
+ (size_t)((int)(15360)), GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[7] != 0) {
+ serializeOrDeserializeCommandParameter(
+ DAT_GameSynchronyState.HASH_Entities[DAT_GameSynchronyState.currentPlayerSlotID]
+ + 0x19,
+ (size_t)((int)(11900)), GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[8] != 0) {
+ serializeOrDeserializeCommandParameter(
+ DAT_GameSynchronyState.HASH_Moats + DAT_GameSynchronyState.currentPlayerSlotID,
+ (size_t)((int)(640)), GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[9] != 0) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.HASH_ClimbData
+ + DAT_GameSynchronyState.currentPlayerSlotID,
+ 800, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[10] != 0) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.HASH_PitchDitches
+ + DAT_GameSynchronyState.currentPlayerSlotID,
+ (size_t)((int)(160)), GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[0xc] != 0) {
+ serializeOrDeserializeCommandParameter(
+ DAT_GameSynchronyState.HASH_AIVS + DAT_GameSynchronyState.currentPlayerSlotID,
+ (size_t)((int)(36)), GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[0xd] != 0) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.HASH_HeatMaps
+ + DAT_GameSynchronyState.currentPlayerSlotID,
+ (size_t)((int)(320)), GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[0xb] != 0) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.HASH_Unknown2
+ + DAT_GameSynchronyState.currentPlayerSlotID,
+ (size_t)((int)(160)), GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ } else if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ if (DAT_GameSynchronyState.sharedDesyncFlags[0] != 0) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.HASH_Units
+ + DAT_GameSynchronyState.protocolInvokerPlayerID,
+ 10000, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[1] != 0) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.HASH_Buildings
+ + DAT_GameSynchronyState.protocolInvokerPlayerID,
+ 8000, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[2] != 0) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.HASH_Trees
+ + DAT_GameSynchronyState.protocolInvokerPlayerID,
+ 8000, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[3] != 0) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.HASH_Tribes
+ + DAT_GameSynchronyState.protocolInvokerPlayerID,
+ 5000, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[4] != 0) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.HASH_PlayerDatas
+ + DAT_GameSynchronyState.protocolInvokerPlayerID,
+ 0x24, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[5] != 0) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.HASH_Section1023
+ + DAT_GameSynchronyState.protocolInvokerPlayerID,
+ 0x50, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[6] != 0) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.HASH_LogicalTileMap
+ + DAT_GameSynchronyState.protocolInvokerPlayerID,
+ (size_t)((int)(15360)), GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[7] != 0) {
+ serializeOrDeserializeCommandParameter(
+ DAT_GameSynchronyState
+ .HASH_Entities[DAT_GameSynchronyState.protocolInvokerPlayerID]
+ + 0x19,
+ 0x2e7c, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[8] != 0) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.HASH_Moats
+ + DAT_GameSynchronyState.protocolInvokerPlayerID,
+ 0x280, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[9] != 0) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.HASH_ClimbData
+ + DAT_GameSynchronyState.protocolInvokerPlayerID,
+ 800, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[10] != 0) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.HASH_PitchDitches
+ + DAT_GameSynchronyState.protocolInvokerPlayerID,
+ 0xa0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[0xc] != 0) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.HASH_AIVS
+ + DAT_GameSynchronyState.protocolInvokerPlayerID,
+ 0x24, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[0xd] != 0) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.HASH_HeatMaps
+ + DAT_GameSynchronyState.protocolInvokerPlayerID,
+ 0x140, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ }
+ if (DAT_GameSynchronyState.sharedDesyncFlags[0xb] != 0) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.HASH_Unknown2
+ + DAT_GameSynchronyState.protocolInvokerPlayerID,
+ 0xa0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ }
+ if (DAT_GameSynchronyState.isHost != FALSE) {
+ DAT_GameSynchronyState
+ .receivedSyncStatusByPlayerUnk[DAT_GameSynchronyState.protocolInvokerPlayerID] = 1;
+ DAT_GameSynchronyState.announcementReceivedBool = TRUE;
+ DAT_GameSynchronyState.announcementReceiveTime = timeGetTime();
+ }
+ DAT_GameSynchronyState.currentPacketTotalSize = 0;
+ DAT_GameSynchronyState.field73_0xbdc = 0;
+ }
+ return;
+ }
+}
+}
+
+### 0x00483a00 SendResyncCharLayer | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x00483A00
+ void Commands::SendResyncCharLayer()
+ {
+ byte* destination;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ DAT_GameSynchronyState.DAT_CommandSize = 0x9d8;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ switch (DAT_GameSynchronyState.DAT_GameCommandParam0) {
+ case 10:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.DamageLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ case 0xb:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.LuminesenceLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ case 0xc:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.WallOwnerLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ case 0xd:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.PathLinkageLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ case 0xe:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.OccupancyLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ case 0xf:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.HeightLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ case 0x10:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.AIInfoLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ case 0x11:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.AIZoneLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ case 0x12:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.SEC_TileMap1104
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 2512,
+ (size_t)((int)(2512)), GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ case 0x13:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.unitDeathHeatMap
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ case 0x14:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.SEC_PathfindingCostTileMap1105[0]
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ case 0x15:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.SEC_PathfindingCostTileMap1105[1]
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ case 0x16:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.SEC_PathfindingCostTileMap1105[2]
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ case 0x17:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.SEC_PathfindingCostTileMap1105[3]
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ case 0x18:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.SEC_PathfindingCostTileMap1105[4]
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ case 0x19:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.SEC_PathfindingCostTileMap1105[5]
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ case 0x1a:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.SEC_PathfindingCostTileMap1105[6]
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ case 0x1b:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.SEC_PathfindingCostTileMap1105[7]
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ case 0x1c:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.SEC_PathfindingCostTileMap1105[8]
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ } else if ((DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE)
+ && (DAT_GameSynchronyState.isHost == FALSE)) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ switch (DAT_GameSynchronyState.DAT_GameCommandParam0) {
+ case 10:
+ destination = DAT_TileMapState.DamageLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0;
+ break;
+ case 0xb:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.LuminesenceLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ return;
+ case 0xc:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.WallOwnerLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ return;
+ case 0xd:
+ destination = DAT_TileMapState.PathLinkageLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0;
+ break;
+ case 0xe:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.OccupancyLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ return;
+ case 0xf:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.HeightLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ return;
+ case 0x10:
+ destination = DAT_TileMapState.AIInfoLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0;
+ break;
+ case 0x11:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.AIZoneLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ return;
+ case 0x12:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.SEC_TileMap1104
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ return;
+ case 0x13:
+ destination = DAT_TileMapState.unitDeathHeatMap
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0;
+ break;
+ case 0x14:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.SEC_PathfindingCostTileMap1105[0]
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ return;
+ case 0x15:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.SEC_PathfindingCostTileMap1105[1]
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ return;
+ case 0x16:
+ destination = DAT_TileMapState.SEC_PathfindingCostTileMap1105[2]
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0;
+ break;
+ case 0x17:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.SEC_PathfindingCostTileMap1105[3]
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ return;
+ case 0x18:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.SEC_PathfindingCostTileMap1105[4]
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ return;
+ case 0x19:
+ destination = DAT_TileMapState.SEC_PathfindingCostTileMap1105[5]
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0;
+ break;
+ case 0x1a:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.SEC_PathfindingCostTileMap1105[6]
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ return;
+ case 0x1b:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.SEC_PathfindingCostTileMap1105[7]
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ return;
+ case 0x1c:
+ destination = DAT_TileMapState.SEC_PathfindingCostTileMap1105[8]
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x9d0;
+ break;
+ default:
+ goto switchD_00483da0_caseD_13;
+ }
+ serializeOrDeserializeCommandParameter(destination, (size_t)((int)(2512)),
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ }
+ switchD_00483da0_caseD_13:
+ return;
+ }
+}
+}
+
+### 0x004840c0 ResyncShortLayer | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x004840C0
+ void Commands::ResyncShortLayer()
+ {
+ GameCommandParameterReadWrite GVar1;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ DAT_GameSynchronyState.DAT_CommandSize = 2520;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ switch (DAT_GameSynchronyState.DAT_GameCommandParam0) {
+ case 1:
+ GVar1 = GCPRW_SERIALIZE_INTO_PARAM_1;
+ LAB_0048413b:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.RandomLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x4e8,
+ (size_t)((int)(2512)), GCPL_FIXED_COMMAND_DATA_ADDRESS, GVar1);
+ return;
+ case 2:
+ GVar1 = GCPRW_SERIALIZE_INTO_PARAM_1;
+ LAB_00484162:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.WalkLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x4e8,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS, GVar1);
+ return;
+ case 3:
+ GVar1 = GCPRW_SERIALIZE_INTO_PARAM_1;
+ LAB_00484189:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.OrganismLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x4e8,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS, GVar1);
+ return;
+ case 4:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.BuildingLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x4e8,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ case 5:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.UnitLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x4e8,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ case 6:
+ GVar1 = GCPRW_SERIALIZE_INTO_PARAM_1;
+ LAB_004841fc:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.EntityLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x4e8,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS, GVar1);
+ return;
+ case 7:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.CertainPathLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x4e8,
+ (size_t)((int)(2512)), GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ case 8:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.PathConnectionLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x4e8,
+ (size_t)((int)(2512)), GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ case 9:
+ GVar1 = GCPRW_SERIALIZE_INTO_PARAM_1;
+ break;
+ default:
+ goto switchD_004842c2_caseD_9;
+ }
+ } else {
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan != GCS_EXECUTE) {
+ DAT_GameSynchronyState.DAT_CommandSize = 2520;
+ return;
+ }
+ if (DAT_GameSynchronyState.isHost != FALSE) {
+ DAT_GameSynchronyState.DAT_CommandSize = 2520;
+ return;
+ }
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ switch (DAT_GameSynchronyState.DAT_GameCommandParam0) {
+ case 1:
+ GVar1 = GCPRW_DESERIALIZE_FROM_PARAM1;
+ goto LAB_0048413b;
+ case 2:
+ GVar1 = GCPRW_DESERIALIZE_FROM_PARAM1;
+ goto LAB_00484162;
+ case 3:
+ GVar1 = GCPRW_DESERIALIZE_FROM_PARAM1;
+ goto LAB_00484189;
+ case 4:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.BuildingLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x4e8,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ return;
+ case 5:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.UnitLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x4e8,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ return;
+ case 6:
+ GVar1 = GCPRW_DESERIALIZE_FROM_PARAM1;
+ goto LAB_004841fc;
+ case 7:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.CertainPathLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 1256,
+ (size_t)((int)(2512)), GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ return;
+ case 8:
+ serializeOrDeserializeCommandParameter(DAT_TileMapState.PathConnectionLayer
+ + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x4e8,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ return;
+ case 9:
+ GVar1 = GCPRW_DESERIALIZE_FROM_PARAM1;
+ break;
+ default:
+ goto switchD_004842c2_caseD_9;
+ }
+ }
+ serializeOrDeserializeCommandParameter(
+ DAT_TileMapState.MacroLayer + DAT_GameSynchronyState.DAT_GameCommandParam1 * 0x4e8,
+ 0x9d0, GCPL_FIXED_COMMAND_DATA_ADDRESS, GVar1);
+ switchD_004842c2_caseD_9:
+ return;
+ }
+}
+}
+
+### 0x004843f0 ResyncStatus2 | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x004843F0
+ void Commands::ResyncStatus2()
+ {
+ DAT_GameSynchronyState.DAT_CommandSize = 0;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ return;
+ }
+ if ((DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE)
+ && (DAT_GameSynchronyState.isHost != FALSE)) {
+ DAT_GameSynchronyState
+ .receivedSyncStatusByPlayerUnk[DAT_GameSynchronyState.protocolInvokerPlayerID] = 2;
+ DAT_GameSynchronyState.announcementReceiveTime = timeGetTime();
+ DAT_GameSynchronyState.announcementReceivedBool = TRUE;
+ }
+ return;
+ }
+}
+}
+
+### 0x00484e10 SetField45To100 | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x00484E10
+ void Commands::TriggerRecalculationOfUnitSameTileLinkage()
+ {
+ char local_1;
+ DAT_GameSynchronyState.DAT_CommandSize = 1;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(&local_1, 1, GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = (int)local_1;
+ DAT_GameState.mapAndTime.multiplayerUnitSameTileLinkageTimeWindow = 100;
+ }
+ return;
+ }
+}
+}
+

@@ -1,0 +1,1065 @@
+### 0x00483570 ClickInitOrChangeGameIntensityAndBalance | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00483570
+ void Commands::ClickInitOrChangeGameIntensityAndBalance()
+ {
+ DAT_GameSynchronyState.DAT_CommandSize = 0x50;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.skirmishUnknownSetting1, 0x10,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.skirmishStartGold, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.skirmishDefaultPopularity, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.skirmishGameIntensityType, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.skirmishGameIntensityType2, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.skirmishCurrentAdvantageBalance, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.skirmishPoints, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.skirmishWinCondition, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.skirmishTroopsCostGold, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.skirmishStrongWalls, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.skirmishAlliances, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.skirmishNoDogs, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.skirmishNoCowThrowing, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.skirmishNoRushSetting, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ /*
+ Section1023
+ */
+ serializeOrDeserializeCommandParameter(&DAT_GameState.mapAndTime.skirmishFogOfWar, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.playerPositionsArray, 8,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.skirmishUnknownSetting1, 0x10,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.skirmishStartGold, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.skirmishDefaultPopularity, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.skirmishGameIntensityType, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.skirmishGameIntensityType2, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.skirmishCurrentAdvantageBalance, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.skirmishPoints, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.skirmishWinCondition, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.skirmishTroopsCostGold, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.skirmishStrongWalls, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.skirmishAlliances, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.skirmishNoDogs, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.skirmishNoCowThrowing, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.skirmishNoRushSetting, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&DAT_GameState.mapAndTime.skirmishFogOfWar, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.playerPositionsArray, 8,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ }
+ return;
+ }
+}
+}
+
+### 0x004856e0 ShareGameStatePartialHashes | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004856E0
+ void Commands::ShareGameStatePartialHashes()
+ {
+ int iVar1;
+ DAT_GameSynchronyState.DAT_CommandSize = 0x30;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ iVar1 = 0;
+ do {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.DAT_PlayerMatchTimes + iVar1
+ + DAT_GameSynchronyState.currentPlayerSlotID * 0xc + 9,
+ 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ iVar1 = iVar1 + 1;
+ } while (iVar1 < 0xc);
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ iVar1 = 0;
+ do {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.DAT_PlayerMatchTimes + iVar1
+ + DAT_GameSynchronyState.protocolInvokerPlayerID * 0xc + 9,
+ 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ iVar1 = iVar1 + 1;
+ } while (iVar1 < 0xc);
+ DAT_GameSynchronyState
+ .syncStatus10Related[DAT_GameSynchronyState.protocolInvokerPlayerID] = 1;
+ }
+ return;
+ }
+}
+}
+
+### 0x004893c0 InitialAnnounceToHost | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004893C0
+ void Commands::InitialAnnounceToHost()
+ {
+ DAT_GameSynchronyState.DAT_CommandSize = 0;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ return;
+ }
+ if ((DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE)
+ && (DAT_GameSynchronyState.isHost != FALSE)) {
+ queueCommand(
+ GCT_MULTIPLAYER_ANNOUNCE_HOST);
+ }
+ return;
+ }
+}
+}
+
+### 0x00489880 AutoSaveTriggered | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00489880
+ void Commands::AutoSaveTriggered()
+ {
+ WCHAR WVar1;
+ int iVar2;
+ WCHAR* pWVar3;
+ undefined1 auStack_5c[3];
+ char local_59;
+ Base64State _base64State;
+ WCHAR local_4c;
+ undefined1 local_4a[70];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)auStack_5c;
+ DAT_GameSynchronyState.DAT_CommandSize = 0x4b;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 4,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ multiByteToWideCharWithSize(
+ &local_4c, (LPCSTR)((int)(DAT_GameSynchronyState.shortMapName)), 33);
+ serializeOrDeserializeCommandParameter(&local_4c, (size_t)((int)(66)),
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ iVar2 = 1;
+ do {
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[iVar2] == -1)
+ || (iVar2 == DAT_GameSynchronyState.currentPlayerSlotID)) {
+ DAT_GameSynchronyState.announcementReceivedByPlayer[iVar2] = 1;
+ } else {
+ DAT_GameSynchronyState.announcementReceivedByPlayer[iVar2] = 0;
+ }
+ iVar2 = iVar2 + 1;
+ } while (iVar2 < 9);
+ ;
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 4,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&local_59, 1, GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = (int)local_59;
+ if (DAT_GameSynchronyState.isHost == FALSE) {
+ serializeOrDeserializeCommandParameter(&local_4c, 0x42, GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ Base64EncodeInit(&_base64State);
+ fillMemory_IntegerValue(
+ 120, 0, (void*)((int)(DAT_GameSynchronyState.shortMapName)));
+ pWVar3 = &local_4c;
+ do {
+ WVar1 = *pWVar3;
+ pWVar3 = pWVar3 + 1;
+ } while (WVar1 != L'\0');
+ Base64Encode((char*)&local_4c, (int)((int)((pWVar3 - local_4a >> 1) * 2)),
+ (char*)((int)(DAT_GameSynchronyState.shortMapName)), &_base64State);
+ } else {
+ serializeOrDeserializeCommandParameter(&local_4c, 0x42, GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ wideCharToMultiByteWithSize(DAT_GameSynchronyState.shortMapName, &local_4c, 1000);
+ }
+ DAT_GameSynchronyState.savedMapTimeInTicks
+ = DAT_GameSynchronyState.DAT_GameCommandParam0;
+ DAT_GameSynchronyState.savedUnitsCRC32Hash
+ = DAT_GameSynchronyState.DAT_GameCommandParam1;
+ ShowProgressBarSaveLoadDialog(
+ DAT_GameSynchronyState.DAT_GameCommandParam2);
+ DAT_GameSynchronyState.field75_0xbe4 = MACRO_CALL(timeGetTime)();
+ DAT_GameSynchronyState.saveRelated = 1;
+ if (DAT_GameSynchronyState.isHost == FALSE) {
+ DAT_GameSynchronyState.shouldSendAnnouncementUnk = 1;
+ ;
+ return;
+ }
+ DAT_GameSynchronyState.announcementReceiveTime = MACRO_CALL(timeGetTime)();
+ DAT_GameSynchronyState.announcementReceivedBool = FALSE;
+ };
+ return;
+ }
+}
+}
+
+### 0x0048b280 SendQuitGameQuestion | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0048B280
+ void Commands::SendQuitGameQuestion()
+ {
+ char cVar1;
+ char* pcVar2;
+ char* pcVar3;
+ DAT_GameSynchronyState.DAT_CommandSize = 0;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ if (DAT_GameSynchronyState.protocolInvokerPlayerID
+ != DAT_GameSynchronyState.currentPlayerSlotID) {
+ DAT_GameSynchronyState.quitGameVoteRelated = 1;
+ DAT_GameSynchronyState.quitGameVoteRequestTime = timeGetTime();
+ activateModalDialog(MMT_ONLINE_VOTE_QUIT_GAME, FALSE);
+ }
+ /*
+ added by script: "End this game?"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_MULTIPLAYER_CONNECTION, 0x3b);
+ pcVar3 = DAT_GameSynchronyState.receivedChatMessage;
+ do {
+ cVar1 = *pcVar2;
+ *pcVar3 = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pcVar3 = pcVar3 + 1;
+ } while (cVar1 != '\0');
+ addChatMessageToDisplayList(DAT_GameSynchronyState.protocolInvokerPlayerID, 0);
+ }
+ return;
+ }
+}
+}
+
+### 0x0048b330 ShareQuitGameVote | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0048B330
+ void Commands::ShareQuitGameVote()
+ {
+ char cVar1;
+ int subjectPlayerID;
+ char* pcVar2;
+ char* pcVar3;
+ DAT_GameSynchronyState.DAT_CommandSize = 4;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ subjectPlayerID = DAT_GameSynchronyState.protocolInvokerPlayerID;
+ if ((DAT_GameSynchronyState.DAT_GameCommandParam0 == 2)
+ || (DAT_GameSynchronyState.DAT_GameCommandParam0 == 1)) {
+ DAT_GameSynchronyState.quitGameVoteRelated = 0;
+ if (DAT_MenuModalComposition1.activeModalDialogID
+ == MMT_ONLINE_VOTE_QUIT_GAME) {
+ activateModalDialog(MMT_NONE, FALSE);
+ }
+ if (DAT_GameSynchronyState.DAT_GameCommandParam0 == 1) {
+ /*
+ added by script: "No"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_GAME_OPTIONS, 0x17);
+ pcVar3 = DAT_GameSynchronyState.receivedChatMessage;
+ do {
+ cVar1 = *pcVar2;
+ *pcVar3 = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pcVar3 = pcVar3 + 1;
+ } while (cVar1 != '\0');
+ addChatMessageToDisplayList(subjectPlayerID, 0);
+ }
+ } else if (DAT_GameSynchronyState.quitGameVoteRelated == 2) {
+ if (DAT_GameSynchronyState.DAT_GameCommandParam0 != 0) {
+ return;
+ }
+ DAT_GameSynchronyState
+ .field122_0xc70[DAT_GameSynchronyState.protocolInvokerPlayerID] = 1;
+ if ((DAT_GameSynchronyState.field122_0xc70[8] != 0)
+ && (DAT_GameSynchronyState.field122_0xc70[7] != 0
+ && (DAT_GameSynchronyState.field122_0xc70[6] != 0
+ && (DAT_GameSynchronyState.field122_0xc70[5] != 0
+ && (DAT_GameSynchronyState.field122_0xc70[4] != 0
+ && (DAT_GameSynchronyState.field122_0xc70[3] != 0
+ && (DAT_GameSynchronyState.field122_0xc70[2] != 0
+ && DAT_GameSynchronyState.field122_0xc70[1] != 0))))))) {
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = 1;
+ queueCommand(GCT_KILL_GAME);
+ }
+ }
+ if (DAT_GameSynchronyState.DAT_GameCommandParam0 == 0) {
+ /*
+ added by script: "Yes"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_GAME_OPTIONS, 0x16);
+ pcVar3 = DAT_GameSynchronyState.receivedChatMessage;
+ do {
+ cVar1 = *pcVar2;
+ *pcVar3 = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pcVar3 = pcVar3 + 1;
+ } while (cVar1 != '\0');
+ addChatMessageToDisplayList(subjectPlayerID, 0);
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x00401cc0 UpdatePebbleEntity | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00401CC0
+ void Entities::UpdatePebbleEntity()
+ {
+ uint uVar1;
+ short sVar2;
+ uVar1 = DAT_CurrentEntityID;
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].graphicType2
+ = (int)DAT_EntityState.entityArray[DAT_CurrentEntityID].graphicType2RelatedOffset;
+ sVar2 = DAT_EntityState.entityArray[uVar1].someCounter_OR_hitGround;
+ if ((sVar2 != 0)
+ && (sVar2 = sVar2 + -1, DAT_EntityState.entityArray[uVar1].someCounter_OR_hitGround = sVar2,
+ sVar2 < 1)) {
+ DAT_EntityState.entityArray[uVar1].logicalState = 7;
+ }
+ if (DAT_EntityState.entityArray[uVar1].orientation == 0x4c) {
+ DAT_EntityState.entityArray[uVar1].orientation = 0x3c;
+ DAT_EntityState.entityArray[uVar1].logicalState = 7;
+ }
+ return;
+ }
+}
+}
+
+### 0x00401e20 UpdateEntity_20_37 | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00401E20
+ void Entities::UpdateEntity_20_37()
+ {
+ uint uVar1;
+ short sVar2;
+ uint uVar3;
+ uVar1 = DAT_CurrentEntityID;
+ uVar3
+ = (int)DAT_EntityState.entityArray[DAT_CurrentEntityID].field12_0x1c + 8U & 0x8000000f;
+ if ((int)uVar3 < 0) {
+ uVar3 = (uVar3 - 1 | 0xfffffff0) + 1;
+ }
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].graphicType2 = uVar3
+ + DAT_EntityState.entityArray[DAT_CurrentEntityID].field45_0x6a * 0x10
+ + (int)DAT_EntityState.entityArray[DAT_CurrentEntityID].graphicType2RelatedOffset;
+ sVar2 = DAT_EntityState.entityArray[uVar1].someCounter_OR_hitGround;
+ if ((sVar2 != 0)
+ && (sVar2 = sVar2 + -1, DAT_EntityState.entityArray[uVar1].someCounter_OR_hitGround = sVar2,
+ sVar2 < 1)) {
+ DAT_EntityState.entityArray[uVar1].logicalState = 7;
+ }
+ if (DAT_EntityState.entityArray[uVar1].orientation == 0x4c) {
+ DAT_EntityState.entityArray[uVar1].orientation = 0x3c;
+ DAT_EntityState.entityArray[uVar1].logicalState = 7;
+ }
+ return;
+ }
+}
+}
+
+### 0x00401ea0 UpdateEntity_21 | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00401EA0
+ void Entities::UpdateEntity_21()
+ {
+ short sVar1;
+ uint uVar2;
+ int iVar3;
+ uVar2 = DAT_CurrentEntityID;
+ sVar1 = DAT_EntityState.entityArray[DAT_CurrentEntityID].unknownAnimationFrameRelated;
+ if (DAT_EntityState.entityArray[DAT_CurrentEntityID].unitID == 2) {
+ iVar3 = sVar1 * 7;
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].unkMinusOne
+ = ((short)(iVar3 / 200) + (sVar1 >> 0xf) + 0x18) - (short)((longlong)iVar3 * 0x51eb851f >> 0x3f);
+ sVar1 = DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated;
+ if (sVar1 < 200) {
+ if (sVar1 < 0xc) {
+ DAT_EntityState.entityArray[uVar2].graphicType2
+ = ((int)DAT_EntityState.entityArray[uVar2].graphicType2RelatedOffset
+ - ((int)((int)sVar1 + ((int)sVar1 >> 0x1f & 3U)) >> 2))
+ + 0xf;
+ iVar3 = (int)DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated;
+ DAT_EntityState.entityArray[uVar2].unkMinusOne
+ = 0x1f - (short)((int)(iVar3 + (iVar3 >> 0x1f & 3U)) >> 2);
+ return;
+ }
+ iVar3 = ((int)sVar1 << 4) / 200;
+ if (3 < iVar3) {
+ iVar3 = 4;
+ }
+ DAT_EntityState.entityArray[uVar2].graphicType2
+ = DAT_EntityState.entityArray[uVar2].graphicType2RelatedOffset + 0xb + iVar3;
+ return;
+ }
+ } else {
+ iVar3 = sVar1 * 0xf;
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].unkMinusOne
+ = ((short)(iVar3 / 400) + (sVar1 >> 0xf) + 0x10) - (short)((longlong)iVar3 * 0x51eb851f >> 0x3f);
+ sVar1 = DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated;
+ if (sVar1 < 400) {
+ if (sVar1 < 8) {
+ DAT_EntityState.entityArray[uVar2].graphicType2
+ = ((int)DAT_EntityState.entityArray[uVar2].graphicType2RelatedOffset - (int)sVar1)
+ + 7;
+ return;
+ }
+ DAT_EntityState.entityArray[uVar2].graphicType2
+ = (sVar1 * 0xf) / 400 + (int)DAT_EntityState.entityArray[uVar2].graphicType2RelatedOffset;
+ return;
+ }
+ }
+ DAT_EntityState.entityArray[uVar2].logicalState = 3;
+ return;
+ }
+}
+}
+
+### 0x00401ff0 UpdateEntity_PoisonCloud | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00401FF0
+ void Entities::UpdateEntity_PoisonCloud()
+ {
+ short* psVar1;
+ short sVar2;
+ uint uVar3;
+ uint uVar4;
+ uVar3 = DAT_CurrentEntityID;
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].unkMinusOne = -1;
+ psVar1 = &DAT_EntityState.entityArray[uVar3].rng_2;
+ *psVar1 = *psVar1 + 1;
+ sVar2 = DAT_EntityState.entityArray[uVar3].unknownAnimationFrameRelated;
+ if (sVar2 < 8) {
+ DAT_EntityState.entityArray[uVar3].graphicType2
+ = ((int)DAT_EntityState.entityArray[uVar3].graphicType2RelatedOffset - (int)sVar2) + 0xf;
+ } else if (sVar2 < 0x3f9) {
+ if (0xf < sVar2) {
+ DAT_EntityState.entityArray[uVar3].unknownAnimationFrameRelated = 8;
+ }
+ uVar4 = DAT_EntityState.entityArray[uVar3].rng_1 + -8
+ + (int)DAT_EntityState.entityArray[uVar3].unknownAnimationFrameRelated
+ & 0x80000007;
+ if ((int)uVar4 < 0) {
+ uVar4 = (uVar4 - 1 | 0xfffffff8) + 1;
+ }
+ DAT_EntityState.entityArray[uVar3].graphicType2
+ = uVar4 + (int)DAT_EntityState.entityArray[uVar3].graphicType2RelatedOffset;
+ if (799 < DAT_EntityState.entityArray[uVar3].rng_2) {
+ DAT_EntityState.entityArray[uVar3].unknownAnimationFrameRelated = 0x3f8;
+ }
+ } else if (sVar2 == 0x400) {
+ DAT_EntityState.entityArray[uVar3].logicalState = 3;
+ } else {
+ DAT_EntityState.entityArray[uVar3].graphicType2
+ = DAT_EntityState.entityArray[uVar3].graphicType2RelatedOffset + -0x3f0 + (int)sVar2;
+ sVar2 = (DAT_EntityState.entityArray[uVar3].unknownAnimationFrameRelated + -0x3f8) * 4;
+ DAT_EntityState.entityArray[uVar3].unkMinusOne = sVar2;
+ if (0x1f < sVar2) {
+ DAT_EntityState.entityArray[uVar3].unkMinusOne = 0x1f;
+ }
+ DAT_EntityState.entityArray[uVar3].unkMinusOne
+ = -1 - DAT_EntityState.entityArray[uVar3].unkMinusOne;
+ }
+ DAT_EntityState.entityArray[uVar3].imageID
+ = (short)DAT_EntityState.entityArray[uVar3].graphicType2 + 0x10;
+ sVar2 = DAT_EntityState.entityArray[uVar3].unknownDistanceRelatedValue;
+ if (sVar2 != 0) {
+ if (DAT_EntityState.entityArray[uVar3].uidRef
+ == DAT_EntityState.entityArray[sVar2].uid) {
+ setAxisBasedDistanceResult((int)DAT_EntityState.entityArray[sVar2].xPosition,
+ DAT_EntityState.entityArray[sVar2].yPosition,
+ DAT_EntityState.entityArray[uVar3].xPosition,
+ DAT_EntityState.entityArray[uVar3].yPosition);
+ if (6 < DAT_DirectionAlgorithmState.distanceHigh) {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].unknownDistanceRelatedValue
+ = 0;
+ return;
+ }
+ } else {
+ DAT_EntityState.entityArray[uVar3].unknownDistanceRelatedValue = 0;
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x00402260 UpdateEntity_26 | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00402260
+ void Entities::UpdateEntity_26()
+ {
+ short sVar1;
+ uint uVar2;
+ int iVar3;
+ uVar2 = DAT_CurrentEntityID;
+ sVar1 = DAT_EntityState.entityArray[DAT_CurrentEntityID].unknownAnimationFrameRelated;
+ if (sVar1 < 0x14) {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].unkMinusOne = 0x14 - sVar1;
+ } else if (sVar1 < 0x28) {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].unkMinusOne = 0;
+ } else if (sVar1 < 0x48) {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].unkMinusOne = sVar1 + -0x28;
+ } else {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].unkMinusOne = 0x1f;
+ }
+ if (0x1f < DAT_EntityState.entityArray[uVar2].unkMinusOne) {
+ DAT_EntityState.entityArray[uVar2].unkMinusOne = 0x1f;
+ }
+ if (DAT_EntityState.entityArray[uVar2].unkMinusOne < 0) {
+ DAT_EntityState.entityArray[uVar2].unkMinusOne = 0;
+ }
+ iVar3 = DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated + 1;
+ if (iVar3 < 0x48) {
+ DAT_EntityState.entityArray[uVar2].graphicType2 = iVar3;
+ } else {
+ DAT_EntityState.entityArray[uVar2].logicalState = 3;
+ }
+ DAT_EntityState.entityArray[uVar2].imageID
+ = (short)DAT_EntityState.entityArray[uVar2].graphicType2 + 0x50;
+ DAT_EntityState.entityArray[uVar2].unkMinusOne
+ = -1 - DAT_EntityState.entityArray[uVar2].unkMinusOne;
+ return;
+ }
+}
+}
+
+### 0x00402330 UpdateEntity_27 | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00402330
+ void Entities::UpdateEntity_27()
+ {
+ short* psVar1;
+ uint uVar2;
+ uVar2 = DAT_CurrentEntityID;
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].graphicType2
+ = (DAT_EntityState.entityArray[DAT_CurrentEntityID].rng_1 & 7U) + 1
+ + ((int)DAT_EntityState.entityArray[DAT_CurrentEntityID].unitID_OR_seaGullID % 3) * 8;
+ psVar1 = &DAT_EntityState.entityArray[uVar2].rng_2;
+ *psVar1 = *psVar1 + 1;
+ if (10 < DAT_EntityState.entityArray[uVar2].rng_2) {
+ DAT_EntityState.entityArray[uVar2].logicalState = 8;
+ }
+ if (DAT_EntityState.entityArray[uVar2].someCounter_OR_hitGround != 0) {
+ DAT_EntityState.entityArray[uVar2].logicalState = 3;
+ }
+ return;
+ }
+}
+}
+
+### 0x004023a0 UpdateEntity_28 | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004023A0
+ void Entities::UpdateEntity_28()
+ {
+ int iVar1;
+ uint uVar2;
+ uVar2 = DAT_CurrentEntityID;
+ if (0xb < DAT_EntityState.entityArray[DAT_CurrentEntityID].unknownAnimationFrameRelated) {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].unknownAnimationFrameRelated = 0;
+ }
+ iVar1 = DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated + 1
+ + DAT_EntityState.entityArray[uVar2].field12_0x1c * 0xc;
+ DAT_EntityState.entityArray[uVar2].graphicType2 = iVar1;
+ DAT_EntityState.entityArray[uVar2].imageID = (short)iVar1;
+ return;
+ }
+}
+}
+
+### 0x004023f0 UpdateEntity_29 | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004023F0
+ uint Entities::UpdateEntity_29()
+ {
+ ushort uVar1;
+ uint uVar2;
+ short sVar3;
+ short sVar4;
+ uint uVar5;
+ uVar2 = DAT_CurrentEntityID;
+ if (DAT_EntityState.entityArray[DAT_CurrentEntityID].targetZ == 0) {
+ uVar5 = (int)DAT_EntityState.entityArray[DAT_CurrentEntityID].field12_0x1c + 0x91;
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].graphicType2 = uVar5;
+ DAT_EntityState.entityArray[uVar2].imageID
+ = DAT_EntityState.entityArray[uVar2].field12_0x1c + 0xa1;
+ return uVar5;
+ }
+ if (DAT_EntityState.entityArray[DAT_CurrentEntityID].rng_2 < 0) {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].unknownAnimationFrameRelated = 3;
+ }
+ if (7 < DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated) {
+ DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated = 0;
+ }
+ DAT_EntityState.entityArray[uVar2].graphicType2
+ = DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated + 1
+ + DAT_EntityState.entityArray[uVar2].field12_0x1c * 8;
+ DAT_EntityState.entityArray[uVar2].imageID
+ = DAT_EntityState.entityArray[uVar2].field12_0x1c + 0x81;
+ sVar3 = SEC_RNG::instance.currentNumber2;
+ sVar4 = DAT_EntityState.entityArray[uVar2].rng_2;
+ if ((0 < sVar4)
+ && (sVar4 = sVar4 + -1, DAT_EntityState.entityArray[uVar2].rng_2 = sVar4, sVar4 == 0)) {
+ DAT_EntityState.entityArray[uVar2].rng_2 = -10 - sVar3 % 0x32;
+ }
+ uVar1 = DAT_EntityState.entityArray[uVar2].rng_2;
+ uVar5 = (uint)uVar1;
+ if ((short)uVar1 < 0) {
+ uVar5 = uVar5 + 1;
+ DAT_EntityState.entityArray[uVar2].rng_2 = (short)uVar5;
+ if ((short)uVar5 == 0) {
+ uVar5 = (int)sVar3 / 200;
+ DAT_EntityState.entityArray[uVar2].rng_2 = sVar3 % 200 + 0xaa;
+ }
+ }
+ return uVar5;
+ }
+}
+}
+
+### 0x004024f0 UpdateEntity_30 | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004024F0
+ void Entities::UpdateEntity_30()
+ {
+ short* psVar1;
+ uint uVar2;
+ uVar2 = DAT_CurrentEntityID;
+ if (DAT_EntityState.entityArray[DAT_CurrentEntityID].unitID != 0) {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].graphicType2 = 0;
+ psVar1 = &DAT_EntityState.entityArray[uVar2].unitID;
+ *psVar1 = *psVar1 + 1;
+ DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated = 0;
+ DAT_EntityState.entityArray[uVar2].someCounter_OR_hitGround = 1;
+ return;
+ }
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].someCounter_OR_hitGround = 0;
+ if (7 < DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated) {
+ DAT_EntityState.entityArray[uVar2].logicalState = 3;
+ DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated = 7;
+ }
+ DAT_EntityState.entityArray[uVar2].graphicType2
+ = DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated + 1;
+ DAT_EntityState.entityArray[uVar2].imageID
+ = DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated + 9;
+ DAT_EntityState.entityArray[uVar2].unkMinusOne = -1;
+ return;
+ }
+}
+}
+
+### 0x00402580 UpdateEntity_31 | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00402580
+ void Entities::UpdateEntity_31()
+ {
+ short sVar1;
+ uint uVar2;
+ uVar2 = DAT_CurrentEntityID;
+ sVar1 = DAT_EntityState.entityArray[DAT_CurrentEntityID].unitID_OR_seaGullID;
+ if (sVar1 == 0) {
+ if (16
+ < DAT_EntityState.entityArray[DAT_CurrentEntityID].unknownAnimationFrameRelated) {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].logicalState = 3;
+ DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated = 0xf;
+ }
+ DAT_EntityState.entityArray[uVar2].graphicType2
+ = DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated + 1;
+ DAT_EntityState.entityArray[uVar2].unkMinusOne
+ = DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated * 2;
+ return;
+ }
+ if (sVar1 == 1) {
+ if (7 < DAT_EntityState.entityArray[DAT_CurrentEntityID].unknownAnimationFrameRelated) {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].logicalState = 3;
+ DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated = 7;
+ }
+ DAT_EntityState.entityArray[uVar2].graphicType2
+ = DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated + 0x11;
+ DAT_EntityState.entityArray[uVar2].unkMinusOne
+ = DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated * 3;
+ }
+ return;
+ }
+}
+}
+
+### 0x00402620 UpdateEntity_32 | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00402620
+ void Entities::UpdateEntity_32()
+ {
+ uint uVar1;
+ uVar1 = DAT_CurrentEntityID;
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].graphicType2
+ = (DAT_EntityState.entityArray[DAT_CurrentEntityID].rng_1 & 7U)
+ + (int)DAT_EntityState.entityArray[DAT_CurrentEntityID].graphicType2RelatedOffset;
+ DAT_EntityState.entityArray[uVar1].unkMinusOne = 0;
+ if (DAT_EntityState.entityArray[uVar1].someCounter_OR_hitGround != 0) {
+ DAT_EntityState.entityArray[uVar1].logicalState = 3;
+ }
+ return;
+ }
+}
+}
+
+### 0x00402660 UpdateEntity_40 | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00402660
+ void Entities::UpdateEntity_40()
+ {
+ short sVar1;
+ short _playerID;
+ uint _section1025ID;
+ _section1025ID = DAT_CurrentEntityID;
+ _playerID = DAT_EntityState.entityArray[DAT_CurrentEntityID].owner;
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].unkOne_1 = 2;
+ sVar1 = DAT_EntityState.entityArray[_section1025ID].unknownAnimationFrameRelated;
+ if (DAT_EntityDefinedData.field60_0x107c[sVar1] < 1) {
+ DAT_EntityState.entityArray[_section1025ID].logicalState = 3;
+ DAT_GameState.playerDataArray[_playerID].someCount32 = 0x46;
+ } else {
+ DAT_EntityState.entityArray[_section1025ID].unkMinusOne
+ = (short)DAT_EntityDefinedData.field60_0x107c[sVar1] + -1;
+ DAT_EntityState.entityArray[_section1025ID].graphicType2 = 1;
+ }
+ DAT_EntityState.entityArray[_section1025ID].field82_0xbe = 0x2e;
+ DAT_EntityState.entityArray[_section1025ID].field83_0xc0 = 0xab;
+ DAT_EntityState.entityArray[_section1025ID].field86_0xc8 = 0x16;
+ _playerID = DAT_EntityState.entityArray[_section1025ID].unknownAnimationFrameRelated;
+ if (0x10 < _playerID) {
+ DAT_EntityState.entityArray[_section1025ID].field86_0xc8 = 0x26 - _playerID;
+ }
+ DAT_EntityState.entityArray[_section1025ID].field87_0xca = 0x28;
+ DAT_EntityState.entityArray[_section1025ID].field88_0xcc = 0x32;
+ _playerID = DAT_EntityState.entityArray[_section1025ID].unknownAnimationFrameRelated;
+ if (0x10 < _playerID) {
+ DAT_EntityState.entityArray[_section1025ID].field88_0xcc = _playerID + 0x22;
+ }
+ DAT_EntityState.entityArray[_section1025ID].field89_0xce = 0x27;
+ return;
+ }
+}
+}
+
+### 0x00402730 UpdateEntity_41 | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00402730
+ void Entities::UpdateEntity_41()
+ {
+ short sVar1;
+ int iVar2;
+ short _playerID;
+ uint _section1025ID;
+ _section1025ID = DAT_CurrentEntityID;
+ _playerID = DAT_EntityState.entityArray[DAT_CurrentEntityID].owner;
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].unkOne_1 = 2;
+ sVar1 = DAT_EntityState.entityArray[_section1025ID].unknownAnimationFrameRelated;
+ if (DAT_EntityDefinedData.field60_0x107c[sVar1] < 1) {
+ DAT_EntityState.entityArray[_section1025ID].logicalState = 3;
+ DAT_GameState.playerDataArray[_playerID].someCount33 = 0x46;
+ } else {
+ DAT_EntityState.entityArray[_section1025ID].unkMinusOne
+ = (short)DAT_EntityDefinedData.field60_0x107c[sVar1] + -1;
+ DAT_EntityState.entityArray[_section1025ID].graphicType2 = 1;
+ }
+ DAT_EntityState.entityArray[_section1025ID].field82_0xbe = 0x2e;
+ iVar2 = DAT_EntityState.entityArray[_section1025ID].displayValue;
+ if (iVar2 < 0x28) {
+ DAT_EntityState.entityArray[_section1025ID].field83_0xc0 = 0x82;
+ } else {
+ DAT_EntityState.entityArray[_section1025ID].field83_0xc0 = (iVar2 < 0x3c) + 0x80;
+ }
+ DAT_EntityState.entityArray[_section1025ID].field86_0xc8 = 0x16;
+ _playerID = DAT_EntityState.entityArray[_section1025ID].unknownAnimationFrameRelated;
+ if (0x10 < _playerID) {
+ DAT_EntityState.entityArray[_section1025ID].field86_0xc8 = 0x26 - _playerID;
+ }
+ DAT_EntityState.entityArray[_section1025ID].field87_0xca = 0x22;
+ DAT_EntityState.entityArray[_section1025ID].field88_0xcc = 0x32;
+ _playerID = DAT_EntityState.entityArray[_section1025ID].unknownAnimationFrameRelated;
+ if (0x10 < _playerID) {
+ DAT_EntityState.entityArray[_section1025ID].field88_0xcc = _playerID + 0x22;
+ }
+ DAT_EntityState.entityArray[_section1025ID].field89_0xce = 0x27;
+ return;
+ }
+}
+}
+
+### 0x00402820 UpdateEntity_42_43 | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00402820
+ void Entities::UpdateEntity_42_43()
+ {
+ short sVar1;
+ uint uVar2;
+ uVar2 = DAT_CurrentEntityID;
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].unkOne_1 = 2;
+ sVar1 = DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated;
+ if (DAT_EntityDefinedData.field60_0x107c[sVar1] < 1) {
+ DAT_EntityState.entityArray[uVar2].logicalState = 3;
+ } else {
+ DAT_EntityState.entityArray[uVar2].unkMinusOne
+ = (short)DAT_EntityDefinedData.field60_0x107c[sVar1] + -1;
+ DAT_EntityState.entityArray[uVar2].graphicType2 = 1;
+ }
+ DAT_EntityState.entityArray[uVar2].field82_0xbe = 0x2e;
+ DAT_EntityState.entityArray[uVar2].field86_0xc8 = 0x16;
+ sVar1 = DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated;
+ if (0x10 < sVar1) {
+ DAT_EntityState.entityArray[uVar2].field86_0xc8 = 0x26 - sVar1;
+ }
+ DAT_EntityState.entityArray[uVar2].field87_0xca = 0x2d
+ - *(short*)((int)PTR_ARRAY_Unknown_UnitGMHeights::instance
+ + (GMTotalPicturesProcessed::instance[DAT_EntityState.entityArray[uVar2].field82_0xbe]
+ + (int)DAT_EntityState.entityArray[uVar2].field83_0xc0)
+ * 0x10
+ + 0x72)
+ / 2;
+ DAT_EntityState.entityArray[uVar2].field88_0xcc = 0x32;
+ sVar1 = DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated;
+ if (0x10 < sVar1) {
+ DAT_EntityState.entityArray[uVar2].field88_0xcc = sVar1 + 0x22;
+ }
+ DAT_EntityState.entityArray[uVar2].field89_0xce = 0x27;
+ return;
+ }
+}
+}
+
+### 0x00402900 UpdateFlag_1_2_4_Entity | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00402900
+ void Entities::UpdateFlag_1_2_4_Entity()
+ {
+ AIRecruitUnitChoiceInt AVar1;
+ uint uVar2;
+ int iVar3;
+ short sVar4;
+ short _owner;
+ uVar2 = DAT_CurrentEntityID;
+ sVar4 = DAT_EntityState.entityArray[DAT_CurrentEntityID].someTracker;
+ _owner = DAT_EntityState.entityArray[DAT_CurrentEntityID].owner;
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].graphicType2
+ = (int)DAT_EntityState.entityArray[DAT_CurrentEntityID].graphicType2RelatedOffset;
+ if (DAT_LandscapeState.wind.countdown
+ <= (int)((byte)DAT_EntityState.entityArray[uVar2].yPosition & 0x1f)) {
+ sVar4 = (short)DAT_LandscapeState.wind.value;
+ }
+ if (((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ && (DAT_GameSynchronyState.currentPlayerFullIDArray[_owner] == -1))
+ && (DAT_GameSynchronyState.currentAIArray[_owner] != 0)) {
+ if (DAT_GameState.playerDataArray[_owner].aiBuildingDestroyChoiceTracker == 0) {
+ if (DAT_GameState.playerDataArray[_owner].aiNervousActionsTracker == 0) {
+ AVar1 = DAT_GameState.playerDataArray[_owner].aiRecruitUnitChoiceState;
+ sVar4 = 0;
+ if (AVar1 != AIRUC_DEFENSIVE) {
+ sVar4 = (AVar1 != AIRUC_RAIDING) + 1;
+ }
+ } else {
+ sVar4 = 3;
+ }
+ } else {
+ sVar4 = 3;
+ }
+ }
+ DAT_EntityState.entityArray[uVar2].unkOne_1 = 3;
+ switch (DAT_EntityState.entityArray[uVar2].someTracker) {
+ case 0:
+ iVar3 = DAT_EntityDefinedData
+ .field61_0x1164[DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated];
+ break;
+ case 1:
+ iVar3 = DAT_EntityDefinedData
+ .field62_0x1294[DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated];
+ break;
+ case 3:
+ DAT_EntityState.entityArray[uVar2].unkOne_1 = 1;
+ case 2:
+ iVar3 = DAT_EntityDefinedData
+ .field63_0x139c[DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated];
+ break;
+ default:
+ goto switchD_004029ab_caseD_4;
+ }
+ if (iVar3 < 1) {
+ DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated = 0;
+ DAT_EntityState.entityArray[uVar2].someTracker = sVar4;
+ return;
+ }
+ DAT_EntityState.entityArray[uVar2].graphicType2
+ = DAT_EntityState.entityArray[uVar2].graphicType2 + iVar3 + -1;
+ switchD_004029ab_caseD_4:
+ return;
+ }
+}
+}
+
+### 0x00402a20 UpdateFlag3Entity | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00402A20
+ void Entities::UpdateFlag3Entity()
+ {
+ uint uVar1;
+ int iVar2;
+ uVar1 = DAT_CurrentEntityID;
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].graphicType2
+ = (int)DAT_EntityState.entityArray[DAT_CurrentEntityID].graphicType2RelatedOffset;
+ if (DAT_LandscapeState.wind.countdown
+ <= (int)((byte)DAT_EntityState.entityArray[uVar1].yPosition & 0x1f)) {
+ DAT_EntityState.entityArray[uVar1].rng_2 = (short)DAT_LandscapeState.wind.value;
+ }
+ iVar2 = (int)DAT_EntityState.entityArray[uVar1].someTracker;
+ if (iVar2 == 0) {
+ iVar2 = DAT_EntityDefinedData
+ .field64_0x15dc[DAT_EntityState.entityArray[uVar1].unknownAnimationFrameRelated];
+ } else {
+ if (1 < iVar2 - 1U) {
+ return;
+ }
+ iVar2 = DAT_EntityDefinedData
+ .field65_0x17a4[DAT_EntityState.entityArray[uVar1].unknownAnimationFrameRelated];
+ }
+ if (0 < iVar2) {
+ DAT_EntityState.entityArray[uVar1].graphicType2
+ = DAT_EntityState.entityArray[uVar1].graphicType2 + iVar2 + -1;
+ return;
+ }
+ DAT_EntityState.entityArray[uVar1].unknownAnimationFrameRelated = 0;
+ DAT_EntityState.entityArray[uVar1].someTracker = DAT_EntityState.entityArray[uVar1].rng_2;
+ return;
+ }
+}
+}
+
+### 0x00402ab0 UpdateBrazierEntity | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00402AB0
+ void Entities::UpdateBrazierEntity()
+ {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].graphicType2
+ = ((byte)DAT_EntityState.entityArray[DAT_CurrentEntityID].unknownAnimationFrameRelated
+ & 7)
+ + DAT_EntityState.entityArray[DAT_CurrentEntityID].graphicType2RelatedOffset;
+ }
+}
+}
+
+### 0x00405c00 UpdateHeadsOnSpikesEntity | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00405C00
+ void Entities::UpdateHeadsOnSpikesEntity()
+ {
+ short* psVar1;
+ int _rng;
+ uint _id;
+ short _x;
+ short _y;
+ _id = DAT_CurrentEntityID;
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].graphicType2
+ = DAT_EntityState.entityArray[DAT_CurrentEntityID].rng_1 + 1;
+ psVar1 = &DAT_EntityState.entityArray[_id].rng_2;
+ *psVar1 = *psVar1 + -1;
+ if (DAT_EntityState.entityArray[_id].rng_2 == 0) {
+ _rng = (int)SEC_RNG::instance.currentNumber2;
+ DAT_EntityState.entityArray[_id].rng_2 = SEC_RNG::instance.currentNumber2 % 500 + 300;
+ _x = DAT_EntityState.entityArray[_id].xPosition;
+ _y = DAT_EntityState.entityArray[_id].yPosition;
+ nextRandomNumber2();
+ spawnProjectileEntity(0,
+ (undefined4)((int)((int)DAT_EntityState.entityArray[DAT_CurrentEntityID].owner)), 0,
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].microX,
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].microY,
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].height + 0x32,
+ (_x + -0x32 + _rng % 100) * 8, (_y + -0x32 + (_rng >> 8) % 100) * 8, 0xfa, 0x1c,
+ 0);
+ }
+ return;
+ }
+}
+}
+
+### 0x00406fd0 UpdateEntityType8 | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00406FD0
+ void Entities::UpdateEntityType8()
+ {
+ short sVar1;
+ uint uVar2;
+ uVar2 = DAT_CurrentEntityID;
+ sVar1 = DAT_EntityState.entityArray[DAT_CurrentEntityID].travelledDistance;
+ if (sVar1 < 0xe) {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].graphicType2 = 8;
+ } else if (sVar1 < 0x10) {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].graphicType2 = 9;
+ } else if (sVar1 < 0x12) {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].graphicType2 = 10;
+ } else if (sVar1 < 0x14) {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].graphicType2 = 0xb;
+ } else if (sVar1 < 0x16) {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].graphicType2 = 0xc;
+ } else if (sVar1 < 0x18) {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].graphicType2 = 0xd;
+ } else if (sVar1 < 0x1a) {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].graphicType2 = 0xe;
+ } else if (sVar1 < 0x1c) {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].graphicType2 = 0xf;
+ } else {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].graphicType2 = 0x10;
+ }
+ if ((DAT_EntityState.entityArray[uVar2].rng_1 & 3) == 0) {
+ DAT_EntityState.entityArray[uVar2].graphicType2
+ = DAT_EntityState.entityArray[uVar2].graphicType2 + 0x10;
+ }
+ if (DAT_EntityState.entityArray[uVar2].someCounter_OR_hitGround != 0) {
+ DAT_EntityState.entityArray[uVar2].logicalState = 3;
+ SomeFireSpreadFunction(
+ (int)DAT_EntityState.entityArray[uVar2].owner,
+ DAT_EntityState.entityArray[uVar2].microX,
+ DAT_EntityState.entityArray[uVar2].microY,
+ DAT_TileMapState.HeightLayer[DAT_EntityState.entityArray[uVar2].tile]
+ + 8,
+ 5);
+ playSFXAtLocation(
+ (int)DAT_EntityState.entityArray[DAT_CurrentEntityID].xPosition,
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].yPosition,
+ FX_FIRE_START);
+ }
+ uVar2 = DAT_CurrentEntityID;
+ if (DAT_EntityState.entityArray[DAT_CurrentEntityID].orientation == 0x4c) {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].orientation = 0x3c;
+ DAT_EntityState.entityArray[uVar2].logicalState = 3;
+ }
+ return;
+ }
+}
+}
+

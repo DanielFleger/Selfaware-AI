@@ -1,0 +1,976 @@
+### 0x00431b60 MenuView_BuildMenu_DoInitial | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00431B60
+ void BuildMenu::MenuView_BuildMenu_DoInitial()
+ {
+ Menu* pMVar1;
+ int iVar2;
+ char* pcVar3;
+ DAT_MenuHandlerState.x = DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ pMVar1 = DAT_MenuHandlerState.currentMenu;
+ DAT_MenuHandlerState.y = DAT_WindowAndDirectDraw.resolutionY + -600;
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_640x480) {
+ (DAT_MenuHandlerState.currentMenu)->xPosition = 0;
+ pMVar1->yPosition = DAT_MenuHandlerState.y;
+ DAT_MenuHandlerState.x = 0;
+ } else {
+ (DAT_MenuHandlerState.currentMenu)->xPosition
+ = DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ pMVar1->yPosition = DAT_MenuHandlerState.y;
+ }
+ if (DAT_GameCore.activeMenuTab.buildMenuTab == BMTT_SOLDIERS) {
+ if (DAT_GameCore.gameMode_2 == GM_EDITOR) {
+ iVar2 = 8;
+ } else {
+ iVar2 = 4;
+ }
+ setMenuTabIndexUnk(iVar2);
+ if (DAT_WindowAndDirectDraw.field37_0xdc == 0) {
+ return;
+ }
+ drawColorBox(0, DAT_MenuHandlerState.y + 406,
+ DAT_WindowAndDirectDraw.resolutionX + -1,
+ DAT_MenuHandlerState.y + 471,
+ (ushort)((int)(COL_MAGENTA::instance.shortValue)));
+ DAT_WindowAndDirectDraw.field37_0xdc = 0;
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1024x768) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge_military_1024l.tgx");
+ if ((DAT_GameCore.gameMode_2 == GM_EDITOR)
+ || (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT)) {
+ pcVar3 = "edge_military_1024l.tgx";
+ } else {
+ pcVar3 = "edge_military_1024r.tgx";
+ }
+ loadGfxFile(pcVar3);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x300 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ if ((DAT_GameCore.gameMode_2 == GM_EDITOR)
+ || (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT)) {
+ iVar2 = 0x380;
+ } else {
+ iVar2 = 0x390;
+ }
+ renderLoadedGfx(
+ 1, iVar2, 0x300 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1024x600) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge_military_1024l.tgx");
+ if ((DAT_GameCore.gameMode_2 == GM_EDITOR)
+ || (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT)) {
+ pcVar3 = "edge_military_1024l.tgx";
+ } else {
+ pcVar3 = "edge_military_1024r.tgx";
+ }
+ loadGfxFile(pcVar3);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 600 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ if ((DAT_GameCore.gameMode_2 == GM_EDITOR)
+ || (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT)) {
+ iVar2 = 0x380;
+ } else {
+ iVar2 = 0x390;
+ }
+ renderLoadedGfx(
+ 1, iVar2, 600 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1280x1024) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge_military_1280l.tgx");
+ if ((DAT_GameCore.gameMode_2 == GM_EDITOR)
+ || (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT)) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ pcVar3 = "edge_military_1280l.tgx";
+ } else {
+ pcVar3 = "edge_military_1280r.tgx";
+ }
+ loadGfxFile(pcVar3);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x400 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x410, 0x400 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1600x1200) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge_military_1600l.tgx");
+ if ((DAT_GameCore.gameMode_2 == GM_EDITOR)
+ || (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT)) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ pcVar3 = "edge_military_1600l.tgx";
+ } else {
+ pcVar3 = "edge_military_1600r.tgx";
+ }
+ loadGfxFile(pcVar3);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x4b0 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x4b0, 0x4b0 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1280x720) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge_military_1280l.tgx");
+ if ((DAT_GameCore.gameMode_2 == GM_EDITOR)
+ || (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT)) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ pcVar3 = "edge_military_1280l.tgx";
+ } else {
+ pcVar3 = "edge_military_1280r.tgx";
+ }
+ loadGfxFile(pcVar3);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x2d0 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x410, 0x2d0 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1440x900) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge_military_1440l.tgx");
+ if ((DAT_GameCore.gameMode_2 == GM_EDITOR)
+ || (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT)) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ pcVar3 = "edge_military_1440l.tgx";
+ } else {
+ pcVar3 = "edge_military_1440r.tgx";
+ }
+ loadGfxFile(pcVar3);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 900 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x460, 900 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1920x1080) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge_military_1920l.tgx");
+ if ((DAT_GameCore.gameMode_2 == GM_EDITOR)
+ || (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT)) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ pcVar3 = "edge_military_1920l.tgx";
+ } else {
+ pcVar3 = "edge_military_1920r.tgx";
+ }
+ loadGfxFile(pcVar3);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x438 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x550, 0x438 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1920x1200) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge_military_1920l.tgx");
+ if ((DAT_GameCore.gameMode_2 == GM_EDITOR)
+ || (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT)) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ pcVar3 = "edge_military_1920l.tgx";
+ } else {
+ pcVar3 = "edge_military_1920r.tgx";
+ }
+ loadGfxFile(pcVar3);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x4b0 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x550, 0x4b0 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_2560x1440) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge_military_2560l.tgx");
+ if ((DAT_GameCore.gameMode_2 == GM_EDITOR)
+ || (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT)) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ pcVar3 = "edge_military_2560l.tgx";
+ } else {
+ pcVar3 = "edge_military_2560r.tgx";
+ }
+ loadGfxFile(pcVar3);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x5a0 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x690, 0x5a0 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_2560x1600) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge_military_2560l.tgx");
+ if ((DAT_GameCore.gameMode_2 == GM_EDITOR)
+ || (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT)) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ pcVar3 = "edge_military_2560l.tgx";
+ } else {
+ pcVar3 = "edge_military_2560r.tgx";
+ }
+ loadGfxFile(pcVar3);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x640 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x690, 0x640 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1366x768) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge_military_1366l.tgx");
+ if ((DAT_GameCore.gameMode_2 == GM_EDITOR)
+ || (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT)) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ pcVar3 = "edge_military_1366l.tgx";
+ } else {
+ pcVar3 = "edge_military_1366r.tgx";
+ }
+ loadGfxFile(pcVar3);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x300 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x43a, 0x300 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1360x768) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge_military_1360l.tgx");
+ if ((DAT_GameCore.gameMode_2 == GM_EDITOR)
+ || (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT)) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ pcVar3 = "edge_military_1360l.tgx";
+ } else {
+ pcVar3 = "edge_military_1360r.tgx";
+ }
+ loadGfxFile(pcVar3);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x300 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x438, 0x300 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1680x1050) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge_military_1680l.tgx");
+ if ((DAT_GameCore.gameMode_2 == GM_EDITOR)
+ || (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT)) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ pcVar3 = "edge_military_1680l.tgx";
+ } else {
+ pcVar3 = "edge_military_1680r.tgx";
+ }
+ loadGfxFile(pcVar3);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x41a - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x4d8, 0x41a - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution != SRE_1600x900) {
+ return;
+ }
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge_military_1600l.tgx");
+ if ((DAT_GameCore.gameMode_2 == GM_EDITOR)
+ || (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT)) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ pcVar3 = "edge_military_1600l.tgx";
+ } else {
+ pcVar3 = "edge_military_1600r.tgx";
+ }
+ loadGfxFile(pcVar3);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 900 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ iVar2 = 900 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height;
+ } else {
+ if (DAT_GameCore.activeMenuTab.buildMenuTab == BMTT_MENU_HIDDEN) {
+ return;
+ }
+ if (DAT_GameCore.activeMenuTab.buildMenuTab == 0x3e) {
+ return;
+ }
+ if (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT) {
+ iVar2 = 9;
+ } else if (DAT_GameCore.gameMode_2 == GM_EDITOR) {
+ iVar2 = 5;
+ } else {
+ iVar2 = 0;
+ }
+ setMenuTabIndexUnk(iVar2);
+ if (DAT_WindowAndDirectDraw.field37_0xdc == 0) {
+ return;
+ }
+ drawColorBox(0,
+ DAT_MenuHandlerState.y + 0x196, DAT_WindowAndDirectDraw.resolutionX + -1,
+ DAT_MenuHandlerState.y + 0x1d7, (ushort)((int)(COL_MAGENTA::instance.shortValue)));
+ DAT_WindowAndDirectDraw.field37_0xdc = 0;
+ if ((DAT_GameCore.gameMode_2 == GM_EDITOR)
+ || (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT)) {
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1024x768) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1024l.tgx");
+ loadGfxFile("edge1024l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x300 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x390, 0x300 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1024x600) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1024l.tgx");
+ loadGfxFile("edge1024l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 600 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x390, 600 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1280x1024) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1280l.tgx");
+ loadGfxFile("edge1280l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x400 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x410, 0x400 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1600x1200) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1600l.tgx");
+ loadGfxFile("edge1600l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x4b0 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x4b0, 0x4b0 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1280x720) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1280l.tgx");
+ loadGfxFile("edge1280l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x2d0 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x410, 0x2d0 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1440x900) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1440l.tgx");
+ loadGfxFile("edge1440l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 900 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x460, 900 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1920x1080) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1920l.tgx");
+ loadGfxFile("edge1920l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x438 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x550, 0x438 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1920x1200) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1920l.tgx");
+ loadGfxFile("edge1920l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x4b0 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x550, 0x4b0 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_2560x1440) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge2560l.tgx");
+ loadGfxFile("edge2560l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x5a0 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x690, 0x5a0 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_2560x1600) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge2560l.tgx");
+ loadGfxFile("edge2560l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x640 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x690, 0x640 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1366x768) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1366l.tgx");
+ loadGfxFile("edge1366l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x300 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x43a, 0x300 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1360x768) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1360l.tgx");
+ loadGfxFile("edge1360l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x300 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x438, 0x300 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1680x1050) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1680l.tgx");
+ loadGfxFile("edge1680l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x41a - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x4d8, 0x41a - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution != SRE_1600x900) {
+ return;
+ }
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1600l.tgx");
+ loadGfxFile("edge1600l.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 900 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ iVar2 = 900 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height;
+ } else {
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1024x768) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1024l.tgx");
+ loadGfxFile("edge1024r.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x300 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x390, 0x300 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1024x600) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1024l.tgx");
+ loadGfxFile("edge1024r.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 600 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x390, 600 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1280x1024) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1280l.tgx");
+ loadGfxFile("edge1280r.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x400 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x410, 0x400 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1600x1200) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1600l.tgx");
+ loadGfxFile("edge1600r.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x4b0 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x4b0, 0x4b0 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1280x720) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1280l.tgx");
+ loadGfxFile("edge1280r.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x2d0 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x410, 0x2d0 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1440x900) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1440l.tgx");
+ loadGfxFile("edge1440r.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 900 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x460, 900 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1920x1080) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1920l.tgx");
+ loadGfxFile("edge1920r.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x438 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x550, 0x438 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1920x1200) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1920l.tgx");
+ loadGfxFile("edge1920r.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x4b0 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x550, 0x4b0 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_2560x1440) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge2560l.tgx");
+ loadGfxFile("edge2560r.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x5a0 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x690, 0x5a0 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_2560x1600) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge2560l.tgx");
+ loadGfxFile("edge2560r.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x640 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x690, 0x640 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1366x768) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1366l.tgx");
+ loadGfxFile("edge1366r.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x300 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x43a, 0x300 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1360x768) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1360l.tgx");
+ loadGfxFile("edge1360r.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x300 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x438, 0x300 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1680x1050) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1680l.tgx");
+ loadGfxFile("edge1680r.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 0x41a - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ renderLoadedGfx(
+ 1, 0x4d8, 0x41a - DAT_TextureRenderCoreObject.loadedGfxArray[1].height);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution != SRE_1600x900) {
+ return;
+ }
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("edge1600l.tgx");
+ loadGfxFile("edge1600r.tgx");
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderLoadedGfx(
+ 0, 0, 900 - DAT_TextureRenderCoreObject.loadedGfxArray[0].height);
+ iVar2 = 900 - DAT_TextureRenderCoreObject.loadedGfxArray[1].height;
+ }
+ }
+ renderLoadedGfx(1, 0x4b0, iVar2);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ }
+}
+}
+
+### 0x00433030 MenuView_BuildMenu_DoEveryFrame | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00433030
+ void BuildMenu::MenuView_BuildMenu_DoEveryFrame()
+ {
+ DWORD _currentTime;
+ if ((DAT_GameCore.activeMenuTab.buildMenuTab != BMTT_MENU_HIDDEN)
+ && (DAT_GameCore.activeMenuTab.buildMenuTab != 0x3e)) {
+ if (DAT_MinimapViewState.field3_0xc == 0) {
+ DAT_WindowAndDirectDraw.unk_resetViewportRelated = 2;
+ }
+ if (DAT_MenuHandlerState.isBuildMenuTransitioning_0x18 != FALSE) {
+ computeBuildMenuTransitionShift();
+ }
+ if (DAT_WindowAndDirectDraw.unk_resetViewportRelated == 2) {
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_640x480) {
+ renderGM(GM_INTERFACE_PANELS, 2,
+ DAT_MenuHandlerState.x, DAT_MenuHandlerState.y + 472);
+ } else {
+ drawColorBox(DAT_MenuHandlerState.x,
+ DAT_MenuHandlerState.y + 0x196, DAT_MenuHandlerState.x + 799,
+ DAT_MenuHandlerState.y + 0x1d7,
+ (ushort)((int)(COL_MAGENTA::instance.shortValue)));
+ if (DAT_GameCore.activeMenuTab.buildMenuTab == BMTT_SOLDIERS) {
+ renderGM(GM_INTERFACE_PANELS, 5,
+ DAT_MenuHandlerState.x, DAT_MenuHandlerState.y + 0x1bd);
+ } else {
+ renderGM(GM_INTERFACE_PANELS, 1,
+ DAT_MenuHandlerState.x, DAT_MenuHandlerState.y + 0x1c2);
+ setRenderingRect(DAT_MenuHandlerState.x + 0x11,
+ DAT_MenuHandlerState.y + 0x1d9, DAT_MenuHandlerState.x + 0x201,
+ DAT_MenuHandlerState.y + 0x240);
+ drawTgxGmOnFlaggedSurface(GID_INTERFACE_BUTTONS, 7,
+ (DAT_MenuHandlerState.x
+ - DAT_MenuHandlerState.buildMenuBackgroundLeftShift_0x24)
+ + 0x11,
+ DAT_MenuHandlerState.y + 0x1d9);
+ setRenderingRectToGameResolution();
+ }
+ }
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ DAT_MinimapViewState.field0_0x0 = 1;
+ if (DAT_GameCore.isBinkVideoPlaying == 0) {
+ renderMinimapMain();
+ }
+ }
+ if (DAT_GameCore.isVictoryOrDefeatUnk != 0) {
+ DAT_GameCore.isVictoryOrDefeatUnk = 0;
+ DAT_GameState.mapAndTime.gameOver = TRUE;
+ _currentTime = timeGetTime();
+ DAT_GameState.mapAndTime.gameOverTime = _currentTime - 6000;
+ DAT_GameState.mapAndTime.playerIsAlive[DAT_GameSynchronyState.currentPlayerSlotID]
+ = 1;
+ DAT_GameCore.skipStoreSKMasters = 1;
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_WIN_DEFEAT_WINDOW, 1);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00434300 MenuItemRenderFunction_BuildMenu_MiniMapInteraction | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00434300
+ void BuildMenu::MenuItemRenderFunction_BuildMenu_MiniMapInteraction(int param_1, ...)
+ {
+ if (((DAT_ButtonCurrentlyInteracting != FALSE)
+ && (DAT_GameCore.currentMenuViewType == MVT_BUILD_MENU))
+ && ((DAT_GameCore.activeMenuTab.buildMenuTab == BMTT_SOLDIERS
+ || (DAT_TileMapState.shiftRelated0or3 == 1)))) {
+ DAT_MinimapViewState.field15_0x3c = 1;
+ return;
+ }
+ DAT_MinimapViewState.field15_0x3c = 0;
+ return;
+ }
+ }
+}
+}
+
+### 0x004387d0 MenuItemActionHandler_BuildMenu_DeleteAction | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004387D0
+ void BuildMenu::MenuItemActionHandler_BuildMenu_DeleteAction(int param_1, ...)
+ {
+ int totalHeight;
+ BOOLEnum BVar1;
+ int _unitOwner;
+ int iVar2;
+ int microY;
+ int microX;
+ UnitTypeShort _unitType;
+ if ((((DAT_GameSynchronyState.syncStatus == 0)
+ && (DAT_GameSynchronyState.saveRelated == 0))
+ && (DAT_TileMapState.currentMapperCommand == M_MAPPER_DELETE))
+ && (DAT_TileMapState.field194_0x554a20 = 0,
+ DAT_ViewportRenderState.viewportState.field0_0x0 != 0)) {
+ setupMouseTileXY();
+ DAT_TileMapState.DAT_ClickedTileX
+ = DAT_ViewportRenderState.viewportState.mouseTileX;
+ DAT_TileMapState.DAT_ClickedTileY
+ = DAT_ViewportRenderState.viewportState.mouseTileY;
+ if (((DAT_GameCore.gameMode_2 != GM_EDITOR)
+ && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT))
+ && (BVar1 = isEnemyTooCloseUnk(DAT_GameSynchronyState.currentPlayerSlotID,
+ (uint)((int)(DAT_ViewportRenderState.viewportState.mouseTileX)),
+ (uint)((int)(DAT_ViewportRenderState.viewportState.mouseTileY)),
+ (int)((int)((-(uint)(DAT_GameSynchronyState.currentGameMode
+ != GM_SOLITARY)
+ & 0xfffffff1)
+ + 0x1e))),
+ BVar1 != FALSE)) {
+ DAT_TileMapState.field194_0x554a20 = 1;
+ }
+ iVar2 = DAT_ViewportRenderState.viewportState.mouseRayUnitID;
+ if ((DAT_MouseState.leftClickStart == 0)
+ && (((DAT_TileMapState.field151_0x554998 == 0
+ && (DAT_TileMapState.field152_0x55499c == 0))
+ || (DAT_MouseState.leftClickState == FALSE)))) {
+ DAT_TileMapState.field151_0x554998 = 0;
+ DAT_TileMapState.field152_0x55499c = 0;
+ return;
+ }
+ if (((((DAT_GameCore.solitaryAltUDungeon != FALSE)
+ && (DAT_ViewportRenderState.viewportState.mouseRayUnitID != 0))
+ && (DAT_UnitsState
+ .units[DAT_ViewportRenderState.viewportState.mouseRayUnitID]
+ .health
+ != 0))
+ && ((_unitType = DAT_UnitsState
+ .units[DAT_ViewportRenderState.viewportState.mouseRayUnitID]
+ .unitType,
+ _unitType != UT_LORD
+ && (DAT_UnitsState
+ .units[DAT_ViewportRenderState.viewportState.mouseRayUnitID]
+ .dying
+ == 0))))
+ && ((_unitOwner = (int)DAT_UnitsState
+ .units[DAT_ViewportRenderState.viewportState.mouseRayUnitID]
+ .owner,
+ _unitOwner == DAT_GameSynchronyState.currentPlayerSlotID
+ && (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY)))) {
+ if ((_unitType == UT_E_ENGINEER)
+ && (DAT_UnitsState
+ .units[DAT_ViewportRenderState.viewportState.mouseRayUnitID]
+ .resourceToDeposit
+ != 0)) {
+ IgniteFireAtMiniTile_Convenience(_unitOwner,
+ DAT_UnitsState
+ .units[DAT_ViewportRenderState.viewportState.mouseRayUnitID]
+ .microXPosition,
+ DAT_UnitsState
+ .units[DAT_ViewportRenderState.viewportState.mouseRayUnitID]
+ .microYPosition,
+ DAT_UnitsState
+ .units[DAT_ViewportRenderState.viewportState.mouseRayUnitID]
+ .buildingHeight
+ + -8
+ + DAT_UnitsState
+ .units[DAT_ViewportRenderState.viewportState.mouseRayUnitID]
+ .terrainOrClimbHeight,
+ 5);
+ spawnProjectileEntity(0,
+ (undefined4)((int)((int)DAT_UnitsState.units[iVar2].owner)), 0,
+ DAT_UnitsState.units[iVar2].microXPosition,
+ DAT_UnitsState.units[iVar2].microYPosition,
+ DAT_UnitsState.units[iVar2].buildingHeight
+ + DAT_UnitsState.units[iVar2].terrainOrClimbHeight,
+ 0, 0, 0, (EntityType)((int)(26)), 0);
+ }
+ totalHeight = (int)DAT_UnitsState.units[iVar2].buildingHeight
+ + (int)DAT_UnitsState.units[iVar2].terrainOrClimbHeight;
+ microY = (int)DAT_UnitsState.units[iVar2].microYPosition;
+ microX = (int)DAT_UnitsState.units[iVar2].microXPosition;
+ DAT_UnitsState.units[iVar2].dying = 1;
+ DAT_UnitsState.units[iVar2].tunnelerFinishedDigging = 1;
+ DAT_UnitsState.units[iVar2].animationCycleNumber = 0;
+ DAT_UnitsState.units[iVar2].state.generic
+ = US_STONE_DEATH_01;
+ spawnProjectileEntity(0, 0, 0, microX, microY, totalHeight, microX + 1, microY + 1, totalHeight,
+ 0x1e, 0);
+ playSFXAtLocation(
+ (int)DAT_UnitsState.units[iVar2].x,
+ DAT_UnitsState.units[iVar2].y, FX_DEATH_CLUB2);
+ return;
+ }
+ DAT_TileMapState.buildingPlacementFailReason
+ = BFRE_DEFAULT_CANT_PLACE_THAT_THERE;
+ iVar2 = spreadFlagPlacementAlgorithm(DAT_GameSynchronyState.currentPlayerSlotID,
+ (uint)((int)(DAT_TileMapState.DAT_ClickedTileX)),
+ (uint)((int)(DAT_TileMapState.DAT_ClickedTileY)));
+ if (iVar2 != 0) {
+ DAT_WallAndPitchState.countdown = 0;
+ DAT_GameSynchronyState.DAT_GameCommandParam0
+ = DAT_TileMapState.DAT_ClickedTileX;
+ DAT_GameSynchronyState.DAT_GameCommandParam1
+ = DAT_TileMapState.DAT_ClickedTileY;
+ queueCommand(((GameCommandType)0x61));
+ return;
+ }
+ evaluateBuildingPlacementAtCursor(DAT_GameSynchronyState.currentPlayerSlotID,
+ (uint)((int)(DAT_TileMapState.DAT_ClickedTileX)),
+ (uint)((int)(DAT_TileMapState.DAT_ClickedTileY)));
+ if (DAT_TileMapState.buildingPlacementFail == FALSE) {
+ DAT_WallAndPitchState.countdown = 0;
+ if (DAT_TileMapState.field152_0x55499c == 0) {
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = 50;
+ DAT_GameSynchronyState.DAT_GameCommandParam0
+ = DAT_ViewportRenderState.viewportState.field21_0x54;
+ if (DAT_TileMapState.field151_0x554998 == 0) {
+ DAT_GameSynchronyState.DAT_GameCommandParam0
+ = DAT_TileMapState.field131_0x554954;
+ if (-1 < DAT_TileMapState.field131_0x554954) {
+ DAT_GameSynchronyState.DAT_GameCommandParam2
+ = DAT_BuildingsState
+ .buildings[DAT_TileMapState.field131_0x554954]
+ .uid;
+ queueCommand(GCT_DESTROY_BUILDING);
+ return;
+ }
+ DAT_GameSynchronyState.DAT_GameCommandParam2
+ = *(int*)(DAT_0053f088 + DAT_TileMapState.field131_0x554954 * -0x14
+ + (int)DAT_TileMapState.directionTranslationMatrix);
+ queueCommand(GCT_DESTROY_BUILDING);
+ return;
+ }
+ } else {
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = 0xffffffff;
+ DAT_GameSynchronyState.DAT_GameCommandParam0
+ = DAT_TileMapState.field153_0x5549a0;
+ }
+ DAT_TileMapState.MiscDisplayLayer[DAT_GameSynchronyState.DAT_GameCommandParam0]
+ = DAT_TileMapState
+ .MiscDisplayLayer[DAT_GameSynchronyState.DAT_GameCommandParam0]
+ | 0x400;
+ queueCommand(GCT_DESTROY2Unk);
+ } else {
+ if (DAT_TileMapState.buildingPlacementFailReason == ((BuildingFailReasonEnum)1000)) {
+ setBottomLeftTextDisplayText(
+ 1, 0x101, 2, (TextMessageBLLookupStructUnion)0x0, 100, 6000);
+ return;
+ }
+ if (DAT_TileMapState.buildingPlacementFailReason
+ != BFRE_DEFAULT_CANT_PLACE_THAT_THERE) {
+ setBottomLeftTextDisplayText(1, 0x4d,
+ DAT_TileMapState.buildingPlacementFailReason,
+ (TextMessageBLLookupStructUnion)0x0, 100, 6000);
+ return;
+ }
+ }
+ }
+ return;
+ }
+ }
+}
+}
+

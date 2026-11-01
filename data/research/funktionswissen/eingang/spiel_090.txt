@@ -1,0 +1,1484 @@
+### 0x004d6f60 ParseCampaignMapHotspotBitmap | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004D6F60
+ void Helpers::ParseCampaignMapHotspotBitmap()
+ {
+ byte bVar1;
+ byte bVar2;
+ FILE* _File;
+ GFXRelatedBuffer1* pGVar3;
+ int* piVar4;
+ void* dstBuffer;
+ size_t sVar5;
+ int iVar6;
+ int iVar7;
+ short sVar8;
+ int iVar9;
+ bool bVar10;
+ long local_1c;
+ int local_18;
+ int local_14;
+ GFXRelatedBuffer1* local_10;
+ void* local_c;
+ FILE* local_8;
+ void* local_4;
+ _File = _fopen("gfx8\\campaign_map_england_hotspots.bmp", "rb");
+ INT_00ed3110::instance = 1;
+ pGVar3 = GFXRelatedBuffer1_00ec0840::ptr;
+ do {
+ pGVar3->field0_0x0 = 0;
+ pGVar3 = (GFXRelatedBuffer1*)&pGVar3->field120_0x7a;
+ } while ((int)pGVar3 < 0xed2630);
+ piVar4 = XYPair_ARRAY_00ed26d0::ptr[1].y;
+ do {
+ ((XYPair*)(piVar4 + -1))->x = 0x40;
+ *piVar4 = 0x40;
+ piVar4 = piVar4 + 2;
+ } while ((int)piVar4 < 0xed277c);
+ if (_File != (FILE*)0x0) {
+ local_8 = _File;
+ dstBuffer = _malloc(0x428);
+ local_4 = dstBuffer;
+ if (dstBuffer == (void*)0x0) {
+ _fclose(_File);
+ return;
+ }
+ _fseek(_File, 0xe, FILE_BEGIN);
+ sVar5 = _fread(dstBuffer, 1, 0x428, _File);
+ if (sVar5 != 0x428) {
+ _fclose(_File);
+ _free_base(dstBuffer);
+ return;
+ }
+ iVar6 = *(int*)((int)dstBuffer + 8);
+ bVar10 = iVar6 < 0;
+ if (bVar10) {
+ iVar6 = -iVar6;
+ }
+ if ((*(int*)((int)dstBuffer + 4) == 800) && (iVar6 == 600)) {
+ _fseek(_File, 10, FILE_BEGIN);
+ _fread(&local_1c, 4, 1, _File);
+ _fseek(
+ _File, (long)((int)(local_1c)), FILE_BEGIN);
+ if (bVar10) {
+ iVar6 = 0;
+ do {
+ _fseek(
+ _File, (long)((int)(iVar6 + local_1c)), FILE_BEGIN);
+ _fread(
+ (void*)(iVar6 + (int)DAT_TextureRenderCoreObject.gmAndGfxImageDataBuffer), 800, 1,
+ _File);
+ iVar6 = iVar6 + 800;
+ } while (iVar6 < 480000);
+ } else {
+ iVar9 = 0;
+ iVar6 = 0x74fe0;
+ do {
+ _fseek(
+ _File, (long)((int)(iVar6 + local_1c)), FILE_BEGIN);
+ _fread(
+ (void*)(iVar9 + (int)DAT_TextureRenderCoreObject.gmAndGfxImageDataBuffer), 800, 1,
+ _File);
+ iVar6 = iVar6 + -800;
+ iVar9 = iVar9 + 800;
+ } while (-800 < iVar6);
+ }
+ local_18 = 0;
+ local_14 = 0;
+ local_10 = GFXRelatedBuffer1_00ec0840::ptr;
+ local_c = DAT_TextureRenderCoreObject.gmAndGfxImageDataBuffer;
+ do {
+ iVar6 = 0;
+ iVar9 = 0;
+ do {
+ bVar1 = *(byte*)(iVar6 + (int)local_c);
+ iVar7 = iVar6;
+ if ((bVar1 != 0) && (_File = local_8, (byte)(bVar1 - 0x15) < 0x14)) {
+ sVar8 = 1;
+ for (; (iVar7 < 800 && (bVar2 = *(byte*)(iVar7 + (int)local_c), bVar2 != 0));
+ iVar7 = iVar7 + 1) {
+ if (bVar2 < 20) {
+ XYPair_ARRAY_00ed26d0::instance[bVar2].y = local_18;
+ XYPair_ARRAY_00ed26d0::instance[bVar2].x = iVar7;
+ } else if (bVar2 != bVar1)
+ break;
+ sVar8 = sVar8 + 1;
+ }
+ (&local_10->field96_0x62)[iVar9] = '(' - bVar1;
+ (&GFXRelatedBuffer1_00ec0840::instance.field2_0x2)[local_14 + iVar9] = (short)iVar6;
+ (&GFXRelatedBuffer1_00ec0840::instance.field49_0x32)[local_14 + iVar9] = sVar8;
+ iVar9 = iVar9 + 1;
+ }
+ iVar6 = iVar7 + 1;
+ } while ((iVar6 < 800) && (iVar9 < 12));
+ local_18 = local_18 + 1;
+ local_14 = local_14 + 61;
+ local_10->field0_0x0 = (char)iVar9;
+ local_10 = (GFXRelatedBuffer1*)&local_10->field120_0x7a;
+ local_c = (void*)((int)local_c + 800);
+ dstBuffer = local_4;
+ } while ((int)local_10 < 0xed2630);
+ }
+ _free_base(dstBuffer);
+ _fclose(_File);
+ }
+ return;
+ }
+}
+}
+
+### 0x004d8a20 ReadMapHeaderFromFile | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004D8A20
+ void Helpers::ReadMapHeaderFromFile(char* param_1)
+ {
+ char cVar1;
+ int iVar2;
+ uint uVar3;
+ char* puVar4;
+ char local_3f4[1008];
+ char* puVar3;
+ uVar3 = MSVC_SecurityCookie::instance ^ (uint)local_3f4;
+ iVar2 = -(int)param_1;
+ do {
+ cVar1 = *param_1;
+ param_1[(int)(local_3f4 + iVar2)] = cVar1;
+ param_1 = param_1 + 1;
+ } while (cVar1 != '\0');
+ puVar3 = &stack0xfffffc0b;
+ do {
+ puVar4 = puVar3;
+ puVar3 = puVar4 + 1;
+ } while (puVar4[1] != '\0');
+ builtin_strncpy(puVar4 + 1, ".map", 5);
+ resolveResourceFileName(
+ FRT_MAPS, (CHAR_CONST*)((int)(local_3f4)));
+ readMapHeader(TRUE);
+ INT_00eb9ae8::instance = 1;
+ ;
+ return;
+ }
+}
+}
+
+### 0x004f1a60 mapUITreeTypeToLogicalTreeType | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F1A60
+ undefined4 LandscapeState::mapUITreeTypeToLogicalTreeType(undefined4 param_1)
+ {
+ switch (param_1) {
+ case 0x28:
+ return (undefined4)(1);
+ case 0x29:
+ return (undefined4)(2);
+ case 0x2a:
+ return (undefined4)(3);
+ case 0x2b:
+ return (undefined4)(4);
+ default:
+ return (undefined4)(0);
+ case 0x82:
+ return (undefined4)(5);
+ case 0x83:
+ return (undefined4)(6);
+ case 0x84:
+ return (undefined4)(7);
+ case 0x85:
+ return (undefined4)(8);
+ case 0x86:
+ return (undefined4)(9);
+ case 0x87:
+ return (undefined4)(10);
+ case 0x88:
+ return (undefined4)(0xb);
+ case 0x89:
+ return (undefined4)(0xc);
+ case 0x8a:
+ return (undefined4)(0xd);
+ case 0x8b:
+ return (undefined4)(0xe);
+ case 0x99:
+ return (undefined4)(0x10);
+ case 0x9a:
+ return (undefined4)(0x11);
+ case 0x9b:
+ return (undefined4)(0x12);
+ case 0x9c:
+ return (undefined4)(0x13);
+ }
+ }
+}
+}
+
+### 0x004f1be0 getValueFrom0UpTo3ForTreeTypeAndTreeStage | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F1BE0
+ undefined4 LandscapeState::getValueFrom0UpTo3ForTreeTypeAndTreeStage(undefined4 treeType, int treeStage)
+ {
+ if (treeStage < 2) {
+ switchD_004f1bfb_caseD_5:
+ return (undefined4)(1);
+ }
+ switch (treeType) {
+ case 1:
+ case 2:
+ return (undefined4)(3);
+ case 3:
+ case 4:
+ case 0xf:
+ return (undefined4)(2);
+ case 5:
+ case 6:
+ case 7:
+ case 8:
+ case 9:
+ goto switchD_004f1bfb_caseD_5;
+ default:
+ return (undefined4)(0);
+ }
+ }
+}
+}
+
+### 0x004f1c60 clearRocksAndTrees | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F1C60
+ void LandscapeState::clearRocksAndTrees()
+ {
+ Tree* destination;
+ Rock* destination_00;
+ int iVar1;
+ this->DAT_TotalOrganisms = 0;
+ this->field3_0xc = 0;
+ DAT_GameState.mapAndTime.newOrganismsValue2 = 0;
+ DAT_GameState.mapAndTime.newOrganisms = 0;
+ destination = this->trees;
+ iVar1 = 2000;
+ do {
+ fillMemory_ByteValue(
+ 156, '\0', (void*)((int)(destination)));
+ destination = destination + 1;
+ iVar1 = iVar1 + -1;
+ } while (iVar1 != 0);
+ destination_00 = this->rocks;
+ iVar1 = 4000;
+ do {
+ fillMemory_ByteValue(
+ 32, '\0', (void*)((int)(destination_00)));
+ destination_00 = destination_00 + 1;
+ iVar1 = iVar1 + -1;
+ } while (iVar1 != 0);
+ this->maxTreeCount = 2000;
+ return;
+ }
+}
+}
+
+### 0x004f1ce0 createTree | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F1CE0
+ int LandscapeState::createTree(undefined4 x, undefined4 y, TreeType treeType, undefined4 size,
+ int stageRelatedValue, undefined4 param_6, int stage)
+ {
+ undefined2 uVar1;
+ short sVar2;
+ undefined4 uVar3;
+ Tree* _ptrState;
+ uint uVar4;
+ uint _tile;
+ int _treeID;
+ /*
+ *** Find a free tree slot ***
+ */
+ _treeID = 1;
+ _ptrState = &this->trees[1];
+ do {
+ if (_ptrState->state == 0)
+ break;
+ if (1999 < _treeID) {
+ return 0;
+ }
+ _treeID = _treeID + 1;
+ _ptrState = _ptrState + 0x4e;
+ } while (_treeID < 2000);
+ /*
+ *** Increment the max tree count on this map ***
+ */
+ if (this->maxTreeCount <= _treeID) {
+ this->maxTreeCount = _treeID + 1;
+ }
+ /*
+ *** Assign uid to tree ***
+ */
+ this->trees[_treeID].uid = DAT_GameCore.uniqueGameObjectTracker;
+ DAT_GameCore.uniqueGameObjectTracker = DAT_GameCore.uniqueGameObjectTracker + 1;
+ /*
+ *** Set initial state of tree ***
+ */
+ if (((int)treeType < 0x10) || (0x13 < (int)treeType)) {
+ this->trees[_treeID].state = 1;
+ } else {
+ this->trees[_treeID].state = 4;
+ }
+ /*
+ *** Set (initial) values for tree ***
+ */
+ this->trees[_treeID].size = (short)size;
+ this->trees[_treeID].xPosition = (ushort)x;
+ this->trees[_treeID].yPosition = (ushort)y;
+ this->trees[_treeID].treeType = (TreeTypeShort)treeType;
+ _tile
+ = (int)(short)(ushort)x + DAT_ViewportRenderState.translationMatrix[(short)(ushort)y].addXgetTile;
+ this->trees[_treeID].microX = (ushort)x * 8 + 3;
+ this->trees[_treeID].microY = (ushort)y * 8 + 3;
+ this->trees[_treeID].tile = _tile;
+ this->trees[_treeID].rng1 = DAT_TileMapState.RandomLayer[_tile] & 0x7ff;
+ this->trees[_treeID].appleTreeColorVariation = stageRelatedValue;
+ this->trees[_treeID].param_6 = (short)param_6;
+ this->trees[_treeID].treeTypeBasedValue1
+ = (short)DAT_OrganismDefinedData.TreeTypeBasedValueMapping[treeType];
+ uVar1 = (undefined2)DAT_OrganismDefinedData.TreeRelated1[treeType][stage];
+ this->trees[_treeID].stageRelated4 = uVar1;
+ this->trees[_treeID].treeAdultHoodStageRelatedVisual3 = uVar1;
+ uVar1 = (undefined2)DAT_OrganismDefinedData.TreeRelated2[treeType][stage];
+ this->trees[_treeID].stageRelated2 = uVar1;
+ this->trees[_treeID].stageRelated1 = uVar1;
+ sVar2 = this->trees[_treeID].treeTypeBasedValue1;
+ this->trees[_treeID].gmOriginX
+ = (short)DAT_TextureRenderCoreObject.gmFileHeaderColorpaletteArray[sVar2].originX;
+ this->trees[_treeID].gmOriginY
+ = (short)DAT_TextureRenderCoreObject.gmFileHeaderColorpaletteArray[sVar2].originY;
+ this->trees[_treeID].treeTypeRelated2 = DAT_OrganismDefinedData.field28_0x854[treeType];
+ this->trees[_treeID].zero = 0;
+ this->trees[_treeID].animationFrameIndex = (byte)DAT_TileMapState.RandomLayer[_tile] & 0x1f;
+ this->trees[_treeID].one = 1;
+ this->trees[_treeID].stage = stage;
+ this->trees[_treeID].stageTracker = DAT_OrganismDefinedData.TreeStageLevels[treeType][stage];
+ DAT_CurrentTreeID = _treeID;
+ /*
+ *** Set tree type dependent values ***
+ */
+ switch (treeType) {
+ case ((TreeType)1):
+ uVar4 = this->trees[_treeID].rng1 & 0xf;
+ this->trees[_treeID].appleTreeColorVariation = uVar4;
+ if (0xe < uVar4) {
+ this->trees[_treeID].appleTreeColorVariation = 4;
+ break;
+ }
+ if (0xc < uVar4) {
+ this->trees[_treeID].appleTreeColorVariation = 6;
+ break;
+ }
+ if (10 < uVar4) {
+ this->trees[_treeID].appleTreeColorVariation = 1;
+ break;
+ }
+ if (uVar4 < 9)
+ break;
+ goto LAB_004f1fb5;
+ case ((TreeType)2):
+ uVar4 = this->trees[_treeID].rng1 & 0xf;
+ this->trees[_treeID].appleTreeColorVariation = uVar4;
+ if (8 < uVar4) {
+ this->trees[_treeID].appleTreeColorVariation = 8;
+ }
+ break;
+ case ((TreeType)3):
+ this->trees[_treeID].appleTreeColorVariation = _treeID % 9;
+ break;
+ case ((TreeType)4):
+ uVar4 = this->trees[_treeID].rng1 & 0xf;
+ this->trees[_treeID].appleTreeColorVariation = uVar4;
+ if (uVar4 < 0xf) {
+ if (uVar4 < 0xd) {
+ if (uVar4 < 0xb) {
+ if (8 < uVar4) {
+ this->trees[_treeID].appleTreeColorVariation = 0;
+ }
+ } else {
+ this->trees[_treeID].appleTreeColorVariation = 1;
+ }
+ } else {
+ this->trees[_treeID].appleTreeColorVariation = 6;
+ }
+ } else {
+ this->trees[_treeID].appleTreeColorVariation = 4;
+ }
+ if (this->trees[_treeID].appleTreeColorVariation < 9)
+ break;
+ goto LAB_004f1fb5;
+ case ((TreeType)5):
+ case ((TreeType)10):
+ case ((TreeType)0x10):
+ case ((TreeType)0x11):
+ case ((TreeType)0x12):
+ case ((TreeType)0x13):
+ this->trees[_treeID].stage = 4;
+ LAB_004f1fb5:
+ this->trees[_treeID].appleTreeColorVariation = 0;
+ break;
+ case ((TreeType)6):
+ this->trees[_treeID].appleTreeColorVariation = 3;
+ this->trees[_treeID].stage = 4;
+ break;
+ case ((TreeType)7):
+ this->trees[_treeID].appleTreeColorVariation = 4;
+ this->trees[_treeID].stage = 4;
+ break;
+ case ((TreeType)8):
+ this->trees[_treeID].appleTreeColorVariation = 7;
+ this->trees[_treeID].stage = 4;
+ break;
+ case ((TreeType)9):
+ this->trees[_treeID].appleTreeColorVariation = 8;
+ this->trees[_treeID].stage = 4;
+ }
+ uVar3 = this->field0_0x0;
+ this->field0_0x0 = 0;
+ /*
+ *** Update the tree state ***
+ */
+ (*DAT_OrganismDefinedData.UpdateTree[(short)this->trees[_treeID].treeType])();
+ this->field0_0x0 = uVar3;
+ return _treeID;
+ }
+}
+}
+
+### 0x004f2020 setTreeStageRelatedValues | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F2020
+ void LandscapeState::setTreeStageRelatedValues(int treeID, int stage)
+ {
+ TreeTypeShort TVar1;
+ undefined2 uVar2;
+ TVar1 = this->trees[treeID].treeType;
+ uVar2 = (undefined2)DAT_OrganismDefinedData.TreeRelated1[(short)TVar1][stage];
+ this->trees[treeID].stageRelated4 = uVar2;
+ this->trees[treeID].treeAdultHoodStageRelatedVisual3 = uVar2;
+ uVar2 = (undefined2)DAT_OrganismDefinedData.TreeRelated2[(short)TVar1][stage];
+ this->trees[treeID].stageRelated2 = uVar2;
+ this->trees[treeID].stageRelated1 = uVar2;
+ return;
+ }
+}
+}
+
+### 0x004f2070 removeTree | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F2070
+ void LandscapeState::removeTree(int treeID)
+ {
+ clearTreeFootprintFlags(treeID);
+ updatePathLinkagesInAllEightDirections(
+ (int)(short)this->trees[treeID].yPosition, this->trees[treeID].tile);
+ DAT_PathFindingState.toggleUpdateSeparateAreaTileMap = 1;
+ applyTreeBrushToLogicalLayer(
+ treeID, 1);
+ fillMemory_ByteValue(
+ 0x9c, '\0', (void*)((int)(this->trees + treeID)));
+ return;
+ }
+}
+}
+
+### 0x004f20e0 setCurrentTimeOnSomeTrees | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F20E0
+ void LandscapeState::setCurrentTimeOnSomeTrees()
+ {
+ short sVar1;
+ DAT_00ed31a0 = timeGetTime();
+ DAT_CurrentTreeID = 1;
+ do {
+ sVar1 = this->trees[DAT_CurrentTreeID].state;
+ if ((sVar1 != 0) && (sVar1 != 3)) {
+ this->trees[DAT_CurrentTreeID].field8_0x14 = DAT_00ed31a0;
+ }
+ DAT_CurrentTreeID = DAT_CurrentTreeID + 1;
+ } while (DAT_CurrentTreeID < 2000);
+ return;
+ }
+}
+}
+
+### 0x004f2140 createRock | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F2140
+ int LandscapeState::createRock(undefined4 x, undefined4 y, int rockType, undefined4 size, undefined4 orientation)
+ {
+ short* _pRock;
+ int _rockID;
+ _rockID = 1;
+ /*
+ the while loop finds the spot to write this tree data
+ */
+ _pRock = &this->rocks[1].one;
+ do {
+ if (*_pRock == 0)
+ break;
+ if (3999 < _rockID) {
+ return 0;
+ }
+ _rockID = _rockID + 1;
+ _pRock = _pRock + 0x10;
+ } while (_rockID < 4000);
+ this->rocks[_rockID].uid = DAT_GameCore.uniqueGameObjectTracker;
+ DAT_GameCore.uniqueGameObjectTracker = DAT_GameCore.uniqueGameObjectTracker + 1;
+ this->rocks[_rockID].size = (short)size;
+ this->rocks[_rockID].y = (ushort)y;
+ this->rocks[_rockID].x = (ushort)x;
+ this->rocks[_rockID].one = 1;
+ this->rocks[_rockID].type = (short)rockType;
+ this->rocks[_rockID].tile
+ = (int)(short)(ushort)x + DAT_ViewportRenderState.translationMatrix[(short)(ushort)y].addXgetTile;
+ this->rocks[_rockID].orientation = (short)orientation;
+ this->rocks[_rockID].unknownGMID = (short)DAT_OrganismDefinedData.Rock_field0xe[rockType];
+ DAT_CurrentRockID = _rockID;
+ (*DAT_OrganismDefinedData.RockTypeFunctions[this->rocks[_rockID].type])();
+ return _rockID;
+ }
+}
+}
+
+### 0x004f2220 removeRock | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F2220
+ void LandscapeState::removeRock(int param_1)
+ {
+ clearRockFootprintFlags(param_1);
+ updatePathLinkagesInAllEightDirections((int)(short)this->rocks[param_1].y, this->rocks[param_1].tile);
+ DAT_PathFindingState.toggleUpdateSeparateAreaTileMap = 1;
+ fillMemory_ByteValue(
+ 0x20, '\0', (void*)((int)(this->rocks + param_1)));
+ return;
+ }
+}
+}
+
+### 0x004f2280 lightUpTree | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F2280
+ BOOLEnum LandscapeState::lightUpTree(int tile, int playerID)
+ {
+ int _treeID;
+ int iVar1;
+ int _spread;
+ _treeID = (int)DAT_TileMapState.OrganismLayer[tile];
+ if ((1999 < _treeID) || (this->trees[_treeID].field92_0x98 != 0)) {
+ return FALSE;
+ }
+ iVar1 = (int)(short)this->trees[_treeID].treeType;
+ switch (iVar1) {
+ case 1:
+ case 2:
+ case 3:
+ case 4:
+ if (0x13 < DAT_GameState.mapAndTime.field3176_0x27c8) {
+ return FALSE;
+ }
+ if (this->trees[_treeID].stage < 3) {
+ return FALSE;
+ }
+ this->trees[_treeID].stage = 6;
+ this->trees[_treeID].stageTracker
+ = *(int*)((int)DAT_OrganismDefinedData.TreeStageLevels + iVar1 * 0x20);
+ this->trees[_treeID].field92_0x98 = 0x14;
+ _spread = 2;
+ break;
+ case 5:
+ case 6:
+ case 7:
+ case 8:
+ case 9:
+ case 10:
+ case 0xb:
+ case 0xc:
+ case 0xd:
+ case 0xe:
+ case 0x10:
+ case 0x11:
+ case 0x12:
+ case 0x13:
+ this->trees[_treeID].state = 3;
+ return TRUE;
+ case 0xf:
+ this->trees[_treeID].stageTracker = 0;
+ this->trees[_treeID].stage = 6;
+ this->trees[_treeID].field92_0x98 = 0x14;
+ _spread = 1;
+ break;
+ default:
+ return FALSE;
+ }
+ this->trees[_treeID].igniterPlayer = (short)playerID;
+ igniteFireAtTilesDistanceAway(tile, _spread, playerID);
+ return TRUE;
+ }
+}
+}
+
+### 0x004f2a10 getRandomRockImageOffset | quelle=nachgebaut | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F2A10
+ int LandscapeState::getRandomRockImageOffset(int index)
+ {
+ return DAT_OrganismDefinedData.RandomRockImageGMImageOffsets[index];
+ }
+}
+}
+
+### 0x004f2c20 getTreeGrowthTargetStage | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F2C20
+ undefined4 LandscapeState::getTreeGrowthTargetStage(int param_1)
+ {
+ int iVar1;
+ switch (this->trees[param_1].treeType) {
+ case ((TreeType)1):
+ iVar1 = this->trees[param_1].stage;
+ if (iVar1 != 0) {
+ if (iVar1 == 1) {
+ return (undefined4)(2);
+ }
+ if (iVar1 == 2) {
+ return (undefined4)(3);
+ }
+ return (undefined4)(4);
+ }
+ break;
+ case ((TreeType)2):
+ case ((TreeType)3):
+ case ((TreeType)4):
+ iVar1 = this->trees[param_1].stage;
+ if ((iVar1 != 0) && (iVar1 != 1)) {
+ if (iVar1 != 2) {
+ return (undefined4)(3);
+ }
+ return (undefined4)(2);
+ }
+ break;
+ case ((TreeType)5):
+ case ((TreeType)6):
+ case ((TreeType)7):
+ case ((TreeType)8):
+ case ((TreeType)9):
+ case ((TreeType)10):
+ case 0xb:
+ case 0xc:
+ case 0xd:
+ case 0xe:
+ case ((TreeType)0x10):
+ case ((TreeType)0x11):
+ case ((TreeType)0x12):
+ case ((TreeType)0x13):
+ break;
+ default : return (undefined4)(0);
+ }
+ return (undefined4)(1);
+ }
+}
+}
+
+### 0x004f2cc0 setTreeSpreadInterval | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F2CC0
+ void LandscapeState::setTreeSpreadInterval()
+ {
+ if (this->DAT_TotalOrganisms < 0xb) {
+ DAT_GameState.mapAndTime.treeSpreadInterval = 0x14;
+ return;
+ }
+ if (this->DAT_TotalOrganisms < 0x65) {
+ DAT_GameState.mapAndTime.treeSpreadInterval = 0xf;
+ return;
+ }
+ if (this->DAT_TotalOrganisms < 0xc9) {
+ DAT_GameState.mapAndTime.treeSpreadInterval = 10;
+ return;
+ }
+ if (this->DAT_TotalOrganisms < 0x12d) {
+ DAT_GameState.mapAndTime.treeSpreadInterval = 9;
+ return;
+ }
+ if (this->DAT_TotalOrganisms < 0x191) {
+ DAT_GameState.mapAndTime.treeSpreadInterval = 8;
+ return;
+ }
+ if (this->DAT_TotalOrganisms < 0x259) {
+ DAT_GameState.mapAndTime.treeSpreadInterval = 7;
+ return;
+ }
+ if (this->DAT_TotalOrganisms < 0x321) {
+ DAT_GameState.mapAndTime.treeSpreadInterval = 6;
+ return;
+ }
+ if (this->DAT_TotalOrganisms < 0x3e9) {
+ DAT_GameState.mapAndTime.treeSpreadInterval = 5;
+ return;
+ }
+ if (this->DAT_TotalOrganisms < 0x4b1) {
+ DAT_GameState.mapAndTime.treeSpreadInterval = 4;
+ return;
+ }
+ if (this->DAT_TotalOrganisms < 0x579) {
+ DAT_GameState.mapAndTime.treeSpreadInterval = 3;
+ return;
+ }
+ if (this->DAT_TotalOrganisms < 0x641) {
+ DAT_GameState.mapAndTime.treeSpreadInterval = 2;
+ return;
+ }
+ DAT_GameState.mapAndTime.treeSpreadInterval = (uint)(this->DAT_TotalOrganisms < 0x709);
+ return;
+ }
+}
+}
+
+### 0x004f2da0 killEveryFifthTree | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F2DA0
+ void LandscapeState::killEveryFifthTree()
+ {
+ Tree* piVar1;
+ int iVar1;
+ iVar1 = 1;
+ if (1 < this->maxTreeCount) {
+ piVar1 = &this->trees[1];
+ do {
+ if ((((piVar1->state != 0) && ((int)(short)piVar1->treeType - 1U < 4)) && (1 < piVar1->stage))
+ && ((piVar1->stage < 5 && (((int)SEC_RNG::instance.currentNumber2 ^ piVar1->rng1) % 5 != 0)))) {
+ piVar1->stage = 5;
+ }
+ iVar1 = iVar1 + 1;
+ piVar1 = piVar1 + 0x27;
+ } while (iVar1 < this->maxTreeCount);
+ }
+ return;
+ }
+}
+}
+
+### 0x004f2e00 setupBabyTreeLocation | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F2E00
+ undefined4 LandscapeState::setupBabyTreeLocation(uint treeID, int treeType, uint x, uint y)
+ {
+ XYPair* pXVar1;
+ byte bVar2;
+ int iVar3;
+ XYPair* pXVar4;
+ int _treeID;
+ uint _randomNumber;
+ uint _newX;
+ uint uVar5;
+ uint _newY;
+ int _newTile;
+ int local_8;
+ int _try;
+ _randomNumber = (byte)SEC_RNG::instance.currentNumber2 & 7;
+ local_8 = 3;
+ if ((treeID & 1) != 0) {
+ local_8 = 4;
+ }
+ DAT_PathFindingState.ALG_ResultTile = 0;
+ DAT_PathFindingState.ALG_ResultY = 0;
+ DAT_PathFindingState.ALG_ResultX = 0;
+ if (((399 < x) || (399 < y)) || (*(char*)(y * 400 + 0x21aec98 + x) == '\0')) {
+ return (undefined4)(0);
+ }
+ uVar5 = (uint) * (byte*)(DAT_ViewportRenderState.translationMatrix[y].addXgetTile + 0x1d32c38 + x);
+ _try = 0;
+ do {
+ pXVar1 = DAT_OrganismDefinedData.TreeSpreadOffsets + _randomNumber;
+ pXVar4 = DAT_OrganismDefinedData.TreeSpreadOffsets + _randomNumber;
+ _randomNumber = _randomNumber + 1;
+ _newX = pXVar1->x + x;
+ _newY = pXVar4->y + y;
+ if (7 < (int)_randomNumber) {
+ _randomNumber = 0;
+ }
+ if (((_newX < 400) && (_newY < 400)) && (*(char*)(_newY * 400 + 0x21aec98 + _newX) != '\0')) {
+ iVar3 = DAT_ViewportRenderState.translationMatrix[_newY].addXgetTile;
+ bVar2 = *(byte*)(iVar3 + 0x1c471e8 + _newX);
+ _newTile = iVar3 + _newX;
+ if (((DAT_TileMapState.OrganismLayer[_newTile] == 0)
+ && ((DAT_TileMapState.LogicLayer[_newTile] & 0x703e25b5U) == 0))
+ && ((DAT_TileMapState.UnitLayer[_newTile] == 0
+ && (DAT_TileMapState.BuildingLayer[_newTile] == 0)))) {
+ if (treeType == 1) {
+ if ((bVar2 & 0x90) == 0) {
+ LAB_004f2f32:
+ if ((((uint)DAT_TileMapState.HeightLayer[_newTile] <= uVar5 + 0x40)
+ && ((int)(uVar5 - 0x40)
+ <= (int)(uint)DAT_TileMapState.HeightLayer[_newTile]))
+ && (_treeID = setupBabyTreeLocationInfo(local_8, treeType, _newX, _newY),
+ _treeID != 0)) {
+ DAT_PathFindingState.ALG_ResultTile = _newTile;
+ DAT_PathFindingState.ALG_ResultX = _newX;
+ DAT_PathFindingState.ALG_ResultY = _newY;
+ return (undefined4)(1);
+ }
+ }
+ } else if ((bVar2 & 0x90) != 0)
+ goto LAB_004f2f32;
+ }
+ }
+ _try = _try + 1;
+ if (7 < _try) {
+ return (undefined4)(0);
+ }
+ } while (true);
+ }
+}
+}
+
+### 0x004f2fb0 isTreeAliveAndMatchingUID | quelle=nachgebaut | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F2FB0
+ BOOLEnum LandscapeState::isTreeAliveAndMatchingUID(int treeID, int treeUID)
+ {
+ if (this->trees[treeID].uid != treeUID) {
+ return FALSE;
+ }
+ return this->trees[treeID].zeroUpTo2 == 0;
+ }
+}
+}
+
+### 0x004f2fe0 isTreeAdult | quelle=nachgebaut | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F2FE0
+ BOOLEnum LandscapeState::isTreeAdult(int treeID, int treeUID)
+ {
+ if (this->trees[treeID].uid != treeUID) {
+ return FALSE;
+ }
+ return (short)this->trees[treeID].treeAdultHoodStageRelatedVisual3 > 0;
+ }
+}
+}
+
+### 0x004f3010 damageTreeAndTriggerDeathIfDepleted | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F3010
+ undefined4 LandscapeState::damageTreeAndTriggerDeathIfDepleted(int treeID, undefined4 param_2, int param_3)
+ {
+ undefined2* puVar1;
+ if (((this->trees[treeID].uid == param_3) && (this->trees[treeID].zeroUpTo2 == 0))
+ && (puVar1 = &this->trees[treeID].stageRelated1, *puVar1 = *puVar1 + (short)param_2,
+ (short)this->trees[treeID].stageRelated1 < 1)) {
+ this->trees[treeID].stageRelated1 = 0;
+ this->trees[treeID].zeroUpTo2 = 1;
+ this->trees[treeID].animationFrameIndex = 0;
+ applyTreeBrushToLogicalLayer(
+ treeID, 1);
+ return (undefined4)(1);
+ }
+ return (undefined4)(0);
+ }
+}
+}
+
+### 0x004f3080 advanceTreeDecayState | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F3080
+ void LandscapeState::advanceTreeDecayState(int treeID, int param_2)
+ {
+ short sVar1;
+ if (this->trees[treeID].uid == param_2) {
+ sVar1 = this->trees[treeID].treeAdultHoodStageRelatedVisual3;
+ if (0 < sVar1) {
+ this->trees[treeID].treeAdultHoodStageRelatedVisual3 = sVar1 + -1;
+ }
+ if ((short)this->trees[treeID].treeAdultHoodStageRelatedVisual3 < 1) {
+ this->trees[treeID].state = 3;
+ }
+ this->trees[treeID].zeroUpTo2 = 2;
+ }
+ return;
+ }
+}
+}
+
+### 0x004f30d0 markNearbyTreesAsCrowTargets | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F30D0
+ void LandscapeState::markNearbyTreesAsCrowTargets(int x, int y)
+ {
+ BOOLEnum BVar1;
+ Tree* piVar2;
+ int _treeID;
+ _treeID = 1;
+ if (1 < this->maxTreeCount) {
+ piVar2 = &this->trees[1];
+ do {
+ if ((((piVar2->state == 2) && (piVar2->stage < 4))
+ && (BVar1 = isTreeAdult(
+ _treeID, piVar2->uid),
+ BVar1 != FALSE))
+ && (setAxisBasedDistanceResult(
+ x, y, (int)((int)((short)piVar2->xPosition)), (int)((int)((short)piVar2->yPosition))),
+ DAT_DirectionAlgorithmState.distanceHigh < 4)) {
+ piVar2->unknownDistanceRelatedToCrow = 1;
+ }
+ _treeID = _treeID + 1;
+ piVar2 = piVar2 + 0x27;
+ } while (_treeID < this->maxTreeCount);
+ }
+ return;
+ }
+}
+}
+
+### 0x004f3150 spawnCrowFromNearbyTree | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F3150
+ void LandscapeState::spawnCrowFromNearbyTree(int unitID)
+ {
+ bool bVar1;
+ int _y;
+ int _treeID;
+ uint uVar2;
+ uint uVar3;
+ int iVar4;
+ int iVar5;
+ int _playerID;
+ PlayerData* _pKeep;
+ uint uVar6;
+ int iVar7;
+ int iVar8;
+ int local_2c;
+ int _microY;
+ int _microX;
+ int local_1c;
+ int local_c;
+ bVar1 = false;
+ local_c = 0;
+ do {
+ _y = (int)DAT_UnitsState.units[unitID].y;
+ if ((((DAT_TileMapState
+ .OrganismLayer[DAT_TileMapState.directionTranslationMatrix[_y][local_c]
+ + DAT_UnitsState.units[unitID].tile]
+ != 0)
+ && (_treeID = (int)DAT_TileMapState
+ .OrganismLayer[DAT_TileMapState.directionTranslationMatrix[_y][local_c]
+ + DAT_UnitsState.units[unitID].tile],
+ _treeID < this->maxTreeCount))
+ && (this->trees[_treeID].state == 2))
+ && ((this->trees[_treeID].unknownDistanceRelatedToCrow != 0
+ && (this->trees[_treeID].rng200till300 == 0)))) {
+ _playerID = (int)DAT_UnitsState.units[unitID].owner;
+ _microX = 0;
+ _microY = 0;
+ local_2c = 10000;
+ local_1c = 3;
+ _pKeep = &DAT_GameState.playerDataArray[1];
+ do {
+ if ((local_1c + -2 != _playerID) && ((_pKeep->keep).id != 0)) {
+ iVar5 = (_pKeep->keep).xEntry;
+ iVar8 = (_pKeep->keep).yEntry;
+ uVar2 = DAT_UnitsState.units[unitID].x - iVar5;
+ uVar6 = (int)uVar2 >> 0x1f;
+ uVar3 = _y - iVar8;
+ iVar7 = (uVar2 ^ uVar6) - uVar6;
+ uVar2 = (int)uVar3 >> 0x1f;
+ iVar4 = (uVar3 ^ uVar2) - uVar2;
+ if (iVar4 < iVar7) {
+ iVar4 = iVar7;
+ }
+ if (iVar4 < local_2c) {
+ _microX = (int)SEC_RNG::instance.currentNumber2 % 5 + -2 + iVar5;
+ _microY = ((int)SEC_RNG::instance.currentNumber2 >> 8) % 5 + -2 + iVar8;
+ local_2c = iVar4;
+ }
+ }
+ if ((local_1c + -1 != _playerID) && (_pKeep[0xe7c] != 0)) {
+ uVar2 = (int)DAT_UnitsState.units[unitID].x - _pKeep[0xe7d];
+ uVar6 = (int)uVar2 >> 0x1f;
+ uVar3 = _y - _pKeep[0xe7e];
+ iVar8 = (uVar2 ^ uVar6) - uVar6;
+ uVar2 = (int)uVar3 >> 0x1f;
+ iVar5 = (uVar3 ^ uVar2) - uVar2;
+ if (iVar5 < iVar8) {
+ iVar5 = iVar8;
+ }
+ if (iVar5 < local_2c) {
+ _microX = (int)SEC_RNG::instance.currentNumber2 % 5 + -2 + _pKeep[0xe7d];
+ _microY = ((int)SEC_RNG::instance.currentNumber2 >> 8) % 5 + -2 + _pKeep[0xe7e];
+ local_2c = iVar5;
+ }
+ }
+ if ((local_1c != _playerID) && (_pKeep[0x1cf9] != 0)) {
+ uVar2 = (int)DAT_UnitsState.units[unitID].x - _pKeep[0x1cfa];
+ uVar6 = (int)uVar2 >> 0x1f;
+ uVar3 = _y - _pKeep[0x1cfb];
+ iVar8 = (uVar2 ^ uVar6) - uVar6;
+ uVar2 = (int)uVar3 >> 0x1f;
+ iVar5 = (uVar3 ^ uVar2) - uVar2;
+ if (iVar5 < iVar8) {
+ iVar5 = iVar8;
+ }
+ if (iVar5 < local_2c) {
+ _microX = (int)SEC_RNG::instance.currentNumber2 % 5 + -2 + _pKeep[0x1cfa];
+ _microY = ((int)SEC_RNG::instance.currentNumber2 >> 8) % 5 + -2 + _pKeep[0x1cfb];
+ local_2c = iVar5;
+ }
+ }
+ if ((local_1c + 1 != _playerID) && (_pKeep[0x2b76] != 0)) {
+ uVar2 = (int)DAT_UnitsState.units[unitID].x - _pKeep[0x2b77];
+ uVar6 = (int)uVar2 >> 0x1f;
+ uVar3 = _y - _pKeep[0x2b78];
+ iVar8 = (uVar2 ^ uVar6) - uVar6;
+ uVar2 = (int)uVar3 >> 0x1f;
+ iVar5 = (uVar3 ^ uVar2) - uVar2;
+ if (iVar5 < iVar8) {
+ iVar5 = iVar8;
+ }
+ if (iVar5 < local_2c) {
+ _microX = (int)SEC_RNG::instance.currentNumber2 % 5 + -2 + _pKeep[0x2b77];
+ _microY = ((int)SEC_RNG::instance.currentNumber2 >> 8) % 5 + -2 + _pKeep[0x2b78];
+ local_2c = iVar5;
+ }
+ }
+ iVar5 = local_1c + 2;
+ _pKeep = _pKeep + 0x39f4;
+ local_1c = local_1c + 4;
+ } while (iVar5 < 9);
+ if (local_2c == 10000) {
+ _microX = DAT_UnitsState.units[unitID].x + -0x32
+ + (int)SEC_RNG::instance.currentNumber2 % 100;
+ _microY = ((int)SEC_RNG::instance.currentNumber2 >> 8) % 100 + -0x32 + _y;
+ nextRandomNumber2();
+ }
+ spawnProjectileEntity(unitID,
+ (undefined4)((int)((int)DAT_UnitsState.units[unitID].owner)), 0,
+ (int)((int)((short)this->trees[_treeID].xPosition * 8)),
+ (int)((int)((short)this->trees[_treeID].yPosition * 8)),
+ DAT_TileMapState.HeightLayer[this->trees[_treeID].tile] + 0x1e, _microX * 8,
+ _microY * 8, 0xfa, 0x1c, 0);
+ this->trees[_treeID].rng200till300 = SEC_RNG::instance.currentNumber2 % 100 + 200;
+ if (!bVar1) {
+ playSFXAtLocation(
+ (int)(short)this->trees[_treeID].xPosition, (int)((int)((short)this->trees[_treeID].yPosition)),
+ FX_CROW);
+ bVar1 = true;
+ }
+ }
+ local_c = local_c + 1;
+ } while (local_c < 8);
+ return;
+ }
+}
+}
+
+### 0x004f3560 placeAppleTree | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F3560
+ void LandscapeState::placeAppleTree(int buildingID, undefined4 treeX, undefined4 treeY)
+ {
+ int iVar1;
+ uint uVar2;
+ int _treeID;
+ _treeID = createTree(
+ treeX, (undefined4)((int)(treeY)), TT_APPLEUnk, 1, 0, 0, 0);
+ if (_treeID != 0) {
+ this->trees[_treeID].appleFarmID = (short)buildingID;
+ iVar1 = DAT_BuildingsState.buildings[buildingID].uid;
+ this->trees[_treeID].stageTracker = this->trees[_treeID].rng1 & 0x1f;
+ uVar2 = this->trees[_treeID].tile;
+ DAT_TileMapState.LogicLayer[uVar2] = DAT_TileMapState.LogicLayer[uVar2] | 0x1000;
+ DAT_TileMapState.OrganismLayer[uVar2] = (short)_treeID;
+ this->trees[_treeID].appleFarmUID = iVar1;
+ applyTreeBrushToLogicalLayer(
+ _treeID, 0);
+ updatePathLinkagesInAllEightDirections(
+ (int)(short)this->trees[_treeID].yPosition, this->trees[_treeID].tile);
+ DAT_PathFindingState.toggleUpdateSeparateAreaTileMap = 1;
+ }
+ return;
+ }
+}
+}
+
+### 0x004f3610 selectClosestTree | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F3610
+ int LandscapeState::selectClosestAppleTree(int xPosition, int yPosition, int param_3)
+ {
+ int _treeID;
+ int _minimumDistance;
+ Tree* pTVar3;
+ int _selectedTreeID;
+ _treeID = 1;
+ _minimumDistance = 1000;
+ _selectedTreeID = 0;
+ if (1 < this->maxTreeCount) {
+ pTVar3 = &this->trees[1];
+ do {
+ if (((pTVar3->state == 2) && (pTVar3->treeType == TT_APPLEUnk))
+ && (pTVar3->stage == 3)) {
+ setAxisBasedDistanceResult(xPosition, yPosition, (int)((int)((short)pTVar3->xPosition)),
+ (int)((int)((short)pTVar3->yPosition)));
+ if (DAT_DirectionAlgorithmState.distanceHigh < _minimumDistance) {
+ _minimumDistance = DAT_DirectionAlgorithmState.distanceHigh;
+ _selectedTreeID = _treeID;
+ }
+ }
+ _treeID = _treeID + 1;
+ pTVar3 = pTVar3 + 0x4e;
+ } while (_treeID < this->maxTreeCount);
+ if ((_minimumDistance < 30) && (0 < _selectedTreeID)) {
+ this->x = (int)(short)this->trees[_selectedTreeID].xPosition;
+ this->y = (int)(short)this->trees[_selectedTreeID].yPosition;
+ if (param_3 == 0) {
+ this->x = this->x + -2;
+ return _selectedTreeID;
+ }
+ if (param_3 == 1) {
+ this->y = this->y + 2;
+ return _selectedTreeID;
+ }
+ if (param_3 == 2) {
+ this->x = this->x + 2;
+ return _selectedTreeID;
+ }
+ this->y = this->y + -2;
+ return _selectedTreeID;
+ }
+ }
+ return 0;
+ }
+}
+}
+
+### 0x004f3700 resetWind | quelle=nachgebaut | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F3700
+ void LandscapeState::resetWind()
+ {
+ this->wind.value = 0;
+ this->wind.index = 0;
+ this->wind.countdown = 0;
+ this->wind.field4_0x10 = 0;
+ this->wind.counter = 0;
+ }
+}
+}
+
+### 0x004f3730 updateWind | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F3730
+ void LandscapeState::updateWind()
+ {
+ this->wind.counter = this->wind.counter + 1;
+ if (1 < this->wind.counter) {
+ this->wind.countdown = this->wind.countdown + -1;
+ this->wind.counter = 0;
+ this->wind.valueIs2 = 0;
+ this->wind.valueIs1 = 0;
+ if (this->wind.countdown < 0) {
+ this->wind.countdown = 32;
+ this->wind.value = DAT_OrganismDefinedData.WindRelatedArray[this->wind.index];
+ if (this->wind.value == 2) {
+ this->wind.valueIs2 = 1;
+ } else if (this->wind.value == 1) {
+ this->wind.valueIs1 = 1;
+ }
+ this->wind.index = this->wind.index + 1;
+ if (40 < this->wind.index) {
+ this->wind.index = 0;
+ }
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x004f3930 constructLandscapeState | quelle=nachgebaut | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F3930
+ LandscapeState* LandscapeState::Construct_LandscapeState()
+ {
+ this->creationTime = timeGetTime();
+ clearRocksAndTrees();
+ resetWind();
+ this->field1_0x4 = 1;
+ return this;
+ }
+}
+}
+
+### 0x004f3960 updateTreeStage | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F3960
+ void LandscapeState::updateTreeStage(uint treeID, uint rng)
+ {
+ int* piVar1;
+ BOOLEnum BVar2;
+ int _stage;
+ int iVar3;
+ undefined4 size;
+ int _treeID;
+ int _treeType;
+ TreeType treeType;
+ TreeTypeShort _treeType_2;
+ if ((((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ || ((DAT_GameCore.isTimeHalted == FALSE
+ && (BVar2 = GetIfDisplayElementStateNotZero(
+ DEID_KEEP_AND_GRANERY_PLACEMENT_INFO),
+ BVar2 == FALSE))))
+ && (((this->trees[treeID].rng1 & 0x3fU) == rng
+ && (((_treeType = (int)(short)this->trees[treeID].treeType, _treeType < 5 || (0x13 < _treeType))
+ && (this->trees[treeID].zeroUpTo2 == 0))))))
+ && ((((short)this->trees[treeID].stageRelated2 <= (short)this->trees[treeID].stageRelated1
+ && (this->field1_0x4 != 0))
+ && (DAT_GameCore.currentMenuViewType != MVT_MAP_EDITOR_LANDSCAPING)))) {
+ piVar1 = &this->trees[treeID].stageTracker;
+ *piVar1 = *piVar1 + 1;
+ iVar3 = this->trees[treeID].stage;
+ if (DAT_OrganismDefinedData.TreeStageLevels[_treeType][iVar3 + 1]
+ <= this->trees[treeID].stageTracker) {
+ _stage = iVar3 + 1;
+ this->trees[treeID].stage = _stage;
+ setTreeStageRelatedValues(treeID, _stage);
+ iVar3 = this->trees[treeID].stage;
+ if (5 < iVar3) {
+ this->trees[treeID].state = 3;
+ return;
+ }
+ if (3 < iVar3) {
+ DAT_GameState.mapAndTime.treeSpreadCounter
+ = DAT_GameState.mapAndTime.treeSpreadCounter + 1;
+ if (DAT_GameState.mapAndTime.treeSpreadInterval
+ < DAT_GameState.mapAndTime.treeSpreadCounter) {
+ DAT_GameState.mapAndTime.treeSpreadCounter = 0;
+ _treeType_2 = this->trees[treeID].treeType;
+ this->trees[treeID].stage = 5;
+ this->trees[treeID].stageTracker
+ = DAT_OrganismDefinedData.TreeStageLevels[(short)_treeType_2][5];
+ return;
+ }
+ /*
+ set spreadcounter to lowest value for tree type?
+ */
+ this->trees[treeID].stageTracker
+ = DAT_OrganismDefinedData.TreeStageLevels[(short)this->trees[treeID].treeType][3];
+ this->trees[treeID].stage = 3;
+ DAT_GameState.mapAndTime.newOrganismsValue2
+ = DAT_GameState.mapAndTime.newOrganismsValue2 + 1;
+ iVar3 = setupBabyTreeLocation(treeID,
+ (int)((int)((short)this->trees[treeID].treeType)),
+ (uint)((int)((int)(short)this->trees[treeID].xPosition)),
+ (uint)((int)((int)(short)this->trees[treeID].yPosition)));
+ if (iVar3 != 0) {
+ size = getValueFrom0UpTo3ForTreeTypeAndTreeStage(
+ (int)(short)this->trees[treeID].treeType, 0);
+ _treeID = createTree(
+ DAT_PathFindingState.ALG_ResultX,
+ (undefined4)((int)(DAT_PathFindingState.ALG_ResultY)), treeType,
+ (undefined4)((int)(size)), 0, 0, 0);
+ iVar3 = DAT_PathFindingState.ALG_ResultTile;
+ DAT_TileMapState.LogicLayer[DAT_PathFindingState.ALG_ResultTile]
+ = DAT_TileMapState.LogicLayer[DAT_PathFindingState.ALG_ResultTile]
+ | 0x1000;
+ DAT_TileMapState.OrganismLayer[iVar3] = (short)_treeID;
+ applyTreeBrushToLogicalLayer(_treeID, 0);
+ updatePathLinkagesInAllEightDirections(
+ (int)(short)this->trees[_treeID].yPosition, this->trees[_treeID].tile);
+ DAT_GameState.mapAndTime.newOrganisms
+ = DAT_GameState.mapAndTime.newOrganisms + 1;
+ DAT_PathFindingState.toggleUpdateSeparateAreaTileMap = 1;
+ }
+ }
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x004f3b90 findTree | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F3B90
+ int LandscapeState::findTree(int playerID, uint unitXPosition, uint unitYPosition)
+ {
+ byte bVar1;
+ ushort uVar2;
+ BOOLEnum BVar3;
+ int iVar4;
+ uint uVar5;
+ int iVar6;
+ int iVar7;
+ short* psVar8;
+ int local_18;
+ int local_14;
+ int local_10;
+ if (((unitXPosition < 400) && (unitYPosition < 400))
+ && (*(char*)(unitYPosition * 400 + 0x21aec98 + unitXPosition) != '\0')) {
+ uVar2
+ = DAT_TileMapState.PathConnectionLayer
+ [DAT_ViewportRenderState.translationMatrix[unitYPosition].addXgetTile + unitXPosition];
+ local_14 = 10000;
+ local_10 = 0;
+ if (0 < (short)uVar2) {
+ local_18 = 1;
+ if (1 < this->maxTreeCount) {
+ psVar8 = &this->trees[1].state;
+ do {
+ if (((*(int*)(psVar8 + 0x1e) < 4) && (*psVar8 == 2))
+ && (BVar3 = isTreeAdult(
+ local_18, (int)((int)(*(int*)(psVar8 + 4)))),
+ BVar3 != FALSE)) {
+ bVar1 = DAT_TileMapState.HeightLayer[*(uint*)(psVar8 + 0x12)];
+ iVar6 = 0;
+ do {
+ iVar7 = DAT_TileMapState.directionTranslationMatrix[psVar8[0x10]][iVar6]
+ + *(uint*)(psVar8 + 0x12);
+ uVar5 = (uint)DAT_TileMapState.HeightLayer[iVar7];
+ if (DAT_TileMapState.BuildingLayer[iVar7] != 0) {
+ iVar4 = getBuildingHeightForBuildingID((int)DAT_TileMapState.BuildingLayer[iVar7]);
+ uVar5 = uVar5 + iVar4;
+ }
+ if ((((int)(uint)bVar1 <= (int)(uVar5 + 0x10))
+ && ((int)(uVar5 - 0x10) <= (int)(uint)bVar1))
+ && (iVar7 = MACRO_CALL_MEMBER(
+ calculateCanPlayerUnitsNavigateToAreaFromArea,
+ DAT_PathFindingState)(playerID, (dword)((int)((int)(short)uVar2)),
+ (dword)((int)((
+ int)(short)DAT_TileMapState.PathConnectionLayer[iVar7])),
+ 0),
+ iVar7 != 0)) {
+ if ((iVar6 < 8)
+ && (MACRO_CALL_MEMBER(
+ setAxisBasedDistanceResult,
+ DAT_DirectionAlgorithmState)(unitXPosition,
+ unitYPosition, psVar8[0xf],
+ psVar8[0x10]),
+ DAT_DirectionAlgorithmState.distanceHigh < local_14)) {
+ local_14 = DAT_DirectionAlgorithmState.distanceHigh;
+ local_10 = local_18;
+ }
+ break;
+ }
+ iVar6 = iVar6 + 1;
+ } while (iVar6 < 8);
+ }
+ local_18 = local_18 + 1;
+ psVar8 = psVar8 + 0x4e;
+ } while (local_18 < this->maxTreeCount);
+ }
+ return local_10;
+ }
+ }
+ return 0;
+ }
+}
+}
+
+### 0x004f3d30 upgradeTreesAndRocksForMapVersion | quelle=nachgebaut | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F3D30
+ void LandscapeState::upgradeTreesAndRocksForMapVersion(
+ PackagedFileMagicNum receivedMapVersion, PackagedFileMagicNum packagerMapVersion)
+ {
+ UpdateTreesOfCertainTypes();
+ UpdateFixTrees2();
+ UpgradeRemoveCertainRockTypesUnk();
+ if (receivedMapVersion != packagerMapVersion && (int)receivedMapVersion < 165) {
+ UpgradeRemoveRocksBeyond1000();
+ }
+ }
+}
+}
+
+### 0x004f3d60 updateTrees | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F3D60
+ void LandscapeState::updateTrees()
+ {
+ short* psVar1;
+ uint uVar2;
+ uint _loadBalanceValue;
+ bool isItNOTScenarioGameMode;
+ uint _balanceRNG;
+ _balanceRNG = 0;
+ DAT_GameState.mapAndTime.field3176_0x27c8 = 0;
+ DAT_00ed31a0 = timeGetTime();
+ if (DAT_GameState.gameTicksLoadBalancer % 10 == 8) {
+ this->maxTreeCount = 0;
+ DAT_CurrentTreeID = 1;
+ do {
+ if (this->trees[DAT_CurrentTreeID].state != 0) {
+ this->maxTreeCount = DAT_CurrentTreeID + 1;
+ }
+ DAT_CurrentTreeID = DAT_CurrentTreeID + 1;
+ } while ((int)DAT_CurrentTreeID < 2000);
+ }
+ /*
+ 0 to 7
+ */
+ _loadBalanceValue = DAT_GameState.gameTicksLoadBalancer & 0x80000007;
+ if ((int)_loadBalanceValue < 0) {
+ /*
+ -7 to 7
+ */
+ _loadBalanceValue = (_loadBalanceValue - 1 | 0xfffffff8) + 1;
+ }
+ if (_loadBalanceValue == 4) {
+ _balanceRNG = (byte)SEC_RNG::instance.currentNumber2 & 0x3f;
+ }
+ isItNOTScenarioGameMode = DAT_GameCore.gameMode_2 != GM_EDITOR;
+ this->field0_0x0 = 0;
+ if ((DAT_TileMapState.refreshRelatedOne == 0)
+ || (DAT_TileMapState.flatViewToggleValue1 != 0)) {
+ this->field0_0x0 = 1;
+ }
+ DAT_GameState.mapAndTime.newOrganisms = 0;
+ this->DAT_TotalOrganisms = 0;
+ DAT_CurrentTreeID = 1;
+ if (1 < this->maxTreeCount) {
+ do {
+ switch (this->trees[DAT_CurrentTreeID].state) {
+ case 0:
+ break;
+ case 1:
+ this->trees[DAT_CurrentTreeID].state = 2;
+ break;
+ default:
+ this->DAT_TotalOrganisms = this->DAT_TotalOrganisms + 1;
+ if (this->wind.countdown
+ <= (int)((byte)this->trees[DAT_CurrentTreeID].yPosition & 0x1f)) {
+ this->trees[DAT_CurrentTreeID].one = (short)this->wind.value;
+ }
+ if ((this->trees[DAT_CurrentTreeID].one == 3)
+ && (this->trees[DAT_CurrentTreeID].zeroUpTo2 == 0)) {
+ this->trees[DAT_CurrentTreeID].zeroUpTo2 = 1;
+ this->trees[DAT_CurrentTreeID].animationFrameIndex = 1;
+ this->trees[DAT_CurrentTreeID].field8_0x14 = DAT_00ed31a0;
+ }
+ if (this->trees[DAT_CurrentTreeID].treeTypeRelated2
+ <= (int)(DAT_00ed31a0 - this->trees[DAT_CurrentTreeID].field8_0x14)) {
+ this->trees[DAT_CurrentTreeID].field8_0x14 = DAT_00ed31a0;
+ if (this->trees[DAT_CurrentTreeID].one != 0) {
+ psVar1 = &this->trees[DAT_CurrentTreeID].animationFrameIndex;
+ *psVar1 = *psVar1 + 1;
+ }
+ }
+ psVar1 = &this->trees[DAT_CurrentTreeID].rng200till300;
+ if (this->trees[DAT_CurrentTreeID].rng200till300 != 0) {
+ *psVar1 = *psVar1 + -1;
+ }
+ uVar2 = DAT_CurrentTreeID;
+ if (isItNOTScenarioGameMode && _loadBalanceValue == 4) {
+ updateTreeStage(
+ DAT_CurrentTreeID, _balanceRNG);
+ }
+ DAT_CurrentTreeID = uVar2;
+ (*DAT_OrganismDefinedData.UpdateTree[(short)this->trees[uVar2].treeType])();
+ if (this->trees[DAT_CurrentTreeID].field92_0x98 != 0) {
+ if (this->trees[DAT_CurrentTreeID].treeType != TT_APPLEUnk) {
+ DAT_GameState.mapAndTime.field3176_0x27c8
+ = DAT_GameState.mapAndTime.field3176_0x27c8 + 1;
+ }
+ if (1 < this->trees[DAT_CurrentTreeID].field92_0x98) {
+ psVar1 = &this->trees[DAT_CurrentTreeID].field92_0x98;
+ *psVar1 = *psVar1 + -1;
+ }
+ }
+ break;
+ case 3:
+ removeTree(DAT_CurrentTreeID);
+ break;
+ case 4:
+ if (this->field0_0x0 == 0) {
+ this->trees[DAT_CurrentTreeID].animationFrameUnk
+ = this->trees[DAT_CurrentTreeID].animationFrame2Unk;
+ } else {
+ this->trees[DAT_CurrentTreeID].animationFrameUnk = 0;
+ }
+ }
+ DAT_CurrentTreeID = DAT_CurrentTreeID + 1;
+ } while ((int)DAT_CurrentTreeID < this->maxTreeCount);
+ }
+ return;
+ }
+}
+}
+
+### 0x004b77e0 isValueInRangeOneToTwenty | quelle=nachgebaut | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004B77E0
+ BOOLEnum MapPropertiesState::isValueInRangeOneToTwenty(int value) { return value - 1 < 20; }
+}
+}
+

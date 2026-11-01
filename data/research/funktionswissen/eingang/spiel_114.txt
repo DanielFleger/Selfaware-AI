@@ -1,0 +1,1287 @@
+### 0x004563d0 processUnitLossStatistic | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004563D0
+ void GameStateStructures::processUnitLossStatistic(int playerID, int unitID)
+ {
+ int* piVar1;
+ short sVar2;
+ int _value;
+ int iVar3;
+ PlayerData* _playerData1;
+ PlayerData* _playerData2;
+ PlayerData* _playerData3;
+ if (playerID - 1U < 8) {
+ switch (DAT_UnitsState.units[unitID].unitType) {
+ case UT_S_CATAPULT:
+ case UT_S_TREBUCHET:
+ case UT_S_MANGONEL:
+ case UT_S_TOWER:
+ case UT_S_BATTERINGRAM:
+ case UT_S_SHIELD:
+ case UT_S_BALLISTA:
+ case UT_S_FBALLISTA:
+ _playerData1 = &this->playerDataArray[playerID];
+ _playerData1->troopsLost = _playerData1->troopsLost
+ + (int)DAT_UnitsState.units[unitID]
+ .digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300;
+ iVar3 = getValueOfTroopType(UT_E_ENGINEER);
+ _value = iVar3
+ * DAT_UnitsState.units[unitID]
+ .digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300;
+ break;
+ default : _playerData2 = &this->playerDataArray[playerID];
+ _playerData2->troopsLost = _playerData2->troopsLost + 1;
+ _value = getValueOfTroopType((int)(short)DAT_UnitsState.units[unitID].unitType);
+ }
+ _playerData3 = &this->playerDataArray[playerID];
+ _playerData3->weightedLosses = _playerData3->weightedLosses + _value;
+ if (0 < _value) {
+ if (playerID == DAT_GameSynchronyState.currentPlayerSlotID) {
+ UpdateUnitLossData(
+ -_value, DAT_UnitsState.units[unitID].lastEncounteredEnemyPlayerID);
+ }
+ if (DAT_UnitsState.units[unitID].lastEncounteredEnemyPlayerID
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ UpdateUnitValueLoss(_value);
+ }
+ }
+ sVar2 = DAT_UnitsState.units[unitID].lastEncounteredEnemyPlayerID;
+ if (sVar2 != 0) {
+ this->playerDataArray[playerID].lastlastEncounteredEnemyPlayerID = (int)sVar2;
+ sVar2 = DAT_UnitsState.units[unitID].lastEncounteredEnemyPlayerID;
+ if ((1 < sVar2) && (sVar2 < 6)) {
+ *(undefined1*)((int)this->playerDataArray[playerID].barracksAssemblyPoints + sVar2 + -10) = 1;
+ }
+ }
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ iVar3 = (int)DAT_UnitsState.units[unitID].lastEncounteredEnemyPlayerID;
+ piVar1 = DAT_GameSynchronyState.finalResults.finalKillMatrix[iVar3] + playerID;
+ *piVar1 = *piVar1 + 1;
+ if (this->mapAndTime.playerTeams[iVar3] != this->mapAndTime.playerTeams[playerID]) {
+ if (DAT_UnitsState.units[unitID].field323_0x442 == 0) {
+ piVar1 = DAT_GameSynchronyState.finalResults.finalTroopsKilledWeighted + iVar3;
+ *piVar1 = *piVar1 + _value;
+ } else {
+ piVar1 = DAT_GameSynchronyState.finalResults.finalTroopsKilledWeighted + iVar3;
+ *piVar1 = *piVar1 + ((int)(_value + (_value >> 0x1f & 3U)) >> 2);
+ }
+ }
+ piVar1 = (int*)(iVar3 * 0x20 + 0x115e9dc + playerID * 0x39f4);
+ *piVar1 = *piVar1 + 1;
+ }
+ if (DAT_UnitsState.units[unitID].isSelected != 0) {
+ DAT_GameCore.countdown = 1;
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x004565a0 setLastEncounteredTroopUnit | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004565A0
+ uint GameStateStructures::setLastEncounteredTroopUnit(int playerID, int unitID)
+ {
+ uint _playerIDMin1;
+ int _offset;
+ int _enemyUnitID;
+ int _unitUID;
+ int* _pCounter;
+ int* _pIncrement;
+ short _unitX;
+ _enemyUnitID = (int)DAT_UnitsState.units[unitID].lastEncounteredEnemyUnitIDUnk;
+ _playerIDMin1 = playerID - 1;
+ if (((_playerIDMin1 < 8) && (0 < _enemyUnitID))
+ && (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)) {
+ _unitX = DAT_UnitsState.units[unitID].x;
+ _pCounter = &this->playerDataArray[playerID].unknownCounter_01;
+ *_pCounter = *_pCounter + 1;
+ this->playerDataArray[playerID].someXPosition = (int)_unitX;
+ this->playerDataArray[playerID].someYPosition = (int)DAT_UnitsState.units[unitID].y;
+ if ((DAT_UnitsState.units[_enemyUnitID].isSelectable_OR_matchTime == 0)
+ || (this->mapAndTime.playerTeams[DAT_UnitsState.units[_enemyUnitID].owner]
+ == this->mapAndTime.playerTeams[playerID])) {
+ this->playerDataArray[playerID].lastEncounteredTroopUnitID = 0;
+ } else {
+ _unitUID = DAT_UnitsState.units[_enemyUnitID].uid;
+ this->playerDataArray[playerID].lastEncounteredTroopUnitID = _enemyUnitID;
+ this->playerDataArray[playerID].lastEncounteredTroopUnitUID = _unitUID;
+ }
+ _offset = DAT_UnitsState.units[unitID].lastEncounteredEnemyPlayerID * 32;
+ _pIncrement = (int*)(_offset + 0x115e9e0 + playerID * 0x39f4);
+ *_pIncrement = *_pIncrement + 1;
+ _playerIDMin1 = _offset + 0x115e9e0 + playerID * 0x39f4;
+ }
+ return _playerIDMin1;
+ }
+}
+}
+
+### 0x00456670 updateDateAndTime | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00456670
+ void GameStateStructures::updateDateAndTime(BOOLEnum startOfWeekAsCurrentTickIs0, int currentTick)
+ {
+ BOOLEnum _keepOrGranaryStillToPlace;
+ bool _startOfDay;
+ /*
+ synchronized with currentTick but it counts until 50 instead of 200
+ */
+ this->mapAndTime.dayTicks = this->mapAndTime.dayTicks + 1;
+ this->mapAndTime.weekTicks = this->mapAndTime.weekTicks + 1;
+ this->mapAndTime.monthTicks = this->mapAndTime.monthTicks + 1;
+ /*
+ if currentTick is 0, 50, 100, 150
+ */
+ _startOfDay = currentTick == (currentTick / 50) * 50;
+ this->mapAndTime.weekChanged = 0;
+ this->mapAndTime.monthChanged = 0;
+ this->mapAndTime.yearChanged = 0;
+ if (_startOfDay) {
+ this->mapAndTime.dayTicks = 0;
+ }
+ this->mapAndTime.startOfDay = (BOOLEnum)_startOfDay;
+ /*
+ key "H" in scenario editor mode for example
+ */
+ if (DAT_GameCore.isTimeHalted == FALSE) {
+ /*
+ we are at the start of Castle Builder mode or in a tutorial
+ */
+ _keepOrGranaryStillToPlace = GetIfDisplayElementStateNotZero(
+ DEID_KEEP_AND_GRANERY_PLACEMENT_INFO);
+ if ((_keepOrGranaryStillToPlace == FALSE) && (startOfWeekAsCurrentTickIs0 != FALSE)) {
+ this->mapAndTime.week = this->mapAndTime.week + 1;
+ this->mapAndTime.weekChanged = 1;
+ this->mapAndTime.weekTicks = 0;
+ if (3 < this->mapAndTime.week) {
+ this->mapAndTime.month = this->mapAndTime.month + 1;
+ this->mapAndTime.week = 0;
+ this->mapAndTime.monthChanged = 1;
+ this->mapAndTime.monthTicks = 0;
+ if (12 < this->mapAndTime.month) {
+ this->mapAndTime.year = this->mapAndTime.year + 1;
+ this->mapAndTime.month = 0;
+ this->mapAndTime.yearChanged = 1;
+ }
+ }
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x00456750 setMonthAndYear | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00456750
+ void GameStateStructures::setMonthAndYear(int month, int year)
+ {
+ this->mapAndTime.weekChanged = 0;
+ this->mapAndTime.monthChanged = 0;
+ this->mapAndTime.yearChanged = 0;
+ this->mapAndTime.week = 0;
+ this->mapAndTime.month = month;
+ this->mapAndTime.year = year;
+ this->mapAndTime.dayTicks = 100;
+ this->mapAndTime.weekTicks = 100;
+ this->mapAndTime.monthTicks = 100;
+ return;
+ }
+}
+}
+
+### 0x004567a0 clearSignpostData | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004567A0
+ void GameStateStructures::clearSignpostData()
+ {
+ fillMemory_ByteValue(
+ 0x40, '\0', (void*)((int)(this->mapAndTime.signpostIDs)));
+ fillMemory_ByteValue(
+ 0x100, '\0', (void*)((int)(this->mapAndTime.signpostEntryData)));
+ fillMemory_ByteValue(
+ 0x1900, '\0', (void*)((int)(this->mapAndTime.signpostsMapEdge)));
+ fillMemory_ByteValue(
+ 0xa00, '\0', (void*)((int)(this->mapAndTime.unitMoveDestinationXYPairs)));
+ return;
+ }
+}
+}
+
+### 0x00456810 computeSignPostEntryData | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00456810
+ void GameStateStructures::computeSignPostEntryData()
+ {
+ MapAndTimeState* paiVar1;
+ SignpostLocation* pSVar1;
+ int signpostID;
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ signpostID = 0;
+ pSVar1 = this->mapAndTime.signpostEntryData;
+ do {
+ if ((pSVar1->x != 0) || (pSVar1->y != 0)) {
+ findSuitableSpawnLocationUnk(pSVar1->x, pSVar1->y, -1, -1, 1000000, 0);
+ storeDestinationOptionsUnk(signpostID);
+ }
+ signpostID = signpostID + 1;
+ pSVar1 = pSVar1 + 1;
+ } while (signpostID < 8);
+ }
+ return;
+ }
+}
+}
+
+### 0x00456870 nof_fpoints_locationFinder | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00456870
+ void GameStateStructures::nof_fpoints_locationFinder()
+ {
+ int iVar1;
+ uint x;
+ int* piVar2;
+ uint y;
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ return;
+ }
+ findSuitableSpawnLocationUnk((int)DAT_TroopValueState.attackInfo.nof_fpointsArray[0][0],
+ DAT_TroopValueState.attackInfo.nof_fpointsArray[0][1], -1, -1, 1000000, 0);
+ DAT_PathFindingState.calculations = DAT_PathFindingState.calculations + 1;
+ DAT_PathFindingState.searchQueue.readIndex = 0;
+ if (DAT_PathFindingState.searchQueue.writeIndex != 0) {
+ piVar2 = &this->mapAndTime.somePairArray.y;
+ do {
+ y = (uint)DAT_PathFindingState.searchQueue
+ .yQueue[DAT_PathFindingState.searchQueue.readIndex];
+ iVar1 = DAT_PathFindingState.searchQueue
+ .tilesQueue[DAT_PathFindingState.searchQueue.readIndex];
+ x = iVar1 - DAT_ViewportRenderState.translationMatrix[y].addXgetTile;
+ if (DAT_TileMapState.CertainPathLayer[iVar1] != 100) {
+ budgetFloodFillOnCertainPathLayer(x, y, 100, 0x3c);
+ ((XYPair*)(piVar2 + -1))->x = x;
+ *piVar2 = y;
+ piVar2 = piVar2 + 2;
+ }
+ if (0x117cdef < (int)piVar2) {
+ return;
+ }
+ DAT_PathFindingState.searchQueue.readIndex
+ = DAT_PathFindingState.searchQueue.readIndex + 1;
+ if (0x13a0f < DAT_PathFindingState.searchQueue.readIndex) {
+ DAT_PathFindingState.searchQueue.readIndex = 0;
+ }
+ } while (DAT_PathFindingState.searchQueue.readIndex
+ != DAT_PathFindingState.searchQueue.writeIndex);
+ }
+ return;
+ }
+}
+}
+
+### 0x004568b0 calculateAttackVectorsToCampFireOfPlayer | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004568B0
+ void GameStateStructures::calculateAttackVectorsToCampFireOfPlayer(int playerID)
+ {
+ calculatePathKeepAndWallsGatesNotAllowed(this->playerDataArray[playerID].campground.xEntry,
+ this->playerDataArray[playerID].campground.yEntry, -1, -1, 8000);
+ computeAttackVectorsBasedOnXAndY(playerID);
+ return;
+ }
+}
+}
+
+### 0x004568f0 countActiveSignposts | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004568F0
+ int GameStateStructures::countActiveSignposts()
+ {
+ int iVar1;
+ iVar1 = 0;
+ if ((0 < this->mapAndTime.signpostIDs[0])
+ && (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[0]].buildingType
+ == BT_SIGNPOST)) {
+ iVar1 = 1;
+ }
+ if ((0 < this->mapAndTime.signpostIDs[1])
+ && (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[1]].buildingType
+ == BT_SIGNPOST)) {
+ iVar1 = iVar1 + 1;
+ }
+ if ((0 < this->mapAndTime.signpostIDs[2])
+ && (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[2]].buildingType
+ == BT_SIGNPOST)) {
+ iVar1 = iVar1 + 1;
+ }
+ if ((0 < this->mapAndTime.signpostIDs[3])
+ && (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[3]].buildingType
+ == BT_SIGNPOST)) {
+ iVar1 = iVar1 + 1;
+ }
+ if ((0 < this->mapAndTime.signpostIDs[4])
+ && (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[4]].buildingType
+ == BT_SIGNPOST)) {
+ iVar1 = iVar1 + 1;
+ }
+ if ((0 < this->mapAndTime.signpostIDs[5])
+ && (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[5]].buildingType
+ == BT_SIGNPOST)) {
+ iVar1 = iVar1 + 1;
+ }
+ if ((0 < this->mapAndTime.signpostIDs[6])
+ && (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[6]].buildingType
+ == BT_SIGNPOST)) {
+ iVar1 = iVar1 + 1;
+ }
+ if ((0 < this->mapAndTime.signpostIDs[7])
+ && (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[7]].buildingType
+ == BT_SIGNPOST)) {
+ iVar1 = iVar1 + 1;
+ }
+ return iVar1;
+ }
+}
+}
+
+### 0x004569e0 hasAnySignpost | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004569E0
+ BOOLEnum GameStateStructures::hasAnySignpost()
+ {
+ int iVar1;
+ iVar1 = 0;
+ if ((0 < this->mapAndTime.signpostIDs[0])
+ && (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[0]].buildingType
+ == BT_SIGNPOST)) {
+ iVar1 = 1;
+ }
+ if ((0 < this->mapAndTime.signpostIDs[1])
+ && (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[1]].buildingType
+ == BT_SIGNPOST)) {
+ iVar1 = iVar1 + 1;
+ }
+ if ((0 < this->mapAndTime.signpostIDs[2])
+ && (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[2]].buildingType
+ == BT_SIGNPOST)) {
+ iVar1 = iVar1 + 1;
+ }
+ if ((0 < this->mapAndTime.signpostIDs[3])
+ && (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[3]].buildingType
+ == BT_SIGNPOST)) {
+ iVar1 = iVar1 + 1;
+ }
+ if ((0 < this->mapAndTime.signpostIDs[4])
+ && (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[4]].buildingType
+ == BT_SIGNPOST)) {
+ iVar1 = iVar1 + 1;
+ }
+ if ((0 < this->mapAndTime.signpostIDs[5])
+ && (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[5]].buildingType
+ == BT_SIGNPOST)) {
+ iVar1 = iVar1 + 1;
+ }
+ if ((0 < this->mapAndTime.signpostIDs[6])
+ && (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[6]].buildingType
+ == BT_SIGNPOST)) {
+ iVar1 = iVar1 + 1;
+ }
+ if ((0 < this->mapAndTime.signpostIDs[7])
+ && (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[7]].buildingType
+ == BT_SIGNPOST)) {
+ iVar1 = iVar1 + 1;
+ }
+ return (uint)(iVar1 != 0);
+ }
+}
+}
+
+### 0x00456ad0 pickRandomAccessibleSignpostEntry | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00456AD0
+ int GameStateStructures::pickRandomAccessibleSignpostEntry()
+ {
+ int* piVar1;
+ int iVar2;
+ int iVar3;
+ int iVar4;
+ int* piVar5;
+ int iVar6;
+ iVar6 = 0;
+ iVar2 = 0;
+ piVar1 = &this->mapAndTime.signpostEntryData[1].tile;
+ piVar5 = this->mapAndTime.signpostIDs + 1;
+ iVar4 = 2;
+ do {
+ if (((0 < piVar5[-1])
+ && (DAT_BuildingsState.buildings[piVar5[-1]].buildingType
+ == BT_SIGNPOST))
+ && (iVar6 = iVar6 + 1,
+ 10000 < DAT_PathFindingState
+ .zoneSizesArray[(short)DAT_TileMapState.PathConnectionLayer[piVar1[-4]]])) {
+ iVar2 = iVar2 + 1;
+ }
+ if (((0 < *piVar5)
+ && (DAT_BuildingsState.buildings[*piVar5].buildingType
+ == BT_SIGNPOST))
+ && (iVar6 = iVar6 + 1,
+ 10000 < DAT_PathFindingState
+ .zoneSizesArray[(short)DAT_TileMapState.PathConnectionLayer[*piVar1]])) {
+ iVar2 = iVar2 + 1;
+ }
+ if (((0 < piVar5[1])
+ && (DAT_BuildingsState.buildings[piVar5[1]].buildingType
+ == BT_SIGNPOST))
+ && (iVar6 = iVar6 + 1,
+ 10000 < DAT_PathFindingState
+ .zoneSizesArray[(short)DAT_TileMapState.PathConnectionLayer[piVar1[4]]])) {
+ iVar2 = iVar2 + 1;
+ }
+ if (((0 < piVar5[2])
+ && (DAT_BuildingsState.buildings[piVar5[2]].buildingType
+ == BT_SIGNPOST))
+ && (iVar6 = iVar6 + 1,
+ 10000 < DAT_PathFindingState
+ .zoneSizesArray[(short)DAT_TileMapState.PathConnectionLayer[piVar1[8]]])) {
+ iVar2 = iVar2 + 1;
+ }
+ piVar5 = piVar5 + 4;
+ piVar1 = piVar1 + 0x10;
+ iVar4 = iVar4 + -1;
+ } while (iVar4 != 0);
+ if (1 < iVar6) {
+ if (iVar6 == iVar2) {
+ return (int)SEC_RNG::instance.currentNumber1 % iVar6;
+ }
+ if (0 < iVar2) {
+ iVar6 = 0;
+ piVar1 = &this->mapAndTime.signpostEntryData[0].tile;
+ piVar5 = this->mapAndTime.signpostIDs;
+ iVar4 = 0;
+ do {
+ iVar3 = iVar4;
+ if (((0 < *piVar5)
+ && (DAT_BuildingsState.buildings[*piVar5].buildingType
+ == BT_SIGNPOST))
+ && ((10000 < DAT_PathFindingState
+ .zoneSizesArray[(short)DAT_TileMapState.PathConnectionLayer[*piVar1]]
+ && (iVar3 = iVar4 + 1, iVar4 == (int)SEC_RNG::instance.currentNumber1 % iVar2)))) {
+ return iVar6;
+ }
+ iVar6 = iVar6 + 1;
+ piVar5 = piVar5 + 1;
+ piVar1 = piVar1 + 4;
+ iVar4 = iVar3;
+ } while (iVar6 < 8);
+ }
+ }
+ return 0;
+ }
+}
+}
+
+### 0x00456c50 clearDataAndSignpostDataIfNecessary | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00456C50
+ void GameStateStructures::clearDataAndSignpostDataIfNecessary()
+ {
+ bool bVar1;
+ MapAndTimeState* piVar2;
+ int signpostID;
+ MapAndTimeState* piVar3;
+ MapAndTimeState* _pSignpostData;
+ int iVar2;
+ int _signpost;
+ MapAndTimeState* _pEntryData;
+ signpostID = 0;
+ /*
+ fixme: current data type specifies length 128, not 256
+ */
+ fillMemory_ByteValue(
+ 256, '\0', (void*)((int)(this->mapAndTime.signpostEntryData)));
+ /*
+ fixme: multiple data?
+ */
+ fillMemory_ByteValue(
+ 6400, '\0', (void*)((int)(this->mapAndTime.signpostsMapEdge)));
+ /*
+ fixme: wrong?
+ */
+ fillMemory_ByteValue(
+ 2560, '\0', (void*)((int)(this->mapAndTime.unitMoveDestinationXYPairs)));
+ if ((this->mapAndTime.signpostIDs[0] == 0)
+ || (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[0]].buildingType
+ != BT_SIGNPOST)) {
+ this->mapAndTime.signpostIDs[0] = 0;
+ this->mapAndTime.signpostEntryData[0].x = 0;
+ this->mapAndTime.signpostEntryData[0].y = 0;
+ this->mapAndTime.signpostEntryData[0].tile = 0;
+ }
+ if ((this->mapAndTime.signpostIDs[1] == 0)
+ || (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[1]].buildingType
+ != BT_SIGNPOST)) {
+ this->mapAndTime.signpostIDs[1] = 0;
+ this->mapAndTime.signpostEntryData[1].x = 0;
+ this->mapAndTime.signpostEntryData[1].y = 0;
+ this->mapAndTime.signpostEntryData[1].tile = 0;
+ }
+ if ((this->mapAndTime.signpostIDs[2] == 0)
+ || (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[2]].buildingType
+ != BT_SIGNPOST)) {
+ this->mapAndTime.signpostIDs[2] = 0;
+ this->mapAndTime.signpostEntryData[2].x = 0;
+ this->mapAndTime.signpostEntryData[2].y = 0;
+ this->mapAndTime.signpostEntryData[2].tile = 0;
+ }
+ if ((this->mapAndTime.signpostIDs[3] == 0)
+ || (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[3]].buildingType
+ != BT_SIGNPOST)) {
+ this->mapAndTime.signpostIDs[3] = 0;
+ this->mapAndTime.signpostEntryData[3].x = 0;
+ this->mapAndTime.signpostEntryData[3].y = 0;
+ this->mapAndTime.signpostEntryData[3].tile = 0;
+ }
+ if ((this->mapAndTime.signpostIDs[4] == 0)
+ || (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[4]].buildingType
+ != BT_SIGNPOST)) {
+ this->mapAndTime.signpostIDs[4] = 0;
+ this->mapAndTime.signpostEntryData[4].x = 0;
+ this->mapAndTime.signpostEntryData[4].y = 0;
+ this->mapAndTime.signpostEntryData[4].tile = 0;
+ }
+ if ((this->mapAndTime.signpostIDs[5] == 0)
+ || (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[5]].buildingType
+ != BT_SIGNPOST)) {
+ this->mapAndTime.signpostIDs[5] = 0;
+ this->mapAndTime.signpostEntryData[5].x = 0;
+ this->mapAndTime.signpostEntryData[5].y = 0;
+ this->mapAndTime.signpostEntryData[5].tile = 0;
+ }
+ if ((this->mapAndTime.signpostIDs[6] == 0)
+ || (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[6]].buildingType
+ != BT_SIGNPOST)) {
+ this->mapAndTime.signpostIDs[6] = 0;
+ this->mapAndTime.signpostEntryData[6].x = 0;
+ this->mapAndTime.signpostEntryData[6].y = 0;
+ this->mapAndTime.signpostEntryData[6].tile = 0;
+ }
+ if ((this->mapAndTime.signpostIDs[7] == 0)
+ || (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[7]].buildingType
+ != BT_SIGNPOST)) {
+ this->mapAndTime.signpostIDs[7] = 0;
+ this->mapAndTime.signpostEntryData[7].x = 0;
+ this->mapAndTime.signpostEntryData[7].y = 0;
+ this->mapAndTime.signpostEntryData[7].tile = 0;
+ }
+ do {
+ bVar1 = false;
+ iVar2 = 7;
+ piVar2 = (MapAndTimeState*)(&this->mapAndTime);
+ do {
+ if ((piVar2->signpostIDs[0] == 0) && (piVar2->signpostIDs[1] != 0)) {
+ piVar2->signpostIDs[0] = piVar2->signpostIDs[1];
+ piVar2->signpostIDs[1] = 0;
+ bVar1 = true;
+ }
+ piVar2 = (MapAndTimeState*)(piVar2->signpostIDs + 2);
+ iVar2 = iVar2 + -1;
+ } while (iVar2 != 0);
+ } while (bVar1);
+ piVar3 = (MapAndTimeState*)this->mapAndTime;
+ _pEntryData = (MapAndTimeState*)this->mapAndTime;
+ do {
+ _pSignpostData = (MapAndTimeState*)&_pEntryData->signpostEntryData[0].y;
+ _signpost = piVar3->signpostIDs[0];
+ if (_signpost != 0) {
+ determineBuildingEntranceFromKeepArea(_signpost, 1, FALSE);
+ _pSignpostData->signpostEntryData[0].x
+ = (int)DAT_BuildingsState.buildings[_signpost].buildingEntryX;
+ _pSignpostData->signpostEntryData[0].y
+ = (int)DAT_BuildingsState.buildings[_signpost].buildingEntryY;
+ _pSignpostData->signpostEntryData[0].tile
+ = (int)DAT_BuildingsState.buildings[_signpost].buildingEntryX
+ + DAT_ViewportRenderState
+ .translationMatrix[DAT_BuildingsState.buildings[_signpost].buildingEntryY]
+ .addXgetTile;
+ findMapBorderEdgeTileAndStoreInSignpostData(signpostID, 0x13a10,
+ (uint)((int)((int)DAT_BuildingsState.buildings[_signpost].buildingEntryX)),
+ (uint)((int)((int)DAT_BuildingsState.buildings[_signpost].buildingEntryY)));
+ }
+ signpostID = signpostID + 1;
+ piVar3 = (MapAndTimeState*)(piVar3->signpostIDs + 1);
+ _pEntryData = (MapAndTimeState*)(_pSignpostData->signpostEntryData + 1);
+ } while (signpostID < 8);
+ return;
+ }
+}
+}
+
+### 0x00456ef0 addSignpostToBuildingEntryData | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00456EF0
+ void GameStateStructures::addSignpostToBuildingEntryData(int buildingID)
+ {
+ MapAndTimeState* _ptrSignpostID;
+ int _counter;
+ _counter = 0;
+ _ptrSignpostID = (MapAndTimeState*)this->mapAndTime;
+ while ((_ptrSignpostID->signpostIDs[0] != 0
+ && (DAT_BuildingsState.buildings[_ptrSignpostID->signpostIDs[0]].buildingType
+ == BT_SIGNPOST))) {
+ _counter = _counter + 1;
+ _ptrSignpostID = (MapAndTimeState*)(_ptrSignpostID->signpostIDs + 1);
+ if (7 < _counter) {
+ LAB_00456f32:
+ deleteBuilding(this->mapAndTime.signpostIDs[7]);
+ _counter = 7;
+ this->mapAndTime.signpostIDs[7] = buildingID;
+ LAB_00456f4e:
+ determineBuildingEntranceFromKeepArea(buildingID, 1, FALSE);
+ this->mapAndTime.signpostEntryData[_counter].x
+ = (int)DAT_BuildingsState.buildings[buildingID].buildingEntryX;
+ this->mapAndTime.signpostEntryData[_counter].y
+ = (int)DAT_BuildingsState.buildings[buildingID].buildingEntryY;
+ this->mapAndTime.signpostEntryData[_counter].tile
+ = (int)DAT_BuildingsState.buildings[buildingID].buildingEntryX
+ + DAT_ViewportRenderState
+ .translationMatrix[DAT_BuildingsState.buildings[buildingID].buildingEntryY]
+ .addXgetTile;
+ findMapBorderEdgeTileAndStoreInSignpostData(_counter, 80400,
+ (uint)((int)((int)DAT_BuildingsState.buildings[buildingID].buildingEntryX)),
+ (uint)((int)((int)DAT_BuildingsState.buildings[buildingID].buildingEntryY)));
+ return;
+ }
+ }
+ this->mapAndTime.signpostIDs[_counter] = buildingID;
+ if (_counter < 8)
+ goto LAB_00456f4e;
+ goto LAB_00456f32;
+ }
+}
+}
+
+### 0x00456fd0 computeBuildingCategoryEntryPointAndDestroyEarlierBuilding | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00456FD0
+ void GameStateStructures::computeBuildingCategoryEntryPointAndDestroyEarlierBuilding(
+ uint buildingID, int playerID, PlayerDataBuildingCategoryEnum category)
+ {
+ short sVar1;
+ int _tile;
+ int _y;
+ int _buildingY;
+ int _x;
+ int _buildingX;
+ short _orientation;
+ int _stockpile;
+ int _existingBuildingID;
+ int _firstBuildingID;
+ uint _keep;
+ _x = 0;
+ _y = 0;
+ DAT_TileMapState.showNoRubbleWhenDestroyingBuilding = 1;
+ if (category == PDBCE_KEEP) {
+ _keep = this->playerDataArray[playerID].keep.id;
+ if ((0 < (int)_keep) && (_keep != buildingID)) {
+ destroyBuilding(_keep);
+ }
+ _orientation = DAT_BuildingsState.buildings[buildingID].orientation;
+ _buildingX = (int)(short)DAT_BuildingsState.buildings[buildingID].x;
+ _buildingY = (int)(short)DAT_BuildingsState.buildings[buildingID].y;
+ if (_orientation == 4) {
+ _x = _buildingX + 3;
+ _y = _buildingY + -1;
+ } else if (_orientation == 2) {
+ _x = _buildingX + -1;
+ _y = _buildingY + 3;
+ } else if (_orientation == 6) {
+ _x = _buildingX + 7;
+ _y = _buildingY + 3;
+ } else {
+ _x = _buildingX + 3;
+ _y = _buildingY + 7;
+ }
+ if (DAT_GameCore.currentMenuViewType == MVT_MAP_EDITOR_LANDSCAPING) {
+ DAT_TileMapState.showNoRubbleWhenDestroyingBuilding = 1;
+ _stockpile = this->playerDataArray[playerID].stockpile.id;
+ if (_stockpile != 0) {
+ destroyBuilding(_stockpile);
+ }
+ }
+ } else {
+ if (category == PDBCE_MARKETPLACE) {
+ _existingBuildingID = this->playerDataArray[playerID].marketplace.id;
+ LAB_00457180:
+ if (0 < _existingBuildingID) {
+ destroyBuilding(_existingBuildingID);
+ }
+ } else {
+ if (category == PDBCE_ENGINEERSGUILD) {
+ _existingBuildingID = this->playerDataArray[playerID].engineersGuild.id;
+ goto LAB_00457180;
+ }
+ if (category == PDBCE_TUNNELERSGUILD) {
+ _existingBuildingID = this->playerDataArray[playerID].tunnelersGuild.id;
+ goto LAB_00457180;
+ }
+ if (category == PDBCE_STOCKPILE) {
+ _firstBuildingID = this->playerDataArray[playerID].stockpile.id;
+ joined_r0x0045712c:
+ if (0 < _firstBuildingID) {
+ DAT_TileMapState.showNoRubbleWhenDestroyingBuilding = 1;
+ return;
+ }
+ } else {
+ if (category == PDBCE_ARMORY) {
+ _firstBuildingID = this->playerDataArray[playerID].armory.id;
+ goto joined_r0x0045712c;
+ }
+ if (category == PDBCE_GRANARY) {
+ _firstBuildingID = this->playerDataArray[playerID].granary.id;
+ goto joined_r0x0045712c;
+ }
+ if (category == PDBCE_BARRACKS) {
+ _existingBuildingID = this->playerDataArray[playerID].barracks.id;
+ goto LAB_00457180;
+ }
+ if (category == PDBCE_MERCENARYPOST) {
+ _existingBuildingID = this->playerDataArray[playerID].mercenaryPost.id;
+ goto LAB_00457180;
+ }
+ if (category != PDBCE_OILSMELTER) {
+ if (category != PDBCE_CAMPGROUND)
+ goto LAB_0045721e;
+ sVar1 = DAT_BuildingsState.buildings[buildingID].orientation;
+ _x = (int)(short)DAT_BuildingsState.buildings[buildingID].x;
+ _y = (int)(short)DAT_BuildingsState.buildings[buildingID].y;
+ if (sVar1 == 4) {
+ _x = _x + 3;
+ _y = _y + 6;
+ } else if (sVar1 == 2) {
+ _y = _y + 3;
+ } else if (sVar1 == 6) {
+ _x = _x + 6;
+ _y = _y + 3;
+ } else {
+ _x = _x + 3;
+ }
+ goto LAB_00457202;
+ }
+ }
+ }
+ _x = (int)DAT_BuildingsState.buildings[buildingID].buildingEntryX;
+ _y = (int)DAT_BuildingsState.buildings[buildingID].buildingEntryY;
+ }
+ LAB_00457202:
+ if (_x < 0) {
+ return;
+ }
+ if (399 < _x) {
+ return;
+ }
+ if (_y < 0) {
+ return;
+ }
+ if (399 < _y) {
+ return;
+ }
+ LAB_0045721e:
+ if (*(char*)(_y * 400 + 0x21aec98 + _x) != '\0') {
+ (&this->playerDataArray[playerID].keep)[category].id = buildingID;
+ (&this->playerDataArray[playerID].keep)[category].yEntry = _y;
+ (&this->playerDataArray[playerID].keep)[category].xEntry = _x;
+ _tile = DAT_ViewportRenderState.translationMatrix[_y].addXgetTile + _x;
+ (&this->playerDataArray[playerID].keep)[category].tileEntry = _tile;
+ (&this->playerDataArray[playerID].keep)[category].areaEntry
+ = (int)(short)DAT_TileMapState.PathConnectionLayer[_tile];
+ DAT_TileMapState.showNoRubbleWhenDestroyingBuilding = 0;
+ }
+ return;
+ }
+}
+}
+
+### 0x004572a0 validateBuildingCategoryReference | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004572A0
+ void GameStateStructures::validateBuildingCategoryReference(int playerID, int param_2)
+ {
+ BuildingEntryInfo* pBVar1;
+ int _buildingID;
+ BuildingTypeShort _buildingType;
+ pBVar1 = &this->playerDataArray[playerID].keep + param_2;
+ _buildingID = pBVar1->id;
+ if (_buildingID - 1U < 1999) {
+ if (param_2 == 0) {
+ _buildingType = DAT_BuildingsState.buildings[_buildingID].buildingType;
+ if ((((_buildingType != BT_MANORHOUSE)
+ && (_buildingType != BT_STONEKEEP))
+ && (_buildingType != BT_STRONGHOLD))
+ && ((_buildingType != BT_KEEPFOUR
+ && (_buildingType != BT_KEEPFIVE)))) {
+ this->playerDataArray[playerID].keep.id = 0;
+ return;
+ }
+ } else if (param_2 == 1) {
+ if (DAT_BuildingsState.buildings[_buildingID].buildingType
+ != BT_STOCKPILE) {
+ this->playerDataArray[playerID].stockpile.id = 0;
+ return;
+ }
+ } else if (param_2 == 2) {
+ if (DAT_BuildingsState.buildings[_buildingID].buildingType
+ != BT_GRANARY) {
+ this->playerDataArray[playerID].granary.id = 0;
+ return;
+ }
+ } else if (param_2 == 3) {
+ if (DAT_BuildingsState.buildings[_buildingID].buildingType
+ != BT_ARMORY) {
+ this->playerDataArray[playerID].armory.id = 0;
+ return;
+ }
+ } else if (param_2 == 5) {
+ if (DAT_BuildingsState.buildings[_buildingID].buildingType
+ != BT_BARRACKS) {
+ this->playerDataArray[playerID].barracks.id = 0;
+ return;
+ }
+ } else if (param_2 == 0xb) {
+ if (DAT_BuildingsState.buildings[_buildingID].buildingType
+ != BT_MERCENARYPOST) {
+ this->playerDataArray[playerID].mercenaryPost.id = 0;
+ return;
+ }
+ } else if (param_2 == 0xc) {
+ if (DAT_BuildingsState.buildings[_buildingID].buildingType
+ != BT_OILSMELTER) {
+ this->playerDataArray[playerID].oilSmelter.id = 0;
+ return;
+ }
+ } else if (param_2 == 7) {
+ if (DAT_BuildingsState.buildings[_buildingID].buildingType
+ != BT_MARKETPLACE) {
+ this->playerDataArray[playerID].marketplace.id = 0;
+ return;
+ }
+ } else if (param_2 == 9) {
+ if (DAT_BuildingsState.buildings[_buildingID].buildingType
+ != BT_ENGINEERSGUILD) {
+ this->playerDataArray[playerID].engineersGuild.id = 0;
+ return;
+ }
+ } else if ((param_2 == 10)
+ && (DAT_BuildingsState.buildings[_buildingID].buildingType
+ != BT_TUNNELERSGUILD)) {
+ this->playerDataArray[playerID].tunnelersGuild.id = 0;
+ return;
+ }
+ if ((DAT_BuildingsState.buildings[_buildingID].logicalState == ((BuildingLogicalState)0))
+ || ((DAT_BuildingsState.buildings[_buildingID].uid == 0
+ || (DAT_TileMapState.BuildingLayer[DAT_BuildingsState.buildings[_buildingID]
+ .currentTilePositionAdjusted]
+ != _buildingID)))) {
+ pBVar1->id = 0;
+ return;
+ }
+ } else {
+ pBVar1->id = 0;
+ }
+ return;
+ }
+}
+}
+
+### 0x004574c0 checkKeepEnclosed | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004574C0
+ BOOLEnum GameStateStructures::checkKeepEnclosed(int playerID)
+ {
+ int iVar1;
+ PlayerData* _playerData;
+ if (this->playerDataArray[playerID].campground.id == 0) {
+ return FALSE;
+ }
+ iVar1 = DAT_PathFindingState.zoneSizesArray[(
+ short)DAT_TileMapState.PathConnectionLayer[this->playerDataArray[playerID].campground.tileEntry]];
+ if ((299 < iVar1)
+ && (iVar1
+ <= (int)(DAT_PathFindingState.sum * 3 + (DAT_PathFindingState.sum * 3 >> 0x1f & 3U))
+ >> 2)) {
+ switch (DAT_TileMapState.mapSize) {
+ case 0xa0:
+ if (8000 < iVar1) {
+ return FALSE;
+ }
+ break;
+ case 200:
+ if (10000 < iVar1) {
+ return FALSE;
+ }
+ break;
+ case 300:
+ if (20000 < iVar1) {
+ return FALSE;
+ }
+ break;
+ case 400:
+ if (25000 < iVar1) {
+ return FALSE;
+ }
+ }
+ _playerData = &this->playerDataArray[1];
+ iVar1 = 0;
+ while ((((this->mapAndTime.playerTeams[playerID] == *(int*)((int)this->mapAndTime.playerTeams + iVar1 + 4)
+ || (_playerData->id == 0))
+ || (_playerData->lordKilledByPlayerID != 0))
+ || (((*(int*)((int)DAT_GameSynchronyState.currentPlayerFullIDArray + iVar1 + 4) == -1
+ && (*(int*)((int)DAT_GameSynchronyState.currentAIArray + iVar1 + 4) == 0))
+ || ((int)(short)DAT_TileMapState
+ .PathConnectionLayer[this->playerDataArray[playerID].campground.tileEntry]
+ != (int)(short)DAT_TileMapState.PathConnectionLayer[_playerData->tileEntry]))))) {
+ iVar1 = iVar1 + 4;
+ _playerData = (PlayerData*)((int)(_playerData + 0x172) + 0x24);
+ if (0x1f < iVar1) {
+ return TRUE;
+ }
+ }
+ }
+ return FALSE;
+ }
+}
+}
+
+### 0x004576e0 canNavigateFromKeepToKeep | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004576E0
+ BOOLEnum GameStateStructures::canNavigateFromKeepToKeep(int playerID1, int playerID2)
+ {
+ int _canNavigate;
+ ushort _p1_area;
+ ushort _p2_area;
+ if ((this->playerDataArray[playerID1].keep.id != 0) && (this->playerDataArray[playerID2].keep.id != 0)) {
+ _p2_area
+ = DAT_TileMapState.PathConnectionLayer[this->playerDataArray[playerID2].campground.tileEntry];
+ if ((_p2_area == 0)
+ || (_p1_area = DAT_TileMapState
+ .PathConnectionLayer[this->playerDataArray[playerID1].campground.tileEntry],
+ _p1_area == 0)) {
+ return FALSE;
+ }
+ if (_p1_area != _p2_area) {
+ _canNavigate = calculateCanPlayerUnitsNavigateToAreaFromArea(
+ playerID1, (dword)((int)((int)(short)_p2_area)), (dword)((int)((int)(short)_p1_area)), 0);
+ return (uint)(_canNavigate != 0);
+ }
+ }
+ return TRUE;
+ }
+}
+}
+
+### 0x00457770 canUnitsNavigateFromKeepToKeep | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00457770
+ BOOLEnum GameStateStructures::canUnitsNavigateFromKeepToKeep(int playerID, int targetPlayerID)
+ {
+ int iVar1;
+ ushort _area;
+ ushort _area2;
+ if ((this->playerDataArray[playerID].keep.id != 0) && (this->playerDataArray[targetPlayerID].keep.id != 0)) {
+ _area = DAT_TileMapState
+ .PathConnectionLayer[this->playerDataArray[targetPlayerID].campground.tileEntry];
+ if ((_area == 0)
+ || (_area2 = DAT_TileMapState
+ .PathConnectionLayer[this->playerDataArray[playerID].campground.tileEntry],
+ _area2 == 0)) {
+ return FALSE;
+ }
+ if (_area2 != _area) {
+ iVar1 = calculateCanPlayerUnitsNavigateToAreaFromArea(
+ playerID, (dword)((int)((int)(short)_area)), (dword)((int)((int)(short)_area2)), 2);
+ return (uint)(iVar1 != 0);
+ }
+ }
+ return TRUE;
+ }
+}
+}
+
+### 0x00457800 unitsCanMoveFromKeepOfPlayerToAnotherArea | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00457800
+ BOOLEnum GameStateStructures::unitsCanMoveFromKeepOfPlayerToAnotherArea(int playerID)
+ {
+ int iVar1;
+ ushort _area2;
+ ushort _keepArea;
+ _keepArea
+ = DAT_TileMapState.PathConnectionLayer[this->playerDataArray[playerID].campground.tileEntry];
+ if ((_keepArea != 0)
+ && (_area2 = DAT_TileMapState.PathConnectionLayer[this->mapAndTime.signpostEntryData[0].tile],
+ _area2 != 0)) {
+ if (_area2 == _keepArea) {
+ return TRUE;
+ }
+ iVar1 = calculateCanPlayerUnitsNavigateToAreaFromArea(
+ playerID, (dword)((int)((int)(short)_keepArea)), (dword)((int)((int)(short)_area2)), 0);
+ return (uint)(iVar1 != 0);
+ }
+ return FALSE;
+ }
+}
+}
+
+### 0x00457870 canKeepReachSignpostZone | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00457870
+ BOOLEnum GameStateStructures::canKeepReachSignpostZone(int playerID, int param_2, int param_3)
+ {
+ ushort uVar1;
+ ushort uVar2;
+ int iVar3;
+ uVar1 = DAT_TileMapState.PathConnectionLayer[this->playerDataArray[playerID].campground.tileEntry];
+ if ((uVar1 != 0)
+ && (uVar2 = DAT_TileMapState.PathConnectionLayer[this->mapAndTime
+ .signpostEntryData[(
+ &DAT_TroopValueState.attackInfo.unknownSignpostRelatedArray)[param_3]]
+ .tile],
+ uVar2 != 0)) {
+ if (uVar2 == uVar1) {
+ return TRUE;
+ }
+ iVar3 = calculateCanPlayerUnitsNavigateToAreaFromArea(
+ param_2, (dword)((int)((int)(short)uVar1)), (dword)((int)((int)(short)uVar2)), 0);
+ return (uint)(iVar3 != 0);
+ }
+ return FALSE;
+ }
+}
+}
+
+### 0x004578f0 canKeepReachSignpostZoneViaPathfinder | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004578F0
+ BOOLEnum GameStateStructures::canKeepReachSignpostZoneViaPathfinder(int param_1, int param_2, int param_3)
+ {
+ int iVar1;
+ if ((DAT_TileMapState.PathConnectionLayer[this->playerDataArray[param_1].campground.tileEntry] != 0)
+ && (DAT_TileMapState.PathConnectionLayer[this->mapAndTime
+ .signpostEntryData[(
+ &DAT_TroopValueState.attackInfo.unknownSignpostRelatedArray)[param_3]]
+ .tile]
+ != 0)) {
+ iVar1 = calculateCanPlayerUnitsNavigateToAreaFromArea(param_2,
+ (dword)((int)((int)(short)DAT_TileMapState
+ .PathConnectionLayer[this->playerDataArray[param_1].campground.tileEntry])),
+ (dword)((int)((int)(short)DAT_TileMapState.PathConnectionLayer[this->mapAndTime
+ .signpostEntryData[(
+ &DAT_TroopValueState.attackInfo.unknownSignpostRelatedArray)[param_3]]
+ .tile])),
+ 2);
+ return (uint)(iVar1 != 0);
+ }
+ return FALSE;
+ }
+}
+}
+
+### 0x00457960 updatePrimaryBuildingPlayerDataReferences | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00457960
+ void GameStateStructures::updatePrimaryBuildingPlayerDataReferences(uint buildingID)
+ {
+ int iVar1;
+ BuildingEntryInfo* _keep;
+ int playerID;
+ playerID = (int)DAT_BuildingsState.buildings[buildingID].owner;
+ iVar1 = 0;
+ _keep = &this->playerDataArray[playerID].keep;
+ do {
+ if (_keep->id == buildingID) {
+ (&this->playerDataArray[playerID].keep)[iVar1].id = 0;
+ break;
+ }
+ iVar1 = iVar1 + 1;
+ _keep = _keep + 1;
+ } while (iVar1 < 20);
+ if (DAT_BuildingsState.buildings[buildingID].buildingType == BT_STOCKPILE) {
+ iVar1 = findFirstBuildingIDForPlayerAndType(playerID, BT_STOCKPILE);
+ this->playerDataArray[playerID].stockpile.id = iVar1;
+ }
+ if (DAT_BuildingsState.buildings[buildingID].buildingType == BT_GRANARY) {
+ iVar1 = findFirstBuildingIDForPlayerAndType(playerID, BT_GRANARY);
+ this->playerDataArray[playerID].granary.id = iVar1;
+ }
+ if (DAT_BuildingsState.buildings[buildingID].buildingType == BT_ARMORY) {
+ iVar1 = findFirstBuildingIDForPlayerAndType(playerID, BT_ARMORY);
+ this->playerDataArray[playerID].armory.id = iVar1;
+ }
+ if (DAT_BuildingsState.buildings[buildingID].buildingType == BT_BARRACKS) {
+ iVar1 = findFirstBuildingIDForPlayerAndType(playerID, BT_BARRACKS);
+ this->playerDataArray[playerID].barracks.id = iVar1;
+ setupBarracksCampgroundPositions(playerID);
+ }
+ if (DAT_BuildingsState.buildings[buildingID].buildingType
+ == BT_MERCENARYPOST) {
+ iVar1 = findFirstBuildingIDForPlayerAndType(playerID, BT_MERCENARYPOST);
+ this->playerDataArray[playerID].mercenaryPost.id = iVar1;
+ setupMercenaryPostCampgroundPositions(playerID);
+ }
+ return;
+ }
+}
+}
+
+### 0x00457a70 changePlayerOwnership | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00457A70
+ void GameStateStructures::changePlayerOwnership(int fromPlayer, int toPlayer)
+ {
+ transferNonCourtUnitsToPlayer(
+ fromPlayer, toPlayer);
+ copyPlayerDataArrayValues(fromPlayer, toPlayer);
+ reassignOwnerForTribesOfBehaviorType2(fromPlayer, toPlayer);
+ reassignWallOwnershipForPlayer(
+ fromPlayer, toPlayer);
+ setMoatOwnerForAllMatching(
+ fromPlayer, (undefined4)((int)(toPlayer)));
+ reassignEntitiesOwner(
+ fromPlayer, (undefined4)((int)(toPlayer)));
+ return;
+ }
+}
+}
+
+### 0x00457b40 destroyPlayerCompletely | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00457B40
+ void GameStateStructures::destroyPlayerCompletely(int playerID)
+ {
+ killUnits(playerID);
+ destroyBuildings(
+ playerID);
+ destroyWallsOfPlayer(playerID);
+ destroyEntitiesPart2(
+ playerID);
+ }
+}
+}
+
+### 0x00457b80 checkRequiredResourcesForBuildingOrPlanToBuy | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00457B80
+ undefined4 GameStateStructures::checkRequiredResourcesForBuildingOrPlanToBuy(
+ MappersEnum commandBuildingType, int playerID, BOOLEnum playResourceLackMsgUnk)
+ {
+ BuildingType _buildingType;
+ uint uVar1;
+ int _ironToBuy;
+ int _pitchToBuy;
+ int _woodToBuy;
+ int _wood;
+ int _stoneToBuy;
+ int _requiredIron;
+ int _requiredPitch;
+ int _requiredWood;
+ int _requiredStone;
+ int _requiredGold;
+ bool _isAI;
+ _isAI = false;
+ _buildingType
+ = convertCommandBuildingTypeToBuildingType(commandBuildingType);
+ _requiredIron = DAT_BuildingsState.buildingCosts[_buildingType].requiredIron_0x8;
+ _requiredPitch = DAT_BuildingsState.buildingCosts[_buildingType].requiredPitch_0xc;
+ _requiredWood = DAT_BuildingsState.buildingCosts[_buildingType].requiredWood;
+ _requiredStone = DAT_BuildingsState.buildingCosts[_buildingType].requiredStone_0x4;
+ _requiredGold = DAT_BuildingsState.buildingCosts[_buildingType].requiredGold;
+ if ((DAT_GameCore.solitaryAllBuildingsAreFree != FALSE)
+ || (DAT_GameCore.gameMode_2 == GM_EDITOR)) {
+ return (undefined4)(1);
+ }
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ if (commandBuildingType == M_MAPPER_KEEP1) {
+ return (undefined4)(1);
+ }
+ if (commandBuildingType == M_MAPPER_KEEP2) {
+ return (undefined4)(1);
+ }
+ if (commandBuildingType == M_MAPPER_KEEP3) {
+ return (undefined4)(1);
+ }
+ } else if ((DAT_GameSynchronyState.currentPlayerFullIDArray[playerID] == -1)
+ && (DAT_GameSynchronyState.currentAIArray[playerID] != 0)) {
+ _isAI = true;
+ }
+ uVar1 = hasLessWoodThanTheCostOfAWoodcuttersHutAndNoWoodcutters(playerID, _buildingType);
+ if (uVar1 != 0) {
+ return (undefined4)(1);
+ }
+ if (this->playerDataArray[playerID].currentResources[6] < _requiredIron) {
+ if (playResourceLackMsgUnk != FALSE) {
+ playResourceLackSFX(1, RLSFX_IRON);
+ }
+ if (!_isAI) {
+ return (undefined4)(0);
+ }
+ _ironToBuy = _requiredIron - this->playerDataArray[playerID].currentResources[6];
+ if (_ironToBuy <= this->playerDataArray[playerID].resourcesToAcquireArray[6]) {
+ return (undefined4)(0);
+ }
+ this->playerDataArray[playerID].resourcesToAcquireArray[6] = _ironToBuy;
+ return (undefined4)(0);
+ }
+ if (this->playerDataArray[playerID].currentResources[7] < _requiredPitch) {
+ if ((_buildingType == BT_PITCHDITCH)
+ && (this->playerDataArray[playerID].pitchDitchCounterTo4 != 0)) {
+ return (undefined4)(1);
+ }
+ if (playResourceLackMsgUnk != FALSE) {
+ playResourceLackSFX(1, RLSFX_PITCH);
+ }
+ if (!_isAI) {
+ return (undefined4)(0);
+ }
+ _pitchToBuy = _requiredPitch - this->playerDataArray[playerID].currentResources[7];
+ if (_pitchToBuy <= this->playerDataArray[playerID].resourcesToAcquireArray[7]) {
+ return (undefined4)(0);
+ }
+ this->playerDataArray[playerID].resourcesToAcquireArray[7] = _pitchToBuy;
+ return (undefined4)(0);
+ }
+ if (this->playerDataArray[playerID].currentResources[0xf] < _requiredGold) {
+ if (playResourceLackMsgUnk == FALSE) {
+ return (undefined4)(0);
+ }
+ playResourceLackSFX(1, RLSFX_GOLD);
+ return (undefined4)(0);
+ }
+ _stoneToBuy = this->playerDataArray[playerID].currentResources[2];
+ if (_stoneToBuy < _requiredWood) {
+ if (this->playerDataArray[playerID].currentResources[4] < _requiredStone) {
+ if (playResourceLackMsgUnk != FALSE) {
+ playResourceLackSFX(1, RLSFX_PARTIAL_STONEUnk);
+ }
+ if (!_isAI) {
+ return (undefined4)(0);
+ }
+ _woodToBuy = _requiredWood - this->playerDataArray[playerID].currentResources[2];
+ if ((0 < _woodToBuy) && (this->playerDataArray[playerID].resourcesToAcquireArray[2] < _woodToBuy)) {
+ this->playerDataArray[playerID].resourcesToAcquireArray[2] = _woodToBuy;
+ }
+ goto LAB_00457e46;
+ }
+ if (_stoneToBuy < _requiredWood) {
+ if (playResourceLackMsgUnk != FALSE) {
+ playResourceLackSFX(1, RLSFX_WOOD);
+ }
+ if (!_isAI) {
+ return (undefined4)(0);
+ }
+ _wood = _requiredWood - this->playerDataArray[playerID].currentResources[2];
+ if (_wood < 1) {
+ return (undefined4)(0);
+ }
+ if (_wood <= this->playerDataArray[playerID].resourcesToAcquireArray[2]) {
+ return (undefined4)(0);
+ }
+ this->playerDataArray[playerID].resourcesToAcquireArray[2] = _wood;
+ return (undefined4)(0);
+ }
+ }
+ if (_requiredStone <= this->playerDataArray[playerID].currentResources[4]) {
+ return (undefined4)(1);
+ }
+ if (playResourceLackMsgUnk != FALSE) {
+ playResourceLackSFX(1, RLSFX_STONE);
+ }
+ if (!_isAI) {
+ return (undefined4)(0);
+ }
+ LAB_00457e46:
+ _stoneToBuy = _requiredStone - this->playerDataArray[playerID].currentResources[4];
+ if ((0 < _stoneToBuy) && (this->playerDataArray[playerID].resourcesToAcquireArray[4] < _stoneToBuy)) {
+ this->playerDataArray[playerID].resourcesToAcquireArray[4] = _stoneToBuy;
+ }
+ return (undefined4)(0);
+ }
+}
+}
+

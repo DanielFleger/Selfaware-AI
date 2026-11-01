@@ -1,0 +1,889 @@
+### 0x004224f0 updateGateDrawBridgeOpenCloseLogic | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004224F0
+ void BuildingsState::updateGateDrawBridgeOpenCloseLogic()
+ {
+ byte bVar1;
+ ushort uVar2;
+ short sVar3;
+ EntityTypeShort EVar4;
+ int _gateX;
+ int _gateY;
+ int iVar5;
+ short* psVar6;
+ int _enemyMicroY;
+ int iVar7;
+ int iVar8;
+ int _enemyMicroX;
+ int _enemyDistance;
+ int _enemyXDistance;
+ int iVar9;
+ int (*paiVar10)[2500];
+ int iVar11;
+ BOOLEnum BVar12;
+ int local_48;
+ int local_44;
+ int local_40;
+ int local_3c;
+ int local_24[9];
+ short _gateOwner;
+ int _gateID;
+ short _enemyUnitID;
+ _gateX = (int)(short)this->buildings[DAT_CurrentBuildingID].x;
+ _gateY = (int)(short)this->buildings[DAT_CurrentBuildingID].y;
+ local_48 = 0;
+ local_3c = 0;
+ local_44 = 0;
+ local_40 = 0;
+ _gateOwner = this->buildings[DAT_CurrentBuildingID].owner;
+ _gateID = DAT_CurrentBuildingID;
+ if (DAT_GameState.gameTicksLoadBalancer % 10
+ == (this->buildings[DAT_CurrentBuildingID].fireRelatedRNG1 + 5) % 10) {
+ local_24[0] = 0;
+ local_24[1] = 0;
+ local_24[2] = 0;
+ local_24[3] = 0;
+ local_24[4] = 0;
+ local_24[5] = 0;
+ local_24[6] = 0;
+ local_24[7] = 0;
+ local_24[8] = 0;
+ do {
+ getBuildingSizeIndexMappingData(local_48, this->buildings[_gateID].widthOrHeight);
+ iVar9 = DAT_ViewportRenderState
+ .translationMatrix[DAT_TileMapState.buildingY + _gateY]
+ .addXgetTile
+ + DAT_TileMapState.buildingX + _gateX;
+ uVar2 = DAT_TileMapState.UnitLayer[iVar9];
+ _gateID = DAT_CurrentBuildingID;
+ iVar7 = local_3c;
+ while (iVar8 = (int)(short)uVar2, local_3c = iVar7, iVar8 != 0) {
+ if (DAT_UnitsState.units[iVar8].isSelectable_OR_matchTime != 0) {
+ iVar11 = (int)DAT_UnitsState.units[iVar8].owner;
+ iVar5 = getValueOfTroopType((int)(short)DAT_UnitsState.units[iVar8].unitType);
+ local_24[iVar11] = local_24[iVar11] + iVar5;
+ sVar3 = this->buildings[DAT_CurrentBuildingID].owner;
+ local_3c = (int)sVar3;
+ _gateID = DAT_CurrentBuildingID;
+ if ((DAT_GameState.mapAndTime.playerTeams[local_3c]
+ != DAT_GameState.mapAndTime.playerTeams[iVar11])
+ && (local_3c = iVar7, sVar3 != 0)) {
+ local_44 = iVar11;
+ }
+ }
+ iVar7 = local_3c;
+ uVar2 = DAT_UnitsState.units[iVar8].nextUnitOnTheSameTile;
+ }
+ iVar5 = 0;
+ iVar8 = (int)DAT_TileMapState.EntityLayer[iVar9];
+ if (DAT_TileMapState.EntityLayer[iVar9] != 0) {
+ while (iVar5 = iVar5 + 1, iVar5 < 10) {
+ EVar4 = DAT_EntityState.entityArray[iVar8].entityType;
+ if ((((EVar4 == ET_FLAG_1)
+ || (EVar4 == ET_FLAG_4))
+ || (EVar4 == ET_FLAG_2))
+ || (EVar4 == ET_FLAG_3)) {
+ local_40 = iVar8;
+ }
+ iVar9 = (int)DAT_EntityState.entityArray[iVar8].nextEntityOnThisTileByID;
+ if ((iVar8 == iVar9) || (iVar8 = iVar9, iVar9 == 0))
+ break;
+ }
+ }
+ local_48 = local_48 + 1;
+ } while (local_48 < DAT_TileMapState.constructionTileCount);
+ if (iVar7 == 0) {
+ if (local_44 == 0)
+ goto LAB_00422948;
+ if (local_40 == 0) {
+ iVar8 = (int)this->buildings[_gateID].owner;
+ iVar5 = DAT_TileMapState
+ .HeightLayer[this->buildings[_gateID].currentTilePositionAdjusted]
+ + 0x1e;
+ iVar7 = (short)this->buildings[_gateID].y * 8;
+ iVar9 = (short)this->buildings[_gateID].x * 8;
+ spawnProjectileEntity(0, (undefined4)((int)(iVar8)), (uint)((int)(iVar8)), iVar9, iVar7,
+ iVar5, iVar9, iVar7, iVar5, ET_FLAG_1, 0);
+ _gateID = DAT_CurrentBuildingID;
+ }
+ iVar7 = (int)this->buildings[_gateID].owner;
+ iVar9 = 0;
+ if (0 < local_24[1]) {
+ iVar7 = 1;
+ iVar9 = local_24[1];
+ }
+ if (iVar9 < local_24[2]) {
+ iVar7 = 2;
+ iVar9 = local_24[2];
+ }
+ if (iVar9 < local_24[3]) {
+ iVar7 = 3;
+ iVar9 = local_24[3];
+ }
+ if (iVar9 < local_24[4]) {
+ iVar7 = 4;
+ iVar9 = local_24[4];
+ }
+ if (iVar9 < local_24[5]) {
+ iVar7 = 5;
+ iVar9 = local_24[5];
+ }
+ if (iVar9 < local_24[6]) {
+ iVar7 = 6;
+ iVar9 = local_24[6];
+ }
+ if (iVar9 < local_24[7]) {
+ iVar7 = 7;
+ iVar9 = local_24[7];
+ }
+ local_3c = iVar7;
+ if (iVar9 < local_24[8]) {
+ iVar7 = 8;
+ local_3c = iVar7;
+ }
+ } else {
+ if ((this->buildings[_gateID].field241_0x2c6 != 0) && (local_44 != 0))
+ goto LAB_00422948;
+ this->buildings[_gateID].field241_0x2c6 = 0;
+ local_3c = 0;
+ }
+ if ((iVar7 != 0) && (local_40 != 0)) {
+ iVar9 = 0;
+ do {
+ getBuildingSizeIndexMappingData(iVar9, this->buildings[_gateID].widthOrHeight);
+ iVar5 = 0;
+ iVar8 = (int)DAT_TileMapState
+ .EntityLayer[DAT_ViewportRenderState
+ .translationMatrix[DAT_TileMapState.buildingY + _gateY]
+ .addXgetTile
+ + DAT_TileMapState.buildingX + _gateX];
+ if (iVar8 != 0) {
+ while (iVar5 = iVar5 + 1, iVar5 < 10) {
+ EVar4 = DAT_EntityState.entityArray[iVar8].entityType;
+ if ((((EVar4 == ET_FLAG_1)
+ || (EVar4 == ET_FLAG_4))
+ || (EVar4 == ET_FLAG_2))
+ || (EVar4 == ET_FLAG_3)) {
+ DAT_EntityState.entityArray[iVar8].colorUnk = iVar7;
+ }
+ iVar11 = (int)DAT_EntityState.entityArray[iVar8].nextEntityOnThisTileByID;
+ if ((iVar8 == iVar11) || (iVar8 = iVar11, iVar11 == 0))
+ break;
+ }
+ }
+ iVar9 = iVar9 + 1;
+ _gateID = DAT_CurrentBuildingID;
+ } while (iVar9 < DAT_TileMapState.constructionTileCount);
+ }
+ if (local_3c != 0) {
+ if ((this->buildings[_gateID].field241_0x2c6 != local_3c)
+ && (this->buildings[_gateID].owner == DAT_GameSynchronyState.currentPlayerSlotID)) {
+ /*
+ "We have lost control of a gatehouse my lord"
+ */
+ playWAVSFX(
+ "General_Warning19.wav");
+ _gateID = DAT_CurrentBuildingID;
+ }
+ this->buildings[_gateID].field241_0x2c6 = (short)local_3c;
+ this->buildings[_gateID].gateState = 0xb;
+ applyGateOrDrawbridgeOpenCloseChange(
+ _gateID, TRUE, FALSE);
+ }
+ }
+ LAB_00422948:
+ iVar7 = DAT_GameState.gameTicksLoadBalancer;
+ sVar3 = this->buildings[_gateID].field241_0x2c6;
+ if (sVar3 == 0) {
+ sVar3 = this->buildings[_gateID].gateState2;
+ if ((0 < sVar3)
+ && (iVar9 = DAT_GameState.playerDataArray[_gateOwner].enemies,
+ this->buildings[_gateID].gateState2 = sVar3 + -1, iVar9 == 0)) {
+ this->buildings[_gateID].gateState2 = 0;
+ }
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[this->buildings[_gateID].owner] == -1)
+ && (((sVar3 = this->buildings[_gateID].field241_0x2c6,
+ sVar3 == 0 || (DAT_GameSynchronyState.currentPlayerFullIDArray[sVar3] == -1))
+ && (DAT_GameState.playerDataArray[_gateOwner].aiPlayerState == 0)))) {
+ this->buildings[_gateID].gateCloseOpenTimer = 0;
+ }
+ sVar3 = this->buildings[_gateID].gateCloseOpenTimer;
+ if (-1 < sVar3) {
+ if (0 < sVar3) {
+ this->buildings[_gateID].gateCloseOpenTimer = sVar3 + -1;
+ return;
+ }
+ if (iVar7 % 0x32 == this->buildings[_gateID].fireRelatedRNG1 % 0x32) {
+ iVar7 = DAT_GameState.playerDataArray[_gateOwner].enemies;
+ iVar9 = 0;
+ if (0 < iVar7) {
+ psVar6 = DAT_GameState.playerDataArray[_gateOwner].enemyIDArray;
+ paiVar10 = DAT_GameState.mapAndTime.playerEnemenyUnitUIDShortList + _gateOwner;
+ do {
+ _enemyUnitID = *psVar6;
+ if (((DAT_UnitsState.units[_enemyUnitID].uid == (*paiVar10)[0])
+ && (DAT_UnitsState.units[_enemyUnitID].unitType
+ != UT_LIONSHWOLF))
+ && (DAT_UnitsState.units[_enemyUnitID].isSelectable_OR_matchTime != 0)) {
+ _enemyMicroX = (int)DAT_UnitsState.units[_enemyUnitID].microXPosition;
+ if (_enemyMicroX < _gateX * 8) {
+ _enemyXDistance = _gateX * 8 - _enemyMicroX;
+ } else {
+ _enemyXDistance = _enemyMicroX + _gateX * -8;
+ }
+ _enemyMicroY = (int)DAT_UnitsState.units[_enemyUnitID].microYPosition;
+ if (_enemyMicroY < _gateY * 8) {
+ _enemyDistance = _gateY * 8 - _enemyMicroY;
+ } else {
+ _enemyDistance = _enemyMicroY + _gateY * -8;
+ }
+ if (_enemyDistance <= _enemyXDistance) {
+ _enemyDistance = _enemyXDistance;
+ }
+ if (_enemyDistance < 200) {
+ this->buildings[_gateID].gateState2 = 1200;
+ if (this->buildings[_gateID].pathLinkageRelated2 != 0)
+ goto LAB_00422b15;
+ this->buildings[_gateID].gateState = 10;
+ this->buildings[_gateID].field232_0x2b6 = 10;
+ BVar12 = FALSE;
+ goto LAB_00422b0b;
+ }
+ }
+ iVar9 = iVar9 + 1;
+ psVar6 = psVar6 + 1;
+ paiVar10 = (int (*)[2500])(*paiVar10 + 1);
+ } while (iVar9 < iVar7);
+ }
+ if ((this->buildings[_gateID].gateState2 == 0)
+ && (this->buildings[_gateID].pathLinkageRelated2 == 2)) {
+ this->buildings[_gateID].gateState = 0xb;
+ BVar12 = TRUE;
+ LAB_00422b0b:
+ applyGateOrDrawbridgeOpenCloseChange(_gateID, BVar12, FALSE);
+ }
+ LAB_00422b15:
+ bVar1 = this->buildings[_gateID].pathLinkageRelated2;
+ if (bVar1 == 0) {
+ applyGateOrDrawbridgeOpenCloseChange(_gateID, TRUE, FALSE);
+ return;
+ }
+ if (bVar1 == 2) {
+ applyGateOrDrawbridgeOpenCloseChange(_gateID, FALSE, FALSE);
+ }
+ }
+ }
+ } else if (sVar3 == this->buildings[_gateID].owner) {
+ this->buildings[_gateID].field241_0x2c6 = 0;
+ return;
+ }
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004224f0", "name": "updateGateDrawBridgeOpenCloseLogic", "quelle": "ghidra", "p1": {"bereich": "Gebaeude", "zweck": "Steuert Öffnen und Schließen eines Tors oder einer Zugbrücke und die Übernahme durch Feinde."}, "p2": {"ein": "- (aktuelles Gebäude über DAT_CurrentBuildingID)", "aus": "-", "liest": ["buildings[id].x/y/owner/widthOrHeight/fireRelatedRNG1/field241_0x2c6/gateState2/gateCloseOpenTimer/pathLinkageRelated2", "UnitLayer und EntityLayer auf den Torfeldern", "units[].owner/unitType/isSelectable_OR_matchTime/microXPosition/microYPosition", "playerDataArray[owner].enemies/enemyIDArray/aiPlayerState", "mapAndTime.playerTeams", "currentPlayerFullIDArray"], "schreibt": ["buildings[id].field241_0x2c6", "buildings[id].gateState", "buildings[id].gateState2", "buildings[id].field232_0x2b6", "buildings[id].gateCloseOpenTimer", "colorUnk der Flaggen auf dem Tor"], "ruft": ["getBuildingSizeIndexMappingData", "getValueOfTroopType", "spawnProjectileEntity", "applyGateOrDrawbridgeOpenCloseChange", "playWAVSFX"], "regeln": ["Tor-Übernahme wird nur alle 10 Ticks geprüft: gameTicksLoadBalancer % 10 == (fireRelatedRNG1 + 5) % 10", "Je Torfeld werden die Truppenwerte (getValueOfTroopType) aller dort stehenden lebenden Einheiten je Besitzer aufsummiert", "Steht nur ein Feind (anderes Team als das Tor, Torbesitzer ungleich 0) auf dem Tor und keine Einheit vom eigenen Team: es wird eine Flagge (ET_FLAG_1) gesetzt, falls noch keine liegt", "Neuer Torherr ist der Spieler 1..8 mit dem höchsten Truppenwert auf dem Tor (bei Gleichstand der niedrigere Index, Start beim Torbesitzer)", "Steht ein Einheit vom eigenen Team auf dem Tor, wird die Übernahme (field241_0x2c6) auf 0 zurückgesetzt, außer sie läuft schon und zugleich steht ein Feind darauf", "Bei neuem Torherrn: gateState = 0xb, Tor wird geöffnet (applyGateOrDrawbridgeOpenCloseChange mit TRUE); gehört das Tor dem lokalen Spieler, ertönt General_Warning19.wav ('We have lost control of a gatehouse')", "Ohne Übernahme: gateState2 zählt je Tick von 1200 herunter und wird 0, sobald der Besitzer keine Feinde hat", "gateCloseOpenTimer wird auf 0 gesetzt, wenn Besitzer (und ein etwaiger Torherr) nicht menschlich sind und aiPlayerState 0 ist; Timer über 0 zählt je Tick herunter, negativ heißt keine Automatik", "Feindsuche nur alle 50 Ticks (gameTicksLoadBalancer % 50 == fireRelatedRNG1 % 50): ein lebender Feind (nicht UT_LIONSHWOLF) mit Abstand unter 200 Mikroeinheiten (25 Felder, größere Achsendifferenz zählt) setzt gateState2 = 1200", "pathLinkageRelated2 == 0 öffnet das Tor, == 2 schließt es (applyGateOrDrawbridgeOpenCloseChange FALSE); ist field241_0x2c6 gleich dem Besitzer, wird es auf 0 gelöscht"], "offen": ["Bedeutung von pathLinkageRelated2 (vermutlich Tormodus: 0 offen, 2 Auto-Schließen bei Feinden)", "Bedeutung von field241_0x2c6 (vermutlich der Spieler, der das Tor übernommen hat)", "Der Ablauf nach der Feindsuche (Aufruf mit FALSE, danach bei Modus 0 mit TRUE) wirkt widersprüchlich und ist wohl eine Ghidra-Verzerrung", "Was applyGateOrDrawbridgeOpenCloseChange mit dem dritten Parameter macht"]}, "p3": {"erklaerung": "Tore und Zugbrücken öffnen sich für den, der die Mehrheit an Truppen darauf hat, und schließen sich automatisch, wenn Feinde näher als 25 Felder kommen. Ein erobertes Tor bleibt offen.", "gehirn": "Ein Tor gilt als verloren, sobald ein Feind ohne eigene Einheiten darauf steht; Verteidiger auf dem Tor halten es. Feinde im Umkreis von 25 Feldern lösen das Schließen aus.", "beleg": "code", "live": "Feindliche Einheit nähert sich Tor mit pathLinkageRelated2 = 2 → buildings[tor].gateState2 → springt auf 1200 bei Abstand unter 25 Feldern", "live_art": "kampf"}}
+
+### 0x00422e20 updateBuildings | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00422E20
+ void BuildingsState::updateBuildings()
+ {
+ int* piVar1;
+ BuildingTypeShort BVar2;
+ int iVar3;
+ int iVar4;
+ short* psVar5;
+ BuildingTypeInt _buildingType;
+ int _owner;
+ int* _pTotalKillingPits;
+ int _buildingID;
+ short* _pAnimationIndex;
+ short* _pRecruitTimer;
+ short* _pIdleTimer;
+ int* _pPopulationCap;
+ short* _pFireDuration;
+ int _buildingID_3;
+ BuildingLogicalStateShort _logicalState;
+ uint* _pTimeAlive;
+ this->isFirstTickInLoop = (BOOLEnum)(DAT_GameCore.performedGameTicksThisLoop == 0);
+ if (DAT_GameState.gameTicksLoadBalancer % 10 == 5) {
+ this->maxBuildingsCount = 0;
+ DAT_CurrentBuildingID = 1;
+ do {
+ if (this->buildings[DAT_CurrentBuildingID].logicalState != ((BuildingLogicalState)0)) {
+ this->maxBuildingsCount = DAT_CurrentBuildingID + 1;
+ }
+ DAT_CurrentBuildingID = DAT_CurrentBuildingID + 1;
+ } while (DAT_CurrentBuildingID < 2000);
+ }
+ this->structCount = 0;
+ psVar5 = &DAT_GameState.playerDataArray[0].dogCageCount;
+ DAT_AIVState.mapExtraInfo.playerTotalKillingPits[0] = 0;
+ DAT_AIVState.mapExtraInfo.playerTotalKillingPits[1] = 0;
+ DAT_AIVState.mapExtraInfo.playerTotalKillingPits[2] = 0;
+ DAT_AIVState.mapExtraInfo.playerTotalKillingPits[3] = 0;
+ DAT_AIVState.mapExtraInfo.playerTotalKillingPits[4] = 0;
+ DAT_AIVState.mapExtraInfo.playerTotalKillingPits[5] = 0;
+ DAT_AIVState.mapExtraInfo.playerTotalKillingPits[6] = 0;
+ DAT_AIVState.mapExtraInfo.playerTotalKillingPits[7] = 0;
+ DAT_AIVState.mapExtraInfo.playerTotalKillingPits[8] = 0;
+ do {
+ *psVar5 = 0;
+ psVar5 = psVar5 + 0x1cfa;
+ } while ((int)psVar5 < 0x1180156);
+ this->field1_0x4 = 0;
+ DAT_CurrentBuildingID = 1;
+ if (1 < this->maxBuildingsCount) {
+ do {
+ _buildingID = DAT_CurrentBuildingID;
+ if (this->buildings[DAT_CurrentBuildingID].logicalState != ((BuildingLogicalState)0)) {
+ this->structCount = this->structCount + 1;
+ _logicalState = this->buildings[DAT_CurrentBuildingID].logicalState;
+ if (_logicalState == BLS_INITIAL) {
+ this->buildings[DAT_CurrentBuildingID].logicalState
+ = BLS_NORMAL;
+ } else if (_logicalState == BLS_REMOVE) {
+ deleteBuilding(
+ DAT_CurrentBuildingID);
+ } else {
+ if (this->buildings[DAT_CurrentBuildingID].buildingType
+ == BT_KILLINGPIT) {
+ _pTotalKillingPits = DAT_AIVState.mapExtraInfo.playerTotalKillingPits
+ + this->buildings[DAT_CurrentBuildingID].owner;
+ *_pTotalKillingPits = *_pTotalKillingPits + 1;
+ }
+ if (this->buildings[_buildingID].renderAnimation == 0) {
+ LAB_00422fc0:
+ this->buildings[_buildingID].animationActive = 0;
+ } else {
+ piVar1 = &this->buildings[_buildingID].animStateCounter;
+ *piVar1 = *piVar1 + 1;
+ iVar3 = this->buildings[DAT_CurrentBuildingID].animStateCounter;
+ _buildingID = DAT_CurrentBuildingID;
+ if (iVar3 - this->buildings[DAT_CurrentBuildingID].animStateCounterTracker
+ < this->buildings[DAT_CurrentBuildingID].animAdvanceThrottle)
+ goto LAB_00422fc0;
+ this->buildings[DAT_CurrentBuildingID].animStateCounterTracker = iVar3;
+ _pAnimationIndex = &this->buildings[DAT_CurrentBuildingID].animationIndex;
+ *_pAnimationIndex = *_pAnimationIndex
+ + this->buildings[DAT_CurrentBuildingID].animationIncrement;
+ this->buildings[DAT_CurrentBuildingID].animationActive = 1;
+ }
+ _pRecruitTimer = &this->buildings[DAT_CurrentBuildingID].recruitTimer;
+ *_pRecruitTimer = *_pRecruitTimer + 1;
+ if (99 < this->buildings[DAT_CurrentBuildingID].recruitTimer) {
+ this->buildings[DAT_CurrentBuildingID].recruitTimer = 0;
+ }
+ _pTimeAlive = &this->buildings[DAT_CurrentBuildingID].timeAlive;
+ *_pTimeAlive = *_pTimeAlive + 1;
+ _owner = (int)this->buildings[DAT_CurrentBuildingID].owner;
+ if (this->buildings[DAT_CurrentBuildingID].idleTimerUnk != 0) {
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[_owner] == -1)
+ && (DAT_GameSynchronyState.currentAIArray[_owner] != 0)) {
+ _pIdleTimer = &this->buildings[DAT_CurrentBuildingID].idleTimerUnk;
+ *_pIdleTimer = *_pIdleTimer + -1;
+ } else {
+ this->buildings[DAT_CurrentBuildingID].idleTimerUnk = 0;
+ }
+ }
+ updateNeededEmployeeCount(DAT_CurrentBuildingID);
+ psVar5 = &this->buildings[DAT_CurrentBuildingID].field127_0x194;
+ if (0 < this->buildings[DAT_CurrentBuildingID].field127_0x194) {
+ *psVar5 = *psVar5 + -1;
+ }
+ _buildingID_3 = DAT_CurrentBuildingID;
+ _pPopulationCap = &DAT_GameState.playerDataArray[_owner].populationCap;
+ *_pPopulationCap = *_pPopulationCap
+ + (int)this->buildings[DAT_CurrentBuildingID].numberOfPopulationProvided;
+ /*
+ update function happens here
+ */
+ (*DAT_BuildingDefinedData
+ .BuildingUpdateFunctions[(short)this->buildings[_buildingID_3].buildingType])();
+ if (this->buildings[DAT_CurrentBuildingID].logicalState
+ != ((BuildingLogicalState)0)) {
+ if ((DAT_TileMapState.refreshRelatedTwo != 0)
+ && (this->buildings[DAT_CurrentBuildingID].gfxOffset != 0)) {
+ updateBuildingGraphicsLayer(DAT_CurrentBuildingID);
+ }
+ /*
+ building is on fire
+ */
+ if (this->buildings[DAT_CurrentBuildingID].fireDuration != 0) {
+ if (DAT_GameState.gameTicksLoadBalancer % 20 == 5) {
+ iVar3 = 1;
+ switch (this->buildings[DAT_CurrentBuildingID].buildingType) {
+ case BT_HOVEL:
+ case BT_WOODCUTTERSHUT:
+ case BT_HUNTERSHUT:
+ case BT_WHEATFARM:
+ case BT_HOPFARM:
+ case BT_APPLEFARM:
+ case BT_DAIRYFARM:
+ iVar3 = 4;
+ }
+ processDamageToBuilding(this->buildings[DAT_CurrentBuildingID]
+ .currentTilePositionAdjusted,
+ (uint)((
+ int)((int)(short)this->buildings[DAT_CurrentBuildingID].x)),
+ (uint)((
+ int)((int)(short)this->buildings[DAT_CurrentBuildingID].y)),
+ iVar3, 0,
+ (int)((int)((short)this->buildings[DAT_CurrentBuildingID]
+ .ifFireThenResponsiblePlayer)),
+ FALSE, 0);
+ _buildingType
+ = (BuildingTypeInt)(short)this->buildings[DAT_CurrentBuildingID]
+ .buildingType;
+ if ((_buildingType == BT_PARADEGROUND)
+ || (_buildingType - BT_CAMPGROUND < 5)) {
+ psVar5 = &this->buildings[DAT_CurrentBuildingID].currentHealth;
+ *psVar5 = *psVar5 + -1;
+ if (this->buildings[DAT_CurrentBuildingID].currentHealth < 490) {
+ this->buildings[DAT_CurrentBuildingID].currentHealth = 500;
+ MACRO_CALL_MEMBER(
+ extinguishBuildingFire,
+ this)(DAT_CurrentBuildingID);
+ this->buildings[DAT_CurrentBuildingID].fireDuration = -1;
+ }
+ }
+ }
+ _pFireDuration = &this->buildings[DAT_CurrentBuildingID].fireDuration;
+ *_pFireDuration = *_pFireDuration + 1;
+ spawnRandomFireEffectOnBuilding(DAT_CurrentBuildingID,
+ (undefined4)((int)((int)(short)this->buildings[DAT_CurrentBuildingID]
+ .ifFireThenResponsiblePlayer)));
+ }
+ if ((((this->buildings[DAT_CurrentBuildingID].unknownSiegeTentRelated01 == 2)
+ && (this->buildings[DAT_CurrentBuildingID].attackWave == 0))
+ && ((BVar2 = this->buildings[DAT_CurrentBuildingID].buildingType,
+ BVar2 == BT_FIREBALLISTA
+ || (BVar2 == BT_CATAPULT))))
+ && (((DAT_GameSynchronyState.currentPlayerFullIDArray[_owner] == -1
+ && (DAT_GameSynchronyState.currentAIArray[_owner] != 0))
+ && (2400 < (int)this->buildings[DAT_CurrentBuildingID].timeAlive)))) {
+ this->buildings[DAT_CurrentBuildingID].logicalState
+ = BLS_REMOVE;
+ }
+ psVar5 = &this->buildings[DAT_CurrentBuildingID].cooldownTimer;
+ if (this->buildings[DAT_CurrentBuildingID].cooldownTimer != 0) {
+ *psVar5 = *psVar5 + -1;
+ }
+ iVar3 = 0;
+ do {
+ iVar4 = iVar3 + 1;
+ this->buildings[DAT_CurrentBuildingID].workers[iVar3] = 0;
+ iVar3 = iVar4;
+ } while (iVar4 < 4);
+ }
+ }
+ }
+ DAT_CurrentBuildingID = DAT_CurrentBuildingID + 1;
+ } while (DAT_CurrentBuildingID < this->maxBuildingsCount);
+ }
+ this->field14_0x18e024 = 0;
+ this->field34_0x18e074 = 0;
+ this->unknownCountdown01 = 2000 - this->structCount;
+ if (0 < this->field4_0x10) {
+ this->field4_0x10 = this->field4_0x10 + -1;
+ }
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00422e20", "name": "updateBuildings", "quelle": "ghidra", "p1": {"bereich": "Gebaeude", "zweck": "Haupttakt: geht jeden Tick alle Gebäude durch und lässt sie einzeln aktualisieren."}, "p2": {"ein": "-", "aus": "-", "liest": ["buildings[].logicalState/buildingType/owner/renderAnimation/idleTimerUnk/fireDuration/timeAlive/cooldownTimer", "BuildingUpdateFunctions[buildingType]", "currentPlayerFullIDArray", "currentAIArray"], "schreibt": ["maxBuildingsCount", "structCount", "playerTotalKillingPits[]", "playerDataArray[].dogCageCount (auf 0)", "populationCap je Spieler", "recruitTimer", "timeAlive", "animStateCounter", "fireDuration", "cooldownTimer", "workers[0..3] (auf 0)", "unknownCountdown01"], "ruft": ["deleteBuilding", "updateNeededEmployeeCount", "BuildingUpdateFunctions[buildingType]", "updateBuildingGraphicsLayer", "processDamageToBuilding", "extinguishBuildingFire", "spawnRandomFireEffectOnBuilding"], "regeln": ["Wenn gameTicksLoadBalancer % 10 == 5: maxBuildingsCount neu bestimmen als höchster belegter Index (1..1999) plus 1", "Je Tick werden Killing-Pit-Zähler und dogCageCount aller Spieler auf 0 gesetzt und neu gezählt", "BLS_INITIAL wird zu BLS_NORMAL, BLS_REMOVE löscht das Gebäude (deleteBuilding)", "Je Gebäude: recruitTimer +1 mit Rücksprung auf 0 ab 100, timeAlive +1, Bevölkerungsgrenze des Besitzers + numberOfPopulationProvided", "idleTimerUnk zählt nur bei KI-Besitzern (kein Mensch, currentAIArray != 0) herunter, sonst wird er auf 0 gesetzt", "Die gebäudespezifische Update-Funktion kommt aus der Tabelle BuildingUpdateFunctions[buildingType]", "Brennt ein Gebäude (fireDuration != 0): alle 20 Ticks (% 20 == 5) Schaden 1, bei Hütte, Holzfäller, Jäger, Weizen-, Hopfen-, Apfel- und Milchfarm Schaden 4; fireDuration steigt je Tick", "Paradeplatz und die 5 Typen ab BT_CAMPGROUND verlieren beim Brandtakt 1 Lebenspunkt; unter 490 wird die Gesundheit auf 500 gesetzt und das Feuer gelöscht", "Von der KI gebaute Feuerballisten und Katapulte (unknownSiegeTentRelated01 == 2, attackWave == 0) werden nach über 2400 Ticks Lebensdauer auf BLS_REMOVE gesetzt", "cooldownTimer zählt je Tick herunter, workers[0..3] werden je Tick auf 0 gesetzt", "Am Ende: unknownCountdown01 = 2000 - structCount"], "offen": ["Was die vielen field…-Zähler (field1_0x4, field4_0x10, field14, field34) bedeuten", "Welche 5 Typen auf BT_CAMPGROUND folgen", "Ob die 2400 Ticks wirklich dem Wert entsprechen, den UCP oder die KI-Dateien verändern"]}, "p3": {"erklaerung": "Das ist der Herzschlag aller Gebäude. Hier wachsen Zeitgeber, brennende Häuser nehmen Schaden und jedes Gebäude ruft seine eigene Arbeitsfunktion auf.", "gehirn": "Die Gebäudetabelle hat 2000 Plätze; maxBuildingsCount gibt die höchste belegte Nummer an. Brandschaden ist 1 je 20 Ticks, bei Hütte und Farmen 4.", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x00423370 UpdateHuntersPost | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00423370
+ void Buildings::UpdateHuntersPost()
+ {
+ int animationDone = 0;
+ int hunterPresent = 0;
+ addBuildingToTargetableBuildings(
+ DAT_CurrentBuildingID);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ int const firstWorkerID = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workerID[0];
+ if (firstWorkerID != 0
+ && DAT_UnitsState.units[firstWorkerID].uid
+ == DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workerUID[0]) {
+ hunterPresent = 1;
+ }
+ int const secondWorkerID = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workerID[1];
+ if (secondWorkerID != 0
+ && DAT_UnitsState.units[secondWorkerID].uid
+ == DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workerUID[1]
+ && (DAT_UnitsState.units[secondWorkerID].unitType == UT_BURNINGMAN
+ || DAT_UnitsState.units[secondWorkerID].unitType == UT_BURNING_ANIMAL_BIG
+ || DAT_UnitsState.units[secondWorkerID].unitType
+ == UT_BURNING_ANIMAL_SMALL)) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].burningWorkerCountdown = 400;
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].burningWorkerCountdown > 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].burningWorkerCountdown -= 1;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workers[0] != 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 1;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].numberOfAnimals == 0
+ && hunterPresent != 0
+ && DAT_BuildingsState.buildings[DAT_CurrentBuildingID].burningWorkerCountdown == 0) {
+ buildingIsAccessible(DAT_CurrentBuildingID, 0);
+ determineBuildingEntranceFromKeepArea(DAT_CurrentBuildingID, 2, 0);
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingEntryX != 0
+ && DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingEntryY != 0) {
+ int const unitID = spawnUnit(DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner,
+ 0, DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingEntryX * 8,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingEntryY * 8,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].terrainHeightUnk,
+ UT_HUNTERDOG);
+ if (unitID != 0) {
+ DAT_UnitsState.units[unitID].targetX_2
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingEntryX;
+ DAT_UnitsState.units[unitID].targetY_2
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingEntryY;
+ determineBuildingEntranceFromKeepArea(DAT_CurrentBuildingID, 1, 0);
+ DAT_UnitsState.units[unitID].workplaceBuildingUID
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].uid;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workerID[1] = unitID;
+ DAT_UnitsState.units[unitID].workplaceBuildingID_1 = DAT_CurrentBuildingID;
+ DAT_UnitsState.units[unitID].state.generic
+ = US_DETERMINE_NEXT_STATEUnk;
+ DAT_UnitsState.units[unitID].substate = -1;
+ DAT_UnitsState.units[unitID].facingDirection = 4;
+ DAT_UnitsState.units[unitID].disappearFadeAlphaCountdown = 32;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workerUID[1]
+ = DAT_UnitsState.units[unitID].uid;
+ DAT_UnitsState.units[unitID].workerIndex = 1;
+ DAT_UnitsState.units[unitID].buildingID = DAT_CurrentBuildingID;
+ }
+ }
+ }
+ // HuntersPostAnimationFrames1/3 are declared byte, but the original reads them signed
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation != 0) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ char const frame
+ = (char)DAT_BuildingDefinedData.HuntersPostAnimationFrames1
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if (frame <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = frame;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength
+ = (16 - DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex) * 2;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 0;
+ animationDone = 1;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state >= 1
+ && DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state <= 6) {
+ if (DAT_BuildingDefinedData.HuntersPostAnimationFrames2
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex]
+ <= 0) {
+ animationDone = 1;
+ addResourceToStockpile(DAT_CurrentBuildingID,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].uid,
+ RT_MEAT, 1, 6, 1);
+ } else {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationActive != 0
+ && DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex
+ == 4) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_HUNTER_CUT);
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame
+ = DAT_BuildingDefinedData.HuntersPostAnimationFrames2
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 0;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 7) {
+ char const frame
+ = (char)DAT_BuildingDefinedData.HuntersPostAnimationFrames3
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if (frame <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = frame;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex * 2;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength >= 32) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 32;
+ animationDone = 1;
+ }
+ }
+ if (animationDone != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 1;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 2;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 2) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 3;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 3) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 4;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 4) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 5;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 5) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 6;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 6) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 7;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 7) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationCycleCount += 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationCycleCompleted = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 0;
+ }
+ }
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength > 31) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 31;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength < 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 0;
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .resources[RT_MEAT]
+ == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1 = 20;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .resources[RT_MEAT]
+ == 2) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1 = 21;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .resources[RT_MEAT]
+ == 3) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1 = 22;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .resources[RT_MEAT]
+ == 4) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1 = 23;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .resources[RT_MEAT]
+ == 5) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1 = 24;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .resources[RT_MEAT]
+ == 6) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1 = 25;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1 = 0;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].numberOfAnimals = 0;
+ // Faithful to the original, which stores the value it just compared against
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workerID[1] == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workerID[1] = 0;
+ }
+ if (DAT_GameSynchronyState.currentGameMode != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage += 1;
+ if (DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage / 2]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage = 0;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].overlayImageID
+ = DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage
+ / 2];
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].overlayImageID = 0;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00423370", "name": "UpdateHuntersPost", "quelle": "nachgebaut", "p1": {"bereich": "Spielablauf", "zweck": "Pro-Takt-Update des Jägerpostens: Jagdhund erzeugen, Animation weiterschalten, Fleisch einlagern."}, "p2": {"ein": "- (aktuelles Gebäude über DAT_CurrentBuildingID)", "aus": "-", "liest": ["buildings[id].workerID[0..1]/workerUID[0..1]/workers[0]/numberOfAnimals/burningWorkerCountdown/state/animationIndex/resources[RT_MEAT]", "units[].uid/unitType", "HuntersPostAnimationFrames1/2/3", "SharedOverlayAnimationFrames", "currentGameMode"], "schreibt": ["burningWorkerCountdown", "renderAnimation", "state", "animationIndex", "animationFrame", "renderBlendStrength", "extraAnimationSprite1", "numberOfAnimals (immer 0 am Ende)", "workerID[1]/workerUID[1]", "overlayImageID", "Fleisch im Lagerfeld"], "ruft": ["addBuildingToTargetableBuildings", "addBuildingInRegistry", "buildingIsAccessible", "determineBuildingEntranceFromKeepArea", "spawnUnit", "addResourceToStockpile", "playSFXAtLocation"], "regeln": ["Der Jäger zählt als anwesend, wenn workerID[0] gesetzt ist und seine UID zur gemerkten passt", "Ist der zweite Arbeiter (Hund) ein brennender Mensch oder ein brennendes Tier (UT_BURNINGMAN, UT_BURNING_ANIMAL_BIG, UT_BURNING_ANIMAL_SMALL), wird burningWorkerCountdown auf 400 gesetzt; sonst zählt er je Takt um 1 herunter bis 0", "Ein Jagdhund (UT_HUNTERDOG) entsteht nur bei numberOfAnimals gleich 0, Jäger anwesend, burningWorkerCountdown gleich 0 und gültigem Eingang (X und Y ungleich 0)", "Animationszustände 0 bis 7; bei Ende eines Zustands geht es zum nächsten, nach Zustand 7 beginnt state wieder bei 0 (animationCycleCount + 1)", "Beim Ende der Zustände 1 bis 6 wird je 1 Fleisch eingelagert: addResourceToStockpile(RT_MEAT, 1, 6, 1); die 6 ist vermutlich die Lagergrenze", "extraAnimationSprite1 = 19 + Fleischbestand bei 1 bis 6 Fleisch, sonst 0 (Fleischberg im Bild)", "renderBlendStrength wird auf 0 bis 31 begrenzt"], "offen": ["Bedeutung der Parameter 6 und 1 von addResourceToStockpile", "Wo numberOfAnimals außerhalb dieser Funktion gesetzt wird (hier wird es am Ende immer auf 0 gestellt)", "Ob je Zyklus wirklich bis zu 6 Fleisch entstehen oder die Grenze es früher bremst"]}, "p3": {"erklaerung": "Der Jäger schickt einen Hund los, der Tiere jagt. Brennt der Hund, pausiert der Posten 400 Takte. Fleisch kommt in kleinen Stücken ins Lagerfeld des Jägerpostens.", "gehirn": "-", "beleg": "nachgebaut", "live": "Jägerposten mit Jäger laufen lassen → resources[RT_MEAT] im Gebäude über einen Zyklus → Zuwachs je Zustandsende, höchstens 6", "live_art": "wirtschaft"}}
+
+### 0x004238b0 UpdateGateHouseLarge | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004238B0
+ void Buildings::UpdateGateHouseLarge()
+ {
+ byte bVar1;
+ int iVar2;
+ uint uVar3;
+ int iVar4;
+ uint uVar5;
+ uint uVar6;
+ uint uVar7;
+ int local_14;
+ int local_10[4];
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ local_14 = (int)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingVariation;
+ updateGateDrawBridgeOpenCloseLogic();
+ iVar2 = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].someX
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x + 4;
+ DAT_BuildingsState.buildings[iVar2].someY = DAT_BuildingsState.buildings[iVar2].y + 2;
+ if ((DAT_TileMapState.mapOrientation == 2) || (DAT_TileMapState.mapOrientation == 6)) {
+ local_14 = local_14 + 1;
+ }
+ if (0x51 < local_14) {
+ local_14 = 0x50;
+ }
+ DAT_BuildingsState.buildings[iVar2].renderAnimation = 0;
+ DAT_BuildingsState.buildings[iVar2].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[iVar2].field20_0x38 = 0;
+ DAT_BuildingsState.buildings[iVar2].field21_0x3c = 0;
+ if (local_14 == 0x50) {
+ DAT_BuildingsState.buildings[iVar2].field20_0x38 = 0x2c;
+ } else {
+ DAT_BuildingsState.buildings[iVar2].field21_0x3c = 0x2d;
+ }
+ DAT_BuildingsState.buildings[iVar2].field22_0x40 = 0;
+ DAT_BuildingsState.buildings[iVar2].field23_0x44 = 0;
+ if (local_14 == 0x50) {
+ DAT_BuildingsState.buildings[iVar2].field22_0x40 = 0xd;
+ } else {
+ DAT_BuildingsState.buildings[iVar2].field23_0x44 = 0xe;
+ }
+ DAT_BuildingsState.buildings[iVar2].field33_0x6c = 0;
+ DAT_BuildingsState.buildings[iVar2].field34_0x70 = 0;
+ DAT_BuildingsState.buildings[iVar2].field35_0x74 = 0;
+ DAT_BuildingsState.buildings[iVar2].field36_0x78 = 0;
+ DAT_BuildingsState.buildings[iVar2].field37_0x7c = 0;
+ DAT_BuildingsState.buildings[iVar2].ownerFlagFrame = 0;
+ DAT_BuildingsState.buildings[iVar2].field39_0x84 = 0;
+ local_10[1] = 0;
+ DAT_BuildingsState.buildings[iVar2].field40_0x88 = 0;
+ local_10[0] = 0;
+ local_10[2] = 0;
+ local_10[3] = 0;
+ iVar4 = 5
+ - (DAT_BuildingsState.buildings[iVar2].currentHealth * 5)
+ / (int)DAT_BuildingsState.buildings[iVar2].maxHealth;
+ if (iVar4 < 5) {
+ if (iVar4 == 0)
+ goto LAB_00423a8d;
+ } else {
+ iVar4 = 4;
+ }
+ if (0 < iVar4) {
+ uVar6 = DAT_BuildingsState.buildings[iVar2].fireRelatedRNG1;
+ uVar3 = (int)uVar6 >> 8;
+ do {
+ uVar7 = uVar6 & 0xf;
+ uVar5 = uVar3 & 3;
+ uVar6 = uVar6 + 1;
+ uVar3 = uVar3 + 1;
+ iVar4 = iVar4 + -1;
+ local_10[uVar5] = uVar7 + 1;
+ } while (iVar4 != 0);
+ }
+ if (local_14 == 0x50) {
+ DAT_BuildingsState.buildings[iVar2].field33_0x6c = local_10[0];
+ DAT_BuildingsState.buildings[iVar2].field34_0x70 = local_10[1];
+ DAT_BuildingsState.buildings[iVar2].field35_0x74 = local_10[2];
+ DAT_BuildingsState.buildings[iVar2].field36_0x78 = local_10[3];
+ } else {
+ DAT_BuildingsState.buildings[iVar2].field37_0x7c = local_10[0];
+ DAT_BuildingsState.buildings[iVar2].ownerFlagFrame = local_10[1];
+ DAT_BuildingsState.buildings[iVar2].field39_0x84 = local_10[2];
+ DAT_BuildingsState.buildings[iVar2].field40_0x88 = local_10[3];
+ }
+ LAB_00423a8d:
+ DAT_BuildingsState.buildings[iVar2].field29_0x5c = 0;
+ DAT_BuildingsState.buildings[iVar2].shouldRenderRoof = 0;
+ DAT_BuildingsState.buildings[iVar2].animationIncrement = 1;
+ DAT_BuildingsState.buildings[iVar2].renderAnimation = 1;
+ bVar1 = DAT_BuildingsState.buildings[iVar2].pathLinkageRelated2;
+ if (bVar1 == 0) {
+ if (DAT_BuildingsState.buildings[iVar2].gateState == 10) {
+ DAT_BuildingsState.buildings[iVar2].pathLinkageRelated2 = 1;
+ DAT_BuildingsState.buildings[iVar2].gateState = 0xc;
+ DAT_BuildingsState.buildings[iVar2].animationIndex = 0;
+ return;
+ }
+ } else {
+ if (bVar1 == 2) {
+ if (DAT_BuildingsState.buildings[iVar2].gateState == 0xb) {
+ DAT_BuildingsState.buildings[iVar2].pathLinkageRelated2 = 3;
+ DAT_BuildingsState.buildings[iVar2].gateState = 0xc;
+ DAT_BuildingsState.buildings[iVar2].animationIndex = 0;
+ }
+ if (local_14 != 0x50) {
+ DAT_BuildingsState.buildings[iVar2].shouldRenderRoof = 6;
+ return;
+ }
+ DAT_BuildingsState.buildings[iVar2].field29_0x5c = 0xc;
+ return;
+ }
+ if (bVar1 == 1) {
+ if (DAT_BuildingsState.buildings[iVar2].animationActive != 0) {
+ if (DAT_BuildingsState.buildings[iVar2].animationIndex == 1) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[iVar2].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[iVar2].y)),
+ FX_PC_DROP);
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex
+ == 0x14) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ (int)((
+ int)((short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y)),
+ FX_PC_SLAM);
+ }
+ }
+ iVar2 = DAT_CurrentBuildingID;
+ bVar1 = DAT_BuildingDefinedData.field142_0x6b44
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if ('\0' < (char)bVar1) {
+ if (local_14 != 0x50) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].shouldRenderRoof
+ = (int)(char)bVar1;
+ return;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field29_0x5c
+ = (char)bVar1 + 6;
+ return;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].pathLinkageRelated2 = 2;
+ updatePathLinkageTileMapRelatedToGates(iVar2);
+ if (local_14 != 0x50) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].shouldRenderRoof = 6;
+ return;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field29_0x5c = 0xc;
+ return;
+ }
+ if (bVar1 == 3) {
+ if ((DAT_BuildingsState.buildings[iVar2].animationActive != 0)
+ && (DAT_BuildingsState.buildings[iVar2].animationIndex == 1)) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[iVar2].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[iVar2].y)),
+ FX_PC_LIFT);
+ }
+ iVar2 = DAT_CurrentBuildingID;
+ bVar1 = DAT_BuildingDefinedData.field141_0x6b28
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if ((char)bVar1 < '\x01') {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].pathLinkageRelated2 = 0;
+ updatePathLinkageTileMapRelatedToGates(iVar2);
+ return;
+ }
+ if (local_14 == 0x50) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field29_0x5c
+ = (char)bVar1 + 6;
+ return;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].shouldRenderRoof
+ = (int)(char)bVar1;
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004238b0", "name": "UpdateGateHouseLarge", "quelle": "ghidra", "p1": {"bereich": "Gebaeude", "zweck": "Taktfunktion des großen Torhauses: Bild, Schadensanzeige und Auf-/Zu-Ablauf der Zugbrücke."}, "p2": {"ein": "- (aktuelles Gebäude über DAT_CurrentBuildingID)", "aus": "-", "liest": ["buildings[id].buildingVariation/x/y/currentHealth/maxHealth/fireRelatedRNG1/pathLinkageRelated2/gateState/animationActive/animationIndex", "mapOrientation", "BuildingDefinedData.field141_0x6b28/field142_0x6b44"], "schreibt": ["buildings[id].someX (=x+4)/someY (=y+2)", "buildings[id].field20..field40 (Schadens- und Bilddaten)", "buildings[id].pathLinkageRelated2 (0..3)", "buildings[id].gateState", "buildings[id].animationIndex", "buildings[id].field29_0x5c/shouldRenderRoof"], "ruft": ["addBuildingInRegistry", "updateGateDrawBridgeOpenCloseLogic", "updatePathLinkageTileMapRelatedToGates", "playSFXAtLocation (FX_PC_DROP, FX_PC_SLAM, FX_PC_LIFT)"], "regeln": ["Bildvariante: buildingVariation, bei mapOrientation 2 oder 6 plus 1, höchstens 0x50 (80)", "Schadensstufe = 5 - (currentHealth*5/maxHealth); ab 5 gilt 4; Stufe 0 überspringt die Schadensbilder", "Je Schadensstufe wird ein Brandbild-Platz (von 4) mit Wert 1..16 aus fireRelatedRNG1 belegt", "Zustand pathLinkageRelated2 = 0 (Brücke oben/zu): ist gateState 10, wird pathLinkageRelated2 = 1, gateState = 0xc, animationIndex = 0 (Absenken beginnt)", "pathLinkageRelated2 = 1 (Absenken): bei animationIndex 1 Ton FX_PC_DROP, bei 0x14 (20) Ton FX_PC_SLAM; ist der Tabellenwert für den Animationsschritt nicht mehr positiv, wird pathLinkageRelated2 = 2 gesetzt und die Wegverbindung der Tore neu berechnet", "pathLinkageRelated2 = 2 (unten/offen): ist gateState 0xb, wird pathLinkageRelated2 = 3, gateState = 0xc, animationIndex = 0 (Anheben beginnt)", "pathLinkageRelated2 = 3 (Anheben): bei animationIndex 1 Ton FX_PC_LIFT; ist der Tabellenwert nicht mehr positiv, wird pathLinkageRelated2 = 0 gesetzt und die Wegverbindung neu berechnet"], "offen": ["Welcher Wert von pathLinkageRelated2 genau Brücke oben bzw. unten bedeutet (hier aus dem Ablauf geschlossen: 0 oben, 2 unten)", "Bedeutung von gateState 10 und 0xb (vermutlich Befehl Absenken bzw. Anheben)", "Feldnamen field20..field40 sind ungesichert"]}, "p3": {"erklaerung": "Das große Torhaus läuft als kleine Ablaufmaschine: Brücke oben, Absenken, unten, Anheben. Erst am Ende jeder Bewegung werden die Wege neu verbunden, sodass Einheiten durchlaufen können.", "gehirn": "Wege durch das Tor sind nur im Zustand unten (pathLinkageRelated2 = 2) frei. Vor einem Durchmarsch dieses Feld lesen und die Absenkdauer einplanen.", "beleg": "code", "live": "Tor an großem Torhaus öffnen → buildings[id].pathLinkageRelated2 → läuft 0, 1, 2 und beim Schließen 2, 3, 0", "live_art": "bauen"}}
+

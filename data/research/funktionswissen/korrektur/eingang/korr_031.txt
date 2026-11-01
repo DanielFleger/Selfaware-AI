@@ -1,0 +1,991 @@
+### 0x0049c690 computeTotalUnitsWithinDistance | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0049C690
+ void PathFindingState::computeTotalUnitsWithinDistance(
+ int playerID, int sameTeamUnits, int someLogicalTileProperty, int tile, int distance)
+ {
+ byte bVar1;
+ ushort uVar2;
+ short sVar3;
+ uint uVar4;
+ int iVar5;
+ int iVar6;
+ int* piVar7;
+ this->calculations = this->calculations + 1;
+ this->searchGeneration = this->searchGeneration + 1;
+ this->ALGO_TotalTroopValue = 0;
+ this->ALGO_TotalTroopCount = 0;
+ this->field34_0x64 = 0;
+ if (32000 < this->searchGeneration) {
+ this->searchGeneration = 1;
+ fillMemory_ByteValue(
+ 0x27420, '\0', (void*)((int)(DAT_TileMapState.WalkLayer)));
+ }
+ this->searchQueue.readIndex = 0;
+ this->searchQueue.writeIndex = 1;
+ this->searchQueue.currentDistance = 1;
+ this->searchQueue.yQueue[0] = DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile];
+ this->searchQueue.tilesQueue[0] = tile;
+ DAT_TileMapState.CertainPathLayer[tile] = 1;
+ DAT_TileMapState.WalkLayer[this->searchQueue.tilesQueue[0]] = (short)this->searchGeneration;
+ if (this->searchQueue.readIndex != this->searchQueue.writeIndex) {
+ while (uVar4 = this->searchQueue.tilesQueue[this->searchQueue.readIndex], uVar4 < 0x13a10) {
+ sVar3 = this->searchQueue.yQueue[this->searchQueue.readIndex];
+ uVar2 = DAT_TileMapState.UnitLayer[uVar4];
+ while (iVar6 = (int)(short)uVar2, iVar6 != 0) {
+ if (sameTeamUnits == 1) {
+ if (DAT_GameState.mapAndTime.playerTeams[playerID]
+ == DAT_GameState.mapAndTime
+ .playerTeams[DAT_UnitsState.units[iVar6].owner]) {
+ LAB_0049c7ba:
+ if ((DAT_UnitsState.units[iVar6].owner != 0)
+ && (DAT_UnitsState.units[iVar6].dying == 0)) {
+ iVar5 = getValueOfTroopType(
+ (int)(short)DAT_UnitsState.units[iVar6].unitType);
+ this->ALGO_TotalTroopValue = this->ALGO_TotalTroopValue + iVar5;
+ this->ALGO_TotalTroopCount = this->ALGO_TotalTroopCount + 1;
+ if (this->field34_0x64 == 0) {
+ this->field34_0x64 = iVar6;
+ }
+ }
+ }
+ } else if ((sameTeamUnits != 0)
+ || (DAT_GameState.mapAndTime.playerTeams[playerID]
+ != DAT_GameState.mapAndTime
+ .playerTeams[DAT_UnitsState.units[iVar6].owner]))
+ goto LAB_0049c7ba;
+ uVar2 = DAT_UnitsState.units[iVar6].nextUnitOnTheSameTile;
+ }
+ this->searchQueue.currentDistance = (int)DAT_TileMapState.CertainPathLayer[uVar4];
+ if (0x13a10 < this->searchQueue.currentDistance) {
+ return;
+ }
+ if (distance < this->searchQueue.currentDistance) {
+ return;
+ }
+ bVar1 = DAT_TileMapState.PathLinkageLayer[uVar4];
+ iVar6 = 0;
+ piVar7 = DAT_TileMapState.directionTranslationMatrix[sVar3] + 1;
+ do {
+ iVar5 = (*(int (*)[8])(piVar7 + -1))[0] + uVar4;
+ if (DAT_TileMapState.WalkLayer[iVar5] != this->searchGeneration) {
+ if (someLogicalTileProperty == 0) {
+ if ((DAT_TileMapState.LogicLayer[iVar5] & 0x30) == 0)
+ goto LAB_0049c880;
+ } else if ((DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[iVar6] & bVar1)
+ != 0) {
+ LAB_0049c880:
+ DAT_TileMapState.CertainPathLayer[iVar5]
+ = (short)this->searchQueue.currentDistance + 1;
+ DAT_TileMapState.WalkLayer[iVar5] = (short)this->searchGeneration;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix
+ + iVar6 * 8 + 4)
+ + sVar3;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = iVar5;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (80400 < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ }
+ iVar5 = *piVar7 + uVar4;
+ if (DAT_TileMapState.WalkLayer[iVar5] != this->searchGeneration) {
+ if (someLogicalTileProperty == 0) {
+ if ((DAT_TileMapState.LogicLayer[iVar5] & 0x30) == 0)
+ goto LAB_0049c918;
+ } else if ((DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[iVar6 + 1]
+ & bVar1)
+ != 0) {
+ LAB_0049c918:
+ DAT_TileMapState.CertainPathLayer[iVar5]
+ = (short)this->searchQueue.currentDistance + 1;
+ DAT_TileMapState.WalkLayer[iVar5] = (short)this->searchGeneration;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix
+ + iVar6 * 8 + 0xc)
+ + sVar3;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = iVar5;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ }
+ iVar5 = piVar7[1] + uVar4;
+ if (DAT_TileMapState.WalkLayer[iVar5] != this->searchGeneration) {
+ if (someLogicalTileProperty == 0) {
+ if ((DAT_TileMapState.LogicLayer[iVar5] & 0x30) == 0)
+ goto LAB_0049c9b1;
+ } else if ((DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[iVar6 + 2]
+ & bVar1)
+ != 0) {
+ LAB_0049c9b1:
+ DAT_TileMapState.CertainPathLayer[iVar5]
+ = (short)this->searchQueue.currentDistance + 1;
+ DAT_TileMapState.WalkLayer[iVar5] = (short)this->searchGeneration;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix
+ + iVar6 * 8 + 0x14)
+ + sVar3;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = iVar5;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ }
+ iVar5 = piVar7[2] + uVar4;
+ if (DAT_TileMapState.WalkLayer[iVar5] != this->searchGeneration) {
+ if (someLogicalTileProperty == 0) {
+ if ((DAT_TileMapState.LogicLayer[iVar5] & 0x30) == 0)
+ goto LAB_0049ca4a;
+ } else if ((DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[iVar6 + 3]
+ & bVar1)
+ != 0) {
+ LAB_0049ca4a:
+ DAT_TileMapState.CertainPathLayer[iVar5]
+ = (short)this->searchQueue.currentDistance + 1;
+ DAT_TileMapState.WalkLayer[iVar5] = (short)this->searchGeneration;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix
+ + iVar6 * 8 + 0x1c)
+ + sVar3;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = iVar5;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ }
+ iVar6 = iVar6 + 4;
+ piVar7 = piVar7 + 4;
+ } while (iVar6 < 8);
+ this->searchQueue.readIndex = this->searchQueue.readIndex + 1;
+ if (0x13a0f < this->searchQueue.readIndex) {
+ this->searchQueue.readIndex = 0;
+ }
+ if (this->searchQueue.readIndex == this->searchQueue.writeIndex) {
+ return;
+ }
+ }
+ }
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0049c690", "name": "computeTotalUnitsWithinDistance", "quelle": "ghidra", "p1": {"bereich": "Wegfindung", "zweck": "Zählt per Breitensuche Einheiten und deren Truppenwert in einem Umkreis um ein Feld."}, "p2": {"ein": "playerID, sameTeamUnits, someLogicalTileProperty, tile, distance", "aus": "nichts; Ergebnis in ALGO_TotalTroopValue, ALGO_TotalTroopCount, field34_0x64", "liest": ["UnitLayer", "units[].owner/dying/unitType/nextUnitOnTheSameTile", "mapAndTime.playerTeams", "LogicLayer", "PathLinkageLayer", "BitFlagHelperForPathLinkage", "CertainPathLayer"], "schreibt": ["ALGO_TotalTroopValue", "ALGO_TotalTroopCount", "field34_0x64 (erste gezählte Einheit)", "searchGeneration", "searchQueue", "CertainPathLayer", "WalkLayer"], "ruft": ["getValueOfTroopType", "fillMemory_ByteValue"], "regeln": ["sameTeamUnits 1: nur Einheiten im selben Team wie playerID", "sameTeamUnits 0: nur Einheiten aus einem anderen Team", "sameTeamUnits mit anderem Wert: alle Einheiten", "Gezählt wird nur, wenn owner ungleich 0 und dying gleich 0", "Jede gezählte Einheit: Anzahl +1, Wert + getValueOfTroopType(unitType)", "someLogicalTileProperty 0: Ausbreitung über Felder mit LogicLayer & 0x30 gleich 0", "someLogicalTileProperty ungleich 0: Ausbreitung nach PathLinkageLayer-Bits (Klettern)", "Suche endet, wenn der Suchabstand (Start = 1) größer als distance ist; das erste Feld mit Abstand distance+1 wird noch gezählt"], "offen": ["field34_0x64 ist ungesichert benannt, nach dem Code die erste gefundene Einheit", "Die erste der vier Richtungen ordnet den Schreibindex ab 80400 statt 0x13a0f um, wohl ein Randfall", "Bedeutung von LogicLayer & 0x30"]}, "p3": {"erklaerung": "Zählt, wie viele lebende Einheiten und wie viel Truppenwert um ein Feld stehen, getrennt nach eigenem Team, Gegnern oder allen.", "gehirn": "Das Spiel misst so die Truppenstärke in der Umgebung. Der Gehirn-Lenker kann das Ergebnis aus den ALGO-Feldern lesen oder die Rechnung selbst nachbilden.", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0049e0d0 updateUnitDeathHeatmapIn3SpacesAroundTile | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0049E0D0
+ void PathFindingState::updateUnitDeathHeatmapIn3SpacesAroundTile(uint x, uint y)
+ {
+ char cVar1;
+ int iVar2;
+ int _direction;
+ int _candidate1;
+ uint _tile;
+ short _x;
+ short _y;
+ if (((x < 400) && (y < 400)) && (*(char*)(y * 400 + 0x21aec98 + x) != '\0')) {
+ this->searchGeneration = this->searchGeneration + 1;
+ if (32000 < this->searchGeneration) {
+ this->searchGeneration = 1;
+ fillMemory_ByteValue(
+ 0x27420, '\0', (void*)((int)(DAT_TileMapState.WalkLayer)));
+ }
+ this->searchQueue.readIndex = 0;
+ this->searchQueue.writeIndex = 1;
+ this->searchQueue.currentDistance = 1;
+ this->searchQueue.yQueue[0] = (short)y;
+ this->searchQueue.xQueue[0] = (short)x;
+ this->searchQueue.tilesQueue[0]
+ = DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x;
+ DAT_TileMapState.CertainPathLayer[this->searchQueue.tilesQueue[0]] = 1;
+ DAT_TileMapState.WalkLayer[this->searchQueue.tilesQueue[0]] = (short)this->searchGeneration;
+ if (this->searchQueue.readIndex != this->searchQueue.writeIndex) {
+ while (_tile = this->searchQueue.tilesQueue[this->searchQueue.readIndex], _tile < 0x13a10) {
+ _x = this->searchQueue.xQueue[this->searchQueue.readIndex];
+ _y = this->searchQueue.yQueue[this->searchQueue.readIndex];
+ iVar2 = (int)DAT_TileMapState.CertainPathLayer[_tile];
+ if (80400 < iVar2) {
+ this->searchQueue.currentDistance = iVar2;
+ return;
+ }
+ if (3 < iVar2) {
+ this->searchQueue.currentDistance = iVar2;
+ return;
+ }
+ this->searchQueue.currentDistance = iVar2;
+ if (DAT_TileMapState.unitDeathHeatMap[_tile] < 250) {
+ this->searchQueue.currentDistance._0_1_
+ = (char)DAT_TileMapState.CertainPathLayer[_tile];
+ cVar1 = DAT_TileMapState.unitDeathHeatMap[_tile]
+ - (char)this->searchQueue.currentDistance;
+ DAT_TileMapState.unitDeathHeatMap[_tile] = cVar1 + 4;
+ }
+ _direction = 0;
+ do {
+ if (((DAT_TileMapState.PathLinkageLayer[_tile]
+ & DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[_direction])
+ != 0)
+ && (_candidate1
+ = DAT_TileMapState.directionTranslationMatrix[_y][_direction] + _tile,
+ DAT_TileMapState.WalkLayer[_candidate1] != this->searchGeneration)) {
+ /*
+ queue tiles walkable in that direction
+ */
+ DAT_TileMapState.CertainPathLayer[_candidate1]
+ = (short)this->searchQueue.currentDistance + 1;
+ DAT_TileMapState.WalkLayer[_candidate1] = (short)this->searchGeneration;
+ this->searchQueue.xQueue[this->searchQueue.writeIndex]
+ = DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[_direction]
+ .short.xOffset
+ + _x;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix
+ + _direction * 8 + 4)
+ + _y;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = _candidate1;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ if (((DAT_TileMapState.PathLinkageLayer[_tile]
+ & DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[_direction + 1])
+ != 0)
+ && (iVar2
+ = DAT_TileMapState.directionTranslationMatrix[_y][_direction + 1] + _tile,
+ DAT_TileMapState.WalkLayer[iVar2] != this->searchGeneration)) {
+ DAT_TileMapState.CertainPathLayer[iVar2]
+ = (short)this->searchQueue.currentDistance + 1;
+ DAT_TileMapState.WalkLayer[iVar2] = (short)this->searchGeneration;
+ this->searchQueue.xQueue[this->searchQueue.writeIndex]
+ = DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix[_direction + 1]
+ .short.xOffset
+ + _x;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix
+ + _direction * 8 + 0xc)
+ + _y;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = iVar2;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ if (((DAT_TileMapState.PathLinkageLayer[_tile]
+ & DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[_direction + 2])
+ != 0)
+ && (iVar2
+ = DAT_TileMapState.directionTranslationMatrix[_y][_direction + 2] + _tile,
+ DAT_TileMapState.WalkLayer[iVar2] != this->searchGeneration)) {
+ DAT_TileMapState.CertainPathLayer[iVar2]
+ = (short)this->searchQueue.currentDistance + 1;
+ DAT_TileMapState.WalkLayer[iVar2] = (short)this->searchGeneration;
+ this->searchQueue.xQueue[this->searchQueue.writeIndex]
+ = DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix[_direction + 2]
+ .short.xOffset
+ + _x;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix
+ + _direction * 8 + 0x14)
+ + _y;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = iVar2;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ if (((DAT_TileMapState.PathLinkageLayer[_tile]
+ & DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[_direction + 3])
+ != 0)
+ && (iVar2
+ = DAT_TileMapState.directionTranslationMatrix[_y][_direction + 3] + _tile,
+ DAT_TileMapState.WalkLayer[iVar2] != this->searchGeneration)) {
+ DAT_TileMapState.CertainPathLayer[iVar2]
+ = (short)this->searchQueue.currentDistance + 1;
+ DAT_TileMapState.WalkLayer[iVar2] = (short)this->searchGeneration;
+ this->searchQueue.xQueue[this->searchQueue.writeIndex]
+ = DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix[_direction + 3]
+ .short.xOffset
+ + _x;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix
+ + _direction * 8 + 0x1c)
+ + _y;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = iVar2;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ _direction = _direction + 4;
+ } while (_direction < 8);
+ this->searchQueue.readIndex = this->searchQueue.readIndex + 1;
+ if (0x13a0f < this->searchQueue.readIndex) {
+ this->searchQueue.readIndex = 0;
+ }
+ if (this->searchQueue.readIndex == this->searchQueue.writeIndex) {
+ return;
+ }
+ }
+ }
+ }
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0049e0d0", "name": "updateUnitDeathHeatmapIn3SpacesAroundTile", "quelle": "ghidra", "p1": {"bereich": "Wegfindung", "zweck": "Erhöht die Todes-Wärmekarte auf dem Feld und bis zu 2 Schritte darum, wo eine Einheit gestorben ist."}, "p2": {"ein": "x, y", "aus": "keine", "liest": ["Gültigkeitsbyte je Feld", "PathLinkageLayer", "BitFlagHelperForPathLinkage", "unitDeathHeatMap"], "schreibt": ["unitDeathHeatMap[feld]", "CertainPathLayer", "WalkLayer", "searchGeneration", "searchQueue"], "ruft": ["fillMemory_ByteValue"], "regeln": ["Nur wenn x<400, y<400 und Startfeld gültig", "searchGeneration +1; über 32000 wird sie auf 1 gesetzt und WalkLayer (0x27420 Byte) auf 0 gelöscht", "Breitensuche über begehbare Verbindungen (PathLinkageLayer), Entfernung zählt ab 1", "Stopp, sobald die Entfernung größer als 3 ist; es werden also Entfernung 1, 2 und 3 bearbeitet", "Nur Felder mit unitDeathHeatMap < 250 werden verändert", "Zuwachs je Feld = 4 minus Entfernung: Startfeld +3, Entfernung 2 +2, Entfernung 3 +1", "Warteschlange hat 0x13A10 (80400) Plätze, Rundlauf"], "offen": ["Name sagt 3 Felder; tatsächlich Entfernung 1 bis 3 inklusive Startfeld, also 2 Schritte Abstand", "Wer die Funktion bei einem Todesfall aufruft"]}, "p3": {"erklaerung": "Wo Einheiten sterben, wird die Karte 'gefährlicher'. Das Zentrum wächst am stärksten, drei Felder weiter nur noch um 1. Felder ab 250 wachsen nicht weiter.", "gehirn": "Die Wärmekarte unitDeathHeatMap ist lesbar und zeigt Orte mit vielen Toden; brauchbar, um gefährliche Stellen für Raids zu meiden.", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0049e510 recomputeALGPathFindingTileMapUnk | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0049E510
+ void PathFindingState::recomputeALGPathFindingTileMapUnk(int someMax, uint x, uint y, undefined4 param_4)
+ {
+ short sVar1;
+ short sVar2;
+ uint uVar3;
+ int _direction;
+ int iVar4;
+ if (((x < 400) && (y < 400)) && (*(char*)(y * 400 + 0x21aec98 + x) != '\0')) {
+ this->searchGeneration = this->searchGeneration + 1;
+ if (32000 < this->searchGeneration) {
+ this->searchGeneration = 1;
+ fillMemory_ByteValue(
+ 160800, '\0', (void*)((int)(DAT_TileMapState.WalkLayer)));
+ }
+ this->searchQueue.currentDistance = 1;
+ this->searchQueue.readIndex = 0;
+ this->searchQueue.writeIndex = 1;
+ this->searchQueue.yQueue[0] = (short)y;
+ this->searchQueue.xQueue[0] = (short)x;
+ this->searchQueue.tilesQueue[0]
+ = DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x;
+ if ((DAT_TileMapState.AIInfoLayer[this->searchQueue.tilesQueue[0]] & 0xf) == 0) {
+ DAT_TileMapState.CertainPathLayer[this->searchQueue.tilesQueue[0]] = 1;
+ DAT_TileMapState.WalkLayer[this->searchQueue.tilesQueue[0]]
+ = (short)this->searchGeneration;
+ if (this->searchQueue.readIndex != this->searchQueue.writeIndex) {
+ while (uVar3 = this->searchQueue.tilesQueue[this->searchQueue.readIndex], uVar3 < 0x13a10) {
+ DAT_TileMapState.AIInfoLayer[uVar3]
+ = DAT_TileMapState.AIInfoLayer[uVar3] | (byte)param_4;
+ sVar1 = this->searchQueue.xQueue[this->searchQueue.readIndex];
+ sVar2 = this->searchQueue.yQueue[this->searchQueue.readIndex];
+ this->searchQueue.currentDistance = (int)DAT_TileMapState.CertainPathLayer[uVar3];
+ if (0x13a10 < this->searchQueue.currentDistance) {
+ return;
+ }
+ if (someMax < this->searchQueue.currentDistance) {
+ return;
+ }
+ _direction = 0;
+ do {
+ if (((((DAT_TileMapState.LogicLayer[uVar3] & 0x30U) == 0)
+ && (((byte)param_4 != 8
+ || ((DAT_TileMapState.LogicLayer[uVar3] & 0x6a5014b1U) == 0))))
+ && (iVar4
+ = DAT_TileMapState.directionTranslationMatrix[sVar2][_direction]
+ + uVar3,
+ DAT_TileMapState.WalkLayer[iVar4] != this->searchGeneration))
+ && (((byte)param_4 == 0x80
+ || (DAT_TileMapState.AIInfoLayer[iVar4] == '\0')))) {
+ DAT_TileMapState.CertainPathLayer[iVar4]
+ = (short)this->searchQueue.currentDistance + 1;
+ DAT_TileMapState.WalkLayer[iVar4] = (short)this->searchGeneration;
+ this->searchQueue.xQueue[this->searchQueue.writeIndex]
+ = DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix[_direction]
+ .short.xOffset
+ + sVar1;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix
+ + _direction * 8 + 4)
+ + sVar2;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = iVar4;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ if (((DAT_TileMapState.LogicLayer[uVar3] & 0x30U) == 0)
+ && (((((byte)param_4 != 8
+ || ((DAT_TileMapState.LogicLayer[uVar3] & 0x6a5014b1U) == 0))
+ && (iVar4 = DAT_TileMapState
+ .directionTranslationMatrix[sVar2][_direction + 1]
+ + uVar3,
+ DAT_TileMapState.WalkLayer[iVar4] != this->searchGeneration))
+ && (((byte)param_4 == 0x80
+ || (DAT_TileMapState.AIInfoLayer[iVar4] == '\0')))))) {
+ DAT_TileMapState.CertainPathLayer[iVar4]
+ = (short)this->searchQueue.currentDistance + 1;
+ DAT_TileMapState.WalkLayer[iVar4] = (short)this->searchGeneration;
+ this->searchQueue.xQueue[this->searchQueue.writeIndex]
+ = DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix[_direction + 1]
+ .short.xOffset
+ + sVar1;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix
+ + _direction * 8 + 0xc)
+ + sVar2;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = iVar4;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ if ((((DAT_TileMapState.LogicLayer[uVar3] & 0x30U) == 0)
+ && (((byte)param_4 != 8
+ || ((DAT_TileMapState.LogicLayer[uVar3] & 0x6a5014b1U) == 0))))
+ && ((iVar4
+ = DAT_TileMapState.directionTranslationMatrix[sVar2][_direction + 2]
+ + uVar3,
+ DAT_TileMapState.WalkLayer[iVar4] != this->searchGeneration
+ && (((byte)param_4 == 0x80
+ || (DAT_TileMapState.AIInfoLayer[iVar4] == '\0')))))) {
+ DAT_TileMapState.CertainPathLayer[iVar4]
+ = (short)this->searchQueue.currentDistance + 1;
+ DAT_TileMapState.WalkLayer[iVar4] = (short)this->searchGeneration;
+ this->searchQueue.xQueue[this->searchQueue.writeIndex]
+ = DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix[_direction + 2]
+ .short.xOffset
+ + sVar1;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix
+ + _direction * 8 + 0x14)
+ + sVar2;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = iVar4;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ if ((((DAT_TileMapState.LogicLayer[uVar3] & 0x30U) == 0)
+ && ((((byte)param_4 != 8
+ || ((DAT_TileMapState.LogicLayer[uVar3] & 0x6a5014b1U) == 0))
+ && (iVar4 = DAT_TileMapState
+ .directionTranslationMatrix[sVar2][_direction + 3]
+ + uVar3,
+ DAT_TileMapState.WalkLayer[iVar4]
+ != this->searchGeneration))))
+ && (((byte)param_4 == 0x80
+ || (DAT_TileMapState.AIInfoLayer[iVar4] == '\0')))) {
+ DAT_TileMapState.CertainPathLayer[iVar4]
+ = (short)this->searchQueue.currentDistance + 1;
+ DAT_TileMapState.WalkLayer[iVar4] = (short)this->searchGeneration;
+ this->searchQueue.xQueue[this->searchQueue.writeIndex]
+ = DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix[_direction + 3]
+ .short.xOffset
+ + sVar1;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix
+ + _direction * 8 + 0x1c)
+ + sVar2;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = iVar4;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ _direction = _direction + 4;
+ } while (_direction < 8);
+ this->searchQueue.readIndex = this->searchQueue.readIndex + 1;
+ if (0x13a0f < this->searchQueue.readIndex) {
+ this->searchQueue.readIndex = 0;
+ }
+ if (this->searchQueue.readIndex == this->searchQueue.writeIndex) {
+ return;
+ }
+ }
+ }
+ }
+ }
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0049e510", "name": "recomputeALGPathFindingTileMapUnk", "quelle": "ghidra", "p1": {"bereich": "Wegfindung", "zweck": "Setzt per Flutfüllung ein Flag-Bit in AIInfoLayer auf allen von einem Startfeld erreichbaren freien Feldern."}, "p2": {"ein": "someMax (größte Entfernung), x, y, param_4 (Flag-Byte)", "aus": "keine", "liest": ["AIInfoLayer", "LogicLayer", "CertainPathLayer", "WalkLayer"], "schreibt": ["AIInfoLayer[feld] |= param_4", "CertainPathLayer", "WalkLayer", "searchGeneration"], "ruft": ["fillMemory_ByteValue"], "regeln": ["Nur wenn x<400, y<400, Startfeld gültig und AIInfoLayer des Startfelds & 0xF == 0", "searchGeneration +1; über 32000 auf 1 und WalkLayer löschen", "Stopp, wenn Entfernung > someMax oder > 0x13A10", "Ein Feld wird nur weiter ausgedehnt, wenn LogicLayer & 0x30 == 0", "Bei param_4 == 8 zusätzlich nur, wenn LogicLayer & 0x6A5014B1 == 0", "Ein Nachbar (8 Richtungen, ohne PathLinkageLayer) wird nur aufgenommen, wenn er noch nicht besucht ist und entweder param_4 == 0x80 oder AIInfoLayer[nachbar] == 0", "Warteschlange 0x13A10 Plätze, Rundlauf"], "offen": ["Bedeutung der AIInfoLayer-Bits 0x08, 0x80 und 0xF", "Bedeutung von LogicLayer-Bits 0x30 und 0x6A5014B1", "Wofür die Funktion aufgerufen wird; Name ist eine Vermutung"]}, "p3": {"erklaerung": "Beschriftet zusammenhängende freie Fläche für die KI-Karte mit einem Flag. Bei param_4 gleich 8 gelten strengere Bedingungen, bei 0x80 darf bereits beschriftetes Gebiet überschrieben werden.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0049e9e0 updateAIZoneWithFloodFill0x20 | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0049E9E0
+ void PathFindingState::updateAIZoneWithFloodFill0x20(int max, uint x, uint y)
+ {
+ short sVar1;
+ short sVar2;
+ int iVar3;
+ int _candidate;
+ int _tile;
+ if (((x < 400) && (y < 400)) && (*(char*)(y * 400 + 0x21aec98 + x) != '\0')) {
+ this->searchGeneration = this->searchGeneration + 1;
+ if (32000 < this->searchGeneration) {
+ this->searchGeneration = 1;
+ fillMemory_ByteValue(
+ 0x27420, '\0', (void*)((int)(DAT_TileMapState.WalkLayer)));
+ }
+ this->searchQueue.readIndex = 0;
+ this->searchQueue.writeIndex = 1;
+ this->searchQueue.currentDistance = 1;
+ this->searchQueue.yQueue[0] = (short)y;
+ this->searchQueue.xQueue[0] = (short)x;
+ this->searchQueue.tilesQueue[0]
+ = DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x;
+ DAT_TileMapState.CertainPathLayer[this->searchQueue.tilesQueue[0]] = 1;
+ DAT_TileMapState.WalkLayer[this->searchQueue.tilesQueue[0]] = (short)this->searchGeneration;
+ if (this->searchQueue.readIndex != this->searchQueue.writeIndex) {
+ do {
+ _tile = this->searchQueue.tilesQueue[this->searchQueue.readIndex];
+ DAT_TileMapState.AIInfoLayer[_tile]
+ = DAT_TileMapState.AIInfoLayer[_tile] | 0x20;
+ sVar1 = this->searchQueue.xQueue[this->searchQueue.readIndex];
+ sVar2 = this->searchQueue.yQueue[this->searchQueue.readIndex];
+ this->searchQueue.currentDistance = (int)DAT_TileMapState.CertainPathLayer[_tile];
+ if (max < this->searchQueue.currentDistance) {
+ return;
+ }
+ iVar3 = 0;
+ do {
+ /*
+ fixme: why are there nested identical if else statements here? shouldn't it tested the
+ edge-ness of the candidate !?
+ */
+ if ((DAT_TileMapState.LogicLayer[_tile] & 0x30) == 0) {
+ _candidate
+ = DAT_TileMapState.directionTranslationMatrix[sVar2][iVar3] + _tile;
+ if (DAT_TileMapState.WalkLayer[_candidate] != this->searchGeneration) {
+ DAT_TileMapState.CertainPathLayer[_candidate]
+ = (short)this->searchQueue.currentDistance + 1;
+ DAT_TileMapState.WalkLayer[_candidate] = (short)this->searchGeneration;
+ this->searchQueue.xQueue[this->searchQueue.writeIndex]
+ = DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[iVar3]
+ .short.xOffset
+ + sVar1;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix
+ + iVar3 * 8 + 4)
+ + sVar2;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = _candidate;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ if ((DAT_TileMapState.LogicLayer[_tile] & 0x30) == 0) {
+ _candidate = DAT_TileMapState.directionTranslationMatrix[sVar2][iVar3 + 1]
+ + _tile;
+ if (DAT_TileMapState.WalkLayer[_candidate] != this->searchGeneration) {
+ DAT_TileMapState.CertainPathLayer[_candidate]
+ = (short)this->searchQueue.currentDistance + 1;
+ DAT_TileMapState.WalkLayer[_candidate]
+ = (short)this->searchGeneration;
+ this->searchQueue.xQueue[this->searchQueue.writeIndex]
+ = DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix[iVar3 + 1]
+ .short.xOffset
+ + sVar1;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix
+ + iVar3 * 8 + 0xc)
+ + sVar2;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = _candidate;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ if ((DAT_TileMapState.LogicLayer[_tile] & 0x30) == 0) {
+ _candidate
+ = DAT_TileMapState.directionTranslationMatrix[sVar2][iVar3 + 2]
+ + _tile;
+ if (DAT_TileMapState.WalkLayer[_candidate]
+ != this->searchGeneration) {
+ DAT_TileMapState.CertainPathLayer[_candidate]
+ = (short)this->searchQueue.currentDistance + 1;
+ DAT_TileMapState.WalkLayer[_candidate]
+ = (short)this->searchGeneration;
+ this->searchQueue.xQueue[this->searchQueue.writeIndex]
+ = DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix[iVar3 + 2]
+ .short.xOffset
+ + sVar1;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix
+ + iVar3 * 8 + 0x14)
+ + sVar2;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = _candidate;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ if (((DAT_TileMapState.LogicLayer[_tile] & 0x30) == 0)
+ && (_candidate = DAT_TileMapState
+ .directionTranslationMatrix[sVar2][iVar3 + 3]
+ + _tile,
+ DAT_TileMapState.WalkLayer[_candidate]
+ != this->searchGeneration)) {
+ DAT_TileMapState.CertainPathLayer[_candidate]
+ = (short)this->searchQueue.currentDistance + 1;
+ DAT_TileMapState.WalkLayer[_candidate]
+ = (short)this->searchGeneration;
+ this->searchQueue.xQueue[this->searchQueue.writeIndex]
+ = DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix[iVar3 + 3]
+ .short.xOffset
+ + sVar1;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix
+ + iVar3 * 8 + 0x1c)
+ + sVar2;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = _candidate;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ }
+ }
+ }
+ iVar3 = iVar3 + 4;
+ } while (iVar3 < 8);
+ this->searchQueue.readIndex = this->searchQueue.readIndex + 1;
+ if (0x13a0f < this->searchQueue.readIndex) {
+ this->searchQueue.readIndex = 0;
+ }
+ } while (this->searchQueue.readIndex != this->searchQueue.writeIndex);
+ }
+ }
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0049e9e0", "name": "updateAIZoneWithFloodFill0x20", "quelle": "ghidra", "p1": {"bereich": "Wegfindung", "zweck": "Setzt per Flutfüllung das Bit 0x20 in AIInfoLayer rund um ein Startfeld."}, "p2": {"ein": "max (größte Entfernung), x, y", "aus": "keine", "liest": ["LogicLayer", "CertainPathLayer", "WalkLayer"], "schreibt": ["AIInfoLayer[feld] |= 0x20", "CertainPathLayer", "WalkLayer", "searchGeneration"], "ruft": ["fillMemory_ByteValue"], "regeln": ["Nur wenn x<400, y<400 und Startfeld gültig", "searchGeneration +1; über 32000 auf 1 und WalkLayer löschen", "Jedes aus der Warteschlange genommene Feld bekommt Bit 0x20", "Stopp, sobald die Entfernung des Felds größer als max ist (das Feld selbst ist da schon markiert)", "Ausdehnung nur, wenn LogicLayer des aktuellen Felds & 0x30 == 0; alle 8 Nachbarn, ohne PathLinkageLayer", "Warteschlange 0x13A10 Plätze, Rundlauf"], "offen": ["Bedeutung von Bit 0x20 und LogicLayer-Bits 0x30", "Das OpenSHC-Team vermutet einen Fehler: Die wiederholten gleichen Prüfungen betreffen das aktuelle Feld statt den Nachbarn"]}, "p3": {"erklaerung": "Markiert eine Zone um einen Punkt als KI-Zone. Die Kantenprüfung bezieht sich auf das Ausgangsfeld, nicht auf den Nachbarn.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0049f7d0 findAppropriateLocationForSiegeTent | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0049F7D0
+ dword PathFindingState::findAppropriateLocationForSiegeTent(
+ int distanceUnk, uint x, uint y, undefined4 selectionID, uint requiredDistanceFromAIZone, int playerID)
+ {
+ short sVar1;
+ bool bVar2;
+ uint uVar3;
+ int* piVar4;
+ int iVar5;
+ int iVar6;
+ dword _offsetTile;
+ uint uVar7;
+ uint uVar8;
+ int local_c;
+ int _tile;
+ /*
+ === INITIAL VALIDATION === Check if coordinates are within map bounds (400x400) and if the tile is
+ walkable
+ */
+ if (((399 < x) || (399 < y)) || (*(char*)(y * 400 + 0x21aec98 + x) == '\0')) {
+ /*
+ Invalid position - out of bounds or unwalkable
+ */
+ return (dword)(0);
+ }
+ /*
+ === PATHFINDING STATE INITIALIZATION === Increment calculation counter (for profiling/debugging)
+ */
+ this->calculations = this->calculations + 1;
+ /*
+ Increment the "active flag" value used to mark visited tiles this search iteration
+ */
+ this->searchGeneration = this->searchGeneration + 1;
+ /*
+ If flag value exceeds 32000, reset to 1 and clear the entire WalkLayer This prevents overflow and avoids
+ having to clear the layer every search
+ */
+ if (32000 < this->searchGeneration) {
+ this->searchGeneration = 1;
+ /*
+ Clear 160800 bytes 80400 short values
+ */
+ fillMemory_ByteValue(
+ 160800, '\0', (void*)((int)(DAT_TileMapState.WalkLayer)));
+ }
+ /*
+ === BFS QUEUE INITIALIZATION === Initialize BFS queue indices Current tile being processed
+ */
+ this->searchQueue.readIndex = 0;
+ /*
+ Next free slot in queue
+ */
+ this->searchQueue.writeIndex = 1;
+ /*
+ Starting distance
+ */
+ this->searchQueue.currentDistance = 1;
+ /*
+ Add starting position to queue
+ */
+ this->searchQueue.yQueue[0] = (short)y;
+ /*
+ Convert 2D coordinates to 1D tile index
+ */
+ this->searchQueue.tilesQueue[0] = DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x;
+ /*
+ Mark starting tile with distance 1
+ */
+ DAT_TileMapState.CertainPathLayer[this->searchQueue.tilesQueue[0]] = 1;
+ /*
+ Mark as visited with current active flag value
+ */
+ DAT_TileMapState.WalkLayer[this->searchQueue.tilesQueue[0]] = (short)this->searchGeneration;
+ /*
+ === MAIN BFS LOOP === Continue while there are tiles in the queue to process
+ */
+ if (this->searchQueue.readIndex != this->searchQueue.writeIndex) {
+ while ((_tile = this->searchQueue.tilesQueue[this->searchQueue.readIndex],
+ -1 < _tile && (_tile < 0x13a10))) {
+ /*
+ Get Y coordinate of current tile being processed
+ */
+ sVar1 = this->searchQueue.yQueue[this->searchQueue.readIndex];
+ /*
+ Get distance from start for current tile
+ */
+ this->searchQueue.currentDistance = (int)DAT_TileMapState.CertainPathLayer[_tile];
+ /*
+ Safety check: if distance exceeds max tile count, abort
+ */
+ if (80400 < this->searchQueue.currentDistance) {
+ return (dword)(0);
+ }
+ /*
+ If we've exceeded search radius, stop searching
+ */
+ if (distanceUnk < this->searchQueue.currentDistance) {
+ return (dword)(0);
+ }
+ /*
+ === EXPLORE 8 ADJACENT TILES === Check all 8 cardinal/diagonal directions from current tile
+ */
+ y = 0;
+ do {
+ /*
+ Check if movement is possible in this direction (using bitflag for direction y) Check if
+ adjacent tile hasn't been visited this iteration
+ */
+ if (((DAT_TileMapState.PathLinkageLayer[_tile]
+ & DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[y])
+ != 0)
+ && (_offsetTile = DAT_TileMapState.directionTranslationMatrix[sVar1][y] + _tile,
+ DAT_TileMapState.WalkLayer[_offsetTile] != this->searchGeneration)) {
+ bVar2 = true;
+ /*
+ === AI Zone DISTANCE CHECK === If specified (i.e. not 0), then the strategic distance of
+ the current tile must be exactly that value
+ */
+ if ((requiredDistanceFromAIZone != 0)
+ && (bVar2 = true,
+ *(byte*)(*(int*)((int)DAT_TroopValueState.attackInfo.hackValuesArray
+ + playerID * 0x177bc + -0x10)
+ * 0x13a10
+ + 0x1ee2998 + _offsetTile)
+ != requiredDistanceFromAIZone)) {
+ bVar2 = false;
+ }
+ /*
+ === SIEGE TENT PLACEMENT VALIDATION === Only check for valid placement if distance > 4
+ (minimum spacing requirement)
+ */
+ if (((4 < this->searchQueue.currentDistance)
+ && (DAT_TileMapState.UnitLayer[_offsetTile] == 0))
+ && (bVar2)) {
+ /*
+ Get height of candidate tile
+ */
+ uVar7 = (uint)DAT_TileMapState.HeightLayer[_offsetTile];
+ iVar6 = 0;
+ local_c = 0;
+ /*
+ Get pointer to movement direction offsets for checking surrounding tiles Track
+ minimum height in surrounding area
+ */
+ piVar4 = DAT_TileMapState
+ .directionTranslationMatrix[*(int*)((int)DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix
+ + y * 8 + 4)
+ + (int)sVar1]
+ + 1;
+ x = uVar7;
+ /*
+ === CHECK 8 SURROUNDING TILES FOR TENT PLACEMENT === Loop checks tiles in groups of
+ 4 for optimization
+ */
+ do {
+ /*
+ Check first tile in group
+ */
+ iVar5 = (*(int (*)[8])(piVar4 + -1))[0] + _offsetTile;
+ /*
+ Disqualify if tile has: impassable terrain, units, or buildings 0x4a7014b1
+ checks for: sea, border, border_edge, rocky, building, tree, river, ford,
+ crenel wall impassible, farm field hop tree, farm field dairy fence, moat, farm
+ */
+ if ((((DAT_TileMapState.LogicLayer[iVar5] & 0x4a7014b1U) != 0)
+ || ((DAT_TileMapState.LogicLayer[iVar5] & 4U) != 0))
+ || ((DAT_TileMapState.UnitLayer[iVar5] != 0
+ || (DAT_TileMapState.BuildingLayer[iVar5] != 0))))
+ break;
+ /*
+ Track height variation (for flatness check)
+ */
+ uVar3 = (uint)DAT_TileMapState.HeightLayer[iVar5];
+ uVar8 = uVar3;
+ if ((uVar3 <= uVar7) && (uVar8 = uVar7, uVar3 < x)) {
+ /*
+ Update minimum height
+ */
+ x = uVar3;
+ }
+ uVar7 = uVar8;
+ /*
+ Update maximum height Repeat checks for tiles 2, 3, and 4 in the group (Pattern
+ repeats with piVar4[0], piVar4[1], piVar4[2]) Each tile checks: LogicLayer,
+ UnitLayer, BuildingLayer, HeightLayer
+ */
+ iVar5 = *piVar4 + _offsetTile;
+ if (((((DAT_TileMapState.LogicLayer[iVar5] & 0x4a7014b1U) != 0)
+ || ((DAT_TileMapState.LogicLayer[iVar5] & 4U) != 0))
+ || (DAT_TileMapState.UnitLayer[iVar5] != 0))
+ || (DAT_TileMapState.BuildingLayer[iVar5] != 0)) {
+ iVar6 = iVar6 + 1;
+ break;
+ }
+ uVar3 = (uint)DAT_TileMapState.HeightLayer[iVar5];
+ uVar8 = uVar3;
+ if ((uVar3 <= uVar7) && (uVar8 = uVar7, uVar3 < x)) {
+ x = uVar3;
+ }
+ uVar7 = uVar8;
+ iVar5 = piVar4[1] + _offsetTile;
+ if ((((DAT_TileMapState.LogicLayer[iVar5] & 0x4a7014b1U) != 0)
+ || ((DAT_TileMapState.LogicLayer[iVar5] & 4U) != 0))
+ || ((DAT_TileMapState.UnitLayer[iVar5] != 0
+ || (DAT_TileMapState.BuildingLayer[iVar5] != 0)))) {
+ iVar6 = iVar6 + 2;
+ break;
+ }
+ uVar3 = (uint)DAT_TileMapState.HeightLayer[iVar5];
+ uVar8 = uVar3;
+ if ((uVar3 <= uVar7) && (uVar8 = uVar7, uVar3 < x)) {
+ x = uVar3;
+ }
+ iVar5 = piVar4[2] + _offsetTile;
+ if (((((DAT_TileMapState.LogicLayer[iVar5] & 0x4a7014b1U) != 0)
+ || ((DAT_TileMapState.LogicLayer[iVar5] & 4U) != 0))
+ || (DAT_TileMapState.UnitLayer[iVar5] != 0))
+ || (DAT_TileMapState.BuildingLayer[iVar5] != 0)) {
+ iVar6 = iVar6 + 3;
+ uVar7 = uVar8;
+ break;
+ }
+ uVar3 = (uint)DAT_TileMapState.HeightLayer[iVar5];
+ uVar7 = uVar3;
+ if ((uVar3 <= uVar8) && (uVar7 = uVar8, uVar3 < x)) {
+ x = uVar3;
+ }
+ local_c = local_c + 4;
+ piVar4 = piVar4 + 4;
+ iVar6 = iVar6 + 4;
+ } while (local_c < 8);
+ /*
+ === FINAL VALIDATION === If all 8 surrounding tiles are clear (iVar6 == 8) AND
+ terrain is relatively flat (height difference < 12)
+ */
+ if ((iVar6 == 8) && ((int)(uVar7 - x) < 0xc)) {
+ /*
+ FOUND VALID LOCATION!
+ */
+ return (dword)(_offsetTile);
+ }
+ }
+ /*
+ === ADD TILE TO BFS QUEUE === Mark this tile's distance (current distance + 1)
+ */
+ DAT_TileMapState.CertainPathLayer[_offsetTile]
+ = (short)this->searchQueue.currentDistance + 1;
+ /*
+ Mark as visited
+ */
+ DAT_TileMapState.WalkLayer[_offsetTile] = (short)this->searchGeneration;
+ /*
+ Add Y coordinate to queue
+ */
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix
+ + y * 8 + 4)
+ + sVar1;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = _offsetTile;
+ /*
+ Increment queue write position
+ */
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (80400 < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ /*
+ Move to next direction
+ */
+ y = y + 1;
+ /*
+ Process all 8 directions
+ */
+ } while ((int)y < 8);
+ /*
+ === ADVANCE TO NEXT TILE IN QUEUE ===
+ */
+ this->searchQueue.readIndex = this->searchQueue.readIndex + 1;
+ if (80400 < this->searchQueue.readIndex) {
+ this->searchQueue.readIndex = 0;
+ }
+ /*
+ Check if queue is empty (read position caught up to write position)
+ */
+ if (this->searchQueue.readIndex == this->searchQueue.writeIndex) {
+ return (dword)(0);
+ }
+ }
+ }
+ /*
+ No valid location found
+ */
+ return (dword)(0);
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0049f7d0", "name": "findAppropriateLocationForSiegeTent", "quelle": "ghidra", "p1": {"bereich": "Wegfindung", "zweck": "Sucht per Breitensuche ein freies, ebenes Feld für ein Belagerungszelt."}, "p2": {"ein": "distanceUnk (größte Suchtiefe), x, y (Start), selectionID (ungenutzt), requiredDistanceFromAIZone, playerID", "aus": "Kachelindex des Zeltplatzes oder 0", "liest": ["Begehbarkeitskarte bei 0x21aec98 (400x400)", "PathLinkageLayer", "UnitLayer", "LogicLayer", "BuildingLayer", "HeightLayer", "KI-Zonen-Ebene je Spieler (0x1ee2998 + Index·0x13a10)"], "schreibt": ["searchGeneration", "calculations", "searchQueue", "CertainPathLayer", "WalkLayer"], "ruft": ["fillMemory_ByteValue"], "regeln": ["Start ungültig (x oder y ≥ 400 oder Startfeld nicht begehbar): Ergebnis 0", "Suche läuft über die 8 Nachbarn, nur wo PathLinkageLayer die Richtung erlaubt", "Abbruch mit 0, sobald die Suchtiefe größer als distanceUnk wird", "Ein Feld kommt erst ab Suchtiefe über 4 in Frage und nur ohne Einheit darauf", "Ist requiredDistanceFromAIZone nicht 0, muss der Zonenwert des Feldes genau diesen Wert haben", "Alle 8 Nachbarfelder des Kandidaten müssen frei sein: LogicLayer ohne Bits 0x4a7014b1 und ohne Bit 4, keine Einheit, kein Gebäude", "Höhenunterschied unter den geprüften Feldern muss kleiner als 12 sein", "WalkLayer wird gelöscht, wenn der Suchzähler über 32000 steigt"], "offen": ["Genaue Höhenrechnung: Ghidra zeigt verschachtelte Min/Max-Zuweisungen, die nicht sicher lesbar sind", "Was die Ebene bei 0x1ee2998 genau enthält (Kommentar sagt KI-Zone)"]}, "p3": {"erklaerung": "Die KI sucht damit einen freien, flachen Platz mindestens 5 Schritte vom Start entfernt, an dem ein Belagerungszelt stehen kann.", "gehirn": "Zeigt, wo die KI Zelte setzt: nicht in Ufer-, Fels-, Baum- oder Gebäudenähe und nicht auf Hängen. Für Raids den Zeltplatz der Gegner so vorhersagen.", "beleg": "code", "live": "KI-Belagerungszelt wird gesetzt → Abstand zum Startpunkt der Suche → mindestens 5 Schritte", "live_art": "ki-welle"}}
+

@@ -1,0 +1,839 @@
+### 0x0052cfe0 buildRallyPointPathForTribe | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0052CFE0
+ BOOLEnum WildlifeState::buildRallyPointPathForTribe(int param_1, int param_2)
+ {
+ short* psVar1;
+ short sVar2;
+ int iVar3;
+ int* piVar4;
+ int iVar5;
+ int* piVar6;
+ uint uVar7;
+ int iVar8;
+ uint uVar9;
+ int iVar10;
+ uint uVar11;
+ int iVar12;
+ int local_1c;
+ int local_14;
+ int local_10;
+ sVar2 = DAT_TribesState.tribes[param_1].selectionTargetUnitID;
+ iVar5 = (int)DAT_UnitsState.units[sVar2].x / 10;
+ local_1c = (int)DAT_UnitsState.units[sVar2].y / 10;
+ this->casDisRelated = param_2;
+ this->candidateIndex = 0;
+ this->candidateIndex2 = 1;
+ if (this->grid[iVar5][local_1c].field20_0x50 != 0) {
+ piVar4 = &this->grid[0][0].field15_0x3c;
+ iVar12 = 0x28;
+ do {
+ iVar3 = 0x28;
+ piVar6 = piVar4;
+ do {
+ piVar6[-1] = 0;
+ *piVar6 = 0;
+ piVar6 = piVar6 + 0x640;
+ iVar3 = iVar3 + -1;
+ } while (iVar3 != 0);
+ piVar4 = piVar4 + 0x28;
+ iVar12 = iVar12 + -1;
+ } while (iVar12 != 0);
+ this->DAT_Y10_Array_Section1034[0] = (short)local_1c;
+ this->DAT_X10_Array_Section1034[0] = (short)iVar5;
+ this->grid[iVar5][local_1c].casDisRelated2 = this->grid[iVar5][local_1c].field20_0x50;
+ iVar12 = this->grid[iVar5][local_1c].separateAreaID;
+ if (this->candidateIndex != this->candidateIndex2) {
+ do {
+ iVar3 = (int)this->DAT_Y10_Array_Section1034[this->candidateIndex];
+ iVar8 = (int)this->DAT_X10_Array_Section1034[this->candidateIndex];
+ piVar4 = &DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[0].int.yOffset;
+ do {
+ uVar9 = *piVar4 + iVar3;
+ uVar7 = ((Point8IntXY*)(piVar4 + -1))->xOffset + iVar8;
+ if (((((uVar7 < 0x28) && (uVar9 < 0x28)) && (0 < this->grid[uVar7][uVar9].firstMember))
+ && ((iVar12 == this->grid[uVar7][uVar9].separateAreaID
+ && (iVar10 = this->grid[uVar7][uVar9].field20_0x50, 0 < iVar10))))
+ && (this->grid[uVar7][uVar9].casDisRelated2 == 0)) {
+ this->grid[uVar7][uVar9].casDisRelated2 = iVar10;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)uVar7;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)uVar9;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (0x63f < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ uVar9 = piVar4[2] + iVar3;
+ uVar7 = piVar4[1] + iVar8;
+ if (((uVar7 < 0x28) && (uVar9 < 0x28))
+ && ((0 < this->grid[uVar7][uVar9].firstMember
+ && (((iVar12 == this->grid[uVar7][uVar9].separateAreaID
+ && (iVar10 = this->grid[uVar7][uVar9].field20_0x50, 0 < iVar10))
+ && (this->grid[uVar7][uVar9].casDisRelated2 == 0)))))) {
+ this->grid[uVar7][uVar9].casDisRelated2 = iVar10;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)uVar7;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)uVar9;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (0x63f < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ uVar9 = piVar4[4] + iVar3;
+ uVar7 = piVar4[3] + iVar8;
+ if ((((uVar7 < 0x28) && (uVar9 < 0x28))
+ && ((0 < this->grid[uVar7][uVar9].firstMember
+ && ((iVar12 == this->grid[uVar7][uVar9].separateAreaID
+ && (iVar10 = this->grid[uVar7][uVar9].field20_0x50, 0 < iVar10))))))
+ && (this->grid[uVar7][uVar9].casDisRelated2 == 0)) {
+ this->grid[uVar7][uVar9].casDisRelated2 = iVar10;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)uVar7;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)uVar9;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (0x63f < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ uVar9 = piVar4[6] + iVar3;
+ uVar7 = piVar4[5] + iVar8;
+ if ((((uVar7 < 0x28) && (uVar9 < 0x28)) && (0 < this->grid[uVar7][uVar9].firstMember))
+ && (((iVar12 == this->grid[uVar7][uVar9].separateAreaID
+ && (iVar10 = this->grid[uVar7][uVar9].field20_0x50, 0 < iVar10))
+ && (this->grid[uVar7][uVar9].casDisRelated2 == 0)))) {
+ this->grid[uVar7][uVar9].casDisRelated2 = iVar10;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)uVar7;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)uVar9;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (0x63f < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ piVar4 = piVar4 + 8;
+ } while ((int)piVar4 < 0xb4908c);
+ this->candidateIndex = this->candidateIndex + 1;
+ if (0x63f < this->candidateIndex) {
+ this->candidateIndex = 0;
+ }
+ } while (this->candidateIndex != this->candidateIndex2);
+ }
+ uVar7 = (uint)(byte)SEC_RNG::instance.currentNumber2;
+ DAT_TribesState.tribes[param_1].currentRallyPointIndex = 0;
+ DAT_TribesState.tribes[param_1].rallyPointCount = 0;
+ this->grid[iVar5][local_1c].field15_0x3c = 1;
+ this->grid[iVar5][local_1c].casDisRelated2 = 0;
+ while (true) {
+ local_14 = -1;
+ local_10 = 2;
+ iVar12 = (uVar7 & 7) - 7;
+ iVar3 = (uVar7 & 7) * 8 + 8;
+ do {
+ iVar8 = iVar12 + 7;
+ iVar10 = iVar3 + -8;
+ if (7 < iVar8) {
+ iVar8 = iVar12 + -1;
+ iVar10 = iVar3 + -72;
+ }
+ uVar9 = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar10)
+ + iVar5;
+ uVar11
+ = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar10 + 4)
+ + local_1c;
+ if (((uVar9 < 0x28) && (uVar11 < 0x28))
+ && ((0 < this->grid[uVar9][uVar11].firstMember
+ && ((iVar10 = this->grid[uVar9][uVar11].casDisRelated2,
+ iVar10 != 0 && (param_2 < iVar10)))))) {
+ this->grid[uVar9][uVar11].casDisRelated2 = 0;
+ param_2 = iVar10;
+ local_14 = iVar8;
+ }
+ iVar8 = iVar3;
+ iVar10 = iVar12 + 8;
+ if (7 < iVar12 + 8) {
+ iVar8 = iVar3 + -0x40;
+ iVar10 = iVar12;
+ }
+ uVar11
+ = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar8 + 4)
+ + local_1c;
+ uVar9 = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar8)
+ + iVar5;
+ if ((((uVar9 < 0x28) && (uVar11 < 0x28)) && (0 < this->grid[uVar9][uVar11].firstMember))
+ && ((iVar8 = this->grid[uVar9][uVar11].casDisRelated2, iVar8 != 0 && (param_2 < iVar8)))) {
+ this->grid[uVar9][uVar11].casDisRelated2 = 0;
+ param_2 = iVar8;
+ local_14 = iVar10;
+ }
+ iVar8 = iVar12 + 9;
+ iVar10 = iVar3 + 8;
+ if (7 < iVar8) {
+ iVar8 = iVar12 + 1;
+ iVar10 = iVar3 + -0x38;
+ }
+ uVar11
+ = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar10 + 4)
+ + local_1c;
+ uVar9 = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar10)
+ + iVar5;
+ if (((uVar9 < 0x28) && (uVar11 < 0x28))
+ && ((0 < this->grid[uVar9][uVar11].firstMember
+ && ((iVar10 = this->grid[uVar9][uVar11].casDisRelated2,
+ iVar10 != 0 && (param_2 < iVar10)))))) {
+ this->grid[uVar9][uVar11].casDisRelated2 = 0;
+ param_2 = iVar10;
+ local_14 = iVar8;
+ }
+ iVar8 = iVar12 + 10;
+ iVar10 = iVar3 + 0x10;
+ if (7 < iVar8) {
+ iVar8 = iVar12 + 2;
+ iVar10 = iVar3 + -0x30;
+ }
+ uVar11
+ = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar10 + 4)
+ + local_1c;
+ uVar9 = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar10)
+ + iVar5;
+ if ((((uVar9 < 0x28) && (uVar11 < 0x28)) && (0 < this->grid[uVar9][uVar11].firstMember))
+ && ((iVar10 = this->grid[uVar9][uVar11].casDisRelated2, iVar10 != 0 && (param_2 < iVar10)))) {
+ this->grid[uVar9][uVar11].casDisRelated2 = 0;
+ param_2 = iVar10;
+ local_14 = iVar8;
+ }
+ iVar3 = iVar3 + 0x20;
+ iVar12 = iVar12 + 4;
+ local_10 = local_10 + -1;
+ } while (local_10 != 0);
+ if (local_14 < 0)
+ break;
+ iVar5
+ = iVar5 + DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[local_14].int.xOffset;
+ local_1c = local_1c
+ + *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + local_14 * 8
+ + 4);
+ this->grid[iVar5][local_1c].field15_0x3c = 1;
+ uVar9 = iVar5 * 10 + 5;
+ uVar11 = local_1c * 10 + 5;
+ if (((uVar9 < 400) && (uVar11 < 400)) && (*(char*)(uVar11 * 400 + 0x21aec98 + uVar9) != '\0')) {
+ DAT_TribesState.tribes[param_1]
+ .rallyPointArray[DAT_TribesState.tribes[param_1].rallyPointCount][0]
+ = (short)iVar5 * 10 + 5;
+ DAT_TribesState.tribes[param_1]
+ .rallyPointArray[DAT_TribesState.tribes[param_1].rallyPointCount][1]
+ = (short)local_1c * 10 + 5;
+ psVar1 = &DAT_TribesState.tribes[param_1].rallyPointCount;
+ *psVar1 = *psVar1 + 1;
+ }
+ }
+ return TRUE;
+ }
+ return FALSE;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0052cfe0", "name": "buildRallyPointPathForTribe", "quelle": "ghidra", "p1": {"bereich": "Umwelt", "zweck": "Baut für eine Tiergruppe eine Wegpunktkette entlang steigender field20_0x50-Werte im Wildtier-Raster."}, "p2": {"ein": "param_1 (tribeID), param_2 (Startschwelle)", "aus": "TRUE bei gebauter Kette, FALSE wenn das Startfeld field20_0x50 gleich 0 hat", "liest": ["tribes[].selectionTargetUnitID", "units[].x/y", "grid[][].field20_0x50/firstMember/separateAreaID", "clockwiseCardinalTranslationMatrix", "SEC_RNG.currentNumber2", "Maske 0x21aec98"], "schreibt": ["grid[][].casDisRelated2", "grid[][].field15_0x3c", "tribes[].rallyPointArray", "tribes[].rallyPointCount", "tribes[].currentRallyPointIndex"], "ruft": [], "regeln": ["Startfeld = Feld der Einheit selectionTargetUnitID; ist dessen field20_0x50 gleich 0, kommt FALSE und nichts wird geändert", "Breitensuche über die 8 Nachbarfelder im selben separateAreaID mit firstMember größer 0 und field20_0x50 größer 0; casDisRelated2 wird auf field20_0x50 gesetzt", "Wanderung ab Zufallsrichtung (SEC_RNG, unteres 3-Bit): wählt jeweils den Nachbarn, dessen casDisRelated2 von 0 verschieden und größer als die bisherige Schwelle param_2 ist, also entlang steigender Werte; besuchte Felder werden auf 0 gesetzt", "Jeder Schritt auf eine begehbare Feldmitte trägt direkt (x*10+5, y*10+5) als Wegpunkt ein, anders als findAndSetNewRallyPointForDeerAndLions ohne Wegsuche", "Warteschlange fasst bis 1600 Einträge, dann Umlauf auf 0"], "offen": ["Wo und womit field20_0x50 gesetzt wird (hier nicht)", "Wofür die Funktion genau aufgerufen wird"]}, "p3": {"erklaerung": "Wie die Hirsch-und-Löwen-Variante, aber der Weg folgt einer Spur von Feldern mit steigendem Wert (field20_0x50) und braucht keine Wegsuche.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0052e120 updateNofFpoints | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0052E120
+ void WildlifeState::updateNofFpoints()
+ {
+ uint uVar1;
+ ushort uVar2;
+ bool bVar3;
+ short* psVar4;
+ WildlifeGridElement* piVar5;
+ int iVar5;
+ uint uVar6;
+ int iVar7;
+ short sVar8;
+ short (*src)[8];
+ uint local_10;
+ int local_c;
+ WildlifeGridElement* local_4;
+ ushort _area;
+ uint _someX;
+ uint _someY;
+ ushort _separateAreaID;
+ /*
+ has nothing to do with mercrecruitable
+ */
+ uVar6 = DAT_GameState.mapAndTime
+ .signpostEntryData[DAT_TroopValueState.attackInfo.field128056_0x469d4]
+ .x;
+ _someY = DAT_GameState.mapAndTime
+ .signpostEntryData[DAT_TroopValueState.attackInfo.field128056_0x469d4]
+ .y;
+ if ((((uVar6 < 400) && (_someY < 400)) && (*(char*)(_someY * 400 + 0x21aec98 + uVar6) != '\0'))
+ && (_separateAreaID = DAT_TileMapState
+ .PathConnectionLayer[DAT_ViewportRenderState.translationMatrix[_someY].addXgetTile
+ + uVar6],
+ DAT_GameSynchronyState.currentGameMode == GM_SOLITARY)) {
+ floodFillCasDisFromSignpost();
+ DAT_TroopValueState.attackInfo.nof_fpoints = 0;
+ psVar4 = DAT_TroopValueState.attackInfo.nof_fpointsArray[0] + 2;
+ do {
+ psVar4[1] = 0;
+ *psVar4 = 0;
+ psVar4[-1] = 0;
+ (*(short (*)[8])(psVar4 + -2))[0] = 0;
+ psVar4 = psVar4 + 8;
+ } while ((int)psVar4 < 0x1784940);
+ sVar8 = 5;
+ local_c = 2000;
+ local_4 = &this->grid[0][0];
+ local_10 = 60;
+ iVar5 = DAT_TroopValueState.attackInfo.nof_fpoints;
+ do {
+ uVar6 = 0xf;
+ piVar5 = local_4;
+ do {
+ if ((piVar5->field27_0x6c != 0) && (0 < piVar5.firstMember)) {
+ uVar1 = uVar6 - 10;
+ _area = DAT_TileMapState.MacroLayer[uVar6
+ + *(int*)((int)&DAT_ViewportRenderState.translationMatrix[0].addXgetTile
+ + local_10)
+ + 0x13a06];
+ if (((_separateAreaID == _area) && ((uVar1 < 400 && (local_10 < 4788))))
+ && (*(char*)(local_c + 0x21aec98 + uVar1) != '\0')) {
+ DAT_TroopValueState.attackInfo.nof_fpointsArray[iVar5][0] = (short)uVar1;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][1] = sVar8;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][2] = 0;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][3] = _area;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][4]
+ = (short)piVar5->field28_0x70;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][5]
+ = (short)piVar5->casDisRelated2;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][6]
+ = (DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][5]
+ + 4)
+ * 0x32
+ - DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][4];
+ iVar5 = DAT_TroopValueState.attackInfo.nof_fpoints + 1;
+ DAT_TroopValueState.attackInfo.nof_fpoints = iVar5;
+ }
+ }
+ if ((((piVar5[0x63f] != 0) && (0 < piVar5[0x624]))
+ && (uVar2 = DAT_TileMapState.PathConnectionLayer
+ [*(int*)((int)&DAT_ViewportRenderState.translationMatrix[0].addXgetTile
+ + local_10)
+ + uVar6],
+ _separateAreaID == uVar2))
+ && ((
+ (uVar6 < 400 && (local_10 < 0x12b5)) && (*(char*)(local_c + 0x21aec98 + uVar6) != '\0')))) {
+ DAT_TroopValueState.attackInfo.nof_fpointsArray[iVar5][0] = (short)uVar6;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][1] = sVar8;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][2] = 0;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][3] = uVar2;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][4]
+ = *(short*)(piVar5 + 0x640);
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][5]
+ = *(short*)(piVar5 + 0x632);
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][6]
+ = (DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][5]
+ + 4)
+ * 0x32
+ - DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][4];
+ iVar5 = DAT_TroopValueState.attackInfo.nof_fpoints + 1;
+ DAT_TroopValueState.attackInfo.nof_fpoints = iVar5;
+ }
+ if ((piVar5[0xc7f] != 0) && (0 < piVar5[0xc64])) {
+ uVar1 = uVar6 + 10;
+ uVar2 = DAT_TileMapState.PathConnectionLayer[uVar6
+ + *(int*)((int)&DAT_ViewportRenderState.translationMatrix[0].addXgetTile
+ + local_10)
+ + 10];
+ if ((_separateAreaID == uVar2)
+ && (((uVar1 < 400 && (local_10 < 0x12b5))
+ && (*(char*)(local_c + 0x21aec98 + uVar1) != '\0')))) {
+ DAT_TroopValueState.attackInfo.nof_fpointsArray[iVar5][0] = (short)uVar1;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][1] = sVar8;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][2] = 0;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][3] = uVar2;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][4]
+ = *(short*)(piVar5 + 0xc80);
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][5]
+ = *(short*)(piVar5 + 0xc72);
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][6]
+ = (DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][5]
+ + 4)
+ * 0x32
+ - DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][4];
+ iVar5 = DAT_TroopValueState.attackInfo.nof_fpoints + 1;
+ DAT_TroopValueState.attackInfo.nof_fpoints = iVar5;
+ }
+ }
+ if ((piVar5[0x12bf] != 0) && (0 < piVar5[0x12a4])) {
+ uVar1 = uVar6 + 0x14;
+ uVar2 = DAT_TileMapState.PathConnectionLayer[uVar6
+ + *(int*)((int)&DAT_ViewportRenderState.translationMatrix[0].addXgetTile
+ + local_10)
+ + 0x14];
+ if (((_separateAreaID == uVar2) && ((uVar1 < 400 && (local_10 < 0x12b5))))
+ && (*(char*)(local_c + 0x21aec98 + uVar1) != '\0')) {
+ DAT_TroopValueState.attackInfo.nof_fpointsArray[iVar5][0] = (short)uVar1;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][1] = sVar8;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][2] = 0;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][3] = uVar2;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][4]
+ = *(short*)(piVar5 + 0x12c0);
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][5]
+ = *(short*)(piVar5 + 0x12b2);
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][6]
+ = (DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][5]
+ + 4)
+ * 0x32
+ - DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][4];
+ iVar5 = DAT_TroopValueState.attackInfo.nof_fpoints + 1;
+ DAT_TroopValueState.attackInfo.nof_fpoints = iVar5;
+ }
+ }
+ if ((piVar5[0x18ff] != 0) && (0 < piVar5[0x18e4])) {
+ uVar1 = uVar6 + 0x1e;
+ uVar2 = DAT_TileMapState.PathConnectionLayer[uVar6
+ + *(int*)((int)&DAT_ViewportRenderState.translationMatrix[0].addXgetTile
+ + local_10)
+ + 0x1e];
+ if ((_separateAreaID == uVar2)
+ && (((uVar1 < 400 && (local_10 < 0x12b5))
+ && (*(char*)(local_c + 0x21aec98 + uVar1) != '\0')))) {
+ DAT_TroopValueState.attackInfo.nof_fpointsArray[iVar5][0] = (short)uVar1;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][1] = sVar8;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][2] = 0;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][3] = uVar2;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][4]
+ = *(short*)(piVar5 + 0x1900);
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][5]
+ = *(short*)(piVar5 + 0x18f2);
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][6]
+ = (DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][5]
+ + 4)
+ * 0x32
+ - DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][4];
+ iVar5 = DAT_TroopValueState.attackInfo.nof_fpoints + 1;
+ DAT_TroopValueState.attackInfo.nof_fpoints = iVar5;
+ }
+ }
+ uVar6 = uVar6 + 0x32;
+ piVar5 = piVar5 + 8000;
+ } while ((int)uVar6 < 0x19f);
+ local_c = local_c + 4000;
+ local_10 = local_10 + 0x78;
+ local_4 = local_4 + 0x28;
+ sVar8 = sVar8 + 10;
+ } while ((int)local_10 < 0x12fc);
+ do {
+ bVar3 = false;
+ iVar7 = 0;
+ if (iVar5 == 1 || iVar5 + -1 < 0) {
+ return;
+ }
+ src = DAT_TroopValueState.attackInfo.nof_fpointsArray;
+ do {
+ if (src[1][6] < (*src)[6]) {
+ bVar3 = true;
+ copyData(16,
+ (void*)((int)(src)),
+ (void*)((int)(DAT_TroopValueState.attackInfo.nof_fpointsArrayCopy)));
+ copyData(
+ 0x10, (void*)((int)(src + 1)), (void*)((int)(src)));
+ copyData(0x10,
+ (void*)((int)(DAT_TroopValueState.attackInfo.nof_fpointsArrayCopy)),
+ (void*)((int)(src + 1)));
+ iVar5 = DAT_TroopValueState.attackInfo.nof_fpoints;
+ }
+ iVar7 = iVar7 + 1;
+ src = src + 1;
+ } while (iVar7 < iVar5 + -1);
+ } while (bVar3);
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0052e120", "name": "updateNofFpoints", "quelle": "ghidra", "p1": {"bereich": "Umwelt", "zweck": "Baut im Einzelspielermodus die sortierte Punkteliste attackInfo.nof_fpointsArray rund um einen Wegweiser (Signpost) auf."}, "p2": {"ein": "-", "aus": "-", "liest": ["DAT_GameState.mapAndTime.signpostEntryData[attackInfo.field128056_0x469d4].x/.y", "Byte-Tabelle bei 0x021AEC98 (400 x 400)", "DAT_TileMapState.PathConnectionLayer", "DAT_TileMapState.MacroLayer", "grid[][].field27_0x6c", "field28_0x70", "casDisRelated2"], "schreibt": ["attackInfo.nof_fpoints", "attackInfo.nof_fpointsArray[i][0..6]", "attackInfo.nof_fpointsArrayCopy"], "ruft": ["floodFillCasDisFromSignpost", "copyData"], "regeln": ["Nur bei GM_SOLITARY und nur wenn Wegweiser-x und -y beide unter 400 liegen und die Byte-Tabelle dort ungleich 0 ist", "Liste wird zuerst geleert (nof_fpoints = 0, alle Einträge 0)", "Zeilenschritt 10 Felder, Eintrag [1] zählt 5, 15, 25 … (sVar8 + 10 je Zeile)", "Ein Punkt wird nur aufgenommen, wenn seine Fläche (PathConnectionLayer) gleich der Fläche des Wegweisers ist und die Byte-Tabelle dort ungleich 0 ist", "Eintrag: [0]=x, [1]=y-Wert, [2]=0, [3]=Fläche, [4]=field28_0x70, [5]=casDisRelated2, [6]=(casDisRelated2 + 4) * 50 - field28_0x70", "Zuletzt Bubble-Sort aufsteigend nach Feld [6] (kleinster Wert zuerst); bei höchstens einem Eintrag keine Sortierung", "Je Zelle werden bis zu 4 Nachbarpunkte im Abstand 0, 10, 20, 30 geprüft"], "offen": ["Was fpoints genau sind (vermutlich Angriffs- oder Sammelpunkte der KI)", "Der Kommentar im Code sagt: hat nichts mit mercrecruitable zu tun", "Größe des Arrays nof_fpointsArray ist hier nicht belegt", "Hinweis: viele Feldnamen unsicher (field…, casDisRelated2)"]}, "p3": {"erklaerung": "Das Spiel sammelt Punkte in der Nähe eines Wegweisers, die für Einheiten erreichbar sind, und ordnet sie nach einer Wertung aus Burgentfernung und field28. Im Mehrspielermodus läuft das nicht.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0052e960 euroRecruit | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0052E960
+ int UnitsState::euroRecruit(int unitType, undefined4 playersBarracksID, int playerID, int param_4)
+ {
+ int* piVar1;
+ UnitStateShort UVar2;
+ ResourceType resourceType;
+ int _unitTypeMin0x16;
+ int _buildingID;
+ Unit* _ptrUnit;
+ int _unitID;
+ ResourceTypeInt _unitCost;
+ ResourceType _weaponResource_2;
+ int _horseResource;
+ ResourceType _unknownResource;
+ ResourceType _weaponResource;
+ /*
+ archer is unittype 0x16
+ */
+ this->euroUnitAcquisitionFailReason = 0;
+ _unitCost = DAT_TroopDefinedData.MarketResourceCycleArray[unitType + -1];
+ resourceType = DAT_UnitPropertiesDefinedData.MELEE_DAMAGE[0x4e][unitType * 4 + 0x49];
+ /*
+ fixme: always 0 strange
+ */
+ _unknownResource = DAT_UnitPropertiesDefinedData.MELEE_DAMAGE[0x4e][unitType * 4 + 0x4a];
+ /*
+ bug: if unitType was 0, then it became -0x16, which results in requiring wood for creating this unit.
+ This is nonsensical. It is wood because it will access memory DAT_MELEE_DAMAGE_MATRIX[78][72], which
+ happens to be 2
+ */
+ _weaponResource = DAT_UnitPropertiesDefinedData.MELEE_DAMAGE[0x4e][unitType * 4 + 0x48];
+ _horseResource = DAT_UnitPropertiesDefinedData.MELEE_DAMAGE[0x4e][unitType * 4 + 0x4b];
+ if ((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ && (DAT_GameSynchronyState.skirmishTroopsCostGold == 0)) {
+ _unitCost = ((ResourceType)0);
+ }
+ if (DAT_GameState.playerDataArray[playerID].currentResources[0xf] < (int)_unitCost) {
+ this->euroUnitAcquisitionFailReason = 1;
+ /*
+ if we do not have the gold resources
+ */
+ return 0;
+ }
+ if ((0 < DAT_GameState.playerDataArray[playerID].currentResources[_weaponResource])
+ || (_weaponResource_2 = _weaponResource, (int)_weaponResource < 1)) {
+ if ((DAT_GameState.playerDataArray[playerID].currentResources[resourceType] < 1)
+ && (0 < (int)resourceType)) {
+ this->euroUnitAcquisitionFailReason = 2;
+ this->euroUnitRequiredResource = resourceType;
+ /*
+ if we do not own the required armor
+ */
+ return 0;
+ }
+ if ((0 < DAT_GameState.playerDataArray[playerID].currentResources[_unknownResource])
+ || (_weaponResource_2 = _unknownResource, (int)_unknownResource < 1)) {
+ if (_horseResource == -1) {
+ recountStablesAndHorses();
+ if (DAT_GameState.playerDataArray[playerID].availableHorses < 1) {
+ this->euroUnitAcquisitionFailReason = 4;
+ return 0;
+ }
+ }
+ _unitID = 1;
+ if (1 < (int)this->maxUnitCount) {
+ _ptrUnit = &this->units[1];
+ do {
+ if ((((_ptrUnit->unitType == UT_PEASANT)
+ && (_ptrUnit->owner == playerID))
+ && (_ptrUnit->dying == 0))
+ && (_ptrUnit->logicalState == ULS_NORMAL)) {
+ UVar2 = (_ptrUnit->state).generic;
+ if ((((UVar2 != US_RELOAD_WEAPONUnk)
+ && (UVar2 != US_AIM_WEAPONUnk))
+ && ((UVar2 != US_JESTER_ROAM_TO
+ && (UVar2 != US_MELEE_ATTACK))))
+ && ((UVar2 != US_DETERMINE_NEXT_STATEUnk
+ || (_ptrUnit->isDisappearingUnk == 0)))) {
+ if (param_4 != 0) {
+ return 1;
+ }
+ this->units[_unitID].unitTypeToChangeInto = (UnitTypeShort)unitType;
+ this->units[_unitID].engineerManningSiegeStateRef_checkType = 1;
+ this->units[_unitID].isDisappearingUnk = 1;
+ this->units[_unitID].state_2 = 0;
+ this->units[_unitID].state.generic = US_JESTER_ROAM_TO;
+ this->units[_unitID].disappearFadeAlphaCountdown = 0;
+ this->units[_unitID].cachedState
+ = US_DETERMINE_NEXT_STATEUnk;
+ piVar1 = DAT_GameState.playerDataArray[playerID].currentResources + 0xf;
+ *piVar1 = *piVar1 - _unitCost;
+ processResourceLoss(playerID, _weaponResource, 1, 0);
+ processResourceLoss(playerID, resourceType, 1, 0);
+ processResourceLoss(playerID, _unknownResource, 1, 0);
+ if (_horseResource == -1) {
+ _buildingID = MACRO_CALL_MEMBER(
+ linkageBetweenHorseUnitAndStableUnk,
+ DAT_GameState)(playerID, _unitID);
+ this->units[_unitID].horseOriginStablesBuildingIndexUnk = (short)_buildingID;
+ *(int*)&this->units[_unitID].horseOriginStableIDUnk
+ = DAT_BuildingsState.buildings[_buildingID].uid;
+ }
+ piVar1
+ = DAT_GameSynchronyState.finalResults.finalTroopsProduced + playerID;
+ *piVar1 = *piVar1 + 1;
+ aiAssignNewUnitToTribe(playerID, unitType, _unitID);
+ return _unitID;
+ }
+ }
+ _unitID = _unitID + 1;
+ /*
+ 0x248 = 584, which is half of 1168. basically: go to next unit
+ */
+ _ptrUnit = _ptrUnit + 0x248;
+ } while (_unitID < (int)this->maxUnitCount);
+ }
+ this->euroUnitAcquisitionFailReason = 3;
+ /*
+ units not allowed? over max amount units?
+ */
+ return 0;
+ }
+ }
+ this->euroUnitAcquisitionFailReason = 2;
+ this->euroUnitRequiredResource = _weaponResource_2;
+ /*
+ we don't own the weapon required
+ */
+ return 0;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0052e960", "name": "euroRecruit", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Wirbt einen europäischen Soldaten aus einem Bauern an."}, "p2": {"ein": "typ, kaserne, spieler, nurPruefen", "aus": "unitID, 0 bei Fehlschlag, 1 bei nurPruefen", "liest": ["Goldpreis aus TroopDefinedData (Feld irreführend MarketResourceCycleArray[typ-1])", "Waffe/Rüstung/Pferd aus UnitPropertiesDefinedData (MELEE_DAMAGE[0x4e][typ*4+0x48..0x4b], Feld irreführend)", "currentResources", "availableHorses", "freie Bauern"], "schreibt": ["euroUnitAcquisitionFailReason", "euroUnitRequiredResource", "Gold", "Waffe/Rüstung je -1", "units[].horseOriginStablesBuildingIndexUnk/horseOriginStableIDUnk", "finalTroopsProduced"], "ruft": ["recountStablesAndHorses", "processResourceLoss", "linkageBetweenHorseUnitAndStableUnk", "aiAssignNewUnitToTribe"], "regeln": ["Gefecht/Mehrspieler (nicht GM_SOLITARY) mit skirmishTroopsCostGold=0: Goldpreis 0", "Reihenfolge der Prüfung: Gold, Waffe, Rüstung, Zusatzware, Pferd, Bauer", "Fehlergrund 1: zu wenig Gold", "Fehlergrund 2: Waffe, Rüstung oder Zusatzware fehlt, die fehlende Ware steht in euroUnitRequiredResource", "Fehlergrund 4: Pferd nötig (Wert -1 in der Tabelle) und availableHorses < 1", "Fehlergrund 3: kein freier Bauer", "Frei ist ein Bauer, wenn er lebt, im Normalzustand ist und nicht nachlädt, zielt, JESTER_ROAM_TO ist, kämpft oder bereits in Umwandlung steckt", "Bei nurPruefen (param_4 != 0) Rückgabe 1 ohne Abbuchung", "Keine Prüfung der Heergrenze (steht in ProcessRecruitUnit)", "Das dritte Waffenfeld (Offset 0x4A) ist laut Kommentar immer 0"], "offen": ["Zusatzware Offset 0x4A: Zweck unbekannt", "Unterlauf bei typ 0 greift laut Kommentar auf Holz zu"]}, "p3": {"erklaerung": "Gold, Waffe, Rüstung und gegebenenfalls Pferd werden sofort abgebucht. Ein freier Bauer läuft los und verwandelt sich. Den Grund für einen Fehlschlag merkt sich das Spiel.", "gehirn": "Nach einem Anwerbebefehl euroUnitAcquisitionFailReason lesen (1 Gold, 2 Ware, 3 Bauer, 4 Pferd) statt zu raten.", "beleg": "code", "live": "Anwerben ohne Waffe → UnitsState.euroUnitAcquisitionFailReason → 2", "live_art": "anwerben"}}
+
+### 0x0052f7e0 calculateUnitMovementSpeed | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0052F7E0
+ void UnitsState::calculateUnitMovementSpeed(int unitID)
+ {
+ short* psVar1;
+ ushort* puVar2;
+ byte bVar3;
+ short sVar4;
+ BuildingTypeShort BVar5;
+ uint uVar6;
+ uint uVar7;
+ int _height_2;
+ int _tribeID;
+ int iVar8;
+ int iVar9;
+ int _heightDiff;
+ int iVar10;
+ uint _totalHeight_2;
+ short _speed_lt2;
+ short _height;
+ byte _totalHeight;
+ short _speed_lt4;
+ short _speed_ge4;
+ short _unitMovementSpeed;
+ short _tribeMovementSpeed;
+ puVar2 = &this->units[unitID].field322_0x440;
+ *puVar2 = *puVar2 + 1;
+ uVar7 = (uint)this->units[unitID].field322_0x440;
+ iVar8 = this->units[unitID].tile;
+ iVar10 = (int)DAT_TileMapState.BuildingLayer[iVar8];
+ uVar6 = DAT_TileMapState.LogicLayer[iVar8];
+ if (this->units[unitID].unknownCountdown_0x402 == 0) {
+ if ((iVar10 == 0) && ((uVar6 & 0x10000500) == 0)) {
+ if ((uVar7 + unitID & 7) != 0) {
+ return;
+ }
+ } else if ((uVar7 + unitID & 3) != 0) {
+ return;
+ }
+ }
+ this->units[unitID].isMatchingSpeed = false;
+ iVar9 = (int)DAT_TileMapState.OrganismLayer[iVar8];
+ uVar7 = uVar6 & 0x20000000;
+ _totalHeight = DAT_TileMapState.HeightLayer[iVar8];
+ _totalHeight_2 = (uint)_totalHeight;
+ if ((iVar9 != 0) && (iVar9 < 2000)) {
+ DAT_LandscapeState.trees[iVar9].state = 3;
+ }
+ if ((uVar7 != 0) && ((DAT_TileMapState.MacroLayer[iVar8] & 0x3f) == 1)) {
+ uVar7 = 0;
+ }
+ if ((DAT_TileMapState.LogicLayer[iVar8] & 0x40000000U) != 0) {
+ uVar7 = 1;
+ }
+ if ((uVar6 & 0x800000) == 0) {
+ _height = this->units[unitID].terrainOrClimbHeight;
+ _height_2 = (int)_height;
+ if (_height_2 < (int)_totalHeight_2) {
+ _heightDiff = _totalHeight_2 - _height_2;
+ if (_heightDiff < 0x11) {
+ if (_heightDiff < 0xc) {
+ if (_heightDiff < 8) {
+ if (_heightDiff < 4) {
+ if (_heightDiff < 2) {
+ _speed_lt2 = _height + 1;
+ goto LAB_0052f9b5;
+ }
+ _speed_lt4 = this->units[unitID].movementSpeed;
+ this->units[unitID].terrainOrClimbHeight = _height + 2;
+ this->units[unitID].calculatedMovementSpeed = _speed_lt4 + 1;
+ } else {
+ _speed_ge4 = this->units[unitID].movementSpeed;
+ this->units[unitID].terrainOrClimbHeight = _height + 3;
+ this->units[unitID].calculatedMovementSpeed = _speed_ge4 + 3;
+ }
+ } else {
+ sVar4 = this->units[unitID].movementSpeed;
+ this->units[unitID].terrainOrClimbHeight = _height + 4;
+ this->units[unitID].calculatedMovementSpeed = sVar4 + 4;
+ this->units[unitID].movementRunUpTime = 8;
+ }
+ } else {
+ sVar4 = this->units[unitID].movementSpeed;
+ this->units[unitID].terrainOrClimbHeight = _height + 4;
+ this->units[unitID].calculatedMovementSpeed = sVar4 + 5;
+ this->units[unitID].movementRunUpTime = 0xc;
+ }
+ } else {
+ LAB_0052f8ee:
+ sVar4 = this->units[unitID].movementSpeed;
+ this->units[unitID].terrainOrClimbHeight = (ushort)_totalHeight;
+ this->units[unitID].calculatedMovementSpeed = sVar4;
+ }
+ } else if ((int)_totalHeight_2 < _height_2) {
+ iVar9 = _height_2 - _totalHeight_2;
+ if (0x10 < iVar9)
+ goto LAB_0052f8ee;
+ if (iVar9 < 0xc) {
+ if (iVar9 < 8) {
+ if (3 < iVar9) {
+ _speed_lt2 = _height + -2;
+ goto LAB_0052f9b5;
+ }
+ this->units[unitID].terrainOrClimbHeight = _height + -1;
+ } else {
+ sVar4 = this->units[unitID].movementSpeed;
+ this->units[unitID].terrainOrClimbHeight = _height + -3;
+ this->units[unitID].calculatedMovementSpeed = sVar4;
+ }
+ } else {
+ _speed_lt2 = _height + -4;
+ LAB_0052f9b5:
+ sVar4 = this->units[unitID].movementSpeed;
+ this->units[unitID].terrainOrClimbHeight = _speed_lt2;
+ this->units[unitID].calculatedMovementSpeed = sVar4;
+ }
+ } else if (this->units[unitID].isSelectable_OR_matchTime == 0) {
+ this->units[unitID].calculatedMovementSpeed = this->units[unitID].movementSpeed;
+ } else {
+ _tribeID = (int)this->units[unitID].tribeID;
+ _unitMovementSpeed = this->units[unitID].movementSpeed;
+ this->units[unitID].calculatedMovementSpeed = _unitMovementSpeed;
+ if (_tribeID < 1) {
+ this->units[unitID].calculatedMovementSpeed = _unitMovementSpeed;
+ } else if (DAT_TribesState.tribes[_tribeID].unitType == ((UnitType)0)) {
+ if (DAT_TribesState.tribes[_tribeID].freeUnitSpeeds == 0) {
+ _tribeMovementSpeed = DAT_TribesState.tribes[_tribeID].movementSpeed;
+ this->units[unitID].calculatedMovementSpeed = _tribeMovementSpeed;
+ if (_tribeMovementSpeed < _unitMovementSpeed) {
+ this->units[unitID].calculatedMovementSpeed = _unitMovementSpeed;
+ }
+ this->units[unitID].isMatchingSpeed = true;
+ } else {
+ this->units[unitID].calculatedMovementSpeed = _unitMovementSpeed;
+ }
+ } else {
+ this->units[unitID].calculatedMovementSpeed = _unitMovementSpeed;
+ }
+ }
+ } else {
+ this->units[unitID].calculatedMovementSpeed = this->units[unitID].movementSpeed;
+ }
+ if (uVar7 == 0) {
+ bVar3 = this->units[unitID].negativeHeight;
+ if ((uVar6 & 0x200000) != 0) {
+ if ((char)bVar3 < '\x10') {
+ this->units[unitID].negativeHeight = bVar3 + 4;
+ }
+ psVar1 = &this->units[unitID].calculatedMovementSpeed;
+ *psVar1 = *psVar1 + 2;
+ goto LAB_0052fb20;
+ }
+ if (bVar3 == 0)
+ goto LAB_0052fb20;
+ this->units[unitID].negativeHeight = bVar3 - 8;
+ if ((char)(bVar3 - 8) < '\0') {
+ this->units[unitID].negativeHeight = 0;
+ }
+ } else {
+ bVar3 = this->units[unitID].negativeHeight;
+ if ((char)bVar3 < '\x18') {
+ this->units[unitID].negativeHeight = bVar3 + 4;
+ }
+ bVar3 = this->units[unitID].negativeHeight;
+ if ('\x04' < (char)bVar3) {
+ if ((char)bVar3 < '\n') {
+ psVar1 = &this->units[unitID].calculatedMovementSpeed;
+ *psVar1 = *psVar1 + 4;
+ } else {
+ psVar1 = &this->units[unitID].calculatedMovementSpeed;
+ *psVar1 = *psVar1 + 6;
+ }
+ goto LAB_0052fb20;
+ }
+ }
+ psVar1 = &this->units[unitID].calculatedMovementSpeed;
+ *psVar1 = *psVar1 + 3;
+ LAB_0052fb20:
+ this->units[unitID].field289_0x3ff = 0;
+ if ((DAT_TileMapState.LogicLayer[iVar8] & 8) != 0) {
+ registerSpottedEnemyTile(iVar8);
+ }
+ if (iVar10 != 0) {
+ BVar5 = DAT_BuildingsState.buildings[iVar10].buildingType;
+ if ((0x28 < (short)BVar5) && ((short)BVar5 < 0x2d)) {
+ iVar8 = (int)this->units[unitID].owner;
+ this->units[unitID].field289_0x3ff = 1;
+ if (((DAT_BuildingsState.buildings[iVar10].owner != iVar8)
+ && (((this->units[unitID].dying == 0
+ && (this->units[unitID].logicalState == ULS_NORMAL))
+ && (iVar8 != 0))))
+ && (DAT_GameSynchronyState.currentPlayerFullIDArray[iVar8] == -1)) {
+ DAT_TroopValueState.attackInfo.field128058_0x469dc
+ = DAT_TroopValueState.attackInfo.field128058_0x469dc + 1;
+ }
+ }
+ }
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0052f7e0", "name": "calculateUnitMovementSpeed", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Berechnet das Lauftempo einer Einheit je nach Gelände, Steigung und Gruppe."}, "p2": {"ein": "unitID", "aus": "-", "liest": ["units[].movementSpeed", "units[].terrainOrClimbHeight", "HeightLayer", "LogicLayer", "BuildingLayer", "OrganismLayer", "tribes[].movementSpeed", "tribes[].freeUnitSpeeds", "units[].negativeHeight", "units[].isSelectable_OR_matchTime"], "schreibt": ["units[].calculatedMovementSpeed", "units[].terrainOrClimbHeight", "units[].movementRunUpTime", "units[].isMatchingSpeed", "units[].negativeHeight", "units[].field289_0x3ff", "units[].field322_0x440", "attackInfo.field128058_0x469dc"], "ruft": ["registerSpottedEnemyTile"], "regeln": ["Rechnet nicht bei jedem Aufruf: Zähler field322_0x440 steigt je Aufruf; auf freiem Gelände (ohne Gebäude, LogicLayer & 0x10000500 == 0) nur wenn (Zähler + unitID) & 7 == 0, sonst wenn & 3 == 0 (gilt nur bei unknownCountdown_0x402 == 0)", "Bergauf (Höhenunterschied zum Feld): unter 2 kein Zuschlag; 2-3 Tempo +1; 4-7 +3; 8-11 +4 und movementRunUpTime 8; 12-16 +5 und movementRunUpTime 12; über 16 springt die Höhe, Tempo unverändert", "Bergab: unter 4 bleibt calculatedMovementSpeed unverändert; 4 bis über 16 Tempo = Grundtempo, Höhe sinkt in Stufen von 1 bis 4", "Gleiche Höhe, Gruppenmitglied (tribeID über 0, tribes[].unitType 0, freeUnitSpeeds 0): Tempo = Gruppentempo, mindestens das eigene Grundtempo, isMatchingSpeed = true", "Zusätzlicher Zuschlag je nach Feldbits (LogicLayer 0x20000000, 0x40000000, 0x200000) und negativeHeight: meist +3, +2, +4 oder +6", "Feld mit Gebäudetyp 0x29 bis 0x2c: field289_0x3ff = 1; gehört das Gebäude jemand anderem und die Einheit einem KI-Spieler (currentPlayerFullIDArray == -1), steigt der Zähler field128058_0x469dc um 1", "Bäume auf dem Feld (OrganismLayer unter 2000) bekommen state = 3"], "offen": ["Ob ein größerer calculatedMovementSpeed schneller oder langsamer bedeutet (vermutlich langsamer, da Zuschläge bergauf)", "Bedeutung der Bits 0x10000500, 0x20000000, 0x40000000, 0x200000 und 0x800000 in LogicLayer", "Was Gebäudetyp 0x29-0x2c ist"]}, "p3": {"erklaerung": "Steigungen und manche Felder machen Einheiten langsamer; Gruppen werden auf das Tempo ihres Trupps angeglichen.", "gehirn": "Tempoangaben einer Einheit stehen in calculatedMovementSpeed, nicht in movementSpeed. Der Wert ändert sich laufend mit dem Gelände.", "beleg": "code", "live": "Trupp bergauf und auf Ebene marschieren lassen → units[].calculatedMovementSpeed gegenüber movementSpeed → bergauf höher", "live_art": "bewegung"}}
+

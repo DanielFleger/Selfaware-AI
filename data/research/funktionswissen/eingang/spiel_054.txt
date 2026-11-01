@@ -1,0 +1,1168 @@
+### 0x0041c570 applyGateOrDrawbridgeOpenCloseChange | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0041C570
+ void BuildingsState::applyGateOrDrawbridgeOpenCloseChange(int buildingID, BOOLEnum open, BOOLEnum setTimer)
+ {
+ if (DAT_BuildingsState.buildings[buildingID].buildingType == BT_DRAWBRIDGE) {
+ int gateID = findParticularBuilding(
+ DAT_BuildingsState.buildings[buildingID].owner,
+ DAT_BuildingsState.buildings[buildingID].x,
+ DAT_BuildingsState.buildings[buildingID].y,
+ DAT_BuildingsState.buildings[buildingID].widthOrHeight, BT_GATEHOUSELARGE, 0);
+ if (gateID == 0) {
+ gateID = findParticularBuilding(
+ DAT_BuildingsState.buildings[buildingID].owner,
+ DAT_BuildingsState.buildings[buildingID].x,
+ DAT_BuildingsState.buildings[buildingID].y,
+ DAT_BuildingsState.buildings[buildingID].widthOrHeight, BT_GATEHOUSESMALL, 0);
+ if (gateID == 0) {
+ return;
+ }
+ }
+ if (open) {
+ if (DAT_BuildingsState.buildings[gateID].pathLinkageRelated2 != 2) {
+ return;
+ }
+ if (setTimer) {
+ DAT_BuildingsState.buildings[gateID].gateCloseOpenTimer = 600;
+ }
+ DAT_BuildingsState.buildings[gateID].gateState = 11;
+ } else {
+ if (DAT_BuildingsState.buildings[gateID].pathLinkageRelated2 != 0) {
+ return;
+ }
+ if (setTimer) {
+ DAT_BuildingsState.buildings[gateID].gateCloseOpenTimer = -1;
+ }
+ DAT_BuildingsState.buildings[gateID].gateState = 10;
+ }
+ return;
+ }
+ int drawbridgeID = findParticularBuilding(
+ DAT_BuildingsState.buildings[buildingID].owner,
+ DAT_BuildingsState.buildings[buildingID].x,
+ DAT_BuildingsState.buildings[buildingID].y,
+ DAT_BuildingsState.buildings[buildingID].widthOrHeight, BT_DRAWBRIDGE, 0);
+ int nextDrawbridgeID = findParticularBuilding(DAT_BuildingsState.buildings[buildingID].owner,
+ DAT_BuildingsState.buildings[buildingID].x,
+ DAT_BuildingsState.buildings[buildingID].y,
+ DAT_BuildingsState.buildings[buildingID].widthOrHeight, BT_DRAWBRIDGE, drawbridgeID);
+ while (drawbridgeID != 0) {
+ if (!open) {
+ if (DAT_BuildingsState.buildings[drawbridgeID].drawBridgeState1 == 0) {
+ DAT_BuildingsState.buildings[drawbridgeID].drawbridgeState2 = 10;
+ }
+ } else if (DAT_BuildingsState.buildings[drawbridgeID].drawBridgeState1 == 2) {
+ DAT_BuildingsState.buildings[drawbridgeID].drawbridgeState2 = 11;
+ }
+ drawbridgeID = nextDrawbridgeID;
+ nextDrawbridgeID = 0;
+ }
+ }
+ }
+}
+}
+
+### 0x0041c6f0 sortBuildingIDsNeedPeasantsQueue | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0041C6F0
+ void BuildingsState::sortBuildingIDsNeedPeasantsQueue(int playerID)
+ {
+ short _currentBuildingID;
+ int _hasBurningBuilding;
+ int _buildingBeforePrio;
+ int _currBuildingPrio;
+ short* _ptrQueue;
+ int i;
+ short _currentIdleValue;
+ bool _needsSorting;
+ short _previousBuildingID;
+ short _previousIdleValue;
+ _buildingBeforePrio = this->DAT_CountOfBuildingsNeedPeasants;
+ if (1 < this->DAT_CountOfBuildingsNeedPeasants) {
+ _hasBurningBuilding = playerHasBurningBuilding(playerID);
+ do {
+ _needsSorting = false;
+ i = 0;
+ if (_buildingBeforePrio == 1 || _buildingBeforePrio + -1 < 0) {
+ return;
+ }
+ _ptrQueue = this->DAT_BuildingIDsNeedPeasantsQueue;
+ do {
+ _ptrQueue = _ptrQueue + 1;
+ _currentBuildingID = *_ptrQueue;
+ _previousBuildingID = _ptrQueue[-1];
+ _currentIdleValue = this->buildings[_currentBuildingID].idleTimerUnk;
+ _previousIdleValue = this->buildings[_previousBuildingID].idleTimerUnk;
+ if (_currentIdleValue < _previousIdleValue) {
+ LAB_0041c7c3:
+ _needsSorting = true;
+ /*
+ swap buildings in queue
+ */
+ *_ptrQueue = _previousBuildingID;
+ _ptrQueue[-1] = _currentBuildingID;
+ } else {
+ _buildingBeforePrio = getBuildingPriority(
+ (int)(short)this->buildings[_previousBuildingID].buildingType, _hasBurningBuilding);
+ _currBuildingPrio = getBuildingPriority(
+ (int)(short)this->buildings[_currentBuildingID].buildingType, _hasBurningBuilding);
+ if ((_currBuildingPrio < _buildingBeforePrio)
+ && (_currentIdleValue <= _previousIdleValue)) {
+ _currentBuildingID = *_ptrQueue;
+ goto LAB_0041c7c3;
+ }
+ }
+ i = i + 1;
+ } while (i < this->DAT_CountOfBuildingsNeedPeasants + -1);
+ _buildingBeforePrio = this->DAT_CountOfBuildingsNeedPeasants;
+ } while (_needsSorting);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x0041c810 lightUpBuilding | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0041C810
+ BOOLEnum BuildingsState::lightUpBuilding(int buildingID, int burnerPlayerID, int spareGrounds)
+ {
+ int const type = this->buildings[buildingID].buildingType;
+ switch (type) {
+ case BT_CAMPFIRE:
+ case BT_PARADEGROUND:
+ case BT_CAMPGROUND:
+ case BT_PARADEGROUND2:
+ case BT_PARADEGROUND3:
+ case BT_PARADEGROUND4:
+ case BT_PARADEGROUND5:
+ break;
+ default:
+ if (this->buildings[buildingID].cooldownTimer != 0) {
+ return FALSE;
+ }
+ break;
+ }
+ if (this->buildings[buildingID].fireDuration != 0) {
+ return TRUE;
+ }
+ if (getBuildingFlammabilityFactor(buildingID) == 0) {
+ return FALSE;
+ }
+ if (this->buildings[buildingID].owner == burnerPlayerID
+ && getBuildingFlammabilityFactor(buildingID) != 4) {
+ return FALSE;
+ }
+ if (spareGrounds != 0) {
+ switch (type) {
+ case BT_CAMPFIRE:
+ case BT_PARADEGROUND:
+ case BT_CAMPGROUND:
+ case BT_PARADEGROUND2:
+ case BT_PARADEGROUND3:
+ case BT_PARADEGROUND4:
+ case BT_PARADEGROUND5:
+ return TRUE;
+ }
+ }
+ this->buildings[buildingID].fireDuration = 1;
+ this->buildings[buildingID].ifFireThenResponsiblePlayer = burnerPlayerID;
+ if (this->buildings[buildingID].owner == DAT_GameSynchronyState.currentPlayerSlotID
+ && DAT_GameCore.mapTimeInTicks
+ - DAT_GameState.playerDataArray[this->buildings[buildingID].owner].ignitionTime
+ > 800) {
+ DAT_GameState.playerDataArray[this->buildings[buildingID].owner].ignitionTime
+ = DAT_GameCore.mapTimeInTicks;
+ playWAVSFX(SFX_BuildingsAreOnFireSire);
+ }
+ int const x = this->buildings[buildingID].x;
+ int const y = this->buildings[buildingID].y;
+ int i = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ i, this->buildings[buildingID].widthOrHeight);
+ int const tile
+ = DAT_ViewportRenderState.translationMatrix[DAT_TileMapState.buildingY + y]
+ .addXgetTile
+ + DAT_TileMapState.buildingX + x;
+ if (getFireEntityIDAtTile(tile)
+ == 0) {
+ int const entityID = IgniteFireAtMiniTile_Convenience(burnerPlayerID,
+ (DAT_TileMapState.buildingX + x) * 8, (DAT_TileMapState.buildingY + y) * 8,
+ DAT_TileMapState.HeightLayer[tile] - 8, 2);
+ if (entityID != 0) {
+ DAT_EntityState.entityArray[entityID].someTracker
+ = -(SEC_RNG::instance.currentNumber2 % 120);
+ nextRandomNumber2();
+ }
+ }
+ ++i;
+ } while (i < DAT_TileMapState.constructionTileCount);
+ return TRUE;
+ }
+ }
+}
+}
+
+### 0x00420bf0 upgradeBuildingsForMapVersion | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00420BF0
+ void BuildingsState::upgradeBuildingsForMapVersion(
+ int receivedMapVersion, PackagedFileMagicNum packagerMapVersion)
+ {
+ SetUndamagedBuildingHealthToValue();
+ UpgradeBuildingProperties1(receivedMapVersion);
+ UpgradeFirst9Buildings();
+ UpgradeKillingPitField();
+ rebuildTileLogicLayerForGatesAndWalls();
+ rebuildTileLogicLayerForKeeps();
+ this->pathLinkageKeepWasUpdatedUnk = 1;
+ updatePathLinkageForGatesKeepsSiegeTowers();
+ if (receivedMapVersion == packagerMapVersion) {
+ return;
+ }
+ // Upgrades of maps saved with older versions
+ if (receivedMapVersion < 103) {
+ UpgradeBuildingFlag1();
+ }
+ if (receivedMapVersion < 116) {
+ updatePathLinkageLayerForAllBuildings();
+ }
+ if (receivedMapVersion < 119) {
+ UpgradeBuildingFlag1();
+ }
+ if (receivedMapVersion < 121) {
+ UpgradeBuildingField1();
+ }
+ if (receivedMapVersion < 130) {
+ SetDairyCheeseToZero();
+ }
+ if (receivedMapVersion < 133) {
+ UpgradeTowerLogicLayer();
+ }
+ if (receivedMapVersion < 140) {
+ SetHovelBuildOrder();
+ }
+ if (receivedMapVersion < 143) {
+ SetBuildingsEmployeeCountToValue();
+ }
+ if (receivedMapVersion < 146) {
+ UpgradeBuildingField2();
+ }
+ if (receivedMapVersion < 149) {
+ UpgradeSolitaryMapBuildingField3();
+ }
+ if (receivedMapVersion < 150) {
+ UpgradeLogicAndDisplayLayerForDairyFarms();
+ }
+ if (receivedMapVersion < 151) {
+ UpgradeDestroyDrawbridgesInFirst10Buildings();
+ }
+ if (receivedMapVersion < 152) {
+ UpgradePitchDitchBuildingIntoPitchDitchObject();
+ }
+ if (receivedMapVersion < 156) {
+ UpgradeBuildingField4();
+ }
+ if (receivedMapVersion < 161) {
+ UpgradeClearBuildings1000AndHigher();
+ }
+ if (receivedMapVersion < 167) {
+ UpgradeKnightsAndStables();
+ }
+ if (receivedMapVersion < 172) {
+ UpgradeOutpostField();
+ }
+ }
+ }
+}
+}
+
+### 0x00420d20 setupBuildingData | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00420D20
+ int BuildingsState::setupBuildingData(int playerID, uint x, uint y, undefined4 averageHeight,
+ BuildingType buildingType, uint width, int playerID_dup, int variationIndex)
+ {
+ short* psVar1;
+ ResourceTypeShort* pRVar2;
+ ResourceTypeShort* pRVar3;
+ ushort* puVar4;
+ short sVar5;
+ short _handledVariation;
+ Building* _pBuilding;
+ ResourceTypeShort RVar6;
+ int _buildingID2;
+ Building* psVar5;
+ int _dog1ID;
+ int _dog2ID;
+ int _dog3ID;
+ int _dog4ID;
+ uint _isFFBuilding;
+ uint _isReligiousBuilding;
+ uint _rng1;
+ int iVar7;
+ int* piVar8;
+ int _dogCount;
+ short _buildingID_2;
+ uint _buildingID;
+ int iVar9;
+ UnitInstructionType instructionType;
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ playerID_dup = 0;
+ }
+ if (((399 < x) || (399 < y)) || (*(char*)(y * 400 + 0x21aec98 + x) == '\0')) {
+ return 0;
+ }
+ _buildingID = 1;
+ _pBuilding = &this->buildings[1];
+ do {
+ if (_pBuilding->logicalState == ((BuildingLogicalState)0))
+ break;
+ if (1999 < (int)_buildingID) {
+ return 0;
+ }
+ _buildingID = _buildingID + 1;
+ _pBuilding = _pBuilding + 0x196;
+ } while ((int)_buildingID < 2000);
+ if (this->maxBuildingsCount <= (int)_buildingID) {
+ this->maxBuildingsCount = _buildingID + 1;
+ }
+ fillMemory_ByteValue(
+ 0x32c, '\0', (void*)((int)(this->buildings + _buildingID)));
+ _buildingID2
+ = findFirstBuildingIDForPlayerAndType(playerID, buildingType);
+ if ((_buildingID2 != 0) && (this->buildings[_buildingID2].sleeping != false)) {
+ this->buildings[_buildingID].sleeping = true;
+ }
+ this->unknownCountdown01 = this->unknownCountdown01 + -1;
+ this->buildings[_buildingID].uid = DAT_GameCore.uniqueGameObjectTracker;
+ DAT_GameCore.uniqueGameObjectTracker = DAT_GameCore.uniqueGameObjectTracker + 1;
+ this->buildings[_buildingID].owner = (short)playerID;
+ this->buildings[_buildingID].logicalState = BLS_INITIAL;
+ this->buildings[_buildingID].widthOrHeight = width;
+ this->buildings[_buildingID].x = (ushort)x;
+ this->buildings[_buildingID].y = (ushort)y;
+ this->buildings[_buildingID].buildingType = (BuildingTypeShort)buildingType;
+ this->buildings[_buildingID].currentTilePositionAdjusted
+ = DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x;
+ this->buildings[_buildingID].microX = (ushort)x * 8;
+ this->buildings[_buildingID].microY = (ushort)y * 8;
+ this->buildings[_buildingID].terrainHeightUnk = (short)averageHeight;
+ if (buildingType == BT_GARDEN) {
+ this->buildings[_buildingID].ffBuildingVariation
+ = DAT_BuildingDefinedData.GardenVariations[variationIndex];
+ _handledVariation = 0xf;
+ } else if (buildingType == BT_UNKNOWN1) {
+ /*
+ unknown1
+ */
+ this->buildings[_buildingID].ffBuildingVariation
+ = DAT_BuildingDefinedData.UnknownVariations[variationIndex];
+ _handledVariation = 0xf;
+ } else if (buildingType == BT_CESSPIT) {
+ /*
+ cesspit
+ */
+ this->buildings[_buildingID].ffBuildingVariation
+ = DAT_BuildingDefinedData.CesspitVariations[variationIndex];
+ _handledVariation = 0xf;
+ } else if (buildingType == BT_STATUE) {
+ /*
+ statue
+ */
+ this->buildings[_buildingID].ffBuildingVariation
+ = DAT_BuildingDefinedData.StatueVariations[variationIndex];
+ _handledVariation = 0xf;
+ } else if (buildingType == BT_SHRINE) {
+ /*
+ shrine
+ */
+ this->buildings[_buildingID].ffBuildingVariation
+ = DAT_BuildingDefinedData.ShrineVariations[variationIndex];
+ _handledVariation = 0xf;
+ } else if (buildingType == BT_POND) {
+ /*
+ pond
+ */
+ this->buildings[_buildingID].ffBuildingVariation
+ = DAT_BuildingDefinedData.PondVariations[variationIndex];
+ _handledVariation = 0xf;
+ } else {
+ _handledVariation = (short)variationIndex;
+ this->buildings[_buildingID].ffBuildingVariation = 0;
+ }
+ this->buildings[_buildingID].playerColorUnk = playerID_dup;
+ this->buildings[_buildingID].buildingVariation = _handledVariation;
+ this->buildings[_buildingID].oldVisualActiveState = -1;
+ this->buildings[_buildingID].fireRelatedRNG1 = (int)SEC_RNG::instance.currentNumber2;
+ nextRandomNumber2();
+ /*
+ init building's rendering data
+ */
+ *(short*)&this->buildings[_buildingID].spriteSheetID
+ = DAT_BuildingDefinedData.Building_SpriteSheet_ID_Array_1[buildingType].shortValue;
+ this->buildings[_buildingID].spriteID
+ = DAT_BuildingDefinedData.Building_Sprite_ID_Array_1[buildingType]
+ + this->buildings[_buildingID].ffBuildingVariation;
+ this->buildings[_buildingID].visuallyActiveSpriteID
+ = DAT_BuildingDefinedData.VisuallyActiveSpriteIDOffsets[buildingType];
+ this->buildings[_buildingID].gfxOffset = DAT_BuildingDefinedData.GFXOffsets[buildingType];
+ this->buildings[_buildingID].gfxOffset2
+ = DAT_BuildingDefinedData.Building_Sprite_ID_Array_2[buildingType];
+ this->buildings[_buildingID].gfxOffset3 = DAT_BuildingDefinedData.GFXOffsets3[buildingType];
+ this->buildings[_buildingID].spriteOffetX
+ = DAT_BuildingDefinedData.SpriteOffsets1[buildingType][0][0];
+ this->buildings[_buildingID].spriteOffetY
+ = DAT_BuildingDefinedData.SpriteOffsets1[buildingType][1][0];
+ this->buildings[_buildingID].animAdvanceThrottle
+ = DAT_BuildingDefinedData.AnimAdvanceThrottles[buildingType];
+ this->buildings[_buildingID].animationFrame = 0;
+ this->buildings[_buildingID].campgroundVclock = 0;
+ this->buildings[_buildingID].field25_0x4c = 0;
+ this->buildings[_buildingID].field26_0x50 = 0;
+ this->buildings[_buildingID].field27_0x54 = 0;
+ this->buildings[_buildingID].spriteID2
+ = DAT_BuildingDefinedData.SpriteIDs2[buildingType].shortValue;
+ this->buildings[_buildingID].animStateCounterTracker = 0;
+ this->buildings[_buildingID].animStateCounter = 0;
+ if (((DAT_GameSynchronyState.currentGameMode == GM_SOLITARY)
+ || (DAT_GameSynchronyState.currentPlayerFullIDArray[playerID] != -1))
+ || (DAT_GameSynchronyState.currentAIArray[playerID] == 0)) {
+ this->buildings[_buildingID].cooldownTimer = 400;
+ } else {
+ this->buildings[_buildingID].cooldownTimer = 2000;
+ }
+ this->buildings[_buildingID].currentlyNeededEmployeeCount = 0;
+ this->buildings[_buildingID].renderAnimation = 0;
+ this->buildings[_buildingID].unknownStockpileOrSignpostRelated = 1;
+ this->buildings[_buildingID].numberOfPopulationProvided
+ = DAT_BuildingDefinedData.BuildingNumberOfPopulationProvided[buildingType].shortValue;
+ psVar1 = &this->buildings[_buildingID].unknownStockpileOrSignpostRelated;
+ this->buildings[_buildingID].buildingTypeBasedEmployeeCount
+ = DAT_BuildingDefinedData.EmployeeCountPerBuildingType[buildingType].shortValue;
+ this->buildings[_buildingID].unknownFlag3
+ = DAT_BuildingDefinedData.field15_0x1404[buildingType].shortValue;
+ this->buildings[_buildingID].flag1
+ = DAT_BuildingDefinedData.field16_0x15bc[buildingType].shortValue;
+ this->buildings[_buildingID].unknownFlag4
+ = DAT_BuildingDefinedData.field18_0x192c[buildingType].byteValue;
+ this->buildings[_buildingID].flag2
+ = DAT_BuildingDefinedData.field24_0x237c[buildingType].shortValue;
+ sVar5 = DAT_BuildingDefinedData.BuildingHP[buildingType].shortValue;
+ this->buildings[_buildingID].maxHealth = sVar5;
+ this->buildings[_buildingID].currentHealth = sVar5;
+ this->buildings[_buildingID].buildMonthOrBuildOrder
+ = (short)DAT_GameState.mapAndTime.month + (short)DAT_GameState.mapAndTime.year * 12;
+ setBuildingInitialEntryTileTry(
+ _buildingID, 0);
+ determineBuildingEntranceFromKeepArea(_buildingID, 1, FALSE);
+ switch (buildingType) {
+ case BT_HOVEL:
+ case BT_HOUSE:
+ this->buildings[_buildingID].field_0x2a5
+ = (char)((this->buildings[_buildingID].fireRelatedRNG1 >> 5) % 3) + '\x01';
+ break;
+ case BT_OXTETHER:
+ this->buildings[_buildingID].field28_0x58 = 0x32;
+ break;
+ case BT_MERCENARYPOST:
+ computeBuildingCategoryEntryPointAndDestroyEarlierBuilding(_buildingID, playerID, PDBCE_MERCENARYPOST);
+ break;
+ case BT_BARRACKS:
+ computeBuildingCategoryEntryPointAndDestroyEarlierBuilding(_buildingID, playerID, PDBCE_BARRACKS);
+ break;
+ case BT_STOCKPILE:
+ *psVar1 = 0;
+ computeBuildingCategoryEntryPointAndDestroyEarlierBuilding(_buildingID, playerID, PDBCE_STOCKPILE);
+ break;
+ case BT_ARMORY:
+ computeBuildingCategoryEntryPointAndDestroyEarlierBuilding(_buildingID, playerID, PDBCE_ARMORY);
+ break;
+ case BT_FLETCHER:
+ RVar6 = RT_BOW;
+ goto LAB_004212f6;
+ case BT_BLACKSMITH:
+ pRVar2 = &this->buildings[_buildingID].producedItemTypeNext;
+ pRVar3 = &this->buildings[_buildingID].producedItemType;
+ if (DAT_GameCore.swordProducible_logic == 0) {
+ *pRVar2 = RT_MACE;
+ *pRVar3 = RT_MACE;
+ } else {
+ *pRVar2 = RT_SWORD;
+ *pRVar3 = RT_SWORD;
+ }
+ if ((DAT_GameCore.gameMode_2 == GM_ECONOMIC_CAMPAIGN_SH1)
+ && (DAT_GameCore.missionNumber1to20 == 36)) {
+ *pRVar2 = RT_MACE;
+ *pRVar3 = RT_MACE;
+ }
+ break;
+ case BT_POLETURNER:
+ RVar6 = RT_SPEAR;
+ LAB_004212f6:
+ this->buildings[_buildingID].producedItemTypeNext = RVar6;
+ this->buildings[_buildingID].producedItemType = RVar6;
+ break;
+ case BT_GRANARY:
+ computeBuildingCategoryEntryPointAndDestroyEarlierBuilding(_buildingID, playerID, PDBCE_GRANARY);
+ break;
+ case BT_ENGINEERSGUILD:
+ computeBuildingCategoryEntryPointAndDestroyEarlierBuilding(_buildingID, playerID, PDBCE_ENGINEERSGUILD);
+ break;
+ case BT_TUNNELERSGUILD:
+ computeBuildingCategoryEntryPointAndDestroyEarlierBuilding(_buildingID, playerID, PDBCE_TUNNELERSGUILD);
+ break;
+ case BT_MARKETPLACE:
+ computeBuildingCategoryEntryPointAndDestroyEarlierBuilding(_buildingID, playerID, PDBCE_MARKETPLACE);
+ break;
+ case BT_OILSMELTER:
+ computeBuildingCategoryEntryPointAndDestroyEarlierBuilding(_buildingID, playerID, PDBCE_OILSMELTER);
+ if (((DAT_GameCore.gameMode_2 == GM_EDITOR)
+ || (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT))
+ && (DAT_MapPropertiesState.SEC_U3_MapType2_1 == MT_SIEGE)) {
+ this->buildings[_buildingID].resources[7]
+ = DAT_BuildingDefinedData.StorageLimitResourceTypeArray[7];
+ }
+ break;
+ case BT_WHEATFARM:
+ case BT_HOPFARM:
+ case BT_APPLEFARM:
+ goto switchD_00421124_caseD_1e;
+ case BT_DAIRYFARM:
+ this->field4_0x10 = 3;
+ goto switchD_00421124_caseD_1e;
+ case BT_MANORHOUSE:
+ case BT_STONEKEEP:
+ case BT_STRONGHOLD:
+ case BT_KEEPFOUR:
+ case BT_KEEPFIVE:
+ computeBuildingCategoryEntryPointAndDestroyEarlierBuilding(_buildingID, playerID, PDBCE_KEEP);
+ if ((DAT_GameCore.gameMode_2 != GM_EDITOR)
+ && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)) {
+ DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType = BASMTT_HUNTERSHUT;
+ switchToMenuView(
+ MVT_BUILD_MENU, 0);
+ DAT_TileMapState.currentMapperCommand = M_MAPPER_NULL;
+ }
+ break;
+ case BT_SIGNPOST:
+ *psVar1 = 0;
+ addSignpostToBuildingEntryData(_buildingID);
+ break;
+ case BT_FIREBALLISTA:
+ case BT_CATAPULT:
+ case BT_TREBUCHET:
+ case BT_BATTERINGRAM:
+ case BT_SIEGETOWER:
+ case BT_SHIELD:
+ this->buildings[_buildingID].playerColorUnk = playerID;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[playerID] == -1)
+ break;
+ _buildingID2 = this->buildings[_buildingID].uid;
+ instructionType = UIT_CONSTRUCT_SIEGE_EQUIPMENTOIL_DUTYENGINEERRELATED;
+ goto LAB_00421335;
+ case BT_CAMPGROUND:
+ computeBuildingCategoryEntryPointAndDestroyEarlierBuilding(_buildingID, playerID, PDBCE_CAMPGROUND);
+ break;
+ case BT_KILLINGPIT:
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ this->buildings[_buildingID].state = -1;
+ }
+ break;
+ case BT_UNKNOWN4:
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[playerID] == -1)
+ break;
+ _buildingID2 = this->buildings[_buildingID].uid;
+ instructionType = ((UnitInstructionType)0x15);
+ LAB_00421335:
+ relayTribeInstruction(
+ this->DAT_DraggedTileCountVerified, instructionType, _buildingID, _buildingID2, 0);
+ break;
+ case BT_CESSPIT:
+ iVar9 = (int)width / 2;
+ _buildingID2 = (short)this->buildings[_buildingID].y + iVar9;
+ puVar4 = &this->buildings[_buildingID].x;
+ iVar7 = (int)(short)*puVar4;
+ spawnProjectileEntity(0, 0, 0, (iVar7 + iVar9) * 8, _buildingID2 * 8,
+ (uint)
+ * (byte*)(DAT_ViewportRenderState.translationMatrix[_buildingID2].addXgetTile + iVar7
+ + 0x1d32c38 + iVar9),
+ 0, 0, 0, ET_COW_POISON_CLOUD, 0);
+ playSFXAtLocation(
+ (short)*puVar4 + iVar9, (short)this->buildings[_buildingID].y + iVar9,
+ FX_FLIES);
+ break;
+ case BT_DOGCAGE:
+ setBuildingInitialEntryTileTry(
+ _buildingID, 0);
+ determineBuildingEntranceFromKeepArea(_buildingID, 1, FALSE);
+ piVar8 = &this->buildings[_buildingID].insideUnitUID1;
+ psVar5 = (Building*)&this->buildings[_buildingID];
+ _dogCount = 4;
+ do {
+ psVar5->logicalState = ((BuildingLogicalState)0);
+ *piVar8 = 0;
+ psVar5 = &psVar5->buildingType;
+ piVar8 = piVar8 + 1;
+ _dogCount = _dogCount + -1;
+ } while (_dogCount != 0);
+ _dog1ID = spawnUnit(0,
+ playerID, this->buildings[_buildingID].buildingEntryX * 8,
+ this->buildings[_buildingID].buildingEntryY * 8,
+ this->buildings[_buildingID].terrainHeightUnk, UT_CAGEDOG);
+ _buildingID_2 = (short)_buildingID;
+ if (_dog1ID != 0) {
+ DAT_UnitsState.units[_dog1ID].workplaceBuildingID_1 = _buildingID_2;
+ DAT_UnitsState.units[_dog1ID].workplaceBuildingUID = this->buildings[_buildingID].uid;
+ commitUnitLocation(
+ _dog1ID);
+ variationIndex._0_2_ = (short)_dog1ID;
+ DAT_UnitsState.units[_dog1ID].state.generic = 0xd2;
+ DAT_UnitsState.units[_dog1ID].cagedogReleaseCheckMoment = 0;
+ this->buildings[_buildingID].insideUnitID1 = (short)variationIndex;
+ this->buildings[_buildingID].insideUnitUID1 = DAT_UnitsState.units[_dog1ID].uid;
+ }
+ _dog2ID = spawnUnit(0,
+ playerID, this->buildings[_buildingID].buildingEntryX * 8,
+ this->buildings[_buildingID].buildingEntryY * 8,
+ this->buildings[_buildingID].terrainHeightUnk, UT_CAGEDOG);
+ if (_dog2ID != 0) {
+ DAT_UnitsState.units[_dog2ID].workplaceBuildingID_1 = _buildingID_2;
+ DAT_UnitsState.units[_dog2ID].workplaceBuildingUID = this->buildings[_buildingID].uid;
+ commitUnitLocation(
+ _dog2ID);
+ variationIndex._0_2_ = (short)_dog2ID;
+ DAT_UnitsState.units[_dog2ID].state.generic = 0xd2;
+ DAT_UnitsState.units[_dog2ID].cagedogReleaseCheckMoment = 1;
+ this->buildings[_buildingID].insideUnitID2 = (short)variationIndex;
+ this->buildings[_buildingID].insideUnitUID2 = DAT_UnitsState.units[_dog2ID].uid;
+ }
+ _dog3ID = spawnUnit(0,
+ playerID, this->buildings[_buildingID].buildingEntryX * 8,
+ this->buildings[_buildingID].buildingEntryY * 8,
+ this->buildings[_buildingID].terrainHeightUnk, UT_CAGEDOG);
+ if (_dog3ID != 0) {
+ DAT_UnitsState.units[_dog3ID].workplaceBuildingID_1 = _buildingID_2;
+ DAT_UnitsState.units[_dog3ID].workplaceBuildingUID = this->buildings[_buildingID].uid;
+ commitUnitLocation(
+ _dog3ID);
+ variationIndex._0_2_ = (short)_dog3ID;
+ DAT_UnitsState.units[_dog3ID].state.generic = 0xd2;
+ DAT_UnitsState.units[_dog3ID].cagedogReleaseCheckMoment = 2;
+ this->buildings[_buildingID].insideUnitID3 = (short)variationIndex;
+ this->buildings[_buildingID].insideUnitUID3 = DAT_UnitsState.units[_dog3ID].uid;
+ }
+ _dog4ID = spawnUnit(0,
+ playerID, this->buildings[_buildingID].buildingEntryX * 8,
+ this->buildings[_buildingID].buildingEntryY * 8,
+ this->buildings[_buildingID].terrainHeightUnk, UT_CAGEDOG);
+ if (_dog4ID != 0) {
+ DAT_UnitsState.units[_dog4ID].workplaceBuildingID_1 = _buildingID_2;
+ DAT_UnitsState.units[_dog4ID].workplaceBuildingUID = this->buildings[_buildingID].uid;
+ commitUnitLocation(
+ _dog4ID);
+ DAT_UnitsState.units[_dog4ID].state.generic = 0xd2;
+ DAT_UnitsState.units[_dog4ID].cagedogReleaseCheckMoment = 3;
+ this->buildings[_buildingID].insideUnitID4 = (short)_dog4ID;
+ this->buildings[_buildingID].insideUnitUID4 = DAT_UnitsState.units[_dog4ID].uid;
+ this->buildings[_buildingID].unitRefID = (short)_dog4ID;
+ this->buildings[_buildingID].unitRefUID = DAT_UnitsState.units[_dog4ID].uid;
+ }
+ break;
+ case BT_OUTPOST_EUROPEAN:
+ case BT_OUTPOST_ARABIAN:
+ this->buildings[_buildingID].outpostRelatedUnk1 = 0xff;
+ this->buildings[_buildingID].outpostRelatedUnk2 = 1;
+ this->buildings[_buildingID].outpostRelatedUnk3 = 0;
+ _rng1 = (int)SEC_RNG::instance.currentNumber2 & 0x80000001;
+ if ((int)_rng1 < 0) {
+ _rng1 = (_rng1 - 1 | 0xfffffffe) + 1;
+ }
+ this->buildings[_buildingID].randomOutpostField = (char)_rng1 + 6;
+ nextRandomNumber2();
+ this->buildings[_buildingID].outpostRelatedUnk4 = 1200;
+ }
+ switchD_00421124_caseD_3:
+ this->field34_0x18e074 = 1;
+ _isFFBuilding = isFearFactorBuilding(
+ _buildingID);
+ if (_isFFBuilding != 0) {
+ recomputeAllFearFactors();
+ }
+ _isReligiousBuilding = isReligiousBuilding(_buildingID);
+ if (_isReligiousBuilding != 0) {
+ recomputeReligionBonuses();
+ }
+ return (int)(_buildingID);
+ switchD_00421124_caseD_1e:
+ setBuildingInitialEntryTileTry(
+ _buildingID, 0);
+ determineBuildingEntranceFromKeepArea(_buildingID, 1, FALSE);
+ goto switchD_00421124_caseD_3;
+ }
+ }
+}
+}
+
+### 0x00421890 deleteBuilding | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00421890
+ void BuildingsState::deleteBuilding(uint buildingID)
+ {
+ if (DAT_GameCore.currentMenuViewType == MVT_BUILDING_AND_STATUS_MENU
+ && DAT_BuildingsState.menuSelectedBuildingID == buildingID) {
+ switchToMenuView(
+ MVT_BUILD_MENU, 0);
+ }
+ subtractResourcesStoredInBuilding(buildingID);
+ setTowerSiegeEngineToIdle(buildingID);
+ if ((this->buildings[buildingID].buildingType == BT_OUTPOST_EUROPEAN
+ || this->buildings[buildingID].buildingType == BT_OUTPOST_ARABIAN)
+ && this->buildings[buildingID].tribeID > 0
+ && DAT_TribesState.tribes[this->buildings[buildingID].tribeID].uid
+ == this->buildings[buildingID].tribeUID) {
+ aiRegisterTribeAndAssignTarget(
+ this->buildings[buildingID].tribeID, this->buildings[buildingID].tribeUID);
+ }
+ if (this->buildings[buildingID].buildingType == BT_OXTETHER) {
+ removeUnitFromItsTribe(
+ this->buildings[buildingID].oxTetherRelatedUnitID,
+ this->buildings[buildingID].oxTetherRelatedUnitUID);
+ } else if (this->buildings[buildingID].buildingType == BT_CATHEDRAL) {
+ DAT_GameState.mapAndTime.cathedralRelated1 = 1;
+ }
+ spawnCrowForBuilding(buildingID);
+ clearBuildingFromTerrain(buildingID);
+ updatePrimaryBuildingPlayerDataReferences(buildingID);
+ fillMemory_ByteValue(
+ sizeof(Building), 0, &this->buildings[buildingID]);
+ }
+ }
+}
+}
+
+### 0x00421990 destroyBuildingAndLinkedDuplicates | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00421990
+ void BuildingsState::destroyBuildingAndLinkedDuplicates(uint param_1)
+ {
+ this->buildings[param_1].logicalState = BLS_REMOVE;
+ if (DAT_TileMapState.showNoRubbleWhenDestroyingBuilding == 0) {
+ this->buildings[param_1].noRubble = 1;
+ }
+ if (this->buildings[param_1].buildingType == BT_SIGNPOST) {
+ destroySignpostData(param_1);
+ }
+ int const linkedUID = this->buildings[param_1].uidWhenPlaced;
+ deleteBuilding(param_1);
+ if (linkedUID == 0) {
+ DAT_TileMapState.showNoRubbleWhenDestroyingBuilding = 0;
+ return;
+ }
+ for (int buildingID = 1; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (this->buildings[buildingID].logicalState != 0
+ && this->buildings[buildingID].uidWhenPlaced == linkedUID) {
+ this->buildings[buildingID].logicalState = BLS_REMOVE;
+ if (DAT_TileMapState.showNoRubbleWhenDestroyingBuilding == 0) {
+ this->buildings[buildingID].noRubble = 1;
+ }
+ deleteBuilding(buildingID);
+ }
+ }
+ DAT_TileMapState.showNoRubbleWhenDestroyingBuilding = 0;
+ }
+ }
+}
+}
+
+### 0x00421a40 buildingIsAccessible | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00421A40
+ int BuildingsState::buildingIsAccessible(int buildingID, int amountUnk)
+ {
+ if (buildingID <= 0) {
+ return 0;
+ }
+ int const campgroundArea
+ = (short)DAT_TileMapState.PathConnectionLayer
+ [DAT_GameState.playerDataArray[this->buildings[buildingID].owner].campground.tileEntry];
+ int const buildingHeight
+ = DAT_TileMapState.HeightLayer
+ [DAT_ViewportRenderState.translationMatrix[this->buildings[buildingID].y].addXgetTile
+ + this->buildings[buildingID].x];
+ int blocked = 0;
+ if (this->buildings[buildingID].buildingEntryX == 0 && this->buildings[buildingID].buildingEntryY == 0) {
+ blocked = 1;
+ } else {
+ int const entryTile
+ = DAT_ViewportRenderState.translationMatrix[this->buildings[buildingID].buildingEntryY]
+ .addXgetTile
+ + this->buildings[buildingID].buildingEntryX;
+ int entryHeight = DAT_TileMapState.HeightLayer[entryTile];
+ if (DAT_TileMapState.BuildingLayer[entryTile] != 0) {
+ entryHeight += getBuildingHeightForBuildingID((short)DAT_TileMapState.BuildingLayer[entryTile]);
+ }
+ if (buildingHeight > entryHeight + 16) {
+ blocked = 1;
+ }
+ if (entryHeight > buildingHeight + 16) {
+ blocked = 1;
+ }
+ if ((DAT_TileMapState.LogicLayer[entryTile]
+ & (LogicHelpers::L_SEA | LogicHelpers::L_ROCKY | LogicHelpers::L_BUILDING | LogicHelpers::L_TREE
+ | LogicHelpers::L_RIVER | LogicHelpers::L_CRENEL_VARIATIONUnk
+ | LogicHelpers::L_KEEP_NON_MANOR_HOUSE | LogicHelpers::L_MOAT))
+ != 0) {
+ blocked = 1;
+ }
+ if (campgroundArea != 0) {
+ int const entryArea = (short)DAT_TileMapState.PathConnectionLayer[entryTile];
+ if (entryArea != campgroundArea
+ && DAT_BuildingDefinedData
+ .ABuildingTypeValueArray[this->buildings[buildingID].buildingType]
+ == 0
+ && calculateCanPlayerUnitsNavigateToAreaFromArea(
+ this->buildings[buildingID].owner, campgroundArea, entryArea, 0)
+ == 0) {
+ blocked = 1;
+ }
+ }
+ }
+ this->buildings[buildingID].hasAccessToKeep = 1;
+ if (blocked == 0) {
+ return 1;
+ }
+ setBuildingInitialEntryTileTry(buildingID, 0);
+ int const result = determineBuildingEntranceFromKeepArea(
+ buildingID, amountUnk, FALSE);
+ if (result == 0) {
+ this->buildings[buildingID].hasAccessToKeep = 0;
+ return 0;
+ }
+ return result == 2 ? 2 : 1;
+ }
+ }
+}
+}
+
+### 0x00421be0 resolveBuildingEntryAccessibility | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00421BE0
+ char BuildingsState::resolveBuildingEntryAccessibility(int buildingID, int param_2, int x, int y)
+ {
+ short sVar1;
+ bool bVar2;
+ int iVar3;
+ int iVar4;
+ char cVar5;
+ dword fromArea;
+ uint uVar6;
+ uint uVar7;
+ if (buildingID < 1) {
+ return '\0';
+ }
+ fromArea = (dword)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x];
+ sVar1 = this->buildings[buildingID].buildingEntryX;
+ uVar7 = (uint)
+ * (byte*)(DAT_ViewportRenderState.translationMatrix[(short)this->buildings[buildingID].y]
+ .addXgetTile
+ + 0x1d32c38 + (int)(short)this->buildings[buildingID].x);
+ if ((sVar1 == 0) && (this->buildings[buildingID].buildingEntryY == 0)) {
+ bVar2 = true;
+ } else {
+ iVar4 = (int)sVar1
+ + DAT_ViewportRenderState.translationMatrix[this->buildings[buildingID].buildingEntryY]
+ .addXgetTile;
+ uVar6 = (uint)DAT_TileMapState.HeightLayer[iVar4];
+ if (DAT_TileMapState.BuildingLayer[iVar4] != 0) {
+ iVar3 = getBuildingHeightForBuildingID(
+ (int)DAT_TileMapState.BuildingLayer[iVar4]);
+ uVar6 = uVar6 + iVar3;
+ }
+ bVar2 = (DAT_TileMapState.LogicLayer[iVar4] & 0x50501481U) != 0
+ || ((int)(uVar7 + 0x10) < (int)uVar6 || (int)(uVar6 + 0x10) < (int)uVar7);
+ if (((fromArea != 0) && ((int)(short)DAT_TileMapState.PathConnectionLayer[iVar4] != fromArea))
+ && (iVar4 = MACRO_CALL_MEMBER(
+ calculateCanPlayerUnitsNavigateToAreaFromArea,
+ DAT_PathFindingState)((int)this->buildings[buildingID].owner, (dword)((int)(fromArea)),
+ (dword)((int)((int)(short)DAT_TileMapState.PathConnectionLayer[iVar4])), 0),
+ iVar4 == 0)) {
+ bVar2 = true;
+ }
+ }
+ cVar5 = '\x01';
+ this->buildings[buildingID].hasAccessToKeep = 1;
+ if (bVar2) {
+ setBuildingInitialEntryTileTry(
+ buildingID, 0);
+ iVar4 = determineBuildingEntranceFromCustomArea(
+ buildingID, param_2, 0, x, y);
+ if (iVar4 == 0) {
+ this->buildings[buildingID].hasAccessToKeep = 0;
+ return '\0';
+ }
+ cVar5 = (iVar4 == 2) + '\x01';
+ }
+ return cVar5;
+ }
+ }
+}
+}
+
+### 0x00421d70 giveBackResourceForDestroyedBuilding | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00421D70
+ void BuildingsState::giveBackResourceForDestroyedBuilding(
+ int buildingIDORIfNegResourceType, int playerID, int param_3)
+ {
+ int* piVar1;
+ short* psVar2;
+ BuildingTypeShort BVar3;
+ Building* pBVar4;
+ int _stoneAmount;
+ BOOLEnum BVar5;
+ int iVar6;
+ short sVar7;
+ int iVar8;
+ int iVar9;
+ int amount;
+ int _playerID;
+ int amount_00;
+ _playerID = playerID;
+ if (param_3 != 0) {
+ iVar6 = param_3;
+ if (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT) {
+ iVar6 = 100;
+ }
+ if (buildingIDORIfNegResourceType == -1) {
+ if (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT) {
+ piVar1 = DAT_GameState.playerDataArray[playerID].startResources + 4;
+ /*
+ return DAT_PlayerDataArray[playerID].field_0x47c
+ */
+ *piVar1 = *piVar1 + 1;
+ return;
+ }
+ psVar2 = &DAT_GameState.playerDataArray[playerID].stoneGainedFraction;
+ iVar6 = iVar6 * 2;
+ /*
+ Compiler magic for division by 100 and a signed divide by 4
+ */
+ sVar7 = (((short)(iVar6 / 100) + (short)(iVar6 >> 0x1f))
+ - (short)((longlong)iVar6 * 0x51eb851f >> 0x3f))
+ + *psVar2;
+ _stoneAmount = (int)((int)sVar7 + ((int)sVar7 >> 0x1f & 3U)) >> 2;
+ *psVar2 = sVar7 + (short)_stoneAmount * -4;
+ BVar5 = processResourceGain(
+ playerID, RT_STONE, _stoneAmount);
+ if (BVar5 == FALSE) {
+ playSFXNoSpaceInTheStockPile(_playerID);
+ return;
+ }
+ } else if (buildingIDORIfNegResourceType == -2) {
+ psVar2 = &DAT_GameState.playerDataArray[playerID].woodGainedFraction;
+ iVar6 = iVar6 * 2;
+ sVar7 = (((short)(iVar6 / 100) + (short)(iVar6 >> 0x1f))
+ - (short)((longlong)iVar6 * 0x51eb851f >> 0x3f))
+ + *psVar2;
+ iVar6 = (int)((int)sVar7 + ((int)sVar7 >> 0x1f & 3U)) >> 2;
+ *psVar2 = sVar7 + (short)iVar6 * -4;
+ BVar5 = processResourceGain(
+ playerID, RT_WOOD, iVar6);
+ if (BVar5 == FALSE) {
+ playSFXNoSpaceInTheStockPile(_playerID);
+ return;
+ }
+ } else {
+ if (buildingIDORIfNegResourceType == -3) {
+ /*
+ Tower mangonel?
+ */
+ iVar8 = this->buildingCosts[0x56].requiredStone_0x4 * iVar6;
+ iVar9 = this->buildingCosts[0x56].requiredIron_0x8 * iVar6;
+ amount_00 = (this->buildingCosts[0x56].requiredPitch_0xc * iVar6) / 100;
+ amount = (this->buildingCosts[0x56].requiredGold * iVar6) / 100;
+ BVar5 = processResourceGain(playerID,
+ RT_WOOD, (this->buildingCosts[0x56].requiredWood * iVar6) / 100);
+ if (BVar5 == FALSE) {
+ playSFXNoSpaceInTheStockPile(playerID);
+ }
+ _playerID = playerID;
+ BVar5 = processResourceGain(playerID, RT_STONE, iVar8 / 100);
+ if (BVar5 == FALSE) {
+ playSFXNoSpaceInTheStockPile(_playerID);
+ }
+ BVar5 = processResourceGain(_playerID, RT_IRON, iVar9 / 100);
+ if (BVar5 == FALSE) {
+ playSFXNoSpaceInTheStockPile(_playerID);
+ }
+ } else if (buildingIDORIfNegResourceType == -4) {
+ /*
+ Tower ballista?
+ */
+ iVar8 = this->buildingCosts[0x57].requiredStone_0x4 * iVar6;
+ iVar9 = this->buildingCosts[0x57].requiredIron_0x8 * iVar6;
+ amount_00 = (this->buildingCosts[0x57].requiredPitch_0xc * iVar6) / 100;
+ amount = (this->buildingCosts[0x57].requiredGold * iVar6) / 100;
+ BVar5 = processResourceGain(playerID,
+ RT_WOOD, (this->buildingCosts[0x57].requiredWood * iVar6) / 100);
+ if (BVar5 == FALSE) {
+ playSFXNoSpaceInTheStockPile(playerID);
+ }
+ _playerID = playerID;
+ BVar5 = processResourceGain(playerID, RT_STONE, iVar8 / 100);
+ if (BVar5 == FALSE) {
+ playSFXNoSpaceInTheStockPile(_playerID);
+ }
+ BVar5 = processResourceGain(_playerID, RT_IRON, iVar9 / 100);
+ if (BVar5 == FALSE) {
+ playSFXNoSpaceInTheStockPile(_playerID);
+ }
+ } else {
+ BVar3 = this->buildings[buildingIDORIfNegResourceType].buildingType;
+ pBVar4 = this->buildings + buildingIDORIfNegResourceType;
+ iVar9 = (this->buildingCosts[(short)BVar3].requiredStone_0x4 * iVar6) / 100;
+ iVar8 = this->buildingCosts[(short)BVar3].requiredIron_0x8;
+ amount_00 = (this->buildingCosts[(short)BVar3].requiredPitch_0xc * iVar6) / 100;
+ amount = (this->buildingCosts[(short)BVar3].requiredGold * iVar6) / 100;
+ buildingIDORIfNegResourceType = amount;
+ param_3 = iVar9;
+ if (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT) {
+ resourceGainForKillingPitAndPitchDitch((int)(short)pBVar4->buildingType, &param_3, &buildingIDORIfNegResourceType);
+ piVar1 = DAT_GameState.playerDataArray[playerID].startResources + 4;
+ *piVar1 = *piVar1 + param_3;
+ piVar1 = DAT_GameState.playerDataArray[playerID].startResources + 0xf;
+ *piVar1 = *piVar1 + buildingIDORIfNegResourceType;
+ return;
+ }
+ BVar5 = processResourceGain(playerID, RT_WOOD,
+ (this->buildingCosts[(short)BVar3].requiredWood * iVar6) / 100);
+ if (BVar5 == FALSE) {
+ playSFXNoSpaceInTheStockPile(_playerID);
+ }
+ BVar5 = processResourceGain(_playerID, RT_STONE, iVar9);
+ if (BVar5 == FALSE) {
+ playSFXNoSpaceInTheStockPile(_playerID);
+ }
+ BVar5 = processResourceGain(_playerID, RT_IRON, (iVar8 * iVar6) / 100);
+ if (BVar5 == FALSE) {
+ playSFXNoSpaceInTheStockPile(_playerID);
+ }
+ }
+ BVar5 = processResourceGain(
+ _playerID, RT_PITCH, amount_00);
+ if (BVar5 == FALSE) {
+ playSFXNoSpaceInTheStockPile(_playerID);
+ }
+ BVar5 = processResourceGain(
+ _playerID, RT_GOLD, amount);
+ if (BVar5 == FALSE) {
+ playSFXNoSpaceInTheStockPile(_playerID);
+ }
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00422230 getBuildingThatCanStoreThisResource | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00422230
+ int BuildingsState::getBuildingThatCanStoreThisResource(ResourceType resourceType, int amount, int playerID)
+ {
+ BuildingType const storageType
+ = getBuildingStorageTypeForResourceType(resourceType);
+ if (storageType == BT_STOCKPILE) {
+ for (int buildingID = 1; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (this->buildings[buildingID].logicalState == BLS_NORMAL
+ && this->buildings[buildingID].buildingType == BT_STOCKPILE
+ && this->buildings[buildingID].owner == playerID
+ && this->buildings[buildingID].resources[resourceType] != 0
+ && this->buildings[buildingID].resources[resourceType]
+ < DAT_BuildingDefinedData.StorageLimitResourceTypeArray[resourceType]) {
+ return buildingID;
+ }
+ }
+ for (int buildingID = 1; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (this->buildings[buildingID].logicalState == BLS_NORMAL
+ && this->buildings[buildingID].buildingType == BT_STOCKPILE
+ && this->buildings[buildingID].owner == playerID
+ && this->buildings[buildingID].currentNumberOfResource <= 0) {
+ return buildingID;
+ }
+ }
+ } else if (storageType == BT_GRANARY) {
+ for (int buildingID = 1; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (this->buildings[buildingID].logicalState == BLS_NORMAL
+ && this->buildings[buildingID].buildingType == BT_GRANARY
+ && this->buildings[buildingID].owner == playerID
+ && (int)computeResourceSumForBuilding(buildingID)
+ < 250
+ && buildingIsAccessible(buildingID, 0) != 0) {
+ return buildingID;
+ }
+ }
+ }
+ return 0;
+ }
+ }
+}
+}
+
+### 0x00422370 getArmoryWithSpaceLeft | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00422370
+ uint BuildingsState::getArmoryWithSpaceLeft(
+ uint targetBuildingID, undefined4 producedItemTypeUnk, int playerID, int resourceToDeposit)
+ {
+ if (targetBuildingID != 0) {
+ return getArmoryIDIfSpaceLeft(
+ targetBuildingID, producedItemTypeUnk, playerID, resourceToDeposit);
+ }
+ for (int buildingID = 1; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (this->buildings[buildingID].buildingType == BT_ARMORY
+ && buildingIsAccessible(buildingID, 0) != 0
+ && getArmoryIDIfSpaceLeft(
+ buildingID, producedItemTypeUnk, playerID, resourceToDeposit)
+ != 0) {
+ return buildingID;
+ }
+ }
+ return 0;
+ }
+ }
+}
+}
+
+### 0x00422400 findQuarryPileThatIsCloseAndHasMostStone | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00422400
+ int BuildingsState::findQuarryPileThatIsCloseAndHasMostStone(int playerID, int x, int y, int unitID)
+ {
+ int bestScore = 0;
+ int bestBuildingID = 0;
+ for (int buildingID = 1; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (this->buildings[buildingID].logicalState != BLS_NORMAL
+ || this->buildings[buildingID].buildingType != BT_QUARRYSTOCKPILE
+ || this->buildings[buildingID].owner != playerID) {
+ continue;
+ }
+ int const stone = this->buildings[buildingID].resources[Game::Resources::RT_STONE];
+ if (stone <= 0
+ || buildingIsAccessible(buildingID, 1) == 0) {
+ continue;
+ }
+ setAxisBasedDistanceResult(
+ x, y, this->buildings[buildingID].x, this->buildings[buildingID].y);
+ int score = 400 - DAT_DirectionAlgorithmState.distanceHigh;
+ if (DAT_UnitsState.units[unitID].field300_0x410 != 0 && stone >= 8) {
+ if (stone > 40) {
+ score += stone;
+ } else {
+ score += stone / 2;
+ }
+ }
+ if (score >= bestScore) {
+ bestScore = score;
+ bestBuildingID = buildingID;
+ }
+ }
+ return bestBuildingID;
+ }
+ }
+}
+}
+

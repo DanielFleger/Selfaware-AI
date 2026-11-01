@@ -1,0 +1,825 @@
+### 0x00405680 UpdateFireEntity | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00405680
+ void Entities::UpdateFireEntity()
+ {
+ short* psVar1;
+ uint _totalHeightAtTile;
+ uint uVar2;
+ int _entityOffset;
+ int iVar3;
+ int _y;
+ uint _heightDerivative;
+ int _x;
+ uint uVar4;
+ uint _height;
+ int _tile;
+ short _fireIntensity0;
+ short _0xb6;
+ int _entityTile;
+ short _height0;
+ short _playerID;
+ uVar2 = DAT_CurrentEntityID;
+ _height0 = DAT_EntityState.entityArray[DAT_CurrentEntityID].fireParameter_0xb6;
+ if (_height0 == 5) {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].unkMinusOne = 8;
+ } else if (_height0 == 4) {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].unkMinusOne = 9;
+ } else if (_height0 == 3) {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].unkMinusOne = 0xc;
+ } else if (_height0 == 2) {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].unkMinusOne = 0xe;
+ } else {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].unkMinusOne = 0x10;
+ }
+ DAT_EntityState.entityArray[uVar2].gmID = 0x76;
+ _height0 = DAT_EntityState.entityArray[uVar2].someTracker;
+ if (_height0 < 0) {
+ DAT_EntityState.entityArray[uVar2].unkMinusOne = 0x20;
+ psVar1 = &DAT_EntityState.entityArray[uVar2].someTracker;
+ *psVar1 = *psVar1 + 1;
+ iVar3 = 1;
+ LAB_00405715:
+ DAT_EntityState.entityArray[uVar2].graphicType2 = iVar3;
+ } else {
+ if (_height0 == 0) {
+ _height0 = DAT_EntityState.entityArray[uVar2].fireParameter_0xb6;
+ if (_height0 < 3) {
+ LAB_004058a7:
+ if (_height0 == 2) {
+ iVar3 = (int)(char)DAT_EntityDefinedData.field3_0x188
+ [DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated];
+ } else {
+ iVar3 = (int)(char)DAT_EntityDefinedData.field5_0x260
+ [DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated];
+ }
+ } else if ((DAT_EntityState.entityArray[uVar2].rng_1 & 0x80) == 0) {
+ DAT_EntityState.entityArray[uVar2].gmID = 0x90;
+ iVar3
+ = (int)(char)DAT_EntityDefinedData
+ .field40_0x4d8[DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated];
+ } else {
+ iVar3
+ = (int)(char)DAT_EntityDefinedData
+ .field8_0x338[DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated];
+ }
+ LAB_004058ca:
+ if (0 < iVar3)
+ goto LAB_00405715;
+ } else {
+ if (_height0 == 1) {
+ _height0 = DAT_EntityState.entityArray[uVar2].fireParameter_0xb6;
+ if (_height0 < 3)
+ goto LAB_004058a7;
+ if ((DAT_EntityState.entityArray[uVar2].rng_1 & 0x80) == 0) {
+ DAT_EntityState.entityArray[uVar2].gmID = 0x90;
+ iVar3 = (int)(char)DAT_EntityDefinedData.field57_0xe34
+ [DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated];
+ } else {
+ iVar3 = (int)(char)DAT_EntityDefinedData.field56_0xe04
+ [DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated];
+ }
+ goto LAB_004058ca;
+ }
+ if (_height0 == 2) {
+ _height0 = DAT_EntityState.entityArray[uVar2].fireParameter_0xb6;
+ if (_height0 < 3)
+ goto LAB_004058a7;
+ if ((DAT_EntityState.entityArray[uVar2].rng_1 & 0x80) == 0) {
+ DAT_EntityState.entityArray[uVar2].gmID = 0x90;
+ iVar3 = (int)(char)DAT_EntityDefinedData.field42_0x5a8
+ [DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated];
+ } else {
+ iVar3 = (int)(char)DAT_EntityDefinedData.field38_0x408
+ [DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated];
+ }
+ goto LAB_004058ca;
+ }
+ }
+ DAT_EntityState.entityArray[uVar2].unknownAnimationFrameRelated = 0;
+ _height0 = DAT_EntityState.entityArray[uVar2].someTracker;
+ if (_height0 == 0) {
+ DAT_EntityState.entityArray[uVar2].someTracker = 1;
+ } else if (_height0 == 1) {
+ psVar1 = &DAT_EntityState.entityArray[uVar2].someCounter_OR_hitGround;
+ *psVar1 = *psVar1 + 1;
+ if ((DAT_EntityState.entityArray[uVar2].someCounter_OR_hitGround == 6)
+ && (2 < DAT_EntityState.entityArray[uVar2].fireParameter_0xb6)) {
+ DAT_EntityState.entityArray[uVar2].fireParameter_0xb6 = 2;
+ }
+ psVar1 = &DAT_EntityState.entityArray[uVar2].someCounter_OR_hitGround;
+ *psVar1 = *psVar1 + 1;
+ if (8 < DAT_EntityState.entityArray[uVar2].someCounter_OR_hitGround) {
+ DAT_EntityState.entityArray[uVar2].someTracker = 2;
+ }
+ if ((DAT_TileMapState.BuildingLayer[DAT_EntityState.entityArray[uVar2].tile] != 0)
+ && (iVar3
+ = getBuildingFlammabilityFactor((int)DAT_TileMapState
+ .BuildingLayer[DAT_EntityState.entityArray[uVar2].tile]),
+ uVar2 = DAT_CurrentEntityID, iVar3 != 0)) {
+ if (DAT_BuildingsState
+ .buildings[DAT_TileMapState.BuildingLayer
+ [DAT_EntityState.entityArray[DAT_CurrentEntityID].tile]]
+ .fireDuration
+ == 0) {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].someTracker = 2;
+ } else {
+ if (DAT_EntityState.entityArray[DAT_CurrentEntityID].fireParameter_0xb6
+ < 3) {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].fireParameter_0xb6 = 3;
+ }
+ DAT_EntityState.entityArray[uVar2].someTracker = 1;
+ DAT_EntityState.entityArray[uVar2].someCounter_OR_hitGround = 0;
+ }
+ }
+ } else if (_height0 == 2) {
+ DAT_EntityState.entityArray[uVar2].logicalState = 3;
+ }
+ }
+ _entityOffset = DAT_CurrentEntityID * 0xe8;
+ if ((DAT_EntityState.entityArray[DAT_CurrentEntityID].someTracker != 0)
+ || (DAT_EntityState.entityArray[DAT_CurrentEntityID].unknownAnimationFrameRelated != 1))
+ goto LAB_00405b3d;
+ _height0 = DAT_EntityState.entityArray[DAT_CurrentEntityID].field79_0xb8;
+ _tile = DAT_EntityState.entityArray[DAT_CurrentEntityID].tile;
+ _height = (uint)DAT_TileMapState.HeightLayer[_tile];
+ if ((3 < _height0)
+ || (DAT_EntityState.entityArray[DAT_CurrentEntityID].fireParameter_0xb6 < 2))
+ goto LAB_00405b3d;
+ if (_height0 == 0) {
+ _totalHeightAtTile = getTotalHeightAtTile(_tile + -1);
+ _heightDerivative = (int)(_height - _totalHeightAtTile) >> 0x1f;
+ if (0x18 < (int)((_height - _totalHeightAtTile ^ _heightDerivative) - _heightDerivative))
+ goto LAB_00405b2a;
+ _fireIntensity0 = DAT_EntityState.entityArray[DAT_CurrentEntityID].fireIntensity;
+ _0xb6 = DAT_EntityState.entityArray[DAT_CurrentEntityID].fireParameter_0xb6;
+ _height0 = DAT_EntityState.entityArray[DAT_CurrentEntityID].height;
+ _y = (int)DAT_EntityState.entityArray[DAT_CurrentEntityID].microY;
+ _x = DAT_EntityState.entityArray[DAT_CurrentEntityID].microX + -8;
+ LAB_00405b18:
+ _playerID = DAT_EntityState.entityArray[DAT_CurrentEntityID].owner;
+ LAB_00405b22:
+ IgniteFireAtMiniTile((int)_playerID, _x, _y,
+ _height0, _0xb6 + -1, _fireIntensity0);
+ } else {
+ if (_height0 == 1) {
+ uVar2 = getTotalHeightAtTile(
+ _tile + 1);
+ uVar4 = (int)(_height - uVar2) >> 0x1f;
+ if (0x18 < (int)((_height - uVar2 ^ uVar4) - uVar4))
+ goto LAB_00405b2a;
+ _fireIntensity0 = DAT_EntityState.entityArray[DAT_CurrentEntityID].fireIntensity;
+ _0xb6 = DAT_EntityState.entityArray[DAT_CurrentEntityID].fireParameter_0xb6;
+ _height0 = DAT_EntityState.entityArray[DAT_CurrentEntityID].height;
+ _y = (int)DAT_EntityState.entityArray[DAT_CurrentEntityID].microY;
+ _playerID = DAT_EntityState.entityArray[DAT_CurrentEntityID].owner;
+ _x = DAT_EntityState.entityArray[DAT_CurrentEntityID].microX + 8;
+ goto LAB_00405b22;
+ }
+ if (_height0 == 2) {
+ uVar2 = getTotalHeightAtTile(
+ (int)DAT_EntityState.entityArray[DAT_CurrentEntityID].xPosition
+ + DAT_ViewportRenderState
+ .translationMatrix
+ [DAT_EntityState.entityArray[DAT_CurrentEntityID].yPosition + 1]
+ .addXgetTile);
+ uVar4 = (int)(_height - uVar2) >> 0x1f;
+ if ((int)((_height - uVar2 ^ uVar4) - uVar4) < 0x19) {
+ _fireIntensity0
+ = DAT_EntityState.entityArray[DAT_CurrentEntityID].fireIntensity;
+ _0xb6 = DAT_EntityState.entityArray[DAT_CurrentEntityID].fireParameter_0xb6;
+ _y = DAT_EntityState.entityArray[DAT_CurrentEntityID].microY + 8;
+ LAB_00405b09:
+ _height0 = DAT_EntityState.entityArray[DAT_CurrentEntityID].height;
+ _x = (int)DAT_EntityState.entityArray[DAT_CurrentEntityID].microX;
+ goto LAB_00405b18;
+ }
+ } else if ((_height0 == 3)
+ && (uVar2
+ = getTotalHeightAtTile(
+ (int)DAT_EntityState.entityArray[DAT_CurrentEntityID].xPosition
+ + DAT_ViewportRenderState
+ .translationMatrix
+ [DAT_EntityState.entityArray[DAT_CurrentEntityID].yPosition + -1]
+ .addXgetTile),
+ uVar4 = (int)(_height - uVar2) >> 0x1f, (int)((_height - uVar2 ^ uVar4) - uVar4) < 0x19)) {
+ _fireIntensity0 = DAT_EntityState.entityArray[DAT_CurrentEntityID].fireIntensity;
+ _0xb6 = DAT_EntityState.entityArray[DAT_CurrentEntityID].fireParameter_0xb6;
+ _y = DAT_EntityState.entityArray[DAT_CurrentEntityID].microY + -8;
+ goto LAB_00405b09;
+ }
+ }
+ LAB_00405b2a:
+ _entityOffset = DAT_CurrentEntityID * 0xe8;
+ psVar1 = &DAT_EntityState.entityArray[DAT_CurrentEntityID].field79_0xb8;
+ *psVar1 = *psVar1 + 1;
+ LAB_00405b3d:
+ iVar3 = *(int*)(DAT_EntityState.entityArray[0].unused_0x48 + _entityOffset + 4);
+ if ((DAT_TileMapState.LogicLayer[iVar3] & 0xba7001b1U) == 0) {
+ processFireDamageToUnitsAtTile(iVar3,
+ (int)*(short*)(DAT_EntityState.entityArray[0].unused_0x2e + _entityOffset + -2),
+ (int)*(short*)(DAT_EntityState.entityArray[0].unused_0xe0 + _entityOffset + -8));
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00405680", "name": "UpdateFireEntity", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Steuert pro Aufruf ein Feuer-Objekt: Bild, Phasen, Ausbreitung auf Nachbarfelder und Schaden an Einheiten."}, "p2": {"ein": "- (arbeitet am Feuer-Objekt DAT_CurrentEntityID)", "aus": "-", "liest": ["entityArray[id].fireParameter_0xb6 (Feuerstufe)/someTracker (Phase)/unknownAnimationFrameRelated (Bildzähler)/someCounter_OR_hitGround/field79_0xb8/fireIntensity/rng_1/tile/xPosition/yPosition/microX/microY/height/owner", "Bildfolgen-Tabellen EntityDefinedData.field3_0x188/field5_0x260/field8_0x338/field40_0x4d8/field56_0xe04/field57_0xe34/field38_0x408/field42_0x5a8", "TileMapState.HeightLayer/LogicLayer/BuildingLayer", "buildings[b].fireDuration"], "schreibt": ["entityArray[id].unkMinusOne/gmID/graphicType2/someTracker/someCounter_OR_hitGround/fireParameter_0xb6/unknownAnimationFrameRelated/field79_0xb8/logicalState"], "ruft": ["getBuildingFlammabilityFactor", "getTotalHeightAtTile", "IgniteFireAtMiniTile", "processFireDamageToUnitsAtTile"], "regeln": ["Je Aufruf: unkMinusOne nach Feuerstufe: 5 gibt 8, 4 gibt 9, 3 gibt 12, 2 gibt 14, alles andere 16; gmID = 0x76 (bei Stufe ab 3 und rng_1 Bit 0x80 gleich 0 stattdessen 0x90)", "Phasen über someTracker: negativ = Vorlauf (unkMinusOne 0x20, Zähler +1 je Aufruf, Bild 1); 0 = Entstehen; 1 = Brennen; 2 = Verlöschen. Ist die Bildfolge der Phase 2 zu Ende, wird logicalState 3 gesetzt (vermutlich: Feuer-Objekt endet)", "Bildfolgen: Bildzähler wird in eine Tabelle gelegt, Wert über 0 = Bildnummer, Wert 0 oder kleiner = Folge zu Ende (Bildzähler 0, nächster Schritt). Stufe 2 nutzt field3_0x188, Stufe unter 2 field5_0x260, beide in allen Phasen gleich; ab Stufe 3 hat jede Phase eigene Tabellen in zwei Varianten nach rng_1 Bit 0x80", "Folgenende in Phase 0: Phase 1. In Phase 1 wird der Zähler je Folgenende zweimal um 1 erhöht (also +2); über 8 gibt Phase 2, ohne Gebäude also nach 5 Folgen. Stufe über 2 wird auf 2 gesenkt, wenn der Zähler nach dem ersten +1 genau 6 ist (bei geradem Startwert nie erreichbar)", "Steht ein Gebäude mit getBuildingFlammabilityFactor ungleich 0 auf dem Feld (geprüft bei jedem Folgenende in Phase 1): fireDuration 0 gibt sofort Phase 2; sonst Stufe mindestens 3, Phase 1 bleibt und der Zähler wird 0. Das Feuer brennt also, solange das Gebäude brennt", "Ausbreitung nur bei Phase 0, Bildzähler 1, field79_0xb8 höchstens 3 und Stufe mindestens 2. Pro Versuch ein Nachbarfeld (field79_0xb8: 0 gibt x-1, 1 gibt x+1, 2 gibt y+1, 3 gibt y-1; Mikrokoordinate ±8), nur wenn der Höhenunterschied (HeightLayer gegen getTotalHeightAtTile des Nachbarn) höchstens 24 (0x18) beträgt. Dann IgniteFireAtMiniTile mit Stufe - 1 und gleicher Brandstärke. field79_0xb8 steigt nach jedem Versuch um 1, auch ohne Zündung", "Schaden: bei jedem Aufruf ruft das Feuer processFireDamageToUnitsAtTile(Feld, Wert bei Offset 0x2C, Wert bei Offset 0xD8), wenn die LogicLayer des Feldes keines der Bits 0xBA7001B1 trägt"], "offen": ["Aufruftakt und Länge der Bildfolgen (Tabelleninhalt): Brenndauer in Spielzeit ist unbekannt", "Offsets 0x2C und 0xD8 sind ohne Feldnamen (vermutlich Besitzer und Brandstärke); Offset 0x4C vermutlich das eigene Feld (tile)", "Schadenshöhe steckt in processFireDamageToUnitsAtTile", "Bits der LogicLayer (nur 0x1000 als Baum abgeleitet)", "Wer someTracker negativ setzt und mit welchem Startwert der Zähler angelegt wird", "Ausbreitung geht vermutlich nur weiter, wenn das Feuer aufgefrischt wird (Ignite-Funktionen setzen Phase und Bildzähler auf 0 zurück): das Bildzählen selbst geschieht außerhalb dieser Funktion"]}, "p3": {"erklaerung": "Ein Feuer durchläuft Entstehen, Brennen und Verlöschen. Es greift auf höchstens vier Nachbarfelder über (nur bei kleinem Höhenunterschied), verletzt Einheiten auf seinem Feld und bleibt an brennenden Gebäuden bestehen, bis deren Brandzeit abgelaufen ist.", "gehirn": "Brandgefahr abschätzen: Jede Weitergabe senkt die Stufe um 1, Stufe 1 breitet sich nicht weiter aus, ein Höhenunterschied über 24 stoppt die Ausbreitung. An Gebäuden hält das Feuer, bis buildings[].fireDuration 0 ist.", "beleg": "code", "live": "Brand an einem Holzgebäude im normalen Spiel beobachten → entityArray[id].someTracker/fireParameter_0xb6/field79_0xb8 und buildings[b].fireDuration je Spielschritt mitschreiben → Phase 1 hält bis fireDuration 0; Nachbarfeuer haben Stufe - 1; Brenndauer in Spielschritten"}}
+
+### 0x00405da0 spawnProjectileImpactDebris | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00405DA0
+ void EntityState::spawnProjectileImpactDebris(int param_1)
+ {
+ byte bVar1;
+ uint microY;
+ uint microX;
+ uint uVar2;
+ int iVar3;
+ uint uVar4;
+ int iVar5;
+ int iVar6;
+ bool bVar7;
+ bool bVar8;
+ bool bVar9;
+ microY = (uint)this->entityArray[param_1].microY;
+ microX = (uint)this->entityArray[param_1].microX;
+ uVar2 = microX & 7;
+ iVar6 = 0;
+ iVar3 = 0;
+ uVar4 = microY & 7;
+ bVar1 = setBitFlagBasedOnWallTowerGatehouseOrKeep(
+ (int)(microX + ((int)microX >> 0x1f & 7U)) >> 3, (int)((int)((microY + (microY >> 0x1f & 7U)) >> 3)));
+ switch (this->entityArray[param_1].orientation) {
+ case 0x3c:
+ case 0x40:
+ case 0x44:
+ case 0x48:
+ switchD_00405e0c_caseD_3c:
+ iVar3 = (int)this->entityArray[param_1].y_2;
+ break;
+ case 0x3d:
+ uVar4 = 7 - uVar4;
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = false;
+ if (uVar2 == uVar4) {
+ switch (bVar1 & 10) {
+ case 0:
+ case 8:
+ switchD_00405e31_caseD_0:
+ uVar4 = 100;
+ break;
+ case 2:
+ switchD_00405e31_caseD_2:
+ uVar2 = 100;
+ break;
+ case 10:
+ goto switchD_00405e0c_caseD_3c;
+ }
+ switchD_00405e31_caseD_4:
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = uVar2 == uVar4;
+ }
+ goto LAB_00405e3f;
+ case 0x3e:
+ uVar4 = 7 - uVar4;
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = false;
+ if (uVar2 == uVar4) {
+ switch (bVar1 & 10) {
+ case 0:
+ case 8:
+ goto switchD_00405e31_caseD_0;
+ case 2:
+ goto switchD_00405e31_caseD_2;
+ default:
+ goto switchD_00405e31_caseD_4;
+ case 10:
+ goto switchD_00405e0c_caseD_3c;
+ }
+ }
+ goto LAB_00405e3f;
+ case 0x3f:
+ uVar4 = 7 - uVar4;
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = false;
+ if (uVar2 == uVar4) {
+ switch (bVar1 & 10) {
+ case 0:
+ case 2:
+ goto switchD_00405e31_caseD_2;
+ default:
+ goto switchD_00405e31_caseD_4;
+ case 8:
+ goto switchD_00405e31_caseD_0;
+ case 10:
+ goto switchD_00405e0c_caseD_3c;
+ }
+ }
+ goto LAB_00405e3f;
+ case 0x41:
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = false;
+ if (uVar2 == uVar4) {
+ switch (bVar1 & 0x82) {
+ case 0:
+ case 2:
+ switchD_00405ebf_caseD_0:
+ uVar4 = 100;
+ default:
+ switchD_00405ebf_caseD_4:
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = uVar2 == uVar4;
+ break;
+ case 0x80:
+ switchD_00405ebf_caseD_80:
+ bVar9 = (100 < uVar4);
+ bVar8 = (int)(100 - uVar4) < 0;
+ bVar7 = uVar4 == 100;
+ break;
+ case 0x82:
+ goto switchD_00405e0c_caseD_3c;
+ }
+ }
+ goto LAB_00405e3f;
+ case 0x42:
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = false;
+ if (uVar2 == uVar4) {
+ switch (bVar1 & 0x82) {
+ case 0:
+ case 2:
+ goto switchD_00405ebf_caseD_0;
+ default:
+ goto switchD_00405ebf_caseD_4;
+ case 0x80:
+ goto switchD_00405ebf_caseD_80;
+ case 0x82:
+ goto switchD_00405e0c_caseD_3c;
+ }
+ }
+ goto LAB_00405e3f;
+ case 0x43:
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = false;
+ if (uVar2 == uVar4) {
+ switch (bVar1 & 0x82) {
+ case 0:
+ case 0x80:
+ switchD_00405f23_caseD_0:
+ uVar2 = 100;
+ default:
+ switchD_00405f23_caseD_4:
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = uVar2 == uVar4;
+ break;
+ case 2:
+ switchD_00405f23_caseD_2:
+ bVar9 = (uVar2 < 100);
+ bVar8 = (int)(uVar2 - 100) < 0;
+ bVar7 = uVar2 == 100;
+ break;
+ case 0x82:
+ goto switchD_00405e0c_caseD_3c;
+ }
+ }
+ goto LAB_00405e3f;
+ case 0x45:
+ uVar2 = 7 - uVar2;
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = false;
+ if (uVar2 == uVar4) {
+ switch (bVar1 & 0xa0) {
+ case 0:
+ case 0x80:
+ goto switchD_00405ebf_caseD_0;
+ case 0x20:
+ goto switchD_00405ebf_caseD_80;
+ default:
+ goto switchD_00405ebf_caseD_4;
+ case 0xa0:
+ goto switchD_00405e0c_caseD_3c;
+ }
+ }
+ goto LAB_00405e3f;
+ case 0x46:
+ uVar2 = 7 - uVar2;
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = false;
+ if (uVar2 == uVar4) {
+ switch (bVar1 & 0xa0) {
+ case 0:
+ case 0x80:
+ goto switchD_00405ebf_caseD_0;
+ case 0x20:
+ goto switchD_00405ebf_caseD_80;
+ default:
+ goto switchD_00405ebf_caseD_4;
+ case 0xa0:
+ goto switchD_00405e0c_caseD_3c;
+ }
+ }
+ goto LAB_00405e3f;
+ case 0x47:
+ uVar2 = 7 - uVar2;
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = false;
+ if (uVar2 == uVar4) {
+ switch (bVar1 & 0xa0) {
+ case 0:
+ case 0x20:
+ goto switchD_00405f23_caseD_0;
+ default:
+ goto switchD_00405f23_caseD_4;
+ case 0x80:
+ goto switchD_00405f23_caseD_2;
+ case 0xa0:
+ goto switchD_00405e0c_caseD_3c;
+ }
+ }
+ goto LAB_00405e3f;
+ case 0x49:
+ iVar3 = -uVar2 + 7;
+ iVar6 = 7 - uVar4;
+ bVar9 = (iVar3 < iVar6);
+ bVar8 = iVar3 - iVar6 < 0;
+ bVar7 = false;
+ if (iVar3 == iVar6) {
+ switch (bVar1 & 0x28) {
+ case 0:
+ case 0x20:
+ iVar3 = 100;
+ default:
+ bVar9 = (iVar3 < iVar6);
+ bVar8 = iVar3 - iVar6 < 0;
+ bVar7 = iVar3 == iVar6;
+ break;
+ case 8:
+ bVar9 = (iVar3 < 100);
+ bVar8 = (int)(-uVar2 + -0x5d) < 0;
+ bVar7 = iVar3 == 100;
+ break;
+ case 0x28:
+ goto switchD_00405e0c_caseD_3c;
+ }
+ }
+ LAB_00405e3f:
+ if (!bVar7 && bVar9 == bVar8) {
+ iVar3 = (int)this->entityArray[param_1].y_2;
+ iVar6 = this->entityArray[param_1].microX * 2 - (int)this->entityArray[param_1].x_2;
+ goto switchD_00405e0c_caseD_10;
+ }
+ iVar3 = this->entityArray[param_1].microY * 2 - (int)this->entityArray[param_1].y_2;
+ break;
+ case 0x4a:
+ uVar2 = 7 - uVar2;
+ uVar4 = 7 - uVar4;
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = false;
+ if (uVar2 == uVar4) {
+ switch (bVar1 & 0x28) {
+ case 0:
+ case 8:
+ goto switchD_00405e31_caseD_0;
+ default:
+ goto switchD_00405e31_caseD_4;
+ case 0x20:
+ goto switchD_00405e31_caseD_2;
+ case 0x28:
+ goto switchD_00405e0c_caseD_3c;
+ }
+ }
+ goto LAB_00405e3f;
+ case 0x4b:
+ uVar2 = 7 - uVar2;
+ uVar4 = 7 - uVar4;
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = false;
+ if (uVar2 == uVar4) {
+ switch (bVar1 & 0x28) {
+ case 0:
+ case 8:
+ goto switchD_00405e31_caseD_0;
+ default:
+ goto switchD_00405e31_caseD_4;
+ case 0x20:
+ goto switchD_00405e31_caseD_2;
+ case 0x28:
+ goto switchD_00405e0c_caseD_3c;
+ }
+ }
+ goto LAB_00405e3f;
+ default:
+ goto switchD_00405e0c_caseD_10;
+ }
+ iVar6 = (int)this->entityArray[param_1].x_2;
+ switchD_00405e0c_caseD_10:
+ iVar5 = 0;
+ uVar4 = this->entityArray[param_1].rng_1 & 0x80000007;
+ if ((int)uVar4 < 0) {
+ uVar4 = (uVar4 - 1 | 0xfffffff8) + 1;
+ }
+ if (uVar4 != 0xfffffffb && -1 < (int)(uVar4 + 5)) {
+ do {
+ spawnProjectileEntity(0, 0, 0,
+ microX, microY, this->entityArray[param_1].height,
+ iVar6, iVar3, 8, 0x1b, 0);
+ iVar5 = iVar5 + 1;
+ uVar4 = this->entityArray[param_1].rng_1 & 0x80000007;
+ if ((int)uVar4 < 0) {
+ uVar4 = (uVar4 - 1 | 0xfffffff8) + 1;
+ }
+ } while (iVar5 < (int)(uVar4 + 5));
+ }
+ iVar3 = (int)this->entityArray[param_1].height;
+ spawnProjectileEntity(0, 0, 0,
+ microX, microY, iVar3, microX + 1, microY + 1,
+ iVar3, 0x1e, 0);
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00405da0", "name": "spawnProjectileImpactDebris", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Erzeugt Splitter und Staub, wenn ein Geschoss an einer Mauerkante aufschlägt."}, "p2": {"ein": "param_1 = Entity-Nummer des Geschosses", "aus": "nichts", "liest": ["entityArray[e].microX/microY/x_2/y_2/orientation/rng_1/height", "Bit-Flags des Feldes (setBitFlagBasedOnWallTowerGatehouseOrKeep)"], "schreibt": [], "ruft": ["setBitFlagBasedOnWallTowerGatehouseOrKeep", "spawnProjectileEntity (Typ 0x1b mehrfach, Typ 0x1e einmal)"], "regeln": ["Gleiche Spiegelrechnung wie handleProjectileWallBounce, um die Auswurfrichtung zu wählen", "Anzahl Splitter (Typ 0x1b) = 5 + Wert aus den unteren 3 Bits von rng_1 (mit Vorzeichen, -7 bis +7); bei Summe unter 1 gar keine, sonst 1 bis 12", "Danach ein Staubeffekt (Typ 0x1e) am Aufprallpunkt", "Splitter fliegen mit Zielhöhe 8 zum errechneten Punkt", "Bei nicht aufgeführter Orientierung ist das Ziel (0,0)"], "offen": ["Was die Typen 0x1b und 0x1e genau sind (vermutlich Splitter und Staub)"]}, "p3": {"erklaerung": "Nur Optik: Beim Aufschlag fliegen ein paar Splitter weg und es staubt.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x00406900 processSeaGulls | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00406900
+ void EntityState::processSeaGulls(int seagullID)
+ {
+ short* psVar1;
+ short sVar2;
+ double dVar3;
+ short _newAngle;
+ short sVar5;
+ short _targetYPart1;
+ short sVar4;
+ uint _targetX;
+ uint _yDiff;
+ uint _newX;
+ BOOLEnum _newBounds;
+ int _oldMicroY;
+ int _oldMicroX;
+ uint _oldX;
+ BOOLEnum _oldBounds;
+ int _targetXPart2;
+ int _targetYPart2;
+ int iVar6;
+ uint uVar7;
+ int _microX;
+ uint _newY;
+ uint _oldY;
+ int iVar8;
+ uint uVar9;
+ int _newMicroY;
+ short _targetXPart1;
+ int _newMicroX;
+ int _entityID;
+ float10 fVar10;
+ float10 fVar11;
+ short _y;
+ short _yPosition;
+ sVar4 = this->seagullArray[seagullID].someCountDown;
+ _entityID = (int)this->seagullArray[seagullID].entityID;
+ if (sVar4 != 0) {
+ sVar4 = sVar4 + -1;
+ this->seagullArray[seagullID].someCountDown = sVar4;
+ if (sVar4 != 0) {
+ return;
+ }
+ _y = this->entityArray[_entityID].microY;
+ this->entityArray[_entityID].targetX = this->entityArray[_entityID].microX;
+ _yPosition = this->entityArray[_entityID].yPosition;
+ this->entityArray[_entityID].targetY = _y;
+ playSFXAtLocation(
+ (int)this->entityArray[_entityID].xPosition, _yPosition,
+ FX_GULL_SURFACE);
+ }
+ _microX = (int)this->entityArray[_entityID].microX;
+ _targetX = _microX - this->entityArray[_entityID].targetX;
+ if (((int)((_targetX ^ (int)_targetX >> 0x1f) - ((int)_targetX >> 0x1f)) < 3)
+ && (_yDiff = (int)this->entityArray[_entityID].microY - (int)this->entityArray[_entityID].targetY,
+ (int)((_yDiff ^ (int)_yDiff >> 0x1f) - ((int)_yDiff >> 0x1f)) < 3)) {
+ if (((int)this->seagullArray[seagullID].randomNumber ^ this->entityArray[_entityID].rng_1
+ ^ (int)SEC_RNG::instance.currentNumber2)
+ % 500
+ == 123) {
+ _newMicroY
+ = (int)this->entityArray[_entityID].someMicroY + (int)this->entityArray[_entityID].microY;
+ _newMicroX = this->entityArray[_entityID].someMicroX + _microX;
+ _newY = (int)(_newMicroY + (_newMicroY >> 0x1f & 7U)) >> 3;
+ _newX = (int)(_newMicroX + (_newMicroX >> 0x1f & 7U)) >> 3;
+ _newBounds = xyAreValid(_newX, _newY);
+ if (_newBounds != FALSE) {
+ _oldMicroY = (int)this->entityArray[_entityID].microY;
+ _oldMicroX = (int)this->entityArray[_entityID].microX;
+ _oldY = (int)(_oldMicroY + (_oldMicroY >> 0x1f & 7U)) >> 3;
+ _oldX = (int)(_oldMicroX + (_oldMicroX >> 0x1f & 7U)) >> 3;
+ _oldBounds = xyAreValid(_oldX, _oldY);
+ if (((_oldBounds != FALSE)
+ && ((DAT_TileMapState.LogicLayer
+ [DAT_ViewportRenderState.translationMatrix[_newY].addXgetTile
+ + _newX]
+ & 1)
+ != 0))
+ && ((DAT_TileMapState.LogicLayer
+ [DAT_ViewportRenderState.translationMatrix[_oldY].addXgetTile + _oldX]
+ & 1)
+ != 0)) {
+ this->seagullArray[seagullID].someCountDown = 160;
+ setProjectileTargetPosition(_entityID, this->entityArray[_entityID].microX,
+ this->entityArray[_entityID].microY, 0xfa, _newMicroX, _newMicroY, 0);
+ playSFXAtLocation(
+ (int)this->entityArray[_entityID].xPosition,
+ this->entityArray[_entityID].yPosition, FX_GULL);
+ return;
+ }
+ }
+ }
+ sVar4 = this->seagullArray[seagullID].angle;
+ dVar3 = ((double)(sVar4 + -0xb4) * 3.1415926535) / 180.0;
+ _newAngle = this->seagullArray[seagullID].someAngle * 20 + sVar4;
+ this->seagullArray[seagullID].angle = _newAngle;
+ if (360 < _newAngle) {
+ nextRandomNumber1();
+ if ((int)SEC_RNG::instance.currentNumber1 % 5 == 1) {
+ playSFXAtLocation(
+ (int)this->entityArray[_entityID].xPosition,
+ this->entityArray[_entityID].yPosition, FX_GULL);
+ }
+ sVar4 = this->seagullArray[seagullID].field12_0x1a;
+ psVar1 = &this->seagullArray[seagullID].angle;
+ *psVar1 = *psVar1 + -360;
+ if (sVar4 < 0) {
+ psVar1 = &this->seagullArray[seagullID].unknownCounter_0x16;
+ *psVar1 = *psVar1 + 1;
+ } else if (0 < sVar4) {
+ psVar1 = &this->seagullArray[seagullID].unknownCounter_0x16;
+ *psVar1 = *psVar1 + -1;
+ }
+ if (this->seagullArray[seagullID].unknownCounter_0x16 < 24) {
+ this->seagullArray[seagullID].unknownCounter_0x16 = 24;
+ }
+ if (80 < this->seagullArray[seagullID].unknownCounter_0x16) {
+ this->seagullArray[seagullID].unknownCounter_0x16 = 80;
+ }
+ this->seagullArray[seagullID].field12_0x1a = sVar4 + 1;
+ if (0x13 < (short)(sVar4 + 1)) {
+ this->seagullArray[seagullID].field12_0x1a = -0x14;
+ }
+ }
+ sVar4 = this->seagullArray[seagullID].angle;
+ if (sVar4 < 0) {
+ this->seagullArray[seagullID].angle = sVar4 + 0x168;
+ sVar4 = this->seagullArray[seagullID].field12_0x1a;
+ if (sVar4 < 0) {
+ psVar1 = &this->seagullArray[seagullID].unknownCounter_0x16;
+ *psVar1 = *psVar1 + 1;
+ } else if (0 < sVar4) {
+ psVar1 = &this->seagullArray[seagullID].unknownCounter_0x16;
+ *psVar1 = *psVar1 + -1;
+ }
+ if (this->seagullArray[seagullID].unknownCounter_0x16 < 0x18) {
+ this->seagullArray[seagullID].unknownCounter_0x16 = 0x18;
+ }
+ if (0x50 < this->seagullArray[seagullID].unknownCounter_0x16) {
+ this->seagullArray[seagullID].unknownCounter_0x16 = 0x50;
+ }
+ this->seagullArray[seagullID].field12_0x1a = sVar4 + 1;
+ if (0x13 < (short)(sVar4 + 1)) {
+ this->seagullArray[seagullID].field12_0x1a = -0x14;
+ }
+ }
+ iVar8 = (int)this->seagullArray[seagullID].unknownCounter_0x16;
+ fVar10 = _math_sin((float10)dVar3);
+ _targetXPart2 = __ftol2(fVar10 * (float10)iVar8);
+ fVar10 = _math_cos((float10)dVar3);
+ _targetYPart2 = __ftol2(fVar10 * (float10)iVar8);
+ sVar4 = this->seagullArray[seagullID].angle_2;
+ sVar5 = this->seagullArray[seagullID].field15_0x20 + sVar4;
+ this->seagullArray[seagullID].angle_2 = sVar5;
+ fVar10 = ((float10)(sVar4 + -0xb4) * (float10)3.1415926535) / (float10)180.0;
+ if (0x167 < sVar5) {
+ this->seagullArray[seagullID].angle_2 = sVar5 + -0x168;
+ }
+ sVar4 = this->seagullArray[seagullID].angle_2;
+ if (sVar4 < 0) {
+ this->seagullArray[seagullID].angle_2 = sVar4 + 0x168;
+ }
+ iVar8 = (int)this->seagullArray[seagullID].numberBetween60And100;
+ fVar11 = _math_sin(fVar10);
+ iVar6 = __ftol2(fVar11 * (float10)iVar8);
+ _targetXPart1 = (short)iVar6 + this->seagullArray[seagullID].x;
+ this->seagullArray[seagullID].x_2 = _targetXPart1;
+ fVar10 = _math_cos((float10)(double)fVar10);
+ iVar8 = __ftol2(fVar10 * (float10)iVar8);
+ _targetYPart1 = (short)iVar8;
+ _targetYPart1 = _targetYPart1 + this->seagullArray[seagullID].y;
+ this->seagullArray[seagullID].y_2 = _targetYPart1;
+ setProjectileTargetPosition(
+ _entityID, this->entityArray[_entityID].microX,
+ this->entityArray[_entityID].microY,
+ this->entityArray[_entityID].height, _targetXPart1 + _targetXPart2,
+ _targetYPart1 + _targetYPart2, 250);
+ }
+ sVar4 = this->seagullArray[seagullID].x;
+ iVar8 = (int)sVar4;
+ uVar7 = iVar8 - this->seagullArray[seagullID].x_3;
+ uVar9 = (int)uVar7 >> 0x1f;
+ if (((1 < (int)((uVar7 ^ uVar9) - uVar9))
+ || (uVar7 = (int)this->seagullArray[seagullID].y - (int)this->seagullArray[seagullID].y_3,
+ uVar9 = (int)uVar7 >> 0x1f, 1 < (int)((uVar7 ^ uVar9) - uVar9)))
+ && (sVar5 = this->seagullArray[seagullID].field27_0x38, 0 < sVar5)) {
+ psVar1 = &this->seagullArray[seagullID].field25_0x34;
+ *psVar1 = *psVar1 + -1;
+ if (this->seagullArray[seagullID].field25_0x34 < 1) {
+ sVar2 = this->seagullArray[seagullID].field22_0x2e;
+ this->seagullArray[seagullID].field25_0x34 = 10;
+ this->seagullArray[seagullID].field27_0x38 = sVar5 + -1;
+ if (sVar2 != 0) {
+ if (sVar2 == 2) {
+ this->seagullArray[seagullID].x = this->seagullArray[seagullID].field23_0x30 + sVar4;
+ return;
+ }
+ if (sVar2 == 1) {
+ psVar1 = &this->seagullArray[seagullID].y;
+ *psVar1 = *psVar1 + this->seagullArray[seagullID].field24_0x32;
+ return;
+ }
+ if (sVar2 == 4) {
+ sVar5 = this->seagullArray[seagullID].field21_0x2c;
+ if (0 < sVar5) {
+ sVar2 = this->seagullArray[seagullID].field23_0x30;
+ psVar1 = &this->seagullArray[seagullID].y;
+ *psVar1 = *psVar1 + this->seagullArray[seagullID].field24_0x32;
+ this->seagullArray[seagullID].x = sVar2 + sVar4;
+ this->seagullArray[seagullID].field21_0x2c
+ = this->seagullArray[seagullID].field20_0x2a + sVar5;
+ return;
+ }
+ sVar2 = this->seagullArray[seagullID].field19_0x28;
+ this->seagullArray[seagullID].x = this->entityArray[_entityID].someMicroX + sVar4;
+ this->seagullArray[seagullID].field21_0x2c = sVar2 + sVar5;
+ return;
+ }
+ if (sVar2 == 3) {
+ sVar5 = this->seagullArray[seagullID].field21_0x2c;
+ psVar1 = &this->seagullArray[seagullID].y;
+ *psVar1 = *psVar1 + this->seagullArray[seagullID].field24_0x32;
+ if (0 < sVar5) {
+ this->seagullArray[seagullID].x = this->seagullArray[seagullID].field23_0x30 + sVar4;
+ this->seagullArray[seagullID].field21_0x2c
+ = this->seagullArray[seagullID].field20_0x2a + sVar5;
+ return;
+ }
+ this->seagullArray[seagullID].field21_0x2c
+ = this->seagullArray[seagullID].field19_0x28 + sVar5;
+ }
+ }
+ }
+ return;
+ }
+ sVar4 = this->seagullArray[seagullID].rngMax799_countdown;
+ if (0 < sVar4) {
+ this->seagullArray[seagullID].rngMax799_countdown = sVar4 + -1;
+ return;
+ }
+ _entityID = (int)this->seagullArray[seagullID].y;
+ this->seagullArray[seagullID].rngMax799_countdown = SEC_RNG::instance.currentNumber2 % 400 + 400;
+ findFurthestSeaTile((int)(CONCAT44((int)SEC_RNG::instance.currentNumber2 >> 0x1f,
+ (uint)((int)((int)SEC_RNG::instance.currentNumber2 >> 4) % 200) + 400)),
+ (uint)((int)((int)(iVar8 + (iVar8 >> 0x1f & 7U)) >> 3)),
+ (int)(_entityID + (_entityID >> 0x1f & 7U)) >> 3);
+ this->seagullArray[seagullID].x_3 = (short)DAT_PathFindingState.ALG_ResultX * 8;
+ sVar4 = this->seagullArray[seagullID].x_3;
+ sVar2 = (short)DAT_PathFindingState.ALG_ResultY * 8;
+ sVar5 = this->seagullArray[seagullID].x;
+ this->seagullArray[seagullID].y_3 = sVar2;
+ initializeSeagullMovementVector(
+ seagullID, sVar5, this->seagullArray[seagullID].y, sVar4,
+ sVar2);
+ this->seagullArray[seagullID].field25_0x34 = 10;
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00406900", "name": "processSeaGulls", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Steuert pro Tick die Flugbahn einer einzelnen Möwe."}, "p2": {"ein": "seagullID", "aus": "nichts", "liest": ["seagullArray[id]", "entityArray[entityID].microX/microY/targetX/targetY/rng_1", "SEC_RNG.currentNumber2", "DAT_TileMapState.LogicLayer", "DAT_PathFindingState.ALG_ResultX/Y"], "schreibt": ["seagullArray[id].someCountDown/angle/angle_2/unknownCounter_0x16/field12_0x1a/x_2/y_2/x/y/x_3/y_3/rngMax799_countdown/field25_0x34"], "ruft": ["playSFXAtLocation (FX_GULL, FX_GULL_SURFACE)", "setProjectileTargetPosition", "xyAreValid", "findFurthestSeaTile", "initializeSeagullMovementVector", "nextRandomNumber1", "_math_sin", "_math_cos"], "regeln": ["Ist someCountDown gesetzt: herunterzählen; bei 0 Ziel auf aktuelle Lage setzen und Ton FX_GULL_SURFACE", "Ist die Möwe weniger als 3 Mikroeinheiten vom Ziel (x und y): mit Chance 1 zu 500 je Tick (Wert == 123) ein Schritt in Richtung someMicroX/Y, nur wenn alte und neue Kachel in LogicLayer Bit 1 gesetzt haben; dann Wartezeit 160 und Ton FX_GULL", "Sonst kreist sie: angle += someAngle*20; über 360 wird 360 abgezogen, mit Chance 1 zu 5 Ton FX_GULL; Radius unknownCounter_0x16 ändert sich um 1 und bleibt in 24-80; field12_0x1a läuft von -20 bis 19 im Kreis", "Zweiter Kreis mit angle_2 und numberBetween60And100 verschiebt das Ziel; Flughöhe 250", "Hat rngMax799_countdown abgelaufen, wird mit findFurthestSeaTile ein weit entfernter Meerespunkt (Abstand 400 bis 599 Kacheln-Einheiten) als neues Mittelpunktsziel gewählt und der Zähler auf Zufall%400+400 gesetzt", "Der Mittelpunkt (x,y) wandert alle 10 Ticks schrittweise (field25_0x34) zum Mittelpunktsziel (x_3,y_3), solange field27_0x38 > 0"], "offen": ["Die Klammerstruktur der Ghidra-Übersetzung ist verwirrend; die Reihenfolge der letzten beiden Blöcke ist nicht sicher", "Bedeutung von LogicLayer Bit 1 (vermutlich Wasser) und der Argumente von findFurthestSeaTile", "Viele field-Namen (field21 bis field27) ungesichert"]}, "p3": {"erklaerung": "Möwen kreisen über dem Meer, wechseln gelegentlich den Ort und landen ab und zu kurz mit Ton. Das ist Zierde ohne Einfluss auf das Spiel.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+

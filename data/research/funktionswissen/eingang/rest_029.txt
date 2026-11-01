@@ -1,0 +1,1119 @@
+### 0x004ae070 MenuModalRenderFunction_ChooseRandomNumberOfEnemies | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AE070
+ void ChooseRandomNumberOfEnemies::MenuModalRenderFunction_ChooseRandomNumberOfEnemies(
+ int x, int y, int width, int height)
+ {
+ char* pcVar1;
+ int iVar2;
+ int iVar3;
+ TextAlignment alignment;
+ BGR24 color;
+ int iVar4;
+ uint color_00;
+ BOOLEnum keepOffsetX;
+ int iVar5;
+ int blendStrength;
+ iVar5 = 0;
+ keepOffsetX = FALSE;
+ iVar4 = 0x11;
+ color = 0xccfaff;
+ alignment = TTA_CENTER;
+ iVar2 = y + 100;
+ iVar3 = x + 300;
+ /*
+ added by script: "How many opponents can you handle!"
+ */
+ pcVar1 = getTextStringInGroupAtOffset(TEXT_NEW_TEXT, 1);
+ renderTextToScreen(
+ pcVar1, iVar3, iVar2, alignment, color, iVar4, keepOffsetX, iVar5);
+ blendStrength = 0;
+ iVar5 = 0x12;
+ color_00 = 0xccfaff;
+ iVar4 = 400;
+ iVar2 = y + 300;
+ iVar3 = x + 100;
+ /*
+ added by script: "This will create some random opponents for you. You can still change opponent types
+ afterwards."
+ */
+ pcVar1 = getTextStringInGroupAtOffset(TEXT_NEW_TEXT, 2);
+ renderMultilineText5Unk(
+ pcVar1, iVar3, iVar2, iVar4, color_00, iVar5, blendStrength);
+ return;
+ }
+ }
+}
+}
+
+### 0x004b18d0 MenuItemActionHandler_ChooseRandomNumberOfEnemies_Main | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B18D0
+ void ChooseRandomNumberOfEnemies::MenuItemActionHandler_ChooseRandomNumberOfEnemies_Main(int param_1, ...)
+ {
+ int iVar1;
+ int* piVar2;
+ activateModalDialog(MMT_NONE, FALSE);
+ if (0 < param_1) {
+ iVar1 = 2;
+ do {
+ DAT_GameSynchronyState.currentAIArray[iVar1] = 0;
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[iVar1] = 0;
+ RemovePositionOfPlayer(iVar1);
+ iVar1 = iVar1 + 1;
+ } while (iVar1 < 9);
+ if (0 < param_1) {
+ piVar2 = DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue + 2;
+ iVar1 = 2;
+ do {
+ piVar2[-0x419a7]
+ = DAT_GameCore.arrayOfLordIdsWithAIVsUnk[(int)SEC_RNG::instance.currentNumber2
+ % DAT_GameCore.numOfAIsWithCastleUnk];
+ nextRandomNumber2();
+ ResetAiVariationArrayValue(iVar1);
+ *piVar2 = 1;
+ PutPlayerIntoRandomSlot(iVar1);
+ piVar2 = piVar2 + 1;
+ iVar1 = iVar1 + 1;
+ param_1 = param_1 + -1;
+ } while (param_1 != 0);
+ }
+ reorderTeamsAndPositions();
+ DAT_GameSynchronyState.reparseMaps = TRUE;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00480db0 ClickNavigateMenuOrEscape | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00480DB0
+ void Commands::ClickNavigateMenuOrEscape()
+ {
+ short local_4[2];
+ DAT_GameSynchronyState.DAT_CommandSize = 4;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(local_4, 2, GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = (uint)local_4[0];
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ clearOrDeselectUnitFromSelection(DAT_GameSynchronyState.protocolInvokerPlayerID,
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam0)),
+ DAT_GameSynchronyState.DAT_GameCommandParam1);
+ }
+ return;
+ }
+}
+}
+
+### 0x00485330 CloseModalDialogForEveryone | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00485330
+ void Commands::CloseModalDialogForEveryone()
+ {
+ DAT_GameSynchronyState.DAT_CommandSize = 0;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ DAT_GameSynchronyState.saveRelated = 0;
+ activateModalDialog(MMT_NONE, FALSE);
+ }
+ return;
+ }
+}
+}
+
+### 0x004863a0 UpdateSkirmishGameMenuFaceBitmap | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004863A0
+ void Commands::UpdateSkirmishGameMenuFaceBitmap()
+ {
+ void* pvVar1;
+ int iVar2;
+ int iVar3;
+ int local_8c;
+ int local_88;
+ undefined1 local_84[64];
+ undefined1 auStack_44[64];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)&local_8c;
+ DAT_GameSynchronyState.DAT_CommandSize = 0x88;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ iVar3 = DAT_GameSynchronyState.DAT_GameCommandParam0
+ + (DAT_GameCore.lordIconUnk + -2) * 0x42;
+ iVar2 = 0;
+ do {
+ local_84[iVar2] = *(undefined1*)((int)DAT_TextureRenderCoreObject.bitmapsFaces_0x94
+ + iVar2 * 2 + iVar3 * 0x80);
+ auStack_44[iVar2] = *(undefined1*)((int)DAT_TextureRenderCoreObject.bitmapsFaces_0x94
+ + iVar2 * 2 + iVar3 * 0x80 + 1);
+ iVar2 = iVar2 + 1;
+ } while (iVar2 < 0x40);
+ serializeOrDeserializeCommandParameter(local_84, (size_t)((int)(128)),
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ ;
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(&local_88, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&local_8c, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ if (local_8c - 1U < 8) {
+ serializeOrDeserializeCommandParameter(local_84, (size_t)((int)(128)),
+ GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ pvVar1 = DAT_TextureRenderCoreObject.bitmapsFaces_0x94;
+ local_88 = local_88 + (local_8c + 19) * 0x42;
+ iVar3 = 0;
+ do {
+ *(undefined1*)((int)pvVar1 + iVar3 * 2 + local_88 * 0x80) = local_84[iVar3];
+ *(undefined1*)((int)pvVar1 + iVar3 * 2 + local_88 * 0x80 + 1) = auStack_44[iVar3];
+ iVar3 = iVar3 + 1;
+ } while (iVar3 < 0x40);
+ DAT_TextureRenderCoreObject.field69_0x98[local_8c + 0x13] = 0x2100;
+ }
+ };
+ return;
+ }
+}
+}
+
+### 0x004894f0 TriggerLobbyPlayerInformationRefresh | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004894F0
+ void Commands::TriggerLobbyPlayerInformationRefresh()
+ {
+ int _senderIsHost;
+ int _param0;
+ DAT_GameSynchronyState.DAT_CommandSize = 8;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.isHost, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ return;
+ }
+ if ((DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE)
+ && (DAT_GameSynchronyState.currentPlayerSlotID - 1U < 8)) {
+ serializeOrDeserializeCommandParameter(&_param0, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&_senderIsHost, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ if (_senderIsHost != 0) {
+ DAT_GameSynchronyState.DAT_HostPlayerSlotID
+ = DAT_GameSynchronyState.protocolInvokerPlayerID;
+ }
+ queueCommand(
+ GCT_ANNOUNCE_GAME_VERSION);
+ queueCommand(
+ GCT_ANNOUNCE_PLAYER_INFO);
+ if ((_param0 == 1) && (1 < DAT_GameCore.lordIconUnk)) {
+ queueCommand(GCT_SHARE_AIV_HASH);
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x004895e0 ClickTauntOrChat | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004895E0
+ void Commands::ClickTauntOrChat()
+ {
+ char cVar1;
+ char* pcVar2;
+ char* pcVar3;
+ int iVar4;
+ SoundFlagsAndLoopCount SVar5;
+ int _tauntOrChat[10];
+ WCHAR _messageRaw[260];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)_tauntOrChat;
+ DAT_GameSynchronyState.DAT_CommandSize = 0x220;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan != GCS_SCHEDULE_AND_SEND) {
+ if ((DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE)
+ && (DAT_GameSynchronyState.protocolInvokerPlayerID - 1U < 8)) {
+ _tauntOrChat[1] = 0;
+ _tauntOrChat[2] = 0;
+ _tauntOrChat[3] = 0;
+ _tauntOrChat[4] = 0;
+ _tauntOrChat[5] = 0;
+ _tauntOrChat[6] = 0;
+ _tauntOrChat[7] = 0;
+ _tauntOrChat[8] = 0;
+ _tauntOrChat[9] = 0;
+ serializeOrDeserializeCommandParameter(_tauntOrChat, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(_messageRaw, 500, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ wideCharToMultiByteWithSize(DAT_GameSynchronyState.receivedChatMessage,
+ (LPWSTR)((int)(_messageRaw)), 250);
+ serializeOrDeserializeCommandParameter(_tauntOrChat + 1, (size_t)((int)(36)),
+ GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ if (_tauntOrChat[DAT_GameSynchronyState.currentPlayerSlotID + 1] != 0) {
+ /*
+ message is meant for this player
+ */
+ if (_tauntOrChat[0] == 10000) {
+ iVar4 = 0;
+ } else if (_tauntOrChat[0] < 0) {
+ _tauntOrChat[0] = -1 - _tauntOrChat[0];
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_INSULTS, _tauntOrChat[0]);
+ pcVar3 = DAT_GameSynchronyState.receivedChatMessage;
+ do {
+ cVar1 = *pcVar2;
+ *pcVar3 = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pcVar3 = pcVar3 + 1;
+ } while (cVar1 != '\0');
+ resolveResourceFileName(FRT_GFX_SPEECH,
+ (CHAR_CONST*)((int)(DAT_ProtocolDefinedData.commandFunctions[_tauntOrChat[0]])));
+ SVar5 = -536870911;
+ pcVar2
+ = getFileNameOfCurrentActiveResource();
+ playSoundOnStream3Unk(pcVar2, SVar5);
+ iVar4 = DAT_GameSynchronyState.DAT_GameCommandParam0;
+ } else {
+ iVar4 = DAT_GameSynchronyState.protocolInvokerPlayerID;
+ if (_tauntOrChat[0] != 0) {
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_INSULTS, _tauntOrChat[0]);
+ pcVar3 = DAT_GameSynchronyState.receivedChatMessage;
+ do {
+ cVar1 = *pcVar2;
+ *pcVar3 = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pcVar3 = pcVar3 + 1;
+ } while (cVar1 != '\0');
+ resolveResourceFileName(FRT_GFX_SPEECH,
+ (CHAR_CONST*)((
+ int)(DAT_ProtocolDefinedData.commandFunctions[_tauntOrChat[0]])));
+ SVar5 = -536870911;
+ pcVar2 = getFileNameOfCurrentActiveResource();
+ playSoundOnStream3Unk(pcVar2, SVar5);
+ iVar4 = DAT_GameSynchronyState.protocolInvokerPlayerID;
+ }
+ }
+ addChatMessageToDisplayList(iVar4, 0);
+ }
+ };
+ return;
+ }
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_ChatTauntOrMessage, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ iVar4 = 0xfa;
+ pcVar2
+ = getCurrentText();
+ multiByteToWideCharWithSize(_messageRaw, (LPCSTR)((int)(pcVar2)), iVar4);
+ serializeOrDeserializeCommandParameter(_messageRaw, 500, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.DAT_ChatMessageReceiverArray, 0x24,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ ;
+ return;
+ }
+}
+}
+
+### 0x0048faa0 HostShareLobbyState | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0048FAA0
+ void Commands::HostShareLobbyState()
+ {
+ DAT_GameSynchronyState.DAT_CommandSize = 0xaa;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.currentPlayerFullIDArray,
+ (size_t)((int)(36)), GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.field300_0x109e80, 9,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.field48_0x75c, 9,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue, 0x24,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.currentAIArray, 0x24,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.aiVariationArray, 0x24,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.playerPositionsArray, 8,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.currentPlayerFullIDArray, 0x24,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.field300_0x109e80, 9,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.field48_0x75c, 9,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue, 0x24,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.currentAIArray, 0x24,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.aiVariationArray, 0x24,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.playerPositionsArray, 8,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ reorderTeamsAndPositions();
+ DAT_GameSynchronyState.field215_0x106e1c = 1;
+ }
+ return;
+ }
+}
+}
+
+### 0x004261e0 MenuView_Credits_Prepare | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004261E0
+ void Credits::MenuView_Credits_Prepare()
+ {
+ int iVar1;
+ char* tgxFileName;
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ if (DAT_00b95954 == 0) {
+ loadGfxFile("credits_1.tgx");
+ loadGfxFile("credits_2.tgx");
+ loadGfxFile("credits_3.tgx");
+ tgxFileName = "credits_4.tgx";
+ } else {
+ tgxFileName = "end_credit.tgx";
+ }
+ loadGfxFile(tgxFileName);
+ iVar1 = findOrAddHelpSectionName("credits.hlp");
+ openCreditsScrollDialog(
+ iVar1);
+ DAT_TextEditorState.helpContentScrollOffsetY = 0xfffffda8;
+ DAT_00b95b3c = 0;
+ INT_00b960d0::instance = MACRO_CALL(timeGetTime)();
+ DAT_00b95b70 = 0;
+ DAT_00b9610c = 1;
+ LoadTGX_shc_back();
+ INT_00b960d4::instance = MACRO_CALL(timeGetTime)();
+ drawColorBox(0,
+ 0, DAT_WindowAndDirectDraw.resolutionX, DAT_WindowAndDirectDraw.resolutionY,
+ (ushort)((int)(COL_BLACK::instance.shortValue)));
+ return;
+ }
+ }
+}
+}
+
+### 0x004262b0 MenuView_Credits_DoInitial | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004262B0
+ void Credits::MenuView_Credits_DoInitial()
+ {
+ Menu* pMVar1;
+ drawColorBox(0,
+ 0, DAT_WindowAndDirectDraw.resolutionX, DAT_WindowAndDirectDraw.resolutionY,
+ (ushort)((int)(COL_BLACK::instance.shortValue)));
+ DrawOuterMenuBorder();
+ drawGfxOnFlaggedSurface(0,
+ (DAT_WindowAndDirectDraw.resolutionX
+ - DAT_TextureRenderCoreObject.loadedGfxArray[0].width)
+ / 2,
+ (DAT_WindowAndDirectDraw.resolutionY
+ - DAT_TextureRenderCoreObject.loadedGfxArray[0].height)
+ / 2);
+ DAT_MenuHandlerState.y = DAT_WindowAndDirectDraw.mainMenuBorderHeight;
+ DAT_MenuHandlerState.x = DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ pMVar1 = DAT_MenuHandlerState.currentMenu;
+ (DAT_MenuHandlerState.currentMenu)->xPosition
+ = DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ pMVar1->yPosition = DAT_MenuHandlerState.y;
+ DAT_TextEditorState.pendingCreditsFadeBorder = TRUE;
+ return;
+ }
+ }
+}
+}
+
+### 0x00426340 MenuView_Credits_DoEveryFrame | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00426340
+ void Credits::MenuView_Credits_DoEveryFrame()
+ {
+ SHORT SVar1;
+ DWORD DVar2;
+ int iVar3;
+ int left;
+ int top;
+ int bottom;
+ DVar2 = MACRO_CALL(timeGetTime)();
+ if (DAT_00b9610c < 1) {
+ if (DAT_00b9610c < 0) {
+ DAT_00b95b70 = 0x20 - (int)(DVar2 - INT_00b960d0::instance) / 0x32;
+ DAT_TextEditorState.pendingCreditsFadeBorder = TRUE;
+ if (DAT_00b95b70 < 1) {
+ DAT_00b95b3c = DAT_00b95b3c + 1;
+ DAT_00b9610c = 1;
+ DAT_00b95b70 = 0;
+ INT_00b960d0::instance = DVar2;
+ if (3 < DAT_00b95b3c) {
+ DAT_00b95b3c = 0;
+ }
+ }
+ } else if ((20000 < (int)(DVar2 - INT_00b960d0::instance)) && (DAT_00b95954 == 0)) {
+ DAT_00b9610c = -1;
+ INT_00b960d0::instance = DVar2;
+ }
+ } else {
+ DAT_00b95b70 = (int)(DVar2 - INT_00b960d0::instance) / 0x32;
+ DAT_TextEditorState.pendingCreditsFadeBorder = TRUE;
+ if (0x1f < DAT_00b95b70) {
+ DAT_00b9610c = 0;
+ INT_00b960d0::instance = DVar2;
+ }
+ }
+ SVar1 = GetAsyncKeyState(VK_DOWN);
+ if (SVar1 != 0) {
+ if (DAT_ModifierKeyState.shift == 0) {
+ INT_00b960d4::instance = INT_00b960d4::instance + -0x3c;
+ } else {
+ INT_00b960d4::instance = INT_00b960d4::instance + -200;
+ }
+ }
+ iVar3 = (int)(DVar2 - INT_00b960d4::instance) / 0x1e + -600;
+ if (iVar3 == DAT_TextEditorState.helpContentScrollOffsetY) {
+ if (DAT_TextEditorState.pendingCreditsFadeBorder == FALSE)
+ goto LAB_0042653a;
+ } else {
+ DAT_TextEditorState.helpContentScrollOffsetY = iVar3;
+ if (DAT_TextEditorState.topVisibleLineIndex < iVar3) {
+ DAT_TextEditorState.helpContentScrollOffsetY = -600;
+ INT_00b960d4::instance = DVar2;
+ }
+ DAT_TextEditorState.pendingCreditsFadeBorder = TRUE;
+ }
+ drawGfxOnFlaggedSurface(DAT_00b95b3c,
+ (DAT_WindowAndDirectDraw.resolutionX
+ - DAT_TextureRenderCoreObject.loadedGfxArray[0].width)
+ / 2,
+ (DAT_WindowAndDirectDraw.resolutionY
+ - DAT_TextureRenderCoreObject.loadedGfxArray[0].height)
+ / 2);
+ if (DAT_00b95b70 < 0x20) {
+ MACRO_CALL(timeGetTime)();
+ if (DAT_00b95954 == 0) {
+ iVar3 = DAT_MenuHandlerState.x + 800;
+ left = DAT_MenuHandlerState.x;
+ top = DAT_MenuHandlerState.y;
+ bottom = DAT_MenuHandlerState.y + 600;
+ } else {
+ iVar3 = DAT_WindowAndDirectDraw.resolutionX / 2;
+ top = 0;
+ left = 0;
+ bottom = DAT_WindowAndDirectDraw.resolutionY;
+ }
+ drawBlendedBlackBox(left, top, iVar3, bottom, DAT_00b95b70);
+ }
+ LAB_0042653a:
+ if (DAT_MouseState.leftClickStart != 0) {
+ closeHelpDialogAndReturnToMenu();
+ switchToMenuView(
+ MVT_MAIN_MENU, 0);
+ activateModalDialog(MMT_NONE, FALSE);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004da180 StopCreditsPlaybackAndSounds | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004DA180
+ void Credits::StopCreditsPlaybackAndSounds()
+ {
+ endSoundStream(
+ SND_STR_SFX_1Unk);
+ DAT_SoundSystemState.streamFlagsUnkAndLoopCount_0x34[4] = 0;
+ DAT_SoundSystemState.streamFlagsUnkAndLoopCount_0x34[3] = 0;
+ endSoundStream(
+ SND_STR_SPEECH_1);
+ endSoundStream(
+ SND_STR_SPEECH_2);
+ if (INT_00ed27a4::instance != 2) {
+ stopBinkPlayback(0);
+ stopBinkPlayback(1);
+ DAT_UnknownBinkIndex = DAT_UnknownBinkCount;
+ return;
+ }
+ DAT_UnknownBinkIndex = DAT_UnknownBinkCount;
+ return;
+ }
+}
+}
+
+### 0x004da200 EndCreditsSegmentAndAdvanceToNext | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004DA200
+ void Credits::EndCreditsSegmentAndAdvanceToNext()
+ {
+ CreditsRelatedStructure* pCVar1;
+ endSoundStream(
+ SND_STR_SFX_1Unk);
+ DAT_SoundSystemState.streamFlagsUnkAndLoopCount_0x34[4] = 0;
+ DAT_SoundSystemState.streamFlagsUnkAndLoopCount_0x34[3] = 0;
+ endSoundStream(
+ SND_STR_SPEECH_1);
+ endSoundStream(
+ SND_STR_SPEECH_2);
+ if (INT_00ed27a4::instance != 2) {
+ stopBinkPlayback(0);
+ stopBinkPlayback(1);
+ }
+ DWORD_00eb9ac4::instance = 0;
+ INT_00eb1230::instance = 0;
+ INT_00eb9ac0::instance = 0;
+ DAT_00ed2bd8 = 0;
+ pCVar1 = CreditsRelatedStructure_ARRAY_00ec0348::instance;
+ do {
+ pCVar1->isValid = 0;
+ pCVar1 = pCVar1 + 1;
+ } while ((int)pCVar1 < 0xec0828);
+ DAT_UnknownBinkIndex = DAT_UnknownBinkIndex + 1;
+ if (DAT_UnknownBinkIndex < DAT_UnknownBinkCount) {
+ do {
+ if (CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkIndex].field0_0x0
+ == 0x27) {
+ setSomeSoundTime();
+ setupVolumeAndSoundID(
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkIndex].soundStream);
+ }
+ } while (
+ (CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkIndex].field0_0x0 != 0x1f)
+ && (DAT_UnknownBinkIndex = DAT_UnknownBinkIndex + 1,
+ DAT_UnknownBinkIndex < DAT_UnknownBinkCount));
+ }
+ return;
+ }
+}
+}
+
+### 0x004da300 resetCredits | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004DA300
+ void Credits::ResetCredits()
+ {
+ CreditsRelatedStructure* pCVar1;
+ pCVar1 = CreditsRelatedStructure_ARRAY_00ec0348::instance;
+ do {
+ pCVar1->isValid = 0;
+ pCVar1 = pCVar1 + 1;
+ } while ((int)pCVar1 < 0xec0828);
+ DAT_UnknownBinkCount = 0;
+ INT_00ec083c::instance = 0;
+ DAT_UnknownBinkIndex = 0;
+ DAT_NumberOfStoredMenuStrings = 0;
+ INT_00ed27a4::instance = 0;
+ DAT_00eb0e40 = 0;
+ DWORD_00eb9ac4::instance = 0;
+ DAT_00ed2bd8 = 0;
+ INT_00eb1230::instance = 0;
+ INT_00eb9ac0::instance = 0;
+ return;
+ }
+}
+}
+
+### 0x004da7a0 AppendCreditsSoundEntry | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004DA7A0
+ void Credits::AppendCreditsSoundEntry(SHC_SoundStreamInt param_1, int param_2)
+ {
+ if (DAT_UnknownBinkCount < 0x120) {
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].field0_0x0 = 0x11;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].soundStream = param_1;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].x = param_2;
+ DAT_UnknownBinkCount = DAT_UnknownBinkCount + 1;
+ }
+ return;
+ }
+}
+}
+
+### 0x004da8d0 AppendCreditsImageTransitionCommand | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004DA8D0
+ void Credits::AppendCreditsImageTransitionCommand(int param_1, int param_2, int param_3, int param_4, int param_5)
+ {
+ int iVar1;
+ int iVar2;
+ CreditsRelatedStructure2* pCVar3;
+ if (((DAT_UnknownBinkCount < 0x120) && (-1 < param_2))
+ && ((param_1 == 5 || ((param_1 == 6 || (param_1 == 7)))))) {
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].field0_0x0 = param_1;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].soundStream = param_2;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].field17_0x38 = -1;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].x = param_3;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].y = param_4;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].field13_0x28 = param_5;
+ iVar1 = DAT_TextureRenderCoreObject.loadedGfxArray[param_2].width;
+ iVar2 = DAT_TextureRenderCoreObject.loadedGfxArray[param_2].height;
+ *(undefined4*)CreditsRelatedStructure2_ARRAY_00eb9b68::ptr[DAT_UnknownBinkCount].field_0x1c = 0;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].field4_0x10 = iVar1;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].field5_0x14 = iVar2;
+ if (param_1 == 6) {
+ pCVar3 = CreditsRelatedStructure2_ARRAY_00eb9b68::instance + DAT_UnknownBinkCount;
+ DAT_UnknownBinkCount = DAT_UnknownBinkCount + 1;
+ *(undefined4*)&pCVar3->field_0x1c = 1;
+ return;
+ }
+ if (param_1 == 7) {
+ *(undefined4*)CreditsRelatedStructure2_ARRAY_00eb9b68::ptr[DAT_UnknownBinkCount].field_0x1c
+ = 2;
+ }
+ DAT_UnknownBinkCount = DAT_UnknownBinkCount + 1;
+ }
+ return;
+ }
+}
+}
+
+### 0x004da9a0 AppendCreditsImageEndCommand | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004DA9A0
+ void Credits::AppendCreditsImageEndCommand(int param_1, int param_2)
+ {
+ if (((DAT_UnknownBinkCount < 0x120) && (-1 < param_2)) && ((param_1 == 7 || (param_1 == 0x2a)))) {
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].field0_0x0 = param_1;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].soundStream = param_2;
+ DAT_UnknownBinkCount = DAT_UnknownBinkCount + 1;
+ }
+ return;
+ }
+}
+}
+
+### 0x004da9f0 AppendCreditsShowImageCommand | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004DA9F0
+ void Credits::AppendCreditsShowImageCommand(
+ int param_1, int param_2, int param_3, int param_4, int param_5, int param_6, undefined4 param_7, int param_8)
+ {
+ if (((DAT_UnknownBinkCount < 0x120) && (-1 < param_2)) && (param_1 == 0x29)) {
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].field0_0x0 = 0x29;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].soundStream = param_2;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].field17_0x38 = 0;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].x = param_3;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].y = param_4;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].field13_0x28 = param_8;
+ *(undefined4*)CreditsRelatedStructure2_ARRAY_00eb9b68::ptr[DAT_UnknownBinkCount].field_0x1c = 0;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].field4_0x10 = param_5;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].field5_0x14 = param_6;
+ DAT_UnknownBinkCount = DAT_UnknownBinkCount + 1;
+ }
+ return;
+ }
+}
+}
+
+### 0x004daa80 AppendCreditsBinkVideoCommand | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004DAA80
+ void Credits::AppendCreditsBinkVideoCommand(
+ undefined4 param_1, char* param_2, int param_3, int param_4, int param_5, SoundFlagsAndLoopCount param_6)
+ {
+ char cVar1;
+ int iVar2;
+ if (DAT_UnknownBinkCount < 0x120) {
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].field0_0x0 = 0xc;
+ iVar2 = (DAT_UnknownBinkCount * 0x5c + 0xeb9ba4) - (int)param_2;
+ do {
+ cVar1 = *param_2;
+ param_2[iVar2] = cVar1;
+ param_2 = param_2 + 1;
+ } while (cVar1 != '\0');
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].x = param_3;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].y = param_4;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].binkObjIndex = param_5;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].flagLoopCount = param_6;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].field13_0x28 = 0;
+ DAT_UnknownBinkCount = DAT_UnknownBinkCount + 1;
+ }
+ return;
+ }
+}
+}
+
+### 0x004dab00 AppendCreditsFixedImageCommand | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004DAB00
+ void Credits::AppendCreditsFixedImageCommand(int param_1, int param_2, int param_3)
+ {
+ int iVar1;
+ int iVar2;
+ if (DAT_UnknownBinkCount < 0x120) {
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].field0_0x0 = 0x15;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].soundStream = param_1;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].x = param_2;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].y = param_3;
+ iVar1 = DAT_TextureRenderCoreObject.loadedGfxArray[param_1].width;
+ iVar2 = DAT_TextureRenderCoreObject.loadedGfxArray[param_1].height;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].field13_0x28 = 7;
+ *(undefined4*)CreditsRelatedStructure2_ARRAY_00eb9b68::ptr[DAT_UnknownBinkCount].field_0x1c = 0;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].field4_0x10 = iVar1;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].field5_0x14 = iVar2;
+ DAT_UnknownBinkCount = DAT_UnknownBinkCount + 1;
+ }
+ return;
+ }
+}
+}
+
+### 0x004dab80 AppendCreditsBinkVideoWithAudioCommand | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004DAB80
+ void Credits::AppendCreditsBinkVideoWithAudioCommand(char* param_1, int param_2, int param_3, int param_4)
+ {
+ char cVar1;
+ int iVar2;
+ if (DAT_UnknownBinkCount < 0x120) {
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].field0_0x0 = 0xd;
+ iVar2 = (DAT_UnknownBinkCount * 0x5c + 0xeb9ba4) - (int)param_1;
+ do {
+ cVar1 = *param_1;
+ param_1[iVar2] = cVar1;
+ param_1 = param_1 + 1;
+ } while (cVar1 != '\0');
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].binkObjIndex = param_2;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].flagLoopCount
+ = 1 - param_3;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].volume = param_4;
+ DAT_UnknownBinkCount = DAT_UnknownBinkCount + 1;
+ }
+ return;
+ }
+}
+}
+
+### 0x004dac30 AppendCreditsTextCommand | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004DAC30
+ void Credits::AppendCreditsTextCommand(
+ int param_1, int param_2, int param_3, int param_4, int param_5, int param_6, int param_7, int param_8)
+ {
+ CreditsRelatedStructure2* pCVar1;
+ if (((DAT_UnknownBinkCount < 0x120) && (-1 < param_2))
+ && (param_2 < DAT_NumberOfStoredMenuStrings)) {
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].field0_0x0 = param_1;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].soundStream = param_2;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].field6_0x18 = param_3;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].x = param_5;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].y = param_6;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].field4_0x10 = param_7;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].field15_0x30 = param_8;
+ *(undefined4*)CreditsRelatedStructure2_ARRAY_00eb9b68::ptr[DAT_UnknownBinkCount].field_0x1c = 0;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].field16_0x34 = param_4;
+ if (param_1 == 0xf) {
+ pCVar1 = CreditsRelatedStructure2_ARRAY_00eb9b68::instance + DAT_UnknownBinkCount;
+ DAT_UnknownBinkCount = DAT_UnknownBinkCount + 1;
+ *(undefined4*)&pCVar1->field_0x1c = 1;
+ return;
+ }
+ if (param_1 == 0x10) {
+ *(undefined4*)CreditsRelatedStructure2_ARRAY_00eb9b68::ptr[DAT_UnknownBinkCount].field_0x1c
+ = 2;
+ }
+ DAT_UnknownBinkCount = DAT_UnknownBinkCount + 1;
+ }
+ return;
+ }
+}
+}
+
+### 0x004dacf0 AppendCreditsTextEndCommand | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004DACF0
+ void Credits::AppendCreditsTextEndCommand(int param_1, int param_2)
+ {
+ if ((((DAT_UnknownBinkCount < 0x120) && (-1 < param_2))
+ && (param_2 < DAT_NumberOfStoredMenuStrings))
+ && (param_1 == 0x10)) {
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].field0_0x0 = 0x10;
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkCount].soundStream = param_2;
+ DAT_UnknownBinkCount = DAT_UnknownBinkCount + 1;
+ }
+ return;
+ }
+}
+}
+
+### 0x004db390 RenderScrollingCreditsTextFrame | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004DB390
+ void Credits::RenderScrollingCreditsTextFrame(float param_1)
+ {
+ int otherBlendValueUnk;
+ int xPos;
+ int yPos;
+ float10 param;
+ uint color;
+ int fontSize;
+ FLOAT_00eb9b1c::instance = FLOAT_00eb9b1c::instance - FLOAT_Between1And5::instance * param_1;
+ param = (float10)FLOAT_00eb9b1c::instance;
+ if (param < (float10)0 != (param == (float10)0)) {
+ INT_00eb9b20::instance = INT_00eb9b20::instance + 1;
+ FLOAT_00eb9b1c::instance = (float)(param + (float10)100.0);
+ if ((int)FLOAT_00eb9b24::instance < INT_00eb9b20::instance) {
+ DAT_00eb9b28 = 1;
+ goto LAB_004db3f9;
+ }
+ param = (float10)FLOAT_00eb9b1c::instance;
+ }
+ if (DAT_00eb9b28 == 0) {
+ yPos = DAT_WindowAndDirectDraw.mainMenuBorderHeight + DAT_00eb9b34;
+ xPos = DAT_WindowAndDirectDraw.mainMenuBorderWidth + DAT_00eb9b30;
+ color = DAT_00eb9b3c;
+ fontSize = DAT_00eb9b40;
+ otherBlendValueUnk = __ftol2(param);
+ renderSomeSpecificTextUnk(
+ INT_00eb9b20::instance, otherBlendValueUnk, xPos, yPos, color, fontSize);
+ return;
+ }
+ LAB_004db3f9:
+ renderMultilineText5Unk(
+ DAT_ArrayOfStoredMenuStrings[DAT_00eb9b2c],
+ DAT_WindowAndDirectDraw.mainMenuBorderWidth + DAT_00eb9b30,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + DAT_00eb9b34, DAT_00eb9b38,
+ DAT_00eb9b3c, DAT_00eb9b40, 0);
+ return;
+ }
+}
+}
+
+### 0x004aab50 MenuModalRenderFunction_CreditsScroll | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AAB50
+ void CreditsScroll::MenuModalRenderFunction_CreditsScroll(int x, int y, int width, int height)
+ {
+ int left;
+ int iVar1;
+ int right;
+ int iVar2;
+ int local_58;
+ int local_54;
+ int local_50;
+ int local_4c;
+ int local_48;
+ int local_44;
+ int local_40;
+ int local_3c;
+ int local_38;
+ int local_34;
+ int local_30;
+ int local_2c;
+ int local_28;
+ int local_24;
+ int local_20;
+ int local_1c;
+ int local_18;
+ int local_14;
+ int local_10;
+ int local_c;
+ int local_8;
+ if (DAT_TextEditorState.pendingCreditsFadeBorder != FALSE) {
+ DAT_TextEditorState.pendingCreditsFadeBorder = FALSE;
+ setTextRenderingLogic();
+ right = x + -1 + width;
+ local_58 = 0;
+ left = x + 1;
+ local_10 = -600;
+ local_14 = -0x23a;
+ local_18 = -0x21c;
+ local_1c = -0x1fe;
+ local_20 = -0x1e0;
+ local_24 = -0x1c2;
+ local_28 = -0x1a4;
+ local_2c = -0x186;
+ local_30 = -0x168;
+ local_34 = -0x14a;
+ local_38 = -300;
+ local_3c = -0x10e;
+ local_40 = -0xf0;
+ local_44 = -0xd2;
+ local_48 = -0xb4;
+ local_4c = -0x96;
+ local_50 = -0x5a;
+ local_54 = -0x3c;
+ local_c = 0x1e;
+ iVar2 = y;
+ do {
+ iVar1 = iVar2 + 3;
+ drawBlendedBlackBox(x, iVar2, x, iVar1, 0x20 - local_c / 0x14);
+ drawBlendedBlackBox(left, iVar2, left, iVar1, local_54 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 2, iVar2, x + 2, iVar1, local_50 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 3, iVar2, x + 3, iVar1, ((-0x78 - y) + iVar2) / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 4, iVar2, x + 4, iVar1, local_4c / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 5, iVar2, x + 5, iVar1, local_48 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 6, iVar2, x + 6, iVar1, local_44 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 7, iVar2, x + 7, iVar1, local_40 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 8, iVar2, x + 8, iVar1, local_3c / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 9, iVar2, x + 9, iVar1, local_38 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 10, iVar2, x + 10, iVar1, local_34 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 0xb, iVar2, x + 0xb, iVar1, local_30 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 0xc, iVar2, x + 0xc, iVar1, local_2c / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 0xd, iVar2, x + 0xd, iVar1, local_28 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 0xe, iVar2, x + 0xe, iVar1, local_24 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 0xf, iVar2, x + 0xf, iVar1, local_20 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 0x10, iVar2, x + 0x10, iVar1, local_1c / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 0x11, iVar2, x + 0x11, iVar1, local_18 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 0x12, iVar2, x + 0x12, iVar1, local_14 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 0x13, iVar2, x + 0x13, iVar1, local_10 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 0x14, iVar2, right, iVar1, local_58 + 2);
+ local_50 = local_50 + 3;
+ local_4c = local_4c + 5;
+ local_48 = local_48 + 6;
+ local_44 = local_44 + 7;
+ local_40 = local_40 + 8;
+ local_3c = local_3c + 9;
+ local_38 = local_38 + 10;
+ local_34 = local_34 + 0xb;
+ local_30 = local_30 + 0xc;
+ local_2c = local_2c + 0xd;
+ local_28 = local_28 + 0xe;
+ local_24 = local_24 + 0xf;
+ local_20 = local_20 + 0x10;
+ local_1c = local_1c + 0x11;
+ local_18 = local_18 + 0x12;
+ local_14 = local_14 + 0x13;
+ local_10 = local_10 + 0x14;
+ local_58 = local_58 + 1;
+ local_c = local_c + -1;
+ local_54 = local_54 + 2;
+ iVar2 = iVar2 + 4;
+ } while (local_54 < 0);
+ local_58 = 0;
+ local_50 = -600;
+ local_4c = -0x23a;
+ local_48 = -0x21c;
+ local_44 = -0x1fe;
+ local_40 = -0x1e0;
+ local_3c = -0x1c2;
+ local_38 = -0x1a4;
+ local_34 = -0x186;
+ local_30 = -0x168;
+ local_2c = -0x14a;
+ local_28 = -300;
+ local_24 = -0x10e;
+ local_20 = -0xf0;
+ local_1c = -0xd2;
+ local_18 = -0xb4;
+ local_14 = -0x96;
+ local_54 = -0x78;
+ local_10 = -0x5a;
+ local_c = -0x3c;
+ local_8 = 0x1e;
+ iVar2 = y + height;
+ do {
+ iVar1 = iVar2 + 3;
+ drawBlendedBlackBox(x, iVar2, x, iVar1, 0x20 - local_8 / 0x14);
+ drawBlendedBlackBox(left, iVar2, left, iVar1, local_c / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 2, iVar2, x + 2, iVar1, local_10 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 3, iVar2, x + 3, iVar1, local_54 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 4, iVar2, x + 4, iVar1, local_14 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 5, iVar2, x + 5, iVar1, local_18 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 6, iVar2, x + 6, iVar1, local_1c / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 7, iVar2, x + 7, iVar1, local_20 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 8, iVar2, x + 8, iVar1, local_24 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 9, iVar2, x + 9, iVar1, local_28 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 10, iVar2, x + 10, iVar1, local_2c / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 0xb, iVar2, x + 0xb, iVar1, local_30 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 0xc, iVar2, x + 0xc, iVar1, local_34 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 0xd, iVar2, x + 0xd, iVar1, local_38 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 0xe, iVar2, x + 0xe, iVar1, local_3c / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 0xf, iVar2, x + 0xf, iVar1, local_40 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 0x10, iVar2, x + 0x10, iVar1, local_44 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 0x11, iVar2, x + 0x11, iVar1, local_48 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 0x12, iVar2, x + 0x12, iVar1, local_4c / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 0x13, iVar2, x + 0x13, iVar1, local_50 / 0x14 + 0x20);
+ drawBlendedBlackBox(x + 0x14, iVar2, right, iVar1, local_58 + 2);
+ local_10 = local_10 + 3;
+ local_14 = local_14 + 5;
+ local_18 = local_18 + 6;
+ local_1c = local_1c + 7;
+ local_20 = local_20 + 8;
+ local_24 = local_24 + 9;
+ local_28 = local_28 + 10;
+ local_2c = local_2c + 0xb;
+ local_30 = local_30 + 0xc;
+ local_34 = local_34 + 0xd;
+ local_38 = local_38 + 0xe;
+ local_3c = local_3c + 0xf;
+ local_40 = local_40 + 0x10;
+ local_44 = local_44 + 0x11;
+ local_48 = local_48 + 0x12;
+ local_4c = local_4c + 0x13;
+ local_50 = local_50 + 0x14;
+ local_54 = local_54 + 4;
+ local_58 = local_58 + 1;
+ local_8 = local_8 + -1;
+ local_c = local_c + 2;
+ iVar2 = iVar2 + -4;
+ } while (local_c < 0);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004d91d0 MenuView_CrusadeEndscreen_DoInitial | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004D91D0
+ void CrusadeEndscreen::MenuView_CrusadeEndscreen_DoInitial()
+ {
+ Menu* pMVar1;
+ drawColorBox(0,
+ 0, DAT_WindowAndDirectDraw.resolutionX, DAT_WindowAndDirectDraw.resolutionY,
+ (ushort)((int)(COL_BLACK::instance.shortValue)));
+ DrawOuterMenuBorder();
+ DAT_MenuHandlerState.y = DAT_WindowAndDirectDraw.mainMenuBorderHeight;
+ DAT_MenuHandlerState.x = DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ pMVar1 = DAT_MenuHandlerState.currentMenu;
+ (DAT_MenuHandlerState.currentMenu)->xPosition
+ = DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ pMVar1->yPosition = DAT_MenuHandlerState.y;
+ INT_00ed27b8::instance = 0;
+ return;
+ }
+ }
+}
+}
+
+### 0x004d9230 MenuItemActionHandler_CrusadeEndscreen_Main | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004D9230
+ void CrusadeEndscreen::MenuItemActionHandler_CrusadeEndscreen_Main(int param_1, ...)
+ {
+ if (param_1 != 10) {
+ return;
+ }
+ if (DAT_GameCore.currentTrailType == TT_EXTREME) {
+ MenuItemActionHandler_SelectCrusade_Main(4);
+ return;
+ }
+ if (DAT_GameCore.currentTrailType == TT_WARCHEST) {
+ MenuItemActionHandler_SelectCrusade_Main(3);
+ return;
+ }
+ MenuItemActionHandler_SelectCrusade_Main(1);
+ return;
+ }
+ }
+}
+}
+

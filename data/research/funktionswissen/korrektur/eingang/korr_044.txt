@@ -1,0 +1,821 @@
+### 0x004ca8a0 setAICParameters_16 | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004CA8A0
+ void AICState::setAICParameters_16(int aicIndex)
+ {
+ this->aics[aicIndex].flagType = 13;
+ this->aics[aicIndex].unknown002 = 0;
+ this->aics[aicIndex].unknown001 = 0;
+ this->aics[aicIndex].unknown003 = 0;
+ this->aics[aicIndex].unknown004 = 1;
+ this->aics[aicIndex].unknown005 = 1;
+ this->aics[aicIndex].criticalPopularity = 4500;
+ this->aics[aicIndex].lowestPopularity = 5000;
+ this->aics[aicIndex].highestPopularity = 9000;
+ this->aics[aicIndex].taxesMin = 2;
+ this->aics[aicIndex].taxesMax = 12;
+ this->aics[aicIndex].farm1 = 31;
+ this->aics[aicIndex].farm2 = 30;
+ this->aics[aicIndex].farm3 = 30;
+ this->aics[aicIndex].populationPerFarm = 4;
+ this->aics[aicIndex].unknown011 = 10;
+ this->aics[aicIndex].maxFood = 100;
+ this->aics[aicIndex].minimumApples = 10;
+ this->aics[aicIndex].minimumCheese = -1;
+ this->aics[aicIndex].minimumBread = -1;
+ this->aics[aicIndex].minimumWheat = 2;
+ this->aics[aicIndex].minimumHop = 2;
+ this->aics[aicIndex].tradeAmountFood = 5;
+ this->aics[aicIndex].tradeAmountEquipment = 0;
+ this->aics[aicIndex].aiRequestDelay = 12;
+ this->aics[aicIndex].minimumGoodsRequiredAfterTrade = 10;
+ this->aics[aicIndex].doubleRationsFoodThreshold = 40;
+ this->aics[aicIndex].maxWood = 60;
+ this->aics[aicIndex].maxStone = 40;
+ this->aics[aicIndex].maxResourceOther = 10;
+ this->aics[aicIndex].maxEquipment = 4;
+ this->aics[aicIndex].maxBeer = 5;
+ this->aics[aicIndex].maxResourceVariance = 4;
+ this->aics[aicIndex].recruitGoldThreshold = 50;
+ this->aics[aicIndex].populationPerWoodcutter = 7;
+ this->aics[aicIndex].populationPerQuarry = 6;
+ this->aics[aicIndex].populationPerIronmine = 10;
+ this->aics[aicIndex].populationPerPitchrig = 0;
+ this->aics[aicIndex].maxQuarries = 4;
+ this->aics[aicIndex].maxIronmines = 2;
+ this->aics[aicIndex].maxWoodcutters = 10;
+ this->aics[aicIndex].maxPitchrigs = 0;
+ this->aics[aicIndex].maxFarms = 12;
+ this->aics[aicIndex].buildInterval = 2;
+ this->aics[aicIndex].resourceRebuildDelay = 40;
+ this->aics[aicIndex].blacksmithSetting = 22;
+ this->aics[aicIndex].fletcherSetting = 17;
+ this->aics[aicIndex].poleturnerSetting = 19;
+ this->aics[aicIndex].sellResource03 = 6;
+ this->aics[aicIndex].sellResource09 = 18;
+ this->aics[aicIndex].sellResource10 = 19;
+ this->aics[aicIndex].sellResource11 = 20;
+ this->aics[aicIndex].sellResource12 = 21;
+ this->aics[aicIndex].sellResource13 = 22;
+ this->aics[aicIndex].sellResource14 = 23;
+ this->aics[aicIndex].sellResource15 = 24;
+ this->aics[aicIndex].defWallPatrolRallyTime = 2;
+ this->aics[aicIndex].defWallPatrolGroups = 3;
+ this->aics[aicIndex].defSiegeEngineGoldThreshold = 100;
+ this->aics[aicIndex].defSiegeEngineBuildDelay = 4;
+ this->aics[aicIndex].unknown072 = 200;
+ this->aics[aicIndex].unknown073 = 20;
+ this->aics[aicIndex].recruitProbDefWeak = 80;
+ this->aics[aicIndex].recruitProbDefDefault = 40;
+ this->aics[aicIndex].recruitProbDefStrong = 20;
+ this->aics[aicIndex].recruitProbRaidWeak = 10;
+ this->aics[aicIndex].RecruitIntervalWeak = 1;
+ this->aics[aicIndex].RecruitInterval = 1;
+ this->aics[aicIndex].RecruitIntervalStrong = 1;
+ this->aics[aicIndex].SortieUnitRanged = 22;
+ this->aics[aicIndex].DefDiggingUnit = 22;
+ this->aics[aicIndex].OuterPatrolGroupsCount = 1;
+ this->aics[aicIndex].OuterPatrolGroupsMove = 1;
+ this->aics[aicIndex].OuterPatrolRallyDelay = 2;
+ this->aics[aicIndex].DefUnit1 = 22;
+ this->aics[aicIndex].recruitProbRaidDefault = 20;
+ this->aics[aicIndex].recruitProbRaidStrong = 30;
+ this->aics[aicIndex].recruitProbAttackWeak = 10;
+ this->aics[aicIndex].recruitProbAttackDefault = 40;
+ this->aics[aicIndex].recruitProbAttackStrong = 50;
+ this->aics[aicIndex].SortieUnitRangedMin = 4;
+ this->aics[aicIndex].SortieUnitMeleeMin = 20;
+ this->aics[aicIndex].SortieUnitMelee = 37;
+ this->aics[aicIndex].DefDiggingUnitMax = 4;
+ this->aics[aicIndex].DefWalls = 30;
+ this->aics[aicIndex].DefTotal = 30;
+ this->aics[aicIndex].RaidUnitsBase = 30;
+ this->aics[aicIndex].RaidUnitsRandom = 10;
+ this->aics[aicIndex].RaidUnit1 = 37;
+ this->aics[aicIndex].HarassingSiegeEnginesMax = 5;
+ this->aics[aicIndex].RaidRetargetDelay = 4;
+ this->aics[aicIndex].HarassingSiegeEngine1 = 190;
+ this->aics[aicIndex].AttForceBase = 50;
+ this->aics[aicIndex].AttForceRandom = 10;
+ this->aics[aicIndex].AttForceSupportAllyThreshold = 40;
+ this->aics[aicIndex].AttForceRallyPercentage = 80;
+ this->aics[aicIndex].AttMovingTribesThreshold = 100;
+ this->aics[aicIndex].AttAssaultDelay = 0;
+ this->aics[aicIndex].AttUnitPatrolRecommandDelay = 5;
+ this->aics[aicIndex].AttCoordinationPreference = 80;
+ this->aics[aicIndex].CowThrowInterval = 10000;
+ this->aics[aicIndex].SiegeEngine1 = 39;
+ this->aics[aicIndex].SiegeEngine2 = 39;
+ this->aics[aicIndex].SiegeEngine3 = 39;
+ this->aics[aicIndex].SiegeEngine4 = 39;
+ this->aics[aicIndex].AttMaxEngineers = 8;
+ this->aics[aicIndex].AttDiggingUnit = 22;
+ this->aics[aicIndex].AttDiggingUnitMax = 10;
+ this->aics[aicIndex].AttMaxAssassins = 0;
+ this->aics[aicIndex].AttUnit2 = 0;
+ this->aics[aicIndex].AttUnit2Max = 0;
+ this->aics[aicIndex].AttMaxLaddermen = 0;
+ this->aics[aicIndex].AttMaxTunnelers = 0;
+ this->aics[aicIndex].AttUnitPatrol = 0;
+ this->aics[aicIndex].AttUnitPatrolMax = 0;
+ this->aics[aicIndex].AttUnitPatrolGroupsCount = 0;
+ this->aics[aicIndex].AttUnitBackup = 22;
+ this->aics[aicIndex].AttUnitBackupMax = 40;
+ this->aics[aicIndex].AttUnitBackupGroupsCount = 1;
+ this->aics[aicIndex].AttUnitEngageMax = 0;
+ this->aics[aicIndex].AttUnitEngage = 0;
+ this->aics[aicIndex].AttUnitSiegeDef = 0;
+ this->aics[aicIndex].AttUnitSiegeDefMax = 0;
+ this->aics[aicIndex].AttUnitSiegeDefGroupsCount = 0;
+ this->aics[aicIndex].AttUnitMain1 = 37;
+ this->aics[aicIndex].AttMaxDefault = 200;
+ this->aics[aicIndex].AttMainGroupsCount = 2;
+ this->aics[aicIndex].TargetChoice = AITC_BALANCED;
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004ca8a0", "name": "setAICParameters_16", "quelle": "nachgebaut", "p1": {"bereich": "KI", "zweck": "Füllt den Parameterblock aics[aicIndex] mit den festen Werten einer KI-Persönlichkeit (Nr. 16)."}, "p2": {"ein": "aicIndex", "aus": "-", "liest": [], "schreibt": ["aics[aicIndex].* (rund 105 Felder)"], "ruft": [], "regeln": ["Beliebtheit: critical 4500, lowest 5000, highest 9000; Steuern taxesMin 2, taxesMax 12", "Nahrung: farm1..3 = 31,30,30 (farm4 wird nicht gesetzt); populationPerFarm 4; maxFood 100; minimumApples 10, Cheese -1, Bread -1, Wheat 2, Hop 2; tradeAmountFood 5; doubleRationsFoodThreshold 40; minimumGoodsRequiredAfterTrade 10", "Lagergrenzen: maxWood 60, maxStone 40, maxResourceOther 10, maxEquipment 4, maxBeer 5, maxResourceVariance 4; recruitGoldThreshold 50", "Bau: populationPer Holzfäller 7, Steinbruch 6, Eisenmine 10, Pechgrube 0; max Steinbrüche 4, Eisenminen 2, Holzfäller 10, Pechgruben 0, Farmen 12; buildInterval 2; resourceRebuildDelay 40", "Verkauf: sellResource03=6, 09=18, 10=19, 11=20, 12=21, 13=22, 14=23, 15=24", "Anwerbung: Verteidigung 80/40/20, Raubzug 10/20/30, Angriff 10/40/50; RecruitInterval 1/1/1", "Verteidigung/Raubzug: DefWalls 30, DefTotal 30, Sortie Fernkampf 4..22, Nahkampf 20..37, RaidUnitsBase 30 + Zufall 10 (Typ 37), HarassingSiegeEnginesMax 5 (Typ 190)", "Angriff: AttForceBase 50 + Zufall 10, Rally 80 Prozent, Koordination 80, SiegeEngine1..4 = 39, AttMaxEngineers 8, AttDiggingUnit 22 (max 10), Backup 22 (max 40, 1 Gruppe), AttUnitMain1 37, AttMaxDefault 200, 2 Hauptgruppen; Assassinen/Leiterträger/Tunnelgräber alle 0; TargetChoice = AITC_BALANCED"], "offen": ["Welcher aiType/aicIndex zu Nr. 16 gehört", "Nicht gesetzte Felder (z. B. farm4, sellResource04) behalten ihren alten Wert; ob der Block vorher auf 0 steht, ist nicht gezeigt", "Einheiten- und Gebäudenummern (22, 37, 39, 190) nicht aufgelöst"]}, "p3": {"erklaerung": "Zweiter Steckbrief einer Computer-Gegnerin: gröber im Angriff (50 Einheiten Basis, 4 Belagerungswaffen) und mit mehr Farmen als Nr. 15.", "gehirn": "Stärkere Angriffswellen als Nr. 15 erwarten (AttForceBase 50, Koordination 80). Grundwerte, UCP kann sie ändern.", "beleg": "nachgebaut", "live": "aics-Block der KI lesen → AttForceBase, taxesMax → gleich den Codewerten (50, 12)", "live_art": "tabelle"}}
+
+### 0x004cba50 planToBuyWhenLowOnResourceAndSnoozeBuildings | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004CBA50
+ void AICState::planToBuyWhenLowOnResourceAndSnoozeBuildings(int playerID)
+ {
+ int _buildingBurning;
+ int _offset;
+ int _currentWood;
+ int _noWood;
+ int _currentPopulation;
+ int* _pResourceCounter;
+ int _hasArmoyUnk;
+ int* _pNoBeerCounter;
+ int* _pNoHopsTracker;
+ int* _pNoFlourTracker;
+ int* _pNoIronTracker;
+ bool _enoughFood;
+ bool _enoughGold;
+ bool _enoughPeopleUnk;
+ int _nerves;
+ int _noBeerCounterUnk;
+ int _noFlourCounterUnk;
+ int _noHopsCounterUnk;
+ int _noIronCounterUnk;
+ bool _noNerves;
+ int* _pNoWoodTracker;
+ int _resourceCounter;
+ _offset = playerID * 0x39f4;
+ if (DAT_GameState.playerDataArray[playerID].aiType != AIT_NULL) {
+ _enoughPeopleUnk = true;
+ _enoughFood = true;
+ _enoughGold = true;
+ _buildingBurning = playerHasBurningBuilding(playerID);
+ _currentWood = DAT_GameState.playerDataArray[playerID].currentResources[2];
+ if (_currentWood < 1) {
+ _pNoWoodTracker = &DAT_GameState.playerDataArray[playerID].noWoodTracker;
+ *_pNoWoodTracker = *_pNoWoodTracker + 1;
+ } else {
+ DAT_GameState.playerDataArray[playerID].noWoodTracker = 0;
+ }
+ if (DAT_GameState.playerDataArray[playerID].currentResources[6] < 1) {
+ _pNoIronTracker = &DAT_GameState.playerDataArray[playerID].noIronTracker;
+ *_pNoIronTracker = *_pNoIronTracker + 1;
+ } else {
+ DAT_GameState.playerDataArray[playerID].noIronTracker = 0;
+ }
+ if (DAT_GameState.playerDataArray[playerID].currentResources[0x10] < 1) {
+ _pNoFlourTracker = &DAT_GameState.playerDataArray[playerID].noFlourTracker;
+ *_pNoFlourTracker = *_pNoFlourTracker + 1;
+ } else {
+ DAT_GameState.playerDataArray[playerID].noFlourTracker = 0;
+ }
+ if (DAT_GameState.playerDataArray[playerID].currentResources[3] < 1) {
+ _pNoHopsTracker = &DAT_GameState.playerDataArray[playerID].noHopsTracker;
+ *_pNoHopsTracker = *_pNoHopsTracker + 1;
+ } else {
+ DAT_GameState.playerDataArray[playerID].noHopsTracker = 0;
+ }
+ if (DAT_GameState.playerDataArray[playerID].currentResources[0xe] < 1) {
+ _pNoBeerCounter = &DAT_GameState.playerDataArray[playerID].noBeerCounterUnk;
+ *_pNoBeerCounter = *_pNoBeerCounter + 1;
+ } else {
+ DAT_GameState.playerDataArray[playerID].noBeerCounterUnk = 0;
+ }
+ _pResourceCounter = &DAT_GameState.playerDataArray[playerID].someResourceCounter;
+ *_pResourceCounter = *_pResourceCounter + 1;
+ if (DAT_GameState.playerDataArray[playerID].countFletchersPoleturners < 1) {
+ DAT_GameState.playerDataArray[playerID].noWoodTracker = 0;
+ }
+ if (DAT_GameState.playerDataArray[playerID].countArmorersAndBlacksmiths < 1) {
+ DAT_GameState.playerDataArray[playerID].noIronTracker = 0;
+ }
+ if (DAT_GameState.playerDataArray[playerID].countBakers < 1) {
+ DAT_GameState.playerDataArray[playerID].noFlourTracker = 0;
+ }
+ if (DAT_GameState.playerDataArray[playerID].countBrewers < 1) {
+ DAT_GameState.playerDataArray[playerID].noHopsTracker = 0;
+ }
+ _currentPopulation = DAT_GameState.playerDataArray[playerID].currentPopulation;
+ if ((_currentPopulation < 10)
+ && ((DAT_GameState.playerDataArray[playerID].farmsWithoutWorkers != 0
+ || (2 < DAT_GameState.playerDataArray[playerID].countWoodcutters)))) {
+ _enoughPeopleUnk = false;
+ }
+ if ((((20 < _currentWood) && (_currentPopulation < 10))
+ && (DAT_GameState.playerDataArray[playerID].farmsWithoutWorkers != 0))
+ && (DAT_GameState.playerDataArray[playerID].totalFood < 8)) {
+ _enoughFood = false;
+ }
+ if (((_buildingBurning == 0)
+ && (DAT_GameState.playerDataArray[playerID].countFarms
+ <= DAT_GameState.playerDataArray[playerID].farmsWithoutWorkers))
+ && (DAT_GameState.playerDataArray[playerID].currentResources[0xf] < 500)) {
+ _enoughGold = false;
+ }
+ _hasArmoyUnk = DAT_GameState.playerDataArray[playerID].armory.id;
+ _noWood = DAT_GameState.playerDataArray[playerID].noWoodTracker;
+ _noIronCounterUnk = DAT_GameState.playerDataArray[playerID].noIronTracker;
+ _resourceCounter = DAT_GameState.playerDataArray[playerID].someResourceCounter;
+ _noFlourCounterUnk = DAT_GameState.playerDataArray[playerID].noFlourTracker;
+ _noHopsCounterUnk = DAT_GameState.playerDataArray[playerID].noHopsTracker;
+ _noBeerCounterUnk = DAT_GameState.playerDataArray[playerID].noBeerCounterUnk;
+ _nerves = DAT_GameState.playerDataArray[playerID].aiNervousActionsTracker;
+ _noNerves = _nerves < 1;
+ if (!_noNerves) {
+ _enoughPeopleUnk = false;
+ _enoughFood = false;
+ }
+ if (_enoughGold) {
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[27] = false;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[0x46] = false;
+ } else {
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[0x1b] = true;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[0x46] = true;
+ }
+ if (_enoughPeopleUnk) {
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[20] = false;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[4] = false;
+ } else {
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[0x14] = true;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[4] = true;
+ }
+ *(bool*)(_offset + 0x115df8f) = !_enoughFood;
+ *(bool*)(_offset + 0x115df91) = !_noNerves;
+ *(bool*)(_offset + 0x115df92) = !_noNerves;
+ *(bool*)(_offset + 0x115df98) = _nerves < 1 && (36 < _noWood || _hasArmoyUnk == 0);
+ *(bool*)(_offset + 0x115df9a) = _nerves < 1 && (36 < _noWood || _hasArmoyUnk == 0);
+ *(bool*)(_offset + 0x115df99) = _noNerves && (0x24 < _noIronCounterUnk || _hasArmoyUnk == 0);
+ *(bool*)(_offset + 0x115df9b) = _noNerves && (0x24 < _noIronCounterUnk || _hasArmoyUnk == 0);
+ *(bool*)(_offset + 0x115df9c) = _noNerves && (0x24 < _resourceCounter || _hasArmoyUnk == 0);
+ *(bool*)(_offset + 0x115df9d) = !_noNerves || 0x24 < _noFlourCounterUnk;
+ *(bool*)(_offset + 0x115df9e) = !_noNerves || 0x48 < _noHopsCounterUnk;
+ *(bool*)(_offset + 0x115dfa2) = !_noNerves || 0x48 < _noBeerCounterUnk;
+ if (_noNerves) {
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[0x1e] = false;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[0x1f] = false;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[0x20] = false;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[0x21] = false;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[7] = false;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[34] = false;
+ } else {
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[0x1e] = true;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[0x1f] = true;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[0x20] = true;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[0x21] = true;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[7] = true;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[0x22] = true;
+ }
+ if (DAT_GameState.playerDataArray[playerID].canStartSpending != 0) {
+ if ((36 < DAT_GameState.playerDataArray[playerID].noWoodTracker)
+ && (DAT_GameState.playerDataArray[playerID].resourcesToAcquireArray[2] == 0)) {
+ DAT_GameState.playerDataArray[playerID].resourcesToAcquireArray[2] = 5;
+ }
+ if ((36 < DAT_GameState.playerDataArray[playerID].noIronTracker)
+ && (DAT_GameState.playerDataArray[playerID].resourcesToAcquireArray[6] == 0)) {
+ DAT_GameState.playerDataArray[playerID].resourcesToAcquireArray[6] = 2;
+ }
+ if ((36 < DAT_GameState.playerDataArray[playerID].noFlourTracker)
+ && (DAT_GameState.playerDataArray[playerID].resourcesToAcquireArray[0x10] == 0)) {
+ DAT_GameState.playerDataArray[playerID].resourcesToAcquireArray[0x10] = 2;
+ }
+ if ((72 < DAT_GameState.playerDataArray[playerID].noHopsTracker)
+ && (DAT_GameState.playerDataArray[playerID].resourcesToAcquireArray[3] == 0)) {
+ DAT_GameState.playerDataArray[playerID].resourcesToAcquireArray[3] = 2;
+ }
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004cba50", "name": "planToBuyWhenLowOnResourceAndSnoozeBuildings", "quelle": "ghidra", "p1": {"bereich": "KI", "zweck": "Zählt je KI-Spieler Mangel an Holz, Eisen, Mehl, Hopfen und Bier, setzt Sperrflags für KI-Gebäude und trägt Einkaufswünsche ein."}, "p2": {"ein": "playerID", "aus": "nichts", "liest": ["playerDataArray[sp].aiType", "currentResources[2,3,6,0xe,0xf,0x10]", "countFletchersPoleturners", "countArmorersAndBlacksmiths", "countBakers", "countBrewers", "currentPopulation", "farmsWithoutWorkers", "countWoodcutters", "totalFood", "countFarms", "aiNervousActionsTracker", "armory.id", "canStartSpending", "playerHasBurningBuilding"], "schreibt": ["noWoodTracker", "noIronTracker", "noFlourTracker", "noHopsTracker", "noBeerCounterUnk", "someResourceCounter", "snoozedBuildings[4,7,20,27,0x1e,0x1f,0x20,0x21,0x22,0x46]", "unbenannte Byte-Flags ab 0x0115DF8F + sp*0x39F4 (Offsets +0,+2,+3,+9,+0xA,+0xB,+0xC,+0xD,+0xE,+0x13)", "resourcesToAcquireArray[2,3,6,0x10]"], "ruft": ["playerHasBurningBuilding"], "regeln": ["Ohne KI (aiType AIT_NULL) passiert nichts", "Je Aufruf: Bestand von Holz(2), Eisen(6), Mehl(0x10), Hopfen(3), Bier(0xe) unter 1 → zugehöriger Zähler +1, sonst Zähler 0; someResourceCounter zählt bei jedem Aufruf +1", "Zähler wird auf 0 gesetzt, wenn es keinen Erzeuger gibt: Holz ohne Bogner/Speermacher, Eisen ohne Rüstungsschmied/Schmied, Mehl ohne Bäcker, Hopfen ohne Brauer (Bier-Zähler wird nicht so zurückgesetzt)", "enoughPeopleUnk=FALSE, wenn Bevölkerung < 10 und (farmsWithoutWorkers != 0 oder Holzfäller > 2)", "enoughFood=FALSE, wenn Holz > 20, Bevölkerung < 10, farmsWithoutWorkers != 0 und totalFood < 8", "enoughGold=FALSE, wenn kein Gebäude brennt, countFarms <= farmsWithoutWorkers und Gold (Index 0xf) < 500", "Ist aiNervousActionsTracker >= 1: enoughPeopleUnk und enoughFood werden FALSE", "snoozedBuildings[27] und [0x46] = NICHT enoughGold; [20] und [4] = NICHT enoughPeopleUnk; [0x1e,0x1f,0x20,0x21,7,0x22] = (aiNervousActionsTracker >= 1)", "Byte-Flags: +0 = NICHT enoughFood; +2 und +3 = (nerves >= 1); +9 und +0xB = nerves<1 und (noWood > 36 oder keine Waffenkammer); +0xA und +0xC = nerves<1 und (noIron > 36 oder keine Waffenkammer); +0xD = nerves<1 und (someResourceCounter > 36 oder keine Waffenkammer); +0xE = nerves>=1 oder noFlour > 36; +0xF = nerves>=1 oder noHops > 72; +0x13 = nerves>=1 oder noBeer > 72", "Nur bei canStartSpending != 0: noWood > 36 und Wunsch[2]==0 → Wunsch[2]=5; noIron > 36 und Wunsch[6]==0 → 2; noFlour > 36 und Wunsch[0x10]==0 → 2; noHops > 72 und Wunsch[3]==0 → 2"], "offen": ["Bedeutung der Byte-Flags ab 0x0115DF8F (unbenannt, vermutlich Sperren für Bau oder Erzeugung)", "Welche Gebäudetypen snoozedBuildings 4, 7, 20, 27, 0x1e-0x22, 0x46 sind", "Takt des Aufrufs (wie viele Spielticks ein Zähler-Schritt dauert)", "Einheit der Wunschmengen in resourcesToAcquireArray", "Ob Zähler ab > 36 der Schwelle Spielzeit entsprechen"]}, "p3": {"erklaerung": "Die KI merkt sich, wie lange ihr eine Ware fehlt. Nach 37 Aufrufen ohne Holz, Eisen oder Mehl (73 bei Hopfen) setzt sie einen Einkaufswunsch. Zugleich sperrt sie Gebäude, wenn Gold, Leute oder Nahrung fehlen.", "gehirn": "Einen Gegner mit Warenmangel erkennt man an noWoodTracker, noIronTracker usw.; die Einkaufswünsche in resourcesToAcquireArray zeigen, was die KI als Nächstes am Markt kauft.", "beleg": "code", "live": "KI ohne Holz im Lager beobachten → playerDataArray[sp].noWoodTracker und resourcesToAcquireArray[2] → Zähler steigt je Aufruf um 1, ab Wert 37 steht Wunsch 5", "live_art": "wirtschaft"}}
+
+### 0x004cd2a0 recruitHarrassingSiegeEngines | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004CD2A0
+ void AICState::recruitHarrassingSiegeEngines(int playerID)
+ {
+ uint _unitID;
+ int iVar1;
+ BOOLEnum BVar2;
+ Unit* pUVar4;
+ int _unit;
+ int _tribeID;
+ int _harrassingSiegeEnginesMax;
+ int _recruitTimeoutValue;
+ int _engineersGuild;
+ int _aiType;
+ int _tribeUID;
+ int _buildingID;
+ int _aicEnginesArrayIndex;
+ MappersEnum _siegeEngineToBuild;
+ _aiType = DAT_GameState.playerDataArray[playerID].aiType;
+ _engineersGuild = DAT_GameState.playerDataArray[playerID].engineersGuild.id;
+ if ((_aiType != 0) && (499 < DAT_GameState.playerDataArray[playerID].currentResources[0xf])) {
+ _harrassingSiegeEnginesMax = *(int*)((int)this + (_aiType + -1) * 0x2a4 + 0x1ec);
+ if (0 < _harrassingSiegeEnginesMax) {
+ _recruitTimeoutValue = DAT_GameState.playerDataArray[playerID].harrasingEngineRecruitTimeout;
+ if (_recruitTimeoutValue != 0) {
+ DAT_GameState.playerDataArray[playerID].harrasingEngineRecruitTimeout
+ = _recruitTimeoutValue + -1;
+ return;
+ }
+ if ((DAT_GameState.playerDataArray[playerID].harassingSiegeEnginesCountUnk
+ < _harrassingSiegeEnginesMax)
+ && (DAT_GameState.playerDataArray[playerID].unknownHarrassingSiegeRelated < 0x14)) {
+ _tribeID = (int)DAT_GameState.playerDataArray[playerID].aiTribeIDs[0xa5];
+ if ((_tribeID == 0)
+ || ((DAT_TribesState.tribes[_tribeID].uid
+ != DAT_GameState.playerDataArray[playerID].aiTribeUIDs[0xa5]
+ || (DAT_TribesState.tribes[_tribeID].size < 2)))) {
+ if (DAT_GameState.playerDataArray[playerID].canStartSpending == 0) {
+ return;
+ }
+ if (DAT_GameState.playerDataArray[playerID].currentResources[0xf] < 30) {
+ return;
+ }
+ if (_engineersGuild < 1) {
+ return;
+ }
+ if (DAT_BuildingsState.buildings[_engineersGuild].buildingType
+ != BT_ENGINEERSGUILD) {
+ return;
+ }
+ _unitID = nonEuroRecruit(
+ UT_E_ENGINEER, (undefined4)((int)(_engineersGuild)), playerID, 0);
+ if (_unitID == 0) {
+ return;
+ }
+ if ((_tribeID == 0)
+ || (DAT_TribesState.tribes[_tribeID].uid
+ != DAT_GameState.playerDataArray[playerID].aiTribeUIDs[0xa5])) {
+ _tribeID = createTribeForPlayer(playerID);
+ }
+ _tribeUID = DAT_TribesState.tribes[_tribeID].uid;
+ DAT_GameState.playerDataArray[playerID].aiTribeIDs[0xa5] = (short)_tribeID;
+ DAT_GameState.playerDataArray[playerID].aiTribeUIDs[0xa5] = _tribeUID;
+ addUnitToTribe(
+ _unitID, _tribeID);
+ DAT_UnitsState.units[_unitID].aiUnitBehaviourType = 0x16;
+ } else {
+ if (7 < DAT_GameState.playerDataArray[playerID].harrassingSiegeEnginesIndex) {
+ DAT_GameState.playerDataArray[playerID].harrassingSiegeEnginesIndex = 0;
+ }
+ iVar1 = (_aiType + -1) * 0xa9;
+ if (*(int*)((int)this
+ + (DAT_GameState.playerDataArray[playerID].harrassingSiegeEnginesIndex
+ + iVar1)
+ * 4
+ + 0x1cc)
+ == 0) {
+ DAT_GameState.playerDataArray[playerID].harrassingSiegeEnginesIndex = 0;
+ }
+ _aicEnginesArrayIndex
+ = DAT_GameState.playerDataArray[playerID].harrassingSiegeEnginesIndex;
+ _siegeEngineToBuild = *(MappersEnum*)((int)this + (iVar1 + _aicEnginesArrayIndex) * 4 + 0x1cc);
+ DAT_GameState.playerDataArray[playerID].harrassingSiegeEnginesIndex
+ = _aicEnginesArrayIndex + 1;
+ BVar2 = findSpotNearEngineersGuild(playerID);
+ if (BVar2 == FALSE) {
+ return;
+ }
+ iVar1 = DAT_AIVState.buildingAppropriateGridYPosition * 5;
+ _aicEnginesArrayIndex = DAT_AIVState.buildingApproriateGridXPosition * 5;
+ DAT_TribesState.tribes[_tribeID].tribeType = AITT_ENGINEERS;
+ DAT_TribesState.tribes[_tribeID].tribeBehaviorType
+ = STBT_0x410_SIEGE_EQUIPMENT_CONSTRUCTION;
+ /*
+ palce siege engine tent?
+ */
+ placeBuilding(
+ playerID, _aicEnginesArrayIndex, iVar1, _siegeEngineToBuild, 3, 0xf);
+ _buildingID = DAT_TileMapState.placedBuildingID;
+ if (DAT_TileMapState.buildingPlacementFail != FALSE) {
+ return;
+ }
+ DAT_BuildingsState.buildings[DAT_TileMapState.placedBuildingID].attackWave
+ = 0;
+ DAT_BuildingsState.buildings[_buildingID].unknownSiegeTentRelated01 = 2;
+ giveTribeAnInstruction(_tribeID,
+ UIT_CONSTRUCT_SIEGE_EQUIPMENTOIL_DUTYENGINEERRELATED, _buildingID,
+ DAT_BuildingsState.buildings[_buildingID].uid, 0);
+ }
+ _unit = 1;
+ if (1 < (int)DAT_UnitsState.maxUnitCount) {
+ pUVar4 = &DAT_UnitsState.units[1];
+ do {
+ if ((((pUVar4->logicalState != ULS_INVISIBLE) && (pUVar4->dying == 0))
+ && ((pUVar4->unitType == UT_S_CATAPULT
+ || (pUVar4->unitType == UT_S_FBALLISTA))))
+ && (pUVar4->aiUnitBehaviourType == 0x15)) {
+ pUVar4->siegeTargetPlayerID
+ = (short)DAT_GameState.playerDataArray[playerID].attackedPlayerID;
+ }
+ _unit = _unit + 1;
+ pUVar4 = pUVar4 + 0x248;
+ } while (_unit < (int)DAT_UnitsState.maxUnitCount);
+ }
+ DAT_GameState.playerDataArray[playerID].harrasingEngineRecruitTimeout = 8;
+ }
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004cd2a0", "name": "recruitHarrassingSiegeEngines", "quelle": "ghidra", "p1": {"bereich": "KI", "zweck": "Die KI wirbt Ingenieure an, baut damit Belagerungszelte und richtet ihre Katapulte und Feuerballisten auf den angegriffenen Spieler aus."}, "p2": {"ein": "playerID (KI-Spieler)", "aus": "-", "liest": ["playerDataArray[].aiType/currentResources[0xf]=Gold/canStartSpending/engineersGuild.id/attackedPlayerID", "harrasingEngineRecruitTimeout, harassingSiegeEnginesCountUnk, unknownHarrassingSiegeRelated, harrassingSiegeEnginesIndex", "aiTribeIDs[0xa5], aiTribeUIDs[0xa5], tribes[].uid/size", "AIC-Werte +0x1ec (Obergrenze) und +0x1cc (Liste der Zeltarten, 8 Plätze)", "buildings[].buildingType", "units[].logicalState/dying/unitType/aiUnitBehaviourType", "AIVState.buildingApproriateGridX/YPosition, TileMapState.placedBuildingID/buildingPlacementFail"], "schreibt": ["harrasingEngineRecruitTimeout, harrassingSiegeEnginesIndex", "aiTribeIDs[0xa5], aiTribeUIDs[0xa5], tribes[].tribeType/tribeBehaviorType", "units[].aiUnitBehaviourType (0x16 beim neuen Ingenieur), units[].siegeTargetPlayerID", "buildings[].attackWave, unknownSiegeTentRelated01"], "ruft": ["nonEuroRecruit", "createTribeForPlayer", "addUnitToTribe", "findSpotNearEngineersGuild", "placeBuilding", "giveTribeAnInstruction"], "regeln": ["Läuft nur bei aiType != 0 (KI), Gold ≥ 500 (Code: 499 < Gold) und AIC-Obergrenze (+0x1ec) > 0", "Wartezeit harrasingEngineRecruitTimeout: solange ungleich 0, wird sie nur um 1 gesenkt und sonst nichts getan; nach einem Erfolg wird sie auf 8 gesetzt", "Weiter nur, wenn harassingSiegeEnginesCountUnk < Obergrenze und unknownHarrassingSiegeRelated < 20 (0x14)", "Fall A (Ingenieurgruppe aiTribeIDs[0xa5] fehlt, ist veraltet oder hat weniger als 2 Einheiten): wirbt einen Ingenieur über nonEuroRecruit an (Grundpreis 30 Gold); verlangt canStartSpending != 0, Gold ≥ 30 (nach der 500er-Grenze immer erfüllt) und eine Ingenieurgilde (BT_ENGINEERSGUILD); legt die Gruppe bei Bedarf neu an und gibt dem Ingenieur aiUnitBehaviourType 0x16", "Fall B (Gruppe hat ≥ 2 Einheiten): nimmt die nächste Zeltart aus der AIC-Liste (+0x1cc, 8 Plätze; Index über 7 oder Eintrag 0 setzt auf Platz 0 zurück), sucht Platz an der Ingenieurgilde, setzt die Gruppe auf AITT_ENGINEERS / STBT_0x410_SIEGE_EQUIPMENT_CONSTRUCTION, baut per placeBuilding (Rasterposition mal 5, Parameter 3 und 0xf) und gibt der Gruppe den Bauauftrag; am Zelt attackWave = 0 und unknownSiegeTentRelated01 = 2", "Nur nach Erfolg in A oder B: jedes Katapult und jede Feuerballiste (nicht unsichtbar, nicht sterbend) mit aiUnitBehaviourType 0x15 bekommt siegeTargetPlayerID = attackedPlayerID, ohne Prüfung des Besitzers; danach Wartezeit 8", "Scheitert A oder B (kein Ingenieur, kein Platz, Bau misslungen), endet der Aufruf ohne Wartezeit und der nächste versucht es sofort wieder"], "offen": ["Bedeutung von harassingSiegeEnginesCountUnk und unknownHarrassingSiegeRelated", "Wo aiUnitBehaviourType 0x15 vergeben wird und ob die fehlende Besitzerprüfung Maschinen anderer KI-Spieler umlenkt", "AIC-Felder +0x1ec und +0x1cc: Namen nur aus der Verwendung erschlossen"]}, "p3": {"erklaerung": "Die KI schickt zuerst zwei Ingenieure los und baut danach Belagerungszelte an der Ingenieurgilde. Ihre Katapulte und Feuerballisten bekommen den angegriffenen Spieler als Ziel. Zwischen zwei Erfolgen liegen 8 Aufrufe.", "gehirn": "Frühwarnung: Hat eine KI eine Ingenieurgilde und mindestens 500 Gold, ist mit Katapulten und Feuerballisten gegen den angegriffenen Spieler zu rechnen. Ihre Ingenieurgruppe (Slot 0xa5) und die Zelte nahe der Gilde sind lesbar.", "beleg": "code", "live": "KI mit Ingenieurgilde und ≥ 500 Gold beobachten → units[].aiUnitBehaviourType der neuen Ingenieure und siegeTargetPlayerID der Katapulte/Feuerballisten mit 0x15 → Ingenieure tragen 0x16, Maschinen zeigen auf attackedPlayerID"}}
+
+### 0x004d0280 destroyAnyBuildingInCategory | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004D0280
+ void AICState::destroyAnyBuildingInCategory(int playerID, AINervousDestroyBuildingCategory buildingCategory)
+ {
+ for (int buildingID = 1; buildingID < DAT_BuildingsState.maxBuildingsCount; buildingID++) {
+ if (DAT_BuildingsState.buildings[buildingID].logicalState == 0)
+ continue;
+ if (DAT_BuildingsState.buildings[buildingID].logicalState == BLS_REMOVE)
+ continue;
+ if (DAT_BuildingsState.buildings[buildingID].owner != playerID)
+ continue;
+ bool matches = true;
+ if (buildingCategory == AINDBC_FEAR_FACTOR_BUILDINGS)
+ matches = DAT_BuildingsState.buildings[buildingID].buildingType == BT_CESSPIT
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_BURNINGSTAKE
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_GIBBET
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_DUNGEON
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_STRETCHINGRACK
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_RACKFLOGGING
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_CHOPPINGBLOCK
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_DUNKINGSTOOL
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_DOGCAGE
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_STATUE
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_SHRINE
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_DANCINGBEAR
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_POND
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_GALLOWS
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_STOCKS
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_WITCHHOIST
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_MAYPOLE
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_GARDEN;
+ else if (buildingCategory == AINDBC_WORKSHOPS_AND_RELIGIOUS_BUILDINGS)
+ matches = DAT_BuildingsState.buildings[buildingID].buildingType == BT_FLETCHER
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_BLACKSMITH
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_POLETURNER
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_ARMOURER
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_TANNER
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_INN
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_APOTHECARY
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_CHAPEL
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_CHURCH
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_CATHEDRAL;
+ else if (buildingCategory == AINDBC_GATEHOUSES_TOWERS_GUILDS)
+ matches = DAT_BuildingsState.buildings[buildingID].buildingType == BT_GATEHOUSELARGE
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_GATEHOUSESMALL
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_DRAWBRIDGE
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_TOWER1
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_TOWER2
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_TOWER3
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_TOWER4
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_TOWER5
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_ENGINEERSGUILD
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_TUNNELERSGUILD
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_OILSMELTER;
+ else if (buildingCategory == AINDBC_BARRACKS_MERCPOST_STABLES)
+ matches = DAT_BuildingsState.buildings[buildingID].buildingType == BT_MERCENARYPOST
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_BARRACKS
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_STABLES;
+ else if (buildingCategory == AINDBC_WATER_BUILDINGS)
+ matches = DAT_BuildingsState.buildings[buildingID].buildingType == BT_WELL
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_WATERPOT;
+ else if (buildingCategory == AINDBC_RESOURCE_BUILDINGS)
+ matches = DAT_BuildingsState.buildings[buildingID].buildingType == BT_OXTETHER
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_IRONMINE
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_PITCHRIG
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_BAKERY
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_BREWERY
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_QUARRY
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_MILL;
+ else if (buildingCategory == AINDBC_FARMS)
+ matches = DAT_BuildingsState.buildings[buildingID].buildingType == BT_WHEATFARM
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_HOPFARM
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_APPLEFARM
+ || DAT_BuildingsState.buildings[buildingID].buildingType == BT_DAIRYFARM;
+ if (!matches)
+ continue;
+ giveBackResourceForDestroyedBuilding(
+ buildingID, playerID, 50);
+ destroyBuilding(buildingID);
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004d0280", "name": "destroyAnyBuildingInCategory", "quelle": "nachgebaut", "p1": {"bereich": "KI", "zweck": "Reißt alle Gebäude einer Kategorie eines Spielers ab (Nervositäts-Abriss)."}, "p2": {"ein": "playerID, buildingCategory", "aus": "-", "liest": ["buildings[].logicalState/owner/buildingType"], "schreibt": [], "ruft": ["giveBackResourceForDestroyedBuilding(id, sp, 50)", "destroyBuilding"], "regeln": ["Überspringt leere Einträge und Gebäude im Zustand BLS_REMOVE", "Alle Gebäude des Spielers in der Kategorie werden abgerissen, Rückgabe 50 (vermutlich Prozent)", "FEAR_FACTOR: Jauchegrube, Scheiterhaufen, Galgen, Verlies, Streckbank, Auspeitschpfahl, Richtblock, Tauchstuhl, Hundezwinger, Statue, Schrein, Tanzbär, Teich, Galgen2, Pranger, Hexenfeuer, Maibaum, Garten", "WORKSHOPS_AND_RELIGIOUS: Bogenmacher, Schmied, Speermacher, Rüstungsschmied, Gerber, Gasthaus, Apotheker, Kapelle, Kirche, Kathedrale", "GATEHOUSES_TOWERS_GUILDS: Torhaus groß/klein, Zugbrücke, Türme 1-5, Ingenieur-, Tunnelgräbergilde, Ölschmelze", "BARRACKS_MERCPOST_STABLES: Söldnerlager, Kaserne, Stall", "WATER: Brunnen, Wassertopf", "RESOURCE: Ochsenjoch, Eisenmine, Pechgrube, Bäckerei, Brauerei, Steinbruch, Mühle", "FARMS: Weizen-, Hopfen-, Apfel-, Milchfarm"], "offen": ["Bedeutung der 50 bei der Rückgabe", "Ob die Kategorie unbekannt alle Gebäude des Spielers trifft: matches bleibt dann true"]}, "p3": {"erklaerung": "Wenn die KI in Panik gerät, reißt sie ganze Gebäudegruppen ab. Ein Teil der Kosten kommt zurück.", "gehirn": "Schwache KI verliert freiwillig Wirtschafts- und Abschreckungsgebäude. Bei unbekannter Kategorie würde alles abgerissen.", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x004d1320 renderDebugDataAiInfo | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004D1320
+ void AICState::renderDebugDataAiInfo(int x, int y, int width, int height)
+ {
+ uint foregroundColor;
+ int iVar1;
+ PlayerData* _playerData;
+ int yParam;
+ char* pcVar2;
+ uint foregroundColor_00;
+ char (*pPlayerNames)[250];
+ int _aiTypeMin1;
+ AICSpecification* local_3f4;
+ AICState* local_3f0;
+ char local_3ec[1000];
+ uint local_4;
+ int _playerID;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)&_playerID;
+ local_3f0 = this;
+ _playerID = 1;
+ _playerData = &DAT_GameState.playerDataArray[1];
+ pPlayerNames = DAT_GameSynchronyState.DAT_PlayerNames + 1;
+ do {
+ yParam = y + 0x18;
+ if (((_playerData->playerDeathRelated == 0) && (_playerData->lordKilledByPlayerID == 0))
+ && ((_playerData->aiType != AIT_NULL
+ || (DAT_GameSynchronyState.currentPlayerFullIDArray[_playerID] != -1)))) {
+ /*
+ aiType - 1
+ */
+ _aiTypeMin1 = _playerData->aiType + ~AIT_NULL;
+ foregroundColor = DAT_RenderingDefinedData
+ .ColorArray[DAT_BlendingDefinedData.PlayerSlotUnitColor[_playerID]];
+ renderNumberToScreen2(
+ _playerID, x + 6, yParam, TTA_LEFT, 0xc2f0eb, 0x12, FALSE, 0);
+ renderTextToScreen(
+ "-", x + 0x10, yParam, TTA_LEFT, 0xc2f0eb, 0x12, FALSE, 0);
+ renderInGameTextWithShadow(
+ *pPlayerNames, x + 0x1a, y + 0x19, TTA_LEFT, foregroundColor, 0, 0x12, FALSE, 0);
+ if (_playerData->aiStrengthFeeling == AIST_WEAK) {
+ pcVar2 = "Weak";
+ } else if (_playerData->aiStrengthFeeling == AIST_DEFAULT) {
+ pcVar2 = "Normal";
+ } else {
+ pcVar2 = "Strong";
+ }
+ renderInGameTextWithShadow(
+ pcVar2, x + 0xca, yParam, TTA_LEFT, foregroundColor, 0, 0x12, FALSE, 0);
+ renderInGameTextWithShadow(
+ "P:", x + 0x106, yParam, TTA_LEFT, foregroundColor, 0, 0x12, FALSE, 0);
+ renderNumber2(
+ _playerData->aivCurrentPause, x + 0x108, yParam, TTA_LEFT, foregroundColor, 0, 0x12,
+ TRUE, 0);
+ _sprintf(
+ local_3ec, "Atk:%d W:%d", _playerData->attackedPlayerID, _playerData->aiAttackCoordinationLevel);
+ renderInGameTextWithShadow(
+ local_3ec, x + 0x12e, yParam, TTA_LEFT, foregroundColor, 0, 0x12, FALSE, 0);
+ if (_playerData->aiType == AIT_NULL) {
+ iVar1 = DAT_AIVState.aivs[_playerData->aivID].castleID;
+ pcVar2 = "AIV:n/a";
+ } else {
+ iVar1 = DAT_AIVState.aivs[_playerData->aivID].castleID;
+ pcVar2 = "AIV: %d";
+ }
+ _sprintf(local_3ec, (CHAR_CONST*)((int)(pcVar2)), iVar1 + 1);
+ renderInGameTextWithShadow(
+ local_3ec, x + 0x17e, yParam, TTA_LEFT, foregroundColor, 0, 0x12, FALSE, 0);
+ local_3f4 = local_3f0->aics + _aiTypeMin1;
+ /*
+ total engineers?
+ */
+ _sprintf(local_3ec, "E:%d/%d", _playerData->totalTroopsType6,
+ _playerData->unknownCounter_01 + local_3f0->aics[_aiTypeMin1].SortieUnitRangedMin);
+ renderInGameTextWithShadow(
+ local_3ec, x + 0x1c4, yParam, TTA_LEFT, foregroundColor, 0, 0x12, FALSE, 0);
+ /*
+ total attack troops - engineer troops
+ */
+ iVar1 = _playerData->totalAttackTroops - _playerData->totalAttackingEngineerTroops;
+ /*
+ ai player state == attacking
+ */
+ if (_playerData->aiPlayerState == 0) {
+ /*
+ AttForceBase + currentWaveRandomAttackingStrength
+ */
+ _sprintf(local_3ec, "Sg:%d/%d", iVar1,
+ _playerData->currentWaveRandomAttackingStrength + local_3f4->AttForceBase);
+ foregroundColor_00 = foregroundColor;
+ } else {
+ _sprintf(local_3ec, "%d/%d", iVar1, _playerData->attackTicker);
+ foregroundColor_00 = 0xffffff;
+ }
+ renderInGameTextWithShadow(
+ local_3ec, x + 0x200, yParam, TTA_LEFT, foregroundColor_00, 0, 0x12, FALSE, 0);
+ iVar1 = getCurrentDesiredAttackRaidUnitCount(
+ _aiTypeMin1, _playerID);
+ _sprintf(
+ local_3ec, "Hr:%d/%d", _playerData->totalRaidingTroopsUnk, iVar1);
+ /*
+ display raid/harassing units
+ */
+ renderInGameTextWithShadow(
+ local_3ec, x + 0x250, yParam, TTA_LEFT, foregroundColor, 0, 0x12, FALSE, 0);
+ /*
+ TotalDefensiveTroops / DefWalls
+ */
+ _sprintf(
+ local_3ec, "Df:%d/%d", _playerData->totalDefensiveTroopsUnk, local_3f4->DefWalls);
+ renderInGameTextWithShadow(
+ local_3ec, x + 0x291, yParam, TTA_LEFT, foregroundColor, 0, 0x12, FALSE, 0);
+ }
+ pPlayerNames = pPlayerNames + 1;
+ _playerID = _playerID + 1;
+ _playerData = _playerData + 0xe7d;
+ y = yParam;
+ } while (_playerID < 9);
+ ;
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004d1320", "name": "renderDebugDataAiInfo", "quelle": "ghidra", "p1": {"bereich": "KI", "zweck": "Zeichnet die Debug-Tabelle mit KI-Zuständen aller Spieler 1-8."}, "p2": {"ein": "x, y, width, height", "aus": "-", "liest": [], "schreibt": [], "ruft": [], "regeln": [], "offen": []}, "p3": {"erklaerung": "Reine Darstellung: Eine Debug-Zeile je lebendem Spieler mit Stärke (Weak/Normal/Strong), Angriffsziel, Angriffswelle, Ingenieuren und Verteidigern.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x004d1a00 decideOnTribeAttackLocation | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004D1A00
+ void AICState::decideOnTribeAttackLocation(uint tribeID_OR_moatWasHit)
+ {
+ short* psVar1;
+ short sVar2;
+ uint tribeID;
+ BOOLEnum _canHaveActivity;
+ int _unitID;
+ BOOLEnum BVar3;
+ int _targetBuilding;
+ int _buildingID;
+ int _buildingID_2;
+ int iVar4;
+ int _destinationX;
+ int _targetPlayer;
+ int _destinationY;
+ int _y;
+ int _x;
+ int _buildingUID;
+ int _rng;
+ int _destinationTile;
+ tribeID = tribeID_OR_moatWasHit;
+ _canHaveActivity = checkTribeActivityPercentages(
+ tribeID_OR_moatWasHit, FALSE, TRUE);
+ if (_canHaveActivity != FALSE) {
+ DAT_TribesState.tribes[tribeID].counter = 0;
+ return;
+ }
+ _targetPlayer = (int)DAT_TribesState.tribes[tribeID].targetPlayer_outpost;
+ if (DAT_TribesState.tribes[tribeID].randomNumber == 0) {
+ DAT_TribesState.tribes[tribeID].randomNumber = (int)SEC_RNG::instance.currentNumber2;
+ nextRandomNumber2();
+ }
+ _rng = DAT_TribesState.tribes[tribeID].randomNumber;
+ psVar1 = &DAT_TribesState.tribes[tribeID].counter;
+ *psVar1 = *psVar1 + 1;
+ if ((int)DAT_TribesState.tribes[tribeID].counter == _rng % 6 + 7) {
+ DAT_TribesState.tribes[tribeID].counter = 0;
+ tribeID_OR_moatWasHit = tribeID_OR_moatWasHit & 0xffffff00;
+ _x = 0;
+ _y = 0;
+ _unitID = getUnitIDForIndexInTribe(tribeID, 0);
+ if ((_unitID != 0)
+ && (BVar3 = pathFindingToAttackCastleIncludingMoat(DAT_TribesState.tribes[tribeID].owner, _targetPlayer,
+ (uint)((int)((int)DAT_UnitsState.units[_unitID].x)),
+ (uint)((int)((int)DAT_UnitsState.units[_unitID].y)), (byte*)&tribeID_OR_moatWasHit,
+ &_x, &_y),
+ (char)BVar3 != '\0')) {
+ if ((char)tribeID_OR_moatWasHit != '\0') {
+ /*
+ moat was not hit
+ */
+ relayTribeInstruction(
+ tribeID, ((UnitInstructionType)0x23),
+ DAT_ViewportRenderState.translationMatrix[_y].addXgetTile + _x, 0, 0);
+ return;
+ }
+ /*
+ moat was hit
+ */
+ relayTribeInstruction(
+ tribeID, UIT_FILL_MOAT, _x, _y, 1000);
+ return;
+ }
+ }
+ sVar2 = DAT_TribesState.tribes[tribeID].tribeSubtype1;
+ if ((sVar2 != 0xb6) && (sVar2 != 0xb9)) {
+ BVar3 = checkTribeActivityPercentages(
+ tribeID, FALSE, FALSE);
+ if (BVar3 != FALSE) {
+ return;
+ }
+ _targetBuilding = (int)DAT_TribesState.tribes[tribeID].targetBuildingID;
+ if ((((_targetBuilding != 0)
+ && (DAT_BuildingsState.buildings[_targetBuilding].uid
+ == DAT_TribesState.tribes[tribeID].targetBuildingUID))
+ && (DAT_BuildingsState.buildings[_targetBuilding].fireDuration == 0))
+ && (BVar3 = checkTribeActivityPercentages(
+ tribeID, FALSE, TRUE),
+ BVar3 != FALSE)) {
+ if (DAT_GameState.mapAndTime.yearChanged == 0) {
+ return;
+ }
+ DAT_TribesState.tribes[tribeID].targetBuildingID = 0;
+ return;
+ }
+ _buildingID = selectARandomBuildingOwnedByPlayer(_targetPlayer);
+ if (_buildingID != 0) {
+ relayTribeInstruction(
+ tribeID, UIT_ATTACK_BUILDING, _buildingID,
+ DAT_BuildingsState.buildings[_buildingID].uid, 0);
+ _buildingUID = DAT_BuildingsState.buildings[_buildingID].uid;
+ DAT_TribesState.tribes[tribeID].targetBuildingID = (short)_buildingID;
+ DAT_TribesState.tribes[tribeID].targetBuildingUID = _buildingUID;
+ return;
+ }
+ _destinationX = DAT_GameState.playerDataArray[_targetPlayer].campground.xEntry;
+ DAT_TribesState.tribes[tribeID].targetBuildingID = 0;
+ _destinationY = DAT_GameState.playerDataArray[_targetPlayer].campground.yEntry;
+ BVar3 = canNavigateUnitsFromTileToTargetTile(tribeID,
+ DAT_ViewportRenderState.translationMatrix[_destinationY].addXgetTile + _destinationX);
+ if (BVar3 == FALSE) {
+ return;
+ }
+ goto LAB_004d1c59;
+ }
+ _buildingID_2 = selectARandomBuildingOwnedByPlayer(_targetPlayer);
+ if (_buildingID_2 == 0) {
+ iVar4 = DAT_ViewportRenderState
+ .translationMatrix[DAT_GameState.playerDataArray[_targetPlayer].campground.yEntry]
+ .addXgetTile;
+ LAB_004d1d11:
+ _destinationTile = iVar4 + DAT_GameState.playerDataArray[_targetPlayer].campground.xEntry;
+ } else {
+ iVar4 = (int)DAT_TribesState.tribes[tribeID].selectionTargetUnitID;
+ if (iVar4 == 0) {
+ _destinationTile = (int)DAT_BuildingsState.buildings[_buildingID_2].buildingEntryX
+ + DAT_ViewportRenderState
+ .translationMatrix[DAT_BuildingsState.buildings[_buildingID_2].buildingEntryY]
+ .addXgetTile;
+ } else {
+ pathfindingForAttacksUnk(tribeID, _buildingID_2, 1,
+ (dword)((int)((int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_UnitsState.units[iVar4].tile])),
+ _targetPlayer);
+ _destinationTile = DAT_PathFindingState.searchQueue.destinationsArray[0].tile1;
+ if (DAT_PathFindingState.searchQueue.destinationsArray[0].tile2OrAHelper == 0) {
+ iVar4 = DAT_ViewportRenderState
+ .translationMatrix[DAT_GameState.playerDataArray[_targetPlayer]
+ .campground.yEntry]
+ .addXgetTile;
+ goto LAB_004d1d11;
+ }
+ }
+ }
+ if (_destinationTile != 0) {
+ _destinationY = (int)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[_destinationTile];
+ _destinationX
+ = _destinationTile - DAT_ViewportRenderState.translationMatrix[_destinationY].addXgetTile;
+ BVar3 = canNavigateUnitsFromTileToTargetTile(
+ tribeID, _destinationTile);
+ if (BVar3 != FALSE) {
+ LAB_004d1c59:
+ commandUnitsToLocation(
+ tribeID, (uint)((int)(_destinationX)), (uint)((int)(_destinationY)), 1);
+ return;
+ }
+ sendUnitsToCampfire(tribeID, _targetPlayer);
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004d1a00", "name": "decideOnTribeAttackLocation", "quelle": "ghidra", "p1": {"bereich": "KI", "zweck": "Bestimmt, wohin eine angreifende KI-Gruppe als Nächstes zieht."}, "p2": {"ein": "tribeID (im Code zugleich als Zwischenspeicher für den Wassergraben-Status genutzt)", "aus": "-", "liest": ["tribes[].targetPlayer_outpost/counter/randomNumber/tribeSubtype1/targetBuildingID/targetBuildingUID/selectionTargetUnitID", "buildings[].uid/fireDuration", "mapAndTime.yearChanged", "playerDataArray[].campground"], "schreibt": ["tribes[].counter/randomNumber/targetBuildingID/targetBuildingUID", "SEC_RNG (nextRandomNumber2)"], "ruft": ["checkTribeActivityPercentages", "pathFindingToAttackCastleIncludingMoat", "relayTribeInstruction", "selectARandomBuildingOwnedByPlayer", "pathfindingForAttacksUnk", "canNavigateUnitsFromTileToTargetTile", "commandUnitsToLocation", "sendUnitsToCampfire", "getUnitIDForIndexInTribe"], "regeln": ["Wenn checkTribeActivityPercentages(…,FALSE,TRUE) wahr ist: counter = 0 und Ende", "Pro Aufruf wird counter um 1 erhöht; erst bei counter = randomNumber mod 6 + 7 (also 7 bis 12 Aufrufe) wird der Weg zur Burg samt Wassergraben berechnet", "Gelingt der Weg: Befehl 0x23 zu einem Zielfeld, oder UIT_FILL_MOAT mit Wert 1000 wenn der Graben im Weg ist", "Gruppen mit tribeSubtype1 ungleich 0xb6 und 0xb9: bleibt das alte Zielgebäude gültig (UID gleich, kein Feuer), wird es beibehalten, bei Jahreswechsel gelöscht", "Sonst wird ein zufälliges Gebäude des Zielspielers angegriffen (UIT_ATTACK_BUILDING) und gemerkt", "Gibt es kein Gebäude, geht es zum Lagerplatz (campground) des Zielspielers", "Gruppen mit Subtyp 0xb6/0xb9 laufen direkt zu einem zufälligen Gebäude (Eingang) oder, mit selectionTargetUnitID, über pathfindingForAttacksUnk", "Ist das Ziel nicht erreichbar: sendUnitsToCampfire"], "offen": ["Bedeutung der Gruppen-Untertypen 0xb6 und 0xb9", "Auslöser und Takt der Aufrufe"]}, "p3": {"erklaerung": "Die KI schickt ihre Angriffsgruppe nicht sofort los, sondern erst nach einigen Aufrufen, und wählt dann zufällig ein Gebäude des Gegners. Ist der Weg durch einen Graben versperrt, wird erst der Graben gefüllt.", "gehirn": "Angriffsziele der KI sind zufällige Gebäude des Gegners (oder sein Lagerplatz), nicht gezielt die Burg. Verteidigung muss daher alle Gebäude schützen können.", "beleg": "code", "live": "-", "live_art": "-"}}
+

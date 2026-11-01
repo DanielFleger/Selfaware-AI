@@ -1,0 +1,1083 @@
+### 0x00488540 renderDebugDataNetwork | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00488540
+ void GameSynchronyState::renderDebugDataNetwork(int x, int y, int width, int height)
+ {
+ int iVar1;
+ int iVar2;
+ int xParam;
+ bool bVar3;
+ char* textAddress;
+ int iVar4;
+ int iVar5;
+ int iVar6;
+ TextAlignment TVar7;
+ uint uVar8;
+ BGR24 color;
+ int iVar9;
+ BOOLEnum BVar10;
+ int iVar11;
+ int blendStrength;
+ iVar2 = y;
+ iVar5 = x;
+ xParam = x + 2;
+ renderTextToScreen(
+ "Packets in: ", xParam, y, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->packetsReceived, xParam, y, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ iVar4 = x + 0xc;
+ renderTextToScreen(
+ "Chores used: ", iVar4, y, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ iVar11 = 0;
+ BVar10 = TRUE;
+ iVar9 = 0x12;
+ uVar8 = 0x80ff;
+ TVar7 = TTA_LEFT;
+ iVar6 = y;
+ iVar1 = getGameCommandArrayIndex();
+ renderNumberToScreen2(
+ iVar1, iVar4, iVar6, TVar7, uVar8, iVar9, BVar10, iVar11);
+ renderTextToScreen(
+ " Adv: ", x + 0x16, y, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ (int)this->DAT_LagIndicatorPerPlayer[1], x + 0x16, y, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ (int)this->DAT_LagIndicatorPerPlayer[2], x + 0x1b, y, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ iVar4 = x + 0x20;
+ renderNumberToScreen2(
+ (int)this->DAT_LagIndicatorPerPlayer[3], iVar4, y, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ iVar6 = x + 0x25;
+ renderNumberToScreen2(
+ (int)this->DAT_LagIndicatorPerPlayer[4], iVar6, y, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ iVar1 = y + 0xe;
+ renderTextToScreen(
+ "Timings ", xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ x = 1;
+ y = 0x1997fe0;
+ do {
+ if (*(int*)(y + -0x7a1cc) != -1) {
+ renderTextToScreen(
+ " p", xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ x, xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ ":", xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ *(int*)y, xParam, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ }
+ y = y + 4;
+ x = x + 1;
+ } while (x < 9);
+ bVar3 = -1 < this->field196_0x101ad4;
+ iVar1 = iVar2 + 0x1c;
+ renderTextToScreen(
+ "Relative time: ", xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->field196_0x101ad4, xParam, iVar1, TTA_LEFT,
+ (uint)((int)((bVar3 - 1 & 0xffff8000) + 0x80ff)), 0x12, TRUE, 0);
+ renderTextToScreen(
+ " Logical speed: ", iVar5 + 0x98, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_GameCore.gameTicksThisLoop, iVar5 + 0x98, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE,
+ 0);
+ iVar1 = iVar2 + 0x2a;
+ renderTextToScreen(
+ "Crcs ", xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ x = 1;
+ y = 0x1998004;
+ do {
+ if (*(int*)(y + -0x7a1f0) != -1) {
+ renderTextToScreen(
+ " p", xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ x, xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ ":", xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ *(uint*)y & 0xfff, xParam, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ }
+ y = y + 4;
+ x = x + 1;
+ } while (x < 9);
+ iVar1 = iVar2 + 0x38;
+ renderTextToScreen(
+ "Crc times ", xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ x = 1;
+ y = 0x1998028;
+ do {
+ if (*(int*)(y + -0x7a214) != -1) {
+ renderTextToScreen(
+ " p", xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ x, xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ ":", xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ *(int*)y, xParam, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ }
+ y = y + 4;
+ x = x + 1;
+ } while (x < 9);
+ if (this->syncStatus == 0) {
+ if (this->DAT_GameHalted == 0) {
+ color = 0xffffff;
+ textAddress = "Game in sync";
+ } else {
+ color = 0xff;
+ textAddress = "GAME SPLINTERED ";
+ }
+ } else {
+ color = 0xff;
+ textAddress = "GAME SPLINTERED - Resyncing";
+ }
+ renderTextToScreen(
+ textAddress, xParam, iVar2 + 0x46, TTA_LEFT, color, 0x11, FALSE, 0);
+ iVar1 = iVar2 + 0x62;
+ renderTextToScreen(
+ "CHI:", xParam, iVar1, TTA_LEFT, 0xffffff, 0x13, FALSE, 0);
+ renderNumberToScreen2(
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 9] & 0xfff, xParam, iVar1,
+ TTA_LEFT, 0x80ff, 0x13, TRUE, 0);
+ renderTextToScreen(
+ " STR:", xParam, iVar1, TTA_LEFT, 0xffffff, 0x13, TRUE, 0);
+ renderNumberToScreen2(
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 10] & 0xfff, xParam, iVar1,
+ TTA_LEFT, 0x80ff, 0x13, TRUE, 0);
+ renderTextToScreen(
+ " VEG:", xParam, iVar1, TTA_LEFT, 0xffffff, 0x13, TRUE, 0);
+ renderNumberToScreen2(
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0xb] & 0xfff, xParam, iVar1,
+ TTA_LEFT, 0x80ff, 0x13, TRUE, 0);
+ renderTextToScreen(
+ " TRI:", xParam, iVar1, TTA_LEFT, 0xffffff, 0x13, TRUE, 0);
+ renderNumberToScreen2(
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0xc] & 0xfff, xParam, iVar1,
+ TTA_LEFT, 0x80ff, 0x13, TRUE, 0);
+ renderTextToScreen(
+ " PLA:", xParam, iVar1, TTA_LEFT, 0xffffff, 0x13, TRUE, 0);
+ renderNumberToScreen2(
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0xd] & 0xfff, xParam, iVar1,
+ TTA_LEFT, 0x80ff, 0x13, TRUE, 0);
+ renderTextToScreen(
+ "GAM:", xParam, iVar1, TTA_LEFT, 0xffffff, 0x13, TRUE, 0);
+ renderNumberToScreen2(
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0xe] & 0xfff, xParam, iVar1,
+ TTA_LEFT, 0x80ff, 0x13, TRUE, 0);
+ iVar1 = iVar2 + 0x70;
+ renderTextToScreen(
+ " LAY:", xParam, iVar1, TTA_LEFT, 0xffffff, 0x13, FALSE, 0);
+ renderNumberToScreen2(
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0xf] & 0xfff, xParam, iVar1,
+ TTA_LEFT, 0x80ff, 0x13, TRUE, 0);
+ renderTextToScreen(
+ " FLY:", xParam, iVar1, TTA_LEFT, 0xffffff, 0x13, TRUE, 0);
+ renderNumberToScreen2(
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0x10] & 0xfff, xParam, iVar1,
+ TTA_LEFT, 0x80ff, 0x13, TRUE, 0);
+ renderTextToScreen(
+ " MOAT:", xParam, iVar1, TTA_LEFT, 0xffffff, 0x13, TRUE, 0);
+ renderNumberToScreen2(
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0x11] & 0xfff, xParam, iVar1,
+ TTA_LEFT, 0x80ff, 0x13, TRUE, 0);
+ renderTextToScreen(
+ " TELE:", xParam, iVar1, TTA_LEFT, 0xffffff, 0x13, TRUE, 0);
+ renderNumberToScreen2(
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0x12] & 0xfff, xParam, iVar1,
+ TTA_LEFT, 0x80ff, 0x13, TRUE, 0);
+ renderTextToScreen(
+ " PIDI:", xParam, iVar1, TTA_LEFT, 0xffffff, 0x13, TRUE, 0);
+ renderNumberToScreen2(
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0x13] & 0xfff, xParam, iVar1,
+ TTA_LEFT, 0x80ff, 0x13, TRUE, 0);
+ renderTextToScreen(
+ " ZONE:", xParam, iVar1, TTA_LEFT, 0xffffff, 0x13, TRUE, 0);
+ renderNumberToScreen2(
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0x14] & 0xfff, xParam, iVar1,
+ TTA_LEFT, 0x80ff, 0x13, TRUE, 0);
+ iVar1 = iVar2 + 0x7e;
+ renderTextToScreen(
+ "Chimps: ", xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_UnitsState.unitCount, xParam, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Structs: ", xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ DAT_BuildingsState.structCount, xParam, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "id_count: ", xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ DAT_GameCore.uniqueGameObjectTracker, xParam, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE,
+ 0);
+ renderTextToScreen(
+ "random no: ", xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ (int)SEC_RNG::instance.currentNumber2, xParam, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ iVar1 = iVar2 + 0x8c;
+ renderTextToScreen(
+ "chore_latency: ", xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->commandDelay, xParam, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "pending_chores: ", xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ blendStrength = 0;
+ BVar10 = TRUE;
+ iVar11 = 0x12;
+ uVar8 = 0x80ff;
+ TVar7 = TTA_LEFT;
+ iVar5 = xParam;
+ iVar9 = getPendingGameCommandsCount();
+ renderNumberToScreen2(
+ iVar9, iVar5, iVar1, TVar7, uVar8, iVar11, BVar10, blendStrength);
+ iVar1 = iVar2 + 0x9a;
+ renderTextToScreen(
+ "cl time_diff: ", xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->clTimeDiff, xParam, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Clans: ", xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ DAT_TribesState.clans, xParam, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ iVar2 = iVar2 + 0xa8;
+ renderTextToScreen(
+ "Battle Level: ", xParam, iVar2, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_GameCore.battleLevel, xParam, iVar2, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ ", ", xParam, iVar2, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ DAT_GameCore.battleLevel2, xParam, iVar2, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Multi Op: ", iVar4, iVar2, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ this->currentGameMode, iVar4, iVar2, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "GT: ", iVar6, iVar2, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ DAT_GameCore.gameMode_2, iVar6, iVar2, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00488540", "name": "renderDebugDataNetwork", "quelle": "ghidra", "p1": {"bereich": "Befehle/Takt", "zweck": "Zeichnet die Netzwerk-Debug-Anzeige (Pakete, Zeiten, Prüfsummen, Zählerstände)."}, "p2": {"ein": "x, y, width, height", "aus": "-", "liest": [], "schreibt": [], "ruft": [], "regeln": [], "offen": []}, "p3": {"erklaerung": "Reine Bildschirmanzeige für Entwickler, zeigt unter anderem Befehlsverzögerung, offene Befehle und ob das Spiel im Gleichlauf ist. Verändert nichts im Spiel.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0048acb0 CommandSwitchTeams | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0048ACB0
+ void Commands::CommandSwitchTeams()
+ {
+ char cVar1;
+ bool bVar2;
+ int iVar3;
+ DWORD DVar4;
+ char* pcVar5;
+ int iVar6;
+ int iVar7;
+ char* pcVar8;
+ byte bVar9;
+ short local_28[2];
+ int aiStack_24[9];
+ DAT_GameSynchronyState.DAT_CommandSize = 3;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ bVar2 = false;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(local_28, 2, GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = (int)local_28[0];
+ serializeOrDeserializeCommandParameter(local_28, 1, GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ iVar6 = DAT_GameSynchronyState.DAT_GameCommandParam0;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = (int)(char)local_28[0];
+ if (DAT_GameSynchronyState.DAT_GameCommandParam1 == 0) {
+ if (DAT_GameSynchronyState.DAT_GameCommandParam0
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ aiStack_24[1] = 0;
+ aiStack_24[2] = 0;
+ aiStack_24[3] = 0;
+ aiStack_24[4] = 0;
+ aiStack_24[5] = 0;
+ aiStack_24[6] = 0;
+ aiStack_24[7] = 0;
+ aiStack_24[8] = 0;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[1] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[1]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[1]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[2] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[2]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[2]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[3] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[3]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[3]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[4] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[4]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[4]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[5] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[5]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[5]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[6] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[6]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[6]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[7] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[7]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[7]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[8] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[8]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[8]] + 1;
+ }
+ bVar9 = aiStack_24[1] != 0;
+ if (aiStack_24[2] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[3] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[4] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[5] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[6] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[7] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[8] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if ((2 < bVar9) || (aiStack_24[DAT_GameSynchronyState.protocolInvokerPlayerID] != 1)) {
+ DVar4 = timeGetTime();
+ DAT_GameSynchronyState
+ .unknownPlayerInfoArray_01[DAT_GameSynchronyState.protocolInvokerPlayerID]
+ = DVar4;
+ /*
+ "Wishes to become an ally" added by script: "wishes to become an ally."
+ */
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_MULTIPLAYER_CONNECTION, 0x25);
+ pcVar8 = DAT_GameSynchronyState.receivedChatMessage;
+ do {
+ cVar1 = *pcVar5;
+ *pcVar8 = cVar1;
+ pcVar5 = pcVar5 + 1;
+ pcVar8 = pcVar8 + 1;
+ } while (cVar1 != '\0');
+ addChatMessageToDisplayList(DAT_GameSynchronyState.protocolInvokerPlayerID, 0);
+ return;
+ }
+ }
+ } else {
+ if (DAT_GameSynchronyState.DAT_GameCommandParam1 == 2) {
+ aiStack_24[1] = 0;
+ aiStack_24[2] = 0;
+ aiStack_24[3] = 0;
+ aiStack_24[4] = 0;
+ aiStack_24[5] = 0;
+ aiStack_24[6] = 0;
+ aiStack_24[7] = 0;
+ aiStack_24[8] = 0;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[1] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[1]] = 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[2] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[2]] = 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[3] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[3]] = 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[4] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[4]] = 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[5] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[5]] = 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[6] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[6]] = 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[7] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[7]] = 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[8] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[8]] = 1;
+ }
+ iVar6 = 1;
+ do {
+ if (aiStack_24[iVar6] == 0) {
+ DAT_GameState.mapAndTime
+ .playerTeams[DAT_GameSynchronyState.protocolInvokerPlayerID] = iVar6;
+ break;
+ }
+ iVar6 = iVar6 + 1;
+ } while (iVar6 < 9);
+ /*
+ "has cancelled the alliance" added by script: "has cancelled the alliance"
+ */
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_MULTIPLAYER_CONNECTION, 0x27);
+ pcVar8 = DAT_GameSynchronyState.receivedChatMessage;
+ do {
+ cVar1 = *pcVar5;
+ *pcVar8 = cVar1;
+ pcVar5 = pcVar5 + 1;
+ pcVar8 = pcVar8 + 1;
+ } while (cVar1 != '\0');
+ addChatMessageToDisplayList(DAT_GameSynchronyState.protocolInvokerPlayerID, 0);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_GameCommandParam1 == 1) {
+ aiStack_24[1] = 0;
+ aiStack_24[2] = 0;
+ aiStack_24[3] = 0;
+ aiStack_24[4] = 0;
+ aiStack_24[5] = 0;
+ aiStack_24[6] = 0;
+ aiStack_24[7] = 0;
+ aiStack_24[8] = 0;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[1] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[1]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[1]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[2] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[2]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[2]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[3] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[3]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[3]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[4] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[4]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[4]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[5] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[5]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[5]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[6] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[6]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[6]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[7] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[7]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[7]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[8] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[8]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[8]] + 1;
+ }
+ bVar9 = aiStack_24[1] != 0;
+ if (aiStack_24[2] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[3] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[4] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[5] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[6] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[7] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[8] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if ((2 < bVar9) || (aiStack_24[DAT_GameSynchronyState.DAT_GameCommandParam0] != 1)) {
+ bVar2 = true;
+ }
+ iVar7 = countPlayersInSameTeam(DAT_GameSynchronyState.DAT_GameCommandParam0);
+ iVar3 = DAT_GameSynchronyState.protocolInvokerPlayerID;
+ if (((iVar7 < 2)
+ && (iVar7
+ = countPlayersInSameTeam(
+ DAT_GameSynchronyState.protocolInvokerPlayerID),
+ iVar7 < 2))
+ && (bVar2)) {
+ DAT_GameState.mapAndTime.playerTeams[iVar6]
+ = DAT_GameState.mapAndTime.playerTeams[iVar3];
+ /*
+ "has joined with" added by script: "has joined with"
+ */
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_MULTIPLAYER_CONNECTION, 0x26);
+ pcVar8 = DAT_GameSynchronyState.receivedChatMessage;
+ do {
+ cVar1 = *pcVar5;
+ *pcVar8 = cVar1;
+ pcVar5 = pcVar5 + 1;
+ pcVar8 = pcVar8 + 1;
+ } while (cVar1 != '\0');
+ addChatMessageToDisplayList(DAT_GameSynchronyState.DAT_GameCommandParam0,
+ DAT_GameSynchronyState.protocolInvokerPlayerID);
+ }
+ }
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0048acb0", "name": "CommandSwitchTeams", "quelle": "ghidra", "p1": {"bereich": "Befehle/Takt", "zweck": "Bündnis- und Teamwechsel im Mehrspieler: anfragen, beitreten, verlassen."}, "p2": {"ein": "Param0 = Spielerplatz (2 Byte), Param1 = Art (1 Byte)", "aus": "-", "liest": ["currentPlayerFullIDArray[1..8]", "mapAndTime.playerTeams[1..8]", "protocolInvokerPlayerID", "currentPlayerSlotID"], "schreibt": ["mapAndTime.playerTeams[]", "unknownPlayerInfoArray_01[sender]", "receivedChatMessage"], "ruft": ["countPlayersInSameTeam", "getTextStringInGroupAtOffset", "addChatMessageToDisplayList", "timeGetTime", "serializeOrDeserializeCommandParameter"], "regeln": ["Befehlsgröße 3 Byte (Platz 2 Byte, Art 1 Byte)", "Art 0 (Bündnis wünschen): nur wenn Param0 der eigene Platz ist; zählt Mitspieler je Team (Plätze 1..8 mit Kennung ungleich -1). Hat der Sender sein Team nicht allein oder gibt es mehr als 2 belegte Teams, wird die Zeit gemerkt und im Chat Text Nr. 0x25 (wünscht Bündnis) angezeigt", "Art 2 (Bündnis verlassen): der Sender kommt in das erste leere Team 1..8; Chat Text 0x27 (Bündnis beendet)", "Art 1 (zustimmen): Zusammenschluss nur, wenn Param0 und Sender jeweils allein im Team sind (countPlayersInSameTeam kleiner 2) und die Teamzählung es erlaubt (mehr als 2 belegte Teams oder Param0 nicht allein); dann bekommt Param0 das Team des Senders, Chat Text 0x26 (ist beigetreten)", "Teams sind höchstens 2 Spieler groß, so wie die Zählung hier aufgebaut ist (vermutlich)"], "offen": ["Der Teamzustand in Art 1 nutzt iVar6 unklar: Es ist beim Zusammenschluss der Wert von Param0 bzw. ein Schleifenzähler; die Zuordnung ist aus dem Ghidra-Text nicht sicher", "Warum bei zwei belegten Teams die Anfrage nicht angezeigt wird"]}, "p3": {"erklaerung": "Im Mehrspieler können Spieler Teams bilden, aber nur zu zweit und nur, wenn beide noch allein sind. Der Befehl kennt Wünschen, Zustimmen und Verlassen.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0048b8f0 ShareMapPart | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0048B8F0
+ void Commands::ShareMapPart()
+ {
+ undefined1 auStack_40c[2];
+ char local_40a;
+ char local_409;
+ size_t _buffer2;
+ undefined1 _buffer[1024];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)auStack_40c;
+ DAT_GameSynchronyState.DAT_CommandSize = 1029;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ local_40a = '\0';
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan != GCS_SCHEDULE_AND_SEND) {
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(_buffer, (size_t)((int)(1024)),
+ GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&_buffer2, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&local_409, 1, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ local_40a = local_409;
+ if (DAT_GameSynchronyState.FILEPTR_ReceivedMapFile != (FILE*)0x0) {
+ if (-1 < (int)_buffer2) {
+ _fwrite(
+ _buffer, 1, _buffer2, DAT_GameSynchronyState.FILEPTR_ReceivedMapFile);
+ DAT_GameSynchronyState.mapSendingByteBufferAddress[0]
+ = DAT_GameSynchronyState.mapSendingByteBufferAddress[0] + _buffer2;
+ }
+ if ((DAT_GameSynchronyState.mapSendingFileSize
+ <= DAT_GameSynchronyState.mapSendingByteBufferAddress[0])
+ || (_buffer2 == 0xffffffff)) {
+ _fclose(DAT_GameSynchronyState.FILEPTR_ReceivedMapFile);
+ DAT_GameSynchronyState.FILEPTR_ReceivedMapFile = (FILE*)0x0;
+ DAT_GameSynchronyState.DAT_MapFileReceivingState = 0;
+ activateModalDialog(MMT_NONE, FALSE);
+ loadMapHeaders(
+ FALSE);
+ DAT_GameSynchronyState.reparseMaps = TRUE;
+ }
+ }
+ if (local_40a != '\0') {
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = 0;
+ queueCommand(GCT_START_OR_STOP_SEND_MAP_FILEUnk
+ | GCT_MULTIPLAYER_ANNOUNCE_HOST);
+ }
+ }
+ LAB_0048bbc1:;
+ return;
+ }
+ if (DAT_GameSynchronyState
+ .mapSendingFileHandles[DAT_GameSynchronyState.DAT_GameCommandParam1]
+ == (FILE*)0x0)
+ goto LAB_0048bbc1;
+ if (DAT_GameSynchronyState.DAT_GameCommandParam0 == -1) {
+ _memset(_buffer, 0, (size_t)((int)(1024)));
+ serializeOrDeserializeCommandParameter(_buffer, (size_t)((int)(1024)),
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ local_40a = '\0';
+ _buffer2 = 0xffffffff;
+ serializeOrDeserializeCommandParameter(&_buffer2, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&local_40a, 1, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ ;
+ return;
+ }
+ _buffer2 = _fread(_buffer, 1, (size_t)((int)(1024)),
+ (FILE*)((int)(DAT_GameSynchronyState
+ .mapSendingFileHandles[DAT_GameSynchronyState.DAT_GameCommandParam1])));
+ serializeOrDeserializeCommandParameter(_buffer, (size_t)((int)(1024)),
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ /*
+ TODO: by is the address of the buffer shared?
+ */
+ serializeOrDeserializeCommandParameter(&_buffer2, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ DAT_GameSynchronyState
+ .mapSendingByteBufferAddress[DAT_GameSynchronyState.DAT_GameCommandParam1]
+ = DAT_GameSynchronyState
+ .mapSendingByteBufferAddress[DAT_GameSynchronyState.DAT_GameCommandParam1]
+ + _buffer2;
+ DAT_GameSynchronyState.DAT_PlayerIDReceiver
+ = DAT_GameSynchronyState
+ .currentPlayerFullIDArray[DAT_GameSynchronyState.DAT_GameCommandParam1];
+ if (DAT_GameSynchronyState
+ .mapSendingByteBufferAddress[DAT_GameSynchronyState.DAT_GameCommandParam1]
+ < DAT_GameSynchronyState.mapSendingFileSize) {
+ if (DAT_GameSynchronyState.DAT_GameCommandParam0 % 10 != 9)
+ goto LAB_0048ba65;
+ local_40a = '\x01';
+ } else {
+ local_40a = '\x01';
+ _fclose(DAT_GameSynchronyState
+ .mapSendingFileHandles[DAT_GameSynchronyState.DAT_GameCommandParam1]);
+ DAT_GameSynchronyState
+ .mapSendingFileHandles[DAT_GameSynchronyState.DAT_GameCommandParam1] = (FILE*)0x0;
+ LAB_0048ba65:
+ if (local_40a == '\0')
+ goto LAB_0048ba88;
+ }
+ if ((DAT_GameSynchronyState
+ .currentPlayerFullIDArray[DAT_GameSynchronyState.DAT_GameCommandParam1]
+ != -1)
+ && (DAT_GameSynchronyState.DAT_GameCommandParam1
+ != DAT_GameSynchronyState.currentPlayerSlotID)) {
+ DAT_GameSynchronyState.field290_0x109e20[DAT_GameSynchronyState.DAT_GameCommandParam1]
+ = 1;
+ }
+ LAB_0048ba88:
+ serializeOrDeserializeCommandParameter(&local_40a, 1, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ ;
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0048b8f0", "name": "ShareMapPart", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Netzwerkbefehl: Überträgt ein Stück (1024 Byte) einer Kartendatei vom Gastgeber zum Empfänger und schreibt es dort in die Datei."}, "p2": {"ein": "Befehlsdaten: Puffer (1024 Byte), gelesene Länge (4 Byte), Flag (1 Byte)", "aus": "-", "liest": ["mapSendingFileHandles[Param1]", "mapSendingFileSize", "mapSendingByteBufferAddress[]", "FILEPTR_ReceivedMapFile", "currentPlayerFullIDArray[Param1]", "currentPlayerSlotID"], "schreibt": ["mapSendingByteBufferAddress[Param1] bzw. [0]", "mapSendingFileHandles[Param1]=0 am Ende", "field290_0x109e20[Param1]=1", "empfangene Kartendatei", "FILEPTR_ReceivedMapFile=0", "DAT_MapFileReceivingState=0", "reparseMaps=TRUE", "DAT_PlayerIDReceiver"], "ruft": ["_fread", "_fwrite", "_fclose", "_memset", "activateModalDialog(MMT_NONE)", "loadMapHeaders", "queueCommand(GCT_START_OR_STOP_SEND_MAP_FILEUnk | GCT_MULTIPLAYER_ANNOUNCE_HOST)"], "regeln": ["Befehlsgröße 1029 Byte = 1024 Daten + 4 Länge + 1 Flag", "Senden nur, wenn für Empfänger Param1 ein Dateihandle offen ist", "Param0 = -1: leerer Puffer, Länge 0xffffffff, Flag 0 (Abbruchsignal)", "Sonst 1024 Byte lesen, Zähler für Empfänger erhöhen", "Flag = 1, wenn die Datei fertig gesendet ist (dann Datei schließen) oder bei jedem 10. Stück (Param0 mod 10 = 9) als Bestätigungsanforderung", "Bei Flag = 1 und gültigem fremden Platz: field290_0x109e20[Param1] = 1", "Empfang: Länge >= 0 wird in die Datei geschrieben und gezählt", "Ist die Dateigröße erreicht oder die Länge 0xffffffff: Datei schließen, Empfangszustand 0, Dialog schließen, Kartenköpfe neu laden, reparseMaps = TRUE", "Bei Flag != 0 wird die Bestätigung StartSendingMapFile-Befehl (Param0 = 0) zurückgeschickt"], "offen": ["Bedeutung der Werte in field290_0x109e20", "Der Ghidra-Kommentar zweifelt, ob der Puffer gemeinsam genutzt wird", "Welcher Befehl genau hinter GCT_START_OR_STOP_SEND_MAP_FILEUnk steckt"]}, "p3": {"erklaerung": "Die Kartendatei wird in Stücken zu 1024 Byte verschickt; bei jedem zehnten Stück und am Ende wird eine Bestätigung verlangt, damit der Gastgeber nicht zu schnell sendet.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0048c230 initMultiplayerLobbyState | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0048C230
+ void GameSynchronyState::initMultiplayerLobbyState()
+ {
+ byte* pbVar1;
+ int* piVar2;
+ int* piVar3;
+ byte* pbVar4;
+ int* piVar5;
+ int (*local_14)[20];
+ int (*local_10)[100][2];
+ int (*local_c)[100][2];
+ undefined2* local_8;
+ int local_4;
+ this->transmissionCounterUnk = 0;
+ this->DAT_GameHalted = 0;
+ this->field62_0xb90 = 0;
+ this->field78_0xbf0 = 0;
+ this->DAT_HashCountdown = 0;
+ this->quitGameVoteRelated = 0;
+ this->shouldSendAnnouncementUnk = 0;
+ this->field261_0x109298 = 0;
+ this->unknownIncrementBy40_01 = 1;
+ clearChatEvents();
+ DAT_GameCore.gameMode_2 = GM_SKIRMISH_AND_MULTIPLAYER;
+ resetTeams();
+ this->counter = 0xffffffff;
+ this->limit = 5;
+ this->laggingPlayerIDUnk = 0;
+ this->DAT_SomeTime = 0;
+ this->flag_0x7aad8 = FALSE;
+ if (this->isHost != FALSE) {
+ this->DAT_TwoIfNotHost = 2;
+ }
+ local_8 = (undefined2*)((int)this->finalResults.unusedUnk + 0x12);
+ local_c = this->historicalLagInfoPerPlayer;
+ local_14 = this->DAT_ReceivedAIVFileAvailabilityPerAIArray;
+ pbVar4 = this->DAT_PlayerGroupArray;
+ piVar5 = &this->connectionLagInfoArray[0].checkFor0;
+ piVar3 = &this->HASH_PartialHashPerPlayer.player0.domain02;
+ piVar2 = &this->matchTime;
+ local_4 = 9;
+ do {
+ piVar2[0x23161] = 0;
+ *piVar2 = -1;
+ pbVar4[0x33] = 0;
+ pbVar1 = (byte*)(piVar2 + -0x1e846);
+ pbVar1[0] = 0;
+ pbVar1[1] = 0;
+ pbVar1[2] = 0;
+ pbVar1[3] = 0;
+ piVar2[0x23a97] = 0;
+ piVar2[-0x1e861] = 0;
+ piVar2[-0x1e858] = 0;
+ piVar2[-0x1e84f] = 0;
+ (*local_14)[0] = -1;
+ piVar2[9] = 0;
+ piVar2[0x12] = 0;
+ piVar2[0x2314f] = 0;
+ piVar2[0x23158] = 0;
+ *pbVar4 = 0;
+ piVar2[0x90] = FALSE;
+ piVar2[0x87] = 0;
+ pbVar4[0x12] = 0;
+ ((HashContainerElement*)(piVar3 + -1))->domain01 = 0;
+ *piVar3 = 0;
+ piVar3[1] = 0;
+ piVar3[2] = 0;
+ piVar3[3] = 0;
+ piVar3[4] = 0;
+ local_10 = local_c;
+ local_c = (int (*)[100][2])0x64;
+ do {
+ (*local_10)[0][0] = 0;
+ local_10 = (int (*)[100][2])(*local_10 + 1);
+ local_c = (int (*)[100][2])((int)local_c + -1);
+ } while (local_c != (int (*)[100][2])0x0);
+ local_14 = local_14 + 1;
+ piVar5[-4] = 0;
+ *piVar5 = 0;
+ piVar5[1] = 0;
+ piVar2[0x23a7c] = 1;
+ piVar2[0x23c31] = 0;
+ piVar2[0x23c8b] = 0;
+ piVar2[0x23ccf] = 0;
+ piVar2[0x23c94] = 0;
+ piVar2[0x23cc6] = 0;
+ piVar2[0x23c9d] = 0;
+ piVar2[0x23ca6] = 0;
+ piVar2[0x23caf] = 0;
+ piVar2[0x23cb8] = 0;
+ pbVar4[-0x2cc] = 0;
+ piVar2[0x23cd8] = 0;
+ piVar2[0x23ce1] = 0;
+ piVar2[0x23cea] = 0;
+ piVar2[0x23cf3] = 0;
+ piVar2[0x23cfc] = 0;
+ local_8[-9] = 0;
+ *local_8 = 0;
+ local_8 = local_8 + 1;
+ piVar2[0x23d0e] = 0;
+ piVar2[0x23d17] = 0;
+ pbVar1 = (byte*)(piVar2 + 0x23d20);
+ pbVar1[0] = 0;
+ pbVar1[1] = 0;
+ pbVar1[2] = 0;
+ pbVar1[3] = 0;
+ pbVar1 = (byte*)(piVar2 + 0x23d29);
+ pbVar1[0] = 0;
+ pbVar1[1] = 0;
+ pbVar1[2] = 0;
+ pbVar1[3] = 0;
+ piVar2[0x23d58] = 0;
+ piVar2 = piVar2 + 1;
+ pbVar4 = pbVar4 + 1;
+ piVar3 = piVar3 + 0xc;
+ piVar5 = piVar5 + 9;
+ local_4 = local_4 + -1;
+ local_c = local_10;
+ } while (local_4 != 0);
+ this->skirmishUnknownSetting1[0] = 1;
+ this->skirmishUnknownSetting1[1] = 1;
+ this->skirmishUnknownSetting1[2] = 1;
+ this->skirmishUnknownSetting1[3] = 1;
+ this->skirmishStartGold = 0;
+ this->skirmishDefaultPopularity = 100;
+ this->skirmishGameSpeedLevel = 0x28;
+ this->field235_0x1072e8 = -1;
+ this->field236_0x1072ec = -1;
+ this->skirmishCurrentAdvantageBalance = 3;
+ this->skirmishTechLevel = 4;
+ this->skirmishGameIntensityType = 1;
+ this->skirmishGameIntensityType2 = 1;
+ this->skirmishWinCondition = 0;
+ this->skirmishTroopsCostGold = 1;
+ this->field248_0x109250 = 6;
+ if ((((this->skirmishAutoSaveEveryMinutes != 0) && (this->skirmishAutoSaveEveryMinutes != 5))
+ && (this->skirmishAutoSaveEveryMinutes != 10))
+ && (this->skirmishAutoSaveEveryMinutes != 0x14)) {
+ this->skirmishAutoSaveEveryMinutes = 10;
+ }
+ this->saveRelated = 0;
+ this->field75_0xbe4 = 0;
+ this->commandDelay = 0x23;
+ DAT_GameState.mapAndTime.gameOver = FALSE;
+ resetGameCommands();
+ DAT_GameCore.mapTimeInTicks = 0;
+ this->syncStatus = 0;
+ this->flag_0xbec = 0;
+ this->skirmishStrongWalls = 0;
+ this->skirmishAlliances = 0;
+ this->skirmishNoCowThrowing = 0;
+ this->skirmishNoDogs = 0;
+ this->skirmishNoRushSetting = 0;
+ this->skirmishExtremeMode = 1;
+ this->skirmishExtremeMode2 = 0;
+ this->DAT_MapFileReceivingState = 0;
+ DAT_GameState.mapAndTime.skirmishFogOfWar = 0;
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_WIN_DEFEAT_WINDOW, 0);
+ resetMouseState2();
+ DAT_VideoBikQueue.storedMessages_0x924 = 0;
+ activateModalDialog(
+ MMT_NONE, FALSE);
+ activateModalDialog(
+ MMT_NONE, FALSE);
+ activateModalDialog(
+ MMT_NONE, FALSE);
+ stopAllActiveSounds();
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[0]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[0];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[1]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[1];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[2]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[2];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[3]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[3];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[4]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[4];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[5]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[5];
+ DAT_GameCore.currentlyInGameUnk_0xa4 = FALSE;
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[6]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[6];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[7]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[7];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[8]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[8];
+ this->field225_0x106ee4 = 1;
+ InitSkirmishLobbyData();
+ setDirectPlaySessionDescription();
+ queueCommand(
+ GCT_ASK_FOR_SLOT_ASSIGNMENT);
+ DAT_GameCore.menuTabToSwitchTo.tabType = ((BuildingsAndStatusMenuTabType)0);
+ switchToMenuView(
+ MVT_LOBBY_MENU, 0);
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0048c230", "name": "initMultiplayerLobbyState", "quelle": "ghidra", "p1": {"bereich": "Befehle/Takt", "zweck": "Setzt Lobby und Gefechtseinstellungen auf Grundwerte zurück und öffnet das Lobby-Menü."}, "p2": {"ein": "-", "aus": "-", "liest": ["skirmishAutoSaveEveryMinutes"], "schreibt": ["Gefechtseinstellungen (skirmish...)", "commandDelay", "gameMode_2", "mapTimeInTicks", "Spieler-Tabellen je Platz 1-9"], "ruft": ["resetTeams", "resetGameCommands", "InitSkirmishLobbyData", "setDirectPlaySessionDescription", "queueCommand(GCT_ASK_FOR_SLOT_ASSIGNMENT)", "switchToMenuView(MVT_LOBBY_MENU)"], "regeln": ["commandDelay = 0x23 = 35", "skirmishStartGold = 0, skirmishDefaultPopularity = 100, skirmishGameSpeedLevel = 0x28 = 40", "skirmishCurrentAdvantageBalance = 3, skirmishTechLevel = 4, skirmishWinCondition = 0", "skirmishTroopsCostGold = 1 (Soldaten kosten Gold)", "skirmishStrongWalls, skirmishAlliances, skirmishNoCowThrowing, skirmishNoDogs, skirmishNoRushSetting = 0; skirmishExtremeMode = 1; Nebel des Krieges aus", "Autosicherung nur 0, 5, 10 oder 20 Minuten erlaubt, sonst 10", "limit = 5, counter = -1"], "offen": ["Bedeutung von skirmishUnknownSetting1, skirmishGameIntensityType, field248_0x109250 und der vielen Ghidra-Zeigerzugriffe auf Spielerfelder"]}, "p3": {"erklaerung": "Das sind die Grundwerte einer frisch geöffneten Lobby; der Spieler kann sie danach ändern. Wichtig ist die Befehlsverzögerung 35 und dass Soldaten standardmäßig Gold kosten.", "gehirn": "Grundwerte für Gefechtsregeln; echte Werte einer Partie aus den skirmish-Feldern lesen, nicht annehmen.", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0048c7b0 reorderTeamsAndPositions | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0048C7B0
+ undefined4 GameSynchronyState::reorderTeamsAndPositions()
+ {
+ char* pcVar1;
+ byte* _playerGroupArray;
+ char* pcVar2;
+ int iVar3;
+ byte bVar4;
+ int _counter2;
+ int _counter3;
+ int* piVar5;
+ int _counter;
+ int* piVar6;
+ int local_4c;
+ byte* local_44;
+ int local_38[6];
+ int local_20[8];
+ int* _currentPlayerFullIdArray;
+ byte _group;
+ _counter2 = 0;
+ this->DAT_RoundTableOrderArray[1] = 0;
+ this->DAT_RoundTableOrderArray[2] = 0;
+ this->DAT_RoundTableOrderArray[3] = 0;
+ this->DAT_RoundTableOrderArray[4] = 0;
+ local_20[0] = 0;
+ local_20[1] = 0;
+ local_20[2] = 0;
+ local_20[3] = 0;
+ local_20[4] = 0;
+ local_20[5] = 0;
+ local_20[6] = 0;
+ local_20[7] = 0;
+ this->DAT_RoundTableOrderArray[5] = 0;
+ this->DAT_RoundTableOrderArray[6] = 0;
+ this->DAT_RoundTableOrderArray[7] = 0;
+ this->DAT_RoundTableOrderArray[8] = 0;
+ local_38[0] = 0;
+ local_38[1] = 0;
+ local_38[2] = 0;
+ local_38[3] = 0;
+ local_38[4] = 0;
+ _playerGroupArray = this->DAT_PlayerGroupArray;
+ _currentPlayerFullIdArray = this->currentPlayerFullIDArray;
+ _counter = 8;
+ do {
+ _currentPlayerFullIdArray = _currentPlayerFullIdArray + 1;
+ _playerGroupArray = _playerGroupArray + 1;
+ /*
+ fullIdArray == -1 && AI == 0
+ */
+ if ((*_currentPlayerFullIdArray == -1) && (_currentPlayerFullIdArray[0x1b] == 0)) {
+ *_playerGroupArray = 0xff;
+ } else {
+ if ((char)*_playerGroupArray < '\0') {
+ *_playerGroupArray = 0;
+ }
+ _group = *_playerGroupArray;
+ local_38[(char)_group] = local_38[(char)_group] + 1;
+ if ((char)_group != 0) {
+ local_38[0] = local_38[0] + 1;
+ }
+ _counter2 = _counter2 + 1;
+ }
+ _counter = _counter + -1;
+ } while (_counter != 0);
+ _counter = 1;
+ LAB_0048c857:
+ iVar3 = local_38[_counter];
+ if (0 < iVar3) {
+ if (iVar3 == local_38[0]) {
+ _playerGroupArray = this->DAT_PlayerGroupArray;
+ iVar3 = 8;
+ do {
+ _playerGroupArray = _playerGroupArray + 1;
+ if (-1 < (char)*_playerGroupArray) {
+ *_playerGroupArray = 0;
+ }
+ iVar3 = iVar3 + -1;
+ } while (iVar3 != 0);
+ local_38[_counter] = 0;
+ LAB_0048c8b5:
+ _counter3 = 1;
+ _currentPlayerFullIdArray = local_38 + 2;
+ do {
+ if ((_currentPlayerFullIdArray[-1] == 0) && (*_currentPlayerFullIdArray != 0)) {
+ if (_counter3 < (char)this->DAT_PlayerGroupArray[1]) {
+ this->DAT_PlayerGroupArray[1] = this->DAT_PlayerGroupArray[1] - 1;
+ }
+ if (_counter3 < (char)this->DAT_PlayerGroupArray[2]) {
+ this->DAT_PlayerGroupArray[2] = this->DAT_PlayerGroupArray[2] - 1;
+ }
+ if (_counter3 < (char)this->DAT_PlayerGroupArray[3]) {
+ this->DAT_PlayerGroupArray[3] = this->DAT_PlayerGroupArray[3] - 1;
+ }
+ if (_counter3 < (char)this->DAT_PlayerGroupArray[4]) {
+ this->DAT_PlayerGroupArray[4] = this->DAT_PlayerGroupArray[4] - 1;
+ }
+ if (_counter3 < (char)this->DAT_PlayerGroupArray[5]) {
+ this->DAT_PlayerGroupArray[5] = this->DAT_PlayerGroupArray[5] - 1;
+ }
+ if (_counter3 < (char)this->DAT_PlayerGroupArray[6]) {
+ this->DAT_PlayerGroupArray[6] = this->DAT_PlayerGroupArray[6] - 1;
+ }
+ if (_counter3 < (char)this->DAT_PlayerGroupArray[7]) {
+ this->DAT_PlayerGroupArray[7] = this->DAT_PlayerGroupArray[7] - 1;
+ }
+ if (_counter3 < (char)this->DAT_PlayerGroupArray[8]) {
+ this->DAT_PlayerGroupArray[8] = this->DAT_PlayerGroupArray[8] - 1;
+ }
+ if (_counter3 + 1 < 5) {
+ piVar5 = _currentPlayerFullIdArray;
+ piVar6 = _currentPlayerFullIdArray + -1;
+ for (_counter = 5 - (_counter3 + 1); _counter != 0; _counter = _counter + -1) {
+ *piVar6 = *piVar5;
+ piVar5 = piVar5 + 1;
+ piVar6 = piVar6 + 1;
+ }
+ }
+ }
+ _counter3 = _counter3 + 1;
+ _currentPlayerFullIdArray = _currentPlayerFullIdArray + 1;
+ } while (_counter3 < 4);
+ local_4c = 1;
+ if (0 < _counter2) {
+ local_44 = this->DAT_PlayerGroupArray + 2;
+ do {
+ pcVar2 = (char*)0xffffffff;
+ _group = 0xff;
+ _currentPlayerFullIdArray = local_38 + 7;
+ _playerGroupArray = local_44;
+ do {
+ bVar4 = _playerGroupArray[-1];
+ if ((-1 < (char)bVar4) && (_currentPlayerFullIdArray[-1] == 0)) {
+ if (bVar4 == 0) {
+ bVar4 = 10;
+ }
+ if (((char)bVar4 < (char)_group) || (pcVar2 == (char*)0xffffffff)) {
+ pcVar2 = (char*)(_playerGroupArray + -0x1a275b6);
+ _group = bVar4;
+ }
+ }
+ bVar4 = *_playerGroupArray;
+ if ((-1 < (char)bVar4) && (*_currentPlayerFullIdArray == 0)) {
+ if (bVar4 == 0) {
+ bVar4 = 10;
+ }
+ if (((char)bVar4 < (char)_group) || (pcVar2 == (char*)0xffffffff)) {
+ pcVar2 = (char*)(_playerGroupArray + -0x1a275b5);
+ _group = bVar4;
+ }
+ }
+ bVar4 = _playerGroupArray[1];
+ if ((-1 < (char)bVar4) && (_currentPlayerFullIdArray[1] == 0)) {
+ if (bVar4 == 0) {
+ bVar4 = 10;
+ }
+ if (((char)bVar4 < (char)_group) || (pcVar2 == (char*)0xffffffff)) {
+ pcVar2 = (char*)(_playerGroupArray + -0x1a275b4);
+ _group = bVar4;
+ }
+ }
+ bVar4 = _playerGroupArray[2];
+ if ((-1 < (char)bVar4) && (_currentPlayerFullIdArray[2] == 0)) {
+ if (bVar4 == 0) {
+ bVar4 = 10;
+ }
+ if (((char)bVar4 < (char)_group) || (pcVar2 == (char*)0xffffffff)) {
+ pcVar2 = (char*)(_playerGroupArray + -0x1a275b3);
+ _group = bVar4;
+ }
+ }
+ pcVar1 = (char*)(_playerGroupArray + -0x1a275b2);
+ _currentPlayerFullIdArray = _currentPlayerFullIdArray + 4;
+ _playerGroupArray = _playerGroupArray + 4;
+ } while ((int)pcVar1 < 9);
+ if ((int)pcVar2 < 0)
+ break;
+ this->DAT_RoundTableOrderArray[local_4c] = (byte)pcVar2;
+ local_4c = local_4c + 1;
+ local_38[(int)(pcVar2 + 5)] = 1;
+ } while (local_4c <= _counter2);
+ }
+ if ((this->currentGameMode != GM_SKIRMISH_SINGLE_PLAYER) && (this->isHost != FALSE)) {
+ queueCommand(
+ GCT_START_OR_STOP_SEND_MAP_FILEUnk
+ | GCT_HOST_SHARE_LOBBY_STATE);
+ queueCommand(
+ GCT_HOST_ANNOUNCE_TEAMS_AND_POSITIONS);
+ }
+ return (undefined4)(1);
+ }
+ if (iVar3 == 1) {
+ _playerGroupArray = this->DAT_PlayerGroupArray;
+ iVar3 = 8;
+ do {
+ _playerGroupArray = _playerGroupArray + 1;
+ if ((char)*_playerGroupArray == _counter) {
+ *_playerGroupArray = 0;
+ }
+ iVar3 = iVar3 + -1;
+ } while (iVar3 != 0);
+ local_38[_counter] = 0;
+ }
+ }
+ _counter = _counter + 1;
+ if (4 < _counter)
+ goto LAB_0048c8b5;
+ goto LAB_0048c857;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0048c7b0", "name": "reorderTeamsAndPositions", "quelle": "ghidra", "p1": {"bereich": "Befehle/Takt", "zweck": "Bereinigt die Team-Zuordnung der Lobby und legt die Sitzreihenfolge fest."}, "p2": {"ein": "-", "aus": "immer 1", "liest": ["DAT_PlayerGroupArray[1..8]", "currentPlayerFullIDArray[1..8]", "KI-Kennzeichen je Platz", "currentGameMode", "isHost"], "schreibt": ["DAT_PlayerGroupArray", "DAT_RoundTableOrderArray[1..]"], "ruft": ["queueCommand(GCT_START_OR_STOP_SEND_MAP_FILEUnk | GCT_HOST_SHARE_LOBBY_STATE)", "queueCommand(GCT_HOST_ANNOUNCE_TEAMS_AND_POSITIONS)"], "regeln": ["Platz ohne Spieler und ohne KI bekommt Gruppe 0xff (leer); negative Gruppe wird zu 0", "Teams 1-4: Ein Team mit genau einem Spieler wird aufgelöst (Gruppe 0)", "Sind alle Spieler mit Team im selben Team, werden alle auf Gruppe 0 gesetzt", "Lücken in der Team-Nummerierung werden geschlossen (höhere Teams rücken nach)", "RoundTableOrderArray: Plätze nach Gruppe aufsteigend, Gruppe 0 zählt dabei als 10 und kommt zuletzt", "Nur wenn der Modus nicht GM_SKIRMISH_SINGLE_PLAYER ist und der Rechner Gastgeber: beide Befehle absetzen"], "offen": ["Bedeutung der Hilfszähler (local_38 als Zähler und später als Markierung) und der Zeigerrechnung bei der Sortierung; Gruppenzahlen als Teamnummern sind Deutung aus dem Code"]}, "p3": {"erklaerung": "In der Mehrspieler-Lobby werden Teams aufgeräumt: Einzelgänger-Teams verschwinden, Teamnummern rücken lückenlos auf, und die Sitzreihenfolge richtet sich nach dem Team.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+

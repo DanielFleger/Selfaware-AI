@@ -1,0 +1,1433 @@
+### 0x0043a960 MenuItemRenderFunction_BuildingAndStatusMenu_AvailablePeasantsTextDownRight | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043A960
+ void BuildingAndStatusMenu::MenuItemRenderFunction_BuildingAndStatusMenu_AvailablePeasantsTextDownRight(
+ int param_1, ...)
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ uint foregroundColor;
+ uint backgroundColor;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x12;
+ backgroundColor = 0;
+ foregroundColor = 0xb8eefb;
+ alignment = TTA_RIGHT;
+ yParam = DAT_ButtonY + 0x98;
+ xParam = DAT_ButtonX + -5;
+ /*
+ added by script: "Available Peasants"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_BARRACKS, 3);
+ renderInGameTextWithShadow(
+ textAddress, xParam, yParam, alignment, foregroundColor, backgroundColor, fontSize, keepOffsetX,
+ blendStrength);
+ renderNumber2(
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .availablePeasantsOrHousedPeasants
+ - DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .count,
+ DAT_ButtonX, DAT_ButtonY + 0x98,
+ TTA_LEFT, 0xb8eefb, 0, 0x12, FALSE, 0);
+ return;
+ }
+ }
+}
+}
+
+### 0x0043e490 MenuItemActionHandler_BuildingAndStatusMenu_StatusMenuButtons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043E490
+ void BuildingAndStatusMenu::MenuItemActionHandler_BuildingAndStatusMenu_StatusMenuButtons(int param_1, ...)
+ {
+ if (((param_1 == 0x47) && (DAT_GameCore.buildingandstatusmenuMenuTabToSwitchTo == 0x4b))
+ && (INT_00b96120::instance == 4)) {
+ param_1 = BT_OXTETHER;
+ }
+ DAT_GameCore.buildingandstatusmenuMenuTabToSwitchTo = param_1;
+ switchToMenuView(
+ MVT_BUILDING_AND_STATUS_MENU, 0);
+ if ((DAT_GameCore.gameMode_2 == GM_CRUSADER_TUTORIAL)
+ && (param_1 != BT_KEEPDOOR_LEFT)) {
+ SetTutorialBuildingActionState(
+ 0xf, (BuildingType)((int)(param_1)));
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x0043e4e0 MenuItemRenderFunction_BuildingAndStatusMenu_StatusMainMenuButtons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043E4E0
+ void BuildingAndStatusMenu::MenuItemRenderFunction_BuildingAndStatusMenu_StatusMainMenuButtons(int param_1, ...)
+ {
+ int xParam;
+ char* textAddress;
+ int yParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ if (DAT_MenuTextInputState.currentModalDialog == MMT_NO_MENU) {
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x13;
+ color = 0;
+ xParam = DAT_ButtonW / 2 + DAT_ButtonX;
+ alignment = TTA_CENTER;
+ yParam = DAT_ButtonY + 10;
+ textAddress = getTextStringInGroupAtOffset(TEXT_REPORT_BUTTONS, param_1 + -0x47);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x0043fbb0 MenuItemActionHandler_BuildingAndStatusMenu_DisableFoodType | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043FBB0
+ void BuildingAndStatusMenu::MenuItemActionHandler_BuildingAndStatusMenu_DisableFoodType(int param_1, ...)
+ {
+ short* psVar1;
+ if ((DAT_GameSynchronyState.currentGameMode == GM_SOLITARY)
+ || (DAT_GameSynchronyState.currentGameMode == GM_SKIRMISH_SINGLE_PLAYER)) {
+ if (DAT_GameCore.gameMode_2 == GM_CRUSADER_TUTORIAL) {
+ SetTutorialHintActiveWithTimestamp();
+ return;
+ }
+ psVar1 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .isFoodTypeBanned
+ + param_1;
+ *psVar1 = *psVar1 ^ 1;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x0043fbf0 MenuItemRenderFunction_BuildingAndStatusMenu_DisableFoodType | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043FBF0
+ void BuildingAndStatusMenu::MenuItemRenderFunction_BuildingAndStatusMenu_DisableFoodType(int foodType, ...)
+ {
+ int _xOffset;
+ int _yOffset;
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ }
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .isFoodTypeBanned[foodType]
+ != 0) {
+ _xOffset = 8;
+ _yOffset = 2;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ if (foodType == 1) {
+ _xOffset = 4;
+ _yOffset = 0;
+ }
+ renderGMWithBlending(GID_INTERFACE_ICONS_2, 0x2d,
+ DAT_ButtonX + -4 + _xOffset, DAT_ButtonY + -0x2d + _yOffset, 6);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x0043fcb0 MenuItemRenderFunction_BuildingAndStatusMenu_ArmyStatusReturn | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043FCB0
+ void BuildingAndStatusMenu::MenuItemRenderFunction_BuildingAndStatusMenu_ArmyStatusReturn(int param_1, ...)
+ {
+ int iVar1;
+ BOOLEnum BVar2;
+ if (((((DAT_GameCore.gameMode_2 == GM_BUILDERUnk)
+ || (DAT_GameCore.gameMode_2 == GM_CRUSADER_TUTORIAL))
+ && (DAT_GameSynchronyState.currentPlayerSlotID == 2))
+ || ((((DAT_GameSynchronyState.currentPlayerSlotID == 1
+ && (iVar1 = singlePlayerHasKeepAndGranaryCheck(),
+ iVar1 == 0))
+ && (iVar1 = getArmySize(DAT_GameSynchronyState.currentPlayerSlotID),
+ iVar1 != 0))
+ || ((DAT_GameCore.gameMode_2 == GM_BUILDERUnk
+ && (DAT_MapPropertiesState.SEC_U3_MapType2_1 == MT_SIEGE))))))
+ && (BVar2 = GetIfDisplayElementStateNotZero(
+ DEID_KEEP_AND_GRANERY_PLACEMENT_INFO),
+ BVar2 == FALSE)) {
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ DAT_ButtonUnknownZero = 0;
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ return;
+ }
+ }
+}
+}
+
+### 0x00440280 MenuItemActionHandler_BuildingAndStatusMenu_ReturnToBuildMenu | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00440280
+ void BuildingAndStatusMenu::MenuItemActionHandler_BuildingAndStatusMenu_ReturnToBuildMenu(int param_1, ...)
+ {
+ bool bVar1;
+ MappersEnumInt unionfacet4_4402df;
+ MappersEnumInt unionfacet4_440334;
+ MappersEnumInt unionfacet2_4402e6;
+ extendResourceCountdownForPlayerBuildingsOfType(
+ (int)(short)DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .buildingType,
+ 1, DAT_GameSynchronyState.currentPlayerSlotID);
+ if (DAT_MouseState.rightClickStart != 0) {
+ switchToMenuView(
+ MVT_BUILD_MENU, 0);
+ return;
+ }
+ if (DAT_ViewportRenderState.viewportState.field0_0x0 == 0) {
+ return;
+ }
+ if (DAT_GameCore.activeMenuTab.inBuildingTab == IBM_INSIDE_BARRACKS) {
+ if ((0x14b < (int)DAT_TileMapState.currentMapperCommand)
+ && ((int)DAT_TileMapState.currentMapperCommand < 0x153)) {
+ return;
+ }
+ } else if (DAT_GameCore.activeMenuTab.tabType == BASMTT_MERCENARYPOST) {
+ if ((0x167 < (int)DAT_TileMapState.currentMapperCommand)
+ && ((int)DAT_TileMapState.currentMapperCommand < 0x16f)) {
+ return;
+ }
+ } else if (DAT_GameCore.activeMenuTab.tabType == BASMTT_ENGINEERSGUILD) {
+ if ((0x16e < (int)DAT_TileMapState.currentMapperCommand)
+ && ((int)DAT_TileMapState.currentMapperCommand < 0x171)) {
+ return;
+ }
+ } else {
+ if (DAT_GameCore.activeMenuTab.tabType == BASMTT_TUNNELERSGUILD) {
+ bVar1 = DAT_TileMapState.currentMapperCommand
+ == M_MAPPER_PLACE_ASSEMBLY_POINTT1;
+ } else {
+ if (DAT_GameCore.activeMenuTab.tabType != BASMTT_CATHEDRAL)
+ goto LAB_00440340;
+ bVar1 = DAT_TileMapState.currentMapperCommand
+ == M_MAPPER_PLACE_ASSEMBLY_POINTK1;
+ }
+ if (bVar1) {
+ return;
+ }
+ }
+ LAB_00440340:
+ if (DAT_MouseState.leftClickStart != 0) {
+ switchToMenuView(
+ MVT_BUILD_MENU, 100);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00446c00 MenuView_BuildingAndStatusMenu_Prepare | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00446C00
+ void BuildingAndStatusMenu::MenuView_BuildingAndStatusMenu_Prepare()
+ {
+ UnitTypeShort* pUVar1;
+ BuildingTypeShort BVar2;
+ Menu* pMVar3;
+ BOOLEnum BVar4;
+ int iVar5;
+ int iVar6;
+ int iVar7;
+ char* pcVar8;
+ int _buildingIndex;
+ int _playerId;
+ int _currentPlayerGold;
+ ActiveMenuTab _menuTab;
+ BuildingTypeShort* _ptrToSelectedBuildingType;
+ DAT_MenuHandlerState.x = DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ pMVar3 = DAT_MenuHandlerState.currentMenu;
+ DAT_MenuHandlerState.y = DAT_WindowAndDirectDraw.resolutionY + -600;
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_640x480) {
+ (DAT_MenuHandlerState.currentMenu)->xPosition = -0x2ba;
+ pMVar3->yPosition = DAT_MenuHandlerState.y;
+ DAT_MenuHandlerState.x = -0x2ba;
+ } else {
+ (DAT_MenuHandlerState.currentMenu)->xPosition
+ = DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ pMVar3->yPosition = DAT_MenuHandlerState.y;
+ }
+ resetToTextIndex(4);
+ _buildingIndex = DAT_BuildingsState.menuSelectedBuildingID;
+ DAT_BuildingsState.field24_0x18e04c = (char*)0x0;
+ DAT_BuildingsState.field25_0x18e050 = 0;
+ DAT_BuildingsState.DAT_CurrentlyPlayingBuildingBik = (char*)0x0;
+ DAT_00b96108 = 0;
+ DAT_00b95b68 = 0;
+ if ((DAT_GameCore.activeMenuTab.tabType != BASMTT_PEASANT)
+ && (((int)DAT_GameCore.activeMenuTab.tabType < 0x47
+ || (0x4f < (int)DAT_GameCore.activeMenuTab.tabType)))) {
+ _ptrToSelectedBuildingType
+ = &DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .buildingType;
+ if ((DAT_RenderingDefinedData.BuildingHelpArray[(short)DAT_BuildingsState
+ .buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .buildingType]
+ != (CHAR_CONST*)0x0)
+ && (BVar4 = loadAndParseHelpFile(
+ DAT_RenderingDefinedData.BuildingHelpArray[(short)DAT_BuildingsState
+ .buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .buildingType]),
+ BVar4 != FALSE)) {
+ DAT_BuildingsState.field24_0x18e04c
+ = DAT_RenderingDefinedData.BuildingHelpArray[(short)*_ptrToSelectedBuildingType];
+ }
+ if (DAT_RenderingDefinedData.BuildingTgxSketchArray[(short)*_ptrToSelectedBuildingType]
+ != (CHAR_CONST*)0x0) {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile(
+ DAT_RenderingDefinedData.BuildingTgxSketchArray[(short)*_ptrToSelectedBuildingType]);
+ DAT_00b96108 = 1;
+ }
+ if (DAT_RenderingDefinedData.BuildingBikArray[(short)*_ptrToSelectedBuildingType]
+ != (CHAR_CONST*)0x0) {
+ resolveResourceFileName(FRT_BINKS,
+ (CHAR_CONST*)((int)(DAT_RenderingDefinedData
+ .BuildingBikArray[(short)*_ptrToSelectedBuildingType])));
+ BVar4 = doesFileOfActiveResourceExist();
+ if ((BVar4 != FALSE) && (DAT_GameCore.isBinkVideoPlaying == 0)) {
+ DAT_BuildingsState.DAT_CurrentlyPlayingBuildingBik
+ = DAT_RenderingDefinedData.BuildingBikArray[(short)*_ptrToSelectedBuildingType];
+ playBINK(0,
+ DAT_BuildingsState.DAT_CurrentlyPlayingBuildingBik, 1, 0,
+ DAT_MenuHandlerState.x + 0x23b, DAT_MenuHandlerState.y + 0x1d1, 1);
+ DAT_BuildingsState.DAT_IsBuildingOrPeasantBinkPlaying = TRUE;
+ }
+ }
+ HandleBuildingSelectionSpeech(_buildingIndex);
+ }
+ _menuTab = DAT_GameCore.activeMenuTab;
+ _playerId = DAT_GameSynchronyState.currentPlayerSlotID;
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .timeTaxesOrRationsChange = 0;
+ switch (_menuTab.tabType) {
+ case BASMTT_BARRACKS_OR_MPMENU_MODEM:
+ SetEnoughGoldForRequestedUnitToTrueUnk();
+ break;
+ case BASMTT_KEEP_OR_MPMENU_IPX:
+ _currentPlayerGold = DAT_GameState.playerDataArray[_playerId].currentResources[0xf];
+ iVar5 = DAT_GameState.playerDataArray[_playerId].marketGold
+ + (int)DAT_GameState.playerDataArray[_playerId].beforeLastMonthsGold;
+ if (iVar5 + 0x28 < _currentPlayerGold) {
+ playSpeechSFX(
+ SEID_TAXES_INCREASE1);
+ } else if (iVar5 < _currentPlayerGold) {
+ playSpeechSFX(
+ SEID_TAXES_INCREASE2);
+ } else if (_currentPlayerGold < iVar5 + -0x28) {
+ playSpeechSFX(
+ SEID_TAXES_DECREASE2);
+ } else if (_currentPlayerGold < iVar5) {
+ playSpeechSFX(
+ SEID_TAXES_DECREASE1);
+ } else {
+ playSpeechSFX(
+ SEID_TAXES_CONSTANT);
+ }
+ break;
+ case BASMTT_INN_OR_MPMMENU_UNK:
+ setUpSFXToPlayUnk(
+ SEID_INN);
+ break;
+ case BASMTT_GRANARY_OR_MPMENU_TCPIP:
+ if (DAT_GameState.playerDataArray[_playerId].rationsSetting != 0) {
+ if (DAT_GameState.playerDataArray[_playerId].totalFood < 1) {
+ /*
+ "The granary is empty sire"
+ */
+ playWAVSFX(
+ "food_warning5.wav");
+ } else {
+ iVar6 = (int)DAT_GameState.playerDataArray[_playerId].foodStorageLevelLastLastMonth;
+ iVar5 = DAT_GameState.playerDataArray[_playerId].foodStorageLevel;
+ if (iVar6 < iVar5) {
+ playSpeechSFX(
+ SEID_FOOD_GROWING);
+ } else if (iVar5 < iVar6) {
+ playSpeechSFX(
+ SEID_FOOD_FALLING);
+ }
+ }
+ }
+ break;
+ case BASMTT_FLETCHER:
+ case BASMTT_BLACKSMITH:
+ case BASMTT_POLETURNER:
+ DAT_GameState.playerDataArray[_playerId].weaponRelated
+ = (int)(short)DAT_BuildingsState
+ .buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .producedItemType;
+ break;
+ case BASMTT_ENGINEERSGUILD:
+ CheckIfEnoughGoldForLadderman();
+ break;
+ case BASMTT_TUNNELERSGUILD:
+ CheckIfEnoughGoldForTunneler();
+ break;
+ case BASMTT_OILSMELTER:
+ setUpSFXToPlayUnk(
+ SEID_UNKNOWN_0x3D);
+ break;
+ case BASMTT_DAIRYFARM:
+ setUpSFXToPlayUnk(
+ SEID_ARROW_BOUNCE | SEID_INN);
+ break;
+ case BASMTT_MILL:
+ setUpSFXToPlayUnk(
+ SEID_MILL);
+ break;
+ case BASMTT_STABLES:
+ setUpSFXToPlayUnk(
+ SEID_ARROW_BOUNCE | SEID_DRAWBRIDGE_RAISED);
+ break;
+ case BASMTT_CHAPEL_AND_CHURCH:
+ BVar2 = DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .buildingType;
+ if (BVar2 == BT_CHAPEL) {
+ setUpSFXToPlayUnk(
+ SEID_CHAPEL_BELL);
+ LAB_00446f2e:
+ pcVar8 = "wedding_sketch.tgx";
+ } else if (BVar2 == BT_CHURCH) {
+ setUpSFXToPlayUnk(
+ SEID_CHURCH_BELL);
+ pcVar8 = "wedding_sketch.tgx";
+ } else {
+ if (BVar2 != BT_CATHEDRAL)
+ goto LAB_00446f2e;
+ setUpSFXToPlayUnk(
+ SEID_CATHEDRAL_BELL);
+ pcVar8 = "wedding_sketch.tgx";
+ }
+ goto LAB_004475c3;
+ case BASMTT_MERCENARYPOST:
+ DisableMercPostPortraits();
+ break;
+ case BASMTT_GALLOWS:
+ setUpSFXToPlayUnk(
+ SEID_GALLOWS);
+ break;
+ case BASMTT_PEASANT:
+ pUVar1 = &DAT_UnitsState.units[DAT_BuildingsState.menuSelectedUnitID].unitType;
+ DAT_00b95b6c = 0xffffffff;
+ if ((*pUVar1 == UT_JESTER) && ((int)DAT_GameCore.field33_0x90 < 3)) {
+ DAT_GameCore.field33_0x90 = DAT_GameCore.field33_0x90 + 1;
+ }
+ DAT_GameState.mapAndTime.drunkenManStatus
+ = DAT_GameState.mapAndTime.drunkenManStatus + 1;
+ if (0x1f < DAT_GameState.mapAndTime.drunkenManStatus) {
+ DAT_GameState.mapAndTime.drunkenManStatus = 0;
+ }
+ if (DAT_RenderingDefinedData.ChimpTgxArray[(short)*pUVar1] != (CHAR_CONST*)0x0) {
+ resolveResourceFileName(FRT_GFX,
+ (CHAR_CONST*)((int)(DAT_RenderingDefinedData.ChimpTgxArray[(short)*pUVar1])));
+ BVar4 = doesFileOfActiveResourceExist();
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ if (BVar4 == FALSE) {
+ pcVar8 = "chimp00_null.tgx";
+ } else {
+ pcVar8 = DAT_RenderingDefinedData.ChimpTgxArray[(short)*pUVar1];
+ }
+ loadGfxFile(pcVar8);
+ }
+ loadGfxFile(
+ DAT_RenderingDefinedData.ChimpTgxSketchArray[(short)*pUVar1]);
+ if ((DAT_RenderingDefinedData.ChimpHelpArray[(short)*pUVar1] != (CHAR_CONST*)0x0)
+ && (BVar4 = loadAndParseHelpFile(
+ DAT_RenderingDefinedData.ChimpHelpArray[(short)*pUVar1]),
+ BVar4 != FALSE)) {
+ DAT_BuildingsState.field24_0x18e04c
+ = DAT_RenderingDefinedData.ChimpHelpArray[(short)*pUVar1];
+ }
+ if (DAT_RenderingDefinedData.ChimpBikArray[(short)*pUVar1] != (CHAR_CONST*)0x0) {
+ resolveResourceFileName(FRT_BINKS,
+ (CHAR_CONST*)((int)(DAT_RenderingDefinedData.ChimpBikArray[(short)*pUVar1])));
+ BVar4 = doesFileOfActiveResourceExist();
+ if ((BVar4 != FALSE) && (DAT_GameCore.isBinkVideoPlaying == 0)) {
+ DAT_BuildingsState.DAT_CurrentlyPlayingBuildingBik
+ = DAT_RenderingDefinedData.ChimpBikArray[(short)*pUVar1];
+ playBINK(0,
+ DAT_BuildingsState.DAT_CurrentlyPlayingBuildingBik, 1, 0,
+ DAT_MenuHandlerState.x + 0x23b, DAT_MenuHandlerState.y + 0x1d1, 1);
+ DAT_BuildingsState.DAT_IsBuildingOrPeasantBinkPlaying = TRUE;
+ }
+ }
+ INT_00b96124::instance = 0;
+ break;
+ case BASMTT_STATUS_OVERVIEW:
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ if (DAT_GameCore.selectedLordTypeUnk == 0) {
+ pcVar8 = "shield1.tgx";
+ } else {
+ pcVar8 = "shield2.tgx";
+ }
+ goto LAB_004475c3;
+ case BASMTT_STATUS_POPULARITY:
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("popularity_sketch.tgx");
+ iVar5 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .popularity;
+ iVar6 = iVar5 >> 0x1f;
+ iVar7 = iVar5 / 100 + iVar6;
+ iVar5 = iVar7 - iVar6;
+ DAT_00b96108 = 1;
+ if (iVar5 == 100) {
+ playSpeechSFX(
+ SEID_POP_POPULARITY1);
+ } else if (iVar7 == iVar6) {
+ playSpeechSFX(
+ SEID_POP_POPULARITY8);
+ } else if (iVar5 < 0x14) {
+ playSpeechSFX(
+ SEID_POP_POPULARITY7);
+ } else if (iVar5 < 0x28) {
+ playSpeechSFX(
+ SEID_POP_POPULARITY6);
+ } else if (iVar5 < 0x32) {
+ playSpeechSFX(
+ SEID_POP_POPULARITY5);
+ } else if (iVar5 < 0x3c) {
+ playSpeechSFX(
+ SEID_POP_POPULARITY4);
+ } else if (iVar5 < 0x50) {
+ playSpeechSFX(
+ SEID_POP_POPULARITY3);
+ } else if (iVar5 < 100) {
+ playSpeechSFX(
+ SEID_POP_POPULARITY2);
+ }
+ break;
+ case BASMTT_STATUS_FEARFACTOR:
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("fearfpos.tgx");
+ loadGfxFile("fearfneg.tgx");
+ iVar5 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .fearFactorLevel;
+ if (iVar5 != 0) {
+ if (iVar5 < -4) {
+ /*
+ "You are truly the cruelest tyrant in the kingdom your lordship"
+ */
+ playWAVSFX(
+ "general_fear1.wav");
+ } else if (iVar5 == -4) {
+ /*
+ "The people tremble at the very mention of your name sire"
+ */
+ playWAVSFX(
+ "general_fear2.wav");
+ } else if (iVar5 == -3) {
+ /*
+ "The people are very scared of you my liege"
+ */
+ playWAVSFX(
+ "general_fear3.wav");
+ } else if (iVar5 == -2) {
+ /*
+ "The people are frightened of you my lord"
+ */
+ playWAVSFX(
+ "general_fear4.wav");
+ } else if (iVar5 == -1) {
+ /*
+ "The people are a little afraid of you my lord"
+ */
+ playWAVSFX(
+ "general_fear5.wav");
+ } else if (iVar5 == 1) {
+ /*
+ "The people trust you my lord"
+ */
+ playWAVSFX(
+ "general_fear6.wav");
+ } else if (iVar5 == 2) {
+ /*
+ "The people are not afraid of you at all my lord"
+ */
+ playWAVSFX(
+ "general_fear7.wav");
+ } else if (iVar5 == 3) {
+ /*
+ "The people think you are fantastic liege"
+ */
+ playWAVSFX(
+ "general_fear9.wav");
+ } else if (iVar5 == 4) {
+ /*
+ "The people think you are really really nice sire"
+ */
+ playWAVSFX(
+ "general_fear8.wav");
+ } else if (4 < iVar5) {
+ /*
+ "You are worshipped as the kindest man in all the kingdom my liege"
+ */
+ playWAVSFX(
+ "general_fear10.wav");
+ }
+ }
+ break;
+ case BASMTT_STATUS_POPULATION:
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("popgraph.tgx");
+ pcVar8 = "population_sketch.tgx";
+ goto LAB_004475c3;
+ case BASMTT_STATUS_FOOD:
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("food_sketch.tgx");
+ DAT_00b96108 = 1;
+ break;
+ case BASMTT_STATUS_ARMY:
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("armysbar.tgx");
+ loadGfxFile("armybar.tgx");
+ loadGfxFile("armylbd.tgx");
+ loadGfxFile("armyrbd.tgx");
+ loadGfxFile("armys1.tgx");
+ loadGfxFile("armys2.tgx");
+ loadGfxFile("armys3.tgx");
+ loadGfxFile("armys4.tgx");
+ loadGfxFile("armys5.tgx");
+ loadGfxFile("armys6.tgx");
+ loadGfxFile("armys7.tgx");
+ loadGfxFile("armys8.tgx");
+ loadGfxFile("armys9.tgx");
+ loadGfxFile("armys10.tgx");
+ loadGfxFile("armys11.tgx");
+ loadGfxFile("armys12.tgx");
+ loadGfxFile("armys13.tgx");
+ loadGfxFile("armys14.tgx");
+ loadGfxFile("armys15.tgx");
+ loadGfxFile("armys16.tgx");
+ loadGfxFile("armys17.tgx");
+ loadGfxFile("armys18.tgx");
+ loadGfxFile("armys19.tgx");
+ loadGfxFile("armys20.tgx");
+ loadGfxFile("armys21.tgx");
+ loadGfxFile("armys22.tgx");
+ loadGfxFile("armys23.tgx");
+ loadGfxFile("armys24.tgx");
+ loadGfxFile("armys25.tgx");
+ loadGfxFile("armys26.tgx");
+ CountPlayerUnitsByType();
+ break;
+ case BASMTT_STATUS_RELIGION:
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("churchs.tgx");
+ pcVar8 = "religion_sketch.tgx";
+ LAB_004475c3:
+ loadGfxFile(pcVar8);
+ break;
+ case BASMTT_CESSPIT:
+ setUpSFXToPlayUnk(
+ SEID_FLIES);
+ break;
+ case BASMTT_DUNGEON:
+ setUpSFXToPlayUnk(
+ SEID_DUNGEON);
+ break;
+ case BASMTT_STRETCHINGRACK:
+ setUpSFXToPlayUnk(
+ SEID_STRETCHING_RACK);
+ break;
+ case BASMTT_CHOPPINGBLOCK:
+ setUpSFXToPlayUnk(
+ SEID_PIKE_KILL);
+ }
+ if (DAT_BuildingsState.field24_0x18e04c != (char*)0x0) {
+ DAT_BuildingsState.field25_0x18e050
+ = findOrAddHelpSectionName(DAT_BuildingsState.field24_0x18e04c);
+ }
+ DAT_WindowAndDirectDraw.field37_0xdc = 1;
+ return;
+ }
+ }
+}
+}
+
+### 0x004476b0 MenuItemRenderFunction_BuildingAndStatusMenu_BuildingWorkStatus | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004476B0
+ void BuildingAndStatusMenu::MenuItemRenderFunction_BuildingAndStatusMenu_BuildingWorkStatus(int param_1, ...)
+ {
+ short sVar1;
+ BuildingTypeShort BVar2;
+ short sVar3;
+ bool bVar4;
+ short* psVar5;
+ uint uVar6;
+ int _unit;
+ int iVar7;
+ int iVar8;
+ if (DAT_GameCore.activeMenuTab.tabType == BASMTT_PEASANT) {
+ return;
+ }
+ sVar1 = DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .currentEmployeeCount;
+ bVar4 = true;
+ if ((sVar1 == 0)
+ && (DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .currentlyNeededEmployeeCount
+ == 0)) {
+ return;
+ }
+ if (DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .buildingTypeBasedEmployeeCount
+ < 1) {
+ return;
+ }
+ BVar2 = DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .buildingType;
+ if ((0x27 < (short)BVar2) && ((short)BVar2 < 0x2d)) {
+ return;
+ }
+ if ((0x23 < (short)BVar2) && ((short)BVar2 < 0x27)) {
+ return;
+ }
+ if (DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .hasAccessToKeep
+ == 0) {
+ /*
+ added by script: "No access to keep"
+ */
+ renderText2(
+ TEXT_IN_GENERAL_BUILDINGS, 9, DAT_ButtonX + 0x96,
+ DAT_ButtonY, TTA_LEFT, 0, 0x12, FALSE);
+ return;
+ }
+ if (DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID].sleeping
+ == false) {
+ sVar3 = DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .currentlyNeededEmployeeCount;
+ if (sVar3 != 0) {
+ if (sVar1 != 0) {
+ renderText2(
+ TEXT_IN_GENERAL_BUILDINGS, sVar3 + 4,
+ DAT_ButtonX + 0x96, DAT_ButtonY,
+ TTA_LEFT, 0, 0x12, FALSE);
+ return;
+ }
+ /*
+ added by script: "No labour"
+ */
+ renderText2(
+ TEXT_IN_GENERAL_BUILDINGS, 3, DAT_ButtonX + 0x96,
+ DAT_ButtonY, TTA_LEFT, 0, 0x12, FALSE);
+ return;
+ }
+ iVar7 = (int)sVar1;
+ if (0 < iVar7) {
+ psVar5 = DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .workerID;
+ iVar8 = iVar7;
+ do {
+ _unit = (int)*psVar5;
+ if (DAT_UnitsState.units[_unit].unitType == UT_PEASANT) {
+ bVar4 = false;
+ }
+ psVar5 = psVar5 + 1;
+ iVar8 = iVar8 + -1;
+ } while (iVar8 != 0);
+ if (!bVar4) {
+ /*
+ added by script: "Peasant on his way"
+ */
+ renderText2(
+ TEXT_IN_GENERAL_BUILDINGS, 4,
+ DAT_ButtonX + 0x96, DAT_ButtonY,
+ TTA_LEFT, 0, 0x12, FALSE);
+ return;
+ }
+ }
+ switch (DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .buildingType) {
+ case BT_IRONMINE:
+ _unit = (int)DAT_BuildingsState
+ .buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .workerID[1];
+ default :
+ /*
+ added by script: "Worker:"
+ */
+ renderText2(
+ TEXT_IN_GENERAL_BUILDINGS, 10,
+ DAT_ButtonX + 0x96, DAT_ButtonY + -0x14,
+ TTA_LEFT, 0, 0x12, FALSE);
+ RenderPeasantMenu_CurrentActionUnk(
+ _unit, DAT_ButtonX + 0x96, DAT_ButtonY);
+ return;
+ case BT_FLETCHER:
+ case BT_BLACKSMITH:
+ case BT_POLETURNER:
+ /*
+ added by script: "Worker:"
+ */
+ renderText2(
+ TEXT_IN_GENERAL_BUILDINGS, 10, DAT_ButtonX + 0x96,
+ DAT_ButtonY + -10, TTA_LEFT, 0, 0x12, FALSE);
+ RenderPeasantMenu_CurrentActionUnk(
+ _unit, DAT_ButtonX + 0x96, DAT_ButtonY + 10);
+ return;
+ case BT_QUARRY:
+ /*
+ added by script: "Currently Functioning"
+ */
+ renderText2(
+ TEXT_IN_GENERAL_BUILDINGS, 2, DAT_ButtonX + 0x96,
+ DAT_ButtonY, TTA_LEFT, 0, 0x12, FALSE);
+ return;
+ case BT_MILL:
+ goto switchD_00447874_caseD_22;
+ }
+ }
+ /*
+ added by script: "Turned off"
+ */
+ renderText2(
+ TEXT_IN_GENERAL_BUILDINGS, 7, DAT_ButtonX + 0x96,
+ DAT_ButtonY, TTA_LEFT, 0, 0x12, FALSE);
+ return;
+ switchD_00447874_caseD_22:
+ /*
+ Miller specific
+ */
+ uVar6 = 100;
+ if (0 < iVar7) {
+ psVar5 = DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .workerID;
+ do {
+ switch (DAT_UnitsState.units[*psVar5].state.generic) {
+ case US_DETERMINE_NEXT_STATEUnk:
+ case ((UnitState)2):
+ case US_FIRE_WEAPONUnk:
+ case US_LOOK_AROUNDUnk:
+ if (4 < uVar6) {
+ uVar6 = 4;
+ }
+ break;
+ case US_IDLEUnk:
+ if (5 < uVar6) {
+ uVar6 = 5;
+ }
+ break;
+ case ((UnitState)3):
+ if (3 < uVar6) {
+ uVar6 = 3;
+ }
+ break;
+ case US_RELOAD_WEAPONUnk:
+ if (2 < uVar6) {
+ uVar6 = 2;
+ }
+ break;
+ case US_AIM_WEAPONUnk:
+ uVar6 = 0;
+ break;
+ case US_STAND_UPUnk:
+ if (1 < uVar6) {
+ uVar6 = 1;
+ }
+ }
+ psVar5 = psVar5 + 1;
+ iVar7 = iVar7 + -1;
+ } while (iVar7 != 0);
+ if (uVar6 < 100) {
+ renderText2(
+ TEXT_IN_MILL, uVar6 + 3,
+ DAT_ButtonX + 0x96, DAT_ButtonY,
+ TTA_LEFT, 0, 0x12, FALSE);
+ return;
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004494e0 MenuView_BuildingAndStatusMenu_DoEveryFrame | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004494E0
+ void BuildingAndStatusMenu::MenuView_BuildingAndStatusMenu_DoEveryFrame()
+ {
+ int drawY;
+ int imageID;
+ int drawX;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_640x480) {
+ drawY = DAT_MenuHandlerState.y + 0x1d8;
+ imageID = 3;
+ drawX = 0;
+ } else if (DAT_GameCore.activeMenuTab.tabType
+ == BASMTT_BARRACKS_OR_MPMENU_MODEM) {
+ drawColorBox(DAT_MenuHandlerState.x,
+ DAT_MenuHandlerState.y + 0x195, DAT_MenuHandlerState.x + 799,
+ DAT_MenuHandlerState.y + 0x1d7, (ushort)((int)(COL_MAGENTA::instance.shortValue)));
+ drawY = DAT_MenuHandlerState.y + 0x195;
+ imageID = 4;
+ drawX = DAT_MenuHandlerState.x;
+ } else if (DAT_GameCore.activeMenuTab.tabType == BASMTT_MERCENARYPOST) {
+ drawColorBox(DAT_MenuHandlerState.x,
+ DAT_MenuHandlerState.y + 0x195, DAT_MenuHandlerState.x + 799,
+ DAT_MenuHandlerState.y + 0x1d7, (ushort)((int)(COL_MAGENTA::instance.shortValue)));
+ drawY = DAT_MenuHandlerState.y + 0x195;
+ imageID = 6;
+ drawX = DAT_MenuHandlerState.x;
+ } else {
+ drawColorBox(DAT_MenuHandlerState.x,
+ DAT_MenuHandlerState.y + 0x196, DAT_MenuHandlerState.x + 799,
+ DAT_MenuHandlerState.y + 0x1d7, (ushort)((int)(COL_MAGENTA::instance.shortValue)));
+ drawY = DAT_MenuHandlerState.y + 0x1b9;
+ imageID = 2;
+ drawX = DAT_MenuHandlerState.x;
+ }
+ renderGM(GM_INTERFACE_PANELS, imageID, drawX, drawY);
+ if (DAT_00b96108 != 0) {
+ renderLoadedGfx(
+ 0, DAT_MenuHandlerState.x + 0xe, DAT_MenuHandlerState.y + 0x1e9);
+ }
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ switch (DAT_GameCore.activeMenuTab.inBuildingTab) {
+ case IBM_INSIDE_BARRACKS:
+ RenderBuildingMenu_RecruitingBuilding();
+ break;
+ case IBM_INSIDE_KEEP:
+ RenderBuildingMenu_Keep();
+ break;
+ case IBM_INSIDE_INN:
+ RenderBuildingMenu_Inn();
+ break;
+ case IBM_INSIDE_GRANARY:
+ RenderBuildingMenu_Granary();
+ break;
+ case IBM_INSIDE_HOUSE:
+ RenderBuildingMenu_House();
+ break;
+ case IBM_INSIDE_WOODCUTTERS_HUT:
+ RenderBuildingMenu_WoodcutterShut();
+ break;
+ case IBM_INSIDE_OXEN_BASE:
+ RenderBuildingMenu_OxThether();
+ break;
+ case IBM_INSIDE_IRON_MINE:
+ RenderBuildingMenu_Ironmine();
+ break;
+ case IBM_INSIDE_PITCH_DIGGER:
+ RenderBuildingMenu_PitchRig();
+ break;
+ case IBM_INSIDE_HUNTERS_HUT:
+ RenderBuildingMenu_HuntersHut();
+ break;
+ case IBM_INSIDE_GOODS_YARD:
+ RenderBuildingMenu_Stockpile();
+ break;
+ case IBM_INSIDE_ARMOURY:
+ RenderBuildingMenu_Armory();
+ break;
+ case IBM_INSIDE_FLETCHERS_WORKSHOP:
+ RenderBuildingMenu_Fletcher();
+ break;
+ case IBM_INSIDE_BLACKSMITHS_WORKSHOP:
+ RenderBuildingMenu_Blacksmith();
+ break;
+ case IBM_INSIDE_POLETURNERS_WORKSHOP:
+ RenderBuildingMenu_Poleturner();
+ break;
+ case IBM_INSIDE_ARMOURERS_WORKSHOP:
+ RenderBuildingMenu_Armourer();
+ break;
+ case IBM_INSIDE_TANNERS_WORKSHOP:
+ RenderBuildingMenu_Tanner();
+ break;
+ case IBM_INSIDE_BAKERS_WORKSHOP:
+ RenderBuildingMenu_Bakery();
+ break;
+ case IBM_INSIDE_BREWERS_WORKSHOP:
+ RenderBuildingMenu_Brewery();
+ break;
+ case IBM_INSIDE_QUARRY:
+ RenderBuildingMenu_Quarry();
+ break;
+ case IBM_INSIDE_QUARRYPILE:
+ RenderBuildingMenu_Quarry_Stonepile();
+ break;
+ case IBM_INSIDE_HEALERS:
+ RenderBuildingMenu_Apothecary();
+ break;
+ case IBM_INSIDE_ENGINEERS_GUILD:
+ RenderBuildingMenu_Engineersguild();
+ break;
+ case IBM_INSIDE_TUNNELLERS_GUILD:
+ RenderBuildingMenu_Tunnelersguild();
+ break;
+ case IBM_INSIDE_TRADEPOST:
+ RenderBuildingMenu_Marketplace();
+ break;
+ case IBM_INSIDE_WELL:
+ RenderBuildingMenu_Well();
+ break;
+ case IBM_INSIDE_OIL_SMELTER:
+ RenderBuildingMenu_Oilsmelter();
+ break;
+ case IBM_INSIDE_WHEATFARM:
+ RenderBuildingMenu_Wheatfarm();
+ break;
+ case IBM_INSIDE_HOPSFARM:
+ RenderBuildingMenu_Hopfarm();
+ break;
+ case IBM_INSIDE_APPLEFARM:
+ RenderBuildingMenu_Applefarm();
+ break;
+ case IBM_INSIDE_CATTLEFARM:
+ RenderBuildingMenu_Diaryfarm();
+ break;
+ case IBM_INSIDE_MILL:
+ RenderBuildingMenu_Mill();
+ break;
+ case IBM_INSIDE_STABLES:
+ RenderBuildingMenu_Stables();
+ break;
+ case IBM_INSIDE_CHURCH:
+ RenderBuildingMenu_ChapelAndChurch();
+ break;
+ case IBM_INSIDE_GATEHOUSE:
+ RenderBuildingMenu_Gatehouse();
+ break;
+ case IBM_INSIDE_DRAWBRIDGE:
+ RenderBuildingMenu_Drawbridge();
+ break;
+ case IBM_INSIDE_POSTERN_GATE:
+ RenderBuildingMenu_Unused_PosternGate();
+ break;
+ case IBM_INSIDE_TUNNEL_ENTERANCE:
+ RenderBuildingMenu_TunnelEntrance();
+ break;
+ case IBM_INSIDE_WATERPOT:
+ RenderBuildingMenu_WaterPot();
+ break;
+ case IBM_INSIDE_SIGNPOST:
+ RenderBuildingMenu_Signpost();
+ break;
+ case IBM_INSIDE_KILLING_PIT:
+ RenderBuildingMenu_KillingPit();
+ break;
+ case IBM_INSIDE_CAMPGROUND:
+ RenderBuildingMenu_Campfire();
+ break;
+ case IBM_INSIDE_MERCPOST:
+ RenderBuildingMenu_RecruitingBuilding();
+ break;
+ case IBM_INSIDE_OUTPOST:
+ RenderBuildingMenu_Outpost();
+ break;
+ case IBM_INSIDE_TOWER:
+ RenderBuildingMenu_Tower();
+ break;
+ case IBM_INSIDE_GALLOWS:
+ RenderBuildingMenu_Gallows();
+ break;
+ case IBM_INSIDE_STOCKS:
+ RenderBuildingMenu_Stocks();
+ break;
+ case IBM_INSIDE_WITCH_HOIST:
+ RenderBuildingMenu_Unused_Witchhoist();
+ break;
+ case IBM_INSIDE_MAYPOLE:
+ RenderBuildingMenu_Maypole();
+ break;
+ case IBM_INSIDE_GARDEN:
+ RenderBuildingMenu_Gardens();
+ break;
+ case IBM_INSIDE_PARADEGROUND:
+ RenderBuildingMenu_TrainingGrounds();
+ break;
+ case IBM_INSIDE_TRADEPOST_PRICES:
+ RenderBuildingMenu_Marketplace_Stonks();
+ break;
+ case IBM_INSIDE_TRADEPOST_FOOD:
+ RenderBuildingMenu_Marketplace_Food();
+ break;
+ case IBM_INSIDE_TRADEPOST_BULK:
+ RenderBuildingMenu_Marketplace_Resource();
+ break;
+ case IBM_INSIDE_TRADEPOST_ARMS:
+ RenderBuildingMenu_Marketplace_Weapons();
+ break;
+ case IBM_INSIDE_TRADEPOST_DO_THE_TRADE:
+ RenderBuildingMenu_Marketplace_Trade();
+ break;
+ case IBM_INSIDE_CATAPULT:
+ RenderBuildingMenu_Siegetent_Catapult();
+ break;
+ case IBM_INSIDE_TREBUCHET:
+ RenderBuildingMenu_Siegetent_Trebuchet();
+ break;
+ case IBM_INSIDE_SIEGE_TOWER:
+ RenderBuildingMenu_Siegetent_Siegetower();
+ break;
+ case IBM_INSIDE_BATTERING_RAM:
+ RenderBuildingMenu_Siegetent_BatteringRam();
+ break;
+ case IBM_INSIDE_PORTABLE_SHIELD:
+ RenderBuildingMenu_Siegetent_Shield();
+ break;
+ case IBM_INSIDE_CHIMP:
+ RenderStatusMenu_Chimp();
+ break;
+ case IBM_SUB_MODE_REPORTS:
+ RenderStatusMenu_Overview();
+ break;
+ case IBM_SUB_MODE_REPORTS_POPULARITY:
+ RenderStatusMenu_Popularity();
+ break;
+ case IBM_SUB_MODE_REPORTS_FEARFACTOR:
+ RenderStatusMenu_FearFactor();
+ break;
+ case IBM_SUB_MODE_REPORTS_POPULATION:
+ RenderStatusMenu_Population();
+ break;
+ case IBM_SUB_MODE_REPORTS_FOOD:
+ RenderStatusMenu_Food();
+ break;
+ case IBM_SUB_MODE_REPORTS_ARMY:
+ RenderStatusMenu_Army();
+ break;
+ case IBM_SUB_MODE_REPORTS_STORES:
+ RenderStatusMenu_Resources();
+ break;
+ case IBM_SUB_MODE_REPORTS_WEAPONS:
+ RenderStatusMenu_Weapons();
+ break;
+ case IBM_SUB_MODE_REPORTS_RELIGION:
+ RenderStatusMenu_Religion();
+ break;
+ case IBM_INSIDE_CESS_PIT:
+ RenderBuildingMenu_CessPit();
+ break;
+ case IBM_INSIDE_BURNING_STAKE:
+ RenderBuildingMenu_BurningStake();
+ break;
+ case IBM_INSIDE_GIBBET:
+ RenderBuildingMenu_Gibbet();
+ break;
+ case IBM_INSIDE_DUNGEON:
+ RenderBuildingMenu_Dungeon();
+ break;
+ case IBM_INSIDE_STRETCHING_RACK:
+ RenderBuildingMenu_StretchingRack();
+ break;
+ case IBM_INSIDE_FLOGGING_RACK:
+ RenderBuildingMenu_Unused_FloggingRack();
+ break;
+ case IBM_INSIDE_CHOPPING_BLOCK:
+ RenderBuildingMenu_ChoppingBlock();
+ break;
+ case IBM_INSIDE_DUNKING_STOOL:
+ RenderBuildingMenu_DunkingStool();
+ break;
+ case IBM_INSIDE_DOG_CAGE:
+ RenderBuildingMenu_DogCage();
+ break;
+ case IBM_INSIDE_STATUE:
+ RenderBuildingMenu_Statue();
+ break;
+ case IBM_INSIDE_SHRINE:
+ RenderBuildingMenu_Shrine();
+ break;
+ case IBM_INSIDE_BEEHIVE:
+ RenderBuildingMenu_Unused_BeeHive();
+ break;
+ case IBM_INSIDE_DANCING_BEAR:
+ RenderBuildingMenu_DancingBear();
+ break;
+ case IBM_INSIDE_POND:
+ RenderBuildingMenu_Unused_Pond();
+ break;
+ case IBM_INSIDE_BEAR_CAVE:
+ RenderBuildingMenu_Unused_BearCave();
+ break;
+ case IBM_INSIDE_ARAB_BALLISTA:
+ RenderBuildingMenu_Siegetent_Fireballista();
+ break;
+ case IBM_INSIDE_CATHEDRAL:
+ RenderBuildingMenu_Cathedral();
+ }
+ DAT_WindowAndDirectDraw.unk_resetViewportRelated = 2;
+ if (((DAT_GameCore.isBinkVideoPlaying == 0)
+ && (DAT_BuildingsState.DAT_IsBuildingOrPeasantBinkPlaying == FALSE))
+ && (DAT_WindowAndDirectDraw.currentGameResolution != SRE_640x480)) {
+ DAT_MinimapViewState.field0_0x0 = 1;
+ renderMinimapMain();
+ return;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004649d0 MenuItemRenderFunction_BuildingAndStatusMenu_BarracksWeaponAvailability | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004649D0
+ void BuildingAndStatusMenu::MenuItemRenderFunction_BuildingAndStatusMenu_BarracksWeaponAvailability(
+ int param_1, ...)
+ {
+ ButtonGmData* pBVar1;
+ short sVar2;
+ bool bVar3;
+ int iVar4;
+ bool bVar5;
+ bool bVar6;
+ bool bVar7;
+ int iVar8;
+ int iVar9;
+ bVar3 = false;
+ if (param_1 == -1) {
+ if ((DAT_EnoughGoldForRequestedUnit == FALSE)
+ || (DAT_GameState.mapAndTime.euroRecruitableCopy_index_6_c == 0)) {
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ } else {
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ if (DAT_00df3350 < 0) {
+ LAB_00464ad9:
+ if (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .availableHorses
+ == 0) {
+ pBVar1 = DAT_UIButtonDefinedData.ButtonGmDataArray
+ + DAT_CurrentButtonGmDataIndex;
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ iVar8 = DAT_ButtonX;
+ iVar9 = DAT_ButtonY;
+ iVar4 = getPictureNumberInGm(FALSE);
+ renderGM(pBVar1->gmId_0x0, iVar4 + 9, iVar8, iVar9);
+ } else {
+ pBVar1 = DAT_UIButtonDefinedData.ButtonGmDataArray
+ + DAT_CurrentButtonGmDataIndex;
+ iVar8 = DAT_ButtonX;
+ iVar9 = DAT_ButtonY;
+ iVar4 = getPictureNumberInGm(DAT_ButtonCurrentlyInteracting);
+ renderGM(pBVar1->gmId_0x0, iVar4, iVar8, iVar9);
+ renderNumberToScreen2(
+ (int)DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .availableHorses,
+ DAT_ButtonX + 8, DAT_ButtonY + 0x28,
+ TTA_LEFT, 0, 0x12, FALSE, 0);
+ }
+ } else {
+ bVar5 = DAT_UnitPropertiesDefinedData.EuroUnitResourceCosts[DAT_00df3350][0]
+ == -1;
+ bVar6 = DAT_UnitPropertiesDefinedData.EuroUnitResourceCosts[DAT_00df3350][1]
+ == -1;
+ bVar7 = DAT_UnitPropertiesDefinedData.EuroUnitResourceCosts[DAT_00df3350][2]
+ == -1;
+ bVar3 = bVar7 || (bVar6 || bVar5);
+ if (DAT_UnitPropertiesDefinedData.EuroUnitResourceCosts[DAT_00df3350][3]
+ == -1) {
+ bVar3 = true;
+ } else if (!bVar7 && (!bVar6 && !bVar5))
+ goto LAB_00464ad9;
+ pBVar1 = DAT_UIButtonDefinedData.ButtonGmDataArray
+ + DAT_CurrentButtonGmDataIndex;
+ iVar8 = DAT_ButtonX;
+ iVar9 = DAT_ButtonY;
+ iVar4 = getPictureNumberInGm(DAT_ButtonCurrentlyInteracting);
+ renderGM(pBVar1->gmId_0x0, iVar4 + 0x11f, iVar8, iVar9);
+ sVar2 = DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .availableHorses;
+ if (sVar2 != 0) {
+ renderNumberToScreen2((int)sVar2, DAT_ButtonX + 8,
+ DAT_ButtonY + 0x28, TTA_LEFT, 0, 0x12, FALSE, 0);
+ }
+ }
+ DAT_CurrentButtonPictureInGm
+ = DAT_UIButtonDefinedData.ButtonGmDataArray[DAT_CurrentButtonGmDataIndex]
+ .pictureInGm_0x4;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ }
+ if ((DAT_EnoughGoldForRequestedUnit == FALSE)
+ || (DAT_GameState.mapAndTime.euroRecruitable[param_1 + -10] == 0)) {
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ return;
+ }
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ if (DAT_00df3350 < 0) {
+ LAB_00464c0f:
+ if (!bVar3) {
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[param_1]
+ == 0) {
+ pBVar1 = DAT_UIButtonDefinedData.ButtonGmDataArray
+ + DAT_CurrentButtonGmDataIndex;
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ iVar8 = DAT_ButtonX;
+ iVar9 = DAT_ButtonY;
+ iVar4 = getPictureNumberInGm(FALSE);
+ renderGM(pBVar1->gmId_0x0, iVar4 + 9, iVar8, iVar9);
+ } else {
+ pBVar1 = DAT_UIButtonDefinedData.ButtonGmDataArray
+ + DAT_CurrentButtonGmDataIndex;
+ iVar8 = DAT_ButtonX;
+ iVar9 = DAT_ButtonY;
+ iVar4 = getPictureNumberInGm(DAT_ButtonCurrentlyInteracting);
+ renderGM(pBVar1->gmId_0x0, iVar4, iVar8, iVar9);
+ renderNumberToScreen2(
+ DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[param_1],
+ DAT_ButtonX + 8, DAT_ButtonY + 0x28,
+ TTA_LEFT, 0, 0x12, FALSE, 0);
+ }
+ goto LAB_00464d4f;
+ }
+ } else {
+ if (DAT_UnitPropertiesDefinedData.EuroUnitResourceCosts[DAT_00df3350][0]
+ == param_1) {
+ bVar3 = true;
+ }
+ if (DAT_UnitPropertiesDefinedData.EuroUnitResourceCosts[DAT_00df3350][1]
+ == param_1) {
+ bVar3 = true;
+ }
+ if (DAT_UnitPropertiesDefinedData.EuroUnitResourceCosts[DAT_00df3350][2] != param_1)
+ goto LAB_00464c0f;
+ }
+ pBVar1 = DAT_UIButtonDefinedData.ButtonGmDataArray + DAT_CurrentButtonGmDataIndex;
+ iVar8 = DAT_ButtonX;
+ iVar9 = DAT_ButtonY;
+ iVar4 = getPictureNumberInGm(
+ DAT_ButtonCurrentlyInteracting);
+ renderGM(pBVar1->gmId_0x0, iVar4 + 0x11f, iVar8, iVar9);
+ iVar8 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[param_1];
+ if (iVar8 != 0) {
+ renderNumberToScreen2(
+ iVar8, DAT_ButtonX + 8, DAT_ButtonY + 0x28,
+ TTA_LEFT, 0, 0x12, FALSE, 0);
+ }
+ LAB_00464d4f:
+ DAT_CurrentButtonPictureInGm
+ = DAT_UIButtonDefinedData.ButtonGmDataArray[DAT_CurrentButtonGmDataIndex]
+ .pictureInGm_0x4;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ }
+}
+}
+
+### 0x00465110 MenuItemRenderFunction_BuildingAndStatusMenu_WorkshopWeaponSelection | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00465110
+ void BuildingAndStatusMenu::MenuItemRenderFunction_BuildingAndStatusMenu_WorkshopWeaponSelection(
+ ResourceType _weapon, ...)
+ {
+ ButtonGmData* this;
+ int iVar1;
+ uint uVar2;
+ bool _weaponIsDisabled;
+ int drawX;
+ int drawY;
+ if (_weapon == RT_CROSSBOW) {
+ _weaponIsDisabled = DAT_GameCore.xbowProducible_logic == 0;
+ } else if (_weapon == RT_PIKE) {
+ _weaponIsDisabled = DAT_GameCore.pikeProducible_logic == 0;
+ } else if (_weapon == RT_SWORD) {
+ _weaponIsDisabled = DAT_GameCore.swordProducible_logic == 0;
+ } else if (_weapon == RT_BOW) {
+ _weaponIsDisabled = DAT_GameCore.bowProducible_logic == 0;
+ } else if (_weapon == RT_SPEAR) {
+ _weaponIsDisabled = DAT_GameCore.spearProducible_logic == 0;
+ } else {
+ if (_weapon != RT_MACE)
+ goto LAB_00465173;
+ _weaponIsDisabled = DAT_GameCore.maceProducible_logic == 0;
+ }
+ if (_weaponIsDisabled) {
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ LAB_00465173:
+ DAT_ButtonUnknownZero = 0;
+ uVar2 = (uint)(DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .weaponRelated
+ == _weapon);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ this = DAT_UIButtonDefinedData.ButtonGmDataArray + DAT_CurrentButtonGmDataIndex;
+ drawX = DAT_ButtonX;
+ drawY = DAT_ButtonY;
+ iVar1 = getPictureNumberInGm(
+ DAT_ButtonCurrentlyInteracting);
+ renderGM(this->gmId_0x0, iVar1 + uVar2, drawX, drawY);
+ DAT_CurrentButtonPictureInGm
+ = DAT_UIButtonDefinedData.ButtonGmDataArray[DAT_CurrentButtonGmDataIndex]
+ .pictureInGm_0x4
+ + uVar2;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ }
+}
+}
+
+### 0x00465200 MenuItemActionHandler_BuildingAndStatusMenu_WorkshopWeaponSelection | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00465200
+ void BuildingAndStatusMenu::MenuItemActionHandler_BuildingAndStatusMenu_WorkshopWeaponSelection(
+ ResourceType weapon, ...)
+ {
+ bool bVar1;
+ if (weapon == RT_CROSSBOW) {
+ bVar1 = DAT_GameCore.xbowProducible_logic == 0;
+ } else if (weapon == RT_BOW) {
+ bVar1 = DAT_GameCore.bowProducible_logic == 0;
+ } else if (weapon == RT_PIKE) {
+ bVar1 = DAT_GameCore.pikeProducible_logic == 0;
+ } else if (weapon == RT_SPEAR) {
+ bVar1 = DAT_GameCore.spearProducible_logic == 0;
+ } else if (weapon == RT_SWORD) {
+ bVar1 = DAT_GameCore.swordProducible_logic == 0;
+ } else {
+ if (weapon != RT_MACE)
+ goto LAB_00465259;
+ bVar1 = DAT_GameCore.maceProducible_logic == 0;
+ }
+ if (bVar1) {
+ return;
+ }
+ LAB_00465259:
+ DAT_GameSynchronyState.DAT_GameCommandParam0
+ = DAT_BuildingsState.menuSelectedBuildingID;
+ DAT_GameSynchronyState.DAT_GameCommandParam2
+ = DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID].uid;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = weapon;
+ queueCommand(
+ ((GameCommandType)0x21));
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].weaponRelated
+ = weapon;
+ return;
+ }
+ }
+}
+}
+

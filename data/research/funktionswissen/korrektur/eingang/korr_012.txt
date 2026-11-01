@@ -1,0 +1,423 @@
+### 0x0041cc70 UpdateIronMine | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0041CC70
+ void Buildings::UpdateIronMine()
+ {
+ DAT_GameState
+ .playerDataArray[DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner]
+ .countIronMines += 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 1;
+ addBuildingToTargetableBuildings(
+ DAT_CurrentBuildingID);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationTickCounter += 1;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationTickCounter <= 1) {
+ return;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationTickCounter = 0;
+ // The miners: state cycles 0-6 over campgroundVclock. The IronMineAnimationFrames* tables are declared byte,
+ // but the original reads them signed
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workers[0] == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1 = 0;
+ } else {
+ int wrapped = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock += 1;
+ if ((char)DAT_BuildingDefinedData.IronMineAnimationFrames1
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock]
+ <= 0) {
+ wrapped = 1;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock += 1;
+ if ((char)DAT_BuildingDefinedData.IronMineAnimationFrames3
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock]
+ <= 0) {
+ wrapped = 1;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 2) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock += 1;
+ if ((char)DAT_BuildingDefinedData.IronMineAnimationFrames2
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock]
+ <= 0) {
+ wrapped = 1;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 3) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock == 0
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock == 24
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock == 48
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock == 72) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_IRON_PULL);
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock += 1;
+ if ((char)DAT_BuildingDefinedData.IronMineAnimationFrames4
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock]
+ <= 0) {
+ wrapped = 1;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 4) {
+ wrapped = 1;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 5) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock += 1;
+ if ((char)DAT_BuildingDefinedData.IronMineAnimationFrames5
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock]
+ <= 0) {
+ wrapped = 1;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 6) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock += 1;
+ if ((char)DAT_BuildingDefinedData.IronMineAnimationFrames6
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock]
+ <= 0) {
+ wrapped = 1;
+ }
+ }
+ if (wrapped != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 1;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 2;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 2) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 3;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 3) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 4;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 4) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 5;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 5) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state
+ = getBuildingResourceAmountByUid(DAT_CurrentBuildingID,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].uid,
+ RT_IRON)
+ < 7
+ ? 0
+ : 6;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 6) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state
+ = getBuildingResourceAmountByUid(DAT_CurrentBuildingID,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].uid,
+ RT_IRON)
+ < 7
+ ? 0
+ : 6;
+ }
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames1
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock];
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames3
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock]
+ + 118;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 2) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames2
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock];
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 3) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames4
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock]
+ + 38;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 4) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1 = 59;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 5) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames5
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock]
+ + 58;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 6) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames6
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock]
+ + 78;
+ }
+ }
+ // The ore cart, in killingPitField and extraAnimationFrame2
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workers[0] == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame2 = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite3 = 0;
+ } else {
+ int wrapped = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField == 0) {
+ wrapped = 1;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame2 += 1;
+ if ((char)DAT_BuildingDefinedData.IronMineAnimationFrames7
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame2]
+ <= 0) {
+ wrapped = 1;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField == 2) {
+ wrapped = 1;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField == 3) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame2 += 1;
+ if ((char)DAT_BuildingDefinedData.IronMineAnimationFrames8
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame2]
+ <= 0) {
+ wrapped = 1;
+ }
+ }
+ if (wrapped != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame2 = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField == 0) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 3
+ && DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock
+ == 80) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField = 1;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField
+ == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField = 2;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField
+ == 2) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField = 3;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField
+ == 3) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField = 0;
+ }
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite3 = 0;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite3
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames7
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame2]
+ + 50;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField == 2) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite3 = 0;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField == 3) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite3
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames8
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame2]
+ + 50;
+ }
+ }
+ // The smelter, in field117_0x11a and extraAnimationFrame1, with its glow in field168_0x292
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workers[0] == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1 = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite2 = 0;
+ } else {
+ int wrapped = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1 += 1;
+ if ((char)DAT_BuildingDefinedData.IronMineAnimationFrames9
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1]
+ <= 0) {
+ wrapped = 1;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a == 1) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1
+ == 20) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_IRON_STRAIN);
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1
+ == 55) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_IRON_DUMP);
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1
+ == 65) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_IRON_LDUMP);
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1 == 100
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1
+ == 190
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1
+ == 280
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1
+ == 370) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_IRON_BOIL);
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1 += 1;
+ if ((char)DAT_BuildingDefinedData.IronMineAnimationFrames10
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1]
+ <= 0) {
+ wrapped = 1;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a == 2) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1 += 1;
+ if ((char)DAT_BuildingDefinedData.IronMineAnimationFrames11
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1]
+ <= 0) {
+ wrapped = 1;
+ }
+ }
+ if (wrapped != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1 = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a == 0) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 4) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a = 1;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a
+ == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a = 2;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a
+ == 2) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a = 0;
+ }
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite2
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames9
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1]
+ + 126;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite2
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames10
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1]
+ + 134;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a == 2) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite2
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames11
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1]
+ + 134;
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a == 1) {
+ char const heat
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames10[DAT_BuildingsState
+ .buildings[DAT_CurrentBuildingID]
+ .extraAnimationFrame1];
+ if (heat < 4) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 24;
+ } else if (heat < 8) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 20;
+ } else if (heat < 12) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 16;
+ } else if (heat < 16) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 12;
+ } else if (heat < 20) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 16;
+ } else if (heat < 24) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 20;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 24;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a == 2) {
+ char const heat
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames11[DAT_BuildingsState
+ .buildings[DAT_CurrentBuildingID]
+ .extraAnimationFrame1];
+ if (heat < 4) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 24;
+ } else if (heat < 8) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 20;
+ } else if (heat < 12) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 16;
+ } else if (heat < 16) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 12;
+ } else if (heat < 20) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 16;
+ } else if (heat < 24) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 20;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 24;
+ }
+ }
+ }
+ // The pour, in field119_0x11e and extraAnimationFrame3; finishing it deposits the iron
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workers[0] == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field119_0x11e = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3 = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite4 = 0;
+ } else {
+ int wrapped = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field119_0x11e == 0) {
+ wrapped = 1;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field119_0x11e == 1) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3 == 0) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_IRON_POUR);
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3 += 1;
+ if ((char)DAT_BuildingDefinedData.IronMineAnimationFrames12
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3]
+ <= 0) {
+ wrapped = 1;
+ }
+ }
+ if (wrapped != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3 = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field119_0x11e == 0) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a == 2) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field119_0x11e = 1;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field119_0x11e
+ == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field119_0x11e = 0;
+ addResourceToStockpile(DAT_CurrentBuildingID,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].uid,
+ RT_IRON, 1, 8, 1);
+ }
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field119_0x11e == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite4 = 0;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field119_0x11e == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite4
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames12
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3]
+ + 94;
+ }
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .resources[RT_IRON]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraOverlayImage1 = 0;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .resources[RT_IRON]
+ >= 8) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraOverlayImage1 = 170;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraOverlayImage1
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .resources[RT_IRON]
+ + 162;
+ }
+ if (DAT_GameSynchronyState.currentGameMode != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage += 1;
+ if (DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage / 2]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage = 0;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].overlayImageID
+ = DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage
+ / 2];
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].overlayImageID = 0;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0041cc70", "name": "UpdateIronMine", "quelle": "nachgebaut", "p1": {"bereich": "Wirtschaft", "zweck": "Taktfunktion einer Eisenmine: lässt Bergleute, Schmelzofen und Guss ablaufen; am Ende jedes Gusses kommt Eisen dazu."}, "p2": {"ein": "- (Gebäude aus DAT_CurrentBuildingID)", "aus": "-", "liest": ["buildings[cur].workers[0]", "buildings[cur].state/campgroundVclock/killingPitField/field117_0x11a/field119_0x11e", "IronMineAnimationFrames1..12", "getBuildingResourceAmountByUid(RT_IRON)", "buildings[cur].resources[RT_IRON]", "DAT_GameSynchronyState.currentGameMode"], "schreibt": ["playerDataArray[besitzer].countIronMines", "state, campgroundVclock, killingPitField, field117_0x11a, field119_0x11e", "extraAnimationFrame1..3, extraAnimationSprite1..4, field168_0x292, extraOverlayImage1, overlayImageID", "animationTickCounter, displayOwnerFlag, renderAnimation", "Eisen im Gebäude über addResourceToStockpile"], "ruft": ["addBuildingToTargetableBuildings", "addBuildingInRegistry", "playSFXAtLocation", "getBuildingResourceAmountByUid", "addResourceToStockpile"], "regeln": ["Jeder Aufruf zählt countIronMines des Besitzers um 1 hoch und trägt das Gebäude als angreifbar und in die Registratur ein", "Die Animation läuft nur bei jedem 2. Aufruf (animationTickCounter muss größer als 1 werden, dann zurück auf 0)", "Ohne Arbeiter (workers[0]==0) werden alle vier Abläufe und ihre Bilder auf 0 gesetzt", "Bergleute (state): 0 → 1 → 2 → 3 → 4; Zustand 4 wartet, bis der Schmelzofen (field117_0x11a) auf 1 steht, dann 5; nach jedem Durchlauf von 5 oder 6 gilt: unter 7 Eisen im Gebäude → Zustand 0, sonst 6", "Erzwagen (killingPitField) springt von 0 auf 1, wenn die Bergleute in Zustand 3 bei campgroundVclock 80 sind; danach 1 → 2, 2 → 3 nur bei Bergleute-Zustand 0, 3 → 0", "Schmelzofen: 0 → 1 nur, wenn die Bergleute in Zustand 4 sind; dann 1 → 2 → 0", "Guss (field119_0x11e): 0 → 1, wenn der Ofen auf 2 steht; am Ende von 1 zurück auf 0 und addResourceToStockpile(RT_IRON, 1, 8, 1), also 1 Eisen", "Anzeige der Eisenmenge im Gebäude: 0 oder weniger → Bild 0; ab 8 → Bild 170; sonst Menge + 162. Besitzerflagge bewegt sich nur, wenn currentGameMode ungleich 0 ist"], "offen": ["Bedeutung der letzten Werte von addResourceToStockpile(1, 8, 1); vermutlich Menge 1 und Obergrenze 8", "Warum countIronMines bei jedem Aufruf wächst (vermutlich wird der Zähler vorher je Durchlauf zurückgesetzt)", "Die Felder killingPitField, campgroundVclock, field117_0x11a sind hier zweckentfremdet als Animationszustände"]}, "p3": {"erklaerung": "Eisen entsteht erst, wenn ein Arbeiter in der Mine ist: Dann laufen Bergleute, Ofen und Guss der Reihe nach, und am Ende jedes Gusses kommt 1 Eisen dazu. Ohne Arbeiter steht alles still.", "gehirn": "Eisenmenge pro Zeit hängt am Ablauf Bergleute–Ofen–Guss, nicht an einer festen Zahl pro Minute. Eine Mine ohne Arbeiter liefert nichts; Arbeiterzahl vor Eisenplanung prüfen.", "beleg": "nachgebaut", "live": "Eisenmine mit Arbeiter beobachten → buildings[mine].resources[RT_IRON] vorher/nachher je Gussabschluss → steigt um 1 (Obergrenze 8)", "live_art": "wirtschaft"}}
+

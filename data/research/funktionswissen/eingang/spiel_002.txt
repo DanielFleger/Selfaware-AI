@@ -1,0 +1,1198 @@
+### 0x004855c0 NotifyLaggingPlayer | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x004855C0
+ void Commands::NotifyLaggingPlayer()
+ {
+ short local_4[2];
+ DAT_GameSynchronyState.DAT_CommandSize = 2;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(local_4, 2, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.laggingPlayerIDUnk = (int)local_4[0];
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_SOME_MULTIPLAYER_INFO_Unk_28, 1);
+ DAT_GameSynchronyState.field131_0xcd4 = 0;
+ }
+ return;
+ }
+}
+}
+
+### 0x00485650 SomeKindOfMultiplayerPingUnk | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x00485650
+ void Commands::SomeKindOfMultiplayerPingUnk()
+ {
+ short local_4[2];
+ DAT_GameSynchronyState.DAT_CommandSize = 2;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.field131_0xcd4, 2,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ return;
+ }
+ if ((DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE)
+ && (DAT_GameSynchronyState.isHost == FALSE)) {
+ serializeOrDeserializeCommandParameter(local_4, 2, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.field131_0xcd4 = (int)local_4[0];
+ DAT_GameSynchronyState.DAT_SomeTime = timeGetTime();
+ }
+ return;
+ }
+}
+}
+
+### 0x00486140 SendPlayerToPlayerRequestOrResponse | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x00486140
+ void Commands::SendPlayerToPlayerRequestOrResponse()
+ {
+ short local_4[2];
+ DAT_GameSynchronyState.DAT_CommandSize = 0x12;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan != GCS_SCHEDULE_AND_SEND) {
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(local_4, 2, GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = (int)local_4[0];
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 4,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 4,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam3, 4,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam4, 4,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ switch (DAT_GameSynchronyState.DAT_GameCommandParam0) {
+ case 0:
+ ProcessAllyRequestAttackDefense(
+ DAT_GameSynchronyState.DAT_GameCommandParam1,
+ DAT_GameSynchronyState.DAT_GameCommandParam2,
+ DAT_GameSynchronyState.DAT_GameCommandParam3,
+ DAT_GameSynchronyState.DAT_GameCommandParam4);
+ return;
+ case 1:
+ ProcessAllyRequestingGoods(
+ DAT_GameSynchronyState.DAT_GameCommandParam1,
+ DAT_GameSynchronyState.DAT_GameCommandParam2,
+ DAT_GameSynchronyState.DAT_GameCommandParam3,
+ DAT_GameSynchronyState.DAT_GameCommandParam4);
+ return;
+ case 2:
+ ProcessAllyGoodsRequest(
+ DAT_GameSynchronyState.DAT_GameCommandParam1,
+ (ResourceType)((int)(DAT_GameSynchronyState.DAT_GameCommandParam2)),
+ DAT_GameSynchronyState.DAT_GameCommandParam3,
+ DAT_GameSynchronyState.DAT_GameCommandParam4);
+ return;
+ case 3:
+ ProcessAllyDeniesRequest(
+ DAT_GameSynchronyState.DAT_GameCommandParam1,
+ DAT_GameSynchronyState.DAT_GameCommandParam4);
+ return;
+ case 4:
+ ProcessAllyAcceptsRequest(
+ DAT_GameSynchronyState.DAT_GameCommandParam1,
+ DAT_GameSynchronyState.DAT_GameCommandParam4);
+ return;
+ case 5:
+ ProcessAllyDeniesRequest2(
+ DAT_GameSynchronyState.DAT_GameCommandParam1,
+ DAT_GameSynchronyState.DAT_GameCommandParam4);
+ }
+ }
+ return;
+ }
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 4,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 4,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam3, 4,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam4, 4,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+}
+}
+
+### 0x00489410 AssignPlayerIDToPlayerSlot | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x00489410
+ void Commands::AssignPlayerIDToPlayerSlot()
+ {
+ int iVar1;
+ DAT_GameSynchronyState.DAT_CommandSize = 4;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ DAT_GameSynchronyState.DAT_PlayerIDReceiver
+ = DAT_GameSynchronyState.DPLAYX_ReceivedPlayerID;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.protocolInvokerPlayerID, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.currentPlayerSlotID, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ iVar1 = DAT_GameCore.lordIconUnk;
+ DAT_GameSynchronyState
+ .currentPlayerFullIDArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ = DAT_GameSynchronyState.DPLAYX_PlayerHandle;
+ if (1 < iVar1) {
+ queueCommand(GCT_SHARE_AIV_HASH);
+ }
+ _memcpy(
+ (void*)((DAT_GameSynchronyState.currentPlayerSlotID + 0x13) * 0x2100
+ + (int)DAT_TextureRenderCoreObject.bitmapsFaces_0x94),
+ (void*)((DAT_GameCore.lordIconUnk + -2) * 0x2100
+ + (int)DAT_TextureRenderCoreObject.bitmapsFaces_0x94),
+ 0x2100);
+ DAT_TextureRenderCoreObject
+ .field69_0x98[DAT_GameSynchronyState.currentPlayerSlotID + 0x13] = 0x2100;
+ }
+ return;
+ }
+}
+}
+
+### 0x00489ac0 SetPlayerNameUnk | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x00489AC0
+ void Commands::SetPlayerNameUnk()
+ {
+ WCHAR WVar1;
+ char* pcVar2;
+ WCHAR* pWVar3;
+ char (*pacVar4)[250];
+ int* piVar5;
+ char (*pacVar6)[250];
+ Base64State local_58;
+ WCHAR local_4c;
+ undefined1 local_4a[70];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)&local_58;
+ DAT_GameSynchronyState.DAT_CommandSize = 66;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ multiByteToWideCharWithSize(
+ &local_4c, (LPCSTR)((int)(DAT_GameSynchronyState.shortMapName)), 33);
+ serializeOrDeserializeCommandParameter(&local_4c, (size_t)((int)(66)),
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ ;
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ if (DAT_GameSynchronyState.isHost == FALSE) {
+ serializeOrDeserializeCommandParameter(&local_4c, 0x42, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ Base64EncodeInit(&local_58);
+ fillMemory_IntegerValue(
+ 120, 0, (void*)((int)(DAT_GameSynchronyState.shortMapName)));
+ pWVar3 = &local_4c;
+ do {
+ WVar1 = *pWVar3;
+ pWVar3 = pWVar3 + 1;
+ } while (WVar1 != L'\0');
+ Base64Encode((char*)&local_4c, (int)((int)((pWVar3 - local_4a >> 1) * 2)),
+ (char*)((int)(DAT_GameSynchronyState.shortMapName)), &local_58);
+ } else {
+ serializeOrDeserializeCommandParameter(&local_4c, (size_t)((int)(66)),
+ GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ wideCharToMultiByteWithSize(DAT_GameSynchronyState.shortMapName, &local_4c, 1000);
+ }
+ pacVar6 = DAT_GameSynchronyState.DAT_PlayerNames;
+ piVar5 = DAT_GameSynchronyState.DAT_CurrentPlayerFullIDArray2 + 1;
+ do {
+ pacVar6 = pacVar6 + 1;
+ *piVar5 = piVar5[-9];
+ pacVar4 = pacVar6;
+ do {
+ pcVar2 = *pacVar4;
+ pacVar4[9][0] = *pcVar2;
+ pacVar4 = (char (*)[250])(*pacVar4 + 1);
+ } while (*pcVar2 != '\0');
+ piVar5 = piVar5 + 1;
+ } while ((int)piVar5 < 0x191de58);
+ _memcpy(
+ (void*)((int)DAT_TextureRenderCoreObject.bitmapsFaces_0x94 + 0x39c00),
+ (void*)((int)DAT_TextureRenderCoreObject.bitmapsFaces_0x94 + 0x29400), 0x10800);
+ DAT_GameSynchronyState.DAT_SomePlayerID = DAT_GameSynchronyState.currentPlayerSlotID;
+ clearChatEvents();
+ setSessionDescription();
+ ProgressBarRelated();
+ DAT_GameSynchronyState.field215_0x106e1c = 0;
+ queueCommand(
+ ((GameCommandType)0x35));
+ };
+ return;
+ }
+}
+}
+
+### 0x0048a460 SendResyncPlayerData | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0048A460
+ void Commands::SendResyncPlayerData()
+ {
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ DAT_GameSynchronyState.DAT_CommandSize = 0x39f8;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(
+ DAT_GameState.playerDataArray + DAT_GameSynchronyState.DAT_GameCommandParam0,
+ 0x39f4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if ((DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE)
+ && (DAT_GameSynchronyState.isHost == FALSE)) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ MemCopyFromParameter(
+ (char*)(DAT_GameState.playerDataArray
+ + DAT_GameSynchronyState.DAT_GameCommandParam0),
+ (size_t)((int)(14836)), DAT_GameSynchronyState.DAT_GameCommandParam0);
+ }
+ return;
+ }
+}
+}
+
+### 0x0048acb0 CommandSwitchTeams | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0048ACB0
+ void Commands::CommandSwitchTeams()
+ {
+ char cVar1;
+ bool bVar2;
+ int iVar3;
+ DWORD DVar4;
+ char* pcVar5;
+ int iVar6;
+ int iVar7;
+ char* pcVar8;
+ byte bVar9;
+ short local_28[2];
+ int aiStack_24[9];
+ DAT_GameSynchronyState.DAT_CommandSize = 3;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ bVar2 = false;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(local_28, 2, GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = (int)local_28[0];
+ serializeOrDeserializeCommandParameter(local_28, 1, GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ iVar6 = DAT_GameSynchronyState.DAT_GameCommandParam0;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = (int)(char)local_28[0];
+ if (DAT_GameSynchronyState.DAT_GameCommandParam1 == 0) {
+ if (DAT_GameSynchronyState.DAT_GameCommandParam0
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ aiStack_24[1] = 0;
+ aiStack_24[2] = 0;
+ aiStack_24[3] = 0;
+ aiStack_24[4] = 0;
+ aiStack_24[5] = 0;
+ aiStack_24[6] = 0;
+ aiStack_24[7] = 0;
+ aiStack_24[8] = 0;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[1] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[1]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[1]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[2] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[2]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[2]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[3] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[3]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[3]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[4] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[4]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[4]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[5] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[5]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[5]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[6] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[6]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[6]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[7] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[7]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[7]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[8] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[8]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[8]] + 1;
+ }
+ bVar9 = aiStack_24[1] != 0;
+ if (aiStack_24[2] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[3] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[4] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[5] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[6] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[7] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[8] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if ((2 < bVar9) || (aiStack_24[DAT_GameSynchronyState.protocolInvokerPlayerID] != 1)) {
+ DVar4 = timeGetTime();
+ DAT_GameSynchronyState
+ .unknownPlayerInfoArray_01[DAT_GameSynchronyState.protocolInvokerPlayerID]
+ = DVar4;
+ /*
+ "Wishes to become an ally" added by script: "wishes to become an ally."
+ */
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_MULTIPLAYER_CONNECTION, 0x25);
+ pcVar8 = DAT_GameSynchronyState.receivedChatMessage;
+ do {
+ cVar1 = *pcVar5;
+ *pcVar8 = cVar1;
+ pcVar5 = pcVar5 + 1;
+ pcVar8 = pcVar8 + 1;
+ } while (cVar1 != '\0');
+ addChatMessageToDisplayList(DAT_GameSynchronyState.protocolInvokerPlayerID, 0);
+ return;
+ }
+ }
+ } else {
+ if (DAT_GameSynchronyState.DAT_GameCommandParam1 == 2) {
+ aiStack_24[1] = 0;
+ aiStack_24[2] = 0;
+ aiStack_24[3] = 0;
+ aiStack_24[4] = 0;
+ aiStack_24[5] = 0;
+ aiStack_24[6] = 0;
+ aiStack_24[7] = 0;
+ aiStack_24[8] = 0;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[1] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[1]] = 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[2] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[2]] = 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[3] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[3]] = 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[4] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[4]] = 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[5] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[5]] = 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[6] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[6]] = 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[7] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[7]] = 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[8] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[8]] = 1;
+ }
+ iVar6 = 1;
+ do {
+ if (aiStack_24[iVar6] == 0) {
+ DAT_GameState.mapAndTime
+ .playerTeams[DAT_GameSynchronyState.protocolInvokerPlayerID] = iVar6;
+ break;
+ }
+ iVar6 = iVar6 + 1;
+ } while (iVar6 < 9);
+ /*
+ "has cancelled the alliance" added by script: "has cancelled the alliance"
+ */
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_MULTIPLAYER_CONNECTION, 0x27);
+ pcVar8 = DAT_GameSynchronyState.receivedChatMessage;
+ do {
+ cVar1 = *pcVar5;
+ *pcVar8 = cVar1;
+ pcVar5 = pcVar5 + 1;
+ pcVar8 = pcVar8 + 1;
+ } while (cVar1 != '\0');
+ addChatMessageToDisplayList(DAT_GameSynchronyState.protocolInvokerPlayerID, 0);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_GameCommandParam1 == 1) {
+ aiStack_24[1] = 0;
+ aiStack_24[2] = 0;
+ aiStack_24[3] = 0;
+ aiStack_24[4] = 0;
+ aiStack_24[5] = 0;
+ aiStack_24[6] = 0;
+ aiStack_24[7] = 0;
+ aiStack_24[8] = 0;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[1] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[1]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[1]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[2] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[2]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[2]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[3] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[3]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[3]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[4] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[4]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[4]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[5] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[5]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[5]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[6] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[6]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[6]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[7] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[7]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[7]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[8] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[8]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[8]] + 1;
+ }
+ bVar9 = aiStack_24[1] != 0;
+ if (aiStack_24[2] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[3] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[4] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[5] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[6] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[7] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[8] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if ((2 < bVar9) || (aiStack_24[DAT_GameSynchronyState.DAT_GameCommandParam0] != 1)) {
+ bVar2 = true;
+ }
+ iVar7 = countPlayersInSameTeam(DAT_GameSynchronyState.DAT_GameCommandParam0);
+ iVar3 = DAT_GameSynchronyState.protocolInvokerPlayerID;
+ if (((iVar7 < 2)
+ && (iVar7
+ = countPlayersInSameTeam(
+ DAT_GameSynchronyState.protocolInvokerPlayerID),
+ iVar7 < 2))
+ && (bVar2)) {
+ DAT_GameState.mapAndTime.playerTeams[iVar6]
+ = DAT_GameState.mapAndTime.playerTeams[iVar3];
+ /*
+ "has joined with" added by script: "has joined with"
+ */
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_MULTIPLAYER_CONNECTION, 0x26);
+ pcVar8 = DAT_GameSynchronyState.receivedChatMessage;
+ do {
+ cVar1 = *pcVar5;
+ *pcVar8 = cVar1;
+ pcVar5 = pcVar5 + 1;
+ pcVar8 = pcVar8 + 1;
+ } while (cVar1 != '\0');
+ addChatMessageToDisplayList(DAT_GameSynchronyState.DAT_GameCommandParam0,
+ DAT_GameSynchronyState.protocolInvokerPlayerID);
+ }
+ }
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x0048b170 SyncRelatedSomething | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0048B170
+ void Commands::SyncRelatedSomething()
+ {
+ int* piVar1;
+ DAT_GameSynchronyState.DAT_CommandSize = 8;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.currentPacketTotalSize, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.field73_0xbdc, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ piVar1 = DAT_GameSynchronyState.syncRelatedStatusArray;
+ do {
+ if ((piVar1[-0x144] == -1) || (piVar1[0x41890] != 0)) {
+ *piVar1 = 1;
+ } else {
+ *piVar1 = 0;
+ }
+ piVar1 = piVar1 + 1;
+ } while ((int)piVar1 < 0x191e344);
+ DAT_GameSynchronyState.announcementReceiveTime = timeGetTime();
+ DAT_GameSynchronyState.announcementReceivedBool = FALSE;
+ DAT_GameSynchronyState
+ .syncRelatedStatusArray[DAT_GameSynchronyState.currentPlayerSlotID] = 1;
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ queueCommand(
+ GCT_BROADCAST_SYNC_RELATED_STATUS_1);
+ if (DAT_GameSynchronyState.isHost == FALSE) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.currentPacketTotalSize, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.field73_0xbdc, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x0048f870 AskForPlayerSlotAssignment | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0048F870
+ void Commands::AskForPlayerSlotAssignment()
+ {
+ char _commandSenderIsHost;
+ int _commandOriginPlayer;
+ DAT_GameSynchronyState.DAT_CommandSize = 1;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.isHost, 1,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ DAT_GameSynchronyState.currentPlayerFullIDArray[0] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[2] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[3] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[4] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[5] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[6] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[7] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[8] = -1;
+ DAT_GameSynchronyState.currentPlayerSlotID = 1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[1] = 1;
+ _memcpy(
+ (void*)((int)DAT_TextureRenderCoreObject.bitmapsFaces_0x94 + 0x29400),
+ (void*)((DAT_GameCore.lordIconUnk + -2) * 0x2100
+ + (int)DAT_TextureRenderCoreObject.bitmapsFaces_0x94),
+ 0x2100);
+ DAT_TextureRenderCoreObject
+ .field69_0x98[DAT_GameSynchronyState.currentPlayerSlotID + 0x13] = 0x2100;
+ return;
+ }
+ serializeOrDeserializeCommandParameter(&_commandSenderIsHost, 1,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ if (_commandSenderIsHost != '\0') {
+ DAT_GameSynchronyState.DAT_TwoIfNotHost = 2;
+ }
+ if (DAT_GameSynchronyState.isHost != FALSE) {
+ _commandOriginPlayer = DAT_GameSynchronyState.DPLAYX_ReceivedPlayerID;
+ /*
+ we are host
+ */
+ if (DAT_GameSynchronyState.currentGameMode == GM_SKIRMISH_SINGLE_PLAYER) {
+ _commandOriginPlayer = 1;
+ /*
+ single player code
+ */
+ }
+ DAT_GameSynchronyState.protocolInvokerPlayerID
+ = addPlayerToCurrentPlayerArray(_commandOriginPlayer);
+ PutPlayerIntoRandomSlot(
+ DAT_GameSynchronyState.protocolInvokerPlayerID);
+ _commandOriginPlayer = DAT_GameSynchronyState.protocolInvokerPlayerID;
+ clearGameCommandEntry(DAT_GameSynchronyState.DAT_CurrentGameCommandID);
+ DAT_GameSynchronyState.protocolInvokerPlayerID = _commandOriginPlayer;
+ if (DAT_GameSynchronyState.currentPlayerSlotID == 0) {
+ DAT_GameSynchronyState.currentPlayerSlotID = _commandOriginPlayer;
+ if (1 < DAT_GameCore.lordIconUnk) {
+ queueCommand(GCT_SHARE_AIV_HASH);
+ }
+ _memcpy(
+ (void*)((DAT_GameSynchronyState.currentPlayerSlotID + 0x13) * 0x2100
+ + (int)DAT_TextureRenderCoreObject.bitmapsFaces_0x94),
+ (void*)((DAT_GameCore.lordIconUnk + -2) * 0x2100
+ + (int)DAT_TextureRenderCoreObject.bitmapsFaces_0x94),
+ 0x2100);
+ DAT_TextureRenderCoreObject
+ .field69_0x98[DAT_GameSynchronyState.currentPlayerSlotID + 0x13] = 0x2100;
+ } else {
+ queueCommand(GCT_ASSIGN_PLAYERID_TO_PLAYER_SLOT);
+ }
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[_commandOriginPlayer] = 0;
+ queueCommand(GCT_HOST_SHARE_LOBBY_STATE);
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = 1;
+ queueCommand(GCT_TRIGGER_LOBBY_PLAYER_INFORMATION_REFRESH);
+ if ((DAT_GameCore.currentMenuViewType != MVT_CRUSADE_MISSION_INTRO)
+ || (-1 < DAT_GameCore.menuSwitchDelay)) {
+ queueCommand(GCT_CHANGE_MAP_SELECTION);
+ }
+ queueCommand(GCT_CHANGE_GAME_INTENSITY_OR_BALANCE);
+ reorderTeamsAndPositions();
+ DAT_GameSynchronyState.reparseMaps = TRUE;
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x004010b0 isAIPlayer | quelle=nachgebaut | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x004010B0
+ BOOLEnum GameSynchronyState::isAIPlayer(int playerID)
+ {
+ if (this->currentPlayerFullIDArray[playerID] != -1) {
+ return FALSE;
+ }
+ return this->currentAIArray[playerID] != 0;
+ }
+}
+}
+
+### 0x0047d4a0 getGUIDForSelectedProvider | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047D4A0
+ void GameSynchronyState::getGUIDForSelectedProvider(GUID* param_1)
+ {
+ GUID* pGVar1;
+ if (this->useTCPIP != FALSE) {
+ /*
+ fixme: include check for steam provider
+ */
+ *(undefined4*)param_1 = 0x36e95ee0;
+ *(undefined4*)&param_1->field_0x4 = 0x11cf8577;
+ *(undefined4*)&param_1->field_0x8 = 0x80000c96;
+ *(undefined4*)&param_1->field_0xc = 0x824e53c7;
+ return;
+ }
+ pGVar1 = this->guids[this->selectedProviderIndex + this->scrollBarItemOffset];
+ *(undefined4*)param_1 = *(undefined4*)pGVar1;
+ *(undefined4*)&param_1->field_0x4 = *(undefined4*)&pGVar1->field_0x4;
+ *(undefined4*)&param_1->field_0x8 = *(undefined4*)&pGVar1->field_0x8;
+ *(undefined4*)&param_1->field_0xc = *(undefined4*)&pGVar1->field_0xc;
+ return;
+ }
+}
+}
+
+### 0x0047d500 setMenuTypeBasedOnDirectPlayGUID | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047D500
+ void GameSynchronyState::setMenuTypeBasedOnDirectPlayGUID()
+ {
+ BOOLEnum BVar1;
+ GUID _guid;
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)&_guid;
+ getGUIDForSelectedProvider((GUID*)&_guid);
+ BVar1 = isEqualGUID(&_guid, (GUID*)GUID_DPSPGUID_MODEM::ptr);
+ if (BVar1 != FALSE) {
+ DAT_GameCore.activeMenuTab.tabType = BASMTT_BARRACKS_OR_MPMENU_MODEM;
+ ;
+ return;
+ }
+ BVar1 = isEqualGUID(&_guid, (GUID*)GUID_DPSPGUID_TCPIP::ptr);
+ if (BVar1 != FALSE) {
+ DAT_GameCore.activeMenuTab.tabType = BASMTT_GRANARY_OR_MPMENU_TCPIP;
+ ;
+ return;
+ }
+ BVar1 = isEqualGUID(&_guid, (GUID*)GUID_DPSPGUID_IPX::ptr);
+ DAT_GameCore.activeMenuTab.tabType = (BVar1 != FALSE) + BASMTT_KEEP_OR_MPMENU_IPX;
+ ;
+ return;
+ }
+}
+}
+
+### 0x0047d6a0 createCompoundAddressBasedOnSelectedProvider | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047D6A0
+ int GameSynchronyState::createCompoundAddressBasedOnSelectedProvider(LPVOID* pCompoundAddress, SIZE_T* param_2)
+ {
+ char cVar1;
+ int iVar2;
+ BOOLEnum BVar3;
+ uint uVar4;
+ int _status;
+ void* _pMemNoLock;
+ void* _pMem;
+ void* pvVar5;
+ char* pcVar6;
+ char* pcVar7;
+ int iVar8;
+ DWORD DVar9;
+ DWORD _pSize;
+ uint local_2bc;
+ SIZE_T* local_2b8;
+ GUID local_2b4;
+ int local_2a4;
+ GUID* local_2a0;
+ GUID local_29c;
+ int aiStack_28c[8];
+ GUID local_26c;
+ char local_25c[200];
+ char local_194[200];
+ char local_cc[200];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)&_pSize;
+ local_2b8 = param_2;
+ _pSize = 0;
+ getGUIDForSelectedProvider(
+ (GUID*)&local_26c);
+ BVar3 = isEqualGUID(&local_26c, (GUID*)GUID_DPSPGUID_MODEM::ptr);
+ if (BVar3 == FALSE) {
+ BVar3 = isEqualGUID(&local_26c, (GUID*)GUID_DPSPGUID_TCPIP::ptr);
+ if (BVar3 == FALSE) {
+ BVar3 = isEqualGUID(&local_26c, (GUID*)GUID_DPSPGUID_IPX::ptr);
+ local_2a4 = 0x10;
+ DVar9 = 1;
+ if (BVar3 == FALSE) {
+ local_2b4.Data1 = 0x7d916c0;
+ local_2b4.Data2 = 0xe0af;
+ local_2b4.Data3 = 0x11cf;
+ local_2a0 = &local_26c;
+ local_2b4.Data4[0] = 0x9c;
+ local_2b4.Data4[1] = 0x4e;
+ local_2b4.Data4[2] = 0;
+ local_2b4.Data4[3] = 0xa0;
+ local_2b4.Data4[4] = 0xc9;
+ local_2b4.Data4[5] = 5;
+ local_2b4.Data4[6] = 0x42;
+ local_2b4.Data4[7] = 0x5e;
+ } else {
+ local_2b4.Data1 = 0x7d916c0;
+ local_2b4.Data2 = 0xe0af;
+ local_2b4.Data3 = 0x11cf;
+ local_2b4.Data4[0] = 0x9c;
+ local_2b4.Data4[1] = 0x4e;
+ local_2b4.Data4[2] = 0;
+ local_2b4.Data4[3] = 0xa0;
+ local_2b4.Data4[4] = 0xc9;
+ local_2b4.Data4[5] = 5;
+ local_2b4.Data4[6] = 0x42;
+ local_2b4.Data4[7] = 0x5e;
+ local_2a0 = (GUID*)GUID_DPSPGUID_IPX::ptr;
+ }
+ } else {
+ local_2b4.Data1 = 0x7d916c0;
+ local_2b4.Data4[4] = 0xc9;
+ local_2b4.Data4[5] = 5;
+ local_2b4.Data4[6] = 0x42;
+ local_2b4.Data4[7] = 0x5e;
+ local_2b4.Data2 = 0xe0af;
+ local_2b4.Data3 = 0x11cf;
+ local_2b4.Data4[0] = 0x9c;
+ local_2b4.Data4[1] = 0x4e;
+ local_2b4.Data4[2] = 0;
+ local_2b4.Data4[3] = 0xa0;
+ local_2a4 = 0x10;
+ local_2a0 = (GUID*)GUID_DPSPGUID_TCPIP::ptr;
+ pcVar6 = getTextArrayPointer(5);
+ pcVar7 = local_cc;
+ do {
+ cVar1 = *pcVar6;
+ *pcVar7 = cVar1;
+ pcVar6 = pcVar6 + 1;
+ pcVar7 = pcVar7 + 1;
+ } while (cVar1 != '\0');
+ local_29c.Data1 = 0xc4a54da0;
+ local_29c.Data2 = 0xe0af;
+ local_29c.Data3 = 0x11cf;
+ pcVar7 = local_cc;
+ local_29c.Data4[4] = 0xc9;
+ local_29c.Data4[5] = 5;
+ local_29c.Data4[6] = 0x42;
+ local_29c.Data4[7] = 0x5e;
+ local_29c.Data4[0] = 0x9c;
+ local_29c.Data4[1] = 0x4e;
+ local_29c.Data4[2] = 0;
+ local_29c.Data4[3] = 0xa0;
+ do {
+ cVar1 = *pcVar7;
+ pcVar7 = pcVar7 + 1;
+ } while (cVar1 != '\0');
+ DVar9 = 2;
+ pcVar7 = getTextArrayPointer(6);
+ uVar4 = _atol(pcVar7);
+ local_2bc = uVar4 & 0xffff;
+ if ((short)uVar4 != 0) {
+ DVar9 = 3;
+ }
+ }
+ } else {
+ local_2b4.Data2 = 0xe0af;
+ local_2b4.Data3 = 0x11cf;
+ local_2b4.Data1 = 0x7d916c0;
+ local_2b4.Data4[0] = 0x9c;
+ local_2b4.Data4[1] = 0x4e;
+ local_2b4.Data4[2] = 0;
+ local_2b4.Data4[3] = 0xa0;
+ local_2b4.Data4[4] = 0xc9;
+ local_2b4.Data4[5] = 5;
+ local_2b4.Data4[6] = 0x42;
+ local_2b4.Data4[7] = 0x5e;
+ local_2a4 = 0x10;
+ local_2a0 = (GUID*)GUID_DPSPGUID_MODEM::ptr;
+ pcVar6 = this->stringPointerArray[this->modemScrollbarIndex + this->modemScrollBarOffset];
+ iVar8 = 1;
+ pcVar7 = local_25c;
+ do {
+ cVar1 = *pcVar6;
+ *pcVar7 = cVar1;
+ pcVar6 = pcVar6 + 1;
+ pcVar7 = pcVar7 + 1;
+ } while (cVar1 != '\0');
+ pcVar7 = local_25c;
+ do {
+ cVar1 = *pcVar7;
+ pcVar7 = pcVar7 + 1;
+ } while (cVar1 != '\0');
+ if (pcVar7 != local_25c + 1) {
+ local_29c.Data1 = 0xf6dcc200;
+ local_29c.Data2 = 0xa2fe;
+ local_29c.Data3 = 0x11d0;
+ pcVar7 = local_25c;
+ local_29c.Data4[4] = 0xc9;
+ local_29c.Data4[5] = 5;
+ local_29c.Data4[6] = 0x42;
+ local_29c.Data4[7] = 0x5e;
+ local_29c.Data4[0] = 0x9c;
+ local_29c.Data4[1] = 0x4f;
+ local_29c.Data4[2] = 0;
+ local_29c.Data4[3] = 0xa0;
+ do {
+ cVar1 = *pcVar7;
+ pcVar7 = pcVar7 + 1;
+ } while (cVar1 != '\0');
+ iVar8 = 2;
+ }
+ pcVar6 = getTextArrayPointer(7);
+ pcVar7 = local_194;
+ do {
+ cVar1 = *pcVar6;
+ *pcVar7 = cVar1;
+ pcVar6 = pcVar6 + 1;
+ pcVar7 = pcVar7 + 1;
+ } while (cVar1 != '\0');
+ iVar2 = iVar8 * 0x18;
+ *(undefined4*)((int)&local_2b4 + iVar2) = 0x78ec89a0;
+ *(undefined4*)((int)&local_2b4 + iVar2 + 4) = 0x11cfe0af;
+ *(undefined4*)((int)&local_2b4 + iVar2 + 8) = 0xa0004e9c;
+ *(undefined4*)((int)&local_2b4 + iVar2 + 0xc) = 0x5e4205c9;
+ pcVar7 = local_194;
+ do {
+ cVar1 = *pcVar7;
+ pcVar7 = pcVar7 + 1;
+ } while (cVar1 != '\0');
+ (&local_2a4)[iVar8 * 6] = (int)(pcVar7 + (1 - (int)(local_194 + 1)));
+ *(char**)((int)&local_29c + iVar2 + -4) = local_194;
+ DVar9 = iVar8 + 1;
+ }
+ _status = (*(*this->DPLAYX_LOBBY)->CreateCompoundAddress)(
+ this->DPLAYX_LOBBY, &local_2b4, DVar9, (void*)0x0, &_pSize);
+ if (_status == -2005467106) {
+ _pMemNoLock = GlobalAlloc(GAF_GHND, _pSize);
+ _pMem = GlobalLock(_pMemNoLock);
+ if (_pMem == (void*)0x0) {
+ _status = DPERR_NOMEMORY;
+ } else {
+ _status = (*(*this->DPLAYX_LOBBY)->CreateCompoundAddress)(
+ this->DPLAYX_LOBBY, &local_2b4, DVar9, _pMem, &_pSize);
+ if (_status < DPERR_DP_OK) {
+ pvVar5 = MACRO_CALL(GlobalHandle)(_pMem);
+ GlobalUnlock(pvVar5);
+ pvVar5 = MACRO_CALL(GlobalHandle)(_pMem);
+ GlobalFree(pvVar5);
+ } else {
+ *pCompoundAddress = _pMem;
+ *local_2b8 = _pSize;
+ _status = DPERR_DP_OK;
+ }
+ }
+ };
+ return _status;
+ }
+}
+}
+
+### 0x0047da70 setDPlaySessionNameValue | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047DA70
+ void GameSynchronyState::setDPlaySessionNameValue()
+ {
+ char* pcVar1;
+ char local_100[252];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)local_100;
+ if (this->useTCPIP != FALSE) {
+ PrintToDestination(this->DPLAYX_SessionName, L"Crusader");
+ ;
+ return;
+ }
+ pcVar1 = getTextArrayPointer(0);
+ _sprintf(local_100, "Stronghold-%s", pcVar1);
+ multiByteToWideCharacter(this->DPLAYX_SessionName, (LPCSTR)((int)(local_100)));
+ ;
+ return;
+ }
+}
+}
+
+### 0x0047db10 initializeDirectPlayAndCreateOrJoinSession | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047DB10
+ int GameSynchronyState::initializeDirectPlayAndCreateOrJoinSession(BOOLEnum join)
+ {
+ IDirectPlay4A** ppIVar1;
+ uint uVar2;
+ DPERRInt _lobbyStatus;
+ void* pvVar3;
+ int _status;
+ DPERRInt _dpStatus;
+ DPERRInt _cpStatus;
+ DPERRInt _setStatus;
+ IDirectPlay4A** unaff_EDI;
+ IDirectPlay4A** _dplay4;
+ SIZE_T local_58;
+ DPSESSIONDESC2 _session;
+ ppIVar1 = this->DPLAYX_4A;
+ uVar2 = MSVC_SecurityCookie::instance ^ (uint)&_dplay4;
+ _dplay4 = (IDirectPlay4A**)0x0;
+ local_58 = 0;
+ if (this->DPLAYX_LOBBY == (IDirectPlayLobby3**)0x0) {
+ _lobbyStatus = DPERR_INVALIDOBJECT;
+ ;
+ return (int)(_lobbyStatus);
+ }
+ if (join == FALSE) {
+ if (this->DPLAYX_Connection != (void*)0x0) {
+ pvVar3 = MACRO_CALL(GlobalHandle)(this->DPLAYX_Connection);
+ GlobalUnlock(pvVar3);
+ pvVar3 = MACRO_CALL(GlobalHandle)(this->DPLAYX_Connection);
+ GlobalFree(pvVar3);
+ this->DPLAYX_Connection = (void*)0x0;
+ }
+ _status = createCompoundAddressBasedOnSelectedProvider(
+ (void**)&this->DPLAYX_Connection, &local_58);
+ if (_status < 0)
+ goto LAB_return;
+ if (this->DPLAYX_4A != (IDirectPlay4A**)0x0) {
+ (*(*this->DPLAYX_4A)->Close)(this->DPLAYX_4A);
+ (*(*this->DPLAYX_4A)->Release)((IDirectPlay4A*)this->DPLAYX_4A);
+ this->DPLAYX_4A = (IDirectPlay4A**)0x0;
+ }
+ _status = CoCreateInstance(
+ (IID*)GUID_CLSID_DirectPlay::ptr, (IUnknown*)0x0, 1, (IID*)GUID_IID_IDirectPlay4::ptr, &_dplay4);
+ if (_status < 0)
+ goto LAB_return;
+ _dpStatus = (*(*_dplay4)->InitializeConnection)(_dplay4, this->DPLAYX_Connection, 0);
+ if (_dpStatus < DPERR_DP_OK)
+ goto LAB_release;
+ if (this->isHost != FALSE) {
+ _memset(&_session, 0, (size_t)((int)(80)));
+ _session.guidApplication.Data1 = 0x1d5e2f48;
+ builtin_memcpy(_session.guidApplication.Data4 + 4, "ڞ0Y", 4);
+ _session.dwSize = 80;
+ _session.dwFlags = DPSESSION_OPTIMIZELATENCY
+ | DPSESSION_DIRECTPLAYPROTOCOL | DPSESSION_KEEPALIVE
+ | DPSESSION_MIGRATEHOST;
+ _session.guidApplication.Data2 = 0xe8c0;
+ _session.guidApplication.Data3 = 0x49e5;
+ _session.guidApplication.Data4[0] = 0xae;
+ _session.guidApplication.Data4[1] = 0xd8;
+ _session.guidApplication.Data4[2] = 0xb1;
+ _session.guidApplication.Data4[3] = 0x24;
+ _session.dwMaxPlayers = 8;
+ setDPlaySessionNameValue();
+ _session.lpszSessionName = this->DPLAYX_SessionName;
+ _dpStatus = (*(*_dplay4)->Open)(_dplay4, &_session, OFE_CREATE);
+ goto LAB_close_and_release_if_err;
+ }
+ DPLAY_CurrentSessionGUID::instance.Data1 = 0;
+ DPLAY_CurrentSessionGUID::instance.Data2 = 0;
+ DPLAY_CurrentSessionGUID::instance.Data3 = 0;
+ DPLAY_InterfacePointer::instance = _dplay4;
+ DPLAY_CurrentSessionGUID::instance.Data4[0] = '\0';
+ DPLAY_CurrentSessionGUID::instance.Data4[1] = '\0';
+ DPLAY_CurrentSessionGUID::instance.Data4[2] = '\0';
+ DPLAY_CurrentSessionGUID::instance.Data4[3] = '\0';
+ DPLAY_CurrentSessionGUID::instance.Data4[4] = '\0';
+ DPLAY_CurrentSessionGUID::instance.Data4[5] = '\0';
+ DPLAY_CurrentSessionGUID::instance.Data4[6] = '\0';
+ DPLAY_CurrentSessionGUID::instance.Data4[7] = '\0';
+ } else {
+ _dplay4 = this->DPLAYX_4A;
+ _memset(&_session, 0, (size_t)((int)(80)));
+ _session.guidApplication.Data1 = 0x1d5e2f48;
+ _session.guidApplication.Data2 = 0xe8c0;
+ _session.guidApplication.Data3 = 0x49e5;
+ builtin_memcpy(_session.guidApplication.Data4 + 4, "ڞ0Y", 4);
+ _session.guidInstance.Data1 = DPLAY_CurrentSessionGUID::instance.Data1;
+ _session.guidApplication.Data4[0] = 0xae;
+ _session.guidApplication.Data4[1] = 0xd8;
+ _session.guidApplication.Data4[2] = 0xb1;
+ _session.guidApplication.Data4[3] = 0x24;
+ _session.guidInstance.Data4[0] = DPLAY_CurrentSessionGUID::instance.Data4[0];
+ _session.guidInstance.Data4[1] = DPLAY_CurrentSessionGUID::instance.Data4[1];
+ _session.guidInstance.Data4[2] = DPLAY_CurrentSessionGUID::instance.Data4[2];
+ _session.guidInstance.Data4[3] = DPLAY_CurrentSessionGUID::instance.Data4[3];
+ _session.guidInstance.Data4[4] = DPLAY_CurrentSessionGUID::instance.Data4[4];
+ _session.guidInstance.Data4[5] = DPLAY_CurrentSessionGUID::instance.Data4[5];
+ _session.guidInstance.Data4[6] = DPLAY_CurrentSessionGUID::instance.Data4[6];
+ _session.guidInstance.Data4[7] = DPLAY_CurrentSessionGUID::instance.Data4[7];
+ _session.dwSize = 80;
+ _session.guidInstance.Data2 = DPLAY_CurrentSessionGUID::instance.Data2;
+ _session.guidInstance.Data3 = DPLAY_CurrentSessionGUID::instance.Data3;
+ _dpStatus = (*(*ppIVar1)->Open)(ppIVar1, &_session, OFE_JOIN);
+ LAB_close_and_release_if_err:
+ if (_dpStatus < DPERR_DP_OK) {
+ /*
+ Close?
+ */
+ (*(*unaff_EDI)->Close)(unaff_EDI);
+ LAB_release:
+ (*(*_dplay4)->Release)((IDirectPlay4A*)_dplay4);
+ this->DPLAYX_4A = (IDirectPlay4A**)0x0;
+ ;
+ return (int)(_dpStatus);
+ }
+ this->DPLAY_PlayerNameStructure.dwFlags = 0;
+ this->DPLAY_PlayerNameStructure.lpszLongName = (WCHAR*)0x0;
+ this->DPLAY_PlayerNameStructure.dwSize = 0x10;
+ this->DPLAY_PlayerNameStructure.lpszShortName = this->DPLAY_PlayerShortName;
+ _cpStatus
+ = (*(*unaff_EDI)->CreatePlayer)(unaff_EDI, 0x191de0c, (DPNAME*)0x191ddf0, (void*)0x0, (void*)0x0, 0, 0);
+ if (_cpStatus != DPERR_DP_OK) {
+ _setStatus = DPERR_ABORTED;
+ ;
+ return (int)(_setStatus);
+ }
+ }
+ _status = 0;
+ this->DPLAYX_4A = _dplay4;
+ LAB_return:;
+ return _status;
+ }
+}
+}
+
+### 0x0047de00 setSessionDescription | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047DE00
+ void GameSynchronyState::setSessionDescription()
+ {
+ uint uVar1;
+ DPSESSIONDESC2 local_54;
+ uVar1 = MSVC_SecurityCookie::instance ^ (uint)&local_54;
+ if (this->isHost != FALSE) {
+ _memset(&local_54, 0, 0x50);
+ local_54.guidApplication.Data1 = 0x1d5e2f48;
+ builtin_memcpy(local_54.guidApplication.Data4 + 4, "ڞ0Y", 4);
+ local_54.dwSize = 0x50;
+ local_54.dwFlags = DPSESSION_OPTIMIZELATENCY
+ | DPSESSION_DIRECTPLAYPROTOCOL | DPSESSION_KEEPALIVE
+ | DPSESSION_JOINDISABLED | DPSESSION_MIGRATEHOST
+ | DPSESSION_NEWPLAYERSDISABLED;
+ local_54.guidApplication.Data2 = 0xe8c0;
+ local_54.guidApplication.Data3 = 0x49e5;
+ local_54.guidApplication.Data4[0] = 0xae;
+ local_54.guidApplication.Data4[1] = 0xd8;
+ local_54.guidApplication.Data4[2] = 0xb1;
+ local_54.guidApplication.Data4[3] = 0x24;
+ local_54.dwMaxPlayers = 8;
+ setDPlaySessionNameValue();
+ local_54.lpszSessionName = this->DPLAYX_SessionName;
+ (*(*this->DPLAYX_4A)->SetSessionDesc)(this->DPLAYX_4A, &local_54, 0);
+ };
+ return;
+ }
+}
+}
+
+### 0x0047dea0 setDirectPlaySessionDescription | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047DEA0
+ void GameSynchronyState::setDirectPlaySessionDescription()
+ {
+ DPSESSIONDESC2 local_54;
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)&local_54;
+ if (this->isHost != FALSE) {
+ _memset(&local_54, 0, 0x50);
+ local_54.guidApplication.Data1 = 0x1d5e2f48;
+ builtin_memcpy(local_54.guidApplication.Data4 + 4, "ڞ0Y", 4);
+ local_54.dwSize = 0x50;
+ local_54.dwFlags = DPSESSION_OPTIMIZELATENCY
+ | DPSESSION_DIRECTPLAYPROTOCOL | DPSESSION_KEEPALIVE
+ | DPSESSION_MIGRATEHOST;
+ local_54.guidApplication.Data2 = 0xe8c0;
+ local_54.guidApplication.Data3 = 0x49e5;
+ local_54.guidApplication.Data4[0] = 0xae;
+ local_54.guidApplication.Data4[1] = 0xd8;
+ local_54.guidApplication.Data4[2] = 0xb1;
+ local_54.guidApplication.Data4[3] = 0x24;
+ local_54.dwMaxPlayers = 8;
+ setDPlaySessionNameValue();
+ local_54.lpszSessionName = (WCHAR*)0x191e002;
+ (*(*this->DPLAYX_4A)->SetSessionDesc)(this->DPLAYX_4A, &local_54, 0);
+ };
+ return;
+ }
+}
+}
+
+### 0x0047e010 fetchSessionGUID | quelle=nachgebaut | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047E010
+ void GameSynchronyState::fetchSessionGUID(GUID* pGUID)
+ {
+ if ((this->scrollBarIndex != -1)
+ && (this->scrollBarIndex + this->scrollBarItemOffset < this->DPLAY_SessionsCount)) {
+ *pGUID = *this->DPLAY_SessionGUIDs[this->scrollBarIndex + this->scrollBarItemOffset];
+ }
+ }
+}
+}
+

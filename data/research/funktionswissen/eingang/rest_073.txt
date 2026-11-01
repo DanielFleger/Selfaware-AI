@@ -1,0 +1,1133 @@
+### 0x004ac570 RecalculateAllies | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x004AC570
+ void Skirmish::RecalculateAllies()
+ {
+ int _teamMembers;
+ int iVar1;
+ int _playerID;
+ int _team;
+ if (400 < (int)(DAT_GameCore.mapTimeInTicks - DAT_GameCore.section1127)) {
+ DAT_AlliesCount = getAliveLordForPlayer(DAT_GameSynchronyState.currentPlayerSlotID);
+ if (DAT_AlliesCount == 0) {
+ return;
+ }
+ }
+ _teamMembers = 0;
+ _team = DAT_GameState.mapAndTime.playerTeams[DAT_GameSynchronyState.currentPlayerSlotID];
+ DAT_AlliesCount = 0;
+ _playerID = 1;
+ do {
+ if ((_playerID != DAT_GameSynchronyState.currentPlayerSlotID)
+ && ((DAT_GameSynchronyState.currentPlayerFullIDArray[_playerID] != -1
+ || (DAT_GameSynchronyState.currentAIArray[_playerID] != 0)))) {
+ if (400 < (int)(DAT_GameCore.mapTimeInTicks - DAT_GameCore.section1127)) {
+ iVar1 = getAliveLordForPlayer(_playerID);
+ _teamMembers = DAT_AlliesCount;
+ if (iVar1 == 0)
+ goto LAB_004ac619;
+ }
+ if (_team == DAT_GameState.mapAndTime.playerTeams[_playerID]) {
+ DAT_SomeTeamMemberPlayerIDArray[_teamMembers] = _playerID;
+ _teamMembers = _teamMembers + 1;
+ DAT_AlliesCount = _teamMembers;
+ if (5 < _teamMembers)
+ break;
+ }
+ }
+ LAB_004ac619:
+ _playerID = _playerID + 1;
+ } while (_playerID < 9);
+ if (_teamMembers <= DAT_LastTeamMemberIndex) {
+ DAT_LastTeamMemberIndex = _teamMembers + -1;
+ }
+ if (DAT_LastTeamMemberIndex < 0) {
+ DAT_LastTeamMemberIndex = 0;
+ }
+ return;
+ }
+}
+}
+
+### 0x004c6cd0 StoreTime | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x004C6CD0
+ int Skirmish::StoreLocalTime()
+ {
+ _SYSTEMTIME local_10;
+ GetLocalTime(&local_10);
+ DAT_SkMasterDataEntry.localTimeDay = (uint)local_10.wDay;
+ DAT_SkMasterDataEntry.localTimeYear = (uint)local_10.wYear;
+ DAT_SkMasterDataEntry.localTimeMonth = (uint)local_10.wMonth;
+ DAT_SkMasterDataEntry.gameDurationInMinutes = (int)DAT_GameCore.gameDuration / 60000;
+ DAT_SkMasterDataEntry.mapTimeInTicks = DAT_GameCore.mapTimeInTicks;
+ return DAT_GameCore.gameDuration * 0x45e7b273;
+ }
+}
+}
+
+### 0x0047d5b0 EnumConnectionsCallback | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x0047D5B0
+BOOL __stdcall Synchrony::EnumConnectionsCallback(
+ LPCGUID lpguidSP, LPVOID lpConnection, DWORD dwConnectionSize, DPNAME* lpName, DWORD dwFlags, LPVOID lpContext)
+{
+ WCHAR* pWVar1;
+ WCHAR WVar2;
+ ushort uVar3;
+ BOOLEnum BVar4;
+ WCHAR* pWVar5;
+ WCHAR* pWVar6;
+ void* hMem;
+ GUID* pGVar7;
+ WCHAR* pWVar7;
+ int _index;
+ _index = DAT_GameSynchronyState.scrollBarItemCount;
+ if (9 < DAT_GameSynchronyState.scrollBarItemCount) {
+ return 0;
+ }
+ BVar4 = isEqualGUID((GUID*)lpguidSP, (GUID*)GUID_DPSPGUID_TCPIP::ptr);
+ if (BVar4 == FALSE) {
+ BVar4 = isEqualGUID((GUID*)lpguidSP, (GUID*)GUID_DPSPGUID_IPX::ptr);
+ if (BVar4 == FALSE) {
+ BVar4 = isEqualGUID((GUID*)lpguidSP, (GUID*)GUID_DPSPGUID_MODEM::ptr);
+ if (BVar4 == FALSE) {
+ DAT_GameSynchronyState.scrollBarItemCount = _index + 1;
+ } else {
+ _index = 2;
+ }
+ } else {
+ _index = 1;
+ }
+ } else {
+ _index = 0;
+ }
+ pWVar5 = lpName->lpszShortName;
+ pWVar1 = pWVar5 + 1;
+ do {
+ WVar2 = *pWVar5;
+ pWVar5 = pWVar5 + 1;
+ } while (WVar2 != L'\0');
+ pWVar6 = _malloc(((int)pWVar5 - (int)pWVar1 >> 1) * 2 + 4);
+ DAT_GameSynchronyState.providerNames[_index] = pWVar6;
+ pWVar7 = lpName->lpszShortName;
+ do {
+ WVar2 = *pWVar7;
+ *pWVar6 = WVar2;
+ pWVar7 = pWVar7 + 1;
+ pWVar6 = pWVar6 + 1;
+ } while (WVar2 != L'\0');
+ hMem = GlobalAlloc(GAF_GHND, 0x10);
+ pGVar7 = GlobalLock(hMem);
+ DAT_GameSynchronyState.guids[_index] = (GUID*)pGVar7;
+ if (pGVar7 != (GUID*)0x0) {
+ pGVar7->Data1 = lpguidSP->Data1;
+ uVar3 = lpguidSP->Data3;
+ pGVar7->Data2 = lpguidSP->Data2;
+ pGVar7->Data3 = uVar3;
+ *(undefined4*)pGVar7->Data4 = *(undefined4*)lpguidSP->Data4;
+ *(undefined4*)(pGVar7->Data4 + 4) = *(undefined4*)(lpguidSP->Data4 + 4);
+ }
+ return 1;
+}
+}
+
+### 0x0047df40 EnumSessionsCallback_addSession_async | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x0047DF40
+bool __stdcall Synchrony::EnumSessionsCallback_addSession_async(
+ DPSESSIONDESC2* lpThisSD, LPDWORD lpdwTimeOut, DWORD dwFlags, LPVOID lpContext)
+{
+ WCHAR* pWVar1;
+ ushort uVar2;
+ WCHAR* pWVar3;
+ WCHAR* _pSessionName;
+ void* _alloc;
+ GUID* _lockedMemory;
+ WCHAR* _pReceivedSessionName;
+ WCHAR* _pSessionName2;
+ WCHAR _char;
+ GUID* _pGUID;
+ if (((dwFlags & 1) == 0) && (DAT_GameSynchronyState.DPLAY_SessionsCount < 50)) {
+ pWVar3 = lpThisSD->lpszSessionName;
+ pWVar1 = pWVar3 + 1;
+ do {
+ _char = *pWVar3;
+ pWVar3 = pWVar3 + 1;
+ } while (_char != L'\0');
+ _pSessionName = _malloc(((int)pWVar3 - (int)pWVar1 >> 1) * 2 + 4);
+ DAT_GameSynchronyState.DPLAY_SessionNames[DAT_GameSynchronyState.DPLAY_SessionsCount]
+ = _pSessionName;
+ _pReceivedSessionName = lpThisSD->lpszSessionName;
+ _pSessionName2
+ = DAT_GameSynchronyState.DPLAY_SessionNames[DAT_GameSynchronyState.DPLAY_SessionsCount];
+ do {
+ _char = *_pReceivedSessionName;
+ *_pSessionName2 = _char;
+ _pReceivedSessionName = _pReceivedSessionName + 1;
+ _pSessionName2 = _pSessionName2 + 1;
+ } while (_char != L'\0');
+ _alloc = GlobalAlloc(GAF_GHND, 16);
+ _lockedMemory = GlobalLock(_alloc);
+ DAT_GameSynchronyState.DPLAY_SessionGUIDs[DAT_GameSynchronyState.DPLAY_SessionsCount]
+ = _lockedMemory;
+ _pGUID
+ = DAT_GameSynchronyState.DPLAY_SessionGUIDs[DAT_GameSynchronyState.DPLAY_SessionsCount];
+ if (_pGUID != (GUID*)0x0) {
+ _pGUID->Data1 = (lpThisSD->guidInstance).Data1;
+ uVar2 = (lpThisSD->guidInstance).Data3;
+ _pGUID->Data2 = (lpThisSD->guidInstance).Data2;
+ _pGUID->Data3 = uVar2;
+ *(undefined4*)_pGUID->Data4 = *(undefined4*)(lpThisSD->guidInstance).Data4;
+ *(undefined4*)(_pGUID->Data4 + 4) = *(undefined4*)((lpThisSD->guidInstance).Data4 + 4);
+ DAT_GameSynchronyState.DPLAY_SessionsCount
+ = DAT_GameSynchronyState.DPLAY_SessionsCount + 1;
+ }
+ return true;
+ }
+ return false;
+}
+}
+
+### 0x0047e160 DirectPlayModemRelated_MemoryAllocationFunction | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x0047E160
+BOOLEnum __stdcall Synchrony::DirectPlayModemRelated_MemoryAllocationCallback(
+ int* param_1, undefined4 param_2, char* param_3)
+{
+ char cVar1;
+ BOOLEnum BVar2;
+ char* pcVar3;
+ char* pcVar4;
+ BVar2 = isEqualGUID((GUID*)param_1, (GUID*)GUID_DPAID_Modem::ptr);
+ if (BVar2 != FALSE) {
+ pcVar3 = param_3;
+ do {
+ cVar1 = *pcVar3;
+ pcVar3 = pcVar3 + 1;
+ } while (cVar1 != '\0');
+ if (pcVar3 != param_3 + 1) {
+ do {
+ if (30 < DAT_GameSynchronyState.modemScrollbarCount) {
+ return FALSE;
+ }
+ pcVar3 = param_3;
+ do {
+ cVar1 = *pcVar3;
+ pcVar3 = pcVar3 + 1;
+ } while (cVar1 != '\0');
+ pcVar3 = _malloc((size_t)(pcVar3 + (2 - (int)(param_3 + 1))));
+ DAT_GameSynchronyState
+ .stringPointerArray[DAT_GameSynchronyState.modemScrollbarCount] = pcVar3;
+ pcVar3 = DAT_GameSynchronyState
+ .stringPointerArray[DAT_GameSynchronyState.modemScrollbarCount];
+ pcVar4 = param_3;
+ do {
+ cVar1 = *pcVar4;
+ *pcVar3 = cVar1;
+ pcVar4 = pcVar4 + 1;
+ pcVar3 = pcVar3 + 1;
+ } while (cVar1 != '\0');
+ DAT_GameSynchronyState.modemScrollbarCount
+ = DAT_GameSynchronyState.modemScrollbarCount + 1;
+ do {
+ pcVar3 = param_3;
+ param_3 = pcVar3 + 1;
+ } while (*pcVar3 != '\0');
+ pcVar4 = param_3;
+ do {
+ cVar1 = *pcVar4;
+ pcVar4 = pcVar4 + 1;
+ } while (cVar1 != '\0');
+ } while (pcVar4 != pcVar3 + 2);
+ }
+ }
+ return TRUE;
+}
+}
+
+### 0x00488480 MemCopyFromParameter | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x00488480
+void Synchrony::MemCopyFromParameter(char* dest, size_t size, undefined4 playerID)
+{
+ void* destination;
+ int iVar1;
+ int iVar2;
+ void* local_3f0;
+ char local_3ec[1000];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)&local_3f0;
+ destination = _malloc(size);
+ local_3f0 = destination;
+ serializeOrDeserializeCommandParameter(destination, size, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ iVar2 = 0;
+ if (0 < (int)size) {
+ iVar1 = (int)destination - (int)dest;
+ do {
+ if (dest[iVar1] != *dest) {
+ _sprintf(
+ local_3ec, "ID:%d OF:%d M:%d S:%d", playerID, iVar2, (int)dest[iVar1], (int)*dest);
+ }
+ *dest = dest[iVar1];
+ iVar2 = iVar2 + 1;
+ dest = dest + 1;
+ destination = local_3f0;
+ } while (iVar2 < (int)size);
+ }
+ _free_base(destination);
+ ;
+ return;
+}
+}
+
+### 0x0045da20 getNextHelpColorEntryIndex | quelle=nachgebaut | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x0045DA20
+ int TextEditorState::getNextHelpColorEntryIndex(int param_1)
+ {
+ int newIndex = param_1 + 1;
+ if (DAT_UserHelpDefinedData.field6_0x7a16c[newIndex].name_0x0 == NULL) {
+ newIndex = 0;
+ }
+ return newIndex;
+ }
+}
+}
+
+### 0x0045da40 getPrevHelpColorEntryIndex | quelle=nachgebaut | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x0045DA40
+ int TextEditorState::getPrevHelpColorEntryIndex(int param_1)
+ {
+ --param_1;
+ if (param_1 < 0) {
+ param_1 = 0;
+ while (DAT_UserHelpDefinedData.field6_0x7a16c[param_1].name_0x0 != NULL) {
+ ++param_1;
+ }
+ --param_1;
+ }
+ return param_1;
+ }
+}
+}
+
+### 0x0045f080 getHelpTokenAdvanceLength | quelle=nachgebaut | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x0045F080
+ int TextEditorState::helpToken_getHelpTokenAdvanceLength(HelpTextToken token)
+ {
+ switch (token) {
+ case Enums::HTT_PIC:
+ return 4;
+ case Enums::HTT_FONT:
+ case Enums::HTT_COLOUR:
+ case Enums::HTT_LINK:
+ case Enums::HTT_LINKCOLOUR:
+ case Enums::HTT_SOUND:
+ case Enums::HTT_STRING:
+ case Enums::HTT_INCLUDE:
+ return 3;
+ default:
+ return 1;
+ }
+ }
+
+### 0x00532f60 getArmySize | quelle=nachgebaut | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x00532f60
+ int UnitsState::getArmySize(int playerID) { return DAT_GameState->playerDataArray[playerID].armySize; }
+ }
+}
+}
+
+### 0x004038a0 SetCurrentEntityID3000 | quelle=nachgebaut | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x004038A0
+ void Version::UpgradeSetCurrentEntityID3000() { DAT_CurrentEntityID = 3000; }
+}
+}
+
+### 0x004038b0 SetFlagEntityColor | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x004038B0
+ void Version::SetFlagEntityColor()
+ {
+ EntityTypeShort EVar1;
+ Entity* pEVar2;
+ pEVar2 = &DAT_EntityState.entityArray[1];
+ DAT_CurrentEntityID = 3000;
+ do {
+ if ((pEVar2->logicalState == 2)
+ && ((((EVar1 = pEVar2->entityType,
+ EVar1 == ET_FLAG_1 || (EVar1 == ET_FLAG_4))
+ || (EVar1 == ET_FLAG_2))
+ || (EVar1 == ET_FLAG_3)))) {
+ pEVar2->colorUnk = (int)pEVar2->owner;
+ }
+ pEVar2 = pEVar2 + 0x74;
+ } while ((int)pEVar2 < 0x23fa1fe);
+ return;
+ }
+}
+}
+
+### 0x0041a2b0 SetDairyCheeseToZero | quelle=nachgebaut | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x0041A2B0
+ void Version::SetDairyCheeseToZero()
+ {
+ for (int buildingID = 1; buildingID < 2000; ++buildingID) {
+ if (DAT_BuildingsState.buildings[buildingID].logicalState != (BuildingLogicalState)0
+ && DAT_BuildingsState.buildings[buildingID].buildingType
+ == BT_DAIRYFARM) {
+ DAT_BuildingsState.buildings[buildingID].flagonsOfAleOrCheeseOrReleaseDogs = 0;
+ }
+ }
+ }
+}
+}
+
+### 0x0045ae00 resetTeams | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x0045AE00
+ void Version::ResetTeams()
+ {
+ resetTeams();
+ return;
+ }
+}
+}
+
+### 0x0052c570 floodFillField13FromCell | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x0052C570
+ void WildlifeState::floodFillField13FromCell(int param_1, int param_2, int param_3)
+ {
+ int iVar1;
+ uint uVar2;
+ uint uVar3;
+ int iVar4;
+ int iVar5;
+ int* piVar6;
+ this->candidateIndex2 = 1;
+ this->casDisRelated = 1;
+ this->DAT_X10_Array_Section1034[0] = (short)param_1;
+ this->DAT_Y10_Array_Section1034[0] = (short)param_2;
+ this->candidateIndex = 0;
+ this->grid[param_1][param_2].field13_0x34 = param_3;
+ if (this->candidateIndex != this->candidateIndex2) {
+ do {
+ iVar4 = (int)this->DAT_X10_Array_Section1034[this->candidateIndex];
+ iVar5 = (int)this->DAT_Y10_Array_Section1034[this->candidateIndex];
+ this->casDisRelated = this->grid[iVar4][iVar5].field13_0x34;
+ if (this->casDisRelated < 2) {
+ return;
+ }
+ iVar1 = this->casDisRelated + -1;
+ piVar6 = &DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[0].int.yOffset;
+ do {
+ uVar2 = ((Point8IntXY*)(piVar6 + -1))->xOffset + iVar4;
+ uVar3 = *piVar6 + iVar5;
+ if ((((uVar2 < 0x28) && (uVar3 < 0x28)) && (0 < this->grid[uVar2][uVar3].firstMember))
+ && (this->grid[uVar2][uVar3].field13_0x34 < iVar1)) {
+ this->grid[uVar2][uVar3].field13_0x34 = iVar1;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)uVar2;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)uVar3;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (0x63f < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ uVar3 = piVar6[2] + iVar5;
+ uVar2 = piVar6[1] + iVar4;
+ if (((uVar2 < 0x28) && (uVar3 < 0x28))
+ && ((0 < this->grid[uVar2][uVar3].firstMember
+ && (this->grid[uVar2][uVar3].field13_0x34 < iVar1)))) {
+ this->grid[uVar2][uVar3].field13_0x34 = iVar1;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)uVar2;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)uVar3;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (0x63f < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ uVar3 = piVar6[4] + iVar5;
+ uVar2 = piVar6[3] + iVar4;
+ if (((uVar2 < 0x28) && (uVar3 < 0x28))
+ && ((0 < this->grid[uVar2][uVar3].firstMember
+ && (this->grid[uVar2][uVar3].field13_0x34 < iVar1)))) {
+ this->grid[uVar2][uVar3].field13_0x34 = iVar1;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)uVar2;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)uVar3;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (0x63f < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ uVar3 = piVar6[6] + iVar5;
+ uVar2 = piVar6[5] + iVar4;
+ if ((((uVar2 < 0x28) && (uVar3 < 0x28)) && (0 < this->grid[uVar2][uVar3].firstMember))
+ && (this->grid[uVar2][uVar3].field13_0x34 < iVar1)) {
+ this->grid[uVar2][uVar3].field13_0x34 = iVar1;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)uVar2;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)uVar3;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (0x63f < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ piVar6 = piVar6 + 8;
+ } while ((int)piVar6 < 0xb4908c);
+ this->candidateIndex = this->candidateIndex + 1;
+ if (0x63f < this->candidateIndex) {
+ this->candidateIndex = 0;
+ }
+ } while (this->candidateIndex != this->candidateIndex2);
+ }
+ return;
+ }
+}
+}
+
+### 0x0052c810 floodFillField20FromCell | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x0052C810
+ void WildlifeState::floodFillField20FromCell(int param_1, int param_2, int param_3)
+ {
+ int iVar1;
+ uint uVar2;
+ uint uVar3;
+ int iVar4;
+ int iVar5;
+ int* piVar6;
+ this->candidateIndex2 = 1;
+ this->casDisRelated = 1;
+ this->DAT_X10_Array_Section1034[0] = (short)param_1;
+ this->DAT_Y10_Array_Section1034[0] = (short)param_2;
+ this->candidateIndex = 0;
+ this->grid[param_1][param_2].field20_0x50 = param_3;
+ if (this->candidateIndex != this->candidateIndex2) {
+ do {
+ iVar4 = (int)this->DAT_X10_Array_Section1034[this->candidateIndex];
+ iVar5 = (int)this->DAT_Y10_Array_Section1034[this->candidateIndex];
+ this->casDisRelated = this->grid[iVar4][iVar5].field20_0x50;
+ if (this->casDisRelated < 2) {
+ return;
+ }
+ iVar1 = this->casDisRelated + -1;
+ piVar6 = &DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[0].int.yOffset;
+ do {
+ uVar2 = ((Point8IntXY*)(piVar6 + -1))->xOffset + iVar4;
+ uVar3 = *piVar6 + iVar5;
+ if ((((uVar2 < 0x28) && (uVar3 < 0x28)) && (0 < this->grid[uVar2][uVar3].firstMember))
+ && (this->grid[uVar2][uVar3].field20_0x50 < iVar1)) {
+ this->grid[uVar2][uVar3].field20_0x50 = iVar1;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)uVar2;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)uVar3;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (0x63f < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ uVar3 = piVar6[2] + iVar5;
+ uVar2 = piVar6[1] + iVar4;
+ if (((uVar2 < 0x28) && (uVar3 < 0x28))
+ && ((0 < this->grid[uVar2][uVar3].firstMember
+ && (this->grid[uVar2][uVar3].field20_0x50 < iVar1)))) {
+ this->grid[uVar2][uVar3].field20_0x50 = iVar1;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)uVar2;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)uVar3;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (0x63f < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ uVar3 = piVar6[4] + iVar5;
+ uVar2 = piVar6[3] + iVar4;
+ if (((uVar2 < 0x28) && (uVar3 < 0x28))
+ && ((0 < this->grid[uVar2][uVar3].firstMember
+ && (this->grid[uVar2][uVar3].field20_0x50 < iVar1)))) {
+ this->grid[uVar2][uVar3].field20_0x50 = iVar1;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)uVar2;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)uVar3;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (0x63f < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ uVar3 = piVar6[6] + iVar5;
+ uVar2 = piVar6[5] + iVar4;
+ if ((((uVar2 < 0x28) && (uVar3 < 0x28)) && (0 < this->grid[uVar2][uVar3].firstMember))
+ && (this->grid[uVar2][uVar3].field20_0x50 < iVar1)) {
+ this->grid[uVar2][uVar3].field20_0x50 = iVar1;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)uVar2;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)uVar3;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (0x63f < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ piVar6 = piVar6 + 8;
+ } while ((int)piVar6 < 0xb4908c);
+ this->candidateIndex = this->candidateIndex + 1;
+ if (0x63f < this->candidateIndex) {
+ this->candidateIndex = 0;
+ }
+ } while (this->candidateIndex != this->candidateIndex2);
+ }
+ return;
+ }
+}
+}
+
+### 0x0052d9d0 floodFillCasDisFromSignpost | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x0052D9D0
+ void WildlifeState::floodFillCasDisFromSignpost()
+ {
+ int* piVar1;
+ int iVar2;
+ int iVar3;
+ uint uVar4;
+ int* piVar5;
+ int iVar6;
+ int iVar7;
+ uint uVar8;
+ iVar2 = DAT_GameState.mapAndTime
+ .signpostEntryData[DAT_TroopValueState.attackInfo.field128056_0x469d4]
+ .x
+ / 10;
+ this->DAT_X10_Array_Section1034[0] = (short)iVar2;
+ iVar7 = DAT_GameState.mapAndTime
+ .signpostEntryData[DAT_TroopValueState.attackInfo.field128056_0x469d4]
+ .y
+ / 10;
+ this->casDisRelated = 1;
+ this->candidateIndex = 0;
+ this->candidateIndex2 = 1;
+ piVar5 = &this->grid[0][0].field29_0x74;
+ iVar6 = 0x28;
+ do {
+ iVar3 = 0x28;
+ piVar1 = piVar5;
+ do {
+ piVar1[-0xf] = 0;
+ *piVar1 = 0;
+ piVar1 = piVar1 + 0x640;
+ iVar3 = iVar3 + -1;
+ } while (iVar3 != 0);
+ piVar5 = piVar5 + 0x28;
+ iVar6 = iVar6 + -1;
+ } while (iVar6 != 0);
+ this->DAT_Y10_Array_Section1034[0] = (short)iVar7;
+ iVar6 = this->grid[iVar2][iVar7].separateAreaID;
+ this->grid[iVar2][iVar7].casDisRelated2 = 1;
+ if (this->candidateIndex != this->candidateIndex2) {
+ do {
+ iVar7 = (int)this->DAT_X10_Array_Section1034[this->candidateIndex];
+ iVar2 = (int)this->DAT_Y10_Array_Section1034[this->candidateIndex];
+ this->casDisRelated = this->grid[iVar7][iVar2].casDisRelated2;
+ if (99 < this->casDisRelated) {
+ return;
+ }
+ iVar3 = this->casDisRelated + 1;
+ piVar5 = &DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[0].int.yOffset;
+ do {
+ uVar4 = ((Point8IntXY*)(piVar5 + -1))->xOffset + iVar7;
+ uVar8 = *piVar5 + iVar2;
+ if ((((uVar4 < 0x28) && (uVar8 < 0x28)) && (0 < this->grid[uVar4][uVar8].firstMember))
+ && (((iVar6 == this->grid[uVar4][uVar8].separateAreaID
+ && (this->grid[uVar4][uVar8].unknownNonZero01 == 0))
+ && (this->grid[uVar4][uVar8].casDisRelated2 == 0)))) {
+ piVar1 = &this->grid[uVar4][uVar8].field29_0x74;
+ *piVar1 = *piVar1 + 1;
+ this->grid[uVar4][uVar8].casDisRelated2 = iVar3;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)uVar4;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)uVar8;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (0x63f < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ uVar4 = piVar5[1] + iVar7;
+ uVar8 = piVar5[2] + iVar2;
+ if (((uVar4 < 0x28) && (uVar8 < 0x28))
+ && ((0 < this->grid[uVar4][uVar8].firstMember
+ && (((iVar6 == this->grid[uVar4][uVar8].separateAreaID
+ && (this->grid[uVar4][uVar8].unknownNonZero01 == 0))
+ && (this->grid[uVar4][uVar8].casDisRelated2 == 0)))))) {
+ this->grid[uVar4][uVar8].casDisRelated2 = iVar3;
+ piVar1 = &this->grid[uVar4][uVar8].field29_0x74;
+ *piVar1 = *piVar1 + 1;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)uVar4;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)uVar8;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (0x63f < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ uVar4 = piVar5[3] + iVar7;
+ uVar8 = piVar5[4] + iVar2;
+ if (((uVar4 < 0x28) && (uVar8 < 0x28))
+ && (((0 < this->grid[uVar4][uVar8].firstMember
+ && ((iVar6 == this->grid[uVar4][uVar8].separateAreaID
+ && (this->grid[uVar4][uVar8].unknownNonZero01 == 0))))
+ && (this->grid[uVar4][uVar8].casDisRelated2 == 0)))) {
+ this->grid[uVar4][uVar8].casDisRelated2 = iVar3;
+ piVar1 = &this->grid[uVar4][uVar8].field29_0x74;
+ *piVar1 = *piVar1 + 1;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)uVar4;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)uVar8;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (0x63f < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ uVar4 = piVar5[5] + iVar7;
+ uVar8 = piVar5[6] + iVar2;
+ if (((((uVar4 < 0x28) && (uVar8 < 0x28)) && (0 < this->grid[uVar4][uVar8].firstMember))
+ && ((iVar6 == this->grid[uVar4][uVar8].separateAreaID
+ && (this->grid[uVar4][uVar8].unknownNonZero01 == 0))))
+ && (this->grid[uVar4][uVar8].casDisRelated2 == 0)) {
+ this->grid[uVar4][uVar8].casDisRelated2 = iVar3;
+ piVar1 = &this->grid[uVar4][uVar8].field29_0x74;
+ *piVar1 = *piVar1 + 1;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)uVar4;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)uVar8;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (0x63f < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ piVar5 = piVar5 + 8;
+ } while ((int)piVar5 < 0xb4908c);
+ this->candidateIndex = this->candidateIndex + 1;
+ if (0x63f < this->candidateIndex) {
+ this->candidateIndex = 0;
+ }
+ } while (this->candidateIndex != this->candidateIndex2);
+ }
+ return;
+ }
+}
+}
+
+### 0x00477710 string_prependUserPathToString | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x00477710
+ static bool string_prependUserPathToString(std::string& out, char const* path, int csidl)
+ {
+ if (DAT_ResourceManager.configPathLoadedUnk_0x7da) {
+ std::string localStr(DAT_ResourceManager.configPathUnk_0x7db);
+ out = localStr;
+ out.append(path);
+ } else {
+ // apparently, SHGetFolderPathW only returns a maximum of MAX_PATH, which is 260, so they overdid it
+ WCHAR pszPath[2000];
+ if (SHGetFolderPathW(NULL, csidl | CSIDL_FLAG_CREATE, NULL, NULL, pszPath) < S_OK) {
+ return false;
+ }
+ WCHAR _wideCharStr[2000];
+ GetShortPathNameW(pszPath, _wideCharStr, sizeof(_wideCharStr) / sizeof(WCHAR));
+ CHAR _multiByteStr[2000];
+ wideCharToMultiByteWithSize(_multiByteStr, _wideCharStr, sizeof(_multiByteStr) - 1);
+ out.append(_multiByteStr);
+ out.append(path);
+ }
+ if (GetFileAttributesA(out.c_str()) == INVALID_FILE_ATTRIBUTES && !CreateDirectoryA(out.c_str(), NULL)) {
+ return false;
+ }
+ return true;
+ }
+
+### 0x0057f5fe _localtime | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x0057F5FE
+ tm* _localtime(time_t* _Time) { return localtime(_Time); }
+
+### 0x0057f622 __time64 | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x0057F622
+ __time64_t __time64(__time64_t* _Time) { return _time64(_Time); }
+
+### 0x0057f660 _memset | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x0057F660
+ void* _memset(void* _Dst, int _Val, size_t _Size) { return memset(_Dst, _Val, _Size); }
+
+### 0x0057f6da _sprintf | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x0057F6DA
+ int _sprintf(char* _Dest, char const* _Format, ...)
+ {
+ // needed for proxy
+ va_list args;
+ va_start(args, _Format);
+ int result = vsprintf(_Dest, _Format, args);
+ va_end(args);
+ return result;
+ }
+
+### 0x0057f8ee __stricmp | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x0057F8EE
+ int __stricmp(char const* _Str1, char const* _Str2) { return _stricmp(_Str1, _Str2); }
+
+### 0x0057fa62 _atexit | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x0057FA62
+ int _atexit(_atexit_t* param_1) { return atexit(param_1); }
+ // This seems to be the games main free function
+
+### 0x0057fa74 _free_base | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x0057FA74
+ void _free_base(void* _Memory) { free(_Memory); }
+
+### 0x0057fc19 __tolower | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x0057FC19
+ int __tolower(int _C) { return tolower(_C); };
+
+### 0x0057fcb2 _fclose | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x0057FCB2
+ int _fclose(FILE* _File) { return fclose(_File); }
+
+### 0x0057ffca _fread | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x0057FFCA
+ size_t _fread(void* dstBuffer, size_t elSize, size_t count, FILE* file)
+ {
+ return fread(dstBuffer, elSize, count, file);
+ }
+
+### 0x00580034 _malloc | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x00580034
+ void* _malloc(size_t _Size) { return malloc(_Size); }
+
+### 0x0058028f _ftell | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x0058028F
+ long _ftell(FILE* _File) { return ftell(_File); }
+
+### 0x00580384 _fseek | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x00580384
+ int _fseek(FILE* _File, long _Offset, DWORD _Origin) { return fseek(_File, _Offset, _Origin); }
+
+### 0x005804cd _fopen | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x005804CD
+ FILE* _fopen(char const* _Filename, char const* _Mode) { return fopen(_Filename, _Mode); }
+
+### 0x00580577 __vswprintf | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x00580577
+ int __vswprintf(wchar_t* _Dest, wchar_t* _Format, va_list _Args) { return _vswprintf(_Dest, _Format, _Args); }
+
+### 0x00580735 _fgetwc | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x00580735
+ wint_t _fgetwc(FILE* _File) { return fgetwc(_File); }
+
+### 0x0058099b _fwrite | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x0058099B
+ size_t _fwrite(void* _Str, size_t _Size, size_t _Count, FILE* _File) { return fwrite(_Str, _Size, _Count, _File); }
+
+### 0x00580a1d _wcsncpy | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x00580A1D
+ wchar_t* _wcsncpy(wchar_t* _Dest, wchar_t* _Source, size_t _Count) { return wcsncpy(_Dest, _Source, _Count); }
+
+### 0x00580b69 __wcsicmp | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x00580B69
+ int __wcsicmp(wchar_t const* _Str1, wchar_t const* _Str2) { return _wcsicmp(_Str1, _Str2); }
+ // Only jumps to _free in game version
+
+### 0x00580dc1 _free | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x00580DC1
+ void _free(void* _Memory) { free(_Memory); }
+
+### 0x00580dc6 _memcpy_s | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x00580DC6
+ errno_t _memcpy_s(void* _Dst, rsize_t _DstSize, void* _Src, rsize_t _MaxCount)
+ {
+ return memcpy_s(_Dst, _DstSize, _Src, _MaxCount);
+ }
+ // Only jumps to _free
+
+### 0x00580e9c _free_cpp | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x00580E9C
+ void _free_cpp(void* _Memory) { free(_Memory); }
+
+### 0x00580f38 _ucrt_close | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x00580F38
+ int _ucrt_close(int fileDescriptor) { return _close(fileDescriptor); }
+
+### 0x005815c6 _ucrt_read | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x005815C6
+ int _ucrt_read(int fileDescriptor, void* destination, size_t size)
+ {
+ return _read(fileDescriptor, destination, size);
+ }
+
+### 0x005816c3 _ucrt_open | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x005816C3
+ int _ucrt_open(char* _Filename, int _OpenFlag, int _PMode) { return _open(_Filename, _OpenFlag, _PMode); }
+
+### 0x005816fb _rand | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x005816FB
+ int _rand() { return rand(); }
+
+### 0x005818eb __strlwr | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x005818EB
+ char* __strlwr(char* string) { return _strlwr(string); }
+
+### 0x00581f6f _ucrt_write | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x00581F6F
+ int _ucrt_write(int fileDescriptor, void const* src, uint size) { return _write(fileDescriptor, src, size); }
+
+### 0x00582050 _memcpy | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x00582050
+ void* _memcpy(void* _Dst, void* _Src, size_t _Size) { return memcpy(_Dst, _Src, _Size); }
+
+### 0x005824cd __toupper | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x005824CD
+ int __toupper(int _C) { return toupper(_C); }
+
+### 0x0058277e _ucrt_lseek | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x0058277E
+ int _ucrt_lseek(int fileDescriptor, long lDistanceToMove, DWORD moveMethod)
+ {
+ return _lseek(fileDescriptor, lDistanceToMove, moveMethod);
+ }
+
+### 0x005835bb __strnicmp | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x005835BB
+ int __strnicmp(char const* _Str1, char const* _Str2, size_t _MaxCount)
+ {
+ return _strnicmp(_Str1, _Str2, _MaxCount);
+ }
+
+### 0x00583d55 _exit | quelle=nachgebaut | bereich=System
+// STUB: STRONGHOLDCRUSADER 0x00583D55
+ void _exit(int _Code) { exit(_Code); }
+
+### 0x00482280 _REMOVED_COMMAND1_ | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x00482280
+ void Commands::_REMOVED_COMMAND1_() { DAT_GameSynchronyState.DAT_CommandSize = 0; }
+}
+}
+
+### 0x0046d070 Constructor_FilePackager | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x0046D070
+ FilePackager* FilePackager::Constructor_FilePackager()
+ {
+ this->packagerMapVersionNumUnk = 172;
+ this->tempMem = NULL;
+ this->CRASHES_saveUncompressedUnk = FALSE;
+ this->loadAndSaveBarFunc = NULL;
+ return this;
+ }
+}
+}
+
+### 0x0046d090 copyFromOldToNewMapDirectory | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x0046D090
+ void FilePackager::copyFromOldToNewMapDirectory()
+ {
+ this->directory.filePayloadSize = this->oldDirectory.fileSizeWithoutDirectory;
+ this->directory.sectionCount = this->oldDirectory.sectionCount;
+ this->directory.magicNumOfFileType = this->oldDirectory.magicNumOfFileType;
+ this->directory.emptyConst0 = this->oldDirectory.emptyConst0;
+ this->directory.emptyConst1 = this->oldDirectory.emptyConst1;
+ this->directory.emptyConst2 = this->oldDirectory.emptyConst2;
+ this->directory.emptyConst3 = this->oldDirectory.emptyConst3;
+ for (int i = 0; i < 100; ++i) {
+ this->directory.uncompressedSize[i] = this->oldDirectory.uncompressedSize[i];
+ }
+ for (int i = 0; i < 100; ++i) {
+ this->directory.compressedSize[i] = this->oldDirectory.compressedSize[i];
+ }
+ for (int i = 0; i < 100; ++i) {
+ this->directory.id[i] = this->oldDirectory.id[i];
+ }
+ for (int i = 0; i < 100; ++i) {
+ this->directory.isCompressed[i] = this->oldDirectory.isCompressed[i];
+ }
+ for (int i = 0; i < 100; ++i) {
+ this->directory.offset[i] = this->oldDirectory.offset[i];
+ }
+ }
+} // namespace IO
+} // namespace OpenSHC
+
+### 0x00474480 writeMapOrSaveFile | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x00474480
+ void FilePackager::writeMapOrSaveFile(MapSectionAddress* mapSectionAddressArray)
+ {
+ RenderLoadAndSaveBar* const loadAndSaveBarFunc = this->loadAndSaveBarFunc;
+ this->loadAndSaveBarFunc = NULL;
+ int _rawSize = 0;
+ int _secSizeSumUnk = 0;
+ this->currentlyReadFileSectionIndex = 0;
+ this->directory.sectionCount = 0;
+ this->directory.filePayloadSize = 0;
+ // FIXME?: This one can leak memory, but it could also mean that the game is broken in this case anyway.
+ this->tempMem = _malloc(6000000); // 0x5B8D80
+ if (!this->tempMem) {
+ return;
+ }
+ void* _tempMem2 = _malloc(100000); // 0x186A0
+ if (!_tempMem2) {
+ return;
+ }
+ MapSectionAddress* tempSectionAddress = mapSectionAddressArray;
+ for (; this->currentlyReadFileSectionIndex < 150 && mapSectionAddressArray->address > 0;
+ ++mapSectionAddressArray) {
+ _rawSize += mapSectionAddressArray->size;
+ ++this->currentlyReadFileSectionIndex;
+ }
+ this->currentlyReadFileSectionIndex = 0;
+ DAT_GameCore.gameDuration = timeGetTime() - DAT_GameCore.timeSum_2;
+ mapSectionAddressArray = tempSectionAddress;
+ for (; this->currentlyReadFileSectionIndex < 150 && mapSectionAddressArray->address > 0;
+ ++mapSectionAddressArray) {
+ if (mapSectionAddressArray->unknown) {
+ continue;
+ }
+ _secSizeSumUnk += mapSectionAddressArray->size;
+ this->directory.uncompressedSize[this->currentlyReadFileSectionIndex] = mapSectionAddressArray->size;
+ this->directory.id[this->currentlyReadFileSectionIndex] = mapSectionAddressArray->sectionId;
+ this->directory.isCompressed[this->currentlyReadFileSectionIndex] = mapSectionAddressArray->compressed;
+ this->directory.compressedSize[this->currentlyReadFileSectionIndex]
+ = this->directory.uncompressedSize[this->currentlyReadFileSectionIndex];
+ this->directory.offset[this->currentlyReadFileSectionIndex] = this->directory.filePayloadSize;
+ if (!this->directory.isCompressed[this->currentlyReadFileSectionIndex]
+ || this->CRASHES_saveUncompressedUnk) {
+ copyData(
+ this->directory.uncompressedSize[this->currentlyReadFileSectionIndex],
+ mapSectionAddressArray->address, (void*)((int)this->tempMem + this->directory.filePayloadSize));
+ this->directory.filePayloadSize
+ += this->directory.uncompressedSize[this->currentlyReadFileSectionIndex];
+ } else {
+ this->directory.compressedSize[this->currentlyReadFileSectionIndex]
+ = encodeData(
+ this->directory.uncompressedSize[this->currentlyReadFileSectionIndex],
+ (unsigned char*)mapSectionAddressArray->address,
+ (unsigned char*)((int)this->tempMem + this->directory.filePayloadSize));
+ this->directory.filePayloadSize += this->directory.compressedSize[this->currentlyReadFileSectionIndex];
+ }
+ if (loadAndSaveBarFunc) {
+ (*loadAndSaveBarFunc)((int)(((long long)_secSizeSumUnk * 1000) / _rawSize));
+ }
+ if (DAT_GameSynchronyState.currentGameMode != Game::GM_SOLITARY
+ && DAT_GameSynchronyState.currentGameMode != Game::GM_SKIRMISH_SINGLE_PLAYER
+ && this->currentlyReadFileSectionIndex % 10 == 0) {
+ sendPeriodicSyncMessages();
+ }
+ ++this->directory.sectionCount;
+ ++this->currentlyReadFileSectionIndex;
+ }
+ char* _filename
+ = getFileNameOfCurrentActiveResource();
+ int _fileDescriptor = _ucrt_open(
+ _filename, _O_BINARY | _O_TRUNC | _O_CREAT | _O_WRONLY, _S_IREAD | _S_IWRITE);
+ if (_fileDescriptor == -1) {
+ return;
+ }
+ // Blocks required to not enlarge stack (maybe they were helper methods?)
+ // Size variable names not binding: Only guesses based on usage here
+ {
+ int magicByteHolder = -1;
+ _ucrt_write(_fileDescriptor, &magicByteHolder, sizeof(magicByteHolder));
+ switch (DAT_TileMapState.mapSize) {
+ case 100:
+ renderMiniMapForSaving(
+ 50, 50, DAT_TileMapState.mapSize, DAT_TileMapState.mapSize);
+ break;
+ case 160:
+ renderMiniMapForSaving(
+ 20, 20, DAT_TileMapState.mapSize, DAT_TileMapState.mapSize);
+ break;
+ case 200:
+ renderMiniMapForSaving(
+ 0, 0, DAT_TileMapState.mapSize, DAT_TileMapState.mapSize);
+ break;
+ case 300:
+ renderMiniMapForSaving(
+ 25, 25, 150, 150);
+ break;
+ default:
+ renderMiniMapForSaving(
+ 0, 0, 200, 200);
+ break;
+ }
+ int mapWriteSize
+ = generateMinimapImage();
+ mapWriteSize = encodeData(
+ mapWriteSize, (unsigned char*)DAT_MinimapViewState.loadedMiniMap, (unsigned char*)_tempMem2);
+ _ucrt_write(_fileDescriptor, &mapWriteSize, sizeof(mapWriteSize));
+ _ucrt_write(_fileDescriptor, _tempMem2, mapWriteSize);
+ }
+ {
+ int textSize = encodeData(
+ sizeof(DAT_GameCore.temporaryTextBufferOfSize1000),
+ (unsigned char*)DAT_GameCore.temporaryTextBufferOfSize1000, (unsigned char*)_tempMem2);
+ textSize += sizeof(DAT_GameCore.descriptionUseStringTable)
+ + sizeof(DAT_GameCore.descriptionStringTableIndex);
+ _ucrt_write(_fileDescriptor, &textSize, sizeof(textSize));
+ _ucrt_write(_fileDescriptor,
+ &DAT_GameCore.descriptionUseStringTable,
+ sizeof(DAT_GameCore.descriptionUseStringTable));
+ _ucrt_write(_fileDescriptor,
+ &DAT_GameCore.descriptionStringTableIndex,
+ sizeof(DAT_GameCore.descriptionStringTableIndex));
+ _ucrt_write(_fileDescriptor, _tempMem2, textSize - sizeof(int) * 2);
+ }
+ {
+ int ticksAndHashSize = sizeof(DAT_GameSynchronyState.savedMapTimeInTicks)
+ + sizeof(DAT_GameSynchronyState.savedUnitsCRC32Hash);
+ _ucrt_write(_fileDescriptor, &ticksAndHashSize, sizeof(ticksAndHashSize));
+ _ucrt_write(_fileDescriptor,
+ &DAT_GameSynchronyState.savedMapTimeInTicks,
+ sizeof(DAT_GameSynchronyState.savedMapTimeInTicks));
+ _ucrt_write(_fileDescriptor,
+ &DAT_GameSynchronyState.savedUnitsCRC32Hash,
+ sizeof(DAT_GameSynchronyState.savedUnitsCRC32Hash));
+ }
+ {
+ int playerDataSize = sizeof(DAT_GameCore.U2_mapType_singleOrMulti)
+ + sizeof(DAT_GameCore.mapU2MiddleBytes) + sizeof(DAT_GameCore.mapU2PlayersCount);
+ _ucrt_write(_fileDescriptor, &playerDataSize, sizeof(playerDataSize));
+ _ucrt_write(_fileDescriptor, &DAT_GameCore.U2_mapType_singleOrMulti,
+ sizeof(DAT_GameCore.U2_mapType_singleOrMulti));
+ _ucrt_write(_fileDescriptor, &DAT_GameCore.mapU2MiddleBytes,
+ sizeof(DAT_GameCore.mapU2MiddleBytes));
+ _ucrt_write(_fileDescriptor, &DAT_GameCore.mapU2PlayersCount,
+ sizeof(DAT_GameCore.mapU2PlayersCount));
+ }
+ {
+ int scenarioDataSize = sizeof(DAT_MapPropertiesState.scenarionMissionType)
+ + sizeof(DAT_MapPropertiesState.SEC_U3_MapType2_1)
+ + sizeof(DAT_GameCore.U3_mapLockedState) + sizeof(DAT_GameCore.standaloneFilename)
+ + sizeof(DAT_GameCore.mapU3EndInt);
+ _ucrt_write(_fileDescriptor, &scenarioDataSize, sizeof(scenarioDataSize));
+ _ucrt_write(_fileDescriptor,
+ &DAT_MapPropertiesState.scenarionMissionType,
+ sizeof(DAT_MapPropertiesState.scenarionMissionType));
+ _ucrt_write(_fileDescriptor,
+ &DAT_MapPropertiesState.SEC_U3_MapType2_1,
+ sizeof(DAT_MapPropertiesState.SEC_U3_MapType2_1));
+ _ucrt_write(_fileDescriptor, &DAT_GameCore.U3_mapLockedState,
+ sizeof(DAT_GameCore.U3_mapLockedState));
+ _ucrt_write(_fileDescriptor, DAT_GameCore.standaloneFilename,
+ sizeof(DAT_GameCore.standaloneFilename));
+ _ucrt_write(
+ _fileDescriptor, &DAT_GameCore.mapU3EndInt, sizeof(DAT_GameCore.mapU3EndInt));
+ }
+ {
+ int skirmishDataSize = sizeof(DAT_GameCore.mapU4Int0) + sizeof(DAT_GameCore.mapU4Int1)
+ + sizeof(DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes)
+ + sizeof(DAT_GameCore.mapU4Int3_balanced)
+ + sizeof(DAT_MinimapViewState.DAT_MapU4B64);
+ _ucrt_write(_fileDescriptor, &skirmishDataSize, sizeof(skirmishDataSize));
+ _ucrt_write(
+ _fileDescriptor, &DAT_GameCore.mapU4Int0, sizeof(DAT_GameCore.mapU4Int0));
+ _ucrt_write(
+ _fileDescriptor, &DAT_GameCore.mapU4Int1, sizeof(DAT_GameCore.mapU4Int1));
+ _ucrt_write(_fileDescriptor,
+ &DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes,
+ sizeof(DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes));
+ _ucrt_write(_fileDescriptor, &DAT_GameCore.mapU4Int3_balanced,
+ sizeof(DAT_GameCore.mapU4Int3_balanced));
+ _ucrt_write(_fileDescriptor, &DAT_MinimapViewState.DAT_MapU4B64,
+ sizeof(DAT_MinimapViewState.DAT_MapU4B64));
+ }
+ {
+ int unknownSize = 0;
+ _ucrt_write(_fileDescriptor, &unknownSize, sizeof(unknownSize));
+ }
+ this->directorySize = sizeof(this->directorySize) + sizeof(this->directory);
+ this->directory.magicNumOfFileType = 172;
+ _ucrt_write(_fileDescriptor, &this->directorySize, sizeof(this->directorySize));
+ _ucrt_write(_fileDescriptor, &this->directory, sizeof(this->directory));
+ _ucrt_write(_fileDescriptor, this->tempMem, this->directory.filePayloadSize);
+ _ucrt_close(_fileDescriptor);
+ _free_base(this->tempMem);
+ _free_base(_tempMem2);
+ this->tempMem = NULL;
+ }
+} // namespace IO
+} // namespace OpenSHC
+

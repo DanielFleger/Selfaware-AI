@@ -1,0 +1,1075 @@
+### 0x004d4680 selectAttackTarget | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004D4680
+ void AICState::selectAttackTarget(int playerID)
+ {
+ int fromXPosition;
+ int fromYPosition;
+ int iVar1;
+ int _alive1;
+ int _isLordAlive;
+ int _lord;
+ int _selectedPlayer;
+ PlayerData* _pPlayerData2;
+ int _iPlayer2;
+ int _iPlayer;
+ PlayerData* _ptrPlayerData;
+ int _lowestDistance;
+ int _highestGold;
+ int _lowestPoints;
+ int _currentGoldValue;
+ int _points;
+ int _reqState;
+ int _reqState2;
+ AITypeInt _aiType;
+ AITargetChoiceInt _targetChoiceType;
+ _aiType = DAT_GameState.playerDataArray[playerID].aiType;
+ _selectedPlayer = 0;
+ if (_aiType != AIT_NULL) {
+ fromXPosition = DAT_GameState.playerDataArray[playerID].campground.xEntry;
+ fromYPosition = DAT_GameState.playerDataArray[playerID].campground.yEntry;
+ _lowestDistance = 10000;
+ _highestGold = 0;
+ _lowestPoints = 1000000;
+ computeNervousness(playerID);
+ _reqState = DAT_GameState.playerDataArray[playerID].requestStateUnk;
+ if (((_reqState == 2) || (_reqState == 1))
+ && (iVar1 = getAliveLordForPlayer(DAT_GameState.playerDataArray[playerID].playerID_askerUnk),
+ iVar1 == 0)) {
+ DAT_GameState.playerDataArray[playerID].requestStateUnk = 0;
+ }
+ _reqState2 = DAT_GameState.playerDataArray[playerID].requestStateUnk;
+ if (_reqState2 == 2) {
+ DAT_GameState.playerDataArray[playerID].attackedPlayerID = 0;
+ return;
+ }
+ if (_reqState2 == 1) {
+ _alive1 = getAliveLordForPlayer(DAT_GameState.playerDataArray[playerID].requestedAttackTargetUnk);
+ if (_alive1 != 0) {
+ DAT_GameState.playerDataArray[playerID].attackedPlayerID
+ = DAT_GameState.playerDataArray[playerID].requestedAttackTargetUnk;
+ return;
+ }
+ DAT_GameState.playerDataArray[playerID].requestStateUnk = 0;
+ }
+ _pPlayerData2 = (PlayerData*)(&DAT_GameState.playerDataArray[1]);
+ _iPlayer = 1;
+ do {
+ if ((DAT_GameState.mapAndTime.playerTeams[_iPlayer]
+ != DAT_GameState.mapAndTime.playerTeams[playerID])
+ && (_isLordAlive = getAliveLordForPlayer(_iPlayer),
+ _isLordAlive != 0)) {
+ /*
+ fixme:improve: use pythagoras
+ */
+ setAxisBasedDistanceResult((_pPlayerData2->campground).xEntry,
+ (_pPlayerData2->campground).yEntry, fromXPosition, fromYPosition);
+ _targetChoiceType = this->aics[_aiType + ~AIT_NULL].TargetChoice;
+ _currentGoldValue = _highestGold;
+ _points = _lowestPoints;
+ if (_targetChoiceType == AITC_PLAYER) {
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[_iPlayer] != -1) {
+ LAB_004d47c5:
+ if (DAT_DirectionAlgorithmState.distanceHigh <= _lowestDistance) {
+ _lowestDistance = DAT_DirectionAlgorithmState.distanceHigh;
+ LAB_004d4845:
+ _lowestPoints = _points;
+ _highestGold = _currentGoldValue;
+ _selectedPlayer = _iPlayer;
+ }
+ }
+ } else {
+ if (_targetChoiceType == AITC_CLOSEST)
+ goto LAB_004d47c5;
+ if (_targetChoiceType == AITC_GOLD) {
+ _currentGoldValue = _pPlayerData2->currentResources[0xf];
+ if (_highestGold <= _pPlayerData2->currentResources[0xf])
+ goto LAB_004d4845;
+ } else if ((_targetChoiceType == AITC_BALANCED)
+ && (_points = _pPlayerData2->currentPopulation * 5 + _pPlayerData2->totalTroopValue
+ + _pPlayerData2->currentResources[0xf] / 100
+ + DAT_DirectionAlgorithmState.distanceHigh * 2,
+ _points <= _lowestPoints))
+ goto LAB_004d4845;
+ }
+ }
+ _iPlayer = _iPlayer + 1;
+ _pPlayerData2 = _pPlayerData2 + 0x39f4;
+ } while (_iPlayer < 9);
+ if (_selectedPlayer == 0) {
+ _iPlayer2 = 1;
+ _ptrPlayerData = &DAT_GameState.playerDataArray[1];
+ do {
+ if (((DAT_GameState.mapAndTime.playerTeams[_iPlayer2]
+ != DAT_GameState.mapAndTime.playerTeams[playerID])
+ && (_lord = getAliveLordForPlayer(_iPlayer2),
+ _lord != 0))
+ && (setAxisBasedDistanceResult((_ptrPlayerData->campground).xEntry,
+ (_ptrPlayerData->campground).yEntry, fromXPosition, fromYPosition),
+ DAT_DirectionAlgorithmState.distanceHigh <= _lowestDistance)) {
+ _lowestDistance = DAT_DirectionAlgorithmState.distanceHigh;
+ _selectedPlayer = _iPlayer2;
+ }
+ _iPlayer2 = _iPlayer2 + 1;
+ /*
+ next player
+ */
+ _ptrPlayerData = _ptrPlayerData + 0xe7d;
+ } while (_iPlayer2 < 9);
+ if (_selectedPlayer == 0) {
+ return;
+ }
+ }
+ DAT_GameState.playerDataArray[playerID].attackedPlayerID_2Unk = _selectedPlayer;
+ DAT_GameState.playerDataArray[playerID].attackedPlayerID = _selectedPlayer;
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004d4680", "name": "selectAttackTarget", "quelle": "ghidra", "p1": {"bereich": "KI", "zweck": "Wählt das Angriffsziel (Gegenspieler) einer KI."}, "p2": {"ein": "playerID", "aus": "-", "liest": ["aiType", "campground.xEntry/yEntry", "requestStateUnk", "playerID_askerUnk", "requestedAttackTargetUnk", "playerTeams[]", "aics[typ].TargetChoice", "currentResources[0xf] (Gold)", "currentPopulation", "totalTroopValue", "currentPlayerFullIDArray[]", "distanceHigh"], "schreibt": ["requestStateUnk", "attackedPlayerID", "attackedPlayerID_2Unk"], "ruft": ["computeNervousness", "getAliveLordForPlayer", "setAxisBasedDistanceResult"], "regeln": ["Startwerte: kleinste Entfernung 10000, höchstes Gold 0, kleinste Punktzahl 1000000", "requestStateUnk 1 oder 2 und der Anfragende (playerID_askerUnk) ist tot: requestStateUnk = 0", "requestStateUnk == 2: attackedPlayerID = 0, kein Ziel, Ende", "requestStateUnk == 1 und angefragtes Ziel lebt: attackedPlayerID = Ziel, Ende; sonst requestStateUnk = 0", "Kandidaten sind Spieler 1..8 in anderem Team mit lebendem Lord", "Entfernung = achsenbasiert (distanceHigh) zwischen den Burgplätzen, nicht Luftlinie", "AITC_CLOSEST: kleinste Entfernung gewinnt (bei Gleichstand der spätere Spieler)", "AITC_PLAYER: wie CLOSEST, aber nur Spieler mit currentPlayerFullIDArray != -1 (vermutlich Menschen)", "AITC_GOLD: größter Goldbestand gewinnt (bei Gleichstand der spätere Spieler)", "AITC_BALANCED: Punkte = Bevölkerung·5 + totalTroopValue + Gold/100 + Entfernung·2, kleinste Punktzahl gewinnt", "Kein Ziel gewählt (z. B. AITC_PLAYER ohne Mensch): nächster lebender Feind ohne Rücksicht auf TargetChoice; gibt es keinen, bleibt alles unverändert"], "offen": ["Zeigerschritte 0x39f4/0xe7d in der Ghidra-Übersetzung sind Übersetzungsartefakte; gemeint ist vermutlich Spieler für Spieler", "Bedeutung von -1 in currentPlayerFullIDArray (nur aus playAiLordMessage als 'KI' abgeleitet)", "Wer requestStateUnk setzt (Teamanfragen)"]}, "p3": {"erklaerung": "Die KI sucht sich je nach Persönlichkeit den nächsten Gegner, den reichsten, einen Menschen oder den nach Punkten am besten passenden. Teamkameraden werden nie gewählt. Hat ein Verbündeter um Hilfe gebeten, folgt sie dessen Wunsch.", "gehirn": "Gegner kann vorhersagen, wen eine KI angreift: aics[typ].TargetChoice lesen und mit den Werten der Mitspieler rechnen. Viel Gold zieht GOLD-KIs an, kleine Bevölkerung und kleines Heer BALANCED-KIs.", "beleg": "code", "live": "KI im Gefecht mit zwei Gegnern unterschiedlicher Entfernung → playerDataArray[ki].attackedPlayerID nach dem Monatstakt → bei CLOSEST der Gegner mit kleinerem achsenbasierten Abstand", "live_art": "ki-welle"}}
+
+### 0x004d49e0 updateAIPlayerState | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004D49E0
+ void AICState::updateAIPlayerState(int playerID)
+ {
+ short* psVar1;
+ int* piVar2;
+ short sVar3;
+ AITypeInt AVar4;
+ int _aiType;
+ int iVar5;
+ BOOLEnum _shouldAttack;
+ int _attackedPlayerAlive;
+ BOOLEnum _rallyReady;
+ int _aiPlayerState_2;
+ int _aiPlayerState;
+ int _playerID;
+ AVar4 = DAT_GameState.playerDataArray[playerID].aiType;
+ if (AVar4 == AIT_NULL) {
+ return;
+ }
+ _aiType = AVar4 + ~AIT_NULL;
+ iVar5 = DAT_GameState.playerDataArray[playerID].requestStateUnk;
+ if (((iVar5 != 1) && (iVar5 == 2))
+ && (iVar5 = getAliveLordForPlayer(DAT_GameState.playerDataArray[playerID].playerID_askerUnk),
+ iVar5 != 0)) {
+ clearRallyFlagOnAllAIAttackTribes(playerID);
+ sendUnitsToPlayerIDsKeepIfPossible(
+ playerID, DAT_GameState.playerDataArray[playerID].playerID_askerUnk);
+ return;
+ }
+ _aiPlayerState = DAT_GameState.playerDataArray[playerID].aiPlayerState;
+ if (_aiPlayerState == 0) {
+ _shouldAttack = aiShouldAttackOrWaitForTeamCoordination(playerID);
+ if (_shouldAttack == FALSE) {
+ /*
+ Send own units back to keep or campfire
+ */
+ aiRetreatUnits(playerID);
+ return;
+ }
+ /*
+ proceedwithattack
+ */
+ DAT_GameState.playerDataArray[playerID].attackTicker = 0;
+ DAT_GameState.playerDataArray[playerID].aiPlayerState = 1;
+ DAT_GameState.playerDataArray[playerID].unitPatrolRecommandRelatedDelayValue = 0;
+ DAT_GameState.playerDataArray[playerID].aiCoordinatedAttackPatience = 0;
+ setAttackCoordinationLevel(playerID);
+ setCurrentAttackStrength(playerID);
+ setCurrentAttackRaidParameter(playerID);
+ piVar2 = (int*)(DAT_GameState.playerDataArray[playerID].attackedPlayerID * 0x39f4 + 0x115e9d4
+ + playerID * 0x20);
+ *piVar2 = *piVar2 + 1;
+ } else {
+ _rallyReady = hasNoTroopsOrAllAreDiggers(playerID);
+ if ((((_rallyReady != FALSE) && (_aiPlayerState != 9))
+ || ((0 < DAT_GameState.playerDataArray[playerID].aiNervousActionsTracker
+ && (_aiPlayerState < 6))))
+ || (199 < DAT_GameState.playerDataArray[playerID].attackTicker)) {
+ DAT_GameState.playerDataArray[playerID].aiPlayerState = 8;
+ }
+ }
+ clearRallyFlagOnAllAIAttackTribes(playerID);
+ _attackedPlayerAlive = getAliveLordForPlayer(DAT_GameState.playerDataArray[playerID].attackedPlayerID);
+ if (_attackedPlayerAlive == 0) {
+ /*
+ attacked player is dead
+ */
+ iVar5 = DAT_GameState.playerDataArray[playerID].aiPlayerState;
+ if (iVar5 < 4) {
+ DAT_GameState.playerDataArray[playerID].aiPlayerState = 9;
+ disbandAIPlayerSiegeUnits(playerID);
+ removeSiegeBuildings(
+ DAT_GameState.playerDataArray[playerID].currentAttackWave, playerID);
+ addEngineersToTribe(playerID);
+ aiReassignTunnelersToTribe(playerID);
+ findAttackTribePositionAndPathToDefenses(playerID);
+ makeUnitsGoDefensiveAndBackToSomeLocation(
+ playerID);
+ } else if (iVar5 < 7) {
+ DAT_GameState.playerDataArray[playerID].aiPlayerState = 7;
+ }
+ }
+ clearOutdatedAITribes(playerID);
+ _aiPlayerState_2 = DAT_GameState.playerDataArray[playerID].aiPlayerState;
+ if (_aiPlayerState_2 != 1) {
+ if (_aiPlayerState_2 == 2) {
+ /*
+ the general state means to be attacking
+ */
+ _rallyReady
+ = aiChoiceAttForceRallyPercentage(playerID);
+ if (_rallyReady == FALSE) {
+ return;
+ }
+ /*
+ send the attacking units to move closer
+ */
+ DAT_GameState.playerDataArray[playerID].aiPlayerState = 3;
+ useAITribe_0x12_toPlaceSiegeTentsAndAssignEngineers(playerID);
+ recomputeAIPathCostToAttackedKeep(playerID, 1);
+ computeAttackPossibilities(playerID);
+ setNextMoveLocationForUnits(playerID);
+ giveMoveCommandToAttackTribes(playerID);
+ useAITribe_0xe_toPlaceTunnels(playerID);
+ removeOrganismsAndSetMoveDestinationPairs(
+ playerID);
+ commandFourTribesToMove(playerID);
+ playTauntToAttackedPlayerBikFromPlayer(playerID);
+ return;
+ }
+ if (_aiPlayerState_2 == 3) {
+ piVar2 = &DAT_GameState.playerDataArray[playerID].attackTicker;
+ /*
+ send the attacking units closer to the castle
+ */
+ *piVar2 = *piVar2 + 1;
+ moveAttackingUnitsToNextRallyPoint(playerID);
+ sendAITribe_0xf_toAttackPatrol(playerID);
+ aiCommandSiegeEngineTribes(playerID);
+ _rallyReady
+ = processAttForceRallyPercentage(playerID);
+ if (_rallyReady == FALSE) {
+ return;
+ }
+ recomputeAIPathCostToAttackedKeep(playerID, 0);
+ computeAttackPossibilities(playerID);
+ DAT_GameState.playerDataArray[playerID].aiPlayerState = 4;
+ DAT_GameState.playerDataArray[playerID].attackAssaultDelayRelatedValue = 0;
+ aiCommandTribe12AggressiveApproach(playerID);
+ return;
+ }
+ if (_aiPlayerState_2 == 4) {
+ piVar2 = &DAT_GameState.playerDataArray[playerID].attackTicker;
+ *piVar2 = *piVar2 + 1;
+ moveAttackingUnitsToNextRallyPoint(playerID);
+ sendAITribe_0xf_toAttackPatrol(playerID);
+ aiCommandSiegeEngineTribes(playerID);
+ sendTribeToAttack(playerID);
+ iVar5 = countSiegeEngineUnits(playerID);
+ if (iVar5 < 1) {
+ DAT_GameState.playerDataArray[playerID].attackAssaultDelayRelatedValue = 100;
+ }
+ piVar2 = &DAT_GameState.playerDataArray[playerID].attackAssaultDelayRelatedValue;
+ *piVar2 = *piVar2 + 1;
+ if (DAT_GameState.playerDataArray[playerID].attackAssaultDelayRelatedValue
+ <= *(int*)((int)this + _aiType * 0x2a4 + 0x208)) {
+ return;
+ }
+ recomputeAIPathCostToAttackedKeep(playerID, 0);
+ computeAttackPossibilities(playerID);
+ playSFXAtLocationFullVolume(
+ DAT_GameState.playerDataArray[playerID].shortestDistanceX,
+ DAT_GameState.playerDataArray[playerID].shortestDistanceY, 0x14);
+ _rallyReady = canNavigateFromKeepToKeep(playerID, DAT_GameState.playerDataArray[playerID].attackedPlayerID);
+ if (_rallyReady == FALSE) {
+ DAT_GameState.playerDataArray[playerID].aiPlayerState = 5;
+ aiCommandTribe12AggressiveApproach(playerID);
+ aiCommandTribe11StandGroundToGate(playerID);
+ aiCommandTribe13DefensiveWave(playerID);
+ LAB_004d4ed3:
+ recomputeAIPathCostToAttackedKeep(playerID, 0);
+ computeAttackPossibilities(playerID);
+ DAT_GameState.playerDataArray[playerID].unknownCounter01 = 0;
+ return;
+ }
+ } else {
+ if (_aiPlayerState_2 != 5) {
+ if (_aiPlayerState_2 == 6) {
+ /*
+ Enemy castle breached!
+ */
+ if (DAT_GameState.playerDataArray[playerID].shortestDistanceTile < 1) {
+ DAT_GameState.playerDataArray[playerID].aiPlayerState = 0;
+ }
+ piVar2 = &DAT_GameState.playerDataArray[playerID].attackTicker;
+ *piVar2 = *piVar2 + 1;
+ _playerID = DAT_GameState.playerDataArray[playerID].attackedPlayerID;
+ DAT_GameState.playerDataArray[playerID].someResourceCounter = 0;
+ calculateAttackVectorsToCampFireOfPlayer(_playerID);
+ iVar5 = sendUnitsToAttackBreachedCastle(
+ playerID);
+ if (iVar5 != 0) {
+ return;
+ }
+ _rallyReady = canNavigateFromKeepToKeep(
+ playerID, DAT_GameState.playerDataArray[playerID].attackedPlayerID);
+ if (_rallyReady != FALSE) {
+ return;
+ }
+ _rallyReady
+ = canUnitsNavigateFromKeepToKeep(
+ playerID, DAT_GameState.playerDataArray[playerID].attackedPlayerID);
+ if (_rallyReady != FALSE) {
+ return;
+ }
+ DAT_GameState.playerDataArray[playerID].aiPlayerState = 5;
+ goto LAB_004d4ed3;
+ }
+ if (_aiPlayerState_2 == 7) {
+ piVar2
+ = &DAT_GameState.playerDataArray[playerID].unitPatrolRecommandRelatedDelayValue;
+ *piVar2 = *piVar2 + 1;
+ if (DAT_GameState.playerDataArray[playerID].unitPatrolRecommandRelatedDelayValue
+ <= *(int*)((int)this + _aiType * 0x2a4 + 0x20c)) {
+ return;
+ }
+ DAT_GameState.playerDataArray[playerID].aiPlayerState = 9;
+ disbandAIPlayerSiegeUnits(playerID);
+ removeSiegeBuildings(
+ DAT_GameState.playerDataArray[playerID].currentAttackWave, playerID);
+ addEngineersToTribe(playerID);
+ aiReassignTunnelersToTribe(playerID);
+ findAttackTribePositionAndPathToDefenses(
+ playerID);
+ makeUnitsGoDefensiveAndBackToSomeLocation(
+ playerID);
+ return;
+ }
+ if (_aiPlayerState_2 == 8) {
+ /*
+ Retreat from attack.
+ */
+ DAT_GameState.playerDataArray[playerID].aiPlayerState = 9;
+ DAT_GameState.playerDataArray[playerID].attackTicker = 0;
+ disbandAIPlayerSiegeUnits(playerID);
+ removeSiegeBuildings(
+ DAT_GameState.playerDataArray[playerID].currentAttackWave, playerID);
+ addEngineersToTribe(playerID);
+ aiReassignTunnelersToTribe(playerID);
+ findAttackTribePositionAndPathToDefenses(
+ playerID);
+ makeUnitsGoDefensiveAndBackToSomeLocation(
+ playerID);
+ if (0 < DAT_GameState.playerDataArray[playerID].aiNervousActionsTracker) {
+ return;
+ }
+ playAnger1BikFromPlayer(playerID);
+ return;
+ }
+ if (_aiPlayerState_2 != 9) {
+ return;
+ }
+ piVar2 = &DAT_GameState.playerDataArray[playerID].attackTicker;
+ *piVar2 = *piVar2 + 1;
+ if (((DAT_GameState.playerDataArray[playerID].attackTicker < 20)
+ && (_rallyReady = percentageNonMovingTribesGTEAICSpecified(
+ playerID),
+ _rallyReady == FALSE))
+ && (_rallyReady
+ = hasNoTroopsOrAllAreDiggers(playerID),
+ _rallyReady == FALSE)) {
+ return;
+ }
+ goto LAB_004d4ff7;
+ }
+ /*
+ _aiPlayerState_2 is 5 (Attack walls)
+ */
+ if (DAT_GameState.playerDataArray[playerID].shortestDistanceTile < 1) {
+ DAT_GameState.playerDataArray[playerID].aiPlayerState = 0;
+ }
+ psVar1 = &DAT_GameState.playerDataArray[playerID].unknownCounter01;
+ *psVar1 = *psVar1 + 1;
+ sVar3 = DAT_GameState.playerDataArray[playerID].unknownCounter01;
+ piVar2 = &DAT_GameState.playerDataArray[playerID].attackTicker;
+ *piVar2 = *piVar2 + 1;
+ DAT_GameState.playerDataArray[playerID].someResourceCounter = 0;
+ if (3 < sVar3) {
+ recomputeAIPathCostToAttackedKeep(playerID, 0);
+ computeAttackPossibilities(playerID);
+ aiCommandWallAssaultTribes(playerID);
+ aiCommandSiegeEngineTribes(playerID);
+ setTribe0x11ToAggressiveAndAttackIfConditionMet(playerID);
+ setEightTribe0xc0TribesToAggressiveAndAttack(
+ playerID);
+ sendTribeToAttack(playerID);
+ DAT_GameState.playerDataArray[playerID].unknownCounter01 = 0;
+ removeOrganismsAndSetMoveDestinationPairs(
+ playerID);
+ commandFourTribesToMove(playerID);
+ setTribe0xCtoAggressiveAndAttack(playerID);
+ setTribe0xbToAggressiveAndAttack(playerID);
+ }
+ sendAITribe_0xf_toAttackPatrol(playerID);
+ _rallyReady = canNavigateFromKeepToKeep(playerID, DAT_GameState.playerDataArray[playerID].attackedPlayerID);
+ if ((_rallyReady == FALSE)
+ && (_rallyReady
+ = canUnitsNavigateFromKeepToKeep(
+ playerID, DAT_GameState.playerDataArray[playerID].attackedPlayerID),
+ _rallyReady == FALSE)) {
+ return;
+ }
+ }
+ DAT_GameState.playerDataArray[playerID].aiPlayerState = 6;
+ return;
+ }
+ recreateEngineersTribe(playerID);
+ DAT_GameState.playerDataArray[playerID].aiPlayerState = 2;
+ initializeGatePathfindingForOwner(playerID);
+ /*
+ computes the first siege location for units
+ */
+ computeEnemyKeepApproachTile(playerID);
+ if (0 < DAT_GameState.playerDataArray[playerID].shortestDistanceTile) {
+ moveAttackTribesToLocations(playerID);
+ return;
+ }
+ LAB_004d4ff7:
+ DAT_GameState.playerDataArray[playerID].aiPlayerState = 0;
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004d49e0", "name": "updateAIPlayerState", "quelle": "ghidra", "p1": {"bereich": "KI", "zweck": "Zustandsmaschine des KI-Angriffs (aiPlayerState 0 bis 9), einmal pro Woche und KI."}, "p2": {"ein": "playerID", "aus": "-", "liest": ["aiType", "requestStateUnk", "playerID_askerUnk", "aiPlayerState", "attackTicker", "aiNervousActionsTracker", "attackedPlayerID", "shortestDistanceTile", "unknownCounter01", "attackAssaultDelayRelatedValue", "unitPatrolRecommandRelatedDelayValue", "aics[typ] bei +0x208 und +0x20c"], "schreibt": ["aiPlayerState", "attackTicker", "attackAssaultDelayRelatedValue", "unitPatrolRecommandRelatedDelayValue", "aiCoordinatedAttackPatience", "unknownCounter01", "someResourceCounter", "Angriffszähler je Ziel bei 0x115e9d4 + Ziel·0x39f4 + KI·0x20"], "ruft": ["aiShouldAttackOrWaitForTeamCoordination", "aiRetreatUnits", "setAttackCoordinationLevel", "setCurrentAttackStrength", "setCurrentAttackRaidParameter", "clearRallyFlagOnAllAIAttackTribes", "hasNoTroopsOrAllAreDiggers", "getAliveLordForPlayer", "disbandAIPlayerSiegeUnits", "removeSiegeBuildings", "addEngineersToTribe", "aiReassignTunnelersToTribe", "clearOutdatedAITribes", "recreateEngineersTribe", "computeEnemyKeepApproachTile", "moveAttackTribesToLocations", "sendTribeToAttack", "canNavigateFromKeepToKeep", "sendUnitsToAttackBreachedCastle", "playAnger1BikFromPlayer"], "regeln": ["requestStateUnk == 2 und der Anfragende lebt: Rallye-Merker löschen, Einheiten zur Burg des Anfragenden, Ende", "Zustand 0 (Ruhe): ohne Angriffsfreigabe aiRetreatUnits und Ende; sonst attackTicker = 0, Zustand 1, Verzögerungszähler 0, Angriffsstärke und Raid-Parameter setzen, Angriffszähler des Ziels +1", "Zustand 8 (Rückzug) wird erzwungen bei: keine Truppen oder nur Gräber (nicht in Zustand 9), oder nervös (aiNervousActionsTracker > 0) in Zustand < 6, oder attackTicker >= 200", "Ziel-Lord tot: Zustand < 4 wird 9 (Truppen auflösen, Rückzug), Zustand 4 bis 6 wird 7", "Zustand 1: Ingenieure neu, Zustand 2, Tore, Anmarschkachel; shortestDistanceTile > 0: Gruppen losschicken, sonst Zustand 0", "Zustand 2: wartet auf aiChoiceAttForceRallyPercentage, dann Zustand 3 und Zelte, Tunnel, Marschbefehle", "Zustand 3: attackTicker +1, wartet auf processAttForceRallyPercentage, dann Zustand 4 und attackAssaultDelayRelatedValue = 0", "Zustand 4: attackTicker +1, Wartezähler +1 (ohne Belagerungsgerät sofort 100 + 1); größer als aics-Wert bei +0x208: kann die Burg nicht erreicht werden (canNavigateFromKeepToKeep FALSE) Zustand 5, sonst Zustand 6", "Zustand 5 (Mauern angreifen): shortestDistanceTile < 1 setzt Zustand 0; alle 4 Aufrufe (unknownCounter01 > 3) Mauer- und Belagerungsbefehle; sobald ein Weg zur Burg frei ist, Zustand 6", "Zustand 6 (Burg durchbrochen): Angriff auf die Burg; ist kein Weg mehr frei, zurück auf Zustand 5", "Zustand 7: Wartezähler +1, größer als aics-Wert bei +0x20c: Zustand 9 mit Auflösung", "Zustand 8: sofort Zustand 9, attackTicker = 0, Truppen auflösen; wenn nicht nervös, Wutvideo", "Zustand 9: attackTicker +1; unter 20 nur weiter, wenn die Gruppen stehen oder keine Truppen mehr da sind; danach Zustand 0"], "offen": ["Offsets +0x208 und +0x20c im aics-Eintrag (je 0x2a4): Feldnamen unbekannt", "Bei Zustand 5 und 6 wird shortestDistanceTile < 1 auf Zustand 0 gesetzt, der Ablauf läuft aber weiter; ob am Ende Zustand 6 überschreibt, ist offen", "Wann Zustand 5 und 6 wirklich auftreten (Torweg gegen Mauerangriff)"]}, "p3": {"erklaerung": "Der Angriff der KI läuft in Stufen: Ruhe, Aufstellen, Anmarsch, Belagern, Mauern angreifen, Burg gestürmt, Rückzug. Dauert eine Welle 200 Wochenschritte, wird sie abgebrochen. Ist die KI nervös oder hat kein Heer mehr, bricht sie ebenfalls ab.", "gehirn": "playerDataArray[ki].aiPlayerState zeigt, in welcher Phase die KI-Welle ist. 3 und 4 bedeuten Anmarsch und Belagerung; 5 und 6 heißen, dass die Mauer erreicht oder durchbrochen ist. Nervosität vor Zustand 6 beendet die Welle.", "beleg": "code", "live": "KI-Welle über mehrere Wochentakte beobachten → playerDataArray[ki].aiPlayerState → Folge 0,1,2,3,4 (dann 5/6) und bei attackTicker >= 200 oder Nervosität 8 dann 9", "live_art": "ki-welle"}}
+
+### 0x004d7200 ResetEventStatusUnk | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004D7200
+ void Helpers::ResetEventStatusUnk()
+ {
+ short sVar1;
+ int iVar2;
+ int iVar3;
+ InGameEventUnionVersion* _event;
+ int iVar4;
+ InGameEventUnionVersion* _event2;
+ InGameEventUnionVersion* pIVar4;
+ int iVar5;
+ InGameEventExtra* pIVar6;
+ ScenarioEventCondition* pSVar7;
+ INT_ARRAY_00eb1238::instance[0] = 0;
+ INT_ARRAY_00eb1238::instance[1] = 0;
+ INT_ARRAY_00eb1238::instance[2] = 0;
+ INT_ARRAY_00eb1238::instance[3] = 0;
+ INT_ARRAY_00eb1238::instance[4] = 0;
+ INT_ARRAY_00eb1238::instance[5] = 0;
+ INT_ARRAY_00eb1238::instance[6] = 0;
+ INT_ARRAY_00eb1238::instance[7] = 0;
+ INT_ARRAY_00eb1238::instance[8] = 0;
+ INT_ARRAY_00eb1238::instance[9] = 0;
+ INT_ARRAY_00eb1238::instance[10] = 0;
+ INT_ARRAY_00eb1238::instance[0xb] = 0;
+ INT_ARRAY_00eb1238::instance[0xc] = 0;
+ INT_ARRAY_00eb1238::instance[0xd] = 0;
+ INT_ARRAY_00eb1238::instance[0xe] = 0;
+ INT_ARRAY_00eb1238::instance[0xf] = 0;
+ INT_ARRAY_00eb1238::instance[0x10] = 0;
+ INT_ARRAY_00eb1238::instance[0x11] = 0;
+ INT_ARRAY_00eb1238::instance[0x12] = 0;
+ INT_ARRAY_00eb1238::instance[0x13] = 0;
+ INT_ARRAY_00eb1238::instance[0x14] = 0;
+ INT_ARRAY_00eb1238::instance[0x15] = 0;
+ INT_ARRAY_00eb1238::instance[0x16] = 0;
+ INT_ARRAY_00eb1238::instance[0x17] = 0;
+ INT_ARRAY_00eb1238::instance[0x18] = 0;
+ INT_ARRAY_00eb1238::instance[0x19] = 0;
+ INT_ARRAY_00eb1238::instance[0x1a] = 0;
+ INT_ARRAY_00eb1238::instance[0x1b] = 0;
+ INT_ARRAY_00eb1238::instance[0x1c] = 0;
+ INT_ARRAY_00eb1238::instance[0x1d] = 0;
+ INT_ARRAY_00eb1238::instance[0x1e] = 0;
+ INT_ARRAY_00eb1238::instance[0x1f] = 0;
+ INT_ARRAY_00eb1238::instance[0x20] = 0;
+ INT_ARRAY_00eb1238::instance[0x21] = 0;
+ INT_ARRAY_00eb1238::instance[0x22] = 0;
+ INT_ARRAY_00eb1238::instance[0x23] = 0;
+ INT_ARRAY_00eb1238::instance[0x24] = 0;
+ INT_ARRAY_00eb1238::instance[0x25] = 0;
+ INT_ARRAY_00eb1238::instance[0x26] = 0;
+ INT_ARRAY_00eb1238::instance[0x27] = 0;
+ INT_ARRAY_00ed2fc8::instance[0] = 0;
+ INT_ARRAY_00ed2fc8::instance[1] = 0;
+ INT_ARRAY_00ed2fc8::instance[2] = 0;
+ INT_ARRAY_00ed2fc8::instance[3] = 0;
+ INT_ARRAY_00ed2fc8::instance[4] = 0;
+ INT_ARRAY_00ed2fc8::instance[5] = 0;
+ INT_ARRAY_00ed2fc8::instance[6] = 0;
+ INT_ARRAY_00ed2fc8::instance[7] = 0;
+ INT_ARRAY_00ed2fc8::instance[8] = 0;
+ INT_ARRAY_00ed2fc8::instance[9] = 0;
+ INT_ARRAY_00ed2fc8::instance[10] = 0;
+ INT_ARRAY_00ed2fc8::instance[0xb] = 0;
+ INT_ARRAY_00ed2fc8::instance[0xc] = 0;
+ INT_ARRAY_00ed2fc8::instance[0xd] = 0;
+ INT_ARRAY_00ed2fc8::instance[0xe] = 0;
+ INT_ARRAY_00ed2fc8::instance[0xf] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x10] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x11] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x12] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x13] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x14] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x15] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x16] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x17] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x18] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x19] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x1a] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x1b] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x1c] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x1d] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x1e] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x1f] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x20] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x21] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x22] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x23] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x24] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x25] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x26] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x27] = 0;
+ INT_ARRAY_00ed3070::instance[0] = 0;
+ INT_ARRAY_00ed3070::instance[1] = 0;
+ INT_ARRAY_00ed3070::instance[2] = 0;
+ INT_ARRAY_00ed3070::instance[3] = 0;
+ INT_ARRAY_00ed3070::instance[4] = 0;
+ INT_ARRAY_00ed3070::instance[5] = 0;
+ INT_ARRAY_00ed3070::instance[6] = 0;
+ INT_ARRAY_00ed3070::instance[7] = 0;
+ INT_ARRAY_00ed3070::instance[8] = 0;
+ INT_ARRAY_00ed3070::instance[9] = 0;
+ INT_ARRAY_00ed3070::instance[10] = 0;
+ INT_ARRAY_00ed3070::instance[0xb] = 0;
+ INT_ARRAY_00ed3070::instance[0xc] = 0;
+ INT_ARRAY_00ed3070::instance[0xd] = 0;
+ INT_ARRAY_00ed3070::instance[0xe] = 0;
+ INT_ARRAY_00ed3070::instance[0xf] = 0;
+ INT_ARRAY_00ed3070::instance[0x10] = 0;
+ INT_ARRAY_00ed3070::instance[0x11] = 0;
+ INT_ARRAY_00ed3070::instance[0x12] = 0;
+ INT_ARRAY_00ed3070::instance[0x13] = 0;
+ INT_ARRAY_00ed3070::instance[0x14] = 0;
+ INT_ARRAY_00ed3070::instance[0x15] = 0;
+ INT_ARRAY_00ed3070::instance[0x16] = 0;
+ INT_ARRAY_00ed3070::instance[0x17] = 0;
+ INT_ARRAY_00ed3070::instance[0x18] = 0;
+ INT_ARRAY_00ed3070::instance[0x19] = 0;
+ INT_ARRAY_00ed3070::instance[0x1a] = 0;
+ INT_ARRAY_00ed3070::instance[0x1b] = 0;
+ INT_ARRAY_00ed3070::instance[0x1c] = 0;
+ INT_ARRAY_00ed3070::instance[0x1d] = 0;
+ INT_ARRAY_00ed3070::instance[0x1e] = 0;
+ INT_ARRAY_00ed3070::instance[0x1f] = 0;
+ INT_ARRAY_00ed3070::instance[0x20] = 0;
+ INT_ARRAY_00ed3070::instance[0x21] = 0;
+ INT_ARRAY_00ed3070::instance[0x22] = 0;
+ INT_ARRAY_00ed3070::instance[0x23] = 0;
+ INT_ARRAY_00ed3070::instance[0x24] = 0;
+ INT_ARRAY_00ed3070::instance[0x25] = 0;
+ INT_ARRAY_00ed3070::instance[0x26] = 0;
+ INT_ARRAY_00ed3070::instance[0x27] = 0;
+ INT_ARRAY_00ed2630::instance[0] = 0;
+ INT_ARRAY_00ed2630::instance[1] = 0;
+ INT_ARRAY_00ed2630::instance[2] = 0;
+ INT_ARRAY_00ed2630::instance[3] = 0;
+ INT_ARRAY_00ed2630::instance[4] = 0;
+ INT_ARRAY_00ed2630::instance[5] = 0;
+ INT_ARRAY_00ed2630::instance[6] = 0;
+ INT_ARRAY_00ed2630::instance[7] = 0;
+ INT_ARRAY_00ed2630::instance[8] = 0;
+ INT_ARRAY_00ed2630::instance[9] = 0;
+ INT_ARRAY_00ed2630::instance[10] = 0;
+ INT_ARRAY_00ed2630::instance[0xb] = 0;
+ INT_ARRAY_00ed2630::instance[0xc] = 0;
+ INT_ARRAY_00ed2630::instance[0xd] = 0;
+ INT_ARRAY_00ed2630::instance[0xe] = 0;
+ INT_ARRAY_00ed2630::instance[0xf] = 0;
+ INT_ARRAY_00ed2630::instance[0x10] = 0;
+ INT_ARRAY_00ed2630::instance[0x11] = 0;
+ INT_ARRAY_00ed2630::instance[0x12] = 0;
+ INT_ARRAY_00ed2630::instance[0x13] = 0;
+ INT_ARRAY_00ed2630::instance[0x14] = 0;
+ INT_ARRAY_00ed2630::instance[0x15] = 0;
+ INT_ARRAY_00ed2630::instance[0x16] = 0;
+ INT_ARRAY_00ed2630::instance[0x17] = 0;
+ INT_ARRAY_00ed2630::instance[0x18] = 0;
+ INT_ARRAY_00ed2630::instance[0x19] = 0;
+ INT_ARRAY_00ed2630::instance[0x1a] = 0;
+ INT_ARRAY_00ed2630::instance[0x1b] = 0;
+ INT_ARRAY_00ed2630::instance[0x1c] = 0;
+ INT_ARRAY_00ed2630::instance[0x1d] = 0;
+ INT_ARRAY_00ed2630::instance[0x1e] = 0;
+ INT_ARRAY_00ed2630::instance[0x1f] = 0;
+ INT_ARRAY_00ed2630::instance[0x20] = 0;
+ INT_ARRAY_00ed2630::instance[0x21] = 0;
+ INT_ARRAY_00ed2630::instance[0x22] = 0;
+ INT_ARRAY_00ed2630::instance[0x23] = 0;
+ INT_ARRAY_00ed2630::instance[0x24] = 0;
+ INT_ARRAY_00ed2630::instance[0x25] = 0;
+ INT_ARRAY_00ed2630::instance[0x26] = 0;
+ INT_ARRAY_00ed2630::instance[0x27] = 0;
+ if (0 < DAT_MapPropertiesState.eventsCount) {
+ _event = (InGameEventUnionVersion*)((int)&DAT_MapPropertiesState.scenarioEvents[0]);
+ iVar5 = DAT_MapPropertiesState.eventsCount;
+ do {
+ if ((_event.header.tl_type == 3)
+ && (((iVar4 = (_event->data).scenario.ScenarioEventType, iVar4 == 1 || (iVar4 == 0x1b))
+ && (*(char*)((int)&_event->data + 0xf) != '\0')))) {
+ INT_00ec02e8::instance = 1;
+ }
+ _event = _event + 0xe4;
+ iVar5 = iVar5 + -1;
+ } while (iVar5 != 0);
+ }
+ iVar5 = 0;
+ if (DAT_MapPropertiesState.eventsCount < 1) {
+ INT_ARRAY_00eb1238::instance[0] = 0;
+ INT_ARRAY_00eb1238::instance[1] = 0;
+ INT_ARRAY_00eb1238::instance[2] = 0;
+ INT_ARRAY_00eb1238::instance[3] = 0;
+ INT_ARRAY_00eb1238::instance[4] = 0;
+ INT_ARRAY_00eb1238::instance[5] = 0;
+ INT_ARRAY_00eb1238::instance[6] = 0;
+ INT_ARRAY_00eb1238::instance[7] = 0;
+ INT_ARRAY_00eb1238::instance[8] = 0;
+ INT_ARRAY_00eb1238::instance[9] = 0;
+ INT_ARRAY_00eb1238::instance[10] = 0;
+ INT_ARRAY_00eb1238::instance[0xb] = 0;
+ INT_ARRAY_00eb1238::instance[0xc] = 0;
+ INT_ARRAY_00eb1238::instance[0xd] = 0;
+ INT_ARRAY_00eb1238::instance[0xe] = 0;
+ INT_ARRAY_00eb1238::instance[0xf] = 0;
+ INT_ARRAY_00eb1238::instance[0x10] = 0;
+ INT_ARRAY_00eb1238::instance[0x11] = 0;
+ INT_ARRAY_00eb1238::instance[0x12] = 0;
+ INT_ARRAY_00eb1238::instance[0x13] = 0;
+ INT_ARRAY_00eb1238::instance[0x14] = 0;
+ INT_ARRAY_00eb1238::instance[0x15] = 0;
+ INT_ARRAY_00eb1238::instance[0x16] = 0;
+ INT_ARRAY_00eb1238::instance[0x17] = 0;
+ INT_ARRAY_00eb1238::instance[0x18] = 0;
+ INT_ARRAY_00eb1238::instance[0x19] = 0;
+ INT_ARRAY_00eb1238::instance[0x1a] = 0;
+ INT_ARRAY_00eb1238::instance[0x1b] = 0;
+ INT_ARRAY_00eb1238::instance[0x1c] = 0;
+ INT_ARRAY_00eb1238::instance[0x1d] = 0;
+ INT_ARRAY_00eb1238::instance[0x1e] = 0;
+ INT_ARRAY_00eb1238::instance[0x1f] = 0;
+ INT_ARRAY_00eb1238::instance[0x20] = 0;
+ INT_ARRAY_00eb1238::instance[0x21] = 0;
+ INT_ARRAY_00eb1238::instance[0x22] = 0;
+ INT_ARRAY_00eb1238::instance[0x23] = 0;
+ INT_ARRAY_00eb1238::instance[0x24] = 0;
+ INT_ARRAY_00eb1238::instance[0x25] = 0;
+ INT_ARRAY_00eb1238::instance[0x26] = 0;
+ INT_ARRAY_00eb1238::instance[0x27] = 0;
+ INT_ARRAY_00ed2630::instance[0] = 0;
+ INT_ARRAY_00ed2630::instance[1] = 0;
+ INT_ARRAY_00ed2630::instance[2] = 0;
+ INT_ARRAY_00ed2630::instance[3] = 0;
+ INT_ARRAY_00ed2630::instance[4] = 0;
+ INT_ARRAY_00ed2630::instance[5] = 0;
+ INT_ARRAY_00ed2630::instance[6] = 0;
+ INT_ARRAY_00ed2630::instance[7] = 0;
+ INT_ARRAY_00ed2630::instance[8] = 0;
+ INT_ARRAY_00ed2630::instance[9] = 0;
+ INT_ARRAY_00ed2630::instance[10] = 0;
+ INT_ARRAY_00ed2630::instance[0xb] = 0;
+ INT_ARRAY_00ed2630::instance[0xc] = 0;
+ INT_ARRAY_00ed2630::instance[0xd] = 0;
+ INT_ARRAY_00ed2630::instance[0xe] = 0;
+ INT_ARRAY_00ed2630::instance[0xf] = 0;
+ INT_ARRAY_00ed2630::instance[0x10] = 0;
+ INT_ARRAY_00ed2630::instance[0x11] = 0;
+ INT_ARRAY_00ed2630::instance[0x12] = 0;
+ INT_ARRAY_00ed2630::instance[0x13] = 0;
+ INT_ARRAY_00ed2630::instance[0x14] = 0;
+ INT_ARRAY_00ed2630::instance[0x15] = 0;
+ INT_ARRAY_00ed2630::instance[0x16] = 0;
+ INT_ARRAY_00ed2630::instance[0x17] = 0;
+ INT_ARRAY_00ed2630::instance[0x18] = 0;
+ INT_ARRAY_00ed2630::instance[0x19] = 0;
+ INT_ARRAY_00ed2630::instance[0x1a] = 0;
+ INT_ARRAY_00ed2630::instance[0x1b] = 0;
+ INT_ARRAY_00ed2630::instance[0x1c] = 0;
+ INT_ARRAY_00ed2630::instance[0x1d] = 0;
+ INT_ARRAY_00ed2630::instance[0x1e] = 0;
+ INT_ARRAY_00ed2630::instance[0x1f] = 0;
+ INT_ARRAY_00ed2630::instance[0x20] = 0;
+ INT_ARRAY_00ed2630::instance[0x21] = 0;
+ INT_ARRAY_00ed2630::instance[0x22] = 0;
+ INT_ARRAY_00ed2630::instance[0x23] = 0;
+ INT_ARRAY_00ed2630::instance[0x24] = 0;
+ INT_ARRAY_00ed2630::instance[0x25] = 0;
+ INT_ARRAY_00ed2630::instance[0x26] = 0;
+ INT_ARRAY_00ed2630::instance[0x27] = 0;
+ INT_ARRAY_00ed2fc8::instance[0] = 0;
+ INT_ARRAY_00ed2fc8::instance[1] = 0;
+ INT_ARRAY_00ed2fc8::instance[2] = 0;
+ INT_ARRAY_00ed2fc8::instance[3] = 0;
+ INT_ARRAY_00ed2fc8::instance[4] = 0;
+ INT_ARRAY_00ed2fc8::instance[5] = 0;
+ INT_ARRAY_00ed2fc8::instance[6] = 0;
+ INT_ARRAY_00ed2fc8::instance[7] = 0;
+ INT_ARRAY_00ed2fc8::instance[8] = 0;
+ INT_ARRAY_00ed2fc8::instance[9] = 0;
+ INT_ARRAY_00ed2fc8::instance[10] = 0;
+ INT_ARRAY_00ed2fc8::instance[0xb] = 0;
+ INT_ARRAY_00ed2fc8::instance[0xc] = 0;
+ INT_ARRAY_00ed2fc8::instance[0xd] = 0;
+ INT_ARRAY_00ed2fc8::instance[0xe] = 0;
+ INT_ARRAY_00ed2fc8::instance[0xf] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x10] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x11] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x12] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x13] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x14] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x15] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x16] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x17] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x18] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x19] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x1a] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x1b] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x1c] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x1d] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x1e] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x1f] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x20] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x21] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x22] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x23] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x24] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x25] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x26] = 0;
+ INT_ARRAY_00ed2fc8::instance[0x27] = 0;
+ INT_ARRAY_00ed3070::instance[0] = 0;
+ INT_ARRAY_00ed3070::instance[1] = 0;
+ INT_ARRAY_00ed3070::instance[2] = 0;
+ INT_ARRAY_00ed3070::instance[3] = 0;
+ INT_ARRAY_00ed3070::instance[4] = 0;
+ INT_ARRAY_00ed3070::instance[5] = 0;
+ INT_ARRAY_00ed3070::instance[6] = 0;
+ INT_ARRAY_00ed3070::instance[7] = 0;
+ INT_ARRAY_00ed3070::instance[8] = 0;
+ INT_ARRAY_00ed3070::instance[9] = 0;
+ INT_ARRAY_00ed3070::instance[10] = 0;
+ INT_ARRAY_00ed3070::instance[0xb] = 0;
+ INT_ARRAY_00ed3070::instance[0xc] = 0;
+ INT_ARRAY_00ed3070::instance[0xd] = 0;
+ INT_ARRAY_00ed3070::instance[0xe] = 0;
+ INT_ARRAY_00ed3070::instance[0xf] = 0;
+ INT_ARRAY_00ed3070::instance[0x10] = 0;
+ INT_ARRAY_00ed3070::instance[0x11] = 0;
+ INT_ARRAY_00ed3070::instance[0x12] = 0;
+ INT_ARRAY_00ed3070::instance[0x13] = 0;
+ INT_ARRAY_00ed3070::instance[0x14] = 0;
+ INT_ARRAY_00ed3070::instance[0x15] = 0;
+ INT_ARRAY_00ed3070::instance[0x16] = 0;
+ INT_ARRAY_00ed3070::instance[0x17] = 0;
+ INT_ARRAY_00ed3070::instance[0x18] = 0;
+ INT_ARRAY_00ed3070::instance[0x19] = 0;
+ INT_ARRAY_00ed3070::instance[0x1a] = 0;
+ INT_ARRAY_00ed3070::instance[0x1b] = 0;
+ INT_ARRAY_00ed3070::instance[0x1c] = 0;
+ INT_ARRAY_00ed3070::instance[0x1d] = 0;
+ INT_ARRAY_00ed3070::instance[0x1e] = 0;
+ INT_ARRAY_00ed3070::instance[0x1f] = 0;
+ INT_ARRAY_00ed3070::instance[0x20] = 0;
+ INT_ARRAY_00ed3070::instance[0x21] = 0;
+ INT_ARRAY_00ed3070::instance[0x22] = 0;
+ INT_ARRAY_00ed3070::instance[0x23] = 0;
+ INT_ARRAY_00ed3070::instance[0x24] = 0;
+ INT_ARRAY_00ed3070::instance[0x25] = 0;
+ INT_ARRAY_00ed3070::instance[0x26] = 0;
+ INT_ARRAY_00ed3070::instance[0x27] = 0;
+ return;
+ }
+ _event2 = (InGameEventUnionVersion*)((int)&DAT_MapPropertiesState.scenarioEvents[0]);
+ do {
+ if (_event2.header.tl_type == 3) {
+ iVar4 = (_event2->data).scenario.ScenarioEventType;
+ if (((iVar4 == 1) || (iVar4 == 0x1b)) && (*(char*)((int)&_event2->data + 0xf) != '\0')) {
+ INT_00ec02e8::instance = 1;
+ }
+ iVar4 = (_event2->data).scenario.ScenarioEventType;
+ if ((iVar4 == 0) || (iVar4 == 0x1a)) {
+ if ((DAT_GameCore.field22_0x64 != 1)
+ || (iVar4 = iVar5 + 1, DAT_MapPropertiesState.eventsCount <= iVar4))
+ goto LAB_004d7613;
+ pIVar4
+ = (InGameEventUnionVersion*)((int)&DAT_MapPropertiesState.scenarioEvents[iVar5 + 1]);
+ break;
+ }
+ }
+ iVar5 = iVar5 + 1;
+ _event2 = _event2 + 0xe4;
+ if (DAT_MapPropertiesState.eventsCount <= iVar5) {
+ return;
+ }
+ } while (true);
+ while (true) {
+ iVar5 = iVar3;
+ iVar4 = iVar4 + 1;
+ pIVar4 = pIVar4 + 0xe4;
+ if (DAT_MapPropertiesState.eventsCount <= iVar4)
+ break;
+ iVar3 = iVar5;
+ if (((pIVar4.header.tl_type == 3)
+ && ((iVar2 = (pIVar4->data).scenario.ScenarioEventType, iVar2 == 0 || (iVar2 == 0x1a))))
+ && ((iVar2 = pIVar4.header.year,
+ DAT_GameState.mapAndTime.year < iVar2
+ || ((iVar3 = iVar4,
+ iVar2 == DAT_GameState.mapAndTime.year
+ && (DAT_GameState.mapAndTime.month < pIVar4.header.month))))))
+ break;
+ }
+ LAB_004d7613:
+ iVar4 = 0;
+ pSVar7 = DAT_MapPropertiesState.scenarioEvents[iVar5].data.scenario.conditions;
+ pIVar6 = DAT_MapPropertiesState.SEC_EventsExtra + iVar5;
+ do {
+ iVar5 = pIVar6->conditionOneIsTrue;
+ INT_ARRAY_00ed2630::instance[iVar4] = (int)(char)pSVar7->enabled;
+ sVar1 = pSVar7->value;
+ INT_ARRAY_00ed3070::instance[iVar4] = iVar5;
+ INT_ARRAY_00ed2fc8::instance[iVar4] = (int)sVar1;
+ if (((((iVar4 == 4) || (iVar4 == 5)) || (iVar4 == 6)) || ((iVar4 == 0x11 || (iVar4 == 7))))
+ || (iVar4 == 1)) {
+ iVar5 = getDifficultyMultipliedValue((int)sVar1);
+ INT_ARRAY_00ed2fc8::instance[iVar4] = iVar5;
+ }
+ INT_ARRAY_00eb1238::instance[iVar4] = (int)(char)pSVar7->subType;
+ iVar4 = iVar4 + 1;
+ pIVar6 = (InGameEventExtra*)&pIVar6->conditionTwoIsTrue;
+ pSVar7 = pSVar7 + 1;
+ } while (iVar4 < 0x28);
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004d7200", "name": "ResetEventStatusUnk", "quelle": "ghidra", "p1": {"bereich": "Spielablauf", "zweck": "Kopiert die 40 Bedingungen des aktuell gültigen Szenario-Ereignisses in vier Hilfstabellen."}, "p2": {"ein": "-", "aus": "-", "liest": ["DAT_MapPropertiesState.eventsCount", "DAT_MapPropertiesState.scenarioEvents[]", "DAT_MapPropertiesState.SEC_EventsExtra[].conditionOneIsTrue", "DAT_GameState.mapAndTime.year/month", "DAT_GameCore.field22_0x64"], "schreibt": ["INT_ARRAY_00ed2630[0..39] (enabled)", "INT_ARRAY_00ed2fc8[0..39] (value)", "INT_ARRAY_00ed3070[0..39] (conditionOneIsTrue)", "INT_ARRAY_00eb1238[0..39] (subType)", "INT_00ec02e8"], "ruft": ["getDifficultyMultipliedValue"], "regeln": ["Zuerst werden alle vier Tabellen mit je 40 Einträgen auf 0 gesetzt", "INT_00ec02e8 wird 1, wenn ein Ereignis mit tl_type 3 den ScenarioEventType 1 oder 0x1b hat und das Byte bei data+0xf ungleich 0 ist", "Gesucht wird ein Ereignis mit tl_type 3 und ScenarioEventType 0 oder 0x1a; ohne Treffer bleiben die Tabellen 0", "Ist field22_0x64 ungleich 1 oder gibt es kein Folgeereignis, werden die Bedingungen dieses ersten Treffers kopiert", "Ist field22_0x64 gleich 1, wird nach Folgeereignissen gleicher Typen gesucht, die zeitlich nach dem aktuellen Jahr/Monat liegen; deren Bedingungen werden kopiert", "Je Bedingung 0..39 gilt: enabled, value, conditionOneIsTrue und subType wandern in die vier Tabellen", "Die Werte der Bedingungen 1, 4, 5, 6, 7 und 0x11 laufen zusätzlich durch getDifficultyMultipliedValue, sind also schwierigkeitsabhängig", "Pro Ereignis springt der Zeiger um 0xe4 Bytes (so groß ist ein Ereignis)"], "offen": ["Welche Bedingungen 1, 4, 5, 6, 7 und 0x11 inhaltlich sind (Ghidra-Namen fehlen)", "Bedeutung von field22_0x64 und der Ereignistypen 0 / 0x1a gegenüber 1 / 0x1b", "Die Auswahl des Folgeereignisses ist in der Ghidra-Übersetzung unsauber (iVar3 wirkt unbelegt); die Reihenfolge der Suche ist ungeklärt"]}, "p3": {"erklaerung": "Bereitet für Szenario-Karten die Bedingungen des nächsten Ereignisses auf, damit das Spiel sie prüfen kann. Manche Zahlen werden dabei nach Schwierigkeit umgerechnet.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x004d9400 Skirmish_PrepareLeaderboardView | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004D9400
+ void Skirmish::Skirmish_PrepareLeaderboardView()
+ {
+ char cVar1;
+ int iVar2;
+ byte bVar3;
+ int _index;
+ SkMasterDataEntry* puVar7;
+ char* pcVar4;
+ int _index2;
+ SkMasterDataEntry* _pSkMasters_01;
+ SkMasterDataEntry* _pSkMasters_02;
+ int* piVar5;
+ byte bVar6;
+ int iVar7;
+ SkMasterDataEntry* pSVar8;
+ char* pcVar9;
+ int _count;
+ uint _month;
+ uint _year;
+ _count = DAT_SkMasters2Data_Count;
+ /*
+ Phase 1: Initialize visibility filter
+ */
+ if (0 < DAT_SkMasters2Data_Count) {
+ piVar5 = INT_ARRAY_00eb0e48::instance;
+ for (_index2 = DAT_SkMasters2Data_Count; _index2 != 0; _index2 = _index2 + -1) {
+ *piVar5 = 1;
+ piVar5 = piVar5 + 1;
+ }
+ }
+ iVar7 = DAT_00ed3124;
+ if (DAT_00ed3124 == 1) {
+ _index = 0;
+ if (0 < _count) {
+ _pSkMasters_01 = DAT_SkMasters2DataArray;
+ do {
+ if (_pSkMasters_01->score == 0) {
+ INT_ARRAY_00eb0e48::instance[_index] = 0;
+ }
+ _index = _index + 1;
+ _pSkMasters_01 = _pSkMasters_01 + 1;
+ } while (_index < _count);
+ }
+ } else if ((DAT_00ed3124 == 2) && (_index = 0, 0 < _count)) {
+ _pSkMasters_02 = DAT_SkMasters2DataArray;
+ do {
+ if (_pSkMasters_02->score != 0) {
+ INT_ARRAY_00eb0e48::instance[_index] = 0;
+ }
+ _index = _index + 1;
+ _pSkMasters_02 = _pSkMasters_02 + 1;
+ } while (_index < _count);
+ }
+ /*
+ Phase 2: Sort column dispatch
+ */
+ if (DAT_MissionDefinedData.sortColumn < 2) {
+ iVar7 = 0;
+ DAT_00eb9b60 = 0;
+ if (DAT_MissionDefinedData.descending == 1) {
+ _index = 0;
+ if (0 < _count) {
+ do {
+ if (INT_ARRAY_00eb0e48::instance[_index] != 0) {
+ INT_ARRAY_00eb96d8::instance[iVar7] = _index;
+ iVar7 = iVar7 + 1;
+ }
+ _index = _index + 1;
+ } while (_index < _count);
+ DAT_00eb9b60 = iVar7;
+ return;
+ }
+ } else if ((DAT_MissionDefinedData.descending == 0) && (0 < _count)) {
+ piVar5 = INT_00eb0e44::ptr + _count;
+ _index = _count;
+ do {
+ _index = _index + -1;
+ if (*piVar5 != 0) {
+ INT_ARRAY_00eb96d8::instance[iVar7] = _index;
+ iVar7 = iVar7 + 1;
+ }
+ piVar5 = piVar5 + -1;
+ _count = _count + -1;
+ } while (_count != 0);
+ DAT_00eb9b60 = iVar7;
+ return;
+ }
+ } else {
+ if (DAT_MissionDefinedData.sortColumn == 4) {
+ _index = 0;
+ iVar7 = 0;
+ DAT_00eb9b60 = 0;
+ if (0 < _count) {
+ puVar7 = DAT_SkMasters2DataArray[0];
+ do {
+ if (INT_ARRAY_00eb0e48::instance[iVar7] != 0) {
+ _year = puVar7->localTimeYear;
+ _month = puVar7->localTimeMonth;
+ INT_ARRAY_00ed27f0::instance[_index] = iVar7;
+ _index = _index + 1;
+ (INT_00ed2bdc::ptr)[_index]
+ = ((_year - 2000) * 0x10 + _month) * 0x20 + puVar7->localTimeDay;
+ }
+ iVar7 = iVar7 + 1;
+ puVar7 = puVar7 + 0x2fc;
+ DAT_00eb9b60 = _index;
+ } while (iVar7 < _count);
+ }
+ Skirmish_SortAIOpponentOrder(
+ DAT_MissionDefinedData.descending);
+ return;
+ }
+ if (DAT_MissionDefinedData.sortColumn == 2) {
+ _index = 0;
+ DAT_00eb9b60 = 0;
+ if (iVar7 == 1) {
+ iVar7 = 0;
+ if (0 < _count) {
+ pSVar8 = DAT_SkMasters2DataArray;
+ do {
+ if (INT_ARRAY_00eb0e48::instance[iVar7] != 0) {
+ iVar2 = pSVar8->score;
+ INT_ARRAY_00ed27f0::instance[_index] = iVar7;
+ INT_ARRAY_00ed2be0::instance[_index] = 0x50 - iVar2;
+ _index = _index + 1;
+ }
+ iVar7 = iVar7 + 1;
+ pSVar8 = pSVar8 + 1;
+ } while (iVar7 < _count);
+ DAT_00eb9b60 = _index;
+ Skirmish_SortAIOpponentOrder(
+ DAT_MissionDefinedData.descending);
+ return;
+ }
+ } else {
+ iVar7 = 0;
+ if (0 < _count) {
+ pSVar8 = DAT_SkMasters2DataArray;
+ do {
+ if (INT_ARRAY_00eb0e48::instance[iVar7] != 0) {
+ if (pSVar8->score != 0) {
+ pcVar4 = getTextStringInGroupAtOffset(
+ TEXT_TRAIL_NAMES_CRU, pSVar8->score);
+ pcVar9 = pSVar8->mapName;
+ do {
+ cVar1 = *pcVar4;
+ *pcVar9 = cVar1;
+ pcVar4 = pcVar4 + 1;
+ pcVar9 = pcVar9 + 1;
+ _index = DAT_00eb9b60;
+ _count = DAT_SkMasters2Data_Count;
+ } while (cVar1 != '\0');
+ }
+ bVar6 = pSVar8->mapName[0];
+ if ((byte)(bVar6 + 0xbf) < 0x1a) {
+ bVar6 = bVar6 + 0x20;
+ }
+ bVar3 = pSVar8->mapName[1];
+ if ((byte)(bVar3 + 0xbf) < 0x1a) {
+ bVar3 = bVar3 + 0x20;
+ }
+ INT_ARRAY_00ed2be0::instance[_index] = ((uint)bVar6 * -0x100 + -1) - (uint)bVar3;
+ INT_ARRAY_00ed27f0::instance[_index] = iVar7;
+ _index = _index + 1;
+ DAT_00eb9b60 = _index;
+ }
+ iVar7 = iVar7 + 1;
+ pSVar8 = pSVar8 + 1;
+ } while (iVar7 < _count);
+ }
+ }
+ Skirmish_SortAIOpponentOrder(
+ DAT_MissionDefinedData.descending);
+ return;
+ }
+ if (DAT_MissionDefinedData.sortColumn == 3) {
+ _index = 0;
+ iVar7 = 0;
+ DAT_00eb9b60 = 0;
+ if (0 < _count) {
+ piVar5 = DAT_SkMasters2DataArray[0].gameDurationInMinutes;
+ do {
+ if (INT_ARRAY_00eb0e48::instance[iVar7] != 0) {
+ iVar2 = *piVar5;
+ INT_ARRAY_00ed27f0::instance[_index] = iVar7;
+ INT_ARRAY_00ed2be0::instance[_index] = -1 - iVar2;
+ _index = _index + 1;
+ }
+ iVar7 = iVar7 + 1;
+ piVar5 = piVar5 + 0x2fc;
+ DAT_00eb9b60 = _index;
+ } while (iVar7 < _count);
+ }
+ Skirmish_SortAIOpponentOrder(
+ DAT_MissionDefinedData.descending);
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004d9400", "name": "Skirmish_PrepareLeaderboardView", "quelle": "ghidra", "p1": {"bereich": "Spielablauf", "zweck": "Bereitet die Anzeige der Bestenliste vor: filtert und ordnet die Einträge nach der gewählten Spalte."}, "p2": {"ein": "-", "aus": "-", "liest": ["DAT_SkMasters2Data_Count", "DAT_SkMasters2DataArray[].score/mapName/localTimeYear/Month/Day/gameDurationInMinutes", "DAT_00ed3124 (Filter)", "DAT_MissionDefinedData.sortColumn/descending"], "schreibt": ["INT_ARRAY_00eb0e48 (sichtbar-Flag je Eintrag)", "INT_ARRAY_00eb96d8 (Anzeigereihenfolge, Spalte 0/1)", "INT_ARRAY_00ed27f0 (Eintragsindex für Sortierung)", "INT_ARRAY_00ed2be0 / INT_00ed2bdc (Sortierschlüssel)", "DAT_00eb9b60 (Zahl der angezeigten Einträge)", "mapName der Einträge mit score != 0"], "ruft": ["Skirmish_SortAIOpponentOrder", "getTextStringInGroupAtOffset(TEXT_TRAIL_NAMES_CRU)"], "regeln": ["Phase 1: Alle Einträge sichtbar (1)", "Filter DAT_00ed3124 = 1: Einträge mit score == 0 ausblenden", "Filter DAT_00ed3124 = 2: Einträge mit score != 0 ausblenden", "Spalte 0 oder 1: keine Sortierung, nur Reihenfolge der Einträge; descending=1 vorwärts, descending=0 rückwärts", "Spalte 2: bei Filter 1 Schlüssel 0x50 - score; sonst nach Kartenname, wobei bei score != 0 der Name aus den Trail-Namen (TEXT_TRAIL_NAMES_CRU) eingesetzt wird; Schlüssel aus den ersten zwei Buchstaben, kleingeschrieben", "Spalte 3: Schlüssel -1 - gameDurationInMinutes (Spieldauer)", "Spalte 4: Schlüssel ((Jahr - 2000) * 16 + Monat) * 32 + Tag (Datum)", "Spalten 2-4 enden mit Skirmish_SortAIOpponentOrder(descending)"], "offen": ["Genaue Bedeutung von score (vermutlich Trail-Missionsnummer, 0 = freies Gefecht)", "Ob Spalte 0 und 1 wirklich ungeordnet bleiben (die Reihenfolge ist dann die Speicherreihenfolge, also nach SK-Master-Punkten)", "Name Skirmish_SortAIOpponentOrder täuscht vermutlich: sortiert hier Bestenlisten-Einträge"]}, "p3": {"erklaerung": "Reine Anzeige-Hilfe für die Bestenliste: Sie wählt aus, welche Gefechte zu sehen sind, und ordnet sie nach Spalte.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+

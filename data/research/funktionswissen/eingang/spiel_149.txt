@@ -1,0 +1,1128 @@
+### 0x00498a40 calculatePathKeepAndWallsGatesNotAllowed | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x00498A40
+ undefined4 PathFindingState::calculatePathKeepAndWallsGatesNotAllowed(
+ int x1, int y1, int x2, int y2, int maxTries)
+ {
+ short sVar1;
+ short sVar2;
+ int iVar3;
+ uint uVar4;
+ int* piVar5;
+ int iVar6;
+ uint _tile;
+ if (((399 < (uint)x1) || (399 < (uint)y1)) || (*(char*)(y1 * 400 + 0x21aec98 + x1) == '\0')) {
+ return (undefined4)(0);
+ }
+ if ((x2 == -1)
+ || ((((uint)x2 < 400 && ((uint)y2 < 400)) && (*(char*)(y2 * 400 + 0x21aec98 + x2) != '\0')))) {
+ this->searchGeneration = this->searchGeneration + 1;
+ if (32000 < this->searchGeneration) {
+ this->searchGeneration = 1;
+ fillMemory_ByteValue(
+ 0x27420, '\0', (void*)((int)(DAT_TileMapState.WalkLayer)));
+ }
+ this->searchQueue.yQueue[0] = (short)y1;
+ this->searchQueue.writeIndex = 1;
+ this->searchQueue.readIndex = 0;
+ this->searchQueue.currentDistance = 1;
+ this->searchQueue.xQueue[0] = (short)x1;
+ this->searchQueue.tilesQueue[0]
+ = DAT_ViewportRenderState.translationMatrix[y1].addXgetTile + x1;
+ DAT_TileMapState.CertainPathLayer[this->searchQueue.tilesQueue[0]] = 1;
+ DAT_TileMapState.WalkLayer[this->searchQueue.tilesQueue[0]] = (short)this->searchGeneration;
+ if (x2 == -1) {
+ uVar4 = 0;
+ } else {
+ uVar4 = DAT_ViewportRenderState.translationMatrix[y2].addXgetTile + x2;
+ }
+ if (this->searchQueue.readIndex != this->searchQueue.writeIndex) {
+ while (true) {
+ _tile = this->searchQueue.tilesQueue[this->searchQueue.readIndex];
+ if (_tile == uVar4) {
+ return (undefined4)(1);
+ }
+ if ((maxTries <= this->searchQueue.readIndex) || (80399 < _tile))
+ break;
+ sVar1 = this->searchQueue.yQueue[this->searchQueue.readIndex];
+ this->searchQueue.currentDistance = (int)DAT_TileMapState.CertainPathLayer[_tile];
+ sVar2 = this->searchQueue.xQueue[this->searchQueue.readIndex];
+ iVar3 = 0;
+ piVar5 = DAT_TileMapState.directionTranslationMatrix[sVar1] + 1;
+ do {
+ iVar6 = (*(int (*)[8])(piVar5 + -1))[0] + _tile;
+ if (((DAT_TileMapState.WalkLayer[iVar6] != this->searchGeneration)
+ && ((DAT_TileMapState.PathLinkageLayer[_tile]
+ & DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[iVar3])
+ != 0))
+ && ((((DAT_TileMapState.LogicLayer[iVar6] & 2U) != 0
+ || ((DAT_TileMapState.LogicLayer[iVar6] & 0x10000100U) == 0))
+ || ((DAT_TileMapState.BuildingLayer[iVar6] != 0
+ && (DAT_BuildingDefinedData
+ .BuildingIsGateHouseArray[(short)DAT_BuildingsState
+ .buildings[DAT_TileMapState.BuildingLayer[iVar6]]
+ .buildingType]
+ != 0)))))) {
+ DAT_TileMapState.CertainPathLayer[iVar6]
+ = (short)this->searchQueue.currentDistance + 1;
+ DAT_TileMapState.WalkLayer[iVar6] = (short)this->searchGeneration;
+ this->searchQueue.xQueue[this->searchQueue.writeIndex]
+ = DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[iVar3]
+ .short.xOffset
+ + sVar2;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix
+ + iVar3 * 8 + 4)
+ + sVar1;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = iVar6;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ iVar6 = *piVar5 + _tile;
+ if (((DAT_TileMapState.WalkLayer[iVar6] != this->searchGeneration)
+ && ((DAT_TileMapState.PathLinkageLayer[_tile]
+ & DAT_ClimbLogicDefinedData
+ .BitFlagHelperForPathLinkage[iVar3 + 1])
+ != 0))
+ && ((((DAT_TileMapState.LogicLayer[iVar6] & 2U) != 0
+ || ((DAT_TileMapState.LogicLayer[iVar6] & 0x10000100U) == 0))
+ || ((DAT_TileMapState.BuildingLayer[iVar6] != 0
+ && (DAT_BuildingDefinedData
+ .BuildingIsGateHouseArray[(short)DAT_BuildingsState
+ .buildings[DAT_TileMapState.BuildingLayer[iVar6]]
+ .buildingType]
+ != 0)))))) {
+ DAT_TileMapState.CertainPathLayer[iVar6]
+ = (short)this->searchQueue.currentDistance + 1;
+ DAT_TileMapState.WalkLayer[iVar6] = (short)this->searchGeneration;
+ this->searchQueue.xQueue[this->searchQueue.writeIndex]
+ = DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[iVar3 + 1]
+ .short.xOffset
+ + sVar2;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix
+ + iVar3 * 8 + 0xc)
+ + sVar1;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = iVar6;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ iVar6 = piVar5[1] + _tile;
+ if (((DAT_TileMapState.WalkLayer[iVar6] != this->searchGeneration)
+ && ((DAT_TileMapState.PathLinkageLayer[_tile]
+ & DAT_ClimbLogicDefinedData
+ .BitFlagHelperForPathLinkage[iVar3 + 2])
+ != 0))
+ && ((((DAT_TileMapState.LogicLayer[iVar6] & 2U) != 0
+ || ((DAT_TileMapState.LogicLayer[iVar6] & 0x10000100U) == 0))
+ || ((DAT_TileMapState.BuildingLayer[iVar6] != 0
+ && (DAT_BuildingDefinedData
+ .BuildingIsGateHouseArray[(short)DAT_BuildingsState
+ .buildings[DAT_TileMapState.BuildingLayer[iVar6]]
+ .buildingType]
+ != 0)))))) {
+ DAT_TileMapState.CertainPathLayer[iVar6]
+ = (short)this->searchQueue.currentDistance + 1;
+ DAT_TileMapState.WalkLayer[iVar6] = (short)this->searchGeneration;
+ this->searchQueue.xQueue[this->searchQueue.writeIndex]
+ = DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[iVar3 + 2]
+ .short.xOffset
+ + sVar2;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix
+ + iVar3 * 8 + 0x14)
+ + sVar1;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = iVar6;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ iVar6 = piVar5[2] + _tile;
+ if (((DAT_TileMapState.WalkLayer[iVar6] != this->searchGeneration)
+ && ((DAT_TileMapState.PathLinkageLayer[_tile]
+ & DAT_ClimbLogicDefinedData
+ .BitFlagHelperForPathLinkage[iVar3 + 3])
+ != 0))
+ && ((((DAT_TileMapState.LogicLayer[iVar6] & 2U) != 0
+ || ((DAT_TileMapState.LogicLayer[iVar6] & 0x10000100U) == 0))
+ || ((DAT_TileMapState.BuildingLayer[iVar6] != 0
+ && (DAT_BuildingDefinedData
+ .BuildingIsGateHouseArray[(short)DAT_BuildingsState
+ .buildings[DAT_TileMapState.BuildingLayer[iVar6]]
+ .buildingType]
+ != 0)))))) {
+ DAT_TileMapState.CertainPathLayer[iVar6]
+ = (short)this->searchQueue.currentDistance + 1;
+ DAT_TileMapState.WalkLayer[iVar6] = (short)this->searchGeneration;
+ this->searchQueue.xQueue[this->searchQueue.writeIndex]
+ = DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[iVar3 + 3]
+ .short.xOffset
+ + sVar2;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix
+ + iVar3 * 8 + 0x1c)
+ + sVar1;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = iVar6;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ iVar3 = iVar3 + 4;
+ piVar5 = piVar5 + 4;
+ } while (iVar3 < 8);
+ this->searchQueue.readIndex = this->searchQueue.readIndex + 1;
+ if (80400 < this->searchQueue.readIndex) {
+ this->searchQueue.readIndex = 0;
+ }
+ if (this->searchQueue.readIndex == this->searchQueue.writeIndex) {
+ return (undefined4)(0);
+ }
+ }
+ }
+ }
+ return (undefined4)(0);
+ }
+ }
+}
+}
+
+### 0x00498fd0 commitUnitPathPlanUsingWalkLayer | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x00498FD0
+ uint PathFindingState::commitUnitPathPlanUsingWalkLayer(uint param_1, int param_2, int param_3)
+ {
+ int iVar1;
+ int* _ptrTranslationMatrix;
+ int _candidateTile1;
+ uint uVar2;
+ int _candidateTile2;
+ uint _cp3;
+ int _candidateTile4;
+ uint _cp1;
+ uint uVar3;
+ uint _cp2;
+ int _candidateTile3;
+ uint _cp4;
+ int iVar4;
+ uint _rng;
+ uint uVar5;
+ int iVar6;
+ int _direction;
+ uint local_24;
+ int _tile;
+ int local_14;
+ int _y;
+ bool _inBounds;
+ uint _init_10;
+ short _walkLayer;
+ if (((399 < (uint)this->unitX) || (399 < (uint)this->unitY))
+ || (_inBounds = false, *(char*)(this->unitY * 400 + 0x21aec98 + this->unitX) == '\0')) {
+ return 0;
+ }
+ _tile = DAT_ViewportRenderState.translationMatrix[this->unitY].addXgetTile + this->unitX;
+ _y = this->unitY;
+ if (DAT_TileMapState.PathConnectionLayer[_tile] == 0) {
+ return 0;
+ }
+ if (param_1 == 0) {
+ iVar6 = 80;
+ } else if (param_1 == 1) {
+ iVar6 = 200;
+ } else if (param_1 == 2) {
+ iVar6 = 500;
+ } else if (param_1 == 3) {
+ iVar6 = 1000;
+ } else {
+ iVar6 = 2000;
+ }
+ findSuitableSpawnLocationUnk(
+ this->unitX, this->unitY, -1, -1, iVar6, 0);
+ _walkLayer = DAT_TileMapState.WalkLayer[_tile];
+ _rng = (uint)SEC_RNG::instance.currentNumber2;
+ this->searchQueue.pathPlanIndex = 0;
+ iVar6 = 10;
+ local_24 = 1;
+ local_14 = 10;
+ while (true) {
+ while (true) {
+ _init_10 = local_24;
+ if ((_inBounds) && (local_24 < 2)) {
+ return (uint)(this->searchQueue.pathPlanIndex);
+ }
+ _ptrTranslationMatrix = DAT_TileMapState.directionTranslationMatrix[_y] + 1;
+ _direction = 8;
+ param_1 = local_24;
+ iVar4 = 2;
+ do {
+ _candidateTile1 = (*(int (*)[8])(_ptrTranslationMatrix + -1))[0] + _tile;
+ if (DAT_TileMapState.WalkLayer[_candidateTile1] == _walkLayer) {
+ _cp1 = (uint)DAT_TileMapState.CertainPathLayer[_candidateTile1];
+ if (_inBounds) {
+ if ((((_cp1 & 0x4000) == 0) && (uVar3 = _cp1 & 0x3fff, uVar3 <= _init_10))
+ && ((param_3 == 0 || (uVar3 != _init_10)))) {
+ uVar2 = uVar3
+ - ((DAT_TileMapState.RandomLayer[_candidateTile1] ^ _rng) & 7);
+ uVar5 = uVar2;
+ if (iVar4 + -2 == iVar6) {
+ uVar5 = uVar2 - 1;
+ }
+ if ((int)uVar5 < (int)param_1) {
+ param_1 = uVar2;
+ _direction = iVar4 + -2;
+ local_24 = uVar3;
+ }
+ _rng = (int)_rng >> 1 & 0x7fffU | (_rng & 1) << 0xf;
+ iVar6 = local_14;
+ }
+ } else if ((((_cp1 & 0x8000) == 0) && (uVar3 = _cp1 & 0x3fff, _init_10 <= uVar3))
+ && ((param_3 == 0 || (uVar3 != _init_10)))) {
+ uVar2 = ((DAT_TileMapState.RandomLayer[_candidateTile1] ^ _rng) & 7) + uVar3;
+ uVar5 = uVar2;
+ if (iVar4 + -2 == iVar6) {
+ uVar5 = uVar2 + 1;
+ }
+ if ((int)param_1 < (int)uVar5) {
+ param_1 = uVar2;
+ _direction = iVar4 + -2;
+ local_24 = uVar3;
+ }
+ _rng = (int)_rng >> 1 & 0x7fffU | (_rng & 1) << 0xf;
+ iVar6 = local_14;
+ }
+ }
+ _candidateTile2 = *_ptrTranslationMatrix + _tile;
+ if (DAT_TileMapState.WalkLayer[_candidateTile2] == _walkLayer) {
+ _cp2 = (uint)DAT_TileMapState.CertainPathLayer[_candidateTile2];
+ if (_inBounds) {
+ if ((((_cp2 & 0x4000) == 0) && (uVar3 = _cp2 & 0x3fff, uVar3 <= _init_10))
+ && ((param_3 == 0 || (uVar3 != _init_10)))) {
+ uVar2 = uVar3
+ - ((DAT_TileMapState.RandomLayer[_candidateTile2] ^ _rng) & 7);
+ uVar5 = uVar2;
+ if (iVar4 + -1 == iVar6) {
+ uVar5 = uVar2 - 1;
+ }
+ if ((int)uVar5 < (int)param_1) {
+ param_1 = uVar2;
+ _direction = iVar4 + -1;
+ local_24 = uVar3;
+ }
+ _rng = (int)_rng >> 1 & 0x7fffU | (_rng & 1) << 0xf;
+ iVar6 = local_14;
+ }
+ } else if ((((_cp2 & 0x8000) == 0) && (uVar3 = _cp2 & 0x3fff, _init_10 <= uVar3))
+ && ((param_3 == 0 || (uVar3 != _init_10)))) {
+ uVar2 = ((DAT_TileMapState.RandomLayer[_candidateTile2] ^ _rng) & 7) + uVar3;
+ uVar5 = uVar2;
+ if (iVar4 + -1 == iVar6) {
+ uVar5 = uVar2 + 1;
+ }
+ if ((int)param_1 < (int)uVar5) {
+ param_1 = uVar2;
+ _direction = iVar4 + -1;
+ local_24 = uVar3;
+ }
+ _rng = (int)_rng >> 1 & 0x7fffU | (_rng & 1) << 0xf;
+ iVar6 = local_14;
+ }
+ }
+ _candidateTile3 = _ptrTranslationMatrix[1] + _tile;
+ if (DAT_TileMapState.WalkLayer[_candidateTile3] == _walkLayer) {
+ _cp3 = (uint)DAT_TileMapState.CertainPathLayer[_candidateTile3];
+ if (_inBounds) {
+ if ((((_cp3 & 0x4000) == 0) && (uVar3 = _cp3 & 0x3fff, uVar3 <= _init_10))
+ && ((param_3 == 0 || (uVar3 != _init_10)))) {
+ uVar2 = uVar3
+ - ((DAT_TileMapState.RandomLayer[_candidateTile3] ^ _rng) & 7);
+ uVar5 = uVar2;
+ if (iVar4 == iVar6) {
+ uVar5 = uVar2 - 1;
+ }
+ if ((int)uVar5 < (int)param_1) {
+ param_1 = uVar2;
+ _direction = iVar4;
+ local_24 = uVar3;
+ }
+ _rng = (int)_rng >> 1 & 0x7fffU | (_rng & 1) << 0xf;
+ }
+ } else if ((((_cp3 & 0x8000) == 0) && (uVar3 = _cp3 & 0x3fff, _init_10 <= uVar3))
+ && ((param_3 == 0 || (uVar3 != _init_10)))) {
+ uVar2 = ((DAT_TileMapState.RandomLayer[_candidateTile3] ^ _rng) & 7) + uVar3;
+ uVar5 = uVar2;
+ if (iVar4 == iVar6) {
+ uVar5 = uVar2 + 1;
+ }
+ if ((int)param_1 < (int)uVar5) {
+ param_1 = uVar2;
+ _direction = iVar4;
+ local_24 = uVar3;
+ }
+ _rng = (int)_rng >> 1 & 0x7fffU | (_rng & 1) << 0xf;
+ }
+ }
+ _candidateTile4 = _ptrTranslationMatrix[2] + _tile;
+ if (DAT_TileMapState.WalkLayer[_candidateTile4] == _walkLayer) {
+ _cp4 = (uint)DAT_TileMapState.CertainPathLayer[_candidateTile4];
+ if (_inBounds) {
+ if ((((_cp4 & 0x4000) == 0) && (uVar3 = _cp4 & 0x3fff, uVar3 <= _init_10))
+ && ((param_3 == 0 || (uVar3 != _init_10)))) {
+ uVar2 = uVar3
+ - ((DAT_TileMapState.RandomLayer[_candidateTile4] ^ _rng) & 7);
+ uVar5 = uVar2;
+ if (iVar4 + 1 == iVar6) {
+ uVar5 = uVar2 - 1;
+ }
+ if ((int)uVar5 < (int)param_1) {
+ param_1 = uVar2;
+ _direction = iVar4 + 1;
+ local_24 = uVar3;
+ }
+ _rng = (int)_rng >> 1 & 0x7fffU | (_rng & 1) << 0xf;
+ iVar6 = local_14;
+ }
+ } else if ((((_cp4 & 0x8000) == 0) && (uVar3 = _cp4 & 0x3fff, _init_10 <= uVar3))
+ && ((param_3 == 0 || (uVar3 != _init_10)))) {
+ uVar2 = ((DAT_TileMapState.RandomLayer[_candidateTile4] ^ _rng) & 7) + uVar3;
+ uVar5 = uVar2;
+ if (iVar4 + 1 == iVar6) {
+ uVar5 = uVar2 + 1;
+ }
+ if ((int)param_1 < (int)uVar5) {
+ param_1 = uVar2;
+ _direction = iVar4 + 1;
+ local_24 = uVar3;
+ }
+ _rng = (int)_rng >> 1 & 0x7fffU | (_rng & 1) << 0xf;
+ iVar6 = local_14;
+ }
+ }
+ _ptrTranslationMatrix = _ptrTranslationMatrix + 4;
+ iVar1 = iVar4 + 2;
+ iVar4 = iVar4 + 4;
+ } while (iVar1 < 8);
+ if (_inBounds) {
+ DAT_TileMapState.CertainPathLayer[_tile]
+ = DAT_TileMapState.CertainPathLayer[_tile] | 0x4000;
+ } else {
+ DAT_TileMapState.CertainPathLayer[_tile]
+ = DAT_TileMapState.CertainPathLayer[_tile] | 0x8000;
+ }
+ if (_direction == 8)
+ break;
+ _tile = _tile + DAT_TileMapState.directionTranslationMatrix[_y][_direction];
+ _y = _y
+ + *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix
+ + _direction * 8 + 4);
+ if ((this->searchQueue.pathPlanIndex & 1) == 0) {
+ this->searchQueue.ptrPathPlan[(int)this->searchQueue.pathPlanIndex / 2] = (byte)_direction;
+ } else {
+ this->searchQueue.ptrPathPlan[(int)this->searchQueue.pathPlanIndex / 2]
+ = this->searchQueue.ptrPathPlan[(int)this->searchQueue.pathPlanIndex / 2] & 0xf;
+ this->searchQueue.ptrPathPlan[(int)this->searchQueue.pathPlanIndex / 2]
+ = this->searchQueue.ptrPathPlan[(int)this->searchQueue.pathPlanIndex / 2]
+ + (byte)_direction * '\x10';
+ }
+ this->searchQueue.pathPlanIndex = this->searchQueue.pathPlanIndex + 1;
+ iVar6 = _direction;
+ local_14 = _direction;
+ if (799 < (int)this->searchQueue.pathPlanIndex) {
+ return (uint)(this->searchQueue.pathPlanIndex);
+ }
+ }
+ if (param_2 == 0) {
+ return (uint)(this->searchQueue.pathPlanIndex);
+ }
+ if (_inBounds)
+ break;
+ _inBounds = true;
+ }
+ return (uint)(this->searchQueue.pathPlanIndex);
+ }
+ }
+}
+}
+
+### 0x004995e0 updateSeparateAreaTileMap | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x004995E0
+ BOOLEnum PathFindingState::updateSeparateAreaTileMap(int forceUpdate)
+ {
+ byte bVar1;
+ ushort uVar2;
+ short sVar3;
+ ushort uVar4;
+ int* piVar5;
+ int iVar6;
+ int iVar7;
+ ushort _zoneCounter;
+ int local_20;
+ int* local_c;
+ int local_8;
+ _zoneCounter = 1;
+ if (forceUpdate != 0) {
+ this->toggleUpdateSeparateAreaTileMap = 1;
+ DAT_GameState.mapAndTime.counterForUpdatingSeparateAreaTileMaps = 0;
+ }
+ DAT_GameState.mapAndTime.counterForUpdatingSeparateAreaTileMaps
+ = DAT_GameState.mapAndTime.counterForUpdatingSeparateAreaTileMaps + -1;
+ if ((0 < DAT_GameState.mapAndTime.counterForUpdatingSeparateAreaTileMaps)
+ || (DAT_GameState.mapAndTime.counterForUpdatingSeparateAreaTileMaps = 200,
+ this->toggleUpdateSeparateAreaTileMap == 0)) {
+ return FALSE;
+ }
+ this->field41_0x74 = this->field41_0x74 + 1;
+ this->toggleUpdateSeparateAreaTileMap = 0;
+ this->totalZones = 0;
+ this->sum = 0;
+ uVar4 = 1;
+ fillMemory_ByteValue(
+ 0x27420, '\0', (void*)((int)(DAT_TileMapState.PathConnectionLayer)));
+ fillMemory_ByteValue(
+ 4000, '\0', (void*)((int)(this->zoneSizesArray)));
+ updatePathLinkageTileMap(1);
+ sVar3 = 0;
+ local_20 = 0;
+ local_c = &DAT_ViewportRenderState.translationMatrix[1].firstTileOfRow;
+ do {
+ if (*local_c <= local_20) {
+ sVar3 = sVar3 + 1;
+ local_c = local_c + 3;
+ }
+ if (((char)DAT_TileMapState.PathConnectionLayer[local_20] == '\0')
+ && ((DAT_TileMapState.LogicLayer[local_20] & 0x4a5014b1U) == 0)) {
+ this->searchQueue.tilesQueue[0] = local_20;
+ forceUpdate = 1;
+ local_8 = 0;
+ this->searchQueue.yQueue[0] = sVar3;
+ DAT_TileMapState.PathConnectionLayer[local_20] = _zoneCounter;
+ for (; local_8 != forceUpdate; local_8 = local_8 + 1) {
+ this->zoneSizesArray[uVar4] = this->zoneSizesArray[uVar4] + 1;
+ iVar7 = this->searchQueue.tilesQueue[local_8];
+ uVar2 = this->searchQueue.yQueue[local_8];
+ bVar1 = DAT_TileMapState.PathLinkageLayer[iVar7];
+ if (((bVar1 & 0x40) != 0) && (DAT_TileMapState.MacroLayer[iVar7 + 0x13a0f] == 0)) {
+ DAT_TileMapState.MacroLayer[iVar7 + 0x13a0f] = uVar4;
+ this->searchQueue.tilesQueue[forceUpdate] = iVar7 + -1;
+ this->searchQueue.yQueue[forceUpdate] = uVar2;
+ forceUpdate = forceUpdate + 1;
+ }
+ if (((bVar1 & 4) != 0) && (DAT_TileMapState.PathConnectionLayer[iVar7 + 1] == 0)) {
+ DAT_TileMapState.PathConnectionLayer[iVar7 + 1] = uVar4;
+ this->searchQueue.tilesQueue[forceUpdate] = iVar7 + 1;
+ this->searchQueue.yQueue[forceUpdate] = uVar2;
+ forceUpdate = forceUpdate + 1;
+ }
+ iVar6 = iVar7 + DAT_TileMapState.directionTranslationMatrix[uVar2][0];
+ if (((bVar1 & 0x80) != 0) && (DAT_TileMapState.MacroLayer[iVar6 + 0x13a0f] == 0)) {
+ DAT_TileMapState.MacroLayer[iVar6 + 0x13a0f] = uVar4;
+ this->searchQueue.tilesQueue[forceUpdate] = iVar6 + -1;
+ this->searchQueue.yQueue[forceUpdate] = uVar2 - 1;
+ forceUpdate = forceUpdate + 1;
+ }
+ if (((bVar1 & 1) != 0) && (DAT_TileMapState.PathConnectionLayer[iVar6] == 0)) {
+ DAT_TileMapState.PathConnectionLayer[iVar6] = uVar4;
+ this->searchQueue.tilesQueue[forceUpdate] = iVar6;
+ this->searchQueue.yQueue[forceUpdate] = uVar2 - 1;
+ forceUpdate = forceUpdate + 1;
+ }
+ if (((bVar1 & 2) != 0) && (DAT_TileMapState.PathConnectionLayer[iVar6 + 1] == 0)) {
+ DAT_TileMapState.PathConnectionLayer[iVar6 + 1] = uVar4;
+ this->searchQueue.tilesQueue[forceUpdate] = iVar6 + 1;
+ this->searchQueue.yQueue[forceUpdate] = uVar2 - 1;
+ forceUpdate = forceUpdate + 1;
+ }
+ iVar7 = iVar7 + DAT_TileMapState.directionTranslationMatrix[uVar2][4];
+ if (((bVar1 & 0x20) != 0) && (DAT_TileMapState.MacroLayer[iVar7 + 0x13a0f] == 0)) {
+ DAT_TileMapState.MacroLayer[iVar7 + 0x13a0f] = uVar4;
+ this->searchQueue.tilesQueue[forceUpdate] = iVar7 + -1;
+ this->searchQueue.yQueue[forceUpdate] = uVar2 + 1;
+ forceUpdate = forceUpdate + 1;
+ }
+ if (((bVar1 & 0x10) != 0) && (DAT_TileMapState.PathConnectionLayer[iVar7] == 0)) {
+ DAT_TileMapState.PathConnectionLayer[iVar7] = uVar4;
+ this->searchQueue.tilesQueue[forceUpdate] = iVar7;
+ this->searchQueue.yQueue[forceUpdate] = uVar2 + 1;
+ forceUpdate = forceUpdate + 1;
+ }
+ if (((bVar1 & 8) != 0) && (DAT_TileMapState.PathConnectionLayer[iVar7 + 1] == 0)) {
+ DAT_TileMapState.PathConnectionLayer[iVar7 + 1] = uVar4;
+ this->searchQueue.tilesQueue[forceUpdate] = iVar7 + 1;
+ this->searchQueue.yQueue[forceUpdate] = uVar2 + 1;
+ forceUpdate = forceUpdate + 1;
+ }
+ }
+ _zoneCounter = uVar4 + 1;
+ uVar4 = _zoneCounter;
+ if (999 < (short)_zoneCounter)
+ break;
+ }
+ local_20 = local_20 + 1;
+ } while (local_20 < 80400);
+ this->totalZones = (int)(short)_zoneCounter;
+ piVar5 = this->zoneSizesArray + 2;
+ iVar7 = 333;
+ do {
+ this->sum = piVar5[1] + this->sum + piVar5[-1] + *piVar5;
+ piVar5 = piVar5 + 3;
+ iVar7 = iVar7 + -1;
+ } while (iVar7 != 0);
+ updatePathLinkageTileMap(0);
+ return TRUE;
+ }
+ }
+}
+}
+
+### 0x004999c0 updatePathLinkageLayerBasedOnBuildingsUnk | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x004999C0
+ BOOLEnum PathFindingState::updatePathLinkageLayerBasedOnBuildingsUnk(int yUnk, int tile)
+ {
+ byte bVar1;
+ bool bVar2;
+ bool bVar3;
+ bool bVar4;
+ bool bVar5;
+ int iVar6;
+ int _tile;
+ byte bVar7;
+ int (*paiVar8)[8];
+ uint _height;
+ int _directionIndex;
+ int _building;
+ bool bVar9;
+ bool bVar10;
+ bool bVar11;
+ byte _linkageResult;
+ BOOLEnum _result;
+ int local_28;
+ uint local_24;
+ uint local_20[8];
+ BuildingTypeShort _buildingType;
+ uint _logic;
+ _logic = DAT_TileMapState.LogicLayer[tile];
+ _height = (uint)DAT_TileMapState.HeightLayer[tile];
+ _building = (int)DAT_TileMapState.BuildingLayer[tile];
+ _result = FALSE;
+ if ((_logic & 0x10000000) != 0) {
+ iVar6 = getBuildingHeightForBuildingID(_building);
+ _height = _height + iVar6;
+ }
+ local_24 = _height + 0x10;
+ local_28 = _height - 0x10;
+ if ((_building != 0)
+ && (_buildingType = DAT_BuildingsState.buildings[_building].buildingType,
+ _result
+ = (BOOLEnum)(DAT_BuildingDefinedData.BuildingIsGateHouseArray[(short)_buildingType] != 0),
+ DAT_BuildingDefinedData.BuildingIsKeepArray[(short)_buildingType] != 0)) {
+ _result = TRUE;
+ }
+ bVar2 = false;
+ bVar4 = false;
+ bVar3 = false;
+ bVar5 = false;
+ bVar7 = 0;
+ iVar6 = 0;
+ _linkageResult = 0;
+ DAT_TileMapState.PathLinkageLayer[tile] = '\0';
+ if ((_logic & 0x800000) == 0) {
+ if ((_logic & 0x10000000) == 0) {
+ if (((_logic & 2) == 0) && ((_logic & 0x200000) == 0)) {
+ if ((_logic & 0x800) != 0) {
+ bVar4 = true;
+ goto LAB_00499ada;
+ }
+ if ((_logic & 0x400000) != 0) {
+ return _result;
+ }
+ if ((_logic & 0x100) != 0) {
+ bVar3 = true;
+ if (DAT_TileMapState.BuildingLayer[tile] != 0) {
+ iVar6 = 2;
+ }
+ goto LAB_00499ada;
+ }
+ if ((_logic & 0x4a5014b1) != 0) {
+ return _result;
+ }
+ }
+ bVar5 = true;
+ } else {
+ bVar2 = true;
+ iVar6 = 1;
+ }
+ }
+ LAB_00499ada:
+ _directionIndex = 0;
+ paiVar8 = DAT_TileMapState.directionTranslationMatrix + yUnk;
+ do {
+ _tile = (*paiVar8)[0] + tile;
+ _logic = DAT_TileMapState.LogicLayer[_tile];
+ local_20[_directionIndex] = _logic;
+ if ((_logic & 0x200000) == 0) {
+ if ((_logic & 0x800) != 0) {
+ if ((iVar6 == 1) || ('\x14' < (char)DAT_TileMapState.DamageLayer[_tile]))
+ goto LAB_00499c4b;
+ goto LAB_00499bce;
+ }
+ if ((_logic & 2) == 0) {
+ if ((_logic & 0x400) == 0) {
+ if ((_logic & 0x10000000) != 0) {
+ bVar7 = bVar7
+ + DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[_directionIndex];
+ goto LAB_00499bce;
+ }
+ if ((_logic & 0x400000) == 0) {
+ if ((_logic & 0x100) != 0) {
+ bVar7 = bVar7
+ + DAT_ClimbLogicDefinedData
+ .BitFlagHelperForPathLinkage[_directionIndex];
+ goto LAB_00499bce;
+ }
+ if ((_logic & 0x30) == 0) {
+ bVar9 = (_logic & 0x4a5014b1) == 0;
+ goto LAB_00499bcc;
+ }
+ bVar7 = bVar7
+ + DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[_directionIndex];
+ } else {
+ bVar7 = bVar7
+ + DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[_directionIndex];
+ }
+ } else if (DAT_BuildingDefinedData.field17_0x1774[(short)DAT_BuildingsState
+ .buildings[DAT_TileMapState.BuildingLayer[_tile]]
+ .buildingType]
+ != FALSE) {
+ bVar7 = bVar7
+ + DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[_directionIndex];
+ }
+ } else if (!bVar2) {
+ if ((_logic & 0x400) != 0) {
+ bVar9 = DAT_TileMapState.BuildingLayer[_tile] == 0;
+ LAB_00499bcc:
+ if (!bVar9)
+ goto LAB_00499c4b;
+ }
+ goto LAB_00499bce;
+ }
+ } else {
+ LAB_00499bce:
+ if ((_logic & 0x10000000) == 0) {
+ if (((_logic & 0x100) == 0) || (iVar6 == 0)) {
+ if (((bVar3) || (bVar4))
+ && ((
+ (_logic & 0x100) != 0 && (DAT_TileMapState.BuildingLayer[_tile] != 0)))) {
+ bVar1 = DAT_TileMapState.DamageLayer[tile];
+ bVar11 = (bVar1 < '\x14');
+ bVar10 = (char)(bVar1 - 0x14) < '\0';
+ bVar9 = bVar1 == 0x14;
+ } else {
+ _logic = (uint)DAT_TileMapState.HeightLayer[_tile];
+ if ((int)_logic < local_28)
+ goto LAB_00499c4b;
+ bVar11 = (_logic < local_24);
+ bVar10 = (int)(_logic - local_24) < 0;
+ bVar9 = _logic == local_24;
+ }
+ } else {
+ bVar1 = DAT_TileMapState.DamageLayer[_tile];
+ bVar11 = (bVar1 < '\x14');
+ bVar10 = (char)(bVar1 - 0x14) < '\0';
+ bVar9 = bVar1 == 0x14;
+ }
+ LAB_00499c3f:
+ if (!bVar9 && bVar11 == bVar10)
+ goto LAB_00499c4b;
+ } else if (!bVar2) {
+ if (!bVar3)
+ goto LAB_00499c4b;
+ bVar1 = DAT_TileMapState.DamageLayer[tile];
+ bVar11 = (bVar1 < '\x14');
+ bVar10 = (char)(bVar1 - 0x14) < '\0';
+ bVar9 = bVar1 == 0x14;
+ goto LAB_00499c3f;
+ }
+ _linkageResult = _linkageResult
+ | DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[_directionIndex];
+ }
+ LAB_00499c4b:
+ _directionIndex = _directionIndex + 1;
+ paiVar8 = (int (*)[8])(*paiVar8 + 1);
+ if (7 < _directionIndex) {
+ if (bVar5) {
+ if (((_linkageResult & 1) == 0) && ((bVar7 & 1) != 0)) {
+ if (((_linkageResult & 4) == 0) && ((bVar7 & 4) != 0)) {
+ _linkageResult = _linkageResult & 0xfd;
+ }
+ if (((_linkageResult & 0x40) == 0) && ((bVar7 & 0x40) != 0)) {
+ _linkageResult = _linkageResult & 0x7f;
+ }
+ }
+ if (((_linkageResult & 0x10) == 0) && ((bVar7 & 0x10) != 0)) {
+ if (((_linkageResult & 4) == 0) && ((bVar7 & 4) != 0)) {
+ _linkageResult = _linkageResult & 0xf7;
+ }
+ if (((_linkageResult & 0x40) == 0) && ((bVar7 & 0x40) != 0)) {
+ _linkageResult = _linkageResult & 0xdf;
+ }
+ }
+ } else {
+ if ((((((local_20[0] & 0x10000100) != 0) && ((local_20[2] & 0x10000100) != 0))
+ && ((local_20[1] & 0x10000100) == 0))
+ && (((local_20[1] & 2) == 0 && ((local_20[0] & 0x800) == 0))))
+ && ((local_20[2] & 0x800) == 0)) {
+ _linkageResult = _linkageResult & 0xfd;
+ }
+ if ((((local_20[0] & 0x10000100) != 0) && ((local_20[6] & 0x10000100) != 0))
+ && (((local_20[7] & 0x10000100) == 0
+ && ((((local_20[7] & 2) == 0 && ((local_20[0] & 0x800) == 0))
+ && ((local_20[6] & 0x800) == 0)))))) {
+ _linkageResult = _linkageResult & 0x7f;
+ }
+ if (((((local_20[4] & 0x10000100) != 0) && ((local_20[2] & 0x10000100) != 0))
+ && (((local_20[3] & 0x10000100) == 0
+ && (((local_20[3] & 2) == 0 && ((local_20[4] & 0x800) == 0))))))
+ && ((local_20[2] & 0x800) == 0)) {
+ _linkageResult = _linkageResult & 0xf7;
+ }
+ if (((((local_20[4] & 0x10000100) != 0) && ((local_20[6] & 0x10000100) != 0))
+ && ((local_20[5] & 0x10000100) == 0))
+ && ((((local_20[5] & 2) == 0 && ((local_20[4] & 0x800) == 0))
+ && ((local_20[6] & 0x800) == 0)))) {
+ _linkageResult = _linkageResult & 0xdf;
+ }
+ }
+ DAT_TileMapState.PathLinkageLayer[tile] = _linkageResult;
+ return _result;
+ }
+ } while (true);
+ }
+ }
+}
+}
+
+### 0x00499dc0 updatePathLinkageLayerAtTileForSomeLogicalReason | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x00499DC0
+ void PathFindingState::updatePathLinkageLayerAtTileForSomeLogicalReason(int tile, int y)
+ {
+ byte bVar1;
+ int iVar2;
+ int* _ptrY;
+ int iVar3;
+ uint uVar4;
+ uint uVar5;
+ iVar2 = tile;
+ uVar5 = 4;
+ bVar1 = DAT_TileMapState.PathLinkageLayer[tile];
+ _ptrY = DAT_TileMapState.directionTranslationMatrix[y] + 1;
+ tile = 2;
+ do {
+ iVar3 = (*(int (*)[8])(_ptrY + -1))[0] + iVar2;
+ if (((DAT_TileMapState.LogicLayer[iVar3] & 0x30U) == 0)
+ && ((DAT_TileMapState.LogicLayer[iVar3] & 0x4a5014b1U) == 0)) {
+ if ((bVar1 & DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[uVar5 - 4]) == 0) {
+ uVar4 = uVar5 & 0x80000007;
+ if ((int)uVar4 < 0) {
+ uVar4 = (uVar4 - 1 | 0xfffffff8) + 1;
+ }
+ DAT_TileMapState.PathLinkageLayer[iVar3]
+ = DAT_TileMapState.PathLinkageLayer[iVar3]
+ & ~DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[uVar4];
+ } else {
+ uVar4 = uVar5 & 0x80000007;
+ if ((int)uVar4 < 0) {
+ uVar4 = (uVar4 - 1 | 0xfffffff8) + 1;
+ }
+ DAT_TileMapState.PathLinkageLayer[iVar3]
+ = DAT_TileMapState.PathLinkageLayer[iVar3]
+ | DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[uVar4];
+ }
+ }
+ iVar3 = *_ptrY + iVar2;
+ if (((DAT_TileMapState.LogicLayer[iVar3] & 0x30U) == 0)
+ && ((DAT_TileMapState.LogicLayer[iVar3] & 0x4a5014b1U) == 0)) {
+ if ((bVar1 & DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[uVar5 - 3]) == 0) {
+ uVar4 = uVar5 + 1 & 0x80000007;
+ if ((int)uVar4 < 0) {
+ uVar4 = (uVar4 - 1 | 0xfffffff8) + 1;
+ }
+ DAT_TileMapState.PathLinkageLayer[iVar3]
+ = DAT_TileMapState.PathLinkageLayer[iVar3]
+ & ~DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[uVar4];
+ } else {
+ uVar4 = uVar5 + 1 & 0x80000007;
+ if ((int)uVar4 < 0) {
+ uVar4 = (uVar4 - 1 | 0xfffffff8) + 1;
+ }
+ DAT_TileMapState.PathLinkageLayer[iVar3]
+ = DAT_TileMapState.PathLinkageLayer[iVar3]
+ | DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[uVar4];
+ }
+ }
+ iVar3 = _ptrY[1] + iVar2;
+ if (((DAT_TileMapState.LogicLayer[iVar3] & 0x30U) == 0)
+ && ((DAT_TileMapState.LogicLayer[iVar3] & 0x4a5014b1U) == 0)) {
+ if ((bVar1 & DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[uVar5 - 2]) == 0) {
+ uVar4 = uVar5 + 2 & 0x80000007;
+ if ((int)uVar4 < 0) {
+ uVar4 = (uVar4 - 1 | 0xfffffff8) + 1;
+ }
+ DAT_TileMapState.PathLinkageLayer[iVar3]
+ = DAT_TileMapState.PathLinkageLayer[iVar3]
+ & ~DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[uVar4];
+ } else {
+ uVar4 = uVar5 + 2 & 0x80000007;
+ if ((int)uVar4 < 0) {
+ uVar4 = (uVar4 - 1 | 0xfffffff8) + 1;
+ }
+ DAT_TileMapState.PathLinkageLayer[iVar3]
+ = DAT_TileMapState.PathLinkageLayer[iVar3]
+ | DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[uVar4];
+ }
+ }
+ iVar3 = _ptrY[2] + iVar2;
+ if (((DAT_TileMapState.LogicLayer[iVar3] & 0x30U) == 0)
+ && ((DAT_TileMapState.LogicLayer[iVar3] & 0x4a5014b1U) == 0)) {
+ if ((bVar1 & DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[uVar5 - 1]) == 0) {
+ uVar4 = uVar5 + 3 & 0x80000007;
+ if ((int)uVar4 < 0) {
+ uVar4 = (uVar4 - 1 | 0xfffffff8) + 1;
+ }
+ DAT_TileMapState.PathLinkageLayer[iVar3]
+ = DAT_TileMapState.PathLinkageLayer[iVar3]
+ & ~DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[uVar4];
+ } else {
+ uVar4 = uVar5 + 3 & 0x80000007;
+ if ((int)uVar4 < 0) {
+ uVar4 = (uVar4 - 1 | 0xfffffff8) + 1;
+ }
+ DAT_TileMapState.PathLinkageLayer[iVar3]
+ = DAT_TileMapState.PathLinkageLayer[iVar3]
+ | DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[uVar4];
+ }
+ }
+ _ptrY = _ptrY + 4;
+ uVar5 = uVar5 + 4;
+ tile = tile + -1;
+ } while (tile != 0);
+ return;
+ }
+ }
+}
+}
+
+### 0x00499fa0 updatePathLinkageTileMapRelatedToGates | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x00499FA0
+ void PathFindingState::updatePathLinkageTileMapRelatedToGates(int buildingID)
+ {
+ byte* pbVar1;
+ int iVar2;
+ int iVar3;
+ int _anotherTile;
+ int iVar4;
+ int _middleTileUnk;
+ uint uVar5;
+ int _xMiddleUnk;
+ int _offset;
+ byte _pl2;
+ uint _widthOrHeight;
+ _middleTileUnk = (int)(short)DAT_BuildingsState.buildings[buildingID].x;
+ _widthOrHeight = DAT_BuildingsState.buildings[buildingID].widthOrHeight;
+ if (DAT_BuildingsState.buildings[buildingID].buildingVariation != 80) {
+ _xMiddleUnk = _middleTileUnk + (int)_widthOrHeight / 2;
+ iVar3 = (int)(short)DAT_BuildingsState.buildings[buildingID].y;
+ _pl2 = DAT_BuildingsState.buildings[buildingID].pathLinkageRelated2;
+ _middleTileUnk = DAT_ViewportRenderState.translationMatrix[iVar3 + -1].addXgetTile;
+ iVar4 = DAT_ViewportRenderState.translationMatrix[iVar3].addXgetTile;
+ uVar5 = (uint) * (byte*)(_middleTileUnk + 0x1d46648 + _xMiddleUnk);
+ _middleTileUnk = _middleTileUnk + _xMiddleUnk;
+ _anotherTile = iVar4 + _xMiddleUnk;
+ if (((((DAT_TileMapState.LogicLayer[_middleTileUnk] & 0x4a5014b1U) == 0)
+ && (uVar5 <= *(byte*)(iVar4 + 0x1d46648 + _xMiddleUnk) + 0x10))
+ && ((int)(DAT_TileMapState.DefaultHeightLayer[_anotherTile] - 0x10) <= (int)uVar5))
+ && (_pl2 != 2)) {
+ DAT_TileMapState.PathLinkageLayer[_middleTileUnk]
+ = DAT_TileMapState.PathLinkageLayer[_middleTileUnk] | 0x10;
+ DAT_TileMapState.PathLinkageLayer[_anotherTile]
+ = DAT_TileMapState.PathLinkageLayer[_anotherTile] | 1;
+ } else {
+ DAT_TileMapState.PathLinkageLayer[_middleTileUnk]
+ = DAT_TileMapState.PathLinkageLayer[_middleTileUnk] & 0xef;
+ DAT_TileMapState.PathLinkageLayer[_anotherTile]
+ = DAT_TileMapState.PathLinkageLayer[_anotherTile] & 0xfe;
+ }
+ _middleTileUnk
+ = DAT_ViewportRenderState.translationMatrix[_widthOrHeight + iVar3].addXgetTile;
+ uVar5 = (uint) * (byte*)(_middleTileUnk + 0x1d46648 + _xMiddleUnk);
+ _middleTileUnk = _middleTileUnk + _xMiddleUnk;
+ iVar4 = DAT_ViewportRenderState.translationMatrix[_widthOrHeight + iVar3 + -1].addXgetTile
+ + _xMiddleUnk;
+ if ((((DAT_TileMapState.LogicLayer[_middleTileUnk] & 0x4a5014b1U) == 0)
+ && (uVar5 <= DAT_TileMapState.DefaultHeightLayer[iVar4] + 0x10))
+ && (((int)(DAT_TileMapState.DefaultHeightLayer[iVar4] - 0x10) <= (int)uVar5
+ && (_pl2 != 2)))) {
+ DAT_TileMapState.PathLinkageLayer[_middleTileUnk]
+ = DAT_TileMapState.PathLinkageLayer[_middleTileUnk] | 1;
+ DAT_TileMapState.PathLinkageLayer[iVar4]
+ = DAT_TileMapState.PathLinkageLayer[iVar4] | 0x10;
+ return;
+ }
+ DAT_TileMapState.PathLinkageLayer[_middleTileUnk]
+ = DAT_TileMapState.PathLinkageLayer[_middleTileUnk] & 0xfe;
+ DAT_TileMapState.PathLinkageLayer[iVar4]
+ = DAT_TileMapState.PathLinkageLayer[iVar4] & 0xef;
+ return;
+ }
+ _pl2 = DAT_BuildingsState.buildings[buildingID].pathLinkageRelated2;
+ iVar4 = (int)(short)DAT_BuildingsState.buildings[buildingID].y + (int)_widthOrHeight / 2;
+ iVar2 = DAT_ViewportRenderState.translationMatrix[iVar4].addXgetTile;
+ iVar3 = iVar2 + -1 + _middleTileUnk;
+ if ((((DAT_TileMapState.LogicLayer[_middleTileUnk + iVar2 + -1] & 0x4a5014b1U) == 0)
+ && ((uint)(byte)DAT_TileMapState.EntityLayerLT25[iVar3 + 0x13a10]
+ <= DAT_TileMapState.DefaultHeightLayer[iVar3 + 1] + 0x10))
+ && (((int)(DAT_TileMapState.DefaultHeightLayer[iVar3 + 1] - 0x10)
+ <= (int)(uint)(byte)DAT_TileMapState.EntityLayerLT25[iVar3 + 0x13a10]
+ && (_pl2 != 2)))) {
+ pbVar1 = (byte*)((int)DAT_TileMapState.PathConnectionLayer + iVar3 + 0x27420);
+ *pbVar1 = *pbVar1 | 4;
+ DAT_TileMapState.PathLinkageLayer[iVar3 + 1]
+ = DAT_TileMapState.PathLinkageLayer[iVar3 + 1] | 0x40;
+ } else {
+ pbVar1 = (byte*)((int)DAT_TileMapState.PathConnectionLayer + iVar3 + 0x27420);
+ *pbVar1 = *pbVar1 & 0xfb;
+ DAT_TileMapState.PathLinkageLayer[iVar3 + 1]
+ = DAT_TileMapState.PathLinkageLayer[iVar3 + 1] & 0xbf;
+ }
+ _middleTileUnk = DAT_ViewportRenderState.translationMatrix[iVar4].addXgetTile + _widthOrHeight
+ + _middleTileUnk;
+ if (((((DAT_TileMapState.LogicLayer[_middleTileUnk] & 0x4a5014b1U) == 0)
+ && ((uint)DAT_TileMapState.HeightLayer[_middleTileUnk]
+ <= DAT_TileMapState.HeightLayer[_middleTileUnk + 0x13a0f] + 0x10))
+ && ((int)(DAT_TileMapState.HeightLayer[_middleTileUnk + 0x13a0f] - 0x10)
+ <= (int)(uint)DAT_TileMapState.HeightLayer[_middleTileUnk]))
+ && (_pl2 != 2)) {
+ DAT_TileMapState.PathLinkageLayer[_middleTileUnk]
+ = DAT_TileMapState.PathLinkageLayer[_middleTileUnk] | 0x40;
+ pbVar1 = (byte*)((int)DAT_TileMapState.PathConnectionLayer + _middleTileUnk + 0x2741f);
+ *pbVar1 = *pbVar1 | 4;
+ return;
+ }
+ DAT_TileMapState.PathLinkageLayer[_middleTileUnk]
+ = DAT_TileMapState.PathLinkageLayer[_middleTileUnk] & 0xbf;
+ pbVar1 = (byte*)((int)DAT_TileMapState.PathConnectionLayer + _middleTileUnk + 0x2741f);
+ *pbVar1 = *pbVar1 & 0xfb;
+ return;
+ }
+ }
+}
+}
+
+### 0x0049a1c0 updatePathLinkageTileMapRelatedToKeeps | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x0049A1C0
+ void PathFindingState::updatePathLinkageTileMapRelatedToKeeps(int buildingID)
+ {
+ byte* pbVar1;
+ uint uVar2;
+ int iVar3;
+ int iVar4;
+ short _orientation;
+ _orientation = DAT_BuildingsState.buildings[buildingID].orientation;
+ if (_orientation == 4) {
+ iVar4 = (int)(short)DAT_BuildingsState.buildings[buildingID].y;
+ iVar3 = (int)DAT_BuildingsState.buildings[buildingID].widthOrHeight / 2
+ + (int)(short)DAT_BuildingsState.buildings[buildingID].x;
+ pbVar1 = (byte*)(DAT_ViewportRenderState.translationMatrix[iVar4 + -1].addXgetTile + 0x1e1e4f8
+ + iVar3);
+ *pbVar1 = *pbVar1 | 0x10;
+ DAT_TileMapState
+ .PathLinkageLayer[DAT_ViewportRenderState.translationMatrix[iVar4].addXgetTile + iVar3]
+ = DAT_TileMapState
+ .PathLinkageLayer[DAT_ViewportRenderState.translationMatrix[iVar4].addXgetTile
+ + iVar3]
+ | 1;
+ return;
+ }
+ if (_orientation == 6) {
+ iVar3 = (short)DAT_BuildingsState.buildings[buildingID].x + -1;
+ iVar4 = (int)DAT_BuildingsState.buildings[buildingID].widthOrHeight / 2
+ + (int)(short)DAT_BuildingsState.buildings[buildingID].y;
+ } else {
+ uVar2 = DAT_BuildingsState.buildings[buildingID].widthOrHeight;
+ if (_orientation != 2) {
+ iVar4 = (int)(short)DAT_BuildingsState.buildings[buildingID].y;
+ iVar3 = (int)(short)DAT_BuildingsState.buildings[buildingID].x + (int)uVar2 / 2;
+ pbVar1 = (byte*)(DAT_ViewportRenderState.translationMatrix[uVar2 + iVar4 + -1].addXgetTile
+ + 0x1e1e4f8 + iVar3);
+ *pbVar1 = *pbVar1 | 0x10;
+ pbVar1 = (byte*)(DAT_ViewportRenderState.translationMatrix[uVar2 + iVar4].addXgetTile
+ + 0x1e1e4f8 + iVar3);
+ *pbVar1 = *pbVar1 | 1;
+ return;
+ }
+ iVar3 = (short)DAT_BuildingsState.buildings[buildingID].x + -1 + uVar2;
+ iVar4 = (int)(short)DAT_BuildingsState.buildings[buildingID].y + (int)uVar2 / 2;
+ }
+ iVar3 = DAT_ViewportRenderState.translationMatrix[iVar4].addXgetTile + iVar3;
+ DAT_TileMapState.PathLinkageLayer[iVar3] = DAT_TileMapState.PathLinkageLayer[iVar3] | 4;
+ DAT_TileMapState.PathLinkageLayer[iVar3 + 1]
+ = DAT_TileMapState.PathLinkageLayer[iVar3 + 1] | 0x40;
+ return;
+ }
+ }
+}
+}
+
+### 0x0049a2e0 updatePathLinkageTileMapRelatedToSiegeTower | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x0049A2E0
+ void PathFindingState::updatePathLinkageTileMapRelatedToSiegeTower(int param_1)
+ {
+ byte* pbVar1;
+ int iVar2;
+ int iVar3;
+ int iVar4;
+ iVar4 = (int)(short)DAT_BuildingsState.buildings[param_1].x;
+ iVar2 = (int)(short)DAT_BuildingsState.buildings[param_1].y;
+ DAT_TileMapState
+ .PathLinkageLayer[DAT_ViewportRenderState.translationMatrix[iVar2 + -1].addXgetTile + iVar4
+ + 1]
+ = DAT_TileMapState
+ .PathLinkageLayer[DAT_ViewportRenderState.translationMatrix[iVar2 + -1].addXgetTile
+ + iVar4 + 1]
+ | 0x10;
+ DAT_TileMapState
+ .PathLinkageLayer[DAT_ViewportRenderState.translationMatrix[iVar2].addXgetTile + iVar4 + 1]
+ = DAT_TileMapState
+ .PathLinkageLayer[DAT_ViewportRenderState.translationMatrix[iVar2].addXgetTile + iVar4
+ + 1]
+ | 0x11;
+ DAT_TileMapState
+ .PathLinkageLayer[DAT_ViewportRenderState.translationMatrix[iVar2 + 2].addXgetTile + iVar4
+ + 1]
+ = DAT_TileMapState
+ .PathLinkageLayer[DAT_ViewportRenderState.translationMatrix[iVar2 + 2].addXgetTile
+ + iVar4 + 1]
+ | 0x11;
+ iVar3 = DAT_ViewportRenderState.translationMatrix[iVar2 + 1].addXgetTile + iVar4;
+ DAT_TileMapState
+ .PathLinkageLayer[DAT_ViewportRenderState.translationMatrix[iVar2 + 3].addXgetTile + iVar4
+ + 1]
+ = DAT_TileMapState
+ .PathLinkageLayer[DAT_ViewportRenderState.translationMatrix[iVar2 + 3].addXgetTile
+ + iVar4 + 1]
+ | 1;
+ pbVar1 = (byte*)((int)DAT_TileMapState.PathConnectionLayer + iVar3 + 0x2741f);
+ *pbVar1 = *pbVar1 | 4;
+ DAT_TileMapState.PathLinkageLayer[iVar3]
+ = DAT_TileMapState.PathLinkageLayer[iVar3] | 0x44;
+ DAT_TileMapState.PathLinkageLayer[iVar3 + 2]
+ = DAT_TileMapState.PathLinkageLayer[iVar3 + 2] | 0x44;
+ DAT_TileMapState.PathLinkageLayer[iVar3 + 3]
+ = DAT_TileMapState.PathLinkageLayer[iVar3 + 3] | 0x40;
+ return;
+ }
+ }
+}
+}
+

@@ -1,0 +1,1389 @@
+### 0x004f7a80 computeTileLuminescence | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F7A80
+ void TileMapState::computeTileLuminescence(int tile, int param_2)
+ {
+ int iVar1;
+ uint uVar2;
+ char cVar3;
+ uint uVar4;
+ uint uVar5;
+ int iVar6;
+ int iVar7;
+ int iVar8;
+ uint local_2c;
+ int local_28;
+ int local_24;
+ uint local_1c;
+ uint local_18;
+ int local_14;
+ uint local_10;
+ uint local_c;
+ uint _logicTile;
+ uVar5 = 0;
+ _logicTile = this->LogicLayer[tile];
+ local_24 = 0;
+ local_14 = 0;
+ local_28 = 2;
+ local_c = 2;
+ local_10 = 2;
+ local_1c = 0;
+ local_18 = 0;
+ if ((_logicTile & L_BORDER | L_BORDER_EDGE | L_BUILDING | L_KEEP_NON_MANOR_HOUSE) != 0) {
+ return;
+ }
+ switch (this->mapOrientation) {
+ case 0:
+ local_24 = 5;
+ local_14 = 1;
+ local_1c = 4;
+ local_18 = 6;
+ break;
+ case 2:
+ local_24 = 7;
+ local_14 = 3;
+ local_1c = 6;
+ local_18 = 0;
+ break;
+ case 4:
+ local_24 = 1;
+ local_14 = 5;
+ local_1c = 0;
+ local_18 = 2;
+ break;
+ case 6:
+ local_24 = 3;
+ local_14 = 7;
+ local_1c = 2;
+ local_18 = 4;
+ }
+ uVar4 = (uint)this->HeightLayer[tile];
+ iVar6 = tile;
+ iVar7 = param_2;
+ if ((_logicTile & L_TREE) == 0) {
+ if ((_logicTile & L_TREE_VARIATION) != 0) {
+ local_28 = 5;
+ local_2c = 6;
+ goto LAB_004f7ba5;
+ }
+ } else {
+ iVar1 = getTreeGrowthTargetStage((int)this->OrganismLayer[tile]);
+ if (2 < iVar1) {
+ local_28 = iVar1;
+ }
+ }
+ local_2c = 6;
+ LAB_004f7ba5:
+ do {
+ iVar6 = iVar6 + this->directionTranslationMatrix[iVar7][local_24];
+ iVar7 = iVar7
+ + *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + local_24 * 8 + 4);
+ if ((this->LogicLayer[iVar6] & L_BORDER | L_BORDER_EDGE) != 0)
+ break;
+ if ((this->LogicLayer[iVar6] & L_BUILDING | L_KEEP_NON_MANOR_HOUSE) == 0) {
+ uVar5 = (uint)this->HeightLayer[iVar6];
+ } else {
+ iVar8 = (int)this->BuildingLayer[iVar6];
+ iVar1 = getBuildingFlag3(iVar8);
+ if (iVar1 == 0) {
+ iVar1 = getBuildingHeightForBuildingID(iVar8);
+ if (iVar1 < 0x10) {
+ uVar5 = this->HeightLayer[iVar6] + 0x10;
+ } else {
+ iVar1 = getBuildingHeightForBuildingID(iVar8);
+ uVar5 = (uint)this->HeightLayer[iVar6] + iVar1;
+ }
+ }
+ }
+ if ((this->LogicLayer[iVar6] & L_TREE) == 0) {
+ if ((this->LogicLayer[iVar6] & L_TREE_VARIATION) != 0) {
+ uVar5 = uVar5 + 0x28;
+ }
+ } else {
+ iVar1 = getTreeGrowthTargetStage((int)this->OrganismLayer[iVar6]);
+ uVar5 = uVar5 + iVar1 * 7;
+ }
+ iVar1 = uVar5 - uVar4;
+ if (iVar1 < 1) {
+ uVar2 = 2;
+ } else if (iVar1 < 0x13) {
+ uVar2 = local_2c;
+ if (iVar1 < 0xf) {
+ if (iVar1 < 0xb) {
+ if (iVar1 < 7) {
+ if (iVar1 < 3) {
+ uVar2 = 0;
+ } else {
+ uVar2 = local_2c + -3;
+ }
+ } else {
+ uVar2 = local_2c + -2;
+ }
+ } else {
+ uVar2 = local_2c + -1;
+ }
+ }
+ } else {
+ uVar2 = local_2c + 1;
+ }
+ if (local_28 < (int)uVar2) {
+ local_28 = uVar2;
+ }
+ local_2c = local_2c + -1;
+ } while (1 < (int)local_2c);
+ iVar7 = this->directionTranslationMatrix[param_2][local_1c] + tile;
+ iVar6 = local_1c * 8;
+ local_1c = 4;
+ iVar6 = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar6 + 4) + param_2;
+ local_2c = uVar5;
+ do {
+ if ((this->LogicLayer[iVar7] & L_BORDER | L_BORDER_EDGE) != 0)
+ break;
+ if ((this->LogicLayer[iVar7] & L_BUILDING | L_KEEP_NON_MANOR_HOUSE) == 0) {
+ local_2c = (uint)this->HeightLayer[iVar7];
+ } else {
+ iVar8 = (int)this->BuildingLayer[iVar7];
+ iVar1 = getBuildingFlag3(iVar8);
+ if (iVar1 == 0) {
+ iVar1 = getBuildingHeightForBuildingID(iVar8);
+ if (iVar1 < 0x10) {
+ local_2c = this->HeightLayer[iVar7] + 0x10;
+ } else {
+ iVar1 = getBuildingHeightForBuildingID(iVar8);
+ local_2c = (uint)this->HeightLayer[iVar7] + iVar1;
+ }
+ }
+ }
+ if ((this->LogicLayer[iVar7] & L_TREE) == 0) {
+ if ((this->LogicLayer[iVar7] & L_TREE_VARIATION) != 0) {
+ local_2c = local_2c + 0x28;
+ }
+ } else {
+ iVar1 = getTreeGrowthTargetStage((int)this->OrganismLayer[iVar7]);
+ local_2c = local_2c + iVar1 * 7;
+ }
+ iVar1 = local_2c - uVar4;
+ if (iVar1 < 1) {
+ uVar5 = 2;
+ } else if (iVar1 < 0x13) {
+ uVar5 = local_1c;
+ if (iVar1 < 0xd) {
+ if (iVar1 < 7) {
+ uVar5 = 0;
+ } else {
+ uVar5 = local_1c - 1;
+ }
+ }
+ } else {
+ uVar5 = local_1c + 1;
+ }
+ if ((int)local_c < (int)uVar5) {
+ local_c = uVar5;
+ }
+ iVar7 = iVar7 + this->directionTranslationMatrix[iVar6][local_24];
+ local_1c = local_1c - 1;
+ iVar6 = iVar6
+ + *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + local_24 * 8 + 4);
+ } while (local_1c < 0x80000000);
+ iVar6 = local_18 * 8;
+ iVar7 = this->directionTranslationMatrix[param_2][local_18] + tile;
+ local_18 = 4;
+ iVar6 = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar6 + 4) + param_2;
+ do {
+ if ((this->LogicLayer[iVar7] & L_BORDER | L_BORDER_EDGE) != 0)
+ break;
+ if ((this->LogicLayer[iVar7] & L_BUILDING | L_KEEP_NON_MANOR_HOUSE) == 0) {
+ local_2c = (uint)this->HeightLayer[iVar7];
+ } else {
+ iVar8 = (int)this->BuildingLayer[iVar7];
+ iVar1 = getBuildingFlag3(iVar8);
+ if (iVar1 == 0) {
+ iVar1 = getBuildingHeightForBuildingID(iVar8);
+ if (iVar1 < 0x10) {
+ local_2c = this->HeightLayer[iVar7] + 0x10;
+ } else {
+ iVar1 = getBuildingHeightForBuildingID(iVar8);
+ local_2c = (uint)this->HeightLayer[iVar7] + iVar1;
+ }
+ }
+ }
+ if ((this->LogicLayer[iVar7] & L_TREE) == 0) {
+ if ((this->LogicLayer[iVar7] & L_TREE_VARIATION) != 0) {
+ local_2c = local_2c + 0x28;
+ }
+ } else {
+ iVar1 = getTreeGrowthTargetStage((int)this->OrganismLayer[iVar7]);
+ local_2c = local_2c + iVar1 * 7;
+ }
+ iVar1 = local_2c - uVar4;
+ if (iVar1 < 1) {
+ uVar5 = 2;
+ } else if (iVar1 < 0x13) {
+ uVar5 = local_18;
+ if (iVar1 < 0xd) {
+ if (iVar1 < 7) {
+ uVar5 = 0;
+ } else {
+ uVar5 = local_18 - 1;
+ }
+ }
+ } else {
+ uVar5 = local_18 + 1;
+ }
+ if ((int)local_10 < (int)uVar5) {
+ local_10 = uVar5;
+ }
+ iVar7 = iVar7 + this->directionTranslationMatrix[iVar6][local_24];
+ local_18 = local_18 - 1;
+ iVar6 = iVar6
+ + *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + local_24 * 8 + 4);
+ } while (local_18 < 0x80000000);
+ if ((local_28 + -2 < (int)((local_10 - 4) + local_c)) && (local_28 = (local_10 - 2) + local_c, 6 < local_28)) {
+ local_28 = 7;
+ } else if (local_28 == 2) {
+ iVar6 = this->directionTranslationMatrix[param_2][local_24] + tile;
+ uVar5 = uVar4;
+ if ((this->LogicLayer[iVar6] & L_BORDER | L_BORDER_EDGE) == 0) {
+ if ((this->LogicLayer[iVar6] & L_BUILDING | L_KEEP_NON_MANOR_HOUSE) == 0) {
+ uVar5 = (uint)this->HeightLayer[iVar6];
+ } else {
+ iVar1 = (int)this->BuildingLayer[iVar6];
+ iVar7 = getBuildingFlag3(iVar1);
+ uVar5 = local_2c;
+ if (iVar7 == 0) {
+ iVar7 = getBuildingHeightForBuildingID(iVar1);
+ if (iVar7 < 0x10) {
+ uVar5 = this->HeightLayer[iVar6] + 0x10;
+ } else {
+ iVar7 = getBuildingHeightForBuildingID(iVar1);
+ uVar5 = (uint)this->HeightLayer[iVar6] + iVar7;
+ }
+ }
+ }
+ }
+ iVar6 = this->directionTranslationMatrix[param_2][local_14] + tile;
+ uVar2 = uVar4;
+ if ((this->LogicLayer[iVar6] & L_BORDER | L_BORDER_EDGE) == 0) {
+ uVar2 = (uint)this->HeightLayer[iVar6];
+ }
+ cVar3 = (int)uVar5 < (int)(uVar4 - 4);
+ if (uVar4 + 4 < uVar2) {
+ cVar3 = cVar3 + '\x01';
+ }
+ if ((this->LogicLayer[tile] & L_MOAT) == 0) {
+ if (cVar3 == '\x01') {
+ local_28 = 1;
+ } else if (cVar3 == '\x02') {
+ local_28 = 0;
+ }
+ }
+ }
+ this->LuminesenceLayer[tile] = (uchar)local_28;
+ return;
+ }
+}
+}
+
+### 0x004f80e0 increaseHeightForTunnelSingleTile | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F80E0
+ void TileMapState::increaseHeightForTunnelSingleTile(int tile, uint x, uint y, int increment)
+ {
+ byte _height;
+ if ((((this->LogicLayer[tile] & L_WALL_OR_GATEHOUSE | L_BUILDING | L_RIVER | L_FORD | L_KEEP_NON_MANOR_HOUSE
+ | L_MARSH | L_MOAT)
+ == 0)
+ && ((this->LogicLayer[tile] & L_SEA | L_BORDER | L_BORDER_EDGE | L_ROCKY) == 0))
+ && (this->BuildingLayer[tile] == 0)) {
+ _height = this->HeightLayer[tile];
+ if (((_height < 16) || (this->DefaultHeightLayer[tile] < 16)) && (-1 < (int)((uint)_height + increment))) {
+ this->HeightLayer[tile] = _height + (char)increment;
+ }
+ updateWalkAndPathLayer(4, x, y);
+ updatePathLinkagesInAllEightDirections(y, tile);
+ }
+ return;
+ }
+}
+}
+
+### 0x004f8160 getNonFarmFieldBuildingHealthAtTileOr1000 | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F8160
+ int TileMapState::getNonFarmFieldBuildingHealthAtTileOr1000(int tile)
+ {
+ short sVar1;
+ BuildingLogicalStateShort BVar2;
+ int _health;
+ short _currentHealth;
+ sVar1 = this->BuildingLayer[tile];
+ if (0 < sVar1) {
+ BVar2 = DAT_BuildingsState.buildings[sVar1].logicalState;
+ if ((((BVar2 != ((BuildingLogicalState)0)) && (BVar2 != BLS_REMOVE))
+ && (_currentHealth = DAT_BuildingsState.buildings[sVar1].currentHealth,
+ _currentHealth != 0))
+ && (DAT_BuildingDefinedData
+ .BuildingTypeHasHealth[(short)DAT_BuildingsState.buildings[sVar1].buildingType]
+ != 0)) {
+ _health = 1000;
+ if ((this->LogicLayer[tile] & L_FARM_FIELD_WHEAT | L_FARM_FIELD_HOP | L_FARM_FIELD_APPLE
+ | L_FARM_FIELD_DAIRY)
+ == 0) {
+ _health = (int)_currentHealth;
+ }
+ return _health;
+ }
+ }
+ return 1000;
+ }
+}
+}
+
+### 0x004f81d0 resetTileToDefaultState | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F81D0
+ void TileMapState::resetTileToDefaultState(int param_1, uint param_2, uint param_3)
+ {
+ this->LogicLayer[param_1] = this->LogicLayer[param_1] & 0xffbef4ff;
+ this->HeightLayer[param_1] = this->DefaultHeightLayer[param_1];
+ destroyEntitiesOnTile(
+ param_1);
+ updateWalkAndPathLayer(5, param_2, param_3);
+ return;
+ }
+}
+}
+
+### 0x004f8210 getBuildingHurtSFXID | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F8210
+ uint TileMapState::getBuildingHurtSFXID(int buildingID)
+ {
+ short sVar1;
+ BuildingLogicalStateShort BVar2;
+ sVar1 = this->BuildingLayer[buildingID];
+ if (sVar1 == 0) {
+ return (uint)this->LogicLayer[buildingID] >> 7 & 2;
+ }
+ BVar2 = DAT_BuildingsState.buildings[sVar1].logicalState;
+ if (((BVar2 != ((BuildingLogicalState)0)) && (BVar2 != BLS_REMOVE))
+ && (DAT_BuildingsState.buildings[sVar1].currentHealth != 0)) {
+ switch (DAT_BuildingsState.buildings[sVar1].buildingType) {
+ case BT_BARRACKS:
+ case BT_STOCKPILE:
+ case BT_ARMORY:
+ case BT_ENGINEERSGUILD:
+ case BT_TUNNELERSGUILD:
+ case BT_CHAPEL:
+ case BT_CHURCH:
+ case BT_CATHEDRAL:
+ case BT_MANORHOUSE:
+ case BT_STONEKEEP:
+ case BT_STRONGHOLD:
+ case BT_GATEHOUSELARGE:
+ case BT_GATEHOUSESMALL:
+ case BT_GATEHOUSE:
+ case BT_TOWER1:
+ case BT_TOWER2:
+ case BT_TOWER3:
+ case BT_TOWER4:
+ case BT_TOWER5:
+ case BT_OUTPOST_EUROPEAN:
+ return 2;
+ default : return 1;
+ }
+ }
+ return 0;
+ }
+}
+}
+
+### 0x004f8300 rotateFearFactorBuildingVariations | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F8300
+ void TileMapState::rotateFearFactorBuildingVariations()
+ {
+ DWORD _now;
+ _now = timeGetTime();
+ if (this->field80_0x554894 == 5) {
+ if (this->rockOrientation == 0) {
+ this->rockOrientation = 2;
+ } else if (this->rockOrientation == 2) {
+ this->rockOrientation = 4;
+ } else {
+ this->rockOrientation = (this->rockOrientation != 4) - 1 & 6;
+ }
+ }
+ if ((int)(this->lastTime + 1000) <= (int)_now) {
+ this->lastTime = _now;
+ this->field78_0x55488c = (this->field78_0x55488c == 0x50) + 0x50;
+ if (this->field80_0x554894 == 0) {
+ if (this->rockOrientation == 0) {
+ this->rockOrientation = 2;
+ } else if (this->rockOrientation == 2) {
+ this->rockOrientation = 4;
+ } else {
+ this->rockOrientation = (this->rockOrientation != 4) - 1 & 6;
+ }
+ }
+ switch (this->currentMapperCommand) {
+ case M_MAPPER_GARDEN1:
+ case M_MAPPER_GARDEN2:
+ case M_MAPPER_GARDEN3:
+ case M_MAPPER_GARDEN4:
+ case M_MAPPER_GARDEN5:
+ case M_MAPPER_GARDEN7:
+ case M_MAPPER_GARDEN8:
+ case M_MAPPER_GARDEN10:
+ case M_MAPPER_GARDEN11:
+ case M_MAPPER_CESS_PIT1:
+ case M_MAPPER_CESS_PIT2:
+ case M_MAPPER_CESS_PIT3:
+ case M_MAPPER_STATUE1:
+ case M_MAPPER_STATUE2:
+ case M_MAPPER_STATUE3:
+ case M_MAPPER_STATUE4:
+ case M_MAPPER_SHRINE1:
+ case M_MAPPER_POND1:
+ case M_MAPPER_POND3_LARGE1:
+ this->currentMapperCommand = this->currentMapperCommand + M_MAPPER_AREA;
+ return;
+ case M_MAPPER_GARDEN6:
+ this->currentMapperCommand = M_MAPPER_GARDEN1;
+ return;
+ case M_MAPPER_GARDEN9:
+ this->currentMapperCommand = M_MAPPER_GARDEN7;
+ return;
+ case M_MAPPER_GARDEN12:
+ this->currentMapperCommand = M_MAPPER_GARDEN10;
+ return;
+ case M_MAPPER_CESS_PIT4:
+ this->currentMapperCommand = M_MAPPER_CESS_PIT1;
+ break;
+ case M_MAPPER_STATUE5:
+ this->currentMapperCommand = M_MAPPER_STATUE1;
+ return;
+ case M_MAPPER_SHRINE2:
+ this->currentMapperCommand = M_MAPPER_SHRINE1;
+ return;
+ case M_MAPPER_POND2_SMALL:
+ this->currentMapperCommand = M_MAPPER_POND1;
+ return;
+ case M_MAPPER_POND4_LARGE2:
+ this->currentMapperCommand = M_MAPPER_POND3_LARGE1;
+ return;
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x004f8530 countLogicPropertyInSurroundingTiles | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F8530
+ void TileMapState::countLogicPropertyInSurroundingTiles(int tile, int y, uint logic1)
+ {
+ this->DAT_CardinalTilesAroundTile
+ = (uint)((this->LogicLayer[this->directionTranslationMatrix[y][0] + tile] & logic1) != 0);
+ if ((this->LogicLayer[this->directionTranslationMatrix[y][2] + tile] & logic1) != 0) {
+ this->DAT_CardinalTilesAroundTile = this->DAT_CardinalTilesAroundTile + 1;
+ }
+ if ((this->LogicLayer[this->directionTranslationMatrix[y][4] + tile] & logic1) != 0) {
+ this->DAT_CardinalTilesAroundTile = this->DAT_CardinalTilesAroundTile + 1;
+ }
+ if ((this->LogicLayer[this->directionTranslationMatrix[y][6] + tile] & logic1) != 0) {
+ this->DAT_CardinalTilesAroundTile = this->DAT_CardinalTilesAroundTile + 1;
+ }
+ return;
+ }
+}
+}
+
+### 0x004f8640 isTileEnclosedByWalls | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F8640
+ undefined4 TileMapState::isTileEnclosedByWalls(int param_1, int param_2)
+ {
+ if ((((((this->LogicLayer[this->directionTranslationMatrix[param_2][0] + param_1] & L_WALL_OR_GATEHOUSE) == 0)
+ || ((this->LogicLayer[this->directionTranslationMatrix[param_2][0] + param_1] & L_STOCKPILEUnk) != 0))
+ && (((this->LogicLayer[this->directionTranslationMatrix[param_2][4] + param_1] & L_WALL_OR_GATEHOUSE)
+ == 0
+ || ((this->LogicLayer[this->directionTranslationMatrix[param_2][4] + param_1] & L_STOCKPILEUnk)
+ != 0))))
+ && (((this->LogicLayer[this->directionTranslationMatrix[param_2][2] + param_1] & L_WALL_OR_GATEHOUSE)
+ == 0
+ || ((this->LogicLayer[this->directionTranslationMatrix[param_2][2] + param_1] & L_STOCKPILEUnk)
+ != 0))))
+ && (((this->LogicLayer[this->directionTranslationMatrix[param_2][6] + param_1] & L_WALL_OR_GATEHOUSE) == 0
+ || ((this->LogicLayer[this->directionTranslationMatrix[param_2][6] + param_1] & L_STOCKPILEUnk)
+ != 0)))) {
+ return (undefined4)(0);
+ }
+ return (undefined4)(1);
+ }
+}
+}
+
+### 0x004f86d0 isWallCornerForCardinalDirection | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F86D0
+ BOOLEnum TileMapState::isWallCornerForCardinalDirection(int param_1, int param_2, int param_3)
+ {
+ int iVar1;
+ int iVar2;
+ int iVar3;
+ int iVar4;
+ iVar1 = 0;
+ iVar2 = 0;
+ iVar3 = 0;
+ iVar4 = 0;
+ if (param_3 == 0) {
+ LAB_004f86ee:
+ iVar1 = 0;
+ iVar2 = 4;
+ iVar3 = 2;
+ iVar4 = 6;
+ } else {
+ if (param_3 != 2) {
+ if (param_3 == 4)
+ goto LAB_004f86ee;
+ if (param_3 != 6)
+ goto LAB_004f870f;
+ }
+ iVar4 = 4;
+ iVar3 = 0;
+ iVar2 = 6;
+ iVar1 = 2;
+ }
+ LAB_004f870f:
+ if ((((this->LogicLayer[this->directionTranslationMatrix[param_2][iVar1] + param_1] & L_CRENEL) != 0)
+ && ((this->LogicLayer[this->directionTranslationMatrix[param_2][iVar2] + param_1] & L_CRENEL) != 0))
+ && ((this->LogicLayer[this->directionTranslationMatrix[param_2][iVar3] + param_1] & L_CRENEL) == 0)) {
+ /*
+ Also tests L_CRENEL
+ */
+ return ~((uint)this->LogicLayer[this->directionTranslationMatrix[param_2][iVar4] + param_1] >> 9) & TRUE;
+ }
+ return FALSE;
+ }
+}
+}
+
+### 0x004f8780 isWallCornerForDiagonalDirection | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F8780
+ uint TileMapState::isWallCornerForDiagonalDirection(int param_1, int param_2, int param_3)
+ {
+ int iVar1;
+ int iVar2;
+ int iVar3;
+ int iVar4;
+ iVar1 = 0;
+ iVar2 = 0;
+ iVar3 = 0;
+ iVar4 = 0;
+ if (param_3 == 1) {
+ iVar2 = 6;
+ iVar4 = 2;
+ } else {
+ if (param_3 == 3) {
+ iVar1 = 0;
+ iVar2 = 6;
+ iVar3 = 4;
+ iVar4 = 2;
+ goto LAB_004f87d3;
+ }
+ if (param_3 == 5) {
+ iVar1 = 0;
+ iVar2 = 2;
+ iVar3 = 4;
+ iVar4 = 6;
+ goto LAB_004f87d3;
+ }
+ if (param_3 != 7)
+ goto LAB_004f87d3;
+ iVar2 = 2;
+ iVar4 = 6;
+ }
+ iVar3 = 0;
+ iVar1 = 4;
+ LAB_004f87d3:
+ if ((((this->LogicLayer[this->directionTranslationMatrix[param_2][iVar1] + param_1] & L_CRENEL) != 0)
+ && ((this->LogicLayer[this->directionTranslationMatrix[param_2][iVar2] + param_1] & L_CRENEL) != 0))
+ && ((this->LogicLayer[this->directionTranslationMatrix[param_2][iVar3] + param_1] & L_CRENEL) == 0)) {
+ /*
+ Also tests L_CRENEL
+ */
+ return ~((uint)this->LogicLayer[this->directionTranslationMatrix[param_2][iVar4] + param_1] >> 9) & 1;
+ }
+ return 0;
+ }
+}
+}
+
+### 0x004f8900 hasOnlyTowerNeighborsNoWalls | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F8900
+ BOOLEnum TileMapState::hasOnlyTowerNeighborsNoWalls(int tile, int y)
+ {
+ int _wallOrGatehouse;
+ int _unkWallRelated;
+ _unkWallRelated = 0;
+ _wallOrGatehouse = 0;
+ if ((this->LogicLayer[this->directionTranslationMatrix[y][0] + tile] & L_UNKNOWN_WALL_RELATED) == 0) {
+ if ((this->LogicLayer[this->directionTranslationMatrix[y][0] + tile] & L_WALL_OR_GATEHOUSE) != 0) {
+ _wallOrGatehouse = 1;
+ }
+ } else {
+ _unkWallRelated = 1;
+ }
+ if ((this->LogicLayer[this->directionTranslationMatrix[y][2] + tile] & L_UNKNOWN_WALL_RELATED) == 0) {
+ if ((this->LogicLayer[this->directionTranslationMatrix[y][2] + tile] & L_WALL_OR_GATEHOUSE) != 0) {
+ _wallOrGatehouse = _wallOrGatehouse + 1;
+ }
+ } else {
+ _unkWallRelated = _unkWallRelated + 1;
+ }
+ if ((this->LogicLayer[this->directionTranslationMatrix[y][4] + tile] & L_UNKNOWN_WALL_RELATED) == 0) {
+ if ((this->LogicLayer[this->directionTranslationMatrix[y][4] + tile] & L_WALL_OR_GATEHOUSE) != 0) {
+ _wallOrGatehouse = _wallOrGatehouse + 1;
+ }
+ } else {
+ _unkWallRelated = _unkWallRelated + 1;
+ }
+ if ((this->LogicLayer[this->directionTranslationMatrix[y][6] + tile] & L_UNKNOWN_WALL_RELATED) == 0) {
+ if ((this->LogicLayer[this->directionTranslationMatrix[y][6] + tile] & L_WALL_OR_GATEHOUSE) != 0) {
+ _wallOrGatehouse = _wallOrGatehouse + 1;
+ }
+ } else {
+ _unkWallRelated = _unkWallRelated + 1;
+ }
+ if ((_unkWallRelated != 0) && (_wallOrGatehouse == 0)) {
+ return TRUE;
+ }
+ return FALSE;
+ }
+}
+}
+
+### 0x004f8a40 hasHigherNeighborWithStairs | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F8A40
+ BOOLEnum TileMapState::hasHigherNeighborWithStairs(int tile, int y, int direction)
+ {
+ int _direction;
+ int _tile;
+ _direction = 0;
+ if (this->mapOrientation != 0) {
+ if (this->mapOrientation == 4) {
+ direction = direction + 4;
+ } else if (this->mapOrientation == 2) {
+ direction = direction + 2;
+ } else {
+ if (this->mapOrientation != 6)
+ goto LAB_004f8a7f;
+ direction = direction + 6;
+ }
+ }
+ _direction = direction;
+ if (7 < direction) {
+ _direction = direction + -8;
+ }
+ LAB_004f8a7f:
+ _tile = this->directionTranslationMatrix[y][_direction] + tile;
+ if (this->HeightLayer[tile] < this->HeightLayer[_tile]) {
+ /*
+ Checks for 0x800 = L_STAIRS
+ */
+ return (uint)this->LogicLayer[_tile] >> 0xb & TRUE;
+ }
+ return FALSE;
+ }
+}
+}
+
+### 0x004f8ac0 hasHigherPlainNeighborWithWallOrGatehouse | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F8AC0
+ BOOLEnum TileMapState::hasHigherPlainNeighborWithWallOrGatehouse(int param_1, int param_2, int param_3)
+ {
+ uint uVar1;
+ int iVar2;
+ iVar2 = 0;
+ if (this->mapOrientation != 0) {
+ if (this->mapOrientation == 4) {
+ param_3 = param_3 + 4;
+ } else if (this->mapOrientation == 2) {
+ param_3 = param_3 + 2;
+ } else {
+ if (this->mapOrientation != 6)
+ goto LAB_004f8aff;
+ param_3 = param_3 + 6;
+ }
+ }
+ iVar2 = param_3;
+ if (7 < param_3) {
+ iVar2 = param_3 + -8;
+ }
+ LAB_004f8aff:
+ iVar2 = this->directionTranslationMatrix[param_2][iVar2] + param_1;
+ if (((this->HeightLayer[param_1] < this->HeightLayer[iVar2])
+ && (uVar1 = this->LogicLayer[iVar2], (uVar1 & L_CRENEL) == 0))
+ && ((uVar1 & L2_EARTH_AND_STONES) == 0)) {
+ /*
+ Checks L_WALL_OR_GATEHOUSE
+ */
+ return uVar1 >> 8 & TRUE;
+ }
+ return FALSE;
+ }
+}
+}
+
+### 0x004f8b50 getOrientationThatIsWallTowerOrGatehouse | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F8B50
+ int TileMapState::getOrientationThatIsWallTowerOrGatehouse(uint x, uint y)
+ {
+ int* _pOrientation;
+ if (((x < 400) && (y < 400)) && (*(char*)(y * 400 + 0x21aec98 + x) != '\0')) {
+ /*
+ if wall tower or gatehouse and not stockpile or crenel then break
+ */
+ _pOrientation = DAT_TerrainDefinedData.SomeOrientationOrderArray;
+ while (true) {
+ if (((this->LogicLayer[this->directionTranslationMatrix[y][*_pOrientation]
+ + DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x]
+ & 0x100U)
+ != 0)
+ && ((this->LogicLayer[this->directionTranslationMatrix[y][*_pOrientation]
+ + DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x]
+ & 0x400002U)
+ == 0))
+ break;
+ _pOrientation = _pOrientation + 1;
+ if (0xb4ad9f < (int)_pOrientation) {
+ return 0xf;
+ }
+ }
+ return *_pOrientation;
+ }
+ return 0xf;
+ }
+}
+}
+
+### 0x004f8bd0 renderWallDragPreview | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F8BD0
+ void TileMapState::renderWallDragPreview(int playerID, uint x1, uint y1, uint x2, uint y2, undefined4 command)
+ {
+ bool bVar1;
+ ushort uVar2;
+ int iVar3;
+ int iVar4;
+ uint uVar5;
+ int iVar6;
+ uint uVar7;
+ int* local_14;
+ int local_10;
+ int local_c;
+ uint local_8;
+ int local_4;
+ local_4 = 0;
+ if ((((x1 < 400) && (y1 < 400)) && (*(char*)(y1 * 400 + 0x21aec98 + x1) != '\0'))
+ && (((x2 < 400 && (y2 < 400)) && (*(char*)(x2 + 0x21aec98 + y2 * 400) != '\0')))) {
+ this->DAT_WallTileCountCurrentDrag = 0;
+ local_c = 2;
+ if (((short)command == 0x1b) && (local_4 = this->field119_0x554924, this->field118_0x554920 == 0)) {
+ this->ConstructionGFXLayer[DAT_ViewportRenderState.translationMatrix[y1].addXgetTile + x1]
+ = (short)GMTotalPicturesProcessed::instance[6] + 0x13;
+ return;
+ }
+ iVar4 = y1 - y2;
+ local_10 = y2 - y1;
+ local_8 = x1;
+ uVar5 = x2 - x1;
+ local_14 = &DAT_ViewportRenderState.translationMatrix[y1].addXgetTile;
+ uVar7 = y1;
+ x1 = x1 - x2;
+ y1 = uVar5;
+ do {
+ if ((((short)command == 0x1b) && (local_4 < 0x18))
+ || (((iVar6 = *local_14 + local_8,
+ (short)command == 0x1b && ((this->LogicLayer[iVar6] & 0x100U) != 0))
+ || (this->constructionTileCount <= this->DAT_WallTileCountCurrentDrag))))
+ break;
+ bVar1 = false;
+ if (((short)command == 0x19) && ((this->LogicLayer[iVar6] & 0x200U) != 0)) {
+ bVar1 = true;
+ }
+ if (((this->LogicLayer[iVar6] & 0x100U) == 0) || (this->DamageLayer[iVar6] != 0)) {
+ iVar3 = this->DAT_WallTileCountCurrentDrag + 1;
+ if (bVar1)
+ goto LAB_004f8d6c;
+ LAB_004f8d75:
+ this->DAT_WallTileCountCurrentDrag = iVar3;
+ if (this->illegalBuild == FALSE) {
+ if ((short)command == 0x19) {
+ this->ConstructionGFXLayer[iVar6] = (ushort)GMTotalPicturesProcessed::instance[6];
+ } else {
+ if ((short)command == 0x2e) {
+ uVar2 = (ushort)GMTotalPicturesProcessed::instance[6] + 1;
+ goto LAB_004f8e61;
+ }
+ if ((short)command == 0x1a) {
+ this->ConstructionGFXLayer[iVar6] = (ushort)GMTotalPicturesProcessed::instance[6] + 4;
+ } else if ((short)command == 0x1b) {
+ iVar3 = local_4 - (uint)this->HeightLayer[iVar6];
+ iVar3 = ((int)(iVar3 + (iVar3 >> 0x1f & 7U)) >> 3) + -1;
+ if (0 < iVar3) {
+ if (10 < iVar3) {
+ iVar3 = 10;
+ }
+ uVar2 = (short)iVar3 + 8 + (ushort)GMTotalPicturesProcessed::instance[6];
+ goto LAB_004f8e61;
+ }
+ this->DAT_WallTileCountCurrentDrag = this->DAT_WallTileCountCurrentDrag + -1;
+ }
+ }
+ } else if ((short)command == 0x19) {
+ this->ConstructionGFXLayer[iVar6] = (ushort)GMTotalPicturesProcessed::instance[6] + 0x13;
+ } else if ((short)command == 0x2e) {
+ uVar2 = (ushort)GMTotalPicturesProcessed::instance[6] + 0x13;
+ LAB_004f8e61:
+ this->ConstructionGFXLayer[iVar6] = uVar2;
+ } else if ((short)command == 0x1a) {
+ this->ConstructionGFXLayer[iVar6] = (ushort)GMTotalPicturesProcessed::instance[6] + 0x14;
+ } else if ((short)command == 0x1b) {
+ uVar2 = (ushort)GMTotalPicturesProcessed::instance[6] + 0x13;
+ goto LAB_004f8e61;
+ }
+ } else if (bVar1) {
+ LAB_004f8d6c:
+ iVar3 = this->DAT_WallTileCountCurrentDrag;
+ goto LAB_004f8d75;
+ }
+ uVar5 = x1;
+ if ((int)local_8 < (int)x2) {
+ uVar5 = y1;
+ }
+ iVar6 = iVar4;
+ if ((int)uVar7 < (int)y2) {
+ iVar6 = local_10;
+ }
+ if ((short)command == 0x1b) {
+ if (iVar6 < (int)uVar5) {
+ if ((int)local_8 < (int)x2) {
+ x1 = x1 + 1;
+ local_8 = local_8 + 1;
+ y1 = y1 - 1;
+ } else {
+ x1 = x1 - 1;
+ local_8 = local_8 - 1;
+ y1 = y1 + 1;
+ }
+ } else {
+ if (iVar6 < 1)
+ goto LAB_004f8f54;
+ if ((int)uVar7 < (int)y2) {
+ local_14 = local_14 + 3;
+ uVar7 = uVar7 + 1;
+ iVar4 = iVar4 + 1;
+ local_10 = local_10 + -1;
+ } else {
+ local_14 = local_14 + -3;
+ uVar7 = uVar7 - 1;
+ iVar4 = iVar4 + -1;
+ local_10 = local_10 + 1;
+ }
+ }
+ } else {
+ if (uVar5 != 0) {
+ if ((int)local_8 < (int)x2) {
+ x1 = x1 + 1;
+ local_8 = local_8 + 1;
+ y1 = y1 - 1;
+ } else {
+ x1 = x1 - 1;
+ local_8 = local_8 - 1;
+ y1 = y1 + 1;
+ }
+ }
+ if (iVar6 != 0) {
+ if ((int)uVar7 < (int)y2) {
+ local_14 = local_14 + 3;
+ uVar7 = uVar7 + 1;
+ iVar4 = iVar4 + 1;
+ local_10 = local_10 + -1;
+ } else {
+ local_14 = local_14 + -3;
+ uVar7 = uVar7 - 1;
+ iVar4 = iVar4 + -1;
+ local_10 = local_10 + 1;
+ }
+ }
+ if ((local_8 == x2) && (uVar7 == y2)) {
+ LAB_004f8f54:
+ local_c = local_c + -1;
+ }
+ }
+ if ((0x10 < local_4) && (local_c == 2)) {
+ local_4 = local_4 + -0x10;
+ }
+ } while (((local_8 != x2) || (uVar7 != y2)) || (local_c != 0));
+ if (this->illegalBuild != FALSE) {
+ this->DAT_WallTileCountCurrentDrag = 0;
+ }
+ if (this->field145_0x554980 == 0) {
+ if ((short)command == 0x2e) {
+ processWallBuildingLoss(playerID, 0, this->DAT_WallTileCountCurrentDrag, 1);
+ return;
+ }
+ processWallBuildingLoss(playerID, this->DAT_WallTileCountCurrentDrag, 0, 1);
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x004f9000 reassignWallOwnershipForPlayer | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F9000
+ void TileMapState::reassignWallOwnershipForPlayer(int param_1, int param_2)
+ {
+ char cVar1;
+ int iVar2;
+ short* psVar3;
+ bool bVar4;
+ int* local_4;
+ iVar2 = 0;
+ psVar3 = this->BuildingLayer + 1;
+ local_4 = this->LogicLayer + 1;
+ do {
+ cVar1 = (char)param_2;
+ if ((local_4[-1] & 0x100U) != 0) {
+ if (psVar3[-1] == 0) {
+ bVar4 = (this->WallOwnerLayer[iVar2] & 7) + 1 == param_1;
+ } else {
+ bVar4 = DAT_BuildingsState.buildings[psVar3[-1]].owner == param_2;
+ }
+ if (bVar4) {
+ this->WallOwnerLayer[iVar2] = this->WallOwnerLayer[iVar2] & 0xf8 | cVar1 - 1U;
+ }
+ }
+ if ((*local_4 & 0x100U) != 0) {
+ if (*psVar3 == 0) {
+ bVar4 = (this->WallOwnerLayer[iVar2 + 1] & 7) + 1 == param_1;
+ } else {
+ bVar4 = DAT_BuildingsState.buildings[*psVar3].owner == param_2;
+ }
+ if (bVar4) {
+ this->WallOwnerLayer[iVar2 + 1] = this->WallOwnerLayer[iVar2 + 1] & 0xf8 | cVar1 - 1U;
+ }
+ }
+ if ((local_4[1] & 0x100U) != 0) {
+ if (psVar3[1] == 0) {
+ bVar4 = (this->WallOwnerLayer[iVar2 + 2] & 7) + 1 == param_1;
+ } else {
+ bVar4 = DAT_BuildingsState.buildings[psVar3[1]].owner == param_2;
+ }
+ if (bVar4) {
+ this->WallOwnerLayer[iVar2 + 2] = this->WallOwnerLayer[iVar2 + 2] & 0xf8 | cVar1 - 1U;
+ }
+ }
+ if ((local_4[2] & 0x100U) != 0) {
+ if (psVar3[2] == 0) {
+ bVar4 = (this->WallOwnerLayer[iVar2 + 3] & 7) + 1 == param_1;
+ } else {
+ bVar4 = DAT_BuildingsState.buildings[psVar3[2]].owner == param_2;
+ }
+ if (bVar4) {
+ this->WallOwnerLayer[iVar2 + 3] = this->WallOwnerLayer[iVar2 + 3] & 0xf8 | cVar1 - 1U;
+ }
+ }
+ if ((local_4[3] & 0x100U) != 0) {
+ if (psVar3[3] == 0) {
+ bVar4 = (this->WallOwnerLayer[iVar2 + 4] & 7) + 1 == param_1;
+ } else {
+ bVar4 = DAT_BuildingsState.buildings[psVar3[3]].owner == param_2;
+ }
+ if (bVar4) {
+ this->WallOwnerLayer[iVar2 + 4] = this->WallOwnerLayer[iVar2 + 4] & 0xf8 | cVar1 - 1U;
+ }
+ }
+ if ((local_4[4] & 0x100U) != 0) {
+ if (psVar3[4] == 0) {
+ bVar4 = (this->WallOwnerLayer[iVar2 + 5] & 7) + 1 == param_1;
+ } else {
+ bVar4 = DAT_BuildingsState.buildings[psVar3[4]].owner == param_2;
+ }
+ if (bVar4) {
+ this->WallOwnerLayer[iVar2 + 5] = this->WallOwnerLayer[iVar2 + 5] & 0xf8 | cVar1 - 1U;
+ }
+ }
+ local_4 = local_4 + 6;
+ iVar2 = iVar2 + 6;
+ psVar3 = psVar3 + 6;
+ } while (iVar2 < 0x13a10);
+ return;
+ }
+}
+}
+
+### 0x004f9220 swapWallOwnership | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F9220
+ void TileMapState::swapWallOwnership(int param_1, int param_2)
+ {
+ int iVar1;
+ int iVar2;
+ char cVar3;
+ char cVar4;
+ int* piVar5;
+ iVar2 = 0;
+ piVar5 = this->LogicLayer + 1;
+ do {
+ cVar3 = (char)param_1;
+ if ((piVar5[-1] & 0x100U) != 0) {
+ iVar1 = (this->WallOwnerLayer[iVar2] & 7) + 1;
+ cVar4 = (char)param_2;
+ if ((iVar1 == param_1) || (cVar4 = cVar3, iVar1 == param_2)) {
+ this->WallOwnerLayer[iVar2] = this->WallOwnerLayer[iVar2] & 0xf8 | cVar4 - 1U;
+ }
+ }
+ if ((*piVar5 & 0x100U) != 0) {
+ iVar1 = (this->WallOwnerLayer[iVar2 + 1] & 7) + 1;
+ cVar4 = (char)param_2;
+ if ((iVar1 == param_1) || (cVar4 = cVar3, iVar1 == param_2)) {
+ this->WallOwnerLayer[iVar2 + 1] = this->WallOwnerLayer[iVar2 + 1] & 0xf8 | cVar4 - 1U;
+ }
+ }
+ if ((piVar5[1] & 0x100U) != 0) {
+ iVar1 = (this->WallOwnerLayer[iVar2 + 2] & 7) + 1;
+ cVar4 = (char)param_2;
+ if ((iVar1 == param_1) || (cVar4 = cVar3, iVar1 == param_2)) {
+ this->WallOwnerLayer[iVar2 + 2] = this->WallOwnerLayer[iVar2 + 2] & 0xf8 | cVar4 - 1U;
+ }
+ }
+ if ((piVar5[2] & 0x100U) != 0) {
+ iVar1 = (this->WallOwnerLayer[iVar2 + 3] & 7) + 1;
+ cVar4 = (char)param_2;
+ if ((iVar1 == param_1) || (cVar4 = cVar3, iVar1 == param_2)) {
+ this->WallOwnerLayer[iVar2 + 3] = this->WallOwnerLayer[iVar2 + 3] & 0xf8 | cVar4 - 1U;
+ }
+ }
+ if ((piVar5[3] & 0x100U) != 0) {
+ iVar1 = (this->WallOwnerLayer[iVar2 + 4] & 7) + 1;
+ cVar4 = (char)param_2;
+ if ((iVar1 == param_1) || (cVar4 = cVar3, iVar1 == param_2)) {
+ this->WallOwnerLayer[iVar2 + 4] = this->WallOwnerLayer[iVar2 + 4] & 0xf8 | cVar4 - 1U;
+ }
+ }
+ if ((piVar5[4] & 0x100U) != 0) {
+ iVar1 = (this->WallOwnerLayer[iVar2 + 5] & 7) + 1;
+ cVar4 = (char)param_2;
+ if ((iVar1 == param_1) || (cVar4 = cVar3, iVar1 == param_2)) {
+ this->WallOwnerLayer[iVar2 + 5] = this->WallOwnerLayer[iVar2 + 5] & 0xf8 | cVar4 - 1U;
+ }
+ }
+ iVar2 = iVar2 + 6;
+ piVar5 = piVar5 + 6;
+ } while (iVar2 < 0x13a10);
+ return;
+ }
+}
+}
+
+### 0x004f93e0 destroyWallsOfPlayer | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F93E0
+ void TileMapState::destroyWallsOfPlayer(int playerID)
+ {
+ int iVar1;
+ int _tile;
+ uint yPosition;
+ int* _pLogic;
+ _tile = 0;
+ _pLogic = this->LogicLayer;
+ do {
+ if (((*_pLogic & 0x100U) != 0) && ((this->WallOwnerLayer[_tile] & 7) + 1 == playerID)) {
+ destroyEntitiesOnTile(_tile);
+ *_pLogic = *_pLogic
+ & ~(L_WALL_OR_GATEHOUSE | L_CRENEL | L_STAIRS | L_UNKNOWN_WALL_RELATED | L_CRENEL_VARIATIONUnk);
+ this->HeightLayer[_tile] = this->DefaultHeightLayer[_tile];
+ this->DamageLayer[_tile] = 0;
+ yPosition = (uint)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[_tile];
+ DAT_PathFindingState.toggleUpdateSeparateAreaTileMap = 1;
+ this->field204_0x554a30 = 1;
+ iVar1 = DAT_ViewportRenderState.translationMatrix[yPosition].addXgetTile;
+ updatePathLinkagesInAllEightDirections(yPosition, _tile);
+ updateWalkAndPathLayer(7, (uint)((int)(_tile - iVar1)), yPosition);
+ }
+ _tile = _tile + 1;
+ _pLogic = _pLogic + 1;
+ } while (_tile < 80400);
+ return;
+ }
+}
+}
+
+### 0x004f94a0 validateWallPlacementAtTile | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F94A0
+ void TileMapState::validateWallPlacementAtTile(int playerID, uint x, uint y, MappersEnum param_4)
+ {
+ BOOLEnum BVar1;
+ int iVar2;
+ int _tile;
+ uint _logic;
+ this->illegalBuild = TRUE;
+ _tile = DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x;
+ _logic = this->LogicLayer[_tile];
+ if ((((((_logic & L_WALL_OR_GATEHOUSE) == 0) || ('\v' < (char)this->DamageLayer[_tile]))
+ && ((_logic & L_BUILDING) == 0))
+ && ((this->BuildingLayer[_tile] == 0 && ((_logic & 0x14) == 0))))
+ && ((_logic & L_SEA | L_ROCKY | L_RIVER | L_FORD | L_MARSH | L_MOAT) == 0)) {
+ BVar1 = isEnemyTooCloseUnk(playerID, x, y, 5);
+ if (BVar1 == FALSE) {
+ iVar2 = findSomeSuitableLocationUnk(playerID, x, y, 2);
+ if (iVar2 == 0) {
+ /*
+ crenelations?
+ */
+ if ((this->UnitLayer[_tile] != 0) && ((this->LogicLayer[_tile] & L_WALL_OR_GATEHOUSE) == 0)) {
+ if (((undefined2)param_4 == M_MAPPER_CRENAL) || ((undefined2)param_4 == M_MAPPER_CRENAL2)) {
+ DAT_UnitsState.units[(short)this->UnitLayer[_tile]].logicalState
+ = ULS_REMOVE;
+ }
+ }
+ this->illegalBuild = FALSE;
+ }
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x004f9590 setupBuildingSizeIndexMappingForBuildingWithSize | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F9590
+ void TileMapState::setupBuildingSizeIndexMappingForBuildingWithSize(int buildingSize)
+ {
+ int iVar1;
+ int _x;
+ int iVar2;
+ int* _ptrY2;
+ int _y;
+ int iVar3;
+ int iVar4;
+ int* _ptrY;
+ int iVar5;
+ int local_14;
+ int local_10;
+ int local_c;
+ iVar1 = buildingSize;
+ fillMemory_ByteValue(
+ 4056, '\0', (void*)((int)(DAT_BuildingSizeIndexMapping + buildingSize)));
+ if (1 < buildingSize) {
+ _y = 0;
+ if (0 < buildingSize) {
+ _ptrY = DAT_BuildingSizeIndexMapping[buildingSize][0] + 1;
+ do {
+ _x = 0;
+ _ptrY2 = _ptrY;
+ do {
+ (*(int (*)[6])(_ptrY2 + -1))[0] = _x;
+ *_ptrY2 = _y;
+ _x = _x + 1;
+ _ptrY2 = _ptrY2 + 6;
+ } while (_x < buildingSize);
+ _y = _y + 1;
+ _ptrY = _ptrY + buildingSize * 6;
+ } while (_y < buildingSize);
+ }
+ iVar3 = buildingSize * buildingSize + -1;
+ _x = 0;
+ iVar5 = buildingSize * 2 + -1;
+ iVar2 = 0;
+ local_14 = 0;
+ _y = 1;
+ if (0 < iVar5) {
+ iVar4 = iVar3;
+ do {
+ iVar5 = 0;
+ if (0 < _y) {
+ iVar2 = (iVar2 + 169) * buildingSize;
+ do {
+ DAT_BuildingSizeIndexMapping[0][iVar2 + _x][2] = iVar4;
+ iVar4 = iVar4 + -1;
+ if (iVar5 < _y + -1) {
+ _x = _x + -1;
+ iVar2 = iVar2 + buildingSize;
+ }
+ iVar5 = iVar5 + 1;
+ } while (iVar5 < _y);
+ }
+ _x = buildingSize + -1;
+ if (local_14 < _x) {
+ _y = _y + 1;
+ _x = local_14 + 1;
+ iVar2 = 0;
+ } else {
+ _y = _y + -1;
+ iVar2 = (1 - (buildingSize + -1)) + local_14;
+ }
+ local_14 = local_14 + 1;
+ iVar5 = buildingSize * 2 + -1;
+ } while (local_14 < iVar5);
+ }
+ iVar2 = 0;
+ _y = buildingSize + -1;
+ local_14 = 0;
+ _x = 1;
+ if (0 < iVar5) {
+ local_c = buildingSize * 2 + -3;
+ local_10 = iVar3;
+ do {
+ iVar5 = 0;
+ if (0 < _x) {
+ iVar2 = (iVar2 + 0xa9) * buildingSize;
+ do {
+ DAT_BuildingSizeIndexMapping[0][iVar2 + _y][3] = local_10;
+ local_10 = local_10 + -1;
+ if (iVar5 < _x + -1) {
+ _y = _y + -1;
+ iVar2 = iVar2 - buildingSize;
+ }
+ iVar5 = iVar5 + 1;
+ } while (iVar5 < _x);
+ }
+ _y = buildingSize + -1;
+ if (local_14 < _y) {
+ _x = _x + 1;
+ iVar2 = local_14 + 1;
+ } else {
+ _x = _x + -1;
+ iVar2 = _y;
+ _y = local_c;
+ }
+ local_c = local_c + -1;
+ local_14 = local_14 + 1;
+ iVar5 = buildingSize * 2 + -1;
+ } while (local_14 < iVar5);
+ }
+ _x = buildingSize + -1;
+ local_14 = 0;
+ _y = 1;
+ if (0 < iVar5) {
+ local_c = buildingSize + -2;
+ iVar2 = _x;
+ local_10 = iVar3;
+ do {
+ iVar5 = 0;
+ if (0 < _y) {
+ _x = (_x + 0xa9) * buildingSize;
+ do {
+ DAT_BuildingSizeIndexMapping[0][_x + iVar2][4] = local_10;
+ local_10 = local_10 + -1;
+ if (iVar5 < _y + -1) {
+ iVar2 = iVar2 + 1;
+ _x = _x - buildingSize;
+ }
+ iVar5 = iVar5 + 1;
+ } while (iVar5 < _y);
+ }
+ _x = buildingSize + -1;
+ if (local_14 < _x) {
+ _y = _y + 1;
+ iVar2 = local_c;
+ } else {
+ _y = _y + -1;
+ iVar2 = 0;
+ _x = local_c + _x;
+ }
+ local_c = local_c + -1;
+ local_14 = local_14 + 1;
+ iVar5 = buildingSize * 2 + -1;
+ } while (local_14 < iVar5);
+ }
+ iVar2 = buildingSize + -1;
+ _x = 0;
+ local_14 = 0;
+ _y = 1;
+ if (0 < iVar5) {
+ buildingSize = buildingSize + -2;
+ iVar5 = 1 - iVar2;
+ local_10 = iVar3;
+ do {
+ iVar3 = 0;
+ if (0 < _y) {
+ iVar2 = (iVar2 + 0xa9) * iVar1;
+ do {
+ DAT_BuildingSizeIndexMapping[0][iVar2 + _x][5] = local_10;
+ local_10 = local_10 + -1;
+ if (iVar3 < _y + -1) {
+ _x = _x + 1;
+ iVar2 = iVar2 + iVar1;
+ }
+ iVar3 = iVar3 + 1;
+ } while (iVar3 < _y);
+ }
+ if (local_14 < iVar1 + -1) {
+ _y = _y + 1;
+ _x = 0;
+ iVar2 = buildingSize;
+ } else {
+ _y = _y + -1;
+ _x = iVar5 + local_14;
+ iVar2 = 0;
+ }
+ buildingSize = buildingSize + -1;
+ local_14 = local_14 + 1;
+ } while (local_14 < iVar1 * 2 + -1);
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x004f9930 isFootprintIndexOnEdge | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F9930
+ BOOLEnum TileMapState::isFootprintIndexOnEdge(int counter, int size)
+ {
+ if ((size < 3) || (counter < size)) {
+ return TRUE;
+ }
+ if ((counter < (size + -1) * size) && (counter % size != 0)) {
+ return (uint)(counter % size == size + -1);
+ }
+ return TRUE;
+ }
+}
+}
+
+### 0x004f9980 storeMinAndMaxHeightOfArea | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004F9980
+ void TileMapState::storeMinAndMaxHeightOfArea(uint x, uint y, int buildingWidthAndHeight)
+ {
+ uint uVar1;
+ uint _height;
+ int buildingSizeTileIndex;
+ buildingSizeTileIndex = 0;
+ this->buildingMinHeight = 1000;
+ this->buildingMaxHeight = 0;
+ if (((x < 399) && (y < 399)) && (*(char*)(y * 400 + 0x21aec98 + x) != '\0')) {
+ do {
+ getBuildingSizeIndexMappingData(
+ buildingSizeTileIndex, buildingWidthAndHeight);
+ /*
+ 01fe7b98
+ */
+ uVar1 = this->buildingY + y;
+ /*
+ 01fe7b94
+ */
+ if (((this->buildingX + x < 400) && (uVar1 < 400))
+ && (*(char*)(this->buildingX + x + 0x21aec98 + uVar1 * 400) != '\0')) {
+ _height
+ = (uint)this->HeightLayer[DAT_ViewportRenderState.translationMatrix[uVar1].addXgetTile
+ + this->buildingX + x];
+ if ((int)this->buildingMaxHeight < (int)_height) {
+ this->buildingMaxHeight = _height;
+ }
+ if ((int)_height < (int)this->buildingMinHeight) {
+ this->buildingMinHeight = _height;
+ }
+ }
+ buildingSizeTileIndex = buildingSizeTileIndex + 1;
+ } while (buildingSizeTileIndex < this->constructionTileCount);
+ }
+ return;
+ }
+}
+}
+

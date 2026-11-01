@@ -1,0 +1,750 @@
+### 0x0042c620 LaunchSinglePlayerGameUnk | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0042C620
+ void Actions::LaunchSinglePlayerGameUnk(int param_1)
+ {
+ byte(*pabVar1)[10];
+ byte* pbVar2;
+ char cVar3;
+ short* psVar4;
+ char* pcVar5;
+ BOOLEnum BVar6;
+ int iVar7;
+ int iVar8;
+ int iVar9;
+ char* pcVar10;
+ int _pointsMultiplier;
+ UnitTypeShort* pUVar11;
+ uint uVar12;
+ MenuViewType menuID;
+ int local_7e8;
+ undefined4 local_7e4;
+ char local_7e0[4];
+ char local_7dc[1004];
+ char _mapU3StringCopy[1004];
+ uint local_4;
+ iVar8 = DAT_GameSynchronyState.currentPlayerSlotID;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)&local_7e8;
+ DAT_GameCore.section1066 = 1;
+ queueCommand(
+ GCT_ASK_FOR_SLOT_ASSIGNMENT);
+ DAT_MapPropertiesState.SEC_XbowProducible_save = 1;
+ DAT_MapPropertiesState.SEC_PikeProducible_save = 1;
+ DAT_MapPropertiesState.SEC_SwordProducible_save = 1;
+ DAT_MapPropertiesState.SEC_BowProducible_save = 1;
+ DAT_MapPropertiesState.SEC_SpearProducible_save = 1;
+ DAT_MapPropertiesState.SEC_MaceProducible_save = 1;
+ psVar4 = DAT_MapPropertiesState.SEC_MercRecruitable;
+ DAT_GameSynchronyState.currentPlayerSlotID = iVar8;
+ do {
+ (((BarracksRecruitabilityShort*)(psVar4 + -7))->recruitability).archers = 1;
+ *psVar4 = 1;
+ psVar4 = psVar4 + 1;
+ } while ((int)psVar4 < 0x1653df6);
+ if (param_1 == 0) {
+ pcVar5 = mapNames_getLoadedMapNameForIndex(DAT_MenuTextInputState
+ .DAT_ArrayOfMapIndices[DAT_GameSynchronyState.DAT_MapSelectionScrollOffset
+ + DAT_GameSynchronyState.DAT_MapSelectionRelativeSelected + -1]);
+ pcVar10 = local_7e0;
+ do {
+ cVar3 = *pcVar5;
+ *pcVar10 = cVar3;
+ pcVar5 = pcVar5 + 1;
+ pcVar10 = pcVar10 + 1;
+ } while (cVar3 != '\0');
+ pcVar10 = (char*)((int)&local_7e4 + 3);
+ do {
+ pcVar5 = pcVar10;
+ pcVar10 = pcVar5 + 1;
+ } while (pcVar5[1] != '\0');
+ builtin_strncpy(pcVar5 + 1, ".map", 5);
+ } else {
+ iVar8 = 0;
+ do {
+ cVar3 = DAT_GameCore.standaloneFilename[iVar8];
+ local_7e0[iVar8] = cVar3;
+ iVar8 = iVar8 + 1;
+ } while (cVar3 != '\0');
+ pcVar10 = (char*)((int)&local_7e4 + 3);
+ do {
+ pcVar5 = pcVar10;
+ pcVar10 = pcVar5 + 1;
+ } while (pcVar5[1] != '\0');
+ builtin_strncpy(pcVar5 + 1, ".map", 5);
+ iVar8 = 0;
+ do {
+ cVar3 = DAT_GameCore.standaloneFilename[iVar8];
+ _mapU3StringCopy[iVar8] = cVar3;
+ iVar8 = iVar8 + 1;
+ } while (cVar3 != '\0');
+ }
+ loadMap(local_7e0);
+ DAT_GameCore.selectedLordType_2Unk = DAT_GameCore.selectedLordTypeUnk;
+ DAT_MapPropertiesState.SEC_XbowProducible_save = 1;
+ DAT_GameCore.xbowProducible_logic = 1;
+ DAT_MapPropertiesState.SEC_BowProducible_save = 1;
+ DAT_GameCore.bowProducible_logic = 1;
+ DAT_MapPropertiesState.SEC_PikeProducible_save = 1;
+ DAT_GameCore.pikeProducible_logic = 1;
+ DAT_MapPropertiesState.SEC_SpearProducible_save = 1;
+ DAT_GameCore.spearProducible_logic = 1;
+ DAT_MapPropertiesState.SEC_SwordProducible_save = 1;
+ DAT_GameCore.swordProducible_logic = 1;
+ DAT_MapPropertiesState.SEC_MaceProducible_save = 1;
+ DAT_GameCore.maceProducible_logic = 1;
+ switch (DAT_MapMissionType) {
+ case 0:
+ DAT_GameCore.missionDifficulty_0 = DAT_GameState.mapAndTime.difficulty;
+ break;
+ case 1:
+ DAT_GameCore.missionDifficulty_1 = DAT_GameState.mapAndTime.difficulty;
+ break;
+ case 2:
+ DAT_GameCore.missionDifficulty_2 = DAT_GameState.mapAndTime.difficulty;
+ break;
+ case 3:
+ DAT_GameCore.missionDifficulty_3 = DAT_GameState.mapAndTime.difficulty;
+ }
+ if (DAT_MapMissionType == 2) {
+ createChainedMissionOutcomeEvents(DAT_GameSynchronyState.currentPlayerSlotID);
+ }
+ DAT_GameState.mapAndTime.mercRecruitable[0]
+ = (int)DAT_MapPropertiesState.SEC_MercRecruitable[0];
+ DAT_GameState.mapAndTime.mercRecruitable[1]
+ = (int)DAT_MapPropertiesState.SEC_MercRecruitable[1];
+ DAT_GameState.mapAndTime.mercRecruitable[2]
+ = (int)DAT_MapPropertiesState.SEC_MercRecruitable[2];
+ DAT_GameState.mapAndTime.mercRecruitable[3]
+ = (int)DAT_MapPropertiesState.SEC_MercRecruitable[3];
+ DAT_GameState.mapAndTime.euroRecruitable[0]
+ = (int)DAT_MapPropertiesState.barracksRecruitability.recruitability.archers;
+ DAT_GameState.mapAndTime.euroRecruitable[5]
+ = (int)DAT_MapPropertiesState.barracksRecruitability.recruitability.swordsmen;
+ DAT_GameState.mapAndTime.mercRecruitable[4]
+ = (int)DAT_MapPropertiesState.SEC_MercRecruitable[4];
+ DAT_GameState.mapAndTime.mercRecruitable[5]
+ = (int)DAT_MapPropertiesState.SEC_MercRecruitable[5];
+ DAT_GameState.mapAndTime.euroRecruitable[6]
+ = (int)DAT_MapPropertiesState.barracksRecruitability.recruitability.knights;
+ DAT_GameState.mapAndTime.euroRecruitable[1]
+ = (int)DAT_MapPropertiesState.barracksRecruitability.recruitability.crossbowmen;
+ DAT_GameState.mapAndTime.euroRecruitable[2]
+ = (int)DAT_MapPropertiesState.barracksRecruitability.recruitability.spearmen;
+ DAT_GameState.mapAndTime.euroRecruitable[3]
+ = (int)DAT_MapPropertiesState.barracksRecruitability.recruitability.pikemen;
+ DAT_GameState.mapAndTime.euroRecruitable[4]
+ = (int)DAT_MapPropertiesState.barracksRecruitability.recruitability.macemen;
+ DAT_GameState.mapAndTime.mercRecruitable[6]
+ = (int)DAT_MapPropertiesState.SEC_MercRecruitable[6];
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_0
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[0] != 0);
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_1_a
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[1] != 0);
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_1_b
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[1] != 0);
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_2
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[2] != 0);
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_3_a_and_6_b
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[3] != 0);
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_3_b
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[3] != 0);
+ if (DAT_GameState.mapAndTime.euroRecruitable[4] != 0) {
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_1_a = 1;
+ }
+ DAT_GameState.mapAndTime.field2257_0xda8
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[4] != 0);
+ if (DAT_GameState.mapAndTime.euroRecruitable[5] != 0) {
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_3_a_and_6_b = 1;
+ }
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_6_a
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[5] != 0);
+ if (DAT_GameState.mapAndTime.euroRecruitable[6] != 0) {
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_6_a = 1;
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_3_a_and_6_b = 1;
+ }
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_6_c
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[6] != 0);
+ if (param_1 == 0) {
+ pcVar10 = mapNames_getLoadedMapNameForIndex(DAT_MenuTextInputState
+ .DAT_ArrayOfMapIndices[DAT_GameSynchronyState.DAT_MapSelectionScrollOffset
+ + DAT_GameSynchronyState.DAT_MapSelectionRelativeSelected + -1]);
+ pcVar5 = DAT_GameCore.standaloneFilename;
+ do {
+ cVar3 = *pcVar10;
+ *pcVar5 = cVar3;
+ pcVar10 = pcVar10 + 1;
+ pcVar5 = pcVar5 + 1;
+ } while (cVar3 != '\0');
+ } else {
+ iVar8 = 0;
+ do {
+ cVar3 = _mapU3StringCopy[iVar8];
+ DAT_GameCore.standaloneFilename[iVar8] = cVar3;
+ iVar8 = iVar8 + 1;
+ } while (cVar3 != '\0');
+ }
+ DAT_GameState.mapAndTime.unitJesterRelated = 0;
+ DAT_GameState.mapAndTime.unitLadyRelated = 0;
+ if (DAT_MapMissionType == 2) {
+ triggerDeathAnimationForAllWildlife();
+ if (DAT_GameSynchronyState.currentPlayerSlotID == 1) {
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[1] = 1;
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[2] = 2;
+ } else {
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[1] = 2;
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[2] = 1;
+ }
+ if ((DAT_MapMissionType == 2) && (DAT_GameSynchronyState.currentPlayerSlotID == 1)) {
+ _pointsMultiplier = 100;
+ if (DAT_GameState.mapAndTime.difficulty == 0) {
+ _pointsMultiplier = 66;
+ } else if (DAT_GameState.mapAndTime.difficulty == 2) {
+ _pointsMultiplier = 133;
+ } else if (DAT_GameState.mapAndTime.difficulty == 3) {
+ _pointsMultiplier = 166;
+ }
+ DAT_TroopValueState.attackInfo.inv_count
+ = DAT_TroopValueState.attackInfo.inv_count + 1;
+ if (0x31 < DAT_TroopValueState.attackInfo.inv_count) {
+ DAT_TroopValueState.attackInfo.inv_count = 1;
+ }
+ initializeAttackWaveSlot(DAT_TroopValueState.attackInfo.inv_count, 1);
+ iVar8 = DAT_MapPropertiesState.SEC_Section1067.field0_0x0;
+ DAT_TroopValueState.attackInfo
+ .attackWavePlayerIDArray[DAT_TroopValueState.attackInfo.inv_count] = 4;
+ iVar8 = iVar8 * _pointsMultiplier;
+ pabVar1 = DAT_TroopValueState.attackInfo.someSinglePlayerScore
+ + DAT_TroopValueState.attackInfo.inv_count;
+ (*pabVar1)[0] = (*pabVar1)[0]
+ + (((char)(iVar8 / 100) + (char)(iVar8 >> 0x1f)) - (char)((longlong)iVar8 * 0x51eb851f >> 0x3f));
+ iVar8 = DAT_MapPropertiesState.SEC_Section1067.field1_0x4 * _pointsMultiplier;
+ iVar9 = DAT_MapPropertiesState.SEC_Section1067.field3_0xc * _pointsMultiplier;
+ pbVar2 = DAT_TroopValueState.attackInfo
+ .someSinglePlayerScore[DAT_TroopValueState.attackInfo.inv_count]
+ + 1;
+ *pbVar2 = *pbVar2
+ + (((char)(iVar8 / 100) + (char)(iVar8 >> 0x1f)) - (char)((longlong)iVar8 * 0x51eb851f >> 0x3f));
+ pbVar2 = DAT_TroopValueState.attackInfo
+ .someSinglePlayerScore[DAT_TroopValueState.attackInfo.inv_count]
+ + 2;
+ *pbVar2 = *pbVar2
+ + (((char)(iVar9 / 100) + (char)(iVar9 >> 0x1f)) - (char)((longlong)iVar9 * 0x51eb851f >> 0x3f));
+ iVar8 = DAT_MapPropertiesState.SEC_Section1067.field2_0x8 * _pointsMultiplier;
+ iVar9 = DAT_MapPropertiesState.SEC_Section1067.field4_0x10 * _pointsMultiplier;
+ pbVar2 = DAT_TroopValueState.attackInfo
+ .someSinglePlayerScore[DAT_TroopValueState.attackInfo.inv_count]
+ + 3;
+ *pbVar2 = *pbVar2
+ + (((char)(iVar8 / 100) + (char)(iVar8 >> 0x1f)) - (char)((longlong)iVar8 * 0x51eb851f >> 0x3f));
+ pbVar2 = DAT_TroopValueState.attackInfo
+ .someSinglePlayerScore[DAT_TroopValueState.attackInfo.inv_count]
+ + 4;
+ *pbVar2 = *pbVar2
+ + (((char)(iVar9 / 100) + (char)(iVar9 >> 0x1f)) - (char)((longlong)iVar9 * 0x51eb851f >> 0x3f));
+ iVar8 = DAT_MapPropertiesState.SEC_Section1067.field5_0x14 * _pointsMultiplier;
+ pbVar2 = DAT_TroopValueState.attackInfo
+ .someSinglePlayerScore[DAT_TroopValueState.attackInfo.inv_count]
+ + 8;
+ *pbVar2 = *pbVar2
+ + (((char)(iVar8 / 100) + (char)(iVar8 >> 0x1f)) - (char)((longlong)iVar8 * 0x51eb851f >> 0x3f));
+ }
+ }
+ if (DAT_SH1_SiegeAdvancedMode == 0) {
+ if (DAT_MapMissionType != 2)
+ goto LAB_0042ce38;
+ if (DAT_GameSynchronyState.currentPlayerSlotID == 2) {
+ iVar8 = 0;
+ do {
+ *(int*)((int)DAT_GameState.mapAndTime.startGoods + iVar8 + 100)
+ = (*(int*)((int)DAT_MapPropertiesState.SEC_StartingResources + iVar8 + 100) * 7) / 10;
+ iVar8 = iVar8 + 4;
+ } while (iVar8 < 0x50);
+ DAT_MapPropertiesState.SEC_Section1067.tunnelersCount
+ = (DAT_MapPropertiesState.SEC_Section1067.tunnelersCount * 7) / 10;
+ }
+ LAB_0042cc91:
+ uVar12 = 1;
+ pUVar11 = &DAT_UnitsState.units[1].unitType;
+ do {
+ if ((pUVar11[-1] != ULS_INVISIBLE)
+ && (*pUVar11 == UT_PEASANT)) {
+ deleteUnit(uVar12);
+ }
+ pUVar11 = pUVar11 + 0x248;
+ uVar12 = uVar12 + 1;
+ } while ((int)pUVar11 < 0x165141a);
+ } else {
+ if (DAT_MapMissionType == 2) {
+ DAT_GameState.mapAndTime.siegeInformation.archers = DAT_SiegeInformationArray[0];
+ DAT_GameState.mapAndTime.siegeInformation.field1_0x4 = DAT_SiegeInformationArray[1];
+ DAT_GameState.mapAndTime.siegeInformation.field3_0xc = DAT_SiegeInformationArray[3];
+ DAT_GameState.mapAndTime.siegeInformation.field4_0x10
+ = DAT_SiegeInformationArray[4];
+ DAT_GameState.mapAndTime.siegeInformation.field6_0x18
+ = DAT_SiegeInformationArray[6];
+ DAT_GameState.mapAndTime.siegeInformation.field7_0x1c
+ = DAT_SiegeInformationArray[7];
+ DAT_GameState.mapAndTime.siegeInformation.field9_0x24
+ = DAT_SiegeInformationArray[9];
+ DAT_GameState.mapAndTime.siegeInformation.field11_0x2c
+ = DAT_SiegeInformationArray[0xb];
+ DAT_GameState.mapAndTime.siegeInformation.field2_0x8 = DAT_SiegeInformationArray[2];
+ DAT_GameState.mapAndTime.siegeInformation.field12_0x30
+ = DAT_SiegeInformationArray[0xc];
+ DAT_GameState.mapAndTime.siegeInformation.field13_0x34
+ = DAT_SiegeInformationArray[0xd];
+ DAT_GameState.mapAndTime.siegeInformation.field5_0x14
+ = DAT_SiegeInformationArray[5];
+ DAT_GameState.mapAndTime.siegeInformation.field14_0x38
+ = DAT_SiegeInformationArray[0xe];
+ DAT_GameState.mapAndTime.siegeInformation.field15_0x3c
+ = DAT_SiegeInformationArray[0xf];
+ DAT_GameState.mapAndTime.siegeInformation.field8_0x20
+ = DAT_SiegeInformationArray[8];
+ DAT_GameState.mapAndTime.siegeInformation.field16_0x40
+ = DAT_SiegeInformationArray[0x10];
+ DAT_GameState.mapAndTime.siegeInformation.field17_0x44
+ = DAT_SiegeInformationArray[0x11];
+ DAT_GameState.mapAndTime.siegeInformation.field10_0x28
+ = DAT_SiegeInformationArray[10];
+ DAT_GameState.mapAndTime.siegeInformation.field18_0x48
+ = DAT_SiegeInformationArray[0x12];
+ DAT_GameState.mapAndTime.siegeInformation.field19_0x4c
+ = DAT_SiegeInformationArray[0x13];
+ DAT_MapPropertiesState.SEC_Section1067.tunnelersCount
+ = DAT_SiegeInformationArray[10];
+ goto LAB_0042cc91;
+ }
+ LAB_0042ce38:
+ if (DAT_MapMissionType == 3) {
+ if (DAT_GameState.mapAndTime.difficulty != 0) {
+ BVar6 = mapHasCertainEvent();
+ if (BVar6 == FALSE) {
+ iVar9 = 0;
+ iVar8 = 0;
+ local_7e8 = 0;
+ psVar4 = &DAT_UnitsState.units[1].dying;
+ do {
+ if ((((psVar4[-0x10a] == ULS_NORMAL) && (*psVar4 == 0))
+ && (psVar4[-0x105] == DAT_GameSynchronyState.currentPlayerSlotID))
+ && (psVar4[2] != 0)) {
+ iVar7
+ = getValueOfTroopType((int)psVar4[-0x109]);
+ iVar9 = iVar9 + iVar7;
+ }
+ psVar4 = psVar4 + 0x248;
+ } while ((int)psVar4 < 0x165162c);
+ if (DAT_GameState.mapAndTime.difficulty == 1) {
+ local_7e8 = 4;
+ iVar7 = (int)(iVar9 * -3 + (iVar9 * -3 >> 0x1f & 3U)) >> 2;
+ LAB_0042cf15:
+ iVar9 = iVar9 + iVar7;
+ } else if (DAT_GameState.mapAndTime.difficulty == 2) {
+ local_7e8 = 3;
+ iVar9 = iVar9 + (iVar9 * -2) / 3;
+ } else if (DAT_GameState.mapAndTime.difficulty == 3) {
+ local_7e8 = 2;
+ iVar7 = -(iVar9 / 2);
+ goto LAB_0042cf15;
+ }
+ local_7e4 = 0;
+ do {
+ uVar12 = 1;
+ psVar4 = &DAT_UnitsState.units[1].dying;
+ do {
+ if (((psVar4[-0x10a] == ULS_NORMAL) && (*psVar4 == 0))
+ && ((psVar4[-0x105] == DAT_GameSynchronyState.currentPlayerSlotID
+ && ((psVar4[2] != 0 && (iVar8 = iVar8 + 1, iVar8 == local_7e8)))))) {
+ iVar7 = getValueOfTroopType((int)psVar4[-0x109]);
+ iVar9 = iVar9 - iVar7;
+ deleteUnit(uVar12);
+ if (((psVar4[-0x109] == UT_S_MANGONEL)
+ || (psVar4[-0x109] == UT_S_BALLISTA))
+ && (DAT_TileMapState.BuildingLayer[*(int*)(psVar4 + -0xe6)] != 0)) {
+ DAT_BuildingsState
+ .buildings[DAT_TileMapState
+ .BuildingLayer[*(int*)(psVar4 + -0xe6)]]
+ .containsSiegeMangonel1OrBallista2 = 0;
+ }
+ if (iVar9 < 1) {
+ local_7e4 = 10;
+ break;
+ }
+ iVar8 = 0;
+ }
+ psVar4 = psVar4 + 0x248;
+ uVar12 = uVar12 + 1;
+ } while ((int)psVar4 < 0x165162c);
+ local_7e4 = local_7e4 + 1;
+ } while (local_7e4 < 3);
+ }
+ goto LAB_0042cff9;
+ }
+ } else {
+ LAB_0042cff9:
+ if (DAT_MapMissionType == 2)
+ goto LAB_0042cc91;
+ }
+ DAT_GameState.mapAndTime.siegeInformation.archers = 0;
+ DAT_GameState.mapAndTime.siegeInformation.field1_0x4 = 0;
+ DAT_GameState.mapAndTime.siegeInformation.field2_0x8 = 0;
+ DAT_GameState.mapAndTime.siegeInformation.field3_0xc = 0;
+ DAT_GameState.mapAndTime.siegeInformation.field4_0x10 = 0;
+ DAT_GameState.mapAndTime.siegeInformation.field5_0x14 = 0;
+ DAT_GameState.mapAndTime.siegeInformation.field6_0x18 = 0;
+ DAT_GameState.mapAndTime.siegeInformation.field7_0x1c = 0;
+ DAT_GameState.mapAndTime.siegeInformation.field8_0x20 = 0;
+ DAT_GameState.mapAndTime.siegeInformation.field9_0x24 = 0;
+ DAT_GameState.mapAndTime.siegeInformation.field10_0x28 = 0;
+ DAT_GameState.mapAndTime.siegeInformation.field11_0x2c = 0;
+ DAT_GameState.mapAndTime.siegeInformation.field12_0x30 = 0;
+ DAT_GameState.mapAndTime.siegeInformation.field13_0x34 = 0;
+ DAT_GameState.mapAndTime.siegeInformation.field14_0x38 = 0;
+ DAT_GameState.mapAndTime.siegeInformation.field15_0x3c = 0;
+ DAT_GameState.mapAndTime.siegeInformation.field16_0x40 = 0;
+ DAT_GameState.mapAndTime.siegeInformation.field17_0x44 = 0;
+ DAT_GameState.mapAndTime.siegeInformation.field18_0x48 = 0;
+ DAT_GameState.mapAndTime.siegeInformation.field19_0x4c = 0;
+ DAT_MapPropertiesState.SEC_Section1067.tunnelersCount = 0;
+ }
+ iVar8 = DAT_GameSynchronyState.currentPlayerSlotID;
+ if (DAT_MapMissionType == 0) {
+ DAT_GameState.mapAndTime.unitJesterRelated = 0;
+ iVar9 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .jesterIDUnk;
+ if ((iVar9 != 0)
+ && (DAT_UnitsState.units[iVar9].uid
+ == DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .someUnitIDSelfRef_2)) {
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .jesterIDUnk = 0;
+ DAT_UnitsState.units[iVar9].logicalState = ULS_REMOVE;
+ DAT_GameState.playerDataArray[iVar8].someUnitIDSelfRef_2 = 0;
+ }
+ DAT_GameState.mapAndTime.unitLadyRelated = 0;
+ iVar9 = DAT_GameState.playerDataArray[iVar8].ladyIDUnk;
+ if ((iVar9 != 0)
+ && (DAT_UnitsState.units[iVar9].uid
+ == DAT_GameState.playerDataArray[iVar8].someUnitIDSelfRef)) {
+ DAT_GameState.playerDataArray[iVar8].ladyIDUnk = 0;
+ DAT_UnitsState.units[iVar9].logicalState = ULS_REMOVE;
+ DAT_GameState.playerDataArray[iVar8].someUnitIDSelfRef = 0;
+ }
+ }
+ if (iVar8 == 2) {
+ DAT_GameState.playerDataArray[2].currentResources[0xf]
+ = DAT_GameState.playerDataArray[2].currentResources[0xf]
+ + DAT_GameState.playerDataArray[2].startResources[0xf];
+ DAT_GameState.playerDataArray[2].startResources[0xf] = 0;
+ DAT_GameState.playerDataArray[2].beforeLastMonthsGold
+ = (short)DAT_GameState.playerDataArray[2].currentResources[0xf];
+ DAT_GameState.playerDataArray[2].lastMonthsGold
+ = (short)DAT_GameState.playerDataArray[2].currentResources[0xf];
+ }
+ if (DAT_GameCore.mapU4Int1 != 0) {
+ DAT_GameState.playerDataArray[iVar8].currentResources[0xf] = 600;
+ DAT_GameState.playerDataArray[iVar8].startResources[0xf] = 0;
+ }
+ DAT_GameCore.missionNumber1to20 = 0x1c;
+ if (iVar8 == 1) {
+ if (DAT_GameState.playerDataArray[1].keep.id == 0)
+ goto LAB_0042d095;
+ iVar8 = (short)DAT_BuildingsState.buildings[DAT_GameState.playerDataArray[1].keep.id].x
+ + 2;
+ iVar9 = (short)DAT_BuildingsState.buildings[DAT_GameState.playerDataArray[1].keep.id].y
+ + 2;
+ } else if ((DAT_GameState.mapAndTime.signpostEntryData[0].x == 0)
+ || (iVar8 = DAT_GameState.mapAndTime.signpostEntryData[0].x,
+ iVar9 = DAT_GameState.mapAndTime.signpostEntryData[0].y,
+ DAT_GameState.mapAndTime.signpostEntryData[0].y == 0))
+ goto LAB_0042d095;
+ focusOnCoordinate(iVar8, iVar9);
+ LAB_0042d095:
+ setViewportBasedOnMapSize();
+ if (DAT_GameCore.mapU4Int1 != 0) {
+ pathfindingUpdate_0x4a8ab0(0x1e);
+ }
+ if ((DAT_MapPropertiesState.SEC_U3_MapType2_1 == MT_INVASION) && (param_1 != 1)) {
+ iVar8 = 10000;
+ DAT_GameCore.field22_0x64 = 0;
+ menuID = MVT_SCENARIO_DESCRIPTION;
+ } else {
+ DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType = BASMTT_HUNTERSHUT;
+ if (DAT_GameCore.currentMenuViewType == MVT_UNKNOWN_49_DOES_NOTHINGUnk) {
+ iVar8 = 0;
+ } else {
+ iVar8 = 10000;
+ }
+ menuID = MVT_BUILD_MENU;
+ }
+ switchToMenuView(menuID, iVar8);
+ DAT_UIDragDropDefinedData.MenuView_TriggerInitial = TRUE;
+ DAT_WindowAndDirectDraw.unk_resetViewportRelated = 1;
+ DWORD_00b95b1c::instance = timeGetTime();
+ DAT_00b960dc = 1;
+ ;
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0042c620", "name": "LaunchSinglePlayerGameUnk", "quelle": "ghidra", "p1": {"bereich": "Befehle/Takt", "zweck": "Startet eine Einzelspieler-Karte und bereitet Rekrutierbarkeit, Belagerungsausstattung und Startzustand vor."}, "p2": {"ein": "param_1 (0 = Karte aus Kartenliste, sonst standaloneFilename)", "aus": "-", "liest": ["DAT_MapMissionType", "DAT_GameState.mapAndTime.difficulty", "SEC_MercRecruitable", "barracksRecruitability", "SEC_StartingResources", "SEC_Section1067", "DAT_SiegeInformationArray", "units[]", "DAT_SH1_SiegeAdvancedMode"], "schreibt": ["mapAndTime.mercRecruitable[0..6]", "mapAndTime.euroRecruitable[0..6]", "euroRecruitableCopy_*", "startGoods", "siegeInformation", "attackInfo.someSinglePlayerScore", "playerDataArray[].currentResources[0xf]", "missionNumber1to20=0x1c"], "ruft": ["loadMap", "queueCommand", "createChainedMissionOutcomeEvents", "initializeAttackWaveSlot", "deleteUnit", "getValueOfTroopType", "mapHasCertainEvent", "focusOnCoordinate", "setViewportBasedOnMapSize", "switchToMenuView", "triggerDeathAnimationForAllWildlife"], "regeln": ["Alle sechs Produzierbar-Schalter (Armbrust, Pike, Schwert, Bogen, Speer, Streitkolben) werden vor und nach dem Kartenladen auf 1 gesetzt", "Missionstyp 2 (vermutlich Belagerung): Wellen-Punktzahl = Kartenwert × Faktor / 100; Faktor 66 (Schwierigkeit 0), 100 (1), 133 (2), 166 (3)", "Nur bei Missionstyp 2 und Spielerplatz 1 wird eine Angriffswelle angelegt (inv_count + 1, bei Überlauf über 0x31 wieder 1, Spieler 4)", "Spielerplatz 2 im Typ 2 ohne SiegeAdvancedMode: Startwaren und Tunnelgräber × 7 / 10", "Alle Bauern (UT_PEASANT) werden bei Typ 2 gelöscht", "Missionstyp 3, Schwierigkeit 1/2/3: Armee wird um 25 / 66,7 / 50 Prozent des Truppenwerts verkleinert, indem jede 4. / 3. / 2. Einheit gelöscht wird", "Missionstyp 0: Narr und Lady des Spielers werden entfernt", "Spielerplatz 2: Startgold wird zum Bestand addiert; mapU4Int1 != 0 setzt Gold auf 600", "Danach Kamera auf Burg (Platz 1: Burgposition + 2) und Wechsel in Bau- oder Szenario-Menü"], "offen": ["Bedeutung der Missionstypen 0-3 im Klartext", "Felder field…/Unk der Startwerte", "Was der Typ-3-Abbau (Einheiten löschen) spielerisch bewirkt"]}, "p3": {"erklaerung": "Der Start einer Einzelspieler-Karte: Das Spiel setzt Karten- und Rekrutierungsfreigaben und passt je nach Schwierigkeit Truppen und Angriffswellen an.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x004381d0 PlaceUnit | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004381D0
+ void Actions::PlaceUnit()
+ {
+ dword tribeID;
+ int iVar1;
+ int _tile;
+ int iVar2;
+ int iVar3;
+ UnitType _unitType;
+ GmID _gmID;
+ bool bVar4;
+ GmID local_1c;
+ uint local_18;
+ int local_10;
+ GmID local_8;
+ int local_4;
+ if (((DAT_TileMapState.DAT_ClickedTileX < 400) && (DAT_TileMapState.DAT_ClickedTileY < 400))
+ && (*(char*)(DAT_TileMapState.DAT_ClickedTileY * 400 + 0x21aec98
+ + DAT_TileMapState.DAT_ClickedTileX)
+ != '\0')) {
+ _tile = DAT_ViewportRenderState.translationMatrix[DAT_TileMapState.DAT_ClickedTileY]
+ .addXgetTile
+ + DAT_TileMapState.DAT_ClickedTileX;
+ iVar3 = -1;
+ iVar2 = -1;
+ _unitType = 0xffffffff;
+ local_10 = 1;
+ bVar4 = true;
+ local_18 = 0x40501481;
+ switch (DAT_TileMapState.currentMapperCommand) {
+ case M_MAPPER_PEOPLE_ARCHERS:
+ _gmID = GID_BODY_ARCHER;
+ iVar2 = 3;
+ _unitType = UT_E_ARCHER;
+ break;
+ case M_MAPPER_PEOPLE_SPEARMEN:
+ _gmID = GID_BODY_SPEARMAN;
+ iVar2 = 5;
+ _unitType = UT_E_SPEAR;
+ break;
+ case M_MAPPER_PEOPLE_PIKEMEN:
+ _gmID = GID_BODY_PIKEMAN;
+ iVar2 = 6;
+ _unitType = UT_E_PIKE;
+ break;
+ case M_MAPPER_PEOPLE_MACEMEN:
+ _gmID = GID_BODY_MACEMAN;
+ iVar2 = 9;
+ _unitType = UT_E_MACE;
+ break;
+ case M_MAPPER_PEOPLE_XBOWMEN:
+ _gmID = GID_BODY_CROSSBOWMAN;
+ iVar2 = 7;
+ _unitType = UT_E_XBOW;
+ break;
+ case M_MAPPER_PEOPLE_SWORDSMEN:
+ _gmID = GID_BODY_SWORDSMAN;
+ iVar2 = 8;
+ _unitType = UT_E_SWORD;
+ break;
+ case M_MAPPER_PEOPLE_KNIGHTS:
+ _gmID = GID_BODY_KNIGHT;
+ local_1c = GID_BODY_KNIGHT_TOP;
+ iVar2 = 10;
+ _unitType = UT_E_KNIGHT;
+ iVar3 = 1;
+ local_18 = 0x50501581;
+ break;
+ case M_MAPPER_PEOPLE_LADDERMEN:
+ _gmID = GID_BODY_LADDER_BEARER;
+ iVar2 = 4;
+ _unitType = UT_E_LADDER;
+ break;
+ case M_MAPPER_PEOPLE_ENGINEERS:
+ _gmID = GID_BODY_SIEGE_ENGINEER;
+ iVar2 = 0xb;
+ _unitType = UT_E_ENGINEER;
+ break;
+ case M_MAPPER_PEOPLE_ENGINEERS_POTS:
+ _gmID = GID_BODY_SIEGE_ENGINEER;
+ iVar2 = 0xb;
+ _unitType = UT_E_ENGINEER;
+ local_10 = 0x275;
+ break;
+ case M_MAPPER_PEOPLE_MONKS:
+ _gmID = GID_BODY_FIGHTING_MONK;
+ iVar2 = 0xc;
+ _unitType = UT_E_MONK;
+ break;
+ case M_MAPPER_PEOPLE_CATAPULTS:
+ _gmID = GID_BODY_CATAPULT;
+ local_1c = GID_BODY_CATAPULT;
+ _unitType = UT_S_CATAPULT;
+ iVar3 = 0xe1;
+ local_18 = 0x50501581;
+ break;
+ case M_MAPPER_PEOPLE_TREBUCHETS:
+ _gmID = GID_BODY_TREBUTCHET;
+ local_1c = GID_BODY_TREBUTCHET;
+ _unitType = UT_S_TREBUCHET;
+ iVar3 = 9;
+ local_18 = 0x50501581;
+ break;
+ case M_MAPPER_PEOPLE_BATTERING_RAMS:
+ _gmID = GID_BODY_BATTERING_RAM;
+ local_1c = GID_BODY_BATTERING_RAM;
+ iVar3 = 0x4d;
+ _unitType = UT_S_BATTERINGRAM;
+ local_18 = 0x50501581;
+ break;
+ case M_MAPPER_PEOPLE_SIEGE_TOWERS:
+ _gmID = GID_BODY_SIEGE_TOWER;
+ local_1c = GID_BODY_SIEGE_TOWER;
+ iVar3 = 9;
+ _unitType = UT_S_TOWER;
+ local_18 = 0x50501581;
+ break;
+ case M_MAPPER_PEOPLE_PORTABLE_SHIELDS:
+ _gmID = GID_BODY_SHIELD;
+ _unitType = UT_S_SHIELD;
+ local_18 = 0x50501581;
+ break;
+ case M_MAPPER_PEOPLE_TUNNELERS:
+ _gmID = GID_BODY_TUNNELOR;
+ iVar2 = 2;
+ _unitType = UT_TUNNELER;
+ break;
+ default:
+ _gmID = local_8;
+ break;
+ case M_MAPPER_PEOPLE_ARAB_BOW:
+ _gmID = GID_BODY_ARAB_SHORTBOW;
+ iVar2 = 0x19;
+ _unitType = UT_A_ARCHER;
+ break;
+ case M_MAPPER_PEOPLE_ARAB_SLAVE:
+ _gmID = GID_BODY_ARAB_SLAVE;
+ iVar2 = 0x1a;
+ _unitType = UT_A_SLAVE;
+ break;
+ case M_MAPPER_PEOPLE_ARAB_SLINGER:
+ _gmID = GID_BODY_ARAB_SLINGER;
+ iVar2 = 0x1b;
+ _unitType = UT_A_SLINGER;
+ break;
+ case M_MAPPER_PEOPLE_ARAB_ASSASIN:
+ _gmID = GID_BODY_ARAB_ASSASIN;
+ iVar2 = 0x1c;
+ _unitType = UT_A_ASSASSIN;
+ break;
+ case M_MAPPER_PEOPLE_ARAB_HORSEMAN:
+ _gmID = GID_BODY_HORSE_ARCHER;
+ iVar2 = 0x1d;
+ local_1c = GID_BODY_HORSE_ARCHER_TOP;
+ _unitType = UT_A_HARCHER;
+ iVar3 = 1;
+ break;
+ case M_MAPPER_PEOPLE_ARAB_SWORDSMAN:
+ _gmID = GID_BODY_ARAB_SWORDSMAN;
+ iVar2 = 0x1e;
+ _unitType = UT_A_SWORDSMAN;
+ break;
+ case M_MAPPER_PEOPLE_ARAB_GRENADIER:
+ _gmID = GID_BODY_ARAB_GRENADIER;
+ iVar2 = 0x1f;
+ _unitType = UT_A_FIRETHROWER;
+ break;
+ case M_MAPPER_PEOPLE_ARAB_BALLISTA:
+ _gmID = GID_BODY_ARAB_BALLISTA;
+ local_1c = GID_BODY_ARAB_BALLISTA;
+ iVar3 = 0xa9;
+ iVar2 = 0x18;
+ _unitType = UT_S_FBALLISTA;
+ local_18 = 0x50501581;
+ }
+ if ((DAT_GameCore.gameMode_2 == GM_SIEGE_THAT)
+ && (getBuildingCost(
+ DAT_TileMapState.currentMapperCommand, &local_4, (int*)&local_8),
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .startResources[0xf]
+ < (int)local_8)) {
+ bVar4 = false;
+ }
+ if (DAT_MouseState.draggingStopped == FALSE) {
+ if (((DAT_TileMapState.LogicLayer[_tile] & local_18) == 0) && (bVar4)) {
+ if (_gmID == GID_BODY_SIEGE_TOWER) {
+ if (0 < iVar3) {
+ createFloatingLayerElement(local_1c, iVar3, 0, 0x47, _tile, 0x1d);
+ }
+ createFloatingLayerElement(
+ GID_BODY_SIEGE_TOWER, local_10, 0, 0, _tile, 0x1d);
+ return;
+ }
+ if (0 < iVar3) {
+ createFloatingLayerElement(local_1c, iVar3, 0, 0, _tile, 0xd);
+ }
+ createFloatingLayerElement(_gmID, local_10, 0, 0, _tile, 0xd);
+ return;
+ }
+ if (_gmID == GID_BODY_SIEGE_TOWER) {
+ if (0 < iVar3) {
+ createFloatingLayerElement(local_1c, iVar3, 0, 0x47, _tile, 0x18001d);
+ }
+ createFloatingLayerElement(
+ GID_BODY_SIEGE_TOWER, local_10, 0, 0, _tile, 0x18001d);
+ return;
+ }
+ if (0 < iVar3) {
+ createFloatingLayerElement(local_1c, iVar3, 0, 0, _tile, 0x18000d);
+ }
+ createFloatingLayerElement(_gmID, local_10, 0, 0, _tile, 0x18000d);
+ return;
+ }
+ if (((DAT_TileMapState.LogicLayer[_tile] & local_18) == 0) && (bVar4)) {
+ if (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT) {
+ getBuildingCost(
+ DAT_TileMapState.currentMapperCommand, &local_4, (int*)&local_8);
+ processResourceLoss(DAT_GameSynchronyState.currentPlayerSlotID,
+ RT_GOLD, local_8, 0);
+ }
+ if (iVar2 < 0) {
+ spawnUnit(
+ DAT_GameSynchronyState.currentPlayerSlotID,
+ DAT_GameSynchronyState.currentPlayerSlotID,
+ DAT_TileMapState.DAT_ClickedTileX * 8,
+ DAT_TileMapState.DAT_ClickedTileY * 8,
+ (int)((int)((uint)DAT_TileMapState.HeightLayer[_tile])), _unitType);
+ } else {
+ tribeID = spawnUnitsIntoNewTribe(0xffffffff,
+ iVar2, DAT_TileMapState.DAT_ClickedTileX,
+ DAT_TileMapState.DAT_ClickedTileY,
+ DAT_GameSynchronyState.currentPlayerSlotID, _unitType, ((UnitType)0),
+ DAT_TileMapState.field105_0x5548ec, 0);
+ bVar4 = DAT_TileMapState.currentMapperCommand
+ == M_MAPPER_PEOPLE_ENGINEERS_POTS;
+ DAT_TribesState.tribes[tribeID].tribeBehaviorType = STBT_1;
+ DAT_TribesState.tribes[tribeID].field64_0x204 = 1;
+ if ((bVar4) && (iVar3 = 0, 0 < DAT_TileMapState.field105_0x5548ec)) {
+ do {
+ iVar1 = getUnitIDForIndexInTribe(tribeID, iVar3);
+ iVar2 = DAT_TileMapState.field105_0x5548ec;
+ iVar3 = iVar3 + 1;
+ DAT_UnitsState.units[iVar1].resourceToDeposit = 1;
+ } while (iVar3 < iVar2);
+ return;
+ }
+ }
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004381d0", "name": "PlaceUnit", "quelle": "ghidra", "p1": {"bereich": "Gebaeude", "zweck": "Setzt die über den Mapper-Befehl gewählte Einheit auf das angeklickte Feld (Vorschau beim Ziehen, Erzeugen beim Loslassen)."}, "p2": {"ein": "-", "aus": "-", "liest": ["DAT_TileMapState.DAT_ClickedTileX/Y", "DAT_TileMapState.currentMapperCommand", "DAT_TileMapState.LogicLayer[tile]", "DAT_TileMapState.HeightLayer[tile]", "DAT_TileMapState.field105_0x5548ec", "DAT_MouseState.draggingStopped", "DAT_GameCore.gameMode_2", "playerDataArray[slot].startResources[0xf]"], "schreibt": ["Gold über processResourceLoss", "neuer Trupp: tribeBehaviorType=STBT_1, field64_0x204=1", "units[].resourceToDeposit=1 (nur Pechtöpfe-Ingenieure)"], "ruft": ["getBuildingCost", "createFloatingLayerElement", "processResourceLoss", "spawnUnit", "spawnUnitsIntoNewTribe", "getUnitIDForIndexInTribe"], "regeln": ["Klickfeld muss unter 400 in X und Y liegen und im Kartenbereich-Byte (0x21aec98 + y*400 + x) ungleich 0 sein", "Jeder M_MAPPER_PEOPLE_*-Befehl legt Körper-Grafik und UnitType fest, z. B. Bogenschütze UT_E_ARCHER, Ritter UT_E_KNIGHT, Katapult UT_S_CATAPULT, Assassine UT_A_ASSASSIN", "Feld ist gesperrt, wenn LogicLayer[tile] & Maske ungleich 0 ist: Maske 0x40501481 für Fußtruppen, 0x50501581 ab Ritter, Belagerungsgerät und Schilde", "Im Modus GM_SIEGE_THAT kostet das Platzieren Gold (getBuildingCost); Platzieren ist verboten, wenn startResources[0xf] kleiner als der Preis ist", "Solange noch gezogen wird (draggingStopped == FALSE), nur Vorschau über createFloatingLayerElement, nichts wird erzeugt", "Beim Loslassen: Belagerungsgerät und Schild einzeln per spawnUnit (Höhe aus HeightLayer, Position Feld*8)", "Alle anderen Einheiten kommen als neuer Trupp über spawnUnitsIntoNewTribe, Anzahl aus field105_0x5548ec; der Trupp bekommt tribeBehaviorType STBT_1", "Ingenieure mit Töpfen (M_MAPPER_PEOPLE_ENGINEERS_POTS) tragen sofort Pech: resourceToDeposit=1 je Einheit"], "offen": ["Bedeutung des Werts iVar2 (3 Bogenschütze, 5 Speer, 6 Pike, 7 Armbrust, 8 Schwert, 9 Streitkolben, 10 Ritter, 0xb Ingenieur, 0xc Mönch, 0x19-0x1f Araber): Ghidra-Name unklar, vermutlich Einheiten-Typnummer für den Trupp", "Bedeutung von STBT_1 und field64_0x204", "Ob die Funktion nur im Editor oder auch im Belagerungsmodus aufgerufen wird"]}, "p3": {"erklaerung": "Das ist das Platzieren von Einheiten per Mausklick, so wie im Editor oder im Belagerungsmodus. Mit der Maus gezogen sieht man nur eine Vorschau, erst beim Loslassen entsteht die Einheit.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+

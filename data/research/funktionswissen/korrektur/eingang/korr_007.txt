@@ -1,0 +1,797 @@
+### 0x00412d50 UpdateFletchersWorkshop | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00412D50
+ void Buildings::UpdateFletchersWorkshop()
+ {
+ int const owner = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner;
+ int animationDone = 0;
+ addBuildingToTargetableBuildings(
+ DAT_CurrentBuildingID);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field138_0x1c2 = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workers[0] != 0;
+ DAT_GameState.playerDataArray[owner].countFletchersPoleturners += 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 0;
+ if (((DAT_BuildingsState.buildings[DAT_CurrentBuildingID].uid
+ + DAT_GameCore.mapTimeInTicks)
+ & 0xff)
+ == 0) {
+ updateBuildingPlacementRotationPreview(DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingVariation
+ = DAT_TileMapState.uiBuildingRotation;
+ }
+ // Matching note: the bow and crossbow arms of state 0 share the frame store and the index check; the
+ // original keeps the crossbow copy and the bow arm jumps into it.
+ int shownFrame;
+ // The animation tables are declared byte, but the original reads them signed
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].producedItemTypeNext
+ == RT_BOW) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationActive != 0
+ && (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 8
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex
+ == 58)) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_FLETCH_LONG);
+ }
+ char frame;
+ if (DAT_GameSynchronyState.currentGameMode != 0) {
+ frame
+ = (char)DAT_BuildingDefinedData.FletcherWorkshopAnimationCycle
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ } else {
+ frame = (char)DAT_BuildingDefinedData
+ .field43_0x430c[DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .animationIndex];
+ }
+ if (frame <= 0) {
+ animationDone = 1;
+ goto checkIndex;
+ }
+ shownFrame = frame;
+ goto storeFrame;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 1) {
+ if (DAT_GameSynchronyState.currentGameMode != 0) {
+ animationDone = 1;
+ } else {
+ char const frame
+ = DAT_BuildingDefinedData.FletchersWorkshopAnimationFrames1
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if (frame <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = frame;
+ }
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex;
+ }
+ } else {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ char frame;
+ if (DAT_GameSynchronyState.currentGameMode != 0) {
+ frame = (char)DAT_BuildingDefinedData
+ .field46_0x4674[DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .animationIndex];
+ } else {
+ frame = (char)DAT_BuildingDefinedData
+ .field45_0x44e4[DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .animationIndex];
+ }
+ if (frame <= 0) {
+ animationDone = 1;
+ goto checkIndex;
+ }
+ shownFrame = frame + 36;
+ storeFrame:
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = shownFrame;
+ checkIndex:
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 31;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex
+ < 30) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength -= 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 0;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 1) {
+ if (DAT_GameSynchronyState.currentGameMode != 0) {
+ animationDone = 1;
+ } else {
+ char const frame
+ = DAT_BuildingDefinedData.FletchersWorkshopAnimationFrames2
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if (frame <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame
+ = frame + 36;
+ }
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex;
+ }
+ }
+ if (animationDone != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 1;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationCycleCount += 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationCycleCompleted = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 0;
+ }
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength > 31) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 31;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength < 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 0;
+ }
+ int const workerID = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workerID[0];
+ if (workerID != 0) {
+ if (DAT_UnitsState.units[workerID].state.generic
+ == US_AIM_WEAPONUnk) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive = 1;
+ } else if (DAT_UnitsState.units[workerID].state.generic
+ == US_RELOAD_WEAPONUnk) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive = 0;
+ }
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive = 0;
+ }
+ updateVisuallyActiveState(DAT_CurrentBuildingID);
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive
+ != DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState) {
+ updateBuildingGraphicsLayer(
+ DAT_CurrentBuildingID);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive;
+ }
+ if (DAT_GameSynchronyState.currentGameMode != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage += 1;
+ if (DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage / 2]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage = 0;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].overlayImageID
+ = DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage
+ / 2];
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].overlayImageID = 0;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00412d50", "name": "UpdateFletchersWorkshop", "quelle": "nachgebaut", "p1": {"bereich": "Gebaeude", "zweck": "Takt-Update der Bogner-Werkstatt: Animation, Geräusch, Leuchtzustand und Zählung."}, "p2": {"ein": "- (aktuelles Gebäude über DAT_CurrentBuildingID)", "aus": "-", "liest": ["buildings[id].owner/uid/producedItemTypeNext/state/animationIndex/animationActive/workers[0]/workerID[0]", "units[worker].state.generic", "currentGameMode", "mapTimeInTicks", "Animationstabellen FletcherWorkshopAnimationCycle, FletchersWorkshopAnimationFrames1/2, field43_0x430c, field45_0x44e4, field46_0x4674, SharedOverlayAnimationFrames"], "schreibt": ["playerDataArray[sp].countFletchersPoleturners+1", "buildings[id].field138_0x1c2=1", "renderAnimation", "buildingVariation", "animationFrame", "animationIndex", "state", "animationCycleCount", "animationCycleCompleted", "renderBlendStrength", "buildingIsVisuallyActive", "oldVisualActiveState", "flagSlot.overlayImage", "overlayImageID", "displayOwnerFlag"], "ruft": ["addBuildingToTargetableBuildings", "addBuildingInRegistry", "updateBuildingPlacementRotationPreview", "playSFXAtLocation", "updateVisuallyActiveState", "updateBuildingGraphicsLayer"], "regeln": ["Jeden Aufruf: Zähler countFletchersPoleturners des Besitzers +1; renderAnimation = 1, wenn workers[0]<>0", "Alle 256 Ticks je Gebäude ((uid + mapTimeInTicks) und 0xff = 0): buildingVariation wird aus der Drehvorschau uiBuildingRotation übernommen", "Zwei Zustände (state 0 und 1) je Waffenart; producedItemTypeNext=RT_BOW nimmt den Bogen-Zweig, jeder andere Wert den zweiten Zweig (laut Kommentar Armbrust; der zweite Zweig addiert 36 zum Bild)", "Bogen, state 0: bei animationActive<>0 und animationIndex 8 oder 58 Geräusch FX_FLETCH_LONG am Gebäudeort", "Tabellenwert <=0 beendet die Animationsphase; dann animationIndex=0, state 0 wird 1, state 1 wird 0 mit animationCycleCount+1 und animationCycleCompleted=1", "Bei currentGameMode<>0 endet state 1 sofort (animationDone=1)", "renderBlendStrength wird auf 0 bis 31 begrenzt", "buildingIsVisuallyActive=1 nur, wenn der Arbeiter workerID[0] im Zustand US_AIM_WEAPONUnk oder US_RELOAD_WEAPONUnk ist, sonst 0", "Bei currentGameMode<>0 läuft zusätzlich die Besitzerflaggen-Animation über SharedOverlayAnimationFrames"], "offen": ["Wo countFletchersPoleturners zurückgesetzt und gelesen wird", "Bedeutung von field138_0x1c2 und der Tabellen field43_0x430c, field45_0x44e4, field46_0x4674", "Bedeutung von currentGameMode=0 gegenüber ungleich 0 hier (Tabellenwahl)"]}, "p3": {"erklaerung": "Die Werkstatt spielt Herstellungsanimation und Hammergeräusch ab und leuchtet, solange der Arbeiter zielt oder nachlädt. Ganz nebenbei zählt sie sich jeden Takt in einen Zähler des Besitzers.", "gehirn": "countFletchersPoleturners könnte die Zahl der Bogner- und Speermacher-Werkstätten liefern, falls es je Takt zurückgesetzt wird (nicht belegt).", "beleg": "nachgebaut", "live": "Bogner-Werkstatt bauen → playerDataArray[sp].countFletchersPoleturners lesen → Wert gleich Zahl der Werkstätten oder wächst jeden Tick", "live_art": "bauen"}}
+
+### 0x004130d0 UpdateBlacksmithsWorkshop | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004130D0
+ void Buildings::UpdateBlacksmithsWorkshop()
+ {
+ int const owner = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner;
+ addBuildingToTargetableBuildings(
+ DAT_CurrentBuildingID);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field138_0x1c2 = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workers[0] != 0;
+ DAT_GameState.playerDataArray[owner].countArmorersAndBlacksmiths += 1;
+ if (((DAT_BuildingsState.buildings[DAT_CurrentBuildingID].uid
+ + DAT_GameCore.mapTimeInTicks)
+ & 0xff)
+ == 0) {
+ updateBuildingPlacementRotationPreview(DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingVariation
+ = DAT_TileMapState.uiBuildingRotation;
+ }
+ int animationDone = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].producedItemTypeNext
+ == RT_SWORD) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ char const frame
+ = DAT_BuildingDefinedData.BlacksmithsWorkshopAnimationFrames3
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if (frame <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = frame + 24;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 1) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationActive != 0
+ && (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 24
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 34
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex
+ == 44)) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_BS_ANVIL);
+ }
+ char const frame
+ = DAT_BuildingDefinedData.BlacksmithsWorkshopAnimationFrames6
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if (frame <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = frame + 24;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 2) {
+ char const frame
+ = DAT_BuildingDefinedData.BlacksmithsWorkshopAnimationFrames4
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if (frame <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = frame + 24;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 3) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationActive != 0
+ && (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 24
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 34
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex
+ == 44)) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_BS_ANVIL);
+ }
+ char const frame
+ = DAT_BuildingDefinedData.BlacksmithsWorkshopAnimationFrames6
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if (frame <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = frame + 24;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 4) {
+ char const frame
+ = DAT_BuildingDefinedData.BlacksmithsWorkshopAnimationFrames5
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if (frame <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = frame + 24;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 5) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationActive != 0
+ && (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 24
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 34
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex
+ == 44)) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_BS_ANVIL);
+ }
+ char const frame
+ = DAT_BuildingDefinedData.BlacksmithsWorkshopAnimationFrames6
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if (frame <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = frame + 24;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 6) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationActive != 0
+ && (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 24
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 34
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex
+ == 44)) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_BS_ANVIL);
+ }
+ char const frame
+ = DAT_BuildingDefinedData.BlacksmithsWorkshopAnimationFrames6
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if (frame <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = frame + 24;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 7) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationActive != 0
+ && (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 30)) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_BS_COOL);
+ }
+ char const frame
+ = DAT_BuildingDefinedData.BlacksmithsWorkshopAnimationFrames7
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if (frame <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = frame + 24;
+ }
+ }
+ if (animationDone != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 1;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state
+ = DAT_GameSynchronyState.currentGameMode != 0 ? 6 : 2;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 2) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 3;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 3) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 4;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 4) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 5;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 5) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 6;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 6) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 7;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 7) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationCycleCount += 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationCycleCompleted = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 0;
+ }
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].producedItemTypeNext
+ == RT_MACE) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ if (DAT_GameSynchronyState.currentGameMode == 0) {
+ if (DAT_BuildingDefinedData.BlacksmithsWorkshopAnimationFrames8
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex]
+ <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame
+ = DAT_BuildingDefinedData
+ .BlacksmithsWorkshopAnimationFrames8[DAT_BuildingsState
+ .buildings[DAT_CurrentBuildingID]
+ .animationIndex]
+ + 110;
+ }
+ } else {
+ if (DAT_BuildingDefinedData.BlacksmithsWorkshopAnimationFrames11
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex]
+ <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame
+ = DAT_BuildingDefinedData
+ .BlacksmithsWorkshopAnimationFrames11[DAT_BuildingsState
+ .buildings[DAT_CurrentBuildingID]
+ .animationIndex]
+ + 110;
+ }
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 1) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationActive != 0
+ && (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 24)) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_BS_POUR);
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationActive != 0
+ && (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 60)) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_BS_OPEN);
+ }
+ char const frame
+ = DAT_BuildingDefinedData.BlacksmithsWorkshopAnimationFrames9
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if (frame <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame
+ = frame + 110;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 2) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationActive != 0
+ && (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 5
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 30
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 55
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 80
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex
+ == 109)) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_BS_FILE);
+ }
+ if (DAT_GameSynchronyState.currentGameMode == 0) {
+ if (DAT_BuildingDefinedData.BlacksmithsWorkshopAnimationFrames10
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex]
+ <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame
+ = DAT_BuildingDefinedData
+ .BlacksmithsWorkshopAnimationFrames10[DAT_BuildingsState
+ .buildings[DAT_CurrentBuildingID]
+ .animationIndex]
+ + 175;
+ }
+ } else {
+ if (DAT_BuildingDefinedData.BlacksmithsWorkshopAnimationFrames12
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex]
+ <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame
+ = DAT_BuildingDefinedData
+ .BlacksmithsWorkshopAnimationFrames12[DAT_BuildingsState
+ .buildings[DAT_CurrentBuildingID]
+ .animationIndex]
+ + 175;
+ }
+ }
+ }
+ if (animationDone != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 1;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 2;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 2) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationCycleCount += 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationCycleCompleted = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 0;
+ }
+ }
+ }
+ int const workerID = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workerID[0];
+ if (workerID != 0) {
+ if (DAT_UnitsState.units[workerID].state.generic
+ == US_FIRE_WEAPONUnk) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive = 1;
+ } else if (DAT_UnitsState.units[workerID].state.generic
+ == US_AIM_WEAPONUnk) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive = 0;
+ }
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive = 0;
+ }
+ int const visuallyActive
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive;
+ updateVisuallyActiveState(DAT_CurrentBuildingID);
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive
+ != DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState) {
+ updateBuildingGraphicsLayer(
+ DAT_CurrentBuildingID);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 1;
+ if (visuallyActive == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1 = 0;
+ } else {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationActive != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock += 1;
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3 == 0) {
+ if (DAT_BuildingDefinedData.BlacksmithsWorkshopAnimationFrames1
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3
+ = 0;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 2) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3
+ = 0;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 4) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3
+ = 0;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3
+ = 1;
+ }
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1
+ = DAT_BuildingDefinedData.BlacksmithsWorkshopAnimationFrames1
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock];
+ } else {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock == 0
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock == 16) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_BS_BELLOW);
+ }
+ if (DAT_BuildingDefinedData.BlacksmithsWorkshopAnimationFrames2
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3
+ = 0;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 2) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3
+ = 0;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 4) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3
+ = 0;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3
+ = 1;
+ }
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1
+ = DAT_BuildingDefinedData.BlacksmithsWorkshopAnimationFrames2
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock];
+ }
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationTickCounter += 1;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationTickCounter > 3) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationTickCounter = 0;
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workerID[0] == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite2 = 0;
+ } else {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationTickCounter == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1 += 1;
+ }
+ if (DAT_BuildingDefinedData.SecondaryOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1 = 0;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite2
+ = DAT_BuildingDefinedData.SecondaryOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1]
+ + 16;
+ }
+ if (DAT_GameSynchronyState.currentGameMode != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage += 1;
+ if (DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage / 2]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage = 0;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].overlayImageID
+ = DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage
+ / 2];
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].overlayImageID = 0;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004130d0", "name": "UpdateBlacksmithsWorkshop", "quelle": "nachgebaut", "p1": {"bereich": "Gebaeude", "zweck": "Takt-Aktualisierung einer Schmiede: meldet sie an und steuert Animation und Zähler."}, "p2": {"ein": "- (aktuelles Gebäude über DAT_CurrentBuildingID)", "aus": "-", "liest": ["buildings[cur].owner/workers[0]/workerID[0]/producedItemTypeNext/state/animationIndex/animationActive", "DAT_GameSynchronyState.currentGameMode", "DAT_GameCore.mapTimeInTicks", "units[worker].state.generic", "BlacksmithsWorkshopAnimationFrames1..12"], "schreibt": ["playerDataArray[owner].countArmorersAndBlacksmiths +1", "buildings[cur].state/animationIndex/animationFrame/animationCycleCount/animationCycleCompleted", "buildingIsVisuallyActive/oldVisualActiveState/extraAnimationSprite1/2/overlayImageID", "buildingVariation", "field138_0x1c2 = 1 (Feldbedeutung unbekannt)"], "ruft": ["addBuildingToTargetableBuildings", "addBuildingInRegistry", "updateBuildingPlacementRotationPreview", "playSFXAtLocation", "updateVisuallyActiveState", "updateBuildingGraphicsLayer"], "regeln": ["Jeden Takt: Gebäude als angreifbar und im Register eintragen; Zähler countArmorersAndBlacksmiths des Besitzers +1 (gemeinsamer Zähler mit der Rüstungsschmiede)", "Alle 256 Takte (wenn (uid + mapTimeInTicks) & 0xff == 0) wird buildingVariation aus der Drehvorschau übernommen", "Nur producedItemTypeNext == RT_SWORD oder RT_MACE steuert die Animation; andere Werte lassen sie unberührt", "Schwert: Zustände 0..7; Folge 0>1>(Spielmodus != 0 ? 6 : 2)>3>4>5>6>7>0; bei 7>0 wird animationCycleCount +1 und animationCycleCompleted = 1 gesetzt", "Mace: nur Zustände 0..2; Folge 0>1>2>0 mit Zyklus-Zähler bei 2>0", "Ein Animationsschritt gilt als fertig, wenn der Tabellenwert <= 0 ist; dann animationIndex = 0 und nächster Zustand", "Gebäude gilt als visuell aktiv, wenn der Arbeiter im Zustand US_FIRE_WEAPONUnk oder US_AIM_WEAPONUnk ist, sonst 0", "Klänge: Amboss bei Schwert-Zuständen 1,3,5,6 und animationIndex 24/34/44; Abkühlen bei Zustand 7 und Index 30; Gießen bei Mace Zustand 1 Index 24, Öffnen Index 60, Feilen bei Zustand 2 (Indizes 5/30/55/80/109); Blasebalg bei campgroundVclock 0 oder 16"], "offen": ["Bedeutung von field138_0x1c2", "Warum die Schmiede den Zähler mit der Rüstungsschmiede teilt und wo er zurückgesetzt wird", "Zustandsnamen (Schwert/Mace) sind nur Zahlen"]}, "p3": {"erklaerung": "Das ist der Takt der Schmiede: Er lässt sie animiert arbeiten und zählt sie als Waffen-/Rüstungswerkstatt des Besitzers mit. Die Waffenproduktion selbst steht hier nicht.", "gehirn": "-", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x004138d0 UpdatePoleturnersWorkshop | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004138D0
+ void Buildings::UpdatePoleturnersWorkshop()
+ {
+ int const owner = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner;
+ int animationDone = 0;
+ addBuildingToTargetableBuildings(
+ DAT_CurrentBuildingID);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field138_0x1c2 = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workers[0] != 0;
+ DAT_GameState.playerDataArray[owner].countFletchersPoleturners += 1;
+ if (((DAT_BuildingsState.buildings[DAT_CurrentBuildingID].uid
+ + DAT_GameCore.mapTimeInTicks)
+ & 0xff)
+ == 0) {
+ updateBuildingPlacementRotationPreview(DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingVariation
+ = DAT_TileMapState.uiBuildingRotation;
+ }
+ // The animation tables are declared byte, but the original reads them signed
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].producedItemTypeNext
+ == RT_SPEAR) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationActive != 0
+ && (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 7
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 39
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 74
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 106
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 140
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex
+ == 175)) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_POLE_TURN);
+ }
+ char frame;
+ if (DAT_GameSynchronyState.currentGameMode == 0) {
+ frame = (char)DAT_BuildingDefinedData
+ .field78_0x54cc[DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .animationIndex];
+ } else {
+ frame
+ = (char)DAT_BuildingDefinedData.PoleturnersWorkshopAnimationFrames4
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ }
+ if (frame <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = frame + 94;
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 31;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex
+ < 30) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength -= 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 0;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 1) {
+ char const frame
+ = (char)DAT_BuildingDefinedData.PoleturnersWorkshopAnimationFrames5
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if (frame <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = frame + 94;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex;
+ }
+ if (animationDone != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 1;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationCycleCount += 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationCycleCompleted = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 0;
+ }
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].producedItemTypeNext
+ == RT_PIKE) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ char const frame
+ = (char)DAT_BuildingDefinedData.PoleturnersWorkshopAnimationFrames1
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if (frame <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = frame;
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 31;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex
+ < 30) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength -= 1;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame
+ == 61) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength += 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 0;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 1
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 2) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationActive != 0
+ && (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 2
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex
+ == 48)) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_POLE_GRIND);
+ }
+ char frame;
+ if (DAT_GameSynchronyState.currentGameMode == 0) {
+ frame = (char)DAT_BuildingDefinedData
+ .field75_0x53bc[DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .animationIndex];
+ } else {
+ frame
+ = (char)DAT_BuildingDefinedData.PoleturnersWorkshopAnimationFrames2
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ }
+ if (frame <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = frame + 61;
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex < 32) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength -= 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 0;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 3) {
+ char const frame
+ = DAT_BuildingDefinedData.PoleturnersWorkshopAnimationFrames3
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if (frame <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = frame + 61;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex;
+ }
+ if (animationDone != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 1;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 2;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 2) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 3;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 3) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationCycleCount += 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationCycleCompleted = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 0;
+ }
+ }
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength > 31) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 31;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength < 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 0;
+ }
+ int const workerID = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workerID[0];
+ if (workerID != 0) {
+ if (DAT_UnitsState.units[workerID].state.generic
+ == US_FIRE_WEAPONUnk) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive = 1;
+ } else if (DAT_UnitsState.units[workerID].state.generic
+ == US_AIM_WEAPONUnk) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive = 0;
+ }
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive = 0;
+ }
+ updateVisuallyActiveState(DAT_CurrentBuildingID);
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive
+ != DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState) {
+ updateBuildingGraphicsLayer(
+ DAT_CurrentBuildingID);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 1;
+ if (DAT_GameSynchronyState.currentGameMode != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage += 1;
+ if (DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage / 2]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage = 0;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].overlayImageID
+ = DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage
+ / 2];
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].overlayImageID = 0;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004138d0", "name": "UpdatePoleturnersWorkshop", "quelle": "nachgebaut", "p1": {"bereich": "Gebaeude", "zweck": "Takt-Aktualisierung einer Drechslerei: meldet sie an und steuert Animation und Zähler."}, "p2": {"ein": "- (aktuelles Gebäude über DAT_CurrentBuildingID)", "aus": "-", "liest": ["buildings[cur].owner/workers[0]/workerID[0]/producedItemTypeNext/state/animationIndex/animationActive/animationFrame", "DAT_GameSynchronyState.currentGameMode", "DAT_GameCore.mapTimeInTicks", "units[worker].state.generic", "PoleturnersWorkshopAnimationFrames1..5, field75_0x53bc, field78_0x54cc"], "schreibt": ["playerDataArray[owner].countFletchersPoleturners +1", "buildings[cur].state/animationIndex/animationFrame/renderBlendStrength/animationCycleCount/animationCycleCompleted", "buildingIsVisuallyActive/oldVisualActiveState/overlayImageID/displayOwnerFlag", "buildingVariation", "field138_0x1c2 = 1 (Feldbedeutung unbekannt)"], "ruft": ["addBuildingToTargetableBuildings", "addBuildingInRegistry", "updateBuildingPlacementRotationPreview", "playSFXAtLocation", "updateVisuallyActiveState", "updateBuildingGraphicsLayer"], "regeln": ["Jeden Takt: als angreifbar und im Register eintragen; Zähler countFletchersPoleturners des Besitzers +1 (gemeinsamer Zähler mit der Bogenmacherei)", "Alle 256 Takte (wenn (uid + mapTimeInTicks) & 0xff == 0) wird buildingVariation aus der Drehvorschau übernommen", "Speer (RT_SPEAR): Zustände 0 und 1; Folge 0>1>0, beim Rückschritt animationCycleCount +1 und animationCycleCompleted = 1", "Pike (RT_PIKE): Zustände 0..3; Folge 0>1>2>3>0 (Zustände 1 und 2 laufen mit derselben Animation), Zyklus-Zähler bei 3>0", "Ein Schritt gilt als fertig, wenn der Tabellenwert <= 0 ist; dann animationIndex = 0", "renderBlendStrength wird am Ende auf 0..31 begrenzt", "Visuell aktiv, wenn der Arbeiter im Zustand US_FIRE_WEAPONUnk oder US_AIM_WEAPONUnk ist, sonst 0", "Spielmodus 0 nutzt die Tabellen field78_0x54cc / field75_0x53bc, sonst die benannten PoleturnersWorkshopAnimationFrames-Tabellen", "Spielmodus != 0: Flaggen-Überlagerung läuft mit (overlayImage +1, Tabelle bei overlayImage/2); sonst overlayImageID = 0", "Klänge: FX_POLE_TURN bei Speer Zustand 0 und Index 7/39/74/106/140/175; FX_POLE_GRIND bei Pike Zustand 1/2 und Index 2/48"], "offen": ["Bedeutung von field138_0x1c2", "Wo countFletchersPoleturners zurückgesetzt wird", "Andere Werte von producedItemTypeNext als Speer/Pike bleiben ohne Animation"]}, "p3": {"erklaerung": "Das ist der Takt der Drechslerei (Speere und Piken): Er lässt sie animiert arbeiten und zählt sie mit. Die Warenproduktion selbst steht hier nicht.", "gehirn": "-", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+

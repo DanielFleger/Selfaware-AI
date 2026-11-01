@@ -1,0 +1,1385 @@
+### 0x00461e50 openCreditsScrollDialog | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00461E50
+ void TextEditorState::openCreditsScrollDialog(int sectionId)
+ {
+ if (!this->isDialogStateInitialized) {
+ this->isDialogStateInitialized = TRUE;
+ this->helpDialogVariant = 2;
+ this->useInGameHelpHandler = FALSE;
+ this->helpDialogSubMode = 0;
+ this->useAlternateHelpTab = FALSE;
+ this->isCustomTextMode = FALSE;
+ DAT_UserTextHandlerState.inputBufferIndex = 0;
+ }
+ this->activeHelpHotspotIndex = 0;
+ if (sectionId == -1) {
+ closeHelpDialogAndReturnToMenu();
+ return;
+ }
+ this->isTextHelpDialogMode = TRUE;
+ activateModalDialog(
+ UI::Enums::MMT_CREDITS_SCROLL, FALSE);
+ int modalX;
+ int modalY;
+ int modalWidth;
+ int modalHeight;
+ fillWithMenuModalDimensions(
+ &modalX, &modalY, &modalWidth, &modalHeight);
+ DAT_00df2964 = 0;
+ DAT_00df296c = 0;
+ INT_00df2968::instance = 0;
+ INT_00df2970::instance = 0;
+ this->dialogX = modalX;
+ this->dialogY = modalY;
+ this->dialogWidth = modalWidth;
+ this->dialogHeight = modalHeight;
+ int const dialogContentX = this->dialogX + DAT_00df2964;
+ int const dialogContentY = this->dialogY + DAT_00df296c;
+ int const dialogContentHeight = this->dialogHeight - INT_00df2970::instance;
+ int const dialogContentWidth = this->dialogWidth - INT_00df2968::instance;
+ this->dialogContentX = dialogContentX;
+ this->dialogContentY = dialogContentY;
+ this->dialogContentWidth = dialogContentWidth;
+ this->dialogContentHeight = dialogContentHeight;
+ for (int i = 28; i >= 0; --i) {
+ this->helpSectionHistoryStack[i + 1] = this->helpSectionHistoryStack[i];
+ }
+ this->helpSectionHistoryStack[0] = this->currentHelpSectionID;
+ this->currentHelpSectionID = sectionId;
+ this->helpContentScrollOffsetY = 0;
+ loadAndLayoutHelpContent();
+ }
+}
+}
+
+### 0x00461f90 openMapDescriptionEditorDialog | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00461F90
+ void TextEditorState::openMapDescriptionEditorDialog(int sectionId)
+ {
+ if (!this->isDialogStateInitialized) {
+ this->isDialogStateInitialized = TRUE;
+ this->helpDialogVariant = 0;
+ this->useInGameHelpHandler = FALSE;
+ this->helpDialogSubMode = 0;
+ this->useAlternateHelpTab = TRUE;
+ this->isCustomTextMode = TRUE;
+ DAT_UserTextHandlerState.inputBufferIndex = 0;
+ this->helpContentScrollX = 0;
+ this->helpContentScrollY = 0;
+ }
+ this->activeHelpHotspotIndex = 0;
+ this->customHelpTextPointer = NULL;
+ if (sectionId == -1) {
+ closeHelpDialogAndReturnToMenu();
+ return;
+ }
+ this->isTextHelpDialogMode = 0;
+ activateModalDialog(
+ UI::Enums::MMT_MAP_DESCRIPTION_EDITOR, FALSE);
+ int modalX;
+ int modalY;
+ int modalWidth;
+ int modalHeight;
+ fillWithMenuModalDimensions(
+ &modalX, &modalY, &modalWidth, &modalHeight);
+ DAT_00df2964 = 10;
+ DAT_00df296c = 10;
+ INT_00df2968::instance = 45;
+ INT_00df2970::instance = 53;
+ this->dialogX = modalX;
+ this->dialogY = modalY;
+ this->dialogWidth = modalWidth;
+ this->dialogHeight = modalHeight;
+ int const dialogContentX = this->dialogX + DAT_00df2964;
+ int const dialogContentY = this->dialogY + DAT_00df296c;
+ int const dialogContentHeight = this->dialogHeight - INT_00df2970::instance;
+ int const dialogContentWidth = this->dialogWidth - INT_00df2968::instance;
+ this->dialogContentX = dialogContentX;
+ this->dialogContentY = dialogContentY;
+ this->dialogContentWidth = dialogContentWidth;
+ this->dialogContentHeight = dialogContentHeight;
+ for (int i = 28; i >= 0; --i) {
+ this->helpSectionHistoryStack[i + 1] = this->helpSectionHistoryStack[i];
+ }
+ this->helpSectionHistoryStack[0] = this->currentHelpSectionID;
+ this->currentHelpSectionID = -1;
+ this->helpContentScrollOffsetY = 0;
+ loadAndLayoutHelpContent();
+ }
+}
+}
+
+### 0x004620f0 setCustomHelpText | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004620F0
+ void TextEditorState::setCustomHelpText(char* helpText, int bufferSize)
+ {
+ this->customHelpTextPointer = helpText;
+ this->isCustomHelpTextWide = 0;
+ this->customHelpTextBufferSize = bufferSize;
+ multiByteToWideCharacter(
+ this->DAT_PointerToTemporaryTextMemory, helpText);
+ this->customHelpTextLength = strlen(helpText);
+ this->isTextHelpDialogMode = TRUE;
+ loadAndLayoutHelpContent();
+ }
+}
+}
+
+### 0x00462150 popHelpDialogStack | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00462150
+ void TextEditorState::popHelpDialogStack()
+ {
+ int sectionId = this->helpSectionHistoryStack[0];
+ for (int i = 0; i < 29; ++i) {
+ this->helpSectionHistoryStack[i] = this->helpSectionHistoryStack[i + 1];
+ }
+ this->helpSectionHistoryStack[29] = -1;
+ this->currentHelpSectionID = sectionId;
+ if (sectionId == -1) {
+ closeHelpDialogAndReturnToMenu();
+ } else {
+ loadAndLayoutHelpContent();
+ }
+ }
+}
+}
+
+### 0x00462190 openUnusedHelpTextEditorDialog | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00462190
+ void TextEditorState::openUnusedHelpTextEditorDialog(int sectionId)
+ {
+ if (this->helpDialogVariant) {
+ if (this->helpDialogVariant == 2) {
+ openScenarioHelpDialog(sectionId);
+ return;
+ }
+ if (this->useInGameHelpHandler) {
+ openInGameHelpDialog(sectionId);
+ return;
+ }
+ openBuildingHelpDialog(sectionId);
+ return;
+ }
+ if (!this->isDialogStateInitialized) {
+ this->savedMenuViewType = DAT_GameCore.currentMenuViewType;
+ this->savedActiveMenuTab = DAT_GameCore.activeMenuTab.tabType;
+ this->savedMenuFlag = DAT_GameCore.unknownAlwaysZero01;
+ this->field48_0x23960 = 1;
+ this->isDialogStateInitialized = TRUE;
+ this->useInGameHelpHandler = FALSE;
+ this->helpDialogVariant = 0;
+ this->helpDialogSubMode = 0;
+ this->useAlternateHelpTab = FALSE;
+ this->isCustomTextMode = FALSE;
+ this->helpContentScrollX = 0;
+ this->helpContentScrollY = 0;
+ this->useWideHelpLayout = FALSE;
+ DAT_UserTextHandlerState.inputBufferIndex = 0;
+ }
+ this->activeHelpHotspotIndex = 0;
+ if (sectionId == -1) {
+ closeHelpDialogAndReturnToMenu();
+ return;
+ }
+ if (!this->useAlternateHelpTab) {
+ this->isTextHelpDialogMode = TRUE;
+ DAT_GameCore.menuTabToSwitchTo.tabType = 0;
+ switchToMenuView(
+ UI::Enums::MVT_UNUSED_HELP_TEXT_EDITOR, 0);
+ } else {
+ this->isTextHelpDialogMode = TRUE;
+ DAT_GameCore.menuTabToSwitchTo.tabType = 1;
+ switchToMenuView(
+ UI::Enums::MVT_UNUSED_HELP_TEXT_EDITOR, 0);
+ }
+ Menu_UnusedHelpTextEditor::instance.thousand = 0;
+ int const dialogX = DAT_WindowAndDirectDraw.mainMenuBorderWidth + 80;
+ int const dialogY = DAT_WindowAndDirectDraw.mainMenuBorderHeight + 60;
+ int const dialogWidth = 640;
+ int const dialogHeight = 480;
+ this->dialogX = dialogX;
+ this->dialogY = dialogY;
+ this->dialogWidth = dialogWidth;
+ this->dialogHeight = dialogHeight;
+ if (!this->useWideHelpLayout) {
+ this->dialogContentX = this->dialogX + 10;
+ this->dialogContentY = this->dialogY + 10;
+ this->dialogContentWidth = 600;
+ this->dialogContentHeight = 435;
+ } else {
+ this->dialogContentX = this->dialogX + 10;
+ this->dialogContentY = this->dialogY + 10;
+ this->dialogContentWidth = 664;
+ this->dialogContentHeight = 291;
+ }
+ for (int i = 28; i >= 0; --i) {
+ this->helpSectionHistoryStack[i + 1] = this->helpSectionHistoryStack[i];
+ }
+ this->helpSectionHistoryStack[0] = this->currentHelpSectionID;
+ this->currentHelpSectionID = sectionId;
+ this->helpContentScrollOffsetY = 0;
+ loadAndLayoutHelpContent();
+ }
+}
+}
+
+### 0x00424320 renderInGameText | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00424320
+ void TextManager::renderInGameText(char* textAddress, int xParam, int yParam, TextAlignment alignment, uint color1,
+ uint color2, int fontSize, BOOLEnum keepOffsetX)
+ {
+ renderInGameTextWithShadow(
+ textAddress, xParam, yParam, alignment, color1, color2, fontSize, keepOffsetX, 0);
+ return;
+ }
+}
+}
+
+### 0x00424360 renderTextToScreen2 | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00424360
+ void TextManager::renderTextToScreen2(char* textAddress, int xParam, int yParam, TextAlignment alignment,
+ BGR24 color, int fontSize, BOOLEnum keepOffsetX)
+ {
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, 0);
+ return;
+ }
+}
+}
+
+### 0x00424390 renderText | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00424390
+ void TextManager::renderText(eTextSections textGroupIndex, int textNumInGroup, int xPosition, int yPosition,
+ TextAlignment textShift, uint color, uint param_7, int fontSize, BOOLEnum param_9)
+ {
+ char* _textAddress;
+ int blendStrength;
+ blendStrength = 0;
+ _textAddress = getTextStringInGroupAtOffset(
+ textGroupIndex, textNumInGroup);
+ renderInGameTextWithShadow(
+ _textAddress, xPosition, yPosition, textShift, color, param_7, fontSize, param_9, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x004243e0 renderText2 | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004243E0
+ void TextManager::renderText2(eTextSections textOffsetIndex, int textNumInGroup, int xParam, int yParam,
+ TextAlignment alignment, uint color, int fontSize, BOOLEnum keepOffsetX)
+ {
+ char* textAddress;
+ int blendStrength;
+ blendStrength = 0;
+ textAddress = getTextStringInGroupAtOffset(
+ textOffsetIndex, textNumInGroup);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, (BGR24)((int)(color)), fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x00424420 renderInGameText2 | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00424420
+ void TextManager::renderInGameText2(eTextSections textOffsetIndex, int textNumInGroup, int xParam, int yParam,
+ TextAlignment alignment, uint color1, uint color2, int fontSize, BOOLEnum keepOffsetX, int blendStrength)
+ {
+ char* textAddress;
+ textAddress = getTextStringInGroupAtOffset(
+ textOffsetIndex, textNumInGroup);
+ renderInGameTextWithShadow(
+ textAddress, xParam, yParam, alignment, color1, color2, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x00424470 renderTextFromTextGroup | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00424470
+ void TextManager::renderTextFromTextGroup(eTextSections offsetIndex, int numInGroup, int xParam, int yParam,
+ TextAlignment alignment, uint color, int fontSize, BOOLEnum keepOffsetX, int blendStrength)
+ {
+ char* _textAddress;
+ _textAddress = getTextStringInGroupAtOffset(
+ offsetIndex, numInGroup);
+ renderTextToScreen(
+ _textAddress, xParam, yParam, alignment, (BGR24)((int)(color)), fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x004244c0 renderMultilineText2 | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004244C0
+ int TextManager::renderMultilineText2(eTextSections param_1, int param_2, int param_3, int param_4)
+ {
+ char* text;
+ int iVar1;
+ int yPos;
+ BGR24 color;
+ int blendStrength;
+ int modeUnk;
+ modeUnk = 1;
+ blendStrength = 0;
+ color = 0;
+ yPos = 0;
+ iVar1 = 0;
+ text = getTextStringInGroupAtOffset(param_1, param_2);
+iVar1 = renderMultilineTextUnk().fontSizeClassArray + param_4,text,iVar1,yPos,param_3,
+color,blendStrength,modeUnk);
+return iVar1;
+ }
+}
+}
+
+### 0x00424500 renderMultilineTextUnk | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00424500
+ void TextManager::renderMultilineTextUnk(eTextSections textOffsetIndex, int textNumInGroup, int xPos, int yPos,
+ int maxWidth, uint color, int fontSize, int blendStrength)
+ {
+ char* text;
+ text = getTextStringInGroupAtOffset(
+ textOffsetIndex, textNumInGroup);
+ renderMultilineText5Unk(
+ text, xPos, yPos, maxWidth, color, fontSize, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x00424540 renderMultilineText2Unk | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00424540
+ void TextManager::renderMultilineText2Unk(
+ eTextSections textOffsetIndex, int textNumInGroup, int xPos, int yPos, int maxWidth, uint color, int fontSize)
+ {
+ char* text;
+ int blendStrength;
+ blendStrength = 0;
+ text = getTextStringInGroupAtOffset(
+ textOffsetIndex, textNumInGroup);
+ renderMultilineText5Unk(
+ text, xPos, yPos, maxWidth, color, fontSize, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x00424580 renderMultilineText3Unk | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00424580
+ void TextManager::renderMultilineText3Unk(eTextSections textOffsetIndex, int textNumInGroup, int xPos, int yPos,
+ int maxWidth, uint color1, uint color2, int fontSize, int blendStrength)
+ {
+ char* _text;
+ _text = getTextStringInGroupAtOffset(
+ textOffsetIndex, textNumInGroup);
+ renderMultilineText6Unk(
+ _text, xPos, yPos, maxWidth, color1, color2, fontSize, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x004245d0 renderMultilineText4Unk | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004245D0
+ void TextManager::renderMultilineText4Unk(eTextSections textOffsetIndex, int textNumInGroup, int xPos, int yPos,
+ int maxWidth, uint color, int fontSize, int blendStrength)
+ {
+ char* text;
+ this->field12_0x30 = 1;
+ text = getTextStringInGroupAtOffset(
+ textOffsetIndex, textNumInGroup);
+ renderMultilineText5Unk(
+ text, xPos, yPos, maxWidth, color, fontSize, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x00424620 renderNumber | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00424620
+ void TextManager::renderNumber(
+ int number, int xPosition, int yPosition, uint color1, uint color2, int fontSize, BOOLEnum keepOffsetX)
+ {
+ renderNumber2(
+ number, xPosition, yPosition, TTA_LEFT, color1, color2, fontSize, keepOffsetX, 0);
+ return;
+ }
+}
+}
+
+### 0x00424650 renderLeftAlignedNumberToScreen | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00424650
+ void TextManager::renderLeftAlignedNumberToScreen(
+ int number, int xParam, int yParam, uint color, int fontSize, BOOL keepOffsetX)
+ {
+ renderNumberToScreen2(
+ number, xParam, yParam, TTA_LEFT, color, fontSize, (BOOLEnum)((int)(keepOffsetX)), 0);
+ return;
+ }
+}
+}
+
+### 0x00424680 renderNumberToScreen | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00424680
+ void TextManager::renderNumberToScreen(
+ int number, int xParam, int yParam, TextAlignment alignment, uint color, int fontSize, BOOLEnum keepOffsetX)
+ {
+ renderNumberToScreen2(
+ number, xParam, yParam, alignment, color, fontSize, keepOffsetX, 0);
+ return;
+ }
+}
+}
+
+### 0x004246b0 computeTextWidthForTextGroup | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004246B0
+ int TextManager::computeTextWidthForTextGroup(eTextSections textOffsetIndex, int textNumInGroup, int fontSize)
+ {
+ char* text;
+ int _width;
+ text = getTextStringInGroupAtOffset(
+ textOffsetIndex, textNumInGroup);
+ _width = computeTextWidth(text, fontSize);
+ return _width;
+ }
+}
+}
+
+### 0x00469e70 setupFontSizeClassObjects | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00469E70
+ void TextManager::setupFontSizeClassObjects()
+ {
+setupFontSizeClassObject().fontSizeClassArray + 0xf,GID_FONT_STRONGHOLD_AA,0,
+FRT_BLENDED_COLOR,0x20,46,1,5);
+setupFontSizeClassObject().fontSizeClassArray + 0x10,GID_FONT_STRONGHOLD_AA,
+this->sizeOfOneFontSet_0x3c,FRT_BLENDED_COLOR,0x16,0x20,1,5);
+setupFontSizeClassObject().fontSizeClassArray + 0x11,GID_FONT_STRONGHOLD_AA,
+this->sizeOfOneFontSet_0x3c * 2,FRT_BLENDED_COLOR,0x12,0x1b,1,4);
+setupFontSizeClassObject().fontSizeClassArray + 0x12,GID_FONT_STRONGHOLD_AA,
+this->sizeOfOneFontSet_0x3c * 3,FRT_BLENDED_COLOR,0xd,0x14,1,3);
+setupFontSizeClassObject().fontSizeClassArray + 0x13,GID_FONT_STRONGHOLD_AA,
+this->sizeOfOneFontSet_0x3c * 4,FRT_BLENDED_COLOR,10,0x10,1,3);
+return;
+ }
+}
+}
+
+### 0x00469f20 setTextClipRange | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00469F20
+ void TextManager::setTextClipRange(dword param_1, dword param_2)
+ {
+ this->field2_0x8 = param_1;
+ this->field3_0xc = param_2;
+ return;
+ }
+}
+}
+
+### 0x00469f40 resetTextClipRange | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00469F40
+ void TextManager::resetTextClipRange()
+ {
+ this->field2_0x8 = 0;
+ this->field3_0xc = 10000;
+ return;
+ }
+}
+}
+
+### 0x00469f50 trimText | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00469F50
+ void TextManager::trimText(char* text, int allowedWidth, int fontSize)
+ {
+wrapTextIntoLines().fontSizeClassArray + fontSize,text,allowedWidth);
+return;
+ }
+}
+}
+
+### 0x00469f70 getTextWidthTillCursorUnk | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00469F70
+ int TextManager::getTextWidthTillCursorUnk(char* text, int cursorIndex, int fontSize)
+ {
+ int _widthUnk;
+ if (text == (char*)0x0) {
+ return 0;
+ }
+_widthUnk = getWidthOfText().fontSizeClassArray + fontSize,text,cursorIndex);
+return _widthUnk;
+ }
+}
+}
+
+### 0x00469fa0 fillIntegerTextBuffer | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00469FA0
+ void TextManager::fillIntegerTextBuffer(int numberInt)
+ {
+ int iVar1;
+ int iVar2;
+ this->integerTextBuffer[0] = '\0';
+ this->integerTextBuffer[1] = '\0';
+ this->integerTextBuffer[2] = '\0';
+ this->integerTextBuffer[3] = '\0';
+ this->integerTextBuffer[4] = '\0';
+ this->integerTextBuffer[5] = '\0';
+ this->integerTextBuffer[6] = '\0';
+ this->integerTextBuffer[7] = '\0';
+ this->integerTextBuffer[8] = '\0';
+ this->integerTextBuffer[9] = '\0';
+ this->integerTextBuffer[10] = '\0';
+ this->integerTextBuffer[0xb] = '\0';
+ this->integerTextBuffer[0xc] = '\0';
+ this->integerTextBuffer[0xd] = '\0';
+ this->integerTextBuffer[0xe] = '\0';
+ this->integerTextBuffer[0xf] = '\0';
+ this->integerTextBuffer[0x10] = '\0';
+ this->integerTextBuffer[0x11] = '\0';
+ this->integerTextBuffer[0x12] = '\0';
+ this->integerTextBuffer[0x13] = '\0';
+ if (numberInt < 0) {
+ numberInt = -numberInt;
+ this->integerTextBuffer[0] = 45;
+ this->integerTextBuffer[1] = '\0';
+ this->integerTextBuffer[2] = '\0';
+ this->integerTextBuffer[3] = '\0';
+ iVar2 = 1;
+ } else if ((numberInt < 1) || (this->field8_0x20 == 0)) {
+ iVar2 = 0;
+ } else {
+ this->integerTextBuffer[0] = 43;
+ this->integerTextBuffer[1] = '\0';
+ this->integerTextBuffer[2] = '\0';
+ this->integerTextBuffer[3] = '\0';
+ iVar2 = 1;
+ }
+ iVar1 = 0;
+ do {
+ if (numberInt <= DAT_TextInputDefinedData.field5_0x684[iVar1][0]) {
+ iVar1 = DAT_TextInputDefinedData.field5_0x684[iVar1][1];
+ if (iVar1 != 0)
+ goto LAB_0046a014;
+ break;
+ }
+ iVar1 = iVar1 + 1;
+ } while (iVar1 < 8);
+ iVar1 = 9;
+ LAB_0046a014:
+ iVar1 = iVar1 + -1;
+ while (-1 < iVar1) {
+ iVar1 = iVar1 + -1;
+ *(char*)(iVar2 + 0x2158899 + iVar1) = (char)numberInt + (char)(numberInt / 10) * -10 + '0';
+ numberInt = numberInt / 10;
+ }
+ this->integerTextBuffer[0] = DAT_TextManagerObject.integerTextBuffer[0];
+ this->integerTextBuffer[1] = DAT_TextManagerObject.integerTextBuffer[1];
+ this->integerTextBuffer[2] = DAT_TextManagerObject.integerTextBuffer[2];
+ this->integerTextBuffer[3] = DAT_TextManagerObject.integerTextBuffer[3];
+ this->integerTextBuffer[4] = DAT_TextManagerObject.integerTextBuffer[4];
+ this->integerTextBuffer[5] = DAT_TextManagerObject.integerTextBuffer[5];
+ this->integerTextBuffer[6] = DAT_TextManagerObject.integerTextBuffer[6];
+ this->integerTextBuffer[7] = DAT_TextManagerObject.integerTextBuffer[7];
+ this->integerTextBuffer[8] = DAT_TextManagerObject.integerTextBuffer[8];
+ this->integerTextBuffer[9] = DAT_TextManagerObject.integerTextBuffer[9];
+ this->integerTextBuffer[10] = DAT_TextManagerObject.integerTextBuffer[10];
+ this->integerTextBuffer[0xb] = DAT_TextManagerObject.integerTextBuffer[0xb];
+ this->integerTextBuffer[0xc] = DAT_TextManagerObject.integerTextBuffer[0xc];
+ this->integerTextBuffer[0xd] = DAT_TextManagerObject.integerTextBuffer[0xd];
+ this->integerTextBuffer[0xe] = DAT_TextManagerObject.integerTextBuffer[0xe];
+ this->integerTextBuffer[0xf] = DAT_TextManagerObject.integerTextBuffer[0xf];
+ this->integerTextBuffer[0x10] = DAT_TextManagerObject.integerTextBuffer[0x10];
+ this->integerTextBuffer[0x11] = DAT_TextManagerObject.integerTextBuffer[0x11];
+ this->integerTextBuffer[0x12] = DAT_TextManagerObject.integerTextBuffer[0x12];
+ this->integerTextBuffer[0x13] = DAT_TextManagerObject.integerTextBuffer[0x13];
+ return;
+ }
+}
+}
+
+### 0x0046a050 getTextStringInGroupAtOffset | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0046A050
+ char* TextManager::getTextStringInGroupAtOffset(eTextSections offsetIndex, int numInGroup)
+ {
+ char* _textPtr;
+ char _char;
+ switch (offsetIndex) {
+ case TEXT_MAINOPTIONS:
+ if (numInGroup == 0x1a) {
+ offsetIndex = TEXT_SKIRMISH_CHOOSE2;
+ numInGroup = 1;
+ } else if (numInGroup == 0x1b) {
+ offsetIndex = TEXT_SKIRMISH_CHOOSE2;
+ numInGroup = 0;
+ } else if (numInGroup == 0x1c) {
+ offsetIndex = TEXT_SKIRMISH_CHOOSE2;
+ numInGroup = 2;
+ }
+ break;
+ default:
+ break;
+ case TEXT_BUBBLE_HELP_TEXT:
+ if (numInGroup == 0xe3) {
+ offsetIndex = TEXT_SKIRMISH_CHOOSE2;
+ numInGroup = 3;
+ } else if (numInGroup == 0x104) {
+ offsetIndex = TEXT_SKIRMISH_CHOOSE2;
+ numInGroup = 4;
+ } else if (numInGroup == 0x10c) {
+ offsetIndex = TEXT_SKIRMISH_CHOOSE2;
+ numInGroup = 0xe;
+ }
+ break;
+ case TEXT_MAP_TITLES:
+ if (numInGroup == 2) {
+ offsetIndex = TEXT_SKIRMISH_CHOOSE2;
+ numInGroup = 0xf;
+ }
+ break;
+ case TEXT_XPLAY_WAITING_ROOM:
+ if (numInGroup == 0x19d) {
+ offsetIndex = TEXT_SKIRMISH_CHOOSE2;
+ numInGroup = 0xd;
+ }
+ break;
+ case TEXT_SKIRMISH_CHOOSE:
+ switch (numInGroup) {
+ case 0:
+ offsetIndex = TEXT_SKIRMISH_CHOOSE2;
+ numInGroup = 5;
+ break;
+ case 1:
+ offsetIndex = TEXT_SKIRMISH_CHOOSE2;
+ numInGroup = 6;
+ break;
+ case 2:
+ offsetIndex = TEXT_SKIRMISH_CHOOSE2;
+ numInGroup = 7;
+ break;
+ case 4:
+ offsetIndex = TEXT_SKIRMISH_CHOOSE2;
+ numInGroup = 8;
+ }
+ }
+ _textPtr = this->textStart + this->textOffsets[offsetIndex];
+ if (0 < numInGroup) {
+ _char = *_textPtr;
+ do {
+ numInGroup = numInGroup + -1;
+ while (_char != '\0') {
+ _textPtr = _textPtr + 1;
+ _char = *_textPtr;
+ }
+ do {
+ _char = _textPtr[1];
+ _textPtr = _textPtr + 1;
+ } while (_char == '\0');
+ } while (0 < numInGroup);
+ }
+ return _textPtr;
+ }
+}
+}
+
+### 0x0046a2c0 renderPartOfNumberUnk | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0046A2C0
+ int TextManager::renderPartOfNumberUnk(int numberToRenderUnk, int xPosUnk, int yPosUnk, int integerPartToRenderUnk,
+ int bgr24, int digitSet, BOOL useCurrentXOffsetUnk)
+ {
+ RenderTargetInt RVar1;
+ RGB15 fillColor;
+ int iVar2;
+ int _widthOfRenderedNumber;
+ int _decimalNumberToRender;
+ int _imageId;
+ _decimalNumberToRender = 0;
+ fillColor = transformBGR24ToScreenColor(bgr24);
+ RVar1 = DAT_TextureRenderCoreObject.drawBufferChoiceValue;
+ if (useCurrentXOffsetUnk == 0) {
+ this->currentXOffset_0x0 = 0;
+ }
+ switch (integerPartToRenderUnk) {
+ case 0:
+ _decimalNumberToRender = numberToRenderUnk % 10;
+ break;
+ case 1:
+ _decimalNumberToRender = numberToRenderUnk / 10;
+ if (_decimalNumberToRender == 0) {
+ return numberToRenderUnk * 0x66666667;
+ }
+ iVar2 = (int)((ulonglong)((longlong)_decimalNumberToRender * -0x66666667) >> 0x20);
+ _decimalNumberToRender = _decimalNumberToRender + ((iVar2 >> 2) - (iVar2 >> 0x1f)) * 10;
+ break;
+ case 2:
+ _decimalNumberToRender = numberToRenderUnk / 100;
+ if (_decimalNumberToRender == 0) {
+ return numberToRenderUnk * 0x51eb851f;
+ }
+ iVar2 = (int)((ulonglong)((longlong)_decimalNumberToRender * -0x66666667) >> 0x20);
+ _decimalNumberToRender = _decimalNumberToRender + ((iVar2 >> 2) - (iVar2 >> 0x1f)) * 10;
+ break;
+ case 3:
+ _decimalNumberToRender = numberToRenderUnk / 1000;
+ if (_decimalNumberToRender == 0) {
+ return numberToRenderUnk * 0x10624dd3;
+ }
+ iVar2 = (int)((ulonglong)((longlong)_decimalNumberToRender * -0x66666667) >> 0x20);
+ _decimalNumberToRender = _decimalNumberToRender + ((iVar2 >> 2) - (iVar2 >> 0x1f)) * 10;
+ break;
+ case 4:
+ _decimalNumberToRender = numberToRenderUnk / 10000;
+ if (_decimalNumberToRender == 0) {
+ return numberToRenderUnk * 0x68db8bad;
+ }
+ iVar2 = (int)((ulonglong)((longlong)_decimalNumberToRender * -0x66666667) >> 0x20);
+ _decimalNumberToRender = _decimalNumberToRender + ((iVar2 >> 2) - (iVar2 >> 0x1f)) * 10;
+ break;
+ case 5:
+ _decimalNumberToRender = numberToRenderUnk / 100000;
+ if (_decimalNumberToRender == 0) {
+ return numberToRenderUnk * 0x14f8b589;
+ }
+ iVar2 = (int)((ulonglong)((longlong)_decimalNumberToRender * -0x66666667) >> 0x20);
+ _decimalNumberToRender = _decimalNumberToRender + ((iVar2 >> 2) - (iVar2 >> 0x1f)) * 10;
+ break;
+ case -1:
+ this->currentXOffset_0x0 = this->currentXOffset_0x0 + -2;
+ xPosUnk = xPosUnk + 2;
+ _decimalNumberToRender = 10;
+ }
+ iVar2 = 0x11;
+ if (digitSet == 1) {
+ _decimalNumberToRender = _decimalNumberToRender + 0xb;
+ } else {
+ if (digitSet == 2) {
+ _decimalNumberToRender = _decimalNumberToRender + 0x16;
+ goto LAB_0046a45a;
+ }
+ if (digitSet != 3)
+ goto LAB_0046a45a;
+ _decimalNumberToRender = _decimalNumberToRender + 0x21;
+ }
+ iVar2 = 0xc;
+ LAB_0046a45a:
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = this->textSurfaceTarget;
+ _imageId = _decimalNumberToRender + GMTotalPicturesProcessed::instance[0x92];
+ renderTextChar(this->currentXOffset_0x0 + xPosUnk, iVar2 + yPosUnk, _imageId,
+ FRT_BLENDED_COLOR, iVar2, (ushort)((int)(fillColor)), 0);
+ _widthOfRenderedNumber = DAT_GMImageHeaders.imh[_imageId].width + -2;
+ this->currentXOffset_0x0 = this->currentXOffset_0x0 + _widthOfRenderedNumber;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RVar1;
+ return _widthOfRenderedNumber;
+ }
+}
+}
+
+### 0x0046a4d0 calcRenderedNumberWidth | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0046A4D0
+ int TextManager::calcRenderedNumberWidth(int param_1, int param_2)
+ {
+ int iVar1;
+ int iVar2;
+ int iVar3;
+ iVar3 = 0;
+ if (param_1 == -1) {
+ if (param_2 == 0) {
+ iVar3 = 10;
+ } else if (param_2 == 1) {
+ iVar3 = 0x15;
+ } else {
+ iVar3 = (-(uint)(param_2 != 2) & 0xb) + 0x20;
+ }
+ return DAT_GMImageHeaders.imh[GMTotalPicturesProcessed::instance[0x92] + iVar3].width + -2;
+ }
+ iVar1 = param_1 / 100000;
+ if (iVar1 != 0) {
+ iVar3 = (int)((ulonglong)((longlong)iVar1 * -0x66666667) >> 0x20);
+ iVar1 = iVar1 + ((iVar3 >> 2) - (iVar3 >> 0x1f)) * 10;
+ if (param_2 == 1) {
+ iVar1 = iVar1 + 0xb;
+ } else if (param_2 == 2) {
+ iVar1 = iVar1 + 0x16;
+ } else if (param_2 == 3) {
+ iVar1 = iVar1 + 0x21;
+ }
+ iVar3 = DAT_GMImageHeaders.imh[iVar1 + GMTotalPicturesProcessed::instance[0x92]].width + -2;
+ }
+ iVar1 = param_1 / 10000;
+ if (iVar1 != 0) {
+ iVar2 = (int)((ulonglong)((longlong)iVar1 * -0x66666667) >> 0x20);
+ iVar1 = iVar1 + ((iVar2 >> 2) - (iVar2 >> 0x1f)) * 10;
+ if (param_2 == 1) {
+ iVar1 = iVar1 + 0xb;
+ } else if (param_2 == 2) {
+ iVar1 = iVar1 + 0x16;
+ } else if (param_2 == 3) {
+ iVar1 = iVar1 + 0x21;
+ }
+ iVar3 = iVar3 + -2
+ + (int)DAT_GMImageHeaders.imh[iVar1 + GMTotalPicturesProcessed::instance[0x92]].width;
+ }
+ iVar1 = param_1 / 1000;
+ if (iVar1 != 0) {
+ iVar2 = (int)((ulonglong)((longlong)iVar1 * -0x66666667) >> 0x20);
+ iVar1 = iVar1 + ((iVar2 >> 2) - (iVar2 >> 0x1f)) * 10;
+ if (param_2 == 1) {
+ iVar1 = iVar1 + 0xb;
+ } else if (param_2 == 2) {
+ iVar1 = iVar1 + 0x16;
+ } else if (param_2 == 3) {
+ iVar1 = iVar1 + 0x21;
+ }
+ iVar3 = iVar3 + -2
+ + (int)DAT_GMImageHeaders.imh[iVar1 + GMTotalPicturesProcessed::instance[0x92]].width;
+ }
+ iVar1 = param_1 / 100;
+ if (iVar1 != 0) {
+ iVar2 = (int)((ulonglong)((longlong)iVar1 * -0x66666667) >> 0x20);
+ iVar1 = iVar1 + ((iVar2 >> 2) - (iVar2 >> 0x1f)) * 10;
+ if (param_2 == 1) {
+ iVar1 = iVar1 + 0xb;
+ } else if (param_2 == 2) {
+ iVar1 = iVar1 + 0x16;
+ } else if (param_2 == 3) {
+ iVar1 = iVar1 + 0x21;
+ }
+ iVar3 = iVar3 + -2
+ + (int)DAT_GMImageHeaders.imh[iVar1 + GMTotalPicturesProcessed::instance[0x92]].width;
+ }
+ iVar1 = param_1 / 10;
+ if (iVar1 != 0) {
+ iVar2 = (int)((ulonglong)((longlong)iVar1 * -0x66666667) >> 0x20);
+ iVar1 = iVar1 + ((iVar2 >> 2) - (iVar2 >> 0x1f)) * 10;
+ if (param_2 == 1) {
+ iVar1 = iVar1 + 0xb;
+ } else if (param_2 == 2) {
+ iVar1 = iVar1 + 0x16;
+ } else if (param_2 == 3) {
+ iVar1 = iVar1 + 0x21;
+ }
+ iVar3 = iVar3 + -2
+ + (int)DAT_GMImageHeaders.imh[iVar1 + GMTotalPicturesProcessed::instance[0x92]].width;
+ }
+ iVar1 = param_1 % 10;
+ if (param_2 == 1) {
+ iVar1 = iVar1 + 0xb;
+ } else if (param_2 == 2) {
+ iVar1 = iVar1 + 0x16;
+ } else if (param_2 == 3) {
+ iVar1 = iVar1 + 0x21;
+ }
+ return DAT_GMImageHeaders.imh[GMTotalPicturesProcessed::instance[0x92] + iVar1].width + -2 + iVar3;
+ }
+}
+}
+
+### 0x0046a720 getCharWidth | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0046A720
+ int TextManager::getCharWidth(char character, int fontSize)
+ {
+ int iVar1;
+iVar1 = getCharWidthUnk().fontSizeClassArray + fontSize,character);
+return iVar1;
+ }
+}
+}
+
+### 0x00471690 computeTextWidth | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00471690
+ int TextManager::computeTextWidth(char* text, int fontSize)
+ {
+ char* _textRunPtr;
+ int _width;
+ char _currentChar;
+ if (text == (char*)0x0) {
+ return 0;
+ }
+ _textRunPtr = text;
+ do {
+ _currentChar = *_textRunPtr;
+ _textRunPtr = _textRunPtr + 1;
+ } while (_currentChar != '\0');
+_width = getWidthOfText().fontSizeClassArray + fontSize,text,
+(int)_textRunPtr - (int)(text + 1));
+return _width;
+ }
+}
+}
+
+### 0x004716d0 computeNumberTextWidth | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004716D0
+ int TextManager::computeNumberTextWidth(int param_1, int param_2)
+ {
+ char* pcVar1;
+ char* pcVar2;
+ int iVar3;
+ fillIntegerTextBuffer(param_1);
+ pcVar1 = this->integerTextBuffer;
+ do {
+ pcVar2 = pcVar1;
+ pcVar1 = pcVar2 + 1;
+ } while (*pcVar2 != '\0');
+iVar3 = getWidthOfText().fontSizeClassArray + param_2,
+this->integerTextBuffer,(int)(pcVar2 + -0x2158898));
+return iVar3;
+ }
+}
+}
+
+### 0x00473870 loadCRTex | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00473870
+ void TextManager::loadCRTex()
+ {
+ int _fileDescriptor;
+ WCHAR* _lpWideCharStr;
+ int _languageCompareResult;
+ char* _langStr;
+ this->codePage = CP_WINDOWS_1252;
+ this->field5_0x14 = 1;
+ this->field6_0x18 = 0;
+ this->textSurfaceTarget = RT_SCREEN_MENU;
+ this->field27_0x1348 = 0;
+ _fileDescriptor
+ = _ucrt_open("cr.tex", _O_BINARY, 0);
+ if (_fileDescriptor != -1) {
+ _ucrt_read(
+ _fileDescriptor, (void*)((int)(this->textOffsets)), (size_t)((int)(1040)));
+ _lpWideCharStr = _malloc(702000);
+ _ucrt_read(
+ _fileDescriptor, (void*)((int)(_lpWideCharStr)), (size_t)((int)(702000)));
+ wideCharToMultiByteWithSize(this->textStart, _lpWideCharStr, 351000);
+ this->alternativeCodePageUsedUnk = FALSE;
+ this->gameLanguage = GL_ENGLISH;
+ /*
+ language
+ */
+ _langStr = getTextStringInGroupAtOffset(
+ TEXT_LANGUAGE, 0);
+ _languageCompareResult = __stricmp("polish", (CHAR_CONST*)((int)(_langStr)));
+ if (_languageCompareResult == 0) {
+ this->codePage = CP_WINDOWS_1250;
+ this->alternativeCodePageUsedUnk = TRUE;
+ wideCharToMultiByteWithSize(this->textStart, _lpWideCharStr, 351000);
+ this->gameLanguage = GL_POLISH;
+ } else {
+ _langStr = getTextStringInGroupAtOffset(
+ TEXT_LANGUAGE, 0);
+ _languageCompareResult
+ = __stricmp("english", (CHAR_CONST*)((int)(_langStr)));
+ if (_languageCompareResult == 0) {
+ this->gameLanguage = GL_ENGLISH;
+ } else {
+ _langStr = getTextStringInGroupAtOffset(
+ TEXT_LANGUAGE, 0);
+ _languageCompareResult
+ = __stricmp("american", (CHAR_CONST*)((int)(_langStr)));
+ if (_languageCompareResult == 0) {
+ this->gameLanguage = GL_AMERICAN;
+ } else {
+ _langStr = getTextStringInGroupAtOffset(TEXT_LANGUAGE, 0);
+ _languageCompareResult
+ = __stricmp("german", (CHAR_CONST*)((int)(_langStr)));
+ if (_languageCompareResult == 0) {
+ this->gameLanguage = GL_GERMAN;
+ } else {
+ _langStr = getTextStringInGroupAtOffset(TEXT_LANGUAGE, 0);
+ _languageCompareResult
+ = __stricmp("french", (CHAR_CONST*)((int)(_langStr)));
+ if (_languageCompareResult == 0) {
+ this->gameLanguage = GL_FRENCH;
+ } else {
+ _langStr
+ = getTextStringInGroupAtOffset(TEXT_LANGUAGE, 0);
+ _languageCompareResult = __stricmp(
+ "italian", (CHAR_CONST*)((int)(_langStr)));
+ if (_languageCompareResult == 0) {
+ this->gameLanguage = GL_ITALIAN;
+ } else {
+ _langStr = getTextStringInGroupAtOffset(
+ TEXT_LANGUAGE, 0);
+ _languageCompareResult = __stricmp(
+ "SPANISH", (CHAR_CONST*)((int)(_langStr)));
+ if (_languageCompareResult == 0) {
+ this->gameLanguage = GL_SPANISH;
+ }
+ }
+ }
+ }
+ }
+ }
+ }
+ _ucrt_close(_fileDescriptor);
+ this->field27_0x1348 = 1;
+ this->field9_0x24 = 0;
+ this->field10_0x28 = 0;
+ fillMemory_ByteValue(
+ 20, '\0', (void*)((int)(this->field26_0x1334)));
+ resetTextClipRange();
+ this->field13_0x34 = 0;
+ }
+ return;
+ }
+}
+}
+
+### 0x00473a70 renderMultilineText5Unk | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00473A70
+ void TextManager::renderMultilineText5Unk(
+ char* text, int xPos, int yPos, int maxWidth, uint color, int fontSize, int blendStrength)
+ {
+ if (text != (char*)0x0) {
+renderMultilineTextUnk().fontSizeClassArray + fontSize,text,xPos,yPos,maxWidth,color,
+blendStrength,0);
+ }
+ this->field12_0x30 = 0;
+ return;
+ }
+}
+}
+
+### 0x00473ac0 renderMultilineText6Unk | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00473AC0
+ void TextManager::renderMultilineText6Unk(
+ char* text, int xPos, int yPos, int maxWidth, uint color1, uint color2, int fontSize, int blendStrength)
+ {
+ int iVar1;
+ iVar1 = this->field9_0x24;
+ if (text == (char*)0x0) {
+ this->field12_0x30 = (dword)text;
+ return;
+ }
+ this->field11_0x2c = 1;
+renderMultilineTextUnk().fontSizeClassArray + fontSize,text,xPos,yPos,maxWidth,color2,
+blendStrength,0);
+this->field10_0x28 = iVar1;
+renderMultilineTextUnk().fontSizeClassArray + fontSize,text,xPos + -2,yPos + -1,maxWidth,
+color1,blendStrength,0);
+this->field11_0x2c = 0;
+this->field12_0x30 = 0;
+return;
+ }
+}
+}
+
+### 0x00473b50 renderMultilineWideTextUnk | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00473B50
+ void TextManager::renderMultilineWideTextUnk(
+ LPWSTR _wideText, int xPos, int yPos, int maxWidth, uint color1, uint color2, int fontSize, int blendStrength)
+ {
+ int iVar1;
+ iVar1 = this->field9_0x24;
+ if (_wideText == (WCHAR*)0x0) {
+ this->field12_0x30 = (dword)_wideText;
+ return;
+ }
+ this->field11_0x2c = 1;
+renderMultilineWideTextUnk().fontSizeClassArray + fontSize,_wideText,xPos,yPos,maxWidth,color2
+,blendStrength,0);
+this->field10_0x28 = iVar1;
+renderMultilineWideTextUnk().fontSizeClassArray + fontSize,_wideText,xPos + -2,yPos + -1,
+maxWidth,color1,blendStrength,0);
+this->field11_0x2c = 0;
+this->field12_0x30 = 0;
+return;
+ }
+}
+}
+
+### 0x00473be0 renderSomeSpecificTextUnk | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00473BE0
+ void TextManager::renderSomeSpecificTextUnk(
+ int lengthUnk, int otherBlendValueUnk, int xPos, int yPos, uint color, int fontSize)
+ {
+renderSomeSpecificTextUnk().fontSizeClassArray + fontSize,lengthUnk,otherBlendValueUnk,xPos,
+yPos,color);
+return;
+ }
+}
+}
+
+### 0x00474250 renderTextToScreen | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00474250
+ void TextManager::renderTextToScreen(char* textAddress, int xParam, int yParam, TextAlignment alignment,
+ BGR24 color, int fontSize, BOOLEnum keepOffsetX, int blendStrength)
+ {
+ char* _textLengthHelper;
+ int _textWidth;
+ int xPos;
+ char _char;
+ if (keepOffsetX == FALSE) {
+ this->currentXOffset_0x0 = 0;
+ }
+ if (textAddress != (char*)0x0) {
+ _textLengthHelper = textAddress;
+ do {
+ _char = *_textLengthHelper;
+ _textLengthHelper = _textLengthHelper + 1;
+ } while (_char != '\0');
+_textWidth = getWidthOfText().fontSizeClassArray + fontSize,textAddress,
+(int)_textLengthHelper - (int)(textAddress + 1));
+if ((int)alignment < 1) {
+ if ((int)alignment < 0) {
+ xPos = xParam - _textWidth;
+ } else {
+ xPos = xParam + this->currentXOffset_0x0;
+ }
+} else {
+ xPos = xParam + (int)(alignment - _textWidth) / 2;
+}
+this->currentXOffset_0x0 = this->currentXOffset_0x0 + _textWidth;
+_textLengthHelper = textAddress;
+do {
+ _char = *_textLengthHelper;
+ _textLengthHelper = _textLengthHelper + 1;
+} while (_char != '\0');
+renderText().fontSizeClassArray + fontSize,textAddress,
+(int)_textLengthHelper - (int)(textAddress + 1),xPos,yParam,color,blendStrength);
+ }
+ return;
+ }
+}
+}
+
+### 0x004742f0 renderWideText | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004742F0
+ void TextManager::renderWideText(LPWSTR wideText, int xPos, int yPos, TextAlignment alignment, uint color,
+ int fontSize, BOOL keepXOffset, int blendStrength)
+ {
+ WCHAR WVar1;
+ int _textWidth;
+ WCHAR* pWVar2;
+ int _x;
+ if (keepXOffset == 0) {
+ this->currentXOffset_0x0 = 0;
+ }
+ if (wideText != (WCHAR*)0x0) {
+ pWVar2 = wideText;
+ do {
+ WVar1 = *pWVar2;
+ pWVar2 = pWVar2 + 1;
+ } while (WVar1 != L'\0');
+_textWidth = getWidthOfWideText().fontSizeClassArray + fontSize,wideText,
+(int)pWVar2 - (int)(wideText + 1) >> 1);
+if ((int)alignment < 1) {
+ if ((int)alignment < 0) {
+ _x = xPos - _textWidth;
+ } else {
+ _x = xPos + this->currentXOffset_0x0;
+ }
+} else {
+ _x = xPos + (int)(alignment - _textWidth) / 2;
+}
+this->currentXOffset_0x0 = this->currentXOffset_0x0 + _textWidth;
+pWVar2 = wideText;
+do {
+ WVar1 = *pWVar2;
+ pWVar2 = pWVar2 + 1;
+} while (WVar1 != L'\0');
+renderWideText().fontSizeClassArray + fontSize,wideText,
+(int)pWVar2 - (int)(wideText + 1) >> 1,_x,yPos,color,blendStrength);
+ }
+ return;
+ }
+}
+}
+
+### 0x00474390 renderNumber2 | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00474390
+ void TextManager::renderNumber2(int integer, int xPosition, int yPosition, TextAlignment textShift, uint color,
+ uint param_6, int fontSize, BOOLEnum param_8, int param_9)
+ {
+ int iVar1;
+ int iVar2;
+ fillIntegerTextBuffer(integer);
+ iVar2 = this->field9_0x24;
+ iVar1 = this->currentXOffset_0x0;
+ this->field11_0x2c = 1;
+ renderTextToScreen(this->integerTextBuffer, xPosition,
+ yPosition, textShift, (BGR24)((int)(param_6)), fontSize, param_8, param_9);
+ this->field10_0x28 = iVar2;
+ this->currentXOffset_0x0 = iVar1;
+ renderTextToScreen(this->integerTextBuffer,
+ xPosition + -1, yPosition + -1, textShift, (BGR24)((int)(color)), fontSize, param_8, param_9);
+ this->field11_0x2c = 0;
+ return;
+ }
+}
+}
+
+### 0x00474430 renderNumberToScreen2 | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00474430
+ void TextManager::renderNumberToScreen2(int number, int xParam, int yParam, TextAlignment alignment, uint color,
+ int fontSize, BOOLEnum keepOffsetX, int blendStrength)
+ {
+ fillIntegerTextBuffer(number);
+ renderTextToScreen(this->integerTextBuffer, xParam,
+ yParam, alignment, (BGR24)((int)(color)), fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x00475e00 renderInGameTextWithShadow | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00475E00
+ void TextManager::renderInGameTextWithShadow(CHAR_CONST* textAddress, int xParam, int yParam,
+ TextAlignment alignment, uint foregroundColor, uint backgroundColor, int fontSize, BOOLEnum keepOffsetX,
+ int blendStrength)
+ {
+ int iVar1;
+ int iVar2;
+ iVar2 = this->field9_0x24;
+ iVar1 = this->currentXOffset_0x0;
+ this->field11_0x2c = 1;
+ renderTextToScreen(textAddress, xParam, yParam,
+ alignment, (BGR24)((int)(backgroundColor)), fontSize, keepOffsetX, blendStrength);
+ this->field10_0x28 = iVar2;
+ this->currentXOffset_0x0 = iVar1;
+ renderTextToScreen(textAddress, xParam + -2,
+ yParam + -1, alignment, (BGR24)((int)(foregroundColor)), fontSize, keepOffsetX, blendStrength);
+ this->field11_0x2c = 0;
+ return;
+ }
+}
+}
+
+### 0x004ba780 MenuItemActionHandler_TraderSettings | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004BA780
+ void TraderSettings::MenuItemActionHandler_TraderSettings(int param_1, ...)
+ {
+ BOOLEnum* pBVar1;
+ if (param_1 < 0) {
+ pBVar1 = DAT_MapPropertiesState.SEC_Section1065.tradeabilityArray
+ + *(int*)((int)DAT_MissionAestheticsDefinedData + (-1 - param_1) * 4 + 0x345c);
+ *pBVar1 = *pBVar1 ^ TRUE;
+ return;
+ }
+ if (param_1 == 0x25) {
+ activateModalDialog(MMT_NONE, FALSE);
+ } else if (param_1 == 0x457) {
+ pBVar1 = DAT_MapPropertiesState.SEC_Section1065.tradeabilityArray
+ + DAT_MissionAestheticsDefinedData
+ .field1237_0x345c[DAT_MapPropertiesState.indexStored];
+ *pBVar1 = *pBVar1 ^ TRUE;
+ return;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004c1070 MenuItemRenderFunction_TraderSettings | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004C1070
+ void TraderSettings::MenuItemRenderFunction_TraderSettings(int param_1, ...)
+ {
+ char* textAddress;
+ int iVar1;
+ int iVar2;
+ int yParam;
+ TextAlignment alignment;
+ BGR24 color;
+ uint color_00;
+ int fontSize;
+ uint uVar3;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ if (param_1 < 0) {
+ DAT_ButtonCurrentlyInteracting
+ = (BOOLEnum)(DAT_MapPropertiesState.SEC_Section1065.tradeabilityArray[*(
+ int*)((int)DAT_MissionAestheticsDefinedData + (-1 - param_1) * 4 + 0x345c)]
+ != FALSE);
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ iVar2 = *(int*)((int)DAT_MissionAestheticsDefinedData + (-1 - param_1) * 4 + 0x345c);
+ iVar1 = iVar2 * 2 + 0x8d;
+ if (iVar1 == 0x9d) {
+ iVar1 = 0x9b;
+ }
+ if (DAT_MapPropertiesState.SEC_Section1065.tradeabilityArray[iVar2] == FALSE) {
+ renderGMWithBlending(GID_INTERFACE_ICONS_2, iVar1,
+ DAT_ButtonX + 10,
+ (int)((int)((DAT_ButtonY
+ - DAT_GMImageHeaders
+ .imh[iVar1 + GMTotalPicturesProcessed::instance[0x2e] + -1]
+ .height
+ / 2)
+ + 0xf)),
+ 0x10);
+ color = 0x7caaaf;
+ iVar1 = DAT_ButtonW + -10 + DAT_ButtonX;
+ iVar2 = 0xad;
+ } else {
+ renderGM(GM_INTERFACE_ICONS2, iVar1,
+ DAT_ButtonX + 10,
+ (int)((int)((DAT_ButtonY
+ - DAT_GMImageHeaders
+ .imh[iVar1 + GMTotalPicturesProcessed::instance[0x2e] + -1]
+ .height
+ / 2)
+ + 0xf)));
+ color = 0xc2f0eb;
+ iVar1 = DAT_ButtonW + -10 + DAT_ButtonX;
+ iVar2 = 0xac;
+ }
+ yParam = DAT_ButtonY + 7;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x12;
+ alignment = TTA_RIGHT;
+ /*
+ added by script: "On"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_SCENARIO, iVar2);
+ renderTextToScreen(
+ textAddress, iVar1, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ if (param_1 < 1000) {
+ RenderScenarioButtonWithText(param_1);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ if (param_1 == 0x44c) {
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ drawBoxWithRoundedEdges(DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW + DAT_ButtonX,
+ DAT_ButtonH + DAT_ButtonY, RBERL_SLIGHT);
+ uVar3 = 0x3e66;
+ color_00 = 0xa2ff;
+ } else {
+ drawBoxWithRoundedEdgesAndColor(DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW + DAT_ButtonX,
+ DAT_ButtonH + DAT_ButtonY,
+ (ushort)((int)(COL_BLUE::instance.shortValue)), RBERL_SLIGHT);
+ uVar3 = 0;
+ color_00 = 0xffffff;
+ }
+ /*
+ added by script: "Trader 1"
+ */
+ renderText(
+ TEXT_TRADER_NAMES, 1,
+ DAT_ButtonW / 2 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_CENTER, color_00, uVar3, 0x12, FALSE);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ drawBoxWithRoundedEdges(DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW + DAT_ButtonX,
+ DAT_ButtonH + DAT_ButtonY, RBERL_SLIGHT);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ drawBoxWithRoundedEdgesAndColor(DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW + DAT_ButtonX,
+ DAT_ButtonH + DAT_ButtonY,
+ (ushort)((int)(COL_BLUE::instance.shortValue)), RBERL_SLIGHT);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ }
+}
+}
+

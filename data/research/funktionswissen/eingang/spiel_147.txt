@@ -1,0 +1,1290 @@
+### 0x0052df30 updateWildlife | quelle=ghidra | bereich=Umwelt
+// FUNCTION: STRONGHOLDCRUSADER 0x0052DF30
+ void WildlifeState::updateWildlife()
+ {
+ WildlifeGridElement* piVar1;
+ WildlifeGridElement* piVar2;
+ int iVar3;
+ WildlifeGridElement* piVar4;
+ WildlifeGridElement* piVar5;
+ int iVar6;
+ int iVar7;
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ piVar1 = &this->grid[0][0];
+ iVar3 = 0x28;
+ piVar5 = piVar1;
+ iVar6 = iVar3;
+ while (true) {
+ do {
+ piVar5->field13_0x34 = 0;
+ piVar5->field20_0x50 = 0;
+ piVar5->field24_0x60 = 0;
+ piVar5->field25_0x64 = 0;
+ piVar5->field28_0x70 = piVar5->field28_0x70 / 100;
+ if (piVar5->chimps != 0) {
+ if (piVar5->keeps != 0) {
+ piVar5->field24_0x60 = 1;
+ }
+ if (piVar5->castlebuildings != 0) {
+ piVar5->field24_0x60 = piVar5->field24_0x60 + 1;
+ }
+ }
+ piVar5 = piVar5 + 0x640;
+ iVar6 = iVar6 + -1;
+ } while (iVar6 != 0);
+ piVar1 = piVar1 + 0x28;
+ iVar3 = iVar3 + -1;
+ if (iVar3 == 0)
+ break;
+ iVar6 = 0x28;
+ piVar5 = piVar1;
+ }
+ piVar4 = &this->grid[0][0];
+ iVar3 = 0;
+ do {
+ iVar6 = 0;
+ piVar2 = piVar4;
+ do {
+ if (piVar2->field12_0x30 == 0) {
+ if (piVar2->field3_0xc != 0) {
+ iVar7 = 2;
+ goto LAB_0052dfdf;
+ }
+ if (piVar2->lionCount != 0) {
+ iVar7 = 3;
+ goto LAB_0052dfdf;
+ }
+ } else {
+ iVar7 = 2;
+ LAB_0052dfdf:
+ floodFillField13FromCell(
+ iVar6, iVar3, iVar7);
+ }
+ if (piVar2->field19_0x4c != 0) {
+ floodFillField20FromCell(
+ iVar6, iVar3, 6);
+ }
+ iVar6 = iVar6 + 1;
+ piVar2 = piVar2 + 0x640;
+ } while (iVar6 < 0x28);
+ iVar3 = iVar3 + 1;
+ piVar4 = piVar4 + 0x28;
+ } while (iVar3 < 0x28);
+ }
+ return;
+ }
+}
+}
+
+### 0x0052e020 updateSection1034Info | quelle=ghidra | bereich=Umwelt
+// FUNCTION: STRONGHOLDCRUSADER 0x0052E020
+ void WildlifeState::updateSection1034Info()
+ {
+ int iVar1;
+ int iVar2;
+ WildlifeGridElement* piVar3;
+ int* piVar5;
+ WildlifeGridElement* piVar4;
+ int iVar6;
+ int* piVar7;
+ int local_4;
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ local_4 = 0;
+ do {
+ iVar2 = 0;
+ piVar3 = &this->grid[0][0];
+ do {
+ iVar6 = 0;
+ piVar4 = piVar3;
+ do {
+ piVar4->unknownNonZero01 = 0;
+ piVar4->field27_0x6c = 0;
+ if ((piVar4->castlebuildings != 0)
+ && (iVar1
+ = hasAdjacentCellWithField24Or25(iVar6, iVar2),
+ iVar1 != 0)) {
+ piVar4->field25_0x64 = piVar4->field25_0x64 + 1;
+ }
+ iVar6 = iVar6 + 1;
+ piVar4 = piVar4 + 0x640;
+ } while (iVar6 < 0x28);
+ iVar2 = iVar2 + 1;
+ piVar3 = piVar3 + 0x28;
+ } while (iVar2 < 0x28);
+ local_4 = local_4 + 1;
+ } while (local_4 < 0x14);
+ iVar2 = 0;
+ piVar5 = &this->grid[0][0].field25_0x64;
+ do {
+ iVar6 = 0;
+ piVar7 = piVar5;
+ do {
+ if ((piVar7[-1] != 0) || (*piVar7 != 0)) {
+ floodFillUnknownNonZero01FromCell(
+ iVar6, iVar2, 6);
+ }
+ iVar6 = iVar6 + 1;
+ piVar7 = piVar7 + 0x640;
+ } while (iVar6 < 0x28);
+ iVar2 = iVar2 + 1;
+ piVar5 = piVar5 + 0x28;
+ } while (iVar2 < 0x28);
+ iVar2 = 0;
+ piVar5 = &this->grid[0][0].field27_0x6c;
+ do {
+ iVar6 = 0;
+ piVar7 = piVar5;
+ do {
+ if ((piVar7[-1] == 0)
+ && (iVar1 = isSuitableWildlifeSpawnCell(iVar6, iVar2),
+ iVar1 != 0)) {
+ *piVar7 = *piVar7 + 1;
+ }
+ iVar6 = iVar6 + 1;
+ piVar7 = piVar7 + 0x640;
+ } while (iVar6 < 0x28);
+ iVar2 = iVar2 + 1;
+ piVar5 = piVar5 + 0x28;
+ } while (iVar2 < 0x28);
+ }
+ return;
+ }
+}
+}
+
+### 0x0052e120 updateNofFpoints | quelle=ghidra | bereich=Umwelt
+// FUNCTION: STRONGHOLDCRUSADER 0x0052E120
+ void WildlifeState::updateNofFpoints()
+ {
+ uint uVar1;
+ ushort uVar2;
+ bool bVar3;
+ short* psVar4;
+ WildlifeGridElement* piVar5;
+ int iVar5;
+ uint uVar6;
+ int iVar7;
+ short sVar8;
+ short (*src)[8];
+ uint local_10;
+ int local_c;
+ WildlifeGridElement* local_4;
+ ushort _area;
+ uint _someX;
+ uint _someY;
+ ushort _separateAreaID;
+ /*
+ has nothing to do with mercrecruitable
+ */
+ uVar6 = DAT_GameState.mapAndTime
+ .signpostEntryData[DAT_TroopValueState.attackInfo.field128056_0x469d4]
+ .x;
+ _someY = DAT_GameState.mapAndTime
+ .signpostEntryData[DAT_TroopValueState.attackInfo.field128056_0x469d4]
+ .y;
+ if ((((uVar6 < 400) && (_someY < 400)) && (*(char*)(_someY * 400 + 0x21aec98 + uVar6) != '\0'))
+ && (_separateAreaID = DAT_TileMapState
+ .PathConnectionLayer[DAT_ViewportRenderState.translationMatrix[_someY].addXgetTile
+ + uVar6],
+ DAT_GameSynchronyState.currentGameMode == GM_SOLITARY)) {
+ floodFillCasDisFromSignpost();
+ DAT_TroopValueState.attackInfo.nof_fpoints = 0;
+ psVar4 = DAT_TroopValueState.attackInfo.nof_fpointsArray[0] + 2;
+ do {
+ psVar4[1] = 0;
+ *psVar4 = 0;
+ psVar4[-1] = 0;
+ (*(short (*)[8])(psVar4 + -2))[0] = 0;
+ psVar4 = psVar4 + 8;
+ } while ((int)psVar4 < 0x1784940);
+ sVar8 = 5;
+ local_c = 2000;
+ local_4 = &this->grid[0][0];
+ local_10 = 60;
+ iVar5 = DAT_TroopValueState.attackInfo.nof_fpoints;
+ do {
+ uVar6 = 0xf;
+ piVar5 = local_4;
+ do {
+ if ((piVar5->field27_0x6c != 0) && (0 < piVar5.firstMember)) {
+ uVar1 = uVar6 - 10;
+ _area = DAT_TileMapState.MacroLayer[uVar6
+ + *(int*)((int)&DAT_ViewportRenderState.translationMatrix[0].addXgetTile
+ + local_10)
+ + 0x13a06];
+ if (((_separateAreaID == _area) && ((uVar1 < 400 && (local_10 < 4788))))
+ && (*(char*)(local_c + 0x21aec98 + uVar1) != '\0')) {
+ DAT_TroopValueState.attackInfo.nof_fpointsArray[iVar5][0] = (short)uVar1;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][1] = sVar8;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][2] = 0;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][3] = _area;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][4]
+ = (short)piVar5->field28_0x70;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][5]
+ = (short)piVar5->casDisRelated2;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][6]
+ = (DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][5]
+ + 4)
+ * 0x32
+ - DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][4];
+ iVar5 = DAT_TroopValueState.attackInfo.nof_fpoints + 1;
+ DAT_TroopValueState.attackInfo.nof_fpoints = iVar5;
+ }
+ }
+ if ((((piVar5[0x63f] != 0) && (0 < piVar5[0x624]))
+ && (uVar2 = DAT_TileMapState.PathConnectionLayer
+ [*(int*)((int)&DAT_ViewportRenderState.translationMatrix[0].addXgetTile
+ + local_10)
+ + uVar6],
+ _separateAreaID == uVar2))
+ && ((
+ (uVar6 < 400 && (local_10 < 0x12b5)) && (*(char*)(local_c + 0x21aec98 + uVar6) != '\0')))) {
+ DAT_TroopValueState.attackInfo.nof_fpointsArray[iVar5][0] = (short)uVar6;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][1] = sVar8;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][2] = 0;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][3] = uVar2;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][4]
+ = *(short*)(piVar5 + 0x640);
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][5]
+ = *(short*)(piVar5 + 0x632);
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][6]
+ = (DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][5]
+ + 4)
+ * 0x32
+ - DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][4];
+ iVar5 = DAT_TroopValueState.attackInfo.nof_fpoints + 1;
+ DAT_TroopValueState.attackInfo.nof_fpoints = iVar5;
+ }
+ if ((piVar5[0xc7f] != 0) && (0 < piVar5[0xc64])) {
+ uVar1 = uVar6 + 10;
+ uVar2 = DAT_TileMapState.PathConnectionLayer[uVar6
+ + *(int*)((int)&DAT_ViewportRenderState.translationMatrix[0].addXgetTile
+ + local_10)
+ + 10];
+ if ((_separateAreaID == uVar2)
+ && (((uVar1 < 400 && (local_10 < 0x12b5))
+ && (*(char*)(local_c + 0x21aec98 + uVar1) != '\0')))) {
+ DAT_TroopValueState.attackInfo.nof_fpointsArray[iVar5][0] = (short)uVar1;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][1] = sVar8;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][2] = 0;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][3] = uVar2;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][4]
+ = *(short*)(piVar5 + 0xc80);
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][5]
+ = *(short*)(piVar5 + 0xc72);
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][6]
+ = (DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][5]
+ + 4)
+ * 0x32
+ - DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][4];
+ iVar5 = DAT_TroopValueState.attackInfo.nof_fpoints + 1;
+ DAT_TroopValueState.attackInfo.nof_fpoints = iVar5;
+ }
+ }
+ if ((piVar5[0x12bf] != 0) && (0 < piVar5[0x12a4])) {
+ uVar1 = uVar6 + 0x14;
+ uVar2 = DAT_TileMapState.PathConnectionLayer[uVar6
+ + *(int*)((int)&DAT_ViewportRenderState.translationMatrix[0].addXgetTile
+ + local_10)
+ + 0x14];
+ if (((_separateAreaID == uVar2) && ((uVar1 < 400 && (local_10 < 0x12b5))))
+ && (*(char*)(local_c + 0x21aec98 + uVar1) != '\0')) {
+ DAT_TroopValueState.attackInfo.nof_fpointsArray[iVar5][0] = (short)uVar1;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][1] = sVar8;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][2] = 0;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][3] = uVar2;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][4]
+ = *(short*)(piVar5 + 0x12c0);
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][5]
+ = *(short*)(piVar5 + 0x12b2);
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][6]
+ = (DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][5]
+ + 4)
+ * 0x32
+ - DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][4];
+ iVar5 = DAT_TroopValueState.attackInfo.nof_fpoints + 1;
+ DAT_TroopValueState.attackInfo.nof_fpoints = iVar5;
+ }
+ }
+ if ((piVar5[0x18ff] != 0) && (0 < piVar5[0x18e4])) {
+ uVar1 = uVar6 + 0x1e;
+ uVar2 = DAT_TileMapState.PathConnectionLayer[uVar6
+ + *(int*)((int)&DAT_ViewportRenderState.translationMatrix[0].addXgetTile
+ + local_10)
+ + 0x1e];
+ if ((_separateAreaID == uVar2)
+ && (((uVar1 < 400 && (local_10 < 0x12b5))
+ && (*(char*)(local_c + 0x21aec98 + uVar1) != '\0')))) {
+ DAT_TroopValueState.attackInfo.nof_fpointsArray[iVar5][0] = (short)uVar1;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][1] = sVar8;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][2] = 0;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][3] = uVar2;
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][4]
+ = *(short*)(piVar5 + 0x1900);
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][5]
+ = *(short*)(piVar5 + 0x18f2);
+ DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][6]
+ = (DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][5]
+ + 4)
+ * 0x32
+ - DAT_TroopValueState.attackInfo
+ .nof_fpointsArray[DAT_TroopValueState.attackInfo.nof_fpoints][4];
+ iVar5 = DAT_TroopValueState.attackInfo.nof_fpoints + 1;
+ DAT_TroopValueState.attackInfo.nof_fpoints = iVar5;
+ }
+ }
+ uVar6 = uVar6 + 0x32;
+ piVar5 = piVar5 + 8000;
+ } while ((int)uVar6 < 0x19f);
+ local_c = local_c + 4000;
+ local_10 = local_10 + 0x78;
+ local_4 = local_4 + 0x28;
+ sVar8 = sVar8 + 10;
+ } while ((int)local_10 < 0x12fc);
+ do {
+ bVar3 = false;
+ iVar7 = 0;
+ if (iVar5 == 1 || iVar5 + -1 < 0) {
+ return;
+ }
+ src = DAT_TroopValueState.attackInfo.nof_fpointsArray;
+ do {
+ if (src[1][6] < (*src)[6]) {
+ bVar3 = true;
+ copyData(16,
+ (void*)((int)(src)),
+ (void*)((int)(DAT_TroopValueState.attackInfo.nof_fpointsArrayCopy)));
+ copyData(
+ 0x10, (void*)((int)(src + 1)), (void*)((int)(src)));
+ copyData(0x10,
+ (void*)((int)(DAT_TroopValueState.attackInfo.nof_fpointsArrayCopy)),
+ (void*)((int)(src + 1)));
+ iVar5 = DAT_TroopValueState.attackInfo.nof_fpoints;
+ }
+ iVar7 = iVar7 + 1;
+ src = src + 1;
+ } while (iVar7 < iVar5 + -1);
+ } while (bVar3);
+ }
+ return;
+ }
+}
+}
+
+### 0x00480f00 ClickMoveUnit | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x00480F00
+ void Commands::ClickMoveUnit()
+ {
+ char local_1;
+ DAT_GameSynchronyState.DAT_CommandSize = 8;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam3, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam4, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ DAT_GameSynchronyState.DAT_GameCommandParam0
+ = DAT_GameSynchronyState.DAT_CommandActionPlan;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&local_1, 1, GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = (int)local_1;
+ serializeOrDeserializeCommandParameter(&local_1, 1, GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam4 = (MatchSpeedInstructionEnum)local_1;
+ giveTribeMoveInstructionHumans(DAT_GameSynchronyState.DAT_GameCommandParam0,
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam1)),
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam2)),
+ DAT_GameSynchronyState.DAT_GameCommandParam3,
+ (MatchSpeedInstructionEnum)((int)(DAT_GameSynchronyState.DAT_GameCommandParam4)));
+ }
+ return;
+ }
+}
+}
+
+### 0x0048ab40 ResyncTeleClimb | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x0048AB40
+ void Commands::ResyncTeleClimb()
+ {
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ DAT_GameSynchronyState.DAT_CommandSize = 0x208;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(
+ DAT_PathFindingState.climbData + DAT_GameSynchronyState.DAT_GameCommandParam0,
+ 0x204, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if ((DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE)
+ && (DAT_GameSynchronyState.isHost == FALSE)) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ MemCopyFromParameter(
+ (char*)(DAT_PathFindingState.climbData
+ + DAT_GameSynchronyState.DAT_GameCommandParam0),
+ 0x204, DAT_GameSynchronyState.DAT_GameCommandParam0);
+ }
+ return;
+ }
+}
+}
+
+### 0x004092c0 computeHealthPercentage | quelle=nachgebaut | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x004092C0
+ int DirectionAlgorithmState::computeHealthPercentage(int health, int maxHealth)
+ {
+ if (maxHealth == 0) {
+ return 100;
+ }
+ return (health * 100) / maxHealth;
+ }
+ }
+}
+}
+
+### 0x0046c920 calculateOrientation | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x0046C920
+ void DirectionAlgorithmState::calculateOrientation(
+ int currentXPosition, int currentYPosition, int destinationXPosition, int destinationYPosition)
+ {
+ if (destinationYPosition < currentYPosition) {
+ if (destinationXPosition < currentXPosition) {
+ this->orientation = 7;
+ return;
+ }
+ this->orientation = (uint)(currentXPosition < destinationXPosition);
+ return;
+ }
+ if (destinationYPosition <= currentYPosition) {
+ if (destinationXPosition < currentXPosition) {
+ this->orientation = 6;
+ return;
+ }
+ this->orientation = ((destinationXPosition <= currentXPosition) - 1 & 0xfffffff3) + 0xf;
+ return;
+ }
+ if (destinationXPosition < currentXPosition) {
+ this->orientation = 5;
+ return;
+ }
+ this->orientation = (destinationXPosition <= currentXPosition) + 3;
+ return;
+ }
+ }
+}
+}
+
+### 0x0046c9a0 calculateOrientationFromTiles | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x0046C9A0
+ void DirectionAlgorithmState::calculateOrientationFromTiles(int param_1, int param_2)
+ {
+ calculateOrientation(
+ param_1
+ - DAT_ViewportRenderState
+ .translationMatrix[DAT_ViewportRenderState.tileTranslationMatrix_YComponent[param_1]]
+ .addXgetTile,
+ DAT_ViewportRenderState.tileTranslationMatrix_YComponent[param_1],
+ param_2
+ - DAT_ViewportRenderState
+ .translationMatrix[DAT_ViewportRenderState.tileTranslationMatrix_YComponent[param_2]]
+ .addXgetTile,
+ DAT_ViewportRenderState.tileTranslationMatrix_YComponent[param_2]);
+ return;
+ }
+ }
+}
+}
+
+### 0x0046c9e0 calculatePreferredRelativeOrientation | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x0046C9E0
+ void DirectionAlgorithmState::calculatePreferredRelativeOrientation(
+ int param_1, int param_2, int param_3, int param_4)
+ {
+ if (param_3 < param_1) {
+ this->distanceX = param_1 - param_3;
+ } else {
+ this->distanceX = param_3 - param_1;
+ }
+ if (param_4 < param_2) {
+ this->distanceY = param_2 - param_4;
+ } else {
+ this->distanceY = param_4 - param_2;
+ }
+ if (this->distanceY * 2 < this->distanceX) {
+ this->orientation = (uint)(param_3 < param_1) * 4 + 2;
+ return;
+ }
+ if (this->distanceX * 2 < this->distanceY) {
+ this->orientation = (param_4 < param_2) - 1 & 4;
+ return;
+ }
+ if (param_4 < param_2) {
+ this->orientation = ((param_1 <= param_3) - 1 & 6) + 1;
+ return;
+ }
+ if (param_2 < param_4) {
+ this->orientation = (uint)(param_3 < param_1) * 2 + 3;
+ return;
+ }
+ /*
+ sentinel for an invalid value?
+ */
+ this->orientation = 15;
+ return;
+ }
+ }
+}
+}
+
+### 0x0046caa0 somethingWithProjectileDistance | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x0046CAA0
+ void DirectionAlgorithmState::somethingWithProjectileDistance(int x, int y, int targetX, int targetY)
+ {
+ int iVar1;
+ if (targetX < x) {
+ this->distanceX = x - targetX;
+ } else {
+ this->distanceX = targetX - x;
+ }
+ if (targetY < y) {
+ this->distanceY = y - targetY;
+ } else {
+ this->distanceY = targetY - y;
+ }
+ if (this->distanceX < this->distanceY) {
+ if (this->distanceY == 0) {
+ iVar1 = 100;
+ } else {
+ iVar1 = (this->distanceX * 100) / this->distanceY;
+ }
+ } else if (this->distanceX == 0) {
+ iVar1 = 100;
+ } else {
+ iVar1 = (this->distanceY * 100) / this->distanceX;
+ }
+ if (this->distanceX < this->distanceY) {
+ if (targetY < y) {
+ if (targetX < x) {
+ if (iVar1 < 0x1a) {
+ this->orientation = 60;
+ goto LAB_0046cc5d;
+ }
+ if (iVar1 < 0x4b) {
+ this->orientation = 75;
+ goto LAB_0046cc5d;
+ }
+ goto LAB_0046cb3f;
+ }
+ if (iVar1 < 0x1a) {
+ this->orientation = 60;
+ goto LAB_0046cc5d;
+ }
+ if (iVar1 < 0x4b) {
+ this->orientation = 61;
+ goto LAB_0046cc5d;
+ }
+ goto LAB_0046cc06;
+ }
+ if (x <= targetX) {
+ if (iVar1 < 0x1a) {
+ this->orientation = 0x44;
+ goto LAB_0046cc5d;
+ }
+ if (iVar1 < 0x4b) {
+ this->orientation = 0x43;
+ goto LAB_0046cc5d;
+ }
+ goto LAB_0046cc56;
+ }
+ if (iVar1 < 0x1a) {
+ this->orientation = 0x44;
+ goto LAB_0046cc5d;
+ }
+ if (iVar1 < 0x4b) {
+ this->orientation = 0x45;
+ goto LAB_0046cc5d;
+ }
+ } else {
+ if (x <= targetX) {
+ if (y <= targetY) {
+ if (iVar1 < 0x1a) {
+ this->orientation = 0x40;
+ goto LAB_0046cc5d;
+ }
+ if (iVar1 < 0x4b) {
+ this->orientation = 0x41;
+ goto LAB_0046cc5d;
+ }
+ LAB_0046cc56:
+ this->orientation = 0x42;
+ goto LAB_0046cc5d;
+ }
+ if (iVar1 < 0x1a) {
+ this->orientation = 0x40;
+ goto LAB_0046cc5d;
+ }
+ if (iVar1 < 0x4b) {
+ this->orientation = 0x3f;
+ goto LAB_0046cc5d;
+ }
+ LAB_0046cc06:
+ this->orientation = 0x3e;
+ goto LAB_0046cc5d;
+ }
+ if (targetY < y) {
+ if (iVar1 < 0x1a) {
+ this->orientation = 0x48;
+ goto LAB_0046cc5d;
+ }
+ if (iVar1 < 0x4b) {
+ this->orientation = 0x49;
+ goto LAB_0046cc5d;
+ }
+ LAB_0046cb3f:
+ this->orientation = 74;
+ goto LAB_0046cc5d;
+ }
+ if (iVar1 < 0x1a) {
+ this->orientation = 0x48;
+ goto LAB_0046cc5d;
+ }
+ if (iVar1 < 0x4b) {
+ this->orientation = 0x47;
+ goto LAB_0046cc5d;
+ }
+ }
+ this->orientation = 0x46;
+ LAB_0046cc5d:
+ if (this->distanceY + this->distanceX < 1) {
+ this->orientation = 0x4c;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x0046cc80 setAxisBasedDistanceResult | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x0046CC80
+ int DirectionAlgorithmState::setAxisBasedDistanceResult(
+ int destinationXPosition, int destinationYPosition, int fromXPosition, int fromYPosition)
+ {
+ if (fromXPosition < destinationXPosition) {
+ this->distanceX = destinationXPosition - fromXPosition;
+ } else {
+ this->distanceX = fromXPosition - destinationXPosition;
+ }
+ if (fromYPosition < destinationYPosition) {
+ this->distanceY = destinationYPosition - fromYPosition;
+ } else {
+ this->distanceY = fromYPosition - destinationYPosition;
+ }
+ if (this->distanceX < this->distanceY) {
+ this->distanceLow = this->distanceX;
+ this->distanceHigh = this->distanceY;
+ return this->distanceX + this->distanceY;
+ }
+ this->distanceHigh = this->distanceX;
+ this->distanceLow = this->distanceY;
+ return this->distanceX + this->distanceY;
+ }
+ }
+}
+}
+
+### 0x0046cd30 computeHash | quelle=nachgebaut | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x0046CD30
+ uint DirectionAlgorithmState::computeHash(int byteCount, int* address)
+ {
+ /*
+ uint hash = 0;
+ while (byteCount >= 4) {
+ hash += static_cast<uint>(*address++);
+ hash = (hash << 1) | (hash >> 31);
+ byteCount -= 4;
+ }
+ return hash;
+ */
+ uint hash = 0;
+ __asm {
+ mov esi, address
+ mov edx, byteCount
+ mov ecx, 0
+ block_loop:
+ cmp edx, 64
+ jl trailing_words
+ mov eax, [esi + 0]
+ mov ebx, [esi + 4]
+ add ecx, eax
+ rol ecx, 1
+ add ecx, ebx
+ rol ecx, 1
+ mov eax, [esi + 8]
+ mov ebx, [esi + 12]
+ add ecx, eax
+ rol ecx, 1
+ add ecx, ebx
+ rol ecx, 1
+ mov eax, [esi + 16]
+ mov ebx, [esi + 20]
+ add ecx, eax
+ rol ecx, 1
+ add ecx, ebx
+ rol ecx, 1
+ mov eax, [esi + 24]
+ mov ebx, [esi + 28]
+ add ecx, eax
+ rol ecx, 1
+ add ecx, ebx
+ rol ecx, 1
+ mov eax, [esi + 32]
+ mov ebx, [esi + 36]
+ add ecx, eax
+ rol ecx, 1
+ add ecx, ebx
+ rol ecx, 1
+ mov eax, [esi + 40]
+ mov ebx, [esi + 44]
+ add ecx, eax
+ rol ecx, 1
+ add ecx, ebx
+ rol ecx, 1
+ mov eax, [esi + 48]
+ mov ebx, [esi + 52]
+ add ecx, eax
+ rol ecx, 1
+ add ecx, ebx
+ rol ecx, 1
+ mov eax, [esi + 56]
+ mov ebx, [esi + 60]
+ add ecx, eax
+ rol ecx, 1
+ add ecx, ebx
+ rol ecx, 1
+ add esi, 64
+ sub edx, 64
+ jmp block_loop
+ trailing_words:
+ cmp edx, 3
+ jle finished
+ mov eax, [esi]
+ add ecx, eax
+ rol ecx, 1
+ add esi, 4
+ sub edx, 4
+ jmp trailing_words
+ finished:
+ mov hash, ecx
+ }
+ return hash;
+ }
+ } // namespace Navigation
+} // namespace Map
+} // namespace OpenSHC
+
+### 0x0046cdf0 computeMaskedBitAccumulator | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x0046CDF0
+ uint DirectionAlgorithmState::computeMaskedBitAccumulator(int param_1, uint* param_2, uint param_3)
+ {
+ uint uVar1;
+ int iVar2;
+ uVar1 = 0;
+ for (; 3 < param_1; param_1 = param_1 + -4) {
+ iVar2 = uVar1 + (*param_2 & param_3);
+ uVar1 = iVar2 * 2 | (uint)(iVar2 < 0);
+ param_2 = param_2 + 1;
+ }
+ return uVar1;
+ }
+ }
+}
+}
+
+### 0x00465080 CheckIfEnoughGoldForLadderman | quelle=nachgebaut | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x00465080
+ void Helpers::CheckIfEnoughGoldForLadderman()
+ {
+ DAT_EnoughGoldForRequestedUnit
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[RT_GOLD]
+ >= 4;
+ }
+}
+}
+
+### 0x004a4d60 UpdateLadderManState01 | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x004A4D60
+ void Navigation::UpdateClimbDataState01()
+ {
+ int _direction;
+ int _unit;
+ int _id;
+ _id = DAT_CurrentClimbDataID;
+ _unit = DAT_PathFindingState.climbData[DAT_CurrentClimbDataID].unitID;
+ if (((DAT_PathFindingState.climbData[DAT_CurrentClimbDataID].sourceUID
+ == DAT_UnitsState.units[_unit].uid)
+ && (DAT_UnitsState.units[_unit].state.generic == ((UnitState)3)))
+ && (DAT_UnitsState.units[_unit].dying == 0)) {
+ _direction = (int)DAT_UnitsState.units[_unit].facingDirection;
+ DAT_PathFindingState.climbData[DAT_CurrentClimbDataID].isRecognizedByPathfinding = 1;
+ DAT_PathFindingState.climbData[_id].ladderDirection = _direction;
+ DAT_PathFindingState.climbData[_id].topXPosition
+ = DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[_direction].int.xOffset
+ + DAT_PathFindingState.climbData[_id].bottomXPosition;
+ DAT_PathFindingState.climbData[_id].topYPosition
+ = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix
+ + DAT_PathFindingState.climbData[_id].ladderDirection * 8 + 4)
+ + DAT_PathFindingState.climbData[_id].bottomYPosition;
+ DAT_PathFindingState.climbData[_id].topTilePositionUnk
+ = DAT_TileMapState.directionTranslationMatrix[DAT_PathFindingState.climbData[_id]
+ .bottomYPosition][DAT_PathFindingState.climbData[_id].ladderDirection]
+ + DAT_PathFindingState.climbData[_id].bottomTilePosition;
+ DAT_PathFindingState.climbData[_id].area
+ = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_PathFindingState.climbData[_id].bottomTilePosition];
+ DAT_PathFindingState.climbData[_id].wallGroupAreaID
+ = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_PathFindingState.climbData[_id].topTilePositionUnk];
+ DAT_PathFindingState.climbData[_id].buildingArea = -1;
+ return;
+ }
+ DAT_PathFindingState.climbData[DAT_CurrentClimbDataID].canBeUsed = 0;
+ return;
+ }
+}
+}
+
+### 0x004a4e40 UpdateLadderManState03 | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x004A4E40
+ void Navigation::UpdateClimbDataState03()
+ {
+ int iVar1;
+ int iVar2;
+ int iVar3;
+ int iVar4;
+ iVar2 = DAT_CurrentClimbDataID;
+ iVar1 = DAT_PathFindingState.climbData[DAT_CurrentClimbDataID].buildingID;
+ DAT_BuildingsState.buildings[iVar1].laddermanDataID = (short)DAT_CurrentClimbDataID;
+ if (DAT_PathFindingState.climbData[iVar2].sourceUID
+ != DAT_BuildingsState.buildings[iVar1].uid) {
+ DAT_PathFindingState.climbData[iVar2].canBeUsed = 0;
+ }
+ DAT_PathFindingState.climbData[iVar2].owner
+ = (int)DAT_BuildingsState.buildings[iVar1].owner;
+ DAT_PathFindingState.climbData[iVar2].isRecognizedByPathfinding
+ = (uint)(DAT_BuildingsState.buildings[iVar1].pathLinkageRelated2 != 2);
+ iVar3 = DAT_PathFindingState.climbData[iVar2].ladderDirection;
+ if (iVar3 == 2) {
+ iVar3 = (int)(short)DAT_BuildingsState.buildings[iVar1].x;
+ DAT_PathFindingState.climbData[iVar2].bottomXPosition = iVar3 + 7;
+ iVar4 = (short)DAT_BuildingsState.buildings[iVar1].y + 3;
+ DAT_PathFindingState.climbData[iVar2].bottomYPosition = iVar4;
+ iVar3 = iVar3 + -1;
+ } else {
+ if (iVar3 != 0)
+ goto LAB_004a4efe;
+ iVar4 = (int)(short)DAT_BuildingsState.buildings[iVar1].y;
+ iVar3 = (short)DAT_BuildingsState.buildings[iVar1].x + 3;
+ DAT_PathFindingState.climbData[iVar2].bottomXPosition = iVar3;
+ DAT_PathFindingState.climbData[iVar2].bottomYPosition = iVar4 + 7;
+ iVar4 = iVar4 + -1;
+ }
+ DAT_PathFindingState.climbData[iVar2].topXPosition = iVar3;
+ DAT_PathFindingState.climbData[iVar2].topYPosition = iVar4;
+ LAB_004a4efe:
+ DAT_PathFindingState.climbData[iVar2].bottomTilePosition
+ = DAT_ViewportRenderState
+ .translationMatrix[DAT_PathFindingState.climbData[iVar2].bottomYPosition]
+ .addXgetTile
+ + DAT_PathFindingState.climbData[iVar2].bottomXPosition;
+ DAT_PathFindingState.climbData[iVar2].topTilePositionUnk
+ = DAT_ViewportRenderState
+ .translationMatrix[DAT_PathFindingState.climbData[iVar2].topYPosition]
+ .addXgetTile
+ + DAT_PathFindingState.climbData[iVar2].topXPosition;
+ DAT_PathFindingState.climbData[iVar2].area
+ = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_PathFindingState.climbData[iVar2].bottomTilePosition];
+ DAT_PathFindingState.climbData[iVar2].wallGroupAreaID
+ = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_PathFindingState.climbData[iVar2].topTilePositionUnk];
+ DAT_PathFindingState.climbData[iVar2].buildingArea
+ = (int)(short)DAT_TileMapState.PathConnectionLayer
+ [DAT_ViewportRenderState
+ .translationMatrix[(short)DAT_BuildingsState.buildings[iVar1].y + 1]
+ .addXgetTile
+ + (int)(short)DAT_BuildingsState.buildings[iVar1].x + 1];
+ return;
+ }
+}
+}
+
+### 0x004a4f90 UpdateLadderManState04 | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x004A4F90
+ void Navigation::UpdateClimbDataState04()
+ {
+ int iVar1;
+ int iVar2;
+ int iVar3;
+ int iVar4;
+ iVar2 = DAT_CurrentClimbDataID;
+ iVar1 = DAT_PathFindingState.climbData[DAT_CurrentClimbDataID].buildingID;
+ DAT_BuildingsState.buildings[iVar1].laddermanDataID = (short)DAT_CurrentClimbDataID;
+ if (DAT_PathFindingState.climbData[iVar2].sourceUID
+ != DAT_BuildingsState.buildings[iVar1].uid) {
+ DAT_PathFindingState.climbData[iVar2].canBeUsed = 0;
+ }
+ DAT_PathFindingState.climbData[iVar2].owner
+ = (int)DAT_BuildingsState.buildings[iVar1].owner;
+ DAT_PathFindingState.climbData[iVar2].isRecognizedByPathfinding
+ = (uint)(DAT_BuildingsState.buildings[iVar1].pathLinkageRelated2 != 2);
+ iVar3 = DAT_PathFindingState.climbData[iVar2].ladderDirection;
+ if (iVar3 == 2) {
+ iVar3 = (int)(short)DAT_BuildingsState.buildings[iVar1].x;
+ DAT_PathFindingState.climbData[iVar2].bottomXPosition = iVar3 + 5;
+ iVar4 = (short)DAT_BuildingsState.buildings[iVar1].y + 2;
+ DAT_PathFindingState.climbData[iVar2].bottomYPosition = iVar4;
+ iVar3 = iVar3 + -1;
+ } else {
+ if (iVar3 != 0)
+ goto LAB_004a504e;
+ iVar4 = (int)(short)DAT_BuildingsState.buildings[iVar1].y;
+ iVar3 = (short)DAT_BuildingsState.buildings[iVar1].x + 2;
+ DAT_PathFindingState.climbData[iVar2].bottomXPosition = iVar3;
+ DAT_PathFindingState.climbData[iVar2].bottomYPosition = iVar4 + 5;
+ iVar4 = iVar4 + -1;
+ }
+ DAT_PathFindingState.climbData[iVar2].topXPosition = iVar3;
+ DAT_PathFindingState.climbData[iVar2].topYPosition = iVar4;
+ LAB_004a504e:
+ DAT_PathFindingState.climbData[iVar2].bottomTilePosition
+ = DAT_ViewportRenderState
+ .translationMatrix[DAT_PathFindingState.climbData[iVar2].bottomYPosition]
+ .addXgetTile
+ + DAT_PathFindingState.climbData[iVar2].bottomXPosition;
+ DAT_PathFindingState.climbData[iVar2].topTilePositionUnk
+ = DAT_ViewportRenderState
+ .translationMatrix[DAT_PathFindingState.climbData[iVar2].topYPosition]
+ .addXgetTile
+ + DAT_PathFindingState.climbData[iVar2].topXPosition;
+ DAT_PathFindingState.climbData[iVar2].area
+ = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_PathFindingState.climbData[iVar2].bottomTilePosition];
+ DAT_PathFindingState.climbData[iVar2].wallGroupAreaID
+ = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_PathFindingState.climbData[iVar2].topTilePositionUnk];
+ DAT_PathFindingState.climbData[iVar2].buildingArea
+ = (int)(short)DAT_TileMapState.PathConnectionLayer
+ [DAT_ViewportRenderState
+ .translationMatrix[(short)DAT_BuildingsState.buildings[iVar1].y + 1]
+ .addXgetTile
+ + (int)(short)DAT_BuildingsState.buildings[iVar1].x + 1];
+ return;
+ }
+}
+}
+
+### 0x004a50e0 UpdateLadderManState05 | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x004A50E0
+ void Navigation::UpdateClimbDataState05()
+ {
+ int iVar1;
+ int iVar2;
+ int iVar3;
+ int iVar4;
+ iVar2 = DAT_CurrentClimbDataID;
+ iVar1 = DAT_PathFindingState.climbData[DAT_CurrentClimbDataID].buildingID;
+ DAT_BuildingsState.buildings[iVar1].laddermanDataID = (short)DAT_CurrentClimbDataID;
+ if (DAT_PathFindingState.climbData[iVar2].sourceUID
+ != DAT_BuildingsState.buildings[iVar1].uid) {
+ DAT_PathFindingState.climbData[iVar2].canBeUsed = 0;
+ }
+ DAT_PathFindingState.climbData[iVar2].owner
+ = (int)DAT_BuildingsState.buildings[iVar1].owner;
+ DAT_PathFindingState.climbData[iVar2].isRecognizedByPathfinding
+ = (uint)(DAT_BuildingsState.buildings[iVar1].pathLinkageRelated2 != 2);
+ iVar3 = DAT_PathFindingState.climbData[iVar2].ladderDirection;
+ if (iVar3 == 2) {
+ iVar3 = (int)(short)DAT_BuildingsState.buildings[iVar1].x;
+ DAT_PathFindingState.climbData[iVar2].bottomXPosition = iVar3 + 3;
+ iVar4 = (short)DAT_BuildingsState.buildings[iVar1].y + 1;
+ DAT_PathFindingState.climbData[iVar2].bottomYPosition = iVar4;
+ iVar3 = iVar3 + -1;
+ } else {
+ if (iVar3 != 0)
+ goto LAB_004a519e;
+ iVar4 = (int)(short)DAT_BuildingsState.buildings[iVar1].y;
+ iVar3 = (short)DAT_BuildingsState.buildings[iVar1].x + 1;
+ DAT_PathFindingState.climbData[iVar2].bottomXPosition = iVar3;
+ DAT_PathFindingState.climbData[iVar2].bottomYPosition = iVar4 + 3;
+ iVar4 = iVar4 + -1;
+ }
+ DAT_PathFindingState.climbData[iVar2].topXPosition = iVar3;
+ DAT_PathFindingState.climbData[iVar2].topYPosition = iVar4;
+ LAB_004a519e:
+ DAT_PathFindingState.climbData[iVar2].bottomTilePosition
+ = DAT_ViewportRenderState
+ .translationMatrix[DAT_PathFindingState.climbData[iVar2].bottomYPosition]
+ .addXgetTile
+ + DAT_PathFindingState.climbData[iVar2].bottomXPosition;
+ DAT_PathFindingState.climbData[iVar2].topTilePositionUnk
+ = DAT_ViewportRenderState
+ .translationMatrix[DAT_PathFindingState.climbData[iVar2].topYPosition]
+ .addXgetTile
+ + DAT_PathFindingState.climbData[iVar2].topXPosition;
+ DAT_PathFindingState.climbData[iVar2].area
+ = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_PathFindingState.climbData[iVar2].bottomTilePosition];
+ DAT_PathFindingState.climbData[iVar2].wallGroupAreaID
+ = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_PathFindingState.climbData[iVar2].topTilePositionUnk];
+ DAT_PathFindingState.climbData[iVar2].buildingArea
+ = (int)(short)DAT_TileMapState.PathConnectionLayer
+ [DAT_ViewportRenderState
+ .translationMatrix[(short)DAT_BuildingsState.buildings[iVar1].y + 1]
+ .addXgetTile
+ + (int)(short)DAT_BuildingsState.buildings[iVar1].x + 1];
+ return;
+ }
+}
+}
+
+### 0x004a5230 UpdateLadderManState07 | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x004A5230
+ void Navigation::UpdateClimbDataState07()
+ {
+ int iVar1;
+ int iVar2;
+ iVar2 = DAT_CurrentClimbDataID;
+ if (DAT_PathFindingState.climbData[DAT_CurrentClimbDataID].sourceUID
+ != DAT_BuildingsState
+ .buildings[DAT_PathFindingState.climbData[DAT_CurrentClimbDataID].buildingID]
+ .uid) {
+ DAT_PathFindingState.climbData[DAT_CurrentClimbDataID].canBeUsed = 0;
+ }
+ DAT_PathFindingState.climbData[iVar2].isRecognizedByPathfinding = 1;
+ DAT_PathFindingState.climbData[iVar2].topXPosition
+ = DAT_PathFindingState.climbData[iVar2].bottomXPosition;
+ iVar1 = DAT_PathFindingState.climbData[iVar2].bottomYPosition;
+ DAT_PathFindingState.climbData[iVar2].topYPosition = iVar1 + -2;
+ DAT_PathFindingState.climbData[iVar2].topTilePositionUnk
+ = DAT_ViewportRenderState.translationMatrix[iVar1 + -2].addXgetTile
+ + DAT_PathFindingState.climbData[iVar2].topXPosition;
+ DAT_PathFindingState.climbData[iVar2].area
+ = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_PathFindingState.climbData[iVar2].bottomTilePosition];
+ DAT_PathFindingState.climbData[iVar2].wallGroupAreaID
+ = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_PathFindingState.climbData[iVar2].topTilePositionUnk];
+ DAT_PathFindingState.climbData[iVar2].buildingArea = -1;
+ return;
+ }
+}
+}
+
+### 0x00530720 updateLogicAndClimbData | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x00530720
+ void Navigation::UpdateLadderman_SetClimbData(int unitID)
+ {
+ DAT_TileMapState.LogicLayer[DAT_UnitsState.units[unitID].tile]
+ = DAT_TileMapState.LogicLayer[DAT_UnitsState.units[unitID].tile] | 8388608;
+ createClimbData(
+ 1, 0, unitID, 0, 0);
+ DAT_UnitsState.units[unitID].laddermanIsInPosition = 1;
+ return;
+ }
+}
+}
+
+### 0x00496e20 getComputationalTileIndex | quelle=nachgebaut | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x00496E20
+ undefined4 PathFindingState::getComputationalTileIndex() { return this->searchQueue.writeIndex; }
+ }
+}
+}
+
+### 0x00496e30 getTileInSearchQueue | quelle=nachgebaut | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x00496E30
+ int PathFindingState::getTileInSearchQueue(int index) { return this->searchQueue.tilesQueue[index]; }
+ }
+}
+}
+
+### 0x00496e40 ClearPathFindingTileMaps | quelle=nachgebaut | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x00496E40
+ void PathFindingState::clearPathFindingTileMaps()
+ {
+ fillMemory_ByteValue(
+ sizeof(DAT_TileMapState.PathConnectionLayer), 0,
+ DAT_TileMapState.PathConnectionLayer);
+ fillMemory_ByteValue(
+ sizeof(DAT_TileMapState.PathLinkageLayer), 0, DAT_TileMapState.PathLinkageLayer);
+ fillMemory_ByteValue(
+ sizeof(DAT_TileMapState.CertainPathLayer), 0, DAT_TileMapState.CertainPathLayer);
+ fillMemory_ByteValue(
+ sizeof(DAT_TileMapState.WalkLayer), 0, DAT_TileMapState.WalkLayer);
+ }
+ }
+}
+}
+
+### 0x00496ea0 bindPathPlanToAlgorithmStateAndReset | quelle=nachgebaut | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x00496EA0
+ void PathFindingState::bindPathPlanToAlgorithmStateAndReset(byte* pPathPlan)
+ {
+ this->searchQueue.ptrPathPlan = pPathPlan;
+ this->searchQueue.pathPlanIndex = 0;
+ }
+ }
+}
+}
+
+### 0x00496ec0 findClosestTileToStartingTile | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x00496EC0
+ int PathFindingState::findClosestTileToStartingTile(int param_1)
+ {
+ int* _pResultTile;
+ int _match;
+ int _d;
+ int _closest;
+ int _tile;
+ _closest = 4000;
+ _match = 0;
+ _pResultTile = this->searchQueue.tilesQueue + DAT_TribesState.ALG_ResultTileIndex;
+ do {
+ _tile = *_pResultTile;
+ _d = (int)DAT_TileMapState.CertainPathLayer[_tile];
+ if (((0 < _d)
+ && ((_d - DAT_TileMapState.CertainPathLayer[this->searchQueue.tilesQueue[0]])
+ % param_1
+ == 0))
+ && (_d < _closest)) {
+ _match = DAT_TribesState.ALG_ResultTileIndex;
+ _closest = _d;
+ }
+ DAT_TribesState.ALG_ResultTileIndex = DAT_TribesState.ALG_ResultTileIndex + 1;
+ _pResultTile = _pResultTile + 1;
+ } while ((DAT_TribesState.ALG_ResultTileIndex < 4000)
+ && (DAT_TileMapState.WalkLayer[_tile]
+ == DAT_TileMapState.WalkLayer[this->searchQueue.tilesQueue[0]]));
+ _tile = this->searchQueue.tilesQueue[_match];
+ DAT_TribesState.ALG_ResultY = (int)this->searchQueue.yQueue[_match];
+ DAT_TribesState.ALG_ResultTileIndex = _match;
+ DAT_TribesState.ALG_ResultX = _tile
+ - DAT_ViewportRenderState.translationMatrix[DAT_TribesState.ALG_ResultY]
+ .addXgetTile;
+ return _tile;
+ }
+ }
+}
+}
+
+### 0x00496f90 findNextTileInExistingSearchThatIsModuloDistanceAway | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x00496F90
+ void PathFindingState::findNextTileInExistingSearchThatIsModuloDistanceAway(int modulo, int x, int y)
+ {
+ int iVar1;
+ int iVar2;
+ uint uVar3;
+ uint uVar4;
+ int* _pLastTile;
+ uint uVar5;
+ uint uVar6;
+ int local_10;
+ local_10 = 0;
+ _pLastTile = this->searchQueue.tilesQueue + DAT_TribesState.ALG_ResultTileIndex;
+ while (true) {
+ iVar1 = *_pLastTile;
+ if (((0 < DAT_TileMapState.CertainPathLayer[iVar1])
+ && (uVar3 = (iVar1
+ - DAT_ViewportRenderState
+ .translationMatrix[DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[iVar1]]
+ .addXgetTile)
+ - x,
+ uVar5 = (int)uVar3 >> 0x1f,
+ uVar4 = DAT_ViewportRenderState.tileTranslationMatrix_YComponent[iVar1] - y,
+ uVar6 = (int)uVar4 >> 0x1f,
+ (int)(((uVar4 ^ uVar6) - uVar6) + ((uVar3 ^ uVar5) - uVar5)) % modulo == 0))
+ && (iVar2 = DAT_TribesState.ALG_ResultTileIndex,
+ DAT_TileMapState.CertainPathLayer[iVar1] < 4000))
+ break;
+ DAT_TribesState.ALG_ResultTileIndex = DAT_TribesState.ALG_ResultTileIndex + 1;
+ _pLastTile = _pLastTile + 1;
+ iVar2 = local_10;
+ if ((4000 < DAT_TribesState.ALG_ResultTileIndex)
+ || (DAT_TileMapState.WalkLayer[iVar1]
+ != DAT_TileMapState.WalkLayer[this->searchQueue.tilesQueue[0]]))
+ break;
+ }
+ local_10 = iVar2;
+ DAT_TribesState.ALG_ResultY = (int)this->searchQueue.yQueue[local_10];
+ DAT_TribesState.ALG_ResultX = this->searchQueue.tilesQueue[local_10]
+ - DAT_ViewportRenderState.translationMatrix[DAT_TribesState.ALG_ResultY]
+ .addXgetTile;
+ DAT_TribesState.ALG_ResultTileIndex = local_10;
+ return;
+ }
+ }
+}
+}
+

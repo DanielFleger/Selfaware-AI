@@ -1,0 +1,1104 @@
+### 0x004f1ce0 createTree | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004F1CE0
+ int LandscapeState::createTree(undefined4 x, undefined4 y, TreeType treeType, undefined4 size,
+ int stageRelatedValue, undefined4 param_6, int stage)
+ {
+ undefined2 uVar1;
+ short sVar2;
+ undefined4 uVar3;
+ Tree* _ptrState;
+ uint uVar4;
+ uint _tile;
+ int _treeID;
+ /*
+ *** Find a free tree slot ***
+ */
+ _treeID = 1;
+ _ptrState = &this->trees[1];
+ do {
+ if (_ptrState->state == 0)
+ break;
+ if (1999 < _treeID) {
+ return 0;
+ }
+ _treeID = _treeID + 1;
+ _ptrState = _ptrState + 0x4e;
+ } while (_treeID < 2000);
+ /*
+ *** Increment the max tree count on this map ***
+ */
+ if (this->maxTreeCount <= _treeID) {
+ this->maxTreeCount = _treeID + 1;
+ }
+ /*
+ *** Assign uid to tree ***
+ */
+ this->trees[_treeID].uid = DAT_GameCore.uniqueGameObjectTracker;
+ DAT_GameCore.uniqueGameObjectTracker = DAT_GameCore.uniqueGameObjectTracker + 1;
+ /*
+ *** Set initial state of tree ***
+ */
+ if (((int)treeType < 0x10) || (0x13 < (int)treeType)) {
+ this->trees[_treeID].state = 1;
+ } else {
+ this->trees[_treeID].state = 4;
+ }
+ /*
+ *** Set (initial) values for tree ***
+ */
+ this->trees[_treeID].size = (short)size;
+ this->trees[_treeID].xPosition = (ushort)x;
+ this->trees[_treeID].yPosition = (ushort)y;
+ this->trees[_treeID].treeType = (TreeTypeShort)treeType;
+ _tile
+ = (int)(short)(ushort)x + DAT_ViewportRenderState.translationMatrix[(short)(ushort)y].addXgetTile;
+ this->trees[_treeID].microX = (ushort)x * 8 + 3;
+ this->trees[_treeID].microY = (ushort)y * 8 + 3;
+ this->trees[_treeID].tile = _tile;
+ this->trees[_treeID].rng1 = DAT_TileMapState.RandomLayer[_tile] & 0x7ff;
+ this->trees[_treeID].appleTreeColorVariation = stageRelatedValue;
+ this->trees[_treeID].param_6 = (short)param_6;
+ this->trees[_treeID].treeTypeBasedValue1
+ = (short)DAT_OrganismDefinedData.TreeTypeBasedValueMapping[treeType];
+ uVar1 = (undefined2)DAT_OrganismDefinedData.TreeRelated1[treeType][stage];
+ this->trees[_treeID].stageRelated4 = uVar1;
+ this->trees[_treeID].treeAdultHoodStageRelatedVisual3 = uVar1;
+ uVar1 = (undefined2)DAT_OrganismDefinedData.TreeRelated2[treeType][stage];
+ this->trees[_treeID].stageRelated2 = uVar1;
+ this->trees[_treeID].stageRelated1 = uVar1;
+ sVar2 = this->trees[_treeID].treeTypeBasedValue1;
+ this->trees[_treeID].gmOriginX
+ = (short)DAT_TextureRenderCoreObject.gmFileHeaderColorpaletteArray[sVar2].originX;
+ this->trees[_treeID].gmOriginY
+ = (short)DAT_TextureRenderCoreObject.gmFileHeaderColorpaletteArray[sVar2].originY;
+ this->trees[_treeID].treeTypeRelated2 = DAT_OrganismDefinedData.field28_0x854[treeType];
+ this->trees[_treeID].zero = 0;
+ this->trees[_treeID].animationFrameIndex = (byte)DAT_TileMapState.RandomLayer[_tile] & 0x1f;
+ this->trees[_treeID].one = 1;
+ this->trees[_treeID].stage = stage;
+ this->trees[_treeID].stageTracker = DAT_OrganismDefinedData.TreeStageLevels[treeType][stage];
+ DAT_CurrentTreeID = _treeID;
+ /*
+ *** Set tree type dependent values ***
+ */
+ switch (treeType) {
+ case ((TreeType)1):
+ uVar4 = this->trees[_treeID].rng1 & 0xf;
+ this->trees[_treeID].appleTreeColorVariation = uVar4;
+ if (0xe < uVar4) {
+ this->trees[_treeID].appleTreeColorVariation = 4;
+ break;
+ }
+ if (0xc < uVar4) {
+ this->trees[_treeID].appleTreeColorVariation = 6;
+ break;
+ }
+ if (10 < uVar4) {
+ this->trees[_treeID].appleTreeColorVariation = 1;
+ break;
+ }
+ if (uVar4 < 9)
+ break;
+ goto LAB_004f1fb5;
+ case ((TreeType)2):
+ uVar4 = this->trees[_treeID].rng1 & 0xf;
+ this->trees[_treeID].appleTreeColorVariation = uVar4;
+ if (8 < uVar4) {
+ this->trees[_treeID].appleTreeColorVariation = 8;
+ }
+ break;
+ case ((TreeType)3):
+ this->trees[_treeID].appleTreeColorVariation = _treeID % 9;
+ break;
+ case ((TreeType)4):
+ uVar4 = this->trees[_treeID].rng1 & 0xf;
+ this->trees[_treeID].appleTreeColorVariation = uVar4;
+ if (uVar4 < 0xf) {
+ if (uVar4 < 0xd) {
+ if (uVar4 < 0xb) {
+ if (8 < uVar4) {
+ this->trees[_treeID].appleTreeColorVariation = 0;
+ }
+ } else {
+ this->trees[_treeID].appleTreeColorVariation = 1;
+ }
+ } else {
+ this->trees[_treeID].appleTreeColorVariation = 6;
+ }
+ } else {
+ this->trees[_treeID].appleTreeColorVariation = 4;
+ }
+ if (this->trees[_treeID].appleTreeColorVariation < 9)
+ break;
+ goto LAB_004f1fb5;
+ case ((TreeType)5):
+ case ((TreeType)10):
+ case ((TreeType)0x10):
+ case ((TreeType)0x11):
+ case ((TreeType)0x12):
+ case ((TreeType)0x13):
+ this->trees[_treeID].stage = 4;
+ LAB_004f1fb5:
+ this->trees[_treeID].appleTreeColorVariation = 0;
+ break;
+ case ((TreeType)6):
+ this->trees[_treeID].appleTreeColorVariation = 3;
+ this->trees[_treeID].stage = 4;
+ break;
+ case ((TreeType)7):
+ this->trees[_treeID].appleTreeColorVariation = 4;
+ this->trees[_treeID].stage = 4;
+ break;
+ case ((TreeType)8):
+ this->trees[_treeID].appleTreeColorVariation = 7;
+ this->trees[_treeID].stage = 4;
+ break;
+ case ((TreeType)9):
+ this->trees[_treeID].appleTreeColorVariation = 8;
+ this->trees[_treeID].stage = 4;
+ }
+ uVar3 = this->field0_0x0;
+ this->field0_0x0 = 0;
+ /*
+ *** Update the tree state ***
+ */
+ (*DAT_OrganismDefinedData.UpdateTree[(short)this->trees[_treeID].treeType])();
+ this->field0_0x0 = uVar3;
+ return _treeID;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004f1ce0", "name": "createTree", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Legt einen neuen Baum im ersten freien Baumplatz an."}, "p2": {"ein": "x, y, treeType, size, stageRelatedValue (Farbvariante), param_6, stage", "aus": "Baumnummer 1 bis 1999, 0 wenn alle Plätze belegt", "liest": ["trees[].state", "DAT_TileMapState.RandomLayer[tile]", "DAT_OrganismDefinedData (TreeTypeBasedValueMapping, TreeRelated1, TreeRelated2, field28_0x854, TreeStageLevels)", "gmFileHeaderColorpaletteArray[].originX/originY", "translationMatrix[y].addXgetTile", "uniqueGameObjectTracker"], "schreibt": ["trees[id] (alle Felder)", "maxTreeCount", "uniqueGameObjectTracker", "DAT_CurrentTreeID"], "ruft": ["DAT_OrganismDefinedData.UpdateTree[Baumart]"], "regeln": ["Sucht ab Nummer 1 den ersten Platz mit state 0; ist bis 1999 keiner frei, kommt 0", "Anfangszustand: state 4 für Baumarten 16 bis 19, sonst state 1", "microX/microY = Feld mal 8 plus 3; rng1 = RandomLayer[tile] & 0x7ff; Animationsbild = RandomLayer & 0x1f", "Farbvariante Art 1 aus rng1 & 0xf: 0-8 bleibt, 9-10 wird 0, 11-12 wird 1, 13-14 wird 6, 15 wird 4", "Farbvariante Art 2: rng1 & 0xf, Werte über 8 werden 8", "Farbvariante Art 3: Baumnummer modulo 9", "Farbvariante Art 4: wie Art 1 (0-8 bleibt, 9-10 wird 0, 11-12 wird 1, 13-14 wird 6, 15 wird 4)", "Art 5, 10, 16 bis 19: Stufe 4, Farbe 0; Art 6: Farbe 3, Stufe 4; Art 7: Farbe 4, Stufe 4; Art 8: Farbe 7, Stufe 4; Art 9: Farbe 8, Stufe 4", "Ruft zum Schluss die Aktualisierung der Baumart auf, mit field0_0x0 vorübergehend auf 0"], "offen": ["TT_APPLEUnk hat im Text keinen Zahlenwert; aus den anderen Funktionen ist es vermutlich 15 (Apfelbaum), unbestätigt", "Bedeutung von param_6, stageRelated1 bis 4 und treeTypeRelated2", "Der Baum wird hier nicht in OrganismLayer eingetragen, das machen die Aufrufer"]}, "p3": {"erklaerung": "Zentrale Funktion, die jeden Baum anlegt. Das Spiel hat dafür nur 1999 Plätze; ist alles voll, wird kein Baum mehr erzeugt.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x004f2380 UpdateTree1 | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004F2380
+ void Trees::UpdateTree1()
+ {
+ short sVar1;
+ short _rng2;
+ short _rng2_2;
+ short _rng2_3;
+ short _isZero1_1;
+ short _isZero1_2;
+ short _rng2_4;
+ short _isZero1_stage2;
+ short _rng2_stage2;
+ byte _rng2Data;
+ int _rng2_2_data;
+ int _tree;
+ _tree = DAT_CurrentTreeID;
+ if (DAT_LandscapeState.trees[DAT_CurrentTreeID].zeroUpTo2 == 0) {
+ _rng2 = DAT_LandscapeState.trees[DAT_CurrentTreeID].animationFrameIndex;
+ if (DAT_LandscapeState.trees[DAT_CurrentTreeID].flag == FALSE) {
+ _rng2Data = DAT_OrganismDefinedData.Tree_1_A[_rng2];
+ } else {
+ _rng2Data = DAT_OrganismDefinedData.Tree_1_B[_rng2];
+ }
+ if ((char)_rng2Data < '\x01') {
+ DAT_LandscapeState.trees[DAT_CurrentTreeID].animationFrameIndex = 0;
+ DAT_LandscapeState.trees[_tree].flag
+ = (uint)(DAT_LandscapeState.trees[_tree].one == 2);
+ }
+ } else {
+ _rng2_2 = DAT_LandscapeState.trees[DAT_CurrentTreeID].animationFrameIndex;
+ if (DAT_LandscapeState.trees[DAT_CurrentTreeID].stage == 0) {
+ _rng2_2_data = DAT_OrganismDefinedData.Tree_2_A[_rng2_2];
+ } else {
+ _rng2_2_data = DAT_OrganismDefinedData.Tree_2_B[_rng2_2];
+ }
+ if (_rng2_2_data < 1) {
+ DAT_LandscapeState.trees[DAT_CurrentTreeID].animationFrameIndex = _rng2_2 + -1;
+ }
+ }
+ switch (DAT_LandscapeState.trees[_tree].stage) {
+ case 0:
+ _isZero1_1 = DAT_LandscapeState.trees[_tree].zeroUpTo2;
+ if (_isZero1_1 == 1) {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = DAT_OrganismDefinedData
+ .Tree_2_A[DAT_LandscapeState.trees[_tree].animationFrameIndex]
+ + 0x8b;
+ break;
+ }
+ if (_isZero1_1 != 2) {
+ _rng2_3 = DAT_LandscapeState.trees[_tree].animationFrameIndex;
+ if (DAT_LandscapeState.trees[_tree].flag == FALSE) {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = (char)DAT_OrganismDefinedData.Tree_1_A[_rng2_3] + 0x4b;
+ } else {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = (char)DAT_OrganismDefinedData.Tree_1_B[_rng2_3] + 0x4b;
+ }
+ break;
+ }
+ default:
+ DAT_LandscapeState.trees[_tree].animationFrameUnk = 0x92;
+ break;
+ case 1:
+ _isZero1_2 = DAT_LandscapeState.trees[_tree].zeroUpTo2;
+ if (_isZero1_2 == 1) {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = DAT_OrganismDefinedData
+ .Tree_2_B[DAT_LandscapeState.trees[_tree].animationFrameIndex]
+ + 0x81;
+ } else if (_isZero1_2 == 2) {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = 0x8c - (short)DAT_LandscapeState.trees[_tree].treeAdultHoodStageRelatedVisual3;
+ } else {
+ _rng2_4 = DAT_LandscapeState.trees[_tree].animationFrameIndex;
+ if (DAT_LandscapeState.trees[_tree].flag == FALSE) {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = (char)DAT_OrganismDefinedData.Tree_1_A[_rng2_4] + 0x32;
+ } else {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = (char)DAT_OrganismDefinedData.Tree_1_B[_rng2_4] + 0x32;
+ }
+ }
+ break;
+ case 2:
+ _isZero1_stage2 = DAT_LandscapeState.trees[_tree].zeroUpTo2;
+ if (_isZero1_stage2 == 1) {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = DAT_OrganismDefinedData
+ .Tree_2_B[DAT_LandscapeState.trees[_tree].animationFrameIndex]
+ + 0x75;
+ } else if (_isZero1_stage2 == 2) {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = 0x82 - (short)DAT_LandscapeState.trees[_tree].treeAdultHoodStageRelatedVisual3;
+ } else {
+ _rng2_stage2 = DAT_LandscapeState.trees[_tree].animationFrameIndex;
+ if (DAT_LandscapeState.trees[_tree].flag == FALSE) {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = (char)DAT_OrganismDefinedData.Tree_1_A[_rng2_stage2] + 0x19;
+ } else {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = (char)DAT_OrganismDefinedData.Tree_1_B[_rng2_stage2] + 0x19;
+ }
+ }
+ break;
+ case 3:
+ case 4:
+ sVar1 = DAT_LandscapeState.trees[_tree].zeroUpTo2;
+ if (sVar1 == 1) {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = DAT_OrganismDefinedData
+ .Tree_2_B[DAT_LandscapeState.trees[_tree].animationFrameIndex]
+ + 100;
+ } else if (sVar1 == 2) {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = 0x76 - (short)DAT_LandscapeState.trees[_tree].treeAdultHoodStageRelatedVisual3;
+ } else {
+ sVar1 = DAT_LandscapeState.trees[_tree].animationFrameIndex;
+ if (DAT_LandscapeState.trees[_tree].flag == FALSE) {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = (int)(char)DAT_OrganismDefinedData.Tree_1_A[sVar1];
+ } else {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk
+ = (int)(char)DAT_OrganismDefinedData.Tree_1_B[sVar1];
+ }
+ }
+ }
+ if (DAT_LandscapeState.field0_0x0 != 0) {
+ DAT_LandscapeState.trees[_tree].animationFrameUnk = 0x94;
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004f2380", "name": "UpdateTree1", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Wählt für einen Baum vom Typ 1 das Bild (Animationsbild) je nach Wuchsstufe."}, "p2": {"ein": "-", "aus": "-", "liest": [], "schreibt": [], "ruft": [], "regeln": [], "offen": []}, "p3": {"erklaerung": "Reine Darstellung: stellt das Bild eines Baums nach Wuchsstufe und Animationsschritt ein. Spielwerte ändert sie nicht.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x004f3150 spawnCrowFromNearbyTree | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004F3150
+ void LandscapeState::spawnCrowFromNearbyTree(int unitID)
+ {
+ bool bVar1;
+ int _y;
+ int _treeID;
+ uint uVar2;
+ uint uVar3;
+ int iVar4;
+ int iVar5;
+ int _playerID;
+ PlayerData* _pKeep;
+ uint uVar6;
+ int iVar7;
+ int iVar8;
+ int local_2c;
+ int _microY;
+ int _microX;
+ int local_1c;
+ int local_c;
+ bVar1 = false;
+ local_c = 0;
+ do {
+ _y = (int)DAT_UnitsState.units[unitID].y;
+ if ((((DAT_TileMapState
+ .OrganismLayer[DAT_TileMapState.directionTranslationMatrix[_y][local_c]
+ + DAT_UnitsState.units[unitID].tile]
+ != 0)
+ && (_treeID = (int)DAT_TileMapState
+ .OrganismLayer[DAT_TileMapState.directionTranslationMatrix[_y][local_c]
+ + DAT_UnitsState.units[unitID].tile],
+ _treeID < this->maxTreeCount))
+ && (this->trees[_treeID].state == 2))
+ && ((this->trees[_treeID].unknownDistanceRelatedToCrow != 0
+ && (this->trees[_treeID].rng200till300 == 0)))) {
+ _playerID = (int)DAT_UnitsState.units[unitID].owner;
+ _microX = 0;
+ _microY = 0;
+ local_2c = 10000;
+ local_1c = 3;
+ _pKeep = &DAT_GameState.playerDataArray[1];
+ do {
+ if ((local_1c + -2 != _playerID) && ((_pKeep->keep).id != 0)) {
+ iVar5 = (_pKeep->keep).xEntry;
+ iVar8 = (_pKeep->keep).yEntry;
+ uVar2 = DAT_UnitsState.units[unitID].x - iVar5;
+ uVar6 = (int)uVar2 >> 0x1f;
+ uVar3 = _y - iVar8;
+ iVar7 = (uVar2 ^ uVar6) - uVar6;
+ uVar2 = (int)uVar3 >> 0x1f;
+ iVar4 = (uVar3 ^ uVar2) - uVar2;
+ if (iVar4 < iVar7) {
+ iVar4 = iVar7;
+ }
+ if (iVar4 < local_2c) {
+ _microX = (int)SEC_RNG::instance.currentNumber2 % 5 + -2 + iVar5;
+ _microY = ((int)SEC_RNG::instance.currentNumber2 >> 8) % 5 + -2 + iVar8;
+ local_2c = iVar4;
+ }
+ }
+ if ((local_1c + -1 != _playerID) && (_pKeep[0xe7c] != 0)) {
+ uVar2 = (int)DAT_UnitsState.units[unitID].x - _pKeep[0xe7d];
+ uVar6 = (int)uVar2 >> 0x1f;
+ uVar3 = _y - _pKeep[0xe7e];
+ iVar8 = (uVar2 ^ uVar6) - uVar6;
+ uVar2 = (int)uVar3 >> 0x1f;
+ iVar5 = (uVar3 ^ uVar2) - uVar2;
+ if (iVar5 < iVar8) {
+ iVar5 = iVar8;
+ }
+ if (iVar5 < local_2c) {
+ _microX = (int)SEC_RNG::instance.currentNumber2 % 5 + -2 + _pKeep[0xe7d];
+ _microY = ((int)SEC_RNG::instance.currentNumber2 >> 8) % 5 + -2 + _pKeep[0xe7e];
+ local_2c = iVar5;
+ }
+ }
+ if ((local_1c != _playerID) && (_pKeep[0x1cf9] != 0)) {
+ uVar2 = (int)DAT_UnitsState.units[unitID].x - _pKeep[0x1cfa];
+ uVar6 = (int)uVar2 >> 0x1f;
+ uVar3 = _y - _pKeep[0x1cfb];
+ iVar8 = (uVar2 ^ uVar6) - uVar6;
+ uVar2 = (int)uVar3 >> 0x1f;
+ iVar5 = (uVar3 ^ uVar2) - uVar2;
+ if (iVar5 < iVar8) {
+ iVar5 = iVar8;
+ }
+ if (iVar5 < local_2c) {
+ _microX = (int)SEC_RNG::instance.currentNumber2 % 5 + -2 + _pKeep[0x1cfa];
+ _microY = ((int)SEC_RNG::instance.currentNumber2 >> 8) % 5 + -2 + _pKeep[0x1cfb];
+ local_2c = iVar5;
+ }
+ }
+ if ((local_1c + 1 != _playerID) && (_pKeep[0x2b76] != 0)) {
+ uVar2 = (int)DAT_UnitsState.units[unitID].x - _pKeep[0x2b77];
+ uVar6 = (int)uVar2 >> 0x1f;
+ uVar3 = _y - _pKeep[0x2b78];
+ iVar8 = (uVar2 ^ uVar6) - uVar6;
+ uVar2 = (int)uVar3 >> 0x1f;
+ iVar5 = (uVar3 ^ uVar2) - uVar2;
+ if (iVar5 < iVar8) {
+ iVar5 = iVar8;
+ }
+ if (iVar5 < local_2c) {
+ _microX = (int)SEC_RNG::instance.currentNumber2 % 5 + -2 + _pKeep[0x2b77];
+ _microY = ((int)SEC_RNG::instance.currentNumber2 >> 8) % 5 + -2 + _pKeep[0x2b78];
+ local_2c = iVar5;
+ }
+ }
+ iVar5 = local_1c + 2;
+ _pKeep = _pKeep + 0x39f4;
+ local_1c = local_1c + 4;
+ } while (iVar5 < 9);
+ if (local_2c == 10000) {
+ _microX = DAT_UnitsState.units[unitID].x + -0x32
+ + (int)SEC_RNG::instance.currentNumber2 % 100;
+ _microY = ((int)SEC_RNG::instance.currentNumber2 >> 8) % 100 + -0x32 + _y;
+ nextRandomNumber2();
+ }
+ spawnProjectileEntity(unitID,
+ (undefined4)((int)((int)DAT_UnitsState.units[unitID].owner)), 0,
+ (int)((int)((short)this->trees[_treeID].xPosition * 8)),
+ (int)((int)((short)this->trees[_treeID].yPosition * 8)),
+ DAT_TileMapState.HeightLayer[this->trees[_treeID].tile] + 0x1e, _microX * 8,
+ _microY * 8, 0xfa, 0x1c, 0);
+ this->trees[_treeID].rng200till300 = SEC_RNG::instance.currentNumber2 % 100 + 200;
+ if (!bVar1) {
+ playSFXAtLocation(
+ (int)(short)this->trees[_treeID].xPosition, (int)((int)((short)this->trees[_treeID].yPosition)),
+ FX_CROW);
+ bVar1 = true;
+ }
+ }
+ local_c = local_c + 1;
+ } while (local_c < 8);
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004f3150", "name": "spawnCrowFromNearbyTree", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Lässt aus markierten Bäumen neben einer Einheit eine Krähe zum nächsten fremden Burgeingang fliegen."}, "p2": {"ein": "unitID", "aus": "-", "liest": ["units[id].x/y/tile/owner", "DAT_TileMapState.OrganismLayer", "directionTranslationMatrix", "trees[].state/unknownDistanceRelatedToCrow/rng200till300", "playerDataArray[].keep.id/xEntry/yEntry", "SEC_RNG.currentNumber2", "HeightLayer"], "schreibt": ["trees[].rng200till300", "SEC_RNG (nextRandomNumber2 im Ersatzfall)"], "ruft": ["spawnProjectileEntity", "playSFXAtLocation(FX_CROW)", "nextRandomNumber2"], "regeln": ["Prüft die 8 Nachbarfelder der Einheit", "Baum muss state 2 haben, markiert sein (unknownDistanceRelatedToCrow ungleich 0) und rng200till300 gleich 0 haben", "Ziel: der Burgeingang (xEntry, yEntry) des nächstgelegenen anderen Spielers mit Burg (keep.id ungleich 0), Abstand = größere Achsendifferenz; 8 Spieler werden geprüft, der eigene fehlt; kein Bündnis-Test", "Zielpunkt streut um bis zu 2 Felder (Zufallszahl modulo 5 minus 2)", "Gibt es keinen Gegner mit Burg, fliegt die Krähe zu einem Zufallspunkt im Umkreis von 50 Feldern", "Die Krähe ist ein Geschoss: Start am Baum, Höhe plus 0x1e, Parameter 0xfa und 0x1c", "Danach wartet der Baum 200 bis 299 Durchläufe (rng200till300 = Zufallszahl modulo 100 plus 200)", "Der Krähenton wird je Aufruf nur einmal gespielt"], "offen": ["Welche Einheit diese Funktion aufruft und warum", "Bedeutung der Geschossparameter 0xfa, 0x1c", "Ghidra rechnet die Spielerfelder über Zeigeroffsets (0xe7c, 0x1cf9 …), die Zuordnung ist erschlossen"]}, "p3": {"erklaerung": "Reine Dekoration: Wenn eine Einheit an markierten Bäumen vorbeikommt, fliegen Krähen in Richtung eines fremden Burgeingangs. Der Baum ist danach 200 bis 299 Durchläufe gesperrt.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x004f70f0 updateLogicalTileMapRelatedSections | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004F70F0
+ void TileMapState::updateLogicalTileMapRelatedSections()
+ {
+ byte bVar1;
+ int iVar2;
+ int iVar3;
+ uint uVar4;
+ bool bVar5;
+ bool bVar6;
+ bool bVar7;
+ uint uVar8;
+ int iVar9;
+ int iVar10;
+ int iVar11;
+ int (*paiVar12)[8];
+ int (*paiVar13)[8];
+ int iVar14;
+ int iVar15;
+ int _tile;
+ bool bVar16;
+ int* local_28;
+ int local_20;
+ int local_8;
+ if (this->forceUpdateLogicalAndMiscDisplayLayers != 0) {
+ this->forceUpdateLogicalAndMiscDisplayLayers = 0;
+ _tile = DAT_ViewportRenderState.translationMatrix[DAT_PathFindingState.mappingYRelated]
+ .firstTileOfRow;
+ DAT_BuildingsState.field34_0x18e074 = 1;
+ for (iVar11 = DAT_PathFindingState.mappingYRelated;
+ (iVar11 < 400 && (iVar11 <= DAT_PathFindingState.yLimit)); iVar11 = iVar11 + 1) {
+ iVar2 = this->yArray1[iVar11];
+ local_8 = 0;
+ if (0 < iVar2) {
+ do {
+ if (((this->LogicLayer[_tile] & 0x30) == 0) && (this->ChangedLayer[_tile] != 0)) {
+ uVar8 = (uint)this->HeightLayer[_tile];
+ iVar3 = this->heightBasedScreenYOffset[uVar8];
+ this->ShowHiLayer[_tile] = '\0';
+ this->MiscDisplayLayer[_tile] = this->MiscDisplayLayer[_tile] & 0xffef;
+ if (uVar8 == 0) {
+ uVar4 = this->LogicLayer[_tile];
+ if ((((uVar4 & L_RIVER) == 0) && ((this->Logic2Layer[_tile] & L2_BEACH) != 0))
+ || ((uVar4 & L_MOAT) != 0)) {
+ LAB_004f71ea:
+ this->LogicLayer[_tile] = this->LogicLayer[_tile] | 32768;
+ } else {
+ this->LogicLayer[_tile] = uVar4 & ~(L_DEFAULT_EARTH_OR_TEXTURE);
+ }
+ } else {
+ if (uVar8 < 9)
+ goto LAB_004f71ea;
+ bVar1 = this->Logic2Layer[_tile];
+ if ((bVar1 & 4) == 0) {
+ if ((bVar1 & 8) == 0) {
+ if ((bVar1 & 2) == 0) {
+ if ((bVar1 & 0x10) == 0) {
+ if ((bVar1 & 1) == 0) {
+ if ((char)bVar1 < '\0') {
+ this->LogicLayer[_tile] = this->LogicLayer[_tile] | 32768;
+ } else if ((bVar1 & 0x40) == 0) {
+ this->LogicLayer[_tile]
+ = this->LogicLayer[_tile] & ~(L_DEFAULT_EARTH_OR_TEXTURE);
+ } else {
+ this->LogicLayer[_tile] = this->LogicLayer[_tile] | 32768;
+ }
+ } else {
+ this->LogicLayer[_tile] = this->LogicLayer[_tile] | 32768;
+ }
+ } else {
+ this->LogicLayer[_tile] = this->LogicLayer[_tile] | 32768;
+ }
+ } else {
+ this->LogicLayer[_tile] = this->LogicLayer[_tile] | 32768;
+ }
+ } else {
+ this->LogicLayer[_tile] = this->LogicLayer[_tile] | 32768;
+ }
+ } else {
+ this->LogicLayer[_tile] = this->LogicLayer[_tile] | 32768;
+ }
+ }
+ iVar15 = 0;
+ paiVar13 = this->directionTranslationMatrix + iVar11;
+ paiVar12 = paiVar13;
+ do {
+ iVar9 = (*paiVar12)[0] + _tile;
+ if (((8 < uVar8) || (this->HeightLayer[iVar9] == 0))
+ && (uVar8 != this->HeightLayer[iVar9])) {
+ if ((this->LogicLayer[iVar9] & L_RIVER | L_MOAT) == 0) {
+ this->LogicLayer[_tile]
+ = this->LogicLayer[_tile] & ~(L_DEFAULT_EARTH_OR_TEXTURE);
+ }
+ break;
+ }
+ iVar15 = iVar15 + 1;
+ paiVar12 = (int (*)[8])(*paiVar12 + 1);
+ } while (iVar15 < 8);
+ if ((this->BuildingLayer[_tile] != 0)
+ && (DAT_BuildingsState.buildings[this->BuildingLayer[_tile]].buildingType
+ == BT_DRAWBRIDGE)) {
+ this->MiscDisplayLayer[_tile] = this->MiscDisplayLayer[_tile] | 0x10;
+ }
+ if (this->field93_0x5548c8 == 0) {
+ local_28 = this->directionTranslationMatrix[iVar11] + this->field84_0x5548a4;
+ iVar9 = 0;
+ iVar15 = _tile;
+ do {
+ iVar15 = iVar15 + *local_28;
+ if ((this->LogicLayer[iVar15] & 0x30) != 0)
+ break;
+ if (iVar3 <= (this->heightBasedScreenYOffset[this->HeightLayer[iVar15]] - iVar9)
+ + -0x10) {
+ this->ShowHiLayer[_tile] = 0xff;
+ break;
+ }
+ local_28 = local_28 + this->field88_0x5548b4 * 8;
+ iVar9 = iVar9 + 0x10;
+ } while (iVar9 < 0x80);
+ if ((uVar8 == 0) || (this->ShowHiLayer[_tile] == 0xff))
+ goto LAB_004f793d;
+ } else {
+ this->ShowHiLayer[_tile] = '\b';
+ }
+ uVar4 = this->LogicLayer[_tile];
+ if ((uVar4 & L_BUILDING | L_KEEP_NON_MANOR_HOUSE) == 0) {
+ if ((uVar4 & L_TREE_VARIATION) == 0) {
+ if ((uVar4 & L_FARM_FIELD_WHEAT) == 0) {
+ if ((uVar4 & L_FARM_FIELD_HOP) == 0) {
+ if ((uVar4 & L_CRENEL) == 0) {
+ if ((uVar4 & L_STAIRS) == 0) {
+ this->MiscDisplayLayer[_tile]
+ = this->MiscDisplayLayer[_tile] | 0x10;
+ bVar7 = false;
+ } else {
+ bVar7 = true;
+ }
+ } else {
+ bVar7 = true;
+ }
+ } else {
+ bVar7 = true;
+ }
+ } else {
+ bVar7 = true;
+ }
+ } else {
+ bVar7 = true;
+ }
+ } else {
+ bVar7 = true;
+ }
+ iVar15 = 0;
+ do {
+ iVar9 = (*paiVar13)[0] + _tile;
+ if (((8 < uVar8) && (uVar8 != this->HeightLayer[iVar9]))
+ || (uVar4 = this->LogicLayer[iVar9], (uVar4 & L_TREE_VARIATION) != 0)) {
+ this->MiscDisplayLayer[_tile] = this->MiscDisplayLayer[_tile] & 0xffef;
+ break;
+ }
+ if ((uVar4 & 0x1000000) != 0) {
+ bVar7 = true;
+ }
+ if ((uVar4 & 0x2000000) != 0) {
+ bVar7 = true;
+ }
+ iVar15 = iVar15 + 1;
+ paiVar13 = (int (*)[8])(*paiVar13 + 1);
+ } while (iVar15 < 8);
+ this->MiscDisplayLayer[_tile] = this->MiscDisplayLayer[_tile] & 0xfffc;
+ bVar6 = false;
+ bVar5 = false;
+ iVar9 = this->directionTranslationMatrix[iVar11][this->field84_0x5548a4] + _tile;
+ iVar15 = this->heightBasedScreenYOffset[this->HeightLayer[iVar9]];
+ local_20 = 0xfa;
+ if (iVar15 < 0xfa) {
+ local_20 = iVar15;
+ }
+ iVar14 = iVar3 + 2;
+ if (iVar14 < iVar15) {
+ bVar7 = true;
+ }
+ if ((this->LogicLayer[_tile] & L_WALL_OR_GATEHOUSE) == 0) {
+ if (((this->LogicLayer[iVar9] & L_BUILDING | L_KEEP_NON_MANOR_HOUSE) != 0)
+ && (iVar15 = getBuildingFlag1((int)this->BuildingLayer[iVar9]),
+ iVar15 != 0)) {
+ bVar7 = true;
+ }
+ iVar15 = this->directionTranslationMatrix[iVar11][this->field86_0x5548ac] + _tile;
+ if ((((this->LogicLayer[iVar15] & L_BUILDING | L_KEEP_NON_MANOR_HOUSE) != 0)
+ && (iVar10 = getBuildingFlag1((int)this->BuildingLayer[iVar15]),
+ iVar10 != 0))
+ || (((this->LogicLayer[iVar15] & L_WALL_OR_GATEHOUSE) != 0
+ && ((this->LogicLayer[iVar15] & L_STOCKPILEUnk) == 0)))) {
+ bVar7 = true;
+ }
+ iVar15 = this->directionTranslationMatrix[iVar11][this->field85_0x5548a8] + _tile;
+ if ((((this->LogicLayer[iVar15] & L_BUILDING | L_KEEP_NON_MANOR_HOUSE) != 0)
+ && (iVar10 = getBuildingFlag1((int)this->BuildingLayer[iVar15]),
+ iVar10 != 0))
+ || (((this->LogicLayer[iVar15] & L_WALL_OR_GATEHOUSE) != 0
+ && ((this->LogicLayer[iVar15] & L_STOCKPILEUnk) == 0)))) {
+ bVar7 = true;
+ }
+ iVar15 = this->directionTranslationMatrix[this->field88_0x5548b4 + iVar11]
+ [this->field86_0x5548ac]
+ + iVar9;
+ if ((((this->LogicLayer[iVar15] & L_BUILDING | L_KEEP_NON_MANOR_HOUSE) != 0)
+ && (iVar10 = getBuildingFlag1((int)this->BuildingLayer[iVar15]),
+ iVar10 != 0))
+ || (((this->LogicLayer[iVar15] & L_WALL_OR_GATEHOUSE) != 0
+ && ((this->LogicLayer[iVar15] & L_STOCKPILEUnk) == 0)))) {
+ bVar7 = true;
+ }
+ iVar15 = this->directionTranslationMatrix[this->field88_0x5548b4 + iVar11]
+ [this->field85_0x5548a8]
+ + iVar9;
+ if ((((this->LogicLayer[iVar15] & L_BUILDING | L_KEEP_NON_MANOR_HOUSE) != 0)
+ && (iVar10 = getBuildingFlag1((int)this->BuildingLayer[iVar15]),
+ iVar10 != 0))
+ || (((this->LogicLayer[iVar15] & L_WALL_OR_GATEHOUSE) != 0
+ && ((this->LogicLayer[iVar15] & L_STOCKPILEUnk) == 0)))) {
+ bVar7 = true;
+ }
+ iVar9 = iVar9
+ + this->directionTranslationMatrix[this->field88_0x5548b4 + iVar11]
+ [this->field84_0x5548a4];
+ if (((this->LogicLayer[iVar9] & L_BUILDING | L_KEEP_NON_MANOR_HOUSE) != 0)
+ && (iVar15 = getBuildingFlag1((int)this->BuildingLayer[iVar9]),
+ iVar15 != 0)) {
+ bVar7 = true;
+ }
+ iVar15 = this->directionTranslationMatrix[iVar11 + this->field88_0x5548b4 * 2]
+ [this->field86_0x5548ac]
+ + iVar9;
+ if ((((this->LogicLayer[iVar15] & L_BUILDING | L_KEEP_NON_MANOR_HOUSE) != 0)
+ && (iVar10 = getBuildingFlag1((int)this->BuildingLayer[iVar15]),
+ iVar10 != 0))
+ || (((this->LogicLayer[iVar15] & L_WALL_OR_GATEHOUSE) != 0
+ && ((this->LogicLayer[iVar15] & L_STOCKPILEUnk) == 0)))) {
+ bVar7 = true;
+ }
+ iVar15 = this->directionTranslationMatrix[iVar11 + this->field88_0x5548b4 * 2]
+ [this->field85_0x5548a8]
+ + iVar9;
+ if ((((this->LogicLayer[iVar15] & L_BUILDING | L_KEEP_NON_MANOR_HOUSE) != 0)
+ && (iVar10 = getBuildingFlag1((int)this->BuildingLayer[iVar15]),
+ iVar10 != 0))
+ || (((this->LogicLayer[iVar15] & L_WALL_OR_GATEHOUSE) != 0
+ && ((this->LogicLayer[iVar15] & L_STOCKPILEUnk) == 0)))) {
+ bVar7 = true;
+ }
+ iVar9 = iVar9
+ + this->directionTranslationMatrix[iVar11 + this->field88_0x5548b4 * 2]
+ [this->field84_0x5548a4];
+ if ((this->LogicLayer[iVar9] & L_BUILDING | L_KEEP_NON_MANOR_HOUSE) != 0) {
+ iVar15 = getBuildingFlag1((int)this->BuildingLayer[iVar9]);
+ bVar16 = iVar15 == 0;
+ goto LAB_004f77ae;
+ }
+ } else {
+ if (DAT_BuildingsState.buildings[this->BuildingLayer[iVar9]].flag2 != 0) {
+ bVar7 = true;
+ }
+ if (DAT_BuildingsState.buildings[this->BuildingLayer[iVar9]].buildingType
+ == BT_STOCKPILE) {
+ bVar7 = true;
+ }
+ bVar16 = DAT_BuildingsState
+ .buildings[this->BuildingLayer
+ [this->directionTranslationMatrix[this->field88_0x5548b4 + iVar11]
+ [this->field84_0x5548a4]
+ + iVar9]]
+ .flag2
+ == 0;
+ LAB_004f77ae:
+ if (!bVar16) {
+ bVar7 = true;
+ }
+ }
+ iVar9 = this->directionTranslationMatrix[iVar11][this->field86_0x5548ac] + _tile;
+ iVar15 = this->heightBasedScreenYOffset[this->HeightLayer[iVar9]];
+ if (iVar15 < local_20) {
+ local_20 = iVar15;
+ }
+ if ((iVar3 <= iVar15) && (bVar5 = true, iVar14 < iVar15)) {
+ bVar7 = true;
+ }
+ if ((this->LogicLayer[_tile] & L_WALL_OR_GATEHOUSE) == 0) {
+ if (((this->LogicLayer[iVar9] & L_BUILDING | L_KEEP_NON_MANOR_HOUSE) != 0)
+ && (iVar15 = getBuildingFlag1((int)this->BuildingLayer[iVar9]),
+ iVar15 != 0)) {
+ bVar7 = true;
+ }
+ } else {
+ if (DAT_BuildingsState.buildings[this->BuildingLayer[iVar9]].flag2 != 0) {
+ bVar7 = true;
+ }
+ if (DAT_BuildingsState.buildings[this->BuildingLayer[iVar9]].buildingType
+ == BT_STOCKPILE) {
+ bVar7 = true;
+ }
+ }
+ iVar9 = this->directionTranslationMatrix[iVar11][this->field85_0x5548a8] + _tile;
+ iVar15 = this->heightBasedScreenYOffset[this->HeightLayer[iVar9]];
+ if (iVar15 < local_20) {
+ local_20 = iVar15;
+ }
+ if ((iVar3 <= iVar15) && (bVar6 = true, iVar14 < iVar15)) {
+ bVar7 = true;
+ }
+ if ((this->LogicLayer[_tile] & L_WALL_OR_GATEHOUSE) == 0) {
+ if ((((this->LogicLayer[_tile] & L_KEEP_NON_MANOR_HOUSE) != 0)
+ || ((this->LogicLayer[iVar9] & L_BUILDING | L_KEEP_NON_MANOR_HOUSE) == 0))
+ || (iVar15 = getBuildingFlag1((int)this->BuildingLayer[iVar9]),
+ iVar15 == 0))
+ goto LAB_004f79a8;
+ LAB_004f78f0:
+ this->MiscDisplayLayer[_tile] = this->MiscDisplayLayer[_tile] & 0xffef;
+ } else {
+ if (DAT_BuildingsState.buildings[this->BuildingLayer[iVar9]].flag2 != 0) {
+ bVar7 = true;
+ }
+ if (DAT_BuildingsState.buildings[this->BuildingLayer[iVar9]].buildingType
+ == BT_STOCKPILE)
+ goto LAB_004f78f0;
+ LAB_004f79a8:
+ if (bVar7)
+ goto LAB_004f78f0;
+ this->MiscDisplayLayer[_tile] = this->MiscDisplayLayer[_tile] | 0x10;
+ }
+ if (local_20 < iVar3) {
+ if (this->field93_0x5548c8 == 0) {
+ this->ShowHiLayer[_tile] = (char)iVar3 - (char)local_20;
+ }
+ if ((this->LogicLayer[_tile] & L_SEA) == 0) {
+ if (bVar5) {
+ this->MiscDisplayLayer[_tile] = this->MiscDisplayLayer[_tile] | 1;
+ }
+ if (bVar6) {
+ this->MiscDisplayLayer[_tile] = this->MiscDisplayLayer[_tile] | 2;
+ }
+ }
+ }
+ }
+ LAB_004f793d:
+ local_8 = local_8 + 1;
+ _tile = _tile + 1;
+ } while (local_8 < iVar2);
+ }
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004f70f0", "name": "updateLogicalTileMapRelatedSections", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Berechnet für den sichtbaren Kartenausschnitt Höhen- und Schattenhilfsschichten und Anzeige-Flags neu."}, "p2": {"ein": "-", "aus": "-", "liest": ["forceUpdateLogicalAndMiscDisplayLayers", "ChangedLayer", "HeightLayer", "Logic2Layer", "BuildingLayer", "heightBasedScreenYOffset", "directionTranslationMatrix", "yArray1", "DAT_PathFindingState.mappingYRelated/yLimit", "buildings[].buildingType/flag2"], "schreibt": ["forceUpdateLogicalAndMiscDisplayLayers", "LogicLayer (Bit 32768 setzen/löschen)", "ShowHiLayer", "MiscDisplayLayer (Bits 0x10, 1, 2)", "DAT_BuildingsState.field34_0x18e074"], "ruft": ["getBuildingFlag1"], "regeln": ["Läuft nur, wenn forceUpdateLogicalAndMiscDisplayLayers ungleich 0; setzt es sofort auf 0", "Durchläuft die Zeilen von mappingYRelated bis höchstens yLimit (unter 400), je Zeile yArray1[Zeile] Felder", "Nur Felder ohne Rand-Bits (LogicLayer & 0x30 gleich 0) mit ChangedLayer ungleich 0 werden bearbeitet", "Bit 32768 im LogicLayer: bei Höhe 0 gesetzt, wenn Strand ohne Fluss oder Wassergraben; bei Höhe 1 bis 8 immer gesetzt; ab Höhe 9 gesetzt, wenn eines der Logic2Layer-Bits 0x01, 0x02, 0x04, 0x08, 0x10, 0x40 oder 0x80 gesetzt ist, sonst gelöscht", "Hat eines der 8 Nachbarfelder eine andere Höhe (bei Höhe über 8 oder Nachbarhöhe 0), wird Bit 32768 gelöscht; die Fluss- und Wassergraben-Ausnahme ist wegen einer Ghidra-Klammerung unsicher", "ShowHiLayer: bis zu 8 Schritte in Blickrichtung; verdeckt eine höhere Kante das Feld, wird 0xFF gesetzt, sonst die Höhendifferenz zum niedrigsten Nachbarn", "MiscDisplayLayer Bit 0x10 wird gesetzt oder gelöscht je nach Bebauung, Bäumen, Feldern, Zinnen, Treppen und Mauern in der Umgebung; Zugbrücken-Felder bekommen immer 0x10; Bits 1 und 2 zeigen höhere Nachbarn in zwei Blickrichtungen an (nicht auf Meer)"], "offen": ["Bedeutung der einzelnen Bits in LogicLayer, Logic2Layer und MiscDisplayLayer", "Die Konstanten L_* sind Namen der Ghidra-Datenbank; ihre Werte sind hier nicht sichtbar", "Fluss- und Wassergrabenprüfung L_RIVER | L_MOAT ist durch die Klammerung vermutlich falsch übersetzt"]}, "p3": {"erklaerung": "Reine Anzeigepflege: Das Spiel bestimmt, wo Hänge, Schatten und verdeckte Felder gezeichnet werden. Auf die Spielregeln wirkt es nur über das Flag 32768 im LogicLayer indirekt, das hier nicht eindeutig gedeutet ist.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x004f7a80 computeTileLuminescence | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004F7A80
+ void TileMapState::computeTileLuminescence(int tile, int param_2)
+ {
+ int iVar1;
+ uint uVar2;
+ char cVar3;
+ uint uVar4;
+ uint uVar5;
+ int iVar6;
+ int iVar7;
+ int iVar8;
+ uint local_2c;
+ int local_28;
+ int local_24;
+ uint local_1c;
+ uint local_18;
+ int local_14;
+ uint local_10;
+ uint local_c;
+ uint _logicTile;
+ uVar5 = 0;
+ _logicTile = this->LogicLayer[tile];
+ local_24 = 0;
+ local_14 = 0;
+ local_28 = 2;
+ local_c = 2;
+ local_10 = 2;
+ local_1c = 0;
+ local_18 = 0;
+ if ((_logicTile & L_BORDER | L_BORDER_EDGE | L_BUILDING | L_KEEP_NON_MANOR_HOUSE) != 0) {
+ return;
+ }
+ switch (this->mapOrientation) {
+ case 0:
+ local_24 = 5;
+ local_14 = 1;
+ local_1c = 4;
+ local_18 = 6;
+ break;
+ case 2:
+ local_24 = 7;
+ local_14 = 3;
+ local_1c = 6;
+ local_18 = 0;
+ break;
+ case 4:
+ local_24 = 1;
+ local_14 = 5;
+ local_1c = 0;
+ local_18 = 2;
+ break;
+ case 6:
+ local_24 = 3;
+ local_14 = 7;
+ local_1c = 2;
+ local_18 = 4;
+ }
+ uVar4 = (uint)this->HeightLayer[tile];
+ iVar6 = tile;
+ iVar7 = param_2;
+ if ((_logicTile & L_TREE) == 0) {
+ if ((_logicTile & L_TREE_VARIATION) != 0) {
+ local_28 = 5;
+ local_2c = 6;
+ goto LAB_004f7ba5;
+ }
+ } else {
+ iVar1 = getTreeGrowthTargetStage((int)this->OrganismLayer[tile]);
+ if (2 < iVar1) {
+ local_28 = iVar1;
+ }
+ }
+ local_2c = 6;
+ LAB_004f7ba5:
+ do {
+ iVar6 = iVar6 + this->directionTranslationMatrix[iVar7][local_24];
+ iVar7 = iVar7
+ + *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + local_24 * 8 + 4);
+ if ((this->LogicLayer[iVar6] & L_BORDER | L_BORDER_EDGE) != 0)
+ break;
+ if ((this->LogicLayer[iVar6] & L_BUILDING | L_KEEP_NON_MANOR_HOUSE) == 0) {
+ uVar5 = (uint)this->HeightLayer[iVar6];
+ } else {
+ iVar8 = (int)this->BuildingLayer[iVar6];
+ iVar1 = getBuildingFlag3(iVar8);
+ if (iVar1 == 0) {
+ iVar1 = getBuildingHeightForBuildingID(iVar8);
+ if (iVar1 < 0x10) {
+ uVar5 = this->HeightLayer[iVar6] + 0x10;
+ } else {
+ iVar1 = getBuildingHeightForBuildingID(iVar8);
+ uVar5 = (uint)this->HeightLayer[iVar6] + iVar1;
+ }
+ }
+ }
+ if ((this->LogicLayer[iVar6] & L_TREE) == 0) {
+ if ((this->LogicLayer[iVar6] & L_TREE_VARIATION) != 0) {
+ uVar5 = uVar5 + 0x28;
+ }
+ } else {
+ iVar1 = getTreeGrowthTargetStage((int)this->OrganismLayer[iVar6]);
+ uVar5 = uVar5 + iVar1 * 7;
+ }
+ iVar1 = uVar5 - uVar4;
+ if (iVar1 < 1) {
+ uVar2 = 2;
+ } else if (iVar1 < 0x13) {
+ uVar2 = local_2c;
+ if (iVar1 < 0xf) {
+ if (iVar1 < 0xb) {
+ if (iVar1 < 7) {
+ if (iVar1 < 3) {
+ uVar2 = 0;
+ } else {
+ uVar2 = local_2c + -3;
+ }
+ } else {
+ uVar2 = local_2c + -2;
+ }
+ } else {
+ uVar2 = local_2c + -1;
+ }
+ }
+ } else {
+ uVar2 = local_2c + 1;
+ }
+ if (local_28 < (int)uVar2) {
+ local_28 = uVar2;
+ }
+ local_2c = local_2c + -1;
+ } while (1 < (int)local_2c);
+ iVar7 = this->directionTranslationMatrix[param_2][local_1c] + tile;
+ iVar6 = local_1c * 8;
+ local_1c = 4;
+ iVar6 = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar6 + 4) + param_2;
+ local_2c = uVar5;
+ do {
+ if ((this->LogicLayer[iVar7] & L_BORDER | L_BORDER_EDGE) != 0)
+ break;
+ if ((this->LogicLayer[iVar7] & L_BUILDING | L_KEEP_NON_MANOR_HOUSE) == 0) {
+ local_2c = (uint)this->HeightLayer[iVar7];
+ } else {
+ iVar8 = (int)this->BuildingLayer[iVar7];
+ iVar1 = getBuildingFlag3(iVar8);
+ if (iVar1 == 0) {
+ iVar1 = getBuildingHeightForBuildingID(iVar8);
+ if (iVar1 < 0x10) {
+ local_2c = this->HeightLayer[iVar7] + 0x10;
+ } else {
+ iVar1 = getBuildingHeightForBuildingID(iVar8);
+ local_2c = (uint)this->HeightLayer[iVar7] + iVar1;
+ }
+ }
+ }
+ if ((this->LogicLayer[iVar7] & L_TREE) == 0) {
+ if ((this->LogicLayer[iVar7] & L_TREE_VARIATION) != 0) {
+ local_2c = local_2c + 0x28;
+ }
+ } else {
+ iVar1 = getTreeGrowthTargetStage((int)this->OrganismLayer[iVar7]);
+ local_2c = local_2c + iVar1 * 7;
+ }
+ iVar1 = local_2c - uVar4;
+ if (iVar1 < 1) {
+ uVar5 = 2;
+ } else if (iVar1 < 0x13) {
+ uVar5 = local_1c;
+ if (iVar1 < 0xd) {
+ if (iVar1 < 7) {
+ uVar5 = 0;
+ } else {
+ uVar5 = local_1c - 1;
+ }
+ }
+ } else {
+ uVar5 = local_1c + 1;
+ }
+ if ((int)local_c < (int)uVar5) {
+ local_c = uVar5;
+ }
+ iVar7 = iVar7 + this->directionTranslationMatrix[iVar6][local_24];
+ local_1c = local_1c - 1;
+ iVar6 = iVar6
+ + *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + local_24 * 8 + 4);
+ } while (local_1c < 0x80000000);
+ iVar6 = local_18 * 8;
+ iVar7 = this->directionTranslationMatrix[param_2][local_18] + tile;
+ local_18 = 4;
+ iVar6 = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar6 + 4) + param_2;
+ do {
+ if ((this->LogicLayer[iVar7] & L_BORDER | L_BORDER_EDGE) != 0)
+ break;
+ if ((this->LogicLayer[iVar7] & L_BUILDING | L_KEEP_NON_MANOR_HOUSE) == 0) {
+ local_2c = (uint)this->HeightLayer[iVar7];
+ } else {
+ iVar8 = (int)this->BuildingLayer[iVar7];
+ iVar1 = getBuildingFlag3(iVar8);
+ if (iVar1 == 0) {
+ iVar1 = getBuildingHeightForBuildingID(iVar8);
+ if (iVar1 < 0x10) {
+ local_2c = this->HeightLayer[iVar7] + 0x10;
+ } else {
+ iVar1 = getBuildingHeightForBuildingID(iVar8);
+ local_2c = (uint)this->HeightLayer[iVar7] + iVar1;
+ }
+ }
+ }
+ if ((this->LogicLayer[iVar7] & L_TREE) == 0) {
+ if ((this->LogicLayer[iVar7] & L_TREE_VARIATION) != 0) {
+ local_2c = local_2c + 0x28;
+ }
+ } else {
+ iVar1 = getTreeGrowthTargetStage((int)this->OrganismLayer[iVar7]);
+ local_2c = local_2c + iVar1 * 7;
+ }
+ iVar1 = local_2c - uVar4;
+ if (iVar1 < 1) {
+ uVar5 = 2;
+ } else if (iVar1 < 0x13) {
+ uVar5 = local_18;
+ if (iVar1 < 0xd) {
+ if (iVar1 < 7) {
+ uVar5 = 0;
+ } else {
+ uVar5 = local_18 - 1;
+ }
+ }
+ } else {
+ uVar5 = local_18 + 1;
+ }
+ if ((int)local_10 < (int)uVar5) {
+ local_10 = uVar5;
+ }
+ iVar7 = iVar7 + this->directionTranslationMatrix[iVar6][local_24];
+ local_18 = local_18 - 1;
+ iVar6 = iVar6
+ + *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + local_24 * 8 + 4);
+ } while (local_18 < 0x80000000);
+ if ((local_28 + -2 < (int)((local_10 - 4) + local_c)) && (local_28 = (local_10 - 2) + local_c, 6 < local_28)) {
+ local_28 = 7;
+ } else if (local_28 == 2) {
+ iVar6 = this->directionTranslationMatrix[param_2][local_24] + tile;
+ uVar5 = uVar4;
+ if ((this->LogicLayer[iVar6] & L_BORDER | L_BORDER_EDGE) == 0) {
+ if ((this->LogicLayer[iVar6] & L_BUILDING | L_KEEP_NON_MANOR_HOUSE) == 0) {
+ uVar5 = (uint)this->HeightLayer[iVar6];
+ } else {
+ iVar1 = (int)this->BuildingLayer[iVar6];
+ iVar7 = getBuildingFlag3(iVar1);
+ uVar5 = local_2c;
+ if (iVar7 == 0) {
+ iVar7 = getBuildingHeightForBuildingID(iVar1);
+ if (iVar7 < 0x10) {
+ uVar5 = this->HeightLayer[iVar6] + 0x10;
+ } else {
+ iVar7 = getBuildingHeightForBuildingID(iVar1);
+ uVar5 = (uint)this->HeightLayer[iVar6] + iVar7;
+ }
+ }
+ }
+ }
+ iVar6 = this->directionTranslationMatrix[param_2][local_14] + tile;
+ uVar2 = uVar4;
+ if ((this->LogicLayer[iVar6] & L_BORDER | L_BORDER_EDGE) == 0) {
+ uVar2 = (uint)this->HeightLayer[iVar6];
+ }
+ cVar3 = (int)uVar5 < (int)(uVar4 - 4);
+ if (uVar4 + 4 < uVar2) {
+ cVar3 = cVar3 + '\x01';
+ }
+ if ((this->LogicLayer[tile] & L_MOAT) == 0) {
+ if (cVar3 == '\x01') {
+ local_28 = 1;
+ } else if (cVar3 == '\x02') {
+ local_28 = 0;
+ }
+ }
+ }
+ this->LuminesenceLayer[tile] = (uchar)local_28;
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004f7a80", "name": "computeTileLuminescence", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Berechnet die Beleuchtungsstufe (Schattierung) eines Feldes aus den Höhen der Nachbarfelder."}, "p2": {"ein": "tile, param_2 (Zeile y)", "aus": "nichts; Ergebnis steht in LuminesenceLayer[tile]", "liest": ["LogicLayer", "HeightLayer", "BuildingLayer", "OrganismLayer", "mapOrientation", "directionTranslationMatrix", "clockwiseCardinalTranslationMatrix"], "schreibt": ["LuminesenceLayer[tile]"], "ruft": ["getTreeGrowthTargetStage", "getBuildingFlag3", "getBuildingHeightForBuildingID"], "regeln": ["Felder mit L_BORDER, L_BORDER_EDGE, L_BUILDING oder L_KEEP_NON_MANOR_HOUSE werden übersprungen, nichts wird geschrieben", "Blickrichtung hängt von mapOrientation ab (0, 2, 4, 6 drehen die Richtungsnummern)", "Bäume zählen als Höhe: Baumstufe mal 7, Baumvariante plus 0x28; Gebäude mindestens plus 0x10 über Boden", "Höhenunterschied zum Nachbarn bis 0 oder weniger gibt Wert 2 (neutral); über 0x12 (18) gibt den Höchstwert", "Das Ergebnis wird auf höchstens 7 begrenzt", "Ist das Ergebnis 2 und das Feld kein L_MOAT, kann es auf 1 oder 0 sinken, wenn ein Nachbar deutlich tiefer (mehr als 4) und/oder ein anderer deutlich höher (mehr als 4) liegt", "Ein Feld mit Baum startet mit mindestens der Baumstufe als Helligkeit (wenn Stufe größer 2)"], "offen": ["Genaue Bedeutung der Stufen 0 bis 7 (vermutlich dunkel bis hell)", "Bedeutung der Eingabe param_2 (vermutlich y-Zeile)"]}, "p3": {"erklaerung": "Reine Darstellung: Das Spiel schattiert Felder je nach umliegenden Hügeln, Bäumen und Gebäuden. Für das Spielgeschehen ohne Bedeutung.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+

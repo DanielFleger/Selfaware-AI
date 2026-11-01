@@ -1,0 +1,1045 @@
+### 0x00429710 SetupSkirmishBalanceAndOrIntensity | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00429710
+ void Skirmish::SetupSkirmishBalanceAndOrIntensity()
+ {
+ int _index;
+ switch (DAT_GameSynchronyState.skirmishTechLevel) {
+ case 0:
+ DAT_GameSynchronyState.skirmishGameIntensityType = 1;
+ DAT_GameSynchronyState.skirmishGameIntensityType2 = 0;
+ break;
+ case 1:
+ DAT_GameSynchronyState.skirmishGameIntensityType = 1;
+ DAT_GameSynchronyState.skirmishGameIntensityType2 = 1;
+ break;
+ case 2:
+ DAT_GameSynchronyState.skirmishGameIntensityType = 2;
+ DAT_GameSynchronyState.skirmishGameIntensityType2 = 1;
+ break;
+ case 3:
+ DAT_GameSynchronyState.skirmishGameIntensityType = 2;
+ DAT_GameSynchronyState.skirmishGameIntensityType2 = 2;
+ break;
+ case 4:
+ DAT_GameSynchronyState.skirmishGameIntensityType = 3;
+ DAT_GameSynchronyState.skirmishGameIntensityType2 = 3;
+ break;
+ default:
+ goto switchD_00429720_caseD_5;
+ }
+ DAT_GameSynchronyState.skirmishDefaultPopularity = 80;
+ DAT_GameSynchronyState.skirmishUnknownSetting1[0] = 1;
+ DAT_GameSynchronyState.skirmishUnknownSetting1[1] = 1;
+ DAT_GameSynchronyState.skirmishUnknownSetting1[3] = 1;
+ switchD_00429720_caseD_5:
+ if (DAT_GameSynchronyState.skirmishGameIntensityType == 1) {
+ _index = 0;
+ do {
+ DAT_GameSynchronyState.skirmishIntensityRelatedArray[_index]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray[0][DAT_GameSynchronyState.skirmishTechLevel][_index];
+ _index = _index + 1;
+ } while (_index < 0x14);
+ } else if (DAT_GameSynchronyState.skirmishGameIntensityType == 2) {
+ _index = 0;
+ do {
+ DAT_GameSynchronyState.skirmishIntensityRelatedArray[_index]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray[1][DAT_GameSynchronyState.skirmishTechLevel][_index];
+ _index = _index + 1;
+ } while (_index < 0x14);
+ } else if (DAT_GameSynchronyState.skirmishGameIntensityType == 3) {
+ _index = 0;
+ do {
+ DAT_GameSynchronyState.skirmishIntensityRelatedArray[_index]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray[2][DAT_GameSynchronyState.skirmishTechLevel][_index];
+ _index = _index + 1;
+ } while (_index < 20);
+ }
+ switch (DAT_GameSynchronyState.skirmishGameIntensityType2) {
+ case 0:
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[0] = 0;
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[1] = 0;
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[2] = 0;
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[3] = 0;
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[4] = 0;
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[5] = 0;
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[6] = 0;
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[7] = 0;
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[8] = 0;
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[9] = 0;
+ break;
+ case 1:
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[0]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel][0];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[1]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel][1];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[2]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel][2];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[3]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel][3];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[4]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel][4];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[5]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel][5];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[6]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel][6];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[7]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel][7];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[8]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel][8];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[9]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel][9];
+ break;
+ case 2:
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[0]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 5][0];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[1]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 5][1];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[2]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 5][2];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[3]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 5][3];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[4]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 5][4];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[5]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 5][5];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[6]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 5][6];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[7]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 5][7];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[8]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 5][8];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[9]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 5][9];
+ break;
+ case 3:
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[0]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 10][0];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[1]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 10][1];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[2]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 10][2];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[3]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 10][3];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[4]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 10][4];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[5]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 10][5];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[6]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 10][6];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[7]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 10][7];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[8]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 10][8];
+ DAT_GameSynchronyState.skirmishBalanceRelatedArrayUnk1[9]
+ = DAT_RenderingDefinedData
+ .SkirmishIntensityRelatedArray2[DAT_GameSynchronyState.skirmishTechLevel + 10][9];
+ }
+ queueCommand(
+ GCT_CHANGE_GAME_INTENSITY_OR_BALANCE);
+ DAT_GameSynchronyState.field235_0x1072e8 = -1;
+ DAT_GameSynchronyState.field236_0x1072ec = -1;
+ return;
+ }
+}
+}
+
+### 0x004c68d0 SetupSkirmishMode | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004C68D0
+ void Skirmish::SetupSkirmishMode(int skirmishTrailMission)
+ {
+ char cVar1;
+ int* piVar2;
+ char* pcVar3;
+ int iVar4;
+ int iVar5;
+ char (*pacVar6)[250];
+ CampaignTrailMission* pCVar7;
+ dword _startDateInMonths;
+ pCVar7 = DAT_SkirmishDefinedData.SkirmishTrailMissions + skirmishTrailMission;
+ if (DAT_GameCore.currentTrailType == TT_EXTREME) {
+ pCVar7 = DAT_SkirmishDefinedData.ExtremeTrailMissions + skirmishTrailMission;
+ } else if (DAT_GameCore.currentTrailType == TT_WARCHEST) {
+ pCVar7 = DAT_SkirmishDefinedData.WarchestTrailMissions + skirmishTrailMission;
+ }
+ setupSkirmishLobby();
+ DAT_GameSynchronyState.isHost = TRUE;
+ DAT_GameSynchronyState.currentGameMode = GM_SKIRMISH_SINGLE_PLAYER;
+ DAT_GameSynchronyState.DPLAYX_ReceivedPlayerID = 1;
+ DAT_GameCore.gameMode_2 = GM_SKIRMISH_AND_MULTIPLAYER;
+ _memset(
+ DAT_GameSynchronyState.DAT_PlayerNames, 0, (size_t)((int)(2250)));
+ piVar2 = DAT_GameSynchronyState.currentAIArray;
+ do {
+ piVar2[-0x1b] = -1;
+ *piVar2 = 0;
+ piVar2[9] = -1;
+ piVar2 = piVar2 + 1;
+ } while ((int)piVar2 < 0x191dea0);
+ pcVar3 = getTextArrayPointer(0);
+ pacVar6 = DAT_GameSynchronyState.DAT_PlayerNames + 1;
+ do {
+ cVar1 = *pcVar3;
+ (*pacVar6)[0] = cVar1;
+ pcVar3 = pcVar3 + 1;
+ pacVar6 = (char (*)[250])(*pacVar6 + 1);
+ } while (cVar1 != '\0');
+ queueCommand(
+ GCT_ASK_FOR_SLOT_ASSIGNMENT);
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[0] = 1;
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[1] = 1;
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[2] = 1;
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[3] = 1;
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[4] = 1;
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[5] = 1;
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[6] = 1;
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[7] = 1;
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[8] = 1;
+ DAT_GameSynchronyState.skirmishRelated1 = -1;
+ DAT_GameCore.mapU4Int0 = 0;
+ if (1 < pCVar7->numberOfPlayers) {
+ piVar2 = &pCVar7->player2AI;
+ iVar4 = 1;
+ do {
+ iVar5 = iVar4 + 1;
+ DAT_GameSynchronyState.currentAIArray[iVar4 + 1] = *piVar2;
+ ResetAiVariationArrayValue(iVar5);
+ piVar2 = piVar2 + 1;
+ iVar4 = iVar5;
+ } while (iVar5 < pCVar7->numberOfPlayers);
+ }
+ DAT_GameSynchronyState.playerPositionsArray[0] = -10;
+ DAT_GameSynchronyState.playerPositionsArray[1] = -10;
+ DAT_GameSynchronyState.playerPositionsArray[2] = -10;
+ DAT_GameSynchronyState.playerPositionsArray[3] = -10;
+ DAT_GameSynchronyState.playerPositionsArray[4] = -10;
+ DAT_GameSynchronyState.playerPositionsArray[5] = -10;
+ DAT_GameSynchronyState.playerPositionsArray[6] = -10;
+ DAT_GameSynchronyState.playerPositionsArray[7] = -10;
+ iVar4 = 0;
+ piVar2 = &pCVar7->position1;
+ do {
+ if (*piVar2 != 0) {
+ DAT_GameSynchronyState.field294_0x109e5f[*piVar2 + 8] = (byte)iVar4;
+ }
+ iVar4 = iVar4 + 1;
+ piVar2 = piVar2 + 1;
+ } while (iVar4 < 8);
+ iVar4 = pCVar7->numberOfPlayers;
+ iVar5 = 0;
+ piVar2 = &pCVar7->team1;
+ do {
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[iVar5 + 1] = (byte)*piVar2;
+ if (iVar4 <= iVar5) {
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[iVar5 + 1] = 0xff;
+ }
+ iVar5 = iVar5 + 1;
+ piVar2 = piVar2 + 1;
+ } while (iVar5 < 8);
+ pcVar3 = pCVar7->mapNameAddress;
+ iVar4 = 0x1a22f9c - (int)pcVar3;
+ do {
+ cVar1 = *pcVar3;
+ pcVar3[iVar4] = cVar1;
+ pcVar3 = pcVar3 + 1;
+ } while (cVar1 != '\0');
+ DAT_GameSynchronyState.skirmishCurrentAdvantageBalance = pCVar7->fairness;
+ DAT_GameSynchronyState.skirmishGameIntensityType = pCVar7->startLevels;
+ piVar2 = &pCVar7->aiv1;
+ DAT_GameCore.isSkirmishTrail = TRUE;
+ if (DAT_GameCore.currentTrailType == TT_EXTREME) {
+ DAT_GameCore.extremeTrailProgress = skirmishTrailMission;
+ LaunchSkirmishGame((int)piVar2);
+ _startDateInMonths
+ = DAT_GameCore.extremeTrailStartDatesInMonths[DAT_GameCore.extremeTrailProgress];
+ DAT_GameCore.extremeTrailStartDateMonths = _startDateInMonths;
+ } else if (DAT_GameCore.currentTrailType == TT_WARCHEST) {
+ DAT_GameCore.warchestTrailProgress = skirmishTrailMission;
+ LaunchSkirmishGame((int)piVar2);
+ _startDateInMonths
+ = DAT_GameCore.warchestTrailStartDatesInMonths[DAT_GameCore.warchestTrailProgress];
+ DAT_GameCore.warchestTrailStartDateMonths = _startDateInMonths;
+ } else {
+ DAT_GameCore.skirmishTrailProgress = skirmishTrailMission;
+ LaunchSkirmishGame((int)piVar2);
+ _startDateInMonths
+ = DAT_GameCore.skirmishTrailStartDateInMonths[DAT_GameCore.skirmishTrailProgress];
+ DAT_GameCore.skirmishTrailStartDateMonths = _startDateInMonths;
+ }
+ DAT_GameState.mapAndTime.year = (int)_startDateInMonths / 0xc;
+ DAT_GameState.mapAndTime.month = (int)_startDateInMonths % 0xc;
+ DAT_GameSynchronyState.finalResults.yearStart = (int)_startDateInMonths / 0xc;
+ DAT_GameSynchronyState.finalResults.monthStart = (int)_startDateInMonths % 0xc;
+ return;
+ }
+}
+}
+
+### 0x004d1700 StoreCurrentGameIntoTemporarySKMasterEntry | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004D1700
+ BOOLEnum Skirmish::StoreCurrentGameIntoTemporarySKMasterEntry(int score)
+ {
+ char cVar1;
+ int iVar2;
+ GameSynchronyState* _src;
+ SkirmishStatistics* _dst;
+ DAT_SkMasterDataEntry.score = score;
+ iVar2 = 0;
+ do {
+ cVar1 = DAT_GameSynchronyState.mapName[iVar2];
+ DAT_SkMasterDataEntry.mapName[iVar2] = cVar1;
+ iVar2 = iVar2 + 1;
+ } while (cVar1 != '\0');
+ DAT_SkMasterDataEntry.skMasterScore = ComputeSkMasterScore(DAT_GameSynchronyState.currentPlayerSlotID);
+ DAT_SkMasterDataEntry.activePlayerCount = 0;
+ iVar2 = 1;
+ do {
+ if (DAT_GameSynchronyState.finalResults.active[iVar2] == 0)
+ break;
+ iVar2 = iVar2 + 1;
+ DAT_SkMasterDataEntry.activePlayerCount = DAT_SkMasterDataEntry.activePlayerCount + 1;
+ } while (iVar2 < 9);
+ DAT_SkMasterDataEntry.array1[1] = DAT_GameState.mapAndTime.playerGroupArray[1];
+ DAT_SkMasterDataEntry.array1[2] = DAT_GameState.mapAndTime.playerGroupArray[2];
+ DAT_SkMasterDataEntry.array1[3] = DAT_GameState.mapAndTime.playerGroupArray[3];
+ DAT_SkMasterDataEntry.array1[4] = DAT_GameState.mapAndTime.playerGroupArray[4];
+ DAT_SkMasterDataEntry.array1[5] = DAT_GameState.mapAndTime.playerGroupArray[5];
+ DAT_SkMasterDataEntry.array1[6] = DAT_GameState.mapAndTime.playerGroupArray[6];
+ DAT_SkMasterDataEntry.array1[7] = DAT_GameState.mapAndTime.playerGroupArray[7];
+ DAT_SkMasterDataEntry.array1[8] = DAT_GameState.mapAndTime.playerGroupArray[8];
+ DAT_SkMasterDataEntry.aiArray[1] = DAT_GameSynchronyState.currentAIArray[1];
+ DAT_SkMasterDataEntry.aiArray[2] = DAT_GameSynchronyState.currentAIArray[2];
+ DAT_SkMasterDataEntry.aiArray[3] = DAT_GameSynchronyState.currentAIArray[3];
+ DAT_SkMasterDataEntry.aiArray[4] = DAT_GameSynchronyState.currentAIArray[4];
+ DAT_SkMasterDataEntry.aiArray[5] = DAT_GameSynchronyState.currentAIArray[5];
+ DAT_SkMasterDataEntry.aiArray[6] = DAT_GameSynchronyState.currentAIArray[6];
+ DAT_SkMasterDataEntry.aliveArray[1] = (int)DAT_GameState.mapAndTime.playerIsAlive[1];
+ DAT_SkMasterDataEntry.aiArray[7] = DAT_GameSynchronyState.currentAIArray[7];
+ DAT_SkMasterDataEntry.aliveArray[2] = (int)DAT_GameState.mapAndTime.playerIsAlive[2];
+ DAT_SkMasterDataEntry.aiArray[8] = DAT_GameSynchronyState.currentAIArray[8];
+ DAT_SkMasterDataEntry.aliveArray[3] = (int)DAT_GameState.mapAndTime.playerIsAlive[3];
+ DAT_SkMasterDataEntry.aliveArray[4] = (int)DAT_GameState.mapAndTime.playerIsAlive[4];
+ DAT_SkMasterDataEntry.aliveArray[5] = (int)DAT_GameState.mapAndTime.playerIsAlive[5];
+ DAT_SkMasterDataEntry.aliveArray[6] = (int)DAT_GameState.mapAndTime.playerIsAlive[6];
+ DAT_SkMasterDataEntry.aliveArray[7] = (int)DAT_GameState.mapAndTime.playerIsAlive[7];
+ DAT_SkMasterDataEntry.aliveArray[8] = (int)DAT_GameState.mapAndTime.playerIsAlive[8];
+ DAT_SkMasterDataEntry.lordType = DAT_GameCore.selectedLordTypeUnk;
+ StoreLocalTime();
+ _src = &DAT_GameSynchronyState.finalResults;
+ _dst = &DAT_SkMasterDataEntry.results;
+ for (iVar2 = 478; iVar2 != 0; iVar2 = iVar2 + -1) {
+ *(undefined4*)_dst->names[0] = *(undefined4*)_src->names[0];
+ _src = (GameSynchronyState*)(_src->names[0] + 4);
+ _dst = (SkirmishStatistics*)(_dst->names[0] + 4);
+ }
+ return TRUE;
+ }
+}
+}
+
+### 0x004d52a0 StoreGameIntoSKMasters | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004D52A0
+ void Skirmish::StoreGameIntoSKMasters(int score)
+ {
+ BOOLEnum BVar1;
+ int iVar2;
+ int iVar3;
+ int* piVar4;
+ SkMasterDataEntry* pSVar5;
+ int iVar6;
+ SkMasterDataEntry* _ptrSrc;
+ SkMasterDataEntry* _ptrDst;
+ int _count;
+ SkMasterDataEntry* _ptrDst2;
+ SkMasterDataEntry* _ptrSrc2;
+ BVar1 = StoreCurrentGameIntoTemporarySKMasterEntry(score);
+ if (BVar1 == FALSE) {
+ return;
+ }
+ _count = -1;
+ if (DAT_SkMasters2Data_Count < 1) {
+ _count = 0;
+ }
+ if (DAT_SkMasters2Data_Count < 250) {
+ _count = DAT_SkMasters2Data_Count;
+ }
+ iVar6 = _count;
+ if (_count != 0) {
+ iVar2 = 0;
+ if (0 < DAT_SkMasters2Data_Count) {
+ piVar4 = DAT_SkMasters2DataArray[0].skMasterScore;
+ do {
+ iVar6 = iVar2;
+ if (*piVar4 < DAT_SkMasterDataEntry.skMasterScore)
+ break;
+ iVar2 = iVar2 + 1;
+ piVar4 = piVar4 + 764;
+ iVar6 = _count;
+ } while (iVar2 < DAT_SkMasters2Data_Count);
+ }
+ if (iVar6 == -1) {
+ return;
+ }
+ }
+ if (iVar6 < DAT_SkMasters2Data_Count) {
+ pSVar5 = DAT_SkMasters2DataArray + DAT_SkMasters2Data_Count;
+ iVar2 = DAT_SkMasters2Data_Count;
+ do {
+ if (iVar2 < 249) {
+ _ptrSrc = pSVar5 + -1;
+ _ptrDst = pSVar5;
+ for (iVar3 = 764; iVar3 != 0; iVar3 = iVar3 + -1) {
+ _ptrDst->score = _ptrSrc->score;
+ _ptrSrc = (SkMasterDataEntry*)_ptrSrc->mapName;
+ _ptrDst = (SkMasterDataEntry*)_ptrDst->mapName;
+ }
+ }
+ iVar2 = iVar2 + -1;
+ pSVar5 = pSVar5 + -1;
+ } while (iVar6 < iVar2);
+ }
+ _ptrSrc2 = DAT_SkMasterDataEntry;
+ _ptrDst2 = DAT_SkMasters2DataArray + iVar6;
+ for (iVar2 = 764; iVar2 != 0; iVar2 = iVar2 + -1) {
+ _ptrDst2->score = _ptrSrc2->score;
+ _ptrSrc2 = (SkMasterDataEntry*)_ptrSrc2->mapName;
+ _ptrDst2 = (SkMasterDataEntry*)_ptrDst2->mapName;
+ }
+ if (DAT_SkMasters2Data_Count < 250) {
+ DAT_SkMasters2Data_Count = DAT_SkMasters2Data_Count + 1;
+ }
+ WriteSkMasters2();
+ return;
+ }
+}
+}
+
+### 0x004d5370 SkirmishLeaderboard_DeleteEntry | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004D5370
+ void Skirmish::SkirmishLeaderboard_DeleteEntry(int index)
+ {
+ SkMasterDataEntry* pSVar1;
+ int iVar2;
+ SkMasterDataEntry* pSVar3;
+ SkMasterDataEntry* pSVar4;
+ if ((-1 < index) && (index < DAT_SkMasters2Data_Count)) {
+ if (index < DAT_SkMasters2Data_Count + -1) {
+ pSVar1 = DAT_SkMasters2DataArray + index;
+ do {
+ pSVar3 = pSVar1 + 1;
+ pSVar4 = pSVar1;
+ for (iVar2 = 0x2fc; iVar2 != 0; iVar2 = iVar2 + -1) {
+ pSVar4->score = pSVar3->score;
+ pSVar3 = (SkMasterDataEntry*)pSVar3->mapName;
+ pSVar4 = (SkMasterDataEntry*)pSVar4->mapName;
+ }
+ index = index + 1;
+ pSVar1 = pSVar1 + 1;
+ } while (index < DAT_SkMasters2Data_Count + -1);
+ }
+ DAT_SkMasters2Data_Count = DAT_SkMasters2Data_Count + -1;
+ WriteSkMasters2();
+ return;
+ }
+ return;
+ }
+}
+}
+
+### 0x004d9400 Skirmish_PrepareLeaderboardView | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004D9400
+ void Skirmish::Skirmish_PrepareLeaderboardView()
+ {
+ char cVar1;
+ int iVar2;
+ byte bVar3;
+ int _index;
+ SkMasterDataEntry* puVar7;
+ char* pcVar4;
+ int _index2;
+ SkMasterDataEntry* _pSkMasters_01;
+ SkMasterDataEntry* _pSkMasters_02;
+ int* piVar5;
+ byte bVar6;
+ int iVar7;
+ SkMasterDataEntry* pSVar8;
+ char* pcVar9;
+ int _count;
+ uint _month;
+ uint _year;
+ _count = DAT_SkMasters2Data_Count;
+ /*
+ Phase 1: Initialize visibility filter
+ */
+ if (0 < DAT_SkMasters2Data_Count) {
+ piVar5 = INT_ARRAY_00eb0e48::instance;
+ for (_index2 = DAT_SkMasters2Data_Count; _index2 != 0; _index2 = _index2 + -1) {
+ *piVar5 = 1;
+ piVar5 = piVar5 + 1;
+ }
+ }
+ iVar7 = DAT_00ed3124;
+ if (DAT_00ed3124 == 1) {
+ _index = 0;
+ if (0 < _count) {
+ _pSkMasters_01 = DAT_SkMasters2DataArray;
+ do {
+ if (_pSkMasters_01->score == 0) {
+ INT_ARRAY_00eb0e48::instance[_index] = 0;
+ }
+ _index = _index + 1;
+ _pSkMasters_01 = _pSkMasters_01 + 1;
+ } while (_index < _count);
+ }
+ } else if ((DAT_00ed3124 == 2) && (_index = 0, 0 < _count)) {
+ _pSkMasters_02 = DAT_SkMasters2DataArray;
+ do {
+ if (_pSkMasters_02->score != 0) {
+ INT_ARRAY_00eb0e48::instance[_index] = 0;
+ }
+ _index = _index + 1;
+ _pSkMasters_02 = _pSkMasters_02 + 1;
+ } while (_index < _count);
+ }
+ /*
+ Phase 2: Sort column dispatch
+ */
+ if (DAT_MissionDefinedData.sortColumn < 2) {
+ iVar7 = 0;
+ DAT_00eb9b60 = 0;
+ if (DAT_MissionDefinedData.descending == 1) {
+ _index = 0;
+ if (0 < _count) {
+ do {
+ if (INT_ARRAY_00eb0e48::instance[_index] != 0) {
+ INT_ARRAY_00eb96d8::instance[iVar7] = _index;
+ iVar7 = iVar7 + 1;
+ }
+ _index = _index + 1;
+ } while (_index < _count);
+ DAT_00eb9b60 = iVar7;
+ return;
+ }
+ } else if ((DAT_MissionDefinedData.descending == 0) && (0 < _count)) {
+ piVar5 = INT_00eb0e44::ptr + _count;
+ _index = _count;
+ do {
+ _index = _index + -1;
+ if (*piVar5 != 0) {
+ INT_ARRAY_00eb96d8::instance[iVar7] = _index;
+ iVar7 = iVar7 + 1;
+ }
+ piVar5 = piVar5 + -1;
+ _count = _count + -1;
+ } while (_count != 0);
+ DAT_00eb9b60 = iVar7;
+ return;
+ }
+ } else {
+ if (DAT_MissionDefinedData.sortColumn == 4) {
+ _index = 0;
+ iVar7 = 0;
+ DAT_00eb9b60 = 0;
+ if (0 < _count) {
+ puVar7 = DAT_SkMasters2DataArray[0];
+ do {
+ if (INT_ARRAY_00eb0e48::instance[iVar7] != 0) {
+ _year = puVar7->localTimeYear;
+ _month = puVar7->localTimeMonth;
+ INT_ARRAY_00ed27f0::instance[_index] = iVar7;
+ _index = _index + 1;
+ (INT_00ed2bdc::ptr)[_index]
+ = ((_year - 2000) * 0x10 + _month) * 0x20 + puVar7->localTimeDay;
+ }
+ iVar7 = iVar7 + 1;
+ puVar7 = puVar7 + 0x2fc;
+ DAT_00eb9b60 = _index;
+ } while (iVar7 < _count);
+ }
+ Skirmish_SortAIOpponentOrder(
+ DAT_MissionDefinedData.descending);
+ return;
+ }
+ if (DAT_MissionDefinedData.sortColumn == 2) {
+ _index = 0;
+ DAT_00eb9b60 = 0;
+ if (iVar7 == 1) {
+ iVar7 = 0;
+ if (0 < _count) {
+ pSVar8 = DAT_SkMasters2DataArray;
+ do {
+ if (INT_ARRAY_00eb0e48::instance[iVar7] != 0) {
+ iVar2 = pSVar8->score;
+ INT_ARRAY_00ed27f0::instance[_index] = iVar7;
+ INT_ARRAY_00ed2be0::instance[_index] = 0x50 - iVar2;
+ _index = _index + 1;
+ }
+ iVar7 = iVar7 + 1;
+ pSVar8 = pSVar8 + 1;
+ } while (iVar7 < _count);
+ DAT_00eb9b60 = _index;
+ Skirmish_SortAIOpponentOrder(
+ DAT_MissionDefinedData.descending);
+ return;
+ }
+ } else {
+ iVar7 = 0;
+ if (0 < _count) {
+ pSVar8 = DAT_SkMasters2DataArray;
+ do {
+ if (INT_ARRAY_00eb0e48::instance[iVar7] != 0) {
+ if (pSVar8->score != 0) {
+ pcVar4 = getTextStringInGroupAtOffset(
+ TEXT_TRAIL_NAMES_CRU, pSVar8->score);
+ pcVar9 = pSVar8->mapName;
+ do {
+ cVar1 = *pcVar4;
+ *pcVar9 = cVar1;
+ pcVar4 = pcVar4 + 1;
+ pcVar9 = pcVar9 + 1;
+ _index = DAT_00eb9b60;
+ _count = DAT_SkMasters2Data_Count;
+ } while (cVar1 != '\0');
+ }
+ bVar6 = pSVar8->mapName[0];
+ if ((byte)(bVar6 + 0xbf) < 0x1a) {
+ bVar6 = bVar6 + 0x20;
+ }
+ bVar3 = pSVar8->mapName[1];
+ if ((byte)(bVar3 + 0xbf) < 0x1a) {
+ bVar3 = bVar3 + 0x20;
+ }
+ INT_ARRAY_00ed2be0::instance[_index] = ((uint)bVar6 * -0x100 + -1) - (uint)bVar3;
+ INT_ARRAY_00ed27f0::instance[_index] = iVar7;
+ _index = _index + 1;
+ DAT_00eb9b60 = _index;
+ }
+ iVar7 = iVar7 + 1;
+ pSVar8 = pSVar8 + 1;
+ } while (iVar7 < _count);
+ }
+ }
+ Skirmish_SortAIOpponentOrder(
+ DAT_MissionDefinedData.descending);
+ return;
+ }
+ if (DAT_MissionDefinedData.sortColumn == 3) {
+ _index = 0;
+ iVar7 = 0;
+ DAT_00eb9b60 = 0;
+ if (0 < _count) {
+ piVar5 = DAT_SkMasters2DataArray[0].gameDurationInMinutes;
+ do {
+ if (INT_ARRAY_00eb0e48::instance[iVar7] != 0) {
+ iVar2 = *piVar5;
+ INT_ARRAY_00ed27f0::instance[_index] = iVar7;
+ INT_ARRAY_00ed2be0::instance[_index] = -1 - iVar2;
+ _index = _index + 1;
+ }
+ iVar7 = iVar7 + 1;
+ piVar5 = piVar5 + 0x2fc;
+ DAT_00eb9b60 = _index;
+ } while (iVar7 < _count);
+ }
+ Skirmish_SortAIOpponentOrder(
+ DAT_MissionDefinedData.descending);
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x00486c40 commitSkirmishSettings | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00486C40
+ void SkirmishLobbySetupStructure::commitSkirmishSettings()
+ {
+ char cVar1;
+ char* pcVar2;
+ this->mapu4int2 = DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes;
+ pcVar2 = DAT_GameSynchronyState.mapName;
+ this->mbr_0x4 = DAT_GameState.mapAndTime.skirmishFogOfWar;
+ do {
+ cVar1 = *pcVar2;
+ /*
+ DAT_Section1124.mapName
+ */
+ pcVar2[-0xc2ee7c] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ } while (cVar1 != '\0');
+ this->roundTableOrderArray[0] = DAT_GameSynchronyState.DAT_RoundTableOrderArray[0];
+ this->playerGroupArray[0] = DAT_GameSynchronyState.DAT_PlayerGroupArray[0];
+ this->currentAIArray[0] = DAT_GameSynchronyState.currentAIArray[0];
+ this->aiVariationArray[0] = DAT_GameSynchronyState.aiVariationArray[0];
+ this->roundTableOrderArray[1] = DAT_GameSynchronyState.DAT_RoundTableOrderArray[1];
+ this->playerGroupArray[1] = DAT_GameSynchronyState.DAT_PlayerGroupArray[1];
+ this->currentAIArray[1] = DAT_GameSynchronyState.currentAIArray[1];
+ this->aiVariationArray[1] = DAT_GameSynchronyState.aiVariationArray[1];
+ this->roundTableOrderArray[2] = DAT_GameSynchronyState.DAT_RoundTableOrderArray[2];
+ this->playerGroupArray[2] = DAT_GameSynchronyState.DAT_PlayerGroupArray[2];
+ this->currentAIArray[2] = DAT_GameSynchronyState.currentAIArray[2];
+ this->aiVariationArray[2] = DAT_GameSynchronyState.aiVariationArray[2];
+ this->roundTableOrderArray[3] = DAT_GameSynchronyState.DAT_RoundTableOrderArray[3];
+ this->playerGroupArray[3] = DAT_GameSynchronyState.DAT_PlayerGroupArray[3];
+ this->currentAIArray[3] = DAT_GameSynchronyState.currentAIArray[3];
+ this->aiVariationArray[3] = DAT_GameSynchronyState.aiVariationArray[3];
+ this->roundTableOrderArray[4] = DAT_GameSynchronyState.DAT_RoundTableOrderArray[4];
+ this->playerGroupArray[4] = DAT_GameSynchronyState.DAT_PlayerGroupArray[4];
+ this->currentAIArray[4] = DAT_GameSynchronyState.currentAIArray[4];
+ this->aiVariationArray[4] = DAT_GameSynchronyState.aiVariationArray[4];
+ this->roundTableOrderArray[5] = DAT_GameSynchronyState.DAT_RoundTableOrderArray[5];
+ this->playerGroupArray[5] = DAT_GameSynchronyState.DAT_PlayerGroupArray[5];
+ this->currentAIArray[5] = DAT_GameSynchronyState.currentAIArray[5];
+ this->aiVariationArray[5] = DAT_GameSynchronyState.aiVariationArray[5];
+ this->roundTableOrderArray[6] = DAT_GameSynchronyState.DAT_RoundTableOrderArray[6];
+ this->playerGroupArray[6] = DAT_GameSynchronyState.DAT_PlayerGroupArray[6];
+ this->currentAIArray[6] = DAT_GameSynchronyState.currentAIArray[6];
+ this->aiVariationArray[6] = DAT_GameSynchronyState.aiVariationArray[6];
+ this->roundTableOrderArray[7] = DAT_GameSynchronyState.DAT_RoundTableOrderArray[7];
+ this->playerGroupArray[7] = DAT_GameSynchronyState.DAT_PlayerGroupArray[7];
+ this->currentAIArray[7] = DAT_GameSynchronyState.currentAIArray[7];
+ this->aiVariationArray[7] = DAT_GameSynchronyState.aiVariationArray[7];
+ this->roundTableOrderArray[8] = DAT_GameSynchronyState.DAT_RoundTableOrderArray[8];
+ this->playerGroupArray[8] = DAT_GameSynchronyState.DAT_PlayerGroupArray[8];
+ this->currentAIArray[8] = DAT_GameSynchronyState.currentAIArray[8];
+ this->aiVariationArray[8] = DAT_GameSynchronyState.aiVariationArray[8];
+ this->slot1Position = DAT_GameSynchronyState.playerPositionsArray[0];
+ this->slot2Position = DAT_GameSynchronyState.playerPositionsArray[1];
+ this->slot3Position = DAT_GameSynchronyState.playerPositionsArray[2];
+ this->slot4Position = DAT_GameSynchronyState.playerPositionsArray[3];
+ this->slot5Position = DAT_GameSynchronyState.playerPositionsArray[4];
+ this->slot6Position = DAT_GameSynchronyState.playerPositionsArray[5];
+ this->slot7Position = DAT_GameSynchronyState.playerPositionsArray[6];
+ this->slot8Position = DAT_GameSynchronyState.playerPositionsArray[7];
+ this->currentPlayerSlotID = DAT_GameSynchronyState.currentPlayerSlotID;
+ this->currentAdvantageBalance = DAT_GameSynchronyState.skirmishCurrentAdvantageBalance;
+ this->currentAdvantageGroup = DAT_GameSynchronyState.skirmishGameIntensityType;
+ this->mbr_0x80 = DAT_GameSynchronyState.skirmishTechLevel;
+ this->playerLordTypeArray[0] = DAT_GameCore.selectedLordTypes[0];
+ this->playerLordTypeArray[1] = DAT_GameCore.selectedLordTypes[1];
+ this->playerLordTypeArray[2] = DAT_GameCore.selectedLordTypes[2];
+ this->playerLordTypeArray[3] = DAT_GameCore.selectedLordTypes[3];
+ this->playerLordTypeArray[4] = DAT_GameCore.selectedLordTypes[4];
+ this->playerLordTypeArray[5] = DAT_GameCore.selectedLordTypes[5];
+ this->playerLordTypeArray[6] = DAT_GameCore.selectedLordTypes[6];
+ this->playerLordTypeArray[7] = DAT_GameCore.selectedLordTypes[7];
+ this->playerLordTypeArray[8] = DAT_GameCore.selectedLordTypes[8];
+ this->mbr_0xf0 = DAT_GameCore.field152_0x2340;
+ this->selectedLordType = DAT_GameCore.selectedLordTypeUnk;
+ this->popularity = DAT_GameSynchronyState.skirmishDefaultPopularity;
+ this->mapSelectionRelativeSelected = DAT_GameSynchronyState.DAT_MapSelectionRelativeSelected;
+ this->mapSelectionScrollOffset = DAT_GameSynchronyState.DAT_MapSelectionScrollOffset;
+ this->mbr_0xfc = DAT_GameSynchronyState.field248_0x109250;
+ return;
+ }
+ }
+}
+}
+
+### 0x00490060 restoreSkirmishLobbySetup | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00490060
+ void SkirmishLobbySetupStructure::restoreSkirmishLobbySetup()
+ {
+ char cVar1;
+ char* pcVar2;
+ DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes = this->mapu4int2;
+ pcVar2 = this->mapName;
+ this->mbr_0x4 = DAT_GameState.mapAndTime.skirmishFogOfWar;
+ do {
+ cVar1 = *pcVar2;
+ pcVar2[0xc2ee7c] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ } while (cVar1 != '\0');
+ DAT_GameSynchronyState.DAT_RoundTableOrderArray[0] = this->roundTableOrderArray[0];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[0] = this->playerGroupArray[0];
+ DAT_GameSynchronyState.currentAIArray[0] = this->currentAIArray[0];
+ DAT_GameSynchronyState.aiVariationArray[0] = this->aiVariationArray[0];
+ DAT_GameSynchronyState.DAT_RoundTableOrderArray[1] = this->roundTableOrderArray[1];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[1] = this->playerGroupArray[1];
+ DAT_GameSynchronyState.currentAIArray[1] = this->currentAIArray[1];
+ DAT_GameSynchronyState.aiVariationArray[1] = this->aiVariationArray[1];
+ DAT_GameSynchronyState.DAT_RoundTableOrderArray[2] = this->roundTableOrderArray[2];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[2] = this->playerGroupArray[2];
+ DAT_GameSynchronyState.currentAIArray[2] = this->currentAIArray[2];
+ DAT_GameSynchronyState.aiVariationArray[2] = this->aiVariationArray[2];
+ DAT_GameSynchronyState.DAT_RoundTableOrderArray[3] = this->roundTableOrderArray[3];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[3] = this->playerGroupArray[3];
+ DAT_GameSynchronyState.currentAIArray[3] = this->currentAIArray[3];
+ DAT_GameSynchronyState.aiVariationArray[3] = this->aiVariationArray[3];
+ DAT_GameSynchronyState.DAT_RoundTableOrderArray[4] = this->roundTableOrderArray[4];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[4] = this->playerGroupArray[4];
+ DAT_GameSynchronyState.currentAIArray[4] = this->currentAIArray[4];
+ DAT_GameSynchronyState.aiVariationArray[4] = this->aiVariationArray[4];
+ DAT_GameSynchronyState.DAT_RoundTableOrderArray[5] = this->roundTableOrderArray[5];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[5] = this->playerGroupArray[5];
+ DAT_GameSynchronyState.currentAIArray[5] = this->currentAIArray[5];
+ DAT_GameSynchronyState.aiVariationArray[5] = this->aiVariationArray[5];
+ DAT_GameSynchronyState.DAT_RoundTableOrderArray[6] = this->roundTableOrderArray[6];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[6] = this->playerGroupArray[6];
+ DAT_GameSynchronyState.currentAIArray[6] = this->currentAIArray[6];
+ DAT_GameSynchronyState.aiVariationArray[6] = this->aiVariationArray[6];
+ DAT_GameSynchronyState.DAT_RoundTableOrderArray[7] = this->roundTableOrderArray[7];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[7] = this->playerGroupArray[7];
+ DAT_GameSynchronyState.currentAIArray[7] = this->currentAIArray[7];
+ DAT_GameSynchronyState.aiVariationArray[7] = this->aiVariationArray[7];
+ DAT_GameSynchronyState.DAT_RoundTableOrderArray[8] = this->roundTableOrderArray[8];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[8] = this->playerGroupArray[8];
+ DAT_GameSynchronyState.currentAIArray[8] = this->currentAIArray[8];
+ DAT_GameSynchronyState.aiVariationArray[8] = this->aiVariationArray[8];
+ DAT_GameSynchronyState.playerPositionsArray[0] = this->slot1Position;
+ DAT_GameSynchronyState.playerPositionsArray[1] = this->slot2Position;
+ DAT_GameSynchronyState.playerPositionsArray[2] = this->slot3Position;
+ DAT_GameSynchronyState.playerPositionsArray[3] = this->slot4Position;
+ DAT_GameSynchronyState.playerPositionsArray[4] = this->slot5Position;
+ DAT_GameSynchronyState.playerPositionsArray[5] = this->slot6Position;
+ DAT_GameSynchronyState.playerPositionsArray[6] = this->slot7Position;
+ DAT_GameSynchronyState.playerPositionsArray[7] = this->slot8Position;
+ DAT_GameSynchronyState.currentPlayerSlotID = this->currentPlayerSlotID;
+ DAT_GameSynchronyState.skirmishCurrentAdvantageBalance = this->currentAdvantageBalance;
+ DAT_GameSynchronyState.skirmishGameIntensityType = this->currentAdvantageGroup;
+ DAT_GameSynchronyState.skirmishTechLevel = this->mbr_0x80;
+ DAT_GameCore.selectedLordTypes[0] = this->playerLordTypeArray[0];
+ DAT_GameCore.selectedLordTypes[1] = this->playerLordTypeArray[1];
+ DAT_GameCore.selectedLordTypes[2] = this->playerLordTypeArray[2];
+ DAT_GameCore.selectedLordTypes[3] = this->playerLordTypeArray[3];
+ DAT_GameCore.selectedLordTypes[4] = this->playerLordTypeArray[4];
+ DAT_GameCore.selectedLordTypes[5] = this->playerLordTypeArray[5];
+ DAT_GameCore.selectedLordTypes[6] = this->playerLordTypeArray[6];
+ DAT_GameCore.selectedLordTypes[7] = this->playerLordTypeArray[7];
+ DAT_GameCore.selectedLordTypes[8] = this->playerLordTypeArray[8];
+ DAT_GameCore.field152_0x2340 = this->mbr_0xf0;
+ DAT_GameCore.selectedLordTypeUnk = this->selectedLordType;
+ DAT_GameSynchronyState.skirmishDefaultPopularity = this->popularity;
+ DAT_GameSynchronyState.DAT_MapSelectionRelativeSelected = this->mapSelectionRelativeSelected;
+ DAT_GameSynchronyState.DAT_MapSelectionScrollOffset = this->mapSelectionScrollOffset;
+ INT_00b960b0::instance = this->mapSelectionScrollOffset + this->mapSelectionRelativeSelected;
+ DAT_GameSynchronyState.field248_0x109250 = this->mbr_0xfc;
+ reorderTeamsAndPositions();
+ return;
+ }
+ }
+}
+}
+
+### 0x00428050 ResetAiVariationArrayValue | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00428050
+void Synchrony::ResetAiVariationArrayValue(int playerID)
+{
+ int* piVar1;
+ int iVar2;
+ int local_24[9];
+ if (playerID - 1U < 8) {
+ local_24[1] = 0;
+ local_24[2] = 0;
+ local_24[3] = 0;
+ local_24[4] = 0;
+ local_24[5] = 0;
+ local_24[6] = 0;
+ local_24[7] = 0;
+ local_24[8] = 0;
+ DAT_GameSynchronyState.aiVariationArray[playerID] = -1;
+ local_24[0] = 0;
+ piVar1 = DAT_GameSynchronyState.aiVariationArray + 1;
+ do {
+ if (((piVar1[-0x24] == -1) && (piVar1[-9] == DAT_GameSynchronyState.currentAIArray[playerID]))
+ && (*piVar1 != -1)) {
+ local_24[*piVar1] = 1;
+ }
+ if (((piVar1[-0x23] == -1) && (piVar1[-8] == DAT_GameSynchronyState.currentAIArray[playerID]))
+ && (piVar1[1] != -1)) {
+ local_24[piVar1[1]] = 1;
+ }
+ if (((piVar1[-0x22] == -1) && (piVar1[-7] == DAT_GameSynchronyState.currentAIArray[playerID]))
+ && (piVar1[2] != -1)) {
+ local_24[piVar1[2]] = 1;
+ }
+ if (((piVar1[-0x21] == -1) && (piVar1[-6] == DAT_GameSynchronyState.currentAIArray[playerID]))
+ && (piVar1[3] != -1)) {
+ local_24[piVar1[3]] = 1;
+ }
+ piVar1 = piVar1 + 4;
+ } while ((int)piVar1 < 0x191dec4);
+ iVar2 = 0;
+ while (local_24[iVar2] != 0) {
+ iVar2 = iVar2 + 1;
+ if (8 < iVar2) {
+ return;
+ }
+ }
+ DAT_GameSynchronyState.aiVariationArray[playerID] = iVar2;
+ }
+ return;
+}
+}
+
+### 0x004c6b20 LoadSkirmishCampaignData | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004C6B20
+void Synchrony::LoadSkirmishCampaignData(int missionID)
+{
+ char cVar1;
+ byte bVar2;
+ char* pcVar3;
+ int* piVar4;
+ int iVar5;
+ int iVar6;
+ int iVar7;
+ char (*pacVar8)[250];
+ CampaignTrailMission* pCVar9;
+ pCVar9 = DAT_SkirmishDefinedData.SkirmishTrailMissions + missionID;
+ if (DAT_GameCore.currentTrailType == TT_EXTREME) {
+ pCVar9 = DAT_SkirmishDefinedData.ExtremeTrailMissions + missionID;
+ } else if (DAT_GameCore.currentTrailType == TT_WARCHEST) {
+ pCVar9 = DAT_SkirmishDefinedData.WarchestTrailMissions + missionID;
+ }
+ pcVar3 = pCVar9->mapNameAddress;
+ iVar7 = (int)CHAR_ARRAY_00eb0ab0::instance - (int)pcVar3;
+ do {
+ cVar1 = *pcVar3;
+ pcVar3[iVar7] = cVar1;
+ pcVar3 = pcVar3 + 1;
+ } while (cVar1 != '\0');
+ _memset(DAT_GameSynchronyState.DAT_PlayerNames, 0, 0x8ca);
+ piVar4 = DAT_GameSynchronyState.currentAIArray;
+ do {
+ piVar4[-0x1b] = -1;
+ *piVar4 = 0;
+ piVar4[9] = -1;
+ piVar4 = piVar4 + 1;
+ } while ((int)piVar4 < 0x191dea0);
+ pcVar3
+ = getTextArrayPointer(0);
+ pacVar8 = DAT_GameSynchronyState.DAT_PlayerNames + 1;
+ do {
+ cVar1 = *pcVar3;
+ (*pacVar8)[0] = cVar1;
+ pcVar3 = pcVar3 + 1;
+ pacVar8 = (char (*)[250])(*pacVar8 + 1);
+ } while (cVar1 != '\0');
+ DAT_GameSynchronyState.isHost = TRUE;
+ DAT_GameSynchronyState.currentGameMode = GM_SKIRMISH_SINGLE_PLAYER;
+ queueCommand(
+ GCT_ASK_FOR_SLOT_ASSIGNMENT);
+ if (1 < pCVar9->numberOfPlayers) {
+ piVar4 = &pCVar9->player2AI;
+ iVar7 = 1;
+ do {
+ iVar5 = iVar7 + 1;
+ DAT_GameSynchronyState.currentAIArray[iVar7 + 1] = *piVar4;
+ ResetAiVariationArrayValue(iVar5);
+ piVar4 = piVar4 + 1;
+ iVar7 = iVar5;
+ } while (iVar5 < pCVar9->numberOfPlayers);
+ }
+ SetAIPlayerNickNames();
+ iVar7 = pCVar9->numberOfPlayers;
+ iVar5 = 0;
+ piVar4 = &pCVar9->team1;
+ do {
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[iVar5 + 1] = (byte)*piVar4;
+ if (iVar7 <= iVar5) {
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[iVar5 + 1] = 0xff;
+ }
+ iVar5 = iVar5 + 1;
+ piVar4 = piVar4 + 1;
+ } while (iVar5 < 8);
+ iVar7 = 0;
+ iVar5 = 1;
+ do {
+ bVar2 = DAT_GameSynchronyState.DAT_PlayerGroupArray[iVar5];
+ iVar6 = (int)(char)bVar2;
+ DAT_GameState.mapAndTime.playerGroupArray[iVar5] = iVar6;
+ if (('\0' < (char)bVar2) && (DAT_GameState.mapAndTime.playerTeams[iVar5] = iVar6, iVar7 < iVar6)) {
+ iVar7 = iVar6;
+ }
+ iVar5 = iVar5 + 1;
+ } while (iVar5 < 9);
+ iVar5 = 1;
+ do {
+ if (DAT_GameSynchronyState.DAT_PlayerGroupArray[iVar5] == 0) {
+ iVar7 = iVar7 + 1;
+ DAT_GameState.mapAndTime.playerTeams[iVar5] = iVar7;
+ }
+ iVar5 = iVar5 + 1;
+ } while (iVar5 < 9);
+ DAT_GameSynchronyState.skirmishCurrentAdvantageBalance = pCVar9->fairness;
+ DAT_GameSynchronyState.skirmishGameIntensityType = pCVar9->startLevels;
+ DAT_GameSynchronyState.playerPositionsArray[0] = -10;
+ DAT_GameSynchronyState.playerPositionsArray[1] = -10;
+ DAT_GameSynchronyState.playerPositionsArray[2] = -10;
+ DAT_GameSynchronyState.playerPositionsArray[3] = -10;
+ DAT_GameSynchronyState.playerPositionsArray[4] = -10;
+ DAT_GameSynchronyState.playerPositionsArray[5] = -10;
+ DAT_GameSynchronyState.playerPositionsArray[6] = -10;
+ DAT_GameSynchronyState.playerPositionsArray[7] = -10;
+ piVar4 = &pCVar9->position1;
+ iVar7 = 0;
+ do {
+ if (*piVar4 != 0) {
+ DAT_GameSynchronyState.field294_0x109e5f[*piVar4 + 8] = (byte)iVar7;
+ }
+ iVar7 = iVar7 + 1;
+ piVar4 = piVar4 + 1;
+ } while (iVar7 < 8);
+ return;
+}
+}
+
+### 0x00500bb0 setSignpostDistanceForCampaignMission | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00500BB0
+ void TileMapState::setSignpostDistanceForCampaignMission()
+ {
+ DAT_GameState.mapAndTime.unk_signpostDistance = 30;
+ if (DAT_GameCore.gameMode_2 == GM_CAMPAIGN_MISSION) {
+ if (DAT_GameCore.missionNumber1to20 < 3) {
+ DAT_GameState.mapAndTime.unk_signpostDistance = 0;
+ return;
+ }
+ if (DAT_GameCore.missionNumber1to20 < 5) {
+ DAT_GameState.mapAndTime.unk_signpostDistance = 15;
+ return;
+ }
+ if (DAT_GameCore.missionNumber1to20 == 6) {
+ DAT_GameState.mapAndTime.unk_signpostDistance = 37;
+ return;
+ }
+ } else if ((DAT_GameCore.gameMode_2 == GM_ECONOMIC_CAMPAIGN_SH1)
+ || ((DAT_GameCore.gameMode_2 == GM_BUILDERUnk
+ && (1 < (int)DAT_MapPropertiesState.SEC_U3_MapType2_1)))) {
+ DAT_GameState.mapAndTime.unk_signpostDistance = 7;
+ }
+ return;
+ }
+}
+}
+

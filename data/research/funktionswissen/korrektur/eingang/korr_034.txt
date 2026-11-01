@@ -1,0 +1,1107 @@
+### 0x004a4470 computeAIZoneLayer | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004A4470
+ void PathFindingState::computeAIZoneLayer(int attackedPlayerID, int canReachKeep, int param_3)
+ {
+ uint uVar1;
+ int iVar2;
+ int _offsetTile;
+ int _direction;
+ int (*_pDirectionTranslation)[8];
+ int* piVar3;
+ int _candidateTile;
+ BuildingTypeShort _buildingType;
+ short _candidateY;
+ short _directionOffset;
+ /*
+ === VALIDATE PLAYER HAS A KEEP === Only compute AI zones if the player has a keep (main castle)
+ */
+ if (DAT_GameState.playerDataArray[attackedPlayerID].keep.id != 0) {
+ /*
+ === INITIALIZE BFS STARTING FROM KEEP ===
+ */
+ this->searchQueue.currentDistance = 1;
+ this->searchQueue.readIndex = 0;
+ this->searchQueue.writeIndex = 1;
+ /*
+ Get the keep's position (specifically the campfire tile inside the keep)
+ */
+ this->searchQueue.yQueue[0]
+ = (short)DAT_GameState.playerDataArray[attackedPlayerID].campground.yEntry;
+ this->searchQueue.tilesQueue[0]
+ = DAT_GameState.playerDataArray[attackedPlayerID].campground.xEntry
+ + DAT_ViewportRenderState
+ .translationMatrix[DAT_GameState.playerDataArray[attackedPlayerID]
+ .campground.yEntry]
+ .addXgetTile;
+ /*
+ Mark the keep tile as AI Zone with value 1 (the starting point)
+ */
+ DAT_TileMapState.AIZoneLayer[this->searchQueue.tilesQueue[0]] = 1;
+ /*
+ Repurpose variable as iteration counter
+ */
+ attackedPlayerID = 0;
+ /*
+ Update path linkage (possibly opens gates or updates navigation mesh)
+ */
+ updatePathLinkageTileMap(1);
+ /*
+ === PHASE 1: FLOOD-FILL THROUGH WALKABLE/CONNECTED AREAS === This phase marks all tiles that
+ are directly connected via normal pathfinding
+ */
+ if (this->searchQueue.readIndex != this->searchQueue.writeIndex) {
+ do {
+ /*
+ Save iteration counter
+ */
+ iVar2 = attackedPlayerID;
+ /*
+ === INNER LOOP: EXPAND THROUGH CONNECTED TILES ===
+ */
+ this->searchQueue.previousReadIndex = this->searchQueue.readIndex;
+ if (this->searchQueue.readIndex != this->searchQueue.writeIndex) {
+ do {
+ /*
+ Get current tile being processed
+ */
+ _candidateY = this->searchQueue.yQueue[this->searchQueue.readIndex];
+ _candidateTile = this->searchQueue.tilesQueue[this->searchQueue.readIndex];
+ /*
+ Check all 8 adjacent directions
+ */
+ _direction = 0;
+ _pDirectionTranslation
+ = DAT_TileMapState.directionTranslationMatrix + _candidateY;
+ do {
+ _offsetTile = (*_pDirectionTranslation)[0] + _candidateTile;
+ /*
+ Add tile to AI zone if: 1. Not already marked (< 1) 2. Has path connection
+ (PathConnectionLayer != 0) 3. Either: a) Normal pathfinding allows movement in
+ this direction, OR b) There's a gate (GATEHOUSELARGE or GATEHOUSESMALL) on the
+ tile
+ */
+ if ((((char)DAT_TileMapState.AIZoneLayer[_offsetTile] < '\x01')
+ && (DAT_TileMapState.PathConnectionLayer[_offsetTile] != 0))
+ && (((DAT_TileMapState.PathLinkageLayer[_candidateTile]
+ & DAT_ClimbLogicDefinedData
+ .BitFlagHelperForPathLinkage[_direction])
+ != 0
+ || ((DAT_TileMapState.BuildingLayer[_offsetTile] != 0
+ && ((_buildingType = DAT_BuildingsState
+ .buildings[DAT_TileMapState
+ .BuildingLayer[_offsetTile]]
+ .buildingType,
+ _buildingType == BT_GATEHOUSELARGE
+ || (_buildingType
+ == BT_GATEHOUSESMALL)))))))) {
+ /*
+ Calculate Y offset for this direction
+ */
+ _directionOffset = *(short*)((int)DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix
+ + _direction * 8 + 4);
+ /*
+ Mark tile as part of AI zone (value 1 = directly accessible)
+ */
+ DAT_TileMapState.AIZoneLayer[_offsetTile] = 1;
+ /*
+ Add to BFS queue for further expansion
+ */
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = _directionOffset + _candidateY;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = _offsetTile;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (80400 < this->searchQueue.writeIndex)
+ goto LAB_004a4914;
+ }
+ _direction = _direction + 1;
+ _pDirectionTranslation = (int (*)[8])(*_pDirectionTranslation + 1);
+ } while (_direction < 8);
+ /*
+ Move to next tile in queue
+ */
+ this->searchQueue.readIndex = this->searchQueue.readIndex + 1;
+ if (80400 < this->searchQueue.readIndex) {
+ this->searchQueue.readIndex = 0;
+ }
+ /*
+ === EARLY TERMINATION CONDITIONS === If canReachKeep is set and we've marked > 2000
+ tiles, stop OR if we've marked > 6000 tiles total, stop (Performance optimization
+ to prevent excessive computation)
+ */
+ if (((canReachKeep != 0) && (1999 < this->searchQueue.writeIndex))
+ || (5999 < this->searchQueue.writeIndex))
+ goto LAB_004a4914;
+ } while (this->searchQueue.readIndex != this->searchQueue.writeIndex);
+ }
+ /*
+ === PHASE 2: EXPAND INTO DIFFICULT TERRAIN === After marking all easily accessible tiles,
+ expand into harder-to-reach areas with distance penalties based on terrain type
+ */
+ this->searchQueue.readIndex = this->searchQueue.previousReadIndex;
+ this->searchQueue.nextWriteIndex = this->searchQueue.writeIndex;
+ if (this->searchQueue.previousReadIndex != this->searchQueue.writeIndex) {
+ do {
+ _direction = this->searchQueue.tilesQueue[this->searchQueue.readIndex];
+ /*
+ Distance = current tile's AI zone value + 1
+ */
+ this->searchQueue.currentDistance
+ = (char)DAT_TileMapState.AIZoneLayer[_direction] + 1;
+ /*
+ Get movement direction offsets
+ */
+ piVar3 = DAT_TileMapState.directionTranslationMatrix[this->searchQueue
+ .yQueue[this->searchQueue.readIndex]]
+ + 1;
+ /*
+ Process tiles in groups of 4 (unrolled loop) === PROCESS ADJACENT TILES (Unrolled
+ loop for 4 directions at a time) ===
+ */
+ attackedPlayerID = 2;
+ do {
+ /*
+ === TILE 1 ===
+ */
+ _offsetTile = (*(int (*)[8])(piVar3 + -1))[0] + _direction;
+ /*
+ Only process if: 1. Not already marked 2. No blocking terrain (0x31 = sea,
+ cliff, or border) 3. Either no building OR building allows passage (unknownFlag4
+ == 0)
+ */
+ if ((((char)DAT_TileMapState.AIZoneLayer[_offsetTile] < '\x01')
+ && (uVar1 = DAT_TileMapState.LogicLayer[_offsetTile],
+ (uVar1 & 0x31) == 0))
+ && ((DAT_TileMapState.BuildingLayer[_offsetTile] == 0
+ || (DAT_BuildingsState
+ .buildings[DAT_TileMapState.BuildingLayer[_offsetTile]]
+ .unknownFlag4
+ == '\0')))) {
+ /*
+ === TERRAIN-BASED DISTANCE CALCULATION ===
+ */
+ if ((uVar1 & 0x100) == 0) {
+ /*
+ Non wall Non gatehouse
+ */
+ if (((uVar1 & 0x40000000) == 0) || (iVar2 == 0)) {
+ /*
+ Non moat or
+ */
+ DAT_TileMapState.AIZoneLayer[_offsetTile]
+ = (byte)this->searchQueue.currentDistance;
+ } else {
+ /*
+ Moat discount making fortified areas closer in AI Zone calculations
+ */
+ DAT_TileMapState.AIZoneLayer[_offsetTile]
+ = (byte)this->searchQueue.currentDistance - 1;
+ }
+ } else {
+ /*
+ wall or gatehouse This makes walls, towers, and gatehouses "farther"
+ strategically
+ */
+ DAT_TileMapState.AIZoneLayer[_offsetTile]
+ = (byte)this->searchQueue.currentDistance + 6;
+ }
+ }
+ /*
+ === TILE 2 (same logic as tile 1) ===
+ */
+ _offsetTile = *piVar3 + _direction;
+ if ((((char)DAT_TileMapState.AIZoneLayer[_offsetTile] < '\x01')
+ && (uVar1 = DAT_TileMapState.LogicLayer[_offsetTile],
+ (uVar1 & 0x31) == 0))
+ && ((DAT_TileMapState.BuildingLayer[_offsetTile] == 0
+ || (DAT_BuildingsState
+ .buildings[DAT_TileMapState.BuildingLayer[_offsetTile]]
+ .unknownFlag4
+ == '\0')))) {
+ if ((uVar1 & 0x100) == 0) {
+ if (((uVar1 & 0x40000000) == 0) || (iVar2 == 0)) {
+ DAT_TileMapState.AIZoneLayer[_offsetTile]
+ = (byte)this->searchQueue.currentDistance;
+ } else {
+ DAT_TileMapState.AIZoneLayer[_offsetTile]
+ = (byte)this->searchQueue.currentDistance - 1;
+ }
+ } else {
+ DAT_TileMapState.AIZoneLayer[_offsetTile]
+ = (byte)this->searchQueue.currentDistance + 6;
+ }
+ }
+ /*
+ === TILE 3 (same logic as tile 1) ===
+ */
+ _offsetTile = piVar3[1] + _direction;
+ if ((((char)DAT_TileMapState.AIZoneLayer[_offsetTile] < '\x01')
+ && (uVar1 = DAT_TileMapState.LogicLayer[_offsetTile],
+ (uVar1 & 0x31) == 0))
+ && ((DAT_TileMapState.BuildingLayer[_offsetTile] == 0
+ || (DAT_BuildingsState
+ .buildings[DAT_TileMapState.BuildingLayer[_offsetTile]]
+ .unknownFlag4
+ == '\0')))) {
+ if ((uVar1 & 0x100) == 0) {
+ if (((uVar1 & 0x40000000) == 0) || (iVar2 == 0)) {
+ DAT_TileMapState.AIZoneLayer[_offsetTile]
+ = (byte)this->searchQueue.currentDistance;
+ } else {
+ DAT_TileMapState.AIZoneLayer[_offsetTile]
+ = (byte)this->searchQueue.currentDistance - 1;
+ }
+ } else {
+ DAT_TileMapState.AIZoneLayer[_offsetTile]
+ = (byte)this->searchQueue.currentDistance + 6;
+ }
+ }
+ /*
+ === TILE 4 (same logic as tile 1) ===
+ */
+ _offsetTile = piVar3[2] + _direction;
+ if ((((char)DAT_TileMapState.AIZoneLayer[_offsetTile] < '\x01')
+ && (uVar1 = DAT_TileMapState.LogicLayer[_offsetTile],
+ (uVar1 & 0x31) == 0))
+ && ((DAT_TileMapState.BuildingLayer[_offsetTile] == 0
+ || (DAT_BuildingsState
+ .buildings[DAT_TileMapState.BuildingLayer[_offsetTile]]
+ .unknownFlag4
+ == '\0')))) {
+ if ((uVar1 & 0x100) == 0) {
+ if (((uVar1 & 0x40000000) == 0) || (iVar2 == 0)) {
+ DAT_TileMapState.AIZoneLayer[_offsetTile]
+ = (byte)this->searchQueue.currentDistance;
+ } else {
+ DAT_TileMapState.AIZoneLayer[_offsetTile]
+ = (byte)this->searchQueue.currentDistance - 1;
+ }
+ } else {
+ DAT_TileMapState.AIZoneLayer[_offsetTile]
+ = (byte)this->searchQueue.currentDistance + 6;
+ }
+ }
+ piVar3 = piVar3 + 4;
+ attackedPlayerID = attackedPlayerID + -1;
+ } while (attackedPlayerID != 0);
+ /*
+ Move to next tile in queue
+ */
+ this->searchQueue.readIndex = this->searchQueue.readIndex + 1;
+ if (0x13a0f < this->searchQueue.readIndex) {
+ this->searchQueue.readIndex = 0;
+ }
+ } while (this->searchQueue.readIndex != this->searchQueue.nextWriteIndex);
+ }
+ /*
+ Increment iteration counter (alternates between 0 and 1)
+ */
+ attackedPlayerID = iVar2 + 1;
+ if (1 < attackedPlayerID) {
+ attackedPlayerID = 0;
+ }
+ } while (this->searchQueue.readIndex != this->searchQueue.writeIndex);
+ }
+ LAB_004a4914:
+ updatePathLinkageTileMap(0);
+ }
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004a4470", "name": "computeAIZoneLayer", "quelle": "ghidra", "p1": {"bereich": "Wegfindung", "zweck": "Berechnet für die KI eine Zonenkarte um die Burg eines Spielers: je höher der Wert, desto schwerer ist die Kachel zu erreichen."}, "p2": {"ein": "attackedPlayerID, canReachKeep, param_3 (ungenutzt)", "aus": "-", "liest": ["playerDataArray[id].keep.id", "playerDataArray[id].campground.xEntry/yEntry", "TileMapState.PathConnectionLayer", "TileMapState.PathLinkageLayer", "TileMapState.LogicLayer", "TileMapState.BuildingLayer", "buildings[].buildingType", "buildings[].unknownFlag4", "ClimbLogicDefinedData.BitFlagHelperForPathLinkage"], "schreibt": ["TileMapState.AIZoneLayer", "searchQueue"], "ruft": ["updatePathLinkageTileMap"], "regeln": ["Nur wenn der Spieler eine Burg hat (keep.id ungleich 0)", "Start ist die Lagerfeuer-Kachel (campground) mit AIZoneLayer = 1", "Schritt 1 (Flutung): ab Start werden Kacheln mit Wert 1 markiert, wenn PathConnectionLayer ungleich 0 ist und entweder die Wegverbindung (PathLinkageLayer) in diese Richtung offen ist oder ein großes oder kleines Torhaus auf der Zielkachel steht", "Schritt 1 bricht ab, wenn mit canReachKeep ungleich 0 mindestens 2000 Kacheln markiert sind, sonst bei mindestens 6000 Kacheln", "Schritt 2 (Ring): nur wenn Schritt 1 ohne Abbruch endete, wird um alle markierten Kacheln ein Ring gelegt; Wert der Nachbarkachel = Wert der Quelle + 1", "Schritt 2 überspringt Kacheln mit Bits 0x31 in der LogicLayer und Kacheln mit Gebäude, wenn dessen unknownFlag4 ungleich 0 ist", "Mauer oder Torhaus (LogicLayer-Bit 0x100) bekommen Wert der Quelle + 7", "Graben (Bit 0x40000000) bekommt Wert der Quelle statt Quelle + 1, aber nur in jedem zweiten Durchgang des Ablaufs", "Am Ende wird updatePathLinkageTileMap(0) aufgerufen, auch bei vorzeitigem Abbruch; am Anfang updatePathLinkageTileMap(1)"], "offen": ["Wirkung von updatePathLinkageTileMap(1) und (0) (Ghidra-Kommentar vermutet: Tore öffnen oder Navigationsdaten umschalten)", "Ob Schritt 2 wirklich nur einmal läuft: die Warteschlange wird dort nicht erweitert, die äußere Schleife endet daher vermutlich nach einem Durchgang; dann gäbe es nur einen Ring", "Ob der Wechsel 0/1 für den Graben-Abschlag je Durchgang je erreicht wird", "Aufrufer und wofür die KI die Zonenwerte nutzt (vermutlich Angriffsziele und Weglängen)"]}, "p3": {"erklaerung": "Die KI bewertet damit das Gelände um die gegnerische Burg: Offene Wege zum Lagerfeuer zählen als Zone 1, Mauern und Tore wirken wie sieben Schritte Umweg, ein Graben macht das Gelände etwas näher.", "gehirn": "Zeigt, dass die KI Mauern und Tore als deutlich teurer rechnet als freies Gelände. Die Zonenwerte stehen in AIZoneLayer und sind lesbar.", "beleg": "code", "live": "Burg mit Mauer und Graben im Spiel → AIZoneLayer an Kacheln vor und hinter der Mauer lesen → Sprung von etwa 7 an der Mauer", "live_art": "ki-welle"}}
+
+### 0x004a5320 calculateCanPlayerUnitsNavigateToAreaFromArea | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004A5320
+ int PathFindingState::calculateCanPlayerUnitsNavigateToAreaFromArea(
+ int playerID, dword fromArea, dword toArea, int permitClimb)
+ {
+ int iVar1;
+ dword dVar2;
+ dword dVar3;
+ dword dVar4;
+ int iVar5;
+ int iVar6;
+ ClimbData* piVar7;
+ int iVar7;
+ bool bVar8;
+ int local_96c;
+ int local_968;
+ dword adStack_960[200];
+ int aiStack_640[400];
+ if (fromArea != toArea) {
+ iVar5 = 0;
+ if ((toArea == 0) || (fromArea == 0)) {
+ return 0;
+ }
+ iVar7 = 1;
+ this->DAT_Test_likely = this->DAT_Test_likely + 1;
+ local_96c = 0;
+ local_968 = 0;
+ if (1 < this->maxClimbDataCount) {
+ piVar7 = &this->climbData[1];
+ do {
+ if ((piVar7.canBeUsed == 1) && (piVar7->isRecognizedByPathfinding != 0)) {
+ if (piVar7->type == 1) {
+ bVar8 = permitClimb == 0;
+ } else {
+ bVar8 = permitClimb == 2;
+ }
+ if ((!bVar8)
+ && (((playerID == 0
+ || (DAT_GameState.mapAndTime.playerTeams[piVar7->owner]
+ == DAT_GameState.mapAndTime.playerTeams[playerID]))
+ || (DAT_BuildingsState.buildings[piVar7->buildingID].field241_0x2c6
+ != 0)))) {
+ aiStack_640[local_96c * 2 + 1] = 0;
+ aiStack_640[local_96c * 2] = iVar7;
+ local_96c = local_96c + 1;
+ }
+ }
+ iVar7 = iVar7 + 1;
+ piVar7 = piVar7 + 0x81;
+ } while (iVar7 < this->maxClimbDataCount);
+ }
+ iVar6 = 0;
+ this->field63_0xc0 = 0;
+ iVar7 = iVar5;
+ if (0 < local_96c) {
+ do {
+ iVar1 = aiStack_640[iVar6 * 2];
+ iVar5 = iVar7;
+ if (this->climbData[iVar1].type != 1) {
+ dVar2 = this->climbData[iVar1].area;
+ if (dVar2 == toArea) {
+ dVar2 = this->climbData[iVar1].wallGroupAreaID;
+ if ((dVar2 == fromArea)
+ || (dVar3 = this->climbData[iVar1].buildingArea, dVar3 == fromArea)) {
+ return (int)(toArea);
+ }
+ adStack_960[iVar7] = dVar2;
+ aiStack_640[iVar6 * 2 + 1] = 1;
+ iVar5 = iVar7 + 1;
+ if (0 < (int)dVar3) {
+ adStack_960[iVar7 + 1] = dVar3;
+ iVar5 = iVar7 + 2;
+ }
+ } else {
+ dVar3 = this->climbData[iVar1].wallGroupAreaID;
+ if (dVar3 == toArea) {
+ if (dVar2 == fromArea) {
+ this->field63_0xc0 = 0;
+ return (int)(toArea);
+ }
+ dVar3 = this->climbData[iVar1].buildingArea;
+ if (dVar3 == fromArea) {
+ this->field63_0xc0 = 0;
+ return (int)(toArea);
+ }
+ adStack_960[iVar7] = dVar2;
+ aiStack_640[iVar6 * 2 + 1] = 1;
+ iVar5 = iVar7 + 1;
+ if (0 < (int)dVar3) {
+ adStack_960[iVar7 + 1] = dVar3;
+ iVar5 = iVar7 + 2;
+ }
+ } else if (this->climbData[iVar1].buildingArea == toArea) {
+ if (dVar2 == fromArea) {
+ this->field63_0xc0 = 0;
+ return (int)(toArea);
+ }
+ if (dVar3 == fromArea) {
+ this->field63_0xc0 = 0;
+ return (int)(toArea);
+ }
+ adStack_960[iVar7] = dVar2;
+ adStack_960[iVar7 + 1] = dVar3;
+ aiStack_640[iVar6 * 2 + 1] = 1;
+ iVar5 = iVar7 + 2;
+ }
+ }
+ }
+ iVar6 = iVar6 + 1;
+ iVar7 = iVar5;
+ } while (iVar6 < local_96c);
+ if (0 < iVar5) {
+ do {
+ dVar2 = adStack_960[local_968];
+ local_968 = local_968 + 1;
+ iVar6 = 0;
+ iVar7 = iVar5;
+ do {
+ iVar5 = iVar7;
+ if ((aiStack_640[iVar6 * 2 + 1] != 1)
+ && (iVar1 = aiStack_640[iVar6 * 2], this->climbData[iVar1].type != 1)) {
+ /*
+ not a ladder
+ */
+ dVar3 = this->climbData[iVar1].area;
+ if (dVar3 == dVar2) {
+ dVar3 = this->climbData[iVar1].wallGroupAreaID;
+ if (dVar3 == fromArea) {
+ this->field63_0xc0 = 0;
+ return (int)(dVar2);
+ }
+ dVar4 = this->climbData[iVar1].buildingArea;
+ if (dVar4 == fromArea) {
+ this->field63_0xc0 = 0;
+ return (int)(dVar2);
+ }
+ adStack_960[iVar7] = dVar3;
+ aiStack_640[iVar6 * 2 + 1] = 1;
+ iVar5 = iVar7 + 1;
+ if (0 < (int)dVar4) {
+ adStack_960[iVar7 + 1] = dVar4;
+ iVar5 = iVar7 + 2;
+ }
+ } else {
+ dVar4 = this->climbData[iVar1].wallGroupAreaID;
+ if (dVar4 == dVar2) {
+ if (dVar3 == fromArea) {
+ this->field63_0xc0 = 0;
+ return (int)(dVar2);
+ }
+ dVar4 = this->climbData[iVar1].buildingArea;
+ if (dVar4 == fromArea) {
+ this->field63_0xc0 = 0;
+ return (int)(dVar2);
+ }
+ adStack_960[iVar7] = dVar3;
+ aiStack_640[iVar6 * 2 + 1] = 1;
+ iVar5 = iVar7 + 1;
+ if (0 < (int)dVar4) {
+ adStack_960[iVar7 + 1] = dVar4;
+ LAB_004a5605:
+ iVar5 = iVar7 + 2;
+ }
+ } else if (this->climbData[iVar1].buildingArea == dVar2) {
+ if (dVar3 == fromArea) {
+ this->field63_0xc0 = 0;
+ return (int)(dVar2);
+ }
+ if (dVar4 == fromArea) {
+ this->field63_0xc0 = 0;
+ return (int)(dVar2);
+ }
+ adStack_960[iVar7] = dVar3;
+ aiStack_640[iVar6 * 2 + 1] = 1;
+ adStack_960[iVar7 + 1] = dVar4;
+ goto LAB_004a5605;
+ }
+ }
+ }
+ iVar6 = iVar6 + 1;
+ iVar7 = iVar5;
+ } while (iVar6 < local_96c);
+ } while (local_968 < iVar5);
+ }
+ }
+ iVar6 = 0;
+ this->field63_0xc0 = 1;
+ this->field50_0x98 = 1;
+ iVar7 = iVar5;
+ if (0 < local_96c) {
+ do {
+ iVar1 = aiStack_640[iVar6 * 2];
+ dVar2 = this->climbData[iVar1].area;
+ aiStack_640[iVar6 * 2 + 1] = 0;
+ if (dVar2 == toArea) {
+ dVar2 = this->climbData[iVar1].wallGroupAreaID;
+ if ((dVar2 == fromArea)
+ || (dVar3 = this->climbData[iVar1].buildingArea, dVar3 == fromArea)) {
+ return (int)(toArea);
+ }
+ adStack_960[iVar7] = dVar2;
+ aiStack_640[iVar6 * 2 + 1] = 1;
+ iVar5 = iVar7 + 1;
+ if (0 < (int)dVar3) {
+ adStack_960[iVar7 + 1] = dVar3;
+ iVar5 = iVar7 + 2;
+ }
+ } else {
+ dVar3 = this->climbData[iVar1].wallGroupAreaID;
+ if (dVar3 == toArea) {
+ if (dVar2 == fromArea) {
+ this->field50_0x98 = 1;
+ this->field63_0xc0 = 1;
+ return (int)(toArea);
+ }
+ dVar3 = this->climbData[iVar1].buildingArea;
+ if (dVar3 == fromArea) {
+ this->field50_0x98 = 1;
+ this->field63_0xc0 = 1;
+ return (int)(toArea);
+ }
+ adStack_960[iVar7] = dVar2;
+ aiStack_640[iVar6 * 2 + 1] = 1;
+ iVar5 = iVar7 + 1;
+ if (0 < (int)dVar3) {
+ adStack_960[iVar7 + 1] = dVar3;
+ iVar5 = iVar7 + 2;
+ }
+ } else {
+ iVar5 = iVar7;
+ if (this->climbData[iVar1].buildingArea == toArea) {
+ if ((dVar2 == fromArea) || (dVar3 == fromArea)) {
+ return (int)(toArea);
+ }
+ adStack_960[iVar7] = dVar2;
+ adStack_960[iVar7 + 1] = dVar3;
+ aiStack_640[iVar6 * 2 + 1] = 1;
+ iVar5 = iVar7 + 2;
+ }
+ }
+ }
+ iVar6 = iVar6 + 1;
+ iVar7 = iVar5;
+ } while (iVar6 < local_96c);
+ }
+ if (local_968 < iVar5) {
+ do {
+ dVar2 = adStack_960[local_968];
+ local_968 = local_968 + 1;
+ iVar6 = 0;
+ iVar7 = iVar5;
+ if (0 < local_96c) {
+ do {
+ iVar7 = iVar5;
+ if (aiStack_640[iVar6 * 2 + 1] != 1) {
+ iVar1 = aiStack_640[iVar6 * 2];
+ dVar3 = this->climbData[iVar1].area;
+ if (dVar3 == dVar2) {
+ dVar3 = this->climbData[iVar1].wallGroupAreaID;
+ if (dVar3 == fromArea) {
+ this->field50_0x98 = 1;
+ this->field63_0xc0 = 1;
+ return (int)(dVar2);
+ }
+ dVar4 = this->climbData[iVar1].buildingArea;
+ if (dVar4 == fromArea) {
+ this->field50_0x98 = 1;
+ this->field63_0xc0 = 1;
+ return (int)(dVar2);
+ }
+ adStack_960[iVar5] = dVar3;
+ aiStack_640[iVar6 * 2 + 1] = 1;
+ iVar7 = iVar5 + 1;
+ if (0 < (int)dVar4) {
+ adStack_960[iVar5 + 1] = dVar4;
+ iVar7 = iVar5 + 2;
+ }
+ } else {
+ dVar4 = this->climbData[iVar1].wallGroupAreaID;
+ if (dVar4 == dVar2) {
+ if (dVar3 == fromArea) {
+ this->field50_0x98 = 1;
+ this->field63_0xc0 = 1;
+ return (int)(dVar2);
+ }
+ dVar4 = this->climbData[iVar1].buildingArea;
+ if (dVar4 == fromArea) {
+ this->field50_0x98 = 1;
+ this->field63_0xc0 = 1;
+ return (int)(dVar2);
+ }
+ adStack_960[iVar5] = dVar3;
+ aiStack_640[iVar6 * 2 + 1] = 1;
+ iVar7 = iVar5 + 1;
+ if (0 < (int)dVar4) {
+ adStack_960[iVar5 + 1] = dVar4;
+ LAB_004a584f:
+ iVar7 = iVar5 + 2;
+ }
+ } else if (this->climbData[iVar1].buildingArea == dVar2) {
+ if (dVar3 == fromArea) {
+ this->field50_0x98 = 1;
+ this->field63_0xc0 = 1;
+ return (int)(dVar2);
+ }
+ if (dVar4 == fromArea) {
+ this->field50_0x98 = 1;
+ this->field63_0xc0 = 1;
+ return (int)(dVar2);
+ }
+ adStack_960[iVar5] = dVar3;
+ aiStack_640[iVar6 * 2 + 1] = 1;
+ adStack_960[iVar5 + 1] = dVar4;
+ goto LAB_004a584f;
+ }
+ }
+ }
+ iVar6 = iVar6 + 1;
+ iVar5 = iVar7;
+ } while (iVar6 < local_96c);
+ }
+ iVar5 = iVar7;
+ } while (local_968 < iVar7);
+ }
+ this->field50_0x98 = 0;
+ fromArea = 0;
+ }
+ return (int)(fromArea);
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004a5320", "name": "calculateCanPlayerUnitsNavigateToAreaFromArea", "quelle": "ghidra", "p1": {"bereich": "Wegfindung", "zweck": "Prüft, ob Einheiten eines Spielers von einem Bereich in einen anderen kommen, über Tore, Mauern und optional Leitern."}, "p2": {"ein": "playerID, fromArea, toArea, permitClimb (0, 1 oder 2)", "aus": "0 wenn nicht erreichbar, sonst ein Bereichswert ungleich 0 (toArea oder ein Zwischenbereich)", "liest": ["climbData[].canBeUsed/isRecognizedByPathfinding/type/area/wallGroupAreaID/buildingArea/owner/buildingID", "mapAndTime.playerTeams[]", "buildings[].field241_0x2c6", "maxClimbDataCount"], "schreibt": ["DAT_Test_likely (Zähler +1)", "field63_0xc0", "field50_0x98"], "ruft": [], "regeln": ["fromArea = toArea: Rückgabe fromArea", "fromArea oder toArea = 0: Rückgabe 0", "Aufgenommen werden nur Kletterpunkte mit canBeUsed = 1 und isRecognizedByPathfinding != 0", "permitClimb = 0 schließt Leitern (Typ 1) aus, permitClimb = 2 schließt alle anderen Typen aus", "Der Kletterpunkt muss zu playerID 0 gehören, oder der Besitzer ist im selben Team, oder das Gebäude hat field241_0x2c6 != 0 (vermutlich: für alle offen)", "Durchgang 1: Breitensuche von toArea aus nur über Nicht-Leiter-Punkte; Treffer setzt field63_0xc0 = 0", "Durchgang 2 nur ohne Treffer: field63_0xc0 = 1, field50_0x98 = 1, gleiche Suche über alle zugelassenen Punkte inklusive Leitern", "Kein Treffer: field50_0x98 = 0 und Rückgabe 0", "Höchstens 200 Bereiche und 200 Kletterpunkte in der Suche"], "offen": ["field63_0xc0 und field50_0x98 sind ungesichert; vermutlich zeigt field63_0xc0 = 1 an, dass ein Weg nur mit Leiter möglich ist", "Rückgabe bei Zwischenbereichen: vermutlich der Bereich neben fromArea auf dem Weg", "Bedeutung von field241_0x2c6"]}, "p3": {"erklaerung": "Das Spiel prüft damit, ob ein Ziel hinter Mauern und Toren überhaupt erreichbar ist, erst ohne und dann mit Leitern. Eigene und verbündete Tore zählen als Durchgang, fremde nur, wenn sie offen sind.", "gehirn": "Gibt Auskunft, ob Gegner ohne Leitern an uns herankommen. Geschlossene Mauerringe erzwingen Leitern oder Rammen.", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x004a5b00 calculateCanReachUsingCachedAreaLogic | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004A5B00
+ BOOLEnum PathFindingState::calculateCanReachUsingCachedAreaLogic(int tile1, int tile2)
+ {
+ int iVar1;
+ AreaPairInt* pAVar2;
+ BOOLEnum BVar3;
+ int iVar4;
+ int _area1;
+ int _area2;
+ _area2 = (int)(short)DAT_TileMapState.PathConnectionLayer[tile2];
+ _area1 = (int)(short)DAT_TileMapState.PathConnectionLayer[tile1];
+ if (_area1 == _area2) {
+ return TRUE;
+ }
+ if ((_area1 == 0) || (_area2 == 0)) {
+ return FALSE;
+ }
+ if (this->field48_0x90 == 0) {
+ this->field48_0x90 = 1;
+ this->searchQueue.acceptAreaPairArray1[0].area1 = -1;
+ this->searchQueue.acceptAreaPairArray1[0].area2 = -1;
+ this->searchQueue.rejectionAreaPairArray[0].area1 = -1;
+ this->searchQueue.rejectionAreaPairArray[0].area2 = -1;
+ this->searchQueue.acceptAreaPairArray1[1].area1 = -1;
+ this->searchQueue.acceptAreaPairArray1[1].area2 = -1;
+ this->searchQueue.rejectionAreaPairArray[1].area1 = -1;
+ this->searchQueue.rejectionAreaPairArray[1].area2 = -1;
+ this->searchQueue.acceptAreaPairArray1[2].area1 = -1;
+ this->searchQueue.acceptAreaPairArray1[2].area2 = -1;
+ this->searchQueue.rejectionAreaPairArray[2].area1 = -1;
+ this->searchQueue.rejectionAreaPairArray[2].area2 = -1;
+ this->searchQueue.acceptAreaPairArray1[3].area1 = -1;
+ this->searchQueue.acceptAreaPairArray1[3].area2 = -1;
+ this->searchQueue.rejectionAreaPairArray[3].area1 = -1;
+ this->searchQueue.rejectionAreaPairArray[3].area2 = -1;
+ this->searchQueue.acceptAreaPairArray1[4].area1 = -1;
+ this->searchQueue.acceptAreaPairArray1[4].area2 = -1;
+ this->searchQueue.rejectionAreaPairArray[4].area1 = -1;
+ this->searchQueue.rejectionAreaPairArray[4].area2 = -1;
+ this->searchQueue.acceptAreaPairArray1[5].area1 = -1;
+ this->searchQueue.acceptAreaPairArray1[5].area2 = -1;
+ this->searchQueue.rejectionAreaPairArray[5].area1 = -1;
+ this->searchQueue.rejectionAreaPairArray[5].area2 = -1;
+ this->searchQueue.acceptAreaPairArray1[6].area1 = -1;
+ this->searchQueue.acceptAreaPairArray1[6].area2 = -1;
+ this->searchQueue.rejectionAreaPairArray[6].area1 = -1;
+ this->searchQueue.rejectionAreaPairArray[6].area2 = -1;
+ this->searchQueue.acceptAreaPairArray1[7].area1 = -1;
+ this->searchQueue.acceptAreaPairArray1[7].area2 = -1;
+ this->searchQueue.rejectionAreaPairArray[7].area1 = -1;
+ this->searchQueue.rejectionAreaPairArray[7].area2 = -1;
+ this->searchQueue.acceptAreaPairArray1[8].area1 = -1;
+ this->searchQueue.acceptAreaPairArray1[8].area2 = -1;
+ this->searchQueue.rejectionAreaPairArray[8].area1 = -1;
+ this->searchQueue.rejectionAreaPairArray[8].area2 = -1;
+ this->searchQueue.acceptAreaPairArray1[9].area1 = -1;
+ this->searchQueue.acceptAreaPairArray1[9].area2 = -1;
+ this->searchQueue.rejectionAreaPairArray[9].area1 = -1;
+ this->searchQueue.rejectionAreaPairArray[9].area2 = -1;
+ } else {
+ iVar4 = 0;
+ pAVar2 = this->searchQueue.acceptAreaPairArray1;
+ do {
+ iVar1 = pAVar2->area1;
+ if (iVar1 != -1) {
+ if ((iVar1 == _area1) && (pAVar2->area2 == _area2)) {
+ return TRUE;
+ }
+ if ((pAVar2->area2 == _area1) && (iVar1 == _area2)) {
+ return TRUE;
+ }
+ }
+ iVar4 = iVar4 + 1;
+ pAVar2 = pAVar2 + 1;
+ } while (iVar4 < 10);
+ iVar4 = 0;
+ pAVar2 = this->searchQueue.rejectionAreaPairArray;
+ do {
+ iVar1 = pAVar2->area1;
+ if (iVar1 != -1) {
+ if ((iVar1 == _area1) && (pAVar2->area2 == _area2)) {
+ return FALSE;
+ }
+ if ((pAVar2->area2 == _area1) && (iVar1 == _area2)) {
+ return FALSE;
+ }
+ }
+ iVar4 = iVar4 + 1;
+ pAVar2 = pAVar2 + 1;
+ } while (iVar4 < 10);
+ }
+ BVar3 = pathFindingWithBuildingsIncluded(tile1
+ - DAT_ViewportRenderState
+ .translationMatrix[DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile1]]
+ .addXgetTile,
+ (uint)((int)((int)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile1])),
+ (uint)((int)(tile2
+ - DAT_ViewportRenderState
+ .translationMatrix[DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile2]]
+ .addXgetTile)),
+ (uint)((int)((int)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile2])), 100000,
+ 0);
+ if (BVar3 != FALSE) {
+ iVar4 = 0;
+ pAVar2 = this->searchQueue.acceptAreaPairArray1;
+ do {
+ if (pAVar2->area1 == -1) {
+ this->searchQueue.acceptAreaPairArray1[iVar4].area1 = _area1;
+ this->searchQueue.acceptAreaPairArray1[iVar4].area2 = _area2;
+ return TRUE;
+ }
+ iVar4 = iVar4 + 1;
+ pAVar2 = pAVar2 + 1;
+ } while (iVar4 < 10);
+ return TRUE;
+ }
+ iVar4 = 0;
+ pAVar2 = this->searchQueue.rejectionAreaPairArray;
+ do {
+ if (pAVar2->area1 == -1) {
+ this->searchQueue.rejectionAreaPairArray[iVar4].area1 = _area1;
+ this->searchQueue.rejectionAreaPairArray[iVar4].area2 = _area2;
+ return FALSE;
+ }
+ iVar4 = iVar4 + 1;
+ pAVar2 = pAVar2 + 1;
+ } while (iVar4 < 10);
+ return FALSE;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004a5b00", "name": "calculateCanReachUsingCachedAreaLogic", "quelle": "ghidra", "p1": {"bereich": "Wegfindung", "zweck": "Prüft mit kleinem Zwischenspeicher, ob zwei Felder miteinander verbunden sind."}, "p2": {"ein": "tile1, tile2", "aus": "TRUE/FALSE", "liest": ["PathConnectionLayer[tile]", "searchQueue.acceptAreaPairArray1[0..9]", "searchQueue.rejectionAreaPairArray[0..9]", "field48_0x90"], "schreibt": ["field48_0x90", "acceptAreaPairArray1", "rejectionAreaPairArray"], "ruft": ["pathFindingWithBuildingsIncluded"], "regeln": ["Gleicher Bereich (PathConnectionLayer): TRUE", "Einer der Bereiche ist 0: FALSE", "Beim ersten Aufruf (field48_0x90 = 0) werden alle 20 Speicherplätze auf -1 gesetzt", "Der Zwischenspeicher hat 10 Platz für Ja-Paare und 10 für Nein-Paare, Reihenfolge der Bereiche egal", "Nicht im Speicher: echte Wegsuche pathFindingWithBuildingsIncluded mit Grenze 100000", "Ergebnis kommt auf den ersten freien Platz; sind alle 10 belegt, wird nichts gespeichert und nichts überschrieben"], "offen": ["Wo field48_0x90 wieder auf 0 gesetzt wird (Speicher leeren)", "Bedeutung der Grenze 100000 und der letzten 0 im Aufruf"]}, "p3": {"erklaerung": "Teure Wegsuchen zwischen zwei Bereichen werden gemerkt, höchstens 10 Ja- und 10 Nein-Antworten. Ist der Speicher voll, wird weiter jedes Mal neu gesucht.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x004a6010 findBestAttackTargetTileWithHeightAndOwner | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004A6010
+ void PathFindingState::findBestAttackTargetTileWithHeightAndOwner(int param_1, uint param_2, uint param_3,
+ int param_4, int param_5, int param_6, int param_7, int param_8, int param_9)
+ {
+ short sVar1;
+ short sVar2;
+ short sVar3;
+ uint uVar4;
+ short sVar5;
+ int iVar6;
+ int iVar7;
+ int buildingID;
+ uint uVar8;
+ int iVar9;
+ uint uVar10;
+ uint uVar11;
+ int (*paiVar12)[3];
+ int local_20;
+ int local_14;
+ int local_10;
+ uint local_c;
+ uint local_8;
+ local_14 = -1;
+ local_10 = -1;
+ local_c = 0xffffffff;
+ this->calculations = this->calculations + 1;
+ local_20 = 1000000;
+ this->ALG_TargetTile = 0;
+ this->ALG_TargetY = 0;
+ this->ALG_TargetX = 0;
+ if (((param_2 < 400) && (param_3 < 400)) && (*(char*)(param_3 * 400 + 0x21aec98 + param_2) != '\0')) {
+ this->searchGeneration = this->searchGeneration + 1;
+ if (32000 < this->searchGeneration) {
+ this->searchGeneration = 1;
+ fillMemory_ByteValue(
+ 0x27420, '\0', (void*)((int)(DAT_TileMapState.WalkLayer)));
+ }
+ this->searchQueue.currentDistance = 1;
+ this->searchQueue.writeIndex = 1;
+ this->searchQueue.readIndex = 0;
+ this->searchQueue.yQueue[0] = (short)param_3;
+ this->searchQueue.xQueue[0] = (short)param_2;
+ iVar6 = DAT_ViewportRenderState.translationMatrix[param_3].addXgetTile + param_2;
+ this->searchQueue.tilesQueue[0] = iVar6;
+ DAT_TileMapState.CertainPathLayer[iVar6] = 1;
+ DAT_TileMapState.WalkLayer[this->searchQueue.tilesQueue[0]] = (short)this->searchGeneration;
+ uVar10 = (uint)DAT_TileMapState.HeightLayer[iVar6];
+ if (this->searchQueue.readIndex != this->searchQueue.writeIndex) {
+ do {
+ uVar4 = this->searchQueue.tilesQueue[this->searchQueue.readIndex];
+ if (0x13a0f < uVar4)
+ break;
+ sVar1 = this->searchQueue.xQueue[this->searchQueue.readIndex];
+ sVar2 = this->searchQueue.yQueue[this->searchQueue.readIndex];
+ iVar6 = (int)sVar2;
+ uVar8 = DAT_TileMapState.LogicLayer[uVar4];
+ uVar11 = (uint) * (byte*)(param_7 * 0x13a10 + 0x1ee2998 + uVar4);
+ this->searchQueue.currentDistance = (int)DAT_TileMapState.CertainPathLayer[uVar4];
+ if (this->searchQueue.currentDistance <= param_1) {
+ if ((DAT_GameSynchronyState.currentGameMode == GM_SOLITARY)
+ && (7 < param_6)) {
+ uVar11 = 1;
+ }
+ if ((uVar8 & 2) == 0) {
+ if ((((uVar8 & 0x10100) == 0) || (uVar11 == 0)) || (param_8 <= (int)uVar11)) {
+ if (((((((uVar8 & 0x10000400) != 0) && (uVar11 != 0)) && ((int)uVar11 < param_8))
+ && ((iVar9 = (int)DAT_TileMapState.BuildingLayer[uVar4],
+ iVar9 != 0
+ && (DAT_BuildingDefinedData.BuildingTypeHasHealth[(
+ short)DAT_BuildingsState.buildings[iVar9]
+ .buildingType]
+ != 0))))
+ && (DAT_BuildingsState.buildings[iVar9].owner == param_7))
+ && ((param_9 == 0
+ || ((
+ iVar7 = MACRO_CALL_MEMBER(
+ getBuildingFlammabilityFactor,
+ DAT_BuildingsState)(iVar9),
+ iVar7 != 0
+ && (DAT_BuildingsState.buildings[iVar9].fireDuration
+ == 0)))))) {
+ iVar9 = 0x96;
+ if ((uVar8 & 0x400) == 0) {
+ iVar9 = 0x4b;
+ }
+ if (this->searchQueue.currentDistance < 1) {
+ iVar9 = 100000;
+ } else if (this->searchQueue.currentDistance < 0x10) {
+ iVar9 = (iVar9 + -100) * this->searchQueue.currentDistance + 0x5dc;
+ } else {
+ iVar9 = this->searchQueue.currentDistance * iVar9;
+ }
+ goto LAB_004a62e3;
+ }
+ } else if (((DAT_TileMapState.WallOwnerLayer[uVar4] & 7) + 1 == param_7)
+ && (param_9 == 0)) {
+ iVar9 = (uint)DAT_TileMapState.HeightLayer[uVar4]
+ - (uint)DAT_TileMapState.DefaultHeightLayer[uVar4];
+ if (this->searchQueue.currentDistance < 1) {
+ iVar9 = 100000;
+ } else if (this->searchQueue.currentDistance < 0x10) {
+ iVar9 = (0x14 - this->searchQueue.currentDistance) * 300 + iVar9;
+ } else {
+ iVar9 = this->searchQueue.currentDistance * 100 + iVar9;
+ }
+ LAB_004a62e3:
+ if ((iVar9 < local_20)
+ && (iVar7
+ = calcApproxEuclideanDistance(
+ param_2, sVar1, param_3, iVar6),
+ iVar7 <= param_1)) {
+ local_20 = iVar9;
+ local_14 = (int)sVar1;
+ local_10 = iVar6;
+ local_c = uVar4;
+ }
+ }
+ }
+ local_8 = ((int)(char)this->searchQueue.currentDistance & 1U) * 2 | 1;
+ paiVar12 = DAT_ClimbLogicDefinedData.field13_0x13c + param_4;
+ do {
+ iVar9 = (*paiVar12)[0];
+ iVar7 = DAT_TileMapState.directionTranslationMatrix[iVar6][iVar9] + uVar4;
+ uVar8 = DAT_TileMapState.LogicLayer[iVar7];
+ if ((DAT_TileMapState.WalkLayer[iVar7] != this->searchGeneration)
+ && ((uVar8 & 0x30) == 0)) {
+ if ((uVar8 & 0x10000400) == 0) {
+ if ((uVar8 & 0x100) == 0) {
+ uVar8 = (uint)DAT_TileMapState.HeightLayer[iVar7];
+ if ((int)uVar8 <= (int)(uVar10 + param_5))
+ goto LAB_004a63f4;
+ } else if ((DAT_TileMapState.WallOwnerLayer[iVar7] & 7) + 1
+ == param_7) {
+ uVar8 = (uint)DAT_TileMapState.HeightLayer[iVar7];
+ LAB_004a63f4:
+ if ((int)((param_5 * 2) / 3 + uVar10) < (int)uVar8) {
+ sVar5 = 3;
+ } else {
+ sVar5 = ((int)(param_5 / 3 + uVar10) < (int)uVar8) + 1;
+ }
+ sVar3 = DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix[iVar9]
+ .short.xOffset;
+ DAT_TileMapState.CertainPathLayer[iVar7]
+ = (short)this->searchQueue.currentDistance + sVar5;
+ DAT_TileMapState.WalkLayer[iVar7] = (short)this->searchGeneration;
+ this->searchQueue.xQueue[this->searchQueue.writeIndex] = sVar3 + sVar1;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix
+ + iVar9 * 8 + 4)
+ + sVar2;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = iVar7;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ } else {
+ buildingID = (int)DAT_TileMapState.BuildingLayer[iVar7];
+ if ((buildingID != 0)
+ && (DAT_BuildingsState.buildings[buildingID].owner == param_7)) {
+ uVar8 = MACRO_CALL_MEMBER(
+ getBuildingHeightForBuildingID,
+ DAT_BuildingsState)(buildingID);
+ goto LAB_004a63f4;
+ }
+ }
+ }
+ paiVar12 = (int (*)[3])(*paiVar12 + 1);
+ local_8 = local_8 - 1;
+ } while (local_8 != 0);
+ }
+ this->searchQueue.readIndex = this->searchQueue.readIndex + 1;
+ if (0x13a0f < this->searchQueue.readIndex) {
+ this->searchQueue.readIndex = 0;
+ }
+ } while (this->searchQueue.readIndex != this->searchQueue.writeIndex);
+ if (local_14 != -1) {
+ this->ALG_TargetX = local_14;
+ this->ALG_TargetY = local_10;
+ this->ALG_TargetTile = local_c;
+ }
+ }
+ }
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004a6010", "name": "findBestAttackTargetTileWithHeightAndOwner", "quelle": "ghidra", "p1": {"bereich": "Wegfindung", "zweck": "Sucht im Umkreis das beste Angriffsziel (Gebäude oder Mauerstück) eines bestimmten Besitzers."}, "p2": {"ein": "param_1 = größte Suchentfernung, param_2/param_3 = Start x/y, param_4 = Richtungstabelle, param_5 = Höhenschritt, param_6, param_7 = Besitzer des Ziels, param_8 = Schwelle, param_9 = Brandmodus", "aus": "-, Ergebnis in ALG_TargetX, ALG_TargetY, ALG_TargetTile (0 wenn nichts gefunden)", "liest": ["LogicLayer", "HeightLayer", "DefaultHeightLayer", "BuildingLayer", "WallOwnerLayer", "je Spieler eine Byte-Ebene bei 0x01ee2998 + spieler*0x13a10", "BuildingTypeHasHealth", "getBuildingFlammabilityFactor", "fireDuration", "currentGameMode"], "schreibt": ["ALG_TargetX/Y/Tile", "searchGeneration", "WalkLayer", "CertainPathLayer", "searchQueue", "calculations"], "ruft": ["calcApproxEuclideanDistance", "getBuildingHeightForBuildingID", "getBuildingFlammabilityFactor", "fillMemory_ByteValue"], "regeln": ["Ausgangswerte: ALG_Target* = 0, beste Bewertung 1000000", "Start nur, wenn x und y unter 400 und die Kartenmaske nicht 0 ist", "Breitensuche mit Warteschlange von 0x13a10 Plätzen, Wegekosten je Schritt 1, 2 oder 3 je nachdem, ob der Höhenunterschied über einem Drittel oder Zwei Dritteln von param_5 liegt", "Nur Felder mit Wegekosten bis param_1; Nachbarn nur, wenn der Höhenanstieg höchstens param_5 beträgt (eigene Gebäude und eigene Mauern des Zielbesitzers sind begehbar)", "Pro Feld wird nur 1 oder 3 Richtung geprüft (Parität der Entfernung), abhängig von der Richtungstabelle param_4", "Ziel Gebäude: Besitzer = param_7, hat Lebenspunkte, Wert der Spielerebene größer 0 und kleiner param_8; bei param_9 ungleich 0 nur brennbar und gerade nicht brennend", "Gebäudebewertung: Grundwert 150 (Bit 0x400 gesetzt) sonst 75; Entfernung unter 1: 100000; unter 16: (Grundwert-100)*Entfernung + 1500; ab 16: Grundwert*Entfernung", "Ziel Mauerstück: Besitzer laut WallOwnerLayer = param_7, nur bei param_9 = 0; Bewertung = (HeightLayer - DefaultHeightLayer) plus bei Entfernung unter 16: (20-Entfernung)*300, sonst Entfernung*100", "Das niedrigste Ergebnis gewinnt, wenn die Luftlinie zum Start höchstens param_1 beträgt", "Im Einzelspieler (GM_SOLITARY) mit param_6 größer 7 wird der Wert der Spielerebene auf 1 gesetzt", "Nach 32000 Suchläufen wird searchGeneration auf 1 gestellt und die WalkLayer gelöscht"], "offen": ["Alle Parameternamen sind Ghidra-Platzhalter", "Bedeutung der Bits in LogicLayer (0x2, 0x10, 0x20, 0x100, 0x400, 0x10000000) und der Spielerebene bei 0x01ee2998", "Warum nur 1 oder 3 Richtungen je Feld geprüft werden"]}, "p3": {"erklaerung": "Die Suche, die ein Ziel für Angriffe auswählt: nah gelegene Gebäude mit Lebenspunkten oder beschädigte Mauern des Gegners. Beschädigte Mauern (große Höhendifferenz) werden bevorzugt.", "gehirn": "Hilft zu verstehen, welche Gebäude und Mauern die KI zuerst angreift; Näheres klärt erst die Spielmessung.", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x004a6ab0 findCrossAreaBridgeTileToTarget | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004A6AB0
+ undefined4 PathFindingState::findCrossAreaBridgeTileToTarget(int param_1, uint param_2, uint param_3)
+ {
+ ushort uVar1;
+ ushort uVar2;
+ short sVar3;
+ short sVar4;
+ uint uVar5;
+ int (*paiVar6)[8];
+ int iVar7;
+ uint uVar8;
+ uint uVar9;
+ int iVar10;
+ uint uVar11;
+ int* piVar12;
+ int iVar13;
+ int local_20;
+ uint local_14;
+ int local_10;
+ local_14 = 0;
+ local_10 = 0;
+ local_20 = 10000;
+ if (((param_2 < 400) && (param_3 < 400)) && (*(char*)(param_3 * 400 + 0x21aec98 + param_2) != '\0')) {
+ this->searchGeneration = this->searchGeneration + 1;
+ if (32000 < this->searchGeneration) {
+ this->searchGeneration = 1;
+ fillMemory_ByteValue(
+ 0x27420, '\0', (void*)((int)(DAT_TileMapState.WalkLayer)));
+ }
+ this->searchQueue.currentDistance = 1;
+ this->searchQueue.writeIndex = 1;
+ this->searchQueue.readIndex = 0;
+ uVar1 = DAT_TileMapState.PathConnectionLayer[DAT_UnitsState.units[param_1].tile];
+ uVar2
+ = DAT_TileMapState
+ .PathConnectionLayer[DAT_ViewportRenderState.translationMatrix[param_3].addXgetTile
+ + param_2];
+ this->searchQueue.yQueue[0] = DAT_UnitsState.units[param_1].y;
+ this->searchQueue.xQueue[0] = DAT_UnitsState.units[param_1].x;
+ this->searchQueue.tilesQueue[0] = DAT_UnitsState.units[param_1].tile;
+ DAT_TileMapState.CertainPathLayer[this->searchQueue.tilesQueue[0]] = 1;
+ DAT_TileMapState.WalkLayer[this->searchQueue.tilesQueue[0]] = (short)this->searchGeneration;
+ if (this->searchQueue.readIndex != this->searchQueue.writeIndex) {
+ do {
+ uVar5 = this->searchQueue.tilesQueue[this->searchQueue.readIndex];
+ if (0x13a0f < uVar5)
+ break;
+ sVar3 = this->searchQueue.xQueue[this->searchQueue.readIndex];
+ sVar4 = this->searchQueue.yQueue[this->searchQueue.readIndex];
+ this->searchQueue.currentDistance = (int)DAT_TileMapState.CertainPathLayer[uVar5];
+ if (0x13a10 < this->searchQueue.currentDistance)
+ break;
+ paiVar6 = DAT_TileMapState.directionTranslationMatrix + sVar4;
+ piVar12 = &DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[0].int.yOffset;
+ do {
+ iVar13 = (*paiVar6)[0] + uVar5;
+ if ((DAT_TileMapState.WalkLayer[iVar13] != this->searchGeneration)
+ && ((DAT_TileMapState.LogicLayer[iVar13] & 0x400000U) == 0)) {
+ if (((int)(short)DAT_TileMapState.PathConnectionLayer[iVar13]
+ == (int)(short)uVar1)
+ || ((DAT_TileMapState.LogicLayer[iVar13] & 0x10000100U) != 0)) {
+ iVar7 = ((Point8IntXY*)(piVar12 + -1))->xOffset;
+ DAT_TileMapState.CertainPathLayer[iVar13]
+ = (short)this->searchQueue.currentDistance + 1;
+ DAT_TileMapState.WalkLayer[iVar13] = (short)this->searchGeneration;
+ this->searchQueue.xQueue[this->searchQueue.writeIndex] = (short)iVar7 + sVar3;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex] = (short)*piVar12 + sVar4;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = iVar13;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ } else {
+ iVar7 = MACRO_CALL_MEMBER(
+ calculateCanPlayerUnitsNavigateToAreaFromArea,
+ this)((int)DAT_UnitsState.units[param_1].owner,
+ (dword)((
+ int)((int)(short)DAT_TileMapState.PathConnectionLayer[iVar13])),
+ (dword)((int)((int)(short)uVar2)),
+ DAT_UnitsState.units[param_1].unitCanClimb);
+ if (iVar7 != 0) {
+ uVar8 = (*piVar12 - param_3) + (int)sVar4;
+ uVar11 = (int)uVar8 >> 0x1f;
+ uVar9 = (((Point8IntXY*)(piVar12 + -1))->xOffset - param_2) + (int)sVar3;
+ iVar10 = (uVar8 ^ uVar11) - uVar11;
+ uVar8 = (int)uVar9 >> 0x1f;
+ iVar7 = (uVar9 ^ uVar8) - uVar8;
+ if (iVar7 <= iVar10) {
+ iVar7 = iVar10;
+ }
+ if (iVar7 < local_20) {
+ local_20 = iVar7;
+ local_14 = uVar5;
+ local_10 = iVar13;
+ }
+ }
+ }
+ }
+ paiVar6 = (int (*)[8])(*paiVar6 + 2);
+ piVar12 = piVar12 + 4;
+ } while ((int)piVar12 < 0xb4908c);
+ this->searchQueue.readIndex = this->searchQueue.readIndex + 1;
+ if (0x13a0f < this->searchQueue.readIndex) {
+ this->searchQueue.readIndex = 0;
+ }
+ } while (this->searchQueue.readIndex != this->searchQueue.writeIndex);
+ if (local_20 < 10000) {
+ this->ALG_TargetTile = local_14;
+ this->ALG_ResultTile = local_10;
+ return (undefined4)(1);
+ }
+ }
+ }
+ return (undefined4)(0);
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004a6ab0", "name": "findCrossAreaBridgeTileToTarget", "quelle": "ghidra", "p1": {"bereich": "Wegfindung", "zweck": "Sucht den Übergangspunkt, an dem eine Einheit aus ihrem Gebiet in ein anderes Gebiet wechseln kann, das näher am Ziel liegt."}, "p2": {"ein": "param_1 = unitID, param_2 = Ziel-x, param_3 = Ziel-y", "aus": "1 wenn ein Übergang gefunden wurde, sonst 0", "liest": ["units[id].tile/x/y/owner/unitCanClimb", "PathConnectionLayer", "LogicLayer", "Gehbarkeits-Tabelle bei 0x21aec98 (400x400 Bytes)", "searchGeneration"], "schreibt": ["WalkLayer", "CertainPathLayer", "searchQueue", "ALG_TargetTile", "ALG_ResultTile", "searchGeneration"], "ruft": ["calculateCanPlayerUnitsNavigateToAreaFromArea", "fillMemory_ByteValue"], "regeln": ["Ziel-x und Ziel-y müssen unter 400 liegen und in der Tabelle bei 0x21aec98 ungleich 0 sein, sonst Ergebnis 0", "Breitensuche (8 Richtungen) ab dem Feld der Einheit, Warteschlange fasst 80400 Felder (0x13a10)", "Ein Nachbarfeld mit LogicLayer-Bit 0x400000 wird nie betreten", "Ein Nachbarfeld wird weiterverfolgt, wenn es im selben Gebiet (PathConnectionLayer) wie die Einheit liegt oder LogicLayer-Bits 0x10000100 gesetzt sind", "Sonst ist es ein Kandidat, wenn calculateCanPlayerUnitsNavigateToAreaFromArea(Besitzer, Nachbargebiet, Zielgebiet, unitCanClimb) ungleich 0 ist", "Bester Kandidat = kleinster Abstand (größerer der beiden Achsenabstände) des Nachbarfelds zum Ziel; Startwert 10000, gesucht wird alles darunter", "Ergebnis: ALG_TargetTile = Feld, von dem aus man wechselt; ALG_ResultTile = Nachbarfeld im anderen Gebiet", "Läuft searchGeneration über 32000, wird sie auf 1 gesetzt und die WalkLayer gelöscht"], "offen": ["Bedeutung der LogicLayer-Bits 0x400000 und 0x10000100 (Namen unbekannt)", "Der Name sagt Brücke; ob damit nur echte Brücken oder jeder Gebietswechsel gemeint ist, zeigt der Code nicht", "Bedeutung der Gehbarkeits-Tabelle bei 0x21aec98"]}, "p3": {"erklaerung": "Wenn eine Einheit ihr Ziel nicht im selben Gebiet erreicht, sucht diese Funktion den Punkt, an dem sie das Gebiet verlassen kann und dem Ziel am nächsten kommt. Das Ergebnis liegt in zwei Merkfeldern der Wegfindung, nicht im Rückgabewert.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+

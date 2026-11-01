@@ -1,0 +1,1293 @@
+### 0x004b1eb0 RenderTimeUntilVictoryDisplayElement | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B1EB0
+ void DisplayElements::RenderTimeUntilVictoryDisplayElement(int posX, int posY, DWORD elementState)
+ {
+ int iVar1;
+ char* pcVar2;
+ int left;
+ int iVar3;
+ int xParam;
+ int yParam;
+ TextAlignment alignment;
+ uint foregroundColor;
+ uint backgroundColor;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ int iVar4;
+ if (DAT_GameCore.section1095 == 2) {
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_TIME_UNTIL_VICTORY, 0);
+ return;
+ }
+ iVar4 = 0x12;
+ /*
+ added by script: "Time Until Victory"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_OBJECTIVES, 0x19);
+ iVar4 = computeTextWidth(
+ pcVar2, iVar4);
+ DAT_PencilRenderCore.surfaceTarget = RT_MAP_GAME;
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1024x768) {
+ posX = posX + -0x70;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1280x1024) {
+ posX = posX + -0xf0;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1600x1200) {
+ posX = posX + -400;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1280x720) {
+ posX = posX + -0xf0;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1440x900) {
+ posX = posX + -0x140;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1920x1080) {
+ posX = posX + -0x230;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1920x1200) {
+ posX = posX + -0x230;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_2560x1440) {
+ posX = posX + -0x370;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_2560x1600) {
+ posX = posX + -0x370;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1366x768) {
+ posX = posX + -0x11b;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1680x1050) {
+ posX = posX + -0x1b8;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1600x900) {
+ posX = posX + -400;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1024x600) {
+ posX = posX + -0x70;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1360x768) {
+ posX = posX + -0x118;
+ }
+ DAT_00df4290 = iVar4 + 0x10;
+ iVar3 = iVar4 / 2;
+ iVar1 = posX + 10 + iVar3;
+ left = iVar1 - iVar3;
+ drawBlendedBlackBox(left + -7, posY + -5, iVar3 + 5 + iVar1, posY + 0x1e, 0x10);
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x12;
+ backgroundColor = 0;
+ foregroundColor = 0xc2f0eb;
+ alignment = TTA_CENTER;
+ xParam = iVar1;
+ yParam = posY;
+ /*
+ added by script: "Time Until Victory"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_OBJECTIVES, 0x19);
+ renderInGameTextWithShadow(
+ pcVar2, xParam, yParam, alignment, foregroundColor, backgroundColor, fontSize, keepOffsetX, blendStrength);
+ drawBorderBox(
+ left + -1, posY + 0x12, iVar3 + 1 + iVar1, posY + 0x18, (ushort)((int)(COL_BLACK::instance.shortValue)));
+ if (DAT_MapPropertiesState.SEC_Section1080 != DAT_MapPropertiesState.SEC_Section1090) {
+ drawColorBox(
+ left, posY + 0x13,
+ (((DAT_MapPropertiesState.SEC_Section1090 - DAT_MapPropertiesState.SEC_Section1080)
+ * iVar4)
+ / DAT_MapPropertiesState.SEC_Section1090
+ - iVar3)
+ + iVar1,
+ posY + 0x17, (ushort)((int)(COL_DARK_LIME::instance.shortValue)));
+ }
+ DAT_PencilRenderCore.surfaceTarget = RT_SCREEN_MENU;
+ return;
+ }
+}
+}
+
+### 0x004b2280 RenderTimeUntilDefeatDisplayElement | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B2280
+ void DisplayElements::RenderTimeUntilDefeatDisplayElement(int posX, int posY, DWORD elementState)
+ {
+ char* _textAddr;
+ BOOLEnum _stateNotZero;
+ int iVar1;
+ int iVar2;
+ int iVar3;
+ int left;
+ int iVar4;
+ TextAlignment alignment;
+ uint foregroundColor;
+ uint backgroundColor;
+ int iVar5;
+ int blendStrength;
+ int iVar6;
+ int local_c;
+ if (DAT_GameCore.section1095 == 2) {
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_TIME_UNTIL_DEFEAT, 0);
+ return;
+ }
+ iVar6 = 0x12;
+ /*
+ "Time Until Defeat" added by script: "Time Until Defeat"
+ */
+ _textAddr = getTextStringInGroupAtOffset(TEXT_OBJECTIVES, 0x11);
+ iVar6 = computeTextWidth(
+ _textAddr, iVar6);
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1024x768) {
+ posX = posX + -0x70;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1280x1024) {
+ posX = posX + -0xf0;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1600x1200) {
+ posX = posX + -400;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1280x720) {
+ posX = posX + -0xf0;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1440x900) {
+ posX = posX + -0x140;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1920x1080) {
+ posX = posX + -0x230;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1920x1200) {
+ posX = posX + -0x230;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_2560x1440) {
+ posX = posX + -0x370;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_2560x1600) {
+ posX = posX + -0x370;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1366x768) {
+ posX = posX + -0x11b;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1680x1050) {
+ posX = posX + -0x1b8;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1600x900) {
+ posX = posX + -400;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1024x600) {
+ posX = posX + -0x70;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1360x768) {
+ posX = posX + -0x118;
+ }
+ iVar2 = iVar6 / 2;
+ iVar3 = posX + 10 + iVar2;
+ _stateNotZero = GetIfDisplayElementStateNotZero(
+ DEID_TIME_UNTIL_VICTORY);
+ if (_stateNotZero != FALSE) {
+ iVar3 = iVar3 + DAT_00df4290;
+ }
+ left = iVar3 - iVar2;
+ DAT_PencilRenderCore.surfaceTarget = RT_MAP_GAME;
+ drawBlendedBlackBox(left + -7, posY + -5, iVar2 + 5 + iVar3, posY + 0x1e, 0x10);
+ blendStrength = 0;
+ _stateNotZero = FALSE;
+ iVar5 = 0x12;
+ backgroundColor = 0;
+ foregroundColor = 0xc2f0eb;
+ alignment = TTA_CENTER;
+ iVar4 = iVar3;
+ iVar1 = posY;
+ /*
+ "Time Until Defeat" added by script: "Time Until Defeat"
+ */
+ _textAddr = getTextStringInGroupAtOffset(TEXT_OBJECTIVES, 0x11);
+ renderInGameTextWithShadow(
+ _textAddr, iVar4, iVar1, alignment, foregroundColor, backgroundColor, iVar5, _stateNotZero, blendStrength);
+ iVar1 = getEventIDForTimeUntilDefeatEventType();
+ iVar4 = DAT_MapPropertiesState.SEC_StartingMonth
+ + DAT_MapPropertiesState.SEC_StartingYear * 0xc;
+ iVar5 = (DAT_GameState.mapAndTime.year * 0xc - iVar4) + DAT_GameState.mapAndTime.month;
+ iVar4 = ((DAT_MapPropertiesState.scenarioEvents[iVar1].header.month
+ + DAT_MapPropertiesState.scenarioEvents[iVar1].header.year * 0xc)
+ - iVar4)
+ * 800;
+ if (DAT_GameCore.isTimeHalted == FALSE) {
+ _stateNotZero = GetIfDisplayElementStateNotZero(
+ DEID_KEEP_AND_GRANERY_PLACEMENT_INFO);
+ if (_stateNotZero == FALSE) {
+ local_c = ((iVar4 + DAT_GameState.mapAndTime.week * -200)
+ - DAT_GameState.gameTicksLoadBalancer)
+ + iVar5 * -800;
+ goto LAB_004b24b1;
+ }
+ }
+ local_c = iVar4 + iVar5 * -800;
+ LAB_004b24b1:
+ if (local_c < 0) {
+ local_c = 0;
+ }
+ drawBorderBox(
+ left + -1, posY + 0x12, iVar2 + 1 + iVar3, posY + 0x18, (ushort)((int)(COL_BLACK::instance.shortValue)));
+ if (local_c != iVar4) {
+ drawColorBox(
+ left, posY + 0x13, (((iVar4 - local_c) * iVar6) / iVar4 - iVar2) + iVar3, posY + 0x17,
+ (ushort)((int)(COL_DARK_LIME::instance.shortValue)));
+ }
+ DAT_PencilRenderCore.surfaceTarget = RT_SCREEN_MENU;
+ return;
+ }
+}
+}
+
+### 0x004b2530 RenderSomeMultiplayerInfoUnkDisplayElement28 | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B2530
+ void DisplayElements::RenderSomeMultiplayerInfoUnkDisplayElement28(int posX, int posY, DWORD elementState)
+ {
+ DWORD _currentTime;
+ char* pcVar1;
+ int iVar2;
+ eTextSections offsetIndex;
+ int iVar3;
+ TextAlignment TVar4;
+ BGR24 BVar5;
+ int iVar6;
+ BOOLEnum BVar7;
+ int iVar8;
+ _currentTime = timeGetTime();
+ if (DAT_GameCore.mapU4Int0 != 0) {
+ posY = posY + 0x41;
+ }
+ if (DAT_GameSynchronyState.DAT_SomeTime == 0) {
+ if (DAT_GameSynchronyState.isHost != FALSE) {
+ if (DAT_GameSynchronyState
+ .currentPlayerFullIDArray[DAT_GameSynchronyState.laggingPlayerIDUnk]
+ == -1) {
+ DAT_GameSynchronyState.field131_0xcd4 = 0x41;
+ } else {
+ if (10000 < _currentTime
+ - DAT_GameSynchronyState
+ .connectionLagInfoArray[DAT_GameSynchronyState.laggingPlayerIDUnk]
+ .time)
+ goto LAB_004b2593;
+ DAT_GameSynchronyState.field131_0xcd4 = 0x43;
+ }
+ DAT_GameSynchronyState.DAT_SomeTime = _currentTime;
+ queueCommand(
+ GCT_SEND_RESYNC_TILEMAPDATA2 | GCT_CHANGE_RATIONS);
+ }
+ } else if (2000 < _currentTime - DAT_GameSynchronyState.DAT_SomeTime) {
+ DAT_GameSynchronyState.DAT_SomeTime = 0;
+ DAT_GameSynchronyState.laggingPlayerIDUnk = 0;
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_SOME_MULTIPLAYER_INFO_Unk_28, 0);
+ return;
+ }
+ LAB_004b2593:
+ DAT_PencilRenderCore.surfaceTarget = RT_MAP_GAME;
+ drawBorderedBoxWithBlendedBackground(posX + -0xcc, posY, 0x198, 0x60);
+ DAT_PencilRenderCore.surfaceTarget = RT_SCREEN_MENU;
+ iVar2 = posY + 0x14;
+ iVar3 = posX + -0xbe;
+ renderTextToScreen(
+ DAT_GameSynchronyState.finalResults.names[DAT_GameSynchronyState.laggingPlayerIDUnk],
+ iVar3, iVar2, TTA_LEFT, 0xc2f0eb, 0x12, FALSE, 0);
+ iVar8 = 0;
+ BVar7 = TRUE;
+ iVar6 = 0x12;
+ BVar5 = 0xc2f0eb;
+ TVar4 = TTA_LEFT;
+ /*
+ ": Not Responding" added by script: ": Not Responding"
+ */
+ pcVar1 = getTextStringInGroupAtOffset(TEXT_MULTIPLAYER_CONNECTION, 0x40);
+ renderTextToScreen(
+ pcVar1, iVar3, iVar2, TVar4, BVar5, iVar6, BVar7, iVar8);
+ if (DAT_GameSynchronyState.DAT_SomeTime == 0) {
+ DAT_ButtonY = posY + 0x34;
+ DAT_ButtonX = posX;
+ DAT_ButtonW = 0xb4;
+ DAT_ButtonH = 0x1c;
+ if (DAT_GameSynchronyState.isHost == FALSE) {
+ BVar5 = 0x7f7f7f;
+ posX = posX + 0x5a;
+ offsetIndex = TEXT_XPLAY_WAITING_ROOM;
+ iVar2 = 0x5b;
+ } else {
+ iVar2 = 0x3c
+ - (_currentTime
+ - DAT_GameSynchronyState
+ .connectionLagInfoArray[DAT_GameSynchronyState.laggingPlayerIDUnk]
+ .time)
+ / 1000;
+ if (iVar2 < 0x33) {
+ if (iVar2 < 0) {
+ iVar2 = 0;
+ }
+ } else {
+ iVar2 = 0x32;
+ }
+ iVar3 = posY + 0x3a;
+ renderNumberToScreen2(
+ iVar2, posX + -0x66, iVar3, TTA_CENTER, 0xc2f0eb, 0x12, FALSE, 0);
+ BVar7 = isMouseInsideBox(
+ posX - DAT_ViewportRenderState.viewportState.currentCameraOffsetX,
+ (posY - DAT_ViewportRenderState.viewportState.currentCameraOffsetY) + 0x34, 0xb4, 0x1c);
+ if (BVar7 != FALSE) {
+ DAT_ButtonCurrentlyInteracting = TRUE;
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ iVar8 = 0;
+ BVar7 = FALSE;
+ iVar6 = 0x12;
+ BVar5 = 0xccfaff;
+ TVar4 = TTA_CENTER;
+ iVar2 = posX + 0x5a;
+ /*
+ "Eject" added by script: "Eject"
+ */
+ pcVar1 = getTextStringInGroupAtOffset(TEXT_XPLAY_WAITING_ROOM, 0x5b);
+ renderTextToScreen(
+ pcVar1, iVar2, iVar3, TVar4, BVar5, iVar6, BVar7, iVar8);
+ if (DAT_MouseState.leftClickStart == 0) {
+ return;
+ }
+ DAT_GameSynchronyState.DAT_SomeTime = timeGetTime();
+ DAT_GameSynchronyState.field131_0xcd4 = 0x42;
+ queueCommand(
+ GCT_SEND_RESYNC_TILEMAPDATA2 | GCT_CHANGE_RATIONS);
+ return;
+ }
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ BVar5 = 0xc2f0eb;
+ posX = posX + 0x5a;
+ offsetIndex = TEXT_XPLAY_WAITING_ROOM;
+ iVar2 = 0x5b;
+ }
+ } else {
+ BVar5 = 0xc2f0eb;
+ offsetIndex = TEXT_MULTIPLAYER_CONNECTION;
+ iVar2 = DAT_GameSynchronyState.field131_0xcd4;
+ }
+ iVar3 = posY + 0x3a;
+ iVar8 = 0;
+ BVar7 = FALSE;
+ iVar6 = 0x12;
+ TVar4 = TTA_CENTER;
+ pcVar1 = getTextStringInGroupAtOffset(offsetIndex, iVar2);
+ renderTextToScreen(
+ pcVar1, posX, iVar3, TVar4, BVar5, iVar6, BVar7, iVar8);
+ return;
+ }
+}
+}
+
+### 0x004b8080 MenuView_EditScenario_DoEveryFrame | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B8080
+ void EditScenario::MenuView_EditScenario_DoEveryFrame()
+ {
+ int top;
+ int x2;
+ int iVar1;
+ int iVar2;
+ int x1;
+ int x2_00;
+ int bottom;
+ DAT_TextureRenderCoreObject.currentRenderSurfaceIdentifierUnk_0x8
+ = RT_SCREEN_MENU;
+ drawGfxOnFlaggedSurface(0,
+ (DAT_WindowAndDirectDraw.resolutionX
+ - DAT_TextureRenderCoreObject.loadedGfxArray[0].width)
+ / 2,
+ (DAT_WindowAndDirectDraw.resolutionY
+ - DAT_TextureRenderCoreObject.loadedGfxArray[0].height)
+ / 2);
+ if (DAT_MenuModalComposition1.activeModalDialogID == MMT_NONE) {
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ /*
+ added by script: "Scenario Editor"
+ */
+ drawHeaderTextBanner(
+ 199, 2, DAT_MenuHandlerState.x, DAT_MenuHandlerState.y, 800, 0x3c);
+ iVar2 = DAT_MenuHandlerState.y;
+ iVar1 = DAT_MenuHandlerState.x;
+ top = DAT_MenuHandlerState.y + 0x5a;
+ x2_00 = DAT_MenuHandlerState.x + 0x302;
+ bottom = DAT_MenuHandlerState.y + 0x1e9;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ dimBox(
+ DAT_MenuHandlerState.x + 0x10e, top, DAT_MenuHandlerState.x + 0x2ee, bottom);
+ x2 = iVar1 + 0x303;
+ x1 = iVar1 + 0x10d;
+ drawLine(
+ x1, iVar2 + 0x59, x2, iVar2 + 0x59, (ushort)((int)(COL_VERY_SOFT_YELLOW::instance.shortValue)));
+ drawLine(
+ x1, iVar2 + 0x1ea, x2, iVar2 + 0x1ea, (ushort)((int)(COL_VERY_SOFT_YELLOW::instance.shortValue)));
+ drawLine(
+ iVar1 + 0x2ee, iVar2 + 0x6e, x2, iVar2 + 0x6e,
+ (ushort)((int)(COL_VERY_SOFT_YELLOW::instance.shortValue)));
+ drawLine(
+ x1, top, x1, bottom, (ushort)((int)(COL_VERY_SOFT_YELLOW::instance.shortValue)));
+ drawLine(
+ x2, top, x2, bottom, (ushort)((int)(COL_VERY_SOFT_YELLOW::instance.shortValue)));
+ drawLine(
+ iVar1 + 0x2ee, top, iVar1 + 0x2ee, bottom,
+ (ushort)((int)(COL_VERY_SOFT_YELLOW::instance.shortValue)));
+ drawLine(
+ iVar1 + 0x2ef, iVar2 + 0x1d5, x2_00, iVar2 + 0x1d5,
+ (ushort)((int)(COL_VERY_SOFT_YELLOW::instance.shortValue)));
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004b8220 MenuItemActionHandler_EditScenario_BaseMenuButtons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B8220
+ void EditScenario::MenuItemActionHandler_EditScenario_BaseMenuButtons(int param_1, ...)
+ {
+ char* pcVar1;
+ InGameEventUnionVersion* pIVar2;
+ char local_10[12];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)local_10;
+ if (DAT_MenuModalComposition1.activeModalDialogID != MMT_NONE)
+ goto switchD_004b8254_caseD_0;
+ switch (param_1) {
+ case 3:
+ pcVar1 = getTextArrayPointer(10);
+ DAT_MapPropertiesState.SEC_StartingYear = _atol(pcVar1);
+ if (DAT_MapPropertiesState.year_copy != DAT_MapPropertiesState.SEC_StartingYear) {
+ DAT_GameState.mapAndTime.month = DAT_MapPropertiesState.SEC_StartingMonth;
+ DAT_GameState.mapAndTime.year = DAT_MapPropertiesState.SEC_StartingYear;
+ }
+ switchToMenuView(
+ MVT_MAP_EDITOR_PROPERTIES, 0);
+ ;
+ return;
+ case 0x26:
+ if (DAT_MapPropertiesState.SEC_U3_MapType2_1 != MT_SIEGE) {
+ DAT_MapPropertiesState.indexStored = 0;
+ resetToTextIndex(9);
+ activateModalDialog(MMT_TRADER_SETTINGS, FALSE);
+ ;
+ return;
+ }
+ goto LAB_004b82b4;
+ case 0x29:
+ if (DAT_MapPropertiesState.SEC_U3_MapType2_1 == MT_SIEGE) {
+ DAT_MapPropertiesState.indexStored = 0x14;
+ resetToTextIndex(0xc);
+ _sprintf(local_10, "%d",
+ DAT_MapPropertiesState
+ .SEC_StartingResources[DAT_MapPropertiesState.indexStored + 5]);
+ copyIntoTextArray(local_10);
+ resetToTextIndex(9);
+ DAT_MapPropertiesState.DAT_MapEditorUnitPointsSum = sumUnitPoints();
+ activateModalDialog(MMT_UNUSED_SIEGE_ATTACKING_FORCEUnk, FALSE);
+ ;
+ return;
+ }
+ DAT_MapPropertiesState.indexStored = 0;
+ resetToTextIndex(
+ 0xc);
+ _sprintf(local_10, "%d",
+ DAT_MapPropertiesState.SEC_StartingResources[DAT_MissionAestheticsDefinedData
+ .field1237_0x345c[DAT_MapPropertiesState.indexStored]]);
+ copyIntoTextArray(local_10);
+ resetToTextIndex(
+ 9);
+ activateModalDialog(MMT_START_GOODS, FALSE);
+ ;
+ return;
+ case 0x2a:
+ if (DAT_MapPropertiesState.SEC_U3_MapType2_1 == MT_INVASION) {
+ DAT_MapPropertiesState.currentEventID = DAT_MapPropertiesState.eventsCount;
+ pIVar2 = DAT_MapPropertiesState.scenarioEvents
+ + DAT_MapPropertiesState.eventsCount;
+ DAT_MapPropertiesState.field50_0x13568 = 1;
+ DAT_MapPropertiesState.eventsCount = DAT_MapPropertiesState.eventsCount + 1;
+ resetEvent();
+ pcVar1 = getTextArrayPointer(10);
+ DAT_MapPropertiesState.SEC_StartingYear = _atol(pcVar1);
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .header.year = DAT_MapPropertiesState.SEC_StartingYear;
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .header.month = DAT_MapPropertiesState.SEC_StartingMonth;
+ resetToTextIndex(0xe);
+ copyIntoTextArray("");
+ resetToTextIndex(0xb);
+ _sprintf(local_10, "%d",
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .header.year);
+ copyIntoTextArray(local_10);
+ DAT_MapPropertiesState._79212_4_ = 0;
+ DAT_MapPropertiesState.offset = 0;
+ DAT_MapPropertiesState.indexStored = 0;
+ activateModalDialog(MMT_NEW_INVASION, FALSE);
+ ;
+ return;
+ }
+ break;
+ case 0x2b:
+ if (DAT_MapPropertiesState.SEC_U3_MapType2_1 != MT_JUST_BUILD) {
+ DAT_MapPropertiesState.currentEventID = DAT_MapPropertiesState.eventsCount;
+ pIVar2 = DAT_MapPropertiesState.scenarioEvents
+ + DAT_MapPropertiesState.eventsCount;
+ DAT_MapPropertiesState.field50_0x13568 = 3;
+ DAT_MapPropertiesState.eventsCount = DAT_MapPropertiesState.eventsCount + 1;
+ initializeScenarioEvent();
+ *(undefined1*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + 0xf) = 1;
+ *(undefined1*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + 0x22) = 10;
+ *(undefined1*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + 0x26) = 10;
+ *(undefined1*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + 0x2a) = 10;
+ *(undefined1*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + 0x52) = 10;
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data.scenario.conditions[0x16]
+ .value = 5;
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data.scenario.conditions[0x17]
+ .value = 5;
+ pcVar1 = getTextArrayPointer(10);
+ DAT_MapPropertiesState.SEC_StartingYear = _atol(pcVar1);
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .header.year = DAT_MapPropertiesState.SEC_StartingYear;
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .header.month = DAT_MapPropertiesState.SEC_StartingMonth;
+ DAT_MapPropertiesState.invasionTroopIndex = 0;
+ DAT_MapPropertiesState.flag = 1;
+ _sprintf(local_10, "%d",
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .header.year);
+ activateModalDialog(MMT_NEW_EVENT, FALSE);
+ ;
+ return;
+ }
+ break;
+ case 0x3d:
+ if (DAT_GameState.mapAndTime.editScenarioExtraOptions != 0) {
+ DAT_CopyOfScenarioGold = (int)DAT_GameState.mapAndTime.scenarioGold;
+ setSliderParameters(0,
+ 10000, DAT_CopyOfScenarioGold, (undefined*)DAT_CopyOfScenarioGold,
+ (void*)((int)(Helpers::RestoreScenarioGold::instance)));
+ DAT_MenuModalComposition2.textIndex = 0x3d;
+ LAB_004b8756:
+ DAT_MenuModalComposition2.textGroup = 199;
+ setExtraActiveModalDialog(MMT_OVERLAY_SLIDER,
+ DAT_ButtonX + -2, DAT_ButtonY + 0x19);
+ ;
+ return;
+ }
+ break;
+ case 0x4f:
+ if (DAT_MapPropertiesState.SEC_U3_MapType2_1 != MT_SIEGE) {
+ setSliderParameters(0, 100, DAT_MapPropertiesState.SEC_StartingPopularity,
+ (undefined*)((int)(&DAT_MapPropertiesState.SEC_StartingPopularity)),
+ (void*)((int)(Helpers::SumUnitPoints::instance)));
+ DAT_MenuModalComposition2.textGroup = 199;
+ DAT_MenuModalComposition2.textIndex = 0x4f;
+ setExtraActiveModalDialog(MMT_OVERLAY_SLIDER,
+ DAT_ButtonX + -2, DAT_ButtonY + 0x19);
+ ;
+ return;
+ }
+ LAB_004b82b4:
+ DAT_StopHandlingMenuItems = 0;
+ ;
+ return;
+ case 0xa6:
+ if ((DAT_GameState.mapAndTime.editScenarioExtraOptions != 0)
+ && (DAT_GameState.mapAndTime.scenarioRationsSetting
+ = DAT_GameState.mapAndTime.scenarioRationsSetting + 1,
+ 4 < DAT_GameState.mapAndTime.scenarioRationsSetting)) {
+ DAT_GameState.mapAndTime.scenarioRationsSetting = 0;
+ ;
+ return;
+ }
+ break;
+ case 0xa7:
+ if ((DAT_GameState.mapAndTime.editScenarioExtraOptions != 0)
+ && (DAT_GameState.mapAndTime.scenarioTaxesSetting
+ = DAT_GameState.mapAndTime.scenarioTaxesSetting + 1,
+ 9 < DAT_GameState.mapAndTime.scenarioTaxesSetting)) {
+ DAT_GameState.mapAndTime.scenarioTaxesSetting = 0;
+ }
+ break;
+ case 0xa8:
+ if (DAT_MapPropertiesState.SEC_U3_MapType2_1 == MT_SIEGE) {
+ setSliderParameters(0,
+ 10000, DAT_MapPropertiesState.SEC_StartingResources[0xf],
+ (undefined*)((int)((DAT_MapPropertiesState.SEC_StartingResources + 0xf))),
+ (void*)((int)(Helpers::SumUnitPoints::instance)));
+ DAT_MenuModalComposition2.textIndex = 0xa8;
+ goto LAB_004b8756;
+ }
+ break;
+ case 0xa9:
+ if (DAT_MapPropertiesState.SEC_U3_MapType2_1 == MT_SIEGE) {
+ setSliderParameters(0,
+ 100, DAT_MapPropertiesState.SEC_StartingResources[8],
+ (undefined*)((int)((DAT_MapPropertiesState.SEC_StartingResources + 8))),
+ (void*)((int)(Helpers::SumUnitPoints::instance)));
+ DAT_MenuModalComposition2.textIndex = 0xa9;
+ goto LAB_004b8756;
+ }
+ break;
+ case 0xab:
+ DAT_MapPropertiesState.DAT_BuildingAvailabilityScrollbarOffset = 0;
+ activateModalDialog(MMT_BUILDING_AVAILABILITY, FALSE);
+ ;
+ return;
+ case -1:
+ DAT_MapPropertiesState.SEC_StartingMonth
+ = DAT_MapPropertiesState.SEC_StartingMonth + 1;
+ if (0xb < DAT_MapPropertiesState.SEC_StartingMonth) {
+ DAT_MapPropertiesState.SEC_StartingMonth = 0;
+ }
+ DAT_GameState.mapAndTime.year = DAT_MapPropertiesState.SEC_StartingYear;
+ DAT_GameState.mapAndTime.month = DAT_MapPropertiesState.SEC_StartingMonth;
+ ;
+ return;
+ }
+ switchD_004b8254_caseD_0:;
+ return;
+ }
+ }
+}
+}
+
+### 0x004b8990 MenuItemActionHandler_EditScenario_DateYearBox | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B8990
+ void EditScenario::MenuItemActionHandler_EditScenario_DateYearBox(int param_1, ...)
+ {
+ switch (param_1) {
+ case 0:
+ if (DAT_UserTextHandlerState.textArrayIndex
+ != (TAIT_EIGHT__FILTER_B | TAIT_SEVEN__NUMERIC_ONLY)) {
+ resetToTextIndex(0xf);
+ return;
+ }
+ break;
+ case 1:
+ if (DAT_UserTextHandlerState.textArrayIndex
+ != (TAIT_EIGHT__FILTER_B | TAIT_TWO__FILTER_A)) {
+ resetToTextIndex(10);
+ return;
+ }
+ break;
+ case 2:
+ if (DAT_UserTextHandlerState.textArrayIndex
+ != (TAIT_EIGHT__FILTER_B | TAIT_THREE__FILTER_A)) {
+ resetToTextIndex(0xb);
+ return;
+ }
+ break;
+ case 3:
+ case 4:
+ case 7:
+ if (DAT_UserTextHandlerState.textArrayIndex != 0xc) {
+ resetToTextIndex(0xc);
+ return;
+ }
+ break;
+ case 5:
+ if (DAT_UserTextHandlerState.textArrayIndex
+ != (TAIT_EIGHT__FILTER_B | TAIT_FIVE__NUMERIC_DOT)) {
+ resetToTextIndex(0xd);
+ return;
+ }
+ break;
+ case 6:
+ if (DAT_UserTextHandlerState.textArrayIndex
+ != (TAIT_EIGHT__FILTER_B | TAIT_SIX__NUMERIC_ONLY)) {
+ resetToTextIndex(0xe);
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004b8a50 MenuItemActionHandler_EditScenario_Scrollbar | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B8A50
+ void EditScenario::MenuItemActionHandler_EditScenario_Scrollbar(
+ int param_1, int param_2, int* minValue, int* maxValue, int* currentValue)
+ {
+ switch (param_2) {
+ case 1:
+ *minValue = 0;
+ *maxValue = DAT_MapPropertiesState.eventsCount + -0x14;
+ *currentValue = 0;
+ return;
+ case 2:
+ case 3:
+ if (*currentValue < 0) {
+ *currentValue = 0;
+ }
+ DAT_MapPropertiesState.field47_0x1355c = *currentValue;
+ return;
+ case 4:
+ *currentValue = DAT_MapPropertiesState.field47_0x1355c;
+ *maxValue = DAT_MapPropertiesState.eventsCount + -0x14;
+ return;
+ case 5:
+ if (0 < DAT_MapPropertiesState.field47_0x1355c) {
+ DAT_MapPropertiesState.field47_0x1355c
+ = DAT_MapPropertiesState.field47_0x1355c + -1;
+ *currentValue = DAT_MapPropertiesState.field47_0x1355c;
+ return;
+ }
+ break;
+ case 6:
+ if (DAT_MapPropertiesState.field47_0x1355c
+ < DAT_MapPropertiesState.eventsCount + -0x14) {
+ DAT_MapPropertiesState.field47_0x1355c
+ = DAT_MapPropertiesState.field47_0x1355c + 1;
+ }
+ break;
+ default:
+ goto switchD_004b8a60_caseD_6;
+ }
+ *currentValue = DAT_MapPropertiesState.field47_0x1355c;
+ switchD_004b8a60_caseD_6:
+ return;
+ }
+ }
+}
+}
+
+### 0x004b8b10 MenuItemActionHandler_EditScenario_EventAndInvasionList | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B8B10
+ void EditScenario::MenuItemActionHandler_EditScenario_EventAndInvasionList(int param_1, ...)
+ {
+ int iVar1;
+ MenuModalType menuModalID;
+ char local_10[12];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)local_10;
+ if (DAT_MenuModalComposition1.activeModalDialogID == MMT_NONE) {
+ iVar1 = DAT_MapPropertiesState.field47_0x1355c + param_1;
+ if (iVar1 < DAT_MapPropertiesState.eventsCount) {
+ DAT_MapPropertiesState.field48_0x13560 = param_1;
+ DAT_MapPropertiesState.field50_0x13568
+ = DAT_MapPropertiesState.scenarioEvents[iVar1].header.tl_type;
+ DAT_MapPropertiesState.currentEventID = iVar1;
+ resetToTextIndex(0xb);
+ _sprintf(local_10, "%d",
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .header.year);
+ copyIntoTextArray(local_10);
+ if (DAT_MapPropertiesState.field50_0x13568 == 1) {
+ resetToTextIndex(0xb);
+ DAT_MapPropertiesState._79212_4_ = 0;
+ DAT_MapPropertiesState.offset = 0;
+ DAT_MapPropertiesState.indexStored = 0;
+ menuModalID = MMT_NEW_INVASION;
+ } else {
+ if (DAT_MapPropertiesState.field50_0x13568 != 3)
+ goto LAB_004b8bdc;
+ menuModalID = MMT_NEW_EVENT;
+ }
+ activateModalDialog(menuModalID, FALSE);
+ }
+ }
+ LAB_004b8bdc:;
+ return;
+ }
+ }
+}
+}
+
+### 0x004b8bf0 MenuItemRenderFunction_EditScenario_EventAndInvasionList | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B8BF0
+ void EditScenario::MenuItemRenderFunction_EditScenario_EventAndInvasionList(int param_1, ...)
+ {
+ byte bVar1;
+ char* pcVar2;
+ int iVar3;
+ int iVar4;
+ BGR24 color;
+ bool bVar5;
+ TextAlignment TVar6;
+ BGR24 BVar7;
+ int iVar8;
+ BOOLEnum BVar9;
+ int iVar10;
+ int blendStrength;
+ if (DAT_MapPropertiesState.eventsCount <= DAT_MapPropertiesState.field48_0x13560) {
+ DAT_MapPropertiesState.field48_0x13560 = DAT_MapPropertiesState.eventsCount + -1;
+ }
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ drawTableCellBackground(
+ (uint)(param_1 == DAT_MapPropertiesState.field48_0x13560), param_1, 0);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ if (DAT_MapPropertiesState.eventsCount
+ <= DAT_MapPropertiesState.field47_0x1355c + param_1) {
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ if ((param_1 == DAT_MapPropertiesState.field48_0x13560)
+ || (color = 0xc2f0eb, DAT_ButtonCurrentlyInteracting != FALSE)) {
+ color = 0xccfaff;
+ }
+ iVar10 = 0;
+ BVar9 = FALSE;
+ iVar8 = 0x12;
+ BVar7 = 0xccfaff;
+ TVar6 = TTA_LEFT;
+ iVar3 = DAT_ButtonY + 4;
+ iVar4 = DAT_ButtonX + 8;
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_MONTHS,
+ DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.field47_0x1355c + param_1]
+ .header.month);
+ renderTextToScreen(
+ pcVar2, iVar4, iVar3, TVar6, BVar7, iVar8, BVar9, iVar10);
+ renderNumberToScreen2(
+ DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.field47_0x1355c + param_1]
+ .header.year,
+ DAT_ButtonX + 0x28, DAT_ButtonY + 4,
+ TTA_LEFT, 0xccfaff, 0x12, FALSE, 0);
+ iVar3 = DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.field47_0x1355c + param_1]
+ .header.tl_type;
+ if (iVar3 == 1) {
+ iVar10 = 0;
+ BVar9 = FALSE;
+ iVar8 = 0x12;
+ TVar6 = TTA_LEFT;
+ iVar3 = DAT_ButtonY + 4;
+ iVar4 = DAT_ButtonX + 0x50;
+ BVar7 = color;
+ /*
+ added by script: "Invasion"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_SCENARIO, 0x2e);
+ renderTextToScreen(
+ pcVar2, iVar4, iVar3, TVar6, BVar7, iVar8, BVar9, iVar10);
+ renderNumberToScreen2(
+ DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.field47_0x1355c + param_1]
+ .data.scenario.actionData,
+ DAT_ButtonX + 0xfa, DAT_ButtonY + 4,
+ TTA_LEFT, (uint)((int)(color)), 0x12, FALSE, 0);
+ if (DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.field47_0x1355c + param_1]
+ .data.invasion.repeatMonths
+ == 0) {
+ return;
+ }
+ renderTextToScreen("(x",
+ DAT_ButtonX + 0x154, DAT_ButtonY + 4,
+ TTA_LEFT, color, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.field47_0x1355c + param_1]
+ .data.invasion.repeatMonths,
+ DAT_ButtonX + 0x154, DAT_ButtonY + 4,
+ TTA_LEFT, (uint)((int)(color)), 0x12, TRUE, 0);
+ bVar5 = DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.field47_0x1355c + param_1]
+ .data.invasion.repeatMonths
+ == 1;
+ } else {
+ if (iVar3 != 3) {
+ return;
+ }
+ iVar3 = DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.field47_0x1355c + param_1]
+ .data.scenario.ScenarioEventType;
+ iVar4 = iVar3 + 0x80;
+ if (0x9b < iVar4) {
+ iVar4 = iVar3 + 0x95;
+ }
+ blendStrength = 0;
+ BVar9 = FALSE;
+ iVar10 = 0x12;
+ TVar6 = TTA_LEFT;
+ iVar3 = DAT_ButtonY + 4;
+ iVar8 = DAT_ButtonX + 0x50;
+ BVar7 = color;
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_SCENARIO, iVar4);
+ renderTextToScreen(
+ pcVar2, iVar8, iVar3, TVar6, BVar7, iVar10, BVar9, blendStrength);
+ if (DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.field47_0x1355c + param_1]
+ .data.scenario.repeat
+ == 0) {
+ return;
+ }
+ if (DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.field47_0x1355c + param_1]
+ .data.scenario.repeatMonths
+ == 1) {
+ return;
+ }
+ renderTextToScreen("(",
+ DAT_ButtonX + 0x154, DAT_ButtonY + 4,
+ TTA_LEFT, color, 0x12, FALSE, 0);
+ bVar1 = DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.field47_0x1355c + param_1]
+ .data.scenario.repeatMonths;
+ if (bVar1 != 10) {
+ renderNumberToScreen((uint)bVar1,
+ DAT_ButtonX + 0x154, DAT_ButtonY + 4,
+ TTA_LEFT, (uint)((int)(color)), 0x12, TRUE);
+ }
+ renderTextToScreen("x",
+ DAT_ButtonX + 0x154, DAT_ButtonY + 4,
+ TTA_LEFT, color, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ (uint)DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.field47_0x1355c + param_1]
+ .data.scenario.repeat,
+ DAT_ButtonX + 0x154, DAT_ButtonY + 4,
+ TTA_LEFT, (uint)((int)(color)), 0x12, TRUE, 0);
+ bVar5 = DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.field47_0x1355c + param_1]
+ .data.scenario.repeat
+ == 1;
+ }
+ if (bVar5) {
+ iVar3 = 0xd2;
+ } else {
+ iVar3 = 0xd3;
+ }
+ /*
+ added by script: "Months"
+ */
+ renderText2(
+ TEXT_SCENARIO, iVar3, DAT_ButtonX + 0x15a,
+ DAT_ButtonY + 4, TTA_LEFT, (uint)((int)(color)), 0x12, TRUE);
+ renderTextToScreen(")",
+ DAT_ButtonX + 0x15a, DAT_ButtonY + 4,
+ TTA_LEFT, color, 0x12, TRUE, 0);
+ return;
+ }
+ }
+}
+}
+
+### 0x004b9020 MenuItemActionHandler_EditScenario_UpDownButtons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B9020
+ void EditScenario::MenuItemActionHandler_EditScenario_UpDownButtons(int param_1, ...)
+ {
+ if (DAT_MenuModalComposition1.activeModalDialogID == MMT_NONE) {
+ if (param_1 == -2) {
+ if (DAT_MapPropertiesState.field47_0x1355c
+ < DAT_MapPropertiesState.eventsCount + -0x14) {
+ DAT_MapPropertiesState.field47_0x1355c
+ = DAT_MapPropertiesState.field47_0x1355c + 1;
+ }
+ } else if ((param_1 == -1) && (0 < DAT_MapPropertiesState.field47_0x1355c)) {
+ DAT_MapPropertiesState.field47_0x1355c
+ = DAT_MapPropertiesState.field47_0x1355c + -1;
+ return;
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004b9060 MenuItemRenderFunction_EditScenario_UpDownButtons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B9060
+ void EditScenario::MenuItemRenderFunction_EditScenario_UpDownButtons(int param_1, ...)
+ {
+ int xParam;
+ char* textAddress;
+ int yParam;
+ TextAlignment alignment;
+ uint foregroundColor;
+ uint backgroundColor;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ if (-1 < param_1) {
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ blendStrength = 0;
+ xParam = DAT_ButtonW / 2 + DAT_ButtonX;
+ yParam = DAT_ButtonY + 6;
+ keepOffsetX = FALSE;
+ fontSize = 0x12;
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ backgroundColor = 0x3e66;
+ foregroundColor = 0xa2ff;
+ } else {
+ backgroundColor = 0;
+ foregroundColor = 0xffffff;
+ }
+ alignment = TTA_CENTER;
+ textAddress = getTextStringInGroupAtOffset(TEXT_SCENARIO, param_1);
+ renderInGameTextWithShadow(textAddress, xParam, yParam, alignment, foregroundColor,
+ backgroundColor, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ if (param_1 == -1) {
+ renderUpDownButtonUnk(0, 0);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ renderUpDownButtonUnk(1, 0);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ }
+}
+}
+
+### 0x004bac20 MenuItemRenderFunction_EditScenario_StartDateMonth | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004BAC20
+ void EditScenario::MenuItemRenderFunction_EditScenario_StartDateMonth(int param_1, ...)
+ {
+ int xParam;
+ char* textAddress;
+ int yParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ blendStrength = 0;
+ xParam = DAT_ButtonW / 2 + DAT_ButtonX;
+ yParam = DAT_ButtonY + 6;
+ keepOffsetX = FALSE;
+ fontSize = 0x12;
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ color = 0xc2f0eb;
+ } else {
+ color = 0xccfaff;
+ }
+ alignment = TTA_CENTER;
+ textAddress = getTextStringInGroupAtOffset(
+ TEXT_MONTHS, DAT_MapPropertiesState.SEC_StartingMonth + 0xc);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+ }
+}
+}
+
+### 0x004bac90 MenuItemRenderFunction_EditScenario_StartDate | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004BAC90
+ void EditScenario::MenuItemRenderFunction_EditScenario_StartDate(int param_1, ...)
+ {
+ char* textAddress;
+ int iVar1;
+ int xParam;
+ int yParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ if (param_1 == -5) {
+ iVar1 = 0x27;
+ } else {
+ if (param_1 != -1) {
+ if (param_1 == 0) {
+ return;
+ }
+ iVar1 = DAT_ButtonX;
+ if (DAT_ButtonW != 0) {
+ iVar1 = DAT_ButtonW / 2 + DAT_ButtonX;
+ }
+ renderText2(
+ TEXT_SCENARIO, param_1, iVar1, DAT_ButtonY + 6,
+ (TextAlignment)((int)((uint)(DAT_ButtonW != 0))), 0xccfaff, 0x12, FALSE);
+ return;
+ }
+ iVar1 = 0x20;
+ }
+ yParam = DAT_ButtonY + 6;
+ xParam = DAT_ButtonW / 2 + DAT_ButtonX;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x12;
+ color = 0xccfaff;
+ alignment = TTA_CENTER;
+ /*
+ added by script: "Start Date"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_SCENARIO, iVar1);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+ }
+}
+}
+
+### 0x004bec40 MenuItemRenderFunction_EditScenario_BaseMenuButtons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004BEC40
+ void EditScenario::MenuItemRenderFunction_EditScenario_BaseMenuButtons(int param_1, ...)
+ {
+ int iVar1;
+ uint color;
+ if (param_1 == 3) {
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ return;
+ }
+ if (((param_1 == 0x3d) || (param_1 == 0xa6)) || (param_1 == 0xa7)) {
+ if (DAT_GameState.mapAndTime.editScenarioExtraOptions != 0) {
+ if (param_1 == 0x3d) {
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ if (DAT_ButtonCurrentlyInteracting != FALSE) {
+ /*
+ added by script: "Gold"
+ */
+ renderText2(
+ TEXT_SCENARIO, 0x3d, DAT_ButtonX + 10,
+ DAT_ButtonY + 6, TTA_LEFT, 0xccfaff, 0x12,
+ FALSE);
+ renderNumberToScreen2(DAT_CopyOfScenarioGold,
+ DAT_ButtonW + -10 + DAT_ButtonX,
+ DAT_ButtonY + 6, TTA_RIGHT, 0xccfaff, 0x12,
+ FALSE, 0);
+ return;
+ }
+ /*
+ added by script: "Gold"
+ */
+ renderText2(
+ TEXT_SCENARIO, 0x3d, DAT_ButtonX + 10,
+ DAT_ButtonY + 6, TTA_LEFT, 0xc2f0eb, 0x12, FALSE);
+ renderNumberToScreen2(DAT_CopyOfScenarioGold,
+ DAT_ButtonW + -10 + DAT_ButtonX,
+ DAT_ButtonY + 6, TTA_RIGHT, 0xc2f0eb, 0x12, FALSE,
+ 0);
+ return;
+ }
+ if (param_1 == 0xa6) {
+ iVar1 = DAT_MissionAestheticsDefinedData
+ .field1236_0x3448[DAT_GameState.mapAndTime.scenarioRationsSetting];
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ if (DAT_ButtonCurrentlyInteracting != FALSE) {
+ renderText2(
+ TEXT_IN_GRANARY, iVar1,
+ DAT_ButtonW / 2 + DAT_ButtonX,
+ DAT_ButtonY + 6, TTA_CENTER, 0xccfaff, 0x12,
+ FALSE);
+ return;
+ }
+ renderText2(
+ TEXT_IN_GRANARY, iVar1,
+ DAT_ButtonW / 2 + DAT_ButtonX,
+ DAT_ButtonY + 6, TTA_CENTER, 0xc2f0eb, 0x12, FALSE);
+ return;
+ }
+ if (param_1 == 0xa7) {
+ iVar1 = (int)DAT_GameState.mapAndTime.scenarioTaxesSetting;
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ color = 0xc2f0eb;
+ } else {
+ color = 0xccfaff;
+ }
+ renderText2(
+ TEXT_IN_KEEP, iVar1 + 7,
+ DAT_ButtonW / 2 + DAT_ButtonX,
+ DAT_ButtonY + 6, TTA_CENTER, color, 0x12, FALSE);
+ }
+ }
+ } else if (param_1 == 0xa8) {
+ if (DAT_MapPropertiesState.SEC_U3_MapType2_1 == MT_SIEGE) {
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ /*
+ added by script: "Starting Gold"
+ */
+ renderText2(
+ TEXT_SCENARIO, 0xa8, DAT_ButtonX + 10,
+ DAT_ButtonY + 6, TTA_LEFT, 0xc2f0eb, 0x12, FALSE);
+ iVar1 = DAT_ButtonW + -10 + DAT_ButtonX;
+ } else {
+ /*
+ added by script: "Starting Gold"
+ */
+ renderText2(
+ TEXT_SCENARIO, 0xa8, DAT_ButtonX + 10,
+ DAT_ButtonY + 6, TTA_LEFT, 0xc2f0eb, 0x12, FALSE);
+ iVar1 = DAT_ButtonW + -10 + DAT_ButtonX;
+ }
+ renderNumberToScreen2(DAT_MapPropertiesState.SEC_StartingResources[0xf], iVar1,
+ DAT_ButtonY + 8, TTA_RIGHT, 0xccfaff, 0x12, FALSE, 0);
+ renderGM(GM_INTERFACE_ICONS2, 0x48,
+ DAT_ButtonX + 10, DAT_ButtonY);
+ return;
+ }
+ } else if (param_1 == 0xa9) {
+ if (DAT_MapPropertiesState.SEC_U3_MapType2_1 == MT_SIEGE) {
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ /*
+ added by script: "Starting Pitch"
+ */
+ renderText2(
+ TEXT_SCENARIO, 0xa9, DAT_ButtonX + 10,
+ DAT_ButtonY + 6, TTA_LEFT, 0xc2f0eb, 0x12, FALSE);
+ iVar1 = DAT_ButtonW + -10 + DAT_ButtonX;
+ } else {
+ /*
+ added by script: "Starting Pitch"
+ */
+ renderText2(
+ TEXT_SCENARIO, 0xa9, DAT_ButtonX + 10,
+ DAT_ButtonY + 6, TTA_LEFT, 0xc2f0eb, 0x12, FALSE);
+ iVar1 = DAT_ButtonW + -10 + DAT_ButtonX;
+ }
+ renderNumberToScreen2(DAT_MapPropertiesState.SEC_StartingResources[8], iVar1,
+ DAT_ButtonY + 8, TTA_RIGHT, 0xccfaff, 0x12, FALSE, 0);
+ renderGM(GM_INTERFACE_ICONS2, 0x3a,
+ DAT_ButtonX + 10, DAT_ButtonY);
+ return;
+ }
+ } else if ((param_1 != 0x2a)
+ || (DAT_MapPropertiesState.SEC_U3_MapType2_1 == MT_INVASION)) {
+ if (DAT_MapPropertiesState.SEC_U3_MapType2_1 == MT_SIEGE) {
+ if (param_1 != 0x26) {
+ if (param_1 == 0x4f) {
+ return;
+ }
+ LAB_004beed3:
+ if (param_1 == 0x29) {
+ if (DAT_MapPropertiesState.SEC_U3_MapType2_1 == MT_SIEGE) {
+ param_1 = 0xa4;
+ }
+ } else if (param_1 == 0x4f) {
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ if (DAT_ButtonCurrentlyInteracting != FALSE) {
+ /*
+ added by script: "Popularity"
+ */
+ renderText2(TEXT_SCENARIO, 0x4f,
+ DAT_ButtonX + 10, DAT_ButtonY + 6,
+ TTA_LEFT, 0xccfaff, 0x12, FALSE);
+ renderNumberToScreen2(DAT_MapPropertiesState.SEC_StartingPopularity,
+ DAT_ButtonW + -10 + DAT_ButtonX,
+ DAT_ButtonY + 6, TTA_RIGHT, 0xccfaff, 0x12,
+ FALSE, 0);
+ return;
+ }
+ /*
+ added by script: "Popularity"
+ */
+ renderText2(
+ TEXT_SCENARIO, 0x4f, DAT_ButtonX + 10,
+ DAT_ButtonY + 6, TTA_LEFT, 0xc2f0eb, 0x12,
+ FALSE);
+ renderNumberToScreen2(DAT_MapPropertiesState.SEC_StartingPopularity,
+ DAT_ButtonW + -10 + DAT_ButtonX,
+ DAT_ButtonY + 6, TTA_RIGHT, 0xc2f0eb, 0x12,
+ FALSE, 0);
+ return;
+ }
+ RenderScenarioButtonWithText(param_1);
+ return;
+ }
+ } else if ((DAT_MapPropertiesState.SEC_U3_MapType2_1 != MT_JUST_BUILD)
+ || (((param_1 != 0x2a && (param_1 != 0x11)) && (param_1 != 0x2b))))
+ goto LAB_004beed3;
+ }
+ return;
+ }
+ }
+}
+}
+

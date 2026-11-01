@@ -1,0 +1,599 @@
+### 0x00515da0 placeTree | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00515DA0
+ void TileMapState::placeTree(uint x, uint y, undefined4 treeType)
+ {
+ uint uVar1;
+ uint y_00;
+ undefined4 treeType_00;
+ uint _treeType;
+ int _treeID;
+ int iVar2;
+ uint local_c;
+ int local_8;
+ int local_4;
+ uint _tile;
+ y_00 = y;
+ if (((x < 400) && (y < 400)) && (*(char*)(y * 400 + 0x21aec98 + x) != '\0')) {
+ iVar2 = 3;
+ treeType_00 = mapUITreeTypeToLogicalTreeType((int)(short)treeType);
+ local_4 = getValueFrom0UpTo3ForTreeTypeAndTreeStage(treeType_00, iVar2);
+ _tile = DAT_ViewportRenderState.translationMatrix[y_00].addXgetTile + x;
+ local_8 = DAT_TerrainDefinedData.BrushSizeArray[local_4];
+ if ((this->LogicLayer[_tile] & L_SEA | L_PLAIN1_AND_FARM | L_BORDER | L_BORDER_EDGE | L_ROCKY
+ | L_WALL_OR_GATEHOUSE | L_BUILDING | L_TREE_VARIATION | L_BOULDERS | L_PEBBLES | L_IRON | L_RIVER
+ | L_FORD | L_KEEP_NON_MANOR_HOUSE | L_MARSH | L_MOAT)
+ == 0) {
+ iVar2 = 0;
+ local_c = y_00;
+ y = _tile;
+ if (0 < local_8) {
+ do {
+ getTileForBrush(
+ 1, iVar2, (int*)&y, (int*)&local_c, _tile, y_00);
+ uVar1 = this->LogicLayer[y];
+ if ((uVar1 & L_BORDER) != 0)
+ break;
+ if ((uVar1 & L_WALL_OR_GATEHOUSE | L_BUILDING | L_RIVER | L_KEEP_NON_MANOR_HOUSE) != 0) {
+ return;
+ }
+ if ((char)uVar1 < '\0') {
+ return;
+ }
+ if (this->OrganismLayer[y] != 0) {
+ return;
+ }
+ iVar2 = iVar2 + 1;
+ } while (iVar2 < local_8);
+ }
+ _treeType = mapUITreeTypeToLogicalTreeType((int)(short)treeType);
+ _treeID = createTree(x,
+ (undefined4)((int)(y_00)), (TreeType)((int)((int)(short)_treeType)), (undefined4)((int)(local_4)),
+ 0, 0, 3);
+ this->LogicLayer[DAT_LandscapeState.trees[_treeID].tile]
+ = this->LogicLayer[DAT_LandscapeState.trees[_treeID].tile] & ~(L_ROCKY);
+ this->LogicLayer[DAT_LandscapeState.trees[_treeID].tile]
+ = this->LogicLayer[DAT_LandscapeState.trees[_treeID].tile] | 4096;
+ this->OrganismLayer[DAT_LandscapeState.trees[_treeID].tile] = (short)_treeID;
+ applyTreeBrushToLogicalLayer(_treeID, 0);
+ updatePathLinkagesInAllEightDirections((int)(short)DAT_LandscapeState.trees[_treeID].yPosition,
+ DAT_LandscapeState.trees[_treeID].tile);
+ DAT_PathFindingState.toggleUpdateSeparateAreaTileMap = 1;
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00515da0", "name": "placeTree", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Pflanzt einen Baum auf eine Kachel, wenn der Platz frei genug ist."}, "p2": {"ein": "x, y, treeType (Oberflächen-Baumart)", "aus": "-", "liest": ["Karten-Byte bei 0x21aec98 + y*400 + x", "LogicLayer[tile] und LogicLayer der Pinselkacheln", "OrganismLayer", "BrushSizeArray[stufe]"], "schreibt": ["Baum über createTree", "LogicLayer[tile] (Bit ROCKY löschen, Bit 4096 setzen)", "OrganismLayer[tile] = BaumID", "toggleUpdateSeparateAreaTileMap = 1"], "ruft": ["mapUITreeTypeToLogicalTreeType", "getValueFrom0UpTo3ForTreeTypeAndTreeStage", "getTileForBrush", "createTree", "applyTreeBrushToLogicalLayer", "updatePathLinkagesInAllEightDirections"], "regeln": ["Nichts passiert, wenn x oder y mindestens 400 ist oder das Karten-Byte der Kachel 0 ist", "Die Kachel darf keines dieser Merkmale haben: See, Plain1/Feld, Rand, Randkante, Felsig, Mauer/Torhaus, Gebäude, Baumvariante, Findlinge, Kiesel, Eisen, Fluss, Furt, Burg (nicht Herrenhaus), Sumpf, Wassergraben", "Baumstufe immer 3 (Aufruf mit Wert 3); Pinselgröße kommt aus BrushSizeArray[Ergebnis 0..3]", "Alle Pinselkacheln werden geprüft: Rand beendet die Prüfung und der Baum wird trotzdem gesetzt; Mauer/Torhaus/Gebäude/Fluss/Burg, Bit 0x80 (Vorzeichenbit des untersten Bytes) oder belegte OrganismLayer-Kachel brechen ohne Baum ab", "createTree(x, y, Art, Stufe, 0, 0, 3) legt den Baum an"], "offen": ["Das Karten-Byte bei 0x21aec98 ist vermutlich eine Karten-Gültigkeitsmaske; nicht belegt", "Das Merkmal ROCKY steht in der Sperrliste und wird danach gelöscht; wann es überhaupt greift, ist unklar", "Inhalt von BrushSizeArray"]}, "p3": {"erklaerung": "Pflanzt einen Baum nur auf freies Land ohne Wasser, Gebäude, Mauern, Felsen oder andere Bäume in der Umgebung.", "gehirn": "-", "beleg": "code", "live": "BrushSizeArray einmal aus dem Speicher lesen → DAT_TerrainDefinedData.BrushSizeArray[0..3] → Werte festhalten", "live_art": "tabelle"}}
+
+### 0x0052fe90 setUnitFacingDirectionForTargetXandY | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0052FE90
+ BOOLEnum UnitsState::setUnitFacingDirectionForTargetXandY(int unitID, int targetX, int targetY)
+ {
+ short sVar1;
+ short sVar2;
+ int iVar3;
+ int iVar4;
+ short sVar5;
+ sVar1 = this->units[unitID].facingDirection;
+ calculatePreferredRelativeOrientation(
+ (int)this->units[unitID].x, this->units[unitID].y, targetX, targetY);
+ if (DAT_DirectionAlgorithmState.orientation == 0xf) {
+ return FALSE;
+ }
+ sVar5 = this->units[unitID].facingDirection;
+ iVar3 = (int)sVar5;
+ if (iVar3 == DAT_DirectionAlgorithmState.orientation) {
+ return FALSE;
+ }
+ iVar4 = DAT_DirectionAlgorithmState.orientation - iVar3;
+ if (iVar4 < 0) {
+ iVar4 = iVar4 + 8;
+ }
+ iVar3 = iVar3 - DAT_DirectionAlgorithmState.orientation;
+ if (iVar3 < 0) {
+ iVar3 = iVar3 + 8;
+ }
+ if (iVar3 < iVar4) {
+ sVar5 = sVar5 + -1;
+ } else {
+ sVar5 = sVar5 + 1;
+ }
+ this->units[unitID].facingDirection = sVar5;
+ if (sVar5 < 0) {
+ this->units[unitID].facingDirection = sVar5 + 8;
+ }
+ sVar5 = this->units[unitID].facingDirection;
+ if (7 < sVar5) {
+ this->units[unitID].facingDirection = sVar5 + -8;
+ }
+ sVar5 = this->units[unitID].facingDirection;
+ this->units[unitID].facingDirectionMapOrientationCorrected = sVar5;
+ sVar2 = sVar5 - (short)DAT_TileMapState.mapOrientation;
+ this->units[unitID].facingDirectionMapOrientationCorrected = sVar2;
+ if (sVar2 < 0) {
+ this->units[unitID].facingDirectionMapOrientationCorrected = sVar2 + 8;
+ }
+ return (uint)(sVar1 != sVar5);
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0052fe90", "name": "setUnitFacingDirectionForTargetXandY", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Dreht eine Einheit um einen Schritt zu einem Kartenpunkt hin."}, "p2": {"ein": "unitID, targetX, targetY", "aus": "TRUE wenn sich die Blickrichtung geändert hat", "liest": ["units[].x/y", "units[].facingDirection", "mapOrientation"], "schreibt": ["units[].facingDirection", "units[].facingDirectionMapOrientationCorrected"], "ruft": ["calculatePreferredRelativeOrientation"], "regeln": ["Zielrichtung 15 oder schon erreicht: FALSE", "Ein Schritt um 1 von 8 Richtungen auf dem kürzeren Weg, bei Gleichstand +1", "Kartenkorrigierte Richtung = Richtung minus mapOrientation (bei negativ +8)"], "offen": []}, "p3": {"erklaerung": "Wie das schrittweise Drehen zu einer Einheit, nur zu einem Punkt.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0052b9f0 clearWildlifeState | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0052B9F0
+ void WildlifeState::clearWildlifeState()
+ {
+ fillMemory_ByteValue(
+ sizeof(DAT_WildlifeState.grid), 0, DAT_WildlifeState.grid);
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0052b9f0", "name": "clearWildlifeState", "quelle": "nachgebaut", "p1": {"bereich": "Umwelt", "zweck": "Setzt das Tierraster (Wildtiere) auf 0 zurück."}, "p2": {"ein": "-", "aus": "-", "liest": [], "schreibt": ["DAT_WildlifeState.grid"], "ruft": ["fillMemory_ByteValue"], "regeln": ["Das ganze Raster wird mit 0 überschrieben"], "offen": []}, "p3": {"erklaerung": "Leert die Tierkarte der Wildtiere, ohne die Tiere selbst zu löschen.", "gehirn": "-", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x004039f0 deleteEntity | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004039F0
+ void EntityState::deleteEntity(uint entityID)
+ {
+ doSomethingWithOtherEntitiesOnTile(
+ entityID);
+ fillMemory_ByteValue(
+ sizeof(Entity), 0, &this->entityArray[entityID]);
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004039f0", "name": "deleteEntity", "quelle": "nachgebaut", "p1": {"bereich": "Einheiten", "zweck": "Löscht einen Effekt-Eintrag vollständig."}, "p2": {"ein": "entityID", "aus": "-", "liest": [], "schreibt": ["entityArray[id] (ganzer Eintrag mit 0 gefüllt)", "Kachelkette"], "ruft": ["doSomethingWithOtherEntitiesOnTile", "fillMemory_ByteValue"], "regeln": ["Erst Austragen aus der Kachelkette, dann Nullen der ganzen Entity-Größe (sizeof(Entity))"], "offen": []}, "p3": {"erklaerung": "Der Eintrag ist danach leer und kann neu vergeben werden.", "gehirn": "-", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x004238b0 UpdateGateHouseLarge | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004238B0
+ void Buildings::UpdateGateHouseLarge()
+ {
+ byte bVar1;
+ int iVar2;
+ uint uVar3;
+ int iVar4;
+ uint uVar5;
+ uint uVar6;
+ uint uVar7;
+ int local_14;
+ int local_10[4];
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ local_14 = (int)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingVariation;
+ updateGateDrawBridgeOpenCloseLogic();
+ iVar2 = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].someX
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x + 4;
+ DAT_BuildingsState.buildings[iVar2].someY = DAT_BuildingsState.buildings[iVar2].y + 2;
+ if ((DAT_TileMapState.mapOrientation == 2) || (DAT_TileMapState.mapOrientation == 6)) {
+ local_14 = local_14 + 1;
+ }
+ if (0x51 < local_14) {
+ local_14 = 0x50;
+ }
+ DAT_BuildingsState.buildings[iVar2].renderAnimation = 0;
+ DAT_BuildingsState.buildings[iVar2].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[iVar2].field20_0x38 = 0;
+ DAT_BuildingsState.buildings[iVar2].field21_0x3c = 0;
+ if (local_14 == 0x50) {
+ DAT_BuildingsState.buildings[iVar2].field20_0x38 = 0x2c;
+ } else {
+ DAT_BuildingsState.buildings[iVar2].field21_0x3c = 0x2d;
+ }
+ DAT_BuildingsState.buildings[iVar2].field22_0x40 = 0;
+ DAT_BuildingsState.buildings[iVar2].field23_0x44 = 0;
+ if (local_14 == 0x50) {
+ DAT_BuildingsState.buildings[iVar2].field22_0x40 = 0xd;
+ } else {
+ DAT_BuildingsState.buildings[iVar2].field23_0x44 = 0xe;
+ }
+ DAT_BuildingsState.buildings[iVar2].field33_0x6c = 0;
+ DAT_BuildingsState.buildings[iVar2].field34_0x70 = 0;
+ DAT_BuildingsState.buildings[iVar2].field35_0x74 = 0;
+ DAT_BuildingsState.buildings[iVar2].field36_0x78 = 0;
+ DAT_BuildingsState.buildings[iVar2].field37_0x7c = 0;
+ DAT_BuildingsState.buildings[iVar2].ownerFlagFrame = 0;
+ DAT_BuildingsState.buildings[iVar2].field39_0x84 = 0;
+ local_10[1] = 0;
+ DAT_BuildingsState.buildings[iVar2].field40_0x88 = 0;
+ local_10[0] = 0;
+ local_10[2] = 0;
+ local_10[3] = 0;
+ iVar4 = 5
+ - (DAT_BuildingsState.buildings[iVar2].currentHealth * 5)
+ / (int)DAT_BuildingsState.buildings[iVar2].maxHealth;
+ if (iVar4 < 5) {
+ if (iVar4 == 0)
+ goto LAB_00423a8d;
+ } else {
+ iVar4 = 4;
+ }
+ if (0 < iVar4) {
+ uVar6 = DAT_BuildingsState.buildings[iVar2].fireRelatedRNG1;
+ uVar3 = (int)uVar6 >> 8;
+ do {
+ uVar7 = uVar6 & 0xf;
+ uVar5 = uVar3 & 3;
+ uVar6 = uVar6 + 1;
+ uVar3 = uVar3 + 1;
+ iVar4 = iVar4 + -1;
+ local_10[uVar5] = uVar7 + 1;
+ } while (iVar4 != 0);
+ }
+ if (local_14 == 0x50) {
+ DAT_BuildingsState.buildings[iVar2].field33_0x6c = local_10[0];
+ DAT_BuildingsState.buildings[iVar2].field34_0x70 = local_10[1];
+ DAT_BuildingsState.buildings[iVar2].field35_0x74 = local_10[2];
+ DAT_BuildingsState.buildings[iVar2].field36_0x78 = local_10[3];
+ } else {
+ DAT_BuildingsState.buildings[iVar2].field37_0x7c = local_10[0];
+ DAT_BuildingsState.buildings[iVar2].ownerFlagFrame = local_10[1];
+ DAT_BuildingsState.buildings[iVar2].field39_0x84 = local_10[2];
+ DAT_BuildingsState.buildings[iVar2].field40_0x88 = local_10[3];
+ }
+ LAB_00423a8d:
+ DAT_BuildingsState.buildings[iVar2].field29_0x5c = 0;
+ DAT_BuildingsState.buildings[iVar2].shouldRenderRoof = 0;
+ DAT_BuildingsState.buildings[iVar2].animationIncrement = 1;
+ DAT_BuildingsState.buildings[iVar2].renderAnimation = 1;
+ bVar1 = DAT_BuildingsState.buildings[iVar2].pathLinkageRelated2;
+ if (bVar1 == 0) {
+ if (DAT_BuildingsState.buildings[iVar2].gateState == 10) {
+ DAT_BuildingsState.buildings[iVar2].pathLinkageRelated2 = 1;
+ DAT_BuildingsState.buildings[iVar2].gateState = 0xc;
+ DAT_BuildingsState.buildings[iVar2].animationIndex = 0;
+ return;
+ }
+ } else {
+ if (bVar1 == 2) {
+ if (DAT_BuildingsState.buildings[iVar2].gateState == 0xb) {
+ DAT_BuildingsState.buildings[iVar2].pathLinkageRelated2 = 3;
+ DAT_BuildingsState.buildings[iVar2].gateState = 0xc;
+ DAT_BuildingsState.buildings[iVar2].animationIndex = 0;
+ }
+ if (local_14 != 0x50) {
+ DAT_BuildingsState.buildings[iVar2].shouldRenderRoof = 6;
+ return;
+ }
+ DAT_BuildingsState.buildings[iVar2].field29_0x5c = 0xc;
+ return;
+ }
+ if (bVar1 == 1) {
+ if (DAT_BuildingsState.buildings[iVar2].animationActive != 0) {
+ if (DAT_BuildingsState.buildings[iVar2].animationIndex == 1) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[iVar2].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[iVar2].y)),
+ FX_PC_DROP);
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex
+ == 0x14) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ (int)((
+ int)((short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y)),
+ FX_PC_SLAM);
+ }
+ }
+ iVar2 = DAT_CurrentBuildingID;
+ bVar1 = DAT_BuildingDefinedData.field142_0x6b44
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if ('\0' < (char)bVar1) {
+ if (local_14 != 0x50) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].shouldRenderRoof
+ = (int)(char)bVar1;
+ return;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field29_0x5c
+ = (char)bVar1 + 6;
+ return;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].pathLinkageRelated2 = 2;
+ updatePathLinkageTileMapRelatedToGates(iVar2);
+ if (local_14 != 0x50) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].shouldRenderRoof = 6;
+ return;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field29_0x5c = 0xc;
+ return;
+ }
+ if (bVar1 == 3) {
+ if ((DAT_BuildingsState.buildings[iVar2].animationActive != 0)
+ && (DAT_BuildingsState.buildings[iVar2].animationIndex == 1)) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[iVar2].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[iVar2].y)),
+ FX_PC_LIFT);
+ }
+ iVar2 = DAT_CurrentBuildingID;
+ bVar1 = DAT_BuildingDefinedData.field141_0x6b28
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if ((char)bVar1 < '\x01') {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].pathLinkageRelated2 = 0;
+ updatePathLinkageTileMapRelatedToGates(iVar2);
+ return;
+ }
+ if (local_14 == 0x50) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field29_0x5c
+ = (char)bVar1 + 6;
+ return;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].shouldRenderRoof
+ = (int)(char)bVar1;
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004238b0", "name": "UpdateGateHouseLarge", "quelle": "ghidra", "p1": {"bereich": "Gebaeude", "zweck": "Taktfunktion des großen Torhauses: Bild, Schadensanzeige und Auf-/Zu-Ablauf der Zugbrücke."}, "p2": {"ein": "- (aktuelles Gebäude über DAT_CurrentBuildingID)", "aus": "-", "liest": ["buildings[id].buildingVariation/x/y/currentHealth/maxHealth/fireRelatedRNG1/pathLinkageRelated2/gateState/animationActive/animationIndex", "mapOrientation", "BuildingDefinedData.field141_0x6b28/field142_0x6b44"], "schreibt": ["buildings[id].someX (=x+4)/someY (=y+2)", "buildings[id].field20..field40 (Schadens- und Bilddaten)", "buildings[id].pathLinkageRelated2 (0..3)", "buildings[id].gateState", "buildings[id].animationIndex", "buildings[id].field29_0x5c/shouldRenderRoof"], "ruft": ["addBuildingInRegistry", "updateGateDrawBridgeOpenCloseLogic", "updatePathLinkageTileMapRelatedToGates", "playSFXAtLocation (FX_PC_DROP, FX_PC_SLAM, FX_PC_LIFT)"], "regeln": ["Bildvariante: buildingVariation, bei mapOrientation 2 oder 6 plus 1, höchstens 0x50 (80)", "Schadensstufe = 5 - (currentHealth*5/maxHealth); ab 5 gilt 4; Stufe 0 überspringt die Schadensbilder", "Je Schadensstufe wird ein Brandbild-Platz (von 4) mit Wert 1..16 aus fireRelatedRNG1 belegt", "Zustand pathLinkageRelated2 = 0 (Brücke oben/zu): ist gateState 10, wird pathLinkageRelated2 = 1, gateState = 0xc, animationIndex = 0 (Absenken beginnt)", "pathLinkageRelated2 = 1 (Absenken): bei animationIndex 1 Ton FX_PC_DROP, bei 0x14 (20) Ton FX_PC_SLAM; ist der Tabellenwert für den Animationsschritt nicht mehr positiv, wird pathLinkageRelated2 = 2 gesetzt und die Wegverbindung der Tore neu berechnet", "pathLinkageRelated2 = 2 (unten/offen): ist gateState 0xb, wird pathLinkageRelated2 = 3, gateState = 0xc, animationIndex = 0 (Anheben beginnt)", "pathLinkageRelated2 = 3 (Anheben): bei animationIndex 1 Ton FX_PC_LIFT; ist der Tabellenwert nicht mehr positiv, wird pathLinkageRelated2 = 0 gesetzt und die Wegverbindung neu berechnet"], "offen": ["Welcher Wert von pathLinkageRelated2 genau Brücke oben bzw. unten bedeutet (hier aus dem Ablauf geschlossen: 0 oben, 2 unten)", "Bedeutung von gateState 10 und 0xb (vermutlich Befehl Absenken bzw. Anheben)", "Feldnamen field20..field40 sind ungesichert"]}, "p3": {"erklaerung": "Das große Torhaus läuft als kleine Ablaufmaschine: Brücke oben, Absenken, unten, Anheben. Erst am Ende jeder Bewegung werden die Wege neu verbunden, sodass Einheiten durchlaufen können.", "gehirn": "Wege durch das Tor sind nur im Zustand unten (pathLinkageRelated2 = 2) frei. Vor einem Durchmarsch dieses Feld lesen und die Absenkdauer einplanen.", "beleg": "code", "live": "Tor an großem Torhaus öffnen → buildings[id].pathLinkageRelated2 → läuft 0, 1, 2 und beim Schließen 2, 3, 0", "live_art": "bauen"}}
+
+### 0x004d4040 addEngineersToTribe | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004D4040
+ void AICState::addEngineersToTribe(int playerID)
+ {
+ Unit* psVar1;
+ int unitID;
+ unitID = 1;
+ if (1 < (int)DAT_UnitsState.maxUnitCount) {
+ psVar1 = &DAT_UnitsState.units[1];
+ do {
+ /*
+ if logicalState == normal && owner == playerID && unitType == 0x1e (engineer) && aiUnitBehaviourType
+ == 10
+ */
+ if ((((psVar1->logicalState == ULS_NORMAL) && (psVar1->owner == playerID))
+ && (psVar1->dying == 0))
+ && (((psVar1->unitType == UT_E_ENGINEER && (psVar1->aiUnitBehaviourType == 10))
+ && (psVar1->tribeID == 0)))) {
+ addUnitToItsTribe(unitID, 10);
+ }
+ unitID = unitID + 1;
+ psVar1 = psVar1 + 0x248;
+ } while (unitID < (int)DAT_UnitsState.maxUnitCount);
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004d4040", "name": "addEngineersToTribe", "quelle": "ghidra", "p1": {"bereich": "KI", "zweck": "Ordnet freie Ingenieure der KI ihrer Gruppe zu."}, "p2": {"ein": "playerID", "aus": "-", "liest": ["units[].logicalState/owner/dying/unitType/aiUnitBehaviourType/tribeID"], "schreibt": [], "ruft": ["addUnitToItsTribe"], "regeln": ["Einheit im Normalzustand (ULS_NORMAL), gehört dem Spieler, nicht sterbend", "Typ UT_E_ENGINEER, aiUnitBehaviourType = 10, noch ohne Gruppe (tribeID = 0)", "Dann addUnitToItsTribe(Einheit, 10)"], "offen": []}, "p3": {"erklaerung": "Ingenieure ohne Gruppe werden der Ingenieurgruppe (Verhaltenstyp 10) zugeteilt.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x004569e0 hasAnySignpost | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004569E0
+ BOOLEnum GameStateStructures::hasAnySignpost()
+ {
+ int iVar1;
+ iVar1 = 0;
+ if ((0 < this->mapAndTime.signpostIDs[0])
+ && (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[0]].buildingType
+ == BT_SIGNPOST)) {
+ iVar1 = 1;
+ }
+ if ((0 < this->mapAndTime.signpostIDs[1])
+ && (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[1]].buildingType
+ == BT_SIGNPOST)) {
+ iVar1 = iVar1 + 1;
+ }
+ if ((0 < this->mapAndTime.signpostIDs[2])
+ && (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[2]].buildingType
+ == BT_SIGNPOST)) {
+ iVar1 = iVar1 + 1;
+ }
+ if ((0 < this->mapAndTime.signpostIDs[3])
+ && (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[3]].buildingType
+ == BT_SIGNPOST)) {
+ iVar1 = iVar1 + 1;
+ }
+ if ((0 < this->mapAndTime.signpostIDs[4])
+ && (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[4]].buildingType
+ == BT_SIGNPOST)) {
+ iVar1 = iVar1 + 1;
+ }
+ if ((0 < this->mapAndTime.signpostIDs[5])
+ && (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[5]].buildingType
+ == BT_SIGNPOST)) {
+ iVar1 = iVar1 + 1;
+ }
+ if ((0 < this->mapAndTime.signpostIDs[6])
+ && (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[6]].buildingType
+ == BT_SIGNPOST)) {
+ iVar1 = iVar1 + 1;
+ }
+ if ((0 < this->mapAndTime.signpostIDs[7])
+ && (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[7]].buildingType
+ == BT_SIGNPOST)) {
+ iVar1 = iVar1 + 1;
+ }
+ return (uint)(iVar1 != 0);
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004569e0", "name": "hasAnySignpost", "quelle": "ghidra", "p1": {"bereich": "Spielablauf", "zweck": "Gibt es mindestens einen Wegweiser?"}, "p2": {"ein": "-", "aus": "TRUE/FALSE", "liest": ["mapAndTime.signpostIDs[0..7]", "buildings[id].buildingType"], "schreibt": [], "ruft": [], "regeln": ["Gleiche Zählung wie countActiveSignposts, Ergebnis ist Anzahl ungleich 0"], "offen": []}, "p3": {"erklaerung": "Ja/Nein-Fassung von countActiveSignposts.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x00501180 spreadFlagPlacementAlgorithm | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00501180
+ int TileMapState::spreadFlagPlacementAlgorithm(int playerID, uint x, uint y)
+ {
+ return spreadAlgorithmForFlagsAndBraziersUnk(playerID, x, y, 4, 0);
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00501180", "name": "spreadFlagPlacementAlgorithm", "quelle": "nachgebaut", "p1": {"bereich": "Karte", "zweck": "Ruft den gemeinsamen Verteilalgorithmus für Fahnen auf."}, "p2": {"ein": "playerID, x, y", "aus": "Ergebnis von spreadAlgorithmForFlagsAndBraziersUnk", "liest": [], "schreibt": [], "ruft": ["spreadAlgorithmForFlagsAndBraziersUnk"], "regeln": ["Fester Aufruf mit 4 und 0 (Fahnenmodus)"], "offen": ["Bedeutung der Zahl 4 und des Modus 0"]}, "p3": {"erklaerung": "Dünne Hülle um die Fahnen-Variante des Verteilalgorithmus.", "gehirn": "-", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x00500bb0 setSignpostDistanceForCampaignMission | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00500BB0
+ void TileMapState::setSignpostDistanceForCampaignMission()
+ {
+ DAT_GameState.mapAndTime.unk_signpostDistance = 30;
+ if (DAT_GameCore.gameMode_2 == GM_CAMPAIGN_MISSION) {
+ if (DAT_GameCore.missionNumber1to20 < 3) {
+ DAT_GameState.mapAndTime.unk_signpostDistance = 0;
+ return;
+ }
+ if (DAT_GameCore.missionNumber1to20 < 5) {
+ DAT_GameState.mapAndTime.unk_signpostDistance = 15;
+ return;
+ }
+ if (DAT_GameCore.missionNumber1to20 == 6) {
+ DAT_GameState.mapAndTime.unk_signpostDistance = 37;
+ return;
+ }
+ } else if ((DAT_GameCore.gameMode_2 == GM_ECONOMIC_CAMPAIGN_SH1)
+ || ((DAT_GameCore.gameMode_2 == GM_BUILDERUnk
+ && (1 < (int)DAT_MapPropertiesState.SEC_U3_MapType2_1)))) {
+ DAT_GameState.mapAndTime.unk_signpostDistance = 7;
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00500bb0", "name": "setSignpostDistanceForCampaignMission", "quelle": "ghidra", "p1": {"bereich": "Spielablauf", "zweck": "Legt den Abstand (unk_signpostDistance) für Wegweiser nach Spielart und Missionsnummer fest."}, "p2": {"ein": "-", "aus": "-", "liest": ["DAT_GameCore.gameMode_2", "DAT_GameCore.missionNumber1to20", "DAT_MapPropertiesState.SEC_U3_MapType2_1"], "schreibt": ["DAT_GameState.mapAndTime.unk_signpostDistance"], "ruft": [], "regeln": ["Grundwert 30", "Kampagnenmission (GM_CAMPAIGN_MISSION): Mission 1-2 (unter 3) = 0", "Mission 3-4 = 15", "Mission 6 = 37", "Missionen 5 und 7-20 bleiben bei 30", "Wirtschaftskampagne SH1 (GM_ECONOMIC_CAMPAIGN_SH1) = 7", "GM_BUILDERUnk mit SEC_U3_MapType2_1 größer 1 = 7", "Alle anderen Spielarten = 30"], "offen": ["Was der Wegweiser-Abstand genau bedeutet (Einheit und Verwendung)", "Ob Abstand in Feldern gemessen wird"]}, "p3": {"erklaerung": "Der Wert hängt nur von Spielart und Missionsnummer ab. Der Name täuscht leicht: Er gilt nicht nur für Kampagnenmissionen, sondern setzt auch die Werte der anderen Spielarten.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0046c450 setGfxFileFilter | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0046C450
+ void ResourceManager::setGfxFileFilter()
+ {
+ this->openFileNameA.lpstrFilter = DAT_TextInputDefinedData.field19_0x710;
+ this->openFileNameA.nFilterIndex = 1;
+ this->openFileNameA.lpstrDefExt = DAT_TextInputDefinedData.field19_0x710;
+ this->openFileNameA.lpstrInitialDir = s_gfx__005a5a1c;
+ }
+} // namespace IO
+} // namespace OpenSHC
+--- ERKLAERUNG ---
+{"adr": "0x0046c450", "name": "setGfxFileFilter", "quelle": "nachgebaut", "p1": {"bereich": "Wirtschaft", "zweck": "Stellt den Dateiauswahldialog auf Grafikdateien ein (Startordner vermutlich gfx)."}, "p2": {"ein": "", "aus": "", "liest": [], "schreibt": [], "ruft": [], "regeln": [], "offen": []}, "p3": {"erklaerung": "Hilfsfunktion für den Dateiauswahldialog, ohne Bezug zur Wirtschaft.", "gehirn": "-", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x0049edf0 findAIZoneWithFlags | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0049EDF0
+ BOOLEnum PathFindingState::findAIZoneWithFlags(int maxDistance, uint x, uint y, undefined4 aiInfoFlags)
+ {
+ short sVar1;
+ short sVar2;
+ int _candidate;
+ int _direction;
+ int _tile;
+ this->calculations = this->calculations + 1;
+ if (((x < 400) && (y < 400)) && (*(char*)(y * 400 + 0x21aec98 + x) != '\0')) {
+ this->searchGeneration = this->searchGeneration + 1;
+ if (32000 < this->searchGeneration) {
+ this->searchGeneration = 1;
+ fillMemory_ByteValue(
+ 0x27420, '\0', (void*)((int)(DAT_TileMapState.WalkLayer)));
+ }
+ this->searchQueue.readIndex = 0;
+ this->searchQueue.writeIndex = 1;
+ this->searchQueue.currentDistance = 1;
+ this->searchQueue.yQueue[0] = (short)y;
+ this->searchQueue.xQueue[0] = (short)x;
+ this->searchQueue.tilesQueue[0]
+ = DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x;
+ DAT_TileMapState.CertainPathLayer[this->searchQueue.tilesQueue[0]] = 1;
+ DAT_TileMapState.WalkLayer[this->searchQueue.tilesQueue[0]] = (short)this->searchGeneration;
+ if (this->searchQueue.readIndex != this->searchQueue.writeIndex) {
+ while ((_tile = this->searchQueue.tilesQueue[this->searchQueue.readIndex],
+ -1 < _tile && (_tile < 0x13a10))) {
+ sVar1 = this->searchQueue.xQueue[this->searchQueue.readIndex];
+ sVar2 = this->searchQueue.yQueue[this->searchQueue.readIndex];
+ this->searchQueue.currentDistance = (int)DAT_TileMapState.CertainPathLayer[_tile];
+ if (0x13a10 < this->searchQueue.currentDistance) {
+ return FALSE;
+ }
+ if (maxDistance < this->searchQueue.currentDistance) {
+ return FALSE;
+ }
+ _direction = 0;
+ do {
+ if (((DAT_TileMapState.PathLinkageLayer[_tile]
+ & DAT_ClimbLogicDefinedData.BitFlagHelperForPathLinkage[_direction])
+ != 0)
+ && (_candidate
+ = DAT_TileMapState.directionTranslationMatrix[sVar2][_direction] + _tile,
+ DAT_TileMapState.WalkLayer[_candidate] != this->searchGeneration)) {
+ if ((DAT_TileMapState.AIInfoLayer[_candidate] & (byte)aiInfoFlags) != 0) {
+ this->ALG_ResultY = (int)sVar2;
+ this->ALG_ResultX = (int)sVar1;
+ return TRUE;
+ }
+ DAT_TileMapState.CertainPathLayer[_candidate]
+ = (short)this->searchQueue.currentDistance + 1;
+ DAT_TileMapState.WalkLayer[_candidate] = (short)this->searchGeneration;
+ this->searchQueue.xQueue[this->searchQueue.writeIndex]
+ = DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[_direction]
+ .short.xOffset
+ + sVar1;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix
+ + _direction * 8 + 4)
+ + sVar2;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = _candidate;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ _direction = _direction + 1;
+ } while (_direction < 8);
+ this->searchQueue.readIndex = this->searchQueue.readIndex + 1;
+ if (0x13a0f < this->searchQueue.readIndex) {
+ this->searchQueue.readIndex = 0;
+ }
+ if (this->searchQueue.readIndex == this->searchQueue.writeIndex) {
+ return FALSE;
+ }
+ }
+ }
+ }
+ return FALSE;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0049edf0", "name": "findAIZoneWithFlags", "quelle": "ghidra", "p1": {"bereich": "Wegfindung", "zweck": "Sucht vom Startfeld aus das nächste Feld mit bestimmten AIInfoLayer-Bits."}, "p2": {"ein": "maxDistance, x, y, aiInfoFlags", "aus": "TRUE bei Fund, sonst FALSE", "liest": ["AIInfoLayer", "PathLinkageLayer", "CertainPathLayer", "WalkLayer"], "schreibt": ["ALG_ResultX", "ALG_ResultY", "calculations +1", "CertainPathLayer", "WalkLayer", "searchGeneration"], "ruft": ["fillMemory_ByteValue"], "regeln": ["calculations zählt jeden Aufruf, auch bei ungültigem Start", "Nur wenn x<400, y<400 und Startfeld gültig, sonst FALSE", "Breitensuche nur über begehbare Verbindungen (PathLinkageLayer), 8 Richtungen", "Treffer, wenn AIInfoLayer[nachbar] & aiInfoFlags != 0", "FALSE, wenn Entfernung > maxDistance oder Suche erschöpft", "Bei Fund steht in ALG_ResultX/Y nicht das Trefferfeld, sondern das Feld davor, von dem aus der Treffer gesehen wurde", "Das Startfeld selbst wird nicht geprüft"], "offen": ["Ob ALG_ResultX/Y bewusst das Vorgängerfeld ist"]}, "p3": {"erklaerung": "Findet den nächsten Weg-erreichbaren Punkt mit dem gesuchten KI-Merkmal. Geliefert wird das Nachbarfeld davor, nicht der Treffer selbst.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0040c1a0 hasLessWoodThanTheCostOfAWoodcuttersHutAndNoWoodcutters | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0040C1A0
+ BOOLEnum BuildingsState::hasLessWoodThanTheCostOfAWoodcuttersHutAndNoWoodcutters(int playerID, int param_2)
+ {
+ if (DAT_GameCore.gameMode_2 == 6) {
+ return FALSE;
+ }
+ if (param_2 != 3) {
+ return FALSE;
+ }
+ if (findFirstBuildingOfType(playerID, BT_WOODCUTTERSHUT)
+ != 0) {
+ return FALSE;
+ }
+ return DAT_GameState.playerDataArray[playerID].currentResources[Game::Resources::RT_WOOD]
+ < DAT_BuildingsState.buildingCosts[BT_WOODCUTTERSHUT].requiredWood;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0040c1a0", "name": "hasLessWoodThanTheCostOfAWoodcuttersHutAndNoWoodcutters", "quelle": "nachgebaut", "p1": {"bereich": "Gebaeude", "zweck": "Steckt der Spieler ohne Holzfäller und ohne Holz für einen neuen fest?"}, "p2": {"ein": "playerID, param_2", "aus": "TRUE/FALSE", "liest": ["DAT_GameCore.gameMode_2", "playerDataArray[sp].currentResources[RT_WOOD]", "buildingCosts[BT_WOODCUTTERSHUT].requiredWood"], "schreibt": [], "ruft": ["findFirstBuildingOfType"], "regeln": ["gameMode_2 == 6: FALSE", "param_2 ungleich 3: FALSE", "Existiert schon ein Holzfällerhaus: FALSE", "Sonst TRUE, wenn Holzbestand kleiner als die Holzkosten des Holzfällerhauses"], "offen": ["Bedeutung von param_2 == 3 und gameMode_2 == 6", "Aufrufer (vermutlich Hinweis oder KI-Auslöser)"]}, "p3": {"erklaerung": "Meldet die Sackgasse: kein Holzfäller und zu wenig Holz, um einen zu bauen. Gilt nur bei param_2 gleich 3.", "gehirn": "Kann als Notlage-Signal gelesen werden: Dann hilft nur Holz zukaufen.", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+

@@ -1,0 +1,1165 @@
+### 0x00524bf0 getTribeAliveStatus | quelle=ghidra | bereich=Truppen/Gruppen
+// FUNCTION: STRONGHOLDCRUSADER 0x00524BF0
+ int TribesState::getTribeAliveStatus(int tribeID)
+ {
+ int _unit;
+ int _size;
+ int _index;
+ int _alive;
+ int _other;
+ _size = (int)this->tribes[tribeID].size;
+ _index = 0;
+ _other = 0;
+ _alive = 0;
+ if (0 < _size) {
+ do {
+ _unit = getUnitIDForIndexInTribe(
+ tribeID, _index);
+ _index = _index + 1;
+ if ((DAT_UnitsState.units[_unit].logicalState == ULS_NORMAL)
+ && (DAT_UnitsState.units[_unit].dying == 0)) {
+ if (DAT_UnitsState.units[_unit].tunnelerFinishedDigging == 2) {
+ _alive = _alive + 1;
+ } else {
+ _other = _other + 1;
+ }
+ }
+ } while (_index < _size);
+ if (_alive != 0) {
+ if (_alive <= _other) {
+ return (int)(50);
+ }
+ return (uint)(_other != 0);
+ }
+ }
+ return 100;
+ }
+ }
+}
+}
+
+### 0x00524ca0 isTribePathToDestinationClear | quelle=ghidra | bereich=Truppen/Gruppen
+// FUNCTION: STRONGHOLDCRUSADER 0x00524CA0
+ undefined4 TribesState::isTribePathToDestinationClear(
+ int param_1, uint param_2, uint param_3, uint param_4, uint param_5)
+ {
+ uint uVar1;
+ int iVar2;
+ int iVar3;
+ int local_4;
+ local_4 = 0;
+ if ((((param_2 < 400) && (param_3 < 400)) && (*(char*)(param_3 * 400 + 0x21aec98 + param_2) != '\0'))
+ && (((param_4 < 400 && (param_5 < 400))
+ && ((*(char*)(param_5 * 400 + 0x21aec98 + param_4) != '\0'
+ && (iVar2 = DAT_ViewportRenderState.translationMatrix[param_5].addXgetTile + param_4,
+ DAT_TileMapState.PathConnectionLayer
+ [DAT_ViewportRenderState.translationMatrix[param_3].addXgetTile + param_2]
+ == DAT_TileMapState.PathConnectionLayer[iVar2])))))) {
+ this->ALG_ResultTileIndex = 0;
+ uVar1 = DAT_TileMapState.LogicLayer[iVar2];
+ findLinkageBasedPathOrWalkRadius(param_4, param_5, -1, -1, 500, FALSE);
+ while (true) {
+ do {
+ if (this->tribes[param_1].size <= local_4) {
+ return (undefined4)(1);
+ }
+ iVar2 = getUnitIDForIndexInTribe(param_1, local_4);
+ local_4 = local_4 + 1;
+ } while ((DAT_UnitsState.units[iVar2].logicalState != ULS_NORMAL)
+ || (DAT_UnitsState.units[iVar2].dying != 0));
+ iVar3 = findClosestTileToStartingTile(2 - (uint)((uVar1 & 0x100) != 0));
+ this->ALG_ResultTileIndex = this->ALG_ResultTileIndex + 1;
+ if (499 < this->ALG_ResultTileIndex)
+ break;
+ iVar3 = (int)(short)DAT_TileMapState.UnitLayer[iVar3];
+ if ((((iVar3 != 0) && (iVar2 != iVar3))
+ && (DAT_UnitsState.units[iVar3].tribeID != param_1))
+ && (DAT_UnitsState.units[iVar3].tunnelerFinishedDigging != 2)) {
+ return (undefined4)(0);
+ }
+ }
+ }
+ return (undefined4)(0);
+ }
+ }
+}
+}
+
+### 0x00524e20 applyLadderDestructionToTribeUnits | quelle=ghidra | bereich=Truppen/Gruppen
+// FUNCTION: STRONGHOLDCRUSADER 0x00524E20
+ void TribesState::applyLadderDestructionToTribeUnits(int param_1)
+ {
+ int unitID;
+ BOOLEnum BVar1;
+ int unitSelectionIndex;
+ bool bVar2;
+ unitSelectionIndex = 0;
+ if (0 < this->tribes[param_1].size) {
+ do {
+ unitID = getUnitIDForIndexInTribe(
+ param_1, unitSelectionIndex);
+ unitSelectionIndex = unitSelectionIndex + 1;
+ if ((DAT_UnitsState.units[unitID].logicalState == ULS_NORMAL)
+ && (DAT_UnitsState.units[unitID].dying == 0)) {
+ if (DAT_UnitsState.units[unitID].usingTeleport != 0) {
+ return;
+ }
+ if (DAT_UnitsState.units[unitID].field303_0x413 != 0) {
+ return;
+ }
+ if (DAT_UnitsState.units[unitID].tunnelerFinishedDigging == 2) {
+ return;
+ }
+ if (DAT_UnitsState.units[unitID].state.generic
+ == US_MELEE_ATTACK) {
+ return;
+ }
+ bVar2 = this->tribes[param_1].unknownBool02 == 0;
+ BVar1 = computeLadderClimbPath(unitID, (uint)((int)(bVar2)), 0, (int)((int)((uint)bVar2)));
+ if (BVar1 != FALSE) {
+ DAT_UnitsState.units[unitID].state.generic
+ = US_DEATH_02
+ | US_STAND_UPUnk;
+ }
+ }
+ } while (unitSelectionIndex < this->tribes[param_1].size);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00524ef0 applyUnitTopSpeedDelayBasedOnTribeSize | quelle=ghidra | bereich=Truppen/Gruppen
+// FUNCTION: STRONGHOLDCRUSADER 0x00524EF0
+ void TribesState::applyUnitTopSpeedDelayBasedOnTribeSize(int tribeID, BOOLEnum param_2)
+ {
+ int _unitInSelection;
+ int _selectionUnit;
+ UnitIDMovementDistancePair* _nextUnit;
+ int _delayIndex;
+ int iVar1;
+ UnitIDMovementDistancePair* pUVar2;
+ short* _ptrMovementDistance;
+ int _unitSelectionIndex;
+ short _distance;
+ bool _foundUnsortedEntry;
+ short _nextUnitID;
+ short* _tribeSize;
+ short _unitID;
+ _tribeSize = &this->tribes[tribeID].size;
+ _unitSelectionIndex = 0;
+ if (*_tribeSize < 40) {
+ /*
+ For selections (tribes) of size 40 or less
+ */
+ this->someUnitIDArrayCount = 0;
+ fillMemory_ByteValue(
+ 4004, '\0', (void*)((int)(this->someUnitIDMovementDistancePair)));
+ if (0 < *_tribeSize) {
+ /*
+ Of all units in the selection store unitID and optionally their movementDistance into an array
+ */
+ _ptrMovementDistance = &this->someUnitIDMovementDistancePair[0].movementDistance;
+ do {
+ _selectionUnit
+ = getUnitIDForIndexInTribe(
+ tribeID, _unitSelectionIndex);
+ if ((DAT_UnitsState.units[_selectionUnit].logicalState
+ == ULS_NORMAL)
+ && (DAT_UnitsState.units[_selectionUnit].dying == 0)) {
+ this->someUnitIDArrayCount = this->someUnitIDArrayCount + 1;
+ /*
+ sets unitID
+ */
+ ((UnitIDMovementDistancePair*)(_ptrMovementDistance + -1))->unitID = (short)_selectionUnit;
+ if (param_2 == FALSE) {
+ *_ptrMovementDistance = DAT_UnitsState.units[_selectionUnit].movementDistance;
+ }
+ }
+ _unitSelectionIndex = _unitSelectionIndex + 1;
+ _ptrMovementDistance = _ptrMovementDistance + 2;
+ } while (_unitSelectionIndex < *_tribeSize);
+ }
+ do {
+ /*
+ Do a sort of the array, sort by distance value (low to high)
+ */
+ _foundUnsortedEntry = false;
+ /*
+ fixme:reuse: WARNING reuse of parameter
+ */
+ tribeID = 0;
+ if (this->someUnitIDArrayCount == 1 || this->someUnitIDArrayCount + -1 < 0)
+ break;
+ pUVar2 = this->someUnitIDMovementDistancePair;
+ do {
+ _nextUnit = pUVar2 + 1;
+ _distance = pUVar2->unitID;
+ _unitID = pUVar2->movementDistance;
+ _nextUnitID = pUVar2[1].movementDistance;
+ if ((param_2 == FALSE) && (_nextUnitID < _unitID)) {
+ _foundUnsortedEntry = true;
+ pUVar2->unitID = _nextUnit->unitID;
+ _nextUnit->unitID = _distance;
+ pUVar2->movementDistance = _nextUnitID;
+ pUVar2[1].movementDistance = _unitID;
+ }
+ tribeID = tribeID + 1;
+ pUVar2 = _nextUnit;
+ } while (tribeID < this->someUnitIDArrayCount + -1);
+ } while (_foundUnsortedEntry);
+ _delayIndex = 0;
+ if (0 < this->someUnitIDArrayCount) {
+ pUVar2 = this->someUnitIDMovementDistancePair;
+ do {
+ DAT_UnitsState.units[pUVar2->unitID].topSpeedDelayIndex = (short)_delayIndex;
+ _delayIndex = _delayIndex + 1;
+ pUVar2 = pUVar2 + 1;
+ } while (_delayIndex < this->someUnitIDArrayCount);
+ }
+ } else if (0 < *_tribeSize) {
+ do {
+ /*
+ Set incremental delay on first 199 units, then set same value of 199
+ */
+ _unitInSelection
+ = getUnitIDForIndexInTribe(
+ tribeID, _unitSelectionIndex);
+ iVar1 = _unitSelectionIndex;
+ if (199 < _unitSelectionIndex) {
+ iVar1 = 199;
+ }
+ DAT_UnitsState.units[_unitInSelection].topSpeedDelayIndex = (short)iVar1;
+ _unitSelectionIndex = _unitSelectionIndex + 1;
+ } while (_unitSelectionIndex < *_tribeSize);
+ return;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00525090 playArcherCommandSpeech | quelle=nachgebaut | bereich=Truppen/Gruppen
+// FUNCTION: STRONGHOLDCRUSADER 0x00525090
+ void TribesState::playArcherCommandSpeech(int selectionID)
+ {
+ playUnitSpeech(
+ getMajorityArcherTypeEuropeanOrArabian(
+ selectionID),
+ 0x1f);
+ }
+ }
+}
+}
+
+### 0x005250b0 anyUnitsOfTribeAreOutsideCoverageOfPathFindingAlg | quelle=ghidra | bereich=Truppen/Gruppen
+// FUNCTION: STRONGHOLDCRUSADER 0x005250B0
+ BOOLEnum TribesState::anyUnitsOfTribeAreOutsideCoverageOfPathFindingAlg(int tribeID, int algTileFlag)
+ {
+ int _unitID;
+ int iVar1;
+ int unitSelectionIndex;
+ iVar1 = (int)this->tribes[tribeID].size;
+ unitSelectionIndex = 0;
+ if (0 < iVar1) {
+ do {
+ _unitID = getUnitIDForIndexInTribe(
+ tribeID, unitSelectionIndex);
+ unitSelectionIndex = unitSelectionIndex + 1;
+ if (((DAT_UnitsState.units[_unitID].logicalState == ULS_NORMAL)
+ && (DAT_UnitsState.units[_unitID].dying == 0))
+ && (DAT_TileMapState.WalkLayer[DAT_UnitsState.units[_unitID].tile]
+ != algTileFlag)) {
+ return FALSE;
+ }
+ } while (unitSelectionIndex < iVar1);
+ }
+ return TRUE;
+ }
+ }
+}
+}
+
+### 0x00525130 applyMovementDistanceToUnitsInTribe | quelle=ghidra | bereich=Truppen/Gruppen
+// FUNCTION: STRONGHOLDCRUSADER 0x00525130
+ void TribesState::applyMovementDistanceToUnitsInTribe(int param_1)
+ {
+ int iVar1;
+ int unitSelectionIndex;
+ unitSelectionIndex = 0;
+ if (0 < this->tribes[param_1].size) {
+ do {
+ iVar1 = getUnitIDForIndexInTribe(
+ param_1, unitSelectionIndex);
+ unitSelectionIndex = unitSelectionIndex + 1;
+ if ((DAT_UnitsState.units[iVar1].logicalState == ULS_NORMAL)
+ && (DAT_UnitsState.units[iVar1].dying == 0)) {
+ DAT_UnitsState.units[iVar1].movementDistance
+ = DAT_TileMapState.CertainPathLayer[DAT_UnitsState.units[iVar1].tile];
+ }
+ } while (unitSelectionIndex < this->tribes[param_1].size);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x005251a0 applyMovementDistanceToUnitsInTribeBasedOnUnitNumberInTribe | quelle=ghidra | bereich=Truppen/Gruppen
+// FUNCTION: STRONGHOLDCRUSADER 0x005251A0
+ void TribesState::applyMovementDistanceToUnitsInTribeBasedOnUnitNumberInTribe(int param_1)
+ {
+ int iVar1;
+ int unitSelectionIndex;
+ unitSelectionIndex = 0;
+ if (0 < this->tribes[param_1].size) {
+ do {
+ iVar1 = getUnitIDForIndexInTribe(
+ param_1, unitSelectionIndex);
+ unitSelectionIndex = unitSelectionIndex + 1;
+ if ((DAT_UnitsState.units[iVar1].logicalState == ULS_NORMAL)
+ && (DAT_UnitsState.units[iVar1].dying == 0)) {
+ DAT_UnitsState.units[iVar1].movementDistance
+ = DAT_UnitsState.units[iVar1].idInTribe;
+ }
+ } while (unitSelectionIndex < this->tribes[param_1].size);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00525210 isTribeFreeOfTunnelingUnits | quelle=ghidra | bereich=Truppen/Gruppen
+// FUNCTION: STRONGHOLDCRUSADER 0x00525210
+ BOOLEnum TribesState::isTribeFreeOfTunnelingUnits(int param_1, int param_2)
+ {
+ int iVar1;
+ int iVar2;
+ int unitSelectionIndex;
+ iVar1 = (int)this->tribes[param_1].size;
+ unitSelectionIndex = 0;
+ if (0 < iVar1) {
+ do {
+ iVar2 = getUnitIDForIndexInTribe(
+ param_1, unitSelectionIndex);
+ unitSelectionIndex = unitSelectionIndex + 1;
+ if (((DAT_UnitsState.units[iVar2].logicalState == ULS_NORMAL)
+ && (DAT_UnitsState.units[iVar2].dying == 0))
+ && (DAT_UnitsState.units[iVar2].tunnelerFinishedDigging == 2)) {
+ return FALSE;
+ }
+ } while (unitSelectionIndex < iVar1);
+ }
+ return TRUE;
+ }
+ }
+}
+}
+
+### 0x00525280 setTargetUnitForTribe | quelle=ghidra | bereich=Truppen/Gruppen
+// FUNCTION: STRONGHOLDCRUSADER 0x00525280
+ void TribesState::setTargetUnitForTribe(int tribeID)
+ {
+ int _unitID;
+ int _unitSelectionIndex;
+ short _tribeTargetUnitID;
+ short _tribeSize;
+ _unitSelectionIndex = 0;
+ _tribeSize = this->tribes[tribeID].size;
+ this->tribes[tribeID].selectionTargetUnitID = 0;
+ if (0 < _tribeSize) {
+ do {
+ _unitID = getUnitIDForIndexInTribe(
+ tribeID, _unitSelectionIndex);
+ _unitSelectionIndex = _unitSelectionIndex + 1;
+ if ((DAT_UnitsState.units[_unitID].logicalState == ULS_NORMAL)
+ && (DAT_UnitsState.units[_unitID].dying == 0)) {
+ _tribeTargetUnitID = this->tribes[tribeID].selectionTargetUnitID;
+ if (_tribeTargetUnitID == 0) {
+ this->tribes[tribeID].selectionTargetUnitID = (short)_unitID;
+ DAT_UnitsState.units[_unitID].selectionTargetUnitID = (short)_unitID;
+ } else {
+ DAT_UnitsState.units[_unitID].selectionTargetUnitID = _tribeTargetUnitID;
+ }
+ }
+ } while (_unitSelectionIndex < this->tribes[tribeID].size);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00525300 setStateForAllTribeUnits | quelle=ghidra | bereich=Truppen/Gruppen
+// FUNCTION: STRONGHOLDCRUSADER 0x00525300
+ void TribesState::setStateForAllTribeUnits(int param_1, undefined4 param_2)
+ {
+ int iVar1;
+ int unitSelectionIndex;
+ unitSelectionIndex = 0;
+ if (0 < this->tribes[param_1].size) {
+ do {
+ iVar1 = getUnitIDForIndexInTribe(
+ param_1, unitSelectionIndex);
+ unitSelectionIndex = unitSelectionIndex + 1;
+ if ((DAT_UnitsState.units[iVar1].logicalState == ULS_NORMAL)
+ && (DAT_UnitsState.units[iVar1].dying == 0)) {
+ DAT_UnitsState.units[iVar1].state = param_2._0_2_;
+ DAT_UnitsState.units[iVar1].animationCycleNumber = 0;
+ DAT_UnitsState.units[iVar1].seated = 0;
+ }
+ } while (unitSelectionIndex < this->tribes[param_1].size);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00525370 standUpAllTribeUnits | quelle=ghidra | bereich=Truppen/Gruppen
+// FUNCTION: STRONGHOLDCRUSADER 0x00525370
+ void TribesState::standUpAllTribeUnits(int param_1)
+ {
+ int iVar1;
+ int unitSelectionIndex;
+ Tribe* psVar1;
+ psVar1 = &this->tribes[param_1];
+ unitSelectionIndex = 0;
+ if (0 < psVar1->size) {
+ do {
+ iVar1 = getUnitIDForIndexInTribe(
+ param_1, unitSelectionIndex);
+ unitSelectionIndex = unitSelectionIndex + 1;
+ if ((DAT_UnitsState.units[iVar1].logicalState == ULS_NORMAL)
+ && (DAT_UnitsState.units[iVar1].dying == 0)) {
+ standUpIfSeated(
+ iVar1);
+ DAT_UnitsState.units[iVar1].animationCycleNumber = 0;
+ DAT_UnitsState.units[iVar1].rabbitMovementSlowdown = '\0';
+ }
+ } while (unitSelectionIndex < psVar1->size);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x005253f0 allUnitsReachedTheirDestination | quelle=ghidra | bereich=Truppen/Gruppen
+// FUNCTION: STRONGHOLDCRUSADER 0x005253F0
+ BOOLEnum TribesState::allUnitsReachedTheirDestination(int tribeID)
+ {
+ int unitID;
+ BOOLEnum BVar1;
+ int unitSelectionIndex;
+ unitSelectionIndex = 0;
+ if (0 < this->tribes[tribeID].size) {
+ do {
+ unitID = getUnitIDForIndexInTribe(
+ tribeID, unitSelectionIndex);
+ unitSelectionIndex = unitSelectionIndex + 1;
+ if ((DAT_UnitsState.units[unitID].logicalState == ULS_NORMAL)
+ && (DAT_UnitsState.units[unitID].dying == 0)) {
+ BVar1 = hasUnitReachedDestination(unitID);
+ if (BVar1 == FALSE) {
+ return FALSE;
+ }
+ }
+ } while (unitSelectionIndex < this->tribes[tribeID].size);
+ }
+ return TRUE;
+ }
+ }
+}
+}
+
+### 0x00525470 removeAllTribeUnits | quelle=ghidra | bereich=Truppen/Gruppen
+// FUNCTION: STRONGHOLDCRUSADER 0x00525470
+ void TribesState::removeAllTribeUnits(int param_1)
+ {
+ int iVar1;
+ int iVar2;
+ iVar1 = 0;
+ if (0 < this->tribes[param_1].size) {
+ do {
+ iVar2 = iVar1 + 1;
+ iVar1 = getUnitIDForIndexInTribe(
+ param_1, iVar1);
+ DAT_UnitsState.units[iVar1].logicalState = ULS_REMOVE;
+ iVar1 = iVar2;
+ } while (iVar2 < this->tribes[param_1].size);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x005254c0 addUnitToNewTribe | quelle=ghidra | bereich=Truppen/Gruppen
+// FUNCTION: STRONGHOLDCRUSADER 0x005254C0
+ BOOLEnum TribesState::addUnitToNewTribe(uint unitID)
+ {
+ int _tribeID;
+ int _newTribeID;
+ int _playerID;
+ UnitTypeShort _unitType;
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ return FALSE;
+ }
+ _playerID = (int)DAT_UnitsState.units[unitID].owner;
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[_playerID] == -1)
+ && ((
+ (_tribeID = (int)DAT_UnitsState.units[unitID].tribeID,
+ _tribeID < 1 || (this->tribes[_tribeID].uid != DAT_UnitsState.units[unitID].tribeUID))
+ || (this->tribes[_tribeID].tribeState == 0)))) {
+ _newTribeID = createTribe(_playerID, 0);
+ if (0 < _newTribeID) {
+ _unitType = DAT_UnitsState.units[unitID].unitType;
+ if (_unitType == UT_E_ARCHER) {
+ this->tribes[_newTribeID].tribeType = AITT_ARCHERS;
+ } else if (_unitType == UT_E_XBOW) {
+ this->tribes[_newTribeID].tribeType = AITT_CROSSBOWMEN;
+ } else if (_unitType == UT_E_SPEAR) {
+ this->tribes[_newTribeID].tribeType = AITT_SPEARMEN;
+ } else if (_unitType == UT_E_PIKE) {
+ this->tribes[_newTribeID].tribeType = AITT_PIKEMEN;
+ } else if (_unitType == UT_E_MACE) {
+ this->tribes[_newTribeID].tribeType = AITT_MACEMEN;
+ } else if (_unitType == UT_E_SWORD) {
+ this->tribes[_newTribeID].tribeType = AITT_SWORDSMEN;
+ } else if (_unitType == UT_E_KNIGHT) {
+ this->tribes[_newTribeID].tribeType = AITT_KNIGHTS;
+ } else if (_unitType == UT_E_LADDER) {
+ this->tribes[_newTribeID].tribeType = AITT_LADDERMEN;
+ } else if (_unitType == UT_E_ENGINEER) {
+ this->tribes[_newTribeID].tribeType = AITT_ENGINEERS;
+ } else if (_unitType == UT_HOPSFARMER) {
+ this->tribes[_newTribeID].tribeType
+ = AITT_SWORDSMEN | AITT_LADDERMEN;
+ } else if (_unitType == UT_TUNNELER) {
+ this->tribes[_newTribeID].tribeType = AITT_TUNNELERS;
+ } else if (_unitType == UT_A_ARCHER) {
+ this->tribes[_newTribeID].tribeType = ((AITribeType)0x19);
+ } else if (_unitType == UT_A_SLAVE) {
+ this->tribes[_newTribeID].tribeType = 0x1a;
+ } else if (_unitType == UT_A_SLINGER) {
+ this->tribes[_newTribeID].tribeType = 0x1b;
+ } else if (_unitType == UT_A_ASSASSIN) {
+ this->tribes[_newTribeID].tribeType = 0x1c;
+ } else if (_unitType == UT_A_HARCHER) {
+ this->tribes[_newTribeID].tribeType = 0x1d;
+ } else if (_unitType == UT_A_SWORDSMAN) {
+ this->tribes[_newTribeID].tribeType = 0x1e;
+ } else if (_unitType == UT_A_FIRETHROWER) {
+ this->tribes[_newTribeID].tribeType = 0x1f;
+ } else if (_unitType == UT_S_FBALLISTA) {
+ this->tribes[_newTribeID].tribeType = ((AITribeType)0x18);
+ }
+ this->tribes[_newTribeID].someIndex = 1;
+ this->tribes[_newTribeID].attackWave = (short)DAT_TroopValueState.attackInfo.inv_count;
+ _unitType = DAT_UnitsState.units[unitID].unitType;
+ if (_unitType == UT_E_ENGINEER) {
+ if (DAT_UnitsState.units[unitID].state.generic
+ == US_STAND_UPUnk) {
+ this->tribes[_newTribeID].tribeBehaviorType
+ = STBT_0x410_SIEGE_EQUIPMENT_CONSTRUCTION;
+ }
+ } else if ((_unitType == UT_TUNNELER)
+ && (DAT_UnitsState.units[unitID].state.generic
+ == US_LOOK_AROUNDUnk)) {
+ this->tribes[_newTribeID].tribeBehaviorType = STBT_0x415;
+ }
+ addUnitToTribe(unitID, _newTribeID);
+ return TRUE;
+ }
+ }
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x00525790 removeSelectedUnitsFromTheirCurrentTribes | quelle=ghidra | bereich=Truppen/Gruppen
+// FUNCTION: STRONGHOLDCRUSADER 0x00525790
+ void TribesState::removeSelectedUnitsFromTheirCurrentTribes(int playerID)
+ {
+ uint uVar1;
+ Unit* _pUnit;
+ int _unitTribeID;
+ int _tribeID;
+ uint _unitID;
+ bool _unitRemovedFromTribeByID[1250];
+ Tribe* _pTribe;
+ uVar1 = MSVC_SecurityCookie::instance ^ (uint)_unitRemovedFromTribeByID;
+ fillMemory_ByteValue(
+ 1250, '\0', (void*)((int)(_unitRemovedFromTribeByID)));
+ _unitID = 1;
+ if (1 < (int)DAT_UnitsState.maxUnitCount) {
+ _pUnit = &DAT_UnitsState.units[1];
+ do {
+ if ((((_pUnit->logicalState == ULS_NORMAL) && (_pUnit->dying == 0))
+ && (_pUnit->ifSelectedThenPlayerID == playerID))
+ && (_unitTribeID = (int)_pUnit->tribeID, 0 < _unitTribeID)) {
+ removeUnitFromThisTribeIfInTribe(_unitID, _unitTribeID);
+ _unitRemovedFromTribeByID[_unitTribeID] = true;
+ }
+ _unitID = _unitID + 1;
+ _pUnit = _pUnit + 0x248;
+ } while ((int)_unitID < (int)DAT_UnitsState.maxUnitCount);
+ }
+ _tribeID = 1;
+ _pTribe = &this->tribes[1];
+ do {
+ /*
+ tribeState
+ */
+ if (_pTribe[-0xd] == 2) {
+ if (_pTribe->selectionTargetUnitID == -1) {
+ setTargetUnitForTribe(_tribeID);
+ }
+ setWhetherTribeContainsAnyUnits(
+ _tribeID);
+ }
+ _tribeID = _tribeID + 1;
+ _pTribe = _pTribe + 0x19a;
+ } while (_tribeID < 1250);
+ ;
+ return;
+ }
+ }
+}
+}
+
+### 0x00525870 clearTribesOfUnitType | quelle=ghidra | bereich=Truppen/Gruppen
+// FUNCTION: STRONGHOLDCRUSADER 0x00525870
+ void TribesState::clearTribesOfUnitType(int param_1, int param_2)
+ {
+ Unit* psVar1;
+ int tribeID;
+ uint unitID;
+ short* psVar2;
+ undefined1 local_4e8[1252];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)local_4e8;
+ fillMemory_ByteValue(
+ 1250, '\0', (void*)((int)(local_4e8)));
+ unitID = 1;
+ if (1 < (int)DAT_UnitsState.maxUnitCount) {
+ psVar1 = &DAT_UnitsState.units[1];
+ do {
+ if ((psVar1->owner == param_1) && (psVar1->ifSelectedThenPlayerID != 0)) {
+ if ((short)psVar1->unitType == param_2) {
+ removeUnitFromThisTribeIfInTribe(unitID, psVar1->tribeID);
+ psVar1->ifSelectedThenPlayerID = 0;
+ DAT_UnitsState.unitCountOfSelection[param_1]
+ = DAT_UnitsState.unitCountOfSelection[param_1] + -1;
+ }
+ local_4e8[psVar1->tribeID] = 1;
+ }
+ unitID = unitID + 1;
+ psVar1 = psVar1 + 0x248;
+ } while ((int)unitID < (int)DAT_UnitsState.maxUnitCount);
+ }
+ tribeID = 1;
+ psVar2 = &this->tribes[1].selectionTargetUnitID;
+ do {
+ if (psVar2[-0xd] == 2) {
+ if (*psVar2 == -1) {
+ setTargetUnitForTribe(tribeID);
+ }
+ setWhetherTribeContainsAnyUnits(
+ tribeID);
+ }
+ tribeID = tribeID + 1;
+ psVar2 = psVar2 + 0x19a;
+ } while (tribeID < 0x4e2);
+ ;
+ return;
+ }
+ }
+}
+}
+
+### 0x00525970 clearTribesNotOfUnitType | quelle=ghidra | bereich=Truppen/Gruppen
+// FUNCTION: STRONGHOLDCRUSADER 0x00525970
+ void TribesState::clearTribesNotOfUnitType(int playerID, int unitType)
+ {
+ Unit* psVar1;
+ int _tribeID2;
+ uint unitID;
+ Tribe* psVar2;
+ undefined1 _clearedTribes[1252];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)_clearedTribes;
+ fillMemory_ByteValue(
+ 1250, '\0', (void*)((int)(_clearedTribes)));
+ unitID = 1;
+ if (1 < (int)DAT_UnitsState.maxUnitCount) {
+ psVar1 = &DAT_UnitsState.units[1];
+ do {
+ if (((psVar1->owner == playerID) && (psVar1->ifSelectedThenPlayerID != 0))
+ && ((short)psVar1->unitType != unitType)) {
+ removeUnitFromThisTribeIfInTribe(unitID, psVar1->tribeID);
+ psVar1->ifSelectedThenPlayerID = 0;
+ DAT_UnitsState.unitCountOfSelection[playerID]
+ = DAT_UnitsState.unitCountOfSelection[playerID] + -1;
+ _clearedTribes[psVar1->tribeID] = 1;
+ }
+ unitID = unitID + 1;
+ psVar1 = psVar1 + 0x248;
+ } while ((int)unitID < (int)DAT_UnitsState.maxUnitCount);
+ }
+ _tribeID2 = 1;
+ psVar2 = &this->tribes[1];
+ do {
+ if (psVar2->tribeState == 2) {
+ if (psVar2->selectionTargetUnitID == -1) {
+ setTargetUnitForTribe(
+ _tribeID2);
+ }
+ setWhetherTribeContainsAnyUnits(
+ _tribeID2);
+ }
+ _tribeID2 = _tribeID2 + 1;
+ psVar2 = psVar2 + 0x19a;
+ } while (_tribeID2 < 1250);
+ ;
+ return;
+ }
+ }
+}
+}
+
+### 0x00525a70 removeUnitFromTribe | quelle=ghidra | bereich=Truppen/Gruppen
+// FUNCTION: STRONGHOLDCRUSADER 0x00525A70
+ void TribesState::removeUnitFromTribe(uint unitID, int tribeID)
+ {
+ short* psVar1;
+ uint uVar2;
+ short _size;
+ if (DAT_UnitsState.units[unitID].tribeID == 0) {
+ uVar2 = unitID & 0x8000000f;
+ if ((int)uVar2 < 0) {
+ uVar2 = (uVar2 - 1 | 0xfffffff0) + 1;
+ }
+ if ((ushort)(DAT_UnitSelectionDefinedData.BitMaskHelper[uVar2]
+ & this->tribes[tribeID]
+ .unitSelectionBitMasked[(int)(unitID + ((int)unitID >> 0x1f & 0xfU)) >> 4])
+ == 0)
+ goto LAB_00525b56;
+ }
+ _size = this->tribes[tribeID].size;
+ if (0 < _size) {
+ this->tribes[tribeID].size = _size + -1;
+ }
+ if (this->tribes[tribeID].size < 1) {
+ this->tribes[tribeID].tribeState = 3;
+ }
+ psVar1 = this->tribes[tribeID].unitSelectionBitMasked + ((int)(unitID + ((int)unitID >> 0x1f & 0xfU)) >> 4);
+ uVar2 = unitID & 0x8000000f;
+ if ((int)uVar2 < 0) {
+ uVar2 = (uVar2 - 1 | 0xfffffff0) + 1;
+ }
+ *psVar1 = *psVar1 & DAT_UnitSelectionDefinedData.BitMaskHelper2[uVar2];
+ if (DAT_UnitsState.units[unitID].tribeID == tribeID) {
+ DAT_UnitsState.units[unitID].selectionTargetUnitID = 0;
+ DAT_UnitsState.units[unitID].tribeID = 0;
+ DAT_UnitsState.units[unitID].idInTribe = 0;
+ }
+ if ((int)this->tribes[tribeID].selectionTargetUnitID == unitID) {
+ setTargetUnitForTribe(tribeID);
+ }
+ LAB_00525b56:
+ setWhetherTribeContainsAnyUnits(tribeID);
+ return;
+ }
+ }
+}
+}
+
+### 0x00525b70 popUnitFromTribe | quelle=nachgebaut | bereich=Truppen/Gruppen
+// FUNCTION: STRONGHOLDCRUSADER 0x00525B70
+ int TribesState::popUnitFromTribe(int tribeID)
+ {
+ int const unitID
+ = getUnitIDForIndexInTribe(tribeID, 0);
+ if (unitID != 0) {
+ removeUnitFromTribe(unitID, tribeID);
+ }
+ return unitID;
+ }
+ }
+}
+}
+
+### 0x00525ba0 createAnimal | quelle=ghidra | bereich=Truppen/Gruppen
+// FUNCTION: STRONGHOLDCRUSADER 0x00525BA0
+ dword TribesState::createAnimal(MappersEnum animalType, uint x, uint y, int tile)
+ {
+ short sVar1;
+ dword tribeID;
+ int _tile;
+ uint unitID;
+ byte bVar2;
+ int iVar3;
+ UnitType unitType;
+ int _rng2;
+ unitType = ((UnitType)0);
+ _rng2 = 0;
+ tribeID = createTribe(0, 0);
+ if ((int)tribeID < 1) {
+ return (dword)(0);
+ }
+ if (((399 < x) || (399 < y)) || (*(char*)(y * 400 + 0x21aec98 + x) == '\0')) {
+ return (dword)(0);
+ }
+ _tile = DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x;
+ if (animalType == M_MAPPER_DEER) {
+ if ((DAT_TileMapState.LogicLayer[_tile] & 0x4a5014b1U) != 0) {
+ return (dword)(0);
+ }
+ this->tribes[tribeID].tribeType
+ = AITT_SWORDSMEN | AITT_SPEARMEN;
+ unitType = UT_ANTELOPESHDEER;
+ _rng2 = ((byte)SEC_RNG::instance.currentNumber2 & 3) + 9;
+ } else if (animalType == M_MAPPER_LION) {
+ if ((DAT_TileMapState.LogicLayer[_tile] & 0x4a5014b1U) != 0) {
+ return (dword)(0);
+ }
+ this->tribes[tribeID].tribeType
+ = AITT_SWORDSMEN | AITT_PIKEMEN;
+ unitType = UT_LIONSHWOLF;
+ _rng2 = ((byte)SEC_RNG::instance.currentNumber2 & 1) + 3;
+ } else if (animalType == M_MAPPER_RABBIT) {
+ if ((DAT_TileMapState.LogicLayer[_tile] & 0x4a5014b1U) != 0) {
+ return (dword)(0);
+ }
+ this->tribes[tribeID].tribeType
+ = AITT_SWORDSMEN | AITT_CROSSBOWMEN;
+ unitType = UT_RABBIT;
+ _rng2 = ((byte)SEC_RNG::instance.currentNumber2 & 7) + 0xe;
+ } else if (animalType == M_MAPPER_CAMEL) {
+ if ((DAT_TileMapState.LogicLayer[_tile] & 0x4a5014b1U) != 0) {
+ return (dword)(0);
+ }
+ this->tribes[tribeID].tribeType = ((AITribeType)0x10);
+ unitType = UT_CAMELSHBEAR;
+ _rng2 = ((byte)SEC_RNG::instance.currentNumber2 & 3) + 2;
+ } else {
+ if (animalType == M_MAPPER_CROW_SEAGULL) {
+ markNearbyTreesAsCrowTargets(x, y);
+ return (dword)(0);
+ }
+ if (animalType == M_MAPPER_SEAGULL) {
+ if ((DAT_TileMapState.LogicLayer[_tile] & 1) == 0) {
+ return (dword)(0);
+ }
+ createSeagull(
+ x * 8, y * 8);
+ return (dword)(0);
+ }
+ }
+ iVar3 = 0;
+ if (_rng2 != 0) {
+ do {
+ unitID = spawnUnit(
+ 0, 0, x * 8, y * 8, tile, unitType);
+ if (unitID != 0) {
+ addUnitToTribe(
+ unitID, tribeID);
+ DAT_UnitsState.units[unitID].substate
+ = (byte)DAT_UnitsState.units[unitID].fixedRng & 3;
+ if (unitType == UT_ANTELOPESHDEER) {
+ bVar2 = (byte)DAT_UnitsState.units[unitID].fixedRng & 7;
+ DAT_UnitsState.units[unitID].antelopeBasedRngValue = bVar2;
+ if (bVar2 == 3) {
+ DAT_UnitsState.units[unitID].antelopeBasedRngValue = 1;
+ } else if (bVar2 == 4) {
+ DAT_UnitsState.units[unitID].antelopeBasedRngValue = 1;
+ } else if (bVar2 == 5) {
+ DAT_UnitsState.units[unitID].antelopeBasedRngValue = 1;
+ } else if ((bVar2 == 6) || (bVar2 == 7)) {
+ DAT_UnitsState.units[unitID].antelopeBasedRngValue = 2;
+ }
+ if (iVar3 == 0) {
+ DAT_UnitsState.units[unitID].antelopeBasedRngValue = 0;
+ } else if ((iVar3 == 1) || (iVar3 == 2)) {
+ DAT_UnitsState.units[unitID].antelopeBasedRngValue = 1;
+ }
+ }
+ DAT_UnitsState.units[unitID].disappearFadeAlphaCountdown = 0x20;
+ }
+ iVar3 = iVar3 + 1;
+ } while (iVar3 < _rng2);
+ }
+ sVar1 = this->tribes[tribeID].size;
+ this->tribes[tribeID].field137_0x280 = sVar1 / 2;
+ if (animalType == M_MAPPER_LION) {
+ this->tribes[tribeID].field138_0x282 = sVar1;
+ storeLionXAndYInMapInfo(
+ x, (undefined4)((int)(y)));
+ return (dword)(tribeID);
+ }
+ this->tribes[tribeID].field138_0x282 = sVar1 * 2;
+ if (animalType == M_MAPPER_DEER) {
+ storeDeerXAndYinMapInfo(
+ x, (undefined4)((int)(y)));
+ return (dword)(tribeID);
+ }
+ if (animalType == M_MAPPER_RABBIT) {
+ setRabbitSpawnXY(
+ x, (undefined4)((int)(y)));
+ return (dword)(tribeID);
+ }
+ if (animalType == M_MAPPER_CAMEL) {
+ setCamelSpawnXY(
+ x, (undefined4)((int)(y)));
+ }
+ return (dword)(tribeID);
+ }
+ }
+}
+}
+
+### 0x00525f20 spawnDeerLionOrRabbit | quelle=ghidra | bereich=Truppen/Gruppen
+// FUNCTION: STRONGHOLDCRUSADER 0x00525F20
+ BOOLEnum TribesState::spawnDeerLionOrRabbit(int tribeID, int param_2, UnitType unitType)
+ {
+ short* psVar1;
+ short sVar2;
+ int _finalTargetUnitID;
+ int iVar3;
+ uint _rng2;
+ short _terrainHeight;
+ short _unknown;
+ short _tribeSize;
+ short _unitX;
+ short _targetUnitID;
+ short _unitY;
+ if ((DAT_GameCore.currentMenuViewType != MVT_MAP_EDITOR_LANDSCAPING)
+ && (0 < tribeID)) {
+ if (this->tribes[tribeID].field133_0x278 != 0) {
+ return FALSE;
+ }
+ _targetUnitID = this->tribes[tribeID].selectionTargetUnitID;
+ _finalTargetUnitID = (int)_targetUnitID;
+ if (unitType == UT_ANTELOPESHDEER) {
+ _finalTargetUnitID
+ = getNonDyingUnit(tribeID);
+ if (_finalTargetUnitID == 0) {
+ _finalTargetUnitID = (int)_targetUnitID;
+ }
+ }
+ _rng2 = (uint)(byte)SEC_RNG::instance.currentNumber2;
+ _terrainHeight = DAT_UnitsState.units[_finalTargetUnitID].terrainOrClimbHeight;
+ _unknown = this->tribes[tribeID].field137_0x280;
+ _tribeSize = this->tribes[tribeID].size;
+ _unitX = DAT_UnitsState.units[_finalTargetUnitID].x;
+ _unitY = DAT_UnitsState.units[_finalTargetUnitID].y;
+ if (_tribeSize <= _unknown) {
+ param_2 = (int)(param_2 + (param_2 >> 0x1f & 3U)) >> 2;
+ }
+ psVar1 = &this->tribes[tribeID].field139_0x284;
+ *psVar1 = *psVar1 + 1;
+ if ((param_2 <= this->tribes[tribeID].field139_0x284)
+ && (sVar2 = this->tribes[tribeID].field138_0x282, this->tribes[tribeID].field139_0x284 = 0,
+ _tribeSize < sVar2)) {
+ if ((unitType == UT_RABBIT)
+ && (DAT_GameState.mapAndTime.eventCountdownRabbitInfestation != 0)) {
+ iVar3 = 110;
+ } else {
+ iVar3 = ((_unknown <= _tribeSize) - 1 & 0xffffffb5) + 100;
+ }
+ if (iVar3 <= (int)(_rng2 & 0x7f)) {
+ _rng2 = spawnUnit(
+ 0, 0, _unitX * 8, _unitY * 8, _terrainHeight,
+ unitType);
+ if (_rng2 != 0) {
+ addUnitToTribe(
+ _rng2, tribeID);
+ DAT_UnitsState.units[_rng2].substate
+ = (byte)DAT_UnitsState.units[_rng2].fixedRng & 3;
+ if (unitType == UT_ANTELOPESHDEER) {
+ DAT_UnitsState.units[_rng2].antelopeBasedRngValue = 2;
+ }
+ DAT_UnitsState.units[_rng2].disappearFadeAlphaCountdown = 0x20;
+ if (unitType == UT_ANTELOPESHDEER) {
+ updateAnimalHerdBehaviorState(tribeID);
+ }
+ return TRUE;
+ }
+ }
+ }
+ return FALSE;
+ }
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x005260b0 trySpawnAdditionalWildlifeForTribe | quelle=ghidra | bereich=Truppen/Gruppen
+// FUNCTION: STRONGHOLDCRUSADER 0x005260B0
+ undefined4 TribesState::trySpawnAdditionalWildlifeForTribe(int param_1, int param_2, int param_3, int param_4)
+ {
+ undefined1* puVar1;
+ short sVar2;
+ short sVar3;
+ short sVar4;
+ byte bVar5;
+ int iVar6;
+ int iVar7;
+ if ((DAT_GameCore.currentMenuViewType == MVT_MAP_EDITOR_LANDSCAPING)
+ || (param_1 < 1)) {
+ return (undefined4)(0);
+ }
+ if ((this->tribes[param_1].field133_0x278 == 0)
+ && ((DAT_GameCore.missionNumber1to20 != 0x26 || (param_4 != 0x2f)))) {
+ iVar7 = (int)this->tribes[param_1].selectionTargetUnitID;
+ iVar6 = iVar7;
+ if (param_4 == 0x2c) {
+ iVar6 = getNonDyingUnit(param_1);
+ if (iVar6 == 0) {
+ iVar6 = iVar7;
+ }
+ }
+ bVar5 = (byte)SEC_RNG::instance.currentNumber2;
+ sVar2 = DAT_UnitsState.units[iVar6].x;
+ sVar3 = DAT_UnitsState.units[iVar6].y;
+ sVar4 = DAT_UnitsState.units[iVar6].terrainOrClimbHeight;
+ puVar1 = &this->tribes[param_1].field_0x288;
+ *(short*)puVar1 = *(short*)puVar1 + 1;
+ if ((param_2 <= *(short*)&this->tribes[param_1].field_0x288)
+ && (*(undefined2*)&this->tribes[param_1].field_0x288 = 0, 99 < (bVar5 & 0x7f))) {
+ iVar6 = countLivingNondyingUnitsForPlayer(param_4);
+ if (iVar6 < param_3) {
+ if (param_4 == 0x2f) {
+ createAnimal(
+ M_MAPPER_CAMEL, (uint)((int)((int)sVar2)), (uint)((int)((int)sVar3)),
+ sVar4);
+ }
+ return (undefined4)(1);
+ }
+ }
+ return (undefined4)(0);
+ }
+ return (undefined4)(0);
+ }
+ }
+}
+}
+
+### 0x005261b0 respawnDeer | quelle=ghidra | bereich=Truppen/Gruppen
+// FUNCTION: STRONGHOLDCRUSADER 0x005261B0
+ void TribesState::respawnDeer()
+ {
+ BOOLEnum BVar1;
+ uint _x;
+ int _counter;
+ int _tile;
+ uint _y;
+ if ((((DAT_GameCore.gameMode_2 != GM_EDITOR)
+ && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT))
+ && ((DAT_GameCore.gameMode_2 != GM_BUILDERUnk
+ || (DAT_MapPropertiesState.SEC_U3_MapType2_1 != MT_SIEGE))))
+ && (((DAT_GameSynchronyState.currentGameMode == GM_SOLITARY
+ && (DAT_GameState.mapAndTime.aliveDeerCount != 0))
+ && (DAT_GameState.mapAndTime.deerCount < 6)))) {
+ _counter = 0;
+ while (true) {
+ _x = DAT_GameState.mapAndTime.signpostsMapEdge[0][0].x;
+ _y = DAT_GameState.mapAndTime.signpostsMapEdge[0][0].y;
+ if (_counter < 4) {
+ _x = (int)DAT_GameState.mapAndTime.deerSpawnLocationsXY[_counter].x;
+ _y = (int)DAT_GameState.mapAndTime.deerSpawnLocationsXY[_counter].y;
+ }
+ BVar1 = xyAreValid(_x, _y);
+ if (BVar1 != FALSE)
+ break;
+ LAB_00526268:
+ _counter = _counter + 1;
+ if (4 < _counter) {
+ return;
+ }
+ }
+ _tile = DAT_ViewportRenderState.translationMatrix[_y].addXgetTile + _x;
+ if ((DAT_TileMapState.LogicLayer[_tile] & 0x50501581U) != 0) {
+ if (DAT_TileMapState.OrganismLayer[_tile] == 0)
+ goto LAB_00526268;
+ removeTree(
+ (int)DAT_TileMapState.OrganismLayer[_tile]);
+ }
+ createAnimal(
+ M_MAPPER_DEER, _x, _y,
+ (int)((int)((uint)DAT_TileMapState.HeightLayer[_tile])));
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x005262a0 spawnWildlifeOrMercAtAvailableSlot | quelle=ghidra | bereich=Truppen/Gruppen
+// FUNCTION: STRONGHOLDCRUSADER 0x005262A0
+ void TribesState::spawnWildlifeOrMercAtAvailableSlot()
+ {
+ int iVar1;
+ int iVar2;
+ short* psVar3;
+ uint y;
+ uint x;
+ if ((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ || (0x9f < DAT_GameState.mapAndTime.field3166_0x277c)) {
+ return;
+ }
+ iVar2 = 0;
+ psVar3 = DAT_GameState.mapAndTime.playerPopulationStatistics[6] + 0xe4;
+ do {
+ if (iVar2 < 4) {
+ x = (uint)DAT_GameState.mapAndTime.rabbitSpawnXY[iVar2][0];
+ y = (uint)DAT_GameState.mapAndTime.rabbitSpawnXY[iVar2][1];
+ LAB_005262f6:
+ if ((((x < 400) && (y < 400)) && (*(char*)(y * 400 + 0x21aec98 + x) != '\0'))
+ && (iVar1 = DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x,
+ (DAT_TileMapState.LogicLayer[iVar1] & 0x50501581U) == 0)) {
+ createAnimal(
+ M_MAPPER_RABBIT, x, y,
+ (int)((int)((uint)DAT_TileMapState.HeightLayer[iVar1])));
+ this->unknownX_01 = x;
+ this->unknownY_01 = y;
+ return;
+ }
+ } else if (DAT_GameState.mapAndTime.mercRecruitable[iVar2 + 4] != 0) {
+ x = *(uint*)(psVar3 + -2);
+ y = *(uint*)psVar3;
+ goto LAB_005262f6;
+ }
+ iVar2 = iVar2 + 1;
+ psVar3 = psVar3 + 400;
+ if (0xb < iVar2) {
+ return;
+ }
+ } while (true);
+ }
+ }
+}
+}
+
+### 0x00526370 upgradeMapTribesState | quelle=nachgebaut | bereich=Truppen/Gruppen
+// FUNCTION: STRONGHOLDCRUSADER 0x00526370
+ void TribesState::upgradeMapTribesState(
+ PackagedFileMagicNum receivedMapVersion, PackagedFileMagicNum packagerMapVersion)
+ {
+ UpgradeMapTribesStateVersionTo_Unknown1();
+ UpgradeMapTribesStateVersionTo_Unknown2();
+ if (receivedMapVersion != packagerMapVersion && (int)receivedMapVersion < 142) {
+ UpgradeMapTribesStateVersionTo_142();
+ }
+ }
+ }
+}
+}
+

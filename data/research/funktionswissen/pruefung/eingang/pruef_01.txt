@@ -1,0 +1,514 @@
+### 0x00405130 SomeFireSpreadFunction | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00405130
+ uint Entities::SomeFireSpreadFunction(int param_1, int x, int y, int param_4, int param_5)
+ {
+ uint _y;
+ int _entityID;
+ uint _fireEntityID;
+ uint _x;
+ int microY;
+ uint _rng;
+ int _tile;
+ int microX;
+ short _buildingID;
+ BuildingTypeShort _buildingType;
+ _rng = (uint)SEC_RNG::instance.currentNumber2;
+ nextRandomNumber2();
+ microX = x + DAT_EntityDefinedData.XYOffsetsInAllDirections[_rng & 0x3f][0];
+ microY = y + DAT_EntityDefinedData.XYOffsetsInAllDirections[_rng & 0x3f][1];
+ _x = (int)(microX + (microX >> 0x1f & 7U)) >> 3;
+ _y = (int)(microY + (microY >> 0x1f & 7U)) >> 3;
+ if (((399 < _x) || (399 < _y)) || (*(char*)(_y * 400 + 0x21aec98 + _x) == '\0')) {
+ return 0;
+ }
+ _tile = DAT_ViewportRenderState.translationMatrix[_y].addXgetTile + _x;
+ _rng = DAT_TileMapState.LogicLayer[_tile];
+ if ((_rng & 0x10300131) == 0) {
+ _buildingID = DAT_TileMapState.BuildingLayer[_tile];
+ if (_buildingID != 0) {
+ _buildingType = DAT_BuildingsState.buildings[_buildingID].buildingType;
+ if (((_buildingType != BT_TUNNEL)
+ && (_buildingType != BT_KILLINGPIT))
+ && (_buildingType != BT_UNKNOWN4)) {
+ lightUpBuilding((int)_buildingID, param_1, 0);
+ return 0;
+ }
+ }
+ _entityID = getFireEntityIDAtTile(_tile);
+ if (_entityID == 0) {
+ if ((_rng & 0x1000) != 0) {
+ lightUpTree(
+ _tile, param_1);
+ }
+ _fireEntityID = spawnProjectileEntity(0, (undefined4)((int)(param_1)), 0, microX, microY, param_4, 0, 0, 0,
+ ET_FIRE, 0);
+ if ((2 < param_5) && ((DAT_TileMapState.RandomLayer[_tile] & 3) == 0)) {
+ spawnProjectileEntity(0, (undefined4)((int)(param_1)), 0, microX, microY, param_4, 0, 0, 0,
+ 0x1a, 0);
+ }
+ if (_fireEntityID != 0) {
+ DAT_EntityState.entityArray[_fireEntityID].fireParameter_0xb6 = (short)param_5;
+ }
+ return _fireEntityID;
+ }
+ _buildingID = DAT_EntityState.entityArray[_entityID].fireParameter_0xb6;
+ DAT_EntityState.entityArray[_entityID].someTracker = 0;
+ if (_buildingID < param_5) {
+ DAT_EntityState.entityArray[_entityID].fireParameter_0xb6 = (short)param_5;
+ }
+ DAT_EntityState.entityArray[_entityID].unknownAnimationFrameRelated = 0;
+ }
+ return 0;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00405130", "name": "SomeFireSpreadFunction", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Versucht, an einem zufällig verschobenen Punkt ein Feuer zu entzünden oder ein vorhandenes aufzufrischen (Schwester von IgniteFireAtMiniTile, nichtssagender Name)."}, "p2": {"ein": "param_1 = Spieler (vermutlich), x und y = Mikrokoordinaten (8 je Feld), param_4 = Höhe, param_5 = Feuerstufe (vermutlich)", "aus": "Nummer des neuen Feuer-Objekts, sonst 0", "liest": ["SEC_RNG.currentNumber2", "EntityDefinedData.XYOffsetsInAllDirections[0..63]", "Gültigkeitstabelle ab 0x021AEC98", "TileMapState.LogicLayer/BuildingLayer/RandomLayer", "buildings[b].buildingType", "vorhandenes Feuer-Objekt am Feld"], "schreibt": ["SEC_RNG (nextRandomNumber2)", "neues Feuer-Objekt: fireParameter_0xb6", "vorhandenes Feuer: someTracker, fireParameter_0xb6, unknownAnimationFrameRelated"], "ruft": ["nextRandomNumber2", "getFireEntityIDAtTile", "lightUpBuilding", "lightUpTree", "spawnProjectileEntity"], "regeln": ["Zielpunkt = (x, y) + Versatz aus XYOffsetsInAllDirections, Zeile = Zufallszahl und 0x3F, also 64 mögliche Versätze; Feld = Mikrokoordinate / 8", "Feld außerhalb 0-399 oder mit Gültigkeitseintrag 0: nichts, Ergebnis 0", "LogicLayer-Bits 0x10300131 gesetzt: nichts, Ergebnis 0", "Steht ein Gebäude auf dem Feld, das nicht Tunnel (BT_TUNNEL), Killing Pit (BT_KILLINGPIT) oder BT_UNKNOWN4 ist: lightUpBuilding(Gebäude, param_1, 0), kein Feuer-Objekt, Ergebnis 0 (Torhäuser und Türme sind hier nicht ausgenommen)", "Brennt das Feld noch nicht: bei Bit 0x1000 der LogicLayer lightUpTree; neues Feuer-Objekt (ET_FIRE) mit fireParameter_0xb6 = param_5; ist param_5 über 2 und RandomLayer und 3 gleich 0, kommt zusätzlich ein Objekt vom Typ 0x1A dazu", "Brennt es schon: someTracker = 0, Bildzähler = 0, fireParameter_0xb6 wird auf param_5 angehoben, falls kleiner; Ergebnis 0", "Keine Brandstärke (fireIntensity) wie bei IgniteFireAtMiniTile"], "offen": ["Bedeutung der LogicLayer-Bits 0x10300131 (nur 0x1000 als Baum aus dem Aufruf von lightUpTree abgeleitet)", "Wertebereich der 64 Versätze", "Wer die Funktion aufruft", "Was Objekttyp 0x1A ist (vermutlich Rauch oder Funken) und was BT_UNKNOWN4 ist"]}, "p3": {"erklaerung": "Feuer springt zufällig auf ein Nachbarfeld: Ein Gebäude oder Baum dort fängt Feuer, sonst entsteht eine Flamme am Boden. Brennt das Feld schon, wird das Feuer nur aufgefrischt.", "gehirn": "-", "beleg": "code", "live": "-"}}
+
+### 0x0042ac60 GetPlayerPosition | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0042AC60
+int Synchrony::GetPlayerPosition(int playerID)
+{
+ for (int position = 0; position < 8; ++position) {
+ if (DAT_GameSynchronyState.playerPositionsArray[position] + 1 == playerID) {
+ return position + 1;
+ }
+ }
+ return 0;
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0042ac60", "name": "GetPlayerPosition", "quelle": "nachgebaut", "p1": {"bereich": "Befehle/Takt", "zweck": "Sucht, auf welchem Startplatz ein Spieler sitzt."}, "p2": {"ein": "playerID", "aus": "Platz 1-8 oder 0", "liest": ["DAT_GameSynchronyState.playerPositionsArray[0..7]"], "schreibt": [], "ruft": [], "regeln": ["Vergleich: playerPositionsArray[platz] + 1 == playerID", "Erster Treffer gewinnt, Ergebnis ist platz + 1", "Kein Treffer ergibt 0"], "offen": []}, "p3": {"erklaerung": "Gibt den Startplatz (1 bis 8) eines Spielers zurück, 0 wenn er auf keinem Platz steht.", "gehirn": "Hilft, Spielernummer und Kartenplatz einander zuzuordnen.", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x0040f4f0 refreshAllBuildingTileDisplays | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0040F4F0
+ void BuildingsState::refreshAllBuildingTileDisplays()
+ {
+ for (int buildingID = 1; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (this->buildings[buildingID].logicalState != 0) {
+ clearBuildingDisplayFlagsAndEntities(buildingID, 0);
+ setMiscDisplayLayer(
+ buildingID);
+ }
+ }
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0040f4f0", "name": "refreshAllBuildingTileDisplays", "quelle": "nachgebaut", "p1": {"bereich": "Gebaeude", "zweck": "Zeichnet die Kachelanzeige aller Gebäude neu."}, "p2": {"ein": "-", "aus": "-", "liest": ["buildings[1..max].logicalState"], "schreibt": [], "ruft": ["clearBuildingDisplayFlagsAndEntities", "setMiscDisplayLayer"], "regeln": ["Gilt für alle Gebäude mit logicalState != 0"], "offen": []}, "p3": {"erklaerung": "Darstellungs-Hilfsfunktion.", "gehirn": "-", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x00401910 assignPoisonCloudTargetEntity | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00401910
+ void EntityState::assignPoisonCloudTargetEntity(int param_1)
+ {
+ EntityTypeShort* pEVar1;
+ int local_4;
+ local_4 = 1;
+ if (1 < this->maxEntityCount) {
+ pEVar1 = &this->entityArray[1].entityType;
+ do {
+ if ((((pEVar1[-1] == 2) && (*pEVar1 == ET_COW_POISON_CLOUD))
+ && ((short)pEVar1[-0xb] < 0x3e9))
+ && ((pEVar1[0x54] == 0 && (pEVar1[0x58] == 0)))) {
+ setAxisBasedDistanceResult((int)(short)pEVar1[0xd], (int)((int)((short)pEVar1[0xe])),
+ this->entityArray[param_1].xPosition,
+ this->entityArray[param_1].yPosition);
+ if (DAT_DirectionAlgorithmState.distanceHigh < 7) {
+ pEVar1[0x58] = (short)param_1;
+ *(int*)(pEVar1 + 0x59) = this->entityArray[param_1].uid;
+ }
+ }
+ local_4 = local_4 + 1;
+ pEVar1 = pEVar1 + 0x74;
+ } while (local_4 < this->maxEntityCount);
+ }
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00401910", "name": "assignPoisonCloudTargetEntity", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Bindet freie Giftwolken in der Nähe an einen Effekt."}, "p2": {"ein": "param_1 (entityID des Ziels)", "aus": "-", "liest": ["entityArray[].logicalState/entityType", "Zeitfeld und zwei Zuordnungsfelder der Wolke", "entityArray[param_1].xPosition/yPosition/uid"], "schreibt": ["Zuordnungsfeld der Wolke (vermutlich unitID_healer) = param_1", "uid-Feld der Wolke = entityArray[param_1].uid"], "ruft": ["setAxisBasedDistanceResult"], "regeln": ["Nur aktive ET_COW_POISON_CLOUD mit Zeitfeld < 0x3e9 (1001), deren zwei Zuordnungsfelder beide 0 sind", "Abstand distanceHigh Wolke zu Ziel unter 7: Wolke wird dem Ziel zugeordnet", "Gespeichert werden die Nummer und die uid des Ziels"], "offen": ["Welche Felder gemeint sind (Zeigerrechnung); vermutlich unknownDistanceRelatedValue und unitID_healer", "Was die Zuordnung später bewirkt"]}, "p3": {"erklaerung": "Ordnet noch freie Giftwolken in einem Umkreis von 7 einem Ziel zu.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x00512100 setupAllMapSections | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00512100
+ void TileMapState::setupAllMapSections()
+ {
+ ushort* puVar1;
+ short* psVar2;
+ ushort uVar3;
+ int* piVar4;
+ int iVar5;
+ this->temporaryTerrainTypeIndex = 0;
+ this->SEC_Section1052 = 0;
+ this->SEC_Section1053 = 0;
+ this->SEC_Section1054 = 0;
+ setupTileMapSections();
+ DAT_WallAndPitchState.countdown = 0;
+ setTileSystemMemoryLookupArrays();
+ tweakValidTilesToExcludeMapBorders();
+ setupViewport(0,
+ 0, (undefined4)((int)(DAT_WindowAndDirectDraw.resolutionX)),
+ (undefined4)((int)(DAT_WindowAndDirectDraw.resolutionY + -128)));
+ setupLogicalMapBorders();
+ updateShowHiLayerOrResetChangedLayer();
+ puVar1 = this->GfxLayer + 1;
+ piVar4 = this->LogicLayer + 1;
+ iVar5 = 13400;
+ do {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2];
+ if (piVar4[-1] != 0x10) {
+ if (piVar4[-1] == 0x20) {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 1;
+ } else {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 2;
+ }
+ }
+ puVar1[-1] = uVar3;
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2];
+ if (*piVar4 != 0x10) {
+ if (*piVar4 == 0x20) {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 1;
+ } else {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 2;
+ }
+ }
+ *puVar1 = uVar3;
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2];
+ if (piVar4[1] != 0x10) {
+ if (piVar4[1] == 0x20) {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 1;
+ } else {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 2;
+ }
+ }
+ puVar1[1] = uVar3;
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2];
+ if (piVar4[2] != 0x10) {
+ if (piVar4[2] == 0x20) {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 1;
+ } else {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 2;
+ }
+ }
+ puVar1[2] = uVar3;
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2];
+ if (piVar4[3] != 0x10) {
+ if (piVar4[3] == 0x20) {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 1;
+ } else {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 2;
+ }
+ }
+ puVar1[3] = uVar3;
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2];
+ if (piVar4[4] != 0x10) {
+ if (piVar4[4] == 0x20) {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 1;
+ } else {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 2;
+ }
+ }
+ puVar1[4] = uVar3;
+ piVar4 = piVar4 + 6;
+ puVar1 = puVar1 + 6;
+ iVar5 = iVar5 + -1;
+ } while (iVar5 != 0);
+ fillMemory_ShortValue(
+ 80400, 1, (void*)((int)(this->PillarGFXLayer)));
+ fillMemory_ByteValue(
+ 80400, '\b', (void*)((int)(this->HeightLayer)));
+ fillMemory_ByteValue(
+ 80400, '\b', (void*)((int)(this->DefaultHeightLayer)));
+ DAT_PathFindingState.searchGeneration = 1;
+ fillMemory_ByteValue(
+ 160800, '\0', (void*)((int)(this->WalkLayer)));
+ setChangedLayerZeroBasedOn40x40Layer(0);
+ updateLogicalTileMapRelatedSections();
+ updateGfxLayer();
+ updateGFXLayers();
+ resetMoatArray();
+ resetPitchDitchArray();
+ toggleFlatView(0);
+ this->_5589200_4_ = 0;
+ this->flatViewToggleValue2 = 0;
+ clearBuildings();
+ clearRocksAndTrees();
+ resetWind();
+ DoNothing();
+ clearAllUnits();
+ clearAllTribes();
+ clearMapAndTimeAndPlayerData();
+ resetVariousCountsAndStatisticsAndStartGoodsAndResources();
+ clearCurrentResourcesAndStrongWalls();
+ initializeGameStateAfterMapLoad();
+ fillWith0xFF();
+ clearAnimalSpawnLocationsUnk();
+ piVar4 = DAT_AICState.tribeUIDArray;
+ psVar2 = DAT_AICState.tribeIDArray;
+ do {
+ *psVar2 = 0;
+ *piVar4 = 0;
+ psVar2 = psVar2 + 1;
+ piVar4 = piVar4 + 1;
+ } while ((int)psVar2 < 0x24026cc);
+ DoNothing();
+ DoNothing();
+ clearEntityArrayAndSeagullArray();
+ setChangedLayerToThreeAndMapping0x40x40();
+ this->forceUpdateLogicalAndMiscDisplayLayers = 1;
+ this->forceUpdateTextureTilemap = 1;
+ this->forceUpdateGFXLayers = 1;
+ this->forceUpdateMacroLayerFlag = 1;
+ this->field68_0x55487c = 200;
+ updatePathLinkageLayerForEachBuildingAtEachTile();
+ updateSeparateAreaTileMap(1);
+ this->forceUpdateMacroLayerFlag = 1;
+ this->field68_0x55487c = 500;
+ setTileColorsDependingOnMapSize(0, 100);
+ setMapPropertyDependingOnMapSize(0, 100);
+ DAT_GameCore.currentlyInGameUnk_0xa4 = FALSE;
+ ResetSomeValuesFunctionUnk();
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00512100", "name": "setupAllMapSections", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Setzt Karte und Spielzustand komplett auf einen leeren Anfangszustand."}, "p2": {"ein": "-", "aus": "-", "liest": ["LogicLayer", "GMTotalPicturesProcessed::instance[2]", "DAT_WindowAndDirectDraw.resolutionX/Y"], "schreibt": ["GfxLayer", "PillarGFXLayer", "HeightLayer", "DefaultHeightLayer", "WalkLayer", "Merker forceUpdate*", "field68_0x55487c", "DAT_AICState.tribeIDArray/tribeUIDArray", "currentlyInGameUnk_0xa4"], "ruft": ["setupTileMapSections", "setTileSystemMemoryLookupArrays", "tweakValidTilesToExcludeMapBorders", "setupViewport", "setupLogicalMapBorders", "resetMoatArray", "resetPitchDitchArray", "clearBuildings", "clearRocksAndTrees", "clearAllUnits", "clearAllTribes", "clearMapAndTimeAndPlayerData", "resetVariousCountsAndStatisticsAndStartGoodsAndResources", "clearCurrentResourcesAndStrongWalls", "initializeGameStateAfterMapLoad", "updateSeparateAreaTileMap", "setTileColorsDependingOnMapSize", "setMapPropertyDependingOnMapSize"], "regeln": ["Ablauf in 6 Schritten: 1. Ebenen leeren (setupTileMapSections), 2. Ansicht und Kartenränder einrichten (Ansicht reicht bis resolutionY minus 128), 3. GfxLayer neu aus der LogicLayer füllen, 4. Gräben und Pechgräben zurücksetzen, 5. Gebäude, Bäume, Einheiten, Gruppen, Spielerdaten, Waren und Starthaufen löschen, 6. Wege- und Gebiets-Karten neu berechnen", "GfxLayer je Feld: LogicLayer-Wert 0x10 ergibt Grundbild, 0x20 Grundbild+1, jeder andere Wert Grundbild+2", "PillarGFXLayer = 1, HeightLayer und DefaultHeightLayer = 8 auf allen 80400 Feldern", "WalkLayer (160800 Byte) = 0, searchGeneration der Wegfindung = 1", "Die KI-Gruppenlisten (tribeIDArray, tribeUIDArray) werden auf 0 gesetzt", "field68_0x55487c wird erst 200, dann 500; Neuzeichnen-Merker werden gesetzt"], "offen": ["Bedeutung von field68_0x55487c", "Bedeutung der LogicLayer-Werte 0x10 und 0x20 (vermutlich Gelände)"]}, "p3": {"erklaerung": "Die Aufräum- und Neustartroutine für eine frische Karte: nichts bleibt aus dem vorherigen Spiel stehen.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x004d12a0 getCurrentDesiredAttackRaidUnitCount | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004D12A0
+ int AICState::getCurrentDesiredAttackRaidUnitCount(int aiType, int playerID)
+ {
+ if (DAT_GameCore.gameMode_2 == Game::GM_SKIRMISH_AND_MULTIPLAYER
+ && DAT_GameCore.isSkirmishTrail == TRUE
+ && DAT_GameCore.currentTrailType == Game::TT_EXTREME)
+ return (DAT_GameState.playerDataArray[playerID].currentAttackRaidParameter
+ + this->aics[aiType].RaidUnitsBase)
+ * 4 / 3;
+ return DAT_GameState.playerDataArray[playerID].currentAttackRaidParameter
+ + this->aics[aiType].RaidUnitsBase;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004d12a0", "name": "getCurrentDesiredAttackRaidUnitCount", "quelle": "nachgebaut", "p1": {"bereich": "Einheiten", "zweck": "Wie viele Einheiten ein KI-Überfall (Raid) gerade haben soll."}, "p2": {"ein": "aiType, playerID", "aus": "Soll-Einheitenzahl", "liest": ["playerDataArray[sp].currentAttackRaidParameter", "aics[aiType].RaidUnitsBase", "DAT_GameCore.gameMode_2/isSkirmishTrail/currentTrailType"], "schreibt": [], "ruft": [], "regeln": ["Normal: currentAttackRaidParameter + RaidUnitsBase", "Gefecht/Mehrspieler, Skirmish-Pfad und Pfadtyp TT_EXTREME: (currentAttackRaidParameter + RaidUnitsBase) * 4 / 3, ganzzahlig abgerundet"], "offen": ["Wie currentAttackRaidParameter im Verlauf wächst"]}, "p3": {"erklaerung": "Die Raid-Größe der KI setzt sich aus einem Grundwert der KI-Figur und einem wachsenden Parameter zusammen. Auf Extrem-Stufe im Skirmish-Pfad gibt es ein Drittel mehr.", "gehirn": "Raid-Größe der Gegner vorab abschätzen, um die Verteidigung zu planen.", "beleg": "nachgebaut", "live": "KI-Raid beobachten → Einheitenzahl der Gruppe → gleich currentAttackRaidParameter + RaidUnitsBase", "live_art": "ki-welle"}}
+
+### 0x0040c1f0 getResourceSpace | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0040C1F0
+ int BuildingsState::getResourceSpace(int param_1, ResourceType resource)
+ {
+ int space = -1;
+ BuildingType storageType = getBuildingStorageTypeForResourceType(resource);
+ if (storageType == BT_MANORHOUSE) {
+ return 1000000;
+ }
+ int buildingCount = this->maxBuildingsCount;
+ for (int i = 1; i < buildingCount; ++i) {
+ if (this->buildings[i].logicalState != BLS_NORMAL || this->buildings[i].owner != param_1
+ || this->buildings[i].buildingType != storageType) {
+ continue;
+ }
+ if (space == -1) {
+ space = 0;
+ }
+ if (this->buildings[i].buildingType == BT_ARMORY) {
+ space += computeArmoryRemainingCapacity(
+ i, resource);
+ } else if (this->buildings[i].buildingType == BT_GRANARY) {
+ space += getResourceCountThatCanBeDeposited(
+ i, resource, 250);
+ } else if (this->buildings[i].currentNumberOfResource == 0
+ || this->buildings[i].resources[resource] != 0) {
+ // A stockpile only stores a single resource type at a time
+ if (this->buildings[i].currentNumberOfResource == 0) {
+ space += DAT_BuildingDefinedData.StorageLimitResourceTypeArray[resource];
+ } else if (this->buildings[i].resources[resource]
+ < DAT_BuildingDefinedData.StorageLimitResourceTypeArray[resource]) {
+ space += DAT_BuildingDefinedData.StorageLimitResourceTypeArray[resource]
+ - this->buildings[i].resources[resource];
+ }
+ }
+ }
+ return space;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0040c1f0", "name": "getResourceSpace", "quelle": "nachgebaut", "p1": {"bereich": "Gebaeude", "zweck": "Gesamter freier Lagerplatz eines Spielers für eine Ware."}, "p2": {"ein": "param_1 (Spieler), resource", "aus": "freier Platz; -1, wenn der Spieler kein passendes Lagergebäude hat; 1000000 für Burg-Waren", "liest": ["StorageBuildingTypeArray", "buildings[]", "StorageLimitResourceTypeArray", "currentNumberOfResource"], "schreibt": [], "ruft": ["getBuildingStorageTypeForResourceType", "computeArmoryRemainingCapacity", "getResourceCountThatCanBeDeposited"], "regeln": ["Lagerart BT_MANORHOUSE (Burg, Gold): immer 1000000", "Zählt nur Gebäude im Normalzustand, die dem Spieler gehören und die richtige Lagerart haben", "Kein passendes Gebäude: -1; sonst Summe über alle Gebäude (Start bei 0)", "Waffenkammer: 50 minus alle Waffen", "Kornspeicher: 250 minus alle Nahrung darin", "Lager: leeres Feld = Grenze der Ware, Feld mit dieser Ware = Grenze minus Bestand, Feld mit anderer Ware zählt 0"], "offen": []}, "p3": {"erklaerung": "Zeigt, wie viel von einer Ware noch eingelagert werden kann. -1 heißt: Es gibt gar kein passendes Lager.", "gehirn": "Vor jedem Kauf prüfen, ob der Platz reicht; -1 und 0 sind beides Kaufsperre. Kornspeicher teilen sich 250 über alle Nahrungsarten.", "beleg": "nachgebaut", "live": "Kauf bei vollem Lager versuchen → Warenbestand und Gold vorher/nachher → unverändert", "live_art": "markt"}}
+
+### 0x004a67d0 spawnUnitAndAddToTribe | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004A67D0
+ void PathFindingState::spawnUnitAndAddToTribe(
+ int playerID, int displayColor, int count, UnitType unitType, int tribeID)
+ {
+ short sVar1;
+ int _unitID_2;
+ int _unitID;
+ uint _x;
+ int iVar2;
+ uint _y;
+ int* local_4;
+ int _tile;
+ this->calculations = this->calculations + 1;
+ iVar2 = -1;
+ this->searchQueue.readIndex = 0;
+ if (this->searchQueue.writeIndex != 0) {
+ local_4 = &DAT_GameState.mapAndTime.somePairArray.y;
+ do {
+ _y = (uint)this->searchQueue.yQueue[this->searchQueue.readIndex];
+ _tile = this->searchQueue.tilesQueue[this->searchQueue.readIndex];
+ _x = _tile - DAT_ViewportRenderState.translationMatrix[_y].addXgetTile;
+ if (DAT_TileMapState.CertainPathLayer[_tile] != 100) {
+ _unitID_2
+ = spawnUnit(
+ playerID, displayColor, _x * 8, _y * 8, 8, unitType);
+ if (_unitID_2 != 0) {
+ count = count + -1;
+ addUnitToTribe(_unitID_2, tribeID);
+ }
+ if (count < 1) {
+ return;
+ }
+ budgetFloodFillOnCertainPathLayer(
+ _x, _y, 10, 2);
+ ((XYPair*)(local_4 + -1))->x = _x;
+ *local_4 = _y;
+ local_4 = local_4 + 2;
+ iVar2 = _tile;
+ }
+ if (0x117cdef < (int)local_4)
+ break;
+ this->searchQueue.readIndex = this->searchQueue.readIndex + 1;
+ if (0x13a0f < this->searchQueue.readIndex) {
+ this->searchQueue.readIndex = 0;
+ }
+ } while (this->searchQueue.readIndex != this->searchQueue.writeIndex);
+ }
+ if ((0 < count) && (iVar2 != -1)) {
+ sVar1 = DAT_ViewportRenderState.tileTranslationMatrix_YComponent[iVar2];
+ _tile = DAT_ViewportRenderState.translationMatrix[sVar1].addXgetTile;
+ do {
+ _unitID = spawnUnit(
+ playerID, displayColor, (iVar2 - _tile) * 8, sVar1 * 8, 8, unitType);
+ if (_unitID != 0) {
+ addUnitToTribe(
+ _unitID, tribeID);
+ }
+ count = count + -1;
+ } while (0 < count);
+ }
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004a67d0", "name": "spawnUnitAndAddToTribe", "quelle": "ghidra", "p1": {"bereich": "Wegfindung", "zweck": "Erzeugt Einheiten auf Feldern des letzten Suchergebnisses und trägt sie in eine Gruppe ein."}, "p2": {"ein": "playerID, displayColor, count, unitType, tribeID", "aus": "-", "liest": ["searchQueue", "CertainPathLayer", "tileTranslationMatrix_YComponent"], "schreibt": ["neue Einheiten über spawnUnit", "Gruppe tribeID", "CertainPathLayer (Füllung)", "mapAndTime.somePairArray", "calculations"], "ruft": ["spawnUnit", "addUnitToTribe", "budgetFloodFillOnCertainPathLayer"], "regeln": ["Geht die Warteschlange des letzten Suchlaufs durch, nur Felder mit CertainPathLayer ungleich 100", "Je Feld eine Einheit bei Pixelposition x*8, y*8; bei Erfolg count minus 1 und Eintrag in die Gruppe", "Misslingt spawnUnit (0), zählt count nicht herunter und das nächste Feld wird versucht", "Bei count unter 1 Ende; sonst Füllung mit Wert 10 und Budget 2 um das Feld und Merken der Position", "Ist die Warteschlange durch und count noch größer 0, werden alle übrigen Einheiten auf dem zuletzt benutzten Feld erzeugt (hier zählt count auch bei Fehlschlag)", "Ohne ein benutztes Feld werden keine übrigen Einheiten erzeugt"], "offen": ["Bedeutung des letzten Arguments 8 von spawnUnit", "Wo diese Funktion aufgerufen wird (vermutlich Karteneditor oder Szenarien)"]}, "p3": {"erklaerung": "Verteilt neue Einheiten auf freie Felder in der Umgebung, so dass sie nicht aufeinander stehen, und sammelt sie in einer Gruppe. Reicht der Platz nicht, stehen die übrigen auf einem Feld.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0053b380 UpgradeMapUnitsTo_100 | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0053B380
+ void Version::UpgradeMapUnitsTo_100()
+ {
+ int iVar1;
+ int iVar2;
+ Unit* psVar3;
+ DAT_CurrentUnitSlotID = 1;
+ psVar3 = &DAT_UnitsState.units[1];
+ do {
+ if ((psVar3->logicalState == ULS_NORMAL)
+ && (iVar2 = (int)psVar3->workplaceBuildingID_1, iVar2 != 0)) {
+ iVar1 = psVar3->uid;
+ DAT_BuildingsState.buildings[iVar2].unitRefID = (short)DAT_CurrentUnitSlotID;
+ DAT_BuildingsState.buildings[iVar2].unitRefUID = iVar1;
+ }
+ psVar3 = psVar3 + 0x248;
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1;
+ } while ((int)psVar3 < 0x16516c4);
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0053b380", "name": "UpgradeMapUnitsTo_100", "quelle": "ghidra", "p1": {"bereich": "Gebaeude", "zweck": "Altkarten-Umstellung: trägt in jedes Arbeitsgebäude die zugehörige Einheit ein."}, "p2": {"ein": "-", "aus": "-", "liest": ["units[].logicalState/workplaceBuildingID_1/uid"], "schreibt": ["DAT_CurrentUnitSlotID", "buildings[w].unitRefID", "buildings[w].unitRefUID"], "ruft": [], "regeln": ["Nur Einheiten im Zustand ULS_NORMAL mit workplaceBuildingID_1 ungleich 0", "unitRefID = Einheitennummer, unitRefUID = uid der Einheit", "Hat ein Gebäude mehrere Arbeiter, gewinnt die Einheit mit der höchsten Nummer"], "offen": []}, "p3": {"erklaerung": "Baut die Rückverweise vom Gebäude auf seinen Arbeiter neu auf.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x004cc680 addEngineersToSelection | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004CC680
+ int AICState::addEngineersToSelection(int playerID, int unitCount)
+ {
+ int const tribeID
+ = createTribeForPlayer(playerID);
+ for (int unitID = 1; unitID < (int)DAT_UnitsState.maxUnitCount; unitID++) {
+ if (unitCount <= 0)
+ break;
+ if (DAT_UnitsState.units[unitID].logicalState != Map::Units::ULS_NORMAL)
+ continue;
+ if (DAT_UnitsState.units[unitID].owner != playerID)
+ continue;
+ if (DAT_UnitsState.units[unitID].dying != 0)
+ continue;
+ if (DAT_UnitsState.units[unitID].unitType != Map::Units::UT_E_ENGINEER)
+ continue;
+ if (DAT_UnitsState.units[unitID].aiUnitBehaviourType != 10)
+ continue;
+ if (DAT_UnitsState.units[unitID].tribeID != 0)
+ continue;
+ if (DAT_UnitsState.units[unitID].state.generic == Map::Units::States::US_STAND_UPUnk)
+ continue;
+ addUnitToTribe(unitID, tribeID);
+ unitCount--;
+ }
+ return tribeID;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004cc680", "name": "addEngineersToSelection", "quelle": "nachgebaut", "p1": {"bereich": "KI", "zweck": "Legt eine neue Gruppe an und füllt sie mit bereitstehenden Ingenieuren der KI (Verhaltenstyp 10)."}, "p2": {"ein": "playerID, unitCount", "aus": "tribeID der neuen Gruppe", "liest": ["maxUnitCount", "units[].logicalState/owner/dying/unitType/aiUnitBehaviourType/tribeID/state.generic"], "schreibt": ["Gruppenzugehörigkeit der gewählten Einheiten"], "ruft": ["createTribeForPlayer", "addUnitToTribe"], "regeln": ["Gruppe wird immer angelegt", "Einheit muss normal, nicht sterbend, vom Spieler und Ingenieur sein", "aiUnitBehaviourType muss genau 10 sein", "Einheit darf in keiner Gruppe sein (tribeID 0)", "Zustand US_STAND_UPUnk wird übersprungen", "Hört nach unitCount Einheiten auf"], "offen": ["Bedeutung von aiUnitBehaviourType 10 (vermutlich Ingenieur im Wartezustand)"]}, "p3": {"erklaerung": "Gegenstück zu assignRequiredIdleEngineersToNewTribe: Hier kommen Ingenieure mit Verhaltenstyp 10 und ohne Gruppe in eine neue Gruppe.", "gehirn": "-", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x00525090 playArcherCommandSpeech | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00525090
+ void TribesState::playArcherCommandSpeech(int selectionID)
+ {
+ playUnitSpeech(
+ getMajorityArcherTypeEuropeanOrArabian(
+ selectionID),
+ 0x1f);
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00525090", "name": "playArcherCommandSpeech", "quelle": "nachgebaut", "p1": {"bereich": "Truppen/Gruppen", "zweck": "Spielt den Befehlsspruch, passend zur häufigsten Bogenschützenart der Auswahl."}, "p2": {"ein": "selectionID", "aus": "-", "liest": [], "schreibt": [], "ruft": ["getMajorityArcherTypeEuropeanOrArabian", "playUnitSpeech"], "regeln": ["Sprachnummer 0x1f"], "offen": []}, "p3": {"erklaerung": "Reine Tonausgabe.", "gehirn": "-", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x0040b4e0 findBuildingOfTypeForPlayer | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0040B4E0
+ BOOLEnum BuildingsState::findBuildingOfTypeForPlayer(int playerID, BuildingType buildingType)
+ {
+ for (int buildingID = 1; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (this->buildings[buildingID].logicalState != 0 && this->buildings[buildingID].owner == playerID
+ && this->buildings[buildingID].buildingType == buildingType) {
+ return TRUE;
+ }
+ }
+ return FALSE;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0040b4e0", "name": "findBuildingOfTypeForPlayer", "quelle": "nachgebaut", "p1": {"bereich": "Gebaeude", "zweck": "Gibt es mindestens ein Gebäude dieses Typs bei diesem Spieler?"}, "p2": {"ein": "playerID, buildingType", "aus": "TRUE/FALSE", "liest": ["buildings[].logicalState/owner/buildingType"], "schreibt": [], "ruft": [], "regeln": ["Es genügt Zustand ungleich 0; anders als bei den Nachbarfunktionen zählt auch BLS_REMOVE", "Sucht aufsteigend von Gebäude 1 bis maxBuildingsCount-1"], "offen": []}, "p3": {"erklaerung": "Reine Vorhanden-Prüfung. Zum Abriss markierte Gebäude (BLS_REMOVE) zählen noch mit.", "gehirn": "Bei 'hat der Spieler noch ein X' beachten: Das Ergebnis bleibt TRUE für Gebäude, die gerade entfernt werden.", "beleg": "nachgebaut", "live": "-"}}
+

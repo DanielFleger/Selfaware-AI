@@ -1,0 +1,296 @@
+### 0x004f13e0 Constructor_AIVState | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004F13E0
+ AIVState* AIVState::Constructor_AIVState()
+ {
+ wipeAIVsAndHeatMaps();
+ return this;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004f13e0", "name": "Constructor_AIVState", "quelle": "nachgebaut", "p1": {"bereich": "KI", "zweck": "Erzeugt den KI-Bauplan-Zustand und löscht alle Bauplan- und Wärmekartendaten."}, "p2": {"ein": "-", "aus": "Zeiger auf das Objekt", "liest": [], "schreibt": [], "ruft": ["wipeAIVsAndHeatMaps"], "regeln": [], "offen": []}, "p3": {"erklaerung": "Reine Aufräumfunktion beim Anlegen des KI-Bauzustands.", "gehirn": "-", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x0046c280 getChecksumOfMapByName | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0046C280
+ dword ResourceManager::getChecksumOfMapByName(char* mapNameAddress)
+ {
+ for (int _mapIndex = 0; _mapIndex < this->loadedMapsCount; ++_mapIndex) {
+ if (!__stricmp(this->mapNames[_mapIndex], mapNameAddress)) {
+ return this->mapMetaInfoArray[_mapIndex].loadedMapsChecksumArray;
+ }
+ }
+ return 0;
+ }
+} // namespace IO
+} // namespace OpenSHC
+--- ERKLAERUNG ---
+{"adr": "0x0046c280", "name": "getChecksumOfMapByName", "quelle": "nachgebaut", "p1": {"bereich": "Wirtschaft", "zweck": "Sucht eine Karte nach Namen und gibt ihre Prüfsumme zurück."}, "p2": {"ein": "mapNameAddress", "aus": "Prüfsumme oder 0", "liest": ["mapNames[]", "loadedMapsCount", "mapMetaInfoArray[].loadedMapsChecksumArray"], "schreibt": [], "ruft": ["__stricmp"], "regeln": ["Namensvergleich ohne Beachtung der Groß- und Kleinschreibung", "Erster Treffer gewinnt", "Kein Treffer → 0"], "offen": []}, "p3": {"erklaerung": "Gehört zur Kartenverwaltung. Die Prüfsumme dient vermutlich dazu, im Mehrspielerspiel gleiche Karten sicherzustellen.", "gehirn": "-", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x004563b0 isFullIDEqualsToMinus1 | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004563B0
+ BOOLEnum GameStateStructures::isFullIDEqualsToMinus1(int playerID)
+ {
+ return DAT_GameSynchronyState.currentPlayerFullIDArray[playerID] == -1;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004563b0", "name": "isFullIDEqualsToMinus1", "quelle": "nachgebaut", "p1": {"bereich": "Spielablauf", "zweck": "Ist der Spieler-Platz laut currentPlayerFullIDArray mit -1 belegt?"}, "p2": {"ein": "playerID", "aus": "TRUE/FALSE", "liest": ["currentPlayerFullIDArray[playerID]"], "schreibt": [], "ruft": [], "regeln": ["TRUE, wenn der Eintrag -1 ist"], "offen": ["Ob -1 nicht menschlich oder nicht belegt heißt; processMenuViewSwitch setzt alle Plätze außer dem neuen Spieler auf -1, resetVarious… behandelt -1 als nicht menschlich"]}, "p3": {"erklaerung": "Der Name beschreibt nur die Prüfung. -1 steht für Plätze, die nicht der menschliche Spieler sind.", "gehirn": "-", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x0047e240 disconnectDPlay | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0047E240
+ void GameSynchronyState::disconnectDPlay()
+ {
+ void* pvVar1;
+ int iVar2;
+ DAT_MouseState.waitCursorToggle = 1;
+ SetCursorDependingOnProgramState();
+ clearSessionsList();
+ iVar2 = 0;
+ if (0 < this->scrollBarItemCount) {
+ do {
+ _free_base(this->providerNames[iVar2]);
+ pvVar1 = MACRO_CALL(GlobalHandle)(this->guids[iVar2]);
+ GlobalUnlock(pvVar1);
+ pvVar1 = MACRO_CALL(GlobalHandle)(this->guids[iVar2]);
+ GlobalFree(pvVar1);
+ this->providerNames[iVar2] = (WCHAR*)0x0;
+ this->guids[iVar2] = (GUID*)0x0;
+ iVar2 = iVar2 + 1;
+ } while (iVar2 < this->scrollBarItemCount);
+ }
+ iVar2 = 0;
+ this->scrollBarItemCount = 0;
+ if (0 < this->modemScrollbarCount) {
+ do {
+ _free_base(this->stringPointerArray[iVar2]);
+ iVar2 = iVar2 + 1;
+ } while (iVar2 < this->modemScrollbarCount);
+ }
+ this->modemScrollbarCount = 0;
+ if (this->DPLAYX_4A != (IDirectPlay4A**)0x0) {
+ (*(*this->DPLAYX_4A)->CancelMessage)(this->DPLAYX_4A, 0, 0);
+ (*(*this->DPLAYX_4A)->DestroyPlayer)(this->DPLAYX_4A, this->DPLAYX_PlayerHandle);
+ (*(*this->DPLAYX_4A)->Close)(this->DPLAYX_4A);
+ this->DPLAYX_4A = (IDirectPlay4A**)0x0;
+ }
+ if (this->DPLAYX_LOBBY != (IDirectPlayLobby3**)0x0) {
+ (*(*this->DPLAYX_LOBBY)->Release)((IDirectDraw*)this->DPLAYX_LOBBY);
+ this->DPLAYX_LOBBY = (IDirectPlayLobby3**)0x0;
+ }
+ if (this->DPLAYX_Connection != (void*)0x0) {
+ pvVar1 = MACRO_CALL(GlobalHandle)(this->DPLAYX_Connection);
+ GlobalUnlock(pvVar1);
+ pvVar1 = MACRO_CALL(GlobalHandle)(this->DPLAYX_Connection);
+ GlobalFree(pvVar1);
+ this->DPLAYX_Connection = (void*)0x0;
+ }
+ this->scrollBarItemCount = 0;
+ this->currentGameMode = GM_SOLITARY;
+ this->DAT_GameHalted = 0;
+ this->syncStatus = 0;
+ this->flag_0xbec = 0;
+ this->useTCPIP = FALSE;
+ this->quitGameVoteRelated = 0;
+ this->saveRelated = 0;
+ DAT_MouseState.waitCursorToggle = 0;
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0047e240", "name": "disconnectDPlay", "quelle": "ghidra", "p1": {"bereich": "Befehle/Takt", "zweck": "Trennt die DirectPlay-Verbindung und setzt den Mehrspieler-Zustand auf Einzelspiel zurück."}, "p2": {"ein": "-", "aus": "-", "liest": ["scrollBarItemCount", "modemScrollbarCount", "DPLAYX_4A", "DPLAYX_LOBBY", "DPLAYX_Connection"], "schreibt": ["currentGameMode=GM_SOLITARY", "DAT_GameHalted=0", "syncStatus=0", "flag_0xbec=0", "useTCPIP=FALSE", "quitGameVoteRelated=0", "saveRelated=0", "DPLAYX_*=0", "scrollBarItemCount=0", "modemScrollbarCount=0"], "ruft": ["clearSessionsList", "SetCursorDependingOnProgramState", "_free_base", "GlobalFree", "DirectPlay CancelMessage/DestroyPlayer/Close"], "regeln": ["Wartecursor während des Abbaus an, danach aus", "Danach ist der Spielmodus GM_SOLITARY"], "offen": ["Bedeutung von flag_0xbec, quitGameVoteRelated, saveRelated (nur Namen)"]}, "p3": {"erklaerung": "Beendet eine Mehrspieler-Sitzung sauber und stellt den Einzelspiel-Modus her.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0051a550 setWide3 | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0051A550
+ void TroopValueState::setWide3(int param_1, int param_2)
+ {
+ int* piVar1;
+ int iVar2;
+ int iVar3;
+ int* piVar4;
+ int iVar5;
+ iVar3 = param_2 * 0x177bc;
+ iVar5 = 0;
+ iVar2 = *(int*)((int)this->attackInfo.wideValuesArray + iVar3 + -8);
+ *(undefined4*)((int)this->attackInfo.wideValuesArray + iVar3 + -4) = 0;
+ if (0 < iVar2) {
+ piVar4 = (int*)((int)this->attackInfo.wideValuesArray + iVar3 + 0xc);
+ do {
+ if ((piVar4[-1] < 5999) && ((*piVar4 == 0 || (param_1 != 0)))) {
+ piVar1 = (int*)((int)this->attackInfo.wideValuesArray + iVar3 + -4);
+ *piVar1 = *piVar1 + 1;
+ }
+ iVar5 = iVar5 + 1;
+ piVar4 = piVar4 + 4;
+ } while (iVar5 < *(int*)((int)this->attackInfo.wideValuesArray + iVar3 + -8));
+ }
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0051a550", "name": "setWide3", "quelle": "ghidra", "p1": {"bereich": "KI", "zweck": "Zählt die brauchbaren breiten Angriffsstellen eines Angreifers."}, "p2": {"ein": "param_1, param_2 (playerID)", "aus": "-", "liest": ["wideValuesArray[].(Punktwert, unitID)", "wideValuesArray[-8] (Anzahl)"], "schreibt": ["wideValuesArray[-4] (Anzahl brauchbar)"], "ruft": [], "regeln": ["Zählt Einträge mit Punktwert unter 5999", "Dazu muss der Eintrag frei sein (unitID gleich 0) oder param_1 ungleich 0"], "offen": ["Was genau eine breite Stelle (Wide) ist"]}, "p3": {"erklaerung": "Wie viele Wide-Stellen noch frei und erreichbar sind.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x00519310 computeAttackWaveTroopComposition | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00519310
+ void TroopValueState::computeAttackWaveTroopComposition()
+ {
+ this->attackInfo._134988_4_ = 6;
+ if (this->attackInfo.field86974_0x20f74 < 6) {
+ this->attackInfo._134980_4_ = this->attackInfo.spearmenAndMacemen;
+ this->attackInfo._134984_4_ = 1;
+ this->attackInfo._134988_4_ = 1;
+ this->attackInfo._134996_4_ = 1;
+ this->attackInfo._135000_4_ = 1;
+ this->attackInfo._135004_4_ = 0;
+ this->attackInfo._134976_4_ = 0;
+ goto LAB_00519672;
+ }
+ if (9 < this->attackInfo.field86974_0x20f74) {
+ if (this->attackInfo.field86974_0x20f74 < 0x14) {
+ if (this->attackInfo.spearmenAndMacemen < 1) {
+ this->attackInfo._134980_4_ = 0;
+ } else if (this->attackInfo.spearmenAndMacemen < 2) {
+ this->attackInfo._134980_4_ = 1;
+ } else if (this->attackInfo.spearmenAndMacemen < 4) {
+ this->attackInfo._134980_4_ = this->attackInfo.spearmenAndMacemen + -1;
+ } else {
+ this->attackInfo._134980_4_ = 3;
+ }
+ this->attackInfo._135004_4_ = 4;
+ this->attackInfo._134984_4_ = (1 < this->attackInfo.pikemenSwordsmenAndMore) + 2;
+ this->attackInfo._134988_4_ = (6 < this->attackInfo.spearmenAndMacemen) + 3;
+ this->attackInfo._134996_4_ = (4 < this->attackInfo.pikemenSwordsmenAndMore) + 2;
+ this->attackInfo._135000_4_ = (0 < this->attackInfo.pikemenSwordsmenAndMore) + 1;
+ if (this->attackInfo.laddermen < 5) {
+ this->attackInfo._135004_4_ = this->attackInfo.laddermen;
+ }
+ this->attackInfo._134976_4_ = 1;
+ } else if (this->attackInfo.field86974_0x20f74 < 0x1e) {
+ if (this->attackInfo.spearmenAndMacemen < 1) {
+ this->attackInfo._134980_4_ = 0;
+ } else if (this->attackInfo.spearmenAndMacemen < 2) {
+ this->attackInfo._134980_4_ = 1;
+ } else if (this->attackInfo.spearmenAndMacemen < 4) {
+ this->attackInfo._134980_4_ = this->attackInfo.spearmenAndMacemen + -1;
+ } else {
+ this->attackInfo._134980_4_ = 3;
+ }
+ this->attackInfo._134984_4_ = (uint)(4 < this->attackInfo.pikemenSwordsmenAndMore) * 2 + 2;
+ if (this->attackInfo.spearmenAndMacemen < 0xb) {
+ this->attackInfo._134988_4_ = (uint)(5 < this->attackInfo.spearmenAndMacemen) * 2 + 2;
+ }
+ if (this->attackInfo.pikemenSwordsmenAndMore < 9) {
+ this->attackInfo._134996_4_ = (uint)(4 < this->attackInfo.pikemenSwordsmenAndMore) * 2 + 2;
+ } else {
+ this->attackInfo._134996_4_ = 5;
+ }
+ this->attackInfo._135000_4_ = 2;
+ this->attackInfo._135004_4_ = 5;
+ if (this->attackInfo.laddermen < 6) {
+ this->attackInfo._135004_4_ = this->attackInfo.laddermen;
+ }
+ this->attackInfo._134976_4_ = (4 < this->attackInfo.pikemenSwordsmenAndMore) + 1;
+ } else {
+ if (this->attackInfo.spearmenAndMacemen < 1) {
+ this->attackInfo._134980_4_ = 0;
+ } else if (this->attackInfo.spearmenAndMacemen < 2) {
+ this->attackInfo._134980_4_ = 1;
+ } else if (this->attackInfo.spearmenAndMacemen < 5) {
+ this->attackInfo._134980_4_ = this->attackInfo.spearmenAndMacemen + -1;
+ } else {
+ this->attackInfo._134980_4_ = 4;
+ }
+ this->attackInfo._134984_4_ = ((this->attackInfo.pikemenSwordsmenAndMore < 6) - 1 & 3) + 2;
+ if (this->attackInfo.spearmenAndMacemen < 0xd) {
+ this->attackInfo._134988_4_ = (uint)(6 < this->attackInfo.spearmenAndMacemen) * 2 + 3;
+ } else {
+ this->attackInfo._134988_4_ = 8;
+ }
+ if (this->attackInfo.pikemenSwordsmenAndMore < 0xb) {
+ this->attackInfo._134996_4_ = (uint)(8 < this->attackInfo.pikemenSwordsmenAndMore) * 2 + 3;
+ } else {
+ this->attackInfo._134996_4_ = 6;
+ }
+ this->attackInfo._135004_4_ = 6;
+ this->attackInfo._135000_4_ = (0 < this->attackInfo.pikemenSwordsmenAndMore) + 2;
+ if (this->attackInfo.laddermen < 7) {
+ this->attackInfo._135004_4_ = this->attackInfo.laddermen;
+ }
+ this->attackInfo._134976_4_ = 2;
+ }
+ goto LAB_00519672;
+ }
+ if (this->attackInfo.spearmenAndMacemen < 1) {
+ this->attackInfo._134980_4_ = 0;
+ } else if (this->attackInfo.spearmenAndMacemen < 2) {
+ this->attackInfo._134980_4_ = 1;
+ } else if (this->attackInfo.spearmenAndMacemen < 3) {
+ this->attackInfo._134980_4_ = this->attackInfo.spearmenAndMacemen + -1;
+ } else {
+ this->attackInfo._134980_4_ = 2;
+ }
+ this->attackInfo._134984_4_ = (this->attackInfo.pikemenSwordsmenAndMore != 0) + 1;
+ this->attackInfo._134988_4_ = (4 < this->attackInfo.spearmenAndMacemen) + 2;
+ if (this->attackInfo.pikemenSwordsmenAndMore == 0) {
+ this->attackInfo._134996_4_ = 0;
+ LAB_005193ed:
+ this->attackInfo._135000_4_ = 0;
+ } else {
+ this->attackInfo._134996_4_ = 1;
+ this->attackInfo._135000_4_ = 1;
+ if (this->attackInfo.pikemenSwordsmenAndMore < 1)
+ goto LAB_005193ed;
+ }
+ this->attackInfo._135004_4_ = 2;
+ if (this->attackInfo.laddermen < 3) {
+ this->attackInfo._135004_4_ = this->attackInfo.laddermen;
+ }
+ this->attackInfo._134976_4_ = ZEXT14(this->attackInfo.pikemenSwordsmenAndMore != 0);
+ LAB_00519672:
+ this->attackInfo._134992_4_ = this->attackInfo.engineers;
+ this->attackInfo._134972_4_ = 3;
+ if ((int)this->attackInfo._134984_4_ < this->attackInfo.field86627_0x20e04) {
+ this->attackInfo._134984_4_ = this->attackInfo.field86627_0x20e04;
+ }
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00519310", "name": "computeAttackWaveTroopComposition", "quelle": "ghidra", "p1": {"bereich": "KI", "zweck": "Legt je nach Angriffsstufe fest, wie viele Einheiten jeder Art in die Angriffswelle kommen."}, "p2": {"ein": "-", "aus": "-", "liest": ["attackInfo.field86974_0x20f74 (Stufe)", "attackInfo.spearmenAndMacemen", "attackInfo.pikemenSwordsmenAndMore", "attackInfo.laddermen", "attackInfo.engineers", "attackInfo.field86627_0x20e04"], "schreibt": ["attackInfo._134972_4_ bis _135004_4_ (Wellenzusammensetzung, Bedeutung der Felder ungesichert)"], "ruft": [], "regeln": ["Stufe unter 6: _134980 = spearmenAndMacemen, _134984/_134988/_134996/_135000 = 1, _135004 = 0, _134976 = 0", "Stufe 6-9: _134980 = 0/1/1/2 für Spieß+Keulen 0/1/2/ab 3; _134984 = 2 wenn Pike+ vorhanden, sonst 1; _134988 = 3 bei mehr als 4 Spieß+Keulen, sonst 2; _134996 und _135000 = 1 bei vorhandenen Pike+, sonst 0; _135004 = min(2, laddermen); _134976 = 1 bei vorhandenen Pike+, sonst 0", "Stufe 10-19: _134980 = 0/1/Anzahl-1/3 (0, 1, 2-3, ab 4); _134984 = 3 bei mehr als 1 Pike+, sonst 2; _134988 = 4 bei mehr als 6 Spieß+Keulen, sonst 3; _134996 = 3 bei mehr als 4 Pike+, sonst 2; _135000 = 2 bei vorhandenen Pike+, sonst 1; _135004 = min(4, laddermen); _134976 = 1", "Stufe 20-29: _134980 wie Stufe 10-19; _134984 = 4 bei mehr als 4 Pike+, sonst 2; _134988 = 4 bei 6-10 Spieß+Keulen, sonst 2 bei bis 5, bei ab 11 bleibt der Startwert 6; _134996 = 4 bei 5-8 Pike+, 2 bei bis 4, 5 ab 9; _135000 = 2; _135004 = min(5, laddermen); _134976 = 2 bei mehr als 4 Pike+, sonst 1", "Stufe ab 30: _134980 = 0/1/Anzahl-1/4 (0, 1, 2-4, ab 5); _134984 = 5 bei 6 oder mehr Pike+, sonst 2; _134988 = 5 bei 7-12 Spieß+Keulen, 3 bei bis 6, 8 ab 13; _134996 = 5 bei 9-10 Pike+, 3 bis 8, 6 ab 11; _135000 = 3 bei vorhandenen Pike+, sonst 2; _135004 = min(6, laddermen); _134976 = 2", "Am Ende immer: _134992 = engineers, _134972 = 3; _134984 mindestens field86627_0x20e04", "Vor der Fallunterscheidung wird _134988 auf 6 gesetzt (bleibt nur im Bereich 20-29 ab 11 Spieß+Keulen stehen)"], "offen": ["Welche Einheitenart hinter jedem _1349xx-Feld steckt (Namen sind reine Ghidra-Offsets)", "Bedeutung von field86974_0x20f74 und field86627_0x20e04"]}, "p3": {"erklaerung": "Die KI baut ihre Angriffswelle in Stufen: Je höher die Stufe und je mehr Truppen vorhanden sind, desto größer werden die einzelnen Gruppen, Leiterträger sind pro Stufe auf 2, 4, 5 oder 6 gedeckelt.", "gehirn": "Wellengrößen der Gegner-KI lassen sich aus der Stufe vorhersagen; die Feldbedeutung ist aber noch nicht gesichert.", "beleg": "code", "live": "KI-Angriffswelle bei bekannter Stufe field86974_0x20f74 → attackInfo ab Offset 134972 (Dezimal) → Werte passen zur Stufentabelle", "live_art": "ki-welle"}}
+
+### 0x0040f460 determinePeasantSitPosition | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0040F460
+ BOOLEnum BuildingsState::determinePeasantSitPosition(int campfireID, int availablePeasants)
+ {
+ if (availablePeasants >= 24) {
+ availablePeasants = 23;
+ }
+ int const centerX = DAT_BuildingsState.buildings[campfireID].x + 3;
+ int const centerY = DAT_BuildingsState.buildings[campfireID].y + 3;
+ int const tile = DAT_BuildingsState.buildings[campfireID].tileRefs[availablePeasants];
+ int const y = DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile];
+ int const x = tile - DAT_ViewportRenderState.translationMatrix[y].addXgetTile;
+ this->campfireSpotY = y;
+ this->campfireSpotX = x;
+ calculatePreferredRelativeOrientation(x, y, centerX, centerY);
+ this->campfireSpotOrientation = DAT_DirectionAlgorithmState.orientation;
+ return TRUE;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0040f460", "name": "determinePeasantSitPosition", "quelle": "nachgebaut", "p1": {"bereich": "Gebaeude", "zweck": "Bestimmt den Sitzplatz eines Bauern am Lagerfeuer und seine Blickrichtung."}, "p2": {"ein": "campfireID, availablePeasants", "aus": "immer TRUE", "liest": ["buildings[c].x/y", "tileRefs", "tileTranslationMatrix_YComponent", "translationMatrix"], "schreibt": ["campfireSpotX", "campfireSpotY", "campfireSpotOrientation"], "ruft": ["calculatePreferredRelativeOrientation"], "regeln": ["availablePeasants ab 24 wird auf 23 begrenzt", "Sitzplatz = tileRefs[availablePeasants]", "Blick zur Mitte (Gebäude x + 3, y + 3)"], "offen": []}, "p3": {"erklaerung": "Wartende Bauern setzen sich der Reihe nach auf die Kacheln um das Lagerfeuer und schauen zum Feuer.", "gehirn": "-", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+

@@ -1,0 +1,1583 @@
+### 0x004c01b0 MenuItemRenderFunction_NewEventCondition_Main | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004C01B0
+ void NewEventCondition::MenuItemRenderFunction_NewEventCondition_Main(int param_1, ...)
+ {
+ int iVar1;
+ uint uVar2;
+ DAT_ButtonUnknownZero = 0;
+ if (5000 < param_1) {
+ DAT_ButtonUnknownZero = 0;
+ return;
+ }
+ if (param_1 < 0xd2) {
+ if (param_1 != 0xd1) {
+ iVar1 = param_1;
+ switch (param_1) {
+ default:
+ goto switchD_004c01f4_caseD_0;
+ case 0x68:
+ if (*(short*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + 8)
+ != 0) {
+ param_1 = 0x69;
+ }
+ RenderScenarioButtonWithText(param_1);
+ return;
+ case 0x6a:
+ case 0x6b:
+ case 0x6c:
+ case 0x6d:
+ case 0x6e:
+ case 0x6f:
+ case 0x70:
+ case 0x71:
+ case 0x72:
+ case 0x73:
+ case 0x74:
+ case 0x75:
+ case 0x76:
+ case 0x77:
+ case 0x78:
+ case 0x79:
+ case 0x7a:
+ case 0x7b:
+ case 0x7c:
+ case 0x7d:
+ switchD_004c01f4_caseD_6a:
+ DAT_ButtonCurrentlyInteracting
+ = (BOOLEnum)(DAT_MapPropertiesState.invasionTroopIndex == iVar1 + -0x6a);
+ uVar2 = 0xc2f0eb;
+ if (DAT_ButtonCurrentlyInteracting != FALSE) {
+ uVar2 = 0xccfaff;
+ }
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ if ((((param_1 == 0x6f) || (param_1 == 0x70)) || (param_1 == 0x71)) || (param_1 == 0x7b)) {
+ param_1 = 0x71;
+ }
+ if (*(char*)((int)DAT_MapPropertiesState.buildingAvailabilityRelatedFlags
+ + DAT_MapPropertiesState.currentEventID * 0xe4 + iVar1 * 4 + 0x1ff)
+ != '\0') {
+ renderText2(
+ TEXT_SCENARIO, param_1, DAT_ButtonX + 5,
+ DAT_ButtonY + 7, TTA_LEFT, uVar2, 0x12, FALSE);
+ if (DAT_MissionAestheticsDefinedData.unknown3[iVar1 + 0x35e] == 0) {
+ return;
+ }
+ if (DAT_MissionAestheticsDefinedData.field1227_0x21c4[iVar1 + 0xe] == 1) {
+ renderText2(TEXT_SCENARIO,
+ (int)((int)(DAT_MissionAestheticsDefinedData.field1235_0x33e4[(
+ char)DAT_MapPropertiesState.buildingAvailabilityRelatedFlags[iVar1 * 2
+ + DAT_MapPropertiesState.currentEventID * 0x72 + 0xff]])),
+ DAT_ButtonX + 0xe, DAT_ButtonY + 7,
+ TTA_LEFT, uVar2, 0x12, TRUE);
+ }
+ if (DAT_MissionAestheticsDefinedData.field1227_0x21c4[iVar1 + 0xe] == 2) {
+ renderText2(TEXT_SCENARIO,
+ (int)((int)(DAT_MissionAestheticsDefinedData.field92_0x170[(
+ char)DAT_MapPropertiesState.buildingAvailabilityRelatedFlags[iVar1 * 2
+ + DAT_MapPropertiesState.currentEventID * 0x72 + 0xff]])),
+ DAT_ButtonX + 0xe, DAT_ButtonY + 7,
+ TTA_LEFT, uVar2, 0x12, TRUE);
+ }
+ renderNumberToScreen(
+ (int)DAT_MapPropertiesState.buildingAvailabilityRelatedFlags[iVar1 * 2
+ + DAT_MapPropertiesState.currentEventID * 0x72 + 0xfe]
+ * DAT_MissionAestheticsDefinedData.unknown3[iVar1 + 0x386],
+ DAT_ButtonW + -8 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, uVar2, 0x12, FALSE);
+ return;
+ }
+ renderText2(
+ TEXT_SCENARIO, param_1, DAT_ButtonX + 5,
+ DAT_ButtonY + 7, TTA_LEFT, 0x7f7f7f, 0x12, FALSE);
+ return;
+ case 0x7e:
+ if (*(char*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + DAT_MapPropertiesState.invasionTroopIndex * 4 + 0xf)
+ == '\0') {
+ param_1 = 0x7f;
+ }
+ case 0x13:
+ RenderScenarioButtonWithText(param_1);
+ return;
+ case 0xbe:
+ case 0xbf:
+ case 0xc0:
+ case 0xc1:
+ case 0xc2:
+ case 0xc3:
+ case 0xc4:
+ case 0xc5:
+ case 0xc6:
+ case 199:
+ case 200:
+ case 0xc9:
+ case 0xca:
+ case 0xcb:
+ case 0xcc:
+ case 0xcd:
+ case 0xce:
+ case 0xcf:
+ case 0xd0:
+ goto switchD_004c01f4_caseD_be;
+ case -1:
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ uVar2 = 0xc2f0eb;
+ } else {
+ uVar2 = 0xccfaff;
+ }
+ renderText2(
+ TEXT_MONTHS,
+ DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .header.month
+ + 0xc,
+ DAT_ButtonW / 2 + DAT_ButtonX,
+ DAT_ButtonY + 6, TTA_CENTER, uVar2, 0x12, FALSE);
+ return;
+ }
+ }
+ if ((*(char*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + 0x6b)
+ == '\0')
+ && (*(char*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + 0x67)
+ == '\0'
+ && (*(char*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + 99)
+ == '\0'
+ && (*(char*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + 0x5f)
+ == '\0'
+ && (*(char*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + 0x53)
+ == '\0'
+ && (*(char*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + 0x2b)
+ == '\0'
+ && (*(char*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState
+ .currentEventID]
+ .data
+ + 0x27)
+ == '\0'
+ && (*(char*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState
+ .currentEventID]
+ .data
+ + 0x23)
+ == '\0'
+ && (*(char*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState
+ .currentEventID]
+ .data
+ + 0x1f)
+ == '\0'
+ && *(char*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState
+ .currentEventID]
+ .data
+ + 0x13)
+ == '\0'))))))))) {
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ switchD_004c01f4_caseD_be:
+ iVar1 = param_1 + -0x40;
+ goto switchD_004c01f4_caseD_6a;
+ }
+ if (param_1 < 2000) {
+ if (param_1 == 2000) {
+ if (DAT_MissionAestheticsDefinedData
+ .field1230_0x23a4[DAT_MapPropertiesState.invasionTroopIndex]
+ == 0) {
+ DAT_ButtonUnknownZero = 0;
+ return;
+ }
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ drawBoxWithRoundedEdges(DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW + DAT_ButtonX,
+ DAT_ButtonH + DAT_ButtonY,
+ RBERL_SLIGHT);
+ return;
+ }
+ } else {
+ if (param_1 != 1000) {
+ if (param_1 != 1001)
+ goto switchD_004c01f4_caseD_0;
+ iVar1 = DAT_MissionAestheticsDefinedData
+ .field1228_0x2264[DAT_MapPropertiesState.invasionTroopIndex];
+ goto joined_r0x004c072d;
+ }
+ if (DAT_MissionAestheticsDefinedData
+ .field1228_0x2264[DAT_MapPropertiesState.invasionTroopIndex]
+ == 0) {
+ DAT_ButtonUnknownZero = 0;
+ return;
+ }
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ drawBoxWithRoundedEdges(DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW + DAT_ButtonX,
+ DAT_ButtonH + DAT_ButtonY,
+ RBERL_SLIGHT);
+ return;
+ }
+ }
+ drawBoxWithRoundedEdgesAndColor(DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW + DAT_ButtonX,
+ DAT_ButtonH + DAT_ButtonY,
+ (ushort)((int)(COL_BLUE::instance.shortValue)), RBERL_SLIGHT);
+ return;
+ }
+ if (param_1 != 2001) {
+ if (param_1 == 0x7d2) {
+ if (DAT_MissionAestheticsDefinedData
+ .field1230_0x23a4[DAT_MapPropertiesState.invasionTroopIndex]
+ == 1) {
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ renderText2(
+ TEXT_SCENARIO,
+ (int)((int)(DAT_MissionAestheticsDefinedData.field1235_0x33e4[*(
+ char*)(&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + DAT_MapPropertiesState.invasionTroopIndex * 4 + 0xe)])),
+ DAT_ButtonW / 2 + DAT_ButtonX,
+ DAT_ButtonY + 8, TTA_CENTER, 0xc2f0eb, 0x12, FALSE);
+ }
+ if (DAT_MissionAestheticsDefinedData
+ .field1230_0x23a4[DAT_MapPropertiesState.invasionTroopIndex]
+ != 2) {
+ return;
+ }
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ renderText2(
+ TEXT_SCENARIO,
+ (int)((int)(DAT_MissionAestheticsDefinedData.field92_0x170[*(
+ char*)(&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + DAT_MapPropertiesState.invasionTroopIndex * 4 + 0xe)])),
+ DAT_ButtonW / 2 + DAT_ButtonX,
+ DAT_ButtonY + 8, TTA_CENTER, 0xc2f0eb, 0x12, FALSE);
+ return;
+ }
+ switchD_004c01f4_caseD_0:
+ RenderScenarioButtonWithText(param_1);
+ return;
+ }
+ iVar1 = DAT_MissionAestheticsDefinedData
+ .field1230_0x23a4[DAT_MapPropertiesState.invasionTroopIndex];
+ joined_r0x004c072d:
+ if (iVar1 == 0) {
+ DAT_ButtonUnknownZero = 0;
+ return;
+ }
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ drawBoxWithRoundedEdges(DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW + DAT_ButtonX,
+ DAT_ButtonH + DAT_ButtonY, RBERL_SLIGHT);
+ return;
+ }
+ drawBoxWithRoundedEdgesAndColor(DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW + DAT_ButtonX,
+ DAT_ButtonH + DAT_ButtonY,
+ (ushort)((int)(COL_BLUE::instance.shortValue)), RBERL_SLIGHT);
+ return;
+ }
+ }
+}
+}
+
+### 0x004b9110 MenuItemActionHandler_NewInvasion_UnitButtons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B9110
+ void NewInvasion::MenuItemActionHandler_NewInvasion_UnitButtons(int unitTypeMenuID, ...)
+ {
+ int _limit;
+ int _gmID;
+ int _currentUnitCountOfType;
+ _gmID = 0;
+ sumUnitCounts();
+ _currentUnitCountOfType = *(int*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + unitTypeMenuID * 4 + 4);
+ _limit
+ = (_currentUnitCountOfType - DAT_MapPropertiesState.DAT_InvasionEventItemUnitCountSum) + 500;
+ if (DAT_MissionAestheticsDefinedData.InvasionUnitLimits[unitTypeMenuID] < _limit) {
+ _limit = DAT_MissionAestheticsDefinedData.InvasionUnitLimits[unitTypeMenuID];
+ }
+ setSliderParameters(0, _limit, _currentUnitCountOfType,
+ (undefined*)((int)(
+ ((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + unitTypeMenuID * 4 + 4))),
+ (void*)((int)(Global::DoNothing::instance)));
+ switch (unitTypeMenuID) {
+ case 0:
+ _gmID = 0x5b;
+ break;
+ case 1:
+ _gmID = 0x5c;
+ break;
+ case 2:
+ _gmID = 0x5d;
+ break;
+ case 3:
+ _gmID = 0x5e;
+ break;
+ case 4:
+ _gmID = 0x5f;
+ break;
+ case 5:
+ _gmID = 0x60;
+ break;
+ case 6:
+ _gmID = 0x61;
+ break;
+ case 7:
+ _gmID = 0x62;
+ break;
+ case 8:
+ _gmID = 99;
+ break;
+ case 9:
+ _gmID = 0x9d;
+ break;
+ case 10:
+ _gmID = 0x9e;
+ break;
+ case 0xb:
+ _gmID = 0x9f;
+ break;
+ case 0xc:
+ _gmID = 0xa0;
+ break;
+ case 0xd:
+ _gmID = 0xa1;
+ break;
+ case 0xe:
+ _gmID = 0xa2;
+ break;
+ case 0xf:
+ _gmID = 0xaa;
+ break;
+ case 0x10:
+ _gmID = 0xd5;
+ break;
+ case 0x11:
+ _gmID = 0xd6;
+ break;
+ case 0x12:
+ _gmID = 0xd7;
+ break;
+ case 0x13:
+ _gmID = 0xd8;
+ break;
+ case 0x14:
+ _gmID = 0xd9;
+ break;
+ case 0x15:
+ _gmID = 0xda;
+ break;
+ case 0x16:
+ _gmID = 0xdb;
+ break;
+ case 0x17:
+ _gmID = 0xdc;
+ }
+ DAT_MenuModalComposition2.textGroup = 199;
+ DAT_MenuModalComposition2.textIndex = _gmID;
+ setExtraActiveModalDialog(MMT_OVERLAY_SLIDER,
+ DAT_ButtonX + -0x3e, DAT_ButtonY + 0x19);
+ return;
+ }
+ }
+}
+}
+
+### 0x004b92d0 MenuItemRenderFunction_NewInvasion_UnitButtons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B92D0
+ void NewInvasion::MenuItemRenderFunction_NewInvasion_UnitButtons(int param_1, ...)
+ {
+ int number;
+ int imageID;
+ uint color;
+ imageID = 0;
+ switch (param_1) {
+ case 0:
+ imageID = 1;
+ break;
+ case 1:
+ imageID = 2;
+ break;
+ case 2:
+ imageID = 3;
+ break;
+ case 3:
+ imageID = 4;
+ break;
+ case 4:
+ imageID = 5;
+ break;
+ case 5:
+ imageID = 6;
+ break;
+ case 6:
+ imageID = 7;
+ break;
+ case 7:
+ imageID = 8;
+ break;
+ case 8:
+ imageID = 9;
+ break;
+ case 9:
+ imageID = 0xc;
+ break;
+ case 10:
+ imageID = 0xd;
+ break;
+ case 0xb:
+ imageID = 0xf;
+ break;
+ case 0xc:
+ imageID = 0xe;
+ break;
+ case 0xd:
+ imageID = 0x10;
+ break;
+ case 0xe:
+ imageID = 0xb;
+ break;
+ case 0xf:
+ imageID = 10;
+ break;
+ case 0x10:
+ imageID = 0x11;
+ break;
+ case 0x11:
+ imageID = 0x12;
+ break;
+ case 0x12:
+ imageID = 0x13;
+ break;
+ case 0x13:
+ imageID = 0x14;
+ break;
+ case 0x14:
+ imageID = 0x15;
+ break;
+ case 0x15:
+ imageID = 0x16;
+ break;
+ case 0x16:
+ imageID = 0x17;
+ break;
+ case 0x17:
+ imageID = 0x18;
+ }
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ number = *(int*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + param_1 * 4 + 4);
+ if (number != 0) {
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ color = 0xc2f0eb;
+ } else {
+ color = 0xccfaff;
+ }
+ renderNumberToScreen2(
+ number, DAT_ButtonW + -10 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, color, 0x12, FALSE, 0);
+ }
+ renderGM(GM_ARMY_UNITS, imageID,
+ DAT_ButtonX,
+ (DAT_ButtonY
+ - (int)*(short*)((int)PTR_ARRAY_Unknown_UnitGMHeights::instance
+ + (GMTotalPicturesProcessed::instance[0xae] + imageID) * 0x10 + 0x72)
+ / 2)
+ + 0xf);
+ return;
+ }
+ }
+}
+}
+
+### 0x004b94a0 MenuItemActionHandler_NewInvasion_RepeatSlider | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B94A0
+ void NewInvasion::MenuItemActionHandler_NewInvasion_RepeatSlider(
+ int param_1, int param_2, int* minValue, int* maxValue, int* currentValue)
+ {
+ switch (param_2) {
+ case 1:
+ *minValue = 0;
+ *maxValue = 120;
+ /*
+ repeatMonths
+ */
+ *currentValue = (int)DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data.scenario.conditions[0x19];
+ return;
+ case 2:
+ case 3:
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data.invasion.repeatMonths = *currentValue;
+ return;
+ case 4:
+ *currentValue = (int)DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data.scenario.conditions[0x19];
+ *maxValue = 120;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004b9530 MenuItemRenderFunction_NewInvasion_RepeatSlider | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B9530
+ void NewInvasion::MenuItemRenderFunction_NewInvasion_RepeatSlider(
+ int param_1, int thumbXPos, int sliderValue, int thumbWidth, BOOLEnum isDragged)
+ {
+ undefined2 color;
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color_00;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ renderBasicButton(-1, RT_CONTEXT_BASED);
+ color = COL_GREYISH_YELLOW::instance.shortValue;
+ if (isDragged != FALSE) {
+ color = COL_DARK_LIME::instance.shortValue;
+ }
+ drawColorBox(
+ thumbXPos + DAT_ButtonX + 1, DAT_ButtonY + 2,
+ thumbXPos + DAT_ButtonX + -2 + thumbWidth,
+ DAT_ButtonH + -4 + DAT_ButtonY, (ushort)((int)(color)));
+ renderNumberToScreen2(
+ sliderValue, DAT_ButtonW + 0x14 + DAT_ButtonX,
+ DAT_ButtonY + 6, TTA_LEFT, 0xccfaff, 0x12, FALSE, 0);
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x12;
+ color_00 = 0xccfaff;
+ alignment = TTA_LEFT;
+ yParam = DAT_ButtonY + 6;
+ xParam = DAT_ButtonX + -0x96;
+ /*
+ added by script: "Repeat"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_SCENARIO, 0xa3);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color_00, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+ }
+}
+}
+
+### 0x004bf760 MenuItemActionHandler_NewInvasion_Buttons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004BF760
+ void NewInvasion::MenuItemActionHandler_NewInvasion_Buttons(int param_1, ...)
+ {
+ InGameEventUnion* pIVar1;
+ InGameEventUnionVersion* pIVar2;
+ InGameEventUnionVersion* pIVar3;
+ undefined1 uVar4;
+ undefined1 uVar5;
+ char* _Str;
+ long _year;
+ int iVar6;
+ switch (param_1) {
+ case 0x13:
+ removeEventAtIndex(DAT_MapPropertiesState.currentEventID);
+ goto LAB_004bf791;
+ case 0x25:
+ _Str = getTextArrayPointer(0xb);
+ _year = _atol(_Str);
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .header.year = _year;
+ pIVar2
+ = DAT_MapPropertiesState.scenarioEvents + DAT_MapPropertiesState.currentEventID;
+ uVar4 = *(undefined1*)((int)&(pIVar2->header).year + 2);
+ uVar5 = *(undefined1*)((int)&(pIVar2->header).year + 3);
+ pIVar3
+ = DAT_MapPropertiesState.scenarioEvents + DAT_MapPropertiesState.currentEventID;
+ /*
+ set message year
+ */
+ *(undefined2*)((int)&pIVar3->data + 0x6c) = *(undefined2*)&(pIVar2->header).year;
+ *(undefined1*)((int)&pIVar3->data + 0x6e) = uVar4;
+ *(undefined1*)((int)&pIVar3->data + 0x6f) = uVar5;
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data.invasion.totalUnitCount = 0;
+ iVar6 = 0;
+ do {
+ pIVar1 = &DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data;
+ (pIVar1->invasion).totalUnitCount = (pIVar1->invasion).totalUnitCount
+ + *(int*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + iVar6 * 4 + 4);
+ pIVar1 = &DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data;
+ (pIVar1->invasion).totalUnitCount = (pIVar1->invasion).totalUnitCount
+ + *(int*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + iVar6 * 4 + 8);
+ pIVar1 = &DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data;
+ (pIVar1->invasion).totalUnitCount = (pIVar1->invasion).totalUnitCount
+ + *(int*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + iVar6 * 4 + 0xc);
+ pIVar1 = &DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data;
+ (pIVar1->invasion).totalUnitCount = (pIVar1->invasion).totalUnitCount
+ + *(int*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + iVar6 * 4 + 0x10);
+ pIVar1 = &DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data;
+ (pIVar1->invasion).totalUnitCount = (pIVar1->invasion).totalUnitCount
+ + *(int*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + iVar6 * 4 + 0x14);
+ iVar6 = iVar6 + 5;
+ } while (iVar6 < 25);
+ LAB_004bf791:
+ activateModalDialog(MMT_NONE, FALSE);
+ sortEventsByDate();
+ resetToTextIndex(
+ 0xf);
+ return;
+ case 0x57:
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data.invasion.crusaderArabian = 4;
+ break;
+ case 0xdd:
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data.invasion.crusaderArabian = 0;
+ return;
+ case 0xde:
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data.invasion.crusaderArabian = 1;
+ return;
+ case -1:
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .header.month
+ = DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .header.month
+ + 1;
+ if (0xb
+ < DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .header.month) {
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .header.month = 0;
+ return;
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004bfa60 MenuItemRenderFunction_NewInvasion_Buttons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004BFA60
+ void NewInvasion::MenuItemRenderFunction_NewInvasion_Buttons(int param_1, ...)
+ {
+ int iVar1;
+ char* textAddress;
+ int yParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ iVar1 = -1;
+ switch (param_1) {
+ case 9:
+ case 0x5b:
+ case 0xdd:
+ iVar1 = 0;
+ break;
+ case 10:
+ case 0x5c:
+ case 0xde:
+ iVar1 = 1;
+ break;
+ case 0xb:
+ case 0x5d:
+ iVar1 = 2;
+ break;
+ case 0xc:
+ case 0x5e:
+ iVar1 = 3;
+ break;
+ case 0x57:
+ case 0x5f:
+ iVar1 = 4;
+ break;
+ case 0x60:
+ iVar1 = 5;
+ break;
+ case 0x61:
+ iVar1 = 6;
+ break;
+ case 0x62:
+ iVar1 = 7;
+ break;
+ case 99:
+ iVar1 = 8;
+ break;
+ case 0x9d:
+ iVar1 = 9;
+ break;
+ case 0x9e:
+ iVar1 = 10;
+ break;
+ case 0x9f:
+ iVar1 = 0xb;
+ break;
+ case 0xa0:
+ iVar1 = 0xc;
+ break;
+ case 0xa1:
+ iVar1 = 0xd;
+ break;
+ case 0xa2:
+ iVar1 = 0xe;
+ }
+ switch (param_1) {
+ case 9:
+ case 10:
+ case 0xb:
+ case 0xc:
+ case 0x57:
+ case 0xdd:
+ case 0xde:
+ if (DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data.invasion.crusaderArabian
+ == iVar1) {
+ /*
+ "Crusader. Arabian. (...)"
+ */
+ DAT_ButtonCurrentlyInteracting = TRUE;
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x12;
+ color = 0xccfaff;
+ alignment = TTA_CENTER;
+ yParam = DAT_ButtonY + 6;
+ iVar1 = DAT_ButtonW / 2 + DAT_ButtonX;
+ textAddress = getTextStringInGroupAtOffset(TEXT_SCENARIO, param_1);
+ renderTextToScreen(
+ textAddress, iVar1, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+ default:
+ RenderScenarioButtonWithText(param_1);
+ return;
+ case -1:
+ break;
+ }
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ renderText2(
+ TEXT_MONTHS,
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .header.month
+ + 0xc,
+ DAT_ButtonW / 2 + DAT_ButtonX,
+ DAT_ButtonY + 6, TTA_CENTER, 0xc2f0eb, 0x12, FALSE);
+ return;
+ }
+ renderText2(
+ TEXT_MONTHS,
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .header.month
+ + 0xc,
+ DAT_ButtonW / 2 + DAT_ButtonX,
+ DAT_ButtonY + 6, TTA_CENTER, 0xccfaff, 0x12, FALSE);
+ return;
+ }
+ }
+}
+}
+
+### 0x0042f3f0 MenuView_NewMapMapsize_DoEveryFrame | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0042F3F0
+ void NewMapMapsize::MenuView_NewMapMapsize_DoEveryFrame()
+ {
+ int iVar1;
+ char* textAddress;
+ int iVar2;
+ int iVar3;
+ int iVar4;
+ TextAlignment alignment;
+ BGR24 color;
+ int iVar5;
+ BOOLEnum keepOffsetX;
+ int iVar6;
+ int local_20;
+ int local_1c;
+ char local_18[20];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)&local_20;
+ drawGfxOnFlaggedSurface(0,
+ (DAT_WindowAndDirectDraw.resolutionX
+ - DAT_TextureRenderCoreObject.loadedGfxArray[0].width)
+ / 2,
+ (DAT_WindowAndDirectDraw.resolutionY
+ - DAT_TextureRenderCoreObject.loadedGfxArray[0].height)
+ / 2);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ drawHeaderBanner(
+ DAT_MenuHandlerState.x + 100, DAT_MenuHandlerState.y + 0x1e, 600, 0x32);
+ iVar6 = 0;
+ keepOffsetX = FALSE;
+ iVar5 = 0x10;
+ color = 0xc2f0eb;
+ alignment = TTA_CENTER;
+ iVar1 = DAT_MenuHandlerState.y + 0x3b;
+ iVar3 = DAT_MenuHandlerState.x + 400;
+ /*
+ added by script: "Select New Map Size"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_MAPEDIT, 0x14);
+ renderTextToScreen(
+ textAddress, iVar3, iVar1, alignment, color, iVar5, keepOffsetX, iVar6);
+ iVar3 = DAT_MenuHandlerState.y;
+ iVar1 = DAT_MenuHandlerState.x;
+ local_1c = DAT_MenuHandlerState.y + 0x122;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ iVar5 = DAT_TileMapState.mapSize;
+ if (DAT_TileMapState.mapSize == 0) {
+ iVar5 = 400;
+ }
+ DAT_MinimapViewState.field0_0x0 = 1;
+ _sprintf(local_18, "%dx%d", iVar5, iVar5);
+ switch (iVar5) {
+ case 100:
+ iVar3 = iVar3 + 0xf0;
+ iVar6 = iVar1 + 0x226;
+ renderMinimapEditor(
+ iVar6, iVar3, iVar5, iVar5);
+ local_20 = 100;
+ break;
+ default:
+ iVar4 = 200;
+ goto LAB_0042f577;
+ case 0xa0:
+ iVar3 = iVar3 + 0xd2;
+ iVar6 = iVar1 + 0x208;
+ renderMinimapEditor(
+ iVar6, iVar3, iVar5, iVar5);
+ local_20 = 0xa0;
+ break;
+ case 200:
+ iVar4 = iVar5;
+ LAB_0042f577:
+ iVar3 = iVar3 + 0xbe;
+ iVar6 = iVar1 + 500;
+ renderMinimapEditor(
+ iVar6, iVar3, iVar4, iVar4);
+ local_20 = 200;
+ break;
+ case 300:
+ iVar3 = iVar3 + 0xd7;
+ iVar6 = iVar1 + 0x20d;
+ renderMinimapEditor(
+ iVar6, iVar3, 0x96, 0x96);
+ local_20 = 0x96;
+ }
+ iVar4 = local_1c;
+ if (iVar5 == 0xa0) {
+ drawBorderBox(iVar1 + 0x20a, local_1c + -0x4f, iVar1 + 0x2a6, local_1c + 0x4d,
+ (ushort)((int)(COL_BLACK::instance.shortValue)));
+ iVar5 = iVar4 + 0x4e;
+ iVar2 = iVar1 + 0x2a7;
+ iVar4 = iVar4 + -0x50;
+ iVar1 = iVar1 + 0x209;
+ } else if (iVar5 == 200) {
+ drawBorderBox(iVar1 + 0x1f6, local_1c + -99, iVar1 + 699, local_1c + 99,
+ (ushort)((int)(COL_BLACK::instance.shortValue)));
+ iVar5 = iVar4 + 100;
+ iVar2 = iVar1 + 700;
+ iVar4 = iVar4 + -100;
+ iVar1 = iVar1 + 0x1f5;
+ } else if (iVar5 == 300) {
+ drawBorderBox(iVar1 + 0x20d, local_1c + -0x4b, iVar1 + 0x2a1, local_1c + 0x4a,
+ (ushort)((int)(COL_BLACK::instance.shortValue)));
+ iVar5 = iVar4 + 0x4b;
+ iVar2 = iVar1 + 0x2a2;
+ iVar4 = iVar4 + -0x4c;
+ iVar1 = iVar1 + 0x20c;
+ } else {
+ drawBorderBox(iVar1 + 500, local_1c + -100, iVar1 + 699, local_1c + 100,
+ (ushort)((int)(COL_BLACK::instance.shortValue)));
+ iVar5 = iVar4 + 0x65;
+ iVar2 = iVar1 + 700;
+ iVar4 = iVar4 + -0x65;
+ iVar1 = iVar1 + 499;
+ }
+ drawBorderBox(
+ iVar1, iVar4, iVar2, iVar5, (ushort)((int)(COL_BLACK::instance.shortValue)));
+ iVar6 = iVar6 + local_20;
+ iVar1 = iVar3 + -0xf;
+ iVar5 = iVar6;
+ iVar4 = iVar3;
+ iVar2 = computeTextWidth(
+ local_18, 0x13);
+ dimBox(
+ (iVar6 - iVar2) + -0xf, iVar1, iVar5, iVar4);
+ renderInGameTextWithShadow(
+ local_18, iVar6 + -5, iVar3 + -0xb, TTA_RIGHT, 0xc2f0eb, 0, 0x13, FALSE, 0);
+ ;
+ return;
+ }
+ }
+}
+}
+
+### 0x0042f7f0 MenuItemRenderFunction_NewMapMapsize_Buttons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0042F7F0
+ void NewMapMapsize::MenuItemRenderFunction_NewMapMapsize_Buttons(int param_1, ...)
+ {
+ undefined4 uVar1;
+ char local_18[20];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)local_18;
+ if ((DAT_MenuTextInputState.currentModalDialog == MMT_NO_MENU)
+ && (DAT_MenuModalComposition1.activeModalDialogID == MMT_NONE)) {
+ if (param_1 == 7) {
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ ;
+ return;
+ }
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ if (param_1 == INT_00b95abc::instance) {
+ INT_00b95abc::instance = -1;
+ }
+ if (DAT_TextureRenderCoreObject.unknownSfxAndGmRelatedFlag != FALSE) {
+ DAT_CurrentButtonGmDataIndex = 0x161;
+ }
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ } else {
+ if (DAT_TextureRenderCoreObject.unknownSfxAndGmRelatedFlag != FALSE) {
+ DAT_CurrentButtonGmDataIndex = 0x161;
+ }
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ DAT_CurrentButtonPictureInGm
+ = DAT_UIButtonDefinedData.ButtonGmDataArray[DAT_CurrentButtonGmDataIndex]
+ .pictureInGm_0x4;
+ if (INT_00b95abc::instance != param_1) {
+ setUpSFXToPlayUnk(
+ SEID_CHILDREN_PLAY_MAYPOLE | SEID_WOOD_CHOP);
+ }
+ INT_00b95abc::instance = param_1;
+ }
+ if (param_1 == 1) {
+ uVar1 = 0xa0;
+ } else if (param_1 == 2) {
+ uVar1 = 200;
+ } else if (param_1 == 3) {
+ uVar1 = 300;
+ } else {
+ uVar1 = 400;
+ }
+ _sprintf(local_18, "%dx%d", uVar1, uVar1);
+ renderInGameTextWithShadow(local_18,
+ DAT_ButtonX, DAT_ButtonY + 0x13,
+ (TextAlignment)((int)(DAT_ButtonW)), 0xc2f0eb, 0, 0x11, FALSE, 0);
+ };
+ return;
+ }
+ }
+}
+}
+
+### 0x0042f940 MenuItemActionHandler_NewMapMapsize_Buttons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0042F940
+ void NewMapMapsize::MenuItemActionHandler_NewMapMapsize_Buttons(int param_1, ...)
+ {
+ int iVar1;
+ if ((DAT_MenuTextInputState.currentModalDialog == MMT_NO_MENU)
+ && (DAT_MenuModalComposition1.activeModalDialogID == MMT_NONE)) {
+ iVar1 = 400;
+ if (0 < param_1) {
+ if (param_1 < 5) {
+ if (param_1 == 1) {
+ iVar1 = 0xa0;
+ } else if (param_1 == 2) {
+ iVar1 = 200;
+ } else if (param_1 == 3) {
+ iVar1 = 300;
+ }
+ DAT_TileMapState.mapSize = iVar1;
+ resetHeightAndMapBorders(iVar1);
+ DAT_PathFindingState.toggleUpdateSeparateAreaTileMap = 1;
+ MACRO_CALL_MEMBER(
+ updatePathLinkageLayerForEachBuildingAtEachTile,
+ DAT_PathFindingState)();
+ updateSeparateAreaTileMap(1);
+ updatePathLinkageLayerForAllBuildings();
+ DAT_TileMapState.forceUpdateMacroLayerFlag = 1;
+ DAT_TileMapState.field68_0x55487c = 200;
+ forceFullTileMapRedraw();
+ processGameTick();
+ iVar1 = 0;
+ do {
+ updateWildlifeGrid(iVar1);
+ iVar1 = iVar1 + 1;
+ } while (iVar1 < 0x28);
+ updateWildlife();
+ updateSection1034Info();
+ updateNofFpoints();
+ setTileColorsDependingOnMapSize(0, 100);
+ setMapPropertyDependingOnMapSize(0, 100);
+ setViewportBasedOnMapSize();
+ DAT_GameCore.descriptionUseStringTable = 0;
+ DAT_GameCore.U3_mapLockedState = MLS_EDITABLE;
+ DAT_GameCore.temporaryTextBufferOfSize1000[0] = '\0';
+ switchToMenuView(
+ MVT_MAP_EDITOR_PROPERTIES, 0);
+ DAT_GameCore.field115_0x1d98 = 1;
+ } else if (param_1 == 7) {
+ switchToMenuView(
+ MVT_CUSTOM_SCENARIOS, 0);
+ return;
+ }
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x0042f140 MenuItemRenderFunction_NewMapMaptype_Buttons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0042F140
+ void NewMapMaptype::MenuItemRenderFunction_NewMapMaptype_Buttons(int param_1, ...)
+ {
+ int fontSize;
+ int iVar1;
+ if ((DAT_MenuTextInputState.currentModalDialog == MMT_NO_MENU)
+ && (DAT_MenuModalComposition1.activeModalDialogID == MMT_NONE)) {
+ if (param_1 == 7) {
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ return;
+ }
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ if (param_1 == INT_00b95abc::instance) {
+ INT_00b95abc::instance = -1;
+ }
+ if (DAT_TextureRenderCoreObject.unknownSfxAndGmRelatedFlag != FALSE) {
+ DAT_CurrentButtonGmDataIndex = 0x161;
+ }
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ } else {
+ if (DAT_TextureRenderCoreObject.unknownSfxAndGmRelatedFlag != FALSE) {
+ DAT_CurrentButtonGmDataIndex = 0x161;
+ }
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ DAT_CurrentButtonPictureInGm
+ = DAT_UIButtonDefinedData.ButtonGmDataArray[DAT_CurrentButtonGmDataIndex]
+ .pictureInGm_0x4;
+ if (INT_00b95abc::instance != param_1) {
+ setUpSFXToPlayUnk(
+ SEID_CHILDREN_PLAY_MAYPOLE | SEID_WOOD_CHOP);
+ }
+ INT_00b95abc::instance = param_1;
+ }
+ iVar1 = 0x13;
+ fontSize = 0x11;
+ if (DAT_TextManagerObject.gameLanguage - GL_FRENCH < 3) {
+ fontSize = 0x12;
+ iVar1 = 0x14;
+ }
+ if (param_1 == 1) {
+ renderText(
+ TEXT_MAP_TITLES, 1, DAT_ButtonX + 0x1a,
+ DAT_ButtonY + iVar1, TTA_LEFT, 0xc2f0eb, 0, fontSize, FALSE);
+ return;
+ }
+ if (param_1 == 2) {
+ renderText(
+ TEXT_SHC_STANDALONE, 2, DAT_ButtonX + 0x1a,
+ DAT_ButtonY + iVar1, TTA_LEFT, 0xc2f0eb, 0, fontSize, FALSE);
+ return;
+ }
+ if (param_1 == 3) {
+ /*
+ added by script: "New Crusader Map"
+ */
+ renderText(
+ TEXT_MAP_TITLES, 2, DAT_ButtonX + 0x1a,
+ DAT_ButtonY + iVar1, TTA_LEFT, 0xc2f0eb, 0, fontSize, FALSE);
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x0042f2b0 MenuItemActionHandler_NewMapMaptype_Buttons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0042F2B0
+ void NewMapMaptype::MenuItemActionHandler_NewMapMaptype_Buttons(int param_1, ...)
+ {
+ if ((DAT_MenuTextInputState.currentModalDialog == MMT_NO_MENU)
+ && (DAT_MenuModalComposition1.activeModalDialogID == MMT_NONE)) {
+ switch (param_1) {
+ case 1:
+ DAT_MapPropertiesState.SEC_U3_MapType2_1 = MT_JUST_BUILD;
+ switchToMenuView(
+ MVT_NEW_MAP_MAPSIZE, 0);
+ return;
+ case 2:
+ DAT_MapPropertiesState.SEC_U3_MapType2_1 = MT_INVASION;
+ switchToMenuView(
+ MVT_NEW_MAP_MAPSIZE, 0);
+ return;
+ case 3:
+ InitializeBasicMap();
+ DAT_GameCore.U2_mapType_singleOrMulti = 1;
+ switchToMenuView(
+ MVT_NEW_MAP_MAPSIZE, 0);
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[0]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[0];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[1]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[1];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[2]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[2];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[3]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[3];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[4]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[4];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[5]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[5];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[6]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[6];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[7]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[7];
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[8]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[8];
+ return;
+ case 7:
+ switchToMenuView(
+ MVT_CUSTOM_SCENARIOS, 0);
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00493850 MenuItemRenderFunction_OnlineVoteQuitAndQuitGame_Main | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00493850
+ void OnlineVoteQuitAndQuitGame::MenuItemRenderFunction_OnlineVoteQuitAndQuitGame_Main(int param_1, ...)
+ {
+ int xParam;
+ char* textAddress;
+ int yParam;
+ eTextSections offsetIndex;
+ int numInGroup;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ offsetIndex = ((eTextSections)0);
+ numInGroup = 0;
+ switch (param_1) {
+ case 1:
+ offsetIndex = TEXT_GAME_OPTIONS;
+ numInGroup = 8;
+ goto switchD_00493862_caseD_5;
+ case 2:
+ case 4:
+ numInGroup = 0x3b;
+ break;
+ case 3:
+ case 5:
+ numInGroup = 3;
+ break;
+ default:
+ goto switchD_00493862_caseD_5;
+ }
+ offsetIndex = TEXT_MULTIPLAYER_CONNECTION;
+ switchD_00493862_caseD_5:
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ xParam = DAT_ButtonW / 2 + DAT_ButtonX;
+ yParam = DAT_ButtonY + 7;
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ blendStrength = 4;
+ color = 0xc2f0eb;
+ } else {
+ blendStrength = 2;
+ color = 0xccfaff;
+ }
+ keepOffsetX = FALSE;
+ fontSize = 0x12;
+ alignment = TTA_CENTER;
+ textAddress = getTextStringInGroupAtOffset(offsetIndex, numInGroup);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+ }
+}
+}
+
+### 0x00495860 MenuItemActionHandler_OnlineVoteQuitAndQuitGame_Main | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00495860
+ void OnlineVoteQuitAndQuitGame::MenuItemActionHandler_OnlineVoteQuitAndQuitGame_Main(int param_1, ...)
+ {
+ byte bVar1;
+ switch (param_1) {
+ case 2:
+ bVar1 = DAT_GameSynchronyState.currentPlayerFullIDArray[1] != -1;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[2] != -1) {
+ bVar1 = bVar1 + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[3] != -1) {
+ bVar1 = bVar1 + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[4] != -1) {
+ bVar1 = bVar1 + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[5] != -1) {
+ bVar1 = bVar1 + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[6] != -1) {
+ bVar1 = bVar1 + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[7] != -1) {
+ bVar1 = bVar1 + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[8] != -1) {
+ bVar1 = bVar1 + 1;
+ }
+ if (1 < bVar1) {
+ activateModalDialog(MMT_NONE, FALSE);
+ queueCommand(GCT_BROADCAST_SYNC_RELATED_STATUS_1
+ | GCT_MULTIPLAYER_ANNOUNCE_HOST);
+ DAT_GameSynchronyState.quitGameVoteRelated = 2;
+ DAT_GameSynchronyState.field122_0xc70[1]
+ = (int)(DAT_GameSynchronyState.currentPlayerFullIDArray[1] == -1);
+ DAT_GameSynchronyState.field122_0xc70[2]
+ = (int)(DAT_GameSynchronyState.currentPlayerFullIDArray[2] == -1);
+ DAT_GameSynchronyState.field122_0xc70[3]
+ = (int)(DAT_GameSynchronyState.currentPlayerFullIDArray[3] == -1);
+ DAT_GameSynchronyState.field122_0xc70[4]
+ = (int)(DAT_GameSynchronyState.currentPlayerFullIDArray[4] == -1);
+ DAT_GameSynchronyState.field122_0xc70[5]
+ = (int)(DAT_GameSynchronyState.currentPlayerFullIDArray[5] == -1);
+ DAT_GameSynchronyState.field122_0xc70[6]
+ = (int)(DAT_GameSynchronyState.currentPlayerFullIDArray[6] == -1);
+ DAT_GameSynchronyState.field122_0xc70[7]
+ = (int)(DAT_GameSynchronyState.currentPlayerFullIDArray[7] == -1);
+ DAT_GameSynchronyState.field122_0xc70[8]
+ = (int)(DAT_GameSynchronyState.currentPlayerFullIDArray[8] == -1);
+ DAT_GameSynchronyState
+ .field122_0xc70[DAT_GameSynchronyState.currentPlayerSlotID] = 1;
+ DAT_GameSynchronyState.quitGameVoteRequestTime = timeGetTime();
+ resetMouseState2();
+ return;
+ }
+ case 1:
+ DAT_GameSynchronyState.currentGameMode = GM_MULTIPLAYER_END_OF_GAME;
+ DAT_MenuTextInputState.DAT_MenuOptionsActionParameter = 7;
+ MenuItemActionHandler_General_LaunchOrQuitMultiplayerGameUnk(
+ 0x16);
+ resetMouseState2();
+ return;
+ case 3:
+ goto switchD_00495871_caseD_3;
+ case 4:
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = 0;
+ break;
+ case 5:
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = 1;
+ break;
+ default:
+ switchD_00495871_caseD_5:
+ resetMouseState2();
+ return;
+ }
+ queueCommand(
+ GCT_SEND_QUIT_GAME_VOTE);
+ switchD_00495871_caseD_3:
+ activateModalDialog(MMT_NONE, FALSE);
+ goto switchD_00495871_caseD_5;
+ }
+ }
+}
+}
+
+### 0x004937e0 MenuModalRenderFunction_OnlineVoteQuitGame | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004937E0
+ void OnlineVoteQuitGame::MenuModalRenderFunction_OnlineVoteQuitGame(int x, int y, int width, int height)
+ {
+ DWORD DVar1;
+ int number;
+ /*
+ added by script: "End this game?"
+ */
+ drawHeaderTextBanner(0x4c, 0x3b, x, y, width, height);
+ DVar1 = timeGetTime();
+ number = 10 - (DVar1 - DAT_GameSynchronyState.quitGameVoteRequestTime) / 1000;
+ if (number < 0) {
+ number = 0;
+ }
+ renderNumberToScreen2(
+ number, x + 0x14, y + 0x7d, TTA_LEFT, 0xc2f0eb, 0x12, FALSE, 0);
+ return;
+ }
+ }
+}
+}
+
+### 0x00491840 MenuItemRenderFunction_OptionsMenu_Buttons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00491840
+ void OptionsMenu::MenuItemRenderFunction_OptionsMenu_Buttons(int param_1, ...)
+ {
+ int xParam;
+ char* textAddress;
+ int yParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ if (param_1 == 2) {
+ if (DAT_GameCore.currentMenuViewType != MVT_MAIN_MENU) {
+ LAB_004918a4:
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ if (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .playerDeathRelated
+ == 0)
+ goto LAB_0049192c;
+ } else {
+ LAB_0049194d:
+ if (param_1 == 2) {
+ if (DAT_GameSynchronyState.currentGameMode
+ == GM_SKIRMISH_SINGLE_PLAYER) {
+ LAB_00491978:
+ if ((DAT_GameCore.gameMode_2 != GM_EDITOR)
+ && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT))
+ goto LAB_00491982;
+ goto LAB_0049198b;
+ }
+ } else if ((param_1 != 0x27)
+ && ((param_1 != 3 || (DAT_GameSynchronyState.isHost != FALSE))))
+ goto LAB_00491978;
+ }
+ LAB_004918c8:
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ blendStrength = 0;
+ yParam = DAT_ButtonY + 7;
+ xParam = DAT_ButtonW / 2 + DAT_ButtonX;
+ color = 0x7f7f7f;
+ goto LAB_00491904;
+ }
+ } else {
+ if (param_1 == 3)
+ goto LAB_004918a4;
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ goto LAB_0049194d;
+ LAB_0049192c:
+ if (((param_1 != 0x27) || (DAT_GameCore.gameMode_2 == GM_CAMPAIGN_MISSION))
+ || (DAT_GameCore.gameMode_2 == GM_ECONOMIC_CAMPAIGN_SH1))
+ goto LAB_00491978;
+ if ((DAT_GameCore.gameMode_2 != GM_BUILDERUnk)
+ || (DAT_MapPropertiesState.scenarionMissionType == 0))
+ goto LAB_004918c8;
+ LAB_00491982:
+ if ((DAT_GameCore.field24_0x6c != 0)
+ || (DAT_GameCore.gameMode_2 == GM_CRUSADER_TUTORIAL)) {
+ LAB_0049198b:
+ if (((param_1 == 2) || (param_1 == 0x27)) || (param_1 == 3))
+ goto LAB_004918c8;
+ }
+ if (((((param_1 == 0x2c) && (DAT_GameCore.gameMode_2 != GM_CAMPAIGN_MISSION))
+ && (DAT_GameCore.gameMode_2 != GM_ECONOMIC_CAMPAIGN_SH1))
+ && ((DAT_GameCore.gameMode_2 != GM_BUILDERUnk
+ || (DAT_GameCore.field24_0x6c != 0))))
+ && (DAT_GameSynchronyState.currentGameMode != GM_SKIRMISH_SINGLE_PLAYER)) {
+ renderNonInteractingButtonBackground(0);
+ /*
+ added by script: "Restart Mission"
+ */
+ renderText2(
+ TEXT_GAME_OPTIONS, 0x2c,
+ DAT_ButtonW / 2 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_CENTER, 0x7f7f7f, 0x12, FALSE);
+ return;
+ }
+ }
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ xParam = DAT_ButtonW / 2 + DAT_ButtonX;
+ yParam = DAT_ButtonY + 7;
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ blendStrength = 4;
+ color = 0xc2f0eb;
+ } else {
+ blendStrength = 2;
+ color = 0xccfaff;
+ }
+ LAB_00491904:
+ keepOffsetX = FALSE;
+ fontSize = 0x12;
+ alignment = TTA_CENTER;
+ textAddress = getTextStringInGroupAtOffset(TEXT_GAME_OPTIONS, param_1);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+ }
+}
+}
+
+### 0x00491a30 MenuItemRenderFunction_OptionsMenu_SubOptionsButtons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00491A30
+ void OptionsMenu::MenuItemRenderFunction_OptionsMenu_SubOptionsButtons(int param_1, ...)
+ {
+ int xParam;
+ char* pcVar1;
+ int yParam;
+ TextAlignment TVar2;
+ uint foregroundColor;
+ BGR24 color;
+ uint backgroundColor;
+ int iVar3;
+ BOOLEnum BVar4;
+ int iVar5;
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ xParam = DAT_ButtonW / 2 + DAT_ButtonX;
+ yParam = DAT_ButtonY + 7;
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ iVar5 = 4;
+ BVar4 = FALSE;
+ iVar3 = 0x12;
+ color = 0xc2f0eb;
+ TVar2 = TTA_CENTER;
+ pcVar1 = getTextStringInGroupAtOffset(TEXT_GAME_OPTIONS, param_1);
+ renderTextToScreen(
+ pcVar1, xParam, yParam, TVar2, color, iVar3, BVar4, iVar5);
+ return;
+ }
+ iVar5 = 2;
+ BVar4 = FALSE;
+ iVar3 = 0x12;
+ backgroundColor = 0;
+ foregroundColor = 0xccfaff;
+ TVar2 = TTA_CENTER;
+ pcVar1 = getTextStringInGroupAtOffset(TEXT_GAME_OPTIONS, param_1);
+ renderInGameTextWithShadow(
+ pcVar1, xParam, yParam, TVar2, foregroundColor, backgroundColor, iVar3, BVar4, iVar5);
+ return;
+ }
+ }
+}
+}
+
+### 0x00493bd0 MenuItemActionHandler_OptionsMenu_SubOptionsButtons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00493BD0
+ void OptionsMenu::MenuItemActionHandler_OptionsMenu_SubOptionsButtons(int param_1, ...)
+ {
+ switch (param_1) {
+ case 4:
+ DAT_MenuTextInputState.menuCurrentlySelectedResolution
+ = DAT_WindowAndDirectDraw.currentGameResolution;
+ DAT_MenuTextInputState.unknownZoomRelatedFlag01
+ = DAT_ViewportRenderState.viewportState.isZoomedOutUnk;
+ DAT_MenuTextInputState.menuScrollSpeedSetting
+ = DAT_ScrollingHandler.scrollSpeedSetting_0x38;
+ activateModalDialogAndClearText(MMT_VIDEO_OPTIONS);
+ DAT_MenuTextInputState.menuCursorType = DAT_MouseState.cursorType;
+ return;
+ case 5:
+ DAT_MenuTextInputState.DAT_GenieVoiceActiveMenuVar = DAT_GameCore.genieVoiceActive;
+ DAT_MenuTextInputState.DAT_SoundActiveMenuVar
+ = DAT_SoundSystemState.soundActiveUnk_0x0;
+ DAT_MenuTextInputState.field20_0x44 = DAT_SoundSystemState.streamVolume[0];
+ DAT_MenuTextInputState.field21_0x48 = DAT_SoundSystemState.streamVolume[1];
+ DAT_MenuTextInputState.field22_0x4c = DAT_SoundSystemState.streamVolume[3];
+ activateModalDialogAndClearText(MMT_SOUND_OPTIONS);
+ return;
+ case 6:
+ activateModalDialogAndClearText(MMT_NETWORK_OPTIONS);
+ return;
+ case 0x11:
+ popModalDialog();
+ return;
+ case 0x19:
+ DAT_MenuTextInputState.field12_0x30 = DAT_GameCore.gameSpeedLevel;
+ DAT_MenuTextInputState.field14_0x38 = DAT_GameCore.settingBubbleHelp;
+ DAT_MenuTextInputState.field15_0x3c = DAT_GameCore.unusedOption1;
+ activateModalDialogAndClearText(MMT_GAMEPLAY_OPTIONS);
+ break;
+ case 0x2d:
+ DAT_UserTextHandlerState.allowUserTextInput = 0;
+ resetToTextIndex(
+ 0);
+ moveCursorToEnd();
+ DAT_UserTextHandlerState.allowUserTextInput = 1;
+ activateModalDialogAndClearText(MMT_IDENTITY_OPTIONS);
+ return;
+ }
+ return;
+ }
+ }
+}
+}
+

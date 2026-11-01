@@ -1,0 +1,1121 @@
+### 0x004be590 setStartingYearAndStartingResources | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004BE590
+ void MapPropertiesState::setStartingYearAndStartingResources()
+ {
+ int iVar1;
+ short* psVar2;
+ char local_10[12];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)local_10;
+ this->SEC_StartingYear = 1181;
+ DAT_GameState.mapAndTime.year = 1181;
+ this->SEC_StartingResources[0] = 0;
+ this->SEC_StartingResources[1] = 0;
+ this->SEC_StartingResources[2] = 0;
+ this->SEC_StartingResources[3] = 0;
+ this->SEC_StartingResources[4] = 0;
+ this->SEC_StartingResources[5] = 0;
+ this->SEC_StartingResources[6] = 0;
+ this->SEC_StartingResources[7] = 0;
+ this->SEC_StartingResources[8] = 0;
+ this->SEC_StartingResources[9] = 0;
+ this->SEC_StartingResources[10] = 0;
+ this->SEC_StartingResources[0xb] = 0;
+ this->SEC_StartingResources[0xc] = 0;
+ this->SEC_StartingResources[0xd] = 0;
+ this->SEC_StartingResources[0xe] = 0;
+ this->SEC_StartingResources[0xf] = 0;
+ this->SEC_StartingResources[0x10] = 0;
+ this->SEC_StartingResources[0x11] = 0;
+ this->SEC_StartingResources[0x12] = 0;
+ this->SEC_StartingResources[0x13] = 0;
+ this->SEC_StartingResources[0x14] = 0;
+ this->SEC_StartingResources[0x15] = 0;
+ this->SEC_StartingResources[0x16] = 0;
+ this->SEC_StartingResources[0x17] = 0;
+ this->SEC_StartingResources[0x18] = 0;
+ this->SEC_Section1065.tradeabilityArray[0] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[1] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[2] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[3] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[4] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[5] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[6] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[7] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[8] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[9] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[10] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0xb] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0xc] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0xd] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0xe] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0xf] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0x10] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0x11] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0x12] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0x13] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0x14] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0x15] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0x16] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0x17] = TRUE;
+ this->SEC_Section1065.tradeabilityArray[0x18] = TRUE;
+ this->SEC_StartingMonth = 0;
+ DAT_GameState.mapAndTime.month = 0;
+ this->eventsCount = 0;
+ this->SEC_SiegeInformation.archers = 0;
+ this->SEC_SiegeInformation.field1_0x4 = 0;
+ this->SEC_SiegeInformation.field2_0x8 = 0;
+ this->SEC_SiegeInformation.field3_0xc = 0;
+ this->SEC_SiegeInformation.field4_0x10 = 0;
+ this->SEC_SiegeInformation.field5_0x14 = 0;
+ this->SEC_SiegeInformation.field6_0x18 = 0;
+ this->SEC_SiegeInformation.field7_0x1c = 0;
+ this->SEC_SiegeInformation.field8_0x20 = 0;
+ this->SEC_SiegeInformation.field9_0x24 = 0;
+ this->SEC_SiegeInformation.field10_0x28 = 0;
+ this->SEC_SiegeInformation.field11_0x2c = 0;
+ this->SEC_SiegeInformation.field12_0x30 = 0;
+ this->SEC_SiegeInformation.field13_0x34 = 0;
+ this->SEC_SiegeInformation.field14_0x38 = 0;
+ this->SEC_SiegeInformation.field15_0x3c = 0;
+ this->SEC_SiegeInformation.field16_0x40 = 0;
+ this->SEC_SiegeInformation.field17_0x44 = 0;
+ this->SEC_SiegeInformation.field18_0x48 = 0;
+ this->SEC_SiegeInformation.field19_0x4c = 0;
+ this->SEC_Section1067.field0_0x0 = 0;
+ this->SEC_Section1067.field1_0x4 = 0;
+ this->SEC_Section1067.field2_0x8 = 0;
+ this->SEC_Section1067.field3_0xc = 0;
+ this->SEC_Section1067.field4_0x10 = 0;
+ this->SEC_Section1067.field5_0x14 = 0;
+ this->SEC_StartingPopularity = 100;
+ resetToTextIndex(10);
+ _sprintf(local_10, "%d", this->SEC_StartingYear);
+ copyIntoTextArray(
+ local_10);
+ this->field48_0x13560 = -1;
+ this->field47_0x1355c = 0;
+ psVar2 = this->buildingAvailability;
+ /*
+ bitmask for setting the availability of two shorts
+ */
+ for (iVar1 = 50; iVar1 != 0; iVar1 = iVar1 + -1) {
+ psVar2[0] = 1;
+ psVar2[1] = 1;
+ psVar2 = psVar2 + 2;
+ }
+ commitBuildingAvailability();
+ resetToTextIndex(9);
+ ;
+ return;
+ }
+}
+}
+
+### 0x004beb20 updateEventYearsAndCommitBuildingAvailability | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004BEB20
+ void MapPropertiesState::updateEventYearsAndCommitBuildingAvailability()
+ {
+ int iVar1;
+ IngameEventHeader* piVar2;
+ int iVar2;
+ char local_10[12];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)local_10;
+ if (this->SEC_StartingYear < 1000) {
+ this->SEC_StartingYear = 1181;
+ }
+ resetToTextIndex(10);
+ _sprintf(local_10, "%d", this->SEC_StartingYear);
+ copyIntoTextArray(
+ local_10);
+ this->field48_0x13560 = -1;
+ this->field47_0x1355c = 0;
+ iVar2 = 0;
+ this->year_copy = this->SEC_StartingYear;
+ if (0 < this->eventsCount) {
+ piVar2 = &this->scenarioEvents[0].header;
+ do {
+ /*
+ fixme
+ */
+ iVar1 = piVar2->year;
+ if (((iVar1 <= DAT_GameState.mapAndTime.year)
+ && (((DAT_GameState.mapAndTime.year != iVar1
+ || (DAT_GameState.mapAndTime.month < piVar2.month))
+ && (piVar2->tl_type == 1))))
+ && (piVar2[0x1f] != 0)) {
+ if (piVar2[0x1e] == 0) {
+ piVar2[0x1e] = iVar1;
+ } else {
+ piVar2->year = piVar2[0x1e];
+ }
+ }
+ iVar2 = iVar2 + 1;
+ piVar2 = piVar2 + 0x39;
+ } while (iVar2 < this->eventsCount);
+ }
+ commitBuildingAvailability();
+ ;
+ return;
+ }
+}
+}
+
+### 0x004c1320 removeProcessedInvasionEvents | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004C1320
+ void MapPropertiesState::removeProcessedInvasionEvents()
+ {
+ undefined1 uVar1;
+ undefined2 uVar2;
+ undefined1* puVar3;
+ int iVar4;
+ undefined1* puVar5;
+ undefined4* puVar6;
+ undefined4* puVar7;
+ int local_d0;
+ undefined4 local_c8[7];
+ undefined1 auStack_ac[80];
+ undefined2 uStack_5c;
+ undefined1 auStack_5a[86];
+ local_d0 = 0;
+ if (0 < this->eventsCount) {
+ puVar5 = (undefined1*)((int)&this->scenarioEvents[0].data + 0xe);
+ do {
+ if (*(int*)(puVar5 + -0x16) == 3) {
+ puVar6 = (undefined4*)(puVar5 + -0x1e);
+ puVar7 = local_c8;
+ for (iVar4 = 0x2f; iVar4 != 0; iVar4 = iVar4 + -1) {
+ *puVar7 = *puVar6;
+ puVar6 = puVar6 + 1;
+ puVar7 = puVar7 + 1;
+ }
+ iVar4 = 0x28;
+ puVar3 = puVar5;
+ do {
+ puVar3[1] = 0;
+ *(undefined2*)(puVar3 + -2) = 0;
+ *puVar3 = 0;
+ puVar3 = puVar3 + 4;
+ iVar4 = iVar4 + -1;
+ } while (iVar4 != 0);
+ iVar4 = 0;
+ puVar3 = puVar5;
+ do {
+ uVar2 = *(undefined2*)(auStack_5a + iVar4 * 4 + -2);
+ puVar3[1] = auStack_ac[iVar4 * 4];
+ uVar1 = auStack_5a[iVar4 * 4];
+ *(undefined2*)(puVar3 + -2) = uVar2;
+ *puVar3 = uVar1;
+ iVar4 = iVar4 + 1;
+ puVar3 = puVar3 + 4;
+ } while (iVar4 < 0x14);
+ }
+ local_d0 = local_d0 + 1;
+ puVar5 = puVar5 + 0xe4;
+ } while (local_d0 < this->eventsCount);
+ }
+ pruneInvalidEventTriggerLinks();
+ return;
+ }
+}
+}
+
+### 0x004c13f0 spawnInvasionEventAttackWave | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004C13F0
+ void MapPropertiesState::spawnInvasionEventAttackWave()
+ {
+ byte(*pabVar1)[10];
+ byte* pbVar2;
+ int iVar3;
+ char cVar4;
+ int _sliderValue;
+ int _unitCount;
+ int _unitTypeOther;
+ UnitTypeInt _unitType;
+ char* eventVideoBik;
+ char* eventWavFile;
+ int local_10;
+ int local_c;
+ int _sliderIndex;
+ DAT_TroopValueState.attackInfo.inv_count = DAT_TroopValueState.attackInfo.inv_count + 1;
+ local_c = 0;
+ local_10 = 0;
+ if (0x31 < DAT_TroopValueState.attackInfo.inv_count) {
+ DAT_TroopValueState.attackInfo.inv_count = 1;
+ }
+ initializeAttackWaveSlot(DAT_TroopValueState.attackInfo.inv_count, 0);
+ DAT_TroopValueState.attackInfo
+ .attackWavePlayerIDArray[DAT_TroopValueState.attackInfo.inv_count]
+ = (char)this->invasionEventContent.crusaderArabian + 2;
+ _sliderIndex = 0;
+ do {
+ _sliderValue = this->invasionEventContent.unitCountsPerUnitType[_sliderIndex];
+ if (_sliderValue == 0)
+ goto LAB_004c16b3;
+ _unitTypeOther = 0;
+ _unitType = ((UnitType)0);
+ iVar3 = 0;
+ switch (_sliderIndex) {
+ case 0:
+ _unitTypeOther = 3;
+ _unitType = UT_E_ARCHER;
+ break;
+ case 1:
+ _unitTypeOther = 7;
+ _unitType = UT_E_XBOW;
+ break;
+ case 2:
+ _unitTypeOther = 5;
+ _unitType = UT_E_SPEAR;
+ break;
+ case 3:
+ _unitTypeOther = 6;
+ _unitType = UT_E_PIKE;
+ break;
+ case 4:
+ _unitTypeOther = 9;
+ _unitType = UT_E_MACE;
+ break;
+ case 5:
+ _unitTypeOther = 8;
+ _unitType = UT_E_SWORD;
+ break;
+ case 6:
+ _unitTypeOther = 10;
+ _unitType = UT_E_KNIGHT;
+ iVar3 = 10;
+ goto switchD_004c146e_caseD_18;
+ case 7:
+ _unitTypeOther = 4;
+ _unitType = UT_E_LADDER;
+ break;
+ case 8:
+ _unitTypeOther = 0xb;
+ _unitType = UT_E_ENGINEER;
+ break;
+ case 9:
+ _unitTypeOther = 0x16;
+ _unitType = UT_S_CATAPULT;
+ break;
+ case 10:
+ _unitTypeOther = 0x17;
+ _unitType = UT_S_TREBUCHET;
+ break;
+ case 0xb:
+ _unitTypeOther = 0x13;
+ _unitType = UT_S_BATTERINGRAM;
+ break;
+ case 0xc:
+ _unitTypeOther = 0x14;
+ _unitType = UT_S_TOWER;
+ break;
+ case 0xd:
+ _unitTypeOther = 0x15;
+ _unitType = UT_S_SHIELD;
+ break;
+ case 0xe:
+ _unitTypeOther = 0xc;
+ _unitType = UT_E_MONK;
+ break;
+ case 0xf:
+ _unitTypeOther = 2;
+ _unitType = UT_TUNNELER;
+ break;
+ case 0x10:
+ _unitTypeOther = 0x19;
+ _unitType = UT_A_ARCHER;
+ break;
+ case 0x11:
+ _unitTypeOther = 0x1a;
+ _unitType = UT_A_SLAVE;
+ break;
+ case 0x12:
+ _unitTypeOther = 0x1b;
+ _unitType = UT_A_SLINGER;
+ break;
+ case 0x13:
+ _unitTypeOther = 0x1c;
+ _unitType = UT_A_ASSASSIN;
+ break;
+ case 0x14:
+ _unitTypeOther = 0x1d;
+ _unitType = UT_A_HARCHER;
+ break;
+ case 0x15:
+ _unitTypeOther = 0x1e;
+ _unitType = UT_A_SWORDSMAN;
+ break;
+ case 0x16:
+ _unitTypeOther = 0x1f;
+ _unitType = UT_A_FIRETHROWER;
+ break;
+ case 0x17:
+ _unitTypeOther = 0x18;
+ _unitType = UT_S_FBALLISTA;
+ break;
+ default:
+ goto switchD_004c146e_caseD_18;
+ }
+ /*
+ if a siege engine...
+ */
+ iVar3 = 10;
+ switchD_004c146e_caseD_18:
+ cVar4 = (char)_sliderValue;
+ if (_unitTypeOther == 0x16) {
+ pabVar1 = DAT_TroopValueState.attackInfo.someSinglePlayerScore
+ + DAT_TroopValueState.attackInfo.inv_count;
+ (*pabVar1)[0] = (*pabVar1)[0] + cVar4;
+ } else if (_unitTypeOther == 0x17) {
+ pbVar2 = DAT_TroopValueState.attackInfo
+ .someSinglePlayerScore[DAT_TroopValueState.attackInfo.inv_count]
+ + 1;
+ *pbVar2 = *pbVar2 + cVar4;
+ } else if (_unitTypeOther == 0x13) {
+ pbVar2 = DAT_TroopValueState.attackInfo
+ .someSinglePlayerScore[DAT_TroopValueState.attackInfo.inv_count]
+ + 2;
+ *pbVar2 = *pbVar2 + cVar4;
+ } else if (_unitTypeOther == 0x14) {
+ pbVar2 = DAT_TroopValueState.attackInfo
+ .someSinglePlayerScore[DAT_TroopValueState.attackInfo.inv_count]
+ + 3;
+ *pbVar2 = *pbVar2 + cVar4;
+ } else if (_unitTypeOther == 0x15) {
+ pbVar2 = DAT_TroopValueState.attackInfo
+ .someSinglePlayerScore[DAT_TroopValueState.attackInfo.inv_count]
+ + 4;
+ *pbVar2 = *pbVar2 + cVar4;
+ } else if (_unitTypeOther == 0x18) {
+ pbVar2 = DAT_TroopValueState.attackInfo
+ .someSinglePlayerScore[DAT_TroopValueState.attackInfo.inv_count]
+ + 8;
+ *pbVar2 = *pbVar2 + cVar4;
+ } else {
+ /*
+ if not a siege engine...
+ */
+ _unitCount = _sliderValue / (_sliderValue / iVar3 + 1);
+ while (0 < _sliderValue) {
+ if (_sliderValue < _unitCount) {
+ _unitCount = _sliderValue;
+ }
+ iVar3 = (&DAT_TroopValueState.attackInfo
+ .unknownSignpostRelatedArray)[DAT_TroopValueState.attackInfo.inv_count];
+ spawnUnitsIntoNewTribe(local_c,
+ _unitTypeOther, DAT_GameState.mapAndTime.signpostsMapEdge[iVar3][local_10].x,
+ DAT_GameState.mapAndTime.signpostsMapEdge[iVar3][local_10].y,
+ this->invasionEventContent.crusaderArabian + 2, (UnitType)((int)(_unitType)), ((UnitType)0),
+ _unitCount, 0);
+ local_c = local_c + 1;
+ local_10 = local_10 + 1;
+ _sliderValue = _sliderValue - _unitCount;
+ if (DAT_GameState.mapAndTime.signpostsMapEdgeDataCounter <= local_10) {
+ local_10 = 0;
+ }
+ }
+ }
+ LAB_004c16b3:
+ _sliderIndex = _sliderIndex + 1;
+ if (0x18 < _sliderIndex) {
+ if (this->invasionEventContent.crusaderArabian == 0) {
+ eventWavFile = "infidel_attack.wav";
+ eventVideoBik = "sultan_nervous.bik";
+ } else {
+ if (this->invasionEventContent.crusaderArabian != 1) {
+ this->eventsCount = 0;
+ return;
+ }
+ eventWavFile = "arabian_attack.wav";
+ eventVideoBik = "good_soldier_nervous.bik";
+ }
+ playEventVideoBik("", eventVideoBik, eventWavFile);
+ this->eventsCount = 0;
+ return;
+ }
+ } while (true);
+ }
+}
+}
+
+### 0x004c2280 updateMilitaryCampaignMissionState | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004C2280
+ void MapPropertiesState::updateMilitaryCampaignMissionState()
+ {
+ short sVar1;
+ bool bVar2;
+ bool bVar3;
+ bool bVar4;
+ char* pcVar5;
+ bool bVar6;
+ int iVar7;
+ char* pcVar8;
+ char* pcVar9;
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .playerDeathRelated
+ != 0) {
+ if ((DAT_BinkControlState.binkObjPtrArray[1] == (FakeBink*)0x0)
+ && (DAT_VideoBikQueue.storedMessages_0x924 == 0)) {
+ DAT_GameState.mapAndTime.unknownCountdown01
+ = DAT_GameState.mapAndTime.unknownCountdown01 + -1;
+ }
+ if (DAT_GameState.mapAndTime.unknownCountdown01 == 0) {
+ DAT_VideoBikQueue.storedMessages_0x924 = 0;
+ activateModalDialog(MMT_NONE, FALSE);
+ activateModalDialog(MMT_NONE, FALSE);
+ activateModalDialog(MMT_NONE, FALSE);
+ DAT_MenuTextInputState.DAT_SomeTextArrayIndex = 9;
+ clearAnyOtherModalDialogs();
+ if (DAT_GameCore.gameMode_2 == GM_CAMPAIGN_MISSION) {
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .playerDeathRelated
+ == 1) {
+ incrementMissionProgress();
+ DAT_GameCore.section1066 = 2;
+ }
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .playerDeathRelated
+ == 2) {
+ switchToMenuView(
+ MVT_GAME_LOSTUnk, 0);
+ DAT_GameCore.section1066 = 0;
+ }
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_MISSION_WIN_DEFEAT_BANNER, 0);
+ }
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_MISSION_WIN_DEFEAT_BANNER, 0);
+ return;
+ }
+ return;
+ }
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .lordKilledByPlayerID
+ != 0) {
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .playerDeathRelated = 2;
+ setAIControlStatusTo100000();
+ DAT_GameState.mapAndTime.unknownCountdown01 = 0xf0;
+ if ((DAT_GameCore.gameMode_2 == GM_BUILDERUnk)
+ && (this->SEC_U3_MapType2_1 == MT_SIEGE)) {
+ DAT_GameState.mapAndTime.unknownCountdown01 = 0x280;
+ }
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_MISSION_WIN_DEFEAT_BANNER, 2);
+ if ((DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType
+ == BASMTT_SIEGETENT_BATTERINGRAM)
+ || (DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType
+ == BASMTT_SIEGETENT_SHIELD)) {
+ DAT_GameCore.buildmenuMenuTabToSwitchTo.buildMenuTab
+ = DAT_GameCore.tabTypeSiegeSubset;
+ switchToMenuView(
+ MVT_BUILD_MENU, 0);
+ }
+ DAT_TileMapState.currentMapperCommand = M_MAPPER_NULL;
+ if (0 < DAT_UnitsState.totalUnitsInSelection) {
+ deselectAllUnitsOneByOne();
+ queueEscapeCommand();
+ resetMouseCursorState();
+ return;
+ }
+ DAT_TileMapState.currentMapperCommand = M_MAPPER_NULL;
+ return;
+ }
+ if (DAT_GameCore.missionNumber1to20 == 0x10) {
+ if (DAT_GameState.mapAndTime.field3179_0x27d4 == 0) {
+ iVar7 = DAT_GameState.playerDataArray[2].lordKilledByPlayerID;
+ if (7 < DAT_GameState.mapAndTime.emenyHitArray[2]
+ + DAT_GameState.mapAndTime.emenyHitArray[1]
+ + DAT_GameState.mapAndTime.emenyHitArray[4]
+ + DAT_GameState.mapAndTime.emenyHitArray[5]
+ + DAT_GameState.mapAndTime.emenyHitArray[6]
+ + DAT_GameState.mapAndTime.emenyHitArray[7]
+ + DAT_GameState.mapAndTime.emenyHitArray[8]
+ + DAT_GameState.mapAndTime.emenyHitArray[3]) {
+ pcVar9 = "Ap_Milit21.wav";
+ pcVar8 = "good_soldier_nervous.bik";
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 1;
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_NEW_TEXT2, 1);
+ playEventVideoBik(pcVar5, pcVar8, pcVar9);
+ DAT_GameState.mapAndTime.monthCopy = (short)DAT_GameState.mapAndTime.month + 3;
+ DAT_GameState.mapAndTime.yearCopy = (short)DAT_GameState.mapAndTime.year;
+ iVar7 = DAT_GameState.playerDataArray[2].lordKilledByPlayerID;
+ if (0xb < DAT_GameState.mapAndTime.month) {
+ DAT_GameState.mapAndTime.month = DAT_GameState.mapAndTime.month + -0xc;
+ DAT_GameState.mapAndTime.year = DAT_GameState.mapAndTime.year + 1;
+ }
+ }
+ LAB_004c24df:
+ if (iVar7 != 0) {
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 3;
+ return;
+ }
+ return;
+ }
+ if (DAT_GameState.mapAndTime.field3179_0x27d4 == 1) {
+ if ((DAT_GameState.mapAndTime.month == DAT_GameState.mapAndTime.monthCopy)
+ && (DAT_GameState.mapAndTime.year == DAT_GameState.mapAndTime.yearCopy)) {
+ pcVar9 = "Ap_Milit22.wav";
+ pcVar8 = "good_soldier_nervous.bik";
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 2;
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_NEW_TEXT2, 2);
+ playEventVideoBik(pcVar5, pcVar8, pcVar9);
+ spawnAttackWaveForPlayer(
+ 2, 0x18, 5, 0x4b, 10, 3);
+ DAT_GameState.mapAndTime.monthCopy = (short)DAT_GameState.mapAndTime.month + 1;
+ DAT_GameState.playerDataArray[2].currentWaveRandomAttackingStrength = 0;
+ DAT_GameState.mapAndTime.yearCopy = (short)DAT_GameState.mapAndTime.year;
+ if (0xb < DAT_GameState.mapAndTime.month) {
+ DAT_GameState.mapAndTime.month = DAT_GameState.mapAndTime.month + -0xc;
+ DAT_GameState.mapAndTime.year = DAT_GameState.mapAndTime.year + 1;
+ }
+ }
+ LAB_004c25f4:
+ if (DAT_GameState.playerDataArray[2].lordKilledByPlayerID != 0) {
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 3;
+ return;
+ }
+ return;
+ }
+ if (DAT_GameState.mapAndTime.field3179_0x27d4 == 2) {
+ if ((DAT_GameState.mapAndTime.month == DAT_GameState.mapAndTime.monthCopy)
+ && (DAT_GameState.mapAndTime.year == DAT_GameState.mapAndTime.yearCopy)) {
+ pcVar9 = "Ap_Milit23.wav";
+ pcVar8 = "bad_arab_taunt.bik";
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 3;
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_NEW_TEXT2, 3);
+ playEventVideoBik(pcVar5, pcVar8, pcVar9);
+ }
+ goto LAB_004c25f4;
+ }
+ if (DAT_GameState.mapAndTime.field3179_0x27d4 == 4) {
+ if (((DAT_GameState.mapAndTime.month != DAT_GameState.mapAndTime.monthCopy)
+ || (DAT_GameState.mapAndTime.year != DAT_GameState.mapAndTime.yearCopy))
+ && (DAT_GameState.mapAndTime.year <= DAT_GameState.mapAndTime.yearCopy)) {
+ return;
+ }
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 5;
+ goto LAB_004c3082;
+ }
+ if (DAT_GameState.mapAndTime.field3179_0x27d4 != 3) {
+ return;
+ }
+ if (DAT_GameState.playerDataArray[2].lordKilledByPlayerID == 0) {
+ return;
+ }
+ pcVar9 = "Ap_Milit24.wav";
+ pcVar8 = "good_soldier_taunt.bik";
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 4;
+ /*
+ added by script: "The old Rat’s made a run for it. We’ve done it sar!"
+ */
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_NEW_TEXT2, 4);
+ playEventVideoBik(
+ pcVar5, pcVar8, pcVar9);
+ sVar1 = (short)DAT_GameState.mapAndTime.month;
+ DAT_GameState.mapAndTime.yearCopy = (short)DAT_GameState.mapAndTime.year;
+ goto LAB_004c2d0b;
+ }
+ if (DAT_GameCore.missionNumber1to20 == 0x11) {
+ if (DAT_GameState.mapAndTime.field3179_0x27d4 == 0) {
+ if ((DAT_GameState.mapAndTime.month == DAT_GameState.mapAndTime.monthCopy)
+ && (DAT_GameState.mapAndTime.year == DAT_GameState.mapAndTime.yearCopy)) {
+ pcVar9 = "Ap_Milit25.wav";
+ pcVar8 = "good_soldier_nervous.bik";
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 1;
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_NEW_TEXT2, 5);
+ playEventVideoBik(pcVar5, pcVar8, pcVar9);
+ DAT_GameState.mapAndTime.monthCopy = (short)DAT_GameState.mapAndTime.month + 2;
+ DAT_GameState.mapAndTime.yearCopy = (short)DAT_GameState.mapAndTime.year;
+ if (0xb < DAT_GameState.mapAndTime.month) {
+ DAT_GameState.mapAndTime.month = DAT_GameState.mapAndTime.month + -0xc;
+ DAT_GameState.mapAndTime.year = DAT_GameState.mapAndTime.year + 1;
+ }
+ }
+ LAB_004c28d6:
+ if (DAT_GameState.playerDataArray[2].lordKilledByPlayerID == 0) {
+ return;
+ }
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 5;
+ return;
+ }
+ if (DAT_GameState.mapAndTime.field3179_0x27d4 == 1) {
+ if ((DAT_GameState.mapAndTime.month == DAT_GameState.mapAndTime.monthCopy)
+ && (DAT_GameState.mapAndTime.year == DAT_GameState.mapAndTime.yearCopy)) {
+ pcVar9 = "Ap_Milit26.wav";
+ pcVar8 = "good_soldier_nervous.bik";
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 2;
+ /*
+ added by script: "Here they come sar. Men, to arms!"
+ */
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_NEW_TEXT2, 6);
+ playEventVideoBik(pcVar5, pcVar8, pcVar9);
+ spawnAttackWaveForPlayer(
+ 2, 0x48, 0x32, 0x47, 0x14, 3);
+ DAT_GameState.playerDataArray[2].currentWaveRandomAttackingStrength = 0;
+ }
+ bVar6 = DAT_GameState.playerDataArray[2].lordKilledByPlayerID == 0;
+ } else if (DAT_GameState.mapAndTime.field3179_0x27d4 == 2) {
+ if (DAT_GameState.playerDataArray[2].aiPlayerState == 4) {
+ pcVar9 = "Ap_Milit27.wav";
+ pcVar8 = "bad_soldier_taunt.bik";
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 3;
+ /*
+ added by script: "It’s now or never men. Attack!"
+ */
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_NEW_TEXT2, 7);
+ playEventVideoBik(pcVar5, pcVar8, pcVar9);
+ }
+ bVar6 = DAT_GameState.playerDataArray[2].lordKilledByPlayerID == 0;
+ } else {
+ if (DAT_GameState.mapAndTime.field3179_0x27d4 != 3) {
+ if (DAT_GameState.mapAndTime.field3179_0x27d4 != 4) {
+ if (DAT_GameState.mapAndTime.field3179_0x27d4 != 6) {
+ if (DAT_GameState.mapAndTime.field3179_0x27d4 != 5) {
+ return;
+ }
+ if (DAT_GameState.playerDataArray[2].lordKilledByPlayerID != 0) {
+ pcVar9 = "Ap_Milit29.wav";
+ pcVar8 = "good_soldier_taunt.bik";
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 6;
+ /*
+ added by script: "The slimy blighters legged it sar! He’s left his general in
+ charge of the castle."
+ */
+ pcVar5
+ = getTextStringInGroupAtOffset(TEXT_NEW_TEXT2, 9);
+ playEventVideoBik(pcVar5, pcVar8, pcVar9);
+ DAT_GameState.mapAndTime.yearCopy
+ = (short)DAT_GameState.mapAndTime.year;
+ DAT_GameState.mapAndTime.monthCopy
+ = (short)DAT_GameState.mapAndTime.month + 1;
+ if (0xb < DAT_GameState.mapAndTime.month) {
+ DAT_GameState.mapAndTime.year
+ = DAT_GameState.mapAndTime.year + 1;
+ DAT_GameState.mapAndTime.month
+ = DAT_GameState.mapAndTime.month + -0xc;
+ return;
+ }
+ return;
+ }
+ return;
+ }
+ if (((DAT_GameState.mapAndTime.month != DAT_GameState.mapAndTime.monthCopy)
+ || (DAT_GameState.mapAndTime.year
+ != DAT_GameState.mapAndTime.yearCopy))
+ && (DAT_GameState.mapAndTime.year
+ <= DAT_GameState.mapAndTime.yearCopy)) {
+ return;
+ }
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 7;
+ goto LAB_004c3082;
+ }
+ if ((DAT_GameState.mapAndTime.month == DAT_GameState.mapAndTime.monthCopy)
+ && (DAT_GameState.mapAndTime.year == DAT_GameState.mapAndTime.yearCopy)) {
+ pcVar9 = "Ap_Milit28.wav";
+ pcVar8 = "good_soldier_taunt.bik";
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 5;
+ /*
+ added by script: "I think we’ve rattled the snake sar!"
+ */
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_NEW_TEXT2, 8);
+ playEventVideoBik(pcVar5, pcVar8, pcVar9);
+ }
+ goto LAB_004c28d6;
+ }
+ if ((DAT_GameState.playerDataArray[2].aiPlayerState == 8)
+ || (DAT_GameState.playerDataArray[2].aiPlayerState == 9)) {
+ DAT_GameState.mapAndTime.monthCopy = (short)DAT_GameState.mapAndTime.month + 2;
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 4;
+ DAT_GameState.mapAndTime.yearCopy = (short)DAT_GameState.mapAndTime.year;
+ if (0xb < DAT_GameState.mapAndTime.month) {
+ DAT_GameState.mapAndTime.month = DAT_GameState.mapAndTime.month + -0xc;
+ DAT_GameState.mapAndTime.year = DAT_GameState.mapAndTime.year + 1;
+ }
+ }
+ bVar6 = DAT_GameState.playerDataArray[2].lordKilledByPlayerID == 0;
+ }
+ goto LAB_004c2cc1;
+ }
+ if (DAT_GameCore.missionNumber1to20 == 0x12) {
+ if (DAT_GameState.mapAndTime.field3179_0x27d4 == 0) {
+ if (DAT_GameState.mapAndTime.month != DAT_GameState.mapAndTime.monthCopy) {
+ return;
+ }
+ if (DAT_GameState.mapAndTime.year == DAT_GameState.mapAndTime.yearCopy) {
+ DAT_GameState.playerDataArray[2].currentWaveRandomAttackingStrength = 0;
+ DAT_GameState.playerDataArray[3].currentWaveRandomAttackingStrength = 0;
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 1;
+ DAT_GameState.playerDataArray[2].aiAttackCoordinationLevel = 1;
+ DAT_GameState.playerDataArray[3].aiAttackCoordinationLevel = 1;
+ return;
+ }
+ return;
+ }
+ if (DAT_GameState.mapAndTime.field3179_0x27d4 == 1) {
+ if ((1 < DAT_GameState.playerDataArray[2].aiPlayerState)
+ && (1 < DAT_GameState.playerDataArray[3].aiPlayerState)) {
+ pcVar9 = "Ap_Milit30.wav";
+ pcVar8 = "good_soldier_nervous.bik";
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 2;
+ /*
+ added by script: "Sar, the Truffe brothers are launching a joint attack! How are we supposed to
+ hold out against both of them?"
+ */
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_NEW_TEXT2, 10);
+ playEventVideoBik(pcVar5, pcVar8, pcVar9);
+ }
+ iVar7 = DAT_GameState.playerDataArray[3].lordKilledByPlayerID;
+ if (DAT_GameState.playerDataArray[2].lordKilledByPlayerID == 0) {
+ return;
+ }
+ goto LAB_004c24df;
+ }
+ if (DAT_GameState.mapAndTime.field3179_0x27d4 == 2) {
+ if ((DAT_GameState.playerDataArray[2].lordKilledByPlayerID == 0)
+ && (DAT_GameState.playerDataArray[3].lordKilledByPlayerID == 0)) {
+ return;
+ }
+ pcVar8 = "Ap_Milit32.wav";
+ pcVar5 = "good_soldier_taunt.bik";
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 3;
+ iVar7 = 0xc;
+ goto LAB_004c2dc2;
+ }
+ if (DAT_GameState.mapAndTime.field3179_0x27d4 != 3) {
+ if (DAT_GameState.mapAndTime.field3179_0x27d4 != 4) {
+ return;
+ }
+ if (((DAT_GameState.mapAndTime.month != DAT_GameState.mapAndTime.monthCopy)
+ || (DAT_GameState.mapAndTime.year != DAT_GameState.mapAndTime.yearCopy))
+ && (DAT_GameState.mapAndTime.year <= DAT_GameState.mapAndTime.yearCopy)) {
+ return;
+ }
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 5;
+ goto LAB_004c3082;
+ }
+ if (DAT_GameState.playerDataArray[2].lordKilledByPlayerID == 0) {
+ return;
+ }
+ if (DAT_GameState.playerDataArray[3].lordKilledByPlayerID == 0) {
+ return;
+ }
+ pcVar9 = "Ap_Milit33.wav";
+ pcVar8 = "good_soldier_taunt.bik";
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 4;
+ /*
+ added by script: "Not so bad after all. Mission accomplished sar!"
+ */
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_NEW_TEXT2, 0xd);
+ playEventVideoBik(
+ pcVar5, pcVar8, pcVar9);
+ DAT_GameState.mapAndTime.yearCopy = (short)DAT_GameState.mapAndTime.year;
+ LAB_004c2cfc:
+ sVar1 = (short)DAT_GameState.mapAndTime.month;
+ LAB_004c2d0b:
+ DAT_GameState.mapAndTime.monthCopy = sVar1 + 1;
+ if (0xb < DAT_GameState.mapAndTime.month) {
+ DAT_GameState.mapAndTime.year = DAT_GameState.mapAndTime.year + 1;
+ DAT_GameState.mapAndTime.month = DAT_GameState.mapAndTime.month + -0xc;
+ return;
+ }
+ return;
+ }
+ if (DAT_GameCore.missionNumber1to20 != 0x13) {
+ if (DAT_GameCore.missionNumber1to20 != 0x14) {
+ return;
+ }
+ bVar6 = false;
+ bVar4 = false;
+ if (DAT_GameState.mapAndTime.field3179_0x27d4 != 0) {
+ if (DAT_GameState.mapAndTime.field3179_0x27d4 != 1) {
+ return;
+ }
+ if (DAT_GameState.playerDataArray[3].lordKilledByPlayerID != 0) {
+ bVar6 = true;
+ if ((DAT_GameState.mapAndTime.field3180_0x27d6 & 1U) == 0) {
+ DAT_GameState.mapAndTime.field3180_0x27d6
+ = DAT_GameState.mapAndTime.field3180_0x27d6 | 1;
+ DAT_GameState.mapAndTime.yearCopy = (short)DAT_GameState.mapAndTime.year;
+ DAT_GameState.mapAndTime.monthCopy
+ = (short)DAT_GameState.mapAndTime.month + 1;
+ if (0xb < DAT_GameState.mapAndTime.month) {
+ DAT_GameState.mapAndTime.month = DAT_GameState.mapAndTime.month + -0xc;
+ DAT_GameState.mapAndTime.year = DAT_GameState.mapAndTime.year + 1;
+ }
+ } else if ((((DAT_GameState.mapAndTime.field3180_0x27d6 & 0x10U) == 0)
+ && (DAT_GameState.mapAndTime.month
+ == DAT_GameState.mapAndTime.monthCopy))
+ && (DAT_GameState.mapAndTime.year == DAT_GameState.mapAndTime.yearCopy)) {
+ pcVar9 = "Ap_Milit40.wav";
+ pcVar8 = "good_soldier_taunt.bik";
+ /*
+ added by script: "Sar! The Stoat is officially out of commission. Looks like we’re making
+ progress sar."
+ */
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_NEW_TEXT2, 0x14);
+ playEventVideoBik(pcVar5, pcVar8, pcVar9);
+ DAT_GameState.mapAndTime.field3180_0x27d6
+ = DAT_GameState.mapAndTime.field3180_0x27d6 | 0x10;
+ }
+ }
+ bVar2 = false;
+ if (DAT_GameState.playerDataArray[2].lordKilledByPlayerID != 0) {
+ bVar3 = true;
+ bVar2 = bVar3;
+ if ((DAT_GameState.mapAndTime.field3180_0x27d6 & 2U) == 0) {
+ DAT_GameState.mapAndTime.field3180_0x27d6
+ = DAT_GameState.mapAndTime.field3180_0x27d6 | 2;
+ DAT_GameState.mapAndTime.monthCopy
+ = (short)DAT_GameState.mapAndTime.month + 1;
+ DAT_GameState.mapAndTime.yearCopy = (short)DAT_GameState.mapAndTime.year;
+ bVar2 = true;
+ if (0xb < DAT_GameState.mapAndTime.month) {
+ DAT_GameState.mapAndTime.month = DAT_GameState.mapAndTime.month + -0xc;
+ DAT_GameState.mapAndTime.year = DAT_GameState.mapAndTime.year + 1;
+ bVar2 = bVar3;
+ }
+ } else if ((((DAT_GameState.mapAndTime.field3180_0x27d6 & 0x20U) == 0)
+ && (DAT_GameState.mapAndTime.month
+ == DAT_GameState.mapAndTime.monthCopy))
+ && (DAT_GameState.mapAndTime.year == DAT_GameState.mapAndTime.yearCopy)) {
+ if (DAT_GameState.playerDataArray[4].lordKilledByPlayerID == 0) {
+ pcVar9 = "Ap_Milit41.wav";
+ pcVar8 = "good_soldier_taunt.bik";
+ /*
+ added by script: "Another bites the dust sar! Only one rodent left and we can get
+ started on the Wolf."
+ */
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_NEW_TEXT2, 0x15);
+ playEventVideoBik(pcVar5, pcVar8, pcVar9);
+ }
+ DAT_GameState.mapAndTime.field3180_0x27d6
+ = DAT_GameState.mapAndTime.field3180_0x27d6 | 0x20;
+ }
+ }
+ if (DAT_GameState.playerDataArray[4].lordKilledByPlayerID != 0) {
+ bVar4 = true;
+ if ((DAT_GameState.mapAndTime.field3180_0x27d6 & 4U) == 0) {
+ DAT_GameState.mapAndTime.field3180_0x27d6
+ = DAT_GameState.mapAndTime.field3180_0x27d6 | 4;
+ DAT_GameState.mapAndTime.monthCopy
+ = (short)DAT_GameState.mapAndTime.month + 1;
+ DAT_GameState.mapAndTime.yearCopy = (short)DAT_GameState.mapAndTime.year;
+ if (0xb < DAT_GameState.mapAndTime.month) {
+ DAT_GameState.mapAndTime.month = DAT_GameState.mapAndTime.month + -0xc;
+ DAT_GameState.mapAndTime.year = DAT_GameState.mapAndTime.year + 1;
+ }
+ } else if ((((DAT_GameState.mapAndTime.field3180_0x27d6 & 0x40U) == 0)
+ && (DAT_GameState.mapAndTime.month
+ == DAT_GameState.mapAndTime.monthCopy))
+ && (DAT_GameState.mapAndTime.year == DAT_GameState.mapAndTime.yearCopy)) {
+ if (DAT_GameState.playerDataArray[2].lordKilledByPlayerID == 0) {
+ pcVar9 = "Ap_Milit41.wav";
+ pcVar8 = "good_soldier_taunt.bik";
+ /*
+ added by script: "Another bites the dust sar! Only one rodent left and we can get
+ started on the Wolf."
+ */
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_NEW_TEXT2, 0x15);
+ playEventVideoBik(pcVar5, pcVar8, pcVar9);
+ }
+ DAT_GameState.mapAndTime.field3180_0x27d6
+ = DAT_GameState.mapAndTime.field3180_0x27d6 | 0x40;
+ }
+ }
+ if ((1 < DAT_GameState.playerDataArray[5].aiPlayerState)
+ && (DAT_GameState.mapAndTime.field3183_0x27dc == 0)) {
+ pcVar9 = "Ap_Milit42.wav";
+ pcVar8 = "good_soldier_taunt.bik";
+ DAT_GameState.mapAndTime.field3183_0x27dc = 1;
+ /*
+ added by script: "Sar! The Wolf is launching a charge. What are your orders?"
+ */
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_NEW_TEXT2, 0x16);
+ playEventVideoBik(pcVar5, pcVar8, pcVar9);
+ }
+ if (!bVar6) {
+ return;
+ }
+ if (!bVar2) {
+ return;
+ }
+ if (!bVar4) {
+ return;
+ }
+ if (DAT_GameState.playerDataArray[5].lordKilledByPlayerID == 0) {
+ return;
+ }
+ DAT_GameState.mapAndTime.field3179_0x27d4
+ = DAT_GameState.mapAndTime.field3179_0x27d4 + 1;
+ pcVar9 = "";
+ pcVar8 = "";
+ /*
+ added by script: "Aftermath."
+ */
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_NEW_TEXT2, 0x17);
+ playEventVideoBik(pcVar5, pcVar8, pcVar9);
+ LAB_004c3082:
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .playerDeathRelated = 1;
+ DAT_GameState.mapAndTime.unknownCountdown01 = 0xf0;
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_MISSION_WIN_DEFEAT_BANNER, 1);
+ if ((DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType
+ == BASMTT_SIEGETENT_BATTERINGRAM)
+ || (DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType
+ == BASMTT_SIEGETENT_SHIELD)) {
+ DAT_GameCore.buildmenuMenuTabToSwitchTo.buildMenuTab
+ = DAT_GameCore.tabTypeSiegeSubset;
+ switchToMenuView(
+ MVT_BUILD_MENU, 0);
+ }
+ DAT_TileMapState.currentMapperCommand = M_MAPPER_NULL;
+ if (0 < DAT_UnitsState.totalUnitsInSelection) {
+ deselectAllUnitsOneByOne();
+ queueEscapeCommand();
+ resetMouseCursorState();
+ return;
+ }
+ DAT_TileMapState.currentMapperCommand = M_MAPPER_NULL;
+ return;
+ }
+ if (DAT_GameState.mapAndTime.month != DAT_GameState.mapAndTime.monthCopy) {
+ return;
+ }
+ if (DAT_GameState.mapAndTime.year != DAT_GameState.mapAndTime.yearCopy) {
+ return;
+ }
+ pcVar8 = "Ap_Milit39.wav";
+ pcVar5 = "good_soldier_nervous.bik";
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 1;
+ iVar7 = 0x13;
+ LAB_004c2dc2:
+ /*
+ added by script: "Sar! These odds are impossible. Four against one, it’s just not right!"
+ */
+ pcVar9 = getTextStringInGroupAtOffset(TEXT_NEW_TEXT2, iVar7);
+ playEventVideoBik(
+ pcVar9, pcVar5, pcVar8);
+ return;
+ }
+ if (DAT_GameState.mapAndTime.field3179_0x27d4 == 0) {
+ if ((DAT_GameState.mapAndTime.month == DAT_GameState.mapAndTime.monthCopy)
+ && (DAT_GameState.mapAndTime.year == DAT_GameState.mapAndTime.yearCopy)) {
+ pcVar9 = "Ap_Milit34.wav";
+ pcVar8 = "bad_soldier_taunt.bik";
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 1;
+ /*
+ added by script: "The time for vengeance is upon us. No surrender!"
+ */
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_NEW_TEXT2, 0xe);
+ playEventVideoBik(pcVar5, pcVar8, pcVar9);
+ spawnAttackWaveForPlayer(
+ 2, 0x46, 8, 0x48, 0x16, 2);
+ DAT_GameState.playerDataArray[2].currentWaveRandomAttackingStrength = 0;
+ }
+ } else if (DAT_GameState.mapAndTime.field3179_0x27d4 == 1) {
+ if (1 < DAT_GameState.playerDataArray[2].aiPlayerState) {
+ pcVar8 = "Ap_Milit35.wav";
+ pcVar5 = "good_soldier_nervous.bik";
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 2;
+ iVar7 = 0xf;
+ LAB_004c2c95:
+ /*
+ added by script: "Now I’m in charge I can do what I want and take what I please. The first thing I
+ want is your corpse on a stick."
+ */
+ pcVar9 = getTextStringInGroupAtOffset(TEXT_NEW_TEXT2, iVar7);
+ playEventVideoBik(pcVar9, pcVar5, pcVar8);
+ }
+ } else if (DAT_GameState.mapAndTime.field3179_0x27d4 == 2) {
+ if (DAT_GameState.playerDataArray[2].lordKilledByPlayerID == 0) {
+ return;
+ }
+ pcVar9 = "Ap_Milit36.wav";
+ pcVar8 = "good_soldier_taunt.bik";
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 3;
+ /*
+ added by script: "Sar! I’m pleased to report that we’ve caught the slippery eel. He’s taking the long
+ hot walk to our dungeon."
+ */
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_NEW_TEXT2, 0x10);
+ playEventVideoBik(
+ pcVar5, pcVar8, pcVar9);
+ DAT_GameState.mapAndTime.emenyHitArray[3] = 0;
+ } else {
+ if (DAT_GameState.mapAndTime.field3179_0x27d4 != 3) {
+ if (DAT_GameState.mapAndTime.field3179_0x27d4 != 4) {
+ if (DAT_GameState.mapAndTime.field3179_0x27d4 != 5) {
+ return;
+ }
+ if (((DAT_GameState.mapAndTime.month != DAT_GameState.mapAndTime.monthCopy)
+ || (DAT_GameState.mapAndTime.year != DAT_GameState.mapAndTime.yearCopy))
+ && (DAT_GameState.mapAndTime.year <= DAT_GameState.mapAndTime.yearCopy)) {
+ return;
+ }
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 6;
+ goto LAB_004c3082;
+ }
+ if (DAT_GameState.playerDataArray[3].lordKilledByPlayerID == 0) {
+ return;
+ }
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 5;
+ DAT_GameState.mapAndTime.yearCopy = (short)DAT_GameState.mapAndTime.year;
+ goto LAB_004c2cfc;
+ }
+ if (0xe < DAT_GameState.mapAndTime.emenyHitArray[3]) {
+ pcVar9 = "Ap_Milit37.wav";
+ pcVar8 = "good_soldier_taunt.bik";
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 4;
+ /*
+ added by script: "Sar! The Wolf’s retreated into the Kingdom of Jerusalem. Well have to track him
+ down later sar."
+ */
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_NEW_TEXT2, 0x11);
+ playEventVideoBik(pcVar5, pcVar8, pcVar9);
+ pcVar8 = "Ap_Milit38.wav";
+ pcVar5 = "bad_soldier_taunt.bik";
+ iVar7 = 0x12;
+ goto LAB_004c2c95;
+ }
+ }
+ if (DAT_GameState.playerDataArray[2].lordKilledByPlayerID == 0) {
+ return;
+ }
+ bVar6 = DAT_GameState.playerDataArray[3].lordKilledByPlayerID == 0;
+ LAB_004c2cc1:
+ if (bVar6) {
+ return;
+ }
+ DAT_GameState.mapAndTime.field3179_0x27d4 = 5;
+ return;
+ }
+}
+}
+
+### 0x004c3110 loadMapSiegeHeaderSections | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004C3110
+ void MapPropertiesState::loadMapSiegeHeaderSections(char* param_1)
+ {
+ resolveResourceFileName(
+ FRT_MAPS, (CHAR_CONST*)((int)(param_1)));
+ readMapHeaderSectionByID(
+ DAT_MapDefinedData.MapSectionAddressArray, 1063);
+ readMapHeaderSectionByID(
+ DAT_MapDefinedData.MapSectionAddressArray, 1062);
+ readMapHeaderSectionByID(
+ DAT_MapDefinedData.MapSectionAddressArray, 1064);
+ readMapHeaderSectionByID(
+ DAT_MapDefinedData.MapSectionAddressArray, 1056);
+ readMapHeaderSectionByID(
+ DAT_MapDefinedData.MapSectionAddressArray, 1057);
+ if ((int)FilePackagerObj::instance.versionNumOfCurrentFileTypeUnk < 154) {
+ removeProcessedInvasionEvents();
+ }
+ return;
+ }
+}
+}
+

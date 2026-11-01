@@ -1,0 +1,773 @@
+### 0x0054e6c0 UpdateTunneler | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0054E6C0
+ void Units::UpdateTunneler()
+ {
+ int* piVar1;
+ byte* pbVar2;
+ undefined4* puVar3;
+ short* psVar4;
+ char* pcVar5;
+ byte bVar6;
+ UnitStateShort UVar7;
+ short sVar8;
+ short sVar9;
+ ushort uVar10;
+ uint uVar11;
+ int iVar12;
+ BOOLEnum BVar13;
+ int _isValidLocation;
+ int _workplaceBuildingTypeID;
+ int _workplaceBuildingTypeID_8;
+ int _playerID;
+ uint uVar14;
+ bool bVar15;
+ short _tunnelerFrame;
+ uint _unitID;
+ _unitID = DAT_CurrentUnitSlotID;
+ _playerID = (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner;
+ piVar1 = &DAT_GameState.playerDataArray[_playerID].armySize;
+ *piVar1 = *piVar1 + 1;
+ piVar1 = &DAT_GameState.playerDataArray[_playerID].currentTunnelers;
+ *piVar1 = *piVar1 + 1;
+ DAT_UnitsState.units[_unitID].calculatedOwnerPlayerIndex = _playerID;
+ if (DAT_UnitsState.units[_unitID].isSelectable_OR_matchTime == 0) {
+ DAT_UnitsState.units[_unitID].isSelectable_OR_matchTime
+ = (short)DAT_GameCore.mapTimeInTicks;
+ }
+ addUnitToNewTribe(_unitID);
+ _unitID = DAT_CurrentUnitSlotID;
+ UVar7 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic;
+ if (UVar7 == US_DETERMINE_NEXT_STATEUnk) {
+ if (DAT_UnitsState.units[DAT_CurrentUnitSlotID].isDisappearingUnk != 0) {
+ pbVar2 = &DAT_UnitsState.units[DAT_CurrentUnitSlotID].disappearFadeAlphaCountdown;
+ *pbVar2 = *pbVar2 - 1;
+ if (-1 < (char)*pbVar2) {
+ return;
+ }
+ DAT_UnitsState.units[_unitID].disappearFadeAlphaCountdown = 0;
+ DAT_UnitsState.units[_unitID].isDisappearingUnk = 0;
+ return;
+ }
+ if (DAT_UnitsState.units[DAT_CurrentUnitSlotID].goToRallyPoint != 0) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].goToRallyPoint = 0;
+ DAT_UnitsState.units[_unitID].state.generic = ((UnitState)0x69);
+ iVar12 = findFreeTunnelerAssemblyTile(_playerID, _unitID);
+ if (iVar12 != 0) {
+ setDestinationForUnit(
+ DAT_CurrentUnitSlotID, (uint)((int)(DAT_BuildingsState.DAT_TempXOffset)),
+ (uint)((int)(DAT_BuildingsState.DAT_TempYOffset)), 0);
+ }
+ puVar3 = &DAT_GameState.playerDataArray[_playerID].someCount29;
+ *puVar3 = *puVar3 + 1;
+ return;
+ }
+ sVar8 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].closestEnemyMicroDistance;
+ if (400 < sVar8) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_AIM_WEAPONUnk;
+ return;
+ }
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = (0x60 < sVar8) + US_AIM_WEAPONUnk;
+ return;
+ }
+ if (UVar7 == US_IDLEUnk) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationSheetFrameOffset = 1;
+ DAT_UnitsState.units[_unitID].field_0x30_animRelated = 0x10;
+ DAT_UnitsState.units[_unitID].unknownTestAgainst0_2 = 1;
+ return;
+ }
+ if (UVar7 == ((UnitState)0x69)) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationSheetFrameOffset = 1;
+ DAT_UnitsState.units[_unitID].field_0x30_animRelated = 0x10;
+ DAT_UnitsState.units[_unitID].calculatedMovementSpeed
+ = DAT_UnitsState.units[_unitID].movementSpeed;
+ BVar13 = hasUnitReachedDestination(_unitID);
+ if (BVar13 != FALSE) {
+ iVar12 = findFreeTunnelerAssemblyTile(_playerID, DAT_CurrentUnitSlotID);
+ if (iVar12 != 0) {
+ setDestinationForUnit(
+ DAT_CurrentUnitSlotID, (uint)((int)(DAT_BuildingsState.DAT_TempXOffset)),
+ (uint)((int)(DAT_BuildingsState.DAT_TempYOffset)), 0);
+ puVar3 = &DAT_GameState.playerDataArray[_playerID].someCount29;
+ *puVar3 = *puVar3 + 1;
+ return;
+ }
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].facingDirection = 4;
+ }
+ puVar3 = &DAT_GameState.playerDataArray[_playerID].someCount29;
+ *puVar3 = *puVar3 + 1;
+ return;
+ }
+ if (UVar7 != US_MOVE_TO_DESTINATION) {
+ if (UVar7 == US_APPEAR) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].stateBasedSpeed = 0;
+ DAT_UnitsState.units[_unitID].field_0x30_animRelated = 0x10;
+ sVar8 = DAT_UnitsState.units[_unitID].moveInstructionSpeedDelayTracker;
+ DAT_UnitsState.units[_unitID].animationSheetFrameOffset = 1;
+ if ((sVar8 == 0) || (DAT_UnitsState.units[_unitID].moveInstructionSpeedDelayTracker < 0x47)) {
+ DAT_UnitsState.units[_unitID].stateBasedSpeed = 0;
+ } else {
+ DAT_UnitsState.units[_unitID].stateBasedSpeed = -1;
+ DAT_UnitsState.units[_unitID].field_0x30_animRelated = 0;
+ }
+ BVar13 = hasUnitReachedDestination(_unitID);
+ if (BVar13 == FALSE) {
+ return;
+ }
+ _playerID = DAT_UnitsState.units[_unitID]
+ .targetedUnitUIDUnk_OR_someAppearTileUnk_OR_buildingUID_OR_pitchDitchUID_OR_entityUID;
+ setPositionOfUnit(
+ DAT_CurrentUnitSlotID,
+ (uint)((int)(_playerID
+ - DAT_ViewportRenderState
+ .translationMatrix[DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[_playerID]]
+ .addXgetTile)),
+ (uint)((int)((int)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[_playerID])),
+ (undefined4)((int)((uint)DAT_TileMapState.HeightLayer[_playerID])));
+ setDestinationForUnit(
+ DAT_CurrentUnitSlotID,
+ (uint)((
+ int)((int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].plannedDestinationX)),
+ (uint)((
+ int)((int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].plannedDestinationY)),
+ 0);
+ _unitID = DAT_CurrentUnitSlotID;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_MOVE_TO_DESTINATION;
+ DAT_UnitsState.units[_unitID].fadeType = 1;
+ DAT_UnitsState.units[_unitID].fadeCounter = 0;
+ return;
+ }
+ if (UVar7 == US_LOOK_AROUNDUnk) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].unknownTestAgainst0_2 = 0;
+ DAT_UnitsState.units[_unitID].stateBasedSpeed = 0;
+ DAT_UnitsState.units[_unitID].field_0x30_animRelated = 0x10;
+ if (DAT_UnitsState.units[_unitID].movementRunUpTime == 0) {
+ DAT_UnitsState.units[_unitID].animationSheetFrameOffset = 0x81;
+ DAT_UnitsState.units[_unitID].stateBasedSpeed = 1;
+ } else {
+ DAT_UnitsState.units[_unitID].animationSheetFrameOffset = 1;
+ DAT_UnitsState.units[_unitID].stateBasedSpeed = 0;
+ }
+ _isValidLocation = hasUnitReachedDestination(_unitID);
+ if (_isValidLocation == 0) {
+ return;
+ }
+ DAT_UnitsState.units[_unitID].stateBasedSpeed = 0;
+ DAT_UnitsState.units[_unitID].animationCycleNumber = 0;
+ DAT_UnitsState.units[_unitID].state.generic = US_STAND_UPUnk;
+ _workplaceBuildingTypeID = (int)DAT_UnitsState.units[_unitID].workplaceBuildingID_1;
+ calculatePreferredRelativeOrientation(
+ (int)DAT_BuildingsState.buildings[_workplaceBuildingTypeID].buildingEntryX,
+ DAT_BuildingsState.buildings[_workplaceBuildingTypeID].buildingEntryY,
+ (int)((int)((short)DAT_BuildingsState.buildings[_workplaceBuildingTypeID].x + 1)),
+ (int)((int)((short)DAT_BuildingsState.buildings[_workplaceBuildingTypeID].y + 1)));
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].facingDirection
+ = (short)DAT_DirectionAlgorithmState.orientation;
+ return;
+ }
+ if (UVar7 == US_STAND_UPUnk) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationSpeed = 5;
+ DAT_UnitsState.units[_unitID].field_0x30_animRelated = 0;
+ _playerID = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field232_0x44a4[DAT_UnitsState.units[_unitID].animationCycleNumber];
+ DAT_UnitsState.units[_unitID].animationFrame = _playerID;
+ if ((_playerID == 10)
+ && (DAT_UnitsState.units[_unitID].animationCycleNumberHasJustIncremented != FALSE)) {
+ playSFXAtLocation(
+ (int)DAT_UnitsState.units[_unitID].x,
+ DAT_UnitsState.units[_unitID].y, FX_DIG1);
+ }
+ _unitID = DAT_CurrentUnitSlotID;
+ _playerID = DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationFrame;
+ iVar12 = (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID]
+ .facingDirectionMapOrientationCorrected;
+ if (_playerID < 1) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].gfxNumber = iVar12 + 0x101;
+ DAT_UnitHasBecomeIdle = 1;
+ } else {
+ bVar15 = DAT_UnitHasBecomeIdle == 0;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].gfxNumber
+ = iVar12 + 0xf9 + _playerID * 8;
+ if (bVar15) {
+ return;
+ }
+ }
+ DAT_UnitsState.units[_unitID].animationCycleNumber = 0;
+ DAT_UnitsState.units[_unitID].state.generic = US_JESTER_ROAM_TO;
+ DAT_UnitsState.units[_unitID].disappearFadeAlphaCountdown = 0;
+ DAT_UnitsState.units[_unitID].engineerManningSiegeStateRef_checkType = 1;
+ DAT_UnitsState.units[_unitID].cachedState
+ = US_STAND_UPUnk | US_IDLEUnk;
+ DAT_UnitsState.units[_unitID].updateTickTracker = 0;
+ _workplaceBuildingTypeID_8 = (int)DAT_UnitsState.units[_unitID].workplaceBuildingID_1;
+ uVar10 = DAT_BuildingsState.buildings[_workplaceBuildingTypeID_8].y;
+ DAT_UnitsState.units[_unitID].attackAtTileX
+ = DAT_BuildingsState.buildings[_workplaceBuildingTypeID_8].x;
+ DAT_UnitsState.units[_unitID].attackAtTileY = uVar10;
+ DAT_TileMapState.showNoRubbleWhenDestroyingBuilding = 1;
+ destroyBuilding(_workplaceBuildingTypeID_8);
+ _unitID = DAT_CurrentUnitSlotID;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingID_1 = 0;
+ DAT_UnitsState.units[_unitID].targetUID = 0;
+ return;
+ }
+ if (UVar7 == (US_STAND_UPUnk | US_IDLEUnk)) {
+ /*
+ Prepare tunnel
+ */
+ BVar13 = findTunnelTarget(
+ (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingID_1,
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].siegeTargetPlayerID);
+ if (BVar13 == FALSE) {
+ return;
+ }
+ sVar8 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingID_1;
+ setPositionOfUnit(
+ DAT_CurrentUnitSlotID,
+ (uint)((int)((int)DAT_BuildingsState.buildings[sVar8].someX)),
+ (uint)((int)((int)DAT_BuildingsState.buildings[sVar8].someY)), 4);
+ BVar13 = setDestinationForUnit(DAT_CurrentUnitSlotID,
+ (uint)((int)(DAT_PathFindingState.ALG_TargetX)),
+ (uint)((int)(DAT_PathFindingState.ALG_TargetY)), 2);
+ _unitID = DAT_CurrentUnitSlotID;
+ if (BVar13 != FALSE) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].moveRelatedFlag = 1;
+ DAT_UnitsState.units[_unitID].tunnelerFinishedDigging = 1;
+ return;
+ }
+ LAB_0054efeb:
+ DAT_TileMapState.showNoRubbleWhenDestroyingBuilding = 1;
+ destroyBuilding(
+ (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingID_1);
+ _unitID = DAT_CurrentUnitSlotID;
+ DAT_PathFindingState.toggleUpdateSeparateAreaTileMap = 1;
+ DAT_TileMapState.field204_0x554a30 = 1;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationCycleNumber = 0;
+ DAT_UnitsState.units[_unitID].logicalState = ULS_REMOVE;
+ return;
+ }
+ if (UVar7 == ((UnitState)3)) {
+ /*
+ Dig tunnel
+ */
+ if (DAT_UnitsState.units[DAT_CurrentUnitSlotID].tunnelerFinishedDigging == 1) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].logicalState
+ = ULS_REMOVE;
+ DAT_TileMapState.showNoRubbleWhenDestroyingBuilding = 1;
+ destroyBuilding((int)DAT_UnitsState.units[_unitID].workplaceBuildingID_1);
+ return;
+ }
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].movementSpeed = 5;
+ DAT_UnitsState.units[_unitID].animationSheetFrameOffset = 1;
+ DAT_UnitsState.units[_unitID].field_0x30_animRelated = 0x10;
+ psVar4 = &DAT_UnitsState.units[_unitID].tunnelerFrame;
+ *psVar4 = *psVar4 + 1;
+ _tunnelerFrame = DAT_UnitsState.units[_unitID].tunnelerFrame;
+ if (DAT_UnitsState.units[_unitID].currentIndexInPathPlan != 0) {
+ if (((_tunnelerFrame == 6) || (_tunnelerFrame == 0xc)) || (_tunnelerFrame == 0x12)) {
+ increaseHeightForTunnelSingleTile(DAT_UnitsState.units[_unitID].tile,
+ (uint)((int)((int)DAT_UnitsState.units[_unitID].x)),
+ (uint)((int)((int)DAT_UnitsState.units[_unitID].y)), 1);
+ } else if (24 < _tunnelerFrame) {
+ DAT_UnitsState.units[_unitID].tunnelerFrame = 0;
+ increaseHeightForTunnelWithBrush(DAT_UnitsState.units[_unitID].tile,
+ (uint)((int)((int)DAT_UnitsState.units[_unitID].x)),
+ (uint)((int)((int)DAT_UnitsState.units[_unitID].y)), 1);
+ }
+ }
+ BVar13 = hasUnitReachedDestination(DAT_CurrentUnitSlotID);
+ _unitID = DAT_CurrentUnitSlotID;
+ if (BVar13 == FALSE) {
+ return;
+ }
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationCycleNumber = 0;
+ DAT_UnitsState.units[_unitID].tunnelerFrame = 0;
+ DAT_UnitsState.units[_unitID].state.generic
+ = US_RELOAD_WEAPONUnk;
+ return;
+ }
+ if (UVar7 == US_RELOAD_WEAPONUnk) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationSheetFrameOffset = 1;
+ DAT_UnitsState.units[_unitID].field_0x30_animRelated = 0x10;
+ psVar4 = &DAT_UnitsState.units[_unitID].tunnelerFrame;
+ *psVar4 = *psVar4 + 1;
+ sVar8 = DAT_UnitsState.units[_unitID].tunnelerFrame;
+ if (sVar8 < 0x3c) {
+ return;
+ }
+ if (sVar8 < 0x41) {
+ /*
+ damage is 10
+ */
+ processEntityDamageToBuildingCollateralThunk(DAT_UnitsState.units[_unitID].tile,
+ (uint)((int)((int)DAT_UnitsState.units[_unitID].x)),
+ (uint)((int)((int)DAT_UnitsState.units[_unitID].y)), 10,
+ DAT_UnitsState.units[_unitID].owner, 0);
+ /*
+ damage is 10 again
+ */
+ processDamageToBuildingThunk(DAT_UnitsState.units[DAT_CurrentUnitSlotID].tile,
+ (uint)((int)((int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].x)),
+ (uint)((int)((int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].y)), 10, 0,
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner, FALSE);
+ playSFXAtLocation(
+ (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].x,
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].y,
+ FX_WALLDROP);
+ return;
+ }
+ _playerID = DAT_UnitsState.units[_unitID].tile;
+ if (DAT_TileMapState.BuildingLayer[_playerID] == 0) {
+ resetTileToDefaultState(
+ _playerID, (uint)((int)((int)DAT_UnitsState.units[_unitID].x)),
+ (uint)((int)((int)DAT_UnitsState.units[_unitID].y)));
+ } else {
+ destroyBuilding((int)DAT_TileMapState.BuildingLayer[_playerID]);
+ }
+ applyTunnelDamageAlongPathPlan(DAT_CurrentUnitSlotID);
+ goto LAB_0054efeb;
+ }
+ if (UVar7 != US_AIM_WEAPONUnk) {
+ if (UVar7 == US_FIRE_WEAPONUnk) {
+ uVar11 = DAT_CurrentUnitSlotID & 1;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationSpeed = 5;
+ DAT_UnitsState.units[_unitID].field_0x30_animRelated = 0;
+ DAT_UnitsState.units[_unitID].field131_0x2ac = 10;
+ if (uVar11 == 0) {
+ DAT_UnitsState.units[_unitID].animationFrame
+ = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field229_0x441c[DAT_UnitsState.units[_unitID].animationCycleNumber];
+ } else {
+ DAT_UnitsState.units[_unitID].animationFrame
+ = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field230_0x4444[DAT_UnitsState.units[_unitID].animationCycleNumber];
+ }
+ _playerID = DAT_UnitsState.units[_unitID].animationFrame;
+ if (_playerID < 1) {
+ DAT_UnitsState.units[_unitID].gfxNumber = 0x181;
+ DAT_UnitHasBecomeIdle = 1;
+ } else {
+ bVar15 = DAT_UnitHasBecomeIdle == 0;
+ DAT_UnitsState.units[_unitID].gfxNumber = _playerID + 0x180;
+ if (bVar15) {
+ return;
+ }
+ }
+ DAT_UnitsState.units[_unitID].animationCycleNumber = 0;
+ DAT_UnitsState.units[_unitID].state.generic
+ = US_DETERMINE_NEXT_STATEUnk;
+ if (DAT_TribesState.tribes[DAT_UnitsState.units[_unitID].tribeID]
+ .tribeBehaviorType
+ != STBT_0x400) {
+ return;
+ }
+ DAT_UnitsState.units[_unitID].state.generic = US_DISAPPEAR;
+ return;
+ }
+ if (UVar7 == 0x6c) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].stateBasedSpeed = 0;
+ DAT_UnitsState.units[_unitID].field_0x30_animRelated = 0;
+ DAT_UnitsState.units[_unitID].animationSheetFrameOffset = 1;
+ return;
+ }
+ if (UVar7 == US_MELEE_ATTACK_WALL) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationSpeed = 3;
+ DAT_UnitsState.units[_unitID].field_0x30_animRelated = 0;
+ setUnitFacingDirectionForTargetXandY(_unitID,
+ DAT_UnitsState.units[_unitID].attackAtTileX,
+ DAT_UnitsState.units[_unitID].attackAtTileY);
+ _unitID = DAT_CurrentUnitSlotID;
+ _playerID = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field231_0x447c[DAT_UnitsState.units[DAT_CurrentUnitSlotID]
+ .animationCycleNumber];
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationFrame = _playerID;
+ iVar12 = (int)DAT_UnitsState.units[_unitID].facingDirectionMapOrientationCorrected;
+ if (_playerID < 1) {
+ DAT_UnitsState.units[_unitID].gfxNumber = iVar12 + 0x1e9;
+ DAT_UnitHasBecomeIdle = 1;
+ } else {
+ bVar15 = DAT_UnitHasBecomeIdle == 0;
+ DAT_UnitsState.units[_unitID].gfxNumber = iVar12 + 0x1e1 + _playerID * 8;
+ if (bVar15) {
+ return;
+ }
+ }
+ pcVar5 = &DAT_UnitsState.units[_unitID].nextAttackHurtsWall;
+ *pcVar5 = *pcVar5 + '\x01';
+ if ('\x01' < DAT_UnitsState.units[_unitID].nextAttackHurtsWall) {
+ DAT_UnitsState.units[_unitID].nextAttackHurtsWall = '\0';
+ }
+ uVar11 = DAT_UnitsState.units[_unitID].targetedBuildingTile;
+ uVar14 = DAT_TileMapState.LogicLayer[uVar11] & 0x100;
+ if (uVar14 == 0) {
+ _playerID = (int)DAT_TileMapState.BuildingLayer[uVar11];
+ if (_playerID < 1) {
+ DAT_UnitsState.units[_unitID].state.generic
+ = US_DETERMINE_NEXT_STATEUnk;
+ return;
+ }
+ iVar12 = (-(uint)(DAT_BuildingDefinedData.IsGateOrTowerArray
+ [(short)DAT_BuildingsState.buildings[_playerID].buildingType]
+ != FALSE)
+ & 0xfffffff0)
+ + 0x14;
+ } else {
+ _playerID = 0;
+ iVar12 = 6;
+ }
+ BVar13 = processDamageToBuildingThunk(uVar11,
+ (uint)((int)((int)DAT_UnitsState.units[_unitID].attackAtTileX)),
+ (uint)((int)((int)DAT_UnitsState.units[_unitID].attackAtTileY)), iVar12,
+ DAT_UnitsState.units[_unitID].nextAttackHurtsWall,
+ DAT_UnitsState.units[_unitID].owner, TRUE);
+ if (BVar13 == FALSE) {
+ iVar12 = (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[iVar12] == -1) {
+ if (uVar14 == 0) {
+ if (((DAT_BuildingDefinedData.IsGateOrTowerArray
+ [(short)DAT_BuildingsState.buildings[_playerID].buildingType]
+ != FALSE)
+ && (*(int*)((int)DAT_TroopValueState.attackInfo.scaleValuesArray
+ + iVar12 * 0x177bc + -0x1c)
+ + 10
+ < (int)(uint)
+ * (byte*)(*(int*)((int)DAT_TroopValueState.attackInfo
+ .hackValuesArray
+ + iVar12 * 0x177bc + -0x10)
+ * 0x13a10
+ + 0x1ee2998
+ + DAT_UnitsState.units[DAT_CurrentUnitSlotID]
+ .targetedBuildingTile)))
+ && (_playerID = moveUnitToBehaviorTarget(DAT_CurrentUnitSlotID,
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID]
+ .unknownDigMoatOrWallAttackFlag1015),
+ _unitID = DAT_CurrentUnitSlotID, _playerID == 0)) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_DETERMINE_NEXT_STATEUnk;
+ DAT_UnitsState.units[_unitID].animationCycleNumber = 0;
+ return;
+ }
+ } else if ((*(int*)((int)DAT_TroopValueState.attackInfo.scaleValuesArray
+ + iVar12 * 0x177bc + -0x1c)
+ + 0xf
+ < (int)(uint)
+ * (byte*)(*(int*)((int)DAT_TroopValueState.attackInfo
+ .hackValuesArray
+ + iVar12 * 0x177bc + -0x10)
+ * 0x13a10
+ + 0x1ee2998
+ + DAT_UnitsState.units[DAT_CurrentUnitSlotID]
+ .targetedBuildingTile))
+ && (_playerID = setDestinationNearTargetedBuilding(DAT_CurrentUnitSlotID, 1),
+ _playerID != 0)) {
+ return;
+ }
+ }
+ } else {
+ if ((uVar14 != 0)
+ && (_playerID = setDestinationNearTargetedBuilding(DAT_CurrentUnitSlotID, 1),
+ _playerID != 0)) {
+ return;
+ }
+ _unitID = DAT_CurrentUnitSlotID;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetedBuildingTile = 0;
+ _playerID = moveUnitToBehaviorTarget(_unitID,
+ DAT_UnitsState.units[_unitID].unknownDigMoatOrWallAttackFlag1015);
+ _unitID = DAT_CurrentUnitSlotID;
+ if (_playerID == 0) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_DETERMINE_NEXT_STATEUnk;
+ DAT_UnitsState.units[_unitID].animationCycleNumber = 0;
+ return;
+ }
+ }
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationCycleNumber = 0;
+ return;
+ }
+ if (UVar7 == US_MELEE_ATTACK) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationSpeed = 3;
+ DAT_UnitsState.units[_unitID].field_0x30_animRelated = 0;
+ _playerID = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field231_0x447c[DAT_UnitsState.units[_unitID].animationCycleNumber];
+ DAT_UnitsState.units[_unitID].animationFrame = _playerID;
+ if (_playerID < 1) {
+ DAT_UnitsState.units[_unitID].gfxNumber
+ = DAT_UnitsState.units[_unitID].facingDirectionMapOrientationCorrected + 0x1e9;
+ DAT_UnitHasBecomeIdle = 1;
+ } else {
+ bVar15 = DAT_UnitHasBecomeIdle == 0;
+ DAT_UnitsState.units[_unitID].gfxNumber
+ = DAT_UnitsState.units[_unitID].facingDirectionMapOrientationCorrected + 0x1e1
+ + _playerID * 8;
+ if (bVar15) {
+ return;
+ }
+ }
+ uVar11 = DAT_CurrentUnitSlotID;
+ DAT_UnitsState.units[_unitID].animationCycleNumber = 0;
+ resumeMovementIfNoAttackTarget(uVar11);
+ return;
+ }
+ if (UVar7 == US_JESTER_ROAM_TO) {
+ pbVar2
+ = &DAT_UnitsState.units[DAT_CurrentUnitSlotID].disappearFadeAlphaCountdown;
+ *pbVar2 = *pbVar2
+ + DAT_UnitsState.units[DAT_CurrentUnitSlotID]
+ .engineerManningSiegeStateRef_checkType;
+ if ((char)*pbVar2 < '\0') {
+ DAT_UnitsState.units[_unitID].disappearFadeAlphaCountdown = 0;
+ } else if ('\x1f' < (char)DAT_UnitsState.units[_unitID].disappearFadeAlphaCountdown) {
+ DAT_UnitsState.units[_unitID].disappearFadeAlphaCountdown = 0x1f;
+ }
+ if (DAT_UnitsState.units[_unitID].disappearFadeAlphaCountdown == 1) {
+ placeBuilding(
+ _playerID, DAT_UnitsState.units[_unitID].attackAtTileX,
+ DAT_UnitsState.units[_unitID].attackAtTileY,
+ M_MAPPER_TUNNEL, 3, 0xf);
+ iVar12 = DAT_TileMapState.placedBuildingID;
+ _unitID = DAT_CurrentUnitSlotID;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingID_1
+ = (short)DAT_TileMapState.placedBuildingID;
+ _playerID = DAT_BuildingsState.buildings[iVar12].uid;
+ DAT_BuildingsState.buildings[iVar12].unitRefID = (short)_unitID;
+ DAT_UnitsState.units[_unitID].workplaceBuildingUID = _playerID;
+ DAT_BuildingsState.buildings[iVar12].unitRefUID
+ = DAT_UnitsState.units[_unitID].uid;
+ DAT_BuildingsState.buildings[iVar12].tunnelerCounter = 0;
+ }
+ psVar4 = &DAT_UnitsState.units[_unitID].updateTickTracker;
+ *psVar4 = *psVar4 + 1;
+ if (DAT_UnitsState.units[_unitID].updateTickTracker < 0x21) {
+ return;
+ }
+ DAT_UnitsState.units[_unitID].updateTickTracker = 0;
+ DAT_UnitsState.units[_unitID].disappearFadeAlphaCountdown = 0;
+ DAT_UnitsState.units[_unitID].state
+ = (UnitStateUnion)DAT_UnitsState.units[_unitID].cachedState;
+ if ((char)DAT_UnitsState.units[_unitID].engineerManningSiegeStateRef_checkType < '\x01') {
+ return;
+ }
+ commitUnitLocation(
+ DAT_CurrentUnitSlotID);
+ return;
+ }
+ if (UVar7 == US_DEATH_01) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].facingDirection = 0;
+ DAT_UnitsState.units[_unitID].animationSpeed = 2;
+ DAT_UnitsState.units[_unitID].field_0x30_animRelated = 0;
+ _playerID = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .ANIM_Worker_Shared1[DAT_UnitsState.units[_unitID].animationCycleNumber];
+ DAT_UnitsState.units[_unitID].animationFrame = _playerID;
+ if (_playerID < 1) {
+ DAT_UnitsState.units[_unitID].gfxNumber = 0x1b8;
+ DAT_UnitsState.units[_unitID].state.generic
+ = US_DISAPPEAR;
+ DAT_UnitHasBecomeIdle = 1;
+ return;
+ }
+ _playerID = _playerID + 0x1a0;
+ } else if (UVar7 == US_DEATH_03) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].facingDirection = 0;
+ DAT_UnitsState.units[_unitID].animationSpeed = 2;
+ DAT_UnitsState.units[_unitID].field_0x30_animRelated = 0;
+ _playerID = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .ANIM_Worker_Shared1[DAT_UnitsState.units[_unitID].animationCycleNumber];
+ DAT_UnitsState.units[_unitID].animationFrame = _playerID;
+ if (_playerID < 1) {
+ DAT_UnitsState.units[_unitID].gfxNumber = 0x1d0;
+ DAT_UnitsState.units[_unitID].state.generic
+ = US_DISAPPEAR;
+ DAT_UnitHasBecomeIdle = 1;
+ return;
+ }
+ _playerID = _playerID + 0x1b8;
+ } else {
+ BVar13
+ = checkIfCitizenUnitIsAliveBasedOnState(DAT_CurrentUnitSlotID);
+ if (BVar13 == FALSE) {
+ if (UVar7 != US_DISAPPEAR) {
+ return;
+ }
+ pbVar2 = &DAT_UnitsState.units[_unitID].disappearFadeAlphaCountdown;
+ *pbVar2 = *pbVar2 + 1;
+ if (' ' < (char)DAT_UnitsState.units[_unitID].disappearFadeAlphaCountdown) {
+ DAT_UnitsState.units[_unitID].disappearFadeAlphaCountdown = 0x20;
+ }
+ psVar4 = &DAT_UnitsState.units[_unitID].updateTickTracker;
+ *psVar4 = *psVar4 + 1;
+ if (DAT_UnitsState.units[_unitID].updateTickTracker < 0x21) {
+ return;
+ }
+ iVar12 = (int)DAT_UnitsState.units[_unitID].workplaceBuildingID_1;
+ if ((iVar12 != 0)
+ && (DAT_BuildingsState.buildings[iVar12].uid
+ == DAT_UnitsState.units[_unitID].targetUID)) {
+ DAT_BuildingsState.buildings[iVar12].logicalState
+ = BLS_REMOVE;
+ }
+ DAT_UnitsState.units[_unitID].logicalState = ULS_REMOVE;
+ if (DAT_UnitsState.units[_unitID].killedFlagUnk != 0) {
+ return;
+ }
+ processUnitLossStatistic(_playerID, DAT_CurrentUnitSlotID);
+ if (_playerID == DAT_GameSynchronyState.currentPlayerSlotID) {
+ piVar1 = DAT_GameState.mapAndTime.emenyHitArray
+ + DAT_UnitsState.units[DAT_CurrentUnitSlotID]
+ .lastEncounteredEnemyPlayerID
+ + -9;
+ *piVar1 = *piVar1 + 1;
+ return;
+ }
+ if (DAT_UnitsState.units[DAT_CurrentUnitSlotID].lastEncounteredEnemyPlayerID
+ != DAT_GameSynchronyState.currentPlayerSlotID) {
+ return;
+ }
+ piVar1 = DAT_GameState.mapAndTime.emenyHitArray + _playerID;
+ *piVar1 = *piVar1 + 1;
+ return;
+ }
+ DAT_UnitsState.units[_unitID].facingDirection = 0;
+ DAT_UnitsState.units[_unitID].animationSpeed = 2;
+ DAT_UnitsState.units[_unitID].field_0x30_animRelated = 0;
+ _playerID = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .ANIM_Worker_Shared1[DAT_UnitsState.units[_unitID].animationCycleNumber];
+ DAT_UnitsState.units[_unitID].animationFrame = _playerID;
+ if (_playerID < 1) {
+ DAT_UnitsState.units[_unitID].gfxNumber = 0x1e8;
+ DAT_UnitsState.units[_unitID].state.generic
+ = US_DISAPPEAR;
+ DAT_UnitHasBecomeIdle = 1;
+ return;
+ }
+ _playerID = _playerID + 0x1d0;
+ }
+ bVar15 = DAT_UnitHasBecomeIdle == 0;
+ DAT_UnitsState.units[_unitID].gfxNumber = _playerID;
+ if (bVar15) {
+ return;
+ }
+ DAT_UnitsState.units[_unitID].state.generic = US_DISAPPEAR;
+ return;
+ }
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationSpeed = 5;
+ DAT_UnitsState.units[_unitID].field_0x30_animRelated = 0;
+ DAT_UnitsState.units[_unitID].field131_0x2ac = 10;
+ sVar8 = DAT_UnitsState.units[_unitID].substate;
+ if (sVar8 == 0) {
+ bVar6 = DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field225_0x42c4[DAT_UnitsState.units[_unitID].animationCycleNumber];
+ } else {
+ if (sVar8 == 1) {
+ DAT_UnitsState.units[_unitID].animationFrame
+ = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field226_0x4314[DAT_UnitsState.units[_unitID].animationCycleNumber];
+ goto LAB_0054f0c7;
+ }
+ if (sVar8 == 2) {
+ DAT_UnitsState.units[_unitID].animationFrame
+ = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field227_0x4364[DAT_UnitsState.units[_unitID].animationCycleNumber];
+ goto LAB_0054f0c7;
+ }
+ bVar6 = DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field228_0x43b4[DAT_UnitsState.units[_unitID].animationCycleNumber];
+ }
+ DAT_UnitsState.units[_unitID].animationFrame = (int)(char)bVar6;
+ LAB_0054f0c7:
+ _playerID = DAT_UnitsState.units[_unitID].animationFrame;
+ if (_playerID < 1) {
+ DAT_UnitsState.units[_unitID].gfxNumber = 0x191;
+ DAT_UnitHasBecomeIdle = 1;
+ } else {
+ bVar15 = DAT_UnitHasBecomeIdle == 0;
+ DAT_UnitsState.units[_unitID].gfxNumber = _playerID + 400;
+ if (bVar15) {
+ return;
+ }
+ }
+ DAT_UnitsState.units[_unitID].substate = (byte)SEC_RNG::instance.currentNumber2 & 3;
+ DAT_UnitsState.units[_unitID].animationCycleNumber = 0;
+ DAT_UnitsState.units[_unitID].state.generic
+ = US_DETERMINE_NEXT_STATEUnk;
+ if (DAT_TribesState.tribes[DAT_UnitsState.units[_unitID].tribeID].tribeBehaviorType
+ != STBT_0x400) {
+ return;
+ }
+ DAT_UnitsState.units[_unitID].state.generic = US_DISAPPEAR;
+ return;
+ }
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].unknownTestAgainst0_2 = 0;
+ DAT_UnitsState.units[_unitID].stateBasedSpeed = 0;
+ DAT_UnitsState.units[_unitID].field_0x30_animRelated = 0x10;
+ if (DAT_UnitsState.units[_unitID].moveInstructionSpeedDelayTracker == 0) {
+ if (DAT_UnitsState.units[_unitID].movementRunUpTime != 0) {
+ DAT_UnitsState.units[_unitID].animationSheetFrameOffset = 1;
+ DAT_UnitsState.units[_unitID].stateBasedSpeed = 0;
+ goto LAB_0054e935;
+ }
+ bVar15 = DAT_UnitsState.units[_unitID].isMatchingSpeed;
+ DAT_UnitsState.units[_unitID].animationSheetFrameOffset = 1;
+ if (bVar15 == false) {
+ DAT_UnitsState.units[_unitID].stateBasedSpeed = 1;
+ goto LAB_0054e935;
+ }
+ } else {
+ DAT_UnitsState.units[_unitID].animationSheetFrameOffset = 1;
+ if (0x46 < DAT_UnitsState.units[_unitID].moveInstructionSpeedDelayTracker) {
+ DAT_UnitsState.units[_unitID].stateBasedSpeed = -1;
+ DAT_UnitsState.units[_unitID].field_0x30_animRelated = 0;
+ goto LAB_0054e935;
+ }
+ }
+ DAT_UnitsState.units[_unitID].stateBasedSpeed = 0;
+ LAB_0054e935:
+ BVar13 = hasUnitReachedDestination(_unitID);
+ uVar11 = DAT_CurrentUnitSlotID;
+ if (BVar13 == FALSE) {
+ return;
+ }
+ DAT_UnitsState.units[_unitID].stateBasedSpeed = 0;
+ DAT_UnitsState.units[_unitID].animationCycleNumber = 0;
+ DAT_UnitsState.units[_unitID].state.generic = US_DETERMINE_NEXT_STATEUnk;
+ sVar8 = DAT_UnitsState.units[_unitID].tribeID;
+ _playerID = handleUnitMovementWhenTargetingBuildings(uVar11);
+ _unitID = DAT_CurrentUnitSlotID;
+ if (0 < _playerID) {
+ if (DAT_UnitsState.units[DAT_CurrentUnitSlotID].unknownDigMoatOrWallAttackFlag1015
+ == 0x3f7) {
+ _playerID
+ = returnOwnedMoatAtTile(
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetedBuildingTile);
+ _unitID = DAT_CurrentUnitSlotID;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].digTileTarget = _playerID;
+ if (_playerID != 0) {
+ DAT_UnitsState.units[_unitID].state.generic = US_DIG;
+ sVar9 = DAT_ViewportRenderState.tileTranslationMatrix_YComponent
+ [DAT_UnitsState.units[_unitID].targetedBuildingTile];
+ DAT_UnitsState.units[_unitID].digTileY__OR__countLifeCycleEngineersSentToManSiegeEngine
+ = sVar9;
+ DAT_UnitsState.units[_unitID]
+ .digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300
+ = (short)DAT_UnitsState.units[_unitID].targetedBuildingTile
+ - (short)DAT_ViewportRenderState.translationMatrix[sVar9].addXgetTile;
+ }
+ } else {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_MELEE_ATTACK_WALL;
+ }
+ }
+ if (DAT_TribesState.tribes[sVar8].tribeBehaviorType != STBT_0x400) {
+ return;
+ }
+ DAT_UnitsState.units[_unitID].state.generic = US_DISAPPEAR;
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0054e6c0", "name": "UpdateTunneler", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Taktfunktion des Tunnelgräbers: steuert pro Tick seinen gesamten Ablauf von Sammelpunkt über Graben bis zum Einsturz unter dem Ziel."}, "p2": {"ein": "keine; arbeitet auf DAT_CurrentUnitSlotID", "aus": "keine", "liest": ["units[].state.generic/owner/tribeID/substate", "units[].closestEnemyMicroDistance", "units[].goToRallyPoint", "units[].tunnelerFrame", "units[].tunnelerFinishedDigging", "units[].workplaceBuildingID_1", "units[].currentIndexInPathPlan", "units[].unknownDigMoatOrWallAttackFlag1015", "TileMapState.BuildingLayer/LogicLayer", "BuildingDefinedData.IsGateOrTowerArray", "tribes[].tribeBehaviorType"], "schreibt": ["playerDataArray[sp].armySize +1", "playerDataArray[sp].currentTunnelers +1", "playerDataArray[sp].someCount29 +1", "units[].state.generic", "units[].tunnelerFrame", "units[].tunnelerFinishedDigging", "units[].movementSpeed=5 (im Graben)", "units[].logicalState=ULS_REMOVE", "units[].digTileTarget", "units[].nextAttackHurtsWall", "Tunnel-Gebäude (workplaceBuildingID_1)"], "ruft": ["addUnitToNewTribe", "findFreeTunnelerAssemblyTile", "setDestinationForUnit", "hasUnitReachedDestination", "findTunnelTarget", "setPositionOfUnit", "placeBuilding (M_MAPPER_TUNNEL)", "destroyBuilding", "increaseHeightForTunnelSingleTile", "increaseHeightForTunnelWithBrush", "processEntityDamageToBuildingCollateralThunk", "processDamageToBuildingThunk", "applyTunnelDamageAlongPathPlan", "resetTileToDefaultState", "handleUnitMovementWhenTargetingBuildings", "returnOwnedMoatAtTile", "setDestinationNearTargetedBuilding", "moveUnitToBehaviorTarget", "processUnitLossStatistic", "playSFXAtLocation"], "regeln": ["Jeder Tick zählt armySize und currentTunnelers des Besitzers um 1 hoch (vermutlich Neuzählung je Tick)", "Vorbereitung: Zustand 0x69 läuft zum Sammelplatz (findFreeTunnelerAssemblyTile); APPEAR setzt die Einheit auf ihre Startkachel; STAND_UP (Klettern-Bildfolge, bei Bild 10 Ton FX_DIG1) reißt das Start-Gebäude ab und führt über JESTER_ROAM_TO (Ein-/Ausblenden, nach 0x21 = 33 Ticks) zum Zustand STAND_UP|IDLE; bei Frame 1 des Einblendens wird ein M_MAPPER_TUNNEL (Parameter 3, 0xf) gesetzt", "Zustand STAND_UP|IDLE ('Prepare tunnel'): findTunnelTarget; bei FALSE wartet die Einheit; bei gelungenem setDestinationForUnit (Modus 2) werden moveRelatedFlag=1 und tunnelerFinishedDigging=1 gesetzt; schlägt das Wegsetzen fehl, wird das Tunnelgebäude zerstört und die Einheit entfernt", "Zustand 3 ('Dig tunnel'): ist tunnelerFinishedDigging==1, wird Einheit und Tunnelgebäude entfernt; sonst movementSpeed=5, tunnelerFrame zählt; nur wenn currentIndexInPathPlan!=0: bei Frame 6, 12, 18 Höhe einer Kachel anheben, bei Frame >24 Frame auf 0 und Höhe mit Pinsel anheben; am Ziel wechselt sie nach RELOAD_WEAPON, tunnelerFrame=0", "Einsturz in RELOAD_WEAPON: tunnelerFrame <60 passiert nichts; bei 60 bis 64 (5 Ticks) je Tick zweimal Schaden 10 (Kollateral plus Gebäude, zusammen 20 je Tick, Grundwert) plus Ton FX_WALLDROP; ab 65 wird das Gebäude auf der Kachel zerstört (sonst Kachel zurückgesetzt), applyTunnelDamageAlongPathPlan läuft und Tunnelgebäude plus Einheit werden entfernt", "Kampfzweige: DETERMINE_NEXT_STATE mit goToRallyPoint wechselt zu 0x69; sonst bei closestEnemyMicroDistance >400 AIM_WEAPON, bis 0x60 (96) AIM_WEAPON, dazwischen AIM_WEAPON+1; MELEE_ATTACK_WALL schlägt abwechselnd (nextAttackHurtsWall 0/1) mit Schaden 20 auf Gebäude, 4 auf Tore/Türme, 6 wenn LogicLayer-Bit 0x100 gesetzt ist; wird dieses Bit nicht gesetzt und liegt kein Gebäude mehr, geht es zurück zu DETERMINE_NEXT_STATE", "Bewegungszweig (MOVE_TO_DESTINATION): am Ziel handleUnitMovementWhenTargetingBuildings; Ergebnis >0 und unknownDigMoatOrWallAttackFlag1015==0x3f7 ergibt Zustand US_DIG am eigenen Graben (digTileTarget), sonst MELEE_ATTACK_WALL", "Tod und Verschwinden: DEATH_01, DEATH_03 und andere Todeszustände spielen Bildfolgen und gehen zu DISAPPEAR; nach 0x21 Ticks Einheit ULS_REMOVE, ein zugehöriges Gebäude BLS_REMOVE, Verlust wird über processUnitLossStatistic gezählt; bei tribeBehaviorType==STBT_0x400 geht die Einheit nach Animationsende direkt zu DISAPPEAR"], "offen": ["Wie die Einheit von STAND_UP|IDLE in Zustand 3 (Graben) wechselt, steht nicht in dieser Funktion", "Name hasUnitReachedDestination ist täuschend (prüft laut Nachbau nur Kletternde, bei tunnelerFinishedDigging FALSE); Wirkung hier unklar", "Bedeutung von someCount29, Zustand 0x69, 0x6c und STBT_0x400", "KI-Zweig bei MELEE_ATTACK_WALL mit rohen Zeigern auf attackInfo-Felder (Rechnung unklar)", "Schaden 10+10 und 20/4/6 sind Grundwerte, UCP kann sie ändern", "Tunnelgräber haben die Namen der Zustände nur als Vermutung (Ghidra-Kommentare)"]}, "p3": {"erklaerung": "Das ist das 'Gehirn' des Tunnelgräbers: Er sammelt sich, steigt aus, gräbt sich unter die Mauer, stürzt dort nach etwa 60 Ticks ein und richtet Schaden an. Das Tunnelgebäude und der Tunnelgräber verschwinden danach.", "gehirn": "Tunnelgräber sind Einwegwaffen: Nach dem Einsturz (Frame 60 bis 64 in RELOAD_WEAPON) ist die Einheit weg. Zum Planen gilt: tunnelerFrame zeigt den Fortschritt, currentTunnelers zählt aktive Tunnelgräber des Spielers.", "beleg": "code", "live": "Tunnelgräber am Ziel beobachten → units[].tunnelerFrame und Gebäude-Trefferpunkte an der Kachel → Einsturz bei Frame 60 bis 64, Schaden 5×20 am Gebäude (Grundwert)", "live_art": "kampf"}}
+

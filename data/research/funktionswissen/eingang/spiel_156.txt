@@ -1,0 +1,1367 @@
+### 0x004a4930 setClimbBasedOnClosestClimbData | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x004A4930
+ int PathFindingState::setClimbBasedOnClosestClimbData(int unitID, int ladderWallGroup, int ladderArea)
+ {
+ int iVar1;
+ int fromXPosition;
+ int _climbDataCounter;
+ ClimbData* _pClimbData;
+ ClimbData* _pClimbData2;
+ short _downOrUp1;
+ int _climbDataID;
+ int _climbData2;
+ int _minDistance;
+ short _downOrUp;
+ int _distance;
+ _minDistance = 1000;
+ _climbData2 = 0;
+ _downOrUp = 0;
+ if (this->field63_0xc0 == 0) {
+ return 200;
+ }
+ _climbDataCounter = 1;
+ if (1 < this->maxClimbDataCount) {
+ _pClimbData = &this->climbData[1];
+ _downOrUp = 0;
+ do {
+ if ((_pClimbData.canBeUsed == 1) && (_pClimbData->isRecognizedByPathfinding != 0)) {
+ iVar1 = checkUnitHasPropertyBasedOnUnitType(unitID, _pClimbData->type);
+ if ((iVar1 != 0) && (_pClimbData->type == 1)) {
+ if (_pClimbData->area == ladderWallGroup) {
+ _downOrUp1 = 0;
+ if (_pClimbData->wallGroupAreaID == ladderArea) {
+ iVar1 = _pClimbData->bottomYPosition;
+ fromXPosition = _pClimbData->bottomXPosition;
+ LAB_004a49e1:
+ MACRO_CALL_MEMBER(
+ setAxisBasedDistanceResult,
+ DAT_DirectionAlgorithmState)((int)DAT_UnitsState.units[unitID].x,
+ DAT_UnitsState.units[unitID].y, fromXPosition, iVar1);
+ _distance = DAT_DirectionAlgorithmState.distanceHigh
+ + _pClimbData->numberOfUnitsUsing * 8;
+ if (_distance < _minDistance) {
+ _climbData2 = _climbDataCounter;
+ _minDistance = _distance;
+ _downOrUp = _downOrUp1;
+ if (_downOrUp1 == 0) {
+ this->climbX = _pClimbData->bottomXPosition;
+ this->climbY = _pClimbData->bottomYPosition;
+ } else {
+ this->climbX = _pClimbData->topXPosition;
+ this->climbY = _pClimbData->topYPosition;
+ }
+ }
+ }
+ } else if ((_pClimbData->area == ladderArea)
+ && (_downOrUp1 = 1, _pClimbData->wallGroupAreaID == ladderWallGroup)) {
+ iVar1 = _pClimbData->topYPosition;
+ fromXPosition = _pClimbData->topXPosition;
+ goto LAB_004a49e1;
+ }
+ }
+ }
+ _climbDataCounter = _climbDataCounter + 1;
+ _pClimbData = _pClimbData + 0x81;
+ } while (_climbDataCounter < this->maxClimbDataCount);
+ }
+ DAT_UnitsState.units[unitID].climbDirection = _downOrUp;
+ if (_climbData2 == 0) {
+ _pClimbData2 = &this->climbData[1];
+ _climbDataID = 1;
+ do {
+ if ((_pClimbData2.canBeUsed == 1) && (_pClimbData2->isRecognizedByPathfinding != 0)) {
+ iVar1 = checkUnitHasPropertyBasedOnUnitType(unitID, _pClimbData2->type);
+ if ((iVar1 != 0) && (0 < _pClimbData2->buildingArea)) {
+ if (_pClimbData2->area == ladderArea) {
+ this->climbX = this->climbData[_climbDataID].bottomXPosition;
+ this->climbY = this->climbData[_climbDataID].bottomYPosition;
+ return _climbDataID;
+ }
+ if (_pClimbData2->wallGroupAreaID == ladderArea) {
+ this->climbX = this->climbData[_climbDataID].topXPosition;
+ this->climbY = this->climbData[_climbDataID].topYPosition;
+ return _climbDataID;
+ }
+ }
+ }
+ _climbDataID = _climbDataID + 1;
+ _pClimbData2 = _pClimbData2 + 0x81;
+ } while (_climbDataID < 200);
+ }
+ return _climbData2;
+ }
+ }
+}
+}
+
+### 0x004a4b30 isUsableClimbWallWithinArea | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x004A4B30
+ BOOLEnum PathFindingState::isUsableClimbWithinArea(int area, int wallDataID)
+ {
+ if ((this->climbData[wallDataID].canBeUsed == 1)
+ && (this->climbData[wallDataID].isRecognizedByPathfinding != 0)) {
+ if (this->climbData[wallDataID].area == area) {
+ return TRUE;
+ }
+ return (uint)(this->climbData[wallDataID].wallGroupAreaID == area);
+ }
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x004a4b80 clearLaddermanWalledData | quelle=nachgebaut | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x004A4B80
+ void PathFindingState::clearClimbData(int climbID)
+ {
+ fillMemory_ByteValue(
+ sizeof(this->climbData[climbID]), 0, &this->climbData[climbID]);
+ }
+ }
+}
+}
+
+### 0x004a4bb0 reprocessLadddermanWallData | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x004A4BB0
+ void PathFindingState::recountUnitsUsingClimbData(int climbDataID)
+ {
+ int* _ptrUnitID;
+ int _counter;
+ int _canBeUsed;
+ int* _ptrUnitUID;
+ int _unitID;
+ _counter = 0;
+ _canBeUsed = this->climbData[climbDataID].canBeUsed;
+ this->climbData[climbDataID].numberOfUnitsUsing = 0;
+ if (_canBeUsed != 0) {
+ _ptrUnitID = &this->climbData[climbDataID].unitID1;
+ do {
+ _unitID = *_ptrUnitID;
+ if (_unitID != 0) {
+ _ptrUnitUID = &this->climbData[climbDataID].unitUID1 + _counter;
+ if (DAT_UnitsState.units[_unitID].logicalState == ULS_NORMAL) {
+ if (DAT_UnitsState.units[_unitID].uid
+ == (&this->climbData[climbDataID].unitUID1)[_counter]) {
+ if (DAT_UnitsState.units[_unitID].climbDataID == climbDataID) {
+ _ptrUnitUID = &this->climbData[climbDataID].numberOfUnitsUsing;
+ *_ptrUnitUID = *_ptrUnitUID + 1;
+ } else {
+ *_ptrUnitID = 0;
+ *_ptrUnitUID = 0;
+ }
+ } else {
+ *_ptrUnitID = 0;
+ *_ptrUnitUID = 0;
+ }
+ } else {
+ *_ptrUnitID = 0;
+ *_ptrUnitUID = 0;
+ }
+ }
+ _counter = _counter + 1;
+ _ptrUnitID = _ptrUnitID + 1;
+ } while (_counter < 50);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004a4c70 registerUnitOnClimbData | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x004A4C70
+ undefined4 PathFindingState::registerUnitOnClimbData(int param_1, int param_2)
+ {
+ int iVar1;
+ int* piVar2;
+ if (this->field63_0xc0 == 0) {
+ return (undefined4)(0);
+ }
+ if ((this->climbData[param_1].canBeUsed != 0)
+ && (iVar1 = this->climbData[param_1].numberOfUnitsUsing, iVar1 < 0x32)) {
+ this->climbData[param_1].numberOfUnitsUsing = iVar1 + 1;
+ DAT_UnitsState.units[param_2].climbDataRelated = this->climbData[param_1].climbDataRelated;
+ if (this->climbData[param_1].type == 3) {
+ DAT_UnitsState.units[param_2].climbDataRelated = 0;
+ }
+ if (this->climbData[param_1].type == 4) {
+ DAT_UnitsState.units[param_2].climbDataRelated = 0;
+ }
+ if (this->climbData[param_1].type == 5) {
+ DAT_UnitsState.units[param_2].climbDataRelated = 0;
+ }
+ iVar1 = 0;
+ piVar2 = &this->climbData[param_1].unitID1;
+ do {
+ if (*piVar2 == 0) {
+ (&this->climbData[param_1].unitID1)[iVar1] = param_2;
+ (&this->climbData[param_1].unitUID1)[iVar1] = DAT_UnitsState.units[param_2].uid;
+ return (undefined4)(1);
+ }
+ iVar1 = iVar1 + 1;
+ piVar2 = piVar2 + 1;
+ } while (iVar1 < 0x32);
+ return (undefined4)(1);
+ }
+ return (undefined4)(0xffffffff);
+ }
+ }
+}
+}
+
+### 0x004a52d0 clearActiveClimbDataOfType6And7 | quelle=nachgebaut | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x004A52D0
+ void PathFindingState::clearActiveClimbDataOfType6And7()
+ {
+ for (int climbID = 1; climbID < 200; ++climbID) {
+ if (this->climbData[climbID].canBeUsed != 0) {
+ if (this->climbData[climbID].type == 6) {
+ clearClimbData(
+ climbID);
+ }
+ if (this->climbData[climbID].type == 7) {
+ clearClimbData(
+ climbID);
+ }
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x004a5320 calculateCanPlayerUnitsNavigateToAreaFromArea | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x004A5320
+ int PathFindingState::calculateCanPlayerUnitsNavigateToAreaFromArea(
+ int playerID, dword fromArea, dword toArea, int permitClimb)
+ {
+ int iVar1;
+ dword dVar2;
+ dword dVar3;
+ dword dVar4;
+ int iVar5;
+ int iVar6;
+ ClimbData* piVar7;
+ int iVar7;
+ bool bVar8;
+ int local_96c;
+ int local_968;
+ dword adStack_960[200];
+ int aiStack_640[400];
+ if (fromArea != toArea) {
+ iVar5 = 0;
+ if ((toArea == 0) || (fromArea == 0)) {
+ return 0;
+ }
+ iVar7 = 1;
+ this->DAT_Test_likely = this->DAT_Test_likely + 1;
+ local_96c = 0;
+ local_968 = 0;
+ if (1 < this->maxClimbDataCount) {
+ piVar7 = &this->climbData[1];
+ do {
+ if ((piVar7.canBeUsed == 1) && (piVar7->isRecognizedByPathfinding != 0)) {
+ if (piVar7->type == 1) {
+ bVar8 = permitClimb == 0;
+ } else {
+ bVar8 = permitClimb == 2;
+ }
+ if ((!bVar8)
+ && (((playerID == 0
+ || (DAT_GameState.mapAndTime.playerTeams[piVar7->owner]
+ == DAT_GameState.mapAndTime.playerTeams[playerID]))
+ || (DAT_BuildingsState.buildings[piVar7->buildingID].field241_0x2c6
+ != 0)))) {
+ aiStack_640[local_96c * 2 + 1] = 0;
+ aiStack_640[local_96c * 2] = iVar7;
+ local_96c = local_96c + 1;
+ }
+ }
+ iVar7 = iVar7 + 1;
+ piVar7 = piVar7 + 0x81;
+ } while (iVar7 < this->maxClimbDataCount);
+ }
+ iVar6 = 0;
+ this->field63_0xc0 = 0;
+ iVar7 = iVar5;
+ if (0 < local_96c) {
+ do {
+ iVar1 = aiStack_640[iVar6 * 2];
+ iVar5 = iVar7;
+ if (this->climbData[iVar1].type != 1) {
+ dVar2 = this->climbData[iVar1].area;
+ if (dVar2 == toArea) {
+ dVar2 = this->climbData[iVar1].wallGroupAreaID;
+ if ((dVar2 == fromArea)
+ || (dVar3 = this->climbData[iVar1].buildingArea, dVar3 == fromArea)) {
+ return (int)(toArea);
+ }
+ adStack_960[iVar7] = dVar2;
+ aiStack_640[iVar6 * 2 + 1] = 1;
+ iVar5 = iVar7 + 1;
+ if (0 < (int)dVar3) {
+ adStack_960[iVar7 + 1] = dVar3;
+ iVar5 = iVar7 + 2;
+ }
+ } else {
+ dVar3 = this->climbData[iVar1].wallGroupAreaID;
+ if (dVar3 == toArea) {
+ if (dVar2 == fromArea) {
+ this->field63_0xc0 = 0;
+ return (int)(toArea);
+ }
+ dVar3 = this->climbData[iVar1].buildingArea;
+ if (dVar3 == fromArea) {
+ this->field63_0xc0 = 0;
+ return (int)(toArea);
+ }
+ adStack_960[iVar7] = dVar2;
+ aiStack_640[iVar6 * 2 + 1] = 1;
+ iVar5 = iVar7 + 1;
+ if (0 < (int)dVar3) {
+ adStack_960[iVar7 + 1] = dVar3;
+ iVar5 = iVar7 + 2;
+ }
+ } else if (this->climbData[iVar1].buildingArea == toArea) {
+ if (dVar2 == fromArea) {
+ this->field63_0xc0 = 0;
+ return (int)(toArea);
+ }
+ if (dVar3 == fromArea) {
+ this->field63_0xc0 = 0;
+ return (int)(toArea);
+ }
+ adStack_960[iVar7] = dVar2;
+ adStack_960[iVar7 + 1] = dVar3;
+ aiStack_640[iVar6 * 2 + 1] = 1;
+ iVar5 = iVar7 + 2;
+ }
+ }
+ }
+ iVar6 = iVar6 + 1;
+ iVar7 = iVar5;
+ } while (iVar6 < local_96c);
+ if (0 < iVar5) {
+ do {
+ dVar2 = adStack_960[local_968];
+ local_968 = local_968 + 1;
+ iVar6 = 0;
+ iVar7 = iVar5;
+ do {
+ iVar5 = iVar7;
+ if ((aiStack_640[iVar6 * 2 + 1] != 1)
+ && (iVar1 = aiStack_640[iVar6 * 2], this->climbData[iVar1].type != 1)) {
+ /*
+ not a ladder
+ */
+ dVar3 = this->climbData[iVar1].area;
+ if (dVar3 == dVar2) {
+ dVar3 = this->climbData[iVar1].wallGroupAreaID;
+ if (dVar3 == fromArea) {
+ this->field63_0xc0 = 0;
+ return (int)(dVar2);
+ }
+ dVar4 = this->climbData[iVar1].buildingArea;
+ if (dVar4 == fromArea) {
+ this->field63_0xc0 = 0;
+ return (int)(dVar2);
+ }
+ adStack_960[iVar7] = dVar3;
+ aiStack_640[iVar6 * 2 + 1] = 1;
+ iVar5 = iVar7 + 1;
+ if (0 < (int)dVar4) {
+ adStack_960[iVar7 + 1] = dVar4;
+ iVar5 = iVar7 + 2;
+ }
+ } else {
+ dVar4 = this->climbData[iVar1].wallGroupAreaID;
+ if (dVar4 == dVar2) {
+ if (dVar3 == fromArea) {
+ this->field63_0xc0 = 0;
+ return (int)(dVar2);
+ }
+ dVar4 = this->climbData[iVar1].buildingArea;
+ if (dVar4 == fromArea) {
+ this->field63_0xc0 = 0;
+ return (int)(dVar2);
+ }
+ adStack_960[iVar7] = dVar3;
+ aiStack_640[iVar6 * 2 + 1] = 1;
+ iVar5 = iVar7 + 1;
+ if (0 < (int)dVar4) {
+ adStack_960[iVar7 + 1] = dVar4;
+ LAB_004a5605:
+ iVar5 = iVar7 + 2;
+ }
+ } else if (this->climbData[iVar1].buildingArea == dVar2) {
+ if (dVar3 == fromArea) {
+ this->field63_0xc0 = 0;
+ return (int)(dVar2);
+ }
+ if (dVar4 == fromArea) {
+ this->field63_0xc0 = 0;
+ return (int)(dVar2);
+ }
+ adStack_960[iVar7] = dVar3;
+ aiStack_640[iVar6 * 2 + 1] = 1;
+ adStack_960[iVar7 + 1] = dVar4;
+ goto LAB_004a5605;
+ }
+ }
+ }
+ iVar6 = iVar6 + 1;
+ iVar7 = iVar5;
+ } while (iVar6 < local_96c);
+ } while (local_968 < iVar5);
+ }
+ }
+ iVar6 = 0;
+ this->field63_0xc0 = 1;
+ this->field50_0x98 = 1;
+ iVar7 = iVar5;
+ if (0 < local_96c) {
+ do {
+ iVar1 = aiStack_640[iVar6 * 2];
+ dVar2 = this->climbData[iVar1].area;
+ aiStack_640[iVar6 * 2 + 1] = 0;
+ if (dVar2 == toArea) {
+ dVar2 = this->climbData[iVar1].wallGroupAreaID;
+ if ((dVar2 == fromArea)
+ || (dVar3 = this->climbData[iVar1].buildingArea, dVar3 == fromArea)) {
+ return (int)(toArea);
+ }
+ adStack_960[iVar7] = dVar2;
+ aiStack_640[iVar6 * 2 + 1] = 1;
+ iVar5 = iVar7 + 1;
+ if (0 < (int)dVar3) {
+ adStack_960[iVar7 + 1] = dVar3;
+ iVar5 = iVar7 + 2;
+ }
+ } else {
+ dVar3 = this->climbData[iVar1].wallGroupAreaID;
+ if (dVar3 == toArea) {
+ if (dVar2 == fromArea) {
+ this->field50_0x98 = 1;
+ this->field63_0xc0 = 1;
+ return (int)(toArea);
+ }
+ dVar3 = this->climbData[iVar1].buildingArea;
+ if (dVar3 == fromArea) {
+ this->field50_0x98 = 1;
+ this->field63_0xc0 = 1;
+ return (int)(toArea);
+ }
+ adStack_960[iVar7] = dVar2;
+ aiStack_640[iVar6 * 2 + 1] = 1;
+ iVar5 = iVar7 + 1;
+ if (0 < (int)dVar3) {
+ adStack_960[iVar7 + 1] = dVar3;
+ iVar5 = iVar7 + 2;
+ }
+ } else {
+ iVar5 = iVar7;
+ if (this->climbData[iVar1].buildingArea == toArea) {
+ if ((dVar2 == fromArea) || (dVar3 == fromArea)) {
+ return (int)(toArea);
+ }
+ adStack_960[iVar7] = dVar2;
+ adStack_960[iVar7 + 1] = dVar3;
+ aiStack_640[iVar6 * 2 + 1] = 1;
+ iVar5 = iVar7 + 2;
+ }
+ }
+ }
+ iVar6 = iVar6 + 1;
+ iVar7 = iVar5;
+ } while (iVar6 < local_96c);
+ }
+ if (local_968 < iVar5) {
+ do {
+ dVar2 = adStack_960[local_968];
+ local_968 = local_968 + 1;
+ iVar6 = 0;
+ iVar7 = iVar5;
+ if (0 < local_96c) {
+ do {
+ iVar7 = iVar5;
+ if (aiStack_640[iVar6 * 2 + 1] != 1) {
+ iVar1 = aiStack_640[iVar6 * 2];
+ dVar3 = this->climbData[iVar1].area;
+ if (dVar3 == dVar2) {
+ dVar3 = this->climbData[iVar1].wallGroupAreaID;
+ if (dVar3 == fromArea) {
+ this->field50_0x98 = 1;
+ this->field63_0xc0 = 1;
+ return (int)(dVar2);
+ }
+ dVar4 = this->climbData[iVar1].buildingArea;
+ if (dVar4 == fromArea) {
+ this->field50_0x98 = 1;
+ this->field63_0xc0 = 1;
+ return (int)(dVar2);
+ }
+ adStack_960[iVar5] = dVar3;
+ aiStack_640[iVar6 * 2 + 1] = 1;
+ iVar7 = iVar5 + 1;
+ if (0 < (int)dVar4) {
+ adStack_960[iVar5 + 1] = dVar4;
+ iVar7 = iVar5 + 2;
+ }
+ } else {
+ dVar4 = this->climbData[iVar1].wallGroupAreaID;
+ if (dVar4 == dVar2) {
+ if (dVar3 == fromArea) {
+ this->field50_0x98 = 1;
+ this->field63_0xc0 = 1;
+ return (int)(dVar2);
+ }
+ dVar4 = this->climbData[iVar1].buildingArea;
+ if (dVar4 == fromArea) {
+ this->field50_0x98 = 1;
+ this->field63_0xc0 = 1;
+ return (int)(dVar2);
+ }
+ adStack_960[iVar5] = dVar3;
+ aiStack_640[iVar6 * 2 + 1] = 1;
+ iVar7 = iVar5 + 1;
+ if (0 < (int)dVar4) {
+ adStack_960[iVar5 + 1] = dVar4;
+ LAB_004a584f:
+ iVar7 = iVar5 + 2;
+ }
+ } else if (this->climbData[iVar1].buildingArea == dVar2) {
+ if (dVar3 == fromArea) {
+ this->field50_0x98 = 1;
+ this->field63_0xc0 = 1;
+ return (int)(dVar2);
+ }
+ if (dVar4 == fromArea) {
+ this->field50_0x98 = 1;
+ this->field63_0xc0 = 1;
+ return (int)(dVar2);
+ }
+ adStack_960[iVar5] = dVar3;
+ aiStack_640[iVar6 * 2 + 1] = 1;
+ adStack_960[iVar5 + 1] = dVar4;
+ goto LAB_004a584f;
+ }
+ }
+ }
+ iVar6 = iVar6 + 1;
+ iVar5 = iVar7;
+ } while (iVar6 < local_96c);
+ }
+ iVar5 = iVar7;
+ } while (local_968 < iVar7);
+ }
+ this->field50_0x98 = 0;
+ fromArea = 0;
+ }
+ return (int)(fromArea);
+ }
+ }
+}
+}
+
+### 0x004a58a0 findConnectingAreaBetweenTwoAreas | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x004A58A0
+ dword PathFindingState::findConnectingAreaBetweenTwoAreas(int param_1, dword param_2, dword param_3)
+ {
+ int iVar1;
+ dword dVar2;
+ int iVar3;
+ int iVar4;
+ int* piVar5;
+ int iVar6;
+ dword dVar7;
+ dword dVar8;
+ int local_96c;
+ int local_968;
+ dword adStack_960[200];
+ int aiStack_640[400];
+ if (param_2 == param_3) {
+ return (dword)(param_2);
+ }
+ this->DAT_Test_gatehouse = this->DAT_Test_gatehouse + 1;
+ local_96c = 0;
+ local_968 = 0;
+ iVar6 = 1;
+ if (1 < this->maxClimbDataCount) {
+ piVar5 = &this->climbData[1].isRecognizedByPathfinding;
+ do {
+ if ((((((ClimbData*)(piVar5 + -6))->canBeUsed == 1) && (*piVar5 != 0)) && (piVar5[-5] != 1))
+ && (((param_1 == 0
+ || (DAT_GameState.mapAndTime.playerTeams[piVar5[0x73]]
+ == DAT_GameState.mapAndTime.playerTeams[param_1]))
+ || (DAT_BuildingsState.buildings[piVar5[-3]].field241_0x2c6 != 0)))) {
+ aiStack_640[local_96c * 2 + 1] = 0;
+ aiStack_640[local_96c * 2] = iVar6;
+ local_96c = local_96c + 1;
+ }
+ iVar6 = iVar6 + 1;
+ piVar5 = piVar5 + 0x81;
+ } while (iVar6 < this->maxClimbDataCount);
+ }
+ iVar4 = 0;
+ iVar6 = 0;
+ if (0 < local_96c) {
+ do {
+ iVar1 = aiStack_640[iVar4 * 2];
+ dVar7 = this->climbData[iVar1].area;
+ if (dVar7 == param_3) {
+ dVar7 = this->climbData[iVar1].wallGroupAreaID;
+ LAB_004a59a4:
+ if (dVar7 == param_2) {
+ return (dword)(param_3);
+ }
+ dVar8 = this->climbData[iVar1].buildingArea;
+ if (dVar8 == param_2) {
+ return (dword)(param_3);
+ }
+ adStack_960[iVar6] = dVar7;
+ aiStack_640[iVar4 * 2 + 1] = 1;
+ iVar3 = iVar6 + 1;
+ if (0 < (int)dVar8) {
+ adStack_960[iVar6 + 1] = dVar8;
+ LAB_004a5a12:
+ iVar3 = iVar6 + 2;
+ }
+ } else {
+ dVar8 = this->climbData[iVar1].wallGroupAreaID;
+ if (dVar8 == param_3)
+ goto LAB_004a59a4;
+ iVar3 = iVar6;
+ if (this->climbData[iVar1].buildingArea == param_3) {
+ if (dVar7 == param_2) {
+ return (dword)(param_3);
+ }
+ if (dVar8 == param_2) {
+ return (dword)(param_3);
+ }
+ adStack_960[iVar6] = dVar7;
+ aiStack_640[iVar4 * 2 + 1] = 1;
+ adStack_960[iVar6 + 1] = dVar8;
+ goto LAB_004a5a12;
+ }
+ }
+ iVar4 = iVar4 + 1;
+ iVar6 = iVar3;
+ } while (iVar4 < local_96c);
+ if (0 < iVar3) {
+ do {
+ dVar7 = adStack_960[local_968];
+ local_968 = local_968 + 1;
+ iVar4 = 0;
+ iVar6 = iVar3;
+ do {
+ iVar3 = iVar6;
+ if (aiStack_640[iVar4 * 2 + 1] != 1) {
+ iVar1 = aiStack_640[iVar4 * 2];
+ dVar8 = this->climbData[iVar1].area;
+ if (dVar8 == dVar7) {
+ dVar8 = this->climbData[iVar1].wallGroupAreaID;
+ LAB_004a5a70:
+ if (dVar8 == param_2) {
+ return (dword)(dVar7);
+ }
+ dVar2 = this->climbData[iVar1].buildingArea;
+ if (dVar2 == param_2) {
+ return (dword)(dVar7);
+ }
+ adStack_960[iVar6] = dVar8;
+ aiStack_640[iVar4 * 2 + 1] = 1;
+ iVar3 = iVar6 + 1;
+ if ((int)dVar2 < 1)
+ goto LAB_004a5ad0;
+ adStack_960[iVar6 + 1] = dVar2;
+ } else {
+ dVar2 = this->climbData[iVar1].wallGroupAreaID;
+ if (dVar2 == dVar7)
+ goto LAB_004a5a70;
+ if (this->climbData[iVar1].buildingArea != dVar7)
+ goto LAB_004a5ad0;
+ if (dVar8 == param_2) {
+ return (dword)(dVar7);
+ }
+ if (dVar2 == param_2) {
+ return (dword)(dVar7);
+ }
+ adStack_960[iVar6] = dVar8;
+ aiStack_640[iVar4 * 2 + 1] = 1;
+ adStack_960[iVar6 + 1] = dVar2;
+ }
+ iVar3 = iVar6 + 2;
+ }
+ LAB_004a5ad0:
+ iVar4 = iVar4 + 1;
+ iVar6 = iVar3;
+ } while (iVar4 < local_96c);
+ } while (local_968 < iVar3);
+ }
+ }
+ return (dword)(0);
+ }
+ }
+}
+}
+
+### 0x004a5b00 calculateCanReachUsingCachedAreaLogic | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x004A5B00
+ BOOLEnum PathFindingState::calculateCanReachUsingCachedAreaLogic(int tile1, int tile2)
+ {
+ int iVar1;
+ AreaPairInt* pAVar2;
+ BOOLEnum BVar3;
+ int iVar4;
+ int _area1;
+ int _area2;
+ _area2 = (int)(short)DAT_TileMapState.PathConnectionLayer[tile2];
+ _area1 = (int)(short)DAT_TileMapState.PathConnectionLayer[tile1];
+ if (_area1 == _area2) {
+ return TRUE;
+ }
+ if ((_area1 == 0) || (_area2 == 0)) {
+ return FALSE;
+ }
+ if (this->field48_0x90 == 0) {
+ this->field48_0x90 = 1;
+ this->searchQueue.acceptAreaPairArray1[0].area1 = -1;
+ this->searchQueue.acceptAreaPairArray1[0].area2 = -1;
+ this->searchQueue.rejectionAreaPairArray[0].area1 = -1;
+ this->searchQueue.rejectionAreaPairArray[0].area2 = -1;
+ this->searchQueue.acceptAreaPairArray1[1].area1 = -1;
+ this->searchQueue.acceptAreaPairArray1[1].area2 = -1;
+ this->searchQueue.rejectionAreaPairArray[1].area1 = -1;
+ this->searchQueue.rejectionAreaPairArray[1].area2 = -1;
+ this->searchQueue.acceptAreaPairArray1[2].area1 = -1;
+ this->searchQueue.acceptAreaPairArray1[2].area2 = -1;
+ this->searchQueue.rejectionAreaPairArray[2].area1 = -1;
+ this->searchQueue.rejectionAreaPairArray[2].area2 = -1;
+ this->searchQueue.acceptAreaPairArray1[3].area1 = -1;
+ this->searchQueue.acceptAreaPairArray1[3].area2 = -1;
+ this->searchQueue.rejectionAreaPairArray[3].area1 = -1;
+ this->searchQueue.rejectionAreaPairArray[3].area2 = -1;
+ this->searchQueue.acceptAreaPairArray1[4].area1 = -1;
+ this->searchQueue.acceptAreaPairArray1[4].area2 = -1;
+ this->searchQueue.rejectionAreaPairArray[4].area1 = -1;
+ this->searchQueue.rejectionAreaPairArray[4].area2 = -1;
+ this->searchQueue.acceptAreaPairArray1[5].area1 = -1;
+ this->searchQueue.acceptAreaPairArray1[5].area2 = -1;
+ this->searchQueue.rejectionAreaPairArray[5].area1 = -1;
+ this->searchQueue.rejectionAreaPairArray[5].area2 = -1;
+ this->searchQueue.acceptAreaPairArray1[6].area1 = -1;
+ this->searchQueue.acceptAreaPairArray1[6].area2 = -1;
+ this->searchQueue.rejectionAreaPairArray[6].area1 = -1;
+ this->searchQueue.rejectionAreaPairArray[6].area2 = -1;
+ this->searchQueue.acceptAreaPairArray1[7].area1 = -1;
+ this->searchQueue.acceptAreaPairArray1[7].area2 = -1;
+ this->searchQueue.rejectionAreaPairArray[7].area1 = -1;
+ this->searchQueue.rejectionAreaPairArray[7].area2 = -1;
+ this->searchQueue.acceptAreaPairArray1[8].area1 = -1;
+ this->searchQueue.acceptAreaPairArray1[8].area2 = -1;
+ this->searchQueue.rejectionAreaPairArray[8].area1 = -1;
+ this->searchQueue.rejectionAreaPairArray[8].area2 = -1;
+ this->searchQueue.acceptAreaPairArray1[9].area1 = -1;
+ this->searchQueue.acceptAreaPairArray1[9].area2 = -1;
+ this->searchQueue.rejectionAreaPairArray[9].area1 = -1;
+ this->searchQueue.rejectionAreaPairArray[9].area2 = -1;
+ } else {
+ iVar4 = 0;
+ pAVar2 = this->searchQueue.acceptAreaPairArray1;
+ do {
+ iVar1 = pAVar2->area1;
+ if (iVar1 != -1) {
+ if ((iVar1 == _area1) && (pAVar2->area2 == _area2)) {
+ return TRUE;
+ }
+ if ((pAVar2->area2 == _area1) && (iVar1 == _area2)) {
+ return TRUE;
+ }
+ }
+ iVar4 = iVar4 + 1;
+ pAVar2 = pAVar2 + 1;
+ } while (iVar4 < 10);
+ iVar4 = 0;
+ pAVar2 = this->searchQueue.rejectionAreaPairArray;
+ do {
+ iVar1 = pAVar2->area1;
+ if (iVar1 != -1) {
+ if ((iVar1 == _area1) && (pAVar2->area2 == _area2)) {
+ return FALSE;
+ }
+ if ((pAVar2->area2 == _area1) && (iVar1 == _area2)) {
+ return FALSE;
+ }
+ }
+ iVar4 = iVar4 + 1;
+ pAVar2 = pAVar2 + 1;
+ } while (iVar4 < 10);
+ }
+ BVar3 = pathFindingWithBuildingsIncluded(tile1
+ - DAT_ViewportRenderState
+ .translationMatrix[DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile1]]
+ .addXgetTile,
+ (uint)((int)((int)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile1])),
+ (uint)((int)(tile2
+ - DAT_ViewportRenderState
+ .translationMatrix[DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile2]]
+ .addXgetTile)),
+ (uint)((int)((int)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile2])), 100000,
+ 0);
+ if (BVar3 != FALSE) {
+ iVar4 = 0;
+ pAVar2 = this->searchQueue.acceptAreaPairArray1;
+ do {
+ if (pAVar2->area1 == -1) {
+ this->searchQueue.acceptAreaPairArray1[iVar4].area1 = _area1;
+ this->searchQueue.acceptAreaPairArray1[iVar4].area2 = _area2;
+ return TRUE;
+ }
+ iVar4 = iVar4 + 1;
+ pAVar2 = pAVar2 + 1;
+ } while (iVar4 < 10);
+ return TRUE;
+ }
+ iVar4 = 0;
+ pAVar2 = this->searchQueue.rejectionAreaPairArray;
+ do {
+ if (pAVar2->area1 == -1) {
+ this->searchQueue.rejectionAreaPairArray[iVar4].area1 = _area1;
+ this->searchQueue.rejectionAreaPairArray[iVar4].area2 = _area2;
+ return FALSE;
+ }
+ iVar4 = iVar4 + 1;
+ pAVar2 = pAVar2 + 1;
+ } while (iVar4 < 10);
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x004a5da0 findBestAdjacentClimbTileToTarget | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x004A5DA0
+ undefined4 PathFindingState::findBestAdjacentClimbTileToTarget(
+ int param_1, uint param_2, uint param_3, uint param_4, uint param_5)
+ {
+ ushort uVar1;
+ int iVar2;
+ int (*paiVar3)[8];
+ uint uVar4;
+ int iVar5;
+ int iVar6;
+ int* piVar7;
+ uint local_18;
+ int local_10;
+ undefined4 local_8;
+ if (((399 < param_2) || (399 < param_3)) || (*(char*)(param_3 * 400 + 0x21aec98 + param_2) == '\0')) {
+ return (undefined4)(0);
+ }
+ if (((param_4 < 400) && (param_5 < 400)) && (*(char*)(param_5 * 400 + 0x21aec98 + param_4) != '\0')) {
+ iVar5 = DAT_ViewportRenderState.translationMatrix[param_5].addXgetTile + param_4;
+ local_18 = (uint)DAT_TileMapState.HeightLayer[iVar5];
+ uVar1
+ = DAT_TileMapState
+ .PathConnectionLayer[DAT_ViewportRenderState.translationMatrix[param_3].addXgetTile
+ + param_2];
+ local_8 = 0;
+ local_10 = 1000;
+ if (DAT_TileMapState.BuildingLayer[iVar5] != 0) {
+ iVar2 = getBuildingHeightForBuildingID((int)DAT_TileMapState.BuildingLayer[iVar5]);
+ local_18 = local_18 + iVar2;
+ }
+ paiVar3 = DAT_TileMapState.directionTranslationMatrix + param_5;
+ piVar7 = &DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[0].int.yOffset;
+ do {
+ iVar6 = (*paiVar3)[0] + iVar5;
+ iVar2 = calculateCanPlayerUnitsNavigateToAreaFromArea(param_1, (dword)((int)((int)(short)uVar1)),
+ (dword)((int)((int)(short)DAT_TileMapState.PathConnectionLayer[iVar6])), 0);
+ if (iVar2 != 0) {
+ uVar4 = (uint)DAT_TileMapState.HeightLayer[iVar6];
+ if (DAT_TileMapState.BuildingLayer[iVar6] != 0) {
+ iVar2 = getBuildingHeightForBuildingID((int)DAT_TileMapState.BuildingLayer[iVar6]);
+ uVar4 = uVar4 + iVar2;
+ }
+ if ((((int)local_18 <= (int)(uVar4 + 0x10)) && ((int)(uVar4 - 0x10) <= (int)local_18))
+ && (setAxisBasedDistanceResult(param_2, param_3,
+ (int)((int)(((Point8IntXY*)(piVar7 + -1))->xOffset + param_4)),
+ *piVar7 + param_5),
+ DAT_DirectionAlgorithmState.distanceHigh < local_10)) {
+ local_10 = DAT_DirectionAlgorithmState.distanceHigh;
+ this->climbX = ((Point8IntXY*)(piVar7 + -1))->xOffset + param_4;
+ this->climbY = *piVar7 + param_5;
+ local_8 = 1;
+ }
+ }
+ paiVar3 = (int (*)[8])(*paiVar3 + 1);
+ piVar7 = piVar7 + 2;
+ } while ((int)piVar7 < 0xb4908c);
+ return (undefined4)(local_8);
+ }
+ return (undefined4)(0);
+ }
+ }
+}
+}
+
+### 0x004a5f60 updatePathLinkageLayerForEachBuildingAtEachTile | quelle=nachgebaut | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x004A5F60
+ void PathFindingState::updatePathLinkageLayerForEachBuildingAtEachTile()
+ {
+ for (int tileIndex = 0; tileIndex < Map::MC_MAP_TILES_COUNT; ++tileIndex) {
+ updatePathLinkageLayerBasedOnBuildingsUnk(
+ DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tileIndex], tileIndex);
+ }
+ }
+ }
+}
+}
+
+### 0x004a5f90 updatePathLinkagesInAllEightDirections | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x004A5F90
+ void PathFindingState::updatePathLinkagesInAllEightDirections(int y, int tile)
+ {
+ BOOLEnum _tileIsKeepUnk;
+ int (*paiVar1)[8];
+ int* piVar2;
+ bool _someLinkageResult;
+ _someLinkageResult = false;
+ updatePathLinkageLayerBasedOnBuildingsUnk(
+ y, tile);
+ paiVar1 = DAT_TileMapState.directionTranslationMatrix + y;
+ piVar2 = &DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[0].int.yOffset;
+ do {
+ _tileIsKeepUnk = updatePathLinkageLayerBasedOnBuildingsUnk(
+ *piVar2 + y, (*paiVar1)[0] + tile);
+ if (_tileIsKeepUnk != FALSE) {
+ _someLinkageResult = true;
+ }
+ piVar2 = piVar2 + 2;
+ paiVar1 = (int (*)[8])(*paiVar1 + 1);
+ } while ((int)piVar2 < 0xb4908c);
+ if (_someLinkageResult) {
+ DAT_BuildingsState.pathLinkageKeepWasUpdatedUnk = 1;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004a6010 findBestAttackTargetTileWithHeightAndOwner | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x004A6010
+ void PathFindingState::findBestAttackTargetTileWithHeightAndOwner(int param_1, uint param_2, uint param_3,
+ int param_4, int param_5, int param_6, int param_7, int param_8, int param_9)
+ {
+ short sVar1;
+ short sVar2;
+ short sVar3;
+ uint uVar4;
+ short sVar5;
+ int iVar6;
+ int iVar7;
+ int buildingID;
+ uint uVar8;
+ int iVar9;
+ uint uVar10;
+ uint uVar11;
+ int (*paiVar12)[3];
+ int local_20;
+ int local_14;
+ int local_10;
+ uint local_c;
+ uint local_8;
+ local_14 = -1;
+ local_10 = -1;
+ local_c = 0xffffffff;
+ this->calculations = this->calculations + 1;
+ local_20 = 1000000;
+ this->ALG_TargetTile = 0;
+ this->ALG_TargetY = 0;
+ this->ALG_TargetX = 0;
+ if (((param_2 < 400) && (param_3 < 400)) && (*(char*)(param_3 * 400 + 0x21aec98 + param_2) != '\0')) {
+ this->searchGeneration = this->searchGeneration + 1;
+ if (32000 < this->searchGeneration) {
+ this->searchGeneration = 1;
+ fillMemory_ByteValue(
+ 0x27420, '\0', (void*)((int)(DAT_TileMapState.WalkLayer)));
+ }
+ this->searchQueue.currentDistance = 1;
+ this->searchQueue.writeIndex = 1;
+ this->searchQueue.readIndex = 0;
+ this->searchQueue.yQueue[0] = (short)param_3;
+ this->searchQueue.xQueue[0] = (short)param_2;
+ iVar6 = DAT_ViewportRenderState.translationMatrix[param_3].addXgetTile + param_2;
+ this->searchQueue.tilesQueue[0] = iVar6;
+ DAT_TileMapState.CertainPathLayer[iVar6] = 1;
+ DAT_TileMapState.WalkLayer[this->searchQueue.tilesQueue[0]] = (short)this->searchGeneration;
+ uVar10 = (uint)DAT_TileMapState.HeightLayer[iVar6];
+ if (this->searchQueue.readIndex != this->searchQueue.writeIndex) {
+ do {
+ uVar4 = this->searchQueue.tilesQueue[this->searchQueue.readIndex];
+ if (0x13a0f < uVar4)
+ break;
+ sVar1 = this->searchQueue.xQueue[this->searchQueue.readIndex];
+ sVar2 = this->searchQueue.yQueue[this->searchQueue.readIndex];
+ iVar6 = (int)sVar2;
+ uVar8 = DAT_TileMapState.LogicLayer[uVar4];
+ uVar11 = (uint) * (byte*)(param_7 * 0x13a10 + 0x1ee2998 + uVar4);
+ this->searchQueue.currentDistance = (int)DAT_TileMapState.CertainPathLayer[uVar4];
+ if (this->searchQueue.currentDistance <= param_1) {
+ if ((DAT_GameSynchronyState.currentGameMode == GM_SOLITARY)
+ && (7 < param_6)) {
+ uVar11 = 1;
+ }
+ if ((uVar8 & 2) == 0) {
+ if ((((uVar8 & 0x10100) == 0) || (uVar11 == 0)) || (param_8 <= (int)uVar11)) {
+ if (((((((uVar8 & 0x10000400) != 0) && (uVar11 != 0)) && ((int)uVar11 < param_8))
+ && ((iVar9 = (int)DAT_TileMapState.BuildingLayer[uVar4],
+ iVar9 != 0
+ && (DAT_BuildingDefinedData.BuildingTypeHasHealth[(
+ short)DAT_BuildingsState.buildings[iVar9]
+ .buildingType]
+ != 0))))
+ && (DAT_BuildingsState.buildings[iVar9].owner == param_7))
+ && ((param_9 == 0
+ || ((
+ iVar7 = MACRO_CALL_MEMBER(
+ getBuildingFlammabilityFactor,
+ DAT_BuildingsState)(iVar9),
+ iVar7 != 0
+ && (DAT_BuildingsState.buildings[iVar9].fireDuration
+ == 0)))))) {
+ iVar9 = 0x96;
+ if ((uVar8 & 0x400) == 0) {
+ iVar9 = 0x4b;
+ }
+ if (this->searchQueue.currentDistance < 1) {
+ iVar9 = 100000;
+ } else if (this->searchQueue.currentDistance < 0x10) {
+ iVar9 = (iVar9 + -100) * this->searchQueue.currentDistance + 0x5dc;
+ } else {
+ iVar9 = this->searchQueue.currentDistance * iVar9;
+ }
+ goto LAB_004a62e3;
+ }
+ } else if (((DAT_TileMapState.WallOwnerLayer[uVar4] & 7) + 1 == param_7)
+ && (param_9 == 0)) {
+ iVar9 = (uint)DAT_TileMapState.HeightLayer[uVar4]
+ - (uint)DAT_TileMapState.DefaultHeightLayer[uVar4];
+ if (this->searchQueue.currentDistance < 1) {
+ iVar9 = 100000;
+ } else if (this->searchQueue.currentDistance < 0x10) {
+ iVar9 = (0x14 - this->searchQueue.currentDistance) * 300 + iVar9;
+ } else {
+ iVar9 = this->searchQueue.currentDistance * 100 + iVar9;
+ }
+ LAB_004a62e3:
+ if ((iVar9 < local_20)
+ && (iVar7
+ = calcApproxEuclideanDistance(
+ param_2, sVar1, param_3, iVar6),
+ iVar7 <= param_1)) {
+ local_20 = iVar9;
+ local_14 = (int)sVar1;
+ local_10 = iVar6;
+ local_c = uVar4;
+ }
+ }
+ }
+ local_8 = ((int)(char)this->searchQueue.currentDistance & 1U) * 2 | 1;
+ paiVar12 = DAT_ClimbLogicDefinedData.field13_0x13c + param_4;
+ do {
+ iVar9 = (*paiVar12)[0];
+ iVar7 = DAT_TileMapState.directionTranslationMatrix[iVar6][iVar9] + uVar4;
+ uVar8 = DAT_TileMapState.LogicLayer[iVar7];
+ if ((DAT_TileMapState.WalkLayer[iVar7] != this->searchGeneration)
+ && ((uVar8 & 0x30) == 0)) {
+ if ((uVar8 & 0x10000400) == 0) {
+ if ((uVar8 & 0x100) == 0) {
+ uVar8 = (uint)DAT_TileMapState.HeightLayer[iVar7];
+ if ((int)uVar8 <= (int)(uVar10 + param_5))
+ goto LAB_004a63f4;
+ } else if ((DAT_TileMapState.WallOwnerLayer[iVar7] & 7) + 1
+ == param_7) {
+ uVar8 = (uint)DAT_TileMapState.HeightLayer[iVar7];
+ LAB_004a63f4:
+ if ((int)((param_5 * 2) / 3 + uVar10) < (int)uVar8) {
+ sVar5 = 3;
+ } else {
+ sVar5 = ((int)(param_5 / 3 + uVar10) < (int)uVar8) + 1;
+ }
+ sVar3 = DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix[iVar9]
+ .short.xOffset;
+ DAT_TileMapState.CertainPathLayer[iVar7]
+ = (short)this->searchQueue.currentDistance + sVar5;
+ DAT_TileMapState.WalkLayer[iVar7] = (short)this->searchGeneration;
+ this->searchQueue.xQueue[this->searchQueue.writeIndex] = sVar3 + sVar1;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix
+ + iVar9 * 8 + 4)
+ + sVar2;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = iVar7;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ } else {
+ buildingID = (int)DAT_TileMapState.BuildingLayer[iVar7];
+ if ((buildingID != 0)
+ && (DAT_BuildingsState.buildings[buildingID].owner == param_7)) {
+ uVar8 = MACRO_CALL_MEMBER(
+ getBuildingHeightForBuildingID,
+ DAT_BuildingsState)(buildingID);
+ goto LAB_004a63f4;
+ }
+ }
+ }
+ paiVar12 = (int (*)[3])(*paiVar12 + 1);
+ local_8 = local_8 - 1;
+ } while (local_8 != 0);
+ }
+ this->searchQueue.readIndex = this->searchQueue.readIndex + 1;
+ if (0x13a0f < this->searchQueue.readIndex) {
+ this->searchQueue.readIndex = 0;
+ }
+ } while (this->searchQueue.readIndex != this->searchQueue.writeIndex);
+ if (local_14 != -1) {
+ this->ALG_TargetX = local_14;
+ this->ALG_TargetY = local_10;
+ this->ALG_TargetTile = local_c;
+ }
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004a6520 storeDestinationOptionsUnk | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x004A6520
+ void PathFindingState::storeDestinationOptionsUnk(int signpostID)
+ {
+ int iVar1;
+ uint x;
+ int iVar2;
+ uint y;
+ this->calculations = this->calculations + 1;
+ iVar2 = 0;
+ this->searchQueue.readIndex = 0;
+ if (this->searchQueue.writeIndex != 0) {
+ do {
+ y = (uint)this->searchQueue.yQueue[this->searchQueue.readIndex];
+ iVar1 = this->searchQueue.tilesQueue[this->searchQueue.readIndex];
+ x = iVar1 - DAT_ViewportRenderState.translationMatrix[y].addXgetTile;
+ if (DAT_TileMapState.CertainPathLayer[iVar1] != 100) {
+ budgetFloodFillOnCertainPathLayer(
+ x, y, 100, 30);
+ DAT_GameState.mapAndTime.unitMoveDestinationXYPairs[signpostID][iVar2].x = x;
+ DAT_GameState.mapAndTime.unitMoveDestinationXYPairs[signpostID][iVar2].y = y;
+ iVar2 = iVar2 + 1;
+ }
+ if (40 < iVar2) {
+ return;
+ }
+ this->searchQueue.readIndex = this->searchQueue.readIndex + 1;
+ if (80400 < this->searchQueue.readIndex) {
+ this->searchQueue.readIndex = 0;
+ }
+ } while (this->searchQueue.readIndex != this->searchQueue.writeIndex);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004a65e0 setDestinationPairsBasedOnPreviousSearch | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x004A65E0
+ void PathFindingState::setDestinationPairsBasedOnPreviousSearch(int playerIDMin1, int attackedPlayerID)
+ {
+ uint _attackedDistance;
+ uint x;
+ int _pair;
+ uint y;
+ int _tile;
+ _pair = 0;
+ this->searchQueue.readIndex = 0;
+ if (this->searchQueue.writeIndex != 0) {
+ do {
+ y = (uint)this->searchQueue.yQueue[this->searchQueue.readIndex];
+ _tile = this->searchQueue.tilesQueue[this->searchQueue.readIndex];
+ _attackedDistance = (uint) * (byte*)(attackedPlayerID * 0x13a10 + 0x1ee2998 + _tile);
+ x = _tile - DAT_ViewportRenderState.translationMatrix[y].addXgetTile;
+ if ((((DAT_TileMapState.WalkLayer[_tile] == this->searchGeneration)
+ && (_attackedDistance != 0))
+ && (_attackedDistance - 4294967224 < 4))
+ && ((DAT_TileMapState.CertainPathLayer[_tile] < 0x4c
+ && (DAT_TileMapState.CertainPathLayer[_tile] != 100)))) {
+ budgetFloodFillOnCertainPathLayer(
+ x, y, 100, 50);
+ DAT_GameState.mapAndTime.unitMoveDestinationXYPairs[playerIDMin1][_pair].x = x;
+ DAT_GameState.mapAndTime.unitMoveDestinationXYPairs[playerIDMin1][_pair].y = y;
+ _pair = _pair + 1;
+ }
+ if (40 < _pair) {
+ return;
+ }
+ this->searchQueue.readIndex = this->searchQueue.readIndex + 1;
+ if (0x13a0f < this->searchQueue.readIndex) {
+ this->searchQueue.readIndex = 0;
+ }
+ } while (this->searchQueue.readIndex != this->searchQueue.writeIndex);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004a66d0 setMoveDestinationPairs | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x004A66D0
+ void PathFindingState::setMoveDestinationPairs(int playerIDmin1, int playerID, int maxCost)
+ {
+ uint _cost;
+ uint _x;
+ int iVar1;
+ uint _y;
+ int _tileCandidate;
+ iVar1 = 0;
+ if (100 < maxCost) {
+ maxCost = 100;
+ }
+ this->searchQueue.readIndex = 0;
+ if (this->searchQueue.writeIndex != 0) {
+ do {
+ _y = (uint)this->searchQueue.yQueue[this->searchQueue.readIndex];
+ _tileCandidate = this->searchQueue.tilesQueue[this->searchQueue.readIndex];
+ _cost = (uint) * (byte*)(playerID * 0x13a10 + 0x1ee2998 + _tileCandidate);
+ _x = _tileCandidate - DAT_ViewportRenderState.translationMatrix[_y].addXgetTile;
+ if ((((_cost != 0) && (maxCost <= (int)_cost)) && ((int)_cost <= maxCost + 10))
+ && (DAT_TileMapState.CertainPathLayer[_tileCandidate] != 100)) {
+ budgetFloodFillOnCertainPathLayer(
+ _x, _y, 100, 200);
+ DAT_GameState.mapAndTime.unitMoveDestinationXYPairs[playerIDmin1][iVar1].x = _x;
+ DAT_GameState.mapAndTime.unitMoveDestinationXYPairs[playerIDmin1][iVar1].y = _y;
+ iVar1 = iVar1 + 1;
+ }
+ if (0x13 < iVar1) {
+ return;
+ }
+ this->searchQueue.readIndex = this->searchQueue.readIndex + 1;
+ if (0x13a0f < this->searchQueue.readIndex) {
+ this->searchQueue.readIndex = 0;
+ }
+ } while (this->searchQueue.readIndex != this->searchQueue.writeIndex);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004a67d0 spawnUnitAndAddToTribe | quelle=ghidra | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x004A67D0
+ void PathFindingState::spawnUnitAndAddToTribe(
+ int playerID, int displayColor, int count, UnitType unitType, int tribeID)
+ {
+ short sVar1;
+ int _unitID_2;
+ int _unitID;
+ uint _x;
+ int iVar2;
+ uint _y;
+ int* local_4;
+ int _tile;
+ this->calculations = this->calculations + 1;
+ iVar2 = -1;
+ this->searchQueue.readIndex = 0;
+ if (this->searchQueue.writeIndex != 0) {
+ local_4 = &DAT_GameState.mapAndTime.somePairArray.y;
+ do {
+ _y = (uint)this->searchQueue.yQueue[this->searchQueue.readIndex];
+ _tile = this->searchQueue.tilesQueue[this->searchQueue.readIndex];
+ _x = _tile - DAT_ViewportRenderState.translationMatrix[_y].addXgetTile;
+ if (DAT_TileMapState.CertainPathLayer[_tile] != 100) {
+ _unitID_2
+ = spawnUnit(
+ playerID, displayColor, _x * 8, _y * 8, 8, unitType);
+ if (_unitID_2 != 0) {
+ count = count + -1;
+ addUnitToTribe(_unitID_2, tribeID);
+ }
+ if (count < 1) {
+ return;
+ }
+ budgetFloodFillOnCertainPathLayer(
+ _x, _y, 10, 2);
+ ((XYPair*)(local_4 + -1))->x = _x;
+ *local_4 = _y;
+ local_4 = local_4 + 2;
+ iVar2 = _tile;
+ }
+ if (0x117cdef < (int)local_4)
+ break;
+ this->searchQueue.readIndex = this->searchQueue.readIndex + 1;
+ if (0x13a0f < this->searchQueue.readIndex) {
+ this->searchQueue.readIndex = 0;
+ }
+ } while (this->searchQueue.readIndex != this->searchQueue.writeIndex);
+ }
+ if ((0 < count) && (iVar2 != -1)) {
+ sVar1 = DAT_ViewportRenderState.tileTranslationMatrix_YComponent[iVar2];
+ _tile = DAT_ViewportRenderState.translationMatrix[sVar1].addXgetTile;
+ do {
+ _unitID = spawnUnit(
+ playerID, displayColor, (iVar2 - _tile) * 8, sVar1 * 8, 8, unitType);
+ if (_unitID != 0) {
+ addUnitToTribe(
+ _unitID, tribeID);
+ }
+ count = count + -1;
+ } while (0 < count);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004a69f0 computeAttackVectorsBasedOnXAndY | quelle=nachgebaut | bereich=Wegfindung
+// FUNCTION: STRONGHOLDCRUSADER 0x004A69F0
+ void PathFindingState::computeAttackVectorsBasedOnXAndY(int playerID)
+ {
+ this->calculations += 1;
+ int attackVectorIndex = 0;
+ this->searchQueue.readIndex = 0;
+ while (this->searchQueue.readIndex != this->searchQueue.writeIndex) {
+ uint y = (uint)this->searchQueue.yQueue[this->searchQueue.readIndex];
+ int tile = this->searchQueue.tilesQueue[this->searchQueue.readIndex];
+ uint x = tile - DAT_ViewportRenderState.translationMatrix[y].addXgetTile;
+ if (DAT_TileMapState.CertainPathLayer[tile] != 100) {
+ budgetFloodFillOnCertainPathLayer(
+ x, y, 100, 100);
+ DAT_GameState.mapAndTime.attackVectors[playerID][attackVectorIndex].x = x;
+ DAT_GameState.mapAndTime.attackVectors[playerID][attackVectorIndex].y = y;
+ DAT_GameState.mapAndTime.attackVectors[playerID][attackVectorIndex].tribeUIDUnk = 0;
+ DAT_GameState.mapAndTime.attackVectors[playerID][attackVectorIndex].tribeID = 0;
+ attackVectorIndex += 1;
+ }
+ if (attackVectorIndex >= 50) {
+ return;
+ }
+ this->searchQueue.readIndex += 1;
+ if ((int)this->searchQueue.readIndex >= Map::MC_MAP_TILES_COUNT) {
+ this->searchQueue.readIndex = 0;
+ }
+ }
+ }
+ }
+}
+}
+

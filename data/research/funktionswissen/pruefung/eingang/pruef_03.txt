@@ -1,0 +1,701 @@
+### 0x005227e0 createTribeForPlayer | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x005227E0
+ int TribesState::createTribeForPlayer(int playerID)
+ {
+ short* psVar1;
+ int _selectionID;
+ _selectionID = 1250 - playerID;
+ if (0 < _selectionID) {
+ /*
+ find an empty tribe
+ */
+ psVar1 = (short*)((int)this + _selectionID * 0x334 + 0x40);
+ while (*psVar1 != 0) {
+ _selectionID = _selectionID + -8;
+ psVar1 = psVar1 + -0xcd0;
+ if (_selectionID < 1) {
+ return 0;
+ }
+ }
+ /*
+ wipe the tribe
+ */
+ fillMemory_ByteValue(
+ 820, '\0', (void*)((int)(this->tribes + _selectionID)));
+ if (0 < _selectionID) {
+ this->tribes[_selectionID].owner = playerID;
+ this->tribes[_selectionID].tribeState = 2;
+ this->tribes[_selectionID].uid = DAT_GameCore.uniqueGameObjectTracker;
+ DAT_GameCore.uniqueGameObjectTracker = DAT_GameCore.uniqueGameObjectTracker + 1;
+ this->tribes[_selectionID].tribeType = ((AITribeType)0);
+ this->tribes[_selectionID].field19_0x1c = 0;
+ this->tribes[_selectionID].field20_0x1e = 0;
+ this->tribes[_selectionID].tribeBehaviorType = ((SomeTribeBehaviorType)0);
+ this->tribes[_selectionID].field30_0x30 = 0;
+ this->tribes[_selectionID].selectionTargetUnitID = 0;
+ this->tribes[_selectionID].size = 0;
+ return _selectionID;
+ }
+ }
+ return 0;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x005227e0", "name": "createTribeForPlayer", "quelle": "ghidra", "p1": {"bereich": "Truppen/Gruppen", "zweck": "Legt eine neue, leere Gruppe im Spieler-Raster an."}, "p2": {"ein": "playerID", "aus": "tribeID oder 0", "liest": ["Feld an Offset 0x40 je Gruppe (nach Lage vermutlich tribeState)", "GameCore.uniqueGameObjectTracker"], "schreibt": ["Gruppe wird auf 0 gelöscht (820 Byte)", "owner", "tribeState = 2", "uid", "tribeType, tribeBehaviorType, selectionTargetUnitID, size = 0", "GameCore.uniqueGameObjectTracker (+1)"], "ruft": ["fillMemory_ByteValue"], "regeln": ["Suche ab 1250 minus playerID in Achterschritten abwärts nach einer Gruppe, deren Zustandsfeld 0 ist", "Das Feld time wird hier nicht geprüft (anders als bei getAvailableTribeID)", "Keine freie Gruppe: 0", "Jede neue Gruppe erhält die nächste fortlaufende UID"], "offen": ["Ob das geprüfte Feld wirklich tribeState ist"]}, "p3": {"erklaerung": "Erzeugt eine leere Gruppe mit eindeutiger Kennung (UID) für den Spieler.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x004fc0b0 computeTileCliffEdgeFlags | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004FC0B0
+ void TileMapState::computeTileCliffEdgeFlags(int tile, int param_2, int param_3)
+ {
+ byte* pbVar1;
+ byte bVar2;
+ uint uVar3;
+ uint uVar4;
+ int iVar5;
+ uint uVar6;
+ uint* puVar7;
+ uint uVar8;
+ int* piVar9;
+ bool bVar10;
+ bool bVar11;
+ uint local_2c;
+ uint local_28;
+ uint local_20[4];
+ uint local_10;
+ int local_8;
+ uVar6 = (uint)this->HeightLayer[tile];
+ if (DAT_GameSynchronyState.currentGameMode == GM_MULTIPLAYER) {
+ return;
+ }
+ puVar7 = local_20;
+ piVar9 = &DAT_TerrainDefinedData.field2476_0x372c[0].y;
+ local_2c = uVar6;
+ local_28 = uVar6;
+ do {
+ iVar5 = ((XYPair*)(piVar9 + -1))->x;
+ uVar4 = *piVar9 + param_3;
+ uVar8 = param_2 + iVar5;
+ *puVar7 = uVar6;
+ uVar3 = local_2c;
+ if ((((uVar8 < 400) && (uVar4 < 400)) && (*(char*)(uVar4 * 400 + 0x21aec98 + uVar8) != '\0'))
+ && (iVar5 = DAT_ViewportRenderState.translationMatrix[uVar4].addXgetTile + iVar5 + param_2,
+ (this->LogicLayer[iVar5] & L_RIVER) != 0)) {
+ uVar4 = (uint)this->HeightLayer[iVar5];
+ *puVar7 = uVar4;
+ uVar3 = uVar4;
+ if ((local_2c <= uVar4) && (uVar3 = local_2c, local_28 < uVar4)) {
+ local_28 = uVar4;
+ }
+ }
+ local_2c = uVar3;
+ piVar9 = piVar9 + 2;
+ puVar7 = puVar7 + 1;
+ } while ((int)piVar9 < 0xb4c6c4);
+ this->Logic2Layer[tile] = this->Logic2Layer[tile] & L2_BEACH | L2_OASIS_GRASS | L2_PLATEAU_HIGH;
+ bVar2 = this->Logic2Layer[tile];
+ pbVar1 = this->Logic2Layer + tile;
+ if (uVar6 <= local_2c) {
+ if (local_28 <= uVar6) {
+ return;
+ }
+ if (local_28 <= uVar6 + 0x10) {
+ *pbVar1 = bVar2 | 0x80;
+ return;
+ }
+ *pbVar1 = bVar2 | 0x40;
+ return;
+ }
+ if (this->mapOrientation == 0) {
+ if ((int)local_20[2] < (int)uVar6) {
+ if ((int)local_10 < (int)uVar6) {
+ *pbVar1 = bVar2 | 1;
+ return;
+ }
+ goto LAB_004fc1c9;
+ }
+ bVar11 = (local_10 < uVar6);
+ bVar10 = (int)(local_10 - uVar6) < 0;
+ } else {
+ if (this->mapOrientation == 4) {
+ if ((int)uVar6 <= (int)local_20[0]) {
+ if ((int)uVar6 <= local_8) {
+ return;
+ }
+ *pbVar1 = bVar2 | 4;
+ return;
+ }
+ if (local_8 < (int)uVar6) {
+ *pbVar1 = bVar2 | 1;
+ return;
+ }
+ goto LAB_004fc1be;
+ }
+ if (this->mapOrientation == 2) {
+ local_20[2] = local_10;
+ if ((int)local_10 < (int)uVar6) {
+ if (local_8 < (int)uVar6) {
+ *pbVar1 = bVar2 | 1;
+ return;
+ }
+ goto LAB_004fc1c9;
+ }
+ bVar11 = (local_8 < uVar6);
+ bVar10 = (int)(local_8 - uVar6) < 0;
+ } else {
+ if (this->mapOrientation != 6) {
+ return;
+ }
+ if ((int)local_20[0] < (int)uVar6) {
+ bVar10 = (int)local_20[2] < (int)uVar6;
+ local_20[2] = local_20[0];
+ if (bVar10) {
+ *pbVar1 = bVar2 | 1;
+ return;
+ }
+ goto LAB_004fc1c9;
+ }
+ bVar11 = (local_20[2] < uVar6);
+ bVar10 = (int)(local_20[2] - uVar6) < 0;
+ local_20[2] = local_20[0];
+ }
+ }
+ if (bVar11 == bVar10) {
+ LAB_004fc1c9:
+ if ((int)uVar6 <= (int)local_20[2]) {
+ return;
+ }
+ *pbVar1 = bVar2 | 4;
+ return;
+ }
+ LAB_004fc1be:
+ *pbVar1 = bVar2 | 2;
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004fc0b0", "name": "computeTileCliffEdgeFlags", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Berechnet für ein Feld die Klippen-/Uferkanten-Markierung in Logic2Layer."}, "p2": {"ein": "tile, param_2 = x, param_3 = y", "aus": "-", "liest": ["HeightLayer", "LogicLayer (L_RIVER der Nachbarn)", "mapOrientation", "currentGameMode", "Nachbar-Versatztabelle field2476_0x372c"], "schreibt": ["Logic2Layer[tile]"], "ruft": [], "regeln": ["Im Mehrspielermodus (GM_MULTIPLAYER) passiert nichts", "Es zählen nur Nachbarfelder mit Fluss-Flag; deren Höhe geht in die Rechnung ein", "Zuerst bleiben nur die Bits L2_BEACH, L2_OASIS_GRASS, L2_PLATEAU_HIGH erhalten (Operatorrangfolge in Ghidra unsicher)", "Ist kein Nachbar niedriger und einer höher: Bit 0x80, wenn der Unterschied höchstens 0x10 ist, sonst Bit 0x40", "Ist ein Nachbar niedriger: je nach mapOrientation (0, 2, 4, 6) wird Bit 1, 2 oder 4 gesetzt, nach den Höhen zweier ausgewählter Nachbarn", "Bei anderer mapOrientation: keine Änderung"], "offen": ["Anzahl und Lage der Nachbarn in der Versatztabelle", "Bedeutung der Bits 1, 2, 4, 0x40, 0x80 (vermutlich Kantenrichtung und Kantenhöhe)", "Welche Nachbarn je Drehung gewählt werden"]}, "p3": {"erklaerung": "Markiert Felder am Flussufer, an denen die Höhe abfällt, damit dort die passende Kantengrafik gezeichnet werden kann.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x004d3780 computeNervousness | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004D3780
+ void AICState::computeNervousness(int playerID)
+ {
+ int const troopValueNearKeep
+ = DAT_TroopValueState.attackInfo.playerTotalTroopValueOfTroopsNearKeep[playerID];
+ int const enemyTroopValue = DAT_GameState.playerDataArray[playerID].totalEnemyTroopValue;
+ BOOLEnum isNotNervous = TRUE;
+ int margin;
+ if (enemyTroopValue < 50)
+ margin = -20;
+ else if (enemyTroopValue < 100)
+ margin = 0;
+ else if (enemyTroopValue < 200)
+ margin = 20;
+ else if (enemyTroopValue < 400)
+ margin = 100;
+ else if (enemyTroopValue < 600)
+ margin = 200;
+ else if (enemyTroopValue < 800)
+ margin = 300;
+ else
+ margin = 500;
+ if (troopValueNearKeep > enemyTroopValue + margin) {
+ isNotNervous = FALSE;
+ } else if (!DAT_GameState.playerDataArray[playerID].isNotNervousByEnemyTroopValue) {
+ if (DAT_GameState.playerDataArray[playerID]
+ .totalEnemyTroopValueByPlayerID[DAT_GameSynchronyState.currentPlayerSlotID]
+ > troopValueNearKeep)
+ playNervous1BikFromPlayer(playerID);
+ playRequestHelpBikFromPlayer(playerID);
+ }
+ DAT_GameState.playerDataArray[playerID].isNotNervousByEnemyTroopValue = isNotNervous;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004d3780", "name": "computeNervousness", "quelle": "nachgebaut", "p1": {"bereich": "KI", "zweck": "Entscheidet, ob die KI sich wegen der Feinde in Burgnähe bedroht fühlt."}, "p2": {"ein": "playerID", "aus": "-", "liest": ["attackInfo.playerTotalTroopValueOfTroopsNearKeep[sp]", "playerDataArray[sp].totalEnemyTroopValue", "isNotNervousByEnemyTroopValue", "totalEnemyTroopValueByPlayerID[eigene Spielerkennung]"], "schreibt": ["isNotNervousByEnemyTroopValue"], "ruft": ["playNervous1BikFromPlayer", "playRequestHelpBikFromPlayer"], "regeln": ["Spielraum nach Feindwert: unter 50 = -20; 50-99 = 0; 100-199 = 20; 200-399 = 100; 400-599 = 200; 600-799 = 300; ab 800 = 500", "Ist der Truppenwert nahe der Burg größer als Feindwert + Spielraum, wird das Flag auf FALSE gesetzt, sonst auf TRUE", "Wechselt das Flag von FALSE auf TRUE, wird das Hilfegesuch-Video gespielt (ohne Bedingung) und das Nervös-Video zusätzlich nur, wenn der Feindwert des Menschen größer als der Wert nahe der Burg ist"], "offen": ["Name täuscht vermutlich: Flag TRUE heißt nach dem Ablauf wohl 'KI fühlt sich bedroht' (determineAIPlayerHelp verweigert dann Hilfe)", "Ob die Klammern im Originalcode das Hilfegesuch-Video ebenfalls an die Bedingung binden (Nachbau: nein)"]}, "p3": {"erklaerung": "Je mehr Feinde die KI sieht, desto größer muss ihr Truppenwert an der Burg sein, damit sie ruhig bleibt. Wird sie unruhig, bittet sie Verbündete um Hilfe.", "gehirn": "Schwellen der Feindwerte (50/100/200/400/600/800) erlauben abzuschätzen, wann eine KI um Hilfe ruft und ihren Verbündeten nicht mehr hilft.", "beleg": "nachgebaut", "live": "KI mit bekanntem Truppenwert in Burgnähe und Feindwert 150 → isNotNervousByEnemyTroopValue → Umschlag bei Truppenwert Burg = 170", "live_art": "ki-welle"}}
+
+### 0x00401400 markEntityDestroyed | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00401400
+ void EntityState::markEntityDestroyed(int entityID)
+ {
+ if (entityID > 0) {
+ this->entityArray[entityID].logicalState = 3;
+ this->entityArray[entityID].someCounter_OR_hitGround = 10;
+ }
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00401400", "name": "markEntityDestroyed", "quelle": "nachgebaut", "p1": {"bereich": "Einheiten", "zweck": "Markiert einen Effekt-Eintrag als zerstört."}, "p2": {"ein": "entityID", "aus": "-", "liest": [], "schreibt": ["entityArray[id].logicalState = 3", "someCounter_OR_hitGround = 10"], "ruft": [], "regeln": ["Wirkt nur bei entityID > 0", "logicalState 3 heißt hier: zu löschen (Zustand 2 = aktiv)"], "offen": []}, "p3": {"erklaerung": "Der Effekt wird zum Entfernen freigegeben. Eintrag 0 bleibt unberührt.", "gehirn": "-", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x004cf2e0 aiCommandTribe12AggressiveApproach | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004CF2E0
+ void AICState::aiCommandTribe12AggressiveApproach(int param_1)
+ {
+ int iVar1;
+ BOOLEnum BVar2;
+ int tribeID;
+ if ((((DAT_GameState.playerDataArray[param_1].aiType != AIT_NULL)
+ && (tribeID = (int)DAT_GameState.playerDataArray[param_1].aiTribeIDs[0xc], tribeID != 0))
+ && (DAT_TribesState.tribes[tribeID].uid
+ == DAT_GameState.playerDataArray[param_1].aiTribeUIDs[0xc]))
+ && (iVar1 = (int)DAT_TribesState.tribes[tribeID].selectionTargetUnitID, iVar1 != 0)) {
+ findLinkageBasedPathOrWalkRadius((int)DAT_UnitsState.units[iVar1].x,
+ (uint)((int)((int)DAT_UnitsState.units[iVar1].y)), -1, -1, 10000, FALSE);
+ iVar1 = DAT_GameState.playerDataArray[param_1].attackedPlayerID;
+ DAT_TribesState.tribes[tribeID].unitStance = USE_AGGRESSIVE;
+ BVar2 = findDestinationCostLowerThan6(iVar1, 200);
+ if (((BVar2 != FALSE)
+ || (BVar2 = findDestinationCostLowerThan6(
+ DAT_GameState.playerDataArray[param_1].attackedPlayerID, 150),
+ BVar2 != FALSE))
+ || ((BVar2
+ = findDestinationCostLowerThan6(
+ DAT_GameState.playerDataArray[param_1].attackedPlayerID, 100),
+ BVar2 != FALSE
+ || (BVar2 = findDestinationCostLowerThan6(
+ DAT_GameState.playerDataArray[param_1].attackedPlayerID, 50),
+ BVar2 != FALSE)))) {
+ giveTribeMoveInstruction(tribeID, (uint)((int)(DAT_PathFindingState.ALG_ResultX)),
+ (uint)((int)(DAT_PathFindingState.ALG_ResultY)), 0, 0,
+ UMSE_0);
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004cf2e0", "name": "aiCommandTribe12AggressiveApproach", "quelle": "ghidra", "p1": {"bereich": "KI", "zweck": "Schickt Gruppe 12 aggressiv in Richtung des Gegners, an einen erreichbaren Punkt in gestaffelter Entfernung."}, "p2": {"ein": "playerID (param_1)", "aus": "-", "liest": ["aiTribeIDs[0xc]", "tribes[].selectionTargetUnitID", "units[ziel].x/y", "playerDataArray[sp].attackedPlayerID"], "schreibt": ["tribes[].unitStance = USE_AGGRESSIVE"], "ruft": ["findLinkageBasedPathOrWalkRadius", "findDestinationCostLowerThan6", "giveTribeMoveInstruction"], "regeln": ["Nur mit KI, gültiger Gruppe 0xc und Ziel != 0", "Wegsuche zum Ziel mit Radius 10000", "Der Reihe nach Grenzen 200, 150, 100, 50 auf den angegriffenen Spieler prüfen; die erste, die TRUE ergibt, löst die Bewegung aus", "Bewegung geht zu ALG_ResultX/ALG_ResultY des Wegfinders", "Kein Treffer: keine Bewegung (Haltung ist trotzdem gesetzt)"], "offen": ["Was findDestinationCostLowerThan6 genau misst (Wegkosten?)", "Die Zahlen 200/150/100/50 als Wegkosten-Grenzen sind vermutet"]}, "p3": {"erklaerung": "Die Gruppe rückt in aggressiver Haltung vor; sie versucht zuerst einen weit entfernten Punkt, dann immer nähere.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0045b7f0 getSalesPrice | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0045B7F0
+ int GameStateStructures::getSalesPrice(int playerID, int resourceType)
+ {
+ return (this->mapAndTime.buyAndSalesPriceArray[resourceType].salesPrice / 5)
+ * getSellResourceAmount(
+ playerID, resourceType);
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0045b7f0", "name": "getSalesPrice", "quelle": "nachgebaut", "p1": {"bereich": "Spielablauf", "zweck": "Erlös eines Verkaufs."}, "p2": {"ein": "playerID, resourceType", "aus": "Gold", "liest": ["mapAndTime.buyAndSalesPriceArray[ware].salesPrice"], "schreibt": [], "ruft": ["getSellResourceAmount"], "regeln": ["Erlös = (salesPrice / 5, abgerundet) * Verkaufsmenge aus getSellResourceAmount"], "offen": []}, "p3": {"erklaerung": "Der Erlös richtet sich nach der Menge aus getSellResourceAmount; der Stückpreis wird zuerst abgerundet.", "gehirn": "Erlös vorab berechnen: abgerundeter Stückpreis (salesPrice/5) mal Losgröße.", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x00409ff0 getSpriteID2 | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00409FF0
+ int BuildingsState::getSpriteID2(MappersEnum commandBuildingType)
+ {
+ int const spriteID = DAT_BuildingDefinedData.Building_Sprite_ID_Array_2[convertCommandBuildingTypeToBuildingType(commandBuildingType)];
+ if (spriteID != 0) {
+ return spriteID;
+ }
+ return getSpriteID(commandBuildingType);
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00409ff0", "name": "getSpriteID2", "quelle": "nachgebaut", "p1": {"bereich": "Gebaeude", "zweck": "Zweites Bild eines Gebäudes, sonst das erste."}, "p2": {"ein": "commandBuildingType", "aus": "Sprite-ID", "liest": ["Building_Sprite_ID_Array_2[]"], "schreibt": [], "ruft": ["convertCommandBuildingTypeToBuildingType", "getSpriteID"], "regeln": ["Ist der Eintrag in Building_Sprite_ID_Array_2 nicht 0, wird er geliefert", "Bei 0 wird getSpriteID verwendet"], "offen": []}, "p3": {"erklaerung": "Nur Darstellung: Gebäude ohne zweites Bild nehmen das erste.", "gehirn": "-", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x00421890 deleteBuilding | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00421890
+ void BuildingsState::deleteBuilding(uint buildingID)
+ {
+ if (DAT_GameCore.currentMenuViewType == MVT_BUILDING_AND_STATUS_MENU
+ && DAT_BuildingsState.menuSelectedBuildingID == buildingID) {
+ switchToMenuView(
+ MVT_BUILD_MENU, 0);
+ }
+ subtractResourcesStoredInBuilding(buildingID);
+ setTowerSiegeEngineToIdle(buildingID);
+ if ((this->buildings[buildingID].buildingType == BT_OUTPOST_EUROPEAN
+ || this->buildings[buildingID].buildingType == BT_OUTPOST_ARABIAN)
+ && this->buildings[buildingID].tribeID > 0
+ && DAT_TribesState.tribes[this->buildings[buildingID].tribeID].uid
+ == this->buildings[buildingID].tribeUID) {
+ aiRegisterTribeAndAssignTarget(
+ this->buildings[buildingID].tribeID, this->buildings[buildingID].tribeUID);
+ }
+ if (this->buildings[buildingID].buildingType == BT_OXTETHER) {
+ removeUnitFromItsTribe(
+ this->buildings[buildingID].oxTetherRelatedUnitID,
+ this->buildings[buildingID].oxTetherRelatedUnitUID);
+ } else if (this->buildings[buildingID].buildingType == BT_CATHEDRAL) {
+ DAT_GameState.mapAndTime.cathedralRelated1 = 1;
+ }
+ spawnCrowForBuilding(buildingID);
+ clearBuildingFromTerrain(buildingID);
+ updatePrimaryBuildingPlayerDataReferences(buildingID);
+ fillMemory_ByteValue(
+ sizeof(Building), 0, &this->buildings[buildingID]);
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00421890", "name": "deleteBuilding", "quelle": "nachgebaut", "p1": {"bereich": "Gebaeude", "zweck": "Entfernt ein Gebäude restlos aus dem Spiel."}, "p2": {"ein": "buildingID", "aus": "-", "liest": ["buildings[id].buildingType/tribeID/tribeUID", "DAT_TribesState.tribes[].uid"], "schreibt": ["buildings[id] (komplett auf 0)", "mapAndTime.cathedralRelated1"], "ruft": ["switchToMenuView", "subtractResourcesStoredInBuilding", "setTowerSiegeEngineToIdle", "aiRegisterTribeAndAssignTarget", "removeUnitFromItsTribe", "spawnCrowForBuilding", "clearBuildingFromTerrain", "updatePrimaryBuildingPlayerDataReferences", "fillMemory_ByteValue"], "regeln": ["Ist das Gebäude im Statusmenü offen, wechselt die Ansicht zum Baumenü", "Gelagerte Waren werden vom Bestand abgezogen", "Vorposten (europäisch oder arabisch) mit gültiger Gruppe (tribeID größer 0 und uid gleich tribeUID): Gruppe bekommt neu ein Ziel", "Ochsenanbindung: Zugtier wird aus seiner Gruppe entfernt", "Kathedrale: cathedralRelated1 wird 1", "Eine Krähe entsteht am Gebäude", "Zum Schluss wird der ganze Gebäudeeintrag auf 0 gesetzt"], "offen": ["Bedeutung von cathedralRelated1", "Rückgabe von Baukosten geschieht hier nicht"]}, "p3": {"erklaerung": "Wirklich löschen: Gelagerte Waren zählen nicht mehr, Terrain wird frei, der Eintrag wird auf 0 gesetzt und der Platz ist wieder verfügbar.", "gehirn": "Nach dem Löschen ist die ID frei und kann sofort neu vergeben werden. IDs über Zeit nicht als eindeutig behandeln, dafür gibt es die uid.", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x004a4b30 isUsableClimbWallWithinArea | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004A4B30
+ BOOLEnum PathFindingState::isUsableClimbWithinArea(int area, int wallDataID)
+ {
+ if ((this->climbData[wallDataID].canBeUsed == 1)
+ && (this->climbData[wallDataID].isRecognizedByPathfinding != 0)) {
+ if (this->climbData[wallDataID].area == area) {
+ return TRUE;
+ }
+ return (uint)(this->climbData[wallDataID].wallGroupAreaID == area);
+ }
+ return FALSE;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004a4b30", "name": "isUsableClimbWallWithinArea", "quelle": "ghidra", "p1": {"bereich": "Wegfindung", "zweck": "Prüft, ob ein Kletterdaten-Eintrag benutzbar ist und an einen bestimmten Bereich grenzt."}, "p2": {"ein": "area, wallDataID", "aus": "TRUE/FALSE", "liest": ["climbData[id].canBeUsed/isRecognizedByPathfinding/area/wallGroupAreaID"], "schreibt": [], "ruft": [], "regeln": ["TRUE nur bei canBeUsed = 1 und isRecognizedByPathfinding != 0", "und area oder wallGroupAreaID des Eintrags ist gleich dem gesuchten Bereich"], "offen": []}, "p3": {"erklaerung": "Einfacher Test, ob ein Kletterpunkt (Leiter, Mauer, Tor) in einem Bereich liegt und nutzbar ist. Der Name im Nachbau lautet isUsableClimbWithinArea.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0040f360 updateBuildingSignpostCounter | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0040F360
+ int BuildingsState::updateBuildingSignpostCounter(int buildingID, int animation)
+ {
+ if (animation == 2) {
+ this->buildings[buildingID].animationCycleCompleted = 0;
+ this->buildings[buildingID].state = 0;
+ this->buildings[buildingID].animationIndex = 0;
+ return 0;
+ }
+ if (animation == 3) {
+ this->buildings[buildingID].animationIncrement = 0;
+ } else {
+ this->buildings[buildingID].animationIncrement = 1;
+ }
+ this->buildings[buildingID].renderAnimation = animation;
+ if (this->buildings[buildingID].unknownStockpileOrSignpostRelated == 0) {
+ this->buildings[buildingID].renderAnimation = 0;
+ }
+ if (this->buildings[buildingID].renderAnimation == 0) {
+ this->buildings[buildingID].animationIndex = 0;
+ this->buildings[buildingID].animationCycleCount = 0;
+ this->buildings[buildingID].animationCycleCompleted = 0;
+ }
+ return this->buildings[buildingID].animationCycleCompleted;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0040f360", "name": "updateBuildingSignpostCounter", "quelle": "nachgebaut", "p1": {"bereich": "Gebaeude", "zweck": "Steuert die Animation eines Gebäudes (Wegweiser oder Vorratslager)."}, "p2": {"ein": "buildingID, animation", "aus": "animationCycleCompleted, oder 0 bei animation 2", "liest": ["unknownStockpileOrSignpostRelated", "animationCycleCompleted"], "schreibt": ["animationCycleCompleted", "state", "animationIndex", "animationIncrement", "renderAnimation", "animationCycleCount"], "ruft": [], "regeln": ["animation 2: Zustand, Bildindex und Zyklusflag auf 0, Rückgabe 0", "animation 3: Bildschritt 0 (Standbild), sonst Bildschritt 1", "renderAnimation = animation, aber 0, wenn unknownStockpileOrSignpostRelated = 0", "Bei renderAnimation 0 werden Bildindex, Zyklusanzahl und Zyklusflag auf 0 gesetzt"], "offen": ["Name vermutlich zu eng: Feld heißt Stockpile oder Signpost related"]}, "p3": {"erklaerung": "Darstellung: schaltet eine Animation an, hält sie an oder setzt sie zurück.", "gehirn": "-", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x0040e040 setupEngineersGuildParagroundPositions | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0040E040
+ void BuildingsState::setupEngineersGuildParagroundPositions(int playerID)
+ {
+ int paradeGroundID = 0;
+ fillMemory_ByteValue(
+ sizeof(DAT_GameState.playerDataArray[playerID].engineersParadegroundLocations), 0,
+ DAT_GameState.playerDataArray[playerID].engineersParadegroundLocations);
+ DAT_GameState.playerDataArray[playerID].engineersParadegroundLocationsTotal = 0;
+ if (DAT_GameState.playerDataArray[playerID].engineersGuild.id <= 0) {
+ return;
+ }
+ for (int buildingID = 1; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (this->buildings[buildingID].logicalState != 0
+ && this->buildings[buildingID].logicalState != BLS_REMOVE
+ && this->buildings[buildingID].owner == playerID
+ && this->buildings[buildingID].buildingType == BT_PARADEGROUND) {
+ paradeGroundID = buildingID;
+ }
+ }
+ if (paradeGroundID == 0) {
+ return;
+ }
+ DAT_GameState.playerDataArray[playerID].engineersParadegroundLocationsTotal = 25;
+ int const x = this->buildings[paradeGroundID].x;
+ int const y = this->buildings[paradeGroundID].y;
+ for (int i = 0; i < 25; ++i) {
+ DAT_GameState.playerDataArray[playerID].engineersParadegroundLocations[i].x
+ = DAT_BuildingDefinedData.EngineersParagroundOffsets[i].x + x;
+ DAT_GameState.playerDataArray[playerID].engineersParadegroundLocations[i].y
+ = DAT_BuildingDefinedData.EngineersParagroundOffsets[i].y + y;
+ }
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0040e040", "name": "setupEngineersGuildParagroundPositions", "quelle": "nachgebaut", "p1": {"bereich": "Gebaeude", "zweck": "Legt die 25 Aufstellplätze der Ingenieure auf dem Exerzierplatz fest."}, "p2": {"ein": "playerID", "aus": "-", "liest": ["playerDataArray[p].engineersGuild.id", "buildings[].logicalState/owner/buildingType/x/y", "EngineersParagroundOffsets[25]"], "schreibt": ["engineersParadegroundLocations[25]", "engineersParadegroundLocationsTotal"], "ruft": ["fillMemory_ByteValue"], "regeln": ["Zuerst Liste leeren, Anzahl 0", "Ohne Ingenieurgilde (id <= 0): Abbruch", "Es zählt das Gebäude BT_PARADEGROUND des Spielers mit der höchsten Nummer, das nicht den Zustand 0 oder BLS_REMOVE hat", "Ohne solchen Platz: Abbruch mit Anzahl 0", "Sonst Anzahl 25, jeder Platz = Offset + Position des Exerzierplatzes"], "offen": ["Offset-Tabelle EngineersParagroundOffsets nie ausgelesen"]}, "p3": {"erklaerung": "Ingenieure und Leiterträger stellen sich auf einem eigenen Exerzierplatz in einem 25er-Raster auf.", "gehirn": "-", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x004d3ae0 aiRecruitUnits | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004D3AE0
+ void AICState::aiRecruitUnits(int playerID)
+ {
+ int* piVar1;
+ AIRecruitUnitChoiceInt AVar2;
+ bool bVar3;
+ int iVar4;
+ int iVar5;
+ int _tribeID_defDiggingUnitMax;
+ int _unitID;
+ UnitType _unitType;
+ int iVar6;
+ AICState* _pAICState;
+ int local_8;
+ int _aicRecruitInterval;
+ int _nervousActionTracker;
+ int _buildingID;
+ int _unitChoiceIndex;
+ AIRecruitUnitChoiceInt _unitTypeChoice;
+ int _defTotal;
+ AITypeInt _aiType;
+ int _playerID2;
+ bool _recruitDefDiggingUnit;
+ _playerID2 = playerID;
+ _aiType = DAT_GameState.playerDataArray[playerID].aiType;
+ _unitType = ((UnitType)0);
+ _pAICState = this;
+ if (_aiType != AIT_NULL) {
+ bVar3 = false;
+ _recruitDefDiggingUnit = false;
+ iVar6 = _aiType + ~AIT_NULL;
+ if (((DAT_GameCore.gameMode_2 == GM_SKIRMISH_AND_MULTIPLAYER)
+ && (DAT_GameCore.isSkirmishTrail == TRUE))
+ && (DAT_GameCore.currentTrailType == TT_EXTREME)) {
+ bVar3 = true;
+ }
+ iVar4 = iVar6 * 0xa9;
+ _aicRecruitInterval = *(int*)((int)this
+ + (DAT_GameState.playerDataArray[playerID].aiStrengthFeeling + iVar4) * 4 + 0x164);
+ local_8 = -(uint)(_aicRecruitInterval != 0) + 2;
+ if (bVar3) {
+ local_8 = -(uint)(_aicRecruitInterval != 0) + 3;
+ }
+ _nervousActionTracker = DAT_GameState.playerDataArray[playerID].aiNervousActionsTracker;
+ if (_nervousActionTracker < 1) {
+ piVar1 = &DAT_GameState.playerDataArray[playerID].aiRecruitIntervalTracker;
+ *piVar1 = *piVar1 + 1;
+ if (DAT_GameState.playerDataArray[playerID].aiRecruitIntervalTracker < _aicRecruitInterval) {
+ return;
+ }
+ } else {
+ local_8 = 4;
+ }
+ iVar5 = DAT_GameState.playerDataArray[playerID].idlePeasantsCount;
+ DAT_GameState.playerDataArray[playerID].aiRecruitIntervalTracker = 0;
+ if ((0 < iVar5) && (DAT_GameState.playerDataArray[playerID].canStartSpending != 0)) {
+ AVar2 = DAT_GameState.playerDataArray[playerID].aiRecruitUnitChoiceState;
+ if (AVar2 == AIRUC_DEFENSIVE) {
+ _defTotal = *(int*)((int)this + iVar6 * 0x2a4 + 0x170);
+ if (bVar3) {
+ _defTotal = (_defTotal * 4) / 3;
+ }
+ if (0 < _nervousActionTracker) {
+ _defTotal = _defTotal * 4;
+ }
+ if (_defTotal <= DAT_GameState.playerDataArray[playerID].totalDefensiveTroopsUnk) {
+ return;
+ }
+ } else if (AVar2 == AIRUC_RAIDING) {
+ iVar5 = getCurrentDesiredAttackRaidUnitCount(
+ iVar6, playerID);
+ if (iVar5 <= DAT_GameState.playerDataArray[playerID].totalRaidingTroopsUnk) {
+ return;
+ }
+ } else if ((AVar2 == AIRUC_ATTACKING)
+ && (DAT_GameState.playerDataArray[playerID].aiPlayerState != 0)) {
+ return;
+ }
+ iVar6 = iVar6 * 0x2a4;
+ /*
+ DefDiggingUnitMax
+ */
+ /*
+ DefDiggingUnitMax
+ */
+ if (((*(int*)((int)this + iVar6 + 0x15c) != 0)
+ && (iVar5
+ = countUnfinishedMoatTilesForPlayer(playerID),
+ iVar5 != 0))
+ && ((_tribeID_defDiggingUnitMax
+ = (int)DAT_GameState.playerDataArray[playerID].aiTribeIDs[10],
+ _tribeID_defDiggingUnitMax == 0
+ || ((DAT_GameState.playerDataArray[playerID].aiTribeUIDs[10]
+ != DAT_TribesState.tribes[_tribeID_defDiggingUnitMax].uid
+ || ((int)DAT_TribesState.tribes[_tribeID_defDiggingUnitMax].size
+ < *(int*)((int)this + iVar6 + 0x15c))))))) {
+ _recruitDefDiggingUnit = true;
+ }
+ playerID = 0;
+ if (0 < local_8) {
+ do {
+ if (_recruitDefDiggingUnit) {
+ if (((byte)SEC_RNG::instance.currentNumber2 & 1) != 0) {
+ _recruitDefDiggingUnit = false;
+ goto LAB_004d3cc1;
+ }
+ if (DAT_GameState.playerDataArray[_playerID2].barracks.id == 0) {
+ if (DAT_GameState.playerDataArray[_playerID2].mercenaryPost.id == 0) {
+ return;
+ }
+ /*
+ DefDiggingUnit
+ */
+ _unitType = *(UnitType*)((int)this + iVar6 + 0x160);
+ } else {
+ /*
+ DefDiggingUnit
+ */
+ _unitType = *(UnitType*)((int)this + iVar6 + 0x160);
+ }
+ } else {
+ LAB_004d3cc1:
+ _unitTypeChoice
+ = DAT_GameState.playerDataArray[_playerID2].aiRecruitUnitChoiceState;
+ if (_unitTypeChoice == AIRUC_DEFENSIVE) {
+ if (7 < DAT_GameState.playerDataArray[_playerID2].aiDefUnitChoiceIndex) {
+ DAT_GameState.playerDataArray[_playerID2].aiDefUnitChoiceIndex = 0;
+ }
+ /*
+ DefUnit 1 up to 8
+ */
+ if (*(int*)((int)this
+ + (DAT_GameState.playerDataArray[_playerID2].aiDefUnitChoiceIndex
+ + iVar4)
+ * 4
+ + 0x184)
+ == 0) {
+ DAT_GameState.playerDataArray[_playerID2].aiDefUnitChoiceIndex = 0;
+ }
+ _unitChoiceIndex
+ = DAT_GameState.playerDataArray[_playerID2].aiDefUnitChoiceIndex;
+ /*
+ DefUnit 1 up to 8
+ */
+ _unitType = *(UnitType*)((int)this + (iVar4 + _unitChoiceIndex) * 4 + 0x184);
+ DAT_GameState.playerDataArray[_playerID2].aiDefUnitChoiceIndex
+ = _unitChoiceIndex + 1;
+ } else if (_unitTypeChoice == AIRUC_RAIDING) {
+ if (7 < DAT_GameState.playerDataArray[_playerID2].aiRaidUnitChoiceIndex) {
+ DAT_GameState.playerDataArray[_playerID2].aiRaidUnitChoiceIndex = 0;
+ }
+ if (*(int*)((int)this
+ + (DAT_GameState.playerDataArray[_playerID2].aiRaidUnitChoiceIndex
+ + iVar4)
+ * 4
+ + 0x1ac)
+ == 0) {
+ DAT_GameState.playerDataArray[_playerID2].aiRaidUnitChoiceIndex = 0;
+ }
+ iVar5 = DAT_GameState.playerDataArray[_playerID2].aiRaidUnitChoiceIndex;
+ _unitType = *(UnitType*)((int)this + (iVar4 + iVar5) * 4 + 0x1ac);
+ DAT_GameState.playerDataArray[_playerID2].aiRaidUnitChoiceIndex = iVar5 + 1;
+ } else if (_unitTypeChoice == AIRUC_ATTACKING) {
+ _pAICState = (AICState*)randomlySelectAttackUnitTypeToRecruit(
+ _playerID2);
+ _unitType
+ = getUnitTypeForUnitBehaviourType(_playerID2, (AIUnitBehaviourType)((int)(_pAICState)));
+ }
+ }
+ if (_unitType == ((UnitType)0)) {
+ return;
+ }
+ if (_unitType == UT_E_ENGINEER) {
+ _buildingID = DAT_GameState.playerDataArray[_playerID2].engineersGuild.id;
+ } else if (_unitType == UT_E_LADDER) {
+ _buildingID = DAT_GameState.playerDataArray[_playerID2].engineersGuild.id;
+ } else if (_unitType == UT_TUNNELER) {
+ _buildingID = DAT_GameState.playerDataArray[_playerID2].tunnelersGuild.id;
+ } else if (_unitType == UT_E_MONK) {
+ _buildingID = findFirstBuildingIDForPlayerAndType(_playerID2, BT_CATHEDRAL);
+ } else if ((int)_unitType < 0x46) {
+ _buildingID = DAT_GameState.playerDataArray[_playerID2].barracks.id;
+ } else {
+ _buildingID = DAT_GameState.playerDataArray[_playerID2].mercenaryPost.id;
+ }
+ if (_buildingID == 0) {
+ return;
+ }
+ if ((((_unitType == UT_E_ENGINEER)
+ || (_unitType == UT_E_LADDER))
+ || (_unitType == UT_TUNNELER))
+ || ((_unitType == UT_E_MONK || (0x45 < (int)_unitType)))) {
+ _unitID = nonEuroRecruit(_unitType, (undefined4)((int)(_buildingID)), _playerID2, 0);
+ } else {
+ _unitID = euroRecruit(_unitType, (undefined4)((int)(_buildingID)), _playerID2, 0);
+ }
+ if (_unitID == 0) {
+ /*
+ tradeAmountEquipment
+ */
+ iVar6 = *(int*)((int)this + iVar6 + 0x9c);
+ if (iVar6 < 1) {
+ return;
+ }
+ if (DAT_UnitsState.euroUnitAcquisitionFailReason != 2) {
+ return;
+ }
+ if (DAT_GameState.playerDataArray[_playerID2].aiNervousActionsTracker < 1) {
+ DAT_GameState.playerDataArray[_playerID2]
+ .resourcesToAcquireArray[DAT_UnitsState.euroUnitRequiredResource] = iVar6;
+ return;
+ }
+ DAT_GameState.playerDataArray[_playerID2]
+ .resourcesToAcquireArray[DAT_UnitsState.euroUnitRequiredResource] = 5;
+ return;
+ }
+ if (_recruitDefDiggingUnit) {
+ /*
+ digging units?
+ */
+ aiAddUnitToMoatDiggerTribe(_unitID);
+ } else {
+ AVar2 = DAT_GameState.playerDataArray[_playerID2].aiRecruitUnitChoiceState;
+ /*
+ 0 = defensive, 1 = raid, 2 = army
+ */
+ if (AVar2 == AIRUC_DEFENSIVE) {
+ if (DAT_GameState.playerDataArray[_playerID2].totalDefensiveTroopsUnk
+ < *(int*)((int)this + iVar6 + 0x180)) {
+ assignUnitToATribe(_unitID);
+ } else {
+ addUnitToSmallestPatrolTribe(
+ _unitID);
+ }
+ } else if (AVar2 == AIRUC_RAIDING) {
+ aiAssignUnitToDefensiveTribe(
+ _unitID);
+ } else if (AVar2 == AIRUC_ATTACKING) {
+ addUnitToItsTribe(
+ _unitID, _pAICState);
+ }
+ }
+ playerID = playerID + 1;
+ if (local_8 <= playerID) {
+ return;
+ }
+ } while (true);
+ }
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004d3ae0", "name": "aiRecruitUnits", "quelle": "ghidra", "p1": {"bereich": "KI", "zweck": "Wirbt in festen Abständen Einheiten für die KI an und teilt sie einer Gruppe zu."}, "p2": {"ein": "playerID", "aus": "-", "liest": ["playerDataArray[sp].aiType/aiStrengthFeeling/aiRecruitUnitChoiceState/aiNervousActionsTracker/idlePeasantsCount/canStartSpending/aiPlayerState/totalDefensiveTroopsUnk/totalRaidingTroopsUnk", "KI-Einstellungen: DefDiggingUnitMax (+0x15c), DefDiggingUnit (+0x160), Rekrutierintervall (+0x164), DefTotal (+0x170), DefUnit 1-8 (+0x184), RaidUnit 1-8 (+0x1ac), tradeAmountEquipment (+0x9c)", "countUnfinishedMoatTilesForPlayer", "UnitsState.euroUnitAcquisitionFailReason/euroUnitRequiredResource"], "schreibt": ["aiRecruitIntervalTracker", "aiDefUnitChoiceIndex", "aiRaidUnitChoiceIndex", "resourcesToAcquireArray[Fehlware]"], "ruft": ["getCurrentDesiredAttackRaidUnitCount", "randomlySelectAttackUnitTypeToRecruit", "getUnitTypeForUnitBehaviourType", "findFirstBuildingIDForPlayerAndType", "euroRecruit", "nonEuroRecruit", "aiAddUnitToMoatDiggerTribe", "assignUnitToATribe", "addUnitToSmallestPatrolTribe", "aiAssignUnitToDefensiveTribe", "addUnitToItsTribe"], "regeln": ["Menschliche Spieler tun nichts", "Anzahl Anwerbungen je Aufruf: Intervall != 0 = 1, Intervall = 0 = 2; im Gefecht mit TT_EXTREME je +1 (2 bzw. 3); nervös immer 4", "Nicht nervös: Zähler steigt je Aufruf, es wird erst beim Erreichen des Intervalls gearbeitet, danach Zähler auf 0", "Nur mit mindestens 1 freiem Bauern (idlePeasantsCount > 0) und canStartSpending != 0", "DEFENSIVE: stoppt, wenn totalDefensiveTroopsUnk >= DefTotal (bei TT_EXTREME DefTotal*4/3, nervös DefTotal*4)", "RAIDING: stoppt, wenn Raubzug-Truppen >= gewünschte Zahl; ATTACKING: stoppt, wenn aiPlayerState != 0", "Grabeneinheiten (DefDiggingUnit): wenn DefDiggingUnitMax != 0, unfertige Grabenfelder vorhanden und Grabergruppe (Gruppe 10) fehlt oder kleiner als das Maximum; ein Zufallsbit entscheidet je Durchgang, ob stattdessen normal gewählt wird; sie braucht Kaserne oder Söldnerposten", "Normale Wahl: DEFENSIVE und RAIDING gehen reihum durch je 8 Einträge (Eintrag 0 beendet die Liste, Index springt zurück); ATTACKING wählt per Zufallsfunktion", "Anwerbegebäude: Ingenieur und Leiterträger = Ingenieurgilde; Tunnelgräber = Tunnelgräbergilde; Mönch = erste Kathedrale; Einheitentyp unter 0x46 = Kaserne, sonst Söldnerposten; ohne Gebäude Abbruch", "nonEuroRecruit für Ingenieur, Leiterträger, Tunnelgräber, Mönch und Typ über 0x45, sonst euroRecruit", "Bei Fehlschlag mit Fehlergrund 2 (Ware fehlt) und tradeAmountEquipment > 0: Bedarf der fehlenden Ware = tradeAmountEquipment (nervös: 5); dann Abbruch", "Zuteilung: Grabeneinheit → Grabergruppe; DEFENSIVE → assignUnitToATribe, wenn totalDefensiveTroopsUnk < Wert bei +0x180, sonst kleinste Patrouille; RAIDING → aiAssignUnitToDefensiveTribe; ATTACKING → addUnitToItsTribe"], "offen": ["Namen täuschen vermutlich bei RAIDING → aiAssignUnitToDefensiveTribe (Ghidra-Schreibweise)", "Bedeutung des Werts bei +0x180", "Der Parameter von addUnitToItsTribe(_unitID, _pAICState) ist bei ATTACKING ein Verhaltenstyp, keine echte Adresse"]}, "p3": {"erklaerung": "Die KI wirbt im Takt ihres Rekrutierintervalls 1 bis 4 Einheiten an, wenn freie Bauern da sind. Welche Einheit entsteht, hängt von der gewählten Rekrutierungsart und den Listen der KI-Persönlichkeit ab. Fehlt eine Waffe, kauft sie diese später.", "gehirn": "Fehlende Ware lässt sich aus euroUnitAcquisitionFailReason und resourcesToAcquireArray der KI ablesen. Intervalle und Listen sind Grundwerte der KI-Persönlichkeit (UCP/Karte kann sie ändern).", "beleg": "code", "live": "KI wirbt an, Waffe fehlt → resourcesToAcquireArray[Waffe] der KI → tradeAmountEquipment (nervös 5)", "live_art": "anwerben"}}
+

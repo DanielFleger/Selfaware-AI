@@ -1,0 +1,496 @@
+### 0x00558cb0 UpdateArmorer | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00558CB0
+ void Units::UpdateArmorer()
+ {
+ byte* pbVar1;
+ int* piVar2;
+ short* psVar3;
+ UnitStateShort UVar4;
+ int iVar5;
+ int iVar6;
+ BOOLEnum BVar7;
+ uint uVar8;
+ uint uVar9;
+ int buildingID;
+ bool bVar10;
+ uVar8 = DAT_CurrentUnitSlotID;
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].movementSpeed = 2;
+ }
+ DAT_UnitsState.units[uVar8].unitTypeSpecificRestingState = 9;
+ UVar4 = DAT_UnitsState.units[uVar8].state.generic;
+ if (UVar4 == US_DETERMINE_NEXT_STATEUnk) {
+ if (DAT_UnitsState.units[uVar8].isDisappearingUnk == 0) {
+ if (DAT_UnitsState.units[uVar8].goToRallyPoint == 0) {
+ return;
+ }
+ DAT_UnitsState.units[uVar8].goToRallyPoint = 0;
+ DAT_UnitsState.units[uVar8].destinationNeeded = ((DestinationNeededEnum)2);
+ DAT_UnitsState.units[uVar8].state.generic = US_RELOAD_WEAPONUnk;
+ return;
+ }
+ pbVar1 = &DAT_UnitsState.units[uVar8].disappearFadeAlphaCountdown;
+ *pbVar1 = *pbVar1 - 1;
+ if (-1 < (char)*pbVar1) {
+ return;
+ }
+ DAT_UnitsState.units[uVar8].disappearFadeAlphaCountdown = 0;
+ DAT_UnitsState.units[uVar8].isDisappearingUnk = 0;
+ return;
+ }
+ if (UVar4 == US_IDLEUnk) {
+ DAT_UnitsState.units[uVar8].field_0x30_animRelated = 0;
+ DAT_UnitsState.units[uVar8].field131_0x2ac = 1;
+ DAT_UnitsState.units[uVar8].resourceToDeposit = 0;
+ piVar2 = &DAT_UnitsState.units[uVar8].animationCycleNumber;
+ *piVar2 = *piVar2 + 1;
+ if (DAT_UnitsState.units[uVar8].animationCycleNumber < 0x14) {
+ return;
+ }
+ DAT_UnitsState.units[uVar8].animationCycleNumber = 0;
+ iVar5 = getStorageBuildingForResourceTypeAndAmount(
+ RT_IRON, 1, DAT_UnitsState.units[uVar8].owner);
+ iVar6 = buildingIsAccessible(iVar5, 1);
+ uVar8 = DAT_CurrentUnitSlotID;
+ if (iVar6 == 0) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_STAND_UPUnk | US_IDLEUnk;
+ return;
+ }
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetID_OR_targetBuildingID = (short)iVar5;
+ DAT_UnitsState.units[uVar8].targetUID = DAT_BuildingsState.buildings[iVar5].uid;
+ BVar7 = setDestinationForUnit(
+ uVar8, (uint)((int)((int)DAT_BuildingsState.buildings[iVar5].buildingEntryX)),
+ (uint)((int)((int)DAT_BuildingsState.buildings[iVar5].buildingEntryY)), 0);
+ if (BVar7 == FALSE) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_STAND_UPUnk | US_IDLEUnk;
+ return;
+ }
+ } else {
+ if (UVar4 == ((UnitState)2)) {
+ IncrementAndOptionalUpdateAVValueRelated(uVar8, FALSE);
+ DAT_UnitsState.units[uVar8].animationSheetFrameOffset = 1;
+ DAT_UnitsState.units[uVar8].field_0x30_animRelated = 0x10;
+ BVar7 = hasUnitReachedDestination(uVar8);
+ if (BVar7 == FALSE) {
+ return;
+ }
+ DAT_UnitsState.units[uVar8].animationCycleNumber = 0;
+ iVar5 = getBuildingResourceAmountByUid((int)DAT_UnitsState.units[uVar8].targetID_OR_targetBuildingID,
+ DAT_UnitsState.units[uVar8].targetUID, RT_IRON);
+ if (0 < iVar5) {
+ DAT_UnitsState.units[uVar8].resourceToDeposit = 1;
+ iVar5 = setWorkplaceBuildingEntryAsTarget(uVar8, 1);
+ uVar8 = DAT_CurrentUnitSlotID;
+ if (iVar5 != 0) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = ((UnitState)3);
+ BVar7 = setDestinationForUnit(uVar8,
+ (uint)((int)((int)DAT_UnitsState.units[uVar8].targetX_2)),
+ (uint)((int)((int)DAT_UnitsState.units[uVar8].targetY_2)), 0);
+ uVar8 = DAT_CurrentUnitSlotID;
+ if (BVar7 != FALSE) {
+ addResourceToStockpile(
+ (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID]
+ .targetID_OR_targetBuildingID,
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetUID,
+ RT_IRON, -1, 0x30, 1);
+ return;
+ }
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_DISAPPEAR;
+ DAT_UnitsState.units[uVar8].updateTickTracker = 0;
+ return;
+ }
+ goto LAB_00558f8a;
+ }
+ iVar5 = getStorageBuildingForResourceTypeAndAmount(
+ RT_IRON, 1, DAT_UnitsState.units[uVar8].owner);
+ iVar6 = buildingIsAccessible(iVar5, 1);
+ uVar8 = DAT_CurrentUnitSlotID;
+ } else {
+ if (UVar4 == ((UnitState)3)) {
+ IncrementAndOptionalUpdateAVValueRelated(uVar8, FALSE);
+ DAT_UnitsState.units[uVar8].animationSheetFrameOffset = 0x101;
+ DAT_UnitsState.units[uVar8].field_0x30_animRelated = 0x10;
+ BVar7 = hasUnitReachedDestination(uVar8);
+ if (BVar7 == FALSE) {
+ return;
+ }
+ DAT_UnitsState.units[uVar8].animationCycleNumber = 0;
+ DAT_UnitsState.units[uVar8].state.generic
+ = US_JESTER_ROAM_TO;
+ DAT_UnitsState.units[uVar8].disappearFadeAlphaCountdown = 0;
+ DAT_UnitsState.units[uVar8].engineerManningSiegeStateRef_checkType = 2;
+ DAT_UnitsState.units[uVar8].cachedState = US_FIRE_WEAPONUnk;
+ iVar5 = (int)DAT_UnitsState.units[uVar8].workplaceBuildingID_1;
+ addResourceToStockpile(iVar5, DAT_BuildingsState.buildings[iVar5].uid,
+ RT_IRON, 1, 0x30, 1);
+ uVar8 = DAT_CurrentUnitSlotID;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].resourceToDeposit = 0;
+ DAT_UnitsState.units[uVar8].updateTickTracker = 0;
+ return;
+ }
+ if (UVar4 == US_RELOAD_WEAPONUnk) {
+ IncrementAndOptionalUpdateAVValueRelated(uVar8, FALSE);
+ DAT_UnitsState.units[uVar8].animationSheetFrameOffset = 1;
+ DAT_UnitsState.units[uVar8].field_0x30_animRelated = 0x10;
+ if (DAT_UnitsState.units[uVar8].destinationNeeded
+ != DNE_DESTINATION_HAS_BEEN_SET) {
+ BVar7 = UpdateWorker_ConsiderTakingABreakUnk(uVar8);
+ if (BVar7 != FALSE) {
+ return;
+ }
+ setDestinationForUnit(uVar8,
+ (uint)((int)((int)DAT_UnitsState.units[uVar8].targetX_2)),
+ (uint)((int)((int)DAT_UnitsState.units[uVar8].targetY_2)), 0);
+ uVar8 = DAT_CurrentUnitSlotID;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].destinationNeeded
+ = DNE_DESTINATION_HAS_BEEN_SET;
+ }
+ BVar7 = hasUnitReachedDestination(uVar8);
+ if (BVar7 == FALSE) {
+ return;
+ }
+ DAT_UnitsState.units[uVar8].animationCycleNumber = 0;
+ DAT_UnitsState.units[uVar8].state.generic = US_IDLEUnk;
+ return;
+ }
+ if (UVar4 == US_AIM_WEAPONUnk) {
+ IncrementAndOptionalUpdateAVValueRelated(uVar8, FALSE);
+ DAT_UnitsState.units[uVar8].field131_0x2ac = 1;
+ iVar5 = updateBuildingSignpostCounter((int)DAT_UnitsState.units[uVar8].workplaceBuildingID_1, 1);
+ if (iVar5 == 0) {
+ return;
+ }
+ iVar5 = (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingID_1;
+ addResourceToStockpile(iVar5, DAT_BuildingsState.buildings[iVar5].uid,
+ RT_IRONARMOR, 1, 0x30, 1);
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_FIRE_WEAPONUnk;
+ return;
+ }
+ if (UVar4 == US_FIRE_WEAPONUnk) {
+ IncrementAndOptionalUpdateAVValueRelated(uVar8, FALSE);
+ DAT_UnitsState.units[uVar8].field131_0x2ac = 1;
+ psVar3 = &DAT_UnitsState.units[uVar8].updateTickTracker;
+ *psVar3 = *psVar3 + 1;
+ if (0x1d < DAT_UnitsState.units[uVar8].updateTickTracker) {
+ buildingID = (int)DAT_UnitsState.units[uVar8].workplaceBuildingID_1;
+ iVar5 = DAT_BuildingsState.buildings[buildingID].uid;
+ iVar6 = getBuildingResourceAmountByUid(buildingID, iVar5, RT_IRON);
+ if (iVar6 < 1) {
+ addResourceToStockpile(
+ buildingID, iVar5, RT_IRONARMOR, -1, 0x30, 1);
+ updateBuildingSignpostCounter(
+ (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID]
+ .workplaceBuildingID_1,
+ 0);
+ uVar8 = DAT_CurrentUnitSlotID;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationCycleNumber = 0;
+ DAT_UnitsState.units[uVar8].state.generic
+ = US_JESTER_ROAM_TO;
+ DAT_UnitsState.units[uVar8].disappearFadeAlphaCountdown = 0x20;
+ DAT_UnitsState.units[uVar8].engineerManningSiegeStateRef_checkType = 0xfe;
+ DAT_UnitsState.units[uVar8].cachedState
+ = US_LOOK_AROUNDUnk;
+ DAT_UnitsState.units[uVar8].updateTickTracker = 0;
+ iVar5 = ComputeGoodsProduced(uVar8, 1, TRUE);
+ DAT_UnitsState.units[uVar8].resourceToDeposit = (short)iVar5;
+ DAT_UnitsState.units[uVar8].field39_0x58 = 1;
+ resetUnitMovementState(uVar8);
+ uVar8 = DAT_CurrentUnitSlotID;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationSheetFrameOffset
+ = 0x81;
+ DAT_UnitsState.units[uVar8].field_0x30_animRelated = 0x10;
+ return;
+ }
+ addResourceToStockpile(buildingID, iVar5, RT_IRON, -1, 0x30, 1);
+ updateBuildingSignpostCounter(
+ (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingID_1,
+ 2);
+ uVar8 = DAT_CurrentUnitSlotID;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].updateTickTracker = 0;
+ DAT_UnitsState.units[uVar8].state.generic
+ = US_AIM_WEAPONUnk;
+ return;
+ }
+ iVar5 = 3;
+ LAB_00559773:
+ updateBuildingSignpostCounter(
+ (int)DAT_UnitsState.units[uVar8].workplaceBuildingID_1, iVar5);
+ return;
+ }
+ if (UVar4 == US_LOOK_AROUNDUnk) {
+ DAT_UnitsState.units[uVar8].animationSheetFrameOffset = 0x81;
+ DAT_UnitsState.units[uVar8].field_0x30_animRelated = 0x10;
+ DAT_UnitsState.units[uVar8].field131_0x2ac = 1;
+ psVar3 = &DAT_UnitsState.units[uVar8].updateTickTracker;
+ *psVar3 = *psVar3 + 1;
+ if (DAT_UnitsState.units[uVar8].updateTickTracker < 0xb) {
+ return;
+ }
+ DAT_UnitsState.units[uVar8].updateTickTracker = 0;
+ uVar8 = getArmoryWithSpaceLeft(0, 0x18, DAT_UnitsState.units[uVar8].owner,
+ DAT_UnitsState.units[uVar8].resourceToDeposit);
+ if ((uVar8 == 0)
+ && (DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID)) {
+ PlayArmoryIsFullWarning();
+ }
+ iVar5 = buildingIsAccessible(uVar8, 1);
+ if (iVar5 == 0) {
+ return;
+ }
+ BVar7 = setDestinationForUnit(DAT_CurrentUnitSlotID,
+ (uint)((int)((int)DAT_BuildingsState.buildings[uVar8].buildingEntryX)),
+ (uint)((int)((int)DAT_BuildingsState.buildings[uVar8].buildingEntryY)), 0);
+ uVar9 = DAT_CurrentUnitSlotID;
+ if (BVar7 == FALSE) {
+ return;
+ }
+ iVar5 = DAT_BuildingsState.buildings[uVar8].uid;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetID_OR_targetBuildingID
+ = (short)uVar8;
+ DAT_UnitsState.units[uVar9].targetUID = iVar5;
+ DAT_UnitsState.units[uVar9].state.generic = US_STAND_UPUnk;
+ return;
+ }
+ if (UVar4 != US_STAND_UPUnk) {
+ if (UVar4
+ == (US_STAND_UPUnk | US_IDLEUnk)) {
+ DAT_UnitsState.units[uVar8].animationSpeed = 2;
+ DAT_UnitsState.units[uVar8].field_0x30_animRelated = 0;
+ DAT_UnitsState.units[uVar8].field39_0x58 = 1;
+ DAT_UnitsState.units[uVar8].field131_0x2ac = 1;
+ if (DAT_UnitsState.units[uVar8].substate == 0) {
+ DAT_UnitsState.units[uVar8].animationFrame
+ = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field276_0x55c4[DAT_UnitsState.units[uVar8].animationCycleNumber];
+ } else {
+ DAT_UnitsState.units[uVar8].animationFrame
+ = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field277_0x5674[DAT_UnitsState.units[uVar8].animationCycleNumber];
+ }
+ iVar6 = DAT_UnitHasBecomeIdle;
+ iVar5 = DAT_UnitsState.units[uVar8].animationFrame;
+ if (iVar5 < 1) {
+ DAT_UnitsState.units[uVar8].gfxNumber = 0x181;
+ DAT_UnitHasBecomeIdle = 1;
+ iVar6 = 1;
+ } else {
+ DAT_UnitsState.units[uVar8].gfxNumber = iVar5 + 0x180;
+ }
+ iVar5 = SetStateToFreetimeWalking(uVar8, iVar6, 0);
+ if (iVar5 != 0) {
+ return;
+ }
+ if (iVar6 == 0) {
+ return;
+ }
+ psVar3 = &DAT_UnitsState.units[uVar8].substate;
+ *psVar3 = *psVar3 + 1;
+ if (1 < DAT_UnitsState.units[uVar8].substate) {
+ DAT_UnitsState.units[uVar8].substate = 0;
+ }
+ DAT_UnitsState.units[uVar8].animationCycleNumber = 0;
+ DAT_UnitsState.units[uVar8].state.generic = US_IDLEUnk;
+ return;
+ }
+ if (UVar4
+ == (US_DEATH_02 | US_STAND_UPUnk
+ | US_IDLEUnk)) {
+ DAT_UnitsState.units[uVar8].animationSheetFrameOffset = 1;
+ DAT_UnitsState.units[uVar8].field_0x30_animRelated = 0x10;
+ SetRestingForUnit(uVar8);
+ return;
+ }
+ if (UVar4 == 0x6c) {
+ DAT_UnitsState.units[uVar8].stateBasedSpeed = 0;
+ DAT_UnitsState.units[uVar8].field_0x30_animRelated = 0;
+ DAT_UnitsState.units[uVar8].animationSheetFrameOffset = 1;
+ return;
+ }
+ if (UVar4 != US_JESTER_ROAM_TO) {
+ if (UVar4 == US_DEATH_01) {
+ DAT_UnitsState.units[uVar8].facingDirection = 0;
+ DAT_UnitsState.units[uVar8].animationSpeed = 2;
+ DAT_UnitsState.units[uVar8].field_0x30_animRelated = 0;
+ iVar5 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field6_0x6d4[DAT_UnitsState.units[uVar8].animationCycleNumber];
+ DAT_UnitsState.units[uVar8].animationFrame = iVar5;
+ if (iVar5 < 1) {
+ DAT_UnitHasBecomeIdle = 1;
+ DAT_UnitsState.units[uVar8].gfxNumber = 0x1a8;
+ DAT_UnitsState.units[uVar8].logicalState = ULS_REMOVE;
+ return;
+ }
+ iVar5 = iVar5 + 400;
+ } else {
+ BVar7 = checkIfCitizenUnitIsAliveBasedOnState(uVar8);
+ if (BVar7 == FALSE) {
+ if (UVar4 != US_DISAPPEAR) {
+ DAT_UnitsState.units[uVar8].state.generic
+ = US_IDLEUnk;
+ MACRO_CALL_MEMBER(
+ makeUnitStopWalkingByClearingPathProgressState,
+ DAT_UnitsState)(uVar8);
+ return;
+ }
+ pbVar1 = &DAT_UnitsState.units[uVar8].disappearFadeAlphaCountdown;
+ *pbVar1 = *pbVar1 + 1;
+ if (' ' < (char)DAT_UnitsState.units[uVar8].disappearFadeAlphaCountdown) {
+ DAT_UnitsState.units[uVar8].disappearFadeAlphaCountdown = 0x20;
+ }
+ psVar3 = &DAT_UnitsState.units[uVar8].updateTickTracker;
+ *psVar3 = *psVar3 + 1;
+ if (0x20 < DAT_UnitsState.units[uVar8].updateTickTracker) {
+ DAT_UnitsState.units[uVar8].logicalState
+ = ULS_REMOVE;
+ }
+ DAT_BuildingsState
+ .buildings[DAT_UnitsState.units[uVar8].workplaceBuildingID_1]
+ .idleTimerUnk = 4000;
+ return;
+ }
+ DAT_UnitsState.units[uVar8].facingDirection = 0;
+ DAT_UnitsState.units[uVar8].animationSpeed = 2;
+ DAT_UnitsState.units[uVar8].field_0x30_animRelated = 0;
+ iVar5 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field6_0x6d4[DAT_UnitsState.units[uVar8].animationCycleNumber];
+ DAT_UnitsState.units[uVar8].animationFrame = iVar5;
+ if (iVar5 < 1) {
+ DAT_UnitHasBecomeIdle = 1;
+ DAT_UnitsState.units[uVar8].gfxNumber = 0x1c0;
+ DAT_UnitsState.units[uVar8].logicalState = ULS_REMOVE;
+ return;
+ }
+ iVar5 = iVar5 + 0x1a8;
+ }
+ bVar10 = DAT_UnitHasBecomeIdle == 0;
+ DAT_UnitsState.units[uVar8].gfxNumber = iVar5;
+ if (bVar10) {
+ return;
+ }
+ DAT_UnitsState.units[uVar8].logicalState = ULS_REMOVE;
+ return;
+ }
+ pbVar1 = &DAT_UnitsState.units[uVar8].disappearFadeAlphaCountdown;
+ *pbVar1 = *pbVar1 + DAT_UnitsState.units[uVar8].engineerManningSiegeStateRef_checkType;
+ if ((char)*pbVar1 < '\0') {
+ DAT_UnitsState.units[uVar8].disappearFadeAlphaCountdown = 0;
+ } else if ('\x1f' < (char)DAT_UnitsState.units[uVar8].disappearFadeAlphaCountdown) {
+ DAT_UnitsState.units[uVar8].disappearFadeAlphaCountdown = 0x1f;
+ }
+ psVar3 = &DAT_UnitsState.units[uVar8].updateTickTracker;
+ *psVar3 = *psVar3 + 1;
+ if (DAT_UnitsState.units[uVar8].updateTickTracker < 0x11) {
+ return;
+ }
+ DAT_UnitsState.units[uVar8].updateTickTracker = 0;
+ DAT_UnitsState.units[uVar8].disappearFadeAlphaCountdown = 0;
+ DAT_UnitsState.units[uVar8].state
+ = (UnitStateUnion)DAT_UnitsState.units[uVar8].cachedState;
+ if ('\0' < (char)DAT_UnitsState.units[uVar8].engineerManningSiegeStateRef_checkType) {
+ commitUnitLocation(uVar8);
+ }
+ iVar5 = 2;
+ goto LAB_00559773;
+ }
+ IncrementAndOptionalUpdateAVValueRelated(uVar8, FALSE);
+ DAT_UnitsState.units[uVar8].animationSheetFrameOffset = 0x81;
+ DAT_UnitsState.units[uVar8].field_0x30_animRelated = 0x10;
+ psVar3 = &DAT_UnitsState.units[uVar8].updateTickTracker;
+ *psVar3 = *psVar3 + 1;
+ if (DAT_UnitsState.units[uVar8].updateTickTracker < 5) {
+ return;
+ }
+ BVar7 = hasUnitReachedDestination(uVar8);
+ if (BVar7 == FALSE) {
+ return;
+ }
+ DAT_UnitsState.units[uVar8].updateTickTracker = 0;
+ uVar8 = getArmoryWithSpaceLeft((int)DAT_UnitsState.units[uVar8].targetID_OR_targetBuildingID,
+ 0x18, DAT_UnitsState.units[uVar8].owner, 1);
+ if (uVar8 == 0) {
+ uVar9 = getArmoryWithSpaceLeft(0, 0x18,
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner,
+ (int)((
+ int)(DAT_UnitsState.units[DAT_CurrentUnitSlotID].resourceToDeposit)));
+ iVar5 = buildingIsAccessible(uVar9, 1);
+ uVar8 = DAT_CurrentUnitSlotID;
+ if (iVar5 == 0) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].resourceToDeposit = 0;
+ } else {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetID_OR_targetBuildingID
+ = (short)uVar9;
+ DAT_UnitsState.units[uVar8].targetUID
+ = DAT_BuildingsState.buildings[uVar9].uid;
+ setDestinationForUnit(uVar8,
+ (uint)((int)((int)DAT_BuildingsState.buildings[uVar9].buildingEntryX)),
+ (uint)((int)((int)DAT_BuildingsState.buildings[uVar9].buildingEntryY)), 0);
+ uVar8 = DAT_CurrentUnitSlotID;
+ }
+ } else {
+ addResourceToStockpile((int)DAT_UnitsState.units[DAT_CurrentUnitSlotID]
+ .targetID_OR_targetBuildingID,
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetUID,
+ RT_IRONARMOR, 1, 0x32, 1);
+ uVar8 = DAT_CurrentUnitSlotID;
+ piVar2 = DAT_GameSynchronyState.finalResults.finalWeaponsProduced
+ + DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner;
+ *piVar2 = *piVar2 + 1;
+ psVar3 = &DAT_UnitsState.units[uVar8].resourceToDeposit;
+ *psVar3 = *psVar3 + -1;
+ playSFXAtLocation(
+ (int)DAT_UnitsState.units[uVar8].x,
+ DAT_UnitsState.units[uVar8].y, FX_STOCK_WEAPON);
+ uVar8 = DAT_CurrentUnitSlotID;
+ }
+ if (0 < DAT_UnitsState.units[uVar8].resourceToDeposit) {
+ return;
+ }
+ DAT_UnitsState.units[uVar8].destinationNeeded
+ = DNE_DESTINATION_NEEDED;
+ IncrementAndOptionalUpdateAVValueRelated(uVar8, TRUE);
+ BVar7 = ConsiderHavingABreakNowUnk(
+ uVar8, US_RELOAD_WEAPONUnk);
+ if (BVar7 != FALSE) {
+ return;
+ }
+ iVar5 = getStorageBuildingForResourceTypeAndAmount(
+ RT_IRON, 1, DAT_UnitsState.units[uVar8].owner);
+ iVar6 = buildingIsAccessible(iVar5, 1);
+ uVar8 = DAT_CurrentUnitSlotID;
+ }
+ DAT_CurrentUnitSlotID = uVar8;
+ if (iVar6 == 0) {
+ iVar5 = setWorkplaceBuildingEntryAsTarget(uVar8, 1);
+ uVar8 = DAT_CurrentUnitSlotID;
+ if (iVar5 != 0) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_RELOAD_WEAPONUnk;
+ DAT_UnitsState.units[uVar8].destinationNeeded
+ = DNE_DESTINATION_NEEDED;
+ return;
+ }
+ LAB_00558f8a:
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].logicalState
+ = ULS_REMOVE;
+ return;
+ }
+ DAT_UnitsState.units[uVar8].targetID_OR_targetBuildingID = (short)iVar5;
+ DAT_UnitsState.units[uVar8].targetUID = DAT_BuildingsState.buildings[iVar5].uid;
+ setDestinationForUnit(uVar8,
+ (uint)((int)((int)DAT_BuildingsState.buildings[iVar5].buildingEntryX)),
+ (uint)((int)((int)DAT_BuildingsState.buildings[iVar5].buildingEntryY)), 0);
+ }
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = ((UnitState)2);
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00558cb0", "name": "UpdateArmorer", "quelle": "ghidra", "p1": {"bereich": "Spielablauf", "zweck": "Steuert pro Spieltakt den Rüstungsschmied-Arbeiter: Eisen holen, zur Werkstatt tragen, Rüstung herstellen und zur Waffenkammer bringen."}, "p2": {"ein": "keiner; Arbeiter ist DAT_CurrentUnitSlotID", "aus": "-", "liest": ["units[].state.generic", "units[].workplaceBuildingID_1", "Eisenbestand im Lager und in der Werkstatt (getBuildingResourceAmountByUid)", "units[].resourceToDeposit", "updateTickTracker", "engineerManningSiegeStateRef_checkType", "cachedState", "DAT_GameSynchronyState.currentGameMode/currentPlayerSlotID"], "schreibt": ["units[].state, targetID_OR_targetBuildingID, targetUID, resourceToDeposit, updateTickTracker, destinationNeeded, disappearFadeAlphaCountdown, logicalState=ULS_REMOVE", "Eisen im Lager -1 und in der Werkstatt +1/-1", "RT_IRONARMOR +1 in der Werkstatt und in der Waffenkammer", "finalResults.finalWeaponsProduced[owner]", "movementSpeed=2 (nicht im Solo-Modus)", "buildings[].idleTimerUnk=4000 (beim Verschwinden)"], "ruft": ["getStorageBuildingForResourceTypeAndAmount", "buildingIsAccessible", "setDestinationForUnit", "addResourceToStockpile", "getBuildingResourceAmountByUid", "setWorkplaceBuildingEntryAsTarget", "updateBuildingSignpostCounter", "ComputeGoodsProduced", "getArmoryWithSpaceLeft", "PlayArmoryIsFullWarning", "hasUnitReachedDestination", "ConsiderHavingABreakNowUnk", "UpdateWorker_ConsiderTakingABreakUnk", "playSFXAtLocation", "SetRestingForUnit", "commitUnitLocation", "resetUnitMovementState"], "regeln": ["Kreislauf wie beim Waffenschmied: Zustand 1 (Idle) wartet 20 Takte (animationCycleNumber ab 0x14), sucht dann ein Lager mit mindestens 1 Eisen und geht hin (Zustand 2); Eisen im Lager -1, Arbeiter trägt es zur Werkstatt (Zustand 3), dort Werkstatt-Eisen +1", "Ist kein Eisenlager erreichbar, Freizeit-Animation; ist auch der Werkstatt-Eingang nicht erreichbar, wird der Arbeiter entfernt (ULS_REMOVE)", "Ankunft in der Werkstatt: Zustand US_JESTER_ROAM_TO dient hier als Ein- und Ausblend-Übergang (Zähler +2 oder -2, begrenzt auf 0 bis 0x1f, nach 17 Takten wechselt er zu cachedState, bei Einblenden commitUnitLocation)", "AIM_WEAPON: wartet auf Signpost-Zähler 1, bucht dann RT_IRONARMOR +1 in der Werkstatt und geht in FIRE_WEAPON", "FIRE_WEAPON: ab Takt 30 (updateTickTracker über 0x1d) wird 1 Eisen der Werkstatt verbraucht, Signpost 2, zurück zu AIM_WEAPON; ist dann kein Eisen mehr da, wird RT_IRONARMOR -1 gebucht und die Menge aus ComputeGoodsProduced(Arbeiter,1,TRUE) in resourceToDeposit gesetzt", "Abgeliefert wird nur Ware 0x18 (vermutlich RT_IRONARMOR) in eine Waffenkammer mit Platz; keine Kammer frei: PlayArmoryIsFullWarning nur für den aktuellen Spieler", "Pro Stück Rüstung: Waffenkammer +1, finalWeaponsProduced[owner]+1, resourceToDeposit -1, Ton FX_STOCK_WEAPON; ist die Kammer voll und keine andere erreichbar, wird resourceToDeposit = 0 und die Rüstung geht verloren", "Animationsversatz Werkstatt 0x81 (Zustand 3: 0x101); im Mehrspielermodus movementSpeed=2"], "offen": ["Bedeutung der Signpost-Zählerwerte 0-3", "Ob Ware 0x18 sicher RT_IRONARMOR ist (Zahl im Code, Name nur aus Nachbarkontext)", "Wie viele Stück ComputeGoodsProduced liefert (steht nicht in dieser Funktion)", "Warum der Ablauf zwei Mal Eisen verbucht (Werkstatt +1/-1) und wofür RT_IRONARMOR in der Werkstatt gebucht wird"]}, "p3": {"erklaerung": "Der Rüstungsschmied holt Eisen, verarbeitet es in der Werkstatt und trägt die Rüstung in die Waffenkammer. Wie beim Waffenschmied hängt alles am Eisen und am Platz in der Waffenkammer.", "gehirn": "Rüstungsproduktion braucht Eisen und freien Platz in der Waffenkammer (50 Stück je Kammer, alle Waffenarten zusammen). Bei voller Kammer lohnt weitere Produktion nicht.", "beleg": "code", "live": "Rüstungsschmied liefert ab → Rüstungsbestand der Waffenkammer und finalWeaponsProduced[Spieler] vorher/nachher → beide steigen je Ablieferung um 1", "live_art": "wirtschaft"}}
+

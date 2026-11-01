@@ -1,0 +1,909 @@
+### 0x004598b0 recountStablesAndHorses | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004598B0
+ void GameStateStructures::recountStablesAndHorses()
+ {
+ PlayerData* _playerData;
+ Building* _building;
+ int iVar1;
+ int iVar2;
+ PlayerData* psVar3;
+ _playerData = &this->playerDataArray[1];
+ iVar1 = 8;
+ iVar2 = 1;
+ do {
+ _playerData->availableHorses = 0;
+ _playerData = _playerData + 0x1cfa;
+ iVar1 = iVar1 + -1;
+ } while (iVar1 != 0);
+ if (1 < DAT_BuildingsState.maxBuildingsCount) {
+ _building = &DAT_BuildingsState.buildings[1];
+ do {
+ if (((_building->logicalState != ((BuildingLogicalState)0))
+ && (_building->logicalState != BLS_REMOVE))
+ && (_building->buildingType == BT_STABLES)) {
+ /*
+ number of animals - number of animals in use (horses)
+ */
+ psVar3 = &this->playerDataArray[_building->owner];
+ psVar3->availableHorses = psVar3->availableHorses
+ + ((short)(char)_building->numberOfAnimals - (short)_building->randomOutpostField);
+ }
+ iVar2 = iVar2 + 1;
+ _building = _building + 0x196;
+ } while (iVar2 < DAT_BuildingsState.maxBuildingsCount);
+ }
+ return;
+ }
+}
+}
+
+### 0x00459930 linkageBetweenHorseUnitAndStableUnk | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00459930
+ int GameStateStructures::linkageBetweenHorseUnitAndStableUnk(int playerID, int unitID)
+ {
+ char* pcVar1;
+ Building* _building;
+ int iVar2;
+ Building* psVar3;
+ int _buildingID;
+ short* _ptrAvailableHorses;
+ _buildingID = 1;
+ if (1 < DAT_BuildingsState.maxBuildingsCount) {
+ _building = &DAT_BuildingsState.buildings[1];
+ do {
+ if ((((_building->logicalState != ((BuildingLogicalState)0))
+ && (_building->logicalState != BLS_REMOVE))
+ && (_building->buildingType == BT_STABLES))
+ && ((_building->owner == playerID
+ && (_building->randomOutpostField < (char)_building->numberOfAnimals)))) {
+ _ptrAvailableHorses = &this->playerDataArray[playerID].availableHorses;
+ *_ptrAvailableHorses = *_ptrAvailableHorses + -1;
+ validateBuildingTetheredUnits(_buildingID);
+ iVar2 = 0;
+ psVar3 = &DAT_BuildingsState.buildings[_buildingID];
+ do {
+ if (psVar3->insideUnitID1 == 0) {
+ DAT_BuildingsState.buildings[_buildingID].quarryLinkedOxTethers[iVar2 + 0xb]
+ = (short)unitID;
+ *(int*)(DAT_BuildingsState.buildings[_buildingID].quarryLinkedOxTethers
+ + iVar2 * 2 + 0xf) = DAT_UnitsState.units[unitID].uid;
+ pcVar1 = &DAT_BuildingsState.buildings[_buildingID].randomOutpostField;
+ *pcVar1 = *pcVar1 + '\x01';
+ return _buildingID;
+ }
+ iVar2 = iVar2 + 1;
+ psVar3 = &psVar3->insideUnitID2;
+ } while (iVar2 < 4);
+ return _buildingID;
+ }
+ _buildingID = _buildingID + 1;
+ _building = _building + 0x196;
+ } while (_buildingID < DAT_BuildingsState.maxBuildingsCount);
+ }
+ return 0;
+ }
+}
+}
+
+### 0x00459a20 spawnPoisonCloudsAroundBuilding | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00459A20
+ void GameStateStructures::spawnPoisonCloudsAroundBuilding(int buildingID)
+ {
+ uint xPosition;
+ uint yPosition;
+ int iVar1;
+ int iVar2;
+ int iVar3;
+ int iVar4;
+ int local_4;
+ local_4 = 0x14;
+ while (true) {
+ iVar3 = (int)SEC_RNG::instance.currentNumber2 % 0x1e;
+ iVar1 = (int)(short)DAT_BuildingsState.buildings[buildingID].x;
+ xPosition = iVar3 + -0xf + iVar1;
+ iVar4 = ((int)SEC_RNG::instance.currentNumber2 >> 8) % 0x1e;
+ iVar2 = (int)(short)DAT_BuildingsState.buildings[buildingID].y;
+ yPosition = iVar4 + -0xf + iVar2;
+ nextRandomNumber2();
+ if ((((xPosition < 400) && (yPosition < 400))
+ && (*(char*)(yPosition * 400 + 0x21aec98 + xPosition) != '\0'))
+ && (iVar2 = DAT_ViewportRenderState.screenPointToTileNumber[iVar2 * 3 + iVar4 * 3 + 0x4e81d],
+ (DAT_TileMapState.LogicLayer[iVar1 + iVar3 + iVar2 + -0xf] & 0x4a5014b1U) == 0))
+ break;
+ local_4 = local_4 + -1;
+ if (local_4 < 1) {
+ return;
+ }
+ }
+ iVar1 = (int)SEC_RNG::instance.currentNumber2 % 5 + -2;
+ if (iVar1 < 8) {
+ iVar1 = 8 - iVar1;
+ do {
+ spawnProjectileEntity(0, 0, 0, xPosition * 8, yPosition * 8,
+ (int)((int)((uint)(byte)DAT_TileMapState.EntityLayerLT25[iVar2 + xPosition + 0x13a10])),
+ 0, 0, 0, ET_COW_POISON_CLOUD, 0);
+ iVar1 = iVar1 + -1;
+ } while (iVar1 != 0);
+ }
+ playSFXAtLocation(
+ xPosition, yPosition, FX_FLIES);
+ setSpawnMoment(
+ xPosition, yPosition);
+ return;
+ }
+}
+}
+
+### 0x00459b50 playSFXNoSpaceInTheStockPile | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00459B50
+ void GameStateStructures::playSFXNoSpaceInTheStockPile(int playerID)
+ {
+ DWORD _currentTime;
+ DWORD _cooldown;
+ if (playerID == DAT_GameSynchronyState.currentPlayerSlotID) {
+ _currentTime = MACRO_CALL(timeGetTime)();
+ if ((this->playerDataArray[playerID].lastTimeSFXNoPlaceInStockpile == 0)
+ || (_cooldown = MACRO_CALL(timeGetTime)(), 9999 < _currentTime - _cooldown)) {
+ /*
+ "No space in the stockpile"
+ */
+ playWAVSFX(
+ "space_warning5.wav");
+ /*
+ store the last time we played this sound in DAT_PlayerDataArray[playerID].field_0x50
+ */
+ this->playerDataArray[playerID].lastTimeSFXNoPlaceInStockpile = _currentTime;
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x00459bb0 clearTribeHotKey | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00459BB0
+ void GameStateStructures::clearTribeHotKey(int hotkeyID)
+ {
+ for (int i = 0; i < 2500; ++i) {
+ this->hotkeyTribes[hotkeyID].units[i].id = -1;
+ this->hotkeyTribes[hotkeyID].units[i].uid = -1;
+ }
+ }
+}
+}
+
+### 0x00459be0 fillWith0xFF | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00459BE0
+ void GameStateStructures::fillWith0xFF()
+ {
+ for (int hotkeyID = 0; hotkeyID < 10; ++hotkeyID) {
+ for (int i = 0; i < 2500; ++i) {
+ this->hotkeyTribes[hotkeyID].units[i].id = -1;
+ this->hotkeyTribes[hotkeyID].units[i].uid = -1;
+ }
+ }
+ }
+}
+}
+
+### 0x00459c10 assignSelectionToKey | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00459C10
+ void GameStateStructures::assignSelectionToKey(int number, int tribeID)
+ {
+ int _unitID;
+ int _slotCounter;
+ GameStateStructures* pGVar1;
+ int* piVar2;
+ GameStateStructures* pGVar3;
+ int _slotID;
+ int _SlotID + 1;
+ int _unitSelectionIndex;
+ int iVar4;
+ int _keyCounter;
+ short* _size;
+ int _unitIDSlot;
+ _size = &DAT_TribesState.tribes[tribeID].size;
+ _slotID = 0;
+ _unitSelectionIndex = 0;
+ if (0 < *_size) {
+ do {
+ _unitID = getUnitIDForIndexInTribe(tribeID, _unitSelectionIndex);
+ _unitSelectionIndex = _unitSelectionIndex + 1;
+ _SlotID + 1 = _slotID;
+ if (((DAT_UnitsState.units[_unitID].logicalState == ULS_NORMAL)
+ && (DAT_UnitsState.units[_unitID].dying == 0))
+ && (DAT_UnitsState.units[_unitID].unitType != UT_LORD)) {
+ _SlotID + 1 = _slotID + 1;
+ this->hotkeyTribes[number].units[_slotID].id = _unitID;
+ iVar4 = 0;
+ this->hotkeyTribes[number].units[_slotID].uid = DAT_UnitsState.units[_unitID].uid;
+ _keyCounter = 0;
+ pGVar3 = this;
+ LAB_00459cc0:
+ /*
+ If unit already bound to other key, delete it from key array and shift the array elements after
+ that to fill the hole.
+ */
+ if (_keyCounter != number) {
+ _slotCounter = 0;
+ pGVar1 = pGVar3;
+ do {
+ _unitIDSlot = pGVar1->hotkeyTribes[0].units[0].id;
+ if (_unitIDSlot == -1)
+ break;
+ if (_unitIDSlot == _unitID) {
+ /*
+ _slotCounter = 2499 (last slot)
+ */
+ if (2499 < _slotCounter)
+ goto LAB_00459d22;
+ piVar2 = &this->hotkeyTribes[0].units[iVar4 + _slotCounter + 1].uid;
+ goto LAB_00459d00;
+ }
+ _slotCounter = _slotCounter + 1;
+ pGVar1 = (GameStateStructures*)(pGVar1->hotkeyTribes[0].units + 1);
+ } while (_slotCounter < 2500);
+ }
+ goto LAB_00459d35;
+ }
+ LAB_00459d5e:
+ _slotID = _SlotID + 1;
+ } while (_unitSelectionIndex < *_size);
+ }
+ return;
+ while (true) {
+ _slotCounter = _slotCounter + 1;
+ piVar2 = piVar2 + 2;
+ if (0x9c2 < _slotCounter)
+ break;
+ LAB_00459d00:
+ _unitIDSlot = ((UnitIDUIDPair*)(piVar2 + -1))->id;
+ piVar2[-3] = _unitIDSlot;
+ piVar2[-2] = *piVar2;
+ if (_unitIDSlot == -1)
+ break;
+ }
+ LAB_00459d22:
+ this->hotkeyTribes[0].units[_slotCounter + iVar4].id = -1;
+ this->hotkeyTribes[0].units[_slotCounter + iVar4].uid = -1;
+ LAB_00459d35:
+ _keyCounter = _keyCounter + 1;
+ iVar4 = iVar4 + 2500;
+ pGVar3 = (GameStateStructures*)(pGVar3->hotkeyTribes + 1);
+ if (24999 < iVar4)
+ goto LAB_00459d5e;
+ goto LAB_00459cc0;
+ }
+}
+}
+
+### 0x0045a060 renderDebugDataCurrentPlayerData | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0045A060
+ void GameStateStructures::renderDebugDataCurrentPlayerData(int x, int y, int width, int height)
+ {
+ int xParam;
+ int iVar1;
+ int number;
+ int iVar2;
+ int iVar3;
+ int* piVar4;
+ iVar3 = y;
+ iVar2 = x;
+ number = DAT_GameSynchronyState.currentPlayerSlotID;
+ xParam = x + 4;
+ renderTextToScreen(
+ "player ", xParam, y + 0xe, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ number, x + 6, y + 0xe, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "-", xParam, y + 0x1c, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ x = number * 0x39f4 + 0x115c2c8;
+ y = 25;
+ do {
+ renderNumberToScreen2(
+ *(int*)x, xParam, iVar3 + 0x1c, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "-", xParam, iVar3 + 0x1c, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ x = x + 4;
+ y = y + -1;
+ } while (y != 0);
+ renderTextToScreen(
+ "Total organisms ", xParam, iVar3 + 0x2a, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_LandscapeState.DAT_TotalOrganisms, iVar2 + 0xe, iVar3 + 0x2a, TTA_LEFT, 0x80ff,
+ 0x12, TRUE, 0);
+ renderTextToScreen(
+ "new organisms ", iVar2 + 0x98, iVar3 + 0x2a, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->mapAndTime.newOrganisms, iVar2 + 0xa4, iVar3 + 0x2a, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ " - ", iVar2 + 0xa4, iVar3 + 0x2a, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ this->mapAndTime.newOrganismsValue2, iVar2 + 0xa4, iVar3 + 0x2a, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ renderTextToScreen(
+ "CRC ", iVar2 + 0x12e, iVar3 + 0x2a, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_GameSynchronyState.HASH_HashTotal[1] & 0xfff, iVar2 + 0x13a, iVar3 + 0x2a,
+ TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Total chimps ", xParam, iVar3 + 0x38, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->playerDataArray[number].countEntities, iVar2 + 0xe, iVar3 + 0x38, TTA_LEFT, 0x80ff,
+ 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Pop ", iVar2 + 0x98, iVar3 + 0x38, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->playerDataArray[number].currentPopulation, iVar2 + 0xa4, iVar3 + 0x38, TTA_LEFT,
+ 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "last food ", iVar2 + 0x12e, iVar3 + 0x38, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->playerDataArray[number].weeksWithoutFood, iVar2 + 0x13a, iVar3 + 0x38, TTA_LEFT,
+ 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "lightning count", xParam, iVar3 + 0x46, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->mapAndTime.treeSpreadCounter, iVar2 + 0xe, iVar3 + 0x46, TTA_LEFT, 0x80ff, 0x12, TRUE,
+ 0);
+ renderTextToScreen(
+ "power ", iVar2 + 0x98, iVar3 + 0x46, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->mapAndTime.treeSpreadInterval, iVar2 + 0xa4, iVar3 + 0x46, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ renderTextToScreen(
+ "enemies ", iVar2 + 0x12e, iVar3 + 0x46, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->playerDataArray[number].totalEnemyUnitsCount, iVar2 + 0x13a, iVar3 + 0x46, TTA_LEFT,
+ 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "popular:", xParam, iVar3 + 0x54, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->playerDataArray[number].popularity, iVar2 + 0xe, iVar3 + 0x54, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ renderTextToScreen(
+ "crowding", iVar2 + 0x98, iVar3 + 0x54, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->playerDataArray[number].crowding, iVar2 + 0xa4, iVar3 + 0x54, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ renderTextToScreen(
+ "capacity", iVar2 + 0x12e, iVar3 + 0x54, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->playerDataArray[number].populationCap, iVar2 + 0x13a, iVar3 + 0x54, TTA_LEFT, 0x80ff,
+ 0x12, TRUE, 0);
+ renderTextToScreen(
+ "vclock", xParam, iVar3 + 0x62, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->playerDataArray[number].vclock, iVar2 + 0xe, iVar3 + 0x62, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ renderTextToScreen(
+ "lord killed ", iVar2 + 0x98, iVar3 + 0x62, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->playerDataArray[number].lordKilledByPlayerID, iVar2 + 0xa4, iVar3 + 0x62, TTA_LEFT,
+ 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Ale rate ", iVar2 + 0x12e, iVar3 + 0x62, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->playerDataArray[number].aleRate, iVar2 + 0x13a, iVar3 + 0x62, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ renderTextToScreen(
+ "fcn mtribe", xParam, iVar3 + 0x70, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_TribesState.fcn_mtribe, iVar2 + 0xe, iVar3 + 0x70, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ renderTextToScreen(
+ "skipped isos", iVar2 + 0x16, iVar3 + 0x70, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ DAT_ViewportRenderState.DAT_skipped_isos, iVar2 + 0x22, iVar3 + 0x70, TTA_LEFT,
+ 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Moat tiles", xParam, iVar3 + 0x7e, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_TileMapState.moatTileCount, iVar2 + 0xe, iVar3 + 0x7e, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ iVar1 = iVar3 + 0x7e;
+ renderTextToScreen(
+ "gate links ", iVar2 + 0x98, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ (int)(char)DAT_BuildingsState.buildings[0x13].pathLinkageRelated2, iVar2 + 0xa4, iVar1,
+ TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Fires ", iVar2 + 0x12e, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_EntityState.fireCount, iVar2 + 0x130, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ iVar1 = iVar3 + 0x8c;
+ renderTextToScreen(
+ "Easy: ", xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_PathFindingState.DAT_Easy, iVar2 + 0xe, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE,
+ 0);
+ renderTextToScreen(
+ "Hard: ", iVar2 + 0x54, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_PathFindingState.DAT_Hard, iVar2 + 0x5e, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE,
+ 0);
+ renderTextToScreen(
+ "Xm:", iVar2 + 0xae, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_PathFindingState.searchNonmatchCount, iVar2 + 0xb8, iVar1, TTA_LEFT, 0x80ff,
+ 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ DAT_PathFindingState.searchMatchCounter, iVar2 + 0xbc, iVar1, TTA_LEFT, 0x80ff,
+ 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Ass:", iVar2 + 0xfc, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_PathFindingState.DAT_Ass, iVar2 + 0xfe, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE,
+ 0);
+ renderTextToScreen(
+ "1Wys: ", iVar2 + 0x144, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_PathFindingState.DAT_lWys, iVar2 + 0x146, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE,
+ 0);
+ renderTextToScreen(
+ "Test likely.. ", xParam, iVar3 + 0x9a, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_PathFindingState.DAT_Test_likely, iVar2 + 0xe, iVar3 + 0x9a, TTA_LEFT, 0x80ff,
+ 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Test gatehouse.. ", iVar2 + 0x9a, iVar3 + 0x9a, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_PathFindingState.DAT_Test_gatehouse, iVar2 + 0xa4, iVar3 + 0x9a, TTA_LEFT,
+ 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Spreads: ", xParam, iVar3 + 0xa8, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_PathFindingState.calculations, iVar2 + 0xe, iVar3 + 0xa8, TTA_LEFT, 0x80ff,
+ 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Mini spreads: ", iVar2 + 0x9a, iVar3 + 0xa8, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_PathFindingState.DAT_Mini_spreads, iVar2 + 0xa4, iVar3 + 0xa8, TTA_LEFT,
+ 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Enemy hit: ", xParam, iVar3 + 0xb6, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ piVar4 = this->mapAndTime.emenyHitArray;
+ x = xParam;
+ do {
+ renderNumberToScreen2(
+ *piVar4, x, iVar3 + 0xb6, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ x = x + 0x14;
+ piVar4 = piVar4 + 1;
+ } while ((int)piVar4 < 0x117c87c);
+ iVar1 = iVar3 + 0xc4;
+ renderTextToScreen(
+ "Troops: ", xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->playerDataArray[number].armySize, iVar2 + 0xe, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "ChLim: ", iVar2 + 0x18, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ DAT_UnitsState.maxUnitCount, iVar2 + 0x22, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "StLim: ", iVar2 + 0x2c, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ DAT_BuildingsState.maxBuildingsCount, iVar2 + 0x36, iVar1, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ renderTextToScreen(
+ "FlLim: ", iVar2 + 0x40, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ DAT_EntityState.maxEntityCount, iVar2 + 0x4a, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE,
+ 0);
+ iVar3 = iVar3 + 0xd2;
+ renderTextToScreen(
+ "MoLim: ", xParam, iVar3, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_TileMapState.currentMoatCount, iVar2 + 0xe, iVar3, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ renderTextToScreen(
+ "OrLim: ", iVar2 + 0x18, iVar3, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ DAT_LandscapeState.maxTreeCount, iVar2 + 0x22, iVar3, TTA_LEFT, 0x80ff, 0x12, TRUE,
+ 0);
+ renderTextToScreen(
+ "PdLim: ", iVar2 + 0x2c, iVar3, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ DAT_TileMapState.maxPitchDitchCount, iVar2 + 0x36, iVar3, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ return;
+ }
+}
+}
+
+### 0x0045ae10 addBuildingInRegistry | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0045AE10
+ void GameStateStructures::addBuildingInRegistry(int buildingID)
+ {
+ short _owner;
+ _owner = DAT_BuildingsState.buildings[buildingID].owner;
+ if (((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ && (this->first500BuildingsCurrentIndexCounter[_owner] < 500))
+ && (DAT_BuildingsState.buildings[buildingID].fireDuration == 0)) {
+ this->first500BuildingsPerPlayer[_owner][this->first500BuildingsCurrentIndexCounter[_owner]]
+ = (short)buildingID;
+ this->first500BuildingsCurrentIndexCounter[_owner] = this->first500BuildingsCurrentIndexCounter[_owner] + 1;
+ }
+ return;
+ }
+}
+}
+
+### 0x0045ae70 resetBuildingsCurrentIndexCounter | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0045AE70
+ void GameStateStructures::resetBuildingsCurrentIndexCounter()
+ {
+ this->first500BuildingsCurrentIndexCounter[0] = 0;
+ this->first500BuildingsCurrentIndexCounter[1] = 0;
+ this->first500BuildingsCurrentIndexCounter[2] = 0;
+ this->first500BuildingsCurrentIndexCounter[3] = 0;
+ this->first500BuildingsCurrentIndexCounter[4] = 0;
+ this->first500BuildingsCurrentIndexCounter[5] = 0;
+ this->first500BuildingsCurrentIndexCounter[6] = 0;
+ this->first500BuildingsCurrentIndexCounter[7] = 0;
+ this->first500BuildingsCurrentIndexCounter[8] = 0;
+ return;
+ }
+}
+}
+
+### 0x0045aeb0 selectARandomBuildingOwnedByPlayer | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0045AEB0
+ int GameStateStructures::selectARandomBuildingOwnedByPlayer(int playerID)
+ {
+ int _rng2;
+ int _buildingID;
+ _buildingID = this->first500BuildingsCurrentIndexCounter[playerID];
+ if (_buildingID < 1) {
+ return 0;
+ }
+ _rng2 = (int)SEC_RNG::instance.currentNumber2;
+ nextRandomNumber2();
+ return (int)this->first500BuildingsPerPlayer[playerID][_rng2 % _buildingID];
+ }
+}
+}
+
+### 0x0045af00 resetSomethingBuildingRelatedForAllPlayers | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0045AF00
+ void GameStateStructures::resetSomethingBuildingRelatedForAllPlayers()
+ {
+ for (int playerID = 1; playerID < 9; ++playerID) {
+ for (int category = 0; category < 20; ++category) {
+ validateBuildingCategoryReference(
+ playerID, category);
+ }
+ }
+ }
+}
+}
+
+### 0x0045af30 computePopulationStatistics | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0045AF30
+ void GameStateStructures::computePopulationStatistics()
+ {
+ MapAndTimeState* paasVar1;
+ int _total;
+ int iVar2;
+ int _totalBlessablePeople;
+ int _goldIncrement;
+ PlayerData* piVar3;
+ PlayerData* piVar4;
+ short* psVar3;
+ MapAndTimeState* paasVar4;
+ int local_14;
+ MapAndTimeState* local_10;
+ int _offsetIntoPlayerDataArray;
+ int local_8;
+ int _blessedPeopleCount;
+ int _blessedPeoplePercentage;
+ MapAndTimeState* pasVar1;
+ local_14 = 1;
+ local_8 = 300;
+ _offsetIntoPlayerDataArray = 3709;
+ pasVar1 = (MapAndTimeState*)this->mapAndTime;
+ piVar3 = &this->playerDataArray[1];
+ piVar4 = (PlayerData*)(&this->playerDataArray[1]);
+ do {
+ paasVar1 = (MapAndTimeState*)((int)pasVar1 + 600);
+ _total = ((piVar3->countEntities - piVar3->nonInteractiveCitizenCountUnk) - piVar3->field645_0x2174)
+ - piVar3->armySize;
+ piVar3->currentPopulation = _total;
+ if ((piVar3->lordID != 0) && (DAT_UnitsState.units[piVar3->lordID].uid == piVar3->lordUID)) {
+ piVar3->currentPopulation = _total + -1;
+ }
+ if ((piVar3->ladyIDUnk != 0)
+ && (DAT_UnitsState.units[piVar3->ladyIDUnk].uid == piVar3->someUnitIDSelfRef)) {
+ piVar3->currentPopulation = piVar3->currentPopulation + -1;
+ }
+ if ((piVar3->jesterIDUnk != 0)
+ && (DAT_UnitsState.units[piVar3->jesterIDUnk].uid == piVar3->someUnitIDSelfRef_2)) {
+ piVar3->currentPopulation = piVar3->currentPopulation + -1;
+ }
+ piVar3->populationRelatedCrowdingCountUnk
+ = piVar3->currentPopulation_2 - piVar3->availablePeasantsOrHousedPeasants;
+ _blessedPeopleCount = piVar3->blessedPeopleCountUnk;
+ if (_blessedPeopleCount < 1) {
+ piVar3->blessedPeoplePercentage = 0;
+ } else {
+ _totalBlessablePeople = piVar3->unblessedPeopleCountUnk + _blessedPeopleCount;
+ if (_totalBlessablePeople == 0) {
+ _blessedPeoplePercentage = 100;
+ } else {
+ _blessedPeoplePercentage = (_blessedPeopleCount * 100) / _totalBlessablePeople;
+ }
+ piVar3->blessedPeoplePercentage = _blessedPeoplePercentage;
+ }
+ if (this->mapAndTime.startOfDay != FALSE) {
+ this->playerDataArray[0]
+ .populationGrowth[piVar3->populationGrowthStatisticCounter + _offsetIntoPlayerDataArray]
+ = piVar3->availablePeasantsOrHousedPeasants;
+ piVar3->populationGrowthStatisticCounter = piVar3->populationGrowthStatisticCounter + 1;
+ if (7 < piVar3->populationGrowthStatisticCounter) {
+ piVar3->populationGrowthStatisticCounter = 0;
+ }
+ iVar2 = piVar4->populationGrowth[0] + piVar4->populationGrowth[1] + piVar4->populationGrowth[2]
+ + piVar4->populationGrowth[3] + piVar4->populationGrowth[4] + piVar4->populationGrowth[5]
+ + piVar4->populationGrowth[7] + piVar4->populationGrowth[6];
+ piVar3->averagePopulationGrowthUnk = (int)(iVar2 + (iVar2 >> 0x1f & 7U)) >> 3;
+ }
+ if (this->mapAndTime.monthChanged != 0) {
+ if (this->mapAndTime.populationIndex < 300) {
+ this->mapAndTime.playerPopulationStatistics[0][this->mapAndTime.populationIndex + local_8]
+ = (short)piVar3->currentPopulation;
+ } else {
+ /*
+ Running average move values
+ */
+ psVar3 = (short*)((int)paasVar1->playerPopulationStatistics[0] + 2);
+ paasVar4 = paasVar1;
+ for (iVar2 = 299; iVar2 != 0; iVar2 = iVar2 + -1) {
+ paasVar4->playerPopulationStatistics[0][0] = *psVar3;
+ psVar3 = psVar3 + 1;
+ paasVar4 = (MapAndTimeState*)(paasVar4->playerPopulationStatistics[0] + 1);
+ }
+ *(short*)((int)paasVar1->playerPopulationStatistics[0] + 0x256) = (short)piVar3->currentPopulation;
+ }
+ }
+ if ((int)DAT_GameSynchronyState.finalResults.finalMaxPopulation[local_14]
+ < piVar3->currentPopulation) {
+ DAT_GameSynchronyState.finalResults.finalMaxPopulation[local_14]
+ = (short)piVar3->currentPopulation;
+ }
+ if (DAT_GameCore.gameMode_2 != GM_EDITOR) {
+ if (piVar3->tacticalPowersBarLevel < 7000) {
+ piVar3->tacticalPowersBarLevel = piVar3->tacticalPowersBarLevel + 1;
+ }
+ iVar2 = piVar3->goldDonation;
+ if (0 < iVar2) {
+ _goldIncrement = iVar2;
+ if (10 < iVar2) {
+ _goldIncrement = 10;
+ }
+ piVar3->currentResources[15] = piVar3->currentResources[15] + _goldIncrement;
+ piVar3->goldDonation = iVar2 - _goldIncrement;
+ if (local_14 == DAT_GameSynchronyState.currentPlayerSlotID) {
+ DAT_UIDragDropDefinedData.MenuView_TriggerInitial = TRUE;
+ DAT_WindowAndDirectDraw.unk_resetViewportRelated = 1;
+ }
+ }
+ }
+ _offsetIntoPlayerDataArray = _offsetIntoPlayerDataArray + 0xe7d;
+ local_8 = local_8 + 300;
+ pasVar1 = (MapAndTimeState*)paasVar1->playerPopulationStatistics;
+ local_14 = local_14 + 1;
+ piVar4 = piVar4 + 0x39f4;
+ piVar3 = piVar3 + 0xe7d;
+ } while (local_14 < 9);
+ if (this->mapAndTime.monthChanged != 0) {
+ this->mapAndTime.populationIndex = this->mapAndTime.populationIndex + 1;
+ }
+ updateFoodTypesInStockForAllPlayers();
+ return;
+ }
+}
+}
+
+### 0x0045b1c0 clearEnemyRelatedStructures | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0045B1C0
+ void GameStateStructures::clearEnemyRelatedStructures()
+ {
+ int iVar1;
+ MapAndTimeState* paiVar2;
+ MapAndTimeState* paiVar3;
+ MapAndTimeState* piVar3;
+ MapAndTimeState* paaiVar2;
+ int local_4;
+ DAT_BuildingsState.unknownCountdown01 = 2000;
+ this->gameTicksLoadBalancer = 0;
+ computeSignPostEntryData();
+ clearPlayerDataInformationChunk();
+ resetVariousCountsAndStatisticsAndStartGoodsAndResources();
+ setVariousGameStateToInitialValues();
+ resetSomethingBuildingRelatedForAllPlayers();
+ commitBuildingAvailability();
+ DAT_GameCore.isTimeHalted = FALSE;
+ DAT_GameCore.section1076 = 0;
+ this->mapAndTime.field2_0x8 = 0;
+ this->mapAndTime.field12_0x30 = 0;
+ this->mapAndTime.field22_0x58[0][0] = -1;
+ this->mapAndTime.field23_0x80 = -1;
+ this->mapAndTime.field3_0xc = 0;
+ this->mapAndTime.field13_0x34 = 0;
+ this->mapAndTime.field22_0x58[0][1] = -1;
+ this->mapAndTime.field24_0x84 = -1;
+ this->mapAndTime.field4_0x10 = 0;
+ this->mapAndTime.field14_0x38 = 0;
+ this->mapAndTime.field22_0x58[0][2] = -1;
+ this->mapAndTime.field25_0x88 = -1;
+ this->mapAndTime.field5_0x14 = 0;
+ this->mapAndTime.field15_0x3c = 0;
+ this->mapAndTime.field22_0x58[0][3] = -1;
+ this->mapAndTime.field26_0x8c = -1;
+ this->mapAndTime.field6_0x18 = 0;
+ this->mapAndTime.field16_0x40 = 0;
+ this->mapAndTime.field22_0x58[0][4] = -1;
+ this->mapAndTime.field27_0x90 = -1;
+ this->mapAndTime.field7_0x1c = 0;
+ this->mapAndTime.field17_0x44 = 0;
+ this->mapAndTime.field22_0x58[1][0] = -1;
+ this->mapAndTime.field28_0x94 = -1;
+ this->mapAndTime.field8_0x20 = 0;
+ this->mapAndTime.field18_0x48 = 0;
+ this->mapAndTime.field22_0x58[1][1] = -1;
+ this->mapAndTime.field29_0x98 = -1;
+ this->mapAndTime.field9_0x24 = 0;
+ this->mapAndTime.field19_0x4c = 0;
+ this->mapAndTime.field22_0x58[1][2] = -1;
+ this->mapAndTime.field30_0x9c = -1;
+ this->mapAndTime.field10_0x28 = 0;
+ this->mapAndTime.field20_0x50 = 0;
+ this->mapAndTime.field22_0x58[1][3] = -1;
+ this->mapAndTime.field31_0xa0 = -1;
+ this->mapAndTime.field11_0x2c = 0;
+ this->mapAndTime.field21_0x54 = 0;
+ this->mapAndTime.field22_0x58[1][4] = -1;
+ this->mapAndTime.field32_0xa4 = -1;
+ this->mapAndTime.field33_0xa8 = 0;
+ this->mapAndTime.emenyHitArray[0] = 0;
+ this->mapAndTime.field34_0xac = 0;
+ this->mapAndTime.emenyHitArray[1] = 0;
+ this->mapAndTime.field35_0xb0 = 0;
+ this->mapAndTime.emenyHitArray[2] = 0;
+ this->mapAndTime.field36_0xb4 = 0;
+ this->mapAndTime.emenyHitArray[3] = 0;
+ this->mapAndTime.field37_0xb8 = 0;
+ this->mapAndTime.emenyHitArray[4] = 0;
+ this->mapAndTime.field38_0xbc = 0;
+ this->mapAndTime.emenyHitArray[5] = 0;
+ this->mapAndTime.field39_0xc0 = 0;
+ this->mapAndTime.emenyHitArray[6] = 0;
+ this->mapAndTime.field40_0xc4 = 0;
+ this->mapAndTime.emenyHitArray[7] = 0;
+ this->mapAndTime.field41_0xc8 = 0;
+ this->mapAndTime.emenyHitArray[8] = 0;
+ paiVar2 = (MapAndTimeState*)this->mapAndTime;
+ piVar3 = (MapAndTimeState*)this->mapAndTime;
+ local_4 = 9;
+ paiVar3 = (MapAndTimeState*)this->mapAndTime;
+ do {
+ piVar3->playerBuildingInfoIndex[0] = 0;
+ iVar1 = 2000;
+ do {
+ paiVar2->playerEnemyBuildingIDs[0][0] = 0;
+ paiVar2->playerEnemyBuildingUID[0][0] = 0;
+ paiVar2 = (MapAndTimeState*)(paiVar2->playerEnemyBuildingUID[0] + 1);
+ iVar1 = iVar1 + -1;
+ } while (iVar1 != 0);
+ piVar3 = (MapAndTimeState*)(piVar3->playerBuildingInfoIndex + 1);
+ local_4 = local_4 + -1;
+ paaiVar2 = paiVar3;
+ for (iVar1 = 2500; iVar1 != 0; iVar1 = iVar1 + -1) {
+ paaiVar2->playerEnemenyUnitUIDShortList[0][0] = 0;
+ paaiVar2 = (MapAndTimeState*)(paaiVar2->playerEnemenyUnitUIDShortList[0] + 1);
+ }
+ paiVar3 = (MapAndTimeState*)(paiVar3->playerEnemenyUnitUIDShortList + 1);
+ } while (local_4 != 0);
+ fillWith0xFF();
+ return;
+ }
+}
+}
+
+### 0x0045b3e0 initializeGameStateAfterMapLoad | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0045B3E0
+ void GameStateStructures::initializeGameStateAfterMapLoad()
+ {
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ resetTeams();
+ }
+ DAT_BuildingsState.unknownCountdown01 = 2000;
+ this->gameTicksLoadBalancer = 0;
+ setSignpostDataForBuildings();
+ clearDataAndSignpostDataIfNecessary();
+ computeSignPostEntryData();
+ this->mapAndTime.multiplayerUnitSameTileLinkageTimeWindow = 0;
+ if (DAT_GameCore.gameMode_2 != GM_SKIRMISH_AND_MULTIPLAYER) {
+ importTradingCosts();
+ }
+ commitBuildingAvailability();
+ updateCrowding();
+ return;
+ }
+}
+}
+
+### 0x0045b460 switchPlayerOwnership | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0045B460
+ void GameStateStructures::switchPlayerOwnership(int playerID)
+ {
+ for (int fromPlayer = 1; fromPlayer < 9; ++fromPlayer) {
+ if (fromPlayer != playerID) {
+ changePlayerOwnership(
+ fromPlayer, playerID);
+ }
+ }
+ recomputeAIZonerLayer();
+ }
+}
+}
+
+### 0x0045b6b0 updateTrader | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0045B6B0
+ void GameStateStructures::updateTrader()
+ {
+ int iVar1;
+ int iVar2;
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ this->mapAndTime.traderRelatedCounter1 = this->mapAndTime.traderRelatedCounter1 + 1;
+ if (this->mapAndTime.traderRelated2 == 1) {
+ this->mapAndTime.traderRelatedCounter1 = 0;
+ return;
+ }
+ if (this->mapAndTime.traderRelated2 == 2) {
+ if ((DAT_TroopValueState.attackInfo.aiTroops < 2)
+ && (this->mapAndTime.traderRelated1 <= this->mapAndTime.traderRelatedCounter1)) {
+ this->mapAndTime.traderRelatedCounter1 = 0;
+ this->mapAndTime.traderRelated2 = 1;
+ this->mapAndTime.traderVisitsPlayer = 0;
+ return;
+ }
+ } else if (((this->mapAndTime.traderRelated2 == 0)
+ && (DAT_TroopValueState.attackInfo.aiTroops < 2))
+ && (this->mapAndTime.traderRelatedCounter2 <= this->mapAndTime.traderRelatedCounter1)) {
+ this->mapAndTime.traderRelatedCounter1 = 0;
+ iVar1 = findNextPlayerWithMarketplace(
+ this->mapAndTime.traderVisitsPlayer);
+ if ((iVar1 != 0)
+ && (this->mapAndTime.traderVisitsPlayer = DAT_GameSynchronyState.currentPlayerSlotID,
+ DAT_GameSynchronyState.currentPlayerSlotID != 0)) {
+ this->mapAndTime.traderRelated2 = 1;
+ iVar1 = spawnUnit(0,
+ 0, this->mapAndTime.signpostsMapEdge[0][0].x * 8, this->mapAndTime.signpostsMapEdge[0][0].y * 8,
+ 8, UT_TRADER);
+ if ((iVar1 != 0)
+ && (iVar2 = spawnUnit(0, 0, this->mapAndTime.signpostsMapEdge[0][0].x * 8,
+ this->mapAndTime.signpostsMapEdge[0][0].y * 8, 8, UT_TRADERHORSE),
+ iVar2 != 0)) {
+ DAT_UnitsState.units[iVar2].traderHorsesTrader = (short)iVar1;
+ DAT_UnitsState.units[iVar2].workplaceBuildingUID
+ = DAT_UnitsState.units[iVar1].uid;
+ }
+ }
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x0045b7f0 getSalesPrice | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0045B7F0
+ int GameStateStructures::getSalesPrice(int playerID, int resourceType)
+ {
+ return (this->mapAndTime.buyAndSalesPriceArray[resourceType].salesPrice / 5)
+ * getSellResourceAmount(
+ playerID, resourceType);
+ }
+}
+}
+

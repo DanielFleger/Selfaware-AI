@@ -1,0 +1,809 @@
+### 0x0047b7d0 playOnSfx1SoundStreamUnk | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047B7D0
+ void SoundSystem::playOnSfx1SoundStreamUnk(char* soundFileName, SoundFlagsAndLoopCount flagsAndLoopCount)
+ {
+ this->streamFileVolumeNextUnk_0x48[1]
+ = getSoundVolumeForFilename(soundFileName);
+ playSoundStreamUnk(
+ enums::SND_STR_SFX_1Unk, soundFileName, flagsAndLoopCount);
+ }
+ }
+}
+}
+
+### 0x0047b800 playSoundOnSfxSoundStream2 | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047B800
+ void SoundSystem::playSoundOnSfxSoundStream2(char* filename, SoundFlagsAndLoopCount flagsAndLoopCount)
+ {
+ this->streamFileVolumeNextUnk_0x48[1]
+ = getSoundVolumeForFilename(filename);
+ playSoundStreamUnk(
+ enums::SND_STR_SFX_2Unk, filename, flagsAndLoopCount);
+ }
+ }
+}
+}
+
+### 0x0047b830 playSoundOnStream3Unk | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047B830
+ void SoundSystem::playSoundOnStream3Unk(char* filename, SoundFlagsAndLoopCount flagsAndLoopCount)
+ {
+ if (!this->waveOutOpenUnk_0x8) {
+ return;
+ }
+ int const volume
+ = getSoundVolumeForFilename(filename);
+ this->streamFileVolumeNextUnk_0x48[3] = volume;
+ this->streamFileVolumeNextUnk_0x48[4] = volume;
+ playSoundStreamUnk(
+ enums::SND_STR_SPEECH_1, filename, flagsAndLoopCount);
+ DAT_SoundSystemState.lastUsedSpeechStreamUnk_0x3284 = 3;
+ }
+ }
+}
+}
+
+### 0x0047b870 activateSoundFromMenuFuncUnk | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047B870
+ void SoundSystem::activateSoundFromMenuFuncUnk()
+ {
+ if (!this->waveOutOpenUnk_0x8) {
+ return;
+ }
+ this->soundActiveUnk_0x0 = true;
+ playSomeMusicUnk(
+ this->currIdSoundFilenameUnk_0x84, this->streamFlagsUnkAndLoopCount_0x34[0]);
+ }
+ }
+}
+}
+
+### 0x0047b890 playRandomAmbientMusic | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047B890
+ void SoundSystem::playRandomAmbientMusic()
+ {
+ if (DAT_GameSynchronyState.currentGameMode == Game::GM_SOLITARY
+ && getAreWeInAInGameMenu()
+ && DAT_GameCore.currentMenuViewType != UI::Enums::MVT_MAP_EDITOR_LANDSCAPING) {
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .campground.id
+ <= 0
+ || DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .lordID
+ <= 0) {
+ DAT_TroopValueState.attackInfo.enemyUnitsInsideCastleCount = 0;
+ } else {
+ if (0 < DAT_TroopValueState.attackInfo.buildingDamageEventCount
+ && DAT_TroopValueState.attackInfo.delayedWaveAssignmentCount == 1) {
+ DAT_TroopValueState.attackInfo.delayedWaveAssignmentCount = 2;
+ /* "the enemy has breached the walls!" */
+ playWAVSFX(
+ s_General_Warning15_wav_005a6ce4);
+ }
+ if (DAT_TroopValueState.attackInfo.enemyUnitsInsideCastleCount != 0) {
+ DAT_TroopValueState.attackInfo.enemyUnitsInsideCastleCount = 0;
+ if (90000 < timeGetTime()
+ - DAT_SoundEffectsHelperData1
+ .DAT_enemyInsideCastleSoundWarningCooldownTimer) {
+ /* the enemy are inside the castle! */
+ playWAVSFX(
+ s_General_Warning4_wav_005a6ccc);
+ DAT_SoundEffectsHelperData1.DAT_enemyInsideCastleSoundWarningCooldownTimer
+ = timeGetTime();
+ }
+ }
+ }
+ }
+ if (200 < DAT_GameCore.mapTimeInTicks - DAT_GameCore.someSoundMatchTime_1) {
+ DAT_GameCore.battleLevel = DAT_GameCore.cowPoisonTrackerUnk;
+ DAT_GameCore.someSoundMatchTime_1 = DAT_GameCore.mapTimeInTicks;
+ DAT_GameCore.cowPoisonTrackerUnk = 0;
+ }
+ if (0 < this->sec_Section1055_0x3274 && this->musicFadeState != 0) {
+ if (this->musicFadeState == 2) {
+ unsigned int const transitionPercent = (timeGetTime() - this->someSoundTime_0x158) / 10;
+ if (transitionPercent >= 100) {
+ stopMusicPlayback();
+ this->sec_Section1055_0x3274 = 0;
+ this->musicFadeState = 0;
+ } else {
+ setStreamAndSampleVolumeUnk(enums::SND_STR_MUSIC,
+ ((100 - transitionPercent) * this->streamFileVolumeNextUnk_0x48[0]) / 100);
+ return;
+ }
+ }
+ if (this->musicFadeState == 1) {
+ unsigned int const transitionPercent = (timeGetTime() - this->someSoundTime_0x158) / 200;
+ if (transitionPercent >= 100) {
+ setStreamAndSampleVolumeUnk(
+ enums::SND_STR_MUSIC, (100 * this->streamFileVolumeNextUnk_0x48[0]) / 100);
+ this->musicFadeState = 0;
+ } else {
+ setStreamAndSampleVolumeUnk(
+ enums::SND_STR_MUSIC, (transitionPercent * this->streamFileVolumeNextUnk_0x48[0]) / 100);
+ return;
+ }
+ }
+ }
+ if (this->currentSoundID_0x3278 != this->sec_Section1055_0x3274 && 0 < this->currentSoundID_0x3278) {
+ if (this->mbr_0x3280 == 1) {
+ this->musicFadeState = 1;
+ this->someSoundTime_0x158 = timeGetTime();
+ this->mbr_0x3280 = 0;
+ }
+ if (DAT_SFXDefinedData.Pointers[this->currentSoundID_0x3278].unknownFlag_0x4) {
+ playOrSetupMusicUnk(
+ DAT_SFXDefinedData.Pointers[this->currentSoundID_0x3278].musicFile,
+ this->currentSoundIDVolumeUnk_0x327c);
+ this->sec_Section1055_0x3274 = this->currentSoundID_0x3278;
+ } else {
+ playOrEndMusicUnk(
+ DAT_SFXDefinedData.Pointers[this->currentSoundID_0x3278].musicFile,
+ this->currentSoundIDVolumeUnk_0x327c);
+ this->sec_Section1055_0x3274 = this->currentSoundID_0x3278;
+ this->currentSoundID_0x3278 = 0;
+ }
+ }
+ if ((getAreWeInAInGameMenu()
+ || (DAT_GameCore.currentMenuViewType == UI::Enums::MVT_SCENARIO_DESCRIPTION
+ && DAT_GameCore.gameSuspended != 0))
+ && DAT_GameCore.gameMode_2 != Game::GM_CRUSADER_TUTORIAL
+ && DAT_GameSynchronyState.currentGameMode == Game::GM_SOLITARY) {
+ if (DAT_TroopValueState.attackInfo.pendingAttackWaveCount != 0
+ && 0 < DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .totalEnemyUnitsCount) {
+ if (DAT_SoundEffectsHelperData1.SEC_Section1079.field7_0x1c) {
+ playRandomMusic02(2);
+ } else {
+ playRandomMusic02(1);
+ }
+ DAT_TroopValueState.attackInfo.pendingAttackWaveCount = 0;
+ }
+ if (DAT_SoundEffectsHelperData1.SEC_Section1079.musicState == 5) {
+ if ((DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .totalEnemyUnitsCount
+ == 0)
+ && (DAT_SoundEffectsHelperData1.SEC_Section1079.field7_0x1c == 0)) {
+ handleBattleEndMusicTransition();
+ }
+ if (DAT_SoundEffectsHelperData1.SEC_Section1079.troopValueLevel != 0
+ && DAT_SoundEffectsHelperData1.SEC_Section1079.volumeLevel == 2
+ && 30000 < timeGetTime() - DAT_SoundEffectsHelperData1.DAT_SomeSoundTime2) {
+ DAT_SoundEffectsHelperData1.DAT_SomeSoundTime2 = timeGetTime();
+ recountTotalTroopValue();
+ int const currentPlayerTotalTroopValue
+ = DAT_TroopValueState.attackInfo
+ .playerTotalTroopValueArray[DAT_GameSynchronyState.currentPlayerSlotID];
+ int enemyPlayerTotalTroopValue = 0;
+ for (int i = 1; i < 9; ++i) {
+ if (DAT_GameSynchronyState.currentPlayerSlotID == i) {
+ continue;
+ }
+ enemyPlayerTotalTroopValue
+ += DAT_TroopValueState.attackInfo.playerTotalTroopValueArray[i];
+ }
+ if (DAT_SoundEffectsHelperData1.playerTroopValueBaseline < 1) {
+ DAT_SoundEffectsHelperData1.playerTroopValueBaseline = 1;
+ }
+ int somePercentage1 = (currentPlayerTotalTroopValue * 100)
+ / DAT_SoundEffectsHelperData1.playerTroopValueBaseline;
+ if (100 < somePercentage1) {
+ somePercentage1 = 100;
+ }
+ DAT_SoundEffectsHelperData1.playerTroopValue = currentPlayerTotalTroopValue;
+ if (DAT_SoundEffectsHelperData1.DAT_Music_TotalTroopValue < 1) {
+ DAT_SoundEffectsHelperData1.DAT_Music_TotalTroopValue = 1;
+ }
+ int somePercentage2 = (enemyPlayerTotalTroopValue * 100)
+ / DAT_SoundEffectsHelperData1.DAT_Music_TotalTroopValue;
+ if (100 < somePercentage2) {
+ somePercentage2 = 100;
+ }
+ DAT_SoundEffectsHelperData1.enemyTroopValue = enemyPlayerTotalTroopValue;
+ int const someValue = somePercentage1 - somePercentage2;
+ if (someValue > 20) {
+ DAT_SoundEffectsHelperData1.battleMoodState = 1;
+ } else if (someValue < -20) {
+ DAT_SoundEffectsHelperData1.battleMoodState = 2;
+ } else {
+ DAT_SoundEffectsHelperData1.battleMoodState = 0;
+ }
+ }
+ if (DAT_SoundEffectsHelperData1.SEC_Section1079.musicState == 5) {
+ return;
+ }
+ }
+ if (DAT_SoundEffectsHelperData1.SEC_Section1079.field7_0x1c != 0) {
+ playRandomMusic02(2);
+ } else if (0
+ < DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .totalEnemyUnitsCount
+ && DAT_TroopValueState.attackInfo.lowTroopValueRelated == 0) {
+ playRandomMusic02(1);
+ playBattleGloryMusicIfConditionsMet();
+ }
+ if (DAT_SoundEffectsHelperData1.SEC_Section1079.musicState == 5) {
+ return;
+ }
+ if (this->sec_Section1055_0x3274 != 0) {
+ if (!isSampleOrStreamPlaying(enums::SND_STR_MUSIC)) {
+ if (9 < this->sec_Section1055_0x3274) {
+ this->lastMusicChangeTime = timeGetTime();
+ }
+ this->sec_Section1055_0x3274 = 0;
+ this->currentSoundID_0x3278 = 0;
+ }
+ if (this->sec_Section1055_0x3274 != 0) {
+ return;
+ }
+ }
+ if (this->lastMusicChangeTime == 0) {
+ this->lastMusicChangeTime = timeGetTime();
+ }
+ if (this->sec_Section1055_0x3274 != 0) {
+ return;
+ }
+ if (timeGetTime() - this->lastMusicChangeTime <= DAT_SFXDefinedData
+ .MusicDelays[DAT_SoundEffectsHelperData1.musicDelayIndex]) {
+ return;
+ }
+ ++DAT_SoundEffectsHelperData1.musicDelayIndex;
+ if (DAT_SoundEffectsHelperData1.musicDelayIndex >= 6) {
+ DAT_SoundEffectsHelperData1.musicDelayIndex = 0;
+ }
+ selectAndPlayMoodBasedMusic();
+ } else {
+ if (!getAreWeInAInGameMenu()) {
+ return;
+ }
+ if (DAT_GameSynchronyState.currentGameMode == Game::GM_SOLITARY) {
+ return;
+ }
+ int const battleLevelTemp = DAT_GameCore.battleLevel2 + 2500;
+ int const iVar7 = DAT_GameCore.battleLevel2;
+ if (DAT_SoundEffectsHelperData1.SEC_Section1079.musicState != 5) {
+ if (0 < DAT_GameCore.battleLevel2) {
+ --DAT_GameCore.battleLevel2;
+ }
+ if (DAT_GameCore.battleLevel >= battleLevelTemp) {
+ playRandomMusic02(2);
+ DAT_GameCore.battleLevel2 = 0;
+ }
+ } else {
+ if (DAT_GameCore.battleLevel2 < 50000) {
+ DAT_GameCore.battleLevel2 = DAT_GameCore.battleLevel2 + 1;
+ }
+ }
+ if (DAT_SoundEffectsHelperData1.SEC_Section1079.musicState == 5) {
+ if (DAT_GameCore.battleLevel < iVar7) {
+ handleBattleEndMusicTransition();
+ }
+ if (DAT_SoundEffectsHelperData1.SEC_Section1079.troopValueLevel != 0
+ && DAT_SoundEffectsHelperData1.SEC_Section1079.volumeLevel == 2
+ && 30000 < timeGetTime() - DAT_SoundEffectsHelperData1.DAT_SomeSoundTime2) {
+ nextRandomNumber1();
+ int const randomNumber = SEC_RNG::instance.currentNumber1 % 3;
+ if (randomNumber == 0)
+ DAT_SoundEffectsHelperData1.battleMoodState = 1;
+ else if (randomNumber == 1)
+ DAT_SoundEffectsHelperData1.battleMoodState = 2;
+ else
+ DAT_SoundEffectsHelperData1.battleMoodState = 0;
+ }
+ }
+ if (DAT_SoundEffectsHelperData1.SEC_Section1079.musicState == 5) {
+ return;
+ }
+ if (this->sec_Section1055_0x3274 != 0) {
+ if (!isSampleOrStreamPlaying(enums::SND_STR_MUSIC)) {
+ if (9 < this->sec_Section1055_0x3274) {
+ this->lastMusicChangeTime = timeGetTime();
+ }
+ this->sec_Section1055_0x3274 = 0;
+ this->currentSoundID_0x3278 = 0;
+ }
+ if (this->sec_Section1055_0x3274 != 0) {
+ return;
+ }
+ }
+ if (this->lastMusicChangeTime == 0) {
+ this->lastMusicChangeTime = timeGetTime();
+ }
+ if (this->sec_Section1055_0x3274 != 0) {
+ return;
+ }
+ if (timeGetTime() - this->lastMusicChangeTime <= DAT_SFXDefinedData
+ .MusicDelays[DAT_SoundEffectsHelperData1.musicDelayIndex]) {
+ return;
+ }
+ ++DAT_SoundEffectsHelperData1.musicDelayIndex;
+ if (DAT_SoundEffectsHelperData1.musicDelayIndex >= 6) {
+ DAT_SoundEffectsHelperData1.musicDelayIndex = 0;
+ }
+ selectAndPlayMoodBasedMusic();
+ }
+ }
+ }
+}
+}
+
+### 0x0047bf20 playRandomBackgroundMusicUnk | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047BF20
+ void SoundSystem::playRandomBackgroundMusicUnk()
+ {
+ if (DAT_SoundEffectsHelperData1.SEC_Section1079.musicState != 5) {
+ return;
+ }
+ // NOTE: Current state has a mismatch with the bytes of this condition: The following early return is
+ // directly placed under it. So resolve this, one can move the first early return inside this if as or,
+ // which will produce the proper code for this position, but messes with the rest of the function in such
+ // a way that is produces a lower match. Due to the amount of time already spend, the function is kept in
+ // this state and maybe one day tackled again when the last once are cleaned up.
+ if (!getAreWeInAInGameMenu()
+ && (DAT_GameCore.currentMenuViewType != UI::Enums::MVT_SCENARIO_DESCRIPTION
+ || !DAT_GameCore.gameSuspended)) {
+ if (DAT_SoundEffectsHelperData1.SEC_Section1079.musicState == 5) {
+ DAT_SoundEffectsHelperData1.SEC_Section1079.musicState = 1;
+ }
+ return;
+ }
+ int bVar7 = true;
+ if (DAT_SoundEffectsHelperData1.SEC_Section1079.troopValueLevel == 0) {
+ switch (DAT_SoundEffectsHelperData1.SEC_Section1079.volumeLevel) {
+ case 1:
+ if (DAT_SoundEffectsHelperData1.SEC_Section1079.musicTracker == 0) {
+ DAT_SoundEffectsHelperData1.SEC_Section1079.musicTracker = 1;
+ openSound(
+ DAT_SFXDefinedData.Pointers[23].musicFile);
+ } else {
+ openSound(
+ DAT_SFXDefinedData.Pointers[23].musicFile);
+ if (DAT_GameSynchronyState.currentGameMode != Game::GM_SOLITARY) {
+ DAT_GameCore.battleLevel2 += 2000;
+ }
+ }
+ if ((this->streamFlagsUnkAndLoopCount_0x34[0] & FLAG_SOUND_LOOP_COUNT_FIELD) == 0) {
+ ++this->streamFlagsUnkAndLoopCount_0x34[0];
+ }
+ return;
+ case 2:
+ if (DAT_SoundEffectsHelperData1.SEC_Section1079.musicTracker == 0) {
+ DAT_SoundEffectsHelperData1.SEC_Section1079.musicTracker = 1;
+ openSound(
+ DAT_SFXDefinedData.Pointers[25].musicFile);
+ } else {
+ openSound(
+ DAT_SFXDefinedData.Pointers[25].musicFile);
+ if (DAT_GameSynchronyState.currentGameMode != Game::GM_SOLITARY) {
+ DAT_GameCore.battleLevel2 += 2000;
+ }
+ }
+ if ((this->streamFlagsUnkAndLoopCount_0x34[0] & FLAG_SOUND_LOOP_COUNT_FIELD) == 0) {
+ ++this->streamFlagsUnkAndLoopCount_0x34[0];
+ }
+ return;
+ case 5:
+ ++DAT_SoundEffectsHelperData1.SEC_Section1079.musicTracker;
+ if (DAT_SoundEffectsHelperData1.SEC_Section1079.musicTracker > 2) {
+ DAT_SoundEffectsHelperData1.SEC_Section1079.musicTracker = 1;
+ if (DAT_GameSynchronyState.currentGameMode != Game::GM_SOLITARY) {
+ DAT_GameCore.battleLevel2 += 2000;
+ }
+ }
+ if (DAT_SoundEffectsHelperData1.SEC_Section1079.musicTracker == 1) {
+ openSound(
+ DAT_SFXDefinedData.Pointers[25].musicFile);
+ if ((this->streamFlagsUnkAndLoopCount_0x34[0] & FLAG_SOUND_LOOP_COUNT_FIELD) == 0) {
+ ++this->streamFlagsUnkAndLoopCount_0x34[0];
+ }
+ } else {
+ openSound(
+ DAT_SFXDefinedData.Pointers[27].musicFile);
+ if ((this->streamFlagsUnkAndLoopCount_0x34[0] & FLAG_SOUND_LOOP_COUNT_FIELD) == 0) {
+ ++this->streamFlagsUnkAndLoopCount_0x34[0];
+ }
+ }
+ return;
+ }
+ } else if (DAT_SoundEffectsHelperData1.SEC_Section1079.volumeLevel == 1) {
+ if (DAT_SoundEffectsHelperData1.SEC_Section1079.battleEndHandled == 0) {
+ if (DAT_SoundEffectsHelperData1.SEC_Section1079.musicTracker == 0) {
+ openSound(
+ DAT_SFXDefinedData.Pointers[30].musicFile);
+ } else if (DAT_SoundEffectsHelperData1.SEC_Section1079.musicTracker == 1) {
+ openSound(
+ DAT_SFXDefinedData.Pointers[31].musicFile);
+ } else {
+ openSound(
+ DAT_SFXDefinedData.Pointers[31].musicFile);
+ if (DAT_GameSynchronyState.currentGameMode != Game::GM_SOLITARY) {
+ DAT_GameCore.battleLevel2 += 5000;
+ }
+ }
+ ++DAT_SoundEffectsHelperData1.SEC_Section1079.musicTracker;
+ if ((this->streamFlagsUnkAndLoopCount_0x34[0] & FLAG_SOUND_LOOP_COUNT_FIELD) == 0) {
+ ++this->streamFlagsUnkAndLoopCount_0x34[0];
+ }
+ return;
+ }
+ DAT_SoundEffectsHelperData1.SEC_Section1079.musicState = 1;
+ bVar7 = false;
+ } else {
+ if (DAT_SoundEffectsHelperData1.SEC_Section1079.battleEndHandled == 0) {
+ if (DAT_SoundEffectsHelperData1.SEC_Section1079.musicTracker == 0) {
+ if (this->sec_Section1055_0x3274 != 25) {
+ openSound(
+ DAT_SFXDefinedData.Pointers[25].musicFile);
+ if ((this->streamFlagsUnkAndLoopCount_0x34[0] & FLAG_SOUND_LOOP_COUNT_FIELD) == 0) {
+ ++this->streamFlagsUnkAndLoopCount_0x34[0];
+ }
+ return;
+ }
+ } else {
+ if (DAT_SoundEffectsHelperData1.SEC_Section1079.musicTracker < 2) {
+ ++DAT_SoundEffectsHelperData1.SEC_Section1079.musicTracker;
+ if (DAT_SoundEffectsHelperData1.SEC_Section1079.musicTracker == 2) {
+ openSound(
+ DAT_SFXDefinedData.Pointers[34].musicFile);
+ }
+ DAT_SoundEffectsHelperData1.field21_0x70 = 34;
+ } else {
+ int iVar5 = DAT_SoundEffectsHelperData1.field21_0x70 + -34;
+ int iVar6 = 0;
+ if (iVar5 < 0 || 7 < iVar5) {
+ iVar5 = 0;
+ }
+ int aiStack_50[20];
+ for (int i = 0; i < 8; ++i) {
+ if (iVar5 == i || DAT_SFXDefinedData.field2_0x3a4[iVar5][i] == 0) {
+ continue;
+ }
+ if (i == 4) {
+ aiStack_50[iVar6++] = i;
+ aiStack_50[iVar6++] = i;
+ aiStack_50[iVar6++] = i;
+ aiStack_50[iVar6++] = i;
+ aiStack_50[iVar6++] = i;
+ aiStack_50[iVar6++] = i;
+ continue;
+ }
+ int iVar1 = DAT_SFXDefinedData.field3_0x4a4[i];
+ int battleMoodState = DAT_SoundEffectsHelperData1.battleMoodState;
+ if ((iVar1 == 1 && iVar1 == battleMoodState)
+ || (iVar1 == 2 && iVar1 == battleMoodState)) {
+ continue;
+ }
+ aiStack_50[iVar6++] = i;
+ if (battleMoodState == 1 && iVar1 == 2) {
+ aiStack_50[iVar6++] = i;
+ } else if (battleMoodState == 2 && iVar1 == 1) {
+ aiStack_50[iVar6++] = i;
+ }
+ }
+ int sfxIndex;
+ if (iVar6 == 0) {
+ sfxIndex = iVar5 + 34;
+ } else {
+ nextRandomNumber1();
+ sfxIndex = aiStack_50[SEC_RNG::instance.currentNumber1 % iVar6] + 34;
+ }
+ openSound(
+ DAT_SFXDefinedData.Pointers[sfxIndex].musicFile);
+ DAT_SoundEffectsHelperData1.field21_0x70 = sfxIndex;
+ }
+ if ((this->streamFlagsUnkAndLoopCount_0x34[0] & FLAG_SOUND_LOOP_COUNT_FIELD) == 0) {
+ ++this->streamFlagsUnkAndLoopCount_0x34[0];
+ }
+ return;
+ }
+ } else {
+ DAT_SoundEffectsHelperData1.SEC_Section1079.musicState = 1;
+ bVar7 = false;
+ }
+ }
+ if (this->musicFileHandle_0x178 != -1) {
+ DAT_SoundEffectsHelperData1.field14_0x54 = TRUE;
+ _ucrt_close(this->musicFileHandle_0x178);
+ this->musicFileHandle_0x178 = -1;
+ DAT_SoundEffectsHelperData1.field14_0x54 = FALSE;
+ }
+ if (bVar7) {
+ if ((this->streamFlagsUnkAndLoopCount_0x34[0] & FLAG_SOUND_LOOP_COUNT_FIELD) == 1) {
+ this->streamFlagsUnkAndLoopCount_0x34[0] &= ~FLAG_SOUND_LOOP_COUNT_FIELD;
+ }
+ } else {
+ if ((this->streamFlagsUnkAndLoopCount_0x34[0] & FLAG_SOUND_LOOP_COUNT_FIELD) == 0) {
+ ++this->streamFlagsUnkAndLoopCount_0x34[0];
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0047c400 initMiles | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047C400
+ void SoundSystem::initMiles()
+ {
+ AIL_set_redist_directory(s_miles_005a6cfc);
+ RegisterMilesAILShutdown();
+ AIL_startup();
+ DAT_SoundEffectsHelperData1.SND_Waveformat.wFormatTag = WAVE_FORMAT_PCM;
+ DAT_SoundEffectsHelperData1.SND_Waveformat.nChannels = 2;
+ DAT_SoundEffectsHelperData1.SND_Waveformat.nSamplesPerSec = 44100;
+ DAT_SoundEffectsHelperData1.SND_Waveformat.nAvgBytesPerSec = 176400;
+ DAT_SoundEffectsHelperData1.SND_Waveformat.nBlockAlign = 4;
+ DAT_SoundEffectsHelperData1.SND_Waveformat.wBitsPerSample = 16;
+ BOOL const _waveOpenErrorUnk = AIL_waveOutOpen(
+ &this->digSndDriver_0x4, 0, -1, &DAT_SoundEffectsHelperData1.SND_Waveformat);
+ if (_waveOpenErrorUnk == AIL_NO_ERROR) {
+ this->waveOutOpenUnk_0x8 = TRUE;
+ } else {
+ this->waveOutOpenUnk_0x8 = FALSE;
+ }
+ if (!this->waveOutOpenUnk_0x8) {
+ return;
+ }
+ zeroBinkPtrAndLoadBinkSoundSystem(this->digSndDriver_0x4);
+ this->streamActiveUnk_0x20[0] = 0;
+ this->streamActiveUnk_0x20[1] = 0;
+ this->streamActiveUnk_0x20[2] = 0;
+ this->streamActiveUnk_0x20[3] = 0;
+ this->streamActiveUnk_0x20[4] = 0;
+ for (int i = 0; i < 32; ++i) {
+ this->sample[i] = AIL_allocate_sample_handle(this->digSndDriver_0x4);
+ this->sampleSoundIndex_0x20c[i] = 0;
+ }
+ this->loadedSoundsCountAndIndex_0x316c = 1;
+ for (int i = 0; i < 1000; ++i) {
+ this->soundFileCurrSampleNum_0x28c[i] = -1;
+ }
+ this->musicVolumePercent = 100;
+ this->musicFadeState = 0;
+ this->musicSampleUnk_0x170 = AIL_allocate_sample_handle(this->digSndDriver_0x4);
+ this->sampleBufferSizeUnk_0x184
+ = AIL_minimum_sample_buffer_size(this->digSndDriver_0x4, 22050, DIG_F_STEREO_16);
+ if (this->sampleBufferSizeUnk_0x184 < 0x10000) {
+ this->sampleBufferSizeUnk_0x184 = 0x10000;
+ }
+ this->sampleBufferPtrUnk_0x17c[0] = AIL_mem_alloc_lock(this->sampleBufferSizeUnk_0x184);
+ this->sampleBufferPtrUnk_0x17c[1] = AIL_mem_alloc_lock(this->sampleBufferSizeUnk_0x184);
+ this->musicSampleFileHandleUnk_0x174 = -1;
+ this->musicFileHandle_0x178 = -1;
+ this->currentSoundID_0x3278 = -1;
+ this->sec_Section1055_0x3274 = 0;
+ this->lastMusicChangeTime = 0;
+ timecaps_tag _timeCaps;
+ MMRESULT const _err = timeGetDevCaps(&_timeCaps, sizeof(timecaps_tag));
+ if (_err != MMSYSERR_NOERROR) {
+ return;
+ }
+ unsigned int const uPeriod = min(max(_timeCaps.wPeriodMin, 10), _timeCaps.wPeriodMax);
+ DAT_SoundEffectsHelperData1.SND_SomeTimerResolution = uPeriod;
+ timeBeginPeriod(uPeriod);
+ DAT_SFXDefinedData.SomeTimerIdentifier
+ = timeSetEvent(50, uPeriod, MSS_Func::SndSystemTimeCallback::get(), 0, 0x1);
+ }
+ }
+}
+}
+
+### 0x004b9610 CaptureCurrentTimeToUnknownTime01 | quelle=nachgebaut | bereich=Unbenannt
+// FUNCTION: STRONGHOLDCRUSADER 0x004B9610
+ void CaptureCurrentTimeToUnknownTime01() { DAT_UnknownTime_01 = timeGetTime(); }
+ }
+}
+}
+
+### 0x005807a8 FUN_005807a8 | quelle=nachgebaut | bereich=Unbenannt
+// STUB: STRONGHOLDCRUSADER 0x005807A8
+ int _fwprintf(FILE* stream, wchar_t const* format, ...)
+ {
+ // needed for proxy
+ va_list args;
+ va_start(args, format);
+ int result = vfwprintf(stream, format, args);
+ va_end(args);
+ return result;
+ }
+
+### 0x00481c80 ClickRaiseLand2Unk | quelle=ghidra | bereich=Unbenannt
+// FUNCTION: STRONGHOLDCRUSADER 0x00481C80
+ void Commands::ClickRaiseLand2Unk()
+ {
+ DAT_GameSynchronyState.DAT_CommandSize = 6;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ DAT_GameSynchronyState.DAT_GameCommandParam0
+ = DAT_GameSynchronyState.DAT_CommandActionPlan;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ raiseLand2(
+ DAT_GameSynchronyState.DAT_GameCommandParam0,
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam1)),
+ DAT_GameSynchronyState.DAT_GameCommandParam2);
+ updateWalkAndPathLayer(0x10, (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam0)),
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam1)));
+ DAT_TileMapState.forceUpdateMacroLayerFlag = 1;
+ triggerMinimapRedraw(2);
+ }
+ return;
+ }
+}
+}
+
+### 0x0048a510 SendResyncUnknown | quelle=ghidra | bereich=Unbenannt
+// FUNCTION: STRONGHOLDCRUSADER 0x0048A510
+ void Commands::SendResyncUnknown()
+ {
+ char local_3ec[1000];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)local_3ec;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ DAT_GameSynchronyState.DAT_CommandSize = 14570;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ if (DAT_GameSynchronyState.DAT_GameCommandParam0 < 0x12) {
+ serializeOrDeserializeCommandParameter((void*)((int)&DAT_GameState.mapAndTime.field192_0x194
+ + DAT_GameSynchronyState.DAT_GameCommandParam0 * 14566),
+ (size_t)((int)(14566)), GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ ;
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_GameCommandParam0 == 0x12) {
+ serializeOrDeserializeCommandParameter(DAT_GameState.mapAndTime.startingTroops[7] + 0x10, 0x10,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ ;
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_GameCommandParam0 == 0x13) {
+ serializeOrDeserializeCommandParameter(&DAT_AIVState.mapExtraInfo, 0x330,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ ;
+ return;
+ }
+ } else if ((DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE)
+ && (DAT_GameSynchronyState.isHost == FALSE)) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ if (DAT_GameSynchronyState.DAT_GameCommandParam0 < 0x12) {
+ _sprintf(
+ local_3ec, "Glob %d", DAT_GameSynchronyState.DAT_GameCommandParam0 * 0x38e6 + 0x194);
+ MemCopyFromParameter(
+ (char*)((int)&DAT_GameState.mapAndTime.field192_0x194
+ + DAT_GameSynchronyState.DAT_GameCommandParam0 * 0x38e6),
+ (size_t)((int)(14566)), DAT_GameSynchronyState.DAT_GameCommandParam0);
+ ;
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_GameCommandParam0 == 0x12) {
+ _sprintf(local_3ec, "Glob %d", 0x401c0);
+ MemCopyFromParameter(
+ (char*)((int)&DAT_GameState.mapAndTime.field192_0x194
+ + DAT_GameSynchronyState.DAT_GameCommandParam0 * 0x38e6),
+ (size_t)((int)(16)), DAT_GameSynchronyState.DAT_GameCommandParam0);
+ ;
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_GameCommandParam0 == 0x13) {
+ MemCopyFromParameter(
+ (char*)&DAT_AIVState.mapExtraInfo, (size_t)((int)(816)), 0x13);
+ }
+ };
+ return;
+ }
+}
+}
+
+### 0x00467890 SetSomeColorsUnk | quelle=ghidra | bereich=Unbenannt
+// FUNCTION: STRONGHOLDCRUSADER 0x00467890
+void Rendering::InitializeColors()
+{
+ uint _int16bit;
+ COL_BLUE::instance.shortValue = 0x1f;
+ COL_BLACK::instance.shortValue = 0;
+ if (DAT_WindowAndDirectDraw.colorBitMode == RGB_555) {
+ /*
+ Does not care about "alpha" bit?
+ */
+ COL_RED::instance.shortValue = -0x400;
+ COL_LIME::instance.shortValue = 0x3e0;
+ COL_DARK_GREEN::instance.shortValue = 0x1e0;
+ COL_WHITE::instance.shortValue = 0x7fff;
+ COL_BRIGHT_YELLOW::instance.shortValue = 0x7307;
+ COL_MODERATE_GREEN::instance.shortValue = 0x3307;
+ COL_DARK_CYAN_GREY::instance.shortValue = 0x35ef;
+ COL_VERY_DARK_GREY::instance.shortValue = 0x1ce7;
+ COL_MAGENTA::instance.shortValue = 0x7c1f;
+ COL_VIVID_BLUE::instance.shortValue = 0x125f;
+ COL_VERY_SOFT_YELLOW::instance.shortValue = 0x77b7;
+ } else {
+ COL_RED::instance.shortValue = -0x800;
+ COL_LIME::instance.shortValue = 0x7c0;
+ COL_DARK_GREEN::instance.shortValue = 0x3c0;
+ COL_WHITE::instance.shortValue = -1;
+ COL_BRIGHT_YELLOW::instance.shortValue = -0x39f9;
+ COL_MODERATE_GREEN::instance.shortValue = 0x4607;
+ COL_DARK_CYAN_GREY::instance.shortValue = 0x7bcf;
+ COL_VERY_DARK_GREY::instance.shortValue = 0x39c7;
+ COL_MAGENTA::instance.shortValue = -0x7e1;
+ COL_VIVID_BLUE::instance.shortValue = 0x24bf;
+ COL_VERY_SOFT_YELLOW::instance.shortValue = -0x1089;
+ }
+ _int16bit = TransformToCurrentModeColor(0xc0, 0xc0, 0xc0);
+ COL_LIGHT_GREY::instance.shortValue = (short)_int16bit;
+ _int16bit = TransformToCurrentModeColor(0xd7, 0xd2, 0xa4);
+ COL_GREYISH_YELLOW::instance.shortValue = (short)_int16bit;
+ _int16bit = TransformToCurrentModeColor(0x29, 0x75, 0x20);
+ COL_DARK_LIME::instance.shortValue = (short)_int16bit;
+ _int16bit = TransformToCurrentModeColor(0x68, 0x74, 0x58);
+ COL_DARK_GRAYISH_GREEN::instance.shortValue = (short)_int16bit;
+ _int16bit = TransformToCurrentModeColor(0x8c, 0, 0);
+ COL_DARK_RED::instance.shortValue = (short)_int16bit;
+ return;
+}
+}
+
+### 0x00530c40 ConsiderHavingABreakNowUnk | quelle=ghidra | bereich=Unbenannt
+// FUNCTION: STRONGHOLDCRUSADER 0x00530C40
+ BOOLEnum Units::ConsiderHavingABreakNowUnk(int unitID, UnitState nextUnitState)
+ {
+ short sVar1;
+ short sVar2;
+ int _av;
+ int _productivity;
+ if (DAT_UnitsState.units[unitID].destinationNeeded
+ != DNE_DESTINATION_NEEDED) {
+ return FALSE;
+ }
+ _productivity = DAT_GameState.playerDataArray[DAT_UnitsState.units[unitID].owner]
+ .fearFactorProductivityUnk;
+ if ((_productivity < 100) && (_av = DAT_UnitsState.units[unitID].av, 100 < _av)) {
+ sVar2 = (short)(((100 - _productivity) * _av) / 100);
+ sVar1 = DAT_UnitsState.units[unitID].banked;
+ DAT_UnitsState.units[unitID].target = sVar2;
+ if (sVar1 < sVar2) {
+ DAT_UnitsState.units[unitID].cachedState = (undefined2)nextUnitState;
+ DAT_UnitsState.units[unitID].idle = sVar1;
+ DAT_UnitsState.units[unitID].field166_0x2fe = 0;
+ DAT_UnitsState.units[unitID].state.generic = US_DEATH_02
+ | US_STAND_UPUnk | US_IDLEUnk;
+ return TRUE;
+ }
+ DAT_UnitsState.units[unitID].banked = sVar1 - sVar2;
+ }
+ return FALSE;
+ }
+}
+}
+
+### 0x0053cac0 ConsiderTakingABreakUnk | quelle=nachgebaut | bereich=Unbenannt
+// FUNCTION: STRONGHOLDCRUSADER 0x0053CAC0
+ BOOLEnum Units::UpdateWorker_ConsiderTakingABreakUnk(int unitID)
+ {
+ return ConsiderHavingABreakNowUnk(
+ unitID, (UnitState)(short)DAT_UnitsState.units[unitID].state.generic);
+ }
+}
+}
+

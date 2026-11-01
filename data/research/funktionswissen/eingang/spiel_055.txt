@@ -1,0 +1,1042 @@
+### 0x004224f0 updateGateDrawBridgeOpenCloseLogic | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x004224F0
+ void BuildingsState::updateGateDrawBridgeOpenCloseLogic()
+ {
+ byte bVar1;
+ ushort uVar2;
+ short sVar3;
+ EntityTypeShort EVar4;
+ int _gateX;
+ int _gateY;
+ int iVar5;
+ short* psVar6;
+ int _enemyMicroY;
+ int iVar7;
+ int iVar8;
+ int _enemyMicroX;
+ int _enemyDistance;
+ int _enemyXDistance;
+ int iVar9;
+ int (*paiVar10)[2500];
+ int iVar11;
+ BOOLEnum BVar12;
+ int local_48;
+ int local_44;
+ int local_40;
+ int local_3c;
+ int local_24[9];
+ short _gateOwner;
+ int _gateID;
+ short _enemyUnitID;
+ _gateX = (int)(short)this->buildings[DAT_CurrentBuildingID].x;
+ _gateY = (int)(short)this->buildings[DAT_CurrentBuildingID].y;
+ local_48 = 0;
+ local_3c = 0;
+ local_44 = 0;
+ local_40 = 0;
+ _gateOwner = this->buildings[DAT_CurrentBuildingID].owner;
+ _gateID = DAT_CurrentBuildingID;
+ if (DAT_GameState.gameTicksLoadBalancer % 10
+ == (this->buildings[DAT_CurrentBuildingID].fireRelatedRNG1 + 5) % 10) {
+ local_24[0] = 0;
+ local_24[1] = 0;
+ local_24[2] = 0;
+ local_24[3] = 0;
+ local_24[4] = 0;
+ local_24[5] = 0;
+ local_24[6] = 0;
+ local_24[7] = 0;
+ local_24[8] = 0;
+ do {
+ getBuildingSizeIndexMappingData(local_48, this->buildings[_gateID].widthOrHeight);
+ iVar9 = DAT_ViewportRenderState
+ .translationMatrix[DAT_TileMapState.buildingY + _gateY]
+ .addXgetTile
+ + DAT_TileMapState.buildingX + _gateX;
+ uVar2 = DAT_TileMapState.UnitLayer[iVar9];
+ _gateID = DAT_CurrentBuildingID;
+ iVar7 = local_3c;
+ while (iVar8 = (int)(short)uVar2, local_3c = iVar7, iVar8 != 0) {
+ if (DAT_UnitsState.units[iVar8].isSelectable_OR_matchTime != 0) {
+ iVar11 = (int)DAT_UnitsState.units[iVar8].owner;
+ iVar5 = getValueOfTroopType((int)(short)DAT_UnitsState.units[iVar8].unitType);
+ local_24[iVar11] = local_24[iVar11] + iVar5;
+ sVar3 = this->buildings[DAT_CurrentBuildingID].owner;
+ local_3c = (int)sVar3;
+ _gateID = DAT_CurrentBuildingID;
+ if ((DAT_GameState.mapAndTime.playerTeams[local_3c]
+ != DAT_GameState.mapAndTime.playerTeams[iVar11])
+ && (local_3c = iVar7, sVar3 != 0)) {
+ local_44 = iVar11;
+ }
+ }
+ iVar7 = local_3c;
+ uVar2 = DAT_UnitsState.units[iVar8].nextUnitOnTheSameTile;
+ }
+ iVar5 = 0;
+ iVar8 = (int)DAT_TileMapState.EntityLayer[iVar9];
+ if (DAT_TileMapState.EntityLayer[iVar9] != 0) {
+ while (iVar5 = iVar5 + 1, iVar5 < 10) {
+ EVar4 = DAT_EntityState.entityArray[iVar8].entityType;
+ if ((((EVar4 == ET_FLAG_1)
+ || (EVar4 == ET_FLAG_4))
+ || (EVar4 == ET_FLAG_2))
+ || (EVar4 == ET_FLAG_3)) {
+ local_40 = iVar8;
+ }
+ iVar9 = (int)DAT_EntityState.entityArray[iVar8].nextEntityOnThisTileByID;
+ if ((iVar8 == iVar9) || (iVar8 = iVar9, iVar9 == 0))
+ break;
+ }
+ }
+ local_48 = local_48 + 1;
+ } while (local_48 < DAT_TileMapState.constructionTileCount);
+ if (iVar7 == 0) {
+ if (local_44 == 0)
+ goto LAB_00422948;
+ if (local_40 == 0) {
+ iVar8 = (int)this->buildings[_gateID].owner;
+ iVar5 = DAT_TileMapState
+ .HeightLayer[this->buildings[_gateID].currentTilePositionAdjusted]
+ + 0x1e;
+ iVar7 = (short)this->buildings[_gateID].y * 8;
+ iVar9 = (short)this->buildings[_gateID].x * 8;
+ spawnProjectileEntity(0, (undefined4)((int)(iVar8)), (uint)((int)(iVar8)), iVar9, iVar7,
+ iVar5, iVar9, iVar7, iVar5, ET_FLAG_1, 0);
+ _gateID = DAT_CurrentBuildingID;
+ }
+ iVar7 = (int)this->buildings[_gateID].owner;
+ iVar9 = 0;
+ if (0 < local_24[1]) {
+ iVar7 = 1;
+ iVar9 = local_24[1];
+ }
+ if (iVar9 < local_24[2]) {
+ iVar7 = 2;
+ iVar9 = local_24[2];
+ }
+ if (iVar9 < local_24[3]) {
+ iVar7 = 3;
+ iVar9 = local_24[3];
+ }
+ if (iVar9 < local_24[4]) {
+ iVar7 = 4;
+ iVar9 = local_24[4];
+ }
+ if (iVar9 < local_24[5]) {
+ iVar7 = 5;
+ iVar9 = local_24[5];
+ }
+ if (iVar9 < local_24[6]) {
+ iVar7 = 6;
+ iVar9 = local_24[6];
+ }
+ if (iVar9 < local_24[7]) {
+ iVar7 = 7;
+ iVar9 = local_24[7];
+ }
+ local_3c = iVar7;
+ if (iVar9 < local_24[8]) {
+ iVar7 = 8;
+ local_3c = iVar7;
+ }
+ } else {
+ if ((this->buildings[_gateID].field241_0x2c6 != 0) && (local_44 != 0))
+ goto LAB_00422948;
+ this->buildings[_gateID].field241_0x2c6 = 0;
+ local_3c = 0;
+ }
+ if ((iVar7 != 0) && (local_40 != 0)) {
+ iVar9 = 0;
+ do {
+ getBuildingSizeIndexMappingData(iVar9, this->buildings[_gateID].widthOrHeight);
+ iVar5 = 0;
+ iVar8 = (int)DAT_TileMapState
+ .EntityLayer[DAT_ViewportRenderState
+ .translationMatrix[DAT_TileMapState.buildingY + _gateY]
+ .addXgetTile
+ + DAT_TileMapState.buildingX + _gateX];
+ if (iVar8 != 0) {
+ while (iVar5 = iVar5 + 1, iVar5 < 10) {
+ EVar4 = DAT_EntityState.entityArray[iVar8].entityType;
+ if ((((EVar4 == ET_FLAG_1)
+ || (EVar4 == ET_FLAG_4))
+ || (EVar4 == ET_FLAG_2))
+ || (EVar4 == ET_FLAG_3)) {
+ DAT_EntityState.entityArray[iVar8].colorUnk = iVar7;
+ }
+ iVar11 = (int)DAT_EntityState.entityArray[iVar8].nextEntityOnThisTileByID;
+ if ((iVar8 == iVar11) || (iVar8 = iVar11, iVar11 == 0))
+ break;
+ }
+ }
+ iVar9 = iVar9 + 1;
+ _gateID = DAT_CurrentBuildingID;
+ } while (iVar9 < DAT_TileMapState.constructionTileCount);
+ }
+ if (local_3c != 0) {
+ if ((this->buildings[_gateID].field241_0x2c6 != local_3c)
+ && (this->buildings[_gateID].owner == DAT_GameSynchronyState.currentPlayerSlotID)) {
+ /*
+ "We have lost control of a gatehouse my lord"
+ */
+ playWAVSFX(
+ "General_Warning19.wav");
+ _gateID = DAT_CurrentBuildingID;
+ }
+ this->buildings[_gateID].field241_0x2c6 = (short)local_3c;
+ this->buildings[_gateID].gateState = 0xb;
+ applyGateOrDrawbridgeOpenCloseChange(
+ _gateID, TRUE, FALSE);
+ }
+ }
+ LAB_00422948:
+ iVar7 = DAT_GameState.gameTicksLoadBalancer;
+ sVar3 = this->buildings[_gateID].field241_0x2c6;
+ if (sVar3 == 0) {
+ sVar3 = this->buildings[_gateID].gateState2;
+ if ((0 < sVar3)
+ && (iVar9 = DAT_GameState.playerDataArray[_gateOwner].enemies,
+ this->buildings[_gateID].gateState2 = sVar3 + -1, iVar9 == 0)) {
+ this->buildings[_gateID].gateState2 = 0;
+ }
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[this->buildings[_gateID].owner] == -1)
+ && (((sVar3 = this->buildings[_gateID].field241_0x2c6,
+ sVar3 == 0 || (DAT_GameSynchronyState.currentPlayerFullIDArray[sVar3] == -1))
+ && (DAT_GameState.playerDataArray[_gateOwner].aiPlayerState == 0)))) {
+ this->buildings[_gateID].gateCloseOpenTimer = 0;
+ }
+ sVar3 = this->buildings[_gateID].gateCloseOpenTimer;
+ if (-1 < sVar3) {
+ if (0 < sVar3) {
+ this->buildings[_gateID].gateCloseOpenTimer = sVar3 + -1;
+ return;
+ }
+ if (iVar7 % 0x32 == this->buildings[_gateID].fireRelatedRNG1 % 0x32) {
+ iVar7 = DAT_GameState.playerDataArray[_gateOwner].enemies;
+ iVar9 = 0;
+ if (0 < iVar7) {
+ psVar6 = DAT_GameState.playerDataArray[_gateOwner].enemyIDArray;
+ paiVar10 = DAT_GameState.mapAndTime.playerEnemenyUnitUIDShortList + _gateOwner;
+ do {
+ _enemyUnitID = *psVar6;
+ if (((DAT_UnitsState.units[_enemyUnitID].uid == (*paiVar10)[0])
+ && (DAT_UnitsState.units[_enemyUnitID].unitType
+ != UT_LIONSHWOLF))
+ && (DAT_UnitsState.units[_enemyUnitID].isSelectable_OR_matchTime != 0)) {
+ _enemyMicroX = (int)DAT_UnitsState.units[_enemyUnitID].microXPosition;
+ if (_enemyMicroX < _gateX * 8) {
+ _enemyXDistance = _gateX * 8 - _enemyMicroX;
+ } else {
+ _enemyXDistance = _enemyMicroX + _gateX * -8;
+ }
+ _enemyMicroY = (int)DAT_UnitsState.units[_enemyUnitID].microYPosition;
+ if (_enemyMicroY < _gateY * 8) {
+ _enemyDistance = _gateY * 8 - _enemyMicroY;
+ } else {
+ _enemyDistance = _enemyMicroY + _gateY * -8;
+ }
+ if (_enemyDistance <= _enemyXDistance) {
+ _enemyDistance = _enemyXDistance;
+ }
+ if (_enemyDistance < 200) {
+ this->buildings[_gateID].gateState2 = 1200;
+ if (this->buildings[_gateID].pathLinkageRelated2 != 0)
+ goto LAB_00422b15;
+ this->buildings[_gateID].gateState = 10;
+ this->buildings[_gateID].field232_0x2b6 = 10;
+ BVar12 = FALSE;
+ goto LAB_00422b0b;
+ }
+ }
+ iVar9 = iVar9 + 1;
+ psVar6 = psVar6 + 1;
+ paiVar10 = (int (*)[2500])(*paiVar10 + 1);
+ } while (iVar9 < iVar7);
+ }
+ if ((this->buildings[_gateID].gateState2 == 0)
+ && (this->buildings[_gateID].pathLinkageRelated2 == 2)) {
+ this->buildings[_gateID].gateState = 0xb;
+ BVar12 = TRUE;
+ LAB_00422b0b:
+ applyGateOrDrawbridgeOpenCloseChange(_gateID, BVar12, FALSE);
+ }
+ LAB_00422b15:
+ bVar1 = this->buildings[_gateID].pathLinkageRelated2;
+ if (bVar1 == 0) {
+ applyGateOrDrawbridgeOpenCloseChange(_gateID, TRUE, FALSE);
+ return;
+ }
+ if (bVar1 == 2) {
+ applyGateOrDrawbridgeOpenCloseChange(_gateID, FALSE, FALSE);
+ }
+ }
+ }
+ } else if (sVar3 == this->buildings[_gateID].owner) {
+ this->buildings[_gateID].field241_0x2c6 = 0;
+ return;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00422b80 checkBuildingsNeedPeasants | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00422B80
+ void BuildingsState::checkBuildingsNeedPeasants(int playerID)
+ {
+ int const campgroundArea
+ = (short)DAT_TileMapState
+ .PathConnectionLayer[DAT_GameState.playerDataArray[playerID].campground.tileEntry];
+ this->DAT_CountOfBuildingsNeedPeasants = 0;
+ for (int buildingID = 1; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (this->buildings[buildingID].logicalState == BLS_NORMAL
+ && this->buildings[buildingID].owner == playerID
+ && this->buildings[buildingID].currentlyNeededEmployeeCount > 0
+ && this->buildings[buildingID].buildingType != BT_MERCENARYPOST
+ && this->buildings[buildingID].buildingType != BT_BARRACKS) {
+ buildingIsAccessible(
+ buildingID, 0);
+ int const entryArea
+ = (short)DAT_TileMapState
+ .PathConnectionLayer[DAT_ViewportRenderState
+ .translationMatrix[this->buildings[buildingID].buildingEntryY]
+ .addXgetTile
+ + this->buildings[buildingID].buildingEntryX];
+ if (MACRO_CALL_MEMBER(
+ calculateCanPlayerUnitsNavigateToAreaFromArea,
+ DAT_PathFindingState)(this->buildings[buildingID].owner, entryArea, campgroundArea, 0)
+ != 0) {
+ this->DAT_BuildingIDsNeedPeasantsQueue[this->DAT_CountOfBuildingsNeedPeasants] = buildingID;
+ this->DAT_CountOfBuildingsNeedPeasants += 1;
+ }
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x00422c60 spreadFireRandomlyToBuildings | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00422C60
+ void BuildingsState::spreadFireRandomlyToBuildings(int param_1, int param_2)
+ {
+ int iVar1;
+ int iVar2;
+ int iVar3;
+ BuildingLogicalStateShort* pBVar4;
+ int iVar5;
+ int iVar6;
+ int iVar7;
+ int local_4;
+ iVar3 = this->maxBuildingsCount;
+ iVar7 = 1;
+ iVar5 = 0;
+ if (((0 < param_2) && (0 < DAT_GameState.playerDataArray[param_1].campground.id))
+ && (1 < this->maxBuildingsCount)) {
+ pBVar4 = &this->buildings[1].logicalState;
+ do {
+ if (((*pBVar4 != ((BuildingLogicalState)0)) && (*pBVar4 != BLS_REMOVE))
+ && (((short)pBVar4[3] == param_1 && ((pBVar4[0xf7] == 0 && (pBVar4[0xfa] == 0)))))) {
+ iVar1 = getBuildingFlammabilityFactor(iVar7);
+ if ((iVar1 != 0) && (iVar1 != 4)) {
+ iVar5 = iVar5 + 1;
+ }
+ if (iVar1 == 5) {
+ iVar5 = iVar5 + 4;
+ }
+ }
+ iVar7 = iVar7 + 1;
+ pBVar4 = pBVar4 + 0x196;
+ } while (iVar7 < iVar3);
+ if (iVar5 != 0) {
+ while ((0 < param_2 && (0 < iVar5))) {
+ iVar7 = (int)SEC_RNG::instance.currentNumber2;
+ nextRandomNumber2();
+ iVar3 = this->maxBuildingsCount;
+ iVar1 = 1;
+ local_4 = iVar5;
+ if (1 < this->maxBuildingsCount) {
+ pBVar4 = &this->buildings[1].logicalState;
+ iVar7 = iVar7 % iVar5;
+ do {
+ iVar6 = iVar7;
+ if (((((*pBVar4 != ((BuildingLogicalState)0))
+ && (*pBVar4 != BLS_REMOVE))
+ && ((short)pBVar4[3] == param_1))
+ && ((pBVar4[0xf7] == 0 && (pBVar4[0xfa] == 0))))
+ && ((
+ iVar2 = getBuildingFlammabilityFactor(iVar1),
+ iVar2 != 0 && (iVar2 != 4)))) {
+ iVar6 = iVar7 + -1;
+ iVar2 = getBuildingFlammabilityFactor(iVar1);
+ if (iVar2 == 5) {
+ iVar6 = iVar7 + -5;
+ }
+ if (iVar6 < 0) {
+ lightUpBuilding(iVar1, 0, 0);
+ setSpawnMoment((int)(short)this->buildings[iVar1].x,
+ (int)((int)((short)this->buildings[iVar1].y)));
+ iVar3 = getBuildingFlammabilityFactor(2000);
+ local_4 = iVar5 + -1;
+ if (iVar3 == 5) {
+ local_4 = iVar5 + -5;
+ }
+ break;
+ }
+ }
+ iVar1 = iVar1 + 1;
+ pBVar4 = pBVar4 + 0x196;
+ iVar7 = iVar6;
+ } while (iVar1 < iVar3);
+ }
+ param_2 = param_2 + -1;
+ iVar5 = local_4;
+ }
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00422e20 updateBuildings | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00422E20
+ void BuildingsState::updateBuildings()
+ {
+ int* piVar1;
+ BuildingTypeShort BVar2;
+ int iVar3;
+ int iVar4;
+ short* psVar5;
+ BuildingTypeInt _buildingType;
+ int _owner;
+ int* _pTotalKillingPits;
+ int _buildingID;
+ short* _pAnimationIndex;
+ short* _pRecruitTimer;
+ short* _pIdleTimer;
+ int* _pPopulationCap;
+ short* _pFireDuration;
+ int _buildingID_3;
+ BuildingLogicalStateShort _logicalState;
+ uint* _pTimeAlive;
+ this->isFirstTickInLoop = (BOOLEnum)(DAT_GameCore.performedGameTicksThisLoop == 0);
+ if (DAT_GameState.gameTicksLoadBalancer % 10 == 5) {
+ this->maxBuildingsCount = 0;
+ DAT_CurrentBuildingID = 1;
+ do {
+ if (this->buildings[DAT_CurrentBuildingID].logicalState != ((BuildingLogicalState)0)) {
+ this->maxBuildingsCount = DAT_CurrentBuildingID + 1;
+ }
+ DAT_CurrentBuildingID = DAT_CurrentBuildingID + 1;
+ } while (DAT_CurrentBuildingID < 2000);
+ }
+ this->structCount = 0;
+ psVar5 = &DAT_GameState.playerDataArray[0].dogCageCount;
+ DAT_AIVState.mapExtraInfo.playerTotalKillingPits[0] = 0;
+ DAT_AIVState.mapExtraInfo.playerTotalKillingPits[1] = 0;
+ DAT_AIVState.mapExtraInfo.playerTotalKillingPits[2] = 0;
+ DAT_AIVState.mapExtraInfo.playerTotalKillingPits[3] = 0;
+ DAT_AIVState.mapExtraInfo.playerTotalKillingPits[4] = 0;
+ DAT_AIVState.mapExtraInfo.playerTotalKillingPits[5] = 0;
+ DAT_AIVState.mapExtraInfo.playerTotalKillingPits[6] = 0;
+ DAT_AIVState.mapExtraInfo.playerTotalKillingPits[7] = 0;
+ DAT_AIVState.mapExtraInfo.playerTotalKillingPits[8] = 0;
+ do {
+ *psVar5 = 0;
+ psVar5 = psVar5 + 0x1cfa;
+ } while ((int)psVar5 < 0x1180156);
+ this->field1_0x4 = 0;
+ DAT_CurrentBuildingID = 1;
+ if (1 < this->maxBuildingsCount) {
+ do {
+ _buildingID = DAT_CurrentBuildingID;
+ if (this->buildings[DAT_CurrentBuildingID].logicalState != ((BuildingLogicalState)0)) {
+ this->structCount = this->structCount + 1;
+ _logicalState = this->buildings[DAT_CurrentBuildingID].logicalState;
+ if (_logicalState == BLS_INITIAL) {
+ this->buildings[DAT_CurrentBuildingID].logicalState
+ = BLS_NORMAL;
+ } else if (_logicalState == BLS_REMOVE) {
+ deleteBuilding(
+ DAT_CurrentBuildingID);
+ } else {
+ if (this->buildings[DAT_CurrentBuildingID].buildingType
+ == BT_KILLINGPIT) {
+ _pTotalKillingPits = DAT_AIVState.mapExtraInfo.playerTotalKillingPits
+ + this->buildings[DAT_CurrentBuildingID].owner;
+ *_pTotalKillingPits = *_pTotalKillingPits + 1;
+ }
+ if (this->buildings[_buildingID].renderAnimation == 0) {
+ LAB_00422fc0:
+ this->buildings[_buildingID].animationActive = 0;
+ } else {
+ piVar1 = &this->buildings[_buildingID].animStateCounter;
+ *piVar1 = *piVar1 + 1;
+ iVar3 = this->buildings[DAT_CurrentBuildingID].animStateCounter;
+ _buildingID = DAT_CurrentBuildingID;
+ if (iVar3 - this->buildings[DAT_CurrentBuildingID].animStateCounterTracker
+ < this->buildings[DAT_CurrentBuildingID].animAdvanceThrottle)
+ goto LAB_00422fc0;
+ this->buildings[DAT_CurrentBuildingID].animStateCounterTracker = iVar3;
+ _pAnimationIndex = &this->buildings[DAT_CurrentBuildingID].animationIndex;
+ *_pAnimationIndex = *_pAnimationIndex
+ + this->buildings[DAT_CurrentBuildingID].animationIncrement;
+ this->buildings[DAT_CurrentBuildingID].animationActive = 1;
+ }
+ _pRecruitTimer = &this->buildings[DAT_CurrentBuildingID].recruitTimer;
+ *_pRecruitTimer = *_pRecruitTimer + 1;
+ if (99 < this->buildings[DAT_CurrentBuildingID].recruitTimer) {
+ this->buildings[DAT_CurrentBuildingID].recruitTimer = 0;
+ }
+ _pTimeAlive = &this->buildings[DAT_CurrentBuildingID].timeAlive;
+ *_pTimeAlive = *_pTimeAlive + 1;
+ _owner = (int)this->buildings[DAT_CurrentBuildingID].owner;
+ if (this->buildings[DAT_CurrentBuildingID].idleTimerUnk != 0) {
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[_owner] == -1)
+ && (DAT_GameSynchronyState.currentAIArray[_owner] != 0)) {
+ _pIdleTimer = &this->buildings[DAT_CurrentBuildingID].idleTimerUnk;
+ *_pIdleTimer = *_pIdleTimer + -1;
+ } else {
+ this->buildings[DAT_CurrentBuildingID].idleTimerUnk = 0;
+ }
+ }
+ updateNeededEmployeeCount(DAT_CurrentBuildingID);
+ psVar5 = &this->buildings[DAT_CurrentBuildingID].field127_0x194;
+ if (0 < this->buildings[DAT_CurrentBuildingID].field127_0x194) {
+ *psVar5 = *psVar5 + -1;
+ }
+ _buildingID_3 = DAT_CurrentBuildingID;
+ _pPopulationCap = &DAT_GameState.playerDataArray[_owner].populationCap;
+ *_pPopulationCap = *_pPopulationCap
+ + (int)this->buildings[DAT_CurrentBuildingID].numberOfPopulationProvided;
+ /*
+ update function happens here
+ */
+ (*DAT_BuildingDefinedData
+ .BuildingUpdateFunctions[(short)this->buildings[_buildingID_3].buildingType])();
+ if (this->buildings[DAT_CurrentBuildingID].logicalState
+ != ((BuildingLogicalState)0)) {
+ if ((DAT_TileMapState.refreshRelatedTwo != 0)
+ && (this->buildings[DAT_CurrentBuildingID].gfxOffset != 0)) {
+ updateBuildingGraphicsLayer(DAT_CurrentBuildingID);
+ }
+ /*
+ building is on fire
+ */
+ if (this->buildings[DAT_CurrentBuildingID].fireDuration != 0) {
+ if (DAT_GameState.gameTicksLoadBalancer % 20 == 5) {
+ iVar3 = 1;
+ switch (this->buildings[DAT_CurrentBuildingID].buildingType) {
+ case BT_HOVEL:
+ case BT_WOODCUTTERSHUT:
+ case BT_HUNTERSHUT:
+ case BT_WHEATFARM:
+ case BT_HOPFARM:
+ case BT_APPLEFARM:
+ case BT_DAIRYFARM:
+ iVar3 = 4;
+ }
+ processDamageToBuilding(this->buildings[DAT_CurrentBuildingID]
+ .currentTilePositionAdjusted,
+ (uint)((
+ int)((int)(short)this->buildings[DAT_CurrentBuildingID].x)),
+ (uint)((
+ int)((int)(short)this->buildings[DAT_CurrentBuildingID].y)),
+ iVar3, 0,
+ (int)((int)((short)this->buildings[DAT_CurrentBuildingID]
+ .ifFireThenResponsiblePlayer)),
+ FALSE, 0);
+ _buildingType
+ = (BuildingTypeInt)(short)this->buildings[DAT_CurrentBuildingID]
+ .buildingType;
+ if ((_buildingType == BT_PARADEGROUND)
+ || (_buildingType - BT_CAMPGROUND < 5)) {
+ psVar5 = &this->buildings[DAT_CurrentBuildingID].currentHealth;
+ *psVar5 = *psVar5 + -1;
+ if (this->buildings[DAT_CurrentBuildingID].currentHealth < 490) {
+ this->buildings[DAT_CurrentBuildingID].currentHealth = 500;
+ MACRO_CALL_MEMBER(
+ extinguishBuildingFire,
+ this)(DAT_CurrentBuildingID);
+ this->buildings[DAT_CurrentBuildingID].fireDuration = -1;
+ }
+ }
+ }
+ _pFireDuration = &this->buildings[DAT_CurrentBuildingID].fireDuration;
+ *_pFireDuration = *_pFireDuration + 1;
+ spawnRandomFireEffectOnBuilding(DAT_CurrentBuildingID,
+ (undefined4)((int)((int)(short)this->buildings[DAT_CurrentBuildingID]
+ .ifFireThenResponsiblePlayer)));
+ }
+ if ((((this->buildings[DAT_CurrentBuildingID].unknownSiegeTentRelated01 == 2)
+ && (this->buildings[DAT_CurrentBuildingID].attackWave == 0))
+ && ((BVar2 = this->buildings[DAT_CurrentBuildingID].buildingType,
+ BVar2 == BT_FIREBALLISTA
+ || (BVar2 == BT_CATAPULT))))
+ && (((DAT_GameSynchronyState.currentPlayerFullIDArray[_owner] == -1
+ && (DAT_GameSynchronyState.currentAIArray[_owner] != 0))
+ && (2400 < (int)this->buildings[DAT_CurrentBuildingID].timeAlive)))) {
+ this->buildings[DAT_CurrentBuildingID].logicalState
+ = BLS_REMOVE;
+ }
+ psVar5 = &this->buildings[DAT_CurrentBuildingID].cooldownTimer;
+ if (this->buildings[DAT_CurrentBuildingID].cooldownTimer != 0) {
+ *psVar5 = *psVar5 + -1;
+ }
+ iVar3 = 0;
+ do {
+ iVar4 = iVar3 + 1;
+ this->buildings[DAT_CurrentBuildingID].workers[iVar3] = 0;
+ iVar3 = iVar4;
+ } while (iVar4 < 4);
+ }
+ }
+ }
+ DAT_CurrentBuildingID = DAT_CurrentBuildingID + 1;
+ } while (DAT_CurrentBuildingID < this->maxBuildingsCount);
+ }
+ this->field14_0x18e024 = 0;
+ this->field34_0x18e074 = 0;
+ this->unknownCountdown01 = 2000 - this->structCount;
+ if (0 < this->field4_0x10) {
+ this->field4_0x10 = this->field4_0x10 + -1;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00424220 recomputeAccessibilityForAllBuildings | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00424220
+ void BuildingsState::recomputeAccessibilityForAllBuildings()
+ {
+ for (int buildingID = 1; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (this->buildings[buildingID].logicalState != 0
+ && this->buildings[buildingID].logicalState != BLS_REMOVE) {
+ buildingIsAccessible(
+ buildingID, 0);
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x00424270 updateHeatmapBasedOnBuildingAccessibility | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00424270
+ void BuildingsState::updateHeatmapBasedOnBuildingAccessibility(int playerID)
+ {
+ for (int buildingID = 1; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (this->buildings[buildingID].logicalState != 0
+ && this->buildings[buildingID].logicalState != BLS_REMOVE
+ && this->buildings[buildingID].owner == playerID
+ && DAT_BuildingDefinedData
+ .ABuildingTypeValueArray[this->buildings[buildingID].buildingType]
+ == 0) {
+ int const accessible = buildingIsAccessible(buildingID, 0);
+ if (accessible == 0) {
+ this->buildings[buildingID].logicalState = BLS_REMOVE;
+ } else if (accessible == 2) {
+ this->buildings[buildingID].logicalState = BLS_REMOVE;
+ }
+ if (this->buildings[buildingID].logicalState == BLS_REMOVE) {
+ resetCountdownInHeatMap(
+ this->buildings[buildingID].x, this->buildings[buildingID].y);
+ }
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x00424310 applyVersionUpgradeAccessibilityRecompute | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00424310
+ void BuildingsState::applyVersionUpgradeAccessibilityRecompute(
+ PackagedFileMagicNum param_1, PackagedFileMagicNum param_2)
+ {
+ recomputeAccessibilityForAllBuildings();
+ }
+ }
+}
+}
+
+### 0x004819d0 ClickPlaceWall | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x004819D0
+ void Commands::ClickPlaceWall()
+ {
+ short local_4[2];
+ DAT_GameSynchronyState.DAT_CommandSize = 0xc;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ /*
+ schedule command
+ */
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam3, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam4, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam5, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ /*
+ execute command
+ */
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam3, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam4 = M_MAPPER_NULL;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam4, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(local_4, 2, GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam5 = (int)local_4[0];
+ placeWalls(
+ DAT_GameSynchronyState.protocolInvokerPlayerID,
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam0)),
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam1)),
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam2)),
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam3)),
+ (MappersEnum)((int)(DAT_GameSynchronyState.DAT_GameCommandParam4 & 0xffff)),
+ DAT_GameSynchronyState.DAT_GameCommandParam5);
+ }
+ return;
+ }
+}
+}
+
+### 0x00481b50 ClickPlaceRockOrTree | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00481B50
+ void Commands::ClickPlaceRockOrTree()
+ {
+ DAT_GameSynchronyState.DAT_CommandSize = 6;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam3, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ DAT_GameSynchronyState.DAT_GameCommandParam0
+ = DAT_GameSynchronyState.DAT_CommandActionPlan;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam3, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ if (DAT_GameSynchronyState.DAT_GameCommandParam2 == 20) {
+ placeRock(
+ DAT_GameSynchronyState.DAT_GameCommandParam0,
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam1)),
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam3 & 0xffff)));
+ return;
+ }
+ placeTree(
+ DAT_GameSynchronyState.DAT_GameCommandParam0,
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam1)),
+ DAT_GameSynchronyState.DAT_GameCommandParam2);
+ }
+ return;
+ }
+}
+}
+
+### 0x00481d90 ClickPlaceBuilding | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00481D90
+ void Commands::ClickPlaceBuilding()
+ {
+ int iVar1;
+ DAT_GameSynchronyState.DAT_CommandSize = 10;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam3, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam4, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam5, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = M_MAPPER_NULL;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam3, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam4 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam4, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam5 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam5, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ if ((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ && (iVar1 = checkRequiredResourcesForBuildingOrPlanToBuy(DAT_GameSynchronyState.DAT_GameCommandParam2,
+ DAT_GameSynchronyState.protocolInvokerPlayerID, FALSE),
+ iVar1 == 0)) {
+ return;
+ }
+ DAT_BuildingsState.DAT_DraggedTileCountVerified
+ = DAT_GameSynchronyState.DAT_GameCommandParam5;
+ iVar1 = DAT_GameSynchronyState.field299_0x109e7c;
+ if (DAT_GameCore.currentMenuViewType != MVT_MAP_EDITOR_LANDSCAPING) {
+ iVar1 = DAT_GameSynchronyState.protocolInvokerPlayerID;
+ }
+ placeBuilding(iVar1,
+ DAT_GameSynchronyState.DAT_GameCommandParam0,
+ DAT_GameSynchronyState.DAT_GameCommandParam1,
+ (MappersEnum)((int)(DAT_GameSynchronyState.DAT_GameCommandParam2 & 0xffff)),
+ DAT_GameSynchronyState.DAT_GameCommandParam3,
+ DAT_GameSynchronyState.DAT_GameCommandParam4);
+ }
+ return;
+ }
+}
+}
+
+### 0x00481f40 ClickDestroyBuilding | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00481F40
+ void Commands::ClickDestroyBuilding()
+ {
+ int iVar1;
+ short local_4[2];
+ int _buildingID;
+ DAT_GameSynchronyState.DAT_CommandSize = 7;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ /*
+ write parameter in gamecommand entry in events queue
+ */
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 4,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ /*
+ read the parameters back into the variables
+ */
+ serializeOrDeserializeCommandParameter(local_4, 2, GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = (int)local_4[0];
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 4,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ _buildingID = DAT_GameSynchronyState.DAT_GameCommandParam0;
+ if (DAT_GameSynchronyState.DAT_GameCommandParam0 < 1) {
+ if (*(int*)(DAT_0053f088 + DAT_GameSynchronyState.DAT_GameCommandParam0 * -0x14
+ + (int)DAT_TileMapState.directionTranslationMatrix)
+ == DAT_GameSynchronyState.DAT_GameCommandParam2) {
+ destroyPitchDitch(
+ -DAT_GameSynchronyState.DAT_GameCommandParam0);
+ return;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_GameSynchronyState.DAT_GameCommandParam0]
+ .uid
+ == DAT_GameSynchronyState.DAT_GameCommandParam2) {
+ iVar1 = findParticularBuilding(
+ (int)DAT_BuildingsState.buildings[DAT_GameSynchronyState.DAT_GameCommandParam0]
+ .owner,
+ (int)((int)((short)DAT_BuildingsState
+ .buildings[DAT_GameSynchronyState.DAT_GameCommandParam0]
+ .x)),
+ (int)((int)((short)DAT_BuildingsState
+ .buildings[DAT_GameSynchronyState.DAT_GameCommandParam0]
+ .y)),
+ DAT_BuildingsState
+ .buildings[DAT_GameSynchronyState.DAT_GameCommandParam0]
+ .widthOrHeight,
+ BT_DRAWBRIDGE, 0);
+ if (iVar1 != 0) {
+ DAT_TileMapState.showNoRubbleWhenDestroyingBuilding = 1;
+ giveBackResourceForDestroyedBuilding(iVar1,
+ DAT_GameSynchronyState.protocolInvokerPlayerID,
+ DAT_GameSynchronyState.DAT_GameCommandParam1);
+ destroyBuilding(iVar1);
+ iVar1 = findParticularBuilding((int)DAT_BuildingsState.buildings[_buildingID].owner,
+ (int)((int)((short)DAT_BuildingsState.buildings[_buildingID].x)),
+ (int)((int)((short)DAT_BuildingsState.buildings[_buildingID].y)),
+ DAT_BuildingsState.buildings[_buildingID].widthOrHeight,
+ BT_DRAWBRIDGE, iVar1);
+ if (iVar1 != 0) {
+ DAT_TileMapState.showNoRubbleWhenDestroyingBuilding = 1;
+ giveBackResourceForDestroyedBuilding(iVar1,
+ DAT_GameSynchronyState.protocolInvokerPlayerID,
+ DAT_GameSynchronyState.DAT_GameCommandParam1);
+ destroyBuilding(iVar1);
+ }
+ }
+ DAT_TileMapState.showNoRubbleWhenDestroyingBuilding = 1;
+ if (DAT_BuildingsState.buildings[_buildingID].field203_0x288 == 0) {
+ giveBackResourceForDestroyedBuilding(DAT_GameSynchronyState.DAT_GameCommandParam0,
+ DAT_GameSynchronyState.protocolInvokerPlayerID,
+ DAT_GameSynchronyState.DAT_GameCommandParam1);
+ }
+ if ((_buildingID != 0)
+ && (DAT_BuildingsState.buildings[_buildingID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID)) {
+ switch (DAT_BuildingsState.buildings[_buildingID].buildingType) {
+ case BT_GATEHOUSELARGE:
+ case BT_GATEHOUSESMALL:
+ case BT_TOWER1:
+ case BT_TOWER2:
+ case BT_TOWER3:
+ case BT_TOWER4:
+ case BT_TOWER5:
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[_buildingID].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[_buildingID].y)),
+ FX_TOWER_SMASH);
+ break;
+ default :
+ /*
+ Plays building destroy sound
+ */
+ playWAVSFX(
+ "buildingwreck_01.wav");
+ }
+ }
+ destroyBuilding(DAT_GameSynchronyState.DAT_GameCommandParam0);
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x00482290 ClickSetBuildingProductionType | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00482290
+ void Commands::ClickSetBuildingProductionType()
+ {
+ DAT_GameSynchronyState.DAT_CommandSize = 7;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 4,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ DAT_GameSynchronyState.DAT_GameCommandParam0
+ = DAT_GameSynchronyState.DAT_CommandActionPlan;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 4,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ SetBuildingProductionType(
+ DAT_GameSynchronyState.protocolInvokerPlayerID,
+ DAT_GameSynchronyState.DAT_GameCommandParam0,
+ (ushort)((int)(DAT_GameSynchronyState.DAT_GameCommandParam1)),
+ DAT_GameSynchronyState.DAT_GameCommandParam2);
+ }
+ return;
+ }
+}
+}
+
+### 0x004826c0 ClickDestroy | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x004826C0
+ void Commands::ClickDestroy()
+ {
+ int iVar1;
+ uint _moatID;
+ char local_1;
+ DAT_GameSynchronyState.DAT_CommandSize = 5;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&local_1, 1, GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = (int)local_1;
+ if (DAT_GameSynchronyState.DAT_GameCommandParam1 == -1) {
+ _moatID = returnOwnedMoatAtTile(DAT_GameSynchronyState.DAT_GameCommandParam0);
+ iVar1 = DAT_GameSynchronyState.DAT_GameCommandParam0;
+ if (_moatID != 0) {
+ DAT_TileMapState.moats[_moatID].fillProgress = 0;
+ removeMoat(
+ _moatID, iVar1);
+ }
+ DAT_TileMapState.MiscDisplayLayer[DAT_GameSynchronyState.DAT_GameCommandParam0]
+ = DAT_TileMapState
+ .MiscDisplayLayer[DAT_GameSynchronyState.DAT_GameCommandParam0]
+ & 0xfbff;
+ return;
+ }
+ if ((int)((uint)
+ DAT_TileMapState.HeightLayer[DAT_GameSynchronyState.DAT_GameCommandParam0]
+ - (uint)DAT_TileMapState
+ .DefaultHeightLayer[DAT_GameSynchronyState.DAT_GameCommandParam0])
+ < 0x3d) {
+ DAT_GameSynchronyState.DAT_GameCommandParam1
+ = DAT_GameSynchronyState.DAT_GameCommandParam1 / 2;
+ }
+ giveBackResourceForDestroyedBuilding(-1, DAT_GameSynchronyState.protocolInvokerPlayerID,
+ DAT_GameSynchronyState.DAT_GameCommandParam1);
+ spawnEraserTileEffect(
+ DAT_GameSynchronyState.protocolInvokerPlayerID,
+ DAT_GameSynchronyState.DAT_GameCommandParam0);
+ }
+ return;
+ }
+}
+}
+

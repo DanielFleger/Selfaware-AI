@@ -1,0 +1,1183 @@
+### 0x0047e050 resolveEqualEntries | quelle=nachgebaut | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047E050
+ void GameSynchronyState::resolveEqualEntries(GUID* pGUID)
+ {
+ int _count = this->DPLAY_SessionsCount;
+ for (int _index = 0; _index < _count; ++_index) {
+ BOOLEnum _equality
+ = isEqualGUID(pGUID, DAT_GameSynchronyState.DPLAY_SessionGUIDs[_index]);
+ if (_equality) {
+ int _offset = this->scrollBarItemOffset;
+ if ((_index <= _offset) || (_index >= _offset + 10)) {
+ _offset = _count - 10;
+ this->scrollBarItemOffset = _index;
+ this->scrollBarIndex = 0;
+ if (_index <= _offset) {
+ return;
+ }
+ _offset = max(_offset, 0);
+ this->scrollBarItemOffset = _offset;
+ }
+ this->scrollBarIndex = _index - _offset;
+ return;
+ }
+ }
+ this->scrollBarItemOffset = 0;
+ this->scrollBarIndex = -1;
+ }
+}
+}
+
+### 0x0047e0e0 clearSessionsList | quelle=nachgebaut | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047E0E0
+ void GameSynchronyState::clearSessionsList()
+ {
+ for (int _session = 0; _session < this->DPLAY_SessionsCount; ++_session) {
+ _free_base(DAT_GameSynchronyState.DPLAY_SessionNames[_session]);
+ GlobalUnlock(GlobalHandle(DAT_GameSynchronyState.DPLAY_SessionGUIDs[_session]));
+ GlobalFree(GlobalHandle(DAT_GameSynchronyState.DPLAY_SessionGUIDs[_session]));
+ }
+ this->DPLAY_SessionsCount = 0;
+ }
+}
+}
+
+### 0x0047e240 disconnectDPlay | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047E240
+ void GameSynchronyState::disconnectDPlay()
+ {
+ void* pvVar1;
+ int iVar2;
+ DAT_MouseState.waitCursorToggle = 1;
+ SetCursorDependingOnProgramState();
+ clearSessionsList();
+ iVar2 = 0;
+ if (0 < this->scrollBarItemCount) {
+ do {
+ _free_base(this->providerNames[iVar2]);
+ pvVar1 = MACRO_CALL(GlobalHandle)(this->guids[iVar2]);
+ GlobalUnlock(pvVar1);
+ pvVar1 = MACRO_CALL(GlobalHandle)(this->guids[iVar2]);
+ GlobalFree(pvVar1);
+ this->providerNames[iVar2] = (WCHAR*)0x0;
+ this->guids[iVar2] = (GUID*)0x0;
+ iVar2 = iVar2 + 1;
+ } while (iVar2 < this->scrollBarItemCount);
+ }
+ iVar2 = 0;
+ this->scrollBarItemCount = 0;
+ if (0 < this->modemScrollbarCount) {
+ do {
+ _free_base(this->stringPointerArray[iVar2]);
+ iVar2 = iVar2 + 1;
+ } while (iVar2 < this->modemScrollbarCount);
+ }
+ this->modemScrollbarCount = 0;
+ if (this->DPLAYX_4A != (IDirectPlay4A**)0x0) {
+ (*(*this->DPLAYX_4A)->CancelMessage)(this->DPLAYX_4A, 0, 0);
+ (*(*this->DPLAYX_4A)->DestroyPlayer)(this->DPLAYX_4A, this->DPLAYX_PlayerHandle);
+ (*(*this->DPLAYX_4A)->Close)(this->DPLAYX_4A);
+ this->DPLAYX_4A = (IDirectPlay4A**)0x0;
+ }
+ if (this->DPLAYX_LOBBY != (IDirectPlayLobby3**)0x0) {
+ (*(*this->DPLAYX_LOBBY)->Release)((IDirectDraw*)this->DPLAYX_LOBBY);
+ this->DPLAYX_LOBBY = (IDirectPlayLobby3**)0x0;
+ }
+ if (this->DPLAYX_Connection != (void*)0x0) {
+ pvVar1 = MACRO_CALL(GlobalHandle)(this->DPLAYX_Connection);
+ GlobalUnlock(pvVar1);
+ pvVar1 = MACRO_CALL(GlobalHandle)(this->DPLAYX_Connection);
+ GlobalFree(pvVar1);
+ this->DPLAYX_Connection = (void*)0x0;
+ }
+ this->scrollBarItemCount = 0;
+ this->currentGameMode = GM_SOLITARY;
+ this->DAT_GameHalted = 0;
+ this->syncStatus = 0;
+ this->flag_0xbec = 0;
+ this->useTCPIP = FALSE;
+ this->quitGameVoteRelated = 0;
+ this->saveRelated = 0;
+ DAT_MouseState.waitCursorToggle = 0;
+ return;
+ }
+}
+}
+
+### 0x0047e490 readGameSpyConfig | quelle=nachgebaut | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047E490
+ void GameSynchronyState::readGameSpyConfig()
+ {
+ HKEY__* _key;
+ DWORD _valueType;
+ DWORD _valueSize = 512;
+ this->gameSpyArcadeAvailable = 0;
+ LONG _result = RegOpenKeyExA(HKEY_CURRENT_USER, s_Software_GameSpy_GameSpy_Arcade_005a6f6c, 0, KEY_READ, &_key);
+ if (!_result) {
+ _result = RegQueryValueExA(
+ _key, s_InstDir_005a6f64, (DWORD*)0x0, &_valueType, (BYTE*)this->shellExecuteTarget, &_valueSize);
+ RegCloseKey(_key);
+ if (!_result) {
+ // The original indexes with the full length, so this reads the terminator and the
+ // branch is always taken; a trailing-separator test would have wanted length - 1.
+ if (this->shellExecuteTarget[strlen(this->shellExecuteTarget)] != '\\') {
+ strcat(this->shellExecuteTarget, s___005a6f60);
+ }
+ strcat(this->shellExecuteTarget, s_aphex_exe_005a6f54);
+ FILE* _file = _fopen(this->shellExecuteTarget, s_rb_005a4e18);
+ if (_file != (FILE*)0x0) {
+ this->gameSpyArcadeAvailable = 1;
+ _fclose(_file);
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0047e5b0 computeLatencyAdjustmentFromMatchTimes | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047E5B0
+ void GameSynchronyState::computeLatencyAdjustmentFromMatchTimes(int param_1)
+ {
+ GameSynchronyState* _gameSynchronyState;
+ int (*paiVar1)[3];
+ int iVar2;
+ int iVar3;
+ this->field310_0x109e98 = -1;
+ this->mapTimeInTicksSinglePlayer = -1;
+ _gameSynchronyState = (GameSynchronyState*)this->matchTimesArray;
+ iVar3 = 2;
+ do {
+ if (_gameSynchronyState->currentPlayerFullIDArray[1] != -1) {
+ if (_gameSynchronyState->matchTimesArray[0] == -1) {
+ _gameSynchronyState->matchTimesArray[0] = DAT_GameCore.mapTimeInTicks;
+ }
+ if (this->field310_0x109e98 == -1) {
+ iVar2 = _gameSynchronyState->matchTimesArray[0];
+ this->field310_0x109e98 = iVar2;
+ } else {
+ if (_gameSynchronyState->matchTimesArray[0] < this->field310_0x109e98) {
+ this->field310_0x109e98 = _gameSynchronyState->matchTimesArray[0];
+ }
+ iVar2 = _gameSynchronyState->matchTimesArray[0];
+ if (iVar2 <= this->mapTimeInTicksSinglePlayer)
+ goto LAB_0047e614;
+ }
+ this->mapTimeInTicksSinglePlayer = iVar2;
+ }
+ LAB_0047e614:
+ if (_gameSynchronyState->currentPlayerFullIDArray[2] != -1) {
+ if (_gameSynchronyState->matchTimesArray[1] == -1) {
+ _gameSynchronyState->matchTimesArray[1] = DAT_GameCore.mapTimeInTicks;
+ }
+ if (this->field310_0x109e98 == -1) {
+ iVar2 = _gameSynchronyState->matchTimesArray[1];
+ this->field310_0x109e98 = iVar2;
+ } else {
+ if (_gameSynchronyState->matchTimesArray[1] < this->field310_0x109e98) {
+ this->field310_0x109e98 = _gameSynchronyState->matchTimesArray[1];
+ }
+ iVar2 = _gameSynchronyState->matchTimesArray[1];
+ if (iVar2 <= this->mapTimeInTicksSinglePlayer)
+ goto LAB_0047e65d;
+ }
+ this->mapTimeInTicksSinglePlayer = iVar2;
+ }
+ LAB_0047e65d:
+ if (_gameSynchronyState->currentPlayerFullIDArray[3] != -1) {
+ if (_gameSynchronyState->matchTimesArray[2] == -1) {
+ _gameSynchronyState->matchTimesArray[2] = DAT_GameCore.mapTimeInTicks;
+ }
+ if (this->field310_0x109e98 == -1) {
+ iVar2 = _gameSynchronyState->matchTimesArray[2];
+ this->field310_0x109e98 = iVar2;
+ } else {
+ if (_gameSynchronyState->matchTimesArray[2] < this->field310_0x109e98) {
+ this->field310_0x109e98 = _gameSynchronyState->matchTimesArray[2];
+ }
+ iVar2 = _gameSynchronyState->matchTimesArray[2];
+ if (iVar2 <= this->mapTimeInTicksSinglePlayer)
+ goto LAB_0047e6a6;
+ }
+ this->mapTimeInTicksSinglePlayer = iVar2;
+ }
+ LAB_0047e6a6:
+ if (_gameSynchronyState->currentPlayerFullIDArray[4] != -1) {
+ if (_gameSynchronyState->matchTimesArray[3] == -1) {
+ _gameSynchronyState->matchTimesArray[3] = DAT_GameCore.mapTimeInTicks;
+ }
+ if (this->field310_0x109e98 == -1) {
+ iVar2 = _gameSynchronyState->matchTimesArray[3];
+ this->field310_0x109e98 = iVar2;
+ } else {
+ if (_gameSynchronyState->matchTimesArray[3] < this->field310_0x109e98) {
+ this->field310_0x109e98 = _gameSynchronyState->matchTimesArray[3];
+ }
+ iVar2 = _gameSynchronyState->matchTimesArray[3];
+ if (iVar2 <= this->mapTimeInTicksSinglePlayer)
+ goto LAB_0047e6ef;
+ }
+ this->mapTimeInTicksSinglePlayer = iVar2;
+ }
+ LAB_0047e6ef:
+ _gameSynchronyState = (GameSynchronyState*)(_gameSynchronyState->matchTimesArray + 4);
+ iVar3 = iVar3 + -1;
+ if (iVar3 == 0) {
+ this->field313_0x109ea4 = this->mapTimeInTicksSinglePlayer - this->field310_0x109e98;
+ this->field312_0x109ea0 = this->matchTimesArray[param_1 + -1];
+ iVar3 = 0;
+ this->field314_0x109ea8 = 0;
+ this->field315_0x109eac = 0;
+ if (this->field312_0x109ea0 == this->field310_0x109e98) {
+ this->field315_0x109eac = this->field312_0x109ea0 - this->mapTimeInTicksSinglePlayer;
+ } else {
+ this->field314_0x109ea8 = this->field312_0x109ea0 - this->field310_0x109e98;
+ }
+ if (this->field315_0x109eac < 0) {
+ this->field318_0x109eb8 = 1;
+ iVar3 = 0;
+ do {
+ if (DAT_ProtocolDefinedData.field4_0x4[iVar3][0] < this->field315_0x109eac) {
+ this->field318_0x109eb8 = DAT_ProtocolDefinedData.field4_0x4[iVar3][1];
+ return;
+ }
+ iVar3 = iVar3 + 1;
+ } while (iVar3 < 0xc);
+ return;
+ }
+ paiVar1 = DAT_ProtocolDefinedData.field5_0x64;
+ do {
+ if (this->field314_0x109ea8 <= (*paiVar1)[0]) {
+ this->field316_0x109eb0 = DAT_ProtocolDefinedData.field5_0x64[iVar3][1];
+ this->field317_0x109eb4 = DAT_ProtocolDefinedData.field5_0x64[iVar3][2];
+ return;
+ }
+ paiVar1 = paiVar1 + 1;
+ iVar3 = iVar3 + 1;
+ } while ((int)paiVar1 < 0xb38dc0);
+ return;
+ }
+ } while (true);
+ }
+}
+}
+
+### 0x0047e7e0 compressOrCreateLengthPrefixedPacketUnk | quelle=nachgebaut | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047E7E0
+ int GameSynchronyState::compressOrCreateLengthPrefixedPacketUnk(int size, char* src, void* dst)
+ {
+ return compressRLE(src, dst, size);
+ }
+}
+}
+
+### 0x0047e800 decompressTooLongPacketData | quelle=nachgebaut | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047E800
+ void GameSynchronyState::decompressTooLongPacketData(byte* source, byte* destination)
+ {
+ size_t const size = decompressRLE(
+ (char*)source, (char*)this->DAT_PacketDecodingDestination);
+ copyData(
+ size, this->DAT_PacketDecodingDestination, destination);
+ }
+}
+}
+
+### 0x0047e830 countActiveHumanPlayers | quelle=nachgebaut | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047E830
+ int GameSynchronyState::countActiveHumanPlayers()
+ {
+ uint _count = 0;
+ for (int _player = 1; _player < 9; ++_player) {
+ if (this->currentPlayerFullIDArray[_player] != -1) {
+ ++_count;
+ }
+ }
+ return _count;
+ }
+}
+}
+
+### 0x0047e890 countOccupiedPlayerSlots | quelle=nachgebaut | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047E890
+ int GameSynchronyState::countOccupiedPlayerSlots()
+ {
+ int _sum = 0;
+ for (int _player = 1; _player < 9; ++_player) {
+ if (this->currentPlayerFullIDArray[_player] != -1) {
+ ++_sum;
+ } else if (this->currentAIArray[_player]) {
+ ++_sum;
+ }
+ }
+ return _sum;
+ }
+}
+}
+
+### 0x0047e8f0 checkPlayerSetValid | quelle=nachgebaut | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047E8F0
+ int GameSynchronyState::checkPlayerSetValid()
+ {
+ int _teamMemberCounts[9];
+ int _someCounter = 0;
+ int _validPlayerCount = 0;
+ memset(_teamMemberCounts, 0, sizeof(_teamMemberCounts));
+ for (int _somePlayerID = 1; _somePlayerID < 9; ++_somePlayerID) {
+ if (this->currentPlayerFullIDArray[_somePlayerID] != -1) {
+ ++_someCounter;
+ }
+ // no human player and no AI in this slot
+ if ((this->currentPlayerFullIDArray[_somePlayerID] == -1) && (this->currentAIArray[_somePlayerID] == 0)) {
+ continue;
+ }
+ _teamMemberCounts[DAT_GameState.mapAndTime.playerTeams[_somePlayerID]]
+ = _teamMemberCounts[DAT_GameState.mapAndTime.playerTeams[_somePlayerID]] + 1;
+ if (DAT_GameSynchronyState.currentGameMode == Game::GM_SKIRMISH_SINGLE_PLAYER) {
+ ++_someCounter;
+ }
+ }
+ if (_someCounter < 2) {
+ return 0;
+ }
+ for (int _somePlayerID = 1; _somePlayerID < 9; ++_somePlayerID) {
+ if (_teamMemberCounts[_somePlayerID] != 0) {
+ ++_validPlayerCount;
+ if (2 < _teamMemberCounts[_somePlayerID]) {
+ return 0;
+ }
+ }
+ }
+ return _validPlayerCount;
+ }
+}
+}
+
+### 0x0047ea40 countPlayersInSameTeam | quelle=nachgebaut | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047EA40
+ int GameSynchronyState::countPlayersInSameTeam(int playerID)
+ {
+ int _count = 0;
+ int _team = DAT_GameState.mapAndTime.playerTeams[playerID];
+ for (int _player = 1; _player < 9; ++_player) {
+ if ((this->currentPlayerFullIDArray[_player] != -1)
+ && (DAT_GameState.mapAndTime.playerTeams[_player] == _team)) {
+ ++_count;
+ }
+ }
+ return _count;
+ }
+}
+}
+
+### 0x0047eaf0 translateMultiplayerIDsIntoPlayerIDs | quelle=nachgebaut | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047EAF0
+ uint GameSynchronyState::translateMultiplayerIDsIntoPlayerIDs(int multiplayerID)
+ {
+ uint _playerID = 0;
+ if (this->currentGameMode == Game::GM_SOLITARY) {
+ return this->currentPlayerSlotID;
+ }
+ if (this->currentGameMode == Game::GM_SKIRMISH_SINGLE_PLAYER) {
+ return this->currentPlayerSlotID;
+ }
+ // Do not stop at the first match: the original lets the last matching slot win, including
+ // duplicate or sentinel-valued IDs.
+ for (int _slot = 1; _slot < 9; ++_slot) {
+ if (this->currentPlayerFullIDArray[_slot] == multiplayerID) {
+ _playerID = _slot;
+ }
+ }
+ return _playerID;
+ }
+}
+}
+
+### 0x0047eb80 addPlayerToCurrentPlayerArray | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047EB80
+ int GameSynchronyState::addPlayerToCurrentPlayerArray(int playerFullID)
+ {
+ int _slot_2;
+ int _slot;
+ int* _pFullIdArrayPlus1_2;
+ int* _fullIDArray;
+ int* _pFullIdArrayPlus1;
+ _fullIDArray = this->currentPlayerFullIDArray + 1;
+ _slot_2 = 1;
+ _pFullIdArrayPlus1 = _fullIDArray;
+ do {
+ if (*_pFullIdArrayPlus1 == playerFullID) {
+ return _slot_2;
+ }
+ _slot_2 = _slot_2 + 1;
+ _pFullIdArrayPlus1 = _pFullIdArrayPlus1 + 1;
+ } while (_slot_2 < 9);
+ if (this->currentGameMode != GM_SKIRMISH_SINGLE_PLAYER) {
+ _slot = 1;
+ _pFullIdArrayPlus1_2 = _fullIDArray;
+ do {
+ if (((*_pFullIdArrayPlus1_2 == -1) || (*_pFullIdArrayPlus1_2 == playerFullID))
+ && (_pFullIdArrayPlus1_2[0x1b] < 1))
+ goto LAB_0047ebf4;
+ _slot = _slot + 1;
+ _pFullIdArrayPlus1_2 = _pFullIdArrayPlus1_2 + 1;
+ } while (_slot < 9);
+ }
+ _slot = 1;
+ while ((*_fullIDArray != -1 && (*_fullIDArray != playerFullID))) {
+ _slot = _slot + 1;
+ _fullIDArray = _fullIDArray + 1;
+ if (8 < _slot) {
+ return 0;
+ }
+ }
+ LAB_0047ebf4:
+ this->currentPlayerFullIDArray[_slot] = playerFullID;
+ return _slot;
+ }
+}
+}
+
+### 0x0047ec10 handleUnexpectedDPlayXResult | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047EC10
+ void GameSynchronyState::handleUnexpectedDPlayXResult()
+ {
+ char local_68[100];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)local_68;
+ if ((((((this->DPLAYX_SendAndReceiveREsult != -0x7788fffb)
+ && (this->DPLAYX_SendAndReceiveREsult != -0x7788fff6))
+ && (this->DPLAYX_SendAndReceiveREsult != -0x7788ffec))
+ && (((((this->DPLAYX_SendAndReceiveREsult != -0x7788f830
+ && (this->DPLAYX_SendAndReceiveREsult != -0x7788ffe2))
+ && ((this->DPLAYX_SendAndReceiveREsult != -0x7788ffd8
+ && ((this->DPLAYX_SendAndReceiveREsult != -0x7788ffce
+ && (this->DPLAYX_SendAndReceiveREsult != -0x7788ffc4))))))
+ && (this->DPLAYX_SendAndReceiveREsult != -0x7788ffba))
+ && ((((this->DPLAYX_SendAndReceiveREsult != -0x7788f7f4
+ && (this->DPLAYX_SendAndReceiveREsult != -0x7788f808))
+ && (this->DPLAYX_SendAndReceiveREsult != -0x7788f826))
+ && ((this->DPLAYX_SendAndReceiveREsult != -0x7788ffb0
+ && (this->DPLAYX_SendAndReceiveREsult != -0x7788fea2))))))))
+ && ((((this->DPLAYX_SendAndReceiveREsult != -0x7788f81c
+ && ((this->DPLAYX_SendAndReceiveREsult != -0x7788ffa6
+ && (this->DPLAYX_SendAndReceiveREsult != -0x7fffbffb))))
+ && ((this->DPLAYX_SendAndReceiveREsult != -0x7788feac
+ && ((((this->DPLAYX_SendAndReceiveREsult != -0x7788ff88
+ && (this->DPLAYX_SendAndReceiveREsult != -0x7788ff7e))
+ && (this->DPLAYX_SendAndReceiveREsult != -0x7ff8ffa9))
+ && ((this->DPLAYX_SendAndReceiveREsult != -0x7788ff6a
+ && (this->DPLAYX_SendAndReceiveREsult != -0x7788f7e0))))))))
+ && ((this->DPLAYX_SendAndReceiveREsult != -0x7788ff60
+ && ((this->DPLAYX_SendAndReceiveREsult != -0x7788ff56
+ && (this->DPLAYX_SendAndReceiveREsult != -0x7ff8fff2))))))))
+ && (((this->DPLAYX_SendAndReceiveREsult != -0x7788ff42
+ && (((this->DPLAYX_SendAndReceiveREsult != -0x7788ff38
+ && (this->DPLAYX_SendAndReceiveREsult != -0x7788feb6))
+ && (this->DPLAYX_SendAndReceiveREsult != -0x7788ff2e))))
+ && ((((this->DPLAYX_SendAndReceiveREsult != -0x7788ff24
+ && (this->DPLAYX_SendAndReceiveREsult != -0x7788ff1a))
+ && ((this->DPLAYX_SendAndReceiveREsult != -0x7788f812
+ && ((this->DPLAYX_SendAndReceiveREsult != -0x7788ff10
+ && (this->DPLAYX_SendAndReceiveREsult != -0x7788ff06))))))
+ && ((this->DPLAYX_SendAndReceiveREsult != -0x7fffbfff
+ && (((((this->DPLAYX_SendAndReceiveREsult != -0x7788fef2
+ && (this->DPLAYX_SendAndReceiveREsult != -0x7788fec0))
+ && (this->DPLAYX_SendAndReceiveREsult != -0x7788fee8))
+ && ((this->DPLAYX_SendAndReceiveREsult != -0x7788feca
+ && (this->DPLAYX_SendAndReceiveREsult != -0x7ffffff6))))
+ && (this->DPLAYX_SendAndReceiveREsult != -0x7788fe98)))))))))) {
+ _sprintf(
+ local_68, "Error:DirectPlay unknown %x", this->DPLAYX_SendAndReceiveREsult);
+ };
+ return;
+ }
+}
+}
+
+### 0x0047ede0 checkAllPlayersReadyAndCleanupSlots | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047EDE0
+ undefined4 GameSynchronyState::checkAllPlayersReadyAndCleanupSlots()
+ {
+ int* piVar1;
+ int iVar2;
+ if (this->isHost == FALSE) {
+ if (this->field215_0x106e1c == 0) {
+ return (undefined4)(0);
+ }
+ } else {
+ iVar2 = 1;
+ piVar1 = this->unknownPlayerInfo_01;
+ do {
+ piVar1 = piVar1 + 1;
+ if ((piVar1[-0x419c2] != -1) && (*piVar1 == 0)) {
+ return (undefined4)(0);
+ }
+ iVar2 = iVar2 + 1;
+ } while (iVar2 < 9);
+ if (this->somePlayerRelatedArray[1] == 0) {
+ this->currentPlayerFullIDArray[1] = -1;
+ }
+ if (this->somePlayerRelatedArray[2] == 0) {
+ this->currentPlayerFullIDArray[2] = -1;
+ }
+ if (this->somePlayerRelatedArray[3] == 0) {
+ this->currentPlayerFullIDArray[3] = -1;
+ }
+ if (this->somePlayerRelatedArray[4] == 0) {
+ this->currentPlayerFullIDArray[4] = -1;
+ }
+ if (this->somePlayerRelatedArray[5] == 0) {
+ this->currentPlayerFullIDArray[5] = -1;
+ }
+ if (this->somePlayerRelatedArray[6] == 0) {
+ this->currentPlayerFullIDArray[6] = -1;
+ }
+ if (this->somePlayerRelatedArray[7] == 0) {
+ this->currentPlayerFullIDArray[7] = -1;
+ }
+ if (this->somePlayerRelatedArray[8] == 0) {
+ this->currentPlayerFullIDArray[8] = -1;
+ return (undefined4)(1);
+ }
+ }
+ return (undefined4)(1);
+ }
+}
+}
+
+### 0x0047eed0 renderDebugDataSplitInfo | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047EED0
+ void GameSynchronyState::renderDebugDataSplitInfo(int x, int y, int width, int height)
+ {
+ int iVar1;
+ int xParam;
+ int iVar2;
+ uint color;
+ int* piVar3;
+ char* textAddress;
+ iVar2 = x + 2;
+ renderTextToScreen(
+ "Splinter box ", iVar2, y, TTA_LEFT, 0xffffff, 0x11, FALSE, 0);
+ if (this->splinterType == 0) {
+ textAddress = " - Chimps";
+ } else if (this->splinterType == 1) {
+ textAddress = " - Structures";
+ } else if (this->splinterType == 2) {
+ textAddress = " - Vegetation";
+ } else if (this->splinterType == 3) {
+ textAddress = " - Tribes";
+ } else if (this->splinterType == 4) {
+ textAddress = " - Players";
+ } else {
+ if (this->splinterType != 5)
+ goto LAB_0047efc0;
+ textAddress = " - Game elements";
+ }
+ renderTextToScreen(
+ textAddress, x + 0xc, y, TTA_LEFT, 0xffffff, 0x11, TRUE, 0);
+ LAB_0047efc0:
+ renderTextToScreen(
+ "Total split data items: ", iVar2, y + 0x1c, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ xParam = x + 0xc;
+ renderNumberToScreen2(
+ this->totalSplitDataItems, xParam, y + 0x1c, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ if (this->splinterType == 0) {
+ renderTextToScreen(
+ "Total split chimps: ", iVar2, y + 0x2a, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->totalSplitChimps, xParam, y + 0x2a, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "First split chimp: ", x + 0xca, y + 0x2a, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->firstSplitChimps, x + 0xd4, y + 0x2a, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ piVar3 = this->HASH_Units[2];
+ iVar2 = 10;
+ do {
+ piVar3 = piVar3 + 1;
+ color = (-(uint)(piVar3[-0x9c4] != *piVar3) & 0xff000100) + 0xffffff;
+ renderNumberToScreen2(
+ piVar3[-0x9c4], xParam, y + 0x46, TTA_LEFT, color, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ *piVar3, xParam, y + 0x54, TTA_LEFT, color, 0x12, FALSE, 0);
+ xParam = xParam + 0x28;
+ iVar2 = iVar2 + -1;
+ } while (iVar2 != 0);
+ return;
+ }
+ if (this->splinterType == 1) {
+ iVar1 = y + 0x2a;
+ renderTextToScreen(
+ "Total split structures: ", iVar2, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->totalSplitStructures, xParam, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "First split structure: ", x + 0xca, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->firstSplitStructures, x + 0xd4, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ return;
+ }
+ if (this->splinterType == 2) {
+ iVar1 = y + 0x2a;
+ renderTextToScreen(
+ "Total split veg: ", iVar2, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->totalSplitVeg, xParam, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "First split veg: ", x + 0xca, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->firstSplitVeg, x + 0xd4, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ return;
+ }
+ if (this->splinterType != 3) {
+ if (this->splinterType == 4) {
+ iVar1 = y + 0x2a;
+ renderTextToScreen(
+ "Total split players: ", iVar2, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderLeftAlignedNumberToScreen(this->totalSplitPlayers, xParam, iVar1, 0x80ff, 0x12, 1);
+ renderTextToScreen(
+ "First split player: ", x + 0xca, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ iVar2 = this->firstSplitPlayer;
+ } else if (this->splinterType == 5) {
+ iVar1 = y + 0x2a;
+ renderTextToScreen(
+ "Total split elements: ", iVar2, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderLeftAlignedNumberToScreen(this->totalSplitElements, xParam, iVar1, 0x80ff, 0x12, 1);
+ renderTextToScreen(
+ "First split element: ", x + 0xca, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ iVar2 = this->firstSplitElement;
+ } else if (this->splinterType == 6) {
+ iVar1 = y + 0x2a;
+ renderTextToScreen(
+ "Total split layers: ", iVar2, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderLeftAlignedNumberToScreen(this->totalSplitLayers, xParam, iVar1, 0x80ff, 0x12, 1);
+ renderTextToScreen(
+ "First split layer: ", x + 0xca, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ iVar2 = this->firstSplitLayer;
+ } else if (this->splinterType == 7) {
+ iVar1 = y + 0x2a;
+ renderTextToScreen(
+ "Total split flies: ", iVar2, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderLeftAlignedNumberToScreen(this->totalSplitFlies, xParam, iVar1, 0x80ff, 0x12, 1);
+ renderTextToScreen(
+ "First split fly: ", x + 0xca, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ iVar2 = this->firstSplitFly;
+ } else if (this->splinterType == 8) {
+ iVar1 = y + 0x2a;
+ renderTextToScreen(
+ "Total split moats: ", iVar2, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderLeftAlignedNumberToScreen(this->totalSplitMoats, xParam, iVar1, 0x80ff, 0x12, 1);
+ renderTextToScreen(
+ "First split moat: ", x + 0xca, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ iVar2 = this->firstSplitMoat;
+ } else if (this->splinterType == 9) {
+ iVar1 = y + 0x2a;
+ renderTextToScreen(
+ "Total split teleports: ", iVar2, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderLeftAlignedNumberToScreen(this->totalSplitTeleports, xParam, iVar1, 0x80ff, 0x12, 1);
+ renderTextToScreen(
+ "First split teleport: ", x + 0xca, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ iVar2 = this->firstSplitTeleports;
+ } else if (this->splinterType == 10) {
+ iVar1 = y + 0x2a;
+ renderTextToScreen(
+ "Total split pitch ditchs: ", iVar2, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderLeftAlignedNumberToScreen(this->totalSplitPitchDitches, xParam, iVar1, 0x80ff, 0x12, 1);
+ renderTextToScreen(
+ "First split pitch ditch: ", x + 0xca, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ iVar2 = this->firstSplitPitchDitch;
+ } else {
+ if (this->splinterType != 0xb) {
+ return;
+ }
+ iVar1 = y + 0x2a;
+ renderTextToScreen(
+ "Total split zones: ", iVar2, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderLeftAlignedNumberToScreen(this->totalSplitZones, xParam, iVar1, 0x80ff, 0x12, 1);
+ renderTextToScreen(
+ "First split zone: ", x + 0xca, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ iVar2 = this->firstSplitZone;
+ }
+ renderLeftAlignedNumberToScreen(iVar2, x + 0xd4, y + 0x2a, 0x80ff, 0x12, 1);
+ return;
+ }
+ iVar1 = y + 0x2a;
+ renderTextToScreen(
+ "Total split tribes: ", iVar2, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->totalSplitTribes, xParam, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "First split tribe: ", x + 0xca, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->firstSplitTribe, x + 0xd4, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ return;
+ }
+}
+}
+
+### 0x0047f6a0 addChatMessageToDisplayList | quelle=nachgebaut | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047F6A0
+ void GameSynchronyState::addChatMessageToDisplayList(int subjectPlayerID, int objectPlayerID)
+ {
+ ++this->DAT_ChatMessageArrayIndex;
+ if (20 <= this->DAT_ChatMessageArrayIndex) {
+ this->DAT_ChatMessageArrayIndex = 0;
+ }
+ this->DAT_ChatEventArray[this->DAT_ChatMessageArrayIndex].subjectPlayer = subjectPlayerID;
+ this->DAT_ChatEventArray[this->DAT_ChatMessageArrayIndex].time = timeGetTime();
+ this->DAT_ChatEventArray[this->DAT_ChatMessageArrayIndex].flag = 1;
+ this->DAT_ChatEventArray[this->DAT_ChatMessageArrayIndex].objectPlayer = objectPlayerID;
+ copyData(sizeof(this->receivedChatMessage),
+ this->receivedChatMessage, this->DAT_ChatMessageArray[this->DAT_ChatMessageArrayIndex]);
+ if (!subjectPlayerID) {
+ // "Host"
+ copyData(
+ sizeof(this->receivedChatMessage),
+ getTextStringInGroupAtOffset(
+ (DE::SHCDE::eTextSections)76, 7),
+ this->DAT_ChatMessageSubjectPlayerNameArray[this->DAT_ChatMessageArrayIndex]);
+ } else {
+ copyData(
+ sizeof(this->receivedChatMessage), this->DAT_PlayerNames[subjectPlayerID],
+ this->DAT_ChatMessageSubjectPlayerNameArray[this->DAT_ChatMessageArrayIndex]);
+ }
+ if (objectPlayerID) {
+ copyData(
+ sizeof(this->receivedChatMessage), this->DAT_PlayerNames[objectPlayerID],
+ this->DAT_ChatMessageObjectPlayerNameArray[this->DAT_ChatMessageArrayIndex]);
+ }
+ this->chatScrollOffset = 0;
+ }
+}
+}
+
+### 0x0047f7e0 clearChatEvents | quelle=nachgebaut | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047F7E0
+ void GameSynchronyState::clearChatEvents()
+ {
+ fillMemory_ByteValue(
+ sizeof(this->receivedChatMessage), '\0', this->receivedChatMessage);
+ fillMemory_ByteValue(
+ sizeof(this->DAT_ChatMessageArray), '\0', this->DAT_ChatMessageArray);
+ fillMemory_ByteValue(
+ sizeof(this->DAT_ChatMessageSubjectPlayerNameArray), '\0', this->DAT_ChatMessageSubjectPlayerNameArray);
+ this->DAT_ChatMessageArrayIndex = 0;
+ // The original walks one pointer over &DAT_ChatEventArray[0].time and clears the three
+ // fields around it with negative and positive indices; objectPlayer stays untouched.
+ for (int _chatEvent = 0; _chatEvent < 20; ++_chatEvent) {
+ this->DAT_ChatEventArray[_chatEvent].subjectPlayer = 0;
+ this->DAT_ChatEventArray[_chatEvent].time = 0;
+ this->DAT_ChatEventArray[_chatEvent].flag = 0;
+ }
+ this->chatScrollOffset = 0;
+ }
+}
+}
+
+### 0x0047f860 renderInGameChat | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047F860
+ void GameSynchronyState::renderInGameChat(int param_1, int param_2, int param_3)
+ {
+ DWORD DVar1;
+ int iVar2;
+ int iVar3;
+ char* pcVar4;
+ int iVar5;
+ TextAlignment alignment;
+ uint foregroundColor;
+ uint backgroundColor;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ int local_4;
+ int _lordID;
+ this->field204_0x105670 = this->DAT_ChatMessageArrayIndex;
+ local_4 = 4;
+ do {
+ iVar3 = this->field204_0x105670;
+ if (this->DAT_ChatEventArray[this->field204_0x105670].flag == 1) {
+ DVar1 = timeGetTime();
+ if ((int)(DVar1 - this->DAT_ChatEventArray[iVar3].time) < 0x2711) {
+ iVar5 = this->DAT_ChatEventArray[iVar3].subjectPlayer;
+ _lordID = DAT_GameState.playerDataArray[iVar5].lordID;
+ iVar2 = computeTextWidth(this->DAT_ChatMessageSubjectPlayerNameArray[iVar3], 0x13);
+ iVar3 = computeTextWidth(this->DAT_ChatMessageArray[this->field204_0x105670], 0x13);
+ iVar3 = iVar2 + 0xc + iVar3;
+ if (this->DAT_ChatEventArray[this->field204_0x105670].objectPlayer != 0) {
+ iVar2 = computeTextWidth(
+ this->DAT_ChatMessageObjectPlayerNameArray[this->field204_0x105670], 0x13);
+ iVar3 = iVar3 + 6 + iVar2;
+ }
+ if ((((_lordID == 0)
+ || (DAT_UnitsState.units[_lordID].uid
+ != DAT_GameState.playerDataArray[iVar5].lordUID))
+ || (DAT_UnitsState.units[_lordID].logicalState
+ != ULS_NORMAL))
+ && (200 < (int)(DAT_GameCore.mapTimeInTicks - DAT_GameCore.section1127))) {
+ iVar2 = 0x13;
+ /*
+ added by script: "(deceased)"
+ */
+ pcVar4 = getTextStringInGroupAtOffset(TEXT_MULTIPLAYER_CONNECTION, 0x2c);
+ iVar2 = computeTextWidth(pcVar4, iVar2);
+ iVar3 = iVar3 + 6 + iVar2;
+ }
+ DAT_PencilRenderCore.surfaceTarget = RT_MAP_GAME;
+ drawBlendedBlackBox(param_1 + -5, param_2 + -4, iVar3 + param_1, param_2 + 9, 0x10);
+ DAT_PencilRenderCore.surfaceTarget = RT_SCREEN_MENU;
+ renderInGameTextWithShadow(
+ this->DAT_ChatMessageSubjectPlayerNameArray[this->field204_0x105670], param_1, param_2,
+ TTA_LEFT,
+ (uint)((int)(DAT_RenderingDefinedData
+ .ColorArray[DAT_BlendingDefinedData.PlayerSlotUnitColor
+ [this->DAT_ChatEventArray[this->field204_0x105670].subjectPlayer]])),
+ 0, 0x13, FALSE, 0);
+ iVar3 = param_1;
+ if ((((_lordID == 0)
+ || (DAT_UnitsState.units[_lordID].uid
+ != DAT_GameState.playerDataArray[iVar5].lordUID))
+ || (DAT_UnitsState.units[_lordID].logicalState
+ != ULS_NORMAL))
+ && (200 < (int)(DAT_GameCore.mapTimeInTicks - DAT_GameCore.section1127))) {
+ blendStrength = 0;
+ keepOffsetX = TRUE;
+ iVar2 = 0x13;
+ backgroundColor = 0;
+ foregroundColor = 0xb8eefb;
+ alignment = TTA_LEFT;
+ iVar3 = param_1 + 6;
+ iVar5 = iVar3;
+ _lordID = param_2;
+ /*
+ added by script: "(deceased)"
+ */
+ pcVar4 = getTextStringInGroupAtOffset(TEXT_MULTIPLAYER_CONNECTION, 0x2c);
+ renderInGameTextWithShadow(pcVar4, iVar5, _lordID, alignment, foregroundColor,
+ backgroundColor, iVar2, keepOffsetX, blendStrength);
+ }
+ renderInGameTextWithShadow(this->DAT_ChatMessageArray[this->field204_0x105670], iVar3 + 6,
+ param_2, TTA_LEFT, 0xb8eefb, 0, 0x13, TRUE, 0);
+ iVar5 = this->DAT_ChatEventArray[this->field204_0x105670].objectPlayer;
+ if (iVar5 != 0) {
+ renderInGameTextWithShadow(
+ this->DAT_ChatMessageObjectPlayerNameArray[this->field204_0x105670], iVar3 + 0xc, param_2,
+ TTA_LEFT,
+ (uint)((int)(DAT_RenderingDefinedData
+ .ColorArray[DAT_BlendingDefinedData.PlayerSlotUnitColor[iVar5]])),
+ 0, 0x13, TRUE, 0);
+ }
+ } else {
+ this->DAT_ChatEventArray[iVar3].flag = 0;
+ }
+ }
+ this->field204_0x105670 = this->field204_0x105670 + -1;
+ if (this->field204_0x105670 < 0) {
+ this->field204_0x105670 = 0x13;
+ }
+ param_2 = param_2 + -0xe;
+ local_4 = local_4 + -1;
+ } while (local_4 != 0);
+ return;
+ }
+}
+}
+
+### 0x0047fb50 renderChatMessageList | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0047FB50
+ void GameSynchronyState::renderChatMessageList(int xPos, int yPos, int param_3)
+ {
+ int iVar1;
+ int iVar2;
+ this->field204_0x105670 = this->DAT_ChatMessageArrayIndex - param_3;
+ if (this->field204_0x105670 < 0) {
+ this->field204_0x105670 = this->field204_0x105670 + 0x14;
+ }
+ iVar2 = 0;
+ setScreenMenuSurfaceHeightRange(yPos + -0x48, yPos + 0x12);
+ DAT_TextManagerObject.field13_0x34 = 0x11;
+ param_3 = 0;
+ do {
+ if (this->DAT_ChatEventArray[this->field204_0x105670].flag == 1) {
+ iVar1 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ renderInGameTextWithShadow(this->DAT_ChatMessageSubjectPlayerNameArray[this->field204_0x105670],
+ xPos, yPos, TTA_LEFT,
+ (uint)((int)(DAT_RenderingDefinedData.ColorTable1[DAT_BlendingDefinedData
+ .PlayerSlotUnitColor[this->DAT_ChatEventArray[this->field204_0x105670].subjectPlayer]])),
+ 0, 0x13, FALSE, ((int)(iVar1 + (iVar1 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+iVar1 = renderMultilineTextUnk().fontSizeClassArray + 0x13,
+this->DAT_ChatMessageArray
+[this->field204_0x105670],0,0,
+0x1ee - DAT_TextManagerObject.currentXOffset_0x0,0,0,1);
+if (0x18 < iVar1) {
+ iVar1 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ yPos = yPos + -0x12;
+ iVar2 = iVar2 + 1;
+ renderInGameTextWithShadow(
+ this->DAT_ChatMessageSubjectPlayerNameArray[this->field204_0x105670], xPos, yPos, TTA_LEFT,
+ (uint)((int)(DAT_RenderingDefinedData.ColorTable1[DAT_BlendingDefinedData
+ .PlayerSlotUnitColor[this->DAT_ChatEventArray[this->field204_0x105670].subjectPlayer]])),
+ 0, 0x13, FALSE, ((int)(iVar1 + (iVar1 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+}
+iVar1 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+renderMultilineText6Unk(
+ this->DAT_ChatMessageArray[this->field204_0x105670], DAT_TextManagerObject.currentXOffset_0x0 + 6 + xPos,
+ yPos, 0x1ee - DAT_TextManagerObject.currentXOffset_0x0, 0xa2ff, 0x3e66, 0x13,
+ ((int)(iVar1 + (iVar1 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ }
+ this->field204_0x105670 = this->field204_0x105670 + -1;
+ if (this->field204_0x105670 < 0) {
+ this->field204_0x105670 = 0x13;
+ }
+ iVar2 = iVar2 + 1;
+ yPos = yPos + -0x11;
+ } while ((iVar2 < 5) && (param_3 = param_3 + 1, param_3 < 5));
+ DAT_TextManagerObject.field13_0x34 = 0;
+ setScreenMenuSurfaceHeightRangeToResolution();
+ return;
+ }
+}
+}
+
+### 0x00480050 resetGameCommands | quelle=nachgebaut | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x00480050
+ void GameSynchronyState::resetGameCommands()
+ {
+ this->DAT_CurrentGameCommandID = 0;
+ this->gameCommandID = 0;
+ this->DAT_GameCommandArrayIndex = 0;
+ fillMemory_ByteValue(
+ sizeof(this->DAT_GameCommandArray), '\0', this->DAT_GameCommandArray);
+ for (int _player = 0; _player < 9; ++_player) {
+ this->DAT_LagIndicatorPerPlayer[_player] = 1000;
+ }
+ }
+}
+}
+
+### 0x004800b0 clearGameCommandEntry | quelle=nachgebaut | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x004800B0
+ void GameSynchronyState::clearGameCommandEntry(int gameCommandID)
+ {
+ if (gameCommandID < 200) {
+ fillMemory_ByteValue(
+ sizeof(this->DAT_GameCommandArray[gameCommandID]), 0, &this->DAT_GameCommandArray[gameCommandID]);
+ }
+ }
+}
+}
+
+### 0x004800e0 sendLongerDataSuchAsResync | quelle=nachgebaut | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x004800E0
+ int GameSynchronyState::sendLongerDataSuchAsResync(GameCommandType commandCategory)
+ {
+ this->DAT_CurrentGameCommandID = this->DAT_GameCommandArrayIndex;
+ // No sizeof fits: GameCommand::parameters is typed as a single undefined1
+ // followed by padding_0xb[1261], so neither the field nor the struct gives the
+ // 1260 bytes the original clears. Needs the parameter block typed in Ghidra.
+ fillMemory_ByteValue(
+ 1260, '\0', &this->DAT_GameCommandArray[this->DAT_GameCommandArrayIndex].parameters);
+ this->DAT_GameCommandArray[this->DAT_CurrentGameCommandID].stateUnk = Commands::GCS_UNPROCESSED;
+ this->DAT_GameCommandArray[this->DAT_CurrentGameCommandID].playerUnk = this->DPLAYX_PlayerHandle;
+ this->DAT_GameCommandArray[this->DAT_CurrentGameCommandID].commandType = (undefined1)commandCategory;
+ this->DAT_CommandActionPlan = Commands::GCS_SCHEDULE_AND_SEND;
+ this->DAT_PlayerIDReceiver = 0;
+ this->DAT_CommandParameterOffset = 0;
+ (&DAT_ProtocolDefinedData
+ .commandFunctions)[this->DAT_GameCommandArray[this->DAT_CurrentGameCommandID].commandType]();
+ this->DAT_CommandParameterOffset = 0;
+ int _size = this->DAT_CommandSize;
+ if (200 < this->DAT_CommandSize && (undefined1)commandCategory != Commands::GCT_SEND_RESYNC_LOGICALTILEMAP) {
+ this->DAT_Packet.packet.commandProtocol = 125;
+ this->DAT_Packet.prefixedPacket.packet.commandProtocol = (undefined1)commandCategory;
+ moveLowerThreeBytesIntoParam2(
+ this->DAT_GameCommandArray + this->DAT_CurrentGameCommandID,
+ &this->DAT_Packet.prefixedPacket.packet.time);
+ _size = compressOrCreateLengthPrefixedPacketUnk(this->DAT_CommandSize, (char*)this->DAT_GameCommandFixedParameterLocation,
+ this->DAT_Packet.prefixedPacket.packet.payload);
+ ++_size;
+ }
+ clearGameCommandEntry(
+ this->DAT_CurrentGameCommandID);
+ return _size;
+ }
+}
+}
+
+### 0x00480210 scheduleReceivedCommand | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x00480210
+ void GameSynchronyState::scheduleReceivedCommand(
+ GameCommandType commandCategory, DWORD dxPlayerHandle, dword time, void* address)
+ {
+ int iVar1;
+ uint _playerID;
+ if (this->DAT_GameCommandArrayIndex < 200) {
+ if ((undefined1)commandCategory == (GCT_SEND_RESYNC_TILEMAPDATA2 | GCT_HOST_ANNOUNCE_TEAMS_AND_POSITIONS)) {
+ this->unknownIncrementBy40_01 = this->unknownIncrementBy40_01 + 40;
+ _playerID = translateMultiplayerIDsIntoPlayerIDs(
+ dxPlayerHandle);
+ if (_playerID == this->currentPlayerSlotID) {
+ this->DAT_GameCommandArray[this->DAT_CurrentGameCommandID].time
+ = DAT_GameCore.mapTimeInTicks + 1;
+ }
+ }
+ if (time != 0) {
+ if ((int)DAT_GameCore.mapTimeInTicks < (int)time) {
+ if ((int)(time - DAT_GameCore.mapTimeInTicks)
+ < (int)this->DAT_LagIndicatorPerPlayer[this->currentPlayerSlotID]) {
+ this->DAT_LagIndicatorPerPlayer[this->currentPlayerSlotID]
+ = (short)time - (short)DAT_GameCore.mapTimeInTicks;
+ }
+ } else {
+ this->field62_0xb90 = this->field62_0xb90 + 2;
+ }
+ }
+ this->DAT_CurrentGameCommandID = this->DAT_GameCommandArrayIndex;
+ fillMemory_ByteValue(
+ 0x4ec, '\0', (void*)((int)(&this->DAT_GameCommandArray[this->DAT_GameCommandArrayIndex].parameters)));
+ this->DAT_GameCommandArray[this->DAT_CurrentGameCommandID].stateUnk = GCS_UNPROCESSED;
+ this->DAT_GameCommandArray[this->DAT_CurrentGameCommandID].playerUnk = dxPlayerHandle;
+ this->DAT_GameCommandArray[this->DAT_CurrentGameCommandID].commandType = (undefined1)commandCategory;
+ this->DAT_GameCommandArray[this->DAT_CurrentGameCommandID].time = time;
+ this->DAT_CommandParameterOffset = 0;
+ this->DAT_CommandActionPlan = GCS_SCHEDULE_RECEIVED_COMMAND;
+ (*(code*)DAT_ProtocolDefinedData
+ .commandFunctions[this->DAT_GameCommandArray[this->DAT_CurrentGameCommandID].commandType + 0x15])();
+ if ((int)this->DAT_GameCommandArray[this->DAT_CurrentGameCommandID].time < 1) {
+ copyData(
+ this->DAT_CommandSize, address, (void*)((int)(this->DAT_GameCommandFixedParameterLocation)));
+ iVar1 = this->DAT_CurrentGameCommandID;
+ this->protocolInvokerPlayerID = translateMultiplayerIDsIntoPlayerIDs(
+ this->DAT_GameCommandArray[this->DAT_CurrentGameCommandID].playerUnk);
+ this->DAT_GameCommandParam5 = 0;
+ this->DAT_GameCommandParam4 = 0;
+ this->DAT_GameCommandParam3 = 0;
+ this->DAT_GameCommandParam2 = 0;
+ this->DAT_GameCommandParam1 = 0;
+ this->DAT_GameCommandParam0 = 0;
+ this->DAT_CommandActionPlan = GCS_EXECUTE;
+ this->DAT_CommandParameterOffset = 0;
+ (*(code*)DAT_ProtocolDefinedData
+ .commandFunctions[this->DAT_GameCommandArray[iVar1].commandType + 0x15])();
+ clearGameCommandEntry(
+ this->DAT_CurrentGameCommandID);
+ } else {
+ copyData(
+ this->DAT_CommandSize, address,
+ (void*)((int)(&this->DAT_GameCommandArray[this->DAT_CurrentGameCommandID].parameters)));
+ this->DAT_GameCommandArrayIndex = this->DAT_GameCommandArrayIndex + 1;
+ if (199 < this->DAT_GameCommandArrayIndex) {
+ this->DAT_GameCommandArrayIndex = 0;
+ return;
+ }
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x00480440 getCommandIDFromCommandSelectionStuff | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x00480440
+ int GameSynchronyState::getCommandIDFromCommandSelectionStuff()
+ {
+ int _counter2;
+ int* _selectedPlayerIDAddress;
+ GameCommandStateByte* _stateAddress;
+ int _currentIndexCounter;
+ int _commandID;
+ int _nextPlayerID;
+ int _playerID;
+ bool _reorderedAnyoneUnk;
+ this->MBR_someIndex = 0;
+ fillMemory_ByteValue(
+ 800, '\0', (void*)((int)(this->MBR_SelectedGameCommands)));
+ if (this->MBR_GameCommandID < 200) {
+ _stateAddress = &this->DAT_GameCommandArray[this->MBR_GameCommandID].stateUnk;
+ _currentIndexCounter = this->MBR_GameCommandID;
+ do {
+ /*
+ stateAddress - 9 = time address
+ */
+ if (((*_stateAddress != ((GameCommandState)0)) && ((char)*_stateAddress < '\n'))
+ && ((int)((GameCommand*)(_stateAddress + -9))->time
+ <= (int)DAT_GameCore.mapTimeInTicks)) {
+ /*
+ if this command has not been processed, but should be processed, and it has been its time state
+ address - 5 = player
+ */
+ this->protocolInvokerPlayerID = translateMultiplayerIDsIntoPlayerIDs(
+ *(int*)(_stateAddress + -5));
+ this->MBR_SelectedGameCommands[this->MBR_someIndex][0] = _currentIndexCounter;
+ this->MBR_SelectedGameCommands[this->MBR_someIndex][1] = this->protocolInvokerPlayerID;
+ this->MBR_someIndex = this->MBR_someIndex + 1;
+ if (99 < this->MBR_someIndex)
+ break;
+ }
+ _currentIndexCounter = _currentIndexCounter + 1;
+ /*
+ move to next command
+ */
+ _stateAddress = _stateAddress + 0x4f8;
+ } while (_currentIndexCounter < 200);
+ }
+ /*
+ reorder the selected commands list so that player ids with a lower number are processed first.
+ */
+ _counter2 = 0;
+ if (0 < this->MBR_someIndex) {
+ _reorderedAnyoneUnk = true;
+ do {
+ if (!_reorderedAnyoneUnk)
+ break;
+ _currentIndexCounter = 1;
+ _counter2 = _counter2 + 1;
+ _reorderedAnyoneUnk = false;
+ if (1 < this->MBR_someIndex) {
+ _selectedPlayerIDAddress = this->MBR_SelectedGameCommands[0] + 1;
+ do {
+ _nextPlayerID = _selectedPlayerIDAddress[2];
+ _commandID = (*(int (*)[2])(_selectedPlayerIDAddress + -1))[0];
+ _playerID = *_selectedPlayerIDAddress;
+ if (_nextPlayerID == 0) {
+ return 0;
+ }
+ if (_nextPlayerID < _playerID) {
+ (*(int (*)[2])(_selectedPlayerIDAddress + -1))[0] = _selectedPlayerIDAddress[1];
+ *_selectedPlayerIDAddress = _nextPlayerID;
+ _selectedPlayerIDAddress[1] = _commandID;
+ _selectedPlayerIDAddress[2] = _playerID;
+ _reorderedAnyoneUnk = true;
+ }
+ _currentIndexCounter = _currentIndexCounter + 1;
+ _selectedPlayerIDAddress = _selectedPlayerIDAddress + 2;
+ } while (_currentIndexCounter < this->MBR_someIndex);
+ }
+ } while (_counter2 < 100);
+ _counter2 = 1;
+ }
+ return _counter2;
+ }
+}
+}
+
+### 0x00480570 getGameCommandArrayIndex | quelle=nachgebaut | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x00480570
+ int GameSynchronyState::getGameCommandArrayIndex() { return this->DAT_GameCommandArrayIndex; }
+}
+}
+
+### 0x00480580 getPendingGameCommandsCount | quelle=nachgebaut | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x00480580
+ int GameSynchronyState::getPendingGameCommandsCount()
+ {
+ int _pending = 0;
+ for (int _command = this->gameCommandID; _command < 200; ++_command) {
+ GameCommandStateByte _state = this->DAT_GameCommandArray[_command].stateUnk;
+ if (_state != 0 && _state < Commands::GCS_PROCESSED) {
+ ++_pending;
+ }
+ }
+ return _pending;
+ }
+}
+}
+

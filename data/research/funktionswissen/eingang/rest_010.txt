@@ -1,0 +1,1346 @@
+### 0x00451e00 renderUnitAnimationWithBlendingUnk | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00451E00
+ void TextureRenderCore::renderUnitAnimationWithBlendingUnk(
+ int xPosition, int yPosition, int width, int height, byte* imageAddress, int blendStrengthUnk)
+ {
+ ushort uVar1;
+ int iVar2;
+ TgxTokenByte TVar3;
+ ushort uVar4;
+ ushort uVar5;
+ int iVar6;
+ uint uVar7;
+ int iVar8;
+ ushort uVar9;
+ int iVar10;
+ uint uVar11;
+ byte bVar13;
+ TgxTokenByte bVar12;
+ int iVar14;
+ uint uVar15;
+ byte* pbVar16;
+ TgxTokenByte* pTVar17;
+ byte* pbVar18;
+ ushort* puVar19;
+ ushort* puVar20;
+ undefined2 uStack_36;
+ uint local_14;
+ ushort* _colorPaletteRef;
+ int local_c;
+ int local_8;
+ if (DAT_RenderedUnitOwner == 1) {
+ DAT_RenderedUnitOwner = 4;
+ } else if (DAT_RenderedUnitOwner == 4) {
+ DAT_RenderedUnitOwner = 1;
+ }
+ /*
+ According to another comment, this indexes into the right gmfileheadercolorpalette and accesses the
+ color data. --TheRedDaemon
+ */
+ _colorPaletteRef = (ushort*)(DAT_CurrentlyRenderedSpriteID * 0x1458
+ + DAT_BlendingDefinedData.PlayerSlotUnitColor[DAT_RenderedUnitOwner] * 0x200
+ + 0x1fea604);
+ if (0 < height) {
+ if (this->mbr_0x70 != 0) {
+ _colorPaletteRef = (ushort*)this->mbr_0x70;
+ }
+ if (blendStrengthUnk < 0x20) {
+ if (DAT_BlendFilterArrays[0x20][0x1f][0] == 0) {
+ InitBlendFilterArraysUnk();
+ }
+ iVar6 = blendStrengthUnk * 0x200;
+ iVar2 = blendStrengthUnk * -0x200;
+ iVar10 = iVar2 + 0xd812d8;
+ if (this->isZoom2 == 0) {
+ if (this->drawBufferChoiceValue == RT_SCREEN_MENU) {
+ this->currentRenderSurface = DAT_WindowAndDirectDraw.surfacePointer_screenMenu;
+ local_8 = DAT_WindowAndDirectDraw.byteSizeOfOneHorizontalLine;
+ local_c = this->screenMenuSurfaceHeightRange.start;
+ iVar14 = this->screenMenuSurfaceHeightRange.end;
+ } else {
+ this->currentRenderSurface = DAT_WindowAndDirectDraw.surfacePointer_mapGame;
+ local_8 = 0x1fb0;
+ local_c = this->mapGameSurfaceHeightRange.start;
+ iVar14 = this->mapGameSurfaceHeightRange.end;
+ }
+ if ((yPosition + height <= iVar14) || (height = iVar14 - yPosition, 0 < height)) {
+ if (DAT_WindowAndDirectDraw.colorBitMode != RGB_555) {
+ if (-1 < xPosition) {
+ if (yPosition < local_c) {
+ iVar14 = local_c - yPosition;
+ if (height <= iVar14) {
+ return;
+ }
+ height = height - iVar14;
+ do {
+ while (true) {
+ while (true) {
+ do {
+ pTVar17 = imageAddress;
+ bVar12 = *pTVar17 & TT_TGX_PIXEL_HEADER;
+ imageAddress = pTVar17 + 1;
+ } while (bVar12 == TT_TRANSPARENT_PIXELS);
+ if (bVar12 != TT_STREAM_OF_PIXELS)
+ break;
+ imageAddress = imageAddress + (*pTVar17 & 0xffffff1f) + 1;
+ }
+ if (bVar12 != TT_REPEATING_PIXELS)
+ break;
+ imageAddress = pTVar17 + 2;
+ }
+ iVar14 = iVar14 + -1;
+ yPosition = local_c;
+ } while (0 < iVar14);
+ }
+ puVar19 = (ushort*)((int)this->currentRenderSurface + yPosition * local_8
+ + xPosition * 2);
+ puVar20 = puVar19;
+ do {
+ while (true) {
+ while (true) {
+ while (true) {
+ TVar3 = *imageAddress & TT_TGX_PIXEL_HEADER;
+ uVar11 = *imageAddress & 0xffffff1f;
+ pTVar17 = imageAddress + 1;
+ if (TVar3 != TT_TRANSPARENT_PIXELS)
+ break;
+ puVar19 = puVar19 + uVar11 + 1;
+ imageAddress = pTVar17;
+ }
+ if (TVar3 != TT_STREAM_OF_PIXELS)
+ break;
+ iVar14 = uVar11 + 1;
+ imageAddress = pTVar17;
+ do {
+ uVar4 = _colorPaletteRef[*imageAddress];
+ uVar5 = *puVar19;
+ *puVar19
+ = (*(ushort*)(iVar10 + (uVar4 & 0xffff001f) * 8)
+ | *(ushort*)(iVar2 + 0xd812da
+ + (uVar4 >> 5 & 0xffff003f) * 8)
+ | *(ushort*)(iVar2 + 0xd812dc + (uint)(uVar4 >> 0xb) * 8))
+ + DAT_BlendFilterArrays[blendStrengthUnk]
+ [uVar5 & 0xffff001f][0]
+ + *(short*)(iVar6 + 0xd7d2da + (uVar5 >> 5 & 0xffff003f) * 8)
+ + *(short*)(iVar6 + 0xd7d2dc + (uint)(uVar5 >> 0xb) * 8);
+ imageAddress = imageAddress + 1;
+ puVar19 = puVar19 + 1;
+ iVar14 = iVar14 + -1;
+ } while (iVar14 != 0);
+ }
+ if (TVar3 != TT_REPEATING_PIXELS)
+ break;
+ uVar4 = _colorPaletteRef[*pTVar17];
+ imageAddress = imageAddress + 2;
+ iVar14 = uVar11 + 1;
+ uVar5 = *(ushort*)(iVar10 + (uVar4 & 0xffff001f) * 8);
+ uVar9 = *(ushort*)(iVar2 + 0xd812da + (uVar4 >> 5 & 0xffff003f) * 8);
+ uVar4 = *(ushort*)(iVar2 + 0xd812dc + (uint)(uVar4 >> 0xb) * 8);
+ do {
+ uVar1 = *puVar19;
+ *puVar19
+ = (DAT_BlendFilterArrays[blendStrengthUnk]
+ [uVar1 & 0xffff001f][0]
+ | *(ushort*)(iVar6 + 0xd7d2da + (uVar1 >> 5 & 0xffff003f) * 8)
+ | *(ushort*)(iVar6 + 0xd7d2dc + (uint)(uVar1 >> 0xb) * 8))
+ + (uVar5 | uVar9 | uVar4);
+ puVar19 = puVar19 + 1;
+ iVar14 = iVar14 + -1;
+ } while (iVar14 != 0);
+ }
+ puVar19 = (ushort*)((int)puVar20 + local_8);
+ height = height + -1;
+ imageAddress = pTVar17;
+ puVar20 = puVar19;
+ } while (0 < height);
+ }
+ return;
+ }
+ if (-1 < xPosition) {
+ if (yPosition < local_c) {
+ iVar14 = local_c - yPosition;
+ if (height <= iVar14) {
+ return;
+ }
+ height = height - iVar14;
+ do {
+ while (true) {
+ while (true) {
+ do {
+ pbVar16 = imageAddress;
+ bVar13 = *pbVar16 & 0xe0;
+ imageAddress = pbVar16 + 1;
+ } while (bVar13 == 0x20);
+ if (bVar13 != 0)
+ break;
+ imageAddress = imageAddress + (*pbVar16 & 0xffffff1f) + 1;
+ }
+ if (bVar13 != 0x40)
+ break;
+ imageAddress = pbVar16 + 2;
+ }
+ iVar14 = iVar14 + -1;
+ yPosition = local_c;
+ } while (0 < iVar14);
+ }
+ puVar19
+ = (ushort*)((int)this->currentRenderSurface + yPosition * local_8 + xPosition * 2);
+ puVar20 = puVar19;
+ do {
+ while (true) {
+ while (true) {
+ while (true) {
+ bVar13 = *imageAddress & 0xe0;
+ uVar11 = *imageAddress & 0xffffff1f;
+ pbVar16 = imageAddress + 1;
+ if (bVar13 != 0x20)
+ break;
+ puVar19 = puVar19 + uVar11 + 1;
+ imageAddress = pbVar16;
+ }
+ if (bVar13 != 0)
+ break;
+ iVar14 = uVar11 + 1;
+ do {
+ uVar4 = _colorPaletteRef[*pbVar16] & 0xffe0
+ | *(ushort*)(iVar10
+ + (_colorPaletteRef[*pbVar16] & 0xffff001f) * 8);
+ uVar5 = uVar4 & 0xfc1f
+ | *(ushort*)(iVar2 + 0xd812da + (uVar4 >> 5 & 0xffff001f) * 8);
+ uVar4 = *puVar19;
+ *puVar19 = uVar5 & 0x3ff
+ | *(ushort*)(iVar2 + 0xd812dc + (uVar5 >> 10 & 0xffff001f) * 8);
+ uVar4 = uVar4 & 0xffe0
+ | DAT_BlendFilterArrays[blendStrengthUnk]
+ [uVar4 & 0xffff001f][0];
+ uVar4 = uVar4 & 0xfc1f
+ | *(ushort*)(iVar6 + 0xd7d2da + (uVar4 >> 5 & 0xffff001f) * 8);
+ *puVar19 = *puVar19
+ + (uVar4 & 0x83ff
+ | *(ushort*)(iVar6 + 0xd7d2dc
+ + (uVar4 >> 10 & 0xffff001f) * 8));
+ pbVar16 = pbVar16 + 1;
+ puVar19 = puVar19 + 1;
+ iVar14 = iVar14 + -1;
+ imageAddress = pbVar16;
+ } while (iVar14 != 0);
+ }
+ if (bVar13 != 0x40)
+ break;
+ imageAddress = imageAddress + 2;
+ iVar14 = uVar11 + 1;
+ uVar4 = _colorPaletteRef[*pbVar16] & 0xffe0
+ | *(ushort*)(iVar10 + (_colorPaletteRef[*pbVar16] & 0xffff001f) * 8);
+ uVar5 = uVar4 & 0xfc1f
+ | *(ushort*)(iVar2 + 0xd812da + (uVar4 >> 5 & 0xffff001f) * 8);
+ uVar4 = *(ushort*)(iVar2 + 0xd812dc + (uVar5 >> 10 & 0xffff001f) * 8);
+ do {
+ uVar9 = *puVar19 & 0xffe0
+ | DAT_BlendFilterArrays[blendStrengthUnk]
+ [*puVar19 & 0xffff001f][0];
+ uVar9 = uVar9 & 0xfc1f
+ | *(ushort*)(iVar6 + 0xd7d2da + (uVar9 >> 5 & 0xffff001f) * 8);
+ *puVar19
+ = (uVar9 & 0x83ff
+ | *(ushort*)(iVar6 + 0xd7d2dc + (uVar9 >> 10 & 0xffff001f) * 8))
+ + (uVar5 & 0x3ff | uVar4);
+ puVar19 = puVar19 + 1;
+ iVar14 = iVar14 + -1;
+ } while (iVar14 != 0);
+ }
+ puVar19 = (ushort*)((int)puVar20 + local_8);
+ height = height + -1;
+ imageAddress = pbVar16;
+ puVar20 = puVar19;
+ } while (0 < height);
+ }
+ return;
+ }
+ } else {
+ this->currentRenderSurface = DAT_WindowAndDirectDraw.surfacePointer_mapGame;
+ uVar11 = xPosition & 1;
+ if ((yPosition + height <= this->mapGameSurfaceHeightRange.end)
+ || (height = this->mapGameSurfaceHeightRange.end - yPosition, 0 < height)) {
+ if (DAT_WindowAndDirectDraw.colorBitMode == RGB_555) {
+ if (-1 < xPosition) {
+ if (yPosition < this->mapGameSurfaceHeightRange.start) {
+ iVar14 = this->mapGameSurfaceHeightRange.start - yPosition;
+ if (height <= iVar14) {
+ this->currentRenderSurface
+ = DAT_WindowAndDirectDraw.surfacePointer_mapGame;
+ return;
+ }
+ height = height - iVar14;
+ do {
+ while (true) {
+ while (true) {
+ do {
+ pbVar16 = imageAddress;
+ bVar13 = *pbVar16 & 0xe0;
+ imageAddress = pbVar16 + 1;
+ } while (bVar13 == 0x20);
+ if (bVar13 != 0)
+ break;
+ imageAddress = imageAddress + (*pbVar16 & 0xffffff1f) + 1;
+ }
+ if (bVar13 != 0x40)
+ break;
+ imageAddress = pbVar16 + 2;
+ }
+ iVar14 = iVar14 + -1;
+ yPosition = this->mapGameSurfaceHeightRange.start;
+ } while (0 < iVar14);
+ }
+ iVar14 = (int)DAT_WindowAndDirectDraw.surfacePointer_mapGame
+ + ((uint)yPosition >> 1) * 0x1fb0 + (xPosition & 0xfffffffeU);
+ uVar7 = uVar11;
+ do {
+ while (true) {
+ while (true) {
+ while (true) {
+ local_14 = uVar7;
+ bVar13 = *imageAddress & 0xe0;
+ uVar7 = *imageAddress & 0xffffff1f;
+ pbVar16 = imageAddress + 1;
+ if (bVar13 != 0x20)
+ break;
+ imageAddress = pbVar16;
+ uVar7 = local_14 + uVar7 + 1;
+ }
+ if (bVar13 != 0)
+ break;
+ iVar8 = uVar7 + 1;
+ uVar7 = local_14 + iVar8;
+ do {
+ if ((local_14 & 1) == 0) {
+ uStack_36 = (undefined2)(local_14 >> 0x10);
+ uVar15 = CONCAT22(uStack_36, _colorPaletteRef[*pbVar16])
+ & 0xffff001f;
+ uVar4 = _colorPaletteRef[*pbVar16] & 0xffe0
+ | *(ushort*)(iVar10 + uVar15 * 8);
+ uVar15 = CONCAT22((short)(uVar15 >> 0x10), uVar4 >> 5)
+ & 0xffff001f;
+ uVar5 = uVar4 & 0xfc1f
+ | *(ushort*)(iVar2 + 0xd812da + uVar15 * 8);
+ uVar4 = *(ushort*)(iVar14 + local_14);
+ *(ushort*)(iVar14 + local_14) = uVar5 & 0x3ff
+ | *(ushort*)(iVar2 + 0xd812dc
+ + (CONCAT22((short)(uVar15 >> 0x10), uVar5 >> 10)
+ & 0xffff001f)
+ * 8);
+ uVar4 = uVar4 & 0xffe0
+ | DAT_BlendFilterArrays[blendStrengthUnk]
+ [uVar4 & 0xffff001f][0];
+ uVar4 = uVar4 & 0xfc1f
+ | *(ushort*)(iVar6 + 0xd7d2da
+ + (uVar4 >> 5 & 0xffff001f) * 8);
+ *(short*)(iVar14 + local_14) = *(short*)(iVar14 + local_14)
+ + (uVar4 & 0x83ff
+ | *(ushort*)(iVar6 + 0xd7d2dc
+ + (uVar4 >> 10 & 0xffff001f) * 8));
+ }
+ pbVar16 = pbVar16 + 1;
+ local_14 = local_14 + 1;
+ iVar8 = iVar8 + -1;
+ imageAddress = pbVar16;
+ } while (iVar8 != 0);
+ }
+ if (bVar13 != 0x40)
+ break;
+ imageAddress = imageAddress + 2;
+ uVar4 = _colorPaletteRef[*pbVar16] & 0xffe0
+ | *(ushort*)(iVar10 + (_colorPaletteRef[*pbVar16] & 0xffff001f) * 8);
+ uVar5 = uVar4 & 0xfc1f
+ | *(ushort*)(iVar2 + 0xd812da + (uVar4 >> 5 & 0xffff001f) * 8);
+ uVar4 = *(ushort*)(iVar2 + 0xd812dc + (uVar5 >> 10 & 0xffff001f) * 8);
+ iVar8 = uVar7 + 1;
+ uVar7 = local_14 + iVar8;
+ do {
+ if ((local_14 & 1) == 0) {
+ uVar9 = *(ushort*)(iVar14 + local_14) & 0xffe0
+ | DAT_BlendFilterArrays[blendStrengthUnk]
+ [*(ushort*)(iVar14 + local_14)
+ & 0xffff001f][0];
+ uVar9 = uVar9 & 0xfc1f
+ | *(ushort*)(iVar6 + 0xd7d2da + (uVar9 >> 5 & 0xffff001f) * 8);
+ *(ushort*)(iVar14 + local_14)
+ = (uVar9 & 0x83ff
+ | *(ushort*)(iVar6 + 0xd7d2dc
+ + (uVar9 >> 10 & 0xffff001f) * 8))
+ + (uVar5 & 0x3ff | uVar4);
+ }
+ local_14 = local_14 + 1;
+ iVar8 = iVar8 + -1;
+ } while (iVar8 != 0);
+ }
+ iVar14 = iVar14 + 0x1fb0;
+ if (height + -1 < 1) {
+ return;
+ }
+ while (true) {
+ while (true) {
+ do {
+ pbVar18 = pbVar16;
+ bVar13 = *pbVar18 & 0xe0;
+ pbVar16 = pbVar18 + 1;
+ } while (bVar13 == 0x20);
+ if (bVar13 != 0)
+ break;
+ pbVar16 = pbVar16 + (*pbVar18 & 0xffffff1f) + 1;
+ }
+ if (bVar13 != 0x40)
+ break;
+ pbVar16 = pbVar18 + 2;
+ }
+ height = height + -2;
+ imageAddress = pbVar16;
+ uVar7 = uVar11;
+ } while (0 < height);
+ }
+ return;
+ }
+ if (-1 < xPosition) {
+ if (yPosition < this->mapGameSurfaceHeightRange.start) {
+ iVar14 = this->mapGameSurfaceHeightRange.start - yPosition;
+ if (height <= iVar14) {
+ this->currentRenderSurface
+ = DAT_WindowAndDirectDraw.surfacePointer_mapGame;
+ return;
+ }
+ height = height - iVar14;
+ do {
+ while (true) {
+ while (true) {
+ do {
+ pbVar16 = imageAddress;
+ bVar13 = *pbVar16 & 0xe0;
+ imageAddress = pbVar16 + 1;
+ } while (bVar13 == 0x20);
+ if (bVar13 != 0)
+ break;
+ imageAddress = imageAddress + (*pbVar16 & 0xffffff1f) + 1;
+ }
+ if (bVar13 != 0x40)
+ break;
+ imageAddress = pbVar16 + 2;
+ }
+ iVar14 = iVar14 + -1;
+ yPosition = this->mapGameSurfaceHeightRange.start;
+ } while (0 < iVar14);
+ }
+ iVar14 = (int)DAT_WindowAndDirectDraw.surfacePointer_mapGame
+ + ((uint)yPosition >> 1) * 0x1fb0 + (xPosition & 0xfffffffeU);
+ uVar7 = uVar11;
+ do {
+ while (true) {
+ while (true) {
+ while (true) {
+ local_14 = uVar7;
+ bVar13 = *imageAddress & 0xe0;
+ uVar7 = *imageAddress & 0xffffff1f;
+ pbVar16 = imageAddress + 1;
+ if (bVar13 != 0x20)
+ break;
+ imageAddress = pbVar16;
+ uVar7 = local_14 + uVar7 + 1;
+ }
+ if (bVar13 != 0)
+ break;
+ iVar8 = uVar7 + 1;
+ uVar7 = local_14 + iVar8;
+ do {
+ if ((local_14 & 1) == 0) {
+ uStack_36 = (undefined2)(local_14 >> 0x10);
+ uVar15
+ = CONCAT22(uStack_36, _colorPaletteRef[*pbVar16]) & 0xffff001f;
+ uVar4 = _colorPaletteRef[*pbVar16] & 0xffe0
+ | *(ushort*)(iVar10 + uVar15 * 8);
+ uVar15 = CONCAT22((short)(uVar15 >> 0x10), uVar4 >> 5) & 0xffff003f;
+ uVar5 = uVar4 & 0xf81f | *(ushort*)(iVar2 + 0xd812da + uVar15 * 8);
+ uVar4 = *(ushort*)(iVar14 + local_14);
+ *(ushort*)(iVar14 + local_14) = uVar5 & 0x7ff
+ | *(ushort*)(iVar2 + 0xd812dc
+ + CONCAT22((short)(uVar15 >> 0x10), uVar5 >> 0xb) * 8);
+ uVar4 = uVar4 & 0xffe0
+ | DAT_BlendFilterArrays[blendStrengthUnk]
+ [uVar4 & 0xffff001f][0];
+ uVar4 = uVar4 & 0xf81f
+ | *(ushort*)(iVar6 + 0xd7d2da + (uVar4 >> 5 & 0xffff003f) * 8);
+ *(short*)(iVar14 + local_14) = *(short*)(iVar14 + local_14)
+ + (uVar4 & 0x7ff
+ | *(ushort*)(iVar6 + 0xd7d2dc + (uint)(uVar4 >> 0xb) * 8));
+ }
+ pbVar16 = pbVar16 + 1;
+ local_14 = local_14 + 1;
+ iVar8 = iVar8 + -1;
+ imageAddress = pbVar16;
+ } while (iVar8 != 0);
+ }
+ if (bVar13 != 0x40)
+ break;
+ imageAddress = imageAddress + 2;
+ uVar4 = _colorPaletteRef[*pbVar16] & 0xffe0
+ | *(ushort*)(iVar10 + (_colorPaletteRef[*pbVar16] & 0xffff001f) * 8);
+ uVar5 = uVar4 & 0xf81f
+ | *(ushort*)(iVar2 + 0xd812da + (uVar4 >> 5 & 0xffff003f) * 8);
+ uVar4 = *(ushort*)(iVar2 + 0xd812dc + (uint)(uVar5 >> 0xb) * 8);
+ iVar8 = uVar7 + 1;
+ uVar7 = local_14 + iVar8;
+ do {
+ if ((local_14 & 1) == 0) {
+ uVar9 = *(ushort*)(iVar14 + local_14) & 0xffe0
+ | DAT_BlendFilterArrays[blendStrengthUnk]
+ [*(ushort*)(iVar14 + local_14)
+ & 0xffff001f][0];
+ uVar9 = uVar9 & 0xf81f
+ | *(ushort*)(iVar6 + 0xd7d2da + (uVar9 >> 5 & 0xffff003f) * 8);
+ *(ushort*)(iVar14 + local_14)
+ = (uVar9 & 0x7ff
+ | *(ushort*)(iVar6 + 0xd7d2dc + (uint)(uVar9 >> 0xb) * 8))
+ + (uVar5 & 0x7ff | uVar4);
+ }
+ local_14 = local_14 + 1;
+ iVar8 = iVar8 + -1;
+ } while (iVar8 != 0);
+ }
+ iVar14 = iVar14 + 0x1fb0;
+ if (height + -1 < 1) {
+ return;
+ }
+ while (true) {
+ while (true) {
+ do {
+ pbVar18 = pbVar16;
+ bVar13 = *pbVar18 & 0xe0;
+ pbVar16 = pbVar18 + 1;
+ } while (bVar13 == 0x20);
+ if (bVar13 != 0)
+ break;
+ pbVar16 = pbVar16 + (*pbVar18 & 0xffffff1f) + 1;
+ }
+ if (bVar13 != 0x40)
+ break;
+ pbVar16 = pbVar18 + 2;
+ }
+ height = height + -2;
+ imageAddress = pbVar16;
+ uVar7 = uVar11;
+ } while (0 < height);
+ }
+ }
+ }
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00454620 loadGfxFile | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00454620
+ int TextureRenderCore::loadGfxFile(CHAR_CONST* tgxFileName)
+ {
+ size_t _size;
+ BOOLEnum _loadSuccessful;
+ void* _tgxLoadLocation;
+ int _currentBufferSize;
+ resolveResourceFileName(
+ FRT_GFX, tgxFileName);
+ _size = getCurrentResourceSize();
+ _currentBufferSize = this->loadedGfxArray[this->totalLoadedGfx].offsetInBuffer;
+ if (0x1167910 < (int)(_currentBufferSize + _size)) {
+ return -1;
+ }
+ _tgxLoadLocation = (void*)((int)this->gmAndGfxImageDataBuffer + _currentBufferSize);
+ _loadSuccessful = readCurrentResourceIntoDestination(_tgxLoadLocation, _size);
+ if (_loadSuccessful == FALSE) {
+ return -1;
+ }
+ if (DAT_WindowAndDirectDraw.colorBitMode == RGB_565) {
+ transformTgxFromRGB555ToRGB565(
+ (ushort*)((int)_tgxLoadLocation + 8),
+ DAT_ResourceManager.loadPositionInCurrentResource + -8);
+ }
+ this->loadedGfxArray[this->totalLoadedGfx + 1].offsetInBuffer
+ = this->loadedGfxArray[this->totalLoadedGfx].offsetInBuffer
+ + DAT_ResourceManager.loadPositionInCurrentResource;
+ this->loadedGfxArray[this->totalLoadedGfx].width = *(int*)_tgxLoadLocation;
+ this->loadedGfxArray[this->totalLoadedGfx].height = *(int*)((int)_tgxLoadLocation + 4);
+ _currentBufferSize = this->totalLoadedGfx;
+ this->totalLoadedGfx = this->totalLoadedGfx + 1;
+ return _currentBufferSize;
+ }
+ }
+}
+}
+
+### 0x00454700 loadGFX8 | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00454700
+ int TextureRenderCore::loadGFX8(char* gfx8Filename)
+ {
+ size_t _size;
+ BOOLEnum _success;
+ void* _destination;
+ int _currentBufferFillSize;
+ resolveResourceFileName(
+ FRT_GFX8, (CHAR_CONST*)((int)(gfx8Filename)));
+ _size = getCurrentResourceSize();
+ _currentBufferFillSize = this->loadedGfxArray[this->totalLoadedGfx].offsetInBuffer;
+ if (0x1167910 < (int)(_currentBufferFillSize + _size)) {
+ return -1;
+ }
+ _destination = (void*)((int)this->gmAndGfxImageDataBuffer + _currentBufferFillSize);
+ _success = readCurrentResourceIntoDestination(_destination, _size);
+ if (_success == FALSE) {
+ return -1;
+ }
+ this->loadedGfxArray[this->totalLoadedGfx + 1].offsetInBuffer
+ = this->loadedGfxArray[this->totalLoadedGfx].offsetInBuffer
+ + DAT_ResourceManager.loadPositionInCurrentResource;
+ this->loadedGfxArray[this->totalLoadedGfx].width = *(int*)_destination;
+ this->loadedGfxArray[this->totalLoadedGfx].height = *(int*)((int)_destination + 4);
+ _currentBufferFillSize = this->totalLoadedGfx;
+ this->totalLoadedGfx = this->totalLoadedGfx + 1;
+ return _currentBufferFillSize;
+ }
+ }
+}
+}
+
+### 0x004547c0 loadGfxAtBufferEnd | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004547C0
+ int TextureRenderCore::loadGfxAtBufferEnd(char* fileName)
+ {
+ void* pvVar1;
+ size_t _size;
+ BOOLEnum _success;
+ void* _destination;
+ int _backwardsBufferSize;
+ /*
+ Some address calculations are bugged. I assume normal numbers are mistaken as addresses, which causes
+ issues. -TheRedDaemon
+ */
+ resolveResourceFileName(
+ FRT_GFX, (CHAR_CONST*)((int)(fileName)));
+ _size = getCurrentResourceSize();
+ pvVar1 = this->gmAndGfxImageDataBuffer;
+ _backwardsBufferSize
+ = -_size - this->loadedGfxArray[this->backwardsLoadedGfxIndex_0x16C850].backwardsOffsetInBuffer;
+ _destination = (void*)((int)this->gmAndGfxImageDataBuffer + (int)DAT_GameState + _backwardsBufferSize
+ + 0x3c858);
+ _success = readCurrentResourceIntoDestination(_destination, _size);
+ if (_success == FALSE) {
+ return -1;
+ }
+ if (DAT_WindowAndDirectDraw.colorBitMode == RGB_565) {
+ transformTgxFromRGB555ToRGB565(
+ (ushort*)((int)pvVar1 + (int)DAT_GameState + _backwardsBufferSize + 0x3c860),
+ DAT_ResourceManager.loadPositionInCurrentResource + -8);
+ }
+ this->loadedGfxArray[this->backwardsLoadedGfxIndex_0x16C850].offsetInBuffer
+ = (0x1167910 - this->loadedGfxArray[this->backwardsLoadedGfxIndex_0x16C850].backwardsOffsetInBuffer)
+ - _size;
+ this->loadedGfxArray[this->backwardsLoadedGfxIndex_0x16C850 + -1].backwardsOffsetInBuffer
+ = this->loadedGfxArray[this->backwardsLoadedGfxIndex_0x16C850].backwardsOffsetInBuffer
+ + DAT_ResourceManager.loadPositionInCurrentResource;
+ this->loadedGfxArray[this->backwardsLoadedGfxIndex_0x16C850].backwardsOffsetInBuffer
+ = this->loadedGfxArray[this->backwardsLoadedGfxIndex_0x16C850 + -1].backwardsOffsetInBuffer;
+ this->loadedGfxArray[this->backwardsLoadedGfxIndex_0x16C850].width = *(int*)_destination;
+ this->loadedGfxArray[this->backwardsLoadedGfxIndex_0x16C850].height
+ = *(int*)((int)pvVar1 + (int)DAT_GameState + _backwardsBufferSize + 0x3c85c);
+ _backwardsBufferSize = this->backwardsLoadedGfxIndex_0x16C850;
+ this->backwardsLoadedGfxIndex_0x16C850 = this->backwardsLoadedGfxIndex_0x16C850 + -1;
+ return _backwardsBufferSize;
+ }
+ }
+}
+}
+
+### 0x004548d0 CheckGfxResourceExists | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004548D0
+ BOOLEnum TextureRenderCore::checkGfxResourceExists(char* fileName)
+ {
+ resolveResourceFileName(
+ FRT_GFX, fileName);
+ return getCurrentResourceSize()
+ != 0;
+ }
+ }
+}
+}
+
+### 0x00454900 renderLoadedGfx | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00454900
+ void TextureRenderCore::renderLoadedGfx(int loadedGfxIndex, int xPos, int yPos)
+ {
+ RenderTargetInt RVar1;
+ RVar1 = this->drawBufferChoiceValue;
+ this->drawBufferChoiceValue = this->currentRenderSurfaceIdentifierUnk_0x8;
+ renderFunctionResponsibleForManyGameObjects(xPos,
+ yPos, this->loadedGfxArray[loadedGfxIndex].width, this->loadedGfxArray[loadedGfxIndex].height,
+ (ushort*)((int)(
+ (this->loadedGfxArray[loadedGfxIndex].offsetInBuffer + 8 + (int)this->gmAndGfxImageDataBuffer))));
+ this->drawBufferChoiceValue = RVar1;
+ return;
+ }
+ }
+}
+}
+
+### 0x00454960 setRenderingRectToGameResolution | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00454960
+ void TextureRenderCore::setRenderingRectToGameResolution()
+ {
+ this->renderingRect_16c854.left = 0;
+ this->renderingRect_16c854.top = 0;
+ this->renderingRect_16c854.right = DAT_WindowAndDirectDraw.resolutionX;
+ this->renderingRect_16c854.bottom = DAT_WindowAndDirectDraw.resolutionY;
+ }
+ }
+}
+}
+
+### 0x00454990 setRenderingRect | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00454990
+ void TextureRenderCore::setRenderingRect(int xPos, int yPos, int width, int height)
+ {
+ this->renderingRect_16c854.left = xPos;
+ this->renderingRect_16c854.top = yPos;
+ this->renderingRect_16c854.right = width;
+ this->renderingRect_16c854.bottom = height;
+ }
+ }
+}
+}
+
+### 0x004549c0 checkIfGfxTgxStartsWithTransparentPixels | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004549C0
+ BOOLEnum TextureRenderCore::checkIfGfxTgxStartsWithTransparentPixels(int gfxIndex)
+ {
+ int byteIndex = this->loadedGfxArray[gfxIndex].offsetInBuffer + 8;
+ byte checkByte = ((byte*)this->gmAndGfxImageDataBuffer)[byteIndex];
+ if ((checkByte & TT_TGX_PIXEL_HEADER)
+ == TT_TRANSPARENT_PIXELS) {
+ return TRUE;
+ } else {
+ return FALSE;
+ }
+ }
+ }
+}
+}
+
+### 0x004549f0 renderGfxTgxWithBlending | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004549F0
+ void TextureRenderCore::renderGfxTgxWithBlending(int gfxIndex, int x, int y, int blendStrengthUnk)
+ {
+ RenderTargetInt RVar1;
+ RVar1 = this->drawBufferChoiceValue;
+ if ((uint)blendStrengthUnk < 0x20) {
+ this->drawBufferChoiceValue = this->currentRenderSurfaceIdentifierUnk_0x8;
+ renderInterfaceOrBuildingOccupationArea(x, y,
+ this->loadedGfxArray[gfxIndex].width, this->loadedGfxArray[gfxIndex].height,
+ (ushort*)((int)(
+ (this->loadedGfxArray[gfxIndex].offsetInBuffer + 8 + (int)this->gmAndGfxImageDataBuffer))),
+ blendStrengthUnk);
+ }
+ this->drawBufferChoiceValue = RVar1;
+ return;
+ }
+ }
+}
+}
+
+### 0x00454a60 drawTgxOnFlaggedSurface | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00454A60
+ void TextureRenderCore::drawTgxOnFlaggedSurface(
+ int xPos, int yPos, int gfxWidth, int gfxHeight, ushort* tgxSourcePtr)
+ {
+ undefined2 uVar1;
+ LONG LVar2;
+ LONG LVar3;
+ TgxTokenByte _tgxToken;
+ int iVar4;
+ uint uVar5;
+ TgxTokenByte _tgxToken2;
+ int iVar6;
+ TgxTokenByte* pTVar7;
+ ushort* _renderPtr;
+ int _byteWidth;
+ int _xRenderPos;
+ LVar3 = this->renderingRect_16c854.right;
+ LVar2 = this->renderingRect_16c854.left;
+ if (this->currentRenderSurfaceIdentifierUnk_0x8 == RT_SCREEN_MENU) {
+ this->currentRenderSurface = DAT_WindowAndDirectDraw.surfacePointer_screenMenu;
+ /*
+ Could be "jump"-line needed to skip to start of next horizontal line. --TheRedDaemon
+ */
+ gfxWidth = DAT_WindowAndDirectDraw.byteSizeOfOneHorizontalLine + gfxWidth * -2;
+ _byteWidth = DAT_WindowAndDirectDraw.byteSizeOfOneHorizontalLine;
+ } else if (this->currentRenderSurfaceIdentifierUnk_0x8 == RT_MAP_GAME) {
+ this->currentRenderSurface = DAT_WindowAndDirectDraw.surfacePointer_mapGame;
+ gfxWidth = (0xfd8 - gfxWidth) * 2;
+ _byteWidth = 0x1fb0;
+ }
+ if ((gfxHeight + yPos <= this->renderingRect_16c854.bottom)
+ || (gfxHeight = this->renderingRect_16c854.bottom - yPos, 0 < gfxHeight)) {
+ if (yPos < this->renderingRect_16c854.top) {
+ iVar6 = this->renderingRect_16c854.top - yPos;
+ if (gfxHeight <= iVar6) {
+ return;
+ }
+ gfxHeight = gfxHeight - iVar6;
+ do {
+ while (true) {
+ while (true) {
+ do {
+ pTVar7 = (TgxTokenByte*)tgxSourcePtr;
+ _tgxToken2 = *pTVar7 & TT_TGX_PIXEL_HEADER;
+ tgxSourcePtr = (ushort*)(pTVar7 + 1);
+ } while (_tgxToken2 == TT_TRANSPARENT_PIXELS);
+ if (_tgxToken2 != TT_STREAM_OF_PIXELS)
+ break;
+ tgxSourcePtr = (ushort*)((int)tgxSourcePtr + ((*pTVar7 & 0xffffff1f) + 1) * 2);
+ }
+ if (_tgxToken2 != TT_REPEATING_PIXELS)
+ break;
+ tgxSourcePtr = (ushort*)(pTVar7 + 3);
+ }
+ iVar6 = iVar6 + -1;
+ yPos = this->renderingRect_16c854.top;
+ } while (0 < iVar6);
+ }
+ _renderPtr = (ushort*)((int)this->currentRenderSurface + yPos * _byteWidth + xPos * 2);
+ _xRenderPos = xPos;
+ LAB_00454b69:
+ do {
+ while (true) {
+ while (true) {
+ _tgxToken = *(TgxTokenByte*)tgxSourcePtr & TT_TGX_PIXEL_HEADER;
+ uVar5 = *(TgxTokenByte*)tgxSourcePtr & 0xffffff1f;
+ pTVar7 = (TgxTokenByte*)((int)tgxSourcePtr + 1);
+ if (_tgxToken != TT_TRANSPARENT_PIXELS)
+ break;
+ _xRenderPos = _xRenderPos + uVar5 + 1;
+ _renderPtr = _renderPtr + uVar5 + 1;
+ tgxSourcePtr = (ushort*)pTVar7;
+ }
+ if (_tgxToken != TT_STREAM_OF_PIXELS)
+ break;
+ iVar6 = uVar5 + 1;
+ if (_xRenderPos < LVar3) {
+ tgxSourcePtr = (ushort*)pTVar7;
+ if (_xRenderPos < LVar2) {
+ if (iVar6 + _xRenderPos <= LVar2)
+ goto LAB_00454c2d;
+ iVar4 = LVar2 - _xRenderPos;
+ iVar6 = iVar6 - iVar4;
+ _xRenderPos = _xRenderPos + iVar4;
+ tgxSourcePtr = (ushort*)(pTVar7 + iVar4 * 2);
+ _renderPtr = _renderPtr + iVar4;
+ }
+ if (iVar6 + _xRenderPos < LVar3) {
+ do {
+ *_renderPtr = *tgxSourcePtr;
+ tgxSourcePtr = (ushort*)((int)tgxSourcePtr + 2);
+ _renderPtr = _renderPtr + 1;
+ _xRenderPos = _xRenderPos + 1;
+ iVar6 = iVar6 + -1;
+ } while (iVar6 != 0);
+ } else {
+ iVar4 = (iVar6 + _xRenderPos) - LVar3;
+ iVar6 = iVar6 - iVar4;
+ do {
+ *_renderPtr = *tgxSourcePtr;
+ tgxSourcePtr = (ushort*)((int)tgxSourcePtr + 2);
+ _renderPtr = _renderPtr + 1;
+ _xRenderPos = _xRenderPos + 1;
+ iVar6 = iVar6 + -1;
+ } while (iVar6 != 0);
+ _xRenderPos = _xRenderPos + iVar4;
+ _renderPtr = _renderPtr + iVar4;
+ tgxSourcePtr = (ushort*)((int)tgxSourcePtr + iVar4 * 2);
+ }
+ } else {
+ LAB_00454c2d:
+ _xRenderPos = _xRenderPos + iVar6;
+ _renderPtr = _renderPtr + iVar6;
+ tgxSourcePtr = (ushort*)(pTVar7 + iVar6 * 2);
+ }
+ }
+ if (_tgxToken == TT_REPEATING_PIXELS) {
+ iVar6 = uVar5 + 1;
+ if (_xRenderPos < LVar3) {
+ if (_xRenderPos < LVar2) {
+ if (iVar6 + _xRenderPos <= LVar2)
+ goto LAB_00454bb5;
+ iVar4 = LVar2 - _xRenderPos;
+ iVar6 = iVar6 - iVar4;
+ _xRenderPos = _xRenderPos + iVar4;
+ _renderPtr = _renderPtr + iVar4;
+ }
+ if (iVar6 + _xRenderPos < LVar3) {
+ uVar1 = *(undefined2*)pTVar7;
+ do {
+ *_renderPtr = uVar1;
+ _renderPtr = _renderPtr + 1;
+ _xRenderPos = _xRenderPos + 1;
+ iVar6 = iVar6 + -1;
+ } while (iVar6 != 0);
+ tgxSourcePtr = (ushort*)((int)tgxSourcePtr + 3);
+ } else {
+ iVar4 = (iVar6 + _xRenderPos) - LVar3;
+ iVar6 = iVar6 - iVar4;
+ uVar1 = *(undefined2*)pTVar7;
+ do {
+ *_renderPtr = uVar1;
+ _renderPtr = _renderPtr + 1;
+ _xRenderPos = _xRenderPos + 1;
+ iVar6 = iVar6 + -1;
+ } while (iVar6 != 0);
+ _xRenderPos = _xRenderPos + iVar4;
+ _renderPtr = _renderPtr + iVar4;
+ tgxSourcePtr = (ushort*)((int)tgxSourcePtr + 3);
+ }
+ } else {
+ LAB_00454bb5:
+ _xRenderPos = _xRenderPos + iVar6;
+ _renderPtr = _renderPtr + iVar6;
+ tgxSourcePtr = (ushort*)((int)tgxSourcePtr + 3);
+ }
+ goto LAB_00454b69;
+ }
+ _renderPtr = (ushort*)((int)_renderPtr + gfxWidth);
+ gfxHeight = gfxHeight + -1;
+ _xRenderPos = xPos;
+ tgxSourcePtr = (ushort*)pTVar7;
+ } while (0 < gfxHeight);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00454cb0 loadCampaignMapGfxUnk | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00454CB0
+ void TextureRenderCore::loadCampaignMapGfxUnk()
+ {
+ byte bVar1;
+ short sVar2;
+ ushort uVar3;
+ byte* pbVar4;
+ int iVar5;
+ ushort* _campaignMapPtrUnk;
+ undefined** _campaignActGfx8Ptr;
+ byte local_304[768];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)&_campaignActGfx8Ptr;
+ _campaignActGfx8Ptr = DAT_BlendingDefinedData.campaign_map_england;
+ _campaignMapPtrUnk = this->campaignMapColorMapsUnk_0x16c886[0] + 1;
+ do {
+ resolveResourceFileName(
+ FRT_GFX8, (CHAR_CONST*)((int)(*_campaignActGfx8Ptr)));
+ readFirstPartOfCurrentResourceIntoMemory(local_304, 0x300, "act");
+ pbVar4 = local_304;
+ iVar5 = 0x40;
+ do {
+ sVar2 = (*pbVar4 & 0xfff8) * 0x20;
+ if (DAT_WindowAndDirectDraw.colorBitMode == RGB_565) {
+ uVar3 = (ushort)(pbVar4[2] >> 3) + (sVar2 + (pbVar4[1] & 0xfffc)) * 8;
+ } else {
+ uVar3 = (ushort)(pbVar4[2] >> 3) + (sVar2 + (pbVar4[1] & 0xfff8)) * 4 | 0x8000;
+ }
+ if (uVar3 == 0xfc1f) {
+ uVar3 = 0xf81f;
+ }
+ bVar1 = pbVar4[3];
+ _campaignMapPtrUnk[-1] = uVar3;
+ sVar2 = (bVar1 & 0xfff8) * 0x20;
+ if (DAT_WindowAndDirectDraw.colorBitMode == RGB_565) {
+ uVar3 = (ushort)(pbVar4[5] >> 3) + (sVar2 + (pbVar4[4] & 0xfffc)) * 8;
+ } else {
+ uVar3 = (ushort)(pbVar4[5] >> 3) + (sVar2 + (pbVar4[4] & 0xfff8)) * 4 | 0x8000;
+ }
+ if (uVar3 == 0xfc1f) {
+ uVar3 = 0xf81f;
+ }
+ bVar1 = pbVar4[6];
+ *_campaignMapPtrUnk = uVar3;
+ sVar2 = (bVar1 & 0xfff8) * 0x20;
+ if (DAT_WindowAndDirectDraw.colorBitMode == RGB_565) {
+ uVar3 = (ushort)(pbVar4[8] >> 3) + (sVar2 + (pbVar4[7] & 0xfffc)) * 8;
+ } else {
+ uVar3 = (ushort)(pbVar4[8] >> 3) + (sVar2 + (pbVar4[7] & 0xfff8)) * 4 | 0x8000;
+ }
+ if (uVar3 == 0xfc1f) {
+ uVar3 = 0xf81f;
+ }
+ bVar1 = pbVar4[9];
+ _campaignMapPtrUnk[1] = uVar3;
+ sVar2 = (bVar1 & 0xfff8) * 0x20;
+ if (DAT_WindowAndDirectDraw.colorBitMode == RGB_565) {
+ uVar3 = (ushort)(pbVar4[0xb] >> 3) + (sVar2 + (pbVar4[10] & 0xfffc)) * 8;
+ } else {
+ uVar3 = (ushort)(pbVar4[0xb] >> 3) + (sVar2 + (pbVar4[10] & 0xfff8)) * 4 | 0x8000;
+ }
+ if (uVar3 == 0xfc1f) {
+ uVar3 = 0xf81f;
+ }
+ _campaignMapPtrUnk[2] = uVar3;
+ _campaignMapPtrUnk = _campaignMapPtrUnk + 4;
+ pbVar4 = pbVar4 + 0xc;
+ iVar5 = iVar5 + -1;
+ } while (iVar5 != 0);
+ _campaignActGfx8Ptr = _campaignActGfx8Ptr + 1;
+ } while ((int)_campaignActGfx8Ptr < 0xab8730);
+ ;
+ return;
+ }
+ }
+}
+}
+
+### 0x00454ee0 setMenuTabIndexUnk | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00454EE0
+ void TextureRenderCore::setMenuTabIndexUnk(int indexToSetToMinusOne)
+ {
+ this->activeMenuTabIndex = indexToSetToMinusOne + 1;
+ }
+ }
+}
+}
+
+### 0x00454ef0 setActiveMenuTabIndexToZero | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00454EF0
+ void TextureRenderCore::setActiveMenuTabIndexToZero() { this->activeMenuTabIndex = 0; }
+ }
+}
+}
+
+### 0x00454f00 moveOverlappingMenuPartsToMapSurface | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00454F00
+ void TextureRenderCore::moveOverlappingMenuPartsToMapSurface()
+ {
+ int _lineJumpBytes;
+ int _height;
+ int _runWidth;
+ ushort* _screenSurfacePtr;
+ ushort* _mapSurfacePtr;
+ int* _xPosPtr;
+ int* _widthPtr;
+ int* _hightPtr;
+ int* _yPosPtr;
+ undefined2 _ignoreColor;
+ int _width;
+ if ((this->activeMenuTabIndex != 0)
+ && (DAT_BlendingDefinedData.field166_0x2dfc[this->activeMenuTabIndex * 0x28 + 0x5e] != -1)) {
+ _widthPtr = DAT_BlendingDefinedData.field166_0x2dfc + this->activeMenuTabIndex * 0x28 + 0x60;
+ _xPosPtr = DAT_BlendingDefinedData.field166_0x2dfc + this->activeMenuTabIndex * 0x28 + 0x5e;
+ _hightPtr = DAT_BlendingDefinedData.field166_0x2dfc + this->activeMenuTabIndex * 0x28 + 0x61;
+ _yPosPtr = DAT_BlendingDefinedData.field166_0x2dfc + this->activeMenuTabIndex * 0x28 + 0x5f;
+ do {
+ _ignoreColor = COL_MAGENTA::instance.shortValue;
+ if (*_xPosPtr == -2) {
+ if (DAT_WindowAndDirectDraw.currentGameResolution
+ == SRE_800x600) {
+ return;
+ }
+ _yPosPtr = _yPosPtr + 4;
+ _hightPtr = _hightPtr + 4;
+ _widthPtr = _widthPtr + 4;
+ _xPosPtr = _xPosPtr + 4;
+ }
+ _screenSurfacePtr = (ushort*)((int)DAT_WindowAndDirectDraw.surfacePointer_screenMenu
+ + (DAT_MenuHandlerState.x + *_xPosPtr) * 2
+ + (*_yPosPtr + DAT_MenuHandlerState.y)
+ * DAT_WindowAndDirectDraw.byteSizeOfOneHorizontalLine);
+ _mapSurfacePtr = DAT_WindowAndDirectDraw.surfacePointer_mapGame
+ + (*_yPosPtr + DAT_ViewportRenderState.viewportState.currentCameraOffsetY
+ + DAT_MenuHandlerState.y)
+ * 0xfd8
+ + *_xPosPtr + DAT_ViewportRenderState.viewportState.currentCameraOffsetX
+ + DAT_MenuHandlerState.x;
+ _width = *_widthPtr;
+ _lineJumpBytes = DAT_WindowAndDirectDraw.byteSizeOfOneHorizontalLine + _width * -2;
+ _height = *_hightPtr;
+ _runWidth = _width;
+ do {
+ do {
+ if (*_screenSurfacePtr != _ignoreColor) {
+ *_mapSurfacePtr = *_screenSurfacePtr;
+ }
+ _screenSurfacePtr = _screenSurfacePtr + 1;
+ _mapSurfacePtr = _mapSurfacePtr + 1;
+ _runWidth = _runWidth + -1;
+ } while (_runWidth != 0);
+ _screenSurfacePtr = (ushort*)((int)_screenSurfacePtr + _lineJumpBytes);
+ _mapSurfacePtr = _mapSurfacePtr + (0xfd8 - _width);
+ _height = _height + -1;
+ _runWidth = _width;
+ } while (_height != 0);
+ _yPosPtr = _yPosPtr + 4;
+ _hightPtr = _hightPtr + 4;
+ _widthPtr = _widthPtr + 4;
+ _xPosPtr = _xPosPtr + 4;
+ } while (*_xPosPtr != -1);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00455050 Constructor_TextureRenderCore | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00455050
+ TextureRenderCore* TextureRenderCore::Constructor_TextureRenderCore(
+ int processedImageDataBufferSize, int gmAndGfxImageDataBufferSize, int unknownMemSize)
+ {
+ /*
+ generates rendering class?
+ */
+ this->gmProcessedImageDataBufferSize_0x74 = processedImageDataBufferSize;
+ this->gmAndGfxImageDataBufferSize_0x8c = gmAndGfxImageDataBufferSize;
+ if (unknownMemSize == 0) {
+ this->unknownMemSize_1_0x7c = 0;
+ this->unknownMemSize_2_0x84 = 0;
+ } else {
+ this->unknownMemSize_2_0x84 = unknownMemSize / 2;
+ this->unknownMemSize_1_0x7c = unknownMemSize;
+ }
+ this->bufferAllocStateUnk_0x0 = 0;
+ this->drawBufferChoiceValue = RT_MAP_GAME;
+ this->currentRenderSurfaceIdentifierUnk_0x8 = RT_SCREEN_MENU;
+ this->field79_0x128 = 0;
+ this->field80_0x12c = 0;
+ this->field29_0x2c = 1;
+ this->isZoom2 = 0;
+ clearSomeMemory();
+ this->unknownSfxAndGmRelatedFlag = FALSE;
+ this->gmProcessedImageData
+ = _malloc(this->gmProcessedImageDataBufferSize_0x74);
+ if (this->gmProcessedImageData != (void*)0x0) {
+ if (unknownMemSize == 0) {
+ this->unknownMemPtr_1_0x80 = (void*)0x0;
+ this->address2 = (void*)0x0;
+ } else {
+ this->unknownMemPtr_1_0x80 = _malloc(this->unknownMemSize_1_0x7c);
+ if (this->unknownMemPtr_1_0x80 == (void*)0x0) {
+ this->bufferAllocStateUnk_0x0 = 2;
+ return this;
+ }
+ this->address2 = _malloc(this->unknownMemSize_2_0x84);
+ if (this->address2 == (void*)0x0) {
+ this->bufferAllocStateUnk_0x0 = 3;
+ return this;
+ }
+ }
+ this->gmAndGfxImageDataBuffer
+ = _malloc(this->gmAndGfxImageDataBufferSize_0x8c);
+ if (this->gmAndGfxImageDataBuffer != (void*)0x0) {
+ this->totalLoadedGfx = 0;
+ this->mbr_0x70 = 0;
+ this->bitmapsFaces_0x94 = _malloc(304128);
+ this->field69_0x98[0] = 0;
+ this->field69_0x98[1] = 0;
+ this->field69_0x98[2] = 0;
+ this->field69_0x98[3] = 0;
+ this->field69_0x98[4] = 0;
+ this->field69_0x98[5] = 0;
+ this->field69_0x98[6] = 0;
+ this->field69_0x98[7] = 0;
+ this->field69_0x98[8] = 0;
+ this->field69_0x98[9] = 0;
+ this->field69_0x98[10] = 0;
+ this->field69_0x98[0xb] = 0;
+ this->field69_0x98[0xc] = 0;
+ this->field69_0x98[0xd] = 0;
+ this->field69_0x98[0xe] = 0;
+ this->field69_0x98[0xf] = 0;
+ this->field69_0x98[0x10] = 0;
+ this->field69_0x98[0x11] = 0;
+ this->field69_0x98[0x12] = 0;
+ this->field69_0x98[0x13] = 0;
+ this->unknownPlayerDependentRenderValue[0] = 0;
+ this->unknownPlayerDependentRenderValue[1] = 0;
+ this->unknownPlayerDependentRenderValue[2] = 0;
+ this->unknownPlayerDependentRenderValue[3] = 0;
+ this->unknownPlayerDependentRenderValue[4] = 0;
+ this->unknownPlayerDependentRenderValue[5] = 0;
+ this->unknownPlayerDependentRenderValue[6] = 0;
+ this->unknownPlayerDependentRenderValue[7] = 0;
+ this->field71_0x108 = 0;
+ this->field72_0x10c = 0;
+ this->field73_0x110 = 0;
+ this->field74_0x114 = 0;
+ this->field75_0x118 = 0;
+ this->field76_0x11c = 0;
+ this->field77_0x120 = 0;
+ this->field78_0x124 = 0;
+ return this;
+ }
+ }
+ this->bufferAllocStateUnk_0x0 = 1;
+ return this;
+ }
+ }
+}
+}
+
+### 0x00455250 transformUncompressedImageWithMarkerUnkToRGB565 | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00455250
+ void TextureRenderCore::transformUncompressedImageWithMarkerUnkToRGB565(int imageIndex)
+ {
+ transformRawWithMarkerUnkToRGB555To565(DAT_GMImageOffsets[imageIndex], DAT_GMImageSizes[imageIndex]);
+ }
+ }
+}
+}
+
+### 0x00455270 transformTgxCompressedImageToRGB565 | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00455270
+ void TextureRenderCore::transformTgxCompressedImageToRGB565(int imageIndex)
+ {
+ transformTgxFromRGB555ToRGB565(
+ (ushort*)((byte*)this->gmProcessedImageData + DAT_GMImageOffsets[imageIndex]),
+ DAT_GMImageSizes[imageIndex]);
+ }
+ }
+}
+}
+
+### 0x00455290 transformTilesetToRGB565 | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00455290
+ void TextureRenderCore::transformTilesetToRGB565(int imageIndex)
+ {
+ transformTileObjectToRGB565(
+ DAT_GMImageOffsets[imageIndex]);
+ if (DAT_GMImageHeaders.imh[imageIndex].direction != 0) {
+ transformTgxFromRGB555ToRGB565(
+ (ushort*)((int)this->gmProcessedImageData + DAT_GMImageOffsets[imageIndex] + 0x200),
+ DAT_GMImageSizes[imageIndex] + -0x200);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004552e0 transformUncompressedImageToRGB565 | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004552e0
+ void TextureRenderCore::transformUncompressedImageToRGB565(int imageIndex)
+ {
+ transformRawToRGB555To565(
+ DAT_GMImageOffsets[imageIndex], DAT_GMImageSizes[imageIndex]);
+ }
+ }
+}
+}
+
+### 0x00455300 renderGM | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00455300
+ void TextureRenderCore::renderGM(eGM gmID, int imageID, int drawX, int drawY)
+ {
+ int iVar1;
+ GmImageTypeInt _imageType;
+ iVar1 = GMTotalPicturesProcessed::instance[gmID];
+ _imageType = this->gmFileHeaderColorpaletteArray[gmID].ImageType;
+ if ((_imageType != GIT_InterfaceElement)
+ && (_imageType != GIT_CompressedImage)) {
+ if (_imageType == GIT_Animation) {
+ renderUnitAnimationUnk(
+ drawX, drawY, DAT_GMImageHeaders.imh[imageID + iVar1 + -1].width,
+ DAT_GMImageHeaders.imh[imageID + iVar1 + -1].height,
+ (byte*)((int)((
+ DAT_GMImageOffsets[iVar1 + -1 + imageID] + (int)this->gmProcessedImageData))));
+ }
+ return;
+ }
+ renderFunctionResponsibleForManyGameObjects(
+ drawX, drawY, DAT_GMImageHeaders.imh[imageID + iVar1 + -1].width,
+ DAT_GMImageHeaders.imh[imageID + iVar1 + -1].height,
+ (ushort*)((int)(
+ (DAT_GMImageOffsets[iVar1 + -1 + imageID] + (int)this->gmProcessedImageData))));
+ return;
+ }
+ }
+}
+}
+
+### 0x00455390 renderGMWithBlending | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00455390
+ void TextureRenderCore::renderGMWithBlending(GmID GmID, int imageID, int drawX, int drawY, int blendStrengthUnk)
+ {
+ int iVar1;
+ ushort* _imageDataPtr;
+ GmImageTypeInt _imageType;
+ iVar1 = GMTotalPicturesProcessed::instance[GmID];
+ _imageDataPtr
+ = (ushort*)(DAT_GMImageOffsets[iVar1 + -1 + imageID] + (int)this->gmProcessedImageData);
+ if (blendStrengthUnk != 0x20) {
+ _imageType = this->gmFileHeaderColorpaletteArray[GmID].ImageType;
+ if (blendStrengthUnk == 0) {
+ if ((_imageType == GIT_InterfaceElement)
+ || (_imageType == GIT_CompressedImage)) {
+ renderFunctionResponsibleForManyGameObjects(drawX, drawY,
+ DAT_GMImageHeaders.imh[imageID + iVar1 + -1].width,
+ DAT_GMImageHeaders.imh[imageID + iVar1 + -1].height, _imageDataPtr);
+ return;
+ }
+ if (_imageType == GIT_Animation) {
+ renderUnitAnimationUnk(
+ drawX, drawY, DAT_GMImageHeaders.imh[imageID + iVar1 + -1].width,
+ DAT_GMImageHeaders.imh[imageID + iVar1 + -1].height,
+ (byte*)((int)(_imageDataPtr)));
+ return;
+ }
+ } else {
+ if ((_imageType == GIT_InterfaceElement)
+ || (_imageType == GIT_CompressedImage)) {
+ renderInterfaceOrBuildingOccupationArea(drawX, drawY,
+ DAT_GMImageHeaders.imh[imageID + iVar1 + -1].width,
+ DAT_GMImageHeaders.imh[imageID + iVar1 + -1].height, _imageDataPtr,
+ blendStrengthUnk);
+ return;
+ }
+ if (_imageType == GIT_Animation) {
+ renderUnitAnimationWithBlendingUnk(
+ drawX, drawY, DAT_GMImageHeaders.imh[imageID + iVar1 + -1].width,
+ DAT_GMImageHeaders.imh[imageID + iVar1 + -1].height,
+ (byte*)((int)(_imageDataPtr)), blendStrengthUnk);
+ }
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004554a0 drawTgxGmOnFlaggedSurface | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004554A0
+ void TextureRenderCore::drawTgxGmOnFlaggedSurface(GmID gmId, int imageIndexInGm, int xPos, int yPos)
+ {
+ int iVar1;
+ ushort* _tgxSourcePtr;
+ int _imageIndex;
+ iVar1 = GMTotalPicturesProcessed::instance[gmId];
+ _tgxSourcePtr = (ushort*)(DAT_GMImageOffsets[iVar1 + -1 + imageIndexInGm]
+ + (int)this->gmProcessedImageData);
+ if (this->gmFileHeaderColorpaletteArray[gmId].ImageType == GIT_InterfaceElement) {
+ drawTgxOnFlaggedSurface(xPos,
+ yPos, DAT_GMImageHeaders.imh[imageIndexInGm + iVar1 + -1].width,
+ DAT_GMImageHeaders.imh[imageIndexInGm + iVar1 + -1].height, _tgxSourcePtr);
+ }
+ if (this->gmFileHeaderColorpaletteArray[gmId].ImageType == GIT_CompressedImage) {
+ drawTgxOnFlaggedSurface(xPos,
+ yPos, DAT_GMImageHeaders.imh[imageIndexInGm + iVar1 + -1].width,
+ DAT_GMImageHeaders.imh[imageIndexInGm + iVar1 + -1].height, _tgxSourcePtr);
+ }
+ return;
+ }
+ }
+}
+}
+

@@ -1,0 +1,446 @@
+### 0x0045cd10 processGameTick | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0045CD10
+ void GameStateStructures::processGameTick()
+ {
+ GameSynchronyState* piVar2;
+ DWORD DVar1;
+ BOOLEnum _ingameMenu;
+ BOOLEnum _hasNonTickingState;
+ int _playerIndex;
+ int (*piVar3)[128];
+ PlayerData* piVar9;
+ DWORD _announcementReceivedTimeNow;
+ DWORD _noAnnouncementReceivedTimeNow;
+ int _totalPacketSize;
+ PlayerData* piVar22;
+ int _alivePlayerCount2;
+ int _playerIDSyncStatus;
+ int* _pSyncStatus;
+ int* _ptr_playerIDArray;
+ DAT_RotateMapOrPullDownTerrain = 0;
+ if (DAT_GameSynchronyState.saveRelated != 0) {
+ if (DAT_GameSynchronyState.isHost == FALSE) {
+ DAT_RotateMapOrPullDownTerrain = 0;
+ return;
+ }
+ checkGameLagStatusAndKickAccordingly();
+ return;
+ }
+ if (DAT_GameSynchronyState.syncStatus != 0) {
+ if (DAT_GameSynchronyState.isHost == FALSE) {
+ if (DAT_GameSynchronyState.syncStatus == 10) {
+ DAT_GameSynchronyState.syncStatus = 0xb;
+ queueCommand(GCT_SHARE_GAME_STATE_PARTIAL_HASHES);
+ return;
+ }
+ if (DAT_GameSynchronyState.syncStatus != 1) {
+ if (DAT_GameSynchronyState.syncStatus != 3) {
+ DAT_RotateMapOrPullDownTerrain = 0;
+ return;
+ }
+ DAT_GameSynchronyState.syncStatus = 4;
+ queueCommand(GCT_SEND_KEEP_ALIVE);
+ return;
+ }
+ DAT_GameSynchronyState.syncStatus = 2;
+ queueCommand(GCT_SHARE_DESYNC_HASHES);
+ return;
+ }
+ if (DAT_GameSynchronyState.syncStatus == 10) {
+ checkLagAndSyncStatus();
+ return;
+ }
+ if (DAT_GameSynchronyState.syncStatus != 1) {
+ if (DAT_GameSynchronyState.syncStatus == 2) {
+ sendPendingResyncCommandsInBudget();
+ return;
+ }
+ if (DAT_GameSynchronyState.syncStatus < 3) {
+ DAT_RotateMapOrPullDownTerrain = 0;
+ return;
+ }
+ advanceSyncStatusAndKickLaggers();
+ return;
+ }
+ broadcastDesyncResyncCommands();
+ return;
+ }
+ if ((DAT_GameSynchronyState.quitGameVoteRelated != 0)
+ && (DVar1 = timeGetTime(), 11000 < DVar1 - DAT_GameSynchronyState.quitGameVoteRequestTime)) {
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = 2;
+ queueCommand(
+ GCT_SEND_QUIT_GAME_VOTE);
+ }
+ _ingameMenu = getAreWeInAInGameMenu();
+ if (_ingameMenu != FALSE) {
+ if ((DAT_GameCore.gamePausedLogical != 0)
+ && (7 < DAT_TileMapState.DAT_FutureMapOrientation))
+ goto LAB_0045ce7c;
+ _hasNonTickingState
+ = isGameHaltingMenuOpen();
+ if (_hasNonTickingState == FALSE) {
+ nextRandomNumber2();
+ nextRandomNumber1();
+ DAT_GameCore.mapTimeInTicks = DAT_GameCore.mapTimeInTicks + 1;
+ processSingleTimeTick();
+ }
+ }
+ if (DAT_TileMapState.DAT_FutureMapOrientation < 8) {
+ DAT_RotateMapOrPullDownTerrain = 1;
+ }
+ LAB_0045ce7c:
+ processMapOrientationChange();
+ updateShowHiLayerOrResetChangedLayer();
+ rotateFearFactorBuildingVariations();
+ updatePathLinkageForGatesKeepsSiegeTowers();
+ updateSeparateAreaTileMap(0);
+ updateLogicalTileMapRelatedSections();
+ updateMacroLayer();
+ /*
+ called when rotating the screen
+ */
+ updateGfxLayer();
+ /*
+ also called when rotating the screen
+ */
+ updateGFXLayers();
+ setChangedLayerZeroBasedOn40x40Layer(0);
+ subtractPitchAndMoatFromStartingGoldInSiegeThatMode();
+ clearOldSpawnMoment();
+ /*
+ Game ignores pause if certain right-click actions are made
+ */
+ if (DAT_RotateMapOrPullDownTerrain == 0) {
+ if (0 < (int)DAT_GameCore.gamePausedLogical) {
+ return;
+ }
+ if (DAT_GameCore.gamePausedLogical == 0) {
+ _hasNonTickingState
+ = isGameHaltingMenuOpen();
+ if (_hasNonTickingState != FALSE) {
+ return;
+ }
+ } else {
+ DAT_GameCore.gamePausedLogical = 0;
+ }
+ }
+ if (((DAT_GameCore.gameMode_2 != GM_EDITOR)
+ || (DAT_GameCore.isTimeHalted2 == 0))
+ && (_hasNonTickingState
+ = getAreWeInAInGameMenu(),
+ _hasNonTickingState != FALSE)) {
+ /*
+ From here on only gets called if game is unpaused
+ */
+ resetCountsAndStatistics();
+ resetBuildingsCurrentIndexCounter();
+ updateWind();
+ DAT_PathFindingState.field48_0x90 = 0;
+ updateClimbData();
+ updateBuildings();
+ updatePitchDitches();
+ updateTrees();
+ processSingleplayerEvents();
+ checkSkirmishGameDefeat();
+ updateBuildingsStateAndUpdateAIBuildingDecisions();
+ aiControlNonSkirmishUnitMovement();
+ updateUnits();
+ updateEntities();
+ removeUnitsSameTileLinkageIfNoLongerApplicable();
+ processFoodConsumption();
+ computePopulationStatistics();
+ updateTribeUnitAssignments();
+ updateTribes();
+ spawnQueuedReinforcementWaves();
+ respawnDeer();
+ generateDustClouds();
+ updateGameRelatedValue();
+ DoNothing();
+ updateDestructionConfirmationCountdown();
+ clearInvalidatedHoverStates();
+ computeArmySizeLimit();
+ return;
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0045cd10", "name": "processGameTick", "quelle": "ghidra", "p1": {"bereich": "Spielablauf", "zweck": "Haupt-Spielschritt: Netzwerkabgleich, Zeitzähler und die Reihenfolge aller Spielsysteme."}, "p2": {"ein": "-", "aus": "-", "liest": ["DAT_GameSynchronyState.saveRelated/syncStatus/isHost/quitGameVoteRelated", "gamePausedLogical", "FutureMapOrientation"], "schreibt": ["syncStatus", "mapTimeInTicks", "Zufallszahlen 1 und 2"], "ruft": ["processSingleTimeTick", "nextRandomNumber1", "nextRandomNumber2", "queueCommand", "checkGameLagStatusAndKickAccordingly", "updateBuildings", "updateUnits", "updateTribes", "processFoodConsumption", "computeArmySizeLimit"], "regeln": ["saveRelated ungleich 0: Host prüft nur Verzögerung und Rauswurf, Gast tut nichts; kein Spielschritt", "syncStatus ungleich 0: Abgleichsablauf (Gast: 10 wird 11 mit Teil-Hashes, 1 wird 2 mit Desync-Hashes, 3 wird 4 mit Keep-Alive; Host: eigene Schritte je Status); kein Spielschritt", "Abstimmung zum Beenden: nach über 11000 ms ohne Antwort wird Param 2 (Ablehnung?) gesendet", "Pro Spielschritt: beide Zufallszahlen weiter, mapTimeInTicks +1, dann processSingleTimeTick; nur ohne haltendes Menü", "Pause: gamePausedLogical größer 0 oder haltendes Menü beendet den Schritt vor den Spielsystemen", "Reihenfolge Spielsysteme: resetCountsAndStatistics, updateWind, updateClimbData, updateBuildings, updatePitchDitches, updateTrees, processSingleplayerEvents, checkSkirmishGameDefeat, KI-Gebäudeentscheidungen, aiControlNonSkirmishUnitMovement, updateUnits, updateEntities, processFoodConsumption, computePopulationStatistics, updateTribeUnitAssignments, updateTribes, spawnQueuedReinforcementWaves, respawnDeer, generateDustClouds, computeArmySizeLimit"], "offen": ["Ob mit getAreWeInAInGameMenu wirklich gemeint ist: Spiel läuft (Name täuscht möglicherweise)", "Genaue Pausenlogik, da gamePausedLogical vor processSingleTimeTick nur bei Karten-Ausrichtung über 7 geprüft wird", "Bedeutung der Befehlsparameter 2 beim Abstimmungs-Timeout"]}, "p3": {"erklaerung": "Das ist der Herzschlag des Spiels: Netzwerkabgleich, Zeit und danach alle Systeme in fester Reihenfolge. Gebäude und Einheiten bewegen sich erst nach der Zeit- und Wirtschaftsrechnung des gleichen Schritts.", "gehirn": "Die Reihenfolge zeigt, was im selben Schritt zuerst passiert: Wirtschaft und Beliebtheit vor Einheiten, KI-Gebäudeentscheidungen vor Einheitenbewegung.", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0046b340 switchToMenuView | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0046B340
+ void GameCore::switchToMenuView(MenuViewType menuID, int delay)
+ {
+ if (menuID == 23) {
+ menuID = UI::Enums::MVT_MAIN_MENU;
+ }
+ this->menuViewToSwitchTo = menuID;
+ this->menuSwitchDelay = delay;
+ this->menuRenderMoment = timeGetTime();
+ switch (menuID) {
+ case UI::Enums::MVT_MAP_EDITOR_LANDSCAPING:
+ this->menuTabToSwitchTo = this->landscapingmenuMenuTabToSwitchTo;
+ DAT_TileMapState.unknownBrushRelated = (int)DAT_TileMapState.editorActiveBrush >> 1;
+ if (this->landscapingmenuMenuTabToSwitchTo.buildMenuTab != UI::Enums::BMTT_MENU_HIDDEN
+ && this->activeMenuTab.buildMenuTab != UI::Enums::BMTT_MENU_HIDDEN) {
+ DAT_TileMapState.currentMapperCommand = Commands::M_MAPPER_NULL;
+ }
+ break;
+ case UI::Enums::MVT_BUILD_MENU:
+ this->menuTabToSwitchTo = this->buildmenuMenuTabToSwitchTo;
+ setSection1079_28_4_(0);
+ if (this->menuTabToSwitchTo.buildMenuTab == 48) {
+ break;
+ }
+ if (DAT_GameCore.gameMode_2 == GM_CRUSADER_TUTORIAL) {
+ SetTutorialBuildingActionState(11, Map::Buildings::BT_HOVEL);
+ }
+ if (GetIfDisplayElementStateNotZero(
+ UI::Enums::DEID_MISSION_WIN_DEFEAT_BANNER)) {
+ this->buildmenuMenuTabToSwitchTo.buildMenuTab = 48;
+ this->menuTabToSwitchTo.buildMenuTab = 48;
+ } else if (((DAT_GameCore.gameMode_2 == GM_BUILDERUnk
+ || DAT_GameCore.gameMode_2 == GM_CRUSADER_TUTORIAL)
+ && DAT_GameSynchronyState.currentPlayerSlotID == 2)
+ || (DAT_GameSynchronyState.currentPlayerSlotID == 1
+ && singlePlayerHasKeepAndGranaryCheck()
+ == 0
+ && getArmySize(
+ DAT_GameSynchronyState.currentPlayerSlotID)
+ != 0)
+ || (DAT_GameCore.gameMode_2 == GM_BUILDERUnk
+ && DAT_MapPropertiesState.SEC_U3_MapType2_1 == Map::MT_SIEGE)
+ || (DAT_GameCore.gameMode_2 == GM_SKIRMISH_AND_MULTIPLAYER
+ && DAT_GameSynchronyState.currentGameMode == GM_SKIRMISH_SINGLE_PLAYER
+ && DAT_GameSynchronyState.currentPlayerSlotID == 0)) {
+ // all this is custom code for some single player modes
+ if (this->buildmenuMenuTabToSwitchTo.buildMenuTab != UI::Enums::BMTT_MENU_HIDDEN
+ && this->buildmenuMenuTabToSwitchTo.buildMenuTab != UI::Enums::BMTT_SOLDIERS
+ && this->buildmenuMenuTabToSwitchTo.buildMenuTab != 62) {
+ this->buildmenuMenuTabToSwitchTo.buildMenuTab = 48;
+ this->menuTabToSwitchTo.buildMenuTab = 48;
+ setSection1079_28_4_(1);
+ }
+ } else {
+ if (this->currentMenuViewType == UI::Enums::MVT_BUILD_MENU) {
+ if (this->buildmenuMenuTabToSwitchTo.buildMenuTab >= 10
+ && this->buildmenuMenuTabToSwitchTo.buildMenuTab <= 49 && this->activeMenuTab.buildMenuTab >= 10
+ && this->activeMenuTab.buildMenuTab <= 49) {
+ this->menuSwitchDelay = 150;
+ startBuildMenuTransition(300);
+ if (this->buildmenuMenuTabToSwitchTo.buildMenuTab != 49
+ && this->buildmenuMenuTabToSwitchTo.buildMenuTab != UI::Enums::BMTT_CASTLE_KEEPS) {
+ if (singlePlayerHasKeepAndGranaryCheck()
+ == 0) {
+ if (this->buildmenuMenuTabToSwitchTo.buildMenuTab != UI::Enums::BMTT_CASTLE_KEEPS) {
+ this->buildmenuMenuTabToSwitchTo.buildMenuTab = UI::Enums::BMTT_CASTLE_KEEPS;
+ this->menuTabToSwitchTo.buildMenuTab = UI::Enums::BMTT_CASTLE_KEEPS;
+ } else {
+ this->menuSwitchDelay = 0;
+ DAT_MenuHandlerState.isBuildMenuTransitioning_0x18 = FALSE;
+ }
+ } else if (singlePlayerHasKeepAndGranaryCheck()
+ < 0) {
+ if (this->buildmenuMenuTabToSwitchTo.buildMenuTab != 49) {
+ this->buildmenuMenuTabToSwitchTo.buildMenuTab = 49;
+ this->menuTabToSwitchTo.buildMenuTab = 49;
+ } else {
+ this->menuSwitchDelay = 0;
+ DAT_MenuHandlerState.isBuildMenuTransitioning_0x18 = FALSE;
+ }
+ }
+ }
+ break;
+ }
+ if (this->buildmenuMenuTabToSwitchTo.buildMenuTab < 10
+ || this->buildmenuMenuTabToSwitchTo.buildMenuTab > 49) {
+ break;
+ }
+ }
+ if (this->buildmenuMenuTabToSwitchTo.buildMenuTab != 49
+ && this->buildmenuMenuTabToSwitchTo.buildMenuTab != UI::Enums::BMTT_CASTLE_KEEPS) {
+ if (singlePlayerHasKeepAndGranaryCheck()
+ == 0) {
+ if (this->buildmenuMenuTabToSwitchTo.buildMenuTab != UI::Enums::BMTT_CASTLE_KEEPS) {
+ this->buildmenuMenuTabToSwitchTo.buildMenuTab = UI::Enums::BMTT_CASTLE_KEEPS;
+ this->menuTabToSwitchTo.buildMenuTab = UI::Enums::BMTT_CASTLE_KEEPS;
+ }
+ } else if (singlePlayerHasKeepAndGranaryCheck()
+ < 0) {
+ if (this->buildmenuMenuTabToSwitchTo.buildMenuTab != 49) {
+ this->buildmenuMenuTabToSwitchTo.buildMenuTab = 49;
+ this->menuTabToSwitchTo.buildMenuTab = 49;
+ }
+ }
+ }
+ }
+ break;
+ case UI::Enums::MVT_BUILDING_AND_STATUS_MENU:
+ this->menuTabToSwitchTo.tabType = this->buildingandstatusmenuMenuTabToSwitchTo;
+ break;
+ default:
+ stopBinkPlayback(0);
+ stopBinkPlayback(1);
+ break;
+ }
+ if (menuID == this->currentMenuViewType) {
+ return;
+ }
+ // handle sound
+ switch (menuID) {
+ case UI::Enums::MVT_MAP_EDITOR_LANDSCAPING:
+ case UI::Enums::MVT_MAP_EDITOR_PROPERTIES:
+ setupVolumeAndSoundID0xF0_100();
+ return;
+ case UI::Enums::MVT_BUILD_MENU:
+ if (this->currentMenuViewType == UI::Enums::MVT_BUILDING_AND_STATUS_MENU
+ || this->currentMenuViewType == UI::Enums::MVT_MAP_EDITOR_LANDSCAPING
+ || (this->currentMenuViewType == UI::Enums::MVT_SCENARIO_DESCRIPTION
+ && DAT_GameCore.gameSuspended != 0)) {
+ return;
+ }
+ if (this->gameMode_2 == GM_CRUSADER_TUTORIAL) {
+ if (DAT_SoundSystemState.currentSoundID_0x3278 == 9) {
+ return;
+ }
+ setSomeSoundTime();
+ setupVolumeAndSoundIDWithMultiplier(DE::SHCDE::MUSIC_TUNE_TUTORIAL, 70);
+ return;
+ }
+ setSomeSoundTime();
+ DAT_SoundSystemState.lastMusicChangeTime = timeGetTime() >> 1;
+ DAT_SoundSystemState.currentSoundID_0x3278 = -1;
+ return;
+ case UI::Enums::MVT_CRUSADE_MAP:
+ if (this->currentMenuViewType == UI::Enums::MVT_SELECT_CRUSADE
+ || this->currentMenuViewType == UI::Enums::MVT_CRUSADE_MISSION_INTRO
+ || this->currentMenuViewType == UI::Enums::MVT_RANKING_GAMES) {
+ return;
+ }
+ setSomeSoundTime();
+ setupVolumeAndSoundIDWithMultiplier(DE::SHCDE::MUSIC_TUNE_INTRO, 100);
+ return;
+ case UI::Enums::MVT_RANKING_GAMES:
+ if (this->currentMenuViewType == UI::Enums::MVT_LOBBY_MENU) {
+ SetActiveCreditsSequenceIndex(2);
+ DAT_CurrentMenuID_3 = this->currentMenuViewType;
+ }
+ if (this->currentMenuViewType == UI::Enums::MVT_CRUSADE_MAP) {
+ SetActiveCreditsSequenceIndex(1);
+ DAT_CurrentMenuID_3 = this->currentMenuViewType;
+ }
+ return;
+ case UI::Enums::MVT_HISTORIC_MISSION_PICTURE:
+ if (this->currentMenuViewType == UI::Enums::MVT_HISTORIC_CAMPAIGN_INTRO) {
+ return;
+ }
+ if (this->currentMenuViewType == UI::Enums::MVT_MISSION_FINISHED_TRANSITION) {
+ stopMusicPlayback();
+ setupVolumeAndSoundID(
+ DE::SHCDE::MUSIC_TUNE_NARR1);
+ return;
+ }
+ if (DAT_GameCore.missionNumber1to20 == 1000) {
+ if (DAT_SoundSystemState.sec_Section1055_0x3274 != 7) {
+ setSomeSoundTime();
+ }
+ setupVolumeAndSoundIDWithMultiplier(DE::SHCDE::MUSIC_TUNE_CHOIR, 100);
+ return;
+ }
+ if (DAT_SoundSystemState.currentSoundID_0x3278 == 4 || DAT_GameCore.gameSuspended != 0
+ || DAT_GameCore.currentlyInGameUnk_0xa4 == TRUE) {
+ return;
+ }
+ setSomeSoundTime();
+ setupVolumeAndSoundID(
+ DE::SHCDE::MUSIC_TUNE_NARR1);
+ return;
+ case UI::Enums::MVT_HISTORIC_CAMPAIGN_INTRO:
+ setSomeSoundTime();
+ setupVolumeAndSoundID(
+ (DE::SHCDE::eMusicIDs)(DAT_GameCore.historicCampaignNumber * 5 + DE::SHCDE::MUSIC_TUNE_WIN1));
+ return;
+ case UI::Enums::MVT_HISTORIC_CAMPAIGN_OUTRO:
+ setSomeSoundTime();
+ setupVolumeAndSoundID(
+ (DE::SHCDE::eMusicIDs)(DAT_GameCore.historicCampaignNumber + 0x42));
+ return;
+ case UI::Enums::MVT_CREDITS:
+ setSomeSoundTime();
+ if (DAT_00b95954 == 0) {
+ setupVolumeAndSoundIDWithMultiplier((DE::SHCDE::eMusicIDs)15, 100);
+ }
+ if (DAT_00b95954 == 1) {
+ setupVolumeAndSoundIDWithMultiplier((DE::SHCDE::eMusicIDs)38, 100);
+ markMusicChangePending();
+ }
+ return;
+ case UI::Enums::MVT_MISSION_FINISHED_TRANSITION:
+ case UI::Enums::MVT_GAME_LOSTUnk:
+ if (this->currentMenuViewType == UI::Enums::MVT_RANKING_GAMES) {
+ return;
+ }
+ setSomeSoundTime();
+ setupVolumeAndSoundID(
+ DE::SHCDE::MUSIC_TUNE_OFF);
+ return;
+ case UI::Enums::MVT_MP_CONNECTION:
+ case UI::Enums::MVT_LOBBY_MENU:
+ case UI::Enums::MVT_GAME_START_ENTER_NAME:
+ case UI::Enums::MVT_MAIN_MENU:
+ case UI::Enums::MVT_HISTORIC_CAMPAIGN_SELECT:
+ case UI::Enums::MVT_UNUSED_ECONOMIC_GAMETYPE_SELECT:
+ case UI::Enums::MVT_CUSTOM_SCENARIOS:
+ case UI::Enums::MVT_UNUSED_SELECT_RANDOM_NUMBER_OF_ENEMIES:
+ if (DAT_SoundSystemState.currentSoundID_0x3278 == 3
+ && DAT_SoundSystemState.musicFadeState == 0) {
+ return;
+ }
+ setSomeSoundTime();
+ setupVolumeAndSoundIDWithMultiplier(DE::SHCDE::MUSIC_TUNE_INTRO, 100);
+ return;
+ case UI::Enums::MVT_UNUSED_EXTREME_AD:
+ endSoundStreamsUnk();
+ setSomeSoundTime();
+ setupVolumeAndSoundIDWithMultiplier(DE::SHCDE::MUSIC_TUNE_TUTORIAL, 50);
+ return;
+ case UI::Enums::MVT_CRUSADE_ENDSCREEN:
+ setSomeSoundTime();
+ setupVolumeAndSoundIDWithMultiplier(DE::SHCDE::MUSIC_TUNE_HAPPY2, 50);
+ return;
+ case UI::Enums::MVT_BUILDING_AND_STATUS_MENU:
+ case UI::Enums::MVT_UNKNOWN_21:
+ case UI::Enums::MVT_UNUSED_HELP_TEXT_EDITOR:
+ case 23:
+ case 24:
+ case UI::Enums::MVT_UNKNOWN_26_CAMPAIGN_RELATEDUnk:
+ case UI::Enums::MVT_UNKNOWN_27_CAMPAIGNUnk:
+ case UI::Enums::MVT_SCENARIO_DESCRIPTION:
+ case UI::Enums::MVT_NEW_MAP_MAPSIZE:
+ case UI::Enums::MVT_UNUSED_CHOOSE_AVAILABLE_KEEPS:
+ case UI::Enums::MVT_UNKNOWN_33:
+ case UI::Enums::MVT_SINGLEPLAYER_MAP_CHOICE:
+ case 36:
+ case UI::Enums::MVT_UNUSED_CHOOSE_GAME_TYPE:
+ case UI::Enums::MVT_HISTORIC_MISSION_SELECT:
+ case UI::Enums::MVT_UNUSED_ECONOMIC_MISSION_SELECTUnk:
+ case UI::Enums::MVT_INTRO_VIDEO:
+ case UI::Enums::MVT_HISTORIC_MISSION_INTRO:
+ case UI::Enums::MVT_SELECT_CRUSADE:
+ case UI::Enums::MVT_CRUSADE_MISSION_INTRO:
+ case UI::Enums::MVT_EDIT_SCENARIO:
+ return;
+ default:
+ setSomeSoundTime();
+ setupVolumeAndSoundIDWithMultiplier(DE::SHCDE::MUSIC_TUNE_INTRO, 100);
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0046b340", "name": "switchToMenuView", "quelle": "nachgebaut", "p1": {"bereich": "Spielablauf", "zweck": "Beantragt den Wechsel in eine andere Menüansicht und wählt Reiter und Musik dazu."}, "p2": {"ein": "menuID, delay (ms)", "aus": "-", "liest": ["currentMenuViewType", "activeMenuTab", "gameMode_2", "currentPlayerSlotID", "singlePlayerHasKeepAndGranaryCheck", "getArmySize"], "schreibt": ["menuViewToSwitchTo", "menuSwitchDelay", "menuRenderMoment", "menuTabToSwitchTo", "buildmenuMenuTabToSwitchTo", "Musik-Zustand"], "ruft": ["timeGetTime", "setSection1079_28_4_", "startBuildMenuTransition", "getArmySize", "singlePlayerHasKeepAndGranaryCheck", "setupVolumeAndSoundID", "stopBinkPlayback"], "regeln": ["menuID 23 wird zu MVT_MAIN_MENU", "Der Wechsel selbst geschieht erst in processMenuViewSwitch nach delay Millisekunden", "Baumenü: Reiter 48 sperrt die Bauleiste in Sondermodi (Tutorial, Builder-Modi, Belagerungskarte, Einzelspieler-Gefecht Slot 0, Slot 1 ohne Burg und Kornspeicher mit Heer)", "Sperrung lässt nur Reiter MENU_HIDDEN, BMTT_SOLDIERS und 62 stehen", "Reiter 10 bis 49 sind Bau-Reiter; beim Wechsel zwischen ihnen gilt delay = 150 und eine Überblendung von 300", "Ohne Burg wird der Reiter BMTT_CASTLE_KEEPS erzwungen, bei Rückgabewert kleiner 0 Reiter 49", "Musik: je Zielansicht eigene Melodie, Tutorial mit Lautstärke 70, Intro 100, Ende der Kampagne 50"], "offen": ["Bedeutung von Reiter 48, 49 und 62", "Rückgabewerte von singlePlayerHasKeepAndGranaryCheck"]}, "p3": {"erklaerung": "Zentrale Stelle für jeden Menüwechsel. Sie setzt nur das Ziel, den Wechsel führt später processMenuViewSwitch aus. Nebenbei wird Musik gewählt und in Sondermodi die Bauleiste gesperrt.", "gehirn": "-", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+

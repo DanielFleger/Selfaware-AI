@@ -1,0 +1,1205 @@
+### 0x004805d0 serializeOrDeserializeCommandParameter | quelle=nachgebaut | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x004805D0
+ void GameSynchronyState::serializeOrDeserializeCommandParameter(void* destination, size_t size,
+ GameCommandParameterLocation srcSwitch, GameCommandParameterReadWrite destSwitch)
+ {
+ if ((0 < (int)size) && (destination != (void*)0x0)) {
+ byte* _parameter;
+ if (srcSwitch == Commands::GCPL_FIXED_COMMAND_DATA_ADDRESS) {
+ _parameter = this->DAT_GameCommandFixedParameterLocation + this->DAT_CommandParameterOffset;
+ } else {
+ _parameter = &this->DAT_GameCommandArray[this->DAT_CurrentGameCommandID].parameters
+ + this->DAT_CommandParameterOffset;
+ }
+ if (destSwitch == Commands::GCPRW_SERIALIZE_INTO_PARAM_1) {
+ copyData(
+ size, destination, _parameter);
+ } else {
+ copyData(
+ size, _parameter, destination);
+ }
+ this->DAT_CommandParameterOffset = this->DAT_CommandParameterOffset + size;
+ }
+ }
+}
+}
+
+### 0x00486600 checkSkirmishGameDefeat | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x00486600
+ void GameSynchronyState::checkSkirmishGameDefeat()
+ {
+ bool bVar1;
+ short sVar2;
+ PlayerData* psVar3;
+ int* piVar3;
+ PlayerData* piVar4;
+ int iVar4;
+ PlayerData* piVar5;
+ int _deadPlayerID;
+ int iVar5;
+ int* piVar6;
+ int iVar7;
+ int iVar8;
+ short* psVar9;
+ int iVar10;
+ int* local_68;
+ int iStack_48;
+ int local_44[17];
+ if (this->currentGameMode != GM_SOLITARY) {
+ _deadPlayerID = 1;
+ psVar9 = &DAT_GameState.playerDataArray[1].commemorationShrinePlacementCountdown;
+ do {
+ if ((0 < *psVar9) && (sVar2 = *psVar9 + -1, *psVar9 = sVar2, sVar2 == 0)) {
+ placeCommemoratingStatueAtGoodLocation(_deadPlayerID);
+ }
+ psVar9 = psVar9 + 0x1cfa;
+ _deadPlayerID = _deadPlayerID + 1;
+ } while ((int)psVar9 < 0x1180150);
+ if ((DAT_GameCore.gameMode_2 != GM_CAMPAIGN_MISSION)
+ && (DAT_GameState.mapAndTime.gameOver == FALSE)) {
+ if (DAT_GameCore.unknownAlwaysZero != 0) {
+ DAT_GameCore.unknownAlwaysZero = 0;
+ piVar3 = &DAT_GameState.playerDataArray[1].playerDeathRelated;
+ psVar3 = &DAT_GameState.mapAndTime.playerIsAlive + 1;
+ do {
+ psVar3->commemorationShrinePlacementCountdown = 0;
+ *piVar3 = 1;
+ psVar3 = &psVar3->someKeepRelatedX2;
+ piVar3 = piVar3 + 0xe7d;
+ } while ((int)psVar3 < 0x117ef52);
+ DAT_GameState.mapAndTime.gameOver = TRUE;
+ DAT_GameState.mapAndTime.gameOverTime = timeGetTime();
+ DAT_GameState.mapAndTime.playerIsAlive[this->currentPlayerSlotID] = 1;
+ DAT_GameCore.skipStoreSKMasters = 0;
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_WIN_DEFEAT_WINDOW, 1);
+ return;
+ }
+ piVar3 = this->currentAIArray + 1;
+ local_44[2] = 0;
+ local_44[1] = 0;
+ local_44[4] = 0;
+ local_44[3] = 0;
+ local_44[6] = 0;
+ local_44[5] = 0;
+ local_44[8] = 0;
+ local_44[7] = 0;
+ local_44[10] = 0;
+ local_44[9] = 0;
+ local_44[0xc] = 0;
+ local_44[0xb] = 0;
+ local_44[0xe] = 0;
+ local_44[0xd] = 0;
+ local_44[0x10] = 0;
+ local_44[0xf] = 0;
+ piVar5 = &DAT_GameState.playerDataArray[2];
+ local_68 = this->currentAIArray + 1;
+ do {
+ if ((piVar3[-0x1b] != -1) || (*piVar3 != 0)) {
+ iVar7 = piVar3[-0x1e824d];
+ (&iStack_48)[iVar7 * 2] = (&iStack_48)[iVar7 * 2] + 1;
+ if (piVar5[-0xe7d] != 0) {
+ local_44[iVar7 * 2] = local_44[iVar7 * 2] + 1;
+ }
+ }
+ if ((piVar3[-0x1a] != -1) || (piVar3[1] != 0)) {
+ iVar7 = piVar3[-0x1e824c];
+ (&iStack_48)[iVar7 * 2] = (&iStack_48)[iVar7 * 2] + 1;
+ if (piVar5->lordKilledByPlayerID != 0) {
+ local_44[iVar7 * 2] = local_44[iVar7 * 2] + 1;
+ }
+ }
+ if ((piVar3[-0x19] != -1) || (piVar3[2] != 0)) {
+ iVar7 = piVar3[-0x1e824b];
+ (&iStack_48)[iVar7 * 2] = (&iStack_48)[iVar7 * 2] + 1;
+ if (piVar5[0xe7d] != 0) {
+ local_44[iVar7 * 2] = local_44[iVar7 * 2] + 1;
+ }
+ }
+ if ((piVar3[-0x18] != -1) || (piVar3[3] != 0)) {
+ iVar7 = piVar3[-0x1e824a];
+ (&iStack_48)[iVar7 * 2] = (&iStack_48)[iVar7 * 2] + 1;
+ if (piVar5[0x1cfa] != 0) {
+ local_44[iVar7 * 2] = local_44[iVar7 * 2] + 1;
+ }
+ }
+ piVar5 = piVar5 + 0x39f4;
+ piVar3 = piVar3 + 4;
+ } while ((int)piVar5 < 0x1182390);
+ iVar7 = 0;
+ piVar3 = local_44 + 1;
+ iVar5 = 0;
+ iVar10 = 0;
+ iVar4 = 3;
+ do {
+ iVar8 = iVar7;
+ if (*piVar3 != 0) {
+ iVar10 = iVar10 + 1;
+ if (piVar3[1] == *piVar3) {
+ iVar5 = iVar5 + 1;
+ } else {
+ iVar8 = iVar4 + -2;
+ }
+ }
+ if (piVar3[2] != 0) {
+ iVar10 = iVar10 + 1;
+ if (piVar3[3] == piVar3[2]) {
+ iVar5 = iVar5 + 1;
+ } else {
+ iVar8 = iVar4 + -1;
+ }
+ }
+ iVar7 = iVar8;
+ if ((piVar3[4] != 0) && (iVar10 = iVar10 + 1, iVar7 = iVar4, piVar3[5] == piVar3[4])) {
+ iVar5 = iVar5 + 1;
+ iVar7 = iVar8;
+ }
+ if (piVar3[6] != 0) {
+ iVar10 = iVar10 + 1;
+ if (piVar3[7] == piVar3[6]) {
+ iVar5 = iVar5 + 1;
+ } else {
+ iVar7 = iVar4 + 1;
+ }
+ }
+ iVar8 = iVar4 + 2;
+ piVar3 = piVar3 + 8;
+ iVar4 = iVar4 + 4;
+ } while (iVar8 < 9);
+ local_44[0] = 0;
+ local_44[1] = 0;
+ local_44[2] = 0;
+ local_44[3] = 0;
+ local_44[4] = 0;
+ local_44[5] = 0;
+ local_44[6] = 0;
+ local_44[7] = 0;
+ if (iVar5 < iVar10 + -1) {
+ if (DAT_GameCore.mapU4Int0 == 0) {
+ return;
+ }
+ piVar4 = &DAT_GameState.playerDataArray[2];
+ bVar1 = false;
+ piVar3 = local_68;
+ do {
+ if (((piVar3[-0x1b] != -1) || (*piVar3 != 0)) && (piVar4[-0xe7d] == 0)) {
+ iVar7 = piVar3[-0x1e824d];
+ bVar1 = true;
+ }
+ if (((piVar3[-0x1a] != -1) || (piVar3[1] != 0)) && (piVar4->lordKilledByPlayerID == 0)) {
+ iVar7 = piVar3[-0x1e824c];
+ bVar1 = true;
+ }
+ if (((piVar3[-0x19] != -1) || (piVar3[2] != 0)) && (piVar4[0xe7d] == 0)) {
+ iVar7 = piVar3[-0x1e824b];
+ bVar1 = true;
+ }
+ if (((piVar3[-0x18] != -1) || (piVar3[3] != 0)) && (piVar4[0x1cfa] == 0)) {
+ iVar7 = piVar3[-0x1e824a];
+ bVar1 = true;
+ }
+ piVar4 = piVar4 + 0x39f4;
+ piVar3 = piVar3 + 4;
+ } while ((int)piVar4 < 0x118241c);
+ if (!bVar1) {
+ return;
+ }
+ } else {
+ DAT_GameCore.unknownAlwaysZero = 0;
+ }
+ iVar4 = 1;
+ piVar3 = local_68;
+ do {
+ if (((piVar3[-0x1b] != -1) || (*piVar3 != 0)) && (piVar3[-0x1e824d] == iVar7)) {
+ (&iStack_48)[iVar4] = 1;
+ }
+ iVar4 = iVar4 + 1;
+ piVar3 = piVar3 + 1;
+ } while (iVar4 < 9);
+ piVar6 = &DAT_GameState.playerDataArray[1].playerDeathRelated;
+ psVar9 = DAT_GameState.mapAndTime.playerIsAlive + 1;
+ piVar3 = local_44;
+ do {
+ if ((local_68[-0x1b] != -1) || (*local_68 != 0)) {
+ *psVar9 = (short)*piVar3;
+ DAT_GameState.mapAndTime.gameOver = TRUE;
+ *piVar6 = 1;
+ DAT_GameState.mapAndTime.gameOverTime = timeGetTime();
+ DAT_GameCore.skipStoreSKMasters = 0;
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_WIN_DEFEAT_WINDOW, 1);
+ if ((DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType
+ == BASMTT_SIEGETENT_BATTERINGRAM)
+ || (DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType
+ == BASMTT_SIEGETENT_SHIELD)) {
+ DAT_GameCore.buildmenuMenuTabToSwitchTo.buildMenuTab
+ = DAT_GameCore.tabTypeSiegeSubset;
+ switchToMenuView(
+ MVT_BUILD_MENU, 0);
+ }
+ DAT_TileMapState.currentMapperCommand = M_MAPPER_NULL;
+ if (0 < DAT_UnitsState.totalUnitsInSelection) {
+ deselectAllUnitsOneByOne();
+ queueEscapeCommand();
+ resetMouseCursorState();
+ }
+ }
+ psVar9 = psVar9 + 1;
+ local_68 = local_68 + 1;
+ piVar3 = piVar3 + 1;
+ piVar6 = piVar6 + 0xe7d;
+ } while ((int)psVar9 < 0x117ef52);
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x00486a70 getLordTypeForPlayer | quelle=nachgebaut | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x00486A70
+ int GameSynchronyState::getLordTypeForPlayer(int playerID)
+ {
+ // For an AI slot the lord's look (Crusader or Saracen) is not taken from the AIC that
+ // defines the rest of the character: it is hardcoded here, per AI type.
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[playerID] == -1) {
+ switch (DAT_GameState.playerDataArray[playerID].aiType) {
+ case AI::AIT_RAT:
+ case AI::AIT_SNAKE:
+ case AI::AIT_PIG:
+ case AI::AIT_WOLF:
+ case AI::AIT_RICHARD:
+ case AI::AIT_FREDERICK:
+ case AI::AIT_PHILIPP:
+ case AI::AIT_SHERIFF:
+ case AI::AIT_MARSHAL:
+ case AI::AIT_ABBOT:
+ return 0;
+ default:
+ return 1;
+ }
+ }
+ return DAT_GameCore.selectedLordTypes[playerID];
+ }
+}
+}
+
+### 0x00486f20 initializeFinalResultsForActivePlayers | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x00486F20
+ void GameSynchronyState::initializeFinalResultsForActivePlayers()
+ {
+ byte* pbVar1;
+ char cVar2;
+ char* pcVar3;
+ int* piVar4;
+ char (*pacVar5)[250];
+ int iVar6;
+ int (*paiVar7)[9];
+ undefined2* local_c;
+ int local_8;
+ char (*local_4)[250];
+ pcVar3 = getTextArrayPointer(0);
+ pacVar5 = this->DAT_PlayerNames + 1;
+ do {
+ cVar2 = *pcVar3;
+ (*pacVar5)[0] = cVar2;
+ pcVar3 = pcVar3 + 1;
+ pacVar5 = (char (*)[250])(*pacVar5 + 1);
+ } while (cVar2 != '\0');
+ iVar6 = 1;
+ local_c = (undefined2*)((int)this->finalResults.unusedUnk + 2);
+ local_4 = this->DAT_PlayerNames;
+ local_8 = 0x1a26d86;
+ piVar4 = this->currentPlayerFullIDArray;
+ do {
+ piVar4 = piVar4 + 1;
+ local_4 = local_4 + 1;
+ if ((*piVar4 == -1) && (piVar4[0x1b] == 0)) {
+ this->finalResults.active[iVar6] = 0;
+ } else {
+ this->finalResults.active[iVar6] = 1;
+ pacVar5 = local_4;
+ do {
+ cVar2 = (*pacVar5)[0];
+ *(char*)((int)pacVar5 + (local_8 - (int)local_4)) = cVar2;
+ pacVar5 = (char (*)[250])(*pacVar5 + 1);
+ } while (cVar2 != '\0');
+ piVar4[0x42494] = 0;
+ local_c[-0x1b6] = 0;
+ this->finalResults.finalMaxGoodThings[iVar6] = 0;
+ this->finalResults.finalMaxBadThings[iVar6] = 0;
+ piVar4[0x424fe] = 0;
+ piVar4[0x42542] = 0;
+ piVar4[0x42507] = 0;
+ piVar4[0x42539] = 0;
+ piVar4[0x42510] = 0;
+ piVar4[0x42519] = 0;
+ piVar4[0x42522] = 0;
+ piVar4[0x4252b] = 0;
+ this->finalResults.finalKilledLords[iVar6] = 0;
+ piVar4[0x4254b] = 0;
+ piVar4[0x42554] = 0;
+ piVar4[0x424a4] = 0;
+ piVar4[0x4255d] = 0;
+ piVar4[0x42566] = 0;
+ piVar4[0x4256f] = 0;
+ *local_c = 0;
+ local_c[9] = 0;
+ piVar4[0x42581] = 0;
+ piVar4[0x4258a] = 0;
+ pbVar1 = (byte*)(piVar4 + 0x42593);
+ pbVar1[0] = 0;
+ pbVar1[1] = 0;
+ pbVar1[2] = 0;
+ pbVar1[3] = 0;
+ pbVar1 = (byte*)(piVar4 + 0x4259c);
+ pbVar1[0] = 0;
+ pbVar1[1] = 0;
+ pbVar1[2] = 0;
+ pbVar1[3] = 0;
+ }
+ iVar6 = iVar6 + 1;
+ local_c = local_c + 1;
+ local_8 = local_8 + 0x5a;
+ } while (iVar6 < 9);
+ paiVar7 = this->finalResults.finalKillMatrix;
+ for (iVar6 = 0x51; iVar6 != 0; iVar6 = iVar6 + -1) {
+ (*paiVar7)[0] = 0;
+ paiVar7 = (int (*)[9])(*paiVar7 + 1);
+ }
+ return;
+ }
+}
+}
+
+### 0x00487250 invokeDirectPlayEnumConnections | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x00487250
+ void GameSynchronyState::invokeDirectPlayEnumConnections()
+ {
+ HRESULT HVar1;
+ GUID** ppGVar2;
+ int iVar3;
+ IDirectPlay4A** _dplay4;
+ IDirectPlayLobby3** _dplaylobby3;
+ this->DPLAYX_4A = (IDirectPlay4A**)0x0;
+ this->DPLAYX_LOBBY = (IDirectPlayLobby3**)0x0;
+ _dplay4 = (IDirectPlay4A**)0x0;
+ _dplaylobby3 = (IDirectPlayLobby3**)0x0;
+ this->scrollBarItemCount = 3;
+ HVar1 = MACRO_CALL(CoCreateInstance)(
+ (IID*)GUID_CLSID_DirectPlay::ptr, (IUnknown*)0x0, 1, (IID*)GUID_IID_IDirectPlay4::ptr, &_dplay4);
+ if (-1 < HVar1) {
+ HVar1 = MACRO_CALL(CoCreateInstance)((IID*)GUID_CLSID_DirectPlayLobby::ptr, (IUnknown*)0x0, 1,
+ (IID*)GUID_IID_IDirectPlayLobby3::ptr, &_dplaylobby3);
+ if (HVar1 < 0) {
+ (*(*_dplay4)->Release)((IDirectPlay4A*)_dplay4);
+ return;
+ }
+ (*(*_dplay4)->EnumConnections)(
+ (IDirectPlay4A*)_dplay4, (GUID*)0x0, EnumConnectionsCallback::instance, (void*)0x0, 0);
+ ppGVar2 = this->guids + 2;
+ if (this->guids[2] == (GUID*)0x0) {
+ iVar3 = 2;
+ if (2 < this->scrollBarItemCount) {
+ do {
+ *ppGVar2 = ppGVar2[1];
+ ppGVar2[10] = ppGVar2[11];
+ iVar3 = iVar3 + 1;
+ ppGVar2 = ppGVar2 + 1;
+ } while (iVar3 < this->scrollBarItemCount);
+ }
+ this->scrollBarItemCount = this->scrollBarItemCount + -1;
+ }
+ ppGVar2 = this->guids;
+ if (this->guids[1] == (GUID*)0x0) {
+ iVar3 = 1;
+ if (1 < this->scrollBarItemCount) {
+ do {
+ ppGVar2 = ppGVar2 + 1;
+ *ppGVar2 = ppGVar2[1];
+ ppGVar2[10] = ppGVar2[0xb];
+ iVar3 = iVar3 + 1;
+ } while (iVar3 < this->scrollBarItemCount);
+ }
+ this->scrollBarItemCount = this->scrollBarItemCount + -1;
+ }
+ ppGVar2 = this->guids;
+ if (this->guids[0] == (GUID*)0x0) {
+ iVar3 = 0;
+ if (0 < this->scrollBarItemCount) {
+ do {
+ *ppGVar2 = ppGVar2[1];
+ ppGVar2[10] = ppGVar2[0xb];
+ iVar3 = iVar3 + 1;
+ ppGVar2 = ppGVar2 + 1;
+ } while (iVar3 < this->scrollBarItemCount);
+ }
+ this->scrollBarItemCount = this->scrollBarItemCount + -1;
+ }
+ setMenuTypeBasedOnDirectPlayGUID();
+ this->DPLAYX_LOBBY = _dplaylobby3;
+ (*(*_dplay4)->Release)((IDirectPlay4A*)_dplay4);
+ }
+ return;
+ }
+}
+}
+
+### 0x00487390 restartDPlaySessionEnumeration | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x00487390
+ void GameSynchronyState::restartDPlaySessionEnumeration(BOOLEnum respectTimeout)
+ {
+ DWORD _now;
+ GUID _pGUID;
+ undefined4 _dpSessionDesc2[6];
+ GUID aGStack_3c[3];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)&_pGUID;
+ _now = MACRO_CALL(timeGetTime)();
+ _pGUID.Data2 = 0;
+ _pGUID.Data3 = 0;
+ _pGUID.Data1 = 0;
+ _pGUID.Data4[0] = '\0';
+ _pGUID.Data4[1] = '\0';
+ _pGUID.Data4[2] = '\0';
+ _pGUID.Data4[3] = '\0';
+ _pGUID.Data4[4] = '\0';
+ _pGUID.Data4[5] = '\0';
+ _pGUID.Data4[6] = '\0';
+ _pGUID.Data4[7] = '\0';
+ fetchSessionGUID(&_pGUID);
+ if ((this->unkEnumerationRelatedBool == false)
+ && ((respectTimeout != TRUE || (2999 < (int)(_now - TIME_EnumerateSessionsMoment::instance))))) {
+ clearSessionsList();
+ _memset(_dpSessionDesc2, 0, 0x50);
+ aGStack_3c[0]._0_4_ = 0x1d5e2f48;
+ this->unkEnumerationRelatedBool = true;
+ _dpSessionDesc2[0] = 0x50;
+ aGStack_3c[0]._4_4_ = 0x49e5e8c0;
+ aGStack_3c[0]._8_4_ = 0x24b1d8ae;
+ aGStack_3c[0]._12_4_ = 0x59309eda;
+ if (this->DPLAYX_4A != (IDirectPlay4A**)0x0) {
+ /*
+ pointer to a pointer to a function
+ */
+ (*(*this->DPLAYX_4A)->EnumSessions)(this->DPLAYX_4A, _dpSessionDesc2, 0,
+ EnumSessionsCallback_addSession_async::instance, (void*)0x0,
+ ESFE_RETURN_STATUS | ESFE_ASYNC_ENUMERATION
+ | ESFE_AVAILABLE);
+ }
+ this->unkEnumerationRelatedBool = false;
+ resolveEqualEntries((GUID*)&_pGUID);
+ TIME_EnumerateSessionsMoment::instance = MACRO_CALL(timeGetTime)();
+ };
+ return;
+ }
+}
+}
+
+### 0x004874b0 createDirectPlayInterfaceModem | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x004874B0
+ void GameSynchronyState::createDirectPlayInterfaceModem()
+ {
+ uint uVar1;
+ int iVar2;
+ HRESULT HVar3;
+ void* _allocateMem;
+ int* _allocateMemLock;
+ void* pvVar4;
+ int* unaff_EBX;
+ int* unaff_ESI;
+ DWORD unaff_EDI;
+ int* piVar5;
+ IDirectPlay4A** _interface;
+ IDirectPlay4A** _refIDirectPlay;
+ DWORD _playerAddress;
+ GUID _guid;
+ IDirectPlayLobby3** piVar7;
+ uVar1 = MSVC_SecurityCookie::instance ^ (uint)&_interface;
+ _guid.Data2 = 0xcb68;
+ _guid.Data3 = 0x11cf;
+ /*
+ GUID for modem service provider
+ */
+ _guid.Data4[0] = 0x9c;
+ _guid.Data4[1] = 0x4e;
+ _guid.Data4[2] = 0;
+ _guid.Data4[3] = 0xa0;
+ _guid.Data1 = 0x44eaa760;
+ _refIDirectPlay = (IDirectPlay4A**)0x0;
+ _interface = (IDirectPlay4A**)0x0;
+ _playerAddress = 0;
+ _guid.Data4[4] = 0xc9;
+ _guid.Data4[5] = 5;
+ _guid.Data4[6] = 0x42;
+ _guid.Data4[7] = 0x5e;
+ iVar2 = MACRO_CALL(DirectPlayCreate)((undefined*)&_guid, (int**)&_refIDirectPlay, 0);
+ if (-1 < iVar2) {
+ /*
+ create IDirectPlay4A
+ */
+ HVar3 = (*(*_refIDirectPlay)->QueryInterface)(_refIDirectPlay, GUID_IID_IDirectPlay4A::ptr, &_interface);
+ if (HVar3 < 0) {
+ (*(*_refIDirectPlay)->Release)((IDirectPlay4A*)_refIDirectPlay);
+ ;
+ return;
+ }
+ HVar3 = (*(*_interface)->GetPlayerAddress)(_interface, 0, (void*)0x0, &_playerAddress);
+ if (HVar3 != -0x7788ffe2) {
+ (*(*_refIDirectPlay)->Release)((IDirectPlay4A*)_refIDirectPlay);
+ (**(code**)(*unaff_EBX + 8))(unaff_EBX);
+ ;
+ return;
+ }
+ _allocateMem = GlobalAlloc(66, _playerAddress);
+ _allocateMemLock = GlobalLock(_allocateMem);
+ if (_allocateMemLock == (int*)0x0) {
+ (*(*_refIDirectPlay)->Release)((IDirectPlay4A*)_refIDirectPlay);
+ (**(code**)(*unaff_EBX + 8))(unaff_EBX);
+ ;
+ return;
+ }
+ piVar5 = _allocateMemLock;
+ HVar3 = (*(*_interface)->GetPlayerAddress)(_interface, 0, _allocateMemLock, &_playerAddress);
+ if (-1 < HVar3) {
+ (*(*this->DPLAYX_LOBBY)->EnumAddress)(this->DPLAYX_LOBBY,
+ DirectPlayModemRelated_MemoryAllocationCallback::instance, _allocateMemLock, unaff_EDI, (void*)0x0);
+ }
+ (**(code**)(*unaff_ESI + 8))(unaff_ESI);
+ (**(code**)(*piVar5 + 8))(piVar5);
+ pvVar4 = MACRO_CALL(GlobalHandle)(_allocateMemLock);
+ GlobalUnlock(pvVar4);
+ pvVar4 = MACRO_CALL(GlobalHandle)(_allocateMemLock);
+ GlobalFree(pvVar4);
+ };
+ return;
+ }
+}
+}
+
+### 0x00487650 setupSkirmishLobby | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x00487650
+ void GameSynchronyState::setupSkirmishLobby()
+ {
+ byte* pbVar1;
+ int iVar2;
+ int* piVar3;
+ int* piVar4;
+ byte* local_1c;
+ int (*local_18)[20];
+ char (*local_14)[250];
+ undefined2* local_10;
+ int (*local_c)[100][2];
+ int* local_8;
+ int local_4;
+ this->currentGameMode = GM_SOLITARY;
+ this->transmissionCounterUnk = 0;
+ this->DAT_GameHalted = 0;
+ this->field62_0xb90 = 0;
+ this->field78_0xbf0 = 0;
+ this->DAT_HashCountdown = 0;
+ this->quitGameVoteRelated = 0;
+ this->shouldSendAnnouncementUnk = 0;
+ this->field261_0x109298 = 0;
+ this->DAT_HostPlayerSlotID = 0;
+ this->DPLAYX_ReceivedPlayerID = 0;
+ this->DPLAY_ToID = 0;
+ this->DPLAYX_PlayerHandle = 0xffffffff;
+ this->currentPlayerSlotID = 0;
+ this->DAT_HostAnnounced = 0;
+ this->field57_0x79c[0] = 0;
+ this->field57_0x79c[1] = 0;
+ this->field57_0x79c[2] = 0;
+ this->field57_0x79c[3] = 0;
+ this->unknownIncrementBy40_01 = 1;
+ clearChatEvents();
+ DAT_GameCore.gameMode_2 = GM_SKIRMISH_AND_MULTIPLAYER;
+ resetTeams();
+ this->counter = 0xffffffff;
+ this->limit = 5;
+ this->laggingPlayerIDUnk = 0;
+ this->DAT_SomeTime = 0;
+ this->flag_0x7aad8 = FALSE;
+ this->DAT_TwoIfNotHost = 2;
+ setBMPFacesToMagenta();
+ local_1c = this->DAT_PlayerGroupArray;
+ local_10 = (undefined2*)((int)this->finalResults.unusedUnk + 0x12);
+ local_8 = &this->connectionLagInfoArray[0].checkFor0;
+ local_c = this->historicalLagInfoPerPlayer;
+ piVar3 = &this->HASH_PartialHashPerPlayer.player0.domain02;
+ local_14 = this->DAT_PlayerNames;
+ local_18 = this->DAT_ReceivedAIVFileAvailabilityPerAIArray;
+ piVar4 = this->currentAIArray;
+ local_4 = 9;
+ do {
+ piVar4[-0x1b] = -1;
+ piVar4[0x1e858] = -1;
+ *piVar4 = 0;
+ piVar4[9] = 0;
+ piVar4[0x419b9] = 0;
+ local_1c[0x33] = 0;
+ pbVar1 = (byte*)(piVar4 + 0x12);
+ pbVar1[0] = 0;
+ pbVar1[1] = 0;
+ pbVar1[2] = 0;
+ pbVar1[3] = 0;
+ piVar4[0x422ef] = 0;
+ piVar4[-9] = 0;
+ (*local_18)[0] = -1;
+ piVar4[0x1e861] = 0;
+ piVar4[0x1e86a] = 0;
+ _memset(local_14, 0, 0xfa);
+ piVar4[0x419a7] = 0;
+ piVar4[0x419b0] = 0;
+ *local_1c = 0;
+ piVar4[0x1e8e8] = FALSE;
+ piVar4[0x1e8df] = 0;
+ local_1c[0x12] = 0;
+ ((HashContainerElement*)(piVar3 + -1))->domain01 = 0;
+ *piVar3 = 0;
+ piVar3[1] = 0;
+ piVar3[2] = 0;
+ piVar3[3] = 0;
+ piVar3[4] = 0;
+ iVar2 = 100;
+ do {
+ (*local_c)[0][0] = 0;
+ local_c = (int (*)[100][2])(*local_c + 1);
+ iVar2 = iVar2 + -1;
+ } while (iVar2 != 0);
+ local_18 = local_18 + 1;
+ local_14 = local_14 + 1;
+ local_8[-4] = 0;
+ *local_8 = 0;
+ local_8[1] = 0;
+ piVar4[0x422d4] = 1;
+ piVar4[0x42489] = 0;
+ piVar4[0x424e3] = 0;
+ piVar4[0x42527] = 0;
+ piVar4[0x424ec] = 0;
+ piVar4[0x4251e] = 0;
+ piVar4[0x424f5] = 0;
+ piVar4[0x424fe] = 0;
+ piVar4[0x42507] = 0;
+ piVar4[0x42510] = 0;
+ local_1c[-0x2cc] = 0;
+ piVar4[0x42530] = 0;
+ piVar4[0x42539] = 0;
+ piVar4[0x42542] = 0;
+ piVar4[0x4254b] = 0;
+ piVar4[0x42554] = 0;
+ local_10[-9] = 0;
+ *local_10 = 0;
+ piVar4[0x42566] = 0;
+ piVar4[0x4256f] = 0;
+ pbVar1 = (byte*)(piVar4 + 0x42578);
+ pbVar1[0] = 0;
+ pbVar1[1] = 0;
+ pbVar1[2] = 0;
+ pbVar1[3] = 0;
+ pbVar1 = (byte*)(piVar4 + 0x42581);
+ pbVar1[0] = 0;
+ pbVar1[1] = 0;
+ pbVar1[2] = 0;
+ pbVar1[3] = 0;
+ piVar4[0x425b0] = 0;
+ local_10 = local_10 + 1;
+ local_8 = local_8 + 9;
+ piVar4 = piVar4 + 1;
+ piVar3 = piVar3 + 0xc;
+ local_4 = local_4 + -1;
+ local_1c = local_1c + 1;
+ } while (local_4 != 0);
+ this->skirmishUnknownSetting1[0] = 1;
+ this->skirmishUnknownSetting1[1] = 1;
+ this->skirmishUnknownSetting1[2] = 1;
+ this->skirmishUnknownSetting1[3] = 1;
+ this->skirmishStartGold = 0;
+ this->skirmishDefaultPopularity = 100;
+ this->skirmishGameSpeedLevel = 0x28;
+ this->skirmishCurrentAdvantageBalance = 3;
+ this->field235_0x1072e8 = -1;
+ this->field236_0x1072ec = -1;
+ DAT_TextureRenderCoreObject.unknownPlayerDependentRenderValue[0] = 0;
+ DAT_TextureRenderCoreObject.unknownPlayerDependentRenderValue[1] = 0;
+ DAT_TextureRenderCoreObject.unknownPlayerDependentRenderValue[2] = 0;
+ DAT_TextureRenderCoreObject.unknownPlayerDependentRenderValue[3] = 0;
+ DAT_TextureRenderCoreObject.unknownPlayerDependentRenderValue[4] = 0;
+ DAT_TextureRenderCoreObject.unknownPlayerDependentRenderValue[5] = 0;
+ DAT_TextureRenderCoreObject.unknownPlayerDependentRenderValue[6] = 0;
+ DAT_TextureRenderCoreObject.unknownPlayerDependentRenderValue[7] = 0;
+ this->skirmishTechLevel = 4;
+ this->skirmishGameIntensityType = 1;
+ this->skirmishGameIntensityType2 = 1;
+ this->skirmishWinCondition = 0;
+ this->skirmishTroopsCostGold = 1;
+ this->field248_0x109250 = 6;
+ if ((((this->skirmishAutoSaveEveryMinutes != 0) && (this->skirmishAutoSaveEveryMinutes != 5))
+ && (this->skirmishAutoSaveEveryMinutes != 10))
+ && (this->skirmishAutoSaveEveryMinutes != 0x14)) {
+ this->skirmishAutoSaveEveryMinutes = 10;
+ }
+ this->saveRelated = 0;
+ this->field75_0xbe4 = 0;
+ this->commandDelay = 0x23;
+ DAT_GameState.mapAndTime.gameOver = FALSE;
+ resetGameCommands();
+ DAT_GameCore.mapTimeInTicks = 0;
+ this->syncStatus = 0;
+ this->flag_0xbec = 0;
+ this->skirmishStrongWalls = 0;
+ this->skirmishAlliances = 0;
+ this->skirmishNoCowThrowing = 0;
+ this->skirmishNoDogs = 0;
+ this->skirmishNoRushSetting = 0;
+ this->skirmishExtremeMode = 1;
+ this->skirmishExtremeMode2 = 0;
+ this->DAT_MapFileReceivingState = 0;
+ DAT_GameState.mapAndTime.skirmishFogOfWar = 0;
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_WIN_DEFEAT_WINDOW, 0);
+ return;
+ }
+}
+}
+
+### 0x00487a30 determineGameTicksToPerform | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x00487A30
+ int GameSynchronyState::determineGameTicksToPerform(int currentPlayerSlotID)
+ {
+ int iVar1;
+ int iVar2;
+ int extraout_ECX;
+ int _durationOfOneTick;
+ dword _gameSpeedLevel;
+ int _relativeTickTime;
+ _gameSpeedLevel = this->skirmishGameSpeedLevel;
+ if (DAT_GameCore.gameSpeedLevel == 0) {
+ DAT_GameCore.gameSpeedLevel = 40;
+ }
+ if ((DAT_GameCore.currentlyInGameUnk_0xa4 != TRUE) || (this->DAT_GameHalted != 0)) {
+ return 0;
+ }
+ if ((this->currentGameMode == GM_SOLITARY)
+ || (this->currentGameMode == GM_SKIRMISH_SINGLE_PLAYER)) {
+ this->mapTimeInTicksSinglePlayer = DAT_GameCore.mapTimeInTicks;
+ _gameSpeedLevel = DAT_GameCore.gameSpeedLevel;
+ _relativeTickTime = this->field196_0x101ad4;
+ } else {
+ /*
+ Calculate multiplayer game speed.
+ */
+ DAT_GameCore.gameSpeedMultiplicator = 1;
+ this->field196_0x101ad4 = 0;
+ computeLatencyAdjustmentFromMatchTimes(currentPlayerSlotID);
+ _relativeTickTime = *(int*)(extraout_ECX + 0x109eac);
+ if ((-1 < *(int*)(extraout_ECX + 0x109eac))
+ && (iVar1 = *(int*)(extraout_ECX + 0x109ea8), _relativeTickTime = this->field196_0x101ad4, 0 < iVar1)) {
+ iVar2 = *(int*)(extraout_ECX + 0x109ea8);
+ if (*(int*)(extraout_ECX + 0x109ee8) + 0x4b < iVar2) {
+ this->field196_0x101ad4 = iVar1;
+ if (*(int*)(extraout_ECX + 0x109260) < 1) {
+ *(undefined4*)(extraout_ECX + 0x109260) = 1;
+ }
+ _gameSpeedLevel = *(dword*)(extraout_ECX + 0x109260);
+ _relativeTickTime = this->field196_0x101ad4;
+ if ((int)*(dword*)(extraout_ECX + 0x106e38) < (int)*(dword*)(extraout_ECX + 0x109260)) {
+ _gameSpeedLevel = *(dword*)(extraout_ECX + 0x106e38);
+ }
+ } else {
+ _relativeTickTime = iVar1;
+ if ((5 < iVar2)
+ && (_gameSpeedLevel = ((5 - iVar2) * 2) / 3 + *(int*)(extraout_ECX + 0x106e38),
+ (int)_gameSpeedLevel < 15)) {
+ _gameSpeedLevel = 15;
+ }
+ }
+ }
+ }
+ this->field196_0x101ad4 = _relativeTickTime;
+ if ((int)DAT_GameCore.gameSpeedMultiplicator < 0) {
+ _durationOfOneTick
+ = (int)(-1000 / (longlong)(int)_gameSpeedLevel) * DAT_GameCore.gameSpeedMultiplicator;
+ } else {
+ _durationOfOneTick = (int)(1000 / (longlong)(int)_gameSpeedLevel);
+ if (1 < (int)DAT_GameCore.gameSpeedMultiplicator) {
+ _durationOfOneTick = (int)((longlong)((ulonglong)(uint)(_durationOfOneTick >> 0x1f) << 0x20
+ | 1000 / (longlong)(int)_gameSpeedLevel & 0xffffffffU)
+ / (longlong)(int)DAT_GameCore.gameSpeedMultiplicator);
+ }
+ }
+ _relativeTickTime
+ = DAT_MillisecCarry + (DAT_GameLoopStopwatch.duration_0x0 - _durationOfOneTick);
+ DAT_MillisecCarry = _relativeTickTime;
+ if (_relativeTickTime < 0) {
+ /*
+ Wait
+ */
+ if (_relativeTickTime < -_durationOfOneTick) {
+ DAT_MillisecCarry = _relativeTickTime + _durationOfOneTick;
+ return 0;
+ }
+ } else {
+ /*
+ Execute game ticks
+ */
+ if (((_durationOfOneTick < (int)DAT_GameCore.averageTimePerGameTick)
+ && (_durationOfOneTick * 2 <= _relativeTickTime))
+ && (_durationOfOneTick == (int)(1000 / (longlong)(int)_gameSpeedLevel))) {
+ /*
+ Slow down
+ */
+ DAT_MillisecCarry = 0;
+ return 2;
+ }
+ if ((((_durationOfOneTick * 7) / 10 < (int)DAT_GameCore.averageTimePerGameTick)
+ && (_durationOfOneTick * 2 <= _relativeTickTime))
+ && (_durationOfOneTick == (int)(1000 / (longlong)(int)_gameSpeedLevel))) {
+ /*
+ Slow down
+ */
+ DAT_MillisecCarry = 0;
+ return 3;
+ }
+ if (_durationOfOneTick * 10 < _relativeTickTime) {
+ /*
+ Cap game ticks per rendering
+ */
+ DAT_MillisecCarry = 0;
+ return (int)(11);
+ }
+ if (_durationOfOneTick < _relativeTickTime) {
+ DAT_MillisecCarry
+ = _relativeTickTime - (_relativeTickTime / _durationOfOneTick) * _durationOfOneTick;
+ return _relativeTickTime / _durationOfOneTick + 1;
+ }
+ }
+ return 1;
+ }
+}
+}
+
+### 0x00487c50 transmitCommand | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x00487C50
+ void GameSynchronyState::transmitCommand(byte commandCategory, undefined4 time,
+ char* addressOfFullCommandObjectOrCommandParameters, size_t size, undefined4 idTo)
+ {
+ int iVar1;
+ BOOLEnum BVar2;
+ int _packetSize;
+ char* _src;
+ size_t local_3f0;
+ char local_3ec[1000];
+ uint local_4;
+ DPSEND_EnumInt _dwFlags;
+ DWORD _dwPriority;
+ _packetSize = size;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)&_src;
+ _src = addressOfFullCommandObjectOrCommandParameters;
+ if (((this->currentGameMode == GM_SOLITARY)
+ || (this->currentGameMode == GM_SKIRMISH_SINGLE_PLAYER))
+ || (this->DPLAYX_4A == (IDirectPlay4A**)0x0))
+ goto LAB_00487e0f;
+ this->transmissionCounterUnk = this->transmissionCounterUnk + 1;
+ if (((int)size < 200) || (commandCategory == 65)) {
+ this->DAT_Packet.packet.commandProtocol = commandCategory;
+ moveLowerThreeBytesIntoParam2(
+ &time, (void*)((int)(((int)&this->DAT_Packet + 1))));
+ copyData(
+ _packetSize, (void*)((int)(_src)), (void*)((int)(((int)&this->DAT_Packet + 4))));
+ } else {
+ this->DAT_Packet.packet.commandProtocol = 125;
+ this->DAT_Packet.prefixedPacket.packet.commandProtocol = commandCategory;
+ moveLowerThreeBytesIntoParam2(
+ &time, (void*)((int)(((int)&this->DAT_Packet + 2))));
+ local_3f0 = _packetSize;
+ iVar1 = compressOrCreateLengthPrefixedPacketUnk(
+ _packetSize, _src, (void*)((int)(((int)&this->DAT_Packet + 5))));
+ _packetSize = iVar1 + 1;
+ if ((int)local_3f0 < _packetSize) {
+ _sprintf(local_3ec, "packet size:%d new size:%d type:%d", local_3f0,
+ _packetSize, (int)(char)commandCategory);
+ }
+ }
+ this->DAT_CurrentTransmitCommandPacketSize = _packetSize;
+ if (commandCategory == 117) {
+ BVar2 = getAreWeInAInGameMenu();
+ _dwPriority = 0xfffd;
+ if (BVar2 == FALSE) {
+ LAB_00487dc7:
+ _dwFlags = 1536 | 1536;
+ goto LAB_00487dda;
+ }
+ /*
+ SendEx(idFrom, idTo, dwFlags, lpData, dwDataSize, dwPriority, dwTimeout, lpContext, lpdwMsgID)
+ */
+ this->DPLAYX_SendAndReceiveREsult
+ = (*(*this->DPLAYX_4A)->SendEx)(this->DPLAYX_4A, this->DPLAYX_PlayerHandle, idTo, 1537 | 1537 | 1537,
+ &this->DAT_Packet, _packetSize + 4, 0xfffd, 0, (void*)0x0, (DWORD_PTR*)0x0);
+ } else {
+ /*
+ 0xc
+ */
+ if (commandCategory == 12) {
+ _dwPriority = 0xfffe;
+ goto LAB_00487dc7;
+ }
+ _dwPriority = 0xffff;
+ _dwFlags = DPSEND_NOSENDCOMPLETEMSG | DPSEND_ASYNC
+ | DPSEND_GUARANTEED;
+ LAB_00487dda:
+ /*
+ DPLAYX.DirectPlayEnumerate+88C0
+ */
+ this->DPLAYX_SendAndReceiveREsult
+ = (*(*this->DPLAYX_4A)->SendEx)(this->DPLAYX_4A, this->DPLAYX_PlayerHandle, idTo, _dwFlags,
+ &this->DAT_Packet, _packetSize + 4, _dwPriority, 0, (void*)0x0, (DWORD_PTR*)0x0);
+ }
+ if ((this->DPLAYX_SendAndReceiveREsult != 0) && (this->DPLAYX_SendAndReceiveREsult != -0x7ffffff6)) {
+ /*
+ unsuccessfull transmission?
+ */
+ handleUnexpectedDPlayXResult();
+ }
+ LAB_00487e0f:;
+ return;
+ }
+}
+}
+
+### 0x00487e30 sendSomeMultiplayerSyncMessageWithType | quelle=nachgebaut | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x00487E30
+ void GameSynchronyState::sendSomeMultiplayerSyncMessageWithType(undefined4 syncPacketType2)
+ {
+ if (this->currentGameMode != Game::GM_SOLITARY && this->currentGameMode != Game::GM_SKIRMISH_SINGLE_PLAYER
+ && this->DPLAYX_4A != (IDirectPlay4A*)0x0) {
+ moveLowerThreeBytesIntoParam2(
+ &DAT_GameCore.mapTimeInTicks, &this->mapTimeInTicksLower3Bytes);
+ this->syncPacket2Type = (undefined1)syncPacketType2;
+ this->syncParamTimeDiff = (undefined1)this->clTimeDiff;
+ // The payload is the three adjacent fields written just above, so dwDataSize is
+ // their combined size. The 65533 is dwPriority, and stays a plain number: dplay.h
+ // names only the top of that range (DPSEND_MAX_PRIORITY, 0xFFFF) and nothing shows
+ // this value is derived from it.
+ size_t const _packetSize = sizeof(this->syncPacket2Type) + sizeof(this->mapTimeInTicksLower3Bytes)
+ + sizeof(this->syncParamTimeDiff);
+ this->DPLAYX_SendAndReceiveREsult
+ = this->DPLAYX_4A->SendEx(this->DPLAYX_PlayerHandle, 0, DPSEND_NOSENDCOMPLETEMSG | DPSEND_ASYNC,
+ &this->syncPacket2Type, _packetSize, 65533, 0, (void*)0x0, (DWORD_PTR*)0x0);
+ if ((this->DPLAYX_SendAndReceiveREsult) && (this->DPLAYX_SendAndReceiveREsult != -0x7ffffff6)) {
+ handleUnexpectedDPlayXResult();
+ }
+ uint _playerID = translateMultiplayerIDsIntoPlayerIDs(this->DPLAYX_PlayerHandle);
+ this->matchTimes[_playerID] = DAT_GameCore.mapTimeInTicks;
+ ++this->receivedMatchTimesTrackerUnk;
+ if (6 < this->receivedMatchTimesTrackerUnk) {
+ --this->commandDelay;
+ this->receivedMatchTimesTrackerUnk = 0;
+ if (!this->syncRelatedCountdown) {
+ int _maxLatency = 0;
+ for (int _player = 1; _player < 9; ++_player) {
+ if ((this->currentPlayerFullIDArray[_player] != -1)
+ && (this->connectionLagInfoArray[_player].average1 > _maxLatency)) {
+ _maxLatency = this->connectionLagInfoArray[_player].average1;
+ }
+ }
+ int _countdown;
+ if (_maxLatency < 2) {
+ _countdown = 20;
+ } else if (_maxLatency == 2) {
+ _countdown = 25;
+ } else {
+ _countdown = _maxLatency + 27;
+ if (50 < _countdown) {
+ _countdown = 50;
+ }
+ }
+ if (this->commandDelay < _countdown) {
+ this->commandDelay = _countdown;
+ }
+ }
+ --this->clTimeDiff;
+ if (this->clTimeDiff < 0) {
+ this->clTimeDiff = 0;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x00488010 processSyncPacket | quelle=nachgebaut | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x00488010
+ void GameSynchronyState::processSyncPacket(int param_1)
+ {
+ uint _player = translateMultiplayerIDsIntoPlayerIDs(this->DPLAYX_ReceivedPlayerID);
+ this->matchTimes[_player]
+ = this->receivedCommandMapTimeInTicks + this->connectionLagInfoArray[_player].average1;
+ int _countDown = this->commandDelay;
+ int _delay = (char)this->DPLAY_ReceiveData.packet.payload[0] + 10;
+ if (_delay > _countDown) {
+ int _cappedDelay = _countDown + 5;
+ if (_delay >= _cappedDelay) {
+ _delay = _cappedDelay;
+ }
+ this->commandDelay = _delay;
+ }
+ uint _difference = (DAT_GameCore.mapTimeInTicks - this->receivedCommandMapTimeInTicks)
+ - this->connectionLagInfoArray[_player].average1;
+ int _absoluteDifference = abs((int)_difference);
+ if (this->clTimeDiff < _absoluteDifference) {
+ int _newDiff = this->clTimeDiff + 5;
+ if (_absoluteDifference >= _newDiff) {
+ _absoluteDifference = _newDiff;
+ }
+ this->clTimeDiff = _absoluteDifference;
+ if (45 < _absoluteDifference) {
+ this->clTimeDiff = 45;
+ }
+ }
+ int _newDiff2 = this->clTimeDiff + 10;
+ if (_newDiff2 > this->commandDelay) {
+ int _capped = _countDown + 5;
+ if (_newDiff2 >= _capped) {
+ _newDiff2 = _capped;
+ }
+ this->commandDelay = _newDiff2;
+ }
+ if (this->syncRelatedCountdown) {
+ this->commandDelay = 1;
+ }
+ }
+}
+}
+
+### 0x004880e0 sendSyncPacket126 | quelle=nachgebaut | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x004880E0
+ void GameSynchronyState::sendSyncPacket126()
+ {
+ DWORD _now = timeGetTime();
+ if (this->currentGameMode != Game::GM_SOLITARY && this->currentGameMode != Game::GM_SKIRMISH_SINGLE_PLAYER
+ && this->DPLAYX_4A != (IDirectPlay4A*)0x0) {
+ BOOLEnum _inGameMenu = getAreWeInAInGameMenu();
+ if (_inGameMenu) {
+ ++this->syncRelated2;
+ for (int _player = 0; _player < 9; ++_player) {
+ this->connectionLagInfoArray[_player].mapTimeInTicks = DAT_GameCore.mapTimeInTicks;
+ this->connectionLagInfoArray[_player].counter = (char)this->syncRelated2;
+ this->connectionLagInfoArray[_player].now = _now;
+ }
+ this->syncPacketType = 126;
+ this->syncRelatedCounter = this->syncRelated2;
+ // dwDataSize covers the two adjacent fields set just above. The 65000 is
+ // dwPriority, a plain number below dplay.h's DPSEND_MAX_PRIORITY (0xFFFF).
+ size_t const _packetSize = sizeof(this->syncPacketType) + sizeof(this->syncRelatedCounter);
+ this->DPLAYX_SendAndReceiveREsult = this->DPLAYX_4A->SendEx(this->DPLAYX_PlayerHandle, 0,
+ DPSEND_GUARANTEED | DPSEND_ASYNC | DPSEND_NOSENDCOMPLETEMSG, &this->syncPacketType, _packetSize,
+ 65000, 0, (void*)0x0, (DWORD_PTR*)0x0);
+ if ((this->DPLAYX_SendAndReceiveREsult) && (this->DPLAYX_SendAndReceiveREsult != -0x7ffffff6)) {
+ handleUnexpectedDPlayXResult();
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x004882a0 computeAndSetLatencyInformation | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x004882A0
+ void GameSynchronyState::computeAndSetLatencyInformation()
+ {
+ uint uVar1;
+ DWORD _now_1;
+ DWORD _now_2;
+ BOOLEnum BVar2;
+ int _sum;
+ int _div;
+ int* piVar3;
+ int _counter;
+ int _sum_2;
+ int _countdown;
+ uint _offset;
+ if (this->DPLAY_ReceiveData.packet.commandProtocol == 0x7e) {
+ this->syncPacketType = 0x7f;
+ this->syncRelatedCounter = this->DPLAY_ReceiveData.prefixedPacket.packet.commandProtocol;
+ this->DPLAYX_SendAndReceiveREsult = (*(*this->DPLAYX_4A)->SendEx)(this->DPLAYX_4A,
+ this->DPLAYX_PlayerHandle, this->DPLAYX_ReceivedPlayerID,
+ DPSEND_NOSENDCOMPLETEMSG | DPSEND_ASYNC
+ | DPSEND_GUARANTEED,
+ (void*)0x1998398, 2, 65000, 0, (void*)0x0, (DWORD_PTR*)0x0);
+ if (this->DPLAYX_SendAndReceiveREsult == 0) {
+ return;
+ }
+ if (this->DPLAYX_SendAndReceiveREsult == -0x7ffffff6) {
+ return;
+ }
+ handleUnexpectedDPlayXResult();
+ return;
+ }
+ uVar1 = translateMultiplayerIDsIntoPlayerIDs(this->DPLAYX_ReceivedPlayerID);
+ /*
+ playerID is never 0 in this logic, but it could be 0 with a mod
+ */
+ _now_1 = MACRO_CALL(timeGetTime)();
+ this->connectionLagInfoArray[uVar1].time = _now_1;
+ if (this->connectionLagInfoArray[uVar1].counter
+ != (int)(char)this->DPLAY_ReceiveData.prefixedPacket.packet.commandProtocol) {
+ return;
+ }
+ this->connectionLagInfoArray[uVar1].subtractedMapTicks
+ = (int)(DAT_GameCore.mapTimeInTicks - this->connectionLagInfoArray[uVar1].mapTimeInTicks) / 2;
+ _now_2 = MACRO_CALL(timeGetTime)();
+ this->connectionLagInfoArray[uVar1].subtractedTime = _now_2 - this->connectionLagInfoArray[uVar1].now >> 1;
+ BVar2 = getAreWeInAInGameMenu();
+ if (BVar2 == FALSE) {
+ return;
+ }
+ this->connectionLagInfoArray[uVar1].checkFor0 = 1;
+ _sum_2 = 0;
+ /*
+ stupid way of writing that if counter == -1, then this is the first time we write data... why not set
+ counter to 0? Maybe it rotates at some point back to 0
+ */
+ if (this->counter == -1) {
+ _counter = 0;
+ if (0 < this->limit) {
+ piVar3 = this->historicalLagInfoPerPlayer[uVar1][0] + 1;
+ do {
+ (*(int (*)[2])(piVar3 + -1))[0] = this->connectionLagInfoArray[uVar1].subtractedMapTicks;
+ *piVar3 = this->connectionLagInfoArray[uVar1].subtractedTime;
+ _counter = _counter + 1;
+ piVar3 = piVar3 + 2;
+ } while (_counter < this->limit);
+ }
+ } else {
+ this->historicalLagInfoPerPlayer[uVar1][this->counter][1]
+ = this->connectionLagInfoArray[uVar1].subtractedTime;
+ this->historicalLagInfoPerPlayer[uVar1][this->counter][0]
+ = this->connectionLagInfoArray[uVar1].subtractedMapTicks;
+ this->counter = this->counter + 1;
+ if (this->counter < this->limit)
+ goto LAB_00488429;
+ }
+ this->counter = 0;
+ LAB_00488429:
+ _sum = 0;
+ if (this->limit != 0) {
+ if (0 < this->limit) {
+ piVar3 = this->historicalLagInfoPerPlayer[uVar1][2] + 1;
+ _countdown = this->limit;
+ do {
+ _sum_2 = _sum_2 + piVar3[-5];
+ _sum = _sum + *piVar3;
+ piVar3 = piVar3 + 2;
+ _countdown = _countdown + -1;
+ } while (_countdown != 0);
+ }
+ _div = _sum_2 / this->limit;
+ this->connectionLagInfoArray[uVar1].average2 = _sum / this->limit;
+ this->connectionLagInfoArray[uVar1].average1 = _div;
+ }
+ return;
+ }
+}
+}
+

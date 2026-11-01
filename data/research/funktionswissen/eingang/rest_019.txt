@@ -1,0 +1,1447 @@
+### 0x004ae7d0 MenuItemActionHandler_AiLordSelect_Main | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AE7D0
+ void AiLordSelect::MenuItemActionHandler_AiLordSelect_Main(int param_1, ...)
+ {
+ int iVar1;
+ if (param_1 == 100) {
+ resetMouseState2();
+ DAT_MenuModalComposition1.activeModalDialogID = MMT_NONE;
+ return;
+ }
+ if (param_1 <= DAT_GameCore.numOfAIsWithCastleUnk) {
+ DAT_LobbyAddAICurrentlyHoveredAI
+ = DAT_GameCore.arrayOfLordIdsWithAIVsUnk[param_1 + -1];
+ iVar1 = 1;
+ while ((DAT_GameSynchronyState.currentPlayerFullIDArray[iVar1] != -1
+ || (DAT_GameSynchronyState.currentAIArray[iVar1] != 0))) {
+ iVar1 = iVar1 + 1;
+ if (8 < iVar1) {
+ DAT_MenuModalComposition1.activeModalDialogID = MMT_NONE;
+ return;
+ }
+ }
+ if (iVar1 != 0) {
+ DAT_GameSynchronyState.currentAIArray[iVar1] = DAT_LobbyAddAICurrentlyHoveredAI;
+ ResetAiVariationArrayValue(iVar1);
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[iVar1] = 1;
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = iVar1;
+ queueCommand(
+ GCT_SEND_RESYNC_TILEMAPDATA2 | GCT_LOAD_MAP_HEADER);
+ DAT_GameSynchronyState.reparseMaps = TRUE;
+ PlayAMessageFromAI(
+ DAT_GameSynchronyState.currentAIArray[iVar1], 0x16);
+ reorderTeamsAndPositions();
+ iVar1 = 0;
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[1] != -1)
+ || (DAT_GameSynchronyState.currentAIArray[1] != 0)) {
+ iVar1 = 1;
+ }
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[2] != -1)
+ || (DAT_GameSynchronyState.currentAIArray[2] != 0)) {
+ iVar1 = iVar1 + 1;
+ }
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[3] != -1)
+ || (DAT_GameSynchronyState.currentAIArray[3] != 0)) {
+ iVar1 = iVar1 + 1;
+ }
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[4] != -1)
+ || (DAT_GameSynchronyState.currentAIArray[4] != 0)) {
+ iVar1 = iVar1 + 1;
+ }
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[5] != -1)
+ || (DAT_GameSynchronyState.currentAIArray[5] != 0)) {
+ iVar1 = iVar1 + 1;
+ }
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[6] != -1)
+ || (DAT_GameSynchronyState.currentAIArray[6] != 0)) {
+ iVar1 = iVar1 + 1;
+ }
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[7] != -1)
+ || (DAT_GameSynchronyState.currentAIArray[7] != 0)) {
+ iVar1 = iVar1 + 1;
+ }
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[8] != -1)
+ || (DAT_GameSynchronyState.currentAIArray[8] != 0)) {
+ iVar1 = iVar1 + 1;
+ }
+ if (iVar1 != 8) {
+ return;
+ }
+ resetMouseState2();
+ }
+ DAT_MenuModalComposition1.activeModalDialogID = MMT_NONE;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004ae950 MenuItemRenderFunction_AiLordSelect_Main | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AE950
+ void AiLordSelect::MenuItemRenderFunction_AiLordSelect_Main(int param_1, ...)
+ {
+ int iVar1;
+ if (param_1 == 100) {
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ return;
+ }
+ if (param_1 == 1) {
+ DAT_LobbyAddAICurrentlyHoveredAI = 0;
+ }
+ if (DAT_GameCore.numOfAIsWithCastleUnk < param_1) {
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ iVar1 = DAT_GameCore.arrayOfLordIdsWithAIVsUnk[param_1 + -1];
+ renderGM(GM_INTERFACE_ICONS2, 0x22b,
+ DAT_ButtonX, DAT_ButtonY);
+ renderGM(GM_INTERFACE_ICONS2, iVar1 + 0x20a,
+ DAT_ButtonX, DAT_ButtonY);
+ if (DAT_ButtonCurrentlyInteracting != FALSE) {
+ renderGMWithAlphaMask(GID_INTERFACE_ICONS_2, 0x202,
+ DAT_ButtonX + -6, DAT_ButtonY + -6,
+ GID_INTERFACE_ICONS_2, 0x201, 0);
+ DAT_LobbyAddAICurrentlyHoveredAI = iVar1;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004b19e0 MenuModalRenderFunction_AiLordSelect | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B19E0
+ void AiLordSelect::MenuModalRenderFunction_AiLordSelect(int x, int y, int width, int height)
+ {
+ int _textAddress;
+ char* text;
+ int yPos;
+ int maxWidth;
+ BGR24 color;
+ int iVar1;
+ uint color_00;
+ BOOLEnum keepOffsetX;
+ int fontSize;
+ int iVar2;
+ int blendStrength;
+ int _xParam;
+ int _yParam;
+ uint _shift;
+ undefined* _color;
+ uint _fontSize;
+ yPos = y + 0x6e;
+ if (DAT_GameCore.numOfAIsWithCastleUnk < 9) {
+ iVar1 = 0x13;
+ } else {
+ iVar1 = 0x14;
+ }
+ renderLoadedGfx(iVar1, x, y);
+ if (8 < DAT_GameCore.numOfAIsWithCastleUnk) {
+ yPos = y + 0xba;
+ }
+ if (DAT_MouseState.rightClickStart != 0) {
+ activateModalDialog(MMT_NONE, FALSE);
+ }
+ iVar1 = x + 0x18;
+ iVar2 = 0;
+ if (DAT_LobbyAddAICurrentlyHoveredAI == 0) {
+ maxWidth = 450;
+ iVar2 = 401;
+ } else {
+ keepOffsetX = FALSE;
+ _fontSize = 0x11;
+ color = 0xccfaff;
+ _shift = 0;
+ _xParam = iVar1;
+ _yParam = yPos;
+ _textAddress = (int)getTextStringInGroupAtOffset(TEXT_XPLAY_WAITING_ROOM,
+ DAT_LobbyAddAICurrentlyHoveredAI * 9 + 0xe6);
+ renderTextToScreen(
+ (char*)_textAddress, _xParam, _yParam, (TextAlignment)((int)(_shift)), color,
+ _fontSize, keepOffsetX, iVar2);
+ iVar2 = DAT_LobbyAddAICurrentlyHoveredAI + 384;
+ maxWidth = 0x236;
+ yPos = yPos + 0x1e;
+ }
+ blendStrength = 0;
+ fontSize = 0x12;
+ color_00 = 0xccfaff;
+ text = getTextStringInGroupAtOffset(TEXT_XPLAY_WAITING_ROOM, iVar2);
+ renderMultilineText5Unk(
+ text, iVar1, yPos, maxWidth, color_00, fontSize, blendStrength);
+ return;
+ }
+ }
+}
+}
+
+### 0x004ac6e0 MenuModalRenderFunction_Allies | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AC6E0
+ void Allies::MenuModalRenderFunction_Allies(int x, int y, int width, int height)
+ {
+ DWORD _now;
+ char* pcVar1;
+ int xParam;
+ int iVar2;
+ TextAlignment TVar3;
+ BGR24 BVar4;
+ int iVar5;
+ int iVar6;
+ BOOLEnum BVar7;
+ int blendStrength;
+ RecalculateAllies();
+ _now = timeGetTime();
+ if (500 < _now - DAT_Time_Allies1) {
+ DAT_00df42b0 = DAT_00df42b0 + 1;
+ DAT_Time_Allies1 = _now;
+ if (1 < DAT_00df42b0) {
+ DAT_00df42b0 = 0;
+ }
+ }
+ blendStrength = 0;
+ BVar7 = FALSE;
+ iVar5 = 0xf;
+ BVar4 = 0xccfaff;
+ TVar3 = TTA_LEFT;
+ iVar2 = y + 0x19;
+ xParam = x + 0x27;
+ iVar6 = xParam;
+ /*
+ added by script: "Allies"
+ */
+ pcVar1 = getTextStringInGroupAtOffset(TEXT_ALLIES, 0);
+ renderTextToScreen(
+ pcVar1, iVar6, iVar2, TVar3, BVar4, iVar5, BVar7, blendStrength);
+ if (DAT_AlliesCount < 1) {
+ iVar5 = 0;
+ BVar7 = FALSE;
+ iVar6 = 0x11;
+ BVar4 = 0xccfaff;
+ TVar3 = TTA_LEFT;
+ iVar2 = y + 100;
+ /*
+ added by script: "You have no Allies!"
+ */
+ pcVar1 = getTextStringInGroupAtOffset(TEXT_ALLIES, 0x13);
+ renderTextToScreen(
+ pcVar1, xParam, iVar2, TVar3, BVar4, iVar6, BVar7, iVar5);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004ac7a0 MenuItemRenderFunction_Allies_Main | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AC7A0
+ void Allies::MenuItemRenderFunction_Allies_Main(int param_1, ...)
+ {
+ BOOLEnum BVar1;
+ int iVar2;
+ int iVar3;
+ int iVar4;
+ int iVar5;
+ int iVar6;
+ int iVar7;
+ bool bVar8;
+ eTextSections textOffsetIndex;
+ int xParam;
+ iVar2 = DAT_ButtonY;
+ iVar3 = DAT_ButtonX;
+ if (param_1 == 100) {
+ return;
+ }
+ if ((DAT_AlliesCount < 1) && (param_1 != -1)) {
+ DAT_ButtonUnknownZero = 1;
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ return;
+ }
+ if ((param_1 == 0x6e) || (param_1 == 0x6f)) {
+ if (((DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .requestStateUnk
+ != 1)
+ || ((iVar3 = DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .playerID_askerUnk,
+ DAT_GameSynchronyState.currentPlayerFullIDArray[iVar3] == -1
+ || (iVar3
+ != DAT_SomeTeamMemberPlayerIDArray[DAT_LastTeamMemberIndex]))))
+ && (DAT_GameState
+ .playerDataArray
+ [DAT_SomeTeamMemberPlayerIDArray[DAT_LastTeamMemberIndex]]
+ .isNotNervousByEnemyTroopValue
+ == 0)) {
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ DAT_ButtonUnknownZero = 0;
+ RenderButtonImageWithBlending();
+ return;
+ }
+ if (param_1 == 200) {
+ if (DAT_00df51f4 == 0) {
+ return;
+ }
+ DAT_TextManagerObject.textSurfaceTarget = RT_MAP_GAME;
+ renderText(
+ TEXT_ALLIES, DAT_00df51f0, DAT_ButtonX,
+ DAT_ButtonY, TTA_LEFT, 0xb8eefb, 0, 0x12, FALSE);
+ DAT_TextManagerObject.textSurfaceTarget = RT_SCREEN_MENU;
+ return;
+ }
+ DAT_ButtonUnknownZero = 0;
+ if (0x13 < (uint)param_1) {
+ RenderCurrentNotActiveButtonWithPossibleAlphaTexOnCurrentSurfaceUnk();
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ return;
+ }
+ if (param_1 == 0x14) {
+ DAT_00df51f4 = 1;
+ DAT_00df51f0 = 5;
+ return;
+ }
+ if (param_1 == 0x15) {
+ DAT_00df51f4 = 1;
+ DAT_00df51f0 = 6;
+ return;
+ }
+ if (param_1 != 0x16) {
+ return;
+ }
+ DAT_00df51f4 = 1;
+ DAT_00df51f0 = 7;
+ return;
+ }
+ if (6 < param_1) {
+ if (param_1 != 10) {
+ DAT_ButtonUnknownZero = 0;
+ return;
+ }
+ iVar6 = 0;
+ if (0 < DAT_ButtonH) {
+ do {
+ if (iVar6 == 0) {
+ iVar5 = 1;
+ } else {
+ iVar5 = (-(uint)(iVar6 != DAT_ButtonH + -0x18) & 0xfffffffa) + 0xd;
+ }
+ iVar7 = 0;
+ do {
+ iVar4 = iVar5;
+ if (iVar7 == 0) {
+ LAB_004acbeb:
+ renderGMWithAlphaMask(GID_INTERFACE_ICONS_3,
+ iVar4, iVar7 + iVar3, iVar2 + iVar6, GID_INTERFACE_ICONS_3,
+ iVar4 + 3, 0);
+ } else {
+ if (iVar7 == 0x270) {
+ iVar4 = iVar5 + 2;
+ goto LAB_004acbeb;
+ }
+ if (iVar5 != 7) {
+ iVar4 = iVar5 + 1;
+ goto LAB_004acbeb;
+ }
+ }
+ iVar7 = iVar7 + 0x18;
+ } while (iVar7 < 0x288);
+ iVar6 = iVar6 + 0x18;
+ } while (iVar6 < DAT_ButtonH);
+ }
+ drawBlendedBlackBox(
+ iVar3 + 0x18, iVar2 + 0x18, iVar3 + 0x26f, DAT_ButtonH + -0x19 + iVar2, 0x14);
+ iVar3 = DAT_SomeTeamMemberPlayerIDArray[DAT_LastTeamMemberIndex];
+ iVar2 = DAT_GameSynchronyState.currentPlayerFullIDArray[iVar3];
+ if ((iVar2 == -1)
+ && (BVar1 = isAIPlayer(iVar3),
+ BVar1 == FALSE)) {
+ return;
+ }
+ iVar7 = DAT_ButtonY;
+ iVar5 = DAT_ButtonX;
+ iVar6 = DAT_ButtonX + 0x18;
+ if (iVar2 == -1) {
+ renderText(
+ TEXT_XPLAY_WAITING_ROOM,
+ DAT_GameSynchronyState.aiVariationArray[iVar3] + 0x67
+ + DAT_GameSynchronyState.currentAIArray[iVar3] * 8,
+ iVar6, DAT_ButtonY + 0x18, TTA_LEFT,
+ (uint)((int)(DAT_RenderingDefinedData
+ .ColorTable1[DAT_BlendingDefinedData.PlayerSlotUnitColor[iVar3]])),
+ 0, 0x11, FALSE);
+ } else {
+ renderInGameText(
+ DAT_GameSynchronyState.DAT_PlayerNames[iVar3], iVar6,
+ DAT_ButtonY + 0x18, TTA_LEFT,
+ (uint)((int)(DAT_RenderingDefinedData
+ .ColorTable1[DAT_BlendingDefinedData.PlayerSlotUnitColor[iVar3]])),
+ 0, 0x11, FALSE);
+ }
+ iVar2
+ = (int)DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .requestedGoodsArray1Unk[iVar3];
+ if (iVar2 == 7) {
+ iVar2 = 8;
+ }
+ iVar4 = iVar7 + 0x38;
+ bVar8 = -1 < iVar2 + -2;
+ if (bVar8) {
+ /*
+ added by script: "Requests"
+ */
+ renderText2(
+ TEXT_ALLIES, 0xc, iVar6, iVar4, TTA_LEFT, 0xccfaff, 0x12,
+ FALSE);
+ renderLeftAlignedNumberToScreen(
+ (int)DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .requestedGoodsArray2Unk[iVar3],
+ iVar5 + 0x1d, iVar4, 0xccfaff, 0x12, 1);
+ renderGMWithAlphaMask(GID_INTERFACE_ICONS_2, iVar2 + 0x242,
+ DAT_TextManagerObject.currentXOffset_0x0 + 10 + iVar6, iVar7 + 0x30,
+ GID_INTERFACE_ICONS_2, 0x25b, 0);
+ xParam = iVar5 + 0x45;
+ textOffsetIndex = TEXT_GOODS;
+ } else {
+ iVar2 = 1;
+ textOffsetIndex = TEXT_ALLIES;
+ xParam = iVar6;
+ }
+ renderText2(
+ textOffsetIndex, iVar2, xParam, iVar4, TTA_LEFT, 0xccfaff, 0x12,
+ (BOOLEnum)((int)((uint)bVar8)));
+ iVar2 = iVar7 + 0x58;
+ if (DAT_GameState.playerDataArray[iVar3].requestStateUnk == 0) {
+ /*
+ added by script: "No Orders"
+ */
+ renderText2(
+ TEXT_ALLIES, 2, iVar6, iVar2, TTA_LEFT, 0xccfaff, 0x12,
+ FALSE);
+ } else {
+ /*
+ added by script: "Orders:"
+ */
+ renderText2(
+ TEXT_ALLIES, 0x10, iVar6, iVar2, TTA_LEFT, 0xccfaff, 0x12,
+ FALSE);
+ if (DAT_GameState.playerDataArray[iVar3].requestStateUnk == 1) {
+ /*
+ added by script: "Attack"
+ */
+ renderText2(
+ TEXT_ALLIES, 10, iVar5 + 0x1d, iVar2, TTA_LEFT, 0xccfaff,
+ 0x12, TRUE);
+ }
+ if (DAT_GameState.playerDataArray[iVar3].requestStateUnk == 2) {
+ /*
+ added by script: "Defend"
+ */
+ renderText2(
+ TEXT_ALLIES, 0x11, iVar5 + 0x1d, iVar2, TTA_LEFT,
+ 0xccfaff, 0x12, TRUE);
+ } else {
+ iVar4 = DAT_GameState.playerDataArray[iVar3].requestedAttackTargetUnk;
+ if (iVar4 == DAT_GameSynchronyState.currentPlayerSlotID) {
+ /*
+ added by script: "You"
+ */
+ renderText2(
+ TEXT_ALLIES, 0x12, iVar5 + 0x22, iVar2, TTA_LEFT,
+ 0xccfaff, 0x12, TRUE);
+ } else {
+ iVar2 = iVar7 + 0x4c;
+ iVar5 = DAT_TextManagerObject.currentXOffset_0x0 + 10 + iVar6;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[iVar4] == -1) {
+ renderGM(
+ GM_INTERFACE_ICONS2, iVar4 + 0x2ce, iVar5, iVar2);
+ renderGM(GM_INTERFACE_ICONS2,
+ DAT_GameSynchronyState
+ .currentAIArray[DAT_GameState.playerDataArray[iVar3]
+ .requestedAttackTargetUnk]
+ + 700,
+ iVar5, iVar2);
+ } else {
+ renderGM(
+ GM_INTERFACE_ICONS2, iVar4 + 0x2ce, iVar5, iVar2);
+ renderFacesSmallUnk(
+ DAT_GameState.playerDataArray[iVar3].requestedAttackTargetUnk + 0x13,
+ iVar5 + 2, iVar7 + 0x4e);
+ drawBorderBox(iVar5, iVar2, iVar5 + 0x23, iVar7 + 0x6f,
+ (ushort)((int)(COL_BLACK::instance.shortValue)));
+ }
+ }
+ }
+ }
+ if (DAT_GameState.playerDataArray[iVar3].isNotNervousByEnemyTroopValue != 0) {
+ /*
+ added by script: "Help Needed!"
+ */
+ renderText2(
+ TEXT_ALLIES, 4, iVar6, iVar7 + 0x78, TTA_LEFT, 0xccfaff,
+ 0x12, FALSE);
+ }
+ iVar2 = DAT_GameSynchronyState.currentPlayerSlotID;
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .requestStateUnk
+ != 1) {
+ return;
+ }
+ iVar5 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .playerID_askerUnk;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[iVar5] == -1) {
+ return;
+ }
+ if (iVar5 != iVar3) {
+ return;
+ }
+ /*
+ added by script: "Attack"
+ */
+ renderText2(
+ TEXT_ALLIES, 10, iVar6, iVar7 + 0x78, TTA_LEFT, 0xccfaff, 0x12,
+ FALSE);
+ iVar6 = DAT_TextManagerObject.currentXOffset_0x0 + 10 + iVar6;
+ iVar3 = DAT_GameState.playerDataArray[iVar2].requestedAttackTargetUnk;
+ iVar5 = iVar7 + 0x73;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[iVar3] != -1) {
+ renderGM(
+ GM_INTERFACE_ICONS2, iVar3 + 0x2ce, iVar6, iVar5);
+ renderFacesSmallUnk(
+ DAT_GameState.playerDataArray[iVar2].requestedAttackTargetUnk + 0x13, iVar6 + 2,
+ iVar7 + 0x75);
+ drawBorderBox(
+ iVar6, iVar5, iVar6 + 0x23, iVar7 + 0x96, (ushort)((int)(COL_BLACK::instance.shortValue)));
+ return;
+ }
+ renderGM(
+ GM_INTERFACE_ICONS2, iVar3 + 0x2ce, iVar6, iVar5);
+ renderGM(GM_INTERFACE_ICONS2,
+ DAT_GameSynchronyState.currentAIArray
+ [DAT_GameState.playerDataArray[iVar2].requestedAttackTargetUnk]
+ + 700,
+ iVar6, iVar5);
+ return;
+ }
+ if (param_1 == 1) {
+ DAT_00df51f4 = 0;
+ }
+ iVar3 = param_1 + -1;
+ if (DAT_AlliesCount <= iVar3) {
+ DAT_ButtonUnknownZero = 0;
+ return;
+ }
+ iVar2 = DAT_SomeTeamMemberPlayerIDArray[iVar3];
+ iVar6 = 0;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[iVar2] == -1) {
+ iVar6 = DAT_GameSynchronyState.currentAIArray[iVar2];
+ }
+ if (iVar3 == DAT_LastTeamMemberIndex) {
+ renderGM(GM_INTERFACE_ICONS2, iVar2 + 0x222,
+ DAT_ButtonX, DAT_ButtonY);
+ if (iVar6 == 0) {
+ if (DAT_GameCore.lordIcons[iVar2] == 0) {
+ renderGM(GM_INTERFACE_ICONS2, 0x21b,
+ DAT_ButtonX, DAT_ButtonY);
+ } else if (DAT_GameCore.lordIcons[iVar2] == 1) {
+ renderGM(GM_INTERFACE_ICONS2, 0x21c,
+ DAT_ButtonX, DAT_ButtonY);
+ } else if (0 < DAT_TextureRenderCoreObject.field69_0x98[iVar2 + 0x13]) {
+ renderGM(GM_INTERFACE_ICONS2, 0x21d,
+ DAT_ButtonX, DAT_ButtonY);
+ drawBitmapFace(iVar2 + 0x13, DAT_ButtonX + 4,
+ DAT_ButtonY + 4);
+ }
+ } else {
+ renderGM(GM_INTERFACE_ICONS2, iVar6 + 0x20a,
+ DAT_ButtonX, DAT_ButtonY);
+ }
+ } else {
+ if (iVar6 == 0) {
+ if (DAT_GameCore.lordIcons[iVar2] == 0) {
+ iVar6 = 0x21b;
+ } else {
+ if (DAT_GameCore.lordIcons[iVar2] != 1) {
+ if (0 < DAT_TextureRenderCoreObject.field69_0x98[iVar2 + 0x13]) {
+ renderGMWithBlending(GID_INTERFACE_ICONS_2,
+ 0x21d, DAT_ButtonX, DAT_ButtonY,
+ 0xc);
+ drawBitmapFaceWithBlendUnk(iVar2 + 0x13,
+ DAT_ButtonX + 4, DAT_ButtonY + 4,
+ 0xc);
+ }
+ goto LAB_004aca47;
+ }
+ iVar6 = 0x21c;
+ }
+ } else {
+ iVar6 = iVar6 + 0x20a;
+ }
+ renderGMWithBlending(GID_INTERFACE_ICONS_2, iVar6,
+ DAT_ButtonX, DAT_ButtonY, 0xc);
+ }
+ LAB_004aca47:
+ if (iVar3 == DAT_LastTeamMemberIndex) {
+ renderGMWithAlphaMask(GID_INTERFACE_ICONS_2, 0x202,
+ DAT_ButtonX + -6, DAT_ButtonY + -6,
+ GID_INTERFACE_ICONS_2, 0x201, 0);
+ }
+ iVar6 = 0;
+ if (iVar3 != DAT_LastTeamMemberIndex) {
+ iVar6 = 8;
+ }
+ iVar3 = (int)DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .requestedGoodsArray1Unk[iVar2];
+ if (iVar3 == 7) {
+ iVar3 = 8;
+ }
+ if (-1 < iVar3 + -2) {
+ renderGMWithAlphaMask(GID_INTERFACE_ICONS_2, iVar3 + 0x242,
+ DAT_ButtonX + 0x3c, DAT_ButtonY + -0xc,
+ GID_INTERFACE_ICONS_2, 0x25b, iVar6);
+ }
+ if (DAT_GameState.playerDataArray[iVar2].isNotNervousByEnemyTroopValue != 0) {
+ renderGMWithAlphaMask(GID_INTERFACE_ICONS_2,
+ DAT_00df42b0 + 0x242, DAT_ButtonX + 0x3c,
+ DAT_ButtonY + 0x3c, GID_INTERFACE_ICONS_2, 0x25b,
+ iVar6);
+ }
+ if (DAT_GameState.playerDataArray[iVar2].requestStateUnk == 1) {
+ renderGMWithAlphaMask(GID_INTERFACE_ICONS_2, 0x240,
+ DAT_ButtonX + -0xf, DAT_ButtonY + 0x39,
+ GID_INTERFACE_ICONS_2, 0x241, iVar6);
+ }
+ if (DAT_GameState.playerDataArray[iVar2].requestStateUnk == 2) {
+ renderGMWithAlphaMask(GID_INTERFACE_ICONS_2, 0x25c,
+ DAT_ButtonX + -0xf, DAT_ButtonY + 0x39,
+ GID_INTERFACE_ICONS_2, 0x25d, iVar6);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004b12d0 MenuItemActionHandler_Allies_Main | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B12D0
+ void Allies::MenuItemActionHandler_Allies_Main(int param_1, ...)
+ {
+ short sVar1;
+ if ((param_1 == -1) || (param_1 == 100)) {
+ DAT_MenuModalComposition1.activeModalDialogID = MMT_NONE;
+ } else {
+ if (6 < param_1) {
+ if (param_1 == 0x14) {
+ activateModalDialog(MMT_ALLIES_ORDER, FALSE);
+ return;
+ }
+ if (param_1 != 0x15) {
+ if (param_1 == 0x16) {
+ DAT_RequestedGoodsByWhoArray[0] = -1;
+ DAT_SentOrRequestedGoodsAmount = 0;
+ activateModalDialog(MMT_ALLIES_REQUEST_GOODS, FALSE);
+ return;
+ }
+ if (param_1 == 0x6e) {
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = 4;
+ } else {
+ if (param_1 != 0x6f) {
+ return;
+ }
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = 5;
+ }
+ DAT_GameSynchronyState.DAT_GameCommandParam1
+ = DAT_SomeTeamMemberPlayerIDArray[DAT_LastTeamMemberIndex];
+ DAT_GameSynchronyState.DAT_GameCommandParam4
+ = DAT_GameSynchronyState.currentPlayerSlotID;
+ queueCommand(GCT_SEND_PLAYER_TO_PLAYER_REQUEST);
+ return;
+ }
+ DAT_RequestedGoodsByWhoArray[0] = -1;
+ sVar1
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .requestedGoodsArray1Unk
+ [DAT_SomeTeamMemberPlayerIDArray[DAT_LastTeamMemberIndex]];
+ DAT_SentOrRequestedGoodsAmount = 0;
+ if (1 < sVar1) {
+ DAT_SentOrRequestedGoodsAmount
+ = (int)DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .requestedGoodsArray2Unk
+ [DAT_SomeTeamMemberPlayerIDArray[DAT_LastTeamMemberIndex]];
+ DAT_RequestedGoodsByWhoArray[0] = sVar1 + -1;
+ }
+ DAT_00df4284 = (uint)(1 < sVar1);
+ activateModalDialog(MMT_ALLIES_SEND_GOODS, FALSE);
+ return;
+ }
+ RecalculateAllies();
+ if (param_1 + -1 < DAT_AlliesCount) {
+ DAT_LastTeamMemberIndex = param_1 + -1;
+ return;
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004ad2b0 MenuModalRenderFunction_AlliesOrder | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AD2B0
+ void AlliesOrder::MenuModalRenderFunction_AlliesOrder(int x, int y, int width, int height)
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ BuildEnemyPlayerList();
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0xf;
+ color = 0xccfaff;
+ alignment = TTA_LEFT;
+ yParam = y + 0x19;
+ xParam = x + 0x1e;
+ /*
+ added by script: "Set Orders"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_ALLIES, 5);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+ }
+}
+}
+
+### 0x004ad480 MenuItemRenderFunction_AlliesOrder_Main | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AD480
+ void AlliesOrder::MenuItemRenderFunction_AlliesOrder_Main(int param_1, ...)
+ {
+ char* textAddress;
+ int iVar1;
+ int iVar2;
+ int xParam;
+ int yParam;
+ TextAlignment alignment;
+ uint foregroundColor;
+ uint backgroundColor;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ if (param_1 == -2) {
+ RenderCurrentNotActiveButtonWithPossibleAlphaTexOnCurrentSurfaceUnk();
+ return;
+ }
+ if (9 < param_1) {
+ if (param_1 == 10) {
+ DAT_00df5200 = ((eTextSections)0);
+ }
+ RenderCurrentNotActiveButtonWithPossibleAlphaTexOnCurrentSurfaceUnk();
+ if (DAT_ButtonCurrentlyInteracting != FALSE) {
+ if (param_1 == 10) {
+ DAT_00df5200 = 0xe0;
+ DAT_00df51fc = 8;
+ return;
+ }
+ if (param_1 == 0xb) {
+ DAT_00df5200 = 0xe0;
+ DAT_00df51fc = 9;
+ return;
+ }
+ }
+ }
+ iVar1 = param_1;
+ if (param_1 < 7) {
+ if (param_1 == -1)
+ goto LAB_004ad69c;
+ iVar1 = param_1 + -1;
+ if (DAT_EnemyArrayIndex <= iVar1) {
+ drawBorderBox(DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonX + 0x47, DAT_ButtonY + 0x47,
+ (ushort)((int)(COL_BLACK::instance.shortValue)));
+ goto LAB_004ad693;
+ }
+ iVar1 = DAT_RequestedGoodsByWhoArray[param_1];
+ iVar2 = 0;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[iVar1] == -1) {
+ iVar2 = DAT_GameSynchronyState.currentAIArray[iVar1];
+ }
+ renderGM(GM_INTERFACE_ICONS2, iVar1 + 0x222,
+ DAT_ButtonX, DAT_ButtonY);
+ if (iVar2 == 0) {
+ if (DAT_GameCore.lordIcons[iVar1] == 0) {
+ iVar2 = 0x21b;
+ goto LAB_004ad609;
+ }
+ if (DAT_GameCore.lordIcons[iVar1] == 1) {
+ iVar2 = 0x21c;
+ goto LAB_004ad609;
+ }
+ if (0 < DAT_TextureRenderCoreObject.field69_0x98[iVar1 + 0x13]) {
+ renderGM(GM_INTERFACE_ICONS2, 0x21d,
+ DAT_ButtonX, DAT_ButtonY);
+ drawBitmapFace(iVar1 + 0x13, DAT_ButtonX + 4,
+ DAT_ButtonY + 4);
+ }
+ } else {
+ iVar2 = iVar2 + 0x20a;
+ LAB_004ad609:
+ renderGM(GM_INTERFACE_ICONS2, iVar2,
+ DAT_ButtonX, DAT_ButtonY);
+ }
+ if (DAT_ButtonCurrentlyInteracting != FALSE) {
+ renderGMWithAlphaMask(GID_INTERFACE_ICONS_2, 0x202,
+ DAT_ButtonX + -6, DAT_ButtonY + -6,
+ GID_INTERFACE_ICONS_2, 0x201, 0);
+ renderGMWithAlphaMask(GID_INTERFACE_ICONS_2, 0x23e,
+ DAT_ButtonX + -10, DAT_ButtonY + -8,
+ GID_INTERFACE_ICONS_2, 0x23f, 0);
+ DAT_00df5200 = TEXT_ALLIES;
+ DAT_00df51fc = 10;
+ DAT_00df51f8 = iVar1;
+ }
+ }
+ LAB_004ad693:
+ if (iVar1 != -1) {
+ return;
+ }
+ LAB_004ad69c:
+ iVar2 = DAT_ButtonY;
+ iVar1 = DAT_ButtonX;
+ if (DAT_00df5200 != ((eTextSections)0)) {
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x11;
+ backgroundColor = 0;
+ foregroundColor = 0xb8eefb;
+ alignment = TTA_LEFT;
+ DAT_TextManagerObject.textSurfaceTarget = RT_MAP_GAME;
+ xParam = DAT_ButtonX;
+ yParam = DAT_ButtonY;
+ textAddress = getTextStringInGroupAtOffset(DAT_00df5200, DAT_00df51fc);
+ renderInGameTextWithShadow(textAddress, xParam, yParam, alignment, foregroundColor,
+ backgroundColor, fontSize, keepOffsetX, blendStrength);
+ if (DAT_00df51fc == 10) {
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[DAT_00df51f8] != -1) {
+ renderInGameTextWithShadow(
+ DAT_GameSynchronyState.DAT_PlayerNames[DAT_00df51f8], iVar1 + 5, iVar2,
+ TTA_LEFT, 0xb8eefb, 0, 0x11, TRUE, 0);
+ DAT_TextManagerObject.textSurfaceTarget = RT_SCREEN_MENU;
+ return;
+ }
+ renderText(
+ TEXT_XPLAY_WAITING_ROOM,
+ DAT_GameSynchronyState.aiVariationArray[DAT_00df51f8] + 0x67
+ + DAT_GameSynchronyState.currentAIArray[DAT_00df51f8] * 8,
+ iVar1 + 5, iVar2, TTA_LEFT, 0xb8eefb, 0, 0x11, TRUE);
+ }
+ DAT_TextManagerObject.textSurfaceTarget = RT_SCREEN_MENU;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004b1410 MenuItemActionHandler_AlliesOrder_Main | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B1410
+ void AlliesOrder::MenuItemActionHandler_AlliesOrder_Main(int param_1, ...)
+ {
+ int _allyID;
+ if (param_1 != -2) {
+ if (((6 < param_1) || (param_1 + -1 < DAT_EnemyArrayIndex))
+ && ((_allyID = DAT_SomeTeamMemberPlayerIDArray[DAT_LastTeamMemberIndex],
+ DAT_GameSynchronyState.currentPlayerFullIDArray[_allyID] != -1
+ || (DAT_GameSynchronyState.currentAIArray[_allyID] != 0)))) {
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = 0;
+ if (param_1 < 7) {
+ DAT_GameSynchronyState.DAT_GameCommandParam1
+ = DAT_RequestedGoodsByWhoArray[param_1];
+ } else {
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = 0;
+ }
+ DAT_GameSynchronyState.DAT_GameCommandParam3
+ = DAT_GameSynchronyState.currentPlayerSlotID;
+ DAT_GameSynchronyState.DAT_GameCommandParam4 = param_1;
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = _allyID;
+ queueCommand(GCT_SEND_PLAYER_TO_PLAYER_REQUEST);
+ if (param_1 == 10)
+ goto LAB_004b14a1;
+ DAT_MenuModalComposition1.activeModalDialogID = MMT_NONE;
+ }
+ return;
+ }
+ LAB_004b14a1:
+ activateModalDialog(MMT_ALLIES, FALSE);
+ return;
+ }
+ }
+}
+}
+
+### 0x004ad780 MenuModalRenderFunction_AlliesRequestGoods | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AD780
+ void AlliesRequestGoods::MenuModalRenderFunction_AlliesRequestGoods(int x, int y, int width, int height)
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0xf;
+ color = 0xccfaff;
+ alignment = TTA_LEFT;
+ yParam = y + 0x19;
+ xParam = x + 0x14;
+ /*
+ added by script: "Request Goods"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_ALLIES, 7);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+ }
+}
+}
+
+### 0x004ad920 MenuItemRenderFunction_AlliesSendAndRequestGoods_Main | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AD920
+ void AlliesSendAndRequestGoods::MenuItemRenderFunction_AlliesSendAndRequestGoods_Main(int actionParam, ...)
+ {
+ int _xOffset;
+ int imageID;
+ char* textAddress;
+ int iVar1;
+ int iVar2;
+ int iVar3;
+ int iVar4;
+ eTextSections offsetIndex;
+ int iVar5;
+ TextAlignment alignment;
+ BGR24 color;
+ BOOLEnum keepOffsetX;
+ int _gmID;
+ /*
+ first render resource type in condensed form
+ */
+ if (actionParam < 20) {
+ _xOffset = 0;
+ if (((actionParam == 6) || (actionParam == 0xb)) || (actionParam == 0x14)) {
+ _xOffset = 8;
+ }
+ /*
+ skip unusable resources
+ */
+ if (3 < actionParam) {
+ actionParam = actionParam + 1;
+ }
+ if (5 < actionParam) {
+ actionParam = actionParam + 1;
+ }
+ if (actionParam == 0xe) {
+ actionParam = 0x17;
+ }
+ _gmID = actionParam * 2 + 0x269;
+ if (DAT_ButtonCurrentlyInteracting != FALSE) {
+ _gmID = actionParam * 2 + 0x26a;
+ }
+ renderGM(GM_INTERFACE_ICONS2, _gmID,
+ DAT_ButtonX + _xOffset, DAT_ButtonY);
+ if (actionParam == 7) {
+ actionParam = 6;
+ }
+ renderNumber2(
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[actionParam + 1],
+ DAT_ButtonX + 0x15, DAT_ButtonY + 0x28,
+ TTA_CENTER, 0xc2f0eb, 0, 0x13, FALSE, 0);
+ } else if (actionParam == 21) {
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ iVar1 = 0x285;
+ } else {
+ iVar1 = 0x286;
+ }
+ renderGM(GM_INTERFACE_ICONS2, iVar1,
+ DAT_ButtonX, DAT_ButtonY);
+ renderNumber2(
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[0xf],
+ DAT_ButtonX + 0x15, DAT_ButtonY + 0x14,
+ TTA_CENTER, 0xc2f0eb, 0, 0x13, FALSE, 0);
+ return;
+ }
+ iVar5 = DAT_ButtonY;
+ iVar1 = DAT_ButtonX;
+ /*
+ then draw the rest
+ */
+ if (actionParam != 40) {
+ if (99 < actionParam) {
+ RenderButtonImageWithBlending();
+ return;
+ }
+ if (50 < actionParam) {
+ MACRO_CALL(
+ RenderCurrentNotActiveButtonWithPossibleAlphaTexOnCurrentSurfaceUnk)();
+ if (actionParam == 0x32) {
+ renderNumber2(
+ 10, DAT_ButtonX + 0x12, DAT_ButtonY + 0x10,
+ TTA_LEFT, 0xb8eefb, 0, 0x11, FALSE, 0);
+ return;
+ }
+ if (actionParam == 0x33) {
+ renderNumber2(
+ 25, DAT_ButtonX + 0xf, DAT_ButtonY + 0x10,
+ TTA_LEFT, 0xb8eefb, 0, 0x11, FALSE, 0);
+ return;
+ }
+ if (actionParam == 0x34) {
+ renderNumber2(
+ 100, DAT_ButtonX + 0xc, DAT_ButtonY + 0x10,
+ TTA_LEFT, 0xb8eefb, 0, 0x11, FALSE, 0);
+ return;
+ }
+ if (actionParam == 0x35) {
+ renderNumber2(5,
+ DAT_ButtonX + 0x15, DAT_ButtonY + 0x10,
+ TTA_LEFT, 0xb8eefb, 0, 0x11, FALSE, 0);
+ return;
+ }
+ if (actionParam == 0x36) {
+ renderNumber2(
+ 500, DAT_ButtonX + 0xb, DAT_ButtonY + 0x10,
+ TTA_LEFT, 0xb8eefb, 0, 0x11, FALSE, 0);
+ }
+ }
+ return;
+ }
+ /*
+ action param < 50
+ */
+ if (0 < DAT_ButtonH) {
+ iVar2 = 0;
+ do {
+ if (iVar2 == 0) {
+ iVar3 = 1;
+ } else {
+ iVar3 = (-(uint)(iVar2 != DAT_ButtonH + -0x18) & 0xfffffffa) + 0xd;
+ }
+ iVar4 = 0;
+ do {
+ imageID = iVar3;
+ if (iVar4 == 0) {
+ LAB_004adacf:
+ renderGMWithAlphaMask(GID_INTERFACE_ICONS_3, imageID,
+ iVar4 + iVar1, iVar2 + iVar5, GID_INTERFACE_ICONS_3, imageID + 3,
+ 0);
+ } else {
+ if (iVar4 == 0x210) {
+ imageID = iVar3 + 2;
+ goto LAB_004adacf;
+ }
+ if (iVar3 != 7) {
+ imageID = iVar3 + 1;
+ goto LAB_004adacf;
+ }
+ }
+ iVar4 = iVar4 + 0x18;
+ } while (iVar4 < 0x228);
+ iVar2 = iVar2 + 24;
+ } while (iVar2 < DAT_ButtonH);
+ }
+ drawBlendedBlackBox(
+ iVar1 + 0x18, iVar5 + 0x18, iVar1 + 0x20f, DAT_ButtonH + -0x19 + iVar5, 0x14);
+ if (DAT_RequestedGoodsByWhoArray[0] == 6) {
+ iVar1 = 7;
+ LAB_004adb48:
+ if (DAT_SentOrRequestedGoodsAmount != 0) {
+ renderNumber2(
+ DAT_SentOrRequestedGoodsAmount, DAT_ButtonX + 0x24,
+ DAT_ButtonY + 0x24, TTA_LEFT, 0xccfaff, 0, 0x11, FALSE,
+ 0);
+ renderGM(GM_INTERFACE_ICONS2, iVar1 * 2 + 0x26a,
+ DAT_TextManagerObject.currentXOffset_0x0 + 0x2e + DAT_ButtonX,
+ DAT_ButtonY + 0x18);
+ keepOffsetX = TRUE;
+ iVar1 = DAT_ButtonX + 0x60;
+ iVar5 = DAT_RequestedGoodsByWhoArray[0] + 1;
+ offsetIndex = TEXT_GOODS;
+ goto LAB_004adbc8;
+ }
+ renderGM(GM_INTERFACE_ICONS2, iVar1 * 2 + 0x26a,
+ DAT_ButtonX + 0x24, DAT_ButtonY + 0x18);
+ iVar1 = DAT_ButtonX + 0x54;
+ iVar5 = 0xe;
+ } else {
+ iVar1 = DAT_RequestedGoodsByWhoArray[0];
+ if (0 < DAT_RequestedGoodsByWhoArray[0])
+ goto LAB_004adb48;
+ iVar1 = DAT_ButtonX + 0x24;
+ iVar5 = 0xd;
+ }
+ keepOffsetX = FALSE;
+ offsetIndex = TEXT_ALLIES;
+ LAB_004adbc8:
+ iVar2 = DAT_ButtonY + 0x24;
+ iVar4 = 0;
+ iVar3 = 0x11;
+ color = 0xccfaff;
+ alignment = TTA_LEFT;
+ /*
+ added by script: "Choose Goods"
+ */
+ textAddress = getTextStringInGroupAtOffset(offsetIndex, iVar5);
+ renderTextToScreen(
+ textAddress, iVar1, iVar2, alignment, color, iVar3, keepOffsetX, iVar4);
+ return;
+ }
+ }
+}
+}
+
+### 0x004b14c0 MenuItemActionHandler_AlliesSendAndRequestGoods_Main | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B14C0
+ void AlliesSendAndRequestGoods::MenuItemActionHandler_AlliesSendAndRequestGoods_Main(int param_1, ...)
+ {
+ int playerID;
+ BOOLEnum BVar1;
+ int iVar2;
+ int _space;
+ ResourceTypeInt _resourceType;
+ ResourceTypeMin1Int _resource;
+ int _sendAmount;
+ playerID = DAT_SomeTeamMemberPlayerIDArray[DAT_LastTeamMemberIndex];
+ if (param_1 == 0x28) {
+ return;
+ }
+ if (param_1 < 0x15) {
+ DAT_RequestedGoodsByWhoArray[0] = param_1;
+ if (3 < param_1) {
+ DAT_RequestedGoodsByWhoArray[0] = param_1 + 1;
+ }
+ if (4 < param_1) {
+ DAT_RequestedGoodsByWhoArray[0] = DAT_RequestedGoodsByWhoArray[0] + 1;
+ }
+ if (DAT_RequestedGoodsByWhoArray[0] != 14) {
+ return;
+ }
+ DAT_RequestedGoodsByWhoArray[0] = 23;
+ return;
+ }
+ if (param_1 == 0x15) {
+ DAT_RequestedGoodsByWhoArray[0] = 14;
+ return;
+ }
+ if (param_1 == 0x32) {
+ DAT_SentOrRequestedGoodsAmount = DAT_SentOrRequestedGoodsAmount + 10;
+ return;
+ }
+ if (param_1 == 0x33) {
+ DAT_SentOrRequestedGoodsAmount = DAT_SentOrRequestedGoodsAmount + 25;
+ return;
+ }
+ if (param_1 == 0x34) {
+ DAT_SentOrRequestedGoodsAmount = DAT_SentOrRequestedGoodsAmount + 100;
+ return;
+ }
+ if (param_1 == 0x35) {
+ DAT_SentOrRequestedGoodsAmount = DAT_SentOrRequestedGoodsAmount + 5;
+ return;
+ }
+ if (param_1 != 0x36) {
+ if (param_1 == 0x66) {
+ DAT_RequestedGoodsByWhoArray[0] = -1;
+ DAT_SentOrRequestedGoodsAmount = 0;
+ if (DAT_MenuModalComposition1.activeModalDialogID
+ != MMT_ALLIES_SEND_GOODS) {
+ DAT_RequestedGoodsByWhoArray[0] = -1;
+ DAT_SentOrRequestedGoodsAmount = 0;
+ return;
+ }
+ if (DAT_00df4284 == 0) {
+ DAT_RequestedGoodsByWhoArray[0] = -1;
+ DAT_SentOrRequestedGoodsAmount = 0;
+ return;
+ }
+ DAT_GameSynchronyState.DAT_GameCommandParam4
+ = DAT_GameSynchronyState.currentPlayerSlotID;
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = 3;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = playerID;
+ queueCommand(GCT_SEND_PLAYER_TO_PLAYER_REQUEST);
+ return;
+ }
+ if (param_1 != 100) {
+ activateModalDialog(MMT_ALLIES, FALSE);
+ return;
+ }
+ if (-1 < DAT_RequestedGoodsByWhoArray[0]) {
+ if (DAT_SentOrRequestedGoodsAmount < 1) {
+ return;
+ }
+ if (DAT_MenuModalComposition1.activeModalDialogID
+ == MMT_ALLIES_REQUEST_GOODS) {
+ if ((int*)(DAT_RequestedGoodsByWhoArray[0] + 1) == (int*)0xf) {
+ BVar1 = isResourceLargerOrEqualThanMinimumGoodsRequiredAfterTrade(playerID, RT_GOLD,
+ DAT_SentOrRequestedGoodsAmount);
+ } else {
+ iVar2 = getResourceSpace(DAT_GameSynchronyState.currentPlayerSlotID,
+ (int*)((int)((DAT_RequestedGoodsByWhoArray[0] + 1))));
+ if (iVar2 == -1) {
+ SetStorageMarketFailState(
+ 3, (ResourceType)((int)(DAT_RequestedGoodsByWhoArray[0])));
+ if (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .storageMarketFailState
+ == 6) {
+ /*
+ "No stockpile built"
+ */
+ playWAVSFX("space_warning2.wav");
+ }
+ if (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .storageMarketFailState
+ == 5) {
+ /*
+ "No granary built"
+ */
+ playWAVSFX("space_warning1.wav");
+ }
+ if (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .storageMarketFailState
+ != 7) {
+ DAT_MenuModalComposition1.activeModalDialogID
+ = MMT_NONE;
+ return;
+ }
+ /*
+ "No armory built"
+ */
+ playWAVSFX(
+ "space_warning3.wav");
+ DAT_MenuModalComposition1.activeModalDialogID = MMT_NONE;
+ return;
+ }
+ if (iVar2 < DAT_SentOrRequestedGoodsAmount) {
+ SetStorageMarketFailState(
+ 4, (ResourceType)((int)(DAT_RequestedGoodsByWhoArray[0])));
+ if (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .storageMarketFailState
+ == 9) {
+ /*
+ "No space in the stockpile"
+ */
+ playWAVSFX("space_warning5.wav");
+ }
+ if (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .storageMarketFailState
+ == 8) {
+ /*
+ "No space in the granary"
+ */
+ playWAVSFX("space_warning4.wav");
+ }
+ if (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .storageMarketFailState
+ != 10) {
+ DAT_MenuModalComposition1.activeModalDialogID
+ = MMT_NONE;
+ return;
+ }
+ /*
+ "No space in the armory"
+ */
+ playWAVSFX(
+ "space_warning6.wav");
+ DAT_MenuModalComposition1.activeModalDialogID = MMT_NONE;
+ return;
+ }
+ BVar1 = isResourceLargerOrEqualThanMinimumGoodsRequiredAfterTrade(playerID,
+ (ResourceType)((int)(DAT_RequestedGoodsByWhoArray[0]
+ + RT_LOGS)),
+ DAT_SentOrRequestedGoodsAmount);
+ }
+ if (BVar1 != FALSE) {
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = 1;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = playerID;
+ DAT_GameSynchronyState.DAT_GameCommandParam2
+ = DAT_RequestedGoodsByWhoArray[0];
+ DAT_GameSynchronyState.DAT_GameCommandParam3
+ = DAT_SentOrRequestedGoodsAmount;
+ DAT_GameSynchronyState.DAT_GameCommandParam4
+ = DAT_GameSynchronyState.currentPlayerSlotID;
+ queueCommand(GCT_SEND_PLAYER_TO_PLAYER_REQUEST);
+ DAT_MenuModalComposition1.activeModalDialogID = MMT_NONE;
+ return;
+ }
+ playGoodsNotSentBikFromPlayer(
+ playerID);
+ DAT_MenuModalComposition1.activeModalDialogID = MMT_NONE;
+ return;
+ }
+ activateModalDialog(MMT_ALLIES, FALSE);
+ _sendAmount = DAT_SentOrRequestedGoodsAmount;
+ _resource = DAT_RequestedGoodsByWhoArray[0] + RTM_WOOD;
+ _resourceType = _resource;
+ if (_resource == RTM_WHEAT) {
+ _resourceType = DAT_RequestedGoodsByWhoArray[0];
+ }
+ if (_resource == RTM_FLOUR) {
+ /*
+ gold
+ */
+ if (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[0xf]
+ < DAT_SentOrRequestedGoodsAmount) {
+ return;
+ }
+ } else {
+ _space = getResourceSpace(playerID, (int*)((int)(_resourceType)));
+ if (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[_resourceType]
+ < _sendAmount) {
+ return;
+ }
+ if (_space < 0) {
+ return;
+ }
+ if (_space < _sendAmount) {
+ _sendAmount = _space;
+ }
+ }
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = 2;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = playerID;
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = _resource;
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = _sendAmount;
+ DAT_GameSynchronyState.DAT_GameCommandParam4
+ = DAT_GameSynchronyState.currentPlayerSlotID;
+ queueCommand(GCT_SEND_PLAYER_TO_PLAYER_REQUEST);
+ activateModalDialog(MMT_NONE, FALSE);
+ return;
+ }
+ return;
+ }
+ DAT_SentOrRequestedGoodsAmount = DAT_SentOrRequestedGoodsAmount + 500;
+ return;
+ }
+ }
+}
+}
+
+### 0x004add90 MenuModalRenderFunction_AlliesSendGoods | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004ADD90
+ void AlliesSendGoods::MenuModalRenderFunction_AlliesSendGoods(int x, int y, int width, int height)
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0xf;
+ color = 0xccfaff;
+ alignment = TTA_LEFT;
+ yParam = y + 0x19;
+ xParam = x + 0x14;
+ /*
+ "Send goods" added by script: "Send Goods"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_ALLIES, 6);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+ }
+}
+}
+
+### 0x004630d0 isMouseOnButtonImageUnk | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004630D0
+ BOOLEnum AlphaAndButtonSurface::isMouseOnButtonImageUnk()
+ {
+ ushort* dst;
+ int iVar1;
+ int iVar2;
+ int iVar3;
+ iVar1 = DAT_CurrentButtonPictureInGm;
+ dst = this->surfacePtr;
+ if (-1 < DAT_CurrentButtonPictureInGm) {
+ iVar3 = GMTotalPicturesProcessed::instance[DAT_UIButtonDefinedData
+ .ButtonGmDataArray[DAT_CurrentButtonGmDataIndex]
+ .gmId_0x0];
+ iVar2
+ = (int)DAT_GMImageHeaders.imh[DAT_CurrentButtonPictureInGm + iVar3 + -1].width;
+ this->currentImageWidth = iVar2;
+ fillMemory_ShortValue(
+ DAT_GMImageHeaders.imh[iVar1 + iVar3 + -1].height * iVar2 * 2,
+ (ushort)((int)(COL_MAGENTA::instance.shortValue)), (void*)((int)(dst)));
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_BUTTON_AND_ALPHA;
+ renderGM(
+ DAT_UIButtonDefinedData.ButtonGmDataArray[DAT_CurrentButtonGmDataIndex]
+ .gmId_0x0,
+ DAT_CurrentButtonPictureInGm, 0, 0);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return (
+ uint)(dst[((DAT_MouseState.screenSpaceY - DAT_ButtonY) * this->currentImageWidth
+ - DAT_ButtonX)
+ + DAT_MouseState.screenSpaceX]
+ != COL_MAGENTA::instance.shortValue);
+ }
+ DAT_CurrentButtonPictureInGm = -DAT_CurrentButtonPictureInGm;
+ iVar1 = (GMTotalPicturesProcessed::instance[DAT_UIButtonDefinedData
+ .ButtonGmDataArray[DAT_CurrentButtonGmDataIndex]
+ .alphaGmIdUnk_0xc]
+ + -1 + DAT_CurrentButtonPictureInGm)
+ * 0x10;
+ iVar3 = (int)*(short*)((int)DAT_GMImageHeaders + iVar1);
+ this->currentImageWidth = iVar3;
+ fillMemory_ShortValue(
+ *(short*)((int)DAT_GMImageHeaders + iVar1 + 2) * iVar3 * 2,
+ (ushort)((int)(COL_MAGENTA::instance.shortValue)), (void*)((int)(this->surfacePtr)));
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_BUTTON_AND_ALPHA;
+ renderGM(
+ DAT_UIButtonDefinedData.ButtonGmDataArray[DAT_CurrentButtonGmDataIndex]
+ .alphaGmIdUnk_0xc,
+ DAT_CurrentButtonPictureInGm, 0, 0);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ if ((dst[this->currentImageWidth * (DAT_MouseState.screenSpaceY - DAT_ButtonY)
+ + (DAT_MouseState.screenSpaceX - DAT_ButtonX)]
+ != COL_MAGENTA::instance.shortValue)
+ && (0x1e < ((byte)dst[this->currentImageWidth
+ * (DAT_MouseState.screenSpaceY - DAT_ButtonY)
+ + (DAT_MouseState.screenSpaceX - DAT_ButtonX)]
+ & 0x1f))) {
+ return TRUE;
+ }
+ return FALSE;
+ }
+ }
+}
+}
+

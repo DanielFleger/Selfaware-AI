@@ -1,0 +1,814 @@
+### 0x00519990 computeSiegeSpotScores | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00519990
+ void TroopValueState::computeSiegeSpotScores(int attackedPlayerID, int attackingPlayerID)
+ {
+ int iVar1;
+ int* _pTileArray;
+ int iVar2;
+ uint* puVar3;
+ AttackInfoSubElement* puVar4;
+ int iVar4;
+ int* piVar5;
+ int _counter;
+ int _counterTillHack2;
+ uint _pathFindingCost;
+ int _offset;
+ bool bVar6;
+ bool bVar7;
+ uint _tile3;
+ int _attackedPlayerID;
+ int _hack2;
+ uint _tile2;
+ uint _tile;
+ iVar4 = attackedPlayerID;
+ if (DAT_GameState.playerDataArray[attackedPlayerID].campground.id != 0) {
+ _offset = attackingPlayerID * 96188;
+ _hack2 = *(int*)((int)this->attackInfo.hackValuesArray + _offset + -8);
+ _counterTillHack2 = 0;
+ *(undefined4*)((int)this->attackInfo.scaleValuesArray + _offset + -0x1c) = 10000;
+ if (0 < _hack2) {
+ _pTileArray = (int*)((int)this->attackInfo.hackValuesArray + _offset);
+ do {
+ _pathFindingCost = (uint) * (byte*)(attackedPlayerID * 80400 + 0x1ee2998 + *_pTileArray);
+ if ((int)_pathFindingCost < *(int*)((int)this->attackInfo.scaleValuesArray + _offset + -0x1c)) {
+ *(uint*)((int)this->attackInfo.scaleValuesArray + _offset + -0x1c) = _pathFindingCost;
+ }
+ _counterTillHack2 = _counterTillHack2 + 1;
+ _pTileArray = _pTileArray + 4;
+ } while (_counterTillHack2 < _hack2);
+ }
+ *(undefined4*)((int)this->attackInfo.hackValuesArray + _offset + -4) = 0;
+ /*
+ warning:
+ */
+ attackedPlayerID = 0;
+ if (0 < _hack2) {
+ puVar3 = (uint*)((int)this->attackInfo.hackValuesArray + _offset + 8);
+ do {
+ _tile3 = puVar3[-2];
+ _pathFindingCost = (uint) * (byte*)(_tile3 + iVar4 * 0x13a10 + 0x1ee2998);
+ iVar2 = ifAnyUnitOnSameTileIsLadderInRightDirection(_tile3,
+ DAT_ViewportRenderState.tileTranslationMatrix_YComponent[_tile3]);
+ if (iVar2 == 0) {
+ if (_pathFindingCost == 0) {
+ *puVar3 = 9999;
+ } else {
+ iVar2 = *(int*)((int)this->attackInfo.scaleValuesArray + _offset + -0x1c);
+ if (iVar2 < 0x32) {
+ if ((int)_pathFindingCost < iVar2 + 0xf) {
+ piVar5 = (int*)((int)this->attackInfo.hackValuesArray + _offset + -4);
+ *piVar5 = *piVar5 + 1;
+ *puVar3 = _pathFindingCost;
+ } else {
+ *puVar3 = 9999;
+ }
+ } else {
+ *puVar3 = 9999;
+ }
+ }
+ } else {
+ *puVar3 = 9999;
+ }
+ attackedPlayerID = attackedPlayerID + 1;
+ puVar3 = puVar3 + 4;
+ } while (attackedPlayerID < *(int*)((int)this->attackInfo.hackValuesArray + _offset + -8));
+ }
+ iVar4 = 0;
+ if (0 < *(int*)((int)this->attackInfo.scaleValuesArray + _offset + -8)) {
+ puVar3 = (uint*)((int)this->attackInfo.scaleValuesArray + _offset + 8);
+ do {
+ *puVar3 = -(uint)(5 < *(byte*)(*(int*)((int)this->attackInfo.hackValuesArray + _offset + -0x10)
+ * 0x13a10
+ + 0x1ee2998 + puVar3[-2]))
+ & 9999;
+ iVar4 = iVar4 + 1;
+ puVar3 = puVar3 + 4;
+ } while (iVar4 < *(int*)((int)this->attackInfo.scaleValuesArray + _offset + -8));
+ }
+ iVar4 = 0;
+ if (0 < *(int*)((int)this->attackInfo.townValuesArray + _offset + -8)) {
+ puVar3 = (uint*)((int)this->attackInfo.townValuesArray + _offset + 8);
+ do {
+ _pathFindingCost = (uint)
+ * (byte*)(puVar3[-2] + 0x1ee2998
+ + *(int*)((int)this->attackInfo.hackValuesArray + _offset + -0x10) * 0x13a10);
+ if (_pathFindingCost == 0) {
+ *puVar3 = 100;
+ } else {
+ *puVar3 = _pathFindingCost;
+ }
+ iVar4 = iVar4 + 1;
+ puVar3 = puVar3 + 4;
+ } while (iVar4 < *(int*)((int)this->attackInfo.townValuesArray + _offset + -8));
+ }
+ iVar4 = *(int*)((int)this->attackInfo.gateValuesArray + _offset + -8);
+ iVar2 = 0;
+ *(undefined4*)((int)this->attackInfo.scaleValuesArray + _offset + -0x18) = 10000;
+ if (0 < iVar4) {
+ iVar1 = *(int*)((int)this->attackInfo.hackValuesArray + _offset + -0x10);
+ piVar5 = (int*)((int)this->attackInfo.gateValuesArray + _offset);
+ do {
+ _pathFindingCost = (uint) * (byte*)(iVar1 * 0x13a10 + 0x1ee2998 + *piVar5);
+ if ((int)_pathFindingCost < *(int*)((int)this->attackInfo.scaleValuesArray + _offset + -0x18)) {
+ *(uint*)((int)this->attackInfo.scaleValuesArray + _offset + -0x18) = _pathFindingCost;
+ }
+ iVar2 = iVar2 + 1;
+ piVar5 = piVar5 + 4;
+ } while (iVar2 < iVar4);
+ }
+ iVar2 = 0;
+ if (0 < iVar4) {
+ puVar3 = (uint*)((int)this->attackInfo.gateValuesArray + _offset + 8);
+ do {
+ _pathFindingCost = (uint)
+ * (byte*)(puVar3[-2] + 0x1ee2998
+ + *(int*)((int)this->attackInfo.hackValuesArray + _offset + -0x10) * 0x13a10);
+ if (*(int*)((int)this->attackInfo.scaleValuesArray + _offset + -0x18) < 0xb) {
+ bVar7 = (_pathFindingCost < 10);
+ iVar4 = -10;
+ bVar6 = _pathFindingCost == 10;
+ } else {
+ bVar7 = (_pathFindingCost < 0x14);
+ iVar4 = -0x14;
+ bVar6 = _pathFindingCost == 0x14;
+ }
+ iVar2 = iVar2 + 1;
+ *puVar3 = (bVar6 || bVar7 != (int)(_pathFindingCost + iVar4) < 0) - 1 & 9999;
+ puVar3 = puVar3 + 4;
+ } while (iVar2 < *(int*)((int)this->attackInfo.gateValuesArray + _offset + -8));
+ }
+ _counter = 0;
+ if (0 < *(int*)((int)this->attackInfo.wideValuesArray + _offset + -8)) {
+ puVar4 = (AttackInfoSubElement*)((int)&this->attackInfo.wideValuesArray + _offset + 8);
+ do {
+ puVar4->field4_0x10[2]
+ = -(uint)(5 < *(byte*)(puVar4->field4_0x10[0] + 0x1ee2998
+ + *(int*)((int)this->attackInfo.hackValuesArray + _offset + -0x10) * 80400))
+ & 9999;
+ _counter = _counter + 1;
+ puVar4 = (AttackInfoSubElement*)(puVar4->field4_0x10 + 6);
+ } while (_counter < *(int*)((int)this->attackInfo.wideValuesArray + _offset + -8));
+ }
+ iVar4 = 0;
+ if (0 < *(int*)((int)this->attackInfo.moatValuesArray + _offset + -8)) {
+ puVar3 = (uint*)((int)this->attackInfo.moatValuesArray + _offset + 8);
+ do {
+ _pathFindingCost = (uint)
+ * (byte*)(puVar3[-2] + 0x1ee2998
+ + *(int*)((int)this->attackInfo.hackValuesArray + _offset + -0x10) * 0x13a10);
+ if (_pathFindingCost == 0) {
+ LAB_00519ca1:
+ *puVar3 = 9999;
+ } else if (_pathFindingCost < 0xb) {
+ *puVar3 = _pathFindingCost;
+ } else if (_pathFindingCost < 0x10) {
+ *puVar3 = _pathFindingCost * 2;
+ } else if (_pathFindingCost < 0x15) {
+ *puVar3 = _pathFindingCost * 3;
+ } else if (_pathFindingCost < 0x1a) {
+ *puVar3 = _pathFindingCost * 4;
+ } else if (_pathFindingCost < 0x33) {
+ *puVar3 = _pathFindingCost * 5;
+ } else {
+ if (0x46 < _pathFindingCost)
+ goto LAB_00519ca1;
+ *puVar3 = _pathFindingCost * 6;
+ }
+ iVar4 = iVar4 + 1;
+ puVar3 = puVar3 + 4;
+ } while (iVar4 < *(int*)((int)this->attackInfo.moatValuesArray + _offset + -8));
+ }
+ }
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00519990", "name": "computeSiegeSpotScores", "quelle": "ghidra", "p1": {"bereich": "KI", "zweck": "Bewertet alle Angriffsstellen (Mauer, Leiter, Stadt, Tor, Graben) an der Burg des Gegners."}, "p2": {"ein": "attackedPlayerID, attackingPlayerID", "aus": "-", "liest": ["playerDataArray[ziel].campground.id", "attackInfo.hackValuesArray/scaleValuesArray/townValuesArray/gateValuesArray/wideValuesArray/moatValuesArray", "Kostenebene je Spieler (Byte je Kachel, ab 0x1ee2998 + Spieler*0x13a10)", "ViewportRenderState.tileTranslationMatrix_YComponent"], "schreibt": ["Punktwerte (zweites Feld je Eintrag) der sechs Listen", "scaleValuesArray[-0x1c] und [-0x18] (kleinste Kosten Mauer und Tor)", "hackValuesArray[-4] (Zahl brauchbarer Mauerstellen)"], "ruft": ["ifAnyUnitOnSameTileIsLadderInRightDirection"], "regeln": ["Nur wenn die Burg des Ziels existiert (campground.id ungleich 0)", "Mauerstellen (Hack): kleinste Weg-Kosten bestimmen; Stelle mit Leiter in richtiger Richtung oder Kosten 0 = 9999; ist das Minimum ab 50 = 9999; sonst Punktwert = Kosten, wenn Kosten unter Minimum+15, sonst 9999; brauchbare Stellen werden gezählt", "Leiterstellen (Scale) und breite Stellen (Wide): 9999 bei Kosten über 5, sonst 0", "Stadt (Town): Kosten 0 = 100, sonst die Kosten", "Tor (Gate): Schwelle 10, wenn die kleinsten Torkosten höchstens 10 sind, sonst 20; dem Wortlaut nach 0 nur bei Kosten genau gleich Schwelle, sonst 9999", "Graben (Moat): Kosten 0 = 9999; bis 10 = Kosten; 11-15 = Kosten*2; 16-20 = *3; 21-25 = *4; 26-50 = *5; 51-70 = *6; über 70 = 9999", "Spielerblock je Angreifer 96188 Byte (0x177bc); 9999 steht für unbrauchbar"], "offen": ["Torregel: Ghidra zeigt einen Vergleich, der vermutlich Kosten kleiner oder gleich Schwelle meint", "Welche Kostenebene (Kachelkosten für Wege) genau gelesen wird", "Bedeutung der Felder hack/scale-Kopf (Index -0x10 ist der Zielspieler)"]}, "p3": {"erklaerung": "Die KI gibt jeder möglichen Angriffsstelle Punkte: Niedrig heißt gut erreichbar, 9999 heißt unbrauchbar. Gräben werden mit zunehmenden Kosten teurer gerechnet.", "gehirn": "Zeigt, welche Mauer-, Tor- und Grabenstellen die Gegner-KI für leicht hält; Schwachstellen der eigenen Burg lassen sich daran ablesen.", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0051b710 placeSiegeTentsAndAssignEngineers | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0051B710
+ void TroopValueState::placeSiegeTentsAndAssignEngineers(int param_1, int param_2)
+ {
+ byte bVar1;
+ short sVar2;
+ MappersEnum MVar3;
+ int iVar4;
+ int iVar5;
+ Tribe* piVar6;
+ int _tribeID2;
+ int iVar6;
+ int iVar7;
+ int iVar8;
+ int iVar9;
+ Unit* _ptrPlayerID;
+ int _unitID;
+ int local_10;
+ byte(*local_c)[10];
+ int _tribeID;
+ int _unitCount;
+ uint _maxUnits;
+ local_10 = (int)(char)this->attackInfo.attackWavePlayerIDArray[param_1];
+ if (local_10 == 0) {
+ local_10 = 2;
+ }
+ if ((DAT_GameCore.gameMode_2 == GM_BUILDERUnk)
+ && (DAT_MapPropertiesState.SEC_U3_MapType2_1 == MT_SIEGE)) {
+ local_10 = 2;
+ }
+ iVar5 = 0;
+ local_c = this->attackInfo.someSinglePlayerScore + param_1;
+ iVar8 = 0;
+ this->attackInfo.createTribeAmount = 0;
+ iVar6 = 0;
+ do {
+ bVar1 = (*local_c)[0];
+ MVar3 = *(MappersEnum*)((int)DAT_AttackInfoDefinedData.field5_0xc8 + iVar6);
+ iVar4 = *(int*)((int)DAT_AttackInfoDefinedData.field1461_0x9ec + iVar6);
+ iVar7 = 0;
+ if (0 < (char)bVar1) {
+ do {
+ this->attackInfo.field127624_0x41f74[iVar5].engineerBuildingType = MVar3;
+ this->attackInfo.field127624_0x41f74[this->attackInfo.createTribeAmount].engineerCount = iVar4;
+ iVar5 = this->attackInfo.createTribeAmount + 1;
+ iVar8 = iVar8 + iVar4;
+ this->attackInfo.createTribeAmount = iVar5;
+ if (250 < iVar5)
+ break;
+ iVar7 = iVar7 + 1;
+ } while (iVar7 < (char)bVar1);
+ }
+ iVar7 = DAT_AttackInfoDefinedData.field1474_0xa0c;
+ iVar4 = DAT_AttackInfoDefinedData.field9_0xe8;
+ local_c = (byte(*)[10])(*local_c + 1);
+ iVar6 = iVar6 + 4;
+ } while (iVar6 < 16);
+ iVar9 = (int)(char)this->attackInfo.someSinglePlayerScore[param_1][8];
+ iVar6 = 0;
+ if (0 < iVar9) {
+ do {
+ if (0xf9 < iVar5)
+ break;
+ this->attackInfo.field127624_0x41f74[iVar5].engineerBuildingType = iVar4;
+ this->attackInfo.field127624_0x41f74[this->attackInfo.createTribeAmount].engineerCount = iVar7;
+ iVar5 = this->attackInfo.createTribeAmount + 1;
+ iVar6 = iVar6 + 1;
+ iVar8 = iVar8 + iVar7;
+ this->attackInfo.createTribeAmount = iVar5;
+ } while (iVar6 < iVar9);
+ }
+ iVar5 = 0;
+ _tribeID = 1;
+ this->attackInfo.tribeIDArraySize = 0;
+ piVar6 = &DAT_TribesState.tribes[1];
+ do {
+ if ((((piVar6->tribeState != 0) && (piVar6->owner == local_10)) && (piVar6->attackWave == param_1))
+ && (piVar6->tribeType == AITT_ENGINEERS)) {
+ this->attackInfo.tribeIDArray[iVar5] = _tribeID;
+ iVar5 = this->attackInfo.tribeIDArraySize + 1;
+ this->attackInfo.tribeIDArraySize = iVar5;
+ }
+ piVar6 = piVar6 + 0xcd;
+ _tribeID = _tribeID + 1;
+ } while ((int)piVar6 < 0x176238c);
+ if (iVar5 != 0) {
+ iVar6 = 0;
+ if (0 < iVar5) {
+ do {
+ _tribeID = this->attackInfo.tribeIDArray[iVar6];
+ sVar2 = DAT_TribesState.tribes[_tribeID].size;
+ for (; (sVar2 != 0 && (iVar5 = this->attackInfo.tribeIDArraySize, 0 < iVar8));
+ iVar8 = iVar8 + -1) {
+ popUnitFromTribe(_tribeID);
+ sVar2 = DAT_TribesState.tribes[_tribeID].size;
+ iVar5 = this->attackInfo.tribeIDArraySize;
+ }
+ iVar6 = iVar6 + 1;
+ } while (iVar6 < iVar5);
+ }
+ _unitID = 0;
+ param_1 = 0;
+ if (0 < this->attackInfo.createTribeAmount) {
+ LAB_0051b904:
+ _unitCount = this->attackInfo.field127624_0x41f74[param_1].engineerCount;
+ _tribeID2 = createTribe(DAT_TribesState.tribes[_tribeID].owner, 0);
+ _maxUnits = DAT_UnitsState.maxUnitCount;
+ DAT_TribesState.tribes[_tribeID2].tribeType = 11;
+ DAT_TribesState.tribes[_tribeID2].tribeBehaviorType = 1040;
+ DAT_TribesState.tribes[_tribeID2].attackWave
+ = DAT_TribesState.tribes[_tribeID].attackWave;
+ DAT_TribesState.tribes[_tribeID2].attackInfo_someCounter1
+ = DAT_TribesState.tribes[_tribeID].attackInfo_someCounter1;
+ if (_unitID < (int)_maxUnits) {
+ _ptrPlayerID = &DAT_UnitsState.units[_unitID];
+ do {
+ if (((_ptrPlayerID->logicalState == ULS_NORMAL)
+ && (_ptrPlayerID->owner == local_10))
+ && ((_ptrPlayerID->dying == 0
+ && ((_ptrPlayerID->unitType == UT_E_ENGINEER
+ && (_ptrPlayerID->tribeID == 0)))))) {
+ addUnitToTribe(_unitID, _tribeID2);
+ _unitCount = _unitCount + -1;
+ if (_unitCount < 1)
+ goto LAB_0051b9cb;
+ }
+ _unitID = _unitID + 1;
+ _ptrPlayerID = _ptrPlayerID + 0x248;
+ if ((int)DAT_UnitsState.maxUnitCount <= _unitID) {
+ return;
+ }
+ } while (true);
+ }
+ }
+ }
+ return;
+ LAB_0051b9cb:
+ _unitID = _unitID + 1;
+ if ((int)DAT_UnitsState.maxUnitCount <= _unitID) {
+ return;
+ }
+ if (param_2 == 0) {
+ MACRO_CALL_MEMBER(
+ placeSiegeTentOrTunnelAtSuitableLocationAndAssignEngineers,
+ this)(_tribeID2, this->attackInfo.field127624_0x41f74[param_1].engineerBuildingType, 0,
+ UIT_CONSTRUCT_SIEGE_EQUIPMENTOIL_DUTYENGINEERRELATED);
+ } else {
+ placeSiegeTentAtAttackAngle(
+ _tribeID2, this->attackInfo.field127624_0x41f74[param_1].engineerBuildingType);
+ }
+ param_1 = param_1 + 1;
+ if (this->attackInfo.createTribeAmount <= param_1) {
+ return;
+ }
+ goto LAB_0051b904;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0051b710", "name": "placeSiegeTentsAndAssignEngineers", "quelle": "ghidra", "p1": {"bereich": "KI", "zweck": "Teilt für eine Angriffswelle die Ingenieure in neue Gruppen auf und lässt je Gruppe ein Zelt bauen."}, "p2": {"ein": "param_1 (Angriffswelle), param_2 (Schalter: Angriffswinkel statt freier Suche)", "aus": "-", "liest": ["attackInfo.attackWavePlayerIDArray[welle]", "attackInfo.someSinglePlayerScore[welle][0..8]", "DAT_AttackInfoDefinedData (Gebäudetypen und Ingenieurzahlen)", "tribes[]", "units[]"], "schreibt": ["attackInfo.field127624_0x41f74[] (Gebäudetyp, Ingenieurzahl)", "createTribeAmount", "tribeIDArray/tribeIDArraySize", "neue Gruppen (Typ 11, Verhalten 1040)"], "ruft": ["popUnitFromTribe", "createTribe", "addUnitToTribe", "placeSiegeTentOrTunnelAtSuitableLocationAndAssignEngineers", "placeSiegeTentAtAttackAngle"], "regeln": ["Angreifer ist der Spieler aus attackWavePlayerIDArray; ist er 0, gilt Spieler 2; im Belagerungs-Baumodus (MT_SIEGE) immer Spieler 2", "Die Zahl der Zelte je Typ (4 Typen, 10 Bytes je Welle) wird aus der Welle gelesen; zusätzlich Typ aus Feld 8", "Höchstens 250 Zelte (bei mehr als 250 bricht die erste Schleife ab; die zweite Schleife bricht bei mehr als 249 ab)", "Alle Ingenieurgruppen (AITT_ENGINEERS) der Welle werden geleert, bis die geplante Ingenieurzahl aufgebraucht ist", "Für jedes Zelt entsteht eine neue Gruppe (Typ 11, Verhalten 1040), die freie Ingenieure (UT_E_ENGINEER ohne Gruppe) des Spielers erhält", "param_2 = 0: Zelt über freie Platzsuche, sonst über Angriffswinkel"], "offen": ["Bedeutung der Felder in DAT_AttackInfoDefinedData", "Bedeutung von Gruppentyp 11 und Verhalten 1040", "Mehrere Rückkehrpfade der Funktion enden früh, sobald keine Einheiten mehr frei sind"]}, "p3": {"erklaerung": "Die KI bildet aus freien Ingenieuren Bautrupps und lässt sie vor dem Angriff Belagerungszelte errichten.", "gehirn": "Zeltbau der KI ist ein Frühzeichen: Wo Ingenieure ankommen, folgt Belagerungsgerät.", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0051d7f0 updateTribeBehaviorBasedOnBehaviorType | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0051D7F0
+ void TroopValueState::updateTribeBehaviorBasedOnBehaviorType(int tribeID)
+ {
+ byte* pbVar1;
+ short* psVar2;
+ short sVar3;
+ short sVar4;
+ short sVar5;
+ BuildingTypeShort BVar6;
+ undefined4 uVar7;
+ int _tribeBehaviorType;
+ int* piVar8;
+ BOOLEnum BVar9;
+ uint uVar10;
+ dword dVar11;
+ int iVar12;
+ uint uVar13;
+ int _attackWave_2;
+ short _attackWave;
+ int _playerID_7;
+ _attackWave = DAT_TribesState.tribes[tribeID].attackWave;
+ if ((_attackWave != 0) && (_attackWave < this->attackInfo.index)) {
+ DAT_TribesState.tribes[tribeID].attackWave = (short)this->attackInfo.index;
+ }
+ _attackWave_2 = (int)DAT_TribesState.tribes[tribeID].attackWave;
+ pbVar1 = this->attackInfo.nof_tribes + _attackWave_2;
+ *pbVar1 = *pbVar1 + 1;
+ if (DAT_TribesState.tribes[tribeID].percentageMovingUnk < 1) {
+ pbVar1 = this->attackInfo.unknownByteArray02 + _attackWave_2;
+ *pbVar1 = *pbVar1 + 1;
+ }
+ _tribeBehaviorType = (int)(short)DAT_TribesState.tribes[tribeID].tribeBehaviorType;
+ psVar2 = &DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter;
+ *psVar2 = *psVar2 + 1;
+ sVar3 = DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter;
+ DAT_TribesState.tribes[tribeID].field161_0x2ae = 0;
+ _playerID_7 = DAT_GameSynchronyState.currentPlayerSlotID;
+ uVar7 = this->attackInfo._138324_4_;
+ if (_tribeBehaviorType < 1010) {
+ if (_tribeBehaviorType == 1010) {
+ sVar4 = DAT_TribesState.tribes[tribeID].someUpdateUpperLimit;
+ DAT_TribesState.tribes[tribeID].unitStance
+ = USE_STAND_GROUND;
+ if (sVar4 == 0) {
+ return;
+ }
+ if (sVar3 < sVar4) {
+ return;
+ }
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ DAT_TribesState.tribes[tribeID].someUpdateUpperLimit = 0;
+ assignAttackTargetsForTribe(tribeID, STBT_0x3f2);
+ return;
+ }
+ switch (_tribeBehaviorType) {
+ case 1:
+ if (0x1d < sVar3) {
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ iVar12 = isTribeUnitBlockedByOtherUnit(tribeID);
+ if (iVar12 != 0) {
+ moveTribeToNearbyClearTile(tribeID);
+ return;
+ }
+ }
+ break;
+ default:
+ switchD_0051da70_caseD_3fa:
+ updateTribeCombatStanceBehavior(tribeID);
+ break;
+ case 3:
+ iVar12 = stopTribeMovementAndCheckIdle(tribeID);
+ if (iVar12 != 0) {
+ iVar12 = (&this->attackInfo
+ .unknownSignpostRelatedArray)[DAT_TribesState.tribes[tribeID].attackWave];
+ sVar3 = DAT_TribesState.tribes[tribeID].someIndex;
+ giveTribeMoveInstruction(tribeID,
+ (uint)((
+ int)(DAT_GameState.mapAndTime.unitMoveDestinationXYPairs[iVar12][sVar3].x)),
+ (uint)((
+ int)(DAT_GameState.mapAndTime.unitMoveDestinationXYPairs[iVar12][sVar3].y)),
+ 0, 0, UMSE_0);
+ DAT_TribesState.tribes[tribeID].tribeBehaviorType = STBT_4;
+ return;
+ }
+ break;
+ case 4:
+ case 6:
+ break;
+ case 5:
+ if (DAT_TribesState.tribes[tribeID].someUpdateUpperLimit <= sVar3) {
+ sVar3 = DAT_TribesState.tribes[tribeID].someIndex;
+ uVar10 = (&DAT_GameState.mapAndTime.somePairArray)[sVar3].y;
+ uVar13 = (&DAT_GameState.mapAndTime.somePairArray)[sVar3].x;
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ giveTribeMoveInstruction(
+ tribeID, uVar13, uVar10, 0, 0, UMSE_0);
+ DAT_TribesState.tribes[tribeID].tribeBehaviorType = STBT_6;
+ return;
+ }
+ break;
+ case 7:
+ if (DAT_TribesState.tribes[tribeID].someUpdateUpperLimit <= sVar3) {
+ iVar12 = 0;
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ piVar8 = &DAT_GameState.mapAndTime.attackVectors[_playerID_7][0].tribeID;
+ do {
+ if (*piVar8 == 0) {
+ DAT_GameState.mapAndTime.attackVectors[_playerID_7][iVar12].tribeID = tribeID;
+ break;
+ }
+ iVar12 = iVar12 + 1;
+ piVar8 = piVar8 + 4;
+ } while (iVar12 < 49);
+ giveTribeMoveInstruction(tribeID,
+ (uint)((int)(DAT_GameState.mapAndTime.attackVectors[_playerID_7][iVar12].x)),
+ (uint)((int)(DAT_GameState.mapAndTime.attackVectors[_playerID_7][iVar12].y)), 0,
+ 0, UMSE_0);
+ DAT_TribesState.tribes[tribeID].tribeBehaviorType = STBT_8;
+ return;
+ }
+ break;
+ case 8:
+ if (DAT_UnitsState.units[DAT_TribesState.tribes[tribeID].selectionTargetUnitID]
+ .totalSizeOfPathPlan
+ < 0x19) {
+ DAT_TribesState.tribes[tribeID].unitStance
+ = USE_AGGRESSIVE;
+ return;
+ }
+ }
+ } else {
+ switch (_tribeBehaviorType) {
+ case 0x3f3:
+ sVar4 = DAT_TribesState.tribes[tribeID].someUpdateUpperLimit;
+ if ((sVar4 != 0) && (sVar4 <= sVar3)) {
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ DAT_TribesState.tribes[tribeID].someUpdateUpperLimit = 0;
+ return;
+ }
+ break;
+ case 0x3f4:
+ sVar4 = DAT_TribesState.tribes[tribeID].someUpdateUpperLimit;
+ if ((sVar4 != 0) && (sVar4 <= sVar3)) {
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ DAT_TribesState.tribes[tribeID].someUpdateUpperLimit = 0;
+ assignAttackTargetsForTribe(tribeID, STBT_0x3f4);
+ return;
+ }
+ break;
+ case 0x3f5:
+ sVar4 = DAT_TribesState.tribes[tribeID].someUpdateUpperLimit;
+ DAT_TribesState.tribes[tribeID].unitStance
+ = USE_STAND_GROUND;
+ if ((sVar4 != 0) && (sVar4 <= sVar3)) {
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ DAT_TribesState.tribes[tribeID].someUpdateUpperLimit = 0;
+ assignAttackTargetsForTribe(tribeID, STBT_0x3f5);
+ return;
+ }
+ break;
+ case 0x3f6:
+ sVar4 = DAT_TribesState.tribes[tribeID].someUpdateUpperLimit;
+ DAT_TribesState.tribes[tribeID].unitStance
+ = USE_STAND_GROUND;
+ if ((sVar4 != 0) && (sVar4 <= sVar3)) {
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ DAT_TribesState.tribes[tribeID].someUpdateUpperLimit = 0;
+ assignAttackTargetsForTribe(tribeID, STBT_0x3f6);
+ return;
+ }
+ break;
+ case 0x3f7:
+ sVar4 = DAT_TribesState.tribes[tribeID].someUpdateUpperLimit;
+ if ((sVar4 != 0) && (sVar4 <= sVar3)) {
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ DAT_TribesState.tribes[tribeID].someUpdateUpperLimit = 0;
+ assignAttackTargetsForTribe(tribeID, STBT_0x3f7);
+ return;
+ }
+ break;
+ case 0x3f8:
+ sVar4 = DAT_TribesState.tribes[tribeID].someUpdateUpperLimit;
+ if ((sVar4 != 0) && (sVar4 <= sVar3)) {
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ DAT_TribesState.tribes[tribeID].someUpdateUpperLimit = 0;
+ calculateHigh2ClostestToTribeTargetUnit(
+ tribeID);
+ giveTribeMoveInstruction(tribeID, (uint)((int)(this->x)), (uint)((int)(this->y)), 0, 0,
+ UMSE_0);
+ return;
+ }
+ break;
+ case 0x3f9:
+ sVar4 = DAT_TribesState.tribes[tribeID].someUpdateUpperLimit;
+ if ((sVar4 != 0) && (sVar4 <= sVar3)) {
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ DAT_TribesState.tribes[tribeID].someUpdateUpperLimit = 0;
+ calculateArch2ClosestToTribeTargetUnit(
+ tribeID);
+ giveTribeMoveInstruction(tribeID, (uint)((int)(this->x)), (uint)((int)(this->y)), 0, 0,
+ UMSE_0);
+ return;
+ }
+ break;
+ default:
+ goto switchD_0051da70_caseD_3fa;
+ case 0x3fb:
+ sVar4 = DAT_TribesState.tribes[tribeID].someUpdateUpperLimit;
+ if ((sVar4 != 0) && (sVar4 <= sVar3)) {
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ DAT_TribesState.tribes[tribeID].someUpdateUpperLimit = 0;
+ DAT_TribesState.tribes[tribeID].unitStance
+ = USE_AGGRESSIVE;
+ assignAttackTargetsForTribe(tribeID, STBT_0x3fb);
+ return;
+ }
+ break;
+ case 0x3fc:
+ sVar4 = DAT_TribesState.tribes[tribeID].someUpdateUpperLimit;
+ if ((sVar4 != 0) && (sVar4 <= sVar3)) {
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ sVar3 = DAT_TribesState.tribes[tribeID].countdown2;
+ DAT_TribesState.tribes[tribeID].someUpdateUpperLimit = 0;
+ DAT_TribesState.tribes[tribeID].unitStance = (ushort)(2 < (int)uVar7);
+ if (sVar3 < 1) {
+ LAB_0051e032:
+ claimArcherAttackPoint(
+ tribeID);
+ return;
+ }
+ }
+ break;
+ case 0x3fd:
+ sVar4 = DAT_TribesState.tribes[tribeID].someUpdateUpperLimit;
+ if ((sVar4 != 0) && (sVar4 <= sVar3)) {
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ DAT_TribesState.tribes[tribeID].someUpdateUpperLimit = 0;
+ assignAttackTargetsForTribe(tribeID, STBT_0x3fd);
+ return;
+ }
+ break;
+ case 0x3fe:
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ DAT_TribesState.tribes[tribeID].someUpdateUpperLimit = 0;
+ DAT_TribesState.tribes[tribeID].unitStance
+ = USE_AGGRESSIVE;
+ return;
+ case 0x3ff:
+ if (DAT_TribesState.tribes[tribeID].someUpdateUpperLimit <= sVar3) {
+ iVar12 = (&this->attackInfo.unknownSignpostRelatedArray)[_attackWave_2];
+ uVar10 = DAT_GameState.mapAndTime.signpostsMapEdge[iVar12][0].y;
+ uVar13 = DAT_GameState.mapAndTime.signpostsMapEdge[iVar12][0].x;
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ giveTribeMoveInstruction(
+ tribeID, uVar13, uVar10, 0, 0, UMSE_0);
+ DAT_TribesState.tribes[tribeID].tribeBehaviorType = STBT_0x400;
+ return;
+ }
+ break;
+ case 0x400:
+ break;
+ case 0x401:
+ DAT_TribesState.tribes[tribeID].unitStance
+ = USE_AGGRESSIVE;
+ BVar9 = allUnitsReachedTheirDestination(tribeID);
+ if (BVar9 != FALSE) {
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ buildRallyPointsFromSiegeUnits(tribeID);
+ sVar3 = DAT_TribesState.tribes[tribeID].rallyPointCount;
+ iVar12 = DAT_TribesState.tribes[tribeID].currentRallyPointIndex + 1;
+ if (sVar3 <= iVar12) {
+ iVar12 = 0;
+ }
+ sVar4 = DAT_TribesState.tribes[tribeID].rallyPointArray[iVar12][0];
+ sVar5 = DAT_TribesState.tribes[tribeID].rallyPointArray[iVar12][1];
+ DAT_TribesState.tribes[tribeID].currentRallyPointIndex = (short)iVar12;
+ if ((1 < sVar3)
+ && (0x60 < DAT_UnitsState
+ .units[DAT_TribesState.tribes[tribeID].selectionTargetUnitID]
+ .closestEnemyMicroDistance)) {
+ giveTribeMoveInstruction(tribeID, (uint)((int)((int)sVar4)), (uint)((int)((int)sVar5)), 0,
+ 0, UMSE_0);
+ return;
+ }
+ }
+ break;
+ case 0x406:
+ if (DAT_TribesState.tribes[tribeID].someUpdateUpperLimit <= sVar3) {
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ setRallyPointForLaddermenTribe(tribeID);
+ if (DAT_TribesState.tribes[tribeID].countdown2 < 1) {
+ giveTribeMoveInstruction(tribeID,
+ (uint)((int)((int)DAT_TribesState.tribes[tribeID].rallyPointArray[0][0])),
+ (uint)((int)((int)DAT_TribesState.tribes[tribeID].rallyPointArray[0][1])), 0,
+ 0, UMSE_0);
+ return;
+ }
+ }
+ break;
+ case 0x411:
+ iVar12 = (int)DAT_TribesState.tribes[tribeID].field56_0x1f2;
+ if ((iVar12 == 0)
+ || (DAT_TribesState.tribes[tribeID].uid2
+ != DAT_TribesState.tribes[iVar12].uid)) {
+ DAT_TribesState.tribes[tribeID].tribeBehaviorType = STBT_1;
+ return;
+ }
+ if (DAT_TribesState.tribes[tribeID].someUpdateUpperLimit <= sVar3) {
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ sVar3 = DAT_TribesState.tribes[iVar12].selectionTargetUnitID;
+ dVar11 = pathFindingRelated(2, (uint)((int)((int)DAT_UnitsState.units[sVar3].x)),
+ (uint)((int)((int)DAT_UnitsState.units[sVar3].y)),
+ DAT_UnitsState.units[sVar3].siegeTargetPlayerID);
+ if (0 < (int)dVar11) {
+ uVar13 = (uint)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[dVar11];
+ uVar10 = dVar11 - DAT_ViewportRenderState.translationMatrix[uVar13].addXgetTile;
+ giveTribeMoveInstruction(
+ tribeID, uVar10, uVar13, 0, 0, UMSE_0);
+ MACRO_CALL_MEMBER(
+ calculatePreferredRelativeOrientation,
+ DAT_DirectionAlgorithmState)((int)DAT_UnitsState.units[sVar3].x,
+ DAT_UnitsState.units[sVar3].y, uVar10,
+ uVar13);
+ DAT_TribesState.tribes[tribeID].orientation
+ = (short)DAT_DirectionAlgorithmState.orientation;
+ return;
+ }
+ }
+ break;
+ case 0x412:
+ sVar4 = DAT_TribesState.tribes[tribeID].someUpdateUpperLimit;
+ if ((sVar4 != 0) && (sVar4 <= sVar3)) {
+ sVar3 = DAT_TribesState.tribes[tribeID].countdown2;
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ DAT_TribesState.tribes[tribeID].someUpdateUpperLimit = 0;
+ if (sVar3 < 1) {
+ iVar12 = findTribeWithMoatAttackBehavior();
+ if (iVar12 != 0) {
+ assignTribeToSupportPoint(this->x, (uint)((int)(this->y)), tribeID);
+ return;
+ }
+ goto LAB_0051e032;
+ }
+ }
+ break;
+ case 0x413:
+ sVar4 = DAT_TribesState.tribes[tribeID].someUpdateUpperLimit;
+ DAT_TribesState.tribes[tribeID].unitStance
+ = USE_STAND_GROUND;
+ if ((sVar4 != 0) && (sVar4 <= sVar3)) {
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ DAT_TribesState.tribes[tribeID].someUpdateUpperLimit = 0;
+ assignAttackTargetsForTribe(tribeID, STBT_0x413);
+ return;
+ }
+ break;
+ case 0x414:
+ sVar4 = DAT_TribesState.tribes[tribeID].someUpdateUpperLimit;
+ DAT_TribesState.tribes[tribeID].unitStance
+ = USE_STAND_GROUND;
+ if ((sVar4 != 0) && (sVar4 <= sVar3)) {
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ DAT_TribesState.tribes[tribeID].someUpdateUpperLimit = 0;
+ assignAttackTargetsForTribe(tribeID, STBT_0x414);
+ return;
+ }
+ break;
+ case 0x416:
+ sVar4 = DAT_TribesState.tribes[tribeID].someUpdateUpperLimit;
+ if (((sVar4 != 0) && (sVar4 <= sVar3))
+ && (iVar12
+ = stopTribeMovementAndCheckIdle(tribeID),
+ iVar12 != 0)) {
+ iVar12 = DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .keep.id;
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ DAT_TribesState.tribes[tribeID].someUpdateUpperLimit = 0;
+ if (0 < iVar12) {
+ BVar6 = DAT_BuildingsState.buildings[iVar12].buildingType;
+ if (BVar6 == BT_MANORHOUSE) {
+ uVar10 = (int)(short)DAT_BuildingsState.buildings[iVar12].x + 3;
+ uVar13 = (int)(short)DAT_BuildingsState.buildings[iVar12].y + 8;
+ } else if ((BVar6 == BT_STONEKEEP)
+ || (BVar6 == BT_STRONGHOLD)) {
+ uVar10 = (int)(short)DAT_BuildingsState.buildings[iVar12].x + 3;
+ uVar13 = (int)(short)DAT_BuildingsState.buildings[iVar12].y + 3;
+ } else if (BVar6 == BT_KEEPFOUR) {
+ uVar10 = (int)(short)DAT_BuildingsState.buildings[iVar12].x + 4;
+ uVar13 = (int)(short)DAT_BuildingsState.buildings[iVar12].y + 4;
+ } else {
+ if (BVar6 != BT_KEEPFIVE) {
+ return;
+ }
+ uVar10 = (int)(short)DAT_BuildingsState.buildings[iVar12].x + 5;
+ uVar13 = (int)(short)DAT_BuildingsState.buildings[iVar12].y + 5;
+ }
+ giveTribeMoveInstruction(
+ tribeID, uVar10, uVar13, 0, 0, UMSE_0);
+ DAT_TribesState.tribes[tribeID].unitStance
+ = USE_AGGRESSIVE;
+ return;
+ }
+ }
+ break;
+ case 0x418:
+ if (DAT_TribesState.tribes[tribeID].someUpdateUpperLimit <= sVar3) {
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ sendAttackingPatrolTribeToComputedDestination(tribeID);
+ return;
+ }
+ break;
+ case 0x419:
+ sVar4 = DAT_TribesState.tribes[tribeID].someUpdateUpperLimit;
+ if ((sVar4 != 0) && (sVar4 <= sVar3)) {
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ DAT_TribesState.tribes[tribeID].someUpdateUpperLimit = 0;
+ decideAndExecuteTribeAttackAction(tribeID);
+ return;
+ }
+ break;
+ case 0x41a:
+ sVar4 = DAT_TribesState.tribes[tribeID].someUpdateUpperLimit;
+ if ((sVar4 != 0) && (sVar4 <= sVar3)) {
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ DAT_TribesState.tribes[tribeID].someUpdateUpperLimit = 0;
+ moveTribeToNearbyGatehouse(
+ tribeID);
+ return;
+ }
+ break;
+ case 0x41b:
+ sVar4 = DAT_TribesState.tribes[tribeID].someUpdateUpperLimit;
+ if ((sVar4 != 0) && (sVar4 <= sVar3)) {
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ DAT_TribesState.tribes[tribeID].someUpdateUpperLimit = 0;
+ moveTowardsParticularUnits(
+ tribeID);
+ return;
+ }
+ break;
+ case 0x41e:
+ sVar4 = DAT_TribesState.tribes[tribeID].someUpdateUpperLimit;
+ if ((sVar4 != 0) && (sVar4 <= sVar3)) {
+ DAT_TribesState.tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ DAT_TribesState.tribes[tribeID].someUpdateUpperLimit = 0;
+ moveTribeToReachableNearbyTile(tribeID);
+ return;
+ }
+ }
+ }
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0051d7f0", "name": "updateTribeBehaviorBasedOnBehaviorType", "quelle": "ghidra", "p1": {"bereich": "KI", "zweck": "Pro Takt: führt je nach tribeBehaviorType den nächsten Schritt einer KI-Gruppe aus (Zielwahl, Marschbefehl, Haltung, Umschalten auf den Folgezustand)."}, "p2": {"ein": "tribeID", "aus": "-", "liest": ["tribes[id].attackWave", "tribes[id].tribeBehaviorType", "tribes[id].percentageMovingUnk", "tribes[id].someUpdateUpperLimit", "tribes[id].someIndex", "tribes[id].countdown2", "tribes[id].field56_0x1f2", "tribes[id].rallyPointArray/rallyPointCount", "attackInfo.index", "attackInfo.unknownSignpostRelatedArray", "attackInfo._138324_4_", "mapAndTime.unitMoveDestinationXYPairs/somePairArray/attackVectors/signpostsMapEdge", "units[selectionTargetUnitID].totalSizeOfPathPlan/closestEnemyMicroDistance", "playerDataArray[aktueller Spieler].keep.id", "buildings[keep].buildingType/x/y"], "schreibt": ["tribes[id].attackWave", "attackInfo.nof_tribes[welle]", "attackInfo.unknownByteArray02[welle]", "tribes[id].unknownAttackRelatedUpdateCounter", "tribes[id].someUpdateUpperLimit", "tribes[id].field161_0x2ae", "tribes[id].unitStance", "tribes[id].tribeBehaviorType", "tribes[id].currentRallyPointIndex", "tribes[id].orientation", "attackVectors[spieler][i].tribeID"], "ruft": ["assignAttackTargetsForTribe", "updateTribeCombatStanceBehavior", "isTribeUnitBlockedByOtherUnit", "moveTribeToNearbyClearTile", "stopTribeMovementAndCheckIdle", "giveTribeMoveInstruction", "calculateHigh2ClostestToTribeTargetUnit", "calculateArch2ClosestToTribeTargetUnit", "claimArcherAttackPoint", "allUnitsReachedTheirDestination", "buildRallyPointsFromSiegeUnits", "setRallyPointForLaddermenTribe", "pathFindingRelated", "calculatePreferredRelativeOrientation", "findTribeWithMoatAttackBehavior", "assignTribeToSupportPoint", "sendAttackingPatrolTribeToComputedDestination", "decideAndExecuteTribeAttackAction", "moveTribeToNearbyGatehouse", "moveTowardsParticularUnits", "moveTribeToReachableNearbyTile"], "regeln": ["Jeder Aufruf zuerst: Ist attackWave ungleich 0 und kleiner als attackInfo.index, wird attackWave auf attackInfo.index gesetzt; nof_tribes[welle] und bei percentageMovingUnk < 1 auch unknownByteArray02[welle] steigen um 1; der Zähler unknownAttackRelatedUpdateCounter steigt um 1; field161_0x2ae wird 0", "Fast alle Zustände wirken erst, wenn someUpdateUpperLimit nicht 0 ist und der Zähler diese Grenze erreicht hat; dann wird der Zähler 0 gesetzt, bei den meisten auch die Grenze 0", "Zustand 1: nur wenn der Zähler über 29 liegt: Zähler 0; ist eine Einheit der Gruppe durch eine andere blockiert, wird die Gruppe auf ein freies Nachbarfeld gesetzt", "Zustand 3: ist die Gruppe zum Stehen gekommen, Marsch zu unitMoveDestinationXYPairs[Signpost der Welle][someIndex], danach Zustand 4. Zustand 5: ab Grenze Marsch zu somePairArray[someIndex], danach Zustand 6. Zustand 7: ab Grenze erster freier Platz (tribeID = 0, höchstens 49 Stellen) in attackVectors[eigener Spieler] belegen, dorthin marschieren, danach Zustand 8. Zustand 8: ist der Wegplan des Zieleinheit-Pfads kürzer als 25 (0x19), Haltung AGGRESSIVE. Zustände 4 und 6 tun nichts", "Zielwahl per assignAttackTargetsForTribe (mit dem eigenen Zustand als Argument): 0x3f4, 0x3f5, 0x3f6, 0x3f7, 0x3fb, 0x3fd, 0x413, 0x414. Haltung STAND_GROUND in 0x3f5, 0x3f6, 0x413, 0x414 (bei jedem Aufruf, auch vor Ablauf der Grenze); in 0x3fb wird AGGRESSIVE gesetzt, wenn die Grenze erreicht ist. 0x3f3 setzt nur Zähler und Grenze zurück. 0x3fe setzt immer Zähler/Grenze 0 und AGGRESSIVE", "0x3f8 und 0x3f9: nächste Hochleute bzw. Bogenschützen zum Ziel bestimmen und zu this->x/this->y marschieren. 0x3fc: Haltung = 1, wenn attackInfo._138324_4_ größer 2, sonst 0; ist countdown2 kleiner 1, claimArcherAttackPoint. 0x412: ist countdown2 kleiner 1, mit Graben-Angreifer-Gruppe assignTribeToSupportPoint, sonst claimArcherAttackPoint", "0x3ff: ab Grenze Marsch zu signpostsMapEdge[Signpost der Welle][0], danach Zustand 0x400 (tut nichts). 0x401: Haltung AGGRESSIVE; sind alle am Ziel, Rallypunkte aus Belagerungseinheiten neu bauen und reihum zum nächsten Punkt (bei Ende zurück auf 0); Marsch nur bei mehr als 1 Rallypunkt und closestEnemyMicroDistance über 0x60 (96). 0x406: ab Grenze setRallyPointForLaddermenTribe, bei countdown2 kleiner 1 Marsch zu Rallypunkt 0", "0x411: folgt der Gruppe field56_0x1f2; ist sie 0 oder ihre uid passt nicht zu uid2, Rückfall auf Zustand 1; sonst ab Grenze Weg zur Zieleinheit dieser Gruppe suchen, marschieren und Ausrichtung setzen. 0x416: ab Grenze und bei Stillstand Marsch zur Burg des Spielers mit festen Versätzen: Manorhouse +3/+8, Stonekeep und Stronghold +3/+3, Keepfour +4/+4, Keepfive +5/+5 (andere Burgtypen: nichts), Haltung AGGRESSIVE", "Weitere: 0x418 sendAttackingPatrolTribeToComputedDestination (Grenze nicht auf 0 gesetzt), 0x419 decideAndExecuteTribeAttackAction, 0x41a moveTribeToNearbyGatehouse, 0x41b moveTowardsParticularUnits, 0x41e moveTribeToReachableNearbyTile. Alle anderen Zustände (auch 2, 9 bis 1009, 0x3fa, 0x3f2, 0x3fb ohne Ablauf der Grenze ausgenommen) rufen updateTribeCombatStanceBehavior"], "offen": ["Der Block für Zustand 1010 (0x3f2) im Zweig kleiner als 1010 ist so nie erreichbar, vermutlich Übersetzungsfehler von Ghidra; tatsächlich landet 0x3f2 laut Code im Standardfall", "Bedeutung der Zustandsnummern und Felder someUpdateUpperLimit, someIndex, countdown2, unknownAttackRelatedUpdateCounter (nur Namen der OpenSHC-Vermutung)", "attackInfo._138324_4_ und field56_0x1f2: Bedeutung unbekannt"]}, "p3": {"erklaerung": "Das ist der Taktgeber im Gehirn der KI-Truppen: Jede Gruppe hat einen Verhaltenszustand, und diese Funktion entscheidet bei jedem Takt, ob sie Ziele sucht, losmarschiert, auf Sammelpunkte wartet oder auf den nächsten Zustand umschaltet. Der Zähler läuft hoch, bis die Wartezeit der Gruppe um ist.", "gehirn": "Den Zustand tribeBehaviorType einer gegnerischen Gruppe lesen: so ist erkennbar, ob sie nur sammelt, Ziele sucht (0x3f4 bis 0x3fd) oder zur Burg marschiert (0x416). Die Wartezeit ist someUpdateUpperLimit minus Zähler.", "beleg": "code", "live": "KI-Angriffswelle beobachten → tribes[id].tribeBehaviorType und unknownAttackRelatedUpdateCounter mehrfach lesen → Zustand wechselt in der Reihenfolge der Fälle (z.B. 3 dann 4, 5 dann 6, 0x3ff dann 0x400), Zähler setzt bei Wechsel auf 0", "live_art": "ki-welle"}}
+

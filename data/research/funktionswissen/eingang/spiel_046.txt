@@ -1,0 +1,920 @@
+### 0x00419630 UpdateGoodBuildingStatue | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00419630
+ void Buildings::UpdateGoodBuildingStatue()
+ {
+ addBuildingToTargetableBuildings(
+ DAT_CurrentBuildingID);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 0;
+ }
+}
+}
+
+### 0x00419670 UpdateGoodBuildingShrine | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00419670
+ void Buildings::UpdateGoodBuildingShrine()
+ {
+ addBuildingToTargetableBuildings(
+ DAT_CurrentBuildingID);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].someX
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingEntryX;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].someY
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingEntryY;
+ }
+}
+}
+
+### 0x0041e240 UpdateFireBallistaBuilding | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0041E240
+ void Buildings::UpdateFireBallistaBuilding()
+ {
+ int* piVar1;
+ short sVar2;
+ int _offset;
+ int _lordType;
+ int _fireballistaUnit;
+ int _engineer;
+ short* _pWorkers;
+ short* _pBuildingWorkerID;
+ int _owner2;
+ int _counter1;
+ short* _pWorkerID;
+ int _owner;
+ int* _pBuildingWorkerUID;
+ int _buildingID2;
+ int _counter2;
+ int* _pWorkerUID;
+ bool _menuIsBuildingAndStatus;
+ int _employeeCount3;
+ int _buildingID;
+ int _wave;
+ int _fullID;
+ short _employeeCount;
+ int* _pProgress1;
+ int* _pProgress2;
+ short _employeeCount2;
+ _fireballistaUnit = DAT_CurrentBuildingID;
+ _owner = (int)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner;
+ _wave = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].attackWave;
+ if (((0 < _wave) && (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY))
+ && ((char)DAT_TroopValueState.attackInfo.nof_tribes[_wave] < '\x01')) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].logicalState
+ = BLS_REMOVE;
+ }
+ if (DAT_BuildingsState.buildings[_fireballistaUnit].oldVisualActiveState == -1) {
+ _fullID = DAT_GameSynchronyState.currentPlayerFullIDArray[_owner];
+ DAT_BuildingsState.buildings[_fireballistaUnit].buildingIsVisuallyActive = 1;
+ DAT_BuildingsState.buildings[_fireballistaUnit].playerColorUnk
+ = (int)DAT_BuildingsState.buildings[_fireballistaUnit].owner;
+ DAT_BuildingsState.buildings[_fireballistaUnit].renderAnimation = 1;
+ DAT_BuildingsState.buildings[_fireballistaUnit].displayOwnerFlag = 0;
+ if (_fullID == -1) {
+ _lordType = getLordTypeForPlayer(_owner);
+ _fireballistaUnit = DAT_CurrentBuildingID;
+ if (_lordType == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = 3;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = 2;
+ }
+ } else {
+ DAT_BuildingsState.buildings[_fireballistaUnit].animationFrame = 1;
+ }
+ updateBuildingGraphicsLayer(
+ _fireballistaUnit);
+ _fireballistaUnit = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState = 0;
+ }
+ _pProgress1 = &DAT_BuildingsState.buildings[_fireballistaUnit].buildingProgress;
+ /*
+ update building progress with the amount of employees in it
+ */
+ *_pProgress1
+ = *_pProgress1 + (int)DAT_BuildingsState.buildings[_fireballistaUnit].currentEmployeeCount;
+ if (320 < DAT_BuildingsState.buildings[_fireballistaUnit].buildingProgress) {
+ /*
+ if progress > 320
+ */
+ _owner2 = (int)DAT_BuildingsState.buildings[_fireballistaUnit].owner;
+ _fireballistaUnit = spawnUnit(
+ _owner2, _owner2, (int)((int)((short)DAT_BuildingsState.buildings[_fireballistaUnit].x * 8)),
+ (int)((int)((short)DAT_BuildingsState.buildings[_fireballistaUnit].y * 8)),
+ DAT_BuildingsState.buildings[_fireballistaUnit].terrainHeightUnk,
+ UT_S_FBALLISTA);
+ if (_fireballistaUnit == 0) {
+ _pProgress2 = &DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingProgress;
+ *_pProgress2 = *_pProgress2
+ - (int)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].currentEmployeeCount;
+ return;
+ }
+ generateSiegeCreationInformation(
+ (int)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner,
+ DAT_CurrentBuildingID, _fireballistaUnit);
+ _employeeCount
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].currentEmployeeCount;
+ if (_employeeCount == 2) {
+ _pWorkers = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workerID;
+ if (DAT_UnitsState
+ .units[DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workerID[0]]
+ .aiUnitBehaviourType
+ == 0x16) {
+ DAT_UnitsState.units[_fireballistaUnit].aiUnitBehaviourType = 0x15;
+ }
+ _counter1 = 2;
+ do {
+ sVar2 = *_pWorkers;
+ _pWorkers = _pWorkers + 1;
+ _counter1 = _counter1 + -1;
+ DAT_UnitsState.units[sVar2].state.generic = US_AIM_WEAPONUnk;
+ } while (_counter1 != 0);
+ } else {
+ _counter2 = 0;
+ if (0 < _employeeCount) {
+ do {
+ _engineer = (int)DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .workerID[_counter2];
+ DAT_UnitsState.units[_engineer].state.generic
+ = US_JESTER_ROAM_TO;
+ DAT_UnitsState.units[_engineer].disappearFadeAlphaCountdown = 0x20;
+ DAT_UnitsState.units[_engineer].engineerManningSiegeStateRef_checkType = 0xfe;
+ DAT_UnitsState.units[_engineer].cachedState
+ = US_DETERMINE_NEXT_STATEUnk;
+ DAT_UnitsState.units[_engineer].totalSizeOfPathPlan = 0;
+ DAT_UnitsState.units[_engineer].unknownMovementRelated_0x2d2 = 0;
+ resetUnitMovementState(_engineer);
+ sVar2 = DAT_UnitsState.units[_engineer].aiUnitBehaviourType;
+ DAT_UnitsState.units[_engineer].targetingType
+ = UIT_MAN_SIEGE_EQUIPMENT;
+ DAT_UnitsState.units[_engineer].targetedUnitID__OR__engineerMannedSiegeEngineRef
+ = (short)_fireballistaUnit;
+ if (sVar2 == 0x16) {
+ DAT_UnitsState.units[_fireballistaUnit].aiUnitBehaviourType = 0x15;
+ }
+ _counter2 = _counter2 + 1;
+ } while (_counter2
+ < DAT_BuildingsState.buildings[DAT_CurrentBuildingID].currentEmployeeCount);
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].currentEmployeeCount = 0;
+ }
+ calculatePreferredRelativeOrientation((int)DAT_UnitsState.units[_fireballistaUnit].x,
+ DAT_UnitsState.units[_fireballistaUnit].y,
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .campground.xEntry,
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .campground.yEntry);
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[_owner] == -1)
+ && (DAT_GameSynchronyState.currentAIArray[_owner] == 0)) {
+ DAT_UnitsState.units[_fireballistaUnit].facingDirection
+ = (short)DAT_DirectionAlgorithmState.orientation;
+ } else {
+ _buildingID2 = DAT_GameState.playerDataArray[_owner].keep.id;
+ DAT_UnitsState.units[_fireballistaUnit].facingDirection = 0;
+ if (_buildingID2 == 0) {
+ piVar1 = &DAT_GameState.playerDataArray[_owner].counter;
+ *piVar1 = *piVar1 + 2;
+ }
+ }
+ addUnitToNewTribe(
+ _fireballistaUnit, DAT_BuildingsState.buildings[DAT_CurrentBuildingID].attackWave,
+ ((AITribeType)0x18), (undefined4)((int)(_owner)));
+ _buildingID2 = DAT_CurrentBuildingID;
+ DAT_UnitsState.units[_fireballistaUnit].unknownSiegeTentRelated02
+ = (char)DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .unknownSiegeTentRelated01
+ + 1;
+ _employeeCount2 = DAT_BuildingsState.buildings[_buildingID2].currentEmployeeCount;
+ _employeeCount3 = (int)_employeeCount2;
+ DAT_UnitsState.units[_fireballistaUnit].logicalState = ((UnitLogicState)5);
+ if (0 < _employeeCount3) {
+ _pBuildingWorkerUID = DAT_BuildingsState.buildings[_buildingID2].workerUID;
+ _pWorkerUID = DAT_UnitsState.units[_fireballistaUnit].manningEngineerUIDRef;
+ _pWorkerID = DAT_UnitsState.units[_fireballistaUnit].manningEngineerRef;
+ _pBuildingWorkerID = DAT_BuildingsState.buildings[_buildingID2].workerID;
+ do {
+ *_pWorkerID = *_pBuildingWorkerID;
+ *_pWorkerUID = *_pBuildingWorkerUID;
+ _pBuildingWorkerID = _pBuildingWorkerID + 1;
+ _pWorkerID = _pWorkerID + 1;
+ _pBuildingWorkerUID = _pBuildingWorkerUID + 1;
+ _pWorkerUID = _pWorkerUID + 1;
+ _employeeCount3 = _employeeCount3 + -1;
+ _buildingID2 = DAT_CurrentBuildingID;
+ } while (_employeeCount3 != 0);
+ }
+ _menuIsBuildingAndStatus
+ = DAT_GameCore.currentMenuViewType == MVT_BUILDING_AND_STATUS_MENU;
+ DAT_UnitsState.units[_fireballistaUnit]
+ .digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300 = _employeeCount2;
+ if ((_menuIsBuildingAndStatus) && (_buildingID2 == DAT_BuildingsState.menuSelectedBuildingID)) {
+ DAT_BuildingsState.siegeEngineCreationRelated01 = 2;
+ DAT_BuildingsState.unitID = _fireballistaUnit;
+ }
+ DAT_TileMapState.showNoRubbleWhenDestroyingBuilding = 1;
+ destroyBuilding(
+ _buildingID2);
+ }
+ return;
+ }
+}
+}
+
+### 0x0041e870 UpdateTower2 | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0041E870
+ void Buildings::UpdateTower2()
+ {
+ int iVar1;
+ uint uVar2;
+ int* piVar3;
+ uint uVar4;
+ uint uVar5;
+ int iVar6;
+ int iVar7;
+ uint uVar8;
+ int local_20[8];
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ iVar6 = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 1;
+ DAT_BuildingsState.buildings[iVar6].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[iVar6].animationFrame = 0;
+ DAT_BuildingsState.buildings[iVar6].someX = DAT_BuildingsState.buildings[iVar6].x + 1;
+ DAT_BuildingsState.buildings[iVar6].someY = DAT_BuildingsState.buildings[iVar6].y + 1;
+ DAT_BuildingsState.buildings[iVar6].field20_0x38 = 1;
+ DAT_BuildingsState.buildings[iVar6].field21_0x3c = 0;
+ DAT_BuildingsState.buildings[iVar6].field22_0x40 = 0;
+ DAT_BuildingsState.buildings[iVar6].field23_0x44 = 0;
+ DAT_BuildingsState.buildings[iVar6].field29_0x5c = 0;
+ DAT_BuildingsState.buildings[iVar6].field33_0x6c = 0;
+ DAT_BuildingsState.buildings[iVar6].field34_0x70 = 0;
+ DAT_BuildingsState.buildings[iVar6].field35_0x74 = 0;
+ DAT_BuildingsState.buildings[iVar6].field36_0x78 = 0;
+ DAT_BuildingsState.buildings[iVar6].field37_0x7c = 0;
+ DAT_BuildingsState.buildings[iVar6].ownerFlagFrame = 0;
+ DAT_BuildingsState.buildings[iVar6].field39_0x84 = 0;
+ DAT_BuildingsState.buildings[iVar6].field40_0x88 = 0;
+ piVar3 = &DAT_BuildingsState.buildings[iVar6].buildingProgress;
+ *piVar3 = *piVar3 + 1;
+ if (0x27 < DAT_BuildingsState.buildings[iVar6].buildingProgress) {
+ DAT_BuildingsState.buildings[iVar6].buildingProgress = 0;
+ computeBuildingEntranceFlagsForOrientations(iVar6);
+ }
+ iVar1 = hasBuildingExitFlagForOrientation(iVar6);
+ if (iVar1 != 0) {
+ DAT_BuildingsState.buildings[iVar6].field21_0x3c = 0x51;
+ DAT_BuildingsState.buildings[iVar6].animationFrame = 1;
+ }
+ iVar1 = hasBuildingEntranceFlagForOrientation(iVar6);
+ if (iVar1 != 0) {
+ DAT_BuildingsState.buildings[iVar6].field23_0x44 = 0x5a;
+ DAT_BuildingsState.buildings[iVar6].animationFrame = 1;
+ }
+ local_20[1] = 0;
+ local_20[2] = 0;
+ local_20[3] = 0;
+ local_20[4] = 0;
+ local_20[5] = 0;
+ local_20[6] = 0;
+ local_20[7] = 0;
+ local_20[0] = 0;
+ iVar1 = 9
+ - (DAT_BuildingsState.buildings[iVar6].currentHealth * 9)
+ / (int)DAT_BuildingsState.buildings[iVar6].maxHealth;
+ if (iVar1 < 9) {
+ if (iVar1 == 0)
+ goto LAB_0041ea51;
+ } else {
+ iVar1 = 8;
+ }
+ if (0 < iVar1) {
+ uVar4 = DAT_BuildingsState.buildings[iVar6].fireRelatedRNG1;
+ uVar2 = (int)uVar4 >> 8;
+ do {
+ uVar8 = uVar4 & 0xf;
+ uVar5 = uVar2 & 7;
+ uVar4 = uVar4 + 1;
+ uVar2 = uVar2 + 1;
+ iVar1 = iVar1 + -1;
+ local_20[uVar5] = uVar8 + 1;
+ } while (iVar1 != 0);
+ }
+ DAT_BuildingsState.buildings[iVar6].field33_0x6c = local_20[0];
+ DAT_BuildingsState.buildings[iVar6].field34_0x70 = local_20[1];
+ DAT_BuildingsState.buildings[iVar6].field35_0x74 = local_20[2];
+ DAT_BuildingsState.buildings[iVar6].field36_0x78 = local_20[3];
+ DAT_BuildingsState.buildings[iVar6].field37_0x7c = local_20[4];
+ DAT_BuildingsState.buildings[iVar6].ownerFlagFrame = local_20[5];
+ DAT_BuildingsState.buildings[iVar6].field39_0x84 = local_20[6];
+ DAT_BuildingsState.buildings[iVar6].field40_0x88 = local_20[7];
+ LAB_0041ea51:
+ if (DAT_BuildingsState.field34_0x18e074 != 0) {
+ iVar6 = 0;
+ do {
+ getBuildingSizeIndexMappingData(iVar6, 4);
+ iVar1 = DAT_ViewportRenderState
+ .translationMatrix
+ [(short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y
+ + DAT_TileMapState.buildingY]
+ .addXgetTile
+ + (int)(short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x
+ + DAT_TileMapState.buildingX;
+ iVar7 = 0;
+ DAT_TileMapState.MiscDisplayLayer[iVar1]
+ = DAT_TileMapState.MiscDisplayLayer[iVar1] & 0xffef;
+ piVar3 = DAT_BuildingDefinedData.field419_0xa73c
+ + (DAT_TileMapState.mapOrientation / 2) * 4;
+ do {
+ if (*piVar3 == iVar6) {
+ DAT_TileMapState.MiscDisplayLayer[iVar1]
+ = DAT_TileMapState.MiscDisplayLayer[iVar1] | 0x10;
+ break;
+ }
+ iVar7 = iVar7 + 1;
+ piVar3 = piVar3 + 1;
+ } while (iVar7 < 4);
+ iVar6 = iVar6 + 1;
+ } while (iVar6 < DAT_TileMapState.constructionTileCount);
+ }
+ return;
+ }
+}
+}
+
+### 0x0041eb00 UpdateTower3 | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0041EB00
+ void Buildings::UpdateTower3()
+ {
+ int iVar1;
+ uint uVar2;
+ int* piVar3;
+ uint uVar4;
+ uint uVar5;
+ int iVar6;
+ int iVar7;
+ uint uVar8;
+ int local_20[8];
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ iVar6 = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 1;
+ DAT_BuildingsState.buildings[iVar6].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[iVar6].field20_0x38 = 4;
+ DAT_BuildingsState.buildings[iVar6].field21_0x3c = 0;
+ DAT_BuildingsState.buildings[iVar6].field22_0x40 = 0;
+ DAT_BuildingsState.buildings[iVar6].field23_0x44 = 0;
+ DAT_BuildingsState.buildings[iVar6].field29_0x5c = 0;
+ DAT_BuildingsState.buildings[iVar6].animationFrame = 0;
+ DAT_BuildingsState.buildings[iVar6].field33_0x6c = 0;
+ DAT_BuildingsState.buildings[iVar6].field34_0x70 = 0;
+ DAT_BuildingsState.buildings[iVar6].field35_0x74 = 0;
+ DAT_BuildingsState.buildings[iVar6].field36_0x78 = 0;
+ DAT_BuildingsState.buildings[iVar6].field37_0x7c = 0;
+ DAT_BuildingsState.buildings[iVar6].ownerFlagFrame = 0;
+ DAT_BuildingsState.buildings[iVar6].field39_0x84 = 0;
+ DAT_BuildingsState.buildings[iVar6].field40_0x88 = 0;
+ DAT_BuildingsState.buildings[iVar6].someX = DAT_BuildingsState.buildings[iVar6].x + 2;
+ DAT_BuildingsState.buildings[iVar6].someY = DAT_BuildingsState.buildings[iVar6].y + 2;
+ piVar3 = &DAT_BuildingsState.buildings[iVar6].buildingProgress;
+ *piVar3 = *piVar3 + 1;
+ if (0x27 < DAT_BuildingsState.buildings[iVar6].buildingProgress) {
+ DAT_BuildingsState.buildings[iVar6].buildingProgress = 0;
+ computeBuildingEntranceFlagsForOrientations(iVar6);
+ }
+ iVar1 = hasBuildingExitFlagForOrientation(iVar6);
+ if (iVar1 != 0) {
+ DAT_BuildingsState.buildings[iVar6].field21_0x3c = 0x51;
+ DAT_BuildingsState.buildings[iVar6].animationFrame = 1;
+ }
+ iVar1 = hasBuildingEntranceFlagForOrientation(iVar6);
+ if (iVar1 != 0) {
+ DAT_BuildingsState.buildings[iVar6].field23_0x44 = 0x5a;
+ DAT_BuildingsState.buildings[iVar6].animationFrame = 1;
+ }
+ local_20[1] = 0;
+ local_20[2] = 0;
+ local_20[3] = 0;
+ local_20[4] = 0;
+ local_20[5] = 0;
+ local_20[6] = 0;
+ local_20[7] = 0;
+ local_20[0] = 0;
+ iVar1 = 9
+ - (DAT_BuildingsState.buildings[iVar6].currentHealth * 9)
+ / (int)DAT_BuildingsState.buildings[iVar6].maxHealth;
+ if (iVar1 < 9) {
+ if (iVar1 == 0)
+ goto LAB_0041ecf0;
+ } else {
+ iVar1 = 8;
+ }
+ if (0 < iVar1) {
+ uVar4 = DAT_BuildingsState.buildings[iVar6].fireRelatedRNG1;
+ uVar2 = (int)uVar4 >> 8;
+ do {
+ uVar8 = uVar4 & 0xf;
+ uVar5 = uVar2 & 7;
+ uVar4 = uVar4 + 1;
+ uVar2 = uVar2 + 1;
+ iVar1 = iVar1 + -1;
+ local_20[uVar5] = uVar8 + 1;
+ } while (iVar1 != 0);
+ }
+ DAT_BuildingsState.buildings[iVar6].field33_0x6c = local_20[0];
+ DAT_BuildingsState.buildings[iVar6].field34_0x70 = local_20[1];
+ DAT_BuildingsState.buildings[iVar6].field35_0x74 = local_20[2];
+ DAT_BuildingsState.buildings[iVar6].field36_0x78 = local_20[3];
+ DAT_BuildingsState.buildings[iVar6].field37_0x7c = local_20[4];
+ DAT_BuildingsState.buildings[iVar6].ownerFlagFrame = local_20[5];
+ DAT_BuildingsState.buildings[iVar6].field39_0x84 = local_20[6];
+ DAT_BuildingsState.buildings[iVar6].field40_0x88 = local_20[7];
+ LAB_0041ecf0:
+ if (DAT_BuildingsState.field34_0x18e074 != 0) {
+ iVar6 = 0;
+ do {
+ getBuildingSizeIndexMappingData(iVar6, 5);
+ iVar1 = DAT_ViewportRenderState
+ .translationMatrix
+ [(short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y
+ + DAT_TileMapState.buildingY]
+ .addXgetTile
+ + (int)(short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x
+ + DAT_TileMapState.buildingX;
+ iVar7 = 0;
+ DAT_TileMapState.MiscDisplayLayer[iVar1]
+ = DAT_TileMapState.MiscDisplayLayer[iVar1] & 0xffef;
+ piVar3 = DAT_BuildingDefinedData.field420_0xa77c
+ + (DAT_TileMapState.mapOrientation / 2) * 6;
+ do {
+ if (*piVar3 == iVar6) {
+ DAT_TileMapState.MiscDisplayLayer[iVar1]
+ = DAT_TileMapState.MiscDisplayLayer[iVar1] | 0x10;
+ break;
+ }
+ iVar7 = iVar7 + 1;
+ piVar3 = piVar3 + 1;
+ } while (iVar7 < 6);
+ iVar6 = iVar6 + 1;
+ } while (iVar6 < DAT_TileMapState.constructionTileCount);
+ }
+ return;
+ }
+}
+}
+
+### 0x0041eda0 UpdateTower4 | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0041EDA0
+ void Buildings::UpdateTower4()
+ {
+ int iVar1;
+ uint uVar2;
+ int* piVar3;
+ short sVar4;
+ int iVar5;
+ uint uVar6;
+ uint uVar7;
+ int iVar8;
+ uint uVar9;
+ int local_20[8];
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ iVar5 = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 1;
+ DAT_BuildingsState.buildings[iVar5].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[iVar5].field20_0x38 = 2;
+ DAT_BuildingsState.buildings[iVar5].field21_0x3c = 0;
+ DAT_BuildingsState.buildings[iVar5].field22_0x40 = 0;
+ DAT_BuildingsState.buildings[iVar5].field23_0x44 = 0;
+ DAT_BuildingsState.buildings[iVar5].field29_0x5c = 0;
+ DAT_BuildingsState.buildings[iVar5].shouldRenderRoof = 0x7a;
+ DAT_BuildingsState.buildings[iVar5].shouldRenderSomeOverlay = 0;
+ DAT_BuildingsState.buildings[iVar5].animationFrame = 0;
+ DAT_BuildingsState.buildings[iVar5].field33_0x6c = 0;
+ DAT_BuildingsState.buildings[iVar5].field34_0x70 = 0;
+ DAT_BuildingsState.buildings[iVar5].field35_0x74 = 0;
+ DAT_BuildingsState.buildings[iVar5].field36_0x78 = 0;
+ DAT_BuildingsState.buildings[iVar5].field37_0x7c = 0;
+ DAT_BuildingsState.buildings[iVar5].ownerFlagFrame = 0;
+ DAT_BuildingsState.buildings[iVar5].field39_0x84 = 0;
+ DAT_BuildingsState.buildings[iVar5].field40_0x88 = 0;
+ DAT_BuildingsState.buildings[iVar5].someX = DAT_BuildingsState.buildings[iVar5].x + 2;
+ DAT_BuildingsState.buildings[iVar5].someY = DAT_BuildingsState.buildings[iVar5].y + 2;
+ piVar3 = &DAT_BuildingsState.buildings[iVar5].buildingProgress;
+ *piVar3 = *piVar3 + 1;
+ if (0x27 < DAT_BuildingsState.buildings[iVar5].buildingProgress) {
+ DAT_BuildingsState.buildings[iVar5].buildingProgress = 0;
+ computeBuildingEntranceFlagsForOrientations(iVar5);
+ }
+ iVar1 = hasBuildingExitFlagForOrientation(iVar5);
+ if (iVar1 != 0) {
+ DAT_BuildingsState.buildings[iVar5].field21_0x3c = 0x51;
+ DAT_BuildingsState.buildings[iVar5].animationFrame = 1;
+ }
+ iVar1 = hasBuildingEntranceFlagForOrientation(iVar5);
+ if (iVar1 != 0) {
+ DAT_BuildingsState.buildings[iVar5].field23_0x44 = 0x5a;
+ DAT_BuildingsState.buildings[iVar5].animationFrame = 1;
+ }
+ local_20[1] = 0;
+ local_20[2] = 0;
+ local_20[3] = 0;
+ local_20[4] = 0;
+ local_20[5] = 0;
+ local_20[6] = 0;
+ local_20[7] = 0;
+ local_20[0] = 0;
+ iVar1 = 9
+ - (DAT_BuildingsState.buildings[iVar5].currentHealth * 9)
+ / (int)DAT_BuildingsState.buildings[iVar5].maxHealth;
+ if (iVar1 < 9) {
+ if (iVar1 == 0)
+ goto LAB_0041efa6;
+ } else {
+ iVar1 = 8;
+ }
+ iVar8 = iVar5;
+ if (0 < iVar1) {
+ uVar6 = DAT_BuildingsState.buildings[iVar5].fireRelatedRNG1;
+ uVar2 = (int)uVar6 >> 8;
+ do {
+ uVar7 = uVar6 & 0xf;
+ uVar9 = uVar2 & 7;
+ uVar6 = uVar6 + 1;
+ uVar2 = uVar2 + 1;
+ iVar1 = iVar1 + -1;
+ local_20[uVar9] = uVar7 + 1;
+ iVar8 = DAT_CurrentBuildingID;
+ } while (iVar1 != 0);
+ }
+ DAT_BuildingsState.buildings[iVar5].field33_0x6c = local_20[0];
+ DAT_BuildingsState.buildings[iVar5].field34_0x70 = local_20[1];
+ DAT_BuildingsState.buildings[iVar5].field35_0x74 = local_20[2];
+ DAT_BuildingsState.buildings[iVar5].field36_0x78 = local_20[3];
+ DAT_BuildingsState.buildings[iVar5].field37_0x7c = local_20[4];
+ DAT_BuildingsState.buildings[iVar5].ownerFlagFrame = local_20[5];
+ DAT_BuildingsState.buildings[iVar5].field39_0x84 = local_20[6];
+ DAT_BuildingsState.buildings[iVar5].field40_0x88 = local_20[7];
+ iVar5 = iVar8;
+ LAB_0041efa6:
+ iVar1 = 0;
+ if (DAT_BuildingsState.field34_0x18e074 != 0) {
+ do {
+ getBuildingSizeIndexMappingData(iVar1, 6);
+ iVar5 = DAT_ViewportRenderState
+ .translationMatrix
+ [(short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y
+ + DAT_TileMapState.buildingY]
+ .addXgetTile
+ + (int)(short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x
+ + DAT_TileMapState.buildingX;
+ iVar8 = 0;
+ DAT_TileMapState.MiscDisplayLayer[iVar5]
+ = DAT_TileMapState.MiscDisplayLayer[iVar5] & 0xffef;
+ piVar3 = DAT_BuildingDefinedData.field421_0xa7dc
+ + (DAT_TileMapState.mapOrientation / 2) * 8;
+ do {
+ if (*piVar3 == iVar1) {
+ DAT_TileMapState.MiscDisplayLayer[iVar5]
+ = DAT_TileMapState.MiscDisplayLayer[iVar5] | 0x10;
+ break;
+ }
+ iVar8 = iVar8 + 1;
+ piVar3 = piVar3 + 1;
+ } while (iVar8 < 8);
+ iVar1 = iVar1 + 1;
+ iVar5 = DAT_CurrentBuildingID;
+ } while (iVar1 < DAT_TileMapState.constructionTileCount);
+ }
+ iVar1 = iVar5 * 0x32c;
+ sVar4 = DAT_BuildingsState.buildings[iVar5].field261_0x2fa;
+ if ((0 < sVar4)
+ && (sVar4 = sVar4 + -1, DAT_BuildingsState.buildings[iVar5].field261_0x2fa = sVar4, sVar4 == 0)) {
+ iVar5 = 0;
+ sVar4 = 0;
+ do {
+ getBuildingSizeIndexMappingData(iVar5, 6);
+ iVar8 = DAT_CurrentBuildingID;
+ if (DAT_TileMapState
+ .UnitLayer[DAT_ViewportRenderState
+ .translationMatrix[(short)DAT_BuildingsState
+ .buildings[DAT_CurrentBuildingID]
+ .y
+ + DAT_TileMapState.buildingY]
+ .addXgetTile
+ + (int)(short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x
+ + DAT_TileMapState.buildingX]
+ != 0) {
+ sVar4 = 1;
+ break;
+ }
+ iVar5 = iVar5 + 1;
+ } while (iVar5 < DAT_TileMapState.constructionTileCount);
+ iVar1 = DAT_CurrentBuildingID * 0x32c;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].hasUnitsOntop = sVar4;
+ DAT_BuildingsState.buildings[iVar8].field261_0x2fa = 100;
+ }
+ if (*(short*)((int)DAT_BuildingsState.buildings[0].quarryLinkedOxTethers + iVar1 + 0x2e) != 0) {
+ *(undefined4*)((int)&DAT_BuildingsState.buildings[0].shouldRenderSomeOverlay + iVar1) = 0x7b;
+ *(undefined4*)((int)&DAT_BuildingsState.buildings[0].shouldRenderRoof + iVar1) = 0;
+ }
+ return;
+ }
+}
+}
+
+### 0x0041f110 UpdateTower5 | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0041F110
+ void Buildings::UpdateTower5()
+ {
+ int iVar1;
+ uint uVar2;
+ int* piVar3;
+ uint uVar4;
+ uint uVar5;
+ int iVar6;
+ int iVar7;
+ uint uVar8;
+ int local_20[8];
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ iVar6 = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 1;
+ DAT_BuildingsState.buildings[iVar6].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[iVar6].field20_0x38 = 3;
+ DAT_BuildingsState.buildings[iVar6].field21_0x3c = 0;
+ DAT_BuildingsState.buildings[iVar6].field22_0x40 = 0;
+ DAT_BuildingsState.buildings[iVar6].field23_0x44 = 0;
+ DAT_BuildingsState.buildings[iVar6].field29_0x5c = 0;
+ DAT_BuildingsState.buildings[iVar6].animationFrame = 0;
+ DAT_BuildingsState.buildings[iVar6].field33_0x6c = 0;
+ DAT_BuildingsState.buildings[iVar6].field34_0x70 = 0;
+ DAT_BuildingsState.buildings[iVar6].field35_0x74 = 0;
+ DAT_BuildingsState.buildings[iVar6].field36_0x78 = 0;
+ DAT_BuildingsState.buildings[iVar6].field37_0x7c = 0;
+ DAT_BuildingsState.buildings[iVar6].ownerFlagFrame = 0;
+ DAT_BuildingsState.buildings[iVar6].field39_0x84 = 0;
+ DAT_BuildingsState.buildings[iVar6].field40_0x88 = 0;
+ DAT_BuildingsState.buildings[iVar6].someX = DAT_BuildingsState.buildings[iVar6].x + 2;
+ DAT_BuildingsState.buildings[iVar6].someY = DAT_BuildingsState.buildings[iVar6].y + 2;
+ piVar3 = &DAT_BuildingsState.buildings[iVar6].buildingProgress;
+ *piVar3 = *piVar3 + 1;
+ if (0x27 < DAT_BuildingsState.buildings[iVar6].buildingProgress) {
+ DAT_BuildingsState.buildings[iVar6].buildingProgress = 0;
+ computeBuildingEntranceFlagsForOrientations(iVar6);
+ }
+ iVar1 = hasBuildingExitFlagForOrientation(iVar6);
+ if (iVar1 != 0) {
+ DAT_BuildingsState.buildings[iVar6].field21_0x3c = 0x51;
+ DAT_BuildingsState.buildings[iVar6].animationFrame = 1;
+ }
+ iVar1 = hasBuildingEntranceFlagForOrientation(iVar6);
+ if (iVar1 != 0) {
+ DAT_BuildingsState.buildings[iVar6].field23_0x44 = 0x5a;
+ DAT_BuildingsState.buildings[iVar6].animationFrame = 1;
+ }
+ local_20[1] = 0;
+ local_20[2] = 0;
+ local_20[3] = 0;
+ local_20[4] = 0;
+ local_20[5] = 0;
+ local_20[6] = 0;
+ local_20[7] = 0;
+ local_20[0] = 0;
+ iVar1 = 9
+ - (DAT_BuildingsState.buildings[iVar6].currentHealth * 9)
+ / (int)DAT_BuildingsState.buildings[iVar6].maxHealth;
+ if (iVar1 < 9) {
+ if (iVar1 == 0)
+ goto LAB_0041f300;
+ } else {
+ iVar1 = 8;
+ }
+ if (0 < iVar1) {
+ uVar4 = DAT_BuildingsState.buildings[iVar6].fireRelatedRNG1;
+ uVar2 = (int)uVar4 >> 8;
+ do {
+ uVar8 = uVar4 & 0xf;
+ uVar5 = uVar2 & 7;
+ uVar4 = uVar4 + 1;
+ uVar2 = uVar2 + 1;
+ iVar1 = iVar1 + -1;
+ local_20[uVar5] = uVar8 + 1;
+ } while (iVar1 != 0);
+ }
+ DAT_BuildingsState.buildings[iVar6].field33_0x6c = local_20[0];
+ DAT_BuildingsState.buildings[iVar6].field34_0x70 = local_20[1];
+ DAT_BuildingsState.buildings[iVar6].field35_0x74 = local_20[2];
+ DAT_BuildingsState.buildings[iVar6].field36_0x78 = local_20[3];
+ DAT_BuildingsState.buildings[iVar6].field37_0x7c = local_20[4];
+ DAT_BuildingsState.buildings[iVar6].ownerFlagFrame = local_20[5];
+ DAT_BuildingsState.buildings[iVar6].field39_0x84 = local_20[6];
+ DAT_BuildingsState.buildings[iVar6].field40_0x88 = local_20[7];
+ LAB_0041f300:
+ if (DAT_BuildingsState.field34_0x18e074 != 0) {
+ iVar6 = 0;
+ do {
+ getBuildingSizeIndexMappingData(iVar6, 6);
+ iVar1 = DAT_ViewportRenderState
+ .translationMatrix
+ [(short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y
+ + DAT_TileMapState.buildingY]
+ .addXgetTile
+ + (int)(short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x
+ + DAT_TileMapState.buildingX;
+ iVar7 = 0;
+ DAT_TileMapState.MiscDisplayLayer[iVar1]
+ = DAT_TileMapState.MiscDisplayLayer[iVar1] & 0xffef;
+ piVar3 = DAT_BuildingDefinedData.field421_0xa7dc
+ + (DAT_TileMapState.mapOrientation / 2) * 8;
+ do {
+ if (*piVar3 == iVar6) {
+ DAT_TileMapState.MiscDisplayLayer[iVar1]
+ = DAT_TileMapState.MiscDisplayLayer[iVar1] | 0x10;
+ break;
+ }
+ iVar7 = iVar7 + 1;
+ piVar3 = piVar3 + 1;
+ } while (iVar7 < 8);
+ iVar6 = iVar6 + 1;
+ } while (iVar6 < DAT_TileMapState.constructionTileCount);
+ }
+ return;
+ }
+}
+}
+
+### 0x0041f3b0 UpdateCatapultBuilding | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0041F3B0
+ void Buildings::UpdateCatapultBuilding()
+ {
+ short sVar1;
+ int unitID;
+ short* psVar2;
+ short* psVar3;
+ int iVar4;
+ int iVar5;
+ int* piVar6;
+ int iVar7;
+ int* piVar8;
+ bool bVar9;
+ iVar7 = DAT_CurrentBuildingID;
+ iVar5 = (int)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner;
+ iVar4 = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].attackWave;
+ if (((0 < iVar4) && (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY))
+ && ((char)DAT_TroopValueState.attackInfo.nof_tribes[iVar4] < '\x01')) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].logicalState
+ = BLS_REMOVE;
+ }
+ if (DAT_BuildingsState.buildings[iVar7].oldVisualActiveState == -1) {
+ iVar4 = DAT_GameSynchronyState.currentPlayerFullIDArray[iVar5];
+ DAT_BuildingsState.buildings[iVar7].buildingIsVisuallyActive = 1;
+ DAT_BuildingsState.buildings[iVar7].playerColorUnk
+ = (int)DAT_BuildingsState.buildings[iVar7].owner;
+ DAT_BuildingsState.buildings[iVar7].renderAnimation = 1;
+ DAT_BuildingsState.buildings[iVar7].displayOwnerFlag = 0;
+ if (iVar4 == -1) {
+ iVar4 = getLordTypeForPlayer(iVar5);
+ iVar7 = DAT_CurrentBuildingID;
+ if (iVar4 == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = 3;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = 2;
+ }
+ } else {
+ DAT_BuildingsState.buildings[iVar7].animationFrame = 1;
+ }
+ updateBuildingGraphicsLayer(
+ iVar7);
+ iVar7 = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState = 0;
+ }
+ piVar6 = &DAT_BuildingsState.buildings[iVar7].buildingProgress;
+ *piVar6 = *piVar6 + (int)DAT_BuildingsState.buildings[iVar7].currentEmployeeCount;
+ if (0x140 < DAT_BuildingsState.buildings[iVar7].buildingProgress) {
+ /*
+ Spawn catapult.
+ */
+ iVar4 = (int)DAT_BuildingsState.buildings[iVar7].owner;
+ iVar4 = spawnUnit(iVar4,
+ iVar4, (int)((int)((short)DAT_BuildingsState.buildings[iVar7].x * 8)),
+ (int)((int)((short)DAT_BuildingsState.buildings[iVar7].y * 8)),
+ DAT_BuildingsState.buildings[iVar7].terrainHeightUnk,
+ UT_S_CATAPULT);
+ if (iVar4 == 0) {
+ piVar6 = &DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingProgress;
+ *piVar6 = *piVar6
+ - (int)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].currentEmployeeCount;
+ return;
+ }
+ sVar1 = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].currentEmployeeCount;
+ if (sVar1 == 2) {
+ psVar2 = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workerID;
+ if (DAT_UnitsState
+ .units[DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workerID[0]]
+ .aiUnitBehaviourType
+ == 0x16) {
+ DAT_UnitsState.units[iVar4].aiUnitBehaviourType = 0x15;
+ }
+ iVar7 = 2;
+ do {
+ sVar1 = *psVar2;
+ psVar2 = psVar2 + 1;
+ iVar7 = iVar7 + -1;
+ DAT_UnitsState.units[sVar1].state.generic = US_AIM_WEAPONUnk;
+ } while (iVar7 != 0);
+ } else {
+ iVar7 = 0;
+ if (0 < sVar1) {
+ do {
+ unitID = (int)DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .workerID[iVar7];
+ DAT_UnitsState.units[unitID].state.generic
+ = US_JESTER_ROAM_TO;
+ DAT_UnitsState.units[unitID].disappearFadeAlphaCountdown = 0x20;
+ DAT_UnitsState.units[unitID].engineerManningSiegeStateRef_checkType = 0xfe;
+ DAT_UnitsState.units[unitID].cachedState
+ = US_DETERMINE_NEXT_STATEUnk;
+ DAT_UnitsState.units[unitID].totalSizeOfPathPlan = 0;
+ DAT_UnitsState.units[unitID].unknownMovementRelated_0x2d2 = 0;
+ resetUnitMovementState(unitID);
+ sVar1 = DAT_UnitsState.units[unitID].aiUnitBehaviourType;
+ DAT_UnitsState.units[unitID].targetingType
+ = UIT_MAN_SIEGE_EQUIPMENT;
+ DAT_UnitsState.units[unitID].targetedUnitID__OR__engineerMannedSiegeEngineRef
+ = (short)iVar4;
+ if (sVar1 == 0x16) {
+ DAT_UnitsState.units[iVar4].aiUnitBehaviourType = 0x15;
+ }
+ iVar7 = iVar7 + 1;
+ } while (iVar7
+ < DAT_BuildingsState.buildings[DAT_CurrentBuildingID].currentEmployeeCount);
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].currentEmployeeCount = 0;
+ }
+ calculatePreferredRelativeOrientation((int)DAT_UnitsState.units[iVar4].x,
+ DAT_UnitsState.units[iVar4].y,
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .campground.xEntry,
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .campground.yEntry);
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[iVar5] == -1)
+ && (DAT_GameSynchronyState.currentAIArray[iVar5] == 0)) {
+ DAT_UnitsState.units[iVar4].facingDirection
+ = (short)DAT_DirectionAlgorithmState.orientation;
+ } else {
+ iVar7 = DAT_GameState.playerDataArray[iVar5].keep.id;
+ DAT_UnitsState.units[iVar4].facingDirection = 0;
+ if (iVar7 == 0) {
+ piVar6 = &DAT_GameState.playerDataArray[iVar5].counter;
+ *piVar6 = *piVar6 + 2;
+ }
+ }
+ addUnitToNewTribe(
+ iVar4, DAT_BuildingsState.buildings[DAT_CurrentBuildingID].attackWave,
+ ((AITribeType)0x16), (undefined4)((int)(iVar5)));
+ iVar7 = DAT_CurrentBuildingID;
+ sVar1 = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].unknownSiegeTentRelated01;
+ bVar9 = DAT_GameSynchronyState.currentGameMode == GM_SKIRMISH_SINGLE_PLAYER;
+ DAT_UnitsState.units[iVar4].logicalState = ((UnitLogicState)5);
+ DAT_UnitsState.units[iVar4].unknownSiegeTentRelated02 = (char)sVar1 + 1;
+ if (bVar9) {
+ DAT_UnitsState.units[iVar4].siegeTargetPlayerID
+ = (short)DAT_GameState.playerDataArray[iVar5].attackedPlayerID;
+ }
+ sVar1 = DAT_BuildingsState.buildings[iVar7].currentEmployeeCount;
+ iVar5 = (int)sVar1;
+ if (0 < iVar5) {
+ piVar6 = DAT_BuildingsState.buildings[iVar7].workerUID;
+ piVar8 = DAT_UnitsState.units[iVar4].manningEngineerUIDRef;
+ psVar2 = DAT_UnitsState.units[iVar4].manningEngineerRef;
+ psVar3 = DAT_BuildingsState.buildings[iVar7].workerID;
+ do {
+ *psVar2 = *psVar3;
+ *piVar8 = *piVar6;
+ psVar3 = psVar3 + 1;
+ psVar2 = psVar2 + 1;
+ piVar6 = piVar6 + 1;
+ piVar8 = piVar8 + 1;
+ iVar5 = iVar5 + -1;
+ iVar7 = DAT_CurrentBuildingID;
+ } while (iVar5 != 0);
+ }
+ bVar9 = DAT_GameCore.currentMenuViewType == MVT_BUILDING_AND_STATUS_MENU;
+ DAT_UnitsState.units[iVar4].digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300
+ = sVar1;
+ if ((bVar9) && (iVar7 == DAT_BuildingsState.menuSelectedBuildingID)) {
+ DAT_BuildingsState.siegeEngineCreationRelated01 = 2;
+ DAT_BuildingsState.unitID = iVar4;
+ }
+ DAT_TileMapState.showNoRubbleWhenDestroyingBuilding = 1;
+ destroyBuilding(
+ iVar7);
+ }
+ return;
+ }
+}
+}
+

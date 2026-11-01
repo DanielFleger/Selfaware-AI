@@ -1,0 +1,917 @@
+### 0x004c94f0 setAICParameters_11 | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004C94F0
+ void AICState::setAICParameters_11(int aicIndex)
+ {
+ this->aics[aicIndex].flagType = 10;
+ this->aics[aicIndex].unknown002 = 0;
+ this->aics[aicIndex].unknown001 = 0;
+ this->aics[aicIndex].unknown003 = 0;
+ this->aics[aicIndex].unknown004 = 1;
+ this->aics[aicIndex].unknown005 = 1;
+ this->aics[aicIndex].criticalPopularity = 4500;
+ this->aics[aicIndex].lowestPopularity = 5000;
+ this->aics[aicIndex].highestPopularity = 8000;
+ this->aics[aicIndex].taxesMin = 2;
+ this->aics[aicIndex].taxesMax = 12;
+ this->aics[aicIndex].farm1 = 30;
+ this->aics[aicIndex].populationPerFarm = 5;
+ this->aics[aicIndex].unknown011 = 10;
+ this->aics[aicIndex].maxFood = 100;
+ this->aics[aicIndex].minimumApples = -1;
+ this->aics[aicIndex].minimumCheese = -1;
+ this->aics[aicIndex].minimumBread = -1;
+ this->aics[aicIndex].minimumWheat = 2;
+ this->aics[aicIndex].minimumHop = -1;
+ this->aics[aicIndex].tradeAmountFood = 20;
+ this->aics[aicIndex].tradeAmountEquipment = 0;
+ this->aics[aicIndex].aiRequestDelay = 22;
+ this->aics[aicIndex].minimumGoodsRequiredAfterTrade = 30;
+ this->aics[aicIndex].doubleRationsFoodThreshold = 50;
+ this->aics[aicIndex].maxWood = 60;
+ this->aics[aicIndex].maxStone = 40;
+ this->aics[aicIndex].maxResourceOther = 10;
+ this->aics[aicIndex].maxEquipment = 4;
+ this->aics[aicIndex].maxBeer = 10;
+ this->aics[aicIndex].maxResourceVariance = 4;
+ this->aics[aicIndex].recruitGoldThreshold = 100;
+ this->aics[aicIndex].populationPerWoodcutter = 7;
+ this->aics[aicIndex].populationPerQuarry = 6;
+ this->aics[aicIndex].populationPerIronmine = 12;
+ this->aics[aicIndex].populationPerPitchrig = 6;
+ this->aics[aicIndex].maxQuarries = 3;
+ this->aics[aicIndex].maxIronmines = 1;
+ this->aics[aicIndex].maxWoodcutters = 10;
+ this->aics[aicIndex].maxPitchrigs = 4;
+ this->aics[aicIndex].maxFarms = 8;
+ this->aics[aicIndex].buildInterval = 3;
+ this->aics[aicIndex].resourceRebuildDelay = 50;
+ this->aics[aicIndex].blacksmithSetting = 22;
+ this->aics[aicIndex].fletcherSetting = 17;
+ this->aics[aicIndex].poleturnerSetting = 19;
+ this->aics[aicIndex].sellResource02 = 3;
+ this->aics[aicIndex].sellResource03 = 6;
+ this->aics[aicIndex].sellResource06 = 14;
+ this->aics[aicIndex].sellResource08 = 17;
+ this->aics[aicIndex].sellResource09 = 18;
+ this->aics[aicIndex].sellResource10 = 19;
+ this->aics[aicIndex].sellResource11 = 20;
+ this->aics[aicIndex].sellResource12 = 21;
+ this->aics[aicIndex].sellResource13 = 22;
+ this->aics[aicIndex].sellResource14 = 23;
+ this->aics[aicIndex].sellResource15 = 24;
+ this->aics[aicIndex].defWallPatrolRallyTime = 2;
+ this->aics[aicIndex].defWallPatrolGroups = 3;
+ this->aics[aicIndex].defSiegeEngineGoldThreshold = 100;
+ this->aics[aicIndex].defSiegeEngineBuildDelay = 4;
+ this->aics[aicIndex].unknown072 = 200;
+ this->aics[aicIndex].unknown073 = 20;
+ this->aics[aicIndex].recruitProbDefWeak = 70;
+ this->aics[aicIndex].recruitProbDefDefault = 30;
+ this->aics[aicIndex].recruitProbDefStrong = 20;
+ this->aics[aicIndex].recruitProbRaidWeak = 0;
+ this->aics[aicIndex].recruitProbRaidDefault = 20;
+ this->aics[aicIndex].recruitProbRaidStrong = 20;
+ this->aics[aicIndex].recruitProbAttackWeak = 30;
+ this->aics[aicIndex].recruitProbAttackDefault = 50;
+ this->aics[aicIndex].recruitProbAttackStrong = 60;
+ this->aics[aicIndex].RecruitIntervalWeak = 1;
+ this->aics[aicIndex].RecruitInterval = 1;
+ this->aics[aicIndex].RecruitIntervalStrong = 1;
+ this->aics[aicIndex].SortieUnitRangedMin = 6;
+ this->aics[aicIndex].SortieUnitRanged = 74;
+ this->aics[aicIndex].SortieUnitMeleeMin = 10;
+ this->aics[aicIndex].SortieUnitMelee = 75;
+ this->aics[aicIndex].DefDiggingUnitMax = 4;
+ this->aics[aicIndex].DefDiggingUnit = 71;
+ this->aics[aicIndex].DefWalls = 40;
+ this->aics[aicIndex].DefTotal = 40;
+ this->aics[aicIndex].OuterPatrolGroupsCount = 1;
+ this->aics[aicIndex].OuterPatrolGroupsMove = 1;
+ this->aics[aicIndex].OuterPatrolRallyDelay = 2;
+ this->aics[aicIndex].DefUnit1 = 70;
+ this->aics[aicIndex].DefUnit2 = 76;
+ this->aics[aicIndex].RaidUnitsBase = 30;
+ this->aics[aicIndex].RaidUnitsRandom = 10;
+ this->aics[aicIndex].RaidUnit1 = 74;
+ this->aics[aicIndex].HarassingSiegeEnginesMax = 4;
+ this->aics[aicIndex].HarassingSiegeEngine1 = 358;
+ this->aics[aicIndex].RaidRetargetDelay = 4;
+ this->aics[aicIndex].AttForceBase = 40;
+ this->aics[aicIndex].AttForceRandom = 5;
+ this->aics[aicIndex].AttForceSupportAllyThreshold = 30;
+ this->aics[aicIndex].AttForceRallyPercentage = 80;
+ this->aics[aicIndex].AttMovingTribesThreshold = 100;
+ this->aics[aicIndex].AttAssaultDelay = 4;
+ this->aics[aicIndex].AttUnitPatrolRecommandDelay = 5;
+ this->aics[aicIndex].AttCoordinationPreference = 90;
+ this->aics[aicIndex].CowThrowInterval = 10000;
+ this->aics[aicIndex].SiegeEngine1 = 40;
+ this->aics[aicIndex].SiegeEngine2 = 77;
+ this->aics[aicIndex].SiegeEngine3 = 77;
+ this->aics[aicIndex].SiegeEngine4 = 77;
+ this->aics[aicIndex].AttMaxEngineers = 9;
+ this->aics[aicIndex].AttDiggingUnit = 71;
+ this->aics[aicIndex].AttDiggingUnitMax = 15;
+ this->aics[aicIndex].AttMaxAssassins = 0;
+ this->aics[aicIndex].AttUnit2 = 0;
+ this->aics[aicIndex].AttUnit2Max = 0;
+ this->aics[aicIndex].AttMaxLaddermen = 0;
+ this->aics[aicIndex].AttMaxTunnelers = 0;
+ this->aics[aicIndex].AttUnitPatrol = 0;
+ this->aics[aicIndex].AttUnitPatrolMax = 0;
+ this->aics[aicIndex].AttUnitPatrolGroupsCount = 0;
+ this->aics[aicIndex].AttUnitBackup = 74;
+ this->aics[aicIndex].AttUnitBackupMax = 80;
+ this->aics[aicIndex].AttUnitBackupGroupsCount = 1;
+ this->aics[aicIndex].AttUnitEngageMax = 10;
+ this->aics[aicIndex].AttUnitEngage = 76;
+ this->aics[aicIndex].AttUnitSiegeDef = 0;
+ this->aics[aicIndex].AttUnitSiegeDefMax = 0;
+ this->aics[aicIndex].AttUnitSiegeDefGroupsCount = 0;
+ this->aics[aicIndex].AttUnitMain1 = 75;
+ this->aics[aicIndex].AttMaxDefault = 200;
+ this->aics[aicIndex].AttMainGroupsCount = 2;
+ this->aics[aicIndex].TargetChoice = AITC_BALANCED;
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004c94f0", "name": "setAICParameters_11", "quelle": "nachgebaut", "p1": {"bereich": "KI", "zweck": "Belegt den Parametersatz Nr. 11 eines KI-Gegners mit festen Grundwerten."}, "p2": {"ein": "aicIndex (Platz im Feld aics)", "aus": "nichts", "liest": [], "schreibt": ["AICState.aics[aicIndex].* (rund 130 Felder)"], "ruft": [], "regeln": ["Wirtschaft: flagType 10, Beliebtheit kritisch 4500 / niedrigste 5000 / höchste 8000, Steuern 2 bis 12, farm1 = 30, populationPerFarm 5, maxFood 100, Äpfel/Käse/Brot -1, Weizen 2, Hopfen -1, tradeAmountFood 20, tradeAmountEquipment 0, aiRequestDelay 22, minimumGoodsRequiredAfterTrade 30, doubleRationsFoodThreshold 50", "Lagergrenzen: Holz 60, Stein 40, Sonstiges 10, Ausrüstung 4, Bier 10, Schwankung 4; recruitGoldThreshold 100", "Bauten: Einwohner je Holzfäller 7, Steinbruch 6, Eisenmine 12, Pechgrube 6; Höchstzahl Steinbrüche 3, Eisenminen 1, Holzfäller 10, Pechgruben 4, Farmen 8; buildInterval 3, resourceRebuildDelay 50; blacksmith 22, fletcher 17, poleturner 19; sellResource02/03/06/08..15 = 3/6/14/17/18/19/20/21/22/23/24", "Anwerbe-Wahrscheinlichkeit schwach/normal/stark: Verteidigung 70/30/20, Raubzug 0/20/20, Angriff 30/50/60; Anwerbe-Takt 1/1/1", "Verteidigung: Mauerpatrouille Sammelzeit 2, Gruppen 3; DefWalls 40, DefTotal 40; Ausfall Fernkämpfer min 6 / Typ 74, Nahkämpfer min 10 / Typ 75; DefUnit1/2 = 70/76; Raubzug Basis 30 + Zufall 10, RaidUnit1 74, HarassingSiegeEnginesMax 4, Maschine 358", "Angriff: AttForceBase 40 + Zufall 5, Rallye 80 %, AttAssaultDelay 4, Koordination 90, SiegeEngine1..4 = 40/77/77/77, AttMaxEngineers 9, Digging Typ 71 bis 15, Backup Typ 74 bis 80 in 1 Gruppe, Engage Typ 76 bis 10, AttUnitMain1 75, AttMaxDefault 200, AttMainGroupsCount 2, TargetChoice AITC_BALANCED"], "offen": ["Welcher KI-Gegner Index 11 ist, steht nicht im Code", "Bedeutung der Zahlen 70 bis 77, 190, 358 (vermutlich Einheiten-/Maschinentypen; die Sätze 09/10 nutzen 22 bis 28, dieser 70 bis 77, vermutlich europäisch gegen arabisch) und von sellResourceNN", "Felder mit unknown…-Namen sind ungesichert"]}, "p3": {"erklaerung": "Dieser Gegnerbogen wirbt sehr oft an (Takt 1), greift mit 40 plus Einheiten an und hat die höchste Abstimmung mit Verbündeten (Koordination 90). Geld liegt knapp (Schwelle 100), Stein ist begrenzt.", "gehirn": "Rechne mit häufigen, großen und koordinierten Wellen samt Maschinen. Grundwerte, UCP kann sie ändern.", "beleg": "nachgebaut", "live": "Gegner mit KI-Satz 11 → aics[aicIndex] im Speicher → AttForceBase 40, AttCoordinationPreference 90", "live_art": "tabelle"}}
+
+### 0x00533b30 changeDestinationByAmount | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00533B30
+ void UnitsState::changeDestinationByAmount(int unitID, int leftover)
+ {
+ short _newTotal;
+ uint _directionPart;
+ uint _direction;
+ uint _planIndexTimes2;
+ short _y;
+ int _newY;
+ short _x;
+ int _newX;
+ short _oldTotal;
+ short _ladderExitX;
+ short _ladderExitY;
+ if (this->units[unitID].climbDataID != 0) {
+ this->units[unitID].leftover = (short)leftover;
+ return;
+ }
+ _oldTotal = this->units[unitID].totalSizeOfPathPlan;
+ this->units[unitID].leftover = 0;
+ if (leftover < _oldTotal) {
+ _x = this->units[unitID].ladderExitXPosition;
+ _newX = (int)_x;
+ _newTotal = _oldTotal - (short)leftover;
+ _y = this->units[unitID].ladderExitYPosition;
+ _newY = (int)_y;
+ this->units[unitID].totalSizeOfPathPlan = _newTotal;
+ if (0 < _newTotal) {
+ _planIndexTimes2 = 0;
+ do {
+ _directionPart = (uint)(char)this->units[unitID].pathPlanStart[(int)_planIndexTimes2 / 2];
+ if ((_planIndexTimes2 & 1) == 0) {
+ _direction = _directionPart & 0xf;
+ } else {
+ _direction = (int)_directionPart >> 4;
+ }
+ _newX = _newX
+ + DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[_direction]
+ .int.xOffset;
+ _x = (short)_newX;
+ _newY = _newY
+ + *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix
+ + _direction * 8 + 4);
+ _y = (short)_newY;
+ _planIndexTimes2 = _planIndexTimes2 + 1;
+ } while ((int)_planIndexTimes2 < (int)this->units[unitID].totalSizeOfPathPlan);
+ }
+ this->units[unitID].destinationXPosition = _x;
+ this->units[unitID].destinationYPosition = _y;
+ this->units[unitID].destinationX_2Unk = _x;
+ this->units[unitID].destinationY_2Unk = _y;
+ this->units[unitID].destinationTilePosition
+ = (int)_x + DAT_ViewportRenderState.translationMatrix[_y].addXgetTile;
+ return;
+ }
+ _ladderExitX = this->units[unitID].ladderExitXPosition;
+ _ladderExitY = this->units[unitID].ladderExitYPosition;
+ this->units[unitID].destinationTilePosition = this->units[unitID].previousTilePosition;
+ this->units[unitID].totalSizeOfPathPlan = 0;
+ this->units[unitID].destinationXPosition = _ladderExitX;
+ this->units[unitID].destinationYPosition = _ladderExitY;
+ this->units[unitID].destinationX_2Unk = _ladderExitX;
+ this->units[unitID].destinationY_2Unk = _ladderExitY;
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00533b30", "name": "changeDestinationByAmount", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Kürzt den Pfadplan um eine Anzahl Schritte und setzt das Ziel neu."}, "p2": {"ein": "unitID, leftover (Anzahl Schritte, die weggelassen werden)", "aus": "-", "liest": ["units[id].climbDataID/totalSizeOfPathPlan/ladderExitXPosition/YPosition/pathPlanStart/previousTilePosition", "TerrainDefinedData.clockwiseCardinalTranslationMatrix", "ViewportRenderState.translationMatrix"], "schreibt": ["units[id].leftover", "totalSizeOfPathPlan", "destinationXPosition/YPosition", "destinationX_2Unk/Y_2Unk", "destinationTilePosition"], "ruft": [], "regeln": ["Mit Kletterdaten (climbDataID ungleich 0): nur leftover speichern, nichts kürzen", "Sonst leftover-Feld auf 0", "leftover kleiner als Pfadlänge: neue Länge = alt minus leftover; Ziel = Ausgangsposition plus die verbleibenden Schritte (Richtung je 4 Bit)", "leftover gleich oder größer als Pfadlänge: Länge 0, Ziel = Ausgangsposition (ladderExit), Kachel = previousTilePosition"], "offen": ["Aufrufer: wann ein Pfad gekürzt wird"]}, "p3": {"erklaerung": "Verkürzt den geplanten Weg einer Einheit um die letzten Schritte, damit sie früher stehen bleibt.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x00401c30 UpdateCatapultProjectileEntity | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00401C30
+ void Entities::UpdateCatapultProjectileEntity()
+ {
+ uint uVar1;
+ short sVar2;
+ int iVar3;
+ uVar1 = DAT_CurrentEntityID;
+ sVar2 = DAT_EntityState.entityArray[DAT_CurrentEntityID].someCounter_OR_hitGround;
+ if (sVar2 == 0) {
+ if (7 < DAT_EntityState.entityArray[DAT_CurrentEntityID].unknownAnimationFrameRelated) {
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].unknownAnimationFrameRelated = 0;
+ }
+ iVar3 = (int)DAT_EntityState.entityArray[uVar1].graphicType2RelatedOffset
+ + (int)DAT_EntityState.entityArray[uVar1].unknownAnimationFrameRelated;
+ } else {
+ sVar2 = sVar2 + -1;
+ DAT_EntityState.entityArray[DAT_CurrentEntityID].someCounter_OR_hitGround = sVar2;
+ if (sVar2 < 1) {
+ DAT_EntityState.entityArray[uVar1].logicalState = 7;
+ }
+ iVar3 = (int)DAT_EntityState.entityArray[uVar1].graphicType2RelatedOffset;
+ }
+ DAT_EntityState.entityArray[uVar1].graphicType2 = iVar3;
+ if (DAT_EntityState.entityArray[uVar1].orientation == 0x4c) {
+ DAT_EntityState.entityArray[uVar1].orientation = 0x3c;
+ DAT_EntityState.entityArray[uVar1].logicalState = 7;
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00401c30", "name": "UpdateCatapultProjectileEntity", "quelle": "ghidra", "p1": {"bereich": "Gebaeude", "zweck": "Takt-Aktualisierung des Geschosses einer Wurfmaschine (Entität): Bild wählen und das Ende des Geschosses auslösen."}, "p2": {"ein": "-, die aktuelle Entität aus DAT_CurrentEntityID", "aus": "-", "liest": ["entityArray[cur].someCounter_OR_hitGround", "unknownAnimationFrameRelated", "graphicType2RelatedOffset", "orientation"], "schreibt": ["someCounter_OR_hitGround", "unknownAnimationFrameRelated", "graphicType2", "logicalState", "orientation"], "ruft": [], "regeln": ["Zähler someCounter_OR_hitGround == 0 (Geschoss fliegt noch): Bildzähler über 7 wird auf 0 gesetzt, graphicType2 = graphicType2RelatedOffset + Bildzähler", "Zähler != 0 (Geschoss ist aufgeschlagen): Zähler sinkt um 1; ist er danach kleiner als 1, wird logicalState = 7; graphicType2 = graphicType2RelatedOffset", "orientation == 0x4c: orientation wird 0x3c und logicalState = 7", "Der Bildzähler wird in dieser Funktion nicht erhöht (geschieht anderswo)"], "offen": ["Was logicalState 7 bedeutet (vermutlich Entität beenden oder entfernen)", "Warum Ausrichtung 0x4c auf 0x3c umgesetzt wird"]}, "p3": {"erklaerung": "Jedes Geschoss einer Wurfmaschine läuft einen kurzen Bildablauf von 8 Bildern. Nach dem Aufschlag zählt ein Zähler herunter, dann endet das Geschoss.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x004fbc30 getCastleBuildRangeForMapSize | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004FBC30
+ undefined4 TileMapState::getCastleBuildRangeForMapSize()
+ {
+ switch (this->mapSize) {
+ case 0xa0:
+ return (undefined4)(45);
+ default:
+ return (undefined4)(70);
+ case 200:
+ return (undefined4)(50);
+ case 300:
+ return (undefined4)(60);
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004fbc30", "name": "getCastleBuildRangeForMapSize", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Wie weit von der Burg aus gebaut werden darf, nach Kartengröße."}, "p2": {"ein": "-, liest mapSize", "aus": "Reichweite in Feldern", "liest": ["mapSize"], "schreibt": [], "ruft": [], "regeln": ["Kartengröße 160 (0xa0): 45", "Kartengröße 200: 50", "Kartengröße 300: 60", "Jede andere Größe (zum Beispiel 400): 70"], "offen": ["Einheit und Bezugspunkt der Reichweite (vermutlich Felder um die Burg)"]}, "p3": {"erklaerung": "Je größer die Karte, desto weiter darf vom Bergfried aus gebaut werden.", "gehirn": "Bauplätze nur innerhalb dieser Reichweite um die Burg planen. Die Zahlen sind Grundwerte.", "beleg": "code", "live": "Gefechtskarte mit mapSize 160/200/300/400 laden → Rückgabe der Funktion (per Aufruf-Hook) → 45/50/60/70", "live_art": "bauen"}}
+
+### 0x0041eb00 UpdateTower3 | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0041EB00
+ void Buildings::UpdateTower3()
+ {
+ int iVar1;
+ uint uVar2;
+ int* piVar3;
+ uint uVar4;
+ uint uVar5;
+ int iVar6;
+ int iVar7;
+ uint uVar8;
+ int local_20[8];
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ iVar6 = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 1;
+ DAT_BuildingsState.buildings[iVar6].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[iVar6].field20_0x38 = 4;
+ DAT_BuildingsState.buildings[iVar6].field21_0x3c = 0;
+ DAT_BuildingsState.buildings[iVar6].field22_0x40 = 0;
+ DAT_BuildingsState.buildings[iVar6].field23_0x44 = 0;
+ DAT_BuildingsState.buildings[iVar6].field29_0x5c = 0;
+ DAT_BuildingsState.buildings[iVar6].animationFrame = 0;
+ DAT_BuildingsState.buildings[iVar6].field33_0x6c = 0;
+ DAT_BuildingsState.buildings[iVar6].field34_0x70 = 0;
+ DAT_BuildingsState.buildings[iVar6].field35_0x74 = 0;
+ DAT_BuildingsState.buildings[iVar6].field36_0x78 = 0;
+ DAT_BuildingsState.buildings[iVar6].field37_0x7c = 0;
+ DAT_BuildingsState.buildings[iVar6].ownerFlagFrame = 0;
+ DAT_BuildingsState.buildings[iVar6].field39_0x84 = 0;
+ DAT_BuildingsState.buildings[iVar6].field40_0x88 = 0;
+ DAT_BuildingsState.buildings[iVar6].someX = DAT_BuildingsState.buildings[iVar6].x + 2;
+ DAT_BuildingsState.buildings[iVar6].someY = DAT_BuildingsState.buildings[iVar6].y + 2;
+ piVar3 = &DAT_BuildingsState.buildings[iVar6].buildingProgress;
+ *piVar3 = *piVar3 + 1;
+ if (0x27 < DAT_BuildingsState.buildings[iVar6].buildingProgress) {
+ DAT_BuildingsState.buildings[iVar6].buildingProgress = 0;
+ computeBuildingEntranceFlagsForOrientations(iVar6);
+ }
+ iVar1 = hasBuildingExitFlagForOrientation(iVar6);
+ if (iVar1 != 0) {
+ DAT_BuildingsState.buildings[iVar6].field21_0x3c = 0x51;
+ DAT_BuildingsState.buildings[iVar6].animationFrame = 1;
+ }
+ iVar1 = hasBuildingEntranceFlagForOrientation(iVar6);
+ if (iVar1 != 0) {
+ DAT_BuildingsState.buildings[iVar6].field23_0x44 = 0x5a;
+ DAT_BuildingsState.buildings[iVar6].animationFrame = 1;
+ }
+ local_20[1] = 0;
+ local_20[2] = 0;
+ local_20[3] = 0;
+ local_20[4] = 0;
+ local_20[5] = 0;
+ local_20[6] = 0;
+ local_20[7] = 0;
+ local_20[0] = 0;
+ iVar1 = 9
+ - (DAT_BuildingsState.buildings[iVar6].currentHealth * 9)
+ / (int)DAT_BuildingsState.buildings[iVar6].maxHealth;
+ if (iVar1 < 9) {
+ if (iVar1 == 0)
+ goto LAB_0041ecf0;
+ } else {
+ iVar1 = 8;
+ }
+ if (0 < iVar1) {
+ uVar4 = DAT_BuildingsState.buildings[iVar6].fireRelatedRNG1;
+ uVar2 = (int)uVar4 >> 8;
+ do {
+ uVar8 = uVar4 & 0xf;
+ uVar5 = uVar2 & 7;
+ uVar4 = uVar4 + 1;
+ uVar2 = uVar2 + 1;
+ iVar1 = iVar1 + -1;
+ local_20[uVar5] = uVar8 + 1;
+ } while (iVar1 != 0);
+ }
+ DAT_BuildingsState.buildings[iVar6].field33_0x6c = local_20[0];
+ DAT_BuildingsState.buildings[iVar6].field34_0x70 = local_20[1];
+ DAT_BuildingsState.buildings[iVar6].field35_0x74 = local_20[2];
+ DAT_BuildingsState.buildings[iVar6].field36_0x78 = local_20[3];
+ DAT_BuildingsState.buildings[iVar6].field37_0x7c = local_20[4];
+ DAT_BuildingsState.buildings[iVar6].ownerFlagFrame = local_20[5];
+ DAT_BuildingsState.buildings[iVar6].field39_0x84 = local_20[6];
+ DAT_BuildingsState.buildings[iVar6].field40_0x88 = local_20[7];
+ LAB_0041ecf0:
+ if (DAT_BuildingsState.field34_0x18e074 != 0) {
+ iVar6 = 0;
+ do {
+ getBuildingSizeIndexMappingData(iVar6, 5);
+ iVar1 = DAT_ViewportRenderState
+ .translationMatrix
+ [(short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y
+ + DAT_TileMapState.buildingY]
+ .addXgetTile
+ + (int)(short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x
+ + DAT_TileMapState.buildingX;
+ iVar7 = 0;
+ DAT_TileMapState.MiscDisplayLayer[iVar1]
+ = DAT_TileMapState.MiscDisplayLayer[iVar1] & 0xffef;
+ piVar3 = DAT_BuildingDefinedData.field420_0xa77c
+ + (DAT_TileMapState.mapOrientation / 2) * 6;
+ do {
+ if (*piVar3 == iVar6) {
+ DAT_TileMapState.MiscDisplayLayer[iVar1]
+ = DAT_TileMapState.MiscDisplayLayer[iVar1] | 0x10;
+ break;
+ }
+ iVar7 = iVar7 + 1;
+ piVar3 = piVar3 + 1;
+ } while (iVar7 < 6);
+ iVar6 = iVar6 + 1;
+ } while (iVar6 < DAT_TileMapState.constructionTileCount);
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0041eb00", "name": "UpdateTower3", "quelle": "ghidra", "p1": {"bereich": "Gebaeude", "zweck": "Taktfunktion eines mittleren Turms (Größe 3x3): wie UpdateTower2 mit anderen Tabellen."}, "p2": {"ein": "- (aktuelles Gebäude über DAT_CurrentBuildingID)", "aus": "-", "liest": ["buildings[id].buildingProgress/currentHealth/maxHealth/fireRelatedRNG1/x/y", "DAT_BuildingDefinedData.field420_0xa77c", "DAT_TileMapState.mapOrientation/constructionTileCount", "field34_0x18e074"], "schreibt": ["buildings[id].renderAnimation/displayOwnerFlag/animationFrame/someX/someY", "buildings[id].field20..field40 (Anzeige)", "buildings[id].buildingProgress", "TileMapState.MiscDisplayLayer"], "ruft": ["addBuildingInRegistry", "computeBuildingEntranceFlagsForOrientations", "hasBuildingExitFlagForOrientation", "hasBuildingEntranceFlagForOrientation", "getBuildingSizeIndexMappingData(.,5)"], "regeln": ["field20_0x38=4", "someX/someY = x+2 / y+2", "buildingProgress: über 0x27 (39) zurück auf 0 und Eingangsflaggen neu berechnen", "Ausgang: field21_0x3c=0x51, Eingang: field23_0x44=0x5a, jeweils animationFrame=1", "Schadensstufe = 9 - currentHealth*9/maxHealth, höchstens 8; je Stufe ein Feuer-Slot mit (fireRelatedRNG1 & 0xf)+1", "Baufeld-Markierung über Tabelle field420 (6 Einträge je Kartendrehung), Größenindex 5"], "offen": ["Bedeutung von field20_0x38=4 und field34_0x18e074"]}, "p3": {"erklaerung": "Gleiche Darstellungs- und Pflegefunktion wie beim kleinen Turm, nur für den mittleren Turm mit eigenen Tabellen.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x005029d0 validateWallBuildPath | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x005029D0
+ void TileMapState::validateWallBuildPath(int playerID, uint x1, uint y1, uint x2, uint y2, undefined4 command)
+ {
+ int iVar1;
+ BOOLEnum BVar2;
+ uint uVar3;
+ int iVar4;
+ int _castleBuildingRange;
+ TileMapState* extraout_ECX;
+ int extraout_ECX_00;
+ TileMapState* _tileMapState;
+ uint _y1;
+ uint _x1;
+ TileMapState* _tileMapState2;
+ int* local_1c;
+ int local_18;
+ int local_14;
+ int local_10;
+ int local_c;
+ int local_8;
+ int local_4;
+ uint _logic;
+ _tileMapState = this;
+ _tileMapState2 = this;
+ local_c = 0;
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ local_8 = 0x1e;
+ local_4 = 0x1e;
+ } else {
+ local_8 = 0xf;
+ local_4 = 7;
+ }
+ this->buildingPlacementFail = FALSE;
+ this->illegalBuild = TRUE;
+ this->field118_0x554920 = 0;
+ if (((399 < x1) || (399 < y1)) || (*(char*)(y1 * 400 + 0x21aec98 + x1) == '\0')) {
+ this->buildingPlacementFail = TRUE;
+ return;
+ }
+ if (((399 < x2) || (399 < y2)) || (*(char*)(y2 * 400 + 0x21aec98 + x2) == '\0')) {
+ this->buildingPlacementFail = TRUE;
+ return;
+ }
+ local_1c = &DAT_ViewportRenderState.translationMatrix[y1].addXgetTile;
+ iVar1 = *local_1c + x1;
+ this->DAT_SomeY = y1;
+ this->DAT_SomeTile = iVar1;
+ if ((short)command == 0x1b) {
+ BVar2 = isTileEnclosedByWallsOrGates(
+ iVar1, y1);
+ if (BVar2 == FALSE) {
+ return;
+ }
+ this->field119_0x554924
+ = getMaxWallHeightInBrushArea(iVar1, y1);
+ if (this->field119_0x554924 < 0x11) {
+ return;
+ }
+ _tileMapState = this;
+ local_c = this->field119_0x554924;
+ } else if (((short)command == 0x1a)
+ && (iVar1 = isTileEnclosedByWalls(
+ iVar1, y1),
+ _tileMapState = extraout_ECX, iVar1 == 0)) {
+ extraout_ECX->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x13);
+ return;
+ }
+ local_10 = 2;
+ local_18 = y1 - y2;
+ local_14 = y2 - y1;
+ uVar3 = x2 - x1;
+ _tileMapState->field118_0x554920 = 1;
+ _y1 = y1;
+ _x1 = x1;
+ x1 = x1 - x2;
+ y1 = uVar3;
+ do {
+ iVar1 = *local_1c + _x1;
+ _logic = _tileMapState->LogicLayer[iVar1];
+ if ((_logic & L_PLAIN1_AND_FARM | L_BORDER) != 0) {
+ return;
+ }
+ if ((_logic & L_SEA | L_BUILDING | L_KEEP_NON_MANOR_HOUSE | L_MARSH | L_MOAT) != 0) {
+ return;
+ }
+ if (_tileMapState->BuildingLayer[iVar1] != 0) {
+ return;
+ }
+ if ((((_logic & L_TREE | L_TREE_VARIATION) != 0)
+ && (iVar4 = (int)_tileMapState->OrganismLayer[iVar1], iVar4 != 0))
+ && (iVar4 < 2000)) {
+ switch (DAT_LandscapeState.trees[iVar4].treeType) {
+ case ((TreeType)5):
+ case ((TreeType)6):
+ case ((TreeType)7):
+ case ((TreeType)8):
+ case ((TreeType)9):
+ case ((TreeType)10):
+ case 0xb:
+ case 0xc:
+ case 0xd:
+ case 0xe:
+ case ((TreeType)0x10):
+ case ((TreeType)0x11):
+ case ((TreeType)0x12):
+ case ((TreeType)0x13):
+ break;
+ default : goto switchD_00502bde_caseD_f;
+ }
+ }
+ if ((_logic & L_RIVER | L_FORD) != 0) {
+ return;
+ }
+ if ((char)_logic < '\0') {
+ return;
+ }
+ if (((_tileMapState->UnitLayer[iVar1] != 0) && ((_logic & L_WALL_OR_GATEHOUSE) == 0))
+ && (DAT_UnitsState.units[(short)_tileMapState->UnitLayer[iVar1]].unitType
+ != UT_CHICKEN)) {
+ return;
+ }
+ if (((DAT_GameCore.gameMode_2 != GM_EDITOR)
+ && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT))
+ && (BVar2 = isEnemyTooCloseUnk(playerID, _x1, _y1, local_8),
+ BVar2 != FALSE)) {
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x11);
+ return;
+ }
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ iVar4 = isOpponentBuildingInRange(playerID, _x1, _y1, local_4, -1, -1, -1);
+ if (iVar4 != 0) {
+ if (this->buildingPlacementFailReason == ((BuildingFailReasonEnum)0x12)) {
+ return;
+ }
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x13);
+ return;
+ }
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ _castleBuildingRange
+ = getCastleBuildRangeForMapSize();
+ iVar4 = isTileInRangeOfKeepRange(playerID, _x1, _y1, _castleBuildingRange);
+ if (iVar4 != 0) {
+ if (this->buildingPlacementFailReason == ((BuildingFailReasonEnum)0x12)) {
+ return;
+ }
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x13);
+ return;
+ }
+ }
+ }
+ if ((DAT_GameCore.gameMode_2 == GM_EDITOR)
+ && (iVar4
+ = isOpponentBuildingInRange(playerID, _x1, _y1, 7, -1, -1, -1),
+ iVar4 != 0)) {
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x11);
+ return;
+ }
+ iVar4 = findSomeSuitableLocationUnk(playerID, _x1, _y1, 2);
+ if (iVar4 != 0) {
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x11);
+ return;
+ }
+ BVar2 = isSignPostWithinDistance(_x1, _y1, DAT_GameState.mapAndTime.unk_signpostDistance + 5);
+ if (BVar2 != FALSE) {
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x15);
+ return;
+ }
+ if ((short)command == 0x1a) {
+ iVar1 = isTileEnclosedByWalls(
+ iVar1, _y1);
+ if (iVar1 == 0) {
+ *(undefined4*)(extraout_ECX_00 + 0x554938) = 0x13;
+ return;
+ }
+ } else if (((short)command == 0x1b) && ((local_c < 0x11 || ((this->LogicLayer[iVar1] & 0x100U) != 0))))
+ break;
+ uVar3 = x1;
+ if ((int)_x1 < (int)x2) {
+ uVar3 = y1;
+ }
+ iVar1 = local_18;
+ if ((int)_y1 < (int)y2) {
+ iVar1 = local_14;
+ }
+ if ((short)command == 0x1b) {
+ if (iVar1 < (int)uVar3) {
+ if ((int)_x1 < (int)x2) {
+ x1 = x1 + 1;
+ _x1 = _x1 + 1;
+ y1 = y1 - 1;
+ } else {
+ x1 = x1 - 1;
+ _x1 = _x1 - 1;
+ y1 = y1 + 1;
+ }
+ } else {
+ if (iVar1 < 1)
+ goto LAB_00502e46;
+ if ((int)_y1 < (int)y2) {
+ local_1c = local_1c + 3;
+ local_18 = local_18 + 1;
+ _y1 = _y1 + 1;
+ local_14 = local_14 + -1;
+ } else {
+ local_1c = local_1c + -3;
+ local_18 = local_18 + -1;
+ _y1 = _y1 - 1;
+ local_14 = local_14 + 1;
+ }
+ }
+ } else {
+ if (uVar3 != 0) {
+ if ((int)_x1 < (int)x2) {
+ x1 = x1 + 1;
+ _x1 = _x1 + 1;
+ y1 = y1 - 1;
+ } else {
+ x1 = x1 - 1;
+ _x1 = _x1 - 1;
+ y1 = y1 + 1;
+ }
+ }
+ if (iVar1 != 0) {
+ if ((int)_y1 < (int)y2) {
+ local_1c = local_1c + 3;
+ local_18 = local_18 + 1;
+ _y1 = _y1 + 1;
+ local_14 = local_14 + -1;
+ } else {
+ local_1c = local_1c + -3;
+ local_18 = local_18 + -1;
+ _y1 = _y1 - 1;
+ local_14 = local_14 + 1;
+ }
+ }
+ if ((_x1 == x2) && (_y1 == y2)) {
+ LAB_00502e46:
+ local_10 = local_10 + -1;
+ }
+ }
+ if (0x10 < local_c) {
+ local_c = local_c + -0x10;
+ }
+ _tileMapState = _tileMapState2;
+ } while (((_x1 != x2) || (_y1 != y2)) || (local_10 != 0));
+ this->illegalBuild = FALSE;
+ switchD_00502bde_caseD_f:
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x005029d0", "name": "validateWallBuildPath", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Prüft entlang einer Linie von Feld zu Feld, ob ein Mauer- oder Treppenbau erlaubt ist."}, "p2": {"ein": "playerID, x1, y1, x2, y2, command (0x1a oder 0x1b besonders)", "aus": "-", "liest": ["LogicLayer[]", "BuildingLayer[]", "UnitLayer[]", "OrganismLayer[]", "currentGameMode", "gameMode_2", "unk_signpostDistance"], "schreibt": ["buildingPlacementFail", "illegalBuild", "buildingPlacementFailReason", "field118_0x554920", "field119_0x554924"], "ruft": ["isTileEnclosedByWallsOrGates", "isTileEnclosedByWalls", "getMaxWallHeightInBrushArea", "isEnemyTooCloseUnk", "isOpponentBuildingInRange", "getCastleBuildRangeForMapSize", "isTileInRangeOfKeepRange", "findSomeSuitableLocationUnk", "isSignPostWithinDistance"], "regeln": ["Start oder Ziel außerhalb der Karte (400) oder ungültiges Feld: buildingPlacementFail=TRUE", "illegalBuild beginnt TRUE und wird nur FALSE, wenn die ganze Linie durchläuft oder bei Befehl 0x1b vorzeitig endet", "Befehl 0x1a: Startfeld muss von Mauern umschlossen sein, sonst Fehlergrund 0x13", "Befehl 0x1b: Startfeld von Mauern oder Toren umschlossen und größte Mauerhöhe über 16 (0x10), sonst Abbruch; pro Feld sinkt die Resthöhe um 16 und endet bei Rest unter 17 oder Bit 0x100", "Pro Feld abgelehnt: Acker/Grenze, Meer, Gebäude, Burg-Teil, Sumpf, Graben, Gebäude auf BuildingLayer, Fluss, Furt, Felsbit", "Bäume sind nur bei Typen 5 bis 14 und 16 bis 19 erlaubt, sonst abgelehnt", "Einheiten auf dem Feld blockieren, außer auf Mauer/Torhaus oder bei Hühnern", "Gegner zu nah (Radius 30 bei GM_SOLITARY, sonst 15; nicht im Editor und GM_SIEGE_THAT): Fehlergrund 0x11", "Außerhalb von GM_SOLITARY: Gegnergebäude im Umkreis 7 oder Burgreichweite verletzt: Fehlergrund 0x13 (bleibt 0x12, wenn schon gesetzt)", "Im Editor: Gegnergebäude im Umkreis 7: Fehlergrund 0x11; findSomeSuitableLocationUnk ungleich 0: 0x11", "Wegweiser in unk_signpostDistance plus 5: Fehlergrund 0x15"], "offen": ["Was 0x1a und 0x1b im Spiel sind (vermutlich Mauer-Erweiterungen wie Treppe oder Zinnen)", "Fehlergrund 0x12 wird hier nur geprüft, nie gesetzt", "Der Ablauf der Schrittschleife (zwei Durchgänge, local_10) ist verkürzt zusammengefasst"]}, "p3": {"erklaerung": "Geht die Strecke Feld für Feld ab und meldet, ob dort gebaut werden darf. Mehrere Fehlergründe (0x11, 0x13, 0x15) sagen dem Spiel, warum nicht.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x00484da0 DeselectUnit | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00484DA0
+ void Commands::DeselectUnit()
+ {
+ short local_4[2];
+ DAT_GameSynchronyState.DAT_CommandSize = 2;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(local_4, 2, GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = (uint)local_4[0];
+ clearOrDeselectUnitFromSelection(
+ (int)DAT_UnitsState.units[DAT_GameSynchronyState.DAT_GameCommandParam0].owner,
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam0)), 0);
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00484da0", "name": "DeselectUnit", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Verpackt den Befehl 'Einheit aus der Auswahl nehmen' und führt ihn später aus."}, "p2": {"ein": "- (Befehlsdaten in DAT_GameSynchronyState)", "aus": "-", "liest": ["DAT_CommandActionPlan", "DAT_GameCommandParam0", "units[Nr].owner"], "schreibt": ["DAT_CommandSize = 2", "DAT_GameCommandParam0", "Befehlsdaten beim Senden"], "ruft": ["serializeOrDeserializeCommandParameter", "clearOrDeselectUnitFromSelection"], "regeln": ["Befehlsgröße 2 Byte: die Einheitennummer", "Phase GCS_EXECUTE: clearOrDeselectUnitFromSelection(units[Nr].owner, Nr, 0), also wird die Auswahl des Besitzers der Einheit geändert, nicht die des Absenders", "Keine Bereichsprüfung der Einheitennummer in dieser Funktion; protocolInvokerPlayerID wird nicht benutzt"], "offen": ["Bedeutung des dritten Arguments 0 (vermutlich: nur diese eine Einheit abwählen statt alles zu leeren)", "Vorzeichenbehandlung der 2-Byte-Nummer"]}, "p3": {"erklaerung": "Die Auswahl einer Einheit wird als Befehl weitergegeben und für den Besitzer der Einheit zurückgenommen.", "gehirn": "-", "beleg": "code", "live": "-"}}
+
+### 0x0053e820 commitUnitLocation | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0053E820
+ void UnitsState::commitUnitLocation(int unitID)
+ {
+ this->units[unitID].currentIndexInPathPlan = 0;
+ this->units[unitID].tunnelerFinishedDigging = 0;
+ this->units[unitID].field105_0xe8 = FALSE;
+ this->units[unitID].movementCooldown = 0;
+ this->units[unitID].movementRelated = 8;
+ this->units[unitID].unknownTestAgainst0_2 = 1;
+ setupUnitSharingCurrentTilePosition(unitID);
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0053e820", "name": "commitUnitLocation", "quelle": "nachgebaut", "p1": {"bereich": "Einheiten", "zweck": "Setzt die Wegedaten einer Einheit zurück und meldet ihre Position neu an."}, "p2": {"ein": "unitID", "aus": "-", "liest": [], "schreibt": ["currentIndexInPathPlan=0", "tunnelerFinishedDigging=0", "field105_0xe8=FALSE", "movementCooldown=0", "movementRelated=8", "unknownTestAgainst0_2=1"], "ruft": ["setupUnitSharingCurrentTilePosition"], "regeln": ["unknownTestAgainst0_2 wird auf 1 gesetzt; resetUnitMovementState und clearHiddenFlagAndUpdatePosition setzen es zurück und buchen dann die Position ein", "movementRelated=8 ist der Ruhewert"], "offen": ["Genaue Bedeutung von unknownTestAgainst0_2 (nach dem Verhalten: Position ist vorgemerkt, aber noch nicht eingebucht)"]}, "p3": {"erklaerung": "Die Einheit wird zum Stillstand gebracht und ihre Feldbelegung abgemeldet; die Anmeldung am neuen Feld folgt später.", "gehirn": "-", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x0043e5a0 SomeFearFactorComputation | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0043E5A0
+ undefined4 Helpers::SomeFearFactorComputation()
+ {
+ uint uVar1;
+ undefined4 uVar2;
+ uVar1 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .fearFactorLevel;
+ if ((int)uVar1 < -4) {
+ return (undefined4)(0xe);
+ }
+ if ((int)uVar1 < -2) {
+ return (undefined4)(0xf);
+ }
+ if (0x7fffffff < uVar1) {
+ return (undefined4)(0x10);
+ }
+ if (4 < (int)uVar1) {
+ return (undefined4)(0x13);
+ }
+ uVar2 = 0x12;
+ if ((int)uVar1 < 3) {
+ uVar2 = 0x11;
+ }
+ return (undefined4)(uVar2);
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0043e5a0", "name": "SomeFearFactorComputation", "quelle": "ghidra", "p1": {"bereich": "Wirtschaft", "zweck": "Macht aus dem Angstfaktor des aktuellen Spielers eine Stufenzahl 14 bis 19 (vermutlich für die Anzeige)."}, "p2": {"ein": "- (aktueller Spieler currentPlayerSlotID)", "aus": "Stufe 14 bis 19", "liest": ["playerDataArray[sp].fearFactorLevel"], "schreibt": [], "ruft": [], "regeln": ["fearFactorLevel wird als Zahl mit Vorzeichen gelesen", "bis -5 → 14", "-4 und -3 → 15", "-2 und -1 → 16", "0 bis 2 → 17", "3 und 4 → 18", "ab 5 → 19"], "offen": ["Wofür der Rückgabewert verwendet wird (vermutlich Bild oder Text der Anzeige)"]}, "p3": {"erklaerung": "Teilt den Angstfaktor in sechs Gruppen ein. Negative und positive Werte werden unterschieden.", "gehirn": "fearFactorLevel ist vorzeichenbehaftet; Stufen 3-4 und ab 5 haben eigene Anzeigegruppen.", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x004a5f60 updatePathLinkageLayerForEachBuildingAtEachTile | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004A5F60
+ void PathFindingState::updatePathLinkageLayerForEachBuildingAtEachTile()
+ {
+ for (int tileIndex = 0; tileIndex < Map::MC_MAP_TILES_COUNT; ++tileIndex) {
+ updatePathLinkageLayerBasedOnBuildingsUnk(
+ DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tileIndex], tileIndex);
+ }
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004a5f60", "name": "updatePathLinkageLayerForEachBuildingAtEachTile", "quelle": "nachgebaut", "p1": {"bereich": "Wegfindung", "zweck": "Aktualisiert für jedes Kartenfeld die Wegverbindungs-Ebene im Umfeld von Gebäuden."}, "p2": {"ein": "-", "aus": "-", "liest": ["tileTranslationMatrix_YComponent[tile]"], "schreibt": ["Wegverbindungs-Ebene (über die Hilfsfunktion)"], "ruft": ["updatePathLinkageLayerBasedOnBuildingsUnk"], "regeln": ["Läuft über alle Felder von 0 bis MC_MAP_TILES_COUNT"], "offen": ["Wert von MC_MAP_TILES_COUNT; andere Funktionen laufen bis 0x13a10 (80400)"]}, "p3": {"erklaerung": "Hilfsfunktion: geht alle Kartenfelder durch und berechnet die Verbindungen neu.", "gehirn": "-", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x004ecef0 setupAIVMetadata | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004ECEF0
+ int AIVState::setupAIVMetadata(int playerID)
+ {
+ for (int aivID = 1; aivID < 9; ++aivID) {
+ if (this->aivs[aivID].playerID != 0) {
+ continue;
+ }
+ this->aivs[aivID].playerID = playerID;
+ this->aivs[aivID].aiType = DAT_GameState->playerDataArray[playerID].aiType;
+ this->aivs[aivID].currentStepGoal = 0;
+ this->aivs[aivID].aivPoorCounter = 0;
+ this->aivs[aivID].aivSubType = 0;
+ this->aivs[aivID].aivPoorLimit_OR_AIC_buildInterval
+ = getAIBuildInterval(playerID);
+ ++this->aivCount;
+ return aivID;
+ }
+ return 0;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004ecef0", "name": "setupAIVMetadata", "quelle": "nachgebaut", "p1": {"bereich": "KI", "zweck": "Legt für einen Computerspieler den ersten freien KI-Burgdaten-Platz an."}, "p2": {"ein": "playerID", "aus": "aivID (1..8) oder 0, wenn kein Platz frei", "liest": ["aivs[1..8].playerID", "playerDataArray[spieler].aiType"], "schreibt": ["aivs[id].playerID/aiType/currentStepGoal/aivPoorCounter/aivSubType/aivPoorLimit_OR_AIC_buildInterval", "aivCount"], "ruft": ["getAIBuildInterval"], "regeln": ["Frei heißt aivs[id].playerID == 0, Suche von 1 bis 8", "currentStepGoal, aivPoorCounter, aivSubType starten bei 0", "aivCount wird um 1 erhöht"], "offen": []}, "p3": {"erklaerung": "Jede KI bekommt einen von 8 Plätzen für ihre Burgdaten. Sind alle belegt, gibt es 0.", "gehirn": "Zuordnung Spieler zu aivID steht in playerDataArray[spieler].aivID.", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x004a58a0 findConnectingAreaBetweenTwoAreas | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004A58A0
+ dword PathFindingState::findConnectingAreaBetweenTwoAreas(int param_1, dword param_2, dword param_3)
+ {
+ int iVar1;
+ dword dVar2;
+ int iVar3;
+ int iVar4;
+ int* piVar5;
+ int iVar6;
+ dword dVar7;
+ dword dVar8;
+ int local_96c;
+ int local_968;
+ dword adStack_960[200];
+ int aiStack_640[400];
+ if (param_2 == param_3) {
+ return (dword)(param_2);
+ }
+ this->DAT_Test_gatehouse = this->DAT_Test_gatehouse + 1;
+ local_96c = 0;
+ local_968 = 0;
+ iVar6 = 1;
+ if (1 < this->maxClimbDataCount) {
+ piVar5 = &this->climbData[1].isRecognizedByPathfinding;
+ do {
+ if ((((((ClimbData*)(piVar5 + -6))->canBeUsed == 1) && (*piVar5 != 0)) && (piVar5[-5] != 1))
+ && (((param_1 == 0
+ || (DAT_GameState.mapAndTime.playerTeams[piVar5[0x73]]
+ == DAT_GameState.mapAndTime.playerTeams[param_1]))
+ || (DAT_BuildingsState.buildings[piVar5[-3]].field241_0x2c6 != 0)))) {
+ aiStack_640[local_96c * 2 + 1] = 0;
+ aiStack_640[local_96c * 2] = iVar6;
+ local_96c = local_96c + 1;
+ }
+ iVar6 = iVar6 + 1;
+ piVar5 = piVar5 + 0x81;
+ } while (iVar6 < this->maxClimbDataCount);
+ }
+ iVar4 = 0;
+ iVar6 = 0;
+ if (0 < local_96c) {
+ do {
+ iVar1 = aiStack_640[iVar4 * 2];
+ dVar7 = this->climbData[iVar1].area;
+ if (dVar7 == param_3) {
+ dVar7 = this->climbData[iVar1].wallGroupAreaID;
+ LAB_004a59a4:
+ if (dVar7 == param_2) {
+ return (dword)(param_3);
+ }
+ dVar8 = this->climbData[iVar1].buildingArea;
+ if (dVar8 == param_2) {
+ return (dword)(param_3);
+ }
+ adStack_960[iVar6] = dVar7;
+ aiStack_640[iVar4 * 2 + 1] = 1;
+ iVar3 = iVar6 + 1;
+ if (0 < (int)dVar8) {
+ adStack_960[iVar6 + 1] = dVar8;
+ LAB_004a5a12:
+ iVar3 = iVar6 + 2;
+ }
+ } else {
+ dVar8 = this->climbData[iVar1].wallGroupAreaID;
+ if (dVar8 == param_3)
+ goto LAB_004a59a4;
+ iVar3 = iVar6;
+ if (this->climbData[iVar1].buildingArea == param_3) {
+ if (dVar7 == param_2) {
+ return (dword)(param_3);
+ }
+ if (dVar8 == param_2) {
+ return (dword)(param_3);
+ }
+ adStack_960[iVar6] = dVar7;
+ aiStack_640[iVar4 * 2 + 1] = 1;
+ adStack_960[iVar6 + 1] = dVar8;
+ goto LAB_004a5a12;
+ }
+ }
+ iVar4 = iVar4 + 1;
+ iVar6 = iVar3;
+ } while (iVar4 < local_96c);
+ if (0 < iVar3) {
+ do {
+ dVar7 = adStack_960[local_968];
+ local_968 = local_968 + 1;
+ iVar4 = 0;
+ iVar6 = iVar3;
+ do {
+ iVar3 = iVar6;
+ if (aiStack_640[iVar4 * 2 + 1] != 1) {
+ iVar1 = aiStack_640[iVar4 * 2];
+ dVar8 = this->climbData[iVar1].area;
+ if (dVar8 == dVar7) {
+ dVar8 = this->climbData[iVar1].wallGroupAreaID;
+ LAB_004a5a70:
+ if (dVar8 == param_2) {
+ return (dword)(dVar7);
+ }
+ dVar2 = this->climbData[iVar1].buildingArea;
+ if (dVar2 == param_2) {
+ return (dword)(dVar7);
+ }
+ adStack_960[iVar6] = dVar8;
+ aiStack_640[iVar4 * 2 + 1] = 1;
+ iVar3 = iVar6 + 1;
+ if ((int)dVar2 < 1)
+ goto LAB_004a5ad0;
+ adStack_960[iVar6 + 1] = dVar2;
+ } else {
+ dVar2 = this->climbData[iVar1].wallGroupAreaID;
+ if (dVar2 == dVar7)
+ goto LAB_004a5a70;
+ if (this->climbData[iVar1].buildingArea != dVar7)
+ goto LAB_004a5ad0;
+ if (dVar8 == param_2) {
+ return (dword)(dVar7);
+ }
+ if (dVar2 == param_2) {
+ return (dword)(dVar7);
+ }
+ adStack_960[iVar6] = dVar8;
+ aiStack_640[iVar4 * 2 + 1] = 1;
+ adStack_960[iVar6 + 1] = dVar2;
+ }
+ iVar3 = iVar6 + 2;
+ }
+ LAB_004a5ad0:
+ iVar4 = iVar4 + 1;
+ iVar6 = iVar3;
+ } while (iVar4 < local_96c);
+ } while (local_968 < iVar3);
+ }
+ }
+ return (dword)(0);
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004a58a0", "name": "findConnectingAreaBetweenTwoAreas", "quelle": "ghidra", "p1": {"bereich": "Wegfindung", "zweck": "Sucht, ob zwei Bereiche über Tore oder Mauerdurchgänge ohne Leiter verbunden sind."}, "p2": {"ein": "param_1 = Spieler, param_2 = Startbereich, param_3 = Zielbereich", "aus": "param_2 wenn beide gleich, sonst ein verbindender Bereich ungleich 0, 0 wenn keine Verbindung", "liest": ["climbData[].canBeUsed/isRecognizedByPathfinding/type/area/wallGroupAreaID/buildingArea/owner/buildingID", "mapAndTime.playerTeams[]", "buildings[].field241_0x2c6", "maxClimbDataCount"], "schreibt": ["DAT_Test_gatehouse (Zähler +1)"], "ruft": [], "regeln": ["Gleiche Bereiche: Rückgabe param_2", "Nur Kletterpunkte mit canBeUsed = 1, isRecognizedByPathfinding != 0 und Typ ungleich 1 (keine Leitern)", "Spieler 0 oder gleiches Team wie der Besitzer oder field241_0x2c6 != 0", "Breitensuche von param_3 aus über area, wallGroupAreaID und buildingArea", "Höchstens 200 Bereiche und 200 Kletterpunkte", "Kein Treffer: Rückgabe 0"], "offen": ["Rückgabe bei Zwischenbereichen: vermutlich der Bereich neben param_2", "Der Zähler heißt DAT_Test_gatehouse, vermutlich weil es um Torhäuser geht"]}, "p3": {"erklaerung": "Wie die vorige Suche, aber ohne Leitern und ohne Schreiben der Merker. Sie beantwortet nur, ob ein Durchgang besteht.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+

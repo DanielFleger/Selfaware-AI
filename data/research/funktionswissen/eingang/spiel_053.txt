@@ -1,0 +1,1190 @@
+### 0x0041a8d0 swapOwnersOfCastle | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0041A8D0
+ void BuildingsState::swapOwnersOfCastle(int param_1, int param_2)
+ {
+ // Swaps all buildings of the players param_1 and param_2
+ int swapped = 0;
+ for (int i = 1; i < 2000; ++i) {
+ if (this->buildings[i].logicalState != BLS_NORMAL) {
+ continue;
+ }
+ if (this->buildings[i].owner == param_1) {
+ this->buildings[i].owner = param_2;
+ swapped = 1;
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ this->buildings[i].playerColorUnk = param_2;
+ }
+ } else if (this->buildings[i].owner == param_2) {
+ this->buildings[i].owner = param_1;
+ swapped = 1;
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ this->buildings[i].playerColorUnk = param_1;
+ }
+ }
+ }
+ if (swapped <= 0) {
+ return;
+ }
+ // Swap the special buildings as well
+ SwapInts(&DAT_GameState.playerDataArray[param_2].keep.id,
+ &DAT_GameState.playerDataArray[param_1].keep.id);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].keep.xEntry,
+ &DAT_GameState.playerDataArray[param_1].keep.xEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].keep.yEntry,
+ &DAT_GameState.playerDataArray[param_1].keep.yEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].keep.tileEntry,
+ &DAT_GameState.playerDataArray[param_1].keep.tileEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].keep.areaEntry,
+ &DAT_GameState.playerDataArray[param_1].keep.areaEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].marketplace.id,
+ &DAT_GameState.playerDataArray[param_1].marketplace.id);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].marketplace.xEntry,
+ &DAT_GameState.playerDataArray[param_1].marketplace.xEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].marketplace.yEntry,
+ &DAT_GameState.playerDataArray[param_1].marketplace.yEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].marketplace.tileEntry,
+ &DAT_GameState.playerDataArray[param_1].marketplace.tileEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].marketplace.areaEntry,
+ &DAT_GameState.playerDataArray[param_1].marketplace.areaEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].engineersGuild.id,
+ &DAT_GameState.playerDataArray[param_1].engineersGuild.id);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].engineersGuild.xEntry,
+ &DAT_GameState.playerDataArray[param_1].engineersGuild.xEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].engineersGuild.yEntry,
+ &DAT_GameState.playerDataArray[param_1].engineersGuild.yEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].engineersGuild.tileEntry,
+ &DAT_GameState.playerDataArray[param_1].engineersGuild.tileEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].engineersGuild.areaEntry,
+ &DAT_GameState.playerDataArray[param_1].engineersGuild.areaEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].tunnelersGuild.id,
+ &DAT_GameState.playerDataArray[param_1].tunnelersGuild.id);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].tunnelersGuild.xEntry,
+ &DAT_GameState.playerDataArray[param_1].tunnelersGuild.xEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].tunnelersGuild.yEntry,
+ &DAT_GameState.playerDataArray[param_1].tunnelersGuild.yEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].tunnelersGuild.tileEntry,
+ &DAT_GameState.playerDataArray[param_1].tunnelersGuild.tileEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].tunnelersGuild.areaEntry,
+ &DAT_GameState.playerDataArray[param_1].tunnelersGuild.areaEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].stockpile.id,
+ &DAT_GameState.playerDataArray[param_1].stockpile.id);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].stockpile.xEntry,
+ &DAT_GameState.playerDataArray[param_1].stockpile.xEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].stockpile.yEntry,
+ &DAT_GameState.playerDataArray[param_1].stockpile.yEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].stockpile.tileEntry,
+ &DAT_GameState.playerDataArray[param_1].stockpile.tileEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].stockpile.areaEntry,
+ &DAT_GameState.playerDataArray[param_1].stockpile.areaEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].armory.id,
+ &DAT_GameState.playerDataArray[param_1].armory.id);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].armory.xEntry,
+ &DAT_GameState.playerDataArray[param_1].armory.xEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].armory.yEntry,
+ &DAT_GameState.playerDataArray[param_1].armory.yEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].armory.tileEntry,
+ &DAT_GameState.playerDataArray[param_1].armory.tileEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].armory.areaEntry,
+ &DAT_GameState.playerDataArray[param_1].armory.areaEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].granary.id,
+ &DAT_GameState.playerDataArray[param_1].granary.id);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].granary.xEntry,
+ &DAT_GameState.playerDataArray[param_1].granary.xEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].granary.yEntry,
+ &DAT_GameState.playerDataArray[param_1].granary.yEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].granary.tileEntry,
+ &DAT_GameState.playerDataArray[param_1].granary.tileEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].granary.areaEntry,
+ &DAT_GameState.playerDataArray[param_1].granary.areaEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].barracks.id,
+ &DAT_GameState.playerDataArray[param_1].barracks.id);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].barracks.xEntry,
+ &DAT_GameState.playerDataArray[param_1].barracks.xEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].barracks.yEntry,
+ &DAT_GameState.playerDataArray[param_1].barracks.yEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].barracks.tileEntry,
+ &DAT_GameState.playerDataArray[param_1].barracks.tileEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].barracks.areaEntry,
+ &DAT_GameState.playerDataArray[param_1].barracks.areaEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].mercenaryPost.id,
+ &DAT_GameState.playerDataArray[param_1].mercenaryPost.id);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].mercenaryPost.xEntry,
+ &DAT_GameState.playerDataArray[param_1].mercenaryPost.xEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].mercenaryPost.yEntry,
+ &DAT_GameState.playerDataArray[param_1].mercenaryPost.yEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].mercenaryPost.tileEntry,
+ &DAT_GameState.playerDataArray[param_1].mercenaryPost.tileEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].mercenaryPost.areaEntry,
+ &DAT_GameState.playerDataArray[param_1].mercenaryPost.areaEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].campground.id,
+ &DAT_GameState.playerDataArray[param_1].campground.id);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].campground.xEntry,
+ &DAT_GameState.playerDataArray[param_1].campground.xEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].campground.yEntry,
+ &DAT_GameState.playerDataArray[param_1].campground.yEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].campground.tileEntry,
+ &DAT_GameState.playerDataArray[param_1].campground.tileEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].campground.areaEntry,
+ &DAT_GameState.playerDataArray[param_1].campground.areaEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].unknown6.id,
+ &DAT_GameState.playerDataArray[param_1].unknown6.id);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].unknown6.xEntry,
+ &DAT_GameState.playerDataArray[param_1].unknown6.xEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].unknown6.yEntry,
+ &DAT_GameState.playerDataArray[param_1].unknown6.yEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].unknown6.tileEntry,
+ &DAT_GameState.playerDataArray[param_1].unknown6.tileEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].unknown6.areaEntry,
+ &DAT_GameState.playerDataArray[param_1].unknown6.areaEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].oilSmelter.id,
+ &DAT_GameState.playerDataArray[param_1].oilSmelter.id);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].oilSmelter.xEntry,
+ &DAT_GameState.playerDataArray[param_1].oilSmelter.xEntry);
+ SwapInts(&DAT_GameState.playerDataArray[param_2].oilSmelter.yEntry,
+ &DAT_GameState.playerDataArray[param_1].oilSmelter.yEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].oilSmelter.tileEntry,
+ &DAT_GameState.playerDataArray[param_1].oilSmelter.tileEntry);
+ SwapInts(
+ &DAT_GameState.playerDataArray[param_2].oilSmelter.areaEntry,
+ &DAT_GameState.playerDataArray[param_1].oilSmelter.areaEntry);
+ }
+ }
+}
+}
+
+### 0x0041ade0 determineBuildingEntranceFromKeepArea | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0041ADE0
+ undefined4 BuildingsState::determineBuildingEntranceFromKeepArea(
+ int buildingID, int workerIndexPlus1, BOOLEnum flag)
+ {
+ int buildingSize;
+ ushort* puVar1;
+ ushort* puVar2;
+ short sVar3;
+ int _playerID;
+ int _buildingAtCandidateHeight;
+ dword _candidateArea;
+ dword _canNav;
+ int iVar4;
+ dword toArea;
+ int iVar5;
+ dword _keepArea;
+ int _index;
+ int _height;
+ int _candidateTile;
+ int iVar6;
+ uint _heightAtCandidate;
+ uint uVar7;
+ short _flagCopy;
+ ushort* local_2c;
+ int local_28;
+ ushort* local_24;
+ int _heightStep;
+ short _buildingAtCandidate;
+ int _buildingID;
+ int _index2;
+ int _count2;
+ int _accessibleTilesCount;
+ BOOLEnum _flag;
+ Building* _pBuilding1;
+ Building* _pBuilding2;
+ short* _pEntranceX;
+ short* _pEntranceY;
+ _flag = flag;
+ _buildingID = buildingID;
+ _playerID = (int)this->buildings[buildingID].owner;
+ _keepArea
+ = (dword)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_GameState.playerDataArray[_playerID].campground.tileEntry];
+ _index = 0;
+ local_28 = 0;
+ _heightStep = 0x10;
+ if (this->buildings[buildingID].buildingType == BT_QUARRY) {
+ _heightStep = 0x20;
+ }
+ buildingSize = this->buildings[buildingID].widthOrHeight + flag * 2;
+ _accessibleTilesCount = DAT_BuildingDefinedData.BuildingAccessibleTilesCount[buildingSize];
+ if (0 < _accessibleTilesCount) {
+ /*
+ this modulates what angle is chosen or at least makes sure it doesn't overflow
+ */
+ _index = (int)(short)this->buildings[buildingID].entranceAttemptTileIndex % _accessibleTilesCount;
+ this->buildings[buildingID].entranceAttemptTileIndex = (ushort)_index;
+ }
+ _pEntranceX = &this->buildings[buildingID].buildingEntryX;
+ _height = (int)this->buildings[buildingID].terrainHeightUnk;
+ *_pEntranceX = 0;
+ _pEntranceY = &this->buildings[buildingID].buildingEntryY;
+ *_pEntranceY = 0;
+ flag = FALSE;
+ _flagCopy = (short)_flag;
+ _index2 = _index;
+ if (0 < _accessibleTilesCount) {
+ _pBuilding1 = this->buildings + buildingID;
+ _pBuilding2 = this->buildings + buildingID;
+ /*
+ todo: feat: set this value based on direction of keep
+ */
+ buildingID = _index;
+ do {
+ /*
+ offset is set here, for each try a different location is tried
+ */
+ setupBuildingEntrancesOffset(
+ buildingSize, 1, buildingID, 0);
+ _candidateTile
+ = ((*(int*)((int)DAT_ViewportRenderState
+ + (((int)(short)_pBuilding1->y - _flag) + this->DAT_TempYOffset) * 0xc + 0x188728)
+ + (int)(short)_pBuilding2->x)
+ - _flag)
+ + this->DAT_TempXOffset;
+ _buildingAtCandidate = *(short*)((int)DAT_TileMapState + _candidateTile * 2 + 0x2029b0);
+ _heightAtCandidate = (uint) * (byte*)((int)DAT_TileMapState + _candidateTile + 0x29fa30);
+ if (_buildingAtCandidate != 0) {
+ _buildingAtCandidateHeight = getBuildingHeightForBuildingID(
+ (int)_buildingAtCandidate);
+ _heightAtCandidate = _heightAtCandidate + _buildingAtCandidateHeight;
+ }
+ if (((((*(uint*)((int)DAT_TileMapState + _candidateTile * 4 + 0x165160) & 0x50501481) == 0)
+ && (_height <= (int)(_heightStep + _heightAtCandidate)))
+ && ((int)(_heightAtCandidate - _heightStep) <= _height))
+ && ((((_keepArea == 0
+ || (_candidateArea
+ = (dword) * (short*)((int)DAT_TileMapState + _candidateTile * 2 + 0x363ed0),
+ _candidateArea == _keepArea))
+ || ((_canNav = MACRO_CALL_MEMBER(
+ calculateCanPlayerUnitsNavigateToAreaFromArea,
+ DAT_PathFindingState)(
+ _playerID, (dword)((int)(_keepArea)), (dword)((int)(_candidateArea)), 0),
+ _canNav != 0
+ || (DAT_BuildingDefinedData.ABuildingTypeValueArray
+ [(short)this->buildings[_buildingID].buildingType]
+ != FALSE))))
+ && (local_28 = local_28 + 1, workerIndexPlus1 <= local_28))))
+ goto LAB_0041b11e_done;
+ buildingID = buildingID + 1;
+ if (_accessibleTilesCount <= buildingID) {
+ buildingID = 0;
+ }
+ flag = flag + TRUE;
+ _index2 = buildingID;
+ } while ((int)flag < _accessibleTilesCount);
+ }
+ buildingID = _index2;
+ _count2 = DAT_BuildingDefinedData.BuildingAccessibleTilesCountForOneLarger[buildingSize];
+ flag = FALSE;
+ if (0 < _count2) {
+ do {
+ setupNextCandidateLocationComputeOffsets2(
+ buildingSize, 1, buildingID, 0);
+ iVar6 = ((*(int*)((int)DAT_ViewportRenderState
+ + (((int)(short)this->buildings[_buildingID].y - _flag) + this->DAT_TempYOffset) * 0xc
+ + 0x188728)
+ + (int)(short)this->buildings[_buildingID].x)
+ - _flag)
+ + this->DAT_TempXOffset;
+ sVar3 = *(short*)((int)DAT_TileMapState + iVar6 * 2 + 0x2029b0);
+ uVar7 = (uint) * (byte*)((int)DAT_TileMapState + iVar6 + 0x29fa30);
+ if (sVar3 != 0) {
+ iVar4 = getBuildingHeightForBuildingID(
+ (int)sVar3);
+ uVar7 = uVar7 + iVar4;
+ }
+ if ((((*(uint*)((int)DAT_TileMapState + iVar6 * 4 + 0x165160) & 0x50501481) == 0)
+ && (_height <= (int)(uVar7 + 0x10)))
+ && ((((int)(uVar7 - 0x10) <= _height
+ && ((((_keepArea == 0
+ || (toArea
+ = (dword) * (short*)((int)DAT_TileMapState + iVar6 * 2 + 0x363ed0),
+ toArea == _keepArea))
+ || (iVar6
+ = MACRO_CALL_MEMBER(
+ calculateCanPlayerUnitsNavigateToAreaFromArea,
+ DAT_PathFindingState)(
+ _playerID, (dword)((int)(_keepArea)), (dword)((int)(toArea)), 0),
+ iVar6 != 0))
+ || (DAT_BuildingDefinedData
+ .ABuildingTypeValueArray[(short)this->buildings[_buildingID].buildingType]
+ != FALSE))))
+ && (local_28 = local_28 + 1, workerIndexPlus1 <= local_28)))) {
+ LAB_0041b11e_done:
+ local_24 = &this->buildings[_buildingID].x;
+ local_2c = &this->buildings[_buildingID].y;
+ *_pEntranceX = (*local_24 - _flagCopy) + (short)this->DAT_TempXOffset;
+ *_pEntranceY = (*local_2c - _flagCopy) + (short)this->DAT_TempYOffset;
+ return (undefined4)(1);
+ }
+ buildingID = buildingID + 1;
+ if (_count2 <= buildingID) {
+ buildingID = 0;
+ }
+ flag = flag + TRUE;
+ } while ((int)flag < _count2);
+ }
+ iVar6 = DAT_BuildingDefinedData.BuildingAccessibleTilesCount[buildingSize];
+ if (iVar6 < 1) {
+ buildingID = 0;
+ } else {
+ buildingID = (int)(short)this->buildings[_buildingID].entranceAttemptTileIndex % iVar6;
+ this->buildings[_buildingID].entranceAttemptTileIndex = (ushort)buildingID;
+ }
+ flag = FALSE;
+ if (0 < iVar6) {
+ puVar1 = &this->buildings[_buildingID].y;
+ puVar2 = &this->buildings[_buildingID].x;
+ do {
+ setupBuildingEntrancesOffset(
+ buildingSize, 1, buildingID, 0);
+ iVar4 = ((*(int*)((int)DAT_ViewportRenderState
+ + (((int)(short)*puVar1 - _flag) + this->DAT_TempYOffset) * 0xc + 0x188728)
+ + (int)(short)*puVar2)
+ - _flag)
+ + this->DAT_TempXOffset;
+ sVar3 = *(short*)((int)DAT_TileMapState + iVar4 * 2 + 0x2029b0);
+ uVar7 = (uint) * (byte*)((int)DAT_TileMapState + iVar4 + 0x29fa30);
+ if (sVar3 != 0) {
+ iVar5 = getBuildingHeightForBuildingID(
+ (int)sVar3);
+ uVar7 = uVar7 + iVar5;
+ }
+ if ((((*(uint*)((int)DAT_TileMapState + iVar4 * 4 + 0x165160) & 0x50501481) == 0)
+ && (_height <= (int)(uVar7 + 0x10)))
+ && (((int)(uVar7 - 0x10) <= _height
+ && ((*(short*)((int)DAT_TileMapState + iVar4 * 2 + 0x363ed0) != 0
+ && (local_28 = local_28 + 1, workerIndexPlus1 <= local_28)))))) {
+ *_pEntranceX = (*puVar2 - _flagCopy) + (short)this->DAT_TempXOffset;
+ *_pEntranceY = (*puVar1 - _flagCopy) + (short)this->DAT_TempYOffset;
+ return (undefined4)(2);
+ }
+ buildingID = buildingID + 1;
+ if (iVar6 <= buildingID) {
+ buildingID = 0;
+ }
+ flag = flag + TRUE;
+ } while ((int)flag < iVar6);
+ }
+ return (undefined4)(0);
+ }
+ }
+}
+}
+
+### 0x0041b2b0 determineBuildingEntranceFromCustomArea | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0041B2B0
+ undefined4 BuildingsState::determineBuildingEntranceFromCustomArea(
+ int buildingID, int param_2, int param_3, int x, int y)
+ {
+ int buildingSize;
+ short* psVar1;
+ short* psVar2;
+ ushort* puVar3;
+ ushort* puVar4;
+ short sVar5;
+ int playerID;
+ int iVar6;
+ dword dVar7;
+ dword fromArea;
+ int iVar8;
+ int iVar9;
+ int iVar10;
+ int iVar11;
+ uint uVar12;
+ short sVar13;
+ int local_24;
+ int local_18;
+ int _accessibleTiles;
+ iVar11 = buildingID;
+ playerID = (int)this->buildings[buildingID].owner;
+ iVar8 = 0;
+ fromArea = (dword)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x];
+ local_24 = 0;
+ local_18 = 0x10;
+ if (this->buildings[buildingID].buildingType == BT_QUARRY) {
+ local_18 = 0x20;
+ }
+ buildingSize = this->buildings[buildingID].widthOrHeight + param_3 * 2;
+ iVar10 = DAT_BuildingDefinedData.BuildingAccessibleTilesCount[buildingSize];
+ if (0 < iVar10) {
+ iVar8 = (int)(short)this->buildings[buildingID].entranceAttemptTileIndex % iVar10;
+ this->buildings[buildingID].entranceAttemptTileIndex = (ushort)iVar8;
+ }
+ psVar1 = &this->buildings[buildingID].buildingEntryX;
+ iVar9 = (int)this->buildings[buildingID].terrainHeightUnk;
+ *psVar1 = 0;
+ psVar2 = &this->buildings[buildingID].buildingEntryY;
+ *psVar2 = 0;
+ y = 0;
+ sVar13 = (short)param_3;
+ if (0 < iVar10) {
+ puVar3 = &this->buildings[buildingID].y;
+ puVar4 = &this->buildings[buildingID].x;
+ buildingID = iVar8;
+ do {
+ setupBuildingEntrancesOffset(
+ buildingSize, 1, buildingID, 0);
+ iVar8 = (*(int*)((int)DAT_ViewportRenderState
+ + (((short)*puVar3 - param_3) + this->DAT_TempYOffset) * 0xc + 0x188728)
+ - param_3)
+ + (int)(short)*puVar4 + this->DAT_TempXOffset;
+ sVar5 = *(short*)((int)DAT_TileMapState + iVar8 * 2 + 0x2029b0);
+ uVar12 = (uint) * (byte*)((int)DAT_TileMapState + iVar8 + 0x29fa30);
+ if (sVar5 != 0) {
+ iVar6 = getBuildingHeightForBuildingID(
+ (int)sVar5);
+ uVar12 = uVar12 + iVar6;
+ }
+ if ((((((*(uint*)((int)DAT_TileMapState + iVar8 * 4 + 0x165160) & 0x50501481) == 0)
+ && (iVar9 <= (int)(local_18 + uVar12)))
+ && ((int)(uVar12 - local_18) <= iVar9))
+ && (((fromArea == 0
+ || (dVar7 = (dword) * (short*)((int)DAT_TileMapState + iVar8 * 2 + 0x363ed0),
+ dVar7 == fromArea))
+ || (iVar8 = MACRO_CALL_MEMBER(
+ calculateCanPlayerUnitsNavigateToAreaFromArea,
+ DAT_PathFindingState)(
+ playerID, (dword)((int)(fromArea)), (dword)((int)(dVar7)), 0),
+ iVar8 != 0))))
+ && (local_24 = local_24 + 1, param_2 <= local_24)) {
+ *psVar1 = ((short)this->DAT_TempXOffset - sVar13) + *puVar4;
+ *psVar2 = (*puVar3 - sVar13) + (short)this->DAT_TempYOffset;
+ return (undefined4)(1);
+ }
+ buildingID = buildingID + 1;
+ if (iVar10 <= buildingID) {
+ buildingID = 0;
+ }
+ y = y + 1;
+ iVar8 = buildingID;
+ } while (y < iVar10);
+ }
+ buildingID = iVar8;
+ iVar8 = DAT_BuildingDefinedData.BuildingAccessibleTilesCountForOneLarger[buildingSize];
+ y = 0;
+ if (0 < iVar8) {
+ puVar3 = &this->buildings[iVar11].y;
+ puVar4 = &this->buildings[iVar11].x;
+ do {
+ setupNextCandidateLocationComputeOffsets2(
+ buildingSize, 1, buildingID, 0);
+ iVar10 = (*(int*)((int)DAT_ViewportRenderState
+ + (((short)*puVar3 - param_3) + this->DAT_TempYOffset) * 0xc + 0x188728)
+ - param_3)
+ + (int)(short)*puVar4 + this->DAT_TempXOffset;
+ sVar5 = *(short*)((int)DAT_TileMapState + iVar10 * 2 + 0x2029b0);
+ uVar12 = (uint) * (byte*)((int)DAT_TileMapState + iVar10 + 0x29fa30);
+ if (sVar5 != 0) {
+ iVar6 = getBuildingHeightForBuildingID(
+ (int)sVar5);
+ uVar12 = uVar12 + iVar6;
+ }
+ if (((((*(uint*)((int)DAT_TileMapState + iVar10 * 4 + 0x165160) & 0x50501481) == 0)
+ && (iVar9 <= (int)(uVar12 + 0x10)))
+ && (((int)(uVar12 - 0x10) <= iVar9
+ && ((((fromArea == 0
+ || (dVar7
+ = (dword) * (short*)((int)DAT_TileMapState + iVar10 * 2 + 0x363ed0),
+ dVar7 == fromArea))
+ || (iVar10
+ = MACRO_CALL_MEMBER(
+ calculateCanPlayerUnitsNavigateToAreaFromArea,
+ DAT_PathFindingState)(
+ playerID, (dword)((int)(fromArea)), (dword)((int)(dVar7)), 0),
+ iVar10 != 0))
+ || (DAT_BuildingDefinedData
+ .ABuildingTypeValueArray[(short)this->buildings[iVar11].buildingType]
+ != FALSE))))))
+ && (local_24 = local_24 + 1, param_2 <= local_24)) {
+ *psVar1 = ((short)this->DAT_TempXOffset - sVar13) + *puVar4;
+ *psVar2 = (*puVar3 - sVar13) + (short)this->DAT_TempYOffset;
+ return (undefined4)(1);
+ }
+ buildingID = buildingID + 1;
+ if (iVar8 <= buildingID) {
+ buildingID = 0;
+ }
+ y = y + 1;
+ } while (y < iVar8);
+ }
+ _accessibleTiles = DAT_BuildingDefinedData.BuildingAccessibleTilesCount[buildingSize];
+ if (_accessibleTiles < 1) {
+ buildingID = 0;
+ } else {
+ buildingID = (int)(short)this->buildings[iVar11].entranceAttemptTileIndex % _accessibleTiles;
+ this->buildings[iVar11].entranceAttemptTileIndex = (ushort)buildingID;
+ }
+ y = 0;
+ if (0 < _accessibleTiles) {
+ puVar3 = &this->buildings[iVar11].y;
+ puVar4 = &this->buildings[iVar11].x;
+ do {
+ setupBuildingEntrancesOffset(
+ buildingSize, 1, buildingID, 0);
+ iVar11 = (*(int*)((int)DAT_ViewportRenderState
+ + (((short)*puVar3 - param_3) + this->DAT_TempYOffset) * 0xc + 0x188728)
+ - param_3)
+ + (int)(short)*puVar4 + this->DAT_TempXOffset;
+ sVar5 = *(short*)((int)DAT_TileMapState + iVar11 * 2 + 0x2029b0);
+ uVar12 = (uint) * (byte*)((int)DAT_TileMapState + iVar11 + 0x29fa30);
+ if (sVar5 != 0) {
+ iVar8 = getBuildingHeightForBuildingID(
+ (int)sVar5);
+ uVar12 = uVar12 + iVar8;
+ }
+ if ((((*(uint*)((int)DAT_TileMapState + iVar11 * 4 + 0x165160) & 0x50501481) == 0)
+ && (iVar9 <= (int)(uVar12 + 0x10)))
+ && (((int)(uVar12 - 0x10) <= iVar9
+ && ((*(short*)((int)DAT_TileMapState + iVar11 * 2 + 0x363ed0) != 0
+ && (local_24 = local_24 + 1, param_2 <= local_24)))))) {
+ *psVar1 = ((short)this->DAT_TempXOffset - sVar13) + *puVar4;
+ *psVar2 = (*puVar3 - sVar13) + (short)this->DAT_TempYOffset;
+ return (undefined4)(2);
+ }
+ buildingID = buildingID + 1;
+ if (_accessibleTiles <= buildingID) {
+ buildingID = 0;
+ }
+ y = y + 1;
+ } while (y < _accessibleTiles);
+ }
+ return (undefined4)(0);
+ }
+ }
+}
+}
+
+### 0x0041b7c0 computeBuildingEntranceFlagsForOrientations | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0041B7C0
+ void BuildingsState::computeBuildingEntranceFlagsForOrientations(int param_1)
+ {
+ uint buildingSize;
+ int iVar1;
+ uint uVar2;
+ int iVar3;
+ int try;
+ buildingSize = this->buildings[param_1].widthOrHeight;
+ iVar1 = DAT_BuildingDefinedData.BuildingAccessibleTilesCount[buildingSize];
+ if (buildingSize == 4) {
+ try = iVar1 + -1;
+ } else {
+ if ((buildingSize != 5) && (buildingSize != 6)) {
+ return;
+ }
+ try = iVar1 + -2;
+ }
+ iVar3 = 0;
+ *(undefined4*)&this->buildings[param_1].field_0x280 = 0;
+ if (0 < iVar1) {
+ do {
+ setupBuildingEntrancesOffset(
+ buildingSize, 1, try, 0);
+ try = try + 1;
+ if (iVar1 <= try) {
+ try = 0;
+ }
+ uVar2
+ = DAT_TileMapState.LogicLayer[DAT_ViewportRenderState
+ .translationMatrix[(short)this->buildings[param_1].y
+ + this->DAT_TempYOffset]
+ .addXgetTile
+ + (int)(short)this->buildings[param_1].x + this->DAT_TempXOffset];
+ if ((((uVar2 & 0x100) != 0) && ((uVar2 & 2) == 0)) && ((uVar2 & 0x200) == 0)) {
+ *(undefined1*)((int)this->buildings[param_1].quarryLinkedOxTethers + iVar3 / (int)buildingSize
+ + -0x4a) = 1;
+ }
+ iVar3 = iVar3 + 1;
+ } while (iVar3 < iVar1);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x0041b890 findQuarryPileLocation | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0041B890
+ void BuildingsState::findQuarryPileLocation(undefined4 playerID, int x, int y, int buildingSize, int pileSize,
+ int tryUnk, MappersEnum commandBuildingType)
+ {
+ int const tileCount = DAT_BuildingDefinedData.BuildingAccessibleTilesCount[buildingSize];
+ int try_ = tileCount / 4;
+ for (int i = 0; i < tileCount; ++i) {
+ setupBuildingEntrancesOffset(
+ buildingSize, pileSize, try_, tryUnk);
+ DAT_TileMapState.DAT_TempBuildingRotation = 0;
+ checkBuildingCanBePlacedHere(
+ playerID, this->DAT_TempXOffset + x, this->DAT_TempYOffset + y, commandBuildingType, pileSize);
+ if (DAT_TileMapState.buildingPlacementFail == 0) {
+ return;
+ }
+ ++try_;
+ if (try_ >= tileCount) {
+ try_ = 0;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0041b940 hasBuildingAsNeighbour | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0041B940
+ BOOLEnum BuildingsState::hasBuildingAsNeighbour(int playerID, int x, int y, int size, BuildingType type)
+ {
+ int const tileCount = DAT_BuildingDefinedData.BuildingAccessibleTilesCount[size];
+ int try_ = 0;
+ for (int i = 0; i < tileCount; ++i) {
+ setupBuildingEntrancesOffset(size, 1, try_, 0);
+ int const tile
+ = DAT_ViewportRenderState.translationMatrix[this->DAT_TempYOffset + y].addXgetTile
+ + this->DAT_TempXOffset + x;
+ int const foundID = DAT_TileMapState.BuildingLayer[tile];
+ if (foundID > 0 && this->buildings[foundID].logicalState == BLS_NORMAL
+ && this->buildings[foundID].owner == playerID && this->buildings[foundID].buildingType == type) {
+ return TRUE;
+ }
+ ++try_;
+ if (try_ >= tileCount) {
+ try_ = 0;
+ }
+ }
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x0041ba00 findParticularBuilding | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0041BA00
+ int BuildingsState::findParticularBuilding(
+ int playerID, int x, int y, int buildingSize, BuildingType buildingType, int buildingID)
+ {
+ int const tileCount = DAT_BuildingDefinedData.BuildingAccessibleTilesCount[buildingSize];
+ int try_ = 0;
+ for (int i = 0; i < tileCount; ++i) {
+ setupBuildingEntrancesOffset(buildingSize, 1, try_, 0);
+ int const tile
+ = DAT_ViewportRenderState.translationMatrix[this->DAT_TempYOffset + y].addXgetTile
+ + this->DAT_TempXOffset + x;
+ int const foundID = DAT_TileMapState.BuildingLayer[tile];
+ if (foundID > 0 && buildingID != foundID && this->buildings[foundID].logicalState == BLS_NORMAL
+ && this->buildings[foundID].buildingType == buildingType) {
+ return foundID;
+ }
+ ++try_;
+ if (try_ >= tileCount) {
+ try_ = 0;
+ }
+ }
+ return 0;
+ }
+ }
+}
+}
+
+### 0x0041bab0 findAccessibleAreaNearBuildingLocation | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0041BAB0
+ int BuildingsState::findAccessibleAreaNearBuildingLocation(int x, int y, int buildingSize)
+ {
+ int const tileCount = DAT_BuildingDefinedData.BuildingAccessibleTilesCount[buildingSize];
+ for (int try_ = 0; try_ < tileCount; ++try_) {
+ setupBuildingEntrancesOffset(buildingSize, 1, try_, 0);
+ int const tile
+ = DAT_ViewportRenderState.translationMatrix[this->DAT_TempYOffset + y].addXgetTile
+ + this->DAT_TempXOffset + x;
+ if (DAT_TileMapState.PathConnectionLayer[tile] != 0) {
+ return (short)DAT_TileMapState.PathConnectionLayer[tile];
+ }
+ }
+ return 0;
+ }
+ }
+}
+}
+
+### 0x0041bb30 addResourceToStockpile | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0041BB30
+ BOOLEnum BuildingsState::addResourceToStockpile(int buildingID, int buildingUID, ResourceType resourceType,
+ int amount, int maxCapacity, int recomputeResources)
+ {
+ int const owner = this->buildings[buildingID].owner;
+ int const newAmount = this->buildings[buildingID].resources[resourceType] + amount;
+ if (this->buildings[buildingID].uid != buildingUID) {
+ return FALSE;
+ }
+ if (maxCapacity == 0) {
+ this->buildings[buildingID].resources[resourceType] = 0;
+ return FALSE;
+ }
+ if (newAmount < 0) {
+ return FALSE;
+ }
+ if (newAmount > maxCapacity) {
+ return FALSE;
+ }
+ if (recomputeResources == 0) {
+ return TRUE;
+ }
+ this->buildings[buildingID].resources[resourceType] = newAmount;
+ int const buildingType = this->buildings[buildingID].buildingType;
+ if (buildingType >= BT_STOCKPILE && (buildingType <= BT_ARMORY || buildingType == BT_GRANARY)) {
+ DAT_GameState.playerDataArray[owner].currentResources[resourceType] += amount;
+ }
+ extendResourceCountdownForPlayerBuildingsOfType(
+ (BuildingType)this->buildings[buildingID].buildingType, 600,
+ DAT_GameSynchronyState.currentPlayerSlotID);
+ computeResourceSumForBuilding(buildingID);
+ countPlayerResources(owner);
+ updateBuildingGraphicsLayer(buildingID);
+ return TRUE;
+ }
+ }
+}
+}
+
+### 0x0041bc10 addResourceToGranary | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0041BC10
+ void BuildingsState::addResourceToGranary(ResourceType resourceType, int playerID, int amount)
+ {
+ for (int buildingID = 1; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (this->buildings[buildingID].owner == playerID
+ && this->buildings[buildingID].buildingType == BT_GRANARY) {
+ for (int space = getResourceCountThatCanBeDeposited(
+ buildingID, resourceType, 250);
+ space != 0; --space) {
+ addResourceToStockpile(
+ buildingID, this->buildings[buildingID].uid, resourceType, 1, 250, 1);
+ amount -= 1;
+ if (amount == 0) {
+ return;
+ }
+ }
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0041bca0 addResourceToArmory | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0041BCA0
+ void BuildingsState::addResourceToArmory(ResourceType resourceType, int playerID, int amount)
+ {
+ for (int buildingID = 1; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (getArmoryIDIfSpaceLeft(
+ buildingID, resourceType, playerID, amount)
+ != 0) {
+ addResourceToStockpile(
+ buildingID, this->buildings[buildingID].uid, resourceType, amount, 50, 1);
+ return;
+ }
+ }
+ for (int buildingID = 1; buildingID < this->maxBuildingsCount; ++buildingID) {
+ while (getArmoryIDIfSpaceLeft(
+ buildingID, resourceType, playerID, 1)
+ != 0) {
+ addResourceToStockpile(
+ buildingID, this->buildings[buildingID].uid, resourceType, 1, 50, 1);
+ amount -= 1;
+ if (amount == 0) {
+ return;
+ }
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0041bd70 processResourceLoss | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0041BD70
+ void BuildingsState::processResourceLoss(int playerID, ResourceType resourceType, int amount, int param_4)
+ {
+ int foundStorage = 0;
+ if (resourceType == 0) {
+ return;
+ }
+ if (DAT_GameCore.gameMode_2 == Game::GM_SIEGE_THAT) {
+ if (param_4 == 0) {
+ DAT_GameState.playerDataArray[playerID].startResources[resourceType] -= amount;
+ }
+ return;
+ }
+ BuildingType const storageType
+ = getBuildingStorageTypeForResourceType(resourceType);
+ if (storageType == BT_MANORHOUSE) {
+ if (param_4 == 0) {
+ DAT_GameState.playerDataArray[playerID].currentResources[resourceType] -= amount;
+ }
+ return;
+ }
+ for (int buildingID = 1; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (this->buildings[buildingID].logicalState != BLS_NORMAL) {
+ continue;
+ }
+ if (this->buildings[buildingID].buildingType != storageType
+ || this->buildings[buildingID].owner != playerID
+ || this->buildings[buildingID].resources[resourceType] <= 0) {
+ continue;
+ }
+ if (param_4 == 0) {
+ this->buildings[buildingID].someResourceNumber = 0;
+ }
+ foundStorage = 1;
+ if (this->buildings[buildingID].resources[resourceType] >= amount) {
+ if (param_4 != 0) {
+ this->buildings[buildingID].someResourceNumber = amount;
+ } else {
+ this->buildings[buildingID].resources[resourceType] -= amount;
+ DAT_GameState.playerDataArray[playerID].currentResources[resourceType] -= amount;
+ }
+ amount = 0;
+ } else {
+ amount -= this->buildings[buildingID].resources[resourceType];
+ if (param_4 != 0) {
+ this->buildings[buildingID].someResourceNumber
+ = this->buildings[buildingID].resources[resourceType];
+ } else {
+ int const left = this->buildings[buildingID].resources[resourceType];
+ this->buildings[buildingID].resources[resourceType] = 0;
+ DAT_GameState.playerDataArray[playerID].currentResources[resourceType] -= left;
+ }
+ }
+ if (param_4 == 0) {
+ computeResourceSumForBuilding(buildingID);
+ countPlayerResources(playerID);
+ }
+ updateBuildingGraphicsLayer(buildingID);
+ }
+ if (foundStorage == 0) {
+ DAT_GameState.playerDataArray[playerID].currentResources[resourceType] = 0;
+ }
+ }
+ }
+}
+}
+
+### 0x0041bf50 subtractResourcesStoredInBuilding | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0041BF50
+ void BuildingsState::subtractResourcesStoredInBuilding(int buildingID)
+ {
+ if (this->buildings[buildingID].buildingType != BT_STOCKPILE
+ && this->buildings[buildingID].buildingType != BT_GRANARY
+ && this->buildings[buildingID].buildingType != BT_ARMORY) {
+ return;
+ }
+ int const owner = this->buildings[buildingID].owner;
+ for (int resourceType = 1; resourceType < 25; ++resourceType) {
+ int const amount = this->buildings[buildingID].resources[resourceType];
+ if (amount != 0) {
+ DAT_GameState.playerDataArray[owner].currentResources[resourceType] -= amount;
+ if (DAT_GameState.playerDataArray[owner].currentResources[resourceType] < 0) {
+ DAT_GameState.playerDataArray[owner].currentResources[resourceType] = 0;
+ }
+ }
+ }
+ countPlayerResources(owner);
+ }
+ }
+}
+}
+
+### 0x0041bfd0 processPlacementResourceLossForBuildingType | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0041BFD0
+ void BuildingsState::processPlacementResourceLossForBuildingType(
+ int playerID, BuildingType buildingType, int param_3)
+ {
+ short* psVar1;
+ int amount;
+ int iVar2;
+ short sVar3;
+ uint uVar4;
+ int amount_00;
+ int iVar5;
+ int local_4;
+ BuildingType _buildingType;
+ GameMode2Int _gamemode2;
+ int _playerID;
+ _buildingType = buildingType;
+ _playerID = playerID;
+ _gamemode2 = DAT_GameCore.gameMode_2;
+ local_4 = (int)this;
+ if ((((DAT_GameCore.solitaryAllBuildingsAreFree == FALSE)
+ && (DAT_GameCore.gameMode_2 != GM_EDITOR))
+ && ((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY
+ || ((((buildingType != BT_MANORHOUSE
+ && (buildingType != BT_STONEKEEP))
+ && (buildingType != BT_STRONGHOLD))
+ && ((buildingType != BT_KEEPFOUR
+ && (buildingType != BT_KEEPFIVE))))))))
+ && (uVar4 = MACRO_CALL_MEMBER(
+ hasLessWoodThanTheCostOfAWoodcuttersHutAndNoWoodcutters,
+ this)(playerID, buildingType),
+ iVar5 = param_3, uVar4 == 0)) {
+ if (_gamemode2 == GM_SIEGE_THAT) {
+ if (_buildingType == BT_PITCHDITCH) {
+ return;
+ }
+ } else if (_buildingType == BT_PITCHDITCH) {
+ psVar1 = &DAT_GameState.playerDataArray[playerID].pitchDitchCounterTo4;
+ if (*psVar1 == 0) {
+ processResourceLoss(
+ playerID, RT_PITCH, 1, param_3);
+ if (iVar5 != 0) {
+ return;
+ }
+ *psVar1 = 1;
+ return;
+ }
+ if (param_3 != 0) {
+ return;
+ }
+ sVar3 = *psVar1 + 1;
+ *psVar1 = sVar3;
+ if (sVar3 != 4) {
+ return;
+ }
+ *psVar1 = 0;
+ return;
+ }
+ buildingType = this->buildingCosts[_buildingType].requiredStone_0x4;
+ amount = this->buildingCosts[_buildingType].requiredWood;
+ amount_00 = this->buildingCosts[_buildingType].requiredIron_0x8;
+ iVar2 = this->buildingCosts[_buildingType].requiredPitch_0xc;
+ local_4 = this->buildingCosts[_buildingType].requiredGold;
+ if (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT) {
+ amount_00 = 0;
+ playerID = 0;
+ resourceGainForKillingPitAndPitchDitch(
+ _buildingType, (int*)&buildingType, &local_4);
+ iVar5 = param_3;
+ iVar2 = playerID;
+ } else if (amount != 0) {
+ processResourceLoss(
+ playerID, RT_WOOD, amount, param_3);
+ }
+ playerID = iVar2;
+ if (buildingType != ((BuildingType)0)) {
+ processResourceLoss(
+ _playerID, RT_STONE, buildingType, iVar5);
+ }
+ if (amount_00 != 0) {
+ processResourceLoss(
+ _playerID, RT_IRON, amount_00, iVar5);
+ }
+ if (playerID != 0) {
+ processResourceLoss(
+ _playerID, RT_PITCH, playerID, iVar5);
+ }
+ if (local_4 != 0) {
+ processResourceLoss(
+ _playerID, RT_GOLD, local_4, iVar5);
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x0041c190 processWallBuildingLoss | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0041C190
+ void BuildingsState::processWallBuildingLoss(int playerID, int highCount, int lowCount, int zero)
+ {
+ if (DAT_GameCore.solitaryAllBuildingsAreFree != 0) {
+ return;
+ }
+ if (DAT_GameCore.gameMode_2 == 1) {
+ return;
+ }
+ if (DAT_GameCore.gameMode_2 == 6) {
+ DAT_TileMapState.wallPlacementCost = highCount;
+ processResourceLoss(
+ playerID, Game::Resources::RT_STONE, highCount, zero);
+ return;
+ }
+ int const total
+ = lowCount + highCount * 2 + DAT_GameState.playerDataArray[playerID].partialStoneCounter;
+ if (zero == 0) {
+ DAT_GameState.playerDataArray[playerID].partialStoneCounter = total & 3;
+ }
+ int const stoneCost = total / 4;
+ DAT_TileMapState.wallPlacementCost = stoneCost;
+ processResourceLoss(
+ playerID, Game::Resources::RT_STONE, stoneCost, zero);
+ if (playerID == DAT_GameSynchronyState.currentPlayerSlotID && zero == 0 && stoneCost != 0) {
+ DAT_WallAndPitchState.counter = stoneCost;
+ DAT_WallAndPitchState.flag = 0;
+ }
+ }
+ }
+}
+}
+
+### 0x0041c240 applyFoodLossPercentageToPlayer | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0041C240
+ void BuildingsState::applyFoodLossPercentageToPlayer(int playerID, int percentage)
+ {
+ processResourceLoss(playerID,
+ Game::Resources::RT_BREAD,
+ DAT_GameState.playerDataArray[playerID].currentResources[Game::Resources::RT_BREAD]
+ * percentage / 100,
+ 0);
+ processResourceLoss(playerID,
+ Game::Resources::RT_CHEESE,
+ DAT_GameState.playerDataArray[playerID].currentResources[Game::Resources::RT_CHEESE]
+ * percentage / 100,
+ 0);
+ processResourceLoss(playerID,
+ Game::Resources::RT_MEAT,
+ DAT_GameState.playerDataArray[playerID].currentResources[Game::Resources::RT_MEAT]
+ * percentage / 100,
+ 0);
+ processResourceLoss(playerID,
+ Game::Resources::RT_APPLE,
+ DAT_GameState.playerDataArray[playerID].currentResources[Game::Resources::RT_APPLE]
+ * percentage / 100,
+ 0);
+ }
+ }
+}
+}
+
+### 0x0041c310 processResourceGain | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0041C310
+ BOOLEnum BuildingsState::processResourceGain(int playerID, ResourceType resourceType, int amount)
+ {
+ int* piVar1;
+ int _space;
+ BuildingType _storageType;
+ int _buildingSpace;
+ int* _pBuildingStorage;
+ Building* _pOwner;
+ Building* psVar5;
+ int iVar2;
+ int local_8;
+ int* local_4;
+ ResourceType _resource;
+ _resource = resourceType;
+ _space = getResourceSpace(
+ playerID, (int*)((int)(resourceType)));
+ if (_space < amount) {
+ return FALSE;
+ }
+ if (0 < amount) {
+ _storageType = getBuildingStorageTypeForResourceType(
+ resourceType);
+ if (_storageType != BT_MANORHOUSE) {
+ if (_storageType == BT_ARMORY) {
+ addResourceToArmory(
+ resourceType, playerID, amount);
+ return TRUE;
+ }
+ if (_storageType != BT_GRANARY) {
+ iVar2 = 1;
+ if (1 < this->maxBuildingsCount) {
+ _pBuildingStorage = this->buildings[1].resources + resourceType;
+ _pOwner = &this->buildings[1];
+ do {
+ if (((((_pOwner->logicalState == BLS_NORMAL)
+ && (_pOwner->owner == playerID))
+ && ((int)(short)_pOwner->buildingType == _storageType))
+ && ((_pOwner->currentNumberOfResource != 0 && (*_pBuildingStorage != 0))))
+ && (_pOwner->currentNumberOfResource != 0)) {
+ if (*_pBuildingStorage
+ < DAT_BuildingDefinedData.StorageLimitResourceTypeArray[_resource]) {
+ _buildingSpace
+ = DAT_BuildingDefinedData.StorageLimitResourceTypeArray[_resource]
+ - *_pBuildingStorage;
+ resourceType = ((ResourceType)0);
+ if (0 < _buildingSpace) {
+ do {
+ MACRO_CALL_MEMBER(
+ addResourceToStockpile,
+ this)(iVar2, _pOwner->uid, _resource, 1,
+ DAT_BuildingDefinedData
+ .StorageLimitResourceTypeArray[_resource],
+ 1);
+ amount = amount + -1;
+ if (amount < 1) {
+ return TRUE;
+ }
+ resourceType = resourceType + RT_LOGS;
+ } while ((int)resourceType < _buildingSpace);
+ }
+ }
+ }
+ iVar2 = iVar2 + 1;
+ _pBuildingStorage = _pBuildingStorage + 0xcb;
+ _pOwner = _pOwner + 0x196;
+ } while (iVar2 < this->maxBuildingsCount);
+ }
+ local_8 = 1;
+ if (1 < this->maxBuildingsCount) {
+ local_4 = this->buildings[1].resources + _resource;
+ psVar5 = &this->buildings[1];
+ do {
+ if (((psVar5->logicalState == BLS_NORMAL)
+ && (psVar5->owner == playerID))
+ && (((int)(short)psVar5->buildingType == _storageType
+ && (psVar5->currentNumberOfResource == 0)))) {
+ iVar2 = DAT_BuildingDefinedData.StorageLimitResourceTypeArray[_resource]
+ - *local_4;
+ resourceType = ((ResourceType)0);
+ if (0 < iVar2) {
+ do {
+ addResourceToStockpile(local_8, psVar5->uid, _resource, 1,
+ DAT_BuildingDefinedData
+ .StorageLimitResourceTypeArray[_resource],
+ 1);
+ amount = amount + -1;
+ if (amount < 1) {
+ return TRUE;
+ }
+ resourceType = resourceType + RT_LOGS;
+ } while ((int)resourceType < iVar2);
+ }
+ }
+ local_4 = local_4 + 0xcb;
+ local_8 = local_8 + 1;
+ psVar5 = psVar5 + 0x196;
+ } while (local_8 < this->maxBuildingsCount);
+ }
+ countPlayerResources(
+ playerID);
+ return FALSE;
+ }
+ addResourceToGranary(
+ resourceType, playerID, amount);
+ countPlayerResources(
+ playerID);
+ return TRUE;
+ }
+ piVar1 = DAT_GameState.playerDataArray[playerID].currentResources + resourceType;
+ *piVar1 = *piVar1 + amount;
+ }
+ return TRUE;
+ }
+ }
+}
+}
+

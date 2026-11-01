@@ -1,0 +1,1138 @@
+### 0x004679f0 Constructor_WindowAndDirectDraw | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004679F0
+ WindowAndDirectDraw* WindowAndDirectDraw::Constructor_WindowAndDirectDraw()
+ {
+ int _screenHeight;
+ this->runGameAsExclusiveFullscreen = TRUE;
+ this->currentGameResolution = SRE_neg1;
+ this->drawingReady_0x0 = FALSE;
+ this->windowMoveEventBlitCountdown = 0;
+ this->gameFocused = FALSE;
+ this->isNotProcessingInputEvents = FALSE;
+ this->unk_resetViewportRelated = 1;
+ this->mbr_0xcc = 0;
+ this->not_DDCAPS2_CANBOBHARDWARE_0xe0 = FALSE;
+ this->screenWidthOnInit_0x10 = MACRO_CALL(GetSystemMetrics)(SM_CXSCREEN);
+ _screenHeight = MACRO_CALL(GetSystemMetrics)(SM_CYSCREEN);
+ this->postWindowCloseMessage = 0;
+ this->pointerToIDirectDrawInterface = (IDirectDraw*)0x0;
+ this->directDrawBackbufferSurfacePointer = (IDirectDrawSurface*)0x0;
+ this->directDrawPrimarySurfacePointer = (IDirectDrawSurface*)0x0;
+ this->directDrawOffscreenSurfacePointer_screenMenu = (IDirectDrawSurface*)0x0;
+ this->directDrawOffscreenSurfacePointer_mapGame = (IDirectDrawSurface*)0x0;
+ this->surfacePointer_screenMenu = (ushort*)0x0;
+ this->surfacePointer_mapGame = (ushort*)0x0;
+ this->field37_0xdc = 0;
+ this->screenHeightOnInit_0x14 = _screenHeight;
+ this->NOTSelfBufferOrWindowMode_0xf8 = TRUE;
+ return this;
+ }
+ }
+}
+}
+
+### 0x00467a90 createWindow | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00467A90
+ BOOLEnum WindowAndDirectDraw::createWindow(LPCSTR windowName, uint cursorResource)
+ {
+ ATOM _atom;
+ int nHeight;
+ int nWidth;
+ HWND__* hWndParent;
+ HMENU__* hMenu;
+ HINSTANCE__* hInstance;
+ void* lpParam;
+ WNDCLASSA _wndClassA;
+ _wndClassA.lpfnWndProc = Global::WindowMsgProcessingFunc::instance;
+ _wndClassA.style = 0;
+ _wndClassA.cbClsExtra = 0;
+ _wndClassA.cbWndExtra = 0;
+ _wndClassA.hInstance = this->hInstanceUnk_0xa8;
+ _wndClassA.hIcon = LoadIconA(this->hInstanceUnk_0xa8, (CHAR*)(cursorResource & 0xffff));
+ _wndClassA.hCursor = (HICON__*)0x0;
+ _wndClassA.hbrBackground = (HBRUSH__*)0x0;
+ _wndClassA.lpszMenuName = (CHAR*)0x0;
+ _wndClassA.lpszClassName = "FFwinClass";
+ _atom = RegisterClassA(&_wndClassA);
+ if (_atom == 0) {
+ return FALSE;
+ }
+ lpParam = (void*)0x0;
+ hMenu = (HMENU__*)0x0;
+ hWndParent = (HWND__*)0x0;
+ hInstance = this->hInstanceUnk_0xa8;
+ nHeight = MACRO_CALL(GetSystemMetrics)(SM_CYSCREEN);
+ nWidth = MACRO_CALL(GetSystemMetrics)(SM_CXSCREEN);
+ this->windowHandle = CreateWindowExA(
+ 0, "FFwinClass", windowName, 0x90000000, 0, 0, nWidth, nHeight, hWndParent, hMenu, hInstance, lpParam);
+ return (uint)(this->windowHandle != (HWND__*)0x0);
+ }
+ }
+}
+}
+
+### 0x00467b40 getDeviceCapsAndSetup | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00467B40
+ void WindowAndDirectDraw::getDeviceCapsAndSetup()
+ {
+ HDC__* _hdc;
+ int _numOfColors;
+ int _numColorPlanes;
+ int _colorBitsPerPixel;
+ int _screenWidth;
+ int _screenHeight;
+ _hdc = GetDC((HWND__*)0x0);
+ _numOfColors = MACRO_CALL(GetDeviceCaps)(_hdc, WDC_NUMCOLORS);
+ if (_numOfColors == -1) {
+ this->colorDepth = 0x10;
+ } else {
+ _numColorPlanes = MACRO_CALL(GetDeviceCaps)(_hdc, WDC_PLANES);
+ _colorBitsPerPixel = MACRO_CALL(GetDeviceCaps)(_hdc, WDC_BITSPIXEL);
+ this->colorDepth = _numColorPlanes * _colorBitsPerPixel;
+ }
+ ReleaseDC((HWND__*)0x0, _hdc);
+ /*
+ The width of the screen of the primary display monitor, in pixels. This is the same value obtained by
+ calling GetDeviceCaps as follows: GetDeviceCaps( hdcPrimaryMonitor, HORZRES)
+ */
+ _screenWidth = MACRO_CALL(GetSystemMetrics)(SM_CXSCREEN);
+ this->screenHorizontalResolutionInPixels = _screenWidth;
+ /*
+ The height of the screen of the primary display monitor, in pixels. This is the same value obtained by
+ calling GetDeviceCaps as follows: GetDeviceCaps( hdcPrimaryMonitor, VERTRES).
+ */
+ _screenHeight = MACRO_CALL(GetSystemMetrics)(SM_CYSCREEN);
+ /*
+ Set variable, if not 16 bit. Maybe it needs to take the screen, because it can not directly blt to a non
+ 15bit/16bit desktop?
+ */
+ this->screenVerticalResolutionInPixels = _screenHeight;
+ if (this->colorDepth != 0x10) {
+ this->runGameAsExclusiveFullscreen = TRUE;
+ }
+ /*
+ Set flag, if screen resolution smaller than requested resolution. It shall not "scale down", I think.
+ -TheRedDaemon
+ */
+ if (this->screenHorizontalResolutionInPixels < this->gameResolutionX) {
+ this->runGameAsExclusiveFullscreen = TRUE;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00467d80 releaseSurfacesAndDirectDraw | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00467D80
+ void WindowAndDirectDraw::releaseSurfacesAndDirectDraw(BOOLEnum alsoReleaseDDInterfaceUnk)
+ {
+ this->drawingReady_0x0 = FALSE;
+ if ((alsoReleaseDDInterfaceUnk != FALSE) && (this->pointerToIDirectDrawInterface != (IDirectDraw*)0x0)) {
+ /*
+ Signature overwrite
+ */
+ (*(this->pointerToIDirectDrawInterface)->vTable->SetCooperativeLevel)(
+ this->pointerToIDirectDrawInterface, this->windowHandle, 8);
+ }
+ if (this->directDrawOffscreenSurfacePointer_screenMenu != (IDirectDrawSurface*)0x0) {
+ /*
+ Signature overwrite
+ */
+ (*(this->directDrawOffscreenSurfacePointer_screenMenu)->vTable->Release)(
+ this->directDrawOffscreenSurfacePointer_screenMenu);
+ this->directDrawOffscreenSurfacePointer_screenMenu = (IDirectDrawSurface*)0x0;
+ }
+ if (this->directDrawOffscreenSurfacePointer_mapGame != (IDirectDrawSurface*)0x0) {
+ /*
+ Signature overwrite
+ */
+ (*(this->directDrawOffscreenSurfacePointer_mapGame)->vTable->Release)(
+ this->directDrawOffscreenSurfacePointer_mapGame);
+ this->directDrawOffscreenSurfacePointer_mapGame = (IDirectDrawSurface*)0x0;
+ }
+ if (this->directDrawBackbufferSurfacePointer != (IDirectDrawSurface*)0x0) {
+ /*
+ Signature overwrite
+ */
+ (*(this->directDrawBackbufferSurfacePointer)->vTable->Release)(
+ this->directDrawBackbufferSurfacePointer);
+ this->directDrawBackbufferSurfacePointer = (IDirectDrawSurface*)0x0;
+ }
+ if (this->directDrawPrimarySurfacePointer != (IDirectDrawSurface*)0x0) {
+ /*
+ Signature overwrite
+ */
+ (*(this->directDrawPrimarySurfacePointer)->vTable->Release)(this->directDrawPrimarySurfacePointer);
+ this->directDrawPrimarySurfacePointer = (IDirectDrawSurface*)0x0;
+ }
+ this->surfacePointer_screenMenu = (ushort*)0x0;
+ if ((alsoReleaseDDInterfaceUnk != FALSE) && (this->pointerToIDirectDrawInterface != (IDirectDraw*)0x0)) {
+ /*
+ Signature overwrite
+ */
+ (*(this->pointerToIDirectDrawInterface)->vTable->Release)(this->pointerToIDirectDrawInterface);
+ this->pointerToIDirectDrawInterface = (IDirectDraw*)0x0;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00467e40 finalizeDirectDrawShutdown | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00467E40
+ void WindowAndDirectDraw::finalizeDirectDrawShutdown()
+ {
+ releaseSurfacesAndDirectDraw(
+ TRUE);
+ CoUninitialize();
+ }
+ }
+}
+}
+
+### 0x00467e50 adjustForNotExclusiveFullscreenUnk | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00467E50
+ void WindowAndDirectDraw::adjustForNotExclusiveFullscreenUnk(LPRECT destinationRect, LPRECT sourceRect)
+ {
+ int _screenWidth;
+ int _screenHeight;
+ if (this->runGameAsExclusiveFullscreen == FALSE) {
+ _screenWidth = MACRO_CALL(GetSystemMetrics)(SM_CXSCREEN);
+ _screenHeight = MACRO_CALL(GetSystemMetrics)(SM_CYSCREEN);
+ if (destinationRect->left < 0) {
+ sourceRect->left = sourceRect->left - destinationRect->left;
+ destinationRect->left = 0;
+ }
+ if (destinationRect->top < 0) {
+ sourceRect->top = sourceRect->top - destinationRect->top;
+ destinationRect->top = 0;
+ }
+ if (_screenWidth < destinationRect->right) {
+ sourceRect->right = sourceRect->right + (_screenWidth - destinationRect->right);
+ destinationRect->right = _screenWidth;
+ }
+ if (_screenHeight < destinationRect->bottom) {
+ sourceRect->bottom = sourceRect->bottom + (_screenHeight - destinationRect->bottom);
+ destinationRect->bottom = _screenHeight;
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00467ec0 restoreDXSurfaces | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00467EC0
+ BOOLEnum WindowAndDirectDraw::restoreDXSurfaces()
+ {
+ HRESULT HVar1;
+ if (this->NOTSelfBufferOrWindowMode_0xf8 == TRUE) {
+ if (this->directDrawPrimarySurfacePointer == (IDirectDrawSurface*)0x0) {
+ return FALSE;
+ }
+ HVar1 = (*(this->directDrawPrimarySurfacePointer)->vTable->Restore)(
+ this->directDrawPrimarySurfacePointer);
+ if (HVar1 != 0) {
+ return FALSE;
+ }
+ }
+ if ((((this->directDrawBackbufferSurfacePointer != (IDirectDrawSurface*)0x0)
+ && (HVar1 = (*(this->directDrawBackbufferSurfacePointer)->vTable->Restore)(
+ this->directDrawBackbufferSurfacePointer),
+ HVar1 == 0))
+ && (this->directDrawOffscreenSurfacePointer_screenMenu != (IDirectDrawSurface*)0x0))
+ && (((HVar1 = (*(this->directDrawOffscreenSurfacePointer_screenMenu)->vTable->Restore)(
+ this->directDrawOffscreenSurfacePointer_screenMenu),
+ HVar1 == 0 && (this->directDrawOffscreenSurfacePointer_mapGame != (IDirectDrawSurface*)0x0))
+ && (HVar1 = (*(this->directDrawOffscreenSurfacePointer_mapGame)->vTable->Restore)(
+ this->directDrawOffscreenSurfacePointer_mapGame),
+ HVar1 == 0)))) {
+ return TRUE;
+ }
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x0046f730 cleanDirectDraw | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0046F730
+ void WindowAndDirectDraw::cleanDirectDraw()
+ {
+ releaseSurfacesAndDirectDraw(
+ TRUE);
+ this->drawingReady_0x0 = FALSE;
+ }
+ }
+}
+}
+
+### 0x0046f750 setWindowStyleRectAndPosition | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0046F750
+ void WindowAndDirectDraw::setWindowStyleRectAndPosition()
+ {
+ int _y;
+ int _x;
+ uint dwStyle;
+ tagRECT _intendedWindowRect;
+ /*
+ initially visible + (either pop-up window if f98390 is set, or a window with a title bar and ...
+ 0xCA0000 -> WS_BORDER, WS_DLGFRAME, WS_SYSMENU, WS_MINIMIZEBOX Hoever, if exclusive, it becomes only:
+ WS_POPUP
+ */
+ dwStyle = (-(uint)(this->runGameAsExclusiveFullscreen != FALSE) & 0x7f360000) + 0xca0000 | 268435456;
+ /*
+ set a new window style GWL_STYLE Needed to add signature overwrite to not break stack analysis.
+ -TheRedDaemon
+ */
+ (*PTR_SetWindowLongAThunk::instance)(this->windowHandle, -0x10, dwStyle);
+ MACRO_CALL(SetRect)(&_intendedWindowRect, 0, 0, this->resolutionX, this->resolutionY);
+ AdjustWindowRect(&_intendedWindowRect, dwStyle, 0);
+ storeWindowRectangleInfoUnk(0, 0, (LONG)((int)(this->resolutionX)), (LONG)((int)(this->resolutionY)));
+ _x = this->resolutionX;
+ _y = this->resolutionY;
+ if (this->runGameAsExclusiveFullscreen != FALSE) {
+ _y = MACRO_CALL(GetSystemMetrics)(SM_CYSCREEN);
+ _x = MACRO_CALL(GetSystemMetrics)(SM_CXSCREEN);
+ }
+ MACRO_CALL(SetRect)(&this->clientOnScreenCoords, 0, 0, _x, _y);
+ this->gameInWindowPosY_0x34 = (_intendedWindowRect.bottom - _intendedWindowRect.top) - this->resolutionY;
+ this->gameInWindowPosX_0x30 = (_intendedWindowRect.right - this->resolutionX) - _intendedWindowRect.left;
+ this->gameOnScreenPosY_0x2c = (this->screenVerticalResolutionInPixels - this->gameResolutionY) / 2 + -0x14;
+ this->gameOnScreenPosX_0x28 = (this->screenHorizontalResolutionInPixels - this->gameResolutionX) / 2;
+ SetWindowPos(this->windowHandle, (HWND__*)-2, this->gameOnScreenPosX_0x28 - _intendedWindowRect.left,
+ this->gameOnScreenPosY_0x2c - _intendedWindowRect.top,
+ _intendedWindowRect.right - _intendedWindowRect.left,
+ _intendedWindowRect.bottom - _intendedWindowRect.top, 0x10);
+ UpdateWindow(this->windowHandle);
+ SetFocus(this->windowHandle);
+ return;
+ }
+ }
+}
+}
+
+### 0x0046f880 setupPreferredScreenResolution | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0046F880
+ void WindowAndDirectDraw::setupPreferredScreenResolution()
+ {
+ if (this->currentGameResolution == SRE_800x600) {
+ LAB_0046f9de:
+ this->gameResolutionX = 800;
+ } else {
+ if (this->currentGameResolution == SRE_1024x768) {
+ this->gameResolutionX = 1024;
+ this->gameResolutionY = 768;
+ goto LAB_0046f9ec;
+ }
+ if (this->currentGameResolution != SRE_1024x600) {
+ if (this->currentGameResolution == SRE_1280x1024) {
+ this->gameResolutionX = 0x500;
+ this->gameResolutionY = 0x400;
+ goto LAB_0046f9ec;
+ }
+ if (this->currentGameResolution == SRE_1600x1200) {
+ this->gameResolutionX = 0x640;
+ this->gameResolutionY = 0x4b0;
+ goto LAB_0046f9ec;
+ }
+ if (this->currentGameResolution == SRE_1280x720) {
+ this->gameResolutionX = 0x500;
+ this->gameResolutionY = 0x2d0;
+ goto LAB_0046f9ec;
+ }
+ if (this->currentGameResolution == SRE_1440x900) {
+ this->gameResolutionX = 0x5a0;
+ this->gameResolutionY = 900;
+ goto LAB_0046f9ec;
+ }
+ if (this->currentGameResolution == SRE_1920x1080) {
+ this->gameResolutionX = 0x780;
+ this->gameResolutionY = 0x438;
+ goto LAB_0046f9ec;
+ }
+ if (this->currentGameResolution == SRE_1920x1200) {
+ this->gameResolutionX = 0x780;
+ this->gameResolutionY = 0x4b0;
+ goto LAB_0046f9ec;
+ }
+ if (this->currentGameResolution == SRE_2560x1440) {
+ this->gameResolutionX = 0xa00;
+ this->gameResolutionY = 0x5a0;
+ goto LAB_0046f9ec;
+ }
+ if (this->currentGameResolution == SRE_2560x1600) {
+ this->gameResolutionX = 0xa00;
+ this->gameResolutionY = 0x640;
+ goto LAB_0046f9ec;
+ }
+ if (this->currentGameResolution == SRE_1366x768) {
+ this->gameResolutionX = 0x556;
+ this->gameResolutionY = 0x300;
+ goto LAB_0046f9ec;
+ }
+ if (this->currentGameResolution == SRE_1360x768) {
+ this->gameResolutionX = 0x550;
+ this->gameResolutionY = 0x300;
+ goto LAB_0046f9ec;
+ }
+ if (this->currentGameResolution == SRE_1680x1050) {
+ this->gameResolutionX = 0x690;
+ this->gameResolutionY = 0x41a;
+ goto LAB_0046f9ec;
+ }
+ if (this->currentGameResolution == SRE_1600x900) {
+ this->gameResolutionX = 0x640;
+ this->gameResolutionY = 900;
+ goto LAB_0046f9ec;
+ }
+ if (this->currentGameResolution == 20) {
+ this->gameResolutionX = 640;
+ this->gameResolutionY = 480;
+ goto LAB_0046f9ec;
+ }
+ goto LAB_0046f9de;
+ }
+ this->gameResolutionX = 0x400;
+ }
+ this->gameResolutionY = 600;
+ LAB_0046f9ec:
+ /*
+ The game is centered around the 800x600 resolution. That is the target res for the menu. -TheRedDaemon
+ */
+ this->mainMenuBorderWidth = (this->gameResolutionX + -800) / 2;
+ this->mainMenuBorderHeight = (this->gameResolutionY + -600) / 2;
+ this->byteSizeOfOneHorizontalLine = this->gameResolutionX * 2;
+ this->resolutionX = this->gameResolutionX;
+ this->resolutionY = this->gameResolutionY;
+ /*
+ 1366x768 seems to have a different handling. It uses the x-res 1368 * 2. No wonder 1366x768 once broke
+ my display engine change. Interesting though, ignoring this handling fixed my issue. -TheRedDaemon
+ */
+ if (this->currentGameResolution == SRE_1366x768) {
+ this->byteSizeOfOneHorizontalLine = 2736;
+ }
+ this->gameResolutionY_3_0x44 = this->gameResolutionY;
+ this->byteSizeofScreenResolution = this->byteSizeOfOneHorizontalLine * this->gameResolutionY;
+ this->numPixel_GameX_x_3_x_GameY_0x4c = this->gameResolutionY * this->gameResolutionX * 3;
+ setRenderingRectToGameResolution();
+ setMapSurfaceHeightRangeUnk();
+ setScreenMenuSurfaceHeightRangeToResolution();
+ resetTextClipRange();
+ return;
+ }
+ }
+}
+}
+
+### 0x0046fa70 initializeDirectDraw | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0046FA70
+ BOOLEnum WindowAndDirectDraw::initializeDirectDraw()
+ {
+ byte _osVersionTest;
+ HRESULT _hResult;
+ ScreenResolutionEnumInt _intendedRes;
+ HRESULT _hResult2;
+ HRESULT _hResultScreenSetting;
+ HRESULT _hResult3;
+ HRESULT _hResult8;
+ HRESULT _hResult9;
+ HRESULT _hResult4;
+ HRESULT _hResult5;
+ HRESULT _hResult6;
+ HRESULT _hResult7;
+ int _xScreenRes;
+ int* _resPointer;
+ int _copyLengthScreenMenuDesc;
+ int _copyLengthMapGameDesc;
+ DWORD* _surfDescScreenMenu_RunPtr;
+ DWORD* _surfDescMapGame_RunPtr;
+ DWORD* _surfDescScreenMenuBink_RunPtr;
+ DWORD* _surfDescMapGameBink_RunPtr;
+ DDSURFACEDESC _ddsurfacedesc;
+ DDCAPS_SHC _ddcaps;
+ IDirectDrawSurface* _directDrawOffscreenSurfacePointer_screenMenu;
+ IDirectDrawSurface* _directDrawOffscreenSurfacePointer_mapGame;
+ ScreenResolutionEnumInt _runRes;
+ IDirectDrawSurface* _surfacePtrGame;
+ IDirectDrawSurface* _surfacePtrMap;
+ int _yScreenRes;
+ /*
+ this function has many messed up stack things because DirectDrawCreate is not properly referenced
+ */
+ if (this->pointerToIDirectDrawInterface == (IDirectDraw*)0x0) {
+ _osVersionTest = TestOSVersion();
+ if (_osVersionTest == 0) {
+ _hResult = MACRO_CALL(DirectDrawCreate)(
+ (GUID*)0x0, (IDirectDraw**)((int)(&this->pointerToIDirectDrawInterface)), (IUnknown*)0x0);
+ } else {
+ _hResult = MACRO_CALL(DirectDrawCreate)(
+ (GUID*)0x2, (IDirectDraw**)((int)(&this->pointerToIDirectDrawInterface)), (IUnknown*)0x0);
+ }
+ this->NOTSelfBufferOrWindowMode_0xf8 = TRUE;
+ /*
+ HRESULT not really enumerable. This "if" is executed if the Interface creation fails.
+ */
+ if (_hResult != 0) {
+ return FALSE;
+ }
+ }
+ _memset(&_ddcaps, 0, 0x17c);
+ _ddcaps.dwSize = 0x17c;
+ /*
+ Signature Overwrite
+ */
+ (*(this->pointerToIDirectDrawInterface)->vTable->GetCaps)(
+ this->pointerToIDirectDrawInterface, &_ddcaps, (DDCAPS_SHC*)0x0);
+ /*
+ DDCAPS2_CANBOBHARDWARE == 0x4000 "The overlay hardware can display each field of an interlaced video
+ stream individually." Seems it sets some flag based on this condtion. But I am not sure what it means.
+ -TheRedDaemon
+ */
+ if ((_ddcaps.dwCaps2 & DDCAPS2_CANBOBHARDWARE) == ((DDCAPS_DX7_dwCaps2)0)) {
+ this->not_DDCAPS2_CANBOBHARDWARE_0xe0 = TRUE;
+ }
+ /*
+ Signature Overwrite
+ */
+ (*(this->pointerToIDirectDrawInterface)->vTable->EnumDisplayModes)(this->pointerToIDirectDrawInterface, 0,
+ (DDSURFACEDESC*)0x0, (void*)0x0, Synchrony::EnumDisplayModesCallback::instance);
+ if (((int)this->currentGameResolution < 0)
+ || ((&this->resolutionSupported_0x68.noneUnk)[this->currentGameResolution] == 0)) {
+ this->currentGameResolution = SRE_neg1;
+ _intendedRes = SRE_1920x1200;
+ _resPointer = &this->resolutionSupported_0x68.1920x1200;
+ do {
+ _runRes = _intendedRes;
+ if (*_resPointer != 0)
+ break;
+ _intendedRes = _intendedRes - SRE_800x600;
+ _resPointer = _resPointer + -1;
+ _runRes = this->currentGameResolution;
+ } while (0 < (int)_intendedRes);
+ this->currentGameResolution = _runRes;
+ if (this->currentGameResolution == SRE_neg1) {
+ if (this->resolutionSupported_0x68.1360x768 == 0) {
+ /*
+ If I am not mistaken, then if 1024x600 supported then use this, else 800x600. -TheRedDaemon
+ */
+ this->currentGameResolution = (-(uint)(this->resolutionSupported_0x68.1024x600 != 0) & 0xe)
+ + SRE_800x600;
+ } else {
+ this->currentGameResolution = SRE_1360x768;
+ }
+ }
+ setupPreferredScreenResolution();
+ }
+ if (this->runGameAsExclusiveFullscreen == FALSE) {
+ /*
+ DDSC_NORMAL -> Wants to be a normal window Signature Overwrite
+ */
+ _hResultScreenSetting = (*(this->pointerToIDirectDrawInterface)->vTable->SetCooperativeLevel)(
+ this->pointerToIDirectDrawInterface, this->windowHandle, 8);
+ } else {
+ /*
+ DDSCL_FULLSCREEN, DDSCL_EXCLUSIVE, DDSCL_ALLOWREBOOT -> Takes the screen. Normally the known
+ behaviour. Signature Overwrite
+ */
+ _hResult2 = (*(this->pointerToIDirectDrawInterface)->vTable->SetCooperativeLevel)(
+ this->pointerToIDirectDrawInterface, this->windowHandle, 0x13);
+ if (_hResult2 != 0)
+ goto LAB_0046fbca;
+ /*
+ Signature Overwrite
+ */
+ _hResultScreenSetting = (*(this->pointerToIDirectDrawInterface)->vTable->SetDisplayMode)(
+ this->pointerToIDirectDrawInterface, this->resolutionX, this->resolutionY, 0x10);
+ }
+ /*
+ If it fails:
+ */
+ if (_hResultScreenSetting != 0) {
+ LAB_0046fbca:
+ releaseSurfacesAndDirectDraw(
+ TRUE);
+ return FALSE;
+ }
+ /*
+ Self-Buffering? Or window mode? -TheRedDaemon
+ */
+ if (this->NOTSelfBufferOrWindowMode_0xf8 == FALSE) {
+ _memset(&_ddsurfacedesc, 0, (size_t)((int)(108)));
+ _ddsurfacedesc.dwSize = 0x6c;
+ _ddsurfacedesc.dwFlags = 1;
+ _ddsurfacedesc.ddsCaps = 0x200;
+ /*
+ Caps valid. -> Primary surface. In this case, the game draws directly on the otherwise
+ "backbuffer". I assume they double buffer it themselves. - TheRedDaemon Signature Overwrite
+ */
+ _hResult3 = (*(this->pointerToIDirectDrawInterface)->vTable->CreateSurface)(
+ this->pointerToIDirectDrawInterface, &_ddsurfacedesc, &this->directDrawBackbufferSurfacePointer,
+ (IUnknown*)0x0);
+ if (_hResult3 != 0) {
+ releaseSurfacesAndDirectDraw(TRUE);
+ return FALSE;
+ }
+ } else {
+ _memset(&_ddsurfacedesc, 0, 0x6c);
+ _ddsurfacedesc.dwBackBufferCount = 1;
+ _ddsurfacedesc.dwSize = 0x6c;
+ _ddsurfacedesc.dwFlags = 0x21;
+ _ddsurfacedesc.ddsCaps = 0x218;
+ /*
+ Backbuffer count and caps valid. -> Primary, complex and flip Signature Overwrite
+ */
+ _hResult8 = (*(this->pointerToIDirectDrawInterface)->vTable->CreateSurface)(
+ this->pointerToIDirectDrawInterface, &_ddsurfacedesc, &this->directDrawPrimarySurfacePointer,
+ (IUnknown*)0x0);
+ if (_hResult8 != 0)
+ goto LAB_0046fe31;
+ _memset(&_ddsurfacedesc, 0, 0x6c);
+ _ddsurfacedesc.dwSize = 0x6c;
+ _ddsurfacedesc.dwFlags = 1;
+ _ddsurfacedesc.ddsCaps = 4;
+ /*
+ Caps valid
+ */
+ /*
+ Signature Overwrite
+ */
+ _hResult9 = (*(this->directDrawPrimarySurfacePointer)->vTable->GetAttachedSurface)(
+ this->directDrawPrimarySurfacePointer, &_ddsurfacedesc.ddsCaps,
+ &this->directDrawBackbufferSurfacePointer);
+ if (_hResult9 != 0)
+ goto LAB_0046fe31;
+ }
+ _memset(&_ddsurfacedesc, 0, (size_t)((int)(108)));
+ _ddsurfacedesc.dwWidth = this->resolutionX;
+ _ddsurfacedesc.dwSize = 0x6c;
+ _ddsurfacedesc.dwFlags = 7;
+ _ddsurfacedesc.ddsCaps = 2112;
+ _ddsurfacedesc.dwHeight = this->resolutionY;
+ /*
+ Signature Overwrite
+ */
+ _hResult4
+ = (*(this->pointerToIDirectDrawInterface)->vTable->CreateSurface)(this->pointerToIDirectDrawInterface,
+ &_ddsurfacedesc, &this->directDrawOffscreenSurfacePointer_screenMenu, (IUnknown*)0x0);
+ if (_hResult4 == 0) {
+ DAT_BinkControlState.screenMenuSurfaceType_0x5c
+ = BinkDDSurfaceType(this->directDrawOffscreenSurfacePointer_screenMenu);
+ _surfacePtrGame = this->directDrawOffscreenSurfacePointer_screenMenu;
+ _copyLengthScreenMenuDesc = 27;
+ _surfDescScreenMenu_RunPtr = &_ddsurfacedesc.dwSize;
+ _surfDescScreenMenuBink_RunPtr = &this->surfDescBink_offSurfScreenMenu_0x104.dwSize;
+ for (; _copyLengthScreenMenuDesc != 0; _copyLengthScreenMenuDesc = _copyLengthScreenMenuDesc + -1) {
+ *_surfDescScreenMenuBink_RunPtr = *_surfDescScreenMenu_RunPtr;
+ _surfDescScreenMenu_RunPtr = _surfDescScreenMenu_RunPtr + 1;
+ _surfDescScreenMenuBink_RunPtr = _surfDescScreenMenuBink_RunPtr + 1;
+ }
+ /*
+ Signature Overwrite
+ */
+ _hResult5
+ = (*_surfacePtrGame->vTable->Lock)(_surfacePtrGame, (tagRECT*)0x0, &_ddsurfacedesc, 1, (void*)0x0);
+ if (_hResult5 == 0) {
+ this->surfacePointer_screenMenu = _ddsurfacedesc.lpSurface;
+ /*
+ Would break, since ghidra is unable to resolve the stack ptr changes. Signature Overwrite to
+ solve
+ */
+ (*(this->directDrawOffscreenSurfacePointer_screenMenu)->vTable->Unlock)(
+ this->directDrawOffscreenSurfacePointer_screenMenu, (tagRECT*)0x0);
+ _memset(&_ddsurfacedesc, 0, 0x6c);
+ _ddsurfacedesc.dwSize = 0x6c;
+ _ddsurfacedesc.dwFlags = 7;
+ _ddsurfacedesc.ddsCaps = 0x840;
+ _ddsurfacedesc.dwHeight = 0x81c;
+ _ddsurfacedesc.dwWidth = 0xfd8;
+ /*
+ Signature Overwrite
+ */
+ _hResult6 = (*(this->pointerToIDirectDrawInterface)->vTable->CreateSurface)(
+ this->pointerToIDirectDrawInterface, &_ddsurfacedesc,
+ &this->directDrawOffscreenSurfacePointer_mapGame, (IUnknown*)0x0);
+ if (_hResult6 == 0) {
+ DAT_BinkControlState.mapGameSurfaceType
+ = BinkDDSurfaceType(this->directDrawOffscreenSurfacePointer_mapGame);
+ _surfacePtrMap = this->directDrawOffscreenSurfacePointer_mapGame;
+ _copyLengthMapGameDesc = 0x1b;
+ _surfDescMapGame_RunPtr = &_ddsurfacedesc.dwSize;
+ _surfDescMapGameBink_RunPtr = &this->surfDescBink_offSurfMapGame.dwSize;
+ for (; _copyLengthMapGameDesc != 0; _copyLengthMapGameDesc = _copyLengthMapGameDesc + -1) {
+ *_surfDescMapGameBink_RunPtr = *_surfDescMapGame_RunPtr;
+ _surfDescMapGame_RunPtr = _surfDescMapGame_RunPtr + 1;
+ _surfDescMapGameBink_RunPtr = _surfDescMapGameBink_RunPtr + 1;
+ }
+ /*
+ Signature Overwrite
+ */
+ _hResult7 = (*_surfacePtrMap->vTable->Lock)(
+ _surfacePtrMap, (tagRECT*)0x0, &_ddsurfacedesc, 1, (void*)0x0);
+ if (_hResult7 == 0) {
+ this->surfacePointer_mapGame = _ddsurfacedesc.lpSurface;
+ /*
+ Same, also breaks stack ptr. Signature Overwrite
+ */
+ (*(this->directDrawOffscreenSurfacePointer_mapGame)->vTable->Unlock)(
+ this->directDrawOffscreenSurfacePointer_mapGame, (tagRECT*)0x0);
+ _memset(&_ddsurfacedesc, 0, 0x6c);
+ _ddsurfacedesc.dwSize = 0x6c;
+ _ddsurfacedesc.ddpfPixelFormat.dwSize = 0x20;
+ _ddsurfacedesc.dwFlags = 0x1000;
+ /*
+ Signature Overwrite
+ */
+ (*(this->directDrawBackbufferSurfacePointer)->vTable->GetSurfaceDesc)(
+ this->directDrawBackbufferSurfacePointer, &_ddsurfacedesc);
+ /*
+ Check the bit mask for green. If 6bit, then use the 565 mode.
+ */
+ this->colorBitMode = RGB_555;
+ if (_ddsurfacedesc.ddpfPixelFormat.union_bitMask_GorU == 0x7e0) {
+ this->colorBitMode = RGB_565;
+ }
+ InitializeColors();
+ if (this->runGameAsExclusiveFullscreen == FALSE) {
+ GetClientRect(this->windowHandle, &this->clientOnScreenCoords);
+ MACRO_CALL(ClientToScreen)(
+ this->windowHandle, (LPPOINT)((int)((tagPOINT*)&this->clientOnScreenCoords)));
+ MACRO_CALL(ClientToScreen)(
+ this->windowHandle, (LPPOINT)((int)((tagPOINT*)&this->clientOnScreenCoords.right)));
+ UpdateWindow(this->windowHandle);
+ return TRUE;
+ }
+ _yScreenRes = MACRO_CALL(GetSystemMetrics)(SM_CYSCREEN);
+ _xScreenRes = MACRO_CALL(GetSystemMetrics)(SM_CXSCREEN);
+ SetRect(&this->clientOnScreenCoords, 0, 0, _xScreenRes, _yScreenRes);
+ return TRUE;
+ }
+ }
+ }
+ }
+ LAB_0046fe31:
+ releaseSurfacesAndDirectDraw(
+ TRUE);
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x0046ff50 createCrusaderWindow | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0046FF50
+ void WindowAndDirectDraw::createCrusaderWindow(HINSTANCE hInstance, LPCSTR windowName, uint cursorResource)
+ {
+ BOOLEnum _windowCreated;
+ this->hInstanceUnk_0xa8 = hInstance;
+ _windowCreated = createWindow(
+ windowName, cursorResource);
+ if (_windowCreated != FALSE) {
+ CoInitialize((void*)0x0);
+ getDeviceCapsAndSetup();
+ if (-1 < (int)this->currentGameResolution) {
+ setupPreferredScreenResolution();
+ }
+ setWindowStyleRectAndPosition();
+ this->windowRenderTimeUnk_0x1e0 = timeGetTime();
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x0046ffb0 prepareWindowAndDDrawUnk | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0046FFB0
+ void WindowAndDirectDraw::prepareWindowAndDDrawUnk()
+ {
+ releaseSurfacesAndDirectDraw(
+ TRUE);
+ getDeviceCapsAndSetup();
+ setupPreferredScreenResolution();
+ setWindowStyleRectAndPosition();
+ /*
+ I think it tries again with the default resolution of 800x600 (assuming the DAT_CurrentResolution is
+ right). If it fails again, it sets another flag and also returns. -TheRedDaemon
+ */
+ this->drawingReady_0x0
+ = initializeDirectDraw();
+ do {
+ if (this->drawingReady_0x0 != FALSE) {
+ LAB_00470010:
+ this->unk_resetViewportRelated = 2;
+ this->field37_0xdc = 1;
+ stopBinkPlayback(0);
+ stopBinkPlayback(1);
+ return;
+ }
+ if (this->currentGameResolution == SRE_800x600) {
+ this->postWindowCloseMessage = 1;
+ goto LAB_00470010;
+ }
+ this->currentGameResolution = SRE_800x600;
+ getDeviceCapsAndSetup();
+ setupPreferredScreenResolution();
+ setWindowStyleRectAndPosition();
+ this->drawingReady_0x0
+ = initializeDirectDraw();
+ } while (true);
+ }
+ }
+}
+}
+
+### 0x00470040 renderBltAndFlip | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00470040
+ void WindowAndDirectDraw::renderBltAndFlip(int param_1)
+ {
+ HWND__* _windowHandle;
+ DWORD _currentTime;
+ int iVar1;
+ bool bVar2;
+ tagRECT _destinationRect;
+ tagRECT _sourceRect;
+ char local_7d4[2000];
+ uint _safetyCookie;
+ _safetyCookie = MSVC_SecurityCookie::instance ^ (uint)&_destinationRect;
+ iVar1 = 0x80;
+ if (99 < param_1) {
+ param_1 = param_1 + -100;
+ }
+ bVar2 = this->mbr_0xd0 != 0;
+ if (param_1 != 0) {
+ this->windowMoveEventBlitCountdown = 0;
+ }
+ if ((this->drawingReady_0x0 == FALSE)
+ || (_windowHandle = GetForegroundWindow(), _windowHandle != this->windowHandle)) {
+ DAT_UIDragDropDefinedData.MenuView_TriggerInitial = TRUE;
+ goto LAB_004705e6;
+ }
+ if (this->windowMoveEventBlitCountdown != 0) {
+ DAT_UIDragDropDefinedData.MenuView_TriggerInitial = TRUE;
+ this->windowMoveEventBlitCountdown = this->windowMoveEventBlitCountdown - 1;
+ goto LAB_004705e6;
+ }
+ _currentTime = timeGetTime();
+ /*
+ This may be an actual max fps: 200fps. But only other certain conditions? -TheRedDaemon
+ */
+ if (this->unk_resetViewportRelated == 1) {
+ bVar2 = false;
+ this->mbr_0xd0 = 0;
+ } else if ((int)(_currentTime - this->windowRenderTimeUnk_0x1e0) < 5)
+ goto LAB_004705e6;
+ this->windowRenderTimeUnk_0x1e0 = _currentTime;
+ if (!bVar2) {
+ _sourceRect.left = 0;
+ _sourceRect.top = 0;
+ _sourceRect.right = this->gameResolutionX;
+ _sourceRect.bottom = this->gameResolutionY;
+ if (param_1 == 1) {
+ _sprintf(local_7d4, "Vid %d, sys %d",
+ this->directDrawBackbufferSurfacePointer, this->directDrawOffscreenSurfacePointer_screenMenu);
+ }
+ if (this->runGameAsExclusiveFullscreen == FALSE) {
+ _destinationRect.top = this->clientOnScreenCoords.top;
+ _destinationRect.right = this->clientOnScreenCoords.right;
+ _destinationRect.left = this->clientOnScreenCoords.left;
+ _destinationRect.bottom = this->clientOnScreenCoords.bottom;
+ adjustForNotExclusiveFullscreenUnk(
+ &_destinationRect, &_sourceRect);
+ (*(this->directDrawBackbufferSurfacePointer)->vTable->Blt)(this->directDrawBackbufferSurfacePointer,
+ &_destinationRect, this->directDrawOffscreenSurfacePointer_screenMenu, &_sourceRect, 0x1000000,
+ (void*)0x0);
+ } else {
+ (*(this->directDrawBackbufferSurfacePointer)->vTable->BltFast)(
+ this->directDrawBackbufferSurfacePointer, 0, 0,
+ this->directDrawOffscreenSurfacePointer_screenMenu, (tagRECT*)0xf983e8, 0x10);
+ }
+ }
+ if (this->mbr_0xd0 != 0) {
+ if (this->mbr_0xd0 == 2) {
+ iVar1 = 0;
+ }
+ _sourceRect.left = DAT_ViewportRenderState.viewportState.currentCameraOffsetX;
+ _sourceRect.right
+ = DAT_ViewportRenderState.viewportState.currentCameraOffsetX + this->resolutionX;
+ _sourceRect.top = DAT_ViewportRenderState.viewportState.currentCameraOffsetY;
+ _sourceRect.bottom = (this->resolutionY - iVar1)
+ + DAT_ViewportRenderState.viewportState.currentCameraOffsetY;
+ _destinationRect.left = this->clientOnScreenCoords.left;
+ _destinationRect.right = this->clientOnScreenCoords.left + this->resolutionX;
+ _destinationRect.top = this->clientOnScreenCoords.top;
+ _destinationRect.bottom = (this->clientOnScreenCoords.top - iVar1) + this->resolutionY;
+ adjustForNotExclusiveFullscreenUnk(&_destinationRect, &_sourceRect);
+ (*(this->directDrawBackbufferSurfacePointer)->vTable->Blt)(this->directDrawBackbufferSurfacePointer,
+ &_destinationRect, this->directDrawOffscreenSurfacePointer_mapGame, &_sourceRect, 0x1000000,
+ (void*)0x0);
+ if ((this->unk_resetViewportRelated == 2) && (this->mbr_0xd0 != 2)) {
+ this->mbr_0xcc = this->mbr_0xcc + 1;
+ _sourceRect.top = this->resolutionY + -0x80;
+ _sourceRect.bottom = this->resolutionY;
+ _destinationRect.left = this->clientOnScreenCoords.left;
+ _destinationRect.bottom = this->resolutionY + this->clientOnScreenCoords.top;
+ _destinationRect.right = this->clientOnScreenCoords.left + this->resolutionX;
+ _sourceRect.right = this->resolutionX;
+ _destinationRect.top = _destinationRect.bottom + -0x80;
+ _sourceRect.left = 0;
+ adjustForNotExclusiveFullscreenUnk(
+ &_destinationRect, &_sourceRect);
+ (*(this->directDrawBackbufferSurfacePointer)->vTable->Blt)(this->directDrawBackbufferSurfacePointer,
+ &_destinationRect, this->directDrawOffscreenSurfacePointer_screenMenu, &_sourceRect, 0x1000000,
+ (void*)0x0);
+ } else {
+ if (this->unk_resetViewportRelated == 3) {
+ _sourceRect.left = DAT_MenuHandlerState.x + 0x23b;
+ _sourceRect.top = DAT_MenuHandlerState.y + 0x1d1;
+ _sourceRect.right = DAT_MenuHandlerState.x + 0x2b9;
+ _sourceRect.bottom = DAT_MenuHandlerState.y + 0x24f;
+ _destinationRect.left
+ = DAT_MenuHandlerState.x + this->clientOnScreenCoords.left + 0x23b;
+ _destinationRect.top
+ = DAT_MenuHandlerState.y + this->clientOnScreenCoords.top + 0x1d1;
+ _destinationRect.right
+ = DAT_MenuHandlerState.x + this->clientOnScreenCoords.left + 0x2b9;
+ _destinationRect.bottom
+ = DAT_MenuHandlerState.y + this->clientOnScreenCoords.top + 0x24f;
+ } else {
+ if (this->unk_resetViewportRelated != 4)
+ goto LAB_0047040e;
+ _sourceRect.left = DAT_MenuHandlerState.x + 0x298;
+ _sourceRect.top = DAT_MenuHandlerState.y + 0x1d0;
+ _sourceRect.right = DAT_MenuHandlerState.x + 0x318;
+ _sourceRect.bottom = DAT_MenuHandlerState.y + 0x250;
+ _destinationRect.left
+ = DAT_MenuHandlerState.x + this->clientOnScreenCoords.left + 0x298;
+ _destinationRect.top
+ = DAT_MenuHandlerState.y + this->clientOnScreenCoords.top + 0x1d0;
+ _destinationRect.right
+ = DAT_MenuHandlerState.x + this->clientOnScreenCoords.left + 0x318;
+ _destinationRect.bottom
+ = DAT_MenuHandlerState.y + this->clientOnScreenCoords.top + 0x250;
+ }
+ adjustForNotExclusiveFullscreenUnk(
+ &_destinationRect, &_sourceRect);
+ (*(this->directDrawBackbufferSurfacePointer)->vTable->Blt)(this->directDrawBackbufferSurfacePointer,
+ &_destinationRect, this->directDrawOffscreenSurfacePointer_screenMenu, &_sourceRect, 0x1000000,
+ (void*)0x0);
+ }
+ }
+ LAB_0047040e:
+ if (this->NOTSelfBufferOrWindowMode_0xf8 == TRUE) {
+ (*(this->directDrawPrimarySurfacePointer)->vTable->Flip)(
+ this->directDrawPrimarySurfacePointer, (IDirectDrawSurface*)0x0, 1);
+ if ((this->unk_resetViewportRelated == 2) && (this->mbr_0xd0 != 2)) {
+ this->mbr_0xcc = this->mbr_0xcc + 1;
+ _sourceRect.top = this->resolutionY + -0x80;
+ _sourceRect.bottom = this->resolutionY;
+ _destinationRect.left = this->clientOnScreenCoords.left;
+ _destinationRect.bottom = this->resolutionY + this->clientOnScreenCoords.top;
+ _destinationRect.right = this->clientOnScreenCoords.left + this->resolutionX;
+ _sourceRect.right = this->resolutionX;
+ _destinationRect.top = _destinationRect.bottom + -0x80;
+ _sourceRect.left = 0;
+ adjustForNotExclusiveFullscreenUnk(
+ &_destinationRect, &_sourceRect);
+ (*(this->directDrawBackbufferSurfacePointer)->vTable->Blt)(this->directDrawBackbufferSurfacePointer,
+ &_destinationRect, this->directDrawOffscreenSurfacePointer_screenMenu, &_sourceRect, 0x1000000,
+ (void*)0x0);
+ } else {
+ if (this->unk_resetViewportRelated == 3) {
+ _sourceRect.left = DAT_MenuHandlerState.x + 571;
+ _sourceRect.top = DAT_MenuHandlerState.y + 0x1d1;
+ _sourceRect.right = DAT_MenuHandlerState.x + 697;
+ _sourceRect.bottom = DAT_MenuHandlerState.y + 0x24f;
+ _destinationRect.left
+ = DAT_MenuHandlerState.x + this->clientOnScreenCoords.left + 571;
+ _destinationRect.top
+ = DAT_MenuHandlerState.y + this->clientOnScreenCoords.top + 0x1d1;
+ _destinationRect.right
+ = DAT_MenuHandlerState.x + this->clientOnScreenCoords.left + 0x2b9;
+ _destinationRect.bottom
+ = DAT_MenuHandlerState.y + this->clientOnScreenCoords.top + 0x24f;
+ } else {
+ if (this->unk_resetViewportRelated != 4)
+ goto LAB_004705da;
+ _sourceRect.left = DAT_MenuHandlerState.x + 664;
+ _sourceRect.top = DAT_MenuHandlerState.y + 0x1d0;
+ _sourceRect.right = DAT_MenuHandlerState.x + 0x318;
+ _sourceRect.bottom = DAT_MenuHandlerState.y + 0x250;
+ _destinationRect.left
+ = DAT_MenuHandlerState.x + this->clientOnScreenCoords.left + 0x298;
+ _destinationRect.top
+ = DAT_MenuHandlerState.y + this->clientOnScreenCoords.top + 0x1d0;
+ _destinationRect.right
+ = DAT_MenuHandlerState.x + this->clientOnScreenCoords.left + 0x318;
+ _destinationRect.bottom
+ = DAT_MenuHandlerState.y + this->clientOnScreenCoords.top + 0x250;
+ }
+ adjustForNotExclusiveFullscreenUnk(
+ &_destinationRect, &_sourceRect);
+ (*(this->directDrawBackbufferSurfacePointer)->vTable->Blt)(this->directDrawBackbufferSurfacePointer,
+ &_destinationRect, this->directDrawOffscreenSurfacePointer_screenMenu, &_sourceRect, 0x1000000,
+ (void*)0x0);
+ }
+ }
+ LAB_004705da:
+ this->mbr_0xd0 = 0;
+ this->unk_resetViewportRelated = 0;
+ LAB_004705e6:;
+ return;
+ }
+ }
+}
+}
+
+### 0x00470610 bltMapGameSurfaceToScreenMenuSurfaceComplete | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00470610
+ void WindowAndDirectDraw::bltMapGameSurfaceToScreenMenuSurfaceComplete()
+ {
+ tagRECT _sourceRect;
+ tagRECT _destinationRect;
+ _sourceRect.left = DAT_ViewportRenderState.viewportState.currentCameraOffsetX;
+ _sourceRect.right
+ = DAT_ViewportRenderState.viewportState.currentCameraOffsetX + this->resolutionX;
+ _sourceRect.top = DAT_ViewportRenderState.viewportState.currentCameraOffsetY;
+ _sourceRect.bottom
+ = this->resolutionY + -0x80 + DAT_ViewportRenderState.viewportState.currentCameraOffsetY;
+ _destinationRect.bottom = this->resolutionY + -0x80;
+ _destinationRect.right = this->resolutionX;
+ _destinationRect.left = 0;
+ _destinationRect.top = 0;
+ adjustForNotExclusiveFullscreenUnk(&_destinationRect, &_sourceRect);
+ (*(this->directDrawOffscreenSurfacePointer_screenMenu)->vTable->Blt)(
+ this->directDrawOffscreenSurfacePointer_screenMenu, &_destinationRect,
+ this->directDrawOffscreenSurfacePointer_mapGame, &_sourceRect, 0x1000000, (void*)0x0);
+ return;
+ }
+ }
+}
+}
+
+### 0x004706a0 bltMapGameSurfaceToScreenMenuSurface | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004706A0
+ void WindowAndDirectDraw::bltMapGameSurfaceToScreenMenuSurface(RECT sourceRect, RECT destinationRect)
+ {
+ adjustForNotExclusiveFullscreenUnk(&destinationRect, &sourceRect);
+ (*(this->directDrawOffscreenSurfacePointer_screenMenu)->vTable->Blt)(
+ this->directDrawOffscreenSurfacePointer_screenMenu, &destinationRect,
+ this->directDrawOffscreenSurfacePointer_mapGame, &sourceRect, 0x1000000, (void*)0x0);
+ return;
+ }
+ }
+}
+}
+
+### 0x004706e0 bltMapGameSurfaceToScreen | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004706E0
+ void WindowAndDirectDraw::bltMapGameSurfaceToScreen(
+ int windowedX, int windowedY, int windowedWidth, int windowedHeigth)
+ {
+ HWND__* _windowHandle;
+ tagRECT _sourceRect;
+ tagRECT _destinationRect;
+ if (this->drawingReady_0x0 != FALSE) {
+ _windowHandle = GetForegroundWindow();
+ if (_windowHandle == this->windowHandle) {
+ if (this->NOTSelfBufferOrWindowMode_0xf8 == FALSE) {
+ _sourceRect.left = windowedX + -0x20;
+ _sourceRect.top = windowedY + -8;
+ _sourceRect.right = windowedWidth + 0x20;
+ _sourceRect.bottom = windowedHeigth + 8;
+ _destinationRect.left
+ = (this->clientOnScreenCoords.left
+ - DAT_ViewportRenderState.viewportState.currentCameraOffsetX)
+ + -0x20 + windowedX;
+ _destinationRect.top
+ = (this->clientOnScreenCoords.top
+ - DAT_ViewportRenderState.viewportState.currentCameraOffsetY)
+ + -8 + windowedY;
+ _destinationRect.right
+ = (this->clientOnScreenCoords.left
+ - DAT_ViewportRenderState.viewportState.currentCameraOffsetX)
+ + 0x20 + windowedWidth;
+ _destinationRect.bottom
+ = (this->clientOnScreenCoords.top
+ - DAT_ViewportRenderState.viewportState.currentCameraOffsetY)
+ + 8 + windowedHeigth;
+ } else {
+ _sourceRect.left = 0;
+ _sourceRect.top = 0;
+ _sourceRect.right = this->gameResolutionX;
+ _sourceRect.bottom = this->gameResolutionY;
+ _destinationRect.left = 0;
+ _destinationRect.top = 0;
+ _destinationRect.right = this->gameResolutionX;
+ _destinationRect.bottom = this->gameResolutionY;
+ }
+ adjustForNotExclusiveFullscreenUnk(
+ &_destinationRect, &_sourceRect);
+ (*(this->directDrawBackbufferSurfacePointer)->vTable->Blt)(this->directDrawBackbufferSurfacePointer,
+ &_destinationRect, this->directDrawOffscreenSurfacePointer_mapGame, &_sourceRect, 0x1000000,
+ (void*)0x0);
+ if (this->NOTSelfBufferOrWindowMode_0xf8 == TRUE) {
+ (*(this->directDrawPrimarySurfacePointer)->vTable->Flip)(
+ this->directDrawPrimarySurfacePointer, (IDirectDrawSurface*)0x0, 1);
+ }
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004707f0 bltScreenMenuSurfaceToScreen | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004707F0
+ void WindowAndDirectDraw::bltScreenMenuSurfaceToScreen(
+ int windowedX, int windowedY, int windowedWidth, int windowedHeigth)
+ {
+ HWND__* _windowHandle;
+ tagRECT _sourceRect;
+ tagRECT _destinationRect;
+ if (this->drawingReady_0x0 != FALSE) {
+ _windowHandle = GetForegroundWindow();
+ if (_windowHandle == this->windowHandle) {
+ if (this->NOTSelfBufferOrWindowMode_0xf8 == FALSE) {
+ _sourceRect.left = windowedX + -0x20;
+ _sourceRect.top = windowedY + -8;
+ _sourceRect.right = windowedWidth + 0x20;
+ _sourceRect.bottom = windowedHeigth + 8;
+ _destinationRect.left = this->clientOnScreenCoords.left + -0x20 + windowedX;
+ _destinationRect.top = this->clientOnScreenCoords.top + -8 + windowedY;
+ _destinationRect.right = this->clientOnScreenCoords.left + 0x20 + windowedWidth;
+ _destinationRect.bottom = this->clientOnScreenCoords.top + 8 + windowedHeigth;
+ } else {
+ _sourceRect.left = 0;
+ _sourceRect.top = 0;
+ _sourceRect.right = this->gameResolutionX;
+ _sourceRect.bottom = this->gameResolutionY;
+ _destinationRect.left = 0;
+ _destinationRect.top = 0;
+ _destinationRect.right = this->gameResolutionX;
+ _destinationRect.bottom = this->gameResolutionY;
+ }
+ adjustForNotExclusiveFullscreenUnk(
+ &_destinationRect, &_sourceRect);
+ /*
+ Normal waiting blt. --TheRedDaemon
+ */
+ (*(this->directDrawBackbufferSurfacePointer)->vTable->Blt)(this->directDrawBackbufferSurfacePointer,
+ &_destinationRect, this->directDrawOffscreenSurfacePointer_screenMenu, &_sourceRect, 0x1000000,
+ (void*)0x0);
+ if (this->NOTSelfBufferOrWindowMode_0xf8 == TRUE) {
+ (*(this->directDrawPrimarySurfacePointer)->vTable->Flip)(
+ this->directDrawPrimarySurfacePointer, (IDirectDrawSurface*)0x0, 1);
+ }
+ }
+ }
+ return;
+ }
+ }
+}
+}
+

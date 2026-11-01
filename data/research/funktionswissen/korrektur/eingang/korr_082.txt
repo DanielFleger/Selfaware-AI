@@ -1,0 +1,685 @@
+### 0x0054c710 UpdateWoodcutter | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0054C710
+ void Units::UpdateWoodcutter()
+ {
+ byte* pbVar1;
+ int* piVar2;
+ short* psVar3;
+ short sVar4;
+ UnitStateShort UVar5;
+ short sVar6;
+ ushort uVar7;
+ BOOLEnum BVar8;
+ BOOL BVar9;
+ ushort uVar10;
+ int iVar11;
+ int iVar12;
+ int buildingID;
+ uint uVar13;
+ bool bVar14;
+ eSFX sfxOffsetInArray;
+ uVar13 = DAT_CurrentUnitSlotID;
+ iVar12 = DAT_CurrentUnitSlotID * 0x490;
+ iVar11 = (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingTilePosition;
+ sVar4 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingID_1;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].unitTypeSpecificRestingState = 10;
+ UVar5 = DAT_UnitsState.units[uVar13].state.generic;
+ if (UVar5 == US_DETERMINE_NEXT_STATEUnk) {
+ DAT_UnitsState.units[uVar13].gfxNumber = 0x3d8;
+ DAT_UnitsState.units[uVar13].field_0x30_animRelated = 0;
+ if (DAT_UnitsState.units[uVar13].isDisappearingUnk != 0) {
+ pbVar1 = &DAT_UnitsState.units[uVar13].disappearFadeAlphaCountdown;
+ *pbVar1 = *pbVar1 - 1;
+ if (-1 < (char)*pbVar1) {
+ return;
+ }
+ DAT_UnitsState.units[uVar13].disappearFadeAlphaCountdown = 0;
+ DAT_UnitsState.units[uVar13].isDisappearingUnk = 0;
+ return;
+ }
+ if (DAT_UnitsState.units[uVar13].goToRallyPoint != 0) {
+ DAT_UnitsState.units[uVar13].goToRallyPoint = 0;
+ DAT_UnitsState.units[uVar13].state.generic
+ = US_STAND_UPUnk | US_IDLEUnk;
+ DAT_UnitsState.units[uVar13].destinationNeeded = ((DestinationNeededEnum)2);
+ return;
+ }
+ piVar2 = &DAT_UnitsState.units[uVar13].animationCycleNumber;
+ *piVar2 = *piVar2 + 1;
+ if (DAT_UnitsState.units[uVar13].animationCycleNumber < 10) {
+ return;
+ }
+ iVar11 = (int)DAT_UnitsState.units[uVar13].workplaceBuildingID_1;
+ iVar11 = getBuildingResourceAmountByUid(
+ iVar11, DAT_BuildingsState.buildings[iVar11].uid, RT_LOGS);
+ if (2 < iVar11) {
+ commitUnitLocation(
+ uVar13);
+ DAT_UnitsState.units[uVar13].state.generic = US_FIRE_WEAPONUnk;
+ DAT_UnitsState.units[uVar13].updateTickTracker = 0;
+ return;
+ }
+ iVar11 = findTree(
+ (int)DAT_UnitsState.units[uVar13].owner,
+ (uint)((int)((int)DAT_UnitsState.units[uVar13].x)),
+ (uint)((int)((int)DAT_UnitsState.units[uVar13].y)));
+ uVar13 = DAT_CurrentUnitSlotID;
+ if (iVar11 == 0) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = ((UnitState)10);
+ return;
+ }
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingTilePosition
+ = (short)iVar11;
+ DAT_UnitsState.units[uVar13].woodcutterTreeUID = DAT_LandscapeState.trees[iVar11].uid;
+ findBestAdjacentClimbTileToTarget((int)DAT_UnitsState.units[uVar13].owner,
+ (uint)((int)((int)DAT_UnitsState.units[uVar13].x)),
+ (uint)((int)((int)DAT_UnitsState.units[uVar13].y)),
+ (uint)((int)((int)(short)DAT_LandscapeState.trees[iVar11].xPosition)),
+ (uint)((int)((int)(short)DAT_LandscapeState.trees[iVar11].yPosition)));
+ uVar13 = DAT_CurrentUnitSlotID;
+ if ((DAT_PathFindingState.climbX
+ == DAT_UnitsState.units[DAT_CurrentUnitSlotID].x)
+ && (DAT_PathFindingState.climbY
+ == DAT_UnitsState.units[DAT_CurrentUnitSlotID].y)) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_IDLEUnk;
+ makeUnitStopWalkingByClearingPathProgressState(uVar13);
+ return;
+ }
+ BVar8 = setDestinationForUnit(
+ DAT_CurrentUnitSlotID, (uint)((int)(DAT_PathFindingState.climbX)),
+ (uint)((int)(DAT_PathFindingState.climbY)), 0);
+ uVar13 = DAT_CurrentUnitSlotID;
+ if (BVar8 == FALSE) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = ((UnitState)10);
+ return;
+ }
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_IDLEUnk;
+ DAT_BuildingsState.buildings[DAT_UnitsState.units[uVar13].workplaceBuildingID_1]
+ .field246_0x2d4 = DAT_UnitsState.units[uVar13].totalSizeOfPathPlan;
+ return;
+ }
+ if (UVar5 == US_IDLEUnk) {
+ IncrementAndOptionalUpdateAVValueRelated(uVar13, FALSE);
+ BVar8 = hasUnitReachedDestination(uVar13);
+ if (BVar8 != FALSE) {
+ DAT_UnitsState.units[uVar13].animationCycleNumber = 0;
+ if (DAT_UnitsState.units[uVar13].unitOrderWhenOnSameTile == 0) {
+ BVar8 = isTreeAliveAndMatchingUID(iVar11, DAT_UnitsState.units[uVar13].woodcutterTreeUID);
+ uVar13 = DAT_CurrentUnitSlotID;
+ if (BVar8 == FALSE) {
+ BVar8 = isTreeAdult(
+ iVar11, DAT_UnitsState.units[DAT_CurrentUnitSlotID].woodcutterTreeUID);
+ uVar13 = DAT_CurrentUnitSlotID;
+ iVar12 = DAT_CurrentUnitSlotID * 0x490;
+ if (BVar8 == FALSE) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_DETERMINE_NEXT_STATEUnk;
+ } else {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = ((UnitState)3);
+ DAT_UnitsState.units[uVar13].woodCutterChopsCount = 0;
+ }
+ } else {
+ iVar12 = DAT_CurrentUnitSlotID * 0x490;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = ((UnitState)2);
+ DAT_UnitsState.units[uVar13].woodCutterChopsCount = 0;
+ }
+ } else {
+ BVar9 = MACRO_CALL_MEMBER(
+ findNeighbourTileThatCanServeAsClimbPointClosestToXY,
+ DAT_PathFindingState)((int)DAT_UnitsState.units[uVar13].x,
+ (uint)((int)((int)DAT_UnitsState.units[uVar13].y)),
+ (uint)((int)((int)(short)DAT_LandscapeState.trees[iVar11].xPosition)),
+ (uint)((int)((int)(short)DAT_LandscapeState.trees[iVar11].yPosition)));
+ if (BVar9 == 0) {
+ iVar12 = DAT_CurrentUnitSlotID * 0x490;
+ } else {
+ BVar8 = setDestinationForUnit(DAT_CurrentUnitSlotID,
+ (uint)((int)(DAT_PathFindingState.climbX)),
+ (uint)((int)(DAT_PathFindingState.climbY)), 0);
+ iVar12 = DAT_CurrentUnitSlotID * 0x490;
+ if (BVar8 != FALSE) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_IDLEUnk;
+ goto LAB_0054ca95;
+ }
+ }
+ *(undefined2*)((int)DAT_UnitsState.units[0].manningEngineerRef + iVar12 + -0x54) = 9;
+ *(undefined2*)((int)DAT_UnitsState.units[0].manningEngineerUIDRef + iVar12 + 0x58) = 1;
+ }
+ }
+ LAB_0054ca95:
+ *(undefined4*)((int)&DAT_UnitsState.units[0].animationSheetFrameOffset + iVar12) = 1;
+ *(undefined4*)((int)&DAT_UnitsState.units[0].field_0x30_animRelated + iVar12) = 0x10;
+ return;
+ }
+ if (UVar5 == ((UnitState)2)) {
+ DAT_UnitsState.units[uVar13].animationSpeed = 2;
+ DAT_UnitsState.units[uVar13].field_0x30_animRelated = 0;
+ IncrementAndOptionalUpdateAVValueRelated(uVar13, FALSE);
+ calculateOrientation((int)DAT_UnitsState.units[uVar13].x,
+ DAT_UnitsState.units[uVar13].y,
+ (int)((int)((short)DAT_LandscapeState.trees[iVar11].xPosition)),
+ (int)((int)((short)DAT_LandscapeState.trees[iVar11].yPosition)));
+ uVar13 = DAT_CurrentUnitSlotID;
+ if (DAT_DirectionAlgorithmState.orientation == 0xf) {
+ DAT_DirectionAlgorithmState.orientation = 4;
+ }
+ iVar12 = DAT_DirectionAlgorithmState.orientation + 2;
+ if (7 < iVar12) {
+ iVar12 = DAT_DirectionAlgorithmState.orientation + -6;
+ }
+ DAT_DirectionAlgorithmState.orientation = iVar12;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].facingDirection = (short)iVar12;
+ iVar12 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field213_0x3ff4[DAT_UnitsState.units[uVar13].animationCycleNumber];
+ DAT_UnitsState.units[uVar13].animationFrame = iVar12;
+ if ((iVar12 == 0xc)
+ && (DAT_UnitsState.units[uVar13].animationCycleNumberHasJustIncremented != FALSE)) {
+ playSFXAtLocation(
+ (int)DAT_UnitsState.units[uVar13].x,
+ DAT_UnitsState.units[uVar13].y, FX_CHOP);
+ }
+ uVar13 = DAT_CurrentUnitSlotID;
+ iVar12 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationFrame;
+ if (iVar12 < 1) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationFrame = 1;
+ DAT_UnitsState.units[uVar13].animationCycleNumber = 0;
+ DAT_UnitsState.units[uVar13].gfxNumber
+ = DAT_UnitsState.units[uVar13].facingDirectionMapOrientationCorrected + 0x359;
+ BVar8 = isTreeAliveAndMatchingUID(iVar11, DAT_UnitsState.units[uVar13].woodcutterTreeUID);
+ if (BVar8 == FALSE) {
+ BVar8 = isTreeAdult(
+ iVar11, DAT_UnitsState.units[DAT_CurrentUnitSlotID].woodcutterTreeUID);
+ if (BVar8 == FALSE) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_DETERMINE_NEXT_STATEUnk;
+ return;
+ }
+ } else {
+ iVar12 = damageTreeAndTriggerDeathIfDepleted(iVar11, 0xffffffff,
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].woodcutterTreeUID);
+ if (iVar12 == 0) {
+ return;
+ }
+ if (DAT_LandscapeState.trees[iVar11].stage < 2) {
+ sVar4 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].y;
+ sVar6 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].x;
+ sfxOffsetInArray = FX_LILTREE_FALL;
+ } else {
+ sVar4 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].y;
+ sVar6 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].x;
+ sfxOffsetInArray = FX_TREE_FALL;
+ }
+ playSFXAtLocation(
+ (int)sVar6, sVar4, sfxOffsetInArray);
+ }
+ uVar13 = DAT_CurrentUnitSlotID;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = ((UnitState)3);
+ DAT_UnitsState.units[uVar13].woodCutterChopsCount = 0;
+ return;
+ }
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].gfxNumber
+ = DAT_UnitsState.units[DAT_CurrentUnitSlotID].facingDirectionMapOrientationCorrected
+ + 0x2f9 + iVar12 * 8;
+ return;
+ }
+ if (UVar5 == ((UnitState)3)) {
+ uVar10 = DAT_LandscapeState.trees[iVar11].yPosition;
+ uVar7 = DAT_LandscapeState.trees[iVar11].xPosition;
+ DAT_UnitsState.units[uVar13].animationSpeed = 2;
+ DAT_UnitsState.units[uVar13].field_0x30_animRelated = 0;
+ calculateOrientation((int)DAT_UnitsState.units[uVar13].x,
+ DAT_UnitsState.units[uVar13].y, (int)((int)((short)uVar7)),
+ (int)((int)((short)uVar10)));
+ uVar13 = DAT_CurrentUnitSlotID;
+ if (DAT_DirectionAlgorithmState.orientation == 0xf) {
+ DAT_DirectionAlgorithmState.orientation = 4;
+ }
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].facingDirection
+ = (short)DAT_DirectionAlgorithmState.orientation;
+ IncrementAndOptionalUpdateAVValueRelated(uVar13, FALSE);
+ if (DAT_UnitsState.units[uVar13].woodCutterChopsCount == 0) {
+ DAT_UnitsState.units[uVar13].animationFrame
+ = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field214_0x4020[DAT_UnitsState.units[uVar13].animationCycleNumber];
+ } else {
+ DAT_UnitsState.units[uVar13].animationFrame
+ = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field215_0x404c[DAT_UnitsState.units[uVar13].animationCycleNumber];
+ }
+ if ((DAT_UnitsState.units[uVar13].animationFrame == 7)
+ && (DAT_UnitsState.units[uVar13].animationCycleNumberHasJustIncremented != FALSE)) {
+ playSFXAtLocation(
+ (int)DAT_UnitsState.units[uVar13].x,
+ DAT_UnitsState.units[uVar13].y, FX_CHOP);
+ uVar13 = DAT_CurrentUnitSlotID;
+ }
+ iVar12 = DAT_UnitsState.units[uVar13].animationFrame;
+ if (0 < iVar12) {
+ DAT_UnitsState.units[uVar13].gfxNumber
+ = DAT_UnitsState.units[uVar13].facingDirectionMapOrientationCorrected + 0x359
+ + iVar12 * 8;
+ return;
+ }
+ DAT_UnitsState.units[uVar13].animationFrame = 1;
+ DAT_UnitsState.units[uVar13].animationCycleNumber = 0;
+ DAT_UnitsState.units[uVar13].gfxNumber
+ = DAT_UnitsState.units[uVar13].facingDirectionMapOrientationCorrected + 0x3b1;
+ BVar8 = isTreeAdult(
+ iVar11, DAT_UnitsState.units[uVar13].woodcutterTreeUID);
+ uVar13 = DAT_CurrentUnitSlotID;
+ if (BVar8 == FALSE) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_DETERMINE_NEXT_STATEUnk;
+ return;
+ }
+ piVar2 = &DAT_UnitsState.units[DAT_CurrentUnitSlotID].woodCutterChopsCount;
+ *piVar2 = *piVar2 + 1;
+ if (DAT_UnitsState.units[uVar13].woodCutterChopsCount < 4) {
+ return;
+ }
+ advanceTreeDecayState(
+ iVar11, DAT_UnitsState.units[uVar13].woodcutterTreeUID);
+ iVar11 = setWorkplaceBuildingEntryAsTarget(DAT_CurrentUnitSlotID, 1);
+ if (iVar11 == 0) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].logicalState
+ = ULS_REMOVE;
+ return;
+ }
+ setDestinationForUnit(
+ DAT_CurrentUnitSlotID,
+ (uint)((int)((int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetX_2)),
+ (uint)((int)((int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetY_2)), 0);
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_RELOAD_WEAPONUnk;
+ return;
+ }
+ if (UVar5 == US_RELOAD_WEAPONUnk) {
+ IncrementAndOptionalUpdateAVValueRelated(uVar13, FALSE);
+ BVar8 = hasUnitReachedDestination(uVar13);
+ if (BVar8 != FALSE) {
+ DAT_UnitsState.units[uVar13].animationCycleNumber = 10;
+ DAT_UnitsState.units[uVar13].state.generic
+ = US_DETERMINE_NEXT_STATEUnk;
+ iVar11 = (int)DAT_UnitsState.units[uVar13].workplaceBuildingID_1;
+ addResourceToStockpile(iVar11, DAT_BuildingsState.buildings[iVar11].uid,
+ RT_LOGS, 1, 3, 1);
+ playSFXAtLocation(
+ (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].x,
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].y,
+ FX_DROP_LOG);
+ uVar13 = DAT_CurrentUnitSlotID;
+ }
+ DAT_UnitsState.units[uVar13].animationSheetFrameOffset = 0x101;
+ if (DAT_UnitsState.units[uVar13].movementRunUpTime != 0) {
+ DAT_UnitsState.units[uVar13].animationSheetFrameOffset = 0x181;
+ }
+ DAT_UnitsState.units[uVar13].field_0x30_animRelated = 0x10;
+ return;
+ }
+ if (UVar5 == US_AIM_WEAPONUnk) {
+ IncrementAndOptionalUpdateAVValueRelated(uVar13, FALSE);
+ iVar11 = updateBuildingSignpostCounter((int)DAT_UnitsState.units[uVar13].workplaceBuildingID_1, 1);
+ if (iVar11 == 0) {
+ return;
+ }
+ iVar11 = (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingID_1;
+ addResourceToStockpile(
+ iVar11, DAT_BuildingsState.buildings[iVar11].uid, RT_WOOD, 1, 3, 1);
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_FIRE_WEAPONUnk;
+ return;
+ }
+ if (UVar5 == US_FIRE_WEAPONUnk) {
+ IncrementAndOptionalUpdateAVValueRelated(uVar13, FALSE);
+ psVar3 = &DAT_UnitsState.units[uVar13].updateTickTracker;
+ *psVar3 = *psVar3 + 1;
+ if (DAT_UnitsState.units[uVar13].updateTickTracker < 0x30) {
+ updateBuildingSignpostCounter((int)DAT_UnitsState.units[uVar13].workplaceBuildingID_1, 3);
+ return;
+ }
+ buildingID = (int)DAT_UnitsState.units[uVar13].workplaceBuildingID_1;
+ iVar11 = DAT_BuildingsState.buildings[buildingID].uid;
+ iVar12 = getBuildingResourceAmountByUid(buildingID, iVar11, RT_LOGS);
+ if (iVar12 < 1) {
+ addResourceToStockpile(buildingID, iVar11, RT_WOOD, -3, 0, 1);
+ updateBuildingSignpostCounter(
+ (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingID_1, 0);
+ resetUnitMovementState(
+ DAT_CurrentUnitSlotID);
+ uVar13 = DAT_CurrentUnitSlotID;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].updateTickTracker = 0;
+ DAT_UnitsState.units[uVar13].state.generic = US_LOOK_AROUNDUnk;
+ return;
+ }
+ addResourceToStockpile(buildingID, iVar11, RT_LOGS, -1, 3, 1);
+ updateBuildingSignpostCounter(
+ (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingID_1, 2);
+ uVar13 = DAT_CurrentUnitSlotID;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].updateTickTracker = 0;
+ DAT_UnitsState.units[uVar13].state.generic = US_AIM_WEAPONUnk;
+ return;
+ }
+ if (UVar5 == US_LOOK_AROUNDUnk) {
+ DAT_UnitsState.units[uVar13].animationSheetFrameOffset = 0x201;
+ DAT_UnitsState.units[uVar13].field_0x30_animRelated = 0x10;
+ DAT_UnitsState.units[uVar13].field131_0x2ac = 1;
+ psVar3 = &DAT_UnitsState.units[uVar13].updateTickTracker;
+ *psVar3 = *psVar3 + 1;
+ if (DAT_UnitsState.units[uVar13].updateTickTracker < 0x15) {
+ return;
+ }
+ DAT_UnitsState.units[uVar13].updateTickTracker = 0;
+ iVar11
+ = getBuildingThatCanStoreThisResource(
+ RT_WOOD, 1, DAT_UnitsState.units[uVar13].owner);
+ if ((iVar11 == 0)
+ && (DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID)) {
+ PlayStockpileIsFullWarning();
+ }
+ iVar12 = buildingIsAccessible(iVar11, 1);
+ if (iVar12 == 0) {
+ return;
+ }
+ BVar8 = setDestinationForUnit(
+ DAT_CurrentUnitSlotID,
+ (uint)((int)((int)DAT_BuildingsState.buildings[iVar11].buildingEntryX)),
+ (uint)((int)((int)DAT_BuildingsState.buildings[iVar11].buildingEntryY)), 0);
+ uVar13 = DAT_CurrentUnitSlotID;
+ if (BVar8 == FALSE) {
+ return;
+ }
+ iVar12 = DAT_BuildingsState.buildings[iVar11].uid;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetID_OR_targetBuildingID
+ = (short)iVar11;
+ DAT_UnitsState.units[uVar13].targetUID = iVar12;
+ DAT_UnitsState.units[uVar13].state.generic = US_STAND_UPUnk;
+ iVar11 = ComputeGoodsProduced(uVar13, 12, TRUE);
+ DAT_UnitsState.units[uVar13].resourceToDeposit = (short)iVar11;
+ return;
+ }
+ if (UVar5 == US_STAND_UPUnk) {
+ IncrementAndOptionalUpdateAVValueRelated(uVar13, FALSE);
+ DAT_UnitsState.units[uVar13].animationSheetFrameOffset = 0x201;
+ if (DAT_UnitsState.units[uVar13].movementRunUpTime != 0) {
+ DAT_UnitsState.units[uVar13].animationSheetFrameOffset = 0x281;
+ }
+ DAT_UnitsState.units[uVar13].field_0x30_animRelated = 0x10;
+ psVar3 = &DAT_UnitsState.units[uVar13].updateTickTracker;
+ *psVar3 = *psVar3 + 1;
+ if (DAT_UnitsState.units[uVar13].updateTickTracker < 5) {
+ return;
+ }
+ BVar8 = hasUnitReachedDestination(uVar13);
+ if (BVar8 == FALSE) {
+ return;
+ }
+ DAT_UnitsState.units[uVar13].updateTickTracker = 0;
+ iVar11 = canBuildingStoreTheAmount((int)DAT_UnitsState.units[uVar13].targetID_OR_targetBuildingID,
+ RT_WOOD, 0x30);
+ if (iVar11 == 0) {
+ iVar11 = getBuildingThatCanStoreThisResource(RT_WOOD, 1,
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner);
+ iVar12 = buildingIsAccessible(iVar11, 1);
+ uVar13 = DAT_CurrentUnitSlotID;
+ if (iVar12 == 0) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].resourceToDeposit = 0;
+ } else {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetID_OR_targetBuildingID
+ = (short)iVar11;
+ DAT_UnitsState.units[uVar13].targetUID
+ = DAT_BuildingsState.buildings[iVar11].uid;
+ setDestinationForUnit(
+ uVar13, (uint)((int)((int)DAT_BuildingsState.buildings[iVar11].buildingEntryX)),
+ (uint)((int)((int)DAT_BuildingsState.buildings[iVar11].buildingEntryY)), 0);
+ uVar13 = DAT_CurrentUnitSlotID;
+ }
+ } else {
+ addResourceToStockpile(
+ (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetID_OR_targetBuildingID,
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetUID,
+ RT_WOOD, 1, 0x30, 1);
+ uVar13 = DAT_CurrentUnitSlotID;
+ piVar2 = DAT_GameSynchronyState.finalResults.finalWoodProduced
+ + DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner;
+ *piVar2 = *piVar2 + 1;
+ psVar3 = &DAT_UnitsState.units[uVar13].resourceToDeposit;
+ *psVar3 = *psVar3 + -1;
+ playSFXAtLocation(
+ (int)DAT_UnitsState.units[uVar13].x,
+ DAT_UnitsState.units[uVar13].y, FX_STOCK_WOOD);
+ uVar13 = DAT_CurrentUnitSlotID;
+ }
+ if (0 < DAT_UnitsState.units[uVar13].resourceToDeposit) {
+ return;
+ }
+ IncrementAndOptionalUpdateAVValueRelated(uVar13, TRUE);
+ iVar11 = setWorkplaceBuildingEntryAsTarget(uVar13, 1);
+ uVar13 = DAT_CurrentUnitSlotID;
+ if (iVar11 == 0) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].logicalState
+ = ULS_REMOVE;
+ return;
+ }
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_STAND_UPUnk | US_IDLEUnk;
+ DAT_UnitsState.units[uVar13].destinationNeeded
+ = DNE_DESTINATION_NEEDED;
+ DAT_UnitsState.units[uVar13].animationSheetFrameOffset = 1;
+ return;
+ }
+ if (UVar5 == (US_STAND_UPUnk | US_IDLEUnk)) {
+ DAT_UnitsState.units[uVar13].animationSheetFrameOffset = 1;
+ DAT_UnitsState.units[uVar13].field_0x30_animRelated = 0x10;
+ IncrementAndOptionalUpdateAVValueRelated(uVar13, FALSE);
+ if (DAT_UnitsState.units[uVar13].destinationNeeded
+ != DNE_DESTINATION_HAS_BEEN_SET) {
+ BVar8 = UpdateWorker_ConsiderTakingABreakUnk(uVar13);
+ if (BVar8 != FALSE) {
+ return;
+ }
+ BVar8 = setDestinationForUnit(uVar13, (uint)((int)((int)DAT_UnitsState.units[uVar13].targetX_2)),
+ (uint)((int)((int)DAT_UnitsState.units[uVar13].targetY_2)), 0);
+ uVar13 = DAT_CurrentUnitSlotID;
+ if (BVar8 == FALSE) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_DISAPPEAR;
+ DAT_UnitsState.units[uVar13].updateTickTracker = 0;
+ return;
+ }
+ iVar12 = DAT_CurrentUnitSlotID * 0x490;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].destinationNeeded
+ = DNE_DESTINATION_HAS_BEEN_SET;
+ }
+ BVar8 = hasUnitReachedDestination(uVar13);
+ if (BVar8 == FALSE) {
+ return;
+ }
+ uVar10 = (ushort)(byte)DAT_GameCore.mapTimeInTicks;
+ *(undefined4*)((int)DAT_UnitsState.units[0].manningEngineerRef + iVar12 + -100) = 10;
+ *(ushort*)((int)DAT_UnitsState.units[0].manningEngineerUIDRef + iVar12 + 100) = (uVar10 & 1) + 2;
+ *(undefined2*)((int)DAT_UnitsState.units[0].manningEngineerRef + iVar12 + -0x54) = 10;
+ return;
+ }
+ if (UVar5
+ == (US_DEATH_02 | US_STAND_UPUnk
+ | US_IDLEUnk)) {
+ DAT_UnitsState.units[uVar13].animationSheetFrameOffset = 1;
+ DAT_UnitsState.units[uVar13].field_0x30_animRelated = 0x10;
+ SetRestingForUnit(uVar13);
+ return;
+ }
+ if (UVar5 != ((UnitState)10)) {
+ if (UVar5 == 0x6c) {
+ DAT_UnitsState.units[uVar13].stateBasedSpeed = 0;
+ DAT_UnitsState.units[uVar13].field_0x30_animRelated = 0;
+ DAT_UnitsState.units[uVar13].animationSheetFrameOffset = 1;
+ return;
+ }
+ if (UVar5 == US_DEATH_01) {
+ DAT_UnitsState.units[uVar13].facingDirection = 0;
+ DAT_UnitsState.units[uVar13].animationSpeed = 2;
+ DAT_UnitsState.units[uVar13].field_0x30_animRelated = 0;
+ iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .ANIM_Worker_Shared1[DAT_UnitsState.units[uVar13].animationCycleNumber];
+ DAT_UnitsState.units[uVar13].animationFrame = iVar11;
+ if (iVar11 < 1) {
+ DAT_UnitsState.units[uVar13].gfxNumber = 0x3f0;
+ DAT_UnitsState.units[uVar13].state.generic = US_DISAPPEAR;
+ DAT_UnitHasBecomeIdle = 1;
+ return;
+ }
+ bVar14 = DAT_UnitHasBecomeIdle == 0;
+ DAT_UnitsState.units[uVar13].gfxNumber = iVar11 + 0x3d8;
+ if (bVar14) {
+ return;
+ }
+ DAT_UnitsState.units[uVar13].state.generic = US_DISAPPEAR;
+ return;
+ }
+ BVar8 = checkIfCitizenUnitIsAliveBasedOnState(uVar13);
+ if (BVar8 == FALSE) {
+ if (UVar5 != US_MELEE_ATTACK) {
+ if (UVar5 != US_DISAPPEAR) {
+ DAT_UnitsState.units[uVar13].state.generic
+ = US_DETERMINE_NEXT_STATEUnk;
+ makeUnitStopWalkingByClearingPathProgressState(uVar13);
+ return;
+ }
+ pbVar1 = &DAT_UnitsState.units[uVar13].disappearFadeAlphaCountdown;
+ *pbVar1 = *pbVar1 + 1;
+ if (' ' < (char)DAT_UnitsState.units[uVar13].disappearFadeAlphaCountdown) {
+ DAT_UnitsState.units[uVar13].disappearFadeAlphaCountdown = 0x20;
+ }
+ psVar3 = &DAT_UnitsState.units[uVar13].updateTickTracker;
+ *psVar3 = *psVar3 + 1;
+ if (0x20 < DAT_UnitsState.units[uVar13].updateTickTracker) {
+ psVar3 = &DAT_BuildingsState.buildings[sVar4].unknownTickRelatedValue;
+ *psVar3 = *psVar3 + 10;
+ DAT_UnitsState.units[uVar13].logicalState = ULS_REMOVE;
+ if (DAT_UnitsState.units[uVar13].killedFlagUnk == 0) {
+ setLastEncounteredTroopUnit(
+ (int)DAT_UnitsState.units[uVar13].owner, uVar13);
+ uVar13 = DAT_CurrentUnitSlotID;
+ }
+ }
+ DAT_BuildingsState.buildings[DAT_UnitsState.units[uVar13].workplaceBuildingID_1]
+ .idleTimerUnk = 4000;
+ return;
+ }
+ DAT_UnitsState.units[uVar13].animationSpeed = 3;
+ DAT_UnitsState.units[uVar13].field_0x30_animRelated = 0;
+ iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field216_0x4070[DAT_UnitsState.units[uVar13].animationCycleNumber];
+ DAT_UnitsState.units[uVar13].animationFrame = iVar11;
+ if (iVar11 < 1) {
+ DAT_UnitsState.units[uVar13].gfxNumber
+ = DAT_UnitsState.units[uVar13].facingDirectionMapOrientationCorrected + 0x361;
+ DAT_UnitHasBecomeIdle = 1;
+ } else {
+ DAT_UnitsState.units[uVar13].gfxNumber
+ = DAT_UnitsState.units[uVar13].facingDirectionMapOrientationCorrected + 0x359
+ + iVar11 * 8;
+ }
+ if (((DAT_UnitsState.units[uVar13].attackedUnitID != 0)
+ && (DAT_UnitsState.units[uVar13].animationCycleNumberHasJustIncremented != FALSE))
+ && (DAT_UnitsState.units[uVar13].animationCycleNumber == 5)) {
+ playSFXAtLocation(
+ (int)DAT_UnitsState.units[uVar13].x,
+ DAT_UnitsState.units[uVar13].y, FX_SWISH);
+ uVar13 = DAT_CurrentUnitSlotID;
+ }
+ if (DAT_UnitHasBecomeIdle == 0) {
+ return;
+ }
+ DAT_UnitsState.units[uVar13].animationCycleNumber = 0;
+ resumeMovementIfNoAttackTarget(uVar13);
+ return;
+ }
+ DAT_UnitsState.units[uVar13].facingDirection = 0;
+ DAT_UnitsState.units[uVar13].animationSpeed = 2;
+ DAT_UnitsState.units[uVar13].field_0x30_animRelated = 0;
+ iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .ANIM_Worker_Shared1[DAT_UnitsState.units[uVar13].animationCycleNumber];
+ DAT_UnitsState.units[uVar13].animationFrame = iVar11;
+ if (iVar11 < 1) {
+ DAT_UnitsState.units[uVar13].gfxNumber = 0x408;
+ DAT_UnitsState.units[uVar13].state.generic = US_DISAPPEAR;
+ DAT_UnitHasBecomeIdle = 1;
+ return;
+ }
+ bVar14 = DAT_UnitHasBecomeIdle == 0;
+ DAT_UnitsState.units[uVar13].gfxNumber = iVar11 + 0x3f0;
+ if (bVar14) {
+ return;
+ }
+ DAT_UnitsState.units[uVar13].state.generic = US_DISAPPEAR;
+ return;
+ }
+ /*
+ -- Freetime at good things --
+ */
+ DAT_UnitsState.units[uVar13].animationSpeed = 2;
+ DAT_UnitsState.units[uVar13].field_0x30_animRelated = 0;
+ DAT_UnitsState.units[uVar13].field39_0x58 = 1;
+ DAT_UnitsState.units[uVar13].field131_0x2ac = 1;
+ sVar4 = DAT_UnitsState.units[uVar13].substate;
+ if (sVar4 == 0) {
+ iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field206_0x3d70[DAT_UnitsState.units[uVar13].animationCycleNumber];
+ } else if (sVar4 == 1) {
+ iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field207_0x3da4[DAT_UnitsState.units[uVar13].animationCycleNumber];
+ } else if (sVar4 == 2) {
+ iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field208_0x3e20[DAT_UnitsState.units[uVar13].animationCycleNumber];
+ } else if (sVar4 == 3) {
+ iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field209_0x3e54[DAT_UnitsState.units[uVar13].animationCycleNumber];
+ } else if (sVar4 == 4) {
+ iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field210_0x3e84[DAT_UnitsState.units[uVar13].animationCycleNumber];
+ } else if (sVar4 == 5) {
+ iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field211_0x3f04[DAT_UnitsState.units[uVar13].animationCycleNumber];
+ } else {
+ if (sVar4 != 6)
+ goto LAB_0054d5cd;
+ iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field212_0x3f5c[DAT_UnitsState.units[uVar13].animationCycleNumber];
+ }
+ DAT_UnitsState.units[uVar13].animationFrame = iVar11;
+ LAB_0054d5cd:
+ iVar12 = DAT_UnitHasBecomeIdle;
+ iVar11 = DAT_UnitsState.units[uVar13].animationFrame;
+ if (iVar11 < 1) {
+ iVar12 = 1;
+ DAT_UnitsState.units[uVar13].gfxNumber = 0x3d8;
+ DAT_UnitHasBecomeIdle = 1;
+ } else {
+ DAT_UnitsState.units[uVar13].gfxNumber = iVar11 + 0x3c0;
+ }
+ iVar11 = SetStateToFreetimeWalking(uVar13, iVar12, 7);
+ if ((iVar11 == 0) && (iVar12 != 0)) {
+ psVar3 = &DAT_UnitsState.units[uVar13].substate;
+ *psVar3 = *psVar3 + 1;
+ if (6 < DAT_UnitsState.units[uVar13].substate) {
+ DAT_UnitsState.units[uVar13].substate = 0;
+ }
+ DAT_UnitsState.units[uVar13].animationCycleNumber = 0;
+ DAT_UnitsState.units[uVar13].state.generic
+ = US_DETERMINE_NEXT_STATEUnk;
+ return;
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0054c710", "name": "UpdateWoodcutter", "quelle": "ghidra", "p1": {"bereich": "Wirtschaft", "zweck": "Taktfunktion des Holzfällers: Baum suchen, fällen, Holz zum Posten tragen, dort verarbeiten und ins Lager bringen."}, "p2": {"ein": "-, die Einheit kommt aus DAT_CurrentUnitSlotID", "aus": "-", "liest": ["units[cur].state.generic", "units[cur].workplaceBuildingID_1", "units[cur].workplaceBuildingTilePosition (hier die Baum-Nummer, nicht eine Gebäudeposition)", "units[cur].woodcutterTreeUID", "units[cur].woodCutterChopsCount", "units[cur].updateTickTracker", "units[cur].animationCycleNumber", "units[cur].x/y", "landscape.trees[].uid/stage/xPosition/yPosition", "Holzbestand des Postens (RT_LOGS) per getBuildingResourceAmountByUid", "gameSynchronyState.currentPlayerSlotID"], "schreibt": ["units[cur].state.generic", "units[cur].woodcutterTreeUID", "units[cur].workplaceBuildingTilePosition", "units[cur].woodCutterChopsCount", "units[cur].resourceToDeposit", "units[cur].targetID_OR_targetBuildingID/targetUID", "units[cur].logicalState (ULS_REMOVE)", "Posten-Bestand RT_LOGS und RT_WOOD", "Lagerbestand RT_WOOD", "finalResults.finalWoodProduced[owner]", "buildings[wp].field246_0x2d4", "buildings[wp].idleTimerUnk/unknownTickRelatedValue (nur beim Verschwinden)", "Baumzustand (Schaden, Verfall)"], "ruft": ["getBuildingResourceAmountByUid", "findTree", "findBestAdjacentClimbTileToTarget", "setDestinationForUnit", "hasUnitReachedDestination", "isTreeAliveAndMatchingUID", "isTreeAdult", "damageTreeAndTriggerDeathIfDepleted", "advanceTreeDecayState", "setWorkplaceBuildingEntryAsTarget", "addResourceToStockpile", "updateBuildingSignpostCounter", "getBuildingThatCanStoreThisResource", "buildingIsAccessible", "PlayStockpileIsFullWarning", "ComputeGoodsProduced", "canBuildingStoreTheAmount", "UpdateWorker_ConsiderTakingABreakUnk", "SetStateToFreetimeWalking", "setLastEncounteredTroopUnit", "playSFXAtLocation"], "regeln": ["Ablauf grob: Baum suchen (findTree) und hinlaufen, 4 Axthiebe (woodCutterChopsCount ab 4), Baum wird zerfallen (advanceTreeDecayState), 1 Stamm (RT_LOGS) zum Posten tragen, dort 48 Takte lang Holz aus den Stämmen machen, dann Holz zum Lager tragen", "Nach Zustandswechsel auf Suche wartet der Holzfäller erst 10 Takte (animationCycleNumber ab 10); hat der Posten schon mehr als 2 Stämme (RT_LOGS > 2), geht er direkt zum Verarbeiten statt neu zu fällen", "Findet findTree keinen Baum oder kommt kein Weg zustande (setDestinationForUnit FALSE), geht er in den Freizeit-Zustand 10", "Beim Fällen: der Baum wird nur geschädigt, wenn isTreeAliveAndMatchingUID stimmt; fällt er (damageTree... liefert nicht 0), kommt ein Fallgeräusch, bei Baumstufe unter 2 das kleine (FX_LILTREE_FALL), sonst FX_TREE_FALL", "Verarbeiten: je Stamm 48 Takte (updateTickTracker ab 0x30), dann Posten RT_LOGS minus 1 und danach RT_WOOD plus 1; sind keine Stämme mehr da, wird RT_WOOD des Postens um 3 gesenkt und der Holzfäller geht zum Lagern (Wartezeit 21 Takte, 0x15)", "Lagern: Ziel per getBuildingThatCanStoreThisResource(RT_WOOD); gibt es keins und der Besitzer ist der lokale Spieler, kommt die Warnung PlayStockpileIsFullWarning; Menge je Trip = ComputeGoodsProduced(unit, 12, TRUE) in resourceToDeposit", "Einlagern je Stück: canBuildingStoreTheAmount(ziel, RT_WOOD, 0x30 = 48); ist das Ziel voll, wird ein anderes Lager gesucht, ist keins erreichbar, wird resourceToDeposit auf 0 gesetzt; sonst RT_WOOD plus 1 und finalWoodProduced[owner] plus 1 je Stück", "Kann der Posten nicht mehr als Ziel gesetzt werden (setWorkplaceBuildingEntryAsTarget = 0), wird die Einheit entfernt (ULS_REMOVE); Tod/Verschwinden: Ausblend-Zähler bis 0x20, danach ULS_REMOVE, Posten-Zähler plus 10 und idleTimerUnk = 4000"], "offen": ["Genaue Zahlenwerte der Zustände (US_..._Unk-Namen sind Vermutungen des OpenSHC-Teams, sie passen nicht zur Tätigkeit)", "Warum RT_WOOD beim Leerstand um 3 gesenkt wird (addResourceToStockpile mit -3, Grenze 0)", "Ist der Baum lebend und die UID passt, bleibt der Zustand beim Ankommen unverändert (Ghidra-Verzweigung); ob das so gewollt ist, ist unklar", "Wert 12 in ComputeGoodsProduced: Bedeutung (Warenart oder Faktor) ungesichert"]}, "p3": {"erklaerung": "Das Skript des Holzfällers: Er fällt einen Baum, trägt den Stamm in seinen Posten, macht dort aus Stämmen Holz und trägt das Holz ins Lager. Ist das Lager voll, bleibt das Holz beim Posten und das Spiel warnt den Spieler.", "gehirn": "Holzproduktion eines Spielers lässt sich an finalResults.finalWoodProduced[spieler] ablesen (zählt jedes eingelagerte Stück). Volles Lager bremst die Holzfäller, vor dem Ausbau an Holzfällern also Lagerplatz prüfen.", "beleg": "code", "live": "Holzfäller liefert ins Lager → finalResults.finalWoodProduced[spieler] und RT_WOOD des Lagers vorher/nachher → beide steigen um je 1 pro Stück, Lagerbestand höchstens bis zur Grenze 48 je Lagerfeld", "live_art": "wirtschaft"}}
+

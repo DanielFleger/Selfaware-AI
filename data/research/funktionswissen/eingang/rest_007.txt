@@ -1,0 +1,1236 @@
+### 0x0044d3d0 renderFunctionResponsibleForManyGameObjects | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0044D3D0
+ void TextureRenderCore::renderFunctionResponsibleForManyGameObjects(
+ int drawX, int drawY, int imageWidth, int imageHeight, ushort* imageAddress)
+ {
+ undefined2 uVar1;
+ undefined4 uVar2;
+ bool bVar3;
+ TgxTokenByte _tgxToken;
+ byte _tgxPixelLength;
+ int iVar4;
+ undefined4 uVar5;
+ uint uVar6;
+ TgxTokenByte _tgxToken2;
+ TgxTokenByte _tgxToken3;
+ int _outsidePosY;
+ TgxTokenByte* _imageDataPtr;
+ TgxTokenByte* pTVar7;
+ undefined4* _currentDrawPointer;
+ int _drawPointer;
+ uint local_20;
+ int _hori;
+ int _heightStart;
+ int _vert;
+ int _heightEnd;
+ uint _length;
+ if (0 < imageHeight) {
+ if (this->isZoom2 == 0) {
+ if (this->drawBufferChoiceValue == RT_MAP_GAME) {
+ this->currentRenderSurface = DAT_WindowAndDirectDraw.surfacePointer_mapGame;
+ _hori = imageWidth * -2 + 0x1fb0;
+ _vert = 0x1fb0;
+ _heightStart = this->mapGameSurfaceHeightRange.start;
+ _heightEnd = this->mapGameSurfaceHeightRange.end;
+ } else if (this->drawBufferChoiceValue == RT_BUTTON_AND_ALPHA) {
+ this->currentRenderSurface = AlphaAndButtonSurfaceObj::instance.surfacePtr;
+ _hori = AlphaAndButtonSurfaceObj::instance.currentImageWidth * 2 + imageWidth * -2;
+ _vert = AlphaAndButtonSurfaceObj::instance.currentImageWidth << 1;
+ _heightStart = 0;
+ _heightEnd = imageHeight;
+ } else {
+ this->currentRenderSurface = DAT_WindowAndDirectDraw.surfacePointer_screenMenu;
+ _hori = DAT_WindowAndDirectDraw.byteSizeOfOneHorizontalLine + imageWidth * -2;
+ _vert = DAT_WindowAndDirectDraw.byteSizeOfOneHorizontalLine;
+ _heightStart = this->screenMenuSurfaceHeightRange.start;
+ _heightEnd = this->screenMenuSurfaceHeightRange.end;
+ }
+ if ((drawY + imageHeight <= _heightEnd) || (imageHeight = _heightEnd - drawY, 0 < imageHeight)) {
+ if (PTR_ARRAY_00c9a510::instance[0] == (undefined*)0x0) {
+ PTR_ARRAY_00c9a510::instance[0] = (undefined*)0x44dd49;
+ PTR_ARRAY_00c9a510::instance[1] = (undefined*)0x44dd54;
+ PTR_ARRAY_00c9a510::instance[2] = (undefined*)0x44dd5e;
+ PTR_ARRAY_00c9a510::instance[3] = (undefined*)0x44dd6c;
+ PTR_ARRAY_00c9a510::instance[4] = (undefined*)0x44dd79;
+ PTR_ARRAY_00c9a510::instance[5] = (undefined*)0x44dd8a;
+ PTR_ARRAY_00c9a510::instance[6] = (undefined*)0x44dd9a;
+ PTR_ARRAY_00c9a510::instance[7] = (undefined*)0x44ddae;
+ PTR_ARRAY_00c9a510::instance[8] = (undefined*)0x44ddc1;
+ PTR_ARRAY_00c9a510::instance[9] = (undefined*)0x44ddd8;
+ PTR_ARRAY_00c9a510::instance[10] = (undefined*)0x44ddee;
+ PTR_ARRAY_00c9a510::instance[0xb] = (undefined*)0x44de08;
+ PTR_ARRAY_00c9a510::instance[0xc] = (undefined*)0x44de21;
+ PTR_ARRAY_00c9a510::instance[0xd] = (undefined*)0x44de3e;
+ PTR_ARRAY_00c9a510::instance[0xe] = (undefined*)0x44de5a;
+ PTR_ARRAY_00c9a510::instance[0xf] = (undefined*)0x44de7a;
+ PTR_ARRAY_00c9a510::instance[0x10] = (undefined*)0x44de99;
+ PTR_ARRAY_00c9a510::instance[0x11] = (undefined*)0x44debc;
+ PTR_ARRAY_00c9a510::instance[0x12] = (undefined*)0x44dede;
+ PTR_ARRAY_00c9a510::instance[0x13] = (undefined*)0x44df04;
+ PTR_ARRAY_00c9a510::instance[0x14] = (undefined*)0x44df29;
+ PTR_ARRAY_00c9a510::instance[0x15] = (undefined*)0x44df52;
+ PTR_ARRAY_00c9a510::instance[0x16] = (undefined*)0x44df7a;
+ PTR_ARRAY_00c9a510::instance[0x17] = (undefined*)0x44dfa6;
+ PTR_ARRAY_00c9a510::instance[0x18] = (undefined*)0x44dfd1;
+ PTR_ARRAY_00c9a510::instance[0x19] = (undefined*)0x44e000;
+ PTR_ARRAY_00c9a510::instance[0x1a] = (undefined*)0x44e02e;
+ PTR_ARRAY_00c9a510::instance[0x1b] = (undefined*)0x44e060;
+ PTR_ARRAY_00c9a510::instance[0x1c] = (undefined*)0x44e091;
+ PTR_ARRAY_00c9a510::instance[0x1d] = (undefined*)0x44e0c6;
+ PTR_ARRAY_00c9a510::instance[0x1e] = (undefined*)0x44e0fa;
+ PTR_ARRAY_00c9a510::instance[0x1f] = (undefined*)0x44e132;
+ PTR_ARRAY_00d7d250::instance[0] = (undefined*)0x44d5b2;
+ PTR_ARRAY_00d7d250::instance[1] = (undefined*)0x44d5c0;
+ PTR_ARRAY_00d7d250::instance[2] = (undefined*)0x44d5cc;
+ PTR_ARRAY_00d7d250::instance[3] = (undefined*)0x44d5e0;
+ PTR_ARRAY_00d7d250::instance[4] = (undefined*)0x44d5f5;
+ PTR_ARRAY_00d7d250::instance[5] = (undefined*)0x44d612;
+ PTR_ARRAY_00d7d250::instance[6] = (undefined*)0x44d62d;
+ PTR_ARRAY_00d7d250::instance[7] = (undefined*)0x44d650;
+ PTR_ARRAY_00d7d250::instance[8] = (undefined*)0x44d671;
+ PTR_ARRAY_00d7d250::instance[9] = (undefined*)0x44d69a;
+ PTR_ARRAY_00d7d250::instance[10] = (undefined*)0x44d6c1;
+ PTR_ARRAY_00d7d250::instance[0xb] = (undefined*)0x44d6f0;
+ PTR_ARRAY_00d7d250::instance[0xc] = (undefined*)0x44d71d;
+ PTR_ARRAY_00d7d250::instance[0xd] = (undefined*)0x44d752;
+ PTR_ARRAY_00d7d250::instance[0xe] = (undefined*)0x44d785;
+ PTR_ARRAY_00d7d250::instance[0xf] = (undefined*)0x44d7c0;
+ PTR_ARRAY_00d7d250::instance[0x10] = (undefined*)0x44d7f9;
+ PTR_ARRAY_00d7d250::instance[0x11] = (undefined*)0x44d83a;
+ PTR_ARRAY_00d7d250::instance[0x12] = (undefined*)0x44d879;
+ PTR_ARRAY_00d7d250::instance[0x13] = (undefined*)0x44d8c0;
+ PTR_ARRAY_00d7d250::instance[0x14] = (undefined*)0x44d905;
+ PTR_ARRAY_00d7d250::instance[0x15] = (undefined*)0x44d952;
+ PTR_ARRAY_00d7d250::instance[0x16] = (undefined*)0x44d99d;
+ PTR_ARRAY_00d7d250::instance[0x17] = (undefined*)0x44d9f0;
+ PTR_ARRAY_00d7d250::instance[0x18] = (undefined*)0x44da41;
+ PTR_ARRAY_00d7d250::instance[0x19] = (undefined*)0x44da9a;
+ PTR_ARRAY_00d7d250::instance[0x1a] = (undefined*)0x44daf1;
+ PTR_ARRAY_00d7d250::instance[0x1b] = (undefined*)0x44db50;
+ PTR_ARRAY_00d7d250::instance[0x1c] = (undefined*)0x44dbad;
+ PTR_ARRAY_00d7d250::instance[0x1d] = (undefined*)0x44dc12;
+ PTR_ARRAY_00d7d250::instance[0x1e] = (undefined*)0x44dc75;
+ PTR_ARRAY_00d7d250::instance[0x1f] = (undefined*)0x44dce0;
+ }
+ if (-1 < drawX) {
+ if (drawY < _heightStart) {
+ _outsidePosY = _heightStart - drawY;
+ if (imageHeight <= _outsidePosY) {
+ return;
+ }
+ imageHeight = imageHeight - _outsidePosY;
+ do {
+ while (true) {
+ while (true) {
+ do {
+ _imageDataPtr = (TgxTokenByte*)imageAddress;
+ _tgxToken2 = *_imageDataPtr & TT_TGX_PIXEL_HEADER;
+ imageAddress = (ushort*)(_imageDataPtr + 1);
+ } while (_tgxToken2 == TT_TRANSPARENT_PIXELS);
+ if (_tgxToken2 != TT_STREAM_OF_PIXELS)
+ break;
+ imageAddress = (ushort*)((int)imageAddress
+ + ((*_imageDataPtr & TT_TGX_PIXEL_LENGTH) + 1) * 2);
+ }
+ if (_tgxToken2 != TT_REPEATING_PIXELS)
+ break;
+ imageAddress = (ushort*)(_imageDataPtr + 3);
+ }
+ iVar4 = _outsidePosY + -1;
+ bVar3 = 0 < _outsidePosY;
+ drawY = _heightStart;
+ _outsidePosY = iVar4;
+ } while (iVar4 != 0 && bVar3);
+ }
+ _currentDrawPointer
+ = (undefined4*)((int)this->currentRenderSurface + drawY * _vert + drawX * 2);
+ do {
+ while (true) {
+ while (true) {
+ while (true) {
+ _tgxToken = *(TgxTokenByte*)imageAddress & TT_TGX_PIXEL_HEADER;
+ _tgxPixelLength = *(TgxTokenByte*)imageAddress & TT_TGX_PIXEL_LENGTH;
+ _length = (uint)_tgxPixelLength;
+ _imageDataPtr = (TgxTokenByte*)((int)imageAddress + 1);
+ if (_tgxToken != TT_TRANSPARENT_PIXELS)
+ break;
+ _currentDrawPointer
+ = (undefined4*)((int)_currentDrawPointer + (_length + 1) * 2);
+ imageAddress = (ushort*)_imageDataPtr;
+ }
+ if (_tgxToken != TT_STREAM_OF_PIXELS)
+ break;
+ switch (PTR_ARRAY_00d7d250::instance[_length]) {
+ case (undefined*)0x44d5b2:
+ *(undefined2*)_currentDrawPointer = *(undefined2*)_imageDataPtr;
+ imageAddress = (ushort*)((int)imageAddress + 3);
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 2);
+ break;
+ case (undefined*)0x44d5c0:
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ imageAddress = (ushort*)((int)imageAddress + 5);
+ _currentDrawPointer = _currentDrawPointer + 1;
+ break;
+ case (undefined*)0x44d5cc:
+ uVar1 = *(undefined2*)((int)imageAddress + 5);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ *(undefined2*)(_currentDrawPointer + 1) = uVar1;
+ imageAddress = (ushort*)((int)imageAddress + 7);
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 6);
+ break;
+ case (undefined*)0x44d5e0:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ imageAddress = (ushort*)((int)imageAddress + 9);
+ _currentDrawPointer = _currentDrawPointer + 2;
+ break;
+ case (undefined*)0x44d5f5:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar1 = *(undefined2*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ *(undefined2*)(_currentDrawPointer + 2) = uVar1;
+ imageAddress = (ushort*)((int)imageAddress + 0xb);
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 10);
+ break;
+ case (undefined*)0x44d612:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ imageAddress = (ushort*)((int)imageAddress + 0xd);
+ _currentDrawPointer = _currentDrawPointer + 3;
+ break;
+ case (undefined*)0x44d62d:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ *(undefined2*)(_currentDrawPointer + 3)
+ = *(undefined2*)((int)imageAddress + 0xd);
+ imageAddress = (ushort*)((int)imageAddress + 0xf);
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 0xe);
+ break;
+ case (undefined*)0x44d650:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ _currentDrawPointer[3] = *(undefined4*)((int)imageAddress + 0xd);
+ imageAddress = (ushort*)((int)imageAddress + 0x11);
+ _currentDrawPointer = _currentDrawPointer + 4;
+ break;
+ case (undefined*)0x44d671:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ uVar1 = *(undefined2*)((int)imageAddress + 0x11);
+ _currentDrawPointer[3] = *(undefined4*)((int)imageAddress + 0xd);
+ *(undefined2*)(_currentDrawPointer + 4) = uVar1;
+ imageAddress = (ushort*)((int)imageAddress + 0x13);
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 0x12);
+ break;
+ case (undefined*)0x44d69a:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x11);
+ _currentDrawPointer[3] = *(undefined4*)((int)imageAddress + 0xd);
+ _currentDrawPointer[4] = uVar5;
+ imageAddress = (ushort*)((int)imageAddress + 0x15);
+ _currentDrawPointer = _currentDrawPointer + 5;
+ break;
+ case (undefined*)0x44d6c1:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x11);
+ uVar1 = *(undefined2*)((int)imageAddress + 0x15);
+ _currentDrawPointer[3] = *(undefined4*)((int)imageAddress + 0xd);
+ _currentDrawPointer[4] = uVar5;
+ *(undefined2*)(_currentDrawPointer + 5) = uVar1;
+ imageAddress = (ushort*)((int)imageAddress + 0x17);
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 0x16);
+ break;
+ case (undefined*)0x44d6f0:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x11);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x15);
+ _currentDrawPointer[3] = *(undefined4*)((int)imageAddress + 0xd);
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar2;
+ imageAddress = (ushort*)((int)imageAddress + 0x19);
+ _currentDrawPointer = _currentDrawPointer + 6;
+ break;
+ case (undefined*)0x44d71d:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x11);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x15);
+ _currentDrawPointer[3] = *(undefined4*)((int)imageAddress + 0xd);
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar2;
+ *(undefined2*)(_currentDrawPointer + 6)
+ = *(undefined2*)((int)imageAddress + 0x19);
+ imageAddress = (ushort*)((int)imageAddress + 0x1b);
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 0x1a);
+ break;
+ case (undefined*)0x44d752:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x11);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x15);
+ _currentDrawPointer[3] = *(undefined4*)((int)imageAddress + 0xd);
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar2;
+ _currentDrawPointer[6] = *(undefined4*)((int)imageAddress + 0x19);
+ imageAddress = (ushort*)((int)imageAddress + 0x1d);
+ _currentDrawPointer = _currentDrawPointer + 7;
+ break;
+ case (undefined*)0x44d785:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x11);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x15);
+ _currentDrawPointer[3] = *(undefined4*)((int)imageAddress + 0xd);
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar2;
+ uVar1 = *(undefined2*)((int)imageAddress + 0x1d);
+ _currentDrawPointer[6] = *(undefined4*)((int)imageAddress + 0x19);
+ *(undefined2*)(_currentDrawPointer + 7) = uVar1;
+ imageAddress = (ushort*)((int)imageAddress + 0x1f);
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 0x1e);
+ break;
+ case (undefined*)0x44d7c0:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x11);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x15);
+ _currentDrawPointer[3] = *(undefined4*)((int)imageAddress + 0xd);
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x1d);
+ _currentDrawPointer[6] = *(undefined4*)((int)imageAddress + 0x19);
+ _currentDrawPointer[7] = uVar5;
+ imageAddress = (ushort*)((int)imageAddress + 0x21);
+ _currentDrawPointer = _currentDrawPointer + 8;
+ break;
+ case (undefined*)0x44d7f9:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x11);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x15);
+ _currentDrawPointer[3] = *(undefined4*)((int)imageAddress + 0xd);
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x1d);
+ uVar1 = *(undefined2*)((int)imageAddress + 0x21);
+ _currentDrawPointer[6] = *(undefined4*)((int)imageAddress + 0x19);
+ _currentDrawPointer[7] = uVar5;
+ *(undefined2*)(_currentDrawPointer + 8) = uVar1;
+ imageAddress = (ushort*)((int)imageAddress + 0x23);
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 0x22);
+ break;
+ case (undefined*)0x44d83a:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x11);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x15);
+ _currentDrawPointer[3] = *(undefined4*)((int)imageAddress + 0xd);
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x1d);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x21);
+ _currentDrawPointer[6] = *(undefined4*)((int)imageAddress + 0x19);
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar2;
+ imageAddress = (ushort*)((int)imageAddress + 0x25);
+ _currentDrawPointer = _currentDrawPointer + 9;
+ break;
+ case (undefined*)0x44d879:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x11);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x15);
+ _currentDrawPointer[3] = *(undefined4*)((int)imageAddress + 0xd);
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x1d);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x21);
+ _currentDrawPointer[6] = *(undefined4*)((int)imageAddress + 0x19);
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar2;
+ *(undefined2*)(_currentDrawPointer + 9)
+ = *(undefined2*)((int)imageAddress + 0x25);
+ imageAddress = (ushort*)((int)imageAddress + 0x27);
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 0x26);
+ break;
+ case (undefined*)0x44d8c0:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x11);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x15);
+ _currentDrawPointer[3] = *(undefined4*)((int)imageAddress + 0xd);
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x1d);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x21);
+ _currentDrawPointer[6] = *(undefined4*)((int)imageAddress + 0x19);
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar2;
+ _currentDrawPointer[9] = *(undefined4*)((int)imageAddress + 0x25);
+ imageAddress = (ushort*)((int)imageAddress + 0x29);
+ _currentDrawPointer = _currentDrawPointer + 10;
+ break;
+ case (undefined*)0x44d905:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x11);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x15);
+ _currentDrawPointer[3] = *(undefined4*)((int)imageAddress + 0xd);
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x1d);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x21);
+ _currentDrawPointer[6] = *(undefined4*)((int)imageAddress + 0x19);
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar2;
+ uVar1 = *(undefined2*)((int)imageAddress + 0x29);
+ _currentDrawPointer[9] = *(undefined4*)((int)imageAddress + 0x25);
+ *(undefined2*)(_currentDrawPointer + 10) = uVar1;
+ imageAddress = (ushort*)((int)imageAddress + 0x2b);
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 0x2a);
+ break;
+ case (undefined*)0x44d952:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x11);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x15);
+ _currentDrawPointer[3] = *(undefined4*)((int)imageAddress + 0xd);
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x1d);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x21);
+ _currentDrawPointer[6] = *(undefined4*)((int)imageAddress + 0x19);
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x29);
+ _currentDrawPointer[9] = *(undefined4*)((int)imageAddress + 0x25);
+ _currentDrawPointer[10] = uVar5;
+ imageAddress = (ushort*)((int)imageAddress + 0x2d);
+ _currentDrawPointer = _currentDrawPointer + 0xb;
+ break;
+ case (undefined*)0x44d99d:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x11);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x15);
+ _currentDrawPointer[3] = *(undefined4*)((int)imageAddress + 0xd);
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x1d);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x21);
+ _currentDrawPointer[6] = *(undefined4*)((int)imageAddress + 0x19);
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x29);
+ uVar1 = *(undefined2*)((int)imageAddress + 0x2d);
+ _currentDrawPointer[9] = *(undefined4*)((int)imageAddress + 0x25);
+ _currentDrawPointer[10] = uVar5;
+ *(undefined2*)(_currentDrawPointer + 0xb) = uVar1;
+ imageAddress = (ushort*)((int)imageAddress + 0x2f);
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 0x2e);
+ break;
+ case (undefined*)0x44d9f0:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x11);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x15);
+ _currentDrawPointer[3] = *(undefined4*)((int)imageAddress + 0xd);
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x1d);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x21);
+ _currentDrawPointer[6] = *(undefined4*)((int)imageAddress + 0x19);
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x29);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x2d);
+ _currentDrawPointer[9] = *(undefined4*)((int)imageAddress + 0x25);
+ _currentDrawPointer[10] = uVar5;
+ _currentDrawPointer[0xb] = uVar2;
+ imageAddress = (ushort*)((int)imageAddress + 0x31);
+ _currentDrawPointer = _currentDrawPointer + 0xc;
+ break;
+ case (undefined*)0x44da41:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x11);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x15);
+ _currentDrawPointer[3] = *(undefined4*)((int)imageAddress + 0xd);
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x1d);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x21);
+ _currentDrawPointer[6] = *(undefined4*)((int)imageAddress + 0x19);
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x29);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x2d);
+ _currentDrawPointer[9] = *(undefined4*)((int)imageAddress + 0x25);
+ _currentDrawPointer[10] = uVar5;
+ _currentDrawPointer[0xb] = uVar2;
+ *(undefined2*)(_currentDrawPointer + 0xc)
+ = *(undefined2*)((int)imageAddress + 0x31);
+ imageAddress = (ushort*)((int)imageAddress + 0x33);
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 0x32);
+ break;
+ case (undefined*)0x44da9a:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x11);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x15);
+ _currentDrawPointer[3] = *(undefined4*)((int)imageAddress + 0xd);
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x1d);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x21);
+ _currentDrawPointer[6] = *(undefined4*)((int)imageAddress + 0x19);
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x29);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x2d);
+ _currentDrawPointer[9] = *(undefined4*)((int)imageAddress + 0x25);
+ _currentDrawPointer[10] = uVar5;
+ _currentDrawPointer[0xb] = uVar2;
+ _currentDrawPointer[0xc] = *(undefined4*)((int)imageAddress + 0x31);
+ imageAddress = (ushort*)((int)imageAddress + 0x35);
+ _currentDrawPointer = _currentDrawPointer + 0xd;
+ break;
+ case (undefined*)0x44daf1:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x11);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x15);
+ _currentDrawPointer[3] = *(undefined4*)((int)imageAddress + 0xd);
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x1d);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x21);
+ _currentDrawPointer[6] = *(undefined4*)((int)imageAddress + 0x19);
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x29);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x2d);
+ _currentDrawPointer[9] = *(undefined4*)((int)imageAddress + 0x25);
+ _currentDrawPointer[10] = uVar5;
+ _currentDrawPointer[0xb] = uVar2;
+ uVar1 = *(undefined2*)((int)imageAddress + 0x35);
+ _currentDrawPointer[0xc] = *(undefined4*)((int)imageAddress + 0x31);
+ *(undefined2*)(_currentDrawPointer + 0xd) = uVar1;
+ imageAddress = (ushort*)((int)imageAddress + 0x37);
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 0x36);
+ break;
+ case (undefined*)0x44db50:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x11);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x15);
+ _currentDrawPointer[3] = *(undefined4*)((int)imageAddress + 0xd);
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x1d);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x21);
+ _currentDrawPointer[6] = *(undefined4*)((int)imageAddress + 0x19);
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x29);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x2d);
+ _currentDrawPointer[9] = *(undefined4*)((int)imageAddress + 0x25);
+ _currentDrawPointer[10] = uVar5;
+ _currentDrawPointer[0xb] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x35);
+ _currentDrawPointer[0xc] = *(undefined4*)((int)imageAddress + 0x31);
+ _currentDrawPointer[0xd] = uVar5;
+ imageAddress = (ushort*)((int)imageAddress + 0x39);
+ _currentDrawPointer = _currentDrawPointer + 0xe;
+ break;
+ case (undefined*)0x44dbad:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x11);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x15);
+ _currentDrawPointer[3] = *(undefined4*)((int)imageAddress + 0xd);
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x1d);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x21);
+ _currentDrawPointer[6] = *(undefined4*)((int)imageAddress + 0x19);
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x29);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x2d);
+ _currentDrawPointer[9] = *(undefined4*)((int)imageAddress + 0x25);
+ _currentDrawPointer[10] = uVar5;
+ _currentDrawPointer[0xb] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x35);
+ uVar1 = *(undefined2*)((int)imageAddress + 0x39);
+ _currentDrawPointer[0xc] = *(undefined4*)((int)imageAddress + 0x31);
+ _currentDrawPointer[0xd] = uVar5;
+ *(undefined2*)(_currentDrawPointer + 0xe) = uVar1;
+ imageAddress = (ushort*)((int)imageAddress + 0x3b);
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 0x3a);
+ break;
+ case (undefined*)0x44dc12:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x11);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x15);
+ _currentDrawPointer[3] = *(undefined4*)((int)imageAddress + 0xd);
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x1d);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x21);
+ _currentDrawPointer[6] = *(undefined4*)((int)imageAddress + 0x19);
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x29);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x2d);
+ _currentDrawPointer[9] = *(undefined4*)((int)imageAddress + 0x25);
+ _currentDrawPointer[10] = uVar5;
+ _currentDrawPointer[0xb] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x35);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x39);
+ _currentDrawPointer[0xc] = *(undefined4*)((int)imageAddress + 0x31);
+ _currentDrawPointer[0xd] = uVar5;
+ _currentDrawPointer[0xe] = uVar2;
+ imageAddress = (ushort*)((int)imageAddress + 0x3d);
+ _currentDrawPointer = _currentDrawPointer + 0xf;
+ break;
+ case (undefined*)0x44dc75:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x11);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x15);
+ _currentDrawPointer[3] = *(undefined4*)((int)imageAddress + 0xd);
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x1d);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x21);
+ _currentDrawPointer[6] = *(undefined4*)((int)imageAddress + 0x19);
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x29);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x2d);
+ _currentDrawPointer[9] = *(undefined4*)((int)imageAddress + 0x25);
+ _currentDrawPointer[10] = uVar5;
+ _currentDrawPointer[0xb] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x35);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x39);
+ _currentDrawPointer[0xc] = *(undefined4*)((int)imageAddress + 0x31);
+ _currentDrawPointer[0xd] = uVar5;
+ _currentDrawPointer[0xe] = uVar2;
+ *(undefined2*)(_currentDrawPointer + 0xf)
+ = *(undefined2*)((int)imageAddress + 0x3d);
+ imageAddress = (ushort*)((int)imageAddress + 0x3f);
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 0x3e);
+ break;
+ case (undefined*)0x44dce0:
+ uVar5 = *(undefined4*)((int)imageAddress + 5);
+ uVar2 = *(undefined4*)((int)imageAddress + 9);
+ *_currentDrawPointer = *(undefined4*)_imageDataPtr;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x11);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x15);
+ _currentDrawPointer[3] = *(undefined4*)((int)imageAddress + 0xd);
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x1d);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x21);
+ _currentDrawPointer[6] = *(undefined4*)((int)imageAddress + 0x19);
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x29);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x2d);
+ _currentDrawPointer[9] = *(undefined4*)((int)imageAddress + 0x25);
+ _currentDrawPointer[10] = uVar5;
+ _currentDrawPointer[0xb] = uVar2;
+ uVar5 = *(undefined4*)((int)imageAddress + 0x35);
+ uVar2 = *(undefined4*)((int)imageAddress + 0x39);
+ _currentDrawPointer[0xc] = *(undefined4*)((int)imageAddress + 0x31);
+ _currentDrawPointer[0xd] = uVar5;
+ _currentDrawPointer[0xe] = uVar2;
+ _currentDrawPointer[0xf] = *(undefined4*)((int)imageAddress + 0x3d);
+ imageAddress = (ushort*)((int)imageAddress + 0x41);
+ _currentDrawPointer = _currentDrawPointer + 0x10;
+ }
+ }
+ if (_tgxToken != TT_REPEATING_PIXELS)
+ break;
+ uVar1 = *(undefined2*)_imageDataPtr;
+ uVar5 = CONCAT22(uVar1, uVar1);
+ imageAddress = (ushort*)((int)imageAddress + 3);
+ switch (PTR_ARRAY_00c9a510::instance[_length]) {
+ case (undefined*)0x44dd49:
+ *(undefined2*)_currentDrawPointer = uVar1;
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 2);
+ break;
+ case (undefined*)0x44dd54:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer = _currentDrawPointer + 1;
+ break;
+ case (undefined*)0x44dd5e:
+ *_currentDrawPointer = uVar5;
+ *(undefined2*)(_currentDrawPointer + 1) = uVar1;
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 6);
+ break;
+ case (undefined*)0x44dd6c:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer = _currentDrawPointer + 2;
+ break;
+ case (undefined*)0x44dd79:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ *(undefined2*)(_currentDrawPointer + 2) = uVar1;
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 10);
+ break;
+ case (undefined*)0x44dd8a:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ _currentDrawPointer = _currentDrawPointer + 3;
+ break;
+ case (undefined*)0x44dd9a:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ *(undefined2*)(_currentDrawPointer + 3) = uVar1;
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 0xe);
+ break;
+ case (undefined*)0x44ddae:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ _currentDrawPointer[3] = uVar5;
+ _currentDrawPointer = _currentDrawPointer + 4;
+ break;
+ case (undefined*)0x44ddc1:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ _currentDrawPointer[3] = uVar5;
+ *(undefined2*)(_currentDrawPointer + 4) = uVar1;
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 0x12);
+ break;
+ case (undefined*)0x44ddd8:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ _currentDrawPointer[3] = uVar5;
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer = _currentDrawPointer + 5;
+ break;
+ case (undefined*)0x44ddee:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ _currentDrawPointer[3] = uVar5;
+ _currentDrawPointer[4] = uVar5;
+ *(undefined2*)(_currentDrawPointer + 5) = uVar1;
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 0x16);
+ break;
+ case (undefined*)0x44de08:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ _currentDrawPointer[3] = uVar5;
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar5;
+ _currentDrawPointer = _currentDrawPointer + 6;
+ break;
+ case (undefined*)0x44de21:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ _currentDrawPointer[3] = uVar5;
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar5;
+ *(undefined2*)(_currentDrawPointer + 6) = uVar1;
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 0x1a);
+ break;
+ case (undefined*)0x44de3e:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ _currentDrawPointer[3] = uVar5;
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar5;
+ _currentDrawPointer[6] = uVar5;
+ _currentDrawPointer = _currentDrawPointer + 7;
+ break;
+ case (undefined*)0x44de5a:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ _currentDrawPointer[3] = uVar5;
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar5;
+ _currentDrawPointer[6] = uVar5;
+ *(undefined2*)(_currentDrawPointer + 7) = uVar1;
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 0x1e);
+ break;
+ case (undefined*)0x44de7a:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ _currentDrawPointer[3] = uVar5;
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar5;
+ _currentDrawPointer[6] = uVar5;
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer = _currentDrawPointer + 8;
+ break;
+ case (undefined*)0x44de99:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ _currentDrawPointer[3] = uVar5;
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar5;
+ _currentDrawPointer[6] = uVar5;
+ _currentDrawPointer[7] = uVar5;
+ *(undefined2*)(_currentDrawPointer + 8) = uVar1;
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 0x22);
+ break;
+ case (undefined*)0x44debc:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ _currentDrawPointer[3] = uVar5;
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar5;
+ _currentDrawPointer[6] = uVar5;
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar5;
+ _currentDrawPointer = _currentDrawPointer + 9;
+ break;
+ case (undefined*)0x44dede:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ _currentDrawPointer[3] = uVar5;
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar5;
+ _currentDrawPointer[6] = uVar5;
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar5;
+ *(undefined2*)(_currentDrawPointer + 9) = uVar1;
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 0x26);
+ break;
+ case (undefined*)0x44df04:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ _currentDrawPointer[3] = uVar5;
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar5;
+ _currentDrawPointer[6] = uVar5;
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar5;
+ _currentDrawPointer[9] = uVar5;
+ _currentDrawPointer = _currentDrawPointer + 10;
+ break;
+ case (undefined*)0x44df29:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ _currentDrawPointer[3] = uVar5;
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar5;
+ _currentDrawPointer[6] = uVar5;
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar5;
+ _currentDrawPointer[9] = uVar5;
+ *(undefined2*)(_currentDrawPointer + 10) = uVar1;
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 0x2a);
+ break;
+ case (undefined*)0x44df52:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ _currentDrawPointer[3] = uVar5;
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar5;
+ _currentDrawPointer[6] = uVar5;
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar5;
+ _currentDrawPointer[9] = uVar5;
+ _currentDrawPointer[10] = uVar5;
+ _currentDrawPointer = _currentDrawPointer + 0xb;
+ break;
+ case (undefined*)0x44df7a:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ _currentDrawPointer[3] = uVar5;
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar5;
+ _currentDrawPointer[6] = uVar5;
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar5;
+ _currentDrawPointer[9] = uVar5;
+ _currentDrawPointer[10] = uVar5;
+ *(undefined2*)(_currentDrawPointer + 0xb) = uVar1;
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 0x2e);
+ break;
+ case (undefined*)0x44dfa6:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ _currentDrawPointer[3] = uVar5;
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar5;
+ _currentDrawPointer[6] = uVar5;
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar5;
+ _currentDrawPointer[9] = uVar5;
+ _currentDrawPointer[10] = uVar5;
+ _currentDrawPointer[0xb] = uVar5;
+ _currentDrawPointer = _currentDrawPointer + 0xc;
+ break;
+ case (undefined*)0x44dfd1:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ _currentDrawPointer[3] = uVar5;
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar5;
+ _currentDrawPointer[6] = uVar5;
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar5;
+ _currentDrawPointer[9] = uVar5;
+ _currentDrawPointer[10] = uVar5;
+ _currentDrawPointer[0xb] = uVar5;
+ *(undefined2*)(_currentDrawPointer + 0xc) = uVar1;
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 0x32);
+ break;
+ case (undefined*)0x44e000:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ _currentDrawPointer[3] = uVar5;
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar5;
+ _currentDrawPointer[6] = uVar5;
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar5;
+ _currentDrawPointer[9] = uVar5;
+ _currentDrawPointer[10] = uVar5;
+ _currentDrawPointer[0xb] = uVar5;
+ _currentDrawPointer[0xc] = uVar5;
+ _currentDrawPointer = _currentDrawPointer + 0xd;
+ break;
+ case (undefined*)0x44e02e:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ _currentDrawPointer[3] = uVar5;
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar5;
+ _currentDrawPointer[6] = uVar5;
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar5;
+ _currentDrawPointer[9] = uVar5;
+ _currentDrawPointer[10] = uVar5;
+ _currentDrawPointer[0xb] = uVar5;
+ _currentDrawPointer[0xc] = uVar5;
+ *(undefined2*)(_currentDrawPointer + 0xd) = uVar1;
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 0x36);
+ break;
+ case (undefined*)0x44e060:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ _currentDrawPointer[3] = uVar5;
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar5;
+ _currentDrawPointer[6] = uVar5;
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar5;
+ _currentDrawPointer[9] = uVar5;
+ _currentDrawPointer[10] = uVar5;
+ _currentDrawPointer[0xb] = uVar5;
+ _currentDrawPointer[0xc] = uVar5;
+ _currentDrawPointer[0xd] = uVar5;
+ _currentDrawPointer = _currentDrawPointer + 0xe;
+ break;
+ case (undefined*)0x44e091:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ _currentDrawPointer[3] = uVar5;
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar5;
+ _currentDrawPointer[6] = uVar5;
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar5;
+ _currentDrawPointer[9] = uVar5;
+ _currentDrawPointer[10] = uVar5;
+ _currentDrawPointer[0xb] = uVar5;
+ _currentDrawPointer[0xc] = uVar5;
+ _currentDrawPointer[0xd] = uVar5;
+ *(undefined2*)(_currentDrawPointer + 0xe) = uVar1;
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 0x3a);
+ break;
+ case (undefined*)0x44e0c6:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ _currentDrawPointer[3] = uVar5;
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar5;
+ _currentDrawPointer[6] = uVar5;
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar5;
+ _currentDrawPointer[9] = uVar5;
+ _currentDrawPointer[10] = uVar5;
+ _currentDrawPointer[0xb] = uVar5;
+ _currentDrawPointer[0xc] = uVar5;
+ _currentDrawPointer[0xd] = uVar5;
+ _currentDrawPointer[0xe] = uVar5;
+ _currentDrawPointer = _currentDrawPointer + 0xf;
+ break;
+ case (undefined*)0x44e0fa:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ _currentDrawPointer[3] = uVar5;
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar5;
+ _currentDrawPointer[6] = uVar5;
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar5;
+ _currentDrawPointer[9] = uVar5;
+ _currentDrawPointer[10] = uVar5;
+ _currentDrawPointer[0xb] = uVar5;
+ _currentDrawPointer[0xc] = uVar5;
+ _currentDrawPointer[0xd] = uVar5;
+ _currentDrawPointer[0xe] = uVar5;
+ *(undefined2*)(_currentDrawPointer + 0xf) = uVar1;
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + 0x3e);
+ break;
+ case (undefined*)0x44e132:
+ *_currentDrawPointer = uVar5;
+ _currentDrawPointer[1] = uVar5;
+ _currentDrawPointer[2] = uVar5;
+ _currentDrawPointer[3] = uVar5;
+ _currentDrawPointer[4] = uVar5;
+ _currentDrawPointer[5] = uVar5;
+ _currentDrawPointer[6] = uVar5;
+ _currentDrawPointer[7] = uVar5;
+ _currentDrawPointer[8] = uVar5;
+ _currentDrawPointer[9] = uVar5;
+ _currentDrawPointer[10] = uVar5;
+ _currentDrawPointer[0xb] = uVar5;
+ _currentDrawPointer[0xc] = uVar5;
+ _currentDrawPointer[0xd] = uVar5;
+ _currentDrawPointer[0xe] = uVar5;
+ _currentDrawPointer[0xf] = uVar5;
+ _currentDrawPointer = _currentDrawPointer + 0x10;
+ }
+ }
+ _currentDrawPointer = (undefined4*)((int)_currentDrawPointer + _hori);
+ _outsidePosY = imageHeight + -1;
+ bVar3 = 0 < imageHeight;
+ imageHeight = _outsidePosY;
+ imageAddress = (ushort*)_imageDataPtr;
+ } while (_outsidePosY != 0 && bVar3);
+ }
+ }
+ } else {
+ this->currentRenderSurface = DAT_WindowAndDirectDraw.surfacePointer_mapGame;
+ if (((drawY + imageHeight <= this->mapGameSurfaceHeightRange.end)
+ || (imageHeight = this->mapGameSurfaceHeightRange.end - drawY, 0 < imageHeight))
+ && (-1 < drawX)) {
+ if (drawY < this->mapGameSurfaceHeightRange.start) {
+ _outsidePosY = this->mapGameSurfaceHeightRange.start - drawY;
+ if (imageHeight <= _outsidePosY) {
+ this->currentRenderSurface = DAT_WindowAndDirectDraw.surfacePointer_mapGame;
+ return;
+ }
+ imageHeight = imageHeight - _outsidePosY;
+ do {
+ while (true) {
+ while (true) {
+ do {
+ _imageDataPtr = (TgxTokenByte*)imageAddress;
+ _tgxToken3 = *_imageDataPtr & TT_TGX_PIXEL_HEADER;
+ imageAddress = (ushort*)(_imageDataPtr + 1);
+ } while (_tgxToken3 == TT_TRANSPARENT_PIXELS);
+ if (_tgxToken3 != TT_STREAM_OF_PIXELS)
+ break;
+ imageAddress = (ushort*)((int)imageAddress
+ + ((*_imageDataPtr & TT_TGX_PIXEL_LENGTH) + 1) * 2);
+ }
+ if (_tgxToken3 != TT_REPEATING_PIXELS)
+ break;
+ imageAddress = (ushort*)(_imageDataPtr + 3);
+ }
+ iVar4 = _outsidePosY + -1;
+ bVar3 = 0 < _outsidePosY;
+ drawY = this->mapGameSurfaceHeightRange.start;
+ _outsidePosY = iVar4;
+ } while (iVar4 != 0 && bVar3);
+ }
+ _drawPointer = (int)DAT_WindowAndDirectDraw.surfacePointer_mapGame
+ + ((uint)drawY >> 1) * 0x1fb0 + (drawX & 0xfffffffeU);
+ local_20 = 0;
+ uVar6 = local_20;
+ do {
+ while (true) {
+ while (true) {
+ while (true) {
+ local_20 = uVar6;
+ _tgxToken2 = *(TgxTokenByte*)imageAddress & TT_TGX_PIXEL_HEADER;
+ uVar6 = (uint)(*(TgxTokenByte*)imageAddress & TT_TGX_PIXEL_LENGTH);
+ _imageDataPtr = (TgxTokenByte*)((int)imageAddress + 1);
+ if (_tgxToken2 != TT_TRANSPARENT_PIXELS)
+ break;
+ imageAddress = (ushort*)_imageDataPtr;
+ uVar6 = local_20 + uVar6 + 1;
+ }
+ if (_tgxToken2 != TT_STREAM_OF_PIXELS)
+ break;
+ _outsidePosY = uVar6 + 1;
+ uVar6 = local_20 + _outsidePosY;
+ do {
+ if ((local_20 & 1) == 0) {
+ *(undefined2*)(_drawPointer + local_20) = *(undefined2*)_imageDataPtr;
+ }
+ local_20 = local_20 + 1;
+ _imageDataPtr = _imageDataPtr + 2;
+ _outsidePosY = _outsidePosY + -1;
+ imageAddress = (ushort*)_imageDataPtr;
+ } while (_outsidePosY != 0);
+ }
+ if (_tgxToken2 != TT_REPEATING_PIXELS)
+ break;
+ uVar1 = *(undefined2*)_imageDataPtr;
+ imageAddress = (ushort*)((int)imageAddress + 3);
+ _outsidePosY = uVar6 + 1;
+ uVar6 = local_20 + _outsidePosY;
+ do {
+ if ((local_20 & 1) == 0) {
+ *(undefined2*)(_drawPointer + local_20) = uVar1;
+ }
+ local_20 = local_20 + 1;
+ _outsidePosY = _outsidePosY + -1;
+ } while (_outsidePosY != 0);
+ }
+ _drawPointer = _drawPointer + 0x1fb0;
+ _outsidePosY = imageHeight + -1;
+ if (imageHeight < 2) {
+ return;
+ }
+ while (true) {
+ while (true) {
+ do {
+ pTVar7 = _imageDataPtr;
+ _tgxToken2 = *pTVar7 & TT_TGX_PIXEL_HEADER;
+ _imageDataPtr = pTVar7 + 1;
+ } while (_tgxToken2 == TT_TRANSPARENT_PIXELS);
+ if (_tgxToken2 != TT_STREAM_OF_PIXELS)
+ break;
+ _imageDataPtr = _imageDataPtr + ((*pTVar7 & TT_TGX_PIXEL_LENGTH) + 1) * 2;
+ }
+ if (_tgxToken2 != TT_REPEATING_PIXELS)
+ break;
+ _imageDataPtr = pTVar7 + 3;
+ }
+ local_20 = 0;
+ imageHeight = imageHeight + -2;
+ imageAddress = (ushort*)_imageDataPtr;
+ uVar6 = local_20;
+ } while (imageHeight != 0 && 0 < _outsidePosY);
+ }
+ }
+ }
+ return;
+ }
+ }
+}
+}
+

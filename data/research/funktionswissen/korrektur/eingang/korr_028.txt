@@ -1,0 +1,1224 @@
+### 0x0048e680 sendPendingResyncCommandsInBudget | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0048E680
+ void GameSynchronyState::sendPendingResyncCommandsInBudget()
+ {
+ int (*paiVar1)[160];
+ int iVar2;
+ DWORD DVar3;
+ int iVar4;
+ int* piVar5;
+ int* piVar6;
+ int* piVar7;
+ int iVar8;
+ int local_14;
+ int* local_10;
+ int* local_c;
+ int* local_8;
+ iVar4 = this->field71_0xbb4;
+ iVar8 = this->field70_0xbb0;
+ local_14 = 0;
+ iVar2 = 1;
+ piVar7 = this->syncRelatedStatusArray;
+ while (piVar7 = piVar7 + 1, *piVar7 != 0) {
+ iVar2 = iVar2 + 1;
+ if (8 < iVar2)
+ goto LAB_0048e72e;
+ }
+ if (this->announcementReceivedBool == FALSE) {
+ return;
+ }
+ DVar3 = timeGetTime();
+ if (DVar3 - this->announcementReceiveTime < 0xafc9) {
+ return;
+ }
+ iVar2 = 1;
+ local_10 = this->syncRelatedStatusArray;
+ do {
+ local_10 = local_10 + 1;
+ if (*local_10 == 0) {
+ this->DAT_GameCommandParam1 = 0x3f;
+ this->DAT_GameCommandParam0 = iVar2;
+ queueCommand(
+ GCT_LEAVE_GAME);
+ *local_10 = 1;
+ }
+ iVar2 = iVar2 + 1;
+ } while (iVar2 < 9);
+ LAB_0048e72e:
+ switch (this->somePacketSubTypeUnk) {
+ case 0xc:
+ goto switchD_0048e739_caseD_c;
+ case 0xd:
+ switchD_0048e739_caseD_d:
+ if (iVar8 < 0x1e) {
+ local_c = (int*)(iVar8 << 7);
+ do {
+ if (iVar4 < 0x20) {
+ local_8 = this->HASH_LogicalTileMap[1].hashDataArray[0].componentArray + (int)local_c + iVar4;
+ do {
+ iVar2 = 1;
+ piVar7 = this->currentPlayerFullIDArray;
+ piVar5 = local_8;
+ do {
+ piVar7 = piVar7 + 1;
+ if ((*piVar7 != -1)
+ && (this->HASH_LogicalTileMap[this->currentPlayerSlotID]
+ .hashDataArray[iVar8]
+ .componentArray[iVar4]
+ != *piVar5)) {
+ this->DAT_GameCommandParam0 = iVar8;
+ this->DAT_GameCommandParam1 = iVar4;
+ queueCommand(
+ GCT_SEND_RESYNC_TILEMAPDATA1);
+ this->currentPacketTotalSize
+ = this->currentPacketTotalSize + this->DAT_CurrentTransmitCommandPacketSize;
+ local_14 = local_14 + this->DAT_CurrentTransmitCommandPacketSize;
+ if (this->field68_0xba8 < local_14) {
+ this->field71_0xbb4 = iVar4 + 1;
+ this->somePacketSubTypeUnk = 0xd;
+ this->field70_0xbb0 = iVar8;
+ queueCommand(GCT_QUIT_MULTIPLAYERGAME);
+ return;
+ }
+ break;
+ }
+ iVar2 = iVar2 + 1;
+ piVar5 = piVar5 + 0xf00;
+ } while (iVar2 < 9);
+ local_8 = local_8 + 1;
+ iVar4 = iVar4 + 1;
+ } while (iVar4 < 0x20);
+ }
+ local_c = (int*)((int)local_c + 0x80);
+ iVar8 = iVar8 + 1;
+ iVar4 = 0;
+ } while ((int)local_c < 0xf00);
+ }
+ break;
+ case 0xe:
+ goto switchD_0048e739_caseD_e;
+ case 0xf:
+ switchD_0048e739_caseD_f:
+ if ((this->sharedDesyncFlags[0xd] != 0) && (iVar8 < 0x50)) {
+ piVar7 = this->HASH_HeatMaps[1] + iVar8;
+ do {
+ iVar4 = 1;
+ piVar5 = this->currentPlayerFullIDArray;
+ piVar6 = piVar7;
+ do {
+ piVar5 = piVar5 + 1;
+ if ((*piVar5 != -1) && (this->HASH_HeatMaps[this->currentPlayerSlotID][iVar8] != *piVar6)) {
+ this->DAT_GameCommandParam0 = iVar8;
+ queueCommand(
+ GCT_HOST_SHARE_HEATMAP);
+ this->currentPacketTotalSize
+ = this->currentPacketTotalSize + this->DAT_CurrentTransmitCommandPacketSize;
+ local_14 = local_14 + this->DAT_CurrentTransmitCommandPacketSize;
+ if (this->field68_0xba8 < local_14) {
+ this->somePacketSubTypeUnk = 0xf;
+ LAB_0048e84b:
+ this->field70_0xbb0 = iVar8 + 1;
+ queueCommand(
+ GCT_QUIT_MULTIPLAYERGAME);
+ return;
+ }
+ break;
+ }
+ iVar4 = iVar4 + 1;
+ piVar6 = piVar6 + 0x50;
+ } while (iVar4 < 9);
+ iVar8 = iVar8 + 1;
+ piVar7 = piVar7 + 1;
+ } while (iVar8 < 0x50);
+ }
+ queueCommand(
+ GCT_CHECK_GAME_SYNCUnk);
+ this->syncStatus = 3;
+ return;
+ default:
+ iVar8 = 0;
+ case 0:
+ if ((this->sharedDesyncFlags[0] != 0) && (iVar8 < 0x9c4)) {
+ piVar7 = this->HASH_Units[1] + iVar8;
+ do {
+ iVar4 = 1;
+ piVar5 = this->currentPlayerFullIDArray;
+ piVar6 = piVar7;
+ do {
+ piVar5 = piVar5 + 1;
+ if ((*piVar5 != -1) && (this->HASH_Units[this->currentPlayerSlotID][iVar8] != *piVar6)) {
+ this->DAT_GameCommandParam0 = iVar8;
+ queueCommand(
+ GCT_SEND_RESYNC_UNIT);
+ this->currentPacketTotalSize
+ = this->currentPacketTotalSize + this->DAT_CurrentTransmitCommandPacketSize;
+ local_14 = local_14 + this->DAT_CurrentTransmitCommandPacketSize;
+ if (this->field68_0xba8 < local_14) {
+ this->somePacketSubTypeUnk = 0;
+ goto LAB_0048e84b;
+ }
+ break;
+ }
+ iVar4 = iVar4 + 1;
+ piVar6 = piVar6 + 0x9c4;
+ } while (iVar4 < 9);
+ iVar8 = iVar8 + 1;
+ piVar7 = piVar7 + 1;
+ } while (iVar8 < 0x9c4);
+ }
+ iVar8 = 0;
+ case 1:
+ if ((this->sharedDesyncFlags[1] != 0) && (iVar8 < 2000)) {
+ piVar7 = this->HASH_Buildings[1] + iVar8;
+ do {
+ iVar4 = 1;
+ piVar5 = this->currentPlayerFullIDArray;
+ piVar6 = piVar7;
+ do {
+ piVar5 = piVar5 + 1;
+ if ((*piVar5 != -1) && (this->HASH_Buildings[this->currentPlayerSlotID][iVar8] != *piVar6)) {
+ this->DAT_GameCommandParam0 = iVar8;
+ queueCommand(
+ GCT_SEND_RESYNC_BUILDING);
+ this->currentPacketTotalSize
+ = this->currentPacketTotalSize + this->DAT_CurrentTransmitCommandPacketSize;
+ local_14 = local_14 + this->DAT_CurrentTransmitCommandPacketSize;
+ if (this->field68_0xba8 < local_14) {
+ this->somePacketSubTypeUnk = 1;
+ goto LAB_0048e84b;
+ }
+ break;
+ }
+ iVar4 = iVar4 + 1;
+ piVar6 = piVar6 + 2000;
+ } while (iVar4 < 9);
+ iVar8 = iVar8 + 1;
+ piVar7 = piVar7 + 1;
+ } while (iVar8 < 2000);
+ }
+ iVar8 = 0;
+ case 2:
+ if ((this->sharedDesyncFlags[2] != 0) && (iVar8 < 2000)) {
+ piVar7 = this->HASH_Trees[1] + iVar8;
+ do {
+ iVar4 = 1;
+ piVar5 = this->currentPlayerFullIDArray;
+ piVar6 = piVar7;
+ do {
+ piVar5 = piVar5 + 1;
+ if ((*piVar5 != -1) && (this->HASH_Trees[this->currentPlayerSlotID][iVar8] != *piVar6)) {
+ this->DAT_GameCommandParam0 = iVar8;
+ queueCommand(
+ GCT_SEND_RESYNC_TREE);
+ this->currentPacketTotalSize
+ = this->currentPacketTotalSize + this->DAT_CurrentTransmitCommandPacketSize;
+ local_14 = local_14 + this->DAT_CurrentTransmitCommandPacketSize;
+ if (this->field68_0xba8 < local_14) {
+ this->somePacketSubTypeUnk = 2;
+ goto LAB_0048e84b;
+ }
+ break;
+ }
+ iVar4 = iVar4 + 1;
+ piVar6 = piVar6 + 2000;
+ } while (iVar4 < 9);
+ iVar8 = iVar8 + 1;
+ piVar7 = piVar7 + 1;
+ } while (iVar8 < 2000);
+ }
+ iVar8 = 0;
+ case 3:
+ if ((this->sharedDesyncFlags[3] != 0) && (iVar8 < 0x4e2)) {
+ piVar7 = this->HASH_Tribes[1] + iVar8;
+ do {
+ iVar4 = 1;
+ piVar5 = this->currentPlayerFullIDArray;
+ piVar6 = piVar7;
+ do {
+ piVar5 = piVar5 + 1;
+ if ((*piVar5 != -1) && (this->HASH_Tribes[this->currentPlayerSlotID][iVar8] != *piVar6)) {
+ this->DAT_GameCommandParam0 = iVar8;
+ queueCommand(
+ GCT_SEND_RESYNC_UNITSELECTION);
+ this->currentPacketTotalSize
+ = this->currentPacketTotalSize + this->DAT_CurrentTransmitCommandPacketSize;
+ local_14 = local_14 + this->DAT_CurrentTransmitCommandPacketSize;
+ if (this->field68_0xba8 < local_14) {
+ this->somePacketSubTypeUnk = 3;
+ goto LAB_0048e84b;
+ }
+ break;
+ }
+ iVar4 = iVar4 + 1;
+ piVar6 = piVar6 + 0x4e2;
+ } while (iVar4 < 9);
+ iVar8 = iVar8 + 1;
+ piVar7 = piVar7 + 1;
+ } while (iVar8 < 0x4e2);
+ }
+ iVar8 = 0;
+ case 4:
+ if ((this->sharedDesyncFlags[4] != 0) && (iVar8 < 9)) {
+ piVar7 = this->HASH_PlayerDatas[1] + iVar8;
+ do {
+ iVar4 = 1;
+ piVar5 = this->currentPlayerFullIDArray;
+ piVar6 = piVar7;
+ do {
+ piVar5 = piVar5 + 1;
+ if ((*piVar5 != -1) && (this->HASH_PlayerDatas[this->currentPlayerSlotID][iVar8] != *piVar6)) {
+ this->DAT_GameCommandParam0 = iVar8;
+ queueCommand(
+ GCT_SEND_RESYNC_PLAYERDATA);
+ this->currentPacketTotalSize
+ = this->currentPacketTotalSize + this->DAT_CurrentTransmitCommandPacketSize;
+ local_14 = local_14 + this->DAT_CurrentTransmitCommandPacketSize;
+ if (this->field68_0xba8 < local_14) {
+ this->somePacketSubTypeUnk = 4;
+ goto LAB_0048e84b;
+ }
+ break;
+ }
+ iVar4 = iVar4 + 1;
+ piVar6 = piVar6 + 9;
+ } while (iVar4 < 9);
+ iVar8 = iVar8 + 1;
+ piVar7 = piVar7 + 1;
+ } while (iVar8 < 9);
+ }
+ iVar8 = 0;
+ case 5:
+ if ((this->sharedDesyncFlags[5] != 0) && (iVar8 < 0x14)) {
+ piVar7 = this->HASH_Section1023[1] + iVar8;
+ do {
+ iVar4 = 1;
+ piVar5 = this->currentPlayerFullIDArray;
+ piVar6 = piVar7;
+ do {
+ piVar5 = piVar5 + 1;
+ if ((*piVar5 != -1) && (this->HASH_Section1023[this->currentPlayerSlotID][iVar8] != *piVar6)) {
+ this->DAT_GameCommandParam0 = iVar8;
+ queueCommand(
+ GCT_SEND_RESYNC_UNKNOWN);
+ this->currentPacketTotalSize
+ = this->currentPacketTotalSize + this->DAT_CurrentTransmitCommandPacketSize;
+ local_14 = local_14 + this->DAT_CurrentTransmitCommandPacketSize;
+ if (this->field68_0xba8 < local_14) {
+ this->somePacketSubTypeUnk = 5;
+ goto LAB_0048e84b;
+ }
+ break;
+ }
+ iVar4 = iVar4 + 1;
+ piVar6 = piVar6 + 0x14;
+ } while (iVar4 < 9);
+ iVar8 = iVar8 + 1;
+ piVar7 = piVar7 + 1;
+ } while (iVar8 < 0x14);
+ }
+ iVar8 = 0;
+ case 6:
+ if ((this->sharedDesyncFlags[7] != 0) && (iVar8 < 3000)) {
+ piVar7 = this->HASH_Entities[1] + iVar8;
+ do {
+ iVar4 = 1;
+ piVar5 = this->currentPlayerFullIDArray;
+ piVar6 = piVar7;
+ do {
+ piVar5 = piVar5 + 1;
+ if ((*piVar5 != -1) && (this->HASH_Entities[this->currentPlayerSlotID][iVar8] != *piVar6)) {
+ this->DAT_GameCommandParam0 = iVar8;
+ queueCommand(
+ GCT_SEND_RESYNC_ENTITY);
+ this->currentPacketTotalSize
+ = this->currentPacketTotalSize + this->DAT_CurrentTransmitCommandPacketSize;
+ local_14 = local_14 + this->DAT_CurrentTransmitCommandPacketSize;
+ if (this->field68_0xba8 < local_14) {
+ this->somePacketSubTypeUnk = 6;
+ goto LAB_0048e84b;
+ }
+ break;
+ }
+ iVar4 = iVar4 + 1;
+ piVar6 = piVar6 + 3000;
+ } while (iVar4 < 9);
+ iVar8 = iVar8 + 1;
+ piVar7 = piVar7 + 1;
+ } while (iVar8 < 3000);
+ }
+ iVar8 = 0;
+ case 7:
+ if ((this->sharedDesyncFlags[8] != 0) && (iVar8 < 0xa0)) {
+ piVar7 = this->HASH_Moats[1] + iVar8;
+ iVar4 = this->currentPlayerSlotID;
+ do {
+ iVar2 = 1;
+ piVar5 = this->currentPlayerFullIDArray;
+ piVar6 = piVar7;
+ do {
+ piVar5 = piVar5 + 1;
+ if ((*piVar5 != -1)
+ && (paiVar1 = this->HASH_Moats + iVar4, iVar4 = this->currentPlayerSlotID,
+ (*paiVar1)[iVar8] != *piVar6)) {
+ this->DAT_GameCommandParam0 = iVar8;
+ queueCommand(
+ GCT_SEND_RESYNC_MOAT);
+ this->currentPacketTotalSize
+ = this->currentPacketTotalSize + this->DAT_CurrentTransmitCommandPacketSize;
+ local_14 = local_14 + this->DAT_CurrentTransmitCommandPacketSize;
+ iVar4 = this->currentPlayerSlotID;
+ if (this->field68_0xba8 < local_14) {
+ this->somePacketSubTypeUnk = 7;
+ goto LAB_0048e84b;
+ }
+ break;
+ }
+ iVar2 = iVar2 + 1;
+ piVar6 = piVar6 + 0xa0;
+ } while (iVar2 < 9);
+ iVar8 = iVar8 + 1;
+ piVar7 = piVar7 + 1;
+ } while (iVar8 < 0xa0);
+ }
+ iVar8 = 0;
+ case 8:
+ if ((this->sharedDesyncFlags[9] != 0) && (iVar8 < 200)) {
+ piVar7 = this->HASH_ClimbData[1] + iVar8;
+ do {
+ iVar4 = 1;
+ piVar5 = this->currentPlayerFullIDArray;
+ piVar6 = piVar7;
+ do {
+ piVar5 = piVar5 + 1;
+ if ((*piVar5 != -1) && (this->HASH_ClimbData[this->currentPlayerSlotID][iVar8] != *piVar6)) {
+ this->DAT_GameCommandParam0 = iVar8;
+ queueCommand(
+ GCT_SEND_RESYNC_CLIMB_DATA);
+ this->currentPacketTotalSize
+ = this->currentPacketTotalSize + this->DAT_CurrentTransmitCommandPacketSize;
+ local_14 = local_14 + this->DAT_CurrentTransmitCommandPacketSize;
+ if (this->field68_0xba8 < local_14) {
+ this->somePacketSubTypeUnk = 8;
+ goto LAB_0048e84b;
+ }
+ break;
+ }
+ iVar4 = iVar4 + 1;
+ piVar6 = piVar6 + 200;
+ } while (iVar4 < 9);
+ iVar8 = iVar8 + 1;
+ piVar7 = piVar7 + 1;
+ } while (iVar8 < 200);
+ }
+ iVar8 = 0;
+ case 9:
+ if ((this->sharedDesyncFlags[10] != 0) && (iVar8 < 0x28)) {
+ piVar7 = this->HASH_PitchDitches[1] + iVar8;
+ do {
+ iVar4 = 1;
+ piVar5 = this->currentPlayerFullIDArray;
+ piVar6 = piVar7;
+ do {
+ piVar5 = piVar5 + 1;
+ if ((*piVar5 != -1) && (this->HASH_PitchDitches[this->currentPlayerSlotID][iVar8] != *piVar6)) {
+ this->DAT_GameCommandParam0 = iVar8;
+ queueCommand(
+ GCT_SEND_RESYNC_PITCH_DITCH);
+ this->currentPacketTotalSize
+ = this->currentPacketTotalSize + this->DAT_CurrentTransmitCommandPacketSize;
+ local_14 = local_14 + this->DAT_CurrentTransmitCommandPacketSize;
+ if (this->field68_0xba8 < local_14) {
+ this->somePacketSubTypeUnk = 9;
+ goto LAB_0048e84b;
+ }
+ break;
+ }
+ iVar4 = iVar4 + 1;
+ piVar6 = piVar6 + 0x28;
+ } while (iVar4 < 9);
+ iVar8 = iVar8 + 1;
+ piVar7 = piVar7 + 1;
+ } while (iVar8 < 0x28);
+ }
+ iVar8 = 0;
+ case 10:
+ if ((this->sharedDesyncFlags[0xb] != 0) && (iVar8 < 0x28)) {
+ piVar7 = this->HASH_Unknown2[1] + iVar8;
+ do {
+ iVar4 = 1;
+ piVar5 = this->currentPlayerFullIDArray;
+ piVar6 = piVar7;
+ do {
+ piVar5 = piVar5 + 1;
+ if ((*piVar5 != -1) && (this->HASH_Unknown2[this->currentPlayerSlotID][iVar8] != *piVar6)) {
+ this->DAT_GameCommandParam0 = iVar8;
+ queueCommand(
+ GCT_SEND_RESYNC_UNKNOWN2);
+ this->currentPacketTotalSize
+ = this->currentPacketTotalSize + this->DAT_CurrentTransmitCommandPacketSize;
+ local_14 = local_14 + this->DAT_CurrentTransmitCommandPacketSize;
+ if (this->field68_0xba8 < local_14) {
+ this->somePacketSubTypeUnk = 10;
+ goto LAB_0048e84b;
+ }
+ break;
+ }
+ iVar4 = iVar4 + 1;
+ piVar6 = piVar6 + 0x28;
+ } while (iVar4 < 9);
+ iVar8 = iVar8 + 1;
+ piVar7 = piVar7 + 1;
+ } while (iVar8 < 0x28);
+ }
+ iVar8 = 0;
+ case 0xb:
+ if (this->sharedDesyncFlags[6] != 0) {
+ if (iVar8 < 0x80) {
+ piVar7 = this->HASH_LogicalTileMap[1].hashDataArray[0].componentArray + iVar8;
+ do {
+ iVar4 = 1;
+ piVar5 = this->currentPlayerFullIDArray;
+ piVar6 = piVar7;
+ do {
+ piVar5 = piVar5 + 1;
+ if ((*piVar5 != -1)
+ && (this->HASH_LogicalTileMap[this->currentPlayerSlotID]
+ .hashDataArray[0]
+ .componentArray[iVar8]
+ != *piVar6)) {
+ this->DAT_GameCommandParam0 = 0;
+ this->DAT_GameCommandParam1 = iVar8;
+ queueCommand(
+ GCT_SEND_RESYNC_LOGICALTILEMAP);
+ this->currentPacketTotalSize
+ = this->currentPacketTotalSize + this->DAT_CurrentTransmitCommandPacketSize;
+ local_14 = local_14 + this->DAT_CurrentTransmitCommandPacketSize;
+ if (this->field68_0xba8 < local_14) {
+ this->somePacketSubTypeUnk = 0xb;
+ goto LAB_0048e84b;
+ }
+ break;
+ }
+ iVar4 = iVar4 + 1;
+ piVar6 = piVar6 + 0xf00;
+ } while (iVar4 < 9);
+ iVar8 = iVar8 + 1;
+ piVar7 = piVar7 + 1;
+ } while (iVar8 < 0x80);
+ }
+ iVar8 = 1;
+ iVar4 = 0;
+ switchD_0048e739_caseD_c:
+ if (iVar8 < 10) {
+ local_8 = (int*)(iVar8 << 7);
+ do {
+ if (iVar4 < 0x40) {
+ local_c
+ = this->HASH_LogicalTileMap[1].hashDataArray[0].componentArray + (int)local_8 + iVar4;
+ do {
+ iVar2 = 1;
+ piVar7 = this->currentPlayerFullIDArray;
+ piVar5 = local_c;
+ do {
+ piVar7 = piVar7 + 1;
+ if ((*piVar7 != -1)
+ && (this->HASH_LogicalTileMap[this->currentPlayerSlotID]
+ .hashDataArray[iVar8]
+ .componentArray[iVar4]
+ != *piVar5)) {
+ this->DAT_GameCommandParam0 = iVar8;
+ this->DAT_GameCommandParam1 = iVar4;
+ queueCommand(GCT_SEND_RESYNC_TILEMAPDATA2);
+ this->currentPacketTotalSize
+ = this->currentPacketTotalSize + this->DAT_CurrentTransmitCommandPacketSize;
+ local_14 = local_14 + this->DAT_CurrentTransmitCommandPacketSize;
+ if (this->field68_0xba8 < local_14) {
+ this->field71_0xbb4 = iVar4 + 1;
+ this->somePacketSubTypeUnk = 0xc;
+ this->field70_0xbb0 = iVar8;
+ queueCommand(GCT_QUIT_MULTIPLAYERGAME);
+ return;
+ }
+ break;
+ }
+ iVar2 = iVar2 + 1;
+ piVar5 = piVar5 + 0xf00;
+ } while (iVar2 < 9);
+ local_c = local_c + 1;
+ iVar4 = iVar4 + 1;
+ } while (iVar4 < 0x40);
+ }
+ local_8 = (int*)((int)local_8 + 0x80);
+ iVar8 = iVar8 + 1;
+ iVar4 = 0;
+ } while ((int)local_8 < 0x500);
+ }
+ iVar8 = 10;
+ iVar4 = 0;
+ goto switchD_0048e739_caseD_d;
+ }
+ }
+ iVar8 = 0;
+ switchD_0048e739_caseD_e:
+ if ((this->sharedDesyncFlags[0xc] != 0) && (iVar8 < 9)) {
+ piVar7 = this->HASH_AIVS[1] + iVar8;
+ do {
+ iVar4 = 1;
+ piVar5 = this->currentPlayerFullIDArray;
+ piVar6 = piVar7;
+ do {
+ piVar5 = piVar5 + 1;
+ if ((*piVar5 != -1) && (this->HASH_AIVS[this->currentPlayerSlotID][iVar8] != *piVar6)) {
+ this->DAT_GameCommandParam0 = iVar8;
+ queueCommand(
+ GCT_HOST_SHARE_AIV);
+ this->currentPacketTotalSize
+ = this->currentPacketTotalSize + this->DAT_CurrentTransmitCommandPacketSize;
+ local_14 = local_14 + this->DAT_CurrentTransmitCommandPacketSize;
+ if (this->field68_0xba8 < local_14) {
+ this->somePacketSubTypeUnk = 0xe;
+ goto LAB_0048e84b;
+ }
+ break;
+ }
+ iVar4 = iVar4 + 1;
+ piVar6 = piVar6 + 9;
+ } while (iVar4 < 9);
+ iVar8 = iVar8 + 1;
+ piVar7 = piVar7 + 1;
+ } while (iVar8 < 9);
+ }
+ iVar8 = 0;
+ goto switchD_0048e739_caseD_f;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0048e680", "name": "sendPendingResyncCommandsInBudget", "quelle": "ghidra", "p1": {"bereich": "Befehle/Takt", "zweck": "Schickt im Mehrspieler Abgleich-Befehle für alle Spielbereiche, in denen die Prüfsummen der Mitspieler abweichen, in Häppchen mit Größenbudget."}, "p2": {"ein": "- (Zustand in GameSynchronyState; Fortsetzungspunkt in somePacketSubTypeUnk, field70_0xbb0, field71_0xbb4)", "aus": "-", "liest": ["syncRelatedStatusArray[1..8]", "announcementReceivedBool", "announcementReceiveTime", "currentPlayerFullIDArray", "HASH_Units/Buildings/Trees/Tribes/PlayerDatas/Section1023/Entities/Moats/ClimbData/PitchDitches/Unknown2/LogicalTileMap/AIVS/HeatMaps", "sharedDesyncFlags[0..0xd]", "field68_0xba8 (Budget)"], "schreibt": ["DAT_GameCommandParam0/1", "currentPacketTotalSize", "somePacketSubTypeUnk", "field70_0xbb0", "field71_0xbb4", "syncStatus"], "ruft": ["queueCommand", "timeGetTime"], "regeln": ["Nur wenn alle Slots 1..8 in syncRelatedStatusArray ungleich 0 sind, geht es direkt zum Abgleich", "Ist ein Slot 0: ohne announcementReceivedBool Abbruch; sonst Abbruch, solange seit der Ankündigung weniger als 0xafc9 (45001) ms vergangen sind", "Danach wird jeder Slot mit Status 0 per GCT_LEAVE_GAME (Param1 = 0x3f) entfernt und auf 1 gesetzt", "Reihenfolge der Bereiche (somePacketSubTypeUnk 0..0xf): Units 2500, Buildings 2000, Trees 2000, Tribes 1250, PlayerDatas 9, Section1023 20, Entities 3000, Moats 160, ClimbData 200, PitchDitches 40, Unknown2 40, LogicalTileMap (erst 0x80 Einträge, dann Zeilen 1..9 zu je 0x40, dann Zeilen 10..29 zu je 0x20), AIVS 9, HeatMaps 80", "Je Eintrag wird die eigene Prüfsumme mit jedem anderen belegten Slot verglichen; beim ersten Unterschied geht genau ein Resync-Befehl raus", "Ein Bereich wird nur geprüft, wenn sein Flag in sharedDesyncFlags ungleich 0 ist (Units [0], Buildings [1], Trees [2], Tribes [3], PlayerDatas [4], Section1023 [5], Tilemap [6], Entities [7], Moats [8], ClimbData [9], PitchDitches [10], Unknown2 [11], AIVS [12], HeatMaps [13])", "Übersteigt die Summe der Paketgrößen field68_0xba8, wird die Stelle gemerkt und GCT_QUIT_MULTIPLAYERGAME eingereiht; der Rest folgt beim nächsten Aufruf", "Ganz am Ende: GCT_CHECK_GAME_SYNCUnk und syncStatus = 3"], "offen": ["Der Befehlsname GCT_QUIT_MULTIPLAYERGAME als Budgetende-Marke ist sehr wahrscheinlich ein falscher Ghidra-Name", "Bedeutung von field68_0xba8, field70_0xbb0, field71_0xbb4 nur aus dem Gebrauch erschlossen"]}, "p3": {"erklaerung": "Wenn Mehrspieler-Teilnehmer unterschiedliche Spielstände berechnen (Desync), schickt der Host Stück für Stück die abweichenden Einheiten, Gebäude, Bäume usw. zum Angleichen. Pro Aufruf wird nur ein begrenztes Datenpaket verschickt.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x00490060 restoreSkirmishLobbySetup | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00490060
+ void SkirmishLobbySetupStructure::restoreSkirmishLobbySetup()
+ {
+ char cVar1;
+ char* pcVar2;
+ DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes = this->mapu4int2;
+ pcVar2 = this->mapName;
+ this->mbr_0x4 = DAT_GameState.mapAndTime.skirmishFogOfWar;
+ do {
+ cVar1 = *pcVar2;
+ pcVar2[0xc2ee7c] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ } while (cVar1 != '\0');
+ DAT_GameSynchronyState.DAT_RoundTableOrderArray[0] = this->roundTableOrderArray[0];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[0] = this->playerGroupArray[0];
+ DAT_GameSynchronyState.currentAIArray[0] = this->currentAIArray[0];
+ DAT_GameSynchronyState.aiVariationArray[0] = this->aiVariationArray[0];
+ DAT_GameSynchronyState.DAT_RoundTableOrderArray[1] = this->roundTableOrderArray[1];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[1] = this->playerGroupArray[1];
+ DAT_GameSynchronyState.currentAIArray[1] = this->currentAIArray[1];
+ DAT_GameSynchronyState.aiVariationArray[1] = this->aiVariationArray[1];
+ DAT_GameSynchronyState.DAT_RoundTableOrderArray[2] = this->roundTableOrderArray[2];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[2] = this->playerGroupArray[2];
+ DAT_GameSynchronyState.currentAIArray[2] = this->currentAIArray[2];
+ DAT_GameSynchronyState.aiVariationArray[2] = this->aiVariationArray[2];
+ DAT_GameSynchronyState.DAT_RoundTableOrderArray[3] = this->roundTableOrderArray[3];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[3] = this->playerGroupArray[3];
+ DAT_GameSynchronyState.currentAIArray[3] = this->currentAIArray[3];
+ DAT_GameSynchronyState.aiVariationArray[3] = this->aiVariationArray[3];
+ DAT_GameSynchronyState.DAT_RoundTableOrderArray[4] = this->roundTableOrderArray[4];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[4] = this->playerGroupArray[4];
+ DAT_GameSynchronyState.currentAIArray[4] = this->currentAIArray[4];
+ DAT_GameSynchronyState.aiVariationArray[4] = this->aiVariationArray[4];
+ DAT_GameSynchronyState.DAT_RoundTableOrderArray[5] = this->roundTableOrderArray[5];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[5] = this->playerGroupArray[5];
+ DAT_GameSynchronyState.currentAIArray[5] = this->currentAIArray[5];
+ DAT_GameSynchronyState.aiVariationArray[5] = this->aiVariationArray[5];
+ DAT_GameSynchronyState.DAT_RoundTableOrderArray[6] = this->roundTableOrderArray[6];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[6] = this->playerGroupArray[6];
+ DAT_GameSynchronyState.currentAIArray[6] = this->currentAIArray[6];
+ DAT_GameSynchronyState.aiVariationArray[6] = this->aiVariationArray[6];
+ DAT_GameSynchronyState.DAT_RoundTableOrderArray[7] = this->roundTableOrderArray[7];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[7] = this->playerGroupArray[7];
+ DAT_GameSynchronyState.currentAIArray[7] = this->currentAIArray[7];
+ DAT_GameSynchronyState.aiVariationArray[7] = this->aiVariationArray[7];
+ DAT_GameSynchronyState.DAT_RoundTableOrderArray[8] = this->roundTableOrderArray[8];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[8] = this->playerGroupArray[8];
+ DAT_GameSynchronyState.currentAIArray[8] = this->currentAIArray[8];
+ DAT_GameSynchronyState.aiVariationArray[8] = this->aiVariationArray[8];
+ DAT_GameSynchronyState.playerPositionsArray[0] = this->slot1Position;
+ DAT_GameSynchronyState.playerPositionsArray[1] = this->slot2Position;
+ DAT_GameSynchronyState.playerPositionsArray[2] = this->slot3Position;
+ DAT_GameSynchronyState.playerPositionsArray[3] = this->slot4Position;
+ DAT_GameSynchronyState.playerPositionsArray[4] = this->slot5Position;
+ DAT_GameSynchronyState.playerPositionsArray[5] = this->slot6Position;
+ DAT_GameSynchronyState.playerPositionsArray[6] = this->slot7Position;
+ DAT_GameSynchronyState.playerPositionsArray[7] = this->slot8Position;
+ DAT_GameSynchronyState.currentPlayerSlotID = this->currentPlayerSlotID;
+ DAT_GameSynchronyState.skirmishCurrentAdvantageBalance = this->currentAdvantageBalance;
+ DAT_GameSynchronyState.skirmishGameIntensityType = this->currentAdvantageGroup;
+ DAT_GameSynchronyState.skirmishTechLevel = this->mbr_0x80;
+ DAT_GameCore.selectedLordTypes[0] = this->playerLordTypeArray[0];
+ DAT_GameCore.selectedLordTypes[1] = this->playerLordTypeArray[1];
+ DAT_GameCore.selectedLordTypes[2] = this->playerLordTypeArray[2];
+ DAT_GameCore.selectedLordTypes[3] = this->playerLordTypeArray[3];
+ DAT_GameCore.selectedLordTypes[4] = this->playerLordTypeArray[4];
+ DAT_GameCore.selectedLordTypes[5] = this->playerLordTypeArray[5];
+ DAT_GameCore.selectedLordTypes[6] = this->playerLordTypeArray[6];
+ DAT_GameCore.selectedLordTypes[7] = this->playerLordTypeArray[7];
+ DAT_GameCore.selectedLordTypes[8] = this->playerLordTypeArray[8];
+ DAT_GameCore.field152_0x2340 = this->mbr_0xf0;
+ DAT_GameCore.selectedLordTypeUnk = this->selectedLordType;
+ DAT_GameSynchronyState.skirmishDefaultPopularity = this->popularity;
+ DAT_GameSynchronyState.DAT_MapSelectionRelativeSelected = this->mapSelectionRelativeSelected;
+ DAT_GameSynchronyState.DAT_MapSelectionScrollOffset = this->mapSelectionScrollOffset;
+ INT_00b960b0::instance = this->mapSelectionScrollOffset + this->mapSelectionRelativeSelected;
+ DAT_GameSynchronyState.field248_0x109250 = this->mbr_0xfc;
+ reorderTeamsAndPositions();
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00490060", "name": "restoreSkirmishLobbySetup", "quelle": "ghidra", "p1": {"bereich": "Spielablauf", "zweck": "Stellt die zuvor gesicherten Gefechts-Lobbyeinstellungen aus der Zwischenstruktur wieder her."}, "p2": {"ein": "this (SkirmishLobbySetupStructure)", "aus": "-", "liest": ["this->mapu4int2/mapName/roundTableOrderArray/playerGroupArray/currentAIArray/aiVariationArray[0..8]/slot1Position..slot8Position/currentPlayerSlotID/currentAdvantageBalance/currentAdvantageGroup/mbr_0x80/playerLordTypeArray[0..8]/mbr_0xf0/selectedLordType/popularity/mapSelectionRelativeSelected/mapSelectionScrollOffset/mbr_0xfc"], "schreibt": ["DAT_GameSynchronyState: skirmishAutoSaveEveryMinutes, mapName, DAT_RoundTableOrderArray, DAT_PlayerGroupArray, currentAIArray, aiVariationArray, playerPositionsArray[0..7], currentPlayerSlotID, skirmishCurrentAdvantageBalance, skirmishGameIntensityType, skirmishTechLevel, skirmishDefaultPopularity, Kartenauswahl, field248_0x109250", "DAT_GameCore.selectedLordTypes[0..8]/field152_0x2340/selectedLordTypeUnk", "INT_00b960b0::instance = mapSelectionScrollOffset + mapSelectionRelativeSelected", "this->mbr_0x4"], "ruft": ["reorderTeamsAndPositions"], "regeln": ["Gegenstück zu commitSkirmishSettings: kopiert alles zurück", "Danach wird reorderTeamsAndPositions aufgerufen", "Die gewählte Karten-Zeilennummer = Scrolloffset + relative Auswahl"], "offen": ["Nebel des Krieges wird nicht zurückgespielt: Die Zeile mit mbr_0x4 überschreibt in diesem Ghidra-Bild die Struktur mit dem Spielzustand statt umgekehrt (vermutlich Fehlübersetzung oder echtes Verhalten, ungeprüft)", "Bedeutung von mbr_0xf0 und mbr_0xfc"]}, "p3": {"erklaerung": "Holt die gesicherten Vorbereitungs-Einstellungen eines Gefechts zurück und ordnet Teams und Positionen neu.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x00491040 handleCommandLineArguments | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00491040
+ void GameSynchronyState::handleCommandLineArguments(char* arguments)
+ {
+ uint uVar1;
+ char* _pArguments;
+ int _charIndex3;
+ int _isConnect;
+ int _connectArgLength;
+ char* pcVar2;
+ int _nextArgCharIndex;
+ int _charIndex;
+ int _charIndex2;
+ int _candidateIndex;
+ undefined1 auStack_40c[2];
+ bool _quotation;
+ char local_409;
+ int local_408;
+ char _candidates[4][256];
+ char* _pConnectTarget;
+ int _argCharIndex;
+ char _argChar;
+ char _char;
+ char* _pCandidatePlus1;
+ uVar1 = MSVC_SecurityCookie::instance ^ (uint)auStack_40c;
+ _candidateIndex = 0;
+ _quotation = false;
+ local_409 = '\0';
+ this->useTCPIP = FALSE;
+ _pArguments = arguments;
+ do {
+ _char = *_pArguments;
+ _pArguments = _pArguments + 1;
+ } while (_char != '\0');
+ if (_pArguments != arguments + 1) {
+ _candidates[0][0] = '\0';
+ _candidates[1][0] = '\0';
+ local_408 = 0;
+ _charIndex3 = 0;
+ _charIndex = 0;
+ do {
+ _argChar = arguments[_charIndex3];
+ if (_argChar == '\"') {
+ _nextArgCharIndex = _charIndex3 + 1;
+ _quotation = _quotation == false;
+ _charIndex2 = _charIndex;
+ if (!_quotation) {
+ _candidates[_candidateIndex][_charIndex] = '\0';
+ if (arguments[_charIndex3 + 2] != '+') {
+ if (arguments[_charIndex3 + 2] == '\"') {
+ _char = arguments[_charIndex3 + 3];
+ LAB_004910e8:
+ if (_char == '+')
+ goto LAB_004910fb;
+ }
+ LAB_004910ea:
+ _charIndex2 = 0;
+ _nextArgCharIndex = _charIndex3 + 1;
+ if (_candidateIndex != 1) {
+ _candidateIndex = _candidateIndex + 1;
+ local_408 = _candidateIndex;
+ goto LAB_004912f7;
+ }
+ }
+ LAB_004910fb:
+ _candidateIndex = 0;
+ local_408 = 0;
+ _nextArgCharIndex = _charIndex3 + 1;
+ LAB_00491101:
+ _charIndex2 = 0;
+ _charIndex3 = 0;
+ do {
+ _char = _candidates[0][_charIndex3];
+ _candidates[2][_charIndex3] = _char;
+ _charIndex3 = _charIndex3 + 1;
+ } while (_char != '\0');
+ _charIndex3 = 0;
+ do {
+ _char = _candidates[1][_charIndex3];
+ _candidates[3][_charIndex3] = _char;
+ _charIndex3 = _charIndex3 + 1;
+ } while (_char != '\0');
+ _isConnect
+ = __stricmp("+connect", (CHAR_CONST*)((int)(_candidates[0])));
+ if (_isConnect == 0) {
+ _pConnectTarget = _candidates[1];
+ this->useTCPIP = TRUE;
+ do {
+ _char = *_pConnectTarget;
+ _pConnectTarget = _pConnectTarget + 1;
+ } while (_char != '\0');
+ if ((uint)((int)_pConnectTarget - (int)(_candidates[1] + 1)) < 29) {
+ _pCandidatePlus1 = _candidates[1];
+ do {
+ _char = *_pCandidatePlus1;
+ _pCandidatePlus1 = _pCandidatePlus1 + 1;
+ } while (_char != '\0');
+ _connectArgLength = (int)_pCandidatePlus1 - (int)(_candidates[1] + 1);
+ } else {
+ _connectArgLength = 0x1d;
+ }
+ this->connectTarget[0] = '\0';
+ this->connectTarget[1] = '\0';
+ this->connectTarget[2] = '\0';
+ this->connectTarget[3] = '\0';
+ this->connectTarget[4] = '\0';
+ this->connectTarget[5] = '\0';
+ this->connectTarget[6] = '\0';
+ this->connectTarget[7] = '\0';
+ this->connectTarget[8] = '\0';
+ this->connectTarget[9] = '\0';
+ this->connectTarget[10] = '\0';
+ this->connectTarget[0xb] = '\0';
+ this->connectTarget[0xc] = '\0';
+ this->connectTarget[0xd] = '\0';
+ this->connectTarget[0xe] = '\0';
+ this->connectTarget[0xf] = '\0';
+ this->connectTarget[0x10] = '\0';
+ this->connectTarget[0x11] = '\0';
+ this->connectTarget[0x12] = '\0';
+ this->connectTarget[0x13] = '\0';
+ this->connectTarget[0x14] = '\0';
+ this->connectTarget[0x15] = '\0';
+ this->connectTarget[0x16] = '\0';
+ this->connectTarget[0x17] = '\0';
+ _charIndex3 = 0;
+ this->connectTarget[0x18] = '\0';
+ this->connectTarget[0x19] = '\0';
+ this->connectTarget[0x1a] = '\0';
+ this->connectTarget[0x1b] = '\0';
+ this->connectTarget[0x1c] = '\0';
+ this->connectTarget[0x1d] = '\0';
+ if (0 < _connectArgLength) {
+ do {
+ _char = _candidates[1][_charIndex3];
+ this->connectTarget[_charIndex3] = _char;
+ if (_char == ':') {
+ this->connectPort
+ = _atol(_candidates[1] + _charIndex3 + 1);
+ break;
+ }
+ _charIndex3 = _charIndex3 + 1;
+ } while (_charIndex3 < _connectArgLength);
+ }
+ resetToTextIndex(5);
+ copyIntoTextArray(_candidates[3]);
+ _candidateIndex = local_408;
+ if (this->connectPort != 0) {
+ resetToTextIndex(6);
+ copyIntoTextArray(_candidates[3] + _charIndex3 + 1);
+ _candidateIndex = local_408;
+ }
+ } else {
+ _charIndex3 = __stricmp(
+ "+host", (CHAR_CONST*)((int)(_candidates[0])));
+ if (_charIndex3 == 0) {
+ this->useTCPIP = TRUE;
+ this->willHost = 1;
+ this->connectPort = _atol(_candidates[1]);
+ if (this->connectPort != 0) {
+ resetToTextIndex(6);
+ copyIntoTextArray(_candidates[3]);
+ }
+ } else {
+ _charIndex3 = __stricmp(
+ "+name", (CHAR_CONST*)((int)(_candidates[0])));
+ if (_charIndex3 == 0) {
+ _pCandidatePlus1 = _candidates[1];
+ _charIndex3 = 0x191dc80 - (int)_pCandidatePlus1;
+ do {
+ _char = *_pCandidatePlus1;
+ _pCandidatePlus1[_charIndex3] = _char;
+ _pCandidatePlus1 = _pCandidatePlus1 + 1;
+ } while (_char != '\0');
+ }
+ }
+ }
+ _candidates[0][0] = '\0';
+ _candidates[1][0] = '\0';
+ }
+ } else {
+ if (_argChar == '\0') {
+ _candidates[_candidateIndex][_charIndex] = '\0';
+ local_409 = '\x01';
+ _nextArgCharIndex = _charIndex3;
+ goto LAB_00491101;
+ }
+ if (_argChar == ' ') {
+ if (_quotation == false) {
+ _char = arguments[_charIndex3 + 1];
+ _candidates[_candidateIndex][_charIndex] = '\0';
+ if (_char != '+') {
+ if (_char == '\"') {
+ _char = arguments[_charIndex3 + 2];
+ goto LAB_004910e8;
+ }
+ goto LAB_004910ea;
+ }
+ goto LAB_004910fb;
+ }
+ _charIndex2 = _charIndex + 1;
+ _candidates[_candidateIndex][_charIndex] = ' ';
+ _nextArgCharIndex = _charIndex3 + 1;
+ } else {
+ _charIndex2 = _charIndex + 1;
+ _candidates[_candidateIndex][_charIndex] = _argChar;
+ _nextArgCharIndex = _charIndex3 + 1;
+ }
+ }
+ LAB_004912f7:
+ _charIndex3 = _nextArgCharIndex;
+ _charIndex = _charIndex2;
+ } while (local_409 == '\0');
+ if (this->useTCPIP != FALSE) {
+ pcVar2 = getTextArrayPointer(0);
+ _pCandidatePlus1 = pcVar2 + 1;
+ do {
+ _char = *pcVar2;
+ pcVar2 = pcVar2 + 1;
+ } while (_char != '\0');
+ if (pcVar2 == _pCandidatePlus1) {
+ resetToTextIndex(0);
+ /*
+ added by script: "Lord Crusader"
+ */
+ _pCandidatePlus1 = getTextStringInGroupAtOffset(TEXT_GAME_OPTIONS, 0x30);
+ copyIntoTextArray(_pCandidatePlus1);
+ resetToTextIndex(9);
+ }
+ this->isHost = this->willHost;
+ if (this->willHost == 0) {
+ this->nextModalDialog = 21;
+ /*
+ switching to this menu triggers a bunch of multiplayer logic via the render functions
+ */
+ switchToMenuView(
+ MVT_MP_CONNECTION, 0);
+ /*
+ triggers the loading of directplay and connection to lobby
+ */
+ this->multiplayerJoinStep = 0;
+ } else {
+ initializeMultiplayerLobby();
+ _candidateIndex = initializeDirectPlayAndCreateOrJoinSession(
+ FALSE);
+ if (_candidateIndex < 0) {
+ disconnectDPlay();
+ } else {
+ this->field225_0x106ee4 = 1;
+ DAT_GameCore.menuTabToSwitchTo.tabType = ((BuildingsAndStatusMenuTabType)0);
+ switchToMenuView(
+ MVT_LOBBY_MENU, 0);
+ InitSkirmishLobbyData();
+ Menu_LobbyMenu::instance.thousand = 0;
+ waitForMultiplayerHost();
+ resetTeams();
+ queueCommand(
+ GCT_ASK_FOR_SLOT_ASSIGNMENT);
+ }
+ }
+ }
+ };
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00491040", "name": "handleCommandLineArguments", "quelle": "ghidra", "p1": {"bereich": "Befehle/Takt", "zweck": "Wertet die Startparameter +connect, +host und +name aus und startet daraus eine Mehrspieler-Verbindung."}, "p2": {"ein": "arguments (Zeichenkette der Kommandozeile)", "aus": "-", "liest": ["Kommandozeile", "getTextArrayPointer(0)"], "schreibt": ["useTCPIP", "connectTarget[0..0x1d]", "connectPort", "willHost", "isHost", "nextModalDialog = 21", "multiplayerJoinStep = 0", "field225_0x106ee4 = 1", "Spielername"], "ruft": ["__stricmp", "_atol", "resetToTextIndex", "copyIntoTextArray", "switchToMenuView", "initializeMultiplayerLobby", "initializeDirectPlayAndCreateOrJoinSession", "disconnectDPlay", "InitSkirmishLobbyData", "waitForMultiplayerHost", "resetTeams", "queueCommand(GCT_ASK_FOR_SLOT_ASSIGNMENT)"], "regeln": ["Leere Kommandozeile: nichts passiert", "Argumente beginnen mit +, Werte dürfen in Anführungszeichen stehen; je Option wird ein Wert gelesen (zwei Zwischenspeicher)", "+connect Adresse[:Port]: useTCPIP = TRUE, Adresse höchstens 0x1d (29) Zeichen, Port nach dem Doppelpunkt per _atol", "+host Port: useTCPIP = TRUE, willHost = 1, Port per _atol", "+name Name: kopiert den Namen in den Spielernamen-Puffer", "Mit useTCPIP: Ist der Spielername leer, wird der Standardname aus TEXT_GAME_OPTIONS Offset 0x30 (Lord Crusader) gesetzt", "Mitspieler (willHost 0): Verbindungsmenü MVT_MP_CONNECTION, Beitritt läuft über die Menüdarstellung", "Host: Lobby anlegen, DirectPlay-Sitzung erstellen (Fehler: trennen), Lobby-Menü, waitForMultiplayerHost, resetTeams, GCT_ASK_FOR_SLOT_ASSIGNMENT"], "offen": ["Ablauf der Zeichenzerlegung (Index _candidateIndex) in der Ghidra-Übersetzung unübersichtlich", "Ob weitere Optionen außer den drei geprüft werden"]}, "p3": {"erklaerung": "Damit lässt sich das Spiel von der Kommandozeile direkt in eine Mehrspieler-Runde per IP und Port schicken: als Mitspieler mit +connect, als Gastgeber mit +host.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x00497740 findLinkageBasedPathOrWalkRadius | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00497740
+ BOOLEnum PathFindingState::findLinkageBasedPathOrWalkRadius(
+ uint x, uint y, int x2, int y2, int maxIterations, BOOLEnum continuePreviousSearch)
+ {
+ uint uVar1;
+ int iVar2;
+ int _candidateNorth;
+ int _candidateSouth;
+ short _cCardinalDistance;
+ short _curGen;
+ uint _candidate;
+ short _cD;
+ byte _cLink;
+ ushort _cY;
+ int _gen;
+ iVar2 = x2;
+ uVar1 = y;
+ /*
+ === VALIDATE STARTING POSITION === Check bounds (400x400) and walkability
+ */
+ if (((399 < x) || (399 < y)) || (*(char*)(y * 400 + 0x21aec98 + x) == '\0')) {
+ return FALSE;
+ }
+ /*
+ === VALIDATE TARGET POSITION === If target is specified (x2 != -1) and invalid, cap search depth to 500
+ */
+ if ((x2 != -1)
+ && ((((399 < (uint)x2 || (399 < (uint)y2)) || (*(char*)(y2 * 400 + 0x21aec98 + x2) == '\0'))
+ && (500 < maxIterations)))) {
+ /*
+ Limit search when target is unreachable
+ */
+ maxIterations = 500;
+ }
+ /*
+ === INITIALIZE OR CONTINUE SEARCH ===
+ */
+ if (continuePreviousSearch == FALSE) {
+ /*
+ Start NEW search - initialize search state
+ */
+ this->searchGeneration = this->searchGeneration + 1;
+ if (32000 < this->searchGeneration) {
+ /*
+ Reset generation and clear WalkLayer
+ */
+ this->searchGeneration = 1;
+ fillMemory_ByteValue(
+ 0x27420, '\0', (void*)((int)(DAT_TileMapState.WalkLayer)));
+ }
+ /*
+ Initialize BFS queue Next free slot
+ */
+ this->searchQueue.writeIndex = 1;
+ /*
+ Current tile to process
+ */
+ this->searchQueue.readIndex = 0;
+ /*
+ Search depth counter
+ */
+ this->searchQueue.depth = 0;
+ }
+ /*
+ === SETUP SEARCH STATE ===
+ */
+ _gen = this->searchGeneration;
+ y = this->searchQueue.writeIndex;
+ /*
+ Add starting position to queue
+ */
+ this->searchQueue.yQueue[0] = (short)uVar1;
+ x2 = this->searchQueue.readIndex;
+ this->searchQueue.tilesQueue[0]
+ = DAT_ViewportRenderState.translationMatrix[uVar1].addXgetTile + x;
+ /*
+ Mark starting tile with distance 1
+ */
+ DAT_TileMapState.CertainPathLayer[this->searchQueue.tilesQueue[0]] = 1;
+ continuePreviousSearch = this->searchQueue.depth;
+ /*
+ === COMPUTE TARGET TILE INDEX ===
+ */
+ /*
+ Mark as visited with current search generation
+ */
+ DAT_TileMapState.WalkLayer[this->searchQueue.tilesQueue[0]] = (short)this->searchGeneration;
+ if (iVar2 == -1) {
+ /*
+ No target specified (exploratory search)
+ */
+ x = 0;
+ } else {
+ x = DAT_ViewportRenderState.translationMatrix[y2].addXgetTile + iVar2;
+ }
+ while (true) {
+ /*
+ === MAIN BFS LOOP === === CHECK TERMINATION CONDITIONS ===
+ */
+ /*
+ Queue empty - no path found
+ */
+ if (x2 == y) {
+ this->searchQueue.readIndex = x2;
+ this->searchQueue.writeIndex = y;
+ this->searchQueue.depth = continuePreviousSearch;
+ return FALSE;
+ }
+ /*
+ Exceeded search depth limit - no path found within range
+ */
+ if (maxIterations <= (int)continuePreviousSearch) {
+ this->searchQueue.readIndex = x2;
+ this->searchQueue.writeIndex = y;
+ this->searchQueue.depth = continuePreviousSearch;
+ return FALSE;
+ }
+ /*
+ Increment search depth counter
+ */
+ continuePreviousSearch = continuePreviousSearch + TRUE;
+ /*
+ === PROCESS CURRENT TILE ===
+ */
+ _candidate = this->searchQueue.tilesQueue[x2];
+ if (_candidate == x) {
+ /*
+ Found target! Return success
+ */
+ this->searchQueue.writeIndex = y;
+ this->searchQueue.readIndex = x2;
+ this->searchQueue.depth = continuePreviousSearch;
+ /*
+ SUCCESS - path exists
+ */
+ return TRUE;
+ }
+ /*
+ Get current tile's distance
+ */
+ _cD = DAT_TileMapState.CertainPathLayer[_candidate];
+ /*
+ Distance for cardinal neighbors
+ */
+ _cCardinalDistance = _cD + 1;
+ /*
+ Safety check: distance overflow
+ */
+ if (799 < _cCardinalDistance)
+ break;
+ /*
+ Get Y coordinate and path linkage flags for current tile
+ */
+ _cY = this->searchQueue.yQueue[x2];
+ /*
+ 8-bit flags for 8 directions
+ */
+ _cLink = DAT_TileMapState.PathLinkageLayer[_candidate];
+ /*
+ Current search generation
+ */
+ _curGen = (short)_gen;
+ /*
+ === EXPAND TO 8 ADJACENT TILES === PathLinkageLayer bit flags: 0x01 = North, 0x02 = NorthEast,
+ 0x04 = East, 0x08 = SouthEast 0x10 = South, 0x20 = SouthWest, 0x40 = West, 0x80 = NorthWest ===
+ WEST (Cardinal: distance +1) ===
+ */
+ if ((DAT_TileMapState.CertainPathLayer[_candidate + 0x13a0f] != _curGen)
+ && ((_cLink & 0x40) != 0)) {
+ DAT_TileMapState.CertainPathLayer[_candidate - 1] = _cCardinalDistance;
+ DAT_TileMapState.CertainPathLayer[_candidate + 0x13a0f] = _curGen;
+ this->searchQueue.tilesQueue[y] = _candidate - 1;
+ this->searchQueue.yQueue[y] = _cY;
+ y = y + 1;
+ }
+ /*
+ === EAST (Cardinal: distance +1) ===
+ */
+ if ((DAT_TileMapState.WalkLayer[_candidate + 1] != _curGen) && ((_cLink & 4) != 0)) {
+ DAT_TileMapState.CertainPathLayer[_candidate + 1] = _cCardinalDistance;
+ DAT_TileMapState.WalkLayer[_candidate + 1] = _curGen;
+ this->searchQueue.tilesQueue[y] = _candidate + 1;
+ this->searchQueue.yQueue[y] = _cY;
+ y = y + 1;
+ }
+ /*
+ === NORTH (Cardinal: distance +1) ===
+ */
+ _candidateNorth = _candidate + DAT_TileMapState.directionTranslationMatrix[_cY][0];
+ if ((DAT_TileMapState.WalkLayer[_candidateNorth] != _curGen) && ((_cLink & 1) != 0)) {
+ DAT_TileMapState.CertainPathLayer[_candidateNorth] = _cCardinalDistance;
+ DAT_TileMapState.WalkLayer[_candidateNorth] = _curGen;
+ this->searchQueue.tilesQueue[y] = _candidateNorth;
+ this->searchQueue.yQueue[y] = _cY - 1;
+ y = y + 1;
+ }
+ /*
+ === NORTHWEST (Diagonal: distance +2) ===
+ */
+ if ((DAT_TileMapState.CertainPathLayer[_candidateNorth + 0x13a0f] != _curGen)
+ && ((_cLink & 0x80) != 0)) {
+ DAT_TileMapState.CertainPathLayer[_candidateNorth + -1] = _cD + 2;
+ DAT_TileMapState.CertainPathLayer[_candidateNorth + 0x13a0f] = _curGen;
+ this->searchQueue.tilesQueue[y] = _candidateNorth + -1;
+ this->searchQueue.yQueue[y] = _cY - 1;
+ y = y + 1;
+ }
+ /*
+ === NORTHEAST (Diagonal: distance +2) ===
+ */
+ if ((DAT_TileMapState.WalkLayer[_candidateNorth + 1] != _curGen) && ((_cLink & 2) != 0)) {
+ DAT_TileMapState.CertainPathLayer[_candidateNorth + 1] = _cD + 2;
+ DAT_TileMapState.WalkLayer[_candidateNorth + 1] = _curGen;
+ this->searchQueue.tilesQueue[y] = _candidateNorth + 1;
+ this->searchQueue.yQueue[y] = _cY - 1;
+ y = y + 1;
+ }
+ /*
+ === SOUTH (Cardinal: distance +1) ===
+ */
+ _candidateSouth = _candidate + DAT_TileMapState.directionTranslationMatrix[_cY][4];
+ if ((DAT_TileMapState.WalkLayer[_candidateSouth] != _curGen) && ((_cLink & 0x10) != 0)) {
+ DAT_TileMapState.CertainPathLayer[_candidateSouth] = _cCardinalDistance;
+ DAT_TileMapState.WalkLayer[_candidateSouth] = _curGen;
+ this->searchQueue.tilesQueue[y] = _candidateSouth;
+ this->searchQueue.yQueue[y] = _cY + 1;
+ y = y + 1;
+ }
+ /*
+ === SOUTHWEST (Diagonal: distance +2) ===
+ */
+ if ((DAT_TileMapState.CertainPathLayer[_candidateSouth + 0x13a0f] != _curGen)
+ && ((_cLink & 0x20) != 0)) {
+ DAT_TileMapState.CertainPathLayer[_candidateSouth + -1] = _cD + 2;
+ DAT_TileMapState.CertainPathLayer[_candidateSouth + 0x13a0f] = _curGen;
+ this->searchQueue.tilesQueue[y] = _candidateSouth + -1;
+ this->searchQueue.yQueue[y] = _cY + 1;
+ y = y + 1;
+ }
+ /*
+ === SOUTHEAST (Diagonal: distance +2) ===
+ */
+ if ((DAT_TileMapState.WalkLayer[_candidateSouth + 1] != _curGen) && ((_cLink & 8) != 0)) {
+ DAT_TileMapState.CertainPathLayer[_candidateSouth + 1] = _cD + 2;
+ DAT_TileMapState.WalkLayer[_candidateSouth + 1] = _curGen;
+ this->searchQueue.tilesQueue[y] = _candidateSouth + 1;
+ this->searchQueue.yQueue[y] = _cY + 1;
+ y = y + 1;
+ }
+ /*
+ Move to next tile in queue
+ */
+ x2 = x2 + 1;
+ }
+ this->searchQueue.readIndex = x2;
+ this->searchQueue.writeIndex = y;
+ this->searchQueue.depth = continuePreviousSearch;
+ return FALSE;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00497740", "name": "findLinkageBasedPathOrWalkRadius", "quelle": "ghidra", "p1": {"bereich": "Wegfindung", "zweck": "Breitensuche über die Gehverbindungen (PathLinkageLayer) zu einem Ziel oder im Umkreis ohne Ziel."}, "p2": {"ein": "x, y, x2, y2, maxIterations, continuePreviousSearch", "aus": "TRUE = Ziel erreicht, sonst FALSE", "liest": ["PathLinkageLayer", "Begehbarkeitsfeld bei 0x21aec98", "WalkLayer", "CertainPathLayer", "directionTranslationMatrix"], "schreibt": ["searchGeneration", "WalkLayer", "CertainPathLayer", "searchQueue.tilesQueue/yQueue/readIndex/writeIndex/depth"], "ruft": ["fillMemory_ByteValue"], "regeln": ["Start muss unter 400 liegen und begehbar sein, sonst FALSE", "Ist ein Ziel angegeben (x2 ungleich -1), aber ungültig, wird maxIterations auf höchstens 500 begrenzt", "x2 = -1: kein Ziel, die Suche füllt nur die Liste im Umkreis", "Neue Suche: searchGeneration + 1; über 32000 wird sie auf 1 zurückgesetzt und WalkLayer (0x27420 Bytes) gelöscht", "Wegabstand: Startfeld 1, gerader Schritt +1, Diagonale +2", "Ein Nachbar wird nur aufgenommen, wenn das PathLinkage-Bit der Richtung gesetzt und das Feld in dieser Suche noch nicht besucht ist", "Je abgearbeitetem Feld zählt depth + 1; bei depth gleich maxIterations, leerer Liste oder Wegabstand über 799 endet die Suche mit FALSE", "Fortsetzen mit continuePreviousSearch ungleich 0 behält Liste, Lese- und Schreibstand", "Gebäude, Einheiten und Höhen werden nicht geprüft, nur die Verbindungsbits"], "offen": ["Bei West, Nordwest und Südwest zeigt Ghidra CertainPathLayer[+0x13a0f] als Besucht-Prüfung; vermutlich gleiche Besucht-Prüfung wie bei den anderen Richtungen (Zeigerrechnung), ungesichert", "Bedeutung der PathLinkage-Bits laut Kommentar: 1 Nord, 2 Nordost, 4 Ost, 8 Südost, 0x10 Süd, 0x20 Südwest, 0x40 West, 0x80 Nordwest"]}, "p3": {"erklaerung": "Die einfache Wegsuche des Spiels: Sie breitet sich Feld für Feld über die vorberechneten Gehverbindungen aus. Ein gerader Schritt kostet 1, ein diagonaler 2.", "gehirn": "Wegkosten diagonal doppelt so hoch wie gerade; Suche gibt bei Abstand 799 oder ungültigem Ziel nach spätestens 500 Schritten auf.", "beleg": "code", "live": "-", "live_art": "-"}}
+

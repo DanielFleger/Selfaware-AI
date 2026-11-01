@@ -1,0 +1,1146 @@
+### 0x0041cc70 UpdateIronMine | quelle=nachgebaut | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x0041CC70
+ void Buildings::UpdateIronMine()
+ {
+ DAT_GameState
+ .playerDataArray[DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner]
+ .countIronMines += 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 1;
+ addBuildingToTargetableBuildings(
+ DAT_CurrentBuildingID);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationTickCounter += 1;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationTickCounter <= 1) {
+ return;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationTickCounter = 0;
+ // The miners: state cycles 0-6 over campgroundVclock. The IronMineAnimationFrames* tables are declared byte,
+ // but the original reads them signed
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workers[0] == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1 = 0;
+ } else {
+ int wrapped = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock += 1;
+ if ((char)DAT_BuildingDefinedData.IronMineAnimationFrames1
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock]
+ <= 0) {
+ wrapped = 1;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock += 1;
+ if ((char)DAT_BuildingDefinedData.IronMineAnimationFrames3
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock]
+ <= 0) {
+ wrapped = 1;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 2) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock += 1;
+ if ((char)DAT_BuildingDefinedData.IronMineAnimationFrames2
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock]
+ <= 0) {
+ wrapped = 1;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 3) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock == 0
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock == 24
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock == 48
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock == 72) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_IRON_PULL);
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock += 1;
+ if ((char)DAT_BuildingDefinedData.IronMineAnimationFrames4
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock]
+ <= 0) {
+ wrapped = 1;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 4) {
+ wrapped = 1;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 5) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock += 1;
+ if ((char)DAT_BuildingDefinedData.IronMineAnimationFrames5
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock]
+ <= 0) {
+ wrapped = 1;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 6) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock += 1;
+ if ((char)DAT_BuildingDefinedData.IronMineAnimationFrames6
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock]
+ <= 0) {
+ wrapped = 1;
+ }
+ }
+ if (wrapped != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 1;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 2;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 2) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 3;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 3) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 4;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 4) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 5;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 5) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state
+ = getBuildingResourceAmountByUid(DAT_CurrentBuildingID,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].uid,
+ RT_IRON)
+ < 7
+ ? 0
+ : 6;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 6) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state
+ = getBuildingResourceAmountByUid(DAT_CurrentBuildingID,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].uid,
+ RT_IRON)
+ < 7
+ ? 0
+ : 6;
+ }
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames1
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock];
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames3
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock]
+ + 118;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 2) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames2
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock];
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 3) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames4
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock]
+ + 38;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 4) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1 = 59;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 5) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames5
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock]
+ + 58;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 6) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames6
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock]
+ + 78;
+ }
+ }
+ // The ore cart, in killingPitField and extraAnimationFrame2
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workers[0] == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame2 = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite3 = 0;
+ } else {
+ int wrapped = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField == 0) {
+ wrapped = 1;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame2 += 1;
+ if ((char)DAT_BuildingDefinedData.IronMineAnimationFrames7
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame2]
+ <= 0) {
+ wrapped = 1;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField == 2) {
+ wrapped = 1;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField == 3) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame2 += 1;
+ if ((char)DAT_BuildingDefinedData.IronMineAnimationFrames8
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame2]
+ <= 0) {
+ wrapped = 1;
+ }
+ }
+ if (wrapped != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame2 = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField == 0) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 3
+ && DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock
+ == 80) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField = 1;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField
+ == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField = 2;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField
+ == 2) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField = 3;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField
+ == 3) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField = 0;
+ }
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite3 = 0;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite3
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames7
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame2]
+ + 50;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField == 2) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite3 = 0;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].killingPitField == 3) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite3
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames8
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame2]
+ + 50;
+ }
+ }
+ // The smelter, in field117_0x11a and extraAnimationFrame1, with its glow in field168_0x292
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workers[0] == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1 = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite2 = 0;
+ } else {
+ int wrapped = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1 += 1;
+ if ((char)DAT_BuildingDefinedData.IronMineAnimationFrames9
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1]
+ <= 0) {
+ wrapped = 1;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a == 1) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1
+ == 20) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_IRON_STRAIN);
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1
+ == 55) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_IRON_DUMP);
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1
+ == 65) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_IRON_LDUMP);
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1 == 100
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1
+ == 190
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1
+ == 280
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1
+ == 370) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_IRON_BOIL);
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1 += 1;
+ if ((char)DAT_BuildingDefinedData.IronMineAnimationFrames10
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1]
+ <= 0) {
+ wrapped = 1;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a == 2) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1 += 1;
+ if ((char)DAT_BuildingDefinedData.IronMineAnimationFrames11
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1]
+ <= 0) {
+ wrapped = 1;
+ }
+ }
+ if (wrapped != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1 = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a == 0) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 4) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a = 1;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a
+ == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a = 2;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a
+ == 2) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a = 0;
+ }
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite2
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames9
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1]
+ + 126;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite2
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames10
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1]
+ + 134;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a == 2) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite2
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames11
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1]
+ + 134;
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a == 1) {
+ char const heat
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames10[DAT_BuildingsState
+ .buildings[DAT_CurrentBuildingID]
+ .extraAnimationFrame1];
+ if (heat < 4) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 24;
+ } else if (heat < 8) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 20;
+ } else if (heat < 12) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 16;
+ } else if (heat < 16) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 12;
+ } else if (heat < 20) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 16;
+ } else if (heat < 24) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 20;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 24;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a == 2) {
+ char const heat
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames11[DAT_BuildingsState
+ .buildings[DAT_CurrentBuildingID]
+ .extraAnimationFrame1];
+ if (heat < 4) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 24;
+ } else if (heat < 8) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 20;
+ } else if (heat < 12) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 16;
+ } else if (heat < 16) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 12;
+ } else if (heat < 20) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 16;
+ } else if (heat < 24) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 20;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field168_0x292 = 24;
+ }
+ }
+ }
+ // The pour, in field119_0x11e and extraAnimationFrame3; finishing it deposits the iron
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workers[0] == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field119_0x11e = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3 = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite4 = 0;
+ } else {
+ int wrapped = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field119_0x11e == 0) {
+ wrapped = 1;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field119_0x11e == 1) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3 == 0) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_IRON_POUR);
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3 += 1;
+ if ((char)DAT_BuildingDefinedData.IronMineAnimationFrames12
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3]
+ <= 0) {
+ wrapped = 1;
+ }
+ }
+ if (wrapped != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3 = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field119_0x11e == 0) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field117_0x11a == 2) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field119_0x11e = 1;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field119_0x11e
+ == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field119_0x11e = 0;
+ addResourceToStockpile(DAT_CurrentBuildingID,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].uid,
+ RT_IRON, 1, 8, 1);
+ }
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field119_0x11e == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite4 = 0;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field119_0x11e == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite4
+ = (char)DAT_BuildingDefinedData.IronMineAnimationFrames12
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3]
+ + 94;
+ }
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .resources[RT_IRON]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraOverlayImage1 = 0;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .resources[RT_IRON]
+ >= 8) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraOverlayImage1 = 170;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraOverlayImage1
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .resources[RT_IRON]
+ + 162;
+ }
+ if (DAT_GameSynchronyState.currentGameMode != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage += 1;
+ if (DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage / 2]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage = 0;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].overlayImageID
+ = DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage
+ / 2];
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].overlayImageID = 0;
+ }
+ }
+}
+}
+
+### 0x0040bfa0 getResourceCountThatCanBeDeposited | quelle=nachgebaut | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x0040BFA0
+ int BuildingsState::getResourceCountThatCanBeDeposited(
+ int buildingID, undefined4 resourceType, int storageLimit)
+ {
+ if (this->buildings[buildingID].currentNumberOfResource >= storageLimit) {
+ return 0;
+ }
+ return storageLimit - this->buildings[buildingID].currentNumberOfResource;
+ }
+ }
+}
+}
+
+### 0x00465700 QueueChangeTaxes | quelle=ghidra | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x00465700
+ void Commands::QueueChangeTaxes()
+ {
+ int iVar1;
+ BOOLEnum BVar2;
+ DWORD DVar3;
+ iVar1 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .taxesSliderUI;
+ if (iVar1
+ != DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .taxesSetting2) {
+ if (DAT_GameCore.gameMode_2 == GM_CRUSADER_TUTORIAL) {
+ BVar2 = Tutorial_IsActionAllowed(4, iVar1);
+ if (BVar2 == FALSE) {
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .taxesSliderUI
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .taxesSetting2;
+ SetTutorialHintActiveWithTimestamp();
+ return;
+ }
+ SetTutorialBuildingActionState(0xd,
+ (BuildingType)((int)(DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .taxesSliderUI)));
+ }
+ iVar1 = DAT_GameSynchronyState.currentPlayerSlotID;
+ DVar3 = timeGetTime();
+ DAT_GameState.playerDataArray[iVar1].timeTaxesOrRationsChange = DVar3;
+ DAT_GameState.playerDataArray[iVar1].taxesSetting2
+ = DAT_GameState.playerDataArray[iVar1].taxesSliderUI;
+ DAT_GameSynchronyState.DAT_GameCommandParam0
+ = DAT_GameState.playerDataArray[iVar1].taxesSliderUI;
+ queueCommand(
+ GCT_CHANGE_TAXES);
+ }
+ return;
+ }
+}
+}
+
+### 0x00482360 ClickChangeTaxes | quelle=ghidra | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x00482360
+ void Commands::ClickChangeTaxes()
+ {
+ DAT_GameSynchronyState.DAT_CommandSize = 1;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ DAT_GameSynchronyState.DAT_GameCommandParam0
+ = DAT_GameSynchronyState.DAT_CommandActionPlan;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ ChangeTaxes(
+ DAT_GameSynchronyState.protocolInvokerPlayerID,
+ DAT_GameSynchronyState.DAT_GameCommandParam0);
+ }
+ return;
+ }
+}
+}
+
+### 0x004823c0 ClickChangeRations | quelle=ghidra | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x004823C0
+ void Commands::ClickChangeRations()
+ {
+ DAT_GameSynchronyState.DAT_CommandSize = 1;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ DAT_GameSynchronyState.DAT_GameCommandParam0
+ = DAT_GameSynchronyState.DAT_CommandActionPlan;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ ChangeRations(
+ DAT_GameSynchronyState.protocolInvokerPlayerID,
+ DAT_GameSynchronyState.DAT_GameCommandParam0);
+ }
+ return;
+ }
+}
+}
+
+### 0x00482620 ClickBuyOrSell | quelle=ghidra | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x00482620
+ void Commands::ClickBuyOrSell()
+ {
+ DAT_GameSynchronyState.DAT_CommandSize = 2;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ DAT_GameSynchronyState.DAT_GameCommandParam0
+ = DAT_GameSynchronyState.DAT_CommandActionPlan;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = ((ResourceType)0);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ ProcessBuyOrSell(
+ DAT_GameSynchronyState.protocolInvokerPlayerID,
+ DAT_GameSynchronyState.DAT_GameCommandParam0,
+ (ResourceType)((int)(DAT_GameSynchronyState.DAT_GameCommandParam1)));
+ }
+ return;
+ }
+}
+}
+
+### 0x00458940 getSellResourceAmount | quelle=ghidra | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x00458940
+ int GameStateStructures::getSellResourceAmount(int playerID, int resourceType)
+ {
+ int iVar1;
+ iVar1 = this->playerDataArray[playerID].currentResources[resourceType];
+ if (4 < iVar1) {
+ if (iVar1 < 0x32) {
+ return 5;
+ }
+ if (iVar1 < 100) {
+ return 10;
+ }
+ iVar1 = ((199 < iVar1) - 1 & 0xffffffe2) + 0x32;
+ }
+ return iVar1;
+ }
+}
+}
+
+### 0x00458a70 updateFoodTypesInStockForAllPlayers | quelle=ghidra | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x00458A70
+ void GameStateStructures::updateFoodTypesInStockForAllPlayers()
+ {
+ PlayerData* piVar1;
+ int iVar1;
+ piVar1 = &this->playerDataArray[1];
+ iVar1 = 8;
+ do {
+ if ((0 < (piVar1->keep).id) && (0 < (piVar1->campground).id)) {
+ piVar1->foodTypesInStock = 0;
+ if (0 < piVar1->breadCount) {
+ piVar1->foodTypesInStock = 1;
+ }
+ if (0 < piVar1->cheeseCount) {
+ piVar1->foodTypesInStock = piVar1->foodTypesInStock + 1;
+ }
+ if (0 < piVar1->meatCount) {
+ piVar1->foodTypesInStock = piVar1->foodTypesInStock + 1;
+ }
+ if (0 < piVar1->appleCount) {
+ piVar1->foodTypesInStock = piVar1->foodTypesInStock + 1;
+ }
+ }
+ piVar1 = piVar1 + 0xe7d;
+ iVar1 = iVar1 + -1;
+ } while (iVar1 != 0);
+ return;
+ }
+}
+}
+
+### 0x00433560 SetTaxesSetting_unknown | quelle=nachgebaut | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x00433560
+ void Helpers::SetTaxesSetting_unknown(int taxesSettingUnk)
+ {
+ if (DAT_GameCore.taxesSettingUnk == 0) {
+ DAT_GameCore.taxesSettingUnk = taxesSettingUnk;
+ DAT_GameCore.scribeAnimationPhase = TRUE;
+ DAT_GameCore.taxestimeUnk = timeGetTime();
+ DAT_GameCore.scribeAnimationFrame2 = 0;
+ }
+ }
+}
+}
+
+### 0x0043e540 SomePopularityRelatedComputation | quelle=ghidra | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x0043E540
+ int Helpers::SomePopularityRelatedComputation()
+ {
+ int iVar1;
+ int iVar2;
+ int iVar3;
+ iVar1 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].popularity
+ / 100;
+ if (99 < iVar1) {
+ return 0xc;
+ }
+ if (iVar1 < 1) {
+ return 2;
+ }
+ iVar2 = iVar1 >> 0x1f;
+ iVar3 = iVar1 / 10 + iVar2;
+ if (iVar1 < 0x32) {
+ return (iVar3 + 3) - iVar2;
+ }
+ return (iVar3 + 2) - iVar2;
+ }
+}
+}
+
+### 0x0043e5a0 SomeFearFactorComputation | quelle=ghidra | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x0043E5A0
+ undefined4 Helpers::SomeFearFactorComputation()
+ {
+ uint uVar1;
+ undefined4 uVar2;
+ uVar1 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .fearFactorLevel;
+ if ((int)uVar1 < -4) {
+ return (undefined4)(0xe);
+ }
+ if ((int)uVar1 < -2) {
+ return (undefined4)(0xf);
+ }
+ if (0x7fffffff < uVar1) {
+ return (undefined4)(0x10);
+ }
+ if (4 < (int)uVar1) {
+ return (undefined4)(0x13);
+ }
+ uVar2 = 0x12;
+ if ((int)uVar1 < 3) {
+ uVar2 = 0x11;
+ }
+ return (undefined4)(uVar2);
+ }
+}
+}
+
+### 0x0043e5f0 SomeGoldRelatedComputation | quelle=ghidra | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x0043E5F0
+ int Helpers::SomeGoldRelatedComputation()
+ {
+ int iVar1;
+ int iVar2;
+ int iVar3;
+ iVar1 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[0xf];
+ if (iVar1 == 0) {
+ return 0x1d;
+ }
+ if (999 < iVar1) {
+ return 0x20;
+ }
+ iVar2 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .blessedPeoplePercentage;
+ if (0x4f < iVar2) {
+ return 0x17;
+ }
+ iVar3 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .workingInnsCount;
+ if (2 < iVar3) {
+ return 0x1b;
+ }
+ if (0x27 < iVar2) {
+ return 0x16;
+ }
+ if (iVar3 == 2) {
+ return 0x1a;
+ }
+ if (4999 < iVar1) {
+ return 0x1f;
+ }
+ if (0x13 < iVar2) {
+ return 0x15;
+ }
+ if (iVar3 == 1) {
+ return 0x19;
+ }
+ if (iVar1 < 500) {
+ return 0x1e;
+ }
+ if (4 < DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .totalEnemyUnitsCount) {
+ return 0x24;
+ }
+ iVar1 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentPopulation;
+ if (iVar1 == 0) {
+ return 0x22;
+ }
+ return (uint)(4 < iVar1) * 4 + 0x23;
+ }
+}
+}
+
+### 0x00465040 HasEnoughGold | quelle=ghidra | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x00465040
+ BOOLEnum Helpers::HasEnoughGold(int param_1)
+ {
+ int iVar1;
+ iVar1 = 0;
+ if (param_1 == 0x1e) {
+ iVar1 = 0x1e;
+ } else if (param_1 == 0x1d) {
+ iVar1 = 4;
+ } else if (param_1 == 0x25) {
+ /*
+ cathedral/monks
+ */
+ iVar1 = 10;
+ }
+ return (
+ uint)(iVar1 <= DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[0xf]);
+ }
+}
+}
+
+### 0x004650c0 CheckGoldResource | quelle=nachgebaut | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x004650C0
+ BOOLEnum Helpers::CheckGoldResource(int unitIndex)
+ {
+ int requiredGold = 0;
+ if (unitIndex == 5) {
+ requiredGold = 30;
+ }
+ return DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[RT_GOLD]
+ >= requiredGold;
+ }
+}
+}
+
+### 0x00471720 playResourceLackSFX | quelle=nachgebaut | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x00471720
+ void MissingResourceState::playResourceLackSFX(int resourceTextElement, ResourceLackSFX resourceType)
+ {
+ ActivateGameSpeedAndResourceLackDisplayElementUnk(
+ (UI::Enums::DisplayElementID)(resourceTextElement + UI::Enums::DEID_IN_GAME_CHAT_Unk), resourceType, 5000);
+ if (shouldSoundXNotBePlaying()) {
+ return;
+ }
+ int _randomIndex = SEC_RNG::instance.currentNumber1 % 10;
+ if (3 < _randomIndex) {
+ _randomIndex = 0;
+ }
+ nextRandomNumber1();
+ switch (resourceType) {
+ case SFX::RLSFX_IRON:
+ playSpeechSFX(
+ (SFX::SpeechEffectID)(_randomIndex + SFX::SEID_RESOURCE_NEED8));
+ break;
+ case SFX::RLSFX_PITCH:
+ playSpeechSFX(
+ (SFX::SpeechEffectID)(_randomIndex + SFX::SEID_RESOURCE_NEED12));
+ break;
+ case SFX::RLSFX_GOLD:
+ playSpeechSFX(
+ (SFX::SpeechEffectID)(_randomIndex + SFX::SEID_RESOURCE_NEED16));
+ break;
+ case SFX::RLSFX_PARTIAL_STONEUnk:
+ playSpeechSFX(SFX::SEID_RESOURCE_NEED20);
+ break;
+ case SFX::RLSFX_WOOD:
+ playSpeechSFX(
+ (SFX::SpeechEffectID)(_randomIndex + SFX::SEID_RESOURCE_NEED21));
+ break;
+ case SFX::RLSFX_STONE:
+ playSpeechSFX(
+ (SFX::SpeechEffectID)(_randomIndex + SFX::SEID_RESOURCE_NEED25));
+ break;
+ }
+ }
+}
+}
+
+### 0x004761e0 renderResourceMissingText | quelle=nachgebaut | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x004761E0
+ void MissingResourceState::renderResourceMissingText(int posX, int posY, dword textGroup, dword unusedUnk)
+ {
+ if (DAT_GameCore.activeMenuTab.tabType == UI::Enums::BASMTT_SIEGETENT_SIEGETOWER
+ || DAT_GameCore.activeMenuTab.tabType == UI::Enums::BASMTT_SIEGETENT_SHIELD) {
+ renderInGameTextWithShadow(
+ getTextStringInGroupAtOffset(
+ DE::SHCDE::TEXT_FEEDBACK, textGroup),
+ posX, posY + 148, Text::TTA_LEFT, 0x00c2f0eb, 0, 17, FALSE, 0);
+ return;
+ }
+ if (DAT_GameCore.currentMenuViewType == UI::Enums::MVT_BUILDING_AND_STATUS_MENU) {
+ if (DAT_GameCore.activeMenuTab.tabType == UI::Enums::BASMTT_BARRACKS_OR_MPMENU_MODEM) {
+ posY -= 20;
+ } else if (DAT_GameCore.activeMenuTab.tabType == UI::Enums::BASMTT_MERCENARYPOST) {
+ posY -= 20;
+ } else {
+ posY -= 10;
+ }
+ }
+ int const iVar2 = MACRO_CALL_MEMBER(
+ Text::FontSizeClass_Func::renderMultilineTextUnk, &DAT_TextManagerObject.fontSizeClassArray[17])(
+ getTextStringInGroupAtOffset(
+ DE::SHCDE::TEXT_FEEDBACK, textGroup),
+ 0, 0, 520, 0, 0, 1);
+ renderMultilineText6Unk(
+ getTextStringInGroupAtOffset(
+ DE::SHCDE::TEXT_FEEDBACK, textGroup),
+ posX, (posY - iVar2) + 32, 520, 0x00c2f0eb, 0, 17, 0);
+ return;
+ }
+}
+}
+
+### 0x0046c200 loadMapMetaByID | quelle=nachgebaut | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x0046C200
+ void ResourceManager::loadMapMetaByID(dword id)
+ {
+ DAT_GameCore.mapType = this->mapMetaInfoArray[id].mapType;
+ DAT_GameCore.savedMapLocked = this->mapMetaInfoArray[id].mapLocked;
+ DAT_GameCore.savedMapBalance = this->mapMetaInfoArray[id].mapBalance;
+ DAT_GameCore.savedMapEndInt2 = this->mapMetaInfoArray[id].mapEndInt2;
+ DAT_GameCore.mapPlayerCount = this->mapMetaInfoArray[id].mapPlayerCount;
+ DAT_MapPropertiesState.scenarionMissionType = this->mapMetaInfoArray[id].int0;
+ DAT_MapPropertiesState.scenarioMissionSiegeOrInvasion = this->mapMetaInfoArray[id].mapType2;
+ DAT_GameCore.mapU4Int0_2 = 0;
+ }
+} // namespace IO
+} // namespace OpenSHC
+
+### 0x0046c280 getChecksumOfMapByName | quelle=nachgebaut | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x0046C280
+ dword ResourceManager::getChecksumOfMapByName(char* mapNameAddress)
+ {
+ for (int _mapIndex = 0; _mapIndex < this->loadedMapsCount; ++_mapIndex) {
+ if (!__stricmp(this->mapNames[_mapIndex], mapNameAddress)) {
+ return this->mapMetaInfoArray[_mapIndex].loadedMapsChecksumArray;
+ }
+ }
+ return 0;
+ }
+} // namespace IO
+} // namespace OpenSHC
+
+### 0x0046c300 getFileNameOfCurrentActiveResource | quelle=nachgebaut | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x0046C300
+ char* ResourceManager::getFileNameOfCurrentActiveResource()
+ {
+ return this->resourceFileNameArray[this->currentActiveResourceType];
+ }
+} // namespace IO
+} // namespace OpenSHC
+
+### 0x0046c320 loadConfigPathTxt | quelle=nachgebaut | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x0046C320
+ void ResourceManager::loadConfigPathTxt()
+ {
+ FILE* _File = _fopen(s_configpath_txt_005a5a0c, s_rb_005a4e18);
+ if (!_File) {
+ return;
+ }
+ _fseek(_File, 0, FILE_END);
+ int _count = _ftell(_File);
+ _fseek(_File, 0, FILE_BEGIN);
+ if (_count > 500) {
+ _count = 500;
+ }
+ char _configPathBufferUnk[1000];
+ _fread(_configPathBufferUnk, sizeof(char), _count, _File);
+ _configPathBufferUnk[_count] = '\0';
+ int index = 0;
+ for (; index < _count; ++index) {
+ if (_configPathBufferUnk[index] == '\r' || _configPathBufferUnk[index] == '\n') {
+ _configPathBufferUnk[index] = '\0';
+ break;
+ }
+ }
+ if (index > 2) {
+ if (_configPathBufferUnk[index + -1] == '\\') {
+ _configPathBufferUnk[index + -1] = '\0';
+ }
+ this->configPathLoadedUnk_0x7da = true;
+ strcpy(this->configPathUnk_0x7db, _configPathBufferUnk);
+ }
+ _fclose(_File);
+ }
+} // namespace IO
+} // namespace OpenSHC
+
+### 0x0046c420 doesFileExist | quelle=nachgebaut | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x0046C420
+ BOOLEnum ResourceManager::doesFileExist(char* filename)
+ {
+ int _fileHandle = _ucrt_open(filename, _O_BINARY, 0);
+ if (_fileHandle == -1) {
+ return FALSE;
+ }
+ _ucrt_close(_fileHandle);
+ return TRUE;
+ }
+} // namespace IO
+} // namespace OpenSHC
+
+### 0x0046c450 setGfxFileFilter | quelle=nachgebaut | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x0046C450
+ void ResourceManager::setGfxFileFilter()
+ {
+ this->openFileNameA.lpstrFilter = DAT_TextInputDefinedData.field19_0x710;
+ this->openFileNameA.nFilterIndex = 1;
+ this->openFileNameA.lpstrDefExt = DAT_TextInputDefinedData.field19_0x710;
+ this->openFileNameA.lpstrInitialDir = s_gfx__005a5a1c;
+ }
+} // namespace IO
+} // namespace OpenSHC
+
+### 0x0046c480 setHelpFileFilter | quelle=nachgebaut | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x0046C480
+ void ResourceManager::setHelpFileFilter()
+ {
+ this->openFileNameA.lpstrFilter = DAT_TextInputDefinedData.field23_0x71c;
+ this->openFileNameA.nFilterIndex = 1;
+ this->openFileNameA.lpstrDefExt = DAT_TextInputDefinedData.field23_0x71c;
+ this->openFileNameA.lpstrInitialDir = s_help__005a5a24;
+ }
+} // namespace IO
+} // namespace OpenSHC
+
+### 0x0046c4b0 setSoundFileFilter | quelle=nachgebaut | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x0046C4B0
+ void ResourceManager::setSoundFileFilter()
+ {
+ this->openFileNameA.lpstrFilter = DAT_TextInputDefinedData.field27_0x728;
+ this->openFileNameA.nFilterIndex = 1;
+ this->openFileNameA.lpstrDefExt = DAT_TextInputDefinedData.field27_0x728;
+ this->openFileNameA.lpstrInitialDir = s_fx__005a5a2c;
+ }
+} // namespace IO
+} // namespace OpenSHC
+
+### 0x0046c4e0 getSimpleFirst1024ByteSumOfFile | quelle=nachgebaut | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x0046C4E0
+ int ResourceManager::getSimpleFirst1024ByteSumOfFile(char* filename)
+ {
+ int _byteValueSumUnk = 0;
+ int _fileHandle = _ucrt_open(filename, _O_BINARY, 0);
+ if (_fileHandle == -1) {
+ _byteValueSumUnk = -1;
+ } else {
+ char _buf[1024];
+ int _lengthUnk;
+ do {
+ _lengthUnk = _ucrt_read(_fileHandle, _buf, sizeof(_buf));
+ for (int _counter = 0; _counter < _lengthUnk; ++_counter) {
+ _byteValueSumUnk += _buf[_counter];
+ }
+ } while (_lengthUnk != 0);
+ _ucrt_close(_fileHandle);
+ }
+ return _byteValueSumUnk;
+ }
+} // namespace IO
+} // namespace OpenSHC
+
+### 0x00471be0 Constructor_ResourceManager | quelle=nachgebaut | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x00471BE0
+ ResourceManager* ResourceManager::Constructor_ResourceManager()
+ {
+ this->mapFileCounter = 0;
+ // FIXME?: Assuming the loadedMapNames is [500][1001], then this fill does not null the entire array.
+ fillMemory_ByteValue(
+ 500000, 0, this->loadedMapNames);
+ return this;
+ }
+} // namespace IO
+} // namespace OpenSHC
+
+### 0x00471c10 syncLoadedMapNames | quelle=nachgebaut | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x00471C10
+ void ResourceManager::mapNames_syncLoadedMapNames()
+ {
+ this->mapFileCounter = this->loadedMapsCount;
+ for (int mapIndex = 0; mapIndex < (int)this->mapFileCounter; ++mapIndex) {
+ strcpy(mapNames_getLoadedMapNameForIndex(mapIndex),
+ this->mapNames[mapIndex]);
+ }
+ }
+
+### 0x00471c50 swapMapDataWithNextMap | quelle=nachgebaut | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x00471C50
+ void ResourceManager::swapMapDataWithNextMap(int _mapFileIndex)
+ {
+ copyData(
+ 1000, this->loadedMapNames[_mapFileIndex], this->resourceFileNameArray);
+ copyData(
+ 1000, this->loadedMapNames[_mapFileIndex + 1], this->loadedMapNames[_mapFileIndex]);
+ copyData(
+ 1000, this->resourceFileNameArray, this->loadedMapNames[_mapFileIndex + 1]);
+ dword const nextFileTime = this->mapFileTimes[_mapFileIndex];
+ this->mapFileTimes[_mapFileIndex] = this->mapFileTimes[_mapFileIndex + 1];
+ this->mapFileTimes[_mapFileIndex + 1] = nextFileTime;
+ }
+} // namespace IO
+} // namespace OpenSHC
+
+### 0x00471cd0 replaceMapNameWith | quelle=nachgebaut | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x00471CD0
+ void ResourceManager::replaceMapNameWith(dword id1, dword id2)
+ {
+ if (id1 == id2) {
+ return;
+ }
+ copyData(
+ 1000, this->loadedMapNames[id1], this->loadedMapNames[id2]);
+ this->mapFileTimes[id2] = this->mapFileTimes[id1];
+ }
+} // namespace IO
+} // namespace OpenSHC
+
+### 0x00471d30 getCurrentResourceCoreNameUnk | quelle=nachgebaut | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x00471D30
+ char* ResourceManager::getCurrentResourceCoreNameUnk()
+ {
+ char const* _resourceName = getFileNameOfCurrentActiveResource();
+ int basenameEnd = strlen(_resourceName);
+ DAT_CurrentResourceCoreName[0] = '\0';
+ for (int basenameStart = basenameEnd + -1; basenameStart >= 0; --basenameStart) {
+ if (_resourceName[basenameStart] == '.') {
+ basenameEnd = basenameStart;
+ }
+ if (_resourceName[basenameStart] != '\\') {
+ continue;
+ }
+ ++basenameStart;
+ int basenameLength = 0;
+ if (basenameStart < basenameEnd) {
+ basenameLength = basenameEnd - basenameStart;
+ for (int i = basenameStart; i < basenameEnd; ++i) {
+ DAT_CurrentResourceCoreName[i - basenameStart] = _resourceName[i];
+ }
+ }
+ DAT_CurrentResourceCoreName[basenameLength] = '\0';
+ break;
+ }
+ return DAT_CurrentResourceCoreName;
+ }
+} // namespace IO
+} // namespace OpenSHC
+
+### 0x00471dc0 doesFileOfActiveResourceExist | quelle=nachgebaut | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x00471DC0
+ BOOLEnum ResourceManager::doesFileOfActiveResourceExist()
+ {
+ char* _Filename = getFileNameOfCurrentActiveResource();
+ int fileDescriptor = _ucrt_open(_Filename, _O_BINARY, 0);
+ if (fileDescriptor == -1) {
+ return FALSE;
+ }
+ _ucrt_close(fileDescriptor);
+ return TRUE;
+ }
+} // namespace IO
+} // namespace OpenSHC
+
+### 0x00471df0 resetOpenFileNameStruct | quelle=nachgebaut | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x00471DF0
+ void ResourceManager::resetOpenFileNameStruct()
+ {
+ fillMemory_ByteValue(
+ sizeof(this->openFileNameA), '\0', &this->openFileNameA);
+ this->openFileNameA.lStructSize = sizeof(this->openFileNameA);
+ this->openFileNameA.hwndOwner = DAT_WindowAndDirectDraw.windowHandle;
+ this->openFileNameA.lpstrFile = this->strFile;
+ this->openFileNameA.nMaxFile = 1000;
+ this->openFileNameA.lpstrFileTitle = this->strFileTitle;
+ this->openFileNameA.nMaxFileTitle = 1000;
+ this->openFileNameA.Flags = OFN_NOCHANGEDIR;
+ }
+} // namespace IO
+} // namespace OpenSHC
+
+### 0x00471e50 readCurrentResourceIntoDestination | quelle=nachgebaut | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x00471E50
+ BOOLEnum ResourceManager::readCurrentResourceIntoDestination(void* destination, size_t size)
+ {
+ char* _Filename = getFileNameOfCurrentActiveResource();
+ this->fileHandle = _ucrt_open(_Filename, _O_BINARY, 0);
+ if (this->fileHandle == -1) {
+ return FALSE;
+ }
+ this->loadPositionInCurrentResource = _ucrt_read(this->fileHandle, destination, size);
+ _ucrt_close(this->fileHandle);
+ return TRUE;
+ }
+} // namespace IO
+} // namespace OpenSHC
+
+### 0x00471eb0 getCurrentResourceSize | quelle=nachgebaut | bereich=Wirtschaft
+// FUNCTION: STRONGHOLDCRUSADER 0x00471EB0
+ int ResourceManager::getCurrentResourceSize()
+ {
+ char* _filename = getFileNameOfCurrentActiveResource();
+ this->fileHandle = _ucrt_open(_filename, _O_BINARY, 0);
+ if (this->fileHandle == -1) {
+ return 0;
+ }
+ _ucrt_lseek(this->fileHandle, 0, FILE_END);
+ int _fileSize = _ucrt_tell(this->fileHandle);
+ _ucrt_close(this->fileHandle);
+ return _fileSize;
+ }
+} // namespace IO
+} // namespace OpenSHC
+

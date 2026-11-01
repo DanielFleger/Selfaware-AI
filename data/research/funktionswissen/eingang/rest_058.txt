@@ -1,0 +1,1262 @@
+### 0x004e0a50 ProcessCreditsScriptCommands | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004E0A50
+void Rendering::ProcessCreditsScriptCommands()
+{
+ int iVar1;
+ SHC_SoundStream sndStreamIndex;
+ FakeBink* pFVar2;
+ BOOLEnum BVar3;
+ CreditsRelatedStructure* piVar4;
+ CreditsRelatedStructure* pCVar4;
+ CreditsRelatedStructure2* pCVar5;
+ int* piVar7;
+ CreditsRelatedStructure* piVar6;
+ int iVar8;
+ int iVar9;
+ int iVar10;
+ bool bVar11;
+ if ((DAT_GameCore.menuViewToSwitchTo == DAT_GameCore.currentMenuViewType)
+ && (iVar9 = DAT_UnknownBinkIndex, -1 < DAT_UnknownBinkIndex)) {
+ while (iVar9 < DAT_UnknownBinkCount) {
+ iVar10 = iVar9;
+ switch (CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].field0_0x0) {
+ case 1:
+ if (FLOAT_Between1And5::instance + (float)INT_00ec083c::instance
+ <= (float)(int)CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].soundStream) {
+ INT_00ec083c::instance = (int)(FLOAT_Between1And5::instance + (float)INT_00ec083c::instance);
+ return;
+ }
+ INT_00ec083c::instance = 0;
+ break;
+ case 2:
+ iVar8 = 0;
+ piVar7 = CreditsRelatedStructure_ARRAY_00ec0348::ptr[0].xSpace;
+ LAB_004e0b60:
+ if ((((CreditsRelatedStructure*)(piVar7 + -1))->isValid != 1)
+ || (*piVar7 != CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].soundStream))
+ goto LAB_004e0b74;
+ iVar1 = CreditsRelatedStructure_ARRAY_00ec0348::instance[iVar8].field6_0x18;
+ LAB_004e0b8e:
+ if (iVar1 == 0) {
+ DAT_UnknownBinkIndex = iVar9 + 1;
+ iVar10 = DAT_UnknownBinkIndex;
+ }
+ goto LAB_004e0b98;
+ case 3:
+ iVar8 = 0;
+ piVar7 = CreditsRelatedStructure_ARRAY_00ec0348::ptr[0].xSpace;
+ do {
+ if ((((CreditsRelatedStructure*)(piVar7 + -1))->isValid == 2)
+ && (*piVar7 == CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].soundStream)) {
+ iVar1 = CreditsRelatedStructure_ARRAY_00ec0348::instance[iVar8].field6_0x18;
+ goto LAB_004e0b8e;
+ }
+ piVar7 = piVar7 + 0xd;
+ iVar8 = iVar8 + 1;
+ } while ((int)piVar7 < 0xec082c);
+ LAB_004e0b98:
+ bVar11 = iVar8 == 0x18;
+ goto LAB_004e0b9b;
+ case 4:
+ BVar3 = isSampleOrStreamPlaying(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].soundStream);
+ bVar11 = BVar3 == FALSE;
+ iVar10 = DAT_UnknownBinkIndex;
+ LAB_004e0b9b:
+ if (bVar11)
+ break;
+ goto LAB_004e10ba;
+ case 5:
+ InsertElementIntoAnArrayAt_ec0348(1,
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].soundStream)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].field17_0x38)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].x)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].y)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].field4_0x10)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].field5_0x14)), 0,
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].field13_0x28)));
+ break;
+ case 6:
+ InsertElementIntoAnArrayAt_ec0348(1,
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].soundStream)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].field17_0x38)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].x)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].y)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].field4_0x10)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].field5_0x14)), 1,
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].field13_0x28)));
+ break;
+ case 7:
+ piVar7 = CreditsRelatedStructure_ARRAY_00ec0348::ptr[0].xSpace;
+ do {
+ if ((((CreditsRelatedStructure*)(piVar7 + -1))->isValid == 1)
+ && (*piVar7 == CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].soundStream)) {
+ piVar7[0xb] = 0x3f800000;
+ piVar7[5] = SND_STR_SFX_2Unk;
+ }
+ piVar7 = piVar7 + 0xd;
+ } while ((int)piVar7 < 0xec082c);
+ break;
+ case 8:
+ pCVar4 = CreditsRelatedStructure_ARRAY_00ec0348::instance;
+ do {
+ if ((pCVar4->isValid == 1)
+ && (pCVar4->xSpace == CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].soundStream)) {
+ pCVar4->isValid = 0;
+ }
+ pCVar4 = pCVar4 + 1;
+ } while ((int)pCVar4 < 0xec0828);
+ break;
+ case 9:
+ endSoundStream(
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].soundStream);
+ iVar10 = DAT_UnknownBinkIndex;
+ break;
+ case 10:
+ stopBinkPlayback(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].soundStream);
+ iVar10 = DAT_UnknownBinkIndex;
+ break;
+ case 0xb:
+ pCVar4 = CreditsRelatedStructure_ARRAY_00ec0348::instance;
+ do {
+ if ((pCVar4->isValid == 2)
+ && (pCVar4->xSpace == CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].soundStream)) {
+ pCVar4->isValid = 0;
+ }
+ pCVar4 = pCVar4 + 1;
+ } while ((int)pCVar4 < 0xec0828);
+ break;
+ case 0xc:
+ playBINK(
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].binkObjIndex,
+ (char*)CreditsRelatedStructure2_ARRAY_00eb9b68::ptr[iVar9].binkFileName,
+ (DWORD)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].flagLoopCount)), 0,
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].x
+ + DAT_WindowAndDirectDraw.mainMenuBorderWidth,
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].y
+ + DAT_WindowAndDirectDraw.mainMenuBorderHeight,
+ (DWORD)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].field13_0x28)));
+ iVar10 = DAT_UnknownBinkIndex;
+ break;
+ case 0xd:
+ sndStreamIndex = CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].binkObjIndex;
+ DAT_SoundSystemState.streamFileVolumeNextUnk_0x48[sndStreamIndex]
+ = CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].volume;
+ playSoundStreamUnk(
+ sndStreamIndex, (char*)CreditsRelatedStructure2_ARRAY_00eb9b68::ptr[iVar9].binkFileName,
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].flagLoopCount);
+ iVar10 = DAT_UnknownBinkIndex;
+ break;
+ case 0xe:
+ InsertElementIntoArrayAt_ec0348_2(2,
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].soundStream)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].field6_0x18)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].field16_0x34)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].x)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].y)), 0,
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].field4_0x10)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].field15_0x30)));
+ break;
+ case 0xf:
+ InsertElementIntoArrayAt_ec0348_2(2,
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].soundStream)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].field6_0x18)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].field16_0x34)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].x)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].y)), 1,
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].field4_0x10)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].field15_0x30)));
+ break;
+ case 0x10:
+ piVar7 = CreditsRelatedStructure_ARRAY_00ec0348::ptr[0].xSpace;
+ do {
+ if ((((CreditsRelatedStructure*)(piVar7 + -1))->isValid == 2)
+ && (*piVar7 == CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].soundStream)) {
+ piVar7[0xb] = 0x3f800000;
+ piVar7[5] = SND_STR_SFX_2Unk;
+ }
+ piVar7 = piVar7 + 0xd;
+ } while ((int)piVar7 < 0xec082c);
+ break;
+ case 0x11:
+ INT_00ed27a4::instance = CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].soundStream;
+ if (INT_00ed27a4::instance == SND_STR_SFX_1Unk) {
+ DAT_00eb9af4 = CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].x;
+ }
+ break;
+ case 0x12:
+ DAT_00eb0e40 = (FakeBink*)0x1;
+ FLOAT_00eb0e2c::instance = 0.0;
+ break;
+ case 0x13:
+ DAT_00eb0e40 = (FakeBink*)0x2;
+ FLOAT_00eb0e2c::instance = 31.0;
+ break;
+ case 0x14:
+ pFVar2 = DAT_00eb0e40;
+ goto joined_r0x004e1060;
+ case 0x15:
+ InsertElementIntoArrayAt_ec0348_3(3,
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].soundStream)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].x)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].y)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].field4_0x10)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].field5_0x14)), 0,
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].field13_0x28)));
+ break;
+ case 0x16:
+ if (DAT_MouseState.draggingStopped == FALSE) {
+ return;
+ }
+ piVar4 = CreditsRelatedStructure_ARRAY_00ec0348::ptr[0];
+ do {
+ if (piVar4[-2] == 3) {
+ if ((piVar4->xSpace <= DAT_MouseState.screenSpaceX
+ - DAT_WindowAndDirectDraw.mainMenuBorderWidth)
+ && (DAT_MouseState.screenSpaceX
+ - DAT_WindowAndDirectDraw.mainMenuBorderWidth
+ < piVar4->someX + piVar4->xSpace)) {
+ if ((piVar4->ySpace <= DAT_MouseState.screenSpaceY
+ - DAT_WindowAndDirectDraw.mainMenuBorderHeight)
+ && (DAT_MouseState.screenSpaceY
+ - DAT_WindowAndDirectDraw.mainMenuBorderHeight
+ < piVar4->someY + piVar4->ySpace))
+ break;
+ }
+ }
+ piVar4 = piVar4 + 0xd;
+ if (0xec082f < (int)piVar4) {
+ return;
+ }
+ } while (true);
+ case 0x17:
+ pCVar4 = CreditsRelatedStructure_ARRAY_00ec0348::instance;
+ do {
+ if (pCVar4->isValid == 3) {
+ pCVar4->isValid = 0;
+ }
+ pCVar4 = pCVar4 + 1;
+ } while ((int)pCVar4 < 0xec0828);
+ break;
+ case 0x18:
+ pFVar2 = DAT_BinkControlState.binkObjPtrArray[0];
+ joined_r0x004e1060:
+ if (pFVar2 != (FakeBink*)0x0) {
+ return;
+ }
+ break;
+ case 0x19:
+ if ((INT_00ed27a4::instance != 2)
+ && (DAT_BinkControlState.binkObjPtrArray[0] != (FakeBink*)0x0)) {
+ stopBinkPlayback(0);
+ iVar10 = DAT_UnknownBinkIndex;
+ }
+ pCVar4 = CreditsRelatedStructure_ARRAY_00ec0348::instance;
+ do {
+ if (pCVar4->isValid != 0) {
+ pCVar4->isValid = 0;
+ }
+ pCVar4 = pCVar4 + 1;
+ } while ((int)pCVar4 < 0xec0828);
+ break;
+ case 0x1a:
+ DAT_00ed2bd8 = 1;
+ default:
+ switchD_004e0abf_caseD_1d:
+ break;
+ case 0x1b:
+ DisplayFullScreenTextPage(
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].soundStream);
+ DWORD_00eb9ac4::instance = 1;
+ iVar10 = DAT_UnknownBinkIndex;
+ break;
+ case 0x1c:
+ DWORD_00eb9ac4::instance = 0;
+ DAT_00ed2bd8 = 0;
+ goto switchD_004e0abf_caseD_1d;
+ case 0x20:
+ DAT_00ed2bd8 = 2;
+ goto switchD_004e0abf_caseD_1d;
+ case 0x24:
+ DAT_00eb0e40 = (FakeBink*)0x3;
+ FLOAT_00eb0e2c::instance = 0.0;
+ goto LAB_004e0f3c;
+ case 0x25:
+ DAT_00eb0e40 = (FakeBink*)0x4;
+ FLOAT_00eb0e2c::instance = 31.0;
+ LAB_004e0f3c:
+ DAT_RenderRelatedX = CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].x;
+ DAT_RenderRelatedY = CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].y;
+ DAT_00eb1234 = CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].field4_0x10;
+ INT_00eb0e30::instance = CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].field5_0x14;
+ break;
+ case 0x27:
+ if (DAT_SoundSystemState.sec_Section1055_0x3274
+ != CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].soundStream) {
+ setSomeSoundTime();
+ setupVolumeAndSoundID(
+ CreditsRelatedStructure2_ARRAY_00eb9b68::instance[DAT_UnknownBinkIndex].soundStream);
+ iVar10 = DAT_UnknownBinkIndex;
+ }
+ break;
+ case 0x28:
+ iVar10 = iVar9 + -1;
+ if (0 < iVar10) {
+ pCVar5 = CreditsRelatedStructure2_ARRAY_00eb9b68::instance + iVar10;
+ do {
+ if (pCVar5->field0_0x0 == 0x1f)
+ break;
+ iVar10 = iVar10 + -1;
+ pCVar5 = pCVar5 + -1;
+ } while (0 < iVar10);
+ }
+ break;
+ case 0x29:
+ InsertElementIntoAnArrayAt_ec0348(4,
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].soundStream)), 0,
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].x)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].y)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].field4_0x10)),
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].field5_0x14)), 0,
+ (undefined4)((int)(CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].field13_0x28)));
+ break;
+ case 0x2a:
+ piVar6 = CreditsRelatedStructure_ARRAY_00ec0348::ptr[0];
+ do {
+ if ((piVar6.isValid == 4)
+ && (piVar6->xSpace == CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].soundStream)) {
+ piVar6->flag = 0x3f800000;
+ piVar6->field6_0x18 = 2;
+ }
+ piVar6 = piVar6 + 0xd;
+ } while ((int)piVar6 < 0xec082c);
+ break;
+ case 0x2b:
+ DAT_00eb0e40 = (FakeBink*)0x5;
+ FLOAT_00eb0e2c::instance = 31.0;
+ break;
+ case 0x2c:
+ if (FLOAT_Between1And5::instance + (float)INT_00ec083c::instance
+ <= (float)(int)CreditsRelatedStructure2_ARRAY_00eb9b68::instance[iVar9].soundStream) {
+ if (DAT_MouseState.draggingStopped == FALSE) {
+ INT_00ec083c::instance = (int)(FLOAT_Between1And5::instance + (float)INT_00ec083c::instance);
+ return;
+ }
+ INT_00ec083c::instance = 0;
+ } else {
+ INT_00ec083c::instance = 0;
+ }
+ }
+ iVar10 = iVar10 + 1;
+ DAT_UnknownBinkIndex = iVar10;
+ LAB_004e10ba:
+ if (iVar10 == iVar9) {
+ return;
+ }
+ iVar9 = iVar10;
+ if (iVar10 < 0) {
+ return;
+ }
+ }
+ }
+ return;
+LAB_004e0b74:
+ piVar7 = piVar7 + 0xd;
+ iVar8 = iVar8 + 1;
+ if (0xec082b < (int)piVar7)
+ goto LAB_004e0b98;
+ goto LAB_004e0b60;
+}
+}
+
+### 0x004e12c0 RenderActiveCreditsElements | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004E12C0
+void Rendering::RenderActiveCreditsElements()
+{
+ float fVar1;
+ float fVar2;
+ int iVar3;
+ int blendStrengh;
+ int top;
+ int iVar4;
+ int left;
+ CreditsRelatedStructure* piVar5;
+ uint color;
+ int local_4;
+ if (INT_00ed27a4::instance == 0) {
+ ColorEntireScreen(COL_BLACK::instance.shortValue);
+ }
+ if (INT_00ed27a4::instance == 1) {
+ RenderGfxHelperUnk(DAT_00eb9af4, 0, 0);
+ }
+ if (DAT_00eb0e40 == 5) {
+ iVar3 = __ftol2((float10)FLOAT_00eb0e2c::instance);
+ drawBlendedBlackBox(0, 0, DAT_WindowAndDirectDraw.resolutionX + -1,
+ DAT_WindowAndDirectDraw.resolutionY + -1, iVar3);
+ FLOAT_00eb0e2c::instance = FLOAT_00eb0e2c::instance - FLOAT_Between1And5::instance * 0.5;
+ if (FLOAT_00eb0e2c::instance < 16.0) {
+ FLOAT_00eb0e2c::instance = 16.0;
+ }
+ }
+ local_4 = 0;
+ do {
+ piVar5 = CreditsRelatedStructure_ARRAY_00ec0348::ptr[0];
+ do {
+ iVar3 = piVar5.isValid;
+ if ((iVar3 != 0) && (piVar5->field7_0x1c == local_4)) {
+ if (iVar3 == 1) {
+ iVar3 = piVar5->xSpace;
+ if (piVar5->field11_0x2c != -1) {
+ if ((piVar5->ySpace <= DAT_MouseState.screenSpaceX
+ - DAT_WindowAndDirectDraw.mainMenuBorderWidth)
+ && (DAT_MouseState.screenSpaceX
+ - DAT_WindowAndDirectDraw.mainMenuBorderWidth
+ < piVar5->someY + piVar5->ySpace)) {
+ if ((piVar5->someX <= DAT_MouseState.screenSpaceY
+ - DAT_WindowAndDirectDraw.mainMenuBorderHeight)
+ && (DAT_MouseState.screenSpaceY
+ - DAT_WindowAndDirectDraw.mainMenuBorderHeight
+ < piVar5->field5_0x14 + piVar5->someX)) {
+ iVar3 = piVar5->field11_0x2c;
+ }
+ }
+ }
+ if (piVar5->field6_0x18 == 0) {
+ RenderGfxHelperUnk(
+ iVar3, piVar5->ySpace, piVar5->someX);
+ } else {
+ iVar4 = __ftol2((float10)(float)piVar5->flag);
+ RenderMenuGfxHelper(
+ iVar3, piVar5->ySpace, piVar5->someX, iVar4);
+ fVar1 = FLOAT_Between1And5::instance;
+ if ((piVar5->field6_0x18 != 1)
+ || (fVar2 = (float)piVar5->flag
+ - (FLOAT_Between1And5::instance * 0.5 + FLOAT_Between1And5::instance * 0.5),
+ piVar5->flag = (int)fVar2, 1.0 <= fVar2)) {
+ if ((piVar5->field6_0x18 == 2)
+ && (fVar1 = fVar1 * 0.5 + fVar1 * 0.5 + (float)piVar5->flag, piVar5->flag = (int)fVar1,
+ 31.0 < fVar1)) {
+ piVar5.isValid = 0;
+ }
+ } else {
+ LAB_004e1692:
+ piVar5->field6_0x18 = 0;
+ }
+ }
+ } else if (iVar3 == 4) {
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ if (piVar5->field6_0x18 == 0) {
+ drawBorderedBoxWithBlendedBackground(
+ piVar5->ySpace + DAT_WindowAndDirectDraw.mainMenuBorderWidth,
+ piVar5->someX + DAT_WindowAndDirectDraw.mainMenuBorderHeight, piVar5->someY,
+ piVar5->field5_0x14);
+ } else {
+ iVar3 = __ftol2((float10)(float)piVar5->flag);
+ drawBorderedBoxWithCustomBlendedBackground(
+ piVar5->ySpace + DAT_WindowAndDirectDraw.mainMenuBorderWidth,
+ piVar5->someX + DAT_WindowAndDirectDraw.mainMenuBorderHeight, piVar5->someY,
+ piVar5->field5_0x14, iVar3);
+ }
+ fVar1 = FLOAT_Between1And5::instance;
+ if ((piVar5->field6_0x18 != 1)
+ || (fVar2 = (float)piVar5->flag - FLOAT_Between1And5::instance * 0.5, piVar5->flag = (int)fVar2,
+ 1.0 <= fVar2)) {
+ if ((piVar5->field6_0x18 == 2)
+ && (fVar1 = fVar1 * 0.5 + (float)piVar5->flag, piVar5->flag = (int)fVar1, 31.0 < fVar1)) {
+ piVar5.isValid = 0;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ goto LAB_004e1696;
+ }
+ } else {
+ piVar5->field6_0x18 = 0;
+ }
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ } else if (iVar3 == 2) {
+ if (piVar5->field10_0x28 == 1) {
+ color = 0;
+ } else {
+ color = 0xccfaff;
+ }
+ if (piVar5->field6_0x18 == 0) {
+ DrawLoadedMenuStringHelper(piVar5->xSpace,
+ piVar5->ySpace, piVar5->someX, piVar5->someY, color, piVar5->field8_0x20,
+ (BOOLEnum)((int)(piVar5->field9_0x24)));
+ } else {
+ iVar3 = __ftol2((float10)(float)piVar5->flag);
+ DrawLoadedMenuStringHelperWithBlending(piVar5->xSpace,
+ piVar5->ySpace, piVar5->someX, piVar5->someY, color, piVar5->field8_0x20,
+ (BOOLEnum)((int)(piVar5->field9_0x24)), iVar3);
+ fVar1 = FLOAT_Between1And5::instance;
+ if ((piVar5->field6_0x18 == 1)
+ && (fVar2 = (float)piVar5->flag - FLOAT_Between1And5::instance * 0.5,
+ piVar5->flag = (int)fVar2, fVar2 < 1.0))
+ goto LAB_004e1692;
+ if ((piVar5->field6_0x18 == 2)
+ && (fVar1 = fVar1 * 0.5 + (float)piVar5->flag, piVar5->flag = (int)fVar1, 31.0 < fVar1)) {
+ piVar5.isValid = 0;
+ }
+ }
+ } else if (iVar3 == 3) {
+ iVar3 = piVar5->ySpace;
+ if ((iVar3 <= DAT_MouseState.screenSpaceX
+ - DAT_WindowAndDirectDraw.mainMenuBorderWidth)
+ && (DAT_MouseState.screenSpaceX
+ - DAT_WindowAndDirectDraw.mainMenuBorderWidth
+ < piVar5->someY + iVar3)) {
+ iVar4 = piVar5->someX;
+ if ((iVar4 <= DAT_MouseState.screenSpaceY
+ - DAT_WindowAndDirectDraw.mainMenuBorderHeight)
+ && (DAT_MouseState.screenSpaceY
+ - DAT_WindowAndDirectDraw.mainMenuBorderHeight
+ < piVar5->field5_0x14 + iVar4)) {
+ RenderGfxHelperUnk(
+ piVar5->xSpace + 1, iVar3, iVar4);
+ goto LAB_004e1696;
+ }
+ }
+ RenderGfxHelperUnk(piVar5->xSpace, iVar3, piVar5->someX);
+ }
+ }
+ LAB_004e1696:
+ piVar5 = piVar5 + 0xd;
+ } while ((int)piVar5 < 0xec0840);
+ local_4 = local_4 + 1;
+ if (7 < local_4) {
+ if (DWORD_00eb9ac4::instance != 0) {
+ RenderTextPageProgressBar();
+ }
+ if ((DAT_00eb0e40 != 0) && (DAT_00eb0e40 != 5)) {
+ if (DAT_00eb0e40 < 3) {
+ blendStrengh = __ftol2((float10)FLOAT_00eb0e2c::instance);
+ iVar3 = DAT_WindowAndDirectDraw.resolutionY + -1;
+ iVar4 = DAT_WindowAndDirectDraw.resolutionX + -1;
+ top = 0;
+ left = 0;
+ } else {
+ blendStrengh = __ftol2((float10)FLOAT_00eb0e2c::instance);
+ iVar3 = INT_00eb0e30::instance + DAT_RenderRelatedY + -1
+ + DAT_WindowAndDirectDraw.mainMenuBorderHeight;
+ iVar4 = DAT_00eb1234 + DAT_RenderRelatedX + -1
+ + DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ top = DAT_RenderRelatedY + DAT_WindowAndDirectDraw.mainMenuBorderHeight;
+ left = DAT_RenderRelatedX + DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ }
+ drawBlendedBlackBox(left, top, iVar4, iVar3, blendStrengh);
+ if ((DAT_00eb0e40 == 1) || (DAT_00eb0e40 == 3)) {
+ FLOAT_00eb0e2c::instance = FLOAT_00eb0e2c::instance + FLOAT_Between1And5::instance * 0.5;
+ if (DAT_00eb0e40 == 3) {
+ FLOAT_00eb0e2c::instance = FLOAT_Between1And5::instance * 0.5 + FLOAT_00eb0e2c::instance;
+ }
+ if (31.0 < FLOAT_00eb0e2c::instance) {
+ DAT_00eb0e40 = 0;
+ return;
+ }
+ }
+ if ((DAT_00eb0e40 == 2) || (DAT_00eb0e40 == 4)) {
+ FLOAT_00eb0e2c::instance = FLOAT_00eb0e2c::instance - FLOAT_Between1And5::instance * 0.5;
+ if (DAT_00eb0e40 == 4) {
+ FLOAT_00eb0e2c::instance = FLOAT_00eb0e2c::instance - FLOAT_Between1And5::instance * 0.5;
+ }
+ if (FLOAT_00eb0e2c::instance < 0.0) {
+ DAT_00eb0e40 = 0;
+ AppendCreditsSoundEntry(0, 0);
+ return;
+ }
+ }
+ }
+ return;
+ }
+ } while (true);
+}
+}
+
+### 0x004f6210 RenderCurrentMenuView | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004F6210
+ void Rendering::RenderCurrentMenuView()
+ {
+ MenuView* pMVar1;
+ for (pMVar1 = DAT_MenuViewStackTop; pMVar1 != (MenuView*)0x0; pMVar1 = pMVar1->nextMenuViewPtr) {
+ /*
+ menu id
+ */
+ if (DAT_GameCore.currentMenuViewType == pMVar1->menuID) {
+ if (pMVar1->menuID == MVT_NO_VIEW) {
+ if (DAT_UIDragDropDefinedData.MenuView_TriggerInitial != FALSE) {
+ RenderNoViewsFoundWarning();
+ }
+ } else {
+ if (DAT_MenuView_TriggerPrepare != FALSE) {
+ /*
+ renderMenuBackground
+ */
+ (*pMVar1->prepare)();
+ }
+ if ((DAT_UIDragDropDefinedData.MenuView_TriggerInitial != FALSE)
+ || (DAT_MenuView_TriggerPrepare != FALSE)) {
+ /*
+ someRenderFunction
+ */
+ (*pMVar1->doInitial)();
+ }
+ /*
+ renderMenuItemsFunction
+ */
+ (*pMVar1->doEveryFrame)();
+ }
+ }
+ /*
+ move up in the menu linked list
+ */
+ }
+ DAT_MenuView_TriggerPrepare = FALSE;
+ DAT_UIDragDropDefinedData.MenuView_TriggerInitial = FALSE;
+ return;
+ }
+}
+}
+
+### 0x004aea50 MenuItemActionHandler_Roundtable_Main | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AEA50
+ void Roundtable::MenuItemActionHandler_Roundtable_Main(int param_1, ...)
+ {
+ byte bVar1;
+ char cVar2;
+ BOOLEnum BVar3;
+ int iVar4;
+ int playerID;
+ int playerID_00;
+ int playerID_01;
+ if (DAT_GameSynchronyState.isHost != FALSE) {
+ if (param_1 < 9) {
+ if (DAT_00df423c != 0) {
+ param_1 = param_1 + 10;
+ }
+ if (param_1 < 9) {
+ INT_00df4244::instance = 0;
+ DAT_00df423c = param_1;
+ }
+ }
+ if ((param_1 - 0xbU < 8) && (DAT_00df423c != 0)) {
+ playerID = (int)*(char*)((int)DAT_GameSynchronyState.field290_0x109e20 + param_1 + 26);
+ playerID_01
+ = (int)(char)DAT_GameSynchronyState.DAT_RoundTableOrderArray[DAT_00df423c];
+ if ((((0 < playerID_01) && ((0 < playerID && (playerID != playerID_01))))
+ && ((DAT_GameSynchronyState.currentPlayerFullIDArray[playerID_01] != -1
+ || (BVar3 = isAIPlayer(playerID_01),
+ BVar3 != FALSE))))
+ && ((DAT_GameSynchronyState.currentPlayerFullIDArray[playerID] != -1
+ || (BVar3 = isAIPlayer(playerID),
+ BVar3 != FALSE)))) {
+ iVar4 = 0;
+ playerID_00 = 1;
+ do {
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[playerID_00] != -1)
+ || (BVar3 = isAIPlayer(playerID_00),
+ BVar3 != FALSE)) {
+ iVar4 = iVar4 + 1;
+ }
+ playerID_00 = playerID_00 + 1;
+ } while (playerID_00 < 9);
+ if (2 < iVar4) {
+ if ((DAT_GameSynchronyState.currentAIArray[playerID_01] == 1)
+ && (DAT_00df4240 == 0)) {
+ if (DAT_GameCore.genieVoiceActive != FALSE) {
+ /*
+ "Not the rodent"
+ */
+ playWAVSFX("Genie_13.wav");
+ }
+ DAT_00df4240 = 1;
+ }
+ if ((DAT_GameSynchronyState.currentAIArray[playerID_01] == 7)
+ && (DAT_00df4298 == 0)) {
+ if (DAT_GameCore.genieVoiceActive != FALSE) {
+ /*
+ "Oh no"
+ */
+ playWAVSFX("Genie_14.wav");
+ }
+ DAT_00df4298 = 1;
+ }
+ }
+ bVar1 = DAT_GameSynchronyState.DAT_PlayerGroupArray[playerID];
+ if ((DAT_GameSynchronyState.DAT_PlayerGroupArray[playerID_01] != bVar1)
+ || (DAT_GameSynchronyState.DAT_PlayerGroupArray[playerID_01] == 0)) {
+ if (bVar1 == 0) {
+ bVar1 = 0;
+ if (('\0' < (char)DAT_GameSynchronyState.DAT_PlayerGroupArray[1])
+ && ('\0' < (char)DAT_GameSynchronyState.DAT_PlayerGroupArray[1])) {
+ bVar1 = DAT_GameSynchronyState.DAT_PlayerGroupArray[1];
+ }
+ if (('\0' < (char)DAT_GameSynchronyState.DAT_PlayerGroupArray[2])
+ && ((char)bVar1 < (char)DAT_GameSynchronyState.DAT_PlayerGroupArray[2])) {
+ bVar1 = DAT_GameSynchronyState.DAT_PlayerGroupArray[2];
+ }
+ if (('\0' < (char)DAT_GameSynchronyState.DAT_PlayerGroupArray[3])
+ && ((char)bVar1 < (char)DAT_GameSynchronyState.DAT_PlayerGroupArray[3])) {
+ bVar1 = DAT_GameSynchronyState.DAT_PlayerGroupArray[3];
+ }
+ if (('\0' < (char)DAT_GameSynchronyState.DAT_PlayerGroupArray[4])
+ && ((char)bVar1 < (char)DAT_GameSynchronyState.DAT_PlayerGroupArray[4])) {
+ bVar1 = DAT_GameSynchronyState.DAT_PlayerGroupArray[4];
+ }
+ if (('\0' < (char)DAT_GameSynchronyState.DAT_PlayerGroupArray[5])
+ && ((char)bVar1 < (char)DAT_GameSynchronyState.DAT_PlayerGroupArray[5])) {
+ bVar1 = DAT_GameSynchronyState.DAT_PlayerGroupArray[5];
+ }
+ if (('\0' < (char)DAT_GameSynchronyState.DAT_PlayerGroupArray[6])
+ && ((char)bVar1 < (char)DAT_GameSynchronyState.DAT_PlayerGroupArray[6])) {
+ bVar1 = DAT_GameSynchronyState.DAT_PlayerGroupArray[6];
+ }
+ if (('\0' < (char)DAT_GameSynchronyState.DAT_PlayerGroupArray[7])
+ && ((char)bVar1 < (char)DAT_GameSynchronyState.DAT_PlayerGroupArray[7])) {
+ bVar1 = DAT_GameSynchronyState.DAT_PlayerGroupArray[7];
+ }
+ if (('\0' < (char)DAT_GameSynchronyState.DAT_PlayerGroupArray[8])
+ && ((char)bVar1 < (char)DAT_GameSynchronyState.DAT_PlayerGroupArray[8])) {
+ bVar1 = DAT_GameSynchronyState.DAT_PlayerGroupArray[8];
+ }
+ DAT_GameSynchronyState
+ .DAT_PlayerGroupArray[(char)DAT_GameSynchronyState
+ .DAT_RoundTableOrderArray[DAT_00df423c]] = bVar1 + 1;
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[*(
+ char*)((int)DAT_GameSynchronyState.field290_0x109e20 + param_1 + 0x1a)]
+ = bVar1 + 1;
+ scheduleSFXVariation(7, 1);
+ BVar3
+ = shouldSoundXNotBePlaying();
+ if (((BVar3 == FALSE) && (2 < iVar4))
+ && (DAT_GameCore.genieVoiceActive != FALSE)) {
+ nextRandomNumber1();
+ switch ((int)SEC_RNG::instance.currentNumber1 % 7) {
+ case 0:
+ /*
+ "We will be invincible"
+ */
+ playWAVSFX("genie_05.wav");
+ break;
+ case 1:
+ /*
+ "A worthy ally"
+ */
+ playWAVSFX("genie_06.wav");
+ break;
+ case 2:
+ /*
+ "Watch my back"
+ */
+ playWAVSFX("genie_07.wav");
+ break;
+ case 3:
+ /*
+ "Yeeees"
+ */
+ playWAVSFX("genie_08.wav");
+ break;
+ case 4:
+ /*
+ "On my honour"
+ */
+ playWAVSFX("genie_09.wav");
+ break;
+ case 5:
+ /*
+ "We rule"
+ */
+ playWAVSFX("genie_10.wav");
+ break;
+ case 6:
+ /*
+ "I pledge allegiance"
+ */
+ playWAVSFX("genie_04.wav");
+ }
+ }
+ } else {
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[playerID_01] = bVar1;
+ scheduleSFXVariation(7, 1);
+ }
+ }
+ }
+ if ((param_1 + -10 == DAT_00df423c) && (INT_00df4244::instance == 0)) {
+ INT_00df4244::instance = 1;
+ } else {
+ reorderTeamsAndPositions();
+ DAT_00df423c = 0;
+ }
+ }
+ if (param_1 == 0x15) {
+ if ((DAT_00df423c != 0)
+ && (DAT_GameSynchronyState.DAT_RoundTableOrderArray[DAT_00df423c] != 0)) {
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[(
+ char)DAT_GameSynchronyState.DAT_RoundTableOrderArray[DAT_00df423c]] = 0;
+ reorderTeamsAndPositions();
+ DAT_00df423c = 0;
+ scheduleSFXVariation(
+ 7, 0);
+ return;
+ }
+ } else if (param_1 == 100) {
+ DAT_MenuModalComposition1.activeModalDialogID = MMT_NONE;
+ resetMouseState2();
+ reorderTeamsAndPositions();
+ cVar2 = '\0' < (char)DAT_GameSynchronyState.DAT_PlayerGroupArray[1];
+ if ('\0' < (char)DAT_GameSynchronyState.DAT_PlayerGroupArray[2]) {
+ cVar2 = cVar2 + '\x01';
+ }
+ if ('\0' < (char)DAT_GameSynchronyState.DAT_PlayerGroupArray[3]) {
+ cVar2 = cVar2 + '\x01';
+ }
+ if ('\0' < (char)DAT_GameSynchronyState.DAT_PlayerGroupArray[4]) {
+ cVar2 = cVar2 + '\x01';
+ }
+ if ('\0' < (char)DAT_GameSynchronyState.DAT_PlayerGroupArray[5]) {
+ cVar2 = cVar2 + '\x01';
+ }
+ if ('\0' < (char)DAT_GameSynchronyState.DAT_PlayerGroupArray[6]) {
+ cVar2 = cVar2 + '\x01';
+ }
+ if ('\0' < (char)DAT_GameSynchronyState.DAT_PlayerGroupArray[7]) {
+ cVar2 = cVar2 + '\x01';
+ }
+ if ('\0' < (char)DAT_GameSynchronyState.DAT_PlayerGroupArray[8]) {
+ cVar2 = cVar2 + '\x01';
+ }
+ if (cVar2 != '\0') {
+ /*
+ "The sides are drawn"
+ */
+ playWAVSFX(
+ "Genie_02.wav");
+ return;
+ }
+ } else {
+ if (param_1 == 0x65) {
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[0]
+ = DAT_GameSynchronyState.playerGroupArray2Unk[0];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[1]
+ = DAT_GameSynchronyState.playerGroupArray2Unk[1];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[2]
+ = DAT_GameSynchronyState.playerGroupArray2Unk[2];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[3]
+ = DAT_GameSynchronyState.playerGroupArray2Unk[3];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[4]
+ = DAT_GameSynchronyState.playerGroupArray2Unk[4];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[5]
+ = DAT_GameSynchronyState.playerGroupArray2Unk[5];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[6]
+ = DAT_GameSynchronyState.playerGroupArray2Unk[6];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[7]
+ = DAT_GameSynchronyState.playerGroupArray2Unk[7];
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[8]
+ = DAT_GameSynchronyState.playerGroupArray2Unk[8];
+ reorderTeamsAndPositions();
+ DAT_MenuModalComposition1.activeModalDialogID = MMT_NONE;
+ resetMouseState2();
+ reorderTeamsAndPositions();
+ return;
+ }
+ if (param_1 == 200) {
+ if (DAT_00df423c != 0) {
+ DAT_00df423c = 0;
+ return;
+ }
+ } else if (((param_1 == 0xc9) || (param_1 == 0xca))
+ && ((DAT_00df423c != 0 && ((INT_00df4244::instance != 1 || (param_1 == 0xc9)))))) {
+ DAT_00df423c = 0;
+ }
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004aef70 MenuItemRenderFunction_Roundtable_Main | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AEF70
+ void Roundtable::MenuItemRenderFunction_Roundtable_Main(int param_1, ...)
+ {
+ byte bVar1;
+ char* textAddress;
+ int iVar2;
+ int iVar3;
+ int iVar4;
+ int iVar5;
+ TextAlignment alignment;
+ uint foregroundColor;
+ uint backgroundColor;
+ int fontSize;
+ BOOLEnum BVar6;
+ iVar4 = 0;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ if (8 < param_1) {
+ if ((((param_1 < 0x13)
+ && (iVar4
+ = (int)*(char*)((int)DAT_GameSynchronyState.field290_0x109e20 + param_1 + 0x1a),
+ 0 < iVar4))
+ && (DAT_00df423c != 0))
+ && ((
+ (DAT_ButtonCurrentlyInteracting != FALSE && (param_1 + -10 != DAT_00df423c))
+ && ((DAT_GameSynchronyState.currentPlayerFullIDArray[iVar4] != -1
+ || (BVar6 = isAIPlayer(iVar4),
+ BVar6 != FALSE)))))) {
+ renderGMWithAlphaMask(GID_INTERFACE_ICONS_2, 0x202,
+ DAT_ButtonX + 0x3e, DAT_ButtonY + -1,
+ GID_INTERFACE_ICONS_2, 0x201, 0);
+ }
+ if (param_1 != 0x14) {
+ if ((param_1 == 100) || (param_1 == 0x65)) {
+ DAT_ButtonUnknownZero = (int)(DAT_00df423c != 0);
+ if (DAT_GameSynchronyState.isHost == FALSE) {
+ DAT_ButtonUnknownZero = 1;
+ } else {
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ if (DAT_ButtonCurrentlyInteracting != FALSE) {
+ DAT_00df4288 = 1;
+ }
+ }
+ }
+ if (((param_1 == 200) && (iVar4 = 0, DAT_00df423c != 0))
+ && (DAT_GameSynchronyState.isHost != FALSE)) {
+ if (DAT_GameSynchronyState.DAT_RoundTableOrderArray[DAT_00df423c] == 0) {
+ DAT_00df423c = 0;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ return;
+ }
+ iVar3 = (int)(char)
+ DAT_GameSynchronyState.DAT_RoundTableOrderArray[DAT_00df423c];
+ if (0 < iVar3) {
+ iVar2 = DAT_MouseState.screenSpaceY
+ - DAT_WindowAndDirectDraw.mainMenuBorderHeight;
+ iVar5 = DAT_MouseState.screenSpaceX
+ - DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ if (iVar2 < 4) {
+ iVar2 = 4;
+ } else if (0x16c < iVar2) {
+ iVar2 = 0x16c;
+ }
+ if (iVar5 < 4) {
+ iVar5 = 4;
+ } else if (0x2d4 < iVar5) {
+ iVar5 = 0x2d4;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[iVar3] == -1) {
+ iVar4 = DAT_GameSynchronyState.currentAIArray[iVar3];
+ }
+ renderGM(GM_INTERFACE_ICONS2,
+ iVar3 + 0x222, DAT_WindowAndDirectDraw.mainMenuBorderWidth + iVar5,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + iVar2);
+ if (iVar4 == 0) {
+ if (DAT_GameCore.lordIcons[iVar3] == 0) {
+ iVar4 = 0x21b;
+ } else {
+ if (DAT_GameCore.lordIcons[iVar3] != 1) {
+ if (DAT_TextureRenderCoreObject.field69_0x98[iVar3 + 0x13] < 1) {
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ return;
+ }
+ renderGM(GM_INTERFACE_ICONS2,
+ 0x21d, DAT_WindowAndDirectDraw.mainMenuBorderWidth + iVar5,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + iVar2);
+ drawBitmapFace(iVar3 + 0x13,
+ DAT_WindowAndDirectDraw.mainMenuBorderWidth + 4 + iVar5,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + 4 + iVar2);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ return;
+ }
+ iVar4 = 0x21c;
+ }
+ } else {
+ iVar4 = iVar4 + 0x20a;
+ }
+ renderGM(GM_INTERFACE_ICONS2, iVar4,
+ DAT_WindowAndDirectDraw.mainMenuBorderWidth + iVar5,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + iVar2);
+ }
+ }
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ return;
+ }
+ if ((DAT_ButtonCurrentlyInteracting != FALSE)
+ && (DAT_00df4288 = 1, DAT_00df423c == 0)) {
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ }
+ iVar4 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ RenderCurrentButtonToScreenMenuWithBlendingUnk(
+ ((int)(iVar4 + (iVar4 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ iVar3 = (int)(char)DAT_GameSynchronyState.DAT_RoundTableOrderArray[param_1];
+ if (iVar3 < 1) {
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ bVar1 = DAT_GameSynchronyState.DAT_PlayerGroupArray[iVar3];
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[iVar3] == -1)
+ && (DAT_GameSynchronyState.currentAIArray[iVar3] == 0)) {
+ DAT_ButtonUnknownZero = 1;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ DAT_ButtonUnknownZero = (int)(DAT_GameSynchronyState.isHost == FALSE);
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[iVar3] == -1) {
+ iVar4 = DAT_GameSynchronyState.currentAIArray[iVar3];
+ }
+ renderGM(GM_INTERFACE_ICONS2, iVar3 + 0x222,
+ DAT_ButtonX, DAT_ButtonY);
+ if (iVar4 == 0) {
+ if (DAT_GameCore.lordIcons[iVar3] == 0) {
+ iVar4 = 0x21b;
+ } else {
+ if (DAT_GameCore.lordIcons[iVar3] != 1) {
+ if (0 < DAT_TextureRenderCoreObject.field69_0x98[iVar3 + 0x13]) {
+ renderGM(GM_INTERFACE_ICONS2, 0x21d,
+ DAT_ButtonX, DAT_ButtonY);
+ drawBitmapFace(iVar3 + 0x13, DAT_ButtonX + 4,
+ DAT_ButtonY + 4);
+ }
+ goto LAB_004af0a8;
+ }
+ iVar4 = 0x21c;
+ }
+ } else {
+ iVar4 = iVar4 + 0x20a;
+ }
+ renderGM(GM_INTERFACE_ICONS2, iVar4,
+ DAT_ButtonX, DAT_ButtonY);
+ LAB_004af0a8:
+ if (DAT_00df423c == param_1) {
+ dimBox(
+ DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonX + 0x47, DAT_ButtonY + 0x47);
+ }
+ if (DAT_ButtonCurrentlyInteracting != FALSE) {
+ if (DAT_00df423c == 0) {
+ renderGMWithAlphaMask(GID_INTERFACE_ICONS_2, 0x202,
+ DAT_ButtonX + -6, DAT_ButtonY + -6,
+ GID_INTERFACE_ICONS_2, 0x201, 0);
+ }
+ if (DAT_ButtonCurrentlyInteracting != FALSE) {
+ DAT_00df4288 = 1;
+ }
+ }
+ if ((char)bVar1 != 0) {
+ renderGM(GM_INTERFACE_ICONS2,
+ (int)((int)((char)bVar1 * 2 + 0x1ed)), DAT_ButtonX + -10,
+ DAT_ButtonY + -8);
+ }
+ iVar4 = 0;
+ BVar6 = FALSE;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[iVar3] == -1) {
+ foregroundColor = DAT_RenderingDefinedData
+ .ColorTable1[DAT_BlendingDefinedData.PlayerSlotUnitColor[iVar3]];
+ fontSize = 0x12;
+ backgroundColor = 0;
+ alignment = TTA_CENTER;
+ iVar2 = DAT_ButtonY + 0x50;
+ iVar5 = DAT_ButtonX + 0x20;
+ textAddress = getTextStringInGroupAtOffset(TEXT_XPLAY_WAITING_ROOM,
+ DAT_GameSynchronyState.currentAIArray[iVar3] * 9 + 0xe7
+ + DAT_GameSynchronyState.aiVariationArray[iVar3]);
+ renderInGameTextWithShadow(
+ textAddress, iVar5, iVar2, alignment, foregroundColor, backgroundColor, fontSize, BVar6, iVar4);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ renderInGameTextWithShadow(
+ DAT_GameSynchronyState.DAT_PlayerNames[iVar3], DAT_ButtonX + 0x20,
+ DAT_ButtonY + 0x50, TTA_CENTER,
+ (uint)((int)(DAT_RenderingDefinedData
+ .ColorTable1[DAT_BlendingDefinedData.PlayerSlotUnitColor[iVar3]])),
+ 0, 0x13, FALSE, 0);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ }
+}
+}
+
+### 0x004b1ac0 MenuModalRenderFunction_Roundtable | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B1AC0
+ void Roundtable::MenuModalRenderFunction_Roundtable(int x, int y, int width, int height)
+ {
+ int iVar1;
+ int gfxIndex;
+ int iVar2;
+ int* piVar3;
+ int iVar4;
+ int blendStrengthUnk;
+ int local_40[16];
+ iVar1 = y;
+ if (DAT_MouseState.rightClickStart != 0) {
+ activateModalDialog(MMT_NONE, FALSE);
+ }
+ renderLoadedGfx(2, x + 8, y + 8);
+ local_40[4] = 0x18e;
+ local_40[8] = 0x18e;
+ iVar2 = 1;
+ local_40[2] = 0xd8;
+ local_40[10] = 0xd8;
+ y = 0;
+ local_40[0] = 0xc;
+ local_40[1] = 0xc;
+ local_40[3] = 0xc;
+ local_40[5] = 0xc;
+ local_40[6] = 0x18d;
+ local_40[7] = 0x67;
+ local_40[9] = 0xc1;
+ local_40[0xb] = 0xc0;
+ local_40[0xc] = 0xc;
+ local_40[0xd] = 0xc1;
+ local_40[0xe] = 0xc;
+ local_40[0xf] = 0x67;
+ piVar3 = local_40;
+ iVar4 = 1;
+ do {
+ if (((char)DAT_GameSynchronyState.DAT_RoundTableOrderArray[iVar4] < 1)
+ || ((char)DAT_GameSynchronyState.DAT_PlayerGroupArray[(
+ char)DAT_GameSynchronyState.DAT_RoundTableOrderArray[iVar4]]
+ < '\x01'))
+ break;
+ if (y < (char)DAT_GameSynchronyState
+ .DAT_PlayerGroupArray[(char)DAT_GameSynchronyState.DAT_RoundTableOrderArray[iVar4]]) {
+ y = y + 1;
+ iVar2 = iVar2 + 1;
+ if (iVar2 < 2)
+ goto LAB_004b1ba5;
+ iVar2 = 0;
+ blendStrengthUnk = 0x10;
+ gfxIndex = iVar4 + 2;
+ } else {
+ LAB_004b1ba5:
+ if (iVar2 == 0) {
+ blendStrengthUnk = 0x10;
+ gfxIndex = iVar4 + 2;
+ } else {
+ blendStrengthUnk = 0x14;
+ gfxIndex = iVar4 + 2 + iVar2 * 8;
+ }
+ }
+ renderGfxTgxWithBlending(gfxIndex, *piVar3 + x, piVar3[1] + iVar1, blendStrengthUnk);
+ iVar4 = iVar4 + 1;
+ piVar3 = piVar3 + 2;
+ } while (iVar4 < 9);
+ DAT_ButtonY = iVar1 + 0x17c;
+ DAT_ButtonX = x + 0x18;
+ DAT_ButtonW = 0x17c;
+ DAT_ButtonH = 0x28;
+ if (DAT_00df4288 != 0) {
+ renderCurrentlyDisplayedTextConstructionCost(0);
+ DAT_00df4288 = 0;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x0044b680 ComputePlayerRanking | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0044B680
+ int SFX::ComputePlayerRanking(int playerID)
+ {
+ int _isAlive;
+ int _playerPoints;
+ int _index2;
+ int _highestPointsIndex;
+ int _index;
+ int _playerID;
+ int _arrayIndex;
+ int _highestPointsUnk;
+ undefined4 _deadPlayerList[10];
+ int _playerPointsArray[9][2];
+ _playerPointsArray[0][0] = 0;
+ _playerPointsArray[1][0] = 0;
+ _playerPointsArray[2][0] = 0;
+ _playerPointsArray[3][0] = 0;
+ _playerPointsArray[4][0] = 0;
+ _playerPointsArray[5][0] = 0;
+ _playerPointsArray[6][0] = 0;
+ _playerPointsArray[7][0] = 0;
+ _playerPointsArray[8][0] = 0;
+ _arrayIndex = 0;
+ _playerID = 1;
+ do {
+ if (DAT_GameSynchronyState.finalResults.active[_playerID] != 0) {
+ _playerPointsArray[_arrayIndex][0] = _playerID;
+ _isAlive = getAliveLordForPlayer(_playerID);
+ if (_isAlive == 0) {
+ if (_playerID == playerID) {
+ return 0;
+ }
+ _deadPlayerList[_playerID] = 1;
+ _playerPointsArray[_arrayIndex][1] = 0;
+ } else {
+ _playerPoints = ComputePlayerPoints1(_playerID);
+ _playerPointsArray[_arrayIndex][1] = _playerPoints;
+ }
+ _arrayIndex = _arrayIndex + 1;
+ }
+ _playerID = _playerID + 1;
+ } while (_playerID < 9);
+ _index = 0;
+ if (0 < _arrayIndex) {
+ do {
+ _highestPointsIndex = -1;
+ _index2 = 0;
+ do {
+ if ((_playerPointsArray[_index2][0] != 0)
+ && ((_highestPointsIndex == -1 || (_highestPointsUnk < _playerPointsArray[_index2][1])))) {
+ _highestPointsUnk = _playerPointsArray[_index2][1];
+ _highestPointsIndex = _index2;
+ }
+ _index2 = _index2 + 1;
+ } while (_index2 < _arrayIndex);
+ if (_highestPointsIndex < 0) {
+ return 0;
+ }
+ if (_playerPointsArray[_highestPointsIndex][0] == playerID) {
+ return _index + 1;
+ }
+ _index = _index + 1;
+ _playerPointsArray[_highestPointsIndex][0] = 0;
+ } while (_index < _arrayIndex);
+ }
+ return 0;
+ }
+}
+}
+
+### 0x0044c400 ComputeCurrentPlayerRanking | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0044C400
+ int SFX::ComputeCurrentPlayerRanking()
+ {
+ int iVar1;
+ iVar1 = ComputePlayerRanking(
+ DAT_GameSynchronyState.currentPlayerSlotID);
+ return iVar1;
+ }
+}
+}
+
+### 0x0044a050 Constructor_SFXState_resetAmbientEventCounters | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0044A050
+ void SFXState::Constructor_SFXState_resetAmbientEventCounters()
+ {
+ for (int i = 0; i < 10; ++i) {
+ this->ambientEventCounters[i][1] = 0;
+ this->ambientEventCounters[i][0] = 0;
+ }
+ }
+ }
+}
+}
+

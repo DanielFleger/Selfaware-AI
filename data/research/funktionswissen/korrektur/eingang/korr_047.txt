@@ -1,0 +1,997 @@
+### 0x004ed410 aiPlaceAIVBuilding | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004ED410
+ BOOLEnum AIVState::aiPlaceAIVBuilding(int playerID, int step, int isPausing)
+ {
+ int const aivID = DAT_GameState.playerDataArray[playerID].aivID;
+ int x;
+ int y;
+ MappersEnum const mapper = (MappersEnum)this->aivs[aivID].aivBuildingSteps[step].buildingType;
+ // when pausing, only hovels are built
+ if (isPausing && mapper != Commands::M_MAPPER_HOVEL) {
+ return FALSE;
+ }
+ // disabled steps and steps without room are never built
+ if (this->aivs[aivID].aivBuildingSteps[step].buildStatus == AIVBSS_disabled) {
+ return FALSE;
+ }
+ if (this->aivs[aivID].aivBuildingSteps[step].buildStatus == AIVBSS_insufficient_roomUnk) {
+ return FALSE;
+ }
+ if (this->aivs[aivID].aivBuildingSteps[step].buildStatus == AIVBSS_insufficient_resources
+ && this->aivs[aivID].aivBuildingSteps[step].wait > 0) {
+ // wait for more resources
+ --this->aivs[aivID].aivBuildingSteps[step].wait;
+ return FALSE;
+ }
+ if (this->aivs[aivID].aivBuildingSteps[step].buildStatus == AIVBSS_built) {
+ if (DAT_GameState.playerDataArray[playerID].closestEnemyDistanceToTheLord < 120) {
+ return FALSE;
+ }
+ } else if (!checkRequiredResourcesForBuildingOrPlanToBuy(mapper, playerID, FALSE)) {
+ return FALSE;
+ }
+ if (DAT_BuildingsState.unknownCountdown01 < 20) {
+ return FALSE;
+ }
+ if (mapperIsWoodCuttersHutWhileNoWoodAvailable(
+ playerID, mapper)) {
+ return FALSE;
+ }
+ if (mapper == Commands::M_MAPPER_MOAT) {
+ if (this->aivs[aivID].aivBuildingSteps[step].buildStatus == AIVBSS_built
+ && this->aivs[aivID].aivBuildingSteps[step].wait > 0) {
+ --this->aivs[aivID].aivBuildingSteps[step].wait;
+ return FALSE;
+ }
+ for (int i = 0; i < this->aivs[aivID].aivBuildingSteps[step].quantity; ++i) {
+ int const tile
+ = this->aivs[aivID].locationsArray[this->aivs[aivID].aivBuildingSteps[step].location.tile.tile + i];
+ planMoat(
+ playerID, tile, DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile]);
+ }
+ this->aivs[aivID].aivBuildingSteps[step].buildStatus = AIVBSS_built;
+ this->aivs[aivID].aivBuildingSteps[step].wait = 50;
+ return FALSE;
+ }
+ if (mapper == Commands::M_MAPPER_PITCH_DITCH) {
+ if (this->aivs[aivID].aivBuildingSteps[step].buildStatus == AIVBSS_built) {
+ if (this->aivs[aivID].aivBuildingSteps[step].wait > 0) {
+ --this->aivs[aivID].aivBuildingSteps[step].wait;
+ return FALSE;
+ }
+ if (!checkRequiredResourcesForBuildingOrPlanToBuy(Commands::M_MAPPER_PITCH_DITCH, playerID, FALSE)) {
+ return FALSE;
+ }
+ }
+ for (int i = 0; i < this->aivs[aivID].aivBuildingSteps[step].quantity; ++i) {
+ int const tile
+ = this->aivs[aivID].locationsArray[this->aivs[aivID].aivBuildingSteps[step].location.tile.tile + i];
+ y = DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile];
+ x = tile - DAT_ViewportRenderState.translationMatrix[y].addXgetTile;
+ placeBuilding(playerID, x, y,
+ Commands::M_MAPPER_PITCH_DITCH,
+ getBuildingSizeForCommandBuildingType(Commands::M_MAPPER_PITCH_DITCH),
+ // rotation 15 is a magic value: the building ends up with rotation 0
+ // unless DAT_TileMapState::skipPlacementCheck is set
+ 15);
+ }
+ this->aivs[aivID].aivBuildingSteps[step].buildStatus = AIVBSS_built;
+ this->aivs[aivID].aivBuildingSteps[step].wait = 200;
+ return FALSE;
+ }
+ // walls
+ if (mapper == Commands::M_MAPPER_WALL || mapper == Commands::M_MAPPER_WOODWALL
+ || mapper == Commands::M_MAPPER_CRENAL || mapper == Commands::M_MAPPER_CRENAL2) {
+ if (this->aivs[aivID].aivBuildingSteps[step].buildStatus == AIVBSS_built) {
+ if (this->aivs[aivID].aivBuildingSteps[step].wait > 0) {
+ --this->aivs[aivID].aivBuildingSteps[step].wait;
+ return FALSE;
+ }
+ if (DAT_GameState.playerDataArray[playerID].currentResources[Game::Resources::RT_STONE]
+ <= 0) {
+ // no stone, request some
+ if (DAT_GameState.playerDataArray[playerID]
+ .resourcesToAcquireArray[Game::Resources::RT_STONE]
+ > 0) {
+ return FALSE;
+ }
+ DAT_GameState.playerDataArray[playerID].resourcesToAcquireArray[Game::Resources::RT_STONE]
+ = 5;
+ return FALSE;
+ }
+ }
+ for (int i = 0; i < this->aivs[aivID].aivBuildingSteps[step].quantity; ++i) {
+ int const tile
+ = this->aivs[aivID].locationsArray[this->aivs[aivID].aivBuildingSteps[step].location.tile.tile + i];
+ y = DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile];
+ x = tile - DAT_ViewportRenderState.translationMatrix[y].addXgetTile;
+ prepareAreaForBuildingPlacement(
+ playerID, x, y, mapper, 1);
+ placeDefensiveStructureTile(
+ playerID, x, y, mapper);
+ }
+ this->aivs[aivID].aivBuildingSteps[step].buildStatus = AIVBSS_built;
+ this->aivs[aivID].aivBuildingSteps[step].wait = 20;
+ if (!DAT_TileMapState.illegalBuild) {
+ return TRUE;
+ }
+ } else if (mapper == Commands::M_MAPPER_STAIR1 || mapper == Commands::M_MAPPER_STAIR2
+ || mapper == Commands::M_MAPPER_STAIR3 || mapper == Commands::M_MAPPER_STAIR4
+ || mapper == Commands::M_MAPPER_STAIR5 || mapper == Commands::M_MAPPER_STAIR6) {
+ if (this->aivs[aivID].aivBuildingSteps[step].buildStatus == AIVBSS_built
+ && this->aivs[aivID].aivBuildingSteps[step].wait > 0) {
+ --this->aivs[aivID].aivBuildingSteps[step].wait;
+ return FALSE;
+ }
+ y = DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[this->aivs[aivID].aivBuildingSteps[step].location.tile.tile];
+ x = this->aivs[aivID].aivBuildingSteps[step].location.tile.tile
+ - DAT_ViewportRenderState.translationMatrix[y].addXgetTile;
+ prepareAreaForBuildingPlacement(
+ playerID, x, y, mapper, 1);
+ placeDefensiveStructureTile(
+ playerID, x, y, mapper);
+ this->aivs[aivID].aivBuildingSteps[step].buildStatus = AIVBSS_built;
+ this->aivs[aivID].aivBuildingSteps[step].wait = 1;
+ if (!DAT_TileMapState.illegalBuild) {
+ return TRUE;
+ }
+ this->aivs[aivID].aivBuildingSteps[step].buildStatus = AIVBSS_insufficient_resources;
+ this->aivs[aivID].aivBuildingSteps[step].wait = 4;
+ } else {
+ if (shouldNotBeBuildingGranary(playerID, mapper)) {
+ return FALSE;
+ }
+ if (shouldNotBeBuildingArmoury(playerID, mapper)) {
+ return FALSE;
+ }
+ if (shouldNotBeBuildingHovel(playerID, mapper)) {
+ return FALSE;
+ }
+ if (shouldNotBuildMarketArmoryGranaryBarracksMercenarypost(playerID, mapper)) {
+ return FALSE;
+ }
+ if (shouldNotBuildKillingPits(playerID, mapper)) {
+ return FALSE;
+ }
+ int const tile = this->aivs[aivID].aivBuildingSteps[step].location.tile.tile;
+ y = DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile];
+ x = tile - DAT_ViewportRenderState.translationMatrix[y].addXgetTile;
+ int orientation = 15;
+ if (mapper == Commands::M_MAPPER_BARRACKS_ARAB || mapper == Commands::M_MAPPER_BARRACKS_EURO
+ || mapper == Commands::M_MAPPER_ENGINEERS_GUILD || mapper == Commands::M_MAPPER_TUNNELERS_GUILD
+ || mapper == Commands::M_MAPPER_OIL_SMELTER) {
+ orientation = this->aivs[aivID].keepOrientation;
+ } else if (mapper == Commands::M_MAPPER_GATE_STONE1A || mapper == Commands::M_MAPPER_GATE_STONE2A) {
+ if (this->aivs[aivID].keepOrientation == 0 || this->aivs[aivID].keepOrientation == 4) {
+ orientation = 81;
+ } else {
+ orientation = 80;
+ }
+ } else if (mapper == Commands::M_MAPPER_GATE_STONE1B || mapper == Commands::M_MAPPER_GATE_STONE2B) {
+ if (this->aivs[aivID].keepOrientation == 2 || this->aivs[aivID].keepOrientation == 6) {
+ orientation = 81;
+ } else {
+ orientation = 80;
+ }
+ } else if (mapper == Commands::M_MAPPER_POLETURNER || mapper == Commands::M_MAPPER_BLACKSMITH
+ || mapper == Commands::M_MAPPER_ARMOURER || mapper == Commands::M_MAPPER_TANNER
+ || mapper == Commands::M_MAPPER_FLETCHER || mapper == Commands::M_MAPPER_BAKER
+ || mapper == Commands::M_MAPPER_BREWER) {
+ orientation = 8;
+ } else if (mapper == Commands::M_MAPPER_DRAWBRIDGE) {
+ DAT_TileMapState.buildingPlacementFail = FALSE;
+ checkDrawbridgePlacement(x, y);
+ if (DAT_TileMapState.buildingPlacementFail) {
+ return FALSE;
+ }
+ orientation = DAT_TileMapState.uiBuildingRotation;
+ }
+ if (this->aivs[aivID].aivBuildingSteps[step].buildStatus == AIVBSS_built) {
+ // rebuild a destroyed building
+ int const buildingID = (short)DAT_TileMapState.BuildingLayer[tile];
+ if ((short)DAT_BuildingsState.buildings[buildingID].buildingType
+ == convertCommandBuildingTypeToBuildingType(mapper)) {
+ return FALSE;
+ }
+ if (DAT_GameState.playerDataArray[playerID].aiBuildingDestroyChoiceTracker == 0
+ && DAT_GameState.playerDataArray[playerID].aiNervousActionsTracker == 0
+ && this->aivs[aivID].aivBuildingSteps[step].wait > 0) {
+ --this->aivs[aivID].aivBuildingSteps[step].wait;
+ return FALSE;
+ }
+ if (!checkRequiredResourcesForBuildingOrPlanToBuy(mapper, playerID, FALSE)) {
+ return FALSE;
+ }
+ }
+ if (shouldWaitWithBuildingAPositiveFearFactor(
+ playerID, mapper)) {
+ return FALSE;
+ }
+ if (shouldWaitWithBuildingNegativeFearFactor(
+ playerID, mapper)) {
+ return FALSE;
+ }
+ if (orientation == 15) {
+ DAT_TileMapState.DAT_TempBuildingRotation = 0;
+ } else {
+ DAT_TileMapState.DAT_TempBuildingRotation = orientation / 2;
+ }
+ int const buildingSize = getBuildingSizeForCommandBuildingType(mapper);
+ prepareAreaForBuildingPlacement(
+ playerID, x, y, mapper, buildingSize);
+ // keep orientation is 0, 2, 4 or 6, halving it gives the index of the part offsets
+ if (mapper == Commands::M_MAPPER_BARRACKS_EURO || mapper == Commands::M_MAPPER_BARRACKS_ARAB) {
+ // the three fields in front of the barracks
+ prepareAreaForBuildingPlacement(
+ playerID,
+ DAT_TerrainDefinedData.BuildingPartsOffsets[this->aivs[aivID].keepOrientation / 2][0].x
+ + x,
+ DAT_TerrainDefinedData.BuildingPartsOffsets[this->aivs[aivID].keepOrientation / 2][0].y
+ + y,
+ mapper, buildingSize);
+ prepareAreaForBuildingPlacement(
+ playerID,
+ DAT_TerrainDefinedData.BuildingPartsOffsets[this->aivs[aivID].keepOrientation / 2][1].x
+ + x,
+ DAT_TerrainDefinedData.BuildingPartsOffsets[this->aivs[aivID].keepOrientation / 2][1].y
+ + y,
+ mapper, buildingSize);
+ prepareAreaForBuildingPlacement(
+ playerID,
+ DAT_TerrainDefinedData.BuildingPartsOffsets[this->aivs[aivID].keepOrientation / 2][2].x
+ + x,
+ DAT_TerrainDefinedData.BuildingPartsOffsets[this->aivs[aivID].keepOrientation / 2][2].y
+ + y,
+ mapper, buildingSize);
+ } else if (mapper == Commands::M_MAPPER_ENGINEERS_GUILD || mapper == Commands::M_MAPPER_TUNNELERS_GUILD) {
+ // the guild field
+ prepareAreaForBuildingPlacement(
+ playerID,
+ DAT_TerrainDefinedData.BuildingPartsOffsets[this->aivs[aivID].keepOrientation / 2][1].x
+ + x,
+ DAT_TerrainDefinedData.BuildingPartsOffsets[this->aivs[aivID].keepOrientation / 2][1].y
+ + y,
+ mapper, buildingSize);
+ } else if (mapper == Commands::M_MAPPER_OIL_SMELTER) {
+ prepareAreaForBuildingPlacement(
+ playerID,
+ DAT_TerrainDefinedData.field63_0x19c[this->aivs[aivID].keepOrientation / 2].x + x,
+ DAT_TerrainDefinedData.field63_0x19c[this->aivs[aivID].keepOrientation / 2].y + y, mapper,
+ buildingSize);
+ }
+ placeBuilding(playerID, x, y, mapper,
+ getBuildingSizeForCommandBuildingType(
+ mapper),
+ orientation);
+ int const placedID = DAT_TileMapState.placedBuildingID;
+ if (!DAT_TileMapState.buildingPlacementFail) {
+ DAT_BuildingsState.buildings[placedID].field201_0x2c8 = 1;
+ setupWorkshopProductionType(playerID, placedID);
+ }
+ if (!DAT_TileMapState.buildingPlacementFail) {
+ this->aivs[aivID].aivBuildingSteps[step].buildStatus = AIVBSS_built;
+ } else if (mapper == Commands::M_MAPPER_WHEATFARM || mapper == Commands::M_MAPPER_HOPSFARM
+ || mapper == Commands::M_MAPPER_APPLEFARM || mapper == Commands::M_MAPPER_CATTLEFARM) {
+ this->aivs[aivID].aivBuildingSteps[step].buildStatus = AIVBSS_insufficient_roomUnk;
+ } else {
+ this->aivs[aivID].aivBuildingSteps[step].buildStatus = AIVBSS_insufficient_resources;
+ }
+ this->aivs[aivID].aivBuildingSteps[step].wait
+ = this->aivs[aivID].aivBuildingSteps[step].buildStatus == AIVBSS_built ? 10 : 16;
+ if (!DAT_TileMapState.buildingPlacementFail) {
+ return TRUE;
+ }
+ }
+ return FALSE;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004ed410", "name": "aiPlaceAIVBuilding", "quelle": "nachgebaut", "p1": {"bereich": "KI", "zweck": "Versucht, einen Schritt der KI-Burgdatei zu bauen (Gebäude, Mauer, Treppe, Graben) oder ein zerstörtes Bauwerk zu erneuern."}, "p2": {"ein": "playerID, step, isPausing", "aus": "TRUE, wenn gebaut wurde, sonst FALSE", "liest": ["aivs[aivID].aivBuildingSteps[step] (buildingType, buildStatus, wait, quantity, location)", "closestEnemyDistanceToTheLord", "unknownCountdown01", "currentResources[RT_STONE]", "aiBuildingDestroyChoiceTracker", "aiNervousActionsTracker", "keepOrientation"], "schreibt": ["buildStatus", "wait", "resourcesToAcquireArray[RT_STONE]", "Gebäude über placeBuilding", "buildings[id].field201_0x2c8"], "ruft": ["checkRequiredResourcesForBuildingOrPlanToBuy", "mapperIsWoodCuttersHutWhileNoWoodAvailable", "planMoat", "placeBuilding", "prepareAreaForBuildingPlacement", "placeDefensiveStructureTile", "shouldNotBeBuildingGranary", "shouldNotBeBuildingArmoury", "shouldNotBeBuildingHovel", "shouldNotBuildMarketArmoryGranaryBarracksMercenarypost", "shouldNotBuildKillingPits", "checkDrawbridgePlacement", "shouldWaitWithBuildingPositiveFearFactor", "shouldWaitWithBuildingNegativeFearFactor", "setupWorkshopProductionType"], "regeln": ["Bei Pause (isPausing) wird nur M_MAPPER_HOVEL gebaut", "Status disabled oder insufficient_roomUnk: nie bauen", "Status insufficient_resources mit wait > 0: wait - 1, FALSE", "Status built (Wiederaufbau): nur wenn closestEnemyDistanceToTheLord >= 120; sonst Ressourcenprüfung, bei Mangel FALSE", "unknownCountdown01 < 20: FALSE; Holzfällerhütte ohne Holz: FALSE", "Graben (MOAT): wait 50 nach Planung, gibt immer FALSE; Pechgraben: wait 200, Rotation 15, gibt immer FALSE", "Mauern und Zinnen (WALL, WOODWALL, CRENAL, CRENAL2): bei built wartet wait (20) ab; Steinbestand <= 0 setzt Steinwunsch auf 5 (nur wenn noch keiner offen) und gibt FALSE; alle quantity Felder werden gesetzt, wait = 20, TRUE wenn kein illegalBuild", "Treppen (STAIR1 bis STAIR6): ein Feld, wait = 1, TRUE wenn kein illegalBuild, sonst Status insufficient_resources mit wait 4", "Alle anderen Gebäude: Prüfungen Kornspeicher, Waffenkammer, Hütte, Markt/Kaserne/Söldner, Tötergruben; Fahnen/Rotation: Kasernen, Ingenieurs-, Tunnelbauer-Gilde und Ölschmelze nutzen keepOrientation; Tore A: 81 bei keepOrientation 0 oder 4 sonst 80, Tore B: 81 bei 2 oder 6 sonst 80; Stangendreher, Schmied, Rüstungsschmied, Gerber, Pfeilmacher, Bäcker, Brauer: 8; Zugbrücke: Platzprüfung, bei Fehler FALSE", "Wiederaufbau: steht der Typ noch, FALSE; bei Tracker aiBuildingDestroyChoice und aiNervousActions beide 0 und wait > 0 wird gewartet", "Furchtfaktor kann den Bau verzögern (positiv und negativ); Rotation 15 wird 0, sonst orientation / 2", "Ergebnis: Erfolg gibt Status built und wait 10; Fehlschlag gibt Status insufficient_roomUnk bei Farmen (Weizen, Hopfen, Apfel, Milch), sonst insufficient_resources, wait 16"], "offen": ["Bedeutung von unknownCountdown01 und buildings[].field201_0x2c8", "Genaue Bedeutung der Rotationswerte 80 und 81 (Tore)"]}, "p3": {"erklaerung": "Das ist der Baumeister der KI. Er arbeitet die Schritte der Burgdatei der Reihe nach ab, wartet bei Geld- oder Platzmangel und baut Zerstörtes erst nach, wenn der Feind weiter als 120 entfernt ist.", "gehirn": "Zeigt, wie die KI nachbaut: Wiederaufbau erst bei Feindabstand >= 120 und nach Wartezeiten (Mauer 20, Graben 50, Pechgraben 200). Wer die Burg angreift, kann Zerstörtes unter Druck am Wiederaufbau hindern.", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x004ee430 findAppropriateGridLocationForResourceTypeBuilding | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004EE430
+ void AIVState::findAppropriateGridLocationForResourceTypeBuilding(
+ int playerID, AIGridComputationResourceType resourceType)
+ {
+ this->visitCount = 1;
+ this->algAIndex = 0;
+ this->algBIndex = 1;
+ this->buildingApproriateGridXPosition = -1;
+ this->buildingAppropriateGridYPosition = -1;
+ if (resourceType == AIGCRT_OIL) {
+ if (DAT_GameState.playerDataArray[playerID].countPitchRigs
+ >= DAT_GameState.playerDataArray[playerID].availableOilGridTiles) {
+ return;
+ }
+ if (DAT_GameState.playerDataArray[playerID].algoOilCooldown > 0) {
+ --DAT_GameState.playerDataArray[playerID].algoOilCooldown;
+ return;
+ }
+ } else if (resourceType == AIGCRT_IRON) {
+ if (DAT_GameState.playerDataArray[playerID].countIronMines
+ >= DAT_GameState.playerDataArray[playerID].availableIronGridTiles) {
+ return;
+ }
+ if (DAT_GameState.playerDataArray[playerID].algoIronCooldown > 0) {
+ --DAT_GameState.playerDataArray[playerID].algoIronCooldown;
+ return;
+ }
+ } else if (resourceType == AIGCRT_BOULDER) {
+ if (DAT_GameState.playerDataArray[playerID].countStoneQuarries
+ >= DAT_GameState.playerDataArray[playerID].availableBoulderGridTiles) {
+ return;
+ }
+ if (DAT_GameState.playerDataArray[playerID].algoBoulderCooldown > 0) {
+ --DAT_GameState.playerDataArray[playerID].algoBoulderCooldown;
+ return;
+ }
+ }
+ int const campX = DAT_GameState.playerDataArray[playerID].campground.xEntry / 5;
+ this->heatMapXArray[0] = campX;
+ int const campY = DAT_GameState.playerDataArray[playerID].campground.yEntry / 5;
+ ++this->mapExtraInfo.algorithmIterationNumber;
+ this->heatMapYArray[0] = campY;
+ this->heatMaps[campX][campY].algorithmIterationNumber = this->mapExtraInfo.algorithmIterationNumber;
+ this->heatMaps[campX][campY].algorithmVisitCountUnk = this->visitCount;
+ while (this->algAIndex != this->algBIndex) {
+ int const x = this->heatMapXArray[this->algAIndex];
+ int const y = this->heatMapYArray[this->algAIndex];
+ this->visitCount = this->heatMaps[x][y].algorithmVisitCountUnk;
+ if (this->visitCount > 40) {
+ break;
+ }
+ // only the four cardinal directions
+ for (int direction = 0; direction < 8; direction += 2) {
+ uint const gridX
+ = DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[direction].int_.xOffset + x;
+ uint const gridY
+ = DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[direction].int_.yOffset + y;
+ if (this->heatMaps[x][y].isNotNearEdgeUnk && (gridX > 79 || gridY > 79)) {
+ continue;
+ }
+ if (this->heatMaps[gridX][gridY].algorithmIterationNumber
+ == this->mapExtraInfo.algorithmIterationNumber) {
+ continue;
+ }
+ this->heatMaps[gridX][gridY].algorithmIterationNumber = this->mapExtraInfo.algorithmIterationNumber;
+ int const blockedCount = this->heatMaps[gridX][gridY].tilesNotPartOfLargestAreaCount
+ - this->heatMaps[gridX][gridY].impassableCount;
+ if (blockedCount >= 16) {
+ continue;
+ }
+ int const owner = this->heatMaps[gridX][gridY].tileOwnership;
+ if ((blockedCount == 0 || resourceType == AIGCRT_IRON) && blockedCount <= 4
+ && !this->heatMaps[gridX][gridY].structureCount
+ && !this->heatMaps[gridX][gridY].destructionBasedPlacementCooldown
+ && (!this->heatMaps[gridX][gridY].tileOwnership
+ || DAT_GameState.mapAndTime.playerTeams[playerID]
+ == DAT_GameState.mapAndTime.playerTeams[owner])) {
+ if (resourceType == AIGCRT_OIL) {
+ if (this->heatMaps[gridX][gridY].oilCount > 2 && this->heatMaps[gridX][gridY].marshCount >= 10
+ && this->heatMaps[gridX][gridY].highestTerrainHeight
+ - this->heatMaps[gridX][gridY].lowestTerrainHeight
+ < 12) {
+ this->buildingApproriateGridXPosition = gridX;
+ this->buildingAppropriateGridYPosition = gridY;
+ return;
+ }
+ } else if (resourceType == AIGCRT_IRON) {
+ if (this->heatMaps[gridX][gridY].ironCount > 6
+ && this->heatMaps[gridX][gridY].highestTerrainHeight
+ - this->heatMaps[gridX][gridY].lowestTerrainHeight
+ < 12) {
+ this->buildingApproriateGridXPosition = gridX;
+ this->buildingAppropriateGridYPosition = gridY;
+ return;
+ }
+ } else if (resourceType == AIGCRT_BOULDER) {
+ if (this->heatMaps[gridX][gridY].bouldersCount >= 8
+ && this->heatMaps[gridX][gridY].highestTerrainHeight
+ - this->heatMaps[gridX][gridY].lowestTerrainHeight
+ < 40) {
+ this->buildingApproriateGridXPosition = gridX;
+ this->buildingAppropriateGridYPosition = gridY;
+ return;
+ }
+ }
+ }
+ this->heatMaps[gridX][gridY].algorithmVisitCountUnk = this->visitCount + 1;
+ this->heatMapXArray[this->algBIndex] = gridX;
+ this->heatMapYArray[this->algBIndex] = gridY;
+ ++this->algBIndex;
+ if (this->algBIndex >= 6400) {
+ this->algBIndex = 0;
+ }
+ }
+ ++this->algAIndex;
+ if (this->algAIndex >= 6400) {
+ this->algAIndex = 0;
+ }
+ }
+ // nothing found, wait before searching again
+ if (resourceType == AIGCRT_OIL) {
+ DAT_GameState.playerDataArray[playerID].algoOilCooldown = 5;
+ return;
+ }
+ if (resourceType == AIGCRT_IRON) {
+ DAT_GameState.playerDataArray[playerID].algoIronCooldown = 5;
+ return;
+ }
+ if (resourceType == AIGCRT_BOULDER) {
+ DAT_GameState.playerDataArray[playerID].algoBoulderCooldown = 5;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004ee430", "name": "findAppropriateGridLocationForResourceTypeBuilding", "quelle": "nachgebaut", "p1": {"bereich": "KI", "zweck": "Sucht eine Heatmap-Zelle für Ölförderung, Eisenmine oder Steinbruch."}, "p2": {"ein": "playerID, resourceType (AIGCRT_OIL, AIGCRT_IRON, AIGCRT_BOULDER)", "aus": "- (Ergebnis in buildingApproriateGridXPosition und buildingAppropriateGridYPosition, -1 wenn nichts)", "liest": ["countPitchRigs/availableOilGridTiles", "countIronMines/availableIronGridTiles", "countStoneQuarries/availableBoulderGridTiles", "algoOilCooldown/algoIronCooldown/algoBoulderCooldown", "heatMaps[x][y] (tilesNotPartOfLargestAreaCount, impassableCount, tileOwnership, structureCount, destructionBasedPlacementCooldown, oilCount, marshCount, ironCount, bouldersCount, Höhen)", "playerTeams"], "schreibt": ["buildingApproriateGridXPosition/YPosition", "algoOilCooldown/algoIronCooldown/algoBoulderCooldown", "heatMaps[..].algorithmIterationNumber/algorithmVisitCountUnk"], "ruft": [], "regeln": ["Ergebnis startet mit -1/-1", "Bereits so viele Gebäude wie passende Zellen (Ölförderer, Eisenminen oder Steinbrüche gegen available...GridTiles): Abbruch", "Cooldown des Typs > 0: um 1 senken, Abbruch", "Breitensuche ab Lagerzelle, 4 Richtungen, Tiefe höchstens 40, Warteschlange 6400", "blockiert = tilesNotPartOfLargestAreaCount - impassableCount; ab 16 wird die Zelle übersprungen", "Zelle zulässig, wenn blockiert <= 4 (bei Öl und Stein zusätzlich blockiert = 0), structureCount = 0, Cooldown = 0 und die Zelle niemandem gehört oder dem eigenen Team", "Öl: oilCount > 2, marshCount >= 10 und Höhenunterschied < 12", "Eisen: ironCount > 6 und Höhenunterschied < 12", "Stein: bouldersCount >= 8 und Höhenunterschied < 40", "Erste passende Zelle wird sofort genommen", "Nichts gefunden: Cooldown des Typs = 5"], "offen": []}, "p3": {"erklaerung": "Die KI baut Öl, Eisen und Steinbrüche nur auf freien Zellen mit genug Vorkommen und nicht zu steilem Gelände. Für Eisen darf das Gelände etwas unebener sein.", "gehirn": "Zeigt, welche Vorkommen die KI nutzen kann: Öl in Sumpf, Eisen ab 7 Vorkommen und Steine ab 8 Felsbrocken je Zelle.", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x004ee830 recomputeAIAvailableGridTiles | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004EE830
+ void AIVState::recomputeAIAvailableGridTiles(int playerID)
+ {
+ DAT_GameState.playerDataArray[playerID].algoTreeCooldownUnk = -1;
+ DAT_GameState.playerDataArray[playerID].algoOasisCooldownUnk = -1;
+ DAT_GameState.playerDataArray[playerID].algoBoulderCooldown = -1;
+ DAT_GameState.playerDataArray[playerID].algoIronCooldown = -1;
+ DAT_GameState.playerDataArray[playerID].algoOilCooldown = -1;
+ DAT_GameState.playerDataArray[playerID].availableTreeGridTiles = 0;
+ DAT_GameState.playerDataArray[playerID].availableOasisGridTiles = 0;
+ DAT_GameState.playerDataArray[playerID].availableBoulderGridTiles = 0;
+ DAT_GameState.playerDataArray[playerID].availableIronGridTiles = 0;
+ DAT_GameState.playerDataArray[playerID].availableOilGridTiles = 0;
+ this->visitCount = 1;
+ this->algBIndex = 1;
+ this->algAIndex = 0;
+ int const campX = DAT_GameState.playerDataArray[playerID].campground.xEntry / 5;
+ this->heatMapXArray[0] = campX;
+ int const campY = DAT_GameState.playerDataArray[playerID].campground.yEntry / 5;
+ ++this->mapExtraInfo.algorithmIterationNumber;
+ this->heatMapYArray[0] = campY;
+ this->heatMaps[campX][campY].algorithmIterationNumber = this->mapExtraInfo.algorithmIterationNumber;
+ this->heatMaps[campX][campY].algorithmVisitCountUnk = this->visitCount;
+ while (this->algAIndex != this->algBIndex) {
+ int const x = this->heatMapXArray[this->algAIndex];
+ int const y = this->heatMapYArray[this->algAIndex];
+ this->visitCount = this->heatMaps[x][y].algorithmVisitCountUnk;
+ if (this->visitCount > 40) {
+ break;
+ }
+ // only the four cardinal directions
+ for (int direction = 0; direction < 8; direction += 2) {
+ uint const gridX
+ = DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[direction].int_.xOffset + x;
+ uint const gridY
+ = DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[direction].int_.yOffset + y;
+ if (this->heatMaps[x][y].isNotNearEdgeUnk && (gridX > 79 || gridY > 79)) {
+ continue;
+ }
+ if (this->heatMaps[gridX][gridY].algorithmIterationNumber
+ == this->mapExtraInfo.algorithmIterationNumber) {
+ continue;
+ }
+ int const impassable = this->heatMaps[gridX][gridY].impassableCount;
+ this->heatMaps[gridX][gridY].algorithmIterationNumber = this->mapExtraInfo.algorithmIterationNumber;
+ int const blockedCount = this->heatMaps[gridX][gridY].tilesNotPartOfLargestAreaCount - impassable;
+ if (blockedCount >= 16) {
+ continue;
+ }
+ if (this->heatMaps[gridX][gridY].oilCount > 2 && this->heatMaps[gridX][gridY].marshCount >= 10
+ && blockedCount == 0) {
+ if (this->heatMaps[gridX][gridY].highestTerrainHeight
+ - this->heatMaps[gridX][gridY].lowestTerrainHeight
+ < 12) {
+ ++DAT_GameState.playerDataArray[playerID].availableOilGridTiles;
+ }
+ } else if (this->heatMaps[gridX][gridY].ironCount > 6 && blockedCount <= 4) {
+ if (this->heatMaps[gridX][gridY].highestTerrainHeight
+ - this->heatMaps[gridX][gridY].lowestTerrainHeight
+ < 12) {
+ ++DAT_GameState.playerDataArray[playerID].availableIronGridTiles;
+ }
+ } else if (this->heatMaps[gridX][gridY].bouldersCount >= 8 && blockedCount == 0) {
+ if (this->heatMaps[gridX][gridY].highestTerrainHeight
+ - this->heatMaps[gridX][gridY].lowestTerrainHeight
+ < 40) {
+ ++DAT_GameState.playerDataArray[playerID].availableBoulderGridTiles;
+ }
+ } else if (this->heatMaps[gridX][gridY].treeCount > 0 && blockedCount < 6) {
+ if (this->heatMaps[gridX][gridY].highestTerrainHeight
+ - this->heatMaps[gridX][gridY].lowestTerrainHeight
+ < 12) {
+ ++DAT_GameState.playerDataArray[playerID].availableTreeGridTiles;
+ }
+ } else if (this->heatMaps[gridX][gridY].oasisScrubCount >= 25
+ && this->heatMaps[gridX][gridY].oasisThickScrubCount >= 14 && blockedCount == 0
+ && this->heatMaps[gridX][gridY].highestTerrainHeight
+ - this->heatMaps[gridX][gridY].lowestTerrainHeight
+ < 12) {
+ ++DAT_GameState.playerDataArray[playerID].availableOasisGridTiles;
+ }
+ this->heatMaps[gridX][gridY].algorithmVisitCountUnk = this->visitCount + 1;
+ this->heatMapXArray[this->algBIndex] = gridX;
+ this->heatMapYArray[this->algBIndex] = gridY;
+ ++this->algBIndex;
+ if (this->algBIndex >= 6400) {
+ this->algBIndex = 0;
+ }
+ }
+ ++this->algAIndex;
+ if (this->algAIndex >= 6400) {
+ this->algAIndex = 0;
+ }
+ }
+ // allow searching right away if there is anything to find
+ if (DAT_GameState.playerDataArray[playerID].availableTreeGridTiles > 0) {
+ DAT_GameState.playerDataArray[playerID].algoTreeCooldownUnk = 0;
+ }
+ if (DAT_GameState.playerDataArray[playerID].availableOasisGridTiles > 0) {
+ DAT_GameState.playerDataArray[playerID].algoOasisCooldownUnk = 0;
+ }
+ if (DAT_GameState.playerDataArray[playerID].availableBoulderGridTiles > 0) {
+ DAT_GameState.playerDataArray[playerID].algoBoulderCooldown = 0;
+ }
+ if (DAT_GameState.playerDataArray[playerID].availableIronGridTiles > 0) {
+ DAT_GameState.playerDataArray[playerID].algoIronCooldown = 0;
+ }
+ if (DAT_GameState.playerDataArray[playerID].availableOilGridTiles > 0) {
+ DAT_GameState.playerDataArray[playerID].algoOilCooldown = 0;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004ee830", "name": "recomputeAIAvailableGridTiles", "quelle": "nachgebaut", "p1": {"bereich": "KI", "zweck": "Zählt für einen KI-Spieler, wie viele Gitterfelder rund ums Lager für Bäume, Oase, Steine, Eisen und Öl taugen."}, "p2": {"ein": "playerID", "aus": "-", "liest": ["playerDataArray[id].campground.xEntry/yEntry", "heatMaps[x][y] (impassableCount, tilesNotPartOfLargestAreaCount, oilCount, marshCount, ironCount, bouldersCount, treeCount, oasisScrubCount, oasisThickScrubCount, highestTerrainHeight, lowestTerrainHeight, isNotNearEdgeUnk)"], "schreibt": ["playerData.availableTree/Oasis/Boulder/Iron/OilGridTiles", "playerData.algoTree/Oasis/Boulder/Iron/OilCooldown", "heatMaps[][].algorithmIterationNumber/algorithmVisitCountUnk", "heatMapXArray/YArray", "visitCount, algAIndex, algBIndex, mapExtraInfo.algorithmIterationNumber"], "ruft": [], "regeln": ["Start: alle fünf Zähler 0, alle fünf Cooldowns -1; Startfeld = Lagereingang / 5 (ein Gitterfeld ist 5x5 Kartenfelder, Karte 80x80 Gitterfelder)", "Breitensuche nur in die vier Himmelsrichtungen (Schritt 0,2,4,6 der Richtungstabelle); bricht ab, sobald die Entfernung (visitCount) über 40 liegt", "Ein Feld mit blockedCount = tilesNotPartOfLargestAreaCount - impassableCount >= 16 wird weder gezählt noch weiter durchsucht", "Zählregeln als Kette (nur die erste passende Art zählt): Öl: oilCount>2 und marshCount>=10 und blockedCount==0 und Höhenunterschied<12; Eisen: ironCount>6 und blockedCount<=4 und Höhenunterschied<12; Steine: bouldersCount>=8 und blockedCount==0 und Höhenunterschied<40; Bäume: treeCount>0 und blockedCount<6 und Höhenunterschied<12; Oase: oasisScrubCount>=25 und oasisThickScrubCount>=14 und blockedCount==0 und Höhenunterschied<12", "Passt ein Feld zur Bedingung einer Art, aber nicht zur Höhengrenze, wird es nicht bei einer späteren Art versucht", "Ist ein Feld als isNotNearEdgeUnk markiert und der Nachbar außerhalb 0..79, wird der Nachbar übersprungen", "Am Ende: Cooldown einer Art = 0 (sofort suchen), wenn der Zähler > 0 ist; sonst bleibt er -1", "Warteschlange ist ein Ring mit 6400 Plätzen"], "offen": ["Bedeutung von isNotNearEdgeUnk (Name vermutlich irreführend) und algorithmVisitCountUnk", "Wann und wie oft das Spiel diese Neuberechnung auslöst"]}, "p3": {"erklaerung": "Die KI schaut im Umkreis von höchstens 40 Gitterschritten um ihr Lager, wo Holz, Stein, Eisen, Öl und Oase erreichbar und flach genug liegen. Gibt es nichts, bleibt die Suche für diese Ware gesperrt (-1).", "gehirn": "Die fünf available…GridTiles-Zähler der Gegner-KI sind lesbar und zeigen, welche Rohstoffe für sie überhaupt erreichbar sind. Ein Zähler 0 heißt: die KI kann diesen Rohstoff nicht selbst abbauen und ist vermutlich auf Handel angewiesen.", "beleg": "nachgebaut", "live": "KI-Spielstart auf Karte mit Eisen in der Nähe → playerDataArray[sp].availableIronGridTiles und algoIronCooldown → Zähler > 0 und Cooldown 0", "live_art": "ki-welle"}}
+
+### 0x004ef0d0 applyAIV | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004EF0D0
+ void AIVState::applyAIV(int playerIDUnk, int playerID2Unk)
+ {
+ MappersEnumShort MVar1;
+ AIVBuildingStep* pAVar2;
+ AIVBuildingType2Int _aivBuildingType;
+ int _realY;
+ BOOLEnum _validCoordinates;
+ uint _realX_2;
+ int* _ptrPauses;
+ uint _realY_2;
+ int _relativeX;
+ int _relativeX_2;
+ int _relativeX_3;
+ int _relativeX_4;
+ int _relativeX_5;
+ short* _ptrPausesPlayerData;
+ int _aiStep;
+ int iVar3;
+ int iVar4;
+ int _x;
+ int iVar5;
+ int iVar6;
+ int _ptrUnitLocationsData_2;
+ int _step;
+ AIVBuildingType2Short* _ptrConstructions;
+ int _y_OR_ptrStep;
+ int* _ptrBuildSteps;
+ MappersEnum _commandBuildingType;
+ int _ptrUnitLocationsData;
+ int _unitLocationTile_2;
+ int _pauseDelay;
+ int _y2_shift;
+ int _keepX;
+ int* _y1;
+ int _tile_1;
+ int _keepOrientation;
+ int _keepOrientation_2;
+ int _keepOrientation_3;
+ int _keepOrientation_4;
+ int _keepOrientation_5;
+ int _y_2;
+ int _x_2;
+ int _aivBuildingStepID;
+ int _relativeY_2;
+ int _relativeY_3;
+ int _tile_3;
+ int _tile_2;
+ int _tile_4;
+ int _tile_5;
+ int _relativeY_5;
+ bool _isKeepDefined;
+ int _relativeY_4;
+ short* _ptrQuantity;
+ int* _ptrWallArrayIndex;
+ int _unitLocationTile;
+ int _playerID;
+ int _relativeY;
+ bool _select;
+ _playerID = playerIDUnk;
+ _isKeepDefined = false;
+ unpackAIVFile(
+ DAT_AIVDefinedData.AIVSectionAddressArray,
+ (char*)((int)(((int)DAT_AIVDefinedData
+ + (this->aivs[playerIDUnk].castleID + -0x10 + this->aivs[playerIDUnk].aiType * 8) * 0x32 + 0x234))));
+ rotateAIV(this->aivs[playerIDUnk].keepOrientation);
+ _y_OR_ptrStep = 0;
+ _ptrUnitLocationsData_2 = 0;
+ do {
+ _ptrBuildSteps = this->steps[0] + _ptrUnitLocationsData_2;
+ _ptrConstructions = this->constructions + _ptrUnitLocationsData_2;
+ _x = 0;
+ do {
+ if (this->isHandled[_ptrUnitLocationsData_2] == 0) {
+ _aivBuildingType = (AIVBuildingType2Int)(short)*_ptrConstructions;
+ if (_aivBuildingType == ((AIVBuildingType2)0)) {
+ /*
+ fixme, can't be right that it is set to 1?
+ */
+ this->isHandled[_ptrUnitLocationsData_2] = 1;
+ } else if (_aivBuildingType == ((AIVBuildingType2)2)) {
+ this->isHandled[_ptrUnitLocationsData_2] = 1;
+ } else if (_aivBuildingType == AIVBT_KEEP2) {
+ if (!_isKeepDefined) {
+ this->keepX = this->aivs[playerIDUnk].keepXOffset + _x;
+ this->keepY = this->aivs[playerIDUnk].keepYOffset + _y_OR_ptrStep;
+ _isKeepDefined = true;
+ }
+ this->isHandled[_ptrUnitLocationsData_2] = 1;
+ } else {
+ _commandBuildingType
+ = convertAIVBuildingTypeToCommandBuildingType(_aivBuildingType);
+ _step = *_ptrBuildSteps;
+ /*
+ path_end == low crenal?
+ */
+ if (((((_commandBuildingType != M_MAPPER_WALL)
+ && (_commandBuildingType != M_MAPPER_WOODWALL))
+ && (_commandBuildingType != M_MAPPER_CRENAL))
+ && ((_commandBuildingType != M_MAPPER_CRENAL2
+ && (_commandBuildingType != M_MAPPER_MOAT))))
+ && (_commandBuildingType != M_MAPPER_PITCH_DITCH)) {
+ this->isHandled[_ptrUnitLocationsData_2] = 1;
+ if (this->aivs[playerIDUnk].aivBuildingSteps[_step].quantity < 1) {
+ _realY = this->aivs[playerIDUnk].keepYOffset + _y_OR_ptrStep;
+ _validCoordinates
+ = xyAreValid(
+ this->aivs[playerIDUnk].keepXOffset + _x, (uint)((int)(_realY)));
+ if (_validCoordinates != FALSE) {
+ _y_2 = DAT_ViewportRenderState.translationMatrix[_realY].addXgetTile;
+ _x_2 = this->aivs[playerIDUnk].keepXOffset;
+ this->aivs[playerIDUnk].aivBuildingSteps[_step].buildingType
+ = (undefined2)_commandBuildingType;
+ this->aivs[playerIDUnk].aivBuildingSteps[_step].buildStatus
+ = AIVBSS_unbuilt;
+ this->aivs[playerIDUnk].aivBuildingSteps[_step].quantity = 1;
+ /*
+ fixme: setting int on a short
+ */
+ this->aivs[playerIDUnk].aivBuildingSteps[_step].location
+ = (AIVBuildLocationUnion)(_y_2 + _x_2 + _x);
+ if (this->aivs[playerIDUnk].totalSteps < _step) {
+ this->aivs[playerIDUnk].totalSteps = _step;
+ }
+ }
+ }
+ }
+ }
+ }
+ _ptrConstructions = _ptrConstructions + 1;
+ _ptrBuildSteps = _ptrBuildSteps + 1;
+ _x = _x + 1;
+ _ptrUnitLocationsData_2 = _ptrUnitLocationsData_2 + 1;
+ } while (_x < 100);
+ _y_OR_ptrStep = _y_OR_ptrStep + 1;
+ } while (_y_OR_ptrStep < 100);
+ /*
+ fixme: reuse of variable
+ */
+ _ptrBuildSteps = (int*)0x0;
+ _aivBuildingStepID = _step;
+ do {
+ _ptrUnitLocationsData_2 = (int)_ptrBuildSteps * 100;
+ _select = false;
+ _y1 = _ptrBuildSteps;
+ if (99 < (int)_ptrBuildSteps)
+ break;
+ do {
+ /*
+ fixme: reuse of variable
+ */
+ _y_OR_ptrStep = _ptrUnitLocationsData_2 * 4 + 0x18aa990;
+ _ptrConstructions = this->constructions + _ptrUnitLocationsData_2;
+ _x = 0;
+ do {
+ if (this->isHandled[_ptrUnitLocationsData_2] == 0) {
+ if (_select) {
+ if (*(int*)_y_OR_ptrStep != _aivBuildingStepID)
+ goto LAB_004ef450_continue;
+ } else {
+ _commandBuildingType = convertAIVBuildingTypeToCommandBuildingType(
+ (int)(short)*_ptrConstructions);
+ _aivBuildingStepID = *(int*)_y_OR_ptrStep;
+ this->aivs[playerIDUnk].aivBuildingSteps[_aivBuildingStepID].location
+ = (AIVBuildLocationUnion)this->aivs[playerIDUnk].wallLocationsArrayIndex;
+ _select = true;
+ _step = _aivBuildingStepID;
+ if ((int)_ptrBuildSteps < (int)_y1) {
+ _ptrBuildSteps = _y1;
+ }
+ }
+ _realY_2 = this->aivs[playerIDUnk].keepYOffset + (int)_y1;
+ _realX_2 = this->aivs[playerIDUnk].keepXOffset + _x;
+ /*
+ is valid coord?
+ */
+ if (((_realX_2 < 400) && (_realY_2 < 400))
+ && (*(char*)(_realY_2 * 400 + 0x21aec98 + _realX_2) != '\0')) {
+ _y2_shift = DAT_ViewportRenderState.translationMatrix[_realY_2].addXgetTile;
+ _keepX = this->aivs[playerIDUnk].keepXOffset;
+ this->aivs[playerIDUnk].aivBuildingSteps[_aivBuildingStepID].buildStatus
+ = AIVBSS_unbuilt;
+ this->aivs[playerIDUnk].aivBuildingSteps[_aivBuildingStepID].buildingType
+ = (undefined2)_commandBuildingType;
+ _ptrQuantity = &this->aivs[playerIDUnk].aivBuildingSteps[_step].quantity;
+ *_ptrQuantity = *_ptrQuantity + 1;
+ this->aivs[playerIDUnk].locationsArray[this->aivs[playerIDUnk].wallLocationsArrayIndex]
+ = _y2_shift + _keepX + _x;
+ _ptrWallArrayIndex = &this->aivs[playerIDUnk].wallLocationsArrayIndex;
+ *_ptrWallArrayIndex = *_ptrWallArrayIndex + 1;
+ if (this->aivs[playerIDUnk].totalSteps < _step) {
+ this->aivs[playerIDUnk].totalSteps = _step;
+ }
+ this->isHandled[_ptrUnitLocationsData_2] = 1;
+ _aivBuildingStepID = _step;
+ } else {
+ this->isHandled[_ptrUnitLocationsData_2] = 1;
+ }
+ }
+ LAB_004ef450_continue:
+ _ptrUnitLocationsData_2 = _ptrUnitLocationsData_2 + 1;
+ _ptrConstructions = _ptrConstructions + 1;
+ _y_OR_ptrStep = _y_OR_ptrStep + 4;
+ _x = _x + 1;
+ } while (_x < 100);
+ _y1 = (int*)((int)_y1 + 1);
+ } while ((int)_y1 < 100);
+ } while (_select);
+ /*
+ fixme: variable reuse
+ */
+ playerIDUnk = playerID2Unk * 0x39f4 + 0x115ee84;
+ _y_OR_ptrStep = 0;
+ _step = 0;
+ _ptrUnitLocationsData = 0x18c3100;
+ do {
+ *(undefined4*)playerIDUnk = 0;
+ if (((_y_OR_ptrStep != 9) && (_y_OR_ptrStep != 0xb)) && (_y_OR_ptrStep != 0x12)) {
+ iVar4 = 0;
+ _ptrUnitLocationsData_2 = _ptrUnitLocationsData;
+ do {
+ _tile_1 = *(int*)(_ptrUnitLocationsData_2 + -4);
+ /*
+ this logic is repeated 5 times in total to be mroe efficient...it applies unit slots to the map
+ */
+ iVar3 = (int)_y1;
+ iVar5 = _x;
+ if (0 < _tile_1) {
+ _relativeY = _tile_1 / 100;
+ _relativeX = _tile_1 % 100;
+ _keepOrientation = this->aivs[_playerID].keepOrientation;
+ iVar3 = _relativeY;
+ iVar5 = _relativeX;
+ if (_keepOrientation != 0) {
+ if (_keepOrientation == 4) {
+ iVar3 = 99 - _relativeY;
+ iVar5 = 99 - _relativeX;
+ } else if (_keepOrientation == 6) {
+ iVar3 = _relativeX;
+ iVar5 = 99 - _relativeY;
+ } else {
+ iVar3 = (int)_y1;
+ iVar5 = _x;
+ if (_keepOrientation == 2) {
+ iVar3 = 99 - _relativeX;
+ iVar5 = _relativeY;
+ }
+ }
+ }
+ _unitLocationTile = DAT_ViewportRenderState
+ .translationMatrix[this->aivs[_playerID].keepYOffset + iVar3]
+ .addXgetTile
+ + this->aivs[_playerID].keepXOffset + iVar5;
+ DAT_GameState.playerDataArray[playerID2Unk].aivUnitLocationSlots[0][_step + iVar4]
+ = _unitLocationTile;
+ if (0 < _unitLocationTile) {
+ *(int*)playerIDUnk = *(int*)playerIDUnk + 1;
+ }
+ }
+ _tile_2 = *(int*)_ptrUnitLocationsData_2;
+ _relativeY = iVar3;
+ iVar6 = iVar5;
+ if (0 < _tile_2) {
+ _relativeY_2 = _tile_2 / 100;
+ _relativeX_2 = _tile_2 % 100;
+ _keepOrientation_2 = this->aivs[_playerID].keepOrientation;
+ _relativeY = _relativeY_2;
+ iVar6 = _relativeX_2;
+ if (_keepOrientation_2 != 0) {
+ if (_keepOrientation_2 == 4) {
+ _relativeY = 99 - _relativeY_2;
+ iVar6 = 99 - _relativeX_2;
+ } else if (_keepOrientation_2 == 6) {
+ _relativeY = _relativeX_2;
+ iVar6 = 99 - _relativeY_2;
+ } else {
+ _relativeY = iVar3;
+ iVar6 = iVar5;
+ if (_keepOrientation_2 == 2) {
+ _relativeY = 99 - _relativeX_2;
+ iVar6 = _relativeY_2;
+ }
+ }
+ }
+ _unitLocationTile_2 = DAT_ViewportRenderState
+ .translationMatrix[this->aivs[_playerID].keepYOffset + _relativeY]
+ .addXgetTile
+ + this->aivs[_playerID].keepXOffset + iVar6;
+ DAT_GameState.playerDataArray[playerID2Unk].aivUnitLocationSlots[0][_step + iVar4 + 1]
+ = _unitLocationTile_2;
+ if (0 < _unitLocationTile_2) {
+ *(int*)playerIDUnk = *(int*)playerIDUnk + 1;
+ }
+ }
+ _tile_3 = *(int*)(_ptrUnitLocationsData_2 + 4);
+ iVar3 = _relativeY;
+ iVar5 = iVar6;
+ if (0 < _tile_3) {
+ _relativeY_3 = _tile_3 / 100;
+ _relativeX_3 = _tile_3 % 100;
+ _keepOrientation_3 = this->aivs[_playerID].keepOrientation;
+ iVar3 = _relativeY_3;
+ iVar5 = _relativeX_3;
+ if (_keepOrientation_3 != 0) {
+ if (_keepOrientation_3 == 4) {
+ iVar3 = 99 - _relativeY_3;
+ iVar5 = 99 - _relativeX_3;
+ } else if (_keepOrientation_3 == 6) {
+ iVar3 = _relativeX_3;
+ iVar5 = 99 - _relativeY_3;
+ } else {
+ iVar3 = _relativeY;
+ iVar5 = iVar6;
+ if (_keepOrientation_3 == 2) {
+ iVar3 = 99 - _relativeX_3;
+ iVar5 = _relativeY_3;
+ }
+ }
+ }
+ _relativeY = DAT_ViewportRenderState
+ .translationMatrix[this->aivs[_playerID].keepYOffset + iVar3]
+ .addXgetTile
+ + this->aivs[_playerID].keepXOffset + iVar5;
+ DAT_GameState.playerDataArray[playerID2Unk].aivUnitLocationSlots[0][_step + iVar4 + 2]
+ = _relativeY;
+ if (0 < _relativeY) {
+ *(int*)playerIDUnk = *(int*)playerIDUnk + 1;
+ }
+ }
+ _tile_4 = *(int*)(_ptrUnitLocationsData_2 + 8);
+ _relativeY = iVar3;
+ iVar6 = iVar5;
+ if (0 < _tile_4) {
+ _relativeY_4 = _tile_4 / 100;
+ _relativeX_4 = _tile_4 % 100;
+ _keepOrientation_4 = this->aivs[_playerID].keepOrientation;
+ _relativeY = _relativeY_4;
+ iVar6 = _relativeX_4;
+ if (_keepOrientation_4 != 0) {
+ if (_keepOrientation_4 == 4) {
+ _relativeY = 99 - _relativeY_4;
+ iVar6 = 99 - _relativeX_4;
+ } else if (_keepOrientation_4 == 6) {
+ _relativeY = _relativeX_4;
+ iVar6 = 99 - _relativeY_4;
+ } else {
+ _relativeY = iVar3;
+ iVar6 = iVar5;
+ if (_keepOrientation_4 == 2) {
+ _relativeY = 99 - _relativeX_4;
+ iVar6 = _relativeY_4;
+ }
+ }
+ }
+ iVar3 = DAT_ViewportRenderState
+ .translationMatrix[this->aivs[_playerID].keepYOffset + _relativeY]
+ .addXgetTile
+ + this->aivs[_playerID].keepXOffset + iVar6;
+ DAT_GameState.playerDataArray[playerID2Unk].aivUnitLocationSlots[0][_step + iVar4 + 3]
+ = iVar3;
+ if (0 < iVar3) {
+ *(int*)playerIDUnk = *(int*)playerIDUnk + 1;
+ }
+ }
+ _tile_5 = *(int*)(_ptrUnitLocationsData_2 + 0xc);
+ _y1 = (int*)_relativeY;
+ _x = iVar6;
+ if (0 < _tile_5) {
+ _relativeY_5 = _tile_5 / 100;
+ _relativeX_5 = _tile_5 % 100;
+ _keepOrientation_5 = this->aivs[_playerID].keepOrientation;
+ _y1 = (int*)_relativeY_5;
+ _x = _relativeX_5;
+ if (_keepOrientation_5 != 0) {
+ if (_keepOrientation_5 == 4) {
+ _y1 = (int*)(99 - _relativeY_5);
+ _x = 99 - _relativeX_5;
+ } else if (_keepOrientation_5 == 6) {
+ _y1 = (int*)_relativeX_5;
+ _x = 99 - _relativeY_5;
+ } else {
+ _y1 = (int*)_relativeY;
+ _x = iVar6;
+ if (_keepOrientation_5 == 2) {
+ _y1 = (int*)(99 - _relativeX_5);
+ _x = _relativeY_5;
+ }
+ }
+ }
+ iVar3 = DAT_ViewportRenderState
+ .translationMatrix[this->aivs[_playerID].keepYOffset + (int)_y1]
+ .addXgetTile
+ + this->aivs[_playerID].keepXOffset + _x;
+ DAT_GameState.playerDataArray[playerID2Unk].aivUnitLocationSlots[0][_step + iVar4 + 4]
+ = iVar3;
+ if (0 < iVar3) {
+ *(int*)playerIDUnk = *(int*)playerIDUnk + 1;
+ }
+ }
+ _ptrUnitLocationsData_2 = _ptrUnitLocationsData_2 + 20;
+ iVar4 = iVar4 + 5;
+ } while (iVar4 < 10);
+ }
+ _y_OR_ptrStep = _y_OR_ptrStep + 1;
+ playerIDUnk = playerIDUnk + 4;
+ _step = _step + 10;
+ _ptrUnitLocationsData = _ptrUnitLocationsData + 0x28;
+ } while (_ptrUnitLocationsData < 0x18c3470);
+ _ptrPauses = this->pauses;
+ _ptrPausesPlayerData = DAT_GameState.playerDataArray[playerID2Unk].aivPauses;
+ do {
+ *_ptrPausesPlayerData = (short)*_ptrPauses;
+ _pauseDelay = this->pauseDelay;
+ _ptrPauses = _ptrPauses + 1;
+ _ptrPausesPlayerData = _ptrPausesPlayerData + 1;
+ } while ((int)_ptrPauses < 0x18c3080);
+ DAT_GameState.playerDataArray[playerID2Unk].aivCurrentPauseIndex = 1;
+ if (_pauseDelay < 1) {
+ _pauseDelay = 100;
+ this->pauseDelay = 100;
+ }
+ DAT_GameState.playerDataArray[playerID2Unk].aivPauseDelay = _pauseDelay;
+ _aiStep = 1;
+ if (0 < this->aivs[_playerID].totalSteps) {
+ pAVar2 = this->aivs[_playerID].aivBuildingSteps;
+ do {
+ MVar1 = pAVar2[1].buildingType;
+ if ((((MVar1 == M_MAPPER_NULL) || (MVar1 == M_MAPPER_KEEP3))
+ || ((MVar1 == M_MAPPER_POND1
+ || ((MVar1 == M_MAPPER_POND2_SMALL
+ || (MVar1 == M_MAPPER_POND3_LARGE1))))))
+ || (MVar1 == M_MAPPER_POND4_LARGE2)) {
+ pAVar2[1].buildStatus = AIVBSS_disabled;
+ }
+ _aiStep = _aiStep + 1;
+ pAVar2 = pAVar2 + 1;
+ } while (_aiStep <= this->aivs[_playerID].totalSteps);
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004ef0d0", "name": "applyAIV", "quelle": "ghidra", "p1": {"bereich": "KI", "zweck": "Überträgt eine geladene AIV-Burgvorlage in den Bauplan und die Einheiten-Plätze eines KI-Spielers."}, "p2": {"ein": "playerIDUnk (Index in this->aivs), playerID2Unk (Index in playerDataArray)", "aus": "-", "liest": ["DAT_AIVDefinedData (Abschnitt nach castleID und aiType)", "aivs[].keepOrientation/keepXOffset/keepYOffset", "constructions[100x100]", "steps[100x100]", "isHandled", "Einheitenplätze und pauses der Vorlage", "DAT_ViewportRenderState.translationMatrix und Binär-Karte 400x400"], "schreibt": ["aivs[].aivBuildingSteps (buildingType, buildStatus, quantity, location)", "aivs[].totalSteps, locationsArray, wallLocationsArrayIndex", "keepX, keepY", "isHandled", "playerData.aivUnitLocationSlots und Platzzähler", "playerData.aivPauses, aivCurrentPauseIndex, aivPauseDelay"], "ruft": ["unpackAIVFile", "rotateAIV", "convertAIVBuildingTypeToCommandBuildingType", "xyAreValid"], "regeln": ["Entpackt die Vorlage aus dem AIV-Abschnitt (castleID-0x10 + aiType*8) und dreht sie um keepOrientation", "Durchlauf 1 über 100x100 Vorlagenfelder: Typ 0, 2 und die Keep-Markierung (KEEP2) werden nur als erledigt markiert; die erste Keep-Markierung legt keepX/keepY fest", "Durchlauf 1: jedes andere Nicht-Mauer-Gebäude wird in seinen Bauschritt eingetragen (Typ, Status unbuilt, Menge 1, Ort), wenn dort noch keins steht und die Koordinate gültig ist", "Mauer-Arten (Mauer, Holzmauer, Zinne, Zinne2, Graben, Pechgraben) werden gesammelt: alle Felder desselben Bauschritts kommen in locationsArray, die Menge des Schritts zählt je Feld hoch (nur Felder mit gültiger Karte 400x400)", "Einheiten-Plätze: 22 Gruppen zu je 10 Plätzen, Gruppen 9, 11 und 18 werden übersprungen; Plätze werden je nach Ausrichtung 0/2/4/6 gedreht (4: 99-y/99-x, 6: y=x/x=99-y, 2: y=99-x/x=y) und als Kartenfeld abgelegt, die Zahl belegter Plätze je Gruppe wird mitgezählt", "Pausen werden in playerData.aivPauses kopiert, aivCurrentPauseIndex = 1; pauseDelay < 1 wird auf 100 gesetzt", "Zum Schluss werden Schritte 1..totalSteps mit Typ NULL, KEEP3 oder den vier Teichen (POND1, POND2_SMALL, POND3_LARGE1, POND4_LARGE2) auf disabled gesetzt"], "offen": ["Ein Kommentar im Code stellt infrage, dass Typ 0 auf isHandled=1 gesetzt wird", "Anzahl der Pausen (Schleifenende bei Adresse 0x18c3080) und Bedeutung der übersprungenen Gruppen 9, 11, 18", "Rohe Ghidra-Übersetzung mit wiederverwendeten Variablen; die genaue Rolle von playerIDUnk gegenüber playerID2Unk ist aus dem Code erschlossen"]}, "p3": {"erklaerung": "Aus der gewählten Burgvorlage wird der Aufbauplan der KI: welche Gebäude in welcher Reihenfolge an welche Stelle kommen, wo Truppen stehen und wie lange die KI zwischen den Bauabschnitten wartet.", "gehirn": "Die Bauschritte und Einheiten-Plätze der Gegner-KI stehen nach diesem Aufruf in den Spielerdaten. Wer die Burg eines Gegners einschätzen will, kann dort Plan und Truppenplätze lesen.", "beleg": "code", "live": "-", "live_art": "-"}}
+

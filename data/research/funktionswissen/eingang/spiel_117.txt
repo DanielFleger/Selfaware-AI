@@ -1,0 +1,1283 @@
+### 0x0045b830 updatePopularity | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0045B830
+ void GameStateStructures::updatePopularity()
+ {
+ int* piVar1;
+ short sVar2;
+ int _popularityChangeCrowdingBased;
+ int _taxBasedPopularityChange;
+ uint _fairPopularityBonus;
+ uint _aleCoverage;
+ uint _alePopChange;
+ int _playingCertainSound;
+ int _playingCertainSound_2;
+ int _popularityChangeFoodBased;
+ uint _religionBasedChange;
+ uint uVar3;
+ SpeechEffectID speechID;
+ uint local_10;
+ uint local_c;
+ int _playerID;
+ uint _popChangeFearFactor;
+ int _rations;
+ int _foodTypesEaten;
+ int _crowding;
+ int _taxes;
+ int _popularity_2;
+ int _blessedPeople;
+ uint _fearFactorLevel;
+ int _popularity_3;
+ int _field_0x22c4;
+ int popularity_4;
+ int _popularity_5;
+ int _foodTypesInStock;
+ int _gold;
+ int* _pPopularity;
+ int _population;
+ _popChangeFearFactor = 0;
+ if (this->mapAndTime.weekChanged != 0) {
+ recomputeReligionBonuses();
+ _playerID = 1;
+ do {
+ if ((0 < this->playerDataArray[_playerID].keep.id)
+ && (0 < this->playerDataArray[_playerID].campground.id)) {
+ if ((DAT_GameCore.gameMode_2 == GM_BUILDERUnk)
+ && (DAT_MapPropertiesState.SEC_U3_MapType2_1 == MT_SIEGE)) {
+ this->playerDataArray[_playerID].popularity
+ = -(uint)(DAT_GameSynchronyState.currentPlayerSlotID != 2) & 10000;
+ } else {
+ _population = this->playerDataArray[_playerID].currentPopulation;
+ if ((_population < 4) && (this->playerDataArray[_playerID].popularity < 5000)) {
+ /*
+ 75(00)
+ */
+ this->playerDataArray[_playerID].popularity = 7500;
+ } else {
+ _gold = this->playerDataArray[_playerID].currentResources[0xf];
+ _pPopularity = &this->playerDataArray[_playerID].popularity;
+ this->playerDataArray[_playerID].storedPopularityPercent
+ = this->playerDataArray[_playerID].popularity;
+ _foodTypesInStock = this->playerDataArray[_playerID].foodTypesInStock;
+ local_10 = 0;
+ if (_foodTypesInStock < 1) {
+ piVar1 = &this->playerDataArray[_playerID].weeksWithoutFood;
+ *piVar1 = *piVar1 + 1;
+ } else {
+ this->playerDataArray[_playerID].weeksWithoutFood = 0;
+ }
+ if (_population < 1) {
+ _popularityChangeFoodBased = 200;
+ } else if (_foodTypesInStock < 1) {
+ /*
+ -200
+ */
+ _popularityChangeFoodBased = 4294967096;
+ } else {
+ _rations = this->playerDataArray[_playerID].rationsSetting;
+ if (_rations == 0) {
+ /*
+ -200
+ */
+ _popularityChangeFoodBased = 4294967096;
+ } else if (_rations == 1) {
+ /*
+ -101?
+ */
+ _popularityChangeFoodBased = 0xffffff9c;
+ } else if (_rations == 2) {
+ _popularityChangeFoodBased = 0;
+ } else if (_rations == 4) {
+ _popularityChangeFoodBased = 200;
+ } else {
+ _popularityChangeFoodBased = 100;
+ if (_rations != 3) {
+ /*
+ different way of saying 0
+ */
+ _popularityChangeFoodBased = _popChangeFearFactor;
+ }
+ }
+ }
+ _foodTypesEaten = this->playerDataArray[_playerID].foodTypesCurrentlyEaten;
+ if (_foodTypesEaten == 2) {
+ _popularityChangeFoodBased = _popularityChangeFoodBased + 25;
+ } else if (_foodTypesEaten == 3) {
+ _popularityChangeFoodBased = _popularityChangeFoodBased + 50;
+ } else if (_foodTypesEaten == 4) {
+ _popularityChangeFoodBased = _popularityChangeFoodBased + 75;
+ }
+ /*
+ sets popularity
+ */
+ *_pPopularity = *_pPopularity + _popularityChangeFoodBased;
+ this->playerDataArray[_playerID].popularityChangeBasedOnFood = _popularityChangeFoodBased;
+ if (_popularityChangeFoodBased < 0) {
+ local_10 = _popularityChangeFoodBased;
+ }
+ local_c = (uint)(_popularityChangeFoodBased < 0);
+ _crowding = this->playerDataArray[_playerID].crowding;
+ if (_crowding < 100) {
+ _popularityChangeCrowdingBased = 0;
+ } else if (_crowding < 120) {
+ /*
+ -50
+ */
+ _popularityChangeCrowdingBased = 0xffffffce;
+ } else if (_crowding < 140) {
+ /*
+ -100
+ */
+ _popularityChangeCrowdingBased = 0xffffff9c;
+ } else if (_crowding < 160) {
+ /*
+ -150
+ */
+ _popularityChangeCrowdingBased = 0xffffff6a;
+ } else {
+ /*
+ -200 or -250
+ */
+ _popularityChangeCrowdingBased = ((180 < _crowding) - 1 & 50) - 4294967046;
+ }
+ *_pPopularity = *_pPopularity + _popularityChangeCrowdingBased;
+ this->playerDataArray[_playerID].popularityChangeBasedOnCrowding
+ = _popularityChangeCrowdingBased;
+ if (_popularityChangeCrowdingBased < (int)local_10) {
+ local_c = 2;
+ local_10 = _popularityChangeCrowdingBased;
+ }
+ _taxes = this->playerDataArray[_playerID].taxesSetting;
+ if ((_taxes < 3) && (_gold < 1)) {
+ _taxBasedPopularityChange = 25;
+ } else if (_taxes == 0) {
+ _taxBasedPopularityChange = 175;
+ } else if (_taxes == 1) {
+ _taxBasedPopularityChange = 125;
+ } else if (_taxes == 2) {
+ _taxBasedPopularityChange = 75;
+ } else if (_taxes == 3) {
+ _taxBasedPopularityChange = 25;
+ } else if (_taxes == 4) {
+ /*
+ -50
+ */
+ _taxBasedPopularityChange = 0xffffffce;
+ } else if (_taxes == 5) {
+ /*
+ -100
+ */
+ _taxBasedPopularityChange = 0xffffff9c;
+ } else if (_taxes == 6) {
+ /*
+ -150
+ */
+ _taxBasedPopularityChange = 0xffffff6a;
+ } else if (_taxes == 7) {
+ /*
+ -200
+ */
+ _taxBasedPopularityChange = 0xffffff38;
+ } else if (_taxes == 8) {
+ /*
+ -300
+ */
+ _taxBasedPopularityChange = 0xfffffed4;
+ } else if (_taxes == 9) {
+ /*
+ -400
+ */
+ _taxBasedPopularityChange = 0xfffffe70;
+ } else {
+ /*
+ True is always 1, False is 0 -100 so if _taxes == 11: -600!
+ */
+ _taxBasedPopularityChange = (-(uint)(_taxes != 10) & 0xffffff9c) - 4294966796;
+ }
+ *_pPopularity = *_pPopularity + _taxBasedPopularityChange;
+ _popularity_2 = *_pPopularity;
+ this->playerDataArray[_playerID].popularityChangeBasedOnTax = _taxBasedPopularityChange;
+ if (_taxBasedPopularityChange < (int)local_10) {
+ local_c = 4;
+ local_10 = _taxBasedPopularityChange;
+ }
+ this->playerDataArray[_playerID].field642_0x2168 = 0;
+ if (0 < (int)local_10) {
+ local_10 = 0;
+ local_c = 3;
+ }
+ _fairPopularityBonus
+ = -(uint)(this->playerDataArray[_playerID].areCarnivalUnitsPresent != FALSE) & 400;
+ *_pPopularity = _popularity_2 + _fairPopularityBonus;
+ this->playerDataArray[_playerID].popularityChangeBasedOnFair = _fairPopularityBonus;
+ if ((int)_fairPopularityBonus < (int)local_10) {
+ local_c = 5;
+ local_10 = _fairPopularityBonus;
+ }
+ _blessedPeople = this->playerDataArray[_playerID].blessedPeoplePercentage;
+ if (_blessedPeople < 24) {
+ _religionBasedChange = 0;
+ } else if (_blessedPeople < 49) {
+ _religionBasedChange = 50;
+ } else if (_blessedPeople < 74) {
+ _religionBasedChange = 100;
+ } else {
+ /*
+ -50
+ */
+ /*
+ < 95? => 150 >= 95? 200
+ */
+ _religionBasedChange = ((94 < _blessedPeople) - 1 & 4294967246) + 200;
+ }
+ if (this->playerDataArray[_playerID].ownsChurchUnk != 0) {
+ _religionBasedChange = _religionBasedChange + 25;
+ }
+ if (this->playerDataArray[_playerID].ownsCathedralUnk != 0) {
+ _religionBasedChange = _religionBasedChange + 50;
+ }
+ if ((int)_religionBasedChange < 0) {
+ _religionBasedChange = 0;
+ }
+ *_pPopularity = *_pPopularity + _religionBasedChange;
+ piVar1 = &this->playerDataArray[_playerID].popularityReligionBasedDiv25;
+ *piVar1 = *piVar1 + (int)_religionBasedChange / 0x19;
+ this->playerDataArray[_playerID].popularityChangeBasedOnReligion = _religionBasedChange;
+ if ((int)_religionBasedChange < (int)local_10) {
+ local_c = 6;
+ local_10 = _religionBasedChange;
+ }
+ _aleCoverage = computeAleCoverage(_playerID);
+ this->playerDataArray[_playerID].beerPercentage = _aleCoverage;
+ if ((int)_aleCoverage < 25) {
+ _alePopChange = 0;
+ } else if ((int)_aleCoverage < 50) {
+ _alePopChange = 50;
+ } else if ((int)_aleCoverage < 75) {
+ _alePopChange = 100;
+ } else {
+ /*
+ if aleCoverage > 99: 200; else: 150
+ */
+ _alePopChange = ((99 < (int)_aleCoverage) - 1 & 4294967246) + 200;
+ }
+ *_pPopularity = *_pPopularity + _alePopChange;
+ this->playerDataArray[_playerID].popularityChangeAleBased = _alePopChange;
+ if ((int)_alePopChange < (int)local_10) {
+ local_c = 7;
+ local_10 = _alePopChange;
+ }
+ _fearFactorLevel = this->playerDataArray[_playerID].fearFactorLevel;
+ if ((int)_fearFactorLevel < 1) {
+ if (_fearFactorLevel < 0x80000000) {
+ _popChangeFearFactor = 0;
+ } else {
+ /*
+ 25
+ */
+ _popChangeFearFactor = _fearFactorLevel * 0x19;
+ }
+ } else {
+ _popChangeFearFactor = _fearFactorLevel * 0x19;
+ }
+ *_pPopularity = *_pPopularity + _popChangeFearFactor;
+ _popularity_3 = *_pPopularity;
+ this->playerDataArray[_playerID].popularityChangeFearFactorBased = _popChangeFearFactor;
+ if ((int)_popChangeFearFactor < (int)local_10) {
+ local_c = 8;
+ }
+ sVar2 = this->playerDataArray[_playerID].someCount48;
+ if (sVar2 == 0) {
+ this->playerDataArray[_playerID].someCount54 = 0;
+ this->playerDataArray[_playerID].someCount60 = 0;
+ } else {
+ this->playerDataArray[_playerID].someCount48 = sVar2 + -1;
+ _population = this->playerDataArray[_playerID].someCount60;
+ if (_population != 0) {
+ this->playerDataArray[_playerID].someCount60 = _population + 1;
+ }
+ _field_0x22c4 = this->playerDataArray[_playerID].someCount60;
+ if (_field_0x22c4 < 1) {
+ *_pPopularity = _popularity_3 + 4294967146;
+ /*
+ 150
+ */
+ this->playerDataArray[_playerID].someCount54 = -0x96;
+ } else if (_field_0x22c4 < 6) {
+ *_pPopularity = _popularity_3 + 4294967171;
+ /*
+ 125
+ */
+ this->playerDataArray[_playerID].someCount54 = -0x7d;
+ } else if (_field_0x22c4 < 10) {
+ *_pPopularity = _popularity_3 + 4294967196;
+ this->playerDataArray[_playerID].someCount54 = -100;
+ } else if (_field_0x22c4 < 15) {
+ *_pPopularity = _popularity_3 + 4294967221;
+ this->playerDataArray[_playerID].someCount54 = -0x4b;
+ } else if (_field_0x22c4 < 20) {
+ *_pPopularity = _popularity_3 + 4294967246;
+ this->playerDataArray[_playerID].someCount54 = -0x32;
+ } else {
+ /*
+ 25 or 0
+ */
+ uVar3 = (25 < _field_0x22c4) - 1 & 4294967271;
+ *_pPopularity = _popularity_3 + uVar3;
+ this->playerDataArray[_playerID].someCount54 = (short)uVar3;
+ }
+ }
+ sVar2 = this->playerDataArray[_playerID].someCount49;
+ if (sVar2 == 0) {
+ this->playerDataArray[_playerID].someCount55 = 0;
+ } else {
+ *_pPopularity = *_pPopularity + -0x4b;
+ this->playerDataArray[_playerID].someCount49 = sVar2 + -1;
+ this->playerDataArray[_playerID].someCount55 = -0x4b;
+ }
+ sVar2 = this->playerDataArray[_playerID].someCount50;
+ if (sVar2 == 0) {
+ this->playerDataArray[_playerID].someCount56 = 0;
+ } else {
+ *_pPopularity = *_pPopularity + -0x7d;
+ this->playerDataArray[_playerID].someCount50 = sVar2 + -1;
+ this->playerDataArray[_playerID].someCount56 = -0x7d;
+ }
+ sVar2 = this->playerDataArray[_playerID].someCount51;
+ if (sVar2 == 0) {
+ this->playerDataArray[_playerID].someCount57 = 0;
+ } else {
+ *_pPopularity = *_pPopularity + -0x32;
+ this->playerDataArray[_playerID].someCount51 = sVar2 + -1;
+ this->playerDataArray[_playerID].someCount57 = -0x32;
+ }
+ sVar2 = this->playerDataArray[_playerID].someCount52;
+ if (sVar2 == 0) {
+ this->playerDataArray[_playerID].someCount58 = 0;
+ } else {
+ *_pPopularity = *_pPopularity + 200;
+ this->playerDataArray[_playerID].someCount52 = sVar2 + -1;
+ this->playerDataArray[_playerID].someCount58 = 200;
+ }
+ sVar2 = this->playerDataArray[_playerID].someCount53;
+ if (sVar2 == 0) {
+ this->playerDataArray[_playerID].someCount59 = 0;
+ } else {
+ *_pPopularity = *_pPopularity + 0x32;
+ this->playerDataArray[_playerID].someCount53 = sVar2 + -1;
+ this->playerDataArray[_playerID].someCount59 = 0x32;
+ }
+ _popularity_5 = *_pPopularity;
+ this->playerDataArray[_playerID].someCount40 = local_c;
+ if (_popularity_5 < 0) {
+ *_pPopularity = 0;
+ }
+ if (10000 < *_pPopularity) {
+ *_pPopularity = 10000;
+ }
+ _population = this->playerDataArray[_playerID].storedPopularityPercent;
+ popularity_4 = *_pPopularity;
+ if (popularity_4 < _population) {
+ if (((popularity_4 + 500 < (int)this->playerDataArray[_playerID].someCount44)
+ && (3 < this->playerDataArray[_playerID].currentPopulation))
+ && (this->playerDataArray[_playerID].field25_0x40 == 0)) {
+ _population = *_pPopularity;
+ this->playerDataArray[_playerID].field25_0x40 = 1;
+ this->playerDataArray[_playerID].someCount44 = (short)_population;
+ if ((_playerID == DAT_GameSynchronyState.currentPlayerSlotID)
+ && (_playingCertainSound = shouldSoundXNotBePlaying(),
+ _playingCertainSound == 0)) {
+ speechID = SEID_POP_FALLING;
+ LAB_0045bf23:
+ playSpeechSFX(speechID);
+ }
+ }
+ } else if ((((_population < popularity_4)
+ && ((int)this->playerDataArray[_playerID].someCount44
+ < popularity_4 + -500))
+ && (3 < this->playerDataArray[_playerID].currentPopulation))
+ && (this->playerDataArray[_playerID].field25_0x40 == 1)) {
+ this->playerDataArray[_playerID].field25_0x40 = 0;
+ this->playerDataArray[_playerID].someCount44 = (short)*_pPopularity;
+ if ((_playerID == DAT_GameSynchronyState.currentPlayerSlotID)
+ && (_playingCertainSound_2 = shouldSoundXNotBePlaying(),
+ _playingCertainSound_2 == 0)) {
+ speechID = SEID_POP_RISING;
+ goto LAB_0045bf23;
+ }
+ }
+ }
+ }
+ }
+ _playerID = _playerID + 1;
+ } while (_playerID < 9);
+ }
+ return;
+ }
+}
+}
+
+### 0x0045bf50 updateTaxing | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0045BF50
+ void GameStateStructures::updateTaxing()
+ {
+ int _calculatedTaxBribe;
+ int _calculatedTaxIncome;
+ PlayerData* _playerHandle;
+ int _currentPlayerIndex;
+ int _trueIncome;
+ int* _pTotalGold;
+ int _bribe;
+ int _taxesSetting;
+ int _finalPlayerGold;
+ int* _pPlayerGold;
+ _currentPlayerIndex = 1;
+ _playerHandle = &this->playerDataArray[1];
+ do {
+ if ((0 < (_playerHandle->keep).id) && (0 < (_playerHandle->campground).id)) {
+ _taxesSetting = _playerHandle->taxesSetting;
+ if (_taxesSetting < 3) {
+ _calculatedTaxBribe
+ = calculateTaxBribeExpenseForPlayer(_currentPlayerIndex, _taxesSetting, _playerHandle->currentPopulation);
+ _playerHandle->taxBribeMonthlyAccumulator
+ = _playerHandle->taxBribeMonthlyAccumulator + _calculatedTaxBribe;
+ } else if (3 < _taxesSetting) {
+ _calculatedTaxIncome
+ = calculateTaxIncomeForPlayer(
+ _currentPlayerIndex, _taxesSetting, _playerHandle->currentPopulation);
+ _playerHandle->taxIncomeMonthlyAccumulator
+ = _playerHandle->taxIncomeMonthlyAccumulator + _calculatedTaxIncome;
+ }
+ if (this->mapAndTime.monthChanged != 0) {
+ _playerHandle->taxBribeMonthlyAccumulator = _playerHandle->taxBribeMonthlyAccumulator / 10;
+ _trueIncome = _playerHandle->taxIncomeMonthlyAccumulator / 10;
+ _playerHandle->currentResources[0xf] = _playerHandle->currentResources[0xf] + _trueIncome;
+ _playerHandle->taxIncomeMonthlyAccumulator = _trueIncome;
+ _pTotalGold = DAT_GameSynchronyState.finalResults.finalGold + _currentPlayerIndex;
+ *_pTotalGold = *_pTotalGold + _trueIncome;
+ _bribe = _playerHandle->taxBribeMonthlyAccumulator;
+ _pPlayerGold = _playerHandle->currentResources + 0xf;
+ *_pPlayerGold = *_pPlayerGold - _bribe;
+ if (*_pPlayerGold < 0) {
+ _playerHandle->currentResources[0xf] = 0;
+ }
+ _playerHandle->lastMonthsBribeTax = _bribe;
+ _finalPlayerGold = _playerHandle->currentResources[0xf];
+ _playerHandle->lastMonthsIncomeTax = _playerHandle->taxIncomeMonthlyAccumulator;
+ _playerHandle->taxIncomeMonthlyAccumulator = 0;
+ _playerHandle->taxBribeMonthlyAccumulator = 0;
+ _playerHandle->beforeLastMonthsGold = _playerHandle->lastMonthsGold;
+ _playerHandle->lastMonthsGold = (short)_finalPlayerGold;
+ _playerHandle->marketGold = 0;
+ }
+ }
+ _currentPlayerIndex = _currentPlayerIndex + 1;
+ _playerHandle = _playerHandle + 0xe7d;
+ } while (_currentPlayerIndex < 9);
+ return;
+ }
+}
+}
+
+### 0x0045c050 spawnPoisonCloudsAtRandomStorageOrArmyBuilding | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0045C050
+ void GameStateStructures::spawnPoisonCloudsAtRandomStorageOrArmyBuilding(int playerID, int count)
+ {
+ BuildingLogicalStateShort BVar1;
+ Building* _building;
+ int iVar2;
+ int iVar3;
+ int iVar4;
+ PlayerData* _playerData;
+ iVar2 = this->playerDataArray[playerID].campground.id;
+ iVar4 = 0;
+ if ((0 < iVar2)
+ && (spawnPoisonCloudsAroundBuilding(
+ iVar2),
+ 1 < DAT_BuildingsState.maxBuildingsCount)) {
+ _building = &DAT_BuildingsState.buildings[1];
+ iVar2 = DAT_BuildingsState.maxBuildingsCount + -1;
+ do {
+ if (((_building->logicalState != ((BuildingLogicalState)0))
+ && (_building->logicalState != BLS_REMOVE))
+ && (_building->owner == playerID)) {
+ switch (_building->buildingType) {
+ case BT_MERCENARYPOST:
+ case BT_BARRACKS:
+ case BT_STOCKPILE:
+ case BT_ARMORY:
+ case BT_GRANARY:
+ case BT_ENGINEERSGUILD:
+ case BT_TUNNELERSGUILD:
+ iVar4 = iVar4 + 1;
+ }
+ }
+ _building = _building + 0x196;
+ iVar2 = iVar2 + -1;
+ } while (iVar2 != 0);
+ if (iVar4 != 0) {
+ for (; 0 < count; count = count + -1) {
+ iVar3 = (int)SEC_RNG::instance.currentNumber2 % iVar4;
+ nextRandomNumber2();
+ iVar2 = 1;
+ if (1 < DAT_BuildingsState.maxBuildingsCount) {
+ do {
+ BVar1 = DAT_BuildingsState.buildings[iVar2].logicalState;
+ if (((BVar1 != ((BuildingLogicalState)0)) && (BVar1 != BLS_REMOVE))
+ && (DAT_BuildingsState.buildings[iVar2].owner == playerID)) {
+ switch (DAT_BuildingsState.buildings[iVar2].buildingType) {
+ case BT_MERCENARYPOST:
+ case BT_BARRACKS:
+ case BT_STOCKPILE:
+ case BT_ARMORY:
+ case BT_GRANARY:
+ case BT_ENGINEERSGUILD:
+ case BT_TUNNELERSGUILD:
+ iVar3 = iVar3 + -1;
+ if (iVar3 < 0) {
+ spawnPoisonCloudsAroundBuilding(iVar2);
+ iVar2 = 2000;
+ }
+ }
+ }
+ iVar2 = iVar2 + 1;
+ } while (iVar2 < DAT_BuildingsState.maxBuildingsCount);
+ }
+ }
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x0045c1c0 migrateGameStateForMapVersion | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0045C1C0
+ void GameStateStructures::migrateGameStateForMapVersion(
+ PackagedFileMagicNum receivedMapVersion, PackagedFileMagicNum packagerMapVersion)
+ {
+ UnitTypeShort UVar1;
+ short sVar2;
+ short sVar3;
+ Unit* _pUnits;
+ Unit* pUVar5;
+ short* psVar4;
+ short* psVar5;
+ int iVar6;
+ int (*paiVar7)[2500];
+ int iVar8;
+ int* piVar9;
+ short* _pAssemblyPoints;
+ Unit* _unit;
+ int iVar10;
+ int (*paiVar11)[2000];
+ PlayerData* _pEnemies;
+ PlayerData* _pPlayerData;
+ int (*paiVar12)[2000];
+ int (*paiVar13)[2500];
+ if (((DAT_GameCore.gameMode_2 == GM_SKIRMISH_AND_MULTIPLAYER)
+ && (DAT_GameCore.isSkirmishTrail == TRUE))
+ && (DAT_GameCore.currentTrailType == TT_EXTREME)) {
+ DAT_GameCore.isSkirmishTrail = FALSE;
+ DAT_GameCore.currentTrailType = TT_FIRST_EDITION;
+ }
+ ValidateLadyAndJesterUnitRefs();
+ recountStablesAndHorses();
+ if (0x99 < (int)receivedMapVersion) {
+ pruneInvalidEventTriggerLinks();
+ }
+ if (receivedMapVersion != packagerMapVersion) {
+ if ((int)receivedMapVersion < 0x90) {
+ clearActiveClimbDataOfType6And7();
+ }
+ if ((int)receivedMapVersion < 0x7a) {
+ InitPopularityAndRecruitableDefaults();
+ }
+ if ((int)receivedMapVersion < 0x7b) {
+ ResetTeams();
+ }
+ if ((int)receivedMapVersion < 0x7f) {
+ psVar5 = DAT_MapPropertiesState.buildingAvailability;
+ for (iVar6 = 0x32; iVar6 != 0; iVar6 = iVar6 + -1) {
+ psVar5[0] = 1;
+ psVar5[1] = 1;
+ psVar5 = psVar5 + 2;
+ }
+ }
+ if ((int)receivedMapVersion < 0x82) {
+ this->mapAndTime.populationIndex = 0;
+ this->mapAndTime.lionLocationsXY[0].x = 0;
+ this->mapAndTime.lionLocationsXY[0].y = 0;
+ this->mapAndTime.lionLocationsXY[1].x = 0;
+ this->mapAndTime.lionLocationsXY[1].y = 0;
+ this->mapAndTime.lionLocationsXY[2].x = 0;
+ this->mapAndTime.lionLocationsXY[2].y = 0;
+ this->mapAndTime.lionLocationsXY[3].x = 0;
+ this->mapAndTime.lionLocationsXY[3].y = 0;
+ this->mapAndTime.field2269_0xdee = 0;
+ this->mapAndTime.unitLadyRelated = 0;
+ this->mapAndTime.unitJesterRelated = 0;
+ }
+ if ((int)receivedMapVersion < 0x85) {
+ iVar6 = 1;
+ _unit = &DAT_UnitsState.units[1];
+ do {
+ if ((_unit->logicalState != ULS_INVISIBLE)
+ && (_unit->unitType != ((UnitType)0))) {
+ assignNameToUnit(
+ iVar6);
+ }
+ _unit = _unit + 0x248;
+ iVar6 = iVar6 + 1;
+ } while ((int)_unit < 0x165141a);
+ this->mapAndTime.field3092_0x2654 = 0;
+ this->mapAndTime.field3093_0x2658 = 0;
+ this->mapAndTime.field3094_0x265c = 0;
+ this->mapAndTime.field3095_0x2660 = 0;
+ this->mapAndTime.field3096_0x2664 = 0;
+ this->mapAndTime.field3097_0x2668 = 0;
+ this->mapAndTime.field3098_0x266c = 0;
+ this->mapAndTime.field3099_0x2670 = 0;
+ this->mapAndTime.field3100_0x2674 = 0;
+ this->mapAndTime.field3101_0x2678 = 0;
+ this->mapAndTime.field3102_0x267c = 0;
+ this->mapAndTime.field3103_0x2680 = 0;
+ this->mapAndTime.field3104_0x2684 = 0;
+ this->mapAndTime.field3105_0x2688 = 0;
+ this->mapAndTime.field3106_0x268c = 0;
+ this->mapAndTime.field3107_0x2690 = 0;
+ this->mapAndTime.field3108_0x2694 = 0;
+ this->mapAndTime.field3109_0x2698 = 0;
+ this->mapAndTime.field3110_0x269c = 0;
+ this->mapAndTime.field3111_0x26a0 = 0;
+ this->mapAndTime.field3112_0x26a4 = 0;
+ this->mapAndTime.field3113_0x26a8 = 0;
+ this->mapAndTime.field3114_0x26ac = 0;
+ this->mapAndTime.field3115_0x26b0 = 0;
+ this->mapAndTime.field3116_0x26b4 = 0;
+ this->mapAndTime.field3117_0x26b8 = 0;
+ this->mapAndTime.field3118_0x26bc = 0;
+ this->mapAndTime.field3119_0x26c0 = 0;
+ this->mapAndTime.field3120_0x26c4 = 0;
+ this->mapAndTime.field3121_0x26c8 = 0;
+ this->mapAndTime.field3122_0x26cc = 0;
+ this->mapAndTime.field3123_0x26d0 = 0;
+ }
+ if ((int)receivedMapVersion < 0x87) {
+ this->mapAndTime.field2_0x8 = 0;
+ this->mapAndTime.field12_0x30 = 0;
+ this->mapAndTime.field22_0x58[0][0] = -1;
+ this->mapAndTime.field23_0x80 = -1;
+ this->mapAndTime.field3_0xc = 0;
+ this->mapAndTime.field13_0x34 = 0;
+ this->mapAndTime.field22_0x58[0][1] = -1;
+ this->mapAndTime.field24_0x84 = -1;
+ this->mapAndTime.field4_0x10 = 0;
+ this->mapAndTime.field14_0x38 = 0;
+ this->mapAndTime.field22_0x58[0][2] = -1;
+ this->mapAndTime.field25_0x88 = -1;
+ this->mapAndTime.field5_0x14 = 0;
+ this->mapAndTime.field15_0x3c = 0;
+ this->mapAndTime.field22_0x58[0][3] = -1;
+ this->mapAndTime.field26_0x8c = -1;
+ this->mapAndTime.field6_0x18 = 0;
+ this->mapAndTime.field16_0x40 = 0;
+ this->mapAndTime.field22_0x58[0][4] = -1;
+ this->mapAndTime.field27_0x90 = -1;
+ this->mapAndTime.field7_0x1c = 0;
+ this->mapAndTime.field17_0x44 = 0;
+ this->mapAndTime.field22_0x58[1][0] = -1;
+ this->mapAndTime.field28_0x94 = -1;
+ this->mapAndTime.field8_0x20 = 0;
+ this->mapAndTime.field18_0x48 = 0;
+ this->mapAndTime.field22_0x58[1][1] = -1;
+ this->mapAndTime.field29_0x98 = -1;
+ this->mapAndTime.field9_0x24 = 0;
+ this->mapAndTime.field19_0x4c = 0;
+ this->mapAndTime.field22_0x58[1][2] = -1;
+ this->mapAndTime.field30_0x9c = -1;
+ this->mapAndTime.field10_0x28 = 0;
+ this->mapAndTime.field20_0x50 = 0;
+ this->mapAndTime.field22_0x58[1][3] = -1;
+ this->mapAndTime.field31_0xa0 = -1;
+ this->mapAndTime.field11_0x2c = 0;
+ this->mapAndTime.field21_0x54 = 0;
+ this->mapAndTime.field22_0x58[1][4] = -1;
+ this->mapAndTime.field32_0xa4 = -1;
+ }
+ if ((int)receivedMapVersion < 0x88) {
+ this->mapAndTime.gameEventRelatedCountdown = 0;
+ this->mapAndTime.unk_signpostDistance = 30;
+ }
+ if ((int)receivedMapVersion < 0x8a) {
+ this->playerDataArray[1].aiControlStatusRelated = -1000;
+ this->playerDataArray[2].aiControlStatusRelated = -1000;
+ this->playerDataArray[3].aiControlStatusRelated = -1000;
+ this->playerDataArray[4].aiControlStatusRelated = -1000;
+ this->playerDataArray[5].aiControlStatusRelated = -1000;
+ this->playerDataArray[6].aiControlStatusRelated = -1000;
+ this->playerDataArray[7].aiControlStatusRelated = -1000;
+ this->playerDataArray[8].aiControlStatusRelated = -1000;
+ }
+ if ((int)receivedMapVersion < 0x8b) {
+ iVar6 = 1;
+ _pPlayerData = &this->playerDataArray[1];
+ do {
+ iVar10 = 0;
+ _pPlayerData->counter = 0;
+ iVar8 = 0;
+ _pUnits = &DAT_UnitsState.units[1];
+ do {
+ if (((_pUnits->logicalState != ULS_INVISIBLE)
+ && (UVar1 = _pUnits->unitType, UVar1 != ((UnitType)0)))
+ && (_pUnits->owner == iVar6)) {
+ if (UVar1 == UT_COW) {
+ iVar10 = iVar10 + 1;
+ }
+ if ((UVar1 == UT_S_CATAPULT)
+ || (UVar1 == UT_S_TREBUCHET)) {
+ iVar8 = iVar8 + 1;
+ }
+ }
+ if (((_pUnits[0x247] != 0) && (sVar2 = _pUnits[0x248], sVar2 != 0))
+ && ((short)_pUnits[0x24c] == iVar6)) {
+ if (sVar2 == 0x33) {
+ iVar10 = iVar10 + 1;
+ }
+ if ((sVar2 == 0x27) || (sVar2 == 0x28)) {
+ iVar8 = iVar8 + 1;
+ }
+ }
+ if (((_pUnits[0x48f] != 0) && (sVar2 = _pUnits[0x490], sVar2 != 0))
+ && ((short)_pUnits[0x494] == iVar6)) {
+ if (sVar2 == 0x33) {
+ iVar10 = iVar10 + 1;
+ }
+ if ((sVar2 == 0x27) || (sVar2 == 0x28)) {
+ iVar8 = iVar8 + 1;
+ }
+ }
+ _pUnits = _pUnits + 0x6d8;
+ } while ((int)_pUnits < 0x165141a);
+ if ((_pPlayerData->keep).id == 0) {
+ _pPlayerData->counter = iVar8;
+ } else {
+ _pPlayerData->counter = iVar10;
+ }
+ _pPlayerData = _pPlayerData + 0xe7d;
+ iVar6 = iVar6 + 1;
+ } while ((int)_pPlayerData < 0x117ea04);
+ }
+ sVar3 = this->mapAndTime.unitJesterRelated;
+ sVar2 = this->mapAndTime.unitLadyRelated;
+ if ((int)receivedMapVersion < 141) {
+ this->mapAndTime.field2_0x8 = this->mapAndTime.field3124_0x26d4;
+ this->mapAndTime.field12_0x30 = this->mapAndTime.field3134_0x26fc;
+ this->mapAndTime.field22_0x58[0][0] = this->mapAndTime.field3144_0x2724;
+ this->mapAndTime.field23_0x80 = this->mapAndTime.field3154_0x274c;
+ this->mapAndTime.field3_0xc = this->mapAndTime.field3125_0x26d8;
+ this->mapAndTime.field13_0x34 = this->mapAndTime.field3135_0x2700;
+ this->mapAndTime.field22_0x58[0][1] = this->mapAndTime.field3145_0x2728;
+ this->mapAndTime.field24_0x84 = this->mapAndTime.field3155_0x2750;
+ this->mapAndTime.field4_0x10 = this->mapAndTime.field3126_0x26dc;
+ this->mapAndTime.field14_0x38 = this->mapAndTime.field3136_0x2704;
+ this->mapAndTime.field22_0x58[0][2] = this->mapAndTime.field3146_0x272c;
+ this->mapAndTime.field25_0x88 = this->mapAndTime.field3156_0x2754;
+ this->mapAndTime.field5_0x14 = this->mapAndTime.field3127_0x26e0;
+ this->mapAndTime.field15_0x3c = this->mapAndTime.field3137_0x2708;
+ this->mapAndTime.field22_0x58[0][3] = this->mapAndTime.field3147_0x2730;
+ this->mapAndTime.field26_0x8c = this->mapAndTime.field3157_0x2758;
+ this->mapAndTime.field6_0x18 = this->mapAndTime.field3128_0x26e4;
+ this->mapAndTime.field16_0x40 = this->mapAndTime.field3138_0x270c;
+ this->mapAndTime.field22_0x58[0][4] = this->mapAndTime.field3148_0x2734;
+ this->mapAndTime.field27_0x90 = this->mapAndTime.field3158_0x275c;
+ this->mapAndTime.field7_0x1c = this->mapAndTime.field3129_0x26e8;
+ this->mapAndTime.field17_0x44 = this->mapAndTime.field3139_0x2710;
+ this->mapAndTime.field22_0x58[1][0] = this->mapAndTime.field3149_0x2738;
+ this->mapAndTime.field28_0x94 = this->mapAndTime.field3159_0x2760;
+ this->mapAndTime.field8_0x20 = this->mapAndTime.field3130_0x26ec;
+ this->mapAndTime.field18_0x48 = this->mapAndTime.field3140_0x2714;
+ this->mapAndTime.field22_0x58[1][1] = this->mapAndTime.field3150_0x273c;
+ this->mapAndTime.field29_0x98 = this->mapAndTime.field3160_0x2764;
+ this->mapAndTime.field9_0x24 = this->mapAndTime.field3131_0x26f0;
+ this->mapAndTime.field19_0x4c = this->mapAndTime.field3141_0x2718;
+ this->mapAndTime.field22_0x58[1][2] = this->mapAndTime.field3151_0x2740;
+ this->mapAndTime.field30_0x9c = this->mapAndTime.field3161_0x2768;
+ this->mapAndTime.field10_0x28 = this->mapAndTime.field3132_0x26f4;
+ this->mapAndTime.field20_0x50 = this->mapAndTime.field3142_0x271c;
+ this->mapAndTime.field22_0x58[1][3] = this->mapAndTime.field3152_0x2744;
+ this->mapAndTime.field31_0xa0 = this->mapAndTime.field3162_0x276c;
+ this->mapAndTime.field11_0x2c = this->mapAndTime.field3133_0x26f8;
+ this->mapAndTime.field21_0x54 = this->mapAndTime.field3143_0x2720;
+ this->mapAndTime.field22_0x58[1][4] = this->mapAndTime.field3153_0x2748;
+ this->mapAndTime.field32_0xa4 = this->mapAndTime.field3163_0x2770;
+ }
+ if (((int)receivedMapVersion < 143)
+ && (DAT_GameCore.gameMode_2 == GM_CAMPAIGN_MISSION)) {
+ pUVar5 = &DAT_UnitsState.units[1];
+ do {
+ if ((pUVar5->logicalState != ULS_INVISIBLE)
+ && (((pUVar5->unitType == UT_JESTER && (sVar3 == 0))
+ || ((pUVar5->unitType == UT_LADY && (sVar2 == 0)))))) {
+ pUVar5->logicalState = ULS_REMOVE;
+ }
+ pUVar5 = pUVar5 + 0x248;
+ } while ((int)pUVar5 < 0x1651418);
+ }
+ if ((int)receivedMapVersion < 148) {
+ psVar5 = this->playerDataArray[1].isFoodTypeBanned;
+ do {
+ psVar5[0] = 0;
+ psVar5[1] = 0;
+ psVar5[2] = 0;
+ psVar5[3] = 0;
+ psVar5 = psVar5 + 0x1cfa;
+ } while ((int)psVar5 < 0x117ea0c);
+ }
+ if ((int)receivedMapVersion < 0x99) {
+ resetEuroUnitRestrictions();
+ }
+ if ((int)receivedMapVersion < 0x9a) {
+ removeProcessedInvasionEvents();
+ }
+ if ((int)receivedMapVersion < 0x9c) {
+ this->playerDataArray[0].sumOfTotalEnemyUnitsCount = this->playerDataArray[0].enemies;
+ this->playerDataArray[1].sumOfTotalEnemyUnitsCount = this->playerDataArray[1].enemies;
+ this->playerDataArray[2].sumOfTotalEnemyUnitsCount = this->playerDataArray[2].enemies;
+ this->playerDataArray[3].sumOfTotalEnemyUnitsCount = this->playerDataArray[3].enemies;
+ this->playerDataArray[4].sumOfTotalEnemyUnitsCount = this->playerDataArray[4].enemies;
+ this->playerDataArray[5].sumOfTotalEnemyUnitsCount = this->playerDataArray[5].enemies;
+ this->playerDataArray[6].sumOfTotalEnemyUnitsCount = this->playerDataArray[6].enemies;
+ this->playerDataArray[7].sumOfTotalEnemyUnitsCount = this->playerDataArray[7].enemies;
+ this->playerDataArray[8].sumOfTotalEnemyUnitsCount = this->playerDataArray[8].enemies;
+ this->mapAndTime.skirmishStrongWalls = 0;
+ this->mapAndTime.skirmishAlliances = 0;
+ }
+ if ((int)receivedMapVersion < 0x9e) {
+ psVar5 = &this->playerDataArray[0].barracksAssemblyPoints[0].y;
+ do {
+ iVar6 = 7;
+ psVar4 = psVar5;
+ do {
+ ((XYPairShort*)(psVar4 + -1))->x = 0;
+ *psVar4 = 0;
+ psVar4 = psVar4 + 2;
+ iVar6 = iVar6 + -1;
+ } while (iVar6 != 0);
+ psVar5 = psVar5 + 0x1cfa;
+ } while ((int)psVar5 < 0x117ea6e);
+ }
+ if ((int)receivedMapVersion < 0xa2) {
+ paiVar11 = this->mapAndTime.playerEnemyBuildingIDs;
+ piVar9 = this->mapAndTime.playerBuildingInfoIndex + 1;
+ do {
+ paiVar11 = paiVar11 + 1;
+ *piVar9 = 0;
+ piVar9 = piVar9 + 1;
+ paiVar12 = paiVar11;
+ for (iVar6 = 2000; iVar6 != 0; iVar6 = iVar6 + -1) {
+ (*paiVar12)[0] = 0;
+ paiVar12 = (int (*)[2000])(*paiVar12 + 1);
+ }
+ } while ((int)piVar9 < 0x1183470);
+ }
+ if ((int)receivedMapVersion < 0xa3) {
+ paiVar13 = this->mapAndTime.playerEnemenyUnitUIDShortList + 1;
+ _pEnemies = &this->playerDataArray[1];
+ do {
+ iVar6 = 0;
+ if (0 < _pEnemies->enemies) {
+ psVar5 = _pEnemies->enemyIDArray;
+ paiVar7 = paiVar13;
+ do {
+ (*paiVar7)[0] = DAT_UnitsState.units[*psVar5].uid;
+ iVar6 = iVar6 + 1;
+ psVar5 = psVar5 + 1;
+ paiVar7 = (int (*)[2500])(*paiVar7 + 1);
+ } while (iVar6 < _pEnemies->enemies);
+ }
+ paiVar13 = paiVar13 + 1;
+ _pEnemies = _pEnemies + 0xe7d;
+ } while ((int)paiVar13 < 0x11bc680);
+ }
+ if ((int)receivedMapVersion < 0xa4) {
+ this->mapAndTime.dayTicks = 100;
+ this->mapAndTime.weekTicks = 100;
+ this->mapAndTime.monthTicks = 100;
+ }
+ if ((int)receivedMapVersion < 0xa6) {
+ this->mapAndTime.skirmishNoCowThrowing = 0;
+ this->mapAndTime.skirmishNoDogs = 0;
+ this->mapAndTime.skirmishNoRushTicks = 0;
+ this->mapAndTime.skirmishNoRushTicksLeft = 0;
+ }
+ if ((int)receivedMapVersion < 0xa8) {
+ _pAssemblyPoints = &this->playerDataArray[0].engineersAssemblyPoints[0].y;
+ do {
+ psVar5 = _pAssemblyPoints + -0x2a;
+ iVar6 = 7;
+ do {
+ psVar5[-1] = 0;
+ *psVar5 = 0;
+ psVar5 = psVar5 + 2;
+ iVar6 = iVar6 + -1;
+ } while (iVar6 != 0);
+ iVar6 = 5;
+ psVar5 = _pAssemblyPoints;
+ do {
+ psVar5[-1] = 0;
+ *psVar5 = 0;
+ psVar5 = psVar5 + 2;
+ iVar6 = iVar6 + -1;
+ } while (iVar6 != 0);
+ _pAssemblyPoints = _pAssemblyPoints + 0x1cfa;
+ } while ((int)_pAssemblyPoints < 0x1180132);
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x0045ca20 processSingleTimeTick | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0045CA20
+ void GameStateStructures::processSingleTimeTick()
+ {
+ int _unitID;
+ int _ssp2;
+ int _ssp;
+ PlayerData* _playerData;
+ SoundEffectIDInt local_18;
+ int _popdiv500;
+ if (this->gameTicksLoadBalancer != 0) {
+ if ((this->gameTicksLoadBalancer < 10) || (19 < this->gameTicksLoadBalancer)) {
+ if (this->gameTicksLoadBalancer != 20) {
+ if (this->gameTicksLoadBalancer == 25) {
+ setTreeSpreadInterval();
+ } else if (this->gameTicksLoadBalancer != 30) {
+ if (this->gameTicksLoadBalancer == 31) {
+ createStatsPopUpEntities();
+ } else if (this->gameTicksLoadBalancer == 34) {
+ recountTotalTroopValue();
+ } else if (this->gameTicksLoadBalancer == 40) {
+ updateMoatCountdownTimers();
+ } else if (this->gameTicksLoadBalancer != 50) {
+ if ((this->gameTicksLoadBalancer < 60) || (69 < this->gameTicksLoadBalancer)) {
+ if ((this->gameTicksLoadBalancer < 71) || (79 < this->gameTicksLoadBalancer)) {
+ if (this->gameTicksLoadBalancer == 80) {
+ spawnMotherOrChild();
+ } else if (this->gameTicksLoadBalancer != 0x5a) {
+ if (this->gameTicksLoadBalancer == 93) {
+ MACRO_CALL_MEMBER(
+ recomputeTotalTroopValueOfTroopsNearKeep,
+ DAT_TroopValueState)();
+ } else if (this->gameTicksLoadBalancer == 95) {
+ processPeasantsForBuildings();
+ } else if (this->gameTicksLoadBalancer == 99) {
+ showPopAndGoldPopup();
+ } else if (this->gameTicksLoadBalancer != 100) {
+ if ((this->gameTicksLoadBalancer < 100)
+ || (0x6c < this->gameTicksLoadBalancer)) {
+ if ((this->gameTicksLoadBalancer < 110)
+ || (150 < this->gameTicksLoadBalancer)) {
+ if (this->gameTicksLoadBalancer == 150) {
+ updateWildlife();
+ } else if (this->gameTicksLoadBalancer == 151) {
+ updateSection1034Info();
+ } else if (this->gameTicksLoadBalancer == 152) {
+ updateNofFpoints();
+ } else if ((this->gameTicksLoadBalancer < 160)
+ || (169 < this->gameTicksLoadBalancer)) {
+ if (this->gameTicksLoadBalancer != 170) {
+ if (this->gameTicksLoadBalancer == 180) {
+ MACRO_CALL_MEMBER(
+ spawnChicken,
+ this)();
+ } else if (this->gameTicksLoadBalancer == 190) {
+ MACRO_CALL_MEMBER(
+ recountStablesAndHorses,
+ this)();
+ }
+ }
+ } else {
+ MACRO_CALL_MEMBER(
+ recomputeTroopValuesForPlayer,
+ DAT_UnitsState)(this->gameTicksLoadBalancer + -160);
+ }
+ } else {
+ updateWildlifeGrid(this->gameTicksLoadBalancer + -110);
+ }
+ } else {
+ recomputeTroopValuesForPlayer(this->gameTicksLoadBalancer + -100);
+ }
+ }
+ }
+ } else {
+ updateEnemyBuildings(this->gameTicksLoadBalancer + -0x46);
+ }
+ } else {
+ recomputeTroopValuesForPlayer(this->gameTicksLoadBalancer + -0x3c);
+ }
+ }
+ }
+ }
+ } else {
+ recomputeTroopValuesForPlayer(this->gameTicksLoadBalancer + -10);
+ }
+ }
+ if (this->mapAndTime.skirmishNoRushTicks != 0) {
+ this->mapAndTime.skirmishNoRushTicks = this->mapAndTime.skirmishNoRushTicks + -1;
+ }
+ if ((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ && (DAT_GameSynchronyState.currentGameMode != GM_SKIRMISH_SINGLE_PLAYER)) {
+ checkGameSync();
+ }
+ this->gameTicksLoadBalancer = this->gameTicksLoadBalancer + 1;
+ if (199 < this->gameTicksLoadBalancer) {
+ this->gameTicksLoadBalancer = 0;
+ UpdateUnitLossSpeechFeedback();
+ }
+ if ((((int)DAT_GameCore.mapTimeInTicks % 200 == 0)
+ && (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY))
+ && (DAT_GameSynchronyState.currentGameMode != GM_SKIRMISH_SINGLE_PLAYER)) {
+ /*
+ check game sync
+ */
+ recomputeHashesAndSendResync(0);
+ }
+ this->mapAndTime.totalGameTicksUnk = this->mapAndTime.totalGameTicksUnk + 1;
+ if ((DAT_GameCore.gameMode_2 != GM_EDITOR)
+ && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)) {
+ updateDateAndTime(
+ (uint)(this->gameTicksLoadBalancer == 0), this->gameTicksLoadBalancer);
+ if (this->mapAndTime.weekChanged != 0) {
+ DAT_GameSynchronyState.finalResults.yearEnd = this->mapAndTime.year;
+ DAT_GameSynchronyState.finalResults.monthEnd = this->mapAndTime.month;
+ updateCrowding();
+ updateTrader();
+ updateTaxing();
+ updateAleRate();
+ recomputeAllFearFactors();
+ updateFearFactorProductivity();
+ }
+ updatePopularity();
+ processPeasantSpawnAndDespawnCycle();
+ return;
+ }
+ return;
+ }
+}
+}
+
+### 0x0045cd10 processGameTick | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0045CD10
+ void GameStateStructures::processGameTick()
+ {
+ GameSynchronyState* piVar2;
+ DWORD DVar1;
+ BOOLEnum _ingameMenu;
+ BOOLEnum _hasNonTickingState;
+ int _playerIndex;
+ int (*piVar3)[128];
+ PlayerData* piVar9;
+ DWORD _announcementReceivedTimeNow;
+ DWORD _noAnnouncementReceivedTimeNow;
+ int _totalPacketSize;
+ PlayerData* piVar22;
+ int _alivePlayerCount2;
+ int _playerIDSyncStatus;
+ int* _pSyncStatus;
+ int* _ptr_playerIDArray;
+ DAT_RotateMapOrPullDownTerrain = 0;
+ if (DAT_GameSynchronyState.saveRelated != 0) {
+ if (DAT_GameSynchronyState.isHost == FALSE) {
+ DAT_RotateMapOrPullDownTerrain = 0;
+ return;
+ }
+ checkGameLagStatusAndKickAccordingly();
+ return;
+ }
+ if (DAT_GameSynchronyState.syncStatus != 0) {
+ if (DAT_GameSynchronyState.isHost == FALSE) {
+ if (DAT_GameSynchronyState.syncStatus == 10) {
+ DAT_GameSynchronyState.syncStatus = 0xb;
+ queueCommand(GCT_SHARE_GAME_STATE_PARTIAL_HASHES);
+ return;
+ }
+ if (DAT_GameSynchronyState.syncStatus != 1) {
+ if (DAT_GameSynchronyState.syncStatus != 3) {
+ DAT_RotateMapOrPullDownTerrain = 0;
+ return;
+ }
+ DAT_GameSynchronyState.syncStatus = 4;
+ queueCommand(GCT_SEND_KEEP_ALIVE);
+ return;
+ }
+ DAT_GameSynchronyState.syncStatus = 2;
+ queueCommand(GCT_SHARE_DESYNC_HASHES);
+ return;
+ }
+ if (DAT_GameSynchronyState.syncStatus == 10) {
+ checkLagAndSyncStatus();
+ return;
+ }
+ if (DAT_GameSynchronyState.syncStatus != 1) {
+ if (DAT_GameSynchronyState.syncStatus == 2) {
+ sendPendingResyncCommandsInBudget();
+ return;
+ }
+ if (DAT_GameSynchronyState.syncStatus < 3) {
+ DAT_RotateMapOrPullDownTerrain = 0;
+ return;
+ }
+ advanceSyncStatusAndKickLaggers();
+ return;
+ }
+ broadcastDesyncResyncCommands();
+ return;
+ }
+ if ((DAT_GameSynchronyState.quitGameVoteRelated != 0)
+ && (DVar1 = timeGetTime(), 11000 < DVar1 - DAT_GameSynchronyState.quitGameVoteRequestTime)) {
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = 2;
+ queueCommand(
+ GCT_SEND_QUIT_GAME_VOTE);
+ }
+ _ingameMenu = getAreWeInAInGameMenu();
+ if (_ingameMenu != FALSE) {
+ if ((DAT_GameCore.gamePausedLogical != 0)
+ && (7 < DAT_TileMapState.DAT_FutureMapOrientation))
+ goto LAB_0045ce7c;
+ _hasNonTickingState
+ = isGameHaltingMenuOpen();
+ if (_hasNonTickingState == FALSE) {
+ nextRandomNumber2();
+ nextRandomNumber1();
+ DAT_GameCore.mapTimeInTicks = DAT_GameCore.mapTimeInTicks + 1;
+ processSingleTimeTick();
+ }
+ }
+ if (DAT_TileMapState.DAT_FutureMapOrientation < 8) {
+ DAT_RotateMapOrPullDownTerrain = 1;
+ }
+ LAB_0045ce7c:
+ processMapOrientationChange();
+ updateShowHiLayerOrResetChangedLayer();
+ rotateFearFactorBuildingVariations();
+ updatePathLinkageForGatesKeepsSiegeTowers();
+ updateSeparateAreaTileMap(0);
+ updateLogicalTileMapRelatedSections();
+ updateMacroLayer();
+ /*
+ called when rotating the screen
+ */
+ updateGfxLayer();
+ /*
+ also called when rotating the screen
+ */
+ updateGFXLayers();
+ setChangedLayerZeroBasedOn40x40Layer(0);
+ subtractPitchAndMoatFromStartingGoldInSiegeThatMode();
+ clearOldSpawnMoment();
+ /*
+ Game ignores pause if certain right-click actions are made
+ */
+ if (DAT_RotateMapOrPullDownTerrain == 0) {
+ if (0 < (int)DAT_GameCore.gamePausedLogical) {
+ return;
+ }
+ if (DAT_GameCore.gamePausedLogical == 0) {
+ _hasNonTickingState
+ = isGameHaltingMenuOpen();
+ if (_hasNonTickingState != FALSE) {
+ return;
+ }
+ } else {
+ DAT_GameCore.gamePausedLogical = 0;
+ }
+ }
+ if (((DAT_GameCore.gameMode_2 != GM_EDITOR)
+ || (DAT_GameCore.isTimeHalted2 == 0))
+ && (_hasNonTickingState
+ = getAreWeInAInGameMenu(),
+ _hasNonTickingState != FALSE)) {
+ /*
+ From here on only gets called if game is unpaused
+ */
+ resetCountsAndStatistics();
+ resetBuildingsCurrentIndexCounter();
+ updateWind();
+ DAT_PathFindingState.field48_0x90 = 0;
+ updateClimbData();
+ updateBuildings();
+ updatePitchDitches();
+ updateTrees();
+ processSingleplayerEvents();
+ checkSkirmishGameDefeat();
+ updateBuildingsStateAndUpdateAIBuildingDecisions();
+ aiControlNonSkirmishUnitMovement();
+ updateUnits();
+ updateEntities();
+ removeUnitsSameTileLinkageIfNoLongerApplicable();
+ processFoodConsumption();
+ computePopulationStatistics();
+ updateTribeUnitAssignments();
+ updateTribes();
+ spawnQueuedReinforcementWaves();
+ respawnDeer();
+ generateDustClouds();
+ updateGameRelatedValue();
+ DoNothing();
+ updateDestructionConfirmationCountdown();
+ clearInvalidatedHoverStates();
+ computeArmySizeLimit();
+ return;
+ }
+ return;
+ }
+}
+}
+
+### 0x0046f4f0 DetectDXVersionByLoadingDDRAW | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0046F4F0
+DirectDrawStatus Global::DetectDXVersionByLoadingDDRAW()
+{
+ HINSTANCE__* hLibModule;
+ FARPROC* _funcAddress;
+ DirectDrawCreateEx* _funcAddressEx;
+ HRESULT _foundDirectDraw;
+ IDirectDraw* _testInterface;
+ GetProcAddress* _getProcAddress;
+ hLibModule = LoadLibraryA("DDRAW.DLL");
+ _getProcAddress = PTR_GetProcAddress_kernel32_Thunk_00b95758::instance;
+ if (hLibModule == (HINSTANCE__*)0x0) {
+ return DD7_NOT_LOADED;
+ }
+ /*
+ GetProcAddress - Needs SignatureOverwrite.
+ */
+ _funcAddress = (*PTR_GetProcAddress_kernel32_Thunk_00b95758::instance)(hLibModule, "DirectDrawCreate");
+ if (_funcAddress != (FARPROC*)0x0) {
+ /*
+ https://docs.microsoft.com/en-us/windows/win32/api/ddraw/nf-ddraw-directdrawcreateex - Needs signature
+ overwrite
+ */
+ _funcAddressEx = (DirectDrawCreateEx*)(*_getProcAddress)(hLibModule, "DirectDrawCreateEx");
+ if (_funcAddressEx != (DirectDrawCreateEx*)0x0) {
+ /*
+ Needs Signature Overwrite
+ */
+ _foundDirectDraw = (*_funcAddressEx)((GUID*)0x0, &_testInterface, IID_IDirectDraw7::ptr, (IUnknown*)0x0);
+ if (-1 < _foundDirectDraw) {
+ /*
+ the esp+0x8 value is the esp+0x10 value from before
+ */
+ (*_testInterface->vTable->Release)(_testInterface);
+ FreeLibrary(hLibModule);
+ return DD7_LOADED;
+ }
+ }
+ }
+ FreeLibrary(hLibModule);
+ return DD7_NOT_LOADED;
+}
+}
+

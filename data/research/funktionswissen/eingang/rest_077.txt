@@ -1,0 +1,1291 @@
+### 0x00424700 endSpeechStreamsAndResetLoopFlags | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00424700
+ void SoundSystem::endSpeechStreamsAndResetLoopFlags()
+ {
+ this->streamFlagsUnkAndLoopCount_0x34[4] = 0;
+ this->streamFlagsUnkAndLoopCount_0x34[3] = 0;
+ endSoundStream(enums::SND_STR_SPEECH_1);
+ endSoundStream(enums::SND_STR_SPEECH_2);
+ }
+ }
+}
+}
+
+### 0x00467810 stopMusicPlayback | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00467810
+ void SoundSystem::stopMusicPlayback()
+ {
+ endSoundStream(enums::SND_STR_MUSIC);
+ this->musicFadeState = 0;
+ this->sec_Section1055_0x3274 = 0;
+ }
+ }
+}
+}
+
+### 0x00467830 endSoundStreamsUnk | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00467830
+ void SoundSystem::endSoundStreamsUnk()
+ {
+ endSoundStream(enums::SND_STR_SPEECH_1);
+ endSoundStream(enums::SND_STR_SPEECH_2);
+ }
+ }
+}
+}
+
+### 0x004799a0 endSoundStream | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x004799A0
+ void SoundSystem::endSoundStream(SHC_SoundStream sndStreamIndex)
+ {
+ if (!this->waveOutOpenUnk_0x8) {
+ return;
+ }
+ if (sndStreamIndex == enums::SND_STR_MUSIC) {
+ this->streamActiveUnk_0x20[0] = 0;
+ DAT_SoundEffectsHelperData1->field14_0x54 = true;
+ if (this->musicSampleFileHandleUnk_0x174 != -1) {
+ AIL_end_sample(this->musicSampleUnk_0x170);
+ _ucrt_close(this->musicSampleFileHandleUnk_0x174);
+ }
+ if (this->musicFileHandle_0x178 != -1) {
+ _ucrt_close(this->musicFileHandle_0x178);
+ }
+ this->musicFileHandle_0x178 = -1;
+ this->musicSampleFileHandleUnk_0x174 = -1;
+ this->mbr_0x188 = 1;
+ DAT_SoundEffectsHelperData1->field14_0x54 = false;
+ this->sec_Section1055_0x3274 = 0;
+ return;
+ }
+ if (!this->streamActiveUnk_0x20[sndStreamIndex]) {
+ return;
+ }
+ if (this->streamFlagsUnkAndLoopCount_0x34[sndStreamIndex] & FLAG_SOUND_UNINTERRUPTABLE
+ && AIL_stream_status(this->stream_0xc[sndStreamIndex]) == SMP_PLAYING) {
+ return;
+ }
+ AIL_close_stream(this->stream_0xc[sndStreamIndex]);
+ this->streamActiveUnk_0x20[sndStreamIndex] = 0;
+ this->stream_0xc[sndStreamIndex] = 0x0;
+ }
+ }
+}
+}
+
+### 0x00479a60 isSampleOrStreamPlaying | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00479A60
+ BOOLEnum SoundSystem::isSampleOrStreamPlaying(SHC_SoundStream streamIndex)
+ {
+ if (!(this->waveOutOpenUnk_0x8 && this->streamActiveUnk_0x20[streamIndex])) {
+ return false;
+ }
+ if (streamIndex == enums::SND_STR_MUSIC) {
+ if (AIL_sample_status(this->musicSampleUnk_0x170) == SMP_PLAYING) {
+ return true;
+ }
+ } else {
+ HSTREAM const stream = this->stream_0xc[streamIndex];
+ if (stream && AIL_stream_status(stream) == SMP_PLAYING) {
+ return true;
+ }
+ }
+ return false;
+ }
+ }
+}
+}
+
+### 0x00479ab0 shouldSoundXNotBePlaying | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00479AB0
+ BOOLEnum SoundSystem::shouldSoundXNotBePlaying()
+ {
+ if (DAT_GameState->playerDataArray[DAT_GameSynchronyState->currentPlayerSlotID]
+ .playerDeathRelated) {
+ return FALSE;
+ }
+ if (isSampleOrStreamPlaying(enums::SND_STR_SPEECH_1)) {
+ return TRUE;
+ }
+ if (isSampleOrStreamPlaying(enums::SND_STR_SPEECH_2)) {
+ return TRUE;
+ }
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x00479af0 setStreamAndSampleVolumeUnk | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00479AF0
+ void SoundSystem::setStreamAndSampleVolumeUnk(SHC_SoundStream sndStreamIndex, int volumeParam)
+ {
+ if (!(this->waveOutOpenUnk_0x8 && this->streamActiveUnk_0x20[sndStreamIndex])) {
+ return;
+ }
+ if (sndStreamIndex == enums::SND_STR_MUSIC) {
+ AIL_set_sample_volume(this->musicSampleUnk_0x170, (this->streamVolume[0] * volumeParam) / 100);
+ } else {
+ AIL_set_stream_volume(
+ this->stream_0xc[sndStreamIndex], (this->streamVolume[sndStreamIndex] * volumeParam) / 100);
+ }
+ this->streamFileVolumeCurrentUnk_0x5c[sndStreamIndex] = volumeParam;
+ }
+ }
+}
+}
+
+### 0x00479b70 restoreMusicVolumeAfterSpeechEnds | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00479B70
+ void SoundSystem::restoreMusicVolumeAfterSpeechEnds()
+ {
+ if (!this->waveOutOpenUnk_0x8) {
+ return;
+ }
+ if (this->streamFlagsUnkAndLoopCount_0x34[3] & FLAG_SOUND_UNKNOWN_FLAG_1 && this->streamActiveUnk_0x20[3]
+ && AIL_stream_status(this->stream_0xc[3]) != SMP_PLAYING) {
+ this->streamFlagsUnkAndLoopCount_0x34[3] &= ~FLAG_SOUND_UNKNOWN_FLAG_1;
+ AIL_set_sample_volume(
+ this->musicSampleUnk_0x170, (this->streamVolume[0] * this->streamFileVolumeNextUnk_0x48[0]) / 100);
+ }
+ if (this->streamFlagsUnkAndLoopCount_0x34[4] & FLAG_SOUND_UNKNOWN_FLAG_1 && this->streamActiveUnk_0x20[4]
+ && AIL_stream_status(this->stream_0xc[4]) != SMP_PLAYING) {
+ this->streamFlagsUnkAndLoopCount_0x34[4] &= ~FLAG_SOUND_UNKNOWN_FLAG_1;
+ AIL_set_sample_volume(
+ this->musicSampleUnk_0x170, (this->streamVolume[0] * this->streamFileVolumeNextUnk_0x48[0]) / 100);
+ }
+ }
+ }
+}
+}
+
+### 0x00479c20 loadSoundFileAndGetIndex | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00479c20
+ int SoundSystem::loadSoundFileAndGetIndex(char* fileName)
+ {
+ if (!this->waveOutOpenUnk_0x8) {
+ return -1;
+ }
+ this->soundFileDataPointerArray_0x122c[this->loadedSoundsCountAndIndex_0x316c] = AIL_file_read(fileName, 0);
+ this->soundFileSizes_0x21cc[this->loadedSoundsCountAndIndex_0x316c] = AIL_file_size(fileName);
+ if (!this->soundFileDataPointerArray_0x122c[this->loadedSoundsCountAndIndex_0x316c]) {
+ return -1;
+ }
+ ++this->loadedSoundsCountAndIndex_0x316c;
+ return this->loadedSoundsCountAndIndex_0x316c - 1;
+ }
+ }
+}
+}
+
+### 0x00479c80 findSamplePlaceForSoundUnk | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00479C80
+ void SoundSystem::findSamplePlaceForSoundUnk(int soundIndex)
+ {
+ if (this->soundFileCurrSampleNum_0x28c[soundIndex] >= 0) {
+ return;
+ }
+ DAT_SoundEffectsHelperData1->DAT_NumberOfUsedSoundSamplePlaces = 0;
+ for (int i = 1; i < 32; ++i) {
+ if (this->sampleSoundIndex_0x20c[i]) {
+ ++DAT_SoundEffectsHelperData1->DAT_NumberOfUsedSoundSamplePlaces;
+ }
+ }
+ for (int i = 1; i < 32; ++i) {
+ if (this->sampleSoundIndex_0x20c[i]) {
+ continue;
+ }
+ this->sampleSoundIndex_0x20c[i] = soundIndex;
+ this->soundFileCurrSampleNum_0x28c[soundIndex] = i;
+ return;
+ }
+ }
+ }
+}
+}
+
+### 0x00479cf0 setupSampleForNextSound | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00479CF0
+ void SoundSystem::setupSampleForNextSound(int soundIndex, int sampleVolumePercentage, int samplePan)
+ {
+ if (!this->waveOutOpenUnk_0x8 || (this->soundFileCurrSampleNum_0x28c[soundIndex] < 0)) {
+ return;
+ }
+ this->sampleSndStructVolumePercentage_0x3174[this->soundFileCurrSampleNum_0x28c[soundIndex]]
+ = sampleVolumePercentage;
+ AIL_set_sample_volume(this->sample[this->soundFileCurrSampleNum_0x28c[soundIndex]],
+ (this->sampleVolume * sampleVolumePercentage) / 100);
+ AIL_set_sample_pan(this->sample[this->soundFileCurrSampleNum_0x28c[soundIndex]], samplePan);
+ AIL_set_sample_loop_count(this->sample[this->soundFileCurrSampleNum_0x28c[soundIndex]], 1);
+ }
+ }
+}
+}
+
+### 0x00479d90 getAndUpdateSampleStatus | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00479D90
+ BOOLEnum SoundSystem::getAndUpdateSampleStatus(int soundIndex)
+ {
+ if (!this->waveOutOpenUnk_0x8) {
+ return FALSE;
+ }
+ if (this->soundFileCurrSampleNum_0x28c[soundIndex] < 0) {
+ return FALSE;
+ }
+ unsigned int const status = AIL_sample_status(this->sample[this->soundFileCurrSampleNum_0x28c[soundIndex]]);
+ if (status == SMP_PLAYING) {
+ return TRUE;
+ }
+ this->sampleSoundIndex_0x20c[this->soundFileCurrSampleNum_0x28c[soundIndex]] = 0;
+ this->soundFileCurrSampleNum_0x28c[soundIndex] = -1;
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x00479df0 playSound | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00479DF0
+ void SoundSystem::playSound(int soundIndex)
+ {
+ if (!this->waveOutOpenUnk_0x8 || !this->soundActiveUnk_0x0
+ || this->soundFileCurrSampleNum_0x28c[soundIndex] < 0) {
+ return;
+ }
+ AIL_set_named_sample_file(this->sample[this->soundFileCurrSampleNum_0x28c[soundIndex]], s__wav_005a6cc4,
+ this->soundFileDataPointerArray_0x122c[soundIndex], this->soundFileSizes_0x21cc[soundIndex], 0);
+ AIL_start_sample(this->sample[this->soundFileCurrSampleNum_0x28c[soundIndex]]);
+ }
+ }
+}
+}
+
+### 0x00479e60 setVolumeUnk | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00479E60
+ void SoundSystem::setVolumeUnk(int streamIndex, int volume)
+ {
+ if (!this->waveOutOpenUnk_0x8) {
+ return;
+ }
+ if (streamIndex == -1) {
+ this->sampleVolume = volume;
+ for (int i = 1; i < 32; ++i) {
+ AIL_set_sample_volume(
+ this->sample[i], (this->sampleSndStructVolumePercentage_0x3174[i] * volume) / 100);
+ }
+ return;
+ }
+ this->streamVolume[streamIndex] = volume;
+ if (!this->streamActiveUnk_0x20[streamIndex]) {
+ return;
+ }
+ if (streamIndex == 0) {
+ AIL_set_sample_volume(
+ this->musicSampleUnk_0x170, (this->streamFileVolumeCurrentUnk_0x5c[0] * volume) / 100);
+ return;
+ }
+ AIL_set_stream_volume(
+ this->stream_0xc[streamIndex], (this->streamFileVolumeCurrentUnk_0x5c[streamIndex] * volume) / 100);
+ }
+ }
+}
+}
+
+### 0x00479f30 deactivateSoundFromMenuFuncUnk | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00479F30
+ void SoundSystem::deactivateSoundFromMenuFuncUnk()
+ {
+ if (!this->waveOutOpenUnk_0x8) {
+ return;
+ }
+ for (int i = 0; i < 5; ++i) {
+ this->streamFlagsUnkAndLoopCount_0x34[i] &= ~FLAG_SOUND_UNINTERRUPTABLE;
+ endSoundStream((SHC_SoundStream)i);
+ }
+ for (int i = 1; i < 32; ++i) {
+ AIL_end_sample(this->sample[i]);
+ this->sampleSoundIndex_0x20c[i] = 0;
+ }
+ for (int i = 1; i < this->loadedSoundsCountAndIndex_0x316c; ++i) {
+ this->soundFileCurrSampleNum_0x28c[i] = -1;
+ }
+ this->soundActiveUnk_0x0 = 0;
+ }
+ }
+}
+}
+
+### 0x00479fc0 pauseAudioSample | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00479FC0
+ void SoundSystem::pauseAudioSample()
+ {
+ if (!(this->waveOutOpenUnk_0x8 && this->digSndDriver_0x4)) {
+ return;
+ }
+ for (int streamIndex = 0; streamIndex < 5; ++streamIndex) {
+ if (isSampleOrStreamPlaying((SHC_SoundStream)streamIndex)) {
+ this->streamPaused_0x15c[streamIndex] = 1;
+ if (streamIndex == enums::SND_STR_MUSIC) {
+ AIL_stop_sample(this->musicSampleUnk_0x170);
+ } else {
+ AIL_pause_stream(this->stream_0xc[streamIndex], 0);
+ }
+ } else {
+ this->streamPaused_0x15c[streamIndex] = 0;
+ }
+ }
+ for (int soundIndex = 1; soundIndex < this->loadedSoundsCountAndIndex_0x316c; ++soundIndex) {
+ if (this->soundFileCurrSampleNum_0x28c[soundIndex] < 0) {
+ continue;
+ }
+ if (getAndUpdateSampleStatus(soundIndex)) {
+ this->samplePaused_0x31f4[this->soundFileCurrSampleNum_0x28c[soundIndex]] = 1;
+ AIL_stop_sample(this->sample[this->soundFileCurrSampleNum_0x28c[soundIndex]]);
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0047a080 resumeAudioSample | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047A080
+ void SoundSystem::resumeAudioSample()
+ {
+ if (!(this->waveOutOpenUnk_0x8 && this->digSndDriver_0x4)) {
+ return;
+ }
+ for (int streamIndex = 0; streamIndex < 5; ++streamIndex) {
+ if (!this->streamPaused_0x15c[streamIndex]) {
+ continue;
+ }
+ this->streamPaused_0x15c[streamIndex] = false;
+ if (streamIndex == enums::SND_STR_MUSIC) {
+ AIL_resume_sample(this->musicSampleUnk_0x170);
+ } else {
+ AIL_pause_stream(this->stream_0xc[streamIndex], 1);
+ }
+ }
+ for (int soundIndex = 1; soundIndex < this->loadedSoundsCountAndIndex_0x316c; ++soundIndex) {
+ if (this->soundFileCurrSampleNum_0x28c[soundIndex] < 0 || !this->samplePaused_0x31f4[soundIndex]) {
+ continue;
+ }
+ this->samplePaused_0x31f4[this->soundFileCurrSampleNum_0x28c[soundIndex]] = false;
+ AIL_resume_sample(this->sample[this->soundFileCurrSampleNum_0x28c[soundIndex]]);
+ }
+ }
+ }
+}
+}
+
+### 0x0047a130 mapLoadingAndLaunchGameRelated1 | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047A130
+ void SoundSystem::mapLoadingAndLaunchGameRelated1()
+ {
+ DAT_SoundEffectsHelperData1->SEC_Section1079.musicState = 1;
+ DAT_SoundEffectsHelperData1->SEC_Section1079.field1_0x4 = SEC_RNG::ptr->currentNumber1 % 4;
+ nextRandomNumber1();
+ DAT_SoundEffectsHelperData1->SEC_Section1079.incrementorUpTo4 = SEC_RNG::ptr->currentNumber1 % 4 + 1;
+ DAT_GameCore->cowPoisonTrackerUnk = 0;
+ DAT_GameCore->someSoundMatchTime_1 = DAT_GameCore->mapTimeInTicks;
+ DAT_GameCore->battleLevel = 0;
+ DAT_GameCore->battleLevel2 = 0;
+ DAT_GameCore->field33_0x90 = 0;
+ DAT_TroopValueState->attackInfo.delayedWaveAssignmentCount = 0;
+ DAT_TroopValueState->attackInfo.buildingDamageEventCount = 0;
+ DAT_TroopValueState->attackInfo.enemyUnitsInsideCastleCount = 0;
+ DAT_SoundEffectsHelperData1->field8_0x3c = 0;
+ }
+ }
+}
+}
+
+### 0x0047a1b0 setupVolumeAndSoundID | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047A1B0
+ void SoundSystem::setupVolumeAndSoundID(eMusicIDs soundID)
+ {
+ int soundIDInt = (int)soundID;
+ // Indicator to handle as mission sound (?)
+ if (soundIDInt == DE::SHCDE::MUSIC_TUNE_NARR1) {
+ // missionNumber1to20 might be unsigned, but found signs inconclusive
+ if (1 <= DAT_GameCore->missionNumber1to20 && DAT_GameCore->missionNumber1to20 <= 20) {
+ // This makes the soundID "missionNumber1to20 + 46", which would use the enums 47 to 66.
+ // These are only filled by 4 enums for 4 mission intros, so this space could be made for 20.
+ soundIDInt = DAT_GameCore->missionNumber1to20 + 46;
+ } else {
+ soundIDInt = DE::SHCDE::MUSIC_TUNE_OFF;
+ }
+ }
+ if (soundIDInt == this->currentSoundID_0x3278) {
+ return;
+ }
+ this->currentSoundID_0x3278 = soundIDInt;
+ int const fileVolume = getSoundVolumeForFilename(
+ DAT_SFXDefinedData->Pointers[soundIDInt].musicFile);
+ // 0x7f is the maximum volume of the MSS32 volume API.
+ this->currentSoundIDVolumeUnk_0x327c = (fileVolume * 100) / 0x7f;
+ this->mbr_0x3280 = 0;
+ }
+ }
+}
+}
+
+### 0x0047a220 setupVolumeAndSoundIDWithMultiplier | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047A220
+ void SoundSystem::setupVolumeAndSoundIDWithMultiplier(eMusicIDs soundID, int soundMultiplier)
+ {
+ int soundIDInt = (int)soundID;
+ // Indicator to handle as mission sound (?)
+ if (soundIDInt == DE::SHCDE::MUSIC_TUNE_NARR1) {
+ // missionNumber1to20 might be unsigned, but found signs inconclusive
+ if (1 <= DAT_GameCore->missionNumber1to20 && DAT_GameCore->missionNumber1to20 <= 20) {
+ // This makes the soundID "missionNumber1to20 + 46", which would use the enums 47 to 66.
+ // These are only filled by 4 enums for 4 mission intros, so this space could be made for 20.
+ soundIDInt = DAT_GameCore->missionNumber1to20 + 46;
+ } else {
+ soundIDInt = DE::SHCDE::MUSIC_TUNE_OFF;
+ }
+ }
+ if (soundIDInt == this->currentSoundID_0x3278) {
+ return;
+ }
+ this->currentSoundID_0x3278 = soundIDInt;
+ int const fileVolume = getSoundVolumeForFilename(
+ DAT_SFXDefinedData->Pointers[soundIDInt].musicFile);
+ // 0x7f is the maximum volume of the MSS32 volume API.
+ this->currentSoundIDVolumeUnk_0x327c = (fileVolume * soundMultiplier) / 0x7f;
+ this->mbr_0x3280 = 0;
+ }
+ }
+}
+}
+
+### 0x0047a290 markMusicChangePending | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047A290
+ void SoundSystem::markMusicChangePending() { this->mbr_0x3280 = 1; }
+ }
+}
+}
+
+### 0x0047a2a0 setSomeSoundTime | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047A2A0
+ void SoundSystem::setSomeSoundTime()
+ {
+ if (!(0 < this->sec_Section1055_0x3274 && this->musicFadeState != 2)) {
+ return;
+ }
+ if (this->musicFadeState == 1) {
+ DWORD _currentTime = timeGetTime();
+ // This logic seems to smooth out a time difference by not having the timestamp jump directly on
+ // bigger delays. Instead, it settles slightly behind the real time, basically pushing the current
+ // timestamp back a small bit, but in such a way that is gets closer and closer to the real time.
+ this->someSoundTime_0x158
+ = (_currentTime + ((_currentTime - this->someSoundTime_0x158) / 200) * -10) - 1;
+ this->musicFadeState = 2;
+ } else {
+ this->musicFadeState = 2;
+ this->someSoundTime_0x158 = timeGetTime();
+ }
+ }
+ }
+}
+}
+
+### 0x0047a310 setupVolumeAndSoundID0xF0_100 | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047A310
+ void SoundSystem::setupVolumeAndSoundID0xF0_100()
+ {
+ setupVolumeAndSoundIDWithMultiplier(
+ DE::SHCDE::MUSIC_TUNE_HAPPY2, 100);
+ if (this->sec_Section1055_0x3274 != 0 && this->sec_Section1055_0x3274 != 0xf) {
+ setSomeSoundTime();
+ }
+ }
+ }
+}
+}
+
+### 0x0047a570 setSection1079_28_4_ | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047A570
+ void SoundSystem::setSection1079_28_4_(int param_1)
+ {
+ DAT_SoundEffectsHelperData1->SEC_Section1079.field7_0x1c = param_1;
+ }
+ }
+}
+}
+
+### 0x0047a580 playBattleGloryMusicIfConditionsMet | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047A580
+ void SoundSystem::playBattleGloryMusicIfConditionsMet()
+ {
+ if (DAT_SoundEffectsHelperData1->SEC_Section1079.musicState == 5
+ && DAT_SoundEffectsHelperData1->SEC_Section1079.battleEndHandled == 0
+ && DAT_SoundEffectsHelperData1->SEC_Section1079.troopValueLevel != 0
+ && DAT_SoundEffectsHelperData1->SEC_Section1079.musicTracker == 0
+ && DAT_SoundEffectsHelperData1->SEC_Section1079.volumeLevel != 1
+ && DAT_SoundEffectsHelperData1->SEC_Section1079.field7_0x1c == 0) {
+ DAT_SoundEffectsHelperData1->SEC_Section1079.musicTracker = 1;
+ setSomeSoundTime();
+ setupVolumeAndSoundIDWithMultiplier(
+ DE::SHCDE::MUSIC_TUNE_BATTLE_L2_GLORY1, 100);
+ }
+ }
+ }
+}
+}
+
+### 0x0047a5e0 playDarMehqOrGlory | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047A5E0
+ void SoundSystem::playDarMehqOrGlory()
+ {
+ if (*DAT_00b95954 == 1) {
+ openSound(DAT_SFXDefinedData->Pointers[0x26].musicFile);
+ return;
+ }
+ if (this->sec_Section1055_0x3274 != 0xf) {
+ setupVolumeAndSoundID(DE::SHCDE::MUSIC_TUNE_OFF);
+ return;
+ }
+ openSound(DAT_SFXDefinedData->Pointers[0x10].musicFile);
+ this->sec_Section1055_0x3274 = 0;
+ }
+ }
+}
+}
+
+### 0x0047a630 playWinMusicVariation | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047A630
+ void SoundSystem::playWinMusicVariation()
+ {
+ setupVolumeAndSoundIDWithMultiplier(
+ (eMusicIDs)(DAT_SoundEffectsHelperData1->DAT_WinMusicVariation + DE::SHCDE::MUSIC_TUNE_WIN1), 100);
+ ++DAT_SoundEffectsHelperData1->DAT_WinMusicVariation;
+ if (DAT_SoundEffectsHelperData1->DAT_WinMusicVariation > 2) {
+ DAT_SoundEffectsHelperData1->DAT_WinMusicVariation = 0;
+ }
+ }
+ }
+}
+}
+
+### 0x0047a660 setupLossMusic | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047A660
+ void SoundSystem::setupLossMusic()
+ {
+ setupVolumeAndSoundIDWithMultiplier(
+ (eMusicIDs)(DAT_SoundEffectsHelperData1->DAT_LossMusicVariation + DE::SHCDE::MUSIC_TUNE_LOSE1),
+ 100);
+ ++DAT_SoundEffectsHelperData1->DAT_LossMusicVariation;
+ if (DAT_SoundEffectsHelperData1->DAT_LossMusicVariation > 1) {
+ DAT_SoundEffectsHelperData1->DAT_LossMusicVariation = 0;
+ }
+ }
+ }
+}
+}
+
+### 0x0047a690 shutdownSoundSystem | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047A690
+ void SoundSystem::shutdownSoundSystem()
+ {
+ if (!this->waveOutOpenUnk_0x8) {
+ return;
+ }
+ stopAllBinkPlayback();
+ if (DAT_SFXDefinedData->SomeTimerIdentifier != UINT_MAX) {
+ timeKillEvent(DAT_SFXDefinedData->SomeTimerIdentifier);
+ timeEndPeriod(DAT_SoundEffectsHelperData1->SND_SomeTimerResolution);
+ DAT_SFXDefinedData->SomeTimerIdentifier = UINT_MAX;
+ }
+ for (int i = 0; i < 5; ++i) {
+ this->streamFlagsUnkAndLoopCount_0x34[i] = 0;
+ endSoundStream((SHC_SoundStream)i);
+ }
+ for (int i = 1; i < 32; ++i) {
+ AIL_end_sample(this->sample[i]);
+ AIL_release_sample_handle(this->sample[i]);
+ }
+ for (int i = 1; i < this->loadedSoundsCountAndIndex_0x316c; ++i) {
+ if (this->soundFileDataPointerArray_0x122c[i]) {
+ AIL_mem_free_lock(this->soundFileDataPointerArray_0x122c[i]);
+ }
+ }
+ AIL_mem_free_lock(this->sampleBufferPtrUnk_0x17c[0]);
+ AIL_mem_free_lock(this->sampleBufferPtrUnk_0x17c[1]);
+ AIL_release_sample_handle(this->musicSampleUnk_0x170);
+ AIL_close_digital_driver(this->digSndDriver_0x4);
+ AIL_shutdown();
+ this->waveOutOpenUnk_0x8 = FALSE;
+ }
+ }
+}
+}
+
+### 0x0047a790 playMusicUnk | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047A790
+ void SoundSystem::playMusicUnk()
+ {
+ if (!this->waveOutOpenUnk_0x8) {
+ return;
+ }
+ if (!this->digSndDriver_0x4) {
+ return;
+ }
+ int const _buffNum = AIL_sample_buffer_ready(this->musicSampleUnk_0x170);
+ if (_buffNum == -1) {
+ return;
+ }
+ int readFileBytes = _ucrt_read(this->musicSampleFileHandleUnk_0x174,
+ this->sampleBufferPtrUnk_0x17c[_buffNum], this->sampleBufferSizeUnk_0x184);
+ // if the buffer is not completely filled, it seems to go through potential options to fill it
+ if (this->sampleBufferSizeUnk_0x184 != readFileBytes) {
+ playRandomBackgroundMusicUnk();
+ if (DAT_GameCore->currentMenuViewType == UI::Enums::MVT_HISTORIC_MISSION_PICTURE
+ || DAT_GameCore->currentMenuViewType == UI::Enums::MVT_HISTORIC_MISSION_INTRO
+ || DAT_GameCore->currentMenuViewType == UI::Enums::MVT_SCENARIO_DESCRIPTION) {
+ if (this->sec_Section1055_0x3274 == 50) {
+ openSound(
+ DAT_SFXDefinedData->Pointers[72].musicFile);
+ } else if (this->sec_Section1055_0x3274 == 72) {
+ openSound(
+ DAT_SFXDefinedData->Pointers[50].musicFile);
+ }
+ }
+ if (DAT_GameCore->currentMenuViewType == UI::Enums::MVT_CREDITS) {
+ playDarMehqOrGlory();
+ }
+ if (this->sec_Section1055_0x3274 >= 73) {
+ if (this->sec_Section1055_0x3274 >= 97) {
+ if (0 < DAT_SoundEffectsHelperData1->field13_0x50) {
+ int _selection;
+ for (int i = 0; i < 16; ++i) {
+ /* this call is in a different thread! */
+ nextRandomNumber1();
+ _selection = SEC_RNG::ptr->currentNumber1 % 19;
+ if (_selection
+ != DAT_SoundEffectsHelperData1->DAT_RandomVariationCurrentPlayingMusic_02)
+ break;
+ }
+ DAT_SoundEffectsHelperData1->DAT_RandomVariationCurrentPlayingMusic_02 = _selection;
+ openSound(
+ DAT_SFXDefinedData->Pointers[_selection + 97].musicFile);
+ --DAT_SoundEffectsHelperData1->field13_0x50;
+ if (DAT_SoundEffectsHelperData1->field13_0x50 > 3) {
+ DAT_SoundEffectsHelperData1->field13_0x50 = 0;
+ }
+ }
+ } else {
+ if (0 < DAT_SoundEffectsHelperData1->DAT_NegativeCountdownMin1ToMin4Becomes0) {
+ int _selection;
+ for (int i = 0; i < 16; ++i) {
+ nextRandomNumber1();
+ _selection = SEC_RNG::ptr->currentNumber1 % 24;
+ if (_selection
+ != DAT_SoundEffectsHelperData1->DAT_RandomVariationCurrentPlayingMusic_01)
+ break;
+ }
+ DAT_SoundEffectsHelperData1->DAT_RandomVariationCurrentPlayingMusic_01 = _selection;
+ openSound(
+ DAT_SFXDefinedData->Pointers[_selection + 73].musicFile);
+ DAT_SoundEffectsHelperData1->DAT_NegativeCountdownMin1ToMin4Becomes0 += -1;
+ if (DAT_SoundEffectsHelperData1->DAT_NegativeCountdownMin1ToMin4Becomes0 > 3) {
+ DAT_SoundEffectsHelperData1->DAT_NegativeCountdownMin1ToMin4Becomes0 = 0;
+ }
+ }
+ }
+ }
+ if (this->musicFileHandle_0x178 != -1) {
+ _ucrt_close(this->musicSampleFileHandleUnk_0x174);
+ this->musicSampleFileHandleUnk_0x174 = this->musicFileHandle_0x178;
+ this->musicFileHandle_0x178 = -1;
+ readFileBytes += _ucrt_read(this->musicSampleFileHandleUnk_0x174,
+ (void*)((int)this->sampleBufferPtrUnk_0x17c[_buffNum] + readFileBytes),
+ this->sampleBufferSizeUnk_0x184 - readFileBytes);
+ } else if ((this->streamFlagsUnkAndLoopCount_0x34[0] & FLAG_SOUND_LOOP_COUNT_FIELD) == 1) {
+ stopMusicPlayback();
+ return;
+ } else if ((this->streamFlagsUnkAndLoopCount_0x34[0] & FLAG_SOUND_LOOP_COUNT_FIELD) == 0) {
+ _ucrt_lseek(this->musicSampleFileHandleUnk_0x174, 0, FILE_BEGIN);
+ readFileBytes += _ucrt_read(this->musicSampleFileHandleUnk_0x174,
+ (void*)((int)this->sampleBufferPtrUnk_0x17c[_buffNum] + readFileBytes),
+ this->sampleBufferSizeUnk_0x184 - readFileBytes);
+ }
+ }
+ AIL_load_sample_buffer(
+ this->musicSampleUnk_0x170, _buffNum, this->sampleBufferPtrUnk_0x17c[_buffNum], readFileBytes);
+ }
+ }
+}
+}
+
+### 0x0047a9e0 stopAllActiveSounds | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047A9E0
+ void SoundSystem::stopAllActiveSounds()
+ {
+ if (!this->waveOutOpenUnk_0x8) {
+ return;
+ }
+ this->streamFlagsUnkAndLoopCount_0x34[3] &= ~FLAG_SOUND_UNINTERRUPTABLE;
+ this->streamFlagsUnkAndLoopCount_0x34[4] &= ~FLAG_SOUND_UNINTERRUPTABLE;
+ // Strangely only produces matching code if not using "this"
+ endSoundStream(enums::SND_STR_SPEECH_1);
+ endSoundStream(enums::SND_STR_SPEECH_2);
+ for (int i = 1; i < 32; ++i) {
+ AIL_end_sample(this->sample[i]);
+ this->sampleSoundIndex_0x20c[i] = 0;
+ }
+ for (int i = 1; i < this->loadedSoundsCountAndIndex_0x316c; ++i) {
+ this->soundFileCurrSampleNum_0x28c[i] = -1;
+ }
+ }
+ }
+}
+}
+
+### 0x0047aa70 endSpeechSoundStreams | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047AA70
+ void SoundSystem::endSpeechSoundStreams()
+ {
+ if (!this->waveOutOpenUnk_0x8) {
+ return;
+ }
+ this->streamFlagsUnkAndLoopCount_0x34[1] = 1;
+ this->streamFlagsUnkAndLoopCount_0x34[2] = 1;
+ this->streamFlagsUnkAndLoopCount_0x34[3] &= ~FLAG_SOUND_UNINTERRUPTABLE;
+ this->streamFlagsUnkAndLoopCount_0x34[4] &= ~FLAG_SOUND_UNINTERRUPTABLE;
+ // Strangely only produces matching code if not using "this"
+ endSoundStream(enums::SND_STR_SPEECH_1);
+ endSoundStream(enums::SND_STR_SPEECH_2);
+ for (int i = 1; i < 32; ++i) {
+ AIL_end_sample(this->sample[i]);
+ this->sampleSoundIndex_0x20c[i] = 0;
+ }
+ for (int i = 1; i < this->loadedSoundsCountAndIndex_0x316c; ++i) {
+ this->soundFileCurrSampleNum_0x28c[i] = -1;
+ }
+ }
+ }
+}
+}
+
+### 0x0047ab10 playRandomMusic02 | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047AB10
+ void SoundSystem::playRandomMusic02(int param_1)
+ {
+ if (DAT_SoundEffectsHelperData1->SEC_Section1079.musicState == 5) {
+ return;
+ }
+ DAT_SoundEffectsHelperData1->SEC_Section1079.volumeLevel = 2;
+ DAT_SoundEffectsHelperData1->SEC_Section1079.musicTracker = 0;
+ DAT_SoundEffectsHelperData1->SEC_Section1079.musicState = 5;
+ DAT_SoundEffectsHelperData1->SEC_Section1079.battleEndHandled = 0;
+ DAT_SoundEffectsHelperData1->SEC_Section1079.troopValueLevel = param_1;
+ DAT_SoundEffectsHelperData1->DAT_SomeSoundTime2 = timeGetTime();
+ if (param_1 != 2) {
+ if (DAT_TroopValueState->attackInfo.pendingAttackWaveCount == 0) {
+ recountTotalTroopValue();
+ }
+ int const currentPlayerTotalTroopValue
+ = DAT_TroopValueState->attackInfo
+ .playerTotalTroopValueArray[DAT_GameSynchronyState->currentPlayerSlotID];
+ DAT_SoundEffectsHelperData1->playerTroopValueBaseline = currentPlayerTotalTroopValue;
+ DAT_SoundEffectsHelperData1->playerTroopValue = currentPlayerTotalTroopValue;
+ DAT_SoundEffectsHelperData1->DAT_Music_TotalTroopValue = 0;
+ for (int i = 1; i < 9; ++i) {
+ if (DAT_GameSynchronyState->currentPlayerSlotID == i) {
+ continue;
+ }
+ DAT_SoundEffectsHelperData1->DAT_Music_TotalTroopValue
+ += DAT_TroopValueState->attackInfo.playerTotalTroopValueArray[i];
+ }
+ DAT_SoundEffectsHelperData1->enemyTroopValue
+ = DAT_SoundEffectsHelperData1->DAT_Music_TotalTroopValue;
+ DAT_SoundEffectsHelperData1->battleMoodState = 0;
+ if (DAT_SoundEffectsHelperData1->DAT_Music_TotalTroopValue < 100) {
+ param_1 = 0;
+ DAT_SoundEffectsHelperData1->SEC_Section1079.troopValueLevel = 0;
+ DAT_SoundEffectsHelperData1->SEC_Section1079.volumeLevel
+ = DAT_SoundEffectsHelperData1->SEC_Section1079.incrementorUpTo4;
+ } else if (DAT_SoundEffectsHelperData1->DAT_Music_TotalTroopValue < 250) {
+ if ((DAT_SoundEffectsHelperData1->SEC_Section1079.incrementorUpTo4 == 1)
+ || (DAT_SoundEffectsHelperData1->SEC_Section1079.incrementorUpTo4 == 3)) {
+ param_1 = 0;
+ DAT_SoundEffectsHelperData1->SEC_Section1079.troopValueLevel = 0;
+ DAT_SoundEffectsHelperData1->SEC_Section1079.volumeLevel = 5;
+ } else {
+ param_1 = 1;
+ DAT_SoundEffectsHelperData1->SEC_Section1079.troopValueLevel = 1;
+ DAT_SoundEffectsHelperData1->SEC_Section1079.volumeLevel = 1;
+ }
+ } else {
+ param_1 = 1;
+ DAT_SoundEffectsHelperData1->SEC_Section1079.troopValueLevel = 1;
+ DAT_SoundEffectsHelperData1->SEC_Section1079.volumeLevel = 2;
+ }
+ } else {
+ int iVar1 = 3;
+ if (DAT_GameSynchronyState->currentGameMode != Game::GM_SOLITARY) {
+ iVar1 = SEC_RNG::ptr->currentNumber1 % 5;
+ }
+ if ((iVar1 == 0) || (iVar1 == 1)) {
+ param_1 = 0;
+ DAT_SoundEffectsHelperData1->SEC_Section1079.troopValueLevel = 0;
+ DAT_SoundEffectsHelperData1->SEC_Section1079.volumeLevel = (iVar1 + 1);
+ }
+ if (iVar1 == 2) {
+ setupVolumeAndSoundID(DE::SHCDE::MUSIC_TUNE_BATTLE_L1A);
+ DAT_SoundEffectsHelperData1->SEC_Section1079.volumeLevel = 1;
+ } else if (iVar1 >= 3) {
+ recountTotalTroopValue();
+ int const currentPlayerTotalTroopValue
+ = DAT_TroopValueState->attackInfo
+ .playerTotalTroopValueArray[DAT_GameSynchronyState->currentPlayerSlotID];
+ DAT_SoundEffectsHelperData1->playerTroopValueBaseline = currentPlayerTotalTroopValue;
+ DAT_SoundEffectsHelperData1->playerTroopValue = currentPlayerTotalTroopValue;
+ DAT_SoundEffectsHelperData1->DAT_Music_TotalTroopValue = 0;
+ for (int i = 1; i < 9; ++i) {
+ if (DAT_GameSynchronyState->currentPlayerSlotID == i) {
+ continue;
+ }
+ DAT_SoundEffectsHelperData1->DAT_Music_TotalTroopValue
+ += DAT_TroopValueState->attackInfo.playerTotalTroopValueArray[i];
+ }
+ DAT_SoundEffectsHelperData1->SEC_Section1079.volumeLevel = 2;
+ DAT_SoundEffectsHelperData1->enemyTroopValue
+ = DAT_SoundEffectsHelperData1->DAT_Music_TotalTroopValue;
+ DAT_SoundEffectsHelperData1->battleMoodState = 0;
+ DAT_SoundEffectsHelperData1->SEC_Section1079.musicTracker = 1;
+ }
+ }
+ ++DAT_SoundEffectsHelperData1->SEC_Section1079.incrementorUpTo4;
+ if (4 < DAT_SoundEffectsHelperData1->SEC_Section1079.incrementorUpTo4) {
+ DAT_SoundEffectsHelperData1->SEC_Section1079.incrementorUpTo4 = 1;
+ }
+ if (this->sec_Section1055_0x3274 != 0) {
+ setSomeSoundTime();
+ }
+ if (param_1 == 0) {
+ switch (DAT_SoundEffectsHelperData1->SEC_Section1079.volumeLevel) {
+ case 1:
+ setupVolumeAndSoundID(DE::SHCDE::MUSIC_TUNE_BATTLE1A);
+ return;
+ case 2:
+ setupVolumeAndSoundID(DE::SHCDE::MUSIC_TUNE_BATTLE2A);
+ return;
+ case 3:
+ case 4:
+ nextRandomNumber1();
+ switch (SEC_RNG::ptr->currentNumber1 % 3) {
+ case 0:
+ setupVolumeAndSoundID(DE::SHCDE::MUSIC_TUNE_BATTLE3);
+ return;
+ case 1:
+ setupVolumeAndSoundID(DE::SHCDE::MUSIC_TUNE_BATTLE4);
+ return;
+ default:
+ setupVolumeAndSoundID(DE::SHCDE::MUSIC_TUNE_BATTLE);
+ return;
+ }
+ default:
+ setupVolumeAndSoundID(DE::SHCDE::MUSIC_TUNE_BATTLE2A);
+ return;
+ }
+ } else if (param_1 == 2) {
+ nextRandomNumber1();
+ if (DAT_GameSynchronyState->currentGameMode != Game::GM_SOLITARY) {
+ endSoundStream(enums::SND_STR_MUSIC);
+ this->musicFadeState = 0;
+ this->sec_Section1055_0x3274 = 0;
+ if (DAT_SoundEffectsHelperData1->SEC_Section1079.volumeLevel != 1) {
+ DAT_SoundEffectsHelperData1->SEC_Section1079.musicTracker = 1;
+ setupVolumeAndSoundID(
+ DE::SHCDE::MUSIC_TUNE_BATTLE_L2_GLORY1);
+ }
+ } else if (SEC_RNG::ptr->currentNumber1 % 3 == 0) {
+ setupVolumeAndSoundID(DE::SHCDE::MUSIC_TUNE_BATTLE_L1A);
+ DAT_SoundEffectsHelperData1->SEC_Section1079.volumeLevel = 1;
+ } else {
+ DAT_SoundEffectsHelperData1->SEC_Section1079.musicTracker = 1;
+ endSoundStream(enums::SND_STR_MUSIC);
+ this->musicFadeState = 0;
+ this->sec_Section1055_0x3274 = 0;
+ DAT_SoundEffectsHelperData1->SEC_Section1079.volumeLevel = 2;
+ setupVolumeAndSoundID(
+ DE::SHCDE::MUSIC_TUNE_BATTLE_L2_GLORY1);
+ }
+ markMusicChangePending();
+ } else {
+ switch (DAT_SoundEffectsHelperData1->SEC_Section1079.volumeLevel) {
+ case 1:
+ setupVolumeAndSoundID(DE::SHCDE::MUSIC_TUNE_BATTLE_L1A);
+ return;
+ case 2:
+ setupVolumeAndSoundID(DE::SHCDE::MUSIC_TUNE_BATTLE2B);
+ markMusicChangePending();
+ return;
+ default:
+ return;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0047af50 handleBattleEndMusicTransition | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047AF50
+ void SoundSystem::handleBattleEndMusicTransition()
+ {
+ if (DAT_GameCore->gameMode_2 == Game::GM_EDITOR
+ || DAT_GameCore->gameMode_2 == Game::GM_SIEGE_THAT) {
+ return;
+ }
+ if (DAT_SoundEffectsHelperData1->SEC_Section1079.musicState != 5
+ || DAT_SoundEffectsHelperData1->SEC_Section1079.battleEndHandled != 0) {
+ return;
+ }
+ DAT_SoundEffectsHelperData1->SEC_Section1079.battleEndHandled = 1;
+ if (DAT_SoundEffectsHelperData1->SEC_Section1079.troopValueLevel == 0) {
+ int const volumeLevel = DAT_SoundEffectsHelperData1->SEC_Section1079.volumeLevel;
+ if (volumeLevel < 1 || volumeLevel > 5) {
+ return;
+ }
+ setSomeSoundTime();
+ DAT_SoundEffectsHelperData1->SEC_Section1079.musicState = 1;
+ if (DAT_SoundEffectsHelperData1->SEC_Section1079.troopValueLevel == 0) {
+ return;
+ }
+ }
+ switch (DAT_SoundEffectsHelperData1->SEC_Section1079.volumeLevel) {
+ case 1:
+ if (DAT_GameSynchronyState->currentGameMode != Game::GM_SOLITARY) {
+ setSomeSoundTime();
+ DAT_SoundEffectsHelperData1->SEC_Section1079.musicState = 1;
+ } else {
+ stopMusicPlayback();
+ setupVolumeAndSoundIDWithMultiplier(
+ DE::SHCDE::MUSIC_TUNE_BATTLE_L1D, 100);
+ playVictoryMusic678();
+ }
+ break;
+ case 2:
+ setSomeSoundTime();
+ if (DAT_GameSynchronyState->currentGameMode == Game::GM_SOLITARY) {
+ setupVolumeAndSoundIDWithMultiplier(
+ (eMusicIDs)(DAT_SoundEffectsHelperData1->DAT_WinMusicVariation
+ + DE::SHCDE::MUSIC_TUNE_WIN1),
+ 100);
+ ++DAT_SoundEffectsHelperData1->DAT_WinMusicVariation;
+ if (DAT_SoundEffectsHelperData1->DAT_WinMusicVariation > 2) {
+ DAT_SoundEffectsHelperData1->DAT_WinMusicVariation = 0;
+ }
+ } else {
+ DAT_SoundEffectsHelperData1->SEC_Section1079.musicState = 1;
+ }
+ playVictoryMusic678();
+ break;
+ }
+ }
+ }
+}
+}
+
+### 0x0047b060 playSoundStreamUnk | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047B060
+ void SoundSystem::playSoundStreamUnk(
+ SHC_SoundStream sndStreamIndex, char* filename, SoundFlagsAndLoopCount flagsAndLoopCount)
+ {
+ if (!this->waveOutOpenUnk_0x8) {
+ return;
+ }
+ if (flagsAndLoopCount & FLAG_SOUND_UNKNOWN_FLAG_2) {
+ this->streamFlagsUnkAndLoopCount_0x34[sndStreamIndex] = 1;
+ }
+ endSoundStream(sndStreamIndex);
+ if (!this->soundActiveUnk_0x0 || DAT_WindowAndDirectDraw->isNotProcessingInputEvents
+ || !DAT_WindowAndDirectDraw->gameFocused || this->streamActiveUnk_0x20[sndStreamIndex]) {
+ return;
+ }
+ if (sndStreamIndex == enums::SND_STR_MUSIC) {
+ AIL_init_sample(this->musicSampleUnk_0x170);
+ AIL_set_sample_type(this->musicSampleUnk_0x170, DIG_F_STEREO_16, 0);
+ AIL_set_sample_playback_rate(this->musicSampleUnk_0x170, 22050);
+ AIL_set_sample_pan(this->musicSampleUnk_0x170, 64);
+ AIL_set_sample_volume(this->musicSampleUnk_0x170,
+ (this->streamVolume[sndStreamIndex] * this->streamFileVolumeNextUnk_0x48[sndStreamIndex]) / 100);
+ this->streamFileVolumeCurrentUnk_0x5c[sndStreamIndex]
+ = this->streamFileVolumeNextUnk_0x48[sndStreamIndex];
+ this->musicSampleFileHandleUnk_0x174 = _ucrt_open(filename, _O_BINARY, 0);
+ this->streamFlagsUnkAndLoopCount_0x34[sndStreamIndex] = flagsAndLoopCount;
+ this->mbr_0x188 = 0;
+ if (this->musicSampleFileHandleUnk_0x174 == -1) {
+ return;
+ }
+ playMusicUnk();
+ playMusicUnk();
+ this->streamActiveUnk_0x20[sndStreamIndex] = true;
+ return;
+ }
+ this->stream_0xc[sndStreamIndex] = AIL_open_stream(this->digSndDriver_0x4, filename, 0);
+ if (!this->stream_0xc[sndStreamIndex]) {
+ return;
+ }
+ this->streamActiveUnk_0x20[sndStreamIndex] = true;
+ this->streamFlagsUnkAndLoopCount_0x34[sndStreamIndex] = flagsAndLoopCount;
+ // "!sndStreamIndex" was required to get the full byte match. This might indicate that instead of using "0"
+ // directly to refer to the first/music stream, the just negate the given stream index, which is always 0.
+ // It might be a coincidence or the current re-implementation of this method lacks some other pattern, but
+ // it works for now and could be something to consider should other behaviors like this show up.
+ if ((flagsAndLoopCount & FLAG_SOUND_UNKNOWN_FLAG_1) && this->streamActiveUnk_0x20[!sndStreamIndex]) {
+ AIL_set_sample_volume(this->musicSampleUnk_0x170,
+ this->streamVolume[!sndStreamIndex] * (this->streamFileVolumeNextUnk_0x48[!sndStreamIndex] / 2)
+ / 100);
+ this->streamFileVolumeCurrentUnk_0x5c[!sndStreamIndex]
+ = this->streamFileVolumeNextUnk_0x48[!sndStreamIndex] / 2;
+ }
+ if (flagsAndLoopCount & (FLAG_SOUND_UNKNOWN_FLAG_2 | FLAG_SOUND_UNINTERRUPTABLE)) {
+ flagsAndLoopCount = 1;
+ }
+ AIL_set_stream_volume(this->stream_0xc[sndStreamIndex],
+ (this->streamVolume[sndStreamIndex] * this->streamFileVolumeNextUnk_0x48[sndStreamIndex]) / 100);
+ this->streamFileVolumeCurrentUnk_0x5c[sndStreamIndex] = this->streamFileVolumeNextUnk_0x48[sndStreamIndex];
+ AIL_set_stream_loop_count(
+ this->stream_0xc[sndStreamIndex], flagsAndLoopCount & FLAG_SOUND_LOOP_COUNT_FIELD);
+ AIL_start_stream(this->stream_0xc[sndStreamIndex]);
+ }
+ }
+}
+}
+
+### 0x0047b250 playMusicFileByName | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047b250
+ void SoundSystem::playMusicFileByName(char* filename)
+ {
+ if (!this->waveOutOpenUnk_0x8) {
+ return;
+ }
+ strcpy(this->currIdSoundFilenameUnk_0x84, filename);
+ this->currIdSoundFileVolumeUnk_0x150
+ = getSoundVolumeForFilename(filename);
+ if (this->musicFadeState == 1) {
+ this->streamFileVolumeNextUnk_0x48[0] = 0;
+ } else {
+ this->streamFileVolumeNextUnk_0x48[0]
+ = (this->musicVolumePercent * this->currIdSoundFileVolumeUnk_0x150) / 100;
+ }
+ playSoundStreamUnk(enums::SND_STR_MUSIC, filename, 0);
+ this->streamFileVolumeNextUnk_0x48[0]
+ = (this->musicVolumePercent * this->currIdSoundFileVolumeUnk_0x150) / 100;
+ }
+ }
+}
+}
+
+### 0x0047b2f0 playOrSetupMusicUnk | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047B2F0
+ void SoundSystem::playOrSetupMusicUnk(char* filename, int someVolumeUnk)
+ {
+ if (!this->waveOutOpenUnk_0x8) {
+ return;
+ }
+ strcpy(this->currIdSoundFilenameUnk_0x84, filename);
+ this->currIdSoundFileVolumeUnk_0x150
+ = getSoundVolumeForFilename(filename);
+ if (this->musicFadeState == 1) {
+ this->streamFileVolumeNextUnk_0x48[0] = 0;
+ } else {
+ this->streamFileVolumeNextUnk_0x48[0]
+ = (((this->currIdSoundFileVolumeUnk_0x150 * someVolumeUnk) / 100) * this->musicVolumePercent) / 100;
+ }
+ playSoundStreamUnk(enums::SND_STR_MUSIC, filename, 0);
+ this->streamFileVolumeNextUnk_0x48[0]
+ = (((this->currIdSoundFileVolumeUnk_0x150 * someVolumeUnk) / 100) * this->musicVolumePercent) / 100;
+ }
+ }
+}
+}
+
+### 0x0047b3c0 playOrEndMusicUnk | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047B3C0
+ void SoundSystem::playOrEndMusicUnk(char* filename, int volume)
+ {
+ if (!this->waveOutOpenUnk_0x8) {
+ return;
+ }
+ strcpy(this->currIdSoundFilenameUnk_0x84, filename);
+ this->currIdSoundFileVolumeUnk_0x150
+ = getSoundVolumeForFilename(filename);
+ if (this->musicFadeState == 1) {
+ this->streamFileVolumeNextUnk_0x48[0] = 0;
+ } else {
+ this->streamFileVolumeNextUnk_0x48[0]
+ = (((this->currIdSoundFileVolumeUnk_0x150 * volume) / 100) * this->musicVolumePercent) / 100;
+ }
+ playSoundStreamUnk(enums::SND_STR_MUSIC, filename, 1);
+ this->streamFileVolumeNextUnk_0x48[0]
+ = (((this->currIdSoundFileVolumeUnk_0x150 * volume) / 100) * this->musicVolumePercent) / 100;
+ }
+ }
+}
+}
+
+### 0x0047b490 openSound | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047B490
+ void SoundSystem::openSound(char* filePath)
+ {
+ if (!this->waveOutOpenUnk_0x8) {
+ return;
+ }
+ strcpy(this->currIdSoundFilenameUnk_0x84, filePath);
+ if (!this->mbr_0x188) {
+ DAT_SoundEffectsHelperData1->field14_0x54 = TRUE;
+ if (this->musicFileHandle_0x178 != -1) {
+ _ucrt_close(this->musicFileHandle_0x178);
+ }
+ this->musicFileHandle_0x178 = _ucrt_open(filePath, _O_BINARY, 0);
+ DAT_SoundEffectsHelperData1->field14_0x54 = FALSE;
+ return;
+ }
+ playMusicFileByName(filePath);
+ }
+ }
+}
+}
+
+### 0x0047b590 playOnSfx1SoundStreamOnceOrOnRepeatUnk | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047B590
+ void SoundSystem::playOnSfx1SoundStreamOnceOrOnRepeatUnk(char* filename)
+ {
+ this->streamFileVolumeNextUnk_0x48[1]
+ = getSoundVolumeForFilename(filename);
+ playSoundStreamUnk(
+ enums::SND_STR_SFX_1Unk, filename, FLAG_SOUND_UNINTERRUPTABLE | 1);
+ }
+ }
+}
+}
+
+### 0x0047b5c0 playSoundOnSoundStream2 | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047B5C0
+ void SoundSystem::playSoundOnSoundStream2(char* filename)
+ {
+ this->streamFileVolumeNextUnk_0x48[1]
+ = getSoundVolumeForFilename(filename);
+ playSoundStreamUnk(enums::SND_STR_SFX_2Unk, filename, 1);
+ }
+ }
+}
+}
+
+### 0x0047b5f0 playSoundOnSpeechStream | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047B5F0
+ void SoundSystem::playSoundOnSpeechStream(char* filename)
+ {
+ if (!this->waveOutOpenUnk_0x8) {
+ return;
+ }
+ if ((this->streamFlagsUnkAndLoopCount_0x34[enums::SND_STR_SPEECH_1] & FLAG_SOUND_UNINTERRUPTABLE)
+ && isSampleOrStreamPlaying(enums::SND_STR_SPEECH_1)) {
+ return;
+ }
+ if (DAT_GameCore.gameMode_2 == Game::GM_CRUSADER_TUTORIAL) {
+ return;
+ }
+ ++DAT_SFXDefinedData.lastUsedSpeechStream;
+ if (DAT_SFXDefinedData.lastUsedSpeechStream > 4) {
+ DAT_SFXDefinedData.lastUsedSpeechStream = 3;
+ }
+ if (this->streamActiveUnk_0x20[DAT_SFXDefinedData.lastUsedSpeechStream]) {
+ endSoundStream(
+ (SHC_SoundStream)DAT_SFXDefinedData.lastUsedSpeechStream);
+ }
+ SHC_SoundStream const speechStream = (SHC_SoundStream)DAT_SFXDefinedData.lastUsedSpeechStream;
+ this->streamFileVolumeNextUnk_0x48[3] = 100;
+ this->streamFileVolumeNextUnk_0x48[4] = 100;
+ playSoundStreamUnk(speechStream, filename, 1);
+ DAT_SoundSystemState.lastUsedSpeechStreamUnk_0x3284
+ = DAT_SFXDefinedData.lastUsedSpeechStream;
+ }
+ }
+}
+}
+
+### 0x0047b670 playSpeechSfx | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047B670
+ void SoundSystem::playSpeechSfx(char* soundFileName)
+ {
+ if (!this->waveOutOpenUnk_0x8) {
+ return;
+ }
+ if ((this->streamFlagsUnkAndLoopCount_0x34[enums::SND_STR_SPEECH_1] & FLAG_SOUND_UNINTERRUPTABLE)
+ && isSampleOrStreamPlaying(enums::SND_STR_SPEECH_1)) {
+ return;
+ }
+ if (DAT_GameCore.gameMode_2 == Game::GM_CRUSADER_TUTORIAL) {
+ return;
+ }
+ ++DAT_SFXDefinedData.speechStreamCursor;
+ if (DAT_SFXDefinedData.speechStreamCursor > 4) {
+ DAT_SFXDefinedData.speechStreamCursor = 3;
+ }
+ if (this->streamActiveUnk_0x20[DAT_SFXDefinedData.speechStreamCursor]) {
+ endSoundStream(
+ (SHC_SoundStream)DAT_SFXDefinedData.speechStreamCursor);
+ }
+ int const nextVolume
+ = getSoundVolumeForFilename(soundFileName);
+ this->streamFileVolumeNextUnk_0x48[3] = nextVolume;
+ this->streamFileVolumeNextUnk_0x48[4] = nextVolume;
+ playSoundStreamUnk(
+ (SHC_SoundStream)DAT_SFXDefinedData.speechStreamCursor, soundFileName, 1);
+ DAT_SoundSystemState.lastUsedSpeechStreamUnk_0x3284
+ = DAT_SFXDefinedData.speechStreamCursor;
+ }
+ }
+}
+}
+
+### 0x0047b700 playAmbientStreamWithLoop | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047B700
+ void SoundSystem::playAmbientStreamWithLoop(char* param_1)
+ {
+ if (!this->waveOutOpenUnk_0x8) {
+ return;
+ }
+ if (this->streamActiveUnk_0x20[DAT_SFXDefinedData.field7_0x4e4]) {
+ endSoundStream(
+ (SHC_SoundStream)DAT_SFXDefinedData.field7_0x4e4);
+ }
+ SHC_SoundStream const soundStream = (SHC_SoundStream)DAT_SFXDefinedData.field7_0x4e4;
+ this->streamFileVolumeNextUnk_0x48[3] = 100;
+ this->streamFileVolumeNextUnk_0x48[4] = 100;
+ if (DAT_GameCore.currentMenuViewType == UI::Enums::MVT_UNUSED_EXTREME_AD) {
+ playSoundStreamUnk(soundStream, param_1, 1);
+ } else {
+ playSoundStreamUnk(
+ soundStream, param_1, FLAG_SOUND_UNKNOWN_FLAG_1 | 1);
+ }
+ }
+ }
+}
+}
+
+### 0x0047b760 playSomeMusicUnk | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0047B760
+ void SoundSystem::playSomeMusicUnk(char* filename, SoundFlagsAndLoopCount flagsAndLoop)
+ {
+ if (!this->waveOutOpenUnk_0x8) {
+ return;
+ }
+ strcpy(this->currIdSoundFilenameUnk_0x84, filename);
+ int const _volume
+ = getSoundVolumeForFilename(filename);
+ this->currIdSoundFileVolumeUnk_0x150 = _volume;
+ this->streamFileVolumeNextUnk_0x48[0] = (this->musicVolumePercent * _volume) / 100;
+ playSoundStreamUnk(enums::SND_STR_MUSIC, filename, flagsAndLoop);
+ }
+ }
+}
+}
+

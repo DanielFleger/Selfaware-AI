@@ -1,0 +1,1367 @@
+### 0x004be7e0 playEventVideoBik | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004BE7E0
+ void AIMessageQueue::playEventVideoBik(char* eventText, char* eventVideoBik, char* eventWavFile)
+ {
+ char cVar1;
+ char (*pacVar2)[100];
+ if (eventText != (char*)0x0) {
+ if (this->messagePlaying_0x0 == FALSE) {
+ this->currentMessageText_0x8 = eventText;
+ this->currentMessageUnknownValue_0x4 = 1;
+ this->currentMessageUnknownValue2_0xd4 = 0;
+ playVideoOverMap(
+ eventVideoBik, eventWavFile);
+ } else if (this->storedMessages_0x924 != 10) {
+ this->savedMessageUnknownValue_0x104[this->storedMessages_0x924] = 1;
+ this->savedMessageTextPtr_0xdc[this->storedMessages_0x924] = eventText;
+ pacVar2 = this->savedMessageVfxFile_0x12c + this->storedMessages_0x924;
+ do {
+ cVar1 = *eventVideoBik;
+ (*pacVar2)[0] = cVar1;
+ eventVideoBik = eventVideoBik + 1;
+ pacVar2 = (char (*)[100])(*pacVar2 + 1);
+ } while (cVar1 != '\0');
+ pacVar2 = this->savedMessageSfxFile_0x514 + this->storedMessages_0x924;
+ do {
+ cVar1 = *eventWavFile;
+ (*pacVar2)[0] = cVar1;
+ eventWavFile = eventWavFile + 1;
+ pacVar2 = (char (*)[100])(*pacVar2 + 1);
+ } while (cVar1 != '\0');
+ this->savedMessageUnknownValue2_0x8fc[this->storedMessages_0x924] = 0;
+ this->storedMessages_0x924 = this->storedMessages_0x924 + 1;
+ return;
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004653b0 OpenOrCloseDrawbridge | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004653B0
+ void Actions::OpenOrCloseDrawbridge(undefined4 param_1, int buildingID, int value, int buildingUID)
+ {
+ if (DAT_BuildingsState.buildings[buildingID].uid == buildingUID) {
+ DAT_BuildingsState.buildings[buildingID].drawbridgeState2 = (byte)value;
+ if (value == 10) {
+ applyGateOrDrawbridgeOpenCloseChange(buildingID, FALSE, TRUE);
+ return;
+ }
+ applyGateOrDrawbridgeOpenCloseChange(buildingID, TRUE, TRUE);
+ }
+ return;
+ }
+}
+}
+
+### 0x004246e0 renderNonInteractingButtonBackground | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004246E0
+ void AlphaAndButtonSurface::renderNonInteractingButtonBackground(int blendStrength)
+ {
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ renderBasicButton(
+ blendStrength, RT_CONTEXT_BASED);
+ }
+ }
+}
+}
+
+### 0x0045d0b0 freeMemory | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0045D0B0
+ void AlphaAndButtonSurface::freeMemory()
+ {
+ if (this->surfacePtr != NULL) {
+ _free_base(this->surfacePtr);
+ }
+ }
+ }
+}
+}
+
+### 0x00462fe0 Constructor_AlphaAndButtonSurface | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00462FE0
+ AlphaAndButtonSurface* AlphaAndButtonSurface::Constructor_AlphaAndButtonSurface()
+ {
+ this->surfacePtr = (ushort*)0x0;
+ return this;
+ }
+ }
+}
+}
+
+### 0x00462ff0 prepareButtonAndAlphaSurface | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00462FF0
+ void AlphaAndButtonSurface::prepareButtonAndAlphaSurface()
+ {
+ dword dVar1;
+ int _currentIconIndex;
+ int _byteNumber;
+ int _numOfAdditionalIconStates;
+ dword _maxImageHeight;
+ GmIDInt _gmID;
+ int _pictureInGm;
+ _byteNumber = 0;
+ this->dim1_intMinimal350_1 = 0;
+ _maxImageHeight = 0;
+ do {
+ _numOfAdditionalIconStates
+ = *(int*)((int)&DAT_UIButtonDefinedData.ButtonGmDataArray[0].numOfAdditionalIconStates_0x8
+ + _byteNumber)
+ + 1;
+ _currentIconIndex = 0;
+ if (0 < _numOfAdditionalIconStates) {
+ _gmID = *(
+ GmIDInt*)((int)&DAT_UIButtonDefinedData.ButtonGmDataArray[0].gmId_0x0 + _byteNumber);
+ do {
+ if ((_gmID != ((GmID)0))
+ && (_pictureInGm
+ = *(int*)((int)&DAT_UIButtonDefinedData.ButtonGmDataArray[0].pictureInGm_0x4
+ + _byteNumber),
+ _pictureInGm != 0)) {
+ dVar1 = (dword)DAT_GMImageHeaders
+ .imh[_currentIconIndex + GMTotalPicturesProcessed::instance[_gmID]
+ + _pictureInGm + -1]
+ .width;
+ if ((int)this->dim1_intMinimal350_1 < (int)dVar1) {
+ this->dim1_intMinimal350_1 = dVar1;
+ }
+ dVar1 = (dword)DAT_GMImageHeaders
+ .imh[_currentIconIndex + GMTotalPicturesProcessed::instance[_gmID]
+ + _pictureInGm + -1]
+ .height;
+ if ((int)_maxImageHeight < (int)dVar1) {
+ _maxImageHeight = dVar1;
+ }
+ }
+ _currentIconIndex = _currentIconIndex + 1;
+ } while (_currentIconIndex < _numOfAdditionalIconStates);
+ }
+ _byteNumber = _byteNumber + 28;
+ } while (_byteNumber < 18200);
+ if ((int)this->dim1_intMinimal350_1 < 350) {
+ this->dim1_intMinimal350_1 = 350;
+ }
+ if ((int)_maxImageHeight < 350) {
+ _maxImageHeight = 350;
+ }
+ this->dim2_intMinimal350_2 = _maxImageHeight;
+ this->surfacePtr = _malloc(_maxImageHeight * this->dim1_intMinimal350_1 * 2);
+ return;
+ }
+ }
+}
+}
+
+### 0x00463270 ProcessBuildingClickBonus | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00463270
+ void AlphaAndButtonSurface::ProcessBuildingClickBonus(int buildingIndex)
+ {
+ int _playerIndex;
+ BuildingTypeShort _buildingType;
+ if (0 < buildingIndex) {
+ _playerIndex = (int)DAT_BuildingsState.buildings[buildingIndex].owner;
+ if ((DAT_GameState.mapAndTime.playerTeams[_playerIndex]
+ == DAT_GameState.mapAndTime
+ .playerTeams[DAT_GameSynchronyState.currentPlayerSlotID])
+ || ((DAT_GameSynchronyState.currentPlayerFullIDArray[_playerIndex] == -1
+ && (DAT_GameSynchronyState.currentAIArray[_playerIndex] != 0)))) {
+ extendResourceCountdownForPlayerBuildingsOfType(
+ (int)(short)DAT_BuildingsState.buildings[buildingIndex].buildingType, 1,
+ _playerIndex);
+ _buildingType = DAT_BuildingsState.buildings[buildingIndex].buildingType;
+ if ((_buildingType == BT_MANORHOUSE)
+ || (((_buildingType == BT_STONEKEEP
+ || (_buildingType == BT_STRONGHOLD))
+ || (_buildingType == BT_CAMPGROUND)))) {
+ displayPopularityAndGoldPopups(buildingIndex, 0, 0, 0);
+ }
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00463310 openBuildingStatusMenuForBuildingID | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00463310
+ BOOLEnum AlphaAndButtonSurface::openBuildingStatusMenuForBuildingID(int buildingID)
+ {
+ short sVar1;
+ int iVar2;
+ int iVar3;
+ dword dVar4;
+ if ((buildingID < 1) || (DAT_GameCore.gamePausedLogical != 0)) {
+ return FALSE;
+ }
+ sVar1 = DAT_BuildingsState.buildings[buildingID].owner;
+ dVar4 = 1;
+ if (sVar1 == DAT_GameSynchronyState.currentPlayerSlotID) {
+ LAB_004633b5:
+ extendResourceCountdownForPlayerBuildingsOfType(
+ (int)(short)DAT_BuildingsState.buildings[buildingID].buildingType, 1,
+ DAT_GameSynchronyState.currentPlayerSlotID);
+ iVar3 = DAT_GameSynchronyState.currentPlayerSlotID;
+ switch (DAT_BuildingsState.buildings[buildingID].buildingType) {
+ case BT_HOVEL:
+ case BT_HOUSE:
+ dVar4 = 5;
+ break;
+ case BT_WOODCUTTERSHUT:
+ dVar4 = 6;
+ break;
+ case BT_OXTETHER:
+ dVar4 = 7;
+ break;
+ case BT_IRONMINE:
+ dVar4 = 8;
+ break;
+ case BT_PITCHRIG:
+ dVar4 = 9;
+ break;
+ case BT_HUNTERSHUT:
+ dVar4 = 10;
+ break;
+ case BT_MERCENARYPOST:
+ dVar4 = 0x2c;
+ break;
+ case BT_BARRACKS:
+ break;
+ case BT_STOCKPILE:
+ dVar4 = 0xb;
+ break;
+ case BT_ARMORY:
+ dVar4 = 0xc;
+ break;
+ case BT_FLETCHER:
+ dVar4 = 0xd;
+ break;
+ case BT_BLACKSMITH:
+ dVar4 = 0xe;
+ break;
+ case BT_POLETURNER:
+ dVar4 = 0xf;
+ break;
+ case BT_ARMOURER:
+ dVar4 = 0x10;
+ break;
+ case BT_TANNER:
+ dVar4 = 0x11;
+ break;
+ case BT_BAKERY:
+ dVar4 = 0x12;
+ break;
+ case BT_BREWERY:
+ dVar4 = 0x13;
+ break;
+ case BT_GRANARY:
+ iVar2
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .rationsSetting;
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .rationsSetting2 = iVar2;
+ dVar4 = 4;
+ DAT_GameState.playerDataArray[iVar3].rationsSetting3 = iVar2;
+ break;
+ case BT_QUARRY:
+ dVar4 = 0x14;
+ break;
+ case BT_QUARRYSTOCKPILE:
+ dVar4 = 0x15;
+ break;
+ case BT_INN:
+ dVar4 = 3;
+ break;
+ case BT_APOTHECARY:
+ dVar4 = 0x16;
+ break;
+ case BT_ENGINEERSGUILD:
+ dVar4 = 0x17;
+ break;
+ case BT_TUNNELERSGUILD:
+ dVar4 = 0x18;
+ break;
+ case BT_MARKETPLACE:
+ dVar4 = 0x19;
+ break;
+ case BT_WELL:
+ dVar4 = 0x1a;
+ break;
+ case BT_OILSMELTER:
+ dVar4 = 0x1b;
+ break;
+ case BT_SIEGETENT:
+ dVar4 = 0x1c;
+ break;
+ case BT_WHEATFARM:
+ dVar4 = 0x1d;
+ break;
+ case BT_HOPFARM:
+ dVar4 = 0x1e;
+ break;
+ case BT_APPLEFARM:
+ dVar4 = 0x1f;
+ break;
+ case BT_DAIRYFARM:
+ dVar4 = 0x20;
+ break;
+ case BT_MILL:
+ dVar4 = 0x21;
+ break;
+ case BT_STABLES:
+ dVar4 = 0x22;
+ break;
+ case BT_CHAPEL:
+ case BT_CHURCH:
+ dVar4 = 0x23;
+ break;
+ case BT_CATHEDRAL:
+ dVar4 = 0x60;
+ break;
+ default : switchD_004633df_caseD_27 : return FALSE;
+ case BT_MANORHOUSE:
+ case BT_STONEKEEP:
+ case BT_STRONGHOLD:
+ case BT_KEEPFOUR:
+ case BT_KEEPFIVE:
+ case BT_KEEPDOOR_LEFT:
+ case BT_KEEPDOOR_RIGHT:
+ case BT_KEEPDOOR:
+ iVar2
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .taxesSetting;
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .taxesSetting2 = iVar2;
+ dVar4 = 2;
+ DAT_GameState.playerDataArray[iVar3].taxesSliderUI = iVar2;
+ break;
+ case BT_GATEHOUSELARGE:
+ case BT_GATEHOUSESMALL:
+ case BT_WOODGATE1:
+ if (DAT_BuildingsState.buildings[buildingID].field241_0x2c6 != 0) {
+ return FALSE;
+ }
+ dVar4 = 0x24;
+ break;
+ case BT_WOODGATE2:
+ dVar4 = 0x26;
+ break;
+ case BT_DRAWBRIDGE:
+ iVar3 = findParticularBuilding((int)DAT_BuildingsState.buildings[buildingID].owner,
+ (int)((int)((short)DAT_BuildingsState.buildings[buildingID].x)),
+ (int)((int)((short)DAT_BuildingsState.buildings[buildingID].y)),
+ DAT_BuildingsState.buildings[buildingID].widthOrHeight,
+ BT_GATEHOUSELARGE, 0);
+ if (((iVar3 != 0)
+ || (iVar3 = findParticularBuilding(
+ (int)DAT_BuildingsState.buildings[buildingID].owner,
+ (int)((int)((short)DAT_BuildingsState.buildings[buildingID].x)),
+ (int)((int)((short)DAT_BuildingsState.buildings[buildingID].y)),
+ DAT_BuildingsState.buildings[buildingID].widthOrHeight,
+ BT_GATEHOUSESMALL, 0),
+ iVar3 != 0))
+ && (DAT_BuildingsState.buildings[iVar3].field241_0x2c6 != 0)) {
+ return FALSE;
+ }
+ dVar4 = 0x25;
+ break;
+ case BT_TUNNEL:
+ dVar4 = 0x27;
+ break;
+ case BT_CAMPFIRE:
+ case BT_PARADEGROUND:
+ case BT_PARADEGROUND2:
+ case BT_PARADEGROUND3:
+ case BT_PARADEGROUND4:
+ case BT_PARADEGROUND5:
+ dVar4 = 0x34;
+ break;
+ case BT_SIGNPOST:
+ dVar4 = 0x29;
+ break;
+ case BT_FIREBALLISTA:
+ dVar4 = 0x5f;
+ break;
+ case BT_CAMPGROUND:
+ dVar4 = 0x2b;
+ break;
+ case BT_GALLOWS:
+ dVar4 = 0x2f;
+ break;
+ case BT_STOCKS:
+ dVar4 = 0x30;
+ break;
+ case BT_WITCHHOIST:
+ dVar4 = 0x31;
+ break;
+ case BT_MAYPOLE:
+ dVar4 = 0x32;
+ break;
+ case BT_GARDEN:
+ dVar4 = 0x33;
+ break;
+ case BT_KILLINGPIT:
+ dVar4 = 0x2a;
+ break;
+ case BT_SIEGETOWER_PLACED:
+ switchD_004633df_caseD_45:
+ DAT_BuildingsState.field28_0x18e05c = buildingID;
+ DAT_BuildingsState.field29_0x18e060
+ = DAT_BuildingsState.buildings[buildingID].uid;
+ return FALSE;
+ case BT_WATERPOT:
+ dVar4 = 0x28;
+ break;
+ case BT_TOWER1:
+ case BT_TOWER2:
+ case BT_TOWER3:
+ case BT_TOWER4:
+ case BT_TOWER5:
+ dVar4 = 0x2e;
+ break;
+ case BT_CATAPULT:
+ dVar4 = 0x3a;
+ break;
+ case BT_TREBUCHET:
+ dVar4 = 0x3b;
+ break;
+ case BT_BATTERINGRAM:
+ dVar4 = 0x3c;
+ break;
+ case BT_SIEGETOWER:
+ dVar4 = 0x3d;
+ break;
+ case BT_SHIELD:
+ dVar4 = 0x3e;
+ break;
+ case BT_CESSPIT:
+ dVar4 = 0x50;
+ break;
+ case BT_BURNINGSTAKE:
+ dVar4 = 0x51;
+ break;
+ case BT_GIBBET:
+ dVar4 = 0x52;
+ break;
+ case BT_DUNGEON:
+ dVar4 = 0x53;
+ break;
+ case BT_STRETCHINGRACK:
+ dVar4 = 0x54;
+ break;
+ case BT_RACKFLOGGING:
+ dVar4 = 0x55;
+ break;
+ case BT_CHOPPINGBLOCK:
+ dVar4 = 0x56;
+ break;
+ case BT_DUNKINGSTOOL:
+ dVar4 = 0x57;
+ break;
+ case BT_DOGCAGE:
+ dVar4 = 0x58;
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .releaseDogsFlag
+ = DAT_BuildingsState.buildings[buildingID].flagonsOfAleOrCheeseOrReleaseDogs;
+ break;
+ case BT_STATUE:
+ goto switchD_004633df_caseD_64;
+ case BT_SHRINE:
+ dVar4 = 0x5a;
+ break;
+ case BT_BEEHIVE:
+ dVar4 = 0x5b;
+ break;
+ case BT_DANCINGBEAR:
+ dVar4 = 0x5c;
+ break;
+ case BT_BEARCAVE:
+ dVar4 = 0x5e;
+ break;
+ case BT_OUTPOST_EUROPEAN:
+ case BT_OUTPOST_ARABIAN:
+ if (DAT_GameCore.gameMode_2 != GM_EDITOR) {
+ closeHelpDialogAndReturnToMenu();
+ LAB_0046340c:
+ DAT_BuildingsState.field28_0x18e05c = buildingID;
+ DAT_BuildingsState.field29_0x18e060
+ = DAT_BuildingsState.buildings[buildingID].uid;
+ return FALSE;
+ }
+ dVar4 = 0x2d;
+ }
+ } else {
+ if ((sVar1 != 0)
+ || (DAT_BuildingsState.buildings[buildingID].buildingType
+ != BT_STATUE)) {
+ switch (DAT_BuildingsState.buildings[buildingID].buildingType) {
+ case BT_HOVEL:
+ case BT_HOUSE:
+ case BT_WOODCUTTERSHUT:
+ case BT_OXTETHER:
+ case BT_IRONMINE:
+ case BT_PITCHRIG:
+ case BT_HUNTERSHUT:
+ case BT_MERCENARYPOST:
+ case BT_BARRACKS:
+ case BT_STOCKPILE:
+ case BT_ARMORY:
+ case BT_FLETCHER:
+ case BT_BLACKSMITH:
+ case BT_POLETURNER:
+ case BT_ARMOURER:
+ case BT_TANNER:
+ case BT_BAKERY:
+ case BT_BREWERY:
+ case BT_GRANARY:
+ case BT_QUARRY:
+ case BT_INN:
+ case BT_APOTHECARY:
+ case BT_ENGINEERSGUILD:
+ case BT_TUNNELERSGUILD:
+ case BT_MARKETPLACE:
+ case BT_WELL:
+ case BT_OILSMELTER:
+ case BT_SIEGETENT:
+ case BT_WHEATFARM:
+ case BT_HOPFARM:
+ case BT_APPLEFARM:
+ case BT_DAIRYFARM:
+ case BT_MILL:
+ case BT_STABLES:
+ case BT_CHAPEL:
+ case BT_CHURCH:
+ case BT_CATHEDRAL:
+ case BT_WOODGATE2:
+ case BT_TUNNEL:
+ case BT_GALLOWS:
+ case BT_STOCKS:
+ case BT_WITCHHOIST:
+ case BT_MAYPOLE:
+ case BT_KILLINGPIT:
+ case BT_SIEGETOWER_PLACED:
+ case BT_WATERPOT:
+ case BT_CESSPIT:
+ case BT_BURNINGSTAKE:
+ case BT_GIBBET:
+ case BT_DUNGEON:
+ case BT_STRETCHINGRACK:
+ case BT_RACKFLOGGING:
+ case BT_CHOPPINGBLOCK:
+ case BT_DUNKINGSTOOL:
+ case BT_DOGCAGE:
+ case BT_STATUE:
+ case BT_SHRINE:
+ case BT_BEEHIVE:
+ case BT_DANCINGBEAR:
+ case BT_BEARCAVE:
+ goto switchD_004633df_caseD_45;
+ default : goto switchD_004633df_caseD_27;
+ case BT_GATEHOUSELARGE:
+ case BT_GATEHOUSESMALL:
+ case BT_WOODGATE1:
+ case BT_DRAWBRIDGE:
+ case BT_TOWER1:
+ case BT_TOWER2:
+ case BT_TOWER3:
+ case BT_TOWER4:
+ case BT_TOWER5:
+ if (DAT_GameState.mapAndTime.playerTeams[sVar1]
+ != DAT_GameState.mapAndTime
+ .playerTeams[DAT_GameSynchronyState.currentPlayerSlotID])
+ goto switchD_004633df_caseD_45;
+ break;
+ case BT_OUTPOST_EUROPEAN:
+ case BT_OUTPOST_ARABIAN:
+ if (DAT_GameCore.gameMode_2 != GM_EDITOR)
+ goto LAB_0046340c;
+ }
+ goto LAB_004633b5;
+ }
+ switchD_004633df_caseD_64:
+ dVar4 = 0x59;
+ }
+ closeHelpDialogAndReturnToMenu();
+ DAT_GameCore.buildingandstatusmenuMenuTabToSwitchTo = dVar4;
+ switchToMenuView(
+ MVT_BUILDING_AND_STATUS_MENU, 0);
+ DAT_BuildingsState.newSelectedBuildingID = buildingID;
+ DAT_BuildingsState.newSelectedUnitID = 0;
+ if (DAT_GameCore.gameMode_2 == GM_CRUSADER_TUTORIAL) {
+ SetTutorialBuildingActionState(8,
+ (BuildingType)((int)((int)(short)DAT_BuildingsState.buildings[buildingID].buildingType)));
+ }
+ DAT_BuildingsState.field28_0x18e05c = 0;
+ DAT_BuildingsState.field29_0x18e060 = 0;
+ return TRUE;
+ }
+ }
+}
+}
+
+### 0x00463a00 SelectUnitAndOpenStatusMenu | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00463A00
+ BOOLEnum AlphaAndButtonSurface::SelectUnitAndOpenStatusMenu(int unitIndex)
+ {
+ if ((((0 < unitIndex)
+ && (DAT_UnitsState.units[unitIndex].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID))
+ && (DAT_UnitsState.units[unitIndex].isSelectable_OR_matchTime == 0))
+ && (((DAT_GameCore.gameMode_2 != GM_EDITOR
+ && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT))
+ && ((DAT_GameCore.gamePausedLogical == 0
+ && (DAT_UnitsState.units[unitIndex].unitType
+ != UT_S_TOWER)))))) {
+ closeHelpDialogAndReturnToMenu();
+ DAT_GameCore.buildingandstatusmenuMenuTabToSwitchTo = 0x46;
+ switchToMenuView(
+ MVT_BUILDING_AND_STATUS_MENU, 0);
+ DAT_BuildingsState.newSelectedUnitID = unitIndex;
+ DAT_BuildingsState.newSelectedBuildingID = 0;
+ return TRUE;
+ }
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x00463a90 renderBasicButton | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00463A90
+ void AlphaAndButtonSurface::renderBasicButton(int reverseOrBlendStrength, RenderTarget renderSurface)
+ {
+ BOOLEnum _isInGameMenu;
+ uint _variation;
+ int imageID;
+ int _blendStrength;
+ int iVar1;
+ int _renderX;
+ int iVar2;
+ int _drawX_01;
+ bool _blendStrengthMin1;
+ int _buttonY;
+ RenderTargetInt _drawBufferChoiceValue;
+ _drawBufferChoiceValue = DAT_TextureRenderCoreObject.drawBufferChoiceValue;
+ _buttonY = DAT_ButtonY;
+ if (reverseOrBlendStrength == 0x20) {
+ return;
+ }
+ _blendStrengthMin1 = reverseOrBlendStrength == -1;
+ if (_blendStrengthMin1) {
+ reverseOrBlendStrength = 0;
+ }
+ iVar1 = (reverseOrBlendStrength * 9 + -0x120) * 2;
+ _blendStrength = ((int)(iVar1 + (iVar1 >> 0x1f & 0x1fU)) >> 5) + 0x20;
+ if (_blendStrength == 0x20) {
+ return;
+ }
+ if (_blendStrengthMin1) {
+ iVar1 = DAT_ButtonW - (DAT_ButtonW + 9) % 10;
+ _renderX = DAT_ButtonX + (DAT_ButtonW - (iVar1 + 9)) / 2;
+ if (renderSurface == RT_CONTEXT_BASED) {
+ _isInGameMenu
+ = getAreWeInAInGameMenu();
+ renderSurface = (RenderTarget)(_isInGameMenu != FALSE);
+ }
+ /*
+ -9 if buttonH >= 31 else 0
+ */
+ _variation = (DAT_ButtonH < 30) - 1 & 0xfffffff7;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = renderSurface;
+ renderGMWithBlending(GID_INTERFACE_ICONS_3,
+ _variation + 0x7c, _renderX, _buttonY, _blendStrength);
+ if (DAT_ButtonCurrentlyInteracting != FALSE) {
+ renderGMWithAlphaMask(GID_INTERFACE_ICONS_3,
+ _variation + 0x82, _renderX + -6, _buttonY + -6,
+ GID_INTERFACE_ICONS_3, _variation + 0x7f,
+ reverseOrBlendStrength);
+ }
+ iVar2 = _renderX + 10;
+ if (10 < iVar1 + -1) {
+ iVar1 = (iVar1 - 0xcU) / 10 + 1;
+ do {
+ renderGMWithBlending(GID_INTERFACE_ICONS_3,
+ _variation + 0x7d, iVar2, _buttonY, _blendStrength);
+ if (DAT_ButtonCurrentlyInteracting != FALSE) {
+ renderGMWithAlphaMask(GID_INTERFACE_ICONS_3,
+ _variation + 0x83, iVar2, _buttonY + -6,
+ GID_INTERFACE_ICONS_3, _variation + 0x80,
+ reverseOrBlendStrength);
+ }
+ iVar2 = iVar2 + 10;
+ iVar1 = iVar1 + -1;
+ } while (iVar1 != 0);
+ }
+ renderGMWithBlending(GID_INTERFACE_ICONS_3,
+ _variation + 0x7e, iVar2, _buttonY, _blendStrength);
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = _drawBufferChoiceValue;
+ return;
+ }
+ iVar1 = _variation + 0x81;
+ imageID = _variation + 0x84;
+ goto LAB_00463e99;
+ }
+ /*
+ if blendStrength != -1
+ */
+ if (DAT_ButtonW == 100) {
+ if (DAT_ButtonH == 100) {
+ iVar1 = 0xb3;
+ iVar2 = 100;
+ goto LAB_00463cd0;
+ }
+ LAB_00463ca0:
+ if (35 < DAT_ButtonH) {
+ iVar1 = 39;
+ iVar2 = 200;
+ goto LAB_00463cd0;
+ }
+ } else {
+ if ((DAT_ButtonW < 0x1f) && (DAT_ButtonH < 0x14)) {
+ iVar1 = 0x1b;
+ iVar2 = 0x14;
+ goto LAB_00463cd0;
+ }
+ if ((DAT_ButtonW < 0x47) && (DAT_ButtonH < 0x14)) {
+ iVar1 = 0x18;
+ iVar2 = 0x3c;
+ goto LAB_00463cd0;
+ }
+ if ((DAT_ButtonW < 0x5b) && (DAT_ButtonH < 0x14)) {
+ iVar1 = 0x2a;
+ iVar2 = 0x50;
+ goto LAB_00463cd0;
+ }
+ if (DAT_ButtonW < 0xdd)
+ goto LAB_00463ca0;
+ }
+ if ((310 < DAT_ButtonW) || (DAT_ButtonH < 35)) {
+ if (20 < DAT_ButtonH) {
+ iVar1 = DAT_ButtonW - (DAT_ButtonW + 9) % 10;
+ iVar2 = DAT_ButtonX + (DAT_ButtonW - (iVar1 + 9)) / 2;
+ if (renderSurface == RT_CONTEXT_BASED) {
+ _isInGameMenu = getAreWeInAInGameMenu();
+ renderSurface = (RenderTarget)(_isInGameMenu != FALSE);
+ }
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = renderSurface;
+ renderGMWithBlending(
+ GID_INTERFACE_ICONS_3, 0x6a, iVar2, _buttonY, _blendStrength);
+ if (DAT_ButtonCurrentlyInteracting != FALSE) {
+ renderGMWithAlphaMask(GID_INTERFACE_ICONS_3, 0x70,
+ iVar2 + -5, _buttonY + -6, GID_INTERFACE_ICONS_3, 0x6d,
+ reverseOrBlendStrength);
+ }
+ _drawX_01 = iVar2 + 10;
+ if (10 < iVar1 + -1) {
+ iVar1 = (iVar1 - 0xcU) / 10 + 1;
+ do {
+ renderGMWithBlending(GID_INTERFACE_ICONS_3, 0x6b,
+ _drawX_01, _buttonY, _blendStrength);
+ if (DAT_ButtonCurrentlyInteracting != FALSE) {
+ renderGMWithAlphaMask(GID_INTERFACE_ICONS_3,
+ 0x71, _drawX_01, _buttonY + -6, GID_INTERFACE_ICONS_3, 0x6e,
+ reverseOrBlendStrength);
+ }
+ _drawX_01 = _drawX_01 + 10;
+ iVar1 = iVar1 + -1;
+ } while (iVar1 != 0);
+ }
+ renderGMWithBlending(
+ GID_INTERFACE_ICONS_3, 0x6c, _drawX_01, _buttonY, _blendStrength);
+ if (DAT_ButtonCurrentlyInteracting != FALSE) {
+ renderGMWithAlphaMask(GID_INTERFACE_ICONS_3, 0x72,
+ _drawX_01, _buttonY + -6, GID_INTERFACE_ICONS_3, 0x6f,
+ reverseOrBlendStrength);
+ }
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = _drawBufferChoiceValue;
+ return;
+ }
+ iVar1 = DAT_ButtonW - (DAT_ButtonW + 9) % 10;
+ iVar2 = DAT_ButtonX + (DAT_ButtonW - (iVar1 + 9)) / 2;
+ if (renderSurface == RT_CONTEXT_BASED) {
+ _isInGameMenu
+ = getAreWeInAInGameMenu();
+ renderSurface = (RenderTarget)(_isInGameMenu != FALSE);
+ }
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = renderSurface;
+ renderGMWithBlending(
+ GID_INTERFACE_ICONS_3, 0xba, iVar2, _buttonY, _blendStrength);
+ if (DAT_ButtonCurrentlyInteracting != FALSE) {
+ renderGMWithAlphaMask(GID_INTERFACE_ICONS_3, 0xc0,
+ iVar2 + -5, _buttonY + -6, GID_INTERFACE_ICONS_3, 0xbd,
+ reverseOrBlendStrength);
+ }
+ iVar2 = iVar2 + 10;
+ if (10 < iVar1 + -1) {
+ iVar1 = (iVar1 - 0xcU) / 10 + 1;
+ do {
+ renderGMWithBlending(
+ GID_INTERFACE_ICONS_3, 0xbb, iVar2, _buttonY, _blendStrength);
+ if (DAT_ButtonCurrentlyInteracting != FALSE) {
+ renderGMWithAlphaMask(GID_INTERFACE_ICONS_3, 0xc1,
+ iVar2, _buttonY + -6, GID_INTERFACE_ICONS_3, 0xbe,
+ reverseOrBlendStrength);
+ }
+ iVar2 = iVar2 + 10;
+ iVar1 = iVar1 + -1;
+ } while (iVar1 != 0);
+ }
+ renderGMWithBlending(
+ GID_INTERFACE_ICONS_3, 0xbc, iVar2, _buttonY, _blendStrength);
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = _drawBufferChoiceValue;
+ return;
+ }
+ iVar1 = 0xbf;
+ imageID = 0xc2;
+ LAB_00463e99:
+ renderGMWithAlphaMask(GID_INTERFACE_ICONS_3, imageID, iVar2,
+ _buttonY + -6, GID_INTERFACE_ICONS_3, iVar1, reverseOrBlendStrength);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = _drawBufferChoiceValue;
+ return;
+ }
+ iVar1 = 0x61;
+ iVar2 = 300;
+ LAB_00463cd0:
+ iVar2 = DAT_ButtonX + (DAT_ButtonW - iVar2) / 2;
+ _isInGameMenu = getAreWeInAInGameMenu();
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = (RenderTargetInt)(_isInGameMenu != FALSE);
+ renderGMWithBlending(
+ GID_INTERFACE_ICONS_3, iVar1, iVar2, _buttonY, _blendStrength);
+ if (DAT_ButtonCurrentlyInteracting != FALSE) {
+ renderGMWithAlphaMask(GID_INTERFACE_ICONS_3, iVar1 + 2,
+ iVar2 + -5, _buttonY + -6, GID_INTERFACE_ICONS_3, iVar1 + 1,
+ reverseOrBlendStrength);
+ }
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = _drawBufferChoiceValue;
+ return;
+ }
+ }
+}
+}
+
+### 0x0046c580 Constructor_BitMapState | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0046C580
+ BitMapState* BitMapState::Constructor_BitMapState()
+ {
+ this->address = 0;
+ this->surface = 0;
+ this->mbr_0x18 = 0;
+ return this;
+ }
+}
+}
+
+### 0x0046c5a0 readBitmapFace | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0046C5A0
+ void BitMapState::readBitmapFace(unsigned char* surface, int x, int y, int faceIndex)
+ {
+ unsigned char (*copySurface)[16][8] = (unsigned char (*)[16][8])_malloc(FACE_SIZE);
+ unsigned char* copySurfaceOrigin = (unsigned char*)copySurface;
+ unsigned int stride16bit = this->stride16bit;
+ for (int i = 0; i < 66; ++i) {
+ unsigned char (*faceLine)[8] = (unsigned char (*)[8])(surface + i * stride16bit + x * 2 + stride16bit * y);
+ for (int j = 0; j < 16; ++j) {
+ for (int k = 0; k < 8; ++k) {
+ copySurface[i][j][k] = faceLine[j][k];
+ }
+ }
+ }
+ DAT_TextureRenderCoreObject.bitmapFaceSizes[faceIndex] = FACE_SIZE;
+ _memcpy(
+ (void*)((int)DAT_TextureRenderCoreObject.bitmapsFaces_0x94 + faceIndex * FACE_SIZE),
+ copySurfaceOrigin, FACE_SIZE);
+ _free_base(copySurfaceOrigin);
+ }
+}
+}
+
+### 0x0046c680 blitBitmap24BitToSurface565 | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0046C680
+ void BitMapState::blitBitmap24BitToSurface565(int addExtra)
+ {
+ for (int y = this->high - 1; y >= 0; y -= this->step) {
+ int local_4 = 0;
+ for (int x = 0; x < this->total; x += this->step2) {
+ unsigned short blue = ((unsigned char*)(this->address + this->stride24bit * y + x * 3))[0] >> 3;
+ unsigned short green = ((unsigned char*)(this->address + this->stride24bit * y + x * 3))[1];
+ if (this->mbr_0x18 == 0 && DAT_WindowAndDirectDraw.colorBitMode == Rendering::RGB_565) {
+ green >>= 2;
+ } else {
+ green >>= 3;
+ }
+ green <<= 5;
+ unsigned short red = ((unsigned char*)(this->address + this->stride24bit * y + x * 3))[2] >> 3;
+ if (this->mbr_0x18 == 0 && DAT_WindowAndDirectDraw.colorBitMode == Rendering::RGB_565) {
+ red <<= 11;
+ } else {
+ red <<= 10;
+ }
+ unsigned short uVar3 = red + green + blue;
+ if (DAT_WindowAndDirectDraw.colorBitMode != Rendering::RGB_565 || this->mbr_0x18 != 0) {
+ uVar3 |= 0x8000;
+ if (uVar3 == 0xfc1f) {
+ uVar3 = COL_MAGENTA::instance.shortValue;
+ }
+ }
+ *this->surface = uVar3;
+ ++this->surface;
+ ++local_4;
+ }
+ if (addExtra != 0) {
+ this->surface += (this->mbr_0x47c - local_4);
+ }
+ }
+ this->mbr_0x18 = 0;
+ }
+}
+}
+
+### 0x0046c7a0 blitPalettedBitmapToSurface565 | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0046C7A0
+ void BitMapState::blitPalettedBitmapToSurface565(int param_1)
+ {
+ for (int y = this->high - 1; y >= 0; y -= this->step) {
+ int _counter = 0;
+ for (int x = 0; x < this->total; x += this->step2) {
+ unsigned char index = ((unsigned char*)this->address)[this->stride8bit * y + x];
+ unsigned short blue = this->palette[index][0] >> 3;
+ unsigned short green = this->palette[index][1];
+ if (this->mbr_0x18 == 0 && DAT_WindowAndDirectDraw.colorBitMode == Rendering::RGB_565) {
+ green >>= 2;
+ } else {
+ green >>= 3;
+ }
+ green <<= 5;
+ unsigned short red = this->palette[index][2] >> 3;
+ if (this->mbr_0x18 == 0 && DAT_WindowAndDirectDraw.colorBitMode == Rendering::RGB_565) {
+ red <<= 11;
+ } else {
+ red <<= 10;
+ }
+ unsigned short _outcome = red + green + blue;
+ if (DAT_WindowAndDirectDraw.colorBitMode != Rendering::RGB_565 || this->mbr_0x18 != 0) {
+ _outcome |= 0x8000;
+ if (_outcome == 0xfc1f) {
+ _outcome = 0xf81f; // NOTE: Standard Magenta for RGB555 instead of the value of COL_MAGENTA
+ }
+ }
+ *this->surface = _outcome;
+ ++this->surface;
+ ++_counter;
+ }
+ if (param_1 != 0) {
+ this->surface += (this->mbr_0x47c - _counter);
+ }
+ }
+ this->mbr_0x18 = 0;
+ }
+}
+}
+
+### 0x0046c8d0 copyBitmapToTextureBuffer | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0046C8D0
+ void BitMapState::copyBitmapToTextureBuffer()
+ {
+ unsigned char* dest = (unsigned char*)DAT_TextureRenderCoreObject.address2;
+ for (int y = this->high - 1; y >= 0; --y) {
+ for (int x = 0; x < this->total; ++x) {
+ *dest = *(unsigned char*)(this->stride8bit * y + this->address + x);
+ ++dest;
+ }
+ }
+ }
+}
+}
+
+### 0x00472230 setBMPFacesToMagenta | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00472230
+ void BitMapState::setBMPFacesToMagenta()
+ {
+ for (int faceIndex = 20; faceIndex < 28; ++faceIndex) {
+ fillMemory_ShortValue(FACE_SIZE,
+ COL_MAGENTA::instance.shortValue,
+ ((unsigned char (*)[FACE_SIZE])DAT_TextureRenderCoreObject.bitmapsFaces_0x94)[faceIndex]);
+ }
+ }
+}
+}
+
+### 0x00472270 loadBitmapHeader | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00472270
+ void BitMapState::loadBitmapHeader()
+ {
+ char* fileName
+ = getFileNameOfCurrentActiveResource();
+ int fileHandle = _ucrt_open(fileName, _O_BINARY, 0);
+ _ucrt_read(fileHandle, &this->bitmapFileHeader, 0xe);
+ _ucrt_read(fileHandle, &this->bitmapInfoHeader, 0x28);
+ this->mbr_0x0 = 0;
+ this->mbr_0x4 = 0;
+ this->total = this->bitmapInfoHeader.biWidth;
+ this->high = this->bitmapInfoHeader.biHeight;
+ this->biBitCount = this->bitmapInfoHeader.biBitCount;
+ this->stride24bit = this->bitmapInfoHeader.biWidth * 3 + this->bitmapInfoHeader.biWidth % 4;
+ this->stride16bit = this->bitmapInfoHeader.biWidth * 2;
+ this->stride8bit = this->bitmapInfoHeader.biWidth;
+ this->stride32bit = this->bitmapInfoHeader.biWidth * 4;
+ if (this->biBitCount == 8) {
+ this->size = this->bitmapInfoHeader.biHeight * this->bitmapInfoHeader.biWidth;
+ } else if (this->biBitCount == 16) {
+ this->size = this->stride16bit * this->bitmapInfoHeader.biHeight;
+ } else if (this->biBitCount == 24) {
+ this->size = this->stride24bit * this->bitmapInfoHeader.biHeight;
+ } else if (this->biBitCount == 32) {
+ this->size = this->stride32bit * this->bitmapInfoHeader.biHeight;
+ } else {
+ this->size = 0;
+ }
+ _ucrt_close(fileHandle);
+ if (this->biBitCount != 8) {
+ return;
+ }
+ if (this->bitmapFileHeader.bfOffBits > 1000) {
+ this->paletteSize = 1024;
+ } else {
+ this->paletteSize = 768;
+ }
+ this->paletteStart = this->bitmapFileHeader.bfOffBits - this->paletteSize;
+ char* fileNameForReOpen
+ = getFileNameOfCurrentActiveResource();
+ int fileHandleReOpen = _ucrt_open(fileNameForReOpen, _O_BINARY, 0);
+ _ucrt_lseek(fileHandleReOpen, this->paletteStart, FILE_BEGIN);
+ _ucrt_read(fileHandleReOpen, this->palette, this->paletteSize);
+ _ucrt_close(fileHandleReOpen);
+ }
+}
+}
+
+### 0x004723e0 loadAndBlitBitmap | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004723E0
+ void BitMapState::loadAndBlitBitmap(void* surface)
+ {
+ this->address = (dword)_malloc(this->size);
+ if (!this->address) {
+ return;
+ }
+ this->surface = (unsigned short*)surface;
+ this->mbr_0x47c = 0;
+ char* _Filename
+ = getFileNameOfCurrentActiveResource();
+ int _fileDescriptor = _ucrt_open(_Filename, _O_BINARY, 0);
+ _ucrt_lseek(_fileDescriptor, this->bitmapFileHeader.bfOffBits, FILE_BEGIN);
+ _ucrt_read(_fileDescriptor, (void*)this->address, this->size);
+ _ucrt_close(_fileDescriptor);
+ if (this->biBitCount == 8) {
+ copyBitmapToTextureBuffer();
+ }
+ this->step2 = 1;
+ this->step = 1;
+ if (this->biBitCount == 24) {
+ blitBitmap24BitToSurface565(0);
+ } else if (this->biBitCount == 8) {
+ blitPalettedBitmapToSurface565(0);
+ }
+ _free_base((void*)this->address);
+ this->address = 0;
+ this->surface = 0;
+ }
+}
+}
+
+### 0x004788a0 loadFacesBMP | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004788A0
+ void BitMapState::loadFacesBMP()
+ {
+ resolveResourceFileName(
+ FRT_BMP, s_faces_bmp_005a6500);
+ loadBitmapHeader();
+ unsigned char* surface = (unsigned char*)_malloc(this->stride16bit * this->high);
+ loadAndBlitBitmap(surface);
+ int x = 7;
+ for (int faceIndex = 0; faceIndex < 10; ++faceIndex) {
+ readBitmapFace(surface, x, 7, faceIndex);
+ readBitmapFace(surface, x, 81, faceIndex + 10);
+ x += 71;
+ }
+ _free_base(surface);
+ }
+}
+}
+
+### 0x00417b90 UpdateDrawBridge | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00417B90
+ void Buildings::UpdateDrawBridge()
+ {
+ undefined2* puVar1;
+ byte bVar2;
+ short sVar3;
+ ushort uVar4;
+ ushort uVar5;
+ int iVar6;
+ BOOLEnum BVar7;
+ int iVar8;
+ int iVar9;
+ eSFX sfxOffsetInArray;
+ iVar8 = DAT_CurrentBuildingID;
+ sVar3 = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner;
+ iVar9 = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingVariation
+ - DAT_TileMapState.mapOrientation;
+ if (iVar9 < 0) {
+ iVar9 = iVar9 + 8;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 0;
+ DAT_BuildingsState.buildings[iVar8].field20_0x38 = 0;
+ DAT_BuildingsState.buildings[iVar8].field21_0x3c = 0;
+ DAT_BuildingsState.buildings[iVar8].field22_0x40 = 0;
+ DAT_BuildingsState.buildings[iVar8].field23_0x44 = 0;
+ DAT_BuildingsState.buildings[iVar8].animationIncrement = 1;
+ bVar2 = DAT_BuildingsState.buildings[iVar8].drawBridgeState1;
+ if (bVar2 == 0) {
+ iVar6 = DAT_BuildingDefinedData.field414_0xa38c[iVar9 / 2];
+ DAT_BuildingsState.buildings[iVar8].renderAnimation = 1;
+ DAT_BuildingsState.buildings[iVar8].animationFrame = iVar6;
+ if ((DAT_BuildingsState.buildings[iVar8].drawbridgeState2 == 10)
+ && (BVar7 = isUnitBlockingSizeFiveFootprint(iVar8),
+ iVar8 = DAT_CurrentBuildingID, BVar7 == FALSE)) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].drawBridgeState1 = 1;
+ DAT_BuildingsState.buildings[iVar8].animationIndex = 0;
+ floodMoatUnderRemovedBuilding(iVar8);
+ iVar8 = DAT_CurrentBuildingID;
+ puVar1 = &DAT_GameState.playerDataArray[sVar3].someCount31;
+ *puVar1 = *puVar1 + 1;
+ DAT_BuildingsState.buildings[iVar8].drawbridgeState2 = 0xc;
+ }
+ DAT_BuildingsState.buildings[iVar8].displayOwnerFlag = 1;
+ if (iVar9 == 0) {
+ DAT_BuildingsState.buildings[iVar8].field20_0x38 = 0x4f;
+ goto LAB_00417f35;
+ }
+ if (iVar9 == 2) {
+ DAT_BuildingsState.buildings[iVar8].field21_0x3c = 0x50;
+ goto LAB_00417f5a;
+ }
+ if (iVar9 == 4) {
+ DAT_BuildingsState.buildings[iVar8].field22_0x40 = 0x4d;
+ goto LAB_00417f7f;
+ }
+ if (iVar9 == 6) {
+ DAT_BuildingsState.buildings[iVar8].field23_0x44 = 0x4e;
+ goto LAB_00417fa4;
+ }
+ } else if (bVar2 == 2) {
+ puVar1 = &DAT_GameState.playerDataArray[sVar3].someCount31;
+ *puVar1 = *puVar1 + 1;
+ iVar6 = DAT_BuildingDefinedData.field414_0xa38c[iVar9 / 2];
+ DAT_BuildingsState.buildings[iVar8].renderAnimation = 1;
+ DAT_BuildingsState.buildings[iVar8].animationFrame = iVar6 + 7;
+ if (DAT_BuildingsState.buildings[iVar8].drawbridgeState2 == 0xb) {
+ DAT_BuildingsState.buildings[iVar8].drawBridgeState1 = 3;
+ DAT_BuildingsState.buildings[iVar8].animationIndex = 0;
+ DAT_BuildingsState.buildings[iVar8].drawbridgeState2 = 0xc;
+ }
+ } else if (bVar2 == 1) {
+ puVar1 = &DAT_GameState.playerDataArray[sVar3].someCount31;
+ *puVar1 = *puVar1 + 1;
+ DAT_BuildingsState.buildings[iVar8].renderAnimation = 1;
+ if ((char)DAT_BuildingDefinedData
+ .field139_0x6ae4[DAT_BuildingsState.buildings[iVar8].animationIndex]
+ < '\x01') {
+ DAT_BuildingsState.buildings[iVar8].drawBridgeState1 = 2;
+ DAT_BuildingsState.buildings[iVar8].animationIndex = 0;
+ } else {
+ DAT_BuildingsState.buildings[iVar8].animationFrame
+ = (int)(char)DAT_BuildingDefinedData
+ .field139_0x6ae4[DAT_BuildingsState.buildings[iVar8].animationIndex]
+ + DAT_BuildingDefinedData.field414_0xa38c[iVar9 / 2];
+ if ((DAT_BuildingsState.buildings[iVar8].animationIndex == 1)
+ && (DAT_BuildingsState.buildings[iVar8].animationActive != 0)) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[iVar8].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[iVar8].y)),
+ FX_DRAWBRIDGE_RAISING);
+ iVar8 = DAT_CurrentBuildingID;
+ }
+ if ((DAT_BuildingsState.buildings[iVar8].animationIndex == 0x18)
+ && (DAT_BuildingsState.buildings[iVar8].animationActive != 0)) {
+ uVar4 = DAT_BuildingsState.buildings[iVar8].y;
+ uVar5 = DAT_BuildingsState.buildings[iVar8].x;
+ sfxOffsetInArray = FX_DRAWBRIDGE_RAISED;
+ LAB_00417f21:
+ playSFXAtLocation(
+ (int)(short)uVar5, (int)((int)((short)uVar4)), sfxOffsetInArray);
+ iVar8 = DAT_CurrentBuildingID;
+ }
+ }
+ } else if (bVar2 == 3) {
+ puVar1 = &DAT_GameState.playerDataArray[sVar3].someCount31;
+ *puVar1 = *puVar1 + 1;
+ DAT_BuildingsState.buildings[iVar8].renderAnimation = 1;
+ if ((char)DAT_BuildingDefinedData
+ .field140_0x6b04[DAT_BuildingsState.buildings[iVar8].animationIndex]
+ < '\x01') {
+ DAT_BuildingsState.buildings[iVar8].animationIndex = 0;
+ DAT_BuildingsState.buildings[iVar8].drawBridgeState1 = 0;
+ createWaterForDrawBridge(
+ iVar8);
+ iVar8 = DAT_CurrentBuildingID;
+ } else {
+ DAT_BuildingsState.buildings[iVar8].animationFrame
+ = (int)(char)DAT_BuildingDefinedData
+ .field140_0x6b04[DAT_BuildingsState.buildings[iVar8].animationIndex]
+ + DAT_BuildingDefinedData.field414_0xa38c[iVar9 / 2];
+ if ((DAT_BuildingsState.buildings[iVar8].animationIndex == 1)
+ && (DAT_BuildingsState.buildings[iVar8].animationActive != 0)) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[iVar8].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[iVar8].y)),
+ FX_DRAWBRIDGE_CONTROL);
+ iVar8 = DAT_CurrentBuildingID;
+ }
+ if ((DAT_BuildingsState.buildings[iVar8].animationIndex == 5)
+ && (DAT_BuildingsState.buildings[iVar8].animationActive != 0)) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[iVar8].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[iVar8].y)),
+ FX_DRAWBRIDGE_LOWERING);
+ iVar8 = DAT_CurrentBuildingID;
+ }
+ if ((DAT_BuildingsState.buildings[iVar8].animationIndex == 0x1c)
+ && (DAT_BuildingsState.buildings[iVar8].animationActive != 0)) {
+ uVar4 = DAT_BuildingsState.buildings[iVar8].y;
+ uVar5 = DAT_BuildingsState.buildings[iVar8].x;
+ sfxOffsetInArray = FX_DRAWBRIDGE_LOWERED;
+ goto LAB_00417f21;
+ }
+ }
+ }
+ if (iVar9 != 0) {
+ if (iVar9 != 2) {
+ if (iVar9 != 4) {
+ if (iVar9 != 6) {
+ return;
+ }
+ LAB_00417fa4:
+ DAT_BuildingsState.buildings[iVar8].spriteOffetX = -0x62;
+ DAT_BuildingsState.buildings[iVar8].spriteOffetY = -0x9c;
+ return;
+ }
+ LAB_00417f7f:
+ DAT_BuildingsState.buildings[iVar8].spriteOffetX = -0x65;
+ DAT_BuildingsState.buildings[iVar8].spriteOffetY = -0x99;
+ return;
+ }
+ LAB_00417f5a:
+ DAT_BuildingsState.buildings[iVar8].spriteOffetX = -0x57;
+ DAT_BuildingsState.buildings[iVar8].spriteOffetY = -0x98;
+ return;
+ }
+ LAB_00417f35:
+ DAT_BuildingsState.buildings[iVar8].spriteOffetX = -0x59;
+ DAT_BuildingsState.buildings[iVar8].spriteOffetY = -0x9a;
+ return;
+ }
+}
+}
+
+### 0x00482550 ClickSomethingWithDrawBridgeUnk | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00482550
+ void Commands::ClickSomethingWithDrawBridgeUnk()
+ {
+ DAT_GameSynchronyState.DAT_CommandSize = 7;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 4,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ DAT_GameSynchronyState.DAT_GameCommandParam0
+ = DAT_GameSynchronyState.DAT_CommandActionPlan;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 4,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ OpenOrCloseDrawbridge(
+ DAT_GameSynchronyState.protocolInvokerPlayerID,
+ DAT_GameSynchronyState.DAT_GameCommandParam0,
+ DAT_GameSynchronyState.DAT_GameCommandParam1,
+ DAT_GameSynchronyState.DAT_GameCommandParam2);
+ }
+ return;
+ }
+}
+}
+
+### 0x00482aa0 ClickCreateAnimal | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00482AA0
+ void Commands::ClickCreateAnimal()
+ {
+ DAT_GameSynchronyState.DAT_CommandSize = 5;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ DAT_GameSynchronyState.DAT_GameCommandParam0
+ = DAT_GameSynchronyState.DAT_CommandActionPlan;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = M_MAPPER_NULL;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ if (((DAT_GameSynchronyState.DAT_GameCommandParam0 < ((GameCommandScheduling)400))
+ && (DAT_GameSynchronyState.DAT_GameCommandParam1 < 400))
+ && (*(char*)(DAT_GameSynchronyState.DAT_GameCommandParam1 * 400 + 0x21aec98
+ + DAT_GameSynchronyState.DAT_GameCommandParam0)
+ != '\0')) {
+ createAnimal(
+ DAT_GameSynchronyState.DAT_GameCommandParam2,
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam0)),
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam1)),
+ (int)((int)((uint)
+ * (byte*)(DAT_ViewportRenderState
+ .translationMatrix[DAT_GameSynchronyState.DAT_GameCommandParam1]
+ .addXgetTile
+ + 0x1d32c38 + DAT_GameSynchronyState.DAT_GameCommandParam0))));
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x00469a30 setupFontSizeClassObject | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00469A30
+ void FontSizeClass::setupFontSizeClassObject(GmID fontGmID, int numberOfFontStartInGm, FontRenderType renderType,
+ int baselineOffset, int lineHeight, int letterSpacing, int whiteSpaceWidth)
+ {
+ this->fontGmID_0x0 = fontGmID;
+ this->renderType_0xc = renderType;
+ this->baselineOffset_0x10 = baselineOffset;
+ this->lineHeight_0x14 = lineHeight;
+ this->letterSpacing_0x18 = letterSpacing;
+ this->whiteSpaceWidth_0x1c = whiteSpaceWidth;
+ this->numberOfFontStartInGm_0x4 = numberOfFontStartInGm;
+ this->fontStartImageId_0x8 = -1;
+ }
+}
+}
+

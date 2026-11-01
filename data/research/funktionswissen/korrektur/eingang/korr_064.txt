@@ -1,0 +1,1119 @@
+### 0x0052a7d0 updateTribeCombatStanceBehavior | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0052A7D0
+ void TribesState::updateTribeCombatStanceBehavior(int tribeID)
+ {
+ short* psVar1;
+ UnitTypeShort UVar2;
+ int _unitID;
+ BOOLEnum BVar3;
+ int iVar4;
+ int _targetUnitID;
+ int iVar5;
+ uint x1;
+ uint y1;
+ int local_c;
+ int _buildingID;
+ int _buildingIndex;
+ short _buildingIndex_2;
+ UnitInstructionType _unitInstructionType;
+ _targetUnitID = (int)this->tribes[tribeID].selectionTargetUnitID;
+ _buildingIndex_2 = this->tribes[tribeID].someUnitID;
+ if (_buildingIndex_2 == 0) {
+ if (this->tribes[tribeID].unitStance == USE_AGGRESSIVE) {
+ local_c = 0;
+ do {
+ iVar5 = ((this->tribes[tribeID].someUnitArrayIndex - local_c) + 10) % 10;
+ _unitID = (int)this->tribes[tribeID].someUnitArray[iVar5];
+ if (_unitID != 0) {
+ if ((((DAT_UnitsState.units[_unitID].logicalState
+ == ULS_NORMAL)
+ && (DAT_UnitsState.units[_unitID].dying == 0))
+ && (DAT_UnitsState.units[_unitID].uid
+ == this->tribes[tribeID].someUnitUIDArray[iVar5]))
+ && ((DAT_GameState.mapAndTime
+ .playerTeams[DAT_UnitsState.units[_targetUnitID].owner]
+ != DAT_GameState.mapAndTime
+ .playerTeams[DAT_UnitsState.units[_unitID].owner]
+ && (DAT_TileMapState
+ .PathConnectionLayer[DAT_UnitsState.units[_targetUnitID].tile]
+ == DAT_TileMapState
+ .PathConnectionLayer[DAT_UnitsState.units[_unitID].tile])))) {
+ iVar5 = (int)DAT_UnitsState.units[_targetUnitID].microXPosition
+ - (int)DAT_UnitsState.units[_unitID].microXPosition;
+ iVar4 = (int)DAT_UnitsState.units[_targetUnitID].microYPosition
+ - (int)DAT_UnitsState.units[_unitID].microYPosition;
+ if (iVar5 * iVar5 + iVar4 * iVar4 < 250000) {
+ if ((this->tribes[tribeID].unknownAttackRelatedUpdateCounter == 0)
+ && (this->tribes[tribeID].field93_0x22a == 0x3b)) {
+ iVar5 = 0;
+ if (this->tribes[tribeID].size < 1)
+ goto LAB_0052aa55;
+ goto LAB_0052a9f2;
+ }
+ break;
+ }
+ } else {
+ this->tribes[tribeID].someUnitArray[iVar5] = 0;
+ }
+ }
+ local_c = local_c + 1;
+ } while (local_c < 10);
+ }
+ } else {
+ iVar5 = (int)_buildingIndex_2;
+ if (DAT_UnitsState.units[iVar5].uid == this->tribes[tribeID].someUnitUID) {
+ if ((int)DAT_UnitsState.units[iVar5].destinationX_2Unk
+ + DAT_ViewportRenderState
+ .translationMatrix[DAT_UnitsState.units[iVar5].destinationY_2Unk]
+ .addXgetTile
+ == this->tribes[tribeID].someTile2) {
+ _buildingIndex_2 = this->tribes[tribeID].field168_0x2be;
+ if (_buildingIndex_2 != 0) {
+ this->tribes[tribeID].field168_0x2be = _buildingIndex_2 + -1;
+ goto LAB_0052aa77;
+ }
+ if (DAT_UnitsState.units[iVar5].tile == this->tribes[tribeID].someTile)
+ goto LAB_0052aa77;
+ }
+ giveTribeAnInstruction(tribeID,
+ UIT_UNIT_ATTACK_UNIT, iVar5, this->tribes[tribeID].someUnitUID, 1);
+ } else {
+ this->tribes[tribeID].someUnitID = 0;
+ }
+ }
+ goto LAB_0052aa77;
+ LAB_0052a9f2:
+ do {
+ iVar4 = getUnitIDForIndexInTribe(
+ tribeID, iVar5);
+ iVar5 = iVar5 + 1;
+ if (((DAT_UnitsState.units[iVar4].logicalState == ULS_NORMAL)
+ && (DAT_UnitsState.units[iVar4].dying == 0))
+ && (DAT_UnitsState.units[iVar4].state.generic
+ != US_MELEE_ATTACK)) {
+ switch (DAT_UnitsState.units[iVar4].unitType) {
+ case UT_TUNNELER:
+ case UT_E_SPEAR:
+ case UT_E_PIKE:
+ case UT_E_MACE:
+ case UT_E_SWORD:
+ case UT_E_KNIGHT:
+ case UT_E_MONK:
+ case UT_S_BATTERINGRAM:
+ if (DAT_UnitsState.units[iVar4].SA == 0)
+ goto LAB_0052aa77;
+ }
+ }
+ } while (iVar5 < this->tribes[tribeID].size);
+ LAB_0052aa55:
+ giveTribeAnInstruction(
+ tribeID, ((UnitInstructionType)0x20), _unitID, DAT_UnitsState.units[_unitID].uid, 0);
+ LAB_0052aa77:
+ psVar1 = &this->tribes[tribeID].unknownAttackRelatedUpdateCounter;
+ *psVar1 = *psVar1 + 1;
+ if (0x32 < this->tribes[tribeID].unknownAttackRelatedUpdateCounter) {
+ if (this->tribes[tribeID].isRallyingUnk == 0) {
+ if (this->tribes[tribeID].unitStance == USE_AGGRESSIVE) {
+ psVar1 = &this->tribes[tribeID].field93_0x22a;
+ *psVar1 = *psVar1 + 1;
+ if (this->tribes[tribeID].field93_0x22a < 0x3c) {
+ return;
+ }
+ _buildingIndex_2 = this->tribes[tribeID].size;
+ this->tribes[tribeID].field93_0x22a = 0;
+ if (0 < _buildingIndex_2) {
+ iVar5 = 0;
+ do {
+ iVar4
+ = getUnitIDForIndexInTribe(tribeID, iVar5);
+ iVar5 = iVar5 + 1;
+ if (((DAT_UnitsState.units[iVar4].logicalState
+ == ULS_NORMAL)
+ && (DAT_UnitsState.units[iVar4].dying == 0))
+ && (DAT_UnitsState.units[iVar4].state.generic
+ != US_MELEE_ATTACK)) {
+ switch (DAT_UnitsState.units[iVar4].unitType) {
+ case UT_TUNNELER:
+ case UT_E_SPEAR:
+ case UT_E_PIKE:
+ case UT_E_MACE:
+ case UT_E_SWORD:
+ case UT_E_KNIGHT:
+ case UT_E_MONK:
+ case UT_S_BATTERINGRAM:
+ case UT_A_SLAVE:
+ case UT_A_ASSASSIN:
+ case UT_A_SWORDSMAN:
+ if (DAT_UnitsState.units[iVar4].SA == 0)
+ goto LAB_0052ac8d;
+ }
+ }
+ } while (iVar5 < this->tribes[tribeID].size);
+ }
+ aggressiveStanceTargetBuildingAtRange(_targetUnitID, 15);
+ if (DAT_PathFindingState.ALG_ResultTile != 0) {
+ _buildingIndex_2 = DAT_TileMapState
+ .BuildingLayer[DAT_PathFindingState.ALG_ResultTile];
+ if (_buildingIndex_2 == 0) {
+ _buildingID = 0;
+ _unitInstructionType = ((UnitInstructionType)0x25);
+ _buildingIndex = DAT_PathFindingState.ALG_ResultTile;
+ } else {
+ _buildingID = DAT_BuildingsState.buildings[_buildingIndex_2].uid;
+ _unitInstructionType = ((UnitInstructionType)0x26);
+ _buildingIndex = (int)_buildingIndex_2;
+ }
+ giveTribeAnInstruction(
+ tribeID, _unitInstructionType, _buildingIndex, _buildingID, 0);
+ }
+ }
+ } else {
+ BVar3 = allUnitsReachedTheirDestination(tribeID);
+ if (BVar3 == FALSE) {
+ return;
+ }
+ _buildingIndex_2 = this->tribes[tribeID].rallyPointCount;
+ iVar5 = this->tribes[tribeID].currentRallyPointIndex + 1;
+ this->tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ if (_buildingIndex_2 <= iVar5) {
+ if (this->tribes[tribeID].isRallyingUnk == -1) {
+ this->tribes[tribeID].currentRallyPointIndex = 0;
+ this->tribes[tribeID].isRallyingUnk = 0;
+ }
+ iVar5 = 0;
+ }
+ if (this->tribes[tribeID].isRallyingUnk != 0) {
+ x1 = (uint)this->tribes[tribeID].rallyPointArray[iVar5][0];
+ y1 = (uint)this->tribes[tribeID].rallyPointArray[iVar5][1];
+ this->tribes[tribeID].currentRallyPointIndex = (short)iVar5;
+ UVar2 = DAT_UnitsState.units[_targetUnitID].unitType;
+ if (((UVar2 == UT_E_ARCHER) || (UVar2 == UT_E_XBOW))
+ || ((UVar2 == UT_A_ARCHER
+ || ((UVar2 == UT_A_SLINGER
+ || (UVar2 == UT_A_FIRETHROWER)))))) {
+ if (0x1b0 < DAT_UnitsState.units[_targetUnitID].closestEnemyMicroDistance) {
+ giveTribeMoveInstruction(tribeID, x1, y1, 0, 0, UMSE_0);
+ }
+ } else if (UVar2 == UT_A_HARCHER) {
+ giveUnitSelectionMoveInstructionNoMatchedSpeed(tribeID, x1, y1, 0, 0);
+ } else if ((0x60 < DAT_UnitsState.units[_targetUnitID].closestEnemyMicroDistance)
+ || (this->tribes[tribeID].unitStance != USE_AGGRESSIVE)) {
+ giveUnitSelectionMoveInstructionNoMatchedSpeed(tribeID, x1, y1, 0, 0);
+ }
+ }
+ }
+ LAB_0052ac8d:
+ if (this->tribes[tribeID].field134_0x27a != 0) {
+ moveTribeToIndexedNearbyTile(
+ tribeID);
+ this->tribes[tribeID].field134_0x27a = 0;
+ }
+ }
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0052a7d0", "name": "updateTribeCombatStanceBehavior", "quelle": "ghidra", "p1": {"bereich": "Truppen/Gruppen", "zweck": "Taktgeber des Kampfverhaltens einer Gruppe: Ziel verfolgen, Gebäude angreifen, Sammelpunkte ablaufen."}, "p2": {"ein": "tribeID", "aus": "keine", "liest": ["tribes[id].selectionTargetUnitID/someUnitID/someUnitArray/someUnitUIDArray/unitStance", "tribes[id].unknownAttackRelatedUpdateCounter/field93_0x22a/isRallyingUnk/rallyPointArray", "units[].logicalState/dying/uid/state/unitType/SA/microXPosition/microYPosition/closestEnemyMicroDistance", "mapAndTime.playerTeams", "PathConnectionLayer"], "schreibt": ["tribes[id].unknownAttackRelatedUpdateCounter", "tribes[id].field93_0x22a", "tribes[id].someUnitID", "tribes[id].currentRallyPointIndex", "tribes[id].field134_0x27a"], "ruft": ["giveTribeAnInstruction", "getUnitIDForIndexInTribe", "aggressiveStanceTargetBuildingAtRange", "allUnitsReachedTheirDestination", "giveTribeMoveInstruction", "giveUnitSelectionMoveInstructionNoMatchedSpeed", "moveTribeToIndexedNearbyTile"], "regeln": ["Ohne someUnitID und bei Haltung USE_AGGRESSIVE: bis zu 10 zuletzt gemerkte Einheiten (Ring someUnitArray) werden geprüft", "Eine gemerkte Einheit zählt nur, wenn sie normal und nicht sterbend ist, ihre UID passt, sie in einem anderen Team als die Leit-Einheit steht und auf demselben Wegzusammenhang (PathConnectionLayer) liegt", "Ungültige Einträge im Ring werden auf 0 gesetzt", "Ist so ein Feind näher als 500 Mikro-Einheiten (Abstandsquadrat unter 250000) und field93_0x22a ist 59 bei Zähler 0, wird Befehl 0x20 an die Gruppe gegeben, außer eine Einheit der Gruppe ist untätig (SA gleich 0) und nicht im Nahkampf; dann entfällt der Befehl", "Mit someUnitID ungleich 0: Stimmt die UID, bekommt die Gruppe den Befehl UIT_UNIT_ATTACK_UNIT auf diese Einheit, sonst wird someUnitID gelöscht", "Der Zähler unknownAttackRelatedUpdateCounter steigt je Aufruf um 1; erst ab 51 (über 0x32) läuft der Rest", "Ab 51, nicht im Sammeln (isRallyingUnk gleich 0) und Haltung USE_AGGRESSIVE: field93_0x22a zählt hoch; bei 60 (0x3c) wird es 0 und die Gruppe sucht per aggressiveStanceTargetBuildingAtRange mit Reichweite 15 ein Gebäude oder Feld als Ziel (Befehl 0x25 für Feld, 0x26 für Gebäude)", "Beim Sammeln: Weiter nur, wenn alle Einheiten ihr Ziel erreicht haben; dann nächster Sammelpunkt (Index ab 0 bei Überlauf)", "Beim Weiterziehen: Schützen und Feuerwerfer ziehen erst, wenn der nächste Feind weiter als 432 Mikro-Einheiten (0x1b0) weg ist; Pferdebogenschützen ziehen immer; alle anderen ziehen, wenn der Feind weiter als 96 (0x60) weg ist oder die Haltung nicht aggressiv ist", "Wenn field134_0x27a ungleich 0: moveTribeToIndexedNearbyTile, danach 0"], "offen": ["Bedeutung von someUnitID, someTile, someTile2, field168_0x2be und field93_0x22a", "Was Befehl 0x20, 0x25 und 0x26 genau bewirken (vermutlich Angriff auf Einheit, Feld, Gebäude)", "Einheit der Mikro-Koordinaten: 500 Mikro-Einheiten in Feldern umrechnen"]}, "p3": {"erklaerung": "Das ist die Dauerschleife der Kampfhaltung: Aggressive Gruppen suchen sich nahe Feinde, später Gebäude als Ziel, und Sammelpunkte werden der Reihe nach abgelaufen. Die Zahlen bestimmen, wie schnell und wie weit eine Gruppe von selbst losgeht.", "gehirn": "Für Raids wichtig: Eine aggressive Gruppe reagiert nur auf Feinde unter etwa 500 Mikro-Einheiten und sucht Gebäude im Umkreis 15. Haltung USE_AGGRESSIVE entscheidet, ob sie von selbst jagt.", "beleg": "code", "live": "Aggressive Gruppe, Feind nähert sich → Abstand beim ersten Angriffsbefehl → unter 500 Mikro-Einheiten", "live_art": "kampf"}}
+
+### 0x0052ad50 processDeerMoving | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0052AD50
+ void TribesState::processDeerMoving(int tribeID)
+ {
+ short* psVar1;
+ short sVar2;
+ SomeTribeBehaviorTypeShort SVar3;
+ int iVar4;
+ int iVar5;
+ int iVar6;
+ BOOLEnum BVar7;
+ int iVar8;
+ int _x10;
+ int _y10;
+ sVar2 = this->tribes[tribeID].selectionTargetUnitID;
+ _x10 = (int)DAT_UnitsState.units[sVar2].x / 10;
+ _y10 = (int)DAT_UnitsState.units[sVar2].y / 10;
+ iVar8 = DAT_WildlifeState.grid[_x10][_y10].field17_0x44;
+ iVar4 = DAT_WildlifeState.grid[_x10][_y10].lionCount;
+ iVar5 = DAT_WildlifeState.grid[_x10][_y10].field16_0x40;
+ iVar6 = DAT_WildlifeState.grid[_x10][_y10].field18_0x48;
+ sVar2 = this->tribes[tribeID].size;
+ this->tribes[tribeID].unkIsAnimalTribe = 1;
+ if (sVar2 < 0x1f) {
+ this->tribes[tribeID].field137_0x280 = sVar2 / 2;
+ this->tribes[tribeID].field138_0x282 = sVar2 * 2;
+ } else {
+ trimTribeToSize(
+ tribeID, 30);
+ this->tribes[tribeID].field137_0x280 = 0xf;
+ this->tribes[tribeID].field138_0x282 = 0x3c;
+ }
+ if ((iVar4 + iVar6 != 0) && (this->tribes[tribeID].field133_0x278 == 0)) {
+ this->tribes[tribeID].field133_0x278 = 1;
+ }
+ BVar7 = spawnDeerLionOrRabbit(
+ tribeID, 100, UT_ANTELOPESHDEER);
+ if (BVar7 == FALSE) {
+ if (this->tribes[tribeID].field64_0x204 == 0) {
+ sVar2 = this->tribes[tribeID].selectionTargetUnitID;
+ this->tribes[tribeID].field64_0x204 = 1;
+ giveTribeMoveInstruction(tribeID,
+ (uint)((int)((int)DAT_UnitsState.units[sVar2].x)),
+ (uint)((int)((int)DAT_UnitsState.units[sVar2].y)), 0, 0,
+ UMSE_0);
+ this->tribes[tribeID].tribeBehaviorType = STBT_1;
+ return;
+ }
+ if (DAT_GameCore.currentMenuViewType == MVT_MAP_EDITOR_LANDSCAPING) {
+ this->tribes[tribeID].unknownCounter01 = 0;
+ return;
+ }
+ sVar2 = this->tribes[tribeID].field133_0x278;
+ if (sVar2 == 0) {
+ SVar3 = this->tribes[tribeID].tribeBehaviorType;
+ if (SVar3 == ((SomeTribeBehaviorType)0)) {
+ if (iVar5 != 0) {
+ this->tribes[tribeID].field136_0x27e = 200;
+ }
+ if (0x14 < iVar8) {
+ this->tribes[tribeID].field136_0x27e = 200;
+ }
+ psVar1 = &this->tribes[tribeID].unknownAttackRelatedUpdateCounter;
+ *psVar1 = *psVar1 + 1;
+ if (this->tribes[tribeID].field136_0x27e
+ <= this->tribes[tribeID].unknownAttackRelatedUpdateCounter) {
+ this->tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ sVar2 = this->tribes[tribeID].rallyPointCount;
+ this->tribes[tribeID].field136_0x27e
+ = (4 - ((byte)SEC_RNG::instance.currentNumber2 & 3)) * 200;
+ if (sVar2 < 1) {
+ findAndSetNewRallyPointForDeerAndLions(tribeID, 5, 0);
+ return;
+ }
+ standUpAllTribeUnits(
+ tribeID);
+ sVar2 = this->tribes[tribeID].currentRallyPointIndex;
+ giveUnitSelectionMoveInstructionNoMatchedSpeed(tribeID, (uint)((int)((int)this->tribes[tribeID].rallyPointArray[sVar2][0])),
+ (uint)((int)((int)this->tribes[tribeID].rallyPointArray[sVar2][1])), 0, 0);
+ psVar1 = &this->tribes[tribeID].currentRallyPointIndex;
+ *psVar1 = *psVar1 + 1;
+ if (this->tribes[tribeID].rallyPointCount <= this->tribes[tribeID].currentRallyPointIndex) {
+ this->tribes[tribeID].tribeBehaviorType = STBT_1;
+ this->tribes[tribeID].rallyPointCount = 0;
+ return;
+ }
+ }
+ } else if ((SVar3 == STBT_1)
+ && (psVar1 = &this->tribes[tribeID].unknownAttackRelatedUpdateCounter, *psVar1 = *psVar1 + 1,
+ this->tribes[tribeID].unknownAttackRelatedUpdateCounter == 800)) {
+ this->tribes[tribeID].unknownAttackRelatedUpdateCounter = 0;
+ this->tribes[tribeID].tribeBehaviorType = ((SomeTribeBehaviorType)0);
+ }
+ } else {
+ if (sVar2 == 1) {
+ findAndSetNewRallyPointForDeerAndLions(tribeID, 5, 0);
+ if ((this->tribes[tribeID].rallyPointCount < 1)
+ && (findAndSetNewRallyPointForDeerAndLions(tribeID, 5, 1),
+ this->tribes[tribeID].rallyPointCount < 1)) {
+ scatterTribeUnitsRandomly(
+ tribeID);
+ } else {
+ sVar2 = this->tribes[tribeID].selectionTargetUnitID;
+ playSFXAtLocation(
+ (int)DAT_UnitsState.units[sVar2].x,
+ DAT_UnitsState.units[sVar2].y, FX_DEER_RUN);
+ iVar8 = (int)this->tribes[tribeID].rallyPointCount;
+ giveUnitSelectionMoveInstructionNoMatchedSpeed(tribeID, (uint)((int)((int)this->tribes[tribeID].rallyPointArray[iVar8 + -1][0])),
+ (uint)((int)((int)this->tribes[tribeID].rallyPointArray[iVar8 + -1][1])), 0, 0);
+ }
+ }
+ psVar1 = &this->tribes[tribeID].field133_0x278;
+ *psVar1 = *psVar1 + 1;
+ if (799 < this->tribes[tribeID].field133_0x278) {
+ this->tribes[tribeID].field133_0x278 = 0;
+ return;
+ }
+ }
+ } else {
+ findAndSetNewRallyPointForDeerAndLions(tribeID, 2, 0);
+ standUpAllTribeUnits(tribeID);
+ sVar2 = this->tribes[tribeID].currentRallyPointIndex;
+ giveTribeMoveInstruction(tribeID,
+ (uint)((int)((int)this->tribes[tribeID].rallyPointArray[sVar2][0])),
+ (uint)((int)((int)this->tribes[tribeID].rallyPointArray[sVar2][1])), 0, 0,
+ UMSE_0);
+ psVar1 = &this->tribes[tribeID].currentRallyPointIndex;
+ *psVar1 = *psVar1 + 1;
+ if (this->tribes[tribeID].rallyPointCount <= this->tribes[tribeID].currentRallyPointIndex) {
+ this->tribes[tribeID].rallyPointCount = 0;
+ this->tribes[tribeID].tribeBehaviorType = STBT_1;
+ return;
+ }
+ }
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0052ad50", "name": "processDeerMoving", "quelle": "ghidra", "p1": {"bereich": "Truppen/Gruppen", "zweck": "Steuert das Verhalten einer Hirsch-Herde: Nachwuchs, Weiden, Flucht."}, "p2": {"ein": "tribeID", "aus": "keine", "liest": ["tribes[id].size/tribeBehaviorType/field133_0x278/field136_0x27e/rallyPointArray/rallyPointCount", "DAT_WildlifeState.grid[x/10][y/10] (lionCount, field16_0x40, field17_0x44, field18_0x48)", "SEC_RNG.currentNumber2", "currentMenuViewType"], "schreibt": ["tribes[id].unkIsAnimalTribe", "tribes[id].field137_0x280/field138_0x282", "tribes[id].field133_0x278/field64_0x204/field136_0x27e", "tribes[id].tribeBehaviorType", "tribes[id].unknownAttackRelatedUpdateCounter", "tribes[id].currentRallyPointIndex/rallyPointCount"], "ruft": ["trimTribeToSize", "spawnDeerLionOrRabbit", "giveTribeMoveInstruction", "findAndSetNewRallyPointForDeerAndLions", "standUpAllTribeUnits", "giveUnitSelectionMoveInstructionNoMatchedSpeed", "scatterTribeUnitsRandomly", "playSFXAtLocation (FX_DEER_RUN)"], "regeln": ["Herdengröße bis 30: field137 = Größe/2, field138 = Größe*2", "Über 30: Herde wird auf 30 gekürzt, field137 = 15, field138 = 60", "Spawn-Versuch spawnDeerLionOrRabbit mit Wert 100 und Typ UT_ANTELOPESHDEER", "Gibt es im Raster Löwen (lionCount) oder field18_0x48 und field133_0x278 ist 0, wird field133_0x278 auf 1 gesetzt (Fluchtmodus)", "Ohne neuen Spawn und field64_0x204 gleich 0: Herde bleibt stehen (Bewegung auf eigene Leit-Einheit), field64_0x204 wird 1, Verhalten STBT_1", "Im Karteneditor (MVT_MAP_EDITOR_LANDSCAPING): unknownCounter01 wird 0, sonst nichts", "Ruhemodus (field133_0x278 gleich 0), Verhalten 0: Wartezeit field136_0x27e wird 200, wenn field16_0x40 ungleich 0 oder field17_0x44 über 20; ist der Zähler so weit, wird die Wartezeit neu auf (4 minus Zufall 0 bis 3) mal 200 gesetzt und die Herde zieht zum nächsten Sammelpunkt", "Ruhemodus, Verhalten STBT_1: nach 800 Aufrufen zurück auf Verhalten 0", "Fluchtmodus (field133_0x278 gleich 1): neuer Sammelpunkt mit Wert 5, Herde läuft dorthin und das Geräusch FX_DEER_RUN spielt; ohne Sammelpunkt wird sie zerstreut; nach 800 Aufrufen Ende des Fluchtmodus", "Modus 2 oder höher: neuer Sammelpunkt mit Wert 2 und Weiterlauf"], "offen": ["Bedeutung von field16_0x40, field17_0x44, field18_0x48 im Wildtier-Raster (vermutlich Menschen- oder Gefahrenzähler)", "Bedeutung der Wert 100 in spawnDeerLionOrRabbit (vermutlich Spawn-Wahrscheinlichkeit)"]}, "p3": {"erklaerung": "Hirsch-Herden bleiben meist stehen, ziehen in zufälligen Abständen zu neuen Weideplätzen und rennen weg, wenn Gefahr in der Nähe ist. Die Herde wird bei 30 Tieren gedeckelt.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0052ba10 updateWildlifeGrid | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0052BA10
+ void WildlifeState::updateWildlifeGrid(int _y10)
+ {
+ int* piVar1;
+ BuildingTypeShort* pBVar2;
+ TreeTypeShort TVar3;
+ BuildingTypeShort BVar4;
+ UnitTypeShort UVar5;
+ uint uVar6;
+ WildlifeGridElement* pWVar7;
+ int iVar8;
+ uint uVar9;
+ int _areaID;
+ int _unitID;
+ int iVar10;
+ int _tile;
+ int _sepAreaID;
+ int local_35c;
+ int local_358;
+ int local_354;
+ int local_348;
+ int local_344;
+ int local_340;
+ int local_33c;
+ int local_338;
+ int local_334;
+ int local_330;
+ int local_32c;
+ int local_320[200];
+ int _x10;
+ local_348 = -1;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[1] != -1) {
+ local_348 = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_GameState.playerDataArray[1].campground.tileEntry];
+ }
+ local_344 = -1;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[2] != -1) {
+ local_344 = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_GameState.playerDataArray[2].campground.tileEntry];
+ }
+ local_340 = -1;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[3] != -1) {
+ local_340 = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_GameState.playerDataArray[3].campground.tileEntry];
+ }
+ local_33c = -1;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[4] != -1) {
+ local_33c = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_GameState.playerDataArray[4].campground.tileEntry];
+ }
+ local_338 = -1;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[5] != -1) {
+ local_338 = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_GameState.playerDataArray[5].campground.tileEntry];
+ }
+ local_334 = -1;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[6] != -1) {
+ local_334 = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_GameState.playerDataArray[6].campground.tileEntry];
+ }
+ local_330 = -1;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[7] != -1) {
+ local_330 = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_GameState.playerDataArray[7].campground.tileEntry];
+ }
+ local_32c = -1;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[8] != -1) {
+ local_32c = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_GameState.playerDataArray[8].campground.tileEntry];
+ }
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ local_35c = 0;
+ do {
+ _x10 = local_35c / 10;
+ pWVar7 = this->grid[_x10] + _y10;
+ pWVar7->firstMember = 0;
+ this->grid[_x10][_y10].separateAreaID = 0;
+ this->grid[_x10][_y10].unclaimedArea = 0;
+ this->grid[_x10][_y10].field3_0xc = 0;
+ this->grid[_x10][_y10].keeps = 0;
+ this->grid[_x10][_y10].field5_0x14 = 0;
+ this->grid[_x10][_y10].trees = 0;
+ this->grid[_x10][_y10].unitCount = 0;
+ this->grid[_x10][_y10].field12_0x30 = 0;
+ this->grid[_x10][_y10].field8_0x20 = 0;
+ this->grid[_x10][_y10].camelCount = 0;
+ this->grid[_x10][_y10].lionCount = 0;
+ this->grid[_x10][_y10].deerCount = 0;
+ this->grid[_x10][_y10].rabbitCount = 0;
+ this->grid[_x10][_y10].field16_0x40 = 0;
+ this->grid[_x10][_y10].field17_0x44 = 0;
+ this->grid[_x10][_y10].field18_0x48 = 0;
+ this->grid[_x10][_y10].field19_0x4c = 0;
+ this->grid[_x10][_y10].chimps = 0;
+ this->grid[_x10][_y10].castlebuildings = 0;
+ this->grid[_x10][_y10].field28_0x70 = 0;
+ iVar8 = 0;
+ do {
+ local_320[iVar8 * 2] = -1;
+ local_320[iVar8 * 2 + 1] = 0;
+ iVar8 = iVar8 + 1;
+ } while (iVar8 < 100);
+ local_354 = 0;
+ do {
+ uVar9 = local_354 + _y10 * 10;
+ local_358 = 0;
+ do {
+ if ((((uint)(local_358 + local_35c) < 400) && (uVar9 < 400))
+ && (*(char*)(uVar9 * 400 + 0x21aec98 + local_358 + local_35c) != '\0')) {
+ pWVar7->firstMember = pWVar7->firstMember + 1;
+ _tile = DAT_ViewportRenderState.translationMatrix[uVar9].addXgetTile + local_358
+ + local_35c;
+ _areaID = (int)(short)DAT_TileMapState.PathConnectionLayer[_tile];
+ if (_areaID == 0) {
+ piVar1 = &this->grid[_x10][_y10].unclaimedArea;
+ *piVar1 = *piVar1 + 1;
+ }
+ iVar8 = 0;
+ do {
+ if (local_320[iVar8 * 2] == _areaID) {
+ local_320[iVar8 * 2 + 1] = local_320[iVar8 * 2 + 1] + 1;
+ break;
+ }
+ if (local_320[iVar8 * 2] == -1) {
+ local_320[iVar8 * 2] = _areaID;
+ local_320[iVar8 * 2 + 1] = 1;
+ break;
+ }
+ iVar8 = iVar8 + 1;
+ } while (iVar8 < 100);
+ if (_areaID != 0) {
+ if (_areaID == local_348) {
+ piVar1 = &this->grid[_x10][_y10].chimps;
+ *piVar1 = *piVar1 + 1;
+ }
+ if (_areaID == local_344) {
+ piVar1 = &this->grid[_x10][_y10].chimps;
+ *piVar1 = *piVar1 + 1;
+ }
+ if (_areaID == local_340) {
+ piVar1 = &this->grid[_x10][_y10].chimps;
+ *piVar1 = *piVar1 + 1;
+ }
+ if (_areaID == local_33c) {
+ piVar1 = &this->grid[_x10][_y10].chimps;
+ *piVar1 = *piVar1 + 1;
+ }
+ if (_areaID == local_338) {
+ piVar1 = &this->grid[_x10][_y10].chimps;
+ *piVar1 = *piVar1 + 1;
+ }
+ if (_areaID == local_334) {
+ piVar1 = &this->grid[_x10][_y10].chimps;
+ *piVar1 = *piVar1 + 1;
+ }
+ if (_areaID == local_330) {
+ piVar1 = &this->grid[_x10][_y10].chimps;
+ *piVar1 = *piVar1 + 1;
+ }
+ if (_areaID == local_32c) {
+ piVar1 = &this->grid[_x10][_y10].chimps;
+ *piVar1 = *piVar1 + 1;
+ }
+ }
+ piVar1 = &this->grid[_x10][_y10].field28_0x70;
+ *piVar1 = *piVar1 + (uint)DAT_TileMapState.HeightLayer[_tile];
+ uVar6 = DAT_TileMapState.LogicLayer[_tile];
+ if ((uVar6 & 0x100) != 0) {
+ piVar1 = &this->grid[_x10][_y10].field5_0x14;
+ *piVar1 = *piVar1 + 1;
+ piVar1 = &this->grid[_x10][_y10].castlebuildings;
+ *piVar1 = *piVar1 + 1;
+ }
+ if ((uVar6 & 0x20000000) != 0) {
+ piVar1 = &this->grid[_x10][_y10].field16_0x40;
+ *piVar1 = *piVar1 + 1;
+ }
+ if ((uVar6 & 0x20000) != 0) {
+ piVar1 = &this->grid[_x10][_y10].field17_0x44;
+ *piVar1 = *piVar1 + 1;
+ }
+ if ((char)uVar6 < '\0') {
+ piVar1 = &this->grid[_x10][_y10].field17_0x44;
+ *piVar1 = *piVar1 + 1;
+ }
+ if ((uVar6 & 0x40000) != 0) {
+ piVar1 = &this->grid[_x10][_y10].field17_0x44;
+ *piVar1 = *piVar1 + 1;
+ }
+ if ((uVar6 & 0x1000000) != 0) {
+ piVar1 = &this->grid[_x10][_y10].field19_0x4c;
+ *piVar1 = *piVar1 + 1;
+ }
+ if ((uVar6 & 0x2000000) != 0) {
+ piVar1 = &this->grid[_x10][_y10].field19_0x4c;
+ *piVar1 = *piVar1 + 1;
+ }
+ if (((int)DAT_TileMapState.OrganismLayer[_tile] - 1U < 1999)
+ && (((TVar3 = DAT_LandscapeState
+ .trees[DAT_TileMapState.OrganismLayer[_tile]]
+ .treeType,
+ TVar3 == ((TreeType)1) || (TVar3 == ((TreeType)2)))
+ || ((TVar3 == ((TreeType)3) || (TVar3 == ((TreeType)4))))))) {
+ piVar1 = &this->grid[_x10][_y10].trees;
+ *piVar1 = *piVar1 + 1;
+ }
+ if (DAT_TileMapState.BuildingLayer[_tile] != 0) {
+ pBVar2 = &DAT_BuildingsState
+ .buildings[DAT_TileMapState.BuildingLayer[_tile]]
+ .buildingType;
+ BVar4 = *pBVar2;
+ if (BVar4 == BT_MANORHOUSE) {
+ piVar1 = &this->grid[_x10][_y10].keeps;
+ *piVar1 = *piVar1 + 1;
+ } else if (BVar4 == BT_STONEKEEP) {
+ piVar1 = &this->grid[_x10][_y10].keeps;
+ *piVar1 = *piVar1 + 1;
+ } else if (BVar4 == BT_STRONGHOLD) {
+ piVar1 = &this->grid[_x10][_y10].keeps;
+ *piVar1 = *piVar1 + 1;
+ } else if (BVar4 == BT_KEEPFOUR) {
+ piVar1 = &this->grid[_x10][_y10].keeps;
+ *piVar1 = *piVar1 + 1;
+ } else if (BVar4 == BT_KEEPFIVE) {
+ piVar1 = &this->grid[_x10][_y10].keeps;
+ *piVar1 = *piVar1 + 1;
+ } else if (BVar4 == BT_CAMPGROUND) {
+ piVar1 = &this->grid[_x10][_y10].keeps;
+ *piVar1 = *piVar1 + 1;
+ } else if ((((BVar4 == BT_GATEHOUSELARGE)
+ || (BVar4 == BT_GATEHOUSESMALL))
+ || (((BVar4 == BT_WOODGATE1
+ || ((((BVar4 == BT_WOODGATE2
+ || (BVar4 == BT_DRAWBRIDGE))
+ || (BVar4 == BT_TOWER1))
+ || ((BVar4 == BT_TOWER2
+ || (BVar4 == BT_TOWER3))))))
+ || (BVar4 == BT_TOWER4))))
+ || (BVar4 == BT_TOWER5)) {
+ piVar1 = &this->grid[_x10][_y10].castlebuildings;
+ *piVar1 = *piVar1 + 1;
+ }
+ if (*pBVar2 != BT_SIGNPOST) {
+ piVar1 = &this->grid[_x10][_y10].field3_0xc;
+ *piVar1 = *piVar1 + 1;
+ }
+ }
+ _unitID = (int)(short)DAT_TileMapState.UnitLayer[_tile];
+ if (_unitID != 0) {
+ piVar1 = &this->grid[_x10][_y10].unitCount;
+ *piVar1 = *piVar1 + 1;
+ if (DAT_UnitsState.units[_unitID].isStalked == 0) {
+ piVar1 = &this->grid[_x10][_y10].field12_0x30;
+ *piVar1 = *piVar1 + 1;
+ LAB_0052be68:
+ piVar1 = &this->grid[_x10][_y10].field18_0x48;
+ *piVar1 = *piVar1 + 1;
+ } else {
+ piVar1 = &this->grid[_x10][_y10].field8_0x20;
+ *piVar1 = *piVar1 + 1;
+ UVar5 = DAT_UnitsState.units[_unitID].unitType;
+ if (UVar5 == UT_ANTELOPESHDEER) {
+ piVar1 = &this->grid[_x10][_y10].deerCount;
+ *piVar1 = *piVar1 + 1;
+ if (DAT_TribesState
+ .tribes[DAT_UnitsState.units[_unitID].tribeID]
+ .field133_0x278
+ != 0)
+ goto LAB_0052be68;
+ } else if (UVar5 == UT_RABBIT) {
+ piVar1 = &this->grid[_x10][_y10].rabbitCount;
+ *piVar1 = *piVar1 + 1;
+ } else if (UVar5 == UT_CAMELSHBEAR) {
+ piVar1 = &this->grid[_x10][_y10].camelCount;
+ *piVar1 = *piVar1 + 1;
+ } else if (UVar5 == UT_LIONSHWOLF) {
+ piVar1 = &this->grid[_x10][_y10].lionCount;
+ *piVar1 = *piVar1 + 1;
+ }
+ }
+ }
+ }
+ local_358 = local_358 + 1;
+ } while (local_358 < 10);
+ local_354 = local_354 + 1;
+ } while (local_354 < 10);
+ _sepAreaID = 0;
+ iVar8 = 0;
+ iVar10 = 0;
+ do {
+ if (local_320[iVar10 * 2] == -1)
+ break;
+ if (iVar8 < local_320[iVar10 * 2 + 1]) {
+ _sepAreaID = local_320[iVar10 * 2];
+ iVar8 = local_320[iVar10 * 2 + 1];
+ }
+ if (local_320[iVar10 * 2 + 2] == -1)
+ break;
+ if (iVar8 < local_320[iVar10 * 2 + 3]) {
+ _sepAreaID = local_320[iVar10 * 2 + 2];
+ iVar8 = local_320[iVar10 * 2 + 3];
+ }
+ if (local_320[iVar10 * 2 + 4] == -1)
+ break;
+ if (iVar8 < local_320[iVar10 * 2 + 5]) {
+ _sepAreaID = local_320[iVar10 * 2 + 4];
+ iVar8 = local_320[iVar10 * 2 + 5];
+ }
+ if (local_320[iVar10 * 2 + 6] == -1)
+ break;
+ if (iVar8 < local_320[iVar10 * 2 + 7]) {
+ _sepAreaID = local_320[iVar10 * 2 + 6];
+ iVar8 = local_320[iVar10 * 2 + 7];
+ }
+ if (local_320[iVar10 * 2 + 8] == -1)
+ break;
+ if (iVar8 < local_320[iVar10 * 2 + 9]) {
+ _sepAreaID = local_320[iVar10 * 2 + 8];
+ iVar8 = local_320[iVar10 * 2 + 9];
+ }
+ iVar10 = iVar10 + 5;
+ } while (iVar10 < 100);
+ this->grid[_x10][_y10].separateAreaID = _sepAreaID;
+ local_35c = local_35c + 10;
+ } while (local_35c < 400);
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0052ba10", "name": "updateWildlifeGrid", "quelle": "ghidra", "p1": {"bereich": "Umwelt", "zweck": "Zählt für eine Zeile des 40x40-Wildtier-Rasters (je Feld 10x10 Kacheln) Gelände, Gebäude, Bäume und Einheiten neu."}, "p2": {"ein": "_y10 (Zeile 0-39 des Rasters)", "aus": "-", "liest": ["Maske 0x21aec98 (400x400 Bytes)", "TileMapState.PathConnectionLayer/HeightLayer/LogicLayer/OrganismLayer/BuildingLayer/UnitLayer", "LandscapeState.trees[].treeType", "buildings[].buildingType", "units[].isStalked/unitType/tribeID", "tribes[].field133_0x278", "playerDataArray[1..8].campground.tileEntry", "currentPlayerFullIDArray[1..8]"], "schreibt": ["grid[x][y].firstMember", "separateAreaID", "unclaimedArea", "trees", "keeps", "castlebuildings", "chimps", "unitCount", "deerCount/rabbitCount/camelCount/lionCount", "field3_0xc", "field5_0x14", "field8_0x20", "field12_0x30", "field16_0x40", "field17_0x44", "field18_0x48", "field19_0x4c", "field28_0x70"], "ruft": [], "regeln": ["Läuft nur im Spielmodus GM_SOLITARY (Einzelspieler); sonst passiert nichts", "Je Feld werden 18 Zähler auf 0 gesetzt und über 10x10 Kacheln neu gezählt; nur Kacheln mit Maskenwert ungleich 0 zählen (firstMember = Zahl dieser Kacheln)", "Merkt die Gebietsnummer (PathConnectionLayer) der Lagerplätze der Spieler 1-8, sofern der Spieler vorhanden ist (-1 = nicht vorhanden)", "separateAreaID = häufigste Gebietsnummer im Feld; bei Gleichstand gewinnt die zuerst gefundene; bis zu 100 verschiedene Gebiete je Feld", "unclaimedArea zählt Kacheln mit Gebietsnummer 0; chimps zählt Kacheln, deren Gebiet das eines Spieler-Lagerplatzes ist (pro passendem Spieler +1)", "LogicLayer-Bits: 0x100 erhöht field5_0x14 und castlebuildings; 0x20000000 erhöht field16_0x40; 0x20000, 0x80 und 0x40000 erhöhen field17_0x44; 0x1000000 und 0x2000000 erhöhen field19_0x4c", "trees zählt Kacheln mit OrganismLayer 1-1999, deren treeType 1, 2, 3 oder 4 ist", "Gebäude: keeps bei Manorhouse, Stonekeep, Stronghold, KeepFour, KeepFive, Campground; castlebuildings bei großem und kleinem Torhaus, Holztor 1 und 2, Zugbrücke, Turm 1-5; field3_0xc bei jedem Gebäude außer Wegweiser", "Einheiten: unitCount zählt jede; isStalked=0 erhöht field12_0x30 und field18_0x48, sonst field8_0x20 und je Tierart deer/rabbit/camel(Bär)/lion(Wolf); ein Hirsch erhöht zusätzlich field18_0x48, wenn tribes[].field133_0x278 ungleich 0 ist"], "offen": ["Bedeutung der Felder field3_0xc, field5_0x14, field8_0x20, field12_0x30, field16_0x40 bis field19_0x4c, field28_0x70", "Was die Maske bei 0x21aec98 genau ist", "Ob isStalked wirklich „wird verfolgt“ heißt", "Felder field13_0x34, field15_0x3c, field20_0x50 und casDisRelated2 werden hier nicht gesetzt"]}, "p3": {"erklaerung": "Das Spiel baut sich für Tiere (Hirsche, Löwen, Kaninchen, Kamele) eine grobe Karte in 10x10-Feldern, um zu wissen, wo Tiere sich aufhalten können. Das gilt nur im Einzelspieler.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0052bf40 renderDebugDataMapData | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0052BF40
+ void WildlifeState::renderDebugDataMapData(int x, int y, int width, int height)
+ {
+ uint uVar1;
+ int iVar2;
+ uint uVar3;
+ int iVar4;
+ undefined2 uVar5;
+ uint _colour;
+ int x1;
+ int iVar6;
+ int iVar7;
+ int iVar8;
+ char* textAddress;
+ x1 = x + 2;
+ if (this->DAT_DebugDataMapDataDisplayType == 0) {
+ textAddress = "Connect ";
+ } else if (this->DAT_DebugDataMapDataDisplayType == 1) {
+ textAddress = "Chimps ";
+ } else if (this->DAT_DebugDataMapDataDisplayType == 2) {
+ textAddress = "Farmland ";
+ } else if (this->DAT_DebugDataMapDataDisplayType == 3) {
+ textAddress = "Humans ";
+ } else if (this->DAT_DebugDataMapDataDisplayType == 4) {
+ textAddress = "Mankind ";
+ } else if (this->DAT_DebugDataMapDataDisplayType == 5) {
+ textAddress = "Deer ";
+ } else if (this->DAT_DebugDataMapDataDisplayType == 6) {
+ textAddress = "Route ";
+ } else if (this->DAT_DebugDataMapDataDisplayType == 7) {
+ textAddress = "Panic ";
+ } else if (this->DAT_DebugDataMapDataDisplayType == 8) {
+ textAddress = "Siege ";
+ } else {
+ if (this->DAT_DebugDataMapDataDisplayType != 9)
+ goto LAB_0052c0db;
+ textAddress = "Slink ";
+ }
+ renderTextToScreen(
+ textAddress, x + 0x1a6, y + 4, TTA_LEFT, 0xffffff, 0x11, FALSE, 0);
+ LAB_0052c0db:
+ /*
+ render the squares
+ */
+ iVar7 = 41;
+ iVar6 = y;
+ do {
+ drawLine(
+ x1, iVar6, x + 0x192, iVar6, (ushort)((int)(COL_WHITE::instance.shortValue)));
+ iVar6 = iVar6 + 10;
+ iVar7 = iVar7 + -1;
+ } while (iVar7 != 0);
+ iVar7 = 41;
+ iVar6 = x1;
+ do {
+ drawLine(
+ iVar6, y, iVar6, y + 400, (ushort)((int)(COL_WHITE::instance.shortValue)));
+ iVar6 = iVar6 + 10;
+ iVar7 = iVar7 + -1;
+ iVar8 = 0;
+ } while (iVar7 != 0);
+ do {
+ iVar6 = 0;
+ do {
+ if (0 < this->grid[iVar6][iVar8].firstMember) {
+ uVar5 = COL_BLUE::instance.shortValue;
+ if (this->DAT_DebugDataMapDataDisplayType == 0) {
+ uVar1 = this->grid[iVar6][iVar8].separateAreaID;
+ uVar3 = uVar1 & 7;
+ if ((((uVar1 == 0) || (uVar5 = COL_RED::instance.shortValue, uVar3 == 1))
+ || ((uVar5 = COL_BRIGHT_YELLOW::instance.shortValue,
+ uVar3 == 2
+ || ((uVar5 = COL_MODERATE_GREEN::instance.shortValue,
+ uVar3 == 3 || (uVar5 = COL_WHITE::instance.shortValue, uVar3 == 4))))))
+ || (uVar5 = COL_DARK_CYAN_GREY::instance.shortValue, uVar3 == 5))
+ goto LAB_0052c526;
+ if (uVar3 == 6) {
+ LAB_0052c51f:
+ uVar5 = COL_LIME::instance.shortValue;
+ goto LAB_0052c526;
+ }
+ iVar2 = y + iVar8 * 10;
+ iVar4 = x1 + iVar6 * 10;
+ uVar5 = COL_VERY_DARK_GREY::instance.shortValue;
+ if (uVar3 == 7) {
+ uVar5 = COL_VIVID_BLUE::instance.shortValue;
+ }
+ } else {
+ if (this->DAT_DebugDataMapDataDisplayType == 1) {
+ if (this->grid[iVar6][iVar8].separateAreaID != 0) {
+ iVar7 = this->grid[iVar6][iVar8].chimps;
+ uVar5 = COL_RED::instance.shortValue;
+ joined_r0x0052c335:
+ iVar2 = y + iVar8 * 10;
+ iVar4 = x1 + iVar6 * 10;
+ if (iVar7 == 0) {
+ uVar5 = COL_LIME::instance.shortValue;
+ }
+ goto LAB_0052c533;
+ }
+ } else if (this->DAT_DebugDataMapDataDisplayType == 2) {
+ if ((((this->grid[iVar6][iVar8].separateAreaID != 0)
+ && (uVar5 = COL_DARK_GREEN::instance.shortValue,
+ this->grid[iVar6][iVar8].field19_0x4c == 0))
+ && (uVar5 = COL_RED::instance.shortValue,
+ this->grid[iVar6][iVar8].rabbitCount == 0))
+ && (uVar5 = COL_WHITE::instance.shortValue,
+ this->grid[iVar6][iVar8].field15_0x3c == 0)) {
+ iVar7 = this->grid[iVar6][iVar8].field20_0x50;
+ uVar5 = COL_DARK_CYAN_GREY::instance.shortValue;
+ goto joined_r0x0052c335;
+ }
+ } else if (this->DAT_DebugDataMapDataDisplayType == 3) {
+ if (this->grid[iVar6][iVar8].separateAreaID != 0) {
+ iVar7 = this->grid[iVar6][iVar8].field12_0x30;
+ uVar5 = COL_RED::instance.shortValue;
+ goto joined_r0x0052c335;
+ }
+ } else if (this->DAT_DebugDataMapDataDisplayType == 4) {
+ if ((this->grid[iVar6][iVar8].separateAreaID != 0)
+ && (uVar5 = COL_RED::instance.shortValue, this->grid[iVar6][iVar8].field12_0x30 == 0)) {
+ iVar7 = this->grid[iVar6][iVar8].field3_0xc;
+ joined_r0x0052c3aa:
+ if (iVar7 == 0) {
+ iVar7 = this->grid[iVar6][iVar8].field13_0x34;
+ uVar5 = COL_BRIGHT_YELLOW::instance.shortValue;
+ goto joined_r0x0052c335;
+ }
+ }
+ } else if (this->DAT_DebugDataMapDataDisplayType == 5) {
+ if (((this->grid[iVar6][iVar8].separateAreaID != 0)
+ && (uVar5 = COL_RED::instance.shortValue,
+ this->grid[iVar6][iVar8].field12_0x30 == 0))
+ && ((this->grid[iVar6][iVar8].field3_0xc == 0
+ && ((uVar5 = COL_BLACK::instance.shortValue,
+ this->grid[iVar6][iVar8].lionCount == 0
+ && (this->grid[iVar6][iVar8].camelCount == 0)))))) {
+ iVar7 = this->grid[iVar6][iVar8].deerCount;
+ uVar5 = COL_MODERATE_GREEN::instance.shortValue;
+ goto joined_r0x0052c3aa;
+ }
+ } else if (this->DAT_DebugDataMapDataDisplayType == 6) {
+ if ((((this->grid[iVar6][iVar8].separateAreaID != 0)
+ && (uVar5 = COL_RED::instance.shortValue, this->grid[iVar6][iVar8].deerCount == 0))
+ && (uVar5 = COL_VIVID_BLUE::instance.shortValue,
+ this->grid[iVar6][iVar8].lionCount == 0))
+ && (uVar5 = COL_WHITE::instance.shortValue,
+ this->grid[iVar6][iVar8].field15_0x3c == 0)) {
+ iVar7 = this->grid[iVar6][iVar8].casDisRelated2;
+ uVar5 = COL_BRIGHT_YELLOW::instance.shortValue;
+ joined_r0x0052c46b:
+ if (iVar7 == 0) {
+ iVar7 = this->grid[iVar6][iVar8].field13_0x34;
+ uVar5 = COL_BLACK::instance.shortValue;
+ goto joined_r0x0052c335;
+ }
+ }
+ } else if (this->DAT_DebugDataMapDataDisplayType == 7) {
+ if ((this->grid[iVar6][iVar8].separateAreaID != 0)
+ && (uVar5 = COL_WHITE::instance.shortValue,
+ this->grid[iVar6][iVar8].field18_0x48 == 0)) {
+ iVar7 = this->grid[iVar6][iVar8].deerCount;
+ uVar5 = COL_RED::instance.shortValue;
+ goto joined_r0x0052c46b;
+ }
+ } else if (this->DAT_DebugDataMapDataDisplayType == 8) {
+ uVar5 = COL_WHITE::instance.shortValue;
+ if (((this->grid[iVar6][iVar8].field24_0x60 == 0)
+ && (uVar5 = COL_BLACK::instance.shortValue,
+ this->grid[iVar6][iVar8].field25_0x64 == 0))
+ && ((uVar5 = COL_BRIGHT_YELLOW::instance.shortValue,
+ this->grid[iVar6][iVar8].castlebuildings == 0
+ && ((uVar5 = COL_BLUE::instance.shortValue,
+ this->grid[iVar6][iVar8].separateAreaID != 0
+ && (uVar5 = COL_VIVID_BLUE::instance.shortValue,
+ this->grid[iVar6][iVar8].unknownNonZero01 == 0)))))) {
+ iVar7 = this->grid[iVar6][iVar8].field27_0x6c;
+ uVar5 = COL_RED::instance.shortValue;
+ goto joined_r0x0052c335;
+ }
+ } else {
+ if (this->DAT_DebugDataMapDataDisplayType != 9)
+ goto LAB_0052c54e;
+ uVar5 = COL_RED::instance.shortValue;
+ if (((this->grid[iVar6][iVar8].field29_0x74 == 0)
+ && (uVar5 = COL_VIVID_BLUE::instance.shortValue,
+ this->grid[iVar6][iVar8].unknownNonZero01 == 0))
+ && (uVar5 = COL_BLUE::instance.shortValue,
+ this->grid[iVar6][iVar8].separateAreaID != 0))
+ goto LAB_0052c51f;
+ }
+ LAB_0052c526:
+ iVar4 = x1 + iVar6 * 10;
+ iVar2 = y + iVar8 * 10;
+ }
+ LAB_0052c533:
+ drawColorBox(iVar4 + 1, iVar2 + 1, iVar4 + 9, iVar2 + 9, (ushort)((int)(uVar5)));
+ }
+ LAB_0052c54e:
+ iVar6 = iVar6 + 1;
+ } while (iVar6 < 40);
+ iVar8 = iVar8 + 1;
+ if (40 < iVar8) {
+ return;
+ }
+ } while (true);
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0052bf40", "name": "renderDebugDataMapData", "quelle": "ghidra", "p1": {"bereich": "Umwelt", "zweck": "Zeichnet die Wildtier-Rasterkarte als Debug-Anzeige in Farben."}, "p2": {"ein": "x, y, width, height", "aus": "-", "liest": ["DAT_DebugDataMapDataDisplayType", "grid[][]"], "schreibt": [], "ruft": ["renderTextToScreen", "drawLine", "drawColorBox"], "regeln": ["Anzeigeart 0-9 mit Beschriftung: Connect, Chimps, Farmland, Humans, Mankind, Deer, Route, Panic, Siege, Slink", "Zeichnet ein Gitter aus 41 Linien je Richtung im Abstand 10 Pixel und füllt Felder mit firstMember größer 0 mit einer Farbe nach Anzeigeart"], "offen": []}, "p3": {"erklaerung": "Reine Entwickler-Anzeige für das Wildtier-Raster. Im normalen Spiel hat sie keine Wirkung.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0052cab0 findAndSetNewRallyPointForDeerAndLions | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0052CAB0
+ void WildlifeState::findAndSetNewRallyPointForDeerAndLions(int tribeID, int always2or3or5, int always0or1)
+ {
+ short* psVar1;
+ short sVar2;
+ short sVar3;
+ int* piVar4;
+ uint _randomDirection;
+ int iVar5;
+ uint uVar6;
+ int iVar7;
+ int iVar8;
+ int* piVar9;
+ uint uVar10;
+ int _x10;
+ int iVar11;
+ int _y10;
+ int local_18;
+ int local_c;
+ int _count;
+ int _currentArea;
+ uint _destinationY;
+ uint _destinationX;
+ sVar2 = DAT_TribesState.tribes[tribeID].selectionTargetUnitID;
+ _x10 = (int)DAT_UnitsState.units[sVar2].x / 10;
+ _y10 = (int)DAT_UnitsState.units[sVar2].y / 10;
+ this->casDisRelated = always2or3or5;
+ this->candidateIndex = 0;
+ this->candidateIndex2 = 1;
+ piVar9 = &this->grid[0][0].field15_0x3c;
+ iVar11 = 0x28;
+ do {
+ iVar5 = 0x28;
+ piVar4 = piVar9;
+ do {
+ piVar4[-1] = 0;
+ *piVar4 = 0;
+ piVar4 = piVar4 + 0x640;
+ iVar5 = iVar5 + -1;
+ } while (iVar5 != 0);
+ piVar9 = piVar9 + 0x28;
+ iVar11 = iVar11 + -1;
+ } while (iVar11 != 0);
+ this->DAT_Y10_Array_Section1034[0] = (short)_y10;
+ this->DAT_X10_Array_Section1034[0] = (short)_x10;
+ _currentArea = this->grid[_x10][_y10].separateAreaID;
+ this->grid[_x10][_y10].casDisRelated2 = always2or3or5;
+ if (this->candidateIndex != this->candidateIndex2) {
+ do {
+ sVar2 = this->DAT_X10_Array_Section1034[this->candidateIndex];
+ sVar3 = this->DAT_Y10_Array_Section1034[this->candidateIndex];
+ this->casDisRelated = this->grid[sVar2][sVar3].casDisRelated2;
+ if (this->casDisRelated < 2)
+ break;
+ iVar11 = this->casDisRelated + -1;
+ piVar9 = &DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[0].int.yOffset;
+ do {
+ uVar10 = *piVar9 + (int)sVar3;
+ uVar6 = ((Point8IntXY*)(piVar9 + -1))->xOffset + (int)sVar2;
+ if ((((uVar6 < 0x28) && (uVar10 < 0x28)) && (0 < this->grid[uVar6][uVar10].firstMember))
+ && (_currentArea == this->grid[uVar6][uVar10].separateAreaID)) {
+ if (always0or1 == 0) {
+ if (this->grid[uVar6][uVar10].field13_0x34 == 0) {
+ if (DAT_TribesState.tribes[tribeID].tribeType
+ == (AITT_SWORDSMEN | AITT_SPEARMEN)) {
+ _count = this->grid[uVar6][uVar10].deerCount;
+ goto LAB_0052cc5e;
+ }
+ LAB_0052cc66:
+ if (this->grid[uVar6][uVar10].casDisRelated2 < iVar11) {
+ this->grid[uVar6][uVar10].casDisRelated2 = iVar11;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)uVar6;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)uVar10;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (1600 < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ }
+ } else if (this->grid[uVar6][uVar10].field12_0x30 == 0) {
+ _count = this->grid[uVar6][uVar10].field3_0xc;
+ LAB_0052cc5e:
+ if ((_count == 0) && (this->grid[uVar6][uVar10].lionCount == 0))
+ goto LAB_0052cc66;
+ }
+ }
+ piVar9 = piVar9 + 2;
+ } while ((int)piVar9 < 0xb4908c);
+ this->candidateIndex = this->candidateIndex + 1;
+ if (1600 < this->candidateIndex) {
+ this->candidateIndex = 0;
+ }
+ } while (this->candidateIndex != this->candidateIndex2);
+ }
+ _randomDirection = (uint)(byte)SEC_RNG::instance.currentNumber2;
+ DAT_TribesState.tribes[tribeID].currentRallyPointIndex = 0;
+ DAT_TribesState.tribes[tribeID].rallyPointCount = 0;
+ this->grid[_x10][_y10].field15_0x3c = 1;
+ this->grid[_x10][_y10].casDisRelated2 = 0;
+ while (true) {
+ local_18 = -1;
+ local_c = 2;
+ iVar11 = (_randomDirection & 7) * 8 + 8;
+ iVar5 = (_randomDirection & 7) - 7;
+ do {
+ iVar8 = iVar5 + 7;
+ iVar7 = iVar11 + -8;
+ if (7 < iVar8) {
+ iVar8 = iVar5 + -1;
+ iVar7 = iVar11 + -0x48;
+ }
+ uVar6
+ = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar7) + _x10;
+ uVar10 = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar7 + 4)
+ + _y10;
+ if (((uVar6 < 0x28) && (uVar10 < 0x28))
+ && ((0 < this->grid[uVar6][uVar10].firstMember
+ && ((iVar7 = this->grid[uVar6][uVar10].casDisRelated2,
+ iVar7 != 0 && (iVar7 < always2or3or5)))))) {
+ this->grid[uVar6][uVar10].casDisRelated2 = 0;
+ always2or3or5 = iVar7;
+ local_18 = iVar8;
+ }
+ iVar8 = iVar11;
+ iVar7 = iVar5 + 8;
+ if (7 < iVar5 + 8) {
+ iVar8 = iVar11 + -0x40;
+ iVar7 = iVar5;
+ }
+ uVar10 = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar8 + 4)
+ + _y10;
+ uVar6
+ = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar8) + _x10;
+ if ((((uVar6 < 0x28) && (uVar10 < 0x28)) && (0 < this->grid[uVar6][uVar10].firstMember))
+ && ((iVar8 = this->grid[uVar6][uVar10].casDisRelated2, iVar8 != 0 && (iVar8 < always2or3or5)))) {
+ this->grid[uVar6][uVar10].casDisRelated2 = 0;
+ always2or3or5 = iVar8;
+ local_18 = iVar7;
+ }
+ iVar8 = iVar5 + 9;
+ iVar7 = iVar11 + 8;
+ if (7 < iVar8) {
+ iVar8 = iVar5 + 1;
+ iVar7 = iVar11 + -0x38;
+ }
+ uVar10 = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar7 + 4)
+ + _y10;
+ uVar6
+ = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar7) + _x10;
+ if (((uVar6 < 0x28) && (uVar10 < 0x28))
+ && ((0 < this->grid[uVar6][uVar10].firstMember
+ && ((iVar7 = this->grid[uVar6][uVar10].casDisRelated2,
+ iVar7 != 0 && (iVar7 < always2or3or5)))))) {
+ this->grid[uVar6][uVar10].casDisRelated2 = 0;
+ always2or3or5 = iVar7;
+ local_18 = iVar8;
+ }
+ iVar8 = iVar5 + 10;
+ iVar7 = iVar11 + 0x10;
+ if (7 < iVar8) {
+ iVar8 = iVar5 + 2;
+ iVar7 = iVar11 + -0x30;
+ }
+ uVar10 = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar7 + 4)
+ + _y10;
+ uVar6
+ = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar7) + _x10;
+ if ((((uVar6 < 0x28) && (uVar10 < 0x28)) && (0 < this->grid[uVar6][uVar10].firstMember))
+ && ((iVar7 = this->grid[uVar6][uVar10].casDisRelated2, iVar7 != 0 && (iVar7 < always2or3or5)))) {
+ this->grid[uVar6][uVar10].casDisRelated2 = 0;
+ always2or3or5 = iVar7;
+ local_18 = iVar8;
+ }
+ iVar11 = iVar11 + 0x20;
+ iVar5 = iVar5 + 4;
+ local_c = local_c + -1;
+ } while (local_c != 0);
+ if (local_18 < 0)
+ break;
+ _x10 = _x10 + DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[local_18].int.xOffset;
+ _y10 = _y10
+ + *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + local_18 * 8 + 4);
+ this->grid[_x10][_y10].field15_0x3c = 1;
+ _destinationY = _y10 * 10 + 5;
+ uVar6 = _x10 * 10 + 5;
+ if (((uVar6 < 400) && (_destinationY < 400))
+ && (*(char*)(_destinationY * 400 + 0x21aec98 + uVar6) != '\0')) {
+ pathFindingDeerAndLionsUnk(_currentArea, uVar6, _destinationY);
+ DAT_TribesState.tribes[tribeID]
+ .rallyPointArray[DAT_TribesState.tribes[tribeID].rallyPointCount][0]
+ = (short)DAT_PathFindingState.climbX;
+ DAT_TribesState.tribes[tribeID]
+ .rallyPointArray[DAT_TribesState.tribes[tribeID].rallyPointCount][1]
+ = (short)DAT_PathFindingState.climbY;
+ psVar1 = &DAT_TribesState.tribes[tribeID].rallyPointCount;
+ *psVar1 = *psVar1 + 1;
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0052cab0", "name": "findAndSetNewRallyPointForDeerAndLions", "quelle": "ghidra", "p1": {"bereich": "Umwelt", "zweck": "Legt für eine Tiergruppe (Hirsche, Löwen) eine neue Wegpunktkette über das Wildtier-Raster fest."}, "p2": {"ein": "tribeID, always2or3or5 (Suchtiefe), always0or1 (Auswahlart)", "aus": "-", "liest": ["tribes[].selectionTargetUnitID", "units[].x/y", "grid[][].firstMember/separateAreaID/field13_0x34/deerCount/lionCount/field12_0x30/field3_0xc", "tribes[].tribeType", "clockwiseCardinalTranslationMatrix", "SEC_RNG.currentNumber2", "Maske 0x21aec98"], "schreibt": ["grid[][].casDisRelated2", "grid[][].field15_0x3c", "tribes[].rallyPointArray", "tribes[].rallyPointCount", "tribes[].currentRallyPointIndex", "DAT_PathFindingState (über pathFindingDeerAndLionsUnk)"], "ruft": ["pathFindingDeerAndLionsUnk"], "regeln": ["Startfeld = Feld der Einheit selectionTargetUnitID (Position geteilt durch 10)", "Breitensuche über die 8 Nachbarfelder im selben separateAreaID und mit firstMember größer 0; der Wert fällt je Schritt um 1 (Start = always2or3or5), Felder werden nur ab Wert 2 weiter ausgedehnt, also höchstens always2or3or5 minus 1 Felder weit", "always0or1=0: Feld nur zulässig, wenn field13_0x34=0; bei tribeType AITT_SWORDSMEN|AITT_SPEARMEN zusätzlich deerCount=0 und lionCount=0", "always0or1 ungleich 0: Feld nur zulässig, wenn field12_0x30=0, field3_0xc=0 und lionCount=0", "Danach Wanderung ab einer Zufallsrichtung (SEC_RNG, unteres 3-Bit): wählt jeweils den Nachbarn mit kleinerem, von 0 verschiedenem Wert, also vom Start weg; besuchte Felder werden auf 0 gesetzt; Ende, wenn kein Nachbar mehr passt", "Jeder Schritt auf eine begehbare Feldmitte (x*10+5, y*10+5) trägt über pathFindingDeerAndLionsUnk einen Wegpunkt in rallyPointArray ein; rallyPointCount und currentRallyPointIndex werden vorher auf 0 gesetzt", "Warteschlange fasst bis 1601 Einträge, dann Umlauf auf 0"], "offen": ["Genaue Bedeutung von field13_0x34 und casDisRelated2", "Ob die Einträge der Translationsmatrix in der Reihenfolge Nord, Nordost... angelegt sind", "Name und Wirkung der Eigenschaft tribeType AITT_SWORDSMEN|AITT_SPEARMEN bei Tieren (vermutlich nur Wiederverwendung der Gruppenart)"]}, "p3": {"erklaerung": "Wenn eine Hirsch- oder Löwengruppe ein neues Ziel braucht, sucht das Spiel zusammenhängende Felder in der Nähe und zieht daraus eine Kette von Wegpunkten weg vom Startfeld.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+

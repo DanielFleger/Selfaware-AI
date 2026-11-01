@@ -1,0 +1,1418 @@
+### 0x004fdb00 updateMacroLayerRelated | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004FDB00
+ void TileMapState::updateMacroLayerRelated(uint param_1, uint param_2, int param_3)
+ {
+ ushort uVar1;
+ BOOLEnum BVar2;
+ int iVar3;
+ int iVar4;
+ byte bVar5;
+ byte bVar6;
+ uint* puVar7;
+ int local_24;
+ int local_20;
+ int local_18;
+ int local_14;
+ int local_10;
+ int local_c;
+ local_c = DAT_PathFindingState.mappingYRelated % 10;
+ local_18 = this->someIndex;
+ do {
+ if (this->someLimit < local_18) {
+ local_c = DAT_PathFindingState.mappingYRelated % 10;
+ for (local_18 = this->someIndex; local_18 <= this->someLimit; local_18 = local_18 + 1) {
+ for (local_10 = this->someYLike; local_10 <= this->someYLikeLimit; local_10 = local_10 + 1) {
+ if (*(char*)(local_18 * 0x28 + 0x1f93438 + local_10) != '\0') {
+ local_20 = local_c;
+ local_c = 0;
+ for (; local_20 < 10; local_20 = local_20 + 1) {
+ this->DAT_SomeY = local_18 * 10 + local_20;
+ this->DAT_SomeX = local_10 * 10;
+ for (local_24 = 0; local_24 < 10; local_24 = local_24 + 1) {
+ BVar2 = xyAreValid(this->DAT_SomeX, (uint)((int)(this->DAT_SomeY)));
+ if ((BVar2 != FALSE)
+ && (this->DAT_SomeTile = translateXYToTile(this->DAT_SomeX, this->DAT_SomeY),
+ this->MacroLayer[this->DAT_SomeTile] == 0x800)) {
+ iVar3 = computeTileXOffset(this->DAT_SomeTile, this->DAT_SomeY);
+ uVar1 = this->RandomLayer[this->DAT_SomeTile];
+ local_14 = 0;
+ while ((local_14 < 0x10
+ && (iVar4 = translateXYToTile(iVar3
+ + DAT_TerrainDefinedData.field2292_0x19d4[local_14].x,
+ this->DAT_SomeY
+ + DAT_TerrainDefinedData.field2292_0x19d4[local_14]
+ .y),
+ this->MacroLayer[iVar4] == 0x800))) {
+ local_14 = local_14 + 1;
+ }
+ if (0xf < local_14) {
+ for (local_14 = 0; local_14 < 0x10; local_14 = local_14 + 1) {
+ iVar4 = translateXYToTile(iVar3
+ + DAT_TerrainDefinedData.field2292_0x19d4[local_14].x,
+ this->DAT_SomeY
+ + DAT_TerrainDefinedData.field2292_0x19d4[local_14]
+ .y);
+ this->MacroLayer[iVar4] = 0x10;
+ this->MacroLayer[iVar4]
+ = this->MacroLayer[iVar4] + (short)(local_14 << 6);
+ this->MacroLayer[iVar4] = this->MacroLayer[iVar4] + uVar1 * 0x1000;
+ }
+ }
+ }
+ this->DAT_SomeX = this->DAT_SomeX + 1;
+ }
+ }
+ }
+ }
+ }
+ local_c = DAT_PathFindingState.mappingYRelated % 10;
+ for (local_18 = this->someIndex; local_18 <= this->someLimit; local_18 = local_18 + 1) {
+ for (local_10 = this->someYLike; local_10 <= this->someYLikeLimit; local_10 = local_10 + 1) {
+ if (*(char*)(local_18 * 0x28 + 0x1f93438 + local_10) != '\0') {
+ local_20 = local_c;
+ local_c = 0;
+ for (; local_20 < 10; local_20 = local_20 + 1) {
+ this->DAT_SomeY = local_18 * 10 + local_20;
+ this->DAT_SomeX = local_10 * 10;
+ for (local_24 = 0; local_24 < 10; local_24 = local_24 + 1) {
+ BVar2 = xyAreValid(this->DAT_SomeX, (uint)((int)(this->DAT_SomeY)));
+ if ((BVar2 != FALSE)
+ && (this->DAT_SomeTile = translateXYToTile(this->DAT_SomeX, this->DAT_SomeY),
+ this->MacroLayer[this->DAT_SomeTile] == 0x800)) {
+ iVar3 = computeTileXOffset(this->DAT_SomeTile, this->DAT_SomeY);
+ uVar1 = this->RandomLayer[this->DAT_SomeTile];
+ local_14 = 0;
+ while ((local_14 < 9
+ && (iVar4 = translateXYToTile(iVar3
+ + DAT_TerrainDefinedData.field2291_0x198c[local_14].x,
+ this->DAT_SomeY
+ + DAT_TerrainDefinedData.field2291_0x198c[local_14]
+ .y),
+ this->MacroLayer[iVar4] == 0x800))) {
+ local_14 = local_14 + 1;
+ }
+ if (8 < local_14) {
+ for (local_14 = 0; local_14 < 9; local_14 = local_14 + 1) {
+ iVar4 = translateXYToTile(iVar3
+ + DAT_TerrainDefinedData.field2291_0x198c[local_14].x,
+ this->DAT_SomeY
+ + DAT_TerrainDefinedData.field2291_0x198c[local_14]
+ .y);
+ this->MacroLayer[iVar4] = 8;
+ this->MacroLayer[iVar4]
+ = this->MacroLayer[iVar4] + (short)(local_14 << 6);
+ this->MacroLayer[iVar4] = this->MacroLayer[iVar4] + uVar1 * 0x1000;
+ }
+ }
+ }
+ this->DAT_SomeX = this->DAT_SomeX + 1;
+ }
+ }
+ }
+ }
+ }
+ local_c = DAT_PathFindingState.mappingYRelated % 10;
+ for (local_18 = this->someIndex; local_18 <= this->someLimit; local_18 = local_18 + 1) {
+ for (local_10 = this->someYLike; local_10 <= this->someYLikeLimit; local_10 = local_10 + 1) {
+ if (*(char*)(local_18 * 0x28 + 0x1f93438 + local_10) != '\0') {
+ local_20 = local_c;
+ local_c = 0;
+ for (; local_20 < 10; local_20 = local_20 + 1) {
+ this->DAT_SomeY = local_18 * 10 + local_20;
+ this->DAT_SomeX = local_10 * 10;
+ for (local_24 = 0; local_24 < 10; local_24 = local_24 + 1) {
+ BVar2 = xyAreValid(this->DAT_SomeX, (uint)((int)(this->DAT_SomeY)));
+ if ((BVar2 != FALSE)
+ && (this->DAT_SomeTile = translateXYToTile(this->DAT_SomeX, this->DAT_SomeY),
+ this->MacroLayer[this->DAT_SomeTile] == 0x800)) {
+ iVar3 = computeTileXOffset(this->DAT_SomeTile, this->DAT_SomeY);
+ uVar1 = this->RandomLayer[this->DAT_SomeTile];
+ local_14 = 0;
+ while ((local_14 < 4
+ && (iVar4 = translateXYToTile(iVar3
+ + DAT_TerrainDefinedData.field2290_0x196c[local_14].x,
+ this->DAT_SomeY
+ + DAT_TerrainDefinedData.field2290_0x196c[local_14]
+ .y),
+ this->MacroLayer[iVar4] == 0x800))) {
+ local_14 = local_14 + 1;
+ }
+ if (3 < local_14) {
+ for (local_14 = 0; local_14 < 4; local_14 = local_14 + 1) {
+ iVar4 = translateXYToTile(iVar3
+ + DAT_TerrainDefinedData.field2290_0x196c[local_14].x,
+ this->DAT_SomeY
+ + DAT_TerrainDefinedData.field2290_0x196c[local_14]
+ .y);
+ this->MacroLayer[iVar4] = 4;
+ this->MacroLayer[iVar4]
+ = this->MacroLayer[iVar4] + (short)(local_14 << 6);
+ this->MacroLayer[iVar4] = this->MacroLayer[iVar4] + uVar1 * 0x1000;
+ }
+ }
+ }
+ this->DAT_SomeX = this->DAT_SomeX + 1;
+ }
+ }
+ }
+ }
+ }
+ local_c = DAT_PathFindingState.mappingYRelated % 10;
+ for (local_18 = this->someIndex; local_18 <= this->someLimit; local_18 = local_18 + 1) {
+ for (local_10 = this->someYLike; local_10 <= this->someYLikeLimit; local_10 = local_10 + 1) {
+ if (*(char*)(local_18 * 0x28 + 0x1f93438 + local_10) != '\0') {
+ local_20 = local_c;
+ local_c = 0;
+ for (; local_20 < 10; local_20 = local_20 + 1) {
+ this->DAT_SomeY = local_18 * 10 + local_20;
+ this->DAT_SomeX = local_10 * 10;
+ for (local_24 = 0; local_24 < 10; local_24 = local_24 + 1) {
+ BVar2 = xyAreValid(this->DAT_SomeX, (uint)((int)(this->DAT_SomeY)));
+ if ((BVar2 != FALSE)
+ && (this->DAT_SomeTile = translateXYToTile(this->DAT_SomeX, this->DAT_SomeY),
+ this->MacroLayer[this->DAT_SomeTile] == 0x800)) {
+ this->MacroLayer[this->DAT_SomeTile] = 2;
+ }
+ this->DAT_SomeX = this->DAT_SomeX + 1;
+ }
+ }
+ }
+ }
+ }
+ return;
+ }
+ for (local_10 = this->someYLike; local_10 <= this->someYLikeLimit; local_10 = local_10 + 1) {
+ if (*(char*)(local_18 * 0x28 + 0x1f93438 + local_10) != '\0') {
+ local_20 = local_c;
+ local_c = 0;
+ for (; local_20 < 10; local_20 = local_20 + 1) {
+ this->DAT_SomeY = local_18 * 10 + local_20;
+ this->DAT_SomeX = local_10 * 10;
+ for (local_24 = 0; local_24 < 10; local_24 = local_24 + 1) {
+ BVar2 = xyAreValid(this->DAT_SomeX, (uint)((int)(this->DAT_SomeY)));
+ if ((BVar2 != FALSE)
+ && (this->DAT_SomeTile
+ = translateXYToTile(this->DAT_SomeX, this->DAT_SomeY),
+ this->ChangedLayer[this->DAT_SomeTile] != 0)) {
+ uVar1 = this->MacroLayer[this->DAT_SomeTile];
+ if (param_3 != 0) {
+ this->MacroLayer[this->DAT_SomeTile] = 0;
+ }
+ if (((this->LogicLayer[this->DAT_SomeTile] & param_1) != 0)
+ || (((int)(char)this->Logic2Layer[this->DAT_SomeTile] & param_2) != 0)) {
+ if ((this->LogicLayer[this->DAT_SomeTile] & 0x30U) == 0) {
+ if (param_1 == 0x8000) {
+ this->bitFlag = 0;
+ if ((*(uint*)(this->ptr_LogicLayer + this->DAT_SomeTile * 4 + 4) & 0x8000)
+ != 0) {
+ this->bitFlag = 0x20;
+ }
+ if ((*(uint*)(this->ptr_LogicLayer + this->DAT_SomeTile * 4 + -4) & 0x8000)
+ != 0) {
+ this->bitFlag = this->bitFlag | 2;
+ }
+ puVar7 = (uint*)(this->ptr_LogicLayer
+ + *(int*)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ * 4
+ + this->DAT_SomeTile * 4);
+ if ((puVar7[-1] & 0x8000) != 0) {
+ this->bitFlag = this->bitFlag | 1;
+ }
+ if ((puVar7[1] & 0x8000) != 0) {
+ this->bitFlag = this->bitFlag | 0x40;
+ }
+ if ((*puVar7 & 0x8000) != 0) {
+ this->bitFlag = this->bitFlag | 0x80;
+ }
+ puVar7 = (uint*)(this->ptr_LogicLayer
+ + *(int*)((int)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + 0x10)
+ * 4
+ + this->DAT_SomeTile * 4);
+ if ((puVar7[-1] & 0x8000) != 0) {
+ this->bitFlag = this->bitFlag | 4;
+ }
+ if ((puVar7[1] & 0x8000) != 0) {
+ this->bitFlag = this->bitFlag | 0x10;
+ }
+ if ((*puVar7 & 0x8000) != 0) {
+ this->bitFlag = this->bitFlag | 8;
+ }
+ } else if (param_1 == 0x20000000) {
+ if ((this->LogicLayer[this->DAT_SomeTile] & 0x80000000U) != 0)
+ goto LAB_004fdbd3;
+ this->bitFlag = 0;
+ if ((*(uint*)(this->ptr_LogicLayer + this->DAT_SomeTile * 4 + 4)
+ & 0x20000000)
+ != 0) {
+ this->bitFlag = 0x20;
+ }
+ if ((*(uint*)(this->ptr_LogicLayer + this->DAT_SomeTile * 4 + -4)
+ & 0x20000000)
+ != 0) {
+ this->bitFlag = this->bitFlag | 2;
+ }
+ puVar7 = (uint*)(this->ptr_LogicLayer
+ + *(int*)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ * 4
+ + this->DAT_SomeTile * 4);
+ if ((puVar7[-1] & 0x20000000) != 0) {
+ this->bitFlag = this->bitFlag | 1;
+ }
+ if ((puVar7[1] & 0x20000000) != 0) {
+ this->bitFlag = this->bitFlag | 0x40;
+ }
+ if ((*puVar7 & 0x20000000) != 0) {
+ this->bitFlag = this->bitFlag | 0x80;
+ }
+ puVar7 = (uint*)(this->ptr_LogicLayer
+ + *(int*)((int)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + 0x10)
+ * 4
+ + this->DAT_SomeTile * 4);
+ if ((puVar7[-1] & 0x20000000) != 0) {
+ this->bitFlag = this->bitFlag | 4;
+ }
+ if ((puVar7[1] & 0x20000000) != 0) {
+ this->bitFlag = this->bitFlag | 0x10;
+ }
+ if ((*puVar7 & 0x20000000) != 0) {
+ this->bitFlag = this->bitFlag | 8;
+ }
+ } else if (param_2 == 2) {
+ this->bitFlag = 0;
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap + this->DAT_SomeTile + 1) & 2)
+ != 0) {
+ this->bitFlag = 0x20;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap + this->DAT_SomeTile + -1) & 2)
+ != 0) {
+ this->bitFlag = this->bitFlag | 2;
+ }
+ puVar7 = (uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + this->DAT_SomeTile);
+ if ((*(uint*)((int)puVar7 + -1) & 2) != 0) {
+ this->bitFlag = this->bitFlag | 1;
+ }
+ if ((*(uint*)((int)puVar7 + 1) & 2) != 0) {
+ this->bitFlag = this->bitFlag | 0x40;
+ }
+ if ((*puVar7 & 2) != 0) {
+ this->bitFlag = this->bitFlag | 0x80;
+ }
+ puVar7 = (uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)((int)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + 0x10)
+ + this->DAT_SomeTile);
+ if ((*(uint*)((int)puVar7 + -1) & 2) != 0) {
+ this->bitFlag = this->bitFlag | 4;
+ }
+ if ((*(uint*)((int)puVar7 + 1) & 2) != 0) {
+ this->bitFlag = this->bitFlag | 0x10;
+ }
+ if ((*puVar7 & 2) != 0) {
+ this->bitFlag = this->bitFlag | 8;
+ }
+ } else if (param_2 == 0x10) {
+ this->bitFlag = 0;
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap + this->DAT_SomeTile + 1) & 0x10)
+ != 0) {
+ this->bitFlag = 0x20;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap + this->DAT_SomeTile + -1)
+ & 0x10)
+ != 0) {
+ this->bitFlag = this->bitFlag | 2;
+ }
+ puVar7 = (uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + this->DAT_SomeTile);
+ if ((*(uint*)((int)puVar7 + -1) & 0x10) != 0) {
+ this->bitFlag = this->bitFlag | 1;
+ }
+ if ((*(uint*)((int)puVar7 + 1) & 0x10) != 0) {
+ this->bitFlag = this->bitFlag | 0x40;
+ }
+ if ((*puVar7 & 0x10) != 0) {
+ this->bitFlag = this->bitFlag | 0x80;
+ }
+ puVar7 = (uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)((int)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + 0x10)
+ + this->DAT_SomeTile);
+ if ((*(uint*)((int)puVar7 + -1) & 0x10) != 0) {
+ this->bitFlag = this->bitFlag | 4;
+ }
+ if ((*(uint*)((int)puVar7 + 1) & 0x10) != 0) {
+ this->bitFlag = this->bitFlag | 0x10;
+ }
+ if ((*puVar7 & 0x10) != 0) {
+ this->bitFlag = this->bitFlag | 8;
+ }
+ } else if (param_2 == 1) {
+ this->bitFlag = 0;
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap + this->DAT_SomeTile + 1) & 1)
+ != 0) {
+ this->bitFlag = 0x20;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap + this->DAT_SomeTile + -1) & 1)
+ != 0) {
+ this->bitFlag = this->bitFlag | 2;
+ }
+ puVar7 = (uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + this->DAT_SomeTile);
+ if ((*(uint*)((int)puVar7 + -1) & 1) != 0) {
+ this->bitFlag = this->bitFlag | 1;
+ }
+ if ((*(uint*)((int)puVar7 + 1) & 1) != 0) {
+ this->bitFlag = this->bitFlag | 0x40;
+ }
+ if ((*puVar7 & 1) != 0) {
+ this->bitFlag = this->bitFlag | 0x80;
+ }
+ puVar7 = (uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)((int)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + 0x10)
+ + this->DAT_SomeTile);
+ if ((*(uint*)((int)puVar7 + -1) & 1) != 0) {
+ this->bitFlag = this->bitFlag | 4;
+ }
+ if ((*(uint*)((int)puVar7 + 1) & 1) != 0) {
+ this->bitFlag = this->bitFlag | 0x10;
+ }
+ if ((*puVar7 & 1) != 0) {
+ this->bitFlag = this->bitFlag | 8;
+ }
+ } else if (param_2 == 0x80) {
+ this->bitFlag = 0;
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap + this->DAT_SomeTile + 1) & 0x80)
+ != 0) {
+ this->bitFlag = 0x20;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap + this->DAT_SomeTile + -1)
+ & 0x80)
+ != 0) {
+ this->bitFlag = this->bitFlag | 2;
+ }
+ puVar7 = (uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + this->DAT_SomeTile);
+ if ((*(uint*)((int)puVar7 + -1) & 0x80) != 0) {
+ this->bitFlag = this->bitFlag | 1;
+ }
+ if ((*(uint*)((int)puVar7 + 1) & 0x80) != 0) {
+ this->bitFlag = this->bitFlag | 0x40;
+ }
+ if ((*puVar7 & 0x80) != 0) {
+ this->bitFlag = this->bitFlag | 0x80;
+ }
+ puVar7 = (uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)((int)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + 0x10)
+ + this->DAT_SomeTile);
+ if ((*(uint*)((int)puVar7 + -1) & 0x80) != 0) {
+ this->bitFlag = this->bitFlag | 4;
+ }
+ if ((*(uint*)((int)puVar7 + 1) & 0x80) != 0) {
+ this->bitFlag = this->bitFlag | 0x10;
+ }
+ if ((*puVar7 & 0x80) != 0) {
+ this->bitFlag = this->bitFlag | 8;
+ }
+ } else if (param_2 == 0x40) {
+ this->bitFlag = 0;
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap + this->DAT_SomeTile + 1) & 0x40)
+ != 0) {
+ this->bitFlag = 0x20;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap + this->DAT_SomeTile + -1)
+ & 0x40)
+ != 0) {
+ this->bitFlag = this->bitFlag | 2;
+ }
+ puVar7 = (uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + this->DAT_SomeTile);
+ if ((*(uint*)((int)puVar7 + -1) & 0x40) != 0) {
+ this->bitFlag = this->bitFlag | 1;
+ }
+ if ((*(uint*)((int)puVar7 + 1) & 0x40) != 0) {
+ this->bitFlag = this->bitFlag | 0x40;
+ }
+ if ((*puVar7 & 0x40) != 0) {
+ this->bitFlag = this->bitFlag | 0x80;
+ }
+ puVar7 = (uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)((int)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + 0x10)
+ + this->DAT_SomeTile);
+ if ((*(uint*)((int)puVar7 + -1) & 0x40) != 0) {
+ this->bitFlag = this->bitFlag | 4;
+ }
+ if ((*(uint*)((int)puVar7 + 1) & 0x40) != 0) {
+ this->bitFlag = this->bitFlag | 0x10;
+ }
+ if ((*puVar7 & 0x40) != 0) {
+ this->bitFlag = this->bitFlag | 8;
+ }
+ } else if (param_2 == 0x20) {
+ bVar5 = 0;
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap + this->DAT_SomeTile + 1) & 0x20)
+ != 0) {
+ bVar5 = 0x20;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap + this->DAT_SomeTile + -1)
+ & 0x20)
+ != 0) {
+ bVar5 = bVar5 | 2;
+ }
+ puVar7 = (uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + this->DAT_SomeTile);
+ if ((*(uint*)((int)puVar7 + -1) & 0x20) != 0) {
+ bVar5 = bVar5 | 1;
+ }
+ if ((*(uint*)((int)puVar7 + 1) & 0x20) != 0) {
+ bVar5 = bVar5 | 0x40;
+ }
+ if ((*puVar7 & 0x20) != 0) {
+ bVar5 = bVar5 | 0x80;
+ }
+ puVar7 = (uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)((int)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + 0x10)
+ + this->DAT_SomeTile);
+ if ((*(uint*)((int)puVar7 + -1) & 0x20) != 0) {
+ bVar5 = bVar5 | 4;
+ }
+ if ((*(uint*)((int)puVar7 + 1) & 0x20) != 0) {
+ bVar5 = bVar5 | 0x10;
+ }
+ if ((*puVar7 & 0x20) != 0) {
+ bVar5 = bVar5 | 8;
+ }
+ bVar6 = 0;
+ if ((*(uint*)(this->ptr_LogicLayer + this->DAT_SomeTile * 4 + 4) & 1)
+ != 0) {
+ bVar6 = 0x20;
+ }
+ if ((*(uint*)(this->ptr_LogicLayer + this->DAT_SomeTile * 4 + -4) & 1)
+ != 0) {
+ bVar6 = bVar6 | 2;
+ }
+ puVar7 = (uint*)(this->ptr_LogicLayer
+ + *(int*)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ * 4
+ + this->DAT_SomeTile * 4);
+ if ((puVar7[-1] & 1) != 0) {
+ bVar6 = bVar6 | 1;
+ }
+ if ((puVar7[1] & 1) != 0) {
+ bVar6 = bVar6 | 0x40;
+ }
+ if ((*puVar7 & 1) != 0) {
+ bVar6 = bVar6 | 0x80;
+ }
+ puVar7 = (uint*)(this->ptr_LogicLayer
+ + *(int*)((int)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + 0x10)
+ * 4
+ + this->DAT_SomeTile * 4);
+ if ((puVar7[-1] & 1) != 0) {
+ bVar6 = bVar6 | 4;
+ }
+ if ((puVar7[1] & 1) != 0) {
+ bVar6 = bVar6 | 0x10;
+ }
+ if ((*puVar7 & 1) != 0) {
+ bVar6 = bVar6 | 8;
+ }
+ this->bitFlag = bVar6 | bVar5;
+ } else if (param_2 == 4) {
+ this->bitFlag = 0;
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap + this->DAT_SomeTile + 1) & 4)
+ != 0) {
+ this->bitFlag = 0x20;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap + this->DAT_SomeTile + -1) & 4)
+ != 0) {
+ this->bitFlag = this->bitFlag | 2;
+ }
+ puVar7 = (uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + this->DAT_SomeTile);
+ if ((*(uint*)((int)puVar7 + -1) & 4) != 0) {
+ this->bitFlag = this->bitFlag | 1;
+ }
+ if ((*(uint*)((int)puVar7 + 1) & 4) != 0) {
+ this->bitFlag = this->bitFlag | 0x40;
+ }
+ if ((*puVar7 & 4) != 0) {
+ this->bitFlag = this->bitFlag | 0x80;
+ }
+ puVar7 = (uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)((int)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + 0x10)
+ + this->DAT_SomeTile);
+ if ((*(uint*)((int)puVar7 + -1) & 4) != 0) {
+ this->bitFlag = this->bitFlag | 4;
+ }
+ if ((*(uint*)((int)puVar7 + 1) & 4) != 0) {
+ this->bitFlag = this->bitFlag | 0x10;
+ }
+ if ((*puVar7 & 4) != 0) {
+ this->bitFlag = this->bitFlag | 8;
+ }
+ } else if (param_2 == 8) {
+ this->bitFlag = 0;
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap + this->DAT_SomeTile + 1) & 8)
+ != 0) {
+ this->bitFlag = 0x20;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap + this->DAT_SomeTile + -1) & 8)
+ != 0) {
+ this->bitFlag = this->bitFlag | 2;
+ }
+ puVar7 = (uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + this->DAT_SomeTile);
+ if ((*(uint*)((int)puVar7 + -1) & 8) != 0) {
+ this->bitFlag = this->bitFlag | 1;
+ }
+ if ((*(uint*)((int)puVar7 + 1) & 8) != 0) {
+ this->bitFlag = this->bitFlag | 0x40;
+ }
+ if ((*puVar7 & 8) != 0) {
+ this->bitFlag = this->bitFlag | 0x80;
+ }
+ puVar7 = (uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)((int)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + 0x10)
+ + this->DAT_SomeTile);
+ if ((*(uint*)((int)puVar7 + -1) & 8) != 0) {
+ this->bitFlag = this->bitFlag | 4;
+ }
+ if ((*(uint*)((int)puVar7 + 1) & 8) != 0) {
+ this->bitFlag = this->bitFlag | 0x10;
+ }
+ if ((*puVar7 & 8) != 0) {
+ this->bitFlag = this->bitFlag | 8;
+ }
+ } else {
+ this->bitFlag = 0;
+ }
+ } else {
+ this->bitFlag = 0;
+ }
+ if (this->bitFlag == 0xff) {
+ if ((this->RandomLayer[this->DAT_SomeTile] & 0xf) == 0) {
+ this->MacroLayer[this->DAT_SomeTile] = 2;
+ } else {
+ this->MacroLayer[this->DAT_SomeTile] = 0x800;
+ }
+ } else {
+ this->MacroLayer[this->DAT_SomeTile] = 1;
+ }
+ if (uVar1 != this->MacroLayer[this->DAT_SomeTile]) {
+ updateWalkAndPathLayer(
+ 1, (uint)((int)(this->DAT_SomeX)), (uint)((int)(this->DAT_SomeY)));
+ }
+ }
+ }
+ LAB_004fdbd3:
+ this->DAT_SomeX = this->DAT_SomeX + 1;
+ }
+ }
+ }
+ }
+ local_18 = local_18 + 1;
+ } while (true);
+ }
+}
+}
+
+### 0x004ff080 updateMacroLayerRelated2 | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004FF080
+ void TileMapState::updateMacroLayerRelated2()
+ {
+ XYPair* pXVar1;
+ uint uVar2;
+ XYPair* pXVar3;
+ ushort uVar4;
+ int iVar5;
+ int iVar6;
+ int _upTo16;
+ int iVar7;
+ int _upTo960;
+ int iVar8;
+ int _someX;
+ int local_20;
+ int local_1c;
+ int local_18;
+ int local_14;
+ int local_10;
+ int local_c;
+ int local_8;
+ int _upTo32;
+ int _upTo32_2;
+ iVar7 = DAT_PathFindingState.mappingYRelated % 10;
+ if (this->someIndex <= this->someLimit) {
+ local_c = this->someIndex * 10;
+ local_10 = this->someIndex * 0x28 + 0x1f93438;
+ iVar6 = this->someIndex;
+ do {
+ if (this->someYLike <= this->someYLikeLimit) {
+ local_14 = this->someYLike * 10;
+ iVar5 = this->someYLike;
+ iVar8 = iVar7;
+ do {
+ iVar7 = iVar8;
+ if ((*(char*)(local_10 + iVar5) != '\0') && (iVar7 = 0, iVar8 < 10)) {
+ do {
+ this->DAT_SomeY = local_c + iVar8;
+ this->DAT_SomeX = local_14;
+ local_8 = 2;
+ do {
+ if (((((uint)this->DAT_SomeX < 400) && ((uint)this->DAT_SomeY < 400))
+ && (*(char*)(this->DAT_SomeX + 0x21aec98 + this->DAT_SomeY * 400) != '\0'))
+ && ((this->DAT_SomeTile
+ = DAT_ViewportRenderState.translationMatrix[this->DAT_SomeY]
+ .addXgetTile
+ + this->DAT_SomeX,
+ this->ChangedLayer[this->DAT_SomeTile] != 0
+ && ((this->LogicLayer[this->DAT_SomeTile] & L_SEA) != 0)))) {
+ this->MacroLayer[this->DAT_SomeTile] = 0x800;
+ }
+ uVar2 = this->DAT_SomeX + 1;
+ if (((uVar2 < 400) && ((uint)this->DAT_SomeY < 400))
+ && (*(char*)(this->DAT_SomeX + 0x21aec99 + this->DAT_SomeY * 400) != '\0')) {
+ iVar7 = DAT_ViewportRenderState.translationMatrix[this->DAT_SomeY]
+ .addXgetTile;
+ this->DAT_SomeTile = iVar7 + uVar2;
+ if ((this->ChangedLayer[this->DAT_SomeTile] != 0)
+ && ((this->LogicLayer[this->DAT_SomeX + iVar7 + 1] & L_SEA) != 0)) {
+ iVar7 = this->DAT_SomeX + iVar7 + 1;
+ this->DAT_SomeX = uVar2;
+ this->MacroLayer[iVar7] = 0x800;
+ uVar2 = this->DAT_SomeX;
+ }
+ }
+ this->DAT_SomeX = uVar2;
+ uVar2 = this->DAT_SomeX + 1;
+ if (((uVar2 < 400) && ((uint)this->DAT_SomeY < 400))
+ && (*(char*)(this->DAT_SomeX + 0x21aec99 + this->DAT_SomeY * 400) != '\0')) {
+ iVar7 = DAT_ViewportRenderState.translationMatrix[this->DAT_SomeY]
+ .addXgetTile;
+ this->DAT_SomeTile = iVar7 + uVar2;
+ if ((this->ChangedLayer[this->DAT_SomeTile] != 0)
+ && ((this->LogicLayer[this->DAT_SomeX + iVar7 + 1] & L_SEA) != 0)) {
+ iVar7 = this->DAT_SomeX + iVar7 + 1;
+ this->DAT_SomeX = uVar2;
+ this->MacroLayer[iVar7] = 0x800;
+ uVar2 = this->DAT_SomeX;
+ }
+ }
+ this->DAT_SomeX = uVar2;
+ uVar2 = this->DAT_SomeX + 1;
+ if (((uVar2 < 400) && ((uint)this->DAT_SomeY < 400))
+ && (*(char*)(this->DAT_SomeX + 0x21aec99 + this->DAT_SomeY * 400) != '\0')) {
+ iVar7 = DAT_ViewportRenderState.translationMatrix[this->DAT_SomeY]
+ .addXgetTile;
+ this->DAT_SomeTile = iVar7 + uVar2;
+ if ((this->ChangedLayer[this->DAT_SomeTile] != 0)
+ && ((this->LogicLayer[this->DAT_SomeX + iVar7 + 1] & L_SEA) != 0)) {
+ iVar7 = this->DAT_SomeX + iVar7 + 1;
+ this->DAT_SomeX = uVar2;
+ this->MacroLayer[iVar7] = 0x800;
+ uVar2 = this->DAT_SomeX;
+ }
+ }
+ this->DAT_SomeX = uVar2;
+ uVar2 = this->DAT_SomeX + 1;
+ if (((uVar2 < 400) && ((uint)this->DAT_SomeY < 400))
+ && (*(char*)(this->DAT_SomeX + 0x21aec99 + this->DAT_SomeY * 400) != '\0')) {
+ iVar7 = DAT_ViewportRenderState.translationMatrix[this->DAT_SomeY]
+ .addXgetTile;
+ this->DAT_SomeTile = iVar7 + uVar2;
+ if ((this->ChangedLayer[this->DAT_SomeTile] != 0)
+ && ((this->LogicLayer[this->DAT_SomeX + iVar7 + 1] & L_SEA) != 0)) {
+ iVar7 = this->DAT_SomeX + iVar7 + 1;
+ this->DAT_SomeX = uVar2;
+ this->MacroLayer[iVar7] = 0x800;
+ uVar2 = this->DAT_SomeX;
+ }
+ }
+ this->DAT_SomeX = uVar2;
+ this->DAT_SomeX = this->DAT_SomeX + 1;
+ local_8 = local_8 + -1;
+ } while (local_8 != 0);
+ iVar8 = iVar8 + 1;
+ } while (iVar8 < 10);
+ iVar7 = 0;
+ }
+ local_14 = local_14 + 10;
+ iVar5 = iVar5 + 1;
+ iVar8 = iVar7;
+ } while (iVar5 <= this->someYLikeLimit);
+ }
+ local_10 = local_10 + 0x28;
+ local_c = local_c + 10;
+ iVar6 = iVar6 + 1;
+ } while (iVar6 <= this->someLimit);
+ }
+ local_18 = DAT_PathFindingState.mappingYRelated % 10;
+ local_1c = this->someIndex;
+ if (this->someIndex <= this->someLimit) {
+ local_14 = this->someIndex * 10;
+ local_10 = this->someIndex * 0x28 + 0x1f93438;
+ do {
+ local_20 = this->someYLike;
+ if (this->someYLike <= this->someYLikeLimit) {
+ local_c = this->someYLike * 10;
+ do {
+ iVar7 = local_18;
+ if (*(char*)(local_10 + local_20) != '\0') {
+ local_18 = 0;
+ for (; iVar7 < 10; iVar7 = iVar7 + 1) {
+ this->DAT_SomeY = local_14 + iVar7;
+ this->DAT_SomeX = local_c;
+ local_8 = 10;
+ do {
+ if ((((uint)this->DAT_SomeX < 400) && ((uint)this->DAT_SomeY < 400))
+ && ((*(char*)(this->DAT_SomeY * 400 + 0x21aec98 + this->DAT_SomeX) != '\0'
+ && ((this->DAT_SomeTile = this->DAT_SomeX
+ + DAT_ViewportRenderState
+ .translationMatrix[this->DAT_SomeY]
+ .addXgetTile,
+ this->MacroLayer[this->DAT_SomeTile] == 0x800
+ && ((this->LogicLayer[this->DAT_SomeTile] & L_SEA) != 0)))))) {
+ uVar4 = this->RandomLayer[this->DAT_SomeTile];
+ _someX = this->DAT_SomeTile
+ - DAT_ViewportRenderState.translationMatrix[this->DAT_SomeY]
+ .addXgetTile;
+ iVar6 = 0;
+ do {
+ if (*(short*)((int)this
+ + (DAT_ViewportRenderState
+ .translationMatrix[DAT_TerrainDefinedData
+ .field2292_0x19d4[iVar6]
+ .y
+ + this->DAT_SomeY]
+ .addXgetTile
+ + DAT_TerrainDefinedData.field2292_0x19d4[iVar6].x
+ + _someX)
+ * 2
+ + 0x33cab0)
+ != 0x800) {
+ if (iVar6 < 0x10)
+ goto LAB_004ff539;
+ break;
+ }
+ iVar6 = iVar6 + 1;
+ } while (iVar6 < 0x10);
+ _upTo16 = 0;
+ do {
+ pXVar3 = DAT_TerrainDefinedData.field2292_0x19d4 + _upTo16;
+ pXVar1 = DAT_TerrainDefinedData.field2292_0x19d4 + _upTo16;
+ _upTo960 = _upTo16 << 6;
+ _upTo16 = _upTo16 + 1;
+ /*
+ set MacroLayer
+ */
+ *(ushort*)((int)this
+ + (DAT_ViewportRenderState
+ .translationMatrix[pXVar3->y + this->DAT_SomeY]
+ .addXgetTile
+ + pXVar1->x + _someX)
+ * 2
+ + 0x33cab0) = (ushort)(byte)uVar4 * 0x1000 + 0x10 + (short)_upTo960;
+ } while (_upTo16 < 0x10);
+ }
+ LAB_004ff539:
+ this->DAT_SomeX = this->DAT_SomeX + 1;
+ local_8 = local_8 + -1;
+ } while (local_8 != 0);
+ }
+ }
+ local_c = local_c + 10;
+ local_20 = local_20 + 1;
+ } while (local_20 <= this->someYLikeLimit);
+ }
+ local_10 = local_10 + 0x28;
+ local_14 = local_14 + 10;
+ local_1c = local_1c + 1;
+ } while (local_1c <= this->someLimit);
+ }
+ iVar7 = DAT_PathFindingState.mappingYRelated % 10;
+ if (this->someIndex <= this->someLimit) {
+ local_14 = this->someIndex * 10;
+ local_10 = this->someIndex * 0x28 + 0x1f93438;
+ iVar6 = this->someIndex;
+ do {
+ if (this->someYLike <= this->someYLikeLimit) {
+ local_c = this->someYLike * 10;
+ iVar5 = this->someYLike;
+ iVar8 = iVar7;
+ do {
+ iVar7 = iVar8;
+ if ((*(char*)(local_10 + iVar5) != '\0') && (iVar7 = 0, iVar8 < 10)) {
+ do {
+ this->DAT_SomeY = local_14 + iVar8;
+ this->DAT_SomeX = local_c;
+ local_8 = 2;
+ do {
+ if (((((uint)this->DAT_SomeX < 400) && ((uint)this->DAT_SomeY < 400))
+ && (*(char*)(this->DAT_SomeY * 400 + 0x21aec98 + this->DAT_SomeX) != '\0'))
+ && (this->DAT_SomeTile
+ = DAT_ViewportRenderState.translationMatrix[this->DAT_SomeY]
+ .addXgetTile
+ + this->DAT_SomeX,
+ this->MacroLayer[this->DAT_SomeTile] == 0x800)) {
+ this->MacroLayer[this->DAT_SomeTile] = 2;
+ }
+ uVar2 = this->DAT_SomeX + 1;
+ if (((uVar2 < 400) && ((uint)this->DAT_SomeY < 400))
+ && (*(char*)(this->DAT_SomeY * 400 + 0x21aec98 + uVar2) != '\0')) {
+ iVar7 = DAT_ViewportRenderState.translationMatrix[this->DAT_SomeY]
+ .addXgetTile;
+ this->DAT_SomeTile = iVar7 + uVar2;
+ if (this->MacroLayer[this->DAT_SomeX + iVar7 + 1] == 0x800) {
+ iVar7 = this->DAT_SomeX + iVar7 + 1;
+ this->DAT_SomeX = uVar2;
+ this->MacroLayer[iVar7] = 2;
+ uVar2 = this->DAT_SomeX;
+ }
+ }
+ this->DAT_SomeX = uVar2;
+ uVar2 = this->DAT_SomeX + 1;
+ if (((uVar2 < 400) && ((uint)this->DAT_SomeY < 400))
+ && (*(char*)(this->DAT_SomeY * 400 + 0x21aec98 + uVar2) != '\0')) {
+ iVar7 = DAT_ViewportRenderState.translationMatrix[this->DAT_SomeY]
+ .addXgetTile;
+ this->DAT_SomeTile = iVar7 + uVar2;
+ if (this->MacroLayer[this->DAT_SomeX + iVar7 + 1] == 0x800) {
+ iVar7 = this->DAT_SomeX + iVar7 + 1;
+ this->DAT_SomeX = uVar2;
+ this->MacroLayer[iVar7] = 2;
+ uVar2 = this->DAT_SomeX;
+ }
+ }
+ this->DAT_SomeX = uVar2;
+ uVar2 = this->DAT_SomeX + 1;
+ if (((uVar2 < 400) && ((uint)this->DAT_SomeY < 400))
+ && (*(char*)(this->DAT_SomeY * 400 + 0x21aec98 + uVar2) != '\0')) {
+ iVar7 = DAT_ViewportRenderState.translationMatrix[this->DAT_SomeY]
+ .addXgetTile;
+ this->DAT_SomeTile = iVar7 + uVar2;
+ if (this->MacroLayer[this->DAT_SomeX + iVar7 + 1] == 0x800) {
+ iVar7 = this->DAT_SomeX + iVar7 + 1;
+ this->DAT_SomeX = uVar2;
+ this->MacroLayer[iVar7] = 2;
+ uVar2 = this->DAT_SomeX;
+ }
+ }
+ this->DAT_SomeX = uVar2;
+ uVar2 = this->DAT_SomeX + 1;
+ if (((uVar2 < 400) && ((uint)this->DAT_SomeY < 400))
+ && (*(char*)(this->DAT_SomeY * 400 + 0x21aec98 + uVar2) != '\0')) {
+ iVar7 = DAT_ViewportRenderState.translationMatrix[this->DAT_SomeY]
+ .addXgetTile;
+ this->DAT_SomeTile = iVar7 + uVar2;
+ if (this->MacroLayer[this->DAT_SomeX + iVar7 + 1] == 0x800) {
+ iVar7 = this->DAT_SomeX + iVar7 + 1;
+ this->DAT_SomeX = uVar2;
+ this->MacroLayer[iVar7] = 2;
+ uVar2 = this->DAT_SomeX;
+ }
+ }
+ this->DAT_SomeX = uVar2;
+ this->DAT_SomeX = this->DAT_SomeX + 1;
+ local_8 = local_8 + -1;
+ } while (local_8 != 0);
+ iVar8 = iVar8 + 1;
+ } while (iVar8 < 10);
+ iVar7 = 0;
+ }
+ local_c = local_c + 10;
+ iVar5 = iVar5 + 1;
+ iVar8 = iVar7;
+ } while (iVar5 <= this->someYLikeLimit);
+ }
+ local_10 = local_10 + 0x28;
+ local_14 = local_14 + 10;
+ iVar6 = iVar6 + 1;
+ } while (iVar6 <= this->someLimit);
+ }
+ return;
+ }
+}
+}
+
+### 0x004ff870 setBitFlagBasedOnWallTowerGatehouseOrKeep | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004FF870
+ byte TileMapState::setBitFlagBasedOnWallTowerGatehouseOrKeep(int x, int y)
+ {
+ uint* puVar1;
+ this->DAT_SomeY = y;
+ this->DAT_SomeTile = translateXYToTile(x, y);
+ this->bitFlag = 0;
+ if ((*(uint*)(this->ptr_LogicLayer + this->DAT_SomeTile * 4 + 4) & 0x10000100) != 0) {
+ this->bitFlag = 0x20;
+ }
+ if ((*(uint*)(this->ptr_LogicLayer + this->DAT_SomeTile * 4 + -4) & 0x10000100) != 0) {
+ this->bitFlag = this->bitFlag | 2;
+ }
+ puVar1 = (uint*)(this->ptr_LogicLayer
+ + *(int*)(this->ptr_MovementDirectionTranslationMatrix + this->DAT_SomeY * 0x20) * 4
+ + this->DAT_SomeTile * 4);
+ if ((puVar1[-1] & 0x10000100) != 0) {
+ this->bitFlag = this->bitFlag | 1;
+ }
+ if ((puVar1[1] & 0x10000100) != 0) {
+ this->bitFlag = this->bitFlag | 0x40;
+ }
+ if ((*puVar1 & 0x10000100) != 0) {
+ this->bitFlag = this->bitFlag | 0x80;
+ }
+ puVar1 = (uint*)(this->ptr_LogicLayer
+ + *(int*)((int)(this->ptr_MovementDirectionTranslationMatrix + this->DAT_SomeY * 0x20) + 0x10) * 4
+ + this->DAT_SomeTile * 4);
+ if ((puVar1[-1] & 0x10000100) != 0) {
+ this->bitFlag = this->bitFlag | 4;
+ }
+ if ((puVar1[1] & 0x10000100) != 0) {
+ this->bitFlag = this->bitFlag | 0x10;
+ }
+ if ((*puVar1 & 0x10000100) != 0) {
+ this->bitFlag = this->bitFlag | 8;
+ }
+ return (byte)(this->bitFlag);
+ }
+}
+}
+
+### 0x004ff990 returnSomeHeight | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004FF990
+ uint TileMapState::returnSomeHeight(int tile, int param_2)
+ {
+ short sVar1;
+ uint uVar2;
+ int iVar3;
+ int iVar4;
+ uVar2 = this->LogicLayer[tile];
+ iVar3 = 0;
+ if ((uVar2 & 0x10000000) != 0) {
+ iVar3 = (int)this->BuildingLayer[tile];
+ switchD_004ff9f9_caseD_28:
+ iVar3 = getBuildingHeightForBuildingID(iVar3);
+ return (uint)this->HeightLayer[tile] + iVar3;
+ }
+ if ((uVar2 & 0x400) == 0) {
+ if ((((char)uVar2 < '\0') && ((uVar2 & 0x100) == 0)) && (1999 < this->OrganismLayer[tile])) {
+ sVar1 = (&DAT_LandscapeState.trees[0x636]
+ .treeTypeBasedValue1)[this->OrganismLayer[tile] * 0x10];
+ if (0xc < sVar1) {
+ return this->HeightLayer[tile] + 0x46;
+ }
+ if (8 < sVar1) {
+ iVar3 = 0x32;
+ }
+ }
+ return (uint)this->HeightLayer[tile] + iVar3;
+ }
+ iVar3 = (int)this->BuildingLayer[tile];
+ iVar4 = (int)(short)DAT_BuildingsState.buildings[iVar3].buildingType;
+ switch (iVar4) {
+ case 7:
+ if (param_2 != 0) {
+ return (uint)this->HeightLayer[tile];
+ }
+ default:
+ return (uint)this->HeightLayer[tile] + DAT_BuildingDefinedData.BuildingHeights[iVar4];
+ case 0x28:
+ case 0x29:
+ case 0x2a:
+ case 0x2b:
+ case 0x2c:
+ goto switchD_004ff9f9_caseD_28;
+ case 0x2d:
+ case 0x2e:
+ case 0x3d:
+ case 0x4a:
+ case 0x4b:
+ case 0x4c:
+ case 0x4d:
+ case 0x4e:
+ iVar3 = getBuildingHeightForBuildingID(iVar3);
+ return (uint)this->HeightLayer[tile] + iVar3 + 10;
+ }
+ }
+}
+}
+
+### 0x004ffb10 getTotalHeightAtTile | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004FFB10
+ uint TileMapState::getTotalHeightAtTile(int tile)
+ {
+ BuildingTypeShort BVar1;
+ int iVar2;
+ iVar2 = (int)this->BuildingLayer[tile];
+ if (iVar2 == 0) {
+ return (uint)this->HeightLayer[tile];
+ }
+ BVar1 = DAT_BuildingsState.buildings[iVar2].buildingType;
+ if (BVar1 == BT_GATEHOUSELARGE) {
+ iVar2 = getBuildingHeightForBuildingID(iVar2);
+ return (uint)(iVar2 + (uint)this->DefaultHeightLayer[tile]);
+ }
+ if (BVar1 == BT_GATEHOUSESMALL) {
+ iVar2 = getBuildingHeightForBuildingID(iVar2);
+ return (uint)(iVar2 + (uint)this->DefaultHeightLayer[tile]);
+ }
+ iVar2 = getBuildingHeightForBuildingID(iVar2);
+ return (uint)(iVar2 + (uint)this->HeightLayer[tile]);
+ }
+}
+}
+
+### 0x004ffba0 getTotalHeightAt | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004FFBA0
+ int TileMapState::getTotalHeightAt(int tile, int playerID)
+ {
+ short sVar1;
+ BuildingTypeShort BVar2;
+ int (*paiVar3)[8];
+ int iVar4;
+ int iVar5;
+ int iVar6;
+ bool bVar7;
+ int local_4;
+ uint _logic;
+ _logic = this->LogicLayer[tile];
+ local_4 = 0;
+ bVar7 = false;
+ if ((_logic & L_KEEP_NON_MANOR_HOUSE) == 0) {
+ if ((_logic & L_BUILDING) != 0) {
+ iVar5 = (int)this->BuildingLayer[tile];
+ iVar4 = (int)(short)DAT_BuildingsState.buildings[iVar5].buildingType;
+ switch (iVar4) {
+ case 0x28:
+ case 0x29:
+ case 0x2a:
+ case 0x2b:
+ case 0x2c:
+ local_4 = getBuildingHeightForBuildingID(iVar5);
+ if (DAT_BuildingsState.buildings[iVar5].buildingType
+ != BT_MANORHOUSE) {
+ iVar4 = 0;
+ paiVar3 = this->directionTranslationMatrix
+ + DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile];
+ do {
+ if (this->BuildingLayer[(*paiVar3)[0] + tile] != iVar5) {
+ bVar7 = true;
+ break;
+ }
+ iVar4 = iVar4 + 1;
+ paiVar3 = (int (*)[8])(*paiVar3 + 1);
+ } while (iVar4 < 8);
+ }
+ break;
+ case 0x2d:
+ case 0x2e:
+ local_4 = getBuildingHeightForBuildingID(iVar5);
+ bVar7 = true;
+ break;
+ default:
+ local_4 = DAT_BuildingDefinedData.BuildingHeights[iVar4];
+ break;
+ case 0x3d:
+ case 0x4a:
+ case 0x4b:
+ case 0x4c:
+ case 0x4d:
+ case 0x4e:
+ local_4 = getBuildingHeightForBuildingID(iVar5);
+ local_4 = local_4 + 0x14;
+ bVar7 = true;
+ }
+ if ((playerID != 0) && (DAT_BuildingsState.buildings[iVar5].owner != playerID)) {
+ bVar7 = false;
+ }
+ goto LAB_004ffd18;
+ }
+ /*
+ L_OIL is checked by checking sign on an int
+ */
+ if (((char)_logic < '\0') && ((_logic & L_WALL_OR_GATEHOUSE) == 0)) {
+ if (1999 < this->OrganismLayer[tile]) {
+ /*
+ fixme: weird way to access
+ */
+ sVar1 = (&DAT_LandscapeState.trees[1590]
+ .treeTypeBasedValue1)[this->OrganismLayer[tile] * 16];
+ if (sVar1 < 0xd) {
+ if (8 < sVar1) {
+ local_4 = 0x32;
+ }
+ } else {
+ local_4 = 0x46;
+ }
+ }
+ } else {
+ if ((_logic & 0x400000) != 0) {
+ local_4 = 0x14;
+ bVar7 = true;
+ if ((playerID != 0) && ((this->WallOwnerLayer[tile] & 7) + 1 != playerID)) {
+ bVar7 = false;
+ }
+ goto LAB_004ffd18;
+ }
+ if ((_logic & 0x200) == 0) {
+ if (this->BuildingLayer[tile] == 0)
+ goto LAB_004ffd18;
+ iVar4 = (int)this->BuildingLayer[tile];
+ BVar2 = DAT_BuildingsState.buildings[iVar4].buildingType;
+ local_4 = 0x1e;
+ if ((BVar2 == BT_GATEHOUSELARGE)
+ || (BVar2 == BT_GATEHOUSESMALL)) {
+ if (DAT_BuildingsState.buildings[iVar4].buildingVariation == 0x50) {
+ iVar6 = 2;
+ iVar5 = 6;
+ } else {
+ iVar6 = 0;
+ iVar5 = 4;
+ }
+ bVar7 = this->BuildingLayer[this->directionTranslationMatrix[DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[tile]][iVar6]
+ + tile]
+ != iVar4;
+ if (this->BuildingLayer[this->directionTranslationMatrix[DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[tile]][iVar5]
+ + tile]
+ != iVar4) {
+ bVar7 = true;
+ }
+ }
+ if (playerID == 0)
+ goto LAB_004ffd18;
+ iVar4 = (int)DAT_BuildingsState.buildings[iVar4].owner;
+ goto LAB_004ffdfe;
+ }
+ local_4 = 10;
+ bVar7 = true;
+ }
+ if (playerID == 0)
+ goto LAB_004ffd18;
+ iVar4 = (this->WallOwnerLayer[tile] & 7) + 1;
+ } else {
+ iVar5 = (int)this->BuildingLayer[tile];
+ local_4 = getBuildingHeightForBuildingID(iVar5);
+ iVar4 = 0;
+ paiVar3 = this->directionTranslationMatrix
+ + DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile];
+ do {
+ if (this->BuildingLayer[(*paiVar3)[0] + tile] != iVar5) {
+ bVar7 = true;
+ break;
+ }
+ iVar4 = iVar4 + 1;
+ paiVar3 = (int (*)[8])(*paiVar3 + 1);
+ } while (iVar4 < 8);
+ if (playerID == 0)
+ goto LAB_004ffd18;
+ iVar4 = (int)DAT_BuildingsState.buildings[iVar5].owner;
+ }
+ LAB_004ffdfe:
+ if (iVar4 != playerID) {
+ bVar7 = false;
+ }
+ LAB_004ffd18:
+ local_4 = local_4 + (uint)this->HeightLayer[tile];
+ if (bVar7) {
+ return local_4;
+ }
+ return -1 - local_4;
+ }
+}
+}
+
+### 0x004fff10 getHeightAtTileIncludingOwnersBuildings | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004FFF10
+ uint TileMapState::getHeightAtTileIncludingOwnersBuildings(int tile, int playerID)
+ {
+ uint uVar1;
+ int (*paiVar2)[8];
+ int iVar3;
+ int iVar4;
+ int iVar5;
+ if ((this->PathConnectionLayer[tile] != 0) && ((this->MiscDisplayLayer[tile] & 0x1000) == 0)) {
+ if ((this->LogicLayer[tile] & L_WALL_OR_GATEHOUSE) == 0) {
+ if (this->BuildingLayer[tile] != 0) {
+ iVar5 = (int)this->BuildingLayer[tile];
+ if ((playerID != 0) && (DAT_BuildingsState.buildings[iVar5].owner != playerID)) {
+ return 0;
+ }
+ switch (DAT_BuildingsState.buildings[iVar5].buildingType) {
+ case BT_STONEKEEP:
+ case BT_STRONGHOLD:
+ case BT_KEEPFOUR:
+ case BT_KEEPFIVE:
+ case BT_TOWER1:
+ case BT_TOWER2:
+ case BT_TOWER3:
+ case BT_TOWER4:
+ case BT_TOWER5:
+ iVar3 = 0;
+ paiVar2 = this->directionTranslationMatrix
+ + DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile];
+ while (this->BuildingLayer[(*paiVar2)[0] + tile] == iVar5) {
+ iVar3 = iVar3 + 1;
+ paiVar2 = (int (*)[8])(*paiVar2 + 1);
+ if (7 < iVar3) {
+ uVar1 = getTotalHeightAtTile(
+ tile);
+ return uVar1;
+ }
+ }
+ break;
+ case BT_GATEHOUSELARGE:
+ case BT_GATEHOUSESMALL:
+ if (DAT_BuildingsState.buildings[iVar5].buildingVariation == 0x50) {
+ iVar4 = 2;
+ iVar3 = 6;
+ } else {
+ iVar4 = 0;
+ iVar3 = 4;
+ }
+ if ((this->BuildingLayer[this->directionTranslationMatrix[DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[tile]][iVar4]
+ + tile]
+ == iVar5)
+ && (this->BuildingLayer[this->directionTranslationMatrix[DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[tile]][iVar3]
+ + tile]
+ == iVar5)) {
+ uVar1
+ = getTotalHeightAtTile(tile);
+ return uVar1;
+ }
+ }
+ return 0;
+ }
+ } else if ((playerID == 0) || ((this->WallOwnerLayer[tile] & 7) + 1 == playerID)) {
+ return (uint)this->HeightLayer[tile];
+ }
+ }
+ return 0;
+ }
+}
+}
+
+### 0x005000e0 countMoatsOwnedByEachPlayer | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x005000E0
+ void TileMapState::countMoatsOwnedByEachPlayer()
+ {
+ int* piVar1;
+ Moat* _pMoat;
+ int iVar2;
+ DAT_GameState.playerDataArray[1].moatsOwned = 0;
+ DAT_GameState.playerDataArray[2].moatsOwned = 0;
+ DAT_GameState.playerDataArray[3].moatsOwned = 0;
+ DAT_GameState.playerDataArray[4].moatsOwned = 0;
+ DAT_GameState.playerDataArray[5].moatsOwned = 0;
+ DAT_GameState.playerDataArray[6].moatsOwned = 0;
+ DAT_GameState.playerDataArray[7].moatsOwned = 0;
+ DAT_GameState.playerDataArray[8].moatsOwned = 0;
+ _pMoat = &this->moats[2];
+ iVar2 = 5333;
+ do {
+ if (_pMoat[-0x10] != '\0') {
+ piVar1 = &DAT_GameState.playerDataArray[_pMoat[-0x10]].moatsOwned;
+ *piVar1 = *piVar1 + 1;
+ }
+ if (_pMoat->owner != '\0') {
+ piVar1 = &DAT_GameState.playerDataArray[_pMoat->owner].moatsOwned;
+ *piVar1 = *piVar1 + 1;
+ }
+ if (_pMoat[0x10] != '\0') {
+ piVar1 = &DAT_GameState.playerDataArray[_pMoat[0x10]].moatsOwned;
+ *piVar1 = *piVar1 + 1;
+ }
+ _pMoat = _pMoat + 0x30;
+ iVar2 = iVar2 + -1;
+ } while (iVar2 != 0);
+ return;
+ }
+}
+}
+
+### 0x00500180 countUnfinishedMoatTilesForPlayer | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00500180
+ int TileMapState::countUnfinishedMoatTilesForPlayer(int playerID)
+ {
+ int _total;
+ Moat* pbVar2;
+ int iVar1;
+ _total = 0;
+ pbVar2 = &this->moats[1];
+ iVar1 = 5333;
+ do {
+ if (((pbVar2->owner != '\0') && (pbVar2->owner == playerID))
+ && ((this->LogicLayer[*(int*)pbVar2] & 0x40000000U) == 0)) {
+ _total = _total + 1;
+ }
+ if (((pbVar2[0x10] != '\0') && (pbVar2[0x10] == playerID))
+ && ((this->LogicLayer[*(int*)(pbVar2 + 4)] & 0x40000000U) == 0)) {
+ _total = _total + 1;
+ }
+ if (((pbVar2[0x20] != '\0') && (pbVar2[0x20] == playerID))
+ && ((this->LogicLayer[*(int*)(pbVar2 + 0x14)] & 0x40000000U) == 0)) {
+ _total = _total + 1;
+ }
+ pbVar2 = pbVar2 + 0x30;
+ iVar1 = iVar1 + -1;
+ } while (iVar1 != 0);
+ return _total;
+ }
+}
+}
+
+### 0x00500210 getUnownedMoatCount | quelle=nachgebaut | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00500210
+ int TileMapState::getUnownedMoatCount()
+ {
+ int unownedMoatCount = 0;
+ for (int i = 1; i < 16000; ++i) {
+ if (this->moats[i].owner == 0) {
+ unownedMoatCount += 1;
+ }
+ }
+ return unownedMoatCount;
+ }
+} // namespace Map
+} // namespace OpenSHC
+

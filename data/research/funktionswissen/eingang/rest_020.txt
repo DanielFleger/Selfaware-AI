@@ -1,0 +1,695 @@
+### 0x004f4e00 setBottomLeftTextDisplayText | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004F4E00
+ void BottomLeftTextDisplayState::setBottomLeftTextDisplayText(int messageTypeUnk, int textGroupIndex,
+ int textNumInGroup, TextMessageBLLookupStructUnion param_4, int importanceUnk, int displayDurationUnk)
+ {
+ int iVar1;
+ TextMessageBLLookupStructTypeEnumInt TVar2;
+ int iVar3;
+ TextMessageBLLookupStructTypeEnumInt TVar4;
+ TVar4 = ((TextMessageBLLookupStructTypeEnum)0);
+ if (messageTypeUnk == 0) {
+ /*
+ basically clear!
+ */
+ this->currentlyDisplayedTextIsDisplayedUnk = 0;
+ return;
+ }
+ if (this->currentlyDisplayedTextIsDisplayedUnk != 0) {
+ if (importanceUnk < this->currentlyDisplayedTextImportanceUnk) {
+ return;
+ }
+ if (((textGroupIndex == this->currentlyDisplayedUnkTextGroupIndex_0x4)
+ && (textNumInGroup == this->currentlyDisplayedUnkTextNumInGroup_0x8))
+ && (param_4.buildingType == this->currentlyDisplayedUnktextExtraObject.buildingType))
+ goto LAB_004f4e46;
+ }
+ this->countdown = 0;
+ LAB_004f4e46:
+ this->currentlyDisplayedTextIsDisplayedUnk = messageTypeUnk;
+ if (textGroupIndex == -1) {
+ if (messageTypeUnk == 2) {
+ TVar4 = TMBLLSTE_BUILDING_TEXT;
+ }
+ if (DAT_RenderingDefinedData.TextMessageLookupTable[0].messageType
+ != 0xffffffff) {
+ iVar1 = 0;
+ TVar2 = DAT_RenderingDefinedData.TextMessageLookupTable[0].messageType;
+ iVar3 = 0;
+ do {
+ if ((TVar4 == TVar2)
+ && (param_4.buildingType
+ == *(MappersEnum*)((int)&DAT_RenderingDefinedData.TextMessageLookupTable[0]
+ .associatedType
+ + iVar1))) {
+ this->currentlyDisplayedUnkTextGroupIndex_0x4
+ = DAT_RenderingDefinedData.TextMessageLookupTable[iVar3].textGroupIndex;
+ this->currentlyDisplayedUnkTextNumInGroup_0x8
+ = DAT_RenderingDefinedData.TextMessageLookupTable[iVar3].textIndexInGroup;
+ break;
+ }
+ iVar1 = iVar3 * 0x10 + 0x10;
+ TVar2 = DAT_RenderingDefinedData.TextMessageLookupTable[iVar3 + 1].messageType;
+ iVar3 = iVar3 + 1;
+ } while (TVar2 != 0xffffffff);
+ }
+ } else {
+ this->currentlyDisplayedUnkTextGroupIndex_0x4 = textGroupIndex;
+ this->currentlyDisplayedUnkTextNumInGroup_0x8 = textNumInGroup;
+ if (((messageTypeUnk == 1) && (textGroupIndex == 0x4d)) && (textNumInGroup == 1)) {
+ /*
+ "Not enough workers available to run this building."
+ */
+ playWAVSFX(
+ "placement_warning1.wav");
+ }
+ }
+ this->currentlyDisplayedUnktextExtraObject = param_4;
+ this->currentlyDisplayedTextImportanceUnk = importanceUnk;
+ if (displayDurationUnk == -1) {
+ this->textMessageDurationUnk = 0;
+ return;
+ }
+ this->textMessageDurationUnk = displayDurationUnk;
+ this->textMessageTime = timeGetTime();
+ return;
+ }
+}
+}
+
+### 0x004f4ef0 hasPassedCountdownOrDuration | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004F4EF0
+ void BottomLeftTextDisplayState::hasPassedCountdownOrDuration()
+ {
+ DWORD _now2;
+ DWORD _now;
+ bool _hasTime;
+ DWORD _textRelatedTime;
+ if (this->currentlyDisplayedTextIsDisplayedUnk == 0) {
+ if (this->unknownCountdown01 != 0) {
+ this->unknownCountdown01 = this->unknownCountdown01 + -1;
+ }
+ } else if (this->textMessageDurationUnk == 0) {
+ this->textMessageDurationUnk = -1;
+ } else {
+ if (this->textMessageDurationUnk != -1) {
+ _now2 = MACRO_CALL(timeGetTime)();
+ if (_now2 - this->textMessageTime <= (uint)this->textMessageDurationUnk)
+ goto LAB_004f4f3a;
+ }
+ this->currentlyDisplayedTextIsDisplayedUnk = 0;
+ this->unknownCountdown01 = 1;
+ }
+ LAB_004f4f3a:
+ _now = MACRO_CALL(timeGetTime)();
+ _textRelatedTime = DAT_TextRelatedTime;
+ _hasTime = DAT_TextRelatedTime != 0;
+ DAT_TextRelatedTime = _now;
+ if (_hasTime) {
+ this->countdown = this->countdown + (_textRelatedTime - _now);
+ }
+ return;
+ }
+}
+}
+
+### 0x004f4f60 renderCurrentlyDisplayedTextConstructionCost | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004F4F60
+ void BottomLeftTextDisplayState::renderCurrentlyDisplayedTextConstructionCost(int param_1)
+ {
+ BuildingType _buildingType;
+ uint uVar1;
+ int iVar2;
+ int integer;
+ int _requiredPitch;
+ int _requiredGold;
+ int local_4;
+ int _requiredIron;
+ int _requiredWood;
+ _requiredIron = DAT_BuildingsState.INT_SelectedBuildingStoneRepairCost;
+ _requiredWood = DAT_BuildingsState.INT_SelectedBuildingStoneWoodCost;
+ if ((param_1 == 0)
+ && (DAT_GameCore.currentMenuViewType == MVT_BUILDING_AND_STATUS_MENU)) {
+ if (DAT_GameCore.activeMenuTab.tabType == BASMTT_BARRACKS_OR_MPMENU_MODEM) {
+ return;
+ }
+ if (DAT_GameCore.activeMenuTab.tabType == BASMTT_MERCENARYPOST) {
+ return;
+ }
+ }
+ if (this->currentlyDisplayedTextIsDisplayedUnk == 0) {
+ return;
+ }
+ if ((((this->currentlyDisplayedTextIsDisplayedUnk != 6) && (this->currentlyDisplayedTextIsDisplayedUnk != 0xc))
+ && (this->currentlyDisplayedTextIsDisplayedUnk != 7))
+ && (this->currentlyDisplayedTextIsDisplayedUnk != 0xd)) {
+ DAT_ButtonX
+ = DAT_ButtonX + DAT_ViewportRenderState.viewportState.currentCameraOffsetX;
+ DAT_ButtonY
+ = DAT_ButtonY + DAT_ViewportRenderState.viewportState.currentCameraOffsetY;
+ DAT_TextManagerObject.textSurfaceTarget = RT_MAP_GAME;
+ }
+ if ((DAT_GameCore.currentMenuViewType == MVT_BUILD_MENU)
+ && (DAT_GameCore.activeMenuTab.buildMenuTab == BMTT_SOLDIERS)) {
+ DAT_ButtonX = DAT_ButtonX + 0x82;
+ DAT_ButtonY = DAT_ButtonY + -2;
+ }
+ switch (this->currentlyDisplayedTextIsDisplayedUnk) {
+ case 1:
+ if (this->currentlyDisplayedUnkTextGroupIndex_0x4 == 8) {
+ if (this->currentlyDisplayedUnkTextNumInGroup_0x8 == 0xca) {
+ this->currentlyDisplayedUnkTextNumInGroup_0x8 = DAT_00ee1090;
+ }
+ if (this->currentlyDisplayedUnkTextNumInGroup_0x8 == 0x123) {
+ this->currentlyDisplayedUnkTextNumInGroup_0x8 = DAT_00ee1094;
+ }
+ }
+ if (this->currentlyDisplayedUnkTextGroupIndex_0x4 != 0x4d) {
+ renderText(
+ this->currentlyDisplayedUnkTextGroupIndex_0x4,
+ this->currentlyDisplayedUnkTextNumInGroup_0x8, DAT_ButtonX,
+ DAT_ButtonY, TTA_LEFT, 0xb8eefb, 0, 0x12, FALSE);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ DAT_TextManagerObject.textSurfaceTarget = RT_SCREEN_MENU;
+ return;
+ }
+ _requiredIron = renderMultilineText2(TEXT_PANEL_FEEDBACK,
+ this->currentlyDisplayedUnkTextNumInGroup_0x8, 0x1e0, 0x12);
+ _requiredWood = DAT_ButtonX;
+ _requiredIron = (DAT_ButtonY - _requiredIron) + 0x18;
+ iVar2 = 0x1e0;
+ goto LAB_004f5302;
+ case 2:
+ _buildingType = convertCommandBuildingTypeToBuildingType(this->currentlyDisplayedUnktextExtraObject.buildingType);
+ param_1 = DAT_BuildingsState.buildingCosts[_buildingType].requiredStone_0x4;
+ _requiredWood = DAT_BuildingsState.buildingCosts[_buildingType].requiredWood;
+ _requiredIron = DAT_BuildingsState.buildingCosts[_buildingType].requiredIron_0x8;
+ _requiredPitch = DAT_BuildingsState.buildingCosts[_buildingType].requiredPitch_0xc;
+ _requiredGold = DAT_BuildingsState.buildingCosts[_buildingType].requiredGold;
+ integer = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[4];
+ local_4 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[0xf];
+ uVar1 = hasLessWoodThanTheCostOfAWoodcuttersHutAndNoWoodcutters(
+ DAT_GameSynchronyState.currentPlayerSlotID, _buildingType);
+ if (uVar1 != 0) {
+ _requiredWood = 0;
+ }
+ if (DAT_GameCore.gameMode_2 == GM_EDITOR) {
+ _requiredIron = 0;
+ _requiredGold = 0;
+ _requiredPitch = 0;
+ param_1 = 0;
+ _requiredWood = 0;
+ } else if (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT) {
+ local_4 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .startResources[0xf];
+ integer = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .startResources[4];
+ _requiredWood = 0;
+ _requiredPitch = 0;
+ _requiredIron = 0;
+ getBuildingCost(
+ this->currentlyDisplayedUnktextExtraObject.buildingType, &param_1, &_requiredGold);
+ }
+ renderText(
+ this->currentlyDisplayedUnkTextGroupIndex_0x4,
+ this->currentlyDisplayedUnkTextNumInGroup_0x8, DAT_ButtonX,
+ DAT_ButtonY, TTA_LEFT, 0xb8eefb, 0, 0x12, FALSE);
+ iVar2 = 0x1e;
+ if (_requiredWood != 0) {
+ renderNumber2(
+ _requiredWood, DAT_ButtonX + 0x1e, DAT_ButtonY,
+ TTA_LEFT, 0xb8eefb, 0, 0x12, TRUE, 0);
+ renderGM(GM_INTERFACE_ICONS2, 0x7e,
+ DAT_TextManagerObject.currentXOffset_0x0 + 0x20 + DAT_ButtonX,
+ DAT_ButtonY + -6);
+ renderInGameTextWithShadow("(", DAT_ButtonX + 0x40,
+ DAT_ButtonY, TTA_LEFT, 0xb8eefb, 0, 0x12, TRUE, 0);
+ renderNumber2(
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[2],
+ DAT_ButtonX + 0x40, DAT_ButtonY,
+ TTA_LEFT, 0xb8eefb, 0, 0x12, TRUE, 0);
+ renderInGameTextWithShadow(")", DAT_ButtonX + 0x40,
+ DAT_ButtonY, TTA_LEFT, 0xb8eefb, 0, 0x12, TRUE, 0);
+ iVar2 = 0x5e;
+ }
+ if (param_1 != 0) {
+ renderNumber2(param_1,
+ DAT_ButtonX + iVar2, DAT_ButtonY, TTA_LEFT,
+ 0xb8eefb, 0, 0x12, TRUE, 0);
+ renderGM(GM_INTERFACE_ICONS2, 0x7b,
+ DAT_TextManagerObject.currentXOffset_0x0 + DAT_ButtonX + iVar2 + 2,
+ DAT_ButtonY + -4);
+ _requiredWood = iVar2 + 0x22;
+ renderInGameTextWithShadow("(", DAT_ButtonX + _requiredWood,
+ DAT_ButtonY, TTA_LEFT, 0xb8eefb, 0, 0x12, TRUE, 0);
+ renderNumber2(integer,
+ DAT_ButtonX + _requiredWood, DAT_ButtonY, TTA_LEFT,
+ 0xb8eefb, 0, 0x12, TRUE, 0);
+ renderInGameTextWithShadow(")", DAT_ButtonX + _requiredWood,
+ DAT_ButtonY, TTA_LEFT, 0xb8eefb, 0, 0x12, TRUE, 0);
+ iVar2 = iVar2 + 0x40;
+ }
+ if (_requiredIron != 0) {
+ renderNumber2(
+ _requiredIron, DAT_ButtonX + iVar2, DAT_ButtonY,
+ TTA_LEFT, 0xb8eefb, 0, 0x12, TRUE, 0);
+ renderGM(GM_INTERFACE_ICONS2, 0x7d,
+ DAT_TextManagerObject.currentXOffset_0x0 + DAT_ButtonX + iVar2 + 2,
+ DAT_ButtonY + -4);
+ _requiredWood = iVar2 + 0x22;
+ renderInGameTextWithShadow("(", DAT_ButtonX + _requiredWood,
+ DAT_ButtonY, TTA_LEFT, 0xb8eefb, 0, 0x12, TRUE, 0);
+ renderNumber2(
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[6],
+ DAT_ButtonX + _requiredWood, DAT_ButtonY, TTA_LEFT,
+ 0xb8eefb, 0, 0x12, TRUE, 0);
+ renderInGameTextWithShadow(")", DAT_ButtonX + _requiredWood,
+ DAT_ButtonY, TTA_LEFT, 0xb8eefb, 0, 0x12, TRUE, 0);
+ iVar2 = iVar2 + 0x40;
+ }
+ if (_requiredPitch != 0) {
+ renderNumber2(
+ _requiredPitch, DAT_ButtonX + iVar2, DAT_ButtonY,
+ TTA_LEFT, 0xb8eefb, 0, 0x12, TRUE, 0);
+ renderGM(GM_INTERFACE_ICONS2, 0x9b,
+ DAT_TextManagerObject.currentXOffset_0x0 + DAT_ButtonX + iVar2 + 2,
+ DAT_ButtonY + -10);
+ _requiredWood = iVar2 + 0x1c;
+ renderInGameTextWithShadow("(", DAT_ButtonX + _requiredWood,
+ DAT_ButtonY, TTA_LEFT, 0xb8eefb, 0, 0x12, TRUE, 0);
+ renderNumber2(
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[7],
+ DAT_ButtonX + _requiredWood, DAT_ButtonY, TTA_LEFT,
+ 0xb8eefb, 0, 0x12, TRUE, 0);
+ renderInGameTextWithShadow(")", DAT_ButtonX + _requiredWood,
+ DAT_ButtonY, TTA_LEFT, 0xb8eefb, 0, 0x12, TRUE, 0);
+ iVar2 = iVar2 + 0x26;
+ }
+ if (_requiredGold == 0) {
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ DAT_TextManagerObject.textSurfaceTarget = RT_SCREEN_MENU;
+ return;
+ }
+ renderNumber2(_requiredGold,
+ DAT_ButtonX + iVar2, DAT_ButtonY, TTA_LEFT, 0xb8eefb,
+ 0, 0x12, TRUE, 0);
+ renderGM(GM_INTERFACE_ICONS2, 0x7c,
+ DAT_TextManagerObject.currentXOffset_0x0 + DAT_ButtonX + iVar2 + 2,
+ DAT_ButtonY + 6);
+ iVar2 = iVar2 + 0x22;
+ renderInGameTextWithShadow(
+ "(", DAT_ButtonX + iVar2, DAT_ButtonY, TTA_LEFT,
+ 0xb8eefb, 0, 0x12, TRUE, 0);
+ renderNumber2(local_4,
+ DAT_ButtonX + iVar2, DAT_ButtonY, TTA_LEFT, 0xb8eefb,
+ 0, 0x12, TRUE, 0);
+ iVar2 = DAT_ButtonX + iVar2;
+ goto LAB_004f6193;
+ case 3:
+ _requiredWood = (int)this->countdown / 0xf + DAT_ButtonW;
+ if (this->currentlyDisplayedUnkTextNumInGroup_0x8 == 1) {
+ setTextClipRange(
+ DAT_ButtonX + 0x14, (dword)((int)(DAT_ButtonW + DAT_ButtonX)));
+ _requiredIron
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .crowding;
+ if (_requiredIron < 0x1f) {
+ uVar1 = 2;
+ } else {
+ uVar1 = (uint)(_requiredIron < 0x47);
+ }
+ renderText(
+ this->currentlyDisplayedUnkTextGroupIndex_0x4,
+ this->currentlyDisplayedUnkTextNumInGroup_0x8 + uVar1,
+ DAT_ButtonX + _requiredWood, DAT_ButtonY, TTA_LEFT,
+ 0xb8eefb, 0, 0x12, FALSE);
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentPopulation
+ == 0) {
+ _requiredIron = 0;
+ } else {
+ _requiredIron
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .crowding;
+ if (_requiredIron < 0x65) {
+ _requiredIron = 0;
+ } else if (_requiredIron < 0x79) {
+ _requiredIron = -0x32;
+ } else if (_requiredIron < 0x8d) {
+ _requiredIron = -100;
+ } else if (_requiredIron < 0xa1) {
+ _requiredIron = -0x96;
+ } else {
+ _requiredIron = ((0xb4 < _requiredIron) - 1 & 0x32) - 0xfa;
+ }
+ }
+ iVar2
+ = DAT_TextManagerObject.currentXOffset_0x0 + DAT_ButtonX + 0x1c + _requiredWood;
+ if ((DAT_TextManagerObject.field2_0x8 < iVar2 + 0x14)
+ && (iVar2 < DAT_TextManagerObject.field3_0xc)) {
+ TransformAndRenderPercentage(
+ iVar2, DAT_ButtonY, _requiredIron, FALSE);
+ }
+ renderGMWithAlphaMask(GID_INTERFACE_ICONS_2, 0xce, 0x7c, 0x242,
+ GID_INTERFACE_ICONS_2, 0xd0, 0);
+ renderGMWithAlphaMask(GID_INTERFACE_ICONS_2, 0xcf, 0x20a, 0x242,
+ GID_INTERFACE_ICONS_2, 0xd1, 0);
+ if (_requiredWood < -300) {
+ this->countdown = 0;
+ }
+ resetTextClipRange();
+ } else if (this->currentlyDisplayedUnkTextNumInGroup_0x8 == 4) {
+ _requiredWood
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .storedPopularityPercent;
+ _requiredIron
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .popularity;
+ iVar2 = 0;
+ if (_requiredWood <= _requiredIron) {
+ iVar2 = (_requiredWood < _requiredIron) + 1;
+ }
+ renderText(
+ this->currentlyDisplayedUnkTextGroupIndex_0x4, iVar2 + 4, DAT_ButtonX,
+ DAT_ButtonY, TTA_LEFT, 0xb8eefb, 0, 0x12, FALSE);
+ }
+ break;
+ case 4:
+ renderText(
+ this->currentlyDisplayedUnkTextGroupIndex_0x4,
+ this->currentlyDisplayedUnkTextNumInGroup_0x8, DAT_ButtonX,
+ DAT_ButtonY, TTA_LEFT, 0xb8eefb, 0, 0x12, FALSE);
+ renderGM(GM_INTERFACE_ICONS2, 0x7b,
+ DAT_TextManagerObject.currentXOffset_0x0 + 0x1e + DAT_ButtonX,
+ DAT_ButtonY + -4);
+ renderInGameTextWithShadow(
+ "(", DAT_ButtonX + 0x3e, DAT_ButtonY,
+ TTA_LEFT, 0xb8eefb, 0, 0x12, TRUE, 0);
+ if (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT) {
+ _requiredWood
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .startResources[4];
+ } else {
+ _requiredWood
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[4];
+ }
+ renderNumber2(_requiredWood,
+ DAT_ButtonX + 0x3e, DAT_ButtonY,
+ TTA_LEFT, 0xb8eefb, 0, 0x12, TRUE, 0);
+ iVar2 = DAT_ButtonX + 0x3e;
+ goto LAB_004f6193;
+ case 5:
+ renderText(
+ this->currentlyDisplayedUnkTextGroupIndex_0x4,
+ this->currentlyDisplayedUnkTextNumInGroup_0x8, DAT_ButtonX,
+ DAT_ButtonY, TTA_LEFT, 0xb8eefb, 0, 0x12, FALSE);
+ break;
+ case 6:
+ if ((int)this->currentlyDisplayedUnktextExtraObject < 10) {
+ if ((DAT_GameState.mapAndTime
+ .euroRecruitable[this->currentlyDisplayedUnktextExtraObject.buildingType]
+ != 0)
+ && ((renderText(
+ this->currentlyDisplayedUnkTextGroupIndex_0x4,
+ this->currentlyDisplayedUnkTextNumInGroup_0x8,
+ DAT_ButtonX + 0x104, DAT_ButtonY,
+ TTA_CENTER, 0xb8eefb, 0, 0x12, FALSE),
+ DAT_GameSynchronyState.currentGameMode == GM_SOLITARY
+ || (DAT_GameSynchronyState.skirmishTroopsCostGold != 0)))) {
+ /*
+ added by script: "Cost"
+ */
+ renderText(
+ TEXT_IN_BARRACKS, 2, DAT_ButtonX,
+ DAT_ButtonY, TTA_LEFT, 0xb8eefb, 0, 0x12, FALSE);
+ renderNumber(
+ DAT_TroopDefinedData
+ .BarracksUnitCost[this->currentlyDisplayedUnktextExtraObject.buildingType],
+ DAT_ButtonX + 6, DAT_ButtonY, 0xb8eefb, 0, 0x12,
+ TRUE);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderGM(GM_INTERFACE_ICONS2, 0x7c,
+ DAT_TextManagerObject.currentXOffset_0x0 + 10 + DAT_ButtonX,
+ DAT_ButtonY);
+ }
+ } else if (DAT_GameState.mapAndTime
+ .euroRecruitable[this->currentlyDisplayedUnktextExtraObject.buildingType
+ - M_MAPPER_ROCKY]
+ != 0) {
+ renderText(
+ this->currentlyDisplayedUnkTextGroupIndex_0x4,
+ this->currentlyDisplayedUnkTextNumInGroup_0x8, DAT_ButtonX,
+ DAT_ButtonY, TTA_LEFT, 0xb8eefb, 0, 0x12, FALSE);
+ }
+ break;
+ case 7:
+ if (DAT_MenuModalComposition1.activeModalDialogID == MMT_NONE) {
+ if (((int)this->currentlyDisplayedUnkTextNumInGroup_0x8 < 0x136)
+ || (0x139 < (int)this->currentlyDisplayedUnkTextNumInGroup_0x8)) {
+ DAT_TextManagerObject.field9_0x24 = 1;
+ if ((this->currentlyDisplayedUnkTextGroupIndex_0x4 == 8)
+ && ((this->currentlyDisplayedUnkTextNumInGroup_0x8 == 0xe5
+ && ((int)DAT_GameCore.directDrawStatus < 0x700)))) {
+ renderMultilineText3Unk(TEXT_BUBBLE_HELP_TEXT, 0x158,
+ DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW, 0xccfaff, 0, 0x12, 0);
+ } else {
+ renderMultilineText3Unk(this->currentlyDisplayedUnkTextGroupIndex_0x4,
+ this->currentlyDisplayedUnkTextNumInGroup_0x8,
+ DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW, 0xccfaff, 0, 0x11, 0);
+ }
+ } else {
+ _requiredWood = renderMultilineText2(TEXT_BUBBLE_HELP_SUBTEXT,
+ this->currentlyDisplayedUnkTextNumInGroup_0x8 - 0x135,
+ DAT_ButtonW, 0x12);
+ DAT_TextManagerObject.field9_0x24 = 1;
+ renderMultilineText3Unk(TEXT_BUBBLE_HELP_SUBTEXT,
+ this->currentlyDisplayedUnkTextNumInGroup_0x8 - 0x135,
+ DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW, 0xccfaff, 0, 0x12, 0);
+ DAT_TextManagerObject.field9_0x24 = 1;
+ renderMultilineText3Unk(TEXT_SKIRMISH_CHOOSE2,
+ this->currentlyDisplayedUnkTextNumInGroup_0x8 - 0x12d,
+ DAT_ButtonX, DAT_ButtonY + _requiredWood,
+ DAT_ButtonW, 0xccfaff, 0, 0x12, 0);
+ }
+ } else {
+ this->currentlyDisplayedTextIsDisplayedUnk = 0;
+ }
+ break;
+ case 8:
+ renderText(
+ this->currentlyDisplayedUnkTextGroupIndex_0x4,
+ this->currentlyDisplayedUnkTextNumInGroup_0x8, DAT_ButtonX,
+ DAT_ButtonY, TTA_LEFT, 0xb8eefb, 0, 0x12, FALSE);
+ iVar2 = 0x1e;
+ if (_requiredWood != 0) {
+ renderNumber2(
+ _requiredWood, DAT_ButtonX + 0x1e, DAT_ButtonY,
+ TTA_LEFT, 0xb8eefb, 0, 0x12, TRUE, 0);
+ renderGM(GM_INTERFACE_ICONS2, 0x7e,
+ DAT_TextManagerObject.currentXOffset_0x0 + 0x20 + DAT_ButtonX,
+ DAT_ButtonY + -6);
+ renderInGameTextWithShadow("(", DAT_ButtonX + 0x40,
+ DAT_ButtonY, TTA_LEFT, 0xb8eefb, 0, 0x12, TRUE, 0);
+ renderNumber2(
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[2],
+ DAT_ButtonX + 0x40, DAT_ButtonY,
+ TTA_LEFT, 0xb8eefb, 0, 0x12, TRUE, 0);
+ renderInGameTextWithShadow(")", DAT_ButtonX + 0x40,
+ DAT_ButtonY, TTA_LEFT, 0xb8eefb, 0, 0x12, TRUE, 0);
+ iVar2 = 0x5e;
+ }
+ if (_requiredIron == 0) {
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ DAT_TextManagerObject.textSurfaceTarget = RT_SCREEN_MENU;
+ return;
+ }
+ renderNumber2(_requiredIron,
+ DAT_ButtonX + iVar2, DAT_ButtonY, TTA_LEFT, 0xb8eefb,
+ 0, 0x12, TRUE, 0);
+ renderGM(GM_INTERFACE_ICONS2, 0x7b,
+ DAT_TextManagerObject.currentXOffset_0x0 + DAT_ButtonX + iVar2 + 2,
+ DAT_ButtonY + -4);
+ iVar2 = iVar2 + 0x22;
+ renderInGameTextWithShadow(
+ "(", DAT_ButtonX + iVar2, DAT_ButtonY, TTA_LEFT,
+ 0xb8eefb, 0, 0x12, TRUE, 0);
+ renderNumber2(
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[4],
+ DAT_ButtonX + iVar2, DAT_ButtonY, TTA_LEFT, 0xb8eefb,
+ 0, 0x12, TRUE, 0);
+ iVar2 = DAT_ButtonX + iVar2;
+ goto LAB_004f6193;
+ case 9:
+ renderText(
+ this->currentlyDisplayedUnkTextGroupIndex_0x4,
+ this->currentlyDisplayedUnkTextNumInGroup_0x8, DAT_ButtonX,
+ DAT_ButtonY, TTA_LEFT, 0xb8eefb, 0, 0x12, FALSE);
+ renderGM(GM_INTERFACE_ICONS2, 0x7e,
+ DAT_TextManagerObject.currentXOffset_0x0 + 0x1e + DAT_ButtonX,
+ DAT_ButtonY + -4);
+ renderInGameTextWithShadow(
+ "(", DAT_ButtonX + 0x3e, DAT_ButtonY,
+ TTA_LEFT, 0xb8eefb, 0, 0x12, TRUE, 0);
+ renderNumber2(
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[2],
+ DAT_ButtonX + 0x3e, DAT_ButtonY,
+ TTA_LEFT, 0xb8eefb, 0, 0x12, TRUE, 0);
+ iVar2 = DAT_ButtonX + 0x3e;
+ goto LAB_004f6193;
+ case 10:
+ this->currentlyDisplayedUnkTextNumInGroup_0x8
+ = DAT_RenderingDefinedData.field114_0x525a4[DAT_UnitsState
+ .selectionSlots[this->currentlyDisplayedUnktextExtraObject.buildingType]];
+ if (this->currentlyDisplayedUnkTextNumInGroup_0x8 != 0) {
+ renderText(
+ this->currentlyDisplayedUnkTextGroupIndex_0x4,
+ this->currentlyDisplayedUnkTextNumInGroup_0x8, DAT_ButtonX,
+ DAT_ButtonY, TTA_LEFT, 0xb8eefb, 0, 0x12, FALSE);
+ }
+ break;
+ case 0xb:
+ _requiredWood = 0;
+ switch (this->currentlyDisplayedUnktextExtraObject.buildingType) {
+ case M_MAPPER_NULL:
+ case M_MAPPER_RAISE:
+ _requiredWood = 0x1e;
+ break;
+ case M_MAPPER_AREA:
+ _requiredWood = 4;
+ break;
+ case M_MAPPER_LOWER:
+ _requiredWood = 10;
+ }
+ renderText(
+ this->currentlyDisplayedUnkTextGroupIndex_0x4,
+ this->currentlyDisplayedUnkTextNumInGroup_0x8, DAT_ButtonX,
+ DAT_ButtonY, TTA_LEFT, 0xb8eefb, 0, 0x12, FALSE);
+ renderNumber2(_requiredWood,
+ DAT_ButtonX + 0x1e, DAT_ButtonY,
+ TTA_LEFT, 0xb8eefb, 0, 0x12, TRUE, 0);
+ renderGM(GM_INTERFACE_ICONS2, 0x7c,
+ DAT_TextManagerObject.currentXOffset_0x0 + 0x20 + DAT_ButtonX,
+ DAT_ButtonY + -4);
+ renderInGameTextWithShadow(
+ "(", DAT_ButtonX + 0x40, DAT_ButtonY,
+ TTA_LEFT, 0xb8eefb, 0, 0x12, TRUE, 0);
+ renderNumber2(
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[0xf],
+ DAT_ButtonX + 0x40, DAT_ButtonY,
+ TTA_LEFT, 0xb8eefb, 0, 0x12, TRUE, 0);
+ iVar2 = DAT_ButtonX + 0x40;
+ LAB_004f6193:
+ renderInGameTextWithShadow(
+ ")", iVar2, DAT_ButtonY, TTA_LEFT, 0xb8eefb, 0, 0x12, TRUE, 0);
+ break;
+ case 0xc:
+ if (((int)this->currentlyDisplayedUnktextExtraObject.buildingType < 10)
+ && ((renderText(
+ this->currentlyDisplayedUnkTextGroupIndex_0x4,
+ this->currentlyDisplayedUnkTextNumInGroup_0x8,
+ DAT_ButtonX + 0x104, DAT_ButtonY + 0x98,
+ TTA_CENTER, 0xb8eefb, 0, 0x12, FALSE),
+ DAT_GameSynchronyState.currentGameMode == GM_SOLITARY
+ || (DAT_GameSynchronyState.skirmishTroopsCostGold != 0)))) {
+ /*
+ added by script: "Cost"
+ */
+ renderText(
+ TEXT_IN_BARRACKS, 2, DAT_ButtonX + 10,
+ DAT_ButtonY + 0x98, TTA_LEFT, 0xb8eefb, 0, 0x12, FALSE);
+ renderNumber(
+ DAT_TroopDefinedData
+ .NonEuroUnitCost[this->currentlyDisplayedUnktextExtraObject.buildingType],
+ DAT_ButtonX + 0x10, DAT_ButtonY + 0x98, 0xb8eefb, 0,
+ 0x12, TRUE);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ renderGM(GM_INTERFACE_ICONS2, 0x7c,
+ DAT_TextManagerObject.currentXOffset_0x0 + 0x14 + DAT_ButtonX,
+ DAT_ButtonY + 0x98);
+ }
+ break;
+ case 0xd:
+ _requiredWood = DAT_ButtonX;
+ _requiredIron = DAT_ButtonY;
+ iVar2 = DAT_ButtonW;
+ if (((DAT_GameCore.currentMenuViewType == MVT_LOBBY_MENU)
+ && (DAT_MenuModalComposition1.activeModalDialogID == MMT_NONE))
+ && ((DAT_TextManagerObject.gameLanguage != GL_ENGLISH
+ && (DAT_TextManagerObject.gameLanguage != GL_AMERICAN)))) {
+ _requiredWood = DAT_ButtonX + -0x32;
+ iVar2 = DAT_ButtonW + 100;
+ }
+ LAB_004f5302:
+ renderMultilineText3Unk(
+ this->currentlyDisplayedUnkTextGroupIndex_0x4,
+ this->currentlyDisplayedUnkTextNumInGroup_0x8, _requiredWood, _requiredIron, iVar2,
+ 0xb8eefb, 0, 0x12, 0);
+ }
+ DAT_TextManagerObject.textSurfaceTarget = RT_SCREEN_MENU;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+}
+}
+
+### 0x00431a90 MenuView_BuildMenu_Prepare | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00431A90
+ void BuildMenu::MenuView_BuildMenu_Prepare()
+ {
+ int iVar1;
+ resetToTextIndex(4);
+ if ((((DAT_GameCore.activeMenuTab.tabType != BASMTT_SIEGETENT_BATTERINGRAM)
+ && (DAT_GameCore.activeMenuTab.tabType != BASMTT_SIEGETENT_SHIELD))
+ && (DAT_GameCore.menuTabToSwitchTo.tabType
+ != BASMTT_SIEGETENT_BATTERINGRAM))
+ && (DAT_GameCore.menuTabToSwitchTo.tabType != BASMTT_SIEGETENT_SHIELD)) {
+ DAT_TileMapState.shiftRelated0or3 = 0;
+ DAT_UnitsState.unitCountOfSelection[DAT_GameSynchronyState.currentPlayerSlotID] = 0;
+ }
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_KEEP_AND_GRANERY_PLACEMENT_INFO, 0);
+ DAT_WindowAndDirectDraw.field37_0xdc = 1;
+ iVar1 = getEventIDForTimeUntilDefeatEventType();
+ if (-1 < iVar1) {
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_TIME_UNTIL_DEFEAT, 1);
+ }
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ if (DAT_GameCore.mapU4Int0 != 0) {
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_UNKNOWN_25, 1);
+ }
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_PLAYER_INFO_ON_HOVER, 1);
+ if (((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ && (DAT_GameSynchronyState.currentGameMode
+ != GM_SKIRMISH_SINGLE_PLAYER))
+ && (DAT_GameState.mapAndTime.skirmishNoRushTicks != 0)) {
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_NO_RUSH, 1);
+ }
+ }
+ }
+ DAT_MouseState.waitCursorToggle = 0;
+ INT_00b960f0::instance = 0;
+ return;
+ }
+ }
+}
+}
+

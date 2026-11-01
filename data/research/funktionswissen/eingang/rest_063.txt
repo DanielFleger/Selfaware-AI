@@ -1,0 +1,825 @@
+### 0x0045de40 MenuItemRenderFunction_TextEditor_Buttons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045DE40
+ void TextEditor::MenuItemRenderFunction_TextEditor_Buttons(int param_1, ...)
+ {
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ uint color;
+ BGR24 color_00;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int iVar1;
+ int blendStrength;
+ switch (param_1) {
+ case 1:
+ case 2:
+ case 3:
+ case 4:
+ case 5:
+ case 6:
+ case 7:
+ case 8:
+ case 9:
+ case 10:
+ case 0xb:
+ case 0xc:
+ case 0xd:
+ case 0xe:
+ case 0xf:
+ case 0x14:
+ if ((param_1 != -4) || (DAT_TextEditorState.helpSectionHistoryStack[0] != -1)) {
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ DAT_TextManagerObject.textColor = 0;
+ DAT_PencilRenderCore.otherColorUnk_0x0 = COL_WHITE::instance.shortValue;
+ } else {
+ DAT_TextManagerObject.textColor = 0xff;
+ DAT_PencilRenderCore.otherColorUnk_0x0 = COL_BLACK::instance.shortValue;
+ }
+ drawColorBox(DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW + DAT_ButtonX,
+ DAT_ButtonH + DAT_ButtonY,
+ DAT_PencilRenderCore.otherColorUnk_0x0);
+ switch (param_1 + 5) {
+ case 0:
+ /*
+ added by script: "Exit"
+ */
+ renderText2(
+ TEXT_HELP, 2, DAT_ButtonX,
+ DAT_ButtonY + 3, (TextAlignment)((int)(DAT_ButtonW)),
+ (uint)((int)(DAT_TextManagerObject.textColor)), 0x12, FALSE);
+ return;
+ case 1:
+ /*
+ added by script: "Back"
+ */
+ renderText2(
+ TEXT_HELP, 1, DAT_ButtonX,
+ DAT_ButtonY + 3, (TextAlignment)((int)(DAT_ButtonW)),
+ (uint)((int)(DAT_TextManagerObject.textColor)), 0x12, FALSE);
+ return;
+ case 6:
+ renderTextToScreen2("Symbols", DAT_ButtonX,
+ DAT_ButtonY + 3, (TextAlignment)((int)(DAT_ButtonW)),
+ (BGR24)((int)(DAT_TextManagerObject.textColor)), 0x13, FALSE);
+ return;
+ case 7:
+ renderTextToScreen2("New Page", DAT_ButtonX,
+ DAT_ButtonY + 3, (TextAlignment)((int)(DAT_ButtonW)),
+ (BGR24)((int)(DAT_TextManagerObject.textColor)), 0x13, FALSE);
+ return;
+ case 8:
+ renderTextToScreen2("Load", DAT_ButtonX,
+ DAT_ButtonY + 3, (TextAlignment)((int)(DAT_ButtonW)),
+ (BGR24)((int)(DAT_TextManagerObject.textColor)), 0x13, FALSE);
+ return;
+ case 9:
+ renderTextToScreen2("Save", DAT_ButtonX,
+ DAT_ButtonY + 3, (TextAlignment)((int)(DAT_ButtonW)),
+ (BGR24)((int)(DAT_TextManagerObject.textColor)), 0x13, FALSE);
+ return;
+ case 10:
+ renderTextToScreen2("Pic", DAT_ButtonX,
+ DAT_ButtonY + 3, (TextAlignment)((int)(DAT_ButtonW)),
+ (BGR24)((int)(DAT_TextManagerObject.textColor)), 0x13, FALSE);
+ return;
+ case 0xb:
+ renderTextToScreen2("Link", DAT_ButtonX,
+ DAT_ButtonY + 3, (TextAlignment)((int)(DAT_ButtonW)),
+ (BGR24)((int)(DAT_TextManagerObject.textColor)), 0x13, FALSE);
+ return;
+ case 0xc:
+ renderTextToScreen2("\\Link", DAT_ButtonX,
+ DAT_ButtonY + 3, (TextAlignment)((int)(DAT_ButtonW)),
+ (BGR24)((int)(DAT_TextManagerObject.textColor)), 0x13, FALSE);
+ return;
+ case 0xd:
+ renderTextToScreen2("Font", DAT_ButtonX,
+ DAT_ButtonY + 3, (TextAlignment)((int)(DAT_ButtonW)),
+ (BGR24)((int)(DAT_TextManagerObject.textColor)), 0x13, FALSE);
+ return;
+ case 0xe:
+ renderTextToScreen2("Centre", DAT_ButtonX,
+ DAT_ButtonY + 3, (TextAlignment)((int)(DAT_ButtonW)),
+ (BGR24)((int)(DAT_TextManagerObject.textColor)), 0x13, FALSE);
+ return;
+ case 0xf:
+ renderTextToScreen2("\\Centre", DAT_ButtonX,
+ DAT_ButtonY + 3, (TextAlignment)((int)(DAT_ButtonW)),
+ (BGR24)((int)(DAT_TextManagerObject.textColor)), 0x13, FALSE);
+ return;
+ case 0x10:
+ renderTextToScreen2("Colour", DAT_ButtonX,
+ DAT_ButtonY + 3, (TextAlignment)((int)(DAT_ButtonW)),
+ (BGR24)((int)(DAT_TextManagerObject.textColor)), 0x13, FALSE);
+ return;
+ case 0x11:
+ renderTextToScreen2("LinkClr", DAT_ButtonX,
+ DAT_ButtonY + 3, (TextAlignment)((int)(DAT_ButtonW)),
+ (BGR24)((int)(DAT_TextManagerObject.textColor)), 0x13, FALSE);
+ return;
+ case 0x12:
+ renderTextToScreen2("Sound", DAT_ButtonX,
+ DAT_ButtonY + 3, (TextAlignment)((int)(DAT_ButtonW)),
+ (BGR24)((int)(DAT_TextManagerObject.textColor)), 0x13, FALSE);
+ return;
+ case 0x13:
+ renderTextToScreen2("String", DAT_ButtonX,
+ DAT_ButtonY + 3, (TextAlignment)((int)(DAT_ButtonW)),
+ (BGR24)((int)(DAT_TextManagerObject.textColor)), 0x13, FALSE);
+ return;
+ case 0x14:
+ renderTextToScreen2("Include", DAT_ButtonX,
+ DAT_ButtonY + 3, (TextAlignment)((int)(DAT_ButtonW)),
+ (BGR24)((int)(DAT_TextManagerObject.textColor)), 0x13, FALSE);
+ return;
+ case 0x19:
+ renderTextToScreen2("ScrSize", DAT_ButtonX,
+ DAT_ButtonY + 3, (TextAlignment)((int)(DAT_ButtonW)),
+ (BGR24)((int)(DAT_TextManagerObject.textColor)), 0x13, FALSE);
+ return;
+ }
+ }
+ break;
+ case 0x1f:
+ drawColorBox(DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW + DAT_ButtonX,
+ DAT_ButtonH + DAT_ButtonY,
+ (ushort)((int)(COL_BLACK::instance.shortValue)));
+ switch (DAT_TextEditorState.field52_0x23970) {
+ case 1:
+ renderTextToScreen(
+ "PIC", DAT_ButtonX + 3, DAT_ButtonY + 3,
+ TTA_LEFT, 0xffffff, 0x13, FALSE, 0);
+ return;
+ case 2:
+ renderTextToScreen(
+ "FONT", DAT_ButtonX + 3, DAT_ButtonY + 3,
+ TTA_LEFT, 0xffffff, 0x13, FALSE, 0);
+ return;
+ case 3:
+ renderTextToScreen(
+ "COLOUR", DAT_ButtonX + 3, DAT_ButtonY + 3,
+ TTA_LEFT, 0xffffff, 0x13, FALSE, 0);
+ return;
+ case 4:
+ renderTextToScreen(
+ "LINK", DAT_ButtonX + 3, DAT_ButtonY + 3,
+ TTA_LEFT, 0xffffff, 0x13, FALSE, 0);
+ return;
+ case 5:
+ renderTextToScreen(
+ "\\LINK", DAT_ButtonX + 3, DAT_ButtonY + 3,
+ TTA_LEFT, 0xffffff, 0x13, FALSE, 0);
+ return;
+ case 7:
+ renderTextToScreen(
+ "CENTRE", DAT_ButtonX + 3, DAT_ButtonY + 3,
+ TTA_LEFT, 0xffffff, 0x13, FALSE, 0);
+ return;
+ case 8:
+ renderTextToScreen(
+ "\\CENTRE", DAT_ButtonX + 3, DAT_ButtonY + 3,
+ TTA_LEFT, 0xffffff, 0x13, FALSE, 0);
+ return;
+ case 10:
+ renderTextToScreen(
+ "LINKCLR", DAT_ButtonX + 3, DAT_ButtonY + 3,
+ TTA_LEFT, 0xffffff, 0x13, FALSE, 0);
+ return;
+ case 0xb:
+ renderTextToScreen(
+ "SOUND", DAT_ButtonX + 3, DAT_ButtonY + 3,
+ TTA_LEFT, 0xffffff, 0x13, FALSE, 0);
+ return;
+ case 0xc:
+ renderTextToScreen(
+ "STRING", DAT_ButtonX + 3, DAT_ButtonY + 3,
+ TTA_LEFT, 0xffffff, 0x13, FALSE, 0);
+ return;
+ case 0xe:
+ renderTextToScreen(
+ "INCLUDE", DAT_ButtonX + 3, DAT_ButtonY + 3,
+ TTA_LEFT, 0xffffff, 0x13, FALSE, 0);
+ return;
+ }
+ break;
+ case 0x20:
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ DAT_TextManagerObject.textColor = 0xffffff;
+ DAT_PencilRenderCore.otherColorUnk_0x0 = COL_BLACK::instance.shortValue;
+ } else {
+ DAT_TextManagerObject.textColor = 0xff;
+ DAT_PencilRenderCore.otherColorUnk_0x0 = COL_WHITE::instance.shortValue;
+ }
+ switch (DAT_TextEditorState.field52_0x23970) {
+ case 1:
+ drawColorBox(DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW + DAT_ButtonX,
+ DAT_ButtonH + DAT_ButtonY,
+ DAT_PencilRenderCore.otherColorUnk_0x0);
+ renderTextToScreen2(
+ DAT_TextEditorState.graphicFileNames[(ushort)DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex
+ + 1]],
+ DAT_ButtonX + 3, DAT_ButtonY + 3,
+ TTA_LEFT, (BGR24)((int)(DAT_TextManagerObject.textColor)), 0x13,
+ FALSE);
+ return;
+ case 2:
+ drawColorBox(DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW + DAT_ButtonX,
+ DAT_ButtonH + DAT_ButtonY,
+ (ushort)((int)(COL_BLACK::instance.shortValue)));
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x13;
+ color_00 = 0xffffff;
+ alignment = TTA_LEFT;
+ iVar1 = DAT_ButtonY + 3;
+ xParam = DAT_ButtonX + 3;
+ textAddress = getHelpSectionText((uint)(ushort)DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex
+ + 1]);
+ renderTextToScreen(
+ textAddress, xParam, iVar1, alignment, color_00, fontSize, keepOffsetX, blendStrength);
+ return;
+ case 3:
+ case 10:
+ drawColorBox(DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW + DAT_ButtonX,
+ DAT_ButtonH + DAT_ButtonY,
+ (ushort)((int)(COL_BLACK::instance.shortValue)));
+ renderTextToScreen(
+ DAT_UserHelpDefinedData
+ .field6_0x7a16c[(ushort)DAT_TextEditorState.DAT_PointerToTemporaryTextMemory
+ [DAT_TextEditorState.activeHelpHotspotIndex + 1]]
+ .name_0x0,
+ DAT_ButtonX + 3, DAT_ButtonY + 3,
+ TTA_LEFT, 0xffffff, 0x13, FALSE, 0);
+ return;
+ case 4:
+ case 0xe:
+ drawColorBox(DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW + DAT_ButtonX,
+ DAT_ButtonH + DAT_ButtonY,
+ DAT_PencilRenderCore.otherColorUnk_0x0);
+ renderTextToScreen2(
+ DAT_UserHelpDefinedData.HelpSections[(ushort)DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex
+ + 1]],
+ DAT_ButtonX + 3, DAT_ButtonY + 3,
+ TTA_LEFT, (BGR24)((int)(DAT_TextManagerObject.textColor)), 0x13,
+ FALSE);
+ return;
+ default:
+ drawColorBox(DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW + DAT_ButtonX,
+ DAT_ButtonH + DAT_ButtonY,
+ (ushort)((int)(COL_BLACK::instance.shortValue)));
+ return;
+ case 0xb:
+ drawColorBox(DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW + DAT_ButtonX,
+ DAT_ButtonH + DAT_ButtonY,
+ DAT_PencilRenderCore.otherColorUnk_0x0);
+ renderTextToScreen2(
+ DAT_TextEditorState.soundFileNames[(ushort)DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex
+ + 1]],
+ DAT_ButtonX + 3, DAT_ButtonY + 3,
+ TTA_LEFT, (BGR24)((int)(DAT_TextManagerObject.textColor)), 0x13,
+ FALSE);
+ return;
+ case 0xc:
+ drawColorBox(DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW + DAT_ButtonX,
+ DAT_ButtonH + DAT_ButtonY,
+ DAT_PencilRenderCore.otherColorUnk_0x0);
+ renderNumberToScreen(
+ (uint)(ushort)DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex + 1],
+ DAT_ButtonX + 3, DAT_ButtonY + 3,
+ TTA_LEFT, (uint)((int)(DAT_TextManagerObject.textColor)), 0x13, FALSE);
+ return;
+ }
+ case 0x21:
+ drawColorBox(DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW + DAT_ButtonX,
+ DAT_ButtonH + DAT_ButtonY,
+ (ushort)((int)(COL_BLACK::instance.shortValue)));
+ switch (DAT_TextEditorState.field52_0x23970) {
+ case 1:
+ DAT_TextManagerObject.textColor
+ = (-(uint)(DAT_TextEditorState.DAT_PointerToTemporaryTextMemory
+ [DAT_TextEditorState.activeHelpHotspotIndex + 2]
+ != L'\0')
+ & 0xffff00)
+ + 0xff;
+ renderTextToScreen(
+ "Left", DAT_ButtonX + 3, DAT_ButtonY + 3,
+ TTA_LEFT, (BGR24)((int)(DAT_TextManagerObject.textColor)), 0x13, FALSE,
+ 0);
+ return;
+ case 2:
+ case 3:
+ case 10:
+ case 0xc:
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ DAT_TextManagerObject.textColor = 0xffffff;
+ DAT_PencilRenderCore.otherColorUnk_0x0 = COL_BLACK::instance.shortValue;
+ } else {
+ DAT_TextManagerObject.textColor = 0xff;
+ DAT_PencilRenderCore.otherColorUnk_0x0 = COL_WHITE::instance.shortValue;
+ }
+ drawColorBox(DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW + DAT_ButtonX,
+ DAT_ButtonH + DAT_ButtonY,
+ DAT_PencilRenderCore.otherColorUnk_0x0);
+ renderTextToScreen2(
+ "PREV", DAT_ButtonX, DAT_ButtonY + 3,
+ (TextAlignment)((int)(DAT_ButtonW)),
+ (BGR24)((int)(DAT_TextManagerObject.textColor)), 0x13, FALSE);
+ return;
+ }
+ break;
+ case 0x22:
+ drawColorBox(DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW + DAT_ButtonX,
+ DAT_ButtonH + DAT_ButtonY,
+ (ushort)((int)(COL_BLACK::instance.shortValue)));
+ switch (DAT_TextEditorState.field52_0x23970) {
+ case 1:
+ DAT_TextManagerObject.textColor
+ = (-(uint)(DAT_TextEditorState.DAT_PointerToTemporaryTextMemory
+ [DAT_TextEditorState.activeHelpHotspotIndex + 2]
+ != L'\x01')
+ & 0xffff00)
+ + 0xff;
+ renderTextToScreen(
+ "Centre", DAT_ButtonX + 3, DAT_ButtonY + 3,
+ TTA_LEFT, (BGR24)((int)(DAT_TextManagerObject.textColor)), 0x13, FALSE,
+ 0);
+ return;
+ case 2:
+ case 3:
+ case 10:
+ case 0xc:
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ DAT_TextManagerObject.textColor = 0xffffff;
+ DAT_PencilRenderCore.otherColorUnk_0x0 = COL_BLACK::instance.shortValue;
+ } else {
+ DAT_TextManagerObject.textColor = 0xff;
+ DAT_PencilRenderCore.otherColorUnk_0x0 = COL_WHITE::instance.shortValue;
+ }
+ drawColorBox(DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW + DAT_ButtonX,
+ DAT_ButtonH + DAT_ButtonY,
+ DAT_PencilRenderCore.otherColorUnk_0x0);
+ renderTextToScreen2(
+ "NEXT", DAT_ButtonX, DAT_ButtonY + 3,
+ (TextAlignment)((int)(DAT_ButtonW)),
+ (BGR24)((int)(DAT_TextManagerObject.textColor)), 0x13, FALSE);
+ return;
+ }
+ break;
+ case 0x23:
+ drawColorBox(DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW + DAT_ButtonX,
+ DAT_ButtonH + DAT_ButtonY,
+ (ushort)((int)(COL_BLACK::instance.shortValue)));
+ if (DAT_TextEditorState.field52_0x23970 == 1) {
+ DAT_TextManagerObject.textColor
+ = (-(uint)(DAT_TextEditorState.DAT_PointerToTemporaryTextMemory
+ [DAT_TextEditorState.activeHelpHotspotIndex + 2]
+ != L'\x02')
+ & 0xffff00)
+ + 0xff;
+ renderTextToScreen(
+ "Right", DAT_ButtonX + 3, DAT_ButtonY + 3,
+ TTA_LEFT, (BGR24)((int)(DAT_TextManagerObject.textColor)), 0x13, FALSE,
+ 0);
+ return;
+ }
+ break;
+ case 0x24:
+ drawColorBox(DAT_ButtonX, DAT_ButtonY,
+ DAT_ButtonW + DAT_ButtonX,
+ DAT_ButtonH + DAT_ButtonY,
+ (ushort)((int)(COL_BLACK::instance.shortValue)));
+ if (DAT_TextEditorState.field52_0x23970 == 1) {
+ DAT_TextManagerObject.textColor
+ = (-(uint)(DAT_TextEditorState.DAT_PointerToTemporaryTextMemory
+ [DAT_TextEditorState.activeHelpHotspotIndex + 2]
+ != L'\x03')
+ & 0xffff00)
+ + 0xff;
+ renderTextToScreen(
+ "Here", DAT_ButtonX + 3, DAT_ButtonY + 3,
+ TTA_LEFT, (BGR24)((int)(DAT_TextManagerObject.textColor)), 0x13, FALSE,
+ 0);
+ }
+ break;
+ case -5:
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ renderTextFromTextGroup(TEXT_HELP, 2,
+ DAT_ButtonW / 2 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_CENTER, 0xc2f0eb, 0x12, FALSE, 4);
+ return;
+ }
+ renderTextFromTextGroup(
+ TEXT_HELP, 2, DAT_ButtonW / 2 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_CENTER, 0xccfaff, 0x12, FALSE, 2);
+ return;
+ case -4:
+ if (DAT_TextEditorState.helpSectionHistoryStack[0] != -1) {
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ iVar1 = 4;
+ color = 0xc2f0eb;
+ } else {
+ iVar1 = 2;
+ color = 0xccfaff;
+ }
+ renderTextFromTextGroup(TEXT_HELP, 1,
+ DAT_ButtonW / 2 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_CENTER, color, 0x12, FALSE, iVar1);
+ return;
+ }
+ break;
+ case -2:
+ renderUpDownButtonUnk(1, 0);
+ return;
+ case -1:
+ renderUpDownButtonUnk(0, 0);
+ return;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x0045edf0 MenuItemActionHandler_TextEditor_Scrollbar | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045EDF0
+ void TextEditor::MenuItemActionHandler_TextEditor_Scrollbar(
+ int param_1, int param_2, int* minValue, int* maxValue, int* currentValue)
+ {
+ int iVar1;
+ uint uVar2;
+ uVar2
+ = DAT_TextEditorState.topVisibleLineIndex - DAT_TextEditorState.dialogContentHeight;
+ if ((int)(((int)uVar2 < 1) - 1 & uVar2) / 0x14 < 2) {
+ iVar1 = 1;
+ } else {
+ iVar1 = (int)(((int)uVar2 < 1) - 1 & uVar2) / 0x14;
+ }
+ switch (param_2) {
+ case 1:
+ *minValue = 0;
+ uVar2 = DAT_TextEditorState.topVisibleLineIndex
+ - DAT_TextEditorState.dialogContentHeight
+ & (DAT_TextEditorState.topVisibleLineIndex
+ - DAT_TextEditorState.dialogContentHeight
+ < 1)
+ - 1;
+ *maxValue = uVar2;
+ if ((int)uVar2 < 0) {
+ *maxValue = 0;
+ }
+ *currentValue = DAT_TextEditorState.helpContentScrollOffsetY;
+ return;
+ case 2:
+ case 3:
+ DAT_TextEditorState.helpContentScrollOffsetY = *currentValue;
+ return;
+ case 4:
+ *currentValue = DAT_TextEditorState.helpContentScrollOffsetY;
+ *maxValue = DAT_TextEditorState.topVisibleLineIndex
+ - DAT_TextEditorState.dialogContentHeight
+ & (DAT_TextEditorState.topVisibleLineIndex
+ - DAT_TextEditorState.dialogContentHeight
+ < 1)
+ - 1;
+ return;
+ case 5:
+ break;
+ case 6:
+ if ((int)DAT_TextEditorState.helpContentScrollOffsetY
+ < (int)((((int)uVar2 < 1) - 1 & uVar2) - iVar1)) {
+ DAT_TextEditorState.helpContentScrollOffsetY
+ = DAT_TextEditorState.helpContentScrollOffsetY + iVar1;
+ if ((int)(((int)uVar2 < 1) - 1 & uVar2)
+ < (int)DAT_TextEditorState.helpContentScrollOffsetY) {
+ DAT_TextEditorState.helpContentScrollOffsetY = ((int)uVar2 < 1) - 1 & uVar2;
+ *currentValue = DAT_TextEditorState.helpContentScrollOffsetY;
+ return;
+ }
+ } else {
+ DAT_TextEditorState.helpContentScrollOffsetY = ((int)uVar2 < 1) - 1 & uVar2;
+ }
+ *currentValue = DAT_TextEditorState.helpContentScrollOffsetY;
+ return;
+ case 7:
+ *currentValue = DAT_TextEditorState.dialogContentHeight + -0x14;
+ return;
+ default:
+ return;
+ }
+ if (iVar1 <= (int)DAT_TextEditorState.helpContentScrollOffsetY) {
+ DAT_TextEditorState.helpContentScrollOffsetY
+ = DAT_TextEditorState.helpContentScrollOffsetY - iVar1;
+ *currentValue = DAT_TextEditorState.helpContentScrollOffsetY;
+ return;
+ }
+ DAT_TextEditorState.helpContentScrollOffsetY = 0;
+ *currentValue = 0;
+ return;
+ }
+ }
+}
+}
+
+### 0x0045ef90 MenuItemRenderFunction_TextEditor_Scrollbar | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045EF90
+ void TextEditor::MenuItemRenderFunction_TextEditor_Scrollbar(
+ int param_1, int thumbYPos, int param_3, int thumbHeight, BOOLEnum isDragged)
+ {
+ int y1;
+ uint x1;
+ int iVar1;
+ int iVar2;
+ int x2;
+ iVar1 = DAT_ButtonH;
+ iVar2 = DAT_ButtonY;
+ x1 = DAT_ButtonX;
+ drawScrollbar(
+ DAT_ButtonX, DAT_ButtonY, DAT_ButtonH,
+ thumbYPos, isDragged, thumbHeight, 0);
+ x2 = x1 + 0x13;
+ drawLine(
+ x1, iVar2 + -1, x2, iVar2 + -1, (ushort)((int)(COL_VERY_SOFT_YELLOW::instance.shortValue)));
+ y1 = iVar2 + -0x16;
+ drawLine(
+ x1, y1, x2, y1, (ushort)((int)(COL_VERY_SOFT_YELLOW::instance.shortValue)));
+ iVar2 = iVar2 + iVar1;
+ drawLine(
+ x1, iVar2, x2, iVar2, (ushort)((int)(COL_VERY_SOFT_YELLOW::instance.shortValue)));
+ iVar2 = iVar2 + 0x15;
+ drawLine(
+ x1, iVar2, x2, iVar2, (ushort)((int)(COL_VERY_SOFT_YELLOW::instance.shortValue)));
+ drawLine(
+ x1 - 1, y1, x1 - 1, iVar2, (ushort)((int)(COL_VERY_SOFT_YELLOW::instance.shortValue)));
+ drawLine(
+ x1 + 0x14, y1, x1 + 0x14, iVar2,
+ (ushort)((int)(COL_VERY_SOFT_YELLOW::instance.shortValue)));
+ return;
+ }
+ }
+}
+}
+
+### 0x00461570 MenuItemActionHandler_TextEditor_TextInputRelatedUnk | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00461570
+ void TextEditor::MenuItemActionHandler_TextEditor_TextInputRelatedUnk()
+ {
+ WCHAR WVar1;
+ uint uVar2;
+ int iVar3;
+ WCHAR* pWVar4;
+ int iVar5;
+ int iVar6;
+ WCHAR* pWVar7;
+ if (DAT_TextEditorState.useAlternateHelpTab == 0) {
+ uVar2 = dequeueInputBufferChar();
+ if ((int)uVar2 < 0xf0) {
+ return;
+ }
+ switch (uVar2) {
+ case 0xf4:
+ if ((int)DAT_TextEditorState.helpContentScrollOffsetY < 0x12) {
+ DAT_TextEditorState.helpContentScrollOffsetY = 0;
+ return;
+ }
+ DAT_TextEditorState.helpContentScrollOffsetY
+ = DAT_TextEditorState.helpContentScrollOffsetY + -0x12;
+ return;
+ case 0xf5:
+ uVar2 = DAT_TextEditorState.topVisibleLineIndex
+ - DAT_TextEditorState.dialogContentHeight;
+ if ((int)((((int)uVar2 < 1) - 1 & uVar2) - 0x12)
+ <= (int)DAT_TextEditorState.helpContentScrollOffsetY)
+ goto LAB_004615e1;
+ DAT_TextEditorState.helpContentScrollOffsetY
+ = DAT_TextEditorState.helpContentScrollOffsetY + 0x12;
+ break;
+ case 0xf6:
+ DAT_TextEditorState.helpContentScrollOffsetY = 0;
+ return;
+ case 0xf7:
+ DAT_TextEditorState.helpContentScrollOffsetY
+ = DAT_TextEditorState.topVisibleLineIndex
+ - DAT_TextEditorState.dialogContentHeight
+ & (DAT_TextEditorState.topVisibleLineIndex
+ - DAT_TextEditorState.dialogContentHeight
+ < 1)
+ - 1;
+ return;
+ default:
+ goto switchD_004615a3_caseD_f8;
+ case 0xfa:
+ if ((int)DAT_TextEditorState.helpContentScrollOffsetY
+ < DAT_TextEditorState.dialogContentHeight) {
+ DAT_TextEditorState.helpContentScrollOffsetY = 0;
+ return;
+ }
+ DAT_TextEditorState.helpContentScrollOffsetY
+ = DAT_TextEditorState.helpContentScrollOffsetY
+ - DAT_TextEditorState.dialogContentHeight;
+ return;
+ case 0xfb:
+ uVar2 = DAT_TextEditorState.topVisibleLineIndex
+ - DAT_TextEditorState.dialogContentHeight;
+ if ((int)((((int)uVar2 < 1) - 1 & uVar2) - DAT_TextEditorState.dialogContentHeight)
+ <= (int)DAT_TextEditorState.helpContentScrollOffsetY)
+ goto LAB_004615e1;
+ DAT_TextEditorState.helpContentScrollOffsetY
+ = DAT_TextEditorState.helpContentScrollOffsetY
+ + DAT_TextEditorState.dialogContentHeight;
+ }
+ if ((int)DAT_TextEditorState.helpContentScrollOffsetY
+ <= (int)(((int)uVar2 < 1) - 1 & uVar2)) {
+ return;
+ }
+ LAB_004615e1:
+ DAT_TextEditorState.helpContentScrollOffsetY = ((int)uVar2 < 1) - 1 & uVar2;
+ return;
+ }
+ uVar2 = dequeueInputBufferChar();
+ iVar3 = DAT_TextEditorState.activeHelpHotspotIndex;
+ pWVar7 = DAT_TextEditorState.DAT_PointerToTemporaryTextMemory;
+ if (uVar2 != 0xffffffff) {
+ if ((int)uVar2 < 0xf0) {
+ if (DAT_TextEditorState.pendingTokenTypeToSkip != ((HelpTextToken)0)) {
+ iVar3 = helpToken_getHelpTokenAdvanceLength(DAT_TextEditorState.pendingTokenTypeToSkip);
+ DAT_TextEditorState.activeHelpHotspotIndex
+ = DAT_TextEditorState.activeHelpHotspotIndex + iVar3;
+ DAT_TextEditorState.pendingTokenTypeToSkip = ((HelpTextToken)0);
+ }
+ if ((DAT_TextEditorState.isCustomTextMode != 0)
+ && (-1 < DAT_TextEditorState.customTextMaxLength)) {
+ pWVar4 = pWVar7;
+ do {
+ WVar1 = *pWVar4;
+ pWVar4 = pWVar4 + 1;
+ } while (WVar1 != L'\0');
+ if (DAT_TextEditorState.customTextMaxLength <= (int)pWVar4 - (int)(pWVar7 + 1) >> 1)
+ goto switchD_00461715_caseD_a;
+ }
+ LAB_004616f7:
+ iVar3 = DAT_TextEditorState.customHelpTextLength;
+ if (DAT_TextEditorState.activeHelpHotspotIndex
+ <= DAT_TextEditorState.customHelpTextLength) {
+ do {
+ pWVar7[iVar3 + 1] = pWVar7[iVar3];
+ iVar3 = iVar3 + -1;
+ pWVar7 = DAT_TextEditorState.DAT_PointerToTemporaryTextMemory;
+ } while (DAT_TextEditorState.activeHelpHotspotIndex <= iVar3);
+ }
+ WVar1 = singleMultiByteToWideChar((char)uVar2);
+ /*
+ put character in memory
+ */
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex] = WVar1;
+ DAT_TextEditorState.customHelpTextLength
+ = DAT_TextEditorState.customHelpTextLength + 1;
+ DAT_TextEditorState.activeHelpHotspotIndex
+ = DAT_TextEditorState.activeHelpHotspotIndex + 1;
+ } else {
+ switch (uVar2) {
+ case 0xf0:
+ if (DAT_TextEditorState.isCustomTextMode == 0) {
+ uVar2 = 9;
+ goto LAB_004616f7;
+ }
+ break;
+ case 0xf1:
+ if (DAT_TextEditorState.isCustomTextMode == 0) {
+ uVar2 = 6;
+ goto LAB_004616f7;
+ }
+ break;
+ case 0xf2:
+ if (0 < DAT_TextEditorState.activeHelpHotspotIndex) {
+ if ((ushort)DAT_TextEditorState.DAT_PointerToTemporaryTextMemory
+ [DAT_TextEditorState.activeHelpHotspotIndex + -1]
+ < ((HelpTextToken)0x20)) {
+ iVar5 = helpToken_getHelpTokenAdvanceLength(
+ (uint)(ushort)DAT_TextEditorState.DAT_PointerToTemporaryTextMemory
+ [DAT_TextEditorState.activeHelpHotspotIndex + -1]);
+ DAT_TextEditorState.activeHelpHotspotIndex = iVar3 - iVar5;
+ } else {
+ DAT_TextEditorState.activeHelpHotspotIndex
+ = DAT_TextEditorState.activeHelpHotspotIndex + -1;
+ }
+ }
+ break;
+ case 0xf3:
+ if (DAT_TextEditorState.activeHelpHotspotIndex
+ < DAT_TextEditorState.customHelpTextLength) {
+ if ((ushort)DAT_TextEditorState.DAT_PointerToTemporaryTextMemory
+ [DAT_TextEditorState.activeHelpHotspotIndex]
+ < ((HelpTextToken)0x20)) {
+ iVar5 = helpToken_getHelpTokenAdvanceLength((uint)(ushort)DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState
+ .activeHelpHotspotIndex]);
+ DAT_TextEditorState.activeHelpHotspotIndex = iVar3 + iVar5;
+ } else {
+ DAT_TextEditorState.activeHelpHotspotIndex
+ = DAT_TextEditorState.activeHelpHotspotIndex + 1;
+ }
+ }
+ break;
+ case 0xf4:
+ DAT_TextEditorState.field51_0x2396c = -1;
+ setTextRenderingLogic();
+ break;
+ case 0xf5:
+ DAT_TextEditorState.field51_0x2396c = 1;
+ setTextRenderingLogic();
+ break;
+ case 0xf6:
+ DAT_TextEditorState.activeHelpHotspotIndex = 0;
+ break;
+ case 0xf7:
+ DAT_TextEditorState.activeHelpHotspotIndex
+ = DAT_TextEditorState.customHelpTextLength;
+ break;
+ case 0xf8:
+ if (0 < DAT_TextEditorState.activeHelpHotspotIndex) {
+ iVar5 = helpToken_getHelpTokenAdvanceLength(
+ (uint)(ushort)DAT_TextEditorState.DAT_PointerToTemporaryTextMemory
+ [DAT_TextEditorState.activeHelpHotspotIndex + -1]);
+ if (iVar3 < DAT_TextEditorState.customHelpTextLength + iVar5) {
+ iVar6 = (iVar3 - iVar5) * 2;
+ do {
+ /*
+ delete character in memory
+ */
+ *(WCHAR*)(iVar6 + (int)pWVar7) = pWVar7[iVar3];
+ if (DAT_TextEditorState.DAT_PointerToTemporaryTextMemory[iVar3] == L'\0')
+ break;
+ iVar3 = iVar3 + 1;
+ iVar6 = iVar6 + 2;
+ pWVar7 = DAT_TextEditorState.DAT_PointerToTemporaryTextMemory;
+ } while (iVar3 < DAT_TextEditorState.customHelpTextLength + iVar5);
+ }
+ DAT_TextEditorState.customHelpTextLength
+ = DAT_TextEditorState.customHelpTextLength - iVar5;
+ DAT_TextEditorState.activeHelpHotspotIndex
+ = DAT_TextEditorState.activeHelpHotspotIndex - iVar5;
+ }
+ break;
+ case 0xf9:
+ iVar5 = helpToken_getHelpTokenAdvanceLength((uint)(ushort)DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState
+ .activeHelpHotspotIndex]);
+ if (iVar3 < DAT_TextEditorState.customHelpTextLength) {
+ if (iVar3 < DAT_TextEditorState.customHelpTextLength + iVar5) {
+ iVar6 = (iVar3 + iVar5) * 2;
+ do {
+ pWVar7[iVar3] = *(WCHAR*)(iVar6 + (int)pWVar7);
+ if (DAT_TextEditorState.DAT_PointerToTemporaryTextMemory[iVar3] == L'\0')
+ break;
+ iVar3 = iVar3 + 1;
+ iVar6 = iVar6 + 2;
+ pWVar7 = DAT_TextEditorState.DAT_PointerToTemporaryTextMemory;
+ } while (iVar3 < DAT_TextEditorState.customHelpTextLength + iVar5);
+ }
+ DAT_TextEditorState.customHelpTextLength
+ = DAT_TextEditorState.customHelpTextLength - iVar5;
+ }
+ }
+ }
+ switchD_00461715_caseD_a:
+ initializeAndLayoutHelpText();
+ }
+ if ((ushort)DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex]
+ < 0x20) {
+ DAT_TextEditorState.field52_0x23970
+ = (uint)(ushort)DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex];
+ return;
+ }
+ DAT_TextEditorState.field52_0x23970 = 0;
+ switchD_004615a3_caseD_f8:
+ return;
+ }
+ }
+}
+}
+

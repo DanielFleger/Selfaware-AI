@@ -1,0 +1,1286 @@
+### 0x0045f5b0 parseHlp | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045F5B0
+ void TextEditorState::parseHlp()
+ {
+ FILE* filePointer[4];
+ int graphicIndexes[4][100];
+ int const currentHelpSectionID = this->currentHelpSectionID;
+ int textMemIndex = 0;
+ BOOL headerActive = FALSE;
+ BOOL bodyActive = FALSE;
+ int _filePointerIndex = 0;
+ int loadedGraphics[4] = { 0, 0, 0, 0 };
+ this->customHelpTextLength = 0;
+ fillMemory_ByteValue(
+ 40000, NULL, this->DAT_PointerToTemporaryTextMemory);
+ filePointer[0] = readCrusaderHelpHlp(
+ DAT_UserHelpDefinedData.HelpSections[currentHelpSectionID]);
+ if (!filePointer[0]) {
+ return;
+ }
+ while (_filePointerIndex >= 0) {
+ BOOL closeFile = FALSE;
+ while (!closeFile) {
+ int _wchar = _fgetwc(filePointer[_filePointerIndex]);
+ switch (_wchar) {
+ case '\n':
+ case '\r':
+ continue;
+ case '<': {
+ wchar_t* hlpTag
+ = parseHLPPart(filePointer[_filePointerIndex]);
+ if (hlpTag) {
+ if (!__wcsicmp(u_header_005a5774, hlpTag)) {
+ headerActive = TRUE;
+ continue;
+ } else if (!__wcsicmp(u__header_005a5764, hlpTag)) {
+ headerActive = FALSE;
+ continue;
+ } else if (!__wcsicmp(u_body_005a5758, hlpTag)) {
+ bodyActive = TRUE;
+ continue;
+ } else if (!__wcsicmp(u__body_005a574c, hlpTag)) {
+ bodyActive = FALSE;
+ continue;
+ } else if (!__wcsicmp(u_loadpic_005a573c, hlpTag)) {
+ if (headerActive) {
+ wchar_t* resourceName = parseHLPPart(
+ filePointer[_filePointerIndex]);
+ if (resourceName) {
+ char resourceNameChars[1000];
+ wideCharToMultiByteComplete(resourceNameChars, resourceName);
+ bool validPic = true;
+ if (!checkGfxResourceExists(resourceNameChars)) {
+ validPic = false;
+ } else if (!__stricmp(
+ resourceNameChars, s_st99_dog_cage_tgx_005a5728)) {
+ validPic = false;
+ }
+ if (!validPic) {
+ graphicIndexes[_filePointerIndex][loadedGraphics[_filePointerIndex]++] = -1;
+ } else {
+ graphicIndexes[_filePointerIndex][loadedGraphics[_filePointerIndex]++]
+ = findOrAddHelpGraphicName(
+ resourceNameChars);
+ }
+ continue;
+ }
+ }
+ } else if (!__wcsicmp(u_pic_005a5720, hlpTag)) {
+ if (bodyActive) {
+ wchar_t* picId = parseHLPPart(
+ filePointer[_filePointerIndex]);
+ if (picId) {
+ if (__wtol(picId) < loadedGraphics[_filePointerIndex]) {
+ if (graphicIndexes[_filePointerIndex][__wtol(picId)]
+ != -1) {
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++] = Enums::HTT_PIC;
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++]
+ = graphicIndexes[_filePointerIndex][__wtol(picId)];
+ wchar_t* picPosition = parseHLPPart(filePointer[_filePointerIndex]);
+ if (!picPosition) {
+ closeFile = TRUE;
+ } else {
+ if (!__wcsicmp(u_left_005a5714, picPosition)) {
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++]
+ = Enums::HTPPT_LEFT;
+ } else if (!__wcsicmp(
+ u_right_005a5708, picPosition)) {
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++]
+ = Enums::HTPPT_RIGHT;
+ } else if (!__wcsicmp(
+ u_centre_005a56f8, picPosition)) {
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++]
+ = Enums::HTPPT_CENTRE;
+ } else if (!__wcsicmp(
+ u_here_005a56ec, picPosition)) {
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++]
+ = Enums::HTPPT_HERE;
+ }
+ }
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++] = Enums::HTT_PIC;
+ continue;
+ }
+ }
+ if (!parseHLPPart(
+ filePointer[_filePointerIndex])) {
+ closeFile = TRUE;
+ }
+ continue;
+ }
+ }
+ } else if (!__wcsicmp(u_font_005a56e0, hlpTag)) {
+ if (bodyActive) {
+ wchar_t* fontId = parseHLPPart(
+ filePointer[_filePointerIndex]);
+ if (fontId) {
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++] = Enums::HTT_FONT;
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++]
+ = (short)__wtol(fontId);
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++] = Enums::HTT_FONT;
+ continue;
+ }
+ }
+ } else if (!__wcsicmp(u_colour_005a56d0, hlpTag)) {
+ if (bodyActive) {
+ wchar_t* colorId = parseHLPPart(
+ filePointer[_filePointerIndex]);
+ if (colorId) {
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++] = Enums::HTT_COLOUR;
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++]
+ = (short)__wtol(colorId);
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++] = Enums::HTT_COLOUR;
+ continue;
+ }
+ }
+ } else if (!__wcsicmp(u_linkcolour_005a56b8, hlpTag)) {
+ if (bodyActive) {
+ wchar_t* linkColorId = parseHLPPart(
+ filePointer[_filePointerIndex]);
+ if (linkColorId) {
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++] = Enums::HTT_LINKCOLOUR;
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++]
+ = (short)__wtol(linkColorId);
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++] = Enums::HTT_LINKCOLOUR;
+ continue;
+ }
+ }
+ } else if (!__wcsicmp(u_link_005a56ac, hlpTag)) {
+ if (bodyActive) {
+ wchar_t* linkName = parseHLPPart(
+ filePointer[_filePointerIndex]);
+ if (linkName) {
+ char linkNameChars[1000];
+ wideCharToMultiByteComplete(linkNameChars, linkName);
+ int const helpSectionIndex = findOrAddHelpSectionName(linkNameChars);
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++] = Enums::HTT_LINK;
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++] = helpSectionIndex;
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++] = Enums::HTT_LINK;
+ continue;
+ }
+ }
+ } else if (!__wcsicmp(u__link_005a56a0, hlpTag)) {
+ if (bodyActive) {
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++] = Enums::HTT_ENDLINK;
+ continue;
+ }
+ } else if (!__wcsicmp(u_newparagraph_005a5684, hlpTag)) {
+ if (bodyActive) {
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++] = Enums::HTT_NEWPARAGRAPH;
+ continue;
+ }
+ } else if (!__wcsicmp(u_centre_005a56f8, hlpTag)) {
+ if (bodyActive) {
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++] = Enums::HTT_CENTRE;
+ continue;
+ }
+ } else if (!__wcsicmp(u__centre_005a5674, hlpTag)) {
+ if (bodyActive) {
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++] = Enums::HTT_ENDCENTRE;
+ continue;
+ }
+ } else if (!__wcsicmp(u_sound_005a5668, hlpTag)) {
+ if (bodyActive) {
+ wchar_t* soundName = parseHLPPart(
+ filePointer[_filePointerIndex]);
+ if (soundName) {
+ char soundNameChars[1000];
+ wideCharToMultiByteComplete(soundNameChars, soundName);
+ int const soundIndex = findOrAddSoundName(soundNameChars);
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++] = Enums::HTT_SOUND;
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++] = soundIndex;
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++] = Enums::HTT_SOUND;
+ continue;
+ }
+ }
+ } else if (!__wcsicmp(u_include_005a5658, hlpTag)) {
+ if (bodyActive) {
+ if (DAT_TextEditorState.useAlternateHelpTab) {
+ wchar_t* includeName = parseHLPPart(
+ filePointer[_filePointerIndex]);
+ if (includeName) {
+ char includeNameChars[1000];
+ wideCharToMultiByteComplete(includeNameChars, includeName);
+ int const helpSectionIndex = findOrAddHelpSectionName(includeNameChars);
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++] = Enums::HTT_INCLUDE;
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++] = helpSectionIndex;
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++] = Enums::HTT_INCLUDE;
+ continue;
+ }
+ } else {
+ wchar_t* includeName = parseHLPPart(
+ filePointer[_filePointerIndex]);
+ if (includeName) {
+ char includeNameChars[1000];
+ wideCharToMultiByteComplete(includeNameChars, includeName);
+ int sectionId = findOrAddHelpSectionName(includeNameChars);
+ ++_filePointerIndex;
+ bodyActive = FALSE;
+ headerActive = FALSE;
+ loadedGraphics[_filePointerIndex] = 0;
+ filePointer[_filePointerIndex]
+ = readCrusaderHelpHlp(
+ DAT_UserHelpDefinedData.HelpSections[sectionId]);
+ continue;
+ }
+ }
+ }
+ } else if (!__wcsicmp(u_string_005a5648, hlpTag)) {
+ if (bodyActive) {
+ wchar_t* stringId = parseHLPPart(
+ filePointer[_filePointerIndex]);
+ if (stringId) {
+ if (this->helpDialogVariant) {
+ long const textIndex = __wtol(stringId);
+ if (this->intArray1[textIndex]) {
+ int i = 0;
+ // Mismatch: wrong order of ptr access addition
+ while (this->intArray1[textIndex][i]) {
+ wchar_t const ch = this->intArray1[textIndex][i++];
+ if (ch == L'\n') {
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++]
+ = Enums::HTT_NEWPARAGRAPH;
+ } else if (ch >= L' ') {
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++] = ch;
+ }
+ }
+ }
+ } else {
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++] = Enums::HTT_STRING;
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++]
+ = (short)__wtol(stringId);
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++] = Enums::HTT_STRING;
+ }
+ continue;
+ }
+ }
+ } else if (!__wcsicmp(u__section_005a5634, hlpTag)) {
+ closeFile = TRUE;
+ continue;
+ } else {
+ continue;
+ }
+ }
+ closeFile = TRUE;
+ continue;
+ }
+ case L'\u2019': // ’
+ _wchar = L'`';
+ break;
+ case L'\u201C': // “
+ case L'\u201D': // ”
+ _wchar = L'"';
+ break;
+ case WEOF:
+ closeFile = TRUE;
+ continue;
+ default:
+ break;
+ }
+ if (bodyActive) {
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex++] = _wchar;
+ }
+ };
+ _fclose(filePointer[_filePointerIndex]);
+ bodyActive = TRUE;
+ headerActive = FALSE;
+ --_filePointerIndex;
+ }
+ this->customHelpTextLength = textMemIndex;
+ }
+}
+}
+
+### 0x0045fdc0 processHelpRichTextTokens | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045FDC0
+ int TextEditorState::processHelpRichTextTokens(int param_1)
+ {
+ wchar_t wideTextBuffer[100];
+ int local_f8;
+ int currentLinkId = -1;
+ int textMemIndex = 0;
+ FontSizeClass* currentFontClass = DAT_TextManagerObject.fontSizeClassArray + 17;
+ int currentFontLineHeight = currentFontClass->lineHeight_0x14;
+ BOOL local_f0 = FALSE;
+ BGR24 color = 0xccfaff;
+ BGR24 linkColor = 0x8bcf84;
+ int imageCount = -1;
+ BOOL centreActive = FALSE;
+ BOOL centerCurrentLine = FALSE;
+ int lineStartY = 0;
+ int lineEndY = 0;
+ int local_11c = 0;
+ int local_100 = 0;
+ int local_10c = 0;
+ BOOL local_e4 = FALSE;
+ int local_134 = -10000;
+ if (this->helpDialogVariant == 2 || this->isCustomTextMode) {
+ color = 0xc2f0eb;
+ }
+ if (!this->isTextHelpDialogMode) {
+ return 1;
+ }
+ this->field49_0x23964 = -1;
+ this->currentLinkId = -1;
+ if (this->field51_0x2396c) {
+ DAT_00df334c = 1;
+ }
+ if (this->activeHelpHotspotIndex < 0) {
+ this->activeHelpHotspotIndex = 0;
+ }
+ if (this->activeHelpHotspotIndex > this->customHelpTextLength) {
+ this->activeHelpHotspotIndex = this->customHelpTextLength;
+ }
+ int lineY = -1;
+ int leftPosition;
+ do {
+ leftPosition = this->lineLayoutTable[++lineY].leftBorder;
+ } while (leftPosition == -1);
+ bool abortProcessing;
+ do {
+ abortProcessing = false;
+ TextMemUnion textToRender;
+ int local_114;
+ BGR24 charColor;
+ // false if text debug view token handled (this->helpDialogSubMode == 1), maybe related to input?
+ BOOL local_12c;
+ charColor = color;
+ local_12c = TRUE;
+ if (0 <= currentLinkId) {
+ charColor = linkColor;
+ }
+ local_114 = textMemIndex;
+ textToRender.value
+ = getWideCharOrWideCharPointer(&textMemIndex);
+ if (this->useAlternateHelpTab && textToRender.value < L' '
+ && textToRender.helpToken != Enums::HTT_NEWPARAGRAPH && local_114 == this->activeHelpHotspotIndex) {
+ lineStartY = lineY;
+ lineEndY = lineY + currentFontLineHeight;
+ if (param_1 == 1) {
+ int xModify = 0;
+ if (centerCurrentLine) {
+ xModify = this->lineLayoutTable[lineY].widthForCentering / 2;
+ }
+ local_10c = local_114 - local_11c;
+ if (this->field51_0x2396c < 0) {
+ this->activeHelpHotspotIndex = local_100 + DAT_00df3348;
+ if (this->activeHelpHotspotIndex >= local_11c) {
+ this->activeHelpHotspotIndex = local_11c - 1;
+ }
+ this->field51_0x2396c = 0;
+ }
+ local_134 = 0;
+ int xPos = this->dialogContentX + xModify;
+ int yPos = this->dialogContentY - this->helpContentScrollOffsetY;
+ drawLine(
+ xPos + leftPosition - 1, yPos + lineY - 1, xPos + leftPosition - 1, yPos + lineEndY + 1,
+ COL_DARK_LIME::instance.shortValue);
+ xPos = this->dialogContentX + xModify;
+ yPos = this->dialogContentY - this->helpContentScrollOffsetY;
+ drawLine(
+ xPos + leftPosition, yPos + lineY - 1, xPos + leftPosition, yPos + lineEndY + 1,
+ COL_DARK_LIME::instance.shortValue);
+ local_e4 = TRUE;
+ }
+ }
+ switch (textToRender.helpToken) {
+ case Enums::HTT_PIC: {
+ if (this->helpDialogSubMode == 1) {
+ charColor = 0xff;
+ local_12c = FALSE;
+ PrintToDestination(wideTextBuffer, u__PIC__d__S__005a583c,
+ this->DAT_PointerToTemporaryTextMemory[textMemIndex],
+ this->graphicFileNames[this->DAT_PointerToTemporaryTextMemory[textMemIndex]]);
+ Enums::HelpTextPicturePositionToken positionToken
+ = (Enums::HelpTextPicturePositionToken)this->DAT_PointerToTemporaryTextMemory[textMemIndex + 1];
+ ++textMemIndex;
+ switch (positionToken) {
+ case Enums::HTPPT_LEFT:
+ wcscat(wideTextBuffer, u_LEFT__005a5494);
+ textMemIndex += 2;
+ textToRender.text = wideTextBuffer;
+ break;
+ case Enums::HTPPT_RIGHT:
+ wcscat(wideTextBuffer, u_RIGHT__005a5484);
+ textMemIndex += 2;
+ textToRender.text = wideTextBuffer;
+ break;
+ case Enums::HTPPT_CENTRE:
+ wcscat(wideTextBuffer, u_CENTRE__005a5474);
+ textMemIndex += 2;
+ textToRender.text = wideTextBuffer;
+ break;
+ case Enums::HTPPT_HERE:
+ wcscat(wideTextBuffer, u_HERE__005a5468);
+ textMemIndex += 2;
+ textToRender.text = wideTextBuffer;
+ break;
+ default:
+ textMemIndex += 2;
+ textToRender.text = wideTextBuffer;
+ break;
+ }
+ break;
+ }
+ ++imageCount;
+ bool validImageIndex = false;
+ int imageIndex;
+ if (param_1 == 1 && this->DAT_PointerToTemporaryTextMemory[textMemIndex + 1] == Enums::HTPPT_HERE) {
+ imageIndex = this->DAT_PointerToTemporaryTextMemory[textMemIndex];
+ validImageIndex = true;
+ } else if (!param_1
+ && (imageCount == this->imageHotspotCount
+ || this->DAT_PointerToTemporaryTextMemory[textMemIndex + 1] == Enums::HTPPT_HERE)) {
+ imageIndex = this->DAT_PointerToTemporaryTextMemory[textMemIndex];
+ if (imageCount == this->imageHotspotCount) {
+ this->imageHotspotTable[this->imageHotspotCount].yPos = lineY + 25;
+ this->imageHotspotTable[this->imageHotspotCount].imageIndex = imageIndex;
+ this->imageHotspotTable[this->imageHotspotCount].linkId = currentLinkId;
+ }
+ validImageIndex = true;
+ }
+ if (validImageIndex) {
+ Enums::HelpTextPicturePositionToken positionToken
+ = (Enums::HelpTextPicturePositionToken)this->DAT_PointerToTemporaryTextMemory[textMemIndex + 1];
+ ++textMemIndex;
+ int imageWidth = DAT_TextureRenderCoreObject.loadedGfxArray[99 - imageIndex].width;
+ int imageHeight = DAT_TextureRenderCoreObject.loadedGfxArray[99 - imageIndex].height;
+ switch (positionToken) {
+ case Enums::HTPPT_LEFT: {
+ this->imageHotspotTable[this->imageHotspotCount].xPos = this->lineLayoutTable[lineY].leftBorder;
+ int newLeftBorder = this->lineLayoutTable[lineY].leftBorder + 25 + imageWidth;
+ for (int i = 0; i < imageHeight + 50; ++i) {
+ this->lineLayoutTable[lineY + i].leftBorder = newLeftBorder;
+ }
+ break;
+ }
+ case Enums::HTPPT_RIGHT: {
+ this->imageHotspotTable[this->imageHotspotCount].xPos
+ = this->lineLayoutTable[lineY].rightBorder - imageWidth;
+ int newRightBorder = this->lineLayoutTable[lineY].rightBorder - imageWidth - 25;
+ for (int i = 0; i < imageHeight + 50; ++i) {
+ this->lineLayoutTable[lineY + i].rightBorder = newRightBorder;
+ }
+ break;
+ }
+ case Enums::HTPPT_CENTRE:
+ this->imageHotspotTable[this->imageHotspotCount].xPos
+ = (this->dialogContentWidth - imageWidth) / 2;
+ for (int i = 0; i < imageHeight + 50; ++i) {
+ this->lineLayoutTable[lineY + i].leftBorder = -1;
+ }
+ break;
+ case Enums::HTPPT_HERE: {
+ int const hereWidth = imageWidth + 3;
+ if (hereWidth + leftPosition > this->lineLayoutTable[lineY].rightBorder) {
+ local_f0 = FALSE;
+ if (centerCurrentLine) {
+ this->lineLayoutTable[lineY].widthForCentering
+ = this->lineLayoutTable[lineY].rightBorder - leftPosition;
+ centerCurrentLine = centreActive;
+ }
+ do {
+ lineY += currentFontLineHeight + 1;
+ do {
+ leftPosition = this->lineLayoutTable[++lineY].leftBorder;
+ } while (leftPosition == -1);
+ } while (leftPosition + hereWidth > this->lineLayoutTable[lineY].rightBorder);
+ if (this->useAlternateHelpTab && param_1 == 1) {
+ local_100 = local_11c;
+ local_11c = local_114;
+ ++local_134;
+ if (0 < this->field51_0x2396c && 2 <= local_134) {
+ local_134 = -10000;
+ this->activeHelpHotspotIndex = local_100 + local_10c;
+ if (this->activeHelpHotspotIndex >= local_11c) {
+ this->activeHelpHotspotIndex = local_11c - 1;
+ }
+ this->field51_0x2396c = 0;
+ }
+ }
+ currentFontLineHeight = currentFontClass->lineHeight_0x14;
+ }
+ if (imageHeight > currentFontLineHeight) {
+ currentFontLineHeight = imageHeight;
+ }
+ leftPosition += hereWidth;
+ if (param_1 != 1 && imageCount == this->imageHotspotCount) {
+ this->imageHotspotTable[this->imageHotspotCount].xPos = leftPosition - hereWidth;
+ this->imageHotspotTable[this->imageHotspotCount].yPos = lineY;
+ ++this->imageHotspotCount;
+ }
+ break;
+ }
+ }
+ textMemIndex += 2;
+ if (positionToken != Enums::HTPPT_HERE && !param_1) {
+ ++this->imageHotspotCount;
+ DAT_TextManagerObject.helpTextLinkActive = FALSE;
+ abortProcessing = true;
+ // continue;
+ }
+ } else {
+ textMemIndex += 3;
+ }
+ break;
+ }
+ case Enums::HTT_FONT: {
+ if (this->helpDialogSubMode == 1) {
+ charColor = 0xff;
+ local_12c = FALSE;
+ PrintToDestination(
+ wideTextBuffer, u__FONT__d__005a5454, this->DAT_PointerToTemporaryTextMemory[textMemIndex]);
+ textMemIndex += 2;
+ textToRender.text = wideTextBuffer;
+ break;
+ }
+ int fontSize = this->DAT_PointerToTemporaryTextMemory[textMemIndex];
+ if (fontSize < 15) {
+ fontSize += 5;
+ }
+ textMemIndex += 2;
+ currentFontClass = &DAT_TextManagerObject.fontSizeClassArray[fontSize];
+ if (currentFontClass->lineHeight_0x14 > currentFontLineHeight || !local_f0) {
+ currentFontLineHeight = currentFontClass->lineHeight_0x14;
+ }
+ break;
+ }
+ case Enums::HTT_COLOUR: {
+ if (this->helpDialogSubMode == 1) {
+ charColor = 0xff;
+ local_12c = FALSE;
+ PrintToDestination(wideTextBuffer, u__COLOUR__S__005a5824,
+ DAT_UserHelpDefinedData
+ .field6_0x7a16c[this->DAT_PointerToTemporaryTextMemory[textMemIndex]]
+ .name_0x0);
+ textMemIndex += 2;
+ textToRender.text = wideTextBuffer;
+ break;
+ }
+ if (param_1 == 1) {
+ int const colorIndex = this->DAT_PointerToTemporaryTextMemory[textMemIndex];
+ uint colorRed;
+ uint colorGreen;
+ uint colorBlue;
+ if (this->helpDialogVariant == 2 && colorIndex == 1) {
+ colorRed = 0xd7;
+ colorGreen = 0xd2;
+ colorBlue = 0xa4;
+ } else {
+ colorRed = DAT_UserHelpDefinedData.field6_0x7a16c[colorIndex].r_0x4;
+ colorGreen = DAT_UserHelpDefinedData.field6_0x7a16c[colorIndex].g_0x8;
+ colorBlue = DAT_UserHelpDefinedData.field6_0x7a16c[colorIndex].b_0xc;
+ }
+ textMemIndex += 2;
+ color = RGB(colorRed, colorGreen, colorBlue);
+ } else {
+ textMemIndex += 2;
+ }
+ break;
+ }
+ case Enums::HTT_LINKCOLOUR: {
+ if (this->helpDialogSubMode == 1) {
+ charColor = 0xff;
+ local_12c = FALSE;
+ PrintToDestination(wideTextBuffer, u__LINKCOLOUR__S__005a5804,
+ DAT_UserHelpDefinedData
+ .field6_0x7a16c[this->DAT_PointerToTemporaryTextMemory[textMemIndex]]
+ .name_0x0);
+ textMemIndex += 2;
+ textToRender.text = wideTextBuffer;
+ break;
+ }
+ if (param_1 == 1) {
+ int const colorIndex = this->DAT_PointerToTemporaryTextMemory[textMemIndex];
+ textMemIndex += 2;
+ linkColor = RGB(DAT_UserHelpDefinedData.field6_0x7a16c[colorIndex].r_0x4,
+ DAT_UserHelpDefinedData.field6_0x7a16c[colorIndex].g_0x8,
+ DAT_UserHelpDefinedData.field6_0x7a16c[colorIndex].b_0xc);
+ } else {
+ textMemIndex += 2;
+ }
+ break;
+ }
+ case Enums::HTT_LINK: {
+ if (this->helpDialogSubMode == 1) {
+ charColor = 0xff;
+ local_12c = FALSE;
+ PrintToDestination(wideTextBuffer, u__LINK_S__005a57ec,
+ DAT_UserHelpDefinedData
+ .HelpSections[this->DAT_PointerToTemporaryTextMemory[textMemIndex]]);
+ textMemIndex += 2;
+ textToRender.text = wideTextBuffer;
+ break;
+ }
+ currentLinkId = this->DAT_PointerToTemporaryTextMemory[textMemIndex];
+ if (param_1 == 1) {
+ DAT_TextManagerObject.helpTextLinkActive = TRUE;
+ }
+ textMemIndex += 2;
+ break;
+ }
+ case Enums::HTT_INCLUDE: {
+ if (this->helpDialogSubMode == 1) {
+ charColor = 0xff;
+ local_12c = FALSE;
+ PrintToDestination(wideTextBuffer, u__INCLUDE_S__005a57cc,
+ DAT_UserHelpDefinedData
+ .HelpSections[this->DAT_PointerToTemporaryTextMemory[textMemIndex]]);
+ textMemIndex += 2;
+ textToRender.text = wideTextBuffer;
+ break;
+ }
+ textMemIndex += 2;
+ break;
+ }
+ case Enums::HTT_SOUND: {
+ if (this->helpDialogSubMode == 1) {
+ charColor = 0xff;
+ local_12c = FALSE;
+ PrintToDestination(wideTextBuffer, u__SOUND_S__005a57b0,
+ this->soundFileNames[this->DAT_PointerToTemporaryTextMemory[textMemIndex]]);
+ textMemIndex += 2;
+ textToRender.text = wideTextBuffer;
+ break;
+ }
+ if (param_1 == 1) {
+ int const visibleY = lineY - this->helpContentScrollOffsetY;
+ if (0 <= visibleY && visibleY < this->dialogContentHeight
+ && !this->soundFilePlayedFlags[this->DAT_PointerToTemporaryTextMemory[textMemIndex]]) {
+ this->soundFilePlayedFlags[this->DAT_PointerToTemporaryTextMemory[textMemIndex]] = 1;
+ }
+ }
+ textMemIndex += 2;
+ break;
+ }
+ case Enums::HTT_ENDLINK: {
+ if (this->helpDialogSubMode == 1) {
+ charColor = 0xff;
+ local_12c = FALSE;
+ wcscpy(wideTextBuffer, u__LINK__005a53d4);
+ textToRender.text = wideTextBuffer;
+ break;
+ }
+ currentLinkId = -1;
+ if (param_1 == 1) {
+ DAT_TextManagerObject.helpTextLinkActive = FALSE;
+ }
+ break;
+ }
+ case Enums::HTT_STRING: {
+ if (this->helpDialogSubMode == 1) {
+ charColor = 0xff;
+ local_12c = FALSE;
+ PrintToDestination(
+ wideTextBuffer, u__STRING__d__005a5358, this->DAT_PointerToTemporaryTextMemory[textMemIndex]);
+ textMemIndex += 2;
+ textToRender.text = wideTextBuffer;
+ break;
+ }
+ textMemIndex += 2;
+ break;
+ }
+ case Enums::HTT_CENTRE: {
+ if (this->helpDialogSubMode == 1) {
+ charColor = 0xff;
+ local_12c = FALSE;
+ wcscpy(wideTextBuffer, u__CENTRE__005a539c);
+ textToRender.text = wideTextBuffer;
+ break;
+ }
+ centreActive = TRUE;
+ centerCurrentLine = TRUE;
+ break;
+ }
+ case Enums::HTT_ENDCENTRE: {
+ if (this->helpDialogSubMode == 1) {
+ charColor = 0xff;
+ local_12c = FALSE;
+ wcscpy(wideTextBuffer, u__CENTRE__005a5388);
+ textToRender.text = wideTextBuffer;
+ break;
+ }
+ centreActive = FALSE;
+ break;
+ }
+ case Enums::HTT_NEWPARAGRAPH: {
+ if (centerCurrentLine) {
+ this->lineLayoutTable[lineY].widthForCentering
+ = this->lineLayoutTable[lineY].rightBorder - leftPosition;
+ centerCurrentLine = centreActive;
+ }
+ if (this->useAlternateHelpTab && local_114 == this->activeHelpHotspotIndex) {
+ lineStartY = lineY;
+ lineEndY = currentFontLineHeight + lineY;
+ if (param_1 == 1) {
+ int xModify = 0;
+ if (centerCurrentLine) {
+ xModify = this->lineLayoutTable[lineY].widthForCentering / 2;
+ }
+ int xPos = this->dialogContentX + xModify;
+ int yPos = this->dialogContentY - this->helpContentScrollOffsetY;
+ drawLine(
+ xPos - 1 + leftPosition, yPos - 1 + lineStartY, xPos - 1 + leftPosition,
+ yPos + 1 + lineEndY, COL_DARK_LIME::instance.shortValue);
+ xPos = this->dialogContentX + xModify;
+ yPos = this->dialogContentY - this->helpContentScrollOffsetY;
+ drawLine(
+ xPos + leftPosition, yPos - 1 + lineStartY, xPos + leftPosition, yPos + 1 + lineEndY,
+ COL_DARK_LIME::instance.shortValue);
+ local_e4 = TRUE;
+ }
+ }
+ local_f0 = FALSE;
+ lineY += 3 + currentFontLineHeight;
+ do {
+ leftPosition = this->lineLayoutTable[++lineY].leftBorder;
+ } while (leftPosition == -1);
+ currentFontLineHeight = currentFontClass->lineHeight_0x14;
+ if (this->useAlternateHelpTab) {
+ local_100 = local_11c;
+ local_11c = local_114;
+ if (param_1 == 1) {
+ ++local_134;
+ if (0 < this->field51_0x2396c && 2 <= local_134) {
+ local_134 = -10000;
+ this->activeHelpHotspotIndex = local_10c + local_100;
+ if (this->activeHelpHotspotIndex >= local_11c) {
+ this->activeHelpHotspotIndex = local_11c - 1;
+ }
+ this->field51_0x2396c = 0;
+ }
+ }
+ if (local_11c == this->activeHelpHotspotIndex && param_1 == 1) {
+ local_10c = 0;
+ if (this->field51_0x2396c < 0) {
+ this->activeHelpHotspotIndex = DAT_00df3348 + local_100;
+ if (this->activeHelpHotspotIndex >= local_11c) {
+ this->activeHelpHotspotIndex = local_11c - 1;
+ }
+ this->field51_0x2396c = 0;
+ }
+ local_134 = 0;
+ }
+ }
+ if (this->helpDialogSubMode == 1) {
+ charColor = 0xff;
+ local_12c = FALSE;
+ wcscpy(wideTextBuffer, u__NEWPARAGRAPH__005a5790);
+ textToRender.text = wideTextBuffer;
+ break;
+ }
+ break;
+ }
+ case Enums::HTT_TAB: { // TODO?: unknown token
+ if (this->helpDialogSubMode == 1) {
+ charColor = 0xff;
+ local_12c = FALSE;
+ wcscpy(wideTextBuffer, u__tab__005a5784);
+ textToRender.text = wideTextBuffer;
+ break;
+ }
+ if (leftPosition + 30 > this->lineLayoutTable[lineY].rightBorder) {
+ local_f0 = FALSE;
+ if (centerCurrentLine) {
+ this->lineLayoutTable[lineY].widthForCentering
+ = this->lineLayoutTable[lineY].rightBorder - leftPosition;
+ centerCurrentLine = centreActive;
+ }
+ do {
+ lineY += currentFontLineHeight + 1;
+ do {
+ leftPosition = this->lineLayoutTable[++lineY].leftBorder;
+ } while (leftPosition == -1);
+ } while (leftPosition + 30 > this->lineLayoutTable[lineY].rightBorder);
+ if (this->useAlternateHelpTab && param_1 == 1) {
+ local_100 = local_11c;
+ local_11c = local_114;
+ ++local_134;
+ if (0 < this->field51_0x2396c && 2 <= local_134) {
+ local_134 = -10000;
+ this->activeHelpHotspotIndex = local_100 + local_10c;
+ if (this->activeHelpHotspotIndex >= local_11c) {
+ this->activeHelpHotspotIndex = local_11c - 1;
+ }
+ this->field51_0x2396c = 0;
+ }
+ }
+ currentFontLineHeight = currentFontClass->lineHeight_0x14;
+ }
+ leftPosition += 30;
+ break;
+ }
+ case (wchar_t*)0: { // TODO?: unknown token, or just NULL, meaning end?
+ if (param_1 == 0) {
+ this->topVisibleLineIndex = lineY + currentFontLineHeight - 1;
+ do {
+ ++this->topVisibleLineIndex;
+ if (this->lineLayoutTable[this->topVisibleLineIndex].leftBorder == 25
+ && this->lineLayoutTable[this->topVisibleLineIndex].rightBorder
+ == this->dialogContentWidth - 25) {
+ break;
+ }
+ } while (this->topVisibleLineIndex < 20000);
+ this->topVisibleLineIndex += 5;
+ if (this->useAlternateHelpTab) {
+ if (lineStartY < this->helpContentScrollOffsetY) {
+ this->helpContentScrollOffsetY = lineStartY;
+ }
+ if (lineEndY > this->helpContentScrollOffsetY + this->dialogContentHeight) {
+ this->helpContentScrollOffsetY = (lineEndY - this->dialogContentHeight) + 5;
+ DAT_TextManagerObject.helpTextLinkActive = FALSE;
+ return TRUE;
+ }
+ }
+ } else if (this->useAlternateHelpTab) {
+ DAT_00df3348 = local_10c;
+ if (0 < this->field51_0x2396c && local_134 == 1) {
+ this->activeHelpHotspotIndex = local_10c + local_11c;
+ if (this->activeHelpHotspotIndex > this->customHelpTextLength) {
+ this->activeHelpHotspotIndex = this->customHelpTextLength;
+ }
+ this->field51_0x2396c = 0;
+ }
+ if (!local_e4 && this->activeHelpHotspotIndex && DAT_00df334c) {
+ --this->activeHelpHotspotIndex;
+ this->field52_0x23970 = 0;
+ DAT_TextManagerObject.helpTextLinkActive = FALSE;
+ return TRUE;
+ }
+ DAT_00df334c = 0;
+ }
+ DAT_TextManagerObject.helpTextLinkActive = FALSE;
+ return TRUE;
+ }
+ }
+ if (textToRender.value < L' ') {
+ continue;
+ }
+ int textWidth = getWidthOfWideText(
+ textToRender.text, wcslen(textToRender.text));
+ if (leftPosition + textWidth > this->lineLayoutTable[lineY].rightBorder) {
+ local_f0 = FALSE;
+ if (centerCurrentLine) {
+ this->lineLayoutTable[lineY].widthForCentering
+ = this->lineLayoutTable[lineY].rightBorder - leftPosition;
+ centerCurrentLine = centreActive;
+ }
+ lineY += 1 + currentFontLineHeight;
+ do {
+ leftPosition = this->lineLayoutTable[++lineY].leftBorder;
+ } while (leftPosition == -1);
+ currentFontLineHeight = currentFontClass->lineHeight_0x14;
+ if (this->useAlternateHelpTab) {
+ ++local_134;
+ local_100 = local_11c;
+ local_11c = local_114;
+ if (0 < this->field51_0x2396c && 2 <= local_134) {
+ local_134 = -10000;
+ this->activeHelpHotspotIndex = local_100 + local_10c;
+ if (this->activeHelpHotspotIndex >= local_11c) {
+ this->activeHelpHotspotIndex = local_11c - 1;
+ }
+ this->field51_0x2396c = 0;
+ }
+ }
+ if (leftPosition + textWidth > this->lineLayoutTable[lineY].rightBorder) {
+ local_f8 = 0;
+ if (centerCurrentLine) {
+ local_f8 = this->lineLayoutTable[lineY].widthForCentering / 2;
+ }
+ int wordLength = wcslen(textToRender.text);
+ for (int i = 0; i < wordLength; ++i) {
+ int wideCharWidth = getWideCharWidth(
+ textToRender.text[i]);
+ while (leftPosition + wideCharWidth > this->lineLayoutTable[lineY].rightBorder) {
+ if (centerCurrentLine) {
+ this->lineLayoutTable[lineY].widthForCentering
+ = this->lineLayoutTable[lineY].rightBorder - leftPosition;
+ centerCurrentLine = centreActive;
+ }
+ lineY += currentFontLineHeight + 1;
+ if (this->useAlternateHelpTab && param_1 == 1) {
+ local_100 = local_11c;
+ local_11c = local_114 + i;
+ ++local_134;
+ if (0 < this->field51_0x2396c && 2 <= local_134) {
+ local_134 = -10000;
+ this->activeHelpHotspotIndex = local_100 + local_10c;
+ if (this->activeHelpHotspotIndex >= local_11c) {
+ this->activeHelpHotspotIndex = local_11c - 1;
+ }
+ this->field51_0x2396c = 0;
+ }
+ }
+ do {
+ leftPosition = this->lineLayoutTable[++lineY].leftBorder;
+ } while (leftPosition == -1);
+ if (centerCurrentLine) {
+ local_f8 = this->lineLayoutTable[lineY].widthForCentering / 2;
+ }
+ }
+ if (this->useAlternateHelpTab && local_114 + i == this->activeHelpHotspotIndex) {
+ lineStartY = lineY;
+ lineEndY = lineY + currentFontLineHeight;
+ if (param_1 == 1) {
+ if (local_12c) {
+ local_10c = (i - local_11c) + local_114;
+ if (this->field51_0x2396c < 0) {
+ this->activeHelpHotspotIndex = DAT_00df3348 + local_100;
+ if (this->activeHelpHotspotIndex >= local_11c) {
+ this->activeHelpHotspotIndex = local_11c - 1;
+ }
+ this->field51_0x2396c = 0;
+ }
+ local_134 = 0;
+ int xPos = this->dialogContentX + local_f8;
+ int yPos = this->dialogContentY - this->helpContentScrollOffsetY;
+ drawLine(xPos - 1 + leftPosition, yPos - 1 + lineY,
+ xPos - 1 + leftPosition, yPos + 1 + lineEndY,
+ COL_DARK_LIME::instance.shortValue);
+ xPos = this->dialogContentX + local_f8;
+ yPos = this->dialogContentY - this->helpContentScrollOffsetY;
+ drawLine(xPos + leftPosition, yPos - 1 + lineY,
+ xPos + leftPosition, yPos + 1 + lineEndY, COL_DARK_LIME::instance.shortValue);
+ local_e4 = TRUE;
+ }
+ }
+ }
+ if (param_1 == 1) {
+ int charXPos = this->dialogContentX + local_f8 + leftPosition;
+ int charYPos = this->dialogContentY - this->helpContentScrollOffsetY + lineY;
+ wchar_t currentChar = textToRender.text[i];
+ int const newCharXPos = renderWideChar(currentChar, charXPos, charYPos, charColor, 0);
+ local_f0 = TRUE;
+ if (isMouseInsideBox(
+ charXPos - this->helpContentScrollX, charYPos - this->helpContentScrollY,
+ newCharXPos - charXPos, currentFontLineHeight + 2)) {
+ if (local_12c) {
+ this->field49_0x23964 = local_114 + i;
+ this->currentLinkId = currentLinkId;
+ } else {
+ this->field49_0x23964 = local_114;
+ }
+ }
+ }
+ leftPosition += wideCharWidth;
+ }
+ continue;
+ }
+ }
+ int charXPos = this->dialogContentX + leftPosition;
+ int charYPos = (this->dialogContentY - this->helpContentScrollOffsetY) + lineY;
+ if (centerCurrentLine) {
+ charXPos += this->lineLayoutTable[lineY].widthForCentering / 2;
+ }
+ int wordLength = wcslen(textToRender.text);
+ for (int i = 0; i < wordLength; ++i) {
+ if (this->useAlternateHelpTab && i + local_114 == this->activeHelpHotspotIndex) {
+ if (param_1 == 1 && local_12c) {
+ drawLine(
+ charXPos - 1, charYPos - 1, charXPos - 1, charYPos + 1 + currentFontLineHeight,
+ COL_DARK_LIME::instance.shortValue);
+ drawLine(
+ charXPos, charYPos - 1, charXPos, charYPos + 1 + currentFontLineHeight,
+ COL_DARK_LIME::instance.shortValue);
+ local_e4 = TRUE;
+ }
+ lineStartY = lineY;
+ lineEndY = lineY + currentFontLineHeight;
+ if (param_1 == 1) {
+ local_134 = 0;
+ local_10c = local_114 - local_11c + i;
+ if (this->field51_0x2396c < 0 && local_12c) {
+ this->activeHelpHotspotIndex = local_100 + DAT_00df3348;
+ if (this->activeHelpHotspotIndex >= local_11c) {
+ this->activeHelpHotspotIndex = local_11c - 1;
+ }
+ this->field51_0x2396c = 0;
+ }
+ }
+ }
+ if (param_1 == 1) {
+ local_f0 = TRUE;
+ int oldCharPos = charXPos;
+ wchar_t const currentChar = textToRender.text[i];
+ charXPos = renderWideChar(
+ currentChar, charXPos, charYPos, charColor, 0);
+ if (isMouseInsideBox(
+ oldCharPos - this->helpContentScrollX, charYPos - this->helpContentScrollY,
+ charXPos - oldCharPos, currentFontLineHeight + 2)) {
+ if (local_12c) {
+ this->field49_0x23964 = i + local_114;
+ this->currentLinkId = currentLinkId;
+ } else {
+ this->field49_0x23964 = local_114;
+ }
+ }
+ } else {
+ charXPos += getWideCharWidth(
+ textToRender.text[i]);
+ }
+ }
+ leftPosition += textWidth;
+ } while (!abortProcessing);
+ return FALSE;
+ }
+}
+}
+
+### 0x004613e0 setTextRenderingLogic | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004613E0
+ void TextEditorState::setTextRenderingLogic()
+ {
+ if (this->helpDialogVariant != 1) {
+ setRenderingRect(this->dialogContentX, this->dialogContentY,
+ this->dialogContentWidth + this->dialogContentX, this->dialogContentHeight + this->dialogContentY);
+ setScreenMenuSurfaceHeightRange(
+ this->dialogContentY, this->dialogContentHeight + this->dialogContentY);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = Rendering::Enums::RT_SCREEN_MENU;
+ } else {
+ setRenderingRect(this->dialogContentX, this->dialogContentY,
+ this->dialogContentWidth + this->dialogContentX, this->dialogContentHeight + this->dialogContentY);
+ setMapSurfaceHeightRange(
+ this->dialogContentY, this->dialogContentHeight + this->dialogContentY);
+ DAT_TextManagerObject.textSurfaceTarget = Rendering::Enums::RT_MAP_GAME;
+ DAT_PencilRenderCore.surfaceTarget = Rendering::Enums::RT_MAP_GAME;
+ DAT_TextureRenderCoreObject.currentRenderSurfaceIdentifierUnk_0x8 = Rendering::Enums::RT_MAP_GAME;
+ }
+ processHelpRichTextTokens(TRUE);
+ renderHelpImageHotspots();
+ if (this->helpDialogVariant != 1) {
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = Rendering::Enums::RT_MAP_GAME;
+ setScreenMenuSurfaceHeightRangeToResolution();
+ setRenderingRectToGameResolution();
+ } else {
+ setMapSurfaceHeightRangeUnk();
+ setRenderingRectToGameResolution();
+ DAT_TextManagerObject.textSurfaceTarget = Rendering::Enums::RT_SCREEN_MENU;
+ DAT_PencilRenderCore.surfaceTarget = Rendering::Enums::RT_SCREEN_MENU;
+ DAT_TextureRenderCoreObject.currentRenderSurfaceIdentifierUnk_0x8
+ = Rendering::Enums::RT_SCREEN_MENU;
+ }
+ }
+}
+}
+
+### 0x004614d0 initializeAndLayoutHelpText | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004614D0
+ void TextEditorState::initializeAndLayoutHelpText()
+ {
+ for (int i = 0; i < 20000; ++i) {
+ this->lineLayoutTable[i].leftBorder = 25;
+ this->lineLayoutTable[i].rightBorder = this->dialogContentWidth - 25;
+ this->lineLayoutTable[i].widthForCentering = 0;
+ }
+ // Adds vertical space at start
+ for (int i = 0; i < 4; ++i) {
+ this->lineLayoutTable[i].leftBorder = -1;
+ }
+ this->imageHotspotCount = 0;
+ while (!processHelpRichTextTokens(0)) {};
+ }
+}
+}
+
+### 0x00461550 renderHelpDialogIfOpen | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00461550
+ void TextEditorState::renderHelpDialogIfOpen()
+ {
+ if (this->isDialogStateInitialized) {
+ drawHelpWindowBackground();
+ setTextRenderingLogic();
+ }
+ }
+}
+}
+
+### 0x004619d0 loadAndLayoutHelpContent | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004619D0
+ void TextEditorState::loadAndLayoutHelpContent()
+ {
+ this->graphicFileCount = 0;
+ this->soundFileCount = 0;
+ this->topVisibleLineIndex = -1;
+ this->helpContentScrollOffsetY = 0;
+ if (!this->isCustomTextMode) {
+ parseHlp();
+ loadHelpSectionGraphics();
+ }
+ this->activeHelpHotspotIndex = 0;
+ initializeAndLayoutHelpText();
+ }
+}
+}
+
+### 0x00461a20 openBuildingHelpDialog | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00461A20
+ void TextEditorState::openBuildingHelpDialog(int sectionId)
+ {
+ if (!this->isDialogStateInitialized) {
+ this->isDialogStateInitialized = TRUE;
+ this->helpDialogVariant = 1;
+ this->useInGameHelpHandler = 0;
+ this->helpDialogSubMode = 0;
+ this->useAlternateHelpTab = 0;
+ this->isCustomTextMode = 0;
+ DAT_UserTextHandlerState.inputBufferIndex = 0;
+ this->helpContentScrollX = 0;
+ this->helpContentScrollY = 0;
+ } else if (sectionId == this->currentHelpSectionID) {
+ return;
+ }
+ this->activeHelpHotspotIndex = 0;
+ if (sectionId == -1) {
+ closeHelpDialogAndReturnToMenu();
+ return;
+ }
+ this->isTextHelpDialogMode = 1;
+ activateModalDialog(
+ UI::Enums::MMT_BUILDING_HELP_TEXT, FALSE);
+ int modalX;
+ int modalY;
+ int modalWidth;
+ int modalHeight;
+ fillWithMenuModalDimensions(
+ &modalX, &modalY, &modalWidth, &modalHeight);
+ // Likely also some rect structure
+ DAT_00df2964 = 15;
+ DAT_00df296c = 13;
+ INT_00df2968::instance = 60;
+ INT_00df2970::instance = 65;
+ this->dialogX = modalX;
+ this->dialogY = modalY;
+ this->dialogWidth = modalWidth;
+ this->dialogHeight = modalHeight;
+ int const dialogContentX = this->dialogX + DAT_00df2964;
+ int const dialogContentY = this->dialogY + DAT_00df296c;
+ int const dialogContentHeight = this->dialogHeight - INT_00df2970::instance;
+ int const dialogContentWidth = this->dialogWidth - INT_00df2968::instance;
+ this->dialogContentX = dialogContentX;
+ this->dialogContentY = dialogContentY;
+ this->dialogContentWidth = dialogContentWidth;
+ this->dialogContentHeight = dialogContentHeight;
+ for (int i = 28; i >= 0; --i) {
+ this->helpSectionHistoryStack[i + 1] = this->helpSectionHistoryStack[i];
+ }
+ this->helpSectionHistoryStack[0] = this->currentHelpSectionID;
+ this->currentHelpSectionID = sectionId;
+ this->helpContentScrollOffsetY = 0;
+ loadAndLayoutHelpContent();
+ }
+}
+}
+
+### 0x00461b90 openInGameHelpDialog | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00461B90
+ void TextEditorState::openInGameHelpDialog(int sectionId)
+ {
+ if (!this->isDialogStateInitialized) {
+ this->isDialogStateInitialized = TRUE;
+ this->helpDialogVariant = 1;
+ this->useInGameHelpHandler = TRUE;
+ this->helpDialogSubMode = 0;
+ this->useAlternateHelpTab = 0;
+ this->isCustomTextMode = 0;
+ DAT_UserTextHandlerState.inputBufferIndex = 0;
+ this->helpContentScrollX = 0;
+ this->helpContentScrollY = 0;
+ }
+ this->activeHelpHotspotIndex = 0;
+ if (sectionId == -1) {
+ closeHelpDialogAndReturnToMenu();
+ return;
+ }
+ this->isTextHelpDialogMode = TRUE;
+ activateModalDialog(
+ UI::Enums::MMT_IN_GAME_HELP_TEXT, FALSE);
+ int modalX;
+ int modalY;
+ int modalWidth;
+ int modalHeight;
+ fillWithMenuModalDimensions(
+ &modalX, &modalY, &modalWidth, &modalHeight);
+ DAT_00df2964 = 15;
+ DAT_00df296c = 13;
+ INT_00df2968::instance = 60;
+ INT_00df2970::instance = 65;
+ this->dialogX = modalX;
+ this->dialogY = modalY;
+ this->dialogWidth = modalWidth;
+ this->dialogHeight = modalHeight;
+ int const dialogContentX = this->dialogX + DAT_00df2964;
+ int const dialogContentY = this->dialogY + DAT_00df296c;
+ int const dialogContentHeight = this->dialogHeight - INT_00df2970::instance;
+ int const dialogContentWidth = this->dialogWidth - INT_00df2968::instance;
+ this->dialogContentX = dialogContentX;
+ this->dialogContentY = dialogContentY;
+ this->dialogContentWidth = dialogContentWidth;
+ this->dialogContentHeight = dialogContentHeight;
+ for (int i = 28; i >= 0; --i) {
+ this->helpSectionHistoryStack[i + 1] = this->helpSectionHistoryStack[i];
+ }
+ this->helpSectionHistoryStack[0] = this->currentHelpSectionID;
+ this->currentHelpSectionID = sectionId;
+ this->helpContentScrollOffsetY = 0;
+ loadAndLayoutHelpContent();
+ }
+}
+}
+
+### 0x00461cf0 openScenarioHelpDialog | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00461CF0
+ void TextEditorState::openScenarioHelpDialog(int sectionId)
+ {
+ if (!this->isDialogStateInitialized) {
+ this->isDialogStateInitialized = TRUE;
+ this->helpDialogVariant = 2;
+ this->useInGameHelpHandler = FALSE;
+ this->helpDialogSubMode = 0;
+ this->useAlternateHelpTab = FALSE;
+ this->isCustomTextMode = FALSE;
+ DAT_UserTextHandlerState.inputBufferIndex = 0;
+ this->helpContentScrollX = 0;
+ this->helpContentScrollY = 0;
+ }
+ this->activeHelpHotspotIndex = 0;
+ if (sectionId == -1) {
+ closeHelpDialogAndReturnToMenu();
+ return;
+ }
+ this->isTextHelpDialogMode = TRUE;
+ activateModalDialog(
+ MMT_DISPLAY_SCENARIO_HELP_TEXT, FALSE);
+ int modalX;
+ int modalY;
+ int modalWidth;
+ int modalHeight;
+ fillWithMenuModalDimensions(
+ &modalX, &modalY, &modalWidth, &modalHeight);
+ DAT_00df2964 = 10;
+ DAT_00df296c = 10;
+ INT_00df2968::instance = 45;
+ INT_00df2970::instance = 20;
+ this->dialogX = modalX;
+ this->dialogY = modalY;
+ this->dialogWidth = modalWidth;
+ this->dialogHeight = modalHeight;
+ int const dialogContentX = this->dialogX + DAT_00df2964;
+ int const dialogContentY = this->dialogY + DAT_00df296c;
+ int const dialogContentHeight = this->dialogHeight - INT_00df2970::instance;
+ int const dialogContentWidth = this->dialogWidth - INT_00df2968::instance;
+ this->dialogContentX = dialogContentX;
+ this->dialogContentY = dialogContentY;
+ this->dialogContentWidth = dialogContentWidth;
+ this->dialogContentHeight = dialogContentHeight;
+ for (int i = 28; i >= 0; --i) {
+ this->helpSectionHistoryStack[i + 1] = this->helpSectionHistoryStack[i];
+ }
+ this->helpSectionHistoryStack[0] = this->currentHelpSectionID;
+ this->currentHelpSectionID = sectionId;
+ this->helpContentScrollOffsetY = 0;
+ loadAndLayoutHelpContent();
+ }
+}
+}
+

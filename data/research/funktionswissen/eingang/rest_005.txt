@@ -1,0 +1,1195 @@
+### 0x00452900 RenderTerrainTilesCenterPiece | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00452900
+ void Rendering::RenderTerrainTilesCenterPiece()
+ {
+ undefined2 uVar1;
+ undefined2 uVar2;
+ undefined2 uVar3;
+ undefined4 uVar4;
+ undefined4 uVar5;
+ undefined4 uVar6;
+ uint _drawYTileRow;
+ undefined4* puVar7;
+ ushort* puVar8;
+ undefined* puVar9;
+ _drawYTileRow = (DAT_00ed3154 - DAT_RenderMap_YOffset) + DAT_RenderMap_DrawSomeY;
+ if (((int)_drawYTileRow < DAT_TextureRenderCoreObject.mapGameSurfaceHeightRange.end)
+ && (DAT_TextureRenderCoreObject.mapGameSurfaceHeightRange.start <= (int)_drawYTileRow)) {
+ puVar7 = (undefined4*)(DAT_GMImageOffsets[DAT_GmImageAddressToBeRendered]
+ + (int)DAT_TextureRenderCoreObject.gmProcessedImageData);
+ if (DAT_TextureRenderCoreObject.isZoom2 == 0) {
+ puVar8 = DAT_WindowAndDirectDraw.surfacePointer_mapGame + DAT_RenderMap_DrawSomeX
+ + _drawYTileRow * 0xfd8;
+ uVar4 = puVar7[1];
+ uVar5 = puVar7[2];
+ uVar6 = puVar7[3];
+ DAT_WindowAndDirectDraw.unknownSpecificPointer = (undefined*)puVar8;
+ *(undefined4*)(puVar8 + 0xe) = *puVar7;
+ *(undefined4*)(puVar8 + 0xfe4) = uVar4;
+ *(undefined4*)(puVar8 + 0xfe6) = uVar5;
+ *(undefined4*)(puVar8 + 0xfe8) = uVar6;
+ uVar4 = puVar7[5];
+ uVar5 = puVar7[6];
+ uVar6 = puVar7[7];
+ *(undefined4*)(puVar8 + 0x1fba) = puVar7[4];
+ *(undefined4*)(puVar8 + 0x1fbc) = uVar4;
+ *(undefined4*)(puVar8 + 0x1fbe) = uVar5;
+ *(undefined4*)(puVar8 + 0x1fc0) = uVar6;
+ uVar4 = puVar7[9];
+ uVar5 = puVar7[10];
+ uVar6 = puVar7[0xb];
+ *(undefined4*)(puVar8 + 0x1fc2) = puVar7[8];
+ *(undefined4*)(puVar8 + 0x2f90) = uVar4;
+ *(undefined4*)(puVar8 + 0x2f92) = uVar5;
+ *(undefined4*)(puVar8 + 0x2f94) = uVar6;
+ uVar4 = puVar7[0xd];
+ uVar5 = puVar7[0xe];
+ uVar6 = puVar7[0xf];
+ *(undefined4*)(puVar8 + 0x2f96) = puVar7[0xc];
+ *(undefined4*)(puVar8 + 0x2f98) = uVar4;
+ *(undefined4*)(puVar8 + 0x2f9a) = uVar5;
+ *(undefined4*)(puVar8 + 0x2f9c) = uVar6;
+ uVar4 = puVar7[0x11];
+ uVar5 = puVar7[0x12];
+ uVar6 = puVar7[0x13];
+ *(undefined4*)(puVar8 + 0x3f66) = puVar7[0x10];
+ *(undefined4*)(puVar8 + 0x3f68) = uVar4;
+ *(undefined4*)(puVar8 + 0x3f6a) = uVar5;
+ *(undefined4*)(puVar8 + 0x3f6c) = uVar6;
+ uVar4 = puVar7[0x15];
+ uVar5 = puVar7[0x16];
+ uVar6 = puVar7[0x17];
+ *(undefined4*)(puVar8 + 0x3f6e) = puVar7[0x14];
+ *(undefined4*)(puVar8 + 0x3f70) = uVar4;
+ *(undefined4*)(puVar8 + 0x3f72) = uVar5;
+ *(undefined4*)(puVar8 + 0x3f74) = uVar6;
+ uVar4 = puVar7[0x19];
+ uVar5 = puVar7[0x1a];
+ uVar6 = puVar7[0x1b];
+ *(undefined4*)(puVar8 + 0x3f76) = puVar7[0x18];
+ *(undefined4*)(puVar8 + 0x4f3c) = uVar4;
+ *(undefined4*)(puVar8 + 0x4f3e) = uVar5;
+ *(undefined4*)(puVar8 + 0x4f40) = uVar6;
+ uVar4 = puVar7[0x1d];
+ uVar5 = puVar7[0x1e];
+ uVar6 = puVar7[0x1f];
+ *(undefined4*)(puVar8 + 0x4f42) = puVar7[0x1c];
+ *(undefined4*)(puVar8 + 0x4f44) = uVar4;
+ *(undefined4*)(puVar8 + 0x4f46) = uVar5;
+ *(undefined4*)(puVar8 + 0x4f48) = uVar6;
+ uVar4 = puVar7[0x21];
+ uVar5 = puVar7[0x22];
+ uVar6 = puVar7[0x23];
+ *(undefined4*)(puVar8 + 0x4f4a) = puVar7[0x20];
+ *(undefined4*)(puVar8 + 0x4f4c) = uVar4;
+ *(undefined4*)(puVar8 + 0x4f4e) = uVar5;
+ *(undefined4*)(puVar8 + 0x4f50) = uVar6;
+ uVar4 = puVar7[0x25];
+ uVar5 = puVar7[0x26];
+ uVar6 = puVar7[0x27];
+ *(undefined4*)(puVar8 + 0x5f12) = puVar7[0x24];
+ *(undefined4*)(puVar8 + 0x5f14) = uVar4;
+ *(undefined4*)(puVar8 + 0x5f16) = uVar5;
+ *(undefined4*)(puVar8 + 0x5f18) = uVar6;
+ uVar4 = puVar7[0x29];
+ uVar5 = puVar7[0x2a];
+ uVar6 = puVar7[0x2b];
+ *(undefined4*)(puVar8 + 0x5f1a) = puVar7[0x28];
+ *(undefined4*)(puVar8 + 0x5f1c) = uVar4;
+ *(undefined4*)(puVar8 + 0x5f1e) = uVar5;
+ *(undefined4*)(puVar8 + 0x5f20) = uVar6;
+ uVar4 = puVar7[0x2d];
+ uVar5 = puVar7[0x2e];
+ uVar6 = puVar7[0x2f];
+ *(undefined4*)(puVar8 + 0x5f22) = puVar7[0x2c];
+ *(undefined4*)(puVar8 + 0x5f24) = uVar4;
+ *(undefined4*)(puVar8 + 0x5f26) = uVar5;
+ *(undefined4*)(puVar8 + 0x5f28) = uVar6;
+ uVar4 = puVar7[0x31];
+ uVar5 = puVar7[0x32];
+ uVar6 = puVar7[0x33];
+ *(undefined4*)(puVar8 + 0x5f2a) = puVar7[0x30];
+ *(undefined4*)(puVar8 + 0x6ee8) = uVar4;
+ *(undefined4*)(puVar8 + 0x6eea) = uVar5;
+ *(undefined4*)(puVar8 + 0x6eec) = uVar6;
+ uVar4 = puVar7[0x35];
+ uVar5 = puVar7[0x36];
+ uVar6 = puVar7[0x37];
+ *(undefined4*)(puVar8 + 0x6eee) = puVar7[0x34];
+ *(undefined4*)(puVar8 + 0x6ef0) = uVar4;
+ *(undefined4*)(puVar8 + 0x6ef2) = uVar5;
+ *(undefined4*)(puVar8 + 0x6ef4) = uVar6;
+ uVar4 = puVar7[0x39];
+ uVar5 = puVar7[0x3a];
+ uVar6 = puVar7[0x3b];
+ *(undefined4*)(puVar8 + 0x6ef6) = puVar7[0x38];
+ *(undefined4*)(puVar8 + 0x6ef8) = uVar4;
+ *(undefined4*)(puVar8 + 0x6efa) = uVar5;
+ *(undefined4*)(puVar8 + 0x6efc) = uVar6;
+ uVar4 = puVar7[0x3d];
+ uVar5 = puVar7[0x3e];
+ uVar6 = puVar7[0x3f];
+ *(undefined4*)(puVar8 + 0x6efe) = puVar7[0x3c];
+ *(undefined4*)(puVar8 + 0x6f00) = uVar4;
+ *(undefined4*)(puVar8 + 0x6f02) = uVar5;
+ *(undefined4*)(puVar8 + 0x6f04) = uVar6;
+ uVar4 = puVar7[0x41];
+ uVar5 = puVar7[0x42];
+ uVar6 = puVar7[0x43];
+ *(undefined4*)(puVar8 + 0x7ec0) = puVar7[0x40];
+ *(undefined4*)(puVar8 + 0x7ec2) = uVar4;
+ *(undefined4*)(puVar8 + 0x7ec4) = uVar5;
+ *(undefined4*)(puVar8 + 0x7ec6) = uVar6;
+ uVar4 = puVar7[0x45];
+ uVar5 = puVar7[0x46];
+ uVar6 = puVar7[0x47];
+ *(undefined4*)(puVar8 + 0x7ec8) = puVar7[0x44];
+ *(undefined4*)(puVar8 + 0x7eca) = uVar4;
+ *(undefined4*)(puVar8 + 0x7ecc) = uVar5;
+ *(undefined4*)(puVar8 + 0x7ece) = uVar6;
+ uVar4 = puVar7[0x49];
+ uVar5 = puVar7[0x4a];
+ uVar6 = puVar7[0x4b];
+ *(undefined4*)(puVar8 + 0x7ed0) = puVar7[0x48];
+ *(undefined4*)(puVar8 + 0x7ed2) = uVar4;
+ *(undefined4*)(puVar8 + 0x7ed4) = uVar5;
+ *(undefined4*)(puVar8 + 0x7ed6) = uVar6;
+ uVar4 = puVar7[0x4d];
+ uVar5 = puVar7[0x4e];
+ uVar6 = puVar7[0x4f];
+ *(undefined4*)(puVar8 + 0x7ed8) = puVar7[0x4c];
+ *(undefined4*)(puVar8 + 0x7eda) = uVar4;
+ *(undefined4*)(puVar8 + 0x7edc) = uVar5;
+ *(undefined4*)(puVar8 + 0x8e9a) = uVar6;
+ uVar4 = puVar7[0x51];
+ uVar5 = puVar7[0x52];
+ uVar6 = puVar7[0x53];
+ *(undefined4*)(puVar8 + 0x8e9c) = puVar7[0x50];
+ *(undefined4*)(puVar8 + 0x8e9e) = uVar4;
+ *(undefined4*)(puVar8 + 0x8ea0) = uVar5;
+ *(undefined4*)(puVar8 + 0x8ea2) = uVar6;
+ uVar4 = puVar7[0x55];
+ uVar5 = puVar7[0x56];
+ uVar6 = puVar7[0x57];
+ *(undefined4*)(puVar8 + 0x8ea4) = puVar7[0x54];
+ *(undefined4*)(puVar8 + 0x8ea6) = uVar4;
+ *(undefined4*)(puVar8 + 0x8ea8) = uVar5;
+ *(undefined4*)(puVar8 + 0x8eaa) = uVar6;
+ uVar4 = puVar7[0x59];
+ uVar5 = puVar7[0x5a];
+ uVar6 = puVar7[0x5b];
+ *(undefined4*)(puVar8 + 0x8eac) = puVar7[0x58];
+ *(undefined4*)(puVar8 + 0x8eae) = uVar4;
+ *(undefined4*)(puVar8 + 0x8eb0) = uVar5;
+ *(undefined4*)(puVar8 + 0x8eb2) = uVar6;
+ uVar4 = puVar7[0x5d];
+ uVar5 = puVar7[0x5e];
+ uVar6 = puVar7[0x5f];
+ *(undefined4*)(puVar8 + 0x9e74) = puVar7[0x5c];
+ *(undefined4*)(puVar8 + 0x9e76) = uVar4;
+ *(undefined4*)(puVar8 + 0x9e78) = uVar5;
+ *(undefined4*)(puVar8 + 0x9e7a) = uVar6;
+ uVar4 = puVar7[0x61];
+ uVar5 = puVar7[0x62];
+ uVar6 = puVar7[99];
+ *(undefined4*)(puVar8 + 0x9e7c) = puVar7[0x60];
+ *(undefined4*)(puVar8 + 0x9e7e) = uVar4;
+ *(undefined4*)(puVar8 + 0x9e80) = uVar5;
+ *(undefined4*)(puVar8 + 0x9e82) = uVar6;
+ uVar4 = puVar7[0x65];
+ uVar5 = puVar7[0x66];
+ uVar6 = puVar7[0x67];
+ *(undefined4*)(puVar8 + 0x9e84) = puVar7[100];
+ *(undefined4*)(puVar8 + 0x9e86) = uVar4;
+ *(undefined4*)(puVar8 + 0x9e88) = uVar5;
+ *(undefined4*)(puVar8 + 0xae4e) = uVar6;
+ uVar4 = puVar7[0x69];
+ uVar5 = puVar7[0x6a];
+ uVar6 = puVar7[0x6b];
+ *(undefined4*)(puVar8 + 0xae50) = puVar7[0x68];
+ *(undefined4*)(puVar8 + 0xae52) = uVar4;
+ *(undefined4*)(puVar8 + 0xae54) = uVar5;
+ *(undefined4*)(puVar8 + 0xae56) = uVar6;
+ uVar4 = puVar7[0x6d];
+ uVar5 = puVar7[0x6e];
+ uVar6 = puVar7[0x6f];
+ *(undefined4*)(puVar8 + 0xae58) = puVar7[0x6c];
+ *(undefined4*)(puVar8 + 0xae5a) = uVar4;
+ *(undefined4*)(puVar8 + 0xae5c) = uVar5;
+ *(undefined4*)(puVar8 + 0xae5e) = uVar6;
+ uVar4 = puVar7[0x71];
+ uVar5 = puVar7[0x72];
+ uVar6 = puVar7[0x73];
+ *(undefined4*)(puVar8 + 0xbe28) = puVar7[0x70];
+ *(undefined4*)(puVar8 + 0xbe2a) = uVar4;
+ *(undefined4*)(puVar8 + 0xbe2c) = uVar5;
+ *(undefined4*)(puVar8 + 0xbe2e) = uVar6;
+ uVar4 = puVar7[0x75];
+ uVar5 = puVar7[0x76];
+ uVar6 = puVar7[0x77];
+ *(undefined4*)(puVar8 + 0xbe30) = puVar7[0x74];
+ *(undefined4*)(puVar8 + 0xbe32) = uVar4;
+ *(undefined4*)(puVar8 + 0xbe34) = uVar5;
+ *(undefined4*)(puVar8 + 0xce02) = uVar6;
+ uVar4 = puVar7[0x79];
+ uVar5 = puVar7[0x7a];
+ uVar6 = puVar7[0x7b];
+ *(undefined4*)(puVar8 + 0xce04) = puVar7[0x78];
+ *(undefined4*)(puVar8 + 0xce06) = uVar4;
+ *(undefined4*)(puVar8 + 0xce08) = uVar5;
+ *(undefined4*)(puVar8 + 0xce0a) = uVar6;
+ uVar4 = puVar7[0x7d];
+ uVar5 = puVar7[0x7e];
+ uVar6 = puVar7[0x7f];
+ *(undefined4*)(puVar8 + 0xdddc) = puVar7[0x7c];
+ *(undefined4*)(puVar8 + 0xddde) = uVar4;
+ *(undefined4*)(puVar8 + 0xdde0) = uVar5;
+ *(undefined4*)(puVar8 + 0xedb6) = uVar6;
+ return;
+ }
+ puVar9 = (undefined*)((int)DAT_WindowAndDirectDraw.surfacePointer_mapGame
+ + (_drawYTileRow >> 1) * 0x1fb0 + (DAT_RenderMap_DrawSomeX & 0xfffffffe));
+ DAT_WindowAndDirectDraw.unknownSpecificPointer = puVar9;
+ if ((_drawYTileRow & 1) == 0) {
+ *(undefined2*)(puVar9 + 0xe) = *(undefined2*)puVar7;
+ uVar1 = *(undefined2*)(puVar7 + 5);
+ uVar2 = *(undefined2*)(puVar7 + 6);
+ uVar3 = *(undefined2*)(puVar7 + 7);
+ *(undefined2*)(puVar9 + 0x1fba) = *(undefined2*)(puVar7 + 4);
+ *(undefined2*)(puVar9 + 0x1fbc) = uVar1;
+ *(undefined2*)(puVar9 + 0x1fbe) = uVar2;
+ *(undefined2*)(puVar9 + 0x1fc0) = uVar3;
+ *(undefined2*)(puVar9 + 0x1fc2) = *(undefined2*)(puVar7 + 8);
+ uVar1 = *(undefined2*)(puVar7 + 0x11);
+ uVar2 = *(undefined2*)(puVar7 + 0x12);
+ uVar3 = *(undefined2*)(puVar7 + 0x13);
+ *(undefined2*)(puVar9 + 0x3f66) = *(undefined2*)(puVar7 + 0x10);
+ *(undefined2*)(puVar9 + 0x3f68) = uVar1;
+ *(undefined2*)(puVar9 + 0x3f6a) = uVar2;
+ *(undefined2*)(puVar9 + 0x3f6c) = uVar3;
+ uVar1 = *(undefined2*)(puVar7 + 0x15);
+ uVar2 = *(undefined2*)(puVar7 + 0x16);
+ uVar3 = *(undefined2*)(puVar7 + 0x17);
+ *(undefined2*)(puVar9 + 0x3f6e) = *(undefined2*)(puVar7 + 0x14);
+ *(undefined2*)(puVar9 + 0x3f70) = uVar1;
+ *(undefined2*)(puVar9 + 0x3f72) = uVar2;
+ *(undefined2*)(puVar9 + 0x3f74) = uVar3;
+ *(undefined2*)(puVar9 + 0x3f76) = *(undefined2*)(puVar7 + 0x18);
+ uVar1 = *(undefined2*)(puVar7 + 0x25);
+ uVar2 = *(undefined2*)(puVar7 + 0x26);
+ uVar3 = *(undefined2*)(puVar7 + 0x27);
+ *(undefined2*)(puVar9 + 0x5f12) = *(undefined2*)(puVar7 + 0x24);
+ *(undefined2*)(puVar9 + 0x5f14) = uVar1;
+ *(undefined2*)(puVar9 + 0x5f16) = uVar2;
+ *(undefined2*)(puVar9 + 0x5f18) = uVar3;
+ uVar1 = *(undefined2*)(puVar7 + 0x29);
+ uVar2 = *(undefined2*)(puVar7 + 0x2a);
+ uVar3 = *(undefined2*)(puVar7 + 0x2b);
+ *(undefined2*)(puVar9 + 0x5f1a) = *(undefined2*)(puVar7 + 0x28);
+ *(undefined2*)(puVar9 + 0x5f1c) = uVar1;
+ *(undefined2*)(puVar9 + 0x5f1e) = uVar2;
+ *(undefined2*)(puVar9 + 0x5f20) = uVar3;
+ uVar1 = *(undefined2*)(puVar7 + 0x2d);
+ uVar2 = *(undefined2*)(puVar7 + 0x2e);
+ uVar3 = *(undefined2*)(puVar7 + 0x2f);
+ *(undefined2*)(puVar9 + 0x5f22) = *(undefined2*)(puVar7 + 0x2c);
+ *(undefined2*)(puVar9 + 0x5f24) = uVar1;
+ *(undefined2*)(puVar9 + 0x5f26) = uVar2;
+ *(undefined2*)(puVar9 + 0x5f28) = uVar3;
+ *(undefined2*)(puVar9 + 0x5f2a) = *(undefined2*)(puVar7 + 0x30);
+ uVar1 = *(undefined2*)(puVar7 + 0x41);
+ uVar2 = *(undefined2*)(puVar7 + 0x42);
+ uVar3 = *(undefined2*)(puVar7 + 0x43);
+ *(undefined2*)(puVar9 + 0x7ec0) = *(undefined2*)(puVar7 + 0x40);
+ *(undefined2*)(puVar9 + 0x7ec2) = uVar1;
+ *(undefined2*)(puVar9 + 0x7ec4) = uVar2;
+ *(undefined2*)(puVar9 + 0x7ec6) = uVar3;
+ uVar1 = *(undefined2*)(puVar7 + 0x45);
+ uVar2 = *(undefined2*)(puVar7 + 0x46);
+ uVar3 = *(undefined2*)(puVar7 + 0x47);
+ *(undefined2*)(puVar9 + 0x7ec8) = *(undefined2*)(puVar7 + 0x44);
+ *(undefined2*)(puVar9 + 0x7eca) = uVar1;
+ *(undefined2*)(puVar9 + 0x7ecc) = uVar2;
+ *(undefined2*)(puVar9 + 0x7ece) = uVar3;
+ uVar1 = *(undefined2*)(puVar7 + 0x49);
+ uVar2 = *(undefined2*)(puVar7 + 0x4a);
+ uVar3 = *(undefined2*)(puVar7 + 0x4b);
+ *(undefined2*)(puVar9 + 0x7ed0) = *(undefined2*)(puVar7 + 0x48);
+ *(undefined2*)(puVar9 + 0x7ed2) = uVar1;
+ *(undefined2*)(puVar9 + 0x7ed4) = uVar2;
+ *(undefined2*)(puVar9 + 0x7ed6) = uVar3;
+ uVar1 = *(undefined2*)(puVar7 + 0x4d);
+ uVar2 = *(undefined2*)(puVar7 + 0x4e);
+ *(undefined2*)(puVar9 + 0x7ed8) = *(undefined2*)(puVar7 + 0x4c);
+ *(undefined2*)(puVar9 + 0x7eda) = uVar1;
+ *(undefined2*)(puVar9 + 0x7edc) = uVar2;
+ uVar1 = *(undefined2*)(puVar7 + 0x5d);
+ uVar2 = *(undefined2*)(puVar7 + 0x5e);
+ uVar3 = *(undefined2*)(puVar7 + 0x5f);
+ *(undefined2*)(puVar9 + 0x9e74) = *(undefined2*)(puVar7 + 0x5c);
+ *(undefined2*)(puVar9 + 0x9e76) = uVar1;
+ *(undefined2*)(puVar9 + 0x9e78) = uVar2;
+ *(undefined2*)(puVar9 + 0x9e7a) = uVar3;
+ uVar1 = *(undefined2*)(puVar7 + 0x61);
+ uVar2 = *(undefined2*)(puVar7 + 0x62);
+ uVar3 = *(undefined2*)(puVar7 + 99);
+ *(undefined2*)(puVar9 + 0x9e7c) = *(undefined2*)(puVar7 + 0x60);
+ *(undefined2*)(puVar9 + 0x9e7e) = uVar1;
+ *(undefined2*)(puVar9 + 0x9e80) = uVar2;
+ *(undefined2*)(puVar9 + 0x9e82) = uVar3;
+ uVar1 = *(undefined2*)(puVar7 + 0x65);
+ uVar2 = *(undefined2*)(puVar7 + 0x66);
+ *(undefined2*)(puVar9 + 0x9e84) = *(undefined2*)(puVar7 + 100);
+ *(undefined2*)(puVar9 + 0x9e86) = uVar1;
+ *(undefined2*)(puVar9 + 0x9e88) = uVar2;
+ uVar1 = *(undefined2*)(puVar7 + 0x71);
+ uVar2 = *(undefined2*)(puVar7 + 0x72);
+ uVar3 = *(undefined2*)(puVar7 + 0x73);
+ *(undefined2*)(puVar9 + 0xbe28) = *(undefined2*)(puVar7 + 0x70);
+ *(undefined2*)(puVar9 + 0xbe2a) = uVar1;
+ *(undefined2*)(puVar9 + 0xbe2c) = uVar2;
+ *(undefined2*)(puVar9 + 0xbe2e) = uVar3;
+ uVar1 = *(undefined2*)(puVar7 + 0x75);
+ uVar2 = *(undefined2*)(puVar7 + 0x76);
+ *(undefined2*)(puVar9 + 0xbe30) = *(undefined2*)(puVar7 + 0x74);
+ *(undefined2*)(puVar9 + 0xbe32) = uVar1;
+ *(undefined2*)(puVar9 + 0xbe34) = uVar2;
+ uVar1 = *(undefined2*)(puVar7 + 0x7d);
+ uVar2 = *(undefined2*)(puVar7 + 0x7e);
+ *(undefined2*)(puVar9 + 0xdddc) = *(undefined2*)(puVar7 + 0x7c);
+ *(undefined2*)(puVar9 + 0xddde) = uVar1;
+ *(undefined2*)(puVar9 + 0xdde0) = uVar2;
+ } else {
+ uVar1 = *(undefined2*)(puVar7 + 2);
+ uVar2 = *(undefined2*)(puVar7 + 3);
+ *(undefined2*)(puVar9 + 0x1fbc) = *(undefined2*)(puVar7 + 1);
+ *(undefined2*)(puVar9 + 0x1fbe) = uVar1;
+ *(undefined2*)(puVar9 + 0x1fc0) = uVar2;
+ uVar1 = *(undefined2*)(puVar7 + 10);
+ uVar2 = *(undefined2*)(puVar7 + 0xb);
+ *(undefined2*)(puVar9 + 0x3f68) = *(undefined2*)(puVar7 + 9);
+ *(undefined2*)(puVar9 + 0x3f6a) = uVar1;
+ *(undefined2*)(puVar9 + 0x3f6c) = uVar2;
+ uVar1 = *(undefined2*)(puVar7 + 0xd);
+ uVar2 = *(undefined2*)(puVar7 + 0xe);
+ uVar3 = *(undefined2*)(puVar7 + 0xf);
+ *(undefined2*)(puVar9 + 0x3f6e) = *(undefined2*)(puVar7 + 0xc);
+ *(undefined2*)(puVar9 + 0x3f70) = uVar1;
+ *(undefined2*)(puVar9 + 0x3f72) = uVar2;
+ *(undefined2*)(puVar9 + 0x3f74) = uVar3;
+ uVar1 = *(undefined2*)(puVar7 + 0x1a);
+ uVar2 = *(undefined2*)(puVar7 + 0x1b);
+ *(undefined2*)(puVar9 + 0x5f14) = *(undefined2*)(puVar7 + 0x19);
+ *(undefined2*)(puVar9 + 0x5f16) = uVar1;
+ *(undefined2*)(puVar9 + 0x5f18) = uVar2;
+ uVar1 = *(undefined2*)(puVar7 + 0x1d);
+ uVar2 = *(undefined2*)(puVar7 + 0x1e);
+ uVar3 = *(undefined2*)(puVar7 + 0x1f);
+ *(undefined2*)(puVar9 + 0x5f1a) = *(undefined2*)(puVar7 + 0x1c);
+ *(undefined2*)(puVar9 + 0x5f1c) = uVar1;
+ *(undefined2*)(puVar9 + 0x5f1e) = uVar2;
+ *(undefined2*)(puVar9 + 0x5f20) = uVar3;
+ uVar1 = *(undefined2*)(puVar7 + 0x21);
+ uVar2 = *(undefined2*)(puVar7 + 0x22);
+ uVar3 = *(undefined2*)(puVar7 + 0x23);
+ *(undefined2*)(puVar9 + 0x5f22) = *(undefined2*)(puVar7 + 0x20);
+ *(undefined2*)(puVar9 + 0x5f24) = uVar1;
+ *(undefined2*)(puVar9 + 0x5f26) = uVar2;
+ *(undefined2*)(puVar9 + 0x5f28) = uVar3;
+ uVar1 = *(undefined2*)(puVar7 + 0x32);
+ uVar2 = *(undefined2*)(puVar7 + 0x33);
+ *(undefined2*)(puVar9 + 0x7ec0) = *(undefined2*)(puVar7 + 0x31);
+ *(undefined2*)(puVar9 + 0x7ec2) = uVar1;
+ *(undefined2*)(puVar9 + 0x7ec4) = uVar2;
+ uVar1 = *(undefined2*)(puVar7 + 0x35);
+ uVar2 = *(undefined2*)(puVar7 + 0x36);
+ uVar3 = *(undefined2*)(puVar7 + 0x37);
+ *(undefined2*)(puVar9 + 0x7ec6) = *(undefined2*)(puVar7 + 0x34);
+ *(undefined2*)(puVar9 + 0x7ec8) = uVar1;
+ *(undefined2*)(puVar9 + 0x7eca) = uVar2;
+ *(undefined2*)(puVar9 + 0x7ecc) = uVar3;
+ uVar1 = *(undefined2*)(puVar7 + 0x39);
+ uVar2 = *(undefined2*)(puVar7 + 0x3a);
+ uVar3 = *(undefined2*)(puVar7 + 0x3b);
+ *(undefined2*)(puVar9 + 0x7ece) = *(undefined2*)(puVar7 + 0x38);
+ *(undefined2*)(puVar9 + 0x7ed0) = uVar1;
+ *(undefined2*)(puVar9 + 0x7ed2) = uVar2;
+ *(undefined2*)(puVar9 + 0x7ed4) = uVar3;
+ uVar1 = *(undefined2*)(puVar7 + 0x3d);
+ uVar2 = *(undefined2*)(puVar7 + 0x3e);
+ uVar3 = *(undefined2*)(puVar7 + 0x3f);
+ *(undefined2*)(puVar9 + 0x7ed6) = *(undefined2*)(puVar7 + 0x3c);
+ *(undefined2*)(puVar9 + 0x7ed8) = uVar1;
+ *(undefined2*)(puVar9 + 0x7eda) = uVar2;
+ *(undefined2*)(puVar9 + 0x7edc) = uVar3;
+ *(undefined2*)(puVar9 + 0x9e72) = *(undefined2*)(puVar7 + 0x4f);
+ uVar1 = *(undefined2*)(puVar7 + 0x51);
+ uVar2 = *(undefined2*)(puVar7 + 0x52);
+ uVar3 = *(undefined2*)(puVar7 + 0x53);
+ *(undefined2*)(puVar9 + 0x9e74) = *(undefined2*)(puVar7 + 0x50);
+ *(undefined2*)(puVar9 + 0x9e76) = uVar1;
+ *(undefined2*)(puVar9 + 0x9e78) = uVar2;
+ *(undefined2*)(puVar9 + 0x9e7a) = uVar3;
+ uVar1 = *(undefined2*)(puVar7 + 0x55);
+ uVar2 = *(undefined2*)(puVar7 + 0x56);
+ uVar3 = *(undefined2*)(puVar7 + 0x57);
+ *(undefined2*)(puVar9 + 0x9e7c) = *(undefined2*)(puVar7 + 0x54);
+ *(undefined2*)(puVar9 + 0x9e7e) = uVar1;
+ *(undefined2*)(puVar9 + 0x9e80) = uVar2;
+ *(undefined2*)(puVar9 + 0x9e82) = uVar3;
+ uVar1 = *(undefined2*)(puVar7 + 0x59);
+ uVar2 = *(undefined2*)(puVar7 + 0x5a);
+ uVar3 = *(undefined2*)(puVar7 + 0x5b);
+ *(undefined2*)(puVar9 + 0x9e84) = *(undefined2*)(puVar7 + 0x58);
+ *(undefined2*)(puVar9 + 0x9e86) = uVar1;
+ *(undefined2*)(puVar9 + 0x9e88) = uVar2;
+ *(undefined2*)(puVar9 + 0x9e8a) = uVar3;
+ *(undefined2*)(puVar9 + 0xbe26) = *(undefined2*)(puVar7 + 0x67);
+ uVar1 = *(undefined2*)(puVar7 + 0x69);
+ uVar2 = *(undefined2*)(puVar7 + 0x6a);
+ uVar3 = *(undefined2*)(puVar7 + 0x6b);
+ *(undefined2*)(puVar9 + 0xbe28) = *(undefined2*)(puVar7 + 0x68);
+ *(undefined2*)(puVar9 + 0xbe2a) = uVar1;
+ *(undefined2*)(puVar9 + 0xbe2c) = uVar2;
+ *(undefined2*)(puVar9 + 0xbe2e) = uVar3;
+ uVar1 = *(undefined2*)(puVar7 + 0x6d);
+ uVar2 = *(undefined2*)(puVar7 + 0x6e);
+ uVar3 = *(undefined2*)(puVar7 + 0x6f);
+ *(undefined2*)(puVar9 + 0xbe30) = *(undefined2*)(puVar7 + 0x6c);
+ *(undefined2*)(puVar9 + 0xbe32) = uVar1;
+ *(undefined2*)(puVar9 + 0xbe34) = uVar2;
+ *(undefined2*)(puVar9 + 0xbe36) = uVar3;
+ *(undefined2*)(puVar9 + 0xddda) = *(undefined2*)(puVar7 + 0x77);
+ uVar1 = *(undefined2*)(puVar7 + 0x79);
+ uVar2 = *(undefined2*)(puVar7 + 0x7a);
+ uVar3 = *(undefined2*)(puVar7 + 0x7b);
+ *(undefined2*)(puVar9 + 0xdddc) = *(undefined2*)(puVar7 + 0x78);
+ *(undefined2*)(puVar9 + 0xddde) = uVar1;
+ *(undefined2*)(puVar9 + 0xdde0) = uVar2;
+ *(undefined2*)(puVar9 + 0xdde2) = uVar3;
+ *(undefined2*)(puVar9 + 0xfd8e) = *(undefined2*)(puVar7 + 0x7f);
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x00453b00 BlitMapImageWithVerticalClip | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00453B00
+void Rendering::BlitMapImageWithVerticalClip()
+{
+ undefined2 uVar1;
+ undefined4 uVar2;
+ undefined4 uVar3;
+ void* pvVar4;
+ int iVar5;
+ uint uVar6;
+ undefined4* puVar7;
+ undefined2* puVar8;
+ ushort* puVar9;
+ undefined2* puVar10;
+ undefined2* puVar11;
+ int local_1c;
+ int local_10;
+ int local_8;
+ pvVar4 = DAT_TextureRenderCoreObject.gmProcessedImageData;
+ uVar6 = (DAT_00ed3154 - DAT_RenderMap_YOffset) + 9 + DAT_RenderMap_DrawSomeY;
+ iVar5 = DAT_GMImageHeaders.imh[DAT_GmImageAddressToBeRendered].height + -7;
+ local_1c = 0;
+ local_8 = 0;
+ if (DAT_00ed3170 < 1) {
+ return;
+ }
+ if ((int)uVar6 < DAT_TextureRenderCoreObject.mapGameSurfaceHeightRange.start) {
+ local_1c = DAT_TextureRenderCoreObject.mapGameSurfaceHeightRange.start - uVar6;
+ local_8 = (DAT_TextureRenderCoreObject.mapGameSurfaceHeightRange.start - iVar5) - uVar6;
+ DAT_00ed3170 = DAT_00ed3170 - local_1c;
+ iVar5 = iVar5 - local_1c;
+ local_1c = local_1c * 0x3c;
+ uVar6 = DAT_TextureRenderCoreObject.mapGameSurfaceHeightRange.start;
+ }
+ if (DAT_TextureRenderCoreObject.mapGameSurfaceHeightRange.end <= (int)(DAT_00ed3170 + uVar6)) {
+ DAT_00ed3170 = DAT_TextureRenderCoreObject.mapGameSurfaceHeightRange.end - uVar6;
+ iVar5 = iVar5
+ + ((DAT_TextureRenderCoreObject.mapGameSurfaceHeightRange.end - DAT_00ed3170) - uVar6);
+ }
+ local_10 = DAT_00ed3170;
+ if (iVar5 < 1) {
+ local_8 = local_8 * 0x3c;
+ local_10 = 0;
+ } else if (iVar5 < DAT_00ed3170) {
+ DAT_00ed3170 = DAT_00ed3170 - iVar5;
+ local_8 = 0;
+ local_10 = iVar5;
+ } else {
+ DAT_00ed3170 = 0;
+ }
+ iVar5 = DAT_GMImageOffsets[DAT_00ed316c];
+ if (DAT_TextureRenderCoreObject.isZoom2 == 0) {
+ local_1c = local_1c + DAT_GMImageOffsets[DAT_GmImageAddressToBeRendered];
+ puVar9 = DAT_WindowAndDirectDraw.surfacePointer_mapGame + DAT_RenderMap_DrawSomeX
+ + uVar6 * 0xfd8;
+ if (local_10 < 1)
+ goto LAB_00453db7;
+ while (true) {
+ puVar7 = (undefined4*)((int)pvVar4 + local_1c);
+ if (DAT_00ed317c == 1) {
+ do {
+ uVar2 = puVar7[8];
+ *(undefined4*)(puVar9 + 0x6ef6) = puVar7[7];
+ *(undefined4*)(puVar9 + 0x5f20) = uVar2;
+ uVar2 = puVar7[10];
+ uVar3 = puVar7[0xb];
+ *(undefined4*)(puVar9 + 0x4f4a) = puVar7[9];
+ *(undefined4*)(puVar9 + 0x3f74) = uVar2;
+ *(undefined4*)(puVar9 + 0x2f9e) = uVar3;
+ uVar2 = puVar7[0xd];
+ uVar3 = puVar7[0xe];
+ *(undefined4*)(puVar9 + 0x1fc8) = puVar7[0xc];
+ *(undefined4*)(puVar9 + 0xff2) = uVar2;
+ *(undefined4*)(puVar9 + 0x1c) = uVar3;
+ puVar7 = puVar7 + 0xf;
+ puVar9 = puVar9 + 0xfd8;
+ local_10 = local_10 + -1;
+ } while (0 < local_10);
+ } else if (DAT_00ed317c == 2) {
+ do {
+ uVar2 = puVar7[1];
+ uVar3 = puVar7[2];
+ *(undefined4*)puVar9 = *puVar7;
+ *(undefined4*)(puVar9 + 0xfda) = uVar2;
+ *(undefined4*)(puVar9 + 0x1fb4) = uVar3;
+ uVar2 = puVar7[4];
+ uVar3 = puVar7[5];
+ *(undefined4*)(puVar9 + 0x2f8e) = puVar7[3];
+ *(undefined4*)(puVar9 + 0x3f68) = uVar2;
+ *(undefined4*)(puVar9 + 0x4f42) = uVar3;
+ uVar2 = puVar7[7];
+ *(undefined4*)(puVar9 + 0x5f1c) = puVar7[6];
+ *(undefined4*)(puVar9 + 0x6ef6) = uVar2;
+ puVar7 = puVar7 + 0xf;
+ puVar9 = puVar9 + 0xfd8;
+ local_10 = local_10 + -1;
+ } while (0 < local_10);
+ } else if (DAT_00ed317c == 3) {
+ do {
+ *(undefined4*)(puVar9 + 0x6ef6) = puVar7[7];
+ puVar7 = puVar7 + 0xf;
+ puVar9 = puVar9 + 0xfd8;
+ local_10 = local_10 + -1;
+ } while (0 < local_10);
+ } else {
+ do {
+ uVar2 = puVar7[1];
+ uVar3 = puVar7[2];
+ *(undefined4*)puVar9 = *puVar7;
+ *(undefined4*)(puVar9 + 0xfda) = uVar2;
+ *(undefined4*)(puVar9 + 0x1fb4) = uVar3;
+ uVar2 = puVar7[4];
+ uVar3 = puVar7[5];
+ *(undefined4*)(puVar9 + 0x2f8e) = puVar7[3];
+ *(undefined4*)(puVar9 + 0x3f68) = uVar2;
+ *(undefined4*)(puVar9 + 0x4f42) = uVar3;
+ uVar2 = puVar7[7];
+ uVar3 = puVar7[8];
+ *(undefined4*)(puVar9 + 0x5f1c) = puVar7[6];
+ *(undefined4*)(puVar9 + 0x6ef6) = uVar2;
+ *(undefined4*)(puVar9 + 0x5f20) = uVar3;
+ uVar2 = puVar7[10];
+ uVar3 = puVar7[0xb];
+ *(undefined4*)(puVar9 + 0x4f4a) = puVar7[9];
+ *(undefined4*)(puVar9 + 0x3f74) = uVar2;
+ *(undefined4*)(puVar9 + 0x2f9e) = uVar3;
+ uVar2 = puVar7[0xd];
+ uVar3 = puVar7[0xe];
+ *(undefined4*)(puVar9 + 0x1fc8) = puVar7[0xc];
+ *(undefined4*)(puVar9 + 0xff2) = uVar2;
+ *(undefined4*)(puVar9 + 0x1c) = uVar3;
+ puVar7 = puVar7 + 0xf;
+ puVar9 = puVar9 + 0xfd8;
+ local_10 = local_10 + -1;
+ } while (0 < local_10);
+ }
+ LAB_00453db7:
+ local_10 = DAT_00ed3170;
+ if (DAT_00ed3170 < 1)
+ break;
+ DAT_00ed3170 = 0;
+ local_1c = local_8 + iVar5;
+ }
+ return;
+ }
+ local_1c = local_1c + DAT_GMImageOffsets[DAT_GmImageAddressToBeRendered];
+ puVar10 = (undefined2*)((int)DAT_WindowAndDirectDraw.surfacePointer_mapGame + (uVar6 >> 1) * 0x1fb0
+ + (DAT_RenderMap_DrawSomeX & 0xfffffffe));
+ if (local_10 < 1)
+ goto LAB_00454049;
+ do {
+ puVar8 = (undefined2*)((int)pvVar4 + local_1c);
+ puVar11 = puVar10;
+ if (DAT_00ed317c == 1) {
+ do {
+ while ((uVar6 & 1) != 0) {
+ puVar10 = puVar11 + 0xfd8;
+ uVar1 = puVar8[0x12];
+ puVar11[0x3f67] = puVar8[0xe];
+ puVar11[0x2f91] = uVar1;
+ uVar1 = puVar8[0x1a];
+ puVar11[0x1fbb] = puVar8[0x16];
+ puVar11[0xfe5] = uVar1;
+ puVar8 = puVar8 + 0x1e;
+ uVar6 = uVar6 + 1;
+ local_10 = local_10 + -1;
+ puVar11 = puVar10;
+ if (local_10 < 1)
+ goto LAB_00454049;
+ }
+ uVar1 = puVar8[0x14];
+ puVar11[0x2f90] = puVar8[0x10];
+ puVar11[0x1fba] = uVar1;
+ uVar1 = puVar8[0x1c];
+ puVar11[0xfe4] = puVar8[0x18];
+ puVar11[0xe] = uVar1;
+ puVar8 = puVar8 + 0x1e;
+ uVar6 = uVar6 + 1;
+ local_10 = local_10 + -1;
+ puVar10 = puVar11;
+ } while (0 < local_10);
+ } else if (DAT_00ed317c == 2) {
+ do {
+ while ((uVar6 & 1) != 0) {
+ uVar1 = puVar8[6];
+ puVar11[0xfd9] = puVar8[2];
+ puVar11[0x1fb3] = uVar1;
+ uVar1 = puVar8[0xe];
+ puVar11[0x2f8d] = puVar8[10];
+ puVar11[0x3f67] = uVar1;
+ puVar8 = puVar8 + 0x1e;
+ uVar6 = uVar6 + 1;
+ local_10 = local_10 + -1;
+ puVar10 = puVar11 + 0xfd8;
+ puVar11 = puVar11 + 0xfd8;
+ if (local_10 < 1)
+ goto LAB_00454049;
+ }
+ uVar1 = puVar8[4];
+ *puVar11 = *puVar8;
+ puVar11[0xfda] = uVar1;
+ uVar1 = puVar8[0xc];
+ puVar11[0x1fb4] = puVar8[8];
+ puVar11[0x2f8e] = uVar1;
+ puVar8 = puVar8 + 0x1e;
+ uVar6 = uVar6 + 1;
+ local_10 = local_10 + -1;
+ puVar10 = puVar11;
+ } while (0 < local_10);
+ } else if (DAT_00ed317c == 3) {
+ do {
+ while ((uVar6 & 1) != 0) {
+ puVar11[0x3f67] = puVar8[0xe];
+ puVar8 = puVar8 + 0x1e;
+ uVar6 = uVar6 + 1;
+ local_10 = local_10 + -1;
+ puVar10 = puVar11 + 0xfd8;
+ puVar11 = puVar11 + 0xfd8;
+ if (local_10 < 1)
+ goto LAB_00454049;
+ }
+ puVar8 = puVar8 + 0x1e;
+ uVar6 = uVar6 + 1;
+ local_10 = local_10 + -1;
+ puVar10 = puVar11;
+ } while (0 < local_10);
+ } else {
+ do {
+ while ((uVar6 & 1) != 0) {
+ uVar1 = puVar8[6];
+ puVar11[0xfd9] = puVar8[2];
+ puVar11[0x1fb3] = uVar1;
+ uVar1 = puVar8[0xe];
+ puVar11[0x2f8d] = puVar8[10];
+ puVar11[0x3f67] = uVar1;
+ uVar1 = puVar8[0x16];
+ puVar11[0x2f91] = puVar8[0x12];
+ puVar11[0x1fbb] = uVar1;
+ puVar11[0xfe5] = puVar8[0x1a];
+ puVar8 = puVar8 + 0x1e;
+ uVar6 = uVar6 + 1;
+ local_10 = local_10 + -1;
+ puVar10 = puVar11 + 0xfd8;
+ puVar11 = puVar11 + 0xfd8;
+ if (local_10 < 1)
+ goto LAB_00454049;
+ }
+ uVar1 = puVar8[4];
+ *puVar11 = *puVar8;
+ puVar11[0xfda] = uVar1;
+ uVar1 = puVar8[0xc];
+ puVar11[0x1fb4] = puVar8[8];
+ puVar11[0x2f8e] = uVar1;
+ uVar1 = puVar8[0x14];
+ puVar11[0x2f90] = puVar8[0x10];
+ puVar11[0x1fba] = uVar1;
+ uVar1 = puVar8[0x1c];
+ puVar11[0xfe4] = puVar8[0x18];
+ puVar11[0xe] = uVar1;
+ puVar8 = puVar8 + 0x1e;
+ uVar6 = uVar6 + 1;
+ local_10 = local_10 + -1;
+ puVar10 = puVar11;
+ } while (0 < local_10);
+ }
+ LAB_00454049:
+ local_10 = DAT_00ed3170;
+ if (DAT_00ed3170 < 1) {
+ return;
+ }
+ DAT_00ed3170 = 0;
+ local_1c = local_8 + iVar5;
+ } while (true);
+}
+}
+
+### 0x00454080 BlitMapImageWithVerticalClipAndYOffset | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00454080
+void Rendering::BlitMapImageWithVerticalClipAndYOffset()
+{
+ undefined2 uVar1;
+ undefined4 uVar2;
+ undefined4 uVar3;
+ void* pvVar4;
+ int iVar5;
+ uint uVar6;
+ undefined4* puVar7;
+ undefined2* puVar8;
+ ushort* puVar9;
+ undefined2* puVar10;
+ undefined2* puVar11;
+ int local_1c;
+ int local_14;
+ int local_c;
+ pvVar4 = DAT_TextureRenderCoreObject.gmProcessedImageData;
+ uVar6 = (DAT_00ed3154 - DAT_RenderMap_YOffset) + 9 + DAT_RenderMap_DrawSomeY;
+ local_1c = 0xa0 - DAT_RenderMap_YOffset;
+ iVar5 = DAT_GMImageHeaders.imh[DAT_GmImageAddressToBeRendered].height + -7;
+ local_14 = 0;
+ if (DAT_00ed3170 < 1) {
+ return;
+ }
+ if ((int)uVar6 < DAT_TextureRenderCoreObject.mapGameSurfaceHeightRange.start) {
+ local_14 = DAT_TextureRenderCoreObject.mapGameSurfaceHeightRange.start - uVar6;
+ DAT_00ed3170 = DAT_00ed3170 - local_14;
+ local_1c = local_1c + local_14;
+ iVar5 = iVar5 - local_14;
+ uVar6 = DAT_TextureRenderCoreObject.mapGameSurfaceHeightRange.start;
+ }
+ if (DAT_TextureRenderCoreObject.mapGameSurfaceHeightRange.end <= (int)(DAT_00ed3170 + uVar6)) {
+ DAT_00ed3170 = DAT_TextureRenderCoreObject.mapGameSurfaceHeightRange.end - uVar6;
+ iVar5 = iVar5
+ + ((DAT_TextureRenderCoreObject.mapGameSurfaceHeightRange.end - DAT_00ed3170) - uVar6);
+ }
+ local_c = DAT_00ed3170;
+ local_14 = local_14 * 0x3c;
+ local_1c = local_1c * 0x3c;
+ if (iVar5 < 1) {
+ local_c = 0;
+ } else if (iVar5 < DAT_00ed3170) {
+ DAT_00ed3170 = DAT_00ed3170 - iVar5;
+ local_1c = local_1c + iVar5 * 0x3c;
+ local_c = iVar5;
+ } else {
+ DAT_00ed3170 = 0;
+ local_14 = local_1c;
+ }
+ if (DAT_00ed317c == 3) {
+ local_14 = local_14 + -0x1e0;
+ }
+ iVar5 = DAT_GMImageOffsets[DAT_00ed316c];
+ if (DAT_TextureRenderCoreObject.isZoom2 == 0) {
+ local_14 = local_14 + DAT_GMImageOffsets[DAT_GmImageAddressToBeRendered];
+ puVar9 = DAT_WindowAndDirectDraw.surfacePointer_mapGame + DAT_RenderMap_DrawSomeX
+ + uVar6 * 0xfd8;
+ if (local_c < 1)
+ goto LAB_00454359;
+ while (true) {
+ puVar7 = (undefined4*)((int)pvVar4 + local_14);
+ if (DAT_00ed317c == 1) {
+ do {
+ uVar2 = puVar7[8];
+ *(undefined4*)(puVar9 + 0x6ef6) = puVar7[7];
+ *(undefined4*)(puVar9 + 0x5f20) = uVar2;
+ uVar2 = puVar7[10];
+ uVar3 = puVar7[0xb];
+ *(undefined4*)(puVar9 + 0x4f4a) = puVar7[9];
+ *(undefined4*)(puVar9 + 0x3f74) = uVar2;
+ *(undefined4*)(puVar9 + 0x2f9e) = uVar3;
+ uVar2 = puVar7[0xd];
+ uVar3 = puVar7[0xe];
+ *(undefined4*)(puVar9 + 0x1fc8) = puVar7[0xc];
+ *(undefined4*)(puVar9 + 0xff2) = uVar2;
+ *(undefined4*)(puVar9 + 0x1c) = uVar3;
+ puVar7 = puVar7 + 0xf;
+ puVar9 = puVar9 + 0xfd8;
+ local_c = local_c + -1;
+ } while (0 < local_c);
+ } else if (DAT_00ed317c == 2) {
+ do {
+ uVar2 = puVar7[1];
+ uVar3 = puVar7[2];
+ *(undefined4*)puVar9 = *puVar7;
+ *(undefined4*)(puVar9 + 0xfda) = uVar2;
+ *(undefined4*)(puVar9 + 0x1fb4) = uVar3;
+ uVar2 = puVar7[4];
+ uVar3 = puVar7[5];
+ *(undefined4*)(puVar9 + 0x2f8e) = puVar7[3];
+ *(undefined4*)(puVar9 + 0x3f68) = uVar2;
+ *(undefined4*)(puVar9 + 0x4f42) = uVar3;
+ uVar2 = puVar7[7];
+ *(undefined4*)(puVar9 + 0x5f1c) = puVar7[6];
+ *(undefined4*)(puVar9 + 0x6ef6) = uVar2;
+ puVar7 = puVar7 + 0xf;
+ puVar9 = puVar9 + 0xfd8;
+ local_c = local_c + -1;
+ } while (0 < local_c);
+ } else if (DAT_00ed317c == 3) {
+ do {
+ *(undefined4*)(puVar9 + 0x6ef6) = puVar7[7];
+ puVar7 = puVar7 + 0xf;
+ puVar9 = puVar9 + 0xfd8;
+ local_c = local_c + -1;
+ } while (0 < local_c);
+ } else {
+ do {
+ uVar2 = puVar7[1];
+ uVar3 = puVar7[2];
+ *(undefined4*)puVar9 = *puVar7;
+ *(undefined4*)(puVar9 + 0xfda) = uVar2;
+ *(undefined4*)(puVar9 + 0x1fb4) = uVar3;
+ uVar2 = puVar7[4];
+ uVar3 = puVar7[5];
+ *(undefined4*)(puVar9 + 0x2f8e) = puVar7[3];
+ *(undefined4*)(puVar9 + 0x3f68) = uVar2;
+ *(undefined4*)(puVar9 + 0x4f42) = uVar3;
+ uVar2 = puVar7[7];
+ uVar3 = puVar7[8];
+ *(undefined4*)(puVar9 + 0x5f1c) = puVar7[6];
+ *(undefined4*)(puVar9 + 0x6ef6) = uVar2;
+ *(undefined4*)(puVar9 + 0x5f20) = uVar3;
+ uVar2 = puVar7[10];
+ uVar3 = puVar7[0xb];
+ *(undefined4*)(puVar9 + 0x4f4a) = puVar7[9];
+ *(undefined4*)(puVar9 + 0x3f74) = uVar2;
+ *(undefined4*)(puVar9 + 0x2f9e) = uVar3;
+ uVar2 = puVar7[0xd];
+ uVar3 = puVar7[0xe];
+ *(undefined4*)(puVar9 + 0x1fc8) = puVar7[0xc];
+ *(undefined4*)(puVar9 + 0xff2) = uVar2;
+ *(undefined4*)(puVar9 + 0x1c) = uVar3;
+ puVar7 = puVar7 + 0xf;
+ puVar9 = puVar9 + 0xfd8;
+ local_c = local_c + -1;
+ } while (0 < local_c);
+ }
+ LAB_00454359:
+ local_c = DAT_00ed3170;
+ if (DAT_00ed3170 < 1)
+ break;
+ DAT_00ed3170 = 0;
+ local_14 = local_1c + iVar5;
+ }
+ return;
+ }
+ local_14 = local_14 + DAT_GMImageOffsets[DAT_GmImageAddressToBeRendered];
+ puVar10 = (undefined2*)((int)DAT_WindowAndDirectDraw.surfacePointer_mapGame + (uVar6 >> 1) * 0x1fb0
+ + (DAT_RenderMap_DrawSomeX & 0xfffffffe));
+ if (local_c < 1)
+ goto LAB_004545eb;
+ do {
+ puVar8 = (undefined2*)((int)pvVar4 + local_14);
+ puVar11 = puVar10;
+ if (DAT_00ed317c == 1) {
+ do {
+ while ((uVar6 & 1) != 0) {
+ puVar10 = puVar11 + 0xfd8;
+ uVar1 = puVar8[0x12];
+ puVar11[0x3f67] = puVar8[0xe];
+ puVar11[0x2f91] = uVar1;
+ uVar1 = puVar8[0x1a];
+ puVar11[0x1fbb] = puVar8[0x16];
+ puVar11[0xfe5] = uVar1;
+ puVar8 = puVar8 + 0x1e;
+ uVar6 = uVar6 + 1;
+ local_c = local_c + -1;
+ puVar11 = puVar10;
+ if (local_c < 1)
+ goto LAB_004545eb;
+ }
+ uVar1 = puVar8[0x14];
+ puVar11[0x2f90] = puVar8[0x10];
+ puVar11[0x1fba] = uVar1;
+ uVar1 = puVar8[0x1c];
+ puVar11[0xfe4] = puVar8[0x18];
+ puVar11[0xe] = uVar1;
+ puVar8 = puVar8 + 0x1e;
+ uVar6 = uVar6 + 1;
+ local_c = local_c + -1;
+ puVar10 = puVar11;
+ } while (0 < local_c);
+ } else if (DAT_00ed317c == 2) {
+ do {
+ while ((uVar6 & 1) != 0) {
+ uVar1 = puVar8[6];
+ puVar11[0xfd9] = puVar8[2];
+ puVar11[0x1fb3] = uVar1;
+ uVar1 = puVar8[0xe];
+ puVar11[0x2f8d] = puVar8[10];
+ puVar11[0x3f67] = uVar1;
+ puVar8 = puVar8 + 0x1e;
+ uVar6 = uVar6 + 1;
+ local_c = local_c + -1;
+ puVar10 = puVar11 + 0xfd8;
+ puVar11 = puVar11 + 0xfd8;
+ if (local_c < 1)
+ goto LAB_004545eb;
+ }
+ uVar1 = puVar8[4];
+ *puVar11 = *puVar8;
+ puVar11[0xfda] = uVar1;
+ uVar1 = puVar8[0xc];
+ puVar11[0x1fb4] = puVar8[8];
+ puVar11[0x2f8e] = uVar1;
+ puVar8 = puVar8 + 0x1e;
+ uVar6 = uVar6 + 1;
+ local_c = local_c + -1;
+ puVar10 = puVar11;
+ } while (0 < local_c);
+ } else if (DAT_00ed317c == 3) {
+ do {
+ while ((uVar6 & 1) != 0) {
+ puVar11[0x3f67] = puVar8[0xe];
+ puVar8 = puVar8 + 0x1e;
+ uVar6 = uVar6 + 1;
+ local_c = local_c + -1;
+ puVar10 = puVar11 + 0xfd8;
+ puVar11 = puVar11 + 0xfd8;
+ if (local_c < 1)
+ goto LAB_004545eb;
+ }
+ puVar8 = puVar8 + 0x1e;
+ uVar6 = uVar6 + 1;
+ local_c = local_c + -1;
+ puVar10 = puVar11;
+ } while (0 < local_c);
+ } else {
+ do {
+ while ((uVar6 & 1) != 0) {
+ uVar1 = puVar8[6];
+ puVar11[0xfd9] = puVar8[2];
+ puVar11[0x1fb3] = uVar1;
+ uVar1 = puVar8[0xe];
+ puVar11[0x2f8d] = puVar8[10];
+ puVar11[0x3f67] = uVar1;
+ uVar1 = puVar8[0x16];
+ puVar11[0x2f91] = puVar8[0x12];
+ puVar11[0x1fbb] = uVar1;
+ puVar11[0xfe5] = puVar8[0x1a];
+ puVar8 = puVar8 + 0x1e;
+ uVar6 = uVar6 + 1;
+ local_c = local_c + -1;
+ puVar10 = puVar11 + 0xfd8;
+ puVar11 = puVar11 + 0xfd8;
+ if (local_c < 1)
+ goto LAB_004545eb;
+ }
+ uVar1 = puVar8[4];
+ *puVar11 = *puVar8;
+ puVar11[0xfda] = uVar1;
+ uVar1 = puVar8[0xc];
+ puVar11[0x1fb4] = puVar8[8];
+ puVar11[0x2f8e] = uVar1;
+ uVar1 = puVar8[0x14];
+ puVar11[0x2f90] = puVar8[0x10];
+ puVar11[0x1fba] = uVar1;
+ uVar1 = puVar8[0x1c];
+ puVar11[0xfe4] = puVar8[0x18];
+ puVar11[0xe] = uVar1;
+ puVar8 = puVar8 + 0x1e;
+ uVar6 = uVar6 + 1;
+ local_c = local_c + -1;
+ puVar10 = puVar11;
+ } while (0 < local_c);
+ }
+ LAB_004545eb:
+ local_c = DAT_00ed3170;
+ if (DAT_00ed3170 < 1) {
+ return;
+ }
+ DAT_00ed3170 = 0;
+ local_14 = local_1c + iVar5;
+ } while (true);
+}
+}
+
+### 0x00493690 RenderLoadAndSaveBar | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00493690
+ void Rendering::RenderLoadAndSaveBar(int progressValueUnk)
+ {
+ int iVar1;
+ DWORD _currentTime;
+ BOOLEnum _areWeInAnInGameMenu;
+ _currentTime = timeGetTime();
+ if (0x1e < (int)(_currentTime - TIME_LoadSaveBar::instance)) {
+ iVar1 = (progressValueUnk * 300) / 1000;
+ TIME_LoadSaveBar::instance = _currentTime;
+ _areWeInAnInGameMenu
+ = getAreWeInAInGameMenu();
+ if (_areWeInAnInGameMenu != FALSE) {
+ DAT_TextManagerObject.textSurfaceTarget = RT_MAP_GAME;
+ DAT_PencilRenderCore.surfaceTarget = RT_MAP_GAME;
+ drawColorBox(DAT_MenuTextInputState.field40_0x94,
+ DAT_MenuTextInputState.field41_0x98,
+ DAT_MenuTextInputState.field40_0x94 + iVar1,
+ DAT_MenuTextInputState.field41_0x98 + 0xf,
+ (ushort)((int)(COL_VERY_SOFT_YELLOW::instance.shortValue)));
+ if (((DAT_GameCore.activeMenuTab.tabType != BASMTT_SIEGETENT_SIEGETOWER)
+ && (DAT_GameCore.activeMenuTab.tabType
+ != BASMTT_SIEGETENT_SHIELD))
+ || (DAT_WindowAndDirectDraw.mbr_0xd0 = 2,
+ DAT_GameCore.currentMenuViewType
+ == MVT_BUILDING_AND_STATUS_MENU)) {
+ DAT_WindowAndDirectDraw.mbr_0xd0 = 1;
+ }
+ renderBltAndFlip(1);
+ DAT_TextManagerObject.textSurfaceTarget = RT_SCREEN_MENU;
+ DAT_PencilRenderCore.surfaceTarget = RT_SCREEN_MENU;
+ return;
+ }
+ drawColorBox(
+ DAT_MenuTextInputState.field40_0x94,
+ DAT_MenuTextInputState.field41_0x98,
+ DAT_MenuTextInputState.field40_0x94 + iVar1,
+ DAT_MenuTextInputState.field41_0x98 + 0xf,
+ (ushort)((int)(COL_VERY_SOFT_YELLOW::instance.shortValue)));
+ bltScreenMenuSurfaceToScreen(DAT_MenuTextInputState.field40_0x94,
+ DAT_MenuTextInputState.field41_0x98,
+ DAT_MenuTextInputState.field40_0x94 + 300,
+ DAT_MenuTextInputState.field41_0x98 + 0xf);
+ }
+ return;
+ }
+}
+}
+
+### 0x004b2a60 ViewportBasedTileNumber | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004B2A60
+int Rendering::ViewportBasedTileNumber()
+{
+ int iVar1;
+ iVar1 = 8;
+ if (DAT_TileMapState.mapOrientation != 0) {
+ if (DAT_TileMapState.mapOrientation == 6) {
+ iVar1 = 80408;
+ } else if (DAT_TileMapState.mapOrientation == 4) {
+ iVar1 = 160808;
+ } else if (DAT_TileMapState.mapOrientation == 2) {
+ iVar1 = 241208;
+ }
+ }
+ return DAT_ViewportRenderState
+ .screenPointToTileNumber[((int)(DAT_ViewportRenderState.viewportState.viewportX
+ + (DAT_ViewportRenderState.viewportState.viewportX >> 0x1f & 0x1fU))
+ >> 5)
+ + ((int)DAT_ViewportRenderState.viewportState.mbr_0xb0 / 2
+ + ((int)(DAT_ViewportRenderState.viewportState.viewportY
+ + (DAT_ViewportRenderState.viewportState.viewportY >> 0x1f & 0xfU))
+ >> 4))
+ * 0x191
+ + DAT_ViewportRenderState.viewportState.mbr_0xac + iVar1 + -8];
+}
+}
+
+### 0x004bc790 renderAnimatedTutorialFloatOverlay | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004BC790
+ void Rendering::RenderAnimatedTutorialFloatOverlay(int param_1, int param_2)
+ {
+ RenderTargetInt RVar1;
+ DWORD DVar2;
+ uint uVar3;
+ int iVar4;
+ if (DAT_00df5540 != 0) {
+ return;
+ }
+ if ((INT_00df5640::instance & 1U) == 0) {
+ INT_00df5640::instance = INT_00df5640::instance | 1;
+ INT_00df563c::instance = MACRO_CALL(timeGetTime)();
+ }
+ DVar2 = MACRO_CALL(timeGetTime)();
+ RVar1 = DAT_TextureRenderCoreObject.drawBufferChoiceValue;
+ uVar3 = (DVar2 - INT_00df563c::instance) / 0x3c;
+ if (9 < uVar3) {
+ uVar3 = 0;
+ INT_00df563c::instance = DVar2;
+ }
+ iVar4 = 0;
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1024x768) {
+ LAB_004bc7fc:
+ iVar4 = 0xa8;
+ goto LAB_004bc873;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1280x1024) {
+ iVar4 = 0x1a8;
+ goto LAB_004bc873;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1600x1200) {
+ LAB_004bc814:
+ iVar4 = 600;
+ } else {
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1280x720) {
+ iVar4 = 0x78;
+ goto LAB_004bc873;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution != SRE_1440x900) {
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1920x1080) {
+ iVar4 = 0x1e0;
+ goto LAB_004bc873;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1920x1200)
+ goto LAB_004bc814;
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_2560x1440) {
+ iVar4 = 0x348;
+ goto LAB_004bc873;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_2560x1600) {
+ iVar4 = 1000;
+ goto LAB_004bc873;
+ }
+ if ((DAT_WindowAndDirectDraw.currentGameResolution == SRE_1366x768)
+ || (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1360x768))
+ goto LAB_004bc7fc;
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1680x1050) {
+ iVar4 = 0xfd2;
+ goto LAB_004bc873;
+ }
+ if (DAT_WindowAndDirectDraw.currentGameResolution != SRE_1600x900)
+ goto LAB_004bc873;
+ }
+ iVar4 = 300;
+ }
+ LAB_004bc873:
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ renderGMWithAlphaMask(GID_FLOATS_NEW, uVar3 + 0x105,
+ DAT_WindowAndDirectDraw.mainMenuBorderWidth + param_1 + -0x24, param_2 + -0x65 + iVar4,
+ GID_FLOATS_NEW, uVar3 + 0x10f, 0);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ renderGMWithAlphaMask(GID_FLOATS_NEW, uVar3 + 0x105,
+ DAT_ViewportRenderState.viewportState.currentCameraOffsetX
+ + DAT_WindowAndDirectDraw.mainMenuBorderWidth + param_1 + -0x24,
+ DAT_ViewportRenderState.viewportState.currentCameraOffsetY + iVar4 + param_2 + -0x65,
+ GID_FLOATS_NEW, uVar3 + 0x10f, 0);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RVar1;
+ return;
+ }
+}
+}
+

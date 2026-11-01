@@ -1,0 +1,641 @@
+### 0x004816f0 ClickTerrainHeightMinOrMax | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004816F0
+ void Commands::ClickTerrainHeightMinOrMax()
+ {
+ char local_1;
+ DAT_GameSynchronyState.DAT_CommandSize = 6;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam3, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ DAT_GameSynchronyState.DAT_GameCommandParam0
+ = DAT_GameSynchronyState.DAT_CommandActionPlan;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = 0;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&local_1, 1, GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = (int)local_1;
+ if (((DAT_GameSynchronyState.DAT_GameCommandParam0 < ((GameCommandScheduling)400))
+ && (DAT_GameSynchronyState.DAT_GameCommandParam1 < 400))
+ && (*(char*)(DAT_GameSynchronyState.DAT_GameCommandParam1 * 400 + 0x21aec98
+ + DAT_GameSynchronyState.DAT_GameCommandParam0)
+ != '\0')) {
+ useTerrainHeightBrush(
+ DAT_ViewportRenderState
+ .translationMatrix[DAT_GameSynchronyState.DAT_GameCommandParam1]
+ .addXgetTile
+ + DAT_GameSynchronyState.DAT_GameCommandParam0,
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam1)),
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam2)),
+ DAT_GameSynchronyState.DAT_GameCommandParam3);
+ updateWalkAndPathLayer(9, (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam0)),
+ (uint)((int)(DAT_GameSynchronyState.DAT_GameCommandParam1)));
+ DAT_TileMapState.forceUpdateMacroLayerFlag = 1;
+ triggerMinimapRedraw(
+ 2);
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x004833f0 AcknowledgeMapExistence | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004833F0
+ void Commands::AcknowledgeMapExistence()
+ {
+ int _flag;
+ int _index;
+ DAT_GameSynchronyState.DAT_CommandSize = 8;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(&_flag, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&_index, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ if ((_flag == 0) && (DAT_GameSynchronyState.isHost != FALSE)) {
+ DAT_GameSynchronyState.unknownMapRelatedReceivedDataArray[_index] = 0;
+ DAT_GameSynchronyState.field239_0x1072f8 = 50;
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x004834b0 ShareMSVMapIndex | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004834B0
+ void Commands::ShareMSVMapIndex()
+ {
+ int local_8;
+ int local_4;
+ DAT_GameSynchronyState.DAT_CommandSize = 8;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(&local_8, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&local_4, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ if ((local_8 == 0) && (DAT_GameSynchronyState.isHost != FALSE)) {
+ DAT_MenuTextInputState.DAT_ArrayOfMapIndices[local_4 + 499] = 0;
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x00485c10 StartSendingMapFile | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00485C10
+ void Commands::StartSendingMapFile()
+ {
+ short* psVar1;
+ char local_1;
+ DAT_GameSynchronyState.DAT_CommandSize = 1;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 1,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(&local_1, 1, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ if (DAT_GameSynchronyState.isHost != FALSE) {
+ DAT_GameSynchronyState
+ .field282_0x109d98[DAT_GameSynchronyState.protocolInvokerPlayerID]
+ = (local_1 != '\0') + 1;
+ }
+ psVar1 = DAT_GameSynchronyState.field282_0x109d98 + 1;
+ do {
+ if (*psVar1 == 0) {
+ return;
+ }
+ psVar1 = psVar1 + 1;
+ } while ((int)psVar1 < 0x1a27512);
+ activateModalDialog(MMT_SEND_MAP_TO, FALSE);
+ }
+ return;
+ }
+}
+}
+
+### 0x00485cc0 StartReceivingMapFile | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00485CC0
+ void Commands::StartReceivingMapFile()
+ {
+ char cVar1;
+ char* _mapname;
+ char* pcVar2;
+ size_t size;
+ GameCommandParameterLocation srcSwitch;
+ GameCommandParameterReadWrite destSwitch;
+ char local_3f4[4];
+ char local_3f0[1004];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)local_3f4;
+ DAT_GameSynchronyState.DAT_CommandSize = 1004;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ destSwitch = GCPRW_SERIALIZE_INTO_PARAM_1;
+ srcSwitch = GCPL_FIXED_COMMAND_DATA_ADDRESS;
+ size = 1000;
+ _mapname = mapNames_getLoadedMapNameForIndex(DAT_GameSynchronyState.DAT_GameCommandParam0);
+ serializeOrDeserializeCommandParameter(_mapname, size, srcSwitch, destSwitch);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.mapSendingFileSize, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ _mapname = mapNames_getLoadedMapNameForIndex(DAT_GameSynchronyState.DAT_GameCommandParam0);
+ pcVar2 = local_3f4;
+ do {
+ cVar1 = *_mapname;
+ *pcVar2 = cVar1;
+ _mapname = _mapname + 1;
+ pcVar2 = pcVar2 + 1;
+ } while (cVar1 != '\0');
+ _mapname = &stack0xfffffc0b;
+ do {
+ pcVar2 = _mapname;
+ _mapname = pcVar2 + 1;
+ } while (pcVar2[1] != '\0');
+ builtin_strncpy(pcVar2 + 1, ".map", 5);
+ resolveResourceFileName(
+ FRT_MAPS, (CHAR_CONST*)((int)(local_3f4)));
+ DAT_GameSynchronyState.DAT_PlayerIDReceiver
+ = DAT_GameSynchronyState
+ .currentPlayerFullIDArray[DAT_GameSynchronyState.DAT_GameCommandParam1];
+ ;
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(local_3f4, 1000, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.mapSendingFileSize, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ if (DAT_GameSynchronyState.isHost == FALSE) {
+ _mapname = &stack0xfffffc0b;
+ do {
+ pcVar2 = _mapname;
+ _mapname = pcVar2 + 1;
+ } while (pcVar2[1] != '\0');
+ builtin_strncpy(pcVar2 + 1, ".map", 5);
+ resolveResourceFileName(
+ FRT_MAPS, (CHAR_CONST*)((int)(local_3f4)));
+ _mapname = getFileNameOfCurrentActiveResource();
+ DAT_GameSynchronyState.FILEPTR_ReceivedMapFile
+ = _fopen(_mapname, "wb");
+ DAT_GameSynchronyState.DAT_MapFileReceivingState = 2;
+ DAT_GameSynchronyState.mapSendingByteBufferAddress[0] = 0;
+ activateModalDialog(MMT_RECEIVE_MAP_FROM, FALSE);
+ }
+ };
+ return;
+ }
+}
+}
+
+### 0x00485e80 MapSendingRelated | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00485E80
+ void Commands::MapSendingRelated()
+ {
+ char local_1;
+ DAT_GameSynchronyState.DAT_CommandSize = 1;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 1,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(&local_1, 1, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ if (((DAT_GameSynchronyState.isHost != FALSE)
+ && (DAT_GameSynchronyState
+ .field290_0x109e20[DAT_GameSynchronyState.protocolInvokerPlayerID] = 2,
+ local_1 == '\x01'))
+ && (DAT_GameSynchronyState
+ .mapSendingFileHandles[DAT_GameSynchronyState.protocolInvokerPlayerID]
+ != (FILE*)0x0)) {
+ DAT_GameSynchronyState
+ .mapSendingByteBufferAddress[DAT_GameSynchronyState.protocolInvokerPlayerID]
+ = DAT_GameSynchronyState.mapSendingFileSize;
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x00489c80 CommandLoadMapHeader | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00489C80
+ void Commands::CommandLoadMapHeader()
+ {
+ char* _mapNameAddress;
+ dword dVar1;
+ dword local_fc8;
+ undefined4 local_fc4;
+ WCHAR _mapName[1010];
+ CHAR local_7dc[2008];
+ uint local_4;
+ int maxSize;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)&local_fc8;
+ DAT_GameSynchronyState.DAT_CommandSize = 1008;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ maxSize = 1000;
+ _mapNameAddress = mapNames_getLoadedMapNameForIndex(DAT_GameSynchronyState.DAT_GameCommandParam0);
+ multiByteToWideCharWithSize(_mapName, (LPCSTR)((int)(_mapNameAddress)), maxSize);
+ serializeOrDeserializeCommandParameter(_mapName, 2000, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ _mapNameAddress = mapNames_getLoadedMapNameForIndex(DAT_GameSynchronyState.DAT_GameCommandParam0);
+ local_fc8 = getChecksumOfMapByName(_mapNameAddress);
+ serializeOrDeserializeCommandParameter(&local_fc8, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ ;
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(_mapName, 2000, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ wideCharToMultiByteWithSize(local_7dc, (LPWSTR)((int)(_mapName)), 1000);
+ serializeOrDeserializeCommandParameter(&local_fc8, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&local_fc4, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ if (DAT_GameSynchronyState.isHost == FALSE) {
+ dVar1 = getChecksumOfMapByName(local_7dc);
+ if (dVar1 != local_fc8) {
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = 0;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = local_fc4;
+ queueCommand(GCT_ACKNOLEDGE_MAP_EXISTENCE);
+ }
+ }
+ };
+ return;
+ }
+}
+}
+
+### 0x00489e30 SubmitMSVMapIndexAndProperties | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00489E30
+ void Commands::SubmitMSVMapIndexAndProperties()
+ {
+ char cVar1;
+ WCHAR WVar2;
+ uint uVar3;
+ char* pcVar4;
+ char* pcVar5;
+ WCHAR* pWVar6;
+ BOOLEnum BVar7;
+ int numberOfSymbols;
+ undefined4 local_17a0;
+ int local_179c;
+ int local_1798;
+ Base64State local_1794;
+ char _msvFile[1001];
+ WCHAR local_fb0[1001];
+ uVar3 = MSVC_SecurityCookie::instance ^ (uint)&local_17a0;
+ DAT_GameSynchronyState.DAT_CommandSize = 0x7dc;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ numberOfSymbols = 1000;
+ pcVar4 = mapNames_getLoadedMapNameForIndex(DAT_MenuTextInputState
+ .DAT_ArrayOfMapIndices[DAT_GameSynchronyState.DAT_GameCommandParam0 + -1]);
+ multiByteToWideCharWithSize(local_fb0, (LPCSTR)((int)(pcVar4)), numberOfSymbols);
+ serializeOrDeserializeCommandParameter(local_fb0, 2000, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ pcVar5 = mapNames_getLoadedMapNameForIndex(DAT_MenuTextInputState
+ .DAT_ArrayOfMapIndices[DAT_GameSynchronyState.DAT_GameCommandParam0 + -1]);
+ pcVar4 = _msvFile;
+ do {
+ cVar1 = *pcVar5;
+ *pcVar4 = cVar1;
+ pcVar5 = pcVar5 + 1;
+ pcVar4 = pcVar4 + 1;
+ } while (cVar1 != '\0');
+ pcVar4 = (char*)((int)&local_1794.lineCharacterCounter + 3);
+ do {
+ pcVar5 = pcVar4;
+ pcVar4 = pcVar5 + 1;
+ } while (pcVar5[1] != '\0');
+ builtin_strncpy(pcVar5 + 1, ".msv", 5);
+ resolveResourceFileName(
+ FRT_UNKNOWN, (CHAR_CONST*)((int)(_msvFile)));
+ readMapHeader(FALSE);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.savedMapTimeInTicks, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.savedUnitsCRC32Hash, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ ;
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(local_fb0, 2000, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ Base64EncodeInit(&local_1794);
+ fillMemory_IntegerValue(
+ 0x3f2, 0, (void*)((int)(_msvFile)));
+ pWVar6 = local_fb0;
+ do {
+ WVar2 = *pWVar6;
+ pWVar6 = pWVar6 + 1;
+ } while (WVar2 != L'\0');
+ Base64Encode((char*)local_fb0,
+ (int)((int)((pWVar6 - (local_fb0 + 1) >> 1) * 2)), (char*)((int)(_msvFile)), &local_1794);
+ serializeOrDeserializeCommandParameter(&local_17a0, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&local_1798, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&local_179c, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ if (DAT_GameSynchronyState.isHost == FALSE) {
+ pcVar4 = (char*)((int)&local_1794.lineCharacterCounter + 3);
+ do {
+ pcVar5 = pcVar4;
+ pcVar4 = pcVar5 + 1;
+ } while (pcVar5[1] != '\0');
+ builtin_strncpy(pcVar5 + 1, ".msv", 5);
+ resolveResourceFileName(
+ FRT_UNKNOWN, (CHAR_CONST*)((int)(_msvFile)));
+ BVar7 = doesFileOfActiveResourceExist();
+ if (BVar7 != FALSE) {
+ readMapHeader(FALSE);
+ if ((DAT_GameSynchronyState.savedMapTimeInTicks == local_1798)
+ && (DAT_GameSynchronyState.savedUnitsCRC32Hash == local_179c))
+ goto LAB_0048a0c8;
+ }
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = 0;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = local_17a0;
+ queueCommand(
+ GCT_LOAD_MAP_HEADER | GCT_MULTIPLAYER_ANNOUNCE_HOST);
+ }
+ }
+ LAB_0048a0c8:;
+ return;
+ }
+}
+}
+
+### 0x0048b6c0 ShareMapHashForMapName | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x0048B6C0
+ void Commands::ShareMapHashForMapName()
+ {
+ char cVar1;
+ char* pcVar2;
+ char* pcVar3;
+ int iVar4;
+ int _mapHash_2;
+ size_t size;
+ GameCommandParameterLocation srcSwitch;
+ GameCommandParameterReadWrite destSwitch;
+ undefined4 _mapHash;
+ char local_3f4[4];
+ char local_3f0[1004];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)&_mapHash;
+ DAT_GameSynchronyState.DAT_CommandSize = 0x3ec;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ destSwitch = GCPRW_SERIALIZE_INTO_PARAM_1;
+ srcSwitch = GCPL_FIXED_COMMAND_DATA_ADDRESS;
+ size = 1000;
+ pcVar2 = mapNames_getLoadedMapNameForIndex(DAT_GameSynchronyState.DAT_GameCommandParam0);
+ serializeOrDeserializeCommandParameter(pcVar2, size, srcSwitch, destSwitch);
+ pcVar3 = mapNames_getLoadedMapNameForIndex(DAT_GameSynchronyState.DAT_GameCommandParam0);
+ pcVar2 = local_3f4;
+ do {
+ cVar1 = *pcVar3;
+ *pcVar2 = cVar1;
+ pcVar3 = pcVar3 + 1;
+ pcVar2 = pcVar2 + 1;
+ } while (cVar1 != '\0');
+ pcVar2 = (char*)((int)&_mapHash + 3);
+ do {
+ pcVar3 = pcVar2;
+ pcVar2 = pcVar3 + 1;
+ } while (pcVar3[1] != '\0');
+ builtin_strncpy(pcVar3 + 1, ".map", 5);
+ resolveResourceFileName(
+ FRT_MAPS, (CHAR_CONST*)((int)(local_3f4)));
+ _mapHash = fileHashFunctionByteByByte();
+ serializeOrDeserializeCommandParameter(&_mapHash, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ iVar4 = 1;
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ do {
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[iVar4] == -1)
+ || (iVar4 == DAT_GameSynchronyState.currentPlayerSlotID)) {
+ DAT_GameSynchronyState.field282_0x109d98[iVar4] = 2;
+ } else {
+ DAT_GameSynchronyState.field282_0x109d98[iVar4] = 0;
+ }
+ iVar4 = iVar4 + 1;
+ } while (iVar4 < 9);
+ ;
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(local_3f4, 1000, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&_mapHash, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ if (DAT_GameSynchronyState.isHost == FALSE) {
+ iVar4 = 0;
+ do {
+ cVar1 = local_3f4[iVar4];
+ DAT_GameSynchronyState.unknownMapName_01[iVar4] = cVar1;
+ iVar4 = iVar4 + 1;
+ } while (cVar1 != '\0');
+ pcVar2 = (char*)((int)&_mapHash + 3);
+ do {
+ pcVar3 = pcVar2;
+ pcVar2 = pcVar3 + 1;
+ } while (pcVar3[1] != '\0');
+ /*
+ .map in reverse
+ */
+ builtin_strncpy(pcVar3 + 1, ".map", 5);
+ resolveResourceFileName(
+ FRT_MAPS, (CHAR_CONST*)((int)(local_3f4)));
+ _mapHash_2 = fileHashFunctionByteByByte();
+ if (_mapHash_2 != _mapHash) {
+ DAT_MenuTextInputState.DAT_MenuOptionsActionParameter = 2000;
+ activateModalDialogAndClearText(MMT_QUIT_DIALOG);
+ ;
+ return;
+ }
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = 1;
+ queueCommand(GCT_START_OR_STOP_SEND_MAP_FILEUnk);
+ }
+ };
+ return;
+ }
+}
+}
+
+### 0x0048b8f0 ShareMapPart | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x0048B8F0
+ void Commands::ShareMapPart()
+ {
+ undefined1 auStack_40c[2];
+ char local_40a;
+ char local_409;
+ size_t _buffer2;
+ undefined1 _buffer[1024];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)auStack_40c;
+ DAT_GameSynchronyState.DAT_CommandSize = 1029;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ local_40a = '\0';
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan != GCS_SCHEDULE_AND_SEND) {
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(_buffer, (size_t)((int)(1024)),
+ GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&_buffer2, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&local_409, 1, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ local_40a = local_409;
+ if (DAT_GameSynchronyState.FILEPTR_ReceivedMapFile != (FILE*)0x0) {
+ if (-1 < (int)_buffer2) {
+ _fwrite(
+ _buffer, 1, _buffer2, DAT_GameSynchronyState.FILEPTR_ReceivedMapFile);
+ DAT_GameSynchronyState.mapSendingByteBufferAddress[0]
+ = DAT_GameSynchronyState.mapSendingByteBufferAddress[0] + _buffer2;
+ }
+ if ((DAT_GameSynchronyState.mapSendingFileSize
+ <= DAT_GameSynchronyState.mapSendingByteBufferAddress[0])
+ || (_buffer2 == 0xffffffff)) {
+ _fclose(DAT_GameSynchronyState.FILEPTR_ReceivedMapFile);
+ DAT_GameSynchronyState.FILEPTR_ReceivedMapFile = (FILE*)0x0;
+ DAT_GameSynchronyState.DAT_MapFileReceivingState = 0;
+ activateModalDialog(MMT_NONE, FALSE);
+ loadMapHeaders(
+ FALSE);
+ DAT_GameSynchronyState.reparseMaps = TRUE;
+ }
+ }
+ if (local_40a != '\0') {
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = 0;
+ queueCommand(GCT_START_OR_STOP_SEND_MAP_FILEUnk
+ | GCT_MULTIPLAYER_ANNOUNCE_HOST);
+ }
+ }
+ LAB_0048bbc1:;
+ return;
+ }
+ if (DAT_GameSynchronyState
+ .mapSendingFileHandles[DAT_GameSynchronyState.DAT_GameCommandParam1]
+ == (FILE*)0x0)
+ goto LAB_0048bbc1;
+ if (DAT_GameSynchronyState.DAT_GameCommandParam0 == -1) {
+ _memset(_buffer, 0, (size_t)((int)(1024)));
+ serializeOrDeserializeCommandParameter(_buffer, (size_t)((int)(1024)),
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ local_40a = '\0';
+ _buffer2 = 0xffffffff;
+ serializeOrDeserializeCommandParameter(&_buffer2, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&local_40a, 1, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ ;
+ return;
+ }
+ _buffer2 = _fread(_buffer, 1, (size_t)((int)(1024)),
+ (FILE*)((int)(DAT_GameSynchronyState
+ .mapSendingFileHandles[DAT_GameSynchronyState.DAT_GameCommandParam1])));
+ serializeOrDeserializeCommandParameter(_buffer, (size_t)((int)(1024)),
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ /*
+ TODO: by is the address of the buffer shared?
+ */
+ serializeOrDeserializeCommandParameter(&_buffer2, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ DAT_GameSynchronyState
+ .mapSendingByteBufferAddress[DAT_GameSynchronyState.DAT_GameCommandParam1]
+ = DAT_GameSynchronyState
+ .mapSendingByteBufferAddress[DAT_GameSynchronyState.DAT_GameCommandParam1]
+ + _buffer2;
+ DAT_GameSynchronyState.DAT_PlayerIDReceiver
+ = DAT_GameSynchronyState
+ .currentPlayerFullIDArray[DAT_GameSynchronyState.DAT_GameCommandParam1];
+ if (DAT_GameSynchronyState
+ .mapSendingByteBufferAddress[DAT_GameSynchronyState.DAT_GameCommandParam1]
+ < DAT_GameSynchronyState.mapSendingFileSize) {
+ if (DAT_GameSynchronyState.DAT_GameCommandParam0 % 10 != 9)
+ goto LAB_0048ba65;
+ local_40a = '\x01';
+ } else {
+ local_40a = '\x01';
+ _fclose(DAT_GameSynchronyState
+ .mapSendingFileHandles[DAT_GameSynchronyState.DAT_GameCommandParam1]);
+ DAT_GameSynchronyState
+ .mapSendingFileHandles[DAT_GameSynchronyState.DAT_GameCommandParam1] = (FILE*)0x0;
+ LAB_0048ba65:
+ if (local_40a == '\0')
+ goto LAB_0048ba88;
+ }
+ if ((DAT_GameSynchronyState
+ .currentPlayerFullIDArray[DAT_GameSynchronyState.DAT_GameCommandParam1]
+ != -1)
+ && (DAT_GameSynchronyState.DAT_GameCommandParam1
+ != DAT_GameSynchronyState.currentPlayerSlotID)) {
+ DAT_GameSynchronyState.field290_0x109e20[DAT_GameSynchronyState.DAT_GameCommandParam1]
+ = 1;
+ }
+ LAB_0048ba88:
+ serializeOrDeserializeCommandParameter(&local_40a, 1, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ ;
+ return;
+ }
+}
+}
+

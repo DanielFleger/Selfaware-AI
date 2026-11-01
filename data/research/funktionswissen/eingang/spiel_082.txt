@@ -1,0 +1,1197 @@
+### 0x00518c50 renderAttackInfoDebugOverlay | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x00518C50
+ void TroopValueState::renderAttackInfoDebugOverlay(int x, int y, int width, int height)
+ {
+ int iVar1;
+ int _offset;
+ int iVar2;
+ int xParam;
+ char local_3ec[1000];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)local_3ec;
+ xParam = x + 2;
+ renderTextToScreen(
+ "Biggest zone: ", xParam, y, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->attackInfo.biggestZone, xParam, y, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ iVar2 = x + 0xc;
+ renderTextToScreen(
+ "Start zone: ", iVar2, y, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ this->attackInfo.startZone, iVar2, y, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ iVar1 = y + 0x10;
+ renderTextToScreen(
+ "Scale zone: ", xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->attackInfo.scaleZone, xParam, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "keep POS: ", iVar2, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .keep.yEntry,
+ iVar2, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ iVar1 = y + 0x20;
+ renderTextToScreen(
+ "nof fpoints: ", xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->attackInfo.nof_fpoints, xParam, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "inv count: ", iVar2, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ this->attackInfo.inv_count, iVar2, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "nof tribes: ", x + 0x16, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ (int)(char)this->attackInfo.nof_tribes[this->attackInfo.inv_count], x + 0x16, iVar1,
+ TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ iVar1 = y + 0x30;
+ renderTextToScreen(
+ "Start con: ", xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->attackInfo.startCon, xParam, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Keep con: ", iVar2, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ this->attackInfo.keepCon, iVar2, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "cas dis: ", x + 0x16, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ this->attackInfo.casDis, x + 0x16, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "zone size: ", x + 0x20, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ this->attackInfo.zoneSize, x + 0x20, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ _offset = this->attackInfo.attacker * 0x177bc;
+ _sprintf(local_3ec, "Hack:%d(%d)(%d) Scale:%d(%d)(%d) Stone:%d",
+ *(undefined4*)((int)this->attackInfo.hackValuesArray + _offset + -0xc),
+ *(undefined4*)((int)this->attackInfo.hackValuesArray + _offset + -8),
+ *(undefined4*)((int)this->attackInfo.hackValuesArray + _offset + -4),
+ *(undefined4*)((int)this->attackInfo.scaleValuesArray + _offset + -0xc),
+ *(undefined4*)((int)this->attackInfo.scaleValuesArray + _offset + -8),
+ *(undefined4*)((int)this->attackInfo.scaleValuesArray + _offset + -4),
+ *(undefined4*)((int)this->attackInfo.scaleValuesArray + _offset + -0x10));
+ renderTextToScreen(
+ local_3ec, xParam, y + 0x40, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ iVar2 = this->attackInfo.attacker * 0x177bc;
+ _sprintf(local_3ec, "Town:%d(%d) Gate:%d(%d) Moat:%d(%d) Lord:%d(%d)",
+ *(undefined4*)((int)this->attackInfo.townValuesArray + iVar2 + -0xc),
+ *(undefined4*)((int)this->attackInfo.townValuesArray + iVar2 + -4),
+ *(undefined4*)((int)this->attackInfo.gateValuesArray + iVar2 + -0xc),
+ *(undefined4*)((int)this->attackInfo.gateValuesArray + iVar2 + -4),
+ *(undefined4*)((int)this->attackInfo.moatValuesArray + iVar2 + -0xc),
+ *(undefined4*)((int)this->attackInfo.moatValuesArray + iVar2 + -4), this->attackInfo.lord1,
+ this->attackInfo.lord2);
+ renderTextToScreen(
+ local_3ec, xParam, y + 0x50, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ _sprintf(local_3ec, "High:%d(%d)(%d) Arch:%d(%d)(%d) People:%d(%d)(%d)",
+ this->attackInfo.high1, this->attackInfo.high2, this->attackInfo.high3, this->attackInfo.arch1,
+ this->attackInfo.arch2, this->attackInfo.arch3, this->attackInfo.people1, this->attackInfo.people2,
+ this->attackInfo.people3);
+ renderTextToScreen(
+ local_3ec, xParam, y + 0x60, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ iVar2 = this->attackInfo.attacker * 0x177bc;
+ _sprintf(local_3ec, "Wide:%d(%d)(%d)",
+ *(undefined4*)((int)this->attackInfo.wideValuesArray + iVar2 + -0xc),
+ *(undefined4*)((int)this->attackInfo.wideValuesArray + iVar2 + -8),
+ *(undefined4*)((int)this->attackInfo.wideValuesArray + iVar2 + -4));
+ renderTextToScreen(
+ local_3ec, xParam, y + 0x70, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ _sprintf(local_3ec, "Archer points:%d, Next:%d",
+ this->attackInfo.archerPoints, this->attackInfo.archerPointsNext);
+ renderTextToScreen(
+ local_3ec, xParam, y + 0x80, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ _sprintf(local_3ec, "Support points:%d, Next:%d",
+ this->attackInfo.supportPoints, this->attackInfo.supportPointsNext);
+ renderTextToScreen(
+ local_3ec, xParam, y + 0x90, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ _sprintf(
+ local_3ec, "Tent points:%d, Next:%d", this->attackInfo.tentPoints, this->attackInfo.tentPointsNext);
+ renderTextToScreen(
+ local_3ec, xParam, y + 0xa0, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ _sprintf(local_3ec,
+ "ai troops: A:%d X:%d S:%d P:%d M:%d S:%d K:%d L:%d E:%d T:%d",
+ this->attackInfo.aiTribeSizesPerTribeType.aiTroops_A,
+ this->attackInfo.aiTribeSizesPerTribeType.aiTroops_X,
+ this->attackInfo.aiTribeSizesPerTribeType.aiTroops_S,
+ this->attackInfo.aiTribeSizesPerTribeType.aiTroops_P,
+ this->attackInfo.aiTribeSizesPerTribeType.aiTroops_M,
+ this->attackInfo.aiTribeSizesPerTribeType.aiTroops_S2,
+ this->attackInfo.aiTribeSizesPerTribeType.aiTroops_K,
+ this->attackInfo.aiTribeSizesPerTribeType.aiTroops_L,
+ this->attackInfo.aiTribeSizesPerTribeType.aiTroops_E,
+ this->attackInfo.aiTribeSizesPerTribeType.aiTroops_T);
+ renderTextToScreen(
+ local_3ec, xParam, y + 0xb0, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ _sprintf(local_3ec, "killed:%d lost:%d AI troops:%d",
+ DAT_GameState.playerDataArray[1].troopsKilled,
+ DAT_GameState.playerDataArray[1].troopsLost, this->attackInfo.aiTroops);
+ renderTextToScreen(
+ local_3ec, xParam, y + 0xc0, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ _sprintf(local_3ec, "Points: %d, %d, %d, %d, %d, %d, %d, %d, %d ",
+ this->attackInfo.playerTotalTroopValueArray[0], this->attackInfo.playerTotalTroopValueArray[1],
+ this->attackInfo.playerTotalTroopValueArray[2], this->attackInfo.playerTotalTroopValueArray[3],
+ this->attackInfo.playerTotalTroopValueArray[4], this->attackInfo.playerTotalTroopValueArray[5],
+ this->attackInfo.playerTotalTroopValueArray[6], this->attackInfo.playerTotalTroopValueArray[7],
+ this->attackInfo.playerTotalTroopValueArray[8]);
+ renderTextToScreen(
+ local_3ec, xParam, y + 0xd0, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ ;
+ return;
+ }
+ }
+}
+}
+
+### 0x00519310 computeAttackWaveTroopComposition | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x00519310
+ void TroopValueState::computeAttackWaveTroopComposition()
+ {
+ this->attackInfo._134988_4_ = 6;
+ if (this->attackInfo.field86974_0x20f74 < 6) {
+ this->attackInfo._134980_4_ = this->attackInfo.spearmenAndMacemen;
+ this->attackInfo._134984_4_ = 1;
+ this->attackInfo._134988_4_ = 1;
+ this->attackInfo._134996_4_ = 1;
+ this->attackInfo._135000_4_ = 1;
+ this->attackInfo._135004_4_ = 0;
+ this->attackInfo._134976_4_ = 0;
+ goto LAB_00519672;
+ }
+ if (9 < this->attackInfo.field86974_0x20f74) {
+ if (this->attackInfo.field86974_0x20f74 < 0x14) {
+ if (this->attackInfo.spearmenAndMacemen < 1) {
+ this->attackInfo._134980_4_ = 0;
+ } else if (this->attackInfo.spearmenAndMacemen < 2) {
+ this->attackInfo._134980_4_ = 1;
+ } else if (this->attackInfo.spearmenAndMacemen < 4) {
+ this->attackInfo._134980_4_ = this->attackInfo.spearmenAndMacemen + -1;
+ } else {
+ this->attackInfo._134980_4_ = 3;
+ }
+ this->attackInfo._135004_4_ = 4;
+ this->attackInfo._134984_4_ = (1 < this->attackInfo.pikemenSwordsmenAndMore) + 2;
+ this->attackInfo._134988_4_ = (6 < this->attackInfo.spearmenAndMacemen) + 3;
+ this->attackInfo._134996_4_ = (4 < this->attackInfo.pikemenSwordsmenAndMore) + 2;
+ this->attackInfo._135000_4_ = (0 < this->attackInfo.pikemenSwordsmenAndMore) + 1;
+ if (this->attackInfo.laddermen < 5) {
+ this->attackInfo._135004_4_ = this->attackInfo.laddermen;
+ }
+ this->attackInfo._134976_4_ = 1;
+ } else if (this->attackInfo.field86974_0x20f74 < 0x1e) {
+ if (this->attackInfo.spearmenAndMacemen < 1) {
+ this->attackInfo._134980_4_ = 0;
+ } else if (this->attackInfo.spearmenAndMacemen < 2) {
+ this->attackInfo._134980_4_ = 1;
+ } else if (this->attackInfo.spearmenAndMacemen < 4) {
+ this->attackInfo._134980_4_ = this->attackInfo.spearmenAndMacemen + -1;
+ } else {
+ this->attackInfo._134980_4_ = 3;
+ }
+ this->attackInfo._134984_4_ = (uint)(4 < this->attackInfo.pikemenSwordsmenAndMore) * 2 + 2;
+ if (this->attackInfo.spearmenAndMacemen < 0xb) {
+ this->attackInfo._134988_4_ = (uint)(5 < this->attackInfo.spearmenAndMacemen) * 2 + 2;
+ }
+ if (this->attackInfo.pikemenSwordsmenAndMore < 9) {
+ this->attackInfo._134996_4_ = (uint)(4 < this->attackInfo.pikemenSwordsmenAndMore) * 2 + 2;
+ } else {
+ this->attackInfo._134996_4_ = 5;
+ }
+ this->attackInfo._135000_4_ = 2;
+ this->attackInfo._135004_4_ = 5;
+ if (this->attackInfo.laddermen < 6) {
+ this->attackInfo._135004_4_ = this->attackInfo.laddermen;
+ }
+ this->attackInfo._134976_4_ = (4 < this->attackInfo.pikemenSwordsmenAndMore) + 1;
+ } else {
+ if (this->attackInfo.spearmenAndMacemen < 1) {
+ this->attackInfo._134980_4_ = 0;
+ } else if (this->attackInfo.spearmenAndMacemen < 2) {
+ this->attackInfo._134980_4_ = 1;
+ } else if (this->attackInfo.spearmenAndMacemen < 5) {
+ this->attackInfo._134980_4_ = this->attackInfo.spearmenAndMacemen + -1;
+ } else {
+ this->attackInfo._134980_4_ = 4;
+ }
+ this->attackInfo._134984_4_ = ((this->attackInfo.pikemenSwordsmenAndMore < 6) - 1 & 3) + 2;
+ if (this->attackInfo.spearmenAndMacemen < 0xd) {
+ this->attackInfo._134988_4_ = (uint)(6 < this->attackInfo.spearmenAndMacemen) * 2 + 3;
+ } else {
+ this->attackInfo._134988_4_ = 8;
+ }
+ if (this->attackInfo.pikemenSwordsmenAndMore < 0xb) {
+ this->attackInfo._134996_4_ = (uint)(8 < this->attackInfo.pikemenSwordsmenAndMore) * 2 + 3;
+ } else {
+ this->attackInfo._134996_4_ = 6;
+ }
+ this->attackInfo._135004_4_ = 6;
+ this->attackInfo._135000_4_ = (0 < this->attackInfo.pikemenSwordsmenAndMore) + 2;
+ if (this->attackInfo.laddermen < 7) {
+ this->attackInfo._135004_4_ = this->attackInfo.laddermen;
+ }
+ this->attackInfo._134976_4_ = 2;
+ }
+ goto LAB_00519672;
+ }
+ if (this->attackInfo.spearmenAndMacemen < 1) {
+ this->attackInfo._134980_4_ = 0;
+ } else if (this->attackInfo.spearmenAndMacemen < 2) {
+ this->attackInfo._134980_4_ = 1;
+ } else if (this->attackInfo.spearmenAndMacemen < 3) {
+ this->attackInfo._134980_4_ = this->attackInfo.spearmenAndMacemen + -1;
+ } else {
+ this->attackInfo._134980_4_ = 2;
+ }
+ this->attackInfo._134984_4_ = (this->attackInfo.pikemenSwordsmenAndMore != 0) + 1;
+ this->attackInfo._134988_4_ = (4 < this->attackInfo.spearmenAndMacemen) + 2;
+ if (this->attackInfo.pikemenSwordsmenAndMore == 0) {
+ this->attackInfo._134996_4_ = 0;
+ LAB_005193ed:
+ this->attackInfo._135000_4_ = 0;
+ } else {
+ this->attackInfo._134996_4_ = 1;
+ this->attackInfo._135000_4_ = 1;
+ if (this->attackInfo.pikemenSwordsmenAndMore < 1)
+ goto LAB_005193ed;
+ }
+ this->attackInfo._135004_4_ = 2;
+ if (this->attackInfo.laddermen < 3) {
+ this->attackInfo._135004_4_ = this->attackInfo.laddermen;
+ }
+ this->attackInfo._134976_4_ = ZEXT14(this->attackInfo.pikemenSwordsmenAndMore != 0);
+ LAB_00519672:
+ this->attackInfo._134992_4_ = this->attackInfo.engineers;
+ this->attackInfo._134972_4_ = 3;
+ if ((int)this->attackInfo._134984_4_ < this->attackInfo.field86627_0x20e04) {
+ this->attackInfo._134984_4_ = this->attackInfo.field86627_0x20e04;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00519690 buildRallyPointsFromSiegeUnits | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x00519690
+ void TroopValueState::buildRallyPointsFromSiegeUnits(int tribeID)
+ {
+ short* psVar1;
+ short sVar2;
+ BOOLEnum BVar3;
+ Tribe* psVar3;
+ DAT_TribesState.tribes[tribeID].rallyPointCount = 0;
+ psVar3 = &DAT_TribesState.tribes[1];
+ do {
+ if (psVar3->tribeState != 0) {
+ BVar3 = isFullIDEqualsToMinus1(psVar3->owner);
+ if (BVar3 != FALSE) {
+ if (((psVar3->tribeType == ((AITribeType)0x16)) || (psVar3->tribeType == ((AITribeType)0x17)))
+ && (sVar2 = psVar3->selectionTargetUnitID,
+ 0 < DAT_UnitsState.units[sVar2].stoneAmmunition)) {
+ computeNextRallyPointDestination(-1, DAT_UnitsState.units[sVar2].x,
+ DAT_UnitsState.units[sVar2].y);
+ DAT_TribesState.tribes[tribeID]
+ .rallyPointArray[DAT_TribesState.tribes[tribeID].rallyPointCount][0]
+ = (short)DAT_PathFindingState.ALG_ResultX;
+ DAT_TribesState.tribes[tribeID]
+ .rallyPointArray[DAT_TribesState.tribes[tribeID].rallyPointCount][1]
+ = (short)DAT_PathFindingState.ALG_ResultY;
+ psVar1 = &DAT_TribesState.tribes[tribeID].rallyPointCount;
+ *psVar1 = *psVar1 + 1;
+ }
+ }
+ }
+ psVar3 = psVar3 + 0x19a;
+ } while ((int)psVar3 < 0x17623a2);
+ if (DAT_TribesState.tribes[tribeID].currentRallyPointIndex < 0) {
+ DAT_TribesState.tribes[tribeID].currentRallyPointIndex = 0;
+ }
+ if (DAT_TribesState.tribes[tribeID].rallyPointCount
+ <= DAT_TribesState.tribes[tribeID].currentRallyPointIndex) {
+ DAT_TribesState.tribes[tribeID].currentRallyPointIndex = 0;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00519790 setRallyPointForLaddermenTribe | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x00519790
+ void TroopValueState::setRallyPointForLaddermenTribe(int param_1)
+ {
+ short sVar1;
+ BOOLEnum BVar2;
+ int iVar3;
+ int* piVar4;
+ int iVar5;
+ iVar3 = 0;
+ iVar5 = 1;
+ piVar4 = &DAT_TribesState.tribes[1].owner;
+ do {
+ if (*(short*)(piVar4 + 5) != 0) {
+ BVar2 = isFullIDEqualsToMinus1(*piVar4);
+ if (((BVar2 != FALSE)
+ && (*(AITribeTypeShort*)((int)piVar4 + 0x16) == AITT_LADDERMEN))
+ && (iVar3 = iVar3 + 1, iVar3 == DAT_TribesState.tribes[param_1].someCounter1 + 1)) {
+ sVar1 = DAT_TribesState.tribes[iVar5].selectionTargetUnitID;
+ computeNextRallyPointDestination(-1, DAT_UnitsState.units[sVar1].x,
+ DAT_UnitsState.units[sVar1].y);
+ sVar1 = (short)DAT_PathFindingState.ALG_ResultY;
+ DAT_TribesState.tribes[param_1].rallyPointArray[0][0]
+ = (short)DAT_PathFindingState.ALG_ResultX;
+ DAT_TribesState.tribes[param_1].rallyPointArray[0][1] = sVar1;
+ return;
+ }
+ }
+ piVar4 = piVar4 + 0xcd;
+ iVar5 = iVar5 + 1;
+ if (0x176238b < (int)piVar4) {
+ return;
+ }
+ } while (true);
+ }
+ }
+}
+}
+
+### 0x00519850 initializeAttackZoneSearch | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x00519850
+ void TroopValueState::initializeAttackZoneSearch(int param_1)
+ {
+ int _tile;
+ this->attackInfo.biggestZone = 0;
+ _tile = DAT_GameState.mapAndTime
+ .signpostEntryData[(&this->attackInfo.unknownSignpostRelatedArray)[param_1]]
+ .tile;
+ this->attackInfo.startCon = (int)(short)DAT_TileMapState.PathConnectionLayer[_tile];
+ this->attackInfo.startZone = (int)(char)DAT_TileMapState.AIZoneLayer[_tile];
+ this->attackInfo.zoneSize
+ = DAT_PathFindingState
+ .zoneSizesArray[(short)DAT_TileMapState.PathConnectionLayer[_tile]];
+ this->attackInfo.unknownOne_0x20f90 = 1;
+ this->attackInfo.keepCon
+ = (int)(short)DAT_TileMapState.PathConnectionLayer[DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .campground.tileEntry];
+ return;
+ }
+ }
+}
+}
+
+### 0x005198c0 recomputeTargetedBuildingTilesArray | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x005198C0
+ void TroopValueState::recomputeTargetedBuildingTilesArray(int playerID)
+ {
+ uint uVar1;
+ Unit* psVar2;
+ int iVar2;
+ int iVar3;
+ this->attackInfo.targetedBuildingTilesArraySize = 0;
+ fillMemory_ByteValue(
+ 16000, '\0', (void*)((int)(this->attackInfo.targetedBuildingTilesArray)));
+ uVar1 = DAT_UnitsState.maxUnitCount;
+ iVar3 = 1;
+ if (1 < (int)DAT_UnitsState.maxUnitCount) {
+ psVar2 = &DAT_UnitsState.units[1];
+ iVar2 = this->attackInfo.targetedBuildingTilesArraySize;
+ do {
+ if ((((psVar2->logicalState == ULS_NORMAL)
+ && (psVar2->isSelectable_OR_matchTime != 0))
+ && (psVar2->owner == playerID))
+ && ((psVar2->targetedBuildingTile != 0
+ && (psVar2->unitType != UT_A_SLAVE)))) {
+ this->attackInfo.targetedBuildingTilesArray[iVar2] = psVar2->targetedBuildingTile;
+ /*
+ Units.targetBuildingTile
+ */
+ iVar2 = this->attackInfo.targetedBuildingTilesArraySize + 1;
+ this->attackInfo.targetedBuildingTilesArraySize = iVar2;
+ if (3999 < iVar2) {
+ return;
+ }
+ }
+ iVar3 = iVar3 + 1;
+ psVar2 = psVar2 + 0x248;
+ } while (iVar3 < (int)uVar1);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00519960 getTileInTargetedBuildingTiles | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x00519960
+ BOOLEnum TroopValueState::getTileInTargetedBuildingTiles(int tile)
+ {
+ for (int i = 0; i < DAT_TroopValueState.attackInfo.targetedBuildingTilesArraySize; ++i) {
+ if (DAT_TroopValueState.attackInfo.targetedBuildingTilesArray[i] == tile) {
+ return TRUE;
+ }
+ }
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x00519990 computeSiegeSpotScores | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x00519990
+ void TroopValueState::computeSiegeSpotScores(int attackedPlayerID, int attackingPlayerID)
+ {
+ int iVar1;
+ int* _pTileArray;
+ int iVar2;
+ uint* puVar3;
+ AttackInfoSubElement* puVar4;
+ int iVar4;
+ int* piVar5;
+ int _counter;
+ int _counterTillHack2;
+ uint _pathFindingCost;
+ int _offset;
+ bool bVar6;
+ bool bVar7;
+ uint _tile3;
+ int _attackedPlayerID;
+ int _hack2;
+ uint _tile2;
+ uint _tile;
+ iVar4 = attackedPlayerID;
+ if (DAT_GameState.playerDataArray[attackedPlayerID].campground.id != 0) {
+ _offset = attackingPlayerID * 96188;
+ _hack2 = *(int*)((int)this->attackInfo.hackValuesArray + _offset + -8);
+ _counterTillHack2 = 0;
+ *(undefined4*)((int)this->attackInfo.scaleValuesArray + _offset + -0x1c) = 10000;
+ if (0 < _hack2) {
+ _pTileArray = (int*)((int)this->attackInfo.hackValuesArray + _offset);
+ do {
+ _pathFindingCost = (uint) * (byte*)(attackedPlayerID * 80400 + 0x1ee2998 + *_pTileArray);
+ if ((int)_pathFindingCost < *(int*)((int)this->attackInfo.scaleValuesArray + _offset + -0x1c)) {
+ *(uint*)((int)this->attackInfo.scaleValuesArray + _offset + -0x1c) = _pathFindingCost;
+ }
+ _counterTillHack2 = _counterTillHack2 + 1;
+ _pTileArray = _pTileArray + 4;
+ } while (_counterTillHack2 < _hack2);
+ }
+ *(undefined4*)((int)this->attackInfo.hackValuesArray + _offset + -4) = 0;
+ /*
+ warning:
+ */
+ attackedPlayerID = 0;
+ if (0 < _hack2) {
+ puVar3 = (uint*)((int)this->attackInfo.hackValuesArray + _offset + 8);
+ do {
+ _tile3 = puVar3[-2];
+ _pathFindingCost = (uint) * (byte*)(_tile3 + iVar4 * 0x13a10 + 0x1ee2998);
+ iVar2 = ifAnyUnitOnSameTileIsLadderInRightDirection(_tile3,
+ DAT_ViewportRenderState.tileTranslationMatrix_YComponent[_tile3]);
+ if (iVar2 == 0) {
+ if (_pathFindingCost == 0) {
+ *puVar3 = 9999;
+ } else {
+ iVar2 = *(int*)((int)this->attackInfo.scaleValuesArray + _offset + -0x1c);
+ if (iVar2 < 0x32) {
+ if ((int)_pathFindingCost < iVar2 + 0xf) {
+ piVar5 = (int*)((int)this->attackInfo.hackValuesArray + _offset + -4);
+ *piVar5 = *piVar5 + 1;
+ *puVar3 = _pathFindingCost;
+ } else {
+ *puVar3 = 9999;
+ }
+ } else {
+ *puVar3 = 9999;
+ }
+ }
+ } else {
+ *puVar3 = 9999;
+ }
+ attackedPlayerID = attackedPlayerID + 1;
+ puVar3 = puVar3 + 4;
+ } while (attackedPlayerID < *(int*)((int)this->attackInfo.hackValuesArray + _offset + -8));
+ }
+ iVar4 = 0;
+ if (0 < *(int*)((int)this->attackInfo.scaleValuesArray + _offset + -8)) {
+ puVar3 = (uint*)((int)this->attackInfo.scaleValuesArray + _offset + 8);
+ do {
+ *puVar3 = -(uint)(5 < *(byte*)(*(int*)((int)this->attackInfo.hackValuesArray + _offset + -0x10)
+ * 0x13a10
+ + 0x1ee2998 + puVar3[-2]))
+ & 9999;
+ iVar4 = iVar4 + 1;
+ puVar3 = puVar3 + 4;
+ } while (iVar4 < *(int*)((int)this->attackInfo.scaleValuesArray + _offset + -8));
+ }
+ iVar4 = 0;
+ if (0 < *(int*)((int)this->attackInfo.townValuesArray + _offset + -8)) {
+ puVar3 = (uint*)((int)this->attackInfo.townValuesArray + _offset + 8);
+ do {
+ _pathFindingCost = (uint)
+ * (byte*)(puVar3[-2] + 0x1ee2998
+ + *(int*)((int)this->attackInfo.hackValuesArray + _offset + -0x10) * 0x13a10);
+ if (_pathFindingCost == 0) {
+ *puVar3 = 100;
+ } else {
+ *puVar3 = _pathFindingCost;
+ }
+ iVar4 = iVar4 + 1;
+ puVar3 = puVar3 + 4;
+ } while (iVar4 < *(int*)((int)this->attackInfo.townValuesArray + _offset + -8));
+ }
+ iVar4 = *(int*)((int)this->attackInfo.gateValuesArray + _offset + -8);
+ iVar2 = 0;
+ *(undefined4*)((int)this->attackInfo.scaleValuesArray + _offset + -0x18) = 10000;
+ if (0 < iVar4) {
+ iVar1 = *(int*)((int)this->attackInfo.hackValuesArray + _offset + -0x10);
+ piVar5 = (int*)((int)this->attackInfo.gateValuesArray + _offset);
+ do {
+ _pathFindingCost = (uint) * (byte*)(iVar1 * 0x13a10 + 0x1ee2998 + *piVar5);
+ if ((int)_pathFindingCost < *(int*)((int)this->attackInfo.scaleValuesArray + _offset + -0x18)) {
+ *(uint*)((int)this->attackInfo.scaleValuesArray + _offset + -0x18) = _pathFindingCost;
+ }
+ iVar2 = iVar2 + 1;
+ piVar5 = piVar5 + 4;
+ } while (iVar2 < iVar4);
+ }
+ iVar2 = 0;
+ if (0 < iVar4) {
+ puVar3 = (uint*)((int)this->attackInfo.gateValuesArray + _offset + 8);
+ do {
+ _pathFindingCost = (uint)
+ * (byte*)(puVar3[-2] + 0x1ee2998
+ + *(int*)((int)this->attackInfo.hackValuesArray + _offset + -0x10) * 0x13a10);
+ if (*(int*)((int)this->attackInfo.scaleValuesArray + _offset + -0x18) < 0xb) {
+ bVar7 = (_pathFindingCost < 10);
+ iVar4 = -10;
+ bVar6 = _pathFindingCost == 10;
+ } else {
+ bVar7 = (_pathFindingCost < 0x14);
+ iVar4 = -0x14;
+ bVar6 = _pathFindingCost == 0x14;
+ }
+ iVar2 = iVar2 + 1;
+ *puVar3 = (bVar6 || bVar7 != (int)(_pathFindingCost + iVar4) < 0) - 1 & 9999;
+ puVar3 = puVar3 + 4;
+ } while (iVar2 < *(int*)((int)this->attackInfo.gateValuesArray + _offset + -8));
+ }
+ _counter = 0;
+ if (0 < *(int*)((int)this->attackInfo.wideValuesArray + _offset + -8)) {
+ puVar4 = (AttackInfoSubElement*)((int)&this->attackInfo.wideValuesArray + _offset + 8);
+ do {
+ puVar4->field4_0x10[2]
+ = -(uint)(5 < *(byte*)(puVar4->field4_0x10[0] + 0x1ee2998
+ + *(int*)((int)this->attackInfo.hackValuesArray + _offset + -0x10) * 80400))
+ & 9999;
+ _counter = _counter + 1;
+ puVar4 = (AttackInfoSubElement*)(puVar4->field4_0x10 + 6);
+ } while (_counter < *(int*)((int)this->attackInfo.wideValuesArray + _offset + -8));
+ }
+ iVar4 = 0;
+ if (0 < *(int*)((int)this->attackInfo.moatValuesArray + _offset + -8)) {
+ puVar3 = (uint*)((int)this->attackInfo.moatValuesArray + _offset + 8);
+ do {
+ _pathFindingCost = (uint)
+ * (byte*)(puVar3[-2] + 0x1ee2998
+ + *(int*)((int)this->attackInfo.hackValuesArray + _offset + -0x10) * 0x13a10);
+ if (_pathFindingCost == 0) {
+ LAB_00519ca1:
+ *puVar3 = 9999;
+ } else if (_pathFindingCost < 0xb) {
+ *puVar3 = _pathFindingCost;
+ } else if (_pathFindingCost < 0x10) {
+ *puVar3 = _pathFindingCost * 2;
+ } else if (_pathFindingCost < 0x15) {
+ *puVar3 = _pathFindingCost * 3;
+ } else if (_pathFindingCost < 0x1a) {
+ *puVar3 = _pathFindingCost * 4;
+ } else if (_pathFindingCost < 0x33) {
+ *puVar3 = _pathFindingCost * 5;
+ } else {
+ if (0x46 < _pathFindingCost)
+ goto LAB_00519ca1;
+ *puVar3 = _pathFindingCost * 6;
+ }
+ iVar4 = iVar4 + 1;
+ puVar3 = puVar3 + 4;
+ } while (iVar4 < *(int*)((int)this->attackInfo.moatValuesArray + _offset + -8));
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00519cc0 findEnemyWalls | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x00519CC0
+ undefined4 TroopValueState::findEnemyWalls(int unitID)
+ {
+ int _offset;
+ int iVar1;
+ int fromYPosition;
+ AttackInfoSubArrayElement2* piVar2;
+ int local_14;
+ int local_10;
+ int local_8;
+ _offset = DAT_UnitsState.units[unitID].owner * 0x177bc;
+ local_10 = 1000;
+ local_8 = -1;
+ local_14 = 0;
+ if (0 < *(int*)((int)this->attackInfo.hackValuesArray + _offset + -8)) {
+ piVar2 = (AttackInfoSubArrayElement2*)((int)&this->attackInfo.hackValuesArray + _offset + 4);
+ do {
+ if ((piVar2->size < 9999) && (piVar2->unitID == 0)) {
+ fromYPosition
+ = (int)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[piVar2->tile2];
+ iVar1 = piVar2->tile2
+ - DAT_ViewportRenderState.translationMatrix[fromYPosition].addXgetTile;
+ setAxisBasedDistanceResult((int)DAT_UnitsState.units[unitID].x,
+ DAT_UnitsState.units[unitID].y, iVar1, fromYPosition);
+ DAT_DirectionAlgorithmState.distanceHigh
+ = DAT_DirectionAlgorithmState.distanceHigh + piVar2->size * 8;
+ if (DAT_DirectionAlgorithmState.distanceHigh < local_10) {
+ this->tile = piVar2.tile;
+ local_8 = local_14;
+ local_10 = DAT_DirectionAlgorithmState.distanceHigh;
+ this->x = iVar1;
+ this->y = fromYPosition;
+ }
+ }
+ local_14 = local_14 + 1;
+ piVar2 = piVar2 + 4;
+ } while (local_14 < *(int*)((int)this->attackInfo.hackValuesArray + _offset + -8));
+ if (-1 < local_8) {
+ iVar1 = _offset + local_8 * 0x10;
+ *(int*)((int)this->attackInfo.hackValuesArray + iVar1 + 0xc) = unitID;
+ return *(undefined4*)((int)this->attackInfo.hackValuesArray + iVar1 + 4);
+ }
+ }
+ return (undefined4)(0);
+ }
+ }
+}
+}
+
+### 0x00519de0 setScale3 | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x00519DE0
+ void TroopValueState::setScale3(int one, int playerID)
+ {
+ int iVar1;
+ int* piVar2;
+ int _counter;
+ int* _ptrScale3;
+ int _scale2;
+ iVar1 = playerID * 0x177bc;
+ _counter = 0;
+ _scale2 = *(int*)((int)this->attackInfo.scaleValuesArray + iVar1 + -8);
+ *(undefined4*)((int)this->attackInfo.scaleValuesArray + iVar1 + -4) = 0;
+ if (0 < _scale2) {
+ piVar2 = (int*)((int)this->attackInfo.scaleValuesArray + iVar1 + 0xc);
+ do {
+ if ((piVar2[-1] < 5999) && ((*piVar2 == 0 || (one != 0)))) {
+ _ptrScale3 = (int*)((int)this->attackInfo.scaleValuesArray + iVar1 + -4);
+ *_ptrScale3 = *_ptrScale3 + 1;
+ }
+ _counter = _counter + 1;
+ piVar2 = piVar2 + 4;
+ } while (_counter < *(int*)((int)this->attackInfo.scaleValuesArray + iVar1 + -8));
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00519e40 findNearestAvailableScalePoint | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x00519E40
+ undefined4 TroopValueState::findNearestAvailableScalePoint(int unitID)
+ {
+ int iVar1;
+ int fromXPosition;
+ int* piVar2;
+ int fromYPosition;
+ int local_14;
+ int local_10;
+ int local_8;
+ iVar1 = DAT_UnitsState.units[unitID].owner * 0x177bc;
+ local_10 = 1000;
+ local_8 = -1;
+ local_14 = 0;
+ if (0 < *(int*)((int)this->attackInfo.scaleValuesArray + iVar1 + -8)) {
+ piVar2 = (int*)((int)this->attackInfo.scaleValuesArray + iVar1 + 4);
+ do {
+ if ((piVar2[1] < 5999) && (piVar2[2] == 0)) {
+ fromYPosition
+ = (int)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[*piVar2];
+ fromXPosition
+ = *piVar2 - DAT_ViewportRenderState.translationMatrix[fromYPosition].addXgetTile;
+ setAxisBasedDistanceResult((int)DAT_UnitsState.units[unitID].x,
+ DAT_UnitsState.units[unitID].y, fromXPosition, fromYPosition);
+ if (DAT_DirectionAlgorithmState.distanceHigh < local_10) {
+ local_10 = DAT_DirectionAlgorithmState.distanceHigh;
+ this->tile = piVar2[-1];
+ local_8 = local_14;
+ this->x = fromXPosition;
+ this->y = fromYPosition;
+ }
+ }
+ local_14 = local_14 + 1;
+ piVar2 = piVar2 + 4;
+ } while (local_14 < *(int*)((int)this->attackInfo.scaleValuesArray + iVar1 + -8));
+ if (-1 < local_8) {
+ iVar1 = iVar1 + local_8 * 0x10;
+ *(int*)((int)this->attackInfo.scaleValuesArray + iVar1 + 0xc) = unitID;
+ return *(undefined4*)((int)this->attackInfo.scaleValuesArray + iVar1 + 4);
+ }
+ }
+ return (undefined4)(0);
+ }
+ }
+}
+}
+
+### 0x00519f50 setTown2 | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x00519F50
+ void TroopValueState::setTown2(int param_1, int playerID)
+ {
+ int iVar1;
+ int iVar2;
+ int* piVar3;
+ int _index;
+ int* _ptrTown2;
+ iVar1 = playerID * 0x177bc;
+ iVar2 = 0;
+ _index = *(int*)((int)this->attackInfo.townValuesArray + iVar1 + -8);
+ *(undefined4*)((int)this->attackInfo.townValuesArray + iVar1 + -4) = 0;
+ if (0 < _index) {
+ piVar3 = (int*)((int)this->attackInfo.townValuesArray + iVar1 + 0xc);
+ do {
+ if ((*piVar3 == 0) || (param_1 != 0)) {
+ _ptrTown2 = (int*)((int)this->attackInfo.townValuesArray + iVar1 + -4);
+ *_ptrTown2 = *_ptrTown2 + 1;
+ }
+ iVar2 = iVar2 + 1;
+ piVar3 = piVar3 + 4;
+ } while (iVar2 < *(int*)((int)this->attackInfo.townValuesArray + iVar1 + -8));
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00519fb0 findEnemyBuildingsClosestToUnit | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x00519FB0
+ undefined4 TroopValueState::findEnemyBuildingsClosestToUnit(int unitID)
+ {
+ int _owner;
+ int iVar1;
+ int fromXPosition;
+ int fromYPosition;
+ AttackInfoSubArrayElement2* piVar2;
+ int local_14;
+ int local_10;
+ int local_8;
+ _owner = (int)DAT_UnitsState.units[unitID].owner;
+ iVar1 = _owner * 0x177bc;
+ local_10 = 1000;
+ local_8 = -1;
+ local_14 = 0;
+ if (0 < *(int*)((int)this->attackInfo.townValuesArray + iVar1 + -8)) {
+ piVar2 = (AttackInfoSubArrayElement2*)((int)&this->attackInfo.townValuesArray + iVar1 + 4);
+ do {
+ if (piVar2->unitID == 0) {
+ fromYPosition
+ = (int)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[piVar2->tile2];
+ fromXPosition = piVar2->tile2
+ - DAT_ViewportRenderState.translationMatrix[fromYPosition].addXgetTile;
+ setAxisBasedDistanceResult((int)DAT_UnitsState.units[unitID].x,
+ DAT_UnitsState.units[unitID].y, fromXPosition, fromYPosition);
+ DAT_DirectionAlgorithmState.distanceHigh
+ = DAT_DirectionAlgorithmState.distanceHigh + (100 - piVar2->size) * 2;
+ if (DAT_DirectionAlgorithmState.distanceHigh < local_10) {
+ this->tile = piVar2.tile;
+ local_8 = local_14;
+ local_10 = DAT_DirectionAlgorithmState.distanceHigh;
+ this->x = fromXPosition;
+ this->y = fromYPosition;
+ }
+ }
+ local_14 = local_14 + 1;
+ piVar2 = piVar2 + 4;
+ } while (local_14 < *(int*)((int)this->attackInfo.townValuesArray + iVar1 + -8));
+ if (-1 < local_8) {
+ iVar1 = iVar1 + local_8 * 0x10;
+ *(int*)((int)this->attackInfo.townValuesArray + iVar1 + 0xc) = unitID;
+ return *(undefined4*)((int)this->attackInfo.townValuesArray + iVar1 + 4);
+ }
+ }
+ return (undefined4)(0);
+ }
+ }
+}
+}
+
+### 0x0051a0c0 countAvailablePeopleValueSlots | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x0051A0C0
+ void TroopValueState::countAvailablePeopleValueSlots(int param_1)
+ {
+ AttackInfoSubArrayElement1* piVar1;
+ int iVar1;
+ this->attackInfo.people3 = 0;
+ if (0 < this->attackInfo.people2) {
+ piVar1 = &this->attackInfo.peopleValuesArray[0];
+ iVar1 = this->attackInfo.people2;
+ do {
+ if ((piVar1->unitID == 0) || (param_1 != 0)) {
+ this->attackInfo.people3 = this->attackInfo.people3 + 1;
+ }
+ piVar1 = piVar1 + 4;
+ iVar1 = iVar1 + -1;
+ } while (iVar1 != 0);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x0051a100 countAvailableLordValueSlots | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x0051A100
+ void TroopValueState::countAvailableLordValueSlots(int param_1)
+ {
+ int* piVar1;
+ int iVar2;
+ this->attackInfo.lord2 = 0;
+ if (0 < this->attackInfo.lord3) {
+ piVar1 = &this->attackInfo.lordValuesArray[0].unitID;
+ iVar2 = this->attackInfo.lord3;
+ do {
+ if ((*piVar1 == 0) || (param_1 != 0)) {
+ this->attackInfo.lord2 = this->attackInfo.lord2 + 1;
+ }
+ piVar1 = piVar1 + 4;
+ iVar2 = iVar2 + -1;
+ } while (iVar2 != 0);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x0051a140 calculateTile2PeoplValueClosestToUnit | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x0051A140
+ int TroopValueState::calculateTile2PeoplValueClosestToUnit(int unitID)
+ {
+ int fromXPosition;
+ int* piVar1;
+ int fromYPosition;
+ int _index;
+ int _minDistance;
+ int _minIndex;
+ _minDistance = 1000;
+ _minIndex = -1;
+ _index = 0;
+ if (0 < this->attackInfo.people2) {
+ piVar1 = &this->attackInfo.peopleValuesArray[0].tile2;
+ do {
+ if (piVar1[2] == 0) {
+ fromYPosition
+ = (int)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[*piVar1];
+ fromXPosition
+ = *piVar1 - DAT_ViewportRenderState.translationMatrix[fromYPosition].addXgetTile;
+ setAxisBasedDistanceResult((int)DAT_UnitsState.units[unitID].x,
+ DAT_UnitsState.units[unitID].y, fromXPosition, fromYPosition);
+ if (DAT_DirectionAlgorithmState.distanceHigh < _minDistance) {
+ this->tile = ((AttackInfoSubArrayElement1*)(piVar1 + -1))->tile;
+ _minDistance = DAT_DirectionAlgorithmState.distanceHigh;
+ _minIndex = _index;
+ this->x = fromXPosition;
+ this->y = fromYPosition;
+ }
+ }
+ _index = _index + 1;
+ piVar1 = piVar1 + 4;
+ } while (_index < this->attackInfo.people2);
+ if (-1 < _minIndex) {
+ this->attackInfo.peopleValuesArray[_minIndex].unitID = unitID;
+ return (undefined4)(this->attackInfo.peopleValuesArray[_minIndex].tile2);
+ }
+ }
+ return (undefined4)(0);
+ }
+ }
+}
+}
+
+### 0x0051a220 findEnemyLord | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x0051A220
+ int TroopValueState::findEnemyLord(int param_1)
+ {
+ int iVar1;
+ int* piVar2;
+ iVar1 = 0;
+ if (this->attackInfo.lord3 < 1) {
+ return 0;
+ }
+ piVar2 = &this->attackInfo.lordValuesArray[0].unitID;
+ do {
+ if (*piVar2 == 0) {
+ this->y = (int)DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[this->attackInfo.lordValuesArray[iVar1].tile2];
+ this->x = this->attackInfo.lordValuesArray[iVar1].tile2
+ - DAT_ViewportRenderState.translationMatrix[this->y].addXgetTile;
+ this->tile = this->attackInfo.lordValuesArray[iVar1].tile;
+ this->attackInfo.lordValuesArray[iVar1].unitID = param_1;
+ return this->attackInfo.lordValuesArray[iVar1].tile2;
+ }
+ iVar1 = iVar1 + 1;
+ piVar2 = piVar2 + 4;
+ } while (iVar1 < this->attackInfo.lord3);
+ this->y = (int)DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[this->attackInfo.lordValuesArray[0].tile2];
+ this->x = this->attackInfo.lordValuesArray[0].tile2
+ - DAT_ViewportRenderState
+ .translationMatrix[DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[this->attackInfo.lordValuesArray[0].tile2]]
+ .addXgetTile;
+ this->tile = this->attackInfo.lordValuesArray[0].tile;
+ return this->attackInfo.lordValuesArray[0].tile2;
+ }
+ }
+}
+}
+
+### 0x0051a2d0 setGate2 | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x0051A2D0
+ void TroopValueState::setGate2(int param_1, int param_2)
+ {
+ int* piVar1;
+ int iVar2;
+ int iVar3;
+ int* piVar4;
+ int iVar5;
+ iVar3 = param_2 * 0x177bc;
+ iVar5 = 0;
+ iVar2 = *(int*)((int)this->attackInfo.gateValuesArray + iVar3 + -8);
+ *(undefined4*)((int)this->attackInfo.gateValuesArray + iVar3 + -4) = 0;
+ if (0 < iVar2) {
+ piVar4 = (int*)((int)this->attackInfo.gateValuesArray + iVar3 + 0xc);
+ do {
+ if ((piVar4[-1] < 5999) && ((*piVar4 == 0 || (param_1 != 0)))) {
+ piVar1 = (int*)((int)this->attackInfo.gateValuesArray + iVar3 + -4);
+ *piVar1 = *piVar1 + 1;
+ }
+ iVar5 = iVar5 + 1;
+ piVar4 = piVar4 + 4;
+ } while (iVar5 < *(int*)((int)this->attackInfo.gateValuesArray + iVar3 + -8));
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x0051a330 findEnemyTowersOrGates | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x0051A330
+ undefined4 TroopValueState::findEnemyTowersOrGates(int unitID)
+ {
+ undefined4 uVar1;
+ int iVar2;
+ AttackInfoSubArrayElement1* _p2;
+ undefined4* puVar3;
+ int iVar4;
+ int iVar5;
+ int local_14;
+ int local_10;
+ int local_8;
+ AttackInfoSubArrayElement1* _p1;
+ iVar4 = DAT_UnitsState.units[unitID].owner * 0x177bc;
+ local_10 = 1000;
+ local_8 = -1;
+ local_14 = 0;
+ if (0 < *(int*)((int)this->attackInfo.gateValuesArray + iVar4 + -8)) {
+ _p1 = (AttackInfoSubArrayElement1*)((int)&this->attackInfo.gateValuesArray + iVar4 + 4);
+ do {
+ if ((_p1->buildingID < 5999) && (_p1->unitID == 0)) {
+ iVar5 = (int)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[_p1->tile2];
+ iVar2 = _p1->tile2 - DAT_ViewportRenderState.translationMatrix[iVar5].addXgetTile;
+ setAxisBasedDistanceResult((int)DAT_UnitsState.units[unitID].x,
+ DAT_UnitsState.units[unitID].y, iVar2, iVar5);
+ if (DAT_DirectionAlgorithmState.distanceHigh < local_10) {
+ local_10 = DAT_DirectionAlgorithmState.distanceHigh;
+ this->tile = _p1.tile;
+ local_8 = local_14;
+ this->x = iVar2;
+ this->y = iVar5;
+ }
+ }
+ local_14 = local_14 + 1;
+ _p1 = _p1 + 4;
+ } while (local_14 < *(int*)((int)this->attackInfo.gateValuesArray + iVar4 + -8));
+ if (-1 < local_8) {
+ uVar1 = *(undefined4*)(iVar4 + 0x179f10c + local_8 * 0x10);
+ *(int*)((int)this->attackInfo.gateValuesArray + iVar4 + local_8 * 0x10 + 0xc) = unitID;
+ return (undefined4)(uVar1);
+ }
+ }
+ iVar2 = 0;
+ if (0 < *(int*)((int)this->attackInfo.gateValuesArray + iVar4 + -8)) {
+ puVar3 = (undefined4*)((int)this->attackInfo.gateValuesArray + iVar4 + 0xc);
+ do {
+ *puVar3 = 0;
+ iVar2 = iVar2 + 1;
+ puVar3 = puVar3 + 4;
+ } while (iVar2 < *(int*)((int)this->attackInfo.gateValuesArray + iVar4 + -8));
+ }
+ local_10 = 1000;
+ local_14 = 0;
+ if (0 < *(int*)((int)this->attackInfo.gateValuesArray + iVar4 + -8)) {
+ _p2 = (AttackInfoSubArrayElement1*)((int)&this->attackInfo.gateValuesArray + iVar4 + 4);
+ do {
+ if ((_p2->buildingID < 5999) && (_p2->unitID == 0)) {
+ iVar5 = (int)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[_p2->tile2];
+ iVar2 = _p2->tile2 - DAT_ViewportRenderState.translationMatrix[iVar5].addXgetTile;
+ setAxisBasedDistanceResult((int)DAT_UnitsState.units[unitID].x,
+ DAT_UnitsState.units[unitID].y, iVar2, iVar5);
+ if (DAT_DirectionAlgorithmState.distanceHigh < local_10) {
+ local_10 = DAT_DirectionAlgorithmState.distanceHigh;
+ this->tile = _p2.tile;
+ local_8 = local_14;
+ this->x = iVar2;
+ this->y = iVar5;
+ }
+ }
+ local_14 = local_14 + 1;
+ _p2 = _p2 + 4;
+ } while (local_14 < *(int*)((int)this->attackInfo.gateValuesArray + iVar4 + -8));
+ }
+ if (local_8 < 0) {
+ return (undefined4)(0);
+ }
+ return *(undefined4*)(local_8 * 0x10 + 0x179f10c + iVar4);
+ }
+ }
+}
+}
+
+### 0x0051a550 setWide3 | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x0051A550
+ void TroopValueState::setWide3(int param_1, int param_2)
+ {
+ int* piVar1;
+ int iVar2;
+ int iVar3;
+ int* piVar4;
+ int iVar5;
+ iVar3 = param_2 * 0x177bc;
+ iVar5 = 0;
+ iVar2 = *(int*)((int)this->attackInfo.wideValuesArray + iVar3 + -8);
+ *(undefined4*)((int)this->attackInfo.wideValuesArray + iVar3 + -4) = 0;
+ if (0 < iVar2) {
+ piVar4 = (int*)((int)this->attackInfo.wideValuesArray + iVar3 + 0xc);
+ do {
+ if ((piVar4[-1] < 5999) && ((*piVar4 == 0 || (param_1 != 0)))) {
+ piVar1 = (int*)((int)this->attackInfo.wideValuesArray + iVar3 + -4);
+ *piVar1 = *piVar1 + 1;
+ }
+ iVar5 = iVar5 + 1;
+ piVar4 = piVar4 + 4;
+ } while (iVar5 < *(int*)((int)this->attackInfo.wideValuesArray + iVar3 + -8));
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x0051a5b0 getClosestWideValueBasedOnPlayer | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x0051A5B0
+ undefined4 TroopValueState::getClosestWideValueBasedOnPlayer(int playerID)
+ {
+ int destinationXPosition;
+ int destinationYPosition;
+ int iVar1;
+ AttackInfoSubArrayElement1* _ptr;
+ int fromXPosition;
+ int iVar2;
+ int fromYPosition;
+ int local_1c;
+ int local_18;
+ int local_10;
+ int _playerID_2;
+ iVar2 = DAT_UnitsState.units[playerID].owner * 0x177bc;
+ _playerID_2 = *(int*)((int)this->attackInfo.hackValuesArray + iVar2 + -0x10);
+ destinationXPosition = DAT_GameState.playerDataArray[_playerID_2].campground.xEntry;
+ destinationYPosition = DAT_GameState.playerDataArray[_playerID_2].campground.yEntry;
+ local_18 = 1000;
+ local_10 = -1;
+ local_1c = 0;
+ if (0 < *(int*)((int)this->attackInfo.wideValuesArray + iVar2 + -8)) {
+ _ptr = (AttackInfoSubArrayElement1*)((int)&this->attackInfo.wideValuesArray + iVar2 + 4);
+ do {
+ if ((_ptr->buildingID < 5999) && (_ptr->unitID == 0)) {
+ fromYPosition
+ = (int)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[_ptr->tile2];
+ fromXPosition = _ptr->tile2
+ - DAT_ViewportRenderState.translationMatrix[fromYPosition].addXgetTile;
+ setAxisBasedDistanceResult((int)DAT_UnitsState.units[playerID].x,
+ DAT_UnitsState.units[playerID].y, fromXPosition, fromYPosition);
+ iVar1 = DAT_DirectionAlgorithmState.distanceHigh;
+ setAxisBasedDistanceResult(
+ destinationXPosition, destinationYPosition, fromXPosition, fromYPosition);
+ if (iVar1 + DAT_DirectionAlgorithmState.distanceHigh < local_18) {
+ this->tile = _ptr.tile;
+ local_10 = local_1c;
+ local_18 = iVar1 + DAT_DirectionAlgorithmState.distanceHigh;
+ this->x = fromXPosition;
+ this->y = fromYPosition;
+ }
+ }
+ local_1c = local_1c + 1;
+ _ptr = _ptr + 4;
+ } while (local_1c < *(int*)((int)this->attackInfo.wideValuesArray + iVar2 + -8));
+ if (-1 < local_10) {
+ iVar2 = local_10 * 0x10 + iVar2;
+ *(int*)((int)this->attackInfo.wideValuesArray + iVar2 + 0xc) = playerID;
+ return *(undefined4*)((int)this->attackInfo.wideValuesArray + iVar2 + 4);
+ }
+ }
+ return (undefined4)(0);
+ }
+ }
+}
+}
+
+### 0x0051a720 setMoat3 | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x0051A720
+ void TroopValueState::setMoat3(int checkAgainstNonZero, int playerID)
+ {
+ int* piVar1;
+ int _offset;
+ AttackInfoSubArrayElement2* piVar4;
+ int _index;
+ int _moat2;
+ _offset = playerID * 0x177bc;
+ _index = 0;
+ _moat2 = *(int*)((int)this->attackInfo.moatValuesArray + _offset + -8);
+ *(undefined4*)((int)this->attackInfo.moatValuesArray + _offset + -4) = 0;
+ if (0 < _moat2) {
+ piVar4 = (AttackInfoSubArrayElement2*)((int)&this->attackInfo.moatValuesArray + _offset + 0xc);
+ do {
+ if ((piVar4->size < 5999) && ((piVar4->unitID == 0 || (checkAgainstNonZero != 0)))) {
+ piVar1 = (int*)((int)this->attackInfo.moatValuesArray + _offset + -4);
+ *piVar1 = *piVar1 + 1;
+ }
+ _index = _index + 1;
+ piVar4 = piVar4 + 4;
+ } while (_index < *(int*)((int)this->attackInfo.moatValuesArray + _offset + -8));
+ }
+ return;
+ }
+ }
+}
+}
+

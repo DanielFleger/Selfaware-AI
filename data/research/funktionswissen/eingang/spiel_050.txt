@@ -1,0 +1,1302 @@
+### 0x0040bc40 setupNextCandidateLocationComputeOffsets2 | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040BC40
+ void BuildingsState::setupNextCandidateLocationComputeOffsets2(
+ int buildingSize, int nudge, int try_, int offset)
+ {
+ switch (buildingSize) {
+ case 1:
+ this->DAT_TempXOffset = DAT_BuildingDefinedData.field179_0x7e8c[try_].x;
+ this->DAT_TempYOffset = DAT_BuildingDefinedData.field179_0x7e8c[try_].y;
+ break;
+ case 2:
+ this->DAT_TempXOffset = DAT_BuildingDefinedData.field180_0x7ecc[try_].x;
+ this->DAT_TempYOffset = DAT_BuildingDefinedData.field180_0x7ecc[try_].y;
+ break;
+ case 3:
+ this->DAT_TempXOffset = DAT_BuildingDefinedData.field181_0x7f2c[try_].x;
+ this->DAT_TempYOffset = DAT_BuildingDefinedData.field181_0x7f2c[try_].y;
+ break;
+ case 4:
+ this->DAT_TempXOffset = DAT_BuildingDefinedData.field182_0x7fac[try_].x;
+ this->DAT_TempYOffset = DAT_BuildingDefinedData.field182_0x7fac[try_].y;
+ break;
+ case 5:
+ this->DAT_TempXOffset = DAT_BuildingDefinedData.field183_0x804c[try_].x;
+ this->DAT_TempYOffset = DAT_BuildingDefinedData.field183_0x804c[try_].y;
+ break;
+ case 6:
+ this->DAT_TempXOffset = DAT_BuildingDefinedData.field184_0x810c[try_].x;
+ this->DAT_TempYOffset = DAT_BuildingDefinedData.field184_0x810c[try_].y;
+ break;
+ case 7:
+ this->DAT_TempXOffset = DAT_BuildingDefinedData.field185_0x81ec[try_].x;
+ this->DAT_TempYOffset = DAT_BuildingDefinedData.field185_0x81ec[try_].y;
+ break;
+ case 8:
+ this->DAT_TempXOffset = DAT_BuildingDefinedData.field186_0x82ec[try_].x;
+ this->DAT_TempYOffset = DAT_BuildingDefinedData.field186_0x82ec[try_].y;
+ break;
+ case 9:
+ this->DAT_TempXOffset = DAT_BuildingDefinedData.field187_0x840c[try_].x;
+ this->DAT_TempYOffset = DAT_BuildingDefinedData.field187_0x840c[try_].y;
+ break;
+ case 10:
+ this->DAT_TempXOffset = DAT_BuildingDefinedData.field188_0x854c[try_].x;
+ this->DAT_TempYOffset = DAT_BuildingDefinedData.field188_0x854c[try_].y;
+ break;
+ case 11:
+ this->DAT_TempXOffset = DAT_BuildingDefinedData.field189_0x86ac[try_].x;
+ this->DAT_TempYOffset = DAT_BuildingDefinedData.field189_0x86ac[try_].y;
+ break;
+ case 12:
+ this->DAT_TempXOffset = DAT_BuildingDefinedData.field190_0x882c[try_].x;
+ this->DAT_TempYOffset = DAT_BuildingDefinedData.field190_0x882c[try_].y;
+ break;
+ case 13:
+ this->DAT_TempXOffset = DAT_BuildingDefinedData.field191_0x89cc[try_].x;
+ this->DAT_TempYOffset = DAT_BuildingDefinedData.field191_0x89cc[try_].y;
+ break;
+ }
+ switch (try_ / buildingSize * 2) {
+ case 0:
+ this->DAT_TempYOffset -= offset;
+ break;
+ case 4:
+ this->DAT_TempYOffset += offset;
+ break;
+ case 2:
+ this->DAT_TempXOffset += offset;
+ break;
+ case 6:
+ this->DAT_TempXOffset -= offset;
+ break;
+ }
+ if (this->DAT_TempXOffset < buildingSize && this->DAT_TempYOffset < buildingSize) {
+ if (this->DAT_TempXOffset <= -1) {
+ this->DAT_TempXOffset = this->DAT_TempXOffset - nudge + 1;
+ } else if (this->DAT_TempYOffset <= -1) {
+ this->DAT_TempYOffset = this->DAT_TempYOffset - nudge + 1;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0040be70 buildingHasSpaceForResource | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040BE70
+ BOOLEnum BuildingsState::buildingHasSpaceForResource(int buildingID, ResourceType resourceType)
+ {
+ if (this->buildings[buildingID].currentNumberOfResource != 0
+ && this->buildings[buildingID].resources[resourceType] == 0) {
+ return FALSE;
+ }
+ if (this->buildings[buildingID].currentNumberOfResource == 0) {
+ return TRUE;
+ }
+ return this->buildings[buildingID].resources[resourceType]
+ < DAT_BuildingDefinedData.StorageLimitResourceTypeArray[resourceType];
+ }
+ }
+}
+}
+
+### 0x0040bee0 extendResourceCountdownForPlayerBuildingsOfType | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040BEE0
+ void BuildingsState::extendResourceCountdownForPlayerBuildingsOfType(
+ BuildingType buildingType, int someCountdown, int playerID)
+ {
+ for (int buildingID = 1; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (this->buildings[buildingID].logicalState == BLS_NORMAL
+ && this->buildings[buildingID].buildingType == buildingType
+ && this->buildings[buildingID].owner == playerID
+ && this->buildings[buildingID].resourceRelatedCountDown <= someCountdown) {
+ this->buildings[buildingID].resourceRelatedCountDown = someCountdown;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0040bf40 canBuildingStoreTheAmount | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040BF40
+ int BuildingsState::canBuildingStoreTheAmount(int buildingID, ResourceType resourceType, int storageLimit)
+ {
+ int const storedAmount = this->buildings[buildingID].resources[resourceType];
+ for (int otherType = 1; otherType < 25; ++otherType) {
+ if (this->buildings[buildingID].resources[otherType] != 0 && otherType != resourceType) {
+ return 0;
+ }
+ }
+ if (storedAmount >= storageLimit) {
+ return 0;
+ }
+ return storageLimit - storedAmount;
+ }
+ }
+}
+}
+
+### 0x0040bfd0 getBuildingStorageTypeForResourceType | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040BFD0
+ BuildingType BuildingsState::getBuildingStorageTypeForResourceType(ResourceType resourceType)
+ {
+ return (BuildingType)DAT_BuildingDefinedData.StorageBuildingTypeArray[resourceType];
+ }
+ }
+}
+}
+
+### 0x0040bfe0 getStorageBuildingForResourceTypeAndAmount | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040BFE0
+ int BuildingsState::getStorageBuildingForResourceTypeAndAmount(ResourceType resourceType, int amount, int owner)
+ {
+ BuildingType const storageType
+ = getBuildingStorageTypeForResourceType(resourceType);
+ for (int buildingID = this->maxBuildingsCount - 1; buildingID > 0; --buildingID) {
+ if (this->buildings[buildingID].logicalState == BLS_NORMAL
+ && this->buildings[buildingID].buildingType == storageType
+ && this->buildings[buildingID].owner == owner
+ && this->buildings[buildingID].resources[resourceType] >= amount) {
+ return buildingID;
+ }
+ }
+ return 0;
+ }
+ }
+}
+}
+
+### 0x0040c060 getArmoryIDIfSpaceLeft | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040C060
+ uint BuildingsState::getArmoryIDIfSpaceLeft(
+ uint buildingID, undefined4 resourceID, int playerID, int resourceCount)
+ {
+ if (this->buildings[buildingID].buildingType != BT_ARMORY) {
+ return 0;
+ }
+ if (this->buildings[buildingID].logicalState != BLS_NORMAL) {
+ return 0;
+ }
+ if (this->buildings[buildingID].owner != playerID) {
+ return 0;
+ }
+ int capacity = 50;
+ for (int resourceType = 0; resourceType < 25; ++resourceType) {
+ capacity -= this->buildings[buildingID].resources[resourceType];
+ }
+ if (capacity < resourceCount) {
+ return 0;
+ }
+ return buildingID;
+ }
+ }
+}
+}
+
+### 0x0040c0d0 computeArmoryRemainingCapacity | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040C0D0
+ int BuildingsState::computeArmoryRemainingCapacity(int buildingID, int param_2)
+ {
+ int capacity = 50;
+ if (this->buildings[buildingID].logicalState == BLS_NORMAL
+ && this->buildings[buildingID].buildingType == BT_ARMORY) {
+ for (int resourceType = 0; resourceType < 25; ++resourceType) {
+ capacity -= this->buildings[buildingID].resources[resourceType];
+ }
+ if (capacity >= 0) {
+ return capacity;
+ }
+ }
+ return 0;
+ }
+ }
+}
+}
+
+### 0x0040c130 computeResourceSumForBuilding | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040C130
+ uint BuildingsState::computeResourceSumForBuilding(int buildingID)
+ {
+ this->buildings[buildingID].currentNumberOfResource = 0;
+ this->buildings[buildingID].currentLimitOfResource = 0;
+ for (int resourceType = 1; resourceType < 25; ++resourceType) {
+ this->buildings[buildingID].currentNumberOfResource
+ += this->buildings[buildingID].resources[resourceType];
+ if (this->buildings[buildingID].resources[resourceType] != 0
+ && this->buildings[buildingID].currentLimitOfResource == 0) {
+ this->buildings[buildingID].currentLimitOfResource
+ = DAT_BuildingDefinedData.StorageLimitResourceTypeArray[resourceType];
+ this->buildings[buildingID].currentStoredResourceType = resourceType;
+ }
+ }
+ return this->buildings[buildingID].currentNumberOfResource;
+ }
+ }
+}
+}
+
+### 0x0040c1a0 hasLessWoodThanTheCostOfAWoodcuttersHutAndNoWoodcutters | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040C1A0
+ BOOLEnum BuildingsState::hasLessWoodThanTheCostOfAWoodcuttersHutAndNoWoodcutters(int playerID, int param_2)
+ {
+ if (DAT_GameCore.gameMode_2 == 6) {
+ return FALSE;
+ }
+ if (param_2 != 3) {
+ return FALSE;
+ }
+ if (findFirstBuildingOfType(playerID, BT_WOODCUTTERSHUT)
+ != 0) {
+ return FALSE;
+ }
+ return DAT_GameState.playerDataArray[playerID].currentResources[Game::Resources::RT_WOOD]
+ < DAT_BuildingsState.buildingCosts[BT_WOODCUTTERSHUT].requiredWood;
+ }
+ }
+}
+}
+
+### 0x0040c1f0 getResourceSpace | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040C1F0
+ int BuildingsState::getResourceSpace(int param_1, ResourceType resource)
+ {
+ int space = -1;
+ BuildingType storageType = getBuildingStorageTypeForResourceType(resource);
+ if (storageType == BT_MANORHOUSE) {
+ return 1000000;
+ }
+ int buildingCount = this->maxBuildingsCount;
+ for (int i = 1; i < buildingCount; ++i) {
+ if (this->buildings[i].logicalState != BLS_NORMAL || this->buildings[i].owner != param_1
+ || this->buildings[i].buildingType != storageType) {
+ continue;
+ }
+ if (space == -1) {
+ space = 0;
+ }
+ if (this->buildings[i].buildingType == BT_ARMORY) {
+ space += computeArmoryRemainingCapacity(
+ i, resource);
+ } else if (this->buildings[i].buildingType == BT_GRANARY) {
+ space += getResourceCountThatCanBeDeposited(
+ i, resource, 250);
+ } else if (this->buildings[i].currentNumberOfResource == 0
+ || this->buildings[i].resources[resource] != 0) {
+ // A stockpile only stores a single resource type at a time
+ if (this->buildings[i].currentNumberOfResource == 0) {
+ space += DAT_BuildingDefinedData.StorageLimitResourceTypeArray[resource];
+ } else if (this->buildings[i].resources[resource]
+ < DAT_BuildingDefinedData.StorageLimitResourceTypeArray[resource]) {
+ space += DAT_BuildingDefinedData.StorageLimitResourceTypeArray[resource]
+ - this->buildings[i].resources[resource];
+ }
+ }
+ }
+ return space;
+ }
+ }
+}
+}
+
+### 0x0040c300 countPlayerResources | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040C300
+ void BuildingsState::countPlayerResources(int playerID)
+ {
+ int gold
+ = DAT_GameState.playerDataArray[playerID].currentResources[RT_GOLD];
+ // Reset the stored resources and recount them from the storage buildings, gold is kept
+ for (int i = 0; i < 25; ++i) {
+ if (i != RT_GOLD) {
+ DAT_GameState.playerDataArray[playerID].currentResources[i] = 0;
+ }
+ }
+ for (int i = 1; i < this->maxBuildingsCount; ++i) {
+ if (this->buildings[i].logicalState != BLS_NORMAL || this->buildings[i].owner != playerID) {
+ continue;
+ }
+ if (this->buildings[i].buildingType != BT_STOCKPILE && this->buildings[i].buildingType != BT_GRANARY
+ && this->buildings[i].buildingType != BT_ARMORY) {
+ continue;
+ }
+ if (this->buildings[i].buildingType == BT_STOCKPILE) {
+ for (int r = RT_WOOD; r <= RT_FLOUR; ++r) {
+ DAT_GameState.playerDataArray[playerID].currentResources[r]
+ += this->buildings[i].resources[r];
+ }
+ } else if (this->buildings[i].buildingType == BT_GRANARY) {
+ for (int r = RT_BREAD; r <= RT_APPLE; ++r) {
+ DAT_GameState.playerDataArray[playerID].currentResources[r]
+ += this->buildings[i].resources[r];
+ }
+ } else if (this->buildings[i].buildingType == BT_ARMORY) {
+ for (int r = RT_BOW; r < 25; ++r) {
+ DAT_GameState.playerDataArray[playerID].currentResources[r]
+ += this->buildings[i].resources[r];
+ }
+ }
+ }
+ DAT_GameState.playerDataArray[playerID].currentResources[RT_GOLD]
+ = gold;
+ }
+ }
+}
+}
+
+### 0x0040c4b0 recomputePlayerDataStocksBasedOnStorageBuildings | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040C4B0
+ void BuildingsState::recomputePlayerDataStocksBasedOnStorageBuildings()
+ {
+ int gold[10];
+ for (int playerID = 1; playerID < 9; ++playerID) {
+ gold[playerID]
+ = DAT_GameState.playerDataArray[playerID].currentResources[Game::Resources::RT_GOLD];
+ for (int resourceType = 0; resourceType < 25; ++resourceType) {
+ DAT_GameState.playerDataArray[playerID].currentResources[resourceType] = 0;
+ }
+ }
+ for (int buildingID = 1; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (this->buildings[buildingID].logicalState == BLS_NORMAL
+ && (this->buildings[buildingID].buildingType == BT_STOCKPILE
+ || this->buildings[buildingID].buildingType == BT_GRANARY
+ || this->buildings[buildingID].buildingType == BT_ARMORY)) {
+ int const owner = this->buildings[buildingID].owner;
+ for (int resourceType = 0; resourceType < 25; ++resourceType) {
+ DAT_GameState.playerDataArray[owner].currentResources[resourceType]
+ += this->buildings[buildingID].resources[resourceType];
+ }
+ }
+ }
+ for (int playerID = 1; playerID < 9; ++playerID) {
+ DAT_GameState.playerDataArray[playerID].currentResources[Game::Resources::RT_GOLD]
+ = gold[playerID];
+ }
+ }
+ }
+}
+}
+
+### 0x0040c5f0 getBuildingCost | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040C5F0
+ void BuildingsState::getBuildingCost(MappersEnum commandBuildingType, int* pStone, int* pGold)
+ {
+ int const buildingType = convertCommandBuildingTypeToBuildingType(commandBuildingType);
+ *pStone = this->buildingCosts[buildingType].requiredStone_0x4;
+ *pGold = this->buildingCosts[buildingType].requiredGold;
+ switch (commandBuildingType) {
+ case Commands::M_MAPPER_PEOPLE_ARCHERS:
+ *pGold = 12;
+ break;
+ case Commands::M_MAPPER_PEOPLE_SPEARMEN:
+ *pGold = 8;
+ break;
+ case Commands::M_MAPPER_PEOPLE_PIKEMEN:
+ case Commands::M_MAPPER_PEOPLE_MACEMEN:
+ case Commands::M_MAPPER_PEOPLE_XBOWMEN:
+ case Commands::M_MAPPER_PEOPLE_TUNNELERS:
+ *pGold = 20;
+ break;
+ case Commands::M_MAPPER_PEOPLE_SWORDSMEN:
+ case Commands::M_MAPPER_PEOPLE_KNIGHTS:
+ *pGold = 40;
+ break;
+ case Commands::M_MAPPER_MOAT:
+ case Commands::M_MAPPER_PEOPLE_LADDERMEN:
+ *pGold = 1;
+ break;
+ case Commands::M_MAPPER_PEOPLE_ENGINEERS:
+ *pGold = 30;
+ break;
+ case Commands::M_MAPPER_PEOPLE_MONKS:
+ *pGold = 10;
+ break;
+ case Commands::M_MAPPER_PITCH_DITCH:
+ *pGold = 2;
+ break;
+ case Commands::M_MAPPER_KILLING_PIT:
+ case Commands::M_MAPPER_BRAZIER:
+ *pGold = 5;
+ break;
+ case Commands::M_MAPPER_PEOPLE_CATAPULTS:
+ *pGold = this->buildingCosts[BT_CATAPULT].requiredGold;
+ break;
+ case Commands::M_MAPPER_PEOPLE_TREBUCHETS:
+ *pGold = this->buildingCosts[BT_TREBUCHET].requiredGold;
+ break;
+ case Commands::M_MAPPER_MANGONEL:
+ *pGold = this->buildingCosts[BT_MANGONEL].requiredGold;
+ break;
+ case Commands::M_MAPPER_BALLISTA:
+ *pGold = this->buildingCosts[BT_BALLISTA].requiredGold;
+ break;
+ case Commands::M_MAPPER_PEOPLE_PORTABLE_SHIELDS:
+ *pGold = this->buildingCosts[BT_SHIELD].requiredGold;
+ break;
+ case Commands::M_MAPPER_PEOPLE_SIEGE_TOWERS:
+ // The original reads entry 82 here and entry 83 for battering rams, so one of the two enums
+ // probably has these names swapped.
+ *pGold = this->buildingCosts[BT_BATTERINGRAM].requiredGold;
+ break;
+ case Commands::M_MAPPER_PEOPLE_BATTERING_RAMS:
+ *pGold = this->buildingCosts[BT_SIEGETOWER].requiredGold;
+ break;
+ case Commands::M_MAPPER_PEOPLE_ARAB_BALLISTA:
+ *pGold = this->buildingCosts[BT_FIREBALLISTA].requiredGold;
+ break;
+ }
+ }
+ }
+}
+}
+
+### 0x0040c800 getPriceForDisbandedUnitType | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040C800
+ void BuildingsState::getPriceForDisbandedUnitType(UnitType unitType, int* outPrice)
+ {
+ switch (unitType) {
+ case Units::UT_E_ARCHER:
+ *outPrice = 12;
+ return;
+ case Units::UT_E_SPEAR:
+ *outPrice = 8;
+ return;
+ case Units::UT_E_PIKE:
+ *outPrice = 20;
+ return;
+ case Units::UT_E_MACE:
+ *outPrice = 20;
+ return;
+ case Units::UT_E_XBOW:
+ *outPrice = 20;
+ return;
+ case Units::UT_E_SWORD:
+ *outPrice = 40;
+ return;
+ case Units::UT_E_KNIGHT:
+ *outPrice = 40;
+ return;
+ case Units::UT_E_LADDER:
+ *outPrice = 1;
+ return;
+ case Units::UT_E_ENGINEER:
+ *outPrice = 30;
+ return;
+ case Units::UT_E_MONK:
+ *outPrice = 10;
+ return;
+ case Units::UT_TUNNELER:
+ *outPrice = 20;
+ return;
+ case Units::UT_S_CATAPULT:
+ *outPrice = this->buildingCosts[BT_CATAPULT].requiredGold;
+ return;
+ case Units::UT_S_TREBUCHET:
+ *outPrice = this->buildingCosts[BT_TREBUCHET].requiredGold;
+ return;
+ case Units::UT_S_MANGONEL:
+ *outPrice = this->buildingCosts[BT_MANGONEL].requiredGold;
+ return;
+ case Units::UT_S_BALLISTA:
+ *outPrice = this->buildingCosts[BT_BALLISTA].requiredGold;
+ return;
+ case Units::UT_S_FBALLISTA:
+ *outPrice = this->buildingCosts[BT_FIREBALLISTA].requiredGold;
+ return;
+ case Units::UT_S_SHIELD:
+ *outPrice = this->buildingCosts[BT_SHIELD].requiredGold;
+ return;
+ // the original pairs the tower with the battering ram's cost and vice versa
+ case Units::UT_S_TOWER:
+ *outPrice = this->buildingCosts[BT_BATTERINGRAM].requiredGold;
+ return;
+ case Units::UT_S_BATTERINGRAM:
+ *outPrice = this->buildingCosts[BT_SIEGETOWER].requiredGold;
+ return;
+ }
+ }
+ }
+}
+}
+
+### 0x0040c9b0 resourceGainForKillingPitAndPitchDitch | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040C9B0
+ void BuildingsState::resourceGainForKillingPitAndPitchDitch(
+ BuildingType buildingType, int* ptrRequiredStone, int* ptrRequiredGold)
+ {
+ *ptrRequiredStone = this->buildingCosts[buildingType].requiredStone_0x4;
+ *ptrRequiredGold = this->buildingCosts[buildingType].requiredGold;
+ switch (buildingType) {
+ case BT_KILLINGPIT:
+ *ptrRequiredGold = 5;
+ break;
+ case BT_PITCHDITCH:
+ *ptrRequiredGold = 2;
+ break;
+ }
+ }
+ }
+}
+}
+
+### 0x0040c9f0 subtractPitchAndMoatFromStartingGoldInSiegeThatMode | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040C9F0
+ void BuildingsState::subtractPitchAndMoatFromStartingGoldInSiegeThatMode()
+ {
+ if (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT) {
+ return;
+ }
+ int pitchDitchCount = 0;
+ for (int i = 1; i < 4000; ++i) {
+ if (DAT_TileMapState.pitchDitches[i].owner != 0) {
+ ++pitchDitchCount;
+ }
+ }
+ // Only the tiles placed since the last call are paid
+ int stone;
+ int gold;
+ getBuildingCost(
+ M_MAPPER_MOAT, &stone, &gold);
+ int moatTileCount = DAT_TileMapState.moatTileCount;
+ int playerID = DAT_GameSynchronyState.currentPlayerSlotID;
+ DAT_GameState.playerDataArray[playerID].startResources[RT_GOLD]
+ -= (moatTileCount - DAT_GameState.playerDataArray[playerID].moatTileCount) * gold;
+ getBuildingCost(
+ M_MAPPER_PITCH_DITCH, &stone, &gold);
+ DAT_GameState.playerDataArray[playerID].startResources[RT_GOLD]
+ -= (pitchDitchCount - DAT_GameState.playerDataArray[playerID].pitchDitchTileCount) * gold;
+ DAT_GameState.playerDataArray[playerID].pitchDitchTileCount = pitchDitchCount;
+ DAT_GameState.playerDataArray[playerID].moatTileCount = moatTileCount;
+ }
+ }
+}
+}
+
+### 0x0040cac0 hasEnoughGoldForMoat | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040CAC0
+ uint BuildingsState::hasEnoughGoldForMoat()
+ {
+ int gold;
+ int stone;
+ getBuildingCost(Commands::M_MAPPER_MOAT, &stone, &gold);
+ int const playerID = DAT_GameSynchronyState.currentPlayerSlotID;
+ return DAT_GameState.playerDataArray[playerID].startResources[Game::Resources::RT_GOLD]
+ >= ((int)DAT_TileMapState.moatTileCount
+ - DAT_GameState.playerDataArray[playerID].moatTileCount + 1)
+ * gold;
+ }
+ }
+}
+}
+
+### 0x0040cb10 getFarmThatHasTile | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040CB10
+ int BuildingsState::getFarmThatHasTile(int tile)
+ {
+ for (int buildingID = 1; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (this->buildings[buildingID].logicalState == BLS_NORMAL
+ && (this->buildings[buildingID].buildingType == BT_WHEATFARM
+ || this->buildings[buildingID].buildingType == BT_HOPFARM
+ || this->buildings[buildingID].buildingType == BT_APPLEFARM
+ || this->buildings[buildingID].buildingType == BT_DAIRYFARM)) {
+ for (int tileIndex = 0; tileIndex < 36; ++tileIndex) {
+ if (this->buildings[buildingID].tileRefs[tileIndex] == tile) {
+ return buildingID;
+ }
+ }
+ }
+ }
+ return 0;
+ }
+ }
+}
+}
+
+### 0x0040cb90 isFarmTileReadyForWheatStageChange | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040CB90
+ BOOLEnum BuildingsState::isFarmTileReadyForWheatStageChange(int buildingID)
+ {
+ for (int tileIndex = 0; tileIndex < 36; ++tileIndex) {
+ int const tile = this->buildings[buildingID].tileRefs[tileIndex];
+ int const damage = (char)DAT_TileMapState.DamageLayer[tile];
+ DAT_BuildingsState.farmerDestinationTile = tile;
+ if (this->buildings[buildingID].farmGrowState == 6) {
+ if (damage >= 11 && damage < 101) {
+ return TRUE;
+ }
+ } else if (this->buildings[buildingID].farmGrowState == 8) {
+ if (damage == 121) {
+ return TRUE;
+ }
+ } else if (this->buildings[buildingID].farmGrowState == 3) {
+ if (damage == 0 || damage == 120) {
+ return TRUE;
+ }
+ if (damage >= 101 && damage < 120) {
+ return TRUE;
+ }
+ } else if (this->buildings[buildingID].farmGrowState == 5) {
+ if (damage >= 1 && damage < 2) {
+ return TRUE;
+ }
+ } else {
+ return FALSE;
+ }
+ }
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x0040cc30 growWheat | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040CC30
+ void BuildingsState::growWheat(int buildingID)
+ {
+ // The damage layer holds the growth stage of the wheat on the field tiles.
+ // Not all stage counters are used, the compiler removes those.
+ int empty = 0;
+ int seeded = 0;
+ int stage2To4 = 0;
+ int stage5To7 = 0;
+ int stage8To10 = 0;
+ int growing = 0;
+ int stage101 = 0;
+ int stage102 = 0;
+ int stage103To119 = 0;
+ int stage120 = 0;
+ int stage121 = 0;
+ for (int i = 0; i < 36; ++i) {
+ int tile = this->buildings[buildingID].tileRefs[i];
+ if ((char)DAT_TileMapState.DamageLayer[tile] >= 2
+ && (char)DAT_TileMapState.DamageLayer[tile] < 103) {
+ ++DAT_TileMapState.DamageLayer[tile];
+ }
+ char stage = DAT_TileMapState.DamageLayer[tile];
+ if (stage < 1) {
+ ++empty;
+ } else if (stage < 2) {
+ ++seeded;
+ } else if (stage < 5) {
+ ++stage2To4;
+ } else if (stage < 8) {
+ ++stage5To7;
+ } else if (stage < 11) {
+ ++stage8To10;
+ } else if (stage < 101) {
+ ++growing;
+ } else if (stage < 102) {
+ ++stage101;
+ } else if (stage < 103) {
+ ++stage102;
+ } else if (stage < 120) {
+ ++stage103To119;
+ } else if (stage == 120) {
+ ++stage120;
+ } else if (stage == 121) {
+ ++stage121;
+ }
+ }
+ if (stage121 >= 4) {
+ this->buildings[buildingID].farmGrowState = 8;
+ return;
+ }
+ if (growing >= 12 || (growing != 0 && stage120 != 0)) {
+ this->buildings[buildingID].farmGrowState = 6;
+ return;
+ }
+ if (stage121 != 0) {
+ this->buildings[buildingID].farmGrowState = 8;
+ return;
+ }
+ if (empty != 0) {
+ this->buildings[buildingID].farmGrowState = 3;
+ } else if (stage120 != 0) {
+ this->buildings[buildingID].farmGrowState = 3;
+ } else if (stage102 != 0) {
+ this->buildings[buildingID].farmGrowState = 3;
+ } else if (stage103To119 != 0) {
+ this->buildings[buildingID].farmGrowState = 3;
+ } else {
+ this->buildings[buildingID].farmGrowState = seeded != 0 ? 5 : 2;
+ }
+ }
+ }
+}
+}
+
+### 0x0040cf20 updateWheatFieldTileGraphics | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040CF20
+ void BuildingsState::updateWheatFieldTileGraphics(int buildingID)
+ {
+ int iVar1;
+ uint uVar2;
+ int iVar3;
+ uint uVar4;
+ int iVar5;
+ int local_8;
+ byte uVar1;
+ iVar3 = 0;
+ uVar4 = 0;
+ local_8 = 3;
+ if (this->field14_0x18e024 == 0) {
+ iVar3 = (int)*(short*)&this->buildings[buildingID].field_0x2fc;
+ }
+ iVar5 = 0;
+ do {
+ iVar1 = *(int*)(this->buildings[buildingID].workers
+ + DAT_BuildingDefinedData.WheatFieldTile_Unknown[(iVar5 + iVar3) % 0x24] * 2 + 6);
+ uVar1 = DAT_TileMapState.DamageLayer[iVar1];
+ if (uVar1 == 0) {
+ uVar4 = 0;
+ LAB_0040d024:
+ uVar2 = ((byte)DAT_TileMapState.RandomLayer[iVar1] & 3)
+ + GMTotalPicturesProcessed::instance[0xe] + uVar4;
+ } else {
+ if ((char)uVar1 < '\x01') {
+ uVar4 = 0;
+ goto LAB_0040d024;
+ }
+ if ((char)uVar1 < '\x02') {
+ uVar4 = 4;
+ goto LAB_0040d024;
+ }
+ if ((char)uVar1 < '\x05') {
+ uVar4 = 8;
+ goto LAB_0040d024;
+ }
+ if ((char)uVar1 < '\b') {
+ uVar4 = 0xc;
+ goto LAB_0040d024;
+ }
+ if ((char)uVar1 < '\v') {
+ uVar4 = 0x10;
+ goto LAB_0040d024;
+ }
+ if ((char)uVar1 < 'e') {
+ uVar4 = 0x14;
+ goto LAB_0040d024;
+ }
+ if ((char)uVar1 < 'f') {
+ uVar4 = 0x1c;
+ goto LAB_0040d024;
+ }
+ if ((char)uVar1 < 'g') {
+ uVar4 = 0x20;
+ goto LAB_0040d024;
+ }
+ if ((char)uVar1 < 'x') {
+ uVar4 = 0x20;
+ goto LAB_0040d024;
+ }
+ if (uVar1 == 0x78) {
+ uVar4 = 0x18;
+ goto LAB_0040d024;
+ }
+ if (uVar1 == 0x79) {
+ uVar4 = 0x24;
+ } else if (uVar4 < 0x24)
+ goto LAB_0040d024;
+ uVar2 = GMTotalPicturesProcessed::instance[0xe] + uVar4;
+ }
+ if (uVar2 == DAT_TileMapState.GfxLayer[iVar1]) {
+ local_8 = local_8 + -1;
+ if (local_8 != 0)
+ goto LAB_0040d041;
+ } else {
+ DAT_TileMapState.GfxLayer[iVar1] = (ushort)uVar2;
+ LAB_0040d041:
+ if (this->field14_0x18e024 == 0) {
+ *(short*)&this->buildings[buildingID].field_0x2fc = (short)((iVar5 + 1 + iVar3) % 0x24);
+ return;
+ }
+ }
+ iVar5 = iVar5 + 1;
+ if (0x23 < iVar5) {
+ return;
+ }
+ } while (true);
+ }
+ }
+}
+}
+
+### 0x0040d090 harmWheatFarmsOfPlayer | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040D090
+ void BuildingsState::harmWheatFarmsOfPlayer(int playerID)
+ {
+ for (int buildingID = 0; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (this->buildings[buildingID].logicalState != 0 && this->buildings[buildingID].owner == playerID
+ && this->buildings[buildingID].buildingType == BT_WHEATFARM) {
+ for (int tileIndex = 0; tileIndex != 36; ++tileIndex) {
+ int const tile = this->buildings[buildingID].tileRefs[tileIndex];
+ DAT_TileMapState.DamageLayer[tile]
+ = (char)DAT_TileMapState.DamageLayer[tile] < 8 ? 0 : 101;
+ }
+ this->buildings[buildingID].growCounter = -1200;
+ this->buildings[buildingID].farmGrowState = 2;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0040d120 setupBarracksCampgroundPositions | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040D120
+ void BuildingsState::setupBarracksCampgroundPositions(int playerID)
+ {
+ int paradeGround1 = 0;
+ int paradeGround2 = 0;
+ int paradeGround3 = 0;
+ fillMemory_ByteValue(
+ sizeof(DAT_GameState.playerDataArray[playerID].barracksParadegroundLocations), 0,
+ DAT_GameState.playerDataArray[playerID].barracksParadegroundLocations);
+ DAT_GameState.playerDataArray[playerID].barracksParadegroundLocationsTotal = 0;
+ if (DAT_GameState.playerDataArray[playerID].barracks.id <= 0) {
+ return;
+ }
+ int buildingID;
+ for (buildingID = 1; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (this->buildings[buildingID].logicalState == 0
+ || this->buildings[buildingID].logicalState == BLS_REMOVE
+ || this->buildings[buildingID].owner != playerID) {
+ continue;
+ }
+ if (this->buildings[buildingID].buildingType != BT_PARADEGROUND2
+ && this->buildings[buildingID].buildingType != BT_PARADEGROUND3
+ && this->buildings[buildingID].buildingType != BT_PARADEGROUND4) {
+ continue;
+ }
+ // quarryStockpileID holds the linked building here.
+ if (DAT_BuildingsState
+ .buildings[DAT_BuildingsState.buildings[buildingID].quarryStockpileID]
+ .buildingType
+ != BT_BARRACKS) {
+ continue;
+ }
+ if (this->buildings[buildingID].buildingType == BT_PARADEGROUND2) {
+ paradeGround1 = buildingID;
+ } else if (this->buildings[buildingID].buildingType == BT_PARADEGROUND3) {
+ paradeGround2 = buildingID;
+ } else if (this->buildings[buildingID].buildingType == BT_PARADEGROUND4) {
+ paradeGround3 = buildingID;
+ }
+ }
+ if (paradeGround1 == 0 || paradeGround2 == 0 || paradeGround3 == 0) {
+ return;
+ }
+ DAT_GameState.playerDataArray[playerID].barracksParadegroundLocationsTotal = 72;
+ for (int formation = 0; formation < 6; ++formation) {
+ int const shape = DAT_BuildingDefinedData.PlayerDataUnknownStructureRelatedArray_1[formation];
+ // The loop index above is reused, so an unknown selector keeps the previous building.
+ int const selector0
+ = DAT_BuildingDefinedData.PlayerDataUnknownStructureRelatedArray_2[formation][0];
+ if (selector0 == 0) {
+ buildingID = paradeGround1;
+ } else if (selector0 == 1) {
+ buildingID = paradeGround2;
+ } else if (selector0 == 2) {
+ buildingID = paradeGround3;
+ }
+ int const x0 = this->buildings[buildingID].x;
+ int const y0 = this->buildings[buildingID].y;
+ for (int i = 0; i < 24; ++i) {
+ DAT_GameState.playerDataArray[playerID].barracksParadegroundLocations[formation][i].x
+ = DAT_BuildingDefinedData.PlayerDataUnknownStructureRelatedArray_3[shape][i].x + x0;
+ DAT_GameState.playerDataArray[playerID].barracksParadegroundLocations[formation][i].y
+ = DAT_BuildingDefinedData.PlayerDataUnknownStructureRelatedArray_3[shape][i].y + y0;
+ }
+ int const selector1
+ = DAT_BuildingDefinedData.PlayerDataUnknownStructureRelatedArray_2[formation][1];
+ if (selector1 == 0) {
+ buildingID = paradeGround1;
+ } else if (selector1 == 1) {
+ buildingID = paradeGround2;
+ } else if (selector1 == 2) {
+ buildingID = paradeGround3;
+ }
+ int const x1 = this->buildings[buildingID].x;
+ int const y1 = this->buildings[buildingID].y;
+ for (int i = 0; i < 24; ++i) {
+ DAT_GameState.playerDataArray[playerID].barracksParadegroundLocations[formation][24 + i].x
+ = DAT_BuildingDefinedData.PlayerDataUnknownStructureRelatedArray_3[shape][i].x + x1;
+ DAT_GameState.playerDataArray[playerID].barracksParadegroundLocations[formation][24 + i].y
+ = DAT_BuildingDefinedData.PlayerDataUnknownStructureRelatedArray_3[shape][i].y + y1;
+ }
+ int const selector2
+ = DAT_BuildingDefinedData.PlayerDataUnknownStructureRelatedArray_2[formation][2];
+ if (selector2 == 0) {
+ buildingID = paradeGround1;
+ } else if (selector2 == 1) {
+ buildingID = paradeGround2;
+ } else if (selector2 == 2) {
+ buildingID = paradeGround3;
+ }
+ int const x2 = this->buildings[buildingID].x;
+ int const y2 = this->buildings[buildingID].y;
+ for (int i = 0; i < 24; ++i) {
+ DAT_GameState.playerDataArray[playerID].barracksParadegroundLocations[formation][48 + i].x
+ = DAT_BuildingDefinedData.PlayerDataUnknownStructureRelatedArray_3[shape][i].x + x2;
+ DAT_GameState.playerDataArray[playerID].barracksParadegroundLocations[formation][48 + i].y
+ = DAT_BuildingDefinedData.PlayerDataUnknownStructureRelatedArray_3[shape][i].y + y2;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0040d400 setupMercenaryPostCampgroundPositions | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040D400
+ void BuildingsState::setupMercenaryPostCampgroundPositions(int playerID)
+ {
+ int paradeGround1 = 0;
+ int paradeGround2 = 0;
+ int paradeGround3 = 0;
+ fillMemory_ByteValue(
+ sizeof(DAT_GameState.playerDataArray[playerID].structure), 0,
+ &DAT_GameState.playerDataArray[playerID].structure);
+ DAT_GameState.playerDataArray[playerID].structureRelated1 = 0;
+ if (DAT_GameState.playerDataArray[playerID].mercenaryPost.id <= 0) {
+ return;
+ }
+ int buildingID;
+ for (buildingID = 1; buildingID < this->maxBuildingsCount; ++buildingID) {
+ if (this->buildings[buildingID].logicalState == 0
+ || this->buildings[buildingID].logicalState == BLS_REMOVE
+ || this->buildings[buildingID].owner != playerID) {
+ continue;
+ }
+ if (this->buildings[buildingID].buildingType != BT_PARADEGROUND2
+ && this->buildings[buildingID].buildingType != BT_PARADEGROUND3
+ && this->buildings[buildingID].buildingType != BT_PARADEGROUND4) {
+ continue;
+ }
+ // quarryStockpileID holds the linked building here.
+ if (DAT_BuildingsState
+ .buildings[DAT_BuildingsState.buildings[buildingID].quarryStockpileID]
+ .buildingType
+ != BT_MERCENARYPOST) {
+ continue;
+ }
+ if (this->buildings[buildingID].buildingType == BT_PARADEGROUND2) {
+ paradeGround1 = buildingID;
+ } else if (this->buildings[buildingID].buildingType == BT_PARADEGROUND3) {
+ paradeGround2 = buildingID;
+ } else if (this->buildings[buildingID].buildingType == BT_PARADEGROUND4) {
+ paradeGround3 = buildingID;
+ }
+ }
+ if (paradeGround1 == 0 || paradeGround2 == 0 || paradeGround3 == 0) {
+ return;
+ }
+ DAT_GameState.playerDataArray[playerID].structureRelated1 = 72;
+ for (int formation = 0; formation < 6; ++formation) {
+ int const shape = DAT_BuildingDefinedData.PlayerDataUnknownStructureRelatedArray_1[formation];
+ // The loop index above is reused, so an unknown selector keeps the previous building.
+ int const selector0
+ = DAT_BuildingDefinedData.PlayerDataUnknownStructureRelatedArray_2[formation][0];
+ if (selector0 == 0) {
+ buildingID = paradeGround1;
+ } else if (selector0 == 1) {
+ buildingID = paradeGround2;
+ } else if (selector0 == 2) {
+ buildingID = paradeGround3;
+ }
+ int const x0 = this->buildings[buildingID].x;
+ int const y0 = this->buildings[buildingID].y;
+ for (int i = 0; i < 24; ++i) {
+ DAT_GameState.playerDataArray[playerID]
+ .structure.mercenaryOutpostCampgroundLocations[formation][0][i]
+ .x
+ = DAT_BuildingDefinedData.PlayerDataUnknownStructureRelatedArray_3[shape][i].x + x0;
+ DAT_GameState.playerDataArray[playerID]
+ .structure.mercenaryOutpostCampgroundLocations[formation][0][i]
+ .y
+ = DAT_BuildingDefinedData.PlayerDataUnknownStructureRelatedArray_3[shape][i].y + y0;
+ }
+ int const selector1
+ = DAT_BuildingDefinedData.PlayerDataUnknownStructureRelatedArray_2[formation][1];
+ if (selector1 == 0) {
+ buildingID = paradeGround1;
+ } else if (selector1 == 1) {
+ buildingID = paradeGround2;
+ } else if (selector1 == 2) {
+ buildingID = paradeGround3;
+ }
+ int const x1 = this->buildings[buildingID].x;
+ int const y1 = this->buildings[buildingID].y;
+ for (int i = 0; i < 24; ++i) {
+ DAT_GameState.playerDataArray[playerID]
+ .structure.mercenaryOutpostCampgroundLocations[formation][1][i]
+ .x
+ = DAT_BuildingDefinedData.PlayerDataUnknownStructureRelatedArray_3[shape][i].x + x1;
+ DAT_GameState.playerDataArray[playerID]
+ .structure.mercenaryOutpostCampgroundLocations[formation][1][i]
+ .y
+ = DAT_BuildingDefinedData.PlayerDataUnknownStructureRelatedArray_3[shape][i].y + y1;
+ }
+ int const selector2
+ = DAT_BuildingDefinedData.PlayerDataUnknownStructureRelatedArray_2[formation][2];
+ if (selector2 == 0) {
+ buildingID = paradeGround1;
+ } else if (selector2 == 1) {
+ buildingID = paradeGround2;
+ } else if (selector2 == 2) {
+ buildingID = paradeGround3;
+ }
+ int const x2 = this->buildings[buildingID].x;
+ int const y2 = this->buildings[buildingID].y;
+ for (int i = 0; i < 24; ++i) {
+ DAT_GameState.playerDataArray[playerID]
+ .structure.mercenaryOutpostCampgroundLocations[formation][2][i]
+ .x
+ = DAT_BuildingDefinedData.PlayerDataUnknownStructureRelatedArray_3[shape][i].x + x2;
+ DAT_GameState.playerDataArray[playerID]
+ .structure.mercenaryOutpostCampgroundLocations[formation][2][i]
+ .y
+ = DAT_BuildingDefinedData.PlayerDataUnknownStructureRelatedArray_3[shape][i].y + y2;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0040d6e0 isSpaceAvailableAtUnitRallyPoint | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040D6E0
+ BOOLEnum BuildingsState::isSpaceAvailableAtUnitRallyPoint(int playerID, int group, int unitID)
+ {
+ int const requestedGroup = group;
+ if (DAT_GameSynchronyState.currentGameMode != 0
+ && DAT_GameSynchronyState.currentPlayerFullIDArray[playerID] == -1
+ && DAT_GameSynchronyState.currentAIArray[playerID] != 0
+ && DAT_UnitsState.units[unitID].aiUnitBehaviourType != 2) {
+ int const keepID = DAT_GameState.playerDataArray[playerID].keep.id;
+ if (keepID == 0) {
+ return FALSE;
+ }
+ this->DAT_TempXOffset = DAT_BuildingsState.buildings[keepID].someX;
+ this->DAT_TempYOffset = DAT_BuildingsState.buildings[keepID].someY;
+ return TRUE;
+ }
+ if (group == 6) {
+ group = 5;
+ }
+ int offset = DAT_GameState.playerDataArray[playerID].rallySearchOffsetsUnk[group];
+ if (DAT_GameState.playerDataArray[playerID].barracksAssemblyPoints[requestedGroup].x != 0) {
+ if (requestedGroup == 6) {
+ offset = DAT_GameState.playerDataArray[playerID].rallySearchOffset;
+ group = requestedGroup;
+ } else if (requestedGroup == 5) {
+ offset -= DAT_GameState.playerDataArray[playerID].rallySearchOffset;
+ }
+ int const assemblyX = DAT_GameState.playerDataArray[playerID].barracksAssemblyPoints[group].x;
+ int const assemblyY = DAT_GameState.playerDataArray[playerID].barracksAssemblyPoints[group].y;
+ for (int i = offset; i < 49; ++i) {
+ int const x = DAT_BuildingDefinedData.SearchRelatedXYOffsets_1[i].x + assemblyX;
+ int const y = DAT_BuildingDefinedData.SearchRelatedXYOffsets_1[i].y + assemblyY;
+ int const tile = DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x;
+ int const occupantID = DAT_TileMapState.UnitLayer[tile];
+ if (occupantID != 0 && occupantID != unitID
+ && DAT_UnitsState.units[unitID].movementRelated == 8) {
+ continue;
+ }
+ if (calculateCanPlayerUnitsNavigateToAreaFromArea(playerID,
+ (short)DAT_TileMapState
+ .PathConnectionLayer[DAT_UnitsState.units[unitID].tile],
+ (short)DAT_TileMapState.PathConnectionLayer[tile], 0)
+ != 0) {
+ this->DAT_TempXOffset = x;
+ this->DAT_TempYOffset = y;
+ if (x == DAT_UnitsState.units[unitID].x
+ && y == DAT_UnitsState.units[unitID].y) {
+ return FALSE;
+ }
+ return TRUE;
+ }
+ }
+ return FALSE;
+ }
+ if (DAT_GameState.playerDataArray[playerID].barracks.id <= 0) {
+ return FALSE;
+ }
+ if (requestedGroup == 6) {
+ if (DAT_GameState.playerDataArray[playerID].barracksAssemblyPoints[5].x != 0) {
+ offset = DAT_GameState.playerDataArray[playerID].rallySearchOffset;
+ }
+ } else if (requestedGroup == 5) {
+ if (DAT_GameState.playerDataArray[playerID].barracksAssemblyPoints[6].x != 0) {
+ offset -= DAT_GameState.playerDataArray[playerID].rallySearchOffset;
+ }
+ }
+ for (int i = offset; i < 72; ++i) {
+ int const x
+ = DAT_GameState.playerDataArray[playerID].barracksParadegroundLocations[group][i].x;
+ int const y
+ = DAT_GameState.playerDataArray[playerID].barracksParadegroundLocations[group][i].y;
+ if ((uint)x > 399 || (uint)y > 399
+ || DAT_ViewportRenderState.DAT_BinaryTileMap400x400[y * 400 + x] == 0) {
+ continue;
+ }
+ int const occupantID
+ = DAT_TileMapState
+ .UnitLayer[DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x];
+ if (occupantID != 0 && occupantID != unitID
+ && DAT_UnitsState.units[unitID].movementRelated == 8) {
+ continue;
+ }
+ this->DAT_TempXOffset = x;
+ this->DAT_TempYOffset = y;
+ if (x == DAT_UnitsState.units[unitID].x && y == DAT_UnitsState.units[unitID].y) {
+ return FALSE;
+ }
+ return TRUE;
+ }
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x0040d9c0 getKeepLocationForAIUnit | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x0040D9C0
+ undefined4 BuildingsState::getKeepLocationForAIUnit(int playerID, int param_2, int unitID)
+ {
+ short sVar1;
+ short sVar2;
+ short* psVar3;
+ int iVar4;
+ int iVar5;
+ int iVar6;
+ bool bVar7;
+ if ((((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ && (DAT_GameSynchronyState.currentPlayerFullIDArray[playerID] == -1))
+ && (DAT_GameSynchronyState.currentAIArray[playerID] != 0))
+ && (DAT_UnitsState.units[unitID].aiUnitBehaviourType != 2)) {
+ /*
+ if not in solitary; playerID is an AI; and the unit is not doing ai behavior type 2; and the
+ player has a keep; return the keep location and true;
+ */
+ iVar4 = DAT_GameState.playerDataArray[playerID].keep.id;
+ if (iVar4 != 0) {
+ this->DAT_TempXOffset = (int)this->buildings[iVar4].someX;
+ this->DAT_TempYOffset = (int)this->buildings[iVar4].someY;
+ return (undefined4)(1);
+ }
+ return (undefined4)(0);
+ }
+ iVar4 = param_2;
+ /*
+ this applies to solitary game mode, so not sure what to think of this now
+ */
+ if (param_2 == 0x10) {
+ iVar4 = 0xd;
+ }
+ /*
+ fixme
+ */
+ /*
+ fixme
+ */
+ iVar5 = DAT_GameState.playerDataArray[playerID].rallySearchOffsetsUnk[iVar4];
+ if (DAT_GameState.playerDataArray[playerID].mercenaryAssemblyPoints[param_2 + -10][0] == 0) {
+ if (0 < DAT_GameState.playerDataArray[playerID].mercenaryPost.id) {
+ if (param_2 == 0x10) {
+ /*
+ fixme
+ */
+ if (DAT_GameState.playerDataArray[playerID].mercenaryAssemblyPoints[3][0] != 0) {
+ iVar5 = DAT_GameState.playerDataArray[playerID].someCount23;
+ }
+ } else if ((param_2 == 0xd)
+ && ((short)DAT_GameState.playerDataArray[playerID].countPitchRigs != 0)) {
+ iVar5 = iVar5 - DAT_GameState.playerDataArray[playerID].someCount23;
+ }
+ if (iVar5 < 0x48) {
+ psVar3 = DAT_GameState.playerDataArray[playerID].enemyIDArray + iVar4 * 0x90
+ + iVar5 * 2 + 0x57d;
+ while (true) {
+ iVar4 = (int)*psVar3;
+ iVar6 = (int)psVar3[-1];
+ if ((((short)DAT_TileMapState.UnitLayer
+ [DAT_ViewportRenderState.translationMatrix[iVar4].addXgetTile
+ + iVar6]
+ == 0)
+ || ((short)DAT_TileMapState.UnitLayer
+ [DAT_ViewportRenderState.translationMatrix[iVar4].addXgetTile
+ + iVar6]
+ == unitID))
+ || (DAT_UnitsState.units[unitID].movementRelated != 8))
+ break;
+ iVar5 = iVar5 + 1;
+ psVar3 = psVar3 + 2;
+ if (0x47 < iVar5) {
+ return (undefined4)(0);
+ }
+ }
+ this->DAT_TempXOffset = iVar6;
+ this->DAT_TempYOffset = iVar4;
+ if (iVar6 == DAT_UnitsState.units[unitID].x) {
+ bVar7 = iVar4 == DAT_UnitsState.units[unitID].y;
+ LAB_0040dc5b:
+ if (bVar7) {
+ return (undefined4)(0);
+ }
+ }
+ return (undefined4)(1);
+ }
+ }
+ } else {
+ if (param_2 == 0x10) {
+ iVar5 = DAT_GameState.playerDataArray[playerID].someCount23;
+ iVar4 = param_2;
+ } else if (param_2 == 0xd) {
+ iVar5 = iVar5 - DAT_GameState.playerDataArray[playerID].someCount23;
+ }
+ /*
+ fixme
+ */
+ sVar1 = DAT_GameState.playerDataArray[playerID].mercenaryAssemblyPoints[iVar4 + -10][0];
+ /*
+ fixme
+ */
+ sVar2 = DAT_GameState.playerDataArray[playerID].mercenaryAssemblyPoints[iVar4 + -10][1];
+ if (iVar5 < 0x31) {
+ psVar3 = &DAT_BuildingDefinedData.SearchRelatedXYOffsets_1[iVar5].y;
+ do {
+ iVar5 = (int)*psVar3 + (int)sVar2;
+ iVar6 = (int)((XYPairShort*)(psVar3 + -1))->x + (int)sVar1;
+ iVar4 = DAT_ViewportRenderState.translationMatrix[iVar5].addXgetTile + iVar6;
+ if (((((short)DAT_TileMapState.UnitLayer[iVar4] == 0)
+ || ((short)DAT_TileMapState.UnitLayer[iVar4] == unitID))
+ || (DAT_UnitsState.units[unitID].movementRelated != 8))
+ && (iVar4 = MACRO_CALL_MEMBER(
+ calculateCanPlayerUnitsNavigateToAreaFromArea,
+ DAT_PathFindingState)(playerID,
+ (dword)((int)((int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_UnitsState.units[unitID].tile])),
+ (dword)((int)((int)(short)DAT_TileMapState.PathConnectionLayer[iVar4])),
+ 0),
+ iVar4 != 0)) {
+ if (iVar6 != DAT_UnitsState.units[unitID].x) {
+ this->DAT_TempXOffset = iVar6;
+ this->DAT_TempYOffset = iVar5;
+ return (undefined4)(1);
+ }
+ bVar7 = iVar5 == DAT_UnitsState.units[unitID].y;
+ this->DAT_TempXOffset = iVar6;
+ this->DAT_TempYOffset = iVar5;
+ goto LAB_0040dc5b;
+ }
+ psVar3 = psVar3 + 2;
+ } while ((int)psVar3 < 0x5c178e);
+ }
+ }
+ return (undefined4)(0);
+ }
+ }
+}
+}
+

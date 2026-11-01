@@ -1,0 +1,613 @@
+### 0x00412360 UpdateStockpile | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00412360
+ void Buildings::UpdateStockpile()
+ {
+ int* piVar1;
+ int iVar2;
+ bool bVar3;
+ BOOLEnum BVar4;
+ int _owner;
+ int _buildingID;
+ bool bVar5;
+ _buildingID = DAT_CurrentBuildingID;
+ _owner = (int)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner;
+ bVar3 = false;
+ bVar5 = DAT_GameSynchronyState.currentGameMode == GM_SOLITARY;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 0;
+ if (((((bVar5) || (_owner != DAT_GameState.mapAndTime.somePlayerID))
+ && (((byte)DAT_GameCore.mapTimeInTicks & 3) == 0))
+ && ((DAT_GameState.playerDataArray[_owner].hasInitialResourceRecievingStarted == 0
+ && (DAT_GameCore.gameMode_2 != GM_EDITOR))))
+ && ((DAT_GameCore.gameMode_2 != GM_SIEGE_THAT
+ && (DAT_GameState.playerDataArray[_owner].someCountdown01 == 0)))) {
+ if ((0 < DAT_GameState.playerDataArray[_owner].startResources[2])
+ && (BVar4 = buildingHasSpaceForResource(_buildingID, RT_WOOD),
+ BVar4 != FALSE)) {
+ iVar2 = DAT_GameState.playerDataArray[_owner].startResources[2];
+ piVar1 = DAT_GameState.playerDataArray[_owner].currentResources + 2;
+ *piVar1 = *piVar1 + 1;
+ DAT_GameState.playerDataArray[_owner].startResources[2] = iVar2 + -1;
+ piVar1 = DAT_BuildingsState.buildings[_buildingID].resources + 2;
+ *piVar1 = *piVar1 + 1;
+ computeResourceSumForBuilding(_buildingID);
+ DAT_GameState.playerDataArray[_owner].hasInitialResourceRecievingStarted = 1;
+ updateBuildingGraphicsLayer(
+ _buildingID);
+ bVar3 = true;
+ _buildingID = DAT_CurrentBuildingID;
+ }
+ if ((0 < DAT_GameState.playerDataArray[_owner].startResources[3])
+ && (BVar4 = buildingHasSpaceForResource(_buildingID, RT_HOPS),
+ BVar4 != FALSE)) {
+ iVar2 = DAT_GameState.playerDataArray[_owner].startResources[3];
+ piVar1 = DAT_GameState.playerDataArray[_owner].currentResources + 3;
+ *piVar1 = *piVar1 + 1;
+ DAT_GameState.playerDataArray[_owner].startResources[3] = iVar2 + -1;
+ piVar1 = DAT_BuildingsState.buildings[_buildingID].resources + 3;
+ *piVar1 = *piVar1 + 1;
+ computeResourceSumForBuilding(_buildingID);
+ DAT_GameState.playerDataArray[_owner].hasInitialResourceRecievingStarted = 1;
+ updateBuildingGraphicsLayer(
+ _buildingID);
+ bVar3 = true;
+ _buildingID = DAT_CurrentBuildingID;
+ }
+ if ((0 < DAT_GameState.playerDataArray[_owner].startResources[4])
+ && (BVar4 = buildingHasSpaceForResource(_buildingID, RT_STONE),
+ BVar4 != FALSE)) {
+ iVar2 = DAT_GameState.playerDataArray[_owner].startResources[4];
+ piVar1 = DAT_GameState.playerDataArray[_owner].currentResources + 4;
+ *piVar1 = *piVar1 + 1;
+ piVar1 = DAT_BuildingsState.buildings[_buildingID].resources + 4;
+ *piVar1 = *piVar1 + 1;
+ DAT_GameState.playerDataArray[_owner].startResources[4] = iVar2 + -1;
+ computeResourceSumForBuilding(_buildingID);
+ DAT_GameState.playerDataArray[_owner].hasInitialResourceRecievingStarted = 1;
+ updateBuildingGraphicsLayer(
+ _buildingID);
+ bVar3 = true;
+ _buildingID = DAT_CurrentBuildingID;
+ }
+ if ((0 < DAT_GameState.playerDataArray[_owner].startResources[6])
+ && (BVar4 = buildingHasSpaceForResource(_buildingID, RT_IRON),
+ BVar4 != FALSE)) {
+ iVar2 = DAT_GameState.playerDataArray[_owner].startResources[6];
+ piVar1 = DAT_GameState.playerDataArray[_owner].currentResources + 6;
+ *piVar1 = *piVar1 + 1;
+ piVar1 = DAT_BuildingsState.buildings[_buildingID].resources + 6;
+ *piVar1 = *piVar1 + 1;
+ DAT_GameState.playerDataArray[_owner].startResources[6] = iVar2 + -1;
+ computeResourceSumForBuilding(_buildingID);
+ DAT_GameState.playerDataArray[_owner].hasInitialResourceRecievingStarted = 1;
+ updateBuildingGraphicsLayer(
+ _buildingID);
+ bVar3 = true;
+ _buildingID = DAT_CurrentBuildingID;
+ }
+ if ((0 < DAT_GameState.playerDataArray[_owner].startResources[7])
+ && (BVar4 = buildingHasSpaceForResource(_buildingID, RT_PITCH),
+ BVar4 != FALSE)) {
+ iVar2 = DAT_GameState.playerDataArray[_owner].startResources[7];
+ piVar1 = DAT_GameState.playerDataArray[_owner].currentResources + 7;
+ *piVar1 = *piVar1 + 1;
+ DAT_GameState.playerDataArray[_owner].startResources[7] = iVar2 + -1;
+ piVar1 = DAT_BuildingsState.buildings[_buildingID].resources + 7;
+ *piVar1 = *piVar1 + 1;
+ computeResourceSumForBuilding(_buildingID);
+ DAT_GameState.playerDataArray[_owner].hasInitialResourceRecievingStarted = 1;
+ updateBuildingGraphicsLayer(
+ _buildingID);
+ bVar3 = true;
+ _buildingID = DAT_CurrentBuildingID;
+ }
+ if ((0 < DAT_GameState.playerDataArray[_owner].startResources[9])
+ && (BVar4 = buildingHasSpaceForResource(_buildingID, RT_WHEAT),
+ BVar4 != FALSE)) {
+ iVar2 = DAT_GameState.playerDataArray[_owner].startResources[9];
+ piVar1 = DAT_GameState.playerDataArray[_owner].currentResources + 9;
+ *piVar1 = *piVar1 + 1;
+ piVar1 = DAT_BuildingsState.buildings[_buildingID].resources + 9;
+ *piVar1 = *piVar1 + 1;
+ DAT_GameState.playerDataArray[_owner].startResources[9] = iVar2 + -1;
+ computeResourceSumForBuilding(_buildingID);
+ DAT_GameState.playerDataArray[_owner].hasInitialResourceRecievingStarted = 1;
+ updateBuildingGraphicsLayer(
+ _buildingID);
+ bVar3 = true;
+ _buildingID = DAT_CurrentBuildingID;
+ }
+ if ((0 < DAT_GameState.playerDataArray[_owner].startResources[0xe])
+ && (BVar4 = buildingHasSpaceForResource(_buildingID, RT_ALE),
+ BVar4 != FALSE)) {
+ iVar2 = DAT_GameState.playerDataArray[_owner].startResources[0xe];
+ piVar1 = DAT_GameState.playerDataArray[_owner].currentResources + 0xe;
+ *piVar1 = *piVar1 + 1;
+ piVar1 = DAT_BuildingsState.buildings[_buildingID].resources + 0xe;
+ *piVar1 = *piVar1 + 1;
+ DAT_GameState.playerDataArray[_owner].startResources[0xe] = iVar2 + -1;
+ computeResourceSumForBuilding(_buildingID);
+ DAT_GameState.playerDataArray[_owner].hasInitialResourceRecievingStarted = 1;
+ updateBuildingGraphicsLayer(
+ _buildingID);
+ bVar3 = true;
+ _buildingID = DAT_CurrentBuildingID;
+ }
+ if ((DAT_GameState.playerDataArray[_owner].startResources[0x10] < 1)
+ || (BVar4 = buildingHasSpaceForResource(_buildingID, RT_FLOUR),
+ BVar4 == FALSE)) {
+ if (!bVar3) {
+ return;
+ }
+ } else {
+ iVar2 = DAT_GameState.playerDataArray[_owner].startResources[0x10];
+ piVar1 = DAT_GameState.playerDataArray[_owner].currentResources + 0x10;
+ *piVar1 = *piVar1 + 1;
+ DAT_GameState.playerDataArray[_owner].startResources[0x10] = iVar2 + -1;
+ piVar1 = DAT_BuildingsState.buildings[_buildingID].resources + 0x10;
+ *piVar1 = *piVar1 + 1;
+ computeResourceSumForBuilding(_buildingID);
+ DAT_GameState.playerDataArray[_owner].hasInitialResourceRecievingStarted = 1;
+ updateBuildingGraphicsLayer(
+ _buildingID);
+ }
+ countPlayerResources(_owner);
+ }
+ return;
+ }
+}
+}
+
+### 0x00412730 UpdateArmory | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00412730
+ void Buildings::UpdateArmory()
+ {
+ short* psVar1;
+ int* piVar2;
+ short sVar3;
+ int buildingID;
+ uint uVar4;
+ int iVar5;
+ char cVar6;
+ int _playerID;
+ int iVar7;
+ int iVar8;
+ bool bVar9;
+ int local_20;
+ int local_1c;
+ int local_18;
+ int local_14;
+ int local_10;
+ int local_c;
+ int local_8;
+ _playerID = (int)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner;
+ bVar9 = false;
+ addBuildingToTargetableBuildings(
+ DAT_CurrentBuildingID);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ buildingID = DAT_CurrentBuildingID;
+ if (DAT_TileMapState.currentMapperCommand == M_MAPPER_NULL) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].someResourceNumber = 0;
+ }
+ if ((((((byte)DAT_GameCore.mapTimeInTicks & 3) == 0)
+ && (DAT_GameCore.gameMode_2 != GM_EDITOR))
+ && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT))
+ && (DAT_GameState.playerDataArray[_playerID].someCountdown01 == 0)) {
+ iVar7 = DAT_GameState.playerDataArray[_playerID].startResources[0x11];
+ if ((0 < iVar7)
+ && (uVar4 = getArmoryIDIfSpaceLeft(buildingID, 0x11, _playerID, 1),
+ uVar4 != 0)) {
+ bVar9 = true;
+ piVar2 = DAT_GameState.playerDataArray[_playerID].currentResources + 0x11;
+ *piVar2 = *piVar2 + 1;
+ piVar2 = DAT_BuildingsState.buildings[buildingID].resources + 0x11;
+ *piVar2 = *piVar2 + 1;
+ DAT_GameState.playerDataArray[_playerID].startResources[0x11] = iVar7 + -1;
+ DAT_BuildingsState.buildings[buildingID].resourceRelatedCountDown = 100;
+ }
+ if ((0 < DAT_GameState.playerDataArray[_playerID].startResources[0x12])
+ && (uVar4 = getArmoryIDIfSpaceLeft(buildingID, 0x12, _playerID, 1),
+ uVar4 != 0)) {
+ iVar7 = DAT_GameState.playerDataArray[_playerID].startResources[0x12];
+ piVar2 = DAT_GameState.playerDataArray[_playerID].currentResources + 0x12;
+ *piVar2 = *piVar2 + 1;
+ DAT_GameState.playerDataArray[_playerID].startResources[0x12] = iVar7 + -1;
+ piVar2 = DAT_BuildingsState.buildings[buildingID].resources + 0x12;
+ *piVar2 = *piVar2 + 1;
+ DAT_BuildingsState.buildings[buildingID].resourceRelatedCountDown = 100;
+ bVar9 = true;
+ }
+ if ((0 < DAT_GameState.playerDataArray[_playerID].startResources[0x13])
+ && (uVar4 = getArmoryIDIfSpaceLeft(buildingID, 0x13, _playerID, 1),
+ uVar4 != 0)) {
+ iVar7 = DAT_GameState.playerDataArray[_playerID].startResources[0x13];
+ piVar2 = DAT_GameState.playerDataArray[_playerID].currentResources + 0x13;
+ *piVar2 = *piVar2 + 1;
+ DAT_GameState.playerDataArray[_playerID].startResources[0x13] = iVar7 + -1;
+ piVar2 = DAT_BuildingsState.buildings[buildingID].resources + 0x13;
+ *piVar2 = *piVar2 + 1;
+ DAT_BuildingsState.buildings[buildingID].resourceRelatedCountDown = 100;
+ bVar9 = true;
+ }
+ if ((0 < DAT_GameState.playerDataArray[_playerID].startResources[0x14])
+ && (uVar4 = getArmoryIDIfSpaceLeft(buildingID, 0x14, _playerID, 1),
+ uVar4 != 0)) {
+ iVar7 = DAT_GameState.playerDataArray[_playerID].startResources[0x14];
+ piVar2 = DAT_GameState.playerDataArray[_playerID].currentResources + 0x14;
+ *piVar2 = *piVar2 + 1;
+ DAT_GameState.playerDataArray[_playerID].startResources[0x14] = iVar7 + -1;
+ piVar2 = DAT_BuildingsState.buildings[buildingID].resources + 0x14;
+ *piVar2 = *piVar2 + 1;
+ DAT_BuildingsState.buildings[buildingID].resourceRelatedCountDown = 100;
+ bVar9 = true;
+ }
+ if ((0 < DAT_GameState.playerDataArray[_playerID].startResources[0x15])
+ && (uVar4 = getArmoryIDIfSpaceLeft(buildingID, 0x15, _playerID, 1),
+ uVar4 != 0)) {
+ iVar7 = DAT_GameState.playerDataArray[_playerID].startResources[0x15];
+ piVar2 = DAT_GameState.playerDataArray[_playerID].currentResources + 0x15;
+ *piVar2 = *piVar2 + 1;
+ DAT_GameState.playerDataArray[_playerID].startResources[0x15] = iVar7 + -1;
+ piVar2 = DAT_BuildingsState.buildings[buildingID].resources + 0x15;
+ *piVar2 = *piVar2 + 1;
+ DAT_BuildingsState.buildings[buildingID].resourceRelatedCountDown = 100;
+ bVar9 = true;
+ }
+ if ((0 < DAT_GameState.playerDataArray[_playerID].startResources[0x16])
+ && (uVar4 = getArmoryIDIfSpaceLeft(buildingID, 0x16, _playerID, 1),
+ uVar4 != 0)) {
+ iVar7 = DAT_GameState.playerDataArray[_playerID].startResources[0x16];
+ piVar2 = DAT_GameState.playerDataArray[_playerID].currentResources + 0x16;
+ *piVar2 = *piVar2 + 1;
+ DAT_GameState.playerDataArray[_playerID].startResources[0x16] = iVar7 + -1;
+ piVar2 = DAT_BuildingsState.buildings[buildingID].resources + 0x16;
+ *piVar2 = *piVar2 + 1;
+ DAT_BuildingsState.buildings[buildingID].resourceRelatedCountDown = 100;
+ bVar9 = true;
+ }
+ if ((0 < DAT_GameState.playerDataArray[_playerID].startResources[0x17])
+ && (uVar4 = getArmoryIDIfSpaceLeft(buildingID, 0x17, _playerID, 1),
+ uVar4 != 0)) {
+ iVar7 = DAT_GameState.playerDataArray[_playerID].startResources[0x17];
+ piVar2 = DAT_GameState.playerDataArray[_playerID].currentResources + 0x17;
+ *piVar2 = *piVar2 + 1;
+ DAT_GameState.playerDataArray[_playerID].startResources[0x17] = iVar7 + -1;
+ piVar2 = DAT_BuildingsState.buildings[buildingID].resources + 0x17;
+ *piVar2 = *piVar2 + 1;
+ DAT_BuildingsState.buildings[buildingID].resourceRelatedCountDown = 100;
+ bVar9 = true;
+ }
+ if ((DAT_GameState.playerDataArray[_playerID].startResources[0x18] < 1)
+ || (uVar4 = getArmoryIDIfSpaceLeft(buildingID, 0x18, _playerID, 1),
+ uVar4 == 0)) {
+ if (!bVar9)
+ goto LAB_00412a53;
+ } else {
+ DAT_GameState.playerDataArray[_playerID].startResources[0x18]
+ = DAT_GameState.playerDataArray[_playerID].startResources[0x18] + -1;
+ piVar2 = DAT_BuildingsState.buildings[buildingID].resources + 0x18;
+ *piVar2 = *piVar2 + 1;
+ DAT_GameState.playerDataArray[_playerID].currentResources[0x18] = 1;
+ DAT_BuildingsState.buildings[buildingID].resourceRelatedCountDown = 100;
+ }
+ countPlayerResources(_playerID);
+ }
+ LAB_00412a53:
+ uVar4 = computeResourceSumForBuilding(buildingID);
+ if ((int)uVar4 < 10) {
+ DAT_GameState.playerDataArray[_playerID].isArmouryAlmostFilledUp = 0;
+ }
+ sVar3 = DAT_BuildingsState.buildings[buildingID].owner;
+ if ((DAT_GameState.mapAndTime.playerTeams[sVar3]
+ == DAT_GameState.mapAndTime.playerTeams[DAT_GameSynchronyState.currentPlayerSlotID])
+ || ((DAT_GameSynchronyState.currentPlayerFullIDArray[sVar3] == -1
+ && (DAT_GameSynchronyState.currentAIArray[sVar3] != 0)))) {
+ if (DAT_BuildingsState.buildings[buildingID].resourceRelatedCountDown == 0) {
+ if (DAT_BuildingsState.isFirstTickInLoop != FALSE) {
+ DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive = 0;
+ }
+ } else {
+ DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive = 1;
+ psVar1 = &DAT_BuildingsState.buildings[buildingID].resourceRelatedCountDown;
+ *psVar1 = *psVar1 + -1;
+ }
+ updateVisuallyActiveState(buildingID);
+ }
+ bVar9 = DAT_GameSynchronyState.currentGameMode == GM_SOLITARY;
+ DAT_BuildingsState.buildings[buildingID].renderAnimation = 0;
+ DAT_BuildingsState.buildings[buildingID].displayOwnerFlag = 0;
+ DAT_BuildingsState.buildings[buildingID].field29_0x5c = 0;
+ DAT_BuildingsState.buildings[buildingID].shouldRenderSomeOverlay = 0;
+ DAT_BuildingsState.buildings[buildingID].field37_0x7c = 0;
+ DAT_BuildingsState.buildings[buildingID].field39_0x84 = 0;
+ local_20 = DAT_BuildingsState.buildings[buildingID].resources[0x12];
+ local_1c = DAT_BuildingsState.buildings[buildingID].resources[0x13];
+ local_18 = DAT_BuildingsState.buildings[buildingID].resources[0x14];
+ _playerID = DAT_BuildingsState.buildings[buildingID].resources[0x11];
+ local_14 = DAT_BuildingsState.buildings[buildingID].resources[0x15];
+ local_10 = DAT_BuildingsState.buildings[buildingID].resources[0x16];
+ local_8 = DAT_BuildingsState.buildings[buildingID].resources[0x17];
+ local_c = DAT_BuildingsState.buildings[buildingID].resources[0x18];
+ if (bVar9) {
+ DAT_BuildingsState.buildings[buildingID].field36_0x78 = 0;
+ } else {
+ DAT_BuildingsState.buildings[buildingID].displayOwnerFlag = 1;
+ piVar2 = &DAT_BuildingsState.buildings[buildingID].ownerFlagFrame;
+ *piVar2 = *piVar2 + 1;
+ if ((char)DAT_BuildingDefinedData
+ .field177_0x7e1c[DAT_BuildingsState.buildings[buildingID].ownerFlagFrame / 2]
+ < '\x01') {
+ DAT_BuildingsState.buildings[buildingID].ownerFlagFrame = 0;
+ }
+ DAT_BuildingsState.buildings[buildingID].field36_0x78
+ = (int)(char)DAT_BuildingDefinedData
+ .field177_0x7e1c[DAT_BuildingsState.buildings[buildingID].ownerFlagFrame / 2];
+ }
+ if (DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive
+ != DAT_BuildingsState.buildings[buildingID].oldVisualActiveState) {
+ updateBuildingGraphicsLayer(
+ buildingID);
+ buildingID = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive;
+ }
+ if (DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive != 0) {
+ iVar7 = 1;
+ DAT_BuildingsState.buildings[buildingID].displayOwnerFlag = 1;
+ iVar8 = 0;
+ do {
+ iVar5 = 0;
+ if (0 < _playerID) {
+ iVar5 = _playerID;
+ }
+ cVar6 = 0 < _playerID;
+ if (iVar5 < local_20) {
+ cVar6 = '\x02';
+ iVar5 = local_20;
+ }
+ if (iVar5 < local_1c) {
+ cVar6 = '\x03';
+ iVar5 = local_1c;
+ }
+ if (iVar5 < local_18) {
+ cVar6 = '\x04';
+ iVar5 = local_18;
+ }
+ if (iVar5 < local_14) {
+ cVar6 = '\x05';
+ iVar5 = local_14;
+ }
+ if (iVar5 < local_10) {
+ cVar6 = '\x06';
+ iVar5 = local_10;
+ }
+ if (iVar5 < local_c) {
+ cVar6 = '\a';
+ iVar5 = local_c;
+ }
+ if (iVar5 < local_8) {
+ cVar6 = '\b';
+ iVar5 = local_8;
+ } else if (cVar6 == '\0') {
+ return;
+ }
+ if (0x10 < iVar5) {
+ iVar5 = 0x10;
+ }
+ if (cVar6 == '\x01') {
+ _playerID = _playerID - iVar5;
+ iVar7 = iVar5 + 0x20;
+ } else if (cVar6 == '\x02') {
+ local_20 = local_20 - iVar5;
+ iVar7 = iVar5 + 0x30;
+ } else if (cVar6 == '\x03') {
+ local_1c = local_1c - iVar5;
+ iVar7 = iVar5 + 0x40;
+ } else if (cVar6 == '\x04') {
+ local_18 = local_18 - iVar5;
+ iVar7 = iVar5 + 0x50;
+ } else if (cVar6 == '\x05') {
+ local_14 = local_14 - iVar5;
+ iVar7 = iVar5 + 0x60;
+ } else if (cVar6 == '\x06') {
+ local_10 = local_10 - iVar5;
+ iVar7 = iVar5 + 0x70;
+ } else if (cVar6 == '\a') {
+ local_c = local_c - iVar5;
+ iVar7 = iVar5;
+ } else if (cVar6 == '\b') {
+ local_8 = local_8 - iVar5;
+ iVar7 = iVar5 + 0x80;
+ }
+ if (iVar8 == 0) {
+ DAT_BuildingsState.buildings[buildingID].field29_0x5c = iVar7;
+ } else if (iVar8 == 1) {
+ DAT_BuildingsState.buildings[buildingID].shouldRenderSomeOverlay = iVar7;
+ } else if (iVar8 == 2) {
+ DAT_BuildingsState.buildings[buildingID].field37_0x7c = iVar7;
+ } else if (iVar8 == 3) {
+ DAT_BuildingsState.buildings[buildingID].field39_0x84 = iVar7;
+ }
+ iVar8 = iVar8 + 1;
+ } while (iVar8 < 4);
+ }
+ return;
+ }
+}
+}
+
+### 0x00412d50 UpdateFletchersWorkshop | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00412D50
+ void Buildings::UpdateFletchersWorkshop()
+ {
+ int const owner = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner;
+ int animationDone = 0;
+ addBuildingToTargetableBuildings(
+ DAT_CurrentBuildingID);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field138_0x1c2 = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workers[0] != 0;
+ DAT_GameState.playerDataArray[owner].countFletchersPoleturners += 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 0;
+ if (((DAT_BuildingsState.buildings[DAT_CurrentBuildingID].uid
+ + DAT_GameCore.mapTimeInTicks)
+ & 0xff)
+ == 0) {
+ updateBuildingPlacementRotationPreview(DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingVariation
+ = DAT_TileMapState.uiBuildingRotation;
+ }
+ // Matching note: the bow and crossbow arms of state 0 share the frame store and the index check; the
+ // original keeps the crossbow copy and the bow arm jumps into it.
+ int shownFrame;
+ // The animation tables are declared byte, but the original reads them signed
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].producedItemTypeNext
+ == RT_BOW) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationActive != 0
+ && (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 8
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex
+ == 58)) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_FLETCH_LONG);
+ }
+ char frame;
+ if (DAT_GameSynchronyState.currentGameMode != 0) {
+ frame
+ = (char)DAT_BuildingDefinedData.FletcherWorkshopAnimationCycle
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ } else {
+ frame = (char)DAT_BuildingDefinedData
+ .field43_0x430c[DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .animationIndex];
+ }
+ if (frame <= 0) {
+ animationDone = 1;
+ goto checkIndex;
+ }
+ shownFrame = frame;
+ goto storeFrame;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 1) {
+ if (DAT_GameSynchronyState.currentGameMode != 0) {
+ animationDone = 1;
+ } else {
+ char const frame
+ = DAT_BuildingDefinedData.FletchersWorkshopAnimationFrames1
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if (frame <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = frame;
+ }
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex;
+ }
+ } else {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ char frame;
+ if (DAT_GameSynchronyState.currentGameMode != 0) {
+ frame = (char)DAT_BuildingDefinedData
+ .field46_0x4674[DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .animationIndex];
+ } else {
+ frame = (char)DAT_BuildingDefinedData
+ .field45_0x44e4[DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .animationIndex];
+ }
+ if (frame <= 0) {
+ animationDone = 1;
+ goto checkIndex;
+ }
+ shownFrame = frame + 36;
+ storeFrame:
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = shownFrame;
+ checkIndex:
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 31;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex
+ < 30) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength -= 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 0;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 1) {
+ if (DAT_GameSynchronyState.currentGameMode != 0) {
+ animationDone = 1;
+ } else {
+ char const frame
+ = DAT_BuildingDefinedData.FletchersWorkshopAnimationFrames2
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if (frame <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame
+ = frame + 36;
+ }
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex;
+ }
+ }
+ if (animationDone != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 1;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationCycleCount += 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationCycleCompleted = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 0;
+ }
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength > 31) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 31;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength < 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 0;
+ }
+ int const workerID = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workerID[0];
+ if (workerID != 0) {
+ if (DAT_UnitsState.units[workerID].state.generic
+ == US_AIM_WEAPONUnk) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive = 1;
+ } else if (DAT_UnitsState.units[workerID].state.generic
+ == US_RELOAD_WEAPONUnk) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive = 0;
+ }
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive = 0;
+ }
+ updateVisuallyActiveState(DAT_CurrentBuildingID);
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive
+ != DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState) {
+ updateBuildingGraphicsLayer(
+ DAT_CurrentBuildingID);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive;
+ }
+ if (DAT_GameSynchronyState.currentGameMode != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage += 1;
+ if (DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage / 2]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage = 0;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].overlayImageID
+ = DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage
+ / 2];
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].overlayImageID = 0;
+ }
+ }
+}
+}
+

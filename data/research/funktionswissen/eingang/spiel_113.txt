@@ -1,0 +1,1146 @@
+### 0x0046b1f0 Constructor_GameCore | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0046B1F0
+ GameCore* GameCore::Constructor_GameCore()
+ {
+ this->currentMenuViewType = UI::Enums::MVT_NO_VIEW;
+ this->unknownAlwaysZero01 = 0;
+ this->currentlyInGameUnk_0xa4 = FALSE;
+ this->mapTimeInTicks = 0;
+ this->unknownAlwaysZero02 = 0;
+ this->field26_0x74 = 0;
+ this->field24_0x6c = 0;
+ this->isTimeHalted2 = 0;
+ this->unlockAllHistoricalCampaigns = 0;
+ this->unused1 = 0;
+ this->solitaryAltUDungeon = FALSE;
+ this->currentTrailType = TT_FIRST_EDITION;
+ this->field59_0xf8 = 0;
+ this->specialMultiplayerState = 0;
+ this->cheatModeFlag = FALSE;
+ this->solitaryAllBuildingsAreFree = FALSE;
+ this->unknownAlwaysZero = 0;
+ this->newPlayerID = 0;
+ this->activeMenuTab.buildMenuTab = UI::Enums::BMTT_CASTLE;
+ this->gameSpeedMultiplicator = 1;
+ this->forty = 40;
+ this->menuType7_MenuItemClickHandlerUnk = NULL;
+ this->countdown = 1;
+ this->uniqueGameObjectTracker = 1;
+ this->gameSpeedLevel = 40;
+ this->settingBubbleHelp = 1;
+ this->twohundred = 200;
+ this->field62_0x104 = 1;
+ this->field63_0x108 = 1;
+ this->field52_0xdc = 1;
+ this->scenarioProgress.progressCallToArms = 1;
+ this->scenarioProgress.progressSaladinsConquest = 6;
+ this->scenarioProgress.progressTheKingsCrusade = 11;
+ this->scenarioProgress.progressCrusaderStates = 16;
+ this->furthestMission = 33;
+ this->viewportFocusBeforeBarracksHotkey = -1;
+ this->viewportFocusBeforeMercenaryHotkey = -1;
+ this->viewportFocusBeforeGranaryHotkey = -1;
+ this->viewportFocusBeforeMarketHotkey = -1;
+ this->viewportFocusBeforeKeepHotkey = -1;
+ this->viewportFocusBeforeArmoryHotkey = -1;
+ return this;
+ }
+}
+}
+
+### 0x0046b2f0 setViewOnExitUnk | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0046B2F0
+ void GameCore::setViewOnExitUnk() { this->currentMenuViewType = UI::Enums::MVT_UNKNOWN_2; }
+}
+}
+
+### 0x0046b300 setTabToSwitchTo | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0046B300
+ void GameCore::setTabToSwitchTo()
+ {
+ if (this->currentMenuViewType == UI::Enums::MVT_BUILD_MENU) {
+ this->secondaryActiveMenuTabToSwitchTo = this->buildmenuMenuTabToSwitchTo;
+ }
+ if (this->currentMenuViewType == MVT_MAP_EDITOR_LANDSCAPING) {
+ this->secondaryActiveMenuTabToSwitchTo = this->landscapingmenuMenuTabToSwitchTo;
+ }
+ }
+}
+}
+
+### 0x0046b320 swapBuildMenuTab | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0046B320
+ void GameCore::swapBuildMenuTab()
+ {
+ if (this->buildmenuMenuTabToSwitchTo.tabType == BASMTT_SIEGETENT_SHIELD) {
+ this->buildmenuMenuTabToSwitchTo.tabType = BASMTT_SIEGETENT_BATTERINGRAM;
+ return;
+ }
+ this->buildmenuMenuTabToSwitchTo = this->secondaryActiveMenuTabToSwitchTo;
+ }
+}
+}
+
+### 0x0046b340 switchToMenuView | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0046B340
+ void GameCore::switchToMenuView(MenuViewType menuID, int delay)
+ {
+ if (menuID == 23) {
+ menuID = UI::Enums::MVT_MAIN_MENU;
+ }
+ this->menuViewToSwitchTo = menuID;
+ this->menuSwitchDelay = delay;
+ this->menuRenderMoment = timeGetTime();
+ switch (menuID) {
+ case UI::Enums::MVT_MAP_EDITOR_LANDSCAPING:
+ this->menuTabToSwitchTo = this->landscapingmenuMenuTabToSwitchTo;
+ DAT_TileMapState.unknownBrushRelated = (int)DAT_TileMapState.editorActiveBrush >> 1;
+ if (this->landscapingmenuMenuTabToSwitchTo.buildMenuTab != UI::Enums::BMTT_MENU_HIDDEN
+ && this->activeMenuTab.buildMenuTab != UI::Enums::BMTT_MENU_HIDDEN) {
+ DAT_TileMapState.currentMapperCommand = Commands::M_MAPPER_NULL;
+ }
+ break;
+ case UI::Enums::MVT_BUILD_MENU:
+ this->menuTabToSwitchTo = this->buildmenuMenuTabToSwitchTo;
+ setSection1079_28_4_(0);
+ if (this->menuTabToSwitchTo.buildMenuTab == 48) {
+ break;
+ }
+ if (DAT_GameCore.gameMode_2 == GM_CRUSADER_TUTORIAL) {
+ SetTutorialBuildingActionState(11, Map::Buildings::BT_HOVEL);
+ }
+ if (GetIfDisplayElementStateNotZero(
+ UI::Enums::DEID_MISSION_WIN_DEFEAT_BANNER)) {
+ this->buildmenuMenuTabToSwitchTo.buildMenuTab = 48;
+ this->menuTabToSwitchTo.buildMenuTab = 48;
+ } else if (((DAT_GameCore.gameMode_2 == GM_BUILDERUnk
+ || DAT_GameCore.gameMode_2 == GM_CRUSADER_TUTORIAL)
+ && DAT_GameSynchronyState.currentPlayerSlotID == 2)
+ || (DAT_GameSynchronyState.currentPlayerSlotID == 1
+ && singlePlayerHasKeepAndGranaryCheck()
+ == 0
+ && getArmySize(
+ DAT_GameSynchronyState.currentPlayerSlotID)
+ != 0)
+ || (DAT_GameCore.gameMode_2 == GM_BUILDERUnk
+ && DAT_MapPropertiesState.SEC_U3_MapType2_1 == Map::MT_SIEGE)
+ || (DAT_GameCore.gameMode_2 == GM_SKIRMISH_AND_MULTIPLAYER
+ && DAT_GameSynchronyState.currentGameMode == GM_SKIRMISH_SINGLE_PLAYER
+ && DAT_GameSynchronyState.currentPlayerSlotID == 0)) {
+ // all this is custom code for some single player modes
+ if (this->buildmenuMenuTabToSwitchTo.buildMenuTab != UI::Enums::BMTT_MENU_HIDDEN
+ && this->buildmenuMenuTabToSwitchTo.buildMenuTab != UI::Enums::BMTT_SOLDIERS
+ && this->buildmenuMenuTabToSwitchTo.buildMenuTab != 62) {
+ this->buildmenuMenuTabToSwitchTo.buildMenuTab = 48;
+ this->menuTabToSwitchTo.buildMenuTab = 48;
+ setSection1079_28_4_(1);
+ }
+ } else {
+ if (this->currentMenuViewType == UI::Enums::MVT_BUILD_MENU) {
+ if (this->buildmenuMenuTabToSwitchTo.buildMenuTab >= 10
+ && this->buildmenuMenuTabToSwitchTo.buildMenuTab <= 49 && this->activeMenuTab.buildMenuTab >= 10
+ && this->activeMenuTab.buildMenuTab <= 49) {
+ this->menuSwitchDelay = 150;
+ startBuildMenuTransition(300);
+ if (this->buildmenuMenuTabToSwitchTo.buildMenuTab != 49
+ && this->buildmenuMenuTabToSwitchTo.buildMenuTab != UI::Enums::BMTT_CASTLE_KEEPS) {
+ if (singlePlayerHasKeepAndGranaryCheck()
+ == 0) {
+ if (this->buildmenuMenuTabToSwitchTo.buildMenuTab != UI::Enums::BMTT_CASTLE_KEEPS) {
+ this->buildmenuMenuTabToSwitchTo.buildMenuTab = UI::Enums::BMTT_CASTLE_KEEPS;
+ this->menuTabToSwitchTo.buildMenuTab = UI::Enums::BMTT_CASTLE_KEEPS;
+ } else {
+ this->menuSwitchDelay = 0;
+ DAT_MenuHandlerState.isBuildMenuTransitioning_0x18 = FALSE;
+ }
+ } else if (singlePlayerHasKeepAndGranaryCheck()
+ < 0) {
+ if (this->buildmenuMenuTabToSwitchTo.buildMenuTab != 49) {
+ this->buildmenuMenuTabToSwitchTo.buildMenuTab = 49;
+ this->menuTabToSwitchTo.buildMenuTab = 49;
+ } else {
+ this->menuSwitchDelay = 0;
+ DAT_MenuHandlerState.isBuildMenuTransitioning_0x18 = FALSE;
+ }
+ }
+ }
+ break;
+ }
+ if (this->buildmenuMenuTabToSwitchTo.buildMenuTab < 10
+ || this->buildmenuMenuTabToSwitchTo.buildMenuTab > 49) {
+ break;
+ }
+ }
+ if (this->buildmenuMenuTabToSwitchTo.buildMenuTab != 49
+ && this->buildmenuMenuTabToSwitchTo.buildMenuTab != UI::Enums::BMTT_CASTLE_KEEPS) {
+ if (singlePlayerHasKeepAndGranaryCheck()
+ == 0) {
+ if (this->buildmenuMenuTabToSwitchTo.buildMenuTab != UI::Enums::BMTT_CASTLE_KEEPS) {
+ this->buildmenuMenuTabToSwitchTo.buildMenuTab = UI::Enums::BMTT_CASTLE_KEEPS;
+ this->menuTabToSwitchTo.buildMenuTab = UI::Enums::BMTT_CASTLE_KEEPS;
+ }
+ } else if (singlePlayerHasKeepAndGranaryCheck()
+ < 0) {
+ if (this->buildmenuMenuTabToSwitchTo.buildMenuTab != 49) {
+ this->buildmenuMenuTabToSwitchTo.buildMenuTab = 49;
+ this->menuTabToSwitchTo.buildMenuTab = 49;
+ }
+ }
+ }
+ }
+ break;
+ case UI::Enums::MVT_BUILDING_AND_STATUS_MENU:
+ this->menuTabToSwitchTo.tabType = this->buildingandstatusmenuMenuTabToSwitchTo;
+ break;
+ default:
+ stopBinkPlayback(0);
+ stopBinkPlayback(1);
+ break;
+ }
+ if (menuID == this->currentMenuViewType) {
+ return;
+ }
+ // handle sound
+ switch (menuID) {
+ case UI::Enums::MVT_MAP_EDITOR_LANDSCAPING:
+ case UI::Enums::MVT_MAP_EDITOR_PROPERTIES:
+ setupVolumeAndSoundID0xF0_100();
+ return;
+ case UI::Enums::MVT_BUILD_MENU:
+ if (this->currentMenuViewType == UI::Enums::MVT_BUILDING_AND_STATUS_MENU
+ || this->currentMenuViewType == UI::Enums::MVT_MAP_EDITOR_LANDSCAPING
+ || (this->currentMenuViewType == UI::Enums::MVT_SCENARIO_DESCRIPTION
+ && DAT_GameCore.gameSuspended != 0)) {
+ return;
+ }
+ if (this->gameMode_2 == GM_CRUSADER_TUTORIAL) {
+ if (DAT_SoundSystemState.currentSoundID_0x3278 == 9) {
+ return;
+ }
+ setSomeSoundTime();
+ setupVolumeAndSoundIDWithMultiplier(DE::SHCDE::MUSIC_TUNE_TUTORIAL, 70);
+ return;
+ }
+ setSomeSoundTime();
+ DAT_SoundSystemState.lastMusicChangeTime = timeGetTime() >> 1;
+ DAT_SoundSystemState.currentSoundID_0x3278 = -1;
+ return;
+ case UI::Enums::MVT_CRUSADE_MAP:
+ if (this->currentMenuViewType == UI::Enums::MVT_SELECT_CRUSADE
+ || this->currentMenuViewType == UI::Enums::MVT_CRUSADE_MISSION_INTRO
+ || this->currentMenuViewType == UI::Enums::MVT_RANKING_GAMES) {
+ return;
+ }
+ setSomeSoundTime();
+ setupVolumeAndSoundIDWithMultiplier(DE::SHCDE::MUSIC_TUNE_INTRO, 100);
+ return;
+ case UI::Enums::MVT_RANKING_GAMES:
+ if (this->currentMenuViewType == UI::Enums::MVT_LOBBY_MENU) {
+ SetActiveCreditsSequenceIndex(2);
+ DAT_CurrentMenuID_3 = this->currentMenuViewType;
+ }
+ if (this->currentMenuViewType == UI::Enums::MVT_CRUSADE_MAP) {
+ SetActiveCreditsSequenceIndex(1);
+ DAT_CurrentMenuID_3 = this->currentMenuViewType;
+ }
+ return;
+ case UI::Enums::MVT_HISTORIC_MISSION_PICTURE:
+ if (this->currentMenuViewType == UI::Enums::MVT_HISTORIC_CAMPAIGN_INTRO) {
+ return;
+ }
+ if (this->currentMenuViewType == UI::Enums::MVT_MISSION_FINISHED_TRANSITION) {
+ stopMusicPlayback();
+ setupVolumeAndSoundID(
+ DE::SHCDE::MUSIC_TUNE_NARR1);
+ return;
+ }
+ if (DAT_GameCore.missionNumber1to20 == 1000) {
+ if (DAT_SoundSystemState.sec_Section1055_0x3274 != 7) {
+ setSomeSoundTime();
+ }
+ setupVolumeAndSoundIDWithMultiplier(DE::SHCDE::MUSIC_TUNE_CHOIR, 100);
+ return;
+ }
+ if (DAT_SoundSystemState.currentSoundID_0x3278 == 4 || DAT_GameCore.gameSuspended != 0
+ || DAT_GameCore.currentlyInGameUnk_0xa4 == TRUE) {
+ return;
+ }
+ setSomeSoundTime();
+ setupVolumeAndSoundID(
+ DE::SHCDE::MUSIC_TUNE_NARR1);
+ return;
+ case UI::Enums::MVT_HISTORIC_CAMPAIGN_INTRO:
+ setSomeSoundTime();
+ setupVolumeAndSoundID(
+ (DE::SHCDE::eMusicIDs)(DAT_GameCore.historicCampaignNumber * 5 + DE::SHCDE::MUSIC_TUNE_WIN1));
+ return;
+ case UI::Enums::MVT_HISTORIC_CAMPAIGN_OUTRO:
+ setSomeSoundTime();
+ setupVolumeAndSoundID(
+ (DE::SHCDE::eMusicIDs)(DAT_GameCore.historicCampaignNumber + 0x42));
+ return;
+ case UI::Enums::MVT_CREDITS:
+ setSomeSoundTime();
+ if (DAT_00b95954 == 0) {
+ setupVolumeAndSoundIDWithMultiplier((DE::SHCDE::eMusicIDs)15, 100);
+ }
+ if (DAT_00b95954 == 1) {
+ setupVolumeAndSoundIDWithMultiplier((DE::SHCDE::eMusicIDs)38, 100);
+ markMusicChangePending();
+ }
+ return;
+ case UI::Enums::MVT_MISSION_FINISHED_TRANSITION:
+ case UI::Enums::MVT_GAME_LOSTUnk:
+ if (this->currentMenuViewType == UI::Enums::MVT_RANKING_GAMES) {
+ return;
+ }
+ setSomeSoundTime();
+ setupVolumeAndSoundID(
+ DE::SHCDE::MUSIC_TUNE_OFF);
+ return;
+ case UI::Enums::MVT_MP_CONNECTION:
+ case UI::Enums::MVT_LOBBY_MENU:
+ case UI::Enums::MVT_GAME_START_ENTER_NAME:
+ case UI::Enums::MVT_MAIN_MENU:
+ case UI::Enums::MVT_HISTORIC_CAMPAIGN_SELECT:
+ case UI::Enums::MVT_UNUSED_ECONOMIC_GAMETYPE_SELECT:
+ case UI::Enums::MVT_CUSTOM_SCENARIOS:
+ case UI::Enums::MVT_UNUSED_SELECT_RANDOM_NUMBER_OF_ENEMIES:
+ if (DAT_SoundSystemState.currentSoundID_0x3278 == 3
+ && DAT_SoundSystemState.musicFadeState == 0) {
+ return;
+ }
+ setSomeSoundTime();
+ setupVolumeAndSoundIDWithMultiplier(DE::SHCDE::MUSIC_TUNE_INTRO, 100);
+ return;
+ case UI::Enums::MVT_UNUSED_EXTREME_AD:
+ endSoundStreamsUnk();
+ setSomeSoundTime();
+ setupVolumeAndSoundIDWithMultiplier(DE::SHCDE::MUSIC_TUNE_TUTORIAL, 50);
+ return;
+ case UI::Enums::MVT_CRUSADE_ENDSCREEN:
+ setSomeSoundTime();
+ setupVolumeAndSoundIDWithMultiplier(DE::SHCDE::MUSIC_TUNE_HAPPY2, 50);
+ return;
+ case UI::Enums::MVT_BUILDING_AND_STATUS_MENU:
+ case UI::Enums::MVT_UNKNOWN_21:
+ case UI::Enums::MVT_UNUSED_HELP_TEXT_EDITOR:
+ case 23:
+ case 24:
+ case UI::Enums::MVT_UNKNOWN_26_CAMPAIGN_RELATEDUnk:
+ case UI::Enums::MVT_UNKNOWN_27_CAMPAIGNUnk:
+ case UI::Enums::MVT_SCENARIO_DESCRIPTION:
+ case UI::Enums::MVT_NEW_MAP_MAPSIZE:
+ case UI::Enums::MVT_UNUSED_CHOOSE_AVAILABLE_KEEPS:
+ case UI::Enums::MVT_UNKNOWN_33:
+ case UI::Enums::MVT_SINGLEPLAYER_MAP_CHOICE:
+ case 36:
+ case UI::Enums::MVT_UNUSED_CHOOSE_GAME_TYPE:
+ case UI::Enums::MVT_HISTORIC_MISSION_SELECT:
+ case UI::Enums::MVT_UNUSED_ECONOMIC_MISSION_SELECTUnk:
+ case UI::Enums::MVT_INTRO_VIDEO:
+ case UI::Enums::MVT_HISTORIC_MISSION_INTRO:
+ case UI::Enums::MVT_SELECT_CRUSADE:
+ case UI::Enums::MVT_CRUSADE_MISSION_INTRO:
+ case UI::Enums::MVT_EDIT_SCENARIO:
+ return;
+ default:
+ setSomeSoundTime();
+ setupVolumeAndSoundIDWithMultiplier(DE::SHCDE::MUSIC_TUNE_INTRO, 100);
+ return;
+ }
+ }
+}
+}
+
+### 0x0046b980 processMenuViewSwitch | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0046B980
+ void GameCore::processMenuViewSwitch()
+ {
+ if (this->menuSwitchDelay != -1) {
+ if (this->menuSwitchDelay != 0 && timeGetTime() - this->menuRenderMoment < (uint)this->menuSwitchDelay) {
+ return;
+ }
+ DAT_BuildingsState.menuSelectedBuildingID = DAT_BuildingsState.newSelectedBuildingID;
+ DAT_BuildingsState.menuSelectedUnitID = DAT_BuildingsState.newSelectedUnitID;
+ if (this->currentMenuViewType == this->menuViewToSwitchTo
+ && this->activeMenuTab.tabType == this->menuTabToSwitchTo.tabType) {
+ DAT_UIDragDropDefinedData.MenuView_TriggerInitial = TRUE;
+ DAT_MenuView_TriggerPrepare = TRUE;
+ this->menuSwitchDelay = -1;
+ return;
+ }
+ if (this->menuType7_MenuItemClickHandlerUnk != NULL) {
+ (*this->menuType7_MenuItemClickHandlerUnk)(0);
+ this->menuType7_MenuItemClickHandlerUnk = NULL;
+ }
+ if (this->menuViewToSwitchTo == UI::Enums::MVT_MAIN_MENU
+ && DAT_GameSynchronyState.currentGameMode == GM_SKIRMISH_SINGLE_PLAYER) {
+ DAT_GameSynchronyState.currentGameMode = GM_SOLITARY;
+ }
+ // this code is executed when changing menus
+ this->currentMenuViewType = this->menuViewToSwitchTo;
+ this->activeMenuTab = this->menuTabToSwitchTo;
+ resetupViewportThunk();
+ DAT_UIDragDropDefinedData.MenuView_TriggerInitial = TRUE;
+ DAT_MenuView_TriggerPrepare = TRUE;
+ DAT_WindowAndDirectDraw.unk_resetViewportRelated = 2;
+ resetMouseCursorState();
+ setupMenuForRendering(
+ (MenuViewType)this->currentMenuViewType);
+ UI::Menu* const currentMenu = DAT_MenuHandlerState.currentMenu;
+ currentMenu->xPosition = 0;
+ currentMenu->yPosition = 0;
+ DAT_MenuHandlerState.x = 0;
+ DAT_MenuHandlerState.y = 0;
+ // clear the bottom left text tooltip
+ setBottomLeftTextDisplayText(0, 0, 0, 0, 50, 0);
+ setActiveMenuTabIndexToZero();
+ this->menuSwitchDelay = -1;
+ if (this->currentMenuViewType == UI::Enums::MVT_MAP_EDITOR_LANDSCAPING) {
+ DAT_GameCore.currentlyInGameUnk_0xa4 = TRUE;
+ }
+ }
+ if (this->newPlayerID == 0) {
+ return;
+ }
+ for (int i = 0; i < 9; ++i) {
+ DAT_GameSynchronyState.currentPlayerFullIDArray[i] = -1;
+ }
+ DAT_GameSynchronyState.currentPlayerFullIDArray[this->newPlayerID] = 1;
+ if (DAT_ModifierKeyState.shift) {
+ changePlayerOwnership(
+ DAT_GameSynchronyState.currentPlayerSlotID, this->newPlayerID);
+ }
+ DAT_GameSynchronyState.currentPlayerSlotID = this->newPlayerID;
+ this->newPlayerID = 0;
+ }
+}
+}
+
+### 0x0046bb20 viewportAndScrollingRelated | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0046BB20
+ void GameCore::viewportAndScrollingRelated()
+ {
+ if (this->countdown > 0) {
+ --this->countdown;
+ }
+ if (DAT_ViewportRenderState.viewportState.field0_0x0 == 0
+ && !DAT_ScrollingHandler.isScrolling_0x0) {
+ this->countdown = 1;
+ this->forty = 0;
+ }
+ }
+}
+}
+
+### 0x0046bb60 getAreWeInAInGameMenu | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0046BB60
+ BOOLEnum GameCore::getAreWeInAInGameMenu()
+ {
+ return this->currentMenuViewType == UI::Enums::MVT_MAP_EDITOR_LANDSCAPING
+ || this->currentMenuViewType == UI::Enums::MVT_BUILD_MENU
+ || this->currentMenuViewType == UI::Enums::MVT_BUILDING_AND_STATUS_MENU;
+ }
+}
+}
+
+### 0x0046bb80 isInBuildingTab | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0046BB80
+ BOOLEnum GameCore::isInBuildingTab()
+ {
+ if (DAT_GameCore.currentMenuViewType != UI::Enums::MVT_BUILDING_AND_STATUS_MENU) {
+ return FALSE;
+ }
+ if (DAT_GameCore.activeMenuTab.tabType == UI::Enums::BASMTT_GRANARY_OR_MPMENU_TCPIP) {
+ return TRUE;
+ }
+ if (DAT_GameCore.activeMenuTab.tabType == UI::Enums::BASMTT_SIEGETENT_CATAPULT) {
+ return TRUE;
+ }
+ if (DAT_GameCore.activeMenuTab.tabType == UI::Enums::BASMTT_SIEGETENT_FIREBALLISTA) {
+ return TRUE;
+ }
+ if (DAT_GameCore.activeMenuTab.tabType == UI::Enums::BASMTT_SIEGETENT_TREBUCHET) {
+ return TRUE;
+ }
+ if (DAT_GameCore.activeMenuTab.tabType == UI::Enums::BASMTT_SIEGETENT_SIEGETOWER) {
+ return TRUE;
+ }
+ if (DAT_GameCore.activeMenuTab.tabType == UI::Enums::BASMTT_SIEGETENT_BATTERINGRAM) {
+ return TRUE;
+ }
+ if (DAT_GameCore.activeMenuTab.tabType == UI::Enums::BASMTT_SIEGETENT_SHIELD) {
+ return TRUE;
+ }
+ return DAT_GameCore.activeMenuTab.tabType == UI::Enums::BASMTT_KEEP_OR_MPMENU_IPX;
+ }
+}
+}
+
+### 0x0046bbd0 removeJesterAndLadyUnitsInCertainMissions | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0046BBD0
+ void GameCore::removeJesterAndLadyUnitsInCertainMissions()
+ {
+ if (this->missionNumber1to20 < 7) {
+ DAT_GameState.mapAndTime.unitJesterRelated = 0;
+ int const jesterID
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .jesterIDUnk;
+ if (jesterID != 0
+ && DAT_UnitsState.units[jesterID].uid
+ == DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .someUnitIDSelfRef_2) {
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .jesterIDUnk = 0;
+ DAT_UnitsState.units[jesterID].logicalState = Map::Units::ULS_REMOVE;
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .someUnitIDSelfRef_2 = 0;
+ }
+ } else {
+ DAT_GameState.mapAndTime.unitJesterRelated = 1;
+ }
+ if (this->missionNumber1to20 < 11) {
+ DAT_GameState.mapAndTime.unitLadyRelated = 0;
+ int const ladyID
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .ladyIDUnk;
+ if (ladyID != 0
+ && DAT_UnitsState.units[ladyID].uid
+ == DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .someUnitIDSelfRef) {
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].ladyIDUnk
+ = 0;
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .someUnitIDSelfRef = 0;
+ DAT_UnitsState.units[ladyID].logicalState = Map::Units::ULS_REMOVE;
+ }
+ } else {
+ DAT_GameState.mapAndTime.unitLadyRelated = 1;
+ }
+ }
+}
+}
+
+### 0x0046bc90 removeLadyAndJester | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0046BC90
+ void GameCore::removeLadyAndJester()
+ {
+ DAT_GameState.mapAndTime.unitJesterRelated = 0;
+ DAT_GameState.mapAndTime.unitLadyRelated = 0;
+ int const ladyID
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].ladyIDUnk;
+ if (ladyID != 0
+ && DAT_UnitsState.units[ladyID].uid
+ == DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .someUnitIDSelfRef) {
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].ladyIDUnk = 0;
+ DAT_UnitsState.units[ladyID].logicalState = Map::Units::ULS_REMOVE;
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .someUnitIDSelfRef = 0;
+ }
+ int const jesterID
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].jesterIDUnk;
+ if (jesterID != 0
+ && DAT_UnitsState.units[jesterID].uid
+ == DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .someUnitIDSelfRef_2) {
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].jesterIDUnk
+ = 0;
+ DAT_UnitsState.units[jesterID].logicalState = Map::Units::ULS_REMOVE;
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .someUnitIDSelfRef_2 = 0;
+ }
+ }
+}
+}
+
+### 0x0046bd20 isGameHaltingMenuOpen | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0046BD20
+ BOOLEnum GameCore::isGameHaltingMenuOpen()
+ {
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY
+ && DAT_GameSynchronyState.currentGameMode != GM_SKIRMISH_SINGLE_PLAYER) {
+ return FALSE;
+ }
+ if (DAT_MenuTextInputState.currentModalDialog != UI::Enums::MMT_NO_MENU) {
+ return TRUE;
+ }
+ return DAT_MenuModalComposition1.activeModalDialogID == UI::Enums::MMT_IN_GAME_HELP_TEXT;
+ }
+}
+}
+
+### 0x0046bd50 setStartDateUnk | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x0046BD50
+ void GameCore::setStartDateUnk(int trailNumber)
+ {
+ // trailNumber 0 resets all trails, otherwise 1 = skirmish, 2 = warchest, 3 = extreme
+ if (trailNumber == 0 || trailNumber == 1) {
+ this->skirmishTrailYearReached = 1100 * 12;
+ }
+ if (trailNumber == 0 || trailNumber == 2) {
+ this->warchestTrailYearReached = 1130 * 12;
+ }
+ if (trailNumber == 0 || trailNumber == 3) {
+ this->extremeTrailYearReached = 1130 * 12;
+ }
+ if (trailNumber == 0 || trailNumber == 1) {
+ int mission;
+ for (mission = 0; mission < 50; ++mission) {
+ if (this->skirmishTrailMonthsTakenOrChicken[mission] == -1200) {
+ this->skirmishTrailStartDateInMonths[mission] = this->skirmishTrailYearReached;
+ this->skirmishTrailYearReached += 1200;
+ continue;
+ }
+ if (this->skirmishTrailMonthsTakenOrChicken[mission] < 0) {
+ break;
+ }
+ this->skirmishTrailStartDateInMonths[mission] = this->skirmishTrailYearReached;
+ this->skirmishTrailYearReached += this->skirmishTrailMonthsTakenOrChicken[mission];
+ }
+ if (mission != 50) {
+ this->skirmishTrailStartDateInMonths[mission] = this->skirmishTrailYearReached;
+ }
+ }
+ if (trailNumber == 0 || trailNumber == 2) {
+ int mission;
+ for (mission = 0; mission < 30; ++mission) {
+ if (this->warchestTrailMonthsTakenOrChicken[mission] == -1200) {
+ this->warchestTrailStartDatesInMonths[mission] = this->warchestTrailYearReached;
+ this->warchestTrailYearReached += 1200;
+ continue;
+ }
+ if (this->warchestTrailMonthsTakenOrChicken[mission] < 0) {
+ break;
+ }
+ this->warchestTrailStartDatesInMonths[mission] = this->warchestTrailYearReached;
+ this->warchestTrailYearReached += this->warchestTrailMonthsTakenOrChicken[mission];
+ }
+ if (mission != 30) {
+ this->warchestTrailStartDatesInMonths[mission] = this->warchestTrailYearReached;
+ }
+ }
+ if (trailNumber == 0 || trailNumber == 3) {
+ int mission;
+ for (mission = 0; mission < 20; ++mission) {
+ if (this->extremeTrailMonthsTakenOrChicken[mission] == -1200) {
+ this->extremeTrailStartDatesInMonths[mission] = this->extremeTrailYearReached;
+ this->extremeTrailYearReached += 1200;
+ continue;
+ }
+ if (this->extremeTrailMonthsTakenOrChicken[mission] < 0) {
+ break;
+ }
+ this->extremeTrailStartDatesInMonths[mission] = this->extremeTrailYearReached;
+ this->extremeTrailYearReached += this->extremeTrailMonthsTakenOrChicken[mission];
+ }
+ if (mission != 20) {
+ this->extremeTrailStartDatesInMonths[mission] = this->extremeTrailYearReached;
+ }
+ }
+ }
+}
+}
+
+### 0x004718f0 incrementMissionProgress | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004718F0
+ void GameCore::incrementMissionProgress()
+ {
+ ++this->missionNumber1to20;
+ if (!this->unlockAllHistoricalCampaigns && !DAT_GameCore.field26_0x74) {
+ if (this->missionNumber1to20 <= 6) {
+ if (this->missionNumber1to20 > this->scenarioProgress.progressCallToArms) {
+ this->scenarioProgress.progressCallToArms = this->missionNumber1to20;
+ }
+ } else if (this->missionNumber1to20 <= 11) {
+ if (this->missionNumber1to20 > this->scenarioProgress.progressSaladinsConquest) {
+ this->scenarioProgress.progressSaladinsConquest = this->missionNumber1to20;
+ }
+ } else if (this->missionNumber1to20 <= 16) {
+ if (this->missionNumber1to20 > this->scenarioProgress.progressTheKingsCrusade) {
+ this->scenarioProgress.progressTheKingsCrusade = this->missionNumber1to20;
+ }
+ } else if (this->missionNumber1to20 <= 21) {
+ if (this->missionNumber1to20 > this->scenarioProgress.progressCrusaderStates) {
+ this->scenarioProgress.progressCrusaderStates = this->missionNumber1to20;
+ }
+ }
+ }
+ writeUserConfig();
+ if (!isValueInRangeOneToTwenty(
+ this->missionNumber1to20)) {
+ switchToMenuView(
+ UI::Enums::MVT_MISSION_FINISHED_TRANSITION, 0);
+ DAT_GameCore.field26_0x74 = 0;
+ DAT_GameCore.unknownAlwaysZero = 0;
+ return;
+ }
+ removeJesterAndLadyUnitsInCertainMissions();
+ DAT_GameSynchronyState.currentPlayerSlotID = 1;
+ int const firstMissionOfCampaign = this->historicCampaignNumber * 5 - 4;
+ if (this->missionNumber1to20 != firstMissionOfCampaign && !DAT_GameCore.field26_0x74) {
+ switchToMenuView(
+ UI::Enums::MVT_MISSION_FINISHED_TRANSITION, 0);
+ DAT_GameCore.field26_0x74 = 0;
+ DAT_GameCore.unknownAlwaysZero = 0;
+ return;
+ }
+ if (DAT_GameCore.field26_0x74 && this->missionNumber1to20 != firstMissionOfCampaign) {
+ switchToMenuView(
+ UI::Enums::MVT_HISTORIC_MISSION_PICTURE, 0);
+ } else {
+ switchToMenuView(
+ UI::Enums::MVT_HISTORIC_CAMPAIGN_INTRO, 0);
+ }
+ DAT_GameCore.gameSuspended = 0;
+ DAT_GameCore.field26_0x74 = 0;
+ DAT_GameCore.unknownAlwaysZero = 0;
+ }
+}
+}
+
+### 0x004719e0 switchToScenarioDescriptionMenuView | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004719E0
+ void GameCore::switchToScenarioDescriptionMenuView()
+ {
+ removeJesterAndLadyUnitsInCertainMissions();
+ switchToMenuView(
+ MVT_SCENARIO_DESCRIPTION, 0);
+ DAT_GameCore.gameSuspended = 0;
+ }
+}
+}
+
+### 0x00471a00 incrementMission | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00471A00
+ void GameCore::incrementMission()
+ {
+ ++this->missionNumber1to20;
+ removeLadyAndJester();
+ if (!this->unlockAllHistoricalCampaigns && this->missionNumber1to20 > this->furthestMission) {
+ this->furthestMission = this->missionNumber1to20;
+ }
+ writeUserConfig();
+ if (!isValueInRangeOneToTwenty(
+ this->missionNumber1to20)) {
+ DAT_GameCore.gameSuspended = 0;
+ switchToMenuView(
+ UI::Enums::MVT_MISSION_FINISHED_TRANSITION, 0);
+ } else {
+ DAT_GameSynchronyState.currentPlayerSlotID = 1;
+ if (this->missionNumber1to20 != 33 && !DAT_GameCore.field26_0x74) {
+ switchToMenuView(
+ UI::Enums::MVT_MISSION_FINISHED_TRANSITION, 0);
+ } else {
+ DAT_GameCore.gameSuspended = 0;
+ switchToMenuView(
+ UI::Enums::MVT_SCENARIO_DESCRIPTION, 0);
+ }
+ }
+ DAT_GameCore.field26_0x74 = 0;
+ DAT_GameCore.unknownAlwaysZero = 0;
+ }
+}
+}
+
+### 0x00471aa0 hideOrUnhideUI | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00471AA0
+ void GameCore::hideOrUnhideUI()
+ {
+ if ((DAT_GameCore.currentMenuViewType == UI::Enums::MVT_BUILD_MENU
+ || DAT_GameCore.currentMenuViewType == UI::Enums::MVT_MAP_EDITOR_LANDSCAPING)
+ && DAT_MouseState.selectionBoxMode == 0) {
+ // hide the menu
+ if (DAT_GameCore.activeMenuTab.buildMenuTab != UI::Enums::BMTT_MENU_HIDDEN
+ && DAT_GameCore.activeMenuTab.buildMenuTab != 62) {
+ if (DAT_GameCore.currentMenuViewType == UI::Enums::MVT_BUILD_MENU) {
+ if (DAT_GameCore.activeMenuTab.buildMenuTab == UI::Enums::BMTT_SOLDIERS) {
+ DAT_GameCore.buildmenuMenuTabToSwitchTo.buildMenuTab = 62;
+ } else {
+ setTabToSwitchTo();
+ DAT_GameCore.buildmenuMenuTabToSwitchTo.buildMenuTab = UI::Enums::BMTT_MENU_HIDDEN;
+ }
+ }
+ if (DAT_GameCore.currentMenuViewType == UI::Enums::MVT_MAP_EDITOR_LANDSCAPING) {
+ DAT_GameCore.landscapingmenuMenuTabToSwitchTo.buildMenuTab = UI::Enums::BMTT_MENU_HIDDEN;
+ }
+ switchToMenuView(
+ (MenuViewType)DAT_GameCore.currentMenuViewType, 0);
+ return;
+ }
+ // unhide the menu
+ if (DAT_GameCore.currentMenuViewType == UI::Enums::MVT_BUILD_MENU) {
+ if (DAT_GameCore.activeMenuTab.buildMenuTab == 62) {
+ DAT_GameCore.buildmenuMenuTabToSwitchTo.buildMenuTab = UI::Enums::BMTT_SOLDIERS;
+ } else {
+ swapBuildMenuTab();
+ }
+ }
+ if (DAT_GameCore.currentMenuViewType == UI::Enums::MVT_MAP_EDITOR_LANDSCAPING) {
+ DAT_GameCore.landscapingmenuMenuTabToSwitchTo
+ = DAT_GameCore.secondaryActiveMenuTabToSwitchTo;
+ }
+ if (DAT_GameCore.buildmenuMenuTabToSwitchTo.buildMenuTab == UI::Enums::BMTT_MENU_HIDDEN) {
+ if (DAT_GameCore.currentMenuViewType == UI::Enums::MVT_BUILD_MENU) {
+ DAT_GameCore.buildmenuMenuTabToSwitchTo.buildMenuTab = UI::Enums::BMTT_CASTLE;
+ }
+ if (DAT_GameCore.currentMenuViewType == UI::Enums::MVT_MAP_EDITOR_LANDSCAPING) {
+ DAT_GameCore.landscapingmenuMenuTabToSwitchTo.buildMenuTab = 231;
+ }
+ }
+ switchToMenuView(
+ (MenuViewType)DAT_GameCore.currentMenuViewType, 0);
+ return;
+ }
+ if (DAT_GameCore.currentMenuViewType == UI::Enums::MVT_BUILDING_AND_STATUS_MENU) {
+ this->secondaryActiveMenuTabToSwitchTo = this->buildmenuMenuTabToSwitchTo;
+ DAT_GameCore.buildmenuMenuTabToSwitchTo.buildMenuTab = UI::Enums::BMTT_MENU_HIDDEN;
+ switchToMenuView(UI::Enums::MVT_BUILD_MENU, 0);
+ }
+ }
+}
+}
+
+### 0x00401090 isSameTeam | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00401090
+ BOOLEnum GameStateStructures::isSameTeam(int playerID1, int playerID2)
+ {
+ return this->mapAndTime.playerTeams[playerID1] == this->mapAndTime.playerTeams[playerID2];
+ }
+}
+}
+
+### 0x00455d40 clearMapAndTimeAndPlayerData | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00455D40
+ void GameStateStructures::clearMapAndTimeAndPlayerData()
+ {
+ PlayerData* destination;
+ int iVar1;
+ destination = this->playerDataArray;
+ iVar1 = 9;
+ do {
+ fillMemory_ByteValue(
+ 14836, '\0', (void*)((int)(destination)));
+ destination = destination + 1;
+ iVar1 = iVar1 + -1;
+ } while (iVar1 != 0);
+ fillMemory_ByteValue(
+ 262608, '\0', (void*)((int)(&this->mapAndTime)));
+ return;
+ }
+}
+}
+
+### 0x00455d90 clearCurrentResourcesAndStrongWalls | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00455D90
+ void GameStateStructures::clearCurrentResourcesAndStrongWalls()
+ {
+ PlayerData* _playerData;
+ int _playerCounter;
+ _playerData = (PlayerData*)this->playerDataArray[1];
+ _playerCounter = 8;
+ do {
+ _playerData->currentResources[0] = 0;
+ _playerData->currentResources[1] = 0;
+ _playerData->currentResources[2] = 0;
+ _playerData->currentResources[3] = 0;
+ _playerData->currentResources[4] = 0;
+ _playerData->currentResources[5] = 0;
+ _playerData->currentResources[6] = 0;
+ _playerData->currentResources[7] = 0;
+ _playerData->currentResources[8] = 0;
+ _playerData->currentResources[9] = 0;
+ _playerData->currentResources[10] = 0;
+ _playerData->currentResources[0xb] = 0;
+ _playerData->currentResources[0xc] = 0;
+ _playerData->currentResources[0xd] = 0;
+ _playerData->currentResources[0xe] = 0;
+ _playerData->currentResources[0xf] = 0;
+ _playerData->currentResources[0x10] = 0;
+ _playerData->currentResources[0x11] = 0;
+ _playerData->currentResources[0x12] = 0;
+ _playerData->currentResources[0x13] = 0;
+ _playerData->currentResources[0x14] = 0;
+ _playerData->currentResources[0x15] = 0;
+ _playerData->currentResources[0x16] = 0;
+ _playerData->currentResources[0x17] = 0;
+ _playerData->currentResources[0x18] = 0;
+ _playerData = (PlayerData*)((int)(_playerData + 0x94) + 0x24);
+ _playerCounter = _playerCounter + -1;
+ } while (_playerCounter != 0);
+ this->mapAndTime.skirmishStrongWalls = 0;
+ this->mapAndTime.skirmishAlliances = 0;
+ return;
+ }
+}
+}
+
+### 0x00455e10 resetVariousCountsAndStatisticsAndStartGoodsAndResources | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x00455E10
+ void GameStateStructures::resetVariousCountsAndStatisticsAndStartGoodsAndResources()
+ {
+ short sVar1;
+ int* piVar2;
+ int* piVar3;
+ int _gameTypeMultiplier;
+ int iVar4;
+ int _playerID;
+ PlayerData* _playerData;
+ int _startingGoldGameTypeBased;
+ _playerID = 1;
+ _playerData = &this->playerDataArray[1];
+ do {
+ _playerData->weeksWithoutFood = 0;
+ _playerData->foodTypesCurrentlyEaten = 0;
+ _playerData->someCount40 = 0;
+ _playerData->foodStorageLevelLastLastMonth = 0;
+ _playerData->foodStorageLevelLastMonth = 0;
+ _playerData->vclock = 2000;
+ _playerData->someCount43 = 0;
+ iVar4 = this->mapAndTime.startingPopularity * 10;
+ _playerData->popularity = iVar4;
+ _playerData->storedPopularityPercent = iVar4;
+ _playerData->someCount44 = (short)iVar4;
+ _playerData->taxesSetting = 3;
+ _playerData->rationsSetting = 2;
+ iVar4 = this->playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].rationsSetting;
+ _playerData->rationsSetting2 = iVar4;
+ _playerData->rationsSetting3 = iVar4;
+ _playerData->someCount45 = 1;
+ _playerData->someCount46 = 1;
+ _playerData->someCount47 = 0;
+ _playerData->textYOffset = 0x3c;
+ _playerData->someCountdown01 = 0;
+ _playerData->playerDeathRelated = 0;
+ _playerData->previousBlessedPeoplePercentage = 0;
+ _playerData->popularityReligionBasedDiv25 = 0;
+ _playerData->someCount48 = 0;
+ _playerData->someCount49 = 0;
+ _playerData->someCount50 = 0;
+ _playerData->someCount51 = 0;
+ _playerData->someCount52 = 0;
+ _playerData->someCount53 = 0;
+ _playerData->someCount54 = 0;
+ _playerData->someCount55 = 0;
+ _playerData->someCount56 = 0;
+ _playerData->someCount57 = 0;
+ _playerData->someCount58 = 0;
+ _playerData->someCount59 = 0;
+ _playerData->someCount60 = 0;
+ _playerData->keepEnclosementRelatedCountdown = 0;
+ _playerData->defensesDamagedByPlayer = 0;
+ piVar3 = _playerData->startResources;
+ piVar2 = this->mapAndTime.startGoods;
+ iVar4 = 25;
+ do {
+ *piVar3 = *piVar2;
+ piVar2 = piVar2 + 1;
+ piVar3 = piVar3 + 1;
+ iVar4 = iVar4 + -1;
+ } while (iVar4 != 0);
+ _memset(_playerData->snoozedBuildings, 0, 100);
+ _playerData->troopsKilled = 0;
+ _playerData->troopsLost = 0;
+ _playerData->weightedLosses = 0;
+ _playerData->field25_0x40 = 0;
+ _playerData->field26_0x42 = 0;
+ if (this->mapAndTime.editScenarioExtraOptions != 0) {
+ _playerData->taxesSetting = (int)this->mapAndTime.scenarioTaxesSetting;
+ iVar4 = (int)this->mapAndTime.scenarioRationsSetting;
+ _playerData->rationsSetting2 = iVar4;
+ _playerData->rationsSetting3 = iVar4;
+ _playerData->rationsSetting = iVar4;
+ _playerData->currentResources[0xf] = (int)this->mapAndTime.scenarioGold;
+ }
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ _gameTypeMultiplier = 1;
+ if (((DAT_GameCore.gameMode_2 == GM_SKIRMISH_AND_MULTIPLAYER)
+ && (DAT_GameCore.isSkirmishTrail == TRUE))
+ && (DAT_GameCore.currentTrailType == TT_EXTREME)) {
+ _gameTypeMultiplier = 3;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[_playerID] == -1) {
+ if (DAT_GameSynchronyState.currentAIArray[_playerID] == 0)
+ goto LAB_00456069;
+ _startingGoldGameTypeBased
+ = DAT_RenderingDefinedData
+ .field451_0x53bb4[(DAT_GameSynchronyState.skirmishCurrentAdvantageBalance
+ + DAT_GameSynchronyState.skirmishGameIntensityType * 5)
+ * 2
+ + 0xd];
+ } else {
+ _startingGoldGameTypeBased
+ = DAT_RenderingDefinedData
+ .field451_0x53bb4[(DAT_GameSynchronyState.skirmishCurrentAdvantageBalance
+ + DAT_GameSynchronyState.skirmishGameIntensityType * 5)
+ * 2
+ + 0xc];
+ }
+ _playerData->startResources[0xf] = _startingGoldGameTypeBased * _gameTypeMultiplier;
+ }
+ LAB_00456069:
+ this->mapAndTime.populationIndex = 0;
+ sVar1 = (short)_playerData->currentResources[0xf];
+ _playerData->beforeLastMonthsGold = sVar1;
+ _playerData->lastMonthsGold = sVar1;
+ _playerData->aiControlStatusRelated = -1000;
+ _playerData->isFoodTypeBanned[0] = 0;
+ _playerData->isFoodTypeBanned[1] = 0;
+ _playerData->isFoodTypeBanned[2] = 0;
+ _playerData->isFoodTypeBanned[3] = 0;
+ setCurrentAttackStrength(_playerID);
+ setCurrentAttackRaidParameter(_playerID);
+ _playerData->nervousBikCountdown = 0x30;
+ _playerData->tacticalPowersBarLevel = 0;
+ _playerData->goldDonation = 0;
+ _playerID = _playerID + 1;
+ _playerData = _playerData + 0xe7d;
+ if (8 < _playerID) {
+ return;
+ }
+ } while (true);
+ }
+}
+}
+
+### 0x004560f0 resetCountsAndStatistics | quelle=ghidra | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004560F0
+ void GameStateStructures::resetCountsAndStatistics()
+ {
+ int iVar1;
+ PlayerData* piVar2;
+ int iVar2;
+ short* psVar3;
+ this->mapAndTime.field193_0x198 = 0;
+ this->mapAndTime.deerCount = 0;
+ this->mapAndTime.field3166_0x277c = 0;
+ this->mapAndTime.field3168_0x2790 = 0;
+ this->mapAndTime.field3170_0x27a4 = 0;
+ this->mapAndTime.field3172_0x27ac = 0;
+ piVar2 = &this->playerDataArray[1];
+ iVar2 = 8;
+ do {
+ if (0 < piVar2->someCountdown01) {
+ piVar2->someCountdown01 = piVar2->someCountdown01 + -1;
+ }
+ piVar2->previousAvailablePeasants = piVar2->availablePeasantsOrHousedPeasants;
+ piVar2->previousArmySize = piVar2->armySize;
+ piVar2->previousSiegeWeaponsCount = piVar2->currentSiegeWeaponCount;
+ piVar2->previousBlessedPeoplePercentage = (short)piVar2->blessedPeoplePercentage;
+ piVar2->countEconomyBuilding_fixme = 0;
+ piVar2->populationCap = 0;
+ piVar2->countEntities = 0;
+ piVar2->availablePeasantsAtFire = 0;
+ piVar2->availablePeasantsOrHousedPeasants = 0;
+ piVar2->count = 0;
+ piVar2->currentPopulation_2 = 0;
+ piVar2->nonInteractiveCitizenCountUnk = 0;
+ piVar2->chickenCount2 = 0;
+ piVar2->someCount02 = 0;
+ piVar2->someCount03 = 0;
+ piVar2->someCount04 = 0;
+ piVar2->armySize = 0;
+ piVar2->count_2 = 0;
+ piVar2->currentSiegeWeaponCount = 0;
+ piVar2->workingInnsCount = 0;
+ piVar2->countInns = 0;
+ piVar2->field645_0x2174 = 0;
+ piVar2->blessedPeopleCountUnk = 0;
+ piVar2->unblessedPeopleCountUnk = 0;
+ piVar2->priestCountUnk = 0;
+ piVar2->breadCount = 0;
+ piVar2->cheeseCount = 0;
+ piVar2->meatCount = 0;
+ piVar2->appleCount = 0;
+ piVar2->totalFood = 0;
+ piVar2->foodTypesInStock = 0;
+ piVar2->blessedPeoplePercentage = 0;
+ piVar2->hasInitialResourceRecievingStarted = 0;
+ piVar2->areCarnivalUnitsPresent = FALSE;
+ piVar2->granaryIsAlmostFilledUp = TRUE;
+ piVar2->isArmouryAlmostFilledUp = 1;
+ piVar2->farmsWithoutWorkers = 0;
+ piVar2->countFarms = 0;
+ piVar2->countWoodcutters = 0;
+ piVar2->noLabourerBuildingCount = 0;
+ piVar2->someCount10 = 0;
+ piVar2->someCount11 = 0;
+ piVar2->countIronMines = 0;
+ piVar2->countPitchRigs = 0;
+ piVar2->countStoneQuarries = 0;
+ piVar2->someCount12 = 0;
+ piVar2->someCount13 = 0;
+ piVar2->countFletchersPoleturners = 0;
+ piVar2->countArmorersAndBlacksmiths = 0;
+ piVar2->countBakers = 0;
+ piVar2->countBrewers = 0;
+ psVar3 = piVar2->top100TargetableBuildings;
+ for (iVar1 = 0x32; iVar1 != 0; iVar1 = iVar1 + -1) {
+ psVar3[0] = 0;
+ psVar3[1] = 0;
+ psVar3 = psVar3 + 2;
+ }
+ piVar2->top100TargetableBuildingsTracker = 0;
+ piVar2->rallySearchOffsetsUnk[0] = 0;
+ piVar2->rallySearchOffsetsUnk[1] = 0;
+ piVar2->rallySearchOffsetsUnk[2] = 0;
+ piVar2->rallySearchOffsetsUnk[3] = 0;
+ piVar2->rallySearchOffsetsUnk[4] = 0;
+ piVar2->rallySearchOffsetsUnk[5] = 0;
+ piVar2->rallySearchOffset = 0;
+ piVar2->someCount20 = 0;
+ piVar2->someCount21 = 0;
+ piVar2->someCount22 = 0;
+ piVar2->countArabianArchersRelated = 0;
+ piVar2->countRelatedToHorseArchers = 0;
+ piVar2->countSlaves = 0;
+ piVar2->countAssassinsAndArabianSwordsman = 0;
+ piVar2->countSlingers = 0;
+ piVar2->countFireThrowers = 0;
+ piVar2->someCount23 = 0;
+ piVar2->someCount24 = 0;
+ piVar2->someCount25 = 0;
+ piVar2->someCount26 = 0;
+ piVar2->currentArchers = 0;
+ piVar2->currentCrossbowmen = 0;
+ piVar2->currentSpearmen = 0;
+ piVar2->currentPikemen = 0;
+ piVar2->currentMacemen = 0;
+ piVar2->currentSwordsmen = 0;
+ piVar2->currentKnights = 0;
+ piVar2->currentLaddermen = 0;
+ piVar2->currentEngineers = 0;
+ piVar2->currentTunnelers = 0;
+ piVar2->someCount27 = 0;
+ piVar2->someCount28 = 0;
+ piVar2->someCount29 = 0;
+ piVar2->someCount30 = 0;
+ piVar2->someCount31 = 0;
+ piVar2->currentResources[0] = 1;
+ if (piVar2->aleRate < 1) {
+ piVar2->aleRate = 30;
+ }
+ if (piVar2->someCount32 != 0) {
+ piVar2->someCount32 = piVar2->someCount32 + -1;
+ }
+ if (piVar2->someCount33 != 0) {
+ piVar2->someCount33 = piVar2->someCount33 + -1;
+ }
+ piVar2 = piVar2 + 0xe7d;
+ iVar2 = iVar2 + -1;
+ } while (iVar2 != 0);
+ return;
+ }
+}
+}
+
+### 0x004563b0 isFullIDEqualsToMinus1 | quelle=nachgebaut | bereich=Spielablauf
+// FUNCTION: STRONGHOLDCRUSADER 0x004563B0
+ BOOLEnum GameStateStructures::isFullIDEqualsToMinus1(int playerID)
+ {
+ return DAT_GameSynchronyState.currentPlayerFullIDArray[playerID] == -1;
+ }
+}
+}
+

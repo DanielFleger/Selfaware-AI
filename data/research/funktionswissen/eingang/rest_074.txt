@@ -1,0 +1,1105 @@
+### 0x00474a20 readMapOrSavFile | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x00474A20
+ void FilePackager::readMapOrSavFile(MapSectionAddress* mapSectionAddrArray)
+ {
+ RenderLoadAndSaveBar* _loadAndSaveBarFunc = this->loadAndSaveBarFunc;
+ this->loadAndSaveBarFunc = NULL;
+ this->tempMem = _malloc(6000000);
+ if (!this->tempMem) {
+ return;
+ }
+ void* _previewOrDescriptionUnk = _malloc(100000);
+ if (!_previewOrDescriptionUnk) {
+ return;
+ }
+ char* _mapName
+ = getFileNameOfCurrentActiveResource();
+ int _fileDescriptor = _ucrt_open(_mapName, _O_BINARY, 0);
+ if (_fileDescriptor == -1) {
+ _free_base(_previewOrDescriptionUnk);
+ _free_base(this->tempMem);
+ this->tempMem = NULL;
+ return;
+ }
+ if (DAT_SoundEffectsHelperData1.SEC_Section1079.musicState == 5) {
+ DAT_SoundEffectsHelperData1.SEC_Section1079.musicState = 1;
+ setSomeSoundTime();
+ }
+ mapLoadingAndLaunchGameRelated1();
+ fillMemory_IntegerValue(
+ sizeof(DAT_GameState.mapAndTime), 0, &DAT_GameState.mapAndTime);
+ DAT_GameCore.temporaryTextBufferOfSize1000[0] = '\0';
+ DAT_GameCore.mapU4Int0 = 0;
+ DAT_GameCore.mapU4Int1 = 0;
+ for (int i = 0; i < 9; ++i) {
+ DAT_BlendingDefinedData.PlayerSlotUnitColor[i]
+ = DAT_BlendingDefinedData.DefaultPlayerSlotUnitColor[i];
+ }
+ fillWith0xFF();
+ DAT_GameCore.mapU4Int3_balanced = 0;
+ DAT_GameState.mapAndTime.skirmishExtremeMode = 0;
+ DAT_GameState.mapAndTime.skirmishExtremeMode2 = 0;
+ DAT_GameCore.isVictoryOrDefeatUnk = 0;
+ DAT_GameCore.altRToggleMinimapHideWildlife = 0;
+ for (int i = 0; i < 8; ++i) {
+ DAT_MinimapViewState.DAT_MapU4B64.keepPositions[i].x = -1;
+ DAT_MinimapViewState.DAT_MapU4B64.keepPositions[i].y = -1;
+ }
+ for (int i = 0; i < 9; ++i) {
+ DAT_GameState.mapAndTime.playerGroupArray[i] = 0;
+ }
+ for (int i = 0; i < 1000; ++i) {
+ DAT_AICState.tribeIDArray[i] = 0;
+ DAT_AICState.tribeUIDArray[i] = 0;
+ }
+ _ucrt_read(_fileDescriptor, &this->directorySize, sizeof(this->directorySize));
+ if (this->directorySize < 0) {
+ int _size;
+ // preview size
+ _ucrt_read(_fileDescriptor, &_size, sizeof(_size));
+ if (_size) {
+ _ucrt_read(_fileDescriptor, _previewOrDescriptionUnk, _size);
+ // description size
+ _ucrt_read(_fileDescriptor, &_size, sizeof(_size));
+ if (_size) {
+ _ucrt_read(_fileDescriptor, &DAT_GameCore.descriptionUseStringTable,
+ sizeof(DAT_GameCore.descriptionUseStringTable));
+ _ucrt_read(_fileDescriptor,
+ &DAT_GameCore.descriptionStringTableIndex,
+ sizeof(DAT_GameCore.descriptionStringTableIndex));
+ _ucrt_read(_fileDescriptor, _previewOrDescriptionUnk, _size - 8);
+ decodeData(
+ _previewOrDescriptionUnk, DAT_GameCore.temporaryTextBufferOfSize1000);
+ // Map.u1 size
+ _ucrt_read(_fileDescriptor, &_size, sizeof(_size));
+ if (_size) {
+ _ucrt_read(_fileDescriptor,
+ &DAT_GameSynchronyState.savedMapTimeInTicks,
+ sizeof(DAT_GameSynchronyState.savedMapTimeInTicks));
+ _ucrt_read(_fileDescriptor,
+ &DAT_GameSynchronyState.savedUnitsCRC32Hash,
+ sizeof(DAT_GameSynchronyState.savedUnitsCRC32Hash));
+ // Map.u2 size
+ _ucrt_read(_fileDescriptor, &_size, sizeof(_size));
+ if (_size != 0) {
+ _ucrt_read(_fileDescriptor,
+ &DAT_GameCore.U2_mapType_singleOrMulti,
+ sizeof(DAT_GameCore.U2_mapType_singleOrMulti));
+ _ucrt_read(_fileDescriptor, &DAT_GameCore.mapU2MiddleBytes,
+ sizeof(DAT_GameCore.mapU2MiddleBytes));
+ _ucrt_read(_fileDescriptor, &DAT_GameCore.mapU2PlayersCount,
+ sizeof(DAT_GameCore.mapU2PlayersCount));
+ // Map.u3 size
+ _ucrt_read(_fileDescriptor, &_size, sizeof(_size));
+ if (_size) {
+ _ucrt_read(_fileDescriptor,
+ &DAT_MapPropertiesState.scenarionMissionType,
+ sizeof(DAT_MapPropertiesState.scenarionMissionType));
+ if (_size > 4) {
+ _ucrt_read(_fileDescriptor,
+ &DAT_MapPropertiesState.SEC_U3_MapType2_1,
+ sizeof(DAT_MapPropertiesState.SEC_U3_MapType2_1));
+ if (_size > 8) {
+ _ucrt_read(_fileDescriptor,
+ &DAT_GameCore.U3_mapLockedState,
+ sizeof(DAT_GameCore.U3_mapLockedState));
+ if (_size > 12) {
+ _ucrt_read(
+ _fileDescriptor, DAT_GameCore.standaloneFilename, _size - 16);
+ if (_size >= 93) {
+ _ucrt_read(_fileDescriptor,
+ &DAT_GameCore.mapU3EndInt,
+ sizeof(DAT_GameCore.mapU3EndInt));
+ }
+ }
+ }
+ }
+ _ucrt_read(_fileDescriptor, &_size, sizeof(_size));
+ if (_size) {
+ _ucrt_read(_fileDescriptor, &DAT_GameCore.mapU4Int0,
+ sizeof(DAT_GameCore.mapU4Int0));
+ if (_size > 4) {
+ _ucrt_read(_fileDescriptor,
+ &DAT_GameCore.mapU4Int1,
+ sizeof(DAT_GameCore.mapU4Int1));
+ if (_size > 8) {
+ _ucrt_read(_fileDescriptor,
+ &DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes,
+ sizeof(DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes));
+ if (_size > 12) {
+ _ucrt_read(_fileDescriptor,
+ &DAT_GameCore.mapU4Int3_balanced,
+ sizeof(DAT_GameCore.mapU4Int3_balanced));
+ _ucrt_read(_fileDescriptor,
+ &DAT_MinimapViewState.DAT_MapU4B64,
+ sizeof(DAT_MinimapViewState.DAT_MapU4B64));
+ }
+ }
+ }
+ _ucrt_read(_fileDescriptor, &_size, sizeof(_size));
+ }
+ }
+ }
+ }
+ }
+ }
+ _ucrt_read(_fileDescriptor, &this->directorySize, sizeof(this->directorySize));
+ }
+ if (this->directorySize == sizeof(this->directorySize) + sizeof(this->oldDirectory)) {
+ _ucrt_read(_fileDescriptor, &this->oldDirectory, sizeof(this->oldDirectory));
+ copyFromOldToNewMapDirectory();
+ } else {
+ _ucrt_read(
+ _fileDescriptor, &this->directory, this->directorySize - sizeof(this->directorySize));
+ }
+ _ucrt_read(_fileDescriptor, this->tempMem, this->directory.filePayloadSize);
+ _ucrt_close(_fileDescriptor);
+ DAT_GameCore.descriptionUseStringTable = 0;
+ // Block needed to remove referenced variable from global stack. Otherwise it would contribute to stack size.
+ {
+ int _hardcodedMapTextAddressUnk;
+ GetStringBasedOnHardcodedMaps(
+ getCurrentResourceCoreNameUnk(),
+ &_hardcodedMapTextAddressUnk);
+ if (_hardcodedMapTextAddressUnk) {
+ DAT_GameCore.descriptionUseStringTable = 1;
+ DAT_GameCore.descriptionStringTableIndex = _hardcodedMapTextAddressUnk;
+ }
+ }
+ this->versionNumOfCurrentFileTypeUnk = this->directory.magicNumOfFileType;
+ if (_loadAndSaveBarFunc) {
+ (*_loadAndSaveBarFunc)(50);
+ }
+ this->currentlyReadFileSectionIndex = 0;
+ this->directory.filePayloadSize = 0;
+ MapSectionAddress* _sectionAddressListStart = mapSectionAddrArray;
+ while (this->currentlyReadFileSectionIndex < this->directory.sectionCount) {
+ mapSectionAddrArray = _sectionAddressListStart;
+ if (this->directory.id[this->currentlyReadFileSectionIndex] == 1095
+ && this->directory.uncompressedSize[this->currentlyReadFileSectionIndex] > 4) {
+ ++this->currentlyReadFileSectionIndex;
+ continue;
+ }
+ while (this->currentlyReadFileSectionIndex < 150) {
+ this->currentlyReadFileSectionMemory = mapSectionAddrArray->address;
+ this->currentlyReadFileSectionSize = mapSectionAddrArray->size;
+ if (this->currentlyReadFileSectionMemory <= NULL
+ || this->directory.id[this->currentlyReadFileSectionIndex] == mapSectionAddrArray->sectionId) {
+ break;
+ }
+ ++mapSectionAddrArray;
+ }
+ if (this->currentlyReadFileSectionMemory > NULL && !mapSectionAddrArray->unknown) {
+ if (!this->directory.isCompressed[this->currentlyReadFileSectionIndex]
+ || this->CRASHES_saveUncompressedUnk) {
+ if (mapSectionAddrArray->sectionId == 1124
+ && this->directory.uncompressedSize[this->currentlyReadFileSectionIndex]
+ == sizeof(SkirmishLobbySetupStructureLongName)) {
+ copyData(
+ sizeof(SkirmishLobbySetupStructureLongName),
+ (void*)((int)this->tempMem + this->directory.offset[this->currentlyReadFileSectionIndex]),
+ DAT_SkirmishLobbySetupStructureLongMapName);
+ UpgradeOldSection1124();
+ } else {
+ copyData(
+ this->directory.uncompressedSize[this->currentlyReadFileSectionIndex],
+ (void*)((int)this->tempMem + this->directory.offset[this->currentlyReadFileSectionIndex]),
+ this->currentlyReadFileSectionMemory);
+ }
+ } else {
+ decodeData(
+ (void*)((int)this->tempMem + this->directory.offset[this->currentlyReadFileSectionIndex]),
+ this->currentlyReadFileSectionMemory);
+ }
+ }
+ if (_loadAndSaveBarFunc) {
+ (*_loadAndSaveBarFunc)(
+ (this->currentlyReadFileSectionIndex * 950) / (this->directory.sectionCount + -1) + 50);
+ }
+ ++this->currentlyReadFileSectionIndex;
+ }
+ _free_base(this->tempMem);
+ _free_base(_previewOrDescriptionUnk);
+ this->tempMem = NULL;
+ DAT_SoundEffectsHelperData1.DAT_NegativeCountdownMin1ToMin4Becomes0 = 0;
+ DAT_SoundEffectsHelperData1.field13_0x50 = 0;
+ DAT_SoundSystemState.currentSoundID_0x3278 = -1;
+ DAT_GameCore.field37_0xa0 = DAT_GameCore.mapTimeInTicks;
+ if (DAT_GameCore.gameMode_2 == Game::GM_CAMPAIGN_MISSION) {
+ DAT_GameCore.historicCampaignNumber = 4;
+ if (DAT_GameCore.missionNumber1to20 <= 15) {
+ DAT_GameCore.historicCampaignNumber = 3;
+ }
+ if (DAT_GameCore.missionNumber1to20 <= 10) {
+ DAT_GameCore.historicCampaignNumber = 2;
+ }
+ if (DAT_GameCore.missionNumber1to20 <= 5) {
+ DAT_GameCore.historicCampaignNumber = 1;
+ }
+ }
+ DAT_GameCore.timeSum_2 = timeGetTime() - DAT_GameCore.gameDuration;
+ TIME_ReceivedMessage_2::instance = 0;
+ }
+} // namespace IO
+} // namespace OpenSHC
+
+### 0x004750e0 readMapHeaderSectionByID | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x004750E0
+ void FilePackager::readMapHeaderSectionByID(MapSectionAddress* mapSectionAddrArray, int sectionID)
+ {
+ RenderLoadAndSaveBar* _loadAndSaveBarFunc = this->loadAndSaveBarFunc;
+ this->loadAndSaveBarFunc = NULL;
+ this->tempMem = _malloc(6000000);
+ if (!this->tempMem) {
+ return;
+ }
+ char* _Filename
+ = getFileNameOfCurrentActiveResource();
+ int _fileDescriptor = _ucrt_open(_Filename, _O_BINARY, 0);
+ if (_fileDescriptor == -1) {
+ _free_base(this->tempMem);
+ this->tempMem = NULL;
+ return;
+ }
+ _ucrt_read(_fileDescriptor, &this->directorySize, sizeof(this->directorySize));
+ if (this->directorySize < 0) {
+ int _size;
+ _ucrt_read(_fileDescriptor, &_size, sizeof(_size));
+ while (_size) {
+ _ucrt_lseek(_fileDescriptor, _size, FILE_CURRENT);
+ _ucrt_read(_fileDescriptor, &_size, sizeof(_size));
+ }
+ _ucrt_read(_fileDescriptor, &this->directorySize, sizeof(this->directorySize));
+ }
+ if (this->directorySize == sizeof(this->directorySize) + sizeof(this->oldDirectory)) {
+ _ucrt_read(_fileDescriptor, &this->oldDirectory, sizeof(this->oldDirectory));
+ copyFromOldToNewMapDirectory();
+ } else {
+ _ucrt_read(
+ _fileDescriptor, &this->directory, this->directorySize - sizeof(this->directorySize));
+ }
+ _ucrt_read(_fileDescriptor, this->tempMem, this->directory.filePayloadSize);
+ _ucrt_close(_fileDescriptor);
+ this->versionNumOfCurrentFileTypeUnk = this->directory.magicNumOfFileType;
+ if (_loadAndSaveBarFunc) {
+ (*_loadAndSaveBarFunc)(50);
+ }
+ this->currentlyReadFileSectionIndex = 0;
+ this->directory.filePayloadSize = 0;
+ MapSectionAddress* _sectionAddressListStart = mapSectionAddrArray;
+ while (this->currentlyReadFileSectionIndex < this->directory.sectionCount) {
+ mapSectionAddrArray = _sectionAddressListStart;
+ while (this->currentlyReadFileSectionIndex < 150) {
+ this->currentlyReadFileSectionMemory = mapSectionAddrArray->address;
+ this->currentlyReadFileSectionSize = mapSectionAddrArray->size;
+ if (this->currentlyReadFileSectionMemory <= NULL
+ || this->directory.id[this->currentlyReadFileSectionIndex] == mapSectionAddrArray->sectionId) {
+ break;
+ }
+ ++mapSectionAddrArray;
+ }
+ if (this->currentlyReadFileSectionMemory > NULL && mapSectionAddrArray->sectionId == sectionID
+ && !mapSectionAddrArray->unknown) {
+ if (!this->directory.isCompressed[this->currentlyReadFileSectionIndex]
+ || this->CRASHES_saveUncompressedUnk) {
+ copyData(
+ this->directory.uncompressedSize[this->currentlyReadFileSectionIndex],
+ (void*)((int)this->tempMem + this->directory.offset[this->currentlyReadFileSectionIndex]),
+ this->currentlyReadFileSectionMemory);
+ } else {
+ decodeData(
+ (void*)((int)this->tempMem + this->directory.offset[this->currentlyReadFileSectionIndex]),
+ this->currentlyReadFileSectionMemory);
+ }
+ }
+ ++this->currentlyReadFileSectionIndex;
+ }
+ _free_base(this->tempMem);
+ this->tempMem = NULL;
+ }
+} // namespace IO
+} // namespace OpenSHC
+
+### 0x004752d0 readMapHeader | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x004752D0
+ void FilePackager::readMapHeader(BOOLEnum loadPreviewUnk)
+ {
+ void* _dynamicHeaderBuffer = NULL;
+ if (loadPreviewUnk) {
+ _dynamicHeaderBuffer = _malloc(100000);
+ if (!_dynamicHeaderBuffer) {
+ return;
+ }
+ _memset(
+ DAT_MinimapViewState.loadedMiniMap, 0, sizeof(DAT_MinimapViewState.loadedMiniMap));
+ }
+ DAT_GameCore.mapDescription[0] = '\0';
+ DAT_GameCore.mapType = 0;
+ DAT_GameCore.savedMapLocked = Map::MLS_EDITABLE;
+ DAT_GameCore.mapU4Int0_2 = 0;
+ DAT_GameCore.mapU4Int1_2 = 0;
+ DAT_GameCore.savedMapBalance = 0;
+ DAT_GameCore.savedMapEndInt2 = 0;
+ for (int i = 0; i < 8; i++) {
+ DAT_GameCore.keepPositions[i].x = -1;
+ DAT_GameCore.keepPositions[i].y = -1;
+ }
+ char* _nameOfActiveResource
+ = getFileNameOfCurrentActiveResource();
+ int _fileHandle = _ucrt_open(_nameOfActiveResource, _O_BINARY, 0);
+ if (_fileHandle == -1) {
+ if (_dynamicHeaderBuffer) {
+ _free_base(_dynamicHeaderBuffer);
+ }
+ this->tempMem = NULL;
+ return;
+ }
+ // General logic of this formats seems to be "size of content" -> "content" -> "size of content" -> etc.
+ // The last element in this line is a "size of content" == 0, indicating the end of the structure.
+ _ucrt_read(_fileHandle, &this->directorySize, sizeof(this->directorySize));
+ if (this->directorySize < 0) {
+ int _dataLength;
+ _ucrt_read(_fileHandle, &_dataLength, sizeof(_dataLength));
+ if (_dataLength) {
+ if (loadPreviewUnk) {
+ _ucrt_read(_fileHandle, _dynamicHeaderBuffer, _dataLength);
+ decodeData(
+ _dynamicHeaderBuffer, DAT_MinimapViewState.loadedMiniMap);
+ convertLoadedMinimapColors();
+ } else {
+ _ucrt_lseek(_fileHandle, _dataLength, FILE_CURRENT);
+ }
+ _ucrt_read(_fileHandle, &_dataLength, sizeof(_dataLength));
+ if (_dataLength) {
+ _ucrt_read(_fileHandle, &DAT_GameCore.mapDescUseStringTable,
+ sizeof(DAT_GameCore.mapDescUseStringTable));
+ _ucrt_read(_fileHandle, &DAT_GameCore.mapDescUseStringTableIndex,
+ sizeof(DAT_GameCore.mapDescUseStringTableIndex));
+ char _compressedDescriptionBuffer[1100];
+ _ucrt_read(_fileHandle, _compressedDescriptionBuffer,
+ _dataLength - sizeof(DAT_GameCore.mapDescUseStringTable)
+ - sizeof(DAT_GameCore.mapDescUseStringTableIndex));
+ if (loadPreviewUnk) {
+ decodeData(
+ _compressedDescriptionBuffer, DAT_GameCore.mapDescription);
+ }
+ _ucrt_read(_fileHandle, &_dataLength, sizeof(_dataLength));
+ if (_dataLength) {
+ _ucrt_read(_fileHandle,
+ &DAT_GameSynchronyState.savedMapTimeInTicks,
+ sizeof(DAT_GameSynchronyState.savedMapTimeInTicks));
+ _ucrt_read(_fileHandle,
+ &DAT_GameSynchronyState.savedUnitsCRC32Hash,
+ sizeof(DAT_GameSynchronyState.savedUnitsCRC32Hash));
+ _ucrt_read(_fileHandle, &_dataLength, sizeof(_dataLength));
+ if (_dataLength) {
+ _ucrt_read(
+ _fileHandle, &DAT_GameCore.mapType, sizeof(DAT_GameCore.mapType));
+ _ucrt_read(_fileHandle, DAT_GameCore.sh1MapKeeps,
+ sizeof(DAT_GameCore.sh1MapKeeps));
+ _ucrt_read(_fileHandle, &DAT_GameCore.mapPlayerCount,
+ sizeof(DAT_GameCore.mapPlayerCount));
+ _ucrt_read(_fileHandle, &_dataLength, sizeof(_dataLength));
+ if (_dataLength) {
+ _ucrt_read(_fileHandle,
+ &DAT_MapPropertiesState.scenarionMissionType,
+ sizeof(DAT_MapPropertiesState.scenarionMissionType));
+ if (_dataLength > 4) {
+ _ucrt_read(_fileHandle,
+ &DAT_MapPropertiesState.scenarioMissionSiegeOrInvasion,
+ sizeof(DAT_MapPropertiesState.scenarioMissionSiegeOrInvasion));
+ if (_dataLength > 8) {
+ _ucrt_read(_fileHandle,
+ &DAT_GameCore.savedMapLocked,
+ sizeof(DAT_GameCore.savedMapLocked));
+ if (_dataLength > 12) {
+ _ucrt_read(_fileHandle,
+ DAT_GameCore.standaloneFilename, _dataLength - 16);
+ // different then similar structure in readMapOrSavFile (_size >= 93)
+ if (_dataLength > 93) {
+ _ucrt_read(_fileHandle,
+ &DAT_GameCore.savedMapEndInt2,
+ sizeof(DAT_GameCore.savedMapEndInt2));
+ }
+ }
+ }
+ }
+ _ucrt_read(_fileHandle, &_dataLength, sizeof(_dataLength));
+ if (_dataLength) {
+ _ucrt_read(_fileHandle, &DAT_GameCore.mapU4Int0_2,
+ sizeof(DAT_GameCore.mapU4Int0_2));
+ if (_dataLength > 4) {
+ _ucrt_read(_fileHandle,
+ &DAT_GameCore.mapU4Int1_2,
+ sizeof(DAT_GameCore.mapU4Int1_2));
+ if (_dataLength > 8) {
+ _ucrt_read(_fileHandle,
+ &DAT_GameSynchronyState.DAT_MapU4Int2_2,
+ sizeof(DAT_GameSynchronyState.DAT_MapU4Int2_2));
+ if (_dataLength > 12) {
+ _ucrt_read(_fileHandle,
+ &DAT_GameCore.savedMapBalance,
+ sizeof(DAT_GameCore.savedMapBalance));
+ _ucrt_read(_fileHandle,
+ &DAT_GameCore.keepPositions,
+ sizeof(DAT_GameCore.keepPositions));
+ }
+ }
+ }
+ _ucrt_read(_fileHandle, &_dataLength, sizeof(_dataLength));
+ }
+ }
+ }
+ }
+ }
+ }
+ }
+ _ucrt_close(_fileHandle);
+ DAT_GameCore.mapDescUseStringTable = 0;
+ {
+ int _hardcodedMapTextAddressUnk;
+ GetStringBasedOnHardcodedMaps(
+ getCurrentResourceCoreNameUnk(),
+ &_hardcodedMapTextAddressUnk);
+ }
+ if (_dynamicHeaderBuffer) {
+ _free_base(_dynamicHeaderBuffer);
+ }
+ }
+} // namespace IO
+} // namespace OpenSHC
+
+### 0x00475690 unpackAIVFile | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x00475690
+ int FilePackager::unpackAIVFile(AIVSectionAddress* array, char* fileName)
+ {
+ int _fileHandle = _ucrt_open(fileName, _O_BINARY, 0);
+ if (_fileHandle == -1) {
+ return FALSE;
+ }
+ this->tempMem = _malloc(6000000);
+ if (!this->tempMem) {
+ return FALSE;
+ }
+ int result = TRUE;
+ _ucrt_read(_fileHandle, &this->directorySize, sizeof(this->directorySize));
+ if (this->directorySize == sizeof(this->directorySize) + sizeof(this->oldDirectory)) {
+ _ucrt_read(_fileHandle, &this->oldDirectory, sizeof(this->oldDirectory));
+ copyFromOldToNewMapDirectory();
+ } else {
+ _ucrt_read(
+ _fileHandle, &this->directory, this->directorySize - sizeof(this->directorySize));
+ }
+ _ucrt_read(_fileHandle, this->tempMem, this->directory.filePayloadSize);
+ _ucrt_close(_fileHandle);
+ this->versionNumOfCurrentFileTypeUnk = this->directory.magicNumOfFileType;
+ this->currentlyReadFileSectionIndex = 0;
+ this->directory.filePayloadSize = 0;
+ char errorMessage[200]; // string is unused in the final game
+ AIVSectionAddress* _sectionAddressListStart = array;
+ while (this->currentlyReadFileSectionIndex < this->directory.sectionCount) {
+ array = _sectionAddressListStart;
+ while (this->currentlyReadFileSectionIndex < 150) {
+ this->currentlyReadFileSectionMemory = array->address;
+ this->currentlyReadFileSectionSize = array->size;
+ if (this->currentlyReadFileSectionMemory <= NULL) {
+ break;
+ }
+ if (this->directory.id[this->currentlyReadFileSectionIndex] == array->sectionId) {
+ break;
+ }
+ ++array;
+ }
+ if (this->currentlyReadFileSectionMemory <= NULL) {
+ result = FALSE;
+ } else if (!array->unknown) {
+ if (!this->directory.isCompressed[this->currentlyReadFileSectionIndex]
+ || this->CRASHES_saveUncompressedUnk) {
+ copyData(
+ this->directory.uncompressedSize[this->currentlyReadFileSectionIndex],
+ (void*)((int)this->tempMem + this->directory.offset[this->currentlyReadFileSectionIndex]),
+ this->currentlyReadFileSectionMemory);
+ if (array->size < this->directory.uncompressedSize[this->currentlyReadFileSectionIndex]) {
+ _sprintf(errorMessage, s_Err_raw__d_005a633c, array->sectionId);
+ result = FALSE;
+ }
+ } else {
+ decodeData(
+ (void*)((int)this->tempMem + this->directory.offset[this->currentlyReadFileSectionIndex]),
+ this->currentlyReadFileSectionMemory);
+ if (array->size < this->directory.uncompressedSize[this->currentlyReadFileSectionIndex]) {
+ _sprintf(errorMessage, s_Err_cmp__d_005a6348, array->sectionId);
+ result = FALSE;
+ }
+ }
+ }
+ ++this->currentlyReadFileSectionIndex;
+ }
+ _free_base(this->tempMem);
+ this->tempMem = NULL;
+ return result;
+ }
+} // namespace IO
+} // namespace OpenSHC
+
+### 0x0046a830 moveLowerThreeBytesIntoParam2 | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x0046A830
+ void LowLevelMemory::moveLowerThreeBytesIntoParam2(void* src, void* dst)
+ {
+ /*
+ short param1 = ((short*)src)[0];
+ byte param2 = ((char*)src)[2];
+ ((short*)dst)[0] = param1;
+ ((char*)dst)[2] = param2;
+ */
+ __asm {
+ mov edi, [dst]
+ mov esi, [src]
+ mov ax, word ptr [esi]
+ mov bl, byte ptr [esi + 2]
+ mov word ptr [edi], ax
+ mov byte ptr [edi + 2], bl
+ }
+ }
+}
+}
+
+### 0x0046a850 fillMemory_setMemoryToValue_0x001 | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x0046a850
+ void LowLevelMemory::fillMemory_setMemoryToValue_0x001()
+ {
+ unsigned short* localDest = (unsigned short*)this->destination;
+ size_t localSize = this->size;
+ int localValue = this->value;
+ /*
+ // assembly logic just uses localSize to count down and dest up
+ for(size_t i = 0; i < localSize; ++i) {
+ localDest[i] = localValue;
+ }
+ */
+ __asm
+ {
+ mov edi, localDest
+ mov ebx, localSize
+ mov eax, localValue
+ loop_start:
+ cmp ebx, 0
+ jle loop_end
+ mov byte ptr [edi], al
+ sub ebx, 1
+ add edi, 1
+ jmp loop_start
+ loop_end:
+ }
+ }
+}
+}
+
+### 0x0046a890 fillMemory_setMemoryToValue_0x002 | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x0046a890
+ void LowLevelMemory::fillMemory_setMemoryToValue_0x002()
+ {
+ unsigned short* localDest = (unsigned short*)this->destination;
+ size_t localSize = this->size;
+ int localValue = this->value;
+ /*
+ // assembly logic just uses localSize to count down and dest up
+ for(size_t i = 0; i < localSize; ++i) {
+ localDest[i] = localValue;
+ }
+ */
+ __asm
+ {
+ mov edi, localDest
+ mov ebx, localSize
+ mov eax, localValue
+ loop_start:
+ cmp ebx, 0
+ jle loop_end
+ mov word ptr [edi], ax
+ sub ebx, 2
+ add edi, 2
+ jmp loop_start
+ loop_end:
+ }
+ }
+
+### 0x0046a8d0 fillMemory_setMemoryToValue_0x004 | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x0046a8d0
+ void LowLevelMemory::fillMemory_setMemoryToValue_0x004()
+ {
+ unsigned int* localDest = (unsigned int*)this->destination;
+ size_t localSize = this->size;
+ int localValue = this->value;
+ /*
+ // assembly logic just uses localSize to count down and dest up
+ for(size_t i = 0; i < localSize; ++i) {
+ localDest[i] = localValue;
+ }
+ */
+ __asm
+ {
+ mov edi, localDest
+ mov ebx, localSize
+ mov eax, localValue
+ loop_start:
+ cmp ebx, 0
+ jle loop_end
+ mov [edi], eax
+ sub ebx, 4
+ add edi, 4
+ jmp loop_start
+ loop_end:
+ }
+ }
+
+### 0x0046ae50 copyStringUntilFirstDot | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x0046AE50
+ void LowLevelMemory::copyStringUntilFirstDot(char* source, char* destination)
+ {
+ /*
+ while (*source != '.' && *source != '\0') {
+ *destination = *source;
+ ++destination;
+ ++source;
+ }
+ */
+ __asm
+ {
+ mov edi, destination
+ mov esi, source
+ loop_start:
+ mov al, [esi]
+ cmp al, '.'
+ je loop_end
+ cmp al, 0
+ je loop_end
+ mov [edi], al
+ add esi, 1
+ add edi, 1
+ jmp loop_start
+ loop_end:
+ }
+ }
+}
+}
+
+### 0x0046ae80 putFileNameAndAppendFileExtension | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x0046AE80
+ void LowLevelMemory::putFileNameAndAppendFileExtension(char* sourceName, char* dest, char* extension)
+ {
+ /*
+ for (char _charHolder = *sourceName; _charHolder != '.' && _charHolder != '\0'; ++sourceName) {
+ *dest = _charHolder;
+ ++dest;
+ }
+ *dest = '.';
+ do {
+ ++dest;
+ *dest = *extension;
+ ++extension;
+ } while (*dest != '\0');
+ */
+ __asm
+ {
+ mov edi, dest
+ mov esi, sourceName
+ name_loop_start:
+ mov al, [esi]
+ cmp al, '.'
+ je name_loop_end
+ cmp al, 0
+ je name_loop_end
+ mov [edi], al
+ add esi, 1
+ add edi, 1
+ jmp name_loop_start
+ name_loop_end:
+ mov al, '.'
+ mov [edi], al
+ add edi, 1
+ mov esi, extension
+ extension_loop_start:
+ mov al, [esi]
+ mov [edi], al
+ cmp al, 0
+ je extension_loop_end
+ add esi, 1
+ add edi, 1
+ jmp extension_loop_start
+ extension_loop_end:
+ }
+ }
+}
+}
+
+### 0x0046aec0 isLordNameCallable | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x0046AEC0
+ BOOLEnum LowLevelMemory::isLordNameCallable(char* playerLordNameUnk, char* callableLordName)
+ {
+ int const lenText = strlen(playerLordNameUnk);
+ int lenPattern = strlen(callableLordName);
+ int diff = lenText - lenPattern;
+ if (diff < 0) {
+ return false;
+ }
+ __strlwr(playerLordNameUnk);
+ __strlwr(callableLordName);
+ if (diff <= 1) {
+ //
+ // Fast path
+ //
+ int offset = 0;
+ do {
+ bool equal = true;
+ for (int i = 0; i < lenPattern; i++) {
+ if (playerLordNameUnk[offset + i] != callableLordName[i]) {
+ equal = false;
+ break;
+ }
+ }
+ if (equal) {
+ return true;
+ }
+ offset++;
+ } while (offset <= 0);
+ } else {
+ //
+ // General path
+ //
+ lenPattern += 2;
+ for (int offset = 0; offset <= diff; offset++) {
+ bool match = true;
+ if (offset == 0) {
+ for (int i = 0; i < lenPattern - 1; ++i) {
+ if (i == lenPattern - 2) {
+ char c = playerLordNameUnk[offset + i];
+ if (c == ' ' || c == '.' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5'
+ || c == '6' || c == '7' || c == '8' || c == '9' || c == '\0') {
+ continue;
+ }
+ match = false;
+ break;
+ } else if (playerLordNameUnk[offset + i] != callableLordName[i]) {
+ match = false;
+ break;
+ }
+ }
+ } else {
+ for (int i = 0; i < lenPattern; ++i) {
+ if (i == 0) {
+ if (playerLordNameUnk[offset + i] == ' ') {
+ continue;
+ }
+ match = false;
+ break;
+ }
+ if (i == lenPattern - 1) {
+ char c = playerLordNameUnk[offset + i];
+ if (c == ' ' || c == '.' || c == '1' || c == '2' || c == '3' || c == '4' || c == '5'
+ || c == '6' || c == '7' || c == '8' || c == '9' || c == '\0') {
+ continue;
+ }
+ match = false;
+ break;
+ }
+ if (playerLordNameUnk[offset + i] != callableLordName[i - 1]) {
+ match = false;
+ break;
+ }
+ }
+ }
+ if (match) {
+ return true;
+ }
+ }
+ }
+ return false;
+ }
+}
+}
+
+### 0x00471830 copyData | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x00471830
+ void LowLevelMemory::copyData(size_t size, void* src, void* destination)
+ {
+ this->size = size;
+ this->src = src;
+ this->destination = destination;
+ copyData_0x100();
+ copyData_0x010();
+ copyData_0x001();
+ }
+ // NOTE: Heavy use of assembly.
+ // In the original code, these functions have a strange structure, using a simple loop jmp and writing the values
+ // to the stack before moving them into a register again. /O2 would normally optimize the prolog and epilog code
+ // to not use the stack and use a more optimized loop. Regardless what the original reason was, no other way was
+ // found so far aside of using assembly, which provokes the strange "store in stack then load" pattern.
+ //
+ // The general sentiment expressed by these functions is added as a comment before the assembly code. Note, that
+ // actually using these would not result in the same binary.
+
+### 0x00471860 fillMemory_IntegerValue | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x00471860
+ void LowLevelMemory::fillMemory_IntegerValue(size_t size, int value, void* destination)
+ {
+ this->size = size;
+ this->value = value;
+ this->destination = destination;
+ fillMemory_setMemoryToValue_0x100();
+ fillMemory_setMemoryToValue_0x010();
+ fillMemory_setMemoryToValue_0x004();
+ }
+
+### 0x00471890 fillMemory_ShortValue | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x00471890
+ void LowLevelMemory::fillMemory_ShortValue(size_t size, unsigned short value, void* destination)
+ {
+ this->size = size;
+ this->value = value * 0x00010001;
+ this->destination = destination;
+ fillMemory_setMemoryToValue_0x100();
+ fillMemory_setMemoryToValue_0x010();
+ fillMemory_setMemoryToValue_0x002();
+ }
+
+### 0x004718c0 fillMemory_ByteValue | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x004718c0
+ void LowLevelMemory::fillMemory_ByteValue(size_t size, unsigned char value, void* destination)
+ {
+ this->size = size;
+ this->value = value * 0x01010101;
+ this->destination = destination;
+ fillMemory_setMemoryToValue_0x100();
+ fillMemory_setMemoryToValue_0x010();
+ fillMemory_setMemoryToValue_0x001();
+ }
+
+### 0x00495a30 readUserConfig | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x00495A30
+ void SettingsFileState::readUserConfig()
+ {
+ DAT_GameCore.missionDifficulty = 1;
+ DAT_GameCore.missionDifficulty2 = 1;
+ DAT_GameCore.missionDifficulty_2 = 1;
+ DAT_GameCore.missionDifficulty_3 = 1;
+ DAT_GameCore.missionDifficulty_1 = 1;
+ DAT_GameCore.missionDifficulty_0 = 1;
+ _memset(DAT_GameSynchronyState.ipRelatedArray, 0,
+ sizeof(DAT_GameSynchronyState.ipRelatedArray));
+ DAT_GameCore.furthestSkirmishTrailMission = 0;
+ DAT_GameCore.furthestWarchestTrailMission = 0;
+ DAT_GameCore.furthestExtremeTrailMission = 0;
+ DAT_GameCore.skirmishTrailProgress = 0;
+ DAT_GameCore.warchestTrailProgress = 0;
+ DAT_GameCore.extremeTrailProgress = 0;
+ DAT_GameCore.lordIconUnk = 2;
+ DAT_GameCore.selectedLordTypeUnk = 0;
+ DAT_GameCore.genieVoiceActive = TRUE;
+ DAT_GameCore.tacticalPowersDisplayFlag = 0;
+ DAT_GameCore.unusedOption1 = 0;
+ DAT_GameCore.skirmishTrailYearReached = 13200;
+ DAT_GameCore.warchestTrailYearReached = 13560;
+ DAT_GameCore.extremeTrailYearReached = 13920;
+ for (int i = 0; i < sizeof(DAT_GameCore.skirmishTrailMonthsTakenOrChicken)
+ / sizeof(DAT_GameCore.skirmishTrailMonthsTakenOrChicken[0]);
+ ++i) {
+ DAT_GameCore.skirmishTrailMonthsTakenOrChicken[i] = -1;
+ }
+ for (int i = 0; i < 30; ++i) {
+ DAT_GameCore.warchestTrailMonthsTakenOrChicken[i] = -1;
+ }
+ for (int i = 0; i < 20; ++i) {
+ DAT_GameCore.extremeTrailMonthsTakenOrChicken[i] = -1;
+ }
+ char configPath[1000];
+ // NOTE: Requires direct, non-resolved call due to copy elision.
+ strcpy(configPath, DAT_ResourceManager->paths_getDocumentsFolderString(true).c_str());
+ strcat(configPath, s_crusader_cfg_005a75bc);
+ FILE* _File = _fopen(configPath, s_rb_005a4e18);
+ unsigned int local_9cc = 0xffffffff;
+ // NOTE: Weird stack sizes. No idea if this were truly the sizes or if something is missing here, but the
+ // function fits.
+ WCHAR wideCharBuffer[266];
+ char charBuffer[512];
+ if (_File) {
+ _fseek(_File, 0, FILE_END);
+ long _fileLength = _ftell(_File);
+ _fseek(_File, 0, FILE_BEGIN);
+ char multiByteBuffer[268];
+ if (_fileLength < 1000) {
+ memset(charBuffer, 0, 20);
+ _fread(charBuffer, sizeof(char), 15, _File);
+ resetToTextIndex(5);
+ copyIntoTextArray(
+ charBuffer);
+ memset(charBuffer, 0, 20);
+ _fread(charBuffer, sizeof(char), 5, _File);
+ resetToTextIndex(6);
+ copyIntoTextArray(
+ charBuffer);
+ memset(charBuffer, 0, 20);
+ _fread(charBuffer, sizeof(char), 15, _File);
+ resetToTextIndex(7);
+ copyIntoTextArray(
+ charBuffer);
+ memset(charBuffer, 0, 20);
+ _fread(charBuffer, sizeof(char), 256, _File);
+ resetToTextIndex(0);
+ copyIntoTextArray(
+ charBuffer);
+ } else {
+ memset(wideCharBuffer, 0, 20 * sizeof(WCHAR));
+ _fread(wideCharBuffer, sizeof(WCHAR), 15, _File);
+ wideCharToMultiByteWithSize(multiByteBuffer, wideCharBuffer, 15);
+ resetToTextIndex(5);
+ copyIntoTextArray(
+ multiByteBuffer);
+ memset(wideCharBuffer, 0, 20 * sizeof(WCHAR));
+ _fread(wideCharBuffer, sizeof(WCHAR), 5, _File);
+ wideCharToMultiByteWithSize(multiByteBuffer, wideCharBuffer, 5);
+ resetToTextIndex(6);
+ copyIntoTextArray(
+ multiByteBuffer);
+ memset(wideCharBuffer, 0, 20 * sizeof(WCHAR));
+ _fread(wideCharBuffer, sizeof(WCHAR), 15, _File);
+ wideCharToMultiByteWithSize(multiByteBuffer, wideCharBuffer, 15);
+ resetToTextIndex(7);
+ copyIntoTextArray(
+ multiByteBuffer);
+ memset(wideCharBuffer, 0, 20 * sizeof(WCHAR));
+ _fread(wideCharBuffer, sizeof(WCHAR), 256, _File);
+ wideCharToMultiByteWithSize(multiByteBuffer, wideCharBuffer, 256);
+ resetToTextIndex(0);
+ copyIntoTextArray(
+ multiByteBuffer);
+ }
+ _fread(
+ &DAT_GameCore.gameSpeedLevel, sizeof(DAT_GameCore.gameSpeedLevel), 1, _File);
+ _fread(
+ &DAT_GameCore.settingBubbleHelp, sizeof(DAT_GameCore.settingBubbleHelp), 1, _File);
+ _fread(&local_9cc, sizeof(local_9cc), 1, _File);
+ _fread(&DAT_ViewportRenderState.viewportState.isZoomedOutUnk,
+ sizeof(DAT_ViewportRenderState.viewportState.isZoomedOutUnk), 1, _File);
+ _fread(&DAT_ScrollingHandler.scrollSpeedSetting_0x38,
+ sizeof(DAT_ScrollingHandler.scrollSpeedSetting_0x38), 1, _File);
+ _fread(&DAT_SoundSystemState.soundActiveUnk_0x0,
+ sizeof(DAT_SoundSystemState.soundActiveUnk_0x0), 1, _File);
+ _fread(&DAT_SoundSystemState.streamVolume[0],
+ sizeof(DAT_SoundSystemState.streamVolume[0]), 1, _File);
+ _fread(&DAT_SoundSystemState.streamVolume[1],
+ sizeof(DAT_SoundSystemState.streamVolume[1]), 1, _File);
+ _fread(&DAT_SoundSystemState.streamVolume[3],
+ sizeof(DAT_SoundSystemState.streamVolume[3]), 1, _File);
+ DAT_SoundSystemState.streamVolume[4] = DAT_SoundSystemState.streamVolume[3];
+ DAT_SoundSystemState.sampleVolume = DAT_SoundSystemState.streamVolume[3];
+ _fread(
+ &DAT_GameCore.scenarioProgress, sizeof(DAT_GameCore.scenarioProgress), 1, _File);
+ _fread(
+ &DAT_GameCore.furthestMission, sizeof(DAT_GameCore.furthestMission), 1, _File);
+ _fread(
+ &DAT_GameCore.unused1, sizeof(DAT_GameCore.unused1), 1, _File);
+ _fread(&DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes,
+ sizeof(DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes), 1, _File);
+ _fread(
+ &DAT_GameCore.missionDifficulty, sizeof(DAT_GameCore.missionDifficulty), 1, _File);
+ _fread(&DAT_GameCore.missionDifficulty2,
+ sizeof(DAT_GameCore.missionDifficulty2), 1, _File);
+ _fread(&DAT_GameCore.missionDifficulty_2,
+ sizeof(DAT_GameCore.missionDifficulty_2), 1, _File);
+ _fread(&DAT_GameCore.missionDifficulty_3,
+ sizeof(DAT_GameCore.missionDifficulty_3), 1, _File);
+ _fread(&DAT_GameCore.missionDifficulty_1,
+ sizeof(DAT_GameCore.missionDifficulty_1), 1, _File);
+ _fread(&DAT_GameCore.missionDifficulty_0,
+ sizeof(DAT_GameCore.missionDifficulty_0), 1, _File);
+ _fread(
+ &DAT_MouseState.cursorType, sizeof(DAT_MouseState.cursorType), 1, _File);
+ if (_fileLength < 1000) {
+ _fread(DAT_GameSynchronyState.ipRelatedArray, 1,
+ sizeof(DAT_GameSynchronyState.ipRelatedArray), _File);
+ } else {
+ WCHAR ipRelatedArrayWideChar[4][20];
+ _fread(
+ ipRelatedArrayWideChar, sizeof(WCHAR), sizeof(ipRelatedArrayWideChar) / sizeof(WCHAR), _File);
+ wideCharToMultiByteWithSize(DAT_GameSynchronyState.ipRelatedArray[0],
+ ipRelatedArrayWideChar[0], sizeof(DAT_GameSynchronyState.ipRelatedArray[0]));
+ wideCharToMultiByteWithSize(DAT_GameSynchronyState.ipRelatedArray[1],
+ ipRelatedArrayWideChar[1], sizeof(DAT_GameSynchronyState.ipRelatedArray[1]));
+ wideCharToMultiByteWithSize(DAT_GameSynchronyState.ipRelatedArray[2],
+ ipRelatedArrayWideChar[2], sizeof(DAT_GameSynchronyState.ipRelatedArray[2]));
+ wideCharToMultiByteWithSize(DAT_GameSynchronyState.ipRelatedArray[3],
+ ipRelatedArrayWideChar[3], sizeof(DAT_GameSynchronyState.ipRelatedArray[3]));
+ }
+ _fread(&DAT_GameCore.furthestSkirmishTrailMission,
+ sizeof(DAT_GameCore.furthestSkirmishTrailMission), 1, _File);
+ _fread(
+ &DAT_GameCore.lordIconUnk, sizeof(DAT_GameCore.lordIconUnk), 1, _File);
+ if (DAT_GameCore.lordIconUnk < 2) {
+ DAT_GameCore.lordIconUnk = 2;
+ }
+ _fread(&DAT_GameCore.skirmishTrailProgress,
+ sizeof(DAT_GameCore.skirmishTrailProgress), 1, _File);
+ _fread(&DAT_GameCore.selectedLordTypeUnk,
+ sizeof(DAT_GameCore.selectedLordTypeUnk), 1, _File);
+ _fread(&DAT_GameCore.skirmishTrailYearReached,
+ sizeof(DAT_GameCore.skirmishTrailYearReached), 1, _File);
+ _fread(DAT_GameCore.skirmishTrailMonthsTakenOrChicken,
+ sizeof(DAT_GameCore.skirmishTrailMonthsTakenOrChicken[0]),
+ sizeof(DAT_GameCore.skirmishTrailMonthsTakenOrChicken)
+ / sizeof(DAT_GameCore.skirmishTrailMonthsTakenOrChicken[0]),
+ _File);
+ _fread(
+ &DAT_GameCore.genieVoiceActive, sizeof(DAT_GameCore.genieVoiceActive), 1, _File);
+ _fread(&DAT_GameCore.furthestWarchestTrailMission,
+ sizeof(DAT_GameCore.furthestWarchestTrailMission), 1, _File);
+ _fread(&DAT_GameCore.warchestTrailProgress,
+ sizeof(DAT_GameCore.warchestTrailProgress), 1, _File);
+ _fread(&DAT_GameCore.warchestTrailYearReached,
+ sizeof(DAT_GameCore.warchestTrailYearReached), 1, _File);
+ _fread(DAT_GameCore.warchestTrailMonthsTakenOrChicken,
+ sizeof(DAT_GameCore.warchestTrailMonthsTakenOrChicken[0]), 30, _File);
+ _fread(&DAT_GameCore.furthestExtremeTrailMission,
+ sizeof(DAT_GameCore.furthestExtremeTrailMission), 1, _File);
+ _fread(&DAT_GameCore.extremeTrailProgress,
+ sizeof(DAT_GameCore.extremeTrailProgress), 1, _File);
+ _fread(&DAT_GameCore.extremeTrailYearReached,
+ sizeof(DAT_GameCore.extremeTrailYearReached), 1, _File);
+ _fread(DAT_GameCore.extremeTrailMonthsTakenOrChicken,
+ sizeof(DAT_GameCore.extremeTrailMonthsTakenOrChicken[0]), 30, _File);
+ _fread(&DAT_GameCore.tacticalPowersDisplayFlag,
+ sizeof(DAT_GameCore.tacticalPowersDisplayFlag), 1, _File);
+ _fread(
+ &DAT_GameCore.unusedOption1, sizeof(DAT_GameCore.unusedOption1), 1, _File);
+ _fread(&DAT_WindowAndDirectDraw.currentGameResolution,
+ sizeof(DAT_WindowAndDirectDraw.currentGameResolution), 1, _File);
+ _fclose(_File);
+ DAT_SoundSystemState.streamVolume[2] = DAT_SoundSystemState.streamVolume[1];
+ } else {
+ _memset(charBuffer, 0, 256);
+ resetToTextIndex(5);
+ copyIntoTextArray(charBuffer);
+ resetToTextIndex(6);
+ copyIntoTextArray(charBuffer);
+ resetToTextIndex(7);
+ copyIntoTextArray(charBuffer);
+ resetToTextIndex(0);
+ copyIntoTextArray(charBuffer);
+ DAT_SoundSystemState.streamVolume[2] = 80;
+ DAT_SoundSystemState.streamVolume[1] = 80;
+ DAT_SoundSystemState.streamVolume[0] = 90;
+ DAT_SoundSystemState.streamVolume[3] = 85;
+ DAT_SoundSystemState.streamVolume[4] = 85;
+ DAT_SoundSystemState.sampleVolume = 100;
+ DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes = 10;
+ DAT_MouseState.cursorType = 0;
+ DAT_SoundSystemState.soundActiveUnk_0x0 = 1;
+ }
+ DAT_GameCore.unusedOption1 = 0;
+ resetToTextIndex(9);
+ DAT_ViewportRenderState.viewportState.isZoomedOutUnk = 0;
+ setStartDateUnk(0);
+ }
+}
+}
+

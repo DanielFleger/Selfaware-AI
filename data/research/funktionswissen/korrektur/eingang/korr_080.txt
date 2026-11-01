@@ -1,0 +1,981 @@
+### 0x00549c70 processMeleeInitiation | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00549C70
+ void UnitsState::processMeleeInitiation(int unitID)
+ {
+ ushort uVar1;
+ short sVar2;
+ UnitTypeShort UVar3;
+ UnitsState* pUVar4;
+ uint uVar5;
+ int iVar6;
+ int iVar7;
+ int iVar8;
+ int _distanceThreshold;
+ uint uVar9;
+ int iVar10;
+ uint* puVar11;
+ bool bVar12;
+ uint local_9c[4];
+ uint local_8c;
+ uint local_88;
+ uint local_84;
+ uint local_80;
+ int _playerID;
+ int local_78[24];
+ UnitsState* local_18;
+ int local_14;
+ int _totalHeight;
+ UnitsState* local_c;
+ int local_8;
+ UnitsState* _otherUnitPtrUnk;
+ local_18 = (UnitsState*)(&this->unitCountOfSelection + unitID * 0x124 + -9);
+ local_c = this;
+ if ((((this->units[unitID].someUnitStat2_meleeDamageUnk != 0)
+ && (this->units[unitID].unknownTestAgainst0_2 == 0))
+ && (this->units[unitID].unknownMovementRelated_0x2d2 == 0))
+ && (((this->units[unitID].logicalState == ULS_NORMAL
+ && (this->units[unitID].dying == 0))
+ && (this->units[unitID].moveRelatedFlag != 1)))) {
+ if (this->units[unitID].stateBasedSpeed < 1) {
+ /*
+ 50 or 150 depending on selectable
+ */
+ _distanceThreshold = (-(uint)(this->units[unitID].isSelectable_OR_matchTime != 0) & 100) + 0x32;
+ } else {
+ _distanceThreshold = 270;
+ }
+ if (((this->units[unitID].closestEnemyMicroDistance <= _distanceThreshold)
+ || (this->units[unitID].attackedUnitID != 0))
+ || ((this->units[unitID].unitType == UT_LIONSHWOLF
+ || ((this->units[unitID].isStalked != 0
+ && (((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY
+ || (100 < (int)this->unitCount))
+ && (((this->units[unitID].fixedRng
+ ^ DAT_GameState.mapAndTime.totalGameTicksUnk)
+ & 0xf)
+ == 0)))))))) {
+ _totalHeight
+ = (int)this->units[unitID].buildingHeight + (int)this->units[unitID].terrainOrClimbHeight;
+ _playerID = (int)this->units[unitID].owner;
+ DAT_TileMapState.DAT_SomeTile = this->units[unitID].tile;
+ DAT_TileMapState.DAT_SomeY
+ = (int)DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[DAT_TileMapState.DAT_SomeTile];
+ local_14 = 0;
+ uVar5 = teamToBitFlagsUnk(unitID);
+ pUVar4 = local_c;
+ _otherUnitPtrUnk = local_18;
+ DAT_TileMapState.field213_0x554a48 = 0;
+ if ((*(uint*)(DAT_TileMapState.ptr_OccupancyLayer
+ + DAT_TileMapState.DAT_SomeTile + 1)
+ & uVar5)
+ != 0) {
+ DAT_TileMapState.field213_0x554a48 = 0x20;
+ }
+ if ((*(uint*)(DAT_TileMapState.ptr_OccupancyLayer
+ + DAT_TileMapState.DAT_SomeTile + -1)
+ & uVar5)
+ != 0) {
+ DAT_TileMapState.field213_0x554a48 = DAT_TileMapState.field213_0x554a48 | 2;
+ }
+ if ((*(uint*)(DAT_TileMapState.ptr_OccupancyLayer
+ + DAT_TileMapState.DAT_SomeTile + 2)
+ & uVar5)
+ != 0) {
+ DAT_TileMapState.field213_0x554a48
+ = DAT_TileMapState.field213_0x554a48 | 0x80000;
+ }
+ if ((*(uint*)(DAT_TileMapState.ptr_OccupancyLayer
+ + DAT_TileMapState.DAT_SomeTile + -2)
+ & uVar5)
+ != 0) {
+ DAT_TileMapState.field213_0x554a48
+ = DAT_TileMapState.field213_0x554a48 | 0x800;
+ }
+ puVar11 = (uint*)(DAT_TileMapState.ptr_OccupancyLayer
+ + *(int*)(DAT_TileMapState.ptr_MovementDirectionTranslationMatrix
+ + DAT_TileMapState.DAT_SomeY * 0x20)
+ + DAT_TileMapState.DAT_SomeTile);
+ if ((*(uint*)((int)puVar11 + -1) & uVar5) != 0) {
+ DAT_TileMapState.field213_0x554a48 = DAT_TileMapState.field213_0x554a48 | 1;
+ }
+ if ((*(uint*)((int)puVar11 + 1) & uVar5) != 0) {
+ DAT_TileMapState.field213_0x554a48
+ = DAT_TileMapState.field213_0x554a48 | 0x40;
+ }
+ if ((*puVar11 & uVar5) != 0) {
+ DAT_TileMapState.field213_0x554a48
+ = DAT_TileMapState.field213_0x554a48 | 0x80;
+ }
+ if ((*(uint*)((int)puVar11 + -2) & uVar5) != 0) {
+ DAT_TileMapState.field213_0x554a48
+ = DAT_TileMapState.field213_0x554a48 | 0x400;
+ }
+ if ((*(uint*)((int)puVar11 + 2) & uVar5) != 0) {
+ DAT_TileMapState.field213_0x554a48
+ = DAT_TileMapState.field213_0x554a48 | 0x100000;
+ }
+ puVar11 = (uint*)(DAT_TileMapState.ptr_OccupancyLayer
+ + *(int*)((int)(DAT_TileMapState.ptr_MovementDirectionTranslationMatrix
+ + DAT_TileMapState.DAT_SomeY * 0x20)
+ + 0x10)
+ + DAT_TileMapState.DAT_SomeTile);
+ if ((*(uint*)((int)puVar11 + -1) & uVar5) != 0) {
+ DAT_TileMapState.field213_0x554a48 = DAT_TileMapState.field213_0x554a48 | 4;
+ }
+ if ((*(uint*)((int)puVar11 + 1) & uVar5) != 0) {
+ DAT_TileMapState.field213_0x554a48
+ = DAT_TileMapState.field213_0x554a48 | 0x10;
+ }
+ if ((*puVar11 & uVar5) != 0) {
+ DAT_TileMapState.field213_0x554a48 = DAT_TileMapState.field213_0x554a48 | 8;
+ }
+ if ((*(uint*)((int)puVar11 + -2) & uVar5) != 0) {
+ DAT_TileMapState.field213_0x554a48
+ = DAT_TileMapState.field213_0x554a48 | 0x1000;
+ }
+ if ((*(uint*)((int)puVar11 + 2) & uVar5) != 0) {
+ DAT_TileMapState.field213_0x554a48
+ = DAT_TileMapState.field213_0x554a48 | 0x40000;
+ }
+ puVar11 = (uint*)(DAT_TileMapState.ptr_OccupancyLayer
+ + *(int*)(DAT_TileMapState.ptr_MovementDirectionTranslationMatrix
+ + DAT_TileMapState.DAT_SomeY * 0x20 + -0x20)
+ + *(int*)(DAT_TileMapState.ptr_MovementDirectionTranslationMatrix
+ + DAT_TileMapState.DAT_SomeY * 0x20)
+ + DAT_TileMapState.DAT_SomeTile);
+ if ((*(uint*)((int)puVar11 + -1) & uVar5) != 0) {
+ DAT_TileMapState.field213_0x554a48
+ = DAT_TileMapState.field213_0x554a48 | 0x100;
+ }
+ if ((*(uint*)((int)puVar11 + 1) & uVar5) != 0) {
+ DAT_TileMapState.field213_0x554a48
+ = DAT_TileMapState.field213_0x554a48 | 0x400000;
+ }
+ if ((*puVar11 & uVar5) != 0) {
+ DAT_TileMapState.field213_0x554a48
+ = DAT_TileMapState.field213_0x554a48 | 0x800000;
+ }
+ if ((*(uint*)((int)puVar11 + -2) & uVar5) != 0) {
+ DAT_TileMapState.field213_0x554a48
+ = DAT_TileMapState.field213_0x554a48 | 0x200;
+ }
+ if ((*(uint*)((int)puVar11 + 2) & uVar5) != 0) {
+ DAT_TileMapState.field213_0x554a48
+ = DAT_TileMapState.field213_0x554a48 | 0x200000;
+ }
+ puVar11 = (uint*)(DAT_TileMapState.ptr_OccupancyLayer
+ + *(int*)(DAT_TileMapState.ptr_MovementDirectionTranslationMatrix
+ + DAT_TileMapState.DAT_SomeY * 0x20 + 0x30)
+ + *(int*)(DAT_TileMapState.ptr_MovementDirectionTranslationMatrix
+ + DAT_TileMapState.DAT_SomeY * 0x20 + 0x10)
+ + DAT_TileMapState.DAT_SomeTile);
+ if ((*(uint*)((int)puVar11 + -1) & uVar5) != 0) {
+ DAT_TileMapState.field213_0x554a48
+ = DAT_TileMapState.field213_0x554a48 | 0x4000;
+ }
+ if ((*(uint*)((int)puVar11 + 1) & uVar5) != 0) {
+ DAT_TileMapState.field213_0x554a48
+ = DAT_TileMapState.field213_0x554a48 | 0x10000;
+ }
+ if ((*puVar11 & uVar5) != 0) {
+ DAT_TileMapState.field213_0x554a48
+ = DAT_TileMapState.field213_0x554a48 | 0x8000;
+ }
+ if ((*(uint*)((int)puVar11 + -2) & uVar5) != 0) {
+ DAT_TileMapState.field213_0x554a48
+ = DAT_TileMapState.field213_0x554a48 | 0x2000;
+ }
+ if ((*(uint*)((int)puVar11 + 2) & uVar5) != 0) {
+ DAT_TileMapState.field213_0x554a48
+ = DAT_TileMapState.field213_0x554a48 | 0x20000;
+ }
+ uVar1 = DAT_TileMapState.UnitLayer[DAT_TileMapState.DAT_SomeTile];
+ while (local_8 = (int)(short)uVar1, 0 < local_8) {
+ if (local_8 != unitID) {
+ if (local_18->units[1].owner == 0) {
+ bVar12 = local_18->units[1].unitType == local_c->units[local_8].unitType;
+ } else {
+ bVar12 = DAT_GameState.mapAndTime.playerTeams[_playerID]
+ == DAT_GameState.mapAndTime.playerTeams[local_c->units[local_8].owner];
+ }
+ if (!bVar12) {
+ local_14 = 1;
+ break;
+ }
+ }
+ uVar1 = local_c->units[local_8].nextUnitOnTheSameTile;
+ }
+ if ((DAT_TileMapState.field213_0x554a48 != 0) || (local_14 != 0)) {
+ local_78[0] = 0;
+ local_78[1] = 0;
+ local_78[2] = 0;
+ local_78[3] = 0;
+ local_78[4] = 0;
+ local_78[5] = 0;
+ local_78[6] = 0;
+ local_78[7] = 0;
+ local_78[8] = 0;
+ local_78[9] = 0;
+ local_78[10] = 0;
+ local_78[0xb] = 0;
+ local_78[0xc] = 0;
+ local_78[0xd] = 0;
+ local_78[0xe] = 0;
+ local_78[0xf] = 0;
+ local_78[0x10] = 0;
+ local_78[0x11] = 0;
+ local_78[0x12] = 0;
+ local_78[0x13] = 0;
+ local_78[0x14] = 0;
+ local_78[0x15] = 0;
+ local_78[0x16] = 0;
+ local_78[0x17] = 0;
+ if ((DAT_TileMapState.field213_0x554a48 & 1) != 0) {
+ local_78[0] = DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][7]
+ + local_18->units[1].tile;
+ }
+ if ((DAT_TileMapState.field213_0x554a48 & 2) != 0) {
+ local_78[1] = DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][6]
+ + local_18->units[1].tile;
+ }
+ if ((DAT_TileMapState.field213_0x554a48 & 4) != 0) {
+ local_78[2] = DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][5]
+ + local_18->units[1].tile;
+ }
+ if ((DAT_TileMapState.field213_0x554a48 & 8) != 0) {
+ local_78[3] = DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][4]
+ + local_18->units[1].tile;
+ }
+ if ((DAT_TileMapState.field213_0x554a48 & 0x10) != 0) {
+ local_78[4] = DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][3]
+ + local_18->units[1].tile;
+ }
+ if ((DAT_TileMapState.field213_0x554a48 & 0x20) != 0) {
+ local_78[5] = DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][2]
+ + local_18->units[1].tile;
+ }
+ if ((DAT_TileMapState.field213_0x554a48 & 0x40) != 0) {
+ local_78[6] = DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][1]
+ + local_18->units[1].tile;
+ }
+ if ((char)DAT_TileMapState.field213_0x554a48 < '\0') {
+ local_78[7] = DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][0]
+ + local_18->units[1].tile;
+ }
+ local_9c[0] = getTotalHeightAtTile(
+ DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][7]
+ + local_18->units[1].tile);
+ local_9c[1] = getTotalHeightAtTile(
+ DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][6]
+ + _otherUnitPtrUnk->units[1].tile);
+ local_9c[2] = getTotalHeightAtTile(
+ DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][5]
+ + _otherUnitPtrUnk->units[1].tile);
+ local_9c[3] = getTotalHeightAtTile(
+ DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][4]
+ + _otherUnitPtrUnk->units[1].tile);
+ local_8c = getTotalHeightAtTile(
+ DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][3]
+ + _otherUnitPtrUnk->units[1].tile);
+ local_88 = getTotalHeightAtTile(
+ DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][2]
+ + _otherUnitPtrUnk->units[1].tile);
+ local_84 = getTotalHeightAtTile(
+ DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][1]
+ + _otherUnitPtrUnk->units[1].tile);
+ local_80 = getTotalHeightAtTile(
+ DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][0]
+ + _otherUnitPtrUnk->units[1].tile);
+ if ((DAT_TileMapState.field213_0x554a48 & 0x100) != 0) {
+ local_78[8] = DAT_MinimapViewState
+ .spawnMoment[DAT_TileMapState.DAT_SomeY * 8 + 0x14]
+ + _otherUnitPtrUnk->units[1].tile
+ + DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][0];
+ }
+ if ((DAT_TileMapState.field213_0x554a48 & 0x200) != 0) {
+ local_78[9] = DAT_MinimapViewState
+ .spawnMoment[DAT_TileMapState.DAT_SomeY * 8 + 0x13]
+ + DAT_MinimapViewState
+ .spawnMoment[DAT_TileMapState.DAT_SomeY * 8 + 0x14]
+ + _otherUnitPtrUnk->units[1].tile
+ + DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][0];
+ }
+ if ((DAT_TileMapState.field213_0x554a48 & 0x400) != 0) {
+ local_78[10] = DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][6]
+ + DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][7]
+ + _otherUnitPtrUnk->units[1].tile;
+ }
+ if ((DAT_TileMapState.field213_0x554a48 & 0x800) != 0) {
+ local_78[0xb] = _otherUnitPtrUnk->units[1].tile
+ + DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][6]
+ * 2;
+ }
+ if ((DAT_TileMapState.field213_0x554a48 & 0x1000) != 0) {
+ local_78[0xc] = DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][5]
+ + DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][6]
+ + _otherUnitPtrUnk->units[1].tile;
+ }
+ if ((DAT_TileMapState.field213_0x554a48 & 0x2000) != 0) {
+ local_78[0xd] = DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY + 1][6]
+ + DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY + 1][5]
+ + DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][4]
+ + _otherUnitPtrUnk->units[1].tile;
+ }
+ if ((DAT_TileMapState.field213_0x554a48 & 0x4000) != 0) {
+ local_78[0xe] = DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY + 1][5]
+ + DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][4]
+ + _otherUnitPtrUnk->units[1].tile;
+ }
+ if ((DAT_TileMapState.field213_0x554a48 & 0x8000) != 0) {
+ local_78[0xf] = DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY + 1][4]
+ + DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][4]
+ + _otherUnitPtrUnk->units[1].tile;
+ }
+ if ((DAT_TileMapState.field213_0x554a48 & 0x10000) != 0) {
+ local_78[0x10]
+ = DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY + 1][3]
+ + DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][4]
+ + _otherUnitPtrUnk->units[1].tile;
+ }
+ if ((DAT_TileMapState.field213_0x554a48 & 0x20000) != 0) {
+ local_78[0x11]
+ = DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY + 1][2]
+ + DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY + 1][3]
+ + DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][4]
+ + _otherUnitPtrUnk->units[1].tile;
+ }
+ if ((DAT_TileMapState.field213_0x554a48 & 0x40000) != 0) {
+ local_78[0x12] = DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][2]
+ + DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][3]
+ + _otherUnitPtrUnk->units[1].tile;
+ }
+ if ((DAT_TileMapState.field213_0x554a48 & 0x80000) != 0) {
+ local_78[0x13] = _otherUnitPtrUnk->units[1].tile
+ + DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][2]
+ * 2;
+ }
+ if ((DAT_TileMapState.field213_0x554a48 & 0x100000) != 0) {
+ local_78[0x14] = DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][1]
+ + DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][2]
+ + _otherUnitPtrUnk->units[1].tile;
+ }
+ if ((DAT_TileMapState.field213_0x554a48 & 0x200000) != 0) {
+ local_78[0x15] = DAT_MinimapViewState
+ .spawnMoment[DAT_TileMapState.DAT_SomeY * 8 + 0xe]
+ + DAT_MinimapViewState
+ .spawnMoment[DAT_TileMapState.DAT_SomeY * 8 + 0xf]
+ + _otherUnitPtrUnk->units[1].tile
+ + DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][0];
+ }
+ if ((DAT_TileMapState.field213_0x554a48 & 0x400000) != 0) {
+ local_78[0x16] = DAT_MinimapViewState
+ .spawnMoment[DAT_TileMapState.DAT_SomeY * 8 + 0xe]
+ + _otherUnitPtrUnk->units[1].tile
+ + DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][0];
+ }
+ if ((DAT_TileMapState.field213_0x554a48 & 0x800000) != 0) {
+ local_78[0x17] = DAT_MinimapViewState
+ .spawnMoment[DAT_TileMapState.DAT_SomeY * 8 + 0xd]
+ + _otherUnitPtrUnk->units[1].tile
+ + DAT_TileMapState
+ .directionTranslationMatrix[DAT_TileMapState.DAT_SomeY][0];
+ }
+ sVar2 = _otherUnitPtrUnk->units[1].attackedUnitID;
+ /*
+ _otherUnitPtr.attackUnitID != 0
+ */
+ if (sVar2 != 0) {
+ local_8 = (int)sVar2;
+ if (((pUVar4->units[local_8].uid == _otherUnitPtrUnk->units[1].field191_0x340)
+ && (pUVar4->units[local_8].logicalState == ULS_NORMAL))
+ && (pUVar4->units[local_8].dying == 0)) {
+ iVar10 = -1;
+ do {
+ if (iVar10 == -1) {
+ if (local_14 != 0) {
+ iVar7 = _otherUnitPtrUnk->units[1].tile;
+ goto LAB_0054a4af;
+ }
+ } else {
+ iVar7 = local_78[DAT_UnitPropertiesDefinedData
+ .field117_0x11cf4[_otherUnitPtrUnk->units[1].facingDirection][iVar10]];
+ LAB_0054a4af:
+ if (((iVar7 != 0)
+ && (uVar5 = getTotalHeightAtTile(iVar7),
+ uVar9 = (int)(_totalHeight - uVar5) >> 0x1f,
+ (int)((_totalHeight - uVar5 ^ uVar9) - uVar9) < 0x20))
+ && (iVar6 = getEnemyUnitIDNearby(unitID, iVar7, _totalHeight),
+ iVar7 = unitID, iVar8 = local_8, local_8 == iVar6))
+ goto LAB_0054a6ba;
+ }
+ iVar10 = iVar10 + 1;
+ } while (iVar10 < 24);
+ }
+ _otherUnitPtrUnk->units[1].attackedUnitID = 0;
+ _otherUnitPtrUnk->units[1].field191_0x340 = 0;
+ _otherUnitPtrUnk->units[1].field259_0x3d2 = 0;
+ }
+ iVar10 = -1;
+ do {
+ if (iVar10 == -1) {
+ if (local_14 != 0) {
+ iVar8 = (int)_otherUnitPtrUnk->units[1].facingDirection;
+ iVar7 = _otherUnitPtrUnk->units[1].tile;
+ goto LAB_0054a548;
+ }
+ } else {
+ iVar8 = DAT_UnitPropertiesDefinedData
+ .field117_0x11cf4[_otherUnitPtrUnk->units[1].facingDirection][iVar10];
+ iVar7 = local_78[iVar8];
+ LAB_0054a548:
+ if ((iVar7 != 0)
+ && ((iVar8 < 8
+ || ((uVar5 = (int)(_totalHeight
+ - local_9c[DAT_UnitPropertiesDefinedData
+ .field118_0x12054[iVar8]
+ .x])
+ >> 0x1f,
+ (int)((_totalHeight
+ - local_9c[DAT_UnitPropertiesDefinedData
+ .field118_0x12054[iVar8]
+ .x]
+ ^ uVar5)
+ - uVar5)
+ < 0x21
+ && ((iVar8
+ = DAT_UnitPropertiesDefinedData.field118_0x12054[iVar8].y,
+ iVar8 == -1
+ || (uVar5 = (int)(_totalHeight - local_9c[iVar8]) >> 0x1f,
+ (int)((_totalHeight - local_9c[iVar8] ^ uVar5) - uVar5)
+ < 0x21)))))))) {
+ local_8
+ = getEnemyUnitIDNearby(unitID, iVar7, _totalHeight);
+ if ((0 < local_8)
+ && (((local_c->units[local_8].logicalState == ULS_NORMAL
+ && (local_c->units[local_8].dying == 0))
+ && ((uVar5 = (_totalHeight - local_c->units[local_8].buildingHeight)
+ - (int)local_c->units[local_8].terrainOrClimbHeight,
+ uVar9 = (int)uVar5 >> 0x1f,
+ (int)((uVar5 ^ uVar9) - uVar9) < 0x21
+ && ((((UVar3 = _otherUnitPtrUnk->units[1].unitType,
+ UVar3 != UT_LIONSHWOLF
+ && (UVar3 != UT_CAGEDOG))
+ || (local_c->units[local_8].isStalked == 0))
+ || (iVar10 < 8)))))))) {
+ /*
+ _otherUnit.attackUnitID = _unitID
+ */
+ _otherUnitPtrUnk->units[1].attackedUnitID = (short)local_8;
+ _otherUnitPtrUnk->units[1].field191_0x340 = local_c->units[local_8].uid;
+ setFacingDirectionTowardUnitMicro(unitID, local_8);
+ break;
+ }
+ }
+ }
+ iVar10 = iVar10 + 1;
+ /*
+ -- CHECK 24 TILES AROUND UNIT --
+ */
+ } while (iVar10 < 24);
+ /*
+ _otherUnitPtr.attackUnitID != 0
+ */
+ if (_otherUnitPtrUnk->units[1].attackedUnitID != 0) {
+ if (((local_c->units[local_8].someUnitStat2_meleeDamageUnk != 0)
+ && (local_c->units[local_8].attackedUnitID == 0))
+ && (local_c->units[local_8].unknownMovementRelated_0x2d2 == 0)) {
+ local_c->units[local_8].attackedUnitID = (short)unitID;
+ local_c->units[local_8].field191_0x340 = _otherUnitPtrUnk->units[1].uid;
+ iVar7 = local_8;
+ iVar8 = unitID;
+ LAB_0054a6ba:
+ setFacingDirectionTowardUnitMicro(
+ iVar7, iVar8);
+ }
+ if (_otherUnitPtrUnk->units[1].state.generic
+ != US_MELEE_ATTACK) {
+ if (_otherUnitPtrUnk->units[1].movementRelated == 8) {
+ saveUnitStateBeforeInterruption(
+ unitID);
+ _otherUnitPtrUnk->units[1].movementRelated = 8;
+ _otherUnitPtrUnk->units[1].state.generic
+ = US_MELEE_ATTACK;
+ _otherUnitPtrUnk->units[1].SA = 0;
+ _otherUnitPtrUnk->units[1].animationCycleNumber = 0;
+ this->units[DAT_CurrentUnitSlotID].substate = 0;
+ } else {
+ _otherUnitPtrUnk->units[1].field259_0x3d2 = 1;
+ }
+ }
+ /*
+ param 3 points to another unit iD
+ */
+ processUnitAttackOtherUnit(DAT_CurrentUnitSlotID,
+ _otherUnitPtrUnk->units[1].attackedUnitID);
+ return;
+ }
+ }
+ _otherUnitPtrUnk->units[1].field259_0x3d2 = 0;
+ _otherUnitPtrUnk->units[1].attackedUnitID = 0;
+ _otherUnitPtrUnk->units[1].field191_0x340 = 0;
+ return;
+ }
+ }
+ this->units[unitID].field191_0x340 = 0;
+ this->units[unitID].attackedUnitID = 0;
+ this->units[unitID].field259_0x3d2 = 0;
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00549c70", "name": "processMeleeInitiation", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Prüft jeden Takt, ob eine Einheit einen Nahkampf beginnt, und wählt dafür den Gegner."}, "p2": {"ein": "unitID", "aus": "-", "liest": ["units[].someUnitStat2_meleeDamageUnk", "unknownTestAgainst0_2", "unknownMovementRelated_0x2d2", "logicalState", "dying", "moveRelatedFlag", "stateBasedSpeed", "isSelectable_OR_matchTime", "closestEnemyMicroDistance", "attackedUnitID", "unitType", "isStalked", "fixedRng", "totalGameTicksUnk", "unitCount", "Besetzungskarte (OccupancyLayer) der 24 Nachbarfelder", "UnitLayer", "HeightLayer/Gebäudehöhe", "playerTeams"], "schreibt": ["attackedUnitID", "field191_0x340", "field259_0x3d2", "Zielfeld attackedUnitID (gegenseitig)", "state=US_MELEE_ATTACK", "SA=0", "animationCycleNumber=0", "substate=0", "movementRelated"], "ruft": ["teamToBitFlagsUnk", "getTotalHeightAtTile", "getEnemyUnitIDNearby", "setFacingDirectionTowardUnitMicro", "saveUnitStateBeforeInterruption", "processUnitAttackOtherUnit"], "regeln": ["Voraussetzung: someUnitStat2_meleeDamageUnk != 0, unknownTestAgainst0_2 == 0, unknownMovementRelated_0x2d2 == 0, logicalState normal, nicht sterbend, moveRelatedFlag != 1", "Auslöser: closestEnemyMicroDistance <= Schwelle, oder attackedUnitID != 0, oder Löwe/Wolf, oder isStalked != 0 mit (Spielart nicht GM_SOLITARY oder mehr als 100 Einheiten) und nur jeder 16. Takt je Einheit ((fixedRng XOR totalGameTicksUnk) & 0xf == 0)", "Schwelle: stateBasedSpeed < 1 gibt 50, bei isSelectable_OR_matchTime != 0 gibt 150; sonst 270 (Einheit vermutlich Mikroeinheiten, 8 je Feld)", "Es werden die 24 Felder rund um die Einheit (5x5 ohne Mitte) auf Feinde geprüft; Feind ist, wer nicht im selben Team ist (bei owner 0, also Tiere, wer anderen unitType hat); auch das eigene Feld zählt", "Höhenunterschied zwischen Einheit und Feld/Gegner darf höchstens 32 sein (0x20 bzw. 0x21 je Stelle), sonst kein Nahkampf", "Löwe, Wolf und Käfighund nehmen verfolgte Ziele (isStalked) nur aus den 8 inneren Nachbarfeldern", "Ein vorhandenes Ziel bleibt, wenn uid passt, es normal und lebend ist und noch in Reichweite steht; sonst wird attackedUnitID gelöscht und neu gesucht", "Gefundener Gegner bekommt gegenseitig die Einheit als Ziel, wenn er selbst Nahkampfschaden hat, noch kein Ziel hat und unknownMovementRelated_0x2d2 == 0", "Ist der Zustand nicht US_MELEE_ATTACK: bei movementRelated == 8 wird der alte Zustand gesichert und US_MELEE_ATTACK gesetzt, sonst nur field259_0x3d2 = 1; danach processUnitAttackOtherUnit"], "offen": ["Bedeutung von unknownMovementRelated_0x2d2, field259_0x3d2, field191_0x340 (vermutlich uid des Ziels)", "Einheit von closestEnemyMicroDistance", "Ghidra schreibt substate über DAT_CurrentUnitSlotID statt unitID (vermutlich dieselbe Einheit)", "Große Funktion; Ablauf nur zusammengefasst"]}, "p3": {"erklaerung": "Hier entscheidet das Spiel, ob zwei Einheiten aufeinander losgehen. Gegner innerhalb von zwei Feldern lösen den Nahkampf aus; die Annäherungsschwelle hängt davon ab, ob die Einheit steht oder läuft.", "gehirn": "Als Faustregel: Nahkampf beginnt bei Gegnern in 2 Feldern Umkreis und ähnlicher Höhe. Höhenunterschiede über 32 verhindern Kämpfe auf Mauern.", "beleg": "code", "live": "Zwei gegnerische Nahkämpfer laufen aufeinander zu → units[a].attackedUnitID und state → state wechselt auf US_MELEE_ATTACK, sobald der Gegner im Umkreis von 2 Feldern ist", "live_art": "kampf"}}
+
+### 0x0054a7b0 findNearestEnemyAndHeadTowardsIt | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0054A7B0
+ dword UnitsState::findNearestEnemyAndHeadTowardsIt(int unitID)
+ {
+ short* psVar1;
+ short sVar2;
+ UnitStanceEnumShort UVar3;
+ UnitTypeShort UVar4;
+ short sVar5;
+ UnitStateShort UVar6;
+ int _tribeID;
+ int _tribeID_2;
+ int _plan;
+ int _enemyUnitID;
+ int _enemyX;
+ int _enemyY;
+ int _someX2_2;
+ uint uVar7;
+ int iVar8;
+ int iVar9;
+ int _microX;
+ int _microY;
+ int _someY2;
+ int iVar10;
+ int iVar11;
+ int _dX;
+ int _enemyMicroX;
+ dword dVar12;
+ int _enemyMicroY;
+ int iVar13;
+ int _dY;
+ int iVar14;
+ dword _triangleDistanceUnk;
+ int _foundEnemyID;
+ int _stanceBasedRange;
+ int local_44;
+ int _enemyIndex;
+ short* _ptrEnemyIDArray;
+ dword _minDistance;
+ int local_24;
+ int local_20;
+ int _minimumValue;
+ dword local_14;
+ short _playerID;
+ short _x;
+ short _y;
+ int _enemies;
+ short _huntedBy;
+ short _attackedBy;
+ short _someX2;
+ int _someX2_micro;
+ int _someY2_micro;
+ ushort _area;
+ bool _bool;
+ UnitInstructionTypeShort _instruction;
+ _microX = (int)this->units[unitID].microXPosition;
+ _playerID = this->units[unitID].owner;
+ _microY = (int)this->units[unitID].microYPosition;
+ _area = DAT_TileMapState.PathConnectionLayer[this->units[unitID].tile];
+ this->unitDistanceComputationResultUnk = 100000;
+ _minDistance = 100000;
+ local_14 = 0;
+ _minimumValue = 100000;
+ _foundEnemyID = 0;
+ local_44 = 1;
+ _bool = false;
+ _stanceBasedRange = 0;
+ sVar2 = 0;
+ if (((this->units[unitID].SA != 0)
+ || ((this->units[unitID].movementType_OR_targetUnitID != 0
+ && (this->units[unitID].state.generic == US_MOVE_TO_DESTINATION))))
+ && (_tribeID = (int)this->units[unitID].tribeID, _tribeID != 0)) {
+ sVar2 = DAT_TribesState.tribes[_tribeID].isRallyingUnk;
+ UVar3 = DAT_TribesState.tribes[_tribeID].unitStance;
+ if (UVar3 == USE_DEFENSIVE) {
+ _stanceBasedRange = 40;
+ } else if (UVar3 == USE_AGGRESSIVE) {
+ _stanceBasedRange = 200;
+ }
+ }
+ _instruction = this->units[unitID].targetingType;
+ if (_instruction == UIT_UNIT_ATTACK_UNIT) {
+ _bool = true;
+ switch (this->units[unitID].unitType) {
+ case UT_TUNNELER:
+ case UT_E_SPEAR:
+ case UT_E_PIKE:
+ case UT_E_MACE:
+ case UT_E_SWORD:
+ case UT_E_KNIGHT:
+ case UT_E_MONK:
+ case UT_LORD:
+ case UT_A_SLAVE:
+ case UT_A_ASSASSIN:
+ case UT_A_SWORDSMAN:
+ _tribeID_2 = (int)this->units[unitID].tribeID;
+ _bool = false;
+ if (_tribeID_2 != 0) {
+ iVar9 = (int)DAT_TribesState.tribes[_tribeID_2].someUnitID;
+ if ((iVar9 != 0)
+ && (this->units[iVar9].uid == DAT_TribesState.tribes[_tribeID_2].someUnitUID))
+ goto LAB_0054a9d5;
+ }
+ this->units[unitID].targetingType = UIT_NO_INSTRUCTION_OR_MOVEUnk;
+ }
+ } else if (_instruction == UIT_ATTACK_LAND) {
+ switch (this->units[unitID].unitType) {
+ case UT_E_SPEAR:
+ case UT_E_PIKE:
+ case UT_E_MACE:
+ case UT_E_SWORD:
+ case UT_E_KNIGHT:
+ case UT_E_MONK:
+ case UT_A_SLAVE:
+ case UT_A_ASSASSIN:
+ case UT_A_SWORDSMAN:
+ if ((-1 < this->units[unitID].lookForEnemy)
+ && (this->units[unitID].state.generic != US_MELEE_ATTACK)) {
+ _x = this->units[unitID].attackAtTileX;
+ if ((_x == this->units[unitID].x)
+ && (this->units[unitID].attackAtTileY == this->units[unitID].y)) {
+ this->units[unitID].targetingType = ((UnitInstructionType)0);
+ break;
+ }
+ _y = this->units[unitID].attackAtTileY;
+ this->units[unitID].plannedDestinationY = _y;
+ this->units[unitID].plannedDestinationX = _x;
+ setDestinationForUnit(
+ unitID, (uint)((int)((int)_x)), (uint)((int)((int)_y)), 0);
+ _plan = -((int)this->units[unitID].totalSizeOfPathPlan / 2);
+ this->units[unitID].state.generic = US_MOVE_TO_DESTINATION;
+ if (-0x33 < _plan) {
+ _plan = -0x32;
+ }
+ this->units[unitID].lookForEnemy = (short)_plan;
+ }
+ LAB_0054a9d5:
+ _bool = true;
+ }
+ }
+ if (this->units[unitID].isSelectable_OR_matchTime == 0) {
+ _bool = true;
+ }
+ _enemies = DAT_GameState.playerDataArray[_playerID].enemies;
+ if (_enemies < 5) {
+ local_44 = 5;
+ } else if (_enemies < 15) {
+ local_44 = 2;
+ }
+ _enemyIndex = 0;
+ if (0 < _enemies) {
+ _ptrEnemyIDArray = DAT_GameState.playerDataArray[_playerID].enemyIDArray;
+ do {
+ _enemyUnitID = (int)*_ptrEnemyIDArray;
+ _enemyX = (int)this->units[_enemyUnitID].microXPosition;
+ if (_enemyX < _microX) {
+ _dX = _microX - _enemyX;
+ } else {
+ _dX = _enemyX - _microX;
+ }
+ _enemyY = (int)this->units[_enemyUnitID].microYPosition;
+ if (_enemyY < _microY) {
+ _dY = _microY - _enemyY;
+ } else {
+ _dY = _enemyY - _microY;
+ }
+ if (_dX < _dY) {
+ /*
+ pythagorean approximation
+ */
+ _triangleDistanceUnk = (((_dX * 2) / 5) * _dX) / _dY + _dY;
+ } else if (_dX == 0) {
+ /*
+ fixme: bug: I think this needs to be set not to 0 but to _dY
+ */
+ _triangleDistanceUnk = 0;
+ } else {
+ _triangleDistanceUnk = (((_dY * 2) / 5) * _dY) / _dX + _dX;
+ }
+ if ((int)_triangleDistanceUnk < (int)_minDistance) {
+ _minDistance = _triangleDistanceUnk;
+ }
+ if (((this->units[unitID].unitType == UT_A_ASSASSIN)
+ && (this->units[_enemyUnitID].isSelectable_OR_matchTime != 0))
+ && ((int)_triangleDistanceUnk < (int)this->unitDistanceComputationResultUnk)) {
+ this->unitDistanceComputationResultUnk = _triangleDistanceUnk;
+ }
+ if (((!_bool) && (_stanceBasedRange != 0)) && (-1 < this->units[unitID].lookForEnemy)) {
+ _someX2 = this->units[unitID]._someX_2;
+ if (((_someX2 != 0) && (sVar2 == 0)) && (_stanceBasedRange == 40)) {
+ _someY2 = (int)this->units[unitID]._someY_2;
+ _enemyMicroX = (int)this->units[_enemyUnitID].microXPosition;
+ _someX2_2 = (int)_someX2;
+ if (_someX2_2 * 8 < _enemyMicroX) {
+ dVar12 = _enemyMicroX + _someX2_2 * -8;
+ } else {
+ dVar12 = _someX2_2 * 8 - _enemyMicroX;
+ }
+ _enemyMicroY = (int)this->units[_enemyUnitID].microYPosition;
+ if (_someY2 * 8 < _enemyMicroY) {
+ _triangleDistanceUnk = _enemyMicroY + _someY2 * -8;
+ } else {
+ _triangleDistanceUnk = _someY2 * 8 - _enemyMicroY;
+ }
+ if ((int)_triangleDistanceUnk <= (int)dVar12) {
+ _triangleDistanceUnk = dVar12;
+ }
+ }
+ dVar12 = _triangleDistanceUnk;
+ if ((((int)_triangleDistanceUnk <= _stanceBasedRange)
+ && (this->units[_enemyUnitID].uid
+ == DAT_GameState.mapAndTime
+ .playerEnemenyUnitUIDShortList[_playerID][_enemyIndex]))
+ && (((_triangleDistanceUnk = _triangleDistanceUnk
+ + DAT_UnitPropertiesDefinedData
+ .UnitVisionBonus[(int)(this->units[unitID].fixedRng + _enemyUnitID)
+ % 10]
+ / local_44,
+ this->units[_enemyUnitID].state.generic
+ != US_MELEE_ATTACK
+ || (_attackedBy = this->units[_enemyUnitID].attackedBy,
+ _triangleDistanceUnk = (_attackedBy * 50 + _triangleDistanceUnk) * 2,
+ _attackedBy < 3))
+ && ((((this->units[_enemyUnitID].huntedBy < 2
+ || (_huntedBy = this->units[_enemyUnitID].huntedBy,
+ _triangleDistanceUnk = _triangleDistanceUnk + _huntedBy * 0x32,
+ _huntedBy < 3))
+ || (this->units[unitID].movementType_OR_targetUnitID == _enemyUnitID))
+ && (((this->units[_enemyUnitID].isStalked == 0
+ || (UVar4 = this->units[_enemyUnitID].unitType,
+ UVar4 == UT_LIONSHWOLF))
+ || (UVar4 == UT_CAGEDOG)))))))) {
+ /*
+ unit type switch
+ */
+ switch (this->units[_enemyUnitID].unitType) {
+ case UT_PEASANT:
+ _triangleDistanceUnk = _triangleDistanceUnk * 8 + 200;
+ break;
+ default : _triangleDistanceUnk = _triangleDistanceUnk * 4 + 200;
+ break;
+ case UT_E_ARCHER:
+ case UT_E_XBOW:
+ case UT_A_ARCHER:
+ case UT_A_HARCHER:
+ case UT_A_FIRETHROWER:
+ break;
+ case UT_E_SPEAR:
+ case UT_E_PIKE:
+ case UT_E_MACE:
+ case UT_E_SWORD:
+ case UT_E_KNIGHT:
+ case UT_E_LADDER:
+ case UT_E_MONK:
+ case UT_A_SLAVE:
+ case UT_A_SLINGER:
+ case UT_A_ASSASSIN:
+ case UT_A_SWORDSMAN:
+ _triangleDistanceUnk = _triangleDistanceUnk * 2 + 100;
+ break;
+ case UT_E_ENGINEER:
+ case UT_S_CATAPULT:
+ case UT_S_TREBUCHET:
+ case UT_S_MANGONEL:
+ case UT_S_TOWER:
+ case UT_S_BATTERINGRAM:
+ case UT_S_SHIELD:
+ case UT_S_BALLISTA:
+ case UT_S_FBALLISTA:
+ _triangleDistanceUnk = _triangleDistanceUnk + 0x19;
+ break;
+ case UT_LORD:
+ _triangleDistanceUnk
+ = (int)(_triangleDistanceUnk + ((int)_triangleDistanceUnk >> 0x1f & 3U)) >> 2;
+ }
+ if (this->units[unitID].movementType_OR_targetUnitID == _enemyUnitID) {
+ _triangleDistanceUnk = (int)_triangleDistanceUnk / 2;
+ }
+ if ((int)_triangleDistanceUnk < _minimumValue) {
+ iVar9 = this->units[_enemyUnitID].tile;
+ sVar5 = this->units[_enemyUnitID].y;
+ iVar10 = (int)this->units[_enemyUnitID].buildingHeight
+ + (int)this->units[_enemyUnitID].terrainOrClimbHeight;
+ local_20 = -1;
+ local_24 = 10000;
+ iVar13 = 0;
+ do {
+ iVar14
+ = DAT_TileMapState.directionTranslationMatrix
+ [sVar5][DAT_UnitPropertiesDefinedData.field84_0x11cb4[iVar13]]
+ + iVar9;
+ if (((DAT_TileMapState.UnitLayer[iVar14] == 0)
+ && (uVar7 = getTotalHeightAtTile(iVar14),
+ iVar10 < (int)(uVar7 + 0x10)))
+ && ((int)(uVar7 - 0x10) < iVar10)) {
+ iVar8 = (int)DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[iVar14];
+ iVar14 = iVar14
+ - DAT_ViewportRenderState.translationMatrix[iVar8].addXgetTile;
+ iVar11 = iVar14 * 8;
+ if (iVar11 < _microX) {
+ iVar11 = _microX + iVar14 * -8;
+ } else {
+ iVar11 = iVar11 - _microX;
+ }
+ if (iVar8 * 8 < _microY) {
+ iVar14 = _microY + iVar8 * -8;
+ } else {
+ iVar14 = iVar8 * 8 - _microY;
+ }
+ if (iVar14 <= iVar11) {
+ iVar14 = iVar11;
+ }
+ if (iVar14 < local_24) {
+ local_24 = iVar14;
+ local_20 = iVar13;
+ }
+ }
+ iVar13 = iVar13 + 1;
+ } while (iVar13 < 8);
+ if (-1 < local_20) {
+ _minimumValue = _triangleDistanceUnk;
+ local_14 = dVar12;
+ _foundEnemyID = _enemyUnitID;
+ }
+ }
+ }
+ }
+ _ptrEnemyIDArray = _ptrEnemyIDArray + 1;
+ _enemyIndex = _enemyIndex + 1;
+ } while (_enemyIndex < DAT_GameState.playerDataArray[_playerID].enemies);
+ }
+ if (_stanceBasedRange == 0) {
+ LAB_0054af54:
+ if ((this->units[unitID].lookForEnemy != 0)
+ || (UVar6 = this->units[unitID].state.generic, this->units[unitID].movementType_OR_targetUnitID = 0,
+ UVar6 != US_MOVE_TO_DESTINATION))
+ goto LAB_0054afbf;
+ } else {
+ if (this->units[unitID].lookForEnemy < 0)
+ goto LAB_0054afbf;
+ if (_bool)
+ goto LAB_0054af54;
+ if (_foundEnemyID != 0) {
+ iVar9 = calculateCanPlayerUnitsNavigateToAreaFromArea((int)this->units[unitID].owner, (dword)((int)((int)(short)_area)),
+ (dword)((int)((int)(short)
+ DAT_TileMapState.PathConnectionLayer[this->units[_foundEnemyID].tile])),
+ this->units[unitID].unitCanClimb);
+ if (iVar9 != 0) {
+ sVar2 = this->units[unitID]._someX_2;
+ this->units[unitID].state.generic = US_MOVE_TO_DESTINATION;
+ this->units[unitID].animationCycleNumber = 0;
+ if (sVar2 == 0) {
+ sVar2 = this->units[unitID].destinationY_2Unk;
+ this->units[unitID]._someX_2 = this->units[unitID].destinationX_2Unk;
+ this->units[unitID]._someY_2 = sVar2;
+ }
+ findNearestValidDigTileNearTarget((int)this->units[unitID].x,
+ (uint)((int)((int)this->units[unitID].y)), (uint)((int)((int)this->units[_foundEnemyID].x)),
+ (uint)((int)((int)this->units[_foundEnemyID].y)));
+ setDestinationForUnit(unitID,
+ (uint)((int)(DAT_TileMapState.field155_0x5549a8)),
+ (uint)((int)(DAT_TileMapState.field156_0x5549ac)), 0);
+ iVar9 = -0x1e - local_14;
+ this->units[unitID].moveDelay = 0;
+ if (-0x33 < iVar9) {
+ iVar9 = -0x32;
+ }
+ sVar2 = this->units[unitID].movementType_OR_targetUnitID;
+ this->units[unitID].lookForEnemy = (short)iVar9;
+ if (sVar2 != _foundEnemyID) {
+ this->units[unitID].movementType_OR_targetUnitID = (short)_foundEnemyID;
+ psVar1 = &this->units[_foundEnemyID].huntedBy;
+ *psVar1 = *psVar1 + 1;
+ }
+ goto LAB_0054afbf;
+ }
+ }
+ this->units[unitID].lookForEnemy = -8;
+ this->units[unitID].movementType_OR_targetUnitID = 0;
+ }
+ sVar2 = this->units[unitID]._someX_2;
+ if (sVar2 != 0) {
+ setDestinationForUnit(
+ unitID, (uint)((int)((int)sVar2)), (uint)((int)((int)this->units[unitID]._someY_2)), 0);
+ this->units[unitID].moveDelay = 0;
+ this->units[unitID]._someY_2 = 0;
+ this->units[unitID]._someX_2 = 0;
+ this->units[unitID].state.generic = US_MOVE_TO_DESTINATION;
+ }
+ LAB_0054afbf:
+ if (32000 < (int)_minDistance) {
+ _minDistance = 32000;
+ }
+ return (dword)(_minDistance);
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0054a7b0", "name": "findNearestEnemyAndHeadTowardsIt", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Wählt für eine Einheit den besten Feind in Reichweite, schickt sie los und meldet den kleinsten Feindabstand."}, "p2": {"ein": "unitID", "aus": "kleinster Abstand zu irgendeinem Feind, höchstens 32000 (Start 100000)", "liest": ["units[].owner/tribeID/microX/microY/unitType/targetingType/lookForEnemy/movementType_OR_targetUnitID/_someX_2/_someY_2/isSelectable_OR_matchTime/fixedRng", "tribes[].unitStance/isRallyingUnk/someUnitID/someUnitUID", "playerDataArray[].enemies/enemyIDArray", "mapAndTime.playerEnemenyUnitUIDShortList", "UnitVisionBonus[0..9]", "PathConnectionLayer", "UnitLayer", "Höhen der Nachbarfelder"], "schreibt": ["unitDistanceComputationResultUnk (nur Assassine)", "units[].lookForEnemy", "units[].movementType_OR_targetUnitID", "units[].targetingType (Rücksetzen)", "units[].state=US_MOVE_TO_DESTINATION", "units[].moveDelay/animationCycleNumber/_someX_2/_someY_2", "units[feind].huntedBy+1"], "ruft": ["setDestinationForUnit", "calculateCanPlayerUnitsNavigateToAreaFromArea", "findNearestValidDigTileNearTarget", "getTotalHeightAtTile"], "regeln": ["Suchreichweite nur mit tribeID != 0 und (SA != 0 oder Zustand US_MOVE_TO_DESTINATION mit Ziel): Haltung USE_DEFENSIVE = 40, USE_AGGRESSIVE = 200, sonst 0 = keine Suche", "Abstand ist eine Näherung: max(dX,dY) + (min*2/5)*min/max in Mikroeinheiten; bei dX=0 (und dX>=dY) kommt 0 statt dY heraus (Bug laut Kommentar)", "Keine Suche, wenn der Befehl UIT_UNIT_ATTACK_UNIT oder UIT_ATTACK_LAND läuft (außer Tunnelgräber/Lord bei UNIT_ATTACK_UNIT ohne gültiges Gruppenziel: dann wird targetingType zurückgesetzt) oder isSelectable_OR_matchTime == 0", "Wertung = Abstand + UnitVisionBonus[(fixedRng+feindID)%10]/n, n = 5 bei weniger als 5 Feinden, 2 bei 5-14, sonst 1", "Feind im Nahkampf: Wert = (attackedBy*50 + Wert)*2; ab attackedBy 3 ausgeschlossen. huntedBy >= 2: Wert + huntedBy*50; ab huntedBy 3 ausgeschlossen, außer es ist das aktuelle Ziel. isStalked != 0 schließt aus, außer bei Löwe/Wolf und Käfighund", "Typgewicht (kleinster Wert gewinnt): Bauer *8+200; unbekannte Typen *4+200; Bogenschützen, Armbrust, arab. Bogen, Pferdebogen, Feuerwerfer unverändert; Nahkämpfer, Leiterträger, Sklave, Schleuderer, Assassine, arab. Schwert *2+100; Ingenieur und Belagerung +25; Lord /4. Aktuelles Ziel zusätzlich /2", "Ein Feind zählt nur, wenn eines seiner 8 Nachbarfelder frei ist (UnitLayer 0) und die Höhe höchstens 15 abweicht", "Nach der Suche: bei Reichweite > 0, lookForEnemy >= 0 und erreichbarem Gebiet Marsch zum Feind, lookForEnemy = -30 - Abstand, mindestens -50. Ohne Feind lookForEnemy = -8 und Ziel gelöscht; ein gemerkter Punkt (_someX_2/_someY_2) wird wieder angesteuert"], "offen": ["Bedeutung von SA, isRallyingUnk, isStalked, local_44 und unitDistanceComputationResultUnk", "Ob die Reichweiten 40/200 Mikroeinheiten sind (5 und 25 Felder bei 8 je Feld)", "Die Rückgabe ist ein Abstand, nicht die Feind-ID"]}, "p3": {"erklaerung": "Das ist die Zielauswahl der Einheiten, wenn sie von selbst Feinde angreifen. Fernkämpfer und Lords werden bevorzugt, Bauern am wenigsten, und ein Feind, den schon drei jagen, wird gemieden.", "gehirn": "Erklärt, wen eigene und gegnerische Truppen von allein angreifen: Bogenschützen zuerst, Bauern zuletzt. Die Haltung der Gruppe bestimmt die Reichweite (verteidigend 40, aggressiv 200).", "beleg": "code", "live": "Gruppe in Haltung aggressiv, Feind in Sicht → units[].movementType_OR_targetUnitID und lookForEnemy → Feind-ID und lookForEnemy negativ (-30 minus Abstand, mindestens -50)", "live_art": "kampf"}}
+

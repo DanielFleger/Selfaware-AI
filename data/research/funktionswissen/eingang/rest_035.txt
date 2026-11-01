@@ -1,0 +1,999 @@
+### 0x00428ac0 MenuItemRenderFunction_General_AdvancedGameOptions | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00428AC0
+ void General::MenuItemRenderFunction_General_AdvancedGameOptions(int param_1, ...)
+ {
+ int iVar1;
+ uint _color;
+ int iVar2;
+ if (((DAT_MenuModalComposition1.activeModalDialogID == MMT_LOAD_MAP)
+ || (DAT_MenuModalComposition1.activeModalDialogID == MMT_SEND_MAP_TO))
+ || (DAT_MenuModalComposition1.activeModalDialogID
+ == MMT_RECEIVE_MAP_FROM)) {
+ return;
+ }
+ if (DAT_MenuModalComposition1.activeModalDialogID
+ == MMT_SKIRMISH_PLAY_OPTIONS) {
+ if ((((param_1 != -1000) && (param_1 != -10))
+ && ((param_1 != -0xb && ((param_1 != -0xc && (param_1 != -0xd))))))
+ && ((param_1 != -0xe
+ && (((((param_1 != 99 && (param_1 != 100)) && (param_1 != 0x53))
+ && ((param_1 != 0x6d && (param_1 != 0x52))))
+ && (param_1 != 0x5e)))))) {
+ return;
+ }
+ } else {
+ if (DAT_MenuModalComposition1.activeModalDialogID == MMT_ROUNDTABLE) {
+ return;
+ }
+ if (DAT_MenuModalComposition1.activeModalDialogID
+ == MMT_BASIC_AI_LORD_SELECT) {
+ return;
+ }
+ if (DAT_MenuModalComposition1.activeModalDialogID
+ == MMT_EXTENDED_AI_LORD_SELECT) {
+ return;
+ }
+ }
+ if (DAT_GameSynchronyState.currentGameMode == GM_SKIRMISH_SINGLE_PLAYER) {
+ if (param_1 == 0x5d) {
+ return;
+ }
+ if (param_1 == 0x1f) {
+ return;
+ }
+ }
+ if ((param_1 == 0x67)
+ && (DAT_ButtonUnknownZero = 0,
+ DAT_GameSynchronyState.currentGameMode == GM_SKIRMISH_SINGLE_PLAYER)) {
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ if (DAT_GameSynchronyState.isHost == FALSE) {
+ if (param_1 == 0x67) {
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ if (param_1 == 0x5d) {
+ return;
+ }
+ }
+ if (param_1 == -1) {
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ if (param_1 != 0x67) {
+ if ((DAT_ButtonCurrentlyInteracting == FALSE)
+ || (DAT_GameSynchronyState.isHost == FALSE)) {
+ renderNonInteractingButtonBackground(DAT_ButtonBackgroundBlendStrength);
+ _color = 0xc2f0eb;
+ } else {
+ _color = 0xccfaff;
+ renderBasicButton(
+ DAT_ButtonBackgroundBlendStrength, RT_CONTEXT_BASED);
+ }
+ }
+ if (param_1 == 0x1f) {
+ iVar1 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ iVar2 = DAT_GameSynchronyState.skirmishTechLevel / 2;
+ /*
+ "Tech Level"
+ */
+ renderTextFromTextGroup(
+ TEXT_XPLAY_WAITING_ROOM, 0x55, DAT_ButtonX + 0x14,
+ DAT_ButtonY + 7, TTA_LEFT, _color, 0x12, FALSE,
+ ((int)(iVar1 + (iVar1 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ iVar1 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ /*
+ "Early" "Middle" "Late"
+ */
+ renderInGameText2(
+ TEXT_XPLAY_WAITING_ROOM, iVar2 + 0x4f,
+ DAT_ButtonW + -0x14 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xb8e6f5, 0, 0x12, FALSE,
+ ((int)(iVar1 + (iVar1 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ return;
+ }
+ if (param_1 == 0x24) {
+ iVar1 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ /*
+ "Win: Regicide" / "Win: 10000 Gold" / "Win: 3" / "Win: 4" / "Win: 5" / ....
+ */
+ renderTextFromTextGroup(
+ TEXT_XPLAY_WAITING_ROOM,
+ DAT_GameSynchronyState.skirmishWinCondition + 0x24,
+ DAT_ButtonW / 2 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_CENTER, _color, 0x12, FALSE,
+ ((int)(iVar1 + (iVar1 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ return;
+ }
+ if (param_1 == 0x53) {
+ iVar1 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ /*
+ "Troops"
+ */
+ renderTextFromTextGroup(
+ TEXT_XPLAY_WAITING_ROOM, 0x56, DAT_ButtonX + 0x14,
+ DAT_ButtonY + 7, TTA_LEFT, _color, 0x12, FALSE,
+ ((int)(iVar1 + (iVar1 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ iVar1 = 0x53;
+ /*
+ "Free"
+ */
+ if (DAT_GameSynchronyState.skirmishTroopsCostGold != 0) {
+ /*
+ "Cost Gold"
+ */
+ iVar1 = 0x54;
+ }
+ iVar2 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ renderInGameText2(
+ TEXT_XPLAY_WAITING_ROOM, iVar1,
+ DAT_ButtonW + -0x14 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xb8e6f5, 0, 0x12, FALSE,
+ ((int)(iVar2 + (iVar2 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ return;
+ }
+ if (param_1 == 0x6d) {
+ iVar1 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ /*
+ Fog of War
+ */
+ renderTextFromTextGroup(
+ TEXT_XPLAY_WAITING_ROOM, 0x6d, DAT_ButtonX + 0x14,
+ DAT_ButtonY + 7, TTA_LEFT, _color, 0x12, FALSE,
+ ((int)(iVar1 + (iVar1 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ if (DAT_GameState.mapAndTime.skirmishFogOfWar == 0) {
+ /*
+ OFF
+ */
+ iVar1 = 0x5f;
+ } else {
+ /*
+ Please Wait
+ */
+ iVar1 = (DAT_GameState.mapAndTime.skirmishFogOfWar != 1) + 0x6d;
+ }
+ iVar2 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ renderInGameText2(
+ TEXT_XPLAY_WAITING_ROOM, iVar1,
+ DAT_ButtonW + -0x14 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xb8e6f5, 0, 0x12, FALSE,
+ ((int)(iVar2 + (iVar2 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ return;
+ }
+ if (param_1 == -1000) {
+ iVar1 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ renderTextFromTextGroup(
+ TEXT_GAME_OPTIONS, 0x11,
+ DAT_ButtonW / 2 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_CENTER, _color, 0x12, FALSE,
+ ((int)(iVar1 + (iVar1 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ return;
+ }
+ if (param_1 == 0x67) {
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ return;
+ }
+ iVar1 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ iVar1 = ((int)(iVar1 + (iVar1 >> 0x1f & 0x1fU)) >> 5) + 0x20;
+ if (param_1 == -10) {
+ /*
+ No Cow Throwing
+ */
+ renderTextFromTextGroup(
+ TEXT_SKIRMISH_MISC, 5, DAT_ButtonX + 0x14,
+ DAT_ButtonY + 7, TTA_LEFT, _color, 0x12, FALSE, iVar1);
+ iVar1 = DAT_GameSynchronyState.skirmishNoCowThrowing;
+ LAB_00428ffd:
+ if (iVar1 != 0) {
+ iVar1 = DAT_ButtonW + -0x32 + DAT_ButtonX;
+ iVar2 = 0xce;
+ goto LAB_00429039;
+ }
+ } else {
+ if (param_1 == -0xb) {
+ /*
+ "No Dogs"
+ */
+ renderTextFromTextGroup(TEXT_SKIRMISH_MISC, 6,
+ DAT_ButtonX + 0x14, DAT_ButtonY + 7,
+ TTA_LEFT, _color, 0x12, FALSE, iVar1);
+ iVar1 = DAT_GameSynchronyState.skirmishNoDogs;
+ LAB_00429086:
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ if (iVar1 == 0) {
+ iVar1 = 0xd0;
+ } else {
+ iVar1 = 0xce;
+ }
+ renderGM(GM_INTERFACE_ICONS3, iVar1,
+ DAT_ButtonW + -0x32 + DAT_ButtonX,
+ DAT_ButtonY);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ return;
+ }
+ if (param_1 == -0xd) {
+ /*
+ "Extreme mode"
+ */
+ renderTextFromTextGroup(TEXT_SKIRMISH_MISC, 0xd,
+ DAT_ButtonX + 0x14, DAT_ButtonY + 7,
+ TTA_LEFT, _color, 0x12, FALSE, iVar1);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ if (DAT_GameSynchronyState.skirmishExtremeMode == 0) {
+ iVar1 = 0xd0;
+ } else {
+ iVar1 = 0xce;
+ }
+ renderGM(GM_INTERFACE_ICONS3, iVar1,
+ DAT_ButtonW + -0x32 + DAT_ButtonX,
+ DAT_ButtonY);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ return;
+ }
+ if (param_1 != -0xe) {
+ if (param_1 != 99) {
+ if (param_1 == -0xc) {
+ renderTextFromTextGroup(TEXT_SKIRMISH_MISC, 7,
+ DAT_ButtonX + 0x14, DAT_ButtonY + 7,
+ TTA_LEFT, _color, 0x12, FALSE, iVar1);
+ if (DAT_GameSynchronyState.skirmishNoRushSetting == 0) {
+ iVar1 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ renderInGameText2(TEXT_XPLAY_WAITING_ROOM, 0x5f,
+ DAT_ButtonW + -0x14 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xb8e6f5, 0,
+ 0x12, FALSE, ((int)(iVar1 + (iVar1 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ }
+ if (DAT_GameSynchronyState.skirmishNoRushSetting == 1) {
+ iVar1 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ renderInGameText2(TEXT_XPLAY_WAITING_ROOM, 0x60,
+ DAT_ButtonW + -0x14 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xb8e6f5, 0,
+ 0x12, FALSE, ((int)(iVar1 + (iVar1 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ }
+ if (DAT_GameSynchronyState.skirmishNoRushSetting == 2) {
+ iVar1 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ renderInGameText2(TEXT_XPLAY_WAITING_ROOM, 0x61,
+ DAT_ButtonW + -0x14 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xb8e6f5, 0,
+ 0x12, FALSE, ((int)(iVar1 + (iVar1 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ }
+ if (DAT_GameSynchronyState.skirmishNoRushSetting == 3) {
+ iVar1 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ renderInGameText2(TEXT_XPLAY_WAITING_ROOM, 0x62,
+ DAT_ButtonW + -0x14 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xb8e6f5, 0,
+ 0x12, FALSE, ((int)(iVar1 + (iVar1 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ }
+ if (DAT_GameSynchronyState.skirmishNoRushSetting == 4) {
+ iVar1 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ renderInGameText2(TEXT_SKIRMISH_MISC, 8,
+ DAT_ButtonW + -0x14 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xb8e6f5, 0,
+ 0x12, FALSE, ((int)(iVar1 + (iVar1 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ }
+ if (DAT_GameSynchronyState.skirmishNoRushSetting != 5) {
+ return;
+ }
+ iVar1 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ /*
+ "1 Hour"
+ */
+ renderInGameText2(TEXT_SKIRMISH_MISC, 9,
+ DAT_ButtonW + -0x14 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xb8e6f5, 0, 0x12,
+ FALSE, ((int)(iVar1 + (iVar1 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ return;
+ }
+ renderTextFromTextGroup(TEXT_XPLAY_WAITING_ROOM, param_1,
+ DAT_ButtonX + 0x14, DAT_ButtonY + 7,
+ TTA_LEFT, _color, 0x12, FALSE, iVar1);
+ if (param_1 == 0xe) {
+ iVar1 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ renderNumber2(DAT_GameSynchronyState.skirmishStartGold,
+ DAT_ButtonW + -0x14 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xb8e6f5, 0, 0x12,
+ FALSE, ((int)(iVar1 + (iVar1 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ return;
+ }
+ if (param_1 == 0xf) {
+ iVar1 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ renderNumber2(DAT_GameSynchronyState.skirmishDefaultPopularity,
+ DAT_ButtonW + -0x14 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xb8e6f5, 0, 0x12,
+ FALSE, ((int)(iVar1 + (iVar1 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ return;
+ }
+ if (param_1 == 0x52) {
+ iVar1 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ renderNumber2(DAT_GameSynchronyState.skirmishGameSpeedLevel,
+ DAT_ButtonW + -0x14 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xb8e6f5, 0, 0x12,
+ FALSE, ((int)(iVar1 + (iVar1 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ return;
+ }
+ if (param_1 == 0x5e) {
+ if (DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes == 0) {
+ iVar1 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ renderInGameText2(TEXT_XPLAY_WAITING_ROOM, 0x5f,
+ DAT_ButtonW + -0x14 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xb8e6f5, 0,
+ 0x12, FALSE, ((int)(iVar1 + (iVar1 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ }
+ if (DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes == 5) {
+ iVar1 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ renderInGameText2(TEXT_XPLAY_WAITING_ROOM, 0x60,
+ DAT_ButtonW + -0x14 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xb8e6f5, 0,
+ 0x12, FALSE, ((int)(iVar1 + (iVar1 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ }
+ if (DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes == 10) {
+ iVar1 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ renderInGameText2(TEXT_XPLAY_WAITING_ROOM, 0x61,
+ DAT_ButtonW + -0x14 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xb8e6f5, 0,
+ 0x12, FALSE, ((int)(iVar1 + (iVar1 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ }
+ if (DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes != 0x14) {
+ return;
+ }
+ iVar1 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ renderInGameText2(TEXT_XPLAY_WAITING_ROOM, 0x62,
+ DAT_ButtonW + -0x14 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xb8e6f5, 0, 0x12,
+ FALSE, ((int)(iVar1 + (iVar1 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ return;
+ }
+ if (param_1 != 100) {
+ return;
+ }
+ iVar1 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ iVar1 = ((int)(iVar1 + (iVar1 >> 0x1f & 0x1fU)) >> 5) + 0x20;
+ /*
+ "Alliances"
+ */
+ if (DAT_GameSynchronyState.skirmishAlliances == 0) {
+ /*
+ "Anytime"
+ */
+ renderInGameText2(TEXT_XPLAY_WAITING_ROOM, 0x65,
+ DAT_ButtonW + -0x14 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xb8e6f5, 0, 0x12,
+ FALSE, iVar1);
+ return;
+ }
+ /*
+ "Start only"
+ */
+ renderInGameText2(TEXT_XPLAY_WAITING_ROOM, 0x66,
+ DAT_ButtonW + -0x14 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xb8e6f5, 0, 0x12, FALSE,
+ iVar1);
+ return;
+ }
+ renderTextFromTextGroup(TEXT_XPLAY_WAITING_ROOM, 99,
+ DAT_ButtonX + 0x14, DAT_ButtonY + 7,
+ TTA_LEFT, _color, 0x12, FALSE, iVar1);
+ iVar1 = DAT_GameSynchronyState.skirmishStrongWalls;
+ goto LAB_00429086;
+ }
+ renderTextFromTextGroup(
+ TEXT_SKIRMISH_MISC, 0xe, DAT_ButtonX + 0x14,
+ DAT_ButtonY + 7, TTA_LEFT, _color, 0x12, FALSE, iVar1);
+ iVar1 = DAT_GameSynchronyState.skirmishExtremeMode;
+ if (DAT_GameSynchronyState.skirmishExtremeMode2 != 0)
+ goto LAB_00428ffd;
+ }
+ iVar1 = DAT_ButtonW + -0x32 + DAT_ButtonX;
+ iVar2 = 0xd0;
+ LAB_00429039:
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ renderGM(
+ GM_INTERFACE_ICONS3, iVar2, iVar1, DAT_ButtonY);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ }
+}
+}
+
+### 0x00429a40 MenuItemActionHandler_General_AdvancedGameOptions | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00429A40
+ void General::MenuItemActionHandler_General_AdvancedGameOptions(int param_1, ...)
+ {
+ char* pcVar1;
+ char* pcVar2;
+ bool bVar3;
+ eTextSections eVar4;
+ int iVar5;
+ if (DAT_GameSynchronyState.isHost == FALSE) {
+ return;
+ }
+ if (DAT_MenuModalComposition1.activeModalDialogID == MMT_SEND_MAP_TO) {
+ return;
+ }
+ if (DAT_MenuModalComposition1.activeModalDialogID == MMT_RECEIVE_MAP_FROM) {
+ return;
+ }
+ if ((((((DAT_MenuModalComposition1.activeModalDialogID
+ == MMT_SKIRMISH_PLAY_OPTIONS)
+ && (param_1 != -1000))
+ && (param_1 != -10))
+ && ((param_1 != -0xb && (param_1 != -0xc))))
+ && ((param_1 != -0xd && ((param_1 != -0xe && (param_1 != 99))))))
+ && ((param_1 != 100
+ && ((((param_1 != 0x53 && (param_1 != 0x6d)) && (param_1 != 0x52)) && (param_1 != 0x5e)))))) {
+ return;
+ }
+ if (DAT_GameSynchronyState.currentGameMode == GM_SKIRMISH_SINGLE_PLAYER) {
+ if (param_1 == 0x5d) {
+ return;
+ }
+ if (param_1 == 0x1f) {
+ return;
+ }
+ }
+ if (DAT_MenuModalComposition1.activeModalDialogID == MMT_ROUNDTABLE) {
+ return;
+ }
+ if (DAT_MenuModalComposition1.activeModalDialogID
+ == MMT_BASIC_AI_LORD_SELECT) {
+ return;
+ }
+ if (DAT_MenuModalComposition1.activeModalDialogID
+ == MMT_EXTENDED_AI_LORD_SELECT) {
+ return;
+ }
+ if (param_1 == 0xe) {
+ if ((DAT_MenuModalComposition2.activeModalDialogID != MMT_NONE)
+ && (INT_00b960cc::instance == 1)) {
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[0] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[1] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[2] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[3] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[4] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[5] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[6] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[7] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[8] = 1;
+ return;
+ }
+ INT_00b960cc::instance = 1;
+ setSliderParameters(0, 10000, DAT_GameSynchronyState.skirmishStartGold,
+ (undefined*)((int)(&DAT_GameSynchronyState.skirmishStartGold)),
+ (void*)((int)(Synchrony::Commands::QueueChangeGameIntensityOrBalance::instance)));
+ setExtraActiveModalDialog(MMT_OVERLAY_SLIDER,
+ DAT_ButtonX + 0x48, DAT_ButtonY + 4);
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[0] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[1] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[2] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[3] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[4] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[5] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[6] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[7] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[8] = 1;
+ return;
+ }
+ if (param_1 == 0xf) {
+ setSliderParameters(0, 100, DAT_GameSynchronyState.skirmishDefaultPopularity,
+ (undefined*)((int)(&DAT_GameSynchronyState.skirmishDefaultPopularity)),
+ (void*)((int)(Synchrony::Commands::QueueChangeGameIntensityOrBalance::instance)));
+ setExtraActiveModalDialog(MMT_OVERLAY_SLIDER,
+ DAT_ButtonX + 0x17, DAT_ButtonY + 0x23);
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[0] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[1] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[2] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[3] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[4] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[5] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[6] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[7] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[8] = 1;
+ return;
+ }
+ if (param_1 == 0x52) {
+ if ((DAT_MenuModalComposition2.activeModalDialogID != MMT_NONE)
+ && (INT_00b960cc::instance == 2)) {
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[0] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[1] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[2] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[3] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[4] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[5] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[6] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[7] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[8] = 1;
+ return;
+ }
+ INT_00b960cc::instance = 2;
+ setSliderParameters(0x14, 0x5a, DAT_GameSynchronyState.skirmishGameSpeedLevel,
+ (undefined*)((int)(&DAT_GameSynchronyState.skirmishGameSpeedLevel)),
+ (void*)((int)(Helpers::CallbackSetMultiplayerSpeedLevel::instance)));
+ setExtraActiveModalDialog(MMT_OVERLAY_SLIDER,
+ DAT_ButtonX + 0x48, DAT_ButtonY + 4);
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[0] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[1] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[2] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[3] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[4] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[5] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[6] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[7] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[8] = 1;
+ return;
+ }
+ if (param_1 == 0x1f) {
+ DAT_GameSynchronyState.skirmishTechLevel
+ = DAT_GameSynchronyState.skirmishTechLevel + 2;
+ if (5 < DAT_GameSynchronyState.skirmishTechLevel) {
+ DAT_GameSynchronyState.skirmishTechLevel = 0;
+ }
+ SetupSkirmishBalanceAndOrIntensity();
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[0] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[1] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[2] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[3] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[4] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[5] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[6] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[7] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[8] = 1;
+ return;
+ }
+ if (param_1 == 0x24) {
+ setModalSliderParameters(0x4f, 0x33, 2,
+ (dword)((int)(DAT_GameSynchronyState.skirmishWinCondition)),
+ (undefined*)((int)(&DAT_GameSynchronyState.skirmishWinCondition)),
+ (undefined*)((int)(Synchrony::Commands::QueueChangeGameIntensityOrBalance::instance)));
+ setExtraActiveModalDialog(MMT_UNUSED_WIN_CONDITION,
+ DAT_ButtonX + 5, DAT_ButtonY + 0x23);
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[0] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[1] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[2] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[3] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[4] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[5] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[6] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[7] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[8] = 1;
+ return;
+ }
+ if (param_1 == 0x53) {
+ DAT_GameSynchronyState.skirmishTroopsCostGold
+ = DAT_GameSynchronyState.skirmishTroopsCostGold ^ 1;
+ queueCommand(GCT_CHANGE_GAME_INTENSITY_OR_BALANCE);
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[0] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[1] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[2] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[3] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[4] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[5] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[6] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[7] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[8] = 1;
+ return;
+ }
+ if (param_1 == 0x6d) {
+ DAT_GameState.mapAndTime.skirmishFogOfWar
+ = DAT_GameState.mapAndTime.skirmishFogOfWar + 1;
+ if (DAT_GameState.mapAndTime.skirmishFogOfWar == 3) {
+ DAT_GameState.mapAndTime.skirmishFogOfWar = 0;
+ }
+ queueCommand(GCT_CHANGE_GAME_INTENSITY_OR_BALANCE);
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[0] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[1] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[2] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[3] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[4] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[5] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[6] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[7] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[8] = 1;
+ return;
+ }
+ if (param_1 == 0x5d) {
+ activateModalDialog(MMT_SKIRMISH_CONNECTION_OPTIONS, FALSE);
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[0] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[1] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[2] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[3] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[4] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[5] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[6] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[7] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[8] = 1;
+ return;
+ }
+ if (param_1 == 0x67) {
+ activateModalDialog(MMT_SKIRMISH_PLAY_OPTIONS, FALSE);
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[0] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[1] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[2] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[3] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[4] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[5] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[6] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[7] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[8] = 1;
+ return;
+ }
+ if (param_1 == 0x5e) {
+ if (DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes == 0) {
+ DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes = 5;
+ } else if (DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes == 5) {
+ DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes = 10;
+ } else if (DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes == 10) {
+ DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes = 0x14;
+ } else if (DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes == 0x14) {
+ DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes = 0;
+ }
+ queueCommand(GCT_CHANGE_GAME_INTENSITY_OR_BALANCE);
+ if (DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes == 0) {
+ /*
+ added by script: "Off"
+ */
+ pcVar1 = getTextStringInGroupAtOffset(TEXT_XPLAY_WAITING_ROOM, 0x5f);
+ /*
+ added by script: "Auto save game"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_XPLAY_WAITING_ROOM, 0x5e);
+ _sprintf(
+ DAT_GameSynchronyState.receivedChatMessage, "%s :%s", pcVar2, pcVar1);
+ }
+ if (DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes == 5) {
+ /*
+ added by script: "5 minutes"
+ */
+ pcVar1 = getTextStringInGroupAtOffset(TEXT_XPLAY_WAITING_ROOM, 0x60);
+ /*
+ added by script: "Auto save game"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_XPLAY_WAITING_ROOM, 0x5e);
+ _sprintf(
+ DAT_GameSynchronyState.receivedChatMessage, "%s :%s", pcVar2, pcVar1);
+ }
+ if (DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes == 10) {
+ /*
+ added by script: "10 minutes"
+ */
+ pcVar1 = getTextStringInGroupAtOffset(TEXT_XPLAY_WAITING_ROOM, 0x61);
+ /*
+ added by script: "Auto save game"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_XPLAY_WAITING_ROOM, 0x5e);
+ _sprintf(
+ DAT_GameSynchronyState.receivedChatMessage, "%s :%s", pcVar2, pcVar1);
+ }
+ if (DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes == 20) {
+ /*
+ added by script: "20 minutes"
+ */
+ pcVar1 = getTextStringInGroupAtOffset(TEXT_XPLAY_WAITING_ROOM, 0x62);
+ iVar5 = 0x5e;
+ eVar4 = TEXT_XPLAY_WAITING_ROOM;
+ LAB_0042a392:
+ /*
+ added by script: "Auto save game"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(eVar4, iVar5);
+ _sprintf(
+ DAT_GameSynchronyState.receivedChatMessage, "%s :%s", pcVar2, pcVar1);
+ }
+ LAB_0042a3af:
+ copyIntoTextArray(DAT_GameSynchronyState.receivedChatMessage);
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[0] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[1] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[2] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[3] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[4] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[5] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[6] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[7] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[8] = 1;
+ DAT_GameSynchronyState
+ .DAT_ChatMessageReceiverArray[DAT_GameSynchronyState.currentPlayerSlotID] = 0;
+ DAT_GameSynchronyState.DAT_ChatTauntOrMessage = 10000;
+ queueCommand(GCT_TAUNT_OR_CHAT);
+ goto LAB_0042a41d;
+ }
+ if (param_1 == 99) {
+ DAT_GameSynchronyState.skirmishStrongWalls
+ = DAT_GameSynchronyState.skirmishStrongWalls ^ 1;
+ queueCommand(GCT_CHANGE_GAME_INTENSITY_OR_BALANCE);
+ if (DAT_GameSynchronyState.skirmishStrongWalls == 0) {
+ iVar5 = 0x5f;
+ eVar4 = TEXT_XPLAY_WAITING_ROOM;
+ } else {
+ iVar5 = 0xd;
+ eVar4 = TEXT_GAME_OPTIONS;
+ }
+ /*
+ added by script: "Off"
+ */
+ pcVar1 = getTextStringInGroupAtOffset(eVar4, iVar5);
+ iVar5 = 99;
+ eVar4 = TEXT_XPLAY_WAITING_ROOM;
+ LAB_00429e4b:
+ /*
+ added by script: "Strong Walls"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(eVar4, iVar5);
+ _sprintf(
+ DAT_GameSynchronyState.receivedChatMessage, "%s :%s", pcVar2, pcVar1);
+ copyIntoTextArray(DAT_GameSynchronyState.receivedChatMessage);
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[0] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[1] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[2] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[3] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[4] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[5] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[6] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[7] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[8] = 1;
+ DAT_GameSynchronyState
+ .DAT_ChatMessageReceiverArray[DAT_GameSynchronyState.currentPlayerSlotID] = 0;
+ DAT_GameSynchronyState.DAT_ChatTauntOrMessage = 10000;
+ queueCommand(GCT_TAUNT_OR_CHAT);
+ } else {
+ if (param_1 == 100) {
+ DAT_GameSynchronyState.skirmishAlliances
+ = DAT_GameSynchronyState.skirmishAlliances ^ 1;
+ queueCommand(GCT_CHANGE_GAME_INTENSITY_OR_BALANCE);
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[0] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[1] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[2] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[3] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[4] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[5] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[6] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[7] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[8] = 1;
+ return;
+ }
+ if (param_1 == -1000) {
+ activateModalDialog(MMT_NONE, FALSE);
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[0] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[1] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[2] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[3] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[4] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[5] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[6] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[7] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[8] = 1;
+ return;
+ }
+ if (param_1 == -1) {
+ setSliderParameters(2000, 150000,
+ DAT_GameSynchronyState.skirmishPoints,
+ (undefined*)((int)(&DAT_GameSynchronyState.skirmishPoints)),
+ (void*)((int)(Synchrony::Commands::QueueChangeGameIntensityOrBalance::instance)));
+ DAT_MenuModalComposition2.textGroup = 0x4f;
+ DAT_MenuModalComposition2.textIndex = 0x58;
+ /*
+ cr.tex: Points
+ */
+ setExtraActiveModalDialog(MMT_OVERLAY_SLIDER,
+ DAT_ButtonX + -0x17, DAT_ButtonY + 0x3f);
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[0] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[1] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[2] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[3] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[4] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[5] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[6] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[7] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[8] = 1;
+ return;
+ }
+ if (param_1 == -10) {
+ DAT_GameSynchronyState.skirmishNoCowThrowing
+ = DAT_GameSynchronyState.skirmishNoCowThrowing ^ 1;
+ queueCommand(GCT_CHANGE_GAME_INTENSITY_OR_BALANCE);
+ if (DAT_GameSynchronyState.skirmishNoCowThrowing == 0) {
+ iVar5 = 0x5f;
+ eVar4 = TEXT_XPLAY_WAITING_ROOM;
+ } else {
+ iVar5 = 0xd;
+ eVar4 = TEXT_GAME_OPTIONS;
+ }
+ /*
+ added by script: "Off" / "On"
+ */
+ pcVar1 = getTextStringInGroupAtOffset(eVar4, iVar5);
+ iVar5 = 5;
+ } else {
+ if (param_1 == -0xb) {
+ DAT_GameSynchronyState.skirmishNoDogs
+ = DAT_GameSynchronyState.skirmishNoDogs ^ 1;
+ queueCommand(GCT_CHANGE_GAME_INTENSITY_OR_BALANCE);
+ if (DAT_GameSynchronyState.skirmishNoDogs == 0) {
+ /*
+ added by script: "Off"
+ */
+ pcVar1 = getTextStringInGroupAtOffset(TEXT_XPLAY_WAITING_ROOM, 0x5f);
+ } else {
+ /*
+ added by script: "On"
+ */
+ pcVar1 = getTextStringInGroupAtOffset(TEXT_GAME_OPTIONS, 0xd);
+ }
+ iVar5 = 6;
+ eVar4 = TEXT_SKIRMISH_MISC;
+ goto LAB_0042a392;
+ }
+ if (param_1 == -0xd) {
+ DAT_GameSynchronyState.skirmishExtremeMode
+ = DAT_GameSynchronyState.skirmishExtremeMode ^ 1;
+ queueCommand(GCT_CHANGE_GAME_INTENSITY_OR_BALANCE);
+ if (DAT_GameSynchronyState.skirmishExtremeMode == 0) {
+ /*
+ added by script: "Off"
+ */
+ pcVar1 = getTextStringInGroupAtOffset(TEXT_XPLAY_WAITING_ROOM, 0x5f);
+ iVar5 = 0xd;
+ eVar4 = TEXT_SKIRMISH_MISC;
+ } else {
+ /*
+ added by script: "On"
+ */
+ pcVar1 = getTextStringInGroupAtOffset(TEXT_GAME_OPTIONS, 0xd);
+ iVar5 = 0xd;
+ eVar4 = TEXT_SKIRMISH_MISC;
+ }
+ goto LAB_00429e4b;
+ }
+ if (param_1 != -0xe) {
+ if (param_1 != -0xc) {
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[0] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[1] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[2] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[3] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[4] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[5] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[6] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[7] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[8] = 1;
+ return;
+ }
+ DAT_GameSynchronyState.skirmishNoRushSetting
+ = DAT_GameSynchronyState.skirmishNoRushSetting + 1;
+ if (5 < (int)DAT_GameSynchronyState.skirmishNoRushSetting) {
+ DAT_GameSynchronyState.skirmishNoRushSetting = 0;
+ }
+ queueCommand(GCT_CHANGE_GAME_INTENSITY_OR_BALANCE);
+ if (DAT_GameSynchronyState.skirmishNoRushSetting == 0) {
+ iVar5 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ renderInGameText2(TEXT_XPLAY_WAITING_ROOM, 0x5f,
+ DAT_ButtonW + -0x14 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xb8e6f5, 0, 0x12,
+ FALSE, ((int)(iVar5 + (iVar5 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ }
+ if (DAT_GameSynchronyState.skirmishNoRushSetting == 1) {
+ iVar5 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ renderInGameText2(TEXT_XPLAY_WAITING_ROOM, 0x60,
+ DAT_ButtonW + -0x14 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xb8e6f5, 0, 0x12,
+ FALSE, ((int)(iVar5 + (iVar5 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ }
+ if (DAT_GameSynchronyState.skirmishNoRushSetting == 2) {
+ iVar5 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ renderInGameText2(TEXT_XPLAY_WAITING_ROOM, 0x61,
+ DAT_ButtonW + -0x14 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xb8e6f5, 0, 0x12,
+ FALSE, ((int)(iVar5 + (iVar5 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ }
+ if (DAT_GameSynchronyState.skirmishNoRushSetting == 3) {
+ iVar5 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ renderInGameText2(TEXT_XPLAY_WAITING_ROOM, 0x62,
+ DAT_ButtonW + -0x14 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xb8e6f5, 0, 0x12,
+ FALSE, ((int)(iVar5 + (iVar5 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ }
+ if (DAT_GameSynchronyState.skirmishNoRushSetting == 4) {
+ iVar5 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ /*
+ 30 minutes
+ */
+ renderInGameText2(TEXT_SKIRMISH_MISC, 8,
+ DAT_ButtonW + -0x14 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xb8e6f5, 0, 0x12,
+ FALSE, ((int)(iVar5 + (iVar5 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ }
+ bVar3 = false;
+ if (DAT_GameSynchronyState.skirmishNoRushSetting == 5) {
+ iVar5 = (DAT_ButtonBackgroundBlendStrength + -0x20) * 0x20;
+ renderInGameText2(TEXT_SKIRMISH_MISC, 9,
+ DAT_ButtonW + -0x14 + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xb8e6f5, 0, 0x12,
+ FALSE, ((int)(iVar5 + (iVar5 >> 0x1f & 0x1fU)) >> 5) + 0x20);
+ bVar3 = DAT_GameSynchronyState.skirmishNoRushSetting == 5;
+ }
+ if (DAT_GameSynchronyState.skirmishNoRushSetting < 5 || bVar3) {
+ (*(code*)(PTR_LAB_0042a460::ptr)[DAT_GameSynchronyState.skirmishNoRushSetting])();
+ return;
+ }
+ goto LAB_0042a3af;
+ }
+ DAT_GameSynchronyState.skirmishExtremeMode2
+ = DAT_GameSynchronyState.skirmishExtremeMode2 ^ 1;
+ queueCommand(GCT_CHANGE_GAME_INTENSITY_OR_BALANCE);
+ if (DAT_GameSynchronyState.skirmishExtremeMode == 0) {
+ /*
+ added by script: "Off"
+ */
+ pcVar1 = getTextStringInGroupAtOffset(TEXT_XPLAY_WAITING_ROOM, 0x5f);
+ iVar5 = 0xe;
+ } else {
+ /*
+ added by script: "On"
+ */
+ pcVar1 = getTextStringInGroupAtOffset(TEXT_GAME_OPTIONS, 0xd);
+ iVar5 = 0xe;
+ }
+ }
+ /*
+ added by script: "Extreme Powers around Lord"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_SKIRMISH_MISC, iVar5);
+ _sprintf(
+ DAT_GameSynchronyState.receivedChatMessage, "%s :%s", pcVar2, pcVar1);
+ copyIntoTextArray(DAT_GameSynchronyState.receivedChatMessage);
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[0] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[1] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[2] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[3] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[4] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[5] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[6] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[7] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[8] = 1;
+ DAT_GameSynchronyState
+ .DAT_ChatMessageReceiverArray[DAT_GameSynchronyState.currentPlayerSlotID] = 0;
+ DAT_GameSynchronyState.DAT_ChatTauntOrMessage = 10000;
+ queueCommand(GCT_TAUNT_OR_CHAT);
+ }
+ LAB_0042a41d:
+ clearEntry(
+ DAT_UserTextHandlerState.textArrayIndex);
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[8] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[7] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[6] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[5] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[4] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[3] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[2] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[1] = 1;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[0] = 1;
+ return;
+ }
+ }
+}
+}
+
+### 0x00430100 MenuView_General_DoInitial_ScreenToBlack | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00430100
+ void General::MenuView_General_DoInitial_ScreenToBlack()
+ {
+ Menu* pMVar1;
+ drawColorBox(0,
+ 0, DAT_WindowAndDirectDraw.resolutionX, DAT_WindowAndDirectDraw.resolutionY,
+ (ushort)((int)(COL_BLACK::instance.shortValue)));
+ DAT_MenuHandlerState.y = DAT_WindowAndDirectDraw.mainMenuBorderHeight;
+ DAT_MenuHandlerState.x = DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ pMVar1 = DAT_MenuHandlerState.currentMenu;
+ (DAT_MenuHandlerState.currentMenu)->xPosition
+ = DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ pMVar1->yPosition = DAT_MenuHandlerState.y;
+ return;
+ }
+ }
+}
+}
+

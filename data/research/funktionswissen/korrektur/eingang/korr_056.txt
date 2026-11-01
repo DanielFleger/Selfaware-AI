@@ -1,0 +1,922 @@
+### 0x00512100 setupAllMapSections | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00512100
+ void TileMapState::setupAllMapSections()
+ {
+ ushort* puVar1;
+ short* psVar2;
+ ushort uVar3;
+ int* piVar4;
+ int iVar5;
+ this->temporaryTerrainTypeIndex = 0;
+ this->SEC_Section1052 = 0;
+ this->SEC_Section1053 = 0;
+ this->SEC_Section1054 = 0;
+ setupTileMapSections();
+ DAT_WallAndPitchState.countdown = 0;
+ setTileSystemMemoryLookupArrays();
+ tweakValidTilesToExcludeMapBorders();
+ setupViewport(0,
+ 0, (undefined4)((int)(DAT_WindowAndDirectDraw.resolutionX)),
+ (undefined4)((int)(DAT_WindowAndDirectDraw.resolutionY + -128)));
+ setupLogicalMapBorders();
+ updateShowHiLayerOrResetChangedLayer();
+ puVar1 = this->GfxLayer + 1;
+ piVar4 = this->LogicLayer + 1;
+ iVar5 = 13400;
+ do {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2];
+ if (piVar4[-1] != 0x10) {
+ if (piVar4[-1] == 0x20) {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 1;
+ } else {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 2;
+ }
+ }
+ puVar1[-1] = uVar3;
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2];
+ if (*piVar4 != 0x10) {
+ if (*piVar4 == 0x20) {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 1;
+ } else {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 2;
+ }
+ }
+ *puVar1 = uVar3;
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2];
+ if (piVar4[1] != 0x10) {
+ if (piVar4[1] == 0x20) {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 1;
+ } else {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 2;
+ }
+ }
+ puVar1[1] = uVar3;
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2];
+ if (piVar4[2] != 0x10) {
+ if (piVar4[2] == 0x20) {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 1;
+ } else {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 2;
+ }
+ }
+ puVar1[2] = uVar3;
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2];
+ if (piVar4[3] != 0x10) {
+ if (piVar4[3] == 0x20) {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 1;
+ } else {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 2;
+ }
+ }
+ puVar1[3] = uVar3;
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2];
+ if (piVar4[4] != 0x10) {
+ if (piVar4[4] == 0x20) {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 1;
+ } else {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 2;
+ }
+ }
+ puVar1[4] = uVar3;
+ piVar4 = piVar4 + 6;
+ puVar1 = puVar1 + 6;
+ iVar5 = iVar5 + -1;
+ } while (iVar5 != 0);
+ fillMemory_ShortValue(
+ 80400, 1, (void*)((int)(this->PillarGFXLayer)));
+ fillMemory_ByteValue(
+ 80400, '\b', (void*)((int)(this->HeightLayer)));
+ fillMemory_ByteValue(
+ 80400, '\b', (void*)((int)(this->DefaultHeightLayer)));
+ DAT_PathFindingState.searchGeneration = 1;
+ fillMemory_ByteValue(
+ 160800, '\0', (void*)((int)(this->WalkLayer)));
+ setChangedLayerZeroBasedOn40x40Layer(0);
+ updateLogicalTileMapRelatedSections();
+ updateGfxLayer();
+ updateGFXLayers();
+ resetMoatArray();
+ resetPitchDitchArray();
+ toggleFlatView(0);
+ this->_5589200_4_ = 0;
+ this->flatViewToggleValue2 = 0;
+ clearBuildings();
+ clearRocksAndTrees();
+ resetWind();
+ DoNothing();
+ clearAllUnits();
+ clearAllTribes();
+ clearMapAndTimeAndPlayerData();
+ resetVariousCountsAndStatisticsAndStartGoodsAndResources();
+ clearCurrentResourcesAndStrongWalls();
+ initializeGameStateAfterMapLoad();
+ fillWith0xFF();
+ clearAnimalSpawnLocationsUnk();
+ piVar4 = DAT_AICState.tribeUIDArray;
+ psVar2 = DAT_AICState.tribeIDArray;
+ do {
+ *psVar2 = 0;
+ *piVar4 = 0;
+ psVar2 = psVar2 + 1;
+ piVar4 = piVar4 + 1;
+ } while ((int)psVar2 < 0x24026cc);
+ DoNothing();
+ DoNothing();
+ clearEntityArrayAndSeagullArray();
+ setChangedLayerToThreeAndMapping0x40x40();
+ this->forceUpdateLogicalAndMiscDisplayLayers = 1;
+ this->forceUpdateTextureTilemap = 1;
+ this->forceUpdateGFXLayers = 1;
+ this->forceUpdateMacroLayerFlag = 1;
+ this->field68_0x55487c = 200;
+ updatePathLinkageLayerForEachBuildingAtEachTile();
+ updateSeparateAreaTileMap(1);
+ this->forceUpdateMacroLayerFlag = 1;
+ this->field68_0x55487c = 500;
+ setTileColorsDependingOnMapSize(0, 100);
+ setMapPropertyDependingOnMapSize(0, 100);
+ DAT_GameCore.currentlyInGameUnk_0xa4 = FALSE;
+ ResetSomeValuesFunctionUnk();
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00512100", "name": "setupAllMapSections", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Setzt Karte und Spielzustand komplett auf einen leeren Anfangszustand."}, "p2": {"ein": "-", "aus": "-", "liest": ["LogicLayer", "GMTotalPicturesProcessed::instance[2]", "DAT_WindowAndDirectDraw.resolutionX/Y"], "schreibt": ["GfxLayer", "PillarGFXLayer", "HeightLayer", "DefaultHeightLayer", "WalkLayer", "Merker forceUpdate*", "field68_0x55487c", "DAT_AICState.tribeIDArray/tribeUIDArray", "currentlyInGameUnk_0xa4"], "ruft": ["setupTileMapSections", "setTileSystemMemoryLookupArrays", "tweakValidTilesToExcludeMapBorders", "setupViewport", "setupLogicalMapBorders", "resetMoatArray", "resetPitchDitchArray", "clearBuildings", "clearRocksAndTrees", "clearAllUnits", "clearAllTribes", "clearMapAndTimeAndPlayerData", "resetVariousCountsAndStatisticsAndStartGoodsAndResources", "clearCurrentResourcesAndStrongWalls", "initializeGameStateAfterMapLoad", "updateSeparateAreaTileMap", "setTileColorsDependingOnMapSize", "setMapPropertyDependingOnMapSize"], "regeln": ["Ablauf in 6 Schritten: 1. Ebenen leeren (setupTileMapSections), 2. Ansicht und Kartenränder einrichten (Ansicht reicht bis resolutionY minus 128), 3. GfxLayer neu aus der LogicLayer füllen, 4. Gräben und Pechgräben zurücksetzen, 5. Gebäude, Bäume, Einheiten, Gruppen, Spielerdaten, Waren und Starthaufen löschen, 6. Wege- und Gebiets-Karten neu berechnen", "GfxLayer je Feld: LogicLayer-Wert 0x10 ergibt Grundbild, 0x20 Grundbild+1, jeder andere Wert Grundbild+2", "PillarGFXLayer = 1, HeightLayer und DefaultHeightLayer = 8 auf allen 80400 Feldern", "WalkLayer (160800 Byte) = 0, searchGeneration der Wegfindung = 1", "Die KI-Gruppenlisten (tribeIDArray, tribeUIDArray) werden auf 0 gesetzt", "field68_0x55487c wird erst 200, dann 500; Neuzeichnen-Merker werden gesetzt"], "offen": ["Bedeutung von field68_0x55487c", "Bedeutung der LogicLayer-Werte 0x10 und 0x20 (vermutlich Gelände)"]}, "p3": {"erklaerung": "Die Aufräum- und Neustartroutine für eine frische Karte: nichts bleibt aus dem vorherigen Spiel stehen.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x00512450 prepareMap | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00512450
+ void TileMapState::prepareMap()
+ {
+ char cVar1;
+ char* pcVar2;
+ char (*pacVar3)[250];
+ int _viewportY;
+ int _viewportX;
+ _viewportX = DAT_ViewportRenderState.viewportState.viewportY;
+ _viewportY = DAT_ViewportRenderState.viewportState.viewportX;
+ if (DAT_GameSynchronyState.currentGameModeCopy_SEC_Section1106
+ == GM_SKIRMISH_SINGLE_PLAYER) {
+ DAT_GameSynchronyState.currentGameMode = GM_SKIRMISH_SINGLE_PLAYER;
+ DAT_GameSynchronyState.isHost = TRUE;
+ pcVar2 = getTextArrayPointer(0);
+ pacVar3 = DAT_GameSynchronyState.DAT_PlayerNames + 1;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ syncAIPlayerNamesAndBuildIntervals();
+ DAT_GameSynchronyState.currentPlayerSlotID = 1;
+ } else {
+ if (DAT_GameCore.gameMode_2 == GM_CAMPAIGN_MISSION) {
+ if (0xf < DAT_GameCore.missionNumber1to20)
+ goto LAB_005124d2;
+ } else if (DAT_GameCore.gameMode_2 != GM_BUILDERUnk)
+ goto LAB_005124d2;
+ DAT_GameSynchronyState.currentGameMode = GM_SOLITARY;
+ }
+ LAB_005124d2:
+ changeMapOrientation(this->mapOrientation);
+ DAT_PathFindingState.searchGeneration = 1;
+ fillMemory_ByteValue(
+ 0x27420, '\0', (void*)((int)(this->WalkLayer)));
+ DAT_ViewportRenderState.viewportState.viewportX = _viewportY;
+ DAT_ViewportRenderState.viewportState.viewportY = _viewportX;
+ setViewportBasedOnMapSize();
+ setTileSystemMemoryLookupArrays();
+ tweakValidTilesToExcludeMapBorders();
+ DAT_BuildingsState.maxBuildingsCount = 2000;
+ DAT_UnitsState.maxUnitCount = 2500;
+ DAT_PathFindingState.maxClimbDataCount = 200;
+ DAT_EntityState.maxEntityCount = 3000;
+ this->currentMoatCount = 16000;
+ DAT_LandscapeState.maxTreeCount = 2000;
+ this->maxPitchDitchCount = 4000;
+ resetHeightAndMapBorders(this->mapSize);
+ toggleFlatView(0);
+ this->_5589200_4_ = 0;
+ this->flatViewToggleValue2 = 0;
+ setChangedLayerToThreeAndMapping0x40x40();
+ this->forceUpdateLogicalAndMiscDisplayLayers = 1;
+ this->forceUpdateTextureTilemap = 1;
+ this->forceUpdateGFXLayers = 1;
+ this->forceUpdateMacroLayerFlag = 1;
+ this->field68_0x55487c = 500;
+ upgradeTribeArrayLayoutForMapVersion(FilePackagerObj::instance.versionNumOfCurrentFileTypeUnk,
+ (PackagedFileMagicNum)((int)(FilePackagerObj::instance.packagerMapVersionNumUnk)));
+ uselessFunction(
+ FilePackagerObj::instance.versionNumOfCurrentFileTypeUnk,
+ (PackagedFileMagicNum)((int)(FilePackagerObj::instance.packagerMapVersionNumUnk)));
+ upgradeMapFormatForUnits(
+ FilePackagerObj::instance.versionNumOfCurrentFileTypeUnk,
+ (PackagedFileMagicNum)((int)(FilePackagerObj::instance.packagerMapVersionNumUnk)));
+ upgradeMapFormatLogicLayer(
+ FilePackagerObj::instance.versionNumOfCurrentFileTypeUnk,
+ (PackagedFileMagicNum)((int)(FilePackagerObj::instance.packagerMapVersionNumUnk)));
+ upgradeBuildingsForMapVersion(FilePackagerObj::instance.versionNumOfCurrentFileTypeUnk,
+ (PackagedFileMagicNum)((int)(FilePackagerObj::instance.packagerMapVersionNumUnk)));
+ upgradeTreesAndRocksForMapVersion(FilePackagerObj::instance.versionNumOfCurrentFileTypeUnk,
+ (PackagedFileMagicNum)((int)(FilePackagerObj::instance.packagerMapVersionNumUnk)));
+ upgradeMapTribesState(
+ FilePackagerObj::instance.versionNumOfCurrentFileTypeUnk,
+ (PackagedFileMagicNum)((int)(FilePackagerObj::instance.packagerMapVersionNumUnk)));
+ migrateGameStateForMapVersion(
+ FilePackagerObj::instance.versionNumOfCurrentFileTypeUnk,
+ (PackagedFileMagicNum)((int)(FilePackagerObj::instance.packagerMapVersionNumUnk)));
+ handleMapVersionUpgrade(
+ FilePackagerObj::instance.versionNumOfCurrentFileTypeUnk,
+ (PackagedFileMagicNum)((int)(FilePackagerObj::instance.packagerMapVersionNumUnk)));
+ recountTotalOwnedMoats();
+ updatePathLinkageLayerForEachBuildingAtEachTile();
+ updateSeparateAreaTileMap(1);
+ updatePathLinkageLayerForAllBuildings();
+ updateClimbData();
+ clearBuildingValueWhenStateIsTwo();
+ setCurrentTimeOnSomeTrees();
+ resetWind();
+ collectCliffEdgeTilesForClimbData();
+ clearInvalidMoatEntries();
+ initializeGameStateAfterMapLoad();
+ sortEventsByDate();
+ applyVersionUpgradeAccessibilityRecompute(FilePackagerObj::instance.versionNumOfCurrentFileTypeUnk,
+ (PackagedFileMagicNum)((int)(FilePackagerObj::instance.packagerMapVersionNumUnk)));
+ updateSeparateAreaTileMap(1);
+ updatePathLinkageLayerForAllBuildings();
+ _viewportX = 0;
+ do {
+ updateWildlifeGrid(_viewportX);
+ _viewportX = _viewportX + 1;
+ } while (_viewportX < 40);
+ updateWildlife();
+ updateSection1034Info();
+ updateNofFpoints();
+ ResetSomeValuesFunctionUnk();
+ DAT_WallAndPitchState.countdown = 0;
+ clearHoveredState();
+ DAT_GameCore.gamePausedLogical = 0xffffffff;
+ processGameTick();
+ updateSeparateAreaTileMap(1);
+ setTileColorsDependingOnMapSize(0, 100);
+ setMapPropertyDependingOnMapSize(0, 100);
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00512450", "name": "prepareMap", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Bereitet eine geladene Karte zum Spielen vor und setzt die Obergrenzen."}, "p2": {"ein": "-", "aus": "-", "liest": ["currentGameModeCopy_SEC_Section1106", "DAT_GameCore.gameMode_2", "missionNumber1to20", "mapOrientation", "mapSize"], "schreibt": ["currentGameMode", "isHost", "DAT_PlayerNames[1]", "currentPlayerSlotID", "maxBuildingsCount", "maxUnitCount", "maxClimbDataCount", "maxEntityCount", "currentMoatCount", "maxTreeCount", "maxPitchDitchCount", "gamePausedLogical", "DAT_WallAndPitchState.countdown"], "ruft": ["changeMapOrientation", "setViewportBasedOnMapSize", "resetHeightAndMapBorders", "upgradeTribeArrayLayoutForMapVersion", "upgradeMapFormatForUnits", "upgradeMapFormatLogicLayer", "upgradeBuildingsForMapVersion", "upgradeTreesAndRocksForMapVersion", "upgradeMapTribesState", "migrateGameStateForMapVersion", "handleMapVersionUpgrade", "recountTotalOwnedMoats", "updateSeparateAreaTileMap", "updateClimbData", "initializeGameStateAfterMapLoad", "sortEventsByDate", "updateWildlife", "processGameTick"], "regeln": ["Einzelspieler-Gefecht (GM_SKIRMISH_SINGLE_PLAYER): Host = TRUE, Spielername aus Text 0 an Platz 1, KI-Namen synchronisieren, currentPlayerSlotID = 1", "Kampagnenmission 1 bis 15 und der Modus GM_BUILDERUnk setzen currentGameMode = GM_SOLITARY; Mission über 15 nicht", "Obergrenzen: 2000 Gebäude, 2500 Einheiten, 200 Kletterdaten, 3000 Entitäten, 2000 Bäume, 4000 Pechgräben; currentMoatCount wird zunächst 16000", "Sichert die Ansicht vorab und stellt sie nach der Orientierung wieder her", "Danach folgt die Versions-Aufrüstung aller Datenarten, Neuberechnung von Gräben, Wegverbindungen, Klettern, Wild (40 Gitterabschnitte) und Ereignissen", "Zum Schluss gamePausedLogical = 0xffffffff und genau ein processGameTick()"], "offen": ["Ob die Obergrenzen später noch (zum Beispiel von UCP) verändert werden", "Wirkung von uselessFunction"]}, "p3": {"erklaerung": "Wird nach dem Laden einer Karte gerufen. Hier stehen die festen Obergrenzen des Spiels: 2000 Gebäude und 2500 Einheiten zugleich. Danach wird ein Spieltick vorab gerechnet.", "gehirn": "Obergrenzen für Gebäude- und Einheitenlisten kennen: Wer units[] oder buildings[] durchläuft, darf nicht über 2500 beziehungsweise 2000 hinaus lesen.", "beleg": "code", "live": "maxUnitCount, maxBuildingsCount und maxEntityCount lesen → in laufender Partie → 2500, 2000, 3000 (sonst UCP-Änderung)", "live_art": "tabelle"}}
+
+### 0x00512940 setTerrain | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00512940
+ void TileMapState::setTerrain(int playerID, int tile, uint yParam, uint brushType, Logic1 flags1, Logic2 flags2)
+ {
+ int baseTile;
+ uint y;
+ uint x;
+ BOOLEnum BVar1;
+ int iVar2;
+ uint* puVar3;
+ int local_1c;
+ int local_18;
+ int _index;
+ int _size;
+ y = yParam;
+ baseTile = tile;
+ _size = DAT_TerrainDefinedData.BrushSizeArray[brushType];
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ local_1c = 0x1e;
+ local_18 = 0x1e;
+ } else {
+ local_1c = 0xf;
+ local_18 = 7;
+ }
+ if (((DAT_GameCore.gameMode_2 == GM_EDITOR)
+ && (flags1 != L_MOAT))
+ && (((flags2 == L2_EARTH_AND_STONES
+ || (((flags2 == L2_OASIS_GRASS
+ || (flags2 == L2_BEACH))
+ || (flags2 == L2_STONES_OR_DRIVEN_SANDUnk))))
+ || ((flags2 == L2_SCRUB
+ || (flags2 == L2_THICK_SCRUB)))))) {
+ /*
+ this functions processes all oasis tiles
+ */
+ setLand(tile, yParam, brushType);
+ }
+ if (flags1 == L_MOAT) {
+ _size = 9;
+ }
+ _index = 0;
+ do {
+ if (_size <= _index) {
+ return;
+ }
+ if (flags1 == L_MOAT) {
+ getTileForBrush(
+ 0, _index, &tile, (int*)&yParam, baseTile, y);
+ } else {
+ getTileForBrush(
+ 1, _index, &tile, (int*)&yParam, baseTile, y);
+ }
+ if ((this->LogicLayer[tile] & 0x10U) == 0) {
+ if (flags1 == L_SEA) {
+ if (((((this->LogicLayer[tile] & 0x10000400U) == 0) && (this->BuildingLayer[tile] == 0))
+ && ((this->LogicLayer[tile] & 0x100U) == 0))
+ && (this->OrganismLayer[tile] == 0)) {
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffffffbf;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffefffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffdfffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffffff7f;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffdffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffbffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfff7ffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xdfffffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0x7fffffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xbfffffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffffff7;
+ this->Logic2Layer[tile] = 0;
+ this->LogicLayer[tile] = this->LogicLayer[tile] | 1;
+ this->HeightLayer[tile] = 0;
+ this->DefaultHeightLayer[tile] = 0;
+ this->forceUpdateLogicalAndMiscDisplayLayers = 1;
+ LAB_00514457:
+ if (flags1 != L_NONE) {
+ updatePathLinkagesInAllEightDirections(yParam, tile);
+ }
+ }
+ } else if ((flags1 == L_RIVER)
+ || (flags1 == L_FORD)) {
+ if ((((this->LogicLayer[tile] & 0x10000400U) == 0)
+ && (((this->BuildingLayer[tile] == 0 && ((this->LogicLayer[tile] & 0x100U) == 0))
+ && (this->OrganismLayer[tile] == 0))))
+ && ((flags2 == L2_NONE
+ || ((this->LogicLayer[tile] & 0x100000U) != 0)))) {
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffffffbf;
+ if (flags1 == L_RIVER) {
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffdfffff;
+ } else {
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffefffff;
+ }
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffffff7f;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffdffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffbffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfff7ffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xdfffffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0x7fffffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xbfffffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffffffe;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffffff7;
+ this->Logic2Layer[tile] = 0;
+ if (flags2 != L2_BEACH) {
+ this->WallGFXLayer[tile] = this->RandomLayer[tile] & 7;
+ }
+ if (flags2 == L2_OASIS_GRASS) {
+ this->Logic2Layer[tile] = 0x10;
+ }
+ if (flags2 == L2_BEACH) {
+ this->Logic2Layer[tile] = 0x20;
+ this->WallGFXLayer[tile] = ((ushort)DAT_GameCore.mapTimeInTicks & 8)
+ + this->WallGFXLayer[tile] * 0x20 + (this->RandomLayer[tile] & 7) * 0x400;
+ }
+ this->LogicLayer[tile] = this->LogicLayer[tile] | flags1;
+ if (7 < this->HeightLayer[tile]) {
+ this->HeightLayer[tile] = this->DefaultHeightLayer[tile] - 8;
+ this->forceUpdateLogicalAndMiscDisplayLayers = 1;
+ }
+ goto LAB_00514457;
+ }
+ } else if (flags1 == L_ROCKY) {
+ if ((((this->LogicLayer[tile] & 0x10000400U) == 0) && (this->BuildingLayer[tile] == 0))
+ && (((this->LogicLayer[tile] & 0x100U) == 0
+ && (((this->LogicLayer[tile] & 0x100000U) == 0 && (this->OrganismLayer[tile] == 0)))))) {
+ if ((this->LogicLayer[tile] & 1U) == 0) {
+ if (this->HeightLayer[tile] < 8) {
+ this->HeightLayer[tile] = 8;
+ this->DefaultHeightLayer[tile] = 8;
+ }
+ } else {
+ this->HeightLayer[tile] = 0;
+ this->DefaultHeightLayer[tile] = 0;
+ }
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffffffe;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffefffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffdfffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffffffbf;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffdffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffbffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfff7ffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xdfffffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0x7fffffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xbfffffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffffff7;
+ this->Logic2Layer[tile] = 0;
+ this->LogicLayer[tile] = this->LogicLayer[tile] | 0x80;
+ goto LAB_00514457;
+ }
+ } else if (flags1 == L_IRON) {
+ if ((((this->LogicLayer[tile] & 0x10000400U) == 0) && (this->BuildingLayer[tile] == 0))
+ && (((this->LogicLayer[tile] & 0x100U) == 0
+ && ((((this->LogicLayer[tile] & 1U) == 0 && ((this->LogicLayer[tile] & 0x100000U) == 0))
+ && (this->OrganismLayer[tile] == 0)))))) {
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffefffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffdfffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffffff7f;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffbffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffdffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xdfffffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0x7fffffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xbfffffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffffff7;
+ this->Logic2Layer[tile] = 0;
+ this->LogicLayer[tile] = this->LogicLayer[tile] | 0x80000;
+ goto LAB_00514457;
+ }
+ } else if (flags1 == L_PEBBLES) {
+ if (((((this->LogicLayer[tile] & 0x10000400U) == 0) && (this->BuildingLayer[tile] == 0))
+ && ((this->LogicLayer[tile] & 0x100U) == 0))
+ && (((this->LogicLayer[tile] & 0x100000U) == 0 && (this->OrganismLayer[tile] == 0)))) {
+ if ((this->LogicLayer[tile] & 1U) == 0) {
+ if (this->HeightLayer[tile] < 8) {
+ this->HeightLayer[tile] = 8;
+ this->DefaultHeightLayer[tile] = 8;
+ }
+ } else {
+ this->HeightLayer[tile] = 0;
+ this->DefaultHeightLayer[tile] = 0;
+ }
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffffffe;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffffffbf;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffefffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffdfffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffffff7f;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffdffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfff7ffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xdfffffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0x7fffffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xbfffffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffffff7;
+ this->Logic2Layer[tile] = 0;
+ this->LogicLayer[tile] = this->LogicLayer[tile] | 0x40000;
+ goto LAB_00514457;
+ }
+ } else if (flags1 == L_MARSH) {
+ if ((((this->LogicLayer[tile] & 0x10000400U) == 0) && (this->BuildingLayer[tile] == 0))
+ && (((this->LogicLayer[tile] & 0x100U) == 0
+ && (((this->LogicLayer[tile] & 0x100000U) == 0 && (this->OrganismLayer[tile] == 0)))))) {
+ this->HeightLayer[tile] = 8;
+ this->DefaultHeightLayer[tile] = 8;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffffffe;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffffffbf;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffefffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffdfffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffffff7f;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffdffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfff7ffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0x7fffffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xbfffffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffffff7;
+ this->Logic2Layer[tile] = 0;
+ this->LogicLayer[tile] = this->LogicLayer[tile] | 0x20000000;
+ goto LAB_00514457;
+ }
+ } else if (flags1 == L_OIL) {
+ if ((((((this->LogicLayer[tile] & 0x10000400U) == 0) && (this->BuildingLayer[tile] == 0))
+ && ((this->LogicLayer[tile] & 0x100U) == 0))
+ && (((this->LogicLayer[tile] & 0x100000U) == 0 && (this->OrganismLayer[tile] == 0))))
+ && ((this->LogicLayer[tile] & 0x20000000U) != 0)) {
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffffffe;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffffffbf;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffefffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffdfffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffffff7f;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffdffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfff7ffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffffff7;
+ this->Logic2Layer[tile] = 0;
+ this->LogicLayer[tile] = this->LogicLayer[tile] | 0x80000000;
+ goto LAB_00514457;
+ }
+ } else if (flags1 == L_MOAT) {
+ if (((((((this->OrganismLayer[tile] == 0) && ((this->LogicLayer[tile] & 0x10000400U) == 0))
+ && (this->BuildingLayer[tile] == 0))
+ && ((((this->LogicLayer[tile] & 0x100U) == 0 && ((this->LogicLayer[tile] & 1U) == 0))
+ && (((this->LogicLayer[tile] & 0x100000U) == 0
+ && (((this->LogicLayer[tile] & 0x200000U) == 0
+ && ((this->LogicLayer[tile] & 0x80U) == 0))))))))
+ && ((this->LogicLayer[tile] & 0x20000U) == 0))
+ && ((((this->LogicLayer[tile] & 0x80000U) == 0
+ && ((this->LogicLayer[tile] & 0x20000000U) == 0))
+ && ((this->LogicLayer[tile] & 4U) == 0))))
+ && (((x = computeTileXOffset(tile, yParam),
+ DAT_GameCore.gameMode_2 == GM_EDITOR
+ || (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT))
+ || (BVar1
+ = isEnemyTooCloseUnk(playerID, x, yParam, local_1c),
+ BVar1 == FALSE)))) {
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ iVar2 = getCastleBuildRangeForMapSize();
+ iVar2 = isOpponentBuildingInRange(
+ playerID, x, yParam, local_18, -1, -1, iVar2 + 5);
+ if (iVar2 != 0)
+ goto LAB_005129f2;
+ }
+ if ((((this->LogicLayer[tile] & 0x40000000U) == 0)
+ || (flags2 == L2_MOAT_UNDUG))
+ && (this->HeightLayer[tile] < 0xd)) {
+ if (flags2 == L2_NONE) {
+ if (((this->LogicLayer[tile] & 0x4000U) == 0)
+ && (iVar2 = createMoatData(playerID, x, yParam, 0),
+ iVar2 != 0)) {
+ this->LogicLayer[tile] = this->LogicLayer[tile] | 0x4000;
+ }
+ } else if (flags2 == L2_SCRUB) {
+ if ((this->LogicLayer[tile] & 0x4000U) != 0) {
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffffbfff;
+ clearMoatDataAtTile(
+ x, yParam);
+ }
+ } else {
+ this->HeightLayer[tile] = 8;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffffff7;
+ this->Logic2Layer[tile] = 0;
+ if (flags2 == L2_EARTH_AND_STONES) {
+ iVar2 = createMoatData(
+ playerID, x, yParam, 1);
+ if (iVar2 != 0) {
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffffbfff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] | 0x40000000;
+ this->HeightLayer[tile] = 0;
+ }
+ } else if (flags2 == L2_MOAT_UNDUG) {
+ clearMoatDataAtTile(
+ x, yParam);
+ this->HeightLayer[tile] = 8;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffffbfff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xbfffffff;
+ }
+ }
+ goto LAB_00514457;
+ }
+ }
+ } else {
+ if (((flags2 != L2_EARTH_AND_STONES)
+ && (flags2 != L2_OASIS_GRASS))
+ && ((flags2 != L2_BEACH
+ && (((flags2 != L2_STONES_OR_DRIVEN_SANDUnk
+ && (flags2 != L2_SCRUB))
+ && (flags2 != L2_THICK_SCRUB)))))) {
+ if (flags1 == L_BOULDERS) {
+ if ((((this->LogicLayer[tile] & 0x10000400U) != 0) || (this->BuildingLayer[tile] != 0))
+ || (((this->LogicLayer[tile] & 0x100U) != 0
+ || (((this->LogicLayer[tile] & 0x100000U) != 0
+ || (this->OrganismLayer[tile] != 0))))))
+ goto LAB_005129f2;
+ if ((this->LogicLayer[tile] & 1U) == 0) {
+ if (this->HeightLayer[tile] < 8) {
+ this->HeightLayer[tile] = 8;
+ this->DefaultHeightLayer[tile] = 8;
+ }
+ } else {
+ this->HeightLayer[tile] = 0;
+ this->DefaultHeightLayer[tile] = 0;
+ }
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffffffe;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffffffbf;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffefffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffdfffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffffff7f;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffbffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfff7ffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xdfffffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0x7fffffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xbfffffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffffff7;
+ this->Logic2Layer[tile] = 0;
+ this->LogicLayer[tile] = this->LogicLayer[tile] | 0x20000;
+ } else if (flags1
+ == ~(L_OIL | L_MOAT
+ | L_MARSH
+ | L_KEEP_NON_MANOR_HOUSE
+ | L_FARM_FIELD_DAIRY
+ | L_FARM_FIELD_APPLE
+ | L_FARM_FIELD_HOP
+ | L_FARM_FIELD_WHEAT
+ | L_CLIMBABLE
+ | L_CRENEL_VARIATIONUnk | L_FORD
+ | L_RIVER | L_IRON
+ | L_PEBBLES | L_BOULDERS
+ | L_UNKNOWN_WALL_RELATED
+ | L_DEFAULT_EARTH_OR_TEXTURE
+ | L_MOAT_DUG_OR_PLANNED
+ | L_TREE_VARIATION | L_TREE
+ | L_STAIRS | L_BUILDING
+ | L_CRENEL | L_WALL_OR_GATEHOUSE
+ | L_ROCKY | L_BORDER_EDGE
+ | L_BORDER | L_PLAIN2_AND_PITCH
+ | L_PLAIN1_AND_FARM
+ | L_STOCKPILEUnk | L_SEA)) {
+ if (((((this->LogicLayer[tile] & 1U) == 0) || ((this->LogicLayer[tile] & 0x10000400U) != 0))
+ || (this->BuildingLayer[tile] != 0))
+ || (((this->LogicLayer[tile] & 0x100U) != 0 || (this->OrganismLayer[tile] != 0))))
+ goto LAB_005129f2;
+ this->LogicLayer[tile] = this->LogicLayer[tile] | 0x40;
+ }
+ goto LAB_00514457;
+ }
+ if ((((this->LogicLayer[tile] & 0x10000400U) == 0) && (this->BuildingLayer[tile] == 0))
+ && (((this->LogicLayer[tile] & 0x100U) == 0
+ && (((this->LogicLayer[tile] & 0x60300001U) == 0 && (this->OrganismLayer[tile] == 0)))))) {
+ if (flags2 != L2_EARTH_AND_STONES) {
+ LAB_00513f5f:
+ this->MiscDisplayLayer[tile] = this->MiscDisplayLayer[tile] & 0xffdf;
+ if (((flags2 != L2_STONES_OR_DRIVEN_SANDUnk)
+ && (flags2 != L2_SCRUB))
+ && ((flags2 != L2_THICK_SCRUB
+ && ((flags2 != L2_EARTH_AND_STONES
+ && (flags2 != L2_OASIS_GRASS)))))) {
+ if (flags2 == L2_BEACH) {
+ this->HeightLayer[tile] = 0;
+ this->DefaultHeightLayer[tile] = 0;
+ } else {
+ this->HeightLayer[tile] = 8;
+ this->DefaultHeightLayer[tile] = 8;
+ }
+ }
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffffffe;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffffffbf;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffefffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffdfffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xffffff7f;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffdffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfff7ffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xdfffffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0x7fffffff;
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xbfffffff;
+ if (flags2 != L2_EARTH_AND_STONES) {
+ this->LogicLayer[tile] = this->LogicLayer[tile] & 0xfffffff7;
+ }
+ this->Logic2Layer[tile] = (undefined1)flags2;
+ goto LAB_00514457;
+ }
+ if ((((this->LogicLayer[tile] & 0x80000U) == 0) && ((this->LogicLayer[tile] & 0x20000U) == 0))
+ && ((this->Logic2Layer[tile] & 0x20) == 0)) {
+ this->bitFlag = 0;
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap + this->DAT_SomeTile + 1) & 0x20) != 0) {
+ this->bitFlag = 0x20;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap + this->DAT_SomeTile + -1) & 0x20) != 0) {
+ this->bitFlag = this->bitFlag | 2;
+ }
+ puVar3 = (uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)(this->ptr_MovementDirectionTranslationMatrix + this->DAT_SomeY * 0x20)
+ + this->DAT_SomeTile);
+ if ((*(uint*)((int)puVar3 + -1) & 0x20) != 0) {
+ this->bitFlag = this->bitFlag | 1;
+ }
+ if ((*(uint*)((int)puVar3 + 1) & 0x20) != 0) {
+ this->bitFlag = this->bitFlag | 0x40;
+ }
+ if ((*puVar3 & 0x20) != 0) {
+ this->bitFlag = this->bitFlag | 0x80;
+ }
+ puVar3 = (uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)((int)(this->ptr_MovementDirectionTranslationMatrix + this->DAT_SomeY * 0x20)
+ + 0x10)
+ + this->DAT_SomeTile);
+ if ((*(uint*)((int)puVar3 + -1) & 0x20) != 0) {
+ this->bitFlag = this->bitFlag | 4;
+ }
+ if ((*(uint*)((int)puVar3 + 1) & 0x20) != 0) {
+ this->bitFlag = this->bitFlag | 0x10;
+ }
+ if ((*puVar3 & 0x20) != 0) {
+ this->bitFlag = this->bitFlag | 8;
+ }
+ if (this->bitFlag == 0)
+ goto LAB_00513f5f;
+ }
+ }
+ }
+ }
+ LAB_005129f2:
+ _index = _index + 1;
+ } while (true);
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00512940", "name": "setTerrain", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Setzt Gelände (Wasser, Fels, Moor, Graben, Boden) auf alle Kacheln eines Pinsels, sofern die Kachel frei ist."}, "p2": {"ein": "playerID, tile, yParam, brushType, flags1 (Logic), flags2 (Logic2)", "aus": "nichts", "liest": ["DAT_TerrainDefinedData.BrushSizeArray[brushType]", "LogicLayer", "Logic2Layer", "BuildingLayer", "OrganismLayer", "HeightLayer", "TerrainTypeTileMap (Nachbarn)", "currentGameMode", "gameMode_2"], "schreibt": ["LogicLayer", "Logic2Layer", "HeightLayer", "DefaultHeightLayer", "WallGFXLayer", "MiscDisplayLayer", "forceUpdateLogicalAndMiscDisplayLayers"], "ruft": ["setLand", "getTileForBrush", "updatePathLinkagesInAllEightDirections", "createMoatData", "clearMoatDataAtTile", "isEnemyTooCloseUnk", "isOpponentBuildingInRange", "getCastleBuildRangeForMapSize", "computeTileXOffset"], "regeln": ["Pinselgröße = BrushSizeArray[brushType]; bei Graben (L_MOAT) immer 9 Kacheln", "Abstandswerte: Einzelspieler (GM_SOLITARY) 30 und 30, sonst 15 (Gegner-zu-nah-Prüfung) und 7 (Gegnergebäude-Prüfung)", "Im Editor, flags1 != L_MOAT und flags2 in Erde/Steine, Oase-Gras, Strand, Steine/Sand, Gestrüpp, dichtes Gestrüpp: zusätzlich setLand", "Jede Kachel wird einzeln behandelt; belegte Kacheln werden übersprungen (Maske 0x10000400 gesetzt, BuildingLayer oder OrganismLayer ungleich 0, Bit 0x100 gesetzt)", "L_SEA: setzt Bit 1, löscht viele Bits, Höhe 0; L_RIVER/L_FORD: nur wenn flags2 == L2_NONE oder Bit 0x100000 gesetzt, Höhe unter 8 wird auf Default-8 gesetzt", "L_ROCKY, L_PEBBLES, L_BOULDERS: Höhe mindestens 8 (auf Wasserkachel 0), Bits 0x80, 0x40000 bzw. 0x20000; L_IRON (Bit 0x80000) nur auf Nicht-Wasser; L_MARSH (0x20000000) Höhe 8; L_OIL (0x80000000) nur auf Moor", "L_MOAT: Höhe unter 13 (0xd) nötig; im Gefecht/Mehrspieler außer Editor und GM_SIEGE_THAT darf kein Gegner zu nah sein, und kein Gegnergebäude im Burgbaubereich+5", "flags2 L2_NONE plant den Graben (Bit 0x4000 nach createMoatData), L2_SCRUB nimmt die Planung zurück, L2_EARTH_AND_STONES gräbt (Bit 0x40000000, Höhe 0), L2_MOAT_UNDUG füllt zu (Höhe 8)", "Boden (flags2 Erde/Steine, Oase, Strand, Steine/Sand, Gestrüpp, dichtes Gestrüpp): Höhe 8, bei Strand 0; Logic2Layer = flags2; bei Erde/Steine zusätzlich nur, wenn kein Nachbar Bit 0x20 im TerrainTypeTileMap trägt", "Nach jeder erfolgreichen Kachel mit flags1 != L_NONE: Wegverbindungen in allen acht Richtungen neu berechnen"], "offen": ["Bedeutung vieler Bits (0x10, 0x100, 0x400, 0x4000, 0x10000000) nur aus Namen der Masken erschlossen", "Einrückung der Ghidra-Ausgabe verschleiert, welcher Zweig zum Bit-0x10-Fall gehört", "Mehrere Parameter dienen der Kachelumrechnung (yParam wird überschrieben)"]}, "p3": {"erklaerung": "Zentrale Stelle, an der Gelände auf der Karte verändert wird: Wasser, Felsen, Moor, Öl, Gräben und Boden. Belegte Kacheln bleiben unberührt. Gräben haben Abstandsregeln zu Gegnern.", "gehirn": "Grabenbau ist im Gefecht nur ohne Gegner in 15 Kacheln und ohne Gegnergebäude im Burgbaubereich+5 möglich; Pinselgrößen je Typ einmal aus der Tabelle lesen.", "beleg": "code", "live": "BrushSizeArray in DAT_TerrainDefinedData einmal auslesen → Pinselgröße je brushType → Werte notieren", "live_art": "tabelle"}}
+
+### 0x005146d0 placeKeep | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x005146D0
+ void TileMapState::placeKeep(
+ int playerID, uint x, uint y, BuildingType type, uint size, int orientation, int xyValue)
+ {
+ byte bVar1;
+ uint uVar2;
+ uint y_00;
+ short sVar3;
+ int _buildingID;
+ int iVar4;
+ int iVar5;
+ int iVar6;
+ int iVar7;
+ int iVar8;
+ uint y_01;
+ uint x_00;
+ uint uVar9;
+ uint brushType;
+ Logic2 LVar10;
+ uint local_18;
+ int _yOffset;
+ int _xOffset;
+ y_00 = y;
+ uVar2 = x;
+ if (this->field195_0x554a24 != 0) {
+ demolishBuildingsInKeepsConstructionFootprint(
+ playerID, x, y, (undefined4)((int)(type)), size, orientation,
+ xyValue);
+ this->field195_0x554a24 = 0;
+ }
+ iVar6 = DAT_GameCore.uniqueGameObjectTracker;
+ local_18 = 0;
+ y = 0;
+ bVar1 = this->Logic2Layer[DAT_ViewportRenderState.translationMatrix[y_00].addXgetTile + x];
+ _buildingID = setupBuildingData(
+ playerID, x, y_00, (undefined4)((int)(xyValue)), (int)(short)(undefined2)type, size, playerID, 0xf);
+ this->placedBuildingID = _buildingID;
+ DAT_BuildingsState.buildings[_buildingID].uidWhenPlaced = iVar6;
+ sVar3 = (short)orientation;
+ DAT_BuildingsState.buildings[_buildingID].orientation = (short)orientation;
+ computeBuildingCategoryEntryPointAndDestroyEarlierBuilding(_buildingID, playerID, PDBCE_KEEP);
+ if (orientation == 0xf) {
+ orientation = 0;
+ }
+ do {
+ getBuildingSizeIndexMappingData(
+ y, size);
+ iVar4 = DAT_ViewportRenderState.translationMatrix[this->buildingY + y_00].addXgetTile
+ + this->buildingX + uVar2;
+ if ((int)y < 0x24) {
+ *(int*)(DAT_BuildingsState.buildings[_buildingID].workers + y * 2 + 8) = iVar4;
+ }
+ this->HeightLayer[iVar4] = (byte)xyValue;
+ if ((undefined2)type == BT_MANORHOUSE) {
+ this->LogicLayer[iVar4] = this->LogicLayer[iVar4] | 1024;
+ } else {
+ this->LogicLayer[iVar4] = this->LogicLayer[iVar4] | 268435456;
+ }
+ x._0_2_ = (short)_buildingID;
+ this->BuildingLayer[iVar4] = (short)x;
+ this->BuildingWasLayer[iVar4] = (uchar)type;
+ if ((bVar1 & 0x90) == 0) {
+ LVar10 = L2_EARTH_AND_STONES;
+ uVar9 = 6;
+ } else {
+ LVar10 = L2_THICK_SCRUB;
+ uVar9 = 3;
+ }
+ setTerrain(
+ playerID, iVar4, this->buildingY + y_00, uVar9, L_NONE, LVar10);
+ this->ChangedLayer[iVar4] = 2;
+ y = y + 1;
+ } while ((int)y < this->constructionTileCount);
+ setMiscDisplayLayer(_buildingID);
+ updatePathLinkagesForBuilding(_buildingID);
+ if (((undefined2)type == BT_MANORHOUSE) || ((undefined2)type == BT_STONEKEEP)) {
+ local_18 = 2;
+ }
+ iVar4 = orientation / 2 + -0xa0 + (short)(undefined2)type * 4;
+ iVar8 = iVar4 * 0x18;
+ uVar9 = *(int*)((int)DAT_TerrainDefinedData + iVar4 * 0x18 + 0x268) + y_00;
+ iVar5 = *(int*)((int)DAT_TerrainDefinedData + iVar8 + 0x264);
+ iVar7 = DAT_ViewportRenderState.translationMatrix[uVar9].addXgetTile + iVar5 + uVar2;
+ iVar5 = setupBuildingData(playerID, iVar5 + uVar2, uVar9, (undefined4)((int)(xyValue)),
+ BT_KEEPDOOR_LEFT, 1, playerID, 0xf);
+ DAT_BuildingsState.buildings[iVar5].uidWhenPlaced = iVar6;
+ DAT_BuildingsState.buildings[iVar5].unknownManorHouseOrStoneKeepRelated = local_18;
+ DAT_BuildingsState.buildings[iVar5].quarryStockpileID = (undefined2)this->placedBuildingID;
+ DAT_BuildingsState.buildings[iVar5].orientation = sVar3;
+ this->LogicLayer[iVar7] = this->LogicLayer[iVar7] | 1024;
+ this->BuildingLayer[iVar7] = (short)iVar5;
+ this->ChangedLayer[iVar7] = 2;
+ updatePathLinkagesInAllEightDirections((int)(short)DAT_BuildingsState.buildings[iVar5].y, iVar7);
+ iVar5 = *(int*)((int)DAT_TerrainDefinedData + iVar8 + 0x26c);
+ uVar9 = *(int*)((int)DAT_TerrainDefinedData + iVar8 + 0x270) + y_00;
+ iVar7 = DAT_ViewportRenderState.translationMatrix[uVar9].addXgetTile + iVar5 + uVar2;
+ iVar5 = setupBuildingData(playerID,
+ iVar5 + uVar2, uVar9, (undefined4)((int)(xyValue)), BT_KEEPDOOR, 1, playerID, 0xf);
+ DAT_BuildingsState.buildings[iVar5].uidWhenPlaced = iVar6;
+ DAT_BuildingsState.buildings[iVar5].unknownManorHouseOrStoneKeepRelated = local_18 / 2;
+ DAT_BuildingsState.buildings[iVar5].quarryStockpileID = (undefined2)this->placedBuildingID;
+ x._0_2_ = (short)iVar5;
+ DAT_BuildingsState.buildings[iVar5].orientation = sVar3;
+ this->MiscDisplayLayer[iVar7] = this->MiscDisplayLayer[iVar7] | 4;
+ this->BuildingLayer[iVar7] = (short)x;
+ this->ChangedLayer[iVar7] = 2;
+ updatePathLinkagesInAllEightDirections((int)(short)DAT_BuildingsState.buildings[iVar5].y, iVar7);
+ iVar5 = *(int*)((int)DAT_TerrainDefinedData + iVar8 + 0x274);
+ uVar9 = *(int*)((int)DAT_TerrainDefinedData + iVar8 + 0x278) + y_00;
+ iVar8 = DAT_ViewportRenderState.translationMatrix[uVar9].addXgetTile + iVar5 + uVar2;
+ iVar5 = setupBuildingData(playerID, iVar5 + uVar2, uVar9, (undefined4)((int)(xyValue)),
+ BT_KEEPDOOR_RIGHT, 1, playerID, 0xf);
+ DAT_BuildingsState.buildings[iVar5].uidWhenPlaced = iVar6;
+ DAT_BuildingsState.buildings[iVar5].unknownManorHouseOrStoneKeepRelated = local_18;
+ DAT_BuildingsState.buildings[iVar5].quarryStockpileID = (undefined2)this->placedBuildingID;
+ DAT_BuildingsState.buildings[iVar5].orientation = sVar3;
+ this->LogicLayer[iVar8] = this->LogicLayer[iVar8] | 1024;
+ this->BuildingLayer[iVar8] = (short)iVar5;
+ this->ChangedLayer[iVar8] = 2;
+ updatePathLinkagesInAllEightDirections((int)(short)DAT_BuildingsState.buildings[iVar5].y, iVar8);
+ y_01 = y_00 + *(int*)((int)DAT_TerrainDefinedData + iVar4 * 8 + 0x388);
+ x_00 = uVar2 + *(int*)((int)DAT_TerrainDefinedData + iVar4 * 8 + 900);
+ uVar9 = setupBuildingData(playerID, x_00,
+ y_01, (undefined4)((int)(xyValue)), BT_CAMPGROUND, 7, playerID, 0xf);
+ DAT_BuildingsState.buildings[uVar9].uidWhenPlaced = iVar6;
+ DAT_BuildingsState.buildings[uVar9].quarryStockpileID = (undefined2)this->placedBuildingID;
+ DAT_BuildingsState.buildings[uVar9].orientation = sVar3;
+ computeBuildingCategoryEntryPointAndDestroyEarlierBuilding(uVar9, playerID, PDBCE_CAMPGROUND);
+ y = 0;
+ do {
+ getBuildingSizeIndexMappingData(y, 7);
+ resetTileAndClearMoat(
+ DAT_ViewportRenderState.translationMatrix[this->buildingY + y_01].addXgetTile
+ + this->buildingX + x_00);
+ y = y + 1;
+ } while ((int)y < this->constructionTileCount);
+ y = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ y, DAT_BuildingsState.buildings[uVar9].widthOrHeight);
+ iVar6 = DAT_ViewportRenderState.translationMatrix[this->buildingY + y_01].addXgetTile
+ + this->buildingX + x_00;
+ if ((int)y < 0x18) {
+ *(int*)(DAT_BuildingsState.buildings[uVar9].workers + y * 2 + 8)
+ = DAT_ViewportRenderState
+ .translationMatrix[(int)(short)DAT_BuildingsState.buildings[uVar9].y
+ + DAT_TerrainDefinedData.field197_0x444[y].y]
+ .addXgetTile
+ + (int)(short)DAT_BuildingsState.buildings[uVar9].x
+ + DAT_TerrainDefinedData.field197_0x444[y].x;
+ }
+ this->HeightLayer[iVar6] = (byte)xyValue;
+ if (this->buildingX == 3) {
+ if (this->buildingY == 3) {
+ this->LogicLayer[iVar6] = this->LogicLayer[iVar6] | 1024;
+ }
+ if (this->buildingX == 3) {
+ if (this->buildingY == 2) {
+ this->LogicLayer[iVar6] = this->LogicLayer[iVar6] | 1024;
+ }
+ if ((this->buildingX == 3) && (this->buildingY == 4)) {
+ this->LogicLayer[iVar6] = this->LogicLayer[iVar6] | 1024;
+ }
+ }
+ }
+ if ((this->buildingX == 2) && (this->buildingY == 3)) {
+ this->LogicLayer[iVar6] = this->LogicLayer[iVar6] | 1024;
+ }
+ if ((this->buildingX == 4) && (this->buildingY == 3)) {
+ this->LogicLayer[iVar6] = this->LogicLayer[iVar6] | 1024;
+ }
+ x._0_2_ = (short)uVar9;
+ this->BuildingLayer[iVar6] = (short)x;
+ this->ChangedLayer[iVar6] = 2;
+ if ((bVar1 & 0x90) == 0) {
+ LVar10 = L2_EARTH_AND_STONES;
+ brushType = 6;
+ } else {
+ LVar10 = L2_THICK_SCRUB;
+ brushType = 3;
+ }
+ setTerrain(
+ playerID, iVar6, this->buildingY + y_01, brushType, L_NONE, LVar10);
+ y = y + 1;
+ } while ((int)y < this->constructionTileCount);
+ setMiscDisplayLayer(uVar9);
+ updatePathLinkagesForBuilding(uVar9);
+ updateWalkAndPathLayer(10, x_00, y_01);
+ _xOffset = *(int*)((int)DAT_TerrainDefinedData + iVar4 * 8 + 0x3e4);
+ _yOffset = *(int*)((int)DAT_TerrainDefinedData + iVar4 * 8 + 1000);
+ y = 0;
+ do {
+ getBuildingSizeIndexMappingData(y, 5);
+ resetTileAndClearMoat(
+ DAT_ViewportRenderState.translationMatrix[this->buildingY + _yOffset + y_00].addXgetTile
+ + this->buildingX + _xOffset + uVar2);
+ y = y + 1;
+ } while ((int)y < this->constructionTileCount);
+ placeStockpile(
+ playerID, _xOffset + uVar2, _yOffset + y_00, 10, 5, 0xf, xyValue);
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x005146d0", "name": "placeKeep", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Setzt die Burg samt Türen, Lagerplatz und Lagerstelle der Truppen auf die Karte."}, "p2": {"ein": "playerID, x, y, Burgtyp, Größe, Ausrichtung, Höhe", "aus": "nichts", "liest": ["field195_0x554a24", "Logic2Layer (Ursprungsgelände)", "DAT_TerrainDefinedData (Türpositionen)", "uniqueGameObjectTracker"], "schreibt": ["placedBuildingID", "buildings[].uidWhenPlaced/orientation/quarryStockpileID/unknownManorHouseOrStoneKeepRelated", "HeightLayer", "LogicLayer", "BuildingLayer", "BuildingWasLayer", "MiscDisplayLayer", "ChangedLayer=2"], "ruft": ["demolishBuildingsInKeepsConstructionFootprint", "setupBuildingData", "computeBuildingCategoryEntryPointAndDestroyEarlierBuilding", "getBuildingSizeIndexMappingData", "setTerrain", "setMiscDisplayLayer", "updatePathLinkagesForBuilding", "updatePathLinkagesInAllEightDirections", "resetTileAndClearMoat", "updateWalkAndPathLayer", "placeStockpile"], "regeln": ["Ist field195_0x554a24 ungleich 0, werden zuerst Gebäude im Bauplatz abgerissen und das Feld auf 0 gesetzt", "Burgkacheln: Gutshaus (BT_MANORHOUSE) bekommt Bit 0x400, jede andere Burg Bit 0x10000000", "Gelände unter der Burg: Erde/Steine (Pinsel 6), bei Gras/Gestrüpp im Ursprungsgelände (Bits 0x90) dichtes Gestrüpp (Pinsel 3)", "Drei Türen als eigene Gebäude (Größe 1): BT_KEEPDOOR_LEFT, BT_KEEPDOOR, BT_KEEPDOOR_RIGHT, jeweils mit Verweis auf die Burg", "Gutshaus und Steinburg setzen den Hilfswert 2; linke und rechte Tür erhalten ihn, die mittlere die Hälfte (1)", "Lagerstelle BT_CAMPGROUND mit Größe 7 (höchstens 24 Kacheln in der Liste); die Kacheln (3,3), (3,2), (3,4), (2,3), (4,3) erhalten Bit 0x400", "Lagerplatz per placeStockpile mit den Werten 10 und 5 (Größe 5)", "Ausrichtung 0xf wird für die Tabellensuche zu 0"], "offen": ["Tabellenindex Ausrichtung/2 − 0xa0 + Typ·4 ist Ghidra-Rechnung und ungeprüft", "Bedeutung von Bit 0x400 und des Hilfswerts unknownManorHouseOrStoneKeepRelated", "Ob die Zahlen 10 und 5 bei placeStockpile Typ und Größe sind"]}, "p3": {"erklaerung": "Der Startaufbau der Burg: Das Hauptgebäude, drei Türen, die Lagerstelle der Truppen und der erste Lagerplatz entstehen gemeinsam.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+

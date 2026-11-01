@@ -1,0 +1,1404 @@
+### 0x00403ff0 handleProjectileWallBounce | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00403FF0
+ void EntityState::handleProjectileWallBounce(int param_1)
+ {
+ word wVar1;
+ byte _bitFlag;
+ uint y;
+ undefined4 uVar2;
+ uint x;
+ uint uVar3;
+ short sVar4;
+ int iVar5;
+ uint uVar6;
+ short sVar7;
+ short sVar8;
+ int iVar9;
+ bool bVar10;
+ bool bVar11;
+ bool bVar12;
+ float10 fVar13;
+ float10 fVar14;
+ sVar4 = this->entityArray[param_1].microY;
+ y = (uint)sVar4;
+ sVar8 = this->entityArray[param_1].microX;
+ x = (uint)sVar8;
+ uVar3 = x & 7;
+ iVar5 = 0;
+ iVar9 = 0;
+ uVar6 = y & 7;
+ _bitFlag = setBitFlagBasedOnWallTowerGatehouseOrKeep(
+ (int)(x + ((int)x >> 0x1f & 7U)) >> 3, (int)((int)((y + (y >> 0x1f & 7U)) >> 3)));
+ switch (this->entityArray[param_1].orientation) {
+ case 0x3c:
+ case 0x40:
+ case 0x44:
+ case 0x48:
+ switchD_0040405c_caseD_3c:
+ iVar9 = (int)this->entityArray[param_1].y_2;
+ LAB_004042e5:
+ iVar5 = (int)this->entityArray[param_1].x_2;
+ break;
+ case 0x3d:
+ uVar6 = 7 - uVar6;
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = false;
+ if (uVar3 == uVar6) {
+ switch (_bitFlag & 10) {
+ case 0:
+ case 8:
+ switchD_00404081_caseD_0:
+ uVar6 = 100;
+ break;
+ case 2:
+ switchD_00404081_caseD_2:
+ uVar3 = 100;
+ break;
+ case 10:
+ goto switchD_0040405c_caseD_3c;
+ }
+ switchD_00404081_caseD_4:
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = uVar3 == uVar6;
+ }
+ goto LAB_0040408f;
+ case 0x3e:
+ uVar6 = 7 - uVar6;
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = false;
+ if (uVar3 == uVar6) {
+ switch (_bitFlag & 10) {
+ case 0:
+ case 8:
+ goto switchD_00404081_caseD_0;
+ case 2:
+ goto switchD_00404081_caseD_2;
+ default:
+ goto switchD_00404081_caseD_4;
+ case 10:
+ goto switchD_0040405c_caseD_3c;
+ }
+ }
+ goto LAB_0040408f;
+ case 0x3f:
+ uVar6 = 7 - uVar6;
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = false;
+ if (uVar3 == uVar6) {
+ switch (_bitFlag & 10) {
+ case 0:
+ case 2:
+ goto switchD_00404081_caseD_2;
+ default:
+ goto switchD_00404081_caseD_4;
+ case 8:
+ goto switchD_00404081_caseD_0;
+ case 10:
+ goto switchD_0040405c_caseD_3c;
+ }
+ }
+ goto LAB_0040408f;
+ case 0x41:
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = false;
+ if (uVar3 == uVar6) {
+ switch (_bitFlag & 0x82) {
+ case 0:
+ case 2:
+ switchD_0040410f_caseD_0:
+ uVar6 = 100;
+ default:
+ switchD_0040410f_caseD_4:
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = uVar3 == uVar6;
+ break;
+ case 0x80:
+ switchD_0040410f_caseD_80:
+ bVar12 = (100 < uVar6);
+ bVar11 = (int)(100 - uVar6) < 0;
+ bVar10 = uVar6 == 100;
+ break;
+ case 0x82:
+ goto switchD_0040405c_caseD_3c;
+ }
+ }
+ goto LAB_0040408f;
+ case 0x42:
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = false;
+ if (uVar3 == uVar6) {
+ switch (_bitFlag & 0x82) {
+ case 0:
+ case 2:
+ goto switchD_0040410f_caseD_0;
+ default:
+ goto switchD_0040410f_caseD_4;
+ case 0x80:
+ goto switchD_0040410f_caseD_80;
+ case 0x82:
+ goto switchD_0040405c_caseD_3c;
+ }
+ }
+ goto LAB_0040408f;
+ case 0x43:
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = false;
+ if (uVar3 == uVar6) {
+ switch (_bitFlag & 0x82) {
+ case 0:
+ case 0x80:
+ switchD_00404173_caseD_0:
+ uVar3 = 100;
+ default:
+ switchD_00404173_caseD_4:
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = uVar3 == uVar6;
+ break;
+ case 2:
+ switchD_00404173_caseD_2:
+ bVar12 = (uVar3 < 100);
+ bVar11 = (int)(uVar3 - 100) < 0;
+ bVar10 = uVar3 == 100;
+ break;
+ case 0x82:
+ goto switchD_0040405c_caseD_3c;
+ }
+ }
+ goto LAB_0040408f;
+ case 0x45:
+ uVar3 = 7 - uVar3;
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = false;
+ if (uVar3 == uVar6) {
+ switch (_bitFlag & 0xa0) {
+ case 0:
+ case 0x80:
+ goto switchD_0040410f_caseD_0;
+ case 0x20:
+ goto switchD_0040410f_caseD_80;
+ default:
+ goto switchD_0040410f_caseD_4;
+ case 0xa0:
+ goto switchD_0040405c_caseD_3c;
+ }
+ }
+ goto LAB_0040408f;
+ case 0x46:
+ uVar3 = 7 - uVar3;
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = false;
+ if (uVar3 == uVar6) {
+ switch (_bitFlag & 0xa0) {
+ case 0:
+ case 0x80:
+ goto switchD_0040410f_caseD_0;
+ case 0x20:
+ goto switchD_0040410f_caseD_80;
+ default:
+ goto switchD_0040410f_caseD_4;
+ case 0xa0:
+ goto switchD_0040405c_caseD_3c;
+ }
+ }
+ goto LAB_0040408f;
+ case 0x47:
+ uVar3 = 7 - uVar3;
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = false;
+ if (uVar3 == uVar6) {
+ switch (_bitFlag & 0xa0) {
+ case 0:
+ case 0x20:
+ goto switchD_00404173_caseD_0;
+ default:
+ goto switchD_00404173_caseD_4;
+ case 0x80:
+ goto switchD_00404173_caseD_2;
+ case 0xa0:
+ goto switchD_0040405c_caseD_3c;
+ }
+ }
+ goto LAB_0040408f;
+ case 0x49:
+ iVar5 = -uVar3 + 7;
+ iVar9 = 7 - uVar6;
+ bVar12 = (iVar5 < iVar9);
+ bVar11 = iVar5 - iVar9 < 0;
+ bVar10 = false;
+ if (iVar5 == iVar9) {
+ switch (_bitFlag & 0x28) {
+ case 0:
+ case 0x20:
+ iVar5 = 100;
+ default:
+ bVar12 = (iVar5 < iVar9);
+ bVar11 = iVar5 - iVar9 < 0;
+ bVar10 = iVar5 == iVar9;
+ break;
+ case 8:
+ bVar12 = (iVar5 < 100);
+ bVar11 = (int)(-uVar3 + -0x5d) < 0;
+ bVar10 = iVar5 == 100;
+ break;
+ case 0x28:
+ goto switchD_0040405c_caseD_3c;
+ }
+ }
+ LAB_0040408f:
+ if (bVar10 || bVar12 != bVar11) {
+ iVar9 = this->entityArray[param_1].microY * 2 - (int)this->entityArray[param_1].y_2;
+ goto LAB_004042e5;
+ }
+ iVar9 = (int)this->entityArray[param_1].y_2;
+ iVar5 = this->entityArray[param_1].microX * 2 - (int)this->entityArray[param_1].x_2;
+ break;
+ case 0x4a:
+ uVar3 = 7 - uVar3;
+ uVar6 = 7 - uVar6;
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = false;
+ if (uVar3 == uVar6) {
+ switch (_bitFlag & 0x28) {
+ case 0:
+ case 8:
+ goto switchD_00404081_caseD_0;
+ default:
+ goto switchD_00404081_caseD_4;
+ case 0x20:
+ goto switchD_00404081_caseD_2;
+ case 0x28:
+ goto switchD_0040405c_caseD_3c;
+ }
+ }
+ goto LAB_0040408f;
+ case 0x4b:
+ uVar3 = 7 - uVar3;
+ uVar6 = 7 - uVar6;
+ bVar12 = (uVar3 < uVar6);
+ bVar11 = (int)(uVar3 - uVar6) < 0;
+ bVar10 = false;
+ if (uVar3 == uVar6) {
+ switch (_bitFlag & 0x28) {
+ case 0:
+ case 8:
+ goto switchD_00404081_caseD_0;
+ default:
+ goto switchD_00404081_caseD_4;
+ case 0x20:
+ goto switchD_00404081_caseD_2;
+ case 0x28:
+ goto switchD_0040405c_caseD_3c;
+ }
+ }
+ goto LAB_0040408f;
+ default:
+ break;
+ }
+ somethingWithProjectileDistance(x, y, iVar5, iVar9);
+ this->entityArray[param_1].orientation = DAT_DirectionAlgorithmState.orientation;
+ sVar7 = (short)iVar9;
+ if (iVar9 < (int)y) {
+ this->entityArray[param_1].field42_0x64 = sVar4 - sVar7;
+ } else {
+ this->entityArray[param_1].field42_0x64 = sVar7 - sVar4;
+ }
+ sVar4 = (short)iVar5;
+ if (iVar5 < (int)x) {
+ this->entityArray[param_1].field39_0x5e = sVar8 - sVar4;
+ } else {
+ this->entityArray[param_1].field39_0x5e = sVar4 - sVar8;
+ }
+ sVar8 = this->entityArray[param_1].field39_0x5e;
+ this->entityArray[param_1].field38_0x5c = sVar4;
+ this->entityArray[param_1].someMicroX = (ushort)((int)x <= iVar5) * 2 + -1;
+ this->entityArray[param_1].field41_0x62 = sVar7;
+ this->entityArray[param_1].someMicroY = (ushort)((int)y <= iVar9) * 2 + -1;
+ if (sVar8 == 0) {
+ if (this->entityArray[param_1].field42_0x64 == 0) {
+ this->entityArray[param_1].field50_0x74 = 0;
+ } else {
+ this->entityArray[param_1].field50_0x74 = 1;
+ }
+ } else {
+ sVar4 = this->entityArray[param_1].field42_0x64;
+ if (sVar4 == 0) {
+ this->entityArray[param_1].field50_0x74 = 2;
+ } else if (sVar8 < sVar4) {
+ this->entityArray[param_1].field50_0x74 = 3;
+ } else {
+ this->entityArray[param_1].field50_0x74 = 4;
+ }
+ }
+ sVar4 = this->entityArray[param_1].field50_0x74;
+ if (sVar4 == 3) {
+ sVar4 = this->entityArray[param_1].field42_0x64;
+ sVar8 = sVar8 * 2;
+ this->entityArray[param_1].field47_0x6e = sVar8;
+ sVar7 = sVar8 + sVar4 * -2;
+ this->entityArray[param_1].field49_0x72 = sVar8 - sVar4;
+ } else {
+ if (sVar4 != 4)
+ goto LAB_0040440f;
+ sVar4 = this->entityArray[param_1].field42_0x64 * 2;
+ this->entityArray[param_1].field47_0x6e = sVar4;
+ sVar7 = sVar4 + sVar8 * -2;
+ this->entityArray[param_1].field49_0x72 = sVar4 - sVar8;
+ }
+ this->entityArray[param_1].field48_0x70 = sVar7;
+ LAB_0040440f:
+ wVar1 = this->entityArray[param_1].graphicRotationUnk;
+ this->entityArray[param_1].startingAngle = wVar1;
+ if ((short)wVar1 < -0x50) {
+ this->entityArray[param_1].startingAngle = -0x50;
+ }
+ iVar9 = (int)this->entityArray[param_1].startingAngle;
+ this->entityArray[param_1].speedUnk = 0;
+ iVar5 = (int)this->entityArray[param_1].velocityUnk;
+ fVar13 = ((float10)iVar9 * (float10)3.1415926535) / (float10)180.0;
+ sVar4 = this->entityArray[param_1].height;
+ sVar8 = (short)((int)(iVar5 + (iVar5 >> 0x1f & 7U)) >> 3);
+ this->entityArray[param_1].velocityUnk = sVar8;
+ this->entityArray[param_1].startingHeight = sVar4;
+ this->entityArray[param_1].travelledDistance = 0;
+ fVar14 = _math_cos(fVar13);
+ this->entityArray[param_1].vCos = (float)((float10)(int)sVar8 * fVar14);
+ fVar13 = _math_sin((float10)(double)fVar13);
+ this->entityArray[param_1].vSin = (float)((float10)(int)sVar8 * fVar13);
+ uVar2 = angleToRotationFrameIndex(iVar9);
+ sVar4 = this->entityArray[param_1].xPosition;
+ this->entityArray[param_1].field45_0x6a = (short)uVar2;
+ sVar8 = this->entityArray[param_1].yPosition;
+ this->entityArray[param_1].gmLookupValue = 0;
+ playSFXAtLocation(
+ (int)sVar4, sVar8, FX_ARROW_BOUNCE);
+ return;
+ }
+ }
+}
+}
+
+### 0x00404a10 arrowShootingRelated | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00404A10
+ int EntityState::arrowShootingRelated(
+ int microX, int microY, int height, int destMicroX, int destMicroY, int destHeight)
+ {
+ uint uVar1;
+ uVar1 = computeLineOfSightDistance(
+ microX, microY, height, destMicroX, destMicroY, destHeight, 0);
+ if (uVar1 == 0) {
+ uVar1 = computeLineOfSightDistance(
+ destMicroX, destMicroY, destHeight, microX, microY, height, 0);
+ }
+ return (int)(uVar1);
+ }
+ }
+}
+}
+
+### 0x00404ae0 spawnProjectileEntity | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00404AE0
+ uint EntityState::spawnProjectileEntity(int unitID, undefined4 playerID1, uint ownerColorUnk, int microX,
+ int microY, int totalHeight, int targetX, int targetY, int targetZUnk, EntityType entityType, int param_11)
+ {
+ bool bVar1;
+ dword dVar2;
+ short* psVar3;
+ EntityTypeShort* pEVar4;
+ uint uVar5;
+ uint uVar6;
+ short sVar7;
+ uint entityID;
+ bVar1 = false;
+ if (((0x2b < (int)entityType) && ((int)entityType < 0x5b)) || (0x5e < (int)entityType)) {
+ return 0;
+ }
+ if (entityType == ~ET_UNKNOWN) {
+ entityID = 0;
+ entityType = ((EntityType)8);
+ } else if (entityType - ((EntityType)0x28) < 8) {
+ entityID = 1;
+ psVar3 = &this->entityArray[1].logicalState;
+ do {
+ if (*psVar3 == 0)
+ break;
+ if (0x17 < (int)entityID) {
+ return 0;
+ }
+ entityID = entityID + 1;
+ psVar3 = psVar3 + 0x74;
+ } while ((int)entityID < 0x19);
+ } else {
+ entityID = this->every10Ticks;
+ if ((int)this->every10Ticks < 3000) {
+ psVar3 = &this->entityArray[this->every10Ticks].logicalState;
+ do {
+ if (*psVar3 == 0)
+ break;
+ if (0xbb6 < (int)entityID) {
+ switch (entityType) {
+ case ET_ARROW_AND_DEFAULT:
+ case ET_CATAPULT:
+ case ET_TREBUCHET:
+ case ET_MANGONEL:
+ case ET_CROSSBOWARROW:
+ case ((EntityType)8):
+ case ET_COW_POISON_CLOUD:
+ case ET_COW_FLYING:
+ case ((EntityType)0x18):
+ case ((EntityType)0x19):
+ case 0x1a:
+ case ET_SLINGER:
+ case ET_FIRETHROWER:
+ case ET_FIRETHROWER | ET_ARROW_AND_DEFAULT:
+ case ET_FIRETHROWER_UNTARGETED:
+ case ET_FIREBALLISTA:
+ case 0x5b:
+ case 0x5c:
+ case 0x5d:
+ case 0x5e:
+ this->maxEntityCount = 3000;
+ entityID = 0x19;
+ pEVar4 = &this->entityArray[0x19].entityType;
+ break;
+ default : goto switchD_00404bac_caseD_5;
+ }
+ goto LAB_00404bc5;
+ }
+ entityID = entityID + 1;
+ psVar3 = psVar3 + 0x74;
+ } while ((int)entityID < 3000);
+ }
+ this->every10Ticks = entityID;
+ if (this->maxEntityCount <= (int)entityID) {
+ this->maxEntityCount = entityID + 1;
+ }
+ }
+ LAB_00404c16:
+ this->entityArray[entityID].rng_2 = 0;
+ if (entityType == 0x5b) {
+ bVar1 = true;
+ this->entityArray[entityID].rng_2 = 1;
+ entityType = ET_ARROW_AND_DEFAULT;
+ } else if (entityType == ET_FIREBALLISTA) {
+ bVar1 = true;
+ this->entityArray[entityID].field90_0xd0 = 1;
+ entityType = ET_BALLISTA;
+ } else {
+ if ((entityType == ET_FIRETHROWER)
+ || (entityType == ET_FIRETHROWER_UNTARGETED)) {
+ bVar1 = true;
+ }
+ if (entityType == 0x5c) {
+ bVar1 = true;
+ this->entityArray[entityID].rng_2 = 1;
+ entityType = ((EntityType)0x18);
+ } else if (entityType == 0x5d) {
+ bVar1 = true;
+ this->entityArray[entityID].rng_2 = 2;
+ entityType = ET_ARROW_AND_DEFAULT;
+ } else if (entityType == 0x5e) {
+ bVar1 = true;
+ this->entityArray[entityID].rng_2 = 2;
+ entityType = ((EntityType)0x18);
+ } else if (entityType == 0x1b) {
+ targetX = targetX + -0xa0 + ((int)SEC_RNG::instance.currentNumber2 % 0x50) * 4;
+ targetY = targetY + -0xa0 + (((int)SEC_RNG::instance.currentNumber2 >> 8) % 0x50) * 4;
+ } else if (entityType == ((EntityType)0x20)) {
+ targetX = targetX + -0x18 + (int)SEC_RNG::instance.currentNumber2 % 0x30;
+ targetY = targetY + -0x18 + ((int)SEC_RNG::instance.currentNumber2 >> 8) % 0x30;
+ }
+ }
+ switch (entityType) {
+ case ET_ARROW_AND_DEFAULT:
+ case ET_CATAPULT:
+ case ET_TREBUCHET:
+ case ET_MANGONEL:
+ case ET_CROSSBOWARROW:
+ case ET_BALLISTA:
+ case ET_COW_FLYING:
+ case ((EntityType)0x18):
+ case ((EntityType)0x19):
+ case 0x1b:
+ case ((EntityType)0x20):
+ case ET_SLINGER:
+ case ET_FIRETHROWER:
+ case ET_FIRETHROWER | ET_ARROW_AND_DEFAULT:
+ case ET_FIRETHROWER_UNTARGETED:
+ case ET_FIREBALLISTA:
+ case 0x5b:
+ case 0x5c:
+ case 0x5d:
+ case 0x5e:
+ uVar5 = (int)(microX + (microX >> 0x1f & 7U)) >> 3;
+ uVar6 = (int)(microY + (microY >> 0x1f & 7U)) >> 3;
+ if (((399 < uVar5) || (399 < uVar6)) || (*(char*)(uVar6 * 400 + 0x21aec98 + uVar5) == '\0')) {
+ return 0;
+ }
+ uVar5 = (int)(targetX + (targetX >> 0x1f & 7U)) >> 3;
+ uVar6 = (int)(targetY + (targetY >> 0x1f & 7U)) >> 3;
+ if (399 < uVar5) {
+ return 0;
+ }
+ if (399 < uVar6) {
+ return 0;
+ }
+ if (*(char*)(uVar6 * 400 + 0x21aec98 + uVar5) == '\0') {
+ return 0;
+ }
+ }
+ if ((int)entityID < 0x19) {
+ this->entityArray[entityID].uid = 0;
+ } else {
+ this->entityArray[entityID].uid = DAT_GameCore.uniqueGameObjectTracker;
+ DAT_GameCore.uniqueGameObjectTracker = DAT_GameCore.uniqueGameObjectTracker + 1;
+ }
+ dVar2 = DAT_GameCore.mapTimeInTicks;
+ this->entityArray[entityID].unitID_OR_seaGullID = (short)unitID;
+ this->entityArray[entityID].targetX = (short)targetX;
+ this->entityArray[entityID].targetY = (short)targetY;
+ this->entityArray[entityID].targetZ = (short)targetZUnk;
+ this->entityArray[entityID].heightDifference = targetZUnk - totalHeight;
+ this->entityArray[entityID].field21_0x34 = dVar2;
+ this->entityArray[entityID].unitID = (short)param_11;
+ this->entityArray[entityID].owner = (short)playerID1;
+ this->entityArray[entityID].microX = (short)microX;
+ this->entityArray[entityID].x_2 = (short)microX;
+ this->entityArray[entityID].logicalState = 1;
+ this->entityArray[entityID].microY = (short)microY;
+ this->entityArray[entityID].y_2 = (short)microY;
+ sVar7 = (short)totalHeight;
+ this->entityArray[entityID].height = sVar7;
+ this->entityArray[entityID].startingHeight_2 = sVar7;
+ this->entityArray[entityID].height_2 = sVar7;
+ this->entityArray[entityID].startingHeight = sVar7;
+ this->entityArray[entityID].unkMinusOne = 0;
+ /*
+ sets DAT_TempBuildingOrientation
+ */
+ somethingWithProjectileDistance(microX, microY, targetX, targetY);
+ this->entityArray[entityID].orientation = DAT_DirectionAlgorithmState.orientation;
+ this->entityArray[entityID].colorUnk = 0;
+ if ((((entityType == ET_FLAG_1)
+ || (entityType == ET_FLAG_4))
+ || (entityType == ET_FLAG_2))
+ || (entityType == ET_FLAG_3)) {
+ this->entityArray[entityID].colorUnk = ownerColorUnk;
+ }
+ setProjectileEntityValues2(
+ entityID, entityType);
+ if (this->entityArray[entityID].rng_2 != 0) {
+ this->entityArray[entityID].gmID = 0x91;
+ }
+ this->entityArray[entityID].field7_0x12 = 0;
+ this->entityArray[entityID].unknownAnimationFrameRelated = 0;
+ if (entityType == ET_DUST_CLOUD) {
+ if (param_11 == 1) {
+ this->entityArray[entityID].unknownAnimationFrameRelated = 200;
+ }
+ LAB_00404efa:
+ this->entityArray[entityID].rng_1 = (int)SEC_RNG::instance.currentNumber2;
+ if (25 < (int)entityID) {
+ nextRandomNumber2();
+ }
+ if (entityType == ET_SEAGULLUnk) {
+ this->entityArray[entityID].rng_2 = SEC_RNG::instance.currentNumber2 % 100 + 120;
+ goto LAB_00404f8c;
+ }
+ if (entityType == 0x1f) {
+ if (unitID != 0) {
+ this->entityArray[entityID].unkOne_1 = 2;
+ }
+ goto LAB_00404f8c;
+ }
+ if (entityType != ET_HEADS_ON_SPIKES)
+ goto LAB_00404f8c;
+ this->entityArray[entityID].rng_2 = SEC_RNG::instance.currentNumber2 % 500 + 300;
+ } else {
+ if (entityType != ((EntityType)8))
+ goto LAB_00404efa;
+ ownerColorUnk = DAT_UnitsState.units[unitID].fixedRng;
+ }
+ this->entityArray[entityID].rng_1 = ownerColorUnk;
+ LAB_00404f8c:
+ initializeProjectileVelocities(
+ entityID, microX, microY, totalHeight, targetX, targetY, targetZUnk);
+ if (this->entityArray[entityID].entityType == ((EntityType)0x18)) {
+ this->entityArray[entityID].entityType = ET_ARROW_AND_DEFAULT;
+ }
+ if (this->entityArray[entityID].entityType == ((EntityType)0x19)) {
+ this->entityArray[entityID].entityType = ET_CROSSBOWARROW;
+ }
+ if (this->entityArray[entityID].entityType
+ == (ET_FIRETHROWER | ET_ARROW_AND_DEFAULT)) {
+ this->entityArray[entityID].entityType = ET_SLINGER;
+ }
+ if (this->entityArray[entityID].entityType == ET_FIRETHROWER_UNTARGETED) {
+ this->entityArray[entityID].entityType = ET_FIRETHROWER;
+ }
+ if (bVar1) {
+ this->entityArray[entityID].gmLookupValue = 1;
+ }
+ if (entityID != 0) {
+ processEntityHitBuildingOrUnit(
+ entityID);
+ calculateEntityDrawOffset(entityID);
+ uVar5 = DAT_CurrentEntityID;
+ DAT_CurrentEntityID = entityID;
+ (*(code*)DAT_EntityDefinedData
+ .EntityCallbacks[(short)this->entityArray[entityID].entityType])();
+ DAT_CurrentEntityID = uVar5;
+ }
+ return entityID;
+ LAB_00404bc5:
+ if (pEVar4[-1] == 0)
+ goto LAB_00404c16;
+ switch (*pEVar4) {
+ case ET_FIRE:
+ case ET_DUST_CLOUD:
+ case 0x1b:
+ case 0x1e:
+ case 0x1f:
+ deleteEntity(entityID);
+ goto LAB_00404c16;
+ default : entityID = entityID + 1;
+ pEVar4 = pEVar4 + 0x74;
+ if (2999 < (int)entityID) {
+ switchD_00404bac_caseD_5:
+ this->every10Ticks = 2999;
+ return 0;
+ }
+ }
+ goto LAB_00404bc5;
+ }
+ }
+}
+}
+
+### 0x00405cf0 setProjectileTargetPosition | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00405CF0
+ void EntityState::setProjectileTargetPosition(
+ int entityID, int x, int y, int height, int targetX, int targetY, int targetZ)
+ {
+ short _height;
+ this->entityArray[entityID].targetZ = (short)targetZ;
+ this->entityArray[entityID].targetY = (short)targetY;
+ this->entityArray[entityID].microX = (short)x;
+ this->entityArray[entityID].x_2 = (short)x;
+ this->entityArray[entityID].microY = (short)y;
+ this->entityArray[entityID].y_2 = (short)y;
+ _height = (short)height;
+ this->entityArray[entityID].height = _height;
+ this->entityArray[entityID].startingHeight_2 = _height;
+ this->entityArray[entityID].height_2 = _height;
+ this->entityArray[entityID].startingHeight = _height;
+ this->entityArray[entityID].targetX = (short)targetX;
+ this->entityArray[entityID].heightDifference = targetZ - height;
+ somethingWithProjectileDistance(x, y, targetX, targetY);
+ this->entityArray[entityID].orientation = DAT_DirectionAlgorithmState.orientation;
+ initializeProjectileVelocities(
+ entityID, x, y, height, targetX, targetY, targetZ);
+ return;
+ }
+ }
+}
+}
+
+### 0x00405da0 spawnProjectileImpactDebris | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00405DA0
+ void EntityState::spawnProjectileImpactDebris(int param_1)
+ {
+ byte bVar1;
+ uint microY;
+ uint microX;
+ uint uVar2;
+ int iVar3;
+ uint uVar4;
+ int iVar5;
+ int iVar6;
+ bool bVar7;
+ bool bVar8;
+ bool bVar9;
+ microY = (uint)this->entityArray[param_1].microY;
+ microX = (uint)this->entityArray[param_1].microX;
+ uVar2 = microX & 7;
+ iVar6 = 0;
+ iVar3 = 0;
+ uVar4 = microY & 7;
+ bVar1 = setBitFlagBasedOnWallTowerGatehouseOrKeep(
+ (int)(microX + ((int)microX >> 0x1f & 7U)) >> 3, (int)((int)((microY + (microY >> 0x1f & 7U)) >> 3)));
+ switch (this->entityArray[param_1].orientation) {
+ case 0x3c:
+ case 0x40:
+ case 0x44:
+ case 0x48:
+ switchD_00405e0c_caseD_3c:
+ iVar3 = (int)this->entityArray[param_1].y_2;
+ break;
+ case 0x3d:
+ uVar4 = 7 - uVar4;
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = false;
+ if (uVar2 == uVar4) {
+ switch (bVar1 & 10) {
+ case 0:
+ case 8:
+ switchD_00405e31_caseD_0:
+ uVar4 = 100;
+ break;
+ case 2:
+ switchD_00405e31_caseD_2:
+ uVar2 = 100;
+ break;
+ case 10:
+ goto switchD_00405e0c_caseD_3c;
+ }
+ switchD_00405e31_caseD_4:
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = uVar2 == uVar4;
+ }
+ goto LAB_00405e3f;
+ case 0x3e:
+ uVar4 = 7 - uVar4;
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = false;
+ if (uVar2 == uVar4) {
+ switch (bVar1 & 10) {
+ case 0:
+ case 8:
+ goto switchD_00405e31_caseD_0;
+ case 2:
+ goto switchD_00405e31_caseD_2;
+ default:
+ goto switchD_00405e31_caseD_4;
+ case 10:
+ goto switchD_00405e0c_caseD_3c;
+ }
+ }
+ goto LAB_00405e3f;
+ case 0x3f:
+ uVar4 = 7 - uVar4;
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = false;
+ if (uVar2 == uVar4) {
+ switch (bVar1 & 10) {
+ case 0:
+ case 2:
+ goto switchD_00405e31_caseD_2;
+ default:
+ goto switchD_00405e31_caseD_4;
+ case 8:
+ goto switchD_00405e31_caseD_0;
+ case 10:
+ goto switchD_00405e0c_caseD_3c;
+ }
+ }
+ goto LAB_00405e3f;
+ case 0x41:
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = false;
+ if (uVar2 == uVar4) {
+ switch (bVar1 & 0x82) {
+ case 0:
+ case 2:
+ switchD_00405ebf_caseD_0:
+ uVar4 = 100;
+ default:
+ switchD_00405ebf_caseD_4:
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = uVar2 == uVar4;
+ break;
+ case 0x80:
+ switchD_00405ebf_caseD_80:
+ bVar9 = (100 < uVar4);
+ bVar8 = (int)(100 - uVar4) < 0;
+ bVar7 = uVar4 == 100;
+ break;
+ case 0x82:
+ goto switchD_00405e0c_caseD_3c;
+ }
+ }
+ goto LAB_00405e3f;
+ case 0x42:
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = false;
+ if (uVar2 == uVar4) {
+ switch (bVar1 & 0x82) {
+ case 0:
+ case 2:
+ goto switchD_00405ebf_caseD_0;
+ default:
+ goto switchD_00405ebf_caseD_4;
+ case 0x80:
+ goto switchD_00405ebf_caseD_80;
+ case 0x82:
+ goto switchD_00405e0c_caseD_3c;
+ }
+ }
+ goto LAB_00405e3f;
+ case 0x43:
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = false;
+ if (uVar2 == uVar4) {
+ switch (bVar1 & 0x82) {
+ case 0:
+ case 0x80:
+ switchD_00405f23_caseD_0:
+ uVar2 = 100;
+ default:
+ switchD_00405f23_caseD_4:
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = uVar2 == uVar4;
+ break;
+ case 2:
+ switchD_00405f23_caseD_2:
+ bVar9 = (uVar2 < 100);
+ bVar8 = (int)(uVar2 - 100) < 0;
+ bVar7 = uVar2 == 100;
+ break;
+ case 0x82:
+ goto switchD_00405e0c_caseD_3c;
+ }
+ }
+ goto LAB_00405e3f;
+ case 0x45:
+ uVar2 = 7 - uVar2;
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = false;
+ if (uVar2 == uVar4) {
+ switch (bVar1 & 0xa0) {
+ case 0:
+ case 0x80:
+ goto switchD_00405ebf_caseD_0;
+ case 0x20:
+ goto switchD_00405ebf_caseD_80;
+ default:
+ goto switchD_00405ebf_caseD_4;
+ case 0xa0:
+ goto switchD_00405e0c_caseD_3c;
+ }
+ }
+ goto LAB_00405e3f;
+ case 0x46:
+ uVar2 = 7 - uVar2;
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = false;
+ if (uVar2 == uVar4) {
+ switch (bVar1 & 0xa0) {
+ case 0:
+ case 0x80:
+ goto switchD_00405ebf_caseD_0;
+ case 0x20:
+ goto switchD_00405ebf_caseD_80;
+ default:
+ goto switchD_00405ebf_caseD_4;
+ case 0xa0:
+ goto switchD_00405e0c_caseD_3c;
+ }
+ }
+ goto LAB_00405e3f;
+ case 0x47:
+ uVar2 = 7 - uVar2;
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = false;
+ if (uVar2 == uVar4) {
+ switch (bVar1 & 0xa0) {
+ case 0:
+ case 0x20:
+ goto switchD_00405f23_caseD_0;
+ default:
+ goto switchD_00405f23_caseD_4;
+ case 0x80:
+ goto switchD_00405f23_caseD_2;
+ case 0xa0:
+ goto switchD_00405e0c_caseD_3c;
+ }
+ }
+ goto LAB_00405e3f;
+ case 0x49:
+ iVar3 = -uVar2 + 7;
+ iVar6 = 7 - uVar4;
+ bVar9 = (iVar3 < iVar6);
+ bVar8 = iVar3 - iVar6 < 0;
+ bVar7 = false;
+ if (iVar3 == iVar6) {
+ switch (bVar1 & 0x28) {
+ case 0:
+ case 0x20:
+ iVar3 = 100;
+ default:
+ bVar9 = (iVar3 < iVar6);
+ bVar8 = iVar3 - iVar6 < 0;
+ bVar7 = iVar3 == iVar6;
+ break;
+ case 8:
+ bVar9 = (iVar3 < 100);
+ bVar8 = (int)(-uVar2 + -0x5d) < 0;
+ bVar7 = iVar3 == 100;
+ break;
+ case 0x28:
+ goto switchD_00405e0c_caseD_3c;
+ }
+ }
+ LAB_00405e3f:
+ if (!bVar7 && bVar9 == bVar8) {
+ iVar3 = (int)this->entityArray[param_1].y_2;
+ iVar6 = this->entityArray[param_1].microX * 2 - (int)this->entityArray[param_1].x_2;
+ goto switchD_00405e0c_caseD_10;
+ }
+ iVar3 = this->entityArray[param_1].microY * 2 - (int)this->entityArray[param_1].y_2;
+ break;
+ case 0x4a:
+ uVar2 = 7 - uVar2;
+ uVar4 = 7 - uVar4;
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = false;
+ if (uVar2 == uVar4) {
+ switch (bVar1 & 0x28) {
+ case 0:
+ case 8:
+ goto switchD_00405e31_caseD_0;
+ default:
+ goto switchD_00405e31_caseD_4;
+ case 0x20:
+ goto switchD_00405e31_caseD_2;
+ case 0x28:
+ goto switchD_00405e0c_caseD_3c;
+ }
+ }
+ goto LAB_00405e3f;
+ case 0x4b:
+ uVar2 = 7 - uVar2;
+ uVar4 = 7 - uVar4;
+ bVar9 = (uVar2 < uVar4);
+ bVar8 = (int)(uVar2 - uVar4) < 0;
+ bVar7 = false;
+ if (uVar2 == uVar4) {
+ switch (bVar1 & 0x28) {
+ case 0:
+ case 8:
+ goto switchD_00405e31_caseD_0;
+ default:
+ goto switchD_00405e31_caseD_4;
+ case 0x20:
+ goto switchD_00405e31_caseD_2;
+ case 0x28:
+ goto switchD_00405e0c_caseD_3c;
+ }
+ }
+ goto LAB_00405e3f;
+ default:
+ goto switchD_00405e0c_caseD_10;
+ }
+ iVar6 = (int)this->entityArray[param_1].x_2;
+ switchD_00405e0c_caseD_10:
+ iVar5 = 0;
+ uVar4 = this->entityArray[param_1].rng_1 & 0x80000007;
+ if ((int)uVar4 < 0) {
+ uVar4 = (uVar4 - 1 | 0xfffffff8) + 1;
+ }
+ if (uVar4 != 0xfffffffb && -1 < (int)(uVar4 + 5)) {
+ do {
+ spawnProjectileEntity(0, 0, 0,
+ microX, microY, this->entityArray[param_1].height,
+ iVar6, iVar3, 8, 0x1b, 0);
+ iVar5 = iVar5 + 1;
+ uVar4 = this->entityArray[param_1].rng_1 & 0x80000007;
+ if ((int)uVar4 < 0) {
+ uVar4 = (uVar4 - 1 | 0xfffffff8) + 1;
+ }
+ } while (iVar5 < (int)(uVar4 + 5));
+ }
+ iVar3 = (int)this->entityArray[param_1].height;
+ spawnProjectileEntity(0, 0, 0,
+ microX, microY, iVar3, microX + 1, microY + 1,
+ iVar3, 0x1e, 0);
+ return;
+ }
+ }
+}
+}
+
+### 0x00406650 createSeagull | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00406650
+ int EntityState::createSeagull(int x, int y)
+ {
+ ExtraEntityInfo* pEVar1;
+ short sVar2;
+ int iVar3;
+ uint _entityID;
+ int iVar4;
+ uint uVar5;
+ int _id;
+ short _y;
+ ExtraEntityInfo* destination;
+ short _x;
+ float10 fVar6;
+ float10 fVar7;
+ short _y2;
+ short _x2;
+ _id = 1;
+ pEVar1 = this->seagullArray;
+ do {
+ destination = pEVar1 + 1;
+ if (pEVar1[1].field3_0x8 == 0)
+ break;
+ if (pEVar1[1].entityUID != this->entityArray[destination->entityID].uid) {
+ fillMemory_ByteValue(
+ 100, '\0', (void*)((int)(destination)));
+ }
+ if (99 < _id) {
+ return 0;
+ }
+ _id = _id + 1;
+ pEVar1 = destination;
+ } while (_id < 100);
+ this->seagullArray[_id].field3_0x8 = 2;
+ this->seagullArray[_id].field4_0xa = 0;
+ this->seagullArray[_id].someCountDown = 0;
+ _x = (short)x;
+ this->seagullArray[_id].x = _x;
+ this->seagullArray[_id].x_2 = _x;
+ _y = (short)y;
+ this->seagullArray[_id].y = _y;
+ this->seagullArray[_id].y_2 = _y;
+ this->seagullArray[_id].angle = SEC_RNG::instance.currentNumber2 % 0x168;
+ this->seagullArray[_id].angle_2 = (short)SEC_RNG::instance.currentNumber2._1_1_ % 0x168;
+ nextRandomNumber2();
+ uVar5 = (int)SEC_RNG::instance.currentNumber2 & 0x8000000f;
+ if ((int)uVar5 < 0) {
+ uVar5 = (uVar5 - 1 | 0xfffffff0) + 1;
+ }
+ this->seagullArray[_id].unknownCounter_0x16 = (short)uVar5 + 0x18;
+ this->seagullArray[_id].numberBetween60And100 = (short)SEC_RNG::instance.currentNumber2._1_1_ % 0x28 + 0x3c;
+ nextRandomNumber2();
+ if ((SEC_RNG::instance.currentNumber2 & 1U) == 0) {
+ this->seagullArray[_id].someAngle = -1;
+ } else {
+ this->seagullArray[_id].someAngle = 1;
+ }
+ sVar2 = this->seagullArray[_id].angle;
+ fVar6 = ((float10)(sVar2 + -0xb4) * (float10)3.1415926535) / (float10)180.0;
+ sVar2 = this->seagullArray[_id].someAngle * 0x14 + sVar2;
+ this->seagullArray[_id].field15_0x20 = (-(ushort)((SEC_RNG::instance.currentNumber2 & 2U) != 0) & 2) - 1;
+ this->seagullArray[_id].angle = sVar2;
+ if (0x167 < sVar2) {
+ this->seagullArray[_id].angle = sVar2 + 0x168;
+ }
+ sVar2 = this->seagullArray[_id].angle;
+ if (sVar2 < 0) {
+ this->seagullArray[_id].angle = sVar2 + -0x168;
+ }
+ iVar4 = (int)this->seagullArray[_id].unknownCounter_0x16;
+ this->seagullArray[_id].field12_0x1a = -0x14;
+ fVar7 = _math_sin(fVar6);
+ iVar3 = __ftol2(fVar7 * (float10)iVar4);
+ fVar6 = _math_cos((float10)(double)fVar6);
+ iVar4 = __ftol2(fVar6 * (float10)iVar4);
+ _y2 = this->seagullArray[_id].y;
+ _x2 = this->seagullArray[_id].x;
+ this->seagullArray[_id].rngMax799_countdown = 400;
+ this->seagullArray[_id].x_3 = _x;
+ this->seagullArray[_id].y_3 = _y;
+ initializeSeagullMovementVector(
+ _id, _x2, _y2, _x, _y);
+ this->seagullArray[_id].field25_0x34 = 5;
+ _entityID = spawnProjectileEntity(
+ _id, 0, 0, x, y, 0xfa, iVar3 + x, iVar4 + y, 0xfa, ET_SEAGULLUnk, 0);
+ this->seagullArray[_id].entityID = (short)_entityID;
+ this->seagullArray[_id].entityUID = this->entityArray[(short)_entityID].uid;
+ this->seagullArray[_id].randomNumber = SEC_RNG::instance.currentNumber2;
+ nextRandomNumber2();
+ return _id;
+ }
+ }
+}
+}
+
+### 0x00406900 processSeaGulls | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00406900
+ void EntityState::processSeaGulls(int seagullID)
+ {
+ short* psVar1;
+ short sVar2;
+ double dVar3;
+ short _newAngle;
+ short sVar5;
+ short _targetYPart1;
+ short sVar4;
+ uint _targetX;
+ uint _yDiff;
+ uint _newX;
+ BOOLEnum _newBounds;
+ int _oldMicroY;
+ int _oldMicroX;
+ uint _oldX;
+ BOOLEnum _oldBounds;
+ int _targetXPart2;
+ int _targetYPart2;
+ int iVar6;
+ uint uVar7;
+ int _microX;
+ uint _newY;
+ uint _oldY;
+ int iVar8;
+ uint uVar9;
+ int _newMicroY;
+ short _targetXPart1;
+ int _newMicroX;
+ int _entityID;
+ float10 fVar10;
+ float10 fVar11;
+ short _y;
+ short _yPosition;
+ sVar4 = this->seagullArray[seagullID].someCountDown;
+ _entityID = (int)this->seagullArray[seagullID].entityID;
+ if (sVar4 != 0) {
+ sVar4 = sVar4 + -1;
+ this->seagullArray[seagullID].someCountDown = sVar4;
+ if (sVar4 != 0) {
+ return;
+ }
+ _y = this->entityArray[_entityID].microY;
+ this->entityArray[_entityID].targetX = this->entityArray[_entityID].microX;
+ _yPosition = this->entityArray[_entityID].yPosition;
+ this->entityArray[_entityID].targetY = _y;
+ playSFXAtLocation(
+ (int)this->entityArray[_entityID].xPosition, _yPosition,
+ FX_GULL_SURFACE);
+ }
+ _microX = (int)this->entityArray[_entityID].microX;
+ _targetX = _microX - this->entityArray[_entityID].targetX;
+ if (((int)((_targetX ^ (int)_targetX >> 0x1f) - ((int)_targetX >> 0x1f)) < 3)
+ && (_yDiff = (int)this->entityArray[_entityID].microY - (int)this->entityArray[_entityID].targetY,
+ (int)((_yDiff ^ (int)_yDiff >> 0x1f) - ((int)_yDiff >> 0x1f)) < 3)) {
+ if (((int)this->seagullArray[seagullID].randomNumber ^ this->entityArray[_entityID].rng_1
+ ^ (int)SEC_RNG::instance.currentNumber2)
+ % 500
+ == 123) {
+ _newMicroY
+ = (int)this->entityArray[_entityID].someMicroY + (int)this->entityArray[_entityID].microY;
+ _newMicroX = this->entityArray[_entityID].someMicroX + _microX;
+ _newY = (int)(_newMicroY + (_newMicroY >> 0x1f & 7U)) >> 3;
+ _newX = (int)(_newMicroX + (_newMicroX >> 0x1f & 7U)) >> 3;
+ _newBounds = xyAreValid(_newX, _newY);
+ if (_newBounds != FALSE) {
+ _oldMicroY = (int)this->entityArray[_entityID].microY;
+ _oldMicroX = (int)this->entityArray[_entityID].microX;
+ _oldY = (int)(_oldMicroY + (_oldMicroY >> 0x1f & 7U)) >> 3;
+ _oldX = (int)(_oldMicroX + (_oldMicroX >> 0x1f & 7U)) >> 3;
+ _oldBounds = xyAreValid(_oldX, _oldY);
+ if (((_oldBounds != FALSE)
+ && ((DAT_TileMapState.LogicLayer
+ [DAT_ViewportRenderState.translationMatrix[_newY].addXgetTile
+ + _newX]
+ & 1)
+ != 0))
+ && ((DAT_TileMapState.LogicLayer
+ [DAT_ViewportRenderState.translationMatrix[_oldY].addXgetTile + _oldX]
+ & 1)
+ != 0)) {
+ this->seagullArray[seagullID].someCountDown = 160;
+ setProjectileTargetPosition(_entityID, this->entityArray[_entityID].microX,
+ this->entityArray[_entityID].microY, 0xfa, _newMicroX, _newMicroY, 0);
+ playSFXAtLocation(
+ (int)this->entityArray[_entityID].xPosition,
+ this->entityArray[_entityID].yPosition, FX_GULL);
+ return;
+ }
+ }
+ }
+ sVar4 = this->seagullArray[seagullID].angle;
+ dVar3 = ((double)(sVar4 + -0xb4) * 3.1415926535) / 180.0;
+ _newAngle = this->seagullArray[seagullID].someAngle * 20 + sVar4;
+ this->seagullArray[seagullID].angle = _newAngle;
+ if (360 < _newAngle) {
+ nextRandomNumber1();
+ if ((int)SEC_RNG::instance.currentNumber1 % 5 == 1) {
+ playSFXAtLocation(
+ (int)this->entityArray[_entityID].xPosition,
+ this->entityArray[_entityID].yPosition, FX_GULL);
+ }
+ sVar4 = this->seagullArray[seagullID].field12_0x1a;
+ psVar1 = &this->seagullArray[seagullID].angle;
+ *psVar1 = *psVar1 + -360;
+ if (sVar4 < 0) {
+ psVar1 = &this->seagullArray[seagullID].unknownCounter_0x16;
+ *psVar1 = *psVar1 + 1;
+ } else if (0 < sVar4) {
+ psVar1 = &this->seagullArray[seagullID].unknownCounter_0x16;
+ *psVar1 = *psVar1 + -1;
+ }
+ if (this->seagullArray[seagullID].unknownCounter_0x16 < 24) {
+ this->seagullArray[seagullID].unknownCounter_0x16 = 24;
+ }
+ if (80 < this->seagullArray[seagullID].unknownCounter_0x16) {
+ this->seagullArray[seagullID].unknownCounter_0x16 = 80;
+ }
+ this->seagullArray[seagullID].field12_0x1a = sVar4 + 1;
+ if (0x13 < (short)(sVar4 + 1)) {
+ this->seagullArray[seagullID].field12_0x1a = -0x14;
+ }
+ }
+ sVar4 = this->seagullArray[seagullID].angle;
+ if (sVar4 < 0) {
+ this->seagullArray[seagullID].angle = sVar4 + 0x168;
+ sVar4 = this->seagullArray[seagullID].field12_0x1a;
+ if (sVar4 < 0) {
+ psVar1 = &this->seagullArray[seagullID].unknownCounter_0x16;
+ *psVar1 = *psVar1 + 1;
+ } else if (0 < sVar4) {
+ psVar1 = &this->seagullArray[seagullID].unknownCounter_0x16;
+ *psVar1 = *psVar1 + -1;
+ }
+ if (this->seagullArray[seagullID].unknownCounter_0x16 < 0x18) {
+ this->seagullArray[seagullID].unknownCounter_0x16 = 0x18;
+ }
+ if (0x50 < this->seagullArray[seagullID].unknownCounter_0x16) {
+ this->seagullArray[seagullID].unknownCounter_0x16 = 0x50;
+ }
+ this->seagullArray[seagullID].field12_0x1a = sVar4 + 1;
+ if (0x13 < (short)(sVar4 + 1)) {
+ this->seagullArray[seagullID].field12_0x1a = -0x14;
+ }
+ }
+ iVar8 = (int)this->seagullArray[seagullID].unknownCounter_0x16;
+ fVar10 = _math_sin((float10)dVar3);
+ _targetXPart2 = __ftol2(fVar10 * (float10)iVar8);
+ fVar10 = _math_cos((float10)dVar3);
+ _targetYPart2 = __ftol2(fVar10 * (float10)iVar8);
+ sVar4 = this->seagullArray[seagullID].angle_2;
+ sVar5 = this->seagullArray[seagullID].field15_0x20 + sVar4;
+ this->seagullArray[seagullID].angle_2 = sVar5;
+ fVar10 = ((float10)(sVar4 + -0xb4) * (float10)3.1415926535) / (float10)180.0;
+ if (0x167 < sVar5) {
+ this->seagullArray[seagullID].angle_2 = sVar5 + -0x168;
+ }
+ sVar4 = this->seagullArray[seagullID].angle_2;
+ if (sVar4 < 0) {
+ this->seagullArray[seagullID].angle_2 = sVar4 + 0x168;
+ }
+ iVar8 = (int)this->seagullArray[seagullID].numberBetween60And100;
+ fVar11 = _math_sin(fVar10);
+ iVar6 = __ftol2(fVar11 * (float10)iVar8);
+ _targetXPart1 = (short)iVar6 + this->seagullArray[seagullID].x;
+ this->seagullArray[seagullID].x_2 = _targetXPart1;
+ fVar10 = _math_cos((float10)(double)fVar10);
+ iVar8 = __ftol2(fVar10 * (float10)iVar8);
+ _targetYPart1 = (short)iVar8;
+ _targetYPart1 = _targetYPart1 + this->seagullArray[seagullID].y;
+ this->seagullArray[seagullID].y_2 = _targetYPart1;
+ setProjectileTargetPosition(
+ _entityID, this->entityArray[_entityID].microX,
+ this->entityArray[_entityID].microY,
+ this->entityArray[_entityID].height, _targetXPart1 + _targetXPart2,
+ _targetYPart1 + _targetYPart2, 250);
+ }
+ sVar4 = this->seagullArray[seagullID].x;
+ iVar8 = (int)sVar4;
+ uVar7 = iVar8 - this->seagullArray[seagullID].x_3;
+ uVar9 = (int)uVar7 >> 0x1f;
+ if (((1 < (int)((uVar7 ^ uVar9) - uVar9))
+ || (uVar7 = (int)this->seagullArray[seagullID].y - (int)this->seagullArray[seagullID].y_3,
+ uVar9 = (int)uVar7 >> 0x1f, 1 < (int)((uVar7 ^ uVar9) - uVar9)))
+ && (sVar5 = this->seagullArray[seagullID].field27_0x38, 0 < sVar5)) {
+ psVar1 = &this->seagullArray[seagullID].field25_0x34;
+ *psVar1 = *psVar1 + -1;
+ if (this->seagullArray[seagullID].field25_0x34 < 1) {
+ sVar2 = this->seagullArray[seagullID].field22_0x2e;
+ this->seagullArray[seagullID].field25_0x34 = 10;
+ this->seagullArray[seagullID].field27_0x38 = sVar5 + -1;
+ if (sVar2 != 0) {
+ if (sVar2 == 2) {
+ this->seagullArray[seagullID].x = this->seagullArray[seagullID].field23_0x30 + sVar4;
+ return;
+ }
+ if (sVar2 == 1) {
+ psVar1 = &this->seagullArray[seagullID].y;
+ *psVar1 = *psVar1 + this->seagullArray[seagullID].field24_0x32;
+ return;
+ }
+ if (sVar2 == 4) {
+ sVar5 = this->seagullArray[seagullID].field21_0x2c;
+ if (0 < sVar5) {
+ sVar2 = this->seagullArray[seagullID].field23_0x30;
+ psVar1 = &this->seagullArray[seagullID].y;
+ *psVar1 = *psVar1 + this->seagullArray[seagullID].field24_0x32;
+ this->seagullArray[seagullID].x = sVar2 + sVar4;
+ this->seagullArray[seagullID].field21_0x2c
+ = this->seagullArray[seagullID].field20_0x2a + sVar5;
+ return;
+ }
+ sVar2 = this->seagullArray[seagullID].field19_0x28;
+ this->seagullArray[seagullID].x = this->entityArray[_entityID].someMicroX + sVar4;
+ this->seagullArray[seagullID].field21_0x2c = sVar2 + sVar5;
+ return;
+ }
+ if (sVar2 == 3) {
+ sVar5 = this->seagullArray[seagullID].field21_0x2c;
+ psVar1 = &this->seagullArray[seagullID].y;
+ *psVar1 = *psVar1 + this->seagullArray[seagullID].field24_0x32;
+ if (0 < sVar5) {
+ this->seagullArray[seagullID].x = this->seagullArray[seagullID].field23_0x30 + sVar4;
+ this->seagullArray[seagullID].field21_0x2c
+ = this->seagullArray[seagullID].field20_0x2a + sVar5;
+ return;
+ }
+ this->seagullArray[seagullID].field21_0x2c
+ = this->seagullArray[seagullID].field19_0x28 + sVar5;
+ }
+ }
+ }
+ return;
+ }
+ sVar4 = this->seagullArray[seagullID].rngMax799_countdown;
+ if (0 < sVar4) {
+ this->seagullArray[seagullID].rngMax799_countdown = sVar4 + -1;
+ return;
+ }
+ _entityID = (int)this->seagullArray[seagullID].y;
+ this->seagullArray[seagullID].rngMax799_countdown = SEC_RNG::instance.currentNumber2 % 400 + 400;
+ findFurthestSeaTile((int)(CONCAT44((int)SEC_RNG::instance.currentNumber2 >> 0x1f,
+ (uint)((int)((int)SEC_RNG::instance.currentNumber2 >> 4) % 200) + 400)),
+ (uint)((int)((int)(iVar8 + (iVar8 >> 0x1f & 7U)) >> 3)),
+ (int)(_entityID + (_entityID >> 0x1f & 7U)) >> 3);
+ this->seagullArray[seagullID].x_3 = (short)DAT_PathFindingState.ALG_ResultX * 8;
+ sVar4 = this->seagullArray[seagullID].x_3;
+ sVar2 = (short)DAT_PathFindingState.ALG_ResultY * 8;
+ sVar5 = this->seagullArray[seagullID].x;
+ this->seagullArray[seagullID].y_3 = sVar2;
+ initializeSeagullMovementVector(
+ seagullID, sVar5, this->seagullArray[seagullID].y, sVar4,
+ sVar2);
+ this->seagullArray[seagullID].field25_0x34 = 10;
+ return;
+ }
+ }
+}
+}
+

@@ -1,0 +1,1509 @@
+### 0x00536260 selectionHasMovableNonSiegeUnit | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00536260
+ BOOLEnum UnitsState::selectionHasMovableNonSiegeUnit()
+ {
+ int _currentPlayerSlotID = DAT_GameSynchronyState.currentPlayerSlotID;
+ for (DAT_CurrentUnitSlotID = 1; DAT_CurrentUnitSlotID < this->maxUnitCount;
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1) {
+ if (this->units[DAT_CurrentUnitSlotID].logicalState != ULS_NORMAL) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].dying) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].isSelected == 0) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].owner != _currentPlayerSlotID) {
+ return FALSE;
+ }
+ int _unitType = this->units[DAT_CurrentUnitSlotID].unitType;
+ if (_unitType < UT_S_TREBUCHET) {
+ return TRUE;
+ }
+ if (_unitType > UT_S_MANGONEL && _unitType != UT_S_BALLISTA) {
+ return TRUE;
+ }
+ }
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x005362f0 getFirstSelectedUnitOfEitherType | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x005362F0
+ uint UnitsState::getFirstSelectedUnitOfEitherType(int unitType_1, int unitType_2)
+ {
+ int _currentPlayerSlotID = DAT_GameSynchronyState.currentPlayerSlotID;
+ for (DAT_CurrentUnitSlotID = 1; DAT_CurrentUnitSlotID < this->maxUnitCount;
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1) {
+ if (this->units[DAT_CurrentUnitSlotID].logicalState != ULS_NORMAL) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].dying) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].isSelected == 0) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].owner != _currentPlayerSlotID) {
+ return 0;
+ }
+ if ((short)this->units[DAT_CurrentUnitSlotID].unitType == unitType_1) {
+ return DAT_CurrentUnitSlotID;
+ }
+ if ((short)this->units[DAT_CurrentUnitSlotID].unitType == unitType_2) {
+ return DAT_CurrentUnitSlotID;
+ }
+ }
+ return 0;
+ }
+ }
+}
+}
+
+### 0x00536370 getMaxStoneAmmoInSelectedSiegeEngines | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00536370
+ int UnitsState::getMaxStoneAmmoInSelectedSiegeEngines()
+ {
+ UnitTypeShort UVar1;
+ int iVar2;
+ int iVar3;
+ iVar2 = 0;
+ DAT_CurrentUnitSlotID = 1;
+ if ((int)this->maxUnitCount < 2) {
+ DAT_CurrentUnitSlotID = 1;
+ return 0;
+ }
+ do {
+ if (((this->units[DAT_CurrentUnitSlotID].logicalState == ULS_NORMAL)
+ && (this->units[DAT_CurrentUnitSlotID].dying == 0))
+ && (this->units[DAT_CurrentUnitSlotID].isSelected != 0)) {
+ if (this->units[DAT_CurrentUnitSlotID].owner
+ != DAT_GameSynchronyState.currentPlayerSlotID) {
+ return 0;
+ }
+ UVar1 = this->units[DAT_CurrentUnitSlotID].unitType;
+ if (((UVar1 == UT_S_CATAPULT)
+ || (UVar1 == UT_S_TREBUCHET))
+ && (iVar3 = (int)this->units[DAT_CurrentUnitSlotID].stoneAmmunition, iVar2 < iVar3)) {
+ iVar2 = iVar3;
+ }
+ }
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1;
+ } while ((int)DAT_CurrentUnitSlotID < (int)this->maxUnitCount);
+ return iVar2;
+ }
+ }
+}
+}
+
+### 0x00536400 countSelectedCatapultsAndTrebuchets | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00536400
+ undefined4 UnitsState::countSelectedCatapultsAndTrebuchets()
+ {
+ int _currentPlayerSlotID = DAT_GameSynchronyState.currentPlayerSlotID;
+ this->field15_0x560 = 0;
+ if (DAT_GameState.playerDataArray[_currentPlayerSlotID].keep.id <= 0) {
+ return 0;
+ }
+ int _count = 0;
+ for (DAT_CurrentUnitSlotID = 1; DAT_CurrentUnitSlotID < this->maxUnitCount;
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1) {
+ if (this->units[DAT_CurrentUnitSlotID].logicalState != ULS_NORMAL) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].dying) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].isSelected == 0) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].owner != _currentPlayerSlotID) {
+ return 0;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].unitType == UT_S_CATAPULT
+ || this->units[DAT_CurrentUnitSlotID].unitType == UT_S_TREBUCHET) {
+ _count = _count + 1;
+ this->field15_0x560 = DAT_CurrentUnitSlotID;
+ }
+ }
+ if (_count == 1) {
+ return 1;
+ }
+ if (_count > 1) {
+ return 2;
+ }
+ return 0;
+ }
+ }
+}
+}
+
+### 0x005364c0 returnFirstSelectedEngineer | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x005364C0
+ uint UnitsState::returnFirstSelectedEngineer()
+ {
+ int _currentPlayerSlotID = DAT_GameSynchronyState.currentPlayerSlotID;
+ for (DAT_CurrentUnitSlotID = 1; DAT_CurrentUnitSlotID < this->maxUnitCount;
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1) {
+ if (this->units[DAT_CurrentUnitSlotID].logicalState != ULS_NORMAL) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].dying) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].isSelected == 0) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].owner != _currentPlayerSlotID) {
+ return 0;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].unitType == UT_E_ENGINEER) {
+ return DAT_CurrentUnitSlotID;
+ }
+ }
+ return 0;
+ }
+ }
+}
+}
+
+### 0x00536530 getTunnelerIDOnlyIfFirstSelected | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00536530
+ uint UnitsState::getTunnelerIDOnlyIfFirstSelected()
+ {
+ int _currentPlayerSlotID = DAT_GameSynchronyState.currentPlayerSlotID;
+ for (DAT_CurrentUnitSlotID = 1; DAT_CurrentUnitSlotID < this->maxUnitCount;
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1) {
+ if (this->units[DAT_CurrentUnitSlotID].logicalState != ULS_NORMAL) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].dying) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].isSelected == 0) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].owner != _currentPlayerSlotID) {
+ return 0;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].unitType == UT_TUNNELER) {
+ return DAT_CurrentUnitSlotID;
+ }
+ }
+ return 0;
+ }
+ }
+}
+}
+
+### 0x005365a0 getFirstSelectedLadderUnitID | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x005365A0
+ uint UnitsState::getFirstSelectedLadderUnitID()
+ {
+ int _currentPlayerSlotID = DAT_GameSynchronyState.currentPlayerSlotID;
+ for (DAT_CurrentUnitSlotID = 1; DAT_CurrentUnitSlotID < this->maxUnitCount;
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1) {
+ if (this->units[DAT_CurrentUnitSlotID].logicalState != ULS_NORMAL) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].dying) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].isSelected == 0) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].owner != _currentPlayerSlotID) {
+ return 0;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].unitType == UT_E_LADDER) {
+ return DAT_CurrentUnitSlotID;
+ }
+ }
+ return 0;
+ }
+ }
+}
+}
+
+### 0x00536610 canAUnitClimb | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00536610
+ BOOLEnum UnitsState::canAUnitClimb()
+ {
+ int _currentPlayerSlotID = DAT_GameSynchronyState.currentPlayerSlotID;
+ for (DAT_CurrentUnitSlotID = 1; DAT_CurrentUnitSlotID < this->maxUnitCount;
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1) {
+ if (this->units[DAT_CurrentUnitSlotID].logicalState != ULS_NORMAL) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].dying) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].isSelected == 0) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].owner != _currentPlayerSlotID) {
+ return FALSE;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].unitCanClimb != 0) {
+ return TRUE;
+ }
+ }
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x00536690 getFirstSelectedSiegeEngineID | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00536690
+ uint UnitsState::getFirstSelectedSiegeEngineID()
+ {
+ UnitTypeShort UVar1;
+ DAT_CurrentUnitSlotID = 1;
+ if (1 < (int)this->maxUnitCount) {
+ do {
+ if (((this->units[DAT_CurrentUnitSlotID].logicalState == ULS_NORMAL)
+ && (this->units[DAT_CurrentUnitSlotID].dying == 0))
+ && (this->units[DAT_CurrentUnitSlotID].isSelected != 0)) {
+ if (this->units[DAT_CurrentUnitSlotID].owner
+ != DAT_GameSynchronyState.currentPlayerSlotID) {
+ return 0;
+ }
+ UVar1 = this->units[DAT_CurrentUnitSlotID].unitType;
+ if (UVar1 == UT_S_CATAPULT) {
+ return DAT_CurrentUnitSlotID;
+ }
+ if (UVar1 == UT_S_TREBUCHET) {
+ return DAT_CurrentUnitSlotID;
+ }
+ if (UVar1 == UT_S_MANGONEL) {
+ return DAT_CurrentUnitSlotID;
+ }
+ if (UVar1 == UT_S_BALLISTA) {
+ return DAT_CurrentUnitSlotID;
+ }
+ if (UVar1 == UT_S_FBALLISTA) {
+ return DAT_CurrentUnitSlotID;
+ }
+ }
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1;
+ } while ((int)DAT_CurrentUnitSlotID < (int)this->maxUnitCount);
+ }
+ return 0;
+ }
+ }
+}
+}
+
+### 0x00536710 getFirstSelectedCatapultOrTrebuchetID | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00536710
+ uint UnitsState::getFirstSelectedCatapultOrTrebuchetID()
+ {
+ int _currentPlayerSlotID = DAT_GameSynchronyState.currentPlayerSlotID;
+ for (DAT_CurrentUnitSlotID = 1; DAT_CurrentUnitSlotID < this->maxUnitCount;
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1) {
+ if (this->units[DAT_CurrentUnitSlotID].logicalState != ULS_NORMAL) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].dying) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].isSelected == 0) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].owner != _currentPlayerSlotID) {
+ return 0;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].unitType == UT_S_CATAPULT) {
+ return DAT_CurrentUnitSlotID;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].unitType == UT_S_TREBUCHET) {
+ return DAT_CurrentUnitSlotID;
+ }
+ }
+ return 0;
+ }
+ }
+}
+}
+
+### 0x00536780 isTowerTileOvercrowdedByCurrentPlayer | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00536780
+ BOOLEnum UnitsState::isTowerTileOvercrowdedByCurrentPlayer(int param_1)
+ {
+ BuildingTypeShort BVar1;
+ ushort uVar2;
+ ushort uVar3;
+ ushort uVar4;
+ uint uVar5;
+ int iVar6;
+ int* piVar7;
+ int iVar8;
+ int iVar9;
+ int local_8;
+ iVar8 = (int)DAT_TileMapState.BuildingLayer[param_1];
+ iVar9 = 0;
+ if (iVar8 != 0) {
+ BVar1 = DAT_BuildingsState.buildings[iVar8].buildingType;
+ if ((((((BVar1 == BT_TOWER1) || (BVar1 == BT_TOWER2))
+ || (BVar1 == BT_TOWER3))
+ || ((BVar1 == BT_TOWER4
+ || (BVar1 == BT_TOWER5))))
+ || (BVar1 == BT_STONEKEEP))
+ || (((BVar1 == BT_STRONGHOLD
+ || (BVar1 == BT_KEEPFOUR))
+ || (BVar1 == BT_KEEPFIVE)))) {
+ uVar5 = DAT_BuildingsState.buildings[iVar8].widthOrHeight;
+ local_8 = uVar5 * uVar5;
+ if (BVar1 == BT_TOWER1) {
+ local_8 = 5;
+ }
+ uVar2 = DAT_BuildingsState.buildings[iVar8].y;
+ uVar3 = DAT_BuildingsState.buildings[iVar8].x;
+ param_1 = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ iVar9, DAT_BuildingsState.buildings[iVar8].widthOrHeight);
+ uVar4
+ = DAT_TileMapState
+ .UnitLayer[DAT_ViewportRenderState
+ .translationMatrix[DAT_TileMapState.buildingY + (short)uVar2]
+ .addXgetTile
+ + DAT_TileMapState.buildingX + (int)(short)uVar3];
+ while (iVar6 = (int)(short)uVar4, iVar6 != 0) {
+ if (this->units[iVar6].owner == DAT_GameSynchronyState.currentPlayerSlotID) {
+ param_1 = param_1 + 1;
+ }
+ uVar4 = this->units[iVar6].nextUnitOnTheSameTile;
+ }
+ iVar9 = iVar9 + 1;
+ } while (iVar9 < DAT_TileMapState.constructionTileCount);
+ if (local_8 / 2 <= param_1) {
+ if (local_8 <= param_1) {
+ return TRUE;
+ }
+ iVar9 = 0;
+ piVar7 = &this->selectionSpearmen;
+ iVar8 = 2;
+ do {
+ if ((((iVar8 != 8) && (iVar8 != 10)) && (iVar8 != 0xf))
+ && (((iVar8 != 0xe && (iVar8 != 0xd)) && (iVar8 != 0x10)))) {
+ iVar9 = iVar9 + piVar7[-1];
+ }
+ if (((iVar8 != 7) && (iVar8 != 9))
+ && ((iVar8 != 0xe && (((iVar8 != 0xd && (iVar8 != 0xc)) && (iVar8 != 0xf)))))) {
+ iVar9 = iVar9 + *piVar7;
+ }
+ if ((((iVar8 != 6) && (iVar8 != 8))
+ && ((iVar8 != 0xd && ((iVar8 != 0xc && (iVar8 != 0xb))))))
+ && (iVar8 != 0xe)) {
+ iVar9 = iVar9 + piVar7[1];
+ }
+ iVar6 = iVar8 + 1;
+ piVar7 = piVar7 + 3;
+ iVar8 = iVar8 + 3;
+ } while (iVar6 < 0x1b);
+ return (uint)((local_8 - param_1) * 2 < iVar9);
+ }
+ }
+ }
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x00536970 checkAnySelectedUnitCannotClimb | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00536970
+ undefined4 UnitsState::checkAnySelectedUnitCannotClimb()
+ {
+ uint uVar1;
+ int iVar2;
+ int iVar3;
+ iVar2 = DAT_GameSynchronyState.currentPlayerSlotID;
+ DAT_CurrentUnitSlotID = 1;
+ if (1 < (int)this->maxUnitCount) {
+ do {
+ uVar1 = DAT_CurrentUnitSlotID;
+ if ((((this->units[DAT_CurrentUnitSlotID].logicalState == ULS_NORMAL)
+ && (this->units[DAT_CurrentUnitSlotID].dying == 0))
+ && (this->units[DAT_CurrentUnitSlotID].isSelected != 0))
+ && ((this->units[DAT_CurrentUnitSlotID].owner != iVar2
+ || (iVar3 = checkUnitHasPropertyBasedOnUnitType(
+ DAT_CurrentUnitSlotID, 1),
+ iVar3 == 0)))) {
+ return (undefined4)(0);
+ }
+ DAT_CurrentUnitSlotID = uVar1 + 1;
+ } while ((int)DAT_CurrentUnitSlotID < (int)this->maxUnitCount);
+ }
+ return (undefined4)(1);
+ }
+ }
+}
+}
+
+### 0x005369f0 selectionHasUnmannedSiegeEngine | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x005369F0
+ BOOLEnum UnitsState::selectionHasUnmannedSiegeEngine(int unitID)
+ {
+ if (DAT_UnitsState.units[unitID]
+ .digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300
+ != 0) {
+ return FALSE;
+ }
+ switch (DAT_UnitsState.units[unitID].unitType) {
+ case UT_S_CATAPULT:
+ case UT_S_TREBUCHET:
+ case UT_S_TOWER:
+ case UT_S_BATTERINGRAM:
+ case UT_S_SHIELD:
+ return (BOOLEnum)(this->selectionUnitType[Selection::USE_E_ENGINEERS] != 0);
+ }
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x00536a60 selectionContainsCombatUnit | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00536A60
+ int UnitsState::selectionContainsCombatUnit(uint unitID)
+ {
+ UnitTypeShort UVar1;
+ bool bVar2;
+ int iVar3;
+ uint* puVar4;
+ uint selectedUnitsMap[80];
+ puVar4 = selectedUnitsMap;
+ /*
+ create a unittype array of length 80 and initialize it with 0's
+ */
+ for (iVar3 = 80; iVar3 != 0; iVar3 = iVar3 + -1) {
+ *puVar4 = 0;
+ puVar4 = puVar4 + 1;
+ }
+ bVar2 = false;
+ /*
+ for every unit in the game, we check whether it is owned by the current player, whether the unit has 3
+ properties, and whether it has not been mentioned in the size 80 array. Then, we put that ID at that
+ location. map<unit_type, unit_id>
+ */
+ DAT_CurrentUnitSlotID = unitID;
+ if ((int)unitID < (int)this->maxUnitCount) {
+ do {
+ if ((((this->units[unitID].logicalState == ULS_NORMAL)
+ && (this->units[unitID].dying == 0))
+ && (this->units[unitID].owner == DAT_GameSynchronyState.currentPlayerSlotID))
+ && ((this->units[unitID].isSelected != 0
+ && (UVar1 = this->units[unitID].unitType, selectedUnitsMap[(short)UVar1] == 0)))) {
+ selectedUnitsMap[(short)UVar1] = unitID;
+ bVar2 = true;
+ }
+ unitID = unitID + 1;
+ } while ((int)unitID < (int)this->maxUnitCount);
+ DAT_CurrentUnitSlotID = unitID;
+ /*
+ if we have at least 1 match, return it. the order of returning seems really arbitrary, but maybe it
+ means something
+ */
+ if (bVar2) {
+ /*
+ E_ARCHER
+ */
+ if (selectedUnitsMap[0x16] != 0) {
+ return (int)(selectedUnitsMap[0x16]);
+ }
+ if (selectedUnitsMap[0x26] != 0) {
+ return (int)(selectedUnitsMap[0x26]);
+ }
+ /*
+ E_XBOW
+ */
+ if (selectedUnitsMap[0x17] != 0) {
+ return (int)(selectedUnitsMap[0x17]);
+ }
+ /*
+ A_ARCHER
+ */
+ if (selectedUnitsMap[0x46] != 0) {
+ return (int)(selectedUnitsMap[0x46]);
+ }
+ /*
+ A_HARCHER
+ */
+ if (selectedUnitsMap[0x4a] != 0) {
+ return (int)(selectedUnitsMap[0x4a]);
+ }
+ /*
+ A_SLINGER
+ */
+ if (selectedUnitsMap[0x48] != 0) {
+ return (int)(selectedUnitsMap[0x48]);
+ }
+ /*
+ A_FIRETHROWER
+ */
+ if (selectedUnitsMap[0x4c] != 0) {
+ return (int)(selectedUnitsMap[0x4c]);
+ }
+ /*
+ S_FBALLISTA
+ */
+ if (selectedUnitsMap[0x4d] != 0) {
+ return (int)(selectedUnitsMap[0x4d]);
+ }
+ /*
+ S_CATAPULT
+ */
+ if (selectedUnitsMap[0x27] != 0) {
+ return (int)(selectedUnitsMap[0x27]);
+ }
+ /*
+ S_TREBUCHET
+ */
+ if (selectedUnitsMap[0x28] != 0) {
+ return (int)(selectedUnitsMap[0x28]);
+ }
+ /*
+ S_MANGONEL
+ */
+ if (selectedUnitsMap[0x29] != 0) {
+ return (int)(selectedUnitsMap[0x29]);
+ }
+ /*
+ S_BALLISTA
+ */
+ if (selectedUnitsMap[0x3d] != 0) {
+ return (int)(selectedUnitsMap[0x3d]);
+ }
+ /*
+ E_SPEARMAN
+ */
+ if (selectedUnitsMap[0x18] != 0) {
+ return (int)(selectedUnitsMap[0x18]);
+ }
+ /*
+ E_PIKEMAN
+ */
+ if (selectedUnitsMap[0x19] != 0) {
+ return (int)(selectedUnitsMap[0x19]);
+ }
+ /*
+ E_MACEMAN
+ */
+ if (selectedUnitsMap[0x1a] != 0) {
+ return (int)(selectedUnitsMap[0x1a]);
+ }
+ /*
+ E_SWORDSMAN
+ */
+ if (selectedUnitsMap[0x1b] != 0) {
+ return (int)(selectedUnitsMap[0x1b]);
+ }
+ /*
+ E_KNIGHT
+ */
+ if (selectedUnitsMap[0x1c] != 0) {
+ return (int)(selectedUnitsMap[0x1c]);
+ }
+ /*
+ TUNNELER
+ */
+ if (selectedUnitsMap[5] != 0) {
+ return (int)(selectedUnitsMap[5]);
+ }
+ /*
+ E_LADDERMAN
+ */
+ if (selectedUnitsMap[0x1d] != 0) {
+ return (int)(selectedUnitsMap[0x1d]);
+ }
+ /*
+ E_ENGINEER
+ */
+ if (selectedUnitsMap[0x1e] != 0) {
+ return (int)(selectedUnitsMap[0x1e]);
+ }
+ /*
+ E_MONK
+ */
+ if (selectedUnitsMap[0x25] != 0) {
+ return (int)(selectedUnitsMap[0x25]);
+ }
+ /*
+ A_SLAVE
+ */
+ if (selectedUnitsMap[0x47] != 0) {
+ return (int)(selectedUnitsMap[0x47]);
+ }
+ /*
+ A_ASSASSIN
+ */
+ if (selectedUnitsMap[0x49] != 0) {
+ return (int)(selectedUnitsMap[0x49]);
+ }
+ /*
+ A_SWORDSMAN
+ */
+ if (selectedUnitsMap[0x4b] != 0) {
+ return (int)(selectedUnitsMap[0x4b]);
+ }
+ /*
+ LORD
+ */
+ if (selectedUnitsMap[0x37] != 0) {
+ return (int)(selectedUnitsMap[0x37]);
+ }
+ /*
+ S_TOWER
+ */
+ if (selectedUnitsMap[0x3a] != 0) {
+ return (int)(selectedUnitsMap[0x3a]);
+ }
+ /*
+ S_BATTERINGRAM
+ */
+ if (selectedUnitsMap[0x3b] != 0) {
+ return (int)(selectedUnitsMap[0x3b]);
+ }
+ /*
+ S_SHIELD
+ */
+ if (selectedUnitsMap[0x3c] != 0) {
+ return (int)(selectedUnitsMap[0x3c]);
+ }
+ }
+ }
+ return -1;
+ }
+ }
+}
+}
+
+### 0x00536c70 queueStopCommand | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00536C70
+ void UnitsState::queueEscapeCommand()
+ {
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = 0;
+ queueCommand(
+ GCT_ESCAPE);
+ }
+ }
+}
+}
+
+### 0x00536c90 queueUnitTypeCommand | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00536C90
+ void UnitsState::queueUnitTypeCommand(undefined4 unitType)
+ {
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = -1;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = unitType;
+ queueCommand(
+ GCT_ESCAPE);
+ }
+ }
+}
+}
+
+### 0x00536cc0 queueClickNavigateMenuOrEscape | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00536CC0
+ void UnitsState::queueClickNavigateMenuOrEscape(undefined4 param_1)
+ {
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = -2;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = param_1;
+ queueCommand(
+ GCT_ESCAPE);
+ }
+ }
+}
+}
+
+### 0x00536cf0 clearOrDeselectUnitFromSelection | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00536CF0
+ void UnitsState::clearOrDeselectUnitFromSelection(int playerID, uint unitID, int unitType)
+ {
+ short sVar1;
+ if (unitID == 0xffffffff) {
+ clearTribesOfUnitType(
+ playerID, unitType);
+ return;
+ }
+ if (unitID != 0xfffffffe) {
+ if (unitID == 0) {
+ this->unitCountOfSelection[playerID] = 0;
+ DAT_CurrentUnitSlotID = 1;
+ if (1 < (int)this->maxUnitCount) {
+ do {
+ if (this->units[DAT_CurrentUnitSlotID].owner == playerID) {
+ this->units[DAT_CurrentUnitSlotID].ifSelectedThenPlayerID = 0;
+ }
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1;
+ } while ((int)DAT_CurrentUnitSlotID < (int)this->maxUnitCount);
+ }
+ } else {
+ sVar1 = this->units[unitID].tribeID;
+ if (sVar1 != 0) {
+ removeUnitFromTribe(unitID, sVar1);
+ }
+ if (this->units[unitID].ifSelectedThenPlayerID != 0) {
+ this->units[unitID].ifSelectedThenPlayerID = 0;
+ this->unitCountOfSelection[playerID] = this->unitCountOfSelection[playerID] + -1;
+ return;
+ }
+ }
+ return;
+ }
+ clearTribesNotOfUnitType(
+ playerID, unitType);
+ return;
+ }
+ }
+}
+}
+
+### 0x00536de0 clearSelectionCountsAndPlayerIDs | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00536DE0
+ void UnitsState::clearSelectionCountsAndPlayerIDs()
+ {
+ for (int i = 1; i < 9; i++) {
+ this->unitCountOfSelection[i] = 0;
+ }
+ for (DAT_CurrentUnitSlotID = 1; DAT_CurrentUnitSlotID < this->maxUnitCount;
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1) {
+ this->units[DAT_CurrentUnitSlotID].ifSelectedThenPlayerID = 0;
+ }
+ }
+ }
+}
+}
+
+### 0x00536e30 giveMoveCommand | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00536E30
+ void UnitsState::giveMoveCommand(int tribeID, int x, int y, int patrol, int matchUnitSpeeds)
+ {
+ ushort uVar1;
+ ushort uVar2;
+ short sVar3;
+ uint uVar4;
+ UnitType _mostFrequentUnitType;
+ int iVar5;
+ int iVar6;
+ BOOLEnum BVar7;
+ bool bVar8;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = x;
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = y;
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = tribeID;
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = patrol;
+ DAT_GameSynchronyState.DAT_GameCommandParam4 = matchUnitSpeeds;
+ queueCommand(
+ GCT_UNITS_MOVE);
+ _mostFrequentUnitType
+ = getMajoritySelectedUnitType(tribeID, (int*)0x0);
+ uVar1 = DAT_TileMapState
+ .PathConnectionLayer[DAT_ViewportRenderState.viewportState.field24_0x60];
+ uVar4 = DAT_TileMapState.LogicLayer[DAT_ViewportRenderState.viewportState.field24_0x60];
+ iVar5 = selectionContainsCombatUnit(1);
+ iVar6 = this->units[iVar5].tile;
+ uVar2 = DAT_TileMapState.PathConnectionLayer[iVar6];
+ if ((DAT_TileMapState.LogicLayer[iVar6] & 0x40000000U) == 0) {
+ iVar6 = canAUnitClimb();
+ iVar6 = calculateCanPlayerUnitsNavigateToAreaFromArea(DAT_GameSynchronyState.currentPlayerSlotID,
+ (dword)((int)((int)(short)uVar1)), (dword)((int)((int)(short)uVar2)), iVar6);
+ bVar8 = iVar6 != 0;
+ iVar6 = selectionHasMobileAssaultUnits();
+ if (iVar6 != 0) {
+ if (((uVar4 & 0x10000100) != 0)
+ || (iVar6 = MACRO_CALL_MEMBER(
+ calculatePathKeepAndWallsGatesNotAllowed,
+ DAT_PathFindingState)((int)this->units[iVar5].x,
+ this->units[iVar5].y,
+ DAT_ViewportRenderState.viewportState.field24_0x60
+ - DAT_ViewportRenderState
+ .translationMatrix[DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[DAT_ViewportRenderState
+ .viewportState.field24_0x60]]
+ .addXgetTile,
+ DAT_ViewportRenderState.tileTranslationMatrix_YComponent
+ [DAT_ViewportRenderState.viewportState.field24_0x60],
+ 100000),
+ iVar6 == 0)) {
+ bVar8 = false;
+ }
+ }
+ if ((((matchUnitSpeeds != 0)
+ || (((_mostFrequentUnitType != UT_E_ARCHER
+ && (_mostFrequentUnitType != UT_E_XBOW))
+ && (_mostFrequentUnitType != UT_S_CATAPULT))))
+ && (((DAT_TribesState.tribes[tribeID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID
+ && (_mostFrequentUnitType != UT_S_MANGONEL))
+ && (_mostFrequentUnitType != UT_S_BALLISTA))))
+ && (_mostFrequentUnitType != UT_S_TREBUCHET)) {
+ if (bVar8) {
+ playUnitSelectionSound(tribeID);
+ BVar7 = shouldSoundXNotBePlaying();
+ if (BVar7 != FALSE) {
+ return;
+ }
+ if ((this->units[iVar5].unitType == UT_E_ENGINEER)
+ && (this->units[iVar5].resourceToDeposit != 0)) {
+ return;
+ }
+ sVar3 = DAT_TribesState.tribes[tribeID].selectionTargetUnitID;
+ if ((0x90 < (this->units[sVar3].x - x) + 0x48U)
+ || (0x90 < (this->units[sVar3].y - y) + 0x48U)) {
+ playUnitSpeech(
+ _mostFrequentUnitType, 10);
+ return;
+ }
+ iVar6 = 6;
+ } else {
+ iVar6 = 9;
+ }
+ playUnitSpeech(
+ _mostFrequentUnitType, iVar6);
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00537070 giveTribeMoveInstructionHumans | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00537070
+ void UnitsState::giveTribeMoveInstructionHumans(
+ int tribeID, uint x, uint y, int rallyBool, MatchSpeedInstructionEnum speedMatching)
+ {
+ short* psVar1;
+ psVar1 = &DAT_TribesState.tribes[tribeID].freeUnitSpeeds;
+ *psVar1 = 0;
+ if ((char)speedMatching < 0) {
+ speedMatching = speedMatching & 0xffffff7f;
+ *psVar1 = 1;
+ }
+ giveTribeMoveInstruction(
+ tribeID, x, y, rallyBool, 1, (UnitMatchSpeedEnum)((int)(speedMatching)));
+ return;
+ }
+ }
+}
+}
+
+### 0x005370c0 extendRallyPoint | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x005370C0
+ void UnitsState::extendRallyPoint(int tribeID, int mouseX, int mouseY, int rallyCount)
+ {
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = tribeID;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = mouseX;
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = mouseY;
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = rallyCount;
+ queueCommand(
+ GCT_UNIT_EXTEND_RALLY_POINT);
+ }
+ }
+}
+}
+
+### 0x00537100 queueDisbandAndAttackCommand2Params | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00537100
+ void UnitsState::queueDisbandAndAttackCommand2Params(undefined4 param_1, undefined4 param_2)
+ {
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = param_1;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = param_2;
+ queueCommand(
+ GCT_DISBAND_AND_ATTACK_UNITS);
+ }
+ }
+}
+}
+
+### 0x00537130 queueDisbandAndAttackCommand3Params | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00537130
+ void UnitsState::queueDisbandAndAttackCommand3Params(undefined4 param_1, undefined4 param_2, undefined4 param_3)
+ {
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = param_1;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = param_2;
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = param_3;
+ queueCommand(
+ GCT_DISBAND_AND_ATTACK_UNITS);
+ }
+ }
+}
+}
+
+### 0x00537160 queueDisbandAndAttackCommand4Params | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00537160
+ void UnitsState::queueDisbandAndAttackCommand4Params(
+ undefined4 param_1, undefined4 param_2, undefined4 param_3, undefined4 param_4)
+ {
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = param_1;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = param_2;
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = param_3;
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = param_4;
+ queueCommand(
+ GCT_DISBAND_AND_ATTACK_UNITS);
+ }
+ }
+}
+}
+
+### 0x005371a0 queueDisbandAndAttackCommand5Params | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x005371A0
+ void UnitsState::queueDisbandAndAttackCommand5Params(undefined4 param_1, UnitInstructionType instruction,
+ undefined4 param_3, undefined4 param_4, undefined4 param_5)
+ {
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = instruction;
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = param_1;
+ DAT_GameSynchronyState.DAT_GameCommandParam4 = param_5;
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = param_3;
+ DAT_GameSynchronyState.DAT_GameCommandParam3 = param_4;
+ queueCommand(
+ GCT_DISBAND_AND_ATTACK_UNITS);
+ return;
+ }
+ }
+}
+}
+
+### 0x005371e0 relayTribeInstruction | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x005371E0
+ void UnitsState::relayTribeInstruction(
+ int tribeID, UnitInstructionType instructionType, int targetID_1, int targetID_2, int param_5)
+ {
+ giveTribeAnInstruction(
+ tribeID, instructionType, targetID_1, targetID_2, param_5);
+ }
+ }
+}
+}
+
+### 0x005371f0 findFreeTileNearby | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x005371F0
+ uint UnitsState::findFreeTileNearby(uint unitID, uint tile)
+ {
+ uint uVar1;
+ short sVar2;
+ int iVar3;
+ uint uVar4;
+ dword _area;
+ int _y;
+ XYPair* pXVar5;
+ int fromYPosition;
+ int _offset;
+ int iVar6;
+ uint local_10;
+ uint local_c;
+ Unit* _ptrUnit;
+ uint _unitID;
+ _unitID = unitID;
+ _area = (dword)(short)DAT_TileMapState.PathConnectionLayer[this->units[unitID].tile];
+ _ptrUnit = this->units + unitID;
+ _y = (int)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile];
+ _offset = tile - DAT_ViewportRenderState.translationMatrix[_y].addXgetTile;
+ /*
+ original_y-2
+ */
+ unitID = DAT_ViewportRenderState.translationMatrix[_y + -2].addXgetTile + _offset;
+ /*
+ the separatearea part can't be right ? how is the sum of both variables the tile index again?
+ */
+ iVar3 = calculateCanPlayerUnitsNavigateToAreaFromArea((int)_ptrUnit->owner, (dword)((int)(_area)),
+ (dword)((int)((int)*(short*)((int)DAT_TileMapState + unitID * 2 + 0x363ed0))), 0);
+ if (iVar3 == 0) {
+ unitID = 0;
+ }
+ /*
+ original_x+2
+ */
+ local_10 = DAT_ViewportRenderState.translationMatrix[_y].addXgetTile + 2 + _offset;
+ iVar3 = calculateCanPlayerUnitsNavigateToAreaFromArea((int)this->units[_unitID].owner, (dword)((int)(_area)),
+ (dword)((int)((int)*(short*)((int)DAT_TileMapState + local_10 * 2 + 0x363ed0))), 0);
+ if (iVar3 == 0) {
+ local_10 = 0;
+ }
+ /*
+ original_y+2
+ */
+ tile = DAT_ViewportRenderState.translationMatrix[_y + 2].addXgetTile + _offset;
+ iVar3 = calculateCanPlayerUnitsNavigateToAreaFromArea((int)this->units[_unitID].owner, (dword)((int)(_area)),
+ (dword)((int)((int)*(short*)((int)DAT_TileMapState + tile * 2 + 0x363ed0))), 0);
+ if (iVar3 == 0) {
+ tile = 0;
+ }
+ /*
+ original_x-2
+ */
+ local_c = DAT_ViewportRenderState.translationMatrix[_y].addXgetTile + -2 + _offset;
+ iVar3 = calculateCanPlayerUnitsNavigateToAreaFromArea((int)this->units[_unitID].owner, (dword)((int)(_area)),
+ (dword)((int)((int)*(short*)((int)DAT_TileMapState + local_c * 2 + 0x363ed0))), 0);
+ if (iVar3 == 0) {
+ local_c = 0;
+ }
+ if (((local_c == 0 && tile == 0) && local_10 == 0) && unitID == 0) {
+ return 0;
+ }
+ if (((unitID != 0) || (tile != 0))
+ && ((iVar3 = (DAT_ViewportRenderState.translationMatrix[_y].addXgetTile + _offset) * 4,
+ (*(uint*)((int)DAT_TileMapState + iVar3 + 0x16515c) & 0x100) == 0
+ || ((*(uint*)((int)DAT_TileMapState + iVar3 + 0x165164) & 0x100) == 0)))) {
+ tile = 0;
+ unitID = 0;
+ }
+ if (((local_c != 0) || (local_10 != 0))
+ && (((*(uint*)((int)DAT_TileMapState
+ + (DAT_ViewportRenderState.translationMatrix[_y + -1].addXgetTile + _offset) * 4
+ + 0x165160)
+ & 0x100)
+ == 0
+ || ((*(uint*)((int)DAT_TileMapState
+ + (DAT_ViewportRenderState.translationMatrix[_y + 1].addXgetTile + _offset) * 4
+ + 0x165160)
+ & 0x100)
+ == 0)))) {
+ local_10 = 0;
+ local_c = 0;
+ }
+ if (unitID != 0) {
+ pXVar5 = DAT_UnitPropertiesDefinedData.field120_0x1213c;
+ do {
+ uVar1 = pXVar5->x + _offset;
+ uVar4 = pXVar5->y + _y;
+ if (((uVar1 < 400) && (uVar4 < 400)) && (*(char*)(uVar1 + 0x21aec98 + uVar4 * 400) != '\0')) {
+ iVar3 = DAT_ViewportRenderState.translationMatrix[uVar4].addXgetTile + pXVar5->x
+ + _offset;
+ uVar1 = *(uint*)((int)DAT_TileMapState + iVar3 * 4 + 0x165160);
+ if ((((uVar1 & 0x100) != 0) || ((uVar1 & 0x4a5014b1) != 0))
+ || ((sVar2 = *(short*)((int)DAT_TileMapState + iVar3 * 2 + 0x2029b0),
+ sVar2 != 0
+ && (DAT_BuildingsState.buildings[sVar2].buildingType
+ != BT_KILLINGPIT)))) {
+ unitID = 0;
+ break;
+ }
+ }
+ pXVar5 = pXVar5 + 1;
+ } while ((int)pXVar5 < 0xb600d0);
+ }
+ if (local_10 != 0) {
+ pXVar5 = DAT_UnitPropertiesDefinedData.field121_0x12184;
+ do {
+ uVar1 = pXVar5->y + _y;
+ uVar4 = pXVar5->x + _offset;
+ if (((uVar4 < 400) && (uVar1 < 400)) && (*(char*)(uVar4 + 0x21aec98 + uVar1 * 400) != '\0')) {
+ iVar3 = DAT_ViewportRenderState.translationMatrix[uVar1].addXgetTile + pXVar5->x
+ + _offset;
+ uVar1 = *(uint*)((int)DAT_TileMapState + iVar3 * 4 + 0x165160);
+ if ((((uVar1 & 0x100) != 0) || ((uVar1 & 0x4a5014b1) != 0))
+ || ((sVar2 = *(short*)((int)DAT_TileMapState + iVar3 * 2 + 0x2029b0),
+ sVar2 != 0
+ && (DAT_BuildingsState.buildings[sVar2].buildingType
+ != BT_KILLINGPIT)))) {
+ local_10 = 0;
+ break;
+ }
+ }
+ pXVar5 = pXVar5 + 1;
+ } while ((int)pXVar5 < 0xb60118);
+ }
+ if (tile != 0) {
+ pXVar5 = DAT_UnitPropertiesDefinedData.field122_0x121cc;
+ do {
+ uVar1 = pXVar5->y + _y;
+ uVar4 = pXVar5->x + _offset;
+ if (((uVar4 < 400) && (uVar1 < 400)) && (*(char*)(uVar4 + 0x21aec98 + uVar1 * 400) != '\0')) {
+ iVar3 = DAT_ViewportRenderState.translationMatrix[uVar1].addXgetTile + pXVar5->x
+ + _offset;
+ uVar1 = *(uint*)((int)DAT_TileMapState + iVar3 * 4 + 0x165160);
+ if ((((uVar1 & 0x100) != 0) || ((uVar1 & 0x4a5014b1) != 0))
+ || ((sVar2 = *(short*)((int)DAT_TileMapState + iVar3 * 2 + 0x2029b0),
+ sVar2 != 0
+ && (DAT_BuildingsState.buildings[sVar2].buildingType
+ != BT_KILLINGPIT)))) {
+ tile = 0;
+ break;
+ }
+ }
+ pXVar5 = pXVar5 + 1;
+ } while ((int)pXVar5 < 0xb60160);
+ }
+ if (local_c != 0) {
+ pXVar5 = DAT_UnitPropertiesDefinedData.field123_0x12214;
+ do {
+ uVar1 = pXVar5->y + _y;
+ uVar4 = pXVar5->x + _offset;
+ if (((uVar4 < 400) && (uVar1 < 400)) && (*(char*)(uVar4 + 0x21aec98 + uVar1 * 400) != '\0')) {
+ iVar3 = DAT_ViewportRenderState.translationMatrix[uVar1].addXgetTile + pXVar5->x
+ + _offset;
+ uVar1 = *(uint*)((int)DAT_TileMapState + iVar3 * 4 + 0x165160);
+ if ((((uVar1 & 0x100) != 0) || ((uVar1 & 0x4a5014b1) != 0))
+ || ((sVar2 = *(short*)((int)DAT_TileMapState + iVar3 * 2 + 0x2029b0),
+ sVar2 != 0
+ && (DAT_BuildingsState.buildings[sVar2].buildingType
+ != BT_KILLINGPIT)))) {
+ local_c = 0;
+ break;
+ }
+ }
+ pXVar5 = pXVar5 + 1;
+ } while ((int)pXVar5 < 0xb601a8);
+ }
+ iVar3 = this->units[_unitID].tile;
+ fromYPosition = (int)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[iVar3];
+ iVar3 = iVar3 - DAT_ViewportRenderState.translationMatrix[fromYPosition].addXgetTile;
+ _unitID = 0;
+ iVar6 = 100000;
+ if ((unitID != 0)
+ && (setAxisBasedDistanceResult(unitID
+ - DAT_ViewportRenderState
+ .translationMatrix[DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[unitID]]
+ .addXgetTile,
+ DAT_ViewportRenderState.tileTranslationMatrix_YComponent[unitID], iVar3,
+ fromYPosition),
+ DAT_DirectionAlgorithmState.distanceHigh < 100000)) {
+ _unitID = unitID;
+ iVar6 = DAT_DirectionAlgorithmState.distanceHigh;
+ }
+ if ((tile != 0)
+ && (setAxisBasedDistanceResult(tile
+ - DAT_ViewportRenderState
+ .translationMatrix[DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[tile]]
+ .addXgetTile,
+ DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile], iVar3,
+ fromYPosition),
+ DAT_DirectionAlgorithmState.distanceHigh < iVar6)) {
+ _unitID = tile;
+ iVar6 = DAT_DirectionAlgorithmState.distanceHigh;
+ }
+ if ((local_10 != 0)
+ && (setAxisBasedDistanceResult(local_10
+ - DAT_ViewportRenderState
+ .translationMatrix[DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[local_10]]
+ .addXgetTile,
+ DAT_ViewportRenderState.tileTranslationMatrix_YComponent[local_10],
+ iVar3, fromYPosition),
+ DAT_DirectionAlgorithmState.distanceHigh < iVar6)) {
+ _unitID = local_10;
+ iVar6 = DAT_DirectionAlgorithmState.distanceHigh;
+ }
+ if ((local_c != 0)
+ && (setAxisBasedDistanceResult(local_c
+ - DAT_ViewportRenderState
+ .translationMatrix[DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[local_c]]
+ .addXgetTile,
+ DAT_ViewportRenderState.tileTranslationMatrix_YComponent[local_c],
+ iVar3, fromYPosition),
+ DAT_DirectionAlgorithmState.distanceHigh < iVar6)) {
+ _unitID = local_c;
+ }
+ return _unitID;
+ }
+ }
+}
+}
+
+### 0x00537700 findTunnelTarget | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00537700
+ BOOLEnum UnitsState::findTunnelTarget(int originBuildingID, int targetPlayer)
+ {
+ uint uVar1;
+ int distance;
+ ushort _y;
+ ushort _x;
+ uVar1 = DAT_BuildingsState.buildings[originBuildingID].tunnelerCounter;
+ if (-1 < (int)uVar1) {
+ if ((int)uVar1 < 1) {
+ distance = 20;
+ } else if ((int)uVar1 < 2) {
+ distance = 20;
+ } else if ((int)uVar1 < 3) {
+ distance = 40;
+ } else if ((int)uVar1 < 4) {
+ distance = 40;
+ } else {
+ if ((4 < (int)uVar1) && (5 < (int)uVar1)) {
+ DAT_BuildingsState.buildings[originBuildingID].tunnelerCounter = -1;
+ return FALSE;
+ }
+ distance = 80;
+ }
+ _x = DAT_BuildingsState.buildings[originBuildingID].x;
+ if ((uVar1 & 1) == 0) {
+ DAT_BuildingsState.buildings[originBuildingID].someX = _x;
+ _y = DAT_BuildingsState.buildings[originBuildingID].y - 1;
+ } else {
+ DAT_BuildingsState.buildings[originBuildingID].someX = _x - 1;
+ _y = DAT_BuildingsState.buildings[originBuildingID].y;
+ }
+ DAT_BuildingsState.buildings[originBuildingID].tunnelerCounter = uVar1 + 1;
+ DAT_BuildingsState.buildings[originBuildingID].someY = _y;
+ algTunnelerFindTarget((int)DAT_BuildingsState.buildings[originBuildingID].owner,
+ targetPlayer, distance,
+ DAT_BuildingsState.buildings[originBuildingID].someX,
+ (int)((int)((short)_y)));
+ if (DAT_PathFindingState.ALG_TargetTile != 0) {
+ DAT_BuildingsState.buildings[originBuildingID].tunnelerCounter = -1;
+ return TRUE;
+ }
+ }
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x005377f0 getAliveLordForPlayer | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x005377F0
+ int UnitsState::getAliveLordForPlayer(int playerID)
+ {
+ for (int unitID = 1; unitID < this->maxUnitCount; ++unitID) {
+ if (this->units[unitID].unitType == UT_LORD
+ && this->units[unitID].owner == playerID
+ && this->units[unitID].logicalState == ULS_NORMAL
+ && !this->units[unitID].dying) {
+ return unitID;
+ }
+ }
+ return 0;
+ }
+ }
+}
+}
+
+### 0x00537840 getRawDeerCount | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00537840
+ int UnitsState::getRawDeerCount()
+ {
+ int _deerCount = 0;
+ for (int unitID = 1; unitID < 2500; ++unitID) {
+ if (this->units[unitID].unitType == UT_ANTELOPESHDEER) {
+ _deerCount = _deerCount + 1;
+ }
+ }
+ return _deerCount;
+ }
+ }
+}
+}
+
+### 0x00537880 findNearestShootableDeer | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00537880
+ int UnitsState::findNearestShootableDeer(int param_1)
+ {
+ short sVar1;
+ short sVar2;
+ int iVar3;
+ int iVar4;
+ int iVar5;
+ short* psVar6;
+ int local_10;
+ int local_c;
+ iVar3 = param_1;
+ iVar4 = 0;
+ sVar1 = this->units[param_1].x;
+ sVar2 = this->units[param_1].y;
+ local_10 = 100000;
+ local_c = 0;
+ param_1 = 0x14;
+ do {
+ iVar5 = 1;
+ if (1 < (int)this->maxUnitCount) {
+ psVar6 = &this->units[1].dying;
+ do {
+ if ((((psVar6[-0x10a] == ULS_NORMAL) && (*psVar6 == 0))
+ && (psVar6[-0x105] == 0))
+ && ((((psVar6[-0x109] == UT_ANTELOPESHDEER
+ && (MACRO_CALL_MEMBER(
+ setAxisBasedDistanceResult,
+ DAT_DirectionAlgorithmState)((int)sVar1, sVar2,
+ psVar6[-0xee], psVar6[-0xed]),
+ param_1 < DAT_DirectionAlgorithmState.distanceHigh))
+ && ((0x35 < DAT_DirectionAlgorithmState.distanceHigh
+ || (iVar4 = arrowShootingRelated((int)this->units[iVar3].microXPosition,
+ this->units[iVar3].microYPosition,
+ this->units[iVar3].buildingHeight + 0x1e
+ + this->units[iVar3].terrainOrClimbHeight,
+ psVar6[-0xf5], psVar6[-0xf4],
+ psVar6[-0xf3] + 0x1a + psVar6[-0xf2]),
+ iVar4 - 1U < 0x1b0))))
+ && (DAT_DirectionAlgorithmState.distanceHigh < local_10)))) {
+ local_10 = DAT_DirectionAlgorithmState.distanceHigh;
+ local_c = iVar5;
+ }
+ iVar5 = iVar5 + 1;
+ psVar6 = psVar6 + 0x248;
+ } while (iVar5 < (int)this->maxUnitCount);
+ iVar4 = local_c;
+ if (local_c != 0) {
+ return local_c;
+ }
+ }
+ if (param_1 != 0x14) {
+ return iVar4;
+ }
+ param_1 = 5;
+ } while (true);
+ }
+ }
+}
+}
+
+### 0x00537a00 findNearestIdleCowForPlayer | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00537A00
+ int UnitsState::findNearestIdleCowForPlayer(int playerID, int x, int y)
+ {
+ int _bestDistance = 10000;
+ int _bestUnitID = 0;
+ for (int unitID = 1; unitID < this->maxUnitCount; ++unitID) {
+ if (this->units[unitID].logicalState != ULS_NORMAL) {
+ continue;
+ }
+ if (this->units[unitID].dying) {
+ continue;
+ }
+ if (this->units[unitID].owner != playerID) {
+ continue;
+ }
+ if (this->units[unitID].unitType != UT_COW) {
+ continue;
+ }
+ if (this->units[unitID].state.generic != US_DETERMINE_NEXT_STATEUnk) {
+ continue;
+ }
+ setAxisBasedDistanceResult(x, y, this->units[unitID].x, this->units[unitID].y);
+ if (DAT_DirectionAlgorithmState.distanceHigh < _bestDistance) {
+ _bestDistance = DAT_DirectionAlgorithmState.distanceHigh;
+ _bestUnitID = unitID;
+ }
+ }
+ return _bestUnitID;
+ }
+ }
+}
+}
+
+### 0x00537aa0 findClosestAnimalStoreResult | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00537AA0
+ int UnitsState::findClosestAnimalStoreResult(int maxDistance, BOOLEnum excludeCows, uint x, uint y)
+ {
+ int _score;
+ int _unitID;
+ Unit* _pUnit;
+ bool _criterion;
+ int _minScore;
+ int _minUnit;
+ int _distance;
+ ushort _connection;
+ UnitTypeShort _type;
+ _minScore = 10000;
+ _minUnit = 0;
+ if (((399 < x) || (399 < y)) || (*(char*)(y * 400 + 0x21aec98 + x) == '\0')) {
+ return 0;
+ }
+ _connection
+ = DAT_TileMapState
+ .PathConnectionLayer[DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x];
+ _unitID = 1;
+ this->unusedUnitIDArrayIndex = 0;
+ if (1 < (int)this->maxUnitCount) {
+ _pUnit = &this->units[1];
+ do {
+ if (((_pUnit->logicalState == ULS_NORMAL) && (_pUnit->dying == 0))
+ && ((_pUnit->unknownTestAgainst0_2 == 0
+ && ((_pUnit->state).generic != US_MELEE_ATTACK)))) {
+ if (excludeCows == FALSE) {
+ _type = _pUnit->unitType;
+ if ((_type != UT_ANTELOPESHDEER)
+ && (_type != UT_RABBIT)) {
+ _criterion = _type == UT_COW;
+ goto LAB_00537b7c;
+ }
+ } else {
+ _criterion = _pUnit->isStalked == 0;
+ LAB_00537b7c:
+ if (!_criterion)
+ goto LAB_00537be9;
+ }
+ setAxisBasedDistanceResult(
+ x, y, _pUnit->x, _pUnit->y);
+ _distance = DAT_DirectionAlgorithmState.distanceHigh;
+ if ((DAT_DirectionAlgorithmState.distanceHigh <= maxDistance)
+ && (DAT_TileMapState.PathConnectionLayer[_pUnit->tile] == _connection)) {
+ this->unusedUnitIDArray[this->unusedUnitIDArrayIndex] = (short)_unitID;
+ this->unusedUnitIDArrayIndex = this->unusedUnitIDArrayIndex + 1;
+ _score = _distance + _pUnit->huntedBy * 3;
+ if (_score < _minScore) {
+ _minScore = _score;
+ _minUnit = _unitID;
+ }
+ }
+ }
+ LAB_00537be9:
+ _unitID = _unitID + 1;
+ _pUnit = _pUnit + 0x248;
+ } while (_unitID < (int)this->maxUnitCount);
+ }
+ return _minUnit;
+ }
+ }
+}
+}
+
+### 0x00537c10 findClosestEnemyByAreaAndRange | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00537C10
+ int UnitsState::findClosestEnemyByAreaAndRange(int param_1, uint param_2, uint param_3, int param_4)
+ {
+ ushort uVar1;
+ int iVar2;
+ Unit* psVar3;
+ int iVar3;
+ int local_8;
+ int local_4;
+ local_8 = 10000;
+ local_4 = 0;
+ if (((param_2 < 400) && (param_3 < 400)) && (*(char*)(param_3 * 400 + 0x21aec98 + param_2) != '\0')) {
+ uVar1
+ = DAT_TileMapState
+ .PathConnectionLayer[DAT_ViewportRenderState.translationMatrix[param_3].addXgetTile
+ + param_2];
+ iVar3 = 1;
+ this->unusedUnitIDArrayIndex = 0;
+ if (1 < (int)this->maxUnitCount) {
+ psVar3 = &this->units[1];
+ do {
+ if (((((psVar3->logicalState == ULS_NORMAL) && (psVar3->dying == 0))
+ && ((psVar3->unknownTestAgainst0_2 == 0
+ && (((psVar3->state).generic != US_MELEE_ATTACK
+ && (psVar3->isStalked == 0))))))
+ && (DAT_GameState.mapAndTime.playerTeams[param_4]
+ != DAT_GameState.mapAndTime.playerTeams[psVar3->owner]))
+ && ((
+ (setAxisBasedDistanceResult(
+ param_2, param_3, psVar3->x, psVar3->y),
+ DAT_DirectionAlgorithmState.distanceHigh <= param_1
+ && (DAT_TileMapState.PathConnectionLayer[psVar3->tile] == uVar1))
+ && (iVar2 = DAT_DirectionAlgorithmState.distanceHigh + psVar3->huntedBy * 3,
+ iVar2 < local_8)))) {
+ local_8 = iVar2;
+ local_4 = iVar3;
+ }
+ iVar3 = iVar3 + 1;
+ psVar3 = psVar3 + 0x248;
+ } while (iVar3 < (int)this->maxUnitCount);
+ }
+ return local_4;
+ }
+ return 0;
+ }
+ }
+}
+}
+

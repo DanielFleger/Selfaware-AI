@@ -1,0 +1,1426 @@
+### 0x005347e0 applyDragBoxSelectionByPriority | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x005347E0
+ void UnitsState::applyDragBoxSelectionByPriority()
+ {
+ short sVar1;
+ UnitTypeShort UVar2;
+ UnitStateShort UVar3;
+ uint uVar4;
+ int iVar5;
+ int iVar6;
+ int iVar7;
+ bool bVar8;
+ int local_3c;
+ uint local_38;
+ int local_34;
+ int local_30;
+ int local_2c;
+ int local_28;
+ int local_24;
+ int local_20;
+ int local_1c;
+ int local_18;
+ int local_14;
+ LONG local_10;
+ LONG local_c;
+ LONG local_8;
+ LONG local_4;
+ this->field14_0x55c = 0;
+ local_3c = 0;
+ local_30 = 0;
+ local_2c = 0;
+ local_28 = 0;
+ local_24 = 0;
+ local_20 = 0;
+ local_1c = 0;
+ local_18 = 0;
+ local_14 = 0;
+ local_38 = 0;
+ local_34 = 0;
+ if (DAT_MouseState.selectionBox.right < DAT_MouseState.selectionBox.left) {
+ local_8 = DAT_MouseState.selectionBox.right;
+ local_10 = DAT_MouseState.selectionBox.left;
+ } else {
+ local_8 = DAT_MouseState.selectionBox.left;
+ local_10 = DAT_MouseState.selectionBox.right;
+ }
+ if (DAT_MouseState.selectionBox.bottom < DAT_MouseState.selectionBox.top) {
+ local_4 = DAT_MouseState.selectionBox.bottom;
+ local_c = DAT_MouseState.selectionBox.top;
+ } else {
+ local_4 = DAT_MouseState.selectionBox.top;
+ local_c = DAT_MouseState.selectionBox.bottom;
+ }
+ DAT_CurrentUnitSlotID = 1;
+ if (1 < (int)this->maxUnitCount) {
+ do {
+ if (((((this->units[DAT_CurrentUnitSlotID].logicalState
+ == ULS_NORMAL)
+ && (this->units[DAT_CurrentUnitSlotID].dying == 0))
+ && (this->units[DAT_CurrentUnitSlotID].isSelectable_OR_matchTime != 0))
+ && ((this->units[DAT_CurrentUnitSlotID].unknownTestAgainst0_2 == 0
+ && (this->units[DAT_CurrentUnitSlotID].state.generic
+ != US_JESTER_ROAM_TO))))
+ && ((sVar1 = this->units[DAT_CurrentUnitSlotID].drawX,
+ sVar1 != 0 || (this->units[DAT_CurrentUnitSlotID].drawY != 0)))) {
+ iVar5 = (int)this->units[DAT_CurrentUnitSlotID].drawXOffset;
+ if ((((sVar1 + iVar5 < local_10)
+ && ((int)this->units[DAT_CurrentUnitSlotID].drawY
+ + (int)this->units[DAT_CurrentUnitSlotID].someDrawYOffset
+ < local_c))
+ && (local_8 <= (int)this->units[DAT_CurrentUnitSlotID].spriteWidthUnk
+ + (int)sVar1 + iVar5))
+ && ((local_4 <= (int)this->units[DAT_CurrentUnitSlotID].spriteHeightUnk
+ + (int)this->units[DAT_CurrentUnitSlotID].drawY
+ + (int)this->units[DAT_CurrentUnitSlotID].someDrawYOffset
+ && ((UVar2 = this->units[DAT_CurrentUnitSlotID].unitType,
+ UVar2 != UT_TUNNELER
+ || ((UVar3 = this->units[DAT_CurrentUnitSlotID].state.generic,
+ UVar3 != US_LOOK_AROUNDUnk
+ && (UVar3 != US_STAND_UPUnk)))))))) {
+ sVar1 = this->units[DAT_CurrentUnitSlotID].owner;
+ if (sVar1 == DAT_GameSynchronyState.currentPlayerSlotID) {
+ if (UVar2 == UT_LORD) {
+ local_38 = DAT_CurrentUnitSlotID;
+ LAB_00534999:
+ local_3c = local_3c + 1;
+ } else {
+ local_34 = local_34 + 1;
+ if (UVar2 == UT_S_CATAPULT) {
+ local_30 = local_30 + 1;
+ } else if (UVar2 == UT_S_TREBUCHET) {
+ local_2c = local_2c + 1;
+ } else if (UVar2 == UT_S_TOWER) {
+ local_28 = local_28 + 1;
+ } else if (UVar2 == UT_S_BATTERINGRAM) {
+ local_24 = local_24 + 1;
+ } else if (UVar2 == UT_S_SHIELD) {
+ local_20 = local_20 + 1;
+ } else if (UVar2 == UT_S_MANGONEL) {
+ local_1c = local_1c + 1;
+ } else if (UVar2 == UT_S_BALLISTA) {
+ local_18 = local_18 + 1;
+ } else {
+ if (UVar2 != UT_S_FBALLISTA)
+ goto LAB_00534999;
+ local_14 = local_14 + 1;
+ }
+ }
+ } else if (sVar1 != 0) {
+ this->field14_0x55c = (int)sVar1;
+ }
+ }
+ }
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1;
+ } while ((int)DAT_CurrentUnitSlotID < (int)this->maxUnitCount);
+ if ((local_38 != 0) && (local_34 != 0)) {
+ local_3c = local_3c + -1;
+ local_38 = 0;
+ }
+ if (((((local_3c != 0) || (local_30 != 0)) || (local_2c != 0)) || ((local_28 != 0 || (local_24 != 0))))
+ || (((local_20 != 0 || ((local_1c != 0 || (local_18 != 0)))) || (local_14 != 0)))) {
+ local_14 = 0;
+ goto LAB_00534a7c;
+ }
+ }
+ local_14 = 9;
+ LAB_00534a7c:
+ this->totalUnitsInSelection = 0;
+ DAT_CurrentUnitSlotID = 1;
+ if (1 < (int)this->maxUnitCount) {
+ do {
+ this->units[DAT_CurrentUnitSlotID].isSelected = 0;
+ if ((((this->units[DAT_CurrentUnitSlotID].logicalState == ULS_NORMAL)
+ && (this->units[DAT_CurrentUnitSlotID].dying == 0))
+ && (this->units[DAT_CurrentUnitSlotID].isSelectable_OR_matchTime != 0))
+ && (((this->units[DAT_CurrentUnitSlotID].unknownTestAgainst0_2 == 0
+ && (this->units[DAT_CurrentUnitSlotID].state.generic
+ != US_JESTER_ROAM_TO))
+ && ((sVar1 = this->units[DAT_CurrentUnitSlotID].drawX,
+ sVar1 != 0 || (this->units[DAT_CurrentUnitSlotID].drawY != 0)))))) {
+ iVar5 = (int)this->units[DAT_CurrentUnitSlotID].drawXOffset;
+ if (sVar1 + iVar5 < local_10) {
+ iVar7 = (int)this->units[DAT_CurrentUnitSlotID].someDrawYOffset;
+ iVar6 = (int)this->units[DAT_CurrentUnitSlotID].drawY;
+ if (((iVar6 + iVar7 < local_c)
+ && (local_8 <= (int)this->units[DAT_CurrentUnitSlotID].spriteWidthUnk
+ + (int)sVar1 + iVar5))
+ && ((local_4
+ <= this->units[DAT_CurrentUnitSlotID].spriteHeightUnk + iVar6 + iVar7
+ && ((UVar2 = this->units[DAT_CurrentUnitSlotID].unitType,
+ UVar2 != UT_TUNNELER
+ || ((UVar3 = this->units[DAT_CurrentUnitSlotID].state.generic,
+ UVar3 != US_LOOK_AROUNDUnk
+ && (UVar3 != US_STAND_UPUnk)))))))) {
+ switch (local_14) {
+ case 0:
+ if (this->units[DAT_CurrentUnitSlotID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ uVar4 = local_38;
+ if (UVar2 == UT_LORD)
+ goto LAB_00534bc5;
+ goto LAB_00534bcb;
+ }
+ break;
+ case 1:
+ if (this->units[DAT_CurrentUnitSlotID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ bVar8 = UVar2 == UT_S_CATAPULT;
+ LAB_00534bf6:
+ if (bVar8) {
+ this->units[DAT_CurrentUnitSlotID].isSelected = 1;
+ this->totalUnitsInSelection = this->totalUnitsInSelection + 1;
+ }
+ }
+ break;
+ case 2:
+ if (this->units[DAT_CurrentUnitSlotID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ bVar8 = UVar2 == UT_S_TREBUCHET;
+ goto LAB_00534bf6;
+ }
+ break;
+ case 3:
+ if (this->units[DAT_CurrentUnitSlotID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ bVar8 = UVar2 == UT_S_TOWER;
+ goto LAB_00534bf6;
+ }
+ break;
+ case 4:
+ if (this->units[DAT_CurrentUnitSlotID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ bVar8 = UVar2 == UT_S_BATTERINGRAM;
+ goto LAB_00534bf6;
+ }
+ break;
+ case 5:
+ if (this->units[DAT_CurrentUnitSlotID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ bVar8 = UVar2 == UT_S_SHIELD;
+ goto LAB_00534bf6;
+ }
+ break;
+ case 6:
+ if (this->units[DAT_CurrentUnitSlotID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ bVar8 = UVar2 == UT_S_MANGONEL;
+ goto LAB_00534bf6;
+ }
+ break;
+ case 7:
+ if (this->units[DAT_CurrentUnitSlotID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ bVar8 = UVar2 == UT_S_BALLISTA;
+ goto LAB_00534bf6;
+ }
+ break;
+ case 8:
+ if (this->units[DAT_CurrentUnitSlotID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ bVar8 = UVar2 == UT_S_FBALLISTA;
+ goto LAB_00534bf6;
+ }
+ break;
+ case 9:
+ uVar4 = this->units[DAT_CurrentUnitSlotID].owner
+ - DAT_GameSynchronyState.currentPlayerSlotID;
+ LAB_00534bc5:
+ if (uVar4 != 0) {
+ LAB_00534bcb:
+ this->units[DAT_CurrentUnitSlotID].isSelected = 1;
+ this->totalUnitsInSelection = this->totalUnitsInSelection + 1;
+ }
+ }
+ }
+ }
+ }
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1;
+ } while ((int)DAT_CurrentUnitSlotID < (int)this->maxUnitCount);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00534d10 selectUnitsInDragBoxForCurrentPlayer | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00534D10
+ void UnitsState::selectUnitsInDragBoxForCurrentPlayer()
+ {
+ LONG _boxLeft;
+ LONG _boxRight;
+ if (DAT_MouseState.selectionBox.left > DAT_MouseState.selectionBox.right) {
+ _boxLeft = DAT_MouseState.selectionBox.right;
+ _boxRight = DAT_MouseState.selectionBox.left;
+ } else {
+ _boxLeft = DAT_MouseState.selectionBox.left;
+ _boxRight = DAT_MouseState.selectionBox.right;
+ }
+ LONG _boxTop;
+ LONG _boxBottom;
+ if (DAT_MouseState.selectionBox.top > DAT_MouseState.selectionBox.bottom) {
+ _boxTop = DAT_MouseState.selectionBox.bottom;
+ _boxBottom = DAT_MouseState.selectionBox.top;
+ } else {
+ _boxTop = DAT_MouseState.selectionBox.top;
+ _boxBottom = DAT_MouseState.selectionBox.bottom;
+ }
+ this->totalUnitsInSelection = 0;
+ for (DAT_CurrentUnitSlotID = 1; DAT_CurrentUnitSlotID < this->maxUnitCount;
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1) {
+ this->units[DAT_CurrentUnitSlotID].isSelected = 0;
+ if (this->units[DAT_CurrentUnitSlotID].logicalState != ULS_NORMAL) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].dying) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].isSelectable_OR_matchTime == 0) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].unknownTestAgainst0_2 != 0) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].state.generic
+ == US_JESTER_ROAM_TO) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].ifSelectedThenPlayerID
+ != DAT_GameSynchronyState.currentPlayerSlotID) {
+ if (this->units[DAT_CurrentUnitSlotID].drawX == 0
+ && this->units[DAT_CurrentUnitSlotID].drawY == 0) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].drawX
+ + this->units[DAT_CurrentUnitSlotID].drawXOffset
+ >= _boxRight) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].drawY
+ + this->units[DAT_CurrentUnitSlotID].someDrawYOffset
+ >= _boxBottom) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].spriteWidthUnk
+ + this->units[DAT_CurrentUnitSlotID].drawX
+ + this->units[DAT_CurrentUnitSlotID].drawXOffset
+ < _boxLeft) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].spriteHeightUnk
+ + this->units[DAT_CurrentUnitSlotID].drawY
+ + this->units[DAT_CurrentUnitSlotID].someDrawYOffset
+ < _boxTop) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].unitType == UT_S_TOWER
+ && this->units[DAT_CurrentUnitSlotID].state.generic
+ == (US_STAND_UPUnk
+ | US_IDLEUnk)) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].unitType == UT_TUNNELER
+ && (this->units[DAT_CurrentUnitSlotID].state.generic
+ == US_LOOK_AROUNDUnk
+ || this->units[DAT_CurrentUnitSlotID].state.generic
+ == US_STAND_UPUnk)) {
+ continue;
+ }
+ }
+ if (this->units[DAT_CurrentUnitSlotID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID
+ && this->units[DAT_CurrentUnitSlotID].unitType != UT_LORD) {
+ this->units[DAT_CurrentUnitSlotID].isSelected = 1;
+ this->totalUnitsInSelection = this->totalUnitsInSelection + 1;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x00534ee0 selectFirstUnitInDragBoxAnyPlayer | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00534EE0
+ void UnitsState::selectFirstUnitInDragBoxAnyPlayer()
+ {
+ LONG _boxLeft;
+ LONG _boxRight;
+ if (DAT_MouseState.selectionBox.left > DAT_MouseState.selectionBox.right) {
+ _boxLeft = DAT_MouseState.selectionBox.right;
+ _boxRight = DAT_MouseState.selectionBox.left;
+ } else {
+ _boxLeft = DAT_MouseState.selectionBox.left;
+ _boxRight = DAT_MouseState.selectionBox.right;
+ }
+ LONG _boxTop;
+ LONG _boxBottom;
+ if (DAT_MouseState.selectionBox.top > DAT_MouseState.selectionBox.bottom) {
+ _boxTop = DAT_MouseState.selectionBox.bottom;
+ _boxBottom = DAT_MouseState.selectionBox.top;
+ } else {
+ _boxTop = DAT_MouseState.selectionBox.top;
+ _boxBottom = DAT_MouseState.selectionBox.bottom;
+ }
+ this->field14_0x55c = 0;
+ this->totalUnitsInSelection = 0;
+ for (DAT_CurrentUnitSlotID = 1; DAT_CurrentUnitSlotID < this->maxUnitCount;
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1) {
+ this->units[DAT_CurrentUnitSlotID].isSelected = 0;
+ if (this->units[DAT_CurrentUnitSlotID].logicalState != ULS_NORMAL) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].dying) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].unknownTestAgainst0_2 != 0) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].state.generic
+ == US_JESTER_ROAM_TO) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].isSelectable_OR_matchTime == 0) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].unitType == UT_S_TOWER
+ && this->units[DAT_CurrentUnitSlotID].state.generic
+ == (US_STAND_UPUnk | US_IDLEUnk)) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].unitType == UT_TUNNELER
+ && (this->units[DAT_CurrentUnitSlotID].state.generic
+ == US_LOOK_AROUNDUnk
+ || this->units[DAT_CurrentUnitSlotID].state.generic
+ == US_STAND_UPUnk)) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].drawX == 0
+ && this->units[DAT_CurrentUnitSlotID].drawY == 0) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].drawX
+ + this->units[DAT_CurrentUnitSlotID].drawXOffset
+ >= _boxRight) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].drawY
+ + this->units[DAT_CurrentUnitSlotID].someDrawYOffset
+ >= _boxBottom) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].spriteWidthUnk
+ + this->units[DAT_CurrentUnitSlotID].drawX
+ + this->units[DAT_CurrentUnitSlotID].drawXOffset
+ < _boxLeft) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].spriteHeightUnk
+ + this->units[DAT_CurrentUnitSlotID].drawY
+ + this->units[DAT_CurrentUnitSlotID].someDrawYOffset
+ < _boxTop) {
+ continue;
+ }
+ this->units[DAT_CurrentUnitSlotID].isSelected = 1;
+ this->totalUnitsInSelection = this->totalUnitsInSelection + 1;
+ if (this->units[DAT_CurrentUnitSlotID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ return;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].owner == 0) {
+ return;
+ }
+ this->field14_0x55c = this->units[DAT_CurrentUnitSlotID].owner;
+ return;
+ }
+ }
+ }
+}
+}
+
+### 0x005350b0 selectAllUnitsOfTypeForPlayer | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x005350B0
+ void UnitsState::selectAllUnitsOfTypeForPlayer(int playerID, int unitType)
+ {
+ this->totalUnitsInSelection = 0;
+ for (DAT_CurrentUnitSlotID = 1; DAT_CurrentUnitSlotID < this->maxUnitCount;
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1) {
+ if (this->units[DAT_CurrentUnitSlotID].logicalState == ULS_NORMAL
+ && !this->units[DAT_CurrentUnitSlotID].dying
+ && this->units[DAT_CurrentUnitSlotID].unknownTestAgainst0_2 == 0
+ && this->units[DAT_CurrentUnitSlotID].state.generic
+ != US_JESTER_ROAM_TO
+ && (short)this->units[DAT_CurrentUnitSlotID].unitType == unitType
+ && this->units[DAT_CurrentUnitSlotID].drawX != 0
+ && this->units[DAT_CurrentUnitSlotID].owner == playerID) {
+ this->units[DAT_CurrentUnitSlotID].isSelected = 1;
+ this->totalUnitsInSelection = this->totalUnitsInSelection + 1;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x00535150 deselectAllUnitsOneByOne | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00535150
+ void UnitsState::deselectAllUnitsOneByOne()
+ {
+ for (DAT_CurrentUnitSlotID = 1; DAT_CurrentUnitSlotID < this->maxUnitCount;
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1) {
+ this->units[DAT_CurrentUnitSlotID].isSelected = 0;
+ }
+ this->totalUnitsInSelection = 0;
+ }
+ }
+}
+}
+
+### 0x00535190 deselectUnit | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00535190
+ void UnitsState::deselectUnit(int unitID)
+ {
+ if (this->units[unitID].isSelected != 0) {
+ this->units[unitID].isSelected = 0;
+ this->totalUnitsInSelection -= 1;
+ }
+ }
+ }
+}
+}
+
+### 0x005351c0 filterUnitSelectionExcludeUnitType | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x005351C0
+ void UnitsState::filterUnitSelectionExcludeUnitType(int unitType)
+ {
+ for (int unitID = 1; unitID < this->maxUnitCount; ++unitID) {
+ if (this->units[unitID].isSelected != 0 && (short)this->units[unitID].unitType == unitType) {
+ this->units[unitID].isSelected = 0;
+ this->totalUnitsInSelection = this->totalUnitsInSelection - 1;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x00535200 filterUnitSelectionForUnitType | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00535200
+ void UnitsState::filterUnitSelectionForUnitType(int unitType)
+ {
+ for (int unitID = 1; unitID < this->maxUnitCount; ++unitID) {
+ if (this->units[unitID].isSelected != 0 && (short)this->units[unitID].unitType != unitType) {
+ this->units[unitID].isSelected = 0;
+ this->totalUnitsInSelection = this->totalUnitsInSelection - 1;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x00535240 recountUnitsInSelection | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00535240
+ void UnitsState::recountUnitsInSelection()
+ {
+ int* piVar1;
+ int iVar2;
+ int iVar3;
+ Unit* psVar4;
+ int* piVar4;
+ piVar1 = &this->selectionEuropeanArchers;
+ this->selectionEuropeanArchers = 0;
+ this->selectionSpearmen = 0;
+ this->selectionMacemen = 0;
+ this->selectionCrossbowmen = 0;
+ this->selectionPikemen = 0;
+ this->selectionSwordsmen = 0;
+ this->selectionKnights = 0;
+ this->selectionEngineers = 0;
+ this->selectionLaddermen = 0;
+ this->selectionTunnelers = 0;
+ this->selectionMonks = 0;
+ this->selectionCatapults = 0;
+ this->selectionTrebuchets = 0;
+ this->selectionBatteringRam = 0;
+ this->selectionSiegeTower = 0;
+ this->selectionShield = 0;
+ this->selectionMangonel = 0;
+ this->selectionBallista = 0;
+ this->nSelectionFireBallistas = 0;
+ this->selectionArabArcher = 0;
+ this->selectionArabSlave = 0;
+ this->selectionArabSlinger = 0;
+ this->selectionArabAssassin = 0;
+ this->selectionArabHorseArchers = 0;
+ this->selectionArabSwordsman = 0;
+ this->selectionArabFireThrower = 0;
+ this->selectionFireBallista = 0;
+ iVar2 = 1;
+ if (1 < (int)this->maxUnitCount) {
+ psVar4 = &this->units[1];
+ do {
+ if ((((psVar4->logicalState == ULS_NORMAL) && (psVar4->dying == 0))
+ && (psVar4->owner == DAT_GameSynchronyState.currentPlayerSlotID))
+ && (psVar4->isSelected != 0)) {
+ switch (psVar4->unitType) {
+ case UT_TUNNELER:
+ this->selectionTunnelers = this->selectionTunnelers + 1;
+ break;
+ default : goto switchD_00535303_caseD_6;
+ case UT_E_ARCHER:
+ this->selectionEuropeanArchers = this->selectionEuropeanArchers + 1;
+ break;
+ case UT_E_XBOW:
+ this->selectionCrossbowmen = this->selectionCrossbowmen + 1;
+ break;
+ case UT_E_SPEAR:
+ this->selectionSpearmen = this->selectionSpearmen + 1;
+ break;
+ case UT_E_PIKE:
+ this->selectionPikemen = this->selectionPikemen + 1;
+ break;
+ case UT_E_MACE:
+ this->selectionMacemen = this->selectionMacemen + 1;
+ break;
+ case UT_E_SWORD:
+ this->selectionSwordsmen = this->selectionSwordsmen + 1;
+ break;
+ case UT_E_KNIGHT:
+ this->selectionKnights = this->selectionKnights + 1;
+ break;
+ case UT_E_LADDER:
+ this->selectionLaddermen = this->selectionLaddermen + 1;
+ break;
+ case UT_E_ENGINEER:
+ this->selectionEngineers = this->selectionEngineers + 1;
+ break;
+ case UT_E_MONK:
+ this->selectionMonks = this->selectionMonks + 1;
+ break;
+ case UT_S_CATAPULT:
+ this->selectionCatapults = this->selectionCatapults + 1;
+ break;
+ case UT_S_TREBUCHET:
+ this->selectionTrebuchets = this->selectionTrebuchets + 1;
+ break;
+ case UT_S_MANGONEL:
+ this->selectionMangonel = this->selectionMangonel + 1;
+ break;
+ case UT_S_TOWER:
+ this->selectionSiegeTower = this->selectionSiegeTower + 1;
+ break;
+ case UT_S_BATTERINGRAM:
+ this->selectionBatteringRam = this->selectionBatteringRam + 1;
+ break;
+ case UT_S_SHIELD:
+ this->selectionShield = this->selectionShield + 1;
+ break;
+ case UT_S_BALLISTA:
+ this->selectionBallista = this->selectionBallista + 1;
+ break;
+ case UT_A_ARCHER:
+ this->selectionArabArcher = this->selectionArabArcher + 1;
+ break;
+ case UT_A_SLAVE:
+ this->selectionArabSlave = this->selectionArabSlave + 1;
+ break;
+ case UT_A_SLINGER:
+ this->selectionArabSlinger = this->selectionArabSlinger + 1;
+ break;
+ case UT_A_ASSASSIN:
+ this->selectionArabAssassin = this->selectionArabAssassin + 1;
+ break;
+ case UT_A_HARCHER:
+ this->selectionArabHorseArchers = this->selectionArabHorseArchers + 1;
+ break;
+ case UT_A_SWORDSMAN:
+ this->selectionArabSwordsman = this->selectionArabSwordsman + 1;
+ break;
+ case UT_A_FIRETHROWER:
+ this->selectionArabFireThrower = this->selectionArabFireThrower + 1;
+ break;
+ case UT_S_FBALLISTA:
+ this->selectionFireBallista = this->selectionFireBallista + 1;
+ }
+ this->nHasOwnedUnitInSelection = 1;
+ }
+ switchD_00535303_caseD_6:
+ iVar2 = iVar2 + 1;
+ psVar4 = psVar4 + 0x248;
+ } while (iVar2 < (int)this->maxUnitCount);
+ }
+ piVar4 = this->selectionSlots;
+ iVar3 = 0;
+ this->selectionSlots[1] = -1;
+ this->selectionSlots[2] = -1;
+ this->selectionSlots[3] = -1;
+ this->selectionSlots[4] = -1;
+ this->selectionSlots[5] = -1;
+ this->selectionSlots[6] = -1;
+ this->selectionSlots[7] = -1;
+ this->selectionSlots[0] = -1;
+ iVar2 = 0;
+ do {
+ if (*piVar1 != 0) {
+ *piVar4 = iVar2;
+ iVar3 = iVar3 + 1;
+ piVar4 = piVar4 + 1;
+ if (7 < iVar3) {
+ return;
+ }
+ }
+ iVar2 = iVar2 + 1;
+ piVar1 = piVar1 + 1;
+ } while (iVar2 < 0x1b);
+ return;
+ }
+ }
+}
+}
+
+### 0x00535520 selectionContainsEngineersOnly | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00535520
+ int UnitsState::selectionContainsEngineersOnly()
+ {
+ int result = FALSE;
+ if (this->selectionUnitType[Selection::USE_E_ENGINEERS] != 0) {
+ for (int index = 0; index <= 26; index++) {
+ if ((index != Selection::USE_E_ENGINEERS) && (this->selectionUnitType[index] != 0)) {
+ return FALSE;
+ }
+ }
+ result = TRUE;
+ }
+ return result;
+ }
+ }
+}
+}
+
+### 0x00535550 selectionHasEngineers | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00535550
+ BOOLEnum UnitsState::selectionHasEngineers()
+ {
+ return this->selectionUnitType[Selection::USE_E_ENGINEERS] != 0;
+ }
+ }
+}
+}
+
+### 0x00535560 selectionHasArchers | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00535560
+ BOOLEnum UnitsState::selectionHasArchers()
+ {
+ if (this->selectionUnitType[Selection::USE_E_ARCHERS] != 0) {
+ return TRUE;
+ }
+ return this->selectionUnitType[Selection::USE_A_ARAB_ARCHERS] != 0;
+ }
+ }
+}
+}
+
+### 0x00535580 selectionHasMobileAssaultUnits | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00535580
+ BOOLEnum UnitsState::selectionHasMobileAssaultUnits()
+ {
+ if (this->selectionUnitType[Selection::USE_E_KNIGHTS] == 0
+ && this->selectionUnitType[Selection::USE_E_LADDERMEN] == 0
+ && this->selectionUnitType[Selection::USE_E_BATTERING_RAMS] == 0
+ && this->selectionUnitType[Selection::USE_E_TREBUCHETS] == 0
+ && this->selectionUnitType[Selection::USE_E_CATAPULTS] == 0
+ && this->selectionUnitType[Selection::USE_A_HORSE_ARCHERS] == 0
+ && this->selectionUnitType[Selection::USE_A_FIRE_BALLISTAS] == 0
+ && this->selectionUnitType[Selection::USE_E_SIEGETOWERS] == 0) {
+ return FALSE;
+ }
+ return TRUE;
+ }
+ }
+}
+}
+
+### 0x005355e0 selectionHasMixedAssaultAndInfantry | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x005355E0
+ BOOLEnum UnitsState::selectionHasMixedAssaultAndInfantry()
+ {
+ if (this->selectionUnitType[Selection::USE_E_KNIGHTS] != 0
+ || this->selectionUnitType[Selection::USE_E_LADDERMEN] != 0
+ || this->selectionUnitType[Selection::USE_E_BATTERING_RAMS] != 0
+ || this->selectionUnitType[Selection::USE_E_TREBUCHETS] != 0
+ || this->selectionUnitType[Selection::USE_E_CATAPULTS] != 0
+ || this->selectionUnitType[Selection::USE_A_HORSE_ARCHERS] != 0
+ || this->selectionUnitType[Selection::USE_A_FIRE_BALLISTAS] != 0
+ || this->selectionUnitType[Selection::USE_E_SIEGETOWERS] != 0) {
+ for (int i = 0; i <= 26; ++i) {
+ if (i != Selection::USE_E_KNIGHTS && i != Selection::USE_E_LADDERMEN
+ && i != Selection::USE_E_BATTERING_RAMS && i != Selection::USE_E_TREBUCHETS
+ && i != Selection::USE_E_CATAPULTS && i != Selection::USE_A_HORSE_ARCHERS
+ && i != Selection::USE_A_FIRE_BALLISTAS && i != Selection::USE_E_SIEGETOWERS
+ && this->selectionUnitType[i] != 0) {
+ return FALSE;
+ }
+ }
+ return TRUE;
+ }
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x00535680 getSelectedEngineerCarryingResource | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00535680
+ uint UnitsState::getSelectedEngineerCarryingResource()
+ {
+ BOOLEnum BVar1;
+ /*
+ Does not dirty EDX. -TheRedDaemon
+ */
+ BVar1 = selectionContainsEngineersOnly();
+ if ((BVar1 != FALSE) && (DAT_CurrentUnitSlotID = 1, 1 < (int)this->maxUnitCount)) {
+ do {
+ if ((this->units[DAT_CurrentUnitSlotID].logicalState == ULS_NORMAL)
+ && ((this->units[DAT_CurrentUnitSlotID].dying == 0
+ && (this->units[DAT_CurrentUnitSlotID].isSelected != 0)))) {
+ if (this->units[DAT_CurrentUnitSlotID].owner
+ != DAT_GameSynchronyState.currentPlayerSlotID) {
+ return 0;
+ }
+ if ((this->units[DAT_CurrentUnitSlotID].unitType
+ == UT_E_ENGINEER)
+ && (this->units[DAT_CurrentUnitSlotID].resourceToDeposit != 0)) {
+ return DAT_CurrentUnitSlotID;
+ }
+ }
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1;
+ } while ((int)DAT_CurrentUnitSlotID < (int)this->maxUnitCount);
+ }
+ return 0;
+ }
+ }
+}
+}
+
+### 0x00535700 selectionContainsTunnelersOnly | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00535700
+ int UnitsState::selectionContainsTunnelersOnly()
+ {
+ int result = FALSE;
+ if (this->selectionUnitType[Selection::USE_E_TUNNELERS] != 0) {
+ for (int index = 0; index <= 26; index++) {
+ if ((index != Selection::USE_E_TUNNELERS) && (this->selectionUnitType[index] != 0)) {
+ return FALSE;
+ }
+ }
+ result = TRUE;
+ }
+ return result;
+ }
+ }
+}
+}
+
+### 0x00535730 selectionContainsRangedOnlyUnits | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00535730
+ BOOLEnum UnitsState::selectionContainsRangedOnlyUnits()
+ {
+ if (this->selectionUnitType[Selection::USE_E_ARCHERS] != 0
+ || this->selectionUnitType[Selection::USE_E_CROSSBOWMEN] != 0
+ || this->selectionUnitType[Selection::USE_A_ARAB_ARCHERS] != 0
+ || this->selectionUnitType[Selection::USE_A_SLINGERS] != 0
+ || this->selectionUnitType[Selection::USE_A_HORSE_ARCHERS] != 0
+ || this->selectionUnitType[Selection::USE_A_FIRETHROWERS] != 0
+ || this->selectionUnitType[Selection::USE_A_FIRE_BALLISTAS] != 0
+ || this->selectionUnitType[Selection::USE_E_CATAPULTS] != 0
+ || this->selectionUnitType[Selection::USE_E_TREBUCHETS] != 0) {
+ for (int i = 0; i <= 26; ++i) {
+ if (i != Selection::USE_E_ARCHERS && i != Selection::USE_E_CROSSBOWMEN
+ && i != Selection::USE_A_ARAB_ARCHERS && i != Selection::USE_A_SLINGERS
+ && i != Selection::USE_A_HORSE_ARCHERS && i != Selection::USE_A_FIRETHROWERS
+ && i != Selection::USE_A_FIRE_BALLISTAS && i != Selection::USE_E_CATAPULTS
+ && i != Selection::USE_E_TREBUCHETS && this->selectionUnitType[i] != 0) {
+ return FALSE;
+ }
+ }
+ return TRUE;
+ }
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x005357e0 selectionContainsLadermenOnly | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x005357E0
+ BOOLEnum UnitsState::selectionContainsLaddermenOnly()
+ {
+ if (this->selectionUnitType[Selection::USE_E_LADDERMEN] == 0) {
+ return FALSE;
+ }
+ for (int i = 0; i <= 26; ++i) {
+ if (i != Selection::USE_E_LADDERMEN && this->selectionUnitType[i] != 0) {
+ return FALSE;
+ }
+ }
+ return TRUE;
+ }
+ }
+}
+}
+
+### 0x00535810 selectionContainsOnlyArabAssassins | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00535810
+ BOOLEnum UnitsState::selectionContainsOnlyArabAssassins()
+ {
+ BOOLEnum result = FALSE;
+ if (this->selectionUnitType[Selection::USE_A_ASSASSINS] != 0) {
+ for (int index = 0; index <= 26; index++) {
+ if ((index != Selection::USE_A_ASSASSINS) && (this->selectionUnitType[index] != 0)) {
+ return FALSE;
+ }
+ }
+ result = TRUE;
+ }
+ return result;
+ }
+ }
+}
+}
+
+### 0x00535840 selectionContainsShieldmenOnly | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00535840
+ int UnitsState::selectionContainsShieldmenOnly()
+ {
+ int result = FALSE;
+ if (this->selectionUnitType[Selection::USE_E_SHIELDS] != 0) {
+ for (int index = 0; index <= 26; index++) {
+ if ((index != Selection::USE_E_SHIELDS) && (this->selectionUnitType[index] != 0)) {
+ return FALSE;
+ }
+ }
+ result = TRUE;
+ }
+ return result;
+ }
+ }
+}
+}
+
+### 0x00535870 selectionHasShieldOrSiegeMobileUnits | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00535870
+ BOOLEnum UnitsState::selectionHasShieldOrSiegeMobileUnits()
+ {
+ if (this->selectionUnitType[Selection::USE_E_SHIELDS] != 0
+ || this->selectionUnitType[Selection::USE_E_SIEGETOWERS] != 0
+ || this->selectionUnitType[Selection::USE_E_BATTERING_RAMS] != 0) {
+ for (int i = 0; i <= 26; ++i) {
+ if (i != Selection::USE_E_SHIELDS && i != Selection::USE_E_BATTERING_RAMS
+ && i != Selection::USE_E_SIEGETOWERS && this->selectionUnitType[i] != 0) {
+ return FALSE;
+ }
+ }
+ return TRUE;
+ }
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x005358c0 selectionHasShieldOrSiegeTower | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x005358C0
+ BOOLEnum UnitsState::selectionHasShieldOrSiegeTower()
+ {
+ if (this->selectionUnitType[Selection::USE_E_SHIELDS] != 0
+ || this->selectionUnitType[Selection::USE_E_SIEGETOWERS] != 0) {
+ for (int i = 0; i <= 26; ++i) {
+ if (i != Selection::USE_E_SHIELDS && i != Selection::USE_E_SIEGETOWERS
+ && this->selectionUnitType[i] != 0) {
+ return FALSE;
+ }
+ }
+ return TRUE;
+ }
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x00535910 selectionHasNoRangedUnits | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00535910
+ BOOLEnum UnitsState::selectionHasNoRangedUnits()
+ {
+ if (this->selectionUnitType[Selection::USE_E_ARCHERS] == 0
+ && this->selectionUnitType[Selection::USE_E_CROSSBOWMEN] == 0
+ && this->selectionUnitType[Selection::USE_A_ARAB_ARCHERS] == 0
+ && this->selectionUnitType[Selection::USE_A_SLINGERS] == 0
+ && this->selectionUnitType[Selection::USE_E_CATAPULTS] == 0
+ && this->selectionUnitType[Selection::USE_E_ARCHERS] == 0
+ && this->selectionUnitType[Selection::USE_E_TREBUCHETS] == 0
+ && this->selectionUnitType[Selection::USE_A_HORSE_ARCHERS] == 0
+ && this->selectionUnitType[Selection::USE_A_FIRETHROWERS] == 0
+ && this->selectionUnitType[Selection::USE_A_FIRE_BALLISTAS] == 0
+ && this->selectionUnitType[Selection::USE_E_MANGONELS] == 0
+ && this->selectionUnitType[Selection::USE_E_BALLISTAS] == 0) {
+ return TRUE;
+ }
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x00535980 selectionHasFootSoldiers | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00535980
+ BOOLEnum UnitsState::selectionHasFootSoldiers()
+ {
+ if (this->selectionUnitType[Selection::USE_E_ENGINEERS] == 0
+ && this->selectionUnitType[Selection::USE_A_SLAVES] == 0
+ && this->selectionUnitType[Selection::USE_E_SPEARMEN] == 0
+ && this->selectionUnitType[Selection::USE_E_ARCHERS] == 0
+ && this->selectionUnitType[Selection::USE_E_MACEMEN] == 0
+ && this->selectionUnitType[Selection::USE_E_PIKEMEN] == 0) {
+ return FALSE;
+ }
+ return TRUE;
+ }
+ }
+}
+}
+
+### 0x005359c0 getSelectedLordIDIfOwnedByCurrentPlayer | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x005359C0
+ uint UnitsState::getSelectedLordIDIfOwnedByCurrentPlayer()
+ {
+ int _currentPlayerSlotID = DAT_GameSynchronyState.currentPlayerSlotID;
+ for (DAT_CurrentUnitSlotID = 1; DAT_CurrentUnitSlotID < this->maxUnitCount;
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1) {
+ if (this->units[DAT_CurrentUnitSlotID].logicalState != ULS_NORMAL) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].dying) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].isSelected == 0) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].owner != _currentPlayerSlotID) {
+ return 0;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].unitType == UT_LORD) {
+ return DAT_CurrentUnitSlotID;
+ }
+ }
+ return 0;
+ }
+ }
+}
+}
+
+### 0x00535a30 createUnitSelection | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00535A30
+ int UnitsState::createUnitSelection()
+ {
+ int _playerID;
+ int iVar1;
+ iVar1 = 0;
+ /*
+ clear selected units
+ */
+ fillMemory_ByteValue(
+ 400, '\0', (void*)((int)(this->selectedUnitsBitFlags)));
+ DAT_CurrentUnitSlotID = 1;
+ _playerID = DAT_GameSynchronyState.currentPlayerSlotID;
+ if (1 < (int)this->maxUnitCount) {
+ do {
+ if ((((this->units[DAT_CurrentUnitSlotID].logicalState == ULS_NORMAL)
+ && (this->units[DAT_CurrentUnitSlotID].dying == 0))
+ && (this->units[DAT_CurrentUnitSlotID].owner == _playerID))
+ && ((this->units[DAT_CurrentUnitSlotID].isSelected != 0
+ && ((this->units[DAT_CurrentUnitSlotID].ifSelectedThenPlayerID != _playerID
+ || (DAT_GameSynchronyState.currentGameMode
+ != GM_SOLITARY)))))) {
+ addUnitToSelected(DAT_CurrentUnitSlotID);
+ iVar1 = iVar1 + 1;
+ _playerID = DAT_GameSynchronyState.currentPlayerSlotID;
+ }
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1;
+ } while ((int)DAT_CurrentUnitSlotID < (int)this->maxUnitCount);
+ if (iVar1 != 0) {
+ DAT_TribesState.DAT_CurrentTribeID = getAvailableTribeID(_playerID);
+ DAT_GameSynchronyState.DAT_GameCommandParam0
+ = DAT_TribesState.DAT_CurrentTribeID;
+ queueCommand(GCT_UNITS_SELECT);
+ return iVar1;
+ }
+ }
+ return 0;
+ }
+ }
+}
+}
+
+### 0x00535b00 createTribeFromSelectedUnits | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00535B00
+ int UnitsState::createTribeFromSelectedUnits()
+ {
+ int iVar1;
+ iVar1 = 0;
+ fillMemory_ByteValue(
+ 400, '\0', (void*)((int)(this->selectedUnitsBitFlags)));
+ DAT_CurrentUnitSlotID = 1;
+ if (1 < (int)this->maxUnitCount) {
+ do {
+ if ((((this->units[DAT_CurrentUnitSlotID].logicalState == ULS_NORMAL)
+ && (this->units[DAT_CurrentUnitSlotID].dying == 0))
+ && (this->units[DAT_CurrentUnitSlotID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID))
+ && (this->units[DAT_CurrentUnitSlotID].isSelected != 0)) {
+ addUnitToSelected(DAT_CurrentUnitSlotID);
+ iVar1 = iVar1 + 1;
+ }
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1;
+ } while ((int)DAT_CurrentUnitSlotID < (int)this->maxUnitCount);
+ if (iVar1 != 0) {
+ DAT_TribesState.DAT_CurrentTribeID
+ = getAvailableTribeID(DAT_GameSynchronyState.currentPlayerSlotID);
+ DAT_GameSynchronyState.DAT_GameCommandParam0
+ = DAT_TribesState.DAT_CurrentTribeID;
+ queueCommand(GCT_UNITS_SELECT);
+ return iVar1;
+ }
+ }
+ return 0;
+ }
+ }
+}
+}
+
+### 0x00535bc0 playerMakeUnitSelection | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00535BC0
+ void UnitsState::playerMakeUnitSelection(int playerID, int tribeID)
+ {
+ UnitTypeShort UVar1;
+ BOOLEnum BVar2;
+ int _tribeID;
+ UnitType unitType;
+ int iVar3;
+ int unitID;
+ this->unitCountOfSelection[playerID] = 0;
+ DAT_CurrentUnitSlotID = 1;
+ if (1 < (int)this->maxUnitCount) {
+ do {
+ if ((((this->units[DAT_CurrentUnitSlotID].logicalState == ULS_NORMAL)
+ && (this->units[DAT_CurrentUnitSlotID].dying == 0))
+ && (this->units[DAT_CurrentUnitSlotID].owner == playerID))
+ && (BVar2 = unitIsSelectedByPlayer(DAT_CurrentUnitSlotID),
+ BVar2 != FALSE)) {
+ this->units[DAT_CurrentUnitSlotID].ifSelectedThenPlayerID = (short)playerID;
+ this->units[DAT_CurrentUnitSlotID].selectionRelatedFlag = 1;
+ this->unitCountOfSelection[playerID] = this->unitCountOfSelection[playerID] + 1;
+ }
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1;
+ } while ((int)DAT_CurrentUnitSlotID < (int)this->maxUnitCount);
+ }
+ snapshotSelectionTribeAndComputeStance(playerID);
+ removeSelectedUnitsFromTheirCurrentTribes(playerID);
+ _tribeID = createPlayerTribe(playerID, 1, tribeID);
+ addUnitsToTribeAndComputeMovementSpeed(playerID, _tribeID);
+ importStoredInfoFromSlot0(
+ playerID, _tribeID);
+ if (DAT_TribesState.tribes[_tribeID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ unitType = getMajoritySelectedUnitType(_tribeID, (int*)0x0);
+ if ((((unitType == UT_S_CATAPULT) || (unitType == UT_S_TOWER))
+ || ((unitType == UT_S_BATTERINGRAM
+ || ((unitType == UT_S_SHIELD
+ || (unitType == UT_S_BALLISTA))))))
+ || ((unitType == UT_S_FBALLISTA
+ || ((unitType == UT_S_TREBUCHET
+ || (unitType == UT_S_MANGONEL)))))) {
+ unitID = (int)DAT_TribesState.tribes[_tribeID].selectionTargetUnitID;
+ iVar3 = getRemainingRequiredEngineers(unitID);
+ if (0 < iVar3) {
+ if ((this->units[unitID].digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300
+ == 0)
+ || (3 < iVar3)) {
+ playUnitSpeechEffect(0xe);
+ DAT_UIDragDropDefinedData.MenuView_TriggerInitial = TRUE;
+ return;
+ }
+ if (iVar3 == 1) {
+ playUnitSpeechEffect(0xb);
+ DAT_UIDragDropDefinedData.MenuView_TriggerInitial = TRUE;
+ return;
+ }
+ if (iVar3 != 2) {
+ if (iVar3 != 3) {
+ DAT_UIDragDropDefinedData.MenuView_TriggerInitial = TRUE;
+ return;
+ }
+ playUnitSpeechEffect(0xd);
+ DAT_UIDragDropDefinedData.MenuView_TriggerInitial = TRUE;
+ return;
+ }
+ playUnitSpeechEffect(
+ 0xc);
+ DAT_UIDragDropDefinedData.MenuView_TriggerInitial = TRUE;
+ return;
+ }
+ if ((unitType == UT_S_CATAPULT)
+ || (unitType == UT_S_TREBUCHET)) {
+ UVar1 = this->units[unitID].unitType;
+ if (((UVar1 == UT_S_CATAPULT)
+ || (UVar1 == UT_S_TREBUCHET))
+ && (this->units[unitID].stoneAmmunition < 1)) {
+ playSpeechSFX(
+ SEID_RESOURCE_NEED25);
+ DAT_UIDragDropDefinedData.MenuView_TriggerInitial = TRUE;
+ return;
+ }
+ }
+ }
+ playUnitSpeech(unitType, 0);
+ }
+ DAT_UIDragDropDefinedData.MenuView_TriggerInitial = TRUE;
+ return;
+ }
+ }
+}
+}
+
+### 0x00535df0 getFirstSelectedUnitID | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00535DF0
+ void UnitsState::getFirstSelectedUnitID(undefined4 param_1)
+ {
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = param_1;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = DAT_TribesState.DAT_CurrentTribeID;
+ queueCommand(
+ (GameCommandType)0x48);
+ }
+ }
+}
+}
+
+### 0x00535e20 selectSiegeEngineAndPlayFeedback | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00535E20
+ void UnitsState::selectSiegeEngineAndPlayFeedback(int playerID, int unitID, int tribeID)
+ {
+ removeUnitFromTribe(
+ unitID, DAT_UnitsState.units[unitID].tribeID);
+ this->units[unitID].isSelected = 1;
+ this->units[unitID].selectionRelatedFlag = 1;
+ this->units[unitID].ifSelectedThenPlayerID = (short)playerID;
+ this->unitCountOfSelection[playerID] = this->unitCountOfSelection[playerID] + 1;
+ addUnitToTribeAndUpdateTribeMovementSpeed(playerID, unitID, tribeID);
+ if (DAT_TribesState.tribes[tribeID].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ UnitType _unitType = (UnitType)(short)this->units[unitID].unitType;
+ if (_unitType == UT_S_CATAPULT || _unitType == UT_S_TOWER
+ || _unitType == UT_S_BATTERINGRAM
+ || _unitType == UT_S_SHIELD || _unitType == UT_S_BALLISTA
+ || _unitType == UT_S_FBALLISTA
+ || _unitType == UT_S_TREBUCHET
+ || _unitType == UT_S_MANGONEL) {
+ int _siegeEngineUnitID = DAT_TribesState.tribes[tribeID].selectionTargetUnitID;
+ int _remainingEngineers
+ = getRemainingRequiredEngineers(_siegeEngineUnitID);
+ if (_remainingEngineers > 0) {
+ if (DAT_UnitsState.units[_siegeEngineUnitID]
+ .digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300
+ == 0
+ || _remainingEngineers > 3) {
+ playUnitSpeechEffect(0xe);
+ } else if (_remainingEngineers == 1) {
+ playUnitSpeechEffect(0xb);
+ } else if (_remainingEngineers == 2) {
+ playUnitSpeechEffect(0xc);
+ } else if (_remainingEngineers == 3) {
+ playUnitSpeechEffect(0xd);
+ }
+ } else if ((_unitType == UT_S_CATAPULT
+ || _unitType == UT_S_TREBUCHET)
+ && DAT_UnitsState.units[_siegeEngineUnitID].stoneAmmunition < 1) {
+ playSpeechSFX(
+ SEID_RESOURCE_NEED25);
+ } else {
+ playUnitSpeech(
+ _unitType, 0);
+ }
+ } else {
+ playUnitSpeech(
+ _unitType, 0);
+ }
+ }
+ DAT_UIDragDropDefinedData.MenuView_TriggerInitial = TRUE;
+ }
+ }
+}
+}
+
+### 0x00535fd0 makeSelectionBasedOnShortcut | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00535FD0
+ void UnitsState::makeSelectionBasedOnShortcut(int section1099ID)
+ {
+ for (DAT_CurrentUnitSlotID = 1; DAT_CurrentUnitSlotID < this->maxUnitCount;
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1) {
+ if (this->units[DAT_CurrentUnitSlotID].logicalState == ULS_NORMAL
+ && !this->units[DAT_CurrentUnitSlotID].dying) {
+ this->units[DAT_CurrentUnitSlotID].isSelected = 0;
+ }
+ }
+ this->totalUnitsInSelection = 0;
+ for (int i = 0; i < 2500; ++i) {
+ int _unitID = DAT_GameState.hotkeyTribes[section1099ID].units[i].id;
+ if (_unitID == -1) {
+ continue;
+ }
+ if (this->units[_unitID].uid == DAT_GameState.hotkeyTribes[section1099ID].units[i].uid
+ && this->units[_unitID].unknownTestAgainst0_2 == 0
+ && this->units[_unitID].disappearFadeAlphaCountdown == 0) {
+ this->units[_unitID].isSelected = 1;
+ this->totalUnitsInSelection = this->totalUnitsInSelection + 1;
+ } else {
+ DAT_GameState.hotkeyTribes[section1099ID].units[i].id = -1;
+ }
+ }
+ if (this->totalUnitsInSelection > 0) {
+ createTribeFromSelectedUnits();
+ }
+ }
+ }
+}
+}
+
+### 0x005360a0 isUnitShortcutAvailable | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x005360A0
+ BOOLEnum UnitsState::isUnitShortcutAvailable(int unitHotKeyNumber)
+ {
+ UnitSelectionHotKeyEntry* _pHotkey;
+ UnitIDUIDPair* pUVar1;
+ int _tracker;
+ int _unitID;
+ Unit* _pUnit;
+ int iVar2;
+ if ((DAT_GameCore.currentMenuViewType != MVT_BUILD_MENU)
+ || ((DAT_GameCore.activeMenuTab.tabType != BASMTT_SIEGETENT_BATTERINGRAM
+ && (DAT_GameCore.activeMenuTab.tabType
+ != BASMTT_SIEGETENT_SHIELD)))) {
+ return FALSE;
+ }
+ _unitID = 1;
+ if (1 < (int)this->maxUnitCount) {
+ _pUnit = &this->units[1];
+ do {
+ if ((_pUnit->logicalState == ULS_NORMAL) && (_pUnit->dying == 0)) {
+ _tracker = 0;
+ if (_pUnit->isSelected == 0) {
+ _pHotkey = DAT_GameState.hotkeyTribes + unitHotKeyNumber;
+ do {
+ /*
+ unitID is listed in this hotkey unit list and not selected
+ */
+ if (_pHotkey->units[0].id == _unitID) {
+ return FALSE;
+ }
+ _tracker = _tracker + 1;
+ _pHotkey = (UnitSelectionHotKeyEntry*)(_pHotkey->units + 1);
+ } while (_tracker < 2500);
+ } else {
+ /*
+ this chunk is optimized to search 5 units simultaneously
+ */
+ pUVar1 = DAT_GameState.hotkeyTribes[unitHotKeyNumber].units + 1;
+ iVar2 = 500;
+ do {
+ if (((UnitSelectionHotKeyEntry*)(pUVar1 + -1))->units[0].id == _unitID) {
+ _tracker = 1;
+ }
+ if (pUVar1->id == _unitID) {
+ _tracker = 1;
+ }
+ if (pUVar1[1].id == _unitID) {
+ _tracker = 1;
+ }
+ if (pUVar1[2].id == _unitID) {
+ _tracker = 1;
+ }
+ if (pUVar1[3].id == _unitID) {
+ _tracker = 1;
+ }
+ pUVar1 = pUVar1 + 5;
+ iVar2 = iVar2 + -1;
+ } while (iVar2 != 0);
+ /*
+ unitID is listed in this hotkey unit list and is selected
+ */
+ if (_tracker == 0) {
+ return FALSE;
+ }
+ }
+ }
+ _unitID = _unitID + 1;
+ _pUnit = _pUnit + 0x248;
+ } while (_unitID < (int)this->maxUnitCount);
+ }
+ /*
+ There is no unitID to be found in a normal non-dead state that is selectable
+ */
+ return TRUE;
+ }
+ }
+}
+}
+
+### 0x00536190 selectTribeUnitsForPlayer | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00536190
+ void UnitsState::selectTribeUnitsForPlayer(int playerID, int tribeID)
+ {
+ int iVar1;
+ int iVar2;
+ iVar1 = 0;
+ if (0 < DAT_TribesState.tribes[tribeID].size) {
+ do {
+ iVar2 = iVar1 + 1;
+ iVar1 = getUnitIDForIndexInTribe(tribeID, iVar1);
+ this->units[iVar1].ifSelectedThenPlayerID = (short)playerID;
+ this->unitCountOfSelection[playerID] = this->unitCountOfSelection[playerID] + 1;
+ iVar1 = iVar2;
+ } while (iVar2 < DAT_TribesState.tribes[tribeID].size);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x005361f0 getUnitTypeOfFirstSelectedUnit | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x005361F0
+ UnitType UnitsState::getUnitTypeOfFirstSelectedUnit()
+ {
+ int _currentPlayerSlotID = DAT_GameSynchronyState.currentPlayerSlotID;
+ for (DAT_CurrentUnitSlotID = 1; DAT_CurrentUnitSlotID < this->maxUnitCount;
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1) {
+ if (this->units[DAT_CurrentUnitSlotID].logicalState != ULS_NORMAL) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].dying) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].isSelected == 0) {
+ continue;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].owner != _currentPlayerSlotID) {
+ return (UnitType)-1;
+ }
+ return (UnitType)(short)this->units[DAT_CurrentUnitSlotID].unitType;
+ }
+ return (UnitType)0;
+ }
+ }
+}
+}
+

@@ -1,0 +1,714 @@
+### 0x00414b60 UpdateBrewery | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00414B60
+ void Buildings::UpdateBrewery()
+ {
+ undefined4* puVar1;
+ int* piVar2;
+ short sVar3;
+ UnitStateShort UVar4;
+ short sVar5;
+ byte bVar6;
+ int buildingID;
+ int iVar7;
+ bool bVar8;
+ sVar3 = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner;
+ addBuildingToTargetableBuildings(
+ DAT_CurrentBuildingID);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ buildingID = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field138_0x1c2 = 1;
+ iVar7 = (int)DAT_BuildingsState.buildings[buildingID].workerID[0];
+ if (iVar7 == 0) {
+ LAB_00414bea:
+ DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive = 0;
+ } else {
+ UVar4 = DAT_UnitsState.units[iVar7].state.generic;
+ if (UVar4 == US_FIRE_WEAPONUnk) {
+ DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive = 1;
+ } else {
+ if (UVar4 != US_AIM_WEAPONUnk)
+ goto LAB_00414bea;
+ DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive = 1;
+ }
+ }
+ if (DAT_BuildingsState.buildings[buildingID].currentlyNeededEmployeeCount == 0) {
+ puVar1 = &DAT_GameState.playerDataArray[sVar3].someCount12;
+ *puVar1 = *puVar1 + 1;
+ }
+ sVar5 = DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive;
+ piVar2 = &DAT_GameState.playerDataArray[sVar3].countBrewers;
+ *piVar2 = *piVar2 + 1;
+ updateVisuallyActiveState(buildingID);
+ if (DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive
+ != DAT_BuildingsState.buildings[buildingID].oldVisualActiveState) {
+ updateBuildingGraphicsLayer(
+ buildingID);
+ buildingID = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive;
+ }
+ if (sVar5 == 0) {
+ DAT_BuildingsState.buildings[buildingID].renderAnimation = 0;
+ } else {
+ DAT_BuildingsState.buildings[buildingID].renderAnimation
+ = (ushort)(DAT_BuildingsState.buildings[buildingID].workers[0] != 0);
+ }
+ DAT_BuildingsState.buildings[buildingID].displayOwnerFlag = 1;
+ if ((char)((char)DAT_BuildingsState.buildings[buildingID].uid
+ + (char)DAT_GameCore.mapTimeInTicks)
+ == '\0') {
+ updateBuildingPlacementRotationPreview((int)(short)DAT_BuildingsState.buildings[buildingID].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[buildingID].y)));
+ buildingID = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingVariation
+ = (short)DAT_TileMapState.uiBuildingRotation;
+ }
+ iVar7 = buildingID * 0x32c;
+ sVar3 = DAT_BuildingsState.buildings[buildingID].state;
+ if (sVar3 == 0) {
+ if ((DAT_BuildingsState.buildings[buildingID].animationActive != 0)
+ && ((((((sVar3 = DAT_BuildingsState.buildings[buildingID].animationIndex,
+ sVar3 == 5 || (sVar3 == 0x34))
+ || (sVar3 == 100))
+ || ((sVar3 == 0x96 || (sVar3 == 200))))
+ || ((sVar3 == 0xfa || ((sVar3 == 300 || (sVar3 == 0x15e))))))
+ || (sVar3 == 400)))) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[buildingID].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[buildingID].y)),
+ FX_STIR);
+ buildingID = DAT_CurrentBuildingID;
+ }
+ bVar6 = DAT_BuildingDefinedData
+ .field57_0x4db4[DAT_BuildingsState.buildings[buildingID].animationIndex];
+ LAB_00414d7d:
+ iVar7 = buildingID * 0x32c;
+ if ('\0' < (char)bVar6) {
+ DAT_BuildingsState.buildings[buildingID].animationFrame = (int)(char)bVar6;
+ goto LAB_00415004;
+ }
+ } else if (sVar3 == 1) {
+ if ('\0' < (char)DAT_BuildingDefinedData
+ .field60_0x4fb4[DAT_BuildingsState.buildings[buildingID].animationIndex]) {
+ DAT_BuildingsState.buildings[buildingID].animationFrame
+ = (char)DAT_BuildingDefinedData
+ .field60_0x4fb4[DAT_BuildingsState.buildings[buildingID].animationIndex]
+ + 0x10;
+ goto LAB_00415004;
+ }
+ } else if (sVar3 == 2) {
+ if ((DAT_BuildingsState.buildings[buildingID].animationActive != 0)
+ && (DAT_BuildingsState.buildings[buildingID].animationIndex == 5)) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[buildingID].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[buildingID].y)),
+ FX_STIR);
+ buildingID = DAT_CurrentBuildingID;
+ }
+ bVar6 = DAT_BuildingDefinedData
+ .field58_0x4f58[DAT_BuildingsState.buildings[buildingID].animationIndex];
+ LAB_00414e12:
+ iVar7 = buildingID * 0x32c;
+ if ('\0' < (char)bVar6) {
+ DAT_BuildingsState.buildings[buildingID].animationFrame = (int)(char)bVar6;
+ goto LAB_00415004;
+ }
+ } else if (sVar3 == 3) {
+ if ('\0' < (char)DAT_BuildingDefinedData
+ .field60_0x4fb4[DAT_BuildingsState.buildings[buildingID].animationIndex]) {
+ DAT_BuildingsState.buildings[buildingID].animationFrame
+ = (char)DAT_BuildingDefinedData
+ .field60_0x4fb4[DAT_BuildingsState.buildings[buildingID].animationIndex]
+ + 0x10;
+ goto LAB_00415004;
+ }
+ } else {
+ if (sVar3 == 4) {
+ if ((DAT_BuildingsState.buildings[buildingID].animationActive != 0)
+ && (DAT_BuildingsState.buildings[buildingID].animationIndex == 5)) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[buildingID].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[buildingID].y)),
+ FX_STIR);
+ buildingID = DAT_CurrentBuildingID;
+ }
+ bVar6 = DAT_BuildingDefinedData
+ .field58_0x4f58[DAT_BuildingsState.buildings[buildingID].animationIndex];
+ goto LAB_00414d7d;
+ }
+ if (sVar3 == 5) {
+ if ('\0' < (char)DAT_BuildingDefinedData
+ .field60_0x4fb4[DAT_BuildingsState.buildings[buildingID].animationIndex]) {
+ DAT_BuildingsState.buildings[buildingID].animationFrame
+ = (char)DAT_BuildingDefinedData
+ .field60_0x4fb4[DAT_BuildingsState.buildings[buildingID].animationIndex]
+ + 0x10;
+ goto LAB_00415004;
+ }
+ } else {
+ if (sVar3 != 6) {
+ if (sVar3 != 7)
+ goto LAB_00415004;
+ if ((DAT_BuildingsState.buildings[buildingID].animationActive != 0)
+ && (DAT_BuildingsState.buildings[buildingID].animationIndex == 5)) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[buildingID].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[buildingID].y)),
+ FX_STIR);
+ buildingID = DAT_CurrentBuildingID;
+ }
+ bVar6 = DAT_BuildingDefinedData
+ .field59_0x4f84[DAT_BuildingsState.buildings[buildingID].animationIndex];
+ goto LAB_00414e12;
+ }
+ if ('\0' < (char)DAT_BuildingDefinedData
+ .field61_0x4fd8[DAT_BuildingsState.buildings[buildingID].animationIndex]) {
+ DAT_BuildingsState.buildings[buildingID].animationFrame
+ = (char)DAT_BuildingDefinedData
+ .field61_0x4fd8[DAT_BuildingsState.buildings[buildingID].animationIndex]
+ + 0x20;
+ goto LAB_00415004;
+ }
+ }
+ }
+ *(undefined2*)((int)&DAT_BuildingsState.buildings[0].animationIndex + iVar7) = 0;
+ sVar3 = *(short*)((int)DAT_BuildingsState.buildings[0].resources + iVar7 + -8);
+ if (sVar3 == 0) {
+ *(undefined2*)((int)DAT_BuildingsState.buildings[0].resources + iVar7 + -8) = 1;
+ } else if (sVar3 == 1) {
+ *(undefined2*)((int)DAT_BuildingsState.buildings[0].resources + iVar7 + -8) = 2;
+ } else if (sVar3 == 2) {
+ *(undefined2*)((int)DAT_BuildingsState.buildings[0].resources + iVar7 + -8) = 3;
+ } else if (sVar3 == 3) {
+ *(undefined2*)((int)DAT_BuildingsState.buildings[0].resources + iVar7 + -8) = 4;
+ } else if (sVar3 == 4) {
+ *(undefined2*)((int)DAT_BuildingsState.buildings[0].resources + iVar7 + -8) = 5;
+ } else if (sVar3 == 5) {
+ *(undefined2*)((int)DAT_BuildingsState.buildings[0].resources + iVar7 + -8) = 6;
+ } else if (sVar3 == 6) {
+ *(undefined2*)((int)DAT_BuildingsState.buildings[0].resources + iVar7 + -8) = 7;
+ } else if (sVar3 == 7) {
+ piVar2 = (int*)((int)&DAT_BuildingsState.buildings[0].field13_0x28 + iVar7);
+ *piVar2 = *piVar2 + 1;
+ bVar8 = DAT_GameSynchronyState.currentGameMode != GM_SOLITARY;
+ *(undefined2*)((int)&DAT_BuildingsState.buildings[0].field14_0x2c + iVar7) = 1;
+ *(ushort*)((int)DAT_BuildingsState.buildings[0].resources + iVar7 + -8) = -(ushort)bVar8 & 4;
+ }
+ LAB_00415004:
+ if (sVar5 == 0) {
+ *(undefined4*)((int)&DAT_BuildingsState.buildings[0].field20_0x38 + iVar7) = 0;
+ } else {
+ if (*(short*)((int)&DAT_BuildingsState.buildings[0].animationActive + iVar7) != 0) {
+ piVar2 = (int*)((int)&DAT_BuildingsState.buildings[0].campgroundVclock + iVar7);
+ *piVar2 = *piVar2 + 1;
+ }
+ if ((char)DAT_BuildingDefinedData
+ .field82_0x55d4[*(int*)((int)&DAT_BuildingsState.buildings[0].campgroundVclock + iVar7)]
+ < '\x01') {
+ *(undefined4*)((int)&DAT_BuildingsState.buildings[0].campgroundVclock + iVar7) = 0;
+ }
+ *(int*)((int)&DAT_BuildingsState.buildings[0].field20_0x38 + iVar7)
+ = (char)DAT_BuildingDefinedData
+ .field82_0x55d4[*(int*)((int)&DAT_BuildingsState.buildings[0].campgroundVclock + iVar7)]
+ + 0x30;
+ }
+ piVar2 = (int*)((int)&DAT_BuildingsState.buildings[0].field28_0x58 + iVar7);
+ *piVar2 = *piVar2 + 1;
+ if (3 < *(int*)((int)&DAT_BuildingsState.buildings[0].field28_0x58 + iVar7)) {
+ *(undefined4*)((int)&DAT_BuildingsState.buildings[0].field28_0x58 + iVar7) = 0;
+ }
+ if (*(short*)((int)DAT_BuildingsState.buildings[0].workerID + iVar7) == 0) {
+ *(undefined4*)((int)&DAT_BuildingsState.buildings[0].field21_0x3c + iVar7) = 0;
+ } else {
+ if (*(int*)((int)&DAT_BuildingsState.buildings[0].field28_0x58 + iVar7) == 0) {
+ piVar2 = (int*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar7);
+ *piVar2 = *piVar2 + 1;
+ }
+ if ((char)DAT_BuildingDefinedData
+ .field81_0x55c0[*(int*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar7)]
+ < '\x01') {
+ *(undefined4*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar7) = 0;
+ }
+ *(int*)((int)&DAT_BuildingsState.buildings[0].field21_0x3c + iVar7)
+ = (char)DAT_BuildingDefinedData
+ .field81_0x55c0[*(int*)((int)&DAT_BuildingsState.buildings[0].field25_0x4c + iVar7)]
+ + 0x10;
+ }
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ *(undefined4*)((int)&DAT_BuildingsState.buildings[0].displayOwnerFlag + iVar7) = 1;
+ piVar2 = (int*)((int)&DAT_BuildingsState.buildings[0].ownerFlagFrame + iVar7);
+ *piVar2 = *piVar2 + 1;
+ if ((char)DAT_BuildingDefinedData
+ .field177_0x7e1c[*(int*)((int)&DAT_BuildingsState.buildings[0].ownerFlagFrame + iVar7)
+ / 2]
+ < '\x01') {
+ *(undefined4*)((int)&DAT_BuildingsState.buildings[0].ownerFlagFrame + iVar7) = 0;
+ }
+ *(int*)((int)&DAT_BuildingsState.buildings[0].field39_0x84 + iVar7)
+ = (int)(char)DAT_BuildingDefinedData
+ .field177_0x7e1c[*(int*)((int)&DAT_BuildingsState.buildings[0].ownerFlagFrame + iVar7)
+ / 2];
+ return;
+ }
+ *(undefined4*)((int)&DAT_BuildingsState.buildings[0].field39_0x84 + iVar7) = 0;
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00414b60", "name": "UpdateBrewery", "quelle": "ghidra", "p1": {"bereich": "Gebaeude", "zweck": "Takt-Aktualisierung der Brauerei: zählt Brauer, spielt Animation, setzt Sichtzustand."}, "p2": {"ein": "-  (aktuelles Gebäude über DAT_CurrentBuildingID)", "aus": "-", "liest": ["buildings[cur].owner/currentlyNeededEmployeeCount/workers[0]/workerID[0]/state/animationIndex/animationActive/uid", "mapTimeInTicks", "currentGameMode", "Tabellen field57_0x4db4, field58_0x4f58, field59_0x4f84, field60_0x4fb4, field61_0x4fd8, field81_0x55c0, field82_0x55d4, field177_0x7e1c", "units[worker].state.generic"], "schreibt": ["playerDataArray[owner].someCount12", "playerDataArray[owner].countBrewers", "buildingIsVisuallyActive", "oldVisualActiveState", "renderAnimation", "buildingVariation", "animationFrame", "animationIndex", "state (vermutlich das Feld bei resources-8)", "field13_0x28", "field14_0x2c", "campgroundVclock", "field20_0x38", "field21_0x3c", "field25_0x4c", "field28_0x58", "ownerFlagFrame", "field39_0x84", "displayOwnerFlag"], "ruft": ["addBuildingToTargetableBuildings", "addBuildingInRegistry", "updateVisuallyActiveState", "updateBuildingGraphicsLayer", "updateBuildingPlacementRotationPreview", "playSFXAtLocation"], "regeln": ["Je Aufruf countBrewers des Besitzers +1", "someCount12 +1 nur, wenn currentlyNeededEmployeeCount == 0 (voll besetzt)", "Sichtbar aktiv, wenn der Arbeiter im Zustand US_FIRE_WEAPONUnk oder US_AIM_WEAPONUnk ist; renderAnimation ist 0, wenn nicht aktiv, sonst workers[0] != 0", "Alle 256 Ticks ((uid + mapTimeInTicks) & 0xff == 0) wird buildingVariation aus der Rotationsvorschau neu gesetzt", "Zustände 0 bis 7: Ende einer Teilanimation (Tabellenwert kleiner 1) setzt animationIndex auf 0 und den Zustand um 1 hoch", "Nach Zustand 7: field13_0x28 +1, field14_0x2c = 1, neuer Zustand 4 (Mehrspieler/Gefecht) oder 0 (GM_SOLITARY)", "Ton FX_STIR bei animationActive: Zustand 0 und 4 bei Index 5, 0x34, 100, 0x96, 200, 0xfa, 300, 0x15e, 400; Zustände 2 und 7 bei Index 5", "Animationsbild-Versatz: Zustände 1/3/5 = Tabellenwert + 0x10, Zustand 6 = + 0x20", "field28_0x58 zählt 0 bis 3 im Kreis (Takt aller 4 Ticks)", "Besitzerflagge nur außerhalb GM_SOLITARY"], "offen": ["Warum der Zyklus im Mehrspielermodus bei Zustand 4 statt 0 neu beginnt", "Ob field13_0x28 / field14_0x2c das Fertig-Signal der Bierproduktion ist (vermutlich)", "Name campgroundVclock ist hier vermutlich irreführend (Animationszähler)"]}, "p3": {"erklaerung": "Jeder Aufruf zählt eine Brauerei zum Spieler. Voll besetzte zählt das Spiel zusätzlich in someCount12. Nebenbei läuft die Braustube-Animation, am Ende setzt sie zwei Merker.", "gehirn": "countBrewers (Brauereien) und someCount12 (voll besetzte) je Spieler lesen: Bierkapazität des Gegners ohne eigene Zählung.", "beleg": "code", "live": "Brauerei mit vollem Personal bauen, dann ohne Personal → playerDataArray[sp].countBrewers und someCount12 → countBrewers steigt um 1 je Brauerei, someCount12 nur bei voller Besetzung", "live_art": "wirtschaft"}}
+
+### 0x00415110 UpdateGranary | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00415110
+ void Buildings::UpdateGranary()
+ {
+ short* psVar1;
+ int* piVar2;
+ short sVar3;
+ bool bVar4;
+ int buildingID;
+ uint uVar5;
+ int iVar6;
+ char cVar7;
+ int _playerID;
+ int iVar8;
+ int iVar9;
+ int local_1c;
+ int local_18;
+ int local_14;
+ int local_c;
+ int local_8;
+ _playerID = (int)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner;
+ bVar4 = false;
+ local_1c = 0;
+ local_8 = 0;
+ addBuildingToTargetableBuildings(
+ DAT_CurrentBuildingID);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ buildingID = DAT_CurrentBuildingID;
+ if ((((((byte)DAT_GameCore.mapTimeInTicks & 3) == 0)
+ && (DAT_GameCore.gameMode_2 != GM_EDITOR))
+ && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT))
+ && (DAT_GameState.playerDataArray[_playerID].someCountdown01 == 0)) {
+ iVar8 = DAT_GameState.playerDataArray[_playerID].startResources[10];
+ if ((0 < iVar8)
+ && (uVar5
+ = computeResourceSumForBuilding(DAT_CurrentBuildingID),
+ (int)uVar5 < 0xfa)) {
+ bVar4 = true;
+ piVar2 = DAT_GameState.playerDataArray[_playerID].currentResources + 10;
+ *piVar2 = *piVar2 + 1;
+ piVar2 = DAT_BuildingsState.buildings[buildingID].resources + 10;
+ *piVar2 = *piVar2 + 1;
+ DAT_GameState.playerDataArray[_playerID].startResources[10] = iVar8 + -1;
+ DAT_BuildingsState.buildings[buildingID].resourceRelatedCountDown = 100;
+ }
+ iVar8 = DAT_GameState.playerDataArray[_playerID].startResources[0xb];
+ if ((0 < iVar8)
+ && (uVar5
+ = computeResourceSumForBuilding(buildingID),
+ (int)uVar5 < 0xfa)) {
+ DAT_GameState.playerDataArray[_playerID].startResources[0xb] = iVar8 + -1;
+ piVar2 = DAT_GameState.playerDataArray[_playerID].currentResources + 0xb;
+ *piVar2 = *piVar2 + 1;
+ piVar2 = DAT_BuildingsState.buildings[buildingID].resources + 0xb;
+ *piVar2 = *piVar2 + 1;
+ DAT_BuildingsState.buildings[buildingID].resourceRelatedCountDown = 100;
+ bVar4 = true;
+ }
+ if ((0 < DAT_GameState.playerDataArray[_playerID].startResources[0xc])
+ && (uVar5
+ = computeResourceSumForBuilding(buildingID),
+ (int)uVar5 < 0xfa)) {
+ iVar8 = DAT_GameState.playerDataArray[_playerID].startResources[0xc];
+ piVar2 = DAT_GameState.playerDataArray[_playerID].currentResources + 0xc;
+ *piVar2 = *piVar2 + 1;
+ DAT_GameState.playerDataArray[_playerID].startResources[0xc] = iVar8 + -1;
+ piVar2 = DAT_BuildingsState.buildings[buildingID].resources + 0xc;
+ *piVar2 = *piVar2 + 1;
+ DAT_BuildingsState.buildings[buildingID].resourceRelatedCountDown = 100;
+ bVar4 = true;
+ }
+ if ((DAT_GameState.playerDataArray[_playerID].startResources[0xd] < 1)
+ || (uVar5
+ = computeResourceSumForBuilding(buildingID),
+ 0xf9 < (int)uVar5)) {
+ if (!bVar4)
+ goto LAB_004152e5;
+ } else {
+ iVar8 = DAT_GameState.playerDataArray[_playerID].startResources[0xd];
+ piVar2 = DAT_GameState.playerDataArray[_playerID].currentResources + 0xd;
+ *piVar2 = *piVar2 + 1;
+ DAT_GameState.playerDataArray[_playerID].startResources[0xd] = iVar8 + -1;
+ piVar2 = DAT_BuildingsState.buildings[buildingID].resources + 0xd;
+ *piVar2 = *piVar2 + 1;
+ DAT_BuildingsState.buildings[buildingID].resourceRelatedCountDown = 100;
+ }
+ countPlayerResources(_playerID);
+ }
+ LAB_004152e5:
+ uVar5 = computeResourceSumForBuilding(buildingID);
+ if ((int)uVar5 < 230) {
+ DAT_GameState.playerDataArray[_playerID].granaryIsAlmostFilledUp = FALSE;
+ }
+ if ((DAT_GameState.mapAndTime.playerTeams[_playerID]
+ == DAT_GameState.mapAndTime.playerTeams[DAT_GameSynchronyState.currentPlayerSlotID])
+ || ((sVar3 = DAT_BuildingsState.buildings[buildingID].owner,
+ DAT_GameSynchronyState.currentPlayerFullIDArray[sVar3] == -1
+ && (DAT_GameSynchronyState.currentAIArray[sVar3] != 0)))) {
+ if (DAT_BuildingsState.buildings[buildingID].resourceRelatedCountDown == 0) {
+ if (DAT_BuildingsState.isFirstTickInLoop != FALSE) {
+ DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive = 0;
+ }
+ } else {
+ DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive = 1;
+ psVar1 = &DAT_BuildingsState.buildings[buildingID].resourceRelatedCountDown;
+ *psVar1 = *psVar1 + -1;
+ }
+ updateVisuallyActiveState(buildingID);
+ }
+ DAT_BuildingsState.buildings[buildingID].renderAnimation = 0;
+ DAT_BuildingsState.buildings[buildingID].displayOwnerFlag = 0;
+ DAT_BuildingsState.buildings[buildingID].field20_0x38 = 0;
+ DAT_BuildingsState.buildings[buildingID].field21_0x3c = 0;
+ DAT_BuildingsState.buildings[buildingID].field22_0x40 = 0;
+ DAT_BuildingsState.buildings[buildingID].field23_0x44 = 0;
+ DAT_BuildingsState.buildings[buildingID].field29_0x5c = 0;
+ DAT_BuildingsState.buildings[buildingID].shouldRenderRoof = 0;
+ DAT_BuildingsState.buildings[buildingID].shouldRenderSomeOverlay = 0;
+ DAT_BuildingsState.buildings[buildingID].field32_0x68 = 0;
+ DAT_BuildingsState.buildings[buildingID].field33_0x6c = 0;
+ sVar3 = DAT_GameState.playerDataArray[_playerID].isFoodTypeBanned[0];
+ DAT_BuildingsState.buildings[buildingID].field34_0x70 = 0;
+ DAT_BuildingsState.buildings[buildingID].field35_0x74 = 0;
+ DAT_BuildingsState.buildings[buildingID].field36_0x78 = 0;
+ DAT_BuildingsState.buildings[buildingID].field37_0x7c = 0;
+ DAT_BuildingsState.buildings[buildingID].ownerFlagFrame = 0;
+ DAT_BuildingsState.buildings[buildingID].field39_0x84 = 0;
+ DAT_BuildingsState.buildings[buildingID].field40_0x88 = 0;
+ if ((sVar3 == 0)
+ && (local_8 = DAT_BuildingsState.buildings[buildingID].resources[10], local_8 != 0)) {
+ local_1c = local_8;
+ }
+ if (DAT_GameState.playerDataArray[_playerID].isFoodTypeBanned[1] == 0) {
+ iVar8 = DAT_BuildingsState.buildings[buildingID].resources[0xb];
+ if (iVar8 != 0) {
+ local_1c = local_1c + iVar8;
+ }
+ } else {
+ iVar8 = 0;
+ }
+ if (DAT_GameState.playerDataArray[_playerID].isFoodTypeBanned[2] == 0) {
+ iVar9 = DAT_BuildingsState.buildings[buildingID].resources[0xc];
+ if (iVar9 != 0) {
+ local_1c = local_1c + iVar9;
+ }
+ } else {
+ iVar9 = 0;
+ }
+ if (DAT_GameState.playerDataArray[_playerID].isFoodTypeBanned[3] == 0) {
+ iVar6 = DAT_BuildingsState.buildings[buildingID].resources[0xd];
+ if (iVar6 != 0) {
+ local_1c = local_1c + iVar6;
+ }
+ } else {
+ iVar6 = 0;
+ }
+ piVar2 = &DAT_GameState.playerDataArray[_playerID].cheeseCount;
+ *piVar2 = *piVar2 + iVar8;
+ piVar2 = &DAT_GameState.playerDataArray[_playerID].appleCount;
+ *piVar2 = *piVar2 + iVar6;
+ piVar2 = &DAT_GameState.playerDataArray[_playerID].breadCount;
+ *piVar2 = *piVar2 + local_8;
+ piVar2 = &DAT_GameState.playerDataArray[_playerID].meatCount;
+ *piVar2 = *piVar2 + iVar9;
+ piVar2 = &DAT_GameState.playerDataArray[_playerID].totalFood;
+ *piVar2 = *piVar2 + local_1c;
+ local_c = DAT_BuildingsState.buildings[buildingID].resources[0xd];
+ local_14 = DAT_BuildingsState.buildings[buildingID].resources[0xc];
+ local_18 = DAT_BuildingsState.buildings[buildingID].resources[0xb];
+ _playerID = DAT_BuildingsState.buildings[buildingID].resources[10];
+ if (DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive
+ != DAT_BuildingsState.buildings[buildingID].oldVisualActiveState) {
+ updateBuildingGraphicsLayer(
+ buildingID);
+ buildingID = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive;
+ }
+ if ((0 < local_c + local_14 + local_18 + _playerID)
+ && (DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive != 0)) {
+ iVar8 = 1;
+ DAT_BuildingsState.buildings[buildingID].displayOwnerFlag = 1;
+ iVar9 = 0;
+ do {
+ cVar7 = 0 < _playerID;
+ iVar6 = 0;
+ if ((bool)cVar7) {
+ iVar6 = _playerID;
+ }
+ if (iVar6 < local_18) {
+ cVar7 = '\x02';
+ iVar6 = local_18;
+ }
+ if (iVar6 < local_14) {
+ cVar7 = '\x03';
+ iVar6 = local_14;
+ }
+ if (iVar6 < local_c) {
+ cVar7 = '\x04';
+ iVar6 = local_c;
+ LAB_004155af:
+ if (iVar6 < 9)
+ goto LAB_004155bb;
+ iVar6 = 8;
+ LAB_004155ed:
+ local_c = local_c - iVar6;
+ iVar8 = iVar6 + 0x98;
+ } else {
+ if (cVar7 == '\0') {
+ return;
+ }
+ if (cVar7 == '\x01') {
+ if (iVar6 < 0x21)
+ goto LAB_004155bb;
+ _playerID = _playerID + -0x20;
+ iVar8 = 0x20;
+ } else {
+ if (cVar7 == '\x02') {
+ if (0x10 < iVar6) {
+ local_18 = local_18 + -0x10;
+ iVar8 = 0xb0;
+ goto LAB_004155f9;
+ }
+ } else if (cVar7 == '\x03') {
+ if (0x10 < iVar6) {
+ local_14 = local_14 + -0x10;
+ iVar8 = 0xc0;
+ goto LAB_004155f9;
+ }
+ } else if (cVar7 == '\x04')
+ goto LAB_004155af;
+ LAB_004155bb:
+ if (cVar7 == '\x01') {
+ _playerID = _playerID - iVar6;
+ iVar8 = iVar6;
+ } else if (cVar7 == '\x02') {
+ local_18 = local_18 - iVar6;
+ iVar8 = iVar6 + 0xa0;
+ } else if (cVar7 == '\x03') {
+ local_14 = local_14 - iVar6;
+ iVar8 = iVar6 + 0xb0;
+ } else if (cVar7 == '\x04')
+ goto LAB_004155ed;
+ }
+ }
+ LAB_004155f9:
+ if (iVar9 == 0) {
+ DAT_BuildingsState.buildings[buildingID].field20_0x38 = iVar8;
+ } else if (iVar9 == 1) {
+ DAT_BuildingsState.buildings[buildingID].field21_0x3c = iVar8;
+ } else if (iVar9 == 2) {
+ DAT_BuildingsState.buildings[buildingID].field22_0x40 = iVar8;
+ } else if (iVar9 == 3) {
+ DAT_BuildingsState.buildings[buildingID].field23_0x44 = iVar8;
+ } else if (iVar9 == 4) {
+ DAT_BuildingsState.buildings[buildingID].field29_0x5c = iVar8;
+ } else if (iVar9 == 5) {
+ DAT_BuildingsState.buildings[buildingID].shouldRenderRoof = iVar8;
+ } else if (iVar9 == 6) {
+ DAT_BuildingsState.buildings[buildingID].shouldRenderSomeOverlay = iVar8;
+ } else if (iVar9 == 7) {
+ DAT_BuildingsState.buildings[buildingID].field32_0x68 = iVar8;
+ } else if (iVar9 == 8) {
+ DAT_BuildingsState.buildings[buildingID].field33_0x6c = iVar8;
+ } else if (iVar9 == 9) {
+ DAT_BuildingsState.buildings[buildingID].field34_0x70 = iVar8;
+ } else if (iVar9 == 10) {
+ DAT_BuildingsState.buildings[buildingID].field35_0x74 = iVar8;
+ } else if (iVar9 == 0xb) {
+ DAT_BuildingsState.buildings[buildingID].field36_0x78 = iVar8;
+ } else if (iVar9 == 0xc) {
+ DAT_BuildingsState.buildings[buildingID].field37_0x7c = iVar8;
+ } else if (iVar9 == 0xd) {
+ DAT_BuildingsState.buildings[buildingID].ownerFlagFrame = iVar8;
+ } else if (iVar9 == 0xe) {
+ DAT_BuildingsState.buildings[buildingID].field39_0x84 = iVar8;
+ } else if (iVar9 == 0xf) {
+ DAT_BuildingsState.buildings[buildingID].field40_0x88 = iVar8;
+ }
+ iVar9 = iVar9 + 1;
+ } while (iVar9 < 0x10);
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00415110", "name": "UpdateGranary", "quelle": "ghidra", "p1": {"bereich": "Gebaeude", "zweck": "Tick-Update eines Kornspeichers: bucht Start-Nahrung ein, zählt die Nahrung für die Spielerstatistik und setzt die Warenhaufen-Bilder."}, "p2": {"ein": "- (aktuelles Gebäude DAT_CurrentBuildingID)", "aus": "-", "liest": ["buildings[id].resources[10..13]", "playerDataArray[sp].startResources[10..13]", "playerDataArray[sp].isFoodTypeBanned[0..3]", "mapTimeInTicks", "gameMode_2", "someCountdown01", "computeResourceSumForBuilding"], "schreibt": ["playerDataArray[sp].currentResources[10..13]", "buildings[id].resources[10..13]", "startResources[10..13]", "resourceRelatedCountDown", "granaryIsAlmostFilledUp", "cheeseCount", "appleCount", "breadCount", "meatCount", "totalFood", "Bildfelder (field20_0x38 bis field40_0x88)"], "ruft": ["addBuildingToTargetableBuildings", "addBuildingInRegistry", "computeResourceSumForBuilding", "countPlayerResources", "updateVisuallyActiveState", "updateBuildingGraphicsLayer"], "regeln": ["Einbuchen nur jeden 4. Tick (mapTimeInTicks & 3 == 0), nicht im Editor, nicht in GM_SIEGE_THAT und nur wenn someCountdown01 == 0", "Je Nahrungsart 10, 11, 12, 13: Ist startResources > 0 und die Gesamtmenge im Speicher unter 250 (0xFA), wird 1 Stück von startResources nach currentResources und ins Gebäude verschoben; danach resourceRelatedCountDown = 100 und countPlayerResources", "Unter 230 Stück im Speicher wird granaryIsAlmostFilledUp auf FALSE gesetzt", "Die Zähler cheeseCount, appleCount, breadCount, meatCount und totalFood des Spielers wachsen nur um Nahrungsarten, die nicht gesperrt sind (isFoodTypeBanned == 0)", "Zuordnung laut Zählern: Index 10 = Brot, 11 = Käse, 12 = Fleisch, 13 = Äpfel", "Danach werden bis zu 16 Haufen-Bilder (je höchstens 8 oder 16 oder 32 Stück) aus den Beständen berechnet, nur wenn das Gebäude sichtbar aktiv ist"], "offen": ["Bedeutung von startResources (vermutlich Vorrat aus der Karte, der nach und nach eingelagert wird)", "Wann granaryIsAlmostFilledUp auf TRUE gesetzt wird (nicht in dieser Funktion)", "Genaue Bildcodes der Haufen (nur Darstellung)"]}, "p3": {"erklaerung": "Jeder Kornspeicher meldet seine Nahrung jeden Tick an die Statistik des Spielers. Gesperrte Nahrungsarten zählen dort nicht mit. Zu Spielbeginn wandert Start-Nahrung langsam, 1 Stück je 4 Ticks und Art, ins Lager.", "gehirn": "totalFood und die vier Zähler im Spieler-Datensatz sind die verlässliche Nahrungszahl, aber ohne gesperrte Arten. Wer Nahrung sperrt, sieht sie dort nicht mehr.", "beleg": "code", "live": "Nahrungsart im Verteilungsmenü sperren (Kornspeicher mit Vorrat) → playerDataArray.totalFood vorher/nachher → sinkt um den Bestand dieser Art", "live_art": "wirtschaft"}}
+
+### 0x004156f0 UpdateInn | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004156F0
+ void Buildings::UpdateInn()
+ {
+ int const owner = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIncrement = 1;
+ addBuildingToTargetableBuildings(
+ DAT_CurrentBuildingID);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ int const workerID = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workerID[0];
+ if (workerID == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive = 0;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .flagonsOfAleOrCheeseOrReleaseDogs
+ != 0
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field164_0x28a != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive = 0;
+ }
+ int const visuallyActive
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive;
+ updateVisuallyActiveState(DAT_CurrentBuildingID);
+ // InnAnimationFrames* are declared byte, but the original reads them signed
+ if (visuallyActive != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1 = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite2 = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite3 = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite4 = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1
+ = (char)DAT_BuildingDefinedData.InnAnimationFrames4
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock];
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1 == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1
+ = (char)DAT_BuildingDefinedData.InnAnimationFrames4[0];
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationActive != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock += 1;
+ }
+ // The original clears the sprite it just animated
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1 = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field164_0x28a != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite2
+ = (char)DAT_BuildingDefinedData
+ .InnAnimationFrames3[DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .extraAnimationFrame1];
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite2
+ = (char)DAT_BuildingDefinedData
+ .InnAnimationFrames2[DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .extraAnimationFrame1];
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite2 == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1 = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite2
+ = (char)DAT_BuildingDefinedData.InnAnimationFrames2[0];
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationActive != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1 += 1;
+ }
+ if (DAT_UnitsState.units[workerID].state.generic
+ == US_AIM_WEAPONUnk) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite3
+ = (char)DAT_BuildingDefinedData
+ .InnAnimationFrames1[DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .extraAnimationFrame2];
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite3
+ == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame2 = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite3
+ = (char)DAT_BuildingDefinedData.InnAnimationFrames1[0];
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationActive
+ != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame2 += 1;
+ }
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field164_0x28a != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field164_0x28a -= 1;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field164_0x28a == 0) {
+ spawnDrunkard(
+ DAT_CurrentBuildingID);
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite4
+ = (char)DAT_BuildingDefinedData
+ .InnAnimationFrames5[DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .extraAnimationFrame3];
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite4
+ == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3 = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite4
+ = (char)DAT_BuildingDefinedData.InnAnimationFrames5[0];
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationActive
+ != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3 += 1;
+ }
+ }
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame1 = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame2 = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationFrame3 = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1 = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite2 = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite3 = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite4 = 0;
+ }
+ // padding_0x2b2 holds the short tick counter towards the next flagon drunk
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagonsOfAleOrCheeseOrReleaseDogs
+ > 0) {
+ if (workerID != 0) {
+ *(short*)&DAT_BuildingsState.buildings[DAT_CurrentBuildingID].padding_0x2b2 += 1;
+ if (*(short*)&DAT_BuildingsState.buildings[DAT_CurrentBuildingID].padding_0x2b2
+ >= DAT_GameState.playerDataArray[owner].aleRate) {
+ *(short*)&DAT_BuildingsState.buildings[DAT_CurrentBuildingID].padding_0x2b2 = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .flagonsOfAleOrCheeseOrReleaseDogs -= 1;
+ }
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID]
+ .flagonsOfAleOrCheeseOrReleaseDogs
+ > 0
+ && DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workerID[0] != 0) {
+ DAT_GameState.playerDataArray[owner].workingInnsCount += 1;
+ }
+ }
+ DAT_GameState.playerDataArray[owner].countInns += 1;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive
+ != DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState) {
+ updateBuildingGraphicsLayer(
+ DAT_CurrentBuildingID);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive;
+ }
+ if (DAT_GameSynchronyState.currentGameMode != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage += 1;
+ if (DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage / 2]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage = 0;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].overlayImageID
+ = DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage
+ / 2];
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].overlayImageID = 0;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004156f0", "name": "UpdateInn", "quelle": "nachgebaut", "p1": {"bereich": "Gebaeude", "zweck": "Tick-Update einer Schenke: Ale-Verbrauch, Aktivzustand, Zähler für den Spieler und Trinker-Erzeugung."}, "p2": {"ein": "- (aktuelles Gebäude DAT_CurrentBuildingID)", "aus": "-", "liest": ["buildings[id].workerID[0]", "buildings[id].flagonsOfAleOrCheeseOrReleaseDogs", "buildings[id].field164_0x28a", "playerDataArray[sp].aleRate", "units[worker].state.generic"], "schreibt": ["buildings[id].flagonsOfAleOrCheeseOrReleaseDogs", "buildings[id].padding_0x2b2 (Tickzähler)", "buildings[id].field164_0x28a", "buildings[id].buildingIsVisuallyActive", "playerDataArray[sp].workingInnsCount", "playerDataArray[sp].countInns", "Animationsfelder"], "ruft": ["addBuildingToTargetableBuildings", "addBuildingInRegistry", "updateVisuallyActiveState", "spawnDrunkard", "updateBuildingGraphicsLayer"], "regeln": ["Ohne Arbeiter (workerID[0] == 0) ist die Schenke nicht aktiv", "Mit Arbeiter ist sie aktiv, wenn flagons > 0 oder field164_0x28a != 0", "Solange flagons > 0 und ein Arbeiter da ist, zählt padding_0x2b2 jeden Tick hoch; ab aleRate wird er 0 und flagons sinkt um 1", "Jeder Tick mit flagons > 0 und Arbeiter erhöht workingInnsCount des Besitzers um 1", "countInns des Besitzers steigt in jedem Tick um 1 (auch ohne Arbeiter)", "field164_0x28a zählt je Tick um 1 herunter; bei 0 wird spawnDrunkard aufgerufen"], "offen": ["Bedeutung von field164_0x28a (vermutlich Zeit bis ein Betrunkener erscheint)", "Einheit von aleRate (vermutlich Ticks je Humpen)", "Der Name flagons deutet auf Ale-Humpen, das Feld wird mehrfach genutzt (Käse, Hunde)"]}, "p3": {"erklaerung": "Die Schenke verbraucht ihre Ale-Humpen im Takt aleRate, solange ein Arbeiter da ist. Der Spieler zählt, wie viele Schenken wirklich arbeiten, und das speist vermutlich die Beliebtheit.", "gehirn": "workingInnsCount gegen countInns lesen zeigt, ob Schenken ohne Ale oder ohne Arbeiter leer stehen. Humpen-Verbrauch je Schenke = 1 pro aleRate Ticks.", "beleg": "nachgebaut", "live": "Schenke mit Ale und Arbeiter beobachten → flagonsOfAle und playerDataArray.aleRate → flagons sinkt alle aleRate Ticks um 1", "live_art": "wirtschaft"}}
+

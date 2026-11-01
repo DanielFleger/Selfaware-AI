@@ -1,0 +1,1165 @@
+### 0x004f6280 handleMenuItems | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004F6280
+ void Menu::handleMenuItems(MenuItemHandleState funcIndex)
+ {
+ MenuItem* _nextMenuItem;
+ MenuItemTypeInt _someFlagSet;
+ int _stopProcessing;
+ MenuItem* _menuItemArray;
+ MenuItemTypeInt _nextMenuItemType;
+ MenuItem* _currentMenuItemPtr;
+ MenuItemTypeInt _menuItemType;
+ _menuItemArray = this->menuItemArray;
+ this->currentBuildMenuButtonShiftUnk_0x14 = 0;
+ _menuItemType = _menuItemArray->menuItemType;
+ do {
+ if (_menuItemType == MIT_LAST_ENTRY) {
+ return;
+ }
+ _currentMenuItemPtr = _menuItemArray;
+ if (_menuItemType == MIT_TAB_CONSIDER_ITEM_SKIP_BECAUSE_OTHER_MENU_TAB) {
+ if (((ActiveMenuTab)(_menuItemArray->callbackParameter).activeMenuTab
+ != DAT_GameCore.activeMenuTab)
+ && (funcIndex != MIHS_RESET_MENU_ITEM_STATEUnk)) {
+ _currentMenuItemPtr = _menuItemArray + (_menuItemArray->firstItemTypeData).itemsToSkip;
+ }
+ } else if (_menuItemType == MIT_TAB_CONSIDER_STOP_BECAUSE_IS_CURRENT_MENU_TAB) {
+ if (((ActiveMenuTab)(_menuItemArray->callbackParameter).activeMenuTab
+ == DAT_GameCore.activeMenuTab)
+ && (funcIndex != MIHS_RESET_MENU_ITEM_STATEUnk)) {
+ return;
+ }
+ } else {
+ if (_menuItemType == MIT_STOP_HANDLING) {
+ return;
+ }
+ if (_menuItemType == MIT_ENABLE_OR_WRAP_BUILD_MENU_TRANSITION_OFFSET) {
+ if ((DAT_MenuHandlerState.isBuildMenuTransitioning_0x18 != FALSE)
+ && (funcIndex == MIHS_HANDLE_INPUT_CALLBACKSUnk)) {
+ return;
+ }
+ this->currentBuildMenuButtonShiftUnk_0x14 = ~-(uint)(this->currentBuildMenuButtonShiftUnk_0x14 != 0)
+ & DAT_MenuHandlerState.buildMenuItemsLeftShift_0x28;
+ } else if (_menuItemType == MIT_MENU_MODALUnk) {
+ if (DAT_MenuModalComposition1.activeModalDialogID != MMT_NONE) {
+ return;
+ }
+ } else if (_menuItemType == ((MenuItemType)0x21000000)) {
+ _nextMenuItem = _menuItemArray + (_menuItemArray->firstItemTypeData).itemsToSkip + 1;
+ _nextMenuItemType = _nextMenuItem->menuItemType;
+ for (; (_currentMenuItemPtr = _menuItemArray,
+ _nextMenuItemType == ((MenuItemType)0x11000000)
+ && (_currentMenuItemPtr = _nextMenuItem,
+ _nextMenuItem->testNotEqualZero != DAT_GameCore.unknownAlwaysZero01));
+ _nextMenuItem = _nextMenuItem + (_nextMenuItem->firstItemTypeData).itemsToSkip + 1) {
+ _nextMenuItemType
+ = _nextMenuItem[(_nextMenuItem->firstItemTypeData).itemsToSkip + 1].menuItemType;
+ }
+ } else if (_menuItemType == ((MenuItemType)0x11000000)) {
+ _currentMenuItemPtr = _menuItemArray + (_menuItemArray->firstItemTypeData).gmDataIndex;
+ } else if (_menuItemType == ((MenuItemType)7)) {
+ DAT_GameCore.menuType7_MenuItemClickHandlerUnk
+ = (MenuItemActionHandler*)(_menuItemArray->menuItemActionHandler).simple;
+ } else if ((_menuItemType != MIT_START_OF_INTERACTION_GROUPUnk)
+ && ((_menuItemType & 0x4000000) == ((MenuItemType)0))) {
+ if ((_menuItemType & 0x8000000) != ((MenuItemType)0)) {
+ _menuItemType = _menuItemArray[1].menuItemType;
+ _nextMenuItem = _menuItemArray + 1;
+ while ((_currentMenuItemPtr = _menuItemArray,
+ (_menuItemType & 0x4000000) != ((MenuItemType)0)
+ && (_currentMenuItemPtr = _nextMenuItem,
+ _nextMenuItem->testNotEqualZero != DAT_GameCore.unknownAlwaysZero01))) {
+ _nextMenuItem = _nextMenuItem + 1;
+ _menuItemType = _nextMenuItem->menuItemType;
+ }
+ }
+ if ((-1 < (int)_currentMenuItemPtr->menuItemType)
+ && (((_someFlagSet = _currentMenuItemPtr->menuItemType & 0x800000,
+ _someFlagSet != ((MenuItemType)0)
+ && (funcIndex == MIHS_PREPARE_AND_RENDER_FOR_FLAG_0X800000))
+ || ((((_someFlagSet == ((MenuItemType)0)
+ && (funcIndex == MIHS_PREPARE_AND_RENDER))
+ || ((funcIndex == MIHS_HANDLE_INPUT_CALLBACKSUnk
+ || (funcIndex == MIHS_RESET_MENU_ITEM_STATEUnk))))
+ && (funcIndex < ((MenuItemHandleState)4))))))) {
+ /*
+ updates and renders menu
+ */
+ switch (funcIndex) {
+ case MIHS_HANDLE_INPUT_CALLBACKSUnk:
+ _stopProcessing = handleMenuElementsCallbacks();
+ if (_stopProcessing != 0) {
+ return;
+ }
+ break;
+ case MIHS_PREPARE_AND_RENDER:
+ prepareAndRenderMenuItems();
+ break;
+ case MIHS_RESET_MENU_ITEM_STATEUnk:
+ resetMenuItemStateUnk();
+ }
+ }
+ }
+ }
+ _menuItemType = _currentMenuItemPtr[1].menuItemType;
+ _menuItemArray = _currentMenuItemPtr + 1;
+ } while (true);
+ }
+}
+}
+
+### 0x004f6470 updateMenuButtons | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004F6470
+ void Menu::updateMenuButtons()
+ {
+ if (this->hoveredItem == NULL) {
+ this->someMenuItemPtr_0x3c = NULL;
+ }
+ this->hoveredItem = NULL;
+ this->field16_0x40 = 0;
+ DAT_MenuHandlerState.field18_0x3c = 0;
+ handleMenuItems(
+ MIHS_HANDLE_INPUT_CALLBACKSUnk);
+ this->one = 0;
+ }
+}
+}
+
+### 0x004f64a0 renderConstructionMenu | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004F64A0
+ void Menu::renderConstructionMenu()
+ {
+ DWORD _currentTime;
+ char* text;
+ int iVar1;
+ uint _index;
+ int _group;
+ int _groupIndex;
+ MenuItem* _menuItem;
+ _currentTime = timeGetTime();
+ _menuItem = this->hoveredItem;
+ if (((_menuItem != (MenuItem*)0x0) && (_index = (uint)_menuItem->textMessageLookupIndex & 0xffff, _index != 0))
+ && ((((DAT_GameCore.currentMenuViewType != MVT_BUILDING_AND_STATUS_MENU
+ || ((((DAT_GameCore.activeMenuTab.tabType
+ == BASMTT_BARRACKS_OR_MPMENU_MODEM
+ || (DAT_GameCore.activeMenuTab.tabType
+ == BASMTT_MERCENARYPOST))
+ || (DAT_GameCore.activeMenuTab.tabType == BASMTT_TOWER))
+ || ((DAT_GameCore.activeMenuTab.tabType == BASMTT_GATEHOUSE
+ || (DAT_GameCore.activeMenuTab.tabType
+ == BASMTT_ENGINEERSGUILD))))))
+ || (DAT_GameCore.activeMenuTab.tabType == BASMTT_TUNNELERSGUILD))
+ || (DAT_GameCore.activeMenuTab.tabType == BASMTT_CATHEDRAL)))) {
+ switch (DAT_RenderingDefinedData.TextMessageLookupTable[_index].messageType) {
+ case ((TextMessageBLLookupStructTypeEnum)0):
+ goto switchD_004f6507_caseD_0;
+ default : if (((DAT_MouseState.leftClickState == FALSE)
+ && (DAT_MouseState.rightClickState == FALSE))
+ && ((DAT_MouseState.midClickState == FALSE
+ && (DAT_GameCore.settingBubbleHelp != 0))))
+ {
+ iVar1 = this->zero;
+ if (iVar1 == 0) {
+ this->zero = 1;
+ this->someTimestampUnk = _currentTime;
+ this->mouseXScreenSpace = DAT_MouseState.screenSpaceX;
+ this->mouseYScreenSpace = DAT_MouseState.screenSpaceY;
+ return;
+ }
+ if (((iVar1 == 1) && (DAT_MouseState.screenSpaceX == this->mouseXScreenSpace))
+ && (DAT_MouseState.screenSpaceY == this->mouseYScreenSpace)) {
+ if ((int)(_currentTime - this->someTimestampUnk) < 0xc9) {
+ return;
+ }
+ this->zero = 2;
+ _group = DAT_RenderingDefinedData
+ .TextMessageLookupTable[(uint)_menuItem->textMessageLookupIndex & 0xffff]
+ .textIndexInGroup;
+ this->field11_0x2c = _group;
+ _groupIndex = DAT_RenderingDefinedData
+ .TextMessageLookupTable[(uint)_menuItem->textMessageLookupIndex & 0xffff]
+ .textGroupIndex;
+ this->field12_0x30 = _groupIndex;
+ if (((_group == 0x12e) && (_groupIndex == 8)) && (DAT_GameCore.field22_0x64 == 1)) {
+ /*
+ "Resume Game"
+ */
+ this->field12_0x30 = 0x4a;
+ this->field11_0x2c = 10;
+ }
+ this->someMenuItemPtr_0x3c = _menuItem;
+ return;
+ }
+ if ((iVar1 == 2) && (this->someMenuItemPtr_0x3c == _menuItem)) {
+ text = getTextStringInGroupAtOffset(this->field12_0x30, this->field11_0x2c);
+ iVar1 = computeTextWidth(text, 0x11);
+ if ((DAT_GameCore.currentMenuViewType
+ == MVT_MISSION_FINISHED_TRANSITION)
+ || (DAT_GameCore.currentMenuViewType == MVT_GAME_LOSTUnk)) {
+ this->field9_0x24 = (DAT_MouseState.screenSpaceX - iVar1 / 2) + 8;
+ this->field10_0x28 = DAT_MouseState.screenSpaceY + 0x10;
+ } else {
+ this->field9_0x24 = (DAT_MouseState.screenSpaceX - iVar1 / 2) + 8;
+ this->field10_0x28 = DAT_MouseState.screenSpaceY + -0x44;
+ }
+ if (DAT_WindowAndDirectDraw.resolutionY < this->field10_0x28 + 0x17) {
+ this->field10_0x28 = DAT_MouseState.screenSpaceY + -0x17;
+ }
+ if (DAT_WindowAndDirectDraw.resolutionX < this->field9_0x24 + 0x14 + iVar1) {
+ this->field9_0x24 = (DAT_WindowAndDirectDraw.resolutionX - iVar1) + -0x14;
+ }
+ if (this->field9_0x24 < 0) {
+ this->field9_0x24 = 0;
+ }
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ dimBox(this->field9_0x24, this->field10_0x28,
+ this->field9_0x24 + 0x12 + iVar1, this->field10_0x28 + 0x1a);
+ drawBorderBox(this->field9_0x24 + -1, this->field10_0x28 + -1,
+ this->field9_0x24 + 0x13 + iVar1, this->field10_0x28 + 0x1b,
+ (ushort)((int)(COL_GREYISH_YELLOW::instance.shortValue)));
+ renderTextToScreen(text, this->field9_0x24 + 0xb, this->field10_0x28 + 3,
+ TTA_LEFT, 0xc2f0eb, 0x11, FALSE, 0);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ return;
+ }
+ }
+ break;
+ case TMBLLSTE_BUTTON_TEXT:
+ if (DAT_GameCore.settingBubbleHelp != 0) {
+ setBottomLeftTextDisplayText(1,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].textGroupIndex,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].textIndexInGroup,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].associatedType, 0x32, -1);
+ }
+ break;
+ case TMBLLSTE_BUILDING_TEXT:
+ if (DAT_GameCore.settingBubbleHelp != 0) {
+ setBottomLeftTextDisplayText(2,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].textGroupIndex,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].textIndexInGroup,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].associatedType, 0x32, -1);
+ this->zero = 0;
+ return;
+ }
+ break;
+ case TMBLLSTE_POPULARITY_HELP_TEXT:
+ if (DAT_GameCore.settingBubbleHelp != 0) {
+ setBottomLeftTextDisplayText(3,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].textGroupIndex,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].textIndexInGroup,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].associatedType, 0x32, -1);
+ this->zero = 0;
+ return;
+ }
+ break;
+ case TMBLLSTE_WALL_TEXT:
+ if (DAT_GameCore.settingBubbleHelp != 0) {
+ setBottomLeftTextDisplayText(4,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].textGroupIndex,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].textIndexInGroup,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].associatedType, 0x32, -1);
+ this->zero = 0;
+ return;
+ }
+ break;
+ case TMBLLSTE_UNITS_AND_WEAPONS_TEXT:
+ setBottomLeftTextDisplayText(6,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].textGroupIndex,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].textIndexInGroup,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].associatedType, 0x32, -1);
+ this->zero = 0;
+ return;
+ case ((TextMessageBLLookupStructTypeEnum)7):
+ setBottomLeftTextDisplayText(7,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].textGroupIndex,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].textIndexInGroup,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].associatedType, 0x32, -1);
+ this->zero = 0;
+ return;
+ case ((TextMessageBLLookupStructTypeEnum)8):
+ if (DAT_GameCore.settingBubbleHelp != 0) {
+ setBottomLeftTextDisplayText(8,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].textGroupIndex,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].textIndexInGroup,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].associatedType, 0x32, -1);
+ this->zero = 0;
+ return;
+ }
+ break;
+ case ((TextMessageBLLookupStructTypeEnum)9):
+ if (DAT_GameCore.settingBubbleHelp != 0) {
+ setBottomLeftTextDisplayText(9,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].textGroupIndex,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].textIndexInGroup,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].associatedType, 0x32, -1);
+ this->zero = 0;
+ return;
+ }
+ break;
+ case ((TextMessageBLLookupStructTypeEnum)10):
+ if (DAT_GameCore.settingBubbleHelp != 0) {
+ setBottomLeftTextDisplayText(10,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].textGroupIndex,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].textIndexInGroup,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].associatedType, 0x32, -1);
+ this->zero = 0;
+ return;
+ }
+ break;
+ case 0xb:
+ if (DAT_GameCore.settingBubbleHelp != 0) {
+ setBottomLeftTextDisplayText(0xb,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].textGroupIndex,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].textIndexInGroup,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].associatedType, 0x32, -1);
+ this->zero = 0;
+ return;
+ }
+ break;
+ case 0xc:
+ setBottomLeftTextDisplayText(0xc,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].textGroupIndex,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].textIndexInGroup,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].associatedType, 0x32, -1);
+ this->zero = 0;
+ return;
+ case 0xd:
+ if (DAT_GameCore.settingBubbleHelp != 0) {
+ setBottomLeftTextDisplayText(0xd,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].textGroupIndex,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].textIndexInGroup,
+ DAT_RenderingDefinedData.TextMessageLookupTable[_index].associatedType, 0x32, -1);
+ this->zero = 0;
+ return;
+ }
+ }
+ }
+ this->zero = 0;
+ switchD_004f6507_caseD_0:
+ return;
+ }
+}
+}
+
+### 0x004f69d0 loadMenuElements | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004F69D0
+ void Menu::loadMenuElements(int ucPositionIndex)
+ {
+ MenuItem* _menuItemPtr;
+ MenuItemTypeInt _menuItemType;
+ _menuItemPtr = this->menuItemArray;
+ _menuItemType = _menuItemPtr->menuItemType;
+ while (_menuItemType != MIT_LAST_ENTRY) {
+ if (-1 < (short)_menuItemPtr->ucID) {
+setUCValues().ucPtrStruct,(int)(short)_menuItemPtr->ucID,
+(int *)&_menuItemPtr->position,&(_menuItemPtr->position).position.y,
+&_menuItemPtr->iconDeactivatedUnk_0x36,ucPositionIndex);
+ }
+ _menuItemPtr = _menuItemPtr + 1;
+ _menuItemType = _menuItemPtr->menuItemType;
+ }
+ return;
+ }
+}
+}
+
+### 0x004f4c60 setupBuildMenuState | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004F4C60
+ void MenuHandlerState::setupBuildMenuState(dword const017, dword const516)
+ {
+ this->isBuildMenuTransitioning_0x18 = FALSE;
+ this->buildMenuBackgroundLeftShift_0x24 = 0;
+ this->buildMenuTransitionDirection_0x2c = -1;
+ this->const017 = const017;
+ this->const516 = const516;
+ }
+}
+}
+
+### 0x004f4c80 startBuildMenuTransition | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004F4C80
+ void MenuHandlerState::startBuildMenuTransition(int transitionDuration)
+ {
+ this->buildMenuTransitionStartTime_0x30 = timeGetTime();
+ this->buildMenuTransitionDuration_0x34 = transitionDuration;
+ this->isBuildMenuTransitioning_0x18 = TRUE;
+ this->buildMenuTransitionProgress_0x38 = 0;
+ this->buildMenuTransitionDirection_0x2c = (uint)(this->buildMenuTransitionDirection_0x2c < 0) * 2 + -1;
+ setUpSFXToPlayUnk(
+ SEID_BURNING_MAN_SCREAM2 | SEID_WOOD_SAW);
+ return;
+ }
+}
+}
+
+### 0x004f4cd0 computeBuildMenuTransitionShift | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004F4CD0
+ void MenuHandlerState::computeBuildMenuTransitionShift()
+ {
+ dword dVar1;
+ int iVar2;
+ int _currentTime;
+ int iVar3;
+ _currentTime = timeGetTime();
+ if (this->buildMenuTransitionProgress_0x38 == 100) {
+ this->isBuildMenuTransitioning_0x18 = FALSE;
+ return;
+ }
+ this->buildMenuTransitionProgress_0x38
+ = ((_currentTime - this->buildMenuTransitionStartTime_0x30) * 100) / this->buildMenuTransitionDuration_0x34;
+ if (this->buildMenuTransitionProgress_0x38 < 0x65) {
+ if (this->buildMenuTransitionProgress_0x38 < 1) {
+ this->buildMenuTransitionProgress_0x38 = 1;
+ }
+ } else {
+ this->buildMenuTransitionProgress_0x38 = 100;
+ }
+ iVar2 = this->buildMenuTransitionProgress_0x38 * 0x178 >> 0x1f;
+ iVar3 = (this->buildMenuTransitionProgress_0x38 * 0x178) / 100 + iVar2;
+ if (this->buildMenuTransitionDirection_0x2c < 1) {
+ dVar1 = -(iVar3 - iVar2);
+ this->buildMenuBackgroundLeftShift_0x24 = dVar1 + 0x178;
+ this->buildMenuItemsLeftShift_0x28 = this->buildMenuBackgroundLeftShift_0x24;
+ if (this->buildMenuTransitionProgress_0x38 < 0x32) {
+ this->buildMenuItemsLeftShift_0x28 = dVar1;
+ }
+ } else {
+ this->buildMenuBackgroundLeftShift_0x24 = iVar3 - iVar2;
+ this->buildMenuItemsLeftShift_0x28 = this->buildMenuBackgroundLeftShift_0x24;
+ if (0x31 < this->buildMenuTransitionProgress_0x38) {
+ this->buildMenuItemsLeftShift_0x28 = this->buildMenuBackgroundLeftShift_0x24 - 0x178;
+ return;
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x004f6a20 initializeUI | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004F6A20
+ void MenuHandlerState::initializeUI(
+ MenuIDMenuElementAddressPair* menuIDMenuElementAddressPair, UC* ucPtr, char* ptrStrongholdUCString)
+ {
+ MenuViewTypeInt _menuID;
+ /*
+ end of array sentinel is menuID of -1
+ */
+ _menuID = menuIDMenuElementAddressPair->menuID;
+ this->ucPtrStruct.ucArrayPointer = ucPtr;
+ this->pointerToMenuIDMenuElementAddressMap = menuIDMenuElementAddressPair;
+ while (_menuID != MVT_MENUVIEWID_MENU_PAIR_ENDMARKER) {
+ /*
+ param_1[1] is the menu pointer
+ */
+loadMenuElements()->menuAddress,0);
+/*
+ next element
+ */
+menuIDMenuElementAddressPair = menuIDMenuElementAddressPair + 1;
+_menuID = menuIDMenuElementAddressPair->menuID;
+ }
+ prepareButtonAndAlphaSurface();
+ loadAllMenuElementsOfMenuModals();
+ return;
+ }
+}
+}
+
+### 0x004f6a80 setupMenuForRendering | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004F6A80
+ void MenuHandlerState::setupMenuForRendering(MenuViewType menuID)
+ {
+ MenuViewTypeInt _menuID;
+ MenuIDMenuElementAddressPair* _arrayElementOffset;
+ Menu* _menuAddr;
+ _menuID = (this->pointerToMenuIDMenuElementAddressMap)->menuID;
+ _arrayElementOffset = this->pointerToMenuIDMenuElementAddressMap;
+ if (_menuID != MVT_MENUVIEWID_MENU_PAIR_ENDMARKER) {
+ while (_menuID != menuID) {
+ /*
+ next element in the list
+ */
+ _menuID = _arrayElementOffset[1].menuID;
+ _arrayElementOffset = _arrayElementOffset + 1;
+ if (_menuID == MVT_MENUVIEWID_MENU_PAIR_ENDMARKER) {
+ return;
+ }
+ }
+ /*
+ get the value of the menu pointer
+ */
+ _menuAddr = _arrayElementOffset->menuAddress;
+ this->currentMenu = _menuAddr;
+ handleMenuItems(
+ MIHS_RESET_MENU_ITEM_STATEUnk);
+ _menuAddr->zero = 0;
+ (this->currentMenu)->one = 1;
+ /*
+ call class method for the menu
+ */
+loadMenuElements().currentMenu,0);
+ }
+ return;
+ }
+}
+}
+
+### 0x004f4290 handleMenuElementsCallbacks | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004F4290
+ int MenuItem::handleMenuElementsCallbacks()
+ {
+ int* piVar1;
+ int* piVar2;
+ MenuItemSecondItemTypeData* pMVar3;
+ Menu* pMVar4;
+ DWORD DVar5;
+ BOOLEnum BVar6;
+ int iVar7;
+ int iVar8;
+ int yPos;
+ int xPos;
+ int iVar9;
+ MenuItemTypeInt MVar10;
+ int heigth;
+ int iStack_1c;
+ int iStack_18;
+ int iStack_14;
+ int iStack_10;
+ int iStack_c;
+ MenuItemTypeInt local_8;
+ int iStack_4;
+ MVar10 = this->menuItemType & MIT_MENU_ITEM_TYPE_ID_PARTUnk;
+ if ((this->iconDeactivatedUnk_0x36 == 0) && (this->unknownZero == 0)) {
+ this->hovering = 0;
+ local_8 = MVar10;
+ if (MVar10 != ((MenuItemType)0)) {
+ if ((MVar10 == ((MenuItemType)1)) && (DAT_ScrollingHandler.isScrolling_0x0 != FALSE)) {
+ (*(this->menuItemActionHandler).simple)((this->callbackParameter).parameter);
+ return 0;
+ }
+ if ((this->clicked != 0)
+ && (DVar5 = MACRO_CALL(timeGetTime)(),
+ this->menuPointer->thousand
+ < (int)(DVar5 - (this->secondItemTypeData).buttonState.clickTimestamp_0x4))) {
+ this->clicked = 0;
+ }
+ if ((MVar10 == MIT_SLIDERUnk) || (MVar10 == MIT_SCROLLBARUnk)) {
+ if (this->menuPointer->one == 0) {
+ iVar8 = (this->secondItemTypeData).buttonState.someTimestamp_1_0x0;
+ pMVar3 = &this->secondItemTypeData;
+ piVar1 = &(this->secondItemTypeData).buttonState.countTo100;
+ if ((this->secondItemTypeData).buttonState.countTo100 < iVar8) {
+ *piVar1 = iVar8;
+ }
+ iVar8 = (this->secondItemTypeData).buttonState.clickTimestamp_0x4;
+ piVar2 = &(this->secondItemTypeData).buttonState.clickTimestamp_0x4;
+ if (iVar8 < *piVar1) {
+ *piVar1 = iVar8;
+ }
+ (*(this->menuItemActionHandler).slider)(
+ (this->callbackParameter).parameter, 4, (int*)pMVar3, piVar2, piVar1);
+ if (DAT_MouseState.scrollEventData == 7) {
+ (*(this->menuItemActionHandler).slider)(
+ (this->callbackParameter).parameter, 6, (int*)pMVar3, piVar2, piVar1);
+ } else if (DAT_MouseState.scrollEventData == 8) {
+ (*(this->menuItemActionHandler).slider)(
+ (this->callbackParameter).parameter, 5, (int*)pMVar3, piVar2, piVar1);
+ }
+ iStack_c = (pMVar3->buttonState).someTimestamp_1_0x0;
+ if (*piVar2 < iStack_c) {
+ *piVar2 = iStack_c;
+ }
+ if (*piVar1 < iStack_c) {
+ *piVar1 = iStack_c;
+ }
+ iVar8 = *piVar2;
+ if (iVar8 < *piVar1) {
+ *piVar1 = iVar8;
+ }
+ if ((DAT_MouseState.leftClickStart == 0)
+ && (DAT_MouseState.leftClickState == FALSE)) {
+ (this->secondItemTypeData).buttonState.currentButtonPictureInGm_0xc = -1000;
+ return 0;
+ }
+ iVar9 = this->itemWidth;
+ iStack_1c = 0;
+ iStack_10 = 0;
+ iStack_14 = DAT_MouseState.screenSpaceX;
+ iStack_4 = this->menuPointer->xPosition + (this->position).position.x;
+ iStack_18 = iStack_4;
+ if (local_8 == MIT_SCROLLBARUnk) {
+ iStack_18 = this->menuPointer->yPosition + (this->position).position.y;
+ iVar9 = this->itemHeight;
+ iStack_14 = DAT_MouseState.screenSpaceY;
+ }
+ iVar8 = iVar8 - iStack_c;
+ iVar7 = iVar9;
+ if (0 < iVar8) {
+ iVar7 = iVar9 / (iVar8 + 1);
+ if (iVar7 <= (this->firstItemTypeData).itemsToSkip) {
+ iVar7 = (this->firstItemTypeData).itemsToSkip;
+ }
+ iStack_1c = ((*piVar1 - iStack_c) * (iVar9 - iVar7)) / iVar8;
+ }
+ BVar6 = isMouseInsideBox(iStack_4, this->menuPointer->yPosition + (this->position).position.y,
+ this->itemWidth, this->itemHeight);
+ if (BVar6 != FALSE) {
+ this->hovering = 1;
+ }
+ pMVar4 = this->menuPointer;
+ if (local_8 == MIT_SLIDERUnk) {
+ yPos = pMVar4->yPosition + (this->position).position.y;
+ xPos = pMVar4->xPosition + (this->position).position.x + iStack_1c;
+ iVar8 = iVar7;
+ heigth = this->itemHeight;
+ } else {
+ iVar8 = this->itemWidth;
+ yPos = pMVar4->yPosition + (this->position).position.y + iStack_1c;
+ xPos = pMVar4->xPosition + (this->position).position.x;
+ heigth = iVar7;
+ }
+ BVar6 = isMouseInsideBox(xPos, yPos, iVar8, heigth);
+ if (BVar6 != FALSE) {
+ iStack_10 = 1;
+ }
+ if (DAT_MouseState.leftClickStart == 0) {
+ if ((DAT_MouseState.leftClickState != FALSE)
+ && (-1000 < (this->secondItemTypeData).buttonState.currentButtonPictureInGm_0xc)) {
+ iVar8 = (pMVar3->buttonState).someTimestamp_1_0x0;
+ iStack_4 = *piVar2 - iVar8;
+ if (0 < iStack_4) {
+ *piVar1
+ = ((((((iVar9 - iVar7) / iStack_4) / 2
+ - (this->secondItemTypeData).buttonState.currentButtonPictureInGm_0xc)
+ - iStack_18)
+ + iStack_14)
+ * iStack_4)
+ / (iVar9 - iVar7)
+ + iVar8;
+ if (*piVar2 < iVar8) {
+ *piVar2 = iVar8;
+ }
+ if (*piVar1 < iVar8) {
+ *piVar1 = iVar8;
+ }
+ if (*piVar2 < *piVar1) {
+ *piVar1 = *piVar2;
+ }
+ (*(this->menuItemActionHandler).slider)(
+ (this->callbackParameter).parameter, 3, (int*)pMVar3, piVar2, piVar1);
+ iVar8 = (pMVar3->buttonState).someTimestamp_1_0x0;
+ if (*piVar2 < iVar8) {
+ *piVar2 = iVar8;
+ }
+ if (*piVar1 < iVar8) {
+ *piVar1 = iVar8;
+ }
+ if (*piVar2 < *piVar1) {
+ *piVar1 = *piVar2;
+ }
+ }
+ }
+ } else if (this->hovering != 0) {
+ if (iStack_10 == 0) {
+ if (iStack_14 < iStack_18 + iStack_1c) {
+ iStack_10 = ((*piVar2 - (pMVar3->buttonState).someTimestamp_1_0x0) * iVar7)
+ / (iVar9 - iVar7);
+ if (iStack_10 == 0) {
+ iStack_10 = 1;
+ }
+ (*(this->menuItemActionHandler).slider)(
+ (this->callbackParameter).parameter, 7, (int*)pMVar3, piVar2, &iStack_10);
+ *piVar1 = *piVar1 - iStack_10;
+ if (*piVar1 < (pMVar3->buttonState).someTimestamp_1_0x0) {
+ *piVar1 = (pMVar3->buttonState).someTimestamp_1_0x0;
+ }
+ (*(this->menuItemActionHandler).slider)(
+ (this->callbackParameter).parameter, 2, (int*)pMVar3, piVar2, piVar1);
+ } else {
+ iStack_10 = ((*piVar2 - (pMVar3->buttonState).someTimestamp_1_0x0) * iVar7)
+ / (iVar9 - iVar7);
+ if (iStack_10 == 0) {
+ iStack_10 = 1;
+ }
+ (*(this->menuItemActionHandler).slider)(
+ (this->callbackParameter).parameter, 7, (int*)pMVar3, piVar2, &iStack_10);
+ *piVar1 = *piVar1 + iStack_10;
+ if (*piVar2 < *piVar1) {
+ *piVar1 = *piVar2;
+ }
+ (*(this->menuItemActionHandler).slider)(
+ (this->callbackParameter).parameter, 2, (int*)pMVar3, piVar2, piVar1);
+ }
+ } else {
+ (this->secondItemTypeData).buttonState.currentButtonPictureInGm_0xc
+ = (iStack_14 - iStack_18) - iStack_1c;
+ if (*piVar1 < (pMVar3->buttonState).someTimestamp_1_0x0) {
+ *piVar1 = (pMVar3->buttonState).someTimestamp_1_0x0;
+ }
+ if (*piVar2 < *piVar1) {
+ *piVar1 = *piVar2;
+ }
+ (*(this->menuItemActionHandler).slider)(
+ (this->callbackParameter).parameter, 3, (int*)pMVar3, piVar2, piVar1);
+ }
+ iVar8 = (pMVar3->buttonState).someTimestamp_1_0x0;
+ if (*piVar2 < iVar8) {
+ *piVar2 = iVar8;
+ }
+ if (*piVar1 < iVar8) {
+ *piVar1 = iVar8;
+ }
+ if (*piVar2 < *piVar1) {
+ *piVar1 = *piVar2;
+ return 0;
+ }
+ }
+ } else {
+ piVar1 = &(this->secondItemTypeData).buttonState.countTo100;
+ piVar2 = &(this->secondItemTypeData).buttonState.clickTimestamp_0x4;
+ (*(this->menuItemActionHandler).slider)(
+ (this->callbackParameter).parameter, 1, (int*)&this->secondItemTypeData, piVar2, piVar1);
+ iVar8 = (this->secondItemTypeData).buttonState.someTimestamp_1_0x0;
+ (this->secondItemTypeData).buttonState.currentButtonPictureInGm_0xc = -1000;
+ if (*piVar2 < iVar8) {
+ *piVar2 = iVar8;
+ }
+ if (*piVar1 < iVar8) {
+ *piVar1 = iVar8;
+ }
+ if (*piVar2 < *piVar1) {
+ *piVar1 = *piVar2;
+ return 0;
+ }
+ }
+ } else {
+ DAT_StopHandlingMenuItems = 1;
+ BVar6 = isMouseInsideBox(
+ this->menuPointer->xPosition + (this->position).position.x,
+ this->menuPointer->yPosition + (this->position).position.y, this->itemWidth, this->itemHeight);
+ if (BVar6 != FALSE) {
+ DAT_MenuHandlerState.field18_0x3c = 1;
+ DAT_ButtonX = this->menuPointer->xPosition + (this->position).position.x;
+ DAT_ButtonY = this->menuPointer->yPosition + (this->position).position.y;
+ BOOL_CurrentMenuClickState::instance = (BOOLEnum)this->clicked;
+ if ((this->menuItemRenderFunctionType == MIRFT_GM_DATA_IMAGE)
+ && (((this->firstItemTypeData).gmDataIndex & GDI_USE_PIXEL_MOUSE_HIT_CHECKUnk)
+ != GDI_NONE_0)) {
+ DAT_CurrentButtonGmDataIndex = (this->firstItemTypeData).gmDataIndex & 0x7fffff;
+ DAT_ButtonCurrentlyInteracting
+ = (BOOLEnum)(short)(this->hovering | this->clicked);
+ DAT_CurrentButtonPictureInGm
+ = (this->secondItemTypeData).buttonState.currentButtonPictureInGm_0xc;
+ BVar6 = isMouseOnButtonImageUnk();
+ if (BVar6 == FALSE) {
+ return 0;
+ }
+ }
+ if ((this->textMessageLookupIndex != (UnknownMenuSubStruct)0xffffffff)
+ && (DAT_MenuModalComposition1.mbr_0x78 == 0)) {
+ this->menuPointer->hoveredItem = this;
+ }
+ pMVar4 = this->menuPointer;
+ if ((pMVar4->someMenuItemPtr_0x3c != this) && (pMVar4->field16_0x40 == 0)) {
+ iVar8 = (int)(this->textMessageLookupIndex).field1_0x2;
+ if (iVar8 == 1) {
+ pMVar4->someMenuItemPtr_0x3c = this;
+ setUpSFXToPlayUnk(((SoundEffectID)0x88));
+ this->menuPointer->field16_0x40 = 1;
+ } else if (iVar8 - 2U < 6) {
+ pMVar4->someMenuItemPtr_0x3c = this;
+ setUpSFXToPlayUnk((int)(this->textMessageLookupIndex).field1_0x2
+ + (SEID_SIEGE_EQUIPMENT_DESTROYED
+ | SEID_QUARRY_STONE_LIFT_01));
+ this->menuPointer->field16_0x40 = 1;
+ }
+ }
+ this->hovering = 1;
+ if (MVar10 == MIT_TEXT_OR_STATE_OR_PLAYER_DEPENDENTUnk) {
+ if (DAT_MouseState.rightClickStart != 0) {
+ LAB_004f444b:
+ DVar5 = MACRO_CALL(timeGetTime)();
+ (this->secondItemTypeData).buttonState.clickTimestamp_0x4 = DVar5;
+ (this->secondItemTypeData).buttonState.someTimestamp_1_0x0 = DVar5;
+ this->clicked = 1;
+ BOOL_CurrentMenuClickState::instance = TRUE;
+ (*(this->menuItemActionHandler).simple)((this->callbackParameter).parameter);
+ (this->secondItemTypeData).buttonState.countTo100 = 0;
+ this->clicked = (undefined2)BOOL_CurrentMenuClickState::instance;
+ return (int)(DAT_StopHandlingMenuItems);
+ }
+ } else {
+ if (DAT_MouseState.leftClickStart != 0)
+ goto LAB_004f444b;
+ if ((DAT_MouseState.leftClickState == FALSE) || (MVar10 != ((MenuItemType)2))) {
+ if ((DAT_MouseState.draggingStopped != FALSE)
+ && (MVar10 == ((MenuItemType)10))) {
+ DVar5 = MACRO_CALL(timeGetTime)();
+ (this->secondItemTypeData).buttonState.clickTimestamp_0x4 = DVar5;
+ (this->secondItemTypeData).buttonState.someTimestamp_1_0x0 = DVar5;
+ this->clicked = 1;
+ BOOL_CurrentMenuClickState::instance = TRUE;
+ (*(this->menuItemActionHandler).simple)((this->callbackParameter).parameter);
+ (this->secondItemTypeData).buttonState.countTo100 = 0;
+ this->clicked = (undefined2)BOOL_CurrentMenuClickState::instance;
+ DAT_StopHandlingMenuItems = 0;
+ return 0;
+ }
+ if (this->menuItemRenderFunctionType == ((MenuItemRenderFunctionType)2)) {
+ if (DAT_MouseState.scrollEventData == 7) {
+ iVar8 = 2;
+ } else {
+ if (DAT_MouseState.scrollEventData != 8) {
+ return 0;
+ }
+ iVar8 = 1;
+ }
+ DVar5 = MACRO_CALL(timeGetTime)();
+ (this->secondItemTypeData).buttonState.clickTimestamp_0x4 = DVar5;
+ (this->secondItemTypeData).buttonState.someTimestamp_1_0x0 = DVar5;
+ this->clicked = 1;
+ BOOL_CurrentMenuClickState::instance = TRUE;
+ if (DAT_MouseState.midClickState == FALSE) {
+ iVar9 = 10;
+ do {
+ (*(this->menuItemActionHandler).simple)(iVar8);
+ iVar9 = iVar9 + -1;
+ } while (iVar9 != 0);
+ } else {
+ iVar9 = 100;
+ do {
+ (*(this->menuItemActionHandler).simple)(iVar8);
+ iVar9 = iVar9 + -1;
+ } while (iVar9 != 0);
+ }
+ (this->secondItemTypeData).buttonState.countTo100 = 0;
+ this->clicked = (undefined2)BOOL_CurrentMenuClickState::instance;
+ return (int)(DAT_StopHandlingMenuItems);
+ }
+ } else {
+ DVar5 = MACRO_CALL(timeGetTime)();
+ (this->secondItemTypeData).buttonState.clickTimestamp_0x4 = DVar5;
+ iVar8 = (this->secondItemTypeData).buttonState.someTimestamp_1_0x0;
+ this->clicked = 1;
+ BOOL_CurrentMenuClickState::instance = TRUE;
+ if (0x27 < (int)(DVar5 - iVar8)) {
+ piVar1 = &(this->secondItemTypeData).buttonState.countTo100;
+ *piVar1 = *piVar1 + 1;
+ (this->secondItemTypeData).buttonState.someTimestamp_1_0x0
+ = (this->secondItemTypeData).buttonState.clickTimestamp_0x4;
+ if (99 < (this->secondItemTypeData).buttonState.countTo100) {
+ (this->secondItemTypeData).buttonState.countTo100 = 99;
+ }
+ DAT_00ed31d0 = (this->secondItemTypeData).buttonState.countTo100;
+ if (DAT_UIDragDropDefinedData
+ .UI_DragTicks[(this->secondItemTypeData).buttonState.countTo100]
+ != 0) {
+ (*(this->menuItemActionHandler).simple)((this->callbackParameter).parameter);
+ this->clicked = (undefined2)BOOL_CurrentMenuClickState::instance;
+ (this->secondItemTypeData).buttonState.countTo100 = DAT_00ed31d0;
+ return (int)(DAT_StopHandlingMenuItems);
+ }
+ }
+ }
+ }
+ }
+ }
+ return 0;
+ }
+ (*(this->menuItemActionHandler).simple)((this->callbackParameter).parameter);
+ }
+ return 0;
+ }
+}
+}
+
+### 0x004f49d0 prepareAndRenderMenuItems | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004F49D0
+ void MenuItem::prepareAndRenderMenuItems()
+ {
+ int* piVar1;
+ int* piVar2;
+ MenuItemRenderFunctionTypeInt MVar3;
+ int iVar4;
+ int iVar5;
+ int iVar6;
+ int iVar7;
+ int iVar8;
+ if (this->iconDeactivatedUnk_0x36 == 0) {
+ if (this->menuItemRenderFunctionType == MIRFT_GM_DATA_IMAGE) {
+ iVar7 = GMTotalPicturesProcessed::instance[DAT_UIButtonDefinedData
+ .ButtonGmDataArray[(this->firstItemTypeData).gmDataIndex]
+ .gmId_0x0];
+ iVar5 = DAT_UIButtonDefinedData.ButtonGmDataArray[(this->firstItemTypeData).gmDataIndex]
+ .pictureInGm_0x4;
+ this->itemWidth = (int)DAT_GMImageHeaders.imh[iVar5 + iVar7 + -1].width;
+ this->itemHeight = (int)DAT_GMImageHeaders.imh[iVar5 + iVar7 + -1].height;
+ }
+ DAT_ButtonX
+ = (this->menuPointer->xPosition - this->menuPointer->currentBuildMenuButtonShiftUnk_0x14)
+ + (this->position).position.x;
+ DAT_ButtonY = this->menuPointer->yPosition + (this->position).position.y;
+ DAT_ButtonW = this->itemWidth;
+ DAT_ButtonH = this->itemHeight;
+ DAT_CurrentButtonGmDataIndex = (this->firstItemTypeData).gmDataIndex & 0x7fffff;
+ DAT_ButtonCurrentlyInteracting = (BOOLEnum)(short)(this->clicked | this->hovering);
+ DAT_ButtonBlendStrength = 0;
+ DAT_ButtonUnknownZero = (int)this->unknownZero;
+ if (DAT_GameCore.hasMenuRenderedUnk != 0) {
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ }
+ iVar7 = this->menuPointer->currentBuildMenuButtonShiftUnk_0x14;
+ if (iVar7 != 0) {
+ iVar5 = (this->position).position.x;
+ if (iVar5 - iVar7 < (int)DAT_MenuHandlerState.const017) {
+ DAT_ButtonBlendStrength = 0;
+ return;
+ }
+ if ((int)DAT_MenuHandlerState.const516 < (iVar5 - iVar7) + this->itemWidth) {
+ DAT_ButtonBlendStrength = 0;
+ return;
+ }
+ if ((0x2d < DAT_MenuHandlerState.buildMenuTransitionProgress_0x38)
+ && (DAT_MenuHandlerState.buildMenuTransitionProgress_0x38 < 0x37)) {
+ DAT_ButtonBlendStrength = 0;
+ return;
+ }
+ if (DAT_MenuHandlerState.buildMenuTransitionProgress_0x38 < 0x32) {
+ DAT_ButtonBlendStrength
+ = (DAT_MenuHandlerState.buildMenuTransitionProgress_0x38 * 0x20) / 0x2d;
+ } else {
+ DAT_ButtonBlendStrength
+ = ((100 - DAT_MenuHandlerState.buildMenuTransitionProgress_0x38) * 0x20) / 0x2d;
+ }
+ }
+ MVar3 = this->menuItemRenderFunctionType;
+ if (MVar3 == MIRFT_SLIDER_OR_SCROLLBAR) {
+ if (this->menuPointer->one != 0) {
+ piVar1 = &(this->secondItemTypeData).buttonState.countTo100;
+ piVar2 = &(this->secondItemTypeData).buttonState.clickTimestamp_0x4;
+ (*(this->menuItemActionHandler).slider)(
+ (this->callbackParameter).parameter, 1, (int*)&this->secondItemTypeData, piVar2, piVar1);
+ iVar7 = (this->secondItemTypeData).buttonState.someTimestamp_1_0x0;
+ (this->secondItemTypeData).buttonState.currentButtonPictureInGm_0xc = -1000;
+ if (*piVar1 < iVar7) {
+ *piVar1 = iVar7;
+ }
+ iVar7 = *piVar2;
+ if (iVar7 < *piVar1) {
+ *piVar1 = iVar7;
+ }
+ }
+ iVar7 = this->itemWidth;
+ iVar5 = 0;
+ if ((this->menuItemType & MIT_MENU_ITEM_TYPE_ID_PARTUnk) == MIT_SCROLLBARUnk) {
+ iVar7 = this->itemHeight;
+ }
+ iVar4 = (this->secondItemTypeData).buttonState.someTimestamp_1_0x0;
+ iVar8 = (this->secondItemTypeData).buttonState.clickTimestamp_0x4 - iVar4;
+ iVar6 = iVar7;
+ if (0 < iVar8) {
+ iVar6 = iVar7 / (iVar8 + 1);
+ if (iVar6 <= (this->firstItemTypeData).itemsToSkip) {
+ iVar6 = (this->firstItemTypeData).itemsToSkip;
+ }
+ iVar5 = (((this->secondItemTypeData).buttonState.countTo100 - iVar4) * (iVar7 - iVar6)) / iVar8;
+ }
+ (*(this->menuItemRenderFunction).slider)((this->callbackParameter).parameter, iVar5,
+ (this->secondItemTypeData).buttonState.countTo100, iVar6,
+ -1000 < (this->secondItemTypeData).buttonState.currentButtonPictureInGm_0xc);
+ } else if (MVar3 == MIRFT_SIMPLE_RENDERUnk) {
+ (*(this->menuItemRenderFunction).simple)((this->callbackParameter).parameter);
+ } else if (MVar3 == MIRFT_GM_DATA_IMAGE) {
+ (*(this->menuItemRenderFunction).gmDataImage)((this->callbackParameter).parameter);
+ (this->secondItemTypeData).buttonState.currentButtonPictureInGm_0xc
+ = DAT_CurrentButtonPictureInGm;
+ }
+ if ((this->menuPointer->hoveredItem == this)
+ && (DAT_ButtonCurrentlyInteracting != (int)(short)(this->clicked | this->hovering))) {
+ this->menuPointer->zero = 0;
+ }
+ this->unknownZero = (short)DAT_ButtonUnknownZero;
+ }
+ return;
+ }
+}
+}
+
+### 0x004f4c30 resetMenuItemStateUnk | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004F4C30
+ void MenuItem::resetMenuItemStateUnk()
+ {
+ this->hovering = 0;
+ this->clicked = 0;
+ this->secondItemTypeData.buttonState.someTimestamp_1_0x0 = 0;
+ this->secondItemTypeData.buttonState.clickTimestamp_0x4 = 0;
+ this->secondItemTypeData.buttonState.countTo100 = 0;
+ MenuItemTypeInt const itemType = this->menuItemType & Enums::MIT_MENU_ITEM_TYPE_ID_PARTUnk;
+ if (itemType == MIT_SLIDERUnk || itemType == MIT_SCROLLBARUnk) {
+ this->secondItemTypeData.buttonState.currentButtonPictureInGm_0xc = -1000;
+ }
+ }
+}
+}
+
+### 0x004a9e00 Constructor_MenuModal | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004A9E00
+ MenuModal* MenuModal::Constructor_MenuModal(MenuModalType menuModalId, int xPos, int yPos, int width, int height,
+ int borderStyle, int backgroundColourIndex, MenuModalRenderFunction* renderFunctionPtr, Menu* menuPtr)
+ {
+ this->menuModalID = menuModalId;
+ this->x = xPos;
+ this->y = yPos;
+ this->width = width;
+ this->height = height;
+ this->borderStyle = borderStyle;
+ this->backgroundColourIndex = backgroundColourIndex;
+ this->menuModalRenderFunction = renderFunctionPtr;
+ this->pointerToMenu = menuPtr;
+ this->pointerToNextModalMenu = DAT_ModalMenuArrayPointerToStackTop;
+ DAT_ModalMenuArrayPointerToStackTop = this;
+ return this;
+ }
+}
+}
+
+### 0x004a9e60 Constructor_MenuModalComposition | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004A9E60
+ MenuModalComposition* MenuModalComposition::Constructor_MenuModalComposition(int slot)
+ {
+ this->slot = slot;
+ this->activeModalDialogID = MMT_NONE;
+ return this;
+ }
+}
+}
+
+### 0x004a9e80 loadAllMenuElementsOfMenuModals | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004A9E80
+ void MenuModalComposition::loadAllMenuElementsOfMenuModals()
+ {
+ for (MenuModal* modal = DAT_ModalMenuArrayPointerToStackTop; modal != NULL;
+ modal = modal->pointerToNextModalMenu) {
+ if (modal->pointerToMenu != NULL) {
+ MACRO_CALL_MEMBER(loadMenuElements, modal->pointerToMenu)(0);
+ }
+ }
+ }
+}
+}
+
+### 0x004a9eb0 findModalMenu | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004A9EB0
+ MenuModal* MenuModalComposition::findModalMenu(MenuModalType menuModalID)
+ {
+ for (MenuModal* modal = DAT_ModalMenuArrayPointerToStackTop; modal != NULL;
+ modal = modal->pointerToNextModalMenu) {
+ if (modal->menuModalID == menuModalID) {
+ return modal;
+ }
+ }
+ return NULL;
+ }
+}
+}
+
+### 0x004a9ed0 activateModalDialog | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004A9ED0
+ void MenuModalComposition::activateModalDialog(MenuModalType menuModalID, BOOLEnum retainOther)
+ {
+ BOOL _startedPlayingAIMessage;
+ MenuModal* _modalMenu;
+ BOOLEnum _areWeInAnInGameMenu;
+ DWORD _now;
+ int _modalCopyLoopIndex;
+ MenuModalComposition* pMVar1;
+ uint _borderStyle;
+ Menu* _menuPtr;
+ int _modalMenuX;
+ int _modalMenuY;
+ if (((retainOther == FALSE) && (this->slot == 0))
+ && (DAT_MenuTextInputState.currentModalDialog != MMT_NO_MENU)) {
+ clearAnyOtherModalDialogs();
+ }
+ if (this->activeModalDialogID == MMT_DISPLAY_AI_LORD_MESSAGE) {
+ this->activeModalDialogID = MMT_NONE;
+ _startedPlayingAIMessage = playNextStoredAIMessage();
+ if (_startedPlayingAIMessage != 0) {
+ return;
+ }
+ }
+ this->activeModalDialogID = menuModalID;
+ if (menuModalID != MMT_NONE) {
+ _modalMenu = findModalMenu(menuModalID);
+ pMVar1 = this;
+ /*
+ just copy the menumodal into a fixed spot in memory.
+ */
+ for (_modalCopyLoopIndex = 10; pMVar1 = (MenuModalComposition*)&pMVar1->modalMenu, _modalCopyLoopIndex != 0;
+ _modalCopyLoopIndex = _modalCopyLoopIndex + -1) {
+ ((MenuModal*)pMVar1)->menuModalID = _modalMenu->menuModalID;
+ _modalMenu = (MenuModal*)&_modalMenu->x;
+ }
+ }
+ _borderStyle = (this->modalMenu).borderStyle;
+ this->modalDragDropUnk = 0;
+ if ((_borderStyle & 0x220) != 0) {
+ (this->modalMenu).width = (((this->modalMenu).width + -1) / 0x18 + 1) * 0x18;
+ (this->modalMenu).height = (((this->modalMenu).height + -1) / 0x18 + 1) * 0x18;
+ }
+ _areWeInAnInGameMenu
+ = getAreWeInAInGameMenu();
+ _modalMenuX = (this->modalMenu).x;
+ if (_areWeInAnInGameMenu == FALSE) {
+ if (_modalMenuX == -1) {
+ _modalMenuX = DAT_WindowAndDirectDraw.gameResolutionX / 2 - (this->modalMenu).width / 2;
+ } else {
+ _modalMenuX = (DAT_WindowAndDirectDraw.gameResolutionX + -800) / 2 + _modalMenuX;
+ }
+ _modalMenuY = (this->modalMenu).y;
+ (this->modalMenu).x = _modalMenuX;
+ if (_modalMenuY != -1)
+ goto LAB_004aa048;
+ _modalMenuY = DAT_WindowAndDirectDraw.gameResolutionY / 2 - (this->modalMenu).height / 2;
+ } else {
+ if (_modalMenuX == -1) {
+ _modalMenuX = DAT_WindowAndDirectDraw.gameResolutionX / 2 - (this->modalMenu).width / 2;
+ } else {
+ _modalMenuX = (DAT_WindowAndDirectDraw.gameResolutionX + -800) / 2 + _modalMenuX;
+ }
+ _modalMenuY = (this->modalMenu).y;
+ (this->modalMenu).x = _modalMenuX;
+ if (_modalMenuY == -1) {
+ (this->modalMenu).y
+ = (DAT_WindowAndDirectDraw.gameResolutionY + -128) / 2 - (this->modalMenu).height / 2;
+ goto LAB_004aa057;
+ }
+ LAB_004aa048:
+ _modalMenuY = (DAT_WindowAndDirectDraw.gameResolutionY + -600) / 2 + _modalMenuY;
+ }
+ (this->modalMenu).y = _modalMenuY;
+ LAB_004aa057:
+ this->disappearAfter = 0x20;
+ this->mbr_0x6c = 0;
+ _now = timeGetTime();
+ _borderStyle = (this->modalMenu).borderStyle;
+ this->timeItIsSet = _now;
+ if ((_borderStyle & 0x400) != 0) {
+ this->disappearAfter = 0;
+ }
+ _menuPtr = (this->modalMenu).pointerToMenu;
+ if (_menuPtr != (Menu*)0x0) {
+ handleMenuItems(
+ MIHS_RESET_MENU_ITEM_STATEUnk);
+ _menuPtr->zero = 0;
+ ((this->modalMenu).pointerToMenu)->thousand = 0;
+ ((this->modalMenu).pointerToMenu)->one = 1;
+ }
+ return;
+ }
+}
+}
+

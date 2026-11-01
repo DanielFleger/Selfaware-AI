@@ -1,0 +1,1095 @@
+### 0x004ecbc0 hostChecksLobbyAIVAvailability | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004ECBC0
+ void AIVState::hostChecksLobbyAIVAvailability()
+ {
+ int iVar1;
+ int (*paiVar2)[20];
+ int* piVar3;
+ int (*paiVar4)[20];
+ int* piVar5;
+ int iVar6;
+ int (*paiVar7)[20];
+ int iVar8;
+ bool bVar9;
+ iVar8 = DAT_GameSynchronyState.currentPlayerSlotID;
+ iVar6 = 0;
+ if ((DAT_GameSynchronyState.currentGameMode == GM_SOLITARY)
+ || (DAT_GameSynchronyState.currentGameMode == GM_SKIRMISH_SINGLE_PLAYER)) {
+ DAT_GameCore.numOfAIsWithCastleUnk = this->numberOfAIsWithAIV;
+ iVar8 = 0;
+ piVar5 = DAT_GameCore.arrayOfLordIdsWithAIVsUnk;
+ piVar3 = this->aivFileAvailabilityPerAIArray;
+ do {
+ if (*piVar3 != 0) {
+ *piVar5 = iVar8 + 1;
+ piVar5 = piVar5 + 1;
+ }
+ iVar8 = iVar8 + 1;
+ piVar3 = piVar3 + 1;
+ } while (iVar8 < 16);
+ } else if (DAT_GameSynchronyState.isHost != FALSE) {
+ DAT_GameCore.numOfAIsWithCastleUnk = 0;
+ paiVar7 = DAT_GameSynchronyState.DAT_ReceivedAIVFileAvailabilityPerAIArray + 1;
+ piVar3 = this->aivFileAvailabilityPerAIArray;
+ do {
+ iVar1 = 1;
+ paiVar2 = DAT_GameSynchronyState.DAT_ReceivedAIVFileAvailabilityPerAIArray;
+ paiVar4 = paiVar7;
+ do {
+ paiVar2 = paiVar2 + 1;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[iVar1] != -1) {
+ if ((*paiVar2)[0] == -1) {
+ if (iVar1 != iVar8)
+ goto LAB_004ecc36;
+ bVar9 = *piVar3 == 0;
+ } else if (iVar1 == iVar8) {
+ bVar9 = *piVar3 == 0;
+ } else {
+ bVar9 = (*paiVar4)[0] == 0;
+ }
+ if (bVar9)
+ goto LAB_004ecc5b;
+ }
+ LAB_004ecc36:
+ iVar1 = iVar1 + 1;
+ paiVar4 = paiVar4 + 1;
+ } while (iVar1 < 9);
+ DAT_GameCore.arrayOfLordIdsWithAIVsUnk[DAT_GameCore.numOfAIsWithCastleUnk]
+ = iVar6 + 1;
+ DAT_GameCore.numOfAIsWithCastleUnk = DAT_GameCore.numOfAIsWithCastleUnk + 1;
+ LAB_004ecc5b:
+ paiVar7 = (int (*)[20])(*paiVar7 + 1);
+ iVar6 = iVar6 + 1;
+ piVar3 = piVar3 + 1;
+ } while ((int)paiVar7 < 0x1a26aec);
+ bVar9 = false;
+ iVar8 = 1;
+ do {
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[iVar8] == -1)
+ && (DAT_GameSynchronyState.currentAIArray[iVar8] != 0)) {
+ iVar6 = 0;
+ if (0 < DAT_GameCore.numOfAIsWithCastleUnk) {
+ do {
+ if (DAT_GameSynchronyState.currentAIArray[iVar8]
+ == DAT_GameCore.arrayOfLordIdsWithAIVsUnk[iVar6])
+ goto LAB_004eccd7;
+ iVar6 = iVar6 + 1;
+ } while (iVar6 < DAT_GameCore.numOfAIsWithCastleUnk);
+ }
+ DAT_GameSynchronyState.currentAIArray[iVar8] = 0;
+ RemovePositionOfPlayer(iVar8);
+ bVar9 = true;
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = iVar8;
+ queueCommand(GCT_HOST_REMOVE_PLAYER_BY_SLOT);
+ }
+ LAB_004eccd7:
+ iVar8 = iVar8 + 1;
+ } while (iVar8 < 9);
+ if (bVar9) {
+ reorderTeamsAndPositions();
+ DAT_GameSynchronyState.reparseMaps = TRUE;
+ }
+ if (DAT_MenuModalComposition1.activeModalDialogID
+ == MMT_BASIC_AI_LORD_SELECT) {
+ if (8 < DAT_GameCore.numOfAIsWithCastleUnk) {
+ ClearLobbyHoveredAI();
+ setExtraActiveModalDialog(MMT_EXTENDED_AI_LORD_SELECT,
+ DAT_WindowAndDirectDraw.mainMenuBorderWidth + 4,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0xcd);
+ return;
+ }
+ } else if ((DAT_MenuModalComposition1.activeModalDialogID
+ == MMT_EXTENDED_AI_LORD_SELECT)
+ && (DAT_GameCore.numOfAIsWithCastleUnk < 9)) {
+ ClearLobbyHoveredAI();
+ setExtraActiveModalDialog(MMT_BASIC_AI_LORD_SELECT,
+ DAT_WindowAndDirectDraw.mainMenuBorderWidth + 4,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0xcd);
+ return;
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x004ecdb0 setAIVFilePresenceByFileHashArray | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004ECDB0
+ void AIVState::setAIVFilePresenceByFileHashArray()
+ {
+ if (DAT_GameSynchronyState.currentGameMode == Game::GM_SKIRMISH_SINGLE_PLAYER) {
+ for (int aiIndex = 0; aiIndex < 16; ++aiIndex) {
+ for (int castleID = 0; castleID < 8; ++castleID) {
+ this->aivFilePresent[aiIndex][castleID] = 1;
+ }
+ }
+ return;
+ }
+ for (int aiIndex = 0; aiIndex < 16; ++aiIndex) {
+ for (int castleID = 0; castleID < 8; ++castleID) {
+ int hash = -1;
+ this->aivFilePresent[aiIndex][castleID] = 1;
+ for (int player = 1; player < 9; ++player) {
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[player] == -1) {
+ continue;
+ }
+ if (hash == -1) {
+ hash = this->receivedAIVFileHash[player][aiIndex][castleID];
+ if (hash == -1) {
+ this->aivFilePresent[aiIndex][castleID] = 0;
+ break;
+ }
+ } else if (hash != this->receivedAIVFileHash[player][aiIndex][castleID]) {
+ this->aivFilePresent[aiIndex][castleID] = 0;
+ break;
+ }
+ }
+ if (hash == -1) {
+ this->aivFilePresent[aiIndex][castleID] = 0;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x004ece60 syncAIPlayerNamesAndBuildIntervals | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004ECE60
+ void AIVState::syncAIPlayerNamesAndBuildIntervals()
+ {
+ for (int playerID = 1; playerID < 9; ++playerID) {
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[playerID] != -1
+ || DAT_GameSynchronyState.currentAIArray[playerID] == 0) {
+ continue;
+ }
+ strcpy(DAT_GameSynchronyState.DAT_PlayerNames[playerID],
+ DAT_GameSynchronyState.finalResults.names[playerID]);
+ int const aivID = DAT_GameState.playerDataArray[playerID].aivID;
+ if (aivID != 0) {
+ this->aivs[aivID].aivPoorLimit_OR_AIC_buildInterval
+ = getAIBuildInterval(playerID);
+ }
+ }
+ }
+}
+}
+
+### 0x004ecef0 setupAIVMetadata | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004ECEF0
+ int AIVState::setupAIVMetadata(int playerID)
+ {
+ for (int aivID = 1; aivID < 9; ++aivID) {
+ if (this->aivs[aivID].playerID != 0) {
+ continue;
+ }
+ this->aivs[aivID].playerID = playerID;
+ this->aivs[aivID].aiType = DAT_GameState->playerDataArray[playerID].aiType;
+ this->aivs[aivID].currentStepGoal = 0;
+ this->aivs[aivID].aivPoorCounter = 0;
+ this->aivs[aivID].aivSubType = 0;
+ this->aivs[aivID].aivPoorLimit_OR_AIC_buildInterval
+ = getAIBuildInterval(playerID);
+ ++this->aivCount;
+ return aivID;
+ }
+ return 0;
+ }
+}
+}
+
+### 0x004ecf70 setKeepOffsetAndOrientation | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004ECF70
+ void AIVState::setKeepOffsetAndOrientation(int aivID, int keepX, int keepY)
+ {
+ // the AIV is 100x100 tiles with the keep at 43/43
+ this->aivs[aivID].keepX = keepX;
+ this->aivs[aivID].keepY = keepY;
+ this->aivs[aivID].keepXOffset = keepX - 43;
+ this->aivs[aivID].keepYOffset = keepY - 43;
+ // orient the castle towards the map center
+ calculatePreferredRelativeOrientation(keepX, keepY, 200, 200);
+ // the orientation is one of the 8 compass directions; clearing the low bit snaps a diagonal onto the
+ // preceding cardinal direction, so only 0, 2, 4 and 6 remain
+ this->aivs[aivID].keepOrientation = DAT_DirectionAlgorithmState.orientation & 0xfffe;
+ // east and west are swapped relative to the direction algorithm's numbering
+ if (this->aivs[aivID].keepOrientation == 6) {
+ this->aivs[aivID].keepOrientation = 2;
+ return;
+ }
+ if (this->aivs[aivID].keepOrientation == 2) {
+ this->aivs[aivID].keepOrientation = 6;
+ }
+ }
+}
+}
+
+### 0x004ecfe0 convertAIVBuildingTypeToCommandBuildingType | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004ECFE0
+ MappersEnum AIVState::convertAIVBuildingTypeToCommandBuildingType(AIVBuildingType2 aivBuildingType)
+ {
+ switch (aivBuildingType) {
+ case AIV::AIVBT_HIGH_WALL:
+ return Commands::M_MAPPER_WALL;
+ case AIV::AIVBT_LOW_WALL:
+ return Commands::M_MAPPER_WOODWALL;
+ case AIV::AIVBT_CRENEL:
+ return Commands::M_MAPPER_CRENAL;
+ case AIV::AIVBT_LOW_CRENEL:
+ return Commands::M_MAPPER_CRENAL2;
+ case AIV::AIVBT_STAIRS_1:
+ return Commands::M_MAPPER_STAIR1;
+ case AIV::AIVBT_STAIRS_2:
+ return Commands::M_MAPPER_STAIR2;
+ case AIV::AIVBT_STAIRS_3:
+ return Commands::M_MAPPER_STAIR3;
+ case AIV::AIVBT_STAIRS_4:
+ return Commands::M_MAPPER_STAIR4;
+ case AIV::AIVBT_STAIRS_5:
+ return Commands::M_MAPPER_STAIR5;
+ case AIV::AIVBT_STAIRS_6Unk:
+ return Commands::M_MAPPER_STAIR6;
+ case AIV::AIVBT_MOAT_A:
+ case AIV::AIVBT_MOAT_B:
+ case AIV::AIVBT_MOAT_C:
+ case AIV::AIVBT_MOAT_D:
+ return Commands::M_MAPPER_MOAT;
+ case AIV::AIVBT_PITCHDITCH_2:
+ return Commands::M_MAPPER_PITCH_DITCH;
+ }
+ // all other buildings are looked up in a table starting at the first tower
+ if (aivBuildingType < AIV::AIVBT_TOWER1 || aivBuildingType > AIV::AIVBT_TOWER1 + 79) {
+ return Commands::M_MAPPER_GENERIC;
+ }
+ return DAT_AIVDefinedData.field21_0xf4[aivBuildingType - AIV::AIVBT_TOWER1];
+ }
+}
+}
+
+### 0x004ed0b0 rotateAIV | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004ED0B0
+ void AIVState::rotateAIV(int orientation)
+ {
+ AIVBuildingType2Short* pAVar1;
+ AIVState* _pSteps2;
+ AIVState* _pSteps3;
+ short* psVar2;
+ AIVBuildingType2Short* pAVar3;
+ int* _pRotatedSteps;
+ int (*paiVar4)[100];
+ int* piVar5;
+ int (*paiVar6)[100];
+ int iVar7;
+ int local_8;
+ AIVState* _pSteps1;
+ AIVState* _pConstructions;
+ if (orientation != 0) {
+ if (orientation == 6) {
+ orientation = 0x18b4696;
+ _pRotatedSteps = this->rotatedSteps[0] + 99;
+ _pConstructions = (AIVState*)this->constructions;
+ _pSteps1 = (AIVState*)this->steps;
+ local_8 = 100;
+ do {
+ iVar7 = 100;
+ pAVar1 = (AIVBuildingType2Short*)orientation;
+ piVar5 = _pRotatedSteps;
+ do {
+ *pAVar1 = _pConstructions->constructions[0];
+ *piVar5 = _pSteps1->steps[0][0];
+ _pConstructions = (AIVState*)(_pConstructions->constructions + 1);
+ _pSteps1 = (AIVState*)(_pSteps1->steps[0] + 1);
+ pAVar1 = pAVar1 + 100;
+ piVar5 = piVar5 + 100;
+ iVar7 = iVar7 + -1;
+ } while (iVar7 != 0);
+ orientation = orientation + -2;
+ _pRotatedSteps = _pRotatedSteps + -1;
+ local_8 = local_8 + -1;
+ } while (local_8 != 0);
+ } else if (orientation == 4) {
+ pAVar1 = this->constructions;
+ psVar2 = this->rotatedConstructions[99] + 99;
+ _pSteps2 = (AIVState*)this->steps;
+ piVar5 = this->rotatedSteps[99] + 99;
+ orientation = 100;
+ do {
+ iVar7 = 100;
+ do {
+ *psVar2 = *pAVar1;
+ *piVar5 = _pSteps2->steps[0][0];
+ pAVar1 = pAVar1 + 1;
+ _pSteps2 = (AIVState*)(_pSteps2->steps[0] + 1);
+ psVar2 = psVar2 + -1;
+ piVar5 = piVar5 + -1;
+ iVar7 = iVar7 + -1;
+ } while (iVar7 != 0);
+ orientation = orientation + -1;
+ } while (orientation != 0);
+ } else if (orientation == 2) {
+ orientation = 0x18b9328;
+ paiVar4 = this->rotatedSteps + 99;
+ pAVar1 = this->constructions;
+ _pSteps3 = (AIVState*)this->steps;
+ local_8 = 100;
+ do {
+ iVar7 = 100;
+ pAVar3 = (AIVBuildingType2Short*)orientation;
+ paiVar6 = paiVar4;
+ do {
+ *pAVar3 = *pAVar1;
+ (*paiVar6)[0] = _pSteps3->steps[0][0];
+ pAVar1 = pAVar1 + 1;
+ _pSteps3 = (AIVState*)(_pSteps3->steps[0] + 1);
+ pAVar3 = pAVar3 + -100;
+ paiVar6 = paiVar6 + -1;
+ iVar7 = iVar7 + -1;
+ } while (iVar7 != 0);
+ orientation = orientation + 2;
+ paiVar4 = (int (*)[100])(*paiVar4 + 1);
+ local_8 = local_8 + -1;
+ } while (local_8 != 0);
+ }
+ copyData(
+ 20000, (void*)((int)(this->rotatedConstructions)), (void*)((int)(this->constructions)));
+ copyData(
+ 40000, (void*)((int)(this->rotatedSteps)), (void*)((int)(this->steps)));
+ }
+ return;
+ }
+}
+}
+
+### 0x004ed240 aiPlaceFlag | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004ED240
+ void AIVState::aiPlaceFlag(PlayerID playerID)
+ {
+ int _totalHeight;
+ int (*_flagUnitSlotStart)[10];
+ EntityType _flagEntityType;
+ PlayerID _playerID;
+ int _tile;
+ _playerID = playerID;
+ _flagEntityType = *(EntityType*)((int)DAT_EntityState.seagullArray
+ + DAT_GameState.playerDataArray[playerID].aiType * 0x2a4 + 0x2470);
+ if (0 < DAT_GameState.playerDataArray[playerID].aivUnitLocationSlotLocationCount[21]) {
+ _flagUnitSlotStart = DAT_GameState.playerDataArray[playerID].aivUnitLocationSlots + 0x15;
+ playerID = 10;
+ do {
+ _tile = (*_flagUnitSlotStart)[0];
+ if ((0 < _tile)
+ && (((DAT_TileMapState.EntityLayer[_tile] == 0
+ || ((int)(short)DAT_EntityState
+ .entityArray[DAT_TileMapState.EntityLayer[_tile]]
+ .entityType
+ != _flagEntityType))
+ && (_totalHeight = getTotalHeightAt(_tile, _playerID),
+ 0 < _totalHeight)))) {
+ spawnProjectileEntity(0, (undefined4)((int)(_playerID)), (uint)((int)(_playerID)),
+ (_tile
+ - DAT_ViewportRenderState
+ .translationMatrix[DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[_tile]]
+ .addXgetTile)
+ * 8
+ + 4,
+ DAT_ViewportRenderState.tileTranslationMatrix_YComponent[_tile] * 8 + 4,
+ _totalHeight, 0, 0, 0, _flagEntityType, 0);
+ }
+ _flagUnitSlotStart = (int (*)[10])(*_flagUnitSlotStart + 1);
+ playerID = playerID + -1;
+ } while (playerID != 0);
+ }
+ return;
+ }
+}
+}
+
+### 0x004ed300 aiPlaceBrazier | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004ED300
+ void AIVState::aiPlaceBrazier(int playerID)
+ {
+ if (DAT_GameState.playerDataArray[playerID].aivUnitLocationSlotLocationCount[AIVUT_BRAZIER] <= 0) {
+ return;
+ }
+ for (int i = 0; i < 10; ++i) {
+ int const tile = DAT_GameState.playerDataArray[playerID].aivUnitLocationSlots[AIVUT_BRAZIER][i];
+ if (tile <= 0) {
+ continue;
+ }
+ int const entityID = DAT_TileMapState.EntityLayer[tile];
+ if (entityID != 0
+ && DAT_EntityState.entityArray[entityID].entityType == Map::Entities::ET_BRAZIER) {
+ continue;
+ }
+ uint const height
+ = getTotalHeightAtTile(tile);
+ if ((int)height <= 0) {
+ continue;
+ }
+ spawnProjectileEntity(0, playerID,
+ playerID,
+ (tile
+ - DAT_ViewportRenderState
+ .translationMatrix[DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile]]
+ .addXgetTile)
+ * 8,
+ DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile] * 8, height, 0, 0, 0,
+ Map::Entities::ET_BRAZIER, 0);
+ }
+ }
+}
+}
+
+### 0x004ed3b0 incrementStructureHeatMapTile | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004ED3B0
+ void AIVState::incrementStructureHeatMapTile(int x, int y)
+ {
+ if (DAT_GameSynchronyState.currentGameMode == Game::GM_SOLITARY) {
+ return;
+ }
+ ++this->heatMaps[x / 5][y / 5].structureCount;
+ }
+}
+}
+
+### 0x004ed410 aiPlaceAIVBuilding | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004ED410
+ BOOLEnum AIVState::aiPlaceAIVBuilding(int playerID, int step, int isPausing)
+ {
+ int const aivID = DAT_GameState.playerDataArray[playerID].aivID;
+ int x;
+ int y;
+ MappersEnum const mapper = (MappersEnum)this->aivs[aivID].aivBuildingSteps[step].buildingType;
+ // when pausing, only hovels are built
+ if (isPausing && mapper != Commands::M_MAPPER_HOVEL) {
+ return FALSE;
+ }
+ // disabled steps and steps without room are never built
+ if (this->aivs[aivID].aivBuildingSteps[step].buildStatus == AIVBSS_disabled) {
+ return FALSE;
+ }
+ if (this->aivs[aivID].aivBuildingSteps[step].buildStatus == AIVBSS_insufficient_roomUnk) {
+ return FALSE;
+ }
+ if (this->aivs[aivID].aivBuildingSteps[step].buildStatus == AIVBSS_insufficient_resources
+ && this->aivs[aivID].aivBuildingSteps[step].wait > 0) {
+ // wait for more resources
+ --this->aivs[aivID].aivBuildingSteps[step].wait;
+ return FALSE;
+ }
+ if (this->aivs[aivID].aivBuildingSteps[step].buildStatus == AIVBSS_built) {
+ if (DAT_GameState.playerDataArray[playerID].closestEnemyDistanceToTheLord < 120) {
+ return FALSE;
+ }
+ } else if (!checkRequiredResourcesForBuildingOrPlanToBuy(mapper, playerID, FALSE)) {
+ return FALSE;
+ }
+ if (DAT_BuildingsState.unknownCountdown01 < 20) {
+ return FALSE;
+ }
+ if (mapperIsWoodCuttersHutWhileNoWoodAvailable(
+ playerID, mapper)) {
+ return FALSE;
+ }
+ if (mapper == Commands::M_MAPPER_MOAT) {
+ if (this->aivs[aivID].aivBuildingSteps[step].buildStatus == AIVBSS_built
+ && this->aivs[aivID].aivBuildingSteps[step].wait > 0) {
+ --this->aivs[aivID].aivBuildingSteps[step].wait;
+ return FALSE;
+ }
+ for (int i = 0; i < this->aivs[aivID].aivBuildingSteps[step].quantity; ++i) {
+ int const tile
+ = this->aivs[aivID].locationsArray[this->aivs[aivID].aivBuildingSteps[step].location.tile.tile + i];
+ planMoat(
+ playerID, tile, DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile]);
+ }
+ this->aivs[aivID].aivBuildingSteps[step].buildStatus = AIVBSS_built;
+ this->aivs[aivID].aivBuildingSteps[step].wait = 50;
+ return FALSE;
+ }
+ if (mapper == Commands::M_MAPPER_PITCH_DITCH) {
+ if (this->aivs[aivID].aivBuildingSteps[step].buildStatus == AIVBSS_built) {
+ if (this->aivs[aivID].aivBuildingSteps[step].wait > 0) {
+ --this->aivs[aivID].aivBuildingSteps[step].wait;
+ return FALSE;
+ }
+ if (!checkRequiredResourcesForBuildingOrPlanToBuy(Commands::M_MAPPER_PITCH_DITCH, playerID, FALSE)) {
+ return FALSE;
+ }
+ }
+ for (int i = 0; i < this->aivs[aivID].aivBuildingSteps[step].quantity; ++i) {
+ int const tile
+ = this->aivs[aivID].locationsArray[this->aivs[aivID].aivBuildingSteps[step].location.tile.tile + i];
+ y = DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile];
+ x = tile - DAT_ViewportRenderState.translationMatrix[y].addXgetTile;
+ placeBuilding(playerID, x, y,
+ Commands::M_MAPPER_PITCH_DITCH,
+ getBuildingSizeForCommandBuildingType(Commands::M_MAPPER_PITCH_DITCH),
+ // rotation 15 is a magic value: the building ends up with rotation 0
+ // unless DAT_TileMapState::skipPlacementCheck is set
+ 15);
+ }
+ this->aivs[aivID].aivBuildingSteps[step].buildStatus = AIVBSS_built;
+ this->aivs[aivID].aivBuildingSteps[step].wait = 200;
+ return FALSE;
+ }
+ // walls
+ if (mapper == Commands::M_MAPPER_WALL || mapper == Commands::M_MAPPER_WOODWALL
+ || mapper == Commands::M_MAPPER_CRENAL || mapper == Commands::M_MAPPER_CRENAL2) {
+ if (this->aivs[aivID].aivBuildingSteps[step].buildStatus == AIVBSS_built) {
+ if (this->aivs[aivID].aivBuildingSteps[step].wait > 0) {
+ --this->aivs[aivID].aivBuildingSteps[step].wait;
+ return FALSE;
+ }
+ if (DAT_GameState.playerDataArray[playerID].currentResources[Game::Resources::RT_STONE]
+ <= 0) {
+ // no stone, request some
+ if (DAT_GameState.playerDataArray[playerID]
+ .resourcesToAcquireArray[Game::Resources::RT_STONE]
+ > 0) {
+ return FALSE;
+ }
+ DAT_GameState.playerDataArray[playerID].resourcesToAcquireArray[Game::Resources::RT_STONE]
+ = 5;
+ return FALSE;
+ }
+ }
+ for (int i = 0; i < this->aivs[aivID].aivBuildingSteps[step].quantity; ++i) {
+ int const tile
+ = this->aivs[aivID].locationsArray[this->aivs[aivID].aivBuildingSteps[step].location.tile.tile + i];
+ y = DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile];
+ x = tile - DAT_ViewportRenderState.translationMatrix[y].addXgetTile;
+ prepareAreaForBuildingPlacement(
+ playerID, x, y, mapper, 1);
+ placeDefensiveStructureTile(
+ playerID, x, y, mapper);
+ }
+ this->aivs[aivID].aivBuildingSteps[step].buildStatus = AIVBSS_built;
+ this->aivs[aivID].aivBuildingSteps[step].wait = 20;
+ if (!DAT_TileMapState.illegalBuild) {
+ return TRUE;
+ }
+ } else if (mapper == Commands::M_MAPPER_STAIR1 || mapper == Commands::M_MAPPER_STAIR2
+ || mapper == Commands::M_MAPPER_STAIR3 || mapper == Commands::M_MAPPER_STAIR4
+ || mapper == Commands::M_MAPPER_STAIR5 || mapper == Commands::M_MAPPER_STAIR6) {
+ if (this->aivs[aivID].aivBuildingSteps[step].buildStatus == AIVBSS_built
+ && this->aivs[aivID].aivBuildingSteps[step].wait > 0) {
+ --this->aivs[aivID].aivBuildingSteps[step].wait;
+ return FALSE;
+ }
+ y = DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[this->aivs[aivID].aivBuildingSteps[step].location.tile.tile];
+ x = this->aivs[aivID].aivBuildingSteps[step].location.tile.tile
+ - DAT_ViewportRenderState.translationMatrix[y].addXgetTile;
+ prepareAreaForBuildingPlacement(
+ playerID, x, y, mapper, 1);
+ placeDefensiveStructureTile(
+ playerID, x, y, mapper);
+ this->aivs[aivID].aivBuildingSteps[step].buildStatus = AIVBSS_built;
+ this->aivs[aivID].aivBuildingSteps[step].wait = 1;
+ if (!DAT_TileMapState.illegalBuild) {
+ return TRUE;
+ }
+ this->aivs[aivID].aivBuildingSteps[step].buildStatus = AIVBSS_insufficient_resources;
+ this->aivs[aivID].aivBuildingSteps[step].wait = 4;
+ } else {
+ if (shouldNotBeBuildingGranary(playerID, mapper)) {
+ return FALSE;
+ }
+ if (shouldNotBeBuildingArmoury(playerID, mapper)) {
+ return FALSE;
+ }
+ if (shouldNotBeBuildingHovel(playerID, mapper)) {
+ return FALSE;
+ }
+ if (shouldNotBuildMarketArmoryGranaryBarracksMercenarypost(playerID, mapper)) {
+ return FALSE;
+ }
+ if (shouldNotBuildKillingPits(playerID, mapper)) {
+ return FALSE;
+ }
+ int const tile = this->aivs[aivID].aivBuildingSteps[step].location.tile.tile;
+ y = DAT_ViewportRenderState.tileTranslationMatrix_YComponent[tile];
+ x = tile - DAT_ViewportRenderState.translationMatrix[y].addXgetTile;
+ int orientation = 15;
+ if (mapper == Commands::M_MAPPER_BARRACKS_ARAB || mapper == Commands::M_MAPPER_BARRACKS_EURO
+ || mapper == Commands::M_MAPPER_ENGINEERS_GUILD || mapper == Commands::M_MAPPER_TUNNELERS_GUILD
+ || mapper == Commands::M_MAPPER_OIL_SMELTER) {
+ orientation = this->aivs[aivID].keepOrientation;
+ } else if (mapper == Commands::M_MAPPER_GATE_STONE1A || mapper == Commands::M_MAPPER_GATE_STONE2A) {
+ if (this->aivs[aivID].keepOrientation == 0 || this->aivs[aivID].keepOrientation == 4) {
+ orientation = 81;
+ } else {
+ orientation = 80;
+ }
+ } else if (mapper == Commands::M_MAPPER_GATE_STONE1B || mapper == Commands::M_MAPPER_GATE_STONE2B) {
+ if (this->aivs[aivID].keepOrientation == 2 || this->aivs[aivID].keepOrientation == 6) {
+ orientation = 81;
+ } else {
+ orientation = 80;
+ }
+ } else if (mapper == Commands::M_MAPPER_POLETURNER || mapper == Commands::M_MAPPER_BLACKSMITH
+ || mapper == Commands::M_MAPPER_ARMOURER || mapper == Commands::M_MAPPER_TANNER
+ || mapper == Commands::M_MAPPER_FLETCHER || mapper == Commands::M_MAPPER_BAKER
+ || mapper == Commands::M_MAPPER_BREWER) {
+ orientation = 8;
+ } else if (mapper == Commands::M_MAPPER_DRAWBRIDGE) {
+ DAT_TileMapState.buildingPlacementFail = FALSE;
+ checkDrawbridgePlacement(x, y);
+ if (DAT_TileMapState.buildingPlacementFail) {
+ return FALSE;
+ }
+ orientation = DAT_TileMapState.uiBuildingRotation;
+ }
+ if (this->aivs[aivID].aivBuildingSteps[step].buildStatus == AIVBSS_built) {
+ // rebuild a destroyed building
+ int const buildingID = (short)DAT_TileMapState.BuildingLayer[tile];
+ if ((short)DAT_BuildingsState.buildings[buildingID].buildingType
+ == convertCommandBuildingTypeToBuildingType(mapper)) {
+ return FALSE;
+ }
+ if (DAT_GameState.playerDataArray[playerID].aiBuildingDestroyChoiceTracker == 0
+ && DAT_GameState.playerDataArray[playerID].aiNervousActionsTracker == 0
+ && this->aivs[aivID].aivBuildingSteps[step].wait > 0) {
+ --this->aivs[aivID].aivBuildingSteps[step].wait;
+ return FALSE;
+ }
+ if (!checkRequiredResourcesForBuildingOrPlanToBuy(mapper, playerID, FALSE)) {
+ return FALSE;
+ }
+ }
+ if (shouldWaitWithBuildingAPositiveFearFactor(
+ playerID, mapper)) {
+ return FALSE;
+ }
+ if (shouldWaitWithBuildingNegativeFearFactor(
+ playerID, mapper)) {
+ return FALSE;
+ }
+ if (orientation == 15) {
+ DAT_TileMapState.DAT_TempBuildingRotation = 0;
+ } else {
+ DAT_TileMapState.DAT_TempBuildingRotation = orientation / 2;
+ }
+ int const buildingSize = getBuildingSizeForCommandBuildingType(mapper);
+ prepareAreaForBuildingPlacement(
+ playerID, x, y, mapper, buildingSize);
+ // keep orientation is 0, 2, 4 or 6, halving it gives the index of the part offsets
+ if (mapper == Commands::M_MAPPER_BARRACKS_EURO || mapper == Commands::M_MAPPER_BARRACKS_ARAB) {
+ // the three fields in front of the barracks
+ prepareAreaForBuildingPlacement(
+ playerID,
+ DAT_TerrainDefinedData.BuildingPartsOffsets[this->aivs[aivID].keepOrientation / 2][0].x
+ + x,
+ DAT_TerrainDefinedData.BuildingPartsOffsets[this->aivs[aivID].keepOrientation / 2][0].y
+ + y,
+ mapper, buildingSize);
+ prepareAreaForBuildingPlacement(
+ playerID,
+ DAT_TerrainDefinedData.BuildingPartsOffsets[this->aivs[aivID].keepOrientation / 2][1].x
+ + x,
+ DAT_TerrainDefinedData.BuildingPartsOffsets[this->aivs[aivID].keepOrientation / 2][1].y
+ + y,
+ mapper, buildingSize);
+ prepareAreaForBuildingPlacement(
+ playerID,
+ DAT_TerrainDefinedData.BuildingPartsOffsets[this->aivs[aivID].keepOrientation / 2][2].x
+ + x,
+ DAT_TerrainDefinedData.BuildingPartsOffsets[this->aivs[aivID].keepOrientation / 2][2].y
+ + y,
+ mapper, buildingSize);
+ } else if (mapper == Commands::M_MAPPER_ENGINEERS_GUILD || mapper == Commands::M_MAPPER_TUNNELERS_GUILD) {
+ // the guild field
+ prepareAreaForBuildingPlacement(
+ playerID,
+ DAT_TerrainDefinedData.BuildingPartsOffsets[this->aivs[aivID].keepOrientation / 2][1].x
+ + x,
+ DAT_TerrainDefinedData.BuildingPartsOffsets[this->aivs[aivID].keepOrientation / 2][1].y
+ + y,
+ mapper, buildingSize);
+ } else if (mapper == Commands::M_MAPPER_OIL_SMELTER) {
+ prepareAreaForBuildingPlacement(
+ playerID,
+ DAT_TerrainDefinedData.field63_0x19c[this->aivs[aivID].keepOrientation / 2].x + x,
+ DAT_TerrainDefinedData.field63_0x19c[this->aivs[aivID].keepOrientation / 2].y + y, mapper,
+ buildingSize);
+ }
+ placeBuilding(playerID, x, y, mapper,
+ getBuildingSizeForCommandBuildingType(
+ mapper),
+ orientation);
+ int const placedID = DAT_TileMapState.placedBuildingID;
+ if (!DAT_TileMapState.buildingPlacementFail) {
+ DAT_BuildingsState.buildings[placedID].field201_0x2c8 = 1;
+ setupWorkshopProductionType(playerID, placedID);
+ }
+ if (!DAT_TileMapState.buildingPlacementFail) {
+ this->aivs[aivID].aivBuildingSteps[step].buildStatus = AIVBSS_built;
+ } else if (mapper == Commands::M_MAPPER_WHEATFARM || mapper == Commands::M_MAPPER_HOPSFARM
+ || mapper == Commands::M_MAPPER_APPLEFARM || mapper == Commands::M_MAPPER_CATTLEFARM) {
+ this->aivs[aivID].aivBuildingSteps[step].buildStatus = AIVBSS_insufficient_roomUnk;
+ } else {
+ this->aivs[aivID].aivBuildingSteps[step].buildStatus = AIVBSS_insufficient_resources;
+ }
+ this->aivs[aivID].aivBuildingSteps[step].wait
+ = this->aivs[aivID].aivBuildingSteps[step].buildStatus == AIVBSS_built ? 10 : 16;
+ if (!DAT_TileMapState.buildingPlacementFail) {
+ return TRUE;
+ }
+ }
+ return FALSE;
+ }
+}
+}
+
+### 0x004edc90 clearTheHeatmaps | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004EDC90
+ void AIVState::clearTheHeatmaps()
+ {
+ fillMemory_ByteValue(
+ sizeof(this->heatMaps), 0, this->heatMaps);
+ }
+}
+}
+
+### 0x004edcb0 resetCountdownInHeatMap | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004EDCB0
+ void AIVState::resetCountdownInHeatMap(int x, int y)
+ {
+ this->heatMaps[x / 5][y / 5].destructionBasedPlacementCooldown = 10;
+ }
+}
+}
+
+### 0x004eddf0 findSuitableFarmLocationAndPlaceFarm | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004EDDF0
+ BOOLEnum AIVState::findSuitableFarmLocationAndPlaceFarm(int playerID, MappersEnum farmType)
+ {
+ if (DAT_BuildingsState.unknownCountdown01 < 20
+ || DAT_GameState.playerDataArray[playerID].countFarms
+ >= DAT_GameState.playerDataArray[playerID].availableOasisGridTiles) {
+ return FALSE;
+ }
+ if (DAT_GameState.playerDataArray[playerID].algoOasisCooldownUnk > 0) {
+ --DAT_GameState.playerDataArray[playerID].algoOasisCooldownUnk;
+ return FALSE;
+ }
+ this->visitCount = 1;
+ this->algAIndex = 0;
+ this->algBIndex = 1;
+ // despite its declared type, farmType holds the BuildingType of the farm
+ // the original leaves mapper untouched when farmType is none of the four below
+ MappersEnum mapper;
+ if (farmType == Map::Buildings::BT_WHEATFARM) {
+ mapper = Commands::M_MAPPER_WHEATFARM;
+ } else if (farmType == Map::Buildings::BT_HOPFARM) {
+ mapper = Commands::M_MAPPER_HOPSFARM;
+ } else if (farmType == Map::Buildings::BT_APPLEFARM) {
+ mapper = Commands::M_MAPPER_APPLEFARM;
+ } else if (farmType == Map::Buildings::BT_DAIRYFARM) {
+ mapper = Commands::M_MAPPER_CATTLEFARM;
+ }
+ int const campX = DAT_GameState.playerDataArray[playerID].campground.xEntry / 5;
+ this->heatMapXArray[0] = campX;
+ int const campY = DAT_GameState.playerDataArray[playerID].campground.yEntry / 5;
+ ++this->mapExtraInfo.algorithmIterationNumber;
+ this->heatMapYArray[0] = campY;
+ this->heatMaps[campX][campY].algorithmIterationNumber = this->mapExtraInfo.algorithmIterationNumber;
+ this->heatMaps[campX][campY].algorithmVisitCountUnk = this->visitCount;
+ while (this->algAIndex != this->algBIndex) {
+ int const x = this->heatMapXArray[this->algAIndex];
+ int const y = this->heatMapYArray[this->algAIndex];
+ this->visitCount = this->heatMaps[x][y].algorithmVisitCountUnk;
+ if (this->visitCount > 40) {
+ break;
+ }
+ // only the four cardinal directions
+ for (int direction = 0; direction < 8; direction += 2) {
+ uint const gridX
+ = DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[direction].int_.xOffset + x;
+ uint const gridY
+ = DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[direction].int_.yOffset + y;
+ if (this->heatMaps[x][y].isNotNearEdgeUnk && (gridX > 79 || gridY > 79)) {
+ continue;
+ }
+ if (this->heatMaps[gridX][gridY].algorithmIterationNumber
+ == this->mapExtraInfo.algorithmIterationNumber) {
+ continue;
+ }
+ int const notInLargestArea = this->heatMaps[gridX][gridY].tilesNotPartOfLargestAreaCount;
+ this->heatMaps[gridX][gridY].algorithmIterationNumber = this->mapExtraInfo.algorithmIterationNumber;
+ if (notInLargestArea > 16) {
+ continue;
+ }
+ this->heatMaps[gridX][gridY].algorithmVisitCountUnk = this->visitCount + 1;
+ this->heatMapXArray[this->algBIndex] = gridX;
+ this->heatMapYArray[this->algBIndex] = gridY;
+ ++this->algBIndex;
+ if (this->algBIndex >= 6400) {
+ this->algBIndex = 0;
+ }
+ if (this->heatMaps[gridX][gridY].tilesNotPartOfLargestAreaCount
+ || this->heatMaps[gridX][gridY].structureCount || this->heatMaps[gridX][gridY].treeCount
+ || this->heatMaps[gridX][gridY].destructionBasedPlacementCooldown
+ || this->heatMaps[gridX][gridY].oasisScrubCount < 25
+ || this->heatMaps[gridX][gridY].oasisThickScrubCount < 14) {
+ continue;
+ }
+ int const xOffset
+ = DAT_AIVDefinedData.TilesSelfAndRightThree[this->mapExtraInfo.algBuildingPlacementNudge]
+ .x;
+ int const yOffset
+ = DAT_AIVDefinedData.TilesSelfAndRightThree[this->mapExtraInfo.algBuildingPlacementNudge]
+ .y;
+ ++this->counter;
+ placeBuilding(playerID,
+ xOffset + gridX * 5, yOffset + gridY * 5, mapper,
+ getBuildingSizeForCommandBuildingType(mapper),
+ // rotation 15 is a magic value: the building ends up with rotation 0
+ // unless DAT_TileMapState::skipPlacementCheck is set
+ 15);
+ if (!DAT_TileMapState.buildingPlacementFail) {
+ this->heatMaps[gridX][gridY].structureCount = 1;
+ return TRUE;
+ }
+ }
+ ++this->algAIndex;
+ if (this->algAIndex >= 6400) {
+ this->algAIndex = 0;
+ }
+ }
+ DAT_GameState.playerDataArray[playerID].algoOasisCooldownUnk = 5;
+ return FALSE;
+ }
+}
+}
+
+### 0x004ee140 findAppropriateWoodCutterGridLocation | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004EE140
+ void AIVState::findAppropriateWoodCutterGridLocation(int playerID)
+ {
+ int bestScore = -100;
+ uint bestX = -1;
+ uint bestY = -1;
+ this->algAIndex = 0;
+ int foundCount = 0;
+ this->visitCount = 1;
+ this->algBIndex = 1;
+ int const campX = DAT_GameState.playerDataArray[playerID].campground.xEntry / 5;
+ this->heatMapXArray[0] = campX;
+ int const campY = DAT_GameState.playerDataArray[playerID].campground.yEntry / 5;
+ this->heatMapYArray[0] = campY;
+ this->buildingApproriateGridXPosition = -1;
+ this->buildingAppropriateGridYPosition = -1;
+ if (DAT_GameState.playerDataArray[playerID].algoTreeCooldownUnk > 0) {
+ --DAT_GameState.playerDataArray[playerID].algoTreeCooldownUnk;
+ return;
+ }
+ ++this->mapExtraInfo.algorithmIterationNumber;
+ this->heatMaps[campX][campY].algorithmIterationNumber = this->mapExtraInfo.algorithmIterationNumber;
+ this->heatMaps[campX][campY].algorithmVisitCountUnk = this->visitCount;
+ while (this->algAIndex != this->algBIndex) {
+ int const x = this->heatMapXArray[this->algAIndex];
+ int const y = this->heatMapYArray[this->algAIndex];
+ this->visitCount = this->heatMaps[x][y].algorithmVisitCountUnk;
+ if (this->visitCount > 40) {
+ break;
+ }
+ // only the four cardinal directions
+ for (int direction = 0; direction < 8; direction += 2) {
+ uint const gridX
+ = DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[direction].int_.xOffset + x;
+ uint const gridY
+ = DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[direction].int_.yOffset + y;
+ if (this->heatMaps[x][y].isNotNearEdgeUnk && (gridX > 79 || gridY > 79)) {
+ continue;
+ }
+ if (this->heatMaps[gridX][gridY].algorithmIterationNumber
+ == this->mapExtraInfo.algorithmIterationNumber) {
+ continue;
+ }
+ this->heatMaps[gridX][gridY].algorithmIterationNumber = this->mapExtraInfo.algorithmIterationNumber;
+ char const notInLargestArea = this->heatMaps[gridX][gridY].tilesNotPartOfLargestAreaCount;
+ if (notInLargestArea >= 16 || this->heatMaps[gridX][gridY].destructionBasedPlacementCooldown) {
+ continue;
+ }
+ if (notInLargestArea < 6 && this->heatMaps[gridX][gridY].treeCount > 0) {
+ ++foundCount;
+ int score = this->heatMaps[gridX][gridY].treeCount * 5 - this->visitCount * 3;
+ // prefer cells that were not used for a woodcutter recently
+ if (this->heatMaps[gridX][gridY].woodRelatedCountdownTo0) {
+ if (score > 0) {
+ score /= 2;
+ } else {
+ score *= 2;
+ }
+ }
+ if (score > bestScore) {
+ bestX = gridX;
+ bestY = gridY;
+ bestScore = score;
+ }
+ if (foundCount > 10 || (foundCount > 5 && this->visitCount > 20)
+ || (foundCount > 0 && this->visitCount > 30)) {
+ break;
+ }
+ }
+ this->heatMaps[gridX][gridY].algorithmVisitCountUnk = this->visitCount + 1;
+ this->heatMapXArray[this->algBIndex] = gridX;
+ this->heatMapYArray[this->algBIndex] = gridY;
+ ++this->algBIndex;
+ if (this->algBIndex >= 6400) {
+ this->algBIndex = 0;
+ }
+ }
+ ++this->algAIndex;
+ if (this->algAIndex >= 6400) {
+ this->algAIndex = 0;
+ }
+ }
+ if (foundCount > 0) {
+ this->buildingApproriateGridXPosition = bestX;
+ this->buildingAppropriateGridYPosition = bestY;
+ return;
+ }
+ DAT_GameState.playerDataArray[playerID].algoTreeCooldownUnk = 5;
+ }
+}
+}
+
+### 0x004ee430 findAppropriateGridLocationForResourceTypeBuilding | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004EE430
+ void AIVState::findAppropriateGridLocationForResourceTypeBuilding(
+ int playerID, AIGridComputationResourceType resourceType)
+ {
+ this->visitCount = 1;
+ this->algAIndex = 0;
+ this->algBIndex = 1;
+ this->buildingApproriateGridXPosition = -1;
+ this->buildingAppropriateGridYPosition = -1;
+ if (resourceType == AIGCRT_OIL) {
+ if (DAT_GameState.playerDataArray[playerID].countPitchRigs
+ >= DAT_GameState.playerDataArray[playerID].availableOilGridTiles) {
+ return;
+ }
+ if (DAT_GameState.playerDataArray[playerID].algoOilCooldown > 0) {
+ --DAT_GameState.playerDataArray[playerID].algoOilCooldown;
+ return;
+ }
+ } else if (resourceType == AIGCRT_IRON) {
+ if (DAT_GameState.playerDataArray[playerID].countIronMines
+ >= DAT_GameState.playerDataArray[playerID].availableIronGridTiles) {
+ return;
+ }
+ if (DAT_GameState.playerDataArray[playerID].algoIronCooldown > 0) {
+ --DAT_GameState.playerDataArray[playerID].algoIronCooldown;
+ return;
+ }
+ } else if (resourceType == AIGCRT_BOULDER) {
+ if (DAT_GameState.playerDataArray[playerID].countStoneQuarries
+ >= DAT_GameState.playerDataArray[playerID].availableBoulderGridTiles) {
+ return;
+ }
+ if (DAT_GameState.playerDataArray[playerID].algoBoulderCooldown > 0) {
+ --DAT_GameState.playerDataArray[playerID].algoBoulderCooldown;
+ return;
+ }
+ }
+ int const campX = DAT_GameState.playerDataArray[playerID].campground.xEntry / 5;
+ this->heatMapXArray[0] = campX;
+ int const campY = DAT_GameState.playerDataArray[playerID].campground.yEntry / 5;
+ ++this->mapExtraInfo.algorithmIterationNumber;
+ this->heatMapYArray[0] = campY;
+ this->heatMaps[campX][campY].algorithmIterationNumber = this->mapExtraInfo.algorithmIterationNumber;
+ this->heatMaps[campX][campY].algorithmVisitCountUnk = this->visitCount;
+ while (this->algAIndex != this->algBIndex) {
+ int const x = this->heatMapXArray[this->algAIndex];
+ int const y = this->heatMapYArray[this->algAIndex];
+ this->visitCount = this->heatMaps[x][y].algorithmVisitCountUnk;
+ if (this->visitCount > 40) {
+ break;
+ }
+ // only the four cardinal directions
+ for (int direction = 0; direction < 8; direction += 2) {
+ uint const gridX
+ = DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[direction].int_.xOffset + x;
+ uint const gridY
+ = DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[direction].int_.yOffset + y;
+ if (this->heatMaps[x][y].isNotNearEdgeUnk && (gridX > 79 || gridY > 79)) {
+ continue;
+ }
+ if (this->heatMaps[gridX][gridY].algorithmIterationNumber
+ == this->mapExtraInfo.algorithmIterationNumber) {
+ continue;
+ }
+ this->heatMaps[gridX][gridY].algorithmIterationNumber = this->mapExtraInfo.algorithmIterationNumber;
+ int const blockedCount = this->heatMaps[gridX][gridY].tilesNotPartOfLargestAreaCount
+ - this->heatMaps[gridX][gridY].impassableCount;
+ if (blockedCount >= 16) {
+ continue;
+ }
+ int const owner = this->heatMaps[gridX][gridY].tileOwnership;
+ if ((blockedCount == 0 || resourceType == AIGCRT_IRON) && blockedCount <= 4
+ && !this->heatMaps[gridX][gridY].structureCount
+ && !this->heatMaps[gridX][gridY].destructionBasedPlacementCooldown
+ && (!this->heatMaps[gridX][gridY].tileOwnership
+ || DAT_GameState.mapAndTime.playerTeams[playerID]
+ == DAT_GameState.mapAndTime.playerTeams[owner])) {
+ if (resourceType == AIGCRT_OIL) {
+ if (this->heatMaps[gridX][gridY].oilCount > 2 && this->heatMaps[gridX][gridY].marshCount >= 10
+ && this->heatMaps[gridX][gridY].highestTerrainHeight
+ - this->heatMaps[gridX][gridY].lowestTerrainHeight
+ < 12) {
+ this->buildingApproriateGridXPosition = gridX;
+ this->buildingAppropriateGridYPosition = gridY;
+ return;
+ }
+ } else if (resourceType == AIGCRT_IRON) {
+ if (this->heatMaps[gridX][gridY].ironCount > 6
+ && this->heatMaps[gridX][gridY].highestTerrainHeight
+ - this->heatMaps[gridX][gridY].lowestTerrainHeight
+ < 12) {
+ this->buildingApproriateGridXPosition = gridX;
+ this->buildingAppropriateGridYPosition = gridY;
+ return;
+ }
+ } else if (resourceType == AIGCRT_BOULDER) {
+ if (this->heatMaps[gridX][gridY].bouldersCount >= 8
+ && this->heatMaps[gridX][gridY].highestTerrainHeight
+ - this->heatMaps[gridX][gridY].lowestTerrainHeight
+ < 40) {
+ this->buildingApproriateGridXPosition = gridX;
+ this->buildingAppropriateGridYPosition = gridY;
+ return;
+ }
+ }
+ }
+ this->heatMaps[gridX][gridY].algorithmVisitCountUnk = this->visitCount + 1;
+ this->heatMapXArray[this->algBIndex] = gridX;
+ this->heatMapYArray[this->algBIndex] = gridY;
+ ++this->algBIndex;
+ if (this->algBIndex >= 6400) {
+ this->algBIndex = 0;
+ }
+ }
+ ++this->algAIndex;
+ if (this->algAIndex >= 6400) {
+ this->algAIndex = 0;
+ }
+ }
+ // nothing found, wait before searching again
+ if (resourceType == AIGCRT_OIL) {
+ DAT_GameState.playerDataArray[playerID].algoOilCooldown = 5;
+ return;
+ }
+ if (resourceType == AIGCRT_IRON) {
+ DAT_GameState.playerDataArray[playerID].algoIronCooldown = 5;
+ return;
+ }
+ if (resourceType == AIGCRT_BOULDER) {
+ DAT_GameState.playerDataArray[playerID].algoBoulderCooldown = 5;
+ }
+ }
+}
+}
+

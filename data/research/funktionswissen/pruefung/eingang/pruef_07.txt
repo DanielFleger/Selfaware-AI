@@ -1,0 +1,958 @@
+### 0x00535fd0 makeSelectionBasedOnShortcut | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00535FD0
+ void UnitsState::makeSelectionBasedOnShortcut(int section1099ID)
+ {
+ for (DAT_CurrentUnitSlotID = 1; DAT_CurrentUnitSlotID < this->maxUnitCount;
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1) {
+ if (this->units[DAT_CurrentUnitSlotID].logicalState == ULS_NORMAL
+ && !this->units[DAT_CurrentUnitSlotID].dying) {
+ this->units[DAT_CurrentUnitSlotID].isSelected = 0;
+ }
+ }
+ this->totalUnitsInSelection = 0;
+ for (int i = 0; i < 2500; ++i) {
+ int _unitID = DAT_GameState.hotkeyTribes[section1099ID].units[i].id;
+ if (_unitID == -1) {
+ continue;
+ }
+ if (this->units[_unitID].uid == DAT_GameState.hotkeyTribes[section1099ID].units[i].uid
+ && this->units[_unitID].unknownTestAgainst0_2 == 0
+ && this->units[_unitID].disappearFadeAlphaCountdown == 0) {
+ this->units[_unitID].isSelected = 1;
+ this->totalUnitsInSelection = this->totalUnitsInSelection + 1;
+ } else {
+ DAT_GameState.hotkeyTribes[section1099ID].units[i].id = -1;
+ }
+ }
+ if (this->totalUnitsInSelection > 0) {
+ createTribeFromSelectedUnits();
+ }
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00535fd0", "name": "makeSelectionBasedOnShortcut", "quelle": "nachgebaut", "p1": {"bereich": "Einheiten", "zweck": "Stellt eine Auswahl aus einer gespeicherten Hotkey-Gruppe wieder her."}, "p2": {"ein": "section1099ID (Hotkey-Platz)", "aus": "-", "liest": ["DAT_GameState.hotkeyTribes[id].units[0..2499] (id, uid)", "units[].uid/unknownTestAgainst0_2/disappearFadeAlphaCountdown"], "schreibt": ["units[].isSelected", "totalUnitsInSelection", "hotkeyTribes[id].units[i].id"], "ruft": ["createTribeFromSelectedUnits"], "regeln": ["Löscht zuerst die Markierung aller Einheiten im Normalzustand, nicht sterbend; Zähler = 0", "Bis zu 2500 Einträge je Hotkey-Gruppe", "Eintrag mit id -1 wird übersprungen", "Eine Einheit wird markiert, wenn ihre uid zum Eintrag passt, unknownTestAgainst0_2 == 0 und disappearFadeAlphaCountdown == 0", "Sonst wird der Eintrag auf id = -1 gesetzt (dauerhaft entfernt)", "Bei mindestens einer markierten Einheit folgt createTribeFromSelectedUnits"], "offen": []}, "p3": {"erklaerung": "Beim Drücken einer Gruppentaste werden die gemerkten Einheiten wieder gewählt. Tote oder ersetzte Einheiten fallen dabei aus der Gruppe.", "gehirn": "-", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x004a15b0 isEnemyTooCloseUnk | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004A15B0
+ BOOLEnum PathFindingState::isEnemyTooCloseUnk(int playerID, uint x, uint y, int requiredDistance)
+ {
+ short* _enemyIdPtr;
+ int _xEnemyDistance;
+ int _enemyLoopCounter;
+ int _yEnemyDistance;
+ int _enemies;
+ short _enemyID;
+ if (((399 < x) || (399 < y)) || (*(char*)(y * 400 + 0x21aec98 + x) == '\0')) {
+ return FALSE;
+ }
+ _enemies = DAT_GameState.playerDataArray[playerID].enemies;
+ _enemyLoopCounter = 0;
+ if (0 < _enemies) {
+ _enemyIdPtr = DAT_GameState.playerDataArray[playerID].enemyIDArray;
+ do {
+ _enemyID = *_enemyIdPtr;
+ if (((((DAT_UnitsState.units[_enemyID].dying == 0)
+ && (DAT_UnitsState.units[_enemyID].uid
+ == *(int*)(playerID * 10000 + 0x11a66f0 + _enemyLoopCounter * 4)))
+ && ((_xEnemyDistance = x - (int)DAT_UnitsState.units[_enemyID].x,
+ _yEnemyDistance = y - (int)DAT_UnitsState.units[_enemyID].y,
+ _yEnemyDistance * _yEnemyDistance + _xEnemyDistance * _xEnemyDistance
+ < requiredDistance * requiredDistance
+ && ((DAT_UnitsState.units[_enemyID].unknownTestAgainst0_2 == 0
+ && (DAT_UnitsState.units[_enemyID].moveRelatedFlag != 1))))))
+ && (DAT_UnitsState.units[_enemyID].isStalked == 0))
+ && (DAT_UnitsState.units[_enemyID].owner != 0)) {
+ return TRUE;
+ }
+ _enemyLoopCounter = _enemyLoopCounter + 1;
+ _enemyIdPtr = _enemyIdPtr + 1;
+ } while (_enemyLoopCounter < _enemies);
+ }
+ return FALSE;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004a15b0", "name": "isEnemyTooCloseUnk", "quelle": "ghidra", "p1": {"bereich": "Wegfindung", "zweck": "Prüft, ob in der Nähe eines Feldes ein Feind des Spielers steht."}, "p2": {"ein": "playerID, x, y, requiredDistance", "aus": "TRUE/FALSE", "liest": ["playerDataArray[spieler].enemies", "playerDataArray[spieler].enemyIDArray", "units[].dying/uid/x/y/unknownTestAgainst0_2/moveRelatedFlag/isStalked/owner", "Feld bei 0x21aec98 (Gültigkeit des Feldes)", "Liste bei 0x11a66f0 + spieler*10000 (uid-Abgleich)"], "schreibt": [], "ruft": [], "regeln": ["Liegt x oder y bei 400 oder darüber, oder ist das Feld bei 0x21aec98 gleich 0, ist das Ergebnis FALSE", "Geprüft werden nur die Einheiten aus der Feindliste des Spielers (enemies Stück)", "TRUE nur, wenn die Feind-Einheit nicht sterbend ist, ihre uid zur gemerkten uid der Liste passt, ihr quadrierter Abstand kleiner als requiredDistance zum Quadrat ist, unknownTestAgainst0_2 = 0, moveRelatedFlag ungleich 1, isStalked = 0 und owner ungleich 0", "Abstand ist ein echter Abstand (Quadrate), kein Feldschritt-Abstand"], "offen": ["Bedeutung von unknownTestAgainst0_2, moveRelatedFlag und isStalked", "Wofür das Spiel diese Prüfung benutzt (Name mit Unk)"]}, "p3": {"erklaerung": "Antwortet, ob eine Einheit aus der Feindliste des Spielers näher als die verlangte Entfernung an einem Feld steht. Verfolgte (isStalked) und bestimmte bewegte Feinde zählen nicht.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x00524ca0 isTribePathToDestinationClear | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00524CA0
+ undefined4 TribesState::isTribePathToDestinationClear(
+ int param_1, uint param_2, uint param_3, uint param_4, uint param_5)
+ {
+ uint uVar1;
+ int iVar2;
+ int iVar3;
+ int local_4;
+ local_4 = 0;
+ if ((((param_2 < 400) && (param_3 < 400)) && (*(char*)(param_3 * 400 + 0x21aec98 + param_2) != '\0'))
+ && (((param_4 < 400 && (param_5 < 400))
+ && ((*(char*)(param_5 * 400 + 0x21aec98 + param_4) != '\0'
+ && (iVar2 = DAT_ViewportRenderState.translationMatrix[param_5].addXgetTile + param_4,
+ DAT_TileMapState.PathConnectionLayer
+ [DAT_ViewportRenderState.translationMatrix[param_3].addXgetTile + param_2]
+ == DAT_TileMapState.PathConnectionLayer[iVar2])))))) {
+ this->ALG_ResultTileIndex = 0;
+ uVar1 = DAT_TileMapState.LogicLayer[iVar2];
+ findLinkageBasedPathOrWalkRadius(param_4, param_5, -1, -1, 500, FALSE);
+ while (true) {
+ do {
+ if (this->tribes[param_1].size <= local_4) {
+ return (undefined4)(1);
+ }
+ iVar2 = getUnitIDForIndexInTribe(param_1, local_4);
+ local_4 = local_4 + 1;
+ } while ((DAT_UnitsState.units[iVar2].logicalState != ULS_NORMAL)
+ || (DAT_UnitsState.units[iVar2].dying != 0));
+ iVar3 = findClosestTileToStartingTile(2 - (uint)((uVar1 & 0x100) != 0));
+ this->ALG_ResultTileIndex = this->ALG_ResultTileIndex + 1;
+ if (499 < this->ALG_ResultTileIndex)
+ break;
+ iVar3 = (int)(short)DAT_TileMapState.UnitLayer[iVar3];
+ if ((((iVar3 != 0) && (iVar2 != iVar3))
+ && (DAT_UnitsState.units[iVar3].tribeID != param_1))
+ && (DAT_UnitsState.units[iVar3].tunnelerFinishedDigging != 2)) {
+ return (undefined4)(0);
+ }
+ }
+ }
+ return (undefined4)(0);
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00524ca0", "name": "isTribePathToDestinationClear", "quelle": "ghidra", "p1": {"bereich": "Truppen/Gruppen", "zweck": "Prüft, ob das Zielfeld einer Gruppe frei von fremden Einheiten ist."}, "p2": {"ein": "tribeID, Startx, Starty, Zielx, Ziely", "aus": "1 = frei, 0 = nicht frei", "liest": ["Kartengültigkeits-Tabelle (400x400)", "PathConnectionLayer", "LogicLayer[Ziel]", "UnitLayer", "units[].tribeID/tunnelerFinishedDigging"], "schreibt": ["ALG_ResultTileIndex"], "ruft": ["findLinkageBasedPathOrWalkRadius", "getUnitIDForIndexInTribe", "findClosestTileToStartingTile"], "regeln": ["Alle vier Koordinaten müssen unter 400 liegen und auf gültigen Kartenfeldern", "Start und Ziel müssen in derselben PathConnectionLayer-Zone liegen, sonst 0", "Suche um das Ziel mit Radius 500", "Je lebender Einheit der Gruppe wird ein nächstes Feld geholt; Modus 1, wenn LogicLayer des Ziels Bit 0x100 hat, sonst Modus 2", "Nach 500 Feldern Abbruch mit 0", "Steht auf einem Feld eine fremde Einheit (andere Gruppe, nicht tunnelnd), ist das Ergebnis 0"], "offen": ["Bedeutung von LogicLayer-Bit 0x100", "Aufrufer"]}, "p3": {"erklaerung": "Das Spiel prüft vorab, ob genug freie Felder am Ziel da sind, damit die ganze Gruppe dort Platz hat.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x00457e80 getWallTilesThatCanBeBuilt | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00457E80
+ int GameStateStructures::getWallTilesThatCanBeBuilt(int playerID, int wallMaterial)
+ {
+ int _wallTiles;
+ int _partialResourceCount;
+ int _resourceCount;
+ if ((DAT_GameCore.solitaryAllBuildingsAreFree == FALSE)
+ && (DAT_GameCore.gameMode_2 != GM_EDITOR)) {
+ if (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT) {
+ return this->playerDataArray[playerID].startResources[4];
+ }
+ if (wallMaterial == 4) {
+ _resourceCount = this->playerDataArray[playerID].currentResources[4];
+ _partialResourceCount = *(int*)&this->playerDataArray[playerID].partialStoneCounter;
+ } else {
+ if (wallMaterial != 2) {
+ return 0;
+ }
+ _resourceCount = this->playerDataArray[playerID].currentResources[2];
+ /*
+ this is the only leftover of the partial wood stuff from SH1
+ */
+ _partialResourceCount = *(int*)&this->playerDataArray[playerID].partialWoodCounter;
+ }
+ _wallTiles = _resourceCount * 2;
+ if (_partialResourceCount != 0) {
+ _wallTiles = _wallTiles + -1;
+ }
+ if (250 < _wallTiles) {
+ return (int)(250);
+ }
+ } else {
+ _wallTiles = 100;
+ }
+ return _wallTiles;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00457e80", "name": "getWallTilesThatCanBeBuilt", "quelle": "ghidra", "p1": {"bereich": "Spielablauf", "zweck": "Wie viele Mauerfelder sich mit dem Vorrat noch bauen lassen."}, "p2": {"ein": "playerID, wallMaterial (4 = Stein, 2 = Holz)", "aus": "Anzahl baubarer Mauerfelder", "liest": ["solitaryAllBuildingsAreFree", "gameMode_2", "playerDataArray[sp].startResources[4]", "currentResources[4]", "currentResources[2]", "partialStoneCounter", "partialWoodCounter"], "schreibt": [], "ruft": [], "regeln": ["Alle Gebäude gratis (solitaryAllBuildingsAreFree) oder Editor: immer 100", "Modus GM_SIEGE_THAT: startResources[4] des Spielers, ohne Obergrenze", "Material 4 oder 2: Felder = Bestand × 2, minus 1 wenn der Teilzähler (partialStoneCounter bzw. partialWoodCounter) ungleich 0 ist; höchstens 250", "Anderes Material: 0"], "offen": ["Wann der Teilzähler gesetzt wird (Ghidra-Kommentar: Rest der Teil-Holz-Logik aus SH1)"]}, "p3": {"erklaerung": "Eine Einheit Stein oder Holz reicht für 2 Mauerfelder; ein angebrochenes Stück kostet ein Feld. Mehr als 250 Felder zählt das Spiel nicht.", "gehirn": "Mauerplanung: Felder = 2 × Bestand (minus 1 bei angebrochenem Stück), gedeckelt bei 250.", "beleg": "code", "live": "Steinbestand 20 → baubare Mauerfelder in der Bauanzeige → 40 (39 bei angebrochenem Stück)", "live_art": "bauen"}}
+
+### 0x005000a0 recountTotalOwnedMoats | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x005000A0
+ void TileMapState::recountTotalOwnedMoats()
+ {
+ this->currentMoatCount = 0;
+ for (int i = 1; i < 16000; ++i) {
+ if (this->moats[i].owner != 0) {
+ // not a count: one past the highest owned moat index, used as loop bound
+ this->currentMoatCount = i + 1;
+ }
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x005000a0", "name": "recountTotalOwnedMoats", "quelle": "nachgebaut", "p1": {"bereich": "Gebaeude", "zweck": "Setzt die Obergrenze für Wassergräben: höchster belegter Grabenindex plus 1."}, "p2": {"ein": "-", "aus": "-", "liest": ["moats[1..15999].owner"], "schreibt": ["currentMoatCount"], "ruft": [], "regeln": ["Schleife über Index 1 bis 15999", "currentMoatCount = höchster Index mit owner != 0, plus 1", "Kein Graben vorhanden: 0"], "offen": []}, "p3": {"erklaerung": "Der Name täuscht: Es ist keine Anzahl, sondern die Schleifengrenze für Grabensuchen. Lücken zwischen den Indizes zählen mit.", "gehirn": "currentMoatCount nicht als Zahl der Gräben lesen.", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x004ca0c0 setAICParameters_14 | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004CA0C0
+ void AICState::setAICParameters_14(int aicIndex)
+ {
+ this->aics[aicIndex].flagType = 13;
+ this->aics[aicIndex].unknown002 = 0;
+ this->aics[aicIndex].unknown001 = 0;
+ this->aics[aicIndex].unknown003 = 0;
+ this->aics[aicIndex].unknown004 = 1;
+ this->aics[aicIndex].unknown005 = 1;
+ this->aics[aicIndex].criticalPopularity = 4000;
+ this->aics[aicIndex].lowestPopularity = 6000;
+ this->aics[aicIndex].highestPopularity = 9000;
+ this->aics[aicIndex].taxesMin = 3;
+ this->aics[aicIndex].taxesMax = 11;
+ this->aics[aicIndex].farm1 = 32;
+ this->aics[aicIndex].farm2 = 31;
+ this->aics[aicIndex].farm3 = 33;
+ this->aics[aicIndex].populationPerFarm = 4;
+ this->aics[aicIndex].unknown011 = 10;
+ this->aics[aicIndex].maxFood = 300;
+ this->aics[aicIndex].minimumApples = 20;
+ this->aics[aicIndex].minimumCheese = 20;
+ this->aics[aicIndex].minimumBread = -1;
+ this->aics[aicIndex].minimumWheat = -1;
+ this->aics[aicIndex].minimumHop = 2;
+ this->aics[aicIndex].tradeAmountFood = 10;
+ this->aics[aicIndex].tradeAmountEquipment = 2;
+ this->aics[aicIndex].aiRequestDelay = 40;
+ this->aics[aicIndex].minimumGoodsRequiredAfterTrade = 40;
+ this->aics[aicIndex].doubleRationsFoodThreshold = 40;
+ this->aics[aicIndex].maxWood = 50;
+ this->aics[aicIndex].maxStone = 50;
+ this->aics[aicIndex].maxResourceOther = 10;
+ this->aics[aicIndex].maxEquipment = 10;
+ this->aics[aicIndex].maxBeer = 10;
+ this->aics[aicIndex].maxResourceVariance = 5;
+ this->aics[aicIndex].recruitGoldThreshold = 200;
+ this->aics[aicIndex].populationPerWoodcutter = 7;
+ this->aics[aicIndex].populationPerQuarry = 10;
+ this->aics[aicIndex].populationPerIronmine = 12;
+ this->aics[aicIndex].populationPerPitchrig = 15;
+ this->aics[aicIndex].maxQuarries = 3;
+ this->aics[aicIndex].maxIronmines = 6;
+ this->aics[aicIndex].maxWoodcutters = 10;
+ this->aics[aicIndex].maxPitchrigs = 4;
+ this->aics[aicIndex].maxFarms = 10;
+ this->aics[aicIndex].buildInterval = 3;
+ this->aics[aicIndex].resourceRebuildDelay = 8;
+ this->aics[aicIndex].blacksmithSetting = 21;
+ this->aics[aicIndex].fletcherSetting = 18;
+ this->aics[aicIndex].poleturnerSetting = 20;
+ this->aics[aicIndex].sellResource05 = 9;
+ this->aics[aicIndex].sellResource07 = 16;
+ this->aics[aicIndex].sellResource08 = 17;
+ this->aics[aicIndex].sellResource10 = 19;
+ this->aics[aicIndex].sellResource11 = 20;
+ this->aics[aicIndex].sellResource13 = 22;
+ this->aics[aicIndex].sellResource15 = 24;
+ this->aics[aicIndex].defWallPatrolRallyTime = 8;
+ this->aics[aicIndex].defWallPatrolGroups = 2;
+ this->aics[aicIndex].defSiegeEngineGoldThreshold = 200;
+ this->aics[aicIndex].defSiegeEngineBuildDelay = 4;
+ this->aics[aicIndex].unknown072 = 200;
+ this->aics[aicIndex].unknown073 = 30;
+ this->aics[aicIndex].recruitProbDefWeak = 100;
+ this->aics[aicIndex].recruitProbDefDefault = 50;
+ this->aics[aicIndex].recruitProbDefStrong = 30;
+ this->aics[aicIndex].recruitProbRaidWeak = 0;
+ this->aics[aicIndex].recruitProbRaidDefault = 30;
+ this->aics[aicIndex].recruitProbRaidStrong = 50;
+ this->aics[aicIndex].recruitProbAttackWeak = 0;
+ this->aics[aicIndex].recruitProbAttackDefault = 20;
+ this->aics[aicIndex].recruitProbAttackStrong = 20;
+ this->aics[aicIndex].RecruitIntervalWeak = 1;
+ this->aics[aicIndex].RecruitInterval = 4;
+ this->aics[aicIndex].RecruitIntervalStrong = 4;
+ this->aics[aicIndex].SortieUnitRangedMin = 10;
+ this->aics[aicIndex].SortieUnitRanged = 23;
+ this->aics[aicIndex].SortieUnitMeleeMin = 10;
+ this->aics[aicIndex].SortieUnitMelee = 26;
+ this->aics[aicIndex].DefDiggingUnitMax = 4;
+ this->aics[aicIndex].DefDiggingUnit = 26;
+ this->aics[aicIndex].DefWalls = 40;
+ this->aics[aicIndex].DefTotal = 50;
+ this->aics[aicIndex].OuterPatrolGroupsCount = 1;
+ this->aics[aicIndex].OuterPatrolGroupsMove = 1;
+ this->aics[aicIndex].OuterPatrolRallyDelay = 5;
+ this->aics[aicIndex].DefUnit1 = 23;
+ this->aics[aicIndex].DefUnit2 = 23;
+ this->aics[aicIndex].RaidUnitsBase = 10;
+ this->aics[aicIndex].RaidUnitsRandom = 4;
+ this->aics[aicIndex].DefUnit3 = 23;
+ this->aics[aicIndex].DefUnit4 = 76;
+ this->aics[aicIndex].DefUnit5 = 73;
+ this->aics[aicIndex].RaidUnit1 = 26;
+ this->aics[aicIndex].HarassingSiegeEnginesMax = 5;
+ this->aics[aicIndex].HarassingSiegeEngine1 = 190;
+ this->aics[aicIndex].HarassingSiegeEngine2 = 358;
+ this->aics[aicIndex].RaidRetargetDelay = 4;
+ this->aics[aicIndex].AttForceBase = 50;
+ this->aics[aicIndex].AttForceRandom = 20;
+ this->aics[aicIndex].AttForceSupportAllyThreshold = 50;
+ this->aics[aicIndex].AttForceRallyPercentage = 80;
+ this->aics[aicIndex].AttMovingTribesThreshold = 100;
+ this->aics[aicIndex].AttAssaultDelay = 5;
+ this->aics[aicIndex].AttUnitPatrolRecommandDelay = 8;
+ this->aics[aicIndex].AttCoordinationPreference = 50;
+ this->aics[aicIndex].CowThrowInterval = 6;
+ this->aics[aicIndex].SiegeEngine1 = 39;
+ this->aics[aicIndex].SiegeEngine2 = 39;
+ this->aics[aicIndex].SiegeEngine3 = 77;
+ this->aics[aicIndex].SiegeEngine4 = 77;
+ this->aics[aicIndex].SiegeEngine5 = 77;
+ this->aics[aicIndex].AttMaxEngineers = 10;
+ this->aics[aicIndex].AttDiggingUnit = 71;
+ this->aics[aicIndex].AttDiggingUnitMax = 80;
+ this->aics[aicIndex].AttMaxAssassins = 10;
+ this->aics[aicIndex].AttUnit2 = 26;
+ this->aics[aicIndex].AttUnit2Max = 10;
+ this->aics[aicIndex].AttMaxLaddermen = 0;
+ this->aics[aicIndex].AttMaxTunnelers = 0;
+ this->aics[aicIndex].AttUnitPatrol = 76;
+ this->aics[aicIndex].AttUnitPatrolMax = 0;
+ this->aics[aicIndex].AttUnitPatrolGroupsCount = 0;
+ this->aics[aicIndex].AttUnitBackup = 23;
+ this->aics[aicIndex].AttUnitBackupMax = 50;
+ this->aics[aicIndex].AttUnitBackupGroupsCount = 1;
+ this->aics[aicIndex].AttUnitEngageMax = 0;
+ this->aics[aicIndex].AttUnitEngage = 0;
+ this->aics[aicIndex].AttUnitSiegeDef = 26;
+ this->aics[aicIndex].AttUnitSiegeDefMax = 6;
+ this->aics[aicIndex].AttUnitSiegeDefGroupsCount = 1;
+ this->aics[aicIndex].AttUnitMain1 = 26;
+ this->aics[aicIndex].AttUnitMain2 = 26;
+ this->aics[aicIndex].AttMaxDefault = 200;
+ this->aics[aicIndex].AttMainGroupsCount = 3;
+ this->aics[aicIndex].TargetChoice = AITC_CLOSEST;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004ca0c0", "name": "setAICParameters_14", "quelle": "nachgebaut", "p1": {"bereich": "KI", "zweck": "Belegt den Parametersatz Nr. 14 eines KI-Gegners mit festen Grundwerten."}, "p2": {"ein": "aicIndex (Platz im Feld aics)", "aus": "nichts", "liest": [], "schreibt": ["AICState.aics[aicIndex].* (rund 135 Felder)"], "ruft": [], "regeln": ["Wirtschaft: flagType 13, Beliebtheit kritisch 4000 / niedrigste 6000 / höchste 9000, Steuern 3 bis 11, farm1..3 = 32/31/33, populationPerFarm 4, maxFood 300, Äpfel 20, Käse 20, Brot/Weizen -1, Hopfen 2, tradeAmountFood 10, tradeAmountEquipment 2, aiRequestDelay 40, minimumGoodsRequiredAfterTrade 40, doubleRationsFoodThreshold 40", "Lagergrenzen: Holz 50, Stein 50, Sonstiges 10, Ausrüstung 10, Bier 10, Schwankung 5; recruitGoldThreshold 200", "Bauten: Einwohner je Holzfäller 7, Steinbruch 10, Eisenmine 12, Pechgrube 15; Höchstzahl Steinbrüche 3, Eisenminen 6, Holzfäller 10, Pechgruben 4, Farmen 10; buildInterval 3, resourceRebuildDelay 8; blacksmith 21, fletcher 18, poleturner 20; sellResource05/07/08/10/11/13/15 = 9/16/17/19/20/22/24", "Anwerbe-Wahrscheinlichkeit schwach/normal/stark: Verteidigung 100/50/30, Raubzug 0/30/50, Angriff 0/20/20; Anwerbe-Takt 1/4/4", "Verteidigung: Mauerpatrouille Sammelzeit 8, Gruppen 2; DefWalls 40, DefTotal 50; Ausfall Fernkämpfer min 10 / Typ 23, Nahkämpfer min 10 / Typ 26; DefUnit1..5 = 23/23/23/76/73; Raubzug Basis 10 + Zufall 4, RaidUnit1 26, HarassingSiegeEnginesMax 5, Maschinen 190/358", "Angriff: AttForceBase 50 + Zufall 20, Rallye 80 %, AttAssaultDelay 5, Koordination 50, CowThrowInterval 6 (sonst 10000), SiegeEngine1..5 = 39/39/77/77/77, AttMaxEngineers 10, Digging Typ 71 bis 80, Assassinen 10, AttUnit2 Typ 26 bis 10, Patrouille Typ 76 mit Max 0, Backup Typ 23 bis 50 in 1 Gruppe, Belagerungsschutz Typ 26 bis 6 in 1 Gruppe, AttUnitMain1/2 = 26, AttMaxDefault 200, AttMainGroupsCount 3, TargetChoice AITC_CLOSEST"], "offen": ["Welcher KI-Gegner Index 14 ist, steht nicht im Code", "Bedeutung der Typnummern 23, 26, 71, 73, 76, 77, 190, 358 und von sellResourceNN nicht belegt", "Felder mit unknown…-Namen ungesichert"]}, "p3": {"erklaerung": "Dieser Gegnerbogen ist der gründlichste dieser Gruppe: großer Vorrat (Essen 300), langsame Anforderungen (Verzögerung 40), große Wellen von 50 plus mit Maschinen, Assassinen und Tunnelgräbern. Die Kühe fliegen schon nach 6 statt 10000.", "gehirn": "Rechne mit starken Wellen ab 50 Einheiten samt Assassinen, Pionieren und Maschinen auf das nächste Ziel; Kuhwürfe (CowThrowInterval 6) im Blick haben. Grundwerte, UCP kann sie ändern.", "beleg": "nachgebaut", "live": "Gegner mit KI-Satz 14 → aics[aicIndex] im Speicher → AttForceBase 50, CowThrowInterval 6, AttMaxAssassins 10", "live_art": "tabelle"}}
+
+### 0x004d0520 isResourceLargerOrEqualThanMinimumGoodsRequiredAfterTrade | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004D0520
+ BOOLEnum AICState::isResourceLargerOrEqualThanMinimumGoodsRequiredAfterTrade(
+ int playerID, ResourceType resourceType, int buffer)
+ {
+ if (DAT_GameState.playerDataArray[playerID].aiType == AITA_NULL)
+ return TRUE;
+ if (resourceType == Game::Resources::RT_GOLD)
+ return FALSE;
+ if (DAT_GameState.playerDataArray[playerID].currentResources[resourceType]
+ < this->aics[DAT_GameState.playerDataArray[playerID].aiType - 1].minimumGoodsRequiredAfterTrade
+ + buffer)
+ return FALSE;
+ return TRUE;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004d0520", "name": "isResourceLargerOrEqualThanMinimumGoodsRequiredAfterTrade", "quelle": "nachgebaut", "p1": {"bereich": "KI", "zweck": "Bleibt der Bestand einer Ware über dem Mindestbestand, den die KI beim Handel behalten will?"}, "p2": {"ein": "playerID, ware, puffer", "aus": "TRUE/FALSE", "liest": ["currentResources[ware]", "aics[].minimumGoodsRequiredAfterTrade"], "schreibt": [], "ruft": [], "regeln": ["Ohne KI: TRUE", "Gold: immer FALSE", "Sonst TRUE, wenn Bestand >= minimumGoodsRequiredAfterTrade + puffer"], "offen": []}, "p3": {"erklaerung": "Die KI verkauft nur, was über ihrem Mindestbestand liegt. Gold zählt nie.", "gehirn": "minimumGoodsRequiredAfterTrade je Figur lesen, um zu wissen, ab welchem Bestand die KI verkauft.", "beleg": "nachgebaut", "live": "Tabelle aics[].minimumGoodsRequiredAfterTrade einmal auslesen → Werte notieren → eine Zahl je Figur", "live_art": "tabelle"}}
+
+### 0x00429630 QueueChangeGameIntensityOrBalance | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00429630
+ void Commands::QueueChangeGameIntensityOrBalance()
+ {
+ queueCommand(
+ GCT_CHANGE_GAME_INTENSITY_OR_BALANCE);
+ DAT_GameSynchronyState.field234_0x1072e8 = -1;
+ DAT_GameSynchronyState.field235_0x1072ec = -1;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00429630", "name": "QueueChangeGameIntensityOrBalance", "quelle": "nachgebaut", "p1": {"bereich": "Befehle/Takt", "zweck": "Reiht den Befehl zum Ändern von Spielintensität oder Balance ein."}, "p2": {"ein": "-", "aus": "-", "liest": [], "schreibt": ["field234_0x1072e8=-1", "field235_0x1072ec=-1"], "ruft": ["queueCommand"], "regeln": ["Befehlsart GCT_CHANGE_GAME_INTENSITY_OR_BALANCE", "Zwei Felder werden auf -1 gesetzt"], "offen": ["Bedeutung der beiden Felder"]}, "p3": {"erklaerung": "Schickt den Befehl in die Warteschlange und setzt zwei Merkfelder zurück.", "gehirn": "-", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x00423cd0 UpdateGateHouseSmall | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00423CD0
+ void Buildings::UpdateGateHouseSmall()
+ {
+ byte bVar1;
+ int iVar2;
+ uint uVar3;
+ int iVar4;
+ uint uVar5;
+ uint uVar6;
+ uint uVar7;
+ int local_14;
+ int local_10[4];
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ local_14 = (int)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingVariation;
+ updateGateDrawBridgeOpenCloseLogic();
+ iVar2 = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].someX
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x + 3;
+ DAT_BuildingsState.buildings[iVar2].someY = DAT_BuildingsState.buildings[iVar2].y + 2;
+ if ((DAT_TileMapState.mapOrientation == 2) || (DAT_TileMapState.mapOrientation == 6)) {
+ local_14 = local_14 + 1;
+ }
+ if (0x51 < local_14) {
+ local_14 = 0x50;
+ }
+ DAT_BuildingsState.buildings[iVar2].renderAnimation = 0;
+ DAT_BuildingsState.buildings[iVar2].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[iVar2].field20_0x38 = 0;
+ DAT_BuildingsState.buildings[iVar2].field21_0x3c = 0;
+ DAT_BuildingsState.buildings[iVar2].field22_0x40 = 0;
+ DAT_BuildingsState.buildings[iVar2].field23_0x44 = 0;
+ if (local_14 == 0x50) {
+ DAT_BuildingsState.buildings[iVar2].field22_0x40 = 0xb;
+ } else {
+ DAT_BuildingsState.buildings[iVar2].field23_0x44 = 0xc;
+ }
+ DAT_BuildingsState.buildings[iVar2].field33_0x6c = 0;
+ DAT_BuildingsState.buildings[iVar2].field34_0x70 = 0;
+ DAT_BuildingsState.buildings[iVar2].field35_0x74 = 0;
+ DAT_BuildingsState.buildings[iVar2].field36_0x78 = 0;
+ DAT_BuildingsState.buildings[iVar2].field37_0x7c = 0;
+ DAT_BuildingsState.buildings[iVar2].ownerFlagFrame = 0;
+ DAT_BuildingsState.buildings[iVar2].field39_0x84 = 0;
+ local_10[1] = 0;
+ DAT_BuildingsState.buildings[iVar2].field40_0x88 = 0;
+ local_10[0] = 0;
+ local_10[2] = 0;
+ local_10[3] = 0;
+ iVar4 = 5
+ - (DAT_BuildingsState.buildings[iVar2].currentHealth * 5)
+ / (int)DAT_BuildingsState.buildings[iVar2].maxHealth;
+ if (iVar4 < 5) {
+ if (iVar4 == 0)
+ goto LAB_00423e8d;
+ } else {
+ iVar4 = 4;
+ }
+ if (0 < iVar4) {
+ uVar6 = DAT_BuildingsState.buildings[iVar2].fireRelatedRNG1;
+ uVar3 = (int)uVar6 >> 8;
+ do {
+ uVar7 = uVar6 & 0xf;
+ uVar5 = uVar3 & 3;
+ uVar6 = uVar6 + 1;
+ uVar3 = uVar3 + 1;
+ iVar4 = iVar4 + -1;
+ local_10[uVar5] = uVar7 + 1;
+ } while (iVar4 != 0);
+ }
+ if (local_14 == 0x50) {
+ DAT_BuildingsState.buildings[iVar2].field33_0x6c = local_10[0];
+ DAT_BuildingsState.buildings[iVar2].field34_0x70 = local_10[1];
+ DAT_BuildingsState.buildings[iVar2].field35_0x74 = local_10[2];
+ DAT_BuildingsState.buildings[iVar2].field36_0x78 = local_10[3];
+ } else {
+ DAT_BuildingsState.buildings[iVar2].field37_0x7c = local_10[0];
+ DAT_BuildingsState.buildings[iVar2].ownerFlagFrame = local_10[1];
+ DAT_BuildingsState.buildings[iVar2].field39_0x84 = local_10[2];
+ DAT_BuildingsState.buildings[iVar2].field40_0x88 = local_10[3];
+ }
+ LAB_00423e8d:
+ DAT_BuildingsState.buildings[iVar2].field29_0x5c = 0;
+ DAT_BuildingsState.buildings[iVar2].shouldRenderRoof = 0;
+ DAT_BuildingsState.buildings[iVar2].animationIncrement = 1;
+ DAT_BuildingsState.buildings[iVar2].renderAnimation = 1;
+ bVar1 = DAT_BuildingsState.buildings[iVar2].pathLinkageRelated2;
+ if (bVar1 == 0) {
+ if (DAT_BuildingsState.buildings[iVar2].gateState == 10) {
+ DAT_BuildingsState.buildings[iVar2].pathLinkageRelated2 = 1;
+ DAT_BuildingsState.buildings[iVar2].gateState = 0xc;
+ DAT_BuildingsState.buildings[iVar2].animationIndex = 0;
+ return;
+ }
+ } else {
+ if (bVar1 == 2) {
+ if (DAT_BuildingsState.buildings[iVar2].gateState == 0xb) {
+ DAT_BuildingsState.buildings[iVar2].pathLinkageRelated2 = 3;
+ DAT_BuildingsState.buildings[iVar2].gateState = 0xc;
+ DAT_BuildingsState.buildings[iVar2].animationIndex = 0;
+ }
+ if (local_14 != 0x50) {
+ DAT_BuildingsState.buildings[iVar2].shouldRenderRoof = 6;
+ return;
+ }
+ DAT_BuildingsState.buildings[iVar2].field29_0x5c = 0xc;
+ return;
+ }
+ if (bVar1 == 1) {
+ if (DAT_BuildingsState.buildings[iVar2].animationActive != 0) {
+ if (DAT_BuildingsState.buildings[iVar2].animationIndex == 1) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[iVar2].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[iVar2].y)),
+ FX_PC_DROP);
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex
+ == 0x14) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ (int)((
+ int)((short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y)),
+ FX_PC_SLAM);
+ }
+ }
+ iVar2 = DAT_CurrentBuildingID;
+ bVar1 = DAT_BuildingDefinedData.field142_0x6b44
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if ('\0' < (char)bVar1) {
+ if (local_14 != 0x50) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].shouldRenderRoof
+ = (int)(char)bVar1;
+ return;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field29_0x5c
+ = (char)bVar1 + 6;
+ return;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].pathLinkageRelated2 = 2;
+ updatePathLinkageTileMapRelatedToGates(iVar2);
+ if (local_14 != 0x50) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].shouldRenderRoof = 6;
+ return;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field29_0x5c = 0xc;
+ return;
+ }
+ if (bVar1 == 3) {
+ if ((DAT_BuildingsState.buildings[iVar2].animationActive != 0)
+ && (DAT_BuildingsState.buildings[iVar2].animationIndex == 1)) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[iVar2].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[iVar2].y)),
+ FX_PC_LIFT);
+ }
+ iVar2 = DAT_CurrentBuildingID;
+ bVar1 = DAT_BuildingDefinedData.field141_0x6b28
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if ((char)bVar1 < '\x01') {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].pathLinkageRelated2 = 0;
+ updatePathLinkageTileMapRelatedToGates(iVar2);
+ return;
+ }
+ if (local_14 == 0x50) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field29_0x5c
+ = (char)bVar1 + 6;
+ return;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].shouldRenderRoof
+ = (int)(char)bVar1;
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00423cd0", "name": "UpdateGateHouseSmall", "quelle": "ghidra", "p1": {"bereich": "Gebaeude", "zweck": "Takt-Aktualisierung eines kleinen Torhauses: Darstellung, Schadensbilder und Auf-/Zu-Ablauf."}, "p2": {"ein": "- (nutzt DAT_CurrentBuildingID)", "aus": "-", "liest": ["buildings[cur].buildingVariation/currentHealth/maxHealth/fireRelatedRNG1/gateState/pathLinkageRelated2/animationIndex/animationActive", "DAT_TileMapState.mapOrientation", "DAT_BuildingDefinedData.field142_0x6b44[]", "DAT_BuildingDefinedData.field141_0x6b28[]"], "schreibt": ["buildings[cur].someX=x+3, someY=y+2", "buildings[cur].pathLinkageRelated2", "buildings[cur].gateState", "buildings[cur].animationIndex", "Darstellungsfelder field20..field40, field29_0x5c, shouldRenderRoof, renderAnimation, animationIncrement"], "ruft": ["addBuildingInRegistry", "updateGateDrawBridgeOpenCloseLogic", "updatePathLinkageTileMapRelatedToGates", "playSFXAtLocation"], "regeln": ["Bei Kartendrehung 2 oder 6 wird die Variante um 1 erhöht; Werte über 0x51 werden auf 0x50 begrenzt", "Schadensstufe = 5 - (currentHealth*5/maxHealth); ab 5 gilt 4; Stufe 0 (voll heil) setzt keine Schadensbilder", "Je Stufe wird ein Schadensbild mit Wert (fireRelatedRNG1 & 0xf)+1 auf einen von 4 Plätzen gesetzt", "Zustand pathLinkageRelated2 0 (zu): bei gateState 10 wechselt er auf 1 (öffnet), gateState wird 0xc, animationIndex 0", "Zustand 1 (öffnet): Ton FX_PC_DROP bei animationIndex 1, FX_PC_SLAM bei 0x14; ist der Tabellenwert field142_0x6b44[idx] nicht mehr positiv, wechselt er auf 2 und die Wegeverknüpfung wird aktualisiert", "Zustand 2 (offen): bei gateState 0xb wechselt er auf 3, gateState 0xc, animationIndex 0", "Zustand 3 (schließt): Ton FX_PC_LIFT bei animationIndex 1; ist field141_0x6b28[idx] nicht mehr positiv, wechselt er auf 0 und die Wegeverknüpfung wird aktualisiert"], "offen": ["Bedeutung von gateState 10, 11 und 12 (vermutlich: Öffnen angefordert, Schließen angefordert, in Bewegung)", "Die Namen der Zustände von pathLinkageRelated2 sind abgeleitet, nicht belegt"]}, "p3": {"erklaerung": "Steuert, wie sich ein kleines Torhaus öffnet und schließt, und zeigt Schäden an. Die Wege über das Tor werden erst am Ende der Animation freigegeben oder gesperrt.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x005076a0 placeBarracks | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x005076A0
+ void TileMapState::placeBarracks(int playerID, uint xPosition, int* yPosition_param, undefined4 buildingType,
+ uint buildingSize, int buildingOrientation, undefined4 param_7)
+ {
+ int* piVar1;
+ int _buildingID;
+ int iVar2;
+ int iVar3;
+ uint uVar4;
+ int iVar5;
+ uint uVar6;
+ int iVar7;
+ int local_c;
+ piVar1 = yPosition_param;
+ iVar7 = DAT_GameCore.uniqueGameObjectTracker;
+ iVar5 = 0;
+ if (buildingOrientation == 0xf) {
+ local_c = 0;
+ } else {
+ local_c = buildingOrientation / 2;
+ }
+ _buildingID = setupBuildingData(playerID, xPosition, (uint)((int)(yPosition_param)), (undefined4)((int)(param_7)),
+ (BuildingType)((int)((int)(short)buildingType)), buildingSize, playerID, 0xf);
+ iVar2 = (int)(short)_buildingID;
+ this->placedBuildingID = iVar2;
+ DAT_BuildingsState.buildings[iVar2].uidWhenPlaced = iVar7;
+ yPosition_param = &DAT_BuildingsState.buildings[iVar2].tileRef1;
+ do {
+ getBuildingSizeIndexMappingData(
+ iVar5, buildingSize);
+ iVar3 = DAT_ViewportRenderState.translationMatrix[this->buildingY + (int)piVar1].addXgetTile
+ + this->buildingX + xPosition;
+ *yPosition_param = iVar3;
+ this->HeightLayer[iVar3] = (byte)param_7;
+ this->LogicLayer[iVar3] = this->LogicLayer[iVar3] | 0x400;
+ this->BuildingLayer[iVar3] = (short)_buildingID;
+ iVar5 = iVar5 + 1;
+ yPosition_param = yPosition_param + 1;
+ this->BuildingWasLayer[iVar3] = (uchar)buildingType;
+ this->ChangedLayer[iVar3] = 2;
+ } while (iVar5 < this->constructionTileCount);
+ setMiscDisplayLayer(iVar2);
+ updatePathLinkagesForBuilding(iVar2);
+ uVar6 = (int)piVar1 + DAT_TerrainDefinedData.BuildingPartsOffsets[local_c][0].y;
+ uVar4 = xPosition + DAT_TerrainDefinedData.BuildingPartsOffsets[local_c][0].x;
+ iVar5 = setupBuildingData(playerID, uVar4,
+ uVar6, (undefined4)((int)(param_7)), BT_PARADEGROUND3, 5, playerID, 0xf);
+ _buildingID = (int)(short)iVar5;
+ DAT_BuildingsState.buildings[_buildingID].uidWhenPlaced = iVar7;
+ DAT_BuildingsState.buildings[_buildingID].quarryStockpileID = (undefined2)this->placedBuildingID;
+ buildingSize = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ buildingSize, DAT_BuildingsState.buildings[_buildingID].widthOrHeight);
+ iVar2 = DAT_ViewportRenderState.translationMatrix[this->buildingY + uVar6].addXgetTile
+ + this->buildingX + uVar4;
+ resetTileAndClearMoat(iVar2);
+ this->HeightLayer[iVar2] = (byte)param_7;
+ if ((this->buildingX == 2) && (this->buildingY == 2)) {
+ this->LogicLayer[iVar2] = this->LogicLayer[iVar2] | 0x400;
+ }
+ this->BuildingLayer[iVar2] = (short)iVar5;
+ buildingSize = buildingSize + 1;
+ this->BuildingWasLayer[iVar2] = (uchar)buildingType;
+ this->ChangedLayer[iVar2] = 2;
+ } while ((int)buildingSize < this->constructionTileCount);
+ setMiscDisplayLayer(_buildingID);
+ updatePathLinkagesForBuilding(_buildingID);
+ updateWalkAndPathLayer(8, uVar4, uVar6);
+ uVar6 = DAT_TerrainDefinedData.BuildingPartsOffsets[local_c][1].y + (int)piVar1;
+ uVar4 = DAT_TerrainDefinedData.BuildingPartsOffsets[local_c][1].x + xPosition;
+ iVar5 = setupBuildingData(playerID, uVar4,
+ uVar6, (undefined4)((int)(param_7)), BT_PARADEGROUND4, 5, playerID, 0xf);
+ _buildingID = (int)(short)iVar5;
+ DAT_BuildingsState.buildings[_buildingID].uidWhenPlaced = iVar7;
+ DAT_BuildingsState.buildings[_buildingID].quarryStockpileID = (undefined2)this->placedBuildingID;
+ buildingSize = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ buildingSize, DAT_BuildingsState.buildings[_buildingID].widthOrHeight);
+ iVar2 = DAT_ViewportRenderState.translationMatrix[this->buildingY + uVar6].addXgetTile
+ + this->buildingX + uVar4;
+ resetTileAndClearMoat(iVar2);
+ this->HeightLayer[iVar2] = (byte)param_7;
+ if ((this->buildingX == 2) && (this->buildingY == 2)) {
+ this->LogicLayer[iVar2] = this->LogicLayer[iVar2] | 0x400;
+ }
+ this->BuildingLayer[iVar2] = (short)iVar5;
+ buildingSize = buildingSize + 1;
+ this->BuildingWasLayer[iVar2] = (uchar)buildingType;
+ this->ChangedLayer[iVar2] = 2;
+ } while ((int)buildingSize < this->constructionTileCount);
+ setMiscDisplayLayer(_buildingID);
+ updatePathLinkagesForBuilding(_buildingID);
+ updateWalkAndPathLayer(8, uVar4, uVar6);
+ uVar6 = DAT_TerrainDefinedData.BuildingPartsOffsets[local_c][2].y + (int)piVar1;
+ uVar4 = DAT_TerrainDefinedData.BuildingPartsOffsets[local_c][2].x + xPosition;
+ iVar5 = setupBuildingData(playerID, uVar4,
+ uVar6, (undefined4)((int)(param_7)), BT_PARADEGROUND2, 5, playerID, 0xf);
+ _buildingID = (int)(short)iVar5;
+ DAT_BuildingsState.buildings[_buildingID].uidWhenPlaced = iVar7;
+ DAT_BuildingsState.buildings[_buildingID].quarryStockpileID = (undefined2)this->placedBuildingID;
+ buildingSize = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ buildingSize, DAT_BuildingsState.buildings[_buildingID].widthOrHeight);
+ iVar7 = DAT_ViewportRenderState.translationMatrix[this->buildingY + uVar6].addXgetTile
+ + this->buildingX + uVar4;
+ resetTileAndClearMoat(iVar7);
+ this->HeightLayer[iVar7] = (byte)param_7;
+ if ((this->buildingX == 2) && (this->buildingY == 2)) {
+ this->LogicLayer[iVar7] = this->LogicLayer[iVar7] | 0x400;
+ }
+ this->BuildingLayer[iVar7] = (short)iVar5;
+ this->BuildingWasLayer[iVar7] = (uchar)buildingType;
+ buildingSize = buildingSize + 1;
+ this->ChangedLayer[iVar7] = 2;
+ } while ((int)buildingSize < this->constructionTileCount);
+ setMiscDisplayLayer(_buildingID);
+ updatePathLinkagesForBuilding(_buildingID);
+ updateWalkAndPathLayer(8, uVar4, uVar6);
+ if ((short)buildingType == 8) {
+ setupMercenaryPostCampgroundPositions(playerID);
+ } else {
+ setupBarracksCampgroundPositions(playerID);
+ }
+ if (((playerID == DAT_GameSynchronyState.currentPlayerSlotID)
+ && (DAT_GameState.playerDataArray[playerID].availablePeasantsAtFire
+ < (int)DAT_BuildingsState.buildings[_buildingID].buildingTypeBasedEmployeeCount))
+ && ((DAT_GameState.playerDataArray[playerID].populationCap
+ <= DAT_GameState.playerDataArray[playerID].currentPopulation
+ || (DAT_GameState.playerDataArray[playerID].popularity < 5000)))) {
+ setBottomLeftTextDisplayText(1, 0x4d, 1, (TextMessageBLLookupStructUnion)0x0, 100, 6000);
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x005076a0", "name": "placeBarracks", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Setzt Kaserne oder Söldnerposten samt drei Exerzierplatz-Teilen und Lagerplätzen."}, "p2": {"ein": "playerID, xPosition, yPosition_param, buildingType, buildingSize, buildingOrientation, param_7=Höhe", "aus": "-", "liest": ["BuildingPartsOffsets[ausrichtung/2][0..2]", "uniqueGameObjectTracker", "constructionTileCount", "availablePeasantsAtFire", "populationCap", "currentPopulation", "popularity"], "schreibt": ["buildings[].uidWhenPlaced", "buildings[].tileRef1...", "buildings[Teil].quarryStockpileID", "HeightLayer", "LogicLayer", "BuildingLayer", "BuildingWasLayer", "ChangedLayer=2"], "ruft": ["setupBuildingData", "getBuildingSizeIndexMappingData", "resetTileAndClearMoat", "setMiscDisplayLayer", "updatePathLinkagesForBuilding", "updateWalkAndPathLayer", "setupMercenaryPostCampgroundPositions", "setupBarracksCampgroundPositions", "setBottomLeftTextDisplayText"], "regeln": ["Ausrichtungsindex = 0 bei Ausrichtung 0xf, sonst Ausrichtung / 2", "Das Hauptgebäude wird immer mit Ausrichtung 0xf angelegt, der Parameter gilt nur für die Teile-Offsets", "Drei Teile der Größe 5: BT_PARADEGROUND3, BT_PARADEGROUND4, BT_PARADEGROUND2, jeweils um BuildingPartsOffsets[index][0..2] versetzt", "Jeder Teil speichert die ID der Kaserne im Feld quarryStockpileID (hier zweckentfremdet)", "Auf Teilkacheln: resetTileAndClearMoat, Höhe setzen; Bit 0x400 nur dort, wo buildingX und buildingY beide 2 sind", "Typ 8 (Söldnerposten): setupMercenaryPostCampgroundPositions, sonst setupBarracksCampgroundPositions", "Meldung 0x4d wie bei anderen Gebäuden, geprüft wird aber die ID des zuletzt angelegten Exerzierplatz-Teils, nicht der Kaserne"], "offen": ["Ob der Arbeiter-Test mit der ID des letzten Teils ein Fehler im Original ist (vermutlich ja)", "Was die Zahl der Arbeiter bei einem Exerzierplatz-Teil ergibt"]}, "p3": {"erklaerung": "Eine Kaserne besteht aus dem Gebäude und drei Exerzierplatz-Teilen, die sich ihr Gebäude merken. Danach werden die Sammelplätze der Truppen neu berechnet.", "gehirn": "-", "beleg": "code", "live": "Kaserne bauen → buildings[Exerzierplatz].quarryStockpileID → ID der Kaserne", "live_art": "bauen"}}
+
+### 0x004c62c0 loadMap | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004C62C0
+ void MapPropertiesState::loadMap(char* mapName)
+ {
+ char cVar1;
+ GameMode2Int GVar2;
+ UnitTypeShort* pUVar3;
+ int* piVar4;
+ SiegeUnitCounts* pSVar5;
+ int iVar6;
+ int* piVar7;
+ SiegeUnitCounts* pSVar8;
+ InGameEventExtra* pIVar9;
+ int local_34;
+ int local_30;
+ int local_2c;
+ int local_28;
+ int local_24;
+ int local_20;
+ int local_1c;
+ int local_18;
+ int local_14;
+ int local_10;
+ int local_c;
+ int local_8;
+ uint local_4;
+ GVar2 = DAT_GameCore.gameMode_2;
+ iVar6 = DAT_GameCore.missionNumber1to20;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)&local_34;
+ local_14 = DAT_GameSynchronyState.currentPlayerSlotID;
+ local_30 = DAT_GameState.mapAndTime.difficulty;
+ local_10 = DAT_GameCore.xbowProducible_logic;
+ local_18 = DAT_GameCore.swordProducible_logic;
+ local_28 = DAT_GameCore.pikeProducible_logic;
+ local_20 = DAT_GameCore.bowProducible_logic;
+ local_24 = (int)DAT_GameState.mapAndTime.unitJesterRelated;
+ local_2c = DAT_GameCore.maceProducible_logic;
+ local_34 = DAT_GameCore.spearProducible_logic;
+ local_1c = (int)DAT_GameState.mapAndTime.unitLadyRelated;
+ local_c = DAT_GameState.mapAndTime.field43_0xf0;
+ local_8 = DAT_GameState.mapAndTime.field44_0xf4;
+ resetTeams();
+ setupAllMapSections();
+ resolveResourceFileName(
+ FRT_MAPS, (CHAR_CONST*)((int)(mapName)));
+ readMapOrSavFile(
+ DAT_MapDefinedData.MapSectionAddressArray);
+ mapLoadingAndLaunchGameRelated1();
+ DAT_GameState.mapAndTime.difficulty = local_30;
+ DAT_GameCore.xbowProducible_logic = local_10;
+ DAT_GameCore.pikeProducible_logic = local_28;
+ DAT_GameCore.swordProducible_logic = local_18;
+ DAT_GameCore.bowProducible_logic = local_20;
+ DAT_GameCore.mapTimeInTicks = 1;
+ DAT_GameCore.section1127 = 1;
+ DAT_GameCore.spearProducible_logic = local_34;
+ DAT_GameCore.maceProducible_logic = local_2c;
+ DAT_GameCore.missionNumber1to20 = iVar6;
+ DAT_GameCore.gameMode_2 = GVar2;
+ if (iVar6 == 1) {
+ iVar6 = 8;
+ pUVar3 = &DAT_UnitsState.units[1].unitType;
+ do {
+ if (((pUVar3[-1] != ULS_INVISIBLE)
+ && (*pUVar3 == UT_E_ARCHER))
+ && (pUVar3[4] == 1)) {
+ iVar6 = iVar6 + -1;
+ *(int*)(pUVar3 + -0x3f) = 3;
+ if (iVar6 == 0)
+ break;
+ }
+ pUVar3 = pUVar3 + 0x248;
+ } while ((int)pUVar3 < 0x165141a);
+ }
+ DAT_GameState.mapAndTime.unitLadyRelated = (short)local_1c;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[0] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[1] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[2] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[3] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[4] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[5] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[6] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[7] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[8] = -1;
+ DAT_GameState.mapAndTime.unitJesterRelated = (short)local_24;
+ DAT_GameSynchronyState.currentPlayerSlotID = local_14;
+ DAT_GameState.mapAndTime.field44_0xf4 = local_8;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[local_14] = 1;
+ DAT_GameState.mapAndTime.field43_0xf0 = local_c;
+ DAT_GameState.playerDataArray[1].tacticalPowersBarLevel = 0;
+ DAT_GameState.playerDataArray[2].tacticalPowersBarLevel = 0;
+ DAT_GameState.playerDataArray[3].tacticalPowersBarLevel = 0;
+ DAT_GameState.playerDataArray[4].tacticalPowersBarLevel = 0;
+ DAT_GameState.playerDataArray[5].tacticalPowersBarLevel = 0;
+ DAT_GameState.playerDataArray[6].tacticalPowersBarLevel = 0;
+ DAT_GameState.playerDataArray[7].tacticalPowersBarLevel = 0;
+ DAT_GameState.playerDataArray[8].tacticalPowersBarLevel = 0;
+ DAT_GameCore.isTimeHalted = FALSE;
+ DAT_GameCore.section1095 = 0;
+ iVar6 = (int)this - (int)mapName;
+ do {
+ cVar1 = *mapName;
+ mapName[iVar6] = cVar1;
+ mapName = mapName + 1;
+ } while (cVar1 != '\0');
+ if (DAT_GameCore.gameMode_2 == GM_CAMPAIGN_MISSION) {
+ removeJesterAndLadyUnitsInCertainMissions();
+ } else if (DAT_GameCore.gameMode_2 == GM_ECONOMIC_CAMPAIGN_SH1) {
+ removeLadyAndJester();
+ }
+ pIVar9 = this->SEC_EventsExtra;
+ for (iVar6 = 8000; iVar6 != 0; iVar6 = iVar6 + -1) {
+ pIVar9->conditionOneIsTrue = 0;
+ pIVar9 = (InGameEventExtra*)&pIVar9->conditionTwoIsTrue;
+ }
+ DAT_GameState.mapAndTime.month = this->SEC_StartingMonth;
+ DAT_GameState.mapAndTime.year = this->SEC_StartingYear;
+ if (DAT_GameCore.missionNumber1to20 - 4294967280 < 5) {
+ adjustEventMonthAndYearForSection1047();
+ }
+ if ((DAT_GameState.mapAndTime.month == this->SEC_StartingMonth)
+ && (DAT_GameState.mapAndTime.year == this->SEC_StartingYear)) {
+ piVar4 = DAT_GameState.mapAndTime.startGoods;
+ piVar7 = this->SEC_StartingResources;
+ do {
+ *piVar4 = *piVar7;
+ piVar4 = piVar4 + 1;
+ piVar7 = piVar7 + 1;
+ } while ((int)piVar4 < 0x117ce50);
+ DAT_GameState.mapAndTime.startGoods[7] = DAT_GameState.mapAndTime.startGoods[8];
+ DAT_GameState.mapAndTime.startGoods[8] = 0;
+ pSVar5 = &DAT_GameState.mapAndTime.siegeInformation;
+ pSVar8 = &this->SEC_SiegeInformation;
+ do {
+ pSVar5->archers = pSVar8->archers;
+ pSVar5 = (SiegeUnitCounts*)&pSVar5->field1_0x4;
+ pSVar8 = (SiegeUnitCounts*)&pSVar8->field1_0x4;
+ } while ((int)pSVar5 < 0x117cea0);
+ DAT_GameState.mapAndTime.startingPopularity = this->SEC_StartingPopularity * 10;
+ setMonthAndYear(
+ this->SEC_StartingMonth, this->SEC_StartingYear);
+ }
+ this->SEC_Section1080 = 0;
+ this->SEC_Section1081 = 0;
+ countDeerEfficiently();
+ prepareMap();
+ clearEnemyRelatedStructures();
+ DAT_UnitsState.lastSelectedUnitID = 0;
+ deselectAllUnitsOneByOne();
+ clearSelectionCountsAndPlayerIDs();
+ DAT_GameState.mapAndTime.euroRecruitable[4]
+ = (int)this->barracksRecruitability.recruitability.macemen;
+ DAT_GameState.mapAndTime.euroRecruitable[5]
+ = (int)this->barracksRecruitability.recruitability.swordsmen;
+ DAT_GameState.mapAndTime.euroRecruitable[6]
+ = (int)this->barracksRecruitability.recruitability.knights;
+ DAT_GameState.mapAndTime.mercRecruitable[0] = (int)this->SEC_MercRecruitable[0];
+ DAT_GameState.mapAndTime.euroRecruitable[0]
+ = (int)this->barracksRecruitability.recruitability.archers;
+ DAT_GameState.mapAndTime.euroRecruitable[1]
+ = (int)this->barracksRecruitability.recruitability.crossbowmen;
+ DAT_GameState.mapAndTime.euroRecruitable[2]
+ = (int)this->barracksRecruitability.recruitability.spearmen;
+ DAT_GameState.mapAndTime.euroRecruitable[3]
+ = (int)this->barracksRecruitability.recruitability.pikemen;
+ DAT_GameState.mapAndTime.mercRecruitable[1] = (int)this->SEC_MercRecruitable[1];
+ DAT_GameState.mapAndTime.mercRecruitable[2] = (int)this->SEC_MercRecruitable[2];
+ DAT_GameState.mapAndTime.mercRecruitable[3] = (int)this->SEC_MercRecruitable[3];
+ DAT_GameState.mapAndTime.mercRecruitable[4] = (int)this->SEC_MercRecruitable[4];
+ DAT_GameState.mapAndTime.mercRecruitable[5] = (int)this->SEC_MercRecruitable[5];
+ DAT_GameState.mapAndTime.mercRecruitable[6] = (int)this->SEC_MercRecruitable[6];
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_0
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[0] != 0);
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_1_a
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[1] != 0);
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_1_b
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[1] != 0);
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_2
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[2] != 0);
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_3_a_and_6_b
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[3] != 0);
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_3_b
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[3] != 0);
+ if (DAT_GameState.mapAndTime.euroRecruitable[4] != 0) {
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_1_a = 1;
+ }
+ DAT_GameState.mapAndTime.field2257_0xda8
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[4] != 0);
+ if (DAT_GameState.mapAndTime.euroRecruitable[5] != 0) {
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_3_a_and_6_b = 1;
+ }
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_6_a
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[5] != 0);
+ if (DAT_GameState.mapAndTime.euroRecruitable[6] != 0) {
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_6_a = 1;
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_3_a_and_6_b = 1;
+ }
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_6_c
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[6] != 0);
+ DAT_GameState.mapAndTime.countUpTo201 = 0;
+ DAT_GameState.mapAndTime.cathedralRelated1 = 0;
+ importTradingCosts();
+ clearAttackInfo();
+ recomputeAIZonerLayer();
+ setSignpostDistanceForCampaignMission();
+ playNextStoredBinkVideo();
+ DAT_GameCore.xbowProducible_logic = (int)this->SEC_XbowProducible_save;
+ DAT_GameCore.bowProducible_logic = (int)this->SEC_BowProducible_save;
+ DAT_GameCore.pikeProducible_logic = (int)this->SEC_PikeProducible_save;
+ DAT_GameCore.spearProducible_logic = (int)this->SEC_SpearProducible_save;
+ DAT_GameCore.swordProducible_logic = (int)this->SEC_SwordProducible_save;
+ DAT_GameCore.maceProducible_logic = (int)this->SEC_MaceProducible_save;
+ DAT_GameCore.timeSum_2 = timeGetTime();
+ DAT_GameCore.gameDuration = 0;
+ TIME_ReceivedMessage_2::instance = 0;
+ ;
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004c62c0", "name": "loadMap", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Lädt eine Kartendatei und setzt den Spielstand für den Start der Karte neu auf."}, "p2": {"ein": "mapName (Name der Kartendatei)", "aus": "-", "liest": ["DAT_GameCore.gameMode_2", "DAT_GameCore.missionNumber1to20", "DAT_GameState.mapAndTime.difficulty", "DAT_GameCore.xbow/bow/pike/spear/sword/mace Producible_logic", "DAT_GameSynchronyState.currentPlayerSlotID", "SEC_StartingMonth/Year/Resources/Popularity/SiegeInformation", "SEC_MercRecruitable[0..6]", "barracksRecruitability.recruitability", "SEC_*Producible_save"], "schreibt": ["currentPlayerFullIDArray[0..8]", "playerDataArray[1..8].tacticalPowersBarLevel", "mapAndTime.month/year/startGoods/siegeInformation/startingPopularity", "mapAndTime.euroRecruitable[0..6]/mercRecruitable[0..6]/euroRecruitableCopy_*", "DAT_GameCore.mapTimeInTicks/isTimeHalted/gameDuration/timeSum_2", "DAT_GameCore.*Producible_logic", "SEC_EventsExtra[0..7999].conditionOneIsTrue"], "ruft": ["resetTeams", "setupAllMapSections", "resolveResourceFileName", "readMapOrSavFile", "mapLoadingAndLaunchGameRelated1", "removeJesterAndLadyUnitsInCertainMissions", "removeLadyAndJester", "adjustEventMonthAndYearForSection1047", "setMonthAndYear", "countDeerEfficiently", "prepareMap", "clearEnemyRelatedStructures", "deselectAllUnitsOneByOne", "clearSelectionCountsAndPlayerIDs", "importTradingCosts", "clearAttackInfo", "recomputeAIZonerLayer", "setSignpostDistanceForCampaignMission", "playNextStoredBinkVideo"], "regeln": ["Vor dem Einlesen werden Schwierigkeit, Spielmodus, Missionsnummer, eigener Spieler-Platz und die sechs Producible-Schalter (Armbrust, Bogen, Pike, Speer, Schwert, Streitkolben) gemerkt und nach dem Einlesen zurückgeschrieben; die Producible-Schalter bekommen am Ende die SEC_*_save-Werte der Karte", "Danach: currentPlayerFullIDArray[0..8] = -1, nur der eigene Platz = 1; tacticalPowersBarLevel der Spieler 1 bis 8 = 0 (Spieler 0 bleibt unberührt)", "Zeitzähler: mapTimeInTicks = 1, isTimeHalted = FALSE, gameDuration = 0, timeSum_2 = timeGetTime()", "Missionsnummer 1: bis zu 8 lebende Einheiten vom Typ UT_E_ARCHER mit Bedingung (Feld Offset +4 gleich 1) bekommen ein Feld (Offset -0x3f Einheiten) auf 3; Bedeutung unklar", "Kampagnenmission: removeJesterAndLadyUnitsInCertainMissions; Wirtschaftskampagne SH1: removeLadyAndJester", "Alle 8000 SEC_EventsExtra-Einträge: conditionOneIsTrue = 0", "Startdatum = SEC_StartingMonth/Year. Ist es nach dem Anpassen unverändert, werden Startwaren (startGoods; danach [7] = [8], [8] = 0), Belagerungszahlen und startingPopularity = SEC_StartingPopularity * 10 übernommen", "euroRecruitable[0..6] = Bogen, Armbrust, Speer, Pike, Streitkolben, Schwert, Ritter aus barracksRecruitability; mercRecruitable[0..6] aus SEC_MercRecruitable; die euroRecruitableCopy_*-Felder sind (Wert != 0), wobei Streitkolben, Schwert und Ritter bestimmte Kopien zusätzlich auf 1 setzen (Namen der Kopien ungesichert)"], "offen": ["Mission-1-Bogenschützen: was das Feld auf 3 bedeutet", "Der Kartenname wird vermutlich an den Anfang des MapPropertiesState kopiert", "Bedingung missionNumber-4294967280 < 5 (vermutlich Missionsnummern -16 bis -12) ruft adjustEventMonthAndYearForSection1047 auf: welche Missionen das sind", "Die Zuordnung der Rekrutierbar-Kopien zu Einheiten ist aus den Feldnamen nur vermutet"]}, "p3": {"erklaerung": "Beim Laden einer Karte setzt das Spiel alle Start-Werte neu: Datum, Startwaren, Beliebtheit, welche Truppen man anwerben darf, Zeit und Spieler-Plätze.", "gehirn": "Lagert fest, was am Kartenstart gilt: Startdatum, Startwaren und anwerbbare Truppen kommen aus der Karte und lassen sich dort einmal lesen.", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x004a5230 UpdateLadderManState07 | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004A5230
+ void Navigation::UpdateClimbDataState07()
+ {
+ int iVar1;
+ int iVar2;
+ iVar2 = DAT_CurrentClimbDataID;
+ if (DAT_PathFindingState.climbData[DAT_CurrentClimbDataID].sourceUID
+ != DAT_BuildingsState
+ .buildings[DAT_PathFindingState.climbData[DAT_CurrentClimbDataID].buildingID]
+ .uid) {
+ DAT_PathFindingState.climbData[DAT_CurrentClimbDataID].canBeUsed = 0;
+ }
+ DAT_PathFindingState.climbData[iVar2].isRecognizedByPathfinding = 1;
+ DAT_PathFindingState.climbData[iVar2].topXPosition
+ = DAT_PathFindingState.climbData[iVar2].bottomXPosition;
+ iVar1 = DAT_PathFindingState.climbData[iVar2].bottomYPosition;
+ DAT_PathFindingState.climbData[iVar2].topYPosition = iVar1 + -2;
+ DAT_PathFindingState.climbData[iVar2].topTilePositionUnk
+ = DAT_ViewportRenderState.translationMatrix[iVar1 + -2].addXgetTile
+ + DAT_PathFindingState.climbData[iVar2].topXPosition;
+ DAT_PathFindingState.climbData[iVar2].area
+ = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_PathFindingState.climbData[iVar2].bottomTilePosition];
+ DAT_PathFindingState.climbData[iVar2].wallGroupAreaID
+ = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_PathFindingState.climbData[iVar2].topTilePositionUnk];
+ DAT_PathFindingState.climbData[iVar2].buildingArea = -1;
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004a5230", "name": "UpdateLadderManState07", "quelle": "ghidra", "p1": {"bereich": "Wegfindung", "zweck": "Aktualisiert den Kletterdaten-Eintrag für Zustand 07: Kletterweg zwei Felder nach oben (Y minus 2)."}, "p2": {"ein": "DAT_CurrentClimbDataID (globaler Index)", "aus": "-", "liest": ["climbData[id].sourceUID/buildingID/bottomX/bottomY/bottomTilePosition", "buildings[b].uid", "PathConnectionLayer", "translationMatrix"], "schreibt": ["climbData[id].canBeUsed", "isRecognizedByPathfinding", "topXPosition", "topYPosition", "topTilePositionUnk", "area", "wallGroupAreaID", "buildingArea"], "ruft": [], "regeln": ["sourceUID ungleich buildings[buildingID].uid: canBeUsed = 0", "isRecognizedByPathfinding immer 1", "oben = (bottomX, bottomY - 2)", "area = PathConnectionLayer am unteren Feld, wallGroupAreaID = am oberen Feld, buildingArea = -1", "unten (bottom) wird nicht verändert"], "offen": ["Was Zustand 07 anschaulich ist (vermutlich eine feste Leiter oder Treppe am Gebäude)"]}, "p3": {"erklaerung": "Der Kletterweg führt hier immer zwei Felder nach oben. Er wird stets als nutzbar erkannt, solange das Gebäude noch dasselbe ist.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+

@@ -1,0 +1,783 @@
+### 0x004c62c0 loadMap | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004C62C0
+ void MapPropertiesState::loadMap(char* mapName)
+ {
+ char cVar1;
+ GameMode2Int GVar2;
+ UnitTypeShort* pUVar3;
+ int* piVar4;
+ SiegeUnitCounts* pSVar5;
+ int iVar6;
+ int* piVar7;
+ SiegeUnitCounts* pSVar8;
+ InGameEventExtra* pIVar9;
+ int local_34;
+ int local_30;
+ int local_2c;
+ int local_28;
+ int local_24;
+ int local_20;
+ int local_1c;
+ int local_18;
+ int local_14;
+ int local_10;
+ int local_c;
+ int local_8;
+ uint local_4;
+ GVar2 = DAT_GameCore.gameMode_2;
+ iVar6 = DAT_GameCore.missionNumber1to20;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)&local_34;
+ local_14 = DAT_GameSynchronyState.currentPlayerSlotID;
+ local_30 = DAT_GameState.mapAndTime.difficulty;
+ local_10 = DAT_GameCore.xbowProducible_logic;
+ local_18 = DAT_GameCore.swordProducible_logic;
+ local_28 = DAT_GameCore.pikeProducible_logic;
+ local_20 = DAT_GameCore.bowProducible_logic;
+ local_24 = (int)DAT_GameState.mapAndTime.unitJesterRelated;
+ local_2c = DAT_GameCore.maceProducible_logic;
+ local_34 = DAT_GameCore.spearProducible_logic;
+ local_1c = (int)DAT_GameState.mapAndTime.unitLadyRelated;
+ local_c = DAT_GameState.mapAndTime.field43_0xf0;
+ local_8 = DAT_GameState.mapAndTime.field44_0xf4;
+ resetTeams();
+ setupAllMapSections();
+ resolveResourceFileName(
+ FRT_MAPS, (CHAR_CONST*)((int)(mapName)));
+ readMapOrSavFile(
+ DAT_MapDefinedData.MapSectionAddressArray);
+ mapLoadingAndLaunchGameRelated1();
+ DAT_GameState.mapAndTime.difficulty = local_30;
+ DAT_GameCore.xbowProducible_logic = local_10;
+ DAT_GameCore.pikeProducible_logic = local_28;
+ DAT_GameCore.swordProducible_logic = local_18;
+ DAT_GameCore.bowProducible_logic = local_20;
+ DAT_GameCore.mapTimeInTicks = 1;
+ DAT_GameCore.section1127 = 1;
+ DAT_GameCore.spearProducible_logic = local_34;
+ DAT_GameCore.maceProducible_logic = local_2c;
+ DAT_GameCore.missionNumber1to20 = iVar6;
+ DAT_GameCore.gameMode_2 = GVar2;
+ if (iVar6 == 1) {
+ iVar6 = 8;
+ pUVar3 = &DAT_UnitsState.units[1].unitType;
+ do {
+ if (((pUVar3[-1] != ULS_INVISIBLE)
+ && (*pUVar3 == UT_E_ARCHER))
+ && (pUVar3[4] == 1)) {
+ iVar6 = iVar6 + -1;
+ *(int*)(pUVar3 + -0x3f) = 3;
+ if (iVar6 == 0)
+ break;
+ }
+ pUVar3 = pUVar3 + 0x248;
+ } while ((int)pUVar3 < 0x165141a);
+ }
+ DAT_GameState.mapAndTime.unitLadyRelated = (short)local_1c;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[0] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[1] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[2] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[3] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[4] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[5] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[6] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[7] = -1;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[8] = -1;
+ DAT_GameState.mapAndTime.unitJesterRelated = (short)local_24;
+ DAT_GameSynchronyState.currentPlayerSlotID = local_14;
+ DAT_GameState.mapAndTime.field44_0xf4 = local_8;
+ DAT_GameSynchronyState.currentPlayerFullIDArray[local_14] = 1;
+ DAT_GameState.mapAndTime.field43_0xf0 = local_c;
+ DAT_GameState.playerDataArray[1].tacticalPowersBarLevel = 0;
+ DAT_GameState.playerDataArray[2].tacticalPowersBarLevel = 0;
+ DAT_GameState.playerDataArray[3].tacticalPowersBarLevel = 0;
+ DAT_GameState.playerDataArray[4].tacticalPowersBarLevel = 0;
+ DAT_GameState.playerDataArray[5].tacticalPowersBarLevel = 0;
+ DAT_GameState.playerDataArray[6].tacticalPowersBarLevel = 0;
+ DAT_GameState.playerDataArray[7].tacticalPowersBarLevel = 0;
+ DAT_GameState.playerDataArray[8].tacticalPowersBarLevel = 0;
+ DAT_GameCore.isTimeHalted = FALSE;
+ DAT_GameCore.section1095 = 0;
+ iVar6 = (int)this - (int)mapName;
+ do {
+ cVar1 = *mapName;
+ mapName[iVar6] = cVar1;
+ mapName = mapName + 1;
+ } while (cVar1 != '\0');
+ if (DAT_GameCore.gameMode_2 == GM_CAMPAIGN_MISSION) {
+ removeJesterAndLadyUnitsInCertainMissions();
+ } else if (DAT_GameCore.gameMode_2 == GM_ECONOMIC_CAMPAIGN_SH1) {
+ removeLadyAndJester();
+ }
+ pIVar9 = this->SEC_EventsExtra;
+ for (iVar6 = 8000; iVar6 != 0; iVar6 = iVar6 + -1) {
+ pIVar9->conditionOneIsTrue = 0;
+ pIVar9 = (InGameEventExtra*)&pIVar9->conditionTwoIsTrue;
+ }
+ DAT_GameState.mapAndTime.month = this->SEC_StartingMonth;
+ DAT_GameState.mapAndTime.year = this->SEC_StartingYear;
+ if (DAT_GameCore.missionNumber1to20 - 4294967280 < 5) {
+ adjustEventMonthAndYearForSection1047();
+ }
+ if ((DAT_GameState.mapAndTime.month == this->SEC_StartingMonth)
+ && (DAT_GameState.mapAndTime.year == this->SEC_StartingYear)) {
+ piVar4 = DAT_GameState.mapAndTime.startGoods;
+ piVar7 = this->SEC_StartingResources;
+ do {
+ *piVar4 = *piVar7;
+ piVar4 = piVar4 + 1;
+ piVar7 = piVar7 + 1;
+ } while ((int)piVar4 < 0x117ce50);
+ DAT_GameState.mapAndTime.startGoods[7] = DAT_GameState.mapAndTime.startGoods[8];
+ DAT_GameState.mapAndTime.startGoods[8] = 0;
+ pSVar5 = &DAT_GameState.mapAndTime.siegeInformation;
+ pSVar8 = &this->SEC_SiegeInformation;
+ do {
+ pSVar5->archers = pSVar8->archers;
+ pSVar5 = (SiegeUnitCounts*)&pSVar5->field1_0x4;
+ pSVar8 = (SiegeUnitCounts*)&pSVar8->field1_0x4;
+ } while ((int)pSVar5 < 0x117cea0);
+ DAT_GameState.mapAndTime.startingPopularity = this->SEC_StartingPopularity * 10;
+ setMonthAndYear(
+ this->SEC_StartingMonth, this->SEC_StartingYear);
+ }
+ this->SEC_Section1080 = 0;
+ this->SEC_Section1081 = 0;
+ countDeerEfficiently();
+ prepareMap();
+ clearEnemyRelatedStructures();
+ DAT_UnitsState.lastSelectedUnitID = 0;
+ deselectAllUnitsOneByOne();
+ clearSelectionCountsAndPlayerIDs();
+ DAT_GameState.mapAndTime.euroRecruitable[4]
+ = (int)this->barracksRecruitability.recruitability.macemen;
+ DAT_GameState.mapAndTime.euroRecruitable[5]
+ = (int)this->barracksRecruitability.recruitability.swordsmen;
+ DAT_GameState.mapAndTime.euroRecruitable[6]
+ = (int)this->barracksRecruitability.recruitability.knights;
+ DAT_GameState.mapAndTime.mercRecruitable[0] = (int)this->SEC_MercRecruitable[0];
+ DAT_GameState.mapAndTime.euroRecruitable[0]
+ = (int)this->barracksRecruitability.recruitability.archers;
+ DAT_GameState.mapAndTime.euroRecruitable[1]
+ = (int)this->barracksRecruitability.recruitability.crossbowmen;
+ DAT_GameState.mapAndTime.euroRecruitable[2]
+ = (int)this->barracksRecruitability.recruitability.spearmen;
+ DAT_GameState.mapAndTime.euroRecruitable[3]
+ = (int)this->barracksRecruitability.recruitability.pikemen;
+ DAT_GameState.mapAndTime.mercRecruitable[1] = (int)this->SEC_MercRecruitable[1];
+ DAT_GameState.mapAndTime.mercRecruitable[2] = (int)this->SEC_MercRecruitable[2];
+ DAT_GameState.mapAndTime.mercRecruitable[3] = (int)this->SEC_MercRecruitable[3];
+ DAT_GameState.mapAndTime.mercRecruitable[4] = (int)this->SEC_MercRecruitable[4];
+ DAT_GameState.mapAndTime.mercRecruitable[5] = (int)this->SEC_MercRecruitable[5];
+ DAT_GameState.mapAndTime.mercRecruitable[6] = (int)this->SEC_MercRecruitable[6];
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_0
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[0] != 0);
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_1_a
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[1] != 0);
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_1_b
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[1] != 0);
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_2
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[2] != 0);
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_3_a_and_6_b
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[3] != 0);
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_3_b
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[3] != 0);
+ if (DAT_GameState.mapAndTime.euroRecruitable[4] != 0) {
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_1_a = 1;
+ }
+ DAT_GameState.mapAndTime.field2257_0xda8
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[4] != 0);
+ if (DAT_GameState.mapAndTime.euroRecruitable[5] != 0) {
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_3_a_and_6_b = 1;
+ }
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_6_a
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[5] != 0);
+ if (DAT_GameState.mapAndTime.euroRecruitable[6] != 0) {
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_6_a = 1;
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_3_a_and_6_b = 1;
+ }
+ DAT_GameState.mapAndTime.euroRecruitableCopy_index_6_c
+ = (int)(DAT_GameState.mapAndTime.euroRecruitable[6] != 0);
+ DAT_GameState.mapAndTime.countUpTo201 = 0;
+ DAT_GameState.mapAndTime.cathedralRelated1 = 0;
+ importTradingCosts();
+ clearAttackInfo();
+ recomputeAIZonerLayer();
+ setSignpostDistanceForCampaignMission();
+ playNextStoredBinkVideo();
+ DAT_GameCore.xbowProducible_logic = (int)this->SEC_XbowProducible_save;
+ DAT_GameCore.bowProducible_logic = (int)this->SEC_BowProducible_save;
+ DAT_GameCore.pikeProducible_logic = (int)this->SEC_PikeProducible_save;
+ DAT_GameCore.spearProducible_logic = (int)this->SEC_SpearProducible_save;
+ DAT_GameCore.swordProducible_logic = (int)this->SEC_SwordProducible_save;
+ DAT_GameCore.maceProducible_logic = (int)this->SEC_MaceProducible_save;
+ DAT_GameCore.timeSum_2 = timeGetTime();
+ DAT_GameCore.gameDuration = 0;
+ TIME_ReceivedMessage_2::instance = 0;
+ ;
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004c62c0", "name": "loadMap", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Lädt eine Kartendatei und setzt den Spielstand für den Start der Karte neu auf."}, "p2": {"ein": "mapName (Name der Kartendatei)", "aus": "-", "liest": ["DAT_GameCore.gameMode_2", "DAT_GameCore.missionNumber1to20", "DAT_GameState.mapAndTime.difficulty", "DAT_GameCore.xbow/bow/pike/spear/sword/mace Producible_logic", "DAT_GameSynchronyState.currentPlayerSlotID", "SEC_StartingMonth/Year/Resources/Popularity/SiegeInformation", "SEC_MercRecruitable[0..6]", "barracksRecruitability.recruitability", "SEC_*Producible_save"], "schreibt": ["currentPlayerFullIDArray[0..8]", "playerDataArray[1..8].tacticalPowersBarLevel", "mapAndTime.month/year/startGoods/siegeInformation/startingPopularity", "mapAndTime.euroRecruitable[0..6]/mercRecruitable[0..6]/euroRecruitableCopy_*", "DAT_GameCore.mapTimeInTicks/isTimeHalted/gameDuration/timeSum_2", "DAT_GameCore.*Producible_logic", "SEC_EventsExtra[0..7999].conditionOneIsTrue"], "ruft": ["resetTeams", "setupAllMapSections", "resolveResourceFileName", "readMapOrSavFile", "mapLoadingAndLaunchGameRelated1", "removeJesterAndLadyUnitsInCertainMissions", "removeLadyAndJester", "adjustEventMonthAndYearForSection1047", "setMonthAndYear", "countDeerEfficiently", "prepareMap", "clearEnemyRelatedStructures", "deselectAllUnitsOneByOne", "clearSelectionCountsAndPlayerIDs", "importTradingCosts", "clearAttackInfo", "recomputeAIZonerLayer", "setSignpostDistanceForCampaignMission", "playNextStoredBinkVideo"], "regeln": ["Vor dem Einlesen werden Schwierigkeit, Spielmodus, Missionsnummer, eigener Spieler-Platz und die sechs Producible-Schalter (Armbrust, Bogen, Pike, Speer, Schwert, Streitkolben) gemerkt und nach dem Einlesen zurückgeschrieben; die Producible-Schalter bekommen am Ende die SEC_*_save-Werte der Karte", "Danach: currentPlayerFullIDArray[0..8] = -1, nur der eigene Platz = 1; tacticalPowersBarLevel der Spieler 1 bis 8 = 0 (Spieler 0 bleibt unberührt)", "Zeitzähler: mapTimeInTicks = 1, isTimeHalted = FALSE, gameDuration = 0, timeSum_2 = timeGetTime()", "Missionsnummer 1: bis zu 8 lebende Einheiten vom Typ UT_E_ARCHER mit Bedingung (Feld Offset +4 gleich 1) bekommen ein Feld (Offset -0x3f Einheiten) auf 3; Bedeutung unklar", "Kampagnenmission: removeJesterAndLadyUnitsInCertainMissions; Wirtschaftskampagne SH1: removeLadyAndJester", "Alle 8000 SEC_EventsExtra-Einträge: conditionOneIsTrue = 0", "Startdatum = SEC_StartingMonth/Year. Ist es nach dem Anpassen unverändert, werden Startwaren (startGoods; danach [7] = [8], [8] = 0), Belagerungszahlen und startingPopularity = SEC_StartingPopularity * 10 übernommen", "euroRecruitable[0..6] = Bogen, Armbrust, Speer, Pike, Streitkolben, Schwert, Ritter aus barracksRecruitability; mercRecruitable[0..6] aus SEC_MercRecruitable; die euroRecruitableCopy_*-Felder sind (Wert != 0), wobei Streitkolben, Schwert und Ritter bestimmte Kopien zusätzlich auf 1 setzen (Namen der Kopien ungesichert)"], "offen": ["Mission-1-Bogenschützen: was das Feld auf 3 bedeutet", "Der Kartenname wird vermutlich an den Anfang des MapPropertiesState kopiert", "Bedingung missionNumber-4294967280 < 5 (vermutlich Missionsnummern -16 bis -12) ruft adjustEventMonthAndYearForSection1047 auf: welche Missionen das sind", "Die Zuordnung der Rekrutierbar-Kopien zu Einheiten ist aus den Feldnamen nur vermutet"]}, "p3": {"erklaerung": "Beim Laden einer Karte setzt das Spiel alle Start-Werte neu: Datum, Startwaren, Beliebtheit, welche Truppen man anwerben darf, Zeit und Spieler-Plätze.", "gehirn": "Lagert fest, was am Kartenstart gilt: Startdatum, Startwaren und anwerbbare Truppen kommen aus der Karte und lassen sich dort einmal lesen.", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x004c68d0 SetupSkirmishMode | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004C68D0
+ void Skirmish::SetupSkirmishMode(int skirmishTrailMission)
+ {
+ char cVar1;
+ int* piVar2;
+ char* pcVar3;
+ int iVar4;
+ int iVar5;
+ char (*pacVar6)[250];
+ CampaignTrailMission* pCVar7;
+ dword _startDateInMonths;
+ pCVar7 = DAT_SkirmishDefinedData.SkirmishTrailMissions + skirmishTrailMission;
+ if (DAT_GameCore.currentTrailType == TT_EXTREME) {
+ pCVar7 = DAT_SkirmishDefinedData.ExtremeTrailMissions + skirmishTrailMission;
+ } else if (DAT_GameCore.currentTrailType == TT_WARCHEST) {
+ pCVar7 = DAT_SkirmishDefinedData.WarchestTrailMissions + skirmishTrailMission;
+ }
+ setupSkirmishLobby();
+ DAT_GameSynchronyState.isHost = TRUE;
+ DAT_GameSynchronyState.currentGameMode = GM_SKIRMISH_SINGLE_PLAYER;
+ DAT_GameSynchronyState.DPLAYX_ReceivedPlayerID = 1;
+ DAT_GameCore.gameMode_2 = GM_SKIRMISH_AND_MULTIPLAYER;
+ _memset(
+ DAT_GameSynchronyState.DAT_PlayerNames, 0, (size_t)((int)(2250)));
+ piVar2 = DAT_GameSynchronyState.currentAIArray;
+ do {
+ piVar2[-0x1b] = -1;
+ *piVar2 = 0;
+ piVar2[9] = -1;
+ piVar2 = piVar2 + 1;
+ } while ((int)piVar2 < 0x191dea0);
+ pcVar3 = getTextArrayPointer(0);
+ pacVar6 = DAT_GameSynchronyState.DAT_PlayerNames + 1;
+ do {
+ cVar1 = *pcVar3;
+ (*pacVar6)[0] = cVar1;
+ pcVar3 = pcVar3 + 1;
+ pacVar6 = (char (*)[250])(*pacVar6 + 1);
+ } while (cVar1 != '\0');
+ queueCommand(
+ GCT_ASK_FOR_SLOT_ASSIGNMENT);
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[0] = 1;
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[1] = 1;
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[2] = 1;
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[3] = 1;
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[4] = 1;
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[5] = 1;
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[6] = 1;
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[7] = 1;
+ DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[8] = 1;
+ DAT_GameSynchronyState.skirmishRelated1 = -1;
+ DAT_GameCore.mapU4Int0 = 0;
+ if (1 < pCVar7->numberOfPlayers) {
+ piVar2 = &pCVar7->player2AI;
+ iVar4 = 1;
+ do {
+ iVar5 = iVar4 + 1;
+ DAT_GameSynchronyState.currentAIArray[iVar4 + 1] = *piVar2;
+ ResetAiVariationArrayValue(iVar5);
+ piVar2 = piVar2 + 1;
+ iVar4 = iVar5;
+ } while (iVar5 < pCVar7->numberOfPlayers);
+ }
+ DAT_GameSynchronyState.playerPositionsArray[0] = -10;
+ DAT_GameSynchronyState.playerPositionsArray[1] = -10;
+ DAT_GameSynchronyState.playerPositionsArray[2] = -10;
+ DAT_GameSynchronyState.playerPositionsArray[3] = -10;
+ DAT_GameSynchronyState.playerPositionsArray[4] = -10;
+ DAT_GameSynchronyState.playerPositionsArray[5] = -10;
+ DAT_GameSynchronyState.playerPositionsArray[6] = -10;
+ DAT_GameSynchronyState.playerPositionsArray[7] = -10;
+ iVar4 = 0;
+ piVar2 = &pCVar7->position1;
+ do {
+ if (*piVar2 != 0) {
+ DAT_GameSynchronyState.field294_0x109e5f[*piVar2 + 8] = (byte)iVar4;
+ }
+ iVar4 = iVar4 + 1;
+ piVar2 = piVar2 + 1;
+ } while (iVar4 < 8);
+ iVar4 = pCVar7->numberOfPlayers;
+ iVar5 = 0;
+ piVar2 = &pCVar7->team1;
+ do {
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[iVar5 + 1] = (byte)*piVar2;
+ if (iVar4 <= iVar5) {
+ DAT_GameSynchronyState.DAT_PlayerGroupArray[iVar5 + 1] = 0xff;
+ }
+ iVar5 = iVar5 + 1;
+ piVar2 = piVar2 + 1;
+ } while (iVar5 < 8);
+ pcVar3 = pCVar7->mapNameAddress;
+ iVar4 = 0x1a22f9c - (int)pcVar3;
+ do {
+ cVar1 = *pcVar3;
+ pcVar3[iVar4] = cVar1;
+ pcVar3 = pcVar3 + 1;
+ } while (cVar1 != '\0');
+ DAT_GameSynchronyState.skirmishCurrentAdvantageBalance = pCVar7->fairness;
+ DAT_GameSynchronyState.skirmishGameIntensityType = pCVar7->startLevels;
+ piVar2 = &pCVar7->aiv1;
+ DAT_GameCore.isSkirmishTrail = TRUE;
+ if (DAT_GameCore.currentTrailType == TT_EXTREME) {
+ DAT_GameCore.extremeTrailProgress = skirmishTrailMission;
+ LaunchSkirmishGame((int)piVar2);
+ _startDateInMonths
+ = DAT_GameCore.extremeTrailStartDatesInMonths[DAT_GameCore.extremeTrailProgress];
+ DAT_GameCore.extremeTrailStartDateMonths = _startDateInMonths;
+ } else if (DAT_GameCore.currentTrailType == TT_WARCHEST) {
+ DAT_GameCore.warchestTrailProgress = skirmishTrailMission;
+ LaunchSkirmishGame((int)piVar2);
+ _startDateInMonths
+ = DAT_GameCore.warchestTrailStartDatesInMonths[DAT_GameCore.warchestTrailProgress];
+ DAT_GameCore.warchestTrailStartDateMonths = _startDateInMonths;
+ } else {
+ DAT_GameCore.skirmishTrailProgress = skirmishTrailMission;
+ LaunchSkirmishGame((int)piVar2);
+ _startDateInMonths
+ = DAT_GameCore.skirmishTrailStartDateInMonths[DAT_GameCore.skirmishTrailProgress];
+ DAT_GameCore.skirmishTrailStartDateMonths = _startDateInMonths;
+ }
+ DAT_GameState.mapAndTime.year = (int)_startDateInMonths / 0xc;
+ DAT_GameState.mapAndTime.month = (int)_startDateInMonths % 0xc;
+ DAT_GameSynchronyState.finalResults.yearStart = (int)_startDateInMonths / 0xc;
+ DAT_GameSynchronyState.finalResults.monthStart = (int)_startDateInMonths % 0xc;
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004c68d0", "name": "SetupSkirmishMode", "quelle": "ghidra", "p1": {"bereich": "Spielablauf", "zweck": "Richtet ein Gefecht aus einer Pfad-Mission (Skirmish-, Extreme- oder Warchest-Trail) ein und startet es."}, "p2": {"ein": "skirmishTrailMission (Missionsnummer im gewählten Pfad)", "aus": "-", "liest": ["DAT_GameCore.currentTrailType", "DAT_SkirmishDefinedData.SkirmishTrailMissions/ExtremeTrailMissions/WarchestTrailMissions", "CampaignTrailMission: numberOfPlayers, player2AI.., position1.., team1.., mapNameAddress, fairness, startLevels, aiv1", "DAT_GameCore.*TrailStartDatesInMonths"], "schreibt": ["isHost", "currentGameMode", "DPLAYX_ReceivedPlayerID", "gameMode_2", "DAT_PlayerNames", "currentAIArray", "aiVariationArray", "DAT_PlayerSlotArraySomeValue[0..8]", "playerPositionsArray[0..7]", "DAT_PlayerGroupArray", "Kartenname", "skirmishCurrentAdvantageBalance", "skirmishGameIntensityType", "isSkirmishTrail", "*TrailProgress", "mapAndTime.year/month", "finalResults.yearStart/monthStart"], "ruft": ["setupSkirmishLobby", "getTextArrayPointer", "queueCommand(GCT_ASK_FOR_SLOT_ASSIGNMENT)", "ResetAiVariationArrayValue", "LaunchSkirmishGame"], "regeln": ["Missionstabelle nach currentTrailType: Standard SkirmishTrailMissions, TT_EXTREME ExtremeTrailMissions, TT_WARCHEST WarchestTrailMissions", "Setzt Einzelspieler-Gefecht: isHost=TRUE, currentGameMode=GM_SKIRMISH_SINGLE_PLAYER, DPLAYX_ReceivedPlayerID=1, gameMode_2=GM_SKIRMISH_AND_MULTIPLAYER", "Spielernamen (2250 Byte) werden gelöscht, Slot 1 bekommt den Text Nr. 0 als Namen", "Alle neun DAT_PlayerSlotArraySomeValue[0..8] = 1", "KI je Slot 2..numberOfPlayers aus player2AI.. übernommen, danach ResetAiVariationArrayValue je Slot", "playerPositionsArray[0..7] = -10; Startpositionen aus position1..8 (nur Einträge ungleich 0) in field294_0x109e5f[Wert+8] als Slotnummer abgelegt", "Gruppe je Slot aus team1..8; Slots ab numberOfPlayers bekommen 0xff", "fairness wird zu skirmishCurrentAdvantageBalance, startLevels zu skirmishGameIntensityType", "Startdatum in Monaten je nach Pfad aus der Tabelle der Pfad-Startdaten: Jahr = Monate / 12, Monat = Monate % 12", "Der Pfad-Fortschritt (skirmish-, extreme- oder warchestTrailProgress) wird auf die Missionsnummer gesetzt, dann LaunchSkirmishGame mit Zeiger auf aiv1"], "offen": ["Bedeutung von aiv1.. (Zeiger an LaunchSkirmishGame)", "Bedeutung von skirmishRelated1 und mapU4Int0 (nur auf -1 und 0 gesetzt)", "Wofür field294_0x109e5f ab Index 9 steht (vermutlich Zuordnung Startposition zu Slot)"]}, "p3": {"erklaerung": "Baut aus einer festen Missionsbeschreibung (Karte, Gegner-KIs, Teams, Startpositionen, Fairness, Startdatum) ein Gefecht des Pfad-Modus und startet es.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x004c6d60 setAICParameters_01 | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004C6D60
+ void AICState::setAICParameters_01(int aicIndex)
+ {
+ this->aics[aicIndex].flagType = 12;
+ this->aics[aicIndex].unknown002 = 0;
+ this->aics[aicIndex].unknown001 = 0;
+ this->aics[aicIndex].unknown003 = 0;
+ this->aics[aicIndex].unknown004 = 0;
+ this->aics[aicIndex].unknown005 = 0;
+ this->aics[aicIndex].criticalPopularity = 4000;
+ this->aics[aicIndex].lowestPopularity = 5500;
+ this->aics[aicIndex].highestPopularity = 7500;
+ this->aics[aicIndex].taxesMin = 3;
+ this->aics[aicIndex].taxesMax = 10;
+ this->aics[aicIndex].farm1 = 32;
+ this->aics[aicIndex].populationPerFarm = 6;
+ this->aics[aicIndex].unknown011 = 20;
+ this->aics[aicIndex].maxFood = 100;
+ this->aics[aicIndex].minimumApples = 10;
+ this->aics[aicIndex].minimumCheese = -1;
+ this->aics[aicIndex].minimumBread = -1;
+ this->aics[aicIndex].minimumWheat = -1;
+ this->aics[aicIndex].minimumHop = -1;
+ this->aics[aicIndex].tradeAmountFood = 10;
+ this->aics[aicIndex].tradeAmountEquipment = 2;
+ this->aics[aicIndex].aiRequestDelay = 18;
+ this->aics[aicIndex].minimumGoodsRequiredAfterTrade = 0;
+ this->aics[aicIndex].doubleRationsFoodThreshold = 0;
+ this->aics[aicIndex].maxWood = 30;
+ this->aics[aicIndex].maxStone = 40;
+ this->aics[aicIndex].maxResourceOther = 20;
+ this->aics[aicIndex].maxEquipment = 20;
+ this->aics[aicIndex].maxBeer = 20;
+ this->aics[aicIndex].maxResourceVariance = 5;
+ this->aics[aicIndex].recruitGoldThreshold = 200;
+ this->aics[aicIndex].populationPerWoodcutter = 8;
+ this->aics[aicIndex].populationPerQuarry = 18;
+ this->aics[aicIndex].populationPerIronmine = 0;
+ this->aics[aicIndex].populationPerPitchrig = 0;
+ this->aics[aicIndex].maxQuarries = 1;
+ this->aics[aicIndex].maxIronmines = 1;
+ this->aics[aicIndex].maxWoodcutters = 6;
+ this->aics[aicIndex].maxPitchrigs = 1;
+ this->aics[aicIndex].maxFarms = 6;
+ this->aics[aicIndex].buildInterval = 1;
+ this->aics[aicIndex].resourceRebuildDelay = 10;
+ this->aics[aicIndex].blacksmithSetting = 22;
+ this->aics[aicIndex].fletcherSetting = 17;
+ this->aics[aicIndex].poleturnerSetting = 19;
+ this->aics[aicIndex].sellResource02 = 3;
+ this->aics[aicIndex].sellResource03 = 6;
+ this->aics[aicIndex].sellResource04 = 7;
+ this->aics[aicIndex].sellResource05 = 9;
+ this->aics[aicIndex].sellResource06 = 14;
+ this->aics[aicIndex].sellResource07 = 16;
+ this->aics[aicIndex].sellResource09 = 18;
+ this->aics[aicIndex].sellResource11 = 20;
+ this->aics[aicIndex].sellResource12 = 21;
+ this->aics[aicIndex].sellResource13 = 22;
+ this->aics[aicIndex].sellResource14 = 23;
+ this->aics[aicIndex].sellResource15 = 24;
+ this->aics[aicIndex].defWallPatrolRallyTime = 20;
+ this->aics[aicIndex].defWallPatrolGroups = 1;
+ this->aics[aicIndex].defSiegeEngineGoldThreshold = 200;
+ this->aics[aicIndex].defSiegeEngineBuildDelay = 20;
+ this->aics[aicIndex].unknown072 = 800;
+ this->aics[aicIndex].unknown073 = 80;
+ this->aics[aicIndex].recruitProbDefWeak = 50;
+ this->aics[aicIndex].RecruitIntervalWeak = 1;
+ this->aics[aicIndex].RecruitInterval = 1;
+ this->aics[aicIndex].RecruitIntervalStrong = 1;
+ this->aics[aicIndex].SortieUnitRanged = 22;
+ this->aics[aicIndex].SortieUnitMelee = 24;
+ this->aics[aicIndex].DefDiggingUnit = 24;
+ this->aics[aicIndex].OuterPatrolGroupsCount = 1;
+ this->aics[aicIndex].OuterPatrolRallyDelay = 10;
+ this->aics[aicIndex].DefUnit1 = 24;
+ this->aics[aicIndex].DefUnit2 = 24;
+ this->aics[aicIndex].DefUnit3 = 22;
+ this->aics[aicIndex].DefUnit4 = 22;
+ this->aics[aicIndex].RaidUnitsBase = 10;
+ this->aics[aicIndex].RaidUnit1 = 24;
+ this->aics[aicIndex].RaidUnit2 = 24;
+ this->aics[aicIndex].RaidUnit3 = 22;
+ this->aics[aicIndex].recruitProbDefDefault = 0;
+ this->aics[aicIndex].recruitProbDefStrong = 0;
+ this->aics[aicIndex].recruitProbRaidWeak = 50;
+ this->aics[aicIndex].recruitProbRaidDefault = 50;
+ this->aics[aicIndex].recruitProbRaidStrong = 0;
+ this->aics[aicIndex].recruitProbAttackWeak = 0;
+ this->aics[aicIndex].recruitProbAttackDefault = 50;
+ this->aics[aicIndex].recruitProbAttackStrong = 100;
+ this->aics[aicIndex].SortieUnitRangedMin = 5;
+ this->aics[aicIndex].SortieUnitMeleeMin = 6;
+ this->aics[aicIndex].DefDiggingUnitMax = 0;
+ this->aics[aicIndex].DefWalls = 20;
+ this->aics[aicIndex].DefTotal = 30;
+ this->aics[aicIndex].OuterPatrolGroupsMove = 0;
+ this->aics[aicIndex].RaidUnitsRandom = 15;
+ this->aics[aicIndex].HarassingSiegeEnginesMax = 0;
+ this->aics[aicIndex].HarassingSiegeEngine1 = 190;
+ this->aics[aicIndex].RaidRetargetDelay = 3;
+ this->aics[aicIndex].AttForceBase = 20;
+ this->aics[aicIndex].AttForceRandom = 10;
+ this->aics[aicIndex].AttForceSupportAllyThreshold = 15;
+ this->aics[aicIndex].AttForceRallyPercentage = 50;
+ this->aics[aicIndex].AttMovingTribesThreshold = 100;
+ this->aics[aicIndex].AttAssaultDelay = 0;
+ this->aics[aicIndex].AttUnitPatrolRecommandDelay = 25;
+ this->aics[aicIndex].AttCoordinationPreference = 20;
+ this->aics[aicIndex].SiegeEngine1 = 0;
+ this->aics[aicIndex].CowThrowInterval = 1000;
+ this->aics[aicIndex].AttMaxEngineers = 0;
+ this->aics[aicIndex].AttDiggingUnit = 24;
+ this->aics[aicIndex].AttDiggingUnitMax = 20;
+ this->aics[aicIndex].AttMaxAssassins = 0;
+ this->aics[aicIndex].AttUnit2 = 22;
+ this->aics[aicIndex].AttUnit2Max = 0;
+ this->aics[aicIndex].AttMaxLaddermen = 0;
+ this->aics[aicIndex].AttMaxTunnelers = 0;
+ this->aics[aicIndex].AttUnitPatrol = 22;
+ this->aics[aicIndex].AttUnitPatrolMax = 0;
+ this->aics[aicIndex].AttUnitPatrolGroupsCount = 0;
+ this->aics[aicIndex].AttUnitBackup = 22;
+ this->aics[aicIndex].AttUnitBackupMax = 16;
+ this->aics[aicIndex].AttUnitBackupGroupsCount = 0;
+ this->aics[aicIndex].AttUnitEngageMax = 0;
+ this->aics[aicIndex].AttUnitEngage = 0;
+ this->aics[aicIndex].AttUnitSiegeDef = 24;
+ this->aics[aicIndex].AttUnitSiegeDefMax = 0;
+ this->aics[aicIndex].AttUnitSiegeDefGroupsCount = 0;
+ this->aics[aicIndex].AttUnitMain1 = 24;
+ this->aics[aicIndex].AttMaxDefault = 200;
+ this->aics[aicIndex].AttMainGroupsCount = 1;
+ this->aics[aicIndex].TargetChoice = AITC_PLAYER;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004c6d60", "name": "setAICParameters_01", "quelle": "nachgebaut", "p1": {"bereich": "KI", "zweck": "Füllt einen KI-Parametersatz mit den Grundwerten der ersten, schwächeren KI-Art."}, "p2": {"ein": "aicIndex", "aus": "-", "liest": [], "schreibt": ["AICState.aics[aicIndex]: alle Felder unten"], "ruft": [], "regeln": ["flagType 12; unknown001 bis unknown005 je 0", "Zufriedenheit: criticalPopularity 4000, lowestPopularity 5500, highestPopularity 7500; Steuern taxesMin 3, taxesMax 10", "Nahrung: farm1 32, populationPerFarm 6, unknown011 20, maxFood 100, minimumApples 10, minimumCheese/Bread/Wheat/Hop je -1, tradeAmountFood 10, tradeAmountEquipment 2, aiRequestDelay 18, minimumGoodsRequiredAfterTrade 0, doubleRationsFoodThreshold 0", "Lagergrenzen: maxWood 30, maxStone 40, maxResourceOther 20, maxEquipment 20, maxBeer 20, maxResourceVariance 5, recruitGoldThreshold 200", "Bau: populationPerWoodcutter 8, populationPerQuarry 18, populationPerIronmine 0, populationPerPitchrig 0; maxQuarries 1, maxIronmines 1, maxWoodcutters 6, maxPitchrigs 1, maxFarms 6; buildInterval 1, resourceRebuildDelay 10; blacksmithSetting 22, fletcherSetting 17, poleturnerSetting 19", "Verkaufsliste: sellResource02=3, 03=6, 04=7, 05=9, 06=14, 07=16, 09=18, 11=20, 12=21, 13=22, 14=23, 15=24 (01, 08, 10 nicht gesetzt)", "Verteidigung: defWallPatrolRallyTime 20, defWallPatrolGroups 1, defSiegeEngineGoldThreshold 200, defSiegeEngineBuildDelay 20, unknown072 800, unknown073 80, recruitProbDef Weak 50 / Default 0 / Strong 0, RecruitInterval Weak/normal/Strong je 1, SortieUnitRanged 22 (Min 5), SortieUnitMelee 24 (Min 6), DefDiggingUnit 24 (Max 0), OuterPatrolGroupsCount 1, OuterPatrolGroupsMove 0, OuterPatrolRallyDelay 10, DefUnit1 24, DefUnit2 24, DefUnit3 22, DefUnit4 22, DefWalls 20, DefTotal 30", "Raubzug: RaidUnitsBase 10, RaidUnitsRandom 15, RaidUnit1 24, RaidUnit2 24, RaidUnit3 22, RaidRetargetDelay 3, recruitProbRaid Weak 50 / Default 50 / Strong 0, HarassingSiegeEnginesMax 0, HarassingSiegeEngine1 190", "Angriff: recruitProbAttack Weak 0 / Default 50 / Strong 100, AttForceBase 20, AttForceRandom 10, AttForceSupportAllyThreshold 15, AttForceRallyPercentage 50, AttMovingTribesThreshold 100, AttAssaultDelay 0, AttUnitPatrolRecommandDelay 25, AttCoordinationPreference 20, SiegeEngine1 0, CowThrowInterval 1000", "Angriffsgruppen: AttMaxEngineers 0, AttDiggingUnit 24 (Max 20), AttMaxAssassins 0, AttUnit2 22 (Max 0), AttMaxLaddermen 0, AttMaxTunnelers 0, AttUnitPatrol 22 (Max 0, Groups 0), AttUnitBackup 22 (Max 16, Groups 0), AttUnitEngage 0 (Max 0), AttUnitSiegeDef 24 (Max 0, Groups 0), AttUnitMain1 24, AttMaxDefault 200, AttMainGroupsCount 1", "TargetChoice = AITC_PLAYER"], "offen": ["Welche KI-Figur diesen Satz erhält (Aufrufer prüfen)", "Die Einheitennummern 22, 24, 190 sind Typnummern; Zuordnung zu Einheiten nicht im Code (vermutlich 22 Bogenschütze, 24 Speerträger)", "Felder mit unknown und die Namen mit Unk sind ungesichert", "Gefecht-KI lädt vermutlich Werte aus eigenen Dateien, die diese Grundwerte überschreiben"]}, "p3": {"erklaerung": "Die KI steuert Bau, Handel, Heerstärke und Angriffe über diese Tabelle. Dieser Satz beschreibt eine eher kleine, bescheidene KI mit wenigen Gebäuden und nur einer Hauptgruppe im Angriff.", "gehirn": "Gegner-KI einschätzen: Angriffstärke AttForceBase 20 plus bis zu 10 zufällig, Verteidigung DefTotal 30. Echte Werte aus dem laufenden Spiel lesen.", "beleg": "nachgebaut", "live": "AICState.aics[n] einmal aus dem Speicher lesen → AttForceBase, DefTotal, TargetChoice → mit diesem Satz vergleichen (UCP und Karten können abweichen)", "live_art": "tabelle"}}
+
+### 0x004c7120 setAICParameters_02 | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004C7120
+ void AICState::setAICParameters_02(int aicIndex)
+ {
+ this->aics[aicIndex].flagType = 12;
+ this->aics[aicIndex].unknown002 = 0;
+ this->aics[aicIndex].unknown001 = 0;
+ this->aics[aicIndex].unknown003 = 0;
+ this->aics[aicIndex].unknown004 = 0;
+ this->aics[aicIndex].unknown005 = 0;
+ this->aics[aicIndex].criticalPopularity = 4000;
+ this->aics[aicIndex].lowestPopularity = 5000;
+ this->aics[aicIndex].highestPopularity = 8000;
+ this->aics[aicIndex].taxesMin = 3;
+ this->aics[aicIndex].taxesMax = 11;
+ this->aics[aicIndex].farm1 = 32;
+ this->aics[aicIndex].populationPerFarm = 5;
+ this->aics[aicIndex].unknown011 = 15;
+ this->aics[aicIndex].maxFood = 150;
+ this->aics[aicIndex].minimumApples = 10;
+ this->aics[aicIndex].minimumCheese = 20;
+ this->aics[aicIndex].minimumBread = -1;
+ this->aics[aicIndex].minimumWheat = -1;
+ this->aics[aicIndex].minimumHop = -1;
+ this->aics[aicIndex].tradeAmountFood = 5;
+ this->aics[aicIndex].tradeAmountEquipment = 6;
+ this->aics[aicIndex].aiRequestDelay = 12;
+ this->aics[aicIndex].minimumGoodsRequiredAfterTrade = 10;
+ this->aics[aicIndex].doubleRationsFoodThreshold = 80;
+ this->aics[aicIndex].maxWood = 48;
+ this->aics[aicIndex].maxStone = 40;
+ this->aics[aicIndex].maxResourceOther = 15;
+ this->aics[aicIndex].maxEquipment = 12;
+ this->aics[aicIndex].maxBeer = 5;
+ this->aics[aicIndex].maxResourceVariance = 5;
+ this->aics[aicIndex].recruitGoldThreshold = 200;
+ this->aics[aicIndex].populationPerWoodcutter = 5;
+ this->aics[aicIndex].populationPerQuarry = 15;
+ this->aics[aicIndex].populationPerIronmine = 0;
+ this->aics[aicIndex].populationPerPitchrig = 0;
+ this->aics[aicIndex].maxQuarries = 2;
+ this->aics[aicIndex].maxIronmines = 1;
+ this->aics[aicIndex].maxWoodcutters = 10;
+ this->aics[aicIndex].maxPitchrigs = 1;
+ this->aics[aicIndex].maxFarms = 10;
+ this->aics[aicIndex].buildInterval = 2;
+ this->aics[aicIndex].resourceRebuildDelay = 12;
+ this->aics[aicIndex].blacksmithSetting = 22;
+ this->aics[aicIndex].fletcherSetting = 17;
+ this->aics[aicIndex].poleturnerSetting = 19;
+ this->aics[aicIndex].sellResource02 = 3;
+ this->aics[aicIndex].sellResource03 = 6;
+ this->aics[aicIndex].sellResource04 = 7;
+ this->aics[aicIndex].sellResource05 = 9;
+ this->aics[aicIndex].sellResource06 = 14;
+ this->aics[aicIndex].sellResource07 = 16;
+ this->aics[aicIndex].sellResource09 = 18;
+ this->aics[aicIndex].sellResource11 = 20;
+ this->aics[aicIndex].sellResource12 = 21;
+ this->aics[aicIndex].sellResource13 = 22;
+ this->aics[aicIndex].sellResource14 = 23;
+ this->aics[aicIndex].sellResource15 = 24;
+ this->aics[aicIndex].defWallPatrolRallyTime = 2;
+ this->aics[aicIndex].defWallPatrolGroups = 4;
+ this->aics[aicIndex].defSiegeEngineGoldThreshold = 500;
+ this->aics[aicIndex].defSiegeEngineBuildDelay = 20;
+ this->aics[aicIndex].unknown072 = 400;
+ this->aics[aicIndex].unknown073 = 60;
+ this->aics[aicIndex].recruitProbDefWeak = 70;
+ this->aics[aicIndex].recruitProbDefDefault = 30;
+ this->aics[aicIndex].recruitProbDefStrong = 20;
+ this->aics[aicIndex].recruitProbRaidWeak = 30;
+ this->aics[aicIndex].recruitProbRaidDefault = 40;
+ this->aics[aicIndex].recruitProbRaidStrong = 40;
+ this->aics[aicIndex].recruitProbAttackWeak = 0;
+ this->aics[aicIndex].recruitProbAttackDefault = 30;
+ this->aics[aicIndex].recruitProbAttackStrong = 40;
+ this->aics[aicIndex].RecruitIntervalWeak = 0;
+ this->aics[aicIndex].RecruitInterval = 1;
+ this->aics[aicIndex].RecruitIntervalStrong = 1;
+ this->aics[aicIndex].SortieUnitRangedMin = 2;
+ this->aics[aicIndex].SortieUnitRanged = 22;
+ this->aics[aicIndex].SortieUnitMeleeMin = 8;
+ this->aics[aicIndex].SortieUnitMelee = 24;
+ this->aics[aicIndex].DefDiggingUnitMax = 20;
+ this->aics[aicIndex].DefDiggingUnit = 24;
+ this->aics[aicIndex].DefWalls = 50;
+ this->aics[aicIndex].DefTotal = 80;
+ this->aics[aicIndex].OuterPatrolGroupsCount = 3;
+ this->aics[aicIndex].OuterPatrolGroupsMove = 1;
+ this->aics[aicIndex].OuterPatrolRallyDelay = 2;
+ this->aics[aicIndex].DefUnit1 = 22;
+ this->aics[aicIndex].RaidUnitsBase = 30;
+ this->aics[aicIndex].RaidUnitsRandom = 10;
+ this->aics[aicIndex].RaidUnit1 = 71;
+ this->aics[aicIndex].RaidUnit2 = 71;
+ this->aics[aicIndex].RaidUnit3 = 71;
+ this->aics[aicIndex].RaidUnit4 = 72;
+ this->aics[aicIndex].HarassingSiegeEnginesMax = 1;
+ this->aics[aicIndex].HarassingSiegeEngine1 = 190;
+ this->aics[aicIndex].RaidRetargetDelay = 3;
+ this->aics[aicIndex].AttForceBase = 30;
+ this->aics[aicIndex].AttForceRandom = 10;
+ this->aics[aicIndex].AttForceSupportAllyThreshold = 30;
+ this->aics[aicIndex].AttForceRallyPercentage = 50;
+ this->aics[aicIndex].AttMovingTribesThreshold = 100;
+ this->aics[aicIndex].AttAssaultDelay = 0;
+ this->aics[aicIndex].AttUnitPatrolRecommandDelay = 25;
+ this->aics[aicIndex].AttCoordinationPreference = 40;
+ this->aics[aicIndex].SiegeEngine1 = 39;
+ this->aics[aicIndex].CowThrowInterval = 1000;
+ this->aics[aicIndex].AttMaxEngineers = 2;
+ this->aics[aicIndex].AttDiggingUnit = 24;
+ this->aics[aicIndex].AttDiggingUnitMax = 20;
+ this->aics[aicIndex].AttMaxAssassins = 0;
+ this->aics[aicIndex].AttUnit2 = 22;
+ this->aics[aicIndex].AttUnit2Max = 20;
+ this->aics[aicIndex].AttMaxLaddermen = 10;
+ this->aics[aicIndex].AttMaxTunnelers = 0;
+ this->aics[aicIndex].AttUnitPatrol = 72;
+ this->aics[aicIndex].AttUnitPatrolMax = 0;
+ this->aics[aicIndex].AttUnitPatrolGroupsCount = 0;
+ this->aics[aicIndex].AttUnitBackup = 70;
+ this->aics[aicIndex].AttUnitBackupMax = 50;
+ this->aics[aicIndex].AttUnitBackupGroupsCount = 1;
+ this->aics[aicIndex].AttUnitEngageMax = 0;
+ this->aics[aicIndex].AttUnitEngage = 0;
+ this->aics[aicIndex].AttUnitSiegeDef = 22;
+ this->aics[aicIndex].AttUnitSiegeDefMax = 30;
+ this->aics[aicIndex].AttUnitSiegeDefGroupsCount = 0;
+ this->aics[aicIndex].AttUnitMain1 = 24;
+ this->aics[aicIndex].AttMaxDefault = 200;
+ this->aics[aicIndex].AttMainGroupsCount = 1;
+ this->aics[aicIndex].TargetChoice = AITC_BALANCED;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004c7120", "name": "setAICParameters_02", "quelle": "nachgebaut", "p1": {"bereich": "KI", "zweck": "Füllt einen KI-Parametersatz mit den Grundwerten der zweiten, stärkeren KI-Art."}, "p2": {"ein": "aicIndex", "aus": "-", "liest": [], "schreibt": ["AICState.aics[aicIndex]: alle Felder unten"], "ruft": [], "regeln": ["flagType 12; unknown001 bis unknown005 je 0", "Zufriedenheit: criticalPopularity 4000, lowestPopularity 5000, highestPopularity 8000; taxesMin 3, taxesMax 11", "Nahrung: farm1 32, populationPerFarm 5, unknown011 15, maxFood 150, minimumApples 10, minimumCheese 20, minimumBread/Wheat/Hop je -1, tradeAmountFood 5, tradeAmountEquipment 6, aiRequestDelay 12, minimumGoodsRequiredAfterTrade 10, doubleRationsFoodThreshold 80", "Lagergrenzen: maxWood 48, maxStone 40, maxResourceOther 15, maxEquipment 12, maxBeer 5, maxResourceVariance 5, recruitGoldThreshold 200", "Bau: populationPerWoodcutter 5, populationPerQuarry 15, populationPerIronmine 0, populationPerPitchrig 0; maxQuarries 2, maxIronmines 1, maxWoodcutters 10, maxPitchrigs 1, maxFarms 10; buildInterval 2, resourceRebuildDelay 12; blacksmithSetting 22, fletcherSetting 17, poleturnerSetting 19", "Verkaufsliste wie in _01: sellResource02=3, 03=6, 04=7, 05=9, 06=14, 07=16, 09=18, 11=20, 12=21, 13=22, 14=23, 15=24", "Verteidigung: defWallPatrolRallyTime 2, defWallPatrolGroups 4, defSiegeEngineGoldThreshold 500, defSiegeEngineBuildDelay 20, unknown072 400, unknown073 60, recruitProbDef Weak 70 / Default 30 / Strong 20, RecruitInterval Weak 0 / normal 1 / Strong 1, SortieUnitRanged 22 (Min 2), SortieUnitMelee 24 (Min 8), DefDiggingUnit 24 (Max 20), DefWalls 50, DefTotal 80, OuterPatrolGroupsCount 3, OuterPatrolGroupsMove 1, OuterPatrolRallyDelay 2, DefUnit1 22 (DefUnit2 bis 4 nicht gesetzt)", "Raubzug: RaidUnitsBase 30, RaidUnitsRandom 10, RaidUnit1 71, RaidUnit2 71, RaidUnit3 71, RaidUnit4 72, RaidRetargetDelay 3, recruitProbRaid Weak 30 / Default 40 / Strong 40, HarassingSiegeEnginesMax 1, HarassingSiegeEngine1 190", "Angriff: recruitProbAttack Weak 0 / Default 30 / Strong 40, AttForceBase 30, AttForceRandom 10, AttForceSupportAllyThreshold 30, AttForceRallyPercentage 50, AttMovingTribesThreshold 100, AttAssaultDelay 0, AttUnitPatrolRecommandDelay 25, AttCoordinationPreference 40, SiegeEngine1 39, CowThrowInterval 1000", "Angriffsgruppen: AttMaxEngineers 2, AttDiggingUnit 24 (Max 20), AttMaxAssassins 0, AttUnit2 22 (Max 20), AttMaxLaddermen 10, AttMaxTunnelers 0, AttUnitPatrol 72 (Max 0, Groups 0), AttUnitBackup 70 (Max 50, Groups 1), AttUnitEngage 0 (Max 0), AttUnitSiegeDef 22 (Max 30, Groups 0), AttUnitMain1 24, AttMaxDefault 200, AttMainGroupsCount 1", "TargetChoice = AITC_BALANCED"], "offen": ["Welche KI-Figur diesen Satz erhält (Aufrufer prüfen)", "Typnummern 22, 24, 70, 71, 72, 39, 190 nicht im Code erklärt (vermutlich 70 bis 72 arabische Einheiten, 39 Belagerungsgerät)", "DefUnit2 bis 4 bleiben nach wipeAICMemory 0", "Felder mit unknown und Unk sind ungesichert", "Gefecht-KI lädt vermutlich Werte aus eigenen Dateien, die diese Grundwerte überschreiben"]}, "p3": {"erklaerung": "Stärkere KI als Satz _01: mehr Bauten (bis 10 Farmen und Holzfäller), größere Verteidigung (DefTotal 80), Belagerungsgerät, Ingenieure und Leiterträger im Angriff.", "gehirn": "Gegner dieser Art greifen mit mindestens 30 Einheiten an, bringen bis zu 2 Ingenieure und 10 Leiterträger mit; Verteidigung bis 80 Einheiten, davon 50 an der Mauer. Echte Werte live lesen.", "beleg": "nachgebaut", "live": "AICState.aics[n] einmal aus dem Speicher lesen → AttForceBase, DefTotal, AttMaxLaddermen, TargetChoice → mit diesem Satz vergleichen (UCP und Karten können abweichen)", "live_art": "tabelle"}}
+
+### 0x004c7520 setAICParameters_03 | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004C7520
+ void AICState::setAICParameters_03(int aicIndex)
+ {
+ this->aics[aicIndex].flagType = 12;
+ this->aics[aicIndex].unknown002 = 0;
+ this->aics[aicIndex].unknown001 = 0;
+ this->aics[aicIndex].unknown003 = 0;
+ this->aics[aicIndex].unknown004 = 0;
+ this->aics[aicIndex].unknown005 = 0;
+ this->aics[aicIndex].criticalPopularity = 5000;
+ this->aics[aicIndex].lowestPopularity = 7000;
+ this->aics[aicIndex].highestPopularity = 8500;
+ this->aics[aicIndex].taxesMin = 3;
+ this->aics[aicIndex].taxesMax = 11;
+ this->aics[aicIndex].farm1 = 33;
+ this->aics[aicIndex].populationPerFarm = 4;
+ this->aics[aicIndex].unknown011 = 20;
+ this->aics[aicIndex].maxFood = 400;
+ this->aics[aicIndex].minimumApples = 10;
+ this->aics[aicIndex].minimumCheese = 10;
+ this->aics[aicIndex].minimumBread = 10;
+ this->aics[aicIndex].minimumWheat = -1;
+ this->aics[aicIndex].minimumHop = -1;
+ this->aics[aicIndex].tradeAmountFood = 5;
+ this->aics[aicIndex].tradeAmountEquipment = 4;
+ this->aics[aicIndex].aiRequestDelay = 12;
+ this->aics[aicIndex].minimumGoodsRequiredAfterTrade = 100;
+ this->aics[aicIndex].doubleRationsFoodThreshold = 60;
+ this->aics[aicIndex].maxWood = 70;
+ this->aics[aicIndex].maxStone = 40;
+ this->aics[aicIndex].maxResourceOther = 10;
+ this->aics[aicIndex].maxEquipment = 10;
+ this->aics[aicIndex].maxBeer = 5;
+ this->aics[aicIndex].maxResourceVariance = 5;
+ this->aics[aicIndex].recruitGoldThreshold = 200;
+ this->aics[aicIndex].populationPerWoodcutter = 6;
+ this->aics[aicIndex].populationPerQuarry = 25;
+ this->aics[aicIndex].populationPerIronmine = 10;
+ this->aics[aicIndex].populationPerPitchrig = 20;
+ this->aics[aicIndex].maxQuarries = 2;
+ this->aics[aicIndex].maxIronmines = 4;
+ this->aics[aicIndex].maxWoodcutters = 8;
+ this->aics[aicIndex].maxPitchrigs = 1;
+ this->aics[aicIndex].maxFarms = 12;
+ this->aics[aicIndex].buildInterval = 3;
+ this->aics[aicIndex].resourceRebuildDelay = 50;
+ this->aics[aicIndex].blacksmithSetting = 21;
+ this->aics[aicIndex].fletcherSetting = 18;
+ this->aics[aicIndex].poleturnerSetting = 19;
+ this->aics[aicIndex].sellResource02 = 3;
+ this->aics[aicIndex].sellResource04 = 7;
+ this->aics[aicIndex].sellResource05 = 9;
+ this->aics[aicIndex].sellResource06 = 14;
+ this->aics[aicIndex].sellResource07 = 16;
+ this->aics[aicIndex].sellResource08 = 17;
+ this->aics[aicIndex].sellResource10 = 19;
+ this->aics[aicIndex].sellResource11 = 20;
+ this->aics[aicIndex].sellResource13 = 22;
+ this->aics[aicIndex].sellResource15 = 24;
+ this->aics[aicIndex].defWallPatrolRallyTime = 10;
+ this->aics[aicIndex].defWallPatrolGroups = 4;
+ this->aics[aicIndex].defSiegeEngineGoldThreshold = 100;
+ this->aics[aicIndex].defSiegeEngineBuildDelay = 20;
+ this->aics[aicIndex].unknown072 = 200;
+ this->aics[aicIndex].unknown073 = 40;
+ this->aics[aicIndex].recruitProbDefWeak = 100;
+ this->aics[aicIndex].recruitProbDefDefault = 60;
+ this->aics[aicIndex].recruitProbDefStrong = 30;
+ this->aics[aicIndex].recruitProbRaidWeak = 0;
+ this->aics[aicIndex].recruitProbRaidDefault = 0;
+ this->aics[aicIndex].recruitProbRaidStrong = 0;
+ this->aics[aicIndex].recruitProbAttackWeak = 0;
+ this->aics[aicIndex].recruitProbAttackDefault = 40;
+ this->aics[aicIndex].recruitProbAttackStrong = 70;
+ this->aics[aicIndex].RecruitIntervalWeak = 1;
+ this->aics[aicIndex].RecruitInterval = 1;
+ this->aics[aicIndex].RecruitIntervalStrong = 4;
+ this->aics[aicIndex].SortieUnitRangedMin = 4;
+ this->aics[aicIndex].SortieUnitRanged = 23;
+ this->aics[aicIndex].SortieUnitMeleeMin = 5;
+ this->aics[aicIndex].SortieUnitMelee = 26;
+ this->aics[aicIndex].DefDiggingUnitMax = 0;
+ this->aics[aicIndex].DefDiggingUnit = 24;
+ this->aics[aicIndex].DefWalls = 30;
+ this->aics[aicIndex].DefTotal = 40;
+ this->aics[aicIndex].OuterPatrolGroupsCount = 2;
+ this->aics[aicIndex].OuterPatrolGroupsMove = 1;
+ this->aics[aicIndex].OuterPatrolRallyDelay = 20;
+ this->aics[aicIndex].DefUnit1 = 23;
+ this->aics[aicIndex].DefUnit2 = 23;
+ this->aics[aicIndex].RaidUnitsBase = 10;
+ this->aics[aicIndex].RaidUnitsRandom = 5;
+ this->aics[aicIndex].DefUnit3 = 23;
+ this->aics[aicIndex].RaidUnit1 = 26;
+ this->aics[aicIndex].HarassingSiegeEnginesMax = 2;
+ this->aics[aicIndex].HarassingSiegeEngine1 = 190;
+ this->aics[aicIndex].RaidRetargetDelay = 3;
+ this->aics[aicIndex].AttForceBase = 10;
+ this->aics[aicIndex].AttForceRandom = 10;
+ this->aics[aicIndex].AttForceSupportAllyThreshold = 10;
+ this->aics[aicIndex].AttForceRallyPercentage = 60;
+ this->aics[aicIndex].AttMovingTribesThreshold = 100;
+ this->aics[aicIndex].AttAssaultDelay = 5;
+ this->aics[aicIndex].AttUnitPatrolRecommandDelay = 15;
+ this->aics[aicIndex].AttCoordinationPreference = 20;
+ this->aics[aicIndex].CowThrowInterval = 30;
+ this->aics[aicIndex].SiegeEngine1 = 39;
+ this->aics[aicIndex].SiegeEngine2 = 39;
+ this->aics[aicIndex].SiegeEngine3 = 39;
+ this->aics[aicIndex].SiegeEngine4 = 59;
+ this->aics[aicIndex].AttMaxEngineers = 10;
+ this->aics[aicIndex].AttDiggingUnit = 26;
+ this->aics[aicIndex].AttDiggingUnitMax = 10;
+ this->aics[aicIndex].AttMaxAssassins = 0;
+ this->aics[aicIndex].AttUnit2 = 0;
+ this->aics[aicIndex].AttUnit2Max = 0;
+ this->aics[aicIndex].AttMaxLaddermen = 0;
+ this->aics[aicIndex].AttMaxTunnelers = 0;
+ this->aics[aicIndex].AttUnitPatrol = 0;
+ this->aics[aicIndex].AttUnitPatrolMax = 0;
+ this->aics[aicIndex].AttUnitPatrolGroupsCount = 0;
+ this->aics[aicIndex].AttUnitBackup = 23;
+ this->aics[aicIndex].AttUnitBackupMax = 5;
+ this->aics[aicIndex].AttUnitBackupGroupsCount = 1;
+ this->aics[aicIndex].AttUnitEngageMax = 0;
+ this->aics[aicIndex].AttUnitEngage = 0;
+ this->aics[aicIndex].AttUnitSiegeDef = 26;
+ this->aics[aicIndex].AttUnitSiegeDefMax = 0;
+ this->aics[aicIndex].AttUnitSiegeDefGroupsCount = 0;
+ this->aics[aicIndex].AttUnitMain1 = 26;
+ this->aics[aicIndex].AttMaxDefault = 200;
+ this->aics[aicIndex].AttMainGroupsCount = 2;
+ this->aics[aicIndex].TargetChoice = AITC_GOLD;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004c7520", "name": "setAICParameters_03", "quelle": "nachgebaut", "p1": {"bereich": "KI", "zweck": "Belegt den KI-Eintrag aics[aicIndex] mit dem festen Werte-Satz Nr. 03 (Wirtschaft, Anwerbung, Verteidigung, Raubzug, Angriff)."}, "p2": {"ein": "aicIndex", "aus": "-", "liest": [], "schreibt": ["aics[aicIndex].* (rund 130 Felder, siehe regeln)"], "ruft": [], "regeln": ["flagType 12; Beliebtheit kritisch 5000, niedrigste 7000, höchste 8500; Steuern 3 bis 11", "Wirtschaft: farm1 33, populationPerFarm 4, maxFood 400, Mindestbestand Äpfel/Käse/Brot je 10, Weizen/Hopfen -1, maxWood 70, maxStone 40, maxFarms 12, Steinbrüche 2, Eisenminen 4, Holzfäller 8, Pechquellen 1, doubleRationsFoodThreshold 60, minimumGoodsRequiredAfterTrade 100, tradeAmountFood 5, tradeAmountEquipment 4, aiRequestDelay 12, buildInterval 3, recruitGoldThreshold 200", "Anwerbe-Wahrscheinlichkeit Verteidigung schwach/normal/stark 100/60/30; Raubzug 0/0/0; Angriff 0/40/70; RecruitInterval 1/1/4", "Verteidigung: DefWalls 30, DefTotal 40, defWallPatrolGroups 4, defSiegeEngineGoldThreshold 100, DefUnit1-3 je 23, Ausfall Fernkampf 4 bis 23, Nahkampf 5 bis 26", "Raubzug: RaidUnitsBase 10 plus bis 5 zufällig, RaidUnit1 26, HarassingSiegeEnginesMax 2 (Typ 190), RaidRetargetDelay 3", "Angriff: AttForceBase 10 plus bis 10 zufällig, RallyPercentage 60, AttAssaultDelay 5, Ingenieure max 10, Assassinen/Leiterträger/Tunnelgräber 0, Belagerung 39/39/39/59, AttMainGroupsCount 2, AttMaxDefault 200, CowThrowInterval 30", "TargetChoice = AITC_GOLD", "Alle Werte sind Grundwerte; die Einheiten- und Belagerungszahlen sind Typnummern"], "offen": ["Zu welcher KI-Persönlichkeit Satz 03 gehört, steht nicht im Code", "Felder unknown001-005, unknown011, unknown072/073 sind ungedeutet", "Welche Einheit hinter den Typnummern (23, 26, 39, 59, 190) steckt"]}, "p3": {"erklaerung": "Legt fest, wie ein bestimmter KI-Gegner baut, anwirbt, verteidigt und angreift. Dieser Satz ist friedlich und wirtschaftsstark: viel Nahrung, viele Verteidiger, keine Raubzüge, Angriffe eher klein.", "gehirn": "Wer gegen diesen Gegner spielt, kann aus den Zahlen das Verhalten ableiten: keine Raubzüge, Angriffswellen ab etwa 10 plus Zufall, Ziel bevorzugt Gold.", "beleg": "nachgebaut", "live": "KI-Block aics[idx] einmal aus dem Speicher lesen → Felder wie AttForceBase, TargetChoice → gleich den Werten hier (Abweichung = UCP/AIC-Datei)", "live_art": "tabelle"}}
+

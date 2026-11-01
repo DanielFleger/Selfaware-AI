@@ -1,0 +1,955 @@
+### 0x00455e10 resetVariousCountsAndStatisticsAndStartGoodsAndResources | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00455E10
+ void GameStateStructures::resetVariousCountsAndStatisticsAndStartGoodsAndResources()
+ {
+ short sVar1;
+ int* piVar2;
+ int* piVar3;
+ int _gameTypeMultiplier;
+ int iVar4;
+ int _playerID;
+ PlayerData* _playerData;
+ int _startingGoldGameTypeBased;
+ _playerID = 1;
+ _playerData = &this->playerDataArray[1];
+ do {
+ _playerData->weeksWithoutFood = 0;
+ _playerData->foodTypesCurrentlyEaten = 0;
+ _playerData->someCount40 = 0;
+ _playerData->foodStorageLevelLastLastMonth = 0;
+ _playerData->foodStorageLevelLastMonth = 0;
+ _playerData->vclock = 2000;
+ _playerData->someCount43 = 0;
+ iVar4 = this->mapAndTime.startingPopularity * 10;
+ _playerData->popularity = iVar4;
+ _playerData->storedPopularityPercent = iVar4;
+ _playerData->someCount44 = (short)iVar4;
+ _playerData->taxesSetting = 3;
+ _playerData->rationsSetting = 2;
+ iVar4 = this->playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].rationsSetting;
+ _playerData->rationsSetting2 = iVar4;
+ _playerData->rationsSetting3 = iVar4;
+ _playerData->someCount45 = 1;
+ _playerData->someCount46 = 1;
+ _playerData->someCount47 = 0;
+ _playerData->textYOffset = 0x3c;
+ _playerData->someCountdown01 = 0;
+ _playerData->playerDeathRelated = 0;
+ _playerData->previousBlessedPeoplePercentage = 0;
+ _playerData->popularityReligionBasedDiv25 = 0;
+ _playerData->someCount48 = 0;
+ _playerData->someCount49 = 0;
+ _playerData->someCount50 = 0;
+ _playerData->someCount51 = 0;
+ _playerData->someCount52 = 0;
+ _playerData->someCount53 = 0;
+ _playerData->someCount54 = 0;
+ _playerData->someCount55 = 0;
+ _playerData->someCount56 = 0;
+ _playerData->someCount57 = 0;
+ _playerData->someCount58 = 0;
+ _playerData->someCount59 = 0;
+ _playerData->someCount60 = 0;
+ _playerData->keepEnclosementRelatedCountdown = 0;
+ _playerData->defensesDamagedByPlayer = 0;
+ piVar3 = _playerData->startResources;
+ piVar2 = this->mapAndTime.startGoods;
+ iVar4 = 25;
+ do {
+ *piVar3 = *piVar2;
+ piVar2 = piVar2 + 1;
+ piVar3 = piVar3 + 1;
+ iVar4 = iVar4 + -1;
+ } while (iVar4 != 0);
+ _memset(_playerData->snoozedBuildings, 0, 100);
+ _playerData->troopsKilled = 0;
+ _playerData->troopsLost = 0;
+ _playerData->weightedLosses = 0;
+ _playerData->field25_0x40 = 0;
+ _playerData->field26_0x42 = 0;
+ if (this->mapAndTime.editScenarioExtraOptions != 0) {
+ _playerData->taxesSetting = (int)this->mapAndTime.scenarioTaxesSetting;
+ iVar4 = (int)this->mapAndTime.scenarioRationsSetting;
+ _playerData->rationsSetting2 = iVar4;
+ _playerData->rationsSetting3 = iVar4;
+ _playerData->rationsSetting = iVar4;
+ _playerData->currentResources[0xf] = (int)this->mapAndTime.scenarioGold;
+ }
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ _gameTypeMultiplier = 1;
+ if (((DAT_GameCore.gameMode_2 == GM_SKIRMISH_AND_MULTIPLAYER)
+ && (DAT_GameCore.isSkirmishTrail == TRUE))
+ && (DAT_GameCore.currentTrailType == TT_EXTREME)) {
+ _gameTypeMultiplier = 3;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[_playerID] == -1) {
+ if (DAT_GameSynchronyState.currentAIArray[_playerID] == 0)
+ goto LAB_00456069;
+ _startingGoldGameTypeBased
+ = DAT_RenderingDefinedData
+ .field451_0x53bb4[(DAT_GameSynchronyState.skirmishCurrentAdvantageBalance
+ + DAT_GameSynchronyState.skirmishGameIntensityType * 5)
+ * 2
+ + 0xd];
+ } else {
+ _startingGoldGameTypeBased
+ = DAT_RenderingDefinedData
+ .field451_0x53bb4[(DAT_GameSynchronyState.skirmishCurrentAdvantageBalance
+ + DAT_GameSynchronyState.skirmishGameIntensityType * 5)
+ * 2
+ + 0xc];
+ }
+ _playerData->startResources[0xf] = _startingGoldGameTypeBased * _gameTypeMultiplier;
+ }
+ LAB_00456069:
+ this->mapAndTime.populationIndex = 0;
+ sVar1 = (short)_playerData->currentResources[0xf];
+ _playerData->beforeLastMonthsGold = sVar1;
+ _playerData->lastMonthsGold = sVar1;
+ _playerData->aiControlStatusRelated = -1000;
+ _playerData->isFoodTypeBanned[0] = 0;
+ _playerData->isFoodTypeBanned[1] = 0;
+ _playerData->isFoodTypeBanned[2] = 0;
+ _playerData->isFoodTypeBanned[3] = 0;
+ setCurrentAttackStrength(_playerID);
+ setCurrentAttackRaidParameter(_playerID);
+ _playerData->nervousBikCountdown = 0x30;
+ _playerData->tacticalPowersBarLevel = 0;
+ _playerData->goldDonation = 0;
+ _playerID = _playerID + 1;
+ _playerData = _playerData + 0xe7d;
+ if (8 < _playerID) {
+ return;
+ }
+ } while (true);
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00455e10", "name": "resetVariousCountsAndStatisticsAndStartGoodsAndResources", "quelle": "ghidra", "p1": {"bereich": "Spielablauf", "zweck": "Setzt beim Spielstart je Spieler Beliebtheit, Steuern, Rationen, Startwaren, Startgold und Statistiken."}, "p2": {"ein": "-", "aus": "-", "liest": ["mapAndTime.startingPopularity", "mapAndTime.startGoods[25]", "mapAndTime.editScenarioExtraOptions", "scenarioTaxesSetting/RationsSetting/Gold", "currentPlayerFullIDArray", "currentAIArray", "skirmishGameIntensityType", "skirmishCurrentAdvantageBalance", "RenderingDefinedData.field451_0x53bb4"], "schreibt": ["popularity", "storedPopularityPercent", "taxesSetting", "rationsSetting/2/3", "startResources[25]", "currentResources[0xf]", "startResources[0xf]", "vclock", "nervousBikCountdown", "isFoodTypeBanned[0..3]", "aiControlStatusRelated", "beforeLastMonthsGold/lastMonthsGold", "troopsKilled/Lost", "goldDonation", "tacticalPowersBarLevel"], "ruft": ["setCurrentAttackStrength", "setCurrentAttackRaidParameter"], "regeln": ["Gilt für Spieler 1 bis 8", "popularity = storedPopularityPercent = startingPopularity * 10", "taxesSetting = 3, rationsSetting = 2 (rationsSetting2/3 übernehmen den Wert des aktuellen Spielers)", "vclock = 2000, nervousBikCountdown = 0x30 (48), aiControlStatusRelated = -1000", "startResources = Kopie von startGoods (25 Werte)", "Mit editScenarioExtraOptions: Steuern, Rationen und Gold (currentResources[0xf]) aus dem Szenario", "Außer im Modus GM_SOLITARY: startResources[0xf] = Tabellenwert * Faktor; Faktor 3 im Extrem-Pfad (Gefechtspfad, TT_EXTREME), sonst 1", "Tabellenindex = (skirmishCurrentAdvantageBalance + skirmishGameIntensityType*5)*2 + 0xC für Menschen, +0xD für KI-Spieler", "Spieler, die weder Mensch noch KI sind (fullID -1 und AI 0), bekommen keinen Tabellenwert", "beforeLastMonthsGold und lastMonthsGold = Gold (als 16 Bit)"], "offen": ["Dass Index 0xf Gold bedeutet, folgt aus der Nutzung als Gold in anderen Funktionen", "Feld field451_0x53bb4 als Tabelle der Startgold-Werte (Inhalt ungelesen)", "Welche Zahlen in der Tabelle stehen und ob UCP sie ändert"]}, "p3": {"erklaerung": "Beim Start bekommt jeder Spieler seine Anfangswerte: Beliebtheit, Steuer- und Rationsstufe sowie Startgold. Im Gefecht richtet sich das Startgold nach Stärke und Vorteil und ist für KI und Mensch getrennt.", "gehirn": "Startgold im Gefecht aus der Tabelle lesen statt zu raten; Faktor 3 im Extrem-Pfad.", "beleg": "code", "live": "Gefecht starten (Mensch und KI, je Stufe) → startResources[0xf] aller Spieler → entspricht Tabelle field451_0x53bb4 (Mensch +0xC, KI +0xD)", "live_art": "tabelle"}}
+
+### 0x00456c50 clearDataAndSignpostDataIfNecessary | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00456C50
+ void GameStateStructures::clearDataAndSignpostDataIfNecessary()
+ {
+ bool bVar1;
+ MapAndTimeState* piVar2;
+ int signpostID;
+ MapAndTimeState* piVar3;
+ MapAndTimeState* _pSignpostData;
+ int iVar2;
+ int _signpost;
+ MapAndTimeState* _pEntryData;
+ signpostID = 0;
+ /*
+ fixme: current data type specifies length 128, not 256
+ */
+ fillMemory_ByteValue(
+ 256, '\0', (void*)((int)(this->mapAndTime.signpostEntryData)));
+ /*
+ fixme: multiple data?
+ */
+ fillMemory_ByteValue(
+ 6400, '\0', (void*)((int)(this->mapAndTime.signpostsMapEdge)));
+ /*
+ fixme: wrong?
+ */
+ fillMemory_ByteValue(
+ 2560, '\0', (void*)((int)(this->mapAndTime.unitMoveDestinationXYPairs)));
+ if ((this->mapAndTime.signpostIDs[0] == 0)
+ || (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[0]].buildingType
+ != BT_SIGNPOST)) {
+ this->mapAndTime.signpostIDs[0] = 0;
+ this->mapAndTime.signpostEntryData[0].x = 0;
+ this->mapAndTime.signpostEntryData[0].y = 0;
+ this->mapAndTime.signpostEntryData[0].tile = 0;
+ }
+ if ((this->mapAndTime.signpostIDs[1] == 0)
+ || (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[1]].buildingType
+ != BT_SIGNPOST)) {
+ this->mapAndTime.signpostIDs[1] = 0;
+ this->mapAndTime.signpostEntryData[1].x = 0;
+ this->mapAndTime.signpostEntryData[1].y = 0;
+ this->mapAndTime.signpostEntryData[1].tile = 0;
+ }
+ if ((this->mapAndTime.signpostIDs[2] == 0)
+ || (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[2]].buildingType
+ != BT_SIGNPOST)) {
+ this->mapAndTime.signpostIDs[2] = 0;
+ this->mapAndTime.signpostEntryData[2].x = 0;
+ this->mapAndTime.signpostEntryData[2].y = 0;
+ this->mapAndTime.signpostEntryData[2].tile = 0;
+ }
+ if ((this->mapAndTime.signpostIDs[3] == 0)
+ || (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[3]].buildingType
+ != BT_SIGNPOST)) {
+ this->mapAndTime.signpostIDs[3] = 0;
+ this->mapAndTime.signpostEntryData[3].x = 0;
+ this->mapAndTime.signpostEntryData[3].y = 0;
+ this->mapAndTime.signpostEntryData[3].tile = 0;
+ }
+ if ((this->mapAndTime.signpostIDs[4] == 0)
+ || (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[4]].buildingType
+ != BT_SIGNPOST)) {
+ this->mapAndTime.signpostIDs[4] = 0;
+ this->mapAndTime.signpostEntryData[4].x = 0;
+ this->mapAndTime.signpostEntryData[4].y = 0;
+ this->mapAndTime.signpostEntryData[4].tile = 0;
+ }
+ if ((this->mapAndTime.signpostIDs[5] == 0)
+ || (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[5]].buildingType
+ != BT_SIGNPOST)) {
+ this->mapAndTime.signpostIDs[5] = 0;
+ this->mapAndTime.signpostEntryData[5].x = 0;
+ this->mapAndTime.signpostEntryData[5].y = 0;
+ this->mapAndTime.signpostEntryData[5].tile = 0;
+ }
+ if ((this->mapAndTime.signpostIDs[6] == 0)
+ || (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[6]].buildingType
+ != BT_SIGNPOST)) {
+ this->mapAndTime.signpostIDs[6] = 0;
+ this->mapAndTime.signpostEntryData[6].x = 0;
+ this->mapAndTime.signpostEntryData[6].y = 0;
+ this->mapAndTime.signpostEntryData[6].tile = 0;
+ }
+ if ((this->mapAndTime.signpostIDs[7] == 0)
+ || (DAT_BuildingsState.buildings[this->mapAndTime.signpostIDs[7]].buildingType
+ != BT_SIGNPOST)) {
+ this->mapAndTime.signpostIDs[7] = 0;
+ this->mapAndTime.signpostEntryData[7].x = 0;
+ this->mapAndTime.signpostEntryData[7].y = 0;
+ this->mapAndTime.signpostEntryData[7].tile = 0;
+ }
+ do {
+ bVar1 = false;
+ iVar2 = 7;
+ piVar2 = (MapAndTimeState*)(&this->mapAndTime);
+ do {
+ if ((piVar2->signpostIDs[0] == 0) && (piVar2->signpostIDs[1] != 0)) {
+ piVar2->signpostIDs[0] = piVar2->signpostIDs[1];
+ piVar2->signpostIDs[1] = 0;
+ bVar1 = true;
+ }
+ piVar2 = (MapAndTimeState*)(piVar2->signpostIDs + 2);
+ iVar2 = iVar2 + -1;
+ } while (iVar2 != 0);
+ } while (bVar1);
+ piVar3 = (MapAndTimeState*)this->mapAndTime;
+ _pEntryData = (MapAndTimeState*)this->mapAndTime;
+ do {
+ _pSignpostData = (MapAndTimeState*)&_pEntryData->signpostEntryData[0].y;
+ _signpost = piVar3->signpostIDs[0];
+ if (_signpost != 0) {
+ determineBuildingEntranceFromKeepArea(_signpost, 1, FALSE);
+ _pSignpostData->signpostEntryData[0].x
+ = (int)DAT_BuildingsState.buildings[_signpost].buildingEntryX;
+ _pSignpostData->signpostEntryData[0].y
+ = (int)DAT_BuildingsState.buildings[_signpost].buildingEntryY;
+ _pSignpostData->signpostEntryData[0].tile
+ = (int)DAT_BuildingsState.buildings[_signpost].buildingEntryX
+ + DAT_ViewportRenderState
+ .translationMatrix[DAT_BuildingsState.buildings[_signpost].buildingEntryY]
+ .addXgetTile;
+ findMapBorderEdgeTileAndStoreInSignpostData(signpostID, 0x13a10,
+ (uint)((int)((int)DAT_BuildingsState.buildings[_signpost].buildingEntryX)),
+ (uint)((int)((int)DAT_BuildingsState.buildings[_signpost].buildingEntryY)));
+ }
+ signpostID = signpostID + 1;
+ piVar3 = (MapAndTimeState*)(piVar3->signpostIDs + 1);
+ _pEntryData = (MapAndTimeState*)(_pSignpostData->signpostEntryData + 1);
+ } while (signpostID < 8);
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00456c50", "name": "clearDataAndSignpostDataIfNecessary", "quelle": "ghidra", "p1": {"bereich": "Spielablauf", "zweck": "Baut die Wegweiser-Daten neu auf: Ungültige entfernen, Lücken schließen, Eingänge neu berechnen."}, "p2": {"ein": "-", "aus": "-", "liest": ["mapAndTime.signpostIDs[0..7]", "buildings[id].buildingType/buildingEntryX/buildingEntryY", "ViewportRenderState.translationMatrix[y].addXgetTile"], "schreibt": ["mapAndTime.signpostEntryData (256 Byte gelöscht, dann x/y/tile je Wegweiser)", "mapAndTime.signpostsMapEdge (6400 Byte gelöscht)", "mapAndTime.unitMoveDestinationXYPairs (2560 Byte gelöscht)", "mapAndTime.signpostIDs"], "ruft": ["fillMemory_ByteValue", "determineBuildingEntranceFromKeepArea", "findMapBorderEdgeTileAndStoreInSignpostData"], "regeln": ["Zuerst werden Eintragsdaten, Randdaten und Zielpaare mit 0 gefüllt", "Plätze 0 bis 7 ohne ID oder ohne Gebäudetyp BT_SIGNPOST: ID, x, y, tile = 0", "Danach werden Lücken geschlossen, indem spätere IDs nach vorn rutschen", "Für jeden verbliebenen Wegweiser: Eingang bestimmen, x, y und tile eintragen, findMapBorderEdgeTileAndStoreInSignpostData(Platz, 0x13a10 = 80400, x, y)"], "offen": ["Die Lückenschließung zeigt in Ghidra Schritte von 2 Feldern bei 7 Durchläufen; ob sie wirklich alle Lücken schließt, ist ungesichert", "Die Kommentare im Code nennen falsche Größen bei signpostEntryData (128 statt 256)"]}, "p3": {"erklaerung": "Räumt die Liste der Wegweiser auf und berechnet für jeden übrigen den Eingangspunkt und den nächsten Kartenrand neu.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x00457b80 checkRequiredResourcesForBuildingOrPlanToBuy | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00457B80
+ undefined4 GameStateStructures::checkRequiredResourcesForBuildingOrPlanToBuy(
+ MappersEnum commandBuildingType, int playerID, BOOLEnum playResourceLackMsgUnk)
+ {
+ BuildingType _buildingType;
+ uint uVar1;
+ int _ironToBuy;
+ int _pitchToBuy;
+ int _woodToBuy;
+ int _wood;
+ int _stoneToBuy;
+ int _requiredIron;
+ int _requiredPitch;
+ int _requiredWood;
+ int _requiredStone;
+ int _requiredGold;
+ bool _isAI;
+ _isAI = false;
+ _buildingType
+ = convertCommandBuildingTypeToBuildingType(commandBuildingType);
+ _requiredIron = DAT_BuildingsState.buildingCosts[_buildingType].requiredIron_0x8;
+ _requiredPitch = DAT_BuildingsState.buildingCosts[_buildingType].requiredPitch_0xc;
+ _requiredWood = DAT_BuildingsState.buildingCosts[_buildingType].requiredWood;
+ _requiredStone = DAT_BuildingsState.buildingCosts[_buildingType].requiredStone_0x4;
+ _requiredGold = DAT_BuildingsState.buildingCosts[_buildingType].requiredGold;
+ if ((DAT_GameCore.solitaryAllBuildingsAreFree != FALSE)
+ || (DAT_GameCore.gameMode_2 == GM_EDITOR)) {
+ return (undefined4)(1);
+ }
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ if (commandBuildingType == M_MAPPER_KEEP1) {
+ return (undefined4)(1);
+ }
+ if (commandBuildingType == M_MAPPER_KEEP2) {
+ return (undefined4)(1);
+ }
+ if (commandBuildingType == M_MAPPER_KEEP3) {
+ return (undefined4)(1);
+ }
+ } else if ((DAT_GameSynchronyState.currentPlayerFullIDArray[playerID] == -1)
+ && (DAT_GameSynchronyState.currentAIArray[playerID] != 0)) {
+ _isAI = true;
+ }
+ uVar1 = hasLessWoodThanTheCostOfAWoodcuttersHutAndNoWoodcutters(playerID, _buildingType);
+ if (uVar1 != 0) {
+ return (undefined4)(1);
+ }
+ if (this->playerDataArray[playerID].currentResources[6] < _requiredIron) {
+ if (playResourceLackMsgUnk != FALSE) {
+ playResourceLackSFX(1, RLSFX_IRON);
+ }
+ if (!_isAI) {
+ return (undefined4)(0);
+ }
+ _ironToBuy = _requiredIron - this->playerDataArray[playerID].currentResources[6];
+ if (_ironToBuy <= this->playerDataArray[playerID].resourcesToAcquireArray[6]) {
+ return (undefined4)(0);
+ }
+ this->playerDataArray[playerID].resourcesToAcquireArray[6] = _ironToBuy;
+ return (undefined4)(0);
+ }
+ if (this->playerDataArray[playerID].currentResources[7] < _requiredPitch) {
+ if ((_buildingType == BT_PITCHDITCH)
+ && (this->playerDataArray[playerID].pitchDitchCounterTo4 != 0)) {
+ return (undefined4)(1);
+ }
+ if (playResourceLackMsgUnk != FALSE) {
+ playResourceLackSFX(1, RLSFX_PITCH);
+ }
+ if (!_isAI) {
+ return (undefined4)(0);
+ }
+ _pitchToBuy = _requiredPitch - this->playerDataArray[playerID].currentResources[7];
+ if (_pitchToBuy <= this->playerDataArray[playerID].resourcesToAcquireArray[7]) {
+ return (undefined4)(0);
+ }
+ this->playerDataArray[playerID].resourcesToAcquireArray[7] = _pitchToBuy;
+ return (undefined4)(0);
+ }
+ if (this->playerDataArray[playerID].currentResources[0xf] < _requiredGold) {
+ if (playResourceLackMsgUnk == FALSE) {
+ return (undefined4)(0);
+ }
+ playResourceLackSFX(1, RLSFX_GOLD);
+ return (undefined4)(0);
+ }
+ _stoneToBuy = this->playerDataArray[playerID].currentResources[2];
+ if (_stoneToBuy < _requiredWood) {
+ if (this->playerDataArray[playerID].currentResources[4] < _requiredStone) {
+ if (playResourceLackMsgUnk != FALSE) {
+ playResourceLackSFX(1, RLSFX_PARTIAL_STONEUnk);
+ }
+ if (!_isAI) {
+ return (undefined4)(0);
+ }
+ _woodToBuy = _requiredWood - this->playerDataArray[playerID].currentResources[2];
+ if ((0 < _woodToBuy) && (this->playerDataArray[playerID].resourcesToAcquireArray[2] < _woodToBuy)) {
+ this->playerDataArray[playerID].resourcesToAcquireArray[2] = _woodToBuy;
+ }
+ goto LAB_00457e46;
+ }
+ if (_stoneToBuy < _requiredWood) {
+ if (playResourceLackMsgUnk != FALSE) {
+ playResourceLackSFX(1, RLSFX_WOOD);
+ }
+ if (!_isAI) {
+ return (undefined4)(0);
+ }
+ _wood = _requiredWood - this->playerDataArray[playerID].currentResources[2];
+ if (_wood < 1) {
+ return (undefined4)(0);
+ }
+ if (_wood <= this->playerDataArray[playerID].resourcesToAcquireArray[2]) {
+ return (undefined4)(0);
+ }
+ this->playerDataArray[playerID].resourcesToAcquireArray[2] = _wood;
+ return (undefined4)(0);
+ }
+ }
+ if (_requiredStone <= this->playerDataArray[playerID].currentResources[4]) {
+ return (undefined4)(1);
+ }
+ if (playResourceLackMsgUnk != FALSE) {
+ playResourceLackSFX(1, RLSFX_STONE);
+ }
+ if (!_isAI) {
+ return (undefined4)(0);
+ }
+ LAB_00457e46:
+ _stoneToBuy = _requiredStone - this->playerDataArray[playerID].currentResources[4];
+ if ((0 < _stoneToBuy) && (this->playerDataArray[playerID].resourcesToAcquireArray[4] < _stoneToBuy)) {
+ this->playerDataArray[playerID].resourcesToAcquireArray[4] = _stoneToBuy;
+ }
+ return (undefined4)(0);
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00457b80", "name": "checkRequiredResourcesForBuildingOrPlanToBuy", "quelle": "ghidra", "p1": {"bereich": "Spielablauf", "zweck": "Prüft, ob ein Spieler die Baukosten eines Gebäudes im Lager hat; die KI merkt sich dabei fehlende Waren zum Einkaufen vor."}, "p2": {"ein": "commandBuildingType (Befehls-Gebäudetyp), playerID, playResourceLackMsgUnk (Mangelton abspielen)", "aus": "1 = Kosten gedeckt oder gratis, 0 = es fehlt etwas", "liest": ["DAT_BuildingsState.buildingCosts[typ] (Eisen, Pech, Holz, Stein, Gold)", "playerDataArray[sp].currentResources[6] Eisen, [7] Pech, [0xf] Gold, [2] Holz, [4] Stein", "playerDataArray[sp].pitchDitchCounterTo4", "solitaryAllBuildingsAreFree", "gameMode_2", "currentGameMode", "currentPlayerFullIDArray[]", "currentAIArray[]"], "schreibt": ["playerDataArray[sp].resourcesToAcquireArray[6], [7], [2], [4] (nur bei KI)"], "ruft": ["convertCommandBuildingTypeToBuildingType", "hasLessWoodThanTheCostOfAWoodcuttersHutAndNoWoodcutters", "playResourceLackSFX"], "regeln": ["Es wird nichts abgebucht, nur geprüft", "Alle Gebäude gratis (solitaryAllBuildingsAreFree) oder Editor-Modus: immer 1", "Einzelspieler: Burgen M_MAPPER_KEEP1, KEEP2, KEEP3 sind gratis", "Außerhalb des Einzelspielers gilt ein Spieler als KI, wenn currentPlayerFullIDArray gleich -1 und currentAIArray ungleich 0", "Wenig Holz und keine Holzfäller (hasLessWoodThanTheCostOfAWoodcuttersHutAndNoWoodcutters): immer 1, damit man Holz wieder bekommen kann", "Prüfreihenfolge: Eisen, Pech, Gold, Holz, Stein", "Eisen fehlt: 0, KI merkt Fehlmenge in resourcesToAcquireArray[6] vor, wenn sie größer als die bisherige Vormerkung ist", "Pech fehlt: Pechgraben mit pitchDitchCounterTo4 ungleich 0 gibt trotzdem 1; sonst 0, KI merkt Fehlmenge in [7] vor", "Gold fehlt: 0, ohne Vormerkung (KI kann Gold nicht einkaufen)", "Holz fehlt und Stein fehlt: 0 mit Ton für teilweise Stein, KI merkt Holz und Stein vor", "Holz fehlt, Stein reicht: 0 mit Holzton, KI merkt Holz vor", "Holz reicht, Stein reicht: 1; Stein fehlt: 0 mit Steinton, KI merkt Stein vor"], "offen": ["Genaue Bedingung von hasLessWoodThanTheCostOfAWoodcuttersHutAndNoWoodcutters", "Warum der Pechgraben-Zähler pitchDitchCounterTo4 die Pechprüfung umgeht", "Baukosten je Gebäudetyp aus der Tabelle auslesen"]}, "p3": {"erklaerung": "Die Kostenprüfung fürs Bauen. Menschen bekommen nur ein Ja oder Nein, die KI merkt sich zusätzlich, welche Menge an Eisen, Pech, Holz und Stein ihr fehlt, um sie auf dem Markt zu kaufen. Gold kauft die KI nicht nach.", "gehirn": "Vor einem Bauauftrag mit buildingCosts[typ] selbst prüfen, die Reihenfolge Eisen, Pech, Gold, Holz, Stein erklärt, welcher Mangel zuerst gemeldet wird. Die Tabellenwerte sind Grundwerte, UCP kann sie ändern.", "beleg": "code", "live": "buildingCosts je Gebäudetyp aus dem Speicher lesen → Eisen/Pech/Holz/Stein/Gold je Typ → mit den Grundwerten vergleichen, Abweichungen stammen von UCP", "live_art": "tabelle"}}
+
+### 0x00458280 spawnMotherOrChild | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00458280
+ void GameStateStructures::spawnMotherOrChild()
+ {
+ int _motherUnitID;
+ int iVar1;
+ int iVar2;
+ int _playerID;
+ Building* _building;
+ int _buildingID;
+ PlayerData* _playerData;
+ int local_14;
+ int local_10;
+ short _buildingEntryX;
+ short _buildingEntryY;
+ int _motherUnitUID;
+ short _buildingEntryX_2;
+ short _buildingEntryY_2;
+ int _buildingUID;
+ if ((DAT_GameCore.gameMode_2 != GM_EDITOR)
+ && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)) {
+ _playerID = 1;
+ _playerData = &this->playerDataArray[1];
+ do {
+ /*
+ if has keep and campground
+ */
+ if ((0 < (_playerData->keep).id) && (0 < _playerData->id)) {
+ /*
+ Only spawn in non-multiplayer
+ */
+ if (DAT_GameSynchronyState.currentGameMode == GM_SKIRMISH_SINGLE_PLAYER) {
+ if (_playerData->someCount46 == 0) {
+ /*
+ if total enemy troop value < 41
+ */
+ if (_playerData->totalEnemyTroopValue < 40) {
+ _playerData->someCount46 = 1;
+ goto LAB_00458327;
+ }
+ } else {
+ /*
+ if total enemy troop value < 101
+ */
+ if (_playerData->totalEnemyTroopValue < 100) {
+ LAB_00458327:
+ _buildingID = 0;
+ iVar2 = (75 - _playerData->someCount03) - _playerData->someCount02;
+ if (0 < DAT_BuildingsState.maxBuildingsCount) {
+ local_10 = 0;
+ local_14 = 0;
+ _building = &DAT_BuildingsState.buildings[0];
+ do {
+ if ((((_building->logicalState != ((BuildingLogicalState)0))
+ && (_building->logicalState != BLS_REMOVE))
+ && (_building->owner == _playerID))
+ && ((_building->fireDuration == 0
+ && ((_building->buildingType == BT_HOVEL
+ || (_building->buildingType
+ == BT_HOUSE)))))) {
+ if (iVar2 < 1)
+ break;
+ /*
+ if building has no unit
+ */
+ if (_building->unitRefID == 0) {
+ _buildingEntryX = _building->buildingEntryX;
+ if (((0 < _buildingEntryX)
+ && (_buildingEntryY = _building->buildingEntryY,
+ 0 < _buildingEntryY))
+ && (_motherUnitID = spawnUnit(_playerID, _playerID,
+ _buildingEntryX * 8,
+ _buildingEntryY * 8,
+ (int)((int)((uint)DAT_TileMapState
+ .HeightLayer[DAT_ViewportRenderState
+ .translationMatrix[_buildingEntryY]
+ .addXgetTile
+ + _buildingEntryX])),
+ UT_MOTHER),
+ _motherUnitID != 0)) {
+ /*
+ store in unitRef
+ */
+ _building->unitRefID = (short)_motherUnitID;
+ _motherUnitUID = DAT_UnitsState.units[_motherUnitID].uid;
+ DAT_UnitsState.units[_motherUnitID].workplaceBuildingUID
+ = _building->uid;
+ DAT_UnitsState.units[_motherUnitID].workplaceBuildingID_1
+ = (short)_buildingID;
+ _building->unitRefUID = _motherUnitUID;
+ iVar2 = iVar2 + -1;
+ _building->field_0x2a6
+ = (char)((_building->fireRelatedRNG1 >> 10) % 3) + '\x01';
+ }
+ } else {
+ /*
+ if popularity is higher than 49
+ */
+ if (((50 < _playerData->popularity / 100)
+ && (_building->field_0x2a6 = _building->field_0x2a6 + -1,
+ (char)_building->field_0x2a6 < '\x01'))
+ && ((short)(char)_building->field_0x2a5
+ != _building->currentEmployeeCount)) {
+ _buildingEntryX_2 = _building->buildingEntryX;
+ _building->field_0x2a6
+ = (char)((_building->fireRelatedRNG1 >> 10) % 3) + '\x01';
+ if (((0 < _buildingEntryX_2)
+ && (_buildingEntryY_2 = _building->buildingEntryY,
+ 0 < _buildingEntryY_2))
+ && (iVar1 = spawnUnit(_playerID, _playerID,
+ _buildingEntryX_2 * 8,
+ _buildingEntryY_2 * 8,
+ (int)((int)((uint)DAT_TileMapState.HeightLayer
+ [DAT_ViewportRenderState
+ .translationMatrix[_buildingEntryY_2]
+ .addXgetTile
+ + _buildingEntryX_2])),
+ UT_CHILD),
+ iVar1 != 0)) {
+ iVar2 = iVar2 + -1;
+ DAT_BuildingsState.buildings[0]
+ .workerID[_building->currentEmployeeCount + local_14]
+ = (short)iVar1;
+ DAT_BuildingsState.buildings[0]
+ .workerUID[_building->currentEmployeeCount + local_10]
+ = DAT_UnitsState.units[iVar1].uid;
+ _buildingUID = _building->uid;
+ /*
+ increment currentEmployeeCount of building
+ */
+ _building->currentEmployeeCount
+ = _building->currentEmployeeCount + 1;
+ DAT_UnitsState.units[iVar1].workplaceBuildingID_1
+ = (short)_buildingID;
+ DAT_UnitsState.units[iVar1].workplaceBuildingUID
+ = _buildingUID;
+ }
+ }
+ }
+ }
+ local_14 = local_14 + 0x196;
+ local_10 = local_10 + 0xcb;
+ _buildingID = _buildingID + 1;
+ _building = _building + 0x196;
+ } while (_buildingID < DAT_BuildingsState.maxBuildingsCount);
+ }
+ } else {
+ _playerData->someCount46 = 0;
+ }
+ }
+ } else if (_playerData->sumOfTotalEnemyUnitsCount < 1)
+ goto LAB_00458327;
+ }
+ _playerID = _playerID + 1;
+ _playerData = (PlayerData*)((int)(_playerData + 0x172) + 0x24);
+ } while (_playerID < 9);
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00458280", "name": "spawnMotherOrChild", "quelle": "ghidra", "p1": {"bereich": "Spielablauf", "zweck": "Setzt Mütter und Kinder vor Häuser, solange die Lage ruhig ist."}, "p2": {"ein": "-", "aus": "-", "liest": ["gameMode_2", "currentGameMode", "keep.id", "playerData.id", "someCount46", "totalEnemyTroopValue", "sumOfTotalEnemyUnitsCount", "someCount02", "someCount03", "popularity", "buildings[].buildingType/owner/fireDuration/unitRefID/currentEmployeeCount/field_0x2a5/field_0x2a6"], "schreibt": ["someCount46", "buildings[].unitRefID/unitRefUID", "buildings[].field_0x2a6", "buildings[].currentEmployeeCount", "buildings[].workerID/workerUID", "units[].workplaceBuildingID_1/UID"], "ruft": ["spawnUnit"], "regeln": ["Nicht im Editor und nicht in GM_SIEGE_THAT; Spieler 1 bis 8 mit Burg und eigener Kennung größer 0", "Im Modus GM_SKIRMISH_SINGLE_PLAYER: Spawnen nur, solange totalEnemyTroopValue kleiner als 40 (someCount46 steht dann auf 1); ist someCount46 schon 1, gilt Schwelle 100; wird sie erreicht, wird someCount46 auf 0 gesetzt", "In allen anderen Modi: Spawnen nur, wenn sumOfTotalEnemyUnitsCount kleiner als 1", "Budget = 75 - someCount03 - someCount02; bei Budget unter 1 Abbruch der Gebäudesuche", "Betroffen: Gebäude des Spielers vom Typ BT_HOVEL oder BT_HOUSE, nicht brennend (fireDuration 0), nicht im Zustand 0 oder BLS_REMOVE", "Haus ohne unitRefID: eine Mutter (UT_MOTHER) am Eingang, Budget -1, Timer field_0x2a6 = (fireRelatedRNG1 >> 10) % 3 + 1", "Haus mit Mutter: nur bei popularity/100 größer als 50; Timer um 1 senken, bei Wert unter 1 und field_0x2a5 ungleich currentEmployeeCount ein Kind (UT_CHILD), Budget -1, Timer neu (1 bis 3), currentEmployeeCount +1"], "offen": ["Bedeutung von someCount02 und someCount03 (vermutlich schon vorhandene Mütter und Kinder)", "Die Ghidra-Kommentare nennen 41 und 101; der Code vergleicht mit 40 und 100 (kleiner als)", "Bedeutung von field_0x2a5"]}, "p3": {"erklaerung": "Zierleben: Mütter und Kinder erscheinen nur bei ruhiger Lage (wenige Feinde) und die Kinder nur bei Beliebtheit über 50. Insgesamt höchstens 75 solcher Figuren.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x00458ad0 processFoodConsumption | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00458AD0
+ void GameStateStructures::processFoodConsumption()
+ {
+ BOOLEnum BVar1;
+ int _playerID;
+ PlayerData* _playerData;
+ ResourceType resourceType;
+ char* wav_filename;
+ int _ft;
+ int _currentPopulation;
+ short _lastMonthLeftover;
+ short _leftover;
+ if (((DAT_GameCore.gameMode_2 != GM_EDITOR)
+ && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT))
+ && ((DAT_GameCore.gameMode_2 != GM_BUILDERUnk
+ || (DAT_MapPropertiesState.SEC_U3_MapType2_1 != MT_SIEGE)))) {
+ updateFoodTypesInStockForAllPlayers();
+ _playerID = 1;
+ _playerData = &this->playerDataArray[1];
+ do {
+ if ((0 < (_playerData->keep).id) && (0 < (_playerData->campground).id)) {
+ _playerData->foodStorageLevel = -1;
+ if (_playerData->foodTypesInStock < 1) {
+ _playerData->foodTypesCurrentlyEaten = 0;
+ goto LAB_00458d0b;
+ }
+ _currentPopulation = _playerData->currentPopulation;
+ _playerData->foodClockSpeed = _currentPopulation * 3;
+ if ((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ && (BVar1 = isAIPlayer(_playerID),
+ BVar1 != FALSE)) {
+ _playerData->foodClockSpeed = (_currentPopulation * 0xb4) / 100;
+ }
+ switch (_playerData->rationsSetting) {
+ case 0:
+ _playerData->foodClockSpeed = 0;
+ _playerData->foodTypesCurrentlyEaten = 0;
+ goto LAB_00458be2;
+ case 1:
+ _playerData->foodClockSpeed = _playerData->foodClockSpeed / 2;
+ break;
+ case 3:
+ _playerData->foodClockSpeed = (_playerData->foodClockSpeed * 3) / 2;
+ break;
+ case 4:
+ _playerData->foodClockSpeed = _playerData->foodClockSpeed * 2;
+ }
+ if (_playerData->foodClockSpeed != 0) {
+ _playerData->foodStorageLevel
+ = ((int)(15000 / (longlong)_playerData->foodClockSpeed) * _playerData->totalFood) / 800;
+ }
+ LAB_00458be2:
+ if (this->mapAndTime.monthChanged != 0) {
+ _leftover = (short)_playerData->foodStorageLevel;
+ _lastMonthLeftover = _playerData->foodStorageLevelLastMonth;
+ _playerData->foodStorageLevelLastLastMonth = _lastMonthLeftover;
+ _playerData->foodStorageLevelLastMonth = _leftover;
+ if ((_playerID == DAT_GameSynchronyState.currentPlayerSlotID)
+ && (this->mapAndTime.singlePlayerHasKeepAndGranary != FALSE)) {
+ if (_playerData->totalFood == 0) {
+ if ((DAT_CounterFoodWarningInterval == 0)
+ && (BVar1 = shouldSoundXNotBePlaying(),
+ BVar1 == FALSE)) {
+ /*
+ "No food distributed this month"
+ */
+ playWAVSFX("food_warning4.wav");
+ }
+ DAT_CounterFoodWarningInterval = DAT_CounterFoodWarningInterval + 1;
+ if (2 < DAT_CounterFoodWarningInterval) {
+ DAT_CounterFoodWarningInterval = 0;
+ }
+ } else if (((_leftover < 2) && (_leftover != _lastMonthLeftover))
+ && (_playerData->rationsSetting != 0)) {
+ if (_leftover == 1) {
+ BVar1 = shouldSoundXNotBePlaying();
+ if (BVar1 == FALSE) {
+ /*
+ "Granary stocks are very low sire"
+ */
+ wav_filename = "food_warning2.wav";
+ LAB_00458c9e:
+ playWAVSFX(wav_filename);
+ }
+ } else {
+ BVar1 = shouldSoundXNotBePlaying();
+ if (BVar1 == FALSE) {
+ /*
+ "We are almost out of food sire"
+ */
+ wav_filename = "food_warning3.wav";
+ goto LAB_00458c9e;
+ }
+ }
+ }
+ }
+ }
+ _playerData->foodClock = _playerData->foodClock + _playerData->foodClockSpeed;
+ if (15000 < _playerData->foodClock) {
+ _playerData->foodClock = 0;
+ _playerData->foodTypesCurrentlyEaten = _playerData->foodTypesInStock;
+ do {
+ _playerData->foodTypeToBeEatenNext = _playerData->foodTypeToBeEatenNext + 1;
+ if (_playerData->foodTypeToBeEatenNext < 4) {
+ if (_playerData->foodTypeToBeEatenNext == 0)
+ goto LAB_00458cd5;
+ } else {
+ _playerData->foodTypeToBeEatenNext = 0;
+ LAB_00458cd5:
+ if (0 < _playerData->breadCount) {
+ resourceType = RT_BREAD;
+ goto LAB_00458d00;
+ }
+ }
+ _ft = _playerData->foodTypeToBeEatenNext;
+ if ((_ft == 1) && (0 < _playerData->cheeseCount)) {
+ resourceType = RT_CHEESE;
+ goto LAB_00458d00;
+ }
+ if ((_ft == 2) && (0 < _playerData->meatCount)) {
+ resourceType = RT_MEAT;
+ goto LAB_00458d00;
+ }
+ } while ((_ft != 3) || (_playerData->appleCount < 1));
+ resourceType = RT_APPLE;
+ LAB_00458d00:
+ processResourceLoss(_playerID, resourceType, 1, 0);
+ }
+ }
+ LAB_00458d0b:
+ _playerID = _playerID + 1;
+ _playerData = _playerData + 0xe7d;
+ } while (_playerID < 9);
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00458ad0", "name": "processFoodConsumption", "quelle": "ghidra", "p1": {"bereich": "Spielablauf", "zweck": "Verbraucht Nahrung nach Einwohnern und Rationen und warnt bei knappem Vorrat."}, "p2": {"ein": "-", "aus": "-", "liest": ["gameMode_2", "keep.id", "campground.id", "foodTypesInStock", "currentPopulation", "rationsSetting", "totalFood", "breadCount", "cheeseCount", "meatCount", "appleCount", "monthChanged", "singlePlayerHasKeepAndGranary", "foodClock"], "schreibt": ["foodStorageLevel", "foodTypesCurrentlyEaten", "foodClockSpeed", "foodClock", "foodTypeToBeEatenNext", "foodStorageLevelLastMonth/LastLastMonth", "DAT_CounterFoodWarningInterval"], "ruft": ["updateFoodTypesInStockForAllPlayers", "isAIPlayer", "shouldSoundXNotBePlaying", "playWAVSFX", "processResourceLoss"], "regeln": ["Nicht im Editor, nicht in GM_SIEGE_THAT, nicht im Modus GM_BUILDERUnk auf Siege-Karten", "Spieler 1 bis 8 mit Burg und Lagerfeuer; zuerst foodStorageLevel = -1", "Keine Nahrungsart im Vorrat: foodTypesCurrentlyEaten = 0 und der Spieler wird ausgelassen (die Uhr läuft nicht weiter)", "foodClockSpeed = Einwohner × 3; KI-Spieler (nicht GM_SOLITARY): Einwohner × 180 / 100", "Rationen 0: Speed 0 und nichts gegessen; 1: Speed / 2; 2: unverändert; 3: Speed × 3 / 2; 4: Speed × 2", "Bei Speed ungleich 0: foodStorageLevel = ((15000 / Speed) × totalFood) / 800", "Monatswechsel: Vormonatswerte nachziehen; nur für den eigenen Spieler im Einzelspiel mit Burg und Kornspeicher: totalFood 0 spielt food_warning4 (Wiederholung nur jede dritte Prüfung); foodStorageLevel unter 2 und anders als im Vormonat und Rationen ungleich 0: Stufe 1 food_warning2 (sehr wenig), sonst food_warning3 (fast aufgebraucht)", "foodClock += Speed; über 15000: Uhr 0 und genau 1 Stück Nahrung weniger", "Reihenfolge der gegessenen Art: foodTypeToBeEatenNext läuft 0 Brot, 1 Käse, 2 Fleisch, 3 Äpfel im Kreis und nimmt die nächste Art mit Bestand größer 0"], "offen": ["Aufrufhäufigkeit (Takt) dieser Funktion", "Zuordnung der Ration 2 zu ‚normal‘ ist nur aus dem fehlenden case geschlossen", "Ob die Nahrungs-Reihenfolge 0 bis 3 genau Brot, Käse, Fleisch, Äpfel entspricht, folgt aus den Prüfungen im Code"]}, "p3": {"erklaerung": "Pro Takt wächst eine Uhr um (Einwohner × 3, je nach Ration anders). Wenn sie 15000 übersteigt, wird ein Stück Nahrung gegessen, abwechselnd Brot, Käse, Fleisch, Äpfel. Die KI isst 1,8-mal so schnell.", "gehirn": "Verbrauch je Uhr-Zyklus grob rechnen: Einwohner × 3 × Ration (0, 0,5, 1, 1,5 oder 2) geteilt durch 15000 Stück je Takt; bei der KI mal 1,8 statt mal 3.", "beleg": "code", "live": "Rationen auf 3 stellen → foodClockSpeed → 1,5 × (Einwohner × 3), bei 40 Einwohnern 180", "live_art": "wirtschaft"}}
+
+### 0x0045a060 renderDebugDataCurrentPlayerData | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0045A060
+ void GameStateStructures::renderDebugDataCurrentPlayerData(int x, int y, int width, int height)
+ {
+ int xParam;
+ int iVar1;
+ int number;
+ int iVar2;
+ int iVar3;
+ int* piVar4;
+ iVar3 = y;
+ iVar2 = x;
+ number = DAT_GameSynchronyState.currentPlayerSlotID;
+ xParam = x + 4;
+ renderTextToScreen(
+ "player ", xParam, y + 0xe, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ number, x + 6, y + 0xe, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "-", xParam, y + 0x1c, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ x = number * 0x39f4 + 0x115c2c8;
+ y = 25;
+ do {
+ renderNumberToScreen2(
+ *(int*)x, xParam, iVar3 + 0x1c, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "-", xParam, iVar3 + 0x1c, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ x = x + 4;
+ y = y + -1;
+ } while (y != 0);
+ renderTextToScreen(
+ "Total organisms ", xParam, iVar3 + 0x2a, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_LandscapeState.DAT_TotalOrganisms, iVar2 + 0xe, iVar3 + 0x2a, TTA_LEFT, 0x80ff,
+ 0x12, TRUE, 0);
+ renderTextToScreen(
+ "new organisms ", iVar2 + 0x98, iVar3 + 0x2a, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->mapAndTime.newOrganisms, iVar2 + 0xa4, iVar3 + 0x2a, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ " - ", iVar2 + 0xa4, iVar3 + 0x2a, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ this->mapAndTime.newOrganismsValue2, iVar2 + 0xa4, iVar3 + 0x2a, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ renderTextToScreen(
+ "CRC ", iVar2 + 0x12e, iVar3 + 0x2a, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_GameSynchronyState.HASH_HashTotal[1] & 0xfff, iVar2 + 0x13a, iVar3 + 0x2a,
+ TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Total chimps ", xParam, iVar3 + 0x38, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->playerDataArray[number].countEntities, iVar2 + 0xe, iVar3 + 0x38, TTA_LEFT, 0x80ff,
+ 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Pop ", iVar2 + 0x98, iVar3 + 0x38, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->playerDataArray[number].currentPopulation, iVar2 + 0xa4, iVar3 + 0x38, TTA_LEFT,
+ 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "last food ", iVar2 + 0x12e, iVar3 + 0x38, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->playerDataArray[number].weeksWithoutFood, iVar2 + 0x13a, iVar3 + 0x38, TTA_LEFT,
+ 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "lightning count", xParam, iVar3 + 0x46, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->mapAndTime.treeSpreadCounter, iVar2 + 0xe, iVar3 + 0x46, TTA_LEFT, 0x80ff, 0x12, TRUE,
+ 0);
+ renderTextToScreen(
+ "power ", iVar2 + 0x98, iVar3 + 0x46, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->mapAndTime.treeSpreadInterval, iVar2 + 0xa4, iVar3 + 0x46, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ renderTextToScreen(
+ "enemies ", iVar2 + 0x12e, iVar3 + 0x46, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->playerDataArray[number].totalEnemyUnitsCount, iVar2 + 0x13a, iVar3 + 0x46, TTA_LEFT,
+ 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "popular:", xParam, iVar3 + 0x54, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->playerDataArray[number].popularity, iVar2 + 0xe, iVar3 + 0x54, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ renderTextToScreen(
+ "crowding", iVar2 + 0x98, iVar3 + 0x54, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->playerDataArray[number].crowding, iVar2 + 0xa4, iVar3 + 0x54, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ renderTextToScreen(
+ "capacity", iVar2 + 0x12e, iVar3 + 0x54, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->playerDataArray[number].populationCap, iVar2 + 0x13a, iVar3 + 0x54, TTA_LEFT, 0x80ff,
+ 0x12, TRUE, 0);
+ renderTextToScreen(
+ "vclock", xParam, iVar3 + 0x62, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->playerDataArray[number].vclock, iVar2 + 0xe, iVar3 + 0x62, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ renderTextToScreen(
+ "lord killed ", iVar2 + 0x98, iVar3 + 0x62, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->playerDataArray[number].lordKilledByPlayerID, iVar2 + 0xa4, iVar3 + 0x62, TTA_LEFT,
+ 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Ale rate ", iVar2 + 0x12e, iVar3 + 0x62, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->playerDataArray[number].aleRate, iVar2 + 0x13a, iVar3 + 0x62, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ renderTextToScreen(
+ "fcn mtribe", xParam, iVar3 + 0x70, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_TribesState.fcn_mtribe, iVar2 + 0xe, iVar3 + 0x70, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ renderTextToScreen(
+ "skipped isos", iVar2 + 0x16, iVar3 + 0x70, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ DAT_ViewportRenderState.DAT_skipped_isos, iVar2 + 0x22, iVar3 + 0x70, TTA_LEFT,
+ 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Moat tiles", xParam, iVar3 + 0x7e, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_TileMapState.moatTileCount, iVar2 + 0xe, iVar3 + 0x7e, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ iVar1 = iVar3 + 0x7e;
+ renderTextToScreen(
+ "gate links ", iVar2 + 0x98, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ (int)(char)DAT_BuildingsState.buildings[0x13].pathLinkageRelated2, iVar2 + 0xa4, iVar1,
+ TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Fires ", iVar2 + 0x12e, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_EntityState.fireCount, iVar2 + 0x130, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ iVar1 = iVar3 + 0x8c;
+ renderTextToScreen(
+ "Easy: ", xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_PathFindingState.DAT_Easy, iVar2 + 0xe, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE,
+ 0);
+ renderTextToScreen(
+ "Hard: ", iVar2 + 0x54, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_PathFindingState.DAT_Hard, iVar2 + 0x5e, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE,
+ 0);
+ renderTextToScreen(
+ "Xm:", iVar2 + 0xae, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_PathFindingState.searchNonmatchCount, iVar2 + 0xb8, iVar1, TTA_LEFT, 0x80ff,
+ 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ DAT_PathFindingState.searchMatchCounter, iVar2 + 0xbc, iVar1, TTA_LEFT, 0x80ff,
+ 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Ass:", iVar2 + 0xfc, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_PathFindingState.DAT_Ass, iVar2 + 0xfe, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE,
+ 0);
+ renderTextToScreen(
+ "1Wys: ", iVar2 + 0x144, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_PathFindingState.DAT_lWys, iVar2 + 0x146, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE,
+ 0);
+ renderTextToScreen(
+ "Test likely.. ", xParam, iVar3 + 0x9a, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_PathFindingState.DAT_Test_likely, iVar2 + 0xe, iVar3 + 0x9a, TTA_LEFT, 0x80ff,
+ 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Test gatehouse.. ", iVar2 + 0x9a, iVar3 + 0x9a, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_PathFindingState.DAT_Test_gatehouse, iVar2 + 0xa4, iVar3 + 0x9a, TTA_LEFT,
+ 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Spreads: ", xParam, iVar3 + 0xa8, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_PathFindingState.calculations, iVar2 + 0xe, iVar3 + 0xa8, TTA_LEFT, 0x80ff,
+ 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Mini spreads: ", iVar2 + 0x9a, iVar3 + 0xa8, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_PathFindingState.DAT_Mini_spreads, iVar2 + 0xa4, iVar3 + 0xa8, TTA_LEFT,
+ 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Enemy hit: ", xParam, iVar3 + 0xb6, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ piVar4 = this->mapAndTime.emenyHitArray;
+ x = xParam;
+ do {
+ renderNumberToScreen2(
+ *piVar4, x, iVar3 + 0xb6, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ x = x + 0x14;
+ piVar4 = piVar4 + 1;
+ } while ((int)piVar4 < 0x117c87c);
+ iVar1 = iVar3 + 0xc4;
+ renderTextToScreen(
+ "Troops: ", xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->playerDataArray[number].armySize, iVar2 + 0xe, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "ChLim: ", iVar2 + 0x18, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ DAT_UnitsState.maxUnitCount, iVar2 + 0x22, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "StLim: ", iVar2 + 0x2c, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ DAT_BuildingsState.maxBuildingsCount, iVar2 + 0x36, iVar1, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ renderTextToScreen(
+ "FlLim: ", iVar2 + 0x40, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ DAT_EntityState.maxEntityCount, iVar2 + 0x4a, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE,
+ 0);
+ iVar3 = iVar3 + 0xd2;
+ renderTextToScreen(
+ "MoLim: ", xParam, iVar3, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_TileMapState.currentMoatCount, iVar2 + 0xe, iVar3, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ renderTextToScreen(
+ "OrLim: ", iVar2 + 0x18, iVar3, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ DAT_LandscapeState.maxTreeCount, iVar2 + 0x22, iVar3, TTA_LEFT, 0x80ff, 0x12, TRUE,
+ 0);
+ renderTextToScreen(
+ "PdLim: ", iVar2 + 0x2c, iVar3, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ DAT_TileMapState.maxPitchDitchCount, iVar2 + 0x36, iVar3, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0045a060", "name": "renderDebugDataCurrentPlayerData", "quelle": "ghidra", "p1": {"bereich": "Spielablauf", "zweck": "Zeichnet das Debug-Fenster mit Zählern und Grenzen des eigenen Spielers."}, "p2": {"ein": "x, y, width, height", "aus": "-", "liest": ["playerDataArray[aktuell].popularity/currentPopulation/armySize/crowding/populationCap/aleRate/weeksWithoutFood/totalEnemyUnitsCount/countEntities", "25 Werte ab Spielerblock+0x4D0", "mapAndTime.emenyHitArray", "Grenzen maxUnitCount/maxBuildingsCount/maxEntityCount/maxTreeCount/maxPitchDitchCount/currentMoatCount"], "schreibt": [], "ruft": ["renderTextToScreen", "renderNumberToScreen2"], "regeln": ["Zeigt unter anderem Beliebtheit, Bevölkerung, Heeresgröße, Bierrate und Wochen ohne Nahrung", "Die Beschriftung 'Total chimps' zeigt countEntities, 'lightning count' den treeSpreadCounter", "Grenzen im Anzeigetext: ChLim = maxUnitCount, StLim = maxBuildingsCount, FlLim = maxEntityCount"], "offen": ["Die 25 Werte ab Spielerblock+0x4D0 sind vermutlich die Warenbestände (currentResources)"]}, "p3": {"erklaerung": "Reine Entwickler-Anzeige; sie liefert nur eine Übersicht der Spielzähler und ändert nichts.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+

@@ -1,0 +1,1295 @@
+### 0x00537f60 clearUnitPositionCommitState | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00537F60
+ int UnitsState::getUnitStateTextParameterAndResourceType(int unitIndex, ResourceType* pResourceType)
+ {
+ short sVar1;
+ BuildingTypeShort BVar2;
+ BOOLEnum BVar3;
+ int _buildingID;
+ int iVar4;
+ uint _rng_0x79;
+ int _state;
+ _state = (int)(short)this->units[unitIndex].state.generic;
+ *pResourceType = ((ResourceType)0);
+ if (this->units[unitIndex].dying != 0) {
+ switchD_00538647_caseD_6:
+ /*
+ "Dying"
+ */
+ return 0xc;
+ }
+ if ((_state == 0x79)
+ || (BVar3 = CheckUnitProductionPaused(unitIndex),
+ BVar3 != FALSE)) {
+ /*
+ This is an optimized % 4, producing -3 to 3
+ */
+ _rng_0x79 = this->units[unitIndex].fixedRng & 0x80000003;
+ if ((int)_rng_0x79 < 0) {
+ _rng_0x79 = (_rng_0x79 - 1 | 0xfffffffc) + 1;
+ }
+ /*
+ "Wandering around Eating fire (go to goodthing) Having a rest Enjoying a break Taking some
+ time off Wandering randomly"
+ */
+ return (int)(_rng_0x79 + 0x5f);
+ }
+ if (_state == 0x6a) {
+ /*
+ "Fighting"
+ */
+ return 0x73;
+ }
+ switch (this->units[unitIndex].unitType) {
+ case UT_PEASANT:
+ if (_state == 5) {
+ /*
+ "Swearing loyalty"
+ */
+ return 0x26;
+ }
+ if (_state == 8) {
+ /*
+ "Listening Waiting for job Hanging around Waiting Talking Making a speech Telling a
+ joke Recounting a story"
+ */
+ /*
+ Waiting at campfire
+ */
+ switch (this->units[unitIndex].substate) {
+ case 0x6a:
+ return 0x1e;
+ case 0x6b:
+ return 0x1f;
+ case 0x6e:
+ return 0x20;
+ case 0x6f:
+ return 0x21;
+ case 0x72:
+ return 0x22;
+ case 0x73:
+ return 0x23;
+ case 0x74:
+ return 0x24;
+ case 0x75:
+ return 0x25;
+ }
+ }
+ /*
+ "Waiting for job"
+ */
+ return 0x1d;
+ case UT_BURNINGMAN:
+ /*
+ "Burning"
+ */
+ return 3;
+ case UT_WOODCUTTER:
+ *pResourceType = RT_WOOD;
+ /*
+ 0x1: Waiting 0x6b: Going to chop wood 0x6c: Felling a tree 0x6d: Chopping a tree 0x6e:
+ Returning with log 0x7: Working 0x7: Working 0x2: Awaiting store space 0xa: Taking goods to
+ store 0x5: Going to workplace 0x4: Resting 0x0: (Unit actions) - 0x8: Attacking
+ */
+ switch (_state) {
+ case 0:
+ goto switchD_00538093_caseD_0_return_1;
+ case 1:
+ /*
+ "Going to chop wood"
+ */
+ return 0x6b;
+ case 2:
+ /*
+ "Felling a tree"
+ */
+ return 0x6c;
+ case 3:
+ /*
+ "Chopping a tree"
+ */
+ return 0x6d;
+ case 4:
+ /*
+ "Returning with log"
+ */
+ return 0x6e;
+ case 5:
+ case 6:
+ goto switchD_00538093_caseD_5_return_7;
+ case 7:
+ goto switchD_00538093_caseD_7_return_2;
+ case 8:
+ goto switchD_00538093_caseD_8_return_10;
+ case 9:
+ goto switchD_00538093_caseD_9_return_5;
+ case 10:
+ goto switchD_00538093_caseD_a_return_4;
+ default : goto switchD_00537fdc_caseD_16_return_0;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_FLETCHER:
+ *pResourceType = RT_WOOD;
+ switch (_state) {
+ case 0:
+ goto switchD_00538093_caseD_0_return_1;
+ case 1:
+ switchD_005380fd_caseD_1_return_9:
+ return 9;
+ case 2:
+ switchD_005380fd_caseD_2_return_6:
+ return 6;
+ case 3:
+ goto switchD_00538093_caseD_9_return_5;
+ case 4:
+ case 5:
+ goto switchD_00538093_caseD_5_return_7;
+ case 6:
+ goto switchD_00538093_caseD_7_return_2;
+ case 7:
+ *pResourceType = RT_BOW;
+ return 10;
+ case 8:
+ _buildingID = getStorageBuildingForResourceTypeAndAmount(
+ RT_WOOD, 1, this->units[unitIndex].owner);
+ return (-(uint)(_buildingID != 0) & 3) + 1;
+ default : goto switchD_00537fdc_caseD_16_return_0;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_TUNNELER:
+ switch (_state) {
+ case 0:
+ case 1:
+ case 4:
+ case 5:
+ case 6:
+ goto switchD_00538093_caseD_0_return_1;
+ case 2:
+ case 3:
+ case 8:
+ case 9:
+ goto switchD_00538093_caseD_5_return_7;
+ case 7:
+ return 0xb;
+ default : goto switchD_00537fdc_caseD_16_return_0;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_HUNTER:
+ *pResourceType = RT_MEAT;
+ /*
+ 0x1: Waiting 0x71: Hunting 0x72: Returning with kill 0x7: Working 0x2: Awaiting store space
+ 0xa: Taking goods to store 0x5: Going to workplace 0x4: Resting 0x70: Stalking prey 0x73:
+ Fighting 0x71: Hunting 0x73: Fighting 0x0: (Unit actions) - 0x8: Attacking
+ */
+ switch (_state) {
+ case 0:
+ case 8:
+ goto switchD_00538093_caseD_0_return_1;
+ case 1:
+ case 0xb:
+ return 0x71;
+ case 2:
+ return 0x72;
+ case 3:
+ goto switchD_00538093_caseD_5_return_7;
+ case 4:
+ goto switchD_00538093_caseD_7_return_2;
+ case 5:
+ goto switchD_00538093_caseD_8_return_10;
+ case 6:
+ goto switchD_00538093_caseD_9_return_5;
+ case 7:
+ goto switchD_00538093_caseD_a_return_4;
+ case 9:
+ /*
+ 115 or 112
+ */
+ return (-(uint)(this->units[this->units[unitIndex].shootTargetedUnit].isStalked != 0) & 0xfffffffd)
+ + 0x73;
+ case 10:
+ return (uint)(this->units[this->units[unitIndex].shootTargetedUnit].isStalked == 0) * 2 + 0x71;
+ default : goto switchD_00537fdc_caseD_16_return_0;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_QUARRYMASON:
+ switch (_state) {
+ case 0:
+ goto switchD_00538093_caseD_0_return_1;
+ default:
+ goto switchD_00538093_caseD_5_return_7;
+ case 2:
+ goto switchD_00538093_caseD_9_return_5;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_QUARRYWORKER:
+ *pResourceType = RT_STONE;
+ switch (_state) {
+ default:
+ goto switchD_00538093_caseD_5_return_7;
+ case 1:
+ case 6:
+ goto switchD_00538093_caseD_0_return_1;
+ case 2:
+ goto switchD_00538093_caseD_7_return_2;
+ case 3:
+ goto switchD_00538093_caseD_8_return_10;
+ case 4:
+ goto switchD_00538093_caseD_9_return_5;
+ case 5:
+ goto switchD_00538093_caseD_a_return_4;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_QUARRYOX:
+ *pResourceType = RT_STONE;
+ switch (_state) {
+ case 1:
+ goto switchD_00538093_caseD_8_return_10;
+ case 2:
+ goto switchD_00538093_caseD_0_return_1;
+ case 3:
+ goto switchD_00538093_caseD_9_return_5;
+ case 4:
+ return 0x28;
+ default : goto switchD_00537fdc_caseD_16_return_0;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_PITCHMAN:
+ *pResourceType = RT_PARTIALPITCH;
+ switch (_state) {
+ case 0:
+ goto switchD_00538093_caseD_0_return_1;
+ case 1:
+ goto switchD_00538093_caseD_5_return_7;
+ case 2:
+ goto switchD_00538093_caseD_7_return_2;
+ case 3:
+ goto switchD_00538093_caseD_8_return_10;
+ case 4:
+ goto switchD_00538093_caseD_9_return_5;
+ default : goto switchD_00537fdc_caseD_16_return_0;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_WHEATFARMER:
+ *pResourceType = RT_WHEAT;
+ switch (_state) {
+ case 0:
+ case 1:
+ goto switchD_00538093_caseD_0_return_1;
+ case 2:
+ goto switchD_00538093_caseD_9_return_5;
+ case 3:
+ case 4:
+ case 5:
+ case 6:
+ case 7:
+ case 8:
+ goto switchD_00538093_caseD_5_return_7;
+ case 9:
+ goto switchD_00538093_caseD_7_return_2;
+ case 10:
+ goto switchD_00538093_caseD_8_return_10;
+ default : goto switchD_00537fdc_caseD_16_return_0;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_HOPSFARMER:
+ *pResourceType = RT_HOPS;
+ switch (_state) {
+ case 0:
+ case 1:
+ goto switchD_00538093_caseD_0_return_1;
+ case 2:
+ goto switchD_00538093_caseD_9_return_5;
+ case 3:
+ case 4:
+ case 5:
+ case 6:
+ goto switchD_00538093_caseD_5_return_7;
+ case 7:
+ goto switchD_00538093_caseD_7_return_2;
+ case 8:
+ goto switchD_00538093_caseD_8_return_10;
+ default : goto switchD_00537fdc_caseD_16_return_0;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_APPLEFARMER:
+ *pResourceType = RT_APPLE;
+ switch (_state) {
+ case 0:
+ case 1:
+ goto switchD_00538093_caseD_0_return_1;
+ case 2:
+ case 3:
+ case 4:
+ case 8:
+ goto switchD_00538093_caseD_5_return_7;
+ case 5:
+ goto switchD_00538093_caseD_9_return_5;
+ case 6:
+ goto switchD_00538093_caseD_7_return_2;
+ case 7:
+ goto switchD_00538093_caseD_8_return_10;
+ default : goto switchD_00537fdc_caseD_16_return_0;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_DAIRYFARMER:
+ *pResourceType = RT_CHEESE;
+ switch (_state) {
+ case 0:
+ case 1:
+ goto switchD_00538093_caseD_0_return_1;
+ case 2:
+ goto switchD_00538093_caseD_9_return_5;
+ case 3:
+ goto switchD_00538093_caseD_5_return_7;
+ case 4:
+ goto switchD_00538093_caseD_7_return_2;
+ case 5:
+ goto switchD_00538093_caseD_8_return_10;
+ default : goto switchD_00537fdc_caseD_16_return_0;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_MILLER:
+ switch (_state) {
+ case 0:
+ case 1:
+ case 6:
+ goto switchD_00538093_caseD_0_return_1;
+ case 2:
+ goto switchD_00538093_caseD_9_return_5;
+ case 3:
+ goto switchD_005380fd_caseD_1_return_9;
+ case 4:
+ *pResourceType = RT_WHEAT;
+ return 6;
+ case 5:
+ goto switchD_00538093_caseD_5_return_7;
+ case 7:
+ goto switchD_00538093_caseD_7_return_2;
+ case 8:
+ *pResourceType = RT_FLOUR;
+ return 10;
+ default : goto switchD_00537fdc_caseD_16_return_0;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_BAKER:
+ *pResourceType = RT_BREAD;
+ switch (_state) {
+ case 0:
+ case 1:
+ goto switchD_00538093_caseD_0_return_1;
+ case 2:
+ goto switchD_00538093_caseD_9_return_5;
+ default:
+ goto switchD_00538093_caseD_5_return_7;
+ case 5:
+ goto switchD_00538093_caseD_7_return_2;
+ case 6:
+ goto switchD_00538093_caseD_8_return_10;
+ case 7:
+ *pResourceType = RT_FLOUR;
+ return 9;
+ case 8:
+ *pResourceType = RT_FLOUR;
+ return 6;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_BREWER:
+ switch (_state) {
+ case 0:
+ case 1:
+ goto switchD_00538093_caseD_0_return_1;
+ case 2:
+ *pResourceType = RT_HOPS;
+ return 9;
+ case 3:
+ *pResourceType = RT_HOPS;
+ return 6;
+ case 4:
+ goto switchD_00538093_caseD_9_return_5;
+ default:
+ goto switchD_00538093_caseD_5_return_7;
+ case 7:
+ goto switchD_00538093_caseD_7_return_2;
+ case 8:
+ *pResourceType = RT_ALE;
+ return 10;
+ case 9:
+ goto switchD_00538093_caseD_a_return_4;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_POLETURNER:
+ switch (_state) {
+ case 0:
+ case 1:
+ goto switchD_00538093_caseD_0_return_1;
+ case 2:
+ *pResourceType = RT_WOOD;
+ return 9;
+ case 3:
+ *pResourceType = RT_WOOD;
+ return 6;
+ case 4:
+ goto switchD_00538093_caseD_9_return_5;
+ case 5:
+ case 6:
+ goto switchD_00538093_caseD_5_return_7;
+ case 7:
+ goto switchD_00538093_caseD_7_return_2;
+ case 8:
+ switchD_00538409_caseD_8:
+ *pResourceType = (int)(short)DAT_BuildingsState
+ .buildings[this->units[unitIndex].workplaceBuildingID_1]
+ .producedItemTypeNext;
+ return 10;
+ default : goto switchD_00537fdc_caseD_16_return_0;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_SMITH:
+ switch (_state) {
+ case 0:
+ case 1:
+ goto switchD_00538093_caseD_0_return_1;
+ case 2:
+ switchD_00538463_caseD_2:
+ *pResourceType = RT_IRON;
+ return 9;
+ case 3:
+ switchD_00538463_caseD_3:
+ *pResourceType = RT_IRON;
+ return 6;
+ case 4:
+ goto switchD_00538093_caseD_9_return_5;
+ case 5:
+ case 6:
+ goto switchD_00538093_caseD_5_return_7;
+ case 7:
+ goto switchD_00538093_caseD_7_return_2;
+ case 8:
+ goto switchD_00538409_caseD_8;
+ case 9:
+ sVar1 = this->units[unitIndex].owner;
+ LAB_00538484:
+ iVar4 = getStorageBuildingForResourceTypeAndAmount(RT_IRON, 1, sVar1);
+ return (-(uint)(iVar4 != 0) & 3) + 1;
+ default : goto switchD_00537fdc_caseD_16_return_0;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_ARMORER:
+ switch (_state) {
+ case 0:
+ case 1:
+ goto switchD_00538093_caseD_0_return_1;
+ case 2:
+ goto switchD_00538463_caseD_2;
+ case 3:
+ goto switchD_00538463_caseD_3;
+ case 4:
+ goto switchD_00538093_caseD_9_return_5;
+ case 5:
+ case 6:
+ goto switchD_00538093_caseD_5_return_7;
+ case 7:
+ goto switchD_00538093_caseD_7_return_2;
+ case 8:
+ *pResourceType = RT_IRONARMOR;
+ return 10;
+ case 9:
+ sVar1 = this->units[unitIndex].owner;
+ goto LAB_00538484;
+ default : goto switchD_00537fdc_caseD_16_return_0;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_TANNER:
+ switch (_state) {
+ case 0:
+ case 1:
+ goto switchD_00538093_caseD_0_return_1;
+ case 2:
+ return 0x68;
+ case 3:
+ return 0x69;
+ case 4:
+ goto switchD_00538093_caseD_9_return_5;
+ default:
+ goto switchD_00538093_caseD_5_return_7;
+ case 7:
+ goto switchD_00538093_caseD_7_return_2;
+ case 8:
+ *pResourceType = RT_LEATHERARMOR;
+ return 10;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ default : switchD_00537fdc_caseD_16_return_0 : return 0;
+ case UT_MINER:
+ if (_state == 1) {
+ return 7;
+ }
+ code_r0x00538536:
+ switch (_state) {
+ case 0:
+ case 1:
+ case 5:
+ goto switchD_00538093_caseD_0_return_1;
+ case 2:
+ switchD_00538093_caseD_9_return_5:
+ return 5;
+ case 3:
+ switchD_00538093_caseD_7_return_2:
+ return 2;
+ case 4:
+ switchD_00538093_caseD_8_return_10:
+ return 10;
+ default:
+ switchD_00538093_caseD_5_return_7:
+ return 7;
+ case 0x6a:
+ switchD_00538093_caseD_6a_return_8:
+ return 8;
+ }
+ case UT_TRANSPORTMINER:
+ goto code_r0x00538536;
+ case UT_PRIEST:
+ switch (_state) {
+ case 0:
+ goto switchD_00538093_caseD_0_return_1;
+ case 1:
+ goto switchD_00538093_caseD_9_return_5;
+ case 2:
+ case 4:
+ case 6:
+ case 7:
+ case 8:
+ case 10:
+ case 0xb:
+ goto switchD_00538093_caseD_5_return_7;
+ case 3:
+ return 0x2b;
+ case 5:
+ return 0x2a;
+ case 9:
+ return this->units[unitIndex].substate + 0x18;
+ default : goto switchD_00537fdc_caseD_16_return_0;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_HEALER:
+ switch (_state) {
+ case 0:
+ goto switchD_00538093_caseD_0_return_1;
+ case 1:
+ goto switchD_00538093_caseD_9_return_5;
+ default:
+ goto switchD_00538093_caseD_5_return_7;
+ case 3:
+ return 0x2d;
+ case 4:
+ return 0x2e;
+ case 5:
+ return 0x2f;
+ case 6:
+ return 0x30;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_DRUNK:
+ return DAT_GameState.mapAndTime.drunkenManStatus + 0x75;
+ case UT_INNKEEPER:
+ *pResourceType = RT_ALE;
+ switch (_state) {
+ case 0:
+ case 1:
+ goto switchD_00538093_caseD_0_return_1;
+ case 2:
+ goto switchD_005380fd_caseD_1_return_9;
+ case 3:
+ goto switchD_005380fd_caseD_2_return_6;
+ case 4:
+ goto switchD_00538093_caseD_9_return_5;
+ case 5:
+ goto switchD_00538093_caseD_5_return_7;
+ default : goto switchD_00537fdc_caseD_16_return_0;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_TRADER:
+ switch (_state) {
+ case 0:
+ goto switchD_00538093_caseD_0_return_1;
+ case 1:
+ return 0x37;
+ case 2:
+ goto switchD_00538093_caseD_5_return_7;
+ case 3:
+ return 0x38;
+ default : goto switchD_00537fdc_caseD_16_return_0;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_TRADERHORSE:
+ if (_state == 1) {
+ return 0x37;
+ }
+ if (_state != 3) {
+ if (_state == 0x6a) {
+ return 8;
+ }
+ return 1;
+ }
+ return 0x38;
+ case UT_COW:
+ switch (_state) {
+ case 0:
+ sVar1 = this->units[unitIndex].substate;
+ if ((sVar1 == 0x66) || (sVar1 == 0x67)) {
+ return 0x3c;
+ }
+ default:
+ return 0x3d;
+ case 2:
+ case 4:
+ case 5:
+ return 0x3a;
+ case 3:
+ return 0x3b;
+ case 6:
+ case 0x6e:
+ goto switchD_00538647_caseD_6;
+ }
+ case UT_HUNTERDOG:
+ switch (_state) {
+ case 3:
+ return 0x3f;
+ case 4:
+ case 5:
+ return 0x40;
+ case 7:
+ case 8:
+ return 0x41;
+ case 9:
+ return 0x42;
+ case 0x78:
+ return 0x43;
+ }
+ switchD_00538093_caseD_0_return_1:
+ return 1;
+ case UT_FIREFIGHTER:
+ switch (_state) {
+ case 0:
+ case 2:
+ goto switchD_00538093_caseD_a_return_4;
+ case 1:
+ return 0x97;
+ case 3:
+ return 0x96;
+ case 4:
+ return 0x98;
+ default:
+ return 0;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_GHOST:
+ return (DAT_GameState.mapAndTime.drunkenManStatus & 3U) + 0x99;
+ case UT_LADY:
+ switch (_state) {
+ case 1:
+ case 9:
+ return 0x12;
+ case 3:
+ return 0x13;
+ case 4:
+ case 8:
+ return 0x14;
+ case 5:
+ return 0x15;
+ case 6:
+ return this->units[unitIndex].substate + 0xe;
+ case 7:
+ return 0x16;
+ case ((UnitType)10):
+ goto switchD_00537fdc_caseD_16_return_0;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ switchD_00538093_caseD_a_return_4:
+ return 4;
+ case UT_JESTER:
+ switch (_state) {
+ case 1:
+ return 0x45;
+ default:
+ return 0x49;
+ case 3:
+ case 4:
+ return 0x46;
+ case 5:
+ return 0x47;
+ case 7:
+ case 8:
+ return 0x48;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_CHICKEN:
+ if (_state == 2) {
+ return 0x4c;
+ }
+ return 0x4b;
+ case UT_MOTHER:
+ switch (_state) {
+ case 3:
+ case 5:
+ case 6:
+ case 7:
+ return 0x4f;
+ case 4:
+ return 0x50;
+ default:
+ return 0x51;
+ case 0x65:
+ BVar2 = DAT_BuildingsState.buildings[this->units[unitIndex].targetID_OR_targetBuildingID]
+ .buildingType;
+ if (((BVar2 != BT_CHAPEL) && (BVar2 != BT_CHURCH))
+ && (BVar2 != BT_CATHEDRAL)) {
+ return 0x4f;
+ }
+ return 0x4e;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_CHILD:
+ switch (_state) {
+ case 0:
+ case 1:
+ goto switchD_00538093_caseD_0_return_1;
+ default:
+ return 0x57;
+ case 3:
+ return 0x53;
+ case 4:
+ case 5:
+ return 0x54;
+ case 6:
+ case 9:
+ return 0x55;
+ case 10:
+ case 0xb:
+ case 0xc:
+ case 0xd:
+ return 0x56;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_JUGGLER:
+ switch (_state) {
+ case 0:
+ goto switchD_00538093_caseD_0_return_1;
+ case 1:
+ return 0x59;
+ case 2:
+ case 3:
+ case 4:
+ case 5:
+ case 6:
+ return 0x5a;
+ default : goto switchD_00537fdc_caseD_16_return_0;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ case UT_FIREEATER:
+ switch (_state) {
+ case 0:
+ goto switchD_00538093_caseD_0_return_1;
+ case 1:
+ return 0x5c;
+ case 2:
+ case 3:
+ case 4:
+ return 0x5d;
+ default : goto switchD_00537fdc_caseD_16_return_0;
+ case 0x6a:
+ goto switchD_00538093_caseD_6a_return_8;
+ }
+ }
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00537f60", "name": "clearUnitPositionCommitState", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Liefert die Nummer des Statustexts einer Einheit (und die zugehoerige Ware). Der Name stimmt nicht: Der Code heisst getUnitStateTextParameterAndResourceType."}, "p2": {"ein": "unitIndex, pResourceType (Ausgabe)", "aus": "Textnummer fuer die Anzeige", "liest": ["units[].state.generic", "units[].dying", "units[].unitType", "units[].substate", "units[].fixedRng", "units[].owner", "units[].workplaceBuildingID_1", "units[].shootTargetedUnit", "buildings[].producedItemTypeNext", "mapAndTime.drunkenManStatus"], "schreibt": ["*pResourceType"], "ruft": ["CheckUnitProductionPaused", "getStorageBuildingForResourceTypeAndAmount"], "regeln": ["Sterbend: 0xc", "Zustand 0x79 oder Produktion pausiert: 0x5f plus Zufall aus fixedRng (Werte -3 bis 3 laut Kommentar)", "Zustand 0x6a (Kampf): 0x73", "Danach je Einheitentyp eine Tabelle Zustand zu Text, Standardwerte 1 (Warten), 2, 4, 5 (Ware lagern), 7 (Gehen zur Arbeit), 8 (Angreifen), 10, 9 und 6", "Holzfaeller, Bogner, Jaeger, Steinbruch, Pech, Bauern, Muellerei, Baecker, Brauer, Schmiede setzen pResourceType auf die Ware der Taetigkeit (Holz, Bogen, Fleisch, Stein, Pech, Weizen, Hopfen, Apfel, Kaese, Mehl, Brot, Ale, Eisen, Rüstung, Lederruestung)", "Bogner, Schmied, Ruestungsschmied: Text 1 bis 4 je nachdem, ob ein Lager mit der Ware (Holz bzw. Eisen) existiert", "Betrunkener: 0x75 + drunkenManStatus; Geist: 0x99 + (drunkenManStatus & 3)", "Unbekannte Typen: 0"], "offen": ["Welche Zahl welchen Text ergibt (Texttabelle nicht im Code)"]}, "p3": {"erklaerung": "Beschafft den Text, den das Spiel unten im Fenster zur gewaehlten Einheit zeigt, zum Beispiel Hacken, Warten oder Ware bringen.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0053a5b0 renderDebugDataUnitData | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0053A5B0
+ void UnitsState::renderDebugDataUnitData(int x, int y, int width, int height)
+ {
+ int xParam;
+ int xParam_00;
+ int xParam_01;
+ int xParam_02;
+ int iVar1;
+ int xParam_03;
+ int _selectedUnitID;
+ short tribeOrSection1016ID;
+ _selectedUnitID = this->lastSelectedUnitID;
+ iVar1 = (int)this->units[this->lastSelectedUnitID].owner;
+ tribeOrSection1016ID = this->units[this->lastSelectedUnitID].tribeID;
+ xParam_03 = x + 2;
+ if (this->lastSelectedUnitID < 1) {
+ renderTextToScreen(
+ "Not watching a chimp ", xParam_03, y, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ iVar1 = y + 0xe;
+ renderTextToScreen(
+ "Total chimps: ", xParam_03, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->unitCount, xParam_03, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Total flies: ", x + 0x20, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ DAT_EntityState.totalEntityCount, x + 0x20, iVar1, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ iVar1 = y + 0x1c;
+ renderTextToScreen(
+ "No of teleports: ", xParam_03, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_PathFindingState.numberOfClimbTeleports, xParam_03, iVar1, TTA_LEFT,
+ 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "greatest loading: ", x + 0x7a, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_PathFindingState.debugGreatestClimbLoading, x + 0x7a, iVar1, TTA_LEFT,
+ 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "total zones: ", xParam_03, y + 0x2a, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ DAT_PathFindingState.totalZones, xParam_03, y + 0x2a, TTA_LEFT, 0x80ff,
+ 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Lost chimps: ", xParam_03, y + 0x54, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ this->lostChimps, xParam_03, y + 0x54, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ return;
+ }
+ renderTextToScreen(
+ "Watching chimp: ", xParam_03, y, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ _selectedUnitID, xParam_03, y, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ xParam = x + 0x20;
+ renderTextToScreen(
+ "type: ", xParam, y, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ (int)(short)this->units[_selectedUnitID].unitType, xParam, y, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ xParam_00 = x + 0x3e;
+ renderTextToScreen(
+ "player: ", xParam_00, y, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ iVar1, xParam_00, y, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ xParam_01 = x + 0x5c;
+ renderTextToScreen(
+ "status: ", xParam_01, y, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ (int)(short)this->units[_selectedUnitID].logicalState, xParam_01, y, TTA_LEFT, 0x80ff,
+ 0x12, TRUE, 0);
+ renderTextToScreen(
+ "dying: ", xParam_03, y + 0xe, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ (int)this->units[_selectedUnitID].dying, xParam_03, y + 0xe, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ renderTextToScreen(
+ "next_chimp: ", xParam, y + 0xe, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ (int)(short)this->units[_selectedUnitID].nextUnitOnTheSameTile, xParam, y + 0xe,
+ TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "using teleport: ", xParam_00, y + 0xe, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ (int)this->units[_selectedUnitID].usingTeleport, xParam_00, y + 0xe, TTA_LEFT, 0x80ff,
+ 0x12, TRUE, 0);
+ renderTextToScreen(
+ "elbowed: ", xParam_01, y + 0xe, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ (int)this->units[_selectedUnitID].unitOrderWhenOnSameTile, xParam_01, y + 0xe, TTA_LEFT,
+ 0x80ff, 0x12, TRUE, 0);
+ xParam_02 = x + 0x7a;
+ renderTextToScreen(
+ "sloth: ", xParam_02, y + 0xe, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ (int)this->units[_selectedUnitID].moveDelay, xParam_02, y + 0xe, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ renderTextToScreen(
+ "enemyD ", xParam_03, y + 0x1c, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ (int)this->units[_selectedUnitID].closestEnemyMicroDistance, xParam_03, y + 0x1c,
+ TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "enemies ", xParam, y + 0x1c, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ DAT_GameState.playerDataArray[iVar1].enemies, xParam, y + 0x1c, TTA_LEFT,
+ 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "facing ", xParam_00, y + 0x1c, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ (int)this->units[_selectedUnitID].facingDirection, xParam_00, y + 0x1c, TTA_LEFT, 0x80ff,
+ 0x12, TRUE, 0);
+ renderTextToScreen(
+ "jump ", xParam_01, y + 0x1c, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ (int)this->units[_selectedUnitID].buildingHeight, xParam_01, y + 0x1c, TTA_LEFT, 0x80ff,
+ 0x12, TRUE, 0);
+ renderTextToScreen(
+ "z ", xParam_02, y + 0x1c, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ (int)this->units[_selectedUnitID].terrainOrClimbHeight, xParam_02, y + 0x1c, TTA_LEFT,
+ 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "ai_status ", xParam_03, y + 0x2a, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ (int)(short)this->units[_selectedUnitID].state.generic, xParam_03, y + 0x2a, TTA_LEFT,
+ 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "anim_frame_no ", xParam, y + 0x2a, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ this->units[_selectedUnitID].animationCycleNumber, xParam, y + 0x2a, TTA_LEFT, 0x80ff,
+ 0x12, TRUE, 0);
+ renderTextToScreen(
+ "gfx_no ", xParam_00, y + 0x2a, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ this->units[_selectedUnitID].gfxNumber, xParam_00, y + 0x2a, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ renderTextToScreen(
+ "Look 4 enemy ", xParam_03, y + 0x38, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ (int)this->units[_selectedUnitID].lookForEnemy, xParam_03, y + 0x38, TTA_LEFT, 0x80ff,
+ 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Attacked By ", xParam, y + 0x38, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ (int)this->units[_selectedUnitID].attackedBy, xParam, y + 0x38, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ renderTextToScreen(
+ "Hps ", xParam_00, y + 0x38, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ this->units[_selectedUnitID].health, xParam_00, y + 0x38, TTA_LEFT, 0x80ff, 0x12, TRUE,
+ 0);
+ renderTextToScreen(
+ "Hunted By ", xParam_01, y + 0x38, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ (int)this->units[_selectedUnitID].huntedBy, xParam_01, y + 0x38, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ renderTextToScreen(
+ "target type ", xParam_03, y + 0x46, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ (int)(short)this->units[_selectedUnitID].targetingType, xParam_03, y + 0x46, TTA_LEFT,
+ 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "seated ", xParam, y + 0x46, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ (int)this->units[_selectedUnitID].seated, xParam, y + 0x46, TTA_LEFT, 0x80ff, 0x12, TRUE,
+ 0);
+ renderTextToScreen(
+ "vanish ", xParam_00, y + 0x46, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ this->units[_selectedUnitID].vanish, xParam_00, y + 0x46, TTA_LEFT, 0x80ff, 0x12, TRUE,
+ 0);
+ renderTextToScreen(
+ "was on stone gate ", xParam_01, y + 0x46, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ (int)(char)this->units[_selectedUnitID].wasOnStoneGate, xParam_01, y + 0x46, TTA_LEFT,
+ 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Idle ", xParam_03, y + 0x54, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ (int)this->units[_selectedUnitID].idle, xParam_03, y + 0x54, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ renderTextToScreen(
+ "Target ", xParam, y + 0x54, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ (int)this->units[_selectedUnitID].target, xParam, y + 0x54, TTA_LEFT, 0x80ff, 0x12, TRUE,
+ 0);
+ renderTextToScreen(
+ "Banked ", xParam_00, y + 0x54, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ (int)this->units[_selectedUnitID].banked, xParam_00, y + 0x54, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ iVar1 = y + 0x62;
+ renderTextToScreen(
+ "Working ", xParam_03, iVar1, TTA_LEFT, 0xffffff, 0x12, FALSE, 0);
+ renderNumberToScreen2(
+ *(int*)(this->units[_selectedUnitID].manningEngineerRef + this->units[_selectedUnitID].working * 2
+ + -0x16),
+ xParam_03, iVar1, TTA_LEFT, (uint)((int)(33023)), 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Av ", xParam, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ this->units[_selectedUnitID].av, xParam, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "Bless ", xParam_00, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ this->units[_selectedUnitID].blessedAmount, xParam_00, iVar1, TTA_LEFT, 0x80ff, 0x12,
+ TRUE, 0);
+ renderTextToScreen(
+ "Tribe ", xParam_01, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ (int)tribeOrSection1016ID, xParam_01, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ renderTextToScreen(
+ "SA ", xParam_02, iVar1, TTA_LEFT, 0xffffff, 0x12, TRUE, 0);
+ renderNumberToScreen2(
+ (int)this->units[_selectedUnitID].SA, xParam_02, iVar1, TTA_LEFT, 0x80ff, 0x12, TRUE, 0);
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0053a5b0", "name": "renderDebugDataUnitData", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Zeichnet das Debug-Fenster mit den Daten der zuletzt gewaehlten Einheit."}, "p2": {"ein": "x, y, width, height", "aus": "-", "liest": ["lastSelectedUnitID", "units[sel] (Typ, Besitzer, logicalState, dying, health, huntedBy, attackedBy, state.generic, tribeID u.a.)", "unitCount", "lostChimps", "PathFindingState-Zaehler", "EntityState.totalEntityCount"], "schreibt": [], "ruft": ["renderTextToScreen", "renderNumberToScreen2"], "regeln": ["Ohne gewaehlte Einheit (lastSelectedUnitID < 1): Gesamtzahlen (Einheiten, Entitaeten, Klett-Teleporte, Zonen, verlorene Einheiten)", "Mit Einheit: rund 30 Felder in Zeilen im Abstand 0xe (14) Pixel", "Einheiten heissen im Debugtext chimps"], "offen": []}, "p3": {"erklaerung": "Reine Entwicklerhilfe, im normalen Spiel nicht sichtbar. Sie zeigt aber, welche Einheitenfelder die Entwickler fuer wichtig hielten.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0053be00 UpdateCamel | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0053BE00
+ void Units::UpdateCamel()
+ {
+ short* psVar1;
+ byte* pbVar2;
+ byte bVar3;
+ short sVar4;
+ short sVar5;
+ UnitStateShort UVar6;
+ int iVar7;
+ BOOLEnum BVar8;
+ uint uVar9;
+ bool bVar10;
+ uVar9 = DAT_CurrentUnitSlotID;
+ DAT_GameState.mapAndTime.field3168_0x2790 = DAT_GameState.mapAndTime.field3168_0x2790 + 1;
+ sVar4 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].tribeID;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].stateBasedSpeed = 0;
+ bVar3 = DAT_UnitsState.units[uVar9].disappearFadeAlphaCountdown;
+ if (('\0' < (char)bVar3)
+ && (DAT_UnitsState.units[uVar9].state.generic != US_DISAPPEAR)) {
+ DAT_UnitsState.units[uVar9].disappearFadeAlphaCountdown = bVar3 - 1;
+ }
+ sVar5 = DAT_UnitsState.units[uVar9].unknownBool01;
+ if (sVar5 != 0) {
+ DAT_UnitsState.units[uVar9].unknownBool01 = sVar5 + -1;
+ }
+ UVar6 = DAT_UnitsState.units[uVar9].state.generic;
+ if (UVar6 == US_DETERMINE_NEXT_STATEUnk) {
+ DAT_UnitsState.units[uVar9].field_0x30_animRelated = 0;
+ sVar5 = DAT_UnitsState.units[uVar9].updateTickTracker;
+ if (0 < sVar5) {
+ DAT_UnitsState.units[uVar9].updateTickTracker = sVar5 + -1;
+ return;
+ }
+ setUnitFacingDirectionTowardsTarget(
+ uVar9, DAT_TribesState.tribes[sVar4].selectionTargetUnitID);
+ uVar9 = DAT_CurrentUnitSlotID;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = 0xcd;
+ DAT_UnitsState.units[uVar9].animationCycleNumber = 0;
+ return;
+ }
+ if ((UVar6 == US_MOVE_TO_DESTINATION)
+ || (UVar6 == (US_DEATH_02 | US_STAND_UPUnk))) {
+ if (DAT_UnitsState.units[uVar9].substate == 100) {
+ DAT_UnitsState.units[uVar9].movementSpeed = 0x14;
+ DAT_UnitsState.units[uVar9].field_0x30_animRelated = 0;
+ DAT_UnitsState.units[uVar9].animationSpeed = 2;
+ iVar7 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field365_0x73c4[DAT_UnitsState.units[uVar9].animationCycleNumber];
+ DAT_UnitsState.units[uVar9].animationFrame = iVar7;
+ if (0 < iVar7) {
+ DAT_UnitsState.units[uVar9].gfxNumber = iVar7 + 0xc0;
+ return;
+ }
+ DAT_UnitsState.units[uVar9].substate = 0;
+ DAT_UnitsState.units[uVar9].animationCycleNumber = 0;
+ DAT_UnitsState.units[uVar9].seated = 0;
+ DAT_UnitsState.units[uVar9].gfxNumber = 0xc0;
+ return;
+ }
+ sVar4 = DAT_TribesState.tribes[sVar4].field133_0x278;
+ DAT_UnitsState.units[uVar9].animationCycleNumber = 0;
+ DAT_UnitsState.units[uVar9].animationSheetFrameOffset = 1;
+ if (sVar4 == 0) {
+ DAT_UnitsState.units[uVar9].movementSpeed = 3;
+ DAT_UnitsState.units[uVar9].stateBasedSpeed = 0;
+ } else {
+ DAT_UnitsState.units[uVar9].movementSpeed = 1;
+ DAT_UnitsState.units[uVar9].moveInstructionSpeedDelayTracker = 0;
+ DAT_UnitsState.units[uVar9].stateBasedSpeed = 1;
+ }
+ DAT_UnitsState.units[uVar9].field_0x30_animRelated = 0x18;
+ BVar8 = hasUnitReachedDestination(uVar9);
+ if (BVar8 == FALSE) {
+ return;
+ }
+ DAT_UnitsState.units[uVar9].animationCycleNumber = 0;
+ DAT_UnitsState.units[uVar9].substate = (byte)DAT_UnitsState.units[uVar9].fixedRng & 1;
+ DAT_UnitsState.units[uVar9].state.generic
+ = US_DETERMINE_NEXT_STATEUnk;
+ return;
+ }
+ if (UVar6 != 0xcd) {
+ if (UVar6 == US_DEATH_01) {
+ DAT_UnitsState.units[uVar9].facingDirection = 0;
+ DAT_UnitsState.units[uVar9].animationSpeed = 4;
+ DAT_UnitsState.units[uVar9].field_0x30_animRelated = 0;
+ if ((DAT_UnitsState.units[uVar9].animationCycleNumber == 1)
+ && (DAT_UnitsState.units[uVar9].animationCycleNumberHasJustIncremented != FALSE)) {
+ playSFXAtLocation(
+ (int)DAT_UnitsState.units[uVar9].x,
+ DAT_UnitsState.units[uVar9].y, FX_CAMEL_DIE);
+ uVar9 = DAT_CurrentUnitSlotID;
+ }
+ iVar7 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field13_0x99c[DAT_UnitsState.units[uVar9].animationCycleNumber];
+ DAT_UnitsState.units[uVar9].animationFrame = iVar7;
+ if (0 < iVar7) {
+ DAT_UnitsState.units[uVar9].gfxNumber = iVar7 + 0xe1;
+ return;
+ }
+ DAT_UnitsState.units[uVar9].gfxNumber = 0xfa;
+ } else {
+ BVar8 = checkIfCitizenUnitIsAliveBasedOnState(uVar9);
+ if (BVar8 == FALSE) {
+ if (UVar6
+ == (US_STONE_DEATH_03 | US_IDLEUnk)) {
+ DAT_UnitsState.units[uVar9].field_0x30_animRelated = 0;
+ psVar1 = &DAT_UnitsState.units[uVar9].updateTickTracker;
+ *psVar1 = *psVar1 + 1;
+ if (DAT_UnitsState.units[uVar9].updateTickTracker < 0x33) {
+ return;
+ }
+ DAT_UnitsState.units[uVar9].updateTickTracker = 0;
+ DAT_UnitsState.units[uVar9].state.generic = US_DISAPPEAR;
+ return;
+ }
+ if (UVar6 != US_DISAPPEAR) {
+ DAT_UnitsState.units[uVar9].state.generic
+ = US_DETERMINE_NEXT_STATEUnk;
+ makeUnitStopWalkingByClearingPathProgressState(uVar9);
+ return;
+ }
+ pbVar2 = &DAT_UnitsState.units[uVar9].disappearFadeAlphaCountdown;
+ *pbVar2 = *pbVar2 + 1;
+ if (' ' < (char)DAT_UnitsState.units[uVar9].disappearFadeAlphaCountdown) {
+ DAT_UnitsState.units[uVar9].disappearFadeAlphaCountdown = 0x20;
+ }
+ psVar1 = &DAT_UnitsState.units[uVar9].updateTickTracker;
+ *psVar1 = *psVar1 + 1;
+ if (DAT_UnitsState.units[uVar9].updateTickTracker < 0x21) {
+ return;
+ }
+ DAT_UnitsState.units[uVar9].logicalState = ULS_REMOVE;
+ return;
+ }
+ DAT_UnitsState.units[uVar9].facingDirection = 0;
+ DAT_UnitsState.units[uVar9].animationSpeed = 4;
+ DAT_UnitsState.units[uVar9].field_0x30_animRelated = 0;
+ iVar7 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field10_0x88c[DAT_UnitsState.units[uVar9].animationCycleNumber];
+ DAT_UnitsState.units[uVar9].animationFrame = iVar7;
+ if ((iVar7 == 0x11)
+ && (DAT_UnitsState.units[uVar9].animationCycleNumberHasJustIncremented != FALSE)) {
+ playSFXAtLocation(
+ (int)DAT_UnitsState.units[uVar9].x,
+ DAT_UnitsState.units[uVar9].y, FX_HORSE_FALL);
+ uVar9 = DAT_CurrentUnitSlotID;
+ }
+ if ((DAT_UnitsState.units[uVar9].animationCycleNumber == 2)
+ && (DAT_UnitsState.units[uVar9].animationCycleNumberHasJustIncremented != FALSE)) {
+ playSFXAtLocation(
+ (int)DAT_UnitsState.units[uVar9].x,
+ DAT_UnitsState.units[uVar9].y, FX_CAMEL_DIE);
+ uVar9 = DAT_CurrentUnitSlotID;
+ }
+ iVar7 = DAT_UnitsState.units[uVar9].animationFrame;
+ if (0 < iVar7) {
+ DAT_UnitsState.units[uVar9].gfxNumber = iVar7 + 0xfa;
+ return;
+ }
+ DAT_UnitsState.units[uVar9].gfxNumber = 0x10e;
+ }
+ DAT_UnitsState.units[uVar9].state.generic
+ = US_STONE_DEATH_03 | US_IDLEUnk;
+ DAT_UnitsState.units[uVar9].updateTickTracker = 0;
+ return;
+ }
+ DAT_UnitsState.units[uVar9].field_0x30_animRelated = 0;
+ DAT_UnitsState.units[uVar9].animationSpeed = 6;
+ DAT_UnitsState.units[uVar9].field250_0x3c2 = '\0';
+ DAT_UnitsState.units[uVar9].updateTickTracker
+ = (short)((int)(DAT_UnitsState.units[uVar9].fixedRng + DAT_GameCore.mapTimeInTicks)
+ % 0x14);
+ if (DAT_UnitsState.units[uVar9].seated == 0) {
+ iVar7 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field364_0x7398[DAT_UnitsState.units[uVar9].animationCycleNumber];
+ DAT_UnitsState.units[uVar9].animationFrame = iVar7;
+ goto LAB_0053bf9a;
+ }
+ sVar4 = DAT_UnitsState.units[uVar9].substate;
+ if (sVar4 == 0) {
+ bVar3 = DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field366_0x73f4[DAT_UnitsState.units[uVar9].animationCycleNumber];
+ LAB_0053bf8e:
+ DAT_UnitsState.units[uVar9].animationFrame = (int)(char)bVar3;
+ } else if (sVar4 == 1) {
+ DAT_UnitsState.units[uVar9].animationFrame
+ = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field367_0x7464[DAT_UnitsState.units[uVar9].animationCycleNumber];
+ } else {
+ if (sVar4 != 2) {
+ bVar3 = DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field369_0x7524[DAT_UnitsState.units[uVar9].animationCycleNumber];
+ goto LAB_0053bf8e;
+ }
+ DAT_UnitsState.units[uVar9].animationFrame
+ = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field368_0x74b4[DAT_UnitsState.units[uVar9].animationCycleNumber];
+ }
+ iVar7 = DAT_UnitsState.units[uVar9].animationFrame;
+ LAB_0053bf9a:
+ if (iVar7 < 1) {
+ DAT_UnitHasBecomeIdle = 1;
+ } else {
+ bVar10 = DAT_UnitHasBecomeIdle == 0;
+ DAT_UnitsState.units[uVar9].gfxNumber = iVar7 + 0xc0;
+ if (bVar10) {
+ return;
+ }
+ }
+ psVar1 = &DAT_UnitsState.units[uVar9].substate;
+ *psVar1 = *psVar1 + 1;
+ if (3 < DAT_UnitsState.units[uVar9].substate) {
+ DAT_UnitsState.units[uVar9].substate = 0;
+ }
+ DAT_UnitsState.units[uVar9].animationCycleNumber = 0;
+ DAT_UnitsState.units[uVar9].seated = 1;
+ DAT_UnitsState.units[uVar9].state.generic = US_DETERMINE_NEXT_STATEUnk;
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0053be00", "name": "UpdateCamel", "quelle": "ghidra", "p1": {"bereich": "Umwelt", "zweck": "Taktet pro Spieltick das Verhalten und die Animation eines Kamels (Zustandsautomat)."}, "p2": {"ein": "- (aktuelle Einheit aus DAT_CurrentUnitSlotID)", "aus": "-", "liest": ["units[].state.generic", "units[].substate", "units[].fixedRng", "units[].updateTickTracker", "units[].disappearFadeAlphaCountdown", "tribes[].selectionTargetUnitID", "tribes[].field133_0x278", "DAT_GameCore.mapTimeInTicks"], "schreibt": ["mapAndTime.field3168_0x2790 (+1 je Aufruf, vermutlich Kamelzähler)", "units[].state.generic", "units[].movementSpeed", "units[].stateBasedSpeed", "units[].substate", "units[].updateTickTracker", "units[].logicalState (ULS_REMOVE)", "units[].gfxNumber", "units[].animationFrame"], "ruft": ["setUnitFacingDirectionTowardsTarget", "hasUnitReachedDestination", "checkIfCitizenUnitIsAliveBasedOnState", "makeUnitStopWalkingByClearingPathProgressState", "playSFXAtLocation"], "regeln": ["Laufzustand: Ist tribes[].field133_0x278 gleich 0, ist movementSpeed 3 und stateBasedSpeed 0; sonst movementSpeed 1 und stateBasedSpeed 1", "Laufzustand mit substate 100: movementSpeed 0x14 (20), Animation aus der Tabelle Frames_Shared_UnitClimbingUp (Feldname täuscht, es ist eine Kamel-Tabelle); danach substate 0", "Ziel erreicht (hasUnitReachedDestination, prüft nur Kletternde): Zustand wechselt auf US_DETERMINE_NEXT_STATEUnk, substate = fixedRng & 1", "Zustand US_DETERMINE_NEXT_STATEUnk: Solange updateTickTracker > 0, wird er je Tick um 1 gesenkt; bei 0 dreht sich das Kamel zu tribes[].selectionTargetUnitID und geht in Zustand 0xcd", "Zustand 0xcd (Ruhe): updateTickTracker = (fixedRng + mapTimeInTicks) mod 20, also 0 bis 19 Ticks Wartezeit; substate wechselt reihum 0 bis 3, wenn eine Animation durch ist", "Tod: US_DEATH_01 spielt Todesanimation, Ton FX_CAMEL_DIE bei Animationsschritt 1; die weiteren Todeszustände spielen FX_HORSE_FALL und FX_CAMEL_DIE (bei Schritt 2) und enden in Leichenzustand", "Leiche (US_STONE_DEATH_03|US_IDLEUnk): nach 51 Ticks (Zähler über 0x32) Zustand US_DISAPPEAR; dort Ausblenden bis Zähler über 0x20 (33) liegt, dann ULS_REMOVE", "Die Alpha-Zählung disappearFadeAlphaCountdown sinkt je Tick, solange sie positiv und der Zustand nicht US_DISAPPEAR ist; in US_DISAPPEAR steigt sie bis höchstens 0x20"], "offen": ["Bedeutung von field3168_0x2790 und tribes[].field133_0x278 (vermutlich Zähler und Gehen/Rennen-Schalter der Herde)", "Genaue Zuordnung der Todeszustände zu checkIfCitizenUnitIsAliveBasedOnState"]}, "p3": {"erklaerung": "Kamele sind reine Kulisse in Wüstenkarten: Sie stehen mit zufälligen Pausen von bis zu 19 Ticks herum, laufen langsam umher und bleiben nach dem Tod gut zwei Sekunden liegen, bevor sie verschwinden.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+

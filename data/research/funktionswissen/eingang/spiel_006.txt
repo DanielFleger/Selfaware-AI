@@ -1,0 +1,1051 @@
+### 0x0048cc90 recomputeHashesAndSendResync | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0048CC90
+ void GameSynchronyState::recomputeHashesAndSendResync(int dontSendSyncCommand)
+ {
+ int* piVar1;
+ int* piVar2;
+ int* piVar3;
+ int* piVar4;
+ Entity* address;
+ short sVar5;
+ short sVar6;
+ short sVar7;
+ short sVar8;
+ short sVar9;
+ short sVar10;
+ short sVar11;
+ short sVar12;
+ short sVar13;
+ short sVar14;
+ short sVar15;
+ short sVar16;
+ int iVar17;
+ undefined4 uVar18;
+ uint uVar19;
+ int iVar20;
+ uint uVar21;
+ uint uVar22;
+ uint uVar23;
+ uint uVar24;
+ uint uVar25;
+ uint uVar26;
+ uint uVar27;
+ uint uVar28;
+ uint uVar29;
+ uint uVar30;
+ uint uVar31;
+ uint uVar32;
+ uint uVar33;
+ uint uVar34;
+ uint uVar35;
+ uint uVar36;
+ uint uVar37;
+ uint _moatIndex;
+ int _treeIndex;
+ int _playerDataIndex;
+ int _someIndex;
+ short* psVar38;
+ uint _pitchDitchIndex;
+ int _unitIndex;
+ int _buildingIndex;
+ int iVar39;
+ int* piVar41;
+ byte* pbVar42;
+ Unit* piVar40;
+ Unit* piVar44;
+ Unit* piVar43;
+ int iVar45;
+ Moat* address_00;
+ ClimbData* address_01;
+ PitchDitch* address_02;
+ AIVSpec* address_03;
+ int _hashSubTotal;
+ int _entityIndex;
+ int _tribeIndex;
+ int _heatMapIndex;
+ int _aivIndex;
+ if (this->DAT_GameHalted == 0) {
+ if (this->DAT_HashCountdown == 0) {
+ this->HASH_HashTotal[this->currentPlayerSlotID] = 0;
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID] = DAT_GameCore.mapTimeInTicks;
+ _hashSubTotal = 0;
+ _unitIndex = 0;
+ piVar40 = &DAT_UnitsState.units[0];
+ do {
+ iVar39 = piVar40->field309_0x420;
+ iVar45 = piVar40->field308_0x41c;
+ piVar40->field309_0x420 = 0;
+ piVar40->field308_0x41c = 0;
+ uVar19 = computeHash(1028, (int*)((int)(&piVar40->logicalState)));
+ piVar44 = piVar40 + 0x124;
+ iVar20 = uVar19 + piVar40->animationLeapTicksTotal + piVar40->animationSpeed
+ + piVar40->animationTicker;
+ _hashSubTotal = _hashSubTotal + iVar20;
+ this->HASH_Units[this->currentPlayerSlotID][_unitIndex] = iVar20;
+ piVar40->field308_0x41c = iVar45;
+ piVar40->field309_0x420 = iVar39;
+ _unitIndex = _unitIndex + 1;
+ piVar40 = piVar44;
+ } while ((int)piVar44 < 0x16513cc);
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 9] = _hashSubTotal;
+ this->HASH_HashTotal[this->currentPlayerSlotID]
+ = this->HASH_HashTotal[this->currentPlayerSlotID] + _hashSubTotal;
+ _buildingIndex = 0;
+ _hashSubTotal = 0;
+ psVar38 = &DAT_BuildingsState.buildings[0].animationIndex;
+ do {
+ sVar5 = psVar38[0x16e];
+ psVar38[0x16e] = 0;
+ uVar19 = computeHash(0x25c, (int*)((int)((psVar38 + 0x58))));
+ piVar41 = (int*)(psVar38 + 0x1a);
+ piVar1 = (int*)(psVar38 + 0x18);
+ sVar6 = *psVar38;
+ piVar2 = (int*)(psVar38 + 0x16);
+ piVar3 = (int*)(psVar38 + 0x14);
+ psVar38[0x16e] = sVar5;
+ piVar4 = (int*)(psVar38 + -8);
+ psVar38 = psVar38 + 0x196;
+ iVar39 = (int)sVar6 + uVar19 + *piVar41 + *piVar1 + *piVar2 + *piVar3 + *piVar4;
+ _hashSubTotal = _hashSubTotal + iVar39;
+ this->HASH_Buildings[this->currentPlayerSlotID][_buildingIndex] = iVar39;
+ _buildingIndex = _buildingIndex + 1;
+ } while ((int)psVar38 < 0x1124d14);
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 10] = _hashSubTotal;
+ this->HASH_HashTotal[this->currentPlayerSlotID]
+ = this->HASH_HashTotal[this->currentPlayerSlotID] + _hashSubTotal;
+ iVar39 = 0;
+ _treeIndex = 0;
+ psVar38 = &DAT_LandscapeState.trees[0].state;
+ do {
+ uVar19 = computeHash(88, (int*)((int)(psVar38)));
+ psVar38 = psVar38 + 0x4e;
+ iVar39 = iVar39 + uVar19;
+ this->HASH_Trees[this->currentPlayerSlotID][_treeIndex] = uVar19;
+ _treeIndex = _treeIndex + 1;
+ } while ((int)psVar38 < 0xf78f58);
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0xb] = iVar39;
+ this->HASH_HashTotal[this->currentPlayerSlotID]
+ = this->HASH_HashTotal[this->currentPlayerSlotID] + iVar39;
+ iVar39 = 0;
+ piVar41 = &DAT_TribesState.tribes[0].owner;
+ _tribeIndex = 0;
+ do {
+ uVar19 = computeHash(816, piVar41);
+ piVar41 = piVar41 + 0xcd;
+ iVar39 = iVar39 + uVar19;
+ this->HASH_Tribes[this->currentPlayerSlotID][_tribeIndex] = uVar19;
+ _tribeIndex = _tribeIndex + 1;
+ } while ((int)piVar41 < 0x176238c);
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0xc] = iVar39;
+ this->HASH_HashTotal[this->currentPlayerSlotID]
+ = this->HASH_HashTotal[this->currentPlayerSlotID] + iVar39;
+ _hashSubTotal = 0;
+ piVar43 = &DAT_GameState.playerDataArray[0].someAiCountdown3;
+ _playerDataIndex = 0;
+ do {
+ iVar39 = piVar43->animationFrame;
+ iVar45 = piVar43->animationSpeed;
+ iVar20 = piVar43->woodCutterChopsCount;
+ iVar17 = piVar43->animationTicker;
+ uVar18 = *(undefined4*)(piVar43->pathPlanStart + 0x6e);
+ pbVar42 = piVar43->pathPlanStart;
+ pbVar42[0x6e] = 0;
+ pbVar42[0x6f] = 0;
+ pbVar42[0x70] = 0;
+ pbVar42[0x71] = 0;
+ piVar43->woodCutterChopsCount = 0;
+ piVar43->animationFrame = 0;
+ piVar43->animationSpeed = 0;
+ piVar43->animationTicker = 0;
+ uVar19 = computeHash(14748, (int*)((int)(piVar43 + -0xe13)));
+ _hashSubTotal = _hashSubTotal + uVar19;
+ this->HASH_PlayerDatas[this->currentPlayerSlotID][_playerDataIndex] = uVar19;
+ piVar43->animationSpeed = iVar45;
+ piVar43->animationTicker = iVar17;
+ piVar43->animationFrame = iVar39;
+ piVar43->woodCutterChopsCount = iVar20;
+ *(undefined4*)(piVar43->pathPlanStart + 0x6e) = uVar18;
+ piVar43 = piVar43 + 0xe7d;
+ _playerDataIndex = _playerDataIndex + 1;
+ } while ((int)piVar43 < 0x1180030);
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0xd] = _hashSubTotal;
+ this->HASH_HashTotal[this->currentPlayerSlotID]
+ = this->HASH_HashTotal[this->currentPlayerSlotID] + _hashSubTotal;
+ iVar39 = 0;
+ piVar41 = &DAT_GameState.mapAndTime.field192_0x194;
+ _someIndex = 0;
+ do {
+ iVar45 = _someIndex;
+ uVar19 = computeHash(14566, piVar41);
+ piVar41 = (int*)((int)piVar41 + 14566);
+ iVar39 = iVar39 + uVar19;
+ this->HASH_Section1023[this->currentPlayerSlotID][iVar45] = uVar19;
+ _someIndex = iVar45 + 1;
+ } while ((int)piVar41 < 0x11bc94c);
+ uVar19 = computeHash(0x10,
+ (int*)((
+ int)(((int)DAT_GameState.mapAndTime.signpostsMapEdge + iVar45 * 0x38e6 + 0x1022))));
+ this->HASH_Section1023[this->currentPlayerSlotID][iVar45 + 1] = uVar19;
+ uVar21 = computeHash(
+ 0x330, (int*)((int)(&DAT_AIVState.mapExtraInfo.totalWoodAvailable)));
+ iVar39 = iVar39 + uVar19 + uVar21;
+ this->HASH_Section1023[this->currentPlayerSlotID][0x13] = uVar21;
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0xe] = iVar39;
+ this->HASH_HashTotal[this->currentPlayerSlotID]
+ = this->HASH_HashTotal[this->currentPlayerSlotID] + iVar39;
+ piVar41 = DAT_TileMapState.LogicLayer;
+ iVar45 = 0;
+ iVar39 = 0;
+ do {
+ uVar19 = computeHash(2512, piVar41);
+ piVar41 = piVar41 + 0x274;
+ iVar45 = iVar45 + uVar19;
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0].componentArray[iVar39]
+ = uVar19;
+ iVar39 = iVar39 + 1;
+ } while ((int)piVar41 < 0x1c46b68);
+ psVar38 = DAT_TileMapState.BuildingLayer;
+ iVar39 = 0;
+ do {
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[1].componentArray[iVar39] = 0;
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[2].componentArray[iVar39] = 0;
+ /*
+ tree and rock id tile map
+ */
+ uVar19 = computeHash(2512, (int*)((int)((psVar38 + -0x13a10))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[3].componentArray[iVar39]
+ = uVar19;
+ /*
+ building id tile map
+ */
+ uVar21 = computeHash(0x9d0, (int*)((int)(psVar38)));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[4].componentArray[iVar39]
+ = uVar21;
+ /*
+ unit id tile map
+ */
+ uVar22 = computeHash(0x9d0, (int*)((int)((psVar38 + 0x1d718))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[5].componentArray[iVar39]
+ = uVar22;
+ /*
+ entity id tile map
+ */
+ uVar23 = computeHash(0x9d0, (int*)((int)((psVar38 + 0x31128))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[6].componentArray[iVar39]
+ = uVar23;
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[7].componentArray[iVar39] = 0;
+ /*
+ area id tile map
+ */
+ uVar24 = computeHash(0x9d0, (int*)((int)((psVar38 + 0xb0a90))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[8].componentArray[iVar39]
+ = uVar24;
+ psVar38 = psVar38 + 0x4e8;
+ iVar45 = iVar45 + uVar19 + uVar21 + uVar22 + uVar23 + uVar24;
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[9].componentArray[iVar39] = 0;
+ iVar39 = iVar39 + 1;
+ } while ((int)psVar38 < 0x1cbcfb8);
+ pbVar42 = DAT_TileMapState.WallOwnerLayer;
+ iVar39 = 0;
+ do {
+ uVar19 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x62250))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[10].componentArray[iVar39]
+ = uVar19;
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0xb].componentArray[iVar39] = 0;
+ uVar21 = computeMaskedBitAccumulator(2512, (uint*)((int)(pbVar42)), 0x7070707);
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0xc].componentArray[iVar39]
+ = uVar21;
+ uVar22 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0xc44a0))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0xd].componentArray[iVar39]
+ = uVar22;
+ uVar23 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0xd7eb0))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0xe].componentArray[iVar39]
+ = uVar23;
+ uVar24 = computeHash(0x9d0, (int*)((int)((pbVar42 + -0x27420))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0xf].componentArray[iVar39]
+ = uVar24;
+ uVar25 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x14db10))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0x10].componentArray[iVar39]
+ = uVar25;
+ uVar26 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x13a100))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0x11].componentArray[iVar39]
+ = uVar26;
+ uVar27 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x174f30))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0x12].componentArray[iVar39]
+ = uVar27;
+ uVar28 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x161520))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0x13].componentArray[iVar39]
+ = uVar28;
+ uVar29 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x188940))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0x14].componentArray[iVar39]
+ = uVar29;
+ uVar30 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x19c350))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0x15].componentArray[iVar39]
+ = uVar30;
+ uVar31 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x1afd60))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0x16].componentArray[iVar39]
+ = uVar31;
+ uVar32 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x1c3770))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0x17].componentArray[iVar39]
+ = uVar32;
+ uVar33 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x1d7180))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0x18].componentArray[iVar39]
+ = uVar33;
+ uVar34 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x1eab90))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0x19].componentArray[iVar39]
+ = uVar34;
+ uVar35 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x1fe5a0))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0x1a].componentArray[iVar39]
+ = uVar35;
+ uVar36 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x211fb0))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0x1b].componentArray[iVar39]
+ = uVar36;
+ uVar37 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x2259c0))));
+ pbVar42 = pbVar42 + 0x9d0;
+ iVar45 = iVar45 + uVar19 + uVar21 + uVar22 + uVar23 + uVar24 + uVar25 + uVar26 + uVar27 + uVar28
+ + uVar29 + uVar30 + uVar31 + uVar32 + uVar33 + uVar34 + uVar35 + uVar36 + uVar37;
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0x1c].componentArray[iVar39]
+ = uVar37;
+ iVar39 = iVar39 + 1;
+ } while ((int)pbVar42 < 0x1d6da58);
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0xf] = iVar45;
+ this->HASH_HashTotal[this->currentPlayerSlotID]
+ = this->HASH_HashTotal[this->currentPlayerSlotID] + iVar45;
+ _hashSubTotal = 0;
+ _entityIndex = 25;
+ psVar38 = &DAT_EntityState.entityArray[0x19].x1;
+ do {
+ sVar5 = psVar38[8];
+ sVar6 = *psVar38;
+ sVar7 = psVar38[1];
+ sVar8 = psVar38[6];
+ sVar9 = psVar38[7];
+ sVar10 = psVar38[10];
+ sVar11 = psVar38[0x59];
+ iVar39 = ((Entity*)(psVar38 + -6))->graphicType2;
+ address = (Entity*)(psVar38 + -6);
+ iVar45 = *(int*)(psVar38 + 0x5c);
+ sVar12 = psVar38[0x5a];
+ sVar13 = psVar38[0x5e];
+ sVar14 = psVar38[0x5f];
+ sVar15 = psVar38[0x60];
+ sVar16 = psVar38[0x61];
+ psVar38[8] = 0;
+ *psVar38 = 0;
+ psVar38[1] = 0;
+ psVar38[6] = 0;
+ psVar38[7] = 0;
+ address->graphicType2 = 0;
+ psVar38[10] = 0;
+ psVar38[0x61] = 0;
+ psVar38[0x60] = 0;
+ psVar38[0x5f] = 0;
+ psVar38[0x5e] = 0;
+ *(int*)(psVar38 + 0x5c) = 0;
+ psVar38[0x5a] = 0;
+ psVar38[0x59] = 0;
+ uVar19 = computeHash(0xe8, (int*)((int)(address)));
+ psVar38[8] = sVar5;
+ *psVar38 = sVar6;
+ psVar38[1] = sVar7;
+ psVar38[6] = sVar8;
+ psVar38[7] = sVar9;
+ address->graphicType2 = iVar39;
+ psVar38[10] = sVar10;
+ psVar38[0x59] = sVar11;
+ _hashSubTotal = _hashSubTotal + uVar19;
+ *(int*)(psVar38 + 0x5c) = iVar45;
+ psVar38[0x5a] = sVar12;
+ psVar38[0x60] = sVar15;
+ psVar38[0x5e] = sVar13;
+ psVar38[0x61] = sVar16;
+ psVar38[0x5f] = sVar14;
+ this->HASH_Entities[this->currentPlayerSlotID][_entityIndex] = uVar19;
+ _entityIndex = _entityIndex + 1;
+ psVar38 = psVar38 + 0x74;
+ } while ((int)psVar38 < 0x23fa1e0);
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0x10] = _hashSubTotal;
+ this->HASH_HashTotal[this->currentPlayerSlotID]
+ = this->HASH_HashTotal[this->currentPlayerSlotID] + _hashSubTotal;
+ _hashSubTotal = 0;
+ uVar19 = 0;
+ address_00 = DAT_TileMapState.moats;
+ do {
+ uVar21 = computeHash(1600, (int*)((int)(address_00)));
+ _hashSubTotal = _hashSubTotal + uVar21;
+ _moatIndex = uVar19 / 100;
+ address_00 = address_00 + 100;
+ uVar19 = uVar19 + 100;
+ this->HASH_Moats[this->currentPlayerSlotID][_moatIndex] = uVar21;
+ } while ((int)address_00 < 0x1fd2278);
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0x11] = _hashSubTotal;
+ this->HASH_HashTotal[this->currentPlayerSlotID]
+ = this->HASH_HashTotal[this->currentPlayerSlotID] + _hashSubTotal;
+ _hashSubTotal = 0;
+ address_01 = DAT_PathFindingState.climbData;
+ iVar39 = 0;
+ do {
+ uVar19 = computeHash(516, (int*)((int)(&address_01->canBeUsed)));
+ _hashSubTotal = _hashSubTotal + uVar19;
+ address_01 = address_01 + 1;
+ this->HASH_ClimbData[this->currentPlayerSlotID][iVar39] = uVar19;
+ iVar39 = iVar39 + 1;
+ } while ((int)address_01 < 0x12d5c6c);
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0x12] = _hashSubTotal;
+ this->HASH_HashTotal[this->currentPlayerSlotID]
+ = this->HASH_HashTotal[this->currentPlayerSlotID] + _hashSubTotal;
+ _hashSubTotal = 0;
+ _pitchDitchIndex = 0;
+ address_02 = DAT_TileMapState.pitchDitches;
+ do {
+ uVar19 = computeHash(2000, (int*)((int)(&address_02->tile)));
+ _hashSubTotal = _hashSubTotal + uVar19;
+ uVar21 = _pitchDitchIndex / 100;
+ address_02 = address_02 + 100;
+ _pitchDitchIndex = _pitchDitchIndex + 100;
+ this->HASH_PitchDitches[this->currentPlayerSlotID][uVar21] = uVar19;
+ } while ((int)address_02 < 0x1fe5b0c);
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0x13] = _hashSubTotal;
+ this->HASH_HashTotal[this->currentPlayerSlotID]
+ = this->HASH_HashTotal[this->currentPlayerSlotID] + _hashSubTotal;
+ iVar39 = 0;
+ do {
+ iVar45 = iVar39 + 1;
+ this->HASH_Unknown2[this->currentPlayerSlotID][iVar39] = 0;
+ iVar39 = iVar45;
+ } while (iVar45 < 40);
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0x14] = 0;
+ _hashSubTotal = 0;
+ address_03 = DAT_AIVState.aivs;
+ _aivIndex = 0;
+ do {
+ uVar19 = computeHash(28056, (int*)((int)(&address_03->playerID)));
+ _hashSubTotal = _hashSubTotal + uVar19;
+ address_03 = address_03 + 1;
+ this->HASH_AIVS[this->currentPlayerSlotID][_aivIndex] = uVar19;
+ _aivIndex = _aivIndex + 1;
+ } while ((int)address_03 < 0x18a450c);
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0x15] = _hashSubTotal;
+ this->HASH_HashTotal[this->currentPlayerSlotID]
+ = this->HASH_HashTotal[this->currentPlayerSlotID] + _hashSubTotal;
+ _hashSubTotal = 0;
+ _heatMapIndex = 0x18c37f4;
+ iVar39 = 0;
+ do {
+ /*
+ fixme: it is wasteful to network latency to send the heatmap because it is a derivative of the
+ map state, as long as the map and tree state is correct, this is unnecessary
+ */
+ uVar19 = computeHash(3840, (int*)((int)(_heatMapIndex)));
+ _hashSubTotal = _hashSubTotal + uVar19;
+ _heatMapIndex = _heatMapIndex + 0xf00;
+ this->HASH_HeatMaps[this->currentPlayerSlotID][iVar39] = uVar19;
+ iVar39 = iVar39 + 1;
+ } while (_heatMapIndex < 0x190e7f4);
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0x16] = _hashSubTotal;
+ this->HASH_HashTotal[this->currentPlayerSlotID]
+ = this->HASH_HashTotal[this->currentPlayerSlotID] + _hashSubTotal;
+ if (dontSendSyncCommand == 0) {
+ queueCommand(
+ GCT_ANNOUNCE_PLAYER_INFORMATION_AVAILABLE_AIVSSPECIALTRANSMITLOGIC);
+ return;
+ }
+ } else {
+ this->DAT_HashCountdown = this->DAT_HashCountdown + -1;
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x0048da60 checkLagAndSyncStatus | quelle=nachgebaut | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0048DA60
+ void GameSynchronyState::checkLagAndSyncStatus()
+ {
+ this->syncStatus10Related[DAT_GameSynchronyState.currentPlayerSlotID] = 1;
+ for (int _player = 1; _player < 9; ++_player) {
+ if ((this->currentPlayerFullIDArray[_player] != -1) && (this->syncStatus10Related[_player] == 0)) {
+ if (this->announcementReceivedBool) {
+ if (timeGetTime() - this->announcementReceiveTime <= 45000) {
+ return;
+ }
+ for (int _laggard = 1; _laggard < 9; ++_laggard) {
+ if ((this->currentPlayerFullIDArray[_laggard] != -1)
+ && (this->syncStatus10Related[_laggard] == 0)) {
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = _laggard;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = 63;
+ queueCommand(Commands::GCT_LEAVE_GAME);
+ this->syncStatus10Related[_laggard] = 1;
+ }
+ }
+ break;
+ }
+ if (timeGetTime() - this->announcementReceiveTime <= 60000) {
+ return;
+ }
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = 0;
+ queueCommand(
+ Commands::GCT_KILL_GAME);
+ return;
+ }
+ }
+ int _hash = 0;
+ DAT_GameSynchronyState.syncStatus = 1;
+ DAT_GameSynchronyState.field76_0xbe8 = DAT_GameSynchronyState.resyncStartTime;
+ DAT_GameSynchronyState.announcementReceiveTime = DAT_GameSynchronyState.resyncStartTime;
+ DAT_GameSynchronyState.announcementReceivedBool = FALSE;
+ // A bug in the original, reproduced on purpose: HashContainerElement is 12 ints wide, so
+ // the two domain loops below run 14 domains over a 12-slot-per-player row, and a domain of
+ // 12 or 13 reads the next player's first two slots instead of this player's. The desync
+ // flag for those two domains therefore compares the wrong values. Redefining HashContainer
+ // would not help - the overrun is in the original's loop bound, not in how the field is
+ // typed - so the bounds stay exactly as they are and the aliasing stays visible here.
+ // Measured: the two loops share this counter because declaring one in each for header
+ // costs the match (100.0% -> 97.8%).
+ int _player;
+ for (int _domain = 0; _domain < 14; ++_domain) {
+ this->sharedDesyncFlags[_domain] = 0;
+ for (_player = 1; _player < 9; ++_player) {
+ if (this->currentPlayerFullIDArray[_player] != -1) {
+ _hash = this->HASH_PartialHashPerPlayer.player[_player].domain[_domain];
+ break;
+ }
+ }
+ for (_player = 1; _player < 9; ++_player) {
+ if (this->currentPlayerFullIDArray[_player] != -1
+ && _hash != this->HASH_PartialHashPerPlayer.player[_player].domain[_domain]) {
+ this->sharedDesyncFlags[_domain] = 1;
+ }
+ }
+ }
+ queueCommand(
+ Commands::GCT_SHARE_SYNC_STATUS);
+ }
+}
+}
+
+### 0x0048dc50 broadcastDesyncResyncCommands | quelle=ghidra | bereich=Befehle/Takt
+// FUNCTION: STRONGHOLDCRUSADER 0x0048DC50
+ void GameSynchronyState::broadcastDesyncResyncCommands()
+ {
+ int* piVar1;
+ int iVar2;
+ DWORD DVar3;
+ HashData* pHVar4;
+ HashData* pHVar5;
+ int iVar6;
+ int (*paiVar7)[2500];
+ int (*paiVar8)[2000];
+ int (*paiVar9)[1250];
+ int (*paiVar10)[20];
+ int (*paiVar11)[3000];
+ int (*paiVar12)[160];
+ int (*paiVar13)[200];
+ int (*paiVar14)[40];
+ int (*paiVar15)[9];
+ int (*paiVar16)[80];
+ HashDataContainer* pHVar17;
+ int (*paiVar18)[2500];
+ int (*paiVar19)[2000];
+ int (*paiVar20)[1250];
+ int (*paiVar21)[20];
+ int (*paiVar22)[3000];
+ int (*paiVar23)[160];
+ int (*paiVar24)[200];
+ int (*paiVar25)[40];
+ int (*paiVar26)[9];
+ int (*paiVar27)[80];
+ HashDataContainer* pHVar28;
+ int* piVar29;
+ int local_10;
+ int local_c;
+ HashData* local_8;
+ HashData* local_4;
+ piVar29 = this->receivedSyncStatusByPlayerUnk + 1;
+ this->receivedSyncStatusByPlayerUnk[this->currentPlayerSlotID] = 1;
+ iVar6 = 1;
+ piVar1 = piVar29;
+ while ((piVar1[-0x404f9] == -1 || (*piVar1 != 0))) {
+ iVar6 = iVar6 + 1;
+ piVar1 = piVar1 + 1;
+ if (8 < iVar6)
+ goto LAB_0048dc9c;
+ }
+ if (this->announcementReceivedBool == FALSE) {
+ DVar3 = timeGetTime();
+ if (DVar3 - this->announcementReceiveTime < 0xea61) {
+ return;
+ }
+ this->DAT_GameCommandParam0 = 0;
+ queueCommand(
+ GCT_KILL_GAME);
+ return;
+ }
+ DVar3 = timeGetTime();
+ if (DVar3 - this->announcementReceiveTime < 0xafc9) {
+ return;
+ }
+ iVar6 = 1;
+ do {
+ if ((piVar29[-0x404f9] != -1) && (*piVar29 == 0)) {
+ this->DAT_GameCommandParam1 = 0x3f;
+ this->DAT_GameCommandParam0 = iVar6;
+ queueCommand(
+ GCT_LEAVE_GAME);
+ *piVar29 = 2;
+ }
+ iVar6 = iVar6 + 1;
+ piVar29 = piVar29 + 1;
+ } while (iVar6 < 9);
+ LAB_0048dc9c:
+ iVar6 = 0;
+ this->field65_0xb9c = 0;
+ this->field66_0xba0 = 0;
+ this->field67_0xba4 = 1;
+ local_10 = 0;
+ if (this->sharedDesyncFlags[0] != 0) {
+ paiVar18 = this->HASH_Units + 1;
+ do {
+ iVar2 = 1;
+ piVar29 = this->currentPlayerFullIDArray;
+ paiVar7 = paiVar18;
+ do {
+ piVar29 = piVar29 + 1;
+ if ((*piVar29 != -1) && (this->HASH_Units[this->currentPlayerSlotID][iVar6] != (*paiVar7)[0])) {
+ this->DAT_GameCommandParam0 = iVar6;
+ iVar2
+ = sendLongerDataSuchAsResync(GCT_SEND_RESYNC_UNIT);
+ local_10 = local_10 + iVar2;
+ break;
+ }
+ iVar2 = iVar2 + 1;
+ paiVar7 = paiVar7 + 1;
+ } while (iVar2 < 9);
+ iVar6 = iVar6 + 1;
+ paiVar18 = (int (*)[2500])(*paiVar18 + 1);
+ } while (iVar6 < 0x9c4);
+ }
+ if (this->sharedDesyncFlags[1] != 0) {
+ iVar6 = 0;
+ paiVar19 = this->HASH_Buildings + 1;
+ do {
+ iVar2 = 1;
+ piVar29 = this->currentPlayerFullIDArray;
+ paiVar8 = paiVar19;
+ do {
+ piVar29 = piVar29 + 1;
+ if ((*piVar29 != -1) && (this->HASH_Buildings[this->currentPlayerSlotID][iVar6] != (*paiVar8)[0])) {
+ this->DAT_GameCommandParam0 = iVar6;
+ iVar2
+ = sendLongerDataSuchAsResync(GCT_SEND_RESYNC_BUILDING);
+ local_10 = local_10 + iVar2;
+ break;
+ }
+ iVar2 = iVar2 + 1;
+ paiVar8 = paiVar8 + 1;
+ } while (iVar2 < 9);
+ iVar6 = iVar6 + 1;
+ paiVar19 = (int (*)[2000])(*paiVar19 + 1);
+ } while (iVar6 < 2000);
+ }
+ if (this->sharedDesyncFlags[2] != 0) {
+ iVar6 = 0;
+ paiVar19 = this->HASH_Trees + 1;
+ do {
+ iVar2 = 1;
+ piVar29 = this->currentPlayerFullIDArray;
+ paiVar8 = paiVar19;
+ do {
+ piVar29 = piVar29 + 1;
+ if ((*piVar29 != -1) && (this->HASH_Trees[this->currentPlayerSlotID][iVar6] != (*paiVar8)[0])) {
+ this->DAT_GameCommandParam0 = iVar6;
+ iVar2
+ = sendLongerDataSuchAsResync(GCT_SEND_RESYNC_TREE);
+ local_10 = local_10 + iVar2;
+ break;
+ }
+ iVar2 = iVar2 + 1;
+ paiVar8 = paiVar8 + 1;
+ } while (iVar2 < 9);
+ iVar6 = iVar6 + 1;
+ paiVar19 = (int (*)[2000])(*paiVar19 + 1);
+ } while (iVar6 < 2000);
+ }
+ if (this->sharedDesyncFlags[3] != 0) {
+ iVar6 = 0;
+ paiVar20 = this->HASH_Tribes + 1;
+ do {
+ iVar2 = 1;
+ piVar29 = this->currentPlayerFullIDArray;
+ paiVar9 = paiVar20;
+ do {
+ piVar29 = piVar29 + 1;
+ if ((*piVar29 != -1) && (this->HASH_Tribes[this->currentPlayerSlotID][iVar6] != (*paiVar9)[0])) {
+ this->DAT_GameCommandParam0 = iVar6;
+ iVar2
+ = sendLongerDataSuchAsResync(GCT_SEND_RESYNC_UNITSELECTION);
+ local_10 = local_10 + iVar2;
+ break;
+ }
+ iVar2 = iVar2 + 1;
+ paiVar9 = paiVar9 + 1;
+ } while (iVar2 < 9);
+ iVar6 = iVar6 + 1;
+ paiVar20 = (int (*)[1250])(*paiVar20 + 1);
+ } while (iVar6 < 0x4e2);
+ }
+ if (this->sharedDesyncFlags[4] != 0) {
+ iVar6 = 0;
+ paiVar26 = this->HASH_PlayerDatas + 1;
+ do {
+ iVar2 = 1;
+ piVar29 = this->currentPlayerFullIDArray;
+ paiVar15 = paiVar26;
+ do {
+ piVar29 = piVar29 + 1;
+ if ((*piVar29 != -1)
+ && (this->HASH_PlayerDatas[this->currentPlayerSlotID][iVar6] != (*paiVar15)[0])) {
+ this->DAT_GameCommandParam0 = iVar6;
+ iVar2
+ = sendLongerDataSuchAsResync(GCT_SEND_RESYNC_PLAYERDATA);
+ local_10 = local_10 + iVar2;
+ break;
+ }
+ iVar2 = iVar2 + 1;
+ paiVar15 = paiVar15 + 1;
+ } while (iVar2 < 9);
+ iVar6 = iVar6 + 1;
+ paiVar26 = (int (*)[9])(*paiVar26 + 1);
+ } while (iVar6 < 9);
+ }
+ if (this->sharedDesyncFlags[5] != 0) {
+ paiVar21 = this->HASH_Section1023 + 1;
+ iVar6 = 0;
+ do {
+ iVar2 = 1;
+ piVar29 = this->currentPlayerFullIDArray;
+ paiVar10 = paiVar21;
+ do {
+ piVar29 = piVar29 + 1;
+ if ((*piVar29 != -1)
+ && (this->HASH_Section1023[this->currentPlayerSlotID][iVar6] != (*paiVar10)[0])) {
+ this->DAT_GameCommandParam0 = iVar6;
+ iVar2
+ = sendLongerDataSuchAsResync(GCT_SEND_RESYNC_UNKNOWN);
+ local_10 = local_10 + iVar2;
+ break;
+ }
+ iVar2 = iVar2 + 1;
+ paiVar10 = paiVar10 + 1;
+ } while (iVar2 < 9);
+ iVar6 = iVar6 + 1;
+ paiVar21 = (int (*)[20])(*paiVar21 + 1);
+ } while (iVar6 < 0x14);
+ }
+ if (this->sharedDesyncFlags[7] != 0) {
+ iVar6 = 0;
+ paiVar22 = this->HASH_Entities + 1;
+ do {
+ iVar2 = 1;
+ piVar29 = this->currentPlayerFullIDArray;
+ paiVar11 = paiVar22;
+ do {
+ piVar29 = piVar29 + 1;
+ if ((*piVar29 != -1) && (this->HASH_Entities[this->currentPlayerSlotID][iVar6] != (*paiVar11)[0])) {
+ this->DAT_GameCommandParam0 = iVar6;
+ iVar2
+ = sendLongerDataSuchAsResync(GCT_SEND_RESYNC_ENTITY);
+ local_10 = local_10 + iVar2;
+ break;
+ }
+ iVar2 = iVar2 + 1;
+ paiVar11 = paiVar11 + 1;
+ } while (iVar2 < 9);
+ iVar6 = iVar6 + 1;
+ paiVar22 = (int (*)[3000])(*paiVar22 + 1);
+ } while (iVar6 < 3000);
+ }
+ if (this->sharedDesyncFlags[8] != 0) {
+ iVar6 = 0;
+ paiVar23 = this->HASH_Moats + 1;
+ do {
+ iVar2 = 1;
+ piVar29 = this->currentPlayerFullIDArray;
+ paiVar12 = paiVar23;
+ do {
+ piVar29 = piVar29 + 1;
+ if ((*piVar29 != -1) && (this->HASH_Moats[this->currentPlayerSlotID][iVar6] != (*paiVar12)[0])) {
+ this->DAT_GameCommandParam0 = iVar6;
+ iVar2
+ = sendLongerDataSuchAsResync(GCT_SEND_RESYNC_MOAT);
+ local_10 = local_10 + iVar2;
+ break;
+ }
+ iVar2 = iVar2 + 1;
+ paiVar12 = paiVar12 + 1;
+ } while (iVar2 < 9);
+ iVar6 = iVar6 + 1;
+ paiVar23 = (int (*)[160])(*paiVar23 + 1);
+ } while (iVar6 < 0xa0);
+ }
+ if (this->sharedDesyncFlags[9] != 0) {
+ iVar6 = 0;
+ paiVar24 = this->HASH_ClimbData + 1;
+ do {
+ iVar2 = 1;
+ piVar29 = this->currentPlayerFullIDArray;
+ paiVar13 = paiVar24;
+ do {
+ piVar29 = piVar29 + 1;
+ if ((*piVar29 != -1)
+ && (this->HASH_ClimbData[this->currentPlayerSlotID][iVar6] != (*paiVar13)[0])) {
+ this->DAT_GameCommandParam0 = iVar6;
+ iVar2
+ = sendLongerDataSuchAsResync(GCT_SEND_RESYNC_CLIMB_DATA);
+ local_10 = local_10 + iVar2;
+ break;
+ }
+ iVar2 = iVar2 + 1;
+ paiVar13 = paiVar13 + 1;
+ } while (iVar2 < 9);
+ iVar6 = iVar6 + 1;
+ paiVar24 = (int (*)[200])(*paiVar24 + 1);
+ } while (iVar6 < 200);
+ }
+ if (this->sharedDesyncFlags[10] != 0) {
+ iVar6 = 0;
+ paiVar25 = this->HASH_PitchDitches + 1;
+ do {
+ iVar2 = 1;
+ piVar29 = this->currentPlayerFullIDArray;
+ paiVar14 = paiVar25;
+ do {
+ piVar29 = piVar29 + 1;
+ if ((*piVar29 != -1)
+ && (this->HASH_PitchDitches[this->currentPlayerSlotID][iVar6] != (*paiVar14)[0])) {
+ this->DAT_GameCommandParam0 = iVar6;
+ iVar2
+ = sendLongerDataSuchAsResync(GCT_SEND_RESYNC_PITCH_DITCH);
+ local_10 = local_10 + iVar2;
+ break;
+ }
+ iVar2 = iVar2 + 1;
+ paiVar14 = paiVar14 + 1;
+ } while (iVar2 < 9);
+ iVar6 = iVar6 + 1;
+ paiVar25 = (int (*)[40])(*paiVar25 + 1);
+ } while (iVar6 < 0x28);
+ }
+ if (this->sharedDesyncFlags[0xb] != 0) {
+ iVar6 = 0;
+ paiVar25 = this->HASH_Unknown2 + 1;
+ do {
+ iVar2 = 1;
+ piVar29 = this->currentPlayerFullIDArray;
+ paiVar14 = paiVar25;
+ do {
+ piVar29 = piVar29 + 1;
+ if ((*piVar29 != -1) && (this->HASH_Unknown2[this->currentPlayerSlotID][iVar6] != (*paiVar14)[0])) {
+ this->DAT_GameCommandParam0 = iVar6;
+ iVar2
+ = sendLongerDataSuchAsResync(GCT_SEND_RESYNC_UNKNOWN2);
+ local_10 = local_10 + iVar2;
+ break;
+ }
+ iVar2 = iVar2 + 1;
+ paiVar14 = paiVar14 + 1;
+ } while (iVar2 < 9);
+ iVar6 = iVar6 + 1;
+ paiVar25 = (int (*)[40])(*paiVar25 + 1);
+ } while (iVar6 < 0x28);
+ }
+ if (this->sharedDesyncFlags[0xc] != 0) {
+ iVar6 = 0;
+ paiVar26 = this->HASH_AIVS + 1;
+ do {
+ iVar2 = 1;
+ piVar29 = this->currentPlayerFullIDArray;
+ paiVar15 = paiVar26;
+ do {
+ piVar29 = piVar29 + 1;
+ if ((*piVar29 != -1) && (this->HASH_AIVS[this->currentPlayerSlotID][iVar6] != (*paiVar15)[0])) {
+ this->DAT_GameCommandParam0 = iVar6;
+ iVar2
+ = sendLongerDataSuchAsResync(GCT_HOST_SHARE_AIV);
+ local_10 = local_10 + iVar2;
+ break;
+ }
+ iVar2 = iVar2 + 1;
+ paiVar15 = paiVar15 + 1;
+ } while (iVar2 < 9);
+ iVar6 = iVar6 + 1;
+ paiVar26 = (int (*)[9])(*paiVar26 + 1);
+ } while (iVar6 < 9);
+ }
+ if (this->sharedDesyncFlags[0xd] != 0) {
+ paiVar27 = this->HASH_HeatMaps + 1;
+ iVar6 = 0;
+ do {
+ iVar2 = 1;
+ piVar29 = this->currentPlayerFullIDArray;
+ paiVar16 = paiVar27;
+ do {
+ piVar29 = piVar29 + 1;
+ if ((*piVar29 != -1) && (this->HASH_HeatMaps[this->currentPlayerSlotID][iVar6] != (*paiVar16)[0])) {
+ this->DAT_GameCommandParam0 = iVar6;
+ iVar2
+ = sendLongerDataSuchAsResync(GCT_HOST_SHARE_HEATMAP);
+ local_10 = local_10 + iVar2;
+ break;
+ }
+ iVar2 = iVar2 + 1;
+ paiVar16 = paiVar16 + 1;
+ } while (iVar2 < 9);
+ iVar6 = iVar6 + 1;
+ paiVar27 = (int (*)[80])(*paiVar27 + 1);
+ } while (iVar6 < 0x50);
+ }
+ if (this->sharedDesyncFlags[6] != 0) {
+ iVar6 = 0;
+ pHVar28 = this->HASH_LogicalTileMap + 1;
+ do {
+ iVar2 = 1;
+ piVar29 = this->currentPlayerFullIDArray;
+ pHVar17 = pHVar28;
+ do {
+ piVar29 = piVar29 + 1;
+ if ((*piVar29 != -1)
+ && (this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0].componentArray[iVar6]
+ != pHVar17->hashDataArray[0].componentArray[0])) {
+ this->DAT_GameCommandParam0 = 0;
+ this->DAT_GameCommandParam1 = iVar6;
+ iVar2
+ = sendLongerDataSuchAsResync(GCT_SEND_RESYNC_LOGICALTILEMAP);
+ local_10 = local_10 + iVar2;
+ break;
+ }
+ iVar2 = iVar2 + 1;
+ pHVar17 = pHVar17 + 1;
+ } while (iVar2 < 9);
+ iVar6 = iVar6 + 1;
+ pHVar28 = (HashDataContainer*)(pHVar28->hashDataArray[0].componentArray + 1);
+ } while (iVar6 < 128);
+ local_c = 1;
+ local_4 = this->HASH_LogicalTileMap[1].hashDataArray;
+ do {
+ local_4 = local_4 + 1;
+ iVar6 = 0;
+ pHVar4 = local_4;
+ do {
+ iVar2 = 1;
+ piVar29 = this->currentPlayerFullIDArray;
+ pHVar5 = pHVar4;
+ do {
+ piVar29 = piVar29 + 1;
+ if ((*piVar29 != -1)
+ && (this->HASH_LogicalTileMap[this->currentPlayerSlotID]
+ .hashDataArray[local_c]
+ .componentArray[iVar6]
+ != pHVar5->componentArray[0])) {
+ this->DAT_GameCommandParam0 = local_c;
+ this->DAT_GameCommandParam1 = iVar6;
+ iVar2 = sendLongerDataSuchAsResync(
+ GCT_SEND_RESYNC_TILEMAPDATA2);
+ local_10 = local_10 + iVar2;
+ break;
+ }
+ iVar2 = iVar2 + 1;
+ pHVar5 = pHVar5 + 0x1e;
+ } while (iVar2 < 9);
+ iVar6 = iVar6 + 1;
+ pHVar4 = (HashData*)(pHVar4->componentArray + 1);
+ } while (iVar6 < 0x40);
+ local_c = local_c + 1;
+ } while (local_c < 10);
+ local_c = 10;
+ local_8 = this->HASH_LogicalTileMap[1].hashDataArray + 10;
+ do {
+ iVar6 = 0;
+ pHVar4 = local_8;
+ do {
+ iVar2 = 1;
+ piVar29 = this->currentPlayerFullIDArray;
+ pHVar5 = pHVar4;
+ do {
+ piVar29 = piVar29 + 1;
+ if ((*piVar29 != -1)
+ && (this->HASH_LogicalTileMap[this->currentPlayerSlotID]
+ .hashDataArray[local_c]
+ .componentArray[iVar6]
+ != pHVar5->componentArray[0])) {
+ this->DAT_GameCommandParam0 = local_c;
+ this->DAT_GameCommandParam1 = iVar6;
+ iVar2 = sendLongerDataSuchAsResync(
+ GCT_SEND_RESYNC_TILEMAPDATA1);
+ local_10 = local_10 + iVar2;
+ break;
+ }
+ iVar2 = iVar2 + 1;
+ pHVar5 = pHVar5 + 0x1e;
+ } while (iVar2 < 9);
+ iVar6 = iVar6 + 1;
+ pHVar4 = (HashData*)(pHVar4->componentArray + 1);
+ } while (iVar6 < 0x20);
+ local_c = local_c + 1;
+ local_8 = local_8 + 1;
+ } while (local_c < 0x1e);
+ }
+ iVar6 = 0;
+ if ((this->currentPlayerFullIDArray[1] != -1) && (0 < this->connectionLagInfoArray[1].average1)) {
+ iVar6 = this->connectionLagInfoArray[1].average1;
+ }
+ if ((this->currentPlayerFullIDArray[2] != -1) && (iVar6 < this->connectionLagInfoArray[2].average1)) {
+ iVar6 = this->connectionLagInfoArray[2].average1;
+ }
+ if ((this->currentPlayerFullIDArray[3] != -1) && (iVar6 < this->connectionLagInfoArray[3].average1)) {
+ iVar6 = this->connectionLagInfoArray[3].average1;
+ }
+ if ((this->currentPlayerFullIDArray[4] != -1) && (iVar6 < this->connectionLagInfoArray[4].average1)) {
+ iVar6 = this->connectionLagInfoArray[4].average1;
+ }
+ if ((this->currentPlayerFullIDArray[5] != -1) && (iVar6 < this->connectionLagInfoArray[5].average1)) {
+ iVar6 = this->connectionLagInfoArray[5].average1;
+ }
+ if ((this->currentPlayerFullIDArray[6] != -1) && (iVar6 < this->connectionLagInfoArray[6].average1)) {
+ iVar6 = this->connectionLagInfoArray[6].average1;
+ }
+ if ((this->currentPlayerFullIDArray[7] != -1) && (iVar6 < this->connectionLagInfoArray[7].average1)) {
+ iVar6 = this->connectionLagInfoArray[7].average1;
+ }
+ if ((this->currentPlayerFullIDArray[8] != -1) && (iVar6 < this->connectionLagInfoArray[8].average1)) {
+ iVar6 = this->connectionLagInfoArray[8].average1;
+ }
+ if (iVar6 < 2) {
+ this->field68_0xba8 = 40000;
+ } else {
+ this->field68_0xba8 = (-(uint)(iVar6 != 2) & 0xffff8ad0) + 40000;
+ }
+ this->somePacketSubTypeUnk = 0;
+ this->field70_0xbb0 = 0;
+ this->field71_0xbb4 = 0;
+ this->syncRelatedStatusArray[0] = 1;
+ this->syncRelatedStatusArray[1] = 1;
+ this->syncRelatedStatusArray[2] = 1;
+ this->syncRelatedStatusArray[3] = 1;
+ this->syncRelatedStatusArray[4] = 1;
+ this->syncRelatedStatusArray[5] = 1;
+ this->syncRelatedStatusArray[6] = 1;
+ this->syncRelatedStatusArray[7] = 1;
+ this->syncRelatedStatusArray[8] = 1;
+ this->field73_0xbdc = local_10;
+ this->currentPacketTotalSize = 0;
+ this->syncStatus = 2;
+ queueCommand(
+ GCT_BROADCAST_SYNC_RELATED_STATUS_1
+ | GCT_MULTIPLAYER_INITIATE_ANNOUNCE_HOST);
+ return;
+ }
+}
+}
+

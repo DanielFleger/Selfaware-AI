@@ -1,0 +1,1566 @@
+### 0x0043ba80 RenderBuildingMenu_Tanner | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043BA80
+ void BuildingMenus::RenderBuildingMenu_Tanner()
+ {
+ int iVar1;
+ char* pcVar2;
+ int iVar3;
+ TextAlignment TVar4;
+ BGR24 BVar5;
+ int iVar6;
+ BOOLEnum BVar7;
+ int iVar8;
+ iVar8 = 0;
+ BVar7 = FALSE;
+ iVar6 = 0x10;
+ BVar5 = 0;
+ TVar4 = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x1d3;
+ iVar3 = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Tanner's Workshop"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_TANNERS_WORKSHOP, 0);
+ renderTextToScreen(
+ pcVar2, iVar3, iVar1, TVar4, BVar5, iVar6, BVar7, iVar8);
+ iVar1 = (int)DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .workerID[0];
+ if ((iVar1 != 0)
+ && (DAT_UnitsState.units[iVar1].state.generic == US_IDLEUnk)) {
+ BVar7 = CheckUnitProductionPaused(iVar1);
+ if (BVar7 == FALSE) {
+ iVar8 = 0;
+ BVar7 = FALSE;
+ iVar6 = 0x12;
+ BVar5 = 0;
+ TVar4 = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x1fe;
+ iVar3 = DAT_MenuHandlerState.x + 0xaf;
+ /*
+ added by script: "Not producing - No Cows"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_BLACKSMITHS_WORKSHOP, 0xd);
+ renderTextToScreen(
+ pcVar2, iVar3, iVar1, TVar4, BVar5, iVar6, BVar7, iVar8);
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x0043bb30 RenderBuildingMenu_Bakery | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043BB30
+ void BuildingMenus::RenderBuildingMenu_Bakery()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Bakery"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_BAKERS_WORKSHOP, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043bb70 RenderBuildingMenu_Brewery | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043BB70
+ void BuildingMenus::RenderBuildingMenu_Brewery()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Brewery"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_BREWERS_WORKSHOP, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043bbb0 RenderBuildingMenu_Outpost | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043BBB0
+ void BuildingMenus::RenderBuildingMenu_Outpost()
+ {
+ int iVar1;
+ char* pcVar2;
+ int iVar3;
+ int iVar4;
+ TextAlignment TVar5;
+ BGR24 BVar6;
+ int iVar7;
+ BOOLEnum BVar8;
+ int blendStrength;
+ iVar4 = 0;
+ if (DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID].buildingType
+ == BT_OUTPOST_ARABIAN) {
+ iVar4 = 9;
+ }
+ blendStrength = 0;
+ BVar8 = FALSE;
+ iVar7 = 0x10;
+ BVar6 = 0;
+ TVar5 = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x1cf;
+ iVar3 = DAT_MenuHandlerState.x + 0x19;
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_OUTPOST, iVar4);
+ renderTextToScreen(
+ pcVar2, iVar3, iVar1, TVar5, BVar6, iVar7, BVar8, blendStrength);
+ iVar7 = 0;
+ BVar8 = FALSE;
+ iVar3 = 0x12;
+ BVar6 = 0;
+ TVar5 = TTA_LEFT;
+ iVar4 = DAT_MenuHandlerState.y + 0x205;
+ iVar1 = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Size"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_OUTPOST, 0x12);
+ renderTextToScreen(
+ pcVar2, iVar1, iVar4, TVar5, BVar6, iVar3, BVar8, iVar7);
+ iVar7 = 0;
+ BVar8 = FALSE;
+ iVar3 = 0x12;
+ BVar6 = 0;
+ TVar5 = TTA_LEFT;
+ iVar4 = DAT_MenuHandlerState.y + 0x1e9;
+ iVar1 = DAT_MenuHandlerState.x + 0x73;
+ /*
+ added by script: "Small"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_OUTPOST, 0x13);
+ renderTextToScreen(
+ pcVar2, iVar1, iVar4, TVar5, BVar6, iVar3, BVar8, iVar7);
+ iVar7 = 0;
+ BVar8 = FALSE;
+ iVar3 = 0x12;
+ BVar6 = 0;
+ TVar5 = TTA_LEFT;
+ iVar4 = DAT_MenuHandlerState.y + 0x1e9;
+ iVar1 = DAT_MenuHandlerState.x + 0xcb;
+ /*
+ added by script: "Large"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_OUTPOST, 0x14);
+ renderTextToScreen(
+ pcVar2, iVar1, iVar4, TVar5, BVar6, iVar3, BVar8, iVar7);
+ iVar7 = 0;
+ BVar8 = FALSE;
+ iVar3 = 0x12;
+ BVar6 = 0;
+ iVar4 = DAT_MenuHandlerState.y + 0x23f;
+ iVar1 = DAT_MenuHandlerState.x + 0x19;
+ TVar5 = TTA_LEFT;
+ /*
+ added by script: "Start Delay"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_OUTPOST, 0x15);
+ renderTextToScreen(
+ pcVar2, iVar1, iVar4, TVar5, BVar6, iVar3, BVar8, iVar7);
+ iVar7 = 0;
+ BVar8 = FALSE;
+ iVar3 = 0x12;
+ BVar6 = 0;
+ TVar5 = TTA_LEFT;
+ iVar4 = DAT_MenuHandlerState.y + 0x223;
+ iVar1 = DAT_MenuHandlerState.x + 0x73;
+ /*
+ added by script: "None"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_OUTPOST, 0x16);
+ renderTextToScreen(
+ pcVar2, iVar1, iVar4, TVar5, BVar6, iVar3, BVar8, iVar7);
+ iVar7 = 0;
+ BVar8 = FALSE;
+ iVar3 = 0x12;
+ BVar6 = 0;
+ TVar5 = TTA_LEFT;
+ iVar4 = DAT_MenuHandlerState.y + 0x223;
+ iVar1 = DAT_MenuHandlerState.x + 0xcb;
+ /*
+ added by script: "10 Mins"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_OUTPOST, 0x17);
+ renderTextToScreen(
+ pcVar2, iVar1, iVar4, TVar5, BVar6, iVar3, BVar8, iVar7);
+ return;
+ }
+}
+}
+
+### 0x0043bd60 RenderBuildingMenu_House | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043BD60
+ void BuildingMenus::RenderBuildingMenu_House()
+ {
+ int iVar1;
+ char* pcVar2;
+ int iVar3;
+ TextAlignment alignment;
+ BGR24 color;
+ int iVar4;
+ uint color_00;
+ BOOLEnum keepOffsetX;
+ int iVar5;
+ int blendStrength;
+ iVar5 = 0;
+ keepOffsetX = FALSE;
+ iVar4 = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x1d3;
+ iVar3 = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Hovel"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_HOUSE, 0);
+ renderTextToScreen(
+ pcVar2, iVar3, iVar1, alignment, color, iVar4, keepOffsetX, iVar5);
+ blendStrength = 0;
+ iVar5 = 0x12;
+ color_00 = 0;
+ iVar4 = 0x136;
+ iVar1 = DAT_MenuHandlerState.y + 0x1fb;
+ iVar3 = DAT_MenuHandlerState.x + 0xaf;
+ /*
+ added by script: "Provides space for 8 peasants."
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_HOUSE, 1);
+ renderMultilineText5Unk(
+ pcVar2, iVar3, iVar1, iVar4, color_00, iVar5, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043bde0 RenderBuildingMenu_WoodcutterShut | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043BDE0
+ void BuildingMenus::RenderBuildingMenu_WoodcutterShut()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Woodcutter's hut"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_WOODCUTTERS_HUT, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043be20 RenderBuildingMenu_OxThether | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043BE20
+ void BuildingMenus::RenderBuildingMenu_OxThether()
+ {
+ int iVar1;
+ char* pcVar2;
+ int iVar3;
+ TextAlignment alignment;
+ BGR24 color;
+ int iVar4;
+ uint color_00;
+ BOOLEnum keepOffsetX;
+ int iVar5;
+ int blendStrength;
+ iVar5 = 0;
+ keepOffsetX = FALSE;
+ iVar4 = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x1d3;
+ iVar3 = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Ox Tether"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_OXEN_BASE, 0);
+ renderTextToScreen(
+ pcVar2, iVar3, iVar1, alignment, color, iVar4, keepOffsetX, iVar5);
+ blendStrength = 0;
+ iVar5 = 0x12;
+ color_00 = 0;
+ iVar4 = 0x136;
+ iVar1 = DAT_MenuHandlerState.y + 0x1fb;
+ iVar3 = DAT_MenuHandlerState.x + 0xaf;
+ /*
+ added by script: "An Ox will transport stone from here to the stockpile."
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_OXEN_BASE, 3);
+ renderMultilineText5Unk(
+ pcVar2, iVar3, iVar1, iVar4, color_00, iVar5, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043bea0 RenderBuildingMenu_Quarry | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043BEA0
+ void BuildingMenus::RenderBuildingMenu_Quarry()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Quarry"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_QUARRY, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043bee0 RenderBuildingMenu_Ironmine | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043BEE0
+ void BuildingMenus::RenderBuildingMenu_Ironmine()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Iron Mine"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_IRON_MINE, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043bf20 RenderBuildingMenu_PitchRig | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043BF20
+ void BuildingMenus::RenderBuildingMenu_PitchRig()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Pitch Rig"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_PITCH_DIGGER, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043bf60 RenderBuildingMenu_HuntersHut | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043BF60
+ void BuildingMenus::RenderBuildingMenu_HuntersHut()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Hunters Post"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_HUNTERS_HUT, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043bfa0 RenderBuildingMenu_Apothecary | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043BFA0
+ void BuildingMenus::RenderBuildingMenu_Apothecary()
+ {
+ int iVar1;
+ char* pcVar2;
+ int iVar3;
+ TextAlignment TVar4;
+ BGR24 BVar5;
+ int iVar6;
+ BOOLEnum BVar7;
+ int iVar8;
+ iVar8 = 0;
+ BVar7 = FALSE;
+ iVar6 = 0x10;
+ BVar5 = 0;
+ TVar4 = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x1d3;
+ iVar3 = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Apothecary"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_HEALERS, 0);
+ renderTextToScreen(
+ pcVar2, iVar3, iVar1, TVar4, BVar5, iVar6, BVar7, iVar8);
+ iVar8 = 0;
+ BVar7 = FALSE;
+ iVar6 = 0x12;
+ BVar5 = 0;
+ TVar4 = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x203;
+ iVar3 = DAT_MenuHandlerState.x + 0xb1;
+ /*
+ added by script: "Immunity From Disease"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_HEALERS, 3);
+ renderTextToScreen(
+ pcVar2, iVar3, iVar1, TVar4, BVar5, iVar6, BVar7, iVar8);
+ iVar1
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].healerCount;
+ if (2 < iVar1) {
+ iVar1 = 3;
+ }
+ renderNumberToScreen2(
+ iVar1 * 0x14, DAT_MenuHandlerState.x + 0xb7, DAT_MenuHandlerState.y + 0x203,
+ TTA_LEFT, 0, 0x12, TRUE, 0);
+ renderTextToScreen("%",
+ DAT_MenuHandlerState.x + 0xb7, DAT_MenuHandlerState.y + 0x203, TTA_LEFT,
+ 0, 0x12, TRUE, 0);
+ return;
+ }
+}
+}
+
+### 0x0043c0a0 RenderBuildingMenu_Wheatfarm | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043C0A0
+ void BuildingMenus::RenderBuildingMenu_Wheatfarm()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Wheat Farm"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_WHEATFARM, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043c0e0 RenderBuildingMenu_Hopfarm | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043C0E0
+ void BuildingMenus::RenderBuildingMenu_Hopfarm()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Hops Farm"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_HOPSFARM, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043c120 RenderBuildingMenu_Applefarm | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043C120
+ void BuildingMenus::RenderBuildingMenu_Applefarm()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Apple Orchard"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_APPLEFARM, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043c160 RenderBuildingMenu_Diaryfarm | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043C160
+ void BuildingMenus::RenderBuildingMenu_Diaryfarm()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Dairy Farm"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_CATTLEFARM, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043c1a0 RenderBuildingMenu_Mill | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043C1A0
+ void BuildingMenus::RenderBuildingMenu_Mill()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Mill"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_MILL, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043c1e0 RenderBuildingMenu_ChapelAndChurch | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043C1E0
+ void BuildingMenus::RenderBuildingMenu_ChapelAndChurch()
+ {
+ byte bVar1;
+ BuildingTypeShort BVar2;
+ char* pcVar3;
+ int iVar4;
+ int iVar5;
+ TextAlignment TVar6;
+ BGR24 BVar7;
+ uint color;
+ int iVar8;
+ BOOLEnum BVar9;
+ int iVar10;
+ int blendStrength;
+ int iVar11;
+ iVar4 = DAT_BuildingsState.menuSelectedBuildingID;
+ BVar2
+ = DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID].buildingType;
+ if (BVar2 == BT_CHAPEL) {
+ iVar5 = 0;
+ LAB_0043c263:
+ iVar11 = DAT_MenuHandlerState.y + 0x1d3;
+ iVar8 = DAT_MenuHandlerState.x + 0x19;
+ blendStrength = 0;
+ BVar9 = FALSE;
+ iVar10 = 0x10;
+ BVar7 = 0;
+ TVar6 = TTA_LEFT;
+ /*
+ added by script: "Cathedral"
+ */
+ pcVar3 = getTextStringInGroupAtOffset(TEXT_IN_CHURCH, iVar5);
+ renderTextToScreen(
+ pcVar3, iVar8, iVar11, TVar6, BVar7, iVar10, BVar9, blendStrength);
+ } else {
+ if (BVar2 == BT_CHURCH) {
+ iVar5 = 3;
+ goto LAB_0043c263;
+ }
+ if (BVar2 == BT_CATHEDRAL) {
+ iVar5 = 4;
+ goto LAB_0043c263;
+ }
+ }
+ if (DAT_BuildingsState.buildings[iVar4].currentEmployeeCount == 0) {
+ iVar11 = 0;
+ BVar9 = FALSE;
+ iVar8 = 0x12;
+ BVar7 = 0;
+ TVar6 = TTA_LEFT;
+ iVar4 = DAT_MenuHandlerState.y + 0x205;
+ iVar5 = DAT_MenuHandlerState.x + 0xaf;
+ /*
+ added by script: "No Wedding this month"
+ */
+ pcVar3 = getTextStringInGroupAtOffset(TEXT_MARRIAGE, 0x22);
+ renderTextToScreen(
+ pcVar3, iVar5, iVar4, TVar6, BVar7, iVar8, BVar9, iVar11);
+ return;
+ }
+ if (DAT_GameState.mapAndTime.month != DAT_RenderingDefinedData.field1120_0x557e0) {
+ DAT_RenderingDefinedData.field1120_0x557e0 = DAT_GameState.mapAndTime.month;
+ DAT_00b9843c = chooseHusbandAndWife(DAT_HusbandID, DAT_WifeID);
+ if (DAT_00b9843c == 0)
+ goto LAB_0043c65c;
+ DAT_HusbandUnitType
+ = (UnitTypeInt)(short)DAT_UnitsState.units[DAT_HusbandID].unitType;
+ DAT_WifeUnitType
+ = (UnitTypeInt)(short)DAT_UnitsState.units[DAT_WifeID].unitType;
+ if (DAT_WifeUnitType == UT_BREWER) {
+ DAT_00b98428 = DAT_00b98428 + 1;
+ if (9 < DAT_00b98428) {
+ DAT_00b98428 = 0;
+ }
+ } else if (DAT_WifeUnitType == UT_TANNER) {
+ DAT_00b9842c = DAT_00b9842c + 1;
+ if (9 < DAT_00b9842c) {
+ DAT_00b9842c = 0;
+ }
+ } else {
+ DAT_00b98430 = DAT_00b98430 + 1;
+ if (9 < DAT_00b98430) {
+ DAT_00b98430 = 0;
+ }
+ }
+ }
+ if (DAT_00b9843c != 0) {
+ if ((int)(short)DAT_UnitsState.units[DAT_HusbandID].unitType
+ != DAT_HusbandUnitType) {
+ DAT_00b9843c = 0;
+ }
+ if ((int)(short)DAT_UnitsState.units[DAT_WifeID].unitType
+ == DAT_WifeUnitType) {
+ if (DAT_00b9843c != 0) {
+ renderLoadedGfx(
+ 1, DAT_MenuHandlerState.x + 0x173, DAT_MenuHandlerState.y + 0x1e0);
+ iVar8 = 0;
+ iVar5 = 0x12;
+ color = 0;
+ iVar4 = 0x15e;
+ if (DAT_WifeUnitType == UT_BREWER) {
+ iVar11 = DAT_MenuHandlerState.y + 0x22f;
+ iVar10 = DAT_MenuHandlerState.x + 0xb4;
+ pcVar3 = getTextStringInGroupAtOffset(TEXT_MARRIAGE, DAT_00b98428 + 1);
+ renderMultilineText5Unk(pcVar3, iVar10, iVar11, iVar4, color, iVar5, iVar8);
+ } else if (DAT_WifeUnitType == UT_TANNER) {
+ renderMultilineTextUnk(TEXT_MARRIAGE, DAT_00b9842c + 0xc,
+ DAT_MenuHandlerState.x + 0xb4, DAT_MenuHandlerState.y + 0x22f, 0x15e, 0,
+ 0x12, 0);
+ } else {
+ renderMultilineTextUnk(TEXT_MARRIAGE,
+ DAT_00b98430 + 0x17, DAT_MenuHandlerState.x + 0xb4,
+ DAT_MenuHandlerState.y + 0x22f, 0x15e, 0, 0x12, 0);
+ }
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ DAT_CurrentlyRenderedSpriteID
+ = getPeasantGmID(
+ DAT_HusbandID);
+ DAT_RenderedUnitOwner = 0;
+ renderGM(DAT_CurrentlyRenderedSpriteID, 3,
+ DAT_MenuHandlerState.x + 0x82, DAT_MenuHandlerState.y + 0x1c4);
+ DAT_CurrentlyRenderedSpriteID
+ = getPeasantGmID(
+ DAT_WifeID);
+ DAT_RenderedUnitOwner = 0;
+ renderGM(DAT_CurrentlyRenderedSpriteID, 3,
+ DAT_MenuHandlerState.x + 0x91, DAT_MenuHandlerState.y + 0x1dd);
+ iVar4 = DAT_HusbandID;
+ bVar1 = DAT_UnitsState.units[DAT_HusbandID].firstNameIndex;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ if ('\0' < (char)bVar1) {
+ iVar10 = 0;
+ BVar9 = FALSE;
+ iVar11 = 0x12;
+ BVar7 = 0;
+ TVar6 = TTA_LEFT;
+ iVar5 = DAT_MenuHandlerState.y + 0x1ec;
+ iVar8 = DAT_MenuHandlerState.x + 0xd7;
+ pcVar3 = getTextStringInGroupAtOffset(
+ TEXT_PEASANT_NAMES, (int)((int)((char)bVar1)));
+ renderTextToScreen(pcVar3, iVar8, iVar5, TVar6, BVar7, iVar11, BVar9, iVar10);
+ bVar1 = DAT_UnitsState.units[iVar4].rng1_to_70;
+ if (bVar1 != 0) {
+ renderText2(
+ TEXT_PEASANT_SURNAMES, (int)((int)((char)bVar1)),
+ DAT_MenuHandlerState.x + 0xdc, DAT_MenuHandlerState.y + 0x1ec,
+ TTA_LEFT, 0, 0x12, TRUE);
+ }
+ }
+ iVar4 = DAT_WifeID;
+ bVar1 = DAT_UnitsState.units[DAT_WifeID].firstNameIndex;
+ if ('\0' < (char)bVar1) {
+ iVar10 = 0;
+ BVar9 = FALSE;
+ iVar11 = 0x12;
+ BVar7 = 0;
+ TVar6 = TTA_LEFT;
+ iVar5 = DAT_MenuHandlerState.y + 0x205;
+ iVar8 = DAT_MenuHandlerState.x + 0xe6;
+ pcVar3 = getTextStringInGroupAtOffset(
+ TEXT_PEASANT_NAMES, (int)((int)((char)bVar1)));
+ renderTextToScreen(pcVar3, iVar8, iVar5, TVar6, BVar7, iVar11, BVar9, iVar10);
+ bVar1 = DAT_UnitsState.units[iVar4].rng1_to_70;
+ if (bVar1 != 0) {
+ renderText2(
+ TEXT_PEASANT_SURNAMES, (int)((int)((char)bVar1)),
+ DAT_MenuHandlerState.x + 0xeb, DAT_MenuHandlerState.y + 0x205,
+ TTA_LEFT, 0, 0x12, TRUE);
+ }
+ }
+ if (DAT_00b9843c != 0) {
+ return;
+ }
+ }
+ } else {
+ DAT_00b9843c = 0;
+ }
+ }
+ LAB_0043c65c:
+ iVar11 = 0;
+ BVar9 = FALSE;
+ iVar8 = 0x12;
+ BVar7 = 0;
+ TVar6 = TTA_LEFT;
+ iVar4 = DAT_MenuHandlerState.y + 0x205;
+ iVar5 = DAT_MenuHandlerState.x + 0xaf;
+ /*
+ added by script: "No Wedding this month"
+ */
+ pcVar3 = getTextStringInGroupAtOffset(TEXT_MARRIAGE, 0x22);
+ renderTextToScreen(
+ pcVar3, iVar5, iVar4, TVar6, BVar7, iVar8, BVar9, iVar11);
+ return;
+ }
+}
+}
+
+### 0x0043c6a0 RenderBuildingMenu_Stockpile | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043C6A0
+ void BuildingMenus::RenderBuildingMenu_Stockpile()
+ {
+ int number;
+ int iVar1;
+ int _textX;
+ char* _pText;
+ BOOLEnum BVar2;
+ int _textY;
+ int _x;
+ Position* _nudges;
+ int _index4;
+ int _fontSize;
+ BOOLEnum _retainX;
+ int _blendStrength;
+ TextAlignment _alignment;
+ BGR24 _color;
+ int _y;
+ _index4 = 0;
+ _blendStrength = 0;
+ _retainX = FALSE;
+ _fontSize = 0x10;
+ _color = 0;
+ _y = DAT_MenuHandlerState.y + 0x200;
+ _alignment = TTA_LEFT;
+ _textY = DAT_MenuHandlerState.y + 0x1d3;
+ _x = DAT_MenuHandlerState.x + 0x1e;
+ _textX = DAT_MenuHandlerState.x + 0x19;
+ /*
+ Render stockpile title
+ */
+ _pText = getTextStringInGroupAtOffset(TEXT_IN_GOODS_YARD, 0);
+ renderTextToScreen(
+ _pText, _textX, _textY, _alignment, _color, _fontSize, _retainX, _blendStrength);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ _nudges = DAT_RenderingDefinedData.StockpileIconsPositionNudges;
+ do {
+ number
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[*(int*)((int)DAT_RenderingDefinedData.field1038_0x55464 + _index4)];
+ /*
+ Render resource image
+ */
+ renderGM(GM_INTERFACE_ICONS2,
+ *(int*)((int)DAT_RenderingDefinedData.field1039_0x55484 + _index4), _nudges->x + _x,
+ _nudges->y + _y);
+ if (DAT_MouseState.leftClickStart != 0) {
+ iVar1 = *(int*)((int)DAT_RenderingDefinedData.field1039_0x55484 + _index4);
+ BVar2 = isMouseInsideBox(
+ _nudges->x + _x, _nudges->y + _y,
+ DAT_GMImageHeaders.imh[iVar1 + GMTotalPicturesProcessed::instance[0x2e] + -1]
+ .width,
+ DAT_GMImageHeaders.imh[iVar1 + GMTotalPicturesProcessed::instance[0x2e] + -1]
+ .height);
+ if ((BVar2 != FALSE)
+ && (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .marketplace.id
+ != 0)) {
+ BVar2 = isResourceTypeTradeable(
+ *(ResourceType*)((int)DAT_RenderingDefinedData.field1038_0x55464 + _index4));
+ if (BVar2 != FALSE) {
+ DAT_BuildingsState.newSelectedBuildingID
+ = DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .marketplace.id;
+ DAT_GameCore.buildingandstatusmenuMenuTabToSwitchTo = 0x39;
+ switchToMenuView(
+ MVT_BUILDING_AND_STATUS_MENU, 0);
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .marketSelectedResourceType
+ = *(ResourceTypeInt*)((int)DAT_RenderingDefinedData.field1038_0x55464 + _index4);
+ }
+ }
+ }
+ /*
+ Render textfields for resources
+ */
+ renderNumberToScreen2(
+ number, _x + 0xc, DAT_MenuHandlerState.y + 0x22f, TTA_LEFT, 0, 0x11, FALSE, 0);
+ _nudges = _nudges + 1;
+ _x = _x + 0x3c;
+ _index4 = _index4 + 4;
+ } while ((int)_nudges < 0x617f50);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+}
+}
+
+### 0x0043c840 RenderBuildingMenu_Armory | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043C840
+ void BuildingMenus::RenderBuildingMenu_Armory()
+ {
+ int iVar1;
+ int iVar2;
+ char* textAddress;
+ int iVar3;
+ int iVar4;
+ Position* _positionPtr;
+ int iVar5;
+ TextAlignment alignment;
+ BGR24 color;
+ int iVar6;
+ BOOLEnum BVar7;
+ int iVar8;
+ iVar5 = 0;
+ iVar8 = 0;
+ BVar7 = FALSE;
+ iVar6 = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x1fb;
+ iVar3 = DAT_MenuHandlerState.y + 0x1d3;
+ iVar4 = DAT_MenuHandlerState.x + 0x1e;
+ iVar2 = DAT_MenuHandlerState.x + 0x19;
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_ARMOURY, 0);
+ renderTextToScreen(
+ textAddress, iVar2, iVar3, alignment, color, iVar6, BVar7, iVar8);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ _positionPtr = DAT_RenderingDefinedData.field1043_0x55524;
+ do {
+ iVar2 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[*(int*)((int)DAT_RenderingDefinedData.field1041_0x554e4 + iVar5)];
+ iVar6 = _positionPtr->y + iVar1;
+ iVar8 = _positionPtr->x + iVar4;
+ iVar3 = *(int*)((int)DAT_RenderingDefinedData.field1042_0x55504 + iVar5);
+ if (iVar2 < 1) {
+ renderGMWithBlending(
+ GID_INTERFACE_ICONS_2, iVar3, iVar8, iVar6, 0x10);
+ } else {
+ renderGM(GM_INTERFACE_ICONS2, iVar3, iVar8, iVar6);
+ }
+ if (DAT_MouseState.leftClickStart != 0) {
+ iVar3 = *(int*)((int)DAT_RenderingDefinedData.field1042_0x55504 + iVar5);
+ BVar7 = isMouseInsideBox(
+ _positionPtr->x + iVar4, _positionPtr->y + iVar1,
+ DAT_GMImageHeaders.imh[GMTotalPicturesProcessed::instance[0x2e] + iVar3 + -1]
+ .width,
+ DAT_GMImageHeaders.imh[GMTotalPicturesProcessed::instance[0x2e] + iVar3 + -1]
+ .height);
+ if ((BVar7 != FALSE)
+ && (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .marketplace.id
+ != 0)) {
+ BVar7 = isResourceTypeTradeable(
+ *(ResourceType*)((int)DAT_RenderingDefinedData.field1041_0x554e4 + iVar5));
+ if (BVar7 != FALSE) {
+ DAT_BuildingsState.newSelectedBuildingID
+ = DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .marketplace.id;
+ DAT_GameCore.buildingandstatusmenuMenuTabToSwitchTo = 0x39;
+ switchToMenuView(
+ MVT_BUILDING_AND_STATUS_MENU, 0);
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .marketSelectedResourceType
+ = *(ResourceTypeInt*)((int)DAT_RenderingDefinedData.field1041_0x554e4 + iVar5);
+ }
+ }
+ }
+ renderNumberToScreen2(iVar2,
+ iVar4 + 0xc, DAT_MenuHandlerState.y + 0x22f, TTA_LEFT, 0, 0x11, FALSE, 0);
+ _positionPtr = _positionPtr + 1;
+ iVar4 = iVar4 + 0x3c;
+ iVar5 = iVar5 + 4;
+ } while ((int)_positionPtr < 0x617fd0);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+}
+}
+
+### 0x0043c9f0 RenderBuildingMenu_Quarry_Stonepile | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043C9F0
+ void BuildingMenus::RenderBuildingMenu_Quarry_Stonepile()
+ {
+ int iVar1;
+ char* pcVar2;
+ int iVar3;
+ TextAlignment alignment;
+ BGR24 color;
+ int iVar4;
+ uint color_00;
+ BOOLEnum keepOffsetX;
+ int iVar5;
+ int blendStrength;
+ iVar5 = 0;
+ keepOffsetX = FALSE;
+ iVar4 = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x1d3;
+ iVar3 = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Quarry Stone Pile"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_QUARRYPILE, 0);
+ renderTextToScreen(
+ pcVar2, iVar3, iVar1, alignment, color, iVar4, keepOffsetX, iVar5);
+ blendStrength = 0;
+ iVar5 = 0x12;
+ color_00 = 0;
+ iVar4 = 0x136;
+ iVar1 = DAT_MenuHandlerState.y + 0x1fb;
+ iVar3 = DAT_MenuHandlerState.x + 0xaf;
+ /*
+ added by script: "Use an Ox to transport stone placed here."
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_QUARRYPILE, 1);
+ renderMultilineText5Unk(
+ pcVar2, iVar3, iVar1, iVar4, color_00, iVar5, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043ca70 RenderBuildingMenu_Engineersguild | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043CA70
+ void BuildingMenus::RenderBuildingMenu_Engineersguild()
+ {
+ int iVar1;
+ char* pcVar2;
+ int iVar3;
+ TextAlignment alignment;
+ BGR24 color;
+ int iVar4;
+ uint color_00;
+ BOOLEnum keepOffsetX;
+ int iVar5;
+ int blendStrength;
+ iVar5 = 0;
+ keepOffsetX = FALSE;
+ iVar4 = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x1d3;
+ iVar3 = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Engineer's Guild"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_ENGINEERS_GUILD, 0);
+ renderTextToScreen(
+ pcVar2, iVar3, iVar1, alignment, color, iVar4, keepOffsetX, iVar5);
+ CheckIfEnoughGoldForLadderman();
+ if (DAT_EnoughGoldForRequestedUnit == FALSE) {
+ blendStrength = 0;
+ iVar5 = 0x11;
+ color_00 = 0;
+ iVar4 = 400;
+ iVar1 = DAT_MenuHandlerState.y + 0x1fc;
+ iVar3 = DAT_MenuHandlerState.x + 0x5a;
+ /*
+ added by script: "You do not have enough gold for apprentices"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_ENGINEERS_GUILD, 1);
+ renderMultilineText5Unk(
+ pcVar2, iVar3, iVar1, iVar4, color_00, iVar5, blendStrength);
+ }
+ createEntityForAssemblyPointsForActiveTabType();
+ return;
+ }
+}
+}
+
+### 0x0043cb00 RenderBuildingMenu_Tunnelersguild | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043CB00
+ void BuildingMenus::RenderBuildingMenu_Tunnelersguild()
+ {
+ int iVar1;
+ char* pcVar2;
+ int iVar3;
+ TextAlignment alignment;
+ BGR24 color;
+ int iVar4;
+ uint color_00;
+ BOOLEnum keepOffsetX;
+ int iVar5;
+ int blendStrength;
+ iVar5 = 0;
+ keepOffsetX = FALSE;
+ iVar4 = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x1d3;
+ iVar3 = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Tunneller's Guild"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_TUNNELLERS_GUILD, 0);
+ renderTextToScreen(
+ pcVar2, iVar3, iVar1, alignment, color, iVar4, keepOffsetX, iVar5);
+ CheckIfEnoughGoldForTunneler();
+ if (DAT_EnoughGoldForRequestedUnit == FALSE) {
+ blendStrength = 0;
+ iVar5 = 0x11;
+ color_00 = 0;
+ iVar4 = 400;
+ iVar1 = DAT_MenuHandlerState.y + 0x1fc;
+ iVar3 = DAT_MenuHandlerState.x + 0x5a;
+ /*
+ added by script: "You do not have enough gold to train a tunneller"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_TUNNELLERS_GUILD, 1);
+ renderMultilineText5Unk(
+ pcVar2, iVar3, iVar1, iVar4, color_00, iVar5, blendStrength);
+ }
+ createEntityForAssemblyPointsForActiveTabType();
+ return;
+ }
+}
+}
+
+### 0x0043cb90 RenderBuildingMenu_Cathedral | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043CB90
+ void BuildingMenus::RenderBuildingMenu_Cathedral()
+ {
+ int iVar1;
+ char* pcVar2;
+ int iVar3;
+ TextAlignment alignment;
+ BGR24 color;
+ int iVar4;
+ uint color_00;
+ BOOLEnum keepOffsetX;
+ int iVar5;
+ int blendStrength;
+ iVar5 = 0;
+ keepOffsetX = FALSE;
+ iVar4 = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x1d3;
+ iVar3 = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Cathedral"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_CATHEDRAL, 0);
+ renderTextToScreen(
+ pcVar2, iVar3, iVar1, alignment, color, iVar4, keepOffsetX, iVar5);
+ CheckIfEnoughGoldForMonk();
+ if (DAT_EnoughGoldForRequestedUnit == FALSE) {
+ blendStrength = 0;
+ iVar5 = 0x11;
+ color_00 = 0;
+ iVar4 = 0x154;
+ iVar1 = DAT_MenuHandlerState.y + 0x1fc;
+ iVar3 = DAT_MenuHandlerState.x + 0x96;
+ /*
+ added by script: "You do not have enough gold for monks"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_CATHEDRAL, 1);
+ renderMultilineText5Unk(
+ pcVar2, iVar3, iVar1, iVar4, color_00, iVar5, blendStrength);
+ }
+ createEntityForAssemblyPointsForActiveTabType();
+ return;
+ }
+}
+}
+
+### 0x0043cdb0 RenderBuildingMenu_Marketplace | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043CDB0
+ void BuildingMenus::RenderBuildingMenu_Marketplace()
+ {
+ int iVar1;
+ char* pcVar2;
+ int iVar3;
+ TextAlignment TVar4;
+ BGR24 BVar5;
+ int iVar6;
+ BOOLEnum BVar7;
+ int iVar8;
+ iVar8 = 0;
+ BVar7 = FALSE;
+ iVar6 = 0x10;
+ BVar5 = 0;
+ TVar4 = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x1d4;
+ iVar3 = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "The Marketplace"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_TRADEPOST, 0);
+ renderTextToScreen(
+ pcVar2, iVar3, iVar1, TVar4, BVar5, iVar6, BVar7, iVar8);
+ iVar8 = 0;
+ BVar7 = FALSE;
+ iVar6 = 0x12;
+ BVar5 = 0;
+ TVar4 = TTA_CENTER;
+ iVar1 = DAT_MenuHandlerState.y + 0x23c;
+ iVar3 = DAT_MenuHandlerState.x + 0x10b;
+ /*
+ added by script: "Choose a goods type to trade"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_TRADEPOST, 0x13);
+ renderTextToScreen(
+ pcVar2, iVar3, iVar1, TVar4, BVar5, iVar6, BVar7, iVar8);
+ return;
+ }
+}
+}
+
+### 0x0043ce30 RenderBuildingMenu_Marketplace_Stonks | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043CE30
+ void BuildingMenus::RenderBuildingMenu_Marketplace_Stonks()
+ {
+ int iVar1;
+ char* textAddress;
+ ResourceType RVar2;
+ int iVar3;
+ int iVar4;
+ TextAlignment alignment;
+ BGR24 color;
+ int iVar5;
+ BOOLEnum BVar6;
+ int iVar7;
+ int _index;
+ ResourceType _resourceType;
+ iVar7 = 0;
+ BVar6 = FALSE;
+ iVar5 = 0x12;
+ color = 0;
+ alignment = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x1d4;
+ iVar4 = DAT_MenuHandlerState.x + 0x19;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ /*
+ added by script: "Here's what I sell and what they cost."
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_TRADEPOST, 1);
+ renderTextToScreen(
+ textAddress, iVar4, iVar1, alignment, color, iVar5, BVar6, iVar7);
+ _index = 0;
+ do {
+ _resourceType = DAT_RenderingDefinedData.MarketStonksOrder[_index];
+ if (_resourceType != ((ResourceType)0)) {
+ if (_index < 13) {
+ if (_index < 10) {
+ iVar4 = 40;
+ iVar1 = _index;
+ } else {
+ iVar4 = 100;
+ iVar1 = _index + -10;
+ }
+ } else {
+ iVar4 = 100;
+ iVar1 = _index + -0xb;
+ }
+ iVar1 = iVar1 * 0x2f;
+ BVar6 = isResourceTypeTradeable(_resourceType);
+ if (BVar6 != FALSE) {
+ RVar2 = _resourceType;
+ if (_resourceType == RT_PITCH) {
+ RVar2 = RT_PARTIALPITCH;
+ }
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[_resourceType]
+ < -99) {
+ renderGMWithBlending(GID_INTERFACE_ICONS_2,
+ RVar2 * 2 + 0x2a, DAT_MenuHandlerState.x + 0x42 + iVar1,
+ DAT_MenuHandlerState.y + 0x1bf + iVar4, 0x10);
+ } else {
+ renderGM(GM_INTERFACE_ICONS2,
+ RVar2 * 2 + 0x2a, DAT_MenuHandlerState.x + 0x42 + iVar1,
+ DAT_MenuHandlerState.y + 0x1bf + iVar4);
+ }
+ if (_index == 10) {
+ iVar1 = iVar1 + -10;
+ } else if (_index == 0xb) {
+ iVar1 = iVar1 + -6;
+ } else if (_index == 2) {
+ iVar1 = iVar1 + 4;
+ } else if (_index == 3) {
+ LAB_0043cf88:
+ iVar1 = iVar1 + -2;
+ } else if (_index == 4) {
+ iVar1 = iVar1 + 2;
+ } else if (_index == 0xc) {
+ iVar1 = iVar1 + 4;
+ } else if ((_index == 0xd) || (_index == 0xe))
+ goto LAB_0043cf88;
+ iVar7 = DAT_MenuHandlerState.y + 0x1e5;
+ iVar5 = DAT_MenuHandlerState.x + 0x46;
+ iVar3 = getBuyPriceForOneUnit(_resourceType);
+ renderNumber2(
+ iVar3, iVar5 + iVar1, iVar7 + iVar4, TTA_LEFT, 0xc2f0eb, 0, 0x12, FALSE, 0);
+ renderInGameTextWithShadow("/", DAT_MenuHandlerState.x + 0x46 + iVar1,
+ DAT_MenuHandlerState.y + 0x1e5 + iVar4, TTA_LEFT, 0xc2f0eb, 0, 0x12,
+ TRUE, 0);
+ iVar7 = DAT_MenuHandlerState.y + 0x1e5;
+ iVar5 = DAT_MenuHandlerState.x + 0x46;
+ iVar3 = getSalePriceOfGood(_resourceType);
+ renderNumber2(
+ iVar3, iVar5 + iVar1, iVar7 + iVar4, TTA_LEFT, 0xc2f0eb, 0, 0x12, TRUE, 0);
+ }
+ }
+ _index = _index + 1;
+ if (0x13 < _index) {
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ } while (true);
+ }
+}
+}
+
+### 0x0043d070 RenderBuildingMenu_Marketplace_Food | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043D070
+ void BuildingMenus::RenderBuildingMenu_Marketplace_Food()
+ {
+ ResourceType resourceType;
+ int iVar1;
+ char* textAddress;
+ int iVar2;
+ ResourceTypeInt* pRVar3;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum BVar4;
+ int blendStrength;
+ blendStrength = 0;
+ BVar4 = FALSE;
+ fontSize = 0x11;
+ color = 0;
+ alignment = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x1d4;
+ iVar2 = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Trade Food"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_TRADEPOST, 2);
+ renderTextToScreen(
+ textAddress, iVar2, iVar1, alignment, color, fontSize, BVar4, blendStrength);
+ iVar1 = 0;
+ pRVar3 = DAT_RenderingDefinedData.FoodTypes;
+ do {
+ resourceType = *pRVar3;
+ iVar2 = DAT_MenuHandlerState.x + 0x78;
+ BVar4 = isResourceTypeTradeable(resourceType);
+ if (BVar4 != FALSE) {
+ renderNumberToScreen2(
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[resourceType],
+ iVar2 + iVar1, DAT_MenuHandlerState.y + 0x232, TTA_CENTER, 0, 0x11, FALSE,
+ 0);
+ }
+ pRVar3 = pRVar3 + 1;
+ iVar1 = iVar1 + 0x34;
+ } while ((int)pRVar3 < 0x618040);
+ return;
+ }
+}
+}
+
+### 0x0043d120 RenderBuildingMenu_Marketplace_Resource | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043D120
+ void BuildingMenus::RenderBuildingMenu_Marketplace_Resource()
+ {
+ ResourceType resourceType;
+ int iVar1;
+ char* textAddress;
+ int iVar2;
+ int* piVar3;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum BVar4;
+ int blendStrength;
+ blendStrength = 0;
+ BVar4 = FALSE;
+ fontSize = 0x11;
+ color = 0;
+ alignment = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x1d4;
+ iVar2 = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Trade Raw Materials"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_TRADEPOST, 3);
+ renderTextToScreen(
+ textAddress, iVar2, iVar1, alignment, color, fontSize, BVar4, blendStrength);
+ iVar1 = 0;
+ piVar3 = DAT_RenderingDefinedData.RawResourceTypes;
+ do {
+ resourceType = *piVar3;
+ iVar2 = DAT_MenuHandlerState.x + 0x97;
+ BVar4 = isResourceTypeTradeable(resourceType);
+ if (BVar4 != FALSE) {
+ renderNumberToScreen2(
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[resourceType],
+ iVar2 + iVar1, DAT_MenuHandlerState.y + 0x232, TTA_CENTER, 0, 0x11, FALSE,
+ 0);
+ }
+ piVar3 = piVar3 + 1;
+ iVar1 = iVar1 + 0x68;
+ } while ((int)piVar3 < 0x618050);
+ return;
+ }
+}
+}
+
+### 0x0043d1d0 RenderBuildingMenu_Marketplace_Weapons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043D1D0
+ void BuildingMenus::RenderBuildingMenu_Marketplace_Weapons()
+ {
+ ResourceType resourceType;
+ int iVar1;
+ char* textAddress;
+ int iVar2;
+ int* piVar3;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum BVar4;
+ int blendStrength;
+ blendStrength = 0;
+ BVar4 = FALSE;
+ fontSize = 0x11;
+ color = 0;
+ alignment = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x1d4;
+ iVar2 = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Trade Weapons"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_TRADEPOST, 4);
+ renderTextToScreen(
+ textAddress, iVar2, iVar1, alignment, color, fontSize, BVar4, blendStrength);
+ iVar1 = 0;
+ piVar3 = DAT_RenderingDefinedData.field1047_0x555e4;
+ do {
+ resourceType = *piVar3;
+ iVar2 = DAT_MenuHandlerState.x + 0x78;
+ BVar4 = isResourceTypeTradeable(resourceType);
+ if (BVar4 != FALSE) {
+ renderNumberToScreen2(
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[resourceType],
+ iVar2 + iVar1, DAT_MenuHandlerState.y + 0x232, TTA_CENTER, 0, 0x11, FALSE,
+ 0);
+ }
+ piVar3 = piVar3 + 1;
+ iVar1 = iVar1 + 0x34;
+ } while ((int)piVar3 < 0x618070);
+ return;
+ }
+}
+}
+
+### 0x0043d280 RenderBuildingMenu_Marketplace_Trade | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043D280
+ void BuildingMenus::RenderBuildingMenu_Marketplace_Trade()
+ {
+ ResourceTypeInt RVar1;
+ BOOLEnum BVar2;
+ int iVar3;
+ ResourceType RVar4;
+ RVar1 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .marketSelectedResourceType;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ RVar4 = RVar1;
+ if (RVar1 == RT_PITCH) {
+ RVar4 = RT_PARTIALPITCH;
+ }
+ renderGM(
+ GM_INTERFACE_ICONS2, (int)((int)(RVar4 + ((ResourceType)0x62))),
+ DAT_RenderingDefinedData.field1048_0x55604[RVar1].x + 0x55 + DAT_MenuHandlerState.x,
+ DAT_RenderingDefinedData.field1048_0x55604[RVar1].y + 0x20a + DAT_MenuHandlerState.y);
+ renderNumberToScreen2(
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .marketSelectedResourceType],
+ DAT_MenuHandlerState.x + 0x98, DAT_MenuHandlerState.y + 0x1fe, TTA_LEFT,
+ 0, 0x11, FALSE, 0);
+ renderGM(
+ GM_INTERFACE_ICONS2, 0x71, DAT_MenuHandlerState.x + 0x1a4,
+ DAT_MenuHandlerState.y + 0x219);
+ renderNumberToScreen2(
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[0xf],
+ DAT_MenuHandlerState.x + 0x1b8, DAT_MenuHandlerState.y + 0x1fe, TTA_LEFT,
+ 0, 0x11, FALSE, 0);
+ BVar2 = anyGoodsAreAllowedForSale();
+ if (BVar2 != FALSE) {
+ iVar3 = getPreviousGoodsFilteringUnallowed(RVar4);
+ renderGM(GM_INTERFACE_ICONS2, iVar3 * 2 + 0x2a,
+ DAT_MenuHandlerState.x + 0x14, DAT_MenuHandlerState.y + 0x1d4);
+ iVar3 = getNextGoodFilteringUnallowed(RVar4);
+ renderGM(GM_INTERFACE_ICONS2, iVar3 * 2 + 0x2a,
+ DAT_MenuHandlerState.x + 0x90, DAT_MenuHandlerState.y + 0x1d4);
+ }
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+}
+}
+

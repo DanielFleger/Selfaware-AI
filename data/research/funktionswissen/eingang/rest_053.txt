@@ -1,0 +1,1340 @@
+### 0x004687f0 storeXYAndResetMouseState | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004687F0
+ void MouseState::storeXYAndResetMouseState()
+ {
+ for (int i = 0; i < 10; ++i) {
+ this->mouseXY[i].x = 0;
+ this->mouseXY[i].y = 0;
+ this->mouseXY[i].unknownZero01 = 0;
+ this->mouseXY[i].unknownOne02 = 0;
+ }
+ this->index = 0;
+ this->storedScreenSpaceX = this->screenSpaceX;
+ this->storedScreenSpaceY = this->screenSpaceY;
+ for (int i = 0; i < 10; ++i) {
+ this->mouseXY8[i] = 8;
+ }
+ this->field43_0x184 = 0;
+ this->field39_0x174 = 0;
+ this->field44_0x188 = 8;
+ this->field48_0x198 = 0;
+ this->field49_0x19c = 0;
+ this->mapOrientationCopy1 = DAT_TileMapState.mapOrientation;
+ this->mapOrientationCopy2 = DAT_TileMapState.mapOrientation;
+ this->mapOrientationCopy3 = DAT_TileMapState.mapOrientation;
+ this->field55_0x1b4 = 0;
+ this->currentTime1 = timeGetTime();
+ this->currentTime2 = timeGetTime();
+ this->currentTime3 = timeGetTime();
+ this->field53_0x1ac = 0;
+ this->field56_0x1b8 = 0;
+ this->field57_0x1bc = 0;
+ this->field58_0x1c0 = 0;
+ this->field59_0x1c4 = 0;
+ this->field60_0x1c8 = 0;
+ }
+}
+}
+
+### 0x004689d0 resetMouseState2 | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004689D0
+ void MouseState::resetMouseState2()
+ {
+ if (!this->resetPending) {
+ this->draggingStopped = FALSE;
+ this->midClickStop = FALSE;
+ this->rightClickStop = FALSE;
+ this->leftClickStart = FALSE;
+ this->midClickStart = FALSE;
+ this->rightClickStart = FALSE;
+ this->leftClickState = FALSE;
+ this->midClickState = FALSE;
+ this->rightClickState = FALSE;
+ this->previousLeftClickState = FALSE;
+ this->previousMidClickStateUnk = FALSE;
+ this->previousRightClickState = FALSE;
+ this->mouseClickTypes = 0;
+ }
+ this->resetPending = 0;
+ }
+}
+}
+
+### 0x004709b0 Constructor_MouseState | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004709B0
+ MouseState* MouseState::Constructor_MouseState()
+ {
+ this->time0 = timeGetTime();
+ storeXYAndResetMouseState();
+ this->previewEnabled = 0;
+ this->flag = 0;
+ this->resetPending = 0;
+ this->waitCursorToggle = 0;
+ this->cursorType = 0;
+ this->field67_0x1e4 = 0;
+ this->field65_0x1dc = -1;
+ return this;
+ }
+}
+}
+
+### 0x00470a00 loadAndSetCursor | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00470A00
+ void MouseState::loadAndSetCursor(int notAniDefaultCursorRef, int notAniDeleteCursorRef,
+ int notAniDeleteNotCursorRef, int unused1, int unused2, int unused3, int unused4, int notAniUnknownCursorRef)
+ {
+ this->notAniDefaultCursor_0x24c
+ = LoadCursorA(DAT_WindowAndDirectDraw.hInstanceUnk_0xa8, MAKEINTRESOURCE(notAniDefaultCursorRef));
+ this->notAniDeleteCursor_0x250
+ = LoadCursorA(DAT_WindowAndDirectDraw.hInstanceUnk_0xa8, MAKEINTRESOURCE(notAniDeleteCursorRef));
+ this->notAniWaitCursor_0x258 = LoadCursorA(NULL, IDC_WAIT);
+ this->notAniHandCursor_0x25c
+ = LoadCursorA(DAT_WindowAndDirectDraw.hInstanceUnk_0xa8, MAKEINTRESOURCE(notAniDefaultCursorRef));
+ this->notAniDeleteNotCursor_0x260 = LoadCursorA(
+ DAT_WindowAndDirectDraw.hInstanceUnk_0xa8, MAKEINTRESOURCE(notAniDeleteNotCursorRef));
+ this->notAniDefaultArabCursor_0x264
+ = LoadCursorA(DAT_WindowAndDirectDraw.hInstanceUnk_0xa8, MAKEINTRESOURCE(notAniDefaultCursorRef));
+ this->swordCursor_0x224 = LoadCursorFromFileA(s_sword_ani_005a625c);
+ this->deleteCursor_0x228 = LoadCursorFromFileA(s_delete_ani_005a6250);
+ this->jesterCursor_0x230 = LoadCursorFromFileA(s_jester_ani_005a6244);
+ this->handCursor_0x234 = LoadCursorFromFileA(s_hand_ani_005a6238);
+ this->deleteNotCursor_0x238 = LoadCursorFromFileA(s_delete_not_ani_005a6228);
+ this->scimitarCursor_0x23c = LoadCursorFromFileA(s_scimitar_ani_005a6218);
+ if (!this->cursorType) {
+ if (DAT_WindowAndDirectDraw.not_DDCAPS2_CANBOBHARDWARE_0xe0) {
+ this->cursorType = 2;
+ } else {
+ this->cursorType = 1;
+ }
+ }
+ makeSelectedCursorTypeCurrent();
+ if (notAniDeleteNotCursorRef) {
+ this->unknownNotAniDeleteNotCursor_0x204 = LoadCursorA(
+ DAT_WindowAndDirectDraw.hInstanceUnk_0xa8, MAKEINTRESOURCE(notAniDeleteNotCursorRef));
+ }
+ if (notAniUnknownCursorRef) {
+ this->unknownNotAniCursor_0x218 = LoadCursorA(
+ DAT_WindowAndDirectDraw.hInstanceUnk_0xa8, MAKEINTRESOURCE(notAniUnknownCursorRef));
+ }
+ }
+}
+}
+
+### 0x00470b30 extendSelectionBoxToMouse | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00470B30
+ void MouseState::extendSelectionBoxToMouse()
+ {
+ this->previousSelectionBox.right
+ = this->screenSpaceX + DAT_ViewportRenderState.viewportState.currentCameraOffsetX;
+ this->previousSelectionBox.bottom
+ = this->screenSpaceY + DAT_ViewportRenderState.viewportState.currentCameraOffsetY;
+ if (DAT_ViewportRenderState.viewportState.isZoomedOutUnk) {
+ this->selectionBox.right
+ = (DAT_ViewportRenderState.viewportState.currentCameraOffsetX + this->screenSpaceX) * 2 + 2;
+ this->selectionBox.bottom
+ = (DAT_ViewportRenderState.viewportState.currentCameraOffsetY + this->screenSpaceY) * 2 + 2;
+ } else {
+ this->selectionBox.right = this->previousSelectionBox.right;
+ this->selectionBox.bottom = this->previousSelectionBox.bottom;
+ }
+ DAT_MouseState.selectionBoxMode = 2;
+ setAxisBasedDistanceResult(
+ this->selectionBox.left, this->selectionBox.top, this->selectionBox.right, this->selectionBox.bottom);
+ if (16 < DAT_DirectionAlgorithmState.distanceHigh) {
+ DAT_MouseState.selectionBoxState = 1;
+ }
+ }
+}
+}
+
+### 0x00470bc0 updateRightDragCameraControl | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00470BC0
+ void MouseState::updateRightDragCameraControl()
+ {
+ int iVar6 = this->mapOrientationCopy3;
+ this->mouseBasedEvent = 0;
+ this->field41_0x17c = 0;
+ this->field40_0x178 = 0;
+ this->field56_0x1b8 = 0;
+ DWORD DVar4 = timeGetTime();
+ this->currentTime3 = DVar4;
+ this->field53_0x1ac = DVar4 - this->currentTime2;
+ ++this->field39_0x174;
+ if (this->field53_0x1ac > this->field54_0x1b0) {
+ this->currentTime2 = DVar4;
+ this->field55_0x1b4 = 0;
+ this->field48_0x198 = 0;
+ this->field49_0x19c = 0;
+ }
+ int iVar5
+ = getMouseVectorLengthBasedOnDirection(
+ this->storedScreenSpaceX, this->storedScreenSpaceY, this->screenSpaceX, this->screenSpaceY, 4);
+ if (iVar5 < 12 || this->field58_0x1c0) {
+ this->field40_0x178 = 0;
+ } else if (iVar5 < 28) {
+ this->field40_0x178 = iVar5 / 2;
+ this->mouseBasedEvent = 2;
+ } else {
+ this->field56_0x1b8 = 1;
+ this->field57_0x1bc = 1;
+ this->field59_0x1c4 = 1;
+ this->field60_0x1c8 = 1;
+ this->field40_0x178 = 40;
+ this->mouseBasedEvent = 1;
+ }
+ iVar5 = getMouseVectorLengthBasedOnDirection(
+ this->storedScreenSpaceX, this->storedScreenSpaceY, this->screenSpaceX, this->screenSpaceY, 0);
+ if (iVar5 < 22 || this->field57_0x1bc) {
+ this->field39_0x174 = 0;
+ this->field55_0x1b4 = 0;
+ if (this->field56_0x1b8 == 2 || iVar5 < 22) {
+ this->currentTime2 = DVar4;
+ }
+ } else {
+ this->field58_0x1c0 = 1;
+ this->field59_0x1c4 = 1;
+ this->field60_0x1c8 = 1;
+ this->field56_0x1b8 = 2;
+ this->field54_0x1b0 = 1500;
+ if (!this->field55_0x1b4) {
+ this->field55_0x1b4 = 1;
+ iVar6 = this->mapOrientationCopy3 + 6;
+ if (iVar6 >= 8) {
+ iVar6 -= 8;
+ }
+ this->field44_0x188 = 0;
+ } else {
+ this->field44_0x188 = 8;
+ }
+ }
+ if (iVar6 != this->mapOrientationCopy2) {
+ this->mapOrientationCopy2 = iVar6;
+ this->mapOrientationCopy3 = iVar6;
+ this->mouseBasedEvent = 3;
+ }
+ if (getMouseVectorLengthBasedOnDirection(
+ this->storedScreenSpaceX, this->storedScreenSpaceY, this->screenSpaceX, this->screenSpaceY, 2)
+ < 55
+ || this->field60_0x1c8) {
+ this->field39_0x174 = 0;
+ if (this->field56_0x1b8 == 3) {
+ this->currentTime2 = DVar4;
+ }
+ } else {
+ this->field58_0x1c0 = 1;
+ this->field59_0x1c4 = 1;
+ this->field57_0x1bc = 1;
+ this->field54_0x1b0 = 2000;
+ this->field56_0x1b8 = 3;
+ if (this->field48_0x198 != 2) {
+ this->mouseBasedEvent = 4;
+ this->field48_0x198 = 1;
+ }
+ }
+ if (getMouseVectorLengthBasedOnDirection(
+ this->storedScreenSpaceX, this->storedScreenSpaceY, this->screenSpaceX, this->screenSpaceY, 6)
+ < 55
+ || this->field59_0x1c4) {
+ this->field39_0x174 = 0;
+ if (this->field56_0x1b8 == 4) {
+ this->currentTime2 = DVar4;
+ }
+ } else {
+ this->field58_0x1c0 = 1;
+ this->field60_0x1c8 = 1;
+ this->field57_0x1bc = 1;
+ this->field54_0x1b0 = 2000;
+ this->field56_0x1b8 = 4;
+ if (this->field49_0x19c != 2) {
+ this->mouseBasedEvent = 5;
+ this->field49_0x19c = 1;
+ }
+ }
+ }
+}
+}
+
+### 0x00472a90 drawMouseBasedBox | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00472A90
+ void MouseState::drawMouseBasedBox()
+ {
+ if (!DAT_MouseState.selectionBoxState) {
+ return;
+ }
+ if (!DAT_MouseState.leftClickState && !DAT_MouseState.draggingStopped) {
+ resetMouseCursorState();
+ return;
+ }
+ int left = this->previousSelectionBox.left;
+ int right = this->previousSelectionBox.right;
+ int top = this->previousSelectionBox.top;
+ int bottom = this->previousSelectionBox.bottom;
+ DAT_PencilRenderCore.surfaceTarget = Rendering::Enums::RT_MAP_GAME;
+ drawBorderBox(
+ left, top, right, bottom, COL_BLACK::instance.shortValue);
+ drawBorderBox(
+ left + 1, top + 1, right + -1, bottom + -1, COL_WHITE::instance.shortValue);
+ DAT_PencilRenderCore.surfaceTarget = Rendering::Enums::RT_SCREEN_MENU;
+ }
+}
+}
+
+### 0x00427110 MenuView_MpConnection_Prepare | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00427110
+ void MpConnection::MenuView_MpConnection_Prepare()
+ {
+ Menu* pMVar1;
+ DAT_GameCore.currentlyInGameUnk_0xa4 = FALSE;
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("frontend_combat3.tgx");
+ LoadTGX_shc_back();
+ DAT_MenuHandlerState.y = DAT_WindowAndDirectDraw.mainMenuBorderHeight;
+ DAT_MenuHandlerState.x = DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ pMVar1 = DAT_MenuHandlerState.currentMenu;
+ (DAT_MenuHandlerState.currentMenu)->xPosition
+ = DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ pMVar1->yPosition = DAT_MenuHandlerState.y;
+ initializeMultiplayerLobby();
+ activateModalDialog(DAT_GameSynchronyState.nextModalDialog, FALSE);
+ return;
+ }
+ }
+}
+}
+
+### 0x0047c670 MenuItemRenderFunction_NetworkSessions_Buttons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0047C670
+ void NetworkSessions::MenuItemRenderFunction_NetworkSessions_Buttons(int param_1, ...)
+ {
+ int xParam;
+ char* textAddress;
+ int yParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ if (param_1 == -10000) {
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ return;
+ }
+ if (param_1 == 10000) {
+ param_1 = 8;
+ if (DAT_GameSynchronyState.scrollBarIndex == -1) {
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x11;
+ color = 0x7f7f7f;
+ alignment = TTA_CENTER;
+ yParam = DAT_ButtonY + 6;
+ xParam = DAT_ButtonW / 2 + DAT_ButtonX;
+ /*
+ Text: 0x8 => Join
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_MULTIPLAYER_CONNECTION, 8);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+ LAB_0047c73a:
+ DAT_ButtonUnknownZero = 0;
+ if ((((param_1 == 7) || (param_1 == 8))
+ && (DAT_GameCore.activeMenuTab.tabType
+ == BASMTT_BARRACKS_OR_MPMENU_MODEM))
+ && (DAT_GameSynchronyState.modemScrollbarCount == 0)) {
+ DAT_ButtonUnknownZero = 1;
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ /*
+ Text: 7 => Host 8 => Join
+ */
+ renderText2(
+ TEXT_MULTIPLAYER_CONNECTION, param_1,
+ DAT_ButtonW / 2 + DAT_ButtonX,
+ DAT_ButtonY + 6, TTA_CENTER, 0x7f7f7f, 0x11, FALSE);
+ return;
+ }
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ renderText2(
+ TEXT_MULTIPLAYER_CONNECTION, param_1,
+ DAT_ButtonW / 2 + DAT_ButtonX,
+ DAT_ButtonY + 6, TTA_CENTER, 0xc2f0eb, 0x11, FALSE);
+ return;
+ }
+ renderText2(
+ TEXT_MULTIPLAYER_CONNECTION, param_1,
+ DAT_ButtonW / 2 + DAT_ButtonX,
+ DAT_ButtonY + 6, TTA_CENTER, 0xccfaff, 0x11, FALSE);
+ return;
+ }
+ if ((param_1 == 9) || (param_1 == 10)) {
+ DAT_ButtonCurrentlyInteracting = FALSE;
+ }
+ if (param_1 == -10) {
+ if (DAT_GameSynchronyState.field32_0x510 != 0) {
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ return;
+ }
+ } else {
+ if (param_1 == -1000) {
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ return;
+ }
+ if (-1 < param_1)
+ goto LAB_0047c73a;
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ if (param_1 == -1) {
+ renderUpDownButtonUnk(0, 0);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ return;
+ }
+ renderUpDownButtonUnk(1, 0);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004ab790 MenuModalRenderFunction_NewEvent | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AB790
+ void NewEvent::MenuModalRenderFunction_NewEvent(int x, int y, int width, int height)
+ {
+ int iVar1;
+ char* pcVar2;
+ int iVar3;
+ int iVar4;
+ int iVar5;
+ int iVar6;
+ TextAlignment TVar7;
+ BGR24 BVar8;
+ int iVar9;
+ BOOLEnum BVar10;
+ int iVar11;
+ int iVar12;
+ iVar3 = x;
+ /*
+ added by script: "Event"
+ */
+ drawHeaderTextBanner(199, 0x30, x, y, width, height);
+ x = 0;
+ iVar4 = y + 0xa5;
+ iVar5 = 0;
+ iVar1 = DAT_MapPropertiesState.currentEventID;
+ do {
+ if (*(char*)((int)&DAT_MapPropertiesState.scenarioEvents[iVar1].data + iVar5 * 4 + 0xf)
+ != '\0') {
+ iVar1 = iVar5 + 0x6a;
+ if (0x7d < iVar1) {
+ iVar1 = iVar5 + 0xaa;
+ }
+ if ((((iVar1 == 0x6f) || (iVar1 == 0x70)) || (iVar1 == 0x71)) || (iVar1 == 0x7b)) {
+ iVar1 = 0x71;
+ }
+ iVar11 = 0;
+ BVar10 = FALSE;
+ iVar9 = 0x12;
+ BVar8 = 0xccfaff;
+ TVar7 = TTA_LEFT;
+ iVar12 = iVar3 + 0x96;
+ iVar6 = iVar4;
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_SCENARIO, iVar1);
+ renderTextToScreen(
+ pcVar2, iVar12, iVar6, TVar7, BVar8, iVar9, BVar10, iVar11);
+ if (DAT_MissionAestheticsDefinedData.field1230_0x23a4[iVar5] == 1) {
+ iVar1 = iVar3 + 0x9e;
+ renderTextToScreen(
+ "(", iVar1, iVar4, TTA_LEFT, 0xccfaff, 0x12, TRUE, 0);
+ iVar11 = 0;
+ BVar10 = TRUE;
+ iVar9 = 0x12;
+ BVar8 = 0xccfaff;
+ TVar7 = TTA_LEFT;
+ iVar12 = iVar1;
+ iVar6 = iVar4;
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_SCENARIO,
+ (int)((int)(DAT_MissionAestheticsDefinedData.field1235_0x33e4[*(
+ char*)(&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + iVar5 * 4 + 0xe)])));
+ renderTextToScreen(pcVar2, iVar12, iVar6, TVar7, BVar8, iVar9, BVar10, iVar11);
+ renderTextToScreen(
+ ")", iVar1, iVar4, TTA_LEFT, 0xccfaff, 0x12, TRUE, 0);
+ }
+ if (DAT_MissionAestheticsDefinedData.field1230_0x23a4[iVar5] == 2) {
+ iVar1 = iVar3 + 0x9e;
+ renderTextToScreen(
+ "(", iVar1, iVar4, TTA_LEFT, 0xccfaff, 0x12, TRUE, 0);
+ iVar11 = 0;
+ BVar10 = TRUE;
+ iVar9 = 0x12;
+ BVar8 = 0xccfaff;
+ TVar7 = TTA_LEFT;
+ iVar12 = iVar1;
+ iVar6 = iVar4;
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_SCENARIO,
+ (int)((int)(DAT_MissionAestheticsDefinedData.field92_0x170[*(
+ char*)(&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + iVar5 * 4 + 0xe)])));
+ renderTextToScreen(pcVar2, iVar12, iVar6, TVar7, BVar8, iVar9, BVar10, iVar11);
+ renderTextToScreen(
+ ")", iVar1, iVar4, TTA_LEFT, 0xccfaff, 0x12, TRUE, 0);
+ }
+ renderNumberToScreen2(
+ (int)*(short*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + iVar5 * 4 + 0xc)
+ * DAT_MissionAestheticsDefinedData.field1229_0x2304[iVar5],
+ iVar3 + 0x1c2, iVar4, TTA_LEFT, 0xccfaff, 0x12, FALSE, 0);
+ x = x + 1;
+ iVar4 = iVar4 + 0x18;
+ iVar1 = DAT_MapPropertiesState.currentEventID;
+ if (6 < x)
+ break;
+ }
+ iVar5 = iVar5 + 1;
+ } while (iVar5 < 0x28);
+ iVar1 = DAT_MapPropertiesState.scenarioEvents[iVar1].data.scenario.ScenarioEventType;
+ iVar4 = iVar1 + 0x80;
+ if (0x9b < iVar4) {
+ iVar4 = iVar1 + 0x95;
+ }
+ iVar12 = 0;
+ BVar10 = FALSE;
+ iVar5 = 0x12;
+ BVar8 = 0xccfaff;
+ TVar7 = TTA_LEFT;
+ iVar1 = y + 0x17c;
+ iVar3 = iVar3 + 0x9e;
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_SCENARIO, iVar4);
+ renderTextToScreen(
+ pcVar2, iVar3, iVar1, TVar7, BVar8, iVar5, BVar10, iVar12);
+ return;
+ }
+ }
+}
+}
+
+### 0x004c0040 MenuItemActionHandler_NewEvent_Main | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004C0040
+ void NewEvent::MenuItemActionHandler_NewEvent_Main(int param_1, ...)
+ {
+ char* _Str;
+ long lVar1;
+ switch (param_1) {
+ case 0x13:
+ removeEventAtIndex(DAT_MapPropertiesState.currentEventID);
+ goto LAB_004c006f;
+ case 0x25:
+ _Str = getTextArrayPointer(0xb);
+ lVar1 = _atol(_Str);
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .header.year = lVar1;
+ LAB_004c006f:
+ activateModalDialog(MMT_NONE, FALSE);
+ sortEventsByDate();
+ resetToTextIndex(
+ 0xf);
+ return;
+ case 100:
+ DAT_MapPropertiesState.invasionTroopIndex = 0;
+ activateModalDialog(MMT_NEW_EVENT_CONDITION, FALSE);
+ return;
+ case 0x65:
+ DAT_MapPropertiesState._83404_4_ = 0;
+ activateModalDialog(MMT_NEW_EVENT_ACTION, FALSE);
+ break;
+ case -1:
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .header.month
+ = DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .header.month
+ + 1;
+ if (0xb
+ < DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .header.month) {
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .header.month = 0;
+ return;
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004abab0 MenuModalRenderFunction_NewEventAction | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004ABAB0
+ void NewEventAction::MenuModalRenderFunction_NewEventAction(int x, int y, int width, int height)
+ {
+ char* pcVar1;
+ int xParam;
+ int iVar2;
+ TextAlignment TVar3;
+ BGR24 BVar4;
+ int iVar5;
+ int iVar6;
+ BOOLEnum BVar7;
+ int blendStrength;
+ /*
+ added by script: "Event Actions"
+ */
+ drawHeaderTextBanner(199, 0x67, x, y, width, height);
+ switch (DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data.scenario.ScenarioEventType) {
+ case 5:
+ case 0xb:
+ case 0xc:
+ case 0xd:
+ case 0xe:
+ case 0xf:
+ case 0x10:
+ case 0x11:
+ case 0x12:
+ case 0x13:
+ case 0x14:
+ case 0x1d:
+ case 0x1e:
+ blendStrength = 0;
+ BVar7 = FALSE;
+ iVar5 = 0x12;
+ BVar4 = 0xccfaff;
+ TVar3 = TTA_LEFT;
+ iVar2 = y + 0x1cd;
+ xParam = x + 0x186;
+ iVar6 = xParam;
+ /*
+ added by script: "Repeat (months)"
+ */
+ pcVar1 = getTextStringInGroupAtOffset(TEXT_SCENARIO, 0xaf);
+ renderTextToScreen(
+ pcVar1, iVar6, iVar2, TVar3, BVar4, iVar5, BVar7, blendStrength);
+ iVar5 = 0;
+ BVar7 = FALSE;
+ iVar6 = 0x12;
+ BVar4 = 0xccfaff;
+ TVar3 = TTA_LEFT;
+ iVar2 = y + 0x1f0;
+ /*
+ added by script: "Repeat Count"
+ */
+ pcVar1 = getTextStringInGroupAtOffset(TEXT_SCENARIO, 0xb0);
+ renderTextToScreen(
+ pcVar1, xParam, iVar2, TVar3, BVar4, iVar6, BVar7, iVar5);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004b9c00 MenuItemActionHandler_NewEventAction_Main | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B9C00
+ void NewEventAction::MenuItemActionHandler_NewEventAction_Main(int param_1, ...)
+ {
+ int* piVar1;
+ InGameEventUnion* destination;
+ int iVar2;
+ DAT_StopHandlingMenuItems = 0;
+ iVar2 = param_1;
+ switch (param_1) {
+ case 0x25:
+ activateModalDialog(MMT_NEW_EVENT, FALSE);
+ return;
+ case 0xb1:
+ case 0xb2:
+ case 0xb3:
+ case 0xb4:
+ case 0xb5:
+ case 0xb6:
+ case 0xb7:
+ case 0xb8:
+ case 0xb9:
+ case 0xba:
+ case 0xbb:
+ iVar2 = param_1 + -0x15;
+ case 0x80:
+ case 0x81:
+ case 0x82:
+ case 0x83:
+ case 0x84:
+ case 0x85:
+ case 0x86:
+ case 0x87:
+ case 0x88:
+ case 0x89:
+ case 0x8a:
+ case 0x8b:
+ case 0x8c:
+ case 0x8d:
+ case 0x8e:
+ case 0x8f:
+ case 0x90:
+ case 0x91:
+ case 0x92:
+ case 0x93:
+ case 0x94:
+ case 0x95:
+ case 0x96:
+ case 0x97:
+ case 0x98:
+ case 0x99:
+ case 0x9a:
+ case 0x9b:
+ piVar1
+ = &DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data.scenario.ScenarioEventType;
+ if (*piVar1 != iVar2 + -0x80) {
+ *piVar1 = iVar2 + -0x80;
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data.scenario.actionData = 0;
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data.scenario.repeat = 0;
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data.scenario.repeatMonths = 10;
+ iVar2 = DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data.scenario.ScenarioEventType;
+ if (((iVar2 == 2) || (iVar2 == 0x1a)) || (iVar2 == 0x1b)) {
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data.scenario.actionData = -1;
+ }
+ }
+ switch (param_1) {
+ case 0x84:
+ case 0x8b:
+ case 0x91:
+ case 0xb3:
+ iVar2 = 10;
+ break;
+ default:
+ goto switchD_004b9c26_caseD_26;
+ case 0x92:
+ case 0x94:
+ iVar2 = 0x32;
+ break;
+ case 0xb2:
+ iVar2 = 100;
+ }
+ if (DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data.scenario.actionData
+ == 0) {
+ DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data.scenario.actionData = 1;
+ }
+ destination
+ = &DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data;
+ setSliderParameters(1,
+ iVar2, (destination->scenario).actionData, (undefined*)((int)(destination)),
+ (void*)((int)(Helpers::CaptureCurrentTimeToUnknownTime01::instance)));
+ DAT_MapPropertiesState.field131_0x145d0 = DAT_ButtonX + 0x3a;
+ DAT_MapPropertiesState.field132_0x145d4 = DAT_ButtonY + 0x1c;
+ DAT_MapPropertiesState._83404_4_ = 2;
+ }
+ switchD_004b9c26_caseD_26:
+ return;
+ }
+ }
+}
+}
+
+### 0x004c0860 MenuItemRenderFunction_NewEventAction_Main | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004C0860
+ void NewEventAction::MenuItemRenderFunction_NewEventAction_Main(int param_1, ...)
+ {
+ int iVar1;
+ int textNumInGroup;
+ int iVar2;
+ iVar2 = -1;
+ DAT_ButtonUnknownZero = 0;
+ iVar1 = param_1;
+ switch (param_1) {
+ case 0x25:
+ RenderScenarioButtonWithText(param_1);
+ return;
+ case 0x26:
+ if (DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data.scenario.ScenarioEventType
+ == 0x1b) {
+ RenderScenarioButtonWithText(param_1 + 2);
+ return;
+ }
+ break;
+ case 0x27:
+ if (DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data.scenario.ScenarioEventType
+ == 0x1a) {
+ RenderScenarioButtonWithText(param_1 + 1);
+ return;
+ }
+ break;
+ case 0x28:
+ if (DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data.scenario.ScenarioEventType
+ == 2) {
+ RenderScenarioButtonWithText(param_1);
+ return;
+ }
+ break;
+ default:
+ DAT_ButtonUnknownZero = 0;
+ return;
+ case 0xb1:
+ case 0xb2:
+ case 0xb3:
+ case 0xb4:
+ case 0xb5:
+ case 0xb6:
+ case 0xb7:
+ case 0xb8:
+ case 0xb9:
+ case 0xba:
+ case 0xbb:
+ iVar1 = param_1 + -0x15;
+ case 0x80:
+ case 0x81:
+ case 0x82:
+ case 0x83:
+ case 0x84:
+ case 0x85:
+ case 0x86:
+ case 0x87:
+ case 0x88:
+ case 0x89:
+ case 0x8a:
+ case 0x8b:
+ case 0x8c:
+ case 0x8d:
+ case 0x8e:
+ case 0x8f:
+ case 0x90:
+ case 0x91:
+ case 0x92:
+ case 0x93:
+ case 0x94:
+ case 0x95:
+ case 0x96:
+ case 0x97:
+ case 0x98:
+ case 0x99:
+ case 0x9a:
+ case 0x9b:
+ if (param_1 == 0x94) {
+ iVar2 = 0;
+ textNumInGroup = 0x92;
+ } else {
+ textNumInGroup = param_1;
+ if (param_1 == 0x92) {
+ iVar2 = 2;
+ }
+ }
+ if (iVar1 + -0x80
+ == DAT_MapPropertiesState.scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data.scenario.ScenarioEventType) {
+ DAT_ButtonCurrentlyInteracting = TRUE;
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ renderText2(
+ TEXT_SCENARIO, textNumInGroup, DAT_ButtonX + 0xe,
+ DAT_ButtonY + 7, TTA_LEFT, 0xccfaff, 0x12, FALSE);
+ if (-1 < iVar2) {
+ renderTextToScreen(" - ", DAT_ButtonX + 0x14,
+ DAT_ButtonY + 7, TTA_LEFT, 0xccfaff, 0x12, TRUE, 0);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderGM(GM_INTERFACE_ICONS2, iVar2 + 0x80,
+ DAT_TextManagerObject.currentXOffset_0x0 + 0x17
+ + DAT_ButtonX,
+ DAT_ButtonY + 3);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ }
+ if ((DAT_MapPropertiesState._83404_4_ != 0)
+ && (DAT_MapPropertiesState._83404_4_
+ = DAT_MapPropertiesState._83404_4_ + -1,
+ DAT_MapPropertiesState._83404_4_ == 0)) {
+ setExtraActiveModalDialog(MMT_OVERLAY_SLIDER,
+ DAT_MapPropertiesState.field131_0x145d0,
+ DAT_MapPropertiesState.field132_0x145d4);
+ }
+ switch (param_1) {
+ case 0x84:
+ case 0x8b:
+ case 0x91:
+ case 0x92:
+ case 0x94:
+ case 0xb3:
+ renderNumberToScreen2(
+ DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data.scenario.actionData,
+ DAT_ButtonW + -0xe + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xccfaff, 0x12, FALSE,
+ 0);
+ return;
+ default:
+ return;
+ case 0xb2:
+ renderTextToScreen("%",
+ DAT_ButtonW + -0xe + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xccfaff, 0x12, FALSE,
+ 0);
+ renderNumberToScreen2(
+ DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data.scenario.actionData,
+ DAT_ButtonW + -0x1c + DAT_ButtonX,
+ DAT_ButtonY + 7, TTA_RIGHT, 0xccfaff, 0x12, FALSE,
+ 0);
+ return;
+ }
+ }
+ if (DAT_ButtonCurrentlyInteracting == FALSE) {
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ } else {
+ renderBasicButton(0, RT_CONTEXT_BASED);
+ }
+ renderText2(
+ TEXT_SCENARIO, textNumInGroup, DAT_ButtonX + 0xe,
+ DAT_ButtonY + 7, TTA_LEFT, 0xc2f0eb, 0x12, FALSE);
+ if (iVar2 < 0) {
+ return;
+ }
+ renderTextToScreen(
+ " - ", DAT_ButtonX + 0x14, DAT_ButtonY + 7,
+ TTA_LEFT, 0xc2f0eb, 0x12, TRUE, 0);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ renderGM(GM_INTERFACE_ICONS2, iVar2 + 0x80,
+ DAT_TextManagerObject.currentXOffset_0x0 + 0x17 + DAT_ButtonX,
+ DAT_ButtonY + 3);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ return;
+ }
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ }
+}
+}
+
+### 0x004aba20 MenuModalRenderFunction_NewEventCondition | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004ABA20
+ void NewEventCondition::MenuModalRenderFunction_NewEventCondition(int x, int y, int width, int height)
+ {
+ int numInGroup;
+ char* textAddress;
+ int yParam;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ /*
+ added by script: "Event Conditions"
+ */
+ drawHeaderTextBanner(199, 0x66, x, y, width, height);
+ if (DAT_MissionAestheticsDefinedData
+ .field1230_0x23a4[DAT_MapPropertiesState.invasionTroopIndex]
+ != 0) {
+ numInGroup = DAT_MapPropertiesState.invasionTroopIndex + 0x6a;
+ if (0x7d < numInGroup) {
+ numInGroup = DAT_MapPropertiesState.invasionTroopIndex + 0xaa;
+ }
+ if ((((numInGroup == 0x6f) || (numInGroup == 0x70)) || (numInGroup == 0x71)) || (numInGroup == 0x7b)) {
+ numInGroup = 0x71;
+ }
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x11;
+ color = 0xccfaff;
+ alignment = TTA_LEFT;
+ yParam = y + 0x1cf;
+ xParam = x + 0x1e;
+ textAddress = getTextStringInGroupAtOffset(TEXT_SCENARIO, numInGroup);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004b9620 MenuItemActionHandler_NewEventCondition_Main | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B9620
+ void NewEventCondition::MenuItemActionHandler_NewEventCondition_Main(int param_1, ...)
+ {
+ ushort* puVar1;
+ short* destination;
+ byte* pbVar2;
+ short sVar3;
+ byte(*pabVar4)[100];
+ DWORD DVar5;
+ char* pcVar6;
+ int iVar7;
+ int iVar8;
+ if (param_1 < 0x3e9) {
+ if (param_1 == 1000) {
+ sVar3 = *(short*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + DAT_MapPropertiesState.invasionTroopIndex * 4 + 0xc);
+ if (DAT_MissionAestheticsDefinedData
+ .field1227_0x21c4[DAT_MapPropertiesState.invasionTroopIndex]
+ < (int)sVar3) {
+ *(short*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + DAT_MapPropertiesState.invasionTroopIndex * 4 + 0xc) = sVar3 + -1;
+ return;
+ }
+ } else {
+ switch (param_1) {
+ case 0x13:
+ *(undefined1*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + DAT_MapPropertiesState.invasionTroopIndex * 4 + 0xf) = 0;
+ return;
+ case 0x25:
+ if (*(char*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + 0xf)
+ != '\0') {
+ iVar8 = 1;
+ pcVar6 = (char*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + 0x13);
+ while (*pcVar6 == '\0') {
+ iVar8 = iVar8 + 1;
+ pcVar6 = pcVar6 + 4;
+ if (0x27 < iVar8) {
+ activateModalDialog(MMT_NEW_EVENT, FALSE);
+ return;
+ }
+ }
+ *(undefined1*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + 0xf) = 0;
+ }
+ activateModalDialog(MMT_NEW_EVENT, FALSE);
+ return;
+ case 0x68:
+ puVar1 = (ushort*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + 8);
+ *puVar1 = *puVar1 ^ 1;
+ return;
+ case 0xbe:
+ case 0xbf:
+ case 0xc0:
+ case 0xc1:
+ case 0xc2:
+ case 0xc3:
+ case 0xc4:
+ case 0xc5:
+ case 0xc6:
+ case 199:
+ case 200:
+ case 0xc9:
+ case 0xca:
+ case 0xcb:
+ case 0xcc:
+ case 0xcd:
+ case 0xce:
+ case 0xcf:
+ case 0xd0:
+ case 0xd1:
+ param_1 = param_1 + -0x40;
+ case 0x6a:
+ case 0x6b:
+ case 0x6c:
+ case 0x6d:
+ case 0x6e:
+ case 0x6f:
+ case 0x70:
+ case 0x71:
+ case 0x72:
+ case 0x73:
+ case 0x74:
+ case 0x75:
+ case 0x76:
+ case 0x77:
+ case 0x78:
+ case 0x79:
+ case 0x7a:
+ case 0x7b:
+ case 0x7c:
+ case 0x7d:
+ DAT_MapPropertiesState.invasionTroopIndex = param_1 + -0x6a;
+ *(undefined1*)((int)DAT_MapPropertiesState.buildingAvailabilityRelatedFlags
+ + DAT_MapPropertiesState.currentEventID * 0xe4 + param_1 * 4 + 0x1ff) = 1;
+ DAT_UnknownTime_01 = 0;
+ if ((int)*(short*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + DAT_MapPropertiesState.invasionTroopIndex * 4 + 0xc)
+ < DAT_MissionAestheticsDefinedData
+ .field1227_0x21c4[DAT_MapPropertiesState.invasionTroopIndex]) {
+ *(short*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + DAT_MapPropertiesState.invasionTroopIndex * 4 + 0xc)
+ = (short)DAT_MissionAestheticsDefinedData
+ .field1227_0x21c4[DAT_MapPropertiesState.invasionTroopIndex];
+ }
+ if (DAT_MissionAestheticsDefinedData
+ .field1228_0x2264[DAT_MapPropertiesState.invasionTroopIndex]
+ != 0) {
+ destination = (short*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + DAT_MapPropertiesState.invasionTroopIndex * 4 + 0xc);
+ setSliderParameters2(
+ DAT_MissionAestheticsDefinedData
+ .field1227_0x21c4[DAT_MapPropertiesState.invasionTroopIndex],
+ (dword)((int)(DAT_MissionAestheticsDefinedData
+ .field1228_0x2264[DAT_MapPropertiesState.invasionTroopIndex])),
+ (dword)((int)((int)*destination)), (dword)((int)(destination)),
+ (undefined*)((int)(Helpers::CaptureCurrentTimeToUnknownTime01::instance)));
+ setExtraActiveModalDialog(MMT_OVERLAY_SLIDER,
+ DAT_ButtonX + 0x3a, DAT_ButtonY + 0x1c);
+ return;
+ }
+ }
+ }
+ } else if (param_1 < 0x7d3) {
+ if (param_1 < 0x7d1) {
+ if (param_1 == 0x3e9) {
+ sVar3 = *(short*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + DAT_MapPropertiesState.invasionTroopIndex * 4 + 0xc);
+ if ((int)sVar3 < DAT_MissionAestheticsDefinedData
+ .field1228_0x2264[DAT_MapPropertiesState.invasionTroopIndex]) {
+ *(short*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + DAT_MapPropertiesState.invasionTroopIndex * 4 + 0xc) = sVar3 + 1;
+ return;
+ }
+ } else if (param_1 == 2000) {
+ iVar8 = 0;
+ if (DAT_MissionAestheticsDefinedData
+ .field1230_0x23a4[DAT_MapPropertiesState.invasionTroopIndex]
+ != 0) {
+ if (DAT_MissionAestheticsDefinedData
+ .field1230_0x23a4[DAT_MapPropertiesState.invasionTroopIndex]
+ == 1) {
+ iVar7
+ = (int)*(char*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + DAT_MapPropertiesState.invasionTroopIndex * 4 + 0xe);
+ pbVar2 = (byte*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + DAT_MapPropertiesState.invasionTroopIndex * 4 + 0xe);
+ if (*(int*)DAT_MissionAestheticsDefinedData
+ .field1231_0x2444[DAT_MapPropertiesState.invasionTroopIndex]
+ != iVar7) {
+ pabVar4 = DAT_MissionAestheticsDefinedData.field1231_0x2444
+ + DAT_MapPropertiesState.invasionTroopIndex;
+ do {
+ pabVar4 = (byte(*)[100])(*pabVar4 + 4);
+ iVar8 = iVar8 + 1;
+ } while (*(int*)*pabVar4 != iVar7);
+ }
+ if (iVar8 + -1 < 0) {
+ pabVar4 = DAT_MissionAestheticsDefinedData.field1231_0x2444
+ + DAT_MapPropertiesState.invasionTroopIndex;
+ iVar8 = 0;
+ do {
+ iVar7 = iVar8;
+ if (*(int*)*pabVar4 == -1) {
+ *pbVar2 = DAT_MissionAestheticsDefinedData.field1231_0x2444
+ [DAT_MapPropertiesState.invasionTroopIndex + -1]
+ [iVar7 * 4 + 0x60];
+ goto LAB_004b98bd;
+ }
+ pabVar4 = (byte(*)[100])(*pabVar4 + 4);
+ iVar8 = iVar7 + 1;
+ } while (iVar7 + 1 < 100);
+ *pbVar2 = DAT_MissionAestheticsDefinedData
+ .field1231_0x2444[DAT_MapPropertiesState.invasionTroopIndex]
+ [iVar7 * 4 + 4];
+ } else {
+ *pbVar2 = DAT_MissionAestheticsDefinedData
+ .field1231_0x2444[DAT_MapPropertiesState.invasionTroopIndex
+ + -1][iVar8 * 4 + 0x60];
+ }
+ }
+ LAB_004b98bd:
+ if (DAT_MissionAestheticsDefinedData
+ .field1230_0x23a4[DAT_MapPropertiesState.invasionTroopIndex]
+ == 2) {
+ pcVar6 = (char*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + DAT_MapPropertiesState.invasionTroopIndex * 4 + 0xe);
+ *pcVar6 = *pcVar6 + -1;
+ if (*(char*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + DAT_MapPropertiesState.invasionTroopIndex * 4 + 0xe)
+ < '\0') {
+ *(undefined1*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + DAT_MapPropertiesState.invasionTroopIndex * 4 + 0xe) = 4;
+ }
+ }
+ }
+ }
+ } else {
+ iVar8 = 0;
+ if (DAT_MissionAestheticsDefinedData
+ .field1230_0x23a4[DAT_MapPropertiesState.invasionTroopIndex]
+ != 0) {
+ if (DAT_MissionAestheticsDefinedData
+ .field1230_0x23a4[DAT_MapPropertiesState.invasionTroopIndex]
+ == 1) {
+ iVar7 = (int)*(char*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + DAT_MapPropertiesState.invasionTroopIndex * 4 + 0xe);
+ if (iVar7 == 0) {
+ *(undefined1*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + DAT_MapPropertiesState.invasionTroopIndex * 4 + 0xe) = 10;
+ iVar7 = 10;
+ }
+ if (*(int*)DAT_MissionAestheticsDefinedData
+ .field1231_0x2444[DAT_MapPropertiesState.invasionTroopIndex]
+ != iVar7) {
+ pabVar4 = DAT_MissionAestheticsDefinedData.field1231_0x2444
+ + DAT_MapPropertiesState.invasionTroopIndex;
+ do {
+ pabVar4 = (byte(*)[100])(*pabVar4 + 4);
+ iVar8 = iVar8 + 1;
+ } while (*(int*)*pabVar4 != iVar7);
+ }
+ if (*(int*)(DAT_MissionAestheticsDefinedData
+ .field1231_0x2444[DAT_MapPropertiesState.invasionTroopIndex]
+ + iVar8 * 4 + 4)
+ == -1) {
+ *(byte*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + DAT_MapPropertiesState.invasionTroopIndex * 4 + 0xe)
+ = DAT_MissionAestheticsDefinedData
+ .field1231_0x2444[DAT_MapPropertiesState.invasionTroopIndex][0];
+ } else {
+ *(byte*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + DAT_MapPropertiesState.invasionTroopIndex * 4 + 0xe)
+ = DAT_MissionAestheticsDefinedData
+ .field1231_0x2444[DAT_MapPropertiesState.invasionTroopIndex]
+ [iVar8 * 4 + 4];
+ }
+ }
+ if (DAT_MissionAestheticsDefinedData
+ .field1230_0x23a4[DAT_MapPropertiesState.invasionTroopIndex]
+ == 2) {
+ pcVar6 = (char*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + DAT_MapPropertiesState.invasionTroopIndex * 4 + 0xe);
+ *pcVar6 = *pcVar6 + '\x01';
+ if ('\x04' < *(char*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + DAT_MapPropertiesState.invasionTroopIndex * 4 + 0xe)) {
+ *(undefined1*)((int)&DAT_MapPropertiesState
+ .scenarioEvents[DAT_MapPropertiesState.currentEventID]
+ .data
+ + DAT_MapPropertiesState.invasionTroopIndex * 4 + 0xe) = 0;
+ return;
+ }
+ }
+ }
+ }
+ } else {
+ switch (param_1) {
+ case 0x1446:
+ case 0x1447:
+ case 0x1448:
+ case 0x1449:
+ case 0x144a:
+ case 0x144b:
+ case 0x144c:
+ case 0x144d:
+ case 0x144e:
+ case 0x144f:
+ case 0x1450:
+ case 0x1451:
+ case 0x1452:
+ case 0x1453:
+ case 0x1454:
+ case 0x1455:
+ case 0x1456:
+ case 0x1457:
+ case 0x1458:
+ case 0x1459:
+ param_1 = param_1 + -0x40;
+ case 0x13f2:
+ case 0x13f3:
+ case 0x13f4:
+ case 0x13f5:
+ case 0x13f6:
+ case 0x13f7:
+ case 0x13f8:
+ case 0x13f9:
+ case 0x13fa:
+ case 0x13fb:
+ case 0x13fc:
+ case 0x13fd:
+ case 0x13fe:
+ case 0x13ff:
+ case 0x1400:
+ case 0x1401:
+ case 0x1402:
+ case 0x1403:
+ case 0x1404:
+ case 0x1405:
+ if ((DAT_MenuModalComposition2.activeModalDialogID == MMT_NONE)
+ && ((DVar5 = timeGetTime(),
+ 1000 < DVar5 - DAT_UnknownTime_01 || (DAT_UnknownTime_01 == 0)))) {
+ DAT_UnknownTime_01 = 0;
+ (&DAT_UnitsState.units[0x9bb]
+ .field_0x3e3)[(DAT_MapPropertiesState.currentEventID * 0x39 + param_1) * 4]
+ = 0;
+ return;
+ }
+ }
+ }
+ return;
+ }
+ }
+}
+}
+

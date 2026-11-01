@@ -1,0 +1,883 @@
+### 0x00579300 updateUnits | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00579300
+ void UnitsState::updateUnits()
+ {
+ int* piVar1;
+ undefined1* puVar2;
+ char* pcVar3;
+ short* psVar4;
+ byte bVar5;
+ UnitTypeShort UVar6;
+ short sVar7;
+ UnitStateShort UVar8;
+ PlayerData* piVar9;
+ uint _unitIDBased8value;
+ uint uVar9;
+ PlayerData* piVar8;
+ int _troopValue;
+ PlayerData* piVar10;
+ dword dVar10;
+ byte* pbVar11;
+ uint uVar12;
+ uint _tick0To64;
+ byte bVar13;
+ uint _rngNumber8;
+ int* _pBlessedAmount;
+ int* _ptr_animationTicker;
+ int _animationTicker;
+ uint _unitID;
+ uint _currentUnitID;
+ int _unitTile;
+ UnitTypeShort _unitType;
+ short _buildingID;
+ BuildingTypeShort _buildingType;
+ UnitLogicStateShort* _logicalState;
+ _rngNumber8 = (int)SEC_RNG::instance.currentNumber2 & 0x8000000f;
+ if ((int)_rngNumber8 < 0) {
+ _rngNumber8 = (_rngNumber8 - 1 | 0xfffffff0) + 1;
+ }
+ fillMemory_ByteValue(
+ 80400, '\0', (void*)((int)(DAT_TileMapState.OccupancyLayer)));
+ DAT_GameState.playerDataArray[0].healerCount = 0;
+ DAT_GameState.playerDataArray[1].healerCount = 0;
+ DAT_GameState.playerDataArray[2].healerCount = 0;
+ DAT_GameState.playerDataArray[3].healerCount = 0;
+ DAT_GameState.playerDataArray[4].healerCount = 0;
+ DAT_GameState.playerDataArray[5].healerCount = 0;
+ DAT_GameState.playerDataArray[6].healerCount = 0;
+ DAT_GameState.playerDataArray[7].healerCount = 0;
+ DAT_GameState.playerDataArray[8].healerCount = 0;
+ this->unitCount = 0;
+ this->maxUnitCount = 0;
+ DAT_CurrentUnitSlotID = 1;
+ do {
+ _currentUnitID = DAT_CurrentUnitSlotID;
+ if (this->units[DAT_CurrentUnitSlotID].logicalState != ULS_INVISIBLE) {
+ this->maxUnitCount = DAT_CurrentUnitSlotID + 1;
+ this->units[DAT_CurrentUnitSlotID].field233_0x39a = 0;
+ this->units[DAT_CurrentUnitSlotID].attackedBy = 0;
+ this->units[DAT_CurrentUnitSlotID].huntedBy = 0;
+ this->units[DAT_CurrentUnitSlotID].field265_0x3dc = 0;
+ this->units[DAT_CurrentUnitSlotID].field43_0x64 = 0;
+ /*
+ This literally does nothing, this variable is not used elsewhere, what the hell?
+ */
+ psVar4 = &this->units[DAT_CurrentUnitSlotID].targetShootRelated;
+ if (this->units[DAT_CurrentUnitSlotID].targetShootRelated != 0) {
+ *psVar4 = *psVar4 + -1;
+ }
+ uVar9 = DAT_CurrentUnitSlotID;
+ if ((this->units[DAT_CurrentUnitSlotID].state.generic
+ == US_DETERMINE_NEXT_STATEUnk)
+ && (_troopValue
+ = isUnitRegisteredOnItsOwnTile(DAT_CurrentUnitSlotID),
+ _troopValue == 0)) {
+ this->lostChimps = this->lostChimps + 1;
+ this->units[DAT_CurrentUnitSlotID].logicalState = ULS_REMOVE;
+ uVar9 = DAT_CurrentUnitSlotID;
+ }
+ _buildingID = this->units[uVar9].owner;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[_buildingID] == -1) {
+ this->units[uVar9].siegeTargetPlayerID
+ = (short)DAT_GameState.playerDataArray[_buildingID].attackedPlayerID;
+ } else {
+ this->units[uVar9].siegeTargetPlayerID = 0;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].blessedAmount == 0) {
+ _currentUnitID = DAT_CurrentUnitSlotID;
+ if (DAT_UnitPropertiesDefinedData
+ .NotBlessableUnits[(short)this->units[DAT_CurrentUnitSlotID].unitType]
+ == 0) {
+ piVar9 = &DAT_GameState.playerDataArray[_buildingID];
+ goto LAB_005794f3;
+ }
+ } else {
+ _pBlessedAmount = &this->units[DAT_CurrentUnitSlotID].blessedAmount;
+ *_pBlessedAmount = *_pBlessedAmount + -1;
+ piVar9 = &DAT_GameState.playerDataArray[_buildingID];
+ LAB_005794f3:
+ _currentUnitID = DAT_CurrentUnitSlotID;
+ piVar9->idlePeasantsCount = piVar9->idlePeasantsCount + 1;
+ }
+ _unitIDBased8value = _currentUnitID & 0x8000000f;
+ if ((int)_unitIDBased8value < 0) {
+ _unitIDBased8value = (_unitIDBased8value - 1 | 0xfffffff0) + 1;
+ }
+ if (_unitIDBased8value == _rngNumber8) {
+ _unitTile = this->units[_currentUnitID].tile;
+ if (((((DAT_TileMapState.PathConnectionLayer[_unitTile] == 0)
+ && ((DAT_TileMapState.LogicLayer[_unitTile] & 0x40000000U) == 0))
+ && (this->units[_currentUnitID].moveRelatedFlag != 1))
+ && ((_buildingID = DAT_TileMapState.BuildingLayer[_unitTile],
+ _buildingID == 0
+ || (((DAT_BuildingsState.buildings[_buildingID].logicalState
+ == BLS_NORMAL
+ && (_buildingType
+ = DAT_BuildingsState.buildings[_buildingID].buildingType,
+ DAT_BuildingDefinedData
+ .BuildingIsGateHouseArray[(short)_buildingType]
+ == 0))
+ && (_buildingType != BT_DRAWBRIDGE))))))
+ && (this->units[_currentUnitID].state.generic
+ != US_DISAPPEAR)) {
+ if (this->units[_currentUnitID].unitType == UT_CHICKEN) {
+ playSFXAtLocation((int)this->units[_currentUnitID].x,
+ this->units[_currentUnitID].y, FX_CHICKEN_FLAP);
+ _currentUnitID = DAT_CurrentUnitSlotID;
+ }
+ if ((999 < (int)(DAT_GameCore.mapTimeInTicks - this->units[_currentUnitID].time))
+ && (_unitType = this->units[_currentUnitID].unitType,
+ _unitType != UT_S_TOWER)) {
+ if (_unitType == UT_LORD) {
+ uVar12 = (uint)this->units[_currentUnitID].targetY_2;
+ uVar9 = (uint)this->units[_currentUnitID].targetX_2;
+ setPositionOfUnit(
+ _currentUnitID, uVar9, uVar12,
+ (undefined4)((int)((uint)
+ * (byte*)(DAT_ViewportRenderState.translationMatrix[uVar12]
+ .addXgetTile
+ + 0x1d32c38 + uVar9))));
+ this->units[DAT_CurrentUnitSlotID].state.generic
+ = US_IDLEUnk;
+ this->units[DAT_CurrentUnitSlotID].destinationNeeded
+ = DNE_DESTINATION_HAS_BEEN_SET;
+ _currentUnitID = DAT_CurrentUnitSlotID;
+ } else {
+ this->units[_currentUnitID].state.generic
+ = US_DISAPPEAR;
+ this->units[DAT_CurrentUnitSlotID].updateTickTracker = 0;
+ _currentUnitID = DAT_CurrentUnitSlotID;
+ }
+ }
+ }
+ UVar6 = this->units[_currentUnitID].unitType;
+ if (((UVar6 == UT_S_CATAPULT)
+ || (UVar6 == UT_S_FBALLISTA))
+ && ((DAT_TileMapState.LogicLayer[this->units[_currentUnitID].tile] & 0x50000000U)
+ != 0)) {
+ this->units[_currentUnitID].state.generic = US_DISAPPEAR;
+ this->units[DAT_CurrentUnitSlotID].updateTickTracker = 0;
+ _currentUnitID = DAT_CurrentUnitSlotID;
+ }
+ }
+ if ((this->units[_currentUnitID].logicalState == ULS_NORMAL)
+ && (((this->units[_currentUnitID].x == 0 || (this->units[_currentUnitID].y == 0))
+ || (this->units[_currentUnitID].tile < 0)))) {
+ this->units[_currentUnitID].state.generic = US_DISAPPEAR;
+ this->units[DAT_CurrentUnitSlotID].updateTickTracker = 0;
+ _currentUnitID = DAT_CurrentUnitSlotID;
+ }
+ }
+ DAT_CurrentUnitSlotID = _currentUnitID + 1;
+ } while ((int)DAT_CurrentUnitSlotID < 2500);
+ DAT_CurrentUnitSlotID = 1;
+ if (1 < (int)this->maxUnitCount) {
+ do {
+ if (this->units[DAT_CurrentUnitSlotID].logicalState
+ != ULS_INVISIBLE) {
+ if (this->units[DAT_CurrentUnitSlotID].state.generic
+ == US_MELEE_ATTACK) {
+ _buildingID = this->units[DAT_CurrentUnitSlotID].attackedUnitID;
+ psVar4 = &this->units[_buildingID].attackedBy;
+ *psVar4 = *psVar4 + 1;
+ if ((int)this->units[_buildingID].attackedUnitID != DAT_CurrentUnitSlotID) {
+ psVar4 = &this->units[DAT_CurrentUnitSlotID].attackedBy;
+ *psVar4 = *psVar4 + 1;
+ }
+ if ((this->units[_buildingID].attackedBy == 1)
+ && (this->units[_buildingID].isStalked == 0)) {
+ DAT_GameCore.cowPoisonTrackerUnk
+ = DAT_GameCore.cowPoisonTrackerUnk + 1;
+ }
+ }
+ _buildingID = this->units[DAT_CurrentUnitSlotID].movementType_OR_targetUnitID;
+ if (_buildingID != 0) {
+ psVar4 = &this->units[_buildingID].huntedBy;
+ *psVar4 = *psVar4 + 1;
+ }
+ _buildingID = this->units[DAT_CurrentUnitSlotID].field266_0x3de;
+ if (_buildingID != 0) {
+ psVar4 = &this->units[_buildingID].field265_0x3dc;
+ *psVar4 = *psVar4 + 1;
+ }
+ psVar4 = &this->units[DAT_CurrentUnitSlotID].field97_0xd0;
+ if (0 < this->units[DAT_CurrentUnitSlotID].field97_0xd0) {
+ *psVar4 = *psVar4 + -1;
+ }
+ }
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1;
+ } while ((int)DAT_CurrentUnitSlotID < (int)this->maxUnitCount);
+ }
+ _tick0To64 = DAT_GameCore.mapTimeInTicks & 0x3f;
+ piVar8 = &DAT_GameState.playerDataArray[1];
+ do {
+ piVar8->totalTroopsType0 = 0;
+ piVar8->idlePeasantsCount = 0;
+ piVar8->totalDefensiveTroopsUnk = 0;
+ piVar8->totalRaidingTroopsUnk = 0;
+ piVar8->totalAttackTroops = 0;
+ piVar8->totalTroopsType6 = 0;
+ piVar8->totalTroopsType7 = 0;
+ piVar8->field852_0x2b58 = 0;
+ piVar8->engineerCountRelated = 0;
+ piVar8->totalAttackingEngineerTroops = 0;
+ piVar8->unknownHarrassingSiegeRelated = 0;
+ piVar8->totalDiggingUnitTroops = 0;
+ piVar8->totalAssassinTroops = 0;
+ piVar8->totalUnit2Troops = 0;
+ piVar8->totalLaddermenTroops = 0;
+ piVar8->totalTunnelerTroops = 0;
+ piVar8->totalUnitPatrolTroops = 0;
+ piVar8->totalUnitBackupTroops = 0;
+ piVar8->totalUnitEngageTroops = 0;
+ piVar8->totalUnitSiegeDefTroops = 0;
+ piVar8->totalMaxDefaultTroops = 0;
+ piVar8->harassingSiegeEnginesCountUnk = 0;
+ if (_tick0To64 == 0) {
+ piVar8->totalTroopValue = 0;
+ }
+ piVar8 = piVar8 + 0xe7d;
+ } while ((int)piVar8 < 0x117f2f8);
+ DAT_CurrentUnitSlotID = 1;
+ if (1 < (int)this->maxUnitCount) {
+ do {
+ if (this->units[DAT_CurrentUnitSlotID].logicalState
+ != ULS_INVISIBLE) {
+ this->unitCount = this->unitCount + 1;
+ if (this->units[DAT_CurrentUnitSlotID].field64_0x90 != 0) {
+ stampOccupancyFlagOnSurroundingTiles(
+ DAT_CurrentUnitSlotID);
+ }
+ uVar9 = DAT_CurrentUnitSlotID;
+ DAT_TileMapState.OccupancyLayer[this->units[DAT_CurrentUnitSlotID].tile]
+ = DAT_TileMapState
+ .OccupancyLayer[this->units[DAT_CurrentUnitSlotID].tile]
+ | this->units[DAT_CurrentUnitSlotID].occupancyOrFlag;
+ piVar10 = &this->unitCountOfSelection + uVar9 * 292 + -9;
+ if (this->units[uVar9].isSelectable_OR_matchTime == 0) {
+ switchD_00579a5d_caseD_3:
+ } else {
+ _buildingID = this->units[uVar9].owner;
+ if ((DAT_GameCore.mapTimeInTicks & 0x3f) == 0) {
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalTroopValue;
+ _troopValue
+ = getValueOfTroopType((int)(short)this->units[uVar9].unitType);
+ *piVar1 = *piVar1 + _troopValue;
+ uVar9 = DAT_CurrentUnitSlotID;
+ if ((char)this->units[DAT_CurrentUnitSlotID].firstNameIndex < '\x01') {
+ /*
+ Every 0x3f ticks, assign names to citizen units
+ */
+ assignNameToUnit(
+ DAT_CurrentUnitSlotID);
+ uVar9 = DAT_CurrentUnitSlotID;
+ }
+ }
+ UVar6 = this->units[uVar9].unitType;
+ if (UVar6 == UT_A_HARCHER) {
+ DAT_TileMapState.SEC_TileMap1104[this->units[uVar9].tile] = '\x06';
+ } else if (UVar6 == UT_A_FIRETHROWER) {
+ writeSixToTileMap1104InAllDirections(
+ uVar9, 6);
+ uVar9 = DAT_CurrentUnitSlotID;
+ }
+ UVar6 = this->units[uVar9].unitType;
+ piVar10 = &this->unitCountOfSelection + uVar9 * 0x124 + -9;
+ if (UVar6 == UT_LORD)
+ goto switchD_00579a5d_caseD_3;
+ sVar7 = this->units[uVar9].aiUnitBehaviourType;
+ if (sVar7 == 10) {
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID]
+ .totalAttackingEngineerTroops;
+ *piVar1 = *piVar1 + 1;
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalAttackTroops;
+ *piVar1 = *piVar1 + 1;
+ goto LAB_00579bff;
+ }
+ if (UVar6 == UT_E_ENGINEER)
+ goto switchD_00579a5d_caseD_3;
+ /*
+ fixme: TODO, review this bit, cannot be true!
+ */
+ switch (sVar7) {
+ case 0:
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalTroopsType0;
+ *piVar1 = *piVar1 + 1;
+ break;
+ case 1:
+ case 4:
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalDefensiveTroopsUnk;
+ *piVar1 = *piVar1 + 1;
+ break;
+ case 2:
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalRaidingTroopsUnk;
+ *piVar1 = *piVar1 + 1;
+ break;
+ default:
+ goto switchD_00579a5d_caseD_3;
+ case 6:
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalTroopsType6;
+ *piVar1 = *piVar1 + 1;
+ break;
+ case 7:
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalTroopsType7;
+ *piVar1 = *piVar1 + 1;
+ break;
+ case 0xb:
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalDiggingUnitTroops;
+ *piVar1 = *piVar1 + 1;
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalAttackTroops;
+ *piVar1 = *piVar1 + 1;
+ break;
+ case 0xc:
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalAssassinTroops;
+ *piVar1 = *piVar1 + 1;
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalAttackTroops;
+ *piVar1 = *piVar1 + 1;
+ break;
+ case 0xd:
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalUnit2Troops;
+ *piVar1 = *piVar1 + 1;
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalAttackTroops;
+ *piVar1 = *piVar1 + 1;
+ break;
+ case 0xe:
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalLaddermenTroops;
+ *piVar1 = *piVar1 + 1;
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalAttackTroops;
+ *piVar1 = *piVar1 + 1;
+ break;
+ case 0xf:
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalTunnelerTroops;
+ *piVar1 = *piVar1 + 1;
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalAttackTroops;
+ *piVar1 = *piVar1 + 1;
+ break;
+ case 0x10:
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalUnitPatrolTroops;
+ *piVar1 = *piVar1 + 1;
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalAttackTroops;
+ *piVar1 = *piVar1 + 1;
+ break;
+ case 0x11:
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalUnitBackupTroops;
+ *piVar1 = *piVar1 + 1;
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalAttackTroops;
+ *piVar1 = *piVar1 + 1;
+ break;
+ case 0x12:
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalUnitEngageTroops;
+ *piVar1 = *piVar1 + 1;
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalAttackTroops;
+ *piVar1 = *piVar1 + 1;
+ break;
+ case 0x13:
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalUnitSiegeDefTroops;
+ *piVar1 = *piVar1 + 1;
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalAttackTroops;
+ *piVar1 = *piVar1 + 1;
+ break;
+ case 0x14:
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalMaxDefaultTroops;
+ *piVar1 = *piVar1 + 1;
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].totalAttackTroops;
+ *piVar1 = *piVar1 + 1;
+ break;
+ case 0x15:
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID]
+ .harassingSiegeEnginesCountUnk;
+ *piVar1 = *piVar1 + 1;
+ }
+ }
+ LAB_00579bff:
+ _buildingID = *(short*)((int)piVar10->aiTribeIDs + 0x102);
+ if ((((_buildingID == 0x16) || (_buildingID == 0x46))
+ && ((_buildingID = (short)piVar10->aiTribeUIDs[0x69],
+ _buildingID == 5 || (_buildingID == 6))))
+ && ((_troopValue = (int)(short)piVar10->aiTribeUIDs[0x8a],
+ 0 < _troopValue
+ && (this->units[_troopValue].uid == *(int*)((int)piVar10->aiTribeIDs + 0x114))))) {
+ this->units[_troopValue].field233_0x39a = 1;
+ uVar9 = DAT_CurrentUnitSlotID;
+ }
+ if ((this->units[uVar9].enemyNoticeFrequencyUnk != 0)
+ && (uVar12 = this->units[uVar9].enemyNoticeFrequencyUnk,
+ (DAT_GameState.mapAndTime.totalGameTicksUnk & uVar12)
+ == (this->units[uVar9].fixedRng & uVar12))) {
+ if (this->units[uVar9].owner == 0) {
+ _troopValue = MACRO_CALL_MEMBER(
+ computeDistanceToNearestEnemyForLegacyMissions,
+ this)(uVar9);
+ this->units[uVar9].closestEnemyMicroDistance = (short)_troopValue;
+ uVar9 = DAT_CurrentUnitSlotID;
+ } else {
+ dVar10 = findNearestEnemyAndHeadTowardsIt(
+ uVar9);
+ this->units[DAT_CurrentUnitSlotID].closestEnemyMicroDistance = (short)dVar10;
+ this->units[DAT_CurrentUnitSlotID].assassinsMicroDistanceToEnemyUnk
+ = this->unitDistanceComputationResultUnk;
+ uVar9 = DAT_CurrentUnitSlotID;
+ }
+ }
+ psVar4 = &this->units[uVar9].lookForEnemy;
+ if (this->units[uVar9].lookForEnemy < 0) {
+ *psVar4 = *psVar4 + 1;
+ } else {
+ *psVar4 = 0;
+ }
+ psVar4 = &this->units[DAT_CurrentUnitSlotID].unknownMovementRelated_0x2d2;
+ if (this->units[DAT_CurrentUnitSlotID].unknownMovementRelated_0x2d2 < 0) {
+ *psVar4 = *psVar4 + 1;
+ }
+ this->units[DAT_CurrentUnitSlotID].SA = 0;
+ if (DAT_TileMapState.refreshRelatedOne != 0) {
+ bVar13 = this->units[DAT_CurrentUnitSlotID].heightDiv10;
+ if (bVar13 != 0) {
+ puVar2 = &this->units[DAT_CurrentUnitSlotID].field_0x83;
+ *puVar2 = *puVar2
+ - *(char*)((int)DAT_UnitPropertiesDefinedData
+ + (DAT_UpdateUnitsTracker - (uint)bVar13) * 4 + 0x11a24);
+ if (100 < (byte)this->units[DAT_CurrentUnitSlotID].field_0x83) {
+ this->units[DAT_CurrentUnitSlotID].field_0x83 = 0;
+ }
+ if ((int)((byte)this->units[DAT_CurrentUnitSlotID].heightDiv10 + 0xd)
+ <= DAT_UpdateUnitsTracker) {
+ this->units[DAT_CurrentUnitSlotID].heightDiv10 = 0;
+ this->units[DAT_CurrentUnitSlotID].field_0x83 = 0;
+ }
+ }
+ }
+ }
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1;
+ } while ((int)DAT_CurrentUnitSlotID < (int)this->maxUnitCount);
+ }
+ recountActiveFires();
+ flagUnitsWithActiveEntity();
+ DAT_CurrentUnitSlotID = 1;
+ if (1 < (int)this->maxUnitCount) {
+ do {
+ _logicalState = &this->units[DAT_CurrentUnitSlotID].logicalState;
+ switch (this->units[DAT_CurrentUnitSlotID].logicalState) {
+ case ULS_INVISIBLE:
+ break;
+ case ((UnitLogicState)1):
+ *_logicalState = ULS_NORMAL;
+ default : goto switchD_00579e2c_caseD_2;
+ case ULS_REMOVE:
+ deleteUnit(
+ DAT_CurrentUnitSlotID);
+ break;
+ case ULS_TRANSITIONING:
+ changeUnitType(
+ DAT_CurrentUnitSlotID);
+ switchD_00579e2c_caseD_2:
+ _ptr_animationTicker = &this->units[DAT_CurrentUnitSlotID].animationTicker;
+ *_ptr_animationTicker = *_ptr_animationTicker + 1;
+ _animationTicker = this->units[DAT_CurrentUnitSlotID].animationTicker;
+ if (this->units[DAT_CurrentUnitSlotID].animationSpeed
+ + this->units[DAT_CurrentUnitSlotID].animationLeapTicksTotal
+ < _animationTicker) {
+ this->units[DAT_CurrentUnitSlotID].animationLeapTicksTotal = _animationTicker;
+ piVar1 = &this->units[DAT_CurrentUnitSlotID].animationCycleNumber;
+ *piVar1 = *piVar1 + 1;
+ this->units[DAT_CurrentUnitSlotID].animationCycleNumberHasJustIncremented = TRUE;
+ uVar9 = DAT_CurrentUnitSlotID;
+ if (999 < this->units[DAT_CurrentUnitSlotID].animationCycleNumber) {
+ this->units[DAT_CurrentUnitSlotID].animationCycleNumber = 0;
+ }
+ } else {
+ this->units[DAT_CurrentUnitSlotID].animationCycleNumberHasJustIncremented = FALSE;
+ uVar9 = DAT_CurrentUnitSlotID;
+ }
+ _buildingID = (short)DAT_TileMapState.mapOrientation;
+ if (this->units[uVar9].field39_0x58 == 0) {
+ if (this->units[uVar9].state.generic != US_MELEE_ATTACK) {
+ _buildingID = this->units[uVar9].facingDirection - _buildingID;
+ goto LAB_00579f48;
+ }
+ this->units[uVar9].facingDirectionMapOrientationCorrected
+ = this->units[uVar9].orientation - _buildingID;
+ } else {
+ _buildingID = (short)DAT_TileMapState.field84_0x5548a4 - _buildingID;
+ LAB_00579f48:
+ this->units[uVar9].facingDirectionMapOrientationCorrected = _buildingID;
+ }
+ psVar4 = &this->units[DAT_CurrentUnitSlotID].facingDirectionMapOrientationCorrected;
+ if (this->units[DAT_CurrentUnitSlotID].facingDirectionMapOrientationCorrected < 0) {
+ *psVar4 = *psVar4 + 8;
+ }
+ uVar9 = DAT_CurrentUnitSlotID;
+ _buildingID = this->units[DAT_CurrentUnitSlotID].owner;
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].countEntities;
+ *piVar1 = *piVar1 + 1;
+ if (DAT_UnitPropertiesDefinedData.COMPUTER_MANAGED[(short)this->units[uVar9].unitType]
+ != 0) {
+ piVar1 = &DAT_GameState.playerDataArray[_buildingID].currentPopulation_2;
+ *piVar1 = *piVar1 + 1;
+ }
+ DAT_UnitHasBecomeIdle = 0;
+ if (((((this->units[uVar9].dying != 0)
+ && (UVar8 = this->units[uVar9].state.generic,
+ UVar8 != US_DISAPPEAR))
+ && (UVar6 = this->units[uVar9].unitType, UVar6 != UT_BURNINGMAN))
+ && ((UVar6 != UT_BURNING_ANIMAL_BIG
+ && (UVar6 != UT_BURNING_ANIMAL_SMALL))))
+ && (((short)UVar8 < 0x6f || (0x75 < (short)UVar8)))) {
+ this->units[uVar9].state.generic = US_DEATH_01;
+ this->units[DAT_CurrentUnitSlotID].animationCycleNumber = 0;
+ uVar9 = DAT_CurrentUnitSlotID;
+ }
+ if (DAT_UnitPropertiesDefinedData
+ .COMPUTER_CONTROLLED[(short)this->units[uVar9].unitType]
+ != 0) {
+ _buildingID = this->units[uVar9].workplaceBuildingID_1;
+ if (DAT_BuildingsState.buildings[_buildingID].uid
+ == this->units[uVar9].workplaceBuildingUID) {
+ if (DAT_BuildingsState.buildings[_buildingID].sleeping != false) {
+ MACRO_CALL_MEMBER(
+ makeUnitStopWalkingByClearingPathProgressState,
+ this)(uVar9);
+ if (7 < this->units[DAT_CurrentUnitSlotID].movementRelated) {
+ this->units[DAT_CurrentUnitSlotID].logicalState
+ = ULS_TRANSITIONING;
+ this->units[DAT_CurrentUnitSlotID].unitTypeToChangeInto
+ = UT_PEASANT;
+ this->units[DAT_CurrentUnitSlotID].state_2 = 0;
+ this->units[DAT_CurrentUnitSlotID].workplaceBuildingID_1 = 0;
+ clearHiddenFlagAndUpdatePosition(DAT_CurrentUnitSlotID);
+ }
+ this->units[DAT_CurrentUnitSlotID].disappearFadeAlphaCountdown = 0;
+ uVar9 = DAT_CurrentUnitSlotID;
+ }
+ } else {
+ MACRO_CALL_MEMBER(
+ makeUnitStopWalkingByClearingPathProgressState,
+ this)(uVar9);
+ uVar9 = DAT_CurrentUnitSlotID;
+ if (7 < this->units[DAT_CurrentUnitSlotID].movementRelated) {
+ this->units[DAT_CurrentUnitSlotID].logicalState
+ = ULS_TRANSITIONING;
+ this->units[DAT_CurrentUnitSlotID].unitTypeToChangeInto
+ = UT_PEASANT;
+ this->units[DAT_CurrentUnitSlotID].state_2 = 0;
+ this->units[DAT_CurrentUnitSlotID].workplaceBuildingID_1 = 0;
+ clearHiddenFlagAndUpdatePosition(
+ DAT_CurrentUnitSlotID);
+ uVar9 = DAT_CurrentUnitSlotID;
+ }
+ }
+ }
+ this->units[uVar9].field131_0x2ac = 0;
+ processMeleeInitiation(
+ DAT_CurrentUnitSlotID);
+ this->units[DAT_CurrentUnitSlotID].field143_0x2c4
+ = (short)this->units[DAT_CurrentUnitSlotID].state;
+ if (this->units[DAT_CurrentUnitSlotID].logicalState
+ != ULS_TRANSITIONING) {
+ /*
+ Update unit state
+ */
+ (*DAT_UnitPropertiesDefinedData.UpdateUnitFunctions
+ [(short)this->units[DAT_CurrentUnitSlotID].unitType])();
+ }
+ uVar9 = DAT_CurrentUnitSlotID;
+ UVar8 = this->units[DAT_CurrentUnitSlotID].field143_0x2c4;
+ if (((UVar8 != this->units[DAT_CurrentUnitSlotID].state.generic)
+ && ((UVar8
+ == (US_DEATH_02
+ | US_STAND_UPUnk
+ | US_RELOAD_WEAPONUnk)
+ || (UVar8 == US_DIG))))
+ && (_troopValue = this->units[DAT_CurrentUnitSlotID].digTileTarget,
+ DAT_TileMapState.moats[_troopValue].owner != '\0')) {
+ pcVar3 = &DAT_TileMapState.moats[_troopValue].someCountDown;
+ *pcVar3 = *pcVar3 + -0x14;
+ }
+ this->units[uVar9].field41_0x5c = 0;
+ if (this->units[DAT_CurrentUnitSlotID].usingTeleport == 0) {
+ piVar1 = &this->units[DAT_CurrentUnitSlotID].field200_0x354;
+ /*
+ Not climbing
+ */
+ *piVar1 = *piVar1 + 1;
+ _troopValue = this->units[DAT_CurrentUnitSlotID].field200_0x354;
+ if ((int)this->units[DAT_CurrentUnitSlotID].calculatedMovementSpeed
+ + (int)this->units[DAT_CurrentUnitSlotID].stateBasedSpeed
+ + (int)this->units[DAT_CurrentUnitSlotID].moveDelay
+ < _troopValue - this->units[DAT_CurrentUnitSlotID].field199_0x350) {
+ this->units[DAT_CurrentUnitSlotID].field199_0x350 = _troopValue;
+ psVar4 = &this->units[DAT_CurrentUnitSlotID].movementRunUpTime;
+ if (this->units[DAT_CurrentUnitSlotID].movementRunUpTime < 1) {
+ *psVar4 = 0;
+ } else {
+ *psVar4 = *psVar4 + -1;
+ }
+ _troopValue = processUnitMove(DAT_CurrentUnitSlotID,
+ this->units[DAT_CurrentUnitSlotID].stateBasedSpeed);
+ if (_troopValue != 0) {
+ if (((this->units[DAT_CurrentUnitSlotID].state.generic
+ == US_MOVE_TO_DESTINATION)
+ && (this->units[DAT_CurrentUnitSlotID].disappearFadeAlphaCountdown
+ != 0))
+ && (this->units[DAT_CurrentUnitSlotID].fadeType == 0)) {
+ this->units[DAT_CurrentUnitSlotID].disappearFadeAlphaCountdown = 0;
+ }
+ psVar4 = &this->units[DAT_CurrentUnitSlotID].field218_0x37e;
+ *psVar4 = *psVar4 + 1;
+ if (0xf < this->units[DAT_CurrentUnitSlotID].field218_0x37e) {
+ this->units[DAT_CurrentUnitSlotID].field218_0x37e = 0;
+ }
+ psVar4 = &this->units[DAT_CurrentUnitSlotID].field217_0x37c;
+ *psVar4 = *psVar4 + 2;
+ if (0xd < this->units[DAT_CurrentUnitSlotID].field217_0x37c) {
+ this->units[DAT_CurrentUnitSlotID].field217_0x37c = 0;
+ }
+ psVar4 = &this->units[DAT_CurrentUnitSlotID].field215_0x378;
+ *psVar4 = *psVar4 + 2;
+ if (0xf < this->units[DAT_CurrentUnitSlotID].field215_0x378) {
+ this->units[DAT_CurrentUnitSlotID].field215_0x378 = 0;
+ }
+ psVar4 = &this->units[DAT_CurrentUnitSlotID].field254_0x3c6;
+ *psVar4 = *psVar4 + 1;
+ if (0x11 < this->units[DAT_CurrentUnitSlotID].field254_0x3c6) {
+ this->units[DAT_CurrentUnitSlotID].field254_0x3c6 = 0;
+ }
+ psVar4 = &this->units[DAT_CurrentUnitSlotID].field312_0x428;
+ *psVar4 = *psVar4 + 1;
+ if (0x17 < this->units[DAT_CurrentUnitSlotID].field312_0x428) {
+ this->units[DAT_CurrentUnitSlotID].field312_0x428 = 0;
+ }
+ }
+ psVar4 = &this->units[DAT_CurrentUnitSlotID].field216_0x37a;
+ *psVar4 = *psVar4 + 1;
+ if (0xb < this->units[DAT_CurrentUnitSlotID].field216_0x37a) {
+ this->units[DAT_CurrentUnitSlotID].field216_0x37a = 0;
+ }
+ calculateUnitMovementSpeed(DAT_CurrentUnitSlotID);
+ }
+ } else {
+ /*
+ Climbing
+ */
+ unitClimbing(
+ DAT_CurrentUnitSlotID);
+ }
+ recomputeUnitStandingHeight(
+ DAT_CurrentUnitSlotID);
+ switch (this->units[DAT_CurrentUnitSlotID].field_0x30_animRelated) {
+ case 8:
+ this->units[DAT_CurrentUnitSlotID].gfxNumber
+ = (int)this->units[DAT_CurrentUnitSlotID]
+ .facingDirectionMapOrientationCorrected
+ + this->units[DAT_CurrentUnitSlotID].animationSheetFrameOffset;
+ piVar1 = &this->units[DAT_CurrentUnitSlotID].gfxNumber;
+ *piVar1 = *piVar1 + this->units[DAT_CurrentUnitSlotID].field215_0x378 * 8;
+ if (((this->units[DAT_CurrentUnitSlotID].unitType
+ == UT_A_HARCHER)
+ && (_buildingID
+ = this->units[DAT_CurrentUnitSlotID].horseArcherShootingVariation,
+ _buildingID != 4))
+ && ((_buildingID != 5 && (_buildingID != 6)))) {
+ this->units[DAT_CurrentUnitSlotID].imageIDUnk
+ = this->units[DAT_CurrentUnitSlotID].gfxNumber;
+ }
+ break;
+ case 9:
+ this->units[DAT_CurrentUnitSlotID].gfxNumber
+ = (int)this->units[DAT_CurrentUnitSlotID]
+ .facingDirectionMapOrientationCorrected
+ + this->units[DAT_CurrentUnitSlotID].animationSheetFrameOffset;
+ piVar1 = &this->units[DAT_CurrentUnitSlotID].gfxNumber;
+ *piVar1 = *piVar1 + (this->units[DAT_CurrentUnitSlotID].field215_0x378 * 8) / 2;
+ break;
+ case 0xc:
+ this->units[DAT_CurrentUnitSlotID].gfxNumber
+ = (int)this->units[DAT_CurrentUnitSlotID]
+ .facingDirectionMapOrientationCorrected
+ + this->units[DAT_CurrentUnitSlotID].animationSheetFrameOffset;
+ piVar1 = &this->units[DAT_CurrentUnitSlotID].gfxNumber;
+ *piVar1 = *piVar1 + this->units[DAT_CurrentUnitSlotID].field216_0x37a * 8;
+ break;
+ case 0xe:
+ this->units[DAT_CurrentUnitSlotID].gfxNumber
+ = (int)this->units[DAT_CurrentUnitSlotID]
+ .facingDirectionMapOrientationCorrected
+ + this->units[DAT_CurrentUnitSlotID].animationSheetFrameOffset;
+ piVar1 = &this->units[DAT_CurrentUnitSlotID].gfxNumber;
+ *piVar1 = *piVar1 + this->units[DAT_CurrentUnitSlotID].field217_0x37c * 8;
+ break;
+ case 0x10:
+ this->units[DAT_CurrentUnitSlotID].gfxNumber
+ = (int)this->units[DAT_CurrentUnitSlotID]
+ .facingDirectionMapOrientationCorrected
+ + this->units[DAT_CurrentUnitSlotID].animationSheetFrameOffset;
+ piVar1 = &this->units[DAT_CurrentUnitSlotID].gfxNumber;
+ *piVar1 = *piVar1 + this->units[DAT_CurrentUnitSlotID].field218_0x37e * 8;
+ if (this->units[DAT_CurrentUnitSlotID].unitType
+ == UT_A_HARCHER) {
+ this->units[DAT_CurrentUnitSlotID].imageIDUnk
+ = this->units[DAT_CurrentUnitSlotID].gfxNumber;
+ }
+ if (this->units[DAT_CurrentUnitSlotID].unitType
+ == UT_E_KNIGHT) {
+ this->units[DAT_CurrentUnitSlotID].imageIDUnk
+ = this->units[DAT_CurrentUnitSlotID].gfxNumber;
+ if ((DAT_CurrentUnitSlotID & 1) == 0) {
+ if (((this->units[DAT_CurrentUnitSlotID].stateBasedSpeed != 0)
+ && ((this->units[DAT_CurrentUnitSlotID]
+ .movementType_OR_targetUnitID
+ != 0
+ || (this->units[DAT_CurrentUnitSlotID].targetingType
+ == UIT_UNIT_ATTACK_UNIT))))
+ && (this->units[DAT_CurrentUnitSlotID].totalSizeOfPathPlan + -0x10
+ <= (int)this->units[DAT_CurrentUnitSlotID]
+ .currentIndexInPathPlan)) {
+ piVar1 = &this->units[DAT_CurrentUnitSlotID].imageIDUnk;
+ *piVar1 = *piVar1 + 0x80;
+ }
+ } else {
+ piVar1 = &this->units[DAT_CurrentUnitSlotID].imageIDUnk;
+ *piVar1 = *piVar1 + 0x270;
+ }
+ }
+ break;
+ case 0x11:
+ this->units[DAT_CurrentUnitSlotID].gfxNumber
+ = this->units[DAT_CurrentUnitSlotID].facingDirectionMapOrientationCorrected
+ * 0x10
+ + this->units[DAT_CurrentUnitSlotID].animationSheetFrameOffset;
+ piVar1 = &this->units[DAT_CurrentUnitSlotID].gfxNumber;
+ *piVar1 = *piVar1 + (int)this->units[DAT_CurrentUnitSlotID].field218_0x37e;
+ break;
+ case 0x12:
+ this->units[DAT_CurrentUnitSlotID].gfxNumber
+ = (int)this->units[DAT_CurrentUnitSlotID]
+ .facingDirectionMapOrientationCorrected
+ + this->units[DAT_CurrentUnitSlotID].animationSheetFrameOffset;
+ piVar1 = &this->units[DAT_CurrentUnitSlotID].gfxNumber;
+ *piVar1 = *piVar1 + this->units[DAT_CurrentUnitSlotID].field254_0x3c6 * 8;
+ break;
+ case 0x13:
+ this->units[DAT_CurrentUnitSlotID].imageIDUnk
+ = (int)this->units[DAT_CurrentUnitSlotID]
+ .facingDirectionMapOrientationCorrected
+ + this->units[DAT_CurrentUnitSlotID].animationSheetFrameOffset;
+ goto LAB_0057a907;
+ case 0x14:
+ this->units[DAT_CurrentUnitSlotID].imageIDUnk
+ = (int)this->units[DAT_CurrentUnitSlotID]
+ .facingDirectionMapOrientationCorrected
+ + this->units[DAT_CurrentUnitSlotID].animationSheetFrameOffset;
+ LAB_0057a907:
+ piVar1 = &this->units[DAT_CurrentUnitSlotID].imageIDUnk;
+ *piVar1
+ = *piVar1 + ((int)this->units[DAT_CurrentUnitSlotID].field215_0x378 / 2) * 8;
+ break;
+ case 0x15:
+ this->units[DAT_CurrentUnitSlotID].gfxNumber
+ = (int)this->units[DAT_CurrentUnitSlotID]
+ .facingDirectionMapOrientationCorrected
+ + this->units[DAT_CurrentUnitSlotID].animationSheetFrameOffset;
+ piVar1 = &this->units[DAT_CurrentUnitSlotID].gfxNumber;
+ *piVar1 = *piVar1 + this->units[DAT_CurrentUnitSlotID].field218_0x37e * 8;
+ _troopValue
+ = this->units[DAT_CurrentUnitSlotID].facingDirectionMapOrientationCorrected
+ + 0x80 + this->units[DAT_CurrentUnitSlotID].animationSheetFrameOffset;
+ goto LAB_0057a7de;
+ case 0x16:
+ uVar9 = (int)this->units[DAT_CurrentUnitSlotID]
+ .facingDirectionMapOrientationCorrected
+ + 4U
+ & 0x80000007;
+ if ((int)uVar9 < 0) {
+ uVar9 = (uVar9 - 1 | 0xfffffff8) + 1;
+ }
+ this->units[DAT_CurrentUnitSlotID].gfxNumber = uVar9 + 0x151;
+ piVar1 = &this->units[DAT_CurrentUnitSlotID].gfxNumber;
+ *piVar1
+ = *piVar1 + ((byte)this->units[DAT_CurrentUnitSlotID].field218_0x37e & 3) * 8;
+ uVar9 = (int)this->units[DAT_CurrentUnitSlotID]
+ .facingDirectionMapOrientationCorrected
+ + 4U
+ & 0x80000007;
+ if ((int)uVar9 < 0) {
+ uVar9 = (uVar9 - 1 | 0xfffffff8) + 1;
+ }
+ _troopValue = uVar9 + 0x1d1;
+ LAB_0057a7de:
+ this->units[DAT_CurrentUnitSlotID].imageIDUnk = _troopValue;
+ piVar1 = &this->units[DAT_CurrentUnitSlotID].imageIDUnk;
+ *piVar1 = *piVar1 + this->units[DAT_CurrentUnitSlotID].field218_0x37e * 8;
+ break;
+ case 0x18:
+ this->units[DAT_CurrentUnitSlotID].gfxNumber
+ = (int)this->units[DAT_CurrentUnitSlotID]
+ .facingDirectionMapOrientationCorrected
+ + this->units[DAT_CurrentUnitSlotID].animationSheetFrameOffset;
+ piVar1 = &this->units[DAT_CurrentUnitSlotID].gfxNumber;
+ *piVar1 = *piVar1 + this->units[DAT_CurrentUnitSlotID].field312_0x428 * 8;
+ break;
+ case 99:
+ this->units[DAT_CurrentUnitSlotID].imageID2
+ = (int)this->units[DAT_CurrentUnitSlotID]
+ .facingDirectionMapOrientationCorrected
+ + this->units[DAT_CurrentUnitSlotID].animationSheetFrameOffset;
+ piVar1 = &this->units[DAT_CurrentUnitSlotID].imageID2;
+ *piVar1
+ = *piVar1 + ((int)this->units[DAT_CurrentUnitSlotID].field215_0x378 / 2) * 8;
+ }
+ psVar4 = &this->units[DAT_CurrentUnitSlotID].unitSpeedMatchingRelatedUnk;
+ if (this->units[DAT_CurrentUnitSlotID].unitSpeedMatchingRelatedUnk != 0) {
+ *psVar4 = *psVar4 + -1;
+ }
+ bVar13 = this->units[DAT_CurrentUnitSlotID].fadeType;
+ if (bVar13 != 0) {
+ if (bVar13 == 1) {
+ this->units[DAT_CurrentUnitSlotID].disappearFadeAlphaCountdown
+ = (byte)DAT_UnitPropertiesDefinedData.FadeAlpha_Values_1_2
+ [(char)this->units[DAT_CurrentUnitSlotID].fadeCounter];
+ } else {
+ if (bVar13 == 2) {
+ bVar13 = (byte)DAT_UnitPropertiesDefinedData.FadeAlpha_Values_1_2
+ [(char)this->units[DAT_CurrentUnitSlotID].fadeCounter];
+ } else {
+ bVar5 = this->units[DAT_CurrentUnitSlotID].fadeCounter;
+ if (bVar13 == 3) {
+ bVar13 = (byte)DAT_UnitPropertiesDefinedData
+ .FadeAlpha_Values_3[(char)bVar5];
+ } else {
+ bVar13 = (byte)DAT_UnitPropertiesDefinedData
+ .FadeAlpha_Values_4[(char)bVar5];
+ }
+ }
+ this->units[DAT_CurrentUnitSlotID].disappearFadeAlphaCountdown = bVar13;
+ }
+ pbVar11 = &this->units[DAT_CurrentUnitSlotID].fadeCounter;
+ *pbVar11 = *pbVar11 + 1;
+ if ((char)this->units[DAT_CurrentUnitSlotID].disappearFadeAlphaCountdown
+ < '\x01') {
+ this->units[DAT_CurrentUnitSlotID].fadeType = 0;
+ this->units[DAT_CurrentUnitSlotID].fadeCounter = 0;
+ }
+ }
+ break;
+ case ((UnitLogicState)5):
+ *_logicalState = ((UnitLogicState)1);
+ }
+ DAT_CurrentUnitSlotID = DAT_CurrentUnitSlotID + 1;
+ } while ((int)DAT_CurrentUnitSlotID < (int)this->maxUnitCount);
+ }
+ if (DAT_TileMapState.refreshRelatedOne == 0) {
+ DAT_UpdateUnitsTracker = 0;
+ return;
+ }
+ DAT_UpdateUnitsTracker = DAT_UpdateUnitsTracker + 1;
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00579300", "name": "updateUnits", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Der Einheiten-Takt: Pro Spieltick werden alle Einheiten neu gezählt, geprüft und einzeln weitergeschaltet."}, "p2": {"ein": "- (this = UnitsState)", "aus": "-", "liest": ["units[1..2499] (logicalState, state, unitType, owner, tile, x, y, time, aiUnitBehaviourType, dying, blessedAmount)", "DAT_GameCore.mapTimeInTicks", "SEC_RNG.currentNumber2", "TileMapState.PathConnectionLayer/LogicLayer/BuildingLayer", "UnitPropertiesDefinedData.NotBlessableUnits/COMPUTER_MANAGED/COMPUTER_CONTROLLED/UpdateUnitFunctions"], "schreibt": ["TileMapState.OccupancyLayer (80400 Bytes zuerst gelöscht, dann pro Einheit gesetzt)", "units[].attackedBy/huntedBy/logicalState/state/animationTicker/gfxNumber", "this.unitCount/maxUnitCount/lostChimps", "playerDataArray[sp].healerCount/idlePeasantsCount/totalTroopValue/countEntities/currentPopulation_2", "playerDataArray[sp].totalAttackTroops/totalAssassinTroops/totalLaddermenTroops/totalTunnelerTroops u.a. Zähler", "DAT_UpdateUnitsTracker"], "ruft": ["isUnitRegisteredOnItsOwnTile", "setPositionOfUnit", "stampOccupancyFlagOnSurroundingTiles", "getValueOfTroopType", "assignNameToUnit", "computeDistanceToNearestEnemyForLegacyMissions", "findNearestEnemyAndHeadTowardsIt", "recountActiveFires", "flagUnitsWithActiveEntity", "deleteUnit", "changeUnitType", "processMeleeInitiation", "UpdateUnitFunctions[unitType]", "processUnitMove", "calculateUnitMovementSpeed", "unitClimbing", "recomputeUnitStandingHeight", "makeUnitStopWalkingByClearingPathProgressState"], "regeln": ["Vorlauf: Belegungskarte und healerCount aller 9 Spieler auf 0; Durchlauf über Einheitennummer 1 bis 2499 (Zeiger maxUnitCount = höchste belegte Nummer + 1)", "Durchlauf 1 je Einheit: attackedBy, huntedBy und weitere Zähler auf 0; steht eine Einheit im Zustand US_DETERMINE_NEXT_STATEUnk ohne Eintrag auf ihrem Feld, zählt lostChimps hoch und sie wird zum Entfernen markiert (ULS_REMOVE)", "Je Einheit nur jeder 16. Nummer pro Tick (Nummer mod 16 = Zufallszahl mod 16): Steht sie auf einem Feld ohne Wegverbindung (PathConnectionLayer 0, LogicLayer-Bit 0x40000000 nicht gesetzt, nicht auf Tor/Zugbrücke) und seit über 999 Ticks (time) unverändert, verschwindet sie (US_DISAPPEAR); ein Lord wird stattdessen auf targetX_2/targetY_2 gesetzt und ist untätig; UT_S_TOWER ist ausgenommen", "Katapult und Feuerballiste auf einem Feld mit LogicLayer-Bit 0x50000000 verschwinden; jede normale Einheit mit x=0, y=0 oder tile<0 verschwindet", "Durchlauf 2: Nahkämpfer erhöhen attackedBy bei sich und beim Ziel; Verfolger erhöhen huntedBy des Ziels (movementType_OR_targetUnitID); cowPoisonTrackerUnk +1, wenn das Ziel erstmals angegriffen wird und nicht verfolgt (isStalked) ist", "Durchlauf 3: Zähler der Spieler 1 bis 8 (Truppen je aiUnitBehaviourType, totalAttackTroops) auf 0, totalTroopValue nur wenn (Tick und 0x3f)=0, also alle 64 Ticks; danach zählt jede Einheit mit isSelectable_OR_matchTime ungleich 0 in ihren Behaviour-Zähler, Lord und Ingenieur nicht", "Behaviour-Zahlen: 0 Type0; 1 und 4 defensiv; 2 Raid; 6; 7; 21 (0x15) Belagerungs-Belästiger; 10 (0xa) Ingenieur-Angriff, 11 bis 20 (0xb bis 0x14): Graben, Assassine (12), Unit2, Leiterträger (14), Tunnelgräber (15), Patrouille, Rückhalt, Einsatz, Belagerungsverteidigung, MaxDefault zählen zusätzlich in totalAttackTroops (alle außer 0, 1, 2, 4, 6, 7, 21)", "Alle 64 Ticks: totalTroopValue += getValueOfTroopType; Einheiten ohne Namen (firstNameIndex<1) bekommen einen", "Feindsuche je Einheit nach enemyNoticeFrequencyUnk-Maske: Besitzer 0 nutzt computeDistanceToNearestEnemyForLegacyMissions, alle anderen findNearestEnemyAndHeadTowardsIt (setzt closestEnemyMicroDistance)", "Durchlauf 4 je Einheit nach logicalState: INVISIBLE übersprungen, REMOVE löscht, TRANSITIONING ruft changeUnitType, Zustand 5 wird zu 1; sonst: Animation weiterschalten, countEntities+1, bei COMPUTER_MANAGED currentPopulation_2+1, Sterbende (dying) wechseln nach US_DEATH_01 außer in Zustand 0x6f bis 0x75, burning-Typen und US_DISAPPEAR", "COMPUTER_CONTROLLED-Einheiten werden zu UT_PEASANT, wenn ihr Arbeitsgebäude schläft (sleeping) oder nicht mehr dieselbe uid hat und movementRelated>7", "Danach processMeleeInitiation, UpdateUnitFunctions[unitType] (außer bei Umwandlung), Bewegung über processUnitMove, wenn calculatedMovementSpeed+stateBasedSpeed+moveDelay kleiner als field200_0x354-field199_0x350; mit usingTeleport statt dessen unitClimbing; zuletzt Bildnummer (gfxNumber) je field_0x30_animRelated und Ausblenden (fadeType)", "Schluss: DAT_UpdateUnitsTracker = 0 wenn refreshRelatedOne=0, sonst +1"], "offen": ["Feldnamen Unk/field... und die Behaviour-Zahlen (z. B. 0, 6, 7) sind ungesichert; Ghidra vermerkt selbst, die Zählerstelle könne nicht stimmen", "idlePeasantsCount wird in Durchlauf 1 erhöht, danach vor Durchlauf 3 wieder auf 0 gesetzt: der Zweck ist unklar, der Wert dort wirkungslos", "Ob nur Einheiten mit isSelectable_OR_matchTime ungleich 0 gezählt werden, ist wegen der Ghidra-Sprünge nur vermutlich so", "Spielergrenzen der Zähler-Schleife (Ende 0x117f2f8) nicht eindeutig, vermutlich Spieler 1 bis 8"]}, "p3": {"erklaerung": "Das ist der Herzschlag aller Figuren im Spiel: Jeden Tick werden Truppen je Spieler neu gezählt, festhängende Einheiten entfernt, Sterbende abgeräumt und jede Einheit einen Schritt bewegt.", "gehirn": "Die Zähler playerData.totalAttackTroops, totalAssassinTroops, totalLaddermenTroops, totalTunnelerTroops usw. sind frisch gezählt und direkt lesbar, nützlich für Angriffs- und Raid-Erkennung. Einheiten auf unerreichbaren Feldern verschwinden nach rund 1000 Ticks (Lord wird zurückgesetzt).", "beleg": "code", "live": "Gegnerische Assassinen schicken → playerDataArray[sp].totalAssassinTroops und totalAttackTroops → beide steigen um die Zahl der Assassinen und fallen auf 0, wenn sie tot sind", "live_art": "kampf"}}
+

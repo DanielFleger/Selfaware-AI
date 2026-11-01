@@ -1,0 +1,1093 @@
+### 0x004cba50 planToBuyWhenLowOnResourceAndSnoozeBuildings | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CBA50
+ void AICState::planToBuyWhenLowOnResourceAndSnoozeBuildings(int playerID)
+ {
+ int _buildingBurning;
+ int _offset;
+ int _currentWood;
+ int _noWood;
+ int _currentPopulation;
+ int* _pResourceCounter;
+ int _hasArmoyUnk;
+ int* _pNoBeerCounter;
+ int* _pNoHopsTracker;
+ int* _pNoFlourTracker;
+ int* _pNoIronTracker;
+ bool _enoughFood;
+ bool _enoughGold;
+ bool _enoughPeopleUnk;
+ int _nerves;
+ int _noBeerCounterUnk;
+ int _noFlourCounterUnk;
+ int _noHopsCounterUnk;
+ int _noIronCounterUnk;
+ bool _noNerves;
+ int* _pNoWoodTracker;
+ int _resourceCounter;
+ _offset = playerID * 0x39f4;
+ if (DAT_GameState.playerDataArray[playerID].aiType != AIT_NULL) {
+ _enoughPeopleUnk = true;
+ _enoughFood = true;
+ _enoughGold = true;
+ _buildingBurning = playerHasBurningBuilding(playerID);
+ _currentWood = DAT_GameState.playerDataArray[playerID].currentResources[2];
+ if (_currentWood < 1) {
+ _pNoWoodTracker = &DAT_GameState.playerDataArray[playerID].noWoodTracker;
+ *_pNoWoodTracker = *_pNoWoodTracker + 1;
+ } else {
+ DAT_GameState.playerDataArray[playerID].noWoodTracker = 0;
+ }
+ if (DAT_GameState.playerDataArray[playerID].currentResources[6] < 1) {
+ _pNoIronTracker = &DAT_GameState.playerDataArray[playerID].noIronTracker;
+ *_pNoIronTracker = *_pNoIronTracker + 1;
+ } else {
+ DAT_GameState.playerDataArray[playerID].noIronTracker = 0;
+ }
+ if (DAT_GameState.playerDataArray[playerID].currentResources[0x10] < 1) {
+ _pNoFlourTracker = &DAT_GameState.playerDataArray[playerID].noFlourTracker;
+ *_pNoFlourTracker = *_pNoFlourTracker + 1;
+ } else {
+ DAT_GameState.playerDataArray[playerID].noFlourTracker = 0;
+ }
+ if (DAT_GameState.playerDataArray[playerID].currentResources[3] < 1) {
+ _pNoHopsTracker = &DAT_GameState.playerDataArray[playerID].noHopsTracker;
+ *_pNoHopsTracker = *_pNoHopsTracker + 1;
+ } else {
+ DAT_GameState.playerDataArray[playerID].noHopsTracker = 0;
+ }
+ if (DAT_GameState.playerDataArray[playerID].currentResources[0xe] < 1) {
+ _pNoBeerCounter = &DAT_GameState.playerDataArray[playerID].noBeerCounterUnk;
+ *_pNoBeerCounter = *_pNoBeerCounter + 1;
+ } else {
+ DAT_GameState.playerDataArray[playerID].noBeerCounterUnk = 0;
+ }
+ _pResourceCounter = &DAT_GameState.playerDataArray[playerID].someResourceCounter;
+ *_pResourceCounter = *_pResourceCounter + 1;
+ if (DAT_GameState.playerDataArray[playerID].countFletchersPoleturners < 1) {
+ DAT_GameState.playerDataArray[playerID].noWoodTracker = 0;
+ }
+ if (DAT_GameState.playerDataArray[playerID].countArmorersAndBlacksmiths < 1) {
+ DAT_GameState.playerDataArray[playerID].noIronTracker = 0;
+ }
+ if (DAT_GameState.playerDataArray[playerID].countBakers < 1) {
+ DAT_GameState.playerDataArray[playerID].noFlourTracker = 0;
+ }
+ if (DAT_GameState.playerDataArray[playerID].countBrewers < 1) {
+ DAT_GameState.playerDataArray[playerID].noHopsTracker = 0;
+ }
+ _currentPopulation = DAT_GameState.playerDataArray[playerID].currentPopulation;
+ if ((_currentPopulation < 10)
+ && ((DAT_GameState.playerDataArray[playerID].farmsWithoutWorkers != 0
+ || (2 < DAT_GameState.playerDataArray[playerID].countWoodcutters)))) {
+ _enoughPeopleUnk = false;
+ }
+ if ((((20 < _currentWood) && (_currentPopulation < 10))
+ && (DAT_GameState.playerDataArray[playerID].farmsWithoutWorkers != 0))
+ && (DAT_GameState.playerDataArray[playerID].totalFood < 8)) {
+ _enoughFood = false;
+ }
+ if (((_buildingBurning == 0)
+ && (DAT_GameState.playerDataArray[playerID].countFarms
+ <= DAT_GameState.playerDataArray[playerID].farmsWithoutWorkers))
+ && (DAT_GameState.playerDataArray[playerID].currentResources[0xf] < 500)) {
+ _enoughGold = false;
+ }
+ _hasArmoyUnk = DAT_GameState.playerDataArray[playerID].armory.id;
+ _noWood = DAT_GameState.playerDataArray[playerID].noWoodTracker;
+ _noIronCounterUnk = DAT_GameState.playerDataArray[playerID].noIronTracker;
+ _resourceCounter = DAT_GameState.playerDataArray[playerID].someResourceCounter;
+ _noFlourCounterUnk = DAT_GameState.playerDataArray[playerID].noFlourTracker;
+ _noHopsCounterUnk = DAT_GameState.playerDataArray[playerID].noHopsTracker;
+ _noBeerCounterUnk = DAT_GameState.playerDataArray[playerID].noBeerCounterUnk;
+ _nerves = DAT_GameState.playerDataArray[playerID].aiNervousActionsTracker;
+ _noNerves = _nerves < 1;
+ if (!_noNerves) {
+ _enoughPeopleUnk = false;
+ _enoughFood = false;
+ }
+ if (_enoughGold) {
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[27] = false;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[0x46] = false;
+ } else {
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[0x1b] = true;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[0x46] = true;
+ }
+ if (_enoughPeopleUnk) {
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[20] = false;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[4] = false;
+ } else {
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[0x14] = true;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[4] = true;
+ }
+ *(bool*)(_offset + 0x115df8f) = !_enoughFood;
+ *(bool*)(_offset + 0x115df91) = !_noNerves;
+ *(bool*)(_offset + 0x115df92) = !_noNerves;
+ *(bool*)(_offset + 0x115df98) = _nerves < 1 && (36 < _noWood || _hasArmoyUnk == 0);
+ *(bool*)(_offset + 0x115df9a) = _nerves < 1 && (36 < _noWood || _hasArmoyUnk == 0);
+ *(bool*)(_offset + 0x115df99) = _noNerves && (0x24 < _noIronCounterUnk || _hasArmoyUnk == 0);
+ *(bool*)(_offset + 0x115df9b) = _noNerves && (0x24 < _noIronCounterUnk || _hasArmoyUnk == 0);
+ *(bool*)(_offset + 0x115df9c) = _noNerves && (0x24 < _resourceCounter || _hasArmoyUnk == 0);
+ *(bool*)(_offset + 0x115df9d) = !_noNerves || 0x24 < _noFlourCounterUnk;
+ *(bool*)(_offset + 0x115df9e) = !_noNerves || 0x48 < _noHopsCounterUnk;
+ *(bool*)(_offset + 0x115dfa2) = !_noNerves || 0x48 < _noBeerCounterUnk;
+ if (_noNerves) {
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[0x1e] = false;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[0x1f] = false;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[0x20] = false;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[0x21] = false;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[7] = false;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[34] = false;
+ } else {
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[0x1e] = true;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[0x1f] = true;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[0x20] = true;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[0x21] = true;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[7] = true;
+ DAT_GameState.playerDataArray[playerID].snoozedBuildings[0x22] = true;
+ }
+ if (DAT_GameState.playerDataArray[playerID].canStartSpending != 0) {
+ if ((36 < DAT_GameState.playerDataArray[playerID].noWoodTracker)
+ && (DAT_GameState.playerDataArray[playerID].resourcesToAcquireArray[2] == 0)) {
+ DAT_GameState.playerDataArray[playerID].resourcesToAcquireArray[2] = 5;
+ }
+ if ((36 < DAT_GameState.playerDataArray[playerID].noIronTracker)
+ && (DAT_GameState.playerDataArray[playerID].resourcesToAcquireArray[6] == 0)) {
+ DAT_GameState.playerDataArray[playerID].resourcesToAcquireArray[6] = 2;
+ }
+ if ((36 < DAT_GameState.playerDataArray[playerID].noFlourTracker)
+ && (DAT_GameState.playerDataArray[playerID].resourcesToAcquireArray[0x10] == 0)) {
+ DAT_GameState.playerDataArray[playerID].resourcesToAcquireArray[0x10] = 2;
+ }
+ if ((72 < DAT_GameState.playerDataArray[playerID].noHopsTracker)
+ && (DAT_GameState.playerDataArray[playerID].resourcesToAcquireArray[3] == 0)) {
+ DAT_GameState.playerDataArray[playerID].resourcesToAcquireArray[3] = 2;
+ }
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x004cbe30 setupWorkshopProductionType | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CBE30
+ void AICState::setupWorkshopProductionType(int playerID, int buildingID)
+ {
+ if (DAT_GameState.playerDataArray[playerID].aiType == AIT_NULL) {
+ return;
+ }
+ int const aicIndex = DAT_GameState.playerDataArray[playerID].aiType - 1;
+ if (DAT_BuildingsState.buildings[buildingID].buildingType == Map::Buildings::BT_BLACKSMITH) {
+ int setting = this->aics[aicIndex].blacksmithSetting;
+ if (setting == -999) {
+ int itemType = chooseProductionItemType(
+ DAT_BuildingsState.buildings[buildingID].owner, Map::Buildings::BT_BLACKSMITH);
+ DAT_BuildingsState.buildings[buildingID].producedItemType = (ResourceTypeShort)itemType;
+ DAT_BuildingsState.buildings[buildingID].producedItemTypeNext = (ResourceTypeShort)itemType;
+ return;
+ }
+ if (setting == Game::Resources::RT_SWORD) {
+ DAT_BuildingsState.buildings[buildingID].producedItemType = Game::Resources::RT_SWORD;
+ DAT_BuildingsState.buildings[buildingID].producedItemTypeNext = Game::Resources::RT_SWORD;
+ return;
+ }
+ DAT_BuildingsState.buildings[buildingID].producedItemType = Game::Resources::RT_MACE;
+ DAT_BuildingsState.buildings[buildingID].producedItemTypeNext = Game::Resources::RT_MACE;
+ return;
+ }
+ if (DAT_BuildingsState.buildings[buildingID].buildingType == Map::Buildings::BT_POLETURNER) {
+ int setting = this->aics[aicIndex].poleturnerSetting;
+ if (setting == -999) {
+ int itemType = chooseProductionItemType(
+ DAT_BuildingsState.buildings[buildingID].owner, Map::Buildings::BT_POLETURNER);
+ DAT_BuildingsState.buildings[buildingID].producedItemType = (ResourceTypeShort)itemType;
+ DAT_BuildingsState.buildings[buildingID].producedItemTypeNext = (ResourceTypeShort)itemType;
+ return;
+ }
+ if (setting == Game::Resources::RT_SPEAR) {
+ DAT_BuildingsState.buildings[buildingID].producedItemType = Game::Resources::RT_SPEAR;
+ DAT_BuildingsState.buildings[buildingID].producedItemTypeNext = Game::Resources::RT_SPEAR;
+ return;
+ }
+ DAT_BuildingsState.buildings[buildingID].producedItemType = Game::Resources::RT_PIKE;
+ DAT_BuildingsState.buildings[buildingID].producedItemTypeNext = Game::Resources::RT_PIKE;
+ return;
+ }
+ if (DAT_BuildingsState.buildings[buildingID].buildingType == Map::Buildings::BT_FLETCHER) {
+ int setting = this->aics[aicIndex].fletcherSetting;
+ if (setting == -999) {
+ int itemType = chooseProductionItemType(
+ DAT_BuildingsState.buildings[buildingID].owner, Map::Buildings::BT_FLETCHER);
+ DAT_BuildingsState.buildings[buildingID].producedItemType = (ResourceTypeShort)itemType;
+ DAT_BuildingsState.buildings[buildingID].producedItemTypeNext = (ResourceTypeShort)itemType;
+ return;
+ }
+ if (setting == Game::Resources::RT_BOW) {
+ DAT_BuildingsState.buildings[buildingID].producedItemType = Game::Resources::RT_BOW;
+ DAT_BuildingsState.buildings[buildingID].producedItemTypeNext = Game::Resources::RT_BOW;
+ return;
+ }
+ DAT_BuildingsState.buildings[buildingID].producedItemType = Game::Resources::RT_CROSSBOW;
+ DAT_BuildingsState.buildings[buildingID].producedItemTypeNext = Game::Resources::RT_CROSSBOW;
+ }
+ }
+}
+}
+
+### 0x004cbfa0 sellGoods | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CBFA0
+ void AICState::sellGoods(int playerID, ResourceType resourceType, int amount)
+ {
+ int const reward = getSellPrice(
+ playerID, resourceType, amount);
+ DAT_GameSynchronyState.finalResults.finalGold[playerID] += reward;
+ DAT_GameState.playerDataArray[playerID].currentResources[Game::Resources::RT_GOLD] += reward;
+ DAT_GameState.playerDataArray[playerID].marketGold += reward;
+ processResourceLoss(
+ playerID, resourceType, amount, 0);
+ displayPlayerTradeVisualEffect(
+ playerID, 1, -amount, resourceType);
+ }
+}
+}
+
+### 0x004cc000 buyGoods | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CC000
+ BOOLEnum AICState::buyGoods(int playerID, ResourceType resourceType, int amount)
+ {
+ int const cost = getBuyPrice(
+ playerID, resourceType, amount);
+ if (processResourceGain(
+ playerID, resourceType, amount)) {
+ DAT_GameState.playerDataArray[playerID].currentResources[Game::Resources::RT_GOLD] -= cost;
+ DAT_GameState.playerDataArray[playerID].marketGold -= cost;
+ displayPlayerTradeVisualEffect(
+ playerID, 0, amount, resourceType);
+ return TRUE;
+ }
+ return FALSE;
+ }
+}
+}
+
+### 0x004cc070 randomlySelectAttackUnitTypeToRecruit | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CC070
+ AIUnitBehaviourType AICState::randomlySelectAttackUnitTypeToRecruit(int playerID)
+ {
+ AITypeInt const aiType = DAT_GameState.playerDataArray[playerID].aiType;
+ if (aiType == AIT_NULL) {
+ return AIUBT_ATTUNITMAIN;
+ }
+ int const attackedPlayerID = DAT_GameState.playerDataArray[playerID].attackedPlayerID;
+ int const aicIndex = aiType - 1;
+ int requiredCount = 0;
+ // clear out flags
+ for (int i = 0; i < 11; i++) {
+ DAT_SkirmishDefinedData.attackUnitRequired[i].required = 0;
+ }
+ int engineersCount = DAT_GameState.playerDataArray[playerID].currentAttackWave * 4;
+ if (engineersCount > (int)this->aics[aicIndex].AttMaxEngineers) {
+ engineersCount = this->aics[aicIndex].AttMaxEngineers;
+ }
+ if (this->aics[aicIndex].AttMaxEngineers != 0
+ && DAT_GameState.playerDataArray[playerID].totalAttackingEngineerTroops < engineersCount) {
+ requiredCount = 1;
+ DAT_SkirmishDefinedData.attackUnitRequired[0].required = 1;
+ }
+ if (this->aics[aicIndex].AttDiggingUnitMax != 0
+ && DAT_GameState.playerDataArray[playerID].totalDiggingUnitTroops
+ < (int)this->aics[aicIndex].AttDiggingUnitMax
+ && DAT_GameState.playerDataArray[attackedPlayerID].moatsOwned > 5) {
+ requiredCount++;
+ DAT_SkirmishDefinedData.attackUnitRequired[1].required = 1;
+ }
+ if (this->aics[aicIndex].AttMaxAssassins != 0
+ && DAT_GameState.playerDataArray[playerID].totalAssassinTroops
+ < (int)this->aics[aicIndex].AttMaxAssassins) {
+ requiredCount++;
+ DAT_SkirmishDefinedData.attackUnitRequired[2].required = 1;
+ }
+ if (this->aics[aicIndex].AttUnit2Max != 0
+ && DAT_GameState.playerDataArray[playerID].totalUnit2Troops
+ < (int)this->aics[aicIndex].AttUnit2Max) {
+ requiredCount++;
+ DAT_SkirmishDefinedData.attackUnitRequired[3].required = 1;
+ }
+ if (this->aics[aicIndex].AttMaxLaddermen != 0
+ && DAT_GameState.playerDataArray[playerID].totalLaddermenTroops
+ < (int)this->aics[aicIndex].AttMaxLaddermen) {
+ requiredCount++;
+ DAT_SkirmishDefinedData.attackUnitRequired[4].required = 1;
+ }
+ if (this->aics[aicIndex].AttMaxTunnelers != 0
+ && DAT_GameState.playerDataArray[playerID].totalTunnelerTroops
+ < (int)this->aics[aicIndex].AttMaxTunnelers) {
+ requiredCount++;
+ DAT_SkirmishDefinedData.attackUnitRequired[5].required = 1;
+ }
+ if (this->aics[aicIndex].AttUnitPatrolMax != 0
+ && DAT_GameState.playerDataArray[playerID].totalUnitPatrolTroops
+ < (int)this->aics[aicIndex].AttUnitPatrolMax) {
+ requiredCount++;
+ DAT_SkirmishDefinedData.attackUnitRequired[6].required = 1;
+ }
+ if (this->aics[aicIndex].AttUnitBackupMax != 0
+ && DAT_GameState.playerDataArray[playerID].totalUnitBackupTroops
+ < (int)this->aics[aicIndex].AttUnitBackupMax) {
+ requiredCount++;
+ DAT_SkirmishDefinedData.attackUnitRequired[7].required = 1;
+ }
+ if (this->aics[aicIndex].AttUnitEngageMax != 0
+ && DAT_GameState.playerDataArray[playerID].totalUnitEngageTroops
+ < (int)this->aics[aicIndex].AttUnitEngageMax) {
+ requiredCount++;
+ DAT_SkirmishDefinedData.attackUnitRequired[8].required = 1;
+ }
+ if (this->aics[aicIndex].AttUnitSiegeDefMax != 0
+ && DAT_GameState.playerDataArray[playerID].totalUnitSiegeDefTroops
+ < (int)this->aics[aicIndex].AttUnitSiegeDefMax) {
+ requiredCount++;
+ DAT_SkirmishDefinedData.attackUnitRequired[9].required = 1;
+ }
+ if (this->aics[aicIndex].AttMaxDefault != 0
+ && DAT_GameState.playerDataArray[playerID].totalMaxDefaultTroops
+ < (int)this->aics[aicIndex].AttMaxDefault) {
+ requiredCount++;
+ DAT_SkirmishDefinedData.attackUnitRequired[10].required = 1;
+ }
+ if (requiredCount <= 0) {
+ return AIUBT_ATTUNITMAIN;
+ }
+ int selection = (int)SEC_RNG::instance.currentNumber2 % requiredCount;
+ nextRandomNumber2();
+ for (int i = 0; i < 11; i++) {
+ if (DAT_SkirmishDefinedData.attackUnitRequired[i].required == 0) {
+ continue;
+ }
+ if (selection == 0) {
+ return (AIUnitBehaviourType)DAT_SkirmishDefinedData.attackUnitRequired[i].unitBehaviourType;
+ }
+ selection--;
+ }
+ return AIUBT_ATTUNITMAIN;
+ }
+}
+}
+
+### 0x004cc250 getUnitTypeForUnitBehaviourType | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CC250
+ UnitType AICState::getUnitTypeForUnitBehaviourType(int playerID, AIUnitBehaviourType unitBehaviourType)
+ {
+ int const aiType = DAT_GameState.playerDataArray[playerID].aiType;
+ if (aiType == AIT_NULL)
+ return (UnitType)0;
+ int const aicIndex = aiType - 1;
+ if (unitBehaviourType == AIUBT_ENGINEERING)
+ return UT_E_ENGINEER;
+ if (unitBehaviourType == AIUBT_DIGGING)
+ return (UnitType)this->aics[aicIndex].AttDiggingUnit;
+ if (unitBehaviourType == AIUBT_ASSASSINATION)
+ return UT_A_ASSASSIN;
+ if (unitBehaviourType == AIUBT_ATTUNIT2)
+ return (UnitType)this->aics[aicIndex].AttUnit2;
+ if (unitBehaviourType == AIUBT_LADDERING)
+ return UT_E_LADDER;
+ if (unitBehaviourType == AIUBT_TUNNELING)
+ return UT_TUNNELER;
+ if (unitBehaviourType == AIUBT_PATROLLING)
+ return (UnitType)this->aics[aicIndex].AttUnitPatrol;
+ if (unitBehaviourType == AIUBT_BACKUPING)
+ return (UnitType)this->aics[aicIndex].AttUnitBackup;
+ if (unitBehaviourType == AIUBT_ENGAGING)
+ return (UnitType)this->aics[aicIndex].AttUnitEngage;
+ if (unitBehaviourType == AIUBT_SIEGEDEFENSE)
+ return (UnitType)this->aics[aicIndex].AttUnitSiegeDef;
+ if (unitBehaviourType == AIUBT_ATTUNITMAIN) {
+ if ((&this->aics[aicIndex]
+ .AttUnitMain1)[DAT_GameState.playerDataArray[playerID].aiAttUnitMainChoiceIndex]
+ == 0)
+ DAT_GameState.playerDataArray[playerID].aiAttUnitMainChoiceIndex = 0;
+ if (DAT_GameState.playerDataArray[playerID].aiAttUnitMainChoiceIndex >= 4)
+ DAT_GameState.playerDataArray[playerID].aiAttUnitMainChoiceIndex = 0;
+ int const choice = DAT_GameState.playerDataArray[playerID].aiAttUnitMainChoiceIndex;
+ UnitType const unitType = (UnitType)(&this->aics[aicIndex].AttUnitMain1)[choice];
+ DAT_GameState.playerDataArray[playerID].aiAttUnitMainChoiceIndex = choice + 1;
+ return unitType;
+ }
+ return (UnitType)this->aics[aicIndex].AttUnitMain1;
+ }
+}
+}
+
+### 0x004cc420 generateSiegeCreationInformation | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CC420
+ void AICState::generateSiegeCreationInformation(int playerID, int buildingID, int unitID)
+ {
+ if (DAT_GameState.playerDataArray[playerID].aiType == AIT_NULL)
+ return;
+ int i = 0;
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY)
+ return;
+ int siegeIndex;
+ if (DAT_UnitsState.units[unitID].unitType == UT_S_TREBUCHET)
+ siegeIndex = 2;
+ else if (DAT_UnitsState.units[unitID].unitType == UT_S_FBALLISTA)
+ siegeIndex = 3;
+ else
+ return;
+ int const slot = DAT_SkirmishDefinedData.SiegeEngineMetaInfoArray[siegeIndex].slot;
+ int const locationCount
+ = DAT_GameState.playerDataArray[playerID].aivUnitLocationSlotLocationCount[slot];
+ while (i < locationCount) {
+ int const index = i;
+ i++;
+ if (DAT_GameState.playerDataArray[playerID].aivUnitLocationSlots[slot][index] > 0
+ && buildingID
+ == DAT_GameState.playerDataArray[playerID]
+ .aiSiegeCreationInformation[siegeIndex][index]
+ .buildingID) {
+ DAT_GameState.playerDataArray[playerID].aiSiegeCreationInformation[siegeIndex][index].unitID
+ = unitID;
+ DAT_GameState.playerDataArray[playerID].aiSiegeCreationInformation[siegeIndex][index].uid
+ = DAT_UnitsState.units[unitID].uid;
+ DAT_GameState.playerDataArray[playerID]
+ .aiSiegeCreationInformation[siegeIndex][index]
+ .buildingID = 0;
+ return;
+ }
+ }
+ }
+}
+}
+
+### 0x004cc520 aiRecruitEngineers | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CC520
+ void AICState::aiRecruitEngineers(int playerID)
+ {
+ int const aiType = DAT_GameState.playerDataArray[playerID].aiType;
+ if (aiType == AITA_NULL)
+ return;
+ if (DAT_GameState.playerDataArray[playerID].isEngineerRequired == FALSE)
+ return;
+ if (DAT_GameState.playerDataArray[playerID].canStartSpending == 0)
+ return;
+ if (this->aics[aiType - 1].defSiegeEngineGoldThreshold
+ + DAT_GameState.playerDataArray[playerID].currentResources[Game::Resources::RT_GOLD]
+ < 30)
+ return;
+ int const guildID = DAT_GameState.playerDataArray[playerID].engineersGuild.id;
+ if (guildID <= 0)
+ return;
+ if (DAT_BuildingsState.buildings[guildID].buildingType != Map::Buildings::BT_ENGINEERSGUILD)
+ return;
+ nonEuroRecruit(
+ Map::Units::UT_E_ENGINEER, guildID, playerID, 0);
+ DAT_GameState.playerDataArray[playerID].isEngineerRequired = FALSE;
+ }
+}
+}
+
+### 0x004cc5a0 assignRequiredIdleEngineersToNewTribe | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CC5A0
+ int AICState::assignRequiredIdleEngineersToNewTribe(int playerID, int count)
+ {
+ int const tribeID
+ = createTribeForPlayer(playerID);
+ for (int unitID = 1; unitID < DAT_UnitsState.maxUnitCount; unitID++) {
+ if (count <= 0)
+ break;
+ if (DAT_UnitsState.units[unitID].logicalState != Map::Units::ULS_NORMAL)
+ continue;
+ if (DAT_UnitsState.units[unitID].owner != playerID)
+ continue;
+ if (DAT_UnitsState.units[unitID].dying)
+ continue;
+ if (DAT_UnitsState.units[unitID].unitType != Map::Units::UT_E_ENGINEER)
+ continue;
+ if (DAT_UnitsState.units[unitID].aiUnitBehaviourType == 22)
+ continue;
+ if (DAT_UnitsState.units[unitID].aiUnitBehaviourType == 10)
+ continue;
+ if (DAT_UnitsState.units[unitID].engineerRelatedUnk != 0)
+ continue;
+ if (DAT_UnitsState.units[unitID].state.generic != 105
+ && DAT_UnitsState.units[unitID].state.generic != 2
+ && DAT_UnitsState.units[unitID].state.generic != Map::Units::States::US_IDLEUnk)
+ continue;
+ if (DAT_UnitsState.units[unitID].tribeID != 0)
+ removeUnitFromTribe(
+ unitID, DAT_UnitsState.units[unitID].tribeID);
+ addUnitToTribe(unitID, tribeID);
+ count--;
+ }
+ return tribeID;
+ }
+}
+}
+
+### 0x004cc680 addEngineersToSelection | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CC680
+ int AICState::addEngineersToSelection(int playerID, int unitCount)
+ {
+ int const tribeID
+ = createTribeForPlayer(playerID);
+ for (int unitID = 1; unitID < (int)DAT_UnitsState.maxUnitCount; unitID++) {
+ if (unitCount <= 0)
+ break;
+ if (DAT_UnitsState.units[unitID].logicalState != Map::Units::ULS_NORMAL)
+ continue;
+ if (DAT_UnitsState.units[unitID].owner != playerID)
+ continue;
+ if (DAT_UnitsState.units[unitID].dying != 0)
+ continue;
+ if (DAT_UnitsState.units[unitID].unitType != Map::Units::UT_E_ENGINEER)
+ continue;
+ if (DAT_UnitsState.units[unitID].aiUnitBehaviourType != 10)
+ continue;
+ if (DAT_UnitsState.units[unitID].tribeID != 0)
+ continue;
+ if (DAT_UnitsState.units[unitID].state.generic == Map::Units::States::US_STAND_UPUnk)
+ continue;
+ addUnitToTribe(unitID, tribeID);
+ unitCount--;
+ }
+ return tribeID;
+ }
+}
+}
+
+### 0x004cc720 addUnitsToTribe166 | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CC720
+ void AICState::addUnitsToTribe166(int playerID)
+ {
+ int tribeID;
+ uint unitID;
+ Unit* pUVar1;
+ unitID = 1;
+ if (1 < (int)DAT_UnitsState.maxUnitCount) {
+ pUVar1 = &DAT_UnitsState.units[1];
+ do {
+ if ((((pUVar1->owner == playerID) && (pUVar1->logicalState == ULS_NORMAL))
+ && (pUVar1->dying == 0))
+ && (pUVar1->aiUnitBehaviourType == 6)) {
+ tribeID = (int)DAT_GameState.playerDataArray[playerID].aiTribeIDs[166];
+ if (pUVar1->tribeID != tribeID) {
+ removeUnitFromTribe(unitID, pUVar1->tribeID);
+ addUnitToTribe(
+ unitID, tribeID);
+ }
+ }
+ unitID = unitID + 1;
+ pUVar1 = pUVar1 + 0x248;
+ } while ((int)unitID < (int)DAT_UnitsState.maxUnitCount);
+ }
+ return;
+ }
+}
+}
+
+### 0x004cc7b0 syncBehaviourType7UnitTribes | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CC7B0
+ void AICState::syncBehaviourType7UnitTribes(int param_1)
+ {
+ int tribeID;
+ uint unitID;
+ Unit* pUVar1;
+ unitID = 1;
+ if (1 < (int)DAT_UnitsState.maxUnitCount) {
+ pUVar1 = &DAT_UnitsState.units[1];
+ do {
+ if ((((pUVar1->owner == param_1) && (pUVar1->logicalState == ULS_NORMAL))
+ && (pUVar1->dying == 0))
+ && (pUVar1->aiUnitBehaviourType == 7)) {
+ tribeID = (int)DAT_GameState.playerDataArray[param_1].aiTribeIDs[0xa7];
+ if (pUVar1->tribeID != tribeID) {
+ removeUnitFromTribe(unitID, pUVar1->tribeID);
+ addUnitToTribe(
+ unitID, tribeID);
+ }
+ }
+ unitID = unitID + 1;
+ pUVar1 = pUVar1 + 0x248;
+ } while ((int)unitID < (int)DAT_UnitsState.maxUnitCount);
+ }
+ return;
+ }
+}
+}
+
+### 0x004cc840 aiAddUnitToMoatDiggerTribe | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CC840
+ void AICState::aiAddUnitToMoatDiggerTribe(int unitID)
+ {
+ int _tribe;
+ int _owner;
+ int _uid;
+ _owner = (int)DAT_UnitsState.units[unitID].owner;
+ DAT_UnitsState.units[unitID].aiUnitBehaviourType = 5;
+ _tribe = (int)DAT_GameState.playerDataArray[_owner].aiTribeIDs[10];
+ if ((_tribe == 0)
+ || (DAT_TribesState.tribes[_tribe].uid
+ != DAT_GameState.playerDataArray[_owner].aiTribeUIDs[10])) {
+ _tribe = createTribeForPlayer(_owner);
+ _uid = DAT_TribesState.tribes[_tribe].uid;
+ DAT_GameState.playerDataArray[_owner].aiTribeIDs[10] = (short)_tribe;
+ DAT_GameState.playerDataArray[_owner].aiTribeUIDs[10] = _uid;
+ }
+ addUnitToTribe(unitID, _tribe);
+ DAT_TribesState.tribes[_tribe].unitStance = USE_DEFENSIVE;
+ return;
+ }
+}
+}
+
+### 0x004cc8d0 unitIDIsRangedOrArmored | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CC8D0
+ BOOLEnum AICState::unitIDIsRangedOrArmored(int unitID)
+ {
+ int const unitType = DAT_UnitsState.units[unitID].unitType;
+ for (int i = 0; i < 7; i++) {
+ if (DAT_SkirmishDefinedData.RangedAndArmoredUnits[i] == unitType) {
+ return TRUE;
+ }
+ }
+ return FALSE;
+ }
+}
+}
+
+### 0x004cc910 createTribeForUnitType | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CC910
+ int AICState::createTribeForUnitType(int playerID, int unitSelectionTypeIndex)
+ {
+ short* psVar1;
+ int _tribeID;
+ int _tribeUID;
+ psVar1 = DAT_GameState.playerDataArray[playerID].aiTribeIDs + unitSelectionTypeIndex;
+ _tribeID = (int)*psVar1;
+ if ((_tribeID == 0)
+ || (DAT_TribesState.tribes[_tribeID].uid
+ != DAT_GameState.playerDataArray[playerID].aiTribeUIDs[unitSelectionTypeIndex])) {
+ _tribeID = createTribeForPlayer(playerID);
+ _tribeUID = DAT_TribesState.tribes[_tribeID].uid;
+ *psVar1 = (short)_tribeID;
+ DAT_GameState.playerDataArray[playerID].aiTribeUIDs[unitSelectionTypeIndex] = _tribeUID;
+ }
+ return _tribeID;
+ }
+}
+}
+
+### 0x004cc990 smallestTribeOfUnitType | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CC990
+ int AICState::smallestTribeOfUnitType(int playerID, AIVUnitType aivUnitType)
+ {
+ AITypeInt AVar1;
+ int _tribeID;
+ int _count;
+ int _subTribeIndex;
+ int _newTribeID;
+ int local_c;
+ int _desired;
+ short _minSize;
+ int _offset;
+ short _size;
+ AVar1 = DAT_GameState.playerDataArray[playerID].aiType;
+ _subTribeIndex = 0;
+ if (AVar1 == AIT_NULL) {
+ return 0;
+ }
+ _desired = *(int*)((int)this + (AVar1 + ~AIT_NULL) * 0x2a4 + 0x114);
+ _count = DAT_GameState.playerDataArray[playerID].aivUnitLocationSlotLocationCount[aivUnitType];
+ _newTribeID = 0;
+ local_c = 0;
+ _minSize = 1000;
+ if ((_desired < _count)
+ && (((aivUnitType == AIVUT_SPEARMAN || (aivUnitType == AIVUT_MACEMAN))
+ || (aivUnitType == AIVUT_HORSE_ARCHER)))) {
+ _count = _desired;
+ }
+ _offset = DAT_SkirmishDefinedData.AITribeIDOffsetForAIVUnitType[aivUnitType];
+ if (0 < _count) {
+ /*
+ fixme: parameter reuse
+ */
+ aivUnitType = (_offset + playerID * 0x1cfa) * 2 + 0x115ef04;
+ do {
+ _tribeID = (int)*(short*)aivUnitType;
+ if ((_tribeID == 0)
+ || (DAT_TribesState.tribes[_tribeID].uid
+ != DAT_GameState.playerDataArray[playerID].aiTribeUIDs[_offset + _subTribeIndex])) {
+ _newTribeID = createTribeForPlayer(playerID);
+ goto LAB_004ccaae;
+ }
+ _size = DAT_TribesState.tribes[_tribeID].size;
+ if (_size < _minSize) {
+ _newTribeID = _tribeID;
+ local_c = _subTribeIndex;
+ _minSize = _size;
+ }
+ aivUnitType = aivUnitType + AIVUT_MANGONEL;
+ _subTribeIndex = _subTribeIndex + 1;
+ } while (_subTribeIndex < _count);
+ _subTribeIndex = local_c;
+ if (_newTribeID != 0) {
+ LAB_004ccaae:
+ DAT_GameState.playerDataArray[playerID].aiTribeIDs[_offset + _subTribeIndex]
+ = (short)_newTribeID;
+ DAT_GameState.playerDataArray[playerID].aiTribeUIDs[_offset + _subTribeIndex]
+ = DAT_TribesState.tribes[_newTribeID].uid;
+ return _newTribeID;
+ }
+ }
+ return 0;
+ }
+}
+}
+
+### 0x004ccaf0 getSmallestPatrolTribe | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CCAF0
+ int AICState::getSmallestPatrolTribe(int playerID, int tribeCount)
+ {
+ int i = 0;
+ int selectedTribeID = 0;
+ int selectedIndex = 0;
+ int lowestSize = 1000;
+ for (;; i++) {
+ if (i >= tribeCount) {
+ if (selectedTribeID == 0)
+ return 0;
+ break;
+ }
+ int const tribeID = DAT_GameState.playerDataArray[playerID].aiTribeIDs[170 + i];
+ if (tribeID == 0
+ || DAT_TribesState.tribes[tribeID].uid
+ != DAT_GameState.playerDataArray[playerID].aiTribeUIDs[i + 170]) {
+ selectedTribeID = createTribeForPlayer(playerID);
+ selectedIndex = i;
+ break;
+ }
+ if (DAT_TribesState.tribes[tribeID].size < lowestSize) {
+ lowestSize = DAT_TribesState.tribes[tribeID].size;
+ selectedTribeID = tribeID;
+ selectedIndex = i;
+ }
+ }
+ DAT_GameState.playerDataArray[playerID].aiTribeIDs[selectedIndex + 170] = selectedTribeID;
+ DAT_GameState.playerDataArray[playerID].aiTribeUIDs[selectedIndex + 170]
+ = DAT_TribesState.tribes[selectedTribeID].uid;
+ return selectedTribeID;
+ }
+}
+}
+
+### 0x004ccbe0 getDefensiveTribeForUnit | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CCBE0
+ int AICState::getDefensiveTribeForUnit(int playerID, int unitID)
+ {
+ int _index;
+ int _tribeID;
+ UnitTypeInt _unitType;
+ UnitTypeInt _unitType2;
+ int _tribeIndex;
+ short* _pTribeID;
+ int _tribeUID;
+ _index = 0;
+ _unitType = (UnitTypeInt)(short)DAT_UnitsState.units[unitID].unitType;
+ do {
+ if ((_unitType == DAT_SkirmishDefinedData.DefenseTribesUnitTypeArray[_index])
+ || (_unitType2 = (UnitTypeInt)(short)DAT_UnitsState.units[unitID].unitTypeToChangeInto,
+ _unitType2 == DAT_SkirmishDefinedData.DefenseTribesUnitTypeArray[_index]))
+ break;
+ if ((_unitType == DAT_SkirmishDefinedData.DefenseTribesUnitTypeArray[_index + 1])
+ || (_unitType2 == DAT_SkirmishDefinedData.DefenseTribesUnitTypeArray[_index + 1])) {
+ _index = _index + 1;
+ break;
+ }
+ if ((_unitType == DAT_SkirmishDefinedData.DefenseTribesUnitTypeArray[_index + 2])
+ || (_unitType2 == DAT_SkirmishDefinedData.DefenseTribesUnitTypeArray[_index + 2])) {
+ _index = _index + 2;
+ break;
+ }
+ if ((_unitType == DAT_SkirmishDefinedData.DefenseTribesUnitTypeArray[_index + 3])
+ || (_unitType2 == DAT_SkirmishDefinedData.DefenseTribesUnitTypeArray[_index + 3])) {
+ _index = _index + 3;
+ break;
+ }
+ if ((_unitType == DAT_SkirmishDefinedData.DefenseTribesUnitTypeArray[_index + 4])
+ || (_unitType2 == DAT_SkirmishDefinedData.DefenseTribesUnitTypeArray[_index + 4])) {
+ _index = _index + 4;
+ break;
+ }
+ _index = _index + 5;
+ } while (_index < 0x14);
+ /*
+ index will now match the unit type in the list
+ */
+ if (_index < 1) {
+ /*
+ Knights
+ */
+ _tribeIndex = 0xb4;
+ } else if (_index < 2) {
+ /*
+ Horse Archers
+ */
+ _tribeIndex = 0xb5;
+ } else if (_index < 7) {
+ /*
+ Other ranged
+ */
+ _tribeIndex = 0xb6;
+ } else if (_index < 0xc) {
+ /*
+ Spear, Mace, Monk, Slave, Assassin
+ */
+ _tribeIndex = 0xb7;
+ } else if (_index < 0xf) {
+ /*
+ Swordsman, Arab Swordsman, Pikeman
+ */
+ _tribeIndex = 0xb8;
+ } else {
+ if (20 < _index) {
+ return 0;
+ }
+ /*
+ Siege units
+ */
+ _tribeIndex = 0xb9;
+ }
+ /*
+ fixme: check if this goes out of the tribeIDArray!
+ */
+ _pTribeID = DAT_GameState.playerDataArray[playerID].aiTribeIDs + _tribeIndex;
+ _tribeID = (int)*_pTribeID;
+ if ((_tribeID == 0)
+ || (DAT_TribesState.tribes[_tribeID].uid
+ != DAT_GameState.playerDataArray[playerID].aiTribeUIDs[_tribeIndex])) {
+ _tribeID = createTribeForPlayer(playerID);
+ _tribeUID = DAT_TribesState.tribes[_tribeID].uid;
+ *_pTribeID = (short)_tribeID;
+ DAT_GameState.playerDataArray[playerID].aiTribeUIDs[_tribeIndex] = _tribeUID;
+ }
+ return _tribeID;
+ }
+}
+}
+
+### 0x004ccd20 addUnitToSmallestBehaviourTypeTribe | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CCD20
+ int AICState::addUnitToSmallestBehaviourTypeTribe(short* playerID, undefined4 param_2, int aiUnitBehaviourType)
+ {
+ AITypeInt AVar1;
+ int _tribeID_groupsCount1;
+ int _selectedTribe;
+ int _groupsCount;
+ int _tribeTypeOffset;
+ int _selectedSlot;
+ int _tribeID_2;
+ int _smallestTribeOffset;
+ int _smallestTribe;
+ int _aiType;
+ int _playerID;
+ short _smallestTribeSize;
+ short _tribeSize;
+ _playerID = (int)playerID;
+ AVar1 = DAT_GameState.playerDataArray[(int)playerID].aiType;
+ if (AVar1 == AIT_NULL) {
+ return 0;
+ }
+ _tribeTypeOffset = DAT_SkirmishDefinedData.AIUnitBehaviourTypeMapping[aiUnitBehaviourType + -10];
+ _smallestTribe = 0;
+ _smallestTribeOffset = 0;
+ _smallestTribeSize = 1000;
+ switch (_tribeTypeOffset) {
+ case 0xf:
+ _groupsCount = this->aics[AVar1 + ~AIT_NULL].AttUnitPatrolGroupsCount;
+ break;
+ default:
+ goto switchD_004ccd78_caseD_10;
+ case 0xba:
+ _groupsCount = this->aics[AVar1 + ~AIT_NULL].AttUnitBackupGroupsCount;
+ break;
+ case 0xbe:
+ _groupsCount = this->aics[AVar1 + ~AIT_NULL].AttUnitSiegeDefGroupsCount;
+ break;
+ case 0xc0:
+ _groupsCount = this->aics[AVar1 + ~AIT_NULL].AttMainGroupsCount;
+ }
+ if ((_groupsCount < 1) || (_groupsCount == 1)) {
+ switchD_004ccd78_caseD_10:
+ _tribeID_groupsCount1
+ = (int)DAT_GameState.playerDataArray[(int)playerID].aiTribeIDs[_tribeTypeOffset];
+ if ((_tribeID_groupsCount1 != 0)
+ && (DAT_TribesState.tribes[_tribeID_groupsCount1].uid
+ == DAT_GameState.playerDataArray[(int)playerID].aiTribeUIDs[_tribeTypeOffset])) {
+ return _tribeID_groupsCount1;
+ }
+ _selectedTribe = createTribeForPlayer((int)playerID);
+ _selectedSlot = _tribeTypeOffset;
+ } else {
+ _groupsCount = _groupsCount + _tribeTypeOffset;
+ /*
+ lol: confusing code, but it means groupsCount > 0 I guess? but since groupsCount == 0 and == 1 is
+ already covered above, I guess this means > 1
+ */
+ _selectedTribe = 0;
+ _selectedSlot = 0;
+ if (_tribeTypeOffset < _groupsCount) {
+ /*
+ fixme: repurposed parameter
+ */
+ playerID = DAT_GameState.playerDataArray[(int)playerID].aiTribeIDs + _tribeTypeOffset;
+ do {
+ _tribeID_2 = (int)*playerID;
+ if ((_tribeID_2 == 0)
+ || (DAT_TribesState.tribes[_tribeID_2].uid
+ != DAT_GameState.playerDataArray[_playerID].aiTribeUIDs[_tribeTypeOffset])) {
+ /*
+ doc: a new tribe is automatically the smallest, so it breaks the loop here to return the
+ newly created tribe as the resulting tribe id
+ */
+ _selectedTribe = createTribeForPlayer(_playerID);
+ _selectedSlot = _tribeTypeOffset;
+ break;
+ }
+ _tribeSize = DAT_TribesState.tribes[_tribeID_2].size;
+ if (_tribeSize < _smallestTribeSize) {
+ _smallestTribeOffset = _tribeTypeOffset;
+ _smallestTribe = _tribeID_2;
+ _smallestTribeSize = _tribeSize;
+ }
+ playerID = playerID + 1;
+ _tribeTypeOffset = _tribeTypeOffset + 1;
+ _selectedTribe = _smallestTribe;
+ _selectedSlot = _smallestTribeOffset;
+ } while (_tribeTypeOffset < _groupsCount);
+ }
+ }
+ if (0 < _selectedTribe) {
+ DAT_GameState.playerDataArray[_playerID].aiTribeIDs[_selectedSlot] = (short)_selectedTribe;
+ DAT_GameState.playerDataArray[_playerID].aiTribeUIDs[_selectedSlot]
+ = DAT_TribesState.tribes[_selectedTribe].uid;
+ return _selectedTribe;
+ }
+ return 0;
+ }
+}
+}
+
+### 0x004ccfb0 ChecksAndGenerateAITribesForPlayerIfNotExisting | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CCFB0
+ int AICState::checksAndGenerateAITribesForPlayerIfNotExisting(int playerID, int maxAmount, BOOLEnum checkOnly)
+ {
+ int offset = 0;
+ int const baseOffset = DAT_SkirmishDefinedData.AITribeIDOffsetForAIVUnitType[1];
+ for (; offset < maxAmount; offset++) {
+ if (offset >= 10) {
+ return 0;
+ }
+ int const tribeID = DAT_GameState.playerDataArray[playerID].aiTribeIDs[baseOffset + offset];
+ if (tribeID == 0
+ || DAT_TribesState.tribes[tribeID].uid
+ != DAT_GameState.playerDataArray[playerID].aiTribeUIDs[baseOffset + offset]) {
+ if (checkOnly) {
+ return 1;
+ }
+ int const newTribeID = createTribeForPlayer(playerID);
+ DAT_GameState.playerDataArray[playerID].aiTribeIDs[baseOffset + offset] = (short)newTribeID;
+ DAT_GameState.playerDataArray[playerID].aiTribeUIDs[baseOffset + offset]
+ = DAT_TribesState.tribes[newTribeID].uid;
+ return newTribeID;
+ }
+ }
+ return 0;
+ }
+}
+}
+
+### 0x004cd0c0 sendUnitsToKeep | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CD0C0
+ void AICState::sendUnitsToKeep(int tribeID, int playerID)
+ {
+ int const keepID = DAT_GameState.playerDataArray[playerID].keep.id;
+ if (keepID <= 0) {
+ return;
+ }
+ commandUnitsToLocation(tribeID,
+ (short)DAT_BuildingsState.buildings[keepID].x + 3,
+ (short)DAT_BuildingsState.buildings[keepID].y + 4, 0);
+ }
+}
+}
+
+### 0x004cd110 sendUnitsToCampfire | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CD110
+ void AICState::sendUnitsToCampfire(int tribeID, int playerID)
+ {
+ if (DAT_GameState.playerDataArray[playerID].campground.id <= 0) {
+ return;
+ }
+ commandUnitsToLocation(tribeID,
+ DAT_GameState.playerDataArray[playerID].campground.xEntry,
+ DAT_GameState.playerDataArray[playerID].campground.yEntry, 0);
+ DAT_TribesState.tribes[tribeID].unitStance = Map::Units::Behavior::USE_AGGRESSIVE;
+ }
+}
+}
+
+### 0x004cd160 digNearestMoat | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CD160
+ void AICState::digNearestMoat(int playerID)
+ {
+ int iVar1;
+ BOOLEnum tile;
+ int tribeID;
+ tribeID = (int)DAT_GameState.playerDataArray[playerID].aiTribeIDs[10];
+ if ((((tribeID != 0)
+ && (DAT_TribesState.tribes[tribeID].uid
+ == DAT_GameState.playerDataArray[playerID].aiTribeUIDs[10]))
+ && (0 < DAT_TribesState.tribes[tribeID].size))
+ && (DAT_TribesState.tribes[tribeID].percentageSomething < 0x51)) {
+ iVar1 = countUnfinishedMoatTilesForPlayer(playerID);
+ if (iVar1 < 1) {
+ sendUnitsToKeep(tribeID, playerID);
+ return;
+ }
+ iVar1 = (int)DAT_TribesState.tribes[tribeID].selectionTargetUnitID;
+ tile = findNearestFriendlyMoatTileForDigging(playerID, iVar1, 1);
+ if (-1 < (int)tile) {
+ setXYBasedOnMoatID(tile, 1,
+ (uint)((int)((int)DAT_UnitsState.units[iVar1].x)),
+ (uint)((int)((int)DAT_UnitsState.units[iVar1].y)));
+ iVar1 = updateTribeRallyFlags(tribeID);
+ if (iVar1 == 0) {
+ giveTribeAnInstruction(tribeID,
+ UIT_DIG_MOAT, DAT_TileMapState.ALG_MoatXResult,
+ DAT_TileMapState.ALG_MoatYResult, 0);
+ DAT_TribesState.tribes[tribeID].unitStance
+ = USE_STAND_GROUND;
+ }
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x004cd250 canNavigateUnitsFromTileToTargetTile | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CD250
+ BOOLEnum AICState::canNavigateUnitsFromTileToTargetTile(int tribeID, int tile)
+ {
+ int iVar1;
+ iVar1 = calculateCanPlayerUnitsNavigateToAreaFromArea(DAT_TribesState.tribes[tribeID].owner,
+ (dword)((int)((int)(short)DAT_TileMapState.PathConnectionLayer[DAT_UnitsState
+ .units[DAT_TribesState.tribes[tribeID].selectionTargetUnitID]
+ .tile])),
+ (dword)((int)((int)(short)DAT_TileMapState.PathConnectionLayer[tile])), 0);
+ return (uint)(iVar1 != 0);
+ }
+}
+}
+

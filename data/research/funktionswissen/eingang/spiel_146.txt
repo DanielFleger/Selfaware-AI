@@ -1,0 +1,1220 @@
+### 0x0052ba10 updateWildlifeGrid | quelle=ghidra | bereich=Umwelt
+// FUNCTION: STRONGHOLDCRUSADER 0x0052BA10
+ void WildlifeState::updateWildlifeGrid(int _y10)
+ {
+ int* piVar1;
+ BuildingTypeShort* pBVar2;
+ TreeTypeShort TVar3;
+ BuildingTypeShort BVar4;
+ UnitTypeShort UVar5;
+ uint uVar6;
+ WildlifeGridElement* pWVar7;
+ int iVar8;
+ uint uVar9;
+ int _areaID;
+ int _unitID;
+ int iVar10;
+ int _tile;
+ int _sepAreaID;
+ int local_35c;
+ int local_358;
+ int local_354;
+ int local_348;
+ int local_344;
+ int local_340;
+ int local_33c;
+ int local_338;
+ int local_334;
+ int local_330;
+ int local_32c;
+ int local_320[200];
+ int _x10;
+ local_348 = -1;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[1] != -1) {
+ local_348 = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_GameState.playerDataArray[1].campground.tileEntry];
+ }
+ local_344 = -1;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[2] != -1) {
+ local_344 = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_GameState.playerDataArray[2].campground.tileEntry];
+ }
+ local_340 = -1;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[3] != -1) {
+ local_340 = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_GameState.playerDataArray[3].campground.tileEntry];
+ }
+ local_33c = -1;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[4] != -1) {
+ local_33c = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_GameState.playerDataArray[4].campground.tileEntry];
+ }
+ local_338 = -1;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[5] != -1) {
+ local_338 = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_GameState.playerDataArray[5].campground.tileEntry];
+ }
+ local_334 = -1;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[6] != -1) {
+ local_334 = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_GameState.playerDataArray[6].campground.tileEntry];
+ }
+ local_330 = -1;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[7] != -1) {
+ local_330 = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_GameState.playerDataArray[7].campground.tileEntry];
+ }
+ local_32c = -1;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[8] != -1) {
+ local_32c = (int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_GameState.playerDataArray[8].campground.tileEntry];
+ }
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ local_35c = 0;
+ do {
+ _x10 = local_35c / 10;
+ pWVar7 = this->grid[_x10] + _y10;
+ pWVar7->firstMember = 0;
+ this->grid[_x10][_y10].separateAreaID = 0;
+ this->grid[_x10][_y10].unclaimedArea = 0;
+ this->grid[_x10][_y10].field3_0xc = 0;
+ this->grid[_x10][_y10].keeps = 0;
+ this->grid[_x10][_y10].field5_0x14 = 0;
+ this->grid[_x10][_y10].trees = 0;
+ this->grid[_x10][_y10].unitCount = 0;
+ this->grid[_x10][_y10].field12_0x30 = 0;
+ this->grid[_x10][_y10].field8_0x20 = 0;
+ this->grid[_x10][_y10].camelCount = 0;
+ this->grid[_x10][_y10].lionCount = 0;
+ this->grid[_x10][_y10].deerCount = 0;
+ this->grid[_x10][_y10].rabbitCount = 0;
+ this->grid[_x10][_y10].field16_0x40 = 0;
+ this->grid[_x10][_y10].field17_0x44 = 0;
+ this->grid[_x10][_y10].field18_0x48 = 0;
+ this->grid[_x10][_y10].field19_0x4c = 0;
+ this->grid[_x10][_y10].chimps = 0;
+ this->grid[_x10][_y10].castlebuildings = 0;
+ this->grid[_x10][_y10].field28_0x70 = 0;
+ iVar8 = 0;
+ do {
+ local_320[iVar8 * 2] = -1;
+ local_320[iVar8 * 2 + 1] = 0;
+ iVar8 = iVar8 + 1;
+ } while (iVar8 < 100);
+ local_354 = 0;
+ do {
+ uVar9 = local_354 + _y10 * 10;
+ local_358 = 0;
+ do {
+ if ((((uint)(local_358 + local_35c) < 400) && (uVar9 < 400))
+ && (*(char*)(uVar9 * 400 + 0x21aec98 + local_358 + local_35c) != '\0')) {
+ pWVar7->firstMember = pWVar7->firstMember + 1;
+ _tile = DAT_ViewportRenderState.translationMatrix[uVar9].addXgetTile + local_358
+ + local_35c;
+ _areaID = (int)(short)DAT_TileMapState.PathConnectionLayer[_tile];
+ if (_areaID == 0) {
+ piVar1 = &this->grid[_x10][_y10].unclaimedArea;
+ *piVar1 = *piVar1 + 1;
+ }
+ iVar8 = 0;
+ do {
+ if (local_320[iVar8 * 2] == _areaID) {
+ local_320[iVar8 * 2 + 1] = local_320[iVar8 * 2 + 1] + 1;
+ break;
+ }
+ if (local_320[iVar8 * 2] == -1) {
+ local_320[iVar8 * 2] = _areaID;
+ local_320[iVar8 * 2 + 1] = 1;
+ break;
+ }
+ iVar8 = iVar8 + 1;
+ } while (iVar8 < 100);
+ if (_areaID != 0) {
+ if (_areaID == local_348) {
+ piVar1 = &this->grid[_x10][_y10].chimps;
+ *piVar1 = *piVar1 + 1;
+ }
+ if (_areaID == local_344) {
+ piVar1 = &this->grid[_x10][_y10].chimps;
+ *piVar1 = *piVar1 + 1;
+ }
+ if (_areaID == local_340) {
+ piVar1 = &this->grid[_x10][_y10].chimps;
+ *piVar1 = *piVar1 + 1;
+ }
+ if (_areaID == local_33c) {
+ piVar1 = &this->grid[_x10][_y10].chimps;
+ *piVar1 = *piVar1 + 1;
+ }
+ if (_areaID == local_338) {
+ piVar1 = &this->grid[_x10][_y10].chimps;
+ *piVar1 = *piVar1 + 1;
+ }
+ if (_areaID == local_334) {
+ piVar1 = &this->grid[_x10][_y10].chimps;
+ *piVar1 = *piVar1 + 1;
+ }
+ if (_areaID == local_330) {
+ piVar1 = &this->grid[_x10][_y10].chimps;
+ *piVar1 = *piVar1 + 1;
+ }
+ if (_areaID == local_32c) {
+ piVar1 = &this->grid[_x10][_y10].chimps;
+ *piVar1 = *piVar1 + 1;
+ }
+ }
+ piVar1 = &this->grid[_x10][_y10].field28_0x70;
+ *piVar1 = *piVar1 + (uint)DAT_TileMapState.HeightLayer[_tile];
+ uVar6 = DAT_TileMapState.LogicLayer[_tile];
+ if ((uVar6 & 0x100) != 0) {
+ piVar1 = &this->grid[_x10][_y10].field5_0x14;
+ *piVar1 = *piVar1 + 1;
+ piVar1 = &this->grid[_x10][_y10].castlebuildings;
+ *piVar1 = *piVar1 + 1;
+ }
+ if ((uVar6 & 0x20000000) != 0) {
+ piVar1 = &this->grid[_x10][_y10].field16_0x40;
+ *piVar1 = *piVar1 + 1;
+ }
+ if ((uVar6 & 0x20000) != 0) {
+ piVar1 = &this->grid[_x10][_y10].field17_0x44;
+ *piVar1 = *piVar1 + 1;
+ }
+ if ((char)uVar6 < '\0') {
+ piVar1 = &this->grid[_x10][_y10].field17_0x44;
+ *piVar1 = *piVar1 + 1;
+ }
+ if ((uVar6 & 0x40000) != 0) {
+ piVar1 = &this->grid[_x10][_y10].field17_0x44;
+ *piVar1 = *piVar1 + 1;
+ }
+ if ((uVar6 & 0x1000000) != 0) {
+ piVar1 = &this->grid[_x10][_y10].field19_0x4c;
+ *piVar1 = *piVar1 + 1;
+ }
+ if ((uVar6 & 0x2000000) != 0) {
+ piVar1 = &this->grid[_x10][_y10].field19_0x4c;
+ *piVar1 = *piVar1 + 1;
+ }
+ if (((int)DAT_TileMapState.OrganismLayer[_tile] - 1U < 1999)
+ && (((TVar3 = DAT_LandscapeState
+ .trees[DAT_TileMapState.OrganismLayer[_tile]]
+ .treeType,
+ TVar3 == ((TreeType)1) || (TVar3 == ((TreeType)2)))
+ || ((TVar3 == ((TreeType)3) || (TVar3 == ((TreeType)4))))))) {
+ piVar1 = &this->grid[_x10][_y10].trees;
+ *piVar1 = *piVar1 + 1;
+ }
+ if (DAT_TileMapState.BuildingLayer[_tile] != 0) {
+ pBVar2 = &DAT_BuildingsState
+ .buildings[DAT_TileMapState.BuildingLayer[_tile]]
+ .buildingType;
+ BVar4 = *pBVar2;
+ if (BVar4 == BT_MANORHOUSE) {
+ piVar1 = &this->grid[_x10][_y10].keeps;
+ *piVar1 = *piVar1 + 1;
+ } else if (BVar4 == BT_STONEKEEP) {
+ piVar1 = &this->grid[_x10][_y10].keeps;
+ *piVar1 = *piVar1 + 1;
+ } else if (BVar4 == BT_STRONGHOLD) {
+ piVar1 = &this->grid[_x10][_y10].keeps;
+ *piVar1 = *piVar1 + 1;
+ } else if (BVar4 == BT_KEEPFOUR) {
+ piVar1 = &this->grid[_x10][_y10].keeps;
+ *piVar1 = *piVar1 + 1;
+ } else if (BVar4 == BT_KEEPFIVE) {
+ piVar1 = &this->grid[_x10][_y10].keeps;
+ *piVar1 = *piVar1 + 1;
+ } else if (BVar4 == BT_CAMPGROUND) {
+ piVar1 = &this->grid[_x10][_y10].keeps;
+ *piVar1 = *piVar1 + 1;
+ } else if ((((BVar4 == BT_GATEHOUSELARGE)
+ || (BVar4 == BT_GATEHOUSESMALL))
+ || (((BVar4 == BT_WOODGATE1
+ || ((((BVar4 == BT_WOODGATE2
+ || (BVar4 == BT_DRAWBRIDGE))
+ || (BVar4 == BT_TOWER1))
+ || ((BVar4 == BT_TOWER2
+ || (BVar4 == BT_TOWER3))))))
+ || (BVar4 == BT_TOWER4))))
+ || (BVar4 == BT_TOWER5)) {
+ piVar1 = &this->grid[_x10][_y10].castlebuildings;
+ *piVar1 = *piVar1 + 1;
+ }
+ if (*pBVar2 != BT_SIGNPOST) {
+ piVar1 = &this->grid[_x10][_y10].field3_0xc;
+ *piVar1 = *piVar1 + 1;
+ }
+ }
+ _unitID = (int)(short)DAT_TileMapState.UnitLayer[_tile];
+ if (_unitID != 0) {
+ piVar1 = &this->grid[_x10][_y10].unitCount;
+ *piVar1 = *piVar1 + 1;
+ if (DAT_UnitsState.units[_unitID].isStalked == 0) {
+ piVar1 = &this->grid[_x10][_y10].field12_0x30;
+ *piVar1 = *piVar1 + 1;
+ LAB_0052be68:
+ piVar1 = &this->grid[_x10][_y10].field18_0x48;
+ *piVar1 = *piVar1 + 1;
+ } else {
+ piVar1 = &this->grid[_x10][_y10].field8_0x20;
+ *piVar1 = *piVar1 + 1;
+ UVar5 = DAT_UnitsState.units[_unitID].unitType;
+ if (UVar5 == UT_ANTELOPESHDEER) {
+ piVar1 = &this->grid[_x10][_y10].deerCount;
+ *piVar1 = *piVar1 + 1;
+ if (DAT_TribesState
+ .tribes[DAT_UnitsState.units[_unitID].tribeID]
+ .field133_0x278
+ != 0)
+ goto LAB_0052be68;
+ } else if (UVar5 == UT_RABBIT) {
+ piVar1 = &this->grid[_x10][_y10].rabbitCount;
+ *piVar1 = *piVar1 + 1;
+ } else if (UVar5 == UT_CAMELSHBEAR) {
+ piVar1 = &this->grid[_x10][_y10].camelCount;
+ *piVar1 = *piVar1 + 1;
+ } else if (UVar5 == UT_LIONSHWOLF) {
+ piVar1 = &this->grid[_x10][_y10].lionCount;
+ *piVar1 = *piVar1 + 1;
+ }
+ }
+ }
+ }
+ local_358 = local_358 + 1;
+ } while (local_358 < 10);
+ local_354 = local_354 + 1;
+ } while (local_354 < 10);
+ _sepAreaID = 0;
+ iVar8 = 0;
+ iVar10 = 0;
+ do {
+ if (local_320[iVar10 * 2] == -1)
+ break;
+ if (iVar8 < local_320[iVar10 * 2 + 1]) {
+ _sepAreaID = local_320[iVar10 * 2];
+ iVar8 = local_320[iVar10 * 2 + 1];
+ }
+ if (local_320[iVar10 * 2 + 2] == -1)
+ break;
+ if (iVar8 < local_320[iVar10 * 2 + 3]) {
+ _sepAreaID = local_320[iVar10 * 2 + 2];
+ iVar8 = local_320[iVar10 * 2 + 3];
+ }
+ if (local_320[iVar10 * 2 + 4] == -1)
+ break;
+ if (iVar8 < local_320[iVar10 * 2 + 5]) {
+ _sepAreaID = local_320[iVar10 * 2 + 4];
+ iVar8 = local_320[iVar10 * 2 + 5];
+ }
+ if (local_320[iVar10 * 2 + 6] == -1)
+ break;
+ if (iVar8 < local_320[iVar10 * 2 + 7]) {
+ _sepAreaID = local_320[iVar10 * 2 + 6];
+ iVar8 = local_320[iVar10 * 2 + 7];
+ }
+ if (local_320[iVar10 * 2 + 8] == -1)
+ break;
+ if (iVar8 < local_320[iVar10 * 2 + 9]) {
+ _sepAreaID = local_320[iVar10 * 2 + 8];
+ iVar8 = local_320[iVar10 * 2 + 9];
+ }
+ iVar10 = iVar10 + 5;
+ } while (iVar10 < 100);
+ this->grid[_x10][_y10].separateAreaID = _sepAreaID;
+ local_35c = local_35c + 10;
+ } while (local_35c < 400);
+ }
+ return;
+ }
+}
+}
+
+### 0x0052bf40 renderDebugDataMapData | quelle=ghidra | bereich=Umwelt
+// FUNCTION: STRONGHOLDCRUSADER 0x0052BF40
+ void WildlifeState::renderDebugDataMapData(int x, int y, int width, int height)
+ {
+ uint uVar1;
+ int iVar2;
+ uint uVar3;
+ int iVar4;
+ undefined2 uVar5;
+ uint _colour;
+ int x1;
+ int iVar6;
+ int iVar7;
+ int iVar8;
+ char* textAddress;
+ x1 = x + 2;
+ if (this->DAT_DebugDataMapDataDisplayType == 0) {
+ textAddress = "Connect ";
+ } else if (this->DAT_DebugDataMapDataDisplayType == 1) {
+ textAddress = "Chimps ";
+ } else if (this->DAT_DebugDataMapDataDisplayType == 2) {
+ textAddress = "Farmland ";
+ } else if (this->DAT_DebugDataMapDataDisplayType == 3) {
+ textAddress = "Humans ";
+ } else if (this->DAT_DebugDataMapDataDisplayType == 4) {
+ textAddress = "Mankind ";
+ } else if (this->DAT_DebugDataMapDataDisplayType == 5) {
+ textAddress = "Deer ";
+ } else if (this->DAT_DebugDataMapDataDisplayType == 6) {
+ textAddress = "Route ";
+ } else if (this->DAT_DebugDataMapDataDisplayType == 7) {
+ textAddress = "Panic ";
+ } else if (this->DAT_DebugDataMapDataDisplayType == 8) {
+ textAddress = "Siege ";
+ } else {
+ if (this->DAT_DebugDataMapDataDisplayType != 9)
+ goto LAB_0052c0db;
+ textAddress = "Slink ";
+ }
+ renderTextToScreen(
+ textAddress, x + 0x1a6, y + 4, TTA_LEFT, 0xffffff, 0x11, FALSE, 0);
+ LAB_0052c0db:
+ /*
+ render the squares
+ */
+ iVar7 = 41;
+ iVar6 = y;
+ do {
+ drawLine(
+ x1, iVar6, x + 0x192, iVar6, (ushort)((int)(COL_WHITE::instance.shortValue)));
+ iVar6 = iVar6 + 10;
+ iVar7 = iVar7 + -1;
+ } while (iVar7 != 0);
+ iVar7 = 41;
+ iVar6 = x1;
+ do {
+ drawLine(
+ iVar6, y, iVar6, y + 400, (ushort)((int)(COL_WHITE::instance.shortValue)));
+ iVar6 = iVar6 + 10;
+ iVar7 = iVar7 + -1;
+ iVar8 = 0;
+ } while (iVar7 != 0);
+ do {
+ iVar6 = 0;
+ do {
+ if (0 < this->grid[iVar6][iVar8].firstMember) {
+ uVar5 = COL_BLUE::instance.shortValue;
+ if (this->DAT_DebugDataMapDataDisplayType == 0) {
+ uVar1 = this->grid[iVar6][iVar8].separateAreaID;
+ uVar3 = uVar1 & 7;
+ if ((((uVar1 == 0) || (uVar5 = COL_RED::instance.shortValue, uVar3 == 1))
+ || ((uVar5 = COL_BRIGHT_YELLOW::instance.shortValue,
+ uVar3 == 2
+ || ((uVar5 = COL_MODERATE_GREEN::instance.shortValue,
+ uVar3 == 3 || (uVar5 = COL_WHITE::instance.shortValue, uVar3 == 4))))))
+ || (uVar5 = COL_DARK_CYAN_GREY::instance.shortValue, uVar3 == 5))
+ goto LAB_0052c526;
+ if (uVar3 == 6) {
+ LAB_0052c51f:
+ uVar5 = COL_LIME::instance.shortValue;
+ goto LAB_0052c526;
+ }
+ iVar2 = y + iVar8 * 10;
+ iVar4 = x1 + iVar6 * 10;
+ uVar5 = COL_VERY_DARK_GREY::instance.shortValue;
+ if (uVar3 == 7) {
+ uVar5 = COL_VIVID_BLUE::instance.shortValue;
+ }
+ } else {
+ if (this->DAT_DebugDataMapDataDisplayType == 1) {
+ if (this->grid[iVar6][iVar8].separateAreaID != 0) {
+ iVar7 = this->grid[iVar6][iVar8].chimps;
+ uVar5 = COL_RED::instance.shortValue;
+ joined_r0x0052c335:
+ iVar2 = y + iVar8 * 10;
+ iVar4 = x1 + iVar6 * 10;
+ if (iVar7 == 0) {
+ uVar5 = COL_LIME::instance.shortValue;
+ }
+ goto LAB_0052c533;
+ }
+ } else if (this->DAT_DebugDataMapDataDisplayType == 2) {
+ if ((((this->grid[iVar6][iVar8].separateAreaID != 0)
+ && (uVar5 = COL_DARK_GREEN::instance.shortValue,
+ this->grid[iVar6][iVar8].field19_0x4c == 0))
+ && (uVar5 = COL_RED::instance.shortValue,
+ this->grid[iVar6][iVar8].rabbitCount == 0))
+ && (uVar5 = COL_WHITE::instance.shortValue,
+ this->grid[iVar6][iVar8].field15_0x3c == 0)) {
+ iVar7 = this->grid[iVar6][iVar8].field20_0x50;
+ uVar5 = COL_DARK_CYAN_GREY::instance.shortValue;
+ goto joined_r0x0052c335;
+ }
+ } else if (this->DAT_DebugDataMapDataDisplayType == 3) {
+ if (this->grid[iVar6][iVar8].separateAreaID != 0) {
+ iVar7 = this->grid[iVar6][iVar8].field12_0x30;
+ uVar5 = COL_RED::instance.shortValue;
+ goto joined_r0x0052c335;
+ }
+ } else if (this->DAT_DebugDataMapDataDisplayType == 4) {
+ if ((this->grid[iVar6][iVar8].separateAreaID != 0)
+ && (uVar5 = COL_RED::instance.shortValue, this->grid[iVar6][iVar8].field12_0x30 == 0)) {
+ iVar7 = this->grid[iVar6][iVar8].field3_0xc;
+ joined_r0x0052c3aa:
+ if (iVar7 == 0) {
+ iVar7 = this->grid[iVar6][iVar8].field13_0x34;
+ uVar5 = COL_BRIGHT_YELLOW::instance.shortValue;
+ goto joined_r0x0052c335;
+ }
+ }
+ } else if (this->DAT_DebugDataMapDataDisplayType == 5) {
+ if (((this->grid[iVar6][iVar8].separateAreaID != 0)
+ && (uVar5 = COL_RED::instance.shortValue,
+ this->grid[iVar6][iVar8].field12_0x30 == 0))
+ && ((this->grid[iVar6][iVar8].field3_0xc == 0
+ && ((uVar5 = COL_BLACK::instance.shortValue,
+ this->grid[iVar6][iVar8].lionCount == 0
+ && (this->grid[iVar6][iVar8].camelCount == 0)))))) {
+ iVar7 = this->grid[iVar6][iVar8].deerCount;
+ uVar5 = COL_MODERATE_GREEN::instance.shortValue;
+ goto joined_r0x0052c3aa;
+ }
+ } else if (this->DAT_DebugDataMapDataDisplayType == 6) {
+ if ((((this->grid[iVar6][iVar8].separateAreaID != 0)
+ && (uVar5 = COL_RED::instance.shortValue, this->grid[iVar6][iVar8].deerCount == 0))
+ && (uVar5 = COL_VIVID_BLUE::instance.shortValue,
+ this->grid[iVar6][iVar8].lionCount == 0))
+ && (uVar5 = COL_WHITE::instance.shortValue,
+ this->grid[iVar6][iVar8].field15_0x3c == 0)) {
+ iVar7 = this->grid[iVar6][iVar8].casDisRelated2;
+ uVar5 = COL_BRIGHT_YELLOW::instance.shortValue;
+ joined_r0x0052c46b:
+ if (iVar7 == 0) {
+ iVar7 = this->grid[iVar6][iVar8].field13_0x34;
+ uVar5 = COL_BLACK::instance.shortValue;
+ goto joined_r0x0052c335;
+ }
+ }
+ } else if (this->DAT_DebugDataMapDataDisplayType == 7) {
+ if ((this->grid[iVar6][iVar8].separateAreaID != 0)
+ && (uVar5 = COL_WHITE::instance.shortValue,
+ this->grid[iVar6][iVar8].field18_0x48 == 0)) {
+ iVar7 = this->grid[iVar6][iVar8].deerCount;
+ uVar5 = COL_RED::instance.shortValue;
+ goto joined_r0x0052c46b;
+ }
+ } else if (this->DAT_DebugDataMapDataDisplayType == 8) {
+ uVar5 = COL_WHITE::instance.shortValue;
+ if (((this->grid[iVar6][iVar8].field24_0x60 == 0)
+ && (uVar5 = COL_BLACK::instance.shortValue,
+ this->grid[iVar6][iVar8].field25_0x64 == 0))
+ && ((uVar5 = COL_BRIGHT_YELLOW::instance.shortValue,
+ this->grid[iVar6][iVar8].castlebuildings == 0
+ && ((uVar5 = COL_BLUE::instance.shortValue,
+ this->grid[iVar6][iVar8].separateAreaID != 0
+ && (uVar5 = COL_VIVID_BLUE::instance.shortValue,
+ this->grid[iVar6][iVar8].unknownNonZero01 == 0)))))) {
+ iVar7 = this->grid[iVar6][iVar8].field27_0x6c;
+ uVar5 = COL_RED::instance.shortValue;
+ goto joined_r0x0052c335;
+ }
+ } else {
+ if (this->DAT_DebugDataMapDataDisplayType != 9)
+ goto LAB_0052c54e;
+ uVar5 = COL_RED::instance.shortValue;
+ if (((this->grid[iVar6][iVar8].field29_0x74 == 0)
+ && (uVar5 = COL_VIVID_BLUE::instance.shortValue,
+ this->grid[iVar6][iVar8].unknownNonZero01 == 0))
+ && (uVar5 = COL_BLUE::instance.shortValue,
+ this->grid[iVar6][iVar8].separateAreaID != 0))
+ goto LAB_0052c51f;
+ }
+ LAB_0052c526:
+ iVar4 = x1 + iVar6 * 10;
+ iVar2 = y + iVar8 * 10;
+ }
+ LAB_0052c533:
+ drawColorBox(iVar4 + 1, iVar2 + 1, iVar4 + 9, iVar2 + 9, (ushort)((int)(uVar5)));
+ }
+ LAB_0052c54e:
+ iVar6 = iVar6 + 1;
+ } while (iVar6 < 40);
+ iVar8 = iVar8 + 1;
+ if (40 < iVar8) {
+ return;
+ }
+ } while (true);
+ }
+}
+}
+
+### 0x0052cab0 findAndSetNewRallyPointForDeerAndLions | quelle=ghidra | bereich=Umwelt
+// FUNCTION: STRONGHOLDCRUSADER 0x0052CAB0
+ void WildlifeState::findAndSetNewRallyPointForDeerAndLions(int tribeID, int always2or3or5, int always0or1)
+ {
+ short* psVar1;
+ short sVar2;
+ short sVar3;
+ int* piVar4;
+ uint _randomDirection;
+ int iVar5;
+ uint uVar6;
+ int iVar7;
+ int iVar8;
+ int* piVar9;
+ uint uVar10;
+ int _x10;
+ int iVar11;
+ int _y10;
+ int local_18;
+ int local_c;
+ int _count;
+ int _currentArea;
+ uint _destinationY;
+ uint _destinationX;
+ sVar2 = DAT_TribesState.tribes[tribeID].selectionTargetUnitID;
+ _x10 = (int)DAT_UnitsState.units[sVar2].x / 10;
+ _y10 = (int)DAT_UnitsState.units[sVar2].y / 10;
+ this->casDisRelated = always2or3or5;
+ this->candidateIndex = 0;
+ this->candidateIndex2 = 1;
+ piVar9 = &this->grid[0][0].field15_0x3c;
+ iVar11 = 0x28;
+ do {
+ iVar5 = 0x28;
+ piVar4 = piVar9;
+ do {
+ piVar4[-1] = 0;
+ *piVar4 = 0;
+ piVar4 = piVar4 + 0x640;
+ iVar5 = iVar5 + -1;
+ } while (iVar5 != 0);
+ piVar9 = piVar9 + 0x28;
+ iVar11 = iVar11 + -1;
+ } while (iVar11 != 0);
+ this->DAT_Y10_Array_Section1034[0] = (short)_y10;
+ this->DAT_X10_Array_Section1034[0] = (short)_x10;
+ _currentArea = this->grid[_x10][_y10].separateAreaID;
+ this->grid[_x10][_y10].casDisRelated2 = always2or3or5;
+ if (this->candidateIndex != this->candidateIndex2) {
+ do {
+ sVar2 = this->DAT_X10_Array_Section1034[this->candidateIndex];
+ sVar3 = this->DAT_Y10_Array_Section1034[this->candidateIndex];
+ this->casDisRelated = this->grid[sVar2][sVar3].casDisRelated2;
+ if (this->casDisRelated < 2)
+ break;
+ iVar11 = this->casDisRelated + -1;
+ piVar9 = &DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[0].int.yOffset;
+ do {
+ uVar10 = *piVar9 + (int)sVar3;
+ uVar6 = ((Point8IntXY*)(piVar9 + -1))->xOffset + (int)sVar2;
+ if ((((uVar6 < 0x28) && (uVar10 < 0x28)) && (0 < this->grid[uVar6][uVar10].firstMember))
+ && (_currentArea == this->grid[uVar6][uVar10].separateAreaID)) {
+ if (always0or1 == 0) {
+ if (this->grid[uVar6][uVar10].field13_0x34 == 0) {
+ if (DAT_TribesState.tribes[tribeID].tribeType
+ == (AITT_SWORDSMEN | AITT_SPEARMEN)) {
+ _count = this->grid[uVar6][uVar10].deerCount;
+ goto LAB_0052cc5e;
+ }
+ LAB_0052cc66:
+ if (this->grid[uVar6][uVar10].casDisRelated2 < iVar11) {
+ this->grid[uVar6][uVar10].casDisRelated2 = iVar11;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)uVar6;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)uVar10;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (1600 < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ }
+ } else if (this->grid[uVar6][uVar10].field12_0x30 == 0) {
+ _count = this->grid[uVar6][uVar10].field3_0xc;
+ LAB_0052cc5e:
+ if ((_count == 0) && (this->grid[uVar6][uVar10].lionCount == 0))
+ goto LAB_0052cc66;
+ }
+ }
+ piVar9 = piVar9 + 2;
+ } while ((int)piVar9 < 0xb4908c);
+ this->candidateIndex = this->candidateIndex + 1;
+ if (1600 < this->candidateIndex) {
+ this->candidateIndex = 0;
+ }
+ } while (this->candidateIndex != this->candidateIndex2);
+ }
+ _randomDirection = (uint)(byte)SEC_RNG::instance.currentNumber2;
+ DAT_TribesState.tribes[tribeID].currentRallyPointIndex = 0;
+ DAT_TribesState.tribes[tribeID].rallyPointCount = 0;
+ this->grid[_x10][_y10].field15_0x3c = 1;
+ this->grid[_x10][_y10].casDisRelated2 = 0;
+ while (true) {
+ local_18 = -1;
+ local_c = 2;
+ iVar11 = (_randomDirection & 7) * 8 + 8;
+ iVar5 = (_randomDirection & 7) - 7;
+ do {
+ iVar8 = iVar5 + 7;
+ iVar7 = iVar11 + -8;
+ if (7 < iVar8) {
+ iVar8 = iVar5 + -1;
+ iVar7 = iVar11 + -0x48;
+ }
+ uVar6
+ = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar7) + _x10;
+ uVar10 = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar7 + 4)
+ + _y10;
+ if (((uVar6 < 0x28) && (uVar10 < 0x28))
+ && ((0 < this->grid[uVar6][uVar10].firstMember
+ && ((iVar7 = this->grid[uVar6][uVar10].casDisRelated2,
+ iVar7 != 0 && (iVar7 < always2or3or5)))))) {
+ this->grid[uVar6][uVar10].casDisRelated2 = 0;
+ always2or3or5 = iVar7;
+ local_18 = iVar8;
+ }
+ iVar8 = iVar11;
+ iVar7 = iVar5 + 8;
+ if (7 < iVar5 + 8) {
+ iVar8 = iVar11 + -0x40;
+ iVar7 = iVar5;
+ }
+ uVar10 = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar8 + 4)
+ + _y10;
+ uVar6
+ = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar8) + _x10;
+ if ((((uVar6 < 0x28) && (uVar10 < 0x28)) && (0 < this->grid[uVar6][uVar10].firstMember))
+ && ((iVar8 = this->grid[uVar6][uVar10].casDisRelated2, iVar8 != 0 && (iVar8 < always2or3or5)))) {
+ this->grid[uVar6][uVar10].casDisRelated2 = 0;
+ always2or3or5 = iVar8;
+ local_18 = iVar7;
+ }
+ iVar8 = iVar5 + 9;
+ iVar7 = iVar11 + 8;
+ if (7 < iVar8) {
+ iVar8 = iVar5 + 1;
+ iVar7 = iVar11 + -0x38;
+ }
+ uVar10 = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar7 + 4)
+ + _y10;
+ uVar6
+ = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar7) + _x10;
+ if (((uVar6 < 0x28) && (uVar10 < 0x28))
+ && ((0 < this->grid[uVar6][uVar10].firstMember
+ && ((iVar7 = this->grid[uVar6][uVar10].casDisRelated2,
+ iVar7 != 0 && (iVar7 < always2or3or5)))))) {
+ this->grid[uVar6][uVar10].casDisRelated2 = 0;
+ always2or3or5 = iVar7;
+ local_18 = iVar8;
+ }
+ iVar8 = iVar5 + 10;
+ iVar7 = iVar11 + 0x10;
+ if (7 < iVar8) {
+ iVar8 = iVar5 + 2;
+ iVar7 = iVar11 + -0x30;
+ }
+ uVar10 = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar7 + 4)
+ + _y10;
+ uVar6
+ = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar7) + _x10;
+ if ((((uVar6 < 0x28) && (uVar10 < 0x28)) && (0 < this->grid[uVar6][uVar10].firstMember))
+ && ((iVar7 = this->grid[uVar6][uVar10].casDisRelated2, iVar7 != 0 && (iVar7 < always2or3or5)))) {
+ this->grid[uVar6][uVar10].casDisRelated2 = 0;
+ always2or3or5 = iVar7;
+ local_18 = iVar8;
+ }
+ iVar11 = iVar11 + 0x20;
+ iVar5 = iVar5 + 4;
+ local_c = local_c + -1;
+ } while (local_c != 0);
+ if (local_18 < 0)
+ break;
+ _x10 = _x10 + DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[local_18].int.xOffset;
+ _y10 = _y10
+ + *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + local_18 * 8 + 4);
+ this->grid[_x10][_y10].field15_0x3c = 1;
+ _destinationY = _y10 * 10 + 5;
+ uVar6 = _x10 * 10 + 5;
+ if (((uVar6 < 400) && (_destinationY < 400))
+ && (*(char*)(_destinationY * 400 + 0x21aec98 + uVar6) != '\0')) {
+ pathFindingDeerAndLionsUnk(_currentArea, uVar6, _destinationY);
+ DAT_TribesState.tribes[tribeID]
+ .rallyPointArray[DAT_TribesState.tribes[tribeID].rallyPointCount][0]
+ = (short)DAT_PathFindingState.climbX;
+ DAT_TribesState.tribes[tribeID]
+ .rallyPointArray[DAT_TribesState.tribes[tribeID].rallyPointCount][1]
+ = (short)DAT_PathFindingState.climbY;
+ psVar1 = &DAT_TribesState.tribes[tribeID].rallyPointCount;
+ *psVar1 = *psVar1 + 1;
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x0052cfe0 buildRallyPointPathForTribe | quelle=ghidra | bereich=Umwelt
+// FUNCTION: STRONGHOLDCRUSADER 0x0052CFE0
+ BOOLEnum WildlifeState::buildRallyPointPathForTribe(int param_1, int param_2)
+ {
+ short* psVar1;
+ short sVar2;
+ int iVar3;
+ int* piVar4;
+ int iVar5;
+ int* piVar6;
+ uint uVar7;
+ int iVar8;
+ uint uVar9;
+ int iVar10;
+ uint uVar11;
+ int iVar12;
+ int local_1c;
+ int local_14;
+ int local_10;
+ sVar2 = DAT_TribesState.tribes[param_1].selectionTargetUnitID;
+ iVar5 = (int)DAT_UnitsState.units[sVar2].x / 10;
+ local_1c = (int)DAT_UnitsState.units[sVar2].y / 10;
+ this->casDisRelated = param_2;
+ this->candidateIndex = 0;
+ this->candidateIndex2 = 1;
+ if (this->grid[iVar5][local_1c].field20_0x50 != 0) {
+ piVar4 = &this->grid[0][0].field15_0x3c;
+ iVar12 = 0x28;
+ do {
+ iVar3 = 0x28;
+ piVar6 = piVar4;
+ do {
+ piVar6[-1] = 0;
+ *piVar6 = 0;
+ piVar6 = piVar6 + 0x640;
+ iVar3 = iVar3 + -1;
+ } while (iVar3 != 0);
+ piVar4 = piVar4 + 0x28;
+ iVar12 = iVar12 + -1;
+ } while (iVar12 != 0);
+ this->DAT_Y10_Array_Section1034[0] = (short)local_1c;
+ this->DAT_X10_Array_Section1034[0] = (short)iVar5;
+ this->grid[iVar5][local_1c].casDisRelated2 = this->grid[iVar5][local_1c].field20_0x50;
+ iVar12 = this->grid[iVar5][local_1c].separateAreaID;
+ if (this->candidateIndex != this->candidateIndex2) {
+ do {
+ iVar3 = (int)this->DAT_Y10_Array_Section1034[this->candidateIndex];
+ iVar8 = (int)this->DAT_X10_Array_Section1034[this->candidateIndex];
+ piVar4 = &DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[0].int.yOffset;
+ do {
+ uVar9 = *piVar4 + iVar3;
+ uVar7 = ((Point8IntXY*)(piVar4 + -1))->xOffset + iVar8;
+ if (((((uVar7 < 0x28) && (uVar9 < 0x28)) && (0 < this->grid[uVar7][uVar9].firstMember))
+ && ((iVar12 == this->grid[uVar7][uVar9].separateAreaID
+ && (iVar10 = this->grid[uVar7][uVar9].field20_0x50, 0 < iVar10))))
+ && (this->grid[uVar7][uVar9].casDisRelated2 == 0)) {
+ this->grid[uVar7][uVar9].casDisRelated2 = iVar10;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)uVar7;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)uVar9;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (0x63f < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ uVar9 = piVar4[2] + iVar3;
+ uVar7 = piVar4[1] + iVar8;
+ if (((uVar7 < 0x28) && (uVar9 < 0x28))
+ && ((0 < this->grid[uVar7][uVar9].firstMember
+ && (((iVar12 == this->grid[uVar7][uVar9].separateAreaID
+ && (iVar10 = this->grid[uVar7][uVar9].field20_0x50, 0 < iVar10))
+ && (this->grid[uVar7][uVar9].casDisRelated2 == 0)))))) {
+ this->grid[uVar7][uVar9].casDisRelated2 = iVar10;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)uVar7;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)uVar9;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (0x63f < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ uVar9 = piVar4[4] + iVar3;
+ uVar7 = piVar4[3] + iVar8;
+ if ((((uVar7 < 0x28) && (uVar9 < 0x28))
+ && ((0 < this->grid[uVar7][uVar9].firstMember
+ && ((iVar12 == this->grid[uVar7][uVar9].separateAreaID
+ && (iVar10 = this->grid[uVar7][uVar9].field20_0x50, 0 < iVar10))))))
+ && (this->grid[uVar7][uVar9].casDisRelated2 == 0)) {
+ this->grid[uVar7][uVar9].casDisRelated2 = iVar10;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)uVar7;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)uVar9;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (0x63f < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ uVar9 = piVar4[6] + iVar3;
+ uVar7 = piVar4[5] + iVar8;
+ if ((((uVar7 < 0x28) && (uVar9 < 0x28)) && (0 < this->grid[uVar7][uVar9].firstMember))
+ && (((iVar12 == this->grid[uVar7][uVar9].separateAreaID
+ && (iVar10 = this->grid[uVar7][uVar9].field20_0x50, 0 < iVar10))
+ && (this->grid[uVar7][uVar9].casDisRelated2 == 0)))) {
+ this->grid[uVar7][uVar9].casDisRelated2 = iVar10;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)uVar7;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)uVar9;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (0x63f < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ piVar4 = piVar4 + 8;
+ } while ((int)piVar4 < 0xb4908c);
+ this->candidateIndex = this->candidateIndex + 1;
+ if (0x63f < this->candidateIndex) {
+ this->candidateIndex = 0;
+ }
+ } while (this->candidateIndex != this->candidateIndex2);
+ }
+ uVar7 = (uint)(byte)SEC_RNG::instance.currentNumber2;
+ DAT_TribesState.tribes[param_1].currentRallyPointIndex = 0;
+ DAT_TribesState.tribes[param_1].rallyPointCount = 0;
+ this->grid[iVar5][local_1c].field15_0x3c = 1;
+ this->grid[iVar5][local_1c].casDisRelated2 = 0;
+ while (true) {
+ local_14 = -1;
+ local_10 = 2;
+ iVar12 = (uVar7 & 7) - 7;
+ iVar3 = (uVar7 & 7) * 8 + 8;
+ do {
+ iVar8 = iVar12 + 7;
+ iVar10 = iVar3 + -8;
+ if (7 < iVar8) {
+ iVar8 = iVar12 + -1;
+ iVar10 = iVar3 + -72;
+ }
+ uVar9 = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar10)
+ + iVar5;
+ uVar11
+ = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar10 + 4)
+ + local_1c;
+ if (((uVar9 < 0x28) && (uVar11 < 0x28))
+ && ((0 < this->grid[uVar9][uVar11].firstMember
+ && ((iVar10 = this->grid[uVar9][uVar11].casDisRelated2,
+ iVar10 != 0 && (param_2 < iVar10)))))) {
+ this->grid[uVar9][uVar11].casDisRelated2 = 0;
+ param_2 = iVar10;
+ local_14 = iVar8;
+ }
+ iVar8 = iVar3;
+ iVar10 = iVar12 + 8;
+ if (7 < iVar12 + 8) {
+ iVar8 = iVar3 + -0x40;
+ iVar10 = iVar12;
+ }
+ uVar11
+ = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar8 + 4)
+ + local_1c;
+ uVar9 = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar8)
+ + iVar5;
+ if ((((uVar9 < 0x28) && (uVar11 < 0x28)) && (0 < this->grid[uVar9][uVar11].firstMember))
+ && ((iVar8 = this->grid[uVar9][uVar11].casDisRelated2, iVar8 != 0 && (param_2 < iVar8)))) {
+ this->grid[uVar9][uVar11].casDisRelated2 = 0;
+ param_2 = iVar8;
+ local_14 = iVar10;
+ }
+ iVar8 = iVar12 + 9;
+ iVar10 = iVar3 + 8;
+ if (7 < iVar8) {
+ iVar8 = iVar12 + 1;
+ iVar10 = iVar3 + -0x38;
+ }
+ uVar11
+ = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar10 + 4)
+ + local_1c;
+ uVar9 = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar10)
+ + iVar5;
+ if (((uVar9 < 0x28) && (uVar11 < 0x28))
+ && ((0 < this->grid[uVar9][uVar11].firstMember
+ && ((iVar10 = this->grid[uVar9][uVar11].casDisRelated2,
+ iVar10 != 0 && (param_2 < iVar10)))))) {
+ this->grid[uVar9][uVar11].casDisRelated2 = 0;
+ param_2 = iVar10;
+ local_14 = iVar8;
+ }
+ iVar8 = iVar12 + 10;
+ iVar10 = iVar3 + 0x10;
+ if (7 < iVar8) {
+ iVar8 = iVar12 + 2;
+ iVar10 = iVar3 + -0x30;
+ }
+ uVar11
+ = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar10 + 4)
+ + local_1c;
+ uVar9 = *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + iVar10)
+ + iVar5;
+ if ((((uVar9 < 0x28) && (uVar11 < 0x28)) && (0 < this->grid[uVar9][uVar11].firstMember))
+ && ((iVar10 = this->grid[uVar9][uVar11].casDisRelated2, iVar10 != 0 && (param_2 < iVar10)))) {
+ this->grid[uVar9][uVar11].casDisRelated2 = 0;
+ param_2 = iVar10;
+ local_14 = iVar8;
+ }
+ iVar3 = iVar3 + 0x20;
+ iVar12 = iVar12 + 4;
+ local_10 = local_10 + -1;
+ } while (local_10 != 0);
+ if (local_14 < 0)
+ break;
+ iVar5
+ = iVar5 + DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[local_14].int.xOffset;
+ local_1c = local_1c
+ + *(int*)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix + local_14 * 8
+ + 4);
+ this->grid[iVar5][local_1c].field15_0x3c = 1;
+ uVar9 = iVar5 * 10 + 5;
+ uVar11 = local_1c * 10 + 5;
+ if (((uVar9 < 400) && (uVar11 < 400)) && (*(char*)(uVar11 * 400 + 0x21aec98 + uVar9) != '\0')) {
+ DAT_TribesState.tribes[param_1]
+ .rallyPointArray[DAT_TribesState.tribes[param_1].rallyPointCount][0]
+ = (short)iVar5 * 10 + 5;
+ DAT_TribesState.tribes[param_1]
+ .rallyPointArray[DAT_TribesState.tribes[param_1].rallyPointCount][1]
+ = (short)local_1c * 10 + 5;
+ psVar1 = &DAT_TribesState.tribes[param_1].rallyPointCount;
+ *psVar1 = *psVar1 + 1;
+ }
+ }
+ return TRUE;
+ }
+ return FALSE;
+ }
+}
+}
+
+### 0x0052d620 hasAdjacentCellWithField24Or25 | quelle=ghidra | bereich=Umwelt
+// FUNCTION: STRONGHOLDCRUSADER 0x0052D620
+ undefined4 WildlifeState::hasAdjacentCellWithField24Or25(int param_1, int param_2)
+ {
+ uint uVar1;
+ uint uVar2;
+ int* piVar3;
+ piVar3 = &DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[0].int.yOffset;
+ while (true) {
+ uVar1 = ((Point8IntXY*)(piVar3 + -1))->xOffset + param_1;
+ uVar2 = *piVar3 + param_2;
+ if ((((uVar1 < 0x28) && (uVar2 < 0x28)) && (0 < this->grid[uVar1][uVar2].firstMember))
+ && ((this->grid[uVar1][uVar2].field24_0x60 != 0 || (this->grid[uVar1][uVar2].field25_0x64 != 0))))
+ break;
+ piVar3 = piVar3 + 4;
+ if (0xb4908b < (int)piVar3) {
+ return (undefined4)(0);
+ }
+ }
+ return (undefined4)(1);
+ }
+}
+}
+
+### 0x0052d690 isSuitableWildlifeSpawnCell | quelle=ghidra | bereich=Umwelt
+// FUNCTION: STRONGHOLDCRUSADER 0x0052D690
+ undefined4 WildlifeState::isSuitableWildlifeSpawnCell(int param_1, int param_2)
+ {
+ uint uVar1;
+ uint uVar2;
+ int* piVar3;
+ if (((this->grid[param_1][param_2].unclaimedArea < 9) && (this->grid[param_1][param_2].trees < 5))
+ && (0x31 < this->grid[param_1][param_2].firstMember)) {
+ piVar3 = &DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[0].int.yOffset;
+ while (true) {
+ uVar1 = ((Point8IntXY*)(piVar3 + -1))->xOffset + param_1;
+ uVar2 = *piVar3 + param_2;
+ if (((uVar1 < 0x28) && (uVar2 < 0x28))
+ && ((0 < this->grid[uVar1][uVar2].firstMember && (this->grid[uVar1][uVar2].unknownNonZero01 != 0))))
+ break;
+ piVar3 = piVar3 + 4;
+ if (0xb4908b < (int)piVar3) {
+ return (undefined4)(0);
+ }
+ }
+ return (undefined4)(1);
+ }
+ return (undefined4)(0);
+ }
+}
+}
+
+### 0x0052d720 floodFillUnknownNonZero01FromCell | quelle=ghidra | bereich=Umwelt
+// FUNCTION: STRONGHOLDCRUSADER 0x0052D720
+ void WildlifeState::floodFillUnknownNonZero01FromCell(int param_1, int param_2, int param_3)
+ {
+ int iVar1;
+ uint uVar2;
+ uint uVar3;
+ int iVar4;
+ int iVar5;
+ int* piVar6;
+ this->candidateIndex2 = 1;
+ this->casDisRelated = 1;
+ this->DAT_X10_Array_Section1034[0] = (short)param_1;
+ this->DAT_Y10_Array_Section1034[0] = (short)param_2;
+ this->candidateIndex = 0;
+ this->grid[param_1][param_2].unknownNonZero01 = param_3;
+ if (this->candidateIndex != this->candidateIndex2) {
+ do {
+ iVar4 = (int)this->DAT_X10_Array_Section1034[this->candidateIndex];
+ iVar5 = (int)this->DAT_Y10_Array_Section1034[this->candidateIndex];
+ this->casDisRelated = this->grid[iVar4][iVar5].unknownNonZero01;
+ if (this->casDisRelated < 2) {
+ return;
+ }
+ iVar1 = this->casDisRelated + -1;
+ piVar6 = &DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[0].int.yOffset;
+ do {
+ uVar2 = ((Point8IntXY*)(piVar6 + -1))->xOffset + iVar4;
+ uVar3 = *piVar6 + iVar5;
+ if ((((uVar2 < 0x28) && (uVar3 < 0x28)) && (0 < this->grid[uVar2][uVar3].firstMember))
+ && ((this->grid[uVar2][uVar3].unclaimedArea < 0xb
+ && (this->grid[uVar2][uVar3].unknownNonZero01 < iVar1)))) {
+ this->grid[uVar2][uVar3].unknownNonZero01 = iVar1;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)uVar2;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)uVar3;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (0x63f < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ uVar3 = piVar6[2] + iVar5;
+ uVar2 = piVar6[1] + iVar4;
+ if (((uVar2 < 0x28) && (uVar3 < 0x28))
+ && ((0 < this->grid[uVar2][uVar3].firstMember
+ && ((this->grid[uVar2][uVar3].unclaimedArea < 0xb
+ && (this->grid[uVar2][uVar3].unknownNonZero01 < iVar1)))))) {
+ this->grid[uVar2][uVar3].unknownNonZero01 = iVar1;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)uVar2;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)uVar3;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (0x63f < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ uVar3 = piVar6[4] + iVar5;
+ uVar2 = piVar6[3] + iVar4;
+ if ((((uVar2 < 0x28) && (uVar3 < 0x28)) && (0 < this->grid[uVar2][uVar3].firstMember))
+ && ((this->grid[uVar2][uVar3].unclaimedArea < 0xb
+ && (this->grid[uVar2][uVar3].unknownNonZero01 < iVar1)))) {
+ this->grid[uVar2][uVar3].unknownNonZero01 = iVar1;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)uVar2;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)uVar3;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (0x63f < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ uVar3 = piVar6[6] + iVar5;
+ uVar2 = piVar6[5] + iVar4;
+ if (((uVar2 < 0x28) && (uVar3 < 0x28))
+ && ((0 < this->grid[uVar2][uVar3].firstMember
+ && ((this->grid[uVar2][uVar3].unclaimedArea < 0xb
+ && (this->grid[uVar2][uVar3].unknownNonZero01 < iVar1)))))) {
+ this->grid[uVar2][uVar3].unknownNonZero01 = iVar1;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)uVar2;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)uVar3;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (0x63f < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ piVar6 = piVar6 + 8;
+ } while ((int)piVar6 < 0xb4908c);
+ this->candidateIndex = this->candidateIndex + 1;
+ if (0x63f < this->candidateIndex) {
+ this->candidateIndex = 0;
+ }
+ } while (this->candidateIndex != this->candidateIndex2);
+ }
+ return;
+ }
+}
+}
+
+### 0x0052dd20 getDistanceToNearestUnknownNonZero01FromSignpost | quelle=ghidra | bereich=Umwelt
+// FUNCTION: STRONGHOLDCRUSADER 0x0052DD20
+ int WildlifeState::getDistanceToNearestUnknownNonZero01FromSignpost()
+ {
+ uint _newZoneX;
+ int* piVar1;
+ uint _newZoneY;
+ int* piVar2;
+ int iVar3;
+ int iVar4;
+ int _area;
+ short _candidateZoneX;
+ short _candidateZoneY;
+ int _zoneX;
+ int _zoneY;
+ _zoneX = DAT_GameState.mapAndTime
+ .signpostEntryData[DAT_TroopValueState.attackInfo.field128056_0x469d4]
+ .x
+ / 10;
+ this->DAT_X10_Array_Section1034[0] = (short)_zoneX;
+ _zoneY = DAT_GameState.mapAndTime
+ .signpostEntryData[DAT_TroopValueState.attackInfo.field128056_0x469d4]
+ .y
+ / 10;
+ this->casDisRelated = 1;
+ this->candidateIndex = 0;
+ this->candidateIndex2 = 1;
+ piVar2 = &this->grid[0][0].casDisRelated2;
+ iVar3 = 0x28;
+ do {
+ iVar4 = 0x28;
+ piVar1 = piVar2;
+ do {
+ *piVar1 = 0;
+ piVar1 = piVar1 + 0x640;
+ iVar4 = iVar4 + -1;
+ } while (iVar4 != 0);
+ piVar2 = piVar2 + 0x28;
+ iVar3 = iVar3 + -1;
+ } while (iVar3 != 0);
+ this->DAT_Y10_Array_Section1034[0] = (short)_zoneY;
+ _area = this->grid[_zoneX][_zoneY].separateAreaID;
+ this->grid[_zoneX][_zoneY].casDisRelated2 = 1;
+ if (this->candidateIndex != this->candidateIndex2) {
+ do {
+ _candidateZoneX = this->DAT_X10_Array_Section1034[this->candidateIndex];
+ _candidateZoneY = this->DAT_Y10_Array_Section1034[this->candidateIndex];
+ this->casDisRelated = this->grid[_candidateZoneX][_candidateZoneY].casDisRelated2;
+ if (99 < this->casDisRelated) {
+ return 0;
+ }
+ iVar3 = this->casDisRelated + 1;
+ piVar2 = &DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[0].int.yOffset;
+ do {
+ _newZoneX = ((Point8IntXY*)(piVar2 + -1))->xOffset + (int)_candidateZoneX;
+ _newZoneY = *piVar2 + (int)_candidateZoneY;
+ if ((((_newZoneX < 0x28) && (_newZoneY < 0x28))
+ && (0 < this->grid[_newZoneX][_newZoneY].firstMember))
+ && (_area == this->grid[_newZoneX][_newZoneY].separateAreaID)) {
+ if (this->grid[_newZoneX][_newZoneY].unknownNonZero01 != 0) {
+ return (int)(this->casDisRelated);
+ }
+ if (this->grid[_newZoneX][_newZoneY].casDisRelated2 == 0) {
+ this->grid[_newZoneX][_newZoneY].casDisRelated2 = iVar3;
+ this->DAT_X10_Array_Section1034[this->candidateIndex2] = (short)_newZoneX;
+ this->DAT_Y10_Array_Section1034[this->candidateIndex2] = (short)_newZoneY;
+ this->candidateIndex2 = this->candidateIndex2 + 1;
+ if (1600 < this->candidateIndex2) {
+ this->candidateIndex2 = 0;
+ }
+ }
+ }
+ piVar2 = piVar2 + 2;
+ } while ((int)piVar2 < 0xb4908c);
+ this->candidateIndex = this->candidateIndex + 1;
+ if (1600 < this->candidateIndex) {
+ this->candidateIndex = 0;
+ }
+ } while (this->candidateIndex != this->candidateIndex2);
+ }
+ return 0;
+ }
+}
+}
+
+### 0x0052df10 Constructor_WildlifeState | quelle=ghidra | bereich=Umwelt
+// FUNCTION: STRONGHOLDCRUSADER 0x0052DF10
+ WildlifeState* WildlifeState::Constructor_WildlifeState()
+ {
+ clearWildlifeState();
+ this->DAT_DebugDataMapDataDisplayType = 8;
+ return this;
+ }
+}
+}
+

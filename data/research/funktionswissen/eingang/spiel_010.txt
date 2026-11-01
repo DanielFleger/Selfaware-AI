@@ -1,0 +1,1426 @@
+### 0x004012f0 setEntityParameters | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x004012F0
+ void EntityState::setEntityParameters(int entityID, undefined4 entityType, int gmLookupValue)
+ {
+ short sVar1;
+ this->entityArray[entityID].entityType = (EntityTypeShort)entityType;
+ this->entityArray[entityID].gmLookupValue = (short)gmLookupValue;
+ this->entityArray[entityID].gmID = (short)DAT_EntityDefinedData.field52_0x95c[gmLookupValue];
+ this->entityArray[entityID].graphicType2RelatedOffset
+ = (short)DAT_EntityDefinedData.field53_0xa14[gmLookupValue];
+ sVar1 = this->entityArray[entityID].gmID;
+ this->entityArray[entityID].originX
+ = (short)DAT_TextureRenderCoreObject.gmFileHeaderColorpaletteArray[sVar1].originX;
+ this->entityArray[entityID].originY
+ = (short)DAT_TextureRenderCoreObject.gmFileHeaderColorpaletteArray[sVar1].originY;
+ this->entityArray[entityID].unkOne_1 = (short)DAT_EntityDefinedData.field49_0x8a4[gmLookupValue];
+ this->entityArray[entityID].unkThree_1
+ = (short)DAT_EntityDefinedData.field46_0x7ec[gmLookupValue];
+ if (gmLookupValue == 1) {
+ this->entityArray[entityID].unkThree_1 = 5;
+ this->entityArray[entityID].unkOne_1 = 3;
+ this->entityArray[entityID].unkMinusOne = 0x10;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00401380 drawEntityEffect | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00401380
+ void EntityState::drawEntityEffect(int entityID, undefined4 entityType, int graphicType1, int graphicType2)
+ {
+ short sVar1;
+ this->entityArray[entityID].graphicType2 = graphicType2;
+ this->entityArray[entityID].entityType = (EntityTypeShort)entityType;
+ sVar1 = (short)graphicType1;
+ this->entityArray[entityID].gmID = sVar1;
+ this->entityArray[entityID].originX
+ = (short)DAT_TextureRenderCoreObject.gmFileHeaderColorpaletteArray[sVar1].originX;
+ this->entityArray[entityID].originY
+ = (short)DAT_TextureRenderCoreObject.gmFileHeaderColorpaletteArray[sVar1].originY;
+ this->entityArray[entityID].unkOne_1 = (short)DAT_EntityDefinedData.field50_0x8b0;
+ this->entityArray[entityID].unkThree_1 = (short)DAT_EntityDefinedData.field47_0x7f8;
+ if (graphicType1 == 0x87) {
+ this->entityArray[entityID].unkOne_1 = 1;
+ this->entityArray[entityID].unkThree_1 = 3;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00401400 markEntityDestroyed | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00401400
+ void EntityState::markEntityDestroyed(int entityID)
+ {
+ if (entityID > 0) {
+ this->entityArray[entityID].logicalState = 3;
+ this->entityArray[entityID].someCounter_OR_hitGround = 10;
+ }
+ }
+ }
+}
+}
+
+### 0x00401430 tickEntityDecayCounter | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00401430
+ void EntityState::tickEntityDecayCounter(int entityID)
+ {
+ if (this->entityArray[entityID].unkMinusOne >= 31) {
+ this->entityArray[entityID].logicalState = 3;
+ return;
+ }
+ this->entityArray[entityID].unkMinusOne += 1;
+ }
+ }
+}
+}
+
+### 0x00401460 doSomethingWithOtherEntitiesOnTile | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00401460
+ void EntityState::doSomethingWithOtherEntitiesOnTile(uint entityID)
+ {
+ uint uVar1;
+ uint uVar2;
+ uint uVar3;
+ int iVar4;
+ int _tile;
+ _tile = this->entityArray[entityID].tile;
+ iVar4 = 0;
+ if (_tile != 0) {
+ if ((int)entityID < 0x19) {
+ uVar3 = (uint)(byte)DAT_TileMapState.EntityLayerLT25[_tile];
+ if (uVar3 == entityID) {
+ DAT_TileMapState.EntityLayerLT25[_tile]
+ = (char)this->entityArray[entityID].nextEntityOnThisTileByID;
+ this->entityArray[entityID].nextEntityOnThisTileByID = 0;
+ return;
+ }
+ uVar1 = uVar3;
+ if (uVar3 != 0) {
+ while ((uVar2 = uVar1, iVar4 = iVar4 + 1,
+ iVar4 < 100
+ && (uVar1 = (uint)this->entityArray[uVar2].nextEntityOnThisTileByID, uVar3 = uVar2,
+ uVar1 != entityID))) {
+ if (uVar1 == 0) {
+ return;
+ }
+ }
+ }
+ } else {
+ uVar3 = (uint)DAT_TileMapState.EntityLayer[_tile];
+ if (uVar3 == entityID) {
+ DAT_TileMapState.EntityLayer[_tile]
+ = this->entityArray[entityID].nextEntityOnThisTileByID;
+ this->entityArray[entityID].nextEntityOnThisTileByID = 0;
+ return;
+ }
+ uVar1 = uVar3;
+ if (uVar3 != 0) {
+ while ((uVar2 = uVar1, iVar4 = iVar4 + 1,
+ iVar4 < 100
+ && (uVar1 = (uint)this->entityArray[uVar2].nextEntityOnThisTileByID, uVar3 = uVar2,
+ uVar1 != entityID))) {
+ if (uVar1 == 0) {
+ return;
+ }
+ }
+ }
+ }
+ this->entityArray[uVar3].nextEntityOnThisTileByID
+ = this->entityArray[entityID].nextEntityOnThisTileByID;
+ this->entityArray[entityID].nextEntityOnThisTileByID = 0;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00401540 getFireEntityIDAtTile | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00401540
+ int EntityState::getFireEntityIDAtTile(int tile)
+ {
+ for (int entityID = DAT_TileMapState.EntityLayer[tile]; entityID != 0;
+ entityID = this->entityArray[entityID].nextEntityOnThisTileByID) {
+ if (this->entityArray[entityID].entityType == ET_FIRE) {
+ return entityID;
+ }
+ }
+ return 0;
+ }
+ }
+}
+}
+
+### 0x00401570 updateAllFireEntitiesAtTile | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00401570
+ int EntityState::updateAllFireEntitiesAtTile(int tile)
+ {
+ int _nextTile;
+ int _tile;
+ int _to10;
+ _to10 = 0;
+ _tile = (int)DAT_TileMapState.EntityLayer[tile];
+ if (DAT_TileMapState.EntityLayer[tile] != 0) {
+ while (_to10 = _to10 + 1, _to10 < 10) {
+ if (this->entityArray[_tile].entityType == ET_FIRE) {
+ this->entityArray[_tile].someTracker = 2;
+ this->entityArray[_tile].fireParameter_0xb6 = 1;
+ this->entityArray[_tile].unknownAnimationFrameRelated = 0;
+ }
+ _nextTile = (int)this->entityArray[_tile].nextEntityOnThisTileByID;
+ if (_tile == _nextTile) {
+ return 0;
+ }
+ _tile = _nextTile;
+ if (_nextTile == 0) {
+ return 0;
+ }
+ }
+ }
+ return 0;
+ }
+ }
+}
+}
+
+### 0x004015d0 processFireDamageToUnitsAtTile | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x004015D0
+ void EntityState::processFireDamageToUnitsAtTile(int tile, int playerID, int fireLowIntensity)
+ {
+ ushort _unitID;
+ int _unitID2;
+ _unitID = DAT_TileMapState.UnitLayer[tile];
+ while (_unitID2 = (int)(short)_unitID, _unitID2 != 0) {
+ processFireDamageToUnit(
+ _unitID2, playerID, fireLowIntensity);
+ _unitID = DAT_UnitsState.units[_unitID2].nextUnitOnTheSameTile;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00401620 recountActiveFires | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00401620
+ void EntityState::recountActiveFires()
+ {
+ Entity* psVar1;
+ int iVar1;
+ iVar1 = 1;
+ this->fireCount = 0;
+ if (1 < this->maxEntityCount) {
+ psVar1 = &this->entityArray[1];
+ do {
+ if (((psVar1->logicalState != 0) && (psVar1->logicalState == 2))
+ && (psVar1->entityType == ET_FIRE)) {
+ DAT_TileMapState.OccupancyLayer[psVar1->tile]
+ = DAT_TileMapState.OccupancyLayer[psVar1->tile]
+ | '\x01' << ((char)psVar1->owner - 1U & 0x1f);
+ this->fireCount = this->fireCount + 1;
+ }
+ iVar1 = iVar1 + 1;
+ psVar1 = psVar1 + 0x74;
+ } while (iVar1 < this->maxEntityCount);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00401690 flagUnitsWithActiveEntity | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00401690
+ void EntityState::flagUnitsWithActiveEntity()
+ {
+ Entity* psVar1;
+ int iVar1;
+ iVar1 = 1;
+ if (1 < this->maxEntityCount) {
+ psVar1 = &this->entityArray[1];
+ do {
+ if ((psVar1->logicalState == 2) && (0 < psVar1->unitID)) {
+ DAT_UnitsState.units[psVar1->unitID].field233_0x39a = 1;
+ }
+ iVar1 = iVar1 + 1;
+ psVar1 = psVar1 + 0x74;
+ } while (iVar1 < this->maxEntityCount);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004016e0 somethingWithSeparateAreas1 | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x004016E0
+ int EntityState::somethingWithSeparateAreas1(int unitID)
+ {
+ short sVar1;
+ UnitStateShort UVar2;
+ int iVar3;
+ int iVar4;
+ int iVar5;
+ Entity* pEVar6;
+ int local_8;
+ ushort _separateAreaNumber;
+ _separateAreaNumber
+ = DAT_TileMapState.PathConnectionLayer[DAT_UnitsState.units[unitID].tile];
+ iVar4 = 1;
+ local_8 = 0;
+ iVar5 = 10000;
+ iVar3 = 0;
+ if (1 < this->maxEntityCount) {
+ pEVar6 = &this->entityArray[1];
+ do {
+ if ((((pEVar6->logicalState == 2)
+ && (pEVar6->entityType == ET_COW_POISON_CLOUD))
+ && (pEVar6->unknownAnimationFrameRelated < 0x3e9))
+ && (pEVar6->unknownDistanceRelatedValue == 0)) {
+ sVar1 = pEVar6->unitID_healer;
+ if (sVar1 != 0) {
+ if ((pEVar6->unitUID == DAT_UnitsState.units[sVar1].uid)
+ && ((UVar2 = DAT_UnitsState.units[sVar1].state.generic,
+ UVar2 == US_AIM_WEAPONUnk
+ || (UVar2 == US_FIRE_WEAPONUnk))))
+ goto LAB_0040184d;
+ pEVar6->unitID_healer = 0;
+ }
+ if (((((int)(short)DAT_TileMapState.PathConnectionLayer[pEVar6->tile]
+ == (int)(short)_separateAreaNumber)
+ || (iVar3 = MACRO_CALL_MEMBER(
+ calculateCanPlayerUnitsNavigateToAreaFromArea,
+ DAT_PathFindingState)((int)DAT_UnitsState.units[unitID].owner,
+ (dword)((int)((int)(short)_separateAreaNumber)),
+ (dword)((int)((
+ int)(short)DAT_TileMapState.PathConnectionLayer[pEVar6->tile])),
+ 0),
+ iVar3 != 0))
+ && ((DAT_GameSynchronyState.currentGameMode == GM_SOLITARY
+ || ((iVar3 = (int)DAT_UnitsState.units[unitID].workplaceBuildingID_1,
+ iVar3 == 0
+ || (MACRO_CALL_MEMBER(
+ setAxisBasedDistanceResult,
+ DAT_DirectionAlgorithmState)(
+ (int)(short)DAT_BuildingsState.buildings[iVar3].x,
+ (int)((
+ int)((short)DAT_BuildingsState.buildings[iVar3].y)),
+ pEVar6->xPosition, pEVar6->yPosition),
+ DAT_DirectionAlgorithmState.distanceHigh < 0x1f))))))
+ && (setAxisBasedDistanceResult((int)DAT_UnitsState.units[unitID].x,
+ DAT_UnitsState.units[unitID].y,
+ pEVar6->xPosition, pEVar6->yPosition),
+ DAT_DirectionAlgorithmState.distanceHigh < iVar5)) {
+ iVar5 = DAT_DirectionAlgorithmState.distanceHigh;
+ local_8 = iVar4;
+ }
+ }
+ LAB_0040184d:
+ iVar4 = iVar4 + 1;
+ pEVar6 = pEVar6 + 0x74;
+ iVar3 = local_8;
+ } while (iVar4 < this->maxEntityCount);
+ }
+ return iVar3;
+ }
+ }
+}
+}
+
+### 0x00401880 refreshPoisonCloudNearUnit | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00401880
+ void EntityState::refreshPoisonCloudNearUnit(int param_1)
+ {
+ EntityTypeShort* pEVar1;
+ int iVar2;
+ iVar2 = 1;
+ if (1 < this->maxEntityCount) {
+ pEVar1 = &this->entityArray[1].entityType;
+ do {
+ if ((((pEVar1[-1] == 2) && (*pEVar1 == ET_COW_POISON_CLOUD))
+ && ((short)pEVar1[-0xb] < 0x3e9))
+ && (setAxisBasedDistanceResult((int)DAT_UnitsState.units[param_1].x,
+ DAT_UnitsState.units[param_1].y,
+ (int)((int)((short)pEVar1[0xd])), (int)((int)((short)pEVar1[0xe]))),
+ DAT_DirectionAlgorithmState.distanceHigh < 7)) {
+ pEVar1[-0xb] = 0x3f8;
+ }
+ iVar2 = iVar2 + 1;
+ pEVar1 = pEVar1 + 0x74;
+ } while (iVar2 < this->maxEntityCount);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00401910 assignPoisonCloudTargetEntity | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00401910
+ void EntityState::assignPoisonCloudTargetEntity(int param_1)
+ {
+ EntityTypeShort* pEVar1;
+ int local_4;
+ local_4 = 1;
+ if (1 < this->maxEntityCount) {
+ pEVar1 = &this->entityArray[1].entityType;
+ do {
+ if ((((pEVar1[-1] == 2) && (*pEVar1 == ET_COW_POISON_CLOUD))
+ && ((short)pEVar1[-0xb] < 0x3e9))
+ && ((pEVar1[0x54] == 0 && (pEVar1[0x58] == 0)))) {
+ setAxisBasedDistanceResult((int)(short)pEVar1[0xd], (int)((int)((short)pEVar1[0xe])),
+ this->entityArray[param_1].xPosition,
+ this->entityArray[param_1].yPosition);
+ if (DAT_DirectionAlgorithmState.distanceHigh < 7) {
+ pEVar1[0x58] = (short)param_1;
+ *(int*)(pEVar1 + 0x59) = this->entityArray[param_1].uid;
+ }
+ }
+ local_4 = local_4 + 1;
+ pEVar1 = pEVar1 + 0x74;
+ } while (local_4 < this->maxEntityCount);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004019d0 destroyEntitiesOnTile | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x004019D0
+ void EntityState::destroyEntitiesOnTile(int tile)
+ {
+ EntityTypeShort EVar1;
+ Entity* pEVar2;
+ int iVar2;
+ if (((DAT_TileMapState.MiscDisplayLayer[tile] & 0x1000) != 0)
+ && (iVar2 = 1, 1 < this->maxEntityCount)) {
+ pEVar2 = &this->entityArray[1];
+ do {
+ if (((pEVar2->logicalState == 2)
+ && ((((EVar1 = pEVar2->entityType,
+ EVar1 == ET_FLAG_1
+ || (EVar1 == ET_FLAG_4))
+ || (EVar1 == ET_FLAG_2))
+ || (((EVar1 == ET_FLAG_3
+ || (EVar1 == ET_BRAZIER))
+ || (EVar1 == ET_HEADS_ON_SPIKES))))))
+ && (pEVar2->tile == tile)) {
+ pEVar2->logicalState = 3;
+ DAT_TileMapState.MiscDisplayLayer[tile]
+ = DAT_TileMapState.MiscDisplayLayer[tile] & 0xefff;
+ }
+ iVar2 = iVar2 + 1;
+ pEVar2 = pEVar2 + 0x74;
+ } while (iVar2 < this->maxEntityCount);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00401a50 isBrazierNearby | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00401A50
+ undefined4 EntityState::isBrazierNearby(int unitX, int unitY, int unitZ)
+ {
+ uint uVar1;
+ EntityTypeShort* _entityTypeAddress;
+ int _entityCounter;
+ _entityCounter = 1;
+ if (1 < this->maxEntityCount) {
+ _entityTypeAddress = &this->entityArray[1].entityType;
+ do {
+ if ((_entityTypeAddress[-1] == 2) && (*_entityTypeAddress == ET_BRAZIER)) {
+ setAxisBasedDistanceResult(unitX, unitY,
+ (int)((int)((short)_entityTypeAddress[0xd])), (int)((int)((short)_entityTypeAddress[0xe])));
+ if ((DAT_DirectionAlgorithmState.distanceHigh < 4)
+ && (uVar1 = unitZ - (short)_entityTypeAddress[9] >> 0x1f,
+ (int)((unitZ - (short)_entityTypeAddress[9] ^ uVar1) - uVar1) < 0x2d)) {
+ return (undefined4)(1);
+ }
+ }
+ _entityCounter = _entityCounter + 1;
+ _entityTypeAddress = _entityTypeAddress + 0x74;
+ } while (_entityCounter < this->maxEntityCount);
+ }
+ return (undefined4)(0);
+ }
+ }
+}
+}
+
+### 0x00401ae0 reassignEntitiesOwner | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00401AE0
+ void EntityState::reassignEntitiesOwner(int fromPlayerID, undefined4 toPlayerID)
+ {
+ for (int entityID = 1; entityID < 3000; ++entityID) {
+ if (this->entityArray[entityID].logicalState == 2
+ && this->entityArray[entityID].owner == fromPlayerID) {
+ this->entityArray[entityID].owner = toPlayerID;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x00401b20 swapEntityOwnership | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00401B20
+ void EntityState::swapEntityOwnership(int param_1, int param_2)
+ {
+ Entity* psVar1;
+ int iVar1;
+ psVar1 = &this->entityArray[1];
+ iVar1 = 2999;
+ do {
+ if (psVar1->logicalState == 2) {
+ if (psVar1->owner == param_1) {
+ psVar1->owner = (short)param_2;
+ } else if (psVar1->owner == param_2) {
+ psVar1->owner = (short)param_1;
+ }
+ }
+ psVar1 = psVar1 + 0x74;
+ iVar1 = iVar1 + -1;
+ } while (iVar1 != 0);
+ return;
+ }
+ }
+}
+}
+
+### 0x00401b60 destroyEntitiesPart2 | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00401B60
+ void EntityState::destroyEntitiesPart2(int playerID)
+ {
+ for (int entityID = 1; entityID < 3000; ++entityID) {
+ if (this->entityArray[entityID].logicalState == 2 && this->entityArray[entityID].owner == playerID) {
+ this->entityArray[entityID].logicalState = 3;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x00402ae0 updateEntityMicroMovement | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00402AE0
+ void EntityState::updateEntityMicroMovement(int param_1)
+ {
+ short* psVar1;
+ short sVar2;
+ if ((((this->entityArray[param_1].entityType != ET_SEAGULLUnk)
+ || (this->entityArray[param_1].targetZ != 0))
+ || (this->entityArray[param_1].microX != this->entityArray[param_1].targetX))
+ || (this->entityArray[param_1].microY != this->entityArray[param_1].targetY)) {
+ switch (this->entityArray[param_1].field50_0x74) {
+ default:
+ goto switchD_00402b22_caseD_0;
+ case 1:
+ psVar1 = &this->entityArray[param_1].microY;
+ *psVar1 = *psVar1 + this->entityArray[param_1].someMicroY;
+ return;
+ case 2:
+ psVar1 = &this->entityArray[param_1].microX;
+ *psVar1 = *psVar1 + this->entityArray[param_1].someMicroX;
+ return;
+ case 3:
+ sVar2 = this->entityArray[param_1].field49_0x72;
+ if (0 < sVar2) {
+ psVar1 = &this->entityArray[param_1].microX;
+ *psVar1 = *psVar1 + this->entityArray[param_1].someMicroX;
+ psVar1 = &this->entityArray[param_1].microY;
+ *psVar1 = *psVar1 + this->entityArray[param_1].someMicroY;
+ this->entityArray[param_1].field49_0x72 = this->entityArray[param_1].field48_0x70 + sVar2;
+ return;
+ }
+ psVar1 = &this->entityArray[param_1].microY;
+ *psVar1 = *psVar1 + this->entityArray[param_1].someMicroY;
+ break;
+ case 4:
+ sVar2 = this->entityArray[param_1].field49_0x72;
+ psVar1 = &this->entityArray[param_1].microX;
+ *psVar1 = *psVar1 + this->entityArray[param_1].someMicroX;
+ if (0 < sVar2) {
+ psVar1 = &this->entityArray[param_1].microY;
+ *psVar1 = *psVar1 + this->entityArray[param_1].someMicroY;
+ this->entityArray[param_1].field49_0x72 = this->entityArray[param_1].field48_0x70 + sVar2;
+ return;
+ }
+ }
+ this->entityArray[param_1].field49_0x72 = this->entityArray[param_1].field47_0x6e + sVar2;
+ }
+ switchD_00402b22_caseD_0:
+ return;
+ }
+ }
+}
+}
+
+### 0x00402c50 math_atan_1 | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00402C50
+ int EntityState::math_atan_1(int entityType, double param_3, int param_4, int heightDifference)
+ {
+ double dVar1;
+ int iVar2;
+ int iVar3;
+ int iVar4;
+ float10 fVar5;
+ float10 fVar6;
+ fVar5 = (float10)param_3 * (float10)param_3;
+ fVar6 = (float10)(param_4 * 4);
+ dVar1 = (double)(fVar5 / (fVar6 * (float10)9.812));
+ fVar5 = _math_sqrt_FUN_0057eef0(
+ ((fVar5 * fVar5) / ((float10)96.275344 * fVar6 * fVar6)
+ - ((fVar5 + fVar5) * (float10)(heightDifference / 2)) / (fVar6 * fVar6 * (float10)9.812))
+ - (float10)1.0);
+ fVar6 = (float10)dVar1 - fVar5;
+ if (((float10)DOUBLE_00b941c0::instance == fVar6)
+ || (iVar2 = __isnan((double)fVar6), iVar2 != 0)) {
+ iVar2 = 1000;
+ } else {
+ fVar6 = _math_atan_FUN_0057ee10((float10)(double)fVar6);
+ iVar2 = __ftol2(
+ (fVar6 * (float10)180.0) / (float10)3.1415926535 + (float10)0.4999000132083893);
+ }
+ dVar1 = (double)fVar5 + dVar1;
+ if ((DOUBLE_00b941c0::instance == dVar1)
+ || (iVar3 = __isnan(dVar1), iVar3 != 0)) {
+ iVar3 = 1000;
+ } else {
+ fVar5 = _math_atan_FUN_0057ee10((float10)dVar1);
+ iVar3 = __ftol2(
+ (fVar5 * (float10)180.0) / (float10)3.1415926535 + (float10)0.4999000132083893);
+ }
+ iVar4 = iVar2;
+ if (iVar3 <= iVar2) {
+ iVar4 = iVar3;
+ }
+ if (iVar4 < -0x5a) {
+ iVar4 = iVar2;
+ if (iVar2 <= iVar3) {
+ iVar4 = iVar3;
+ }
+ if (iVar4 < -0x5a) {
+ return 0x2d;
+ }
+ }
+ if (0x5a < iVar4) {
+ return 0x2d;
+ }
+ return iVar4;
+ }
+ }
+}
+}
+
+### 0x00402da0 computeVelocity | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00402DA0
+ int EntityState::computeVelocity(int param_2, double param_3, int param_4, int param_5)
+ {
+ int iVar1;
+ float10 fVar2;
+ float10 fVar3;
+ float10 fVar4;
+ fVar2 = ((float10)param_3 * (float10)3.1415926535) / (float10)180.0;
+ fVar3 = _math_cos(fVar2);
+ fVar4 = (float10)(param_4 * 2);
+ fVar2 = _math_tan_1_FUN_0057eff0((float10)(double)fVar2);
+ fVar2 = _math_sqrt_FUN_0057eef0(
+ (float10)(double)(((float10)9.812 * fVar4 * fVar4) / (fVar3 * fVar3))
+ / (fVar2 * (float10)(param_4 * 2) - (float10)((int)(param_5 + (param_5 >> 0x1f & 3U)) >> 2)));
+ iVar1 = __ftol2(fVar2);
+ return iVar1;
+ }
+ }
+}
+}
+
+### 0x00402e20 computeLineOfSightDistance | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00402E20
+ uint EntityState::computeLineOfSightDistance(
+ int x, int y, int height, int targetX, int targetY, int targetHeight, int param_7)
+ {
+ int iVar1;
+ int iVar2;
+ short sVar3;
+ bool bVar4;
+ bool bVar5;
+ int iVar6;
+ int iVar7;
+ uint uVar8;
+ int iVar9;
+ int iVar10;
+ int iVar11;
+ uint uVar12;
+ int iVar13;
+ int iVar14;
+ int* piVar15;
+ uint local_44;
+ uint local_40;
+ int local_3c;
+ int local_38;
+ uint local_30;
+ int local_1c;
+ iVar9 = y;
+ local_1c = -1;
+ uVar12 = 0;
+ local_44 = 100000;
+ local_30 = 0;
+ local_40 = 0;
+ bVar4 = true;
+ bVar5 = false;
+ if (targetHeight + 0x36 < height) {
+ uVar12 = 100;
+ local_40 = 100;
+ }
+ iVar6 = (int)(y + (y >> 0x1f & 7U)) >> 3;
+ iVar10 = (int)((x >> 0x1f & 7U) + x) >> 3;
+ iVar7 = DAT_ViewportRenderState.translationMatrix[iVar6].addXgetTile + iVar10;
+ local_3c = x;
+ local_38 = y;
+ if ((DAT_TileMapState.LogicLayer[iVar7] & 0x10000000U) != 0) {
+ height = height + 10;
+ }
+ sVar3 = -1;
+ if (DAT_TileMapState.BuildingLayer[iVar7] != 0) {
+ sVar3 = DAT_TileMapState.BuildingLayer[iVar7];
+ }
+ if (targetY < y) {
+ iVar7 = y - targetY;
+ } else {
+ iVar7 = targetY - y;
+ }
+ if (targetX < x) {
+ iVar11 = x - targetX;
+ } else {
+ iVar11 = targetX - x;
+ }
+ iVar1 = (uint)(x <= targetX) * 2 + -1;
+ iVar2 = (uint)(y <= targetY) * 2 + -1;
+ if (iVar11 == 0) {
+ if (iVar7 != 0) {
+ if (0x1b < uVar12) {
+ uVar12 = 0x1c;
+ }
+ uVar8 = 0;
+ local_40 = uVar12 / 2;
+ local_44 = 0;
+ iVar9 = -1;
+ this->lineOfSightClearanceSteps = uVar12;
+ do {
+ local_38 = local_38 + iVar2;
+ iVar6 = iVar9;
+ if (((local_44 & 1) != 0) && (param_7 == 0)) {
+ iVar6 = DAT_ViewportRenderState
+ .translationMatrix[(int)(local_38 + (local_38 >> 0x1f & 7U)) >> 3]
+ .addXgetTile
+ + iVar10;
+ if ((DAT_TileMapState.LogicLayer[iVar6] & 0x400300U) == 0) {
+ bVar4 = false;
+ this->lineOfSightClearanceSteps = local_44;
+ }
+ if (local_40 == 0) {
+ if (iVar9 == iVar6) {
+ if (bVar5) {
+ uVar12 = local_38 - y >> 0x1f;
+ iVar9 = ((local_38 - y ^ uVar12) - uVar12) * (targetHeight - height);
+ goto LAB_004033cf;
+ }
+ } else {
+ bVar5 = false;
+ if (((char)DAT_TileMapState.LogicLayer[iVar6] < '\0')
+ || ((sVar3 != DAT_TileMapState.BuildingLayer[iVar6]
+ && ((!bVar4
+ || ((DAT_TileMapState.LogicLayer[iVar6] & 0x400200U)
+ == 0)))))) {
+ bVar5 = true;
+ uVar8 = returnSomeHeight(iVar6, 1);
+ uVar12 = local_38 - y >> 0x1f;
+ iVar9 = ((local_38 - y ^ uVar12) - uVar12) * (targetHeight - height);
+ LAB_004033cf:
+ if (iVar9 / iVar7 + height < (int)uVar8) {
+ return 0;
+ }
+ }
+ }
+ } else {
+ local_40 = local_40 - 1;
+ }
+ }
+ if ((x == targetX) && (local_38 == targetY)) {
+ return local_44;
+ }
+ local_44 = local_44 + 1;
+ iVar9 = iVar6;
+ if (999 < (int)local_44) {
+ return local_44;
+ }
+ } while (true);
+ }
+ } else {
+ if (iVar7 == 0) {
+ if (0x1b < uVar12) {
+ uVar12 = 0x1c;
+ }
+ uVar8 = uVar12 / 2;
+ local_44 = 0;
+ this->lineOfSightClearanceSteps = uVar12;
+ while (true) {
+ local_3c = local_3c + iVar1;
+ if (((local_44 & 1) != 0) && (param_7 == 0)) {
+ iVar9 = ((int)(local_3c + (local_3c >> 0x1f & 7U)) >> 3)
+ + DAT_ViewportRenderState.translationMatrix[iVar6].addXgetTile;
+ if ((DAT_TileMapState.LogicLayer[iVar9] & 0x400300U) == 0) {
+ bVar4 = false;
+ this->lineOfSightClearanceSteps = local_44;
+ }
+ if (uVar8 == 0) {
+ if (local_1c == iVar9) {
+ local_1c = iVar9;
+ if ((bVar5)
+ && (uVar12 = local_3c - x >> 0x1f,
+ (int)(((local_3c - x ^ uVar12) - uVar12) * (targetHeight - height)) / iVar11
+ + height
+ < (int)local_30)) {
+ return 0;
+ }
+ } else {
+ bVar5 = false;
+ if (((char)DAT_TileMapState.LogicLayer[iVar9] < '\0')
+ || ((local_1c = iVar9,
+ sVar3 != DAT_TileMapState.BuildingLayer[iVar9]
+ && ((!bVar4
+ || ((DAT_TileMapState.LogicLayer[iVar9] & 0x400200U)
+ == 0)))))) {
+ bVar5 = true;
+ local_30 = returnSomeHeight(iVar9, 1);
+ uVar12 = local_3c - x >> 0x1f;
+ local_1c = iVar9;
+ if ((int)(((local_3c - x ^ uVar12) - uVar12) * (targetHeight - height)) / iVar11
+ + height
+ < (int)local_30) {
+ return 0;
+ }
+ }
+ }
+ } else {
+ uVar8 = uVar8 - 1;
+ local_1c = iVar9;
+ }
+ }
+ if ((local_3c == targetX) && (y == targetY))
+ break;
+ local_44 = local_44 + 1;
+ if (999 < (int)local_44) {
+ return local_44;
+ }
+ }
+ return local_44;
+ }
+ if (iVar7 <= iVar11) {
+ iVar7 = iVar7 * 2;
+ iVar6 = iVar7 - iVar11;
+ if ((targetHeight < height) && (uVar12 != 0)) {
+ uVar8 = targetX - x >> 0x1f;
+ iVar10 = (targetX - x ^ uVar8) - uVar8;
+ iVar10 = ((int)(iVar10 + (iVar10 >> 0x1f & 7U)) >> 3) + -1;
+ if (4 < iVar10) {
+ iVar10 = 4;
+ }
+ if (1 < iVar10) {
+ y = iVar10 + -1;
+ iVar10 = iVar1;
+ do {
+ local_30 = returnSomeHeight((((int)(targetX + (targetX >> 0x1f & 7U)) >> 3) - iVar10)
+ + DAT_ViewportRenderState
+ .translationMatrix[(int)(targetY + (targetY >> 0x1f & 7U)) >> 3]
+ .addXgetTile,
+ 1);
+ if (targetHeight < (int)local_30) {
+ uVar12 = 0x1c;
+ }
+ iVar10 = iVar10 + iVar1;
+ y = y + -1;
+ } while (y != 0);
+ }
+ }
+ local_40 = uVar12 / 2;
+ local_44 = 0;
+ iVar10 = x;
+ iVar14 = -1;
+ this->lineOfSightClearanceSteps = uVar12;
+ while (true) {
+ iVar10 = iVar10 + iVar1;
+ iVar13 = iVar7;
+ if (0 < iVar6) {
+ iVar9 = iVar9 + iVar2;
+ iVar13 = iVar7 + iVar11 * -2;
+ local_38 = iVar9;
+ }
+ iVar6 = iVar6 + iVar13;
+ iVar13 = iVar14;
+ if (((local_44 & 1) != 0) && (param_7 == 0)) {
+ iVar13 = ((int)(iVar10 + (iVar10 >> 0x1f & 7U)) >> 3)
+ + DAT_ViewportRenderState
+ .translationMatrix[(int)(iVar9 + (iVar9 >> 0x1f & 7U)) >> 3]
+ .addXgetTile;
+ if ((DAT_TileMapState.LogicLayer[iVar13] & 0x400300U) == 0) {
+ bVar4 = false;
+ this->lineOfSightClearanceSteps = local_44;
+ }
+ if (local_40 == 0) {
+ if (iVar14 == iVar13) {
+ if ((bVar5)
+ && (uVar12 = iVar10 - x >> 0x1f,
+ (int)(((iVar10 - x ^ uVar12) - uVar12) * (targetHeight - height)) / iVar11
+ + height
+ < (int)local_30)) {
+ return 0;
+ }
+ } else {
+ bVar5 = false;
+ if (((char)DAT_TileMapState.LogicLayer[iVar13] < '\0')
+ || ((sVar3 != DAT_TileMapState.BuildingLayer[iVar13]
+ && ((!bVar4
+ || ((DAT_TileMapState.LogicLayer[iVar13] & 0x400200U)
+ == 0)))))) {
+ bVar5 = true;
+ local_30 = returnSomeHeight(iVar13, 1);
+ uVar12 = iVar10 - x >> 0x1f;
+ iVar9 = local_38;
+ if ((int)(((iVar10 - x ^ uVar12) - uVar12) * (targetHeight - height)) / iVar11
+ + height
+ < (int)local_30) {
+ return 0;
+ }
+ }
+ }
+ } else {
+ local_40 = local_40 - 1;
+ }
+ }
+ if ((iVar10 == targetX) && (iVar9 == targetY))
+ break;
+ local_44 = local_44 + 1;
+ iVar14 = iVar13;
+ if (999 < (int)local_44) {
+ return local_44;
+ }
+ }
+ return local_44;
+ }
+ iVar11 = iVar11 * 2;
+ iVar9 = iVar11 - iVar7;
+ if ((targetHeight < height) && (local_40 != 0)) {
+ uVar12 = targetY - y >> 0x1f;
+ iVar6 = (targetY - y ^ uVar12) - uVar12;
+ iVar6 = ((int)(iVar6 + (iVar6 >> 0x1f & 7U)) >> 3) + -1;
+ if (4 < iVar6) {
+ iVar6 = 4;
+ }
+ if (1 < iVar6) {
+ piVar15 = (int*)((int)DAT_ViewportRenderState
+ + (((int)(targetY + (targetY >> 0x1f & 7U)) >> 3) - iVar2) * 0xc + 0x188728);
+ iVar6 = iVar6 + -1;
+ do {
+ local_30 = returnSomeHeight(*piVar15 + ((int)(targetX + (targetX >> 0x1f & 7U)) >> 3), 1);
+ if (targetHeight < (int)local_30) {
+ local_40 = 0x1c;
+ }
+ piVar15 = piVar15 + iVar2 * -3;
+ iVar6 = iVar6 + -1;
+ } while (iVar6 != 0);
+ }
+ }
+ this->lineOfSightClearanceSteps = local_40;
+ local_40 = local_40 / 2;
+ local_44 = 0;
+ iVar6 = y;
+ iVar10 = -1;
+ do {
+ iVar6 = iVar6 + iVar2;
+ iVar14 = iVar11;
+ if (0 < iVar9) {
+ x = x + iVar1;
+ iVar14 = iVar11 + iVar7 * -2;
+ local_3c = x;
+ }
+ iVar9 = iVar9 + iVar14;
+ iVar14 = iVar10;
+ if (((local_44 & 1) != 0) && (param_7 == 0)) {
+ iVar14 = ((int)(x + (x >> 0x1f & 7U)) >> 3)
+ + DAT_ViewportRenderState
+ .translationMatrix[(int)(iVar6 + (iVar6 >> 0x1f & 7U)) >> 3]
+ .addXgetTile;
+ if ((DAT_TileMapState.LogicLayer[iVar14] & 0x400300U) == 0) {
+ bVar4 = false;
+ this->lineOfSightClearanceSteps = local_44;
+ }
+ if (local_40 == 0) {
+ if (iVar10 == iVar14) {
+ if ((bVar5)
+ && (uVar12 = iVar6 - y >> 0x1f,
+ (int)(((iVar6 - y ^ uVar12) - uVar12) * (targetHeight - height)) / iVar7
+ + height
+ < (int)local_30)) {
+ return 0;
+ }
+ } else {
+ bVar5 = false;
+ if (((char)DAT_TileMapState.LogicLayer[iVar14] < '\0')
+ || ((sVar3 != DAT_TileMapState.BuildingLayer[iVar14]
+ && ((!bVar4
+ || ((DAT_TileMapState.LogicLayer[iVar14] & 0x400200U) == 0)))))) {
+ bVar5 = true;
+ local_30 = returnSomeHeight(iVar14, 1);
+ uVar12 = iVar6 - y >> 0x1f;
+ x = local_3c;
+ if ((int)(((iVar6 - y ^ uVar12) - uVar12) * (targetHeight - height)) / iVar7
+ + height
+ < (int)local_30) {
+ return 0;
+ }
+ }
+ }
+ } else {
+ local_40 = local_40 - 1;
+ }
+ }
+ } while (((x != targetX) || (iVar6 != targetY))
+ && (local_44 = local_44 + 1, iVar10 = iVar14, (int)local_44 < 1000));
+ }
+ return local_44;
+ }
+ }
+}
+}
+
+### 0x004036f0 calculateEntityDrawOffset | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x004036F0
+ void EntityState::calculateEntityDrawOffset(int entityID)
+ {
+ uint _microYPart;
+ int _yOffset;
+ uint _microXPart;
+ int _xOffset;
+ _microXPart = (byte)this->entityArray[entityID].microX & 7;
+ _microYPart = (byte)this->entityArray[entityID].microY & 7;
+ if (DAT_TileMapState.mapOrientation == 4) {
+ _microXPart = 7 - _microXPart;
+ _microYPart = 7 - _microYPart;
+ } else {
+ if (DAT_TileMapState.mapOrientation == 2) {
+ _xOffset = (7 - _microXPart) * 0x10;
+ _yOffset = _microYPart * 2;
+ goto LAB_0040372e;
+ }
+ if (DAT_TileMapState.mapOrientation == 6) {
+ _xOffset = _microXPart << 4;
+ _yOffset = (7 - _microYPart) * 2;
+ goto LAB_0040372e;
+ }
+ if (DAT_TileMapState.mapOrientation != 0) {
+ _xOffset = _microXPart << 4;
+ _yOffset = _microYPart * 2;
+ goto LAB_0040372e;
+ }
+ }
+ _xOffset = _microXPart * 2;
+ _yOffset = _microYPart << 4;
+ LAB_0040372e:
+ this->entityArray[entityID].x1 = DAT_EntityDefinedData.field54_0xb84[_yOffset + _xOffset].x;
+ this->entityArray[entityID].y1 = DAT_EntityDefinedData.field54_0xb84[_yOffset + _xOffset + 1].x;
+ return;
+ }
+ }
+}
+}
+
+### 0x00403790 initializeSeagullMovementVector | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00403790
+ void EntityState::initializeSeagullMovementVector(
+ int seagullID, int param_2, int param_3, int param_4, int param_5)
+ {
+ short sVar1;
+ short sVar2;
+ int iVar3;
+ short sVar4;
+ int iVar5;
+ short sVar6;
+ if (param_5 < param_3) {
+ iVar5 = param_3 - param_5;
+ } else {
+ iVar5 = param_5 - param_3;
+ }
+ if (param_4 < param_2) {
+ iVar3 = param_2 - param_4;
+ this->seagullArray[seagullID].field23_0x30 = -1;
+ } else {
+ iVar3 = param_4 - param_2;
+ this->seagullArray[seagullID].field23_0x30 = 1;
+ }
+ this->seagullArray[seagullID].field24_0x32 = (ushort)(param_3 <= param_5) * 2 + -1;
+ sVar4 = (short)iVar5;
+ sVar1 = (short)iVar3;
+ if (iVar3 == 0) {
+ if (iVar5 != 0) {
+ this->seagullArray[seagullID].field22_0x2e = 1;
+ goto LAB_0040383b;
+ }
+ this->seagullArray[seagullID].field22_0x2e = 0;
+ } else {
+ if (iVar5 == 0) {
+ this->seagullArray[seagullID].field22_0x2e = 2;
+ } else if (iVar3 < iVar5) {
+ this->seagullArray[seagullID].field22_0x2e = 3;
+ } else {
+ this->seagullArray[seagullID].field22_0x2e = 4;
+ }
+ LAB_0040383b:
+ sVar2 = sVar1;
+ if (iVar5 < iVar3)
+ goto LAB_00403843;
+ }
+ sVar2 = sVar4;
+ LAB_00403843:
+ this->seagullArray[seagullID].field27_0x38 = sVar2;
+ sVar2 = this->seagullArray[seagullID].field22_0x2e;
+ if (sVar2 == 3) {
+ sVar2 = sVar1 * 2;
+ this->seagullArray[seagullID].field19_0x28 = sVar2;
+ sVar6 = sVar2 + sVar4 * -2;
+ sVar2 = sVar2 - sVar4;
+ } else {
+ if (sVar2 != 4) {
+ return;
+ }
+ sVar2 = sVar4 * 2;
+ this->seagullArray[seagullID].field19_0x28 = sVar2;
+ sVar6 = sVar2 + sVar1 * -2;
+ sVar2 = sVar2 - sVar1;
+ }
+ this->seagullArray[seagullID].field21_0x2c = sVar2;
+ this->seagullArray[seagullID].field20_0x2a = sVar6;
+ return;
+ }
+ }
+}
+}
+
+### 0x00403900 removeEntityFromTileLinkedList | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00403900
+ void EntityState::removeEntityFromTileLinkedList(int param_1)
+ {
+ int iVar1;
+ int iVar2;
+ int iVar3;
+ int iVar4;
+ int iVar5;
+ iVar4 = this->entityArray[param_1].tile;
+ iVar3 = (int)DAT_TileMapState.EntityLayer[iVar4];
+ iVar5 = 0;
+ if (iVar3 == param_1) {
+ DAT_TileMapState.EntityLayer[iVar4] = this->entityArray[param_1].nextEntityOnThisTileByID;
+ this->entityArray[param_1].nextEntityOnThisTileByID = 0;
+ return;
+ }
+ iVar4 = iVar3;
+ if (iVar3 != 0) {
+ while ((iVar1 = iVar3, iVar5 = iVar5 + 1, iVar3 = iVar4,
+ iVar5 < 100
+ && (iVar2 = (int)this->entityArray[iVar1].nextEntityOnThisTileByID, iVar3 = iVar1,
+ iVar2 != param_1))) {
+ iVar3 = iVar2;
+ iVar4 = iVar1;
+ if (iVar2 == 0) {
+ return;
+ }
+ }
+ }
+ this->entityArray[iVar3].nextEntityOnThisTileByID = this->entityArray[param_1].nextEntityOnThisTileByID;
+ this->entityArray[param_1].nextEntityOnThisTileByID = 0;
+ return;
+ }
+ }
+}
+}
+
+### 0x00403980 Constructor_EntityState | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00403980
+ EntityState* EntityState::Constructor_EntityState()
+ {
+ this->classConstructionTime = timeGetTime();
+ clearEntityArrayAndSeagullArray();
+ this->fireCount = 0;
+ return this;
+ }
+ }
+}
+}
+
+### 0x004039b0 activateProjectileEntity | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x004039B0
+ void EntityState::activateProjectileEntity(int entityID)
+ {
+ this->entityArray[entityID].logicalState = 2;
+ this->entityArray[entityID].field72_0xa8 = 1;
+ setProjectileEntityValues2(
+ entityID, (EntityType)this->entityArray[entityID].entityType2);
+ }
+ }
+}
+}
+
+### 0x004039f0 deleteEntity | quelle=nachgebaut | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x004039F0
+ void EntityState::deleteEntity(uint entityID)
+ {
+ doSomethingWithOtherEntitiesOnTile(
+ entityID);
+ fillMemory_ByteValue(
+ sizeof(Entity), 0, &this->entityArray[entityID]);
+ }
+ }
+}
+}
+
+### 0x00403a20 initializeProjectileVelocities | quelle=ghidra | bereich=Einheiten
+// FUNCTION: STRONGHOLDCRUSADER 0x00403A20
+ void EntityState::initializeProjectileVelocities(
+ int entityID, int x, int y, int height, int targetX, int targetY, int targetZ)
+ {
+ float fVar1;
+ short sVar2;
+ ushort uVar3;
+ EntityTypeShort EVar4;
+ short sVar5;
+ uint uVar6;
+ int iVar7;
+ undefined4 uVar8;
+ short sVar9;
+ short sVar10;
+ int iVar11;
+ float10 fVar12;
+ float10 fVar13;
+ sVar5 = (short)targetY;
+ if (targetY < y) {
+ this->entityArray[entityID].field42_0x64 = (short)y - sVar5;
+ } else {
+ this->entityArray[entityID].field42_0x64 = sVar5 - (short)y;
+ }
+ sVar10 = (short)targetX;
+ if (targetX < x) {
+ sVar9 = (short)x - sVar10;
+ } else {
+ sVar9 = sVar10 - (short)x;
+ }
+ sVar2 = this->entityArray[entityID].targetZ;
+ this->entityArray[entityID].field39_0x5e = sVar9;
+ sVar9 = this->entityArray[entityID].height;
+ if (sVar9 < sVar2) {
+ this->entityArray[entityID].field44_0x68 = sVar2 - sVar9;
+ } else {
+ this->entityArray[entityID].field44_0x68 = sVar9 - sVar2;
+ }
+ sVar9 = this->entityArray[entityID].field39_0x5e;
+ this->entityArray[entityID].field38_0x5c = sVar10;
+ this->entityArray[entityID].field41_0x62 = sVar5;
+ this->entityArray[entityID].someMicroX = (ushort)(x <= targetX) * 2 + -1;
+ this->entityArray[entityID].someMicroY = (ushort)(y <= targetY) * 2 + -1;
+ if (sVar9 == 0) {
+ if (this->entityArray[entityID].field42_0x64 == 0) {
+ this->entityArray[entityID].field50_0x74 = 0;
+ } else {
+ this->entityArray[entityID].field50_0x74 = 1;
+ }
+ } else {
+ sVar5 = this->entityArray[entityID].field42_0x64;
+ if (sVar5 == 0) {
+ this->entityArray[entityID].field50_0x74 = 2;
+ } else if (sVar9 < sVar5) {
+ this->entityArray[entityID].field50_0x74 = 3;
+ } else {
+ this->entityArray[entityID].field50_0x74 = 4;
+ }
+ }
+ sVar5 = this->entityArray[entityID].field50_0x74;
+ if (sVar5 == 3) {
+ sVar10 = sVar9 * 2;
+ sVar9 = this->entityArray[entityID].field42_0x64;
+ this->entityArray[entityID].field47_0x6e = sVar10;
+ sVar5 = this->entityArray[entityID].field42_0x64;
+ this->entityArray[entityID].field48_0x70 = sVar10 + sVar9 * -2;
+ LAB_00403b64:
+ this->entityArray[entityID].field49_0x72 = sVar10 - sVar5;
+ } else if (sVar5 == 4) {
+ sVar10 = this->entityArray[entityID].field42_0x64 * 2;
+ this->entityArray[entityID].field47_0x6e = sVar10;
+ sVar5 = this->entityArray[entityID].field39_0x5e;
+ this->entityArray[entityID].field48_0x70 = sVar10 + sVar9 * -2;
+ goto LAB_00403b64;
+ }
+ iVar7 = DAT_EntityDefinedData
+ .EntityArrayCurveTypeForProjectileType[(short)this->entityArray[entityID].entityType];
+ if (iVar7 == 0) {
+ uVar6 = computeLineOfSightDistance(
+ x, y, height, targetX, targetY, targetZ, 1);
+ sVar5 = (short)uVar6;
+ this->entityArray[entityID].field62_0x94 = sVar5;
+ this->entityArray[entityID].field58_0x8c = sVar5;
+ this->entityArray[entityID].field80_0xba = (short)this->lineOfSightClearanceSteps;
+ sVar10 = this->entityArray[entityID].velocityUnk;
+ } else {
+ if (iVar7 == 1) {
+ uVar6 = computeLineOfSightDistance(x, y, height, targetX, targetY, targetZ, 1);
+ iVar7 = this->entityArray[entityID].heightDifference;
+ sVar5 = (short)uVar6;
+ this->entityArray[entityID].field62_0x94 = sVar5;
+ this->entityArray[entityID].field58_0x8c = sVar5;
+ this->entityArray[entityID].field80_0xba = (short)this->lineOfSightClearanceSteps;
+ iVar7 = computeVelocity(
+ (int)(short)this->entityArray[entityID].entityType,
+ (double)((int)((int)this->entityArray[entityID].startingAngle)), sVar5, iVar7);
+ this->entityArray[entityID].velocityUnk = (short)iVar7;
+ goto LAB_00403f37;
+ }
+ if (iVar7 == 2) {
+ uVar6 = computeLineOfSightDistance(x, y, height, targetX, targetY, targetZ, 1);
+ sVar5 = this->entityArray[entityID].height;
+ sVar10 = this->entityArray[entityID].targetZ;
+ sVar9 = (short)uVar6;
+ this->entityArray[entityID].field62_0x94 = sVar9;
+ this->entityArray[entityID].field58_0x8c = sVar9;
+ this->entityArray[entityID].field80_0xba = (short)this->lineOfSightClearanceSteps;
+ if (sVar10 < sVar5) {
+ this->entityArray[entityID].startingAngle = 3;
+ }
+ iVar7 = this->entityArray[entityID].heightDifference;
+ iVar11 = computeVelocity(
+ (int)(short)this->entityArray[entityID].entityType,
+ (double)((int)((int)this->entityArray[entityID].startingAngle)), sVar9, iVar7);
+ this->entityArray[entityID].velocityUnk = (short)iVar11;
+ if ((short)iVar11 < 1) {
+ EVar4 = this->entityArray[entityID].entityType;
+ this->entityArray[entityID].startingAngle = 0xf;
+ iVar7 = computeVelocity(
+ (int)(short)EVar4, 15.0, sVar9, iVar7);
+ this->entityArray[entityID].velocityUnk = (short)iVar7;
+ }
+ goto LAB_00403f37;
+ }
+ if (iVar7 == 3) {
+ uVar3 = (ushort)this->entityArray[entityID].rng_1;
+ this->entityArray[entityID].startingAngle = (uVar3 & 0xf) + 8;
+ this->entityArray[entityID].velocityUnk = (uVar3 & 7) + 0x15;
+ goto LAB_00403f37;
+ }
+ if (iVar7 == 4) {
+ uVar6 = this->entityArray[entityID].rng_1;
+ sVar5 = (short)((int)uVar6 % 0x14) + 0x10;
+ this->entityArray[entityID].startingAngle = sVar5;
+ if ((char)uVar6 < '\0') {
+ this->entityArray[entityID].startingAngle = -sVar5;
+ }
+ sVar5 = (short)(((int)uVar6 >> 8) % 0x14) + 0x10;
+ this->entityArray[entityID].velocityUnk = sVar5;
+ if ((uVar6 & 0x8000) == 0) {
+ return;
+ }
+ this->entityArray[entityID].velocityUnk = -sVar5;
+ return;
+ }
+ if (iVar7 == 5) {
+ iVar11 = this->entityArray[entityID].rng_1;
+ iVar7 = this->entityArray[entityID].rng_1;
+ this->entityArray[entityID].velocityUnk = 0;
+ this->entityArray[entityID].startingAngle = (byte)iVar11 & 7;
+ this->entityArray[entityID].graphicRotationUnk = (ushort)((uint)iVar7 >> 8) & 0x3f;
+ return;
+ }
+ if (iVar7 != 6) {
+ if (iVar7 == 7) {
+ return;
+ }
+ if (iVar7 == 10) {
+ return;
+ }
+ if (iVar7 == 8) {
+ sVar5 = this->entityArray[entityID].unitID_OR_seaGullID;
+ if (sVar5 == 0) {
+ this->entityArray[entityID].startingAngle
+ = (short)(this->entityArray[entityID].rng_1 % 0x3c) + 8;
+ this->entityArray[entityID].velocityUnk
+ = ((byte)this->entityArray[entityID].rng_1 & 7) + 0x23;
+ } else {
+ if (sVar5 == 4) {
+ this->entityArray[entityID].startingAngle
+ = (short)(this->entityArray[entityID].rng_1 % 0x1e) + 0xf;
+ sVar5 = ((byte)this->entityArray[entityID].rng_1 & 7) + 0xf;
+ } else {
+ iVar7 = this->entityArray[entityID].rng_1;
+ if (sVar5 == 5) {
+ this->entityArray[entityID].startingAngle = (short)(iVar7 % 0x1e) + 0x2d;
+ this->entityArray[entityID].velocityUnk
+ = ((byte)this->entityArray[entityID].rng_1 & 7) + 0x23;
+ goto LAB_00403f37;
+ }
+ this->entityArray[entityID].startingAngle = (short)(iVar7 % 0x23) + 0x14;
+ sVar5 = ((byte)this->entityArray[entityID].rng_1 & 7) + 0x19;
+ }
+ fVar1 = this->entityArray[entityID]._elapsedTimeOrGravityAccumulator;
+ this->entityArray[entityID].velocityUnk = sVar5;
+ this->entityArray[entityID]._elapsedTimeOrGravityAccumulator = fVar1 * 0.75;
+ }
+ } else if (iVar7 == 9) {
+ this->entityArray[entityID].startingAngle = 0;
+ }
+ goto LAB_00403f37;
+ }
+ uVar6 = computeLineOfSightDistance(
+ x, y, height, targetX, targetY, targetZ, 1);
+ sVar5 = (short)uVar6;
+ this->entityArray[entityID].field62_0x94 = sVar5;
+ this->entityArray[entityID].field58_0x8c = sVar5;
+ this->entityArray[entityID].field80_0xba = (short)this->lineOfSightClearanceSteps;
+ if (0x96 < sVar5) {
+ this->entityArray[entityID].velocityUnk = 0x7d;
+ }
+ sVar10 = this->entityArray[entityID].velocityUnk;
+ }
+ iVar7 = math_atan_1(
+ (int)(short)this->entityArray[entityID].entityType, (double)((int)((int)sVar10)), sVar5,
+ this->entityArray[entityID].heightDifference);
+ this->entityArray[entityID].startingAngle = (short)iVar7;
+ LAB_00403f37:
+ EVar4 = this->entityArray[entityID].entityType;
+ if ((((EVar4 == ET_ARROW_AND_DEFAULT)
+ || (EVar4 == ET_CROSSBOWARROW))
+ && (height + 0x36 < targetZ))
+ && (this->entityArray[entityID].rng_1 % 10 == 5)) {
+ this->entityArray[entityID].hasDoneEffectUnk = 1;
+ }
+ iVar11 = (int)this->entityArray[entityID].startingAngle;
+ this->entityArray[entityID].speedUnk = 0;
+ iVar7 = (int)this->entityArray[entityID].velocityUnk;
+ this->entityArray[entityID].travelledDistance = 0;
+ fVar12 = ((float10)iVar11 * (float10)3.1415926535) / (float10)180.0;
+ fVar13 = _math_cos(fVar12);
+ this->entityArray[entityID].vCos = (float)(fVar13 * (float10)iVar7);
+ fVar12 = _math_sin((float10)(double)fVar12);
+ this->entityArray[entityID].vSin = (float)(fVar12 * (float10)iVar7);
+ uVar8
+ = angleToRotationFrameIndex(iVar11);
+ this->entityArray[entityID].field45_0x6a = (short)uVar8;
+ return;
+ }
+ }
+}
+}
+

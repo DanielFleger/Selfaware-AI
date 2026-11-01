@@ -1,0 +1,1352 @@
+### 0x00502f30 placeWalls | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00502F30
+ void TileMapState::placeWalls(
+ int playerID, uint x1, uint y1, uint x2, uint y2, MappersEnum wallType, int tileCountUnk)
+ {
+ bool bVar1;
+ bool bVar2;
+ BOOLEnum BVar3;
+ int _unitID;
+ int _treeID;
+ uint uVar4;
+ int iVar5;
+ int _tile;
+ uint local_28;
+ int* local_24;
+ int local_20;
+ int local_1c;
+ uint local_18;
+ int local_14;
+ int local_10;
+ int _normalWallCountUnk;
+ int local_8;
+ int _count1;
+ int _count2;
+ MappersEnumInt unionfacet2_503295;
+ local_14 = 0;
+ _normalWallCountUnk = 0;
+ local_8 = 0;
+ validateWallBuildPath(
+ playerID, x1, y1, x2, y2, (undefined4)((int)(wallType)));
+ if (this->illegalBuild == FALSE) {
+ this->constructionTileCount = getWallTilesThatCanBeBuilt(playerID, 4);
+ local_10 = 2;
+ if ((undefined2)wallType == M_MAPPER_STAIR) {
+ local_14 = this->field119_0x554924;
+ }
+ if (playerID == DAT_GameSynchronyState.currentPlayerSlotID) {
+ resetWallPlacementInfo();
+ }
+ local_20 = y1 - y2;
+ local_1c = y2 - y1;
+ local_28 = x2 - x1;
+ local_24 = &DAT_ViewportRenderState.translationMatrix[y1].addXgetTile;
+ local_18 = x1;
+ x1 = x1 - x2;
+ do {
+ if (((undefined2)wallType == M_MAPPER_STAIR) && (local_14 < 0x18))
+ goto LAB_00503440;
+ if ((tileCountUnk <= local_8) || (this->constructionTileCount < _normalWallCountUnk))
+ break;
+ local_8 = local_8 + 1;
+ _tile = *local_24 + local_18;
+ bVar2 = false;
+ if (((undefined2)wallType == M_MAPPER_STAIR) && ((this->LogicLayer[_tile] & L_WALL_OR_GATEHOUSE) != 0))
+ goto LAB_00503440;
+ bVar1 = false;
+ if (((undefined2)wallType == M_MAPPER_WALL) && ((this->LogicLayer[_tile] & L_CRENEL) != 0)) {
+ bVar1 = true;
+ }
+ if ((((this->LogicLayer[_tile] & L_WALL_OR_GATEHOUSE) == 0) || (this->DamageLayer[_tile] != 0))
+ || (bVar1)) {
+ if (playerID == DAT_GameSynchronyState.currentPlayerSlotID) {
+ addWallPlacementInfoForTile(_tile);
+ }
+ if ((this->DamageLayer[_tile] != 0) || (bVar1)) {
+ this->DamageLayer[_tile] = 0;
+ this->HeightLayer[_tile] = this->DefaultHeightLayer[_tile];
+ if (bVar1) {
+ this->LogicLayer[_tile]
+ = this->LogicLayer[_tile] & (~(L_CRENEL | L_CRENEL_VARIATIONUnk)) | 256;
+ }
+ }
+ if ((undefined2)wallType == M_MAPPER_WALL) {
+ this->HeightLayer[_tile] = this->HeightLayer[_tile] + 0x5a;
+ LAB_005031c3:
+ if (bVar1)
+ goto LAB_005031c7;
+ _normalWallCountUnk = _normalWallCountUnk + 1;
+ this->LogicLayer[_tile]
+ = this->LogicLayer[_tile] & (~(L_UNKNOWN_WALL_RELATED | L_BOULDERS | L_PEBBLES | L_IRON))
+ | 256;
+ if ((this->UnitLayer[_tile] != 0)
+ && (_unitID = (int)(short)this->UnitLayer[_tile],
+ DAT_UnitsState.units[_unitID].unitType == UT_CHICKEN)) {
+ DAT_UnitsState.units[_unitID].state.generic
+ = US_DISAPPEAR;
+ DAT_UnitsState.units[_unitID].updateTickTracker = 0;
+ DAT_UnitsState.units[_unitID].disappearFadeAlphaCountdown = 0;
+ }
+ if ((this->LogicLayer[_tile] & 8U) != 0) {
+ this->LogicLayer[_tile] = this->LogicLayer[_tile] & ~(L_PLAIN2_AND_PITCH);
+ this->HeightLayer[_tile] = this->HeightLayer[_tile] + 4;
+ }
+ if (((this->LogicLayer[_tile] & L_TREE) != 0)
+ && (_treeID = (int)this->OrganismLayer[_tile], _treeID < 2000)) {
+ switch (DAT_LandscapeState.trees[_treeID].treeType) {
+ case ((TreeType)5):
+ case ((TreeType)6):
+ case ((TreeType)7):
+ case ((TreeType)8):
+ case ((TreeType)9):
+ case ((TreeType)10):
+ case 0xb:
+ case 0xc:
+ case 0xd:
+ case 0xe:
+ case ((TreeType)0x10):
+ case ((TreeType)0x11):
+ case ((TreeType)0x12):
+ case ((TreeType)0x13):
+ DAT_LandscapeState.trees[_treeID].state = 3;
+ }
+ }
+ if (((undefined2)wallType == M_MAPPER_WOODWALL) || (bVar2)) {
+ this->LogicLayer[_tile] = this->LogicLayer[_tile] | 65536;
+ }
+ this->WallOwnerLayer[_tile] = this->WallOwnerLayer[_tile] & 0xf8 | (char)playerID - 1U;
+ } else {
+ if ((undefined2)wallType == M_MAPPER_WOODWALL) {
+ this->HeightLayer[_tile] = this->HeightLayer[_tile] + 0x3c;
+ goto LAB_005031c3;
+ }
+ if ((undefined2)wallType == M_MAPPER_CRENAL) {
+ this->LogicLayer[_tile] = this->LogicLayer[_tile] | 512;
+ BVar3 = hasOnlyTowerNeighborsNoWalls(_tile, y1);
+ if (BVar3 == FALSE) {
+ this->HeightLayer[_tile] = this->HeightLayer[_tile] + 0x62;
+ } else {
+ this->HeightLayer[_tile] = this->HeightLayer[_tile] + 0x44;
+ }
+ bVar2 = BVar3 != FALSE;
+ if (((local_18 & 1) == 0) || ((y1 & 1) != 0)) {
+ if (((local_18 & 1) == 0) && ((y1 & 1) != 0)) {
+ this->LogicLayer[_tile] = this->LogicLayer[_tile] | 4194304;
+ }
+ } else {
+ this->LogicLayer[_tile] = this->LogicLayer[_tile] | 4194304;
+ }
+ goto LAB_005031c3;
+ }
+ if ((undefined2)wallType != M_MAPPER_STAIR)
+ goto LAB_005031c3;
+ /*
+ --stairs code--
+ */
+ iVar5 = (local_14 - (uint)this->HeightLayer[_tile]) + -0x10;
+ if (0 < iVar5) {
+ /*
+ Sets actual steps tiles
+ */
+ this->LogicLayer[_tile] = this->LogicLayer[_tile] | 2048;
+ this->HeightLayer[_tile] = this->HeightLayer[_tile] + (char)iVar5;
+ goto LAB_005031c3;
+ }
+ LAB_005031c7:
+ if (!bVar1)
+ goto LAB_005032fa;
+ }
+ updatePathLinkagesInAllEightDirections(y1, _tile);
+ clearMoat(_tile);
+ updateWalkAndPathLayer(7, local_18, y1);
+ }
+ LAB_005032fa:
+ uVar4 = x1;
+ if ((int)local_18 < (int)x2) {
+ uVar4 = local_28;
+ }
+ _tile = local_20;
+ if ((int)y1 < (int)y2) {
+ _tile = local_1c;
+ }
+ if ((undefined2)wallType == M_MAPPER_STAIR) {
+ if (_tile < (int)uVar4) {
+ if ((int)local_18 < (int)x2) {
+ x1 = x1 + 1;
+ local_18 = local_18 + 1;
+ local_28 = local_28 - 1;
+ } else {
+ x1 = x1 - 1;
+ local_18 = local_18 - 1;
+ local_28 = local_28 + 1;
+ }
+ } else if (_tile < 1) {
+ local_10 = local_10 + -1;
+ } else if ((int)y1 < (int)y2) {
+ y1 = y1 + 1;
+ local_24 = local_24 + 3;
+ local_20 = local_20 + 1;
+ local_1c = local_1c + -1;
+ } else {
+ y1 = y1 - 1;
+ local_24 = local_24 + -3;
+ local_20 = local_20 + -1;
+ local_1c = local_1c + 1;
+ }
+ } else {
+ iVar5 = 1;
+ if (uVar4 != 0) {
+ if ((int)local_18 < (int)x2) {
+ x1 = x1 + 1;
+ local_28 = local_28 - 1;
+ } else {
+ x1 = x1 - 1;
+ iVar5 = -1;
+ local_28 = local_28 + 1;
+ }
+ local_18 = local_18 + iVar5;
+ }
+ if (_tile != 0) {
+ if ((int)y1 < (int)y2) {
+ y1 = y1 + 1;
+ local_24 = local_24 + 3;
+ local_20 = local_20 + 1;
+ local_1c = local_1c + -1;
+ } else {
+ y1 = y1 - 1;
+ local_24 = local_24 + -3;
+ local_20 = local_20 + -1;
+ local_1c = local_1c + 1;
+ }
+ }
+ if ((local_18 == x2) && (y1 == y2)) {
+ local_10 = local_10 + -1;
+ }
+ }
+ if (0xf < local_14) {
+ local_14 = local_14 + -0x10;
+ }
+ } while (((local_18 != x2) || (y1 != y2)) || (local_10 != 0));
+ if ((undefined2)wallType == M_MAPPER_WOODWALL) {
+ _count2 = 0;
+ _count1 = _normalWallCountUnk;
+ } else {
+ LAB_00503440:
+ _count1 = 0;
+ _count2 = _normalWallCountUnk;
+ }
+ processWallBuildingLoss(playerID, _count2, _count1, 0);
+ DAT_PathFindingState.toggleUpdateSeparateAreaTileMap = 1;
+ this->field204_0x554a30 = 1;
+ triggerMinimapRedraw(1);
+ }
+ return;
+ }
+}
+}
+
+### 0x005034a0 placeDefensiveStructureTile | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x005034A0
+ void TileMapState::placeDefensiveStructureTile(int playerID, uint x, uint y, MappersEnum param_4)
+ {
+ byte bVar1;
+ MappersEnumShort sVar3;
+ int tile;
+ uint _logic;
+ validateWallPlacementAtTile(playerID, x, y, param_4);
+ if (this->illegalBuild != FALSE) {
+ return;
+ }
+ tile = DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x;
+ sVar3 = (MappersEnumShort)param_4;
+ bVar1 = this->DefaultHeightLayer[tile];
+ this->DamageLayer[tile] = 0;
+ this->HeightLayer[tile] = bVar1;
+ if (sVar3 == M_MAPPER_WALL) {
+ this->HeightLayer[tile] = bVar1 + 0x5a;
+ } else if (sVar3 == M_MAPPER_WOODWALL) {
+ this->HeightLayer[tile] = bVar1 + 0x3c;
+ } else {
+ if (sVar3 == M_MAPPER_CRENAL) {
+ /*
+ Crenal
+ */
+ this->LogicLayer[tile] = this->LogicLayer[tile] | 512;
+ this->HeightLayer[tile] = this->HeightLayer[tile] + 0x62;
+ } else {
+ if (sVar3 != M_MAPPER_CRENAL2) {
+ if (sVar3 == M_MAPPER_STAIR1) {
+ this->LogicLayer[tile] = this->LogicLayer[tile] | 2048;
+ this->HeightLayer[tile] = this->HeightLayer[tile] + 0x50;
+ } else if (sVar3 == M_MAPPER_STAIR2) {
+ this->LogicLayer[tile] = this->LogicLayer[tile] | 2048;
+ this->HeightLayer[tile] = this->HeightLayer[tile] + 0x40;
+ } else if (sVar3 == M_MAPPER_STAIR3) {
+ this->LogicLayer[tile] = this->LogicLayer[tile] | 2048;
+ this->HeightLayer[tile] = this->HeightLayer[tile] + 0x30;
+ } else if (sVar3 == M_MAPPER_STAIR4) {
+ this->LogicLayer[tile] = this->LogicLayer[tile] | 2048;
+ this->HeightLayer[tile] = this->HeightLayer[tile] + 0x20;
+ } else if (sVar3 == M_MAPPER_STAIR5) {
+ this->LogicLayer[tile] = this->LogicLayer[tile] | 2048;
+ this->HeightLayer[tile] = this->HeightLayer[tile] + 0x10;
+ }
+ goto LAB_00503615;
+ }
+ this->LogicLayer[tile] = this->LogicLayer[tile] | 512;
+ this->HeightLayer[tile] = this->HeightLayer[tile] + 0x44;
+ }
+ if (((x & 1) == 0) || ((y & 1) != 0)) {
+ if (((x & 1) == 0) && ((y & 1) != 0)) {
+ this->LogicLayer[tile] = this->LogicLayer[tile] | 4194304;
+ }
+ } else {
+ this->LogicLayer[tile] = this->LogicLayer[tile] | 4194304;
+ }
+ }
+ LAB_00503615:
+ _logic = this->LogicLayer[tile];
+ this->LogicLayer[tile] = _logic & (~(L_UNKNOWN_WALL_RELATED | L_BOULDERS | L_PEBBLES | L_IRON)) | 256;
+ if ((_logic & L_PLAIN2_AND_PITCH) != 0) {
+ this->LogicLayer[tile]
+ = _logic & (~(L_PLAIN2_AND_PITCH | L_UNKNOWN_WALL_RELATED | L_BOULDERS | L_PEBBLES | L_IRON)) | 256;
+ this->HeightLayer[tile] = this->HeightLayer[tile] + 4;
+ }
+ if (((this->LogicLayer[tile] & L_TREE) != 0) && (this->OrganismLayer[tile] < 2000)) {
+ DAT_LandscapeState.trees[this->OrganismLayer[tile]].state = 3;
+ }
+ if (sVar3 == M_MAPPER_WOODWALL) {
+ /*
+ wood wall?
+ */
+ this->LogicLayer[tile] = this->LogicLayer[tile] | 65536;
+ }
+ this->WallOwnerLayer[tile] = this->WallOwnerLayer[tile] & 0xf8 | (char)playerID - 1U;
+ updatePathLinkagesInAllEightDirections(y, tile);
+ clearMoat(tile);
+ updateWalkAndPathLayer(7, x, y);
+ if ((((sVar3 != M_MAPPER_STAIR1) && (sVar3 != M_MAPPER_STAIR2))
+ && (sVar3 != M_MAPPER_STAIR3))
+ && (((sVar3 != M_MAPPER_STAIR4 && (sVar3 != M_MAPPER_STAIR5))
+ && (sVar3 != M_MAPPER_STAIR6)))) {
+ processWallBuildingLoss(playerID, 1, 0, 0);
+ }
+ DAT_PathFindingState.toggleUpdateSeparateAreaTileMap = 1;
+ triggerMinimapRedraw(1);
+ return;
+ }
+}
+}
+
+### 0x00503720 setupBuildingSizeIndexMapping | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00503720
+ void TileMapState::setupBuildingSizeIndexMapping()
+ {
+ setupBuildingSizeIndexMappingForBuildingWithSize(0);
+ setupBuildingSizeIndexMappingForBuildingWithSize(1);
+ setupBuildingSizeIndexMappingForBuildingWithSize(2);
+ setupBuildingSizeIndexMappingForBuildingWithSize(3);
+ setupBuildingSizeIndexMappingForBuildingWithSize(4);
+ setupBuildingSizeIndexMappingForBuildingWithSize(5);
+ setupBuildingSizeIndexMappingForBuildingWithSize(6);
+ setupBuildingSizeIndexMappingForBuildingWithSize(7);
+ setupBuildingSizeIndexMappingForBuildingWithSize(8);
+ setupBuildingSizeIndexMappingForBuildingWithSize(9);
+ setupBuildingSizeIndexMappingForBuildingWithSize(10);
+ setupBuildingSizeIndexMappingForBuildingWithSize(0xb);
+ setupBuildingSizeIndexMappingForBuildingWithSize(0xc);
+ setupBuildingSizeIndexMappingForBuildingWithSize(0xd);
+ return;
+ }
+}
+}
+
+### 0x005037b0 checkBuildingCanBePlacedHere | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x005037B0
+ void TileMapState::checkBuildingCanBePlacedHere(
+ int playerID, uint x, uint y | fertileLandCount, MappersEnum commandBuildingType, int buildingSize)
+ {
+ uint uVar1;
+ byte bVar2;
+ BuildingType _buildingType;
+ int _buildRange;
+ BOOLEnum BVar3;
+ int iVar4;
+ uint uVar5;
+ int iVar6;
+ int iVar7;
+ MappersEnum _commandBuildingType;
+ int iVar8;
+ int* piVar9;
+ bool bVar10;
+ bool bVar11;
+ int _grassCount;
+ int _distance;
+ int _range;
+ int _boulderCount;
+ int _ironCount;
+ int _oilCount;
+ int local_4;
+ MappersEnumInt unionfacet2_50397c;
+ MappersEnumInt unionfacet2_504728;
+ uint _x;
+ uint _y;
+ _y = y | fertileLandCount;
+ _x = x;
+ bVar11 = buildingSize < 0;
+ local_4 = 0;
+ if (bVar11) {
+ buildingSize = 2;
+ }
+ _commandBuildingType = (MappersEnum)(short)(undefined2)commandBuildingType;
+ this->buildingPlacementFail = FALSE;
+ this->placementWarning = 0;
+ this->field127_0x554944 = 0;
+ this->uiBuildingRotation = 0xf;
+ _buildingType
+ = convertCommandBuildingTypeToBuildingType(_commandBuildingType);
+ this->buildingSpriteSheetID_1
+ = DAT_BuildingDefinedData.Building_SpriteSheet_ID_Array_1[_buildingType];
+ this->buildingSpriteID1 = getSpriteID(_commandBuildingType);
+ this->buildingSpriteID2 = getSpriteID2(_commandBuildingType);
+ _buildingType
+ = convertCommandBuildingTypeToBuildingType(_commandBuildingType);
+ this->buildingHeightLimit = DAT_BuildingDefinedData.BuildingPlacement_HeightLimit[_buildingType];
+ _buildingType
+ = convertCommandBuildingTypeToBuildingType(_commandBuildingType);
+ this->buildingMaxHeightDifference
+ = DAT_BuildingDefinedData.BuildingPlacement_MaxHeightDifference[_buildingType];
+ _buildingType
+ = convertCommandBuildingTypeToBuildingType(_commandBuildingType);
+ this->buildingPlacementProperty_3
+ = DAT_BuildingDefinedData.BuildingPlacement_Property_3[_buildingType];
+ _buildingType
+ = convertCommandBuildingTypeToBuildingType(_commandBuildingType);
+ this->buildingPlacementProperty_4
+ = DAT_BuildingDefinedData.BuildingPlacement_Property_4[_buildingType];
+ if (((DAT_GameSynchronyState.currentGameMode == GM_SOLITARY)
+ || (DAT_GameSynchronyState.currentPlayerFullIDArray[playerID] != -1))
+ || (DAT_GameSynchronyState.currentAIArray[playerID] == 0)) {
+ this->buildingPlacementProperty_4 = 0;
+ }
+ _buildingType
+ = convertCommandBuildingTypeToBuildingType(_commandBuildingType);
+ this->buildingPlacementProperty_5
+ = DAT_BuildingDefinedData.BuildingPlacement_Property_5[_buildingType];
+ _buildingType
+ = convertCommandBuildingTypeToBuildingType(_commandBuildingType);
+ this->buildingPlacementProperty_6
+ = DAT_BuildingDefinedData.BuildingPlacement_Property_6[_buildingType];
+ _buildingType
+ = convertCommandBuildingTypeToBuildingType(_commandBuildingType);
+ this->buildingPlacementProperty_7
+ = DAT_BuildingDefinedData.BuildingPlacement_Property_7[_buildingType];
+ if ((undefined2)commandBuildingType == M_MAPPER_SIEGE_TOWER_BASE) {
+ return;
+ }
+ _boulderCount = 0;
+ _ironCount = 0;
+ _oilCount = 0;
+ y | fertileLandCount = 0;
+ _grassCount = 0;
+ storeMinAndMaxHeightOfArea(x, _y, buildingSize);
+ if (bVar11)
+ goto switchD_0050397c_caseD_33;
+ if (0x138 < (int)_commandBuildingType) {
+ if (325 < (int)_commandBuildingType) {
+ if ((int)_commandBuildingType < 328)
+ goto switchD_0050397c_caseD_33;
+ if (_commandBuildingType == 358)
+ goto switchD_0050397c_caseD_be;
+ }
+ switchD_0050397c_caseD_35:
+ if ((DAT_GameCore.gameMode_2 != GM_EDITOR)
+ && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)) {
+ bVar10 = DAT_GameSynchronyState.currentGameMode != GM_SOLITARY;
+ bVar11 = true;
+ x = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ x, buildingSize);
+ BVar3 = isEnemyTooCloseUnk(playerID, this->buildingX + _x, this->buildingY + _y,
+ (int)((int)((-(uint)bVar10 & 0xfffffff1) + 0x1e)));
+ if (BVar3 != FALSE) {
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x11);
+ bVar11 = false;
+ break;
+ }
+ x = x + 1;
+ } while ((int)x < this->constructionTileCount);
+ BVar3 = isSignPostWithinDistance(_x, _y, DAT_GameState.mapAndTime.unk_signpostDistance + 5);
+ if (BVar3 == FALSE) {
+ if (bVar11)
+ goto LAB_00503d46;
+ } else {
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x15);
+ }
+ LAB_00503d3c:
+ this->buildingPlacementFail = TRUE;
+ }
+ goto LAB_00503d46;
+ }
+ if (_commandBuildingType == M_MAPPER_DOG_CAGE) {
+ if (9 < DAT_GameState.playerDataArray[playerID].dogCageCount) {
+ this->buildingPlacementFail = TRUE;
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)1000);
+ return;
+ }
+ switchD_0050397c_caseD_62:
+ local_4 = 5;
+ switchD_0050397c_caseD_64:
+ if (DAT_GameCore.gameMode_2 == GM_EDITOR) {
+ iVar8 = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ iVar8, buildingSize);
+ iVar4
+ = isOpponentBuildingInRange(playerID, this->buildingX + x,
+ this->buildingY + _y, 7, -1, -1, -1);
+ if (iVar4 != 0)
+ goto LAB_005039d6;
+ iVar8 = iVar8 + 1;
+ } while (iVar8 < this->constructionTileCount);
+ } else if (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT) {
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ _distance = 30;
+ _range = 30;
+ } else {
+ isAIPlayer(playerID);
+ _distance = 15;
+ _range = 7;
+ }
+ x = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ x, buildingSize);
+ BVar3 = isEnemyTooCloseUnk(playerID, this->buildingX + _x, this->buildingY + _y, _distance);
+ if (BVar3 != FALSE) {
+ LAB_00503b32:
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x11);
+ LAB_00503b48:
+ bVar11 = false;
+ break;
+ }
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ iVar8 = isOpponentBuildingInRange(playerID, this->buildingX + _x,
+ this->buildingY + _y, _range, -1, -1, -1);
+ if (iVar8 != 0)
+ goto LAB_00503b32;
+ _buildRange
+ = getCastleBuildRangeForMapSize();
+ iVar8 = isTileInRangeOfKeepRange(
+ playerID, this->buildingX + _x, this->buildingY + _y, _buildRange + local_4);
+ if (iVar8 == 0)
+ goto LAB_00503b11;
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x12);
+ goto LAB_00503b48;
+ }
+ LAB_00503b11:
+ x = x + 1;
+ bVar11 = true;
+ } while ((int)x < this->constructionTileCount);
+ BVar3 = isSignPostWithinDistance(_x, _y, DAT_GameState.mapAndTime.unk_signpostDistance + 5);
+ if (BVar3 == FALSE) {
+ if (bVar11)
+ goto LAB_00503d46;
+ } else {
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x15);
+ }
+ this->buildingPlacementFail = TRUE;
+ if (this->buildingPlacementFailReason == BFRE_DEFAULT_CANT_PLACE_THAT_THERE) {
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x12);
+ }
+ }
+ } else {
+ switch (_commandBuildingType) {
+ case M_MAPPER_WOODSMAN:
+ case M_MAPPER_OXENBASE:
+ case M_MAPPER_QUARRY:
+ case M_MAPPER_TUNNEL:
+ case M_MAPPER_TUNNEL_CONSTRUCTION:
+ case M_MAPPER_WHEATFARM:
+ case M_MAPPER_HOPSFARM:
+ case M_MAPPER_APPLEFARM:
+ case M_MAPPER_CATTLEFARM:
+ case M_MAPPER_IRON_MINE:
+ case M_MAPPER_PITCH_WORKINGS:
+ case M_MAPPER_QUARRYPILE:
+ goto switchD_0050397c_caseD_33;
+ case M_MAPPER_STORES:
+ case M_MAPPER_GRANARY:
+ case M_MAPPER_ARMOURY:
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ iVar8 = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ iVar8, buildingSize);
+ BVar3 = isEnemyTooCloseUnk(playerID, this->buildingX + x, this->buildingY + _y, 3);
+ if (BVar3 != FALSE)
+ goto LAB_005039d6;
+ iVar8 = iVar8 + 1;
+ } while (iVar8 < this->constructionTileCount);
+ }
+ break;
+ default : goto switchD_0050397c_caseD_35;
+ case M_MAPPER_KILLING_PIT:
+ case M_MAPPER_PITCH_DITCH:
+ case M_MAPPER_DRAWBRIDGE:
+ goto switchD_0050397c_caseD_62;
+ case M_MAPPER_GATEHOUSE:
+ case M_MAPPER_GATE_MAIN:
+ case M_MAPPER_GATE_INNER:
+ case M_MAPPER_GATE_WOOD:
+ case M_MAPPER_GATE_POSTERN:
+ case M_MAPPER_MOAT:
+ case M_MAPPER_ANTIMOAT:
+ case M_MAPPER_TOWER1:
+ case M_MAPPER_TOWER2:
+ case M_MAPPER_TOWER3:
+ case M_MAPPER_TOWER4:
+ case M_MAPPER_TOWER5:
+ case M_MAPPER_GATE_WOOD1A:
+ case M_MAPPER_GATE_WOOD1B:
+ case M_MAPPER_GATE_WOOD1C:
+ case M_MAPPER_GATE_WOOD1D:
+ case M_MAPPER_GATE_STONE1A:
+ case M_MAPPER_GATE_STONE1B:
+ case M_MAPPER_GATE_STONE2A:
+ case M_MAPPER_GATE_STONE2B:
+ goto switchD_0050397c_caseD_64;
+ case M_MAPPER_CATAPULT:
+ case M_MAPPER_TREBUCHET:
+ case M_MAPPER_SIEGE_TOWER:
+ case M_MAPPER_BATTERING_RAM:
+ case M_MAPPER_PORTABLE_SHIELD:
+ switchD_0050397c_caseD_be:
+ if ((DAT_GameCore.gameMode_2 != GM_EDITOR)
+ && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)) {
+ iVar8 = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ iVar8, buildingSize);
+ BVar3 = isEnemyTooCloseUnk(playerID, this->buildingX + x, this->buildingY + _y, 3);
+ if (BVar3 != FALSE)
+ goto LAB_005039d6;
+ iVar8 = iVar8 + 1;
+ } while (iVar8 < this->constructionTileCount);
+ }
+ }
+ }
+ LAB_00503d46:
+ if (this->buildingPlacementFail == FALSE) {
+ iVar8 = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ iVar8, buildingSize);
+ iVar4 = findSomeSuitableLocationUnk(playerID, this->buildingX + _x, this->buildingY + _y, 2);
+ if (iVar4 != 0) {
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x11);
+ this->buildingPlacementFail = TRUE;
+ break;
+ }
+ iVar8 = iVar8 + 1;
+ } while (iVar8 < this->constructionTileCount);
+ }
+ switchD_0050397c_caseD_33:
+ if (((undefined2)commandBuildingType == M_MAPPER_DRAWBRIDGE) && (0xc < this->buildingMaxHeight)) {
+ this->buildingPlacementFail = TRUE;
+ }
+ x = 0;
+ do {
+ getBuildingSizeIndexMappingData(x, buildingSize);
+ uVar5 = this->buildingY + _y;
+ if (399 < this->buildingX + _x) {
+ this->buildingPlacementFail = 2;
+ return;
+ }
+ if (399 < uVar5) {
+ this->buildingPlacementFail = 2;
+ return;
+ }
+ if (*(char*)(uVar5 * 400 + 0x21aec98 + this->buildingX + _x) == '\0') {
+ this->buildingPlacementFail = 2;
+ return;
+ }
+ iVar8 = DAT_ViewportRenderState.translationMatrix[uVar5].addXgetTile + this->buildingX + _x;
+ uVar5 = this->LogicLayer[iVar8];
+ if ((uVar5 & 0x30) != 0) {
+ this->buildingPlacementFail = 2;
+ return;
+ }
+ if ((uVar5 & 0x20000) != 0) {
+ _boulderCount = _boulderCount + 1;
+ }
+ if ((uVar5 & 0x80000) != 0) {
+ _ironCount = _ironCount + 1;
+ }
+ if ((int)uVar5 < 0) {
+ _oilCount = _oilCount + 1;
+ }
+ if ((uVar5 & 0x100000) == 0) {
+ bVar2 = this->Logic2Layer[iVar8];
+ if ((bVar2 & 0x10) != 0) {
+ /*
+ grass
+ */
+ y | fertileLandCount = y | fertileLandCount + 1;
+ _grassCount = _grassCount + 1;
+ }
+ if ((char)bVar2 < '\0') {
+ /*
+ thick scrub
+ */
+ y | fertileLandCount = y | fertileLandCount + 1;
+ _grassCount = _grassCount + 1;
+ }
+ if ((bVar2 & 1) != 0) {
+ /*
+ scrub
+ */
+ y | fertileLandCount = y | fertileLandCount + 1;
+ }
+ }
+ iVar8 = isBuildingPlacementAllowedAtTile(
+ iVar8, playerID, _commandBuildingType, 0);
+ if (iVar8 != 0) {
+ this->buildingPlacementFail = TRUE;
+ }
+ x = x + 1;
+ } while ((int)x < this->constructionTileCount);
+ if (((((undefined2)commandBuildingType == M_MAPPER_CATTLEFARM)
+ || ((undefined2)commandBuildingType == M_MAPPER_WHEATFARM))
+ || ((undefined2)commandBuildingType == M_MAPPER_HOPSFARM))
+ || ((undefined2)commandBuildingType == M_MAPPER_APPLEFARM)) {
+ if ((int)y | fertileLandCount < this->constructionTileCount) {
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x16);
+ this->buildingPlacementFail = TRUE;
+ return;
+ }
+ if (_grassCount < 50) {
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x17);
+ this->buildingPlacementFail = TRUE;
+ }
+ } else {
+ if ((undefined2)commandBuildingType != M_MAPPER_QUARRY) {
+ if ((((undefined2)commandBuildingType == M_MAPPER_KEEP1)
+ || ((undefined2)commandBuildingType == M_MAPPER_KEEP2))
+ || ((undefined2)commandBuildingType == M_MAPPER_KEEP3)) {
+ buildingSize = (_commandBuildingType - M_MAPPER_KEEP1) * 0x60 + 0xb491b8;
+ commandBuildingType = M_MAPPER_NULL;
+ do {
+ uVar5 = *(int*)(buildingSize + 4) + _y;
+ BVar3 = xyAreValid(*(int*)buildingSize + _x, uVar5);
+ if (BVar3 == FALSE) {
+ this->buildingPlacementFail = 2;
+ return;
+ }
+ iVar8 = DAT_ViewportRenderState.translationMatrix[uVar5].addXgetTile
+ + *(int*)buildingSize + _x;
+ if ((this->LogicLayer[iVar8] & 0x30) != 0) {
+ this->buildingPlacementFail = 2;
+ return;
+ }
+ iVar8 = isBuildingPlacementAllowedAtTile(iVar8, playerID, _commandBuildingType, 0);
+ if (iVar8 != 0) {
+ this->buildingPlacementFail = TRUE;
+ }
+ buildingSize = buildingSize + 8;
+ commandBuildingType = commandBuildingType + M_MAPPER_AREA;
+ } while ((int)commandBuildingType < 3);
+ iVar4 = (_commandBuildingType - M_MAPPER_KEEP1) * 0x20;
+ iVar6 = _x + *(int*)((int)DAT_TerrainDefinedData + iVar4 + 900);
+ iVar8 = *(int*)((int)DAT_TerrainDefinedData + iVar4 + 904);
+ x = 0;
+ do {
+ getBuildingSizeIndexMappingData(x, 7);
+ uVar5 = this->buildingY + _y + iVar8;
+ uVar1 = this->buildingX + iVar6;
+ if (399 < uVar1) {
+ this->buildingPlacementFail = 2;
+ return;
+ }
+ if (399 < uVar5) {
+ this->buildingPlacementFail = 2;
+ return;
+ }
+ if (*(char*)(uVar5 * 400 + 0x21aec98 + uVar1) == '\0') {
+ this->buildingPlacementFail = 2;
+ return;
+ }
+ iVar7 = DAT_ViewportRenderState.translationMatrix[uVar5].addXgetTile + this->buildingX
+ + iVar6;
+ if ((this->LogicLayer[iVar7] & 0x30) != 0) {
+ this->buildingPlacementFail = 2;
+ return;
+ }
+ iVar7 = isBuildingPlacementAllowedAtTile(iVar7, playerID, _commandBuildingType, 0);
+ if (iVar7 != 0) {
+ this->buildingPlacementFail = TRUE;
+ }
+ x = x + 1;
+ } while ((int)x < this->constructionTileCount);
+ iVar8 = *(int*)((int)DAT_TerrainDefinedData + iVar4 + 1000);
+ iVar4 = *(int*)((int)DAT_TerrainDefinedData + iVar4 + 0x3e4) + _x;
+ x = 0;
+ while (true) {
+ getBuildingSizeIndexMappingData(x, 5);
+ iVar6 = this->buildingX;
+ uVar5 = this->buildingY + iVar8 + _y;
+ BVar3 = xyAreValid(iVar4 + this->buildingX, uVar5);
+ if ((BVar3 == FALSE)
+ || (iVar6 = DAT_ViewportRenderState.translationMatrix[uVar5].addXgetTile + iVar6
+ + iVar4,
+ (this->LogicLayer[iVar6] & 0x30) != 0))
+ break;
+ iVar6 = isBuildingPlacementAllowedAtTile(iVar6, playerID, _commandBuildingType, 0);
+ if (iVar6 != 0) {
+ this->buildingPlacementFail = TRUE;
+ }
+ x = x + 1;
+ if (this->constructionTileCount <= (int)x) {
+ return;
+ }
+ }
+ } else {
+ if (((((undefined2)commandBuildingType != M_MAPPER_GATE_WOOD1A)
+ && ((undefined2)commandBuildingType != M_MAPPER_GATE_WOOD1B))
+ && ((undefined2)commandBuildingType != M_MAPPER_GATE_WOOD1C))
+ && ((undefined2)commandBuildingType != M_MAPPER_GATE_WOOD1D)) {
+ if ((undefined2)commandBuildingType == M_MAPPER_IRON_MINE) {
+ if (3 < _ironCount) {
+ return;
+ }
+ this->buildingPlacementFailReason = BFRE_NOT_IRON_ORE;
+ this->buildingPlacementFail = TRUE;
+ return;
+ }
+ if ((undefined2)commandBuildingType == M_MAPPER_PITCH_WORKINGS) {
+ if (0 < _oilCount) {
+ return;
+ }
+ this->buildingPlacementFailReason = BFRE_NOT_OIL_MARSH;
+ this->buildingPlacementFail = TRUE;
+ return;
+ }
+ if ((undefined2)commandBuildingType == M_MAPPER_STORES) {
+ if (DAT_GameState.playerDataArray[playerID].stockpile.id == 0) {
+ return;
+ }
+ iVar8
+ = getEmptyBuildingCount(playerID, BT_STOCKPILE);
+ if (iVar8 < 0x20) {
+ BVar3 = hasBuildingAsNeighbour(playerID, _x, _y, buildingSize,
+ BT_STOCKPILE);
+ if (BVar3 != FALSE) {
+ return;
+ }
+ this->buildingPlacementFail = TRUE;
+ this->buildingPlacementFailReason = BFRE_NOT_ADJ_STOCKPILE;
+ return;
+ }
+ this->buildingPlacementFail = TRUE;
+ return;
+ }
+ if ((undefined2)commandBuildingType == M_MAPPER_GRANARY) {
+ if (DAT_GameState.playerDataArray[playerID].granary.id == 0) {
+ return;
+ }
+ iVar8
+ = getEmptyBuildingCount(playerID, BT_GRANARY);
+ if (iVar8 < 8) {
+ BVar3 = hasBuildingAsNeighbour(playerID, _x, _y, buildingSize,
+ BT_GRANARY);
+ if (BVar3 != FALSE) {
+ return;
+ }
+ this->buildingPlacementFail = TRUE;
+ this->buildingPlacementFailReason = BFRE_NOT_ADJ_GRANARY;
+ return;
+ }
+ this->buildingPlacementFail = TRUE;
+ return;
+ }
+ if ((undefined2)commandBuildingType == M_MAPPER_ARMOURY) {
+ if (DAT_GameState.playerDataArray[playerID].armory.id == 0) {
+ return;
+ }
+ iVar8
+ = getEmptyBuildingCount(playerID, BT_ARMORY);
+ if (iVar8 < 8) {
+ BVar3 = hasBuildingAsNeighbour(playerID, _x, _y, buildingSize,
+ BT_ARMORY);
+ if (BVar3 != FALSE) {
+ return;
+ }
+ this->buildingPlacementFail = TRUE;
+ this->buildingPlacementFailReason = BFRE_NOT_ADJ_ARMORY;
+ return;
+ }
+ this->buildingPlacementFail = TRUE;
+ return;
+ }
+ if (((undefined2)commandBuildingType == M_MAPPER_BARRACKS_EURO)
+ || ((undefined2)commandBuildingType == M_MAPPER_BARRACKS_ARAB)) {
+ iVar4 = _x
+ + DAT_TerrainDefinedData
+ .BuildingPartsOffsets[this->DAT_TempBuildingRotation][0]
+ .x;
+ iVar8 = DAT_TerrainDefinedData
+ .BuildingPartsOffsets[this->DAT_TempBuildingRotation][0]
+ .y;
+ x = 0;
+ while (true) {
+ getBuildingSizeIndexMappingData(x, 5);
+ uVar5 = this->buildingY + _y + iVar8;
+ BVar3 = xyAreValid(this->buildingX + iVar4, uVar5);
+ if (BVar3 == FALSE) {
+ this->buildingPlacementFail = 2;
+ return;
+ }
+ iVar6 = DAT_ViewportRenderState.translationMatrix[uVar5].addXgetTile
+ + this->buildingX + iVar4;
+ if ((this->LogicLayer[iVar6] & 0x30) != 0)
+ break;
+ iVar6 = isBuildingPlacementAllowedAtTile(
+ iVar6, playerID, _commandBuildingType, 0);
+ if (iVar6 != 0) {
+ this->buildingPlacementFail = TRUE;
+ }
+ x = x + 1;
+ if (this->constructionTileCount <= (int)x) {
+ iVar4 = DAT_TerrainDefinedData
+ .BuildingPartsOffsets[this->DAT_TempBuildingRotation][1]
+ .x
+ + _x;
+ iVar8 = DAT_TerrainDefinedData
+ .BuildingPartsOffsets[this->DAT_TempBuildingRotation][1]
+ .y;
+ x = 0;
+ while (true) {
+ getBuildingSizeIndexMappingData(
+ x, 5);
+ iVar6 = this->buildingX;
+ uVar5 = this->buildingY + iVar8 + _y;
+ BVar3 = xyAreValid(this->buildingX + iVar4, uVar5);
+ if (BVar3 == FALSE) {
+ this->buildingPlacementFail = 2;
+ return;
+ }
+ iVar6 = DAT_ViewportRenderState.translationMatrix[uVar5].addXgetTile
+ + iVar6 + iVar4;
+ if ((this->LogicLayer[iVar6] & 0x30) != 0)
+ break;
+ iVar6 = isBuildingPlacementAllowedAtTile(
+ iVar6, playerID, _commandBuildingType, 0);
+ if (iVar6 != 0) {
+ this->buildingPlacementFail = TRUE;
+ }
+ x = x + 1;
+ if (this->constructionTileCount <= (int)x) {
+ iVar4 = DAT_TerrainDefinedData
+ .BuildingPartsOffsets[this->DAT_TempBuildingRotation][2]
+ .x
+ + _x;
+ iVar8 = DAT_TerrainDefinedData
+ .BuildingPartsOffsets[this->DAT_TempBuildingRotation][2]
+ .y;
+ x = 0;
+ while (true) {
+ getBuildingSizeIndexMappingData(x, 5);
+ iVar6 = this->buildingX;
+ uVar5 = this->buildingY + iVar8 + _y;
+ BVar3 = xyAreValid(this->buildingX + iVar4, uVar5);
+ if (BVar3 == FALSE) {
+ this->buildingPlacementFail = 2;
+ return;
+ }
+ iVar6 = DAT_ViewportRenderState.translationMatrix[uVar5]
+ .addXgetTile
+ + iVar6 + iVar4;
+ if ((this->LogicLayer[iVar6] & 0x30) != 0)
+ break;
+ iVar6 = isBuildingPlacementAllowedAtTile(iVar6, playerID, _commandBuildingType, 0);
+ if (iVar6 != 0) {
+ this->buildingPlacementFail = TRUE;
+ }
+ x = x + 1;
+ if (this->constructionTileCount <= (int)x) {
+ return;
+ }
+ }
+ this->buildingPlacementFail = 2;
+ return;
+ }
+ }
+ this->buildingPlacementFail = 2;
+ return;
+ }
+ }
+ this->buildingPlacementFail = 2;
+ return;
+ }
+ if (((undefined2)commandBuildingType == M_MAPPER_ENGINEERS_GUILD)
+ || ((undefined2)commandBuildingType == M_MAPPER_TUNNELERS_GUILD)) {
+ iVar4 = _x
+ + DAT_TerrainDefinedData
+ .BuildingPartsOffsets[this->DAT_TempBuildingRotation][1]
+ .x;
+ iVar8 = DAT_TerrainDefinedData
+ .BuildingPartsOffsets[this->DAT_TempBuildingRotation][1]
+ .y;
+ x = 0;
+ while (true) {
+ getBuildingSizeIndexMappingData(x, 5);
+ uVar5 = this->buildingY + _y + iVar8;
+ BVar3 = xyAreValid(this->buildingX + iVar4, uVar5);
+ if (BVar3 == FALSE) {
+ this->buildingPlacementFail = 2;
+ return;
+ }
+ iVar6 = DAT_ViewportRenderState.translationMatrix[uVar5].addXgetTile
+ + this->buildingX + iVar4;
+ if ((this->LogicLayer[iVar6] & 0x30) != 0)
+ break;
+ iVar6 = isBuildingPlacementAllowedAtTile(
+ iVar6, playerID, _commandBuildingType, 0);
+ if (iVar6 != 0) {
+ this->buildingPlacementFail = TRUE;
+ }
+ x = x + 1;
+ if (this->constructionTileCount <= (int)x) {
+ return;
+ }
+ }
+ this->buildingPlacementFail = 2;
+ return;
+ }
+ if ((undefined2)commandBuildingType == M_MAPPER_OIL_SMELTER) {
+ iVar4
+ = _x + DAT_TerrainDefinedData.field63_0x19c[this->DAT_TempBuildingRotation].x;
+ iVar8 = DAT_TerrainDefinedData.field63_0x19c[this->DAT_TempBuildingRotation].y;
+ x = 0;
+ while (true) {
+ getBuildingSizeIndexMappingData(x, 4);
+ uVar5 = this->buildingY + _y + iVar8;
+ BVar3 = xyAreValid(this->buildingX + iVar4, uVar5);
+ if (BVar3 == FALSE) {
+ this->buildingPlacementFail = 2;
+ return;
+ }
+ iVar6 = DAT_ViewportRenderState.translationMatrix[uVar5].addXgetTile
+ + this->buildingX + iVar4;
+ if ((this->LogicLayer[iVar6] & 0x30) != 0)
+ break;
+ iVar6 = isBuildingPlacementAllowedAtTile(
+ iVar6, playerID, M_MAPPER_OIL_SMELTER, 0);
+ if (iVar6 != 0) {
+ this->buildingPlacementFail = TRUE;
+ }
+ x = x + 1;
+ if (this->constructionTileCount <= (int)x) {
+ return;
+ }
+ }
+ this->buildingPlacementFail = 2;
+ return;
+ }
+ if ((undefined2)commandBuildingType != M_MAPPER_TUNNEL_CONSTRUCTION) {
+ return;
+ }
+ algTunnelerFindTarget(
+ playerID, 0, 76, _x, _y);
+ if (DAT_PathFindingState.ALG_TargetTile != 0) {
+ return;
+ }
+ this->buildingPlacementFail = TRUE;
+ return;
+ }
+ iVar8 = _commandBuildingType * 3 + -0x1a4;
+ iVar6 = _x + *(int*)((int)DAT_TerrainDefinedData + iVar8 * 8 + 0x56c);
+ iVar8 = iVar8 * 8;
+ iVar4 = *(int*)((int)DAT_TerrainDefinedData + iVar8 + 0x570);
+ x = 0;
+ do {
+ getBuildingSizeIndexMappingData(x, 3);
+ uVar5 = this->buildingY + _y + iVar4;
+ BVar3 = xyAreValid(this->buildingX + iVar6, uVar5);
+ if (BVar3 == FALSE) {
+ this->buildingPlacementFail = 2;
+ return;
+ }
+ iVar7 = DAT_ViewportRenderState.translationMatrix[uVar5].addXgetTile + this->buildingX
+ + iVar6;
+ if ((this->LogicLayer[iVar7] & 0x30) != 0) {
+ this->buildingPlacementFail = 2;
+ return;
+ }
+ iVar7 = isBuildingPlacementAllowedAtTile(iVar7, playerID, _commandBuildingType, 0);
+ if (iVar7 != 0) {
+ this->buildingPlacementFail = TRUE;
+ }
+ x = x + 1;
+ } while ((int)x < this->constructionTileCount);
+ iVar4 = *(int*)((int)DAT_TerrainDefinedData + iVar8 + 0x57c);
+ iVar8 = *(int*)((int)DAT_TerrainDefinedData + iVar8 + 0x578) + _x;
+ x = 0;
+ do {
+ getBuildingSizeIndexMappingData(x, 3);
+ iVar6 = this->buildingX;
+ uVar5 = this->buildingY + iVar4 + _y;
+ BVar3 = xyAreValid(iVar8 + this->buildingX, uVar5);
+ if (BVar3 == FALSE) {
+ this->buildingPlacementFail = 2;
+ return;
+ }
+ iVar6 = DAT_ViewportRenderState.translationMatrix[uVar5].addXgetTile + iVar6 + iVar8;
+ if ((this->LogicLayer[iVar6] & 0x30) != 0) {
+ this->buildingPlacementFail = 2;
+ return;
+ }
+ iVar6 = isBuildingPlacementAllowedAtTile(iVar6, playerID, _commandBuildingType, 0);
+ if (iVar6 != 0) {
+ this->buildingPlacementFail = TRUE;
+ }
+ x = x + 1;
+ } while ((int)x < this->constructionTileCount);
+ commandBuildingType = M_MAPPER_NULL;
+ piVar9
+ = (int*)((int)DAT_TerrainDefinedData + (_commandBuildingType * 3 + -0x1a4) * 0x10 + 0x5cc);
+ while (true) {
+ iVar8 = piVar9[1];
+ iVar4 = *piVar9;
+ BVar3 = xyAreValid(_x + iVar4, iVar8 + _y);
+ if ((BVar3 == FALSE)
+ || (iVar8 = DAT_ViewportRenderState.translationMatrix[iVar8 + _y].addXgetTile
+ + iVar4 + _x,
+ (this->LogicLayer[iVar8] & 0x30) != 0))
+ break;
+ iVar8 = isBuildingPlacementAllowedAtTile(iVar8, playerID, _commandBuildingType, 0);
+ if (iVar8 != 0) {
+ this->buildingPlacementFail = TRUE;
+ }
+ commandBuildingType = commandBuildingType + M_MAPPER_AREA;
+ piVar9 = piVar9 + 2;
+ if (5 < (int)commandBuildingType) {
+ return;
+ }
+ }
+ }
+ this->buildingPlacementFail = 2;
+ return;
+ }
+ if (_boulderCount < 8) {
+ this->buildingPlacementFail = TRUE;
+ return;
+ }
+ }
+ return;
+ LAB_005039d6:
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x11);
+ goto LAB_00503d3c;
+ }
+}
+}
+
+### 0x00504a30 evaluateBuildingPlacementAtCursor | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00504A30
+ void TileMapState::evaluateBuildingPlacementAtCursor(int playerID, uint x, uint y)
+ {
+ BuildingTypeShort BVar1;
+ BOOLEnum BVar2;
+ uint uVar3;
+ int iVar4;
+ int local_4;
+ uVar3 = x;
+ local_4 = 0;
+ if (((399 < x) || (399 < y)) || (*(char*)(y * 400 + 0x21aec98 + x) == '\0')) {
+ this->buildingPlacementFail = TRUE;
+ return;
+ }
+ this->buildingPlacementFail = FALSE;
+ if (DAT_ViewportRenderState.viewportState.field15_0x3c != 0) {
+ local_4 = DAT_ViewportRenderState.viewportState.field24_0x60;
+ this->field153_0x5549a0 = DAT_ViewportRenderState.viewportState.field24_0x60;
+ }
+ if (this->flatViewToggleValue1 == 0) {
+ x = DAT_ViewportRenderState.viewportState.mouseRayBuildingID;
+ iVar4 = DAT_ViewportRenderState.viewportState.field21_0x54;
+ LAB_00504ae2:
+ if (x != 0)
+ goto LAB_00504ae6;
+ } else {
+ x = (uint)this->BuildingLayer[DAT_ViewportRenderState.viewportState.mouseTile];
+ iVar4 = 0;
+ if ((this->LogicLayer[DAT_ViewportRenderState.viewportState.mouseTile] & 0x100U) == 0)
+ goto LAB_00504ae2;
+ if (((this->LogicLayer[DAT_ViewportRenderState.viewportState.mouseTile] & 2U) == 0) || (x == 0)) {
+ DAT_ViewportRenderState.viewportState.field21_0x54
+ = DAT_ViewportRenderState.viewportState.mouseTile;
+ iVar4 = DAT_ViewportRenderState.viewportState.mouseTile;
+ goto LAB_00504ae2;
+ }
+ LAB_00504ae6:
+ uVar3 = (uint)(short)DAT_BuildingsState.buildings[x].x;
+ y = (uint)(short)DAT_BuildingsState.buildings[x].y;
+ }
+ if (((DAT_GameCore.gameMode_2 != GM_EDITOR)
+ && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT))
+ && (BVar2 = isEnemyTooCloseUnk(playerID, uVar3, y,
+ (int)((int)((-(uint)(DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ & 0xfffffff1)
+ + 0x1e))),
+ BVar2 != FALSE)) {
+ this->field194_0x554a20 = 1;
+ this->buildingPlacementFail = TRUE;
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x14);
+ if (x != 0) {
+ if (DAT_BuildingsState.buildings[x].owner == playerID) {
+ this->buildingPlacementFail = TRUE;
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x14);
+ this->field194_0x554a20 = 1;
+ return;
+ }
+ if (playerID != 0) {
+ this->buildingPlacementFailReason = BFRE_DEFAULT_CANT_PLACE_THAT_THERE;
+ return;
+ }
+ this->buildingPlacementFail = TRUE;
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x14);
+ this->field194_0x554a20 = 1;
+ return;
+ }
+ if (0 < iVar4) {
+ if ((this->LogicLayer[iVar4] & L_WALL_OR_GATEHOUSE) == 0) {
+ this->buildingPlacementFail = TRUE;
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x14);
+ this->field194_0x554a20 = 1;
+ return;
+ }
+ if ((this->WallOwnerLayer[iVar4] & 7) + 1 != playerID) {
+ this->buildingPlacementFailReason = BFRE_DEFAULT_CANT_PLACE_THAT_THERE;
+ return;
+ }
+ this->buildingPlacementFail = TRUE;
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x14);
+ this->field194_0x554a20 = 1;
+ return;
+ }
+ if ((0 < local_4) && ((this->LogicLayer[local_4] & L_MOAT) != 0)) {
+ iVar4 = returnOwnedMoatAtTile(local_4);
+ if (iVar4 == 0) {
+ return;
+ }
+ if (DAT_GameState.mapAndTime.playerTeams[this->moats[iVar4].owner]
+ == DAT_GameState.mapAndTime.playerTeams[playerID]) {
+ return;
+ }
+ }
+ this->buildingPlacementFailReason = BFRE_DEFAULT_CANT_PLACE_THAT_THERE;
+ return;
+ }
+ if (DAT_ViewportRenderState.viewportState.somePitchDitchID != 0) {
+ if (this->pitchDitches[DAT_ViewportRenderState.viewportState.somePitchDitchID].owner
+ != DAT_GameSynchronyState.currentPlayerSlotID) {
+ this->buildingPlacementFail = TRUE;
+ return;
+ }
+ this->field131_0x554954 = -DAT_ViewportRenderState.viewportState.somePitchDitchID;
+ return;
+ }
+ if (((int)x < 1) || ((DAT_BuildingsState.buildings[x].owner != playerID && (playerID != 0)))) {
+ this->buildingPlacementFail = TRUE;
+ }
+ if (iVar4 < 1) {
+ LAB_00504d0f:
+ if (((local_4 < 1) || ((this->LogicLayer[local_4] & L_MOAT) == 0)) || (x != 0)) {
+ if ((this->field151_0x554998 != 0) || (this->field152_0x55499c != 0))
+ goto LAB_00504da2;
+ } else if (this->field151_0x554998 == 0) {
+ iVar4 = returnOwnedMoatAtTile(local_4);
+ if (iVar4 == 0) {
+ return;
+ }
+ if (DAT_GameState.mapAndTime.playerTeams[this->moats[iVar4].owner]
+ != DAT_GameState.mapAndTime.playerTeams[playerID]) {
+ return;
+ }
+ this->field152_0x55499c = 1;
+ this->buildingPlacementFail = (BOOLEnum)((this->MiscDisplayLayer[local_4] & 0x400) != 0);
+ iVar4 = local_4;
+ } else {
+ LAB_00504da2:
+ this->buildingPlacementFail = TRUE;
+ }
+ } else {
+ uVar3 = this->LogicLayer[iVar4] & L_WALL_OR_GATEHOUSE;
+ if ((uVar3 != 0) && ((this->LogicLayer[iVar4] & L_STOCKPILEUnk) != 0)) {
+ this->buildingPlacementFail = TRUE;
+ return;
+ }
+ if (((uVar3 == 0) || (this->BuildingLayer[iVar4] != 0)) || (this->field152_0x55499c != 0))
+ goto LAB_00504d0f;
+ if ((this->WallOwnerLayer[iVar4] & 7) + 1 != playerID) {
+ return;
+ }
+ this->buildingPlacementFail = FALSE;
+ this->field151_0x554998 = 1;
+ if ((this->MiscDisplayLayer[iVar4] & 0x400) != 0) {
+ this->buildingPlacementFail = TRUE;
+ }
+ }
+ if ((0 < iVar4) && (this->UnitLayer[iVar4] != 0)) {
+ this->buildingPlacementFail = TRUE;
+ }
+ if (x == 0)
+ goto LAB_00504e15;
+ if (DAT_GameCore.gameMode_2 != GM_EDITOR) {
+ if (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT) {
+ if (DAT_BuildingsState.buildings[x].buildingType == BT_SIGNPOST)
+ goto switchD_00504ded_caseD_27;
+ } else {
+ switch (DAT_BuildingsState.buildings[x].buildingType) {
+ case BT_UNKNOWN1:
+ case BT_MANORHOUSE:
+ case BT_STONEKEEP:
+ case BT_STRONGHOLD:
+ case BT_SIGNPOST:
+ case BT_CAMPGROUND:
+ case BT_KEEPDOOR_LEFT:
+ case BT_KEEPDOOR_RIGHT:
+ case BT_KEEPDOOR:
+ case BT_POND:
+ switchD_00504ded_caseD_27:
+ this->buildingPlacementFail = TRUE;
+ }
+ }
+ }
+ if ((int)x < 0) {
+ this->field131_0x554954 = x;
+ return;
+ }
+ LAB_00504e15:
+ if ((((((((this->LogicLayer[DAT_BuildingsState.buildings[x].currentTilePositionAdjusted] & L_BUILDING
+ | L_KEEP_NON_MANOR_HOUSE)
+ == 0)
+ && (BVar1 = DAT_BuildingsState.buildings[x].buildingType,
+ BVar1 != BT_GATEHOUSELARGE))
+ && (BVar1 != BT_GATEHOUSESMALL))
+ && ((BVar1 != BT_WOODGATE1
+ && (BVar1 != BT_WOODGATE2))))
+ && ((BVar1 != BT_KEEPDOOR
+ && ((BVar1 != BT_DRAWBRIDGE
+ && (BVar1 != BT_KILLINGPIT))))))
+ && (this->field151_0x554998 == 0))
+ && (this->field152_0x55499c == 0)) {
+ this->buildingPlacementFail = TRUE;
+ }
+ this->field131_0x554954 = x;
+ return;
+ }
+}
+}
+

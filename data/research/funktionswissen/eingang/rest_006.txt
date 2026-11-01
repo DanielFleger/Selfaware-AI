@@ -1,0 +1,1138 @@
+### 0x004d76a0 RenderMissionObjectivesUnk | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004D76A0
+ int Rendering::RenderMissionObjectivesUnk()
+ {
+ int iVar1;
+ char* pcVar2;
+ int* piVar3;
+ int iVar4;
+ int iVar5;
+ int iVar6;
+ int yParam;
+ TextAlignment TVar7;
+ BGR24 BVar8;
+ int iVar9;
+ uint color;
+ BOOLEnum BVar10;
+ int iVar11;
+ int iVar12;
+ int local_c;
+ int local_8;
+ int local_4;
+ iVar6 = 0;
+ iVar11 = 0;
+ BVar10 = FALSE;
+ iVar9 = 0x11;
+ BVar8 = 0xccfaff;
+ yParam = DAT_WindowAndDirectDraw.mainMenuBorderHeight + 100;
+ iVar1 = DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x32;
+ TVar7 = TTA_LEFT;
+ iVar4 = DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x1e;
+ local_c = 0;
+ local_4 = -1;
+ iVar5 = 200;
+ local_8 = 300;
+ DAT_TextManagerObject.field9_0x24 = 1;
+ if (DAT_GameCore.section1095 == 2) {
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_OBJECTIVES, 0x1a);
+ renderTextToScreen(
+ pcVar2, iVar4, iVar1, TVar7, BVar8, iVar9, BVar10, iVar11);
+ } else {
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_OBJECTIVES, 0);
+ renderTextToScreen(
+ pcVar2, iVar4, iVar1, TVar7, BVar8, iVar9, BVar10, iVar11);
+ do {
+ if ((INT_ARRAY_00ed2630::instance[iVar6] != 0)
+ && (((iVar6 != 0x12 && (iVar6 != 0x13))
+ || (DAT_GameCore.gameMode_2 != GM_BUILDERUnk)))) {
+ iVar1 = iVar6;
+ if (0x13 < iVar6) {
+ iVar1 = iVar6 + 1;
+ }
+ if (iVar1 == 0x11) {
+ iVar1 = 6;
+ } else if (iVar1 == 0xf) {
+ iVar1 = 8;
+ }
+ iVar4 = 0x12;
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_OBJECTIVES, iVar1);
+ iVar4 = computeTextWidth(pcVar2, iVar4);
+ iVar1 = iVar4 + 0x1e;
+ if (local_8 + -5 < iVar1) {
+ local_8 = iVar4 + 0x23;
+ }
+ if (iVar6 - 1U < 0x17) {
+ switch (*(undefined1*)((int)PTR_case_2_004d81a0::ptr + iVar6 + 3)) {
+ case 0:
+ if (iVar5 + -5 < iVar1) {
+ iVar5 = iVar4 + 0x23;
+ }
+ iVar1 = computeNumberTextWidth(INT_ARRAY_00ed2fc8::instance[iVar6], 0x12);
+ if (DAT_GameCore.field22_0x64 == 1) {
+ iVar4 = computeTextWidth(" ()", 0x12);
+ switch (*(undefined1*)((int)PTR_case_6_004d81d4::ptr + iVar6 + 3)) {
+ case 0:
+ local_c = DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentPopulation;
+ break;
+ case 1:
+ local_c = DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[0xf];
+ break;
+ case 2:
+ local_c = (int)DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .previousBlessedPeoplePercentage;
+ break;
+ case 3:
+ local_c
+ = computeAleCoverage(DAT_GameSynchronyState.currentPlayerSlotID);
+ break;
+ case 4:
+ local_c
+ = -DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .fearFactorLevel;
+ break;
+ case 5:
+ local_c = DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .fearFactorLevel;
+ }
+ iVar9 = computeNumberTextWidth(local_c, 0x12);
+ iVar1 = iVar1 + iVar4 + iVar9;
+ }
+ if (local_8 + -5 < iVar1 + iVar5) {
+ local_8 = iVar1 + iVar5 + 5;
+ }
+ break;
+ case 1:
+ if (iVar5 + -5 < iVar1) {
+ iVar5 = iVar4 + 0x23;
+ }
+ iVar1 = computeNumberTextWidth(INT_ARRAY_00ed2fc8::instance[iVar6], 0x12);
+ if (0 < INT_ARRAY_00eb1238::instance[iVar6]) {
+ iVar4 = 0x12;
+ pcVar2
+ = getTextStringInGroupAtOffset(TEXT_GOODS,
+ INT_ARRAY_00eb1238::instance[iVar6]);
+ iVar4 = computeTextWidth(pcVar2, iVar4);
+ iVar1 = iVar1 + 6 + iVar4;
+ }
+ if (DAT_GameCore.field22_0x64 == 1) {
+ iVar9 = computeTextWidth(" ()", 0x12);
+ iVar4 = INT_ARRAY_00eb1238::instance[iVar6];
+ if (iVar4 == 8) {
+ iVar4 = 7;
+ }
+ local_c = DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[iVar4];
+ iVar4 = computeNumberTextWidth(local_c, 0x12);
+ iVar1 = iVar1 + iVar9 + iVar4;
+ }
+ if (local_8 + -5 < iVar1 + iVar5) {
+ local_8 = iVar1 + iVar5 + 5;
+ }
+ }
+ }
+ }
+ iVar6 = iVar6 + 1;
+ } while (iVar6 < 0x27);
+ iVar1 = 0;
+ do {
+ if ((INT_ARRAY_00ed2630::instance[iVar1] != 0)
+ && (((iVar1 != 0x12 && (iVar1 != 0x13))
+ || (DAT_GameCore.gameMode_2 != GM_BUILDERUnk)))) {
+ iVar4 = iVar1;
+ if (0x13 < iVar1) {
+ iVar4 = iVar1 + 1;
+ }
+ if (((iVar4 == 0x11) || (iVar4 == 5)) || (iVar4 == 6)) {
+ iVar4 = 7;
+ } else if (iVar4 == 0xf) {
+ iVar4 = 8;
+ } else if ((iVar4 == 3)
+ && (DAT_GameCore.gameMode_2 == GM_CAMPAIGN_MISSION)) {
+ if (DAT_GameCore.missionNumber1to20 == 0xd) {
+ iVar4 = 0xc;
+ } else if (DAT_GameCore.missionNumber1to20 == 0x12) {
+ iVar4 = 0xd;
+ } else if (DAT_GameCore.missionNumber1to20 == 0x15) {
+ iVar4 = 0xe;
+ }
+ }
+ iVar12 = 0;
+ BVar10 = FALSE;
+ iVar11 = 0x12;
+ BVar8 = 0xc2f0eb;
+ TVar7 = TTA_LEFT;
+ iVar9 = DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x1e;
+ iVar6 = yParam;
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_OBJECTIVES, iVar4);
+ renderTextToScreen(
+ pcVar2, iVar9, iVar6, TVar7, BVar8, iVar11, BVar10, iVar12);
+ if (iVar1 - 1U < 0x17) {
+ switch (*(undefined1*)((int)PTR_case_2_004d81f8::ptr + iVar1 + 3)) {
+ case 0:
+ renderNumberToScreen2(INT_ARRAY_00ed2fc8::instance[iVar1],
+ DAT_WindowAndDirectDraw.mainMenuBorderWidth + iVar5, yParam,
+ TTA_LEFT, 0xc2f0eb, 0x12, FALSE, 0);
+ if (DAT_GameCore.field22_0x64 == 1) {
+ renderTextToScreen(" (",
+ DAT_WindowAndDirectDraw.mainMenuBorderWidth + iVar5, yParam,
+ TTA_LEFT, 0xc2f0eb, 0x12, TRUE, 0);
+ switch (*(undefined1*)((int)PTR_case_6_004d822c::ptr + iVar1 + 3)) {
+ case 0:
+ local_c = DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentPopulation;
+ break;
+ case 1:
+ local_c = DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[0xf];
+ break;
+ case 2:
+ local_c = (int)DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .previousBlessedPeoplePercentage;
+ break;
+ case 3:
+ local_c
+ = computeAleCoverage(DAT_GameSynchronyState.currentPlayerSlotID);
+ break;
+ case 4:
+ local_c
+ = -DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .fearFactorLevel;
+ break;
+ case 5:
+ local_c = DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .fearFactorLevel;
+ break;
+ case 6:
+ }
+ renderNumberToScreen2(local_c,
+ DAT_WindowAndDirectDraw.mainMenuBorderWidth + iVar5, yParam,
+ TTA_LEFT, 0xc2f0eb, 0x12, TRUE, 0);
+ iVar4 = DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ LAB_004d7c99:
+ renderTextToScreen(
+ ")", iVar4 + iVar5, yParam, TTA_LEFT, 0xc2f0eb, 0x12, TRUE, 0);
+ }
+ break;
+ case 1:
+ renderNumberToScreen2(INT_ARRAY_00ed2fc8::instance[iVar1],
+ DAT_WindowAndDirectDraw.mainMenuBorderWidth + iVar5, yParam,
+ TTA_LEFT, 0xc2f0eb, 0x12, FALSE, 0);
+ if (0 < INT_ARRAY_00eb1238::instance[iVar1]) {
+ iVar11 = 0;
+ BVar10 = TRUE;
+ iVar9 = 0x12;
+ BVar8 = 0xc2f0eb;
+ TVar7 = TTA_LEFT;
+ iVar4 = DAT_WindowAndDirectDraw.mainMenuBorderWidth + 6 + iVar5;
+ iVar6 = yParam;
+ pcVar2
+ = getTextStringInGroupAtOffset(TEXT_GOODS,
+ INT_ARRAY_00eb1238::instance[iVar1]);
+ renderTextToScreen(
+ pcVar2, iVar4, iVar6, TVar7, BVar8, iVar9, BVar10, iVar11);
+ }
+ if (DAT_GameCore.field22_0x64 == 1) {
+ renderTextToScreen(" (",
+ DAT_WindowAndDirectDraw.mainMenuBorderWidth + 6 + iVar5, yParam,
+ TTA_LEFT, 0xc2f0eb, 0x12, TRUE, 0);
+ iVar4 = INT_ARRAY_00eb1238::instance[iVar1];
+ if (iVar4 == 8) {
+ iVar4 = 7;
+ }
+ local_c = DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .currentResources[iVar4];
+ renderNumberToScreen2(local_c,
+ DAT_WindowAndDirectDraw.mainMenuBorderWidth + 6 + iVar5, yParam,
+ TTA_LEFT, 0xc2f0eb, 0x12, TRUE, 0);
+ iVar4 = DAT_WindowAndDirectDraw.mainMenuBorderWidth + 6;
+ goto LAB_004d7c99;
+ }
+ }
+ }
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ if (INT_ARRAY_00ed3070::instance[iVar1] == 0) {
+ iVar6 = 5;
+ iVar4 = yParam;
+ } else {
+ iVar6 = 6;
+ iVar4 = yParam + -0x19;
+ }
+ renderGM(GM_INTERFACE_BUTTONS, iVar6,
+ DAT_WindowAndDirectDraw.mainMenuBorderWidth + local_8, iVar4);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ yParam = yParam + 0x1e;
+ }
+ iVar4 = DAT_MapPropertiesState.SEC_Section1090;
+ iVar1 = iVar1 + 1;
+ } while (iVar1 < 0x27);
+ if ((INT_ARRAY_00ed2630::instance[0x27] != 0) && (DAT_MapPropertiesState.SEC_Section1081 != 0)) {
+ iVar11 = 0;
+ BVar10 = FALSE;
+ iVar9 = 0x12;
+ iVar1 = DAT_MapPropertiesState.SEC_Section1090
+ - DAT_MapPropertiesState.SEC_Section1080;
+ BVar8 = 0xc2f0eb;
+ TVar7 = TTA_LEFT;
+ iVar6 = DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x1e;
+ iVar5 = yParam;
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_OBJECTIVES, 0x19);
+ renderTextToScreen(
+ pcVar2, iVar6, iVar5, TVar7, BVar8, iVar9, BVar10, iVar11);
+ iVar5 = DAT_TextManagerObject.currentXOffset_0x0 + 0x28
+ + DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ iVar6 = DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x12d;
+ if (DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x12d < iVar5) {
+ iVar6 = iVar5;
+ }
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_SCREEN_MENU;
+ renderGMWithBlending(
+ GID_INTERFACE_SLIDER_BAR, 2, iVar6 + 2, yParam + 1, 0x18);
+ if (iVar4 < iVar1) {
+ iVar1 = iVar4;
+ }
+ if (iVar1 != 0) {
+ setRenderingRect(
+ 0, 0, (iVar1 * 0xfa) / iVar4 + 2 + iVar6, DAT_WindowAndDirectDraw.resolutionY);
+ drawTgxGmOnFlaggedSurface(
+ GID_INTERFACE_SLIDER_BAR, 4, iVar6 + 2, yParam + 1);
+ setRenderingRectToGameResolution();
+ }
+ renderGMWithAlphaMask(GID_INTERFACE_SLIDER_BAR, 1, iVar6,
+ yParam + -1, GID_INTERFACE_SLIDER_BAR, 3, 0);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = RT_MAP_GAME;
+ yParam = yParam + 0x15;
+ }
+ iVar5 = 0xf;
+ if ((((INT_ARRAY_00ed2630::instance[8] != 0) || (INT_ARRAY_00ed2630::instance[0xf] != 0))
+ || (INT_00ec02e8::instance != 0))
+ && (iVar1 = 0, 0 < DAT_MapPropertiesState.eventsCount)) {
+ piVar3 = &DAT_MapPropertiesState.scenarioEvents[0].header.tl_type;
+ iVar4 = local_4;
+ do {
+ if ((((*piVar3 != 1) || (local_4 = iVar1, piVar3[0x1e] != 0))
+ && ((local_4 = iVar4, *piVar3 == 3 && (*(char*)((int)piVar3 + 0x17) != '\0'))))
+ && ((piVar3[3] == 1 || (piVar3[3] == 0x1b)))) {
+ if (iVar4 == -1) {
+ iVar5 = 0x11;
+ local_4 = iVar1;
+ }
+ break;
+ }
+ iVar1 = iVar1 + 1;
+ piVar3 = piVar3 + 0x39;
+ iVar4 = local_4;
+ } while (iVar1 < DAT_MapPropertiesState.eventsCount);
+ if (-1 < local_4) {
+ iVar1 = DAT_MapPropertiesState.SEC_StartingMonth
+ + DAT_MapPropertiesState.SEC_StartingYear * 0xc;
+ iVar4 = (DAT_GameState.mapAndTime.year * 0xc - iVar1)
+ + DAT_GameState.mapAndTime.month;
+ iVar1 = (DAT_MapPropertiesState.scenarioEvents[local_4].header.month
+ + DAT_MapPropertiesState.scenarioEvents[local_4].header.year * 0xc)
+ - iVar1;
+ if (DAT_GameCore.field22_0x64 == 0) {
+ iVar4 = 0;
+ }
+ iVar12 = 0;
+ BVar10 = FALSE;
+ iVar11 = 0x12;
+ BVar8 = 0xc2f0eb;
+ TVar7 = TTA_LEFT;
+ iVar9 = DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x1e;
+ iVar6 = yParam;
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_OBJECTIVES, iVar5);
+ renderTextToScreen(
+ pcVar2, iVar9, iVar6, TVar7, BVar8, iVar11, BVar10, iVar12);
+ iVar5 = DAT_TextManagerObject.currentXOffset_0x0 + 0x28
+ + DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ iVar6 = DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x12d;
+ if (DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x12d < iVar5) {
+ iVar6 = iVar5;
+ }
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_SCREEN_MENU;
+ renderGMWithBlending(
+ GID_INTERFACE_SLIDER_BAR, 2, iVar6 + 2, yParam + 1, 0x18);
+ if (iVar1 < iVar4) {
+ iVar4 = iVar1;
+ }
+ if (iVar4 != 0) {
+ setRenderingRect(
+ 0, 0, (iVar4 * 0xfa) / iVar1 + 2 + iVar6, DAT_WindowAndDirectDraw.resolutionY);
+ drawTgxGmOnFlaggedSurface(
+ GID_INTERFACE_SLIDER_BAR, 4, iVar6 + 2, yParam + 1);
+ setRenderingRectToGameResolution();
+ }
+ renderGMWithAlphaMask(GID_INTERFACE_SLIDER_BAR, 1, iVar6,
+ yParam + -1, GID_INTERFACE_SLIDER_BAR, 3, 0);
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue
+ = RT_MAP_GAME;
+ yParam = yParam + 0x15;
+ }
+ }
+ }
+ if (DAT_GameCore.gameMode_2 != GM_BUILDERUnk) {
+ return yParam;
+ }
+ iVar5 = (yParam - DAT_WindowAndDirectDraw.mainMenuBorderHeight) + -0x1e;
+ pcVar2 = GetStringBasedOnHardcodedMaps(
+ DAT_GameCore.standaloneFilename, &local_4);
+ renderTextToScreen(pcVar2,
+ DAT_WindowAndDirectDraw.mainMenuBorderWidth + 400,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + 10, TTA_CENTER, 0xccfaff, 0x11,
+ FALSE, 0);
+ iVar1 = -iVar5 + (399 - (-iVar5 + 399) % 0x17);
+ setScreenMenuSurfaceHeightRange(DAT_WindowAndDirectDraw.mainMenuBorderHeight + 0x2d + iVar5,
+ DAT_WindowAndDirectDraw.mainMenuBorderHeight + iVar1 + 0x2d + iVar5);
+ if (DAT_GameCore.descriptionUseStringTable == 0) {
+iVar4 = renderMultilineTextUnk().fontSizeClassArray + 0x12,
+DAT_GameCore.temporaryTextBufferOfSize1000,0,0,0x2d0,0,0,1);
+iVar11 = 0;
+iVar9 = 0x12;
+color = 0xc2f0eb;
+iVar6 = 0x2d0;
+INT_00ed27c4::instance = (iVar4 + -1) / iVar1 + 1;
+iVar5 = (DAT_WindowAndDirectDraw.mainMenuBorderHeight - DAT_00eb0b24 * iVar1) + 0x32 + iVar5;
+iVar1 = DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x28;
+pcVar2 = DAT_GameCore.temporaryTextBufferOfSize1000;
+ } else {
+ if (DAT_GameCore.descriptionStringTableIndex == 0)
+ goto LAB_004d8182;
+ iVar12 = 1;
+ iVar11 = 0;
+ BVar8 = 0;
+ iVar9 = 0x2d0;
+ iVar6 = 0;
+ iVar4 = 0;
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_MAP_NAMES, DAT_GameCore.descriptionStringTableIndex);
+iVar4 = renderMultilineTextUnk().fontSizeClassArray + 0x12,pcVar2,iVar4,iVar6,iVar9,
+BVar8,iVar11,iVar12);
+iVar11 = 0;
+iVar9 = 0x12;
+color = 0xc2f0eb;
+iVar6 = 0x2d0;
+INT_00ed27c4::instance = (iVar4 + -1) / iVar1 + 1;
+iVar5 = (DAT_WindowAndDirectDraw.mainMenuBorderHeight - DAT_00eb0b24 * iVar1) + 0x32 + iVar5;
+iVar1 = DAT_WindowAndDirectDraw.mainMenuBorderWidth + 0x28;
+pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_MAP_NAMES, DAT_GameCore.descriptionStringTableIndex);
+ }
+ renderMultilineText5Unk(
+ pcVar2, iVar1, iVar5, iVar6, color, iVar9, iVar11);
+ LAB_004d8182:
+ setScreenMenuSurfaceHeightRangeToResolution();
+ return yParam;
+ }
+}
+}
+
+### 0x004d8ae0 RenderPlayerAvatars | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004D8AE0
+ void Rendering::RenderPlayerAvatars(int imageID, int x, int y)
+ {
+ int iVar1;
+ iVar1 = 0;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[imageID] == -1) {
+ iVar1 = DAT_GameSynchronyState.currentAIArray[imageID];
+ }
+ renderGM(
+ GM_INTERFACE_ICONS2, imageID + 0x222, x, y);
+ if (iVar1 == 0) {
+ if (DAT_GameCore.lordIcons[imageID] == 0) {
+ renderGM(GM_INTERFACE_ICONS2, 0x21b, x, y);
+ return;
+ }
+ if (DAT_GameCore.lordIcons[imageID] == 1) {
+ renderGM(GM_INTERFACE_ICONS2, 0x21c, x, y);
+ return;
+ }
+ if (0 < DAT_TextureRenderCoreObject.field69_0x98[imageID + 0x13]) {
+ renderGM(GM_INTERFACE_ICONS2, 0x21d, x, y);
+ drawBitmapFace(imageID + 0x13, x + 4, y + 4);
+ return;
+ }
+ } else {
+ renderGM(GM_INTERFACE_ICONS2, iVar1 + 0x20a, x, y);
+ }
+ return;
+ }
+}
+}
+
+### 0x004da570 RenderGfxHelperUnk | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004DA570
+ void Rendering::RenderGfxHelperUnk(int loadedGfxIndex, int xPosInMenuRect, int yPosInMenuRect)
+ {
+ int xPos;
+ int yPos;
+ int _height;
+ int _width;
+ _width = DAT_TextureRenderCoreObject.loadedGfxArray[loadedGfxIndex].width;
+ _height = DAT_TextureRenderCoreObject.loadedGfxArray[loadedGfxIndex].height;
+ xPos = xPosInMenuRect + DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ yPos = yPosInMenuRect + DAT_WindowAndDirectDraw.mainMenuBorderHeight;
+ if ((_width == 0x400) && (_height == 0x300)) {
+ drawGfxOnFlaggedSurface(loadedGfxIndex,
+ DAT_WindowAndDirectDraw.resolutionX + -0x400 >> 1,
+ DAT_WindowAndDirectDraw.resolutionY + -0x300 >> 1);
+ return;
+ }
+ if ((DAT_WindowAndDirectDraw.mainMenuBorderWidth <= xPos)
+ && (((_width + xPos <= DAT_WindowAndDirectDraw.resolutionX
+ - DAT_WindowAndDirectDraw.mainMenuBorderWidth
+ && (DAT_WindowAndDirectDraw.mainMenuBorderHeight <= yPos))
+ && (_height + yPos <= DAT_WindowAndDirectDraw.resolutionY
+ - DAT_WindowAndDirectDraw.mainMenuBorderHeight)))) {
+ renderLoadedGfx(loadedGfxIndex, xPos, yPos);
+ return;
+ }
+ drawGfxOnFlaggedSurface(loadedGfxIndex, xPos, yPos);
+ return;
+ }
+}
+}
+
+### 0x004db490 RenderHistoryBookEdgeUnk | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004DB490
+ void Rendering::RenderHistoryBookEdgeUnk()
+ {
+ int iVar1;
+ int xPosInMenuRect;
+ int yPosInMenuRect;
+ FLOAT_00ed312c::instance = FLOAT_Between1And5::instance / 6.0 + FLOAT_00ed312c::instance;
+ if (50.0 <= FLOAT_00ed312c::instance) {
+ FLOAT_00ed312c::instance = 0.0;
+ }
+ yPosInMenuRect = 0xf;
+ xPosInMenuRect = 0x2a0;
+ iVar1 = __ftol2((float10)FLOAT_00ed312c::instance);
+ RenderGfxHelperUnk(
+ DAT_MissionDefinedData.field48_0x137c[iVar1] + 1, xPosInMenuRect, yPosInMenuRect);
+ return;
+ }
+}
+}
+
+### 0x004f4070 RenderNoViewsFoundWarning | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004F4070
+ void Rendering::RenderNoViewsFoundWarning()
+ {
+ int left;
+ int top;
+ drawPixelPattern4x4OverWholeScreen();
+ top = (DAT_WindowAndDirectDraw.resolutionY + -0x28) / 2;
+ left = (DAT_WindowAndDirectDraw.resolutionX + -400) / 2;
+ drawColorBox(
+ left, top, left + 400, top + 0x28, (ushort)((int)(COL_WHITE::instance.shortValue)));
+ renderTextToScreen(
+ "No views have been found.", (DAT_WindowAndDirectDraw.resolutionX + -400) / 2,
+ (int)((int)((DAT_WindowAndDirectDraw.resolutionY + -40) / 2 + 8)), ((TextAlignment)400), 0, 0x11,
+ FALSE, 0);
+ return;
+ }
+}
+}
+
+### 0x00467bc0 EnumDisplayModesCallback | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00467BC0
+HRESULT __stdcall Synchrony::EnumDisplayModesCallback(DDSURFACEDESC* displayDesc, LPVOID userParam)
+{
+ DWORD _bitCount;
+ DWORD _displayHeight;
+ DWORD _displayWidth;
+ _displayWidth = displayDesc->dwWidth;
+ _displayHeight = displayDesc->dwHeight;
+ _bitCount = (displayDesc->ddpfPixelFormat).union_bitCountOrDepth;
+ if ((_bitCount == 0xf) || (_bitCount == 0x10)) {
+ if (_displayWidth == 800) {
+ if (_displayHeight == 600) {
+ DAT_WindowAndDirectDraw.resolutionSupported_0x68.800x600 = 1;
+ return 1;
+ }
+ } else if (_displayWidth == 0x400) {
+ if (_displayHeight == 0x300) {
+ DAT_WindowAndDirectDraw.resolutionSupported_0x68.1024x768 = 1;
+ return 1;
+ }
+ if (_displayHeight == 600) {
+ DAT_WindowAndDirectDraw.resolutionSupported_0x68.1024x600 = 1;
+ return 1;
+ }
+ } else if (_displayWidth == 0x500) {
+ if (_displayHeight == 0x400) {
+ DAT_WindowAndDirectDraw.resolutionSupported_0x68.1280x1024 = 1;
+ return 1;
+ }
+ if (_displayHeight == 0x2d0) {
+ DAT_WindowAndDirectDraw.resolutionSupported_0x68.1280x720 = 1;
+ return 1;
+ }
+ } else if (_displayWidth == 0x640) {
+ if (_displayHeight == 0x4b0) {
+ DAT_WindowAndDirectDraw.resolutionSupported_0x68.1600x1200 = 1;
+ return 1;
+ }
+ if (_displayHeight == 900) {
+ DAT_WindowAndDirectDraw.resolutionSupported_0x68.1600x900 = 1;
+ }
+ } else if (_displayWidth == 0x5a0) {
+ if (_displayHeight == 900) {
+ DAT_WindowAndDirectDraw.resolutionSupported_0x68.1440x900 = 1;
+ return 1;
+ }
+ } else if (_displayWidth == 0x780) {
+ if (_displayHeight == 0x438) {
+ DAT_WindowAndDirectDraw.resolutionSupported_0x68.1920x1080 = 1;
+ return 1;
+ }
+ if (_displayHeight == 0x4b0) {
+ DAT_WindowAndDirectDraw.resolutionSupported_0x68.1920x1200 = 1;
+ return 1;
+ }
+ } else if (_displayWidth == 0xa00) {
+ if (_displayHeight == 0x5a0) {
+ DAT_WindowAndDirectDraw.resolutionSupported_0x68.2560x1440 = 1;
+ return 1;
+ }
+ if (_displayHeight == 0x640) {
+ DAT_WindowAndDirectDraw.resolutionSupported_0x68.2560x1600 = 1;
+ return 1;
+ }
+ } else if (_displayWidth == 0x556) {
+ if (_displayHeight == 0x300) {
+ DAT_WindowAndDirectDraw.resolutionSupported_0x68.1366x768 = 1;
+ return 1;
+ }
+ } else if (_displayWidth == 0x550) {
+ if (_displayHeight == 0x300) {
+ DAT_WindowAndDirectDraw.resolutionSupported_0x68.1360x768 = 1;
+ return 1;
+ }
+ } else if ((_displayWidth == 0x690) && (_displayHeight == 0x41a)) {
+ DAT_WindowAndDirectDraw.resolutionSupported_0x68.1680x1050 = 1;
+ return 1;
+ }
+ }
+ return 1;
+}
+}
+
+### 0x0044c7e0 Destructor_TextureRenderCore | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0044C7E0
+ void TextureRenderCore::Destructor_TextureRenderCore()
+ {
+ if (this->gmProcessedImageData != (void*)0x0) {
+ _free_base(this->gmProcessedImageData);
+ }
+ if (this->unknownMemPtr_1_0x80 != (void*)0x0) {
+ _free_base(this->unknownMemPtr_1_0x80);
+ }
+ if (this->address2 != (void*)0x0) {
+ _free_base(this->address2);
+ }
+ if (this->bitmapsFaces_0x94 != (void*)0x0) {
+ _free_base(this->bitmapsFaces_0x94);
+ }
+ if (this->gmAndGfxImageDataBuffer != (void*)0x0) {
+ _free_base(this->gmAndGfxImageDataBuffer);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x0044c850 drawLoadingBarUnk | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0044C850
+ void TextureRenderCore::drawLoadingBarUnk(GmID currentGmId, int barLengthUnk)
+ {
+ DWORD _currentTime;
+ _currentTime = timeGetTime();
+ if (0x1e < (int)(_currentTime - TIME_LastVisualLoadingBarUpdate::instance)) {
+ TIME_LastVisualLoadingBarUpdate::instance = _currentTime;
+ drawColorBox(DAT_MenuHandlerState.x + 236,
+ DAT_MenuHandlerState.y + 571,
+ (int)(currentGmId * 0x148) / barLengthUnk + 236 + DAT_MenuHandlerState.x,
+ DAT_MenuHandlerState.y + 579,
+ (ushort)((int)(COL_DARK_RED::instance.shortValue)));
+ bltScreenMenuSurfaceToScreen(DAT_MenuHandlerState.x + 0xeb,
+ DAT_MenuHandlerState.y + 0x23a, DAT_MenuHandlerState.x + 0x235,
+ DAT_MenuHandlerState.y + 0x244);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x0044c8f0 transformGmColorTableFromRGB555To565IfRequired | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0044C8F0
+ void TextureRenderCore::transformGmColorTableFromRGB555To565IfRequired(int gmID)
+ {
+ ushort* _colorTableRunPtr;
+ int _counter;
+ ushort _color;
+ if (DAT_WindowAndDirectDraw.colorBitMode == RGB_565) {
+ _colorTableRunPtr = (ushort*)this->gmFileHeaderColorpaletteArray[gmID].colorPalette;
+ _counter = 2560;
+ do {
+ _color = *_colorTableRunPtr;
+ *_colorTableRunPtr = (_color & 0x1f) + ((_color & 0xfc00) + (_color & 0x3e0)) * 2;
+ _colorTableRunPtr = _colorTableRunPtr + 1;
+ _counter = _counter + -1;
+ } while (_counter != 0);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x0044c940 transformRawWithMarkerUnkToRGB555To565 | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0044C940
+ void TextureRenderCore::transformRawWithMarkerUnkToRGB555To565(int imageOffset, int imageSize)
+ {
+ ushort* _colorPtr;
+ ushort _color;
+ _colorPtr = (ushort*)((int)this->gmProcessedImageData + imageOffset);
+ for (; 0 < imageSize; imageSize = imageSize + -2) {
+ _color = *_colorPtr;
+ if (_color != 63519) {
+ *_colorPtr = (_color & 0x1f) + ((_color & 0x3e0) >> 5) * 0x40 + ((_color & 0x7c00) >> 10) * 0x800;
+ }
+ _colorPtr = _colorPtr + 1;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x0044c9c0 transformTgxFromRGB555ToRGB565 | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0044C9C0
+ void TextureRenderCore::transformTgxFromRGB555ToRGB565(ushort* tgxDataPtr, int tgxByteSize)
+ {
+ TgxTokenByte _pixToken;
+ int _lengthOfPixelString;
+ int _numBytesLeft;
+ TgxTokenByte* _texPtr;
+ undefined2 _current555col;
+ while (_texPtr = (TgxTokenByte*)tgxDataPtr, _numBytesLeft = tgxByteSize, 0 < _numBytesLeft) {
+ _pixToken = *_texPtr & TT_TGX_PIXEL_HEADER;
+ _lengthOfPixelString = (*_texPtr & 0xffffff1f) + 1;
+ tgxByteSize = _numBytesLeft + -1;
+ tgxDataPtr = (ushort*)(_texPtr + 1);
+ if (_pixToken != TT_NEWLINE) {
+ if (_pixToken == TT_REPEATING_PIXELS) {
+ _current555col = *tgxDataPtr;
+ *tgxDataPtr = (_current555col & TT_TGX_PIXEL_LENGTH)
+ + ((ushort)(_current555col & 0x3e0) >> 5) * 0x40
+ + ((ushort)(_current555col & 0x7c00) >> 10) * 0x800;
+ tgxByteSize = _numBytesLeft + -3;
+ tgxDataPtr = (ushort*)(_texPtr + 3);
+ } else if (_pixToken != TT_TRANSPARENT_PIXELS) {
+ do {
+ _current555col = *tgxDataPtr;
+ if (_current555col != 63519) {
+ *tgxDataPtr = (_current555col & TT_TGX_PIXEL_LENGTH)
+ + ((ushort)(_current555col & 0x3e0) >> 5) * 0x40
+ + ((ushort)(_current555col & 0x7c00) >> 10) * 0x800;
+ }
+ tgxByteSize = tgxByteSize + -2;
+ tgxDataPtr = (ushort*)((int)tgxDataPtr + 2);
+ _lengthOfPixelString = _lengthOfPixelString + -1;
+ } while (0 < _lengthOfPixelString);
+ }
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x0044cb60 transformRawToRGB555To565 | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0044CB60
+ void TextureRenderCore::transformRawToRGB555To565(int imageOffset, int imageSize)
+ {
+ ushort* _colorPtr;
+ ushort _color;
+ _colorPtr = (ushort*)((int)this->gmProcessedImageData + imageOffset);
+ for (; 0 < imageSize; imageSize = imageSize + -2) {
+ _color = *_colorPtr;
+ *_colorPtr = (_color & 0x1f) + ((_color & 0x3e0) >> 5) * 0x40 + ((_color & 0x7c00) >> 10) * 0x800;
+ _colorPtr = _colorPtr + 1;
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x0044cbe0 transformBGR24ToScreenColor | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0044CBE0
+ RGB15 TextureRenderCore::transformBGR24ToScreenColor(BGR24 color)
+ {
+ ushort uVar1;
+ uVar1 = (ushort)(color >> 0x13) & 0x1f;
+ if (DAT_WindowAndDirectDraw.colorBitMode == RGB_555) {
+ return (ushort)(color >> 6) & 0x3e0 | uVar1 | (ushort)((color & 0xf8) << 7);
+ }
+ return (ushort)(color >> 5) & 0x7e0 | uVar1 | ((byte)color & 0xf8) << 8;
+ }
+ }
+}
+}
+
+### 0x0044cc30 clearSomeMemory | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0044CC30
+ void TextureRenderCore::clearSomeMemory()
+ {
+ fillMemory_ByteValue(
+ 0x80, '\0', (void*)((int)(PTR_ARRAY_00c9a510::instance)));
+ fillMemory_ByteValue(
+ 0x80, '\0', (void*)((int)(PTR_ARRAY_00d7d250::instance)));
+ fillMemory_ByteValue(
+ 0x80, '\0', (void*)((int)(PTR_ARRAY_00c9a490::instance)));
+ fillMemory_ByteValue(
+ 0x80, '\0', (void*)((int)(PTR_ARRAY_Unknown_UnitGMHeights::instance)));
+ fillMemory_ByteValue(
+ 16896, '\0', (void*)((int)(DAT_BlendFilterArrays)));
+ return;
+ }
+ }
+}
+}
+
+### 0x0044cca0 setMapSurfaceHeightRange | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0044cca0
+ void TextureRenderCore::setMapSurfaceHeightRange(int start, int end)
+ {
+ this->mapGameSurfaceHeightRange.start = start;
+ this->mapGameSurfaceHeightRange.end = end;
+ }
+ }
+}
+}
+
+### 0x0044ccc0 setMapSurfaceHeightRangeUnk | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0044ccc0
+ void TextureRenderCore::setMapSurfaceHeightRangeUnk()
+ {
+ this->mapGameSurfaceHeightRange.start = 0;
+ this->mapGameSurfaceHeightRange.end = 2075;
+ }
+ } // namespace Rendering
+} // namespace UI
+} // namespace OpenSHC
+
+### 0x0044ccd0 temporarySaveMapSurfaceHeightRangeUnk | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0044CCD0
+ void TextureRenderCore::temporarySaveMapSurfaceHeightRangeUnk()
+ {
+ this->mapSurfaceRangeTemporaryUnk_0x16c864.start = this->mapGameSurfaceHeightRange.start;
+ this->mapSurfaceRangeTemporaryUnk_0x16c864.end = this->mapGameSurfaceHeightRange.end;
+ }
+ }
+}
+}
+
+### 0x0044ccf0 restoreMapSurfaceHeightRangeFromTemporaryUnk | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0044CCF0
+ void TextureRenderCore::restoreMapSurfaceHeightRangeFromTemporaryUnk()
+ {
+ this->mapGameSurfaceHeightRange.start = this->mapSurfaceRangeTemporaryUnk_0x16c864.start;
+ this->mapGameSurfaceHeightRange.end = this->mapSurfaceRangeTemporaryUnk_0x16c864.end;
+ }
+ }
+}
+}
+
+### 0x0044cd10 setScreenMenuSurfaceHeightRange | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0044cd10
+ void TextureRenderCore::setScreenMenuSurfaceHeightRange(int start, int end)
+ {
+ this->screenMenuSurfaceHeightRange.start = start;
+ this->screenMenuSurfaceHeightRange.end = end;
+ }
+ }
+}
+}
+
+### 0x0044cd30 setScreenMenuSurfaceHeightRangeToResolution | quelle=nachgebaut | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0044cd30
+ void TextureRenderCore::setScreenMenuSurfaceHeightRangeToResolution()
+ {
+ this->screenMenuSurfaceHeightRange.start = 0;
+ this->screenMenuSurfaceHeightRange.end = DAT_WindowAndDirectDraw->resolutionY;
+ }
+ } // namespace Rendering
+} // namespace UI
+} // namespace OpenSHC
+
+### 0x0044cd40 drawBitmapFace | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0044CD40
+ void TextureRenderCore::drawBitmapFace(int bitmapFaceIndex, int xPos, int yPos)
+ {
+ int _pixelToJump;
+ int _widthInByte;
+ short* _ptrInSurface;
+ int _facePixelWidth;
+ short* _bitmapPtr;
+ short _currentPixel;
+ _bitmapPtr = (short*)(bitmapFaceIndex * 0x2100 + (int)this->bitmapsFaces_0x94);
+ if (this->drawBufferChoiceValue == RT_MAP_GAME) {
+ _pixelToJump = 0xf98;
+ _widthInByte = 0x1fb0;
+ this->currentRenderSurface = DAT_WindowAndDirectDraw.surfacePointer_mapGame;
+ } else if (this->drawBufferChoiceValue == RT_BUTTON_AND_ALPHA) {
+ _pixelToJump = AlphaAndButtonSurfaceObj::instance.currentImageWidth + -0x40;
+ _widthInByte = AlphaAndButtonSurfaceObj::instance.currentImageWidth * 2;
+ this->currentRenderSurface = AlphaAndButtonSurfaceObj::instance.surfacePtr;
+ } else {
+ _pixelToJump = DAT_WindowAndDirectDraw.byteSizeOfOneHorizontalLine / 2 + -0x40;
+ _widthInByte = DAT_WindowAndDirectDraw.byteSizeOfOneHorizontalLine;
+ this->currentRenderSurface = DAT_WindowAndDirectDraw.surfacePointer_screenMenu;
+ }
+ _ptrInSurface = (short*)((int)this->currentRenderSurface + xPos * 2 + _widthInByte * yPos);
+ _widthInByte = 0x42;
+ do {
+ _facePixelWidth = 0x40;
+ do {
+ _currentPixel = *_bitmapPtr;
+ _bitmapPtr = _bitmapPtr + 1;
+ if (_currentPixel != COL_MAGENTA::instance.shortValue) {
+ *_ptrInSurface = _currentPixel;
+ }
+ _ptrInSurface = _ptrInSurface + 1;
+ _facePixelWidth = _facePixelWidth + -1;
+ } while (_facePixelWidth != 0);
+ _ptrInSurface = _ptrInSurface + _pixelToJump;
+ _widthInByte = _widthInByte + -1;
+ } while (_widthInByte != 0);
+ return;
+ }
+ }
+}
+}
+
+### 0x0044ce00 renderFacesSmallUnk | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0044CE00
+ void TextureRenderCore::renderFacesSmallUnk(int facesIndex, int drawX, int drawY)
+ {
+ int _byteWidth;
+ short* _surface;
+ short* _surfacePixel;
+ int i;
+ short* _potraitDataBegin;
+ short* _color;
+ int j;
+ _potraitDataBegin = (short*)(facesIndex * 0x2100 + (int)this->bitmapsFaces_0x94);
+ if (this->drawBufferChoiceValue == RT_MAP_GAME) {
+ _byteWidth = 8112;
+ this->currentRenderSurface = DAT_WindowAndDirectDraw.surfacePointer_mapGame;
+ } else {
+ _byteWidth = DAT_WindowAndDirectDraw.byteSizeOfOneHorizontalLine;
+ this->currentRenderSurface = DAT_WindowAndDirectDraw.surfacePointer_screenMenu;
+ if (this->drawBufferChoiceValue == RT_BUTTON_AND_ALPHA) {
+ _byteWidth = AlphaAndButtonSurfaceObj::instance.currentImageWidth * 2;
+ this->currentRenderSurface = AlphaAndButtonSurfaceObj::instance.surfacePtr;
+ }
+ }
+ _surface = (short*)((int)this->currentRenderSurface + drawX * 2 + _byteWidth * drawY);
+ i = 33;
+ do {
+ j = 32;
+ _surfacePixel = _surface;
+ do {
+ _color = _potraitDataBegin;
+ if (*_color != COL_MAGENTA::instance.shortValue) {
+ *_surfacePixel = *_color;
+ }
+ _surfacePixel = _surfacePixel + 1;
+ j = j + -1;
+ _potraitDataBegin = _color + 2;
+ } while (j != 0);
+ _potraitDataBegin = _color + 0x42;
+ i = i + -1;
+ _surface = _surface + _byteWidth / 2;
+ } while (i != 0);
+ return;
+ }
+ }
+}
+}
+
+### 0x0044ceb0 drawBitmapFaceWithBlendUnk | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0044CEB0
+ void TextureRenderCore::drawBitmapFaceWithBlendUnk(
+ int bitmapFaceIndex, int xPos, int yPos, int colorOrBlendOrGammaUnk)
+ {
+ ushort uVar1;
+ int _pixelToLineJump;
+ int iVar2;
+ int iVar3;
+ int iVar4;
+ int iVar5;
+ int iVar6;
+ int iVar7;
+ int _widthInByte;
+ ushort* _surfacePtr;
+ ushort* _bitmapFacePtr;
+ uint uVar8;
+ uint uVar9;
+ int iVar10;
+ int local_c;
+ int local_8;
+ iVar7 = colorOrBlendOrGammaUnk;
+ if (colorOrBlendOrGammaUnk == 0) {
+ drawBitmapFace(
+ bitmapFaceIndex, xPos, yPos);
+ return;
+ }
+ if (colorOrBlendOrGammaUnk != 0x20) {
+ _bitmapFacePtr = (ushort*)(bitmapFaceIndex * 0x2100 + (int)this->bitmapsFaces_0x94);
+ iVar10 = 0x20 - colorOrBlendOrGammaUnk;
+ if (this->drawBufferChoiceValue == RT_MAP_GAME) {
+ _pixelToLineJump = 0xf98;
+ _widthInByte = 0x1fb0;
+ this->currentRenderSurface = DAT_WindowAndDirectDraw.surfacePointer_mapGame;
+ } else if (this->drawBufferChoiceValue == RT_BUTTON_AND_ALPHA) {
+ _pixelToLineJump = AlphaAndButtonSurfaceObj::instance.currentImageWidth + -0x40;
+ _widthInByte = AlphaAndButtonSurfaceObj::instance.currentImageWidth * 2;
+ this->currentRenderSurface = AlphaAndButtonSurfaceObj::instance.surfacePtr;
+ } else {
+ _pixelToLineJump = DAT_WindowAndDirectDraw.byteSizeOfOneHorizontalLine / 2 + -0x40;
+ _widthInByte = DAT_WindowAndDirectDraw.byteSizeOfOneHorizontalLine;
+ this->currentRenderSurface = DAT_WindowAndDirectDraw.surfacePointer_screenMenu;
+ }
+ _surfacePtr = (ushort*)((int)this->currentRenderSurface + xPos * 2 + _widthInByte * yPos);
+ if (DAT_WindowAndDirectDraw.colorBitMode == RGB_565) {
+ local_8 = 0x42;
+ do {
+ local_c = 0x10;
+ colorOrBlendOrGammaUnk = (int)_bitmapFacePtr;
+ do {
+ if (*(ushort*)colorOrBlendOrGammaUnk != COL_MAGENTA::instance.shortValue) {
+ uVar9 = (uint)*_surfacePtr;
+ uVar8 = (uint) * (ushort*)colorOrBlendOrGammaUnk;
+ _widthInByte = (uVar8 & 0x7e0) * iVar10;
+ iVar2 = (uVar9 & 0x7e0) * iVar7;
+ iVar3 = (uVar8 & 0xf800) * iVar10;
+ iVar4 = (uVar9 & 0xf800) * iVar7;
+ iVar5 = (uVar8 & 0x1f) * iVar10;
+ iVar6 = (uVar9 & 0x1f) * iVar7;
+ *_surfacePtr
+ = ((ushort)((int)(_widthInByte + (_widthInByte >> 0x1f & 0x1fU)) >> 5) & 0x7e0)
+ + ((ushort)((int)(iVar2 + (iVar2 >> 0x1f & 0x1fU)) >> 5) & 0x7e0)
+ | ((ushort)((int)(iVar3 + (iVar3 >> 0x1f & 0x1fU)) >> 5) & 0xf800)
+ + ((ushort)((int)(iVar4 + (iVar4 >> 0x1f & 0x1fU)) >> 5) & 0xf800)
+ | (short)((int)(iVar5 + (iVar5 >> 0x1f & 0x1fU)) >> 5)
+ + (short)((int)(iVar6 + (iVar6 >> 0x1f & 0x1fU)) >> 5);
+ }
+ if (*(ushort*)(colorOrBlendOrGammaUnk + 2) != COL_MAGENTA::instance.shortValue) {
+ uVar9 = (uint)_surfacePtr[1];
+ uVar8 = (uint) * (ushort*)(colorOrBlendOrGammaUnk + 2);
+ _widthInByte = (uVar8 & 0x7e0) * iVar10;
+ iVar2 = (uVar9 & 0x7e0) * iVar7;
+ iVar3 = (uVar8 & 0xf800) * iVar10;
+ iVar4 = (uVar9 & 0xf800) * iVar7;
+ iVar5 = (uVar8 & 0x1f) * iVar10;
+ iVar6 = (uVar9 & 0x1f) * iVar7;
+ _surfacePtr[1]
+ = ((ushort)((int)(_widthInByte + (_widthInByte >> 0x1f & 0x1fU)) >> 5) & 0x7e0)
+ + ((ushort)((int)(iVar2 + (iVar2 >> 0x1f & 0x1fU)) >> 5) & 0x7e0)
+ | ((ushort)((int)(iVar3 + (iVar3 >> 0x1f & 0x1fU)) >> 5) & 0xf800)
+ + ((ushort)((int)(iVar4 + (iVar4 >> 0x1f & 0x1fU)) >> 5) & 0xf800)
+ | (short)((int)(iVar5 + (iVar5 >> 0x1f & 0x1fU)) >> 5)
+ + (short)((int)(iVar6 + (iVar6 >> 0x1f & 0x1fU)) >> 5);
+ }
+ if (*(ushort*)(colorOrBlendOrGammaUnk + 4) != COL_MAGENTA::instance.shortValue) {
+ uVar9 = (uint)_surfacePtr[2];
+ uVar8 = (uint) * (ushort*)(colorOrBlendOrGammaUnk + 4);
+ _widthInByte = (uVar8 & 0x7e0) * iVar10;
+ iVar2 = (uVar9 & 0x7e0) * iVar7;
+ iVar3 = (uVar8 & 0xf800) * iVar10;
+ iVar4 = (uVar9 & 0xf800) * iVar7;
+ iVar5 = (uVar8 & 0x1f) * iVar10;
+ iVar6 = (uVar9 & 0x1f) * iVar7;
+ _surfacePtr[2]
+ = ((ushort)((int)(_widthInByte + (_widthInByte >> 0x1f & 0x1fU)) >> 5) & 0x7e0)
+ + ((ushort)((int)(iVar2 + (iVar2 >> 0x1f & 0x1fU)) >> 5) & 0x7e0)
+ | ((ushort)((int)(iVar3 + (iVar3 >> 0x1f & 0x1fU)) >> 5) & 0xf800)
+ + ((ushort)((int)(iVar4 + (iVar4 >> 0x1f & 0x1fU)) >> 5) & 0xf800)
+ | (short)((int)(iVar5 + (iVar5 >> 0x1f & 0x1fU)) >> 5)
+ + (short)((int)(iVar6 + (iVar6 >> 0x1f & 0x1fU)) >> 5);
+ }
+ if (*(ushort*)(colorOrBlendOrGammaUnk + 6) != COL_MAGENTA::instance.shortValue) {
+ uVar9 = (uint)_surfacePtr[3];
+ uVar8 = (uint) * (ushort*)(colorOrBlendOrGammaUnk + 6);
+ _widthInByte = (uVar8 & 0x7e0) * iVar10;
+ iVar2 = (uVar9 & 0x7e0) * iVar7;
+ iVar3 = (uVar8 & 0xf800) * iVar10;
+ iVar4 = (uVar9 & 0xf800) * iVar7;
+ iVar5 = (uVar8 & 0x1f) * iVar10;
+ iVar6 = (uVar9 & 0x1f) * iVar7;
+ _surfacePtr[3]
+ = ((ushort)((int)(_widthInByte + (_widthInByte >> 0x1f & 0x1fU)) >> 5) & 0x7e0)
+ + ((ushort)((int)(iVar2 + (iVar2 >> 0x1f & 0x1fU)) >> 5) & 0x7e0)
+ | ((ushort)((int)(iVar3 + (iVar3 >> 0x1f & 0x1fU)) >> 5) & 0xf800)
+ + ((ushort)((int)(iVar4 + (iVar4 >> 0x1f & 0x1fU)) >> 5) & 0xf800)
+ | (short)((int)(iVar5 + (iVar5 >> 0x1f & 0x1fU)) >> 5)
+ + (short)((int)(iVar6 + (iVar6 >> 0x1f & 0x1fU)) >> 5);
+ }
+ _bitmapFacePtr = (ushort*)(colorOrBlendOrGammaUnk + 8);
+ _surfacePtr = _surfacePtr + 4;
+ local_c = local_c + -1;
+ colorOrBlendOrGammaUnk = (int)_bitmapFacePtr;
+ } while (local_c != 0);
+ _surfacePtr = _surfacePtr + _pixelToLineJump;
+ local_8 = local_8 + -1;
+ } while (local_8 != 0);
+ return;
+ }
+ yPos = 0x42;
+ do {
+ bitmapFaceIndex = 0x40;
+ do {
+ uVar1 = *_bitmapFacePtr;
+ _bitmapFacePtr = _bitmapFacePtr + 1;
+ if (uVar1 != COL_MAGENTA::instance.shortValue) {
+ uVar8 = (uint)uVar1;
+ iVar7 = (uVar8 & 0x3e0) * colorOrBlendOrGammaUnk;
+ iVar10 = (uVar8 & 0x7c00) * colorOrBlendOrGammaUnk;
+ _widthInByte = (uVar8 & 0x1f) * colorOrBlendOrGammaUnk;
+ *_surfacePtr = (ushort)((int)(iVar7 + (iVar7 >> 0x1f & 0x1fU)) >> 5) & 0x3e0
+ | (ushort)((int)(iVar10 + (iVar10 >> 0x1f & 0x1fU)) >> 5) & 0x7c00
+ | (ushort)((int)(_widthInByte + (_widthInByte >> 0x1f & 0x1fU)) >> 5);
+ }
+ _surfacePtr = _surfacePtr + 1;
+ bitmapFaceIndex = bitmapFaceIndex + -1;
+ } while (bitmapFaceIndex != 0);
+ _surfacePtr = _surfacePtr + _pixelToLineJump;
+ yPos = yPos + -1;
+ } while (yPos != 0);
+ }
+ return;
+ }
+ }
+}
+}
+

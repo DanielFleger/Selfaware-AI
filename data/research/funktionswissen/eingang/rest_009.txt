@@ -1,0 +1,2102 @@
+### 0x0044fbf0 renderUnitAnimationUnk | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x0044FBF0
+ void TextureRenderCore::renderUnitAnimationUnk(
+ int xPosition, int yPosition, int width, int height, byte* imageAddress)
+ {
+ byte bVar1;
+ ushort uVar2;
+ byte _op;
+ undefined2 uVar3;
+ uint _nPixels;
+ int iVar4;
+ int iVar5;
+ byte* _next;
+ byte* _pBuffer;
+ byte* _pBufCurrent;
+ int* _pSurface;
+ int* piVar6;
+ uint uStack_24;
+ int _start;
+ int _line;
+ int _end;
+ dword _palette;
+ if (0 < height) {
+ if (DAT_RenderedUnitOwner == 1) {
+ DAT_RenderedUnitOwner = 4;
+ } else if (DAT_RenderedUnitOwner == 4) {
+ DAT_RenderedUnitOwner = 1;
+ }
+ if (this->mbr_0x10 == 0) {
+ _palette = DAT_CurrentlyRenderedSpriteID * 0x1458 + 0x1fea604
+ + DAT_BlendingDefinedData.PlayerSlotUnitColor[DAT_RenderedUnitOwner]
+ * 0x200;
+ } else {
+ /*
+ indexes into the right gmfileheadercolorpalette and accesses the color data
+ */
+ _palette = DAT_CurrentlyRenderedSpriteID * 0x1458 + 0x1fea604
+ + DAT_RenderedUnitOwner * 0x200;
+ }
+ /*
+ Or inline assembly here?
+ */
+ if (this->mbr_0x70 != 0) {
+ _palette = this->mbr_0x70;
+ }
+ if (this->isZoom2 == 0) {
+ if (this->drawBufferChoiceValue == RT_SCREEN_MENU) {
+ this->currentRenderSurface = DAT_WindowAndDirectDraw.surfacePointer_screenMenu;
+ _line = DAT_WindowAndDirectDraw.byteSizeOfOneHorizontalLine;
+ _start = this->screenMenuSurfaceHeightRange.start;
+ _end = this->screenMenuSurfaceHeightRange.end;
+ } else {
+ this->currentRenderSurface = DAT_WindowAndDirectDraw.surfacePointer_mapGame;
+ _line = 8112;
+ _start = this->mapGameSurfaceHeightRange.start;
+ _end = this->mapGameSurfaceHeightRange.end;
+ }
+ if ((yPosition + height <= _end) || (height = _end - yPosition, 0 < height)) {
+ /*
+ Start of inline assembly?
+ */
+ if (PTR_ARRAY_00c9a490::instance[0] == (undefined*)0x0) {
+ PTR_ARRAY_00c9a490::instance[0] = (undefined*)0x451605;
+ PTR_ARRAY_00c9a490::instance[1] = (undefined*)0x451610;
+ PTR_ARRAY_00c9a490::instance[2] = (undefined*)0x45161a;
+ PTR_ARRAY_00c9a490::instance[3] = (undefined*)0x451628;
+ PTR_ARRAY_00c9a490::instance[4] = (undefined*)0x451635;
+ PTR_ARRAY_00c9a490::instance[5] = (undefined*)0x451646;
+ PTR_ARRAY_00c9a490::instance[6] = (undefined*)0x451656;
+ PTR_ARRAY_00c9a490::instance[7] = (undefined*)0x45166a;
+ PTR_ARRAY_00c9a490::instance[8] = (undefined*)0x45167d;
+ PTR_ARRAY_00c9a490::instance[9] = (undefined*)0x451694;
+ PTR_ARRAY_00c9a490::instance[10] = (undefined*)0x4516aa;
+ PTR_ARRAY_00c9a490::instance[0xb] = (undefined*)0x4516c4;
+ PTR_ARRAY_00c9a490::instance[0xc] = (undefined*)0x4516dd;
+ PTR_ARRAY_00c9a490::instance[0xd] = (undefined*)0x4516fa;
+ PTR_ARRAY_00c9a490::instance[0xe] = (undefined*)0x451716;
+ PTR_ARRAY_00c9a490::instance[0xf] = (undefined*)0x451736;
+ PTR_ARRAY_00c9a490::instance[0x10] = (undefined*)0x451755;
+ PTR_ARRAY_00c9a490::instance[0x11] = (undefined*)0x451778;
+ PTR_ARRAY_00c9a490::instance[0x12] = (undefined*)0x45179a;
+ PTR_ARRAY_00c9a490::instance[0x13] = (undefined*)0x4517c0;
+ PTR_ARRAY_00c9a490::instance[0x14] = (undefined*)0x4517e5;
+ PTR_ARRAY_00c9a490::instance[0x15] = (undefined*)0x45180e;
+ PTR_ARRAY_00c9a490::instance[0x16] = (undefined*)0x451836;
+ PTR_ARRAY_00c9a490::instance[0x17] = (undefined*)0x451862;
+ PTR_ARRAY_00c9a490::instance[0x18] = (undefined*)0x45188d;
+ PTR_ARRAY_00c9a490::instance[0x19] = (undefined*)0x4518bc;
+ PTR_ARRAY_00c9a490::instance[0x1a] = (undefined*)0x4518ea;
+ PTR_ARRAY_00c9a490::instance[0x1b] = (undefined*)0x45191c;
+ PTR_ARRAY_00c9a490::instance[0x1c] = (undefined*)0x45194d;
+ PTR_ARRAY_00c9a490::instance[0x1d] = (undefined*)0x451982;
+ PTR_ARRAY_00c9a490::instance[0x1e] = (undefined*)0x4519b6;
+ PTR_ARRAY_00c9a490::instance[0x1f] = (undefined*)0x4519ee;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[0] = (undefined*)0x44fe38;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[1] = (undefined*)0x44fe49;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[2] = (undefined*)0x44fe68;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[3] = (undefined*)0x44fe92;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[4] = (undefined*)0x44fec7;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[5] = (undefined*)0x44ff07;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[6] = (undefined*)0x44ff52;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[7] = (undefined*)0x44ffa8;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[8] = (undefined*)0x450009;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[9] = (undefined*)0x450075;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[10] = (undefined*)0x4500ec;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[0xb] = (undefined*)0x45016e;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[0xc] = (undefined*)0x4501fb;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[0xd] = (undefined*)0x450293;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[0xe] = (undefined*)0x450336;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[0xf] = (undefined*)0x4503e4;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[0x10] = (undefined*)0x45049d;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[0x11] = (undefined*)0x450561;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[0x12] = (undefined*)0x450630;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[0x13] = (undefined*)0x45070a;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[0x14] = (undefined*)0x4507ef;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[0x15] = (undefined*)0x4508df;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[0x16] = (undefined*)0x4509da;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[0x17] = (undefined*)0x450ae0;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[0x18] = (undefined*)0x450bf1;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[0x19] = (undefined*)0x450d0d;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[0x1a] = (undefined*)0x450e34;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[0x1b] = (undefined*)0x450f66;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[0x1c] = (undefined*)0x4510a3;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[0x1d] = (undefined*)0x4511eb;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[0x1e] = (undefined*)0x45133e;
+ PTR_ARRAY_Unknown_UnitGMHeights::instance[0x1f] = (undefined*)0x45149c;
+ }
+ if (-1 < xPosition) {
+ if (yPosition < _start) {
+ iVar5 = _start - yPosition;
+ if (height <= iVar5) {
+ return;
+ }
+ height = height - iVar5;
+ do {
+ while (true) {
+ while (true) {
+ do {
+ _pBuffer = imageAddress;
+ _op = *_pBuffer & 0xe0;
+ imageAddress = _pBuffer + 1;
+ } while (_op == 0x20);
+ if (_op != 0)
+ break;
+ imageAddress = imageAddress + (*_pBuffer & 0xffffff1f) + 1;
+ }
+ if (_op != 0x40)
+ break;
+ imageAddress = _pBuffer + 2;
+ }
+ iVar5 = iVar5 + -1;
+ yPosition = _start;
+ } while (0 < iVar5);
+ }
+ _pSurface = (int*)((int)this->currentRenderSurface + yPosition * _line + xPosition * 2);
+ piVar6 = _pSurface;
+ do {
+ while (true) {
+ while (true) {
+ while (true) {
+ _op = *imageAddress & 0xe0;
+ _nPixels = *imageAddress & 0xffffff1f;
+ _next = imageAddress + 1;
+ if (_op != 0x20)
+ break;
+ _pSurface = (int*)((int)_pSurface + (_nPixels + 1) * 2);
+ imageAddress = _next;
+ }
+ if (_op != 0)
+ break;
+ switch (PTR_ARRAY_Unknown_UnitGMHeights::instance[_nPixels]) {
+ case (undefined*)0x44fe38:
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ _pSurface = (int*)((int)_pSurface + 2);
+ imageAddress = imageAddress + 2;
+ break;
+ case (undefined*)0x44fe49:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _pSurface = _pSurface + 1;
+ imageAddress = imageAddress + 3;
+ break;
+ case (undefined*)0x44fe68:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ _pSurface = (int*)((int)_pSurface + 6);
+ imageAddress = imageAddress + 4;
+ break;
+ case (undefined*)0x44fe92:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _pSurface = _pSurface + 2;
+ imageAddress = imageAddress + 5;
+ break;
+ case (undefined*)0x44fec7:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ _pSurface = (int*)((int)_pSurface + 10);
+ imageAddress = imageAddress + 6;
+ break;
+ case (undefined*)0x44ff07:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _pSurface = _pSurface + 3;
+ imageAddress = imageAddress + 7;
+ break;
+ case (undefined*)0x44ff52:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[7];
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ *(undefined2*)(_pSurface + 3) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ _pSurface = (int*)((int)_pSurface + 0xe);
+ imageAddress = imageAddress + 8;
+ break;
+ case (undefined*)0x44ffa8:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[7];
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[8];
+ *(undefined2*)(_pSurface + 3) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ *(undefined2*)((int)_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _pSurface = _pSurface + 4;
+ imageAddress = imageAddress + 9;
+ break;
+ case (undefined*)0x450009:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[7];
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[8];
+ *(undefined2*)(_pSurface + 3) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[9];
+ *(undefined2*)((int)_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ *(undefined2*)(_pSurface + 4) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ _pSurface = (int*)((int)_pSurface + 0x12);
+ imageAddress = imageAddress + 10;
+ break;
+ case (undefined*)0x450075:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[7];
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[8];
+ *(undefined2*)(_pSurface + 3) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[9];
+ *(undefined2*)((int)_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[10];
+ *(undefined2*)(_pSurface + 4) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ *(undefined2*)((int)_pSurface + 0x12)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _pSurface = _pSurface + 5;
+ imageAddress = imageAddress + 0xb;
+ break;
+ case (undefined*)0x4500ec:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[7];
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[8];
+ *(undefined2*)(_pSurface + 3) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[9];
+ *(undefined2*)((int)_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[10];
+ *(undefined2*)(_pSurface + 4) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xb];
+ *(undefined2*)((int)_pSurface + 0x12)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ *(undefined2*)(_pSurface + 5) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ _pSurface = (int*)((int)_pSurface + 0x16);
+ imageAddress = imageAddress + 0xc;
+ break;
+ case (undefined*)0x45016e:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[7];
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[8];
+ *(undefined2*)(_pSurface + 3) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[9];
+ *(undefined2*)((int)_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[10];
+ *(undefined2*)(_pSurface + 4) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xb];
+ *(undefined2*)((int)_pSurface + 0x12)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xc];
+ *(undefined2*)(_pSurface + 5) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ *(undefined2*)((int)_pSurface + 0x16)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _pSurface = _pSurface + 6;
+ imageAddress = imageAddress + 0xd;
+ break;
+ case (undefined*)0x4501fb:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[7];
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[8];
+ *(undefined2*)(_pSurface + 3) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[9];
+ *(undefined2*)((int)_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[10];
+ *(undefined2*)(_pSurface + 4) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xb];
+ *(undefined2*)((int)_pSurface + 0x12)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xc];
+ *(undefined2*)(_pSurface + 5) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xd];
+ *(undefined2*)((int)_pSurface + 0x16)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ *(undefined2*)(_pSurface + 6) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ _pSurface = (int*)((int)_pSurface + 0x1a);
+ imageAddress = imageAddress + 0xe;
+ break;
+ case (undefined*)0x450293:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[7];
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[8];
+ *(undefined2*)(_pSurface + 3) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[9];
+ *(undefined2*)((int)_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[10];
+ *(undefined2*)(_pSurface + 4) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xb];
+ *(undefined2*)((int)_pSurface + 0x12)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xc];
+ *(undefined2*)(_pSurface + 5) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xd];
+ *(undefined2*)((int)_pSurface + 0x16)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xe];
+ *(undefined2*)(_pSurface + 6) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ *(undefined2*)((int)_pSurface + 0x1a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _pSurface = _pSurface + 7;
+ imageAddress = imageAddress + 0xf;
+ break;
+ case (undefined*)0x450336:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[7];
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[8];
+ *(undefined2*)(_pSurface + 3) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[9];
+ *(undefined2*)((int)_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[10];
+ *(undefined2*)(_pSurface + 4) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xb];
+ *(undefined2*)((int)_pSurface + 0x12)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xc];
+ *(undefined2*)(_pSurface + 5) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xd];
+ *(undefined2*)((int)_pSurface + 0x16)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xe];
+ *(undefined2*)(_pSurface + 6) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xf];
+ *(undefined2*)((int)_pSurface + 0x1a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ *(undefined2*)(_pSurface + 7) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ _pSurface = (int*)((int)_pSurface + 0x1e);
+ imageAddress = imageAddress + 0x10;
+ break;
+ case (undefined*)0x4503e4:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[7];
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[8];
+ *(undefined2*)(_pSurface + 3) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[9];
+ *(undefined2*)((int)_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[10];
+ *(undefined2*)(_pSurface + 4) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xb];
+ *(undefined2*)((int)_pSurface + 0x12)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xc];
+ *(undefined2*)(_pSurface + 5) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xd];
+ *(undefined2*)((int)_pSurface + 0x16)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xe];
+ *(undefined2*)(_pSurface + 6) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xf];
+ *(undefined2*)((int)_pSurface + 0x1a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x10];
+ *(undefined2*)(_pSurface + 7) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ *(undefined2*)((int)_pSurface + 0x1e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _pSurface = _pSurface + 8;
+ imageAddress = imageAddress + 0x11;
+ break;
+ case (undefined*)0x45049d:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[7];
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[8];
+ *(undefined2*)(_pSurface + 3) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[9];
+ *(undefined2*)((int)_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[10];
+ *(undefined2*)(_pSurface + 4) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xb];
+ *(undefined2*)((int)_pSurface + 0x12)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xc];
+ *(undefined2*)(_pSurface + 5) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xd];
+ *(undefined2*)((int)_pSurface + 0x16)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xe];
+ *(undefined2*)(_pSurface + 6) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xf];
+ *(undefined2*)((int)_pSurface + 0x1a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x10];
+ *(undefined2*)(_pSurface + 7) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x11];
+ *(undefined2*)((int)_pSurface + 0x1e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ *(undefined2*)(_pSurface + 8) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ _pSurface = (int*)((int)_pSurface + 0x22);
+ imageAddress = imageAddress + 0x12;
+ break;
+ case (undefined*)0x450561:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[7];
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[8];
+ *(undefined2*)(_pSurface + 3) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[9];
+ *(undefined2*)((int)_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[10];
+ *(undefined2*)(_pSurface + 4) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xb];
+ *(undefined2*)((int)_pSurface + 0x12)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xc];
+ *(undefined2*)(_pSurface + 5) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xd];
+ *(undefined2*)((int)_pSurface + 0x16)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xe];
+ *(undefined2*)(_pSurface + 6) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xf];
+ *(undefined2*)((int)_pSurface + 0x1a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x10];
+ *(undefined2*)(_pSurface + 7) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x11];
+ *(undefined2*)((int)_pSurface + 0x1e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x12];
+ *(undefined2*)(_pSurface + 8) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ *(undefined2*)((int)_pSurface + 0x22)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _pSurface = _pSurface + 9;
+ imageAddress = imageAddress + 0x13;
+ break;
+ case (undefined*)0x450630:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[7];
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[8];
+ *(undefined2*)(_pSurface + 3) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[9];
+ *(undefined2*)((int)_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[10];
+ *(undefined2*)(_pSurface + 4) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xb];
+ *(undefined2*)((int)_pSurface + 0x12)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xc];
+ *(undefined2*)(_pSurface + 5) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xd];
+ *(undefined2*)((int)_pSurface + 0x16)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xe];
+ *(undefined2*)(_pSurface + 6) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xf];
+ *(undefined2*)((int)_pSurface + 0x1a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x10];
+ *(undefined2*)(_pSurface + 7) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x11];
+ *(undefined2*)((int)_pSurface + 0x1e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x12];
+ *(undefined2*)(_pSurface + 8) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x13];
+ *(undefined2*)((int)_pSurface + 0x22)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ *(undefined2*)(_pSurface + 9) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ _pSurface = (int*)((int)_pSurface + 0x26);
+ imageAddress = imageAddress + 0x14;
+ break;
+ case (undefined*)0x45070a:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[7];
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[8];
+ *(undefined2*)(_pSurface + 3) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[9];
+ *(undefined2*)((int)_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[10];
+ *(undefined2*)(_pSurface + 4) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xb];
+ *(undefined2*)((int)_pSurface + 0x12)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xc];
+ *(undefined2*)(_pSurface + 5) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xd];
+ *(undefined2*)((int)_pSurface + 0x16)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xe];
+ *(undefined2*)(_pSurface + 6) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xf];
+ *(undefined2*)((int)_pSurface + 0x1a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x10];
+ *(undefined2*)(_pSurface + 7) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x11];
+ *(undefined2*)((int)_pSurface + 0x1e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x12];
+ *(undefined2*)(_pSurface + 8) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x13];
+ *(undefined2*)((int)_pSurface + 0x22)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x14];
+ *(undefined2*)(_pSurface + 9) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ *(undefined2*)((int)_pSurface + 0x26)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _pSurface = _pSurface + 10;
+ imageAddress = imageAddress + 0x15;
+ break;
+ case (undefined*)0x4507ef:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[7];
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[8];
+ *(undefined2*)(_pSurface + 3) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[9];
+ *(undefined2*)((int)_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[10];
+ *(undefined2*)(_pSurface + 4) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xb];
+ *(undefined2*)((int)_pSurface + 0x12)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xc];
+ *(undefined2*)(_pSurface + 5) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xd];
+ *(undefined2*)((int)_pSurface + 0x16)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xe];
+ *(undefined2*)(_pSurface + 6) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xf];
+ *(undefined2*)((int)_pSurface + 0x1a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x10];
+ *(undefined2*)(_pSurface + 7) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x11];
+ *(undefined2*)((int)_pSurface + 0x1e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x12];
+ *(undefined2*)(_pSurface + 8) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x13];
+ *(undefined2*)((int)_pSurface + 0x22)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x14];
+ *(undefined2*)(_pSurface + 9) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x15];
+ *(undefined2*)((int)_pSurface + 0x26)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ *(undefined2*)(_pSurface + 10) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ _pSurface = (int*)((int)_pSurface + 0x2a);
+ imageAddress = imageAddress + 0x16;
+ break;
+ case (undefined*)0x4508df:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[7];
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[8];
+ *(undefined2*)(_pSurface + 3) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[9];
+ *(undefined2*)((int)_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[10];
+ *(undefined2*)(_pSurface + 4) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xb];
+ *(undefined2*)((int)_pSurface + 0x12)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xc];
+ *(undefined2*)(_pSurface + 5) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xd];
+ *(undefined2*)((int)_pSurface + 0x16)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xe];
+ *(undefined2*)(_pSurface + 6) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xf];
+ *(undefined2*)((int)_pSurface + 0x1a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x10];
+ *(undefined2*)(_pSurface + 7) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x11];
+ *(undefined2*)((int)_pSurface + 0x1e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x12];
+ *(undefined2*)(_pSurface + 8) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x13];
+ *(undefined2*)((int)_pSurface + 0x22)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x14];
+ *(undefined2*)(_pSurface + 9) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x15];
+ *(undefined2*)((int)_pSurface + 0x26)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x16];
+ *(undefined2*)(_pSurface + 10) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ *(undefined2*)((int)_pSurface + 0x2a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _pSurface = _pSurface + 0xb;
+ imageAddress = imageAddress + 0x17;
+ break;
+ case (undefined*)0x4509da:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[7];
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[8];
+ *(undefined2*)(_pSurface + 3) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[9];
+ *(undefined2*)((int)_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[10];
+ *(undefined2*)(_pSurface + 4) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xb];
+ *(undefined2*)((int)_pSurface + 0x12)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xc];
+ *(undefined2*)(_pSurface + 5) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xd];
+ *(undefined2*)((int)_pSurface + 0x16)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xe];
+ *(undefined2*)(_pSurface + 6) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xf];
+ *(undefined2*)((int)_pSurface + 0x1a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x10];
+ *(undefined2*)(_pSurface + 7) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x11];
+ *(undefined2*)((int)_pSurface + 0x1e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x12];
+ *(undefined2*)(_pSurface + 8) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x13];
+ *(undefined2*)((int)_pSurface + 0x22)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x14];
+ *(undefined2*)(_pSurface + 9) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x15];
+ *(undefined2*)((int)_pSurface + 0x26)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x16];
+ *(undefined2*)(_pSurface + 10) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x17];
+ *(undefined2*)((int)_pSurface + 0x2a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ *(undefined2*)(_pSurface + 0xb)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ _pSurface = (int*)((int)_pSurface + 0x2e);
+ imageAddress = imageAddress + 0x18;
+ break;
+ case (undefined*)0x450ae0:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[7];
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[8];
+ *(undefined2*)(_pSurface + 3) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[9];
+ *(undefined2*)((int)_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[10];
+ *(undefined2*)(_pSurface + 4) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xb];
+ *(undefined2*)((int)_pSurface + 0x12)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xc];
+ *(undefined2*)(_pSurface + 5) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xd];
+ *(undefined2*)((int)_pSurface + 0x16)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xe];
+ *(undefined2*)(_pSurface + 6) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xf];
+ *(undefined2*)((int)_pSurface + 0x1a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x10];
+ *(undefined2*)(_pSurface + 7) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x11];
+ *(undefined2*)((int)_pSurface + 0x1e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x12];
+ *(undefined2*)(_pSurface + 8) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x13];
+ *(undefined2*)((int)_pSurface + 0x22)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x14];
+ *(undefined2*)(_pSurface + 9) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x15];
+ *(undefined2*)((int)_pSurface + 0x26)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x16];
+ *(undefined2*)(_pSurface + 10) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x17];
+ *(undefined2*)((int)_pSurface + 0x2a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x18];
+ *(undefined2*)(_pSurface + 0xb)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ *(undefined2*)((int)_pSurface + 0x2e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _pSurface = _pSurface + 0xc;
+ imageAddress = imageAddress + 0x19;
+ break;
+ case (undefined*)0x450bf1:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[7];
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[8];
+ *(undefined2*)(_pSurface + 3) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[9];
+ *(undefined2*)((int)_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[10];
+ *(undefined2*)(_pSurface + 4) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xb];
+ *(undefined2*)((int)_pSurface + 0x12)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xc];
+ *(undefined2*)(_pSurface + 5) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xd];
+ *(undefined2*)((int)_pSurface + 0x16)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xe];
+ *(undefined2*)(_pSurface + 6) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xf];
+ *(undefined2*)((int)_pSurface + 0x1a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x10];
+ *(undefined2*)(_pSurface + 7) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x11];
+ *(undefined2*)((int)_pSurface + 0x1e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x12];
+ *(undefined2*)(_pSurface + 8) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x13];
+ *(undefined2*)((int)_pSurface + 0x22)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x14];
+ *(undefined2*)(_pSurface + 9) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x15];
+ *(undefined2*)((int)_pSurface + 0x26)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x16];
+ *(undefined2*)(_pSurface + 10) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x17];
+ *(undefined2*)((int)_pSurface + 0x2a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x18];
+ *(undefined2*)(_pSurface + 0xb)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x19];
+ *(undefined2*)((int)_pSurface + 0x2e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ *(undefined2*)(_pSurface + 0xc)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ _pSurface = (int*)((int)_pSurface + 0x32);
+ imageAddress = imageAddress + 0x1a;
+ break;
+ case (undefined*)0x450d0d:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[7];
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[8];
+ *(undefined2*)(_pSurface + 3) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[9];
+ *(undefined2*)((int)_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[10];
+ *(undefined2*)(_pSurface + 4) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xb];
+ *(undefined2*)((int)_pSurface + 0x12)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xc];
+ *(undefined2*)(_pSurface + 5) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xd];
+ *(undefined2*)((int)_pSurface + 0x16)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xe];
+ *(undefined2*)(_pSurface + 6) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xf];
+ *(undefined2*)((int)_pSurface + 0x1a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x10];
+ *(undefined2*)(_pSurface + 7) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x11];
+ *(undefined2*)((int)_pSurface + 0x1e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x12];
+ *(undefined2*)(_pSurface + 8) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x13];
+ *(undefined2*)((int)_pSurface + 0x22)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x14];
+ *(undefined2*)(_pSurface + 9) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x15];
+ *(undefined2*)((int)_pSurface + 0x26)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x16];
+ *(undefined2*)(_pSurface + 10) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x17];
+ *(undefined2*)((int)_pSurface + 0x2a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x18];
+ *(undefined2*)(_pSurface + 0xb)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x19];
+ *(undefined2*)((int)_pSurface + 0x2e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x1a];
+ *(undefined2*)(_pSurface + 0xc)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ *(undefined2*)((int)_pSurface + 0x32)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _pSurface = _pSurface + 0xd;
+ imageAddress = imageAddress + 0x1b;
+ break;
+ case (undefined*)0x450e34:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[7];
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[8];
+ *(undefined2*)(_pSurface + 3) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[9];
+ *(undefined2*)((int)_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[10];
+ *(undefined2*)(_pSurface + 4) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xb];
+ *(undefined2*)((int)_pSurface + 0x12)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xc];
+ *(undefined2*)(_pSurface + 5) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xd];
+ *(undefined2*)((int)_pSurface + 0x16)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xe];
+ *(undefined2*)(_pSurface + 6) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xf];
+ *(undefined2*)((int)_pSurface + 0x1a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x10];
+ *(undefined2*)(_pSurface + 7) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x11];
+ *(undefined2*)((int)_pSurface + 0x1e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x12];
+ *(undefined2*)(_pSurface + 8) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x13];
+ *(undefined2*)((int)_pSurface + 0x22)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x14];
+ *(undefined2*)(_pSurface + 9) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x15];
+ *(undefined2*)((int)_pSurface + 0x26)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x16];
+ *(undefined2*)(_pSurface + 10) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x17];
+ *(undefined2*)((int)_pSurface + 0x2a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x18];
+ *(undefined2*)(_pSurface + 0xb)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x19];
+ *(undefined2*)((int)_pSurface + 0x2e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x1a];
+ *(undefined2*)(_pSurface + 0xc)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x1b];
+ *(undefined2*)((int)_pSurface + 0x32)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ *(undefined2*)(_pSurface + 0xd)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ _pSurface = (int*)((int)_pSurface + 0x36);
+ imageAddress = imageAddress + 0x1c;
+ break;
+ case (undefined*)0x450f66:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[7];
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[8];
+ *(undefined2*)(_pSurface + 3) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[9];
+ *(undefined2*)((int)_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[10];
+ *(undefined2*)(_pSurface + 4) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xb];
+ *(undefined2*)((int)_pSurface + 0x12)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xc];
+ *(undefined2*)(_pSurface + 5) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xd];
+ *(undefined2*)((int)_pSurface + 0x16)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xe];
+ *(undefined2*)(_pSurface + 6) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xf];
+ *(undefined2*)((int)_pSurface + 0x1a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x10];
+ *(undefined2*)(_pSurface + 7) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x11];
+ *(undefined2*)((int)_pSurface + 0x1e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x12];
+ *(undefined2*)(_pSurface + 8) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x13];
+ *(undefined2*)((int)_pSurface + 0x22)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x14];
+ *(undefined2*)(_pSurface + 9) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x15];
+ *(undefined2*)((int)_pSurface + 0x26)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x16];
+ *(undefined2*)(_pSurface + 10) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x17];
+ *(undefined2*)((int)_pSurface + 0x2a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x18];
+ *(undefined2*)(_pSurface + 0xb)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x19];
+ *(undefined2*)((int)_pSurface + 0x2e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x1a];
+ *(undefined2*)(_pSurface + 0xc)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x1b];
+ *(undefined2*)((int)_pSurface + 0x32)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x1c];
+ *(undefined2*)(_pSurface + 0xd)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ *(undefined2*)((int)_pSurface + 0x36)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _pSurface = _pSurface + 0xe;
+ imageAddress = imageAddress + 0x1d;
+ break;
+ case (undefined*)0x4510a3:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[7];
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[8];
+ *(undefined2*)(_pSurface + 3) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[9];
+ *(undefined2*)((int)_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[10];
+ *(undefined2*)(_pSurface + 4) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xb];
+ *(undefined2*)((int)_pSurface + 0x12)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xc];
+ *(undefined2*)(_pSurface + 5) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xd];
+ *(undefined2*)((int)_pSurface + 0x16)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xe];
+ *(undefined2*)(_pSurface + 6) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xf];
+ *(undefined2*)((int)_pSurface + 0x1a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x10];
+ *(undefined2*)(_pSurface + 7) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x11];
+ *(undefined2*)((int)_pSurface + 0x1e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x12];
+ *(undefined2*)(_pSurface + 8) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x13];
+ *(undefined2*)((int)_pSurface + 0x22)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x14];
+ *(undefined2*)(_pSurface + 9) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x15];
+ *(undefined2*)((int)_pSurface + 0x26)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x16];
+ *(undefined2*)(_pSurface + 10) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x17];
+ *(undefined2*)((int)_pSurface + 0x2a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x18];
+ *(undefined2*)(_pSurface + 0xb)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x19];
+ *(undefined2*)((int)_pSurface + 0x2e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x1a];
+ *(undefined2*)(_pSurface + 0xc)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x1b];
+ *(undefined2*)((int)_pSurface + 0x32)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x1c];
+ *(undefined2*)(_pSurface + 0xd)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x1d];
+ *(undefined2*)((int)_pSurface + 0x36)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ *(undefined2*)(_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ _pSurface = (int*)((int)_pSurface + 0x3a);
+ imageAddress = imageAddress + 0x1e;
+ break;
+ case (undefined*)0x4511eb:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[7];
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[8];
+ *(undefined2*)(_pSurface + 3) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[9];
+ *(undefined2*)((int)_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[10];
+ *(undefined2*)(_pSurface + 4) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xb];
+ *(undefined2*)((int)_pSurface + 0x12)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xc];
+ *(undefined2*)(_pSurface + 5) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xd];
+ *(undefined2*)((int)_pSurface + 0x16)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xe];
+ *(undefined2*)(_pSurface + 6) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xf];
+ *(undefined2*)((int)_pSurface + 0x1a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x10];
+ *(undefined2*)(_pSurface + 7) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x11];
+ *(undefined2*)((int)_pSurface + 0x1e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x12];
+ *(undefined2*)(_pSurface + 8) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x13];
+ *(undefined2*)((int)_pSurface + 0x22)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x14];
+ *(undefined2*)(_pSurface + 9) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x15];
+ *(undefined2*)((int)_pSurface + 0x26)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x16];
+ *(undefined2*)(_pSurface + 10) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x17];
+ *(undefined2*)((int)_pSurface + 0x2a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x18];
+ *(undefined2*)(_pSurface + 0xb)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x19];
+ *(undefined2*)((int)_pSurface + 0x2e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x1a];
+ *(undefined2*)(_pSurface + 0xc)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x1b];
+ *(undefined2*)((int)_pSurface + 0x32)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x1c];
+ *(undefined2*)(_pSurface + 0xd)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x1d];
+ *(undefined2*)((int)_pSurface + 0x36)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x1e];
+ *(undefined2*)(_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ *(undefined2*)((int)_pSurface + 0x3a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _pSurface = _pSurface + 0xf;
+ imageAddress = imageAddress + 0x1f;
+ break;
+ case (undefined*)0x45133e:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[7];
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[8];
+ *(undefined2*)(_pSurface + 3) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[9];
+ *(undefined2*)((int)_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[10];
+ *(undefined2*)(_pSurface + 4) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xb];
+ *(undefined2*)((int)_pSurface + 0x12)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xc];
+ *(undefined2*)(_pSurface + 5) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xd];
+ *(undefined2*)((int)_pSurface + 0x16)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xe];
+ *(undefined2*)(_pSurface + 6) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xf];
+ *(undefined2*)((int)_pSurface + 0x1a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x10];
+ *(undefined2*)(_pSurface + 7) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x11];
+ *(undefined2*)((int)_pSurface + 0x1e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x12];
+ *(undefined2*)(_pSurface + 8) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x13];
+ *(undefined2*)((int)_pSurface + 0x22)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x14];
+ *(undefined2*)(_pSurface + 9) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x15];
+ *(undefined2*)((int)_pSurface + 0x26)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x16];
+ *(undefined2*)(_pSurface + 10) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x17];
+ *(undefined2*)((int)_pSurface + 0x2a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x18];
+ *(undefined2*)(_pSurface + 0xb)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x19];
+ *(undefined2*)((int)_pSurface + 0x2e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x1a];
+ *(undefined2*)(_pSurface + 0xc)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x1b];
+ *(undefined2*)((int)_pSurface + 0x32)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x1c];
+ *(undefined2*)(_pSurface + 0xd)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x1d];
+ *(undefined2*)((int)_pSurface + 0x36)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x1e];
+ *(undefined2*)(_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x1f];
+ *(undefined2*)((int)_pSurface + 0x3a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ *(undefined2*)(_pSurface + 0xf)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ _pSurface = (int*)((int)_pSurface + 0x3e);
+ imageAddress = imageAddress + 0x20;
+ break;
+ case (undefined*)0x45149c:
+ _op = imageAddress[2];
+ *(undefined2*)_pSurface = *(undefined2*)(_palette + (uint)*_next * 2);
+ bVar1 = imageAddress[3];
+ *(undefined2*)((int)_pSurface + 2)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[4];
+ *(undefined2*)(_pSurface + 1) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[5];
+ *(undefined2*)((int)_pSurface + 6)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[6];
+ *(undefined2*)(_pSurface + 2) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[7];
+ *(undefined2*)((int)_pSurface + 10)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[8];
+ *(undefined2*)(_pSurface + 3) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[9];
+ *(undefined2*)((int)_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[10];
+ *(undefined2*)(_pSurface + 4) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xb];
+ *(undefined2*)((int)_pSurface + 0x12)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xc];
+ *(undefined2*)(_pSurface + 5) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xd];
+ *(undefined2*)((int)_pSurface + 0x16)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0xe];
+ *(undefined2*)(_pSurface + 6) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0xf];
+ *(undefined2*)((int)_pSurface + 0x1a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x10];
+ *(undefined2*)(_pSurface + 7) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x11];
+ *(undefined2*)((int)_pSurface + 0x1e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x12];
+ *(undefined2*)(_pSurface + 8) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x13];
+ *(undefined2*)((int)_pSurface + 0x22)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x14];
+ *(undefined2*)(_pSurface + 9) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x15];
+ *(undefined2*)((int)_pSurface + 0x26)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x16];
+ *(undefined2*)(_pSurface + 10) = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x17];
+ *(undefined2*)((int)_pSurface + 0x2a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x18];
+ *(undefined2*)(_pSurface + 0xb)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x19];
+ *(undefined2*)((int)_pSurface + 0x2e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x1a];
+ *(undefined2*)(_pSurface + 0xc)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x1b];
+ *(undefined2*)((int)_pSurface + 0x32)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x1c];
+ *(undefined2*)(_pSurface + 0xd)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x1d];
+ *(undefined2*)((int)_pSurface + 0x36)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x1e];
+ *(undefined2*)(_pSurface + 0xe)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ bVar1 = imageAddress[0x1f];
+ *(undefined2*)((int)_pSurface + 0x3a)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _op = imageAddress[0x20];
+ *(undefined2*)(_pSurface + 0xf)
+ = *(undefined2*)(_palette + (uint)bVar1 * 2);
+ *(undefined2*)((int)_pSurface + 0x3e)
+ = *(undefined2*)(_palette + (uint)_op * 2);
+ _pSurface = _pSurface + 0x10;
+ imageAddress = imageAddress + 0x21;
+ }
+ }
+ if (_op != 0x40)
+ break;
+ uVar2 = *(ushort*)(_palette + (uint)*_next * 2);
+ iVar5 = (uint)uVar2 + (uint)uVar2 * 0x10000;
+ imageAddress = imageAddress + 2;
+ uVar3 = (undefined2)iVar5;
+ switch (PTR_ARRAY_00c9a490::instance[_nPixels]) {
+ case (undefined*)0x451605:
+ *(undefined2*)_pSurface = uVar3;
+ _pSurface = (int*)((int)_pSurface + 2);
+ break;
+ case (undefined*)0x451610:
+ *_pSurface = iVar5;
+ _pSurface = _pSurface + 1;
+ break;
+ case (undefined*)0x45161a:
+ *_pSurface = iVar5;
+ *(undefined2*)(_pSurface + 1) = uVar3;
+ _pSurface = (int*)((int)_pSurface + 6);
+ break;
+ case (undefined*)0x451628:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface = _pSurface + 2;
+ break;
+ case (undefined*)0x451635:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ *(undefined2*)(_pSurface + 2) = uVar3;
+ _pSurface = (int*)((int)_pSurface + 10);
+ break;
+ case (undefined*)0x451646:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ _pSurface = _pSurface + 3;
+ break;
+ case (undefined*)0x451656:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ *(undefined2*)(_pSurface + 3) = uVar3;
+ _pSurface = (int*)((int)_pSurface + 0xe);
+ break;
+ case (undefined*)0x45166a:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ _pSurface[3] = iVar5;
+ _pSurface = _pSurface + 4;
+ break;
+ case (undefined*)0x45167d:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ _pSurface[3] = iVar5;
+ *(undefined2*)(_pSurface + 4) = uVar3;
+ _pSurface = (int*)((int)_pSurface + 0x12);
+ break;
+ case (undefined*)0x451694:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ _pSurface[3] = iVar5;
+ _pSurface[4] = iVar5;
+ _pSurface = _pSurface + 5;
+ break;
+ case (undefined*)0x4516aa:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ _pSurface[3] = iVar5;
+ _pSurface[4] = iVar5;
+ *(undefined2*)(_pSurface + 5) = uVar3;
+ _pSurface = (int*)((int)_pSurface + 0x16);
+ break;
+ case (undefined*)0x4516c4:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ _pSurface[3] = iVar5;
+ _pSurface[4] = iVar5;
+ _pSurface[5] = iVar5;
+ _pSurface = _pSurface + 6;
+ break;
+ case (undefined*)0x4516dd:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ _pSurface[3] = iVar5;
+ _pSurface[4] = iVar5;
+ _pSurface[5] = iVar5;
+ *(undefined2*)(_pSurface + 6) = uVar3;
+ _pSurface = (int*)((int)_pSurface + 0x1a);
+ break;
+ case (undefined*)0x4516fa:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ _pSurface[3] = iVar5;
+ _pSurface[4] = iVar5;
+ _pSurface[5] = iVar5;
+ _pSurface[6] = iVar5;
+ _pSurface = _pSurface + 7;
+ break;
+ case (undefined*)0x451716:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ _pSurface[3] = iVar5;
+ _pSurface[4] = iVar5;
+ _pSurface[5] = iVar5;
+ _pSurface[6] = iVar5;
+ *(undefined2*)(_pSurface + 7) = uVar3;
+ _pSurface = (int*)((int)_pSurface + 0x1e);
+ break;
+ case (undefined*)0x451736:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ _pSurface[3] = iVar5;
+ _pSurface[4] = iVar5;
+ _pSurface[5] = iVar5;
+ _pSurface[6] = iVar5;
+ _pSurface[7] = iVar5;
+ _pSurface = _pSurface + 8;
+ break;
+ case (undefined*)0x451755:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ _pSurface[3] = iVar5;
+ _pSurface[4] = iVar5;
+ _pSurface[5] = iVar5;
+ _pSurface[6] = iVar5;
+ _pSurface[7] = iVar5;
+ *(undefined2*)(_pSurface + 8) = uVar3;
+ _pSurface = (int*)((int)_pSurface + 0x22);
+ break;
+ case (undefined*)0x451778:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ _pSurface[3] = iVar5;
+ _pSurface[4] = iVar5;
+ _pSurface[5] = iVar5;
+ _pSurface[6] = iVar5;
+ _pSurface[7] = iVar5;
+ _pSurface[8] = iVar5;
+ _pSurface = _pSurface + 9;
+ break;
+ case (undefined*)0x45179a:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ _pSurface[3] = iVar5;
+ _pSurface[4] = iVar5;
+ _pSurface[5] = iVar5;
+ _pSurface[6] = iVar5;
+ _pSurface[7] = iVar5;
+ _pSurface[8] = iVar5;
+ *(undefined2*)(_pSurface + 9) = uVar3;
+ _pSurface = (int*)((int)_pSurface + 0x26);
+ break;
+ case (undefined*)0x4517c0:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ _pSurface[3] = iVar5;
+ _pSurface[4] = iVar5;
+ _pSurface[5] = iVar5;
+ _pSurface[6] = iVar5;
+ _pSurface[7] = iVar5;
+ _pSurface[8] = iVar5;
+ _pSurface[9] = iVar5;
+ _pSurface = _pSurface + 10;
+ break;
+ case (undefined*)0x4517e5:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ _pSurface[3] = iVar5;
+ _pSurface[4] = iVar5;
+ _pSurface[5] = iVar5;
+ _pSurface[6] = iVar5;
+ _pSurface[7] = iVar5;
+ _pSurface[8] = iVar5;
+ _pSurface[9] = iVar5;
+ *(undefined2*)(_pSurface + 10) = uVar3;
+ _pSurface = (int*)((int)_pSurface + 0x2a);
+ break;
+ case (undefined*)0x45180e:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ _pSurface[3] = iVar5;
+ _pSurface[4] = iVar5;
+ _pSurface[5] = iVar5;
+ _pSurface[6] = iVar5;
+ _pSurface[7] = iVar5;
+ _pSurface[8] = iVar5;
+ _pSurface[9] = iVar5;
+ _pSurface[10] = iVar5;
+ _pSurface = _pSurface + 0xb;
+ break;
+ case (undefined*)0x451836:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ _pSurface[3] = iVar5;
+ _pSurface[4] = iVar5;
+ _pSurface[5] = iVar5;
+ _pSurface[6] = iVar5;
+ _pSurface[7] = iVar5;
+ _pSurface[8] = iVar5;
+ _pSurface[9] = iVar5;
+ _pSurface[10] = iVar5;
+ *(undefined2*)(_pSurface + 0xb) = uVar3;
+ _pSurface = (int*)((int)_pSurface + 0x2e);
+ break;
+ case (undefined*)0x451862:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ _pSurface[3] = iVar5;
+ _pSurface[4] = iVar5;
+ _pSurface[5] = iVar5;
+ _pSurface[6] = iVar5;
+ _pSurface[7] = iVar5;
+ _pSurface[8] = iVar5;
+ _pSurface[9] = iVar5;
+ _pSurface[10] = iVar5;
+ _pSurface[0xb] = iVar5;
+ _pSurface = _pSurface + 0xc;
+ break;
+ case (undefined*)0x45188d:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ _pSurface[3] = iVar5;
+ _pSurface[4] = iVar5;
+ _pSurface[5] = iVar5;
+ _pSurface[6] = iVar5;
+ _pSurface[7] = iVar5;
+ _pSurface[8] = iVar5;
+ _pSurface[9] = iVar5;
+ _pSurface[10] = iVar5;
+ _pSurface[0xb] = iVar5;
+ *(undefined2*)(_pSurface + 0xc) = uVar3;
+ _pSurface = (int*)((int)_pSurface + 0x32);
+ break;
+ case (undefined*)0x4518bc:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ _pSurface[3] = iVar5;
+ _pSurface[4] = iVar5;
+ _pSurface[5] = iVar5;
+ _pSurface[6] = iVar5;
+ _pSurface[7] = iVar5;
+ _pSurface[8] = iVar5;
+ _pSurface[9] = iVar5;
+ _pSurface[10] = iVar5;
+ _pSurface[0xb] = iVar5;
+ _pSurface[0xc] = iVar5;
+ _pSurface = _pSurface + 0xd;
+ break;
+ case (undefined*)0x4518ea:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ _pSurface[3] = iVar5;
+ _pSurface[4] = iVar5;
+ _pSurface[5] = iVar5;
+ _pSurface[6] = iVar5;
+ _pSurface[7] = iVar5;
+ _pSurface[8] = iVar5;
+ _pSurface[9] = iVar5;
+ _pSurface[10] = iVar5;
+ _pSurface[0xb] = iVar5;
+ _pSurface[0xc] = iVar5;
+ *(undefined2*)(_pSurface + 0xd) = uVar3;
+ _pSurface = (int*)((int)_pSurface + 0x36);
+ break;
+ case (undefined*)0x45191c:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ _pSurface[3] = iVar5;
+ _pSurface[4] = iVar5;
+ _pSurface[5] = iVar5;
+ _pSurface[6] = iVar5;
+ _pSurface[7] = iVar5;
+ _pSurface[8] = iVar5;
+ _pSurface[9] = iVar5;
+ _pSurface[10] = iVar5;
+ _pSurface[0xb] = iVar5;
+ _pSurface[0xc] = iVar5;
+ _pSurface[0xd] = iVar5;
+ _pSurface = _pSurface + 0xe;
+ break;
+ case (undefined*)0x45194d:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ _pSurface[3] = iVar5;
+ _pSurface[4] = iVar5;
+ _pSurface[5] = iVar5;
+ _pSurface[6] = iVar5;
+ _pSurface[7] = iVar5;
+ _pSurface[8] = iVar5;
+ _pSurface[9] = iVar5;
+ _pSurface[10] = iVar5;
+ _pSurface[0xb] = iVar5;
+ _pSurface[0xc] = iVar5;
+ _pSurface[0xd] = iVar5;
+ *(undefined2*)(_pSurface + 0xe) = uVar3;
+ _pSurface = (int*)((int)_pSurface + 0x3a);
+ break;
+ case (undefined*)0x451982:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ _pSurface[3] = iVar5;
+ _pSurface[4] = iVar5;
+ _pSurface[5] = iVar5;
+ _pSurface[6] = iVar5;
+ _pSurface[7] = iVar5;
+ _pSurface[8] = iVar5;
+ _pSurface[9] = iVar5;
+ _pSurface[10] = iVar5;
+ _pSurface[0xb] = iVar5;
+ _pSurface[0xc] = iVar5;
+ _pSurface[0xd] = iVar5;
+ _pSurface[0xe] = iVar5;
+ _pSurface = _pSurface + 0xf;
+ break;
+ case (undefined*)0x4519b6:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ _pSurface[3] = iVar5;
+ _pSurface[4] = iVar5;
+ _pSurface[5] = iVar5;
+ _pSurface[6] = iVar5;
+ _pSurface[7] = iVar5;
+ _pSurface[8] = iVar5;
+ _pSurface[9] = iVar5;
+ _pSurface[10] = iVar5;
+ _pSurface[0xb] = iVar5;
+ _pSurface[0xc] = iVar5;
+ _pSurface[0xd] = iVar5;
+ _pSurface[0xe] = iVar5;
+ *(undefined2*)(_pSurface + 0xf) = uVar3;
+ _pSurface = (int*)((int)_pSurface + 0x3e);
+ break;
+ case (undefined*)0x4519ee:
+ *_pSurface = iVar5;
+ _pSurface[1] = iVar5;
+ _pSurface[2] = iVar5;
+ _pSurface[3] = iVar5;
+ _pSurface[4] = iVar5;
+ _pSurface[5] = iVar5;
+ _pSurface[6] = iVar5;
+ _pSurface[7] = iVar5;
+ _pSurface[8] = iVar5;
+ _pSurface[9] = iVar5;
+ _pSurface[10] = iVar5;
+ _pSurface[0xb] = iVar5;
+ _pSurface[0xc] = iVar5;
+ _pSurface[0xd] = iVar5;
+ _pSurface[0xe] = iVar5;
+ _pSurface[0xf] = iVar5;
+ _pSurface = _pSurface + 0x10;
+ }
+ }
+ _pSurface = (int*)((int)piVar6 + _line);
+ height = height + -1;
+ imageAddress = _next;
+ piVar6 = _pSurface;
+ } while (0 < height);
+ }
+ }
+ } else {
+ this->currentRenderSurface = DAT_WindowAndDirectDraw.surfacePointer_mapGame;
+ if (((yPosition + height <= this->mapGameSurfaceHeightRange.end)
+ || (height = this->mapGameSurfaceHeightRange.end - yPosition, 0 < height))
+ && (-1 < xPosition)) {
+ if (yPosition < this->mapGameSurfaceHeightRange.start) {
+ iVar5 = this->mapGameSurfaceHeightRange.start - yPosition;
+ if (height <= iVar5) {
+ this->currentRenderSurface = DAT_WindowAndDirectDraw.surfacePointer_mapGame;
+ return;
+ }
+ height = height - iVar5;
+ do {
+ while (true) {
+ while (true) {
+ do {
+ _pBuffer = imageAddress;
+ _op = *_pBuffer & 0xe0;
+ imageAddress = _pBuffer + 1;
+ } while (_op == 0x20);
+ if (_op != 0)
+ break;
+ imageAddress = imageAddress + (*_pBuffer & 0xffffff1f) + 1;
+ }
+ if (_op != 0x40)
+ break;
+ imageAddress = _pBuffer + 2;
+ }
+ iVar5 = iVar5 + -1;
+ yPosition = this->mapGameSurfaceHeightRange.start;
+ } while (0 < iVar5);
+ }
+ iVar5 = (int)DAT_WindowAndDirectDraw.surfacePointer_mapGame
+ + ((uint)yPosition >> 1) * 0x1fb0 + (xPosition & 0xfffffffeU);
+ _nPixels = xPosition & 1U;
+ do {
+ while (true) {
+ while (true) {
+ while (true) {
+ uStack_24 = _nPixels;
+ _op = *imageAddress & 0xe0;
+ _nPixels = *imageAddress & 0xffffff1f;
+ _pBuffer = imageAddress + 1;
+ if (_op != 0x20)
+ break;
+ imageAddress = _pBuffer;
+ _nPixels = uStack_24 + _nPixels + 1;
+ }
+ if (_op != 0)
+ break;
+ iVar4 = _nPixels + 1;
+ _nPixels = uStack_24 + iVar4;
+ do {
+ if ((uStack_24 & 1) == 0) {
+ *(undefined2*)(iVar5 + uStack_24)
+ = *(undefined2*)(_palette + (uint)*_pBuffer * 2);
+ }
+ _pBuffer = _pBuffer + 1;
+ uStack_24 = uStack_24 + 1;
+ iVar4 = iVar4 + -1;
+ imageAddress = _pBuffer;
+ } while (iVar4 != 0);
+ }
+ if (_op != 0x40)
+ break;
+ uVar3 = *(undefined2*)(_palette + (uint)*_pBuffer * 2);
+ imageAddress = imageAddress + 2;
+ iVar4 = _nPixels + 1;
+ _nPixels = uStack_24 + iVar4;
+ do {
+ if ((uStack_24 & 1) == 0) {
+ *(undefined2*)(iVar5 + uStack_24) = uVar3;
+ }
+ uStack_24 = uStack_24 + 1;
+ iVar4 = iVar4 + -1;
+ } while (iVar4 != 0);
+ }
+ iVar5 = iVar5 + 0x1fb0;
+ if (height + -1 < 1) {
+ return;
+ }
+ while (true) {
+ while (true) {
+ do {
+ _pBufCurrent = _pBuffer;
+ _op = *_pBufCurrent & 0xe0;
+ _pBuffer = _pBufCurrent + 1;
+ } while (_op == 0x20);
+ if (_op != 0)
+ break;
+ _pBuffer = _pBuffer + (*_pBufCurrent & 0xffffff1f) + 1;
+ }
+ if (_op != 0x40)
+ break;
+ _pBuffer = _pBufCurrent + 2;
+ }
+ height = height + -2;
+ imageAddress = _pBuffer;
+ _nPixels = xPosition & 1U;
+ } while (0 < height);
+ }
+ }
+ }
+ return;
+ }
+ }
+}
+}
+

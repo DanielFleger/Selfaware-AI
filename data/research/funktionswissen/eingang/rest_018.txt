@@ -1,0 +1,1759 @@
+### 0x004708f0 reinitWindow | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004708F0
+ void WindowAndDirectDraw::reinitWindow()
+ {
+ HWND__* hWnd;
+ HWND__* _currentForegroundWindow;
+ int yBottom;
+ int xRight;
+ hWnd = this->windowHandle;
+ _currentForegroundWindow = GetForegroundWindow();
+ if (_currentForegroundWindow == hWnd) {
+ this->isNotProcessingInputEvents = FALSE;
+ if (this->runGameAsExclusiveFullscreen != FALSE) {
+ prepareWindowAndDDrawUnk();
+ yBottom = MACRO_CALL(GetSystemMetrics)(SM_CYSCREEN);
+ xRight = MACRO_CALL(GetSystemMetrics)(SM_CXSCREEN);
+ SetRect(&this->clientOnScreenCoords, 0, 0, xRight, yBottom);
+ SetFocus(this->windowHandle);
+ return;
+ }
+ GetClientRect(hWnd, &this->clientOnScreenCoords);
+ MACRO_CALL(ClientToScreen)(
+ this->windowHandle, (LPPOINT)((int)((tagPOINT*)&this->clientOnScreenCoords)));
+ MACRO_CALL(ClientToScreen)(
+ this->windowHandle, (LPPOINT)((int)((tagPOINT*)&this->clientOnScreenCoords.right)));
+ UpdateWindow(this->windowHandle);
+ SetFocus(this->windowHandle);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x004729b0 prepareWindowAndDDraw_2Unk | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004729B0
+ void WindowAndDirectDraw::prepareWindowAndDDraw_2Unk(
+ BOOLEnum runAsExclusiveFullscreen, ScreenResolutionEnum resEnum)
+ {
+ dword dVar1;
+ dVar1 = this->mbr_0xd0;
+ if (this->drawingReady_0x0 != FALSE) {
+ this->mbr_0xd0 = 0;
+ fillMemory_ByteValue(
+ this->byteSizeofScreenResolution, '\0', (void*)((int)(this->surfacePointer_screenMenu)));
+ renderBltAndFlip(1);
+ }
+ this->mbr_0xd0 = dVar1;
+ releaseSurfacesAndDirectDraw(
+ TRUE);
+ this->runGameAsExclusiveFullscreen = runAsExclusiveFullscreen;
+ this->currentGameResolution = resEnum;
+ getDeviceCapsAndSetup();
+ setupPreferredScreenResolution();
+ setWindowStyleRectAndPosition();
+ this->drawingReady_0x0
+ = initializeDirectDraw();
+ do {
+ if (this->drawingReady_0x0 != FALSE) {
+ LAB_00472a5f:
+ this->unk_resetViewportRelated = 2;
+ this->field37_0xdc = 1;
+ stopBinkPlayback(0);
+ stopBinkPlayback(1);
+ return;
+ }
+ if (this->currentGameResolution == SRE_800x600) {
+ this->postWindowCloseMessage = 1;
+ goto LAB_00472a5f;
+ }
+ this->currentGameResolution = SRE_800x600;
+ getDeviceCapsAndSetup();
+ setupPreferredScreenResolution();
+ setWindowStyleRectAndPosition();
+ this->drawingReady_0x0
+ = initializeDirectDraw();
+ } while (true);
+ }
+ }
+}
+}
+
+### 0x00479540 takeScreenshot | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x00479540
+ void WindowAndDirectDraw::takeScreenshot(int param_1)
+ {
+ char cVar1;
+ uint uVar2;
+ StringObject* pSVar3;
+ CharPointerArrayUnion* pCVar4;
+ uint uVar5;
+ char* pcVar6;
+ char* pcVar7;
+ ushort* _ptrPixelData;
+ int _xIndex;
+ int* unaff_FS_OFFSET;
+ int _heightIndex;
+ dword* _ios_base_child_PtrUnk;
+ undefined1* local_8c4;
+ uint local_8c0;
+ BITMAPFILEHEADER _ptrBmpFileHeader;
+ basic_ofstream<char, struct std::char_traits<char>> _ofstream;
+ BITMAPINFOHEADER _ptrBitmapInfoHeader;
+ StringObject local_7fc;
+ char local_7e0[18];
+ char local_7ce[982];
+ char local_3f8[1000];
+ uint local_10;
+ int local_c;
+ code* pcStack_8;
+ int local_4;
+ ushort _pixelData;
+ int _width;
+ local_4 = -1;
+ pcStack_8 = HoldStrong_lib::EH_FUN_00599fb4::instance;
+ local_c = *unaff_FS_OFFSET;
+ local_10 = MSVC_SecurityCookie::instance ^ (uint)&_heightIndex;
+ uVar2 = MSVC_SecurityCookie::instance ^ (uint)&stack0xfffff724;
+ *unaff_FS_OFFSET = (int)&local_c;
+ pSVar3 = paths_getDocumentsFolderString(&local_7fc, true);
+ if (pSVar3->dataLength < 0x10) {
+ pCVar4 = &pSVar3->data;
+ } else {
+ pCVar4 = (CharPointerArrayUnion*)(pSVar3->data).pCharArray;
+ }
+ pcVar6 = local_7e0;
+ do {
+ cVar1 = pCVar4->charArray[0];
+ *pcVar6 = cVar1;
+ pCVar4 = (CharPointerArrayUnion*)((int)pCVar4 + 1);
+ pcVar6 = pcVar6 + 1;
+ } while (cVar1 != '\0');
+ if (0xf < local_7fc.dataLength) {
+ _free(local_7fc.data.pCharArray);
+ }
+ if (param_1 == -1) {
+ pcVar6 = (char*)((int)&local_7fc.dataLength + 3);
+ do {
+ pcVar7 = pcVar6;
+ pcVar6 = pcVar7 + 1;
+ } while (pcVar7[1] != '\0');
+ builtin_strncpy(pcVar7 + 1, "screen_capture.bmp", 0x13);
+ } else {
+ _sprintf(local_3f8, "screen_capture_%03d.bmp", param_1, uVar2);
+ pcVar6 = local_3f8;
+ do {
+ cVar1 = *pcVar6;
+ pcVar6 = pcVar6 + 1;
+ } while (cVar1 != '\0');
+ uVar2 = (int)pcVar6 - (int)local_3f8;
+ pcVar6 = (char*)((int)&local_7fc.dataLength + 3);
+ do {
+ pcVar7 = pcVar6 + 1;
+ pcVar6 = pcVar6 + 1;
+ } while (*pcVar7 != '\0');
+ pcVar7 = local_3f8;
+ for (uVar5 = uVar2 >> 2; uVar5 != 0; uVar5 = uVar5 - 1) {
+ *(undefined4*)pcVar6 = *(undefined4*)pcVar7;
+ pcVar7 = pcVar7 + 4;
+ pcVar6 = pcVar6 + 4;
+ }
+ for (uVar2 = uVar2 & 3; uVar2 != 0; uVar2 = uVar2 - 1) {
+ *pcVar6 = *pcVar7;
+ pcVar7 = pcVar7 + 1;
+ pcVar6 = pcVar6 + 1;
+ }
+ }
+MACRO_CALL_MEMBER(HoldStrong_lib::std::basic_ofstream<char,_struct_std::char_traits<char>_>_Func::basic_ofstream<char,_struct_std::char_traits<char>_>, ()()basic_ofstream<char,_struct_std::char_traits<char>_> *)&_ofstream,local_7e0,0x20,0x40,
+1);
+local_4 = 0;
+if (((&_ofstream.field_0x8)[(int)_ofstream.vftptr_0x0[1].~basic_ofstream<char, _struct_std::char_traits<char> _> _0]
+ & 6)
+ == 0) {
+ bltMapGameSurfaceToScreenMenuSurfaceComplete();
+ fillMemory_ByteValue(
+ 14, '\0', &_ptrBmpFileHeader);
+ copyData(2, "BM", &_ptrBmpFileHeader);
+ _ptrBmpFileHeader.bfSize = this->numPixel_GameX_x_3_x_GameY_0x4c + 54;
+ _ptrBmpFileHeader.bfOffBits = 54;
+ uVar2 = 0;
+ do {
+ basic_ofstream_write(
+ &_ofstream, (uint) * (byte*)((int)&_ptrBmpFileHeader.bfType + uVar2));
+ uVar2 = uVar2 + 1;
+ } while (uVar2 < 0xe);
+ fillMemory_ByteValue(
+ 40, '\0', &_ptrBitmapInfoHeader);
+ _ptrBitmapInfoHeader.biSize = 40;
+ _ptrBitmapInfoHeader.biPlanes = 1;
+ _ptrBitmapInfoHeader.biBitCount = 24;
+ _ptrBitmapInfoHeader.biWidth = this->resolutionX;
+ _ptrBitmapInfoHeader.biHeight = this->resolutionY;
+ _ptrBitmapInfoHeader.biCompression = 0;
+ _ptrBitmapInfoHeader.biSizeImage = this->numPixel_GameX_x_3_x_GameY_0x4c;
+ uVar2 = 0;
+ do {
+ basic_ofstream_write(
+ &_ofstream, (uint) * (byte*)((int)&_ptrBitmapInfoHeader.biSize + uVar2));
+ uVar2 = uVar2 + 1;
+ _width = this->resolutionX;
+ _heightIndex = this->resolutionY;
+ } while (uVar2 < 40);
+ while (_heightIndex = _heightIndex + -1, -1 < _heightIndex) {
+ _xIndex = 0;
+ _ptrPixelData = this->surfacePointer_screenMenu + _width * _heightIndex;
+ if (0 < _width) {
+ do {
+ _pixelData = *_ptrPixelData;
+ local_8c0 = CONCAT31(local_8c0._1_3_, (char)_pixelData << 3);
+ _ptrPixelData = _ptrPixelData + 1;
+ basic_ofstream_write(&_ofstream, local_8c0);
+ local_8c4 = (undefined1*)CONCAT31(local_8c4._1_3_, (char)((int)(uint)_pixelData >> 5) * '\x04');
+ basic_ofstream_write(&_ofstream, (uint)((int)(local_8c4)));
+ _ios_base_child_PtrUnk
+ = (dword*)CONCAT31(_ios_base_child_PtrUnk._1_3_, (char)((short)_pixelData >> 0xb) << 3);
+ basic_ofstream_write(&_ofstream, (uint)((int)(_ios_base_child_PtrUnk)));
+ _xIndex = _xIndex + 1;
+ _width = this->resolutionX;
+ } while (_xIndex < this->resolutionX);
+ }
+ }
+ _ios_base_child_PtrUnk = &_ofstream.mbr_0x54;
+ *(undefined***)(_ofstream.vftptr_0x0[1].~basic_ofstream<char, _struct_std::char_traits<char> _> _0
+ + (int)&_ofstream.vftptr_0x0) = std::basic_ofstream<char, struct_std::char_traits<char> _>::vftable::instance;
+ local_8c4 = &_ofstream.field_0x4;
+ _ofstream._4_4_ = std::basic_filebuf<char, struct_std::char_traits<char> _>::vftable::instance;
+ local_4 = 2;
+ if (_ofstream._76_1_ != '\0') {
+ if (_ofstream._80_4_ != 0) {
+MACRO_CALL_MEMBER(HoldStrong_lib::stdLib::ios::basic_streambuf<char,_struct_std::char_traits<char>_>_Func::meth_0x476680, ()()basic_streambuf<char,_struct_std::char_traits<char>_> *)local_8c4);
+_fclose((FILE*)_ofstream._80_4_);
+ }
+ _ofstream._20_4_ = &_ofstream.field_0xc;
+ _ofstream._24_4_ = &_ofstream.field_0x10;
+ _ofstream._36_4_ = &_ofstream.field_0x1c;
+ _ofstream._40_4_ = &_ofstream.field_0x20;
+ _ofstream._52_4_ = &_ofstream.field_0x2c;
+ _ofstream._56_4_ = &_ofstream.field_0x30;
+ _ofstream._76_1_ = 0;
+ _ofstream._69_1_ = 0;
+ _ofstream._16_4_ = 0;
+ _ofstream._32_4_ = 0;
+ _ofstream._48_4_ = 0;
+ _ofstream._12_4_ = 0;
+ _ofstream._28_4_ = 0;
+ _ofstream._44_4_ = 0;
+ _ofstream._80_4_ = 0;
+ _ofstream._72_4_ = LIB_00df37e0::instance;
+ _ofstream._64_4_ = 0;
+ }
+ local_4 = CONCAT31(local_4._1_3_, 1);
+MACRO_CALL_MEMBER(HoldStrong_lib::stdLib::ios::basic_streambuf<char,_struct_std::char_traits<char>_>_Func::meth_0x472680, ()()basic_streambuf<char,_struct_std::char_traits<char>_> *)&_ofstream.field_0x4);
+local_4 = -1;
+*(undefined***)(_ofstream.vftptr_0x0[1].~basic_ofstream<char, _struct_std::char_traits<char> _> _0
+ + (int)&_ofstream.vftptr_0x0) = std::basic_ostream<char, struct_std::char_traits<char> _>::vftable::instance;
+} else {
+ local_4 = -1;
+MACRO_CALL_MEMBER(HoldStrong_lib::std::basic_ofstream<char,_struct_std::char_traits<char>_>_Func::meth_0x478920, ()()basic_ofstream<char,_struct_std::char_traits<char>_> *)&_ofstream.mbr_0x54);
+}
+_ofstream.mbr_0x54 = (dword)std::ios_base::vftable::instance;
+MACRO_CALL_MEMBER(HoldStrong_lib::stdLib::ios::ios_base_Func::_Ios_base_dtor, ()()ios_base *)&_ofstream.mbr_0x54);
+*unaff_FS_OFFSET = local_c;
+;
+return;
+ }
+ }
+}
+}
+
+### 0x00424770 MenuView_IntroLogos_DoInitial | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00424770
+ void MenuView_IntroLogos_DoInitial()
+ {
+ int const y = DAT_WindowAndDirectDraw.mainMenuBorderHeight;
+ int const x = DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ Menu* const menu = DAT_MenuHandlerState.currentMenu;
+ menu->xPosition = x;
+ menu->yPosition = y;
+ DAT_MenuHandlerState.x = x;
+ DAT_MenuHandlerState.y = y;
+ DAT_IntroTimestamp = timeGetTime();
+ }
+ }
+ }
+}
+}
+
+### 0x004266a0 MenuView_UnusedDemoBuyItScreen_DoEveryFrame | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004266A0
+ void MenuView_UnusedDemoBuyItScreen_DoEveryFrame()
+ {
+ drawGfxOnFlaggedSurface(0,
+ (DAT_WindowAndDirectDraw.resolutionX
+ - DAT_TextureRenderCoreObject.loadedGfxArray[0].width)
+ / 2
+ + INT_00b960e0::instance,
+ (DAT_WindowAndDirectDraw.resolutionY
+ - DAT_TextureRenderCoreObject.loadedGfxArray[0].height)
+ / 2);
+ }
+ }
+ }
+}
+}
+
+### 0x00426f80 MenuView_UnusedSomeMissionStartUnk_Prepare | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00426F80
+ void MenuView_UnusedSomeMissionStartUnk_Prepare()
+ {
+ DAT_GameCore.currentlyInGameUnk_0xa4 = FALSE;
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile(s_multi_background_tgx_005a211c);
+ loadGfxFile(s_gm_fly_tgx_005a2110);
+ LoadTGX_shc_back();
+ }
+ }
+ }
+}
+}
+
+### 0x004271e0 MenuView_General_DoEveryFrame_FirstGfxCentered | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004271E0
+ void MenuView_General_DoEveryFrame_FirstGfxCentered()
+ {
+ drawGfxOnFlaggedSurface(0,
+ (DAT_WindowAndDirectDraw.resolutionX
+ - DAT_TextureRenderCoreObject.loadedGfxArray[0].width)
+ / 2,
+ (DAT_WindowAndDirectDraw.resolutionY
+ - DAT_TextureRenderCoreObject.loadedGfxArray[0].height)
+ / 2);
+ }
+ }
+ }
+}
+}
+
+### 0x0042ac40 MenuItemRenderFunction_LobbyMenu_Unknown | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0042AC40
+ void MenuItemRenderFunction_LobbyMenu_Unknown(int textID, ...)
+ {
+ if (DAT_MenuModalComposition1.activeModalDialogID == MMT_NONE) {
+ renderCurrentlyDisplayedTextConstructionCost(textID);
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0042bb70 MenuView_General_Prepare_SwordShieldAndBorder | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0042BB70
+ void MenuView_General_Prepare_SwordShieldAndBorder()
+ {
+ DAT_GameSynchronyState.field224_0x106ee4 = 0;
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile(s_frontend_combat3_tgx_005a2134);
+ LoadTGX_shc_back();
+ }
+ }
+ }
+}
+}
+
+### 0x0042c060 MenuItemRenderFunction_SelectCrusade_Main | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0042C060
+ void MenuItemRenderFunction_SelectCrusade_Main(int skirmishType, ...)
+ {
+ if (skirmishType == -1) {
+ DAT_HighlightedSkirmishType = 0;
+ }
+ if (DAT_ButtonCurrentlyInteracting != FALSE) {
+ DAT_HighlightedSkirmishType = skirmishType;
+ }
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ }
+ }
+ }
+}
+}
+
+### 0x0042efe0 MenuView_NewMapMaptype_Prepare | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0042EFE0
+ void MenuView_NewMapMaptype_Prepare()
+ {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile(s_frontend_builder_tgx_005a2084);
+ LoadTGX_shc_back();
+ DAT_GameCore.mapU3EndInt = 0;
+ }
+ }
+ }
+}
+}
+
+### 0x0042f3d0 MenuView_NewMapMapsize_Prepare | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0042F3D0
+ void MenuView_NewMapMapsize_Prepare()
+ {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile(s_frontend_builder2_tgx_005a206c);
+ LoadTGX_shc_back();
+ }
+ }
+ }
+}
+}
+
+### 0x0042faa0 MenuView_UnusedChooseAvailableKeeps_Prepare | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0042FAA0
+ void MenuView_UnusedChooseAvailableKeeps_Prepare()
+ {
+ DAT_GameCore.mapU2MiddleBytes[0] = 1;
+ DAT_GameCore.mapU2MiddleBytes[1] = 1;
+ DAT_GameCore.mapU2MiddleBytes[2] = 1;
+ DAT_GameCore.mapU2MiddleBytes[3] = 1;
+ DAT_GameCore.mapU2MiddleBytes[4] = 1;
+ }
+ }
+ }
+}
+}
+
+### 0x00430cc0 MenuView_MapEditorLandscaping_Prepare | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00430CC0
+ void MenuView_MapEditorLandscaping_Prepare()
+ {
+ DAT_WindowAndDirectDraw.pendingMenuRedraw = 1;
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_PEOPLE_LEFT_TO_PLACE, 0);
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_PLAYER_INFO_ON_HOVER, 1);
+ }
+ }
+ }
+}
+}
+
+### 0x00433200 MenuItemActionHandler_BuildMenu_SomeKeepAndGranaryCheckUnk | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00433200
+ void MenuItemActionHandler_BuildMenu_SomeKeepAndGranaryCheckUnk(int param_1, ...)
+ {
+ if (DAT_GameCore.activeMenuTab.buildMenuTab != (BuildMenuTabType)0x31) {
+ return;
+ }
+ if (singlePlayerHasKeepAndGranaryCheck()
+ > 0) {
+ DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType = BASMTT_HUNTERSHUT;
+ switchToMenuView(
+ MVT_BUILD_MENU, 0);
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x00433230 MenuItemActionHandler_InGameMenu_UnknownBinkRelated | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00433230
+ void MenuItemActionHandler_InGameMenu_UnknownBinkRelated(int param_1, ...)
+ {
+ if (DAT_GameCore.isBinkVideoPlaying == 0) {
+ return;
+ }
+ if (DAT_BinkControlState.binkObjPtrArray[1] == NULL) {
+ DAT_GameCore.isBinkVideoPlaying = 0;
+ }
+ DAT_GameCore.countdown = 1;
+ }
+ }
+ }
+}
+}
+
+### 0x00434230 MenuItemRenderFunction_BuildMenu_BuildingKeepSubcategoryButton | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00434230
+ void MenuItemRenderFunction_BuildMenu_BuildingKeepSubcategoryButton(int param_1, ...)
+ {
+ if (DAT_GameCore.gameMode_2 != GM_EDITOR
+ && DAT_GameCore.gameMode_2 != GM_SIEGE_THAT) {
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ DAT_ButtonUnknownZero = 0;
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ }
+ }
+ }
+}
+}
+
+### 0x00434260 MenuItemActionHandler_General_Unknown2 | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00434260
+ void MenuItemActionHandler_General_Unknown2(int param_1, ...)
+ {
+ DAT_GameCore.field12_0x30 = param_1;
+ }
+ }
+ }
+}
+}
+
+### 0x00439390 MenuItemRenderFunction_BuildMenu_CurrentlySelectedTroopsDeselectHelper | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00439390
+ void MenuItemRenderFunction_BuildMenu_CurrentlySelectedTroopsDeselectHelper(
+ UnitSelectionEnumInt selectionIndex, ...)
+ {
+ if (DAT_UnitsState.nHasOwnedUnitInSelection == 0) {
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ DAT_ButtonUnknownZero = 0;
+ if (DAT_UnitsState.selectionUnitType[selectionIndex] == -1) {
+ DAT_ButtonUnknownZero = 1;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x00439890 MenuItemActionHandler_BuildingAndStatusMenu_StopBuildingOrPeasantBinkPlayback | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00439890
+ void MenuItemActionHandler_BuildingAndStatusMenu_StopBuildingOrPeasantBinkPlayback()
+ {
+ if (DAT_BuildingsState.DAT_IsBuildingOrPeasantBinkPlaying != FALSE) {
+ DAT_BuildingsState.DAT_IsBuildingOrPeasantBinkPlaying = FALSE;
+ stopBinkPlayback(0);
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0043a850 MenuItemActionHandler_BuildingAndStatusMenu_Unknown_Countdown | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043A850
+ void MenuItemActionHandler_BuildingAndStatusMenu_Unknown_Countdown()
+ {
+ DAT_GameCore.countdown = 1;
+ }
+ }
+ }
+}
+}
+
+### 0x0043a860 MenuItemActionHandler_BuildingAndStatusMenu_BuildingHelpTextButton | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043A860
+ void MenuItemActionHandler_BuildingAndStatusMenu_BuildingHelpTextButton()
+ {
+ if (DAT_BuildingsState.field24_0x18e04c != 0) {
+ openBuildingHelpDialog(DAT_BuildingsState.field25_0x18e050);
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0043a880 MenuItemRenderFunction_BuildingAndStatusMenu_BuildingHelpTextButton | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043A880
+ void MenuItemRenderFunction_BuildingAndStatusMenu_BuildingHelpTextButton(int param_1, ...)
+ {
+ DAT_ButtonUnknownZero = 0;
+ if (DAT_GameCore.activeMenuTab.tabType == BASMTT_BARRACKS_OR_MPMENU_MODEM
+ || DAT_GameCore.activeMenuTab.tabType == BASMTT_MERCENARYPOST) {
+ DAT_ButtonUnknownZero = 1;
+ return;
+ }
+ if (DAT_BuildingsState.field24_0x18e04c != 0) {
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0043a8c0 MenuItemRenderFunction_BuildingAndStatusMenu_BarracksAndMercenaryPostHelpText | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043A8C0
+ void MenuItemRenderFunction_BuildingAndStatusMenu_BarracksAndMercenaryPostHelpText(int param_1, ...)
+ {
+ if (DAT_BuildingsState.field24_0x18e04c != 0) {
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0043a8d0 RenderBuildingMenu_RecruitingBuilding | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043A8D0
+ void RenderBuildingMenu_RecruitingBuilding()
+ {
+ createEntityForAssemblyPointsForActiveTabType();
+ }
+ }
+}
+}
+
+### 0x0043f2b0 MenuItemActionHandler_BuildingAndStatusMenu_PopularityMenuSwitchButtonUnk | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043F2B0
+ void MenuItemActionHandler_BuildingAndStatusMenu_PopularityMenuSwitchButtonUnk()
+ {
+ DAT_GameCore.popularityMessagePage ^= 1;
+ }
+ }
+ }
+}
+}
+
+### 0x0043f2c0 MenuItemRenderFunction_BuildingAndStatusMenu_PopularityMenuSwitchButton | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043F2C0
+ void MenuItemRenderFunction_BuildingAndStatusMenu_PopularityMenuSwitchButton(int param_1, ...)
+ {
+ if (DAT_GameCore.popularityMessagePageCount == 1) {
+ return;
+ }
+ if (DAT_GameCore.popularityMessagePage == 1) {
+ DAT_CurrentButtonGmDataIndex = 0x73;
+ }
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ }
+ }
+ }
+}
+}
+
+### 0x0043fc80 MenuItemActionHandler_BuildingAndStatusMenu_ArmySwitchButton | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043FC80
+ void MenuItemActionHandler_BuildingAndStatusMenu_ArmySwitchButton()
+ {
+ DAT_00b95b68 += 1;
+ if ((int)DAT_00b95b68 > 2) {
+ DAT_00b95b68 = 0;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0043fca0 MenuItemRenderFunction_BuildingAndStatusMenu_ArmyStatusSwitchButton | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043FCA0
+ void MenuItemRenderFunction_BuildingAndStatusMenu_ArmyStatusSwitchButton()
+ {
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ }
+ }
+ }
+}
+}
+
+### 0x004403d0 MenuView_UnusedHelpTextEditor_Prepare | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004403D0
+ void MenuView_UnusedHelpTextEditor_Prepare()
+ {
+ int const y = DAT_WindowAndDirectDraw.mainMenuBorderHeight;
+ int const x = DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ Menu* const menu = DAT_MenuHandlerState.currentMenu;
+ menu->xPosition = x;
+ menu->yPosition = y;
+ DAT_MenuHandlerState.y = y;
+ DAT_MenuHandlerState.x = x;
+ bltTextToScreenIfNeedBe();
+ }
+ }
+ }
+}
+}
+
+### 0x00440400 MenuView_UnusedHelpTextEditor_DoEveryFrame | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00440400
+ void MenuView_UnusedHelpTextEditor_DoEveryFrame()
+ {
+ renderHelpDialogIfOpen();
+ }
+ }
+ }
+}
+}
+
+### 0x00440410 MenuItemFunction_General_Unknown | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00440410
+ void MenuItemFunction_General_Unknown(int param_1, ...) { DAT_StopHandlingMenuItems = 0; }
+ }
+ }
+}
+}
+
+### 0x00440420 MenuItemActionHandler_UnusedOldTitleMenu_General | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00440420
+ void MenuItemActionHandler_UnusedOldTitleMenu_General(int param_1, ...)
+ {
+ DAT_WindowAndDirectDraw.postWindowCloseMessage = 1;
+ }
+ }
+ }
+}
+}
+
+### 0x0045f120 MenuItemRenderFunction_DisplayScenarioHelpText_AnotherButtonUnk | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045F120
+ void MenuItemRenderFunction_DisplayScenarioHelpText_AnotherButtonUnk(int param_1, ...)
+ {
+ if (DAT_TextEditorState.helpSectionHistoryStack[0] != -1) {
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x004649c0 MenuItemActionHandler_BuildingAndStatusMenu_Unknown_Min1 | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004649C0
+ void MenuItemActionHandler_BuildingAndStatusMenu_Unknown_Min1() { DAT_00df3350 = 0xffffffff; }
+ }
+ }
+}
+}
+
+### 0x00464d90 MenuItemActionHandler_BuildingAndStatusMenu_UnknownMin1Unk | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00464D90
+ void MenuItemActionHandler_BuildingAndStatusMenu_UnknownMin1Unk() { INT_00df335c::instance = -1; }
+ }
+ }
+}
+}
+
+### 0x00465920 MenuItemActionHandler_BuildingAndStatusMenu_MarketMenuChangeButtons | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00465920
+ void MenuItemActionHandler_BuildingAndStatusMenu_MarketMenuChangeButtons(int tabType, ...)
+ {
+ DAT_GameCore.buildingandstatusmenuMenuTabToSwitchTo = tabType;
+ switchToMenuView(
+ MVT_BUILDING_AND_STATUS_MENU, 0);
+ DAT_GameCore.field61_0x100 = tabType;
+ }
+ }
+ }
+}
+}
+
+### 0x004660b0 MenuItemActionHandler_BuildingAndStatusMenu_BuildingSleep | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004660B0
+ void MenuItemActionHandler_BuildingAndStatusMenu_BuildingSleep()
+ {
+ if (DAT_GameCore.gameMode_2 == GM_CRUSADER_TUTORIAL) {
+ SetTutorialHintActiveWithTimestamp();
+ return;
+ }
+ DAT_GameSynchronyState.DAT_GameCommandParam0
+ = DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .buildingType;
+ queueCommand(GCT_BUILDING_SLEEP);
+ }
+ }
+ }
+}
+}
+
+### 0x00466710 MenuItemActionHandler_BuildingAndStatusMenu_OutpostUnitSelection | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00466710
+ void MenuItemActionHandler_BuildingAndStatusMenu_OutpostUnitSelection(int bitIndex, ...)
+ {
+ // Toggle the bit selected by the menu action in the currently selected
+ // building's outpost unit-selection mask.
+ DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .outpostRelatedUnk1 ^= (ushort)(1 << bitIndex);
+ }
+ }
+ }
+}
+}
+
+### 0x004668f0 MenuItemRenderFunction_BuildMenu_BuildingIcons | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004668F0
+ void MenuItemRenderFunction_BuildMenu_BuildingIcons(int mapper, ...)
+ {
+ if (isMapperAvailable((MappersEnum)mapper)
+ != FALSE) {
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ DAT_ButtonUnknownZero = 0;
+ return;
+ }
+ DAT_ButtonUnknownZero = 1;
+ }
+ }
+ }
+}
+}
+
+### 0x00466920 MenuItemRenderFunction_BuildMenu_BuildingSubcategoryButton | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00466920
+ void MenuItemRenderFunction_BuildMenu_BuildingSubcategoryButton(int buildingType, ...)
+ {
+ if (isMercRecruitableForBuildingType(buildingType)
+ != 0) {
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ DAT_ButtonUnknownZero = 0;
+ return;
+ }
+ DAT_ButtonUnknownZero = 1;
+ }
+ }
+ }
+}
+}
+
+### 0x0047d0e0 MenuItemActionHandler_ChooseNetworkServiceProvider_ModemTableRows | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0047D0E0
+ void MenuItemActionHandler_ChooseNetworkServiceProvider_ModemTableRows(int row, ...)
+ {
+ if (DAT_GameSynchronyState.modemScrollBarOffset + row
+ < DAT_GameSynchronyState.modemScrollbarCount) {
+ DAT_GameSynchronyState.modemScrollbarIndex = row;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0047d3f0 MenuItemActionHandler_FindingNetworkSessions_TableRows | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0047D3F0
+ void MenuItemActionHandler_FindingNetworkSessions_TableRows(int row, ...)
+ {
+ if (DAT_GameSynchronyState.scrollBarItemOffset + row
+ < DAT_GameSynchronyState.DPLAY_SessionsCount) {
+ DAT_GameSynchronyState.scrollBarIndex = row;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0047ffa0 MenuItemActionHandler_Chat_SendMessageToPlayer | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0047FFA0
+ void MenuItemActionHandler_Chat_SendMessageToPlayer(int receiver, ...)
+ {
+ if (receiver < 0) {
+ unsigned int const playerID = -receiver;
+ DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[playerID] ^= 1;
+ }
+ DAT_GameSynchronyState
+ .DAT_ChatMessageReceiverArray[DAT_GameSynchronyState.currentPlayerSlotID] = 1;
+ }
+ }
+ }
+}
+}
+
+### 0x0048bf70 MenuItemActionHandler_FindingNetworkSessions_EnumerateDPlaySessions | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0048BF70
+ void MenuItemActionHandler_FindingNetworkSessions_EnumerateDPlaySessions(int param_1, ...)
+ {
+ restartDPlaySessionEnumeration(param_1);
+ }
+ }
+ }
+}
+}
+
+### 0x0048f850 MenuItemActionHandler_Chat_TauntButtons | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0048F850
+ void MenuItemActionHandler_Chat_TauntButtons(int tauntOrMessage, ...)
+ {
+ DAT_GameSynchronyState.DAT_ChatTauntOrMessage = tauntOrMessage;
+ queueCommand(GCT_TAUNT_OR_CHAT);
+ }
+ }
+ }
+}
+}
+
+### 0x00491810 MenuModalRenderFunction_OptionsMenu | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00491810
+ void MenuModalRenderFunction_OptionsMenu(int x, int y, int width, int height)
+ {
+ drawHeaderTextBanner(0x4a, 1, x, y, width, height);
+ }
+ }
+ }
+}
+}
+
+### 0x00491bf0 MenuModalRenderFunction_EnterTitleOnGameStart | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00491BF0
+ void MenuModalRenderFunction_EnterTitleOnGameStart(int x, int y, int width, int height)
+ {
+ drawHeaderTextBanner(5, 6, x, y, width, height);
+ }
+ }
+ }
+}
+}
+
+### 0x00491c20 MenuItemActionHandler_EnterTitleOnGameStart_Button | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00491C20
+ void MenuItemActionHandler_EnterTitleOnGameStart_Button(int param_1, ...)
+ {
+ activateModalDialog(MMT_NONE, FALSE);
+ resetToTextIndex(
+ 9);
+ switchToMenuView(
+ MVT_MAIN_MENU, 0);
+ }
+ }
+ }
+}
+}
+
+### 0x00491e80 MenuModalRenderFunction_GameplayOptions | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00491E80
+ void MenuModalRenderFunction_GameplayOptions(int x, int y, int width, int height)
+ {
+ drawHeaderTextBanner(0x4a, 0x19, x, y, width, height);
+ }
+ }
+ }
+}
+}
+
+### 0x00492660 MenuModalRenderFunction_SoundOptions | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00492660
+ void MenuModalRenderFunction_SoundOptions(int x, int y, int width, int height)
+ {
+ drawHeaderTextBanner(0x4a, 5, x, y, width, height);
+ }
+ }
+ }
+}
+}
+
+### 0x00492a60 MenuModalRenderFunction_NetworkOptions | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00492A60
+ void MenuModalRenderFunction_NetworkOptions(int x, int y, int width, int height)
+ {
+ drawHeaderTextBanner(0x4a, 6, x, y, width, height);
+ }
+ }
+ }
+}
+}
+
+### 0x00492c60 MenuItemRenderFunction_SaveLoadMap_Scrollbar | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00492C60
+ void MenuItemRenderFunction_SaveLoadMap_Scrollbar(
+ int param_1, int thumbYPos, int param_3, int thumbHeight, BOOLEnum isDragged)
+ {
+ drawScrollbar(DAT_ButtonX, DAT_ButtonY, DAT_ButtonH,
+ thumbYPos, isDragged, thumbHeight, 0);
+ }
+ }
+ }
+}
+}
+
+### 0x004937b0 MenuModalRenderFunction_OnlineQuitGame | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004937B0
+ void MenuModalRenderFunction_OnlineQuitGame(int x, int y, int width, int height)
+ {
+ drawHeaderTextBanner(0x4a, 7, x, y, width, height);
+ }
+ }
+ }
+}
+}
+
+### 0x004941f0 MenuItemActionHandler_NetworkOptions_LeaveButtonUnk | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004941F0
+ void MenuItemActionHandler_NetworkOptions_LeaveButtonUnk(int action, ...)
+ {
+ if (action == 17) {
+ popModalDialog();
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x00494920 MenuItemActionHandler_SaveMap_ReturnKeySave | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00494920
+ void MenuItemActionHandler_SaveMap_ReturnKeySave(int param_1, ...)
+ {
+ int const returnPressed = DAT_UserTextHandlerState.returnPressed;
+ DAT_UserTextHandlerState.returnPressed = 0;
+ if (returnPressed != 0) {
+ MenuItemActionHandler_SaveLoadMap_Buttons(3);
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x00495800 ShowProgressBarSaveLoadDialog | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00495800
+ void ShowProgressBarSaveLoadDialog(int isSaving)
+ {
+ DAT_MenuTextInputState.DAT_MenuOptionsActionParameter = (isSaving != 0 ? 14 : 0) + 32;
+ activateModalDialog2(MMT_PROGRESS_BAR_BOX);
+ DAT_MenuModalComposition1.activeModalDialogID = MMT_PROGRESS_BAR_BOX;
+ MACRO_CALL(
+ MenuItemActionHandler_ProgressBarBox_LoadAndSaveGameButtonLogic)(0);
+ }
+ }
+}
+}
+
+### 0x004aaa40 MenuModalRenderFunction_DebugDataCurrentPlayerData | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AAA40
+ void MenuModalRenderFunction_DebugDataCurrentPlayerData(int x, int y, int width, int height)
+ {
+ renderDebugDataCurrentPlayerData(x, y, width, height);
+ }
+ }
+ }
+}
+}
+
+### 0x004aaa60 MenuModalRenderFunction_DebugDataAiInfo | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AAA60
+ void MenuModalRenderFunction_DebugDataAiInfo(int x, int y, int width, int height)
+ {
+ renderDebugDataAiInfo(
+ x, y, width, height);
+ }
+ }
+ }
+}
+}
+
+### 0x004aaa80 MenuModalRenderFunction_DebugDataUnitData | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AAA80
+ void MenuModalRenderFunction_DebugDataUnitData(int x, int y, int width, int height)
+ {
+ renderDebugDataUnitData(
+ x, y, width, height);
+ }
+ }
+ }
+}
+}
+
+### 0x004aaaa0 MenuModalRenderFunction_DebugDataZoneDataUnk | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AAAA0
+ void MenuModalRenderFunction_DebugDataZoneDataUnk(int x, int y, int width, int height)
+ {
+ renderAttackInfoDebugOverlay(x, y, width, height);
+ }
+ }
+ }
+}
+}
+
+### 0x004aaac0 MenuModalRenderFunction_DebugDataMousePointing | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AAAC0
+ void MenuModalRenderFunction_DebugDataMousePointing(int x, int y, int width, int height)
+ {
+ renderDebugDataMousePointing(x, y, width, height);
+ }
+ }
+ }
+}
+}
+
+### 0x004aaae0 MenuModalRenderFunction_DebugDataNetwork | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AAAE0
+ void MenuModalRenderFunction_DebugDataNetwork(int x, int y, int width, int height)
+ {
+ renderDebugDataNetwork(x, y, width, height);
+ }
+ }
+ }
+}
+}
+
+### 0x004aab00 MenuModalRenderFunction_DebugDataSplitInfo | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AAB00
+ void MenuModalRenderFunction_DebugDataSplitInfo(int x, int y, int width, int height)
+ {
+ renderDebugDataSplitInfo(x, y, width, height);
+ }
+ }
+ }
+}
+}
+
+### 0x004aab20 MenuModalRenderFunction_DebugDataMapData | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AAB20
+ void MenuModalRenderFunction_DebugDataMapData(int x, int y, int width, int height)
+ {
+ renderDebugDataMapData(
+ x, y, width, height);
+ }
+ }
+ }
+}
+}
+
+### 0x004aab40 MenuModalRenderFunction_TextEditor | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AAB40
+ void MenuModalRenderFunction_TextEditor(int x, int y, int width, int height)
+ {
+ setTextRenderingLogic();
+ }
+ }
+ }
+}
+}
+
+### 0x004ab440 MenuModalRenderFunction_DisplayAiLordMessage | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AB440
+ void MenuModalRenderFunction_DisplayAiLordMessage(int x, int y, int width, int height)
+ {
+ playAiLordMessage(x, y);
+ }
+ }
+ }
+}
+}
+
+### 0x004ab4b0 MenuModalRenderFunction_TraderSettings | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AB4B0
+ void MenuModalRenderFunction_TraderSettings(int x, int y, int width, int height)
+ {
+ drawHeaderTextBanner(199, 0x26, x, y, width, height);
+ }
+ }
+ }
+}
+}
+
+### 0x004ab4e0 MenuModalRenderFunction_StartGoods | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AB4E0
+ void MenuModalRenderFunction_StartGoods(int x, int y, int width, int height)
+ {
+ drawHeaderTextBanner(199, 0x29, x, y, width, height);
+ }
+ }
+ }
+}
+}
+
+### 0x004ab510 MenuModalRenderFunction_UnusedSiegeAttackingForceUnk | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AB510
+ void MenuModalRenderFunction_UnusedSiegeAttackingForceUnk(int x, int y, int width, int height)
+ {
+ drawHeaderTextBanner(199, 0xa4, x, y, width, height);
+ }
+ }
+ }
+}
+}
+
+### 0x004ab540 MenuModalRenderFunction_CreateOrTriggerInvasion | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AB540
+ void MenuModalRenderFunction_CreateOrTriggerInvasion(int x, int y, int width, int height)
+ {
+ drawHeaderTextBanner(199, 0x2e, x, y, width, height);
+ }
+ }
+ }
+}
+}
+
+### 0x004abcb0 MenuModalRenderFunction_DisableTroops | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004ABCB0
+ void MenuModalRenderFunction_DisableTroops(int x, int y, int width, int height)
+ {
+ drawHeaderTextBanner(199, 0xbc, x, y, width, height);
+ }
+ }
+ }
+}
+}
+
+### 0x004abce0 MenuModalRenderFunction_DisableWeapon | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004ABCE0
+ void MenuModalRenderFunction_DisableWeapon(int x, int y, int width, int height)
+ {
+ drawHeaderTextBanner(199, 0xbd, x, y, width, height);
+ }
+ }
+ }
+}
+}
+
+### 0x004abd10 MenuModalRenderFunction_TutorialBox_Thunk | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004abd10
+ void MenuModalRenderFunction_TutorialBox_Thunk(int x, int y, int width, int height)
+ {
+ MenuModalRenderFunction_TutorialBox(
+ x, y, width, height);
+ }
+ }
+ }
+}
+}
+
+### 0x004abe50 MenuModalRenderFunction_SkirmishConnectionOptions | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004ABE50
+ void MenuModalRenderFunction_SkirmishConnectionOptions(int x, int y, int width, int height)
+ {
+ drawHeaderTextBanner(0x4f, 0x5d, x, y, width, height);
+ }
+ }
+ }
+}
+}
+
+### 0x004abe80 MenuModalRenderFunction_SkirmishPlayOptions | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004ABE80
+ void MenuModalRenderFunction_SkirmishPlayOptions(int x, int y, int width, int height)
+ {
+ drawHeaderTextBanner(0x4f, 0x67, x, y, width, height);
+ }
+ }
+ }
+}
+}
+
+### 0x004ac250 MenuModalRenderFunction_TriggerEvent | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AC250
+ void MenuModalRenderFunction_TriggerEvent(int x, int y, int width, int height)
+ {
+ drawHeaderTextBanner(199, 0x17, x, y, width, height);
+ }
+ }
+ }
+}
+}
+
+### 0x004af630 FindDisplayElementWithID | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AF630
+ DisplayElement* FindDisplayElementWithID(int elementID)
+ {
+ for (DisplayElement* element = DAT_PointerToDisplayElementStackTop; element != NULL;
+ element = element->nextDisplayElement_0x20) {
+ if (element->elementID_0x8 == elementID) {
+ return element;
+ }
+ }
+ return NULL;
+ }
+ }
+}
+}
+
+### 0x004af650 CheckDisplayElementByIDAndSetForUnlimitedDisplay | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AF650
+ void CheckDisplayElementByIDAndSetForUnlimitedDisplay(DisplayElementID displayElementID, dword elementState)
+ {
+ DisplayElement* const displayElement
+ = FindDisplayElementWithID(displayElementID);
+ if (displayElement != NULL) {
+ if (displayElement->elementStateUnk_0xc != elementState) {
+ BOOL_RelatedToInitialGranaryAndKeepPlacement::instance = FALSE;
+ }
+ displayElement->elementStateUnk_0xc = elementState;
+ displayElement->displayDuration_0x14 = -1;
+ }
+ }
+ }
+}
+}
+
+### 0x004af680 ActivateGameSpeedAndResourceLackDisplayElementUnk | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AF680
+ void ActivateGameSpeedAndResourceLackDisplayElementUnk(
+ DisplayElementID elementId, dword elementState, int displayDuration)
+ {
+ DisplayElement* const displayElement
+ = FindDisplayElementWithID(elementId);
+ if (displayElement != NULL) {
+ displayElement->elementStateUnk_0xc = elementState;
+ displayElement->displayDuration_0x14 = displayDuration;
+ displayElement->activationTime_0x10 = timeGetTime();
+ }
+ }
+ }
+}
+}
+
+### 0x004af6b0 TogglePlayerPingDisplayElementUnk | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AF6B0
+ void TogglePlayerPingDisplayElementUnk(DisplayElementID displayElementID, uint toggleValue)
+ {
+ DisplayElement* const displayElement
+ = FindDisplayElementWithID(displayElementID);
+ if (displayElement != NULL) {
+ displayElement->displayDuration_0x14 = -1;
+ displayElement->elementStateUnk_0xc = displayElement->elementStateUnk_0xc != 0 ? 0 : toggleValue;
+ }
+ }
+ }
+}
+}
+
+### 0x004af6e0 GetIfDisplayElementStateNotZero | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AF6E0
+ BOOLEnum GetIfDisplayElementStateNotZero(DisplayElementID displayElementID)
+ {
+ DisplayElement* const displayElement
+ = FindDisplayElementWithID(displayElementID);
+ if (displayElement != NULL) {
+ return displayElement->elementStateUnk_0xc != 0;
+ }
+ return FALSE;
+ }
+ }
+}
+}
+
+### 0x004af800 renderInGameChatDisplayElement | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AF800
+ void RenderInGameChatDisplayElement(int posX, int posY, DWORD elementState)
+ {
+ renderInGameChat(posX, posY, elementState);
+ }
+ }
+}
+}
+
+### 0x004af820 RenderResourceMissing1DisplayElement | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AF820
+ void RenderResourceMissing1DisplayElement(int posX, int posY, DWORD elementState)
+ {
+ renderResourceMissingText(posX, posY, elementState, 1);
+ }
+ }
+}
+}
+
+### 0x004af840 RenderResourceMissing2DisplayElement | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AF840
+ void RenderResourceMissing2DisplayElement(int posX, int posY, DWORD elementState)
+ {
+ renderResourceMissingText(posX, posY, elementState, 2);
+ }
+ }
+}
+}
+
+### 0x004afa50 RenderUnknownDisplayElement7 | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AFA50
+ void RenderUnknownDisplayElement7(int posX, int posY, DWORD elementState)
+ {
+ renderNumber2(
+ DAT_UnknownStopwatch.duration_0x0, posX, posY + 5, TTA_RIGHT, 0x80ff, 0, 0xf,
+ FALSE, 0);
+ }
+ }
+}
+}
+
+### 0x004afb00 RenderNoTreeGrowthTextDisplayElement | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004AFB00
+ void RenderNoTreeGrowthTextDisplayElement(int posX, int posY, DWORD elementState)
+ {
+ renderInGameTextWithShadow(
+ s_No_tree_growth_005a779c, posX, posY, TTA_LEFT, 0x80ff, 0, 0x11, FALSE, 0);
+ }
+ }
+}
+}
+
+### 0x004b1090 MenuItemActionHandler_UnusedWinCondition_Options | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B1090
+ void MenuItemActionHandler_UnusedWinCondition_Options(int value, ...)
+ {
+ if (value >= (int)DAT_MenuModalComposition1.mbr_0x64) {
+ return;
+ }
+ DAT_MenuModalComposition1.sliderValue = value;
+ *DAT_MenuModalComposition1.destination = value;
+ activateModalDialog(MMT_NONE, FALSE);
+ if (DAT_MenuModalComposition1.sliderCallbackFunction != NULL) {
+ ((void (*)())DAT_MenuModalComposition1.sliderCallbackFunction)();
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x004b20b0 RenderNoRushDisplayElementUnk | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B20B0
+ void RenderNoRushDisplayElementUnk(int posX, int posY, DWORD elementState)
+ {
+ if (DAT_GameState.mapAndTime.skirmishNoRushTicks == 0) {
+ // Plays pa paam pa pa pa paam
+ playWAVSFX(
+ s_battlehorn_wav_005a77d8);
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_NO_RUSH, 0);
+ return;
+ }
+ int const barWidth
+ = computeTextWidth(
+ getTextStringInGroupAtOffset(TEXT_SKIRMISH_MISC, 7),
+ 18)
+ + 50;
+ int x = posX + 800;
+ DAT_PencilRenderCore.surfaceTarget = RT_MAP_GAME;
+ if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1024x768) {
+ x += 112;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1280x1024) {
+ x -= 240;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1600x1200) {
+ x -= 400;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1280x720) {
+ x -= 240;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1440x900) {
+ x -= 320;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1920x1080) {
+ x -= 560;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1920x1200) {
+ x -= 560;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_2560x1440) {
+ x -= 880;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_2560x1600) {
+ x -= 880;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1366x768) {
+ x -= 283;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1680x1050) {
+ x -= 440;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1600x900) {
+ x -= 400;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1024x600) {
+ x -= 112;
+ } else if (DAT_WindowAndDirectDraw.currentGameResolution == SRE_1360x768) {
+ x -= 280;
+ }
+ x += -18 - (barWidth / 2);
+ int const left = x - (barWidth / 2);
+ drawBlendedBlackBox(left - 7, posY - 5, (barWidth / 2) + 5 + x, posY + 30, 16);
+ renderInGameTextWithShadow(
+ getTextStringInGroupAtOffset(TEXT_SKIRMISH_MISC, 7),
+ x, posY, TTA_CENTER, 0xc2f0eb, 0, 18, FALSE, 0);
+ drawBorderBox(
+ left - 1, posY + 18, (barWidth / 2) + 1 + x, posY + 24, COL_BLACK::instance.shortValue);
+ drawColorBox(
+ left, posY + 19,
+ (DAT_GameState.mapAndTime.skirmishNoRushTicks * barWidth)
+ / DAT_GameState.mapAndTime.skirmishNoRushTicksLeft
+ - (barWidth / 2) + x,
+ posY + 23, COL_DARK_LIME::instance.shortValue);
+ DAT_PencilRenderCore.surfaceTarget = RT_SCREEN_MENU;
+ }
+ }
+}
+}
+
+### 0x004b6500 MenuItemRenderFunction_InGameMenu_MapEventIconUnk | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B6500
+ void MenuItemRenderFunction_InGameMenu_MapEventIconUnk(int param_1, ...)
+ {
+ DAT_ButtonUnknownZero = 1;
+ if (DAT_MinimapViewState.spawnMomentCount != 0
+ && DAT_GameCore.isBinkVideoPlaying == 0) {
+ DAT_ButtonUnknownZero = 0;
+ MACRO_CALL(
+ MenuItemRenderFunction_General_RenderCurrentButtonWithPossibleAlphaTexOnScreenMenuSurface)();
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x004b8050 MenuView_General_DoInitial_OnlySetMenuXY | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004B8050
+ void MenuView_General_DoInitial_OnlySetMenuXY()
+ {
+ int const y = DAT_WindowAndDirectDraw.mainMenuBorderHeight;
+ int const x = DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ Menu* const menu = DAT_MenuHandlerState.currentMenu;
+ menu->xPosition = x;
+ menu->yPosition = y;
+ DAT_MenuHandlerState.x = x;
+ DAT_MenuHandlerState.y = y;
+ }
+ }
+ }
+}
+}
+
+### 0x004bb540 MenuItemActionHandler_DisableEuroTroops_Main | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004BB540
+ void MenuItemActionHandler_DisableEuroTroops_Main(int troopIndex, ...)
+ {
+ // indexes the seven barracks troop flags that directly precede SEC_MercRecruitable
+ if ((uint)troopIndex <= 7) {
+ DAT_MapPropertiesState.barracksRecruitability.array.barracksRecruitability[troopIndex]
+ ^= 1;
+ return;
+ }
+ if (troopIndex == -3) {
+ activateModalDialog(MMT_BUILDING_AVAILABILITY, FALSE);
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x004bb650 MenuItemActionHandler_DisableArabTroops_Main | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004BB650
+ void MenuItemActionHandler_DisableArabTroops_Main(int troopIndex, ...)
+ {
+ if ((uint)troopIndex <= 7) {
+ DAT_MapPropertiesState.SEC_MercRecruitable[troopIndex] ^= 1;
+ return;
+ }
+ if (troopIndex == -3) {
+ activateModalDialog(MMT_BUILDING_AVAILABILITY, FALSE);
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x004bec10 MenuView_EditScenario_Prepare | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004BEC10
+ void MenuView_EditScenario_Prepare()
+ {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("frontend_builder2.tgx");
+ updateEventYearsAndCommitBuildingAvailability();
+ DAT_CopyOfScenarioGold = DAT_GameState.mapAndTime.scenarioGold;
+ }
+ }
+ }
+}
+}
+
+### 0x004d6ef0 MenuView_CampaignUnk_DoEveryFrame | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004D6EF0
+ void MenuView_CampaignUnk_DoEveryFrame()
+ {
+ if (TicksSinceCounterStart() == 0) {
+ return;
+ }
+ if (DAT_GameCore.missionNumber1to20 == 1) {
+ switchToMenuView(
+ MVT_SCENARIO_DESCRIPTION, 0);
+ return;
+ }
+ switchToMenuView(
+ MVT_UNKNOWN_26_CAMPAIGN_RELATEDUnk, 0);
+ }
+ }
+ }
+}
+}
+
+### 0x004d8ab0 MenuView_CrusadeMissionIntro_Prepare | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004D8AB0
+ void MenuView_CrusadeMissionIntro_Prepare()
+ {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("skirmish_background.tgx");
+ LoadTGX_shc_back();
+ INT_00eb9ae8::instance = 0;
+ DAT_MissionDefinedData.field26_0xaf8 = true;
+ }
+ }
+ }
+}
+}
+
+### 0x004d9270 SetActiveCreditsSequenceIndex | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004D9270
+ void __cdecl SetActiveCreditsSequenceIndex(undefined4 sequenceIndex)
+ {
+ DAT_00ed3124 = sequenceIndex;
+ DAT_00ed3120 = 0;
+ }
+ }
+}
+}
+
+### 0x004d9700 MenuView_RankingGames_Prepare | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004D9700
+ void MenuView_RankingGames_Prepare()
+ {
+ Skirmish_PrepareLeaderboardView();
+ DAT_00ed27a0 = 0;
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("frontend_combat3.tgx");
+ LoadTGX_shc_back();
+ DAT_StoredGameMode = DAT_GameSynchronyState.currentGameMode;
+ }
+ }
+ }
+}
+}
+
+### 0x004d9d60 MenuItemActionHandler_DeleteGameRecord_Main | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004D9D60
+ void MenuItemActionHandler_DeleteGameRecord_Main(int action, ...)
+ {
+ if (action == 22) {
+ SkirmishLeaderboard_DeleteEntry(DAT_00ed2788);
+ Skirmish_PrepareLeaderboardView();
+ }
+ activateModalDialog(MMT_NONE, FALSE);
+ }
+ }
+ }
+}
+}
+
+### 0x004da7e0 AppendCreditsCommand | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004DA7E0
+ void AppendCreditsCommand(int command)
+ {
+ if ((int)DAT_UnknownBinkCount < 288) {
+ DAT_ARRAY_00eb9b68[DAT_UnknownBinkCount].commandType = command;
+ DAT_UnknownBinkCount += 1;
+ }
+ }
+ }
+}
+}
+
+### 0x004da810 AppendCreditsListTerminator | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004DA810
+ void AppendCreditsListTerminator()
+ {
+ if ((int)DAT_UnknownBinkCount < 288) {
+ DAT_ARRAY_00eb9b68[DAT_UnknownBinkCount].commandType = 0x20;
+ DAT_UnknownBinkCount += 1;
+ }
+ }
+ }
+}
+}
+
+### 0x004da840 AppendCreditsPauseCommand | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004DA840
+ void AppendCreditsPauseCommand()
+ {
+ if ((int)DAT_UnknownBinkCount < 288) {
+ DAT_ARRAY_00eb9b68[DAT_UnknownBinkCount].commandType = 0x1c;
+ DAT_UnknownBinkCount += 1;
+ }
+ }
+ }
+}
+}
+
+### 0x004da870 AppendCreditsSegmentEndCommand | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004DA870
+ void AppendCreditsSegmentEndCommand()
+ {
+ if ((int)DAT_UnknownBinkCount < 288) {
+ DAT_ARRAY_00eb9b68[DAT_UnknownBinkCount].commandType = 0x1f;
+ DAT_UnknownBinkCount += 1;
+ }
+ }
+ }
+}
+}
+
+### 0x004da8a0 AppendCreditsClearImageCommand | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004DA8A0
+ void AppendCreditsClearImageCommand()
+ {
+ if ((int)DAT_UnknownBinkCount < 288) {
+ DAT_ARRAY_00eb9b68[DAT_UnknownBinkCount].commandType = 0x28;
+ DAT_UnknownBinkCount += 1;
+ }
+ }
+ }
+}
+}
+
+### 0x004dabf0 AppendCreditsSoundStreamCommand | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004DABF0
+ void AppendCreditsSoundStreamCommand(int command, SHC_SoundStream soundStream)
+ {
+ if ((int)DAT_UnknownBinkCount < 288) {
+ DAT_ARRAY_00eb9b68[DAT_UnknownBinkCount].commandType = command;
+ DAT_ARRAY_00eb9b68[DAT_UnknownBinkCount].soundStream = soundStream;
+ DAT_UnknownBinkCount += 1;
+ }
+ }
+ }
+}
+}
+
+### 0x004dcc70 MenuView_Unknown26_CampaignRelatedUnk_Prepare | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004DCC70
+ void MenuView_Unknown26_CampaignRelatedUnk_Prepare()
+ {
+ ResetCredits();
+ BuildIntroLogoSequence(
+ DAT_GameCore.missionNumber1to20, DAT_GameCore.section1066);
+ TicksStartCounter();
+ }
+ }
+ }
+}
+}
+
+### 0x004e1a20 MenuView_UnusedExtremeAd_Prepare | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004E1A20
+ void MenuView_UnusedExtremeAd_Prepare()
+ {
+ ResetCredits();
+ activateModalDialog(MMT_NONE, FALSE);
+ BuildExtremeDemoIntroScript();
+ TicksStartCounter();
+ DAT_00ed278c = 0;
+ }
+ }
+ }
+}
+}
+
+### 0x004f6a60 MenuItemActionHandler_General_DisplayConditionalText | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004F6A60
+ void MenuItemActionHandler_General_DisplayConditionalText(int textID, ...)
+ {
+ renderCurrentlyDisplayedTextConstructionCost(textID);
+ }
+ }
+ }
+}
+}
+
+### 0x004f6a70 MenuItemActionHandler_General_RemoveConditionalTextOrReleaseHoverUnk | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x004F6A70
+ void MenuItemActionHandler_General_RemoveConditionalTextOrReleaseHoverUnk(int param_1, ...)
+ {
+ hasPassedCountdownOrDuration();
+ }
+ }
+ }
+}
+}
+

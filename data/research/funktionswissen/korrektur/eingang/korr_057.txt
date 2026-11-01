@@ -1,0 +1,924 @@
+### 0x00515740 placeApplefarm | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00515740
+ void TileMapState::placeApplefarm(
+ int playerID, uint x, uint y, BuildingType buildingType, undefined4 param_5, int param_6, int* param_7)
+ {
+ int _buildingID;
+ int iVar1;
+ int local_4;
+ int _buildingTileRef;
+ local_4 = 0;
+ _buildingID = setupBuildingData(
+ playerID, x, y, (undefined4)((int)(param_7)), (int)(short)(undefined2)buildingType, 3, playerID, param_6);
+ this->placedBuildingID = _buildingID;
+ markBuildingFootprintFlag(x, y, 10);
+ _buildingTileRef = DAT_TerrainDefinedData.AppleFarmOffsets[1].y;
+ DAT_BuildingsState.buildings[_buildingID].tileRef1
+ = DAT_ViewportRenderState
+ .translationMatrix[DAT_TerrainDefinedData.AppleFarmOffsets[0].y + y]
+ .addXgetTile
+ + DAT_TerrainDefinedData.AppleFarmOffsets[0].x + x;
+ iVar1 = DAT_TerrainDefinedData.AppleFarmOffsets[2].y + y;
+ DAT_BuildingsState.buildings[_buildingID].tileRef2
+ = DAT_ViewportRenderState.translationMatrix[_buildingTileRef + y].addXgetTile
+ + DAT_TerrainDefinedData.AppleFarmOffsets[1].x + x;
+ _buildingTileRef = DAT_TerrainDefinedData.AppleFarmOffsets[3].y;
+ DAT_BuildingsState.buildings[_buildingID].tileRef3
+ = DAT_ViewportRenderState.translationMatrix[iVar1].addXgetTile
+ + DAT_TerrainDefinedData.AppleFarmOffsets[2].x + x;
+ iVar1 = DAT_TerrainDefinedData.AppleFarmOffsets[4].y + y;
+ DAT_BuildingsState.buildings[_buildingID].tileRef4
+ = DAT_ViewportRenderState.translationMatrix[_buildingTileRef + y].addXgetTile
+ + DAT_TerrainDefinedData.AppleFarmOffsets[3].x + x;
+ _buildingTileRef = DAT_TerrainDefinedData.AppleFarmOffsets[5].y;
+ DAT_BuildingsState.buildings[_buildingID].tileRef5
+ = DAT_ViewportRenderState.translationMatrix[iVar1].addXgetTile
+ + DAT_TerrainDefinedData.AppleFarmOffsets[4].x + x;
+ iVar1 = DAT_TerrainDefinedData.AppleFarmOffsets[6].y + y;
+ DAT_BuildingsState.buildings[_buildingID].tileRef6
+ = DAT_ViewportRenderState.translationMatrix[_buildingTileRef + y].addXgetTile
+ + DAT_TerrainDefinedData.AppleFarmOffsets[5].x + x;
+ DAT_BuildingsState.buildings[_buildingID].tileRef7
+ = DAT_ViewportRenderState.translationMatrix[iVar1].addXgetTile
+ + DAT_TerrainDefinedData.AppleFarmOffsets[6].x + x;
+ DAT_BuildingsState.buildings[_buildingID].tileRef8
+ = DAT_ViewportRenderState
+ .translationMatrix[DAT_TerrainDefinedData.AppleFarmOffsets[7].y + y]
+ .addXgetTile
+ + DAT_TerrainDefinedData.AppleFarmOffsets[7].x + x;
+ do {
+ getBuildingSizeIndexMappingData(local_4, 3);
+ param_6._0_2_ = (short)_buildingID;
+ _buildingTileRef = DAT_ViewportRenderState.translationMatrix[this->buildingY + y].addXgetTile + x
+ + this->buildingX;
+ this->HeightLayer[_buildingTileRef] = (byte)param_7;
+ this->LogicLayer[_buildingTileRef] = this->LogicLayer[_buildingTileRef] | 0x400;
+ this->BuildingLayer[_buildingTileRef] = (short)param_6;
+ this->BuildingWasLayer[_buildingTileRef] = (undefined1)buildingType;
+ setTerrain(playerID, _buildingTileRef,
+ this->buildingY + y, 2, L_NONE, L2_THICK_SCRUB);
+ local_4 = local_4 + 1;
+ this->ChangedLayer[_buildingTileRef] = 2;
+ } while (local_4 < this->constructionTileCount);
+ /*
+ &tileRef1 of buildingID
+ */
+ buildingType = _buildingID * 0x32c + 0xf986fc;
+ /*
+ apple tree relative coordinates
+ */
+ param_7 = &DAT_TerrainDefinedData.AppleFarmOffsets[0].x;
+ do {
+ _buildingTileRef = *(int*)buildingType;
+ resetTileAndClearMoat(_buildingTileRef);
+ this->LogicLayer[_buildingTileRef] = this->LogicLayer[_buildingTileRef] | 0x4000000;
+ this->ChangedLayer[_buildingTileRef] = 2;
+ placeAppleTree(
+ _buildingID, (undefined4)((int)(*param_7 + x)), (undefined4)((int)(param_7[1] + y)));
+ buildingType = buildingType + BT_OXTETHER;
+ param_7 = param_7 + 2;
+ } while ((int)param_7 < 0xb49eb0);
+ setMiscDisplayLayer(_buildingID);
+ updatePathLinkagesForBuilding(_buildingID);
+ if (((playerID == DAT_GameSynchronyState.currentPlayerSlotID)
+ && (DAT_GameState.playerDataArray[playerID].availablePeasantsAtFire
+ < (int)DAT_BuildingsState.buildings[_buildingID].buildingTypeBasedEmployeeCount))
+ && ((DAT_GameState.playerDataArray[playerID].populationCap
+ <= DAT_GameState.playerDataArray[playerID].currentPopulation
+ || (DAT_GameState.playerDataArray[playerID].popularity < 5000)))) {
+ setBottomLeftTextDisplayText(1, 0x4d, 1, (TextMessageBLLookupStructUnion)0x0, 100, 6000);
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00515740", "name": "placeApplefarm", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Setzt eine Apfelplantage mit 8 Apfelbäumen auf die Karte."}, "p2": {"ein": "spieler, x, y, Gebäudetyp, Größe, Ausrichtung, Durchschnittshöhe (Namen aus dem Aufrufer placeBuilding)", "aus": "-", "liest": ["DAT_TerrainDefinedData.AppleFarmOffsets[0..7]", "playerDataArray[sp].availablePeasantsAtFire/populationCap/currentPopulation/popularity", "buildings[id].buildingTypeBasedEmployeeCount", "constructionTileCount"], "schreibt": ["TileMapState.placedBuildingID", "buildings[id].tileRef1..tileRef8", "HeightLayer/LogicLayer/BuildingLayer/BuildingWasLayer/ChangedLayer der Fußabdruck-Kacheln", "LogicLayer der 8 Baumkacheln"], "ruft": ["setupBuildingData", "markBuildingFootprintFlag", "getBuildingSizeIndexMappingData", "setTerrain", "resetTileAndClearMoat", "placeAppleTree", "setMiscDisplayLayer", "updatePathLinkagesForBuilding", "setBottomLeftTextDisplayText"], "regeln": ["Gebäude mit setupBuildingData angelegt, Größenklasse 3; Fußabdruck-Markierung mit Wert 10", "8 Baumkacheln tileRef1..8 stammen aus AppleFarmOffsets (Versatz zur Gebäudeposition)", "Fußabdruck-Kacheln: LogicLayer |= 0x400, ChangedLayer = 2, Gelände L2_THICK_SCRUB", "Jede der 8 Baumkacheln: Wassergraben/Zustand zurücksetzen, LogicLayer |= 0x4000000, placeAppleTree an Gebäude + Versatz", "Hinweistext 0x4d: wie bei placeDairyfarm nur für den eigenen Spieler bei Arbeitermangel und (Bevölkerung voll oder Beliebtheit unter 5000)"], "offen": ["Die Schleife über die Versätze endet an einer festen Speicheradresse (0xb49eb0); 8 Bäume folgen aus tileRef1..8, nicht aus einer Zahl im Code", "Bedeutung von LogicLayer-Bit 0x4000000"]}, "p3": {"erklaerung": "Beim Bau einer Apfelplantage werden 8 feste Baumplätze neben dem Gebäude belegt und mit Apfelbäumen bepflanzt.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x005162d0 placeBuilding | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x005162D0
+ void TileMapState::placeBuilding(
+ PlayerID playerID, int x, int y, MappersEnum cbt, int buildingSize, int buildingOrientation)
+ {
+ int* piVar1;
+ int yPosition_param;
+ BuildingTypeShort _buildingType2;
+ BuildingType _realBuildingType;
+ BuildingType _buildingType_dup2;
+ BOOLEnum BVar2;
+ int iVar3;
+ uint _height;
+ BuildingTypeInt _buildingType_2;
+ uint uVar4;
+ MappersEnum _commandBuildingType;
+ int _tile;
+ int _averageHeight;
+ int local_4;
+ int _x;
+ yPosition_param = y;
+ _x = x;
+ _commandBuildingType = (MappersEnum)(short)cbt;
+ local_4 = 0;
+ if (this->field122_0x554930 == 0) {
+ if (buildingOrientation == 0xf) {
+ this->DAT_TempBuildingRotation = 0;
+ } else {
+ this->DAT_TempBuildingRotation = buildingOrientation / 2;
+ }
+ checkBuildingCanBePlacedHere(
+ playerID, (uint)((int)(x)), (uint)((int)(y)), cbt, buildingSize);
+ if (this->buildingPlacementFail != FALSE) {
+ return;
+ }
+ }
+ this->field122_0x554930 = 0;
+ _realBuildingType
+ = convertCommandBuildingTypeToBuildingType(_commandBuildingType);
+ _buildingType_dup2 = _realBuildingType & 0xffff;
+ _buildingType2 = (BuildingTypeShort)_realBuildingType;
+ if (DAT_GameCore.gameMode_2 == GM_CRUSADER_TUTORIAL) {
+ BVar2 = Tutorial_IsActionAllowed(2, (int)((int)((short)_buildingType2)));
+ if (BVar2 == FALSE) {
+ SetTutorialHintActiveWithTimestamp();
+ return;
+ }
+ SetTutorialBuildingActionState(
+ 7, (BuildingType)((int)((int)(short)_buildingType2)));
+ }
+ y = 0;
+ do {
+ getBuildingSizeIndexMappingData(y, buildingSize);
+ _tile = DAT_ViewportRenderState.translationMatrix[this->buildingY + yPosition_param].addXgetTile
+ + this->buildingX + x;
+ if ((DAT_GameCore.gameMode_2 == GM_SIEGE_THAT)
+ && ((this->LogicLayer[_tile] & 0x100U) != 0)) {
+ piVar1 = DAT_GameState.playerDataArray[playerID].startResources + 4;
+ *piVar1 = *piVar1 + 1;
+ }
+ if (((this->LogicLayer[_tile] & 0x80) != 0) && (1999 < this->OrganismLayer[_tile])) {
+ removeRock(
+ this->OrganismLayer[_tile] + -2000);
+ getBuildingSizeIndexMappingData(
+ y, buildingSize);
+ updateWalkAndPathLayer(
+ 8, (uint)((int)(this->buildingX + x)), (uint)((int)(this->buildingY + yPosition_param)));
+ }
+ this->LogicLayer[_tile] = this->LogicLayer[_tile] & 0xffbef4f7;
+ this->HeightLayer[_tile] = this->DefaultHeightLayer[_tile];
+ this->DamageLayer[_tile] = 0;
+ if (((this->LogicLayer[_tile] & 0x1000U) != 0) && (iVar3 = (int)this->OrganismLayer[_tile], iVar3 < 2000)) {
+ switch (DAT_LandscapeState.trees[iVar3].treeType) {
+ case ((TreeType)5):
+ case ((TreeType)6):
+ case ((TreeType)7):
+ case ((TreeType)8):
+ case ((TreeType)9):
+ case ((TreeType)10):
+ case 0xb:
+ case 0xc:
+ case 0xd:
+ case 0xe:
+ case ((TreeType)0x10):
+ case ((TreeType)0x11):
+ case ((TreeType)0x12):
+ case ((TreeType)0x13):
+ removeTree(iVar3);
+ updateWalkAndPathLayer(3, (uint)((int)(x)), (uint)((int)(yPosition_param)));
+ break;
+ default : removeTree(iVar3);
+ updateWalkAndPathLayer(3, (uint)((int)(x)), (uint)((int)(yPosition_param)));
+ }
+ getBuildingSizeIndexMappingData(
+ y, buildingSize);
+ }
+ if ((int)(short)this->UnitLayer[_tile] != 0) {
+ switch (_buildingType2) {
+ case BT_GATEHOUSELARGE:
+ case BT_GATEHOUSESMALL:
+ case BT_DRAWBRIDGE:
+ case BT_CAMPFIRE:
+ case BT_PARADEGROUND:
+ case BT_CAMPGROUND:
+ case BT_PARADEGROUND2:
+ case BT_PARADEGROUND3:
+ case BT_PARADEGROUND4:
+ case BT_PARADEGROUND5:
+ case BT_KILLINGPIT:
+ case BT_PITCHDITCH:
+ case BT_SIEGETOWER_PLACED:
+ case BT_TOWER1:
+ case BT_TOWER2:
+ case BT_TOWER3:
+ case BT_TOWER4:
+ case BT_TOWER5:
+ break;
+ default
+ : deleteUnit(
+ (int)(short)this->UnitLayer[_tile]);
+ }
+ }
+ if ((this->LogicLayer[_tile] & 0x40004000U) != 0) {
+ clearMoatDataAtTile(
+ this->buildingX + x, this->buildingY + yPosition_param);
+ this->LogicLayer[_tile] = this->LogicLayer[_tile] & 0xbfffbfff;
+ }
+ this->MiscDisplayLayer[_tile] = this->MiscDisplayLayer[_tile] & 0xfc3f;
+ y = y + 1;
+ DAT_PathFindingState.toggleUpdateSeparateAreaTileMap = 1;
+ this->field204_0x554a30 = 1;
+ } while (y < this->constructionTileCount);
+ iVar3 = 0;
+ /*
+ /*
+ These parameters now become min and max height on the terrain covered by the building
+ */
+ */ y = 1000;
+ x = 0;
+ do {
+ getBuildingSizeIndexMappingData(
+ iVar3, buildingSize);
+ _height = (uint)this->HeightLayer[DAT_ViewportRenderState
+ .translationMatrix[this->buildingY + yPosition_param]
+ .addXgetTile
+ + this->buildingX + _x];
+ if ((uint)x < _height) {
+ x = _height;
+ }
+ if (_height < (uint)y) {
+ y = _height;
+ }
+ iVar3 = iVar3 + 1;
+ } while (iVar3 < this->constructionTileCount);
+ _averageHeight = (x - y) / 2 + y;
+ if ((_buildingType2 == BT_TUNNEL)
+ && (playerID == DAT_GameSynchronyState.currentPlayerSlotID)) {
+ playTunnelerCommandSpeech();
+ }
+ _buildingType_2 = (BuildingTypeInt)(short)_buildingType2;
+ switch (_buildingType_2) {
+ case BT_MERCENARYPOST:
+ case BT_BARRACKS:
+ placeBarracks(playerID, (uint)((int)(_x)),
+ (int*)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)), (uint)((int)(buildingSize)),
+ buildingOrientation, (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_STOCKPILE:
+ placeStockpile(playerID, _x, yPosition_param,
+ (undefined4)((int)(_buildingType_dup2)), (undefined4)((int)(buildingSize)), buildingOrientation,
+ _averageHeight);
+ break;
+ default
+ : placeWorkshopOrHovel(playerID,
+ (uint)((int)(_x)), (uint)((int)(yPosition_param)), _buildingType_dup2,
+ (uint)((int)(buildingSize)), buildingOrientation, (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_QUARRY:
+ placeQuarry(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)), (uint)((int)(buildingSize)),
+ buildingOrientation, (uint)((int)(_averageHeight)));
+ break;
+ case BT_ENGINEERSGUILD:
+ placeEngineersguild(playerID, (int*)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)), (uint)((int)(buildingSize)),
+ buildingOrientation, (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_TUNNELERSGUILD:
+ placeTunnelersguild(playerID, (int*)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)), (uint)((int)(buildingSize)),
+ buildingOrientation, (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_OILSMELTER:
+ placeOilsmelter(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)), (uint)((int)(buildingSize)),
+ buildingOrientation, (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_WHEATFARM:
+ placeWheatfarm(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)),
+ (undefined4)((int)(buildingSize)), buildingOrientation, (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_HOPFARM:
+ placeHopfarm(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)),
+ (undefined4)((int)(buildingSize)), buildingOrientation, _averageHeight);
+ break;
+ case BT_APPLEFARM:
+ placeApplefarm(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), _buildingType_dup2, (undefined4)((int)(buildingSize)),
+ buildingOrientation, (int*)((int)(_averageHeight)));
+ break;
+ case BT_DAIRYFARM:
+ placeDairyfarm(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)),
+ (undefined4)((int)(buildingSize)), (int*)((int)(buildingOrientation)),
+ (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_UNKNOWN1:
+ stampBuildingOntoTileMap(playerID,
+ (uint)((int)(_x)), (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)),
+ (undefined4)((int)(_commandBuildingType + ~M_MAPPER_MP_KEEP8)),
+ (uint)((int)(buildingSize)), (undefined4)((int)(buildingOrientation)),
+ (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_MANORHOUSE:
+ case BT_STONEKEEP:
+ case BT_STRONGHOLD:
+ case BT_KEEPFOUR:
+ case BT_KEEPFIVE:
+ placeKeep(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), _buildingType_dup2, (uint)((int)(buildingSize)), buildingOrientation,
+ _averageHeight);
+ break;
+ case BT_GATEHOUSELARGE:
+ placeGatehouseLarge(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)), (uint)((int)(buildingSize)),
+ buildingOrientation, (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_GATEHOUSESMALL:
+ placeGatehouseSmall(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)), (uint)((int)(buildingSize)),
+ buildingOrientation, (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_WOODGATE1:
+ break;
+ case BT_DRAWBRIDGE:
+ placeDrawbridge(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)), (uint)((int)(buildingSize)),
+ (int*)((int)(buildingOrientation)), (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_FIREBALLISTA:
+ case BT_CATAPULT:
+ case BT_TREBUCHET:
+ case BT_BATTERINGRAM:
+ case BT_SIEGETOWER:
+ case BT_SHIELD:
+ placeSiegeTent(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)), (uint)((int)(buildingSize)),
+ buildingOrientation, (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_GARDEN:
+ placePositiveFearfactor(playerID,
+ (uint)((int)(_x)), (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)),
+ (undefined4)((int)(_commandBuildingType - M_MAPPER_GARDEN1)),
+ (uint)((int)(buildingSize)), (undefined4)((int)(buildingOrientation)),
+ (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_KILLINGPIT:
+ placeKillingPit(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)), (uint)((int)(buildingSize)),
+ buildingOrientation, _averageHeight);
+ break;
+ case BT_PITCHDITCH:
+ local_4 = placePitchDitch(
+ playerID, (uint)((int)(_x)), (uint)((int)(yPosition_param)));
+ break;
+ case BT_SIEGETOWER_PLACED:
+ placeSiegetowerPlaced(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)), (uint)((int)(buildingSize)),
+ buildingOrientation, (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_TOWER1:
+ case BT_TOWER2:
+ case BT_TOWER3:
+ case BT_TOWER4:
+ case BT_TOWER5:
+ placeTower(playerID, (uint)((int)(_x)),
+ (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)), (uint)((int)(buildingSize)),
+ buildingOrientation, (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_CESSPIT:
+ placePositiveFearfactor(playerID,
+ (uint)((int)(_x)), (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)),
+ (undefined4)((int)(_commandBuildingType - M_MAPPER_CESS_PIT1)),
+ (uint)((int)(buildingSize)), (undefined4)((int)(buildingOrientation)),
+ (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_STATUE:
+ placePositiveFearfactor(playerID,
+ (uint)((int)(_x)), (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)),
+ (undefined4)((int)(_commandBuildingType - M_MAPPER_STATUE1)),
+ (uint)((int)(buildingSize)), (undefined4)((int)(buildingOrientation)),
+ (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_SHRINE:
+ placePositiveFearfactor(playerID,
+ (uint)((int)(_x)), (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)),
+ (undefined4)((int)(_commandBuildingType - M_MAPPER_SHRINE1)),
+ (uint)((int)(buildingSize)), (undefined4)((int)(buildingOrientation)),
+ (undefined4)((int)(_averageHeight)));
+ break;
+ case BT_POND:
+ placePositiveFearfactor(playerID,
+ (uint)((int)(_x)), (uint)((int)(yPosition_param)), (undefined4)((int)(_buildingType_dup2)),
+ (undefined4)((int)(_commandBuildingType - M_MAPPER_POND1)),
+ (uint)((int)(buildingSize)), (undefined4)((int)(buildingOrientation)),
+ (undefined4)((int)(_averageHeight)));
+ }
+ /*
+ /*** Now PlacedBuildingID has been set ***/
+ */ if (playerID == DAT_GameSynchronyState.currentPlayerSlotID)
+ {
+ if (_buildingType2 == BT_PITCHDITCH) {
+ if (local_4 != 0) {
+ placePitchDitch(local_4);
+ }
+ } else {
+ startBuildingDestructionConfirmation(this->placedBuildingID);
+ }
+ }
+ processPlacementResourceLossForBuildingType(playerID, (BuildingType)((int)(_buildingType_2)), 0);
+ uVar4 = hasLessWoodThanTheCostOfAWoodcuttersHutAndNoWoodcutters(playerID, _buildingType_2);
+ if (uVar4 != 0) {
+ DAT_BuildingsState.buildings[this->placedBuildingID].field203_0x288 = 1;
+ }
+ triggerMinimapRedraw(1);
+ if (buildingSize < 6) {
+ iVar3 = 9;
+ } else {
+ iVar3 = buildingSize + 5;
+ }
+ updateWalkAndPathLayer(iVar3, (uint)((int)(_x)), (uint)((int)(yPosition_param)));
+ DAT_PathFindingState.toggleUpdateSeparateAreaTileMap = 1;
+ this->field204_0x554a30 = 1;
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ this->forceUpdateMacroLayerFlag = 1;
+ this->field68_0x55487c = 200;
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x005162d0", "name": "placeBuilding", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Setzt ein Gebäude auf die Karte: Platz räumen, Typ-Funktion rufen, Kosten abbuchen."}, "p2": {"ein": "spieler, x, y, Befehls-Gebäudetyp, Größe, Ausrichtung", "aus": "-", "liest": ["field122_0x554930", "buildingPlacementFail", "LogicLayer/OrganismLayer/UnitLayer/DefaultHeightLayer[tile]", "DAT_LandscapeState.trees[].treeType", "GameCore.gameMode_2", "currentPlayerSlotID"], "schreibt": ["LogicLayer (UND-Maske 0xffbef4f7)", "HeightLayer = DefaultHeightLayer", "DamageLayer = 0", "MiscDisplayLayer (UND 0xfc3f)", "startResources[4] +1 (nur Gefechtsmodus SIEGE THAT, Kachel mit Bit 0x100)", "buildings[placedBuildingID].field203_0x288", "DAT_PathFindingState.toggleUpdateSeparateAreaTileMap", "field204_0x554a30", "forceUpdateMacroLayerFlag/field68_0x55487c (nur Einzelspieler)"], "ruft": ["checkBuildingCanBePlacedHere", "convertCommandBuildingTypeToBuildingType", "Tutorial_IsActionAllowed", "removeRock", "removeTree", "deleteUnit", "clearMoatDataAtTile", "updateWalkAndPathLayer", "place* je Gebäudeart (placeBarracks, placeStockpile, placeQuarry, placeWheatfarm, placeHopfarm, placeApplefarm, placeDairyfarm, placeKeep, placeGatehouse*, placeDrawbridge, placeSiegeTent, placeTower, placeKillingPit, placePitchDitch u. a.)", "processPlacementResourceLossForBuildingType", "startBuildingDestructionConfirmation", "triggerMinimapRedraw"], "regeln": ["Ist field122_0x554930 == 0, wird zuerst die Drehung gesetzt (Ausrichtung 0xf ergibt 0, sonst Ausrichtung/2) und checkBuildingCanBePlacedHere gerufen; schlägt das fehl, kein Bau", "Tutorial: nur wenn Tutorial_IsActionAllowed zustimmt, sonst Hinweis und kein Bau", "Je Kachel des Fußabdrucks: Felsen weg (Bit 0x80 und Organism ab 2000), Höhe auf Standardhöhe, Schaden 0, Bäume weg (Bit 0x1000, Organism unter 2000), Wassergraben (Bit 0x40004000) weg", "Einheiten auf der Kachel werden gelöscht (deleteUnit), außer bei Torhaus groß/klein, Zugbrücke, Lagerfeuer, Paradeplätze, Lager, Todesgrube, Pechgraben, platziertem Belagerungsturm und Türmen 1 bis 5", "Bauhöhe = niedrigste Kachelhöhe + (höchste - niedrigste)/2", "Abzweigung nach Gebäudeart zu den place*-Funktionen; BT_WOODGATE1 tut nichts; alle nicht gelisteten Typen gehen an placeWorkshopOrHovel", "Nur für den eigenen Spieler: Pechgraben ruft placePitchDitch(local_4), alles andere startBuildingDestructionConfirmation(placedBuildingID)", "Kosten werden erst nach dem Platzieren abgebucht (processPlacementResourceLossForBuildingType)", "Ist zu wenig Holz für eine Holzfällerhütte da und es gibt keinen Holzfäller, bekommt das Gebäude field203_0x288 = 1", "Wegeebene wird mit Größe 9 (unter 6) oder Größe + 5 aktualisiert"], "offen": ["Ob die Goldprüfung in checkBuildingCanBePlacedHere steckt (hier nicht sichtbar)", "Was startBuildingDestructionConfirmation genau tut (Name vermutlich irreführend)", "Bedeutung von field203_0x288", "Beide Zweige der Baum-Art-Auswahl rufen dasselbe (removeTree + Wegeebene), die Unterscheidung wirkt hier nicht"]}, "p3": {"erklaerung": "Beim Bauen werden Bäume, Felsen, Wassergräben und fast alle Einheiten auf dem Bauplatz entfernt, bevor das Gebäude entsteht. Die Kosten werden erst danach abgezogen.", "gehirn": "Einheiten auf dem Bauplatz werden gelöscht, nicht verschoben (außer bei Mauer-, Tor-, Turm- und Lagerfeuer-Typen). Bauplatz vor dem Bauen von eigenen Einheiten freihalten.", "beleg": "code", "live": "Gebäude auf Kachel mit eigener Einheit bauen → eigene Einheitenzahl vorher/nachher → sinkt um 1 (Einheit gelöscht)", "live_art": "bauen"}}
+
+### 0x00516b80 processDamageToBuilding | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00516B80
+ BOOLEnum TileMapState::processDamageToBuilding(int tile, uint xPosition, uint yPosition, int damageUnk, int param_5,
+ int playerID, BOOLEnum aiBuildDelayRelated, int unitID)
+ {
+ short* psVar1;
+ int* piVar2;
+ BuildingTypeShort BVar3;
+ ushort uVar4;
+ ushort uVar5;
+ short sVar6;
+ bool bVar7;
+ bool bVar8;
+ byte bVar9;
+ int _drawbridgeBuildingID;
+ int _drawbridgeBuildingID_2;
+ int _owner;
+ BOOLEnum BVar10;
+ int _drawbridgeID;
+ uint _buildingOwnerZeroBased;
+ BuildingTypeInt _buildingType3;
+ int _x;
+ int _buildingIDAtTile;
+ int iVar11;
+ int iVar12;
+ int _y;
+ int _owner2;
+ MappersEnum cbt;
+ BOOLEnum local_8;
+ int _pitch;
+ int _microY;
+ int _microX;
+ ushort _gatehouseX;
+ ushort _gatehouseY;
+ short _health;
+ short _health2;
+ BuildingTypeShort _buildingType;
+ BuildingTypeShort _buildingType2;
+ BuildingLogicalStateShort _logicalState;
+ _owner = 0;
+ bVar7 = false;
+ local_8 = FALSE;
+ bVar9 = 0;
+ bVar8 = false;
+ if ((playerID < 0)
+ && (iVar11 = -playerID, iVar12 = playerID * -4, playerID = iVar11,
+ *(int*)((int)DAT_GameSynchronyState + iVar12 + 0x6a8) == -1)) {
+ bVar7 = true;
+ bVar8 = true;
+ }
+ _buildingOwnerZeroBased = this->LogicLayer[tile];
+ if (((_buildingOwnerZeroBased & 0x10000400) == 0) && (this->BuildingLayer[tile] == 0)) {
+ if ((_buildingOwnerZeroBased & 0x100) != 0) {
+ if (((_buildingOwnerZeroBased & 2) != 0)
+ || ((_buildingOwnerZeroBased = this->WallOwnerLayer[tile] & 7,
+ bVar7
+ && (DAT_GameState.mapAndTime.playerTeams[playerID]
+ == DAT_GameState.mapAndTime.playerTeams[_buildingOwnerZeroBased + 1])))) {
+ return FALSE;
+ }
+ DAT_GameState.playerDataArray[_buildingOwnerZeroBased + 1].defensesDamagedByPlayer
+ = (short)playerID;
+ if (unitID != 0) {
+ if (DAT_GameState.mapAndTime.playerTeams[_buildingOwnerZeroBased + 1]
+ == DAT_GameState.mapAndTime.playerTeams[playerID]) {
+ psVar1 = &DAT_UnitsState.units[unitID].friendlyFireCounterUnk;
+ *psVar1 = *psVar1 + 1;
+ } else {
+ DAT_UnitsState.units[unitID].friendlyFireCounterUnk = 0;
+ }
+ }
+ /*
+ checks if there are other wall tiles around this wall in a plus (cardinal directions)
+ */
+ countLogicPropertyInSurroundingTiles(
+ tile, yPosition, (uint)((int)(268435712)));
+ if (this->DAT_CardinalTilesAroundTile < 2) {
+ damageUnk = damageUnk + damageUnk / 2;
+ } else if (2 < this->DAT_CardinalTilesAroundTile) {
+ damageUnk = damageUnk / 2;
+ }
+ if (param_5 != 0) {
+ damageUnk = 0;
+ }
+ DAT_TroopValueState.attackInfo.field128059_0x469e0
+ = DAT_TroopValueState.attackInfo.field128059_0x469e0 + 1;
+ DAT_GameCore.cowPoisonTrackerUnk
+ = DAT_GameCore.cowPoisonTrackerUnk + damageUnk * 10;
+ if ((((param_5 == 0) && ((this->LogicLayer[tile] & L_UNKNOWN_WALL_RELATED) == 0))
+ && (this->DamageLayer[tile] == 0))
+ && (this->DefaultHeightLayer[tile] + 60 < (uint)this->HeightLayer[tile])) {
+ this->HeightLayer[tile] = this->HeightLayer[tile] - 20;
+ }
+ if (damageUnk < 1) {
+ LAB_00516d9a:
+ updatePathLinkagesInAllEightDirections(yPosition, tile);
+ } else {
+ do {
+ if (this->HeightLayer[tile] <= this->DefaultHeightLayer[tile]) {
+ destroyEntitiesOnTile(tile);
+ this->LogicLayer[tile] = this->LogicLayer[tile]
+ & ~(L_WALL_OR_GATEHOUSE | L_CRENEL | L_STAIRS | L_UNKNOWN_WALL_RELATED
+ | L_CRENEL_VARIATIONUnk);
+ this->HeightLayer[tile] = this->DefaultHeightLayer[tile];
+ this->DamageLayer[tile] = 0;
+ DAT_PathFindingState.toggleUpdateSeparateAreaTileMap = 1;
+ this->field204_0x554a30 = 1;
+ local_8 = TRUE;
+ goto LAB_00516d9a;
+ }
+ this->HeightLayer[tile] = this->HeightLayer[tile] - 1;
+ if ((char)this->DamageLayer[tile] < 200) {
+ this->DamageLayer[tile] = this->DamageLayer[tile] + 1;
+ }
+ _owner = _owner + 1;
+ } while (_owner < damageUnk);
+ updatePathLinkagesInAllEightDirections(yPosition, tile);
+ }
+ goto LAB_0051769a;
+ }
+ goto LAB_005175ec;
+ }
+ _buildingIDAtTile = (int)this->BuildingLayer[tile];
+ _logicalState = DAT_BuildingsState.buildings[_buildingIDAtTile].logicalState;
+ if (((_logicalState == ((BuildingLogicalState)0)) || (_logicalState == BLS_REMOVE))
+ || (_health = DAT_BuildingsState.buildings[_buildingIDAtTile].currentHealth, _health == 0)) {
+ return TRUE;
+ }
+ DAT_GameCore.cowPoisonTrackerUnk = DAT_GameCore.cowPoisonTrackerUnk + damageUnk * 10;
+ _buildingType = DAT_BuildingsState.buildings[_buildingIDAtTile].buildingType;
+ if (DAT_BuildingDefinedData.BuildingTypeHasHealth[(short)_buildingType] == 0) {
+ return TRUE;
+ }
+ if ((this->LogicLayer[tile] & 0xf000000U) != 0) {
+ return TRUE;
+ }
+ if ((bVar8)
+ && (DAT_GameState.mapAndTime.playerTeams[playerID]
+ == DAT_GameState.mapAndTime
+ .playerTeams[DAT_BuildingsState.buildings[_buildingIDAtTile].owner])) {
+ return FALSE;
+ }
+ DAT_BuildingsState.buildings[_buildingIDAtTile].currentHealth = _health - (short)damageUnk;
+ if ((aiBuildDelayRelated == TRUE)
+ && (((_buildingType == BT_GATEHOUSELARGE
+ || (_buildingType == BT_GATEHOUSESMALL))
+ && (_drawbridgeBuildingID
+ = findParticularBuilding((int)DAT_BuildingsState.buildings[_buildingIDAtTile].owner,
+ (int)((int)((short)DAT_BuildingsState.buildings[_buildingIDAtTile].x)),
+ (int)((int)((short)DAT_BuildingsState.buildings[_buildingIDAtTile].y)),
+ DAT_BuildingsState.buildings[_buildingIDAtTile].widthOrHeight,
+ BT_DRAWBRIDGE, 0),
+ _drawbridgeBuildingID != 0)))) {
+ this->showNoRubbleWhenDestroyingBuilding
+ = (int)(DAT_BuildingDefinedData.BuildingShowRubbleWhenDestroyed
+ [(short)DAT_BuildingsState.buildings[_drawbridgeBuildingID].buildingType]
+ == 0);
+ destroyBuilding(
+ _drawbridgeBuildingID);
+ _drawbridgeBuildingID_2
+ = findParticularBuilding((int)DAT_BuildingsState.buildings[_buildingIDAtTile].owner,
+ (int)((int)((short)DAT_BuildingsState.buildings[_buildingIDAtTile].x)),
+ (int)((int)((short)DAT_BuildingsState.buildings[_buildingIDAtTile].y)),
+ DAT_BuildingsState.buildings[_buildingIDAtTile].widthOrHeight,
+ BT_DRAWBRIDGE, _drawbridgeBuildingID);
+ if (_drawbridgeBuildingID_2 != 0) {
+ this->showNoRubbleWhenDestroyingBuilding
+ = (int)(DAT_BuildingDefinedData.BuildingShowRubbleWhenDestroyed
+ [(short)DAT_BuildingsState.buildings[_drawbridgeBuildingID_2].buildingType]
+ == 0);
+ destroyBuilding(_drawbridgeBuildingID_2);
+ }
+ }
+ _buildingType2 = DAT_BuildingsState.buildings[_buildingIDAtTile].buildingType;
+ switch (_buildingType2) {
+ case BT_GATEHOUSELARGE:
+ case BT_GATEHOUSESMALL:
+ case BT_TOWER1:
+ case BT_TOWER2:
+ case BT_TOWER3:
+ case BT_TOWER4:
+ case BT_TOWER5:
+ DAT_GameState.playerDataArray[DAT_BuildingsState.buildings[_buildingIDAtTile].owner]
+ .defensesDamagedByPlayer = (short)playerID;
+ break;
+ default:
+ }
+ if (unitID != 0) {
+ if (DAT_GameState.mapAndTime
+ .playerTeams[DAT_BuildingsState.buildings[_buildingIDAtTile].owner]
+ == DAT_GameState.mapAndTime.playerTeams[playerID]) {
+ psVar1 = &DAT_UnitsState.units[unitID].friendlyFireCounterUnk;
+ *psVar1 = *psVar1 + 1;
+ } else {
+ DAT_UnitsState.units[unitID].friendlyFireCounterUnk = 0;
+ }
+ }
+ _health2 = DAT_BuildingsState.buildings[_buildingIDAtTile].currentHealth;
+ if (0 < _health2) {
+ if (((_buildingType2 == BT_SIEGETOWER_PLACED)
+ && (_owner = (int)DAT_BuildingsState.buildings[_buildingIDAtTile].unitRefID, _owner != 0))
+ && ((DAT_BuildingsState.buildings[_buildingIDAtTile].unitRefUID
+ == DAT_UnitsState.units[_owner].uid
+ && (sVar6 = DAT_BuildingsState.buildings[_buildingIDAtTile].maxHealth, sVar6 != 0)))) {
+ DAT_UnitsState.units[_owner].health
+ = ((int)_health2 * DAT_UnitsState.units[_owner].maxHealth) / (int)sVar6;
+ }
+ goto LAB_0051769a;
+ }
+ if (DAT_BuildingsState.buildings[_buildingIDAtTile].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ UpdateDestroyedBuildingCountData(1);
+ }
+ _owner = (int)DAT_BuildingsState.buildings[_buildingIDAtTile].owner;
+ if ((aiBuildDelayRelated == TRUE)
+ && (DAT_GameState.playerDataArray[_owner].resourceRebuildDelay == 0)) {
+ DAT_GameState.playerDataArray[_owner].resourceRebuildDelay = 1;
+ }
+ _buildingType3 = (BuildingTypeInt)(short)DAT_BuildingsState.buildings[_buildingIDAtTile].buildingType;
+ if ((_buildingType3 != BT_UNKNOWN3)
+ && (((int)_buildingType3 < 0x56 || (0x59 < (int)_buildingType3)))) {
+ piVar2 = DAT_GameSynchronyState.finalResults.finalBuildingsBurned + playerID;
+ *piVar2 = *piVar2 + 1;
+ piVar2 = DAT_GameSynchronyState.finalResults.finalBuildingsDestroyedWeighted + playerID;
+ *piVar2 = *piVar2 + DAT_BuildingDefinedData.field42_0x4154[_buildingType3];
+ piVar2 = DAT_GameSynchronyState.finalResults.finalBuidingsDestroyed + _owner;
+ *piVar2 = *piVar2 + 1;
+ piVar2 = (int*)(_owner * 0x39f4 + 0x115e9d8 + playerID * 0x20);
+ *piVar2 = *piVar2 + 1;
+ }
+ switch (DAT_BuildingsState.buildings[_buildingIDAtTile].buildingType) {
+ case BT_OILSMELTER:
+ case BT_GATEHOUSELARGE:
+ case BT_GATEHOUSESMALL:
+ case BT_TOWER1:
+ case BT_TOWER2:
+ case BT_TOWER3:
+ case BT_TOWER4:
+ case BT_TOWER5:
+ playAnger2BikFromPlayerToPlayer(
+ _owner, playerID);
+ break;
+ default
+ : playVictory2BikFromPlayerToPlayer(
+ _owner, playerID);
+ }
+ if ((((((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ && (playerID == DAT_GameSynchronyState.currentPlayerSlotID))
+ && (DAT_GameState.mapAndTime.playerTeams[_owner]
+ != DAT_GameState.mapAndTime
+ .playerTeams[DAT_GameSynchronyState.currentPlayerSlotID]))
+ && (((BVar3 = DAT_BuildingsState.buildings[_buildingIDAtTile].buildingType,
+ BVar3 == BT_TOWER4 || (BVar3 == BT_TOWER5))
+ || ((BVar3 == BT_GATEHOUSELARGE
+ || ((BVar3 == BT_CHURCH
+ || (BVar3 == BT_CATHEDRAL))))))))
+ && (BVar10 = shouldSoundXNotBePlaying(),
+ BVar10 == FALSE))
+ && (nextRandomNumber1(),
+ DAT_GameCore.genieVoiceActive != FALSE)) {
+ /*
+ "Watch it crumble"
+ */
+ playWAVSFX("Genie_36.wav");
+ }
+ switch (DAT_BuildingsState.buildings[_buildingIDAtTile].buildingType) {
+ case BT_OILSMELTER:
+ _pitch = DAT_BuildingsState.buildings[_buildingIDAtTile].resources[7];
+ if (_pitch != 0) {
+ _x = (int)(short)DAT_BuildingsState.buildings[_buildingIDAtTile].x;
+ _owner2 = (int)DAT_BuildingsState.buildings[_buildingIDAtTile].owner;
+ _buildingOwnerZeroBased
+ = DAT_BuildingsState.buildings[_buildingIDAtTile].currentTilePositionAdjusted;
+ DAT_BuildingsState.buildings[_buildingIDAtTile].noRubble = 0;
+ _y = (int)(short)DAT_BuildingsState.buildings[_buildingIDAtTile].y;
+ deleteBuilding(_buildingIDAtTile);
+ if (_pitch < 5) {
+ SetPlaceOnFire(_owner2, _x * 8 + 0x10, _y * 8 + 0x10,
+ (int)((int)((uint)this->HeightLayer[_buildingOwnerZeroBased])), 3);
+ } else {
+ _microY = _y * 8 + 0x10;
+ _microX = _x * 8 + 0x10;
+ SetPlaceOnFire(
+ _owner2, _microX, _microY, (int)((int)((uint)this->HeightLayer[_buildingOwnerZeroBased])), 5);
+ spawnProjectileEntity(0, (undefined4)((int)(_owner2)), 0, _microX, _microY,
+ (int)((int)((uint)this->HeightLayer[_buildingOwnerZeroBased])), 0, 0, 0,
+ 0x1a, 0);
+ }
+ playSFXAtLocation(
+ _x, _y, FX_IGNITE_PITCH);
+ local_8 = TRUE;
+ goto LAB_0051769a;
+ }
+ default : goto switchD_00517137_caseD_1d;
+ case BT_GATEHOUSELARGE:
+ case BT_GATEHOUSESMALL:
+ _drawbridgeID = findParticularBuilding((int)DAT_BuildingsState.buildings[_buildingIDAtTile].owner,
+ (int)((int)((short)DAT_BuildingsState.buildings[_buildingIDAtTile].x)),
+ (int)((int)((short)DAT_BuildingsState.buildings[_buildingIDAtTile].y)),
+ DAT_BuildingsState.buildings[_buildingIDAtTile].widthOrHeight,
+ BT_DRAWBRIDGE, 0);
+ if (_drawbridgeID != 0) {
+ this->showNoRubbleWhenDestroyingBuilding
+ = (int)(DAT_BuildingDefinedData.BuildingShowRubbleWhenDestroyed
+ [(short)DAT_BuildingsState.buildings[_drawbridgeID].buildingType]
+ == 0);
+ destroyBuilding(_drawbridgeID);
+ _owner = findParticularBuilding((int)DAT_BuildingsState.buildings[_buildingIDAtTile].owner,
+ (int)((int)((short)DAT_BuildingsState.buildings[_buildingIDAtTile].x)),
+ (int)((int)((short)DAT_BuildingsState.buildings[_buildingIDAtTile].y)),
+ DAT_BuildingsState.buildings[_buildingIDAtTile].widthOrHeight,
+ BT_DRAWBRIDGE, _drawbridgeID);
+ if (_owner != 0) {
+ this->showNoRubbleWhenDestroyingBuilding
+ = (int)(DAT_BuildingDefinedData.BuildingShowRubbleWhenDestroyed
+ [(short)DAT_BuildingsState.buildings[_owner].buildingType]
+ == 0);
+ destroyBuilding(_owner);
+ }
+ }
+ _gatehouseY = DAT_BuildingsState.buildings[_buildingIDAtTile].y;
+ _gatehouseX = DAT_BuildingsState.buildings[_buildingIDAtTile].x;
+ processDamageToUnitsOnBuilding(_buildingIDAtTile, 50);
+ this->showNoRubbleWhenDestroyingBuilding
+ = (int)(DAT_BuildingDefinedData.BuildingShowRubbleWhenDestroyed
+ [(short)DAT_BuildingsState.buildings[_buildingIDAtTile].buildingType]
+ == 0);
+ destroyBuilding(
+ _buildingIDAtTile);
+ playSFXAtLocation(
+ (int)(short)_gatehouseX, (int)((int)((short)_gatehouseY)), FX_TOWER_SMASH);
+ local_8 = TRUE;
+ goto LAB_0051769a;
+ case BT_TUNNEL:
+ _buildingOwnerZeroBased = (uint)DAT_BuildingsState.buildings[_buildingIDAtTile].unitRefID;
+ if (DAT_UnitsState.units[_buildingOwnerZeroBased].state.generic
+ != (US_STAND_UPUnk | US_IDLEUnk)) {
+ DAT_UnitsState.units[_buildingOwnerZeroBased].totalSizeOfPathPlan
+ = DAT_UnitsState.units[_buildingOwnerZeroBased].currentIndexInPathPlan;
+ applyTunnelDamageAlongPathPlan(_buildingOwnerZeroBased);
+ }
+ DAT_UnitsState.units[_buildingOwnerZeroBased].state.generic
+ = US_DISAPPEAR;
+ DAT_UnitsState.units[_buildingOwnerZeroBased].disappearFadeAlphaCountdown = 0x20;
+ DAT_UnitsState.units[_buildingOwnerZeroBased].updateTickTracker = 0x20;
+ goto switchD_00517137_caseD_1d;
+ case BT_SIEGETOWER_PLACED:
+ _owner = (int)DAT_BuildingsState.buildings[_buildingIDAtTile].unitRefID;
+ if ((_owner != 0)
+ && (DAT_BuildingsState.buildings[_buildingIDAtTile].unitRefUID
+ == DAT_UnitsState.units[_owner].uid)) {
+ DAT_UnitsState.units[_owner].state.generic = US_DISAPPEAR;
+ DAT_UnitsState.units[_owner].disappearFadeAlphaCountdown = 0;
+ DAT_UnitsState.units[_owner].updateTickTracker = 0;
+ DAT_UnitsState.units[_owner].workplaceBuildingID_1 = 0;
+ }
+ DAT_BuildingsState.buildings[_buildingIDAtTile].noRubble = 0;
+ deleteBuilding(
+ _buildingIDAtTile);
+ local_8 = TRUE;
+ goto LAB_0051769a;
+ case BT_TOWER1:
+ processDamageToUnitsOnBuilding(_buildingIDAtTile, 0x19);
+ sVar6 = DAT_BuildingsState.buildings[_buildingIDAtTile].owner;
+ uVar4 = DAT_BuildingsState.buildings[_buildingIDAtTile].x;
+ DAT_BuildingsState.buildings[_buildingIDAtTile].noRubble = 0;
+ uVar5 = DAT_BuildingsState.buildings[_buildingIDAtTile].y;
+ deleteBuilding(
+ _buildingIDAtTile);
+ iVar11 = 3;
+ cbt = M_MAPPER_TOWER1_DESTROYED;
+ goto LAB_0051717e;
+ case BT_TOWER2:
+ processDamageToUnitsOnBuilding(_buildingIDAtTile, 0x32);
+ damageUnk = (int)DAT_BuildingsState.buildings[_buildingIDAtTile].owner;
+ _owner = (int)(short)DAT_BuildingsState.buildings[_buildingIDAtTile].x;
+ DAT_BuildingsState.buildings[_buildingIDAtTile].noRubble = 0;
+ iVar12 = (int)(short)DAT_BuildingsState.buildings[_buildingIDAtTile].y;
+ deleteBuilding(
+ _buildingIDAtTile);
+ iVar11 = 4;
+ cbt = M_MAPPER_TOWER2_DESTROYED;
+ break;
+ case BT_TOWER3:
+ processDamageToUnitsOnBuilding(_buildingIDAtTile, 0x32);
+ damageUnk = (int)DAT_BuildingsState.buildings[_buildingIDAtTile].owner;
+ _owner = (int)(short)DAT_BuildingsState.buildings[_buildingIDAtTile].x;
+ DAT_BuildingsState.buildings[_buildingIDAtTile].noRubble = 0;
+ iVar12 = (int)(short)DAT_BuildingsState.buildings[_buildingIDAtTile].y;
+ deleteBuilding(
+ _buildingIDAtTile);
+ iVar11 = 5;
+ cbt = M_MAPPER_TOWER3_DESTROYED;
+ break;
+ case BT_TOWER4:
+ processDamageToUnitsOnBuilding(_buildingIDAtTile, 0x32);
+ sVar6 = DAT_BuildingsState.buildings[_buildingIDAtTile].owner;
+ uVar4 = DAT_BuildingsState.buildings[_buildingIDAtTile].x;
+ DAT_BuildingsState.buildings[_buildingIDAtTile].noRubble = 0;
+ uVar5 = DAT_BuildingsState.buildings[_buildingIDAtTile].y;
+ deleteBuilding(
+ _buildingIDAtTile);
+ iVar11 = 6;
+ cbt = M_MAPPER_TOWER4_DESTROYED;
+ LAB_0051717e:
+ damageUnk = (int)sVar6;
+ iVar12 = (int)(short)uVar5;
+ _owner = (int)(short)uVar4;
+ break;
+ case BT_TOWER5:
+ processDamageToUnitsOnBuilding(_buildingIDAtTile, 0x32);
+ damageUnk = (int)DAT_BuildingsState.buildings[_buildingIDAtTile].owner;
+ _owner = (int)(short)DAT_BuildingsState.buildings[_buildingIDAtTile].x;
+ DAT_BuildingsState.buildings[_buildingIDAtTile].noRubble = 0;
+ iVar12 = (int)(short)DAT_BuildingsState.buildings[_buildingIDAtTile].y;
+ deleteBuilding(
+ _buildingIDAtTile);
+ iVar11 = 6;
+ cbt = M_MAPPER_TOWER5_DESTROYED;
+ }
+ placeBuilding(
+ damageUnk, _owner, iVar12, cbt, iVar11, 0xf);
+ playSFXAtLocation(
+ _owner, iVar12, FX_TOWER_SMASH);
+ bVar9 = 1;
+ local_8 = TRUE;
+ LAB_0051769a:
+ updateWalkAndPathLayer(7, xPosition, yPosition);
+ return ~-(uint)bVar9 & local_8;
+ switchD_00517137_caseD_1d:
+ _owner = (int)(short)DAT_BuildingsState.buildings[_buildingIDAtTile].buildingType;
+ sVar6 = DAT_BuildingsState.buildings[_buildingIDAtTile].owner;
+ this->showNoRubbleWhenDestroyingBuilding
+ = (int)(DAT_BuildingDefinedData.BuildingShowRubbleWhenDestroyed[_owner] == 0);
+ destroyBuilding(
+ _buildingIDAtTile);
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[_buildingIDAtTile].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[_buildingIDAtTile].y)),
+ FX_BUILDING_SMASH);
+ if ((((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ && (playerID == DAT_GameSynchronyState.currentPlayerSlotID))
+ && (DAT_GameState.mapAndTime.playerTeams[sVar6]
+ != DAT_GameState.mapAndTime
+ .playerTeams[DAT_GameSynchronyState.currentPlayerSlotID]))
+ && (DAT_GameCore.genieVoiceActive != FALSE)) {
+ if ((_owner == 0x13) || (_owner == 0xb)) {
+ /*
+ "Excellent"
+ */
+ playWAVSFX("Genie_23.wav");
+ }
+ if ((_owner == 8) || (_owner == 9)) {
+ /*
+ "Bravo"
+ */
+ playWAVSFX("Genie_24.wav");
+ }
+ }
+ LAB_005175ec:
+ local_8 = TRUE;
+ goto LAB_0051769a;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00516b80", "name": "processDamageToBuilding", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Wendet Schaden auf eine Mauer oder ein Gebäude auf einem Feld an und zerstört es bei 0 Lebenspunkten."}, "p2": {"ein": "tile, xPosition, yPosition, damageUnk, param_5, playerID (negativ = Teamschutz-Modus), aiBuildDelayRelated, unitID", "aus": "TRUE/FALSE (siehe regeln)", "liest": ["LogicLayer[tile]", "BuildingLayer[tile]", "WallOwnerLayer", "HeightLayer/DefaultHeightLayer/DamageLayer", "buildings[].logicalState/currentHealth/buildingType/owner/resources[7]", "BuildingTypeHasHealth[typ]", "playerTeams[]"], "schreibt": ["HeightLayer/DamageLayer/LogicLayer (Mauer)", "buildings[].currentHealth", "playerDataArray[].defensesDamagedByPlayer", "units[].friendlyFireCounterUnk", "cowPoisonTrackerUnk (+Schaden·10)", "finalResults.finalBuildingsBurned/finalBuidingsDestroyed/finalBuildingsDestroyedWeighted", "resourceRebuildDelay (auf 1, wenn 0)"], "ruft": ["countLogicPropertyInSurroundingTiles", "updatePathLinkagesInAllEightDirections", "destroyEntitiesOnTile", "findParticularBuilding", "destroyBuilding", "deleteBuilding", "processDamageToUnitsOnBuilding", "placeBuilding", "SetPlaceOnFire", "spawnProjectileEntity", "updateWalkAndPathLayer", "UpdateDestroyedBuildingCountData"], "regeln": ["Negative playerID wird ins Positive umgedreht; steht dann in der Synchronie-Tabelle +0x6a8 der Wert -1, gilt Teamschutz: Mauer oder Gebäude eines Spielers im selben Team nimmt keinen Schaden, Ergebnis FALSE", "Mauerfeld (LogicLayer-Bit 0x100, ohne Gebäude): Bit 2 gesetzt = FALSE ohne Schaden", "Mauerschaden: weniger als 2 Mauerfelder in den vier Himmelsrichtungen = Schaden + Schaden/2; genau 2 = unverändert; mehr als 2 = Schaden/2; param_5 ungleich 0 setzt den Schaden auf 0", "Mauer: je Schadenspunkt HeightLayer um 1 runter und DamageLayer um 1 rauf (bis 200); vorab einmalig HeightLayer um 20 runter, wenn param_5 = 0, DamageLayer = 0 und DefaultHeight + 60 kleiner als Height", "Mauer fällt, sobald HeightLayer nicht mehr über DefaultHeightLayer liegt; dann TRUE, bei nur beschädigter Mauer FALSE", "Feld ohne Mauer und ohne Gebäude: TRUE ohne Wirkung. Gebäude im Zustand 0 oder BLS_REMOVE, mit 0 Leben, ohne Lebenspunkte-Eigenschaft oder mit LogicLayer-Bits 0xf000000: TRUE ohne Schaden", "Gebäude: currentHealth sinkt um den Schaden; bei Leben über 0 FALSE. Belagerungsturm (BT_SIEGETOWER_PLACED): Leben der Besatzungseinheit wird im gleichen Verhältnis angepasst", "Ist aiBuildDelayRelated = TRUE, verschwinden beide Zugbrücken eines Torhauses schon beim ersten Treffer", "Bei Leben 0 oder weniger: Statistik, außer Typ BT_UNKNOWN3 und Typen 0x56-0x59; Torhaus: Zugbrücken weg, Einheiten darauf nehmen 50 Schaden; Turm 1 nimmt 25 Schaden an Einheiten darauf, Türme 2-5 je 50", "Türme 1-5 werden durch Ruinen ersetzt (Größe 3, 4, 5, 6, 6) und liefern dann FALSE; alle anderen zerstörten Gebäude liefern TRUE", "Ölschmelze mit Pech (resources[7]) ungleich 0: wird gelöscht und brennt (unter 5 Pech Stärke 3, ab 5 Stärke 5 plus Geschoss 0x1a); ohne Pech normale Zerstörung", "Tunnel: der zugehörige Tunnelgräber verschwindet (US_DISAPPEAR), bei laufendem Weg wird vorher Tunnelschaden entlang des Wegs angewendet"], "offen": ["Bedeutung von param_5 (setzt Mauerschaden auf 0)", "cowPoisonTrackerUnk: Name vermutlich falsch, Zähler wächst mit Schaden·10", "Was der Synchronie-Eintrag +0x6a8 genau ist (Teamschutz, vermutlich Friendly-Fire-Schalter)", "Warum zerstörte Türme FALSE statt TRUE liefern"]}, "p3": {"erklaerung": "Zentraler Schadensweg für Gebäude und Mauern. Mauern verlieren Höhe, Gebäude Lebenspunkte; Türme hinterlassen Ruinen, Ölschmelzen mit Pech brennen.", "gehirn": "Mauerschwäche: Ein Mauerfeld mit weniger als 2 Nachbarn nimmt anderthalbfachen, eines mit mehr als 2 Nachbarn halben Schaden. Gegnerische Mauern an Ecken oder Enden angreifen. Gebäudeleben sind über buildings[].currentHealth lesbar.", "beleg": "code", "live": "Mauerfeld mit 2 Nachbarn angreifen → HeightLayer[tile] vorher/nachher → sinkt um den Schaden (bei weniger als 2 Nachbarn um 1,5-fach)", "live_art": "kampf"}}
+

@@ -1,0 +1,1248 @@
+### 0x00462340 MenuItemActionHandler_TextEditor_Buttons | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00462340
+ void TextEditor::MenuItemActionHandler_TextEditor_Buttons(int param_1, ...)
+ {
+ char cVar1;
+ WCHAR* pWVar2;
+ uint uVar3;
+ char (*pacVar4)[1000];
+ char (*pacVar5)[1000];
+ int iVar6;
+ BOOLEnum BVar7;
+ char* pcVar8;
+ int iVar9;
+ undefined4 uVar10;
+ HelpTextToken token;
+ iVar6 = DAT_TextEditorState.activeHelpHotspotIndex;
+ pWVar2 = DAT_TextEditorState.DAT_PointerToTemporaryTextMemory;
+ switch (param_1) {
+ case 0:
+ case 0x10:
+ case 0x11:
+ case 0x12:
+ case 0x13:
+ case 0x15:
+ case 0x16:
+ case 0x17:
+ case 0x18:
+ case 0x19:
+ case 0x1a:
+ case 0x1b:
+ case 0x1c:
+ case 0x1d:
+ case 0x1e:
+ case 0x1f:
+ break;
+ case 1:
+ DAT_TextEditorState.helpDialogSubMode
+ = (uint)(DAT_TextEditorState.helpDialogSubMode == 0);
+ initializeAndLayoutHelpText();
+ return;
+ case 2:
+ DAT_TextEditorState.customHelpTextLength = 0;
+ DAT_TextEditorState.graphicFileCount = 0;
+ DAT_TextEditorState.helpContentScrollOffsetY = 0;
+ DAT_TextEditorState.topVisibleLineIndex = 0xffffffff;
+ *DAT_TextEditorState.DAT_PointerToTemporaryTextMemory = L'\0';
+ initializeAndLayoutHelpText();
+ return;
+ case 3:
+ DAT_ResourceManager.strFileTitle[0] = '\0';
+ DAT_ResourceManager.strFile[0] = '\0';
+ BVar7 = showOpenHelpFileDialog("Select help file to load");
+ if (BVar7 != FALSE) {
+ pcVar8 = DAT_ResourceManager.strFileTitle;
+ do {
+ cVar1 = *pcVar8;
+ pcVar8 = pcVar8 + 1;
+ } while (cVar1 != '\0');
+ if (pcVar8 != DAT_ResourceManager.strFileTitle + 1) {
+ iVar6 = findOrAddHelpSectionName(DAT_ResourceManager.strFileTitle);
+ openUnusedHelpTextEditorDialog(iVar6);
+ return;
+ }
+ }
+ break;
+ case 4:
+ if (DAT_TextEditorState.customHelpTextLength != 0) {
+ pacVar5 = DAT_UserHelpDefinedData.HelpSections
+ + DAT_TextEditorState.currentHelpSectionID;
+ pacVar4 = pacVar5;
+ do {
+ cVar1 = (*pacVar4)[0];
+ *(char*)((int)pacVar4 + (0x11bf521 - (int)pacVar5)) = cVar1;
+ pacVar4 = (char (*)[1000])(*pacVar4 + 1);
+ } while (cVar1 != '\0');
+ iVar6 = 0x11bf138 - (int)pacVar5;
+ do {
+ cVar1 = (*pacVar5)[0];
+ *(char*)((int)pacVar5 + iVar6) = cVar1;
+ pacVar5 = (char (*)[1000])(*pacVar5 + 1);
+ } while (cVar1 != '\0');
+ BVar7 = showSaveHelpFileDialog();
+ if (BVar7 != FALSE) {
+ pcVar8 = DAT_ResourceManager.strFileTitle;
+ do {
+ cVar1 = *pcVar8;
+ pcVar8 = pcVar8 + 1;
+ } while (cVar1 != '\0');
+ if (pcVar8 != DAT_ResourceManager.strFileTitle + 1) {
+ DAT_TextEditorState.currentHelpSectionID
+ = findOrAddHelpSectionName(DAT_ResourceManager.strFileTitle);
+ saveHelpFileToResource();
+ return;
+ }
+ }
+ }
+ break;
+ case 5:
+ if (DAT_TextEditorState.pendingTokenTypeToSkip != ((HelpTextToken)0)) {
+ iVar6 = helpToken_getHelpTokenAdvanceLength(DAT_TextEditorState.pendingTokenTypeToSkip);
+ DAT_TextEditorState.activeHelpHotspotIndex
+ = DAT_TextEditorState.activeHelpHotspotIndex + iVar6;
+ DAT_TextEditorState.pendingTokenTypeToSkip = ((HelpTextToken)0);
+ }
+ DAT_ResourceManager.strFileTitle[0] = '\0';
+ DAT_ResourceManager.strFile[0] = '\0';
+ BVar7 = showOpenGfxFileDialog();
+ if (BVar7 != FALSE) {
+ pcVar8 = DAT_ResourceManager.strFileTitle;
+ do {
+ cVar1 = *pcVar8;
+ pcVar8 = pcVar8 + 1;
+ } while (cVar1 != '\0');
+ if (pcVar8 != DAT_ResourceManager.strFileTitle + 1) {
+ iVar6 = findOrAddHelpGraphicName(DAT_ResourceManager.strFileTitle);
+ loadHelpSectionGraphics();
+ helpToken_insertSpaceForHelpTextToken(HTT_PIC);
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex]
+ = L'\x01';
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex + 1]
+ = (WCHAR)iVar6;
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex + 2]
+ = L'\0';
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex + 3]
+ = L'\x01';
+ token = HTT_PIC;
+ goto LAB_0046264e;
+ }
+ }
+ break;
+ case 6:
+ if (DAT_TextEditorState.pendingTokenTypeToSkip != ((HelpTextToken)0)) {
+ iVar6 = helpToken_getHelpTokenAdvanceLength(DAT_TextEditorState.pendingTokenTypeToSkip);
+ DAT_TextEditorState.activeHelpHotspotIndex
+ = DAT_TextEditorState.activeHelpHotspotIndex + iVar6;
+ DAT_TextEditorState.pendingTokenTypeToSkip = ((HelpTextToken)0);
+ }
+ DAT_ResourceManager.strFileTitle[0] = '\0';
+ DAT_ResourceManager.strFile[0] = '\0';
+ BVar7 = showOpenHelpFileDialog("Select help file to link to");
+ if (BVar7 != FALSE) {
+ pcVar8 = DAT_ResourceManager.strFileTitle;
+ do {
+ cVar1 = *pcVar8;
+ pcVar8 = pcVar8 + 1;
+ } while (cVar1 != '\0');
+ if (pcVar8 != DAT_ResourceManager.strFileTitle + 1) {
+ iVar6 = findOrAddHelpSectionName(DAT_ResourceManager.strFileTitle);
+ helpToken_insertSpaceForHelpTextToken(HTT_LINK);
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex]
+ = L'\x04';
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex + 1]
+ = (WCHAR)iVar6;
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex + 2]
+ = L'\x04';
+ token = HTT_LINK;
+ goto LAB_0046264e;
+ }
+ }
+ break;
+ case 7:
+ if (DAT_TextEditorState.pendingTokenTypeToSkip != ((HelpTextToken)0)) {
+ iVar6 = helpToken_getHelpTokenAdvanceLength(DAT_TextEditorState.pendingTokenTypeToSkip);
+ DAT_TextEditorState.activeHelpHotspotIndex
+ = DAT_TextEditorState.activeHelpHotspotIndex + iVar6;
+ DAT_TextEditorState.pendingTokenTypeToSkip = ((HelpTextToken)0);
+ }
+ helpToken_insertSpaceForHelpTextToken(HTT_ENDLINK);
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex] = L'\x05';
+ token = HTT_ENDLINK;
+ goto LAB_0046264e;
+ case 8:
+ if (DAT_TextEditorState.pendingTokenTypeToSkip != ((HelpTextToken)0)) {
+ iVar6 = helpToken_getHelpTokenAdvanceLength(DAT_TextEditorState.pendingTokenTypeToSkip);
+ DAT_TextEditorState.activeHelpHotspotIndex
+ = DAT_TextEditorState.activeHelpHotspotIndex + iVar6;
+ DAT_TextEditorState.pendingTokenTypeToSkip = ((HelpTextToken)0);
+ }
+ helpToken_insertSpaceForHelpTextToken(HTT_FONT);
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex] = L'\x02';
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex + 1]
+ = L'\x11';
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex + 2]
+ = L'\x02';
+ DAT_TextEditorState.pendingTokenTypeToSkip = 2;
+ initializeAndLayoutHelpText();
+ return;
+ case 9:
+ if (DAT_TextEditorState.pendingTokenTypeToSkip != ((HelpTextToken)0)) {
+ iVar6 = helpToken_getHelpTokenAdvanceLength(DAT_TextEditorState.pendingTokenTypeToSkip);
+ DAT_TextEditorState.activeHelpHotspotIndex
+ = DAT_TextEditorState.activeHelpHotspotIndex + iVar6;
+ DAT_TextEditorState.pendingTokenTypeToSkip = ((HelpTextToken)0);
+ }
+ helpToken_insertSpaceForHelpTextToken(HTT_CENTRE);
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex] = L'\a';
+ token = HTT_CENTRE;
+ goto LAB_0046264e;
+ case 10:
+ if (DAT_TextEditorState.pendingTokenTypeToSkip != ((HelpTextToken)0)) {
+ iVar6 = helpToken_getHelpTokenAdvanceLength(DAT_TextEditorState.pendingTokenTypeToSkip);
+ DAT_TextEditorState.activeHelpHotspotIndex
+ = DAT_TextEditorState.activeHelpHotspotIndex + iVar6;
+ DAT_TextEditorState.pendingTokenTypeToSkip = ((HelpTextToken)0);
+ }
+ helpToken_insertSpaceForHelpTextToken(HTT_ENDCENTRE);
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex] = L'\b';
+ token = HTT_ENDCENTRE;
+ LAB_0046264e:
+ iVar6 = helpToken_getHelpTokenAdvanceLength(token);
+ DAT_TextEditorState.activeHelpHotspotIndex
+ = DAT_TextEditorState.activeHelpHotspotIndex + iVar6;
+ initializeAndLayoutHelpText();
+ return;
+ case 0xb:
+ if (DAT_TextEditorState.pendingTokenTypeToSkip != ((HelpTextToken)0)) {
+ iVar6 = helpToken_getHelpTokenAdvanceLength(DAT_TextEditorState.pendingTokenTypeToSkip);
+ DAT_TextEditorState.activeHelpHotspotIndex
+ = DAT_TextEditorState.activeHelpHotspotIndex + iVar6;
+ DAT_TextEditorState.pendingTokenTypeToSkip = ((HelpTextToken)0);
+ }
+ uVar10 = 3;
+ helpToken_insertSpaceForHelpTextToken(HTT_COLOUR);
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex] = L'\x03';
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex + 1]
+ = L'\x01';
+ goto LAB_004628ba;
+ case 0xc:
+ if (DAT_TextEditorState.pendingTokenTypeToSkip != ((HelpTextToken)0)) {
+ iVar6 = helpToken_getHelpTokenAdvanceLength(DAT_TextEditorState.pendingTokenTypeToSkip);
+ DAT_TextEditorState.activeHelpHotspotIndex
+ = DAT_TextEditorState.activeHelpHotspotIndex + iVar6;
+ DAT_TextEditorState.pendingTokenTypeToSkip = ((HelpTextToken)0);
+ }
+ uVar10 = 10;
+ helpToken_insertSpaceForHelpTextToken(HTT_SOUND);
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex] = L'\n';
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex + 1] = L'\v';
+ goto LAB_004628ba;
+ case 0xd:
+ if (DAT_TextEditorState.pendingTokenTypeToSkip != ((HelpTextToken)0)) {
+ iVar6 = helpToken_getHelpTokenAdvanceLength(DAT_TextEditorState.pendingTokenTypeToSkip);
+ DAT_TextEditorState.activeHelpHotspotIndex
+ = DAT_TextEditorState.activeHelpHotspotIndex + iVar6;
+ DAT_TextEditorState.pendingTokenTypeToSkip = ((HelpTextToken)0);
+ }
+ DAT_ResourceManager.strFileTitle[0] = '\0';
+ DAT_ResourceManager.strFile[0] = '\0';
+ BVar7 = showOpenSoundFileDialog();
+ if (BVar7 != FALSE) {
+ pcVar8 = DAT_ResourceManager.strFileTitle;
+ do {
+ cVar1 = *pcVar8;
+ pcVar8 = pcVar8 + 1;
+ } while (cVar1 != '\0');
+ if (pcVar8 != DAT_ResourceManager.strFileTitle + 1) {
+ iVar6 = findOrAddSoundName(DAT_ResourceManager.strFileTitle);
+ helpToken_insertSpaceForHelpTextToken(HTT_STRING);
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex]
+ = L'\v';
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex + 1]
+ = (WCHAR)iVar6;
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex + 2]
+ = L'\v';
+ token = HTT_STRING;
+ goto LAB_0046264e;
+ }
+ }
+ break;
+ case 0xe:
+ if (DAT_TextEditorState.pendingTokenTypeToSkip != ((HelpTextToken)0)) {
+ iVar6 = helpToken_getHelpTokenAdvanceLength(DAT_TextEditorState.pendingTokenTypeToSkip);
+ DAT_TextEditorState.activeHelpHotspotIndex
+ = DAT_TextEditorState.activeHelpHotspotIndex + iVar6;
+ DAT_TextEditorState.pendingTokenTypeToSkip = ((HelpTextToken)0);
+ }
+ uVar10 = 0xc;
+ helpToken_insertSpaceForHelpTextToken(HTT_ENDCENTRE | HTT_LINK);
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex] = L'\f';
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex + 1] = L'\0';
+ LAB_004628ba:
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex + 2]
+ = (WCHAR)uVar10;
+ DAT_TextEditorState.pendingTokenTypeToSkip = uVar10;
+ initializeAndLayoutHelpText();
+ return;
+ case 0xf:
+ if (DAT_TextEditorState.pendingTokenTypeToSkip != ((HelpTextToken)0)) {
+ iVar6 = helpToken_getHelpTokenAdvanceLength(DAT_TextEditorState.pendingTokenTypeToSkip);
+ DAT_TextEditorState.activeHelpHotspotIndex
+ = DAT_TextEditorState.activeHelpHotspotIndex + iVar6;
+ DAT_TextEditorState.pendingTokenTypeToSkip = ((HelpTextToken)0);
+ }
+ DAT_ResourceManager.strFileTitle[0] = '\0';
+ DAT_ResourceManager.strFile[0] = '\0';
+ BVar7 = showOpenHelpFileDialog("Select help file to include");
+ if (BVar7 != FALSE) {
+ pcVar8 = DAT_ResourceManager.strFileTitle;
+ do {
+ cVar1 = *pcVar8;
+ pcVar8 = pcVar8 + 1;
+ } while (cVar1 != '\0');
+ if (pcVar8 != DAT_ResourceManager.strFileTitle + 1) {
+ iVar6 = findOrAddHelpSectionName(DAT_ResourceManager.strFileTitle);
+ helpToken_insertSpaceForHelpTextToken(
+ HTT_ENDCENTRE | HTT_NEWPARAGRAPH);
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex]
+ = L'\x0e';
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex + 1]
+ = (WCHAR)iVar6;
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex + 2]
+ = L'\x0e';
+ token = HTT_ENDCENTRE | HTT_NEWPARAGRAPH;
+ goto LAB_0046264e;
+ }
+ }
+ break;
+ case 0x14:
+ DAT_TextEditorState.useWideHelpLayout = DAT_TextEditorState.useWideHelpLayout ^ 1;
+ if (DAT_TextEditorState.useWideHelpLayout == 0) {
+ setHelpWindowBounds(DAT_TextEditorState.dialogX + 10,
+ (undefined4)((int)(DAT_TextEditorState.dialogY + 10)),
+ (undefined4)((int)(DAT_TextEditorState.dialogWidth + -0x28)),
+ (undefined4)((int)(DAT_TextEditorState.dialogHeight + -0x2d)));
+ initializeAndLayoutHelpText();
+ return;
+ }
+ DAT_TextEditorState.dialogContentX = DAT_TextEditorState.dialogX + 10;
+ DAT_TextEditorState.dialogContentY = DAT_TextEditorState.dialogY + 10;
+ DAT_TextEditorState.dialogContentWidth = 0x298;
+ DAT_TextEditorState.dialogContentHeight = 0x123;
+ initializeAndLayoutHelpText();
+ return;
+ case 0x20:
+ switch (DAT_TextEditorState.field52_0x23970) {
+ case 1:
+ DAT_ResourceManager.strFileTitle[0] = '\0';
+ DAT_ResourceManager.strFile[0] = '\0';
+ BVar7 = showOpenGfxFileDialog();
+ if (BVar7 != FALSE) {
+ pcVar8 = DAT_ResourceManager.strFileTitle;
+ do {
+ cVar1 = *pcVar8;
+ pcVar8 = pcVar8 + 1;
+ } while (cVar1 != '\0');
+ if (pcVar8 != DAT_ResourceManager.strFileTitle + 1) {
+ iVar6 = findOrAddHelpGraphicName(DAT_ResourceManager.strFileTitle);
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex
+ + 1] = (WCHAR)iVar6;
+ loadHelpSectionGraphics();
+ initializeAndLayoutHelpText();
+ return;
+ }
+ }
+ break;
+ case 4:
+ DAT_ResourceManager.strFileTitle[0] = '\0';
+ DAT_ResourceManager.strFile[0] = '\0';
+ BVar7 = showOpenHelpFileDialog("Select help file to link to");
+ if (BVar7 != FALSE) {
+ pcVar8 = DAT_ResourceManager.strFileTitle;
+ do {
+ cVar1 = *pcVar8;
+ pcVar8 = pcVar8 + 1;
+ } while (cVar1 != '\0');
+ LAB_00462c09:
+ if (pcVar8 != DAT_ResourceManager.strFileTitle + 1) {
+ iVar6 = findOrAddHelpSectionName(DAT_ResourceManager.strFileTitle);
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex
+ + 1] = (WCHAR)iVar6;
+ return;
+ }
+ }
+ break;
+ case 0xb:
+ DAT_ResourceManager.strFileTitle[0] = '\0';
+ DAT_ResourceManager.strFile[0] = '\0';
+ BVar7 = showOpenSoundFileDialog();
+ if (BVar7 != FALSE) {
+ pcVar8 = DAT_ResourceManager.strFileTitle;
+ do {
+ cVar1 = *pcVar8;
+ pcVar8 = pcVar8 + 1;
+ } while (cVar1 != '\0');
+ if (pcVar8 != DAT_ResourceManager.strFileTitle + 1) {
+ iVar6 = findOrAddSoundName(DAT_ResourceManager.strFileTitle);
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex
+ + 1] = (WCHAR)iVar6;
+ initializeAndLayoutHelpText();
+ return;
+ }
+ }
+ break;
+ case 0xe:
+ DAT_ResourceManager.strFileTitle[0] = '\0';
+ DAT_ResourceManager.strFile[0] = '\0';
+ BVar7 = showOpenHelpFileDialog("Select help file to include");
+ if (BVar7 != FALSE) {
+ pcVar8 = DAT_ResourceManager.strFileTitle;
+ do {
+ cVar1 = *pcVar8;
+ pcVar8 = pcVar8 + 1;
+ } while (cVar1 != '\0');
+ goto LAB_00462c09;
+ }
+ }
+ break;
+ case 0x21:
+ switch (DAT_TextEditorState.field52_0x23970) {
+ case 1:
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex + 2]
+ = L'\0';
+ initializeAndLayoutHelpText();
+ return;
+ case 2:
+ iVar9 = getPrevHelpSectionID((uint)(ushort)DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex
+ + 1]);
+ pWVar2[iVar6 + 1] = (WCHAR)iVar9;
+ initializeAndLayoutHelpText();
+ return;
+ case 3:
+ case 10:
+ iVar9 = getPrevHelpColorEntryIndex((uint)(ushort)DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex
+ + 1]);
+ pWVar2[iVar6 + 1] = (WCHAR)iVar9;
+ initializeAndLayoutHelpText();
+ return;
+ case 0xc:
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex + 1]
+ = (WCHAR)((ulonglong)((ushort)DAT_TextEditorState.DAT_PointerToTemporaryTextMemory
+ [DAT_TextEditorState.activeHelpHotspotIndex + 1]
+ + 0x13)
+ % 0x14);
+ }
+ break;
+ case 0x22:
+ switch (DAT_TextEditorState.field52_0x23970) {
+ case 1:
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex + 2]
+ = L'\x01';
+ initializeAndLayoutHelpText();
+ return;
+ case 2:
+ iVar9 = getNextHelpSectionID((uint)(ushort)DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex
+ + 1]);
+ pWVar2[iVar6 + 1] = (WCHAR)iVar9;
+ initializeAndLayoutHelpText();
+ return;
+ case 3:
+ case 10:
+ iVar9 = getNextHelpColorEntryIndex((uint)(ushort)DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex
+ + 1]);
+ pWVar2[iVar6 + 1] = (WCHAR)iVar9;
+ initializeAndLayoutHelpText();
+ return;
+ case 0xc:
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex + 1]
+ = (WCHAR)((ulonglong)((ushort)DAT_TextEditorState.DAT_PointerToTemporaryTextMemory
+ [DAT_TextEditorState.activeHelpHotspotIndex + 1]
+ + 1)
+ % 0x14);
+ return;
+ }
+ break;
+ case 0x23:
+ if (DAT_TextEditorState.field52_0x23970 == 1) {
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex + 2]
+ = L'\x02';
+ initializeAndLayoutHelpText();
+ return;
+ }
+ break;
+ case 0x24:
+ if (DAT_TextEditorState.field52_0x23970 == 1) {
+ DAT_TextEditorState
+ .DAT_PointerToTemporaryTextMemory[DAT_TextEditorState.activeHelpHotspotIndex + 2]
+ = L'\x03';
+ initializeAndLayoutHelpText();
+ return;
+ }
+ break;
+ case -5:
+ openUnusedHelpTextEditorDialog(-1);
+ return;
+ case -4:
+ if (DAT_TextEditorState.helpSectionHistoryStack[0] != -1) {
+ popHelpDialogStack();
+ return;
+ }
+ break;
+ case -3:
+ if (DAT_TextEditorState.useAlternateHelpTab == 0) {
+ if (-1 < DAT_TextEditorState.field50_0x23968) {
+ openUnusedHelpTextEditorDialog(DAT_TextEditorState.field50_0x23968);
+ return;
+ }
+ } else if (-1 < DAT_TextEditorState.field49_0x23964) {
+ DAT_TextEditorState.activeHelpHotspotIndex
+ = DAT_TextEditorState.field49_0x23964;
+ return;
+ }
+ break;
+ case -2:
+ uVar3 = DAT_TextEditorState.topVisibleLineIndex
+ - DAT_TextEditorState.dialogContentHeight;
+ if (((int)((((int)uVar3 < 1) - 1 & uVar3) - 0x12)
+ <= (int)DAT_TextEditorState.helpContentScrollOffsetY)
+ || (DAT_TextEditorState.helpContentScrollOffsetY
+ = DAT_TextEditorState.helpContentScrollOffsetY + 0x12,
+ (int)(((int)uVar3 < 1) - 1 & uVar3)
+ < (int)DAT_TextEditorState.helpContentScrollOffsetY)) {
+ DAT_TextEditorState.helpContentScrollOffsetY = ((int)uVar3 < 1) - 1 & uVar3;
+ }
+ return;
+ case -1:
+ if (0x11 < (int)DAT_TextEditorState.helpContentScrollOffsetY) {
+ DAT_TextEditorState.helpContentScrollOffsetY
+ = DAT_TextEditorState.helpContentScrollOffsetY + -0x12;
+ return;
+ }
+ DAT_TextEditorState.helpContentScrollOffsetY = 0;
+ return;
+ default:
+ goto LAB_00462dcd;
+ }
+ LAB_00462dcd:
+ return;
+ }
+ }
+}
+}
+
+### 0x0045d080 setHelpWindowBounds | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045D080
+ void TextEditorState::setHelpWindowBounds(int x, int y, int width, int height)
+ {
+ this->dialogContentX = x;
+ this->dialogContentY = y;
+ this->dialogContentWidth = width;
+ this->dialogContentHeight = height;
+ }
+}
+}
+
+### 0x0045d0c0 resetHelpStateFields | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045D0C0
+ void TextEditorState::resetHelpStateFields()
+ {
+ for (int i = 0; i < 30; ++i) {
+ this->helpSectionHistoryStack[i] = -1;
+ }
+ this->currentHelpSectionID = -1;
+ }
+}
+}
+
+### 0x0045d140 findHelpSectionIndexByName | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045D140
+ int TextEditorState::findHelpSectionIndexByName(char* param_1)
+ {
+ for (int counter = 0; counter < this->counter; ++counter) {
+ if (!__stricmp(DAT_UserHelpDefinedData.HelpSections[counter], param_1)) {
+ return counter;
+ }
+ }
+ return -1;
+ }
+}
+}
+
+### 0x0045d1a0 findOrAddHelpSectionName | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045D1A0
+ int TextEditorState::findOrAddHelpSectionName(char* param_1)
+ {
+ int helpSectionId
+ = findHelpSectionIndexByName(param_1);
+ if (helpSectionId != -1) {
+ return helpSectionId;
+ }
+ // FIXME:: This should overflow the buffer if filled to much. The counter can reach 500, which is one over the
+ // buffer, ignoring that it will just overwrite this again and again.
+ helpSectionId = this->counter;
+ strcpy(DAT_UserHelpDefinedData.HelpSections[helpSectionId], param_1);
+ if (this->counter < 500) {
+ ++this->counter;
+ }
+ return helpSectionId;
+ }
+}
+}
+
+### 0x0045d200 parseHLPPart | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045D200
+ LPWSTR TextEditorState::parseHLPPart(FILE* filePointer)
+ {
+ int finishedParsing = FALSE;
+ int quoteActive = FALSE;
+ int reachedWEOF = FALSE;
+ wchar_t* bufferPtr = HLP_WCHAR_Buffer::instance;
+ while (!reachedWEOF) {
+ if (finishedParsing) {
+ return HLP_WCHAR_Buffer::instance;
+ }
+ int readWChar = _fgetwc(filePointer);
+ switch (readWChar) {
+ case L'"':
+ quoteActive ^= TRUE;
+ continue;
+ case L'\t':
+ case L' ':
+ case L',':
+ case L'=':
+ if (!quoteActive) {
+ int consumed = FALSE;
+ while (!reachedWEOF && !consumed) {
+ readWChar = _fgetwc(filePointer);
+ if (readWChar == WEOF) {
+ reachedWEOF = TRUE;
+ continue;
+ }
+ switch (readWChar) {
+ default:
+ _fseek(filePointer, -2, FILE_CURRENT);
+ case L'>':
+ consumed = true;
+ case L'\t':
+ case L' ':
+ case L',':
+ case L'=':
+ break;
+ }
+ }
+ }
+ case L'>':
+ if (!quoteActive) {
+ finishedParsing = true;
+ *bufferPtr = L'\0';
+ continue;
+ }
+ break;
+ case L'\n':
+ case L'\r':
+ continue;
+ case WEOF:
+ reachedWEOF = true;
+ continue;
+ }
+ *bufferPtr++ = readWChar;
+ }
+ return NULL;
+ }
+}
+}
+
+### 0x0045d370 loadHelpSectionGraphics | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045D370
+ void TextEditorState::loadHelpSectionGraphics()
+ {
+ DAT_TextureRenderCoreObject.backwardsLoadedGfxIndex_0x16C850 = 99;
+ DAT_TextureRenderCoreObject.loadedGfxArray[99].backwardsOffsetInBuffer = 0;
+ for (int i = 0; i < this->graphicFileCount; ++i) {
+ loadGfxAtBufferEnd(this->graphicFileNames[i]);
+ }
+ }
+}
+}
+
+### 0x0045d3c0 getWideCharPointer | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045D3C0
+ uint TextEditorState::getWideCharOrWideCharPointer(int* param_1)
+ {
+ int result = this->DAT_PointerToTemporaryTextMemory[*param_1];
+ *param_1 += 1;
+ if (result >= L' ') {
+ DAT_ARRAY_00df2b78[0] = result;
+ int length = 1;
+ while (this->DAT_PointerToTemporaryTextMemory[*param_1] >= L' ') {
+ DAT_ARRAY_00df2b78[length] = this->DAT_PointerToTemporaryTextMemory[*param_1];
+ *param_1 += 1;
+ ++length;
+ if (this->DAT_PointerToTemporaryTextMemory[*param_1 - 1] == L' ') {
+ break;
+ }
+ }
+ DAT_ARRAY_00df2b78[length] = L'\0';
+ result = (int)DAT_ARRAY_00df2b78;
+ }
+ return (uint)result;
+ }
+}
+}
+
+### 0x0045d430 renderHelpImageHotspots | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045D430
+ void TextEditorState::renderHelpImageHotspots()
+ {
+ for (int i = 0; i < this->imageHotspotCount; ++i) {
+ int _gfxIndex = 99 - this->imageHotspotTable[i].imageIndex;
+ if ((this->useInGameHelpHandler || this->helpDialogVariant == 1)
+ && !checkIfGfxTgxStartsWithTransparentPixels(_gfxIndex)) {
+ int x1 = this->imageHotspotTable[i].xPos + this->dialogContentX - 2;
+ int y1 = this->imageHotspotTable[i].yPos - this->helpContentScrollOffsetY + this->dialogContentY - 2;
+ int width = DAT_TextureRenderCoreObject.loadedGfxArray[_gfxIndex].width + 3;
+ int height = DAT_TextureRenderCoreObject.loadedGfxArray[_gfxIndex].height + 3;
+ if (y1 < this->dialogContentY) {
+ height += y1 - this->dialogContentY;
+ y1 = this->dialogContentY;
+ }
+ if (height + y1 > this->dialogContentY + this->dialogContentHeight) {
+ height = this->dialogContentHeight * 2 - y1;
+ }
+ int const y2 = y1 + height;
+ if (y2 >= this->dialogContentY && y1 < this->dialogContentY + this->dialogContentHeight) {
+ int const x2 = x1 + width;
+ drawLine(
+ x1, y1, x2, y1, COL_GREYISH_YELLOW::instance.shortValue);
+ drawLine(
+ x1, y1 + 1, x2, y1 + 1, COL_GREYISH_YELLOW::instance.shortValue);
+ drawLine(
+ x1, y2, x2, y2, COL_GREYISH_YELLOW::instance.shortValue);
+ drawLine(
+ x1, y2 + -1, x2, y2 + -1, COL_GREYISH_YELLOW::instance.shortValue);
+ drawLine(
+ x1, y1, x1, y2, COL_GREYISH_YELLOW::instance.shortValue);
+ drawLine(
+ x1 + 1, y1, x1 + 1, y2, COL_GREYISH_YELLOW::instance.shortValue);
+ drawLine(
+ x2, y1, x2, y2, COL_GREYISH_YELLOW::instance.shortValue);
+ drawLine(
+ x2 + -1, y1, x2 + -1, y2, COL_GREYISH_YELLOW::instance.shortValue);
+ }
+ }
+ drawGfxOnFlaggedSurface(_gfxIndex, this->imageHotspotTable[i].xPos + this->dialogContentX,
+ this->imageHotspotTable[i].yPos - this->helpContentScrollOffsetY + this->dialogContentY);
+ int const boxHeight = DAT_TextureRenderCoreObject.loadedGfxArray[_gfxIndex].height;
+ int const boxWidth = DAT_TextureRenderCoreObject.loadedGfxArray[_gfxIndex].width;
+ if (isMouseInsideBox(
+ this->imageHotspotTable[i].xPos - this->helpContentScrollX + this->dialogContentX,
+ this->imageHotspotTable[i].yPos - this->helpContentScrollY + this->dialogContentY
+ - this->helpContentScrollOffsetY,
+ boxWidth, boxHeight)) {
+ this->currentLinkId = this->imageHotspotTable[i].linkId;
+ }
+ }
+ }
+}
+}
+
+### 0x0045d690 bltTextToScreenIfNeedBe | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045D690
+ void TextEditorState::bltTextToScreenIfNeedBe()
+ {
+ if (!DAT_TextEditorState.field48_0x23960) {
+ return;
+ }
+ if (this->savedMenuViewType == UI::Enums::MVT_MAP_EDITOR_LANDSCAPING
+ || this->savedMenuViewType == UI::Enums::MVT_BUILD_MENU
+ || this->savedMenuViewType == UI::Enums::MVT_BUILDING_AND_STATUS_MENU) {
+ bltMapGameSurfaceToScreenMenuSurfaceComplete();
+ }
+ DAT_TextEditorState.field48_0x23960 = FALSE;
+ }
+}
+}
+
+### 0x0045d6c0 drawBorderStyle0x20 | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045D6C0
+ void TextEditorState::drawBorderStyle0x20(int dialogX, int dialogY, int dialogWidth, int dialogHeight)
+ {
+ this->dialogX = dialogX;
+ this->dialogY = dialogY;
+ this->dialogWidth = dialogWidth;
+ this->dialogHeight = dialogHeight;
+ int const contentX = this->dialogX + DAT_00df2964;
+ int const contentY = this->dialogY + DAT_00df296c;
+ int const contentHeight = this->dialogHeight - INT_00df2970::instance;
+ int const contentWidth = this->dialogWidth - INT_00df2968::instance;
+ this->dialogContentX = contentX;
+ this->dialogContentY = contentY;
+ this->dialogContentWidth = contentWidth;
+ this->dialogContentHeight = contentHeight;
+ this->helpContentScrollX = DAT_ViewportRenderState.viewportState.currentCameraOffsetX;
+ this->helpContentScrollY = DAT_ViewportRenderState.viewportState.currentCameraOffsetY;
+ }
+}
+}
+
+### 0x0045d740 drawHelpWindowBackground | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045D740
+ void TextEditorState::drawHelpWindowBackground()
+ {
+ if (this->helpDialogVariant != 1) {
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = Rendering::Enums::RT_SCREEN_MENU;
+ } else {
+ DAT_TextManagerObject.textSurfaceTarget = Rendering::Enums::RT_MAP_GAME;
+ DAT_PencilRenderCore.surfaceTarget = Rendering::Enums::RT_MAP_GAME;
+ }
+ if (this->isCustomTextMode) {
+ drawBoxWithRoundedEdges(
+ this->dialogX, this->dialogY, this->dialogWidth + this->dialogX, this->dialogHeight + this->dialogY,
+ UI::Enums::RBERL_SLIGHT);
+ } else if (!this->useAlternateHelpTab) {
+ drawColorBox(
+ this->dialogX, this->dialogY, this->dialogWidth + this->dialogX, this->dialogHeight + this->dialogY,
+ COL_BLACK::instance.shortValue);
+ } else if (this->helpDialogVariant != 2) {
+ drawColorBox(
+ this->dialogX, this->dialogY, this->dialogWidth + this->dialogX, this->dialogHeight + this->dialogY,
+ COL_VERY_DARK_GREY::instance.shortValue);
+ drawColorBox(
+ this->dialogContentX, this->dialogContentY, this->dialogContentWidth + this->dialogContentX,
+ this->dialogContentHeight + this->dialogContentY, COL_BLACK::instance.shortValue);
+ drawColorBox(
+ this->dialogX, this->dialogY + this->dialogHeight, this->dialogWidth + this->dialogX,
+ this->dialogY + this->dialogHeight + 60, COL_DARK_CYAN_GREY::instance.shortValue);
+ }
+ if (this->helpDialogVariant != 1) {
+ DAT_TextureRenderCoreObject.drawBufferChoiceValue = Rendering::Enums::RT_MAP_GAME;
+ } else {
+ DAT_TextManagerObject.textSurfaceTarget = Rendering::Enums::RT_SCREEN_MENU;
+ DAT_PencilRenderCore.surfaceTarget = Rendering::Enums::RT_SCREEN_MENU;
+ }
+ }
+}
+}
+
+### 0x0045d890 findHelpGraphicIndexByName | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045D890
+ int TextEditorState::findHelpGraphicIndexByName(char* param_1)
+ {
+ for (int i = 0; i < this->graphicFileCount; ++i) {
+ if (!__stricmp(this->graphicFileNames[i], param_1)) {
+ return i;
+ }
+ }
+ return -1;
+ }
+}
+}
+
+### 0x0045d8f0 findOrAddHelpGraphicName | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045D8F0
+ int TextEditorState::findOrAddHelpGraphicName(char* param_1)
+ {
+ int graphicIndex = findHelpGraphicIndexByName(param_1);
+ if (graphicIndex != -1) {
+ return graphicIndex;
+ }
+ graphicIndex = this->graphicFileCount;
+ strcpy(this->graphicFileNames[graphicIndex], param_1);
+ if (this->graphicFileCount < 20) {
+ ++this->graphicFileCount;
+ }
+ return graphicIndex;
+ }
+}
+}
+
+### 0x0045d950 getNextHelpSectionID | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045D950
+ int TextEditorState::getNextHelpSectionID(int param_1)
+ {
+ for (int index = 0; DAT_UserHelpDefinedData.field5_0x7a124[index].unknown_0x4 != -1; ++index) {
+ if (DAT_UserHelpDefinedData.field5_0x7a124[index].unknown_0x4 != param_1) {
+ continue;
+ }
+ ++index;
+ if (DAT_UserHelpDefinedData.field5_0x7a124[index].unknown_0x4 == -1) {
+ index = 0;
+ }
+ return DAT_UserHelpDefinedData.field5_0x7a124[index].unknown_0x4;
+ }
+ return -1;
+ }
+}
+}
+
+### 0x0045d990 getPrevHelpSectionID | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045D990
+ int TextEditorState::getPrevHelpSectionID(int param_1)
+ {
+ for (int index = 0; DAT_UserHelpDefinedData.field5_0x7a124[index].unknown_0x4 != -1; ++index) {
+ if (DAT_UserHelpDefinedData.field5_0x7a124[index].unknown_0x4 == param_1) {
+ --index;
+ if (index < 0) {
+ index = 0;
+ while (DAT_UserHelpDefinedData.field5_0x7a124[index].unknown_0x4 != -1) {
+ ++index;
+ }
+ --index;
+ }
+ return DAT_UserHelpDefinedData.field5_0x7a124[index].unknown_0x4;
+ }
+ }
+ return -1;
+ }
+}
+}
+
+### 0x0045d9e0 getHelpSectionText | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045D9E0
+ char* TextEditorState::getHelpSectionText(int param_1)
+ {
+ for (int index = 0; DAT_UserHelpDefinedData.field5_0x7a124[index].unknown_0x4 != -1; ++index) {
+ if (DAT_UserHelpDefinedData.field5_0x7a124[index].unknown_0x4 == param_1) {
+ return DAT_UserHelpDefinedData.field5_0x7a124[index].text_0x0;
+ }
+ }
+ return NULL;
+ }
+}
+}
+
+### 0x0045da80 findSoundIndexByName | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045DA80
+ int TextEditorState::findSoundIndexByName(char* param_1)
+ {
+ for (int i = 0; i < this->soundFileCount; i = i + 1) {
+ if (!__stricmp(this->soundFileNames[i], param_1)) {
+ return i;
+ }
+ }
+ return -1;
+ }
+}
+}
+
+### 0x0045dae0 findOrAddSoundName | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045DAE0
+ int TextEditorState::findOrAddSoundName(char* param_1)
+ {
+ int index = findSoundIndexByName(param_1);
+ if (index != -1) {
+ return index;
+ }
+ index = this->soundFileCount;
+ strcpy(this->soundFileNames[index], param_1);
+ this->soundFilePlayedFlags[index] = 0;
+ if (this->soundFileCount < 5) {
+ ++this->soundFileCount;
+ }
+ return index;
+ }
+}
+}
+
+### 0x0045db40 saveHelpFileToResource | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045DB40
+ void TextEditorState::saveHelpFileToResource()
+ {
+ resolveResourceFileName(
+ IO::FRT_HELP, DAT_UserHelpDefinedData.HelpSections[this->currentHelpSectionID]);
+ char const* const _Filename = getFileNameOfCurrentActiveResource();
+ FILE* _File = _fopen(_Filename, s_wb_005a5510);
+ if (!_File) {
+ return;
+ }
+ wchar_t const utf16bom = L'\uFEFF';
+ _fwrite((void*)&utf16bom, sizeof(wchar_t), 1, _File);
+ _fwprintf(_File, u__HEADER__005a54fc);
+ for (int i = 0; i < this->graphicFileCount; ++i) {
+ _fwprintf(_File, u__LOADPIC_S__005a54dc, this->graphicFileNames[i]);
+ }
+ _fwprintf(_File, u__HEADER__005a54c4);
+ _fwprintf(_File, u__BODY__005a54b4);
+ for (int i = 0; this->DAT_PointerToTemporaryTextMemory[i];) {
+ HelpTextToken const switchValue = (HelpTextToken)this->DAT_PointerToTemporaryTextMemory[i];
+ i += 1;
+ switch (switchValue) {
+ case Enums::HTT_PIC:
+ _fwprintf(_File, u__PIC__d__005a54a0, this->DAT_PointerToTemporaryTextMemory[i]);
+ i += 1;
+ switch ((Enums::HelpTextPicturePositionToken)this->DAT_PointerToTemporaryTextMemory[i]) {
+ case Enums::HTPPT_LEFT:
+ _fwprintf(_File, u_LEFT__005a5494);
+ i += 2;
+ break;
+ case Enums::HTPPT_RIGHT:
+ _fwprintf(_File, u_RIGHT__005a5484);
+ i += 2;
+ break;
+ case Enums::HTPPT_CENTRE:
+ _fwprintf(_File, u_CENTRE__005a5474);
+ i += 2;
+ break;
+ case Enums::HTPPT_HERE:
+ _fwprintf(_File, u_HERE__005a5468);
+ default:
+ i += 2;
+ break;
+ }
+ break;
+ case Enums::HTT_FONT:
+ _fwprintf(_File, u__FONT__d__005a5454, this->DAT_PointerToTemporaryTextMemory[i]);
+ i += 2;
+ break;
+ case Enums::HTT_COLOUR:
+ _fwprintf(_File, u__COLOUR_d__005a543c, this->DAT_PointerToTemporaryTextMemory[i]);
+ i += 2;
+ break;
+ case Enums::HTT_LINKCOLOUR:
+ _fwprintf(
+ _File, u__LINKCOLOUR_d__005a541c, this->DAT_PointerToTemporaryTextMemory[i]);
+ i += 2;
+ break;
+ case Enums::HTT_LINK:
+ _fwprintf(_File, u__LINK__S__005a5404,
+ DAT_UserHelpDefinedData.HelpSections[this->DAT_PointerToTemporaryTextMemory[i]]);
+ i += 2;
+ break;
+ case Enums::HTT_INCLUDE:
+ _fwprintf(_File, u__INCLUDE__S__005a53e4,
+ DAT_UserHelpDefinedData.HelpSections[this->DAT_PointerToTemporaryTextMemory[i]]);
+ i += 2;
+ break;
+ case Enums::HTT_ENDLINK:
+ _fwprintf(_File, u__LINK__005a53d4);
+ break;
+ case Enums::HTT_NEWPARAGRAPH:
+ _fwprintf(_File, u__NEWPARAGRAPH__005a53b0);
+ break;
+ case Enums::HTT_CENTRE:
+ _fwprintf(_File, u__CENTRE__005a539c);
+ break;
+ case Enums::HTT_ENDCENTRE:
+ _fwprintf(_File, u__CENTRE__005a5388);
+ break;
+ case Enums::HTT_SOUND:
+ _fwprintf(_File, u__SOUND__d__005a5370, this->DAT_PointerToTemporaryTextMemory[i]);
+ i += 2;
+ break;
+ case Enums::HTT_STRING:
+ _fwprintf(
+ _File, u__STRING__d__005a5358, this->DAT_PointerToTemporaryTextMemory[i]);
+ i += 2;
+ break;
+ default:
+ _fwprintf(_File, u__c_005a5350, (wchar_t)switchValue);
+ break;
+ }
+ }
+ _fwprintf(_File, u__BODY__005a533c);
+ _fclose(_File);
+ }
+#undef MACRO_TEXT_ACCESS
+}
+}
+
+### 0x0045f0d0 insertHelpTextToken | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045F0D0
+ void TextEditorState::helpToken_insertSpaceForHelpTextToken(HelpTextToken token)
+ {
+ int tokenLength = helpToken_getHelpTokenAdvanceLength(token);
+ for (int textIndex = this->customHelpTextLength; textIndex >= this->activeHelpHotspotIndex; --textIndex) {
+ this->DAT_PointerToTemporaryTextMemory[textIndex + tokenLength]
+ = this->DAT_PointerToTemporaryTextMemory[textIndex];
+ }
+ this->customHelpTextLength += tokenLength;
+ }
+}
+}
+
+### 0x0045f130 Constructor_TextEditorState | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045F130
+ TextEditorState* TextEditorState::Constructor_TextEditorState()
+ {
+ this->isDialogStateInitialized = 0;
+ this->helpDialogVariant = 0;
+ this->field48_0x23960 = 0;
+ this->helpDialogSubMode = 0;
+ this->useAlternateHelpTab = 0;
+ this->customHelpTextLength = 0;
+ this->pendingTokenTypeToSkip = 0;
+ this->useWideHelpLayout = 0;
+ resetHelpStateFields();
+ this->DAT_PointerToTemporaryTextMemory = (LPWSTR)_malloc(40000);
+ this->customTextMaxLength = -1;
+ // FIXME:: Requires a finishing zero case, or it will not set the counter
+ for (int counter = 0; counter < 500; ++counter) {
+ if (strlen(DAT_UserHelpDefinedData.HelpSections[counter])) {
+ continue;
+ }
+ this->counter = counter;
+ break;
+ }
+ for (int i = 0; i < 20; ++i) {
+ this->intArray1[i] = 0;
+ }
+ return this;
+ }
+}
+}
+
+### 0x0045f240 closeHelpDialogAndReturnToMenu | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045F240
+ void TextEditorState::closeHelpDialogAndReturnToMenu()
+ {
+ if (!this->isDialogStateInitialized) {
+ return;
+ }
+ resetHelpStateFields();
+ this->isDialogStateInitialized = 0;
+ if (this->isCustomTextMode) {
+ activateModalDialog(
+ UI::Enums::MMT_NONE, FALSE);
+ for (int i = 0; i < 20; ++i) {
+ this->intArray1[i] = 0;
+ }
+ if (this->customHelpTextPointer) {
+ if (!this->isCustomHelpTextWide) {
+ wideCharToMultiByteWithSize(this->customHelpTextPointer,
+ this->DAT_PointerToTemporaryTextMemory, this->customHelpTextBufferSize);
+ } else {
+ _wcsncpy((wchar_t*)this->customHelpTextPointer,
+ this->DAT_PointerToTemporaryTextMemory, this->customHelpTextBufferSize);
+ }
+ }
+ DAT_MenuView_TriggerPrepare = TRUE;
+ } else if (this->helpDialogVariant == 0) {
+ if (this->savedMenuViewType == UI::Enums::MVT_BUILD_MENU) {
+ DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType = this->savedActiveMenuTab;
+ switchToMenuView(
+ (UI::Enums::MenuViewType)this->savedMenuViewType, 0);
+ } else if (this->savedMenuViewType == UI::Enums::MVT_MAP_EDITOR_LANDSCAPING) {
+ DAT_GameCore.landscapingmenuMenuTabToSwitchTo.buildMenuTab = this->savedActiveMenuTab;
+ switchToMenuView(
+ (UI::Enums::MenuViewType)this->savedMenuViewType, 0);
+ } else if (this->savedMenuViewType == UI::Enums::MVT_BUILDING_AND_STATUS_MENU) {
+ DAT_GameCore.buildingandstatusmenuMenuTabToSwitchTo = this->savedActiveMenuTab;
+ switchToMenuView(
+ (UI::Enums::MenuViewType)this->savedMenuViewType, 0);
+ } else {
+ DAT_GameCore.menuTabToSwitchTo.tabType = this->savedActiveMenuTab;
+ switchToMenuView(
+ (UI::Enums::MenuViewType)this->savedMenuViewType, 0);
+ }
+ } else {
+ activateModalDialog(
+ UI::Enums::MMT_NONE, FALSE);
+ for (int i = 0; i < 20; ++i) {
+ this->intArray1[i] = 0;
+ }
+ }
+ this->helpDialogVariant = 0;
+ }
+}
+}
+
+### 0x0045f470 readCrusaderHelpHlp | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045F470
+ FILE* TextEditorState::readCrusaderHelpHlp(LPCSTR searchedPart)
+ {
+ this->helpSectionParseSucceeded = FALSE;
+ WCHAR searchedPartWide[200];
+ multiByteToWideCharacter(
+ searchedPartWide, searchedPart);
+ resolveResourceFileName(
+ IO::FRT_HELP, s_crusader_help_hlp_005a5620);
+ char const* const _Filename = getFileNameOfCurrentActiveResource();
+ FILE* _File = _fopen(_Filename, s_rb_005a4e18);
+ if (_File) {
+ _fseek(_File, 2, FILE_BEGIN); // Skip BOM?
+ int wideChar;
+ while (true) {
+ wideChar = _fgetwc(_File);
+ if (wideChar != L'<') {
+ if (wideChar == WEOF) {
+ return _File;
+ }
+ continue;
+ }
+ wchar_t* hlpPart = parseHLPPart(_File);
+ if (!hlpPart || __wcsicmp(u_section_005a5610, hlpPart)) {
+ continue;
+ }
+ wchar_t* sectionHlpPart = parseHLPPart(_File);
+ if (!sectionHlpPart || __wcsicmp(searchedPartWide, sectionHlpPart)) {
+ continue;
+ }
+ break;
+ };
+ do {
+ wideChar = _fgetwc(_File);
+ if (wideChar == L'>') {
+ this->helpSectionParseSucceeded = TRUE;
+ break;
+ }
+ } while (wideChar != WEOF);
+ }
+ return _File;
+ }
+}
+}
+
+### 0x0045f580 loadAndParseHelpFile | quelle=nachgebaut | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0045F580
+ BOOLEnum TextEditorState::loadAndParseHelpFile(char const* searchedPart)
+ {
+ FILE* _File = readCrusaderHelpHlp(searchedPart);
+ if (_File) {
+ _fclose(_File);
+ if (this->helpSectionParseSucceeded) {
+ return TRUE;
+ }
+ }
+ return FALSE;
+ }
+}
+}
+

@@ -1,0 +1,1385 @@
+### 0x00449dc0 playSFXAtLocation | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00449DC0
+ void SFXState::playSFXAtLocation(int xPosition, int yPosition, eSFX sfxOffsetInArray)
+ {
+ int variationCount = this->DAT_SoundStructures2[sfxOffsetInArray].variationCount;
+ if (variationCount <= 0) {
+ return;
+ }
+ int x = xPosition - DAT_ViewportRenderState.viewportState.tileCenterX;
+ int y = yPosition - DAT_ViewportRenderState.viewportState.tileCenterY;
+ if (DAT_TileMapState.mapOrientation == 2) {
+ int t = -x;
+ x = y;
+ y = t;
+ } else if (DAT_TileMapState.mapOrientation == 4) {
+ x = -x;
+ y = -y;
+ } else if (DAT_TileMapState.mapOrientation == 6) {
+ int t = x;
+ x = -y;
+ y = t;
+ }
+ // An AI analysis suggests that this code is a screen transform. So the logic pre-filters sound outside this
+ // window and binds the actual computation to this. Somewhere in the code also needs to be the reason
+ // sound from the other map edge is played. Zoomed out the sound also happens mostly in the upper left.
+ // Although, this could be computation order.
+ // The required opcodes here are only produced when either ">> 1", or if both are unsigned and "/ 2". The
+ // negatives used suggest an int, but it really depends on what the tile center values contain. Apparently,
+ // division by ">>" creates a different rounding behavior (to lower) compared to "/" (to 0).
+ int horizontalScreenPos = x - y;
+ int verticalScreenPos = (x + y) >> 1;
+ if (-45 > horizontalScreenPos || horizontalScreenPos > 45 || -36 > verticalScreenPos
+ || verticalScreenPos > 36) {
+ return;
+ }
+ int samplePan = horizontalScreenPos * 2 + 62;
+ if (samplePan < 0) {
+ samplePan = 0;
+ } else if (127 < samplePan) {
+ samplePan = 127;
+ }
+ // Without source compares it is unclear if the actual functions are the same, but the structure now is.
+ int _computedVolume = (int)(float)sqrt((double)(x * x + y * y));
+ _computedVolume = _computedVolume * 2;
+ if (70 < _computedVolume) {
+ _computedVolume = 70;
+ }
+ int const _soundStructureID = this->DAT_SoundStructures2[sfxOffsetInArray].soundID
+ + this->DAT_SoundStructures2[sfxOffsetInArray].variationCounter++;
+ if (this->DAT_SoundStructures2[sfxOffsetInArray].variationCounter >= variationCount) {
+ this->DAT_SoundStructures2[sfxOffsetInArray].variationCounter = 0;
+ }
+ this->DAT_SoundStructures[_soundStructureID].scheduledPlayCounter++;
+ this->DAT_SoundStructures[_soundStructureID].volumePercentage
+ = ((100 - _computedVolume) * this->DAT_SoundStructures[_soundStructureID].baseVolumePercentageUnk)
+ / 100;
+ this->DAT_SoundStructures[_soundStructureID].samplePan = samplePan;
+ ++this->DAT_SFXCounter1;
+ if (this->DAT_SFXCounter1 > this->highestSFXCounter) {
+ this->highestSFXCounter = this->DAT_SFXCounter1;
+ }
+ }
+ }
+}
+}
+
+### 0x00449f10 playSFXAtLocationFullVolume | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00449F10
+ void SFXState::playSFXAtLocationFullVolume(int xPosition, int yPosition, int sfxOffsetInArray)
+ {
+ int variationCount = this->DAT_SoundStructures2[sfxOffsetInArray].variationCount;
+ if (variationCount <= 0) {
+ return;
+ }
+ int const _soundStructureID = this->DAT_SoundStructures2[sfxOffsetInArray].soundID
+ + this->DAT_SoundStructures2[sfxOffsetInArray].variationCounter++;
+ if (this->DAT_SoundStructures2[sfxOffsetInArray].variationCounter >= variationCount) {
+ this->DAT_SoundStructures2[sfxOffsetInArray].variationCounter = 0;
+ }
+ int x = xPosition - DAT_ViewportRenderState.viewportState.tileCenterX;
+ int y = yPosition - DAT_ViewportRenderState.viewportState.tileCenterY;
+ if (DAT_TileMapState.mapOrientation == 2) {
+ int t = -x;
+ x = y;
+ y = t;
+ } else if (DAT_TileMapState.mapOrientation == 4) {
+ x = -x;
+ y = -y;
+ } else if (DAT_TileMapState.mapOrientation == 6) {
+ int t = x;
+ x = -y;
+ y = t;
+ }
+ int samplePan = (x - y) * 2 + 62;
+ if (samplePan < 0) {
+ samplePan = 0;
+ } else if (127 < samplePan) {
+ samplePan = 127;
+ }
+ this->DAT_SoundStructures[_soundStructureID].scheduledPlayCounter++;
+ this->DAT_SoundStructures[_soundStructureID].volumePercentage
+ = this->DAT_SoundStructures[_soundStructureID].baseVolumePercentageUnk;
+ this->DAT_SoundStructures[_soundStructureID].samplePan = samplePan;
+ ++this->DAT_SFXCounter1;
+ if (this->DAT_SFXCounter1 > this->highestSFXCounter) {
+ this->highestSFXCounter = this->DAT_SFXCounter1;
+ }
+ }
+ }
+}
+}
+
+### 0x00449ff0 resetScheduledSoundRequests | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00449FF0
+ void SFXState::resetScheduledSoundRequests()
+ {
+ for (int i = 0; i < DAT_SoundSystemState.loadedSoundsCountAndIndex_0x316c + 1; ++i) {
+ this->DAT_SoundStructures[i].scheduledPlayCounter = 0;
+ this->DAT_SoundStructures[i].volumePercentage = 100;
+ this->DAT_SoundStructures[i].samplePan = 64;
+ }
+ this->DAT_SFXCounter1 = 0;
+ return;
+ }
+ }
+}
+}
+
+### 0x0044a0d0 notifyAmbientSoundEvent | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0044A0D0
+ void SFXState::notifyAmbientSoundEvent(int ambientSoundType)
+ {
+ if (DAT_GameCore.gamePausedLogical) {
+ return;
+ }
+ ++this->ambientEventCounters[ambientSoundType][0];
+ }
+ }
+}
+}
+
+### 0x0044a0f0 playAmbientSoundStreamUnk | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0044A0F0
+ void SFXState::playAmbientSoundStreamUnk(AmbientSFXType ambientSoundIndexUnk)
+ {
+ if (isSampleOrStreamPlaying(
+ MSS::enums::SND_STR_SFX_1Unk)) {
+ return;
+ }
+ DAT_SoundSystemState.streamFileVolumeNextUnk_0x48[1]
+ = DAT_SpeechDefinedData.AmbientSounds[ambientSoundIndexUnk].volumeUnk_0x28
+ [DAT_SpeechDefinedData.AmbientSounds[ambientSoundIndexUnk].variationIndex];
+ if (DAT_GameCore.currentMenuViewType == UI::Enums::MVT_HISTORIC_MISSION_PICTURE
+ || DAT_GameCore.currentMenuViewType == UI::Enums::MVT_HISTORIC_MISSION_INTRO
+ || DAT_GameCore.currentMenuViewType == UI::Enums::MVT_HISTORIC_CAMPAIGN_INTRO) {
+ DAT_SoundSystemState.streamFileVolumeNextUnk_0x48[1] = 127;
+ }
+ if (ambientSoundIndexUnk == ASFXT_BATTLE_OR_INTENSE || ambientSoundIndexUnk == ASFXT_HEAVY) {
+ playOnSfx1SoundStreamUnk(
+ DAT_SpeechDefinedData.AmbientSounds[ambientSoundIndexUnk].ambientWavs_0x8
+ [DAT_SpeechDefinedData.AmbientSounds[ambientSoundIndexUnk].variationIndex],
+ 50);
+ } else {
+ playOnSfx1SoundStreamOnceOrOnRepeatUnk(
+ DAT_SpeechDefinedData.AmbientSounds[ambientSoundIndexUnk].ambientWavs_0x8
+ [DAT_SpeechDefinedData.AmbientSounds[ambientSoundIndexUnk].variationIndex]);
+ }
+ DAT_SpeechDefinedData.AmbientSounds[ambientSoundIndexUnk].variationIndex++;
+ if (DAT_SpeechDefinedData.AmbientSounds[ambientSoundIndexUnk].variationIndex
+ >= DAT_SpeechDefinedData.AmbientSounds[ambientSoundIndexUnk].variationCount) {
+ DAT_SpeechDefinedData.AmbientSounds[ambientSoundIndexUnk].variationIndex = 0;
+ }
+ }
+ }
+}
+}
+
+### 0x0044a1b0 playAmbientSoundStream2Unk | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0044A1B0
+ void SFXState::playAmbientSoundStream2Unk(int ambientSoundIndexUnk)
+ {
+ if (isSampleOrStreamPlaying(
+ MSS::enums::SND_STR_SFX_2Unk)) {
+ return;
+ }
+ DAT_SoundSystemState.streamFileVolumeNextUnk_0x48[2]
+ = DAT_SpeechDefinedData.AmbientSounds[ambientSoundIndexUnk].volumeUnk_0x28
+ [DAT_SpeechDefinedData.AmbientSounds[ambientSoundIndexUnk].variationIndex];
+ if (ambientSoundIndexUnk == 5) {
+ playSoundOnSfxSoundStream2(
+ DAT_SpeechDefinedData.AmbientSounds[ambientSoundIndexUnk].ambientWavs_0x8
+ [DAT_SpeechDefinedData.AmbientSounds[ambientSoundIndexUnk].variationIndex],
+ 50);
+ } else {
+ playSoundOnSoundStream2(
+ DAT_SpeechDefinedData.AmbientSounds[ambientSoundIndexUnk].ambientWavs_0x8
+ [DAT_SpeechDefinedData.AmbientSounds[ambientSoundIndexUnk].variationIndex]);
+ }
+ DAT_SpeechDefinedData.AmbientSounds[ambientSoundIndexUnk].variationIndex++;
+ if (DAT_SpeechDefinedData.AmbientSounds[ambientSoundIndexUnk].variationIndex
+ >= DAT_SpeechDefinedData.AmbientSounds[ambientSoundIndexUnk].variationCount) {
+ DAT_SpeechDefinedData.AmbientSounds[ambientSoundIndexUnk].variationIndex = 0;
+ }
+ }
+ }
+}
+}
+
+### 0x0044a240 getSoundVolumeForFilename | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0044A240
+ int SFXState::getSoundVolumeForFilename(char* soundFileName)
+ {
+ for (int _runCounter = 0; _runCounter < this->DAT_SoundTotalCount; ++_runCounter) {
+ if (!__stricmp(
+ soundFileName, this->DAT_SoundFileNamePointersArray[_runCounter])) {
+ return this->DAT_SoundVolumeArray[_runCounter];
+ }
+ }
+ return 100;
+ }
+ }
+}
+}
+
+### 0x0044a290 playUnitSpeechEffect | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0044A290
+ void SFXState::playUnitSpeechEffect(uint speechEffectID)
+ {
+ int iVar4 = 0;
+ if (speechEffectID > 39) {
+ return;
+ }
+ int iVar2 = DAT_SpeechDefinedData.SpeechEffectPathArray[speechEffectID].field0_0x0;
+ if (!iVar2) {
+ return;
+ }
+ if (1 < iVar2) {
+ iVar4 = DAT_SpeechDefinedData.SpeechEffectPathArray[speechEffectID].field3_0xc++;
+ if (DAT_SpeechDefinedData.SpeechEffectPathArray[speechEffectID].field3_0xc >= iVar2) {
+ DAT_SpeechDefinedData.SpeechEffectPathArray[speechEffectID].field3_0xc = 0;
+ }
+ }
+ char fullSoundPath[64];
+ if (DAT_GameCore.historicCampaignNumber == 2) {
+ _sprintf(fullSoundPath, s_fx_speech_s_005a4d68,
+ DAT_SpeechDefinedData.SpeechEffectPathArray[iVar4 + speechEffectID].arabianSound);
+ } else {
+ _sprintf(fullSoundPath, s_fx_speech_s_005a4d68,
+ DAT_SpeechDefinedData.SpeechEffectPathArray[iVar4 + speechEffectID].europeanSound);
+ }
+ if (!__stricmp(fullSoundPath, DAT_LastSpeechSFXFilename)) {
+ if (isSampleOrStreamPlaying(
+ MSS::enums::SND_STR_SPEECH_1)
+ || isSampleOrStreamPlaying(
+ MSS::enums::SND_STR_SPEECH_2)) {
+ return;
+ }
+ }
+ strcpy(DAT_LastSpeechSFXFilename, fullSoundPath);
+ playSoundOnSpeechStream(fullSoundPath);
+ }
+ }
+}
+}
+
+### 0x0044a3a0 playSpeechSFX | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0044A3A0
+ void SFXState::playSpeechSFX(SpeechEffectID speechID)
+ {
+ if (speechID < SEID_GENERAL_STARTGAME || SEID_GENERAL_MESSAGE3 < speechID
+ || (DAT_GameCore.gameMode_2 == Game::GM_BUILDERUnk
+ && DAT_MapPropertiesState.SEC_U3_MapType2_1 == Map::MT_SIEGE
+ && SEID_POP_FALLING <= speechID && speechID <= SEID_TAXES_RATE8)) {
+ return;
+ }
+ char fullSoundPath[64];
+ _sprintf(
+ fullSoundPath, s_fx_speech_s_005a4d68, DAT_SpeechDefinedData.SpeechEffectFileArray[speechID]);
+ if (!__stricmp(fullSoundPath, DAT_LastSpeechSFXFilename)) {
+ if (isSampleOrStreamPlaying(
+ MSS::enums::SND_STR_SPEECH_1)
+ || isSampleOrStreamPlaying(
+ MSS::enums::SND_STR_SPEECH_2)) {
+ return;
+ }
+ }
+ strcpy(DAT_LastSpeechSFXFilename, fullSoundPath);
+ playSoundOnSpeechStream(fullSoundPath);
+ }
+ }
+}
+}
+
+### 0x0044a460 playWAVSFX | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0044A460
+ void SFXState::playWAVSFX(char const* wav_filename)
+ {
+ if (!__stricmp(wav_filename, DAT_LastSpeechSFXFilename)) {
+ if (isSampleOrStreamPlaying(
+ MSS::enums::SND_STR_SPEECH_1)
+ || isSampleOrStreamPlaying(
+ MSS::enums::SND_STR_SPEECH_2)) {
+ if (__stricmp(wav_filename, s_buildingwreck_01_wav_005a4d78)) {
+ return;
+ }
+ }
+ }
+ strcpy(DAT_LastSpeechSFXFilename, wav_filename);
+ char fullSoundPath[64];
+ _sprintf(fullSoundPath, s_fx_speech_s_005a4d68, wav_filename);
+ playSoundOnSpeechStream(fullSoundPath);
+ }
+ }
+}
+}
+
+### 0x0044a500 playOnSpeechSfxStream | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0044A500
+ void SFXState::playOnSpeechSfxStream(char* filename)
+ {
+ if (!__stricmp(filename, DAT_LastSpeechSFXFilename)) {
+ if (isSampleOrStreamPlaying(
+ MSS::enums::SND_STR_SPEECH_1)
+ || isSampleOrStreamPlaying(
+ MSS::enums::SND_STR_SPEECH_2)) {
+ if (__stricmp(filename, s_buildingwreck_01_wav_005a4d78)) {
+ return;
+ }
+ }
+ }
+ strcpy(DAT_LastSpeechSFXFilename, filename);
+ char fullSoundPath[64];
+ _sprintf(fullSoundPath, s_fx_speech_s_005a4d68, filename);
+ playSpeechSfx(fullSoundPath);
+ }
+ }
+}
+}
+
+### 0x0044a5a0 playSpeechSFXFile | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0044A5A0
+ void SFXState::playSpeechSFXFile(char* filename)
+ {
+ if (isSampleOrStreamPlaying(
+ MSS::enums::SND_STR_SPEECH_1)) {
+ return;
+ }
+ if (isSampleOrStreamPlaying(
+ MSS::enums::SND_STR_SPEECH_2)) {
+ return;
+ }
+ strcpy(DAT_LastSpeechSFXFilename, filename);
+ char _filePath[64];
+ _sprintf(_filePath, s_fx_speech_s_005a4d68, filename);
+ playSoundOnSpeechStream(_filePath);
+ }
+ }
+}
+}
+
+### 0x0044a620 playVictoryMusic678 | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0044A620
+ void SFXState::playVictoryMusic678()
+ {
+ if (DAT_GameSynchronyState.currentGameMode != Game::GM_SOLITARY) {
+ return;
+ }
+ if (DAT_GameCore.gameMode_2 == Game::GM_EDITOR) {
+ return;
+ }
+ if (DAT_GameCore.gameMode_2 == Game::GM_SIEGE_THAT) {
+ return;
+ }
+ if ((DAT_VictoryMusicVariation == 0 || DAT_VictoryMusicVariation == 2)
+ && (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .campground.id
+ <= 0
+ || DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .lordID
+ <= 0)) {
+ DAT_VictoryMusicVariation = 1;
+ }
+ if (DAT_VictoryMusicVariation == 0) {
+ playWAVSFX(
+ s_general_victory6_wav_005a4dc0);
+ }
+ if (DAT_VictoryMusicVariation == 1) {
+ playWAVSFX(
+ s_general_victory7_wav_005a4da8);
+ }
+ if (DAT_VictoryMusicVariation == 2) {
+ playWAVSFX(
+ s_general_victory8_wav_005a4d90);
+ }
+ ++DAT_VictoryMusicVariation;
+ if (2 < DAT_VictoryMusicVariation) {
+ DAT_VictoryMusicVariation = 0;
+ }
+ }
+ }
+}
+}
+
+### 0x0044a6e0 playSFXWeAreUnderAttack | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0044A6E0
+ void SFXState::playSFXWeAreUnderAttack()
+ {
+ if (DAT_GameSynchronyState.currentGameMode == Game::GM_SOLITARY) {
+ return;
+ }
+ if (60000 <= timeGetTime() - DAT_SFX_Cooldown_WeAreUnderAttack) {
+ playWAVSFX(
+ s_General_Warning10_wav_005a4dd8);
+ }
+ DAT_SFX_Cooldown_WeAreUnderAttack = timeGetTime();
+ }
+ }
+}
+}
+
+### 0x0044ab70 Constructor_SFXState | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0044AB70
+ SFXState* SFXState::Constructor_SFXState()
+ {
+ for (int i = 0; i < 1000; ++i) {
+ this->DAT_SoundStructures[i].scheduledPlayCounter = 0;
+ this->DAT_SoundStructures[i].volumePercentage = 100;
+ this->DAT_SoundStructures[i].samplePan = 64;
+ }
+ this->DAT_SFXCounter1 = 0;
+ Constructor_SFXState_resetAmbientEventCounters();
+ this->highestSFXCounter = 0;
+ ResetGreatestLordGenieSpeechState();
+ return this;
+ }
+
+### 0x0044abb0 tweakVolume | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0044ABB0
+ void SFXState::tweakVolume(int param_1, float param_2, int currentStreamID)
+ {
+ if (!getAreWeInAInGameMenu()) {
+ endSoundStream(
+ MSS::enums::SND_STR_SFX_2Unk);
+ DAT_00b986f0 = 0;
+ DAT_SpeechDefinedData.field10_0x49d4b4 = -1;
+ return;
+ }
+ if (DAT_SpeechDefinedData.field10_0x49d4b4 == -1) {
+ FLOAT_00b986ec::instance += param_2;
+ } else {
+ FLOAT_00b986ec::instance = 0.0f;
+ }
+ if (DAT_00b986f0 != 0 && DAT_SpeechDefinedData.field10_0x49d4b4 == -1) {
+ DAT_00b986f0 = 0;
+ } else {
+ if (DAT_00b986f0 == 1) {
+ FLOAT_00b986e8::instance += param_2 + param_2;
+ if (100.0 < FLOAT_00b986e8::instance) {
+ DAT_00b986f0 = 100;
+ }
+ if (DAT_SpeechDefinedData.field10_0x49d4b4 == 7) {
+ setStreamAndSampleVolumeUnk(MSS::enums::SND_STR_SFX_2Unk,
+ (int)((DAT_SpeechDefinedData.AmbientSounds[5].volumeUnk_0x28
+ [DAT_SpeechDefinedData.AmbientSounds[5].variationIndex]
+ * FLOAT_00b986e8::instance)
+ / 100.0));
+ }
+ if (DAT_SpeechDefinedData.field10_0x49d4b4 == 8) {
+ setStreamAndSampleVolumeUnk(MSS::enums::SND_STR_SFX_2Unk,
+ (int)((DAT_SpeechDefinedData.AmbientSounds[6].volumeUnk_0x28
+ [DAT_SpeechDefinedData.AmbientSounds[6].variationIndex]
+ * FLOAT_00b986e8::instance)
+ / 100.0));
+ }
+ if (!(FLOAT_00b986e8::instance >= 100.0f)) {
+ return;
+ }
+ DAT_00b986f0 = 0;
+ return;
+ }
+ if (DAT_00b986f0 == 2) {
+ FLOAT_00b986e8::instance -= 2 * param_2;
+ if (FLOAT_00b986e8::instance < 1.0) {
+ FLOAT_00b986e8::instance = 1.0;
+ }
+ if (DAT_SpeechDefinedData.field10_0x49d4b4 == 7) {
+ setStreamAndSampleVolumeUnk(MSS::enums::SND_STR_SFX_2Unk,
+ (int)((DAT_SpeechDefinedData.AmbientSounds[5].volumeUnk_0x28
+ [DAT_SpeechDefinedData.AmbientSounds[5].variationIndex]
+ * FLOAT_00b986e8::instance)
+ / 100.0));
+ }
+ if (DAT_SpeechDefinedData.field10_0x49d4b4 == 8) {
+ setStreamAndSampleVolumeUnk(MSS::enums::SND_STR_SFX_2Unk,
+ (int)((DAT_SpeechDefinedData.AmbientSounds[6].volumeUnk_0x28
+ [DAT_SpeechDefinedData.AmbientSounds[6].variationIndex]
+ * FLOAT_00b986e8::instance)
+ / 100.0));
+ }
+ if (FLOAT_00b986e8::instance <= 1.0) {
+ DAT_00b986f0 = 0;
+ endSoundStream(
+ MSS::enums::SND_STR_SFX_2Unk);
+ DAT_SpeechDefinedData.field10_0x49d4b4 = -1;
+ }
+ }
+ if (DAT_SpeechDefinedData.field10_0x49d4b4 == -1
+ || isSampleOrStreamPlaying(
+ MSS::enums::SND_STR_SFX_2Unk)) {
+ if (0 < DAT_SpeechDefinedData.field10_0x49d4b4
+ && DAT_SpeechDefinedData.field10_0x49d4b4 != param_1) {
+ if (DAT_00b986f0 == 2) {
+ return;
+ }
+ FLOAT_00b986e8::instance = 100.0;
+ DAT_00b986f0 = 2;
+ return;
+ }
+ } else {
+ DAT_SpeechDefinedData.field10_0x49d4b4 = -1;
+ }
+ }
+ if (param_1 <= 0 || DAT_SpeechDefinedData.field10_0x49d4b4 == param_1
+ || (FLOAT_00b986ec::instance < 900.0 && param_1 == 8)) {
+ return;
+ }
+ switch (param_1) {
+ case 7:
+ playAmbientSoundStream2Unk(5);
+ FLOAT_00b986e8::instance = 1.0;
+ DAT_SpeechDefinedData.field10_0x49d4b4 = 7;
+ DAT_00b986f0 = 1;
+ DAT_SoundSystemState.streamFileVolumeNextUnk_0x48[2] = 1;
+ break;
+ case 8:
+ playAmbientSoundStream2Unk(6);
+ DAT_SpeechDefinedData.field10_0x49d4b4 = 8;
+ break;
+ }
+ }
+ }
+}
+}
+
+### 0x0044ae90 readVolumeFileAndSetupSoundVolumes | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0044AE90
+ void SFXState::readVolumeFileAndSetupSoundVolumes()
+ {
+ if (this->DAT_SoundFileNameArrayMemoryPointer) {
+ _free_base(this->DAT_SoundFileNameArrayMemoryPointer);
+ }
+ FILE* _File = _fopen(s_fx_volume_txt_005a4e08, s_rb_005a4e18);
+ if (!_File) {
+ return;
+ }
+ _fseek(_File, 0, FILE_END);
+ long const _Size = _ftell(_File);
+ _fseek(_File, 0, FILE_BEGIN);
+ this->DAT_SoundFileNameArrayMemoryPointer = (char*)_malloc(_Size);
+ _fread(this->DAT_SoundFileNameArrayMemoryPointer, 1, _Size, _File);
+ _fclose(_File);
+ int fileIndex = 0;
+ int soundIndex = 0;
+ int volume = 0;
+ while (fileIndex < _Size) {
+ while (fileIndex < _Size) {
+ while (this->DAT_SoundFileNameArrayMemoryPointer[fileIndex] != '-'
+ && this->DAT_SoundFileNameArrayMemoryPointer[fileIndex] != '\"') {
+ ++fileIndex;
+ if (fileIndex >= _Size)
+ goto break_parse;
+ }
+ if (this->DAT_SoundFileNameArrayMemoryPointer[fileIndex] != '-') {
+ break;
+ }
+ volume = 0;
+ do {
+ ++fileIndex;
+ if (fileIndex >= _Size)
+ goto break_parse;
+ } while (this->DAT_SoundFileNameArrayMemoryPointer[fileIndex] < '0'
+ || '9' < this->DAT_SoundFileNameArrayMemoryPointer[fileIndex]);
+ while ('0' <= this->DAT_SoundFileNameArrayMemoryPointer[fileIndex]
+ && this->DAT_SoundFileNameArrayMemoryPointer[fileIndex] <= '9') {
+ ++fileIndex;
+ if (fileIndex >= _Size)
+ goto break_parse;
+ }
+ do {
+ ++fileIndex;
+ if (fileIndex >= _Size)
+ goto break_parse;
+ } while (this->DAT_SoundFileNameArrayMemoryPointer[fileIndex] < '0'
+ || '9' < this->DAT_SoundFileNameArrayMemoryPointer[fileIndex]);
+ int isNegative = FALSE;
+ if (this->DAT_SoundFileNameArrayMemoryPointer[fileIndex - 1] == '-') {
+ isNegative = TRUE;
+ }
+ while ('0' <= this->DAT_SoundFileNameArrayMemoryPointer[fileIndex]
+ && this->DAT_SoundFileNameArrayMemoryPointer[fileIndex] <= '9') {
+ volume *= 10;
+ volume += this->DAT_SoundFileNameArrayMemoryPointer[fileIndex] - 48;
+ ++fileIndex;
+ if (fileIndex >= _Size)
+ goto break_parse;
+ }
+ if (isNegative) {
+ volume = -volume;
+ }
+ while (this->DAT_SoundFileNameArrayMemoryPointer[fileIndex] != '\n'
+ && this->DAT_SoundFileNameArrayMemoryPointer[fileIndex] != '\r') {
+ ++fileIndex;
+ if (fileIndex >= _Size)
+ goto break_parse;
+ }
+ }
+ while (fileIndex < _Size) {
+ if (this->DAT_SoundFileNameArrayMemoryPointer[fileIndex] != '\"') {
+ break;
+ }
+ ++fileIndex;
+ this->DAT_SoundFileNamePointersArray[soundIndex]
+ = this->DAT_SoundFileNameArrayMemoryPointer + fileIndex;
+ while (this->DAT_SoundFileNameArrayMemoryPointer[fileIndex] != '\"'
+ && this->DAT_SoundFileNameArrayMemoryPointer[fileIndex] != '\r'
+ && this->DAT_SoundFileNameArrayMemoryPointer[fileIndex] != '\n') {
+ this->DAT_SoundFileNameArrayMemoryPointer[fileIndex] = (char)__tolower(
+ this->DAT_SoundFileNameArrayMemoryPointer[fileIndex]);
+ ++fileIndex;
+ if (fileIndex >= _Size)
+ goto break_parse;
+ }
+ if (this->DAT_SoundFileNameArrayMemoryPointer[fileIndex] == '\"') {
+ this->DAT_SoundFileNameArrayMemoryPointer[fileIndex] = '\0';
+ }
+ ++fileIndex;
+ while (this->DAT_SoundFileNameArrayMemoryPointer[fileIndex] == ' '
+ || this->DAT_SoundFileNameArrayMemoryPointer[fileIndex] == '\t') {
+ ++fileIndex;
+ if (fileIndex >= _Size)
+ goto break_parse;
+ }
+ this->DAT_SoundVolumeArray[soundIndex] = 0;
+ // Read numbers by: Reading first char, transform to int (-48) and then combine with previous
+ // int * 10, to handle number index.
+ while ('0' <= this->DAT_SoundFileNameArrayMemoryPointer[fileIndex]
+ && this->DAT_SoundFileNameArrayMemoryPointer[fileIndex] <= '9') {
+ this->DAT_SoundVolumeArray[soundIndex] *= 10;
+ this->DAT_SoundVolumeArray[soundIndex]
+ += this->DAT_SoundFileNameArrayMemoryPointer[fileIndex] - 48;
+ ++fileIndex;
+ if (fileIndex < _Size) {
+ continue;
+ }
+ this->DAT_SoundVolumeArray[soundIndex] += volume;
+ if (this->DAT_SoundVolumeArray[soundIndex] < 0) {
+ this->DAT_SoundVolumeArray[soundIndex] = 0;
+ }
+ if (127 < this->DAT_SoundVolumeArray[soundIndex]) {
+ this->DAT_SoundVolumeArray[soundIndex] = 127;
+ }
+ goto break_parse;
+ }
+ this->DAT_SoundVolumeArray[soundIndex] += volume;
+ // Applies enough register pressure to produce the fitting opcodes, but does not look very nice
+ int& volumeRef = this->DAT_SoundVolumeArray[soundIndex];
+ if (volumeRef < 0) {
+ volumeRef = 0;
+ } else if (127 < volumeRef) {
+ volumeRef = 127;
+ }
+ while (this->DAT_SoundFileNameArrayMemoryPointer[fileIndex] != '\n'
+ && this->DAT_SoundFileNameArrayMemoryPointer[fileIndex] != '\r') {
+ ++fileIndex;
+ if (fileIndex >= _Size)
+ goto break_parse;
+ }
+ while (this->DAT_SoundFileNameArrayMemoryPointer[fileIndex] == '\n'
+ || this->DAT_SoundFileNameArrayMemoryPointer[fileIndex] == '\r') {
+ ++fileIndex;
+ if (fileIndex >= _Size)
+ goto break_parse;
+ }
+ ++soundIndex;
+ }
+ }
+ break_parse:
+ this->DAT_SoundTotalCount = soundIndex;
+ for (int i = 0; i < 1000; ++i) {
+ if (!this->DAT_SoundStructures[i].pointerToFilename) {
+ continue;
+ }
+ this->DAT_SoundStructures[i].baseVolumePercentageUnk = getSoundVolumeForFilename(this->DAT_SoundStructures[i].pointerToFilename);
+ }
+ for (int i = 0; i < 10; ++i) {
+ for (int j = 0; j < 8; ++j) {
+ DAT_SpeechDefinedData.AmbientSounds[i].volumeUnk_0x28[j]
+ = getSoundVolumeForFilename(
+ DAT_SpeechDefinedData.AmbientSounds[i].ambientWavs_0x8[j]);
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x0044b210 playUnitSpeech | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0044B210
+ void SFXState::playUnitSpeech(UnitType unitType, int actionID)
+ {
+ int variationIndex = 0;
+ int _soundSet;
+ switch (unitType) {
+ case Map::Units::UT_A_ARCHER:
+ _soundSet = 0xb;
+ break;
+ case Map::Units::UT_A_SLINGER:
+ _soundSet = 0xc;
+ break;
+ case Map::Units::UT_A_ASSASSIN:
+ _soundSet = 0xd;
+ break;
+ case Map::Units::UT_A_SLAVE:
+ _soundSet = 0xe;
+ break;
+ case Map::Units::UT_A_FIRETHROWER:
+ _soundSet = 0xf;
+ break;
+ case Map::Units::UT_A_SWORDSMAN:
+ _soundSet = 0x10;
+ break;
+ case Map::Units::UT_A_HARCHER:
+ _soundSet = 0x11;
+ break;
+ case Map::Units::UT_E_ARCHER:
+ _soundSet = 0;
+ break;
+ case Map::Units::UT_E_XBOW:
+ _soundSet = 1;
+ break;
+ case Map::Units::UT_E_SPEAR:
+ _soundSet = 2;
+ break;
+ case Map::Units::UT_E_PIKE:
+ _soundSet = 4;
+ break;
+ case Map::Units::UT_E_MACE:
+ _soundSet = 3;
+ break;
+ case Map::Units::UT_E_SWORD:
+ _soundSet = 5;
+ break;
+ case Map::Units::UT_E_KNIGHT:
+ _soundSet = 6;
+ break;
+ case Map::Units::UT_E_LADDER:
+ _soundSet = 9;
+ break;
+ case Map::Units::UT_TUNNELER:
+ _soundSet = 8;
+ break;
+ case Map::Units::UT_E_MONK:
+ _soundSet = 7;
+ break;
+ case Map::Units::UT_E_ENGINEER:
+ _soundSet = 10;
+ break;
+ case Map::Units::UT_S_CATAPULT:
+ if (actionID == 0) {
+ playUnitSpeechEffect(1);
+ return;
+ }
+ if (actionID == 6) {
+ playUnitSpeechEffect(7);
+ return;
+ }
+ if (actionID == 0x10) {
+ playUnitSpeechEffect(0x10);
+ return;
+ }
+ _soundSet = 10;
+ break;
+ case Map::Units::UT_S_TREBUCHET:
+ if (actionID == 0) {
+ playUnitSpeechEffect(2);
+ return;
+ }
+ if (actionID == 0x11) {
+ playUnitSpeechEffect(0x11);
+ return;
+ }
+ if (actionID == 6) {
+ return;
+ }
+ _soundSet = 10;
+ break;
+ case Map::Units::UT_S_MANGONEL:
+ if (actionID == 0) {
+ playUnitSpeechEffect(0);
+ return;
+ }
+ if (actionID == 0xf) {
+ playUnitSpeechEffect(0xf);
+ return;
+ }
+ if (actionID == 6) {
+ return;
+ }
+ _soundSet = 10;
+ break;
+ case Map::Units::UT_S_TOWER:
+ if (actionID == 0) {
+ playUnitSpeechEffect(3);
+ return;
+ }
+ if (actionID == 6) {
+ playUnitSpeechEffect(8);
+ return;
+ }
+ _soundSet = 10;
+ break;
+ case Map::Units::UT_S_BATTERINGRAM:
+ if (actionID == 0) {
+ playUnitSpeechEffect(4);
+ return;
+ }
+ if (actionID == 6) {
+ playUnitSpeechEffect(9);
+ return;
+ }
+ if (actionID == 0x13) {
+ playUnitSpeechEffect(0x13);
+ return;
+ }
+ _soundSet = 10;
+ break;
+ case Map::Units::UT_S_SHIELD:
+ if (actionID == 0) {
+ playUnitSpeechEffect(5);
+ return;
+ }
+ if (actionID == 6) {
+ playUnitSpeechEffect(10);
+ return;
+ }
+ _soundSet = 10;
+ break;
+ case Map::Units::UT_S_BALLISTA:
+ case Map::Units::UT_S_FBALLISTA:
+ if (actionID == 0) {
+ playUnitSpeechEffect(6);
+ return;
+ }
+ if (actionID == 0x12) {
+ playUnitSpeechEffect(0x12);
+ return;
+ }
+ if (actionID == 6) {
+ return;
+ }
+ _soundSet = 10;
+ break;
+ default:
+ return;
+ }
+ if (actionID < 0 || _soundSet >= 18 || actionID >= 42
+ || !DAT_SpeechDefinedData.UnitSpeech[actionID].numberOfVariations) {
+ return;
+ }
+ int numberOfVariations = DAT_SpeechDefinedData.UnitSpeech[actionID].numberOfVariations;
+ if (1 < numberOfVariations) {
+ /* Calculate action speech variation. */
+ variationIndex = DAT_SpeechDefinedData.UnitSpeech[actionID].variationCounter[_soundSet]++;
+ if (DAT_SpeechDefinedData.UnitSpeech[actionID].variationCounter[_soundSet]
+ >= numberOfVariations) {
+ DAT_SpeechDefinedData.UnitSpeech[actionID].variationCounter[_soundSet] = 0;
+ }
+ }
+ char _filename[64];
+ _sprintf(_filename, s_fx_speech_s_005a4d68,
+ DAT_SpeechDefinedData.UnitSpeech[variationIndex + actionID].filenames[_soundSet]);
+ if (__stricmp(_filename, DAT_LastSpeechSFXFilename)
+ || (!isSampleOrStreamPlaying(
+ MSS::enums::SND_STR_SPEECH_1)
+ && !isSampleOrStreamPlaying(
+ MSS::enums::SND_STR_SPEECH_2))) {
+ strcpy(DAT_LastSpeechSFXFilename, _filename);
+ playSoundOnSpeechStream(_filename);
+ }
+ }
+ }
+}
+}
+
+### 0x0044bca0 loadSFX | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0044BCA0
+ void SFXState::loadSFX(int param_1)
+ {
+ if (!DAT_TextureRenderCoreObject.unknownSfxAndGmRelatedFlag) {
+ loadWavSounds(
+ (char*)DAT_SpeechDefinedData.WavFileGroups[0]);
+ readVolumeFileAndSetupSoundVolumes();
+ } else {
+ loadWavSounds(
+ (char*)(DAT_SpeechDefinedData.WavFileGroups[1]));
+ readVolumeFileAndSetupSoundVolumes();
+ }
+ }
+ }
+}
+}
+
+### 0x0044bce0 updateAmbientSoundStream | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0044BCE0
+ void SFXState::updateAmbientSoundStream()
+ {
+ int local_54 = -1;
+ int iVar8 = 0;
+ FLOAT_00b98708::instance = (float)timeGetTime();
+ if (FLOAT_00b98708::instance == FLOAT_00b98704::instance) {
+ FLOAT_00b98704::instance = FLOAT_00b98708::instance - 1.0f;
+ }
+ float _fadeDelta = (FLOAT_00b98708::instance - FLOAT_00b98704::instance) * 0.0625f;
+ if (_fadeDelta > 20.0) {
+ _fadeDelta = 20.0;
+ }
+ FLOAT_00b98704::instance = FLOAT_00b98708::instance;
+ if (DAT_SpeechDefinedData.currentStreamID == -1) {
+ DAT_SFXFadeDeltaAccumulator += _fadeDelta;
+ } else {
+ DAT_SFXFadeDeltaAccumulator = 0.0;
+ }
+ if (!getAreWeInAInGameMenu()) {
+ for (int i = 0; i < 10; ++i) {
+ DAT_SFXAmbientEventCountersRescaled[i] = 0;
+ this->ambientEventCounters[i][0] = 0;
+ }
+ endSoundStream(
+ MSS::enums::SND_STR_SFX_1Unk);
+ DAT_SFXFadeState = SFXFS_IDLE;
+ DAT_SpeechDefinedData.currentStreamID = -1;
+ } else {
+ for (int i = 0; i < 10; ++i) {
+ int _datum = this->ambientEventCounters[i][0];
+ /* These 10 slots appear to be per-frame sound event accumulators (e.g. how many
+ sword clashes, arrows, fire crackles happened this frame), written by other
+ systems and consumed here. */
+ DAT_SFXAmbientEventCountersRescaled[i] = _datum;
+ if (i == 4) {
+ DAT_SFXAmbientEventCountersRescaled[i] = _datum >> 2;
+ }
+ if (i == 8) {
+ DAT_SFXAmbientEventCountersRescaled[i] = _datum >> 1;
+ }
+ if (i == 2) {
+ DAT_SFXAmbientEventCountersRescaled[i] = _datum >> 5;
+ }
+ if (i == 7) {
+ DAT_SFXAmbientEventCountersRescaled[i] = _datum >> 4;
+ }
+ if (i == 6) {
+ DAT_SFXAmbientEventCountersRescaled[i] = (_datum > 1) ? 100 : 0;
+ }
+ if (99 < DAT_SFXAmbientEventCountersRescaled[i]) {
+ DAT_SFXAmbientEventCountersRescaled[i] = 99;
+ if (i == 6) {
+ DAT_SFXAmbientEventCountersRescaled[i] = 100;
+ }
+ if (i == 5) {
+ DAT_SFXAmbientEventCountersRescaled[i] = 101;
+ }
+ }
+ this->ambientEventCounters[i][0] = 0;
+ }
+ }
+ if (DAT_SFXAmbientEventCountersRescaled[7] <= 3
+ || (DAT_SpeechDefinedData.currentStreamID == 6
+ && DAT_SFXFadeState != SFXFS_FADE_OUT)
+ || DAT_SFXAmbientEventCountersRescaled[6] == 100) {
+ if (10 < DAT_SFXAmbientEventCountersRescaled[8]) {
+ tweakVolume(
+ 8, _fadeDelta, DAT_SpeechDefinedData.currentStreamID);
+ } else {
+ tweakVolume(
+ 0, _fadeDelta, DAT_SpeechDefinedData.currentStreamID);
+ }
+ } else if (DAT_SFXAmbientEventCountersRescaled[7] > 28) {
+ tweakVolume(
+ 7, _fadeDelta, DAT_SpeechDefinedData.currentStreamID);
+ } else {
+ tweakVolume(
+ 8, _fadeDelta, DAT_SpeechDefinedData.currentStreamID);
+ }
+ if (DAT_SFXFadeState == SFXFS_IDLE || DAT_SpeechDefinedData.currentStreamID != -1) {
+ if (DAT_SFXFadeState == SFXFS_FADE_IN) {
+ FLOAT_00b986f8::instance += _fadeDelta + _fadeDelta;
+ if (100.0 < FLOAT_00b986f8::instance) {
+ DAT_SFXFadeState = 100;
+ }
+ if (DAT_SpeechDefinedData.currentStreamID == 6) {
+ setStreamAndSampleVolumeUnk(MSS::enums::SND_STR_SFX_1Unk,
+ (int)((DAT_SpeechDefinedData.AmbientSounds[4].volumeUnk_0x28
+ [DAT_SpeechDefinedData.AmbientSounds[4].variationIndex]
+ * FLOAT_00b986f8::instance)
+ / 100.0));
+ }
+ if (DAT_SpeechDefinedData.currentStreamID == 5) {
+ setStreamAndSampleVolumeUnk(MSS::enums::SND_STR_SFX_1Unk,
+ (int)((DAT_SpeechDefinedData.AmbientSounds[3].volumeUnk_0x28
+ [DAT_SpeechDefinedData.AmbientSounds[3].variationIndex]
+ * FLOAT_00b986f8::instance)
+ / 100.0));
+ }
+ if (!(FLOAT_00b986f8::instance >= 100.0f)) {
+ return;
+ }
+ DAT_SFXFadeState = SFXFS_IDLE;
+ return;
+ }
+ if (DAT_SFXFadeState == SFXFS_FADE_OUT) {
+ FLOAT_00b986f8::instance -= 2 * _fadeDelta;
+ if (FLOAT_00b986f8::instance < 1.0) {
+ FLOAT_00b986f8::instance = 1.0;
+ }
+ if (DAT_SpeechDefinedData.currentStreamID == 6) {
+ setStreamAndSampleVolumeUnk(MSS::enums::SND_STR_SFX_1Unk,
+ (int)((DAT_SpeechDefinedData.AmbientSounds[4].volumeUnk_0x28
+ [DAT_SpeechDefinedData.AmbientSounds[4].variationIndex]
+ * FLOAT_00b986f8::instance)
+ / 100.0));
+ }
+ if (DAT_SpeechDefinedData.currentStreamID == 5) {
+ setStreamAndSampleVolumeUnk(MSS::enums::SND_STR_SFX_1Unk,
+ (int)((DAT_SpeechDefinedData.AmbientSounds[3].volumeUnk_0x28
+ [DAT_SpeechDefinedData.AmbientSounds[3].variationIndex]
+ * FLOAT_00b986f8::instance)
+ / 100.0));
+ }
+ if (FLOAT_00b986f8::instance <= 1.0) {
+ DAT_SFXFadeState = SFXFS_IDLE;
+ local_54 = DAT_SpeechDefinedData.field11_0x49d4b8;
+ endSoundStream(
+ MSS::enums::SND_STR_SFX_1Unk);
+ DAT_SpeechDefinedData.currentStreamID = -1;
+ }
+ }
+ if (DAT_SpeechDefinedData.currentStreamID != -1) {
+ if (!isSampleOrStreamPlaying(
+ MSS::enums::SND_STR_SFX_1Unk)) {
+ DAT_SpeechDefinedData.currentStreamID = -1;
+ } else if (DAT_SpeechDefinedData.currentStreamID != -1
+ && DAT_SpeechDefinedData.currentStreamID != 6
+ && DAT_SpeechDefinedData.currentStreamID != 5) {
+ return;
+ }
+ }
+ } else {
+ DAT_SFXFadeState = SFXFS_IDLE;
+ }
+ PriorityListEntry _prioritySortedList[10];
+ for (int iVar9 = 0; iVar9 < 7; ++iVar9) {
+ if (DAT_SFXAmbientEventCountersRescaled[iVar9] == 0) {
+ continue;
+ }
+ if (iVar8 == 0) {
+ _prioritySortedList[iVar8].index = iVar9;
+ _prioritySortedList[iVar8].ambientEventCounterRescaled
+ = DAT_SFXAmbientEventCountersRescaled[iVar9];
+ ++iVar8;
+ continue;
+ }
+ // This structure may have been one loop. I was unable to create it.
+ // The closets I managed to do was running the loop as long as iVar7 < iVar8 and having the condition
+ // after be iVar7 >= iVar8. This created almost the required structure, but the condition was wrong,
+ // since it would require and equals. So the most likely thing is that the original was able to proof
+ // that iVar7 could never be bigger then iVar8. I have no idea how they managed to do that.
+ int iVar7 = 0;
+ if (iVar8 > 0) {
+ while (DAT_SFXAmbientEventCountersRescaled[iVar9]
+ <= _prioritySortedList[iVar7].ambientEventCounterRescaled) {
+ ++iVar7;
+ if (iVar7 < iVar8) {
+ continue;
+ }
+ _prioritySortedList[iVar8].index = iVar9;
+ _prioritySortedList[iVar8].ambientEventCounterRescaled
+ = DAT_SFXAmbientEventCountersRescaled[iVar9];
+ ++iVar8;
+ goto outerLoopEnd; // found no solution so far for this
+ }
+ }
+ if (iVar7 == iVar8) {
+ _prioritySortedList[iVar8].index = iVar9;
+ _prioritySortedList[iVar8].ambientEventCounterRescaled
+ = DAT_SFXAmbientEventCountersRescaled[iVar9];
+ ++iVar8;
+ continue;
+ }
+ for (int iVar3 = iVar8 - 1; iVar3 >= iVar7; --iVar3) {
+ _prioritySortedList[iVar3 + 1].index = _prioritySortedList[iVar3].index;
+ _prioritySortedList[iVar3 + 1].ambientEventCounterRescaled
+ = _prioritySortedList[iVar3].ambientEventCounterRescaled;
+ }
+ _prioritySortedList[iVar7].index = iVar9;
+ _prioritySortedList[iVar7].ambientEventCounterRescaled
+ = DAT_SFXAmbientEventCountersRescaled[iVar9];
+ ++iVar8;
+ outerLoopEnd:;
+ }
+ if ((DAT_SpeechDefinedData.currentStreamID == 6
+ && DAT_SFXAmbientEventCountersRescaled[6] == 0)
+ || (DAT_SpeechDefinedData.currentStreamID == 5
+ && DAT_SFXAmbientEventCountersRescaled[5] == 0)) {
+ if (DAT_SFXFadeState == SFXFS_FADE_OUT) {
+ return;
+ }
+ FLOAT_00b986f8::instance = 100.0;
+ DAT_SFXFadeState = SFXFS_FADE_OUT;
+ DAT_SpeechDefinedData.field11_0x49d4b8 = 0xffffffff;
+ return;
+ }
+ if (iVar8 == 0) {
+ return;
+ }
+ if (DAT_SpeechDefinedData.currentStreamID == 5
+ && DAT_SFXAmbientEventCountersRescaled[5] > 8) {
+ return;
+ }
+ int _pick = _prioritySortedList[0].index;
+ if (_pick != 6) {
+ if (local_54 > -1) {
+ if (0 < DAT_SFXAmbientEventCountersRescaled[local_54]
+ && (_prioritySortedList[0].ambientEventCounterRescaled
+ - DAT_SFXAmbientEventCountersRescaled[local_54])
+ < 40) {
+ _pick = local_54;
+ }
+ } else {
+ for (int i = 1; i < iVar8; ++i) {
+ if (_prioritySortedList[0].ambientEventCounterRescaled
+ - _prioritySortedList[i].ambientEventCounterRescaled
+ >= 20) {
+ continue;
+ }
+ nextRandomNumber1();
+ if (!(SEC_RNG::instance.currentNumber1 & 1)) {
+ continue;
+ }
+ _pick = _prioritySortedList[i].index;
+ }
+ }
+ }
+ if (_pick == DAT_SpeechDefinedData.currentStreamID) {
+ return;
+ }
+ if (_pick == 4 && DAT_LandscapeState.wind.valueIs2 == 0
+ && DAT_LandscapeState.wind.valueIs1 == 0) {
+ return;
+ }
+ if (DAT_SFXFadeDeltaAccumulator < 300.0 && _pick != 6 && _pick != 5) {
+ if (_pick != 4) {
+ return;
+ }
+ if (DAT_SFXFadeDeltaAccumulator < 150.0) {
+ return;
+ }
+ }
+ if (DAT_SpeechDefinedData.currentStreamID != 6
+ && DAT_SpeechDefinedData.currentStreamID != 5) {
+ switch (_pick) {
+ case 4:
+ if (DAT_LandscapeState.wind.valueIs2 != 0) {
+ playAmbientSoundStreamUnk(ASFXT_WIND_1);
+ } else if (DAT_LandscapeState.wind.valueIs1 != 0) {
+ playAmbientSoundStreamUnk(ASFXT_WIND_0);
+ }
+ DAT_SpeechDefinedData.currentStreamID = 4;
+ return;
+ case 2:
+ playAmbientSoundStreamUnk(ASFXT_UNKNOWN);
+ DAT_SpeechDefinedData.currentStreamID = 2;
+ return;
+ case 5:
+ playAmbientSoundStreamUnk(ASFXT_HEAVY);
+ DAT_SpeechDefinedData.currentStreamID = 5;
+ FLOAT_00b986f8::instance = 1.0;
+ DAT_SFXFadeState = SFXFS_FADE_IN;
+ DAT_SoundSystemState.streamFileVolumeNextUnk_0x48[1] = 1;
+ return;
+ case 6:
+ playAmbientSoundStreamUnk(ASFXT_BATTLE_OR_INTENSE);
+ DAT_SpeechDefinedData.currentStreamID = 6;
+ FLOAT_00b986f8::instance = 1.0;
+ DAT_SFXFadeState = SFXFS_FADE_IN;
+ DAT_SoundSystemState.streamFileVolumeNextUnk_0x48[1] = 1;
+ return;
+ default:
+ return;
+ }
+ }
+ if (DAT_SFXFadeState == SFXFS_FADE_OUT) {
+ return;
+ }
+ FLOAT_00b986f8::instance = 100.0;
+ DAT_SpeechDefinedData.field11_0x49d4b8 = _pick;
+ DAT_SFXFadeState = SFXFS_FADE_OUT;
+ }
+ }
+}
+}
+
+### 0x0044c410 PlaySFXVoices | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0044C410
+ void SFXState::playSFXVoices()
+ {
+ if (DAT_GameCore.currentMenuViewType != UI::Enums::MVT_BUILD_MENU
+ || DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .playerDeathRelated
+ || DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .lordKilledByPlayerID
+ || DAT_GameCore.gameMode_2 == Game::GM_CAMPAIGN_MISSION) {
+ if (DAT_GameCore.currentMenuViewType != UI::Enums::MVT_BUILD_MENU
+ && DAT_GameCore.currentMenuViewType == UI::Enums::MVT_BUILDING_AND_STATUS_MENU) {
+ return;
+ }
+ DAT_00b9869c = 0;
+ return;
+ }
+ if (!DAT_00b9869c) {
+ DAT_00b9869c = 1;
+ ResetGreatestLordGenieSpeechState();
+ }
+ if (DAT_GameSynchronyState.currentGameMode == Game::GM_SOLITARY) {
+ return;
+ }
+ DWORD _currentTime = timeGetTime();
+ if (shouldSoundXNotBePlaying()) {
+ return;
+ }
+ if (1000 < _currentTime - DAT_KeepEnclosementCooldown) {
+ if (checkKeepEnclosed(
+ DAT_GameSynchronyState.currentPlayerSlotID)) {
+ if (!DAT_IsKeepEnclosed) {
+ if (DAT_GameCore.genieVoiceActive) {
+ playWAVSFX(s_Genie_45_wav_005a4f94);
+ }
+ DAT_IsKeepEnclosed = 1;
+ DAT_KeepEnclosementCooldown = _currentTime;
+ return;
+ }
+ } else if (DAT_IsKeepEnclosed) {
+ DAT_IsKeepEnclosed = 0;
+ }
+ DAT_KeepEnclosementCooldown = _currentTime;
+ }
+ if (_currentTime - DWORD_LatestPLayerStatusMessageTime::instance < 300000) {
+ return;
+ }
+ if (DAT_GameCore.gamePausedLogical) {
+ return;
+ }
+ int _ranking = ComputeCurrentPlayerRanking();
+ // NOTE: Structure produced fitting bytecode, unlike early returns. Variable name is guessed.
+ bool detailedRanking = false;
+ if (DAT_CurrentPlayerRanking == -1) {
+ DAT_CurrentPlayerRanking = _ranking;
+ detailedRanking = true;
+ } else if (_ranking == DAT_CurrentPlayerRanking && _ranking == 1) {
+ if (DAT_GameCore.genieVoiceActive) {
+ playWAVSFX(SFX_FeelThePower);
+ }
+ detailedRanking = true;
+ } else if (_ranking <= 0) {
+ detailedRanking = true;
+ } else if (_ranking < DAT_CurrentPlayerRanking - 2) {
+ if (DAT_GameCore.genieVoiceActive) {
+ playWAVSFX(s_Genie_25_wav_005a4f74);
+ }
+ detailedRanking = true;
+ }
+ if (!detailedRanking) {
+ if (DAT_GameCore.genieVoiceActive) {
+ if (_ranking == 1) {
+ playWAVSFX(SFX_YouAreTheGreatestLord);
+ } else if (_ranking == 2) {
+ playWAVSFX(s_Genie_16_wav_005a4f54);
+ } else if (_ranking == 3) {
+ playWAVSFX(s_Genie_17_wav_005a4f44);
+ } else if (_ranking == 4) {
+ playWAVSFX(s_Genie_18_wav_005a4f34);
+ } else if (_ranking == 5) {
+ playWAVSFX(s_Genie_19_wav_005a4f24);
+ } else if (_ranking == 6) {
+ playWAVSFX(s_Genie_20_wav_005a4f14);
+ } else if (_ranking == 7) {
+ playWAVSFX(s_Genie_21_wav_005a4f04);
+ } else if (_ranking == 8) {
+ playWAVSFX(s_Genie_22_wav_005a4ef4);
+ }
+ }
+ DAT_CurrentPlayerRanking = _ranking;
+ int iVar2 = 1;
+ int currentPlayer;
+ int playerAtRankOne;
+ int lowestRankedAlivePlayer;
+ currentPlayer = DAT_GameSynchronyState.currentPlayerSlotID;
+ playerAtRankOne = GetPlayerAtRank(1);
+ if (DAT_GameState.mapAndTime.playerTeams[playerAtRankOne]
+ == DAT_GameState.mapAndTime.playerTeams[currentPlayer]) {
+ currentPlayer = DAT_GameSynchronyState.currentPlayerSlotID;
+ lowestRankedAlivePlayer = GetLowestRankedAlivePlayer();
+ if (DAT_GameState.mapAndTime.playerTeams[lowestRankedAlivePlayer]
+ != DAT_GameState.mapAndTime.playerTeams[currentPlayer]) {
+ int const _teamMate = findAITeamMate(DAT_GameSynchronyState.currentPlayerSlotID);
+ if (_teamMate
+ && getAliveLordForPlayer(_teamMate)) {
+ if (INT_00b98664::instance) {
+ playTeamWinningBikFromPlayer(
+ _teamMate);
+ }
+ iVar2 = 0;
+ }
+ }
+ }
+ currentPlayer = DAT_GameSynchronyState.currentPlayerSlotID;
+ lowestRankedAlivePlayer = GetLowestRankedAlivePlayer();
+ if (DAT_GameState.mapAndTime.playerTeams[lowestRankedAlivePlayer]
+ == DAT_GameState.mapAndTime.playerTeams[currentPlayer]) {
+ currentPlayer = DAT_GameSynchronyState.currentPlayerSlotID;
+ playerAtRankOne = GetPlayerAtRank(1);
+ if (DAT_GameState.mapAndTime.playerTeams[playerAtRankOne]
+ == DAT_GameState.mapAndTime.playerTeams[currentPlayer]) {
+ int const _teamMate = findAITeamMate(DAT_GameSynchronyState.currentPlayerSlotID);
+ if (_teamMate
+ && getAliveLordForPlayer(_teamMate)) {
+ iVar2 = 2;
+ if (INT_00b98664::instance != 2) {
+ playNoHelpBikFromPlayer(
+ _teamMate);
+ }
+ }
+ }
+ }
+ INT_00b98664::instance = iVar2;
+ }
+ DWORD_LatestPLayerStatusMessageTime::instance = _currentTime;
+ }
+ }
+}
+}
+
+### 0x0044c740 soundRelatedMethod1 | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0044C740
+ void SFXState::soundRelatedMethod1()
+ {
+ if (DAT_GameSynchronyState.currentGameMode != Game::GM_SOLITARY) {
+ playSFXVoices();
+ }
+ restoreMusicVolumeAfterSpeechEnds();
+ updateAmbientSoundStream();
+ BOOLEnum_00b9870c::instance ^= TRUE;
+ if (BOOLEnum_00b9870c::instance) {
+ return;
+ }
+ for (int _loadedSoundIndex = 0;
+ _loadedSoundIndex < DAT_SoundSystemState->loadedSoundsCountAndIndex_0x316c + 1;
+ ++_loadedSoundIndex) {
+ if (getAndUpdateSampleStatus(_loadedSoundIndex)
+ || this->DAT_SoundStructures[_loadedSoundIndex].scheduledPlayCounter <= 0) {
+ continue;
+ }
+ findSamplePlaceForSoundUnk(
+ _loadedSoundIndex);
+ setupSampleForNextSound(
+ _loadedSoundIndex, this->DAT_SoundStructures[_loadedSoundIndex].volumePercentage,
+ this->DAT_SoundStructures[_loadedSoundIndex].samplePan);
+ playSound(
+ _loadedSoundIndex);
+ }
+ resetScheduledSoundRequests();
+ }
+ }
+}
+}
+

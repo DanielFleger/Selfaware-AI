@@ -1,0 +1,2397 @@
+### 0x004c31a0 processSingleplayerEvents | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004C31A0
+ void MapPropertiesState::processSingleplayerEvents()
+ {
+ int iVar1;
+ byte(*pabVar2)[10];
+ byte* pbVar3;
+ byte bVar4;
+ byte bVar5;
+ UnitTypeShort UVar6;
+ short sVar7;
+ short sVar8;
+ BuildingTypeShort BVar9;
+ char* pcVar10;
+ BOOLEnum BVar11;
+ UnitTypeShort* pUVar12;
+ BuildingTypeShort* pBVar13;
+ dword tribeID;
+ dword dVar14;
+ ScenarioEventCondition* pSVar15;
+ int _invasionAmplifier;
+ InGameEventUnionVersion* pIVar16;
+ char cVar17;
+ int iVar18;
+ uint uVar19;
+ int _unitSpawnTotalAdjustment;
+ int iVar20;
+ int numInGroup;
+ InGameEventUnionVersion* psVar21;
+ int _unitAIBehaviourTypeUnk;
+ int iVar21;
+ int iVar22;
+ uint y1;
+ UnitTypeInt _unitType;
+ bool bVar23;
+ bool bVar24;
+ char* pcVar25;
+ char** ppcVar26;
+ char* pcVar27;
+ int local_a0;
+ int _eventIndex;
+ int _subIndex;
+ int _spawnUnitCount;
+ int local_88;
+ int local_80;
+ uint uStack_7c;
+ uint uStack_78;
+ int _previousScenarioEventIndex;
+ int local_70[10];
+ int local_48[18];
+ int _amplifiedUnitTotalForUnitType;
+ int _crusaderOrArabian;
+ int _repeatMonths;
+ int _conditionOffset;
+ int _counter;
+ int _scenarioEventType;
+ int _eventType;
+ int* _pConditionIsMet;
+ local_88 = 0;
+ local_70[9] = DAT_GameState.mapAndTime.signpostsMapEdgeDataCounter;
+ _previousScenarioEventIndex = -1;
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ if ((DAT_GameCore.gameMode_2 != GM_EDITOR)
+ && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)) {
+ if (DAT_GameCore.gameMode_2 == GM_CRUSADER_TUTORIAL) {
+ UpdateTutorialStepAndProgress();
+ }
+ if (DAT_GameCore.section1095 != 1) {
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .playerDeathRelated
+ == 0) {
+ if ((this->SEC_Section1081 != 0) && (0 < this->SEC_Section1080)) {
+ this->SEC_Section1080 = this->SEC_Section1080 + -1;
+ }
+ if (DAT_GameState.mapAndTime.startOfDay != FALSE) {
+ if (DAT_GameCore.unknownAlwaysZero != 0) {
+ DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .playerDeathRelated = 1;
+ DAT_GameCore.unknownAlwaysZero = 0;
+ DAT_GameState.mapAndTime.unknownCountdown01 = 10;
+ return;
+ }
+ _pConditionIsMet = &DAT_GameState.mapAndTime.field3092_0x2654;
+ do {
+ if ((*_pConditionIsMet != 0)
+ && (iVar18 = *_pConditionIsMet + 1, *_pConditionIsMet = iVar18, 0x4b0 < iVar18)) {
+ *_pConditionIsMet = 0;
+ }
+ _pConditionIsMet = _pConditionIsMet + 1;
+ } while ((int)_pConditionIsMet < 0x117ee60);
+ local_48[0] = -1;
+ local_48[1] = 0xffffffff;
+ local_48[2] = 0xffffffff;
+ local_48[3] = 0xffffffff;
+ local_48[4] = 0xffffffff;
+ local_48[5] = 0xffffffff;
+ local_48[6] = 0xffffffff;
+ local_48[7] = 0xffffffff;
+ local_48[8] = 0xffffffff;
+ local_80 = DAT_TroopValueState.attackInfo.inv_count;
+ local_70[0] = 0;
+ local_48[9] = 0;
+ local_70[1] = 0;
+ local_48[10] = 0;
+ local_70[2] = 0;
+ local_48[0xb] = 0;
+ local_70[3] = 0;
+ local_48[0xc] = 0;
+ local_70[4] = 0;
+ local_48[0xd] = 0;
+ local_70[5] = 0;
+ local_48[0xe] = 0;
+ local_70[6] = 0;
+ local_48[0xf] = 0;
+ local_70[7] = 0;
+ local_48[0x10] = 0;
+ local_70[8] = 0;
+ local_48[0x11] = 0;
+ if ((((DAT_GameState.mapAndTime.month == this->SEC_StartingMonth)
+ && (DAT_GameState.mapAndTime.year == this->SEC_StartingYear + 1))
+ && (DAT_GameState.gameTicksLoadBalancer == 1))
+ && ((DAT_GameState.mapAndTime.week == 0
+ && (bVar23 = false, 0 < this->eventsCount)))) {
+ _pConditionIsMet = &this->scenarioEvents[0].data.scenario.ScenarioEventType;
+ iVar18 = this->eventsCount;
+ do {
+ if ((_pConditionIsMet[-3] == 3) && (*_pConditionIsMet == 0x1e)) {
+ bVar23 = true;
+ }
+ _pConditionIsMet = _pConditionIsMet + 0x39;
+ iVar18 = iVar18 + -1;
+ } while (iVar18 != 0);
+ if (bVar23) {
+ /*
+ if a fire warning event
+ */
+ iVar18 = 0;
+ if (0 < DAT_BuildingsState.maxBuildingsCount) {
+ pBVar13 = &DAT_BuildingsState.buildings[0].buildingType;
+ do {
+ if (((pBVar13[-1] != ((BuildingLogicalState)0))
+ && ((short)pBVar13[2]
+ == DAT_GameSynchronyState.currentPlayerSlotID))
+ && ((*pBVar13 == BT_WELL
+ || (*pBVar13 == BT_WATERPOT))))
+ goto LAB_004c3637;
+ iVar18 = iVar18 + 1;
+ pBVar13 = pBVar13 + 0x196;
+ } while (iVar18 < DAT_BuildingsState.maxBuildingsCount);
+ }
+ pcVar27 = "general_message3.wav";
+ pcVar25 = "ap_civil12.bik";
+ /*
+ "there are no wells in the castle my liege. should a fire break out, we are int
+ great danger." added by script: "There are no wells in the castle my Liege.
+ Should a fire break out we would be in great danger."
+ */
+ pcVar10 = getTextStringInGroupAtOffset(TEXT_ACTION, 0x12);
+ playEventVideoBik(pcVar10, pcVar25, pcVar27);
+ }
+ }
+ LAB_004c3637:
+ _eventIndex = 0;
+ if (0 < this->eventsCount) {
+ do {
+ iVar18 = this->scenarioEvents[_eventIndex].header.year;
+ if ((DAT_GameState.mapAndTime.year < iVar18)
+ || ((DAT_GameState.mapAndTime.year == iVar18
+ && (DAT_GameState.mapAndTime.month
+ < this->scenarioEvents[_eventIndex].header.month))))
+ break;
+ /*
+ "next Event"
+ */
+ if (this->scenarioEvents[_eventIndex].header.done != 0)
+ goto LAB_004c5f28;
+ _eventType = this->scenarioEvents[_eventIndex].header.tl_type;
+ if (_eventType == 1) {
+ /*
+ Invasion
+ */
+ DAT_GameState.mapAndTime.field3171_0x27a8 = 0;
+ DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .aiControlStatusRelated = -200;
+ /*
+ invasion. ?
+ */
+ iVar18
+ = local_48[this->scenarioEvents[_eventIndex].data.invasion.crusaderArabian];
+ if (local_48[this->scenarioEvents[_eventIndex].data.invasion.crusaderArabian]
+ == -1) {
+ DAT_TroopValueState.attackInfo.inv_count
+ = DAT_TroopValueState.attackInfo.inv_count + 1;
+ if (0x31 < DAT_TroopValueState.attackInfo.inv_count) {
+ DAT_TroopValueState.attackInfo.inv_count = 1;
+ }
+ initializeAttackWaveSlot(
+ DAT_TroopValueState.attackInfo.inv_count,
+ this->scenarioEvents[_eventIndex].data.invasion.messageMonth);
+ local_48[this->scenarioEvents[_eventIndex].data.invasion.crusaderArabian]
+ = DAT_TroopValueState.attackInfo.inv_count;
+ local_80 = DAT_TroopValueState.attackInfo.inv_count;
+ iVar18 = DAT_TroopValueState.attackInfo.inv_count;
+ }
+ DAT_TroopValueState.attackInfo.inv_count = iVar18;
+ DAT_TroopValueState.attackInfo
+ .attackWavePlayerIDArray[DAT_TroopValueState.attackInfo.inv_count]
+ = *(char*)((int)&this->scenarioEvents[_eventIndex].data + 0x74) + 2;
+ _subIndex = 0;
+ do {
+ /*
+ if invasion.units[index] == 0 then index += 1 (break when not index <
+ 0x19)
+ */
+ iVar18 = *(
+ int*)((int)&this->scenarioEvents[_eventIndex].data + _subIndex * 4 + 4);
+ if (iVar18 == 0)
+ goto LAB_004c5db4;
+ _unitAIBehaviourTypeUnk = 0;
+ _unitType = ((UnitType)0);
+ _unitSpawnTotalAdjustment = 0;
+ switch (_subIndex) {
+ case 0:
+ _unitAIBehaviourTypeUnk = 3;
+ _unitType = UT_E_ARCHER;
+ break;
+ case 1:
+ _unitAIBehaviourTypeUnk = 7;
+ _unitType = UT_E_XBOW;
+ break;
+ case 2:
+ _unitAIBehaviourTypeUnk = 5;
+ _unitType = UT_E_SPEAR;
+ break;
+ case 3:
+ _unitAIBehaviourTypeUnk = 6;
+ _unitType = UT_E_PIKE;
+ break;
+ case 4:
+ _unitAIBehaviourTypeUnk = 9;
+ _unitType = UT_E_MACE;
+ break;
+ case 5:
+ _unitAIBehaviourTypeUnk = 8;
+ _unitType = UT_E_SWORD;
+ break;
+ case 6:
+ _unitAIBehaviourTypeUnk = 10;
+ _unitType = UT_E_KNIGHT;
+ _unitSpawnTotalAdjustment = 10;
+ goto switchD_004c5b0c_default;
+ case 7:
+ _unitAIBehaviourTypeUnk = 4;
+ _unitType = UT_E_LADDER;
+ break;
+ case 8:
+ _unitAIBehaviourTypeUnk = 0xb;
+ _unitType = UT_E_ENGINEER;
+ break;
+ case 9:
+ _unitAIBehaviourTypeUnk = 0x16;
+ _unitType = UT_S_CATAPULT;
+ break;
+ case 10:
+ _unitAIBehaviourTypeUnk = 0x17;
+ _unitType = UT_S_TREBUCHET;
+ break;
+ case 0xb:
+ _unitAIBehaviourTypeUnk = 0x13;
+ _unitType = UT_S_BATTERINGRAM;
+ break;
+ case 0xc:
+ _unitAIBehaviourTypeUnk = 0x14;
+ _unitType = UT_S_TOWER;
+ break;
+ case 0xd:
+ _unitAIBehaviourTypeUnk = 0x15;
+ _unitType = UT_S_SHIELD;
+ break;
+ case 0xe:
+ _unitAIBehaviourTypeUnk = 0xc;
+ _unitType = UT_E_MONK;
+ break;
+ case 0xf:
+ _unitAIBehaviourTypeUnk = 2;
+ _unitType = UT_TUNNELER;
+ break;
+ case 0x10:
+ _unitAIBehaviourTypeUnk = 0x19;
+ _unitType = UT_A_ARCHER;
+ break;
+ case 0x11:
+ _unitAIBehaviourTypeUnk = 0x1a;
+ _unitType = UT_A_SLAVE;
+ _unitSpawnTotalAdjustment = 0x14;
+ goto switchD_004c5b0c_default;
+ case 0x12:
+ _unitAIBehaviourTypeUnk = 0x1b;
+ _unitType = UT_A_SLINGER;
+ _unitSpawnTotalAdjustment = 0x14;
+ goto switchD_004c5b0c_default;
+ case 0x13:
+ _unitAIBehaviourTypeUnk = 0x1c;
+ _unitType = UT_A_ASSASSIN;
+ _unitSpawnTotalAdjustment = 2;
+ goto switchD_004c5b0c_default;
+ case 0x14:
+ _unitAIBehaviourTypeUnk = 0x1d;
+ _unitType = UT_A_HARCHER;
+ break;
+ case 0x15:
+ _unitAIBehaviourTypeUnk = 0x1e;
+ _unitType = UT_A_SWORDSMAN;
+ _unitSpawnTotalAdjustment = 8;
+ goto switchD_004c5b0c_default;
+ case 0x16:
+ _unitAIBehaviourTypeUnk = 0x1f;
+ _unitType = UT_A_FIRETHROWER;
+ _unitSpawnTotalAdjustment = 4;
+ goto switchD_004c5b0c_default;
+ case 0x17:
+ _unitAIBehaviourTypeUnk = 0x18;
+ _unitType = UT_S_FBALLISTA;
+ break;
+ default:
+ goto switchD_004c5b0c_default;
+ }
+ _unitSpawnTotalAdjustment = 10;
+ switchD_004c5b0c_default:
+ _invasionAmplifier = 100;
+ if (DAT_GameState.mapAndTime.difficulty == 0) {
+ _invasionAmplifier = 50;
+ } else if (DAT_GameState.mapAndTime.difficulty == 2) {
+ _invasionAmplifier = 140;
+ } else if (DAT_GameState.mapAndTime.difficulty == 3) {
+ _invasionAmplifier = 200;
+ }
+ _amplifiedUnitTotalForUnitType = (_invasionAmplifier * iVar18) / 100;
+ cVar17 = (char)_amplifiedUnitTotalForUnitType;
+ if (_unitAIBehaviourTypeUnk == 0x16) {
+ pabVar2 = DAT_TroopValueState.attackInfo.someSinglePlayerScore
+ + DAT_TroopValueState.attackInfo.inv_count;
+ (*pabVar2)[0] = (*pabVar2)[0] + cVar17;
+ } else if (_unitAIBehaviourTypeUnk == 0x17) {
+ pbVar3 = DAT_TroopValueState.attackInfo.someSinglePlayerScore
+ [DAT_TroopValueState.attackInfo.inv_count]
+ + 1;
+ *pbVar3 = *pbVar3 + cVar17;
+ } else if (_unitAIBehaviourTypeUnk == 0x13) {
+ pbVar3 = DAT_TroopValueState.attackInfo.someSinglePlayerScore
+ [DAT_TroopValueState.attackInfo.inv_count]
+ + 2;
+ *pbVar3 = *pbVar3 + cVar17;
+ } else if (_unitAIBehaviourTypeUnk == 0x14) {
+ pbVar3 = DAT_TroopValueState.attackInfo.someSinglePlayerScore
+ [DAT_TroopValueState.attackInfo.inv_count]
+ + 3;
+ *pbVar3 = *pbVar3 + cVar17;
+ } else if (_unitAIBehaviourTypeUnk == 0x15) {
+ pbVar3 = DAT_TroopValueState.attackInfo.someSinglePlayerScore
+ [DAT_TroopValueState.attackInfo.inv_count]
+ + 4;
+ *pbVar3 = *pbVar3 + cVar17;
+ } else if (_unitAIBehaviourTypeUnk == 0x18) {
+ pbVar3 = DAT_TroopValueState.attackInfo.someSinglePlayerScore
+ [DAT_TroopValueState.attackInfo.inv_count]
+ + 8;
+ *pbVar3 = *pbVar3 + cVar17;
+ } else {
+ _spawnUnitCount = _amplifiedUnitTotalForUnitType
+ / (_amplifiedUnitTotalForUnitType / _unitSpawnTotalAdjustment + 1);
+ while (0 < _amplifiedUnitTotalForUnitType) {
+ if (_amplifiedUnitTotalForUnitType < _spawnUnitCount) {
+ _spawnUnitCount = _amplifiedUnitTotalForUnitType;
+ }
+ iVar18 = this->scenarioEvents[_eventIndex]
+ .data.invasion.crusaderArabian;
+ iVar22 = local_48[iVar18 + 9];
+ local_48[iVar18 + 9] = iVar22 + 1;
+ iVar21 = (&DAT_TroopValueState.attackInfo
+ .unknownSignpostRelatedArray)[DAT_TroopValueState
+ .attackInfo.inv_count];
+ spawnUnitsIntoNewTribe(iVar22, _unitAIBehaviourTypeUnk,
+ DAT_GameState.mapAndTime
+ .signpostsMapEdge[iVar21][local_88]
+ .x,
+ DAT_GameState.mapAndTime
+ .signpostsMapEdge[iVar21][local_88]
+ .y,
+ iVar18 + 2, (UnitType)((int)(_unitType)), ((UnitType)0),
+ _spawnUnitCount, 0);
+ local_88 = local_88 + 1;
+ _amplifiedUnitTotalForUnitType
+ = _amplifiedUnitTotalForUnitType - _spawnUnitCount;
+ if (local_70[9] <= local_88) {
+ local_88 = 0;
+ }
+ }
+ }
+ LAB_004c5db4:
+ _subIndex = _subIndex + 1;
+ } while (_subIndex < 0x19);
+ iVar18 = (&DAT_TroopValueState.attackInfo.unknownSignpostRelatedArray)
+ [DAT_TroopValueState.attackInfo.inv_count];
+ setSpawnMoment(
+ DAT_GameState.mapAndTime.signpostEntryData[iVar18].x,
+ DAT_GameState.mapAndTime.signpostEntryData[iVar18].y);
+ DAT_TroopValueState.attackInfo.inv_count = local_80;
+ if ((DAT_GameCore.section1076 == 0)
+ && (_crusaderOrArabian
+ = this->scenarioEvents[_eventIndex].data.invasion.crusaderArabian,
+ local_70[_crusaderOrArabian] == 0)) {
+ local_70[_crusaderOrArabian] = 1;
+ if (_crusaderOrArabian == 0) {
+ pcVar25 = "infidel_attack.wav";
+ pcVar10 = "sultan_nervous.bik";
+ LAB_004c5e44:
+ playEventVideoBik("", pcVar10, pcVar25);
+ } else if (_crusaderOrArabian == 1) {
+ pcVar25 = "arabian_attack.wav";
+ pcVar10 = "good_soldier_nervous.bik";
+ goto LAB_004c5e44;
+ }
+ if ((DAT_GameCore.currentMenuViewType
+ == MVT_BUILD_MENU)
+ && ((DAT_GameCore.activeMenuTab.tabType
+ == BASMTT_SIEGETENT_SIEGETOWER
+ || (DAT_GameCore.activeMenuTab.tabType
+ == BASMTT_SIEGETENT_SHIELD)))) {
+ swapBuildMenuTab();
+ if (DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType
+ == BASMTT_SIEGETENT_SIEGETOWER) {
+ if (DAT_GameCore.currentMenuViewType
+ == MVT_BUILD_MENU) {
+ DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType
+ = BASMTT_HUNTERSHUT;
+ } else if (DAT_GameCore.currentMenuViewType
+ == MVT_MAP_EDITOR_LANDSCAPING) {
+ DAT_GameCore.landscapingmenuMenuTabToSwitchTo = 0xe7;
+ }
+ }
+ switchToMenuView(DAT_GameCore.currentMenuViewType, 0);
+ }
+ }
+ _repeatMonths = this->scenarioEvents[_eventIndex].data.invasion.repeatMonths;
+ if (_repeatMonths == 0) {
+ this->scenarioEvents[_eventIndex].header.done = 1;
+ } else {
+ _pConditionIsMet = &this->scenarioEvents[_eventIndex].header.year;
+ *_pConditionIsMet = *_pConditionIsMet + _repeatMonths / 0xc;
+ iVar18 = this->scenarioEvents[_eventIndex].header.year;
+ this->scenarioEvents[_eventIndex].header.month
+ = this->scenarioEvents[_eventIndex].header.month + _repeatMonths % 0xc;
+ iVar22 = this->scenarioEvents[_eventIndex].header.month;
+ this->scenarioEvents[_eventIndex].header.pre_done = 0;
+ if (0xb < iVar22) {
+ this->scenarioEvents[_eventIndex].header.month = iVar22 + -0xc;
+ this->scenarioEvents[_eventIndex].header.year = iVar18 + 1;
+ }
+ sortEventsByDate();
+ _eventIndex = _eventIndex + -1;
+ }
+ goto LAB_004c5f28;
+ }
+ if (_eventType == 2) {
+ this->scenarioEvents[_eventIndex].header.done = 1;
+ goto LAB_004c5f28;
+ }
+ if (_eventType != 3)
+ goto LAB_004c5f28;
+ iVar18 = this->scenarioEvents[_eventIndex].data.scenario.ScenarioEventType;
+ if ((iVar18 == 0) || (iVar18 == 0x1a)) {
+ if (_previousScenarioEventIndex != -1) {
+ this->scenarioEvents[_previousScenarioEventIndex].header.done = 1;
+ }
+ _previousScenarioEventIndex = _eventIndex;
+ }
+ local_a0 = 0;
+ /*
+ this is from invasion event code, ignore the meaning here
+ */
+ _spawnUnitCount = 0;
+ _subIndex = 0;
+ do {
+ _conditionOffset = _subIndex * 4;
+ _counter = _spawnUnitCount;
+ /*
+ this condition is empty? then move to next condition
+ */
+ if (*(char*)((int)&this->scenarioEvents[_eventIndex].data + _subIndex * 4 + 0xf)
+ == '\0')
+ goto switchD_004c3756_caseD_18;
+ _counter = _spawnUnitCount + 1;
+ /*
+ Extra event info at: 0x0165f028
+ */
+ _pConditionIsMet
+ = &this->SEC_EventsExtra[_eventIndex].conditionOneIsTrue + _subIndex;
+ *_pConditionIsMet = 0;
+ switch (_subIndex) {
+ case 0:
+ local_a0 = _counter;
+ break;
+ case 1:
+ iVar22 = getDifficultyMultipliedValue((int)this->scenarioEvents[_eventIndex]
+ .data.scenario.conditions[1]
+ .value);
+ iVar18 = DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .currentPopulation;
+ bVar24 = (iVar18 < iVar22);
+ bVar23 = iVar18 - iVar22 < 0;
+ goto LAB_004c3fc7;
+ case 2:
+ iVar18 = DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .lordKilledByPlayerID;
+ if (iVar18 == 0)
+ break;
+ cVar17 = *(char*)((int)&this->scenarioEvents[_eventIndex].data
+ + _conditionOffset + 0xe);
+ if (((cVar17 != '\0') && (iVar18 != 10)) && (cVar17 + 1 != iVar18))
+ goto LAB_004c37cd;
+ goto LAB_004c3fcd;
+ case 3:
+ if (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .playerRelatedFlag
+ != 0) {
+ *_pConditionIsMet = 1;
+ local_a0 = local_a0 + 1;
+ break;
+ }
+ goto LAB_004c37cd;
+ case 4:
+ iVar22 = getDifficultyMultipliedValue((int)this->scenarioEvents[_eventIndex]
+ .data.scenario.conditions[4]
+ .value);
+ iVar18 = DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .currentResources[0xf];
+ bVar24 = (iVar18 < iVar22);
+ bVar23 = iVar18 - iVar22 < 0;
+ goto LAB_004c3fc7;
+ case 5:
+ iVar18 = getDifficultyMultipliedValue((int)this->scenarioEvents[_eventIndex]
+ .data.scenario.conditions[5]
+ .value);
+ cVar17 = *(char*)((int)&this->scenarioEvents[_eventIndex].data
+ + _conditionOffset + 0xe);
+ if (cVar17 == '\0') {
+ iVar22 = DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .currentResources[10]
+ + DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .currentResources[0xb]
+ + DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .currentResources[0xc]
+ + DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .currentResources[0xd];
+ bVar24 = (iVar22 < iVar18);
+ bVar23 = iVar22 - iVar18 < 0;
+ } else {
+ LAB_004c38d2:
+ iVar22 = (int)cVar17;
+ if (iVar22 == 8) {
+ iVar22 = 7;
+ }
+ iVar22 = DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .currentResources[iVar22];
+ bVar24 = (iVar22 < iVar18);
+ bVar23 = iVar22 - iVar18 < 0;
+ }
+ goto LAB_004c3fc7;
+ case 6:
+ case 0x11:
+ iVar18 = getDifficultyMultipliedValue((int)*(short*)((int)&this->scenarioEvents[_eventIndex].data
+ + _subIndex * 4 + 0xc));
+ cVar17 = *(char*)((int)&this->scenarioEvents[_eventIndex].data
+ + _conditionOffset + 0xe);
+ if (cVar17 != '\0')
+ goto LAB_004c38d2;
+ iVar22 = DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .currentResources[0x11]
+ + DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .currentResources[0x12]
+ + DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .currentResources[0x13]
+ + DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .currentResources[0x14]
+ + DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .currentResources[0x15]
+ + DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .currentResources[0x16]
+ + DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .currentResources[0x17]
+ + DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .currentResources[0x18];
+ bVar24 = (iVar22 < iVar18);
+ bVar23 = iVar22 - iVar18 < 0;
+ goto LAB_004c3fc7;
+ case 7:
+ iVar18 = getDifficultyMultipliedValue((int)this->scenarioEvents[_eventIndex]
+ .data.scenario.conditions[7]
+ .value);
+ cVar17 = *(char*)((int)&this->scenarioEvents[_eventIndex].data
+ + _conditionOffset + 0xe);
+ if (cVar17 != '\0')
+ goto LAB_004c38d2;
+ iVar22 = DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .currentResources[0xe]
+ + DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .currentResources[2]
+ + DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .currentResources[3]
+ + DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .currentResources[4]
+ + DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .currentResources[6]
+ + DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .currentResources[7]
+ + DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .currentResources[9];
+ bVar24 = (iVar22 < iVar18);
+ bVar23 = iVar22 - iVar18 < 0;
+ LAB_004c3fc7:
+ if (bVar24 == bVar23) {
+ LAB_004c3fcd:
+ *_pConditionIsMet = 1;
+ local_a0 = local_a0 + 1;
+ } else {
+ LAB_004c37cd:
+ *_pConditionIsMet = 0;
+ }
+ break;
+ case 8:
+ if (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .totalEnemyUnitsCount
+ == 0) {
+ _scenarioEventType
+ = this->scenarioEvents[_eventIndex].data.scenario.ScenarioEventType;
+ if (((_scenarioEventType == 0x1a) || (_scenarioEventType == 0))
+ || (_scenarioEventType == 0x17)) {
+ iVar18 = _eventIndex + 1;
+ if (iVar18 < this->eventsCount) {
+ pSVar15 = this->scenarioEvents[_eventIndex + 1]
+ .data.scenario.conditions
+ + 0x19;
+ do {
+ if (((pSVar15[-0x1e] == (ScenarioEventCondition)0x1)
+ && (*pSVar15 == (ScenarioEventCondition)0x0))
+ && (pSVar15[-0x1d].value == 0))
+ goto switchD_004c3756_caseD_18;
+ iVar18 = iVar18 + 1;
+ pSVar15 = pSVar15 + 0x39;
+ } while (iVar18 < this->eventsCount);
+ }
+ *_pConditionIsMet = 1;
+ local_a0 = local_a0 + 1;
+ } else {
+ *_pConditionIsMet = 1;
+ local_a0 = local_a0 + 1;
+ }
+ }
+ break;
+ case 9:
+ BVar11 = checkKeepEnclosed(
+ DAT_GameSynchronyState.currentPlayerSlotID);
+ if (BVar11 == FALSE)
+ goto LAB_004c37cd;
+ *_pConditionIsMet = 1;
+ local_a0 = local_a0 + 1;
+ break;
+ case 10:
+ iVar18 = 0;
+ if ((int)DAT_UnitsState.maxUnitCount < 2)
+ goto LAB_004c3fcd;
+ pUVar12 = &DAT_UnitsState.units[1].unitType;
+ iVar22 = DAT_UnitsState.maxUnitCount - 1;
+ do {
+ if ((pUVar12[-1] == ULS_NORMAL)
+ && (*pUVar12 == UT_LIONSHWOLF)) {
+ iVar18 = iVar18 + 1;
+ }
+ pUVar12 = pUVar12 + 0x248;
+ iVar22 = iVar22 + -1;
+ } while (iVar22 != 0);
+ if (iVar18 != 0)
+ goto LAB_004c37cd;
+ *_pConditionIsMet = 1;
+ local_a0 = local_a0 + 1;
+ break;
+ case 0xb:
+ if (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .totalEnemyUnitsCount
+ == 0)
+ goto LAB_004c37cd;
+ *_pConditionIsMet = 1;
+ local_a0 = local_a0 + 1;
+ break;
+ case 0xc:
+ iVar18 = 0;
+ if ((int)DAT_UnitsState.maxUnitCount < 2)
+ goto LAB_004c3fcd;
+ pUVar12 = &DAT_UnitsState.units[1].unitType;
+ iVar22 = DAT_UnitsState.maxUnitCount - 1;
+ do {
+ if (((((pUVar12[-1] == ULS_NORMAL)
+ && ((short)pUVar12[4]
+ == DAT_GameSynchronyState.currentPlayerSlotID))
+ && (*(byte*)(pUVar12 + 0x14f) == 0))
+ && (((((pUVar12[0x165] == 0
+ && (UVar6 = *pUVar12,
+ UVar6 != UT_E_LADDER))
+ && ((UVar6 != UT_E_ENGINEER
+ || (pUVar12[0x17d] != 0))))
+ && ((UVar6 != UT_S_TOWER
+ && (UVar6
+ != UT_S_BATTERINGRAM))))
+ && (UVar6 != UT_S_SHIELD))))
+ && ((((UVar6 != UT_S_MANGONEL
+ && (UVar6 != UT_S_BALLISTA))
+ && (UVar6 != UT_S_CATAPULT))
+ && ((UVar6 != UT_S_FBALLISTA
+ && (UVar6 != UT_S_TREBUCHET)))))) {
+ iVar18 = iVar18 + 1;
+ }
+ pUVar12 = pUVar12 + 0x248;
+ iVar22 = iVar22 + -1;
+ } while (iVar22 != 0);
+ if (iVar18 != 0)
+ goto LAB_004c37cd;
+ *_pConditionIsMet = 1;
+ local_a0 = local_a0 + 1;
+ break;
+ case 0xd:
+ cVar17 = *(char*)((int)&this->scenarioEvents[_eventIndex].data
+ + _conditionOffset + 0xe);
+ if (cVar17 == '\0') {
+ if ((int)this->scenarioEvents[_eventIndex]
+ .data.scenario.conditions[0xd]
+ .value
+ <= DAT_GameState.mapAndTime.field33_0xa8
+ + DAT_GameState.mapAndTime.field34_0xac
+ + DAT_GameState.mapAndTime.field35_0xb0
+ + DAT_GameState.mapAndTime.field36_0xb4
+ + DAT_GameState.mapAndTime.field37_0xb8
+ + DAT_GameState.mapAndTime.field38_0xbc
+ + DAT_GameState.mapAndTime.field39_0xc0
+ + DAT_GameState.mapAndTime.field40_0xc4
+ + DAT_GameState.mapAndTime.field41_0xc8) {
+ DAT_GameState.mapAndTime.field33_0xa8 = 0;
+ DAT_GameState.mapAndTime.field34_0xac = 0;
+ DAT_GameState.mapAndTime.field35_0xb0 = 0;
+ DAT_GameState.mapAndTime.field36_0xb4 = 0;
+ DAT_GameState.mapAndTime.field37_0xb8 = 0;
+ DAT_GameState.mapAndTime.field38_0xbc = 0;
+ DAT_GameState.mapAndTime.field39_0xc0 = 0;
+ DAT_GameState.mapAndTime.field40_0xc4 = 0;
+ DAT_GameState.mapAndTime.field41_0xc8 = 0;
+ this->SEC_EventsExtra[_eventIndex].field13_0x34 = 1;
+ local_a0 = local_a0 + 1;
+ }
+ } else if (((byte)(cVar17 - 1U) < 4)
+ && ((int)this->scenarioEvents[_eventIndex]
+ .data.scenario.conditions[0xd]
+ .value
+ <= DAT_GameState.mapAndTime.emenyHitArray[cVar17 + -8])) {
+ DAT_GameState.mapAndTime.emenyHitArray[cVar17 + -8] = 0;
+ *_pConditionIsMet = 1;
+ local_a0 = local_a0 + 1;
+ }
+ break;
+ case 0xe:
+ cVar17 = *(char*)((int)&this->scenarioEvents[_eventIndex].data
+ + _conditionOffset + 0xe);
+ if (cVar17 == '\0') {
+ if ((int)this->scenarioEvents[_eventIndex]
+ .data.scenario.conditions[0xe]
+ .value
+ <= DAT_GameState.mapAndTime.emenyHitArray[0]
+ + DAT_GameState.mapAndTime.emenyHitArray[1]
+ + DAT_GameState.mapAndTime.emenyHitArray[2]
+ + DAT_GameState.mapAndTime.emenyHitArray[3]
+ + DAT_GameState.mapAndTime.emenyHitArray[4]
+ + DAT_GameState.mapAndTime.emenyHitArray[5]
+ + DAT_GameState.mapAndTime.emenyHitArray[6]
+ + DAT_GameState.mapAndTime.emenyHitArray[7]
+ + DAT_GameState.mapAndTime.emenyHitArray[8]) {
+ DAT_GameState.mapAndTime.emenyHitArray[0] = 0;
+ DAT_GameState.mapAndTime.emenyHitArray[1] = 0;
+ DAT_GameState.mapAndTime.emenyHitArray[2] = 0;
+ DAT_GameState.mapAndTime.emenyHitArray[3] = 0;
+ DAT_GameState.mapAndTime.emenyHitArray[4] = 0;
+ DAT_GameState.mapAndTime.emenyHitArray[5] = 0;
+ DAT_GameState.mapAndTime.emenyHitArray[6] = 0;
+ DAT_GameState.mapAndTime.emenyHitArray[7] = 0;
+ DAT_GameState.mapAndTime.emenyHitArray[8] = 0;
+ this->SEC_EventsExtra[_eventIndex].field14_0x38 = 1;
+ local_a0 = local_a0 + 1;
+ }
+ } else if (((byte)(cVar17 - 1U) < 4)
+ && ((int)this->scenarioEvents[_eventIndex]
+ .data.scenario.conditions[0xe]
+ .value
+ <= DAT_GameState.mapAndTime.emenyHitArray[cVar17 + 1])) {
+ DAT_GameState.mapAndTime.emenyHitArray[cVar17 + 1] = 0;
+ *_pConditionIsMet = 1;
+ local_a0 = local_a0 + 1;
+ }
+ break;
+ case 0xf:
+ if (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .totalEnemyUnitsCount
+ == 0) {
+ *_pConditionIsMet = 1;
+ local_a0 = local_a0 + 1;
+ } else {
+ if (((DAT_GameCore.gameMode_2 != GM_BUILDERUnk)
+ || (this->SEC_U3_MapType2_1 != MT_SIEGE))
+ || ((DAT_GameSynchronyState.currentPlayerSlotID != 1
+ || (BVar11 = MACRO_CALL_MEMBER(
+ isAttackWaveComplete,
+ DAT_TroopValueState)(),
+ BVar11 == FALSE))))
+ goto LAB_004c37cd;
+ *_pConditionIsMet = 1;
+ local_a0 = local_a0 + 1;
+ }
+ break;
+ case 0x10:
+ if (DAT_GameState.mapAndTime.cathedralRelated1 == 1) {
+ *_pConditionIsMet = 1;
+ local_a0 = local_a0 + 1;
+ }
+ break;
+ case 0x12:
+ if (DAT_GameCore.gameMode_2 != GM_BUILDERUnk) {
+ iVar18 = 0;
+ if (DAT_BuildingsState.maxBuildingsCount < 2)
+ goto LAB_004c37cd;
+ pBVar13 = &DAT_BuildingsState.buildings[1].buildingType;
+ iVar22 = DAT_BuildingsState.maxBuildingsCount + -1;
+ do {
+ if (((pBVar13[-1] != ((BuildingLogicalState)0))
+ && (*pBVar13 == BT_DAIRYFARM))
+ && (pBVar13[0x65] == 0)) {
+ iVar18 = iVar18 + 1;
+ }
+ pBVar13 = pBVar13 + 0x196;
+ iVar22 = iVar22 + -1;
+ } while (iVar22 != 0);
+ bVar24 = (iVar18 < 4);
+ bVar23 = iVar18 + -4 < 0;
+ goto LAB_004c3fc7;
+ }
+ break;
+ case 0x13:
+ if (DAT_GameCore.gameMode_2 != GM_BUILDERUnk) {
+ iVar18 = 0;
+ if (DAT_BuildingsState.maxBuildingsCount < 2)
+ goto LAB_004c37cd;
+ pBVar13 = &DAT_BuildingsState.buildings[1].buildingType;
+ iVar22 = DAT_BuildingsState.maxBuildingsCount + -1;
+ do {
+ if ((((pBVar13[-1] != ((BuildingLogicalState)0))
+ && (*pBVar13 == BT_INN))
+ && (pBVar13[0x65] == 0))
+ && (0 < (short)pBVar13[0xef])) {
+ iVar18 = iVar18 + 1;
+ }
+ pBVar13 = pBVar13 + 0x196;
+ iVar22 = iVar22 + -1;
+ } while (iVar22 != 0);
+ bVar24 = (iVar18 < 2);
+ bVar23 = iVar18 + -2 < 0;
+ goto LAB_004c3fc7;
+ }
+ break;
+ case 0x14:
+ sVar7 = DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .previousBlessedPeoplePercentage;
+ sVar8 = this->scenarioEvents[_eventIndex]
+ .data.scenario.conditions[0x14]
+ .value;
+ bVar24 = (sVar7 < sVar8);
+ bVar23 = (short)(sVar7 - sVar8) < 0;
+ goto LAB_004c3deb;
+ case 0x15:
+ iVar18 = computeAleCoverage(
+ DAT_GameSynchronyState.currentPlayerSlotID);
+ iVar22 = (int)this->scenarioEvents[_eventIndex]
+ .data.scenario.conditions[0x15]
+ .value;
+ bVar24 = (iVar18 < iVar22);
+ bVar23 = iVar18 - iVar22 < 0;
+ goto LAB_004c3deb;
+ case 0x16:
+ if (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .fearFactorLevel
+ <= -(int)this->scenarioEvents[_eventIndex]
+ .data.scenario.conditions[0x16]
+ .value) {
+ *_pConditionIsMet = 1;
+ local_a0 = local_a0 + 1;
+ }
+ break;
+ case 0x17:
+ iVar22 = (int)this->scenarioEvents[_eventIndex]
+ .data.scenario.conditions[0x17]
+ .value;
+ iVar18 = DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .fearFactorLevel;
+ bVar24 = (iVar18 < iVar22);
+ bVar23 = iVar18 - iVar22 < 0;
+ LAB_004c3deb:
+ if (bVar24 == bVar23) {
+ *_pConditionIsMet = 1;
+ local_a0 = local_a0 + 1;
+ }
+ break;
+ case 0x27:
+ if (local_a0 == _spawnUnitCount) {
+ MACRO_CALL(
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay)(
+ DEID_TIME_UNTIL_VICTORY, 1);
+ if (this->SEC_Section1081 == 0) {
+ this->SEC_Section1080
+ = *(short*)((int)&this->scenarioEvents[_eventIndex].data + 0xa8)
+ * 800;
+ this->SEC_Section1090 = this->SEC_Section1080;
+ }
+ this->SEC_Section1081 = 1;
+ if (this->SEC_Section1080 < 1) {
+ *_pConditionIsMet = 1;
+ local_a0 = local_a0 + 1;
+ }
+ } else {
+ if (this->SEC_Section1081 != 0) {
+ MACRO_CALL(
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay)(
+ DEID_TIME_UNTIL_VICTORY, 0);
+ }
+ this->SEC_Section1081 = 0;
+ }
+ }
+ switchD_004c3756_caseD_18:
+ _spawnUnitCount = _counter;
+ _subIndex = _subIndex + 1;
+ } while (_subIndex < 40);
+ if (((*(short*)((int)&this->scenarioEvents[_eventIndex].data + 8) != 0)
+ || (local_a0 == 0))
+ && (local_a0 < _spawnUnitCount))
+ goto LAB_004c5f28;
+ iVar18 = this->scenarioEvents[_eventIndex].data.scenario.ScenarioEventType;
+ this->scenarioEvents[_eventIndex].header.done = 1;
+ (&DAT_GameState.mapAndTime.field3092_0x2654)[iVar18] = 1;
+ iVar18 = DAT_GameSynchronyState.currentPlayerSlotID;
+ switch (this->scenarioEvents[_eventIndex].data.scenario.ScenarioEventType) {
+ case 0:
+ if (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .playerDeathRelated
+ == 0) {
+ iVar18 = _eventIndex + 1;
+ if (iVar18 < this->eventsCount) {
+ _pConditionIsMet = &this->scenarioEvents[_eventIndex + 1]
+ .data.scenario.ScenarioEventType;
+ do {
+ if (((_pConditionIsMet[-3] == 3)
+ && (((*_pConditionIsMet == 0 || (*_pConditionIsMet == 0x1a))
+ && (_pConditionIsMet[-4]
+ <= DAT_GameState.mapAndTime.year))))
+ && ((DAT_GameState.mapAndTime.year
+ != _pConditionIsMet[-4]
+ || (_pConditionIsMet[-5]
+ < DAT_GameState.mapAndTime.month))))
+ goto switchD_004c382e_caseD_2;
+ iVar18 = iVar18 + 1;
+ _pConditionIsMet = _pConditionIsMet + 0x39;
+ } while (iVar18 < this->eventsCount);
+ }
+ if (((DAT_GameCore.gameMode_2
+ == GM_CAMPAIGN_MISSION)
+ || (DAT_GameCore.gameMode_2
+ == GM_ECONOMIC_CAMPAIGN_SH1))
+ || (DAT_GameCore.gameMode_2
+ == GM_BUILDERUnk)) {
+ DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .playerDeathRelated = 1;
+ DAT_GameState.mapAndTime.unknownCountdown01 = 0xf0;
+ MACRO_CALL(
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay)(
+ DEID_MISSION_WIN_DEFEAT_BANNER, 1);
+ if ((DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType
+ == BASMTT_SIEGETENT_BATTERINGRAM)
+ || (DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType
+ == BASMTT_SIEGETENT_SHIELD)) {
+ DAT_GameCore.buildmenuMenuTabToSwitchTo.buildMenuTab
+ = DAT_GameCore.tabTypeSiegeSubset;
+ switchToMenuView(MVT_BUILD_MENU, 0);
+ }
+ DAT_TileMapState.currentMapperCommand
+ = M_MAPPER_NULL;
+ if (0 < DAT_UnitsState.totalUnitsInSelection) {
+ deselectAllUnitsOneByOne();
+ queueEscapeCommand();
+ resetMouseCursorState();
+ }
+ if (*(char*)((int)&this->scenarioEvents[_eventIndex].data + 0x13)
+ == '\0') {
+ if (*(char*)((int)&this->scenarioEvents[_eventIndex].data + 0x1f)
+ == '\0') {
+ if ((((*(char*)((int)&this->scenarioEvents[_eventIndex].data
+ + 0x23)
+ == '\0')
+ && (*(char*)((int)&this->scenarioEvents[_eventIndex]
+ .data
+ + 0x27)
+ == '\0'))
+ && (*(char*)((int)&this->scenarioEvents[_eventIndex]
+ .data
+ + 0x2b)
+ == '\0'))
+ && (*(char*)((int)&this->scenarioEvents[_eventIndex].data
+ + 0x53)
+ == '\0')) {
+ this->_83416_4_ = 1;
+ sortEventsByDate();
+ } else {
+ this->_83416_4_ = 3;
+ sortEventsByDate();
+ }
+ } else {
+ this->_83416_4_ = 2;
+ sortEventsByDate();
+ }
+ } else {
+ this->_83416_4_ = 1;
+ sortEventsByDate();
+ }
+ break;
+ }
+ }
+ goto switchD_004c382e_caseD_2;
+ case 1:
+ if ((DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .playerDeathRelated
+ == 0)
+ && ((
+ (DAT_GameCore.gameMode_2 == GM_CAMPAIGN_MISSION
+ || (DAT_GameCore.gameMode_2
+ == GM_ECONOMIC_CAMPAIGN_SH1))
+ || (DAT_GameCore.gameMode_2
+ == GM_BUILDERUnk)))) {
+ DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .playerDeathRelated = 2;
+ setAIControlStatusTo100000();
+ DAT_GameState.mapAndTime.unknownCountdown01 = 0xf0;
+ if ((DAT_GameCore.gameMode_2 == GM_BUILDERUnk)
+ && (this->SEC_U3_MapType2_1 == MT_SIEGE)) {
+ DAT_GameState.mapAndTime.unknownCountdown01 = 0x280;
+ }
+ MACRO_CALL(
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay)(
+ DEID_MISSION_WIN_DEFEAT_BANNER, 2);
+ if ((DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType
+ == BASMTT_SIEGETENT_BATTERINGRAM)
+ || (DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType
+ == BASMTT_SIEGETENT_SHIELD)) {
+ DAT_GameCore.buildmenuMenuTabToSwitchTo.buildMenuTab
+ = DAT_GameCore.tabTypeSiegeSubset;
+ switchToMenuView(MVT_BUILD_MENU, 0);
+ }
+ DAT_TileMapState.currentMapperCommand
+ = M_MAPPER_NULL;
+ if (0 < DAT_UnitsState.totalUnitsInSelection) {
+ deselectAllUnitsOneByOne();
+ queueEscapeCommand();
+ resetMouseCursorState();
+ sortEventsByDate();
+ break;
+ }
+ }
+ default:
+ goto switchD_004c382e_caseD_2;
+ case 3:
+ flagTribesOfType(0xe);
+ sortEventsByDate();
+ break;
+ case 4:
+ iVar18 = this->scenarioEvents[_eventIndex].data.scenario.actionData;
+ if (iVar18 == 0) {
+ iVar18 = 1;
+ }
+ consumeFlaggedTribesOfType(0xe, iVar18);
+ sortEventsByDate();
+ break;
+ case 5:
+ spawnUnit(DAT_GameSynchronyState.currentPlayerSlotID,
+ SEC_RNG::instance.currentNumber2 % 9,
+ DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .campground.xEntry
+ * 8,
+ DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .campground.yEntry
+ * 8,
+ (int)((int)((
+ uint)DAT_TileMapState.HeightLayer[DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .campground.tileEntry])),
+ UT_JUGGLER);
+ spawnUnit(DAT_GameSynchronyState.currentPlayerSlotID,
+ (int)((int)((CONCAT44(SEC_RNG::instance.currentNumber2 >> 0x1f)),
+ (int)((int)(SEC_RNG::instance.currentNumber2 >> 3) % 9))),
+ DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .campground.xEntry
+ * 8,
+ DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .campground.yEntry
+ * 8,
+ (UnitType)((int)((
+ uint)DAT_TileMapState.HeightLayer[DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .campground.tileEntry])),
+ UT_JUGGLER);
+ spawnUnit(DAT_GameSynchronyState.currentPlayerSlotID,
+ (int)((int)((CONCAT44(SEC_RNG::instance.currentNumber2 >> 0x1f)),
+ (int)((int)(SEC_RNG::instance.currentNumber2 >> 6) % 9))),
+ DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .campground.xEntry
+ * 8,
+ DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .campground.yEntry
+ * 8,
+ (UnitType)((int)((
+ uint)DAT_TileMapState.HeightLayer[DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .campground.tileEntry])),
+ UT_JUGGLER);
+ spawnUnit(DAT_GameSynchronyState.currentPlayerSlotID,
+ (int)((int)((CONCAT44(SEC_RNG::instance.currentNumber2 >> 0x1f)),
+ (int)((int)(SEC_RNG::instance.currentNumber2 >> 9) % 9))),
+ DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .campground.xEntry
+ * 8,
+ DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .campground.yEntry
+ * 8,
+ (UnitType)((int)((
+ uint)DAT_TileMapState.HeightLayer[DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .campground.tileEntry])),
+ UT_FIREEATER);
+ spawnUnit(DAT_GameSynchronyState.currentPlayerSlotID,
+ (int)((int)((CONCAT44(SEC_RNG::instance.currentNumber2 >> 0x1f)),
+ (int)((int)(SEC_RNG::instance.currentNumber2 >> 0xc) % 9))),
+ DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .campground.xEntry
+ * 8,
+ DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .campground.yEntry
+ * 8,
+ (UnitType)((int)((
+ uint)DAT_TileMapState.HeightLayer[DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .campground.tileEntry])),
+ UT_FIREEATER);
+ pcVar25 = "Random_Events1.wav";
+ ppcVar26 = DAT_MissionAestheticsDefinedData.field0_0x0;
+ /*
+ "a travelling fair has come to town my lord" added by script: "A ‘Travelling
+ Fair’ has come to town, my Lord."
+ */
+ pcVar10 = getTextStringInGroupAtOffset(TEXT_ACTION, 1);
+ playEventVideoBik(pcVar10, (char*)((int)(ppcVar26)), pcVar25);
+ bVar4 = this->scenarioEvents[_eventIndex].data.scenario.repeat;
+ if ((bVar4 == 0)
+ || (bVar5 = this->scenarioEvents[_eventIndex].data.scenario.repeatMonths,
+ bVar5 == 1))
+ goto switchD_004c382e_caseD_2;
+ if (bVar5 != 10) {
+ this->scenarioEvents[_eventIndex].data.scenario.repeatMonths = bVar5 - 1;
+ }
+ uVar19 = (uint)bVar4;
+ this->scenarioEvents[_eventIndex].header.done = 0;
+ if (3 < uVar19) {
+ uVar19
+ = uVar19 + (int)SEC_RNG::instance.currentNumber2 % ((int)uVar19 >> 2);
+ }
+ this->scenarioEvents[_eventIndex].header.year
+ = DAT_GameState.mapAndTime.year + (int)uVar19 / 0xc;
+ iVar18 = uVar19 + DAT_GameState.mapAndTime.month
+ + ((int)uVar19 / 0xc) * -0xc;
+ this->scenarioEvents[_eventIndex].header.month = iVar18;
+ if (0xb < iVar18) {
+ _pConditionIsMet = &this->scenarioEvents[_eventIndex].header.year;
+ *_pConditionIsMet = *_pConditionIsMet + 1;
+ this->scenarioEvents[_eventIndex].header.month = iVar18 + -0xc;
+ }
+ LAB_004c4621:
+ sortEventsByDate();
+ _eventIndex = _eventIndex + -1;
+ break;
+ case 6:
+ DAT_GameCore.isTimeHalted = TRUE;
+ sortEventsByDate();
+ break;
+ case 7:
+ DAT_GameCore.isTimeHalted = FALSE;
+ sortEventsByDate();
+ break;
+ case 8:
+ switchPlayerOwnership(DAT_GameSynchronyState.currentPlayerSlotID);
+ MACRO_CALL_MEMBER(
+ setupBarracksCampgroundPositions,
+ DAT_BuildingsState)(
+ DAT_GameSynchronyState.currentPlayerSlotID);
+ MACRO_CALL_MEMBER(
+ setupMercenaryPostCampgroundPositions,
+ DAT_BuildingsState)(
+ DAT_GameSynchronyState.currentPlayerSlotID);
+ triggerStoneTowerDeathForPlayer(DAT_GameSynchronyState.currentPlayerSlotID);
+ countPlayerResources(
+ DAT_GameSynchronyState.currentPlayerSlotID);
+ DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType
+ = BASMTT_HUNTERSHUT;
+ DAT_GameCore.secondaryActiveMenuTabToSwitchTo.tabType
+ = BASMTT_HUNTERSHUT;
+ DAT_GameCore.tabTypeSiegeSubset = BMTT_CASTLE;
+ if (((DAT_GameCore.currentMenuViewType
+ == MVT_BUILD_MENU)
+ && ((DAT_GameCore.activeMenuTab.tabType
+ != BASMTT_STOCKS
+ || (switchToMenuView(MVT_BUILD_MENU, 0),
+ DAT_GameCore.currentMenuViewType
+ == MVT_BUILD_MENU))))
+ && ((DAT_GameCore.activeMenuTab.tabType
+ == BASMTT_SIEGETENT_BATTERINGRAM
+ || (DAT_GameCore.activeMenuTab.tabType
+ == BASMTT_SIEGETENT_SHIELD)))) {
+ DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType
+ = BASMTT_SIEGETENT_BATTERINGRAM;
+ switchToMenuView(MVT_BUILD_MENU, 0);
+ }
+ iVar22 = DAT_GameSynchronyState.currentPlayerSlotID;
+ iVar18
+ = DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .lordID;
+ if ((iVar18 == 0)
+ || (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .lordUID
+ == DAT_UnitsState.units[iVar18].uid))
+ goto switchD_004c382e_caseD_2;
+ DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .lordID = 0;
+ DAT_GameState.playerDataArray[iVar22].lordUID = 0;
+ sortEventsByDate();
+ break;
+ case 9:
+ DAT_GameCore.xbowProducible_logic = 1;
+ sortEventsByDate();
+ break;
+ case 0xb:
+ DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .someCount48 = 0x18;
+ iVar22 = DAT_GameState.playerDataArray[iVar18].popularity;
+ if (6000 < iVar22) {
+ DAT_GameState.playerDataArray[iVar18].popularity
+ = (iVar22 + -6000) / 2 + 6000;
+ }
+ MACRO_CALL_MEMBER(
+ spawnPoisonCloudsAtRandomStorageOrArmyBuilding,
+ DAT_GameState)(
+ iVar18, this->scenarioEvents[_eventIndex].data.scenario.actionData);
+ pcVar25 = "Random_Events2.wav";
+ ppcVar26 = DAT_MissionAestheticsDefinedData.field1_0x4;
+ /*
+ added by script: "Plague has descended on our castle your lordship."
+ */
+ pcVar10 = getTextStringInGroupAtOffset(TEXT_ACTION, 2);
+ playEventVideoBik(pcVar10, (char*)((int)(ppcVar26)), pcVar25);
+ bVar4 = this->scenarioEvents[_eventIndex].data.scenario.repeat;
+ if ((bVar4 == 0)
+ || (bVar5 = this->scenarioEvents[_eventIndex].data.scenario.repeatMonths,
+ bVar5 == 1))
+ goto switchD_004c382e_caseD_2;
+ if (bVar5 != 10) {
+ this->scenarioEvents[_eventIndex].data.scenario.repeatMonths = bVar5 - 1;
+ }
+ uVar19 = (uint)bVar4;
+ this->scenarioEvents[_eventIndex].header.done = 0;
+ if (3 < uVar19) {
+ uVar19
+ = uVar19 + (int)SEC_RNG::instance.currentNumber2 % ((int)uVar19 >> 2);
+ }
+ this->scenarioEvents[_eventIndex].header.year
+ = DAT_GameState.mapAndTime.year + (int)uVar19 / 0xc;
+ iVar18 = uVar19 + DAT_GameState.mapAndTime.month
+ + ((int)uVar19 / 0xc) * -0xc;
+ this->scenarioEvents[_eventIndex].header.month = iVar18;
+ if (iVar18 < 0xc)
+ goto LAB_004c4621;
+ _pConditionIsMet = &this->scenarioEvents[_eventIndex].header.year;
+ *_pConditionIsMet = *_pConditionIsMet + 1;
+ this->scenarioEvents[_eventIndex].header.month = iVar18 + -0xc;
+ sortEventsByDate();
+ _eventIndex = _eventIndex + -1;
+ break;
+ case 0xc:
+ iVar18 = findBuildingOfTypeForPlayer(
+ DAT_GameSynchronyState.currentPlayerSlotID,
+ BT_WHEATFARM);
+ if (iVar18 != 0) {
+ harmWheatFarmsOfPlayer(
+ DAT_GameSynchronyState.currentPlayerSlotID);
+ pcVar25 = "Random_Events3.wav";
+ ppcVar26 = DAT_MissionAestheticsDefinedData.field2_0x8;
+ /*
+ added by script: "A pestilence is devastating our wheat crops, Sire."
+ */
+ pcVar10 = getTextStringInGroupAtOffset(TEXT_ACTION, 3);
+ playEventVideoBik(pcVar10, (char*)((int)(ppcVar26)), pcVar25);
+ }
+ bVar4 = this->scenarioEvents[_eventIndex].data.scenario.repeat;
+ if ((bVar4 == 0)
+ || (bVar5 = this->scenarioEvents[_eventIndex].data.scenario.repeatMonths,
+ bVar5 == 1))
+ goto switchD_004c382e_caseD_2;
+ if (bVar5 != 10) {
+ this->scenarioEvents[_eventIndex].data.scenario.repeatMonths = bVar5 - 1;
+ }
+ uVar19 = (uint)bVar4;
+ this->scenarioEvents[_eventIndex].header.done = 0;
+ if (3 < uVar19) {
+ uVar19
+ = uVar19 + (int)SEC_RNG::instance.currentNumber2 % ((int)uVar19 >> 2);
+ }
+ this->scenarioEvents[_eventIndex].header.year
+ = DAT_GameState.mapAndTime.year + (int)uVar19 / 0xc;
+ iVar18 = uVar19 + DAT_GameState.mapAndTime.month
+ + ((int)uVar19 / 0xc) * -0xc;
+ this->scenarioEvents[_eventIndex].header.month = iVar18;
+ if (iVar18 < 0xc)
+ goto LAB_004c4621;
+ _pConditionIsMet = &this->scenarioEvents[_eventIndex].header.year;
+ *_pConditionIsMet = *_pConditionIsMet + 1;
+ this->scenarioEvents[_eventIndex].header.month = iVar18 + -0xc;
+ sortEventsByDate();
+ _eventIndex = _eventIndex + -1;
+ break;
+ case 0xd:
+ iVar18 = findBuildingOfTypeForPlayer(
+ DAT_GameSynchronyState.currentPlayerSlotID,
+ BT_HOPFARM);
+ if (iVar18 != 0) {
+ harmHopFarmsOfPlayer(
+ DAT_GameSynchronyState.currentPlayerSlotID);
+ pcVar25 = "Random_Events4.wav";
+ ppcVar26 = DAT_MissionAestheticsDefinedData.field3_0xc;
+ /*
+ added by script: "Our hops plants are overrun with hop weevil, the crop is
+ ruined, My Liege."
+ */
+ pcVar10 = getTextStringInGroupAtOffset(TEXT_ACTION, 4);
+ playEventVideoBik(pcVar10, (char*)((int)(ppcVar26)), pcVar25);
+ }
+ bVar4 = this->scenarioEvents[_eventIndex].data.scenario.repeat;
+ if ((bVar4 == 0)
+ || (bVar5 = this->scenarioEvents[_eventIndex].data.scenario.repeatMonths,
+ bVar5 == 1))
+ goto switchD_004c382e_caseD_2;
+ if (bVar5 != 10) {
+ this->scenarioEvents[_eventIndex].data.scenario.repeatMonths = bVar5 - 1;
+ }
+ uVar19 = (uint)bVar4;
+ this->scenarioEvents[_eventIndex].header.done = 0;
+ if (3 < uVar19) {
+ uVar19
+ = uVar19 + (int)SEC_RNG::instance.currentNumber2 % ((int)uVar19 >> 2);
+ }
+ this->scenarioEvents[_eventIndex].header.year
+ = DAT_GameState.mapAndTime.year + (int)uVar19 / 0xc;
+ iVar18 = uVar19 + DAT_GameState.mapAndTime.month
+ + ((int)uVar19 / 0xc) * -0xc;
+ this->scenarioEvents[_eventIndex].header.month = iVar18;
+ if (iVar18 < 0xc)
+ goto LAB_004c4621;
+ _pConditionIsMet = &this->scenarioEvents[_eventIndex].header.year;
+ *_pConditionIsMet = *_pConditionIsMet + 1;
+ this->scenarioEvents[_eventIndex].header.month = iVar18 + -0xc;
+ sortEventsByDate();
+ _eventIndex = _eventIndex + -1;
+ break;
+ case 0xe:
+ iVar18 = findBuildingOfTypeForPlayer(
+ DAT_GameSynchronyState.currentPlayerSlotID,
+ BT_APPLEFARM);
+ if (iVar18 != 0) {
+ MACRO_CALL_MEMBER(
+ harmAppleFarmTreesOfPlayer,
+ DAT_BuildingsState)(
+ DAT_GameSynchronyState.currentPlayerSlotID);
+ pcVar27 = "Random_Events5.wav";
+ pcVar25 = "";
+ /*
+ added by script: "Our apple orchards are barren, my lord. The people
+ suspect witchcraft."
+ */
+ pcVar10 = getTextStringInGroupAtOffset(TEXT_ACTION, 5);
+ playEventVideoBik(pcVar10, pcVar25, pcVar27);
+ playEventVideoBik("",
+ (char*)((int)(DAT_MissionAestheticsDefinedData.field4_0x10)),
+ "");
+ }
+ bVar4 = this->scenarioEvents[_eventIndex].data.scenario.repeat;
+ if ((bVar4 == 0)
+ || (bVar5 = this->scenarioEvents[_eventIndex].data.scenario.repeatMonths,
+ bVar5 == 1))
+ goto switchD_004c382e_caseD_2;
+ if (bVar5 != 10) {
+ this->scenarioEvents[_eventIndex].data.scenario.repeatMonths = bVar5 - 1;
+ }
+ uVar19 = (uint)bVar4;
+ this->scenarioEvents[_eventIndex].header.done = 0;
+ if (3 < uVar19) {
+ uVar19
+ = uVar19 + (int)SEC_RNG::instance.currentNumber2 % ((int)uVar19 >> 2);
+ }
+ this->scenarioEvents[_eventIndex].header.year
+ = DAT_GameState.mapAndTime.year + (int)uVar19 / 0xc;
+ iVar18 = uVar19 + DAT_GameState.mapAndTime.month
+ + ((int)uVar19 / 0xc) * -0xc;
+ this->scenarioEvents[_eventIndex].header.month = iVar18;
+ if (iVar18 < 0xc)
+ goto LAB_004c4621;
+ _pConditionIsMet = &this->scenarioEvents[_eventIndex].header.year;
+ *_pConditionIsMet = *_pConditionIsMet + 1;
+ this->scenarioEvents[_eventIndex].header.month = iVar18 + -0xc;
+ sortEventsByDate();
+ _eventIndex = _eventIndex + -1;
+ break;
+ case 0xf:
+ killEveryFifthTree();
+ pcVar25 = "Random_Events6.wav";
+ ppcVar26 = DAT_MissionAestheticsDefinedData.field5_0x14;
+ /*
+ added by script: "Sire, woodcutters report that the recent drought has killed
+ off many trees."
+ */
+ pcVar10 = getTextStringInGroupAtOffset(TEXT_ACTION, 6);
+ playEventVideoBik(pcVar10, (char*)((int)(ppcVar26)), pcVar25);
+ bVar4 = this->scenarioEvents[_eventIndex].data.scenario.repeat;
+ if ((bVar4 == 0)
+ || (bVar5 = this->scenarioEvents[_eventIndex].data.scenario.repeatMonths,
+ bVar5 == 1))
+ goto switchD_004c382e_caseD_2;
+ if (bVar5 != 10) {
+ this->scenarioEvents[_eventIndex].data.scenario.repeatMonths = bVar5 - 1;
+ }
+ uVar19 = (uint)bVar4;
+ this->scenarioEvents[_eventIndex].header.done = 0;
+ if (3 < uVar19) {
+ uVar19
+ = uVar19 + (int)SEC_RNG::instance.currentNumber2 % ((int)uVar19 >> 2);
+ }
+ this->scenarioEvents[_eventIndex].header.year
+ = DAT_GameState.mapAndTime.year + (int)uVar19 / 0xc;
+ iVar18 = uVar19 + DAT_GameState.mapAndTime.month
+ + ((int)uVar19 / 0xc) * -0xc;
+ this->scenarioEvents[_eventIndex].header.month = iVar18;
+ if (iVar18 < 0xc)
+ goto LAB_004c4621;
+ _pConditionIsMet = &this->scenarioEvents[_eventIndex].header.year;
+ *_pConditionIsMet = *_pConditionIsMet + 1;
+ this->scenarioEvents[_eventIndex].header.month = iVar18 + -0xc;
+ sortEventsByDate();
+ _eventIndex = _eventIndex + -1;
+ break;
+ case 0x10:
+ iVar18 = MACRO_CALL_MEMBER(
+ hasAvailableSpawnSlotForWildlifeOrMercs,
+ DAT_TribesState)();
+ if ((iVar18 != 0)
+ && ((iVar18
+ = MACRO_CALL_MEMBER(
+ findBuildingOfTypeForPlayer,
+ DAT_BuildingsState)(
+ DAT_GameSynchronyState.currentPlayerSlotID,
+ BT_HOPFARM),
+ iVar18 != 0
+ || (iVar18 = MACRO_CALL_MEMBER(
+ findBuildingOfTypeForPlayer,
+ DAT_BuildingsState)(
+ DAT_GameSynchronyState.currentPlayerSlotID,
+ BT_WHEATFARM),
+ iVar18 != 0)))) {
+ DAT_GameState.mapAndTime.eventCountdownRabbitInfestation = 1200;
+ MACRO_CALL_MEMBER(
+ spawnWildlifeOrMercAtAvailableSlot,
+ DAT_TribesState)();
+ setSpawnMoment(DAT_TribesState.unknownX_01,
+ DAT_TribesState.unknownY_01);
+ pcVar25 = "Random_Events7.wav";
+ ppcVar26 = DAT_MissionAestheticsDefinedData.field6_0x18;
+ /*
+ added by script: "Rabbits are breeding at an alarming rate Liege. Our
+ crops are threatened."
+ */
+ pcVar10 = getTextStringInGroupAtOffset(TEXT_ACTION, 7);
+ playEventVideoBik(pcVar10, (char*)((int)(ppcVar26)), pcVar25);
+ }
+ bVar4 = this->scenarioEvents[_eventIndex].data.scenario.repeat;
+ if ((bVar4 == 0)
+ || (bVar5 = this->scenarioEvents[_eventIndex].data.scenario.repeatMonths,
+ bVar5 == 1))
+ goto switchD_004c382e_caseD_2;
+ if (bVar5 != 10) {
+ this->scenarioEvents[_eventIndex].data.scenario.repeatMonths = bVar5 - 1;
+ }
+ uVar19 = (uint)bVar4;
+ this->scenarioEvents[_eventIndex].header.done = 0;
+ if (3 < uVar19) {
+ uVar19
+ = uVar19 + (int)SEC_RNG::instance.currentNumber2 % ((int)uVar19 >> 2);
+ }
+ this->scenarioEvents[_eventIndex].header.year
+ = DAT_GameState.mapAndTime.year + (int)uVar19 / 0xc;
+ iVar18 = uVar19 + DAT_GameState.mapAndTime.month
+ + ((int)uVar19 / 0xc) * -0xc;
+ this->scenarioEvents[_eventIndex].header.month = iVar18;
+ if (iVar18 < 0xc)
+ goto LAB_004c4621;
+ _pConditionIsMet = &this->scenarioEvents[_eventIndex].header.year;
+ *_pConditionIsMet = *_pConditionIsMet + 1;
+ this->scenarioEvents[_eventIndex].header.month = iVar18 + -0xc;
+ sortEventsByDate();
+ _eventIndex = _eventIndex + -1;
+ break;
+ case 0x11:
+ iVar18 = findRecentOrSignpostSpawnLocation(&uStack_78, &uStack_7c);
+ if ((iVar18 != 0)
+ && (BVar11 = xyAreValid(uStack_78, uStack_7c),
+ iVar18 = DAT_GameSynchronyState.currentPlayerSlotID,
+ BVar11 != FALSE)) {
+ DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .someCount49 = 0xc;
+ iVar22 = DAT_GameState.playerDataArray[iVar18].popularity;
+ if (6000 < iVar22) {
+ DAT_GameState.playerDataArray[iVar18].popularity
+ = (iVar22 + -6000) / 2 + 6000;
+ }
+ iVar18 = 0;
+ if (0 < this->scenarioEvents[_eventIndex].data.scenario.actionData) {
+ do {
+ MACRO_CALL_MEMBER(
+ findRecentOrSignpostSpawnLocation,
+ DAT_TribesState)(&uStack_78, &uStack_7c);
+ dVar14 = createAnimal(M_MAPPER_LION,
+ uStack_78, uStack_7c,
+ (int)((int)((uint)
+ * (byte*)(DAT_ViewportRenderState
+ .translationMatrix[uStack_7c]
+ .addXgetTile
+ + 0x1d32c38 + uStack_78))));
+ setSpawnMoment(uStack_78, uStack_7c);
+ iVar18 = iVar18 + 1;
+ DAT_TribesState.tribes[dVar14].unknownBool02 = 0;
+ DAT_TribesState.tribes[dVar14].unknownBool01 = 1;
+ } while (iVar18
+ < this->scenarioEvents[_eventIndex].data.scenario.actionData);
+ }
+ pcVar27 = "";
+ pcVar25 = "";
+ /*
+ added by script: "I have alarming reports that lions are abroad in the
+ land. People are scared my Lord."
+ */
+ pcVar10 = getTextStringInGroupAtOffset(TEXT_ACTION, 8);
+ playEventVideoBik(pcVar10, pcVar25, pcVar27);
+ }
+ bVar4 = this->scenarioEvents[_eventIndex].data.scenario.repeat;
+ if ((bVar4 == 0)
+ || (bVar5 = this->scenarioEvents[_eventIndex].data.scenario.repeatMonths,
+ bVar5 == 1))
+ goto switchD_004c382e_caseD_2;
+ if (bVar5 != 10) {
+ this->scenarioEvents[_eventIndex].data.scenario.repeatMonths = bVar5 - 1;
+ }
+ uVar19 = (uint)bVar4;
+ this->scenarioEvents[_eventIndex].header.done = 0;
+ if (3 < uVar19) {
+ uVar19
+ = uVar19 + (int)SEC_RNG::instance.currentNumber2 % ((int)uVar19 >> 2);
+ }
+ this->scenarioEvents[_eventIndex].header.year
+ = DAT_GameState.mapAndTime.year + (int)uVar19 / 0xc;
+ iVar18 = uVar19 + DAT_GameState.mapAndTime.month
+ + ((int)uVar19 / 0xc) * -0xc;
+ this->scenarioEvents[_eventIndex].header.month = iVar18;
+ if (iVar18 < 0xc)
+ goto LAB_004c4621;
+ _pConditionIsMet = &this->scenarioEvents[_eventIndex].header.year;
+ *_pConditionIsMet = *_pConditionIsMet + 1;
+ this->scenarioEvents[_eventIndex].header.month = iVar18 + -0xc;
+ sortEventsByDate();
+ _eventIndex = _eventIndex + -1;
+ break;
+ case 0x12:
+ BVar11
+ = hasAnySignpost();
+ if (BVar11 != FALSE) {
+ DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .someCount50 = 0x10;
+ DAT_TroopValueState.attackInfo.inv_count
+ = DAT_TroopValueState.attackInfo.inv_count + 1;
+ if (0x31 < DAT_TroopValueState.attackInfo.inv_count) {
+ DAT_TroopValueState.attackInfo.inv_count = 1;
+ }
+ initializeAttackWaveSlot(
+ DAT_TroopValueState.attackInfo.inv_count, 0);
+ DAT_TroopValueState.attackInfo.attackWavePlayerIDArray
+ [DAT_TroopValueState.attackInfo.inv_count] = 8;
+ iVar18 = MACRO_CALL_MEMBER(
+ pickRandomAccessibleSignpostEntry,
+ DAT_GameState)();
+ dVar14 = createTribeWithSpawnedUnit(0, 9,
+ DAT_GameState.mapAndTime.signpostEntryData[iVar18].x,
+ DAT_GameState.mapAndTime.signpostEntryData[iVar18].y, 8,
+ UT_E_MACE,
+ this->scenarioEvents[_eventIndex].data.scenario.actionData + 1);
+ setSpawnMoment(
+ DAT_GameState.mapAndTime.signpostEntryData[iVar18].x,
+ DAT_GameState.mapAndTime.signpostEntryData[iVar18].y);
+ iVar18 = 0;
+ if (0 < DAT_TribesState.tribes[dVar14].size) {
+ do {
+ iVar22 = getUnitIDForIndexInTribe(dVar14, iVar18);
+ sVar7 = DAT_TribesState.tribes[dVar14].size;
+ iVar18 = iVar18 + 1;
+ DAT_UnitsState.units[iVar22].calculatedOwnerPlayerIndex
+ = 5;
+ DAT_UnitsState.units[iVar22].logicalState
+ = ULS_NORMAL;
+ } while (iVar18 < sVar7);
+ }
+ pcVar25 = "Random_Events9.wav";
+ ppcVar26 = DAT_MissionAestheticsDefinedData.field8_0x20;
+ /*
+ added by script: "Bandits are operating near the castle Lordship."
+ */
+ pcVar10 = getTextStringInGroupAtOffset(TEXT_ACTION, 9);
+ playEventVideoBik(pcVar10, (char*)((int)(ppcVar26)), pcVar25);
+ }
+ bVar4 = this->scenarioEvents[_eventIndex].data.scenario.repeat;
+ if ((bVar4 == 0)
+ || (bVar5 = this->scenarioEvents[_eventIndex].data.scenario.repeatMonths,
+ bVar5 == 1))
+ goto switchD_004c382e_caseD_2;
+ if (bVar5 != 10) {
+ this->scenarioEvents[_eventIndex].data.scenario.repeatMonths = bVar5 - 1;
+ }
+ uVar19 = (uint)bVar4;
+ this->scenarioEvents[_eventIndex].header.done = 0;
+ if (3 < uVar19) {
+ uVar19
+ = uVar19 + (int)SEC_RNG::instance.currentNumber2 % ((int)uVar19 >> 2);
+ }
+ this->scenarioEvents[_eventIndex].header.year
+ = DAT_GameState.mapAndTime.year + (int)uVar19 / 0xc;
+ iVar18 = uVar19 + DAT_GameState.mapAndTime.month
+ + ((int)uVar19 / 0xc) * -0xc;
+ this->scenarioEvents[_eventIndex].header.month = iVar18;
+ if (iVar18 < 0xc)
+ goto LAB_004c4621;
+ _pConditionIsMet = &this->scenarioEvents[_eventIndex].header.year;
+ *_pConditionIsMet = *_pConditionIsMet + 1;
+ this->scenarioEvents[_eventIndex].header.month = iVar18 + -0xc;
+ sortEventsByDate();
+ _eventIndex = _eventIndex + -1;
+ break;
+ case 0x13:
+ iVar18 = findBuildingOfTypeForPlayer(
+ DAT_GameSynchronyState.currentPlayerSlotID,
+ BT_DAIRYFARM);
+ if (iVar18 != 0) {
+ setRandomNumberOnCows(
+ DAT_GameSynchronyState.currentPlayerSlotID);
+ setDairyFarmCheeseCounter(
+ DAT_GameSynchronyState.currentPlayerSlotID);
+ pcVar27 = "Random_Events10.wav";
+ pcVar25 = "";
+ /*
+ added by script: "Our cows have been struck down by a strange malady, my
+ lord."
+ */
+ pcVar10 = getTextStringInGroupAtOffset(TEXT_ACTION, 10);
+ playEventVideoBik(pcVar10, pcVar25, pcVar27);
+ playEventVideoBik("",
+ (char*)((int)(DAT_MissionAestheticsDefinedData.field9_0x24)),
+ "");
+ }
+ bVar4 = this->scenarioEvents[_eventIndex].data.scenario.repeat;
+ if ((bVar4 == 0)
+ || (bVar5 = this->scenarioEvents[_eventIndex].data.scenario.repeatMonths,
+ bVar5 == 1))
+ goto switchD_004c382e_caseD_2;
+ if (bVar5 != 10) {
+ this->scenarioEvents[_eventIndex].data.scenario.repeatMonths = bVar5 - 1;
+ }
+ uVar19 = (uint)bVar4;
+ this->scenarioEvents[_eventIndex].header.done = 0;
+ if (3 < uVar19) {
+ uVar19
+ = uVar19 + (int)SEC_RNG::instance.currentNumber2 % ((int)uVar19 >> 2);
+ }
+ this->scenarioEvents[_eventIndex].header.year
+ = DAT_GameState.mapAndTime.year + (int)uVar19 / 0xc;
+ iVar18 = uVar19 + DAT_GameState.mapAndTime.month
+ + ((int)uVar19 / 0xc) * -0xc;
+ this->scenarioEvents[_eventIndex].header.month = iVar18;
+ if (iVar18 < 0xc)
+ goto LAB_004c4621;
+ _pConditionIsMet = &this->scenarioEvents[_eventIndex].header.year;
+ *_pConditionIsMet = *_pConditionIsMet + 1;
+ this->scenarioEvents[_eventIndex].header.month = iVar18 + -0xc;
+ sortEventsByDate();
+ _eventIndex = _eventIndex + -1;
+ break;
+ case 0x14:
+ BVar11
+ = hasAnySignpost();
+ if (BVar11 != FALSE) {
+ iVar18 = MACRO_CALL_MEMBER(
+ pickRandomAccessibleSignpostEntry,
+ DAT_GameState)();
+ iVar22 = 0;
+ dVar14 = createTribeWithSpawnedUnit(0, 3,
+ DAT_GameState.mapAndTime.signpostEntryData[iVar18].x,
+ DAT_GameState.mapAndTime.signpostEntryData[iVar18].y,
+ DAT_GameSynchronyState.currentPlayerSlotID,
+ UT_E_ARCHER,
+ this->scenarioEvents[_eventIndex].data.scenario.actionData);
+ tribeID = createTribeWithSpawnedUnit(0, 0xc,
+ DAT_GameState.mapAndTime.signpostEntryData[iVar18].x,
+ DAT_GameState.mapAndTime.signpostEntryData[iVar18].y,
+ DAT_GameSynchronyState.currentPlayerSlotID,
+ UT_E_MONK, 1);
+ setSpawnMoment(
+ DAT_GameState.mapAndTime.signpostEntryData[iVar18].x,
+ DAT_GameState.mapAndTime.signpostEntryData[iVar18].y);
+ DAT_TribesState.tribes[dVar14].field134_0x27a = 0;
+ DAT_TribesState.tribes[tribeID].field134_0x27a = 0;
+ if (0 < DAT_TribesState.tribes[dVar14].size) {
+ do {
+ iVar18 = getUnitIDForIndexInTribe(dVar14, iVar22);
+ sVar7 = DAT_TribesState.tribes[dVar14].size;
+ iVar22 = iVar22 + 1;
+ DAT_UnitsState.units[iVar18].calculatedOwnerPlayerIndex
+ = 8;
+ DAT_UnitsState.units[iVar18].logicalState
+ = ULS_NORMAL;
+ } while (iVar22 < sVar7);
+ }
+ iVar18 = 0;
+ if (0 < DAT_TribesState.tribes[tribeID].size) {
+ do {
+ iVar22 = getUnitIDForIndexInTribe(tribeID, iVar18);
+ DAT_UnitsState.units[iVar22].calculatedOwnerPlayerIndex
+ = 8;
+ DAT_UnitsState.units[iVar22].logicalState
+ = ULS_NORMAL;
+ iVar18 = iVar18 + 1;
+ } while (iVar18 < DAT_TribesState.tribes[tribeID].size);
+ }
+ iVar18 = DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState
+ .currentPlayerSlotID]
+ .keep.id;
+ if (0 < iVar18) {
+ BVar9 = DAT_BuildingsState.buildings[iVar18].buildingType;
+ uVar19 = 0;
+ y1 = 0;
+ if (BVar9 == BT_MANORHOUSE) {
+ uVar19
+ = (int)(short)DAT_BuildingsState.buildings[iVar18].x
+ + 3;
+ y1 = (int)(short)DAT_BuildingsState.buildings[iVar18].y
+ + 8;
+ } else if (BVar9 == BT_STONEKEEP) {
+ uVar19
+ = (int)(short)DAT_BuildingsState.buildings[iVar18].x
+ + 3;
+ y1 = (int)(short)DAT_BuildingsState.buildings[iVar18].y
+ + 3;
+ } else if (BVar9 == BT_STRONGHOLD) {
+ uVar19
+ = (int)(short)DAT_BuildingsState.buildings[iVar18].x
+ + 3;
+ y1 = (int)(short)DAT_BuildingsState.buildings[iVar18].y
+ + 3;
+ } else if (BVar9 == BT_KEEPFOUR) {
+ uVar19
+ = (int)(short)DAT_BuildingsState.buildings[iVar18].x
+ + 4;
+ y1 = (int)(short)DAT_BuildingsState.buildings[iVar18].y
+ + 4;
+ } else if (BVar9 == BT_KEEPFIVE) {
+ uVar19
+ = (int)(short)DAT_BuildingsState.buildings[iVar18].x
+ + 5;
+ y1 = (int)(short)DAT_BuildingsState.buildings[iVar18].y
+ + 5;
+ }
+ giveTribeMoveInstruction(dVar14, uVar19, y1, 0, 0,
+ UMSE_0);
+ giveTribeMoveInstruction(tribeID, uVar19, y1, 0, 0,
+ UMSE_0);
+ }
+ pcVar25 = "Random_Events11.wav";
+ ppcVar26 = DAT_MissionAestheticsDefinedData.field10_0x28;
+ /*
+ added by script: "Some outlaws from the woods have returned to our cause,
+ my lord."
+ */
+ pcVar10 = getTextStringInGroupAtOffset(TEXT_ACTION, 0xb);
+ playEventVideoBik(pcVar10, (char*)((int)(ppcVar26)), pcVar25);
+ }
+ bVar4 = this->scenarioEvents[_eventIndex].data.scenario.repeat;
+ if ((bVar4 == 0)
+ || (bVar5 = this->scenarioEvents[_eventIndex].data.scenario.repeatMonths,
+ bVar5 == 1))
+ goto switchD_004c382e_caseD_2;
+ if (bVar5 != 10) {
+ this->scenarioEvents[_eventIndex].data.scenario.repeatMonths = bVar5 - 1;
+ }
+ uVar19 = (uint)bVar4;
+ this->scenarioEvents[_eventIndex].header.done = 0;
+ if (3 < uVar19) {
+ uVar19
+ = uVar19 + (int)SEC_RNG::instance.currentNumber2 % ((int)uVar19 >> 2);
+ }
+ this->scenarioEvents[_eventIndex].header.year
+ = DAT_GameState.mapAndTime.year + (int)uVar19 / 0xc;
+ iVar18 = uVar19 + DAT_GameState.mapAndTime.month
+ + ((int)uVar19 / 0xc) * -0xc;
+ this->scenarioEvents[_eventIndex].header.month = iVar18;
+ if (iVar18 < 0xc)
+ goto LAB_004c4621;
+ _pConditionIsMet = &this->scenarioEvents[_eventIndex].header.year;
+ *_pConditionIsMet = *_pConditionIsMet + 1;
+ this->scenarioEvents[_eventIndex].header.month = iVar18 + -0xc;
+ sortEventsByDate();
+ _eventIndex = _eventIndex + -1;
+ break;
+ case 0x15:
+ DAT_GameState.mapAndTime.unitLadyRelated = 1;
+ DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .someCount52 = 0xc;
+ if (10000 < DAT_GameState.playerDataArray[iVar18].popularity) {
+ DAT_GameState.playerDataArray[iVar18].popularity = 10000;
+ }
+ pcVar25 = "Random_Events12.wav";
+ ppcVar26 = DAT_MissionAestheticsDefinedData.field11_0x2c;
+ /*
+ added by script: "The people rejoice at your forthcoming marriage, Sire."
+ */
+ pcVar10 = getTextStringInGroupAtOffset(TEXT_ACTION, 0xc);
+ playEventVideoBik(pcVar10, (char*)((int)(ppcVar26)), pcVar25);
+ setUpSFXToPlayUnk(SEID_CHAPEL_BELL);
+ sortEventsByDate();
+ break;
+ case 0x16:
+ DAT_GameState.mapAndTime.unitJesterRelated = 1;
+ DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .someCount53 = 0x30;
+ if (10000 < DAT_GameState.playerDataArray[iVar18].popularity) {
+ DAT_GameState.playerDataArray[iVar18].popularity = 10000;
+ }
+ pcVar25 = "Random_Events13.wav";
+ ppcVar26 = DAT_MissionAestheticsDefinedData.field12_0x30;
+ /*
+ added by script: "A Jester has arrived at the castle Liege. I have taken the
+ liberty of offering him employment."
+ */
+ pcVar10 = getTextStringInGroupAtOffset(TEXT_ACTION, 0xd);
+ playEventVideoBik(pcVar10, (char*)((int)(ppcVar26)), pcVar25);
+ sortEventsByDate();
+ break;
+ case 0x17:
+ if (((DAT_GameCore.gameMode_2 != GM_CAMPAIGN_MISSION)
+ && (this->scenarioEvents[_eventIndex].header.year == 0x43d))
+ && (this->scenarioEvents[_eventIndex].header.month == 0xb)) {
+ dVar14 = createTribeWithSpawnedUnit(0, 3, 0x85, 0x116,
+ DAT_GameSynchronyState.currentPlayerSlotID,
+ UT_E_ARCHER, 0x14);
+ sVar7 = DAT_TribesState.tribes[dVar14].size;
+ DAT_TribesState.tribes[dVar14].field134_0x27a = 3;
+ if (0 < sVar7) {
+ iVar18 = 0;
+ do {
+ iVar22 = iVar18 + 1;
+ iVar18 = getUnitIDForIndexInTribe(dVar14, iVar18);
+ sVar7 = DAT_TribesState.tribes[dVar14].size;
+ DAT_UnitsState.units[iVar18].calculatedOwnerPlayerIndex
+ = 6;
+ iVar18 = iVar22;
+ } while (iVar22 < sVar7);
+ sortEventsByDate();
+ break;
+ }
+ }
+ goto switchD_004c382e_caseD_2;
+ case 0x18:
+ DAT_GameCore.section1076 = 0;
+ sortEventsByDate();
+ break;
+ case 0x19:
+ DAT_GameCore.section1076 = 1;
+ sortEventsByDate();
+ break;
+ case 0x1a:
+ if (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .playerDeathRelated
+ == 0) {
+ iVar18 = _eventIndex + 1;
+ if (iVar18 < this->eventsCount) {
+ _pConditionIsMet = &this->scenarioEvents[_eventIndex + 1]
+ .data.scenario.ScenarioEventType;
+ do {
+ if ((_pConditionIsMet[-3] == 3)
+ && ((((*_pConditionIsMet == 0 || (*_pConditionIsMet == 0x1a))
+ && (_pConditionIsMet[-4]
+ <= DAT_GameState.mapAndTime.year))
+ && ((DAT_GameState.mapAndTime.year
+ != _pConditionIsMet[-4]
+ || (_pConditionIsMet[-5]
+ < DAT_GameState.mapAndTime.month))))))
+ goto switchD_004c382e_caseD_2;
+ iVar18 = iVar18 + 1;
+ _pConditionIsMet = _pConditionIsMet + 0x39;
+ } while (iVar18 < this->eventsCount);
+ }
+ this->scenarioEvents[_eventIndex].header.done = 0;
+ this->scenarioEvents[_eventIndex].data.scenario.ScenarioEventType = 0;
+ this->scenarioEvents[_eventIndex].header.year
+ = DAT_GameState.mapAndTime.year;
+ LAB_004c4072:
+ iVar18 = DAT_GameState.mapAndTime.month;
+ iVar22 = DAT_GameState.mapAndTime.month + 1;
+ this->scenarioEvents[_eventIndex].header.month = iVar22;
+ if (0xb < iVar22) {
+ _pConditionIsMet = &this->scenarioEvents[_eventIndex].header.year;
+ *_pConditionIsMet = *_pConditionIsMet + 1;
+ this->scenarioEvents[_eventIndex].header.month = iVar18 + -0xb;
+ sortEventsByDate();
+ break;
+ }
+ }
+ goto switchD_004c382e_caseD_2;
+ case 0x1b:
+ if (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .playerDeathRelated
+ == 0) {
+ this->scenarioEvents[_eventIndex].header.done = 0;
+ this->scenarioEvents[_eventIndex].data.scenario.ScenarioEventType = 1;
+ this->scenarioEvents[_eventIndex].header.year
+ = DAT_GameState.mapAndTime.year;
+ goto LAB_004c4072;
+ }
+ goto switchD_004c382e_caseD_2;
+ case 0x1c:
+ iVar18 = 0;
+ if (0 < this->eventsCount) {
+ pSVar15 = this->scenarioEvents[0].data.scenario.conditions + 0x19;
+ do {
+ if ((pSVar15[-0x1e] == (ScenarioEventCondition)0x1)
+ && (*pSVar15 != (ScenarioEventCondition)0x0)) {
+ pSVar15->value = 0;
+ pSVar15->subType = 0;
+ pSVar15->enabled = 0;
+ pSVar15[-0x1d].value = 1;
+ pSVar15[-0xffffffff0000001f].value = 0x49d;
+ pSVar15[-0xffffffff0000001f].subType = 0;
+ pSVar15[-0xffffffff0000001f].enabled = 0;
+ }
+ iVar18 = iVar18 + 1;
+ pSVar15 = pSVar15 + 0x39;
+ } while (iVar18 < this->eventsCount);
+ }
+ switchD_004c382e_caseD_2:
+ sortEventsByDate();
+ break;
+ case 0x1d:
+ if (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .totalFood
+ != 0) {
+ MACRO_CALL_MEMBER(
+ applyFoodLossPercentageToPlayer,
+ DAT_BuildingsState)(
+ DAT_GameSynchronyState.currentPlayerSlotID,
+ this->scenarioEvents[_eventIndex].data.scenario.actionData);
+ pcVar10 = "general_message3.wav";
+ if (this->scenarioEvents[_eventIndex].data.scenario.actionData == 100) {
+ iVar18 = 0x10;
+ } else {
+ iVar18 = 0xe;
+ }
+ ppcVar26 = DAT_MissionAestheticsDefinedData.field13_0x34;
+ /*
+ added by script: "Thieves have stolen some food from our granary."
+ */
+ pcVar25 = getTextStringInGroupAtOffset(TEXT_ACTION, iVar18);
+ playEventVideoBik(pcVar25, (char*)((int)(ppcVar26)), pcVar10);
+ }
+ bVar4 = this->scenarioEvents[_eventIndex].data.scenario.repeat;
+ if ((bVar4 == 0)
+ || (bVar5 = this->scenarioEvents[_eventIndex].data.scenario.repeatMonths,
+ bVar5 == 1))
+ goto switchD_004c382e_caseD_2;
+ if (bVar5 != 10) {
+ this->scenarioEvents[_eventIndex].data.scenario.repeatMonths = bVar5 - 1;
+ }
+ uVar19 = (uint)bVar4;
+ this->scenarioEvents[_eventIndex].header.done = 0;
+ if (3 < uVar19) {
+ uVar19
+ = uVar19 + (int)SEC_RNG::instance.currentNumber2 % ((int)uVar19 >> 2);
+ }
+ this->scenarioEvents[_eventIndex].header.year
+ = DAT_GameState.mapAndTime.year + (int)uVar19 / 0xc;
+ iVar18 = uVar19 + DAT_GameState.mapAndTime.month
+ + ((int)uVar19 / 0xc) * -0xc;
+ this->scenarioEvents[_eventIndex].header.month = iVar18;
+ if (iVar18 < 0xc)
+ goto LAB_004c4621;
+ _pConditionIsMet = &this->scenarioEvents[_eventIndex].header.year;
+ *_pConditionIsMet = *_pConditionIsMet + 1;
+ this->scenarioEvents[_eventIndex].header.month = iVar18 + -0xc;
+ sortEventsByDate();
+ _eventIndex = _eventIndex + -1;
+ break;
+ case 0x1e:
+ DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .someCount51 = 8;
+ spreadFireRandomlyToBuildings(
+ iVar18, this->scenarioEvents[_eventIndex].data.scenario.actionData);
+ iVar18 = findFirstBuildingOfType(
+ DAT_GameSynchronyState.currentPlayerSlotID,
+ BT_WELL);
+ if (iVar18 == 0) {
+ iVar18 = findFirstBuildingOfType(
+ DAT_GameSynchronyState.currentPlayerSlotID,
+ BT_WATERPOT);
+ if (iVar18 == 0) {
+ iVar18 = 0x11;
+ } else {
+ iVar18 = 0xf;
+ }
+ } else {
+ iVar18 = 0xf;
+ }
+ pcVar25 = "general_warning16.wav";
+ ppcVar26 = DAT_MissionAestheticsDefinedData.field14_0x38;
+ /*
+ added by script: "There is fire in the castle and we have not built any wells
+ my Liege!"
+ */
+ pcVar10 = getTextStringInGroupAtOffset(TEXT_ACTION, iVar18);
+ playEventVideoBik(pcVar10, (char*)((int)(ppcVar26)), pcVar25);
+ bVar4 = this->scenarioEvents[_eventIndex].data.scenario.repeat;
+ if ((bVar4 == 0)
+ || (bVar5 = this->scenarioEvents[_eventIndex].data.scenario.repeatMonths,
+ bVar5 == 1))
+ goto switchD_004c382e_caseD_2;
+ if (bVar5 != 10) {
+ this->scenarioEvents[_eventIndex].data.scenario.repeatMonths = bVar5 - 1;
+ }
+ uVar19 = (uint)bVar4;
+ this->scenarioEvents[_eventIndex].header.done = 0;
+ if (3 < uVar19) {
+ uVar19
+ = uVar19 + (int)SEC_RNG::instance.currentNumber2 % ((int)uVar19 >> 2);
+ }
+ this->scenarioEvents[_eventIndex].header.year
+ = DAT_GameState.mapAndTime.year + (int)uVar19 / 0xc;
+ iVar18 = uVar19 + DAT_GameState.mapAndTime.month
+ + ((int)uVar19 / 0xc) * -0xc;
+ this->scenarioEvents[_eventIndex].header.month = iVar18;
+ if (iVar18 < 0xc)
+ goto LAB_004c4621;
+ _pConditionIsMet = &this->scenarioEvents[_eventIndex].header.year;
+ *_pConditionIsMet = *_pConditionIsMet + 1;
+ this->scenarioEvents[_eventIndex].header.month = iVar18 + -0xc;
+ sortEventsByDate();
+ _eventIndex = _eventIndex + -1;
+ }
+ LAB_004c5f28:
+ _eventIndex = _eventIndex + 1;
+ } while (_eventIndex < this->eventsCount);
+ }
+ iVar18 = DAT_GameState.mapAndTime.month + 3;
+ local_88 = DAT_GameState.mapAndTime.year;
+ if (0xb < iVar18) {
+ iVar18 = DAT_GameState.mapAndTime.month + -9;
+ local_88 = DAT_GameState.mapAndTime.year + 1;
+ }
+ local_70[0] = 0;
+ local_70[1] = 0;
+ local_70[2] = 0;
+ local_70[3] = 0;
+ local_70[4] = 0;
+ local_70[5] = 0;
+ local_70[6] = 0;
+ local_70[7] = 0;
+ local_70[8] = 0;
+ _eventIndex = 0;
+ if (0 < this->eventsCount) {
+ psVar21 = &this->scenarioEvents[0];
+ do {
+ if ((((local_88 == psVar21.header.year) && (iVar18 == psVar21.header.month))
+ && ((psVar21.header.pre_done == 0
+ && ((iVar22 = psVar21.header.tl_type, psVar21.header.pre_done = 1,
+ iVar22 == 1
+ && (DAT_GameState.mapAndTime.field3171_0x27a8 = 1,
+ DAT_GameCore.section1076 == 0))))))
+ && (iVar22 = (psVar21->data).invasion.crusaderArabian, local_70[iVar22] == 0)) {
+ iVar20 = 0;
+ iVar1 = iVar22 * 4;
+ numInGroup = iVar1 + 1;
+ iVar21 = 5;
+ _pConditionIsMet = (psVar21->data).invasion.unitCountsPerUnitType + 3;
+ do {
+ iVar20 = iVar20 + _pConditionIsMet[-3] + _pConditionIsMet[-2]
+ + _pConditionIsMet[-1] + _pConditionIsMet[1] + *_pConditionIsMet;
+ iVar21 = iVar21 + -1;
+ _pConditionIsMet = _pConditionIsMet + 5;
+ } while (iVar21 != 0);
+ if (0x18 < iVar20) {
+ if (iVar20 < 0x4b) {
+ numInGroup = iVar1 + 2;
+ } else if (iVar20 < 0x96) {
+ numInGroup = iVar1 + 3;
+ } else {
+ numInGroup = iVar1 + 4;
+ }
+ }
+ local_70[iVar22] = 1;
+ if (iVar22 == 0) {
+ ppcVar26 = (&DAT_MissionAestheticsDefinedData
+ .field59_0xec)[numInGroup];
+ pcVar10 = "good_arab_nervous.bik";
+ } else {
+ if (iVar22 != 1)
+ goto LAB_004c609a;
+ ppcVar26 = (&DAT_MissionAestheticsDefinedData
+ .field59_0xec)[numInGroup];
+ pcVar10 = "good_soldier_nervous.bik";
+ }
+ pcVar25 = getTextStringInGroupAtOffset(
+ TEXT_SANDS_OF_TIME, numInGroup);
+ playEventVideoBik(pcVar25, pcVar10, (char*)((int)(ppcVar26)));
+ }
+ LAB_004c609a:
+ _eventIndex = _eventIndex + 1;
+ psVar21 = psVar21 + 0x72;
+ } while (_eventIndex < this->eventsCount);
+ }
+ if ((DAT_GameState.gameTicksLoadBalancer == 0x97)
+ && (DAT_GameState.mapAndTime.week == 3)) {
+ iVar22 = DAT_GameState.mapAndTime.month + 1;
+ iVar18 = DAT_GameState.mapAndTime.year;
+ if (0xb < iVar22) {
+ iVar22 = DAT_GameState.mapAndTime.month + -0xb;
+ iVar18 = DAT_GameState.mapAndTime.year + 1;
+ }
+ iVar21 = 0;
+ if (0 < this->eventsCount) {
+ pIVar16 = this->scenarioEvents;
+ do {
+ if (((iVar18 == (pIVar16->header).year) && (iVar22 == (pIVar16->header).month))
+ && ((pIVar16->header).tl_type == 1)) {
+ DAT_GameState.mapAndTime.gameEventRelatedCountdown = 40;
+ }
+ iVar21 = iVar21 + 1;
+ pIVar16 = pIVar16 + 1;
+ } while (iVar21 < this->eventsCount);
+ }
+ }
+ }
+ } else {
+ if ((DAT_BinkControlState.binkObjPtrArray[1] == (FakeBink*)0x0)
+ && (DAT_VideoBikQueue.storedMessages_0x924 == 0)) {
+ DAT_GameState.mapAndTime.unknownCountdown01
+ = DAT_GameState.mapAndTime.unknownCountdown01 + -1;
+ }
+ if (DAT_GameState.mapAndTime.unknownCountdown01 == 0) {
+ DAT_VideoBikQueue.storedMessages_0x924 = 0;
+ activateModalDialog(MMT_NONE, FALSE);
+ activateModalDialog(MMT_NONE, FALSE);
+ activateModalDialog(MMT_NONE, FALSE);
+ DAT_MenuTextInputState.DAT_SomeTextArrayIndex = 9;
+ clearAnyOtherModalDialogs();
+ if (DAT_GameCore.gameMode_2 == GM_CAMPAIGN_MISSION) {
+ if (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .playerDeathRelated
+ == 1) {
+ incrementMissionProgress();
+ DAT_GameCore.section1066 = 2;
+ }
+ if (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .playerDeathRelated
+ == 2) {
+ switchToMenuView(MVT_GAME_LOSTUnk, 0);
+ DAT_GameCore.section1066 = 0;
+ }
+ MACRO_CALL(
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay)(
+ DEID_MISSION_WIN_DEFEAT_BANNER, 0);
+ MACRO_CALL(
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay)(
+ DEID_MISSION_WIN_DEFEAT_BANNER, 0);
+ return;
+ }
+ if (DAT_GameCore.gameMode_2 != GM_ECONOMIC_CAMPAIGN_SH1) {
+ if (DAT_GameCore.gameMode_2 == GM_BUILDERUnk) {
+ if (DAT_GameCore.field24_0x6c != 0) {
+ DAT_MenuTextInputState.DAT_MenuOptionsActionParameter = 7;
+ MACRO_CALL(
+ MenuItemActionHandler_General_LaunchOrQuitMultiplayerGameUnk)(0x16);
+ MACRO_CALL(
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay)(
+ DEID_MISSION_WIN_DEFEAT_BANNER, 0);
+ return;
+ }
+ if (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .playerDeathRelated
+ == 1) {
+ if ((int)this->SEC_U3_MapType2_1 < 2) {
+ switchToMenuView(
+ MVT_MISSION_FINISHED_TRANSITION, 0);
+ } else {
+ DAT_GameCore.section1095 = 1;
+ DAT_MenuTextInputState.DAT_MenuOptionsActionParameter = 0x2f;
+ activateModalDialogAndClearText(MMT_QUIT_DIALOG);
+ }
+ }
+ if (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .playerDeathRelated
+ == 2) {
+ switchToMenuView(MVT_GAME_LOSTUnk, 0);
+ }
+ DAT_GameCore.section1066 = 2;
+ }
+ MACRO_CALL(
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay)(
+ DEID_MISSION_WIN_DEFEAT_BANNER, 0);
+ return;
+ }
+ if (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .playerDeathRelated
+ == 1) {
+ incrementMission();
+ }
+ if (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .playerDeathRelated
+ == 2) {
+ switchToMenuView(
+ MVT_GAME_LOSTUnk, 0);
+ }
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_MISSION_WIN_DEFEAT_BANNER, 0);
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_MISSION_WIN_DEFEAT_BANNER, 0);
+ return;
+ }
+ }
+ }
+ }
+ } else if (DAT_GameCore.gameMode_2 == GM_CAMPAIGN_MISSION) {
+ updateMilitaryCampaignMissionState();
+ return;
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004c31a0", "name": "processSingleplayerEvents", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Steuert in Einzelspieler-Karten alle Szenario-Ereignisse: Invasionen, Zufallsereignisse, Siegbedingungen und das Missionsende."}, "p2": {"ein": "this = MapPropertiesState (Ereignisliste scenarioEvents, eventsCount)", "aus": "keine; ändert Ereignisliste, Spieler-, Truppen- und Gebäudezustand", "liest": ["currentGameMode (nur GM_SOLITARY)", "gameMode_2", "playerDeathRelated", "scenarioEvents[].header.year/month/done/pre_done/tl_type", "scenarioEvents[].data.scenario.conditions[0..39]/ScenarioEventType/actionData/repeat/repeatMonths", "scenarioEvents[].data.invasion.unitCountsPerUnitType[0..24]/crusaderArabian/repeatMonths", "mapAndTime.difficulty/month/year/week/startOfDay", "gameTicksLoadBalancer", "currentPopulation", "currentResources[]", "fearFactorLevel", "previousBlessedPeoplePercentage", "totalEnemyUnitsCount", "units[]/buildings[]", "signpostsMapEdge/signpostEntryData"], "schreibt": ["scenarioEvents[].header.done/year/month/pre_done", "scenarioEvents[].data.scenario.repeatMonths/ScenarioEventType", "attackInfo.inv_count/attackWavePlayerIDArray/someSinglePlayerScore", "playerDataArray[sp].playerDeathRelated/popularity/someCount48..53/lordID/lordUID", "mapAndTime.field3092_0x2654.. (Zähler je Ereignistyp)", "mapAndTime.unknownCountdown01/gameEventRelatedCountdown/eventCountdownRabbitInfestation", "DAT_GameCore.isTimeHalted/xbowProducible_logic/section1076/section1066/section1095", "SEC_Section1080/1081/1090"], "ruft": ["initializeAttackWaveSlot", "spawnUnitsIntoNewTribe", "setSpawnMoment", "sortEventsByDate", "getDifficultyMultipliedValue", "checkKeepEnclosed", "isAttackWaveComplete", "computeAleCoverage", "spawnUnit", "createTribeWithSpawnedUnit", "createAnimal", "giveTribeMoveInstruction", "harmWheatFarmsOfPlayer", "harmHopFarmsOfPlayer", "harmAppleFarmTreesOfPlayer", "killEveryFifthTree", "spreadFireRandomlyToBuildings", "applyFoodLossPercentageToPlayer", "spawnPoisonCloudsAtRandomStorageOrArmyBuilding", "setRandomNumberOnCows", "playEventVideoBik", "updateMilitaryCampaignMissionState", "incrementMissionProgress", "incrementMission", "switchToMenuView", "flagTribesOfType", "consumeFlaggedTribesOfType", "switchPlayerOwnership"], "regeln": ["Läuft nur bei currentGameMode == GM_SOLITARY und nicht im Editor und nicht bei GM_SIEGE_THAT; sonst ruft sie nur in GM_CAMPAIGN_MISSION updateMilitaryCampaignMissionState auf. Im Tutorial läuft zusätzlich UpdateTutorialStepAndProgress.", "Solange playerDeathRelated == 0, wird nur zum Tagesbeginn (mapAndTime.startOfDay) gearbeitet: Ereigniszähler, die ungleich 0 sind, zählen hoch und springen nach 0x4b0 (1200) auf 0 zurück. Der Siegzähler SEC_Section1080 zählt bei gesetztem SEC_Section1081 unabhängig vom Tagesbeginn je Aufruf um 1 herunter.", "Ereignisse sind nach Datum sortiert: Die Schleife bricht beim ersten Ereignis ab, dessen Jahr/Monat noch in der Zukunft liegt, und überspringt Ereignisse mit done != 0. tl_type 1 = Invasion, 2 = wird nur auf erledigt gesetzt, 3 = Szenario-Ereignis mit bis zu 40 Bedingungen (Platz 0..0x27).", "Szenario-Bedingungen (Platz = Bedingungsart, nur wenn der Platz belegt ist): 1 Bevölkerung, 4 Gold (currentResources[0xf]), 5 Nahrung bzw. eine Ware (Wert 0 = Summe Waren 10..13, sonst eine Ware, 8 wird zu 7), 6 und 0x11 Waffen/Rüstung (Summe Waren 0x11..0x18 oder eine Ware), 7 Rohstoffe (Summe Waren 0xe,2,3,4,6,7,9 oder eine Ware), je gegen den schwierigkeitsangepassten Wert (getDifficultyMultipliedValue). 2 Lord von Spieler getötet, 3 playerRelatedFlag, 8 und 0xb und 0xf Feindzahl (totalEnemyUnitsCount == 0 bzw. != 0; 0xf bei Belagerungskarte zusätzlich isAttackWaveComplete), 9 Burg umschlossen, 0xa keine Löwen/Wölfe mehr (UT_LIONSHWOLF), 0xc keine eigenen Kampfeinheiten mehr (ohne Leiter, Belagerungsgerät, Ingenieur ohne Ladung), 0xd und 0xe Treffer/Schaden an Feinden mit Schwelle, 0x10 cathedralRelated1 == 1, 0x12 weniger als 4 Molkereien, 0x13 weniger als 2 Gasthäuser mit Gästen, 0x14 gesegnete Bevölkerung in Prozent, 0x15 Bierabdeckung (computeAleCoverage), 0x16 und 0x17 fearFactorLevel gegen Wert (0x16: <= -Wert), 0x27 Siegzeit: setzt bei erfüllten Vorgängern SEC_Section1080 = Wert × 800 und gilt als erfüllt bei Zähler < 1. Die Vergleiche „Ist-Wert gegen Schwelle\" sind in Ghidra verschleiert; sie bedeuten vermutlich „mindestens\".", "Ein Ereignis löst aus, wenn mindestens eine Bedingung erfüllt ist (Schalter bei +8 gleich 0) bzw. alle (Schalter ungleich 0). Dann gilt header.done = 1 und es folgt die Aktion nach ScenarioEventType: 0 Sieg, 1 Niederlage (nur in Kampagne/Builder; 0xf0 Takte Wartezeit, bei Belagerungskarte 0x280), 3/4 Gruppen markieren/verbrauchen, 5 Jahrmarkt (je 3 Gaukler und 2 Feuerschlucker am Lagerplatz), 6/7 Zeit anhalten/fortsetzen, 8 Besitzerwechsel, 9 Armbrust freigeben, 0x18/0x19 section1076 = 0/1, 0x1a/0x1b Sieg/Niederlage um einen Monat verschieben bzw. umwandeln, 0x1c Bedingungen umschreiben, 0x17 Sonderfall nur im Jahr 0x43d (1085), Monat 11, nicht in Kampagnenmission: 20 Bogenschützen für Besitzer 6.", "Zufallsereignisse mit Fehlerfolgen: 0xb Seuche (popularity über 6000 wird zu (popularity-6000)/2+6000, Giftwolken an Lagern), 0xc Weizen-, 0xd Hopfen-, 0xe Apfelschaden (nur wenn Farm vorhanden), 0xf jeder fünfte Baum stirbt, 0x10 Kaninchen (nur mit freiem Tierplatz und Hopfen- oder Weizenfarm, Zähler 1200), 0x11 Löwen (Zahl = actionData, popularity wie bei Seuche gekappt), 0x12 Banditen (actionData+1 Streitkolben-Soldaten, Besitzer 5), 0x13 Kuhseuche, 0x14 Geächtete kehren zurück (actionData Bogenschützen + 1 Mönch, laufen zur Burg), 0x15 Hochzeit und 0x16 Gaukler (popularity auf höchstens 10000), 0x1d Nahrungsdiebstahl (actionData Prozent, 100 = alles), 0x1e Feuer (actionData Brände).", "Wiederholung (Zufallsereignisse 5, 0xb..0x14, 0x1d, 0x1e): repeat == 0 oder repeatMonths == 1 = nie wieder; sonst sinkt repeatMonths um 1 (10 bleibt unendlich) und das nächste Datum ist jetzt + repeat Monate; bei repeat > 3 kommt (RNG % (repeat/4)) dazu. Invasionen wiederholen sich um invasion.repeatMonths Monate, 0 = einmalig.", "Invasion (tl_type 1): Stärke je Einheitenart = Zahl × Schwierigkeit (Stufe 0: 50 %, 1: 100 %, 2: 140 %, 3: 200 %, Ganzzahl-Division). Sie startet in Gruppen der Größe Summe/(Summe/Teiler+1) mit Teiler 10, außer Ritter 10, Sklave 20, Schleuderer 20, Assassine 2, arab. Schwertkämpfer 8, Feuerwerfer 4; die Gruppen erscheinen reihum an den Kartenrand-Wegweisern. Belagerungsgerät (Katapult, Trebuchet, Ramme, Turm, Schild, Feuerballiste) wird nur in someSinglePlayerScore[Welle][0..4 bzw. 8] gezählt statt gleich erzeugt. Die Wellennummer inv_count läuft von 1 bis 49 und springt dann auf 1.", "Vorwarnung: 3 Monate vor einer Invasion (pre_done) spielt das Spiel eine Meldung, gestaffelt nach der Gesamtzahl (ohne Schwierigkeit): bis 24, bis 74, bis 149, ab 150. Bei gameTicksLoadBalancer == 0x97 (151) und Woche 3 setzt eine Invasion im Folgemonat gameEventRelatedCountdown = 40. Im Jahr nach Startjahr, im Startmonat, Woche 0 kommt eine Feuerwarnung, wenn ein Feuerereignis (0x1e) existiert und kein Brunnen und kein Wassertopf stehen.", "Missionsende: Ist playerDeathRelated ungleich 0 (1 = Sieg, 2 = Niederlage), läuft unknownCountdown01 herunter, solange kein Video läuft; bei 0 folgt je Spielart Missionsfortschritt (Kampagne: incrementMissionProgress, Wirtschaftskampagne: incrementMission) oder Niederlage-Bildschirm (MVT_GAME_LOSTUnk). Bei Builder-Karten (Belagerung ab SEC_U3_MapType2_1 >= 2) erscheint stattdessen der Beenden-Dialog."], "offen": ["Ob Gefechte gegen die KI ebenfalls currentGameMode == GM_SOLITARY haben, oder nur Missionen und Kampagne", "Bedeutung der Zähler SEC_Section1080/1081 und wie oft die Funktion je Spieltag aufgerufen wird (Einheit der Siegzeit: Wert × 800)", "Der Und/Oder-Schalter bei Offset +8 des Ereignisses ist aus dem Code erschlossen, nicht benannt", "Bedeutung von Ereignistyp 3/4 (flagTribesOfType 0xe) und 8 (switchPlayerOwnership) im Spielablauf", "Besitzer-Indizes 5, 6 und 8 bei Banditen, Sonderbogenschützen und Geächteten sind rohe Werte (calculatedOwnerPlayerIndex)", "Vergleichsrichtung der Ghidra-Ausdrücke (bVar24 == bVar23) ist nur erschlossen"]}, "p3": {"erklaerung": "Der Ereignismotor der Einzelspieler-Karten: Er löst nach Datum Angriffswellen und Zufallsereignisse wie Seuche, Feuer, Banditen oder Löwen aus und prüft, ob Sieg oder Niederlage erreicht ist. Invasionen werden drei Monate vorher angekündigt und auf Schwierigkeit 3 verdoppelt.", "gehirn": "Nur für Missionen und Szenarien mit Ereignisliste: Wellenzeitpunkt und -stärke lassen sich aus scenarioEvents vorab lesen (Stärke × Schwierigkeitsfaktor), die Vorwarnung kommt 3 Monate vorher (Feld pre_done). Zufallsereignisse wie Seuche, Feuer, Nahrungsdiebstahl vorher durch Brunnen, Vorräte und Streuung abfedern. Für reine Gefechte vermutlich ohne Bedeutung.", "beleg": "code", "live": "Szenario mit Invasionsereignis (10 Bogenschützen) auf Schwierigkeit 3 → Zahl der erzeugten UT_E_ARCHER der Welle → 20", "live_art": "ki-welle"}}
+

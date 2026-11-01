@@ -1,0 +1,1103 @@
+### 0x00416f80 UpdateMill | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00416F80
+ void Buildings::UpdateMill()
+ {
+ int* piVar1;
+ byte bVar2;
+ short sVar3;
+ short sVar4;
+ int buildingID;
+ BOOLEnum BVar5;
+ ushort uVar6;
+ int iVar7;
+ char cVar8;
+ bool bVar9;
+ addBuildingToTargetableBuildings(
+ DAT_CurrentBuildingID);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ buildingID = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation
+ = (ushort)(DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workers[0] != 0);
+ DAT_BuildingsState.buildings[buildingID].displayOwnerFlag = 1;
+ piVar1 = &DAT_BuildingsState.buildings[buildingID].field28_0x58;
+ *piVar1 = *piVar1 + 1;
+ iVar7 = DAT_BuildingsState.buildings[buildingID].field28_0x58;
+ if (1 < iVar7) {
+ DAT_BuildingsState.buildings[buildingID].field28_0x58 = 0;
+ }
+ if (iVar7 == 1) {
+ return;
+ }
+ cVar8 = DAT_BuildingsState.buildings[buildingID].workers[0] != 0;
+ if (DAT_BuildingsState.buildings[buildingID].workers[1] != 0) {
+ cVar8 = cVar8 + '\x01';
+ }
+ if (DAT_BuildingsState.buildings[buildingID].workers[2] != 0) {
+ cVar8 = cVar8 + '\x01';
+ }
+ iVar7 = (int)DAT_BuildingsState.buildings[buildingID].unitID;
+ if (iVar7 == 0) {
+ LAB_00417070:
+ if (DAT_BuildingsState.buildings[buildingID].unitID != 0)
+ goto LAB_00417079;
+ DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive = 0;
+ } else {
+ if (DAT_UnitsState.units[iVar7].logicalState != ULS_NORMAL) {
+ DAT_BuildingsState.buildings[buildingID].unitID = 0;
+ }
+ if (DAT_UnitsState.units[iVar7].unitType != UT_MILLER) {
+ DAT_BuildingsState.buildings[buildingID].unitID = 0;
+ }
+ if (DAT_UnitsState.units[iVar7].state.generic != US_AIM_WEAPONUnk) {
+ DAT_BuildingsState.buildings[buildingID].unitID = 0;
+ }
+ if (DAT_BuildingsState.buildings[buildingID].unitID == 0) {
+ DAT_BuildingsState.buildings[buildingID].killingPitField = 0;
+ goto LAB_00417070;
+ }
+ LAB_00417079:
+ DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive = 1;
+ }
+ BVar5 = DAT_BuildingsState.isFirstTickInLoop;
+ DAT_BuildingsState.isFirstTickInLoop = TRUE;
+ updateVisuallyActiveState(buildingID);
+ sVar3 = DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive;
+ DAT_BuildingsState.isFirstTickInLoop = BVar5;
+ if (DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive
+ != DAT_BuildingsState.buildings[buildingID].oldVisualActiveState) {
+ updateBuildingGraphicsLayer(
+ buildingID);
+ buildingID = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive;
+ }
+ if (cVar8 == '\0') {
+ DAT_BuildingsState.buildings[buildingID].field27_0x54 = 0;
+ DAT_BuildingsState.buildings[buildingID].field23_0x44 = 1;
+ } else {
+ sVar4 = DAT_BuildingsState.buildings[buildingID].outpostRelatedUnk4;
+ if (sVar4 < 1) {
+ DAT_BuildingsState.buildings[buildingID].field27_0x54 = 0;
+ DAT_BuildingsState.buildings[buildingID].field23_0x44 = 1;
+ } else {
+ uVar6 = sVar4 - 1;
+ DAT_BuildingsState.buildings[buildingID].outpostRelatedUnk4 = uVar6;
+ if ((short)uVar6 < 0x33) {
+ if ((short)uVar6 < 0x1f) {
+ if ((short)uVar6 < 0x15) {
+ bVar9 = (uVar6 & 7) == 0;
+ } else {
+ bVar9 = (uVar6 & 3) == 0;
+ }
+ } else {
+ bVar9 = (uVar6 & 1) == 0;
+ }
+ if (bVar9)
+ goto LAB_0041713a;
+ } else {
+ LAB_0041713a:
+ piVar1 = &DAT_BuildingsState.buildings[buildingID].field27_0x54;
+ *piVar1 = *piVar1 + 1;
+ }
+ if ((char)DAT_BuildingDefinedData
+ .field134_0x6a1c[DAT_BuildingsState.buildings[buildingID].field27_0x54]
+ < '\x01') {
+ DAT_BuildingsState.buildings[buildingID].field27_0x54 = 0;
+ }
+ DAT_BuildingsState.buildings[buildingID].field23_0x44
+ = (int)(char)DAT_BuildingDefinedData
+ .field134_0x6a1c[DAT_BuildingsState.buildings[buildingID].field27_0x54];
+ }
+ }
+ if (((cVar8 == '\0') || (sVar3 != 0))
+ || (uVar6 = DAT_BuildingsState.buildings[buildingID].outpostRelatedUnk4, uVar6 == 0)) {
+ DAT_BuildingsState.buildings[buildingID].campgroundVclock = 0;
+ DAT_BuildingsState.buildings[buildingID].field20_0x38 = 0;
+ } else {
+ if ((short)uVar6 < 0x33) {
+ if ((short)uVar6 < 0x1f) {
+ if ((short)uVar6 < 0x15) {
+ bVar9 = (uVar6 & 7) == 0;
+ } else {
+ bVar9 = (uVar6 & 3) == 0;
+ }
+ } else {
+ bVar9 = (uVar6 & 1) == 0;
+ }
+ if (bVar9)
+ goto LAB_004171bf;
+ } else {
+ LAB_004171bf:
+ piVar1 = &DAT_BuildingsState.buildings[buildingID].campgroundVclock;
+ *piVar1 = *piVar1 + 1;
+ }
+ bVar2 = DAT_BuildingDefinedData
+ .field135_0x6a2c[DAT_BuildingsState.buildings[buildingID].campgroundVclock];
+ if ((char)bVar2 < '\x01') {
+ DAT_BuildingsState.buildings[buildingID].campgroundVclock = 0;
+ }
+ DAT_BuildingsState.buildings[buildingID].field20_0x38
+ = (char)DAT_BuildingDefinedData
+ .field135_0x6a2c[DAT_BuildingsState.buildings[buildingID].campgroundVclock]
+ + 0xf;
+ if ((char)bVar2 < '\x01') {
+ DAT_BuildingsState.buildings[buildingID].killingPitField = 0;
+ }
+ }
+ if ((cVar8 == '\0') || (sVar3 == 0)) {
+ DAT_BuildingsState.buildings[buildingID].field25_0x4c = 0;
+ DAT_BuildingsState.buildings[buildingID].field21_0x3c = 0;
+ } else {
+ piVar1 = &DAT_BuildingsState.buildings[buildingID].field25_0x4c;
+ *piVar1 = *piVar1 + 1;
+ if ((char)DAT_BuildingDefinedData
+ .field136_0x6a3c[DAT_BuildingsState.buildings[buildingID].field25_0x4c]
+ < '\x01') {
+ DAT_BuildingsState.buildings[buildingID].field25_0x4c = 0;
+ }
+ DAT_BuildingsState.buildings[buildingID].field21_0x3c
+ = (char)DAT_BuildingDefinedData
+ .field136_0x6a3c[DAT_BuildingsState.buildings[buildingID].field25_0x4c]
+ + 0x1e;
+ DAT_BuildingsState.buildings[buildingID].field21_0x3c
+ = (char)DAT_BuildingDefinedData
+ .field134_0x6a1c[DAT_BuildingsState.buildings[buildingID].field27_0x54]
+ + 0x1e;
+ }
+ if ((cVar8 == '\0') || (DAT_BuildingsState.buildings[buildingID].unitID == 0)) {
+ DAT_BuildingsState.buildings[buildingID].field26_0x50 = 0;
+ DAT_BuildingsState.buildings[buildingID].field22_0x40 = 0;
+ if (DAT_BuildingsState.buildings[buildingID].outpostRelatedUnk4 == 0) {
+ DAT_BuildingsState.buildings[buildingID].killingPitField = 0;
+ }
+ goto LAB_00417366;
+ }
+ sVar3 = DAT_BuildingsState.buildings[buildingID].killingPitField;
+ if (sVar3 == 0) {
+ LAB_00417289:
+ DAT_BuildingsState.buildings[buildingID].field26_0x50 = 0;
+ DAT_BuildingsState.buildings[buildingID].field22_0x40 = 0x2e;
+ } else {
+ if (sVar3 == 1) {
+ piVar1 = &DAT_BuildingsState.buildings[buildingID].field26_0x50;
+ *piVar1 = *piVar1 + 1;
+ bVar2 = DAT_BuildingDefinedData
+ .field137_0x6a4c[DAT_BuildingsState.buildings[buildingID].field26_0x50];
+ if ((char)bVar2 < '\x01') {
+ DAT_BuildingsState.buildings[buildingID].field26_0x50 = 0;
+ }
+ iVar7 = (char)DAT_BuildingDefinedData
+ .field137_0x6a4c[DAT_BuildingsState.buildings[buildingID].field26_0x50]
+ + 0x2d;
+ } else {
+ if (sVar3 != 2) {
+ if (sVar3 != 3)
+ goto LAB_00417366;
+ goto LAB_00417289;
+ }
+ piVar1 = &DAT_BuildingsState.buildings[buildingID].field26_0x50;
+ *piVar1 = *piVar1 + 1;
+ bVar2 = DAT_BuildingDefinedData
+ .field138_0x6ad4[DAT_BuildingsState.buildings[buildingID].field26_0x50];
+ if ((char)bVar2 < '\x01') {
+ DAT_BuildingsState.buildings[buildingID].field26_0x50 = 0;
+ }
+ iVar7 = (char)DAT_BuildingDefinedData
+ .field138_0x6ad4[DAT_BuildingsState.buildings[buildingID].field26_0x50]
+ + 0x3d;
+ }
+ DAT_BuildingsState.buildings[buildingID].field22_0x40 = iVar7;
+ if ('\0' < (char)bVar2)
+ goto LAB_00417366;
+ }
+ sVar3 = DAT_BuildingsState.buildings[buildingID].killingPitField;
+ if (sVar3 == 0) {
+ DAT_BuildingsState.buildings[buildingID].killingPitField = 1;
+ } else if (((sVar3 == 1) || (sVar3 == 2)) || (sVar3 == 3)) {
+ DAT_BuildingsState.buildings[buildingID].killingPitField = 3;
+ }
+ LAB_00417366:
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ DAT_BuildingsState.buildings[buildingID].field39_0x84 = 0;
+ return;
+ }
+ DAT_BuildingsState.buildings[buildingID].displayOwnerFlag = 1;
+ piVar1 = &DAT_BuildingsState.buildings[buildingID].ownerFlagFrame;
+ *piVar1 = *piVar1 + 1;
+ if ((char)DAT_BuildingDefinedData
+ .field177_0x7e1c[DAT_BuildingsState.buildings[buildingID].ownerFlagFrame / 2]
+ < '\x01') {
+ DAT_BuildingsState.buildings[buildingID].ownerFlagFrame = 0;
+ }
+ DAT_BuildingsState.buildings[buildingID].field39_0x84
+ = (int)(char)DAT_BuildingDefinedData
+ .field177_0x7e1c[DAT_BuildingsState.buildings[buildingID].ownerFlagFrame / 2];
+ return;
+ }
+}
+}
+
+### 0x00417740 UpdateBuildingShared2 | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00417740
+ void Buildings::UpdateBuildingShared2()
+ {
+ addBuildingToTargetableBuildings(
+ DAT_CurrentBuildingID);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 0;
+ if (DAT_GameSynchronyState.currentGameMode != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage += 1;
+ if (DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage / 2]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage = 0;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].overlayImageID
+ = DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage
+ / 2];
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].overlayImageID = 0;
+ }
+ }
+}
+}
+
+### 0x004178e0 UpdateKeepManorHouse | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x004178E0
+ void Buildings::UpdateKeepManorHouse()
+ {
+ int* piVar1;
+ short sVar2;
+ short sVar3;
+ int iVar4;
+ byte bVar5;
+ int iVar6;
+ int iVar7;
+ iVar6 = DAT_CurrentBuildingID;
+ sVar2 = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 0;
+ DAT_BuildingsState.buildings[iVar6].currentHealth
+ = DAT_BuildingsState.buildings[iVar6].maxHealth;
+ DAT_BuildingsState.buildings[iVar6].someX = DAT_BuildingsState.buildings[iVar6].x + 3;
+ bVar5 = (byte)DAT_GameCore.mapTimeInTicks & 3;
+ DAT_BuildingsState.buildings[iVar6].someY = DAT_BuildingsState.buildings[iVar6].y + 9;
+ if (((bVar5 == 0) && (DAT_GameCore.gameMode_2 != GM_EDITOR))
+ && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)) {
+ iVar4 = DAT_GameState.playerDataArray[sVar2].startResources[0xf];
+ if (0 < iVar4) {
+ iVar7 = 1;
+ if (iVar4 < 0x3e9) {
+ if (100 < iVar4) {
+ iVar7 = 10;
+ }
+ } else {
+ iVar7 = 100;
+ }
+ piVar1 = DAT_GameState.playerDataArray[sVar2].currentResources + 0xf;
+ *piVar1 = *piVar1 + iVar7;
+ DAT_BuildingsState.buildings[iVar6].resourceRelatedCountDown = 100;
+ sVar3 = (short)DAT_GameState.playerDataArray[sVar2].currentResources[0xf];
+ DAT_GameState.playerDataArray[sVar2].startResources[0xf] = iVar4 - iVar7;
+ DAT_GameState.playerDataArray[sVar2].beforeLastMonthsGold = sVar3;
+ DAT_GameState.playerDataArray[sVar2].lastMonthsGold = sVar3;
+ DAT_GameCore.countdown = 1;
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x004179b0 UpdateKeepStoneKeep | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x004179B0
+ void Buildings::UpdateKeepStoneKeep()
+ {
+ int* piVar1;
+ short sVar2;
+ short sVar3;
+ int iVar4;
+ byte bVar5;
+ int iVar6;
+ int iVar7;
+ iVar6 = DAT_CurrentBuildingID;
+ sVar2 = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 0;
+ DAT_BuildingsState.buildings[iVar6].currentHealth
+ = DAT_BuildingsState.buildings[iVar6].maxHealth;
+ DAT_BuildingsState.buildings[iVar6].someX = DAT_BuildingsState.buildings[iVar6].x + 3;
+ bVar5 = (byte)DAT_GameCore.mapTimeInTicks & 3;
+ DAT_BuildingsState.buildings[iVar6].someY = DAT_BuildingsState.buildings[iVar6].y + 2;
+ DAT_BuildingsState.buildings[iVar6].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[iVar6].field20_0x38 = 0x18;
+ if (((bVar5 == 0) && (DAT_GameCore.gameMode_2 != GM_EDITOR))
+ && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)) {
+ iVar4 = DAT_GameState.playerDataArray[sVar2].startResources[0xf];
+ if (0 < iVar4) {
+ iVar7 = 1;
+ if (iVar4 < 0x3e9) {
+ if (100 < iVar4) {
+ iVar7 = 10;
+ }
+ } else {
+ iVar7 = 100;
+ }
+ piVar1 = DAT_GameState.playerDataArray[sVar2].currentResources + 0xf;
+ *piVar1 = *piVar1 + iVar7;
+ DAT_BuildingsState.buildings[iVar6].resourceRelatedCountDown = 100;
+ sVar3 = (short)DAT_GameState.playerDataArray[sVar2].currentResources[0xf];
+ DAT_GameState.playerDataArray[sVar2].startResources[0xf] = iVar4 - iVar7;
+ DAT_GameState.playerDataArray[sVar2].beforeLastMonthsGold = sVar3;
+ DAT_GameState.playerDataArray[sVar2].lastMonthsGold = sVar3;
+ DAT_GameCore.countdown = 1;
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x00417aa0 UpdateKeepStronghold | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00417AA0
+ void Buildings::UpdateKeepStronghold()
+ {
+ int* piVar1;
+ short sVar2;
+ short sVar3;
+ byte bVar4;
+ int _goldStep;
+ int _buildingID;
+ int _currentStartingGold;
+ _buildingID = DAT_CurrentBuildingID;
+ sVar2 = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 0;
+ DAT_BuildingsState.buildings[_buildingID].currentHealth
+ = DAT_BuildingsState.buildings[_buildingID].maxHealth;
+ DAT_BuildingsState.buildings[_buildingID].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[_buildingID].field20_0x38 = 0x1b;
+ DAT_BuildingsState.buildings[_buildingID].someX
+ = DAT_BuildingsState.buildings[_buildingID].x + 5;
+ bVar4 = (byte)DAT_GameCore.mapTimeInTicks & 3;
+ DAT_BuildingsState.buildings[_buildingID].someY
+ = DAT_BuildingsState.buildings[_buildingID].y + 4;
+ if (((bVar4 == 0) && (DAT_GameCore.gameMode_2 != GM_EDITOR))
+ && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)) {
+ _currentStartingGold = DAT_GameState.playerDataArray[sVar2].startResources[0xf];
+ if (0 < _currentStartingGold) {
+ _goldStep = 1;
+ if (_currentStartingGold < 0x3e9) {
+ if (100 < _currentStartingGold) {
+ _goldStep = 10;
+ }
+ } else {
+ _goldStep = 100;
+ }
+ piVar1 = DAT_GameState.playerDataArray[sVar2].currentResources + 0xf;
+ *piVar1 = *piVar1 + _goldStep;
+ DAT_BuildingsState.buildings[_buildingID].resourceRelatedCountDown = 100;
+ sVar3 = (short)DAT_GameState.playerDataArray[sVar2].currentResources[0xf];
+ DAT_GameState.playerDataArray[sVar2].startResources[0xf] = _currentStartingGold - _goldStep;
+ DAT_GameState.playerDataArray[sVar2].beforeLastMonthsGold = sVar3;
+ DAT_GameState.playerDataArray[sVar2].lastMonthsGold = sVar3;
+ DAT_GameCore.countdown = 1;
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x004180e0 UpdateBuildingShared1 | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x004180E0
+ void Buildings::UpdateBuildingShared1()
+ {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 0;
+ }
+}
+}
+
+### 0x00418530 UpdateBadBuildingGallows | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00418530
+ void Buildings::UpdateBadBuildingGallows()
+ {
+ byte bVar1;
+ short sVar2;
+ uint uVar3;
+ int buildingID;
+ sVar2 = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner;
+ addBuildingToTargetableBuildings(
+ DAT_CurrentBuildingID);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ buildingID = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field66_0xbe = 0;
+ updateBuildingSignpostCounter(buildingID, 1);
+ uVar3 = DAT_GameState.playerDataArray[sVar2].fearFactorLevel;
+ if ((int)uVar3 < -2) {
+ DAT_BuildingsState.buildings[buildingID].renderAnimation = 1;
+ } else {
+ DAT_BuildingsState.buildings[buildingID].renderAnimation = 0;
+ if (0x7fffffff < uVar3) {
+ DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive = 1;
+ goto LAB_004185ad;
+ }
+ }
+ DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive = 0;
+ LAB_004185ad:
+ DAT_BuildingsState.buildings[buildingID].spriteOffetX = -0x23;
+ DAT_BuildingsState.buildings[buildingID].spriteOffetY = -0x6d;
+ bVar1 = DAT_BuildingDefinedData
+ .field158_0x75fc[DAT_BuildingsState.buildings[buildingID].animationIndex];
+ DAT_BuildingsState.buildings[buildingID].animationFrame = (int)(char)bVar1;
+ if ((char)bVar1 < 1) {
+ DAT_BuildingsState.buildings[buildingID].animationIndex = 0;
+ DAT_BuildingsState.buildings[buildingID].animationFrame = 1;
+ }
+ if (DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive
+ != DAT_BuildingsState.buildings[buildingID].oldVisualActiveState) {
+ updateBuildingGraphicsLayer(
+ buildingID);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive;
+ }
+ return;
+ }
+}
+}
+
+### 0x00418640 UpdateBadBuildingStocks | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00418640
+ void Buildings::UpdateBadBuildingStocks()
+ {
+ byte bVar1;
+ short sVar2;
+ int iVar3;
+ sVar2 = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner;
+ addBuildingToTargetableBuildings(
+ DAT_CurrentBuildingID);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ iVar3 = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].playerColorUnk = 0;
+ DAT_BuildingsState.buildings[iVar3].field66_0xbe = 0;
+ updateBuildingSignpostCounter(iVar3, 1);
+ DAT_BuildingsState.buildings[iVar3].renderAnimation
+ = (ushort)(DAT_GameState.playerDataArray[sVar2].fearFactorLevel < -1);
+ bVar1 = DAT_BuildingDefinedData
+ .field159_0x7624[DAT_BuildingsState.buildings[iVar3].animationIndex];
+ DAT_BuildingsState.buildings[iVar3].animationFrame = (int)(char)bVar1;
+ if ((char)bVar1 < 1) {
+ DAT_BuildingsState.buildings[iVar3].animationIndex = 0;
+ DAT_BuildingsState.buildings[iVar3].animationFrame = 1;
+ }
+ if ((((DAT_BuildingsState.buildings[iVar3].animationActive != 0)
+ && (DAT_GameCore.currentMenuViewType == MVT_BUILDING_AND_STATUS_MENU))
+ && (DAT_GameCore.activeMenuTab.tabType == BASMTT_STOCKS))
+ && ((iVar3 == DAT_BuildingsState.menuSelectedBuildingID
+ && (DAT_BuildingsState.buildings[iVar3].animationIndex == 5)))) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[iVar3].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[iVar3].y)), FX_STOCKS);
+ }
+ return;
+ }
+}
+}
+
+### 0x00418740 UpdateGoodBuildingMaypole | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00418740
+ void Buildings::UpdateGoodBuildingMaypole()
+ {
+ int* piVar1;
+ byte bVar2;
+ short sVar3;
+ int iVar4;
+ int iVar5;
+ iVar4 = DAT_CurrentBuildingID;
+ sVar3 = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].playerColorUnk
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].fireRelatedRNG1 % 9;
+ addBuildingToTargetableBuildings(iVar4);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ iVar4 = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field66_0xbe = 0;
+ updateBuildingSignpostCounter(iVar4, 1);
+ DAT_BuildingsState.buildings[iVar4].renderAnimation
+ = (ushort)(0 < DAT_GameState.playerDataArray[sVar3].fearFactorLevel);
+ DAT_BuildingsState.buildings[iVar4].spriteOffetX = -0x23;
+ DAT_BuildingsState.buildings[iVar4].spriteOffetY = -0x4f;
+ if (DAT_GameState.playerDataArray[sVar3].popularity
+ < (int)((DAT_BuildingsState.buildings[iVar4].fireRelatedRNG1 & 0xffU) + 5000)) {
+ iVar5 = (char)DAT_BuildingDefinedData
+ .field168_0x79c4[DAT_BuildingsState.buildings[iVar4].animationIndex]
+ + 0x20;
+ DAT_BuildingsState.buildings[iVar4].animationFrame = iVar5;
+ if (iVar5 < 0x21) {
+ DAT_BuildingsState.buildings[iVar4].animationIndex = 0;
+ DAT_BuildingsState.buildings[iVar4].animationFrame = 0x21;
+ return;
+ }
+ } else {
+ bVar2 = DAT_BuildingDefinedData
+ .field167_0x7974[DAT_BuildingsState.buildings[iVar4].animationIndex];
+ DAT_BuildingsState.buildings[iVar4].animationFrame = (int)(char)bVar2;
+ if ((char)bVar2 < 1) {
+ piVar1 = &DAT_BuildingsState.buildings[iVar4].field13_0x28;
+ *piVar1 = *piVar1 + 1;
+ DAT_BuildingsState.buildings[iVar4].animationIndex = 0;
+ DAT_BuildingsState.buildings[iVar4].animationFrame = 1;
+ if ((DAT_BuildingsState.buildings[iVar4].field13_0x28 & 7) == 0) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[iVar4].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[iVar4].y)),
+ FX_MAYPOLE);
+ }
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x00418880 UpdateGoodBuildingGarden | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00418880
+ void Buildings::UpdateGoodBuildingGarden()
+ {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 0;
+ addBuildingToTargetableBuildings(
+ DAT_CurrentBuildingID);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ }
+}
+}
+
+### 0x004188c0 UpdatePlacedSiegeTower | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x004188C0
+ void Buildings::UpdatePlacedSiegeTower()
+ {
+ int const unitID = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].unitRefID;
+ if (unitID == 0
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].unitRefUID
+ != DAT_UnitsState.units[unitID].uid) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].logicalState
+ = BLS_REMOVE;
+ }
+ }
+}
+}
+
+### 0x004189a0 UpdateKeepDoorLeft | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x004189A0
+ void Buildings::UpdateKeepDoorLeft()
+ {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 0;
+ int const keepID = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].quarryStockpileID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].orientation
+ = DAT_BuildingsState.buildings[keepID].orientation;
+ if (DAT_BuildingsState.buildings[keepID].buildingType == BT_MANORHOUSE) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].gfxOffset = 0x531;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].spriteID = 0x524;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].unknownManorHouseOrStoneKeepRelated
+ = 0;
+ } else if (DAT_BuildingsState.buildings[keepID].buildingType == BT_STONEKEEP
+ || DAT_BuildingsState.buildings[keepID].buildingType == BT_STRONGHOLD) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].gfxOffset = 0x52c;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].spriteID = 0x522;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].unknownManorHouseOrStoneKeepRelated
+ = 0;
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].spriteID
+ != DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState) {
+ updateBuildingGraphicsLayer(
+ DAT_CurrentBuildingID);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].spriteID;
+ }
+ }
+}
+}
+
+### 0x00418a60 UpdateKeepDoorRight | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00418A60
+ void Buildings::UpdateKeepDoorRight()
+ {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 0;
+ int const keepID = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].quarryStockpileID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].orientation
+ = DAT_BuildingsState.buildings[keepID].orientation;
+ if (DAT_BuildingsState.buildings[keepID].buildingType == BT_MANORHOUSE) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].gfxOffset = 0x531;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].spriteID = 0x528;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].unknownManorHouseOrStoneKeepRelated
+ = 0;
+ } else if (DAT_BuildingsState.buildings[keepID].buildingType == BT_STONEKEEP
+ || DAT_BuildingsState.buildings[keepID].buildingType == BT_STRONGHOLD) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].gfxOffset = 0x52c;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].spriteID = 0x526;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].unknownManorHouseOrStoneKeepRelated
+ = 0;
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].spriteID
+ != DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState) {
+ updateBuildingGraphicsLayer(
+ DAT_CurrentBuildingID);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].spriteID;
+ }
+ }
+}
+}
+
+### 0x00418b20 UpdateKeepDoor | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00418B20
+ void Buildings::UpdateKeepDoor()
+ {
+ int const keepID = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].quarryStockpileID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].orientation
+ = DAT_BuildingsState.buildings[keepID].orientation;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].useOffsetGraphics == 0;
+ if (DAT_BuildingsState.buildings[keepID].buildingType == BT_MANORHOUSE) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].gfxOffset = 0x533;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].spriteID = 0x52f;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].unknownManorHouseOrStoneKeepRelated
+ = 0;
+ if (DAT_TileMapState.mapOrientation != 0 && DAT_TileMapState.mapOrientation != 4) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].spriteOffetX = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].spriteOffetY = -42;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = 34;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].spriteOffetX = -2;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].spriteOffetY = -44;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = 32;
+ }
+ } else if (DAT_BuildingsState.buildings[keepID].buildingType == BT_STONEKEEP
+ || DAT_BuildingsState.buildings[keepID].buildingType == BT_STRONGHOLD) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].gfxOffset = 0x52e;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].spriteID = 0x52a;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].unknownManorHouseOrStoneKeepRelated
+ = 0;
+ if (DAT_TileMapState.mapOrientation != 0 && DAT_TileMapState.mapOrientation != 4) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].spriteOffetY = -64;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].spriteOffetX = 14;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = 30;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].spriteOffetY = -63;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].spriteOffetX = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = 28;
+ }
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].spriteID
+ != DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState) {
+ updateBuildingGraphicsLayer(
+ DAT_CurrentBuildingID);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].spriteID;
+ }
+ }
+}
+}
+
+### 0x00418c80 UpdateTower1 | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00418C80
+ void Buildings::UpdateTower1()
+ {
+ int iVar1;
+ short sVar2;
+ uint uVar3;
+ int iVar4;
+ int iVar5;
+ uint uVar6;
+ uint uVar7;
+ uint uVar8;
+ int local_20[8];
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ iVar1 = DAT_CurrentBuildingID;
+ iVar4 = DAT_CurrentBuildingID * 0x32c;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 1;
+ DAT_BuildingsState.buildings[iVar1].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[iVar1].animationFrame = 0;
+ DAT_BuildingsState.buildings[iVar1].someX = DAT_BuildingsState.buildings[iVar1].x + 1;
+ DAT_BuildingsState.buildings[iVar1].someY = DAT_BuildingsState.buildings[iVar1].y + 1;
+ DAT_BuildingsState.buildings[iVar1].field20_0x38 = 0x7d;
+ DAT_BuildingsState.buildings[iVar1].shouldRenderRoof = 0x7c;
+ DAT_BuildingsState.buildings[iVar1].field21_0x3c = 0;
+ DAT_BuildingsState.buildings[iVar1].field22_0x40 = 0;
+ DAT_BuildingsState.buildings[iVar1].field23_0x44 = 0;
+ DAT_BuildingsState.buildings[iVar1].field29_0x5c = 0;
+ DAT_BuildingsState.buildings[iVar1].field33_0x6c = 0;
+ DAT_BuildingsState.buildings[iVar1].field34_0x70 = 0;
+ DAT_BuildingsState.buildings[iVar1].field35_0x74 = 0;
+ DAT_BuildingsState.buildings[iVar1].field36_0x78 = 0;
+ DAT_BuildingsState.buildings[iVar1].field37_0x7c = 0;
+ DAT_BuildingsState.buildings[iVar1].ownerFlagFrame = 0;
+ DAT_BuildingsState.buildings[iVar1].field39_0x84 = 0;
+ local_20[1] = 0;
+ local_20[2] = 0;
+ local_20[3] = 0;
+ local_20[4] = 0;
+ local_20[5] = 0;
+ local_20[6] = 0;
+ local_20[7] = 0;
+ DAT_BuildingsState.buildings[iVar1].field40_0x88 = 0;
+ local_20[0] = 0;
+ iVar5 = 9
+ - (DAT_BuildingsState.buildings[iVar1].currentHealth * 9)
+ / (int)DAT_BuildingsState.buildings[iVar1].maxHealth;
+ if (iVar5 < 9) {
+ if (iVar5 == 0)
+ goto LAB_00418e05;
+ } else {
+ iVar5 = 8;
+ }
+ if (0 < iVar5) {
+ uVar8 = DAT_BuildingsState.buildings[iVar1].fireRelatedRNG1;
+ uVar3 = (int)uVar8 >> 8;
+ do {
+ uVar6 = uVar8 & 0xf;
+ uVar7 = uVar3 & 7;
+ uVar8 = uVar8 + 1;
+ uVar3 = uVar3 + 1;
+ iVar5 = iVar5 + -1;
+ local_20[uVar7] = uVar6 + 1;
+ } while (iVar5 != 0);
+ }
+ DAT_BuildingsState.buildings[iVar1].field33_0x6c = local_20[0];
+ DAT_BuildingsState.buildings[iVar1].field34_0x70 = local_20[1];
+ DAT_BuildingsState.buildings[iVar1].field35_0x74 = local_20[2];
+ DAT_BuildingsState.buildings[iVar1].field36_0x78 = local_20[3];
+ DAT_BuildingsState.buildings[iVar1].field37_0x7c = local_20[4];
+ DAT_BuildingsState.buildings[iVar1].ownerFlagFrame = local_20[5];
+ DAT_BuildingsState.buildings[iVar1].field39_0x84 = local_20[6];
+ DAT_BuildingsState.buildings[iVar1].field40_0x88 = local_20[7];
+ LAB_00418e05:
+ sVar2 = DAT_BuildingsState.buildings[iVar1].field261_0x2fa;
+ if ((0 < sVar2)
+ && (sVar2 = sVar2 + -1, DAT_BuildingsState.buildings[iVar1].field261_0x2fa = sVar2, sVar2 == 0)) {
+ iVar5 = 0;
+ sVar2 = 0;
+ do {
+ getBuildingSizeIndexMappingData(iVar5, 3);
+ iVar1 = DAT_CurrentBuildingID;
+ if (DAT_TileMapState
+ .UnitLayer[DAT_ViewportRenderState
+ .translationMatrix[(short)DAT_BuildingsState
+ .buildings[DAT_CurrentBuildingID]
+ .y
+ + DAT_TileMapState.buildingY]
+ .addXgetTile
+ + (int)(short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x
+ + DAT_TileMapState.buildingX]
+ != 0) {
+ sVar2 = 1;
+ break;
+ }
+ iVar5 = iVar5 + 1;
+ } while (iVar5 < DAT_TileMapState.constructionTileCount);
+ iVar4 = DAT_CurrentBuildingID * 0x32c;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].hasUnitsOntop = sVar2;
+ DAT_BuildingsState.buildings[iVar1].field261_0x2fa = 100;
+ }
+ if (*(short*)((int)DAT_BuildingsState.buildings[0].quarryLinkedOxTethers + iVar4 + 0x2e) != 0) {
+ *(undefined4*)((int)&DAT_BuildingsState.buildings[0].shouldRenderRoof + iVar4) = 0x7e;
+ }
+ return;
+ }
+}
+}
+
+### 0x00418f70 UpdateBadBuildingCessPitOrDancingBearUnk | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00418F70
+ void Buildings::UpdateBadBuildingCessPitOrDancingBearUnk()
+ {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 0;
+ }
+}
+}
+
+### 0x00418f90 UpdateBadBuildingBurningStake | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00418F90
+ void Buildings::UpdateBadBuildingBurningStake()
+ {
+ short sVar1;
+ int iVar2;
+ int iVar3;
+ iVar2 = DAT_CurrentBuildingID;
+ sVar1 = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].playerColorUnk = 0;
+ addBuildingToTargetableBuildings(iVar2);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ iVar3 = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 0;
+ DAT_BuildingsState.buildings[iVar3].field66_0xbe = 0;
+ updateBuildingSignpostCounter(iVar3, 1);
+ iVar2 = DAT_GameState.playerDataArray[sVar1].fearFactorLevel;
+ DAT_BuildingsState.buildings[iVar3].renderAnimation = (ushort)(iVar2 < -4);
+ if (iVar2 < -4) {
+ DAT_BuildingsState.buildings[iVar3].animationFrame
+ = (int)(char)DAT_BuildingDefinedData
+ .field163_0x778c[DAT_BuildingsState.buildings[iVar3].animationIndex];
+ }
+ if (DAT_BuildingsState.buildings[iVar3].animationFrame < 1) {
+ DAT_BuildingsState.buildings[iVar3].animationIndex = 0;
+ DAT_BuildingsState.buildings[iVar3].animationFrame = 1;
+ }
+ if ((((DAT_BuildingsState.buildings[iVar3].animationActive != 0)
+ && (DAT_GameCore.currentMenuViewType == MVT_BUILDING_AND_STATUS_MENU))
+ && (DAT_GameCore.activeMenuTab.tabType == BASMTT_BURNINGSTAKE))
+ && (iVar3 == DAT_BuildingsState.menuSelectedBuildingID)) {
+ if (DAT_BuildingsState.buildings[iVar3].animationIndex == 0x2f) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[iVar3].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[iVar3].y)),
+ FX_WITCH_BURN);
+ iVar3 = DAT_CurrentBuildingID;
+ }
+ if (DAT_BuildingsState.buildings[iVar3].animationIndex == 0x31) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[iVar3].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[iVar3].y)),
+ FX_WITCH_SCREAM);
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x004190d0 UpdateBadBuildingGibbet | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x004190D0
+ void Buildings::UpdateBadBuildingGibbet()
+ {
+ byte bVar1;
+ short sVar2;
+ int iVar3;
+ iVar3 = DAT_CurrentBuildingID;
+ sVar2 = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].playerColorUnk
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].fireRelatedRNG1 % 9;
+ addBuildingToTargetableBuildings(iVar3);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ iVar3 = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 0;
+ DAT_BuildingsState.buildings[iVar3].field66_0xbe = 0;
+ updateBuildingSignpostCounter(iVar3, 1);
+ DAT_BuildingsState.buildings[iVar3].renderAnimation
+ = (ushort)(DAT_GameState.playerDataArray[sVar2].fearFactorLevel < -3);
+ bVar1 = DAT_BuildingDefinedData
+ .field162_0x7768[DAT_BuildingsState.buildings[iVar3].animationIndex];
+ DAT_BuildingsState.buildings[iVar3].animationFrame = (int)(char)bVar1;
+ if ((char)bVar1 < 1) {
+ DAT_BuildingsState.buildings[iVar3].animationIndex = 0;
+ DAT_BuildingsState.buildings[iVar3].animationFrame = 1;
+ }
+ return;
+ }
+}
+}
+
+### 0x00419190 UpdateBadBuildingDungeon | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00419190
+ void Buildings::UpdateBadBuildingDungeon()
+ {
+ byte bVar1;
+ short sVar2;
+ int iVar3;
+ int buildingID;
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ buildingID = DAT_CurrentBuildingID;
+ sVar2 = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].playerColorUnk = 0;
+ DAT_BuildingsState.buildings[buildingID].displayOwnerFlag = 0;
+ DAT_BuildingsState.buildings[buildingID].field66_0xbe = 0;
+ updateBuildingSignpostCounter(buildingID, 1);
+ iVar3 = DAT_GameState.playerDataArray[sVar2].fearFactorLevel;
+ if (iVar3 < -3) {
+ DAT_BuildingsState.buildings[buildingID].renderAnimation = 1;
+ DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive = 1;
+ } else {
+ DAT_BuildingsState.buildings[buildingID].renderAnimation = 0;
+ if (iVar3 < -1) {
+ DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive = 1;
+ } else {
+ DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive = 0;
+ }
+ }
+ bVar1 = DAT_BuildingDefinedData
+ .field160_0x766c[DAT_BuildingsState.buildings[buildingID].animationIndex];
+ DAT_BuildingsState.buildings[buildingID].animationFrame = (int)(char)bVar1;
+ if ((char)bVar1 < 1) {
+ DAT_BuildingsState.buildings[buildingID].animationIndex = 0;
+ DAT_BuildingsState.buildings[buildingID].animationFrame = 1;
+ }
+ if (DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive
+ != DAT_BuildingsState.buildings[buildingID].oldVisualActiveState) {
+ updateBuildingGraphicsLayer(
+ buildingID);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive;
+ }
+ return;
+ }
+}
+}
+
+### 0x00419290 UpdateBadBuildingStretchingRack | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00419290
+ void Buildings::UpdateBadBuildingStretchingRack()
+ {
+ byte bVar1;
+ short sVar2;
+ int iVar3;
+ iVar3 = DAT_CurrentBuildingID;
+ sVar2 = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].playerColorUnk = 0;
+ addBuildingToTargetableBuildings(iVar3);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ iVar3 = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 0;
+ DAT_BuildingsState.buildings[iVar3].field66_0xbe = 0;
+ updateBuildingSignpostCounter(iVar3, 1);
+ DAT_BuildingsState.buildings[iVar3].renderAnimation
+ = (ushort)(DAT_GameState.playerDataArray[sVar2].fearFactorLevel < -2);
+ bVar1 = DAT_BuildingDefinedData
+ .field164_0x77e4[DAT_BuildingsState.buildings[iVar3].animationIndex];
+ DAT_BuildingsState.buildings[iVar3].animationFrame = (int)(char)bVar1;
+ if ((char)bVar1 < 1) {
+ DAT_BuildingsState.buildings[iVar3].animationIndex = 0;
+ DAT_BuildingsState.buildings[iVar3].animationFrame = 1;
+ }
+ return;
+ }
+}
+}
+
+### 0x00419340 UpdateBadBuildingRackFlogging | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00419340
+ void Buildings::UpdateBadBuildingRackFlogging()
+ {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 0;
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ }
+}
+}
+
+### 0x00419370 UpdateBadBuildingChoppingBlock | quelle=nachgebaut | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00419370
+ void Buildings::UpdateBadBuildingChoppingBlock()
+ {
+ int const owner = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].playerColorUnk = 0;
+ addBuildingToTargetableBuildings(
+ DAT_CurrentBuildingID);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationTickCounter += 1;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationTickCounter > 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationTickCounter = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag
+ = DAT_GameState.playerDataArray[owner].fearFactorLevel <= -4;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock += 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1
+ = (char)DAT_BuildingDefinedData.BadBuildingChoppingBlockAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock];
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1 <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].campgroundVclock = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1 = 1;
+ }
+ }
+ }
+}
+}
+
+### 0x00419420 UpdateBadBuildingDunkingStool | quelle=ghidra | bereich=Gebaeude
+// FUNCTION: STRONGHOLDCRUSADER 0x00419420
+ void Buildings::UpdateBadBuildingDunkingStool()
+ {
+ byte bVar1;
+ short sVar2;
+ int buildingID;
+ sVar2 = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner;
+ addBuildingToTargetableBuildings(
+ DAT_CurrentBuildingID);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ buildingID = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].playerColorUnk = 0;
+ DAT_BuildingsState.buildings[buildingID].displayOwnerFlag = 0;
+ DAT_BuildingsState.buildings[buildingID].field66_0xbe = 0;
+ updateBuildingSignpostCounter(buildingID, 1);
+ if (DAT_GameState.playerDataArray[sVar2].fearFactorLevel < -4) {
+ DAT_BuildingsState.buildings[buildingID].renderAnimation = 1;
+ DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive = 1;
+ } else {
+ DAT_BuildingsState.buildings[buildingID].renderAnimation = 0;
+ DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive = 0;
+ }
+ bVar1 = DAT_BuildingDefinedData
+ .field161_0x76bc[DAT_BuildingsState.buildings[buildingID].animationIndex];
+ DAT_BuildingsState.buildings[buildingID].animationFrame = (int)(char)bVar1;
+ if ((char)bVar1 < 1) {
+ DAT_BuildingsState.buildings[buildingID].animationIndex = 0;
+ DAT_BuildingsState.buildings[buildingID].animationFrame = 1;
+ }
+ if ((((DAT_BuildingsState.buildings[buildingID].animationActive != 0)
+ && (DAT_GameCore.currentMenuViewType == MVT_BUILDING_AND_STATUS_MENU))
+ && (DAT_GameCore.activeMenuTab.tabType == BASMTT_DUNKINGSTOOL))
+ && (buildingID == DAT_BuildingsState.menuSelectedBuildingID)) {
+ if (DAT_BuildingsState.buildings[buildingID].animationIndex == 4) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[buildingID].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[buildingID].y)),
+ FX_WH_DUNK);
+ buildingID = DAT_CurrentBuildingID;
+ }
+ if (DAT_BuildingsState.buildings[buildingID].animationIndex == 0x22) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[buildingID].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[buildingID].y)),
+ FX_WH_BREATH1);
+ buildingID = DAT_CurrentBuildingID;
+ }
+ if (DAT_BuildingsState.buildings[buildingID].animationIndex == 0x48) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[buildingID].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[buildingID].y)),
+ FX_WH_BREATH2);
+ buildingID = DAT_CurrentBuildingID;
+ }
+ if (DAT_BuildingsState.buildings[buildingID].animationIndex == 0x68) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[buildingID].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[buildingID].y)),
+ FX_WH_LIFT);
+ buildingID = DAT_CurrentBuildingID;
+ }
+ }
+ if (DAT_BuildingsState.buildings[buildingID].buildingIsVisuallyActive
+ != DAT_BuildingsState.buildings[buildingID].oldVisualActiveState) {
+ updateBuildingGraphicsLayer(
+ buildingID);
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].oldVisualActiveState
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingIsVisuallyActive;
+ }
+ return;
+ }
+}
+}
+

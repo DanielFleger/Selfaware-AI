@@ -1,0 +1,589 @@
+### 0x004e2ad0 renderGmOverlayBuilding2 | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004E2AD0
+ void ViewportRenderState::renderGmOverlayBuilding2(int param_1, int param_2, int param_3, int param_4)
+ {
+ short sVar1;
+ BuildingTypeShort BVar2;
+ Building* pBVar3;
+ int iVar4;
+ uint uVar5;
+ int iVar6;
+ int iVar7;
+ int iVar8;
+ int iVar9;
+ GmID GVar10;
+ GmID maskGmID;
+ iVar4 = param_1;
+ pBVar3 = DAT_BuildingsState.buildings + param_1;
+ iVar9 = 0;
+ if (DAT_BuildingDefinedData.BuildingHeights[(short)pBVar3->buildingType] == 0) {
+ iVar9 = DAT_BuildingsState.buildings[param_1].widthOrHeight << 5;
+ }
+ if ((int)DAT_BuildingsState.buildings[param_1].widthOrHeight < 3) {
+ param_1 = 0;
+ if ((((DAT_GameCore.currentMenuViewType == MVT_BUILDING_AND_STATUS_MENU)
+ && (iVar4 == DAT_BuildingsState.menuSelectedBuildingID))
+ || ((iVar4 == DAT_BuildingsState.field28_0x18e05c
+ && (DAT_BuildingsState.field29_0x18e060
+ == DAT_BuildingsState.buildings[iVar4].uid))))
+ && (sVar1 = DAT_BuildingsState.buildings[iVar4].maxHealth, sVar1 != 0)) {
+ if (sVar1 == 0) {
+ iVar7 = 100;
+ } else {
+ iVar7 = (DAT_BuildingsState.buildings[iVar4].currentHealth * 100) / (int)sVar1;
+ }
+ BVar2 = DAT_BuildingsState.buildings[iVar4].buildingType;
+ if (BVar2 == BT_GALLOWS) {
+ LAB_004e2ba1:
+ param_1 = 0x50;
+ } else if (BVar2 == BT_TOWER1) {
+ param_1 = 0x1e;
+ } else if (BVar2 == BT_GIBBET)
+ goto LAB_004e2ba1;
+ if ((uint)(iVar7 / 10) < 0xb) {
+ renderGM(GM_FLOATS, iVar7 / 10 + 0x11, param_2 + 4,
+ ((param_3 - DAT_BuildingDefinedData.BuildingHeights[(short)pBVar3->buildingType])
+ - param_1)
+ + -0xc);
+ }
+ }
+ if ((DAT_GameCore.gameMode_2 != GM_BUILDERUnk)
+ || (DAT_MapPropertiesState.SEC_U3_MapType2_1 != MT_SIEGE)) {
+ if (DAT_BuildingsState.buildings[iVar4].sleeping == false) {
+ if ((DAT_BuildingsState.buildings[iVar4].currentlyNeededEmployeeCount == 0)
+ || (DAT_GameCore.field63_0x108 == 0))
+ goto LAB_004e2c94;
+ iVar7 = DAT_TileMapState.field161_0x5549c0 + 0x128;
+ maskGmID = GID_FLOATS_NEW;
+ iVar8 = (param_3
+ - DAT_BuildingDefinedData
+ .BuildingHeights[(short)DAT_BuildingsState.buildings[iVar4].buildingType])
+ - iVar9;
+ iVar6 = DAT_TileMapState.field161_0x5549c0 + 0x118;
+ GVar10 = GID_FLOATS_NEW;
+ } else {
+ uVar5 = DAT_TileMapState.field161_0x5549c0 - 1U & 0x80000007;
+ if ((int)uVar5 < 0) {
+ uVar5 = (uVar5 - 1 | 0xfffffff8) + 1;
+ }
+ iVar7 = uVar5 + 0xd3;
+ maskGmID = GID_FLOAT_POP_CIRC;
+ iVar8 = (param_3
+ - DAT_BuildingDefinedData
+ .BuildingHeights[(short)DAT_BuildingsState.buildings[iVar4].buildingType])
+ - iVar9;
+ iVar6 = uVar5 + 0xcb;
+ GVar10 = GID_FLOAT_POP_CIRC;
+ }
+ renderGMWithAlphaMask(
+ GVar10, iVar6, param_2 + -0x23, iVar8 + -0x2a, maskGmID, iVar7, 0);
+ }
+ LAB_004e2c94:
+ sVar1 = DAT_BuildingsState.buildings[iVar4].field68_0xc2;
+ if (sVar1 == 1) {
+ iVar7 = DAT_TileMapState.field161_0x5549c0 + 0x10;
+ iVar6 = DAT_TileMapState.field161_0x5549c0;
+ } else {
+ if (sVar1 != 2)
+ goto LAB_004e2cfa;
+ iVar7 = DAT_TileMapState.field161_0x5549c0 + 0x84;
+ iVar6 = DAT_TileMapState.field161_0x5549c0 + 0x74;
+ }
+ renderGMWithAlphaMask(GID_FLOATS_NEW, iVar6, param_2 + -0x23,
+ ((param_3
+ - DAT_BuildingDefinedData
+ .BuildingHeights[(short)DAT_BuildingsState.buildings[iVar4].buildingType])
+ - iVar9)
+ + -0x2a,
+ GID_FLOATS_NEW, iVar7, 0);
+ DAT_BuildingsState.buildings[iVar4].field68_0xc2 = 0;
+ }
+ LAB_004e2cfa:
+ if (DAT_BuildingsState.buildings[iVar4].field62_0xb0 == 0) {
+ switch (DAT_BuildingsState.buildings[iVar4].buildingType) {
+ case BT_GATEHOUSELARGE:
+ if ((DAT_BuildingsState.buildings[iVar4].currentHealth * 5)
+ / (int)DAT_BuildingsState.buildings[iVar4].maxHealth
+ != 5) {
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field33_0x6c;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + -0x4f, param_3 + -0x4c);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field34_0x70;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + -0x24, param_3 + -0x66);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field35_0x74;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + -0x2b, param_3 + -0x29);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field36_0x78;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + -0x40, param_3 + -0x76);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field37_0x7c;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + 0x24, param_3 + -0x66);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].ownerFlagFrame;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + 0x35, param_3 + -0x3b);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field39_0x84;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + 0x48, param_3 + -0x57);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field40_0x88;
+ if (iVar9 != 0) {
+ iVar7 = param_3 + -0x73;
+ iVar6 = param_2 + 0x4f;
+ LAB_004e3553:
+ renderGM(GM_CRACKS, iVar9, iVar6, iVar7);
+ }
+ }
+ break;
+ case BT_GATEHOUSESMALL:
+ if ((DAT_BuildingsState.buildings[iVar4].currentHealth * 5)
+ / (int)DAT_BuildingsState.buildings[iVar4].maxHealth
+ != 5) {
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field33_0x6c;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + -0x14, param_3 + -0x58);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field34_0x70;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + -0x2f, param_3 + -0x54);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field35_0x74;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + -0x11, param_3 + -0x20);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field36_0x78;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + 0x17, param_3 + -0x67);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field37_0x7c;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + 0xf, param_3 + -0x27);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].ownerFlagFrame;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + 0x38, param_3 + -0x2d);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field39_0x84;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + 0x19, param_3 + -0x4c);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field40_0x88;
+ if (iVar9 != 0) {
+ iVar7 = param_3 + -0x7c;
+ iVar6 = param_2 + -0x3a;
+ goto LAB_004e3553;
+ }
+ }
+ break;
+ case BT_TOWER1:
+ if ((DAT_BuildingsState.buildings[iVar4].currentHealth * 5)
+ / (int)DAT_BuildingsState.buildings[iVar4].maxHealth
+ != 5) {
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field33_0x6c;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + -0xf, param_3 + -0x42);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field34_0x70;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + 0xd, param_3 + -0xb2);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field35_0x74;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + -9, param_3 + -0xfc);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field36_0x78;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2, param_3 + -0x6c);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field37_0x7c;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + -0xd, param_3 + -0xbd);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].ownerFlagFrame;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + 0xf, param_3 + -0xd9);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field39_0x84;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + 8, param_3 + -0x31);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field40_0x88;
+ if (iVar9 != 0) {
+ iVar7 = param_3 + -0x5a;
+ iVar6 = param_2 + 0xb;
+ goto LAB_004e3553;
+ }
+ }
+ break;
+ case BT_TOWER2:
+ if ((DAT_BuildingsState.buildings[iVar4].currentHealth * 5)
+ / (int)DAT_BuildingsState.buildings[iVar4].maxHealth
+ != 5) {
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field33_0x6c;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + -9, param_3 + -0x3b);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field34_0x70;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + 0x31, param_3 + -0x2d);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field35_0x74;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + -0x2b, param_3 + -0x24);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field36_0x78;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + 0x19, param_3 + -0x45);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field37_0x7c;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + -0x26, param_3 + -0x55);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].ownerFlagFrame;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + 0x16, param_3 + -0x24);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field39_0x84;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + -0x10, param_3 + -0x16);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field40_0x88;
+ if (iVar9 != 0) {
+ iVar7 = param_3 + -0x5e;
+ iVar6 = param_2 + 0x32;
+ goto LAB_004e3553;
+ }
+ }
+ break;
+ case BT_TOWER3:
+ if ((DAT_BuildingsState.buildings[iVar4].currentHealth * 5)
+ / (int)DAT_BuildingsState.buildings[iVar4].maxHealth
+ != 5) {
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field33_0x6c;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + 0x39, param_3 + -0x60);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field34_0x70;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + -0x13, param_3 + -0x16);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field35_0x74;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + -0x23, param_3 + -0x83);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field36_0x78;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + 0x19, param_3 + -0x81);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field37_0x7c;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + 0x31, param_3 + -0x2f);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].ownerFlagFrame;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + -0x2e, param_3 + -0x60);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field39_0x84;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + -0x10, param_3 + -0x6a);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field40_0x88;
+ if (iVar9 != 0) {
+ iVar7 = param_3 + -0x5b;
+ iVar6 = param_2 + 0x20;
+ goto LAB_004e3553;
+ }
+ }
+ break;
+ case BT_TOWER4:
+ if ((DAT_BuildingsState.buildings[iVar4].currentHealth * 5)
+ / (int)DAT_BuildingsState.buildings[iVar4].maxHealth
+ != 5) {
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field33_0x6c;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + -0x41, param_3 + -0x9f);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field34_0x70;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + 0x25, param_3 + -0x61);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field35_0x74;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + 0x4b, param_3 + -0x41);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field36_0x78;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + -0x41, param_3 + -0x45);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field37_0x7c;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + -0x26, param_3 + -0x73);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].ownerFlagFrame;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + -0x13, param_3 + -0x3b);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field39_0x84;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + 0x36, param_3 + -0x8b);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field40_0x88;
+ if (iVar9 != 0) {
+ iVar7 = param_3 + -0x6e;
+ iVar6 = param_2 + 0x42;
+ goto LAB_004e3553;
+ }
+ }
+ break;
+ case BT_TOWER5:
+ if ((DAT_BuildingsState.buildings[iVar4].currentHealth * 5)
+ / (int)DAT_BuildingsState.buildings[iVar4].maxHealth
+ != 5) {
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field33_0x6c;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + 0x33, param_3 + -0x7f);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field34_0x70;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + 4, param_3 + -0x5b);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field35_0x74;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + -0x29, param_3 + -0x7a);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field36_0x78;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + -0x21, param_3 + -0x45);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field37_0x7c;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + 0x28, param_3 + -0x59);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].ownerFlagFrame;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + 0x16, param_3 + -0x37);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field39_0x84;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CRACKS, iVar9, param_2 + -0x16, param_3 + -0x84);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field40_0x88;
+ if (iVar9 != 0) {
+ iVar7 = param_3 + -0x42;
+ iVar6 = param_2 + 0x3a;
+ goto LAB_004e3553;
+ }
+ }
+ }
+ }
+ if ((DAT_BuildingsState.buildings[iVar4].displayOwnerFlag != 0)
+ && (DAT_BuildingsState.buildings[iVar4].buildingType == BT_OXTETHER)) {
+ DAT_RenderedUnitOwner = DAT_BuildingsState.buildings[iVar4].playerColorUnk;
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field39_0x84;
+ DAT_CurrentlyRenderedSpriteID = 0xbd;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_ANIM_FLAG_SMALL, iVar9, param_2 + -0x1e, param_3 + -0x43);
+ }
+ }
+ if (DAT_BuildingsState.buildings[iVar4].renderAnimation == 0) {
+ return;
+ }
+ if (DAT_BuildingsState.buildings[iVar4].animationFrame == 0) {
+ return;
+ }
+ if (DAT_TileMapState.field93_0x5548c8 != 0) {
+ return;
+ }
+ DAT_CurrentlyRenderedSpriteID = (GmID)DAT_BuildingsState.buildings[iVar4].spriteID2;
+ BVar2 = DAT_BuildingsState.buildings[iVar4].buildingType;
+ DAT_RenderedUnitOwner = 0;
+ if (((BVar2 == BT_KILLINGPIT)
+ && (DAT_BuildingsState.buildings[iVar4].owner
+ != DAT_GameSynchronyState.currentPlayerSlotID))
+ && (DAT_BuildingsState.buildings[iVar4].state < 1)) {
+ DAT_RenderedUnitOwner = 0;
+ return;
+ }
+ if ((BVar2 == BT_DRAWBRIDGE)
+ && (temporarySaveMapSurfaceHeightRangeUnk(),
+ DAT_BuildingsState.buildings[iVar4].drawBridgeState1 == 0)) {
+ setMapSurfaceHeightRange(param_3 - 0x17U & ((int)(param_3 - 0x17U) < 0) - 1, 0x81c);
+ }
+ BVar2 = DAT_BuildingsState.buildings[iVar4].buildingType;
+ if (BVar2 == BT_TOWER2) {
+ if (DAT_BuildingsState.buildings[iVar4].field62_0xb0 != 0)
+ goto LAB_004e380c;
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field21_0x3c;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CASTLE_ANIMS, iVar9, param_2 + -0x24, param_3 + -0x78);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field23_0x44;
+ if (iVar9 == 0)
+ goto LAB_004e380c;
+ iVar7 = param_3 + -0x71;
+ iVar6 = param_2 + 0x20;
+ GVar10 = GID_ANIM_CASTLE;
+ } else if (BVar2 == BT_TOWER3) {
+ if (DAT_BuildingsState.buildings[iVar4].field62_0xb0 != 0)
+ goto LAB_004e380c;
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field21_0x3c;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CASTLE_ANIMS, iVar9, param_2 + -0x24, param_3 + -0x77);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field23_0x44;
+ if (iVar9 == 0)
+ goto LAB_004e380c;
+ iVar7 = param_3 + -0x77;
+ iVar6 = param_2 + 0x2e;
+ GVar10 = GID_ANIM_CASTLE;
+ } else if (BVar2 == BT_TOWER4) {
+ if (DAT_BuildingsState.buildings[iVar4].field62_0xb0 != 0)
+ goto LAB_004e380c;
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field21_0x3c;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CASTLE_ANIMS, iVar9, param_2 + -0x34, param_3 + -0x82);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field23_0x44;
+ if (iVar9 == 0)
+ goto LAB_004e380c;
+ iVar7 = param_3 + -0x7d;
+ iVar6 = param_2 + 0x30;
+ GVar10 = GID_ANIM_CASTLE;
+ } else if (BVar2 == BT_TOWER5) {
+ if (DAT_BuildingsState.buildings[iVar4].field62_0xb0 != 0)
+ goto LAB_004e380c;
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field21_0x3c;
+ if (iVar9 != 0) {
+ renderGM(
+ GM_CASTLE_ANIMS, iVar9, param_2 + -0x33, param_3 + -0x82);
+ }
+ iVar9 = DAT_BuildingsState.buildings[iVar4].field23_0x44;
+ if (iVar9 == 0)
+ goto LAB_004e380c;
+ iVar7 = param_3 + -0x7c;
+ iVar6 = param_2 + 0x31;
+ GVar10 = GID_ANIM_CASTLE;
+ } else {
+ DAT_RenderedUnitOwner = DAT_BuildingsState.buildings[iVar4].playerColorUnk;
+ sVar1 = DAT_BuildingsState.buildings[iVar4].field66_0xbe;
+ DAT_CurrentlyRenderedSpriteID = (GmID)DAT_BuildingsState.buildings[iVar4].spriteID2;
+ if (sVar1 != 0) {
+ renderGMWithBlending(DAT_CurrentlyRenderedSpriteID,
+ DAT_BuildingsState.buildings[iVar4].animationFrame,
+ DAT_BuildingsState.buildings[iVar4].spriteOffetX + param_2,
+ DAT_BuildingsState.buildings[iVar4].spriteOffetY + param_3, sVar1);
+ goto LAB_004e380c;
+ }
+ iVar7 = DAT_BuildingsState.buildings[iVar4].spriteOffetY + param_3;
+ iVar9 = DAT_BuildingsState.buildings[iVar4].animationFrame;
+ iVar6 = DAT_BuildingsState.buildings[iVar4].spriteOffetX + param_2;
+ GVar10 = DAT_CurrentlyRenderedSpriteID;
+ }
+ renderGM(
+ GVar10, iVar9, iVar6, iVar7);
+ LAB_004e380c:
+ if (DAT_BuildingsState.buildings[iVar4].buildingType == BT_DRAWBRIDGE) {
+ restoreMapSurfaceHeightRangeFromTemporaryUnk();
+ }
+ return;
+ }
+}
+}
+
+### 0x004e3870 renderBuildingAnimation | quelle=ghidra | bereich=Darstellung
+// FUNCTION: STRONGHOLDCRUSADER 0x004E3870
+ void ViewportRenderState::renderBuildingAnimation(
+ int param_1, int param_2, int param_3, undefined4 param_4, int param_5)
+ {
+ short sVar1;
+ if ((((DAT_BuildingsState.buildings[param_1].renderAnimation != 0)
+ && (DAT_BuildingsState.buildings[param_1].animationFrame != 0))
+ && (DAT_TileMapState.field93_0x5548c8 == 0))
+ && (DAT_BuildingsState.buildings[param_1].drawBridgeState1 == 0)) {
+ if (param_5 != 0) {
+ temporarySaveMapSurfaceHeightRangeUnk();
+ setMapSurfaceHeightRange(param_3 - 0x27U & ((int)(param_3 - 0x27U) < 0) - 1, 0x81c);
+ }
+ sVar1 = DAT_BuildingsState.buildings[param_1].field66_0xbe;
+ DAT_CurrentlyRenderedSpriteID = (GmID)DAT_BuildingsState.buildings[param_1].spriteID2;
+ DAT_RenderedUnitOwner = DAT_BuildingsState.buildings[param_1].playerColorUnk;
+ if (sVar1 == 0) {
+ renderGM(DAT_CurrentlyRenderedSpriteID,
+ DAT_BuildingsState.buildings[param_1].animationFrame,
+ DAT_BuildingsState.buildings[param_1].spriteOffetX + param_2,
+ DAT_BuildingsState.buildings[param_1].spriteOffetY + param_3);
+ } else {
+ renderGMWithBlending(DAT_CurrentlyRenderedSpriteID,
+ DAT_BuildingsState.buildings[param_1].animationFrame,
+ DAT_BuildingsState.buildings[param_1].spriteOffetX + param_2,
+ DAT_BuildingsState.buildings[param_1].spriteOffetY + param_3, sVar1);
+ }
+ if (param_5 != 0) {
+ restoreMapSurfaceHeightRangeFromTemporaryUnk();
+ }
+ }
+ return;
+ }
+}
+}
+

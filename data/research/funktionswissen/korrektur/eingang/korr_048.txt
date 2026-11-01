@@ -1,0 +1,1160 @@
+### 0x004f0060 executeDefaultCastleAIV | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004F0060
+ BOOLEnum AIVState::executeDefaultCastleAIV(PlayerID playerID, int param_2)
+ {
+ AITypeInt AVar1;
+ BuildingType _normalBuildingType;
+ BOOLEnum BVar2;
+ uint _shouldBuildHouse;
+ int _shouldBuildPositiveFF;
+ int _shouldBuildNegativeFF;
+ uint _buildingSize;
+ int iVar3;
+ int _keepOrientationDiv2;
+ int _keepOrientationDiv2_2;
+ int _keepOrientationDiv2_3;
+ int _buildingSize_2;
+ MappersEnum _buildingType_2;
+ int _hovels;
+ int _barracks;
+ int _mercposts;
+ int _armories;
+ int _breweries;
+ int _bakeries;
+ int _mills;
+ int _poleturners;
+ int _fletchers;
+ int _tanners;
+ int _blacksmiths;
+ int _armourers;
+ int _chapels;
+ int _inns;
+ int _engineersguilds;
+ int _tunnelersguilds;
+ int _stabless;
+ int _cathedrals;
+ int _stockpiles;
+ uint _y;
+ uint _x;
+ int _granaries;
+ int _marketplaces;
+ int _buildingOrientation;
+ int _buildstepID;
+ int _appopriateXPosition;
+ int _xoff;
+ int _placedBuildingID;
+ int _aivID;
+ AIVBuildingStepStatusByte _buildStatus;
+ short _buildingIDAtTile;
+ MappersEnumShort _buildingType;
+ _aivID = DAT_GameState.playerDataArray[playerID].aivID;
+ AVar1 = DAT_GameState.playerDataArray[playerID].aiType;
+ _stockpiles = 0;
+ _hovels = 0;
+ _granaries = 1;
+ _marketplaces = 1;
+ _armories = 0;
+ _barracks = 0;
+ _mercposts = 0;
+ _cathedrals = 0;
+ _chapels = 0;
+ _inns = 0;
+ _breweries = 0;
+ _bakeries = 0;
+ _mills = 0;
+ _poleturners = 0;
+ _fletchers = 0;
+ _tanners = 0;
+ _blacksmiths = 0;
+ _armourers = 0;
+ _engineersguilds = 0;
+ _tunnelersguilds = 0;
+ _stabless = 0;
+ if (AVar1 == AIT_RAT) {
+ _stockpiles = 0;
+ _hovels = 3;
+ _armories = 1;
+ _barracks = 1;
+ _mercposts = 0;
+ _inns = 0;
+ _breweries = 0;
+ _bakeries = 0;
+ _mills = 0;
+ _poleturners = 1;
+ _fletchers = 1;
+ _tanners = 0;
+ _blacksmiths = 0;
+ _engineersguilds = 0;
+ LAB_004f0183:
+ _chapels = 0;
+ _armourers = 0;
+ } else {
+ if (AVar1 == AIT_SNAKE) {
+ _mercposts = 1;
+ _tanners = 0;
+ _blacksmiths = 0;
+ _poleturners = 2;
+ LAB_004f017f:
+ _stockpiles = 2;
+ _inns = 0;
+ _mills = 0;
+ _bakeries = 0;
+ _breweries = 0;
+ _armories = 1;
+ _barracks = 1;
+ _hovels = 4;
+ _engineersguilds = 1;
+ _fletchers = _stockpiles;
+ goto LAB_004f0183;
+ }
+ if (AVar1 == AIT_PIG) {
+ _mercposts = 0;
+ _poleturners = 0;
+ _tanners = 2;
+ _blacksmiths = 2;
+ goto LAB_004f017f;
+ }
+ if (AVar1 != AIT_WOLF) {
+ if (AVar1 == AIT_SALADIN) {
+ _stockpiles = 3;
+ _hovels = 8;
+ _inns = 0;
+ _breweries = 0;
+ _bakeries = 4;
+ _mills = 2;
+ } else {
+ if (AVar1 != AIT_CALIPH) {
+ if (AVar1 == AIT_SULTAN) {
+ _stockpiles = 0;
+ _hovels = 3;
+ _armories = 0;
+ _barracks = 0;
+ _mercposts = 1;
+ _cathedrals = 0;
+ _chapels = 0;
+ _inns = 0;
+ _breweries = 0;
+ _bakeries = 0;
+ _mills = 0;
+ _poleturners = 0;
+ _fletchers = 0;
+ _tanners = 0;
+ _blacksmiths = 0;
+ _armourers = 0;
+ _engineersguilds = 1;
+ _tunnelersguilds = 0;
+ _stabless = 0;
+ } else if (AVar1 == AIT_RICHARD) {
+ _stockpiles = 2;
+ _hovels = 6;
+ _armories = 1;
+ _barracks = 1;
+ _mercposts = 0;
+ _cathedrals = 0;
+ _chapels = 2;
+ _inns = 0;
+ _breweries = 0;
+ _bakeries = 0;
+ _mills = 0;
+ _poleturners = 2;
+ _fletchers = 2;
+ _tanners = 0;
+ _blacksmiths = 2;
+ _armourers = 2;
+ _engineersguilds = 1;
+ _tunnelersguilds = 1;
+ _stabless = 0;
+ } else if (AVar1 == AIT_FREDERICK) {
+ _hovels = 7;
+ _stockpiles = 3;
+ _armories = 1;
+ _barracks = 1;
+ _mercposts = 0;
+ _cathedrals = 1;
+ _chapels = 0;
+ _inns = 2;
+ _breweries = 2;
+ _bakeries = 0;
+ _mills = 0;
+ _poleturners = 0;
+ _fletchers = 2;
+ _tanners = 2;
+ _blacksmiths = 2;
+ _armourers = 2;
+ _engineersguilds = 1;
+ _tunnelersguilds = 0;
+ _stabless = 2;
+ } else if (AVar1 == AIT_PHILIPP) {
+ _stockpiles = 2;
+ _hovels = 5;
+ _armories = 1;
+ _barracks = 1;
+ _mercposts = 0;
+ _cathedrals = 0;
+ _chapels = 2;
+ _inns = 0;
+ _breweries = 0;
+ _bakeries = 0;
+ _mills = 0;
+ _poleturners = 3;
+ _fletchers = 2;
+ _tanners = 0;
+ _blacksmiths = 2;
+ _armourers = 2;
+ _engineersguilds = 1;
+ _tunnelersguilds = 0;
+ _stabless = 5;
+ } else {
+ if (AVar1 == AIT_WAZIR) {
+ _hovels = 6;
+ _armories = 0;
+ _barracks = 0;
+ _inns = 0;
+ _breweries = 0;
+ _bakeries = 3;
+ _fletchers = 0;
+ } else {
+ if (AVar1 != AIT_EMIR) {
+ if (AVar1 == AIT_NIZAR) {
+ _hovels = 8;
+ _armories = 0;
+ _barracks = 0;
+ _mercposts = 1;
+ _cathedrals = 0;
+ _chapels = 0;
+ _inns = 1;
+ _breweries = 3;
+ _mills = 1;
+ _fletchers = 0;
+ } else {
+ if (AVar1 == AIT_SHERIFF) {
+ _stockpiles = 3;
+ _hovels = 6;
+ _armories = 1;
+ _barracks = 1;
+ _mercposts = 1;
+ _cathedrals = 1;
+ _chapels = 2;
+ _inns = 2;
+ _breweries = 2;
+ _bakeries = 0;
+ _mills = 0;
+ _poleturners = 0;
+ _fletchers = 2;
+ _tanners = 2;
+ _blacksmiths = 2;
+ _armourers = 0;
+ _engineersguilds = 1;
+ _tunnelersguilds = 0;
+ _stabless = 0;
+ goto LAB_004f0191;
+ }
+ if (AVar1 == AIT_MARSHAL) {
+ _stockpiles = 2;
+ _hovels = 5;
+ _armories = 1;
+ _barracks = 1;
+ _mercposts = 0;
+ _cathedrals = 0;
+ _chapels = 0;
+ _inns = 2;
+ _breweries = 3;
+ _bakeries = 0;
+ _mills = 0;
+ _poleturners = 0;
+ _fletchers = 2;
+ _tanners = 0;
+ _blacksmiths = 2;
+ _armourers = 2;
+ _engineersguilds = 1;
+ _tunnelersguilds = 0;
+ _stabless = 4;
+ goto LAB_004f0191;
+ }
+ if (AVar1 != AIT_ABBOT)
+ goto LAB_004f0191;
+ _mills = 2;
+ _chapels = 5;
+ _hovels = 6;
+ _armories = 1;
+ _barracks = 1;
+ _mercposts = 0;
+ _cathedrals = 1;
+ _inns = 3;
+ _breweries = 6;
+ _fletchers = 3;
+ }
+ _stockpiles = 2;
+ _poleturners = 0;
+ _bakeries = 4;
+ _tanners = 0;
+ _blacksmiths = 0;
+ _armourers = 0;
+ _engineersguilds = 1;
+ _tunnelersguilds = 0;
+ _stabless = 0;
+ goto LAB_004f0191;
+ }
+ _hovels = 7;
+ _armories = 1;
+ _barracks = 1;
+ _inns = 1;
+ _breweries = 2;
+ _bakeries = 2;
+ _fletchers = 1;
+ }
+ _mercposts = 1;
+ _stockpiles = AVar1 - AIT_FREDERICK;
+ _poleturners = 0;
+ _chapels = 0;
+ _cathedrals = 0;
+ _tanners = 0;
+ _blacksmiths = 0;
+ _armourers = 0;
+ _tunnelersguilds = 0;
+ _stabless = 0;
+ _mills = _mercposts;
+ _engineersguilds = _mercposts;
+ }
+ goto LAB_004f0191;
+ }
+ _stockpiles = 2;
+ _inns = 2;
+ _breweries = 5;
+ _bakeries = 0;
+ _mills = 0;
+ _hovels = 6;
+ }
+ _mercposts = 1;
+ _barracks = 0;
+ _armories = 0;
+ _poleturners = 0;
+ _fletchers = 0;
+ _tanners = 0;
+ _blacksmiths = 0;
+ _engineersguilds = 1;
+ goto LAB_004f0183;
+ }
+ _stockpiles = 3;
+ _hovels = 5;
+ _armories = 1;
+ _barracks = 1;
+ _mercposts = 1;
+ _chapels = 2;
+ _inns = 2;
+ _breweries = 3;
+ _bakeries = 0;
+ _mills = 0;
+ _poleturners = 2;
+ _fletchers = 2;
+ _tanners = 1;
+ _blacksmiths = 2;
+ _armourers = 1;
+ _engineersguilds = 1;
+ }
+ _cathedrals = 0;
+ _stabless = 0;
+ _tunnelersguilds = 0;
+ LAB_004f0191:
+ _buildstepID = 0;
+ do {
+ if (this->aivs[_aivID].currentStepGoal < _buildstepID) {
+ return FALSE;
+ }
+ if (this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildStatus == AIVBSS_disabled) {
+ if (0 < _stockpiles) {
+ this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildingType = M_MAPPER_STORES;
+ LAB_004f0825:
+ this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildStatus = AIVBSS_unbuilt;
+ goto LAB_004f0829;
+ }
+ if (0 < _hovels) {
+ this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildingType = M_MAPPER_HOVEL;
+ goto LAB_004f0825;
+ }
+ if (0 < _granaries) {
+ this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildingType
+ = M_MAPPER_GRANARY;
+ goto LAB_004f0825;
+ }
+ if (0 < _marketplaces) {
+ this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildingType
+ = M_MAPPER_TRADEPOST;
+ goto LAB_004f0825;
+ }
+ if (0 < _barracks) {
+ this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildingType
+ = M_MAPPER_BARRACKS_ARAB;
+ goto LAB_004f0825;
+ }
+ if (0 < _mercposts) {
+ this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildingType
+ = M_MAPPER_BARRACKS_EURO;
+ goto LAB_004f0825;
+ }
+ if (0 < _armories) {
+ this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildingType
+ = M_MAPPER_ARMOURY;
+ goto LAB_004f0825;
+ }
+ if (0 < _breweries) {
+ this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildingType = M_MAPPER_BREWER;
+ goto LAB_004f0825;
+ }
+ if (0 < _bakeries) {
+ this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildingType = M_MAPPER_BAKER;
+ goto LAB_004f0825;
+ }
+ if (0 < _mills) {
+ this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildingType = M_MAPPER_MILL;
+ goto LAB_004f0825;
+ }
+ if (0 < _poleturners) {
+ this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildingType
+ = M_MAPPER_POLETURNER;
+ goto LAB_004f0825;
+ }
+ if (0 < _fletchers) {
+ this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildingType
+ = M_MAPPER_FLETCHER;
+ goto LAB_004f0825;
+ }
+ if (0 < _tanners) {
+ this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildingType = M_MAPPER_TANNER;
+ goto LAB_004f0825;
+ }
+ if (0 < _blacksmiths) {
+ this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildingType
+ = M_MAPPER_BLACKSMITH;
+ goto LAB_004f0825;
+ }
+ if (0 < _armourers) {
+ this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildingType
+ = M_MAPPER_ARMOURER;
+ goto LAB_004f0825;
+ }
+ if (0 < _chapels) {
+ this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildingType
+ = M_MAPPER_CHURCH1;
+ goto LAB_004f0825;
+ }
+ if (0 < _inns) {
+ this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildingType = M_MAPPER_INN;
+ goto LAB_004f0825;
+ }
+ if (0 < _engineersguilds) {
+ this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildingType
+ = M_MAPPER_ENGINEERS_GUILD;
+ goto LAB_004f0825;
+ }
+ if (0 < _tunnelersguilds) {
+ this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildingType
+ = M_MAPPER_TUNNELERS_GUILD;
+ goto LAB_004f0825;
+ }
+ if (0 < _stabless) {
+ this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildingType
+ = M_MAPPER_STABLES;
+ goto LAB_004f0825;
+ }
+ if (0 < _cathedrals) {
+ this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildingType
+ = M_MAPPER_CHURCH3;
+ goto LAB_004f0825;
+ }
+ } else {
+ LAB_004f0829:
+ _buildStatus = this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildStatus;
+ if (_buildStatus != AIVBSS_disabled) {
+ _buildingType = this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildingType;
+ if (_buildingType == M_MAPPER_HOVEL) {
+ _hovels = _hovels + -1;
+ } else if (_buildingType == M_MAPPER_STORES) {
+ _stockpiles = _stockpiles + -1;
+ } else if (_buildingType == M_MAPPER_GRANARY) {
+ _granaries = _granaries + -1;
+ } else if (_buildingType == M_MAPPER_TRADEPOST) {
+ _marketplaces = _marketplaces + -1;
+ } else if (_buildingType == M_MAPPER_BARRACKS_ARAB) {
+ _barracks = _barracks + -1;
+ } else if (_buildingType == M_MAPPER_BARRACKS_EURO) {
+ _mercposts = _mercposts + -1;
+ } else if (_buildingType == M_MAPPER_ARMOURY) {
+ _armories = _armories + -1;
+ } else if (_buildingType == M_MAPPER_BREWER) {
+ _breweries = _breweries + -1;
+ } else if (_buildingType == M_MAPPER_BAKER) {
+ _bakeries = _bakeries + -1;
+ } else if (_buildingType == M_MAPPER_MILL) {
+ _mills = _mills + -1;
+ } else if (_buildingType == M_MAPPER_POLETURNER) {
+ _poleturners = _poleturners + -1;
+ } else if (_buildingType == M_MAPPER_FLETCHER) {
+ _fletchers = _fletchers + -1;
+ } else if (_buildingType == M_MAPPER_TANNER) {
+ _tanners = _tanners + -1;
+ } else if (_buildingType == M_MAPPER_BLACKSMITH) {
+ _blacksmiths = _blacksmiths + -1;
+ } else if (_buildingType == M_MAPPER_ARMOURER) {
+ _armourers = _armourers + -1;
+ } else if (_buildingType == M_MAPPER_CHURCH1) {
+ _chapels = _chapels + -1;
+ } else if (_buildingType == M_MAPPER_INN) {
+ _inns = _inns + -1;
+ } else if (_buildingType == M_MAPPER_ENGINEERS_GUILD) {
+ _engineersguilds = _engineersguilds + -1;
+ } else if (_buildingType == M_MAPPER_TUNNELERS_GUILD) {
+ _tunnelersguilds = _tunnelersguilds + -1;
+ } else if (_buildingType == M_MAPPER_STABLES) {
+ _stabless = _stabless + -1;
+ } else if (_buildingType == M_MAPPER_CHURCH3) {
+ _cathedrals = _cathedrals + -1;
+ }
+ }
+ _buildingType_2 = (MappersEnum)(short)this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildingType;
+ if (((((param_2 == 0) || (_buildingType_2 == M_MAPPER_HOVEL))
+ && ((_buildStatus != AIVBSS_built
+ || ((_buildingIDAtTile = DAT_TileMapState
+ .BuildingLayer[(int)this->aivs[_aivID].aivBuildingSteps[_buildstepID].location],
+ _buildingIDAtTile == 0
+ || (_normalBuildingType
+ = MACRO_CALL_MEMBER(
+ convertCommandBuildingTypeToBuildingType,
+ DAT_BuildingsState)(_buildingType_2),
+ (int)(short)DAT_BuildingsState.buildings[_buildingIDAtTile]
+ .buildingType
+ != _normalBuildingType))))))
+ && (120 < DAT_GameState.playerDataArray[playerID].closestEnemyDistanceToTheLord))
+ && ((_buildingSize_2 = checkRequiredResourcesForBuildingOrPlanToBuy(_buildingType_2, playerID, FALSE),
+ _buildingSize_2 != 0 && (0x13 < DAT_BuildingsState.unknownCountdown01)))) {
+ if (_buildingType_2 == M_MAPPER_WOODSMAN) {
+ if (0 < this->mapExtraInfo.totalWoodAvailable) {
+ LAB_004f0a01:
+ BVar2 = shouldNotBeBuildingArmoury(playerID, _buildingType_2);
+ if (((BVar2 == FALSE)
+ && (_shouldBuildHouse
+ = shouldNotBeBuildingHovel(playerID, _buildingType_2),
+ _shouldBuildHouse == 0))
+ && (BVar2
+ = MACRO_CALL_MEMBER(
+ shouldNotBuildMarketArmoryGranaryBarracksMercenarypost,
+ DAT_AICState)(playerID, _buildingType_2),
+ BVar2 == FALSE)) {
+ _buildingOrientation = 0xf;
+ if (((_buildingType_2 == M_MAPPER_BARRACKS_ARAB)
+ || (_buildingType_2 == M_MAPPER_BARRACKS_EURO))
+ || ((_buildingType_2 == M_MAPPER_ENGINEERS_GUILD
+ || ((_buildingType_2 == M_MAPPER_TUNNELERS_GUILD
+ || (_buildingType_2 == M_MAPPER_OIL_SMELTER)))))) {
+ _buildingOrientation = this->aivs[_aivID].keepOrientation;
+ } else if (((((_buildingType_2 == M_MAPPER_POLETURNER)
+ || (_buildingType_2 == M_MAPPER_BLACKSMITH))
+ || (_buildingType_2 == M_MAPPER_ARMOURER))
+ || ((_buildingType_2 == M_MAPPER_TANNER
+ || (_buildingType_2 == M_MAPPER_FLETCHER))))
+ || ((_buildingType_2 == M_MAPPER_BAKER
+ || (_buildingType_2 == M_MAPPER_BREWER)))) {
+ _buildingOrientation = 8;
+ }
+ _shouldBuildPositiveFF = shouldWaitWithBuildingAPositiveFearFactor(playerID, _buildingType_2);
+ if ((_shouldBuildPositiveFF == 0)
+ && (_shouldBuildNegativeFF = shouldWaitWithBuildingNegativeFearFactor(playerID, _buildingType_2),
+ _shouldBuildNegativeFF == 0)) {
+ if (_buildingOrientation == 0xf) {
+ DAT_TileMapState.DAT_TempBuildingRotation = 0;
+ } else {
+ DAT_TileMapState.DAT_TempBuildingRotation = _buildingOrientation / 2;
+ }
+ _buildingSize = getBuildingSizeForCommandBuildingType(_buildingType_2);
+ if (_buildingType_2 == M_MAPPER_STORES) {
+ if (_stockpiles == 0) {
+ _y = DAT_GameState.playerDataArray[playerID].campground.yEntry
+ - 0xb;
+ _x = DAT_GameState.playerDataArray[playerID].campground.xEntry
+ + 9;
+ } else if (_stockpiles == 1) {
+ _y = DAT_GameState.playerDataArray[playerID].campground.yEntry
+ - 0xb;
+ _x = DAT_GameState.playerDataArray[playerID].campground.xEntry
+ + 4;
+ } else if (_stockpiles == 2) {
+ _y = DAT_GameState.playerDataArray[playerID].campground.yEntry
+ - 6;
+ _x = DAT_GameState.playerDataArray[playerID].campground.xEntry
+ + 9;
+ }
+ } else {
+ if ((((_buildingType_2 == M_MAPPER_BARRACKS_ARAB)
+ || (_buildingType_2 == M_MAPPER_BARRACKS_EURO))
+ || (_buildingType_2 == M_MAPPER_ENGINEERS_GUILD))
+ || ((_buildingType_2 == M_MAPPER_TUNNELERS_GUILD
+ || (_buildingType_2 == M_MAPPER_CHURCH3)))) {
+ findAppropriateGridLocationForBuilding(
+ DAT_GameState.playerDataArray[playerID].campground.xEntry / 5,
+ (uint)((int)(DAT_GameState.playerDataArray[playerID]
+ .campground.yEntry
+ / 5)));
+ } else {
+ findSuitableGridLocationFittingCriteria(
+ DAT_GameState.playerDataArray[playerID].campground.xEntry / 5,
+ (uint)((int)(DAT_GameState.playerDataArray[playerID]
+ .campground.yEntry
+ / 5)));
+ }
+ if ((this->buildingApproriateGridXPosition == -1)
+ || (this->buildingAppropriateGridYPosition == -1))
+ goto LAB_004f0e4c;
+ _x = this->buildingApproriateGridXPosition * 5;
+ _y = this->buildingAppropriateGridYPosition * 5;
+ }
+ _xoff = DAT_ViewportRenderState.translationMatrix[_y].addXgetTile;
+ prepareAreaForBuildingPlacement(
+ playerID, _x, _y, _buildingType_2, _buildingSize);
+ if ((_buildingType_2 == M_MAPPER_BARRACKS_EURO)
+ || (_buildingType_2 == M_MAPPER_BARRACKS_ARAB)) {
+ _keepOrientationDiv2 = this->aivs[_aivID].keepOrientation / 2;
+ prepareAreaForBuildingPlacement(playerID,
+ DAT_TerrainDefinedData
+ .BuildingPartsOffsets[_keepOrientationDiv2][0]
+ .x
+ + _x,
+ DAT_TerrainDefinedData
+ .BuildingPartsOffsets[_keepOrientationDiv2][0]
+ .y
+ + _y,
+ _buildingType_2, _buildingSize);
+ _keepOrientationDiv2_2 = this->aivs[_aivID].keepOrientation / 2;
+ prepareAreaForBuildingPlacement(playerID,
+ DAT_TerrainDefinedData
+ .BuildingPartsOffsets[_keepOrientationDiv2_2][1]
+ .x
+ + _x,
+ DAT_TerrainDefinedData
+ .BuildingPartsOffsets[_keepOrientationDiv2_2][1]
+ .y
+ + _y,
+ _buildingType_2, _buildingSize);
+ _keepOrientationDiv2_3 = this->aivs[_aivID].keepOrientation / 2;
+ _buildingSize_2 = DAT_TerrainDefinedData
+ .BuildingPartsOffsets[_keepOrientationDiv2_3][2]
+ .y;
+ iVar3 = DAT_TerrainDefinedData
+ .BuildingPartsOffsets[_keepOrientationDiv2_3][2]
+ .x;
+ LAB_004f0dbd:
+ prepareAreaForBuildingPlacement(playerID, iVar3 + _x, _buildingSize_2 + _y,
+ _buildingType_2, _buildingSize);
+ } else {
+ if ((_buildingType_2 == M_MAPPER_ENGINEERS_GUILD)
+ || (_buildingType_2 == M_MAPPER_TUNNELERS_GUILD)) {
+ iVar3 = this->aivs[_aivID].keepOrientation / 2;
+ _buildingSize_2
+ = DAT_TerrainDefinedData.BuildingPartsOffsets[iVar3][1].y;
+ iVar3 = DAT_TerrainDefinedData.BuildingPartsOffsets[iVar3][1].x;
+ goto LAB_004f0dbd;
+ }
+ if (_buildingType_2 == M_MAPPER_OIL_SMELTER) {
+ iVar3 = this->aivs[_aivID].keepOrientation / 2;
+ _buildingSize_2 = DAT_TerrainDefinedData.field63_0x19c[iVar3].y;
+ iVar3 = DAT_TerrainDefinedData.field63_0x19c[iVar3].x;
+ goto LAB_004f0dbd;
+ }
+ }
+ _buildingSize_2 = getBuildingSizeForCommandBuildingType(_buildingType_2);
+ placeBuilding(playerID, _x, _y,
+ _buildingType_2, _buildingSize_2, _buildingOrientation);
+ _placedBuildingID = DAT_TileMapState.placedBuildingID;
+ if (DAT_TileMapState.buildingPlacementFail == FALSE) {
+ DAT_BuildingsState
+ .buildings[DAT_TileMapState.placedBuildingID]
+ .field242_0x2c8 = 1;
+ setupWorkshopProductionType(playerID, _placedBuildingID);
+ this->aivs[_aivID].aivBuildingSteps[_buildstepID].location
+ = (AIVBuildLocationUnion)(_xoff + _x);
+ if (DAT_TileMapState.buildingPlacementFail == FALSE) {
+ this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildStatus
+ = AIVBSS_built;
+ }
+ }
+ this->aivs[_aivID].aivBuildingSteps[_buildstepID].wait
+ = ((this->aivs[_aivID].aivBuildingSteps[_buildstepID].buildStatus
+ != AIVBSS_built)
+ - 1U
+ & 0xfa)
+ + 0x10;
+ if (DAT_TileMapState.buildingPlacementFail == FALSE) {
+ return TRUE;
+ }
+ }
+ }
+ }
+ } else if ((_buildingType_2 != M_MAPPER_GRANARY)
+ || (DAT_GameState.playerDataArray[playerID].granaryIsAlmostFilledUp != FALSE))
+ goto LAB_004f0a01;
+ }
+ }
+ LAB_004f0e4c:
+ _buildstepID = _buildstepID + 1;
+ if (50 < _buildstepID) {
+ return FALSE;
+ }
+ } while (true);
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004f0060", "name": "executeDefaultCastleAIV", "quelle": "ghidra", "p1": {"bereich": "KI", "zweck": "Baut für KI-Gegner ohne gespeicherten Burgplan nach einer festen Gebäudeliste je KI-Figur, jeweils ein Gebäude pro Aufruf."}, "p2": {"ein": "playerID, param_2 (ist 'pausiert': 1 = nur Hütten dürfen gebaut werden)", "aus": "TRUE, wenn ein Gebäude gesetzt wurde, sonst FALSE", "liest": ["playerDataArray[sp].aivID/aiType/closestEnemyDistanceToTheLord/granaryIsAlmostFilledUp/campground.xEntry/yEntry", "aivs[aivID].currentStepGoal/aivBuildingSteps[0..50]/keepOrientation", "mapExtraInfo.totalWoodAvailable", "BuildingsState.unknownCountdown01", "TileMapState.BuildingLayer", "BuildingPartsOffsets"], "schreibt": ["aivBuildingSteps[i].buildingType/buildStatus/location/wait", "buildings[neu].field242_0x2c8 = 1", "TileMapState.DAT_TempBuildingRotation"], "ruft": ["checkRequiredResourcesForBuildingOrPlanToBuy", "shouldNotBeBuildingArmoury", "shouldNotBeBuildingHovel", "shouldNotBuildMarketArmoryGranaryBarracksMercenarypost", "shouldWaitWithBuildingAPositiveFearFactor", "shouldWaitWithBuildingNegativeFearFactor", "getBuildingSizeForCommandBuildingType", "findAppropriateGridLocationForBuilding", "findSuitableGridLocationFittingCriteria", "prepareAreaForBuildingPlacement", "placeBuilding", "setupWorkshopProductionType", "convertCommandBuildingTypeToBuildingType"], "regeln": ["Schritt 1: Zielanzahl je Gebäudeart aus aiType (Ratte, Schlange, Schwein, Wolf, Saladin, Kalif, Sultan, Richard, Friedrich, Philipp, Wesir, Emir, Nizar, Sheriff, Marschall, Abt). Beispiele: Ratte 3 Hütten, 1 Waffenkammer, 1 Kaserne(arab.), 1 Stangendrechsler, 1 Pfeilmacher; Saladin 3 Lager, 8 Hütten, 4 Bäcker, 2 Mühlen; Richard 2 Lager, 6 Hütten, 2 Kapellen; Abt 5 Kapellen, 3 Gasthäuser, 6 Brauereien, 1 Kathedrale. Kornspeicher und Markt starten immer mit Zielanzahl 1", "Schritt 2: Läuft von Bauschritt 0 bis 50; bricht mit FALSE ab, sobald currentStepGoal kleiner als der Schritt ist", "Schritt 3: Ist ein Bauschritt 'disabled', bekommt er die erste Gebäudeart mit Rest-Zielanzahl über 0, in dieser Reihenfolge: Lager, Hütte, Kornspeicher, Markt, Kaserne arab., Kaserne euro. (mercposts), Waffenkammer, Brauerei, Bäcker, Mühle, Stangendrechsler, Pfeilmacher, Gerber, Schmied, Rüstungsschmied, Kapelle, Gasthaus, Ingenieurgilde, Tunnelbauergilde, Stall, Kathedrale. Schritt wird 'unbuilt'. Bereits belegte Schritte zählen ihre Art von der Zielanzahl ab", "Schritt 4: Gebaut wird nur, wenn param_2 = 0 (oder die Art ist Hütte), der Schritt nicht schon ein dort stehendes Gebäude dieser Art hat, closestEnemyDistanceToTheLord über 120 liegt, checkRequiredResourcesForBuildingOrPlanToBuy nicht 0 liefert und BuildingsState.unknownCountdown01 über 0x13 (19) liegt", "Holzfäller: nur wenn mapExtraInfo.totalWoodAvailable über 0. Kornspeicher: nur wenn granaryIsAlmostFilledUp nicht FALSE (fast voll). Dazu müssen die drei shouldNot…/shouldWait…-Prüfungen (Waffenkammer, Hütte, Markt/Waffenkammer/Kornspeicher/Kaserne/Söldner, positiver und negativer Furchtfaktor) alle durchgehen", "Ausrichtung: 0xF (keine) als Standard; keepOrientation für Kasernen, Ingenieur-, Tunnelbauergilde, Ölschmelze; 8 für Stangendrechsler, Schmied, Rüstungsschmied, Gerber, Pfeilmacher, Bäcker, Brauerei", "Lager: feste Plätze relativ zum Lagereingang (campground): bei Restzahl 0 (x+9, y-11), bei 1 (x+4, y-11), bei 2 (x+9, y-6). Alle anderen Gebäude: Rastersuche (5er-Raster) um den Lagereingang, Kasernen, Gilden und Kathedrale mit findAppropriateGridLocationForBuilding, Rest mit findSuitableGridLocationFittingCriteria; kein Platz = nächster Schritt", "Nach erfolgreichem Setzen: Schritt wird 'built', wait = 0x10a (266); bei Fehlschlag wait = 0x10 (16). Rückgabe TRUE nur bei erfolgreicher Platzierung; nur ein Gebäude pro Aufruf"], "offen": ["Bei Restzahl Lager 3 oder mehr fehlt im Code ein Platz (x/y bleiben unbelegt)", "Der Ausdruck _stockpiles = AVar1 - AIT_FREDERICK im Emir/Wesir-Zweig ist vermutlich ein Dekompilier-Artefakt; echte Lagerzahl ungeklärt", "Die Namen _barracks und _mercposts sind vertauscht gegenüber dem Baumuster (_barracks baut BARRACKS_ARAB, _mercposts baut BARRACKS_EURO); die genaue Bedeutung ist vermutlich Kasernen-Variante", "Was unknownCountdown01 und field242_0x2c8 bedeuten", "Vollständige Zielanzahlen je KI-Figur nur teilweise verfolgt (Tabelle sehr verzweigt)"]}, "p3": {"erklaerung": "Wenn ein KI-Gegner keinen fertigen Burgplan (AIV-Datei) hat, baut er nach einer festen Einkaufsliste je Figur: erst Lager, Hütten, Kornspeicher, Markt, dann Militär- und Werkstattgebäude. Pro Aufruf wird höchstens ein Gebäude gesetzt.", "gehirn": "Gibt einen Eindruck, was ein KI-Gegner der jeweiligen Figur ohne Burgplan baut und in welcher Reihenfolge. Für Angriffsplanung: Gegner mit 0 Kasernen und Waffenkammern (Wesir, Sultan, Kalif) rüsten nur über Söldner.", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x004f0e80 recomputeHeatmaps | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004F0E80
+ void AIVState::recomputeHeatmaps(int initialize)
+ {
+ byte* pbVar1;
+ byte bVar2;
+ short sVar3;
+ TreeTypeShort TVar4;
+ HeatMap* _pHeatMapEntry2Column;
+ HeatMap* _pHeatMapEntry1Column;
+ BOOLEnum BVar5;
+ int iVar6;
+ int _gridY2;
+ HeatMap* _pHeatMapEntry2Row;
+ int iVar7;
+ int _treeID;
+ int _gridX2;
+ HeatMap* _pHeatMapEntry;
+ int _tile;
+ short _treeType;
+ uint LVar4;
+ int _yGrid;
+ int _xGrid;
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ if (initialize == 0) {
+ _pHeatMapEntry = &this->heatMaps[0][0];
+ _treeID = 80;
+ do {
+ iVar7 = 80;
+ _pHeatMapEntry1Column = _pHeatMapEntry;
+ do {
+ _pHeatMapEntry1Column->treeCount = 0;
+ _pHeatMapEntry1Column->impassableCount = 0;
+ _pHeatMapEntry1Column->structureCount = 0;
+ _pHeatMapEntry1Column->tileOwnership = 0;
+ if (0 < (char)_pHeatMapEntry1Column->woodRelatedCountdownTo0) {
+ _pHeatMapEntry1Column->woodRelatedCountdownTo0
+ = _pHeatMapEntry1Column->woodRelatedCountdownTo0 - 1;
+ }
+ if (0 < (char)_pHeatMapEntry1Column->destructionBasedPlacementCooldown) {
+ _pHeatMapEntry1Column->destructionBasedPlacementCooldown
+ = _pHeatMapEntry1Column->destructionBasedPlacementCooldown - 1;
+ }
+ _pHeatMapEntry1Column = _pHeatMapEntry1Column + 0xf00;
+ iVar7 = iVar7 + -1;
+ } while (iVar7 != 0);
+ _pHeatMapEntry = _pHeatMapEntry + 0x30;
+ _treeID = _treeID + -1;
+ } while (_treeID != 0);
+ } else {
+ /*
+ full reset
+ */
+ clearTheHeatmaps();
+ _pHeatMapEntry2Row = &this->heatMaps[0][0];
+ _gridX2 = 80;
+ do {
+ _gridY2 = 80;
+ _pHeatMapEntry2Column = _pHeatMapEntry2Row;
+ do {
+ /*
+ fixme: why 250
+ */
+ _pHeatMapEntry2Column->oasisThickScrubCount = 250;
+ _pHeatMapEntry2Column->impassableCount = 1;
+ _pHeatMapEntry2Column = _pHeatMapEntry2Column + 0xf00;
+ _gridY2 = _gridY2 + -1;
+ } while (_gridY2 != 0);
+ _pHeatMapEntry2Row = _pHeatMapEntry2Row + 0x30;
+ _gridX2 = _gridX2 + -1;
+ } while (_gridX2 != 0);
+ this->mapExtraInfo.largestSeparateArea
+ = computeLargestSeparateArea();
+ }
+ _treeID = 0;
+ this->mapExtraInfo.totalWoodAvailable = 0;
+ if (0 < this->mapExtraInfo.largestSeparateArea) {
+ if (initialize != 0) {
+ _tile = 0;
+ do {
+ _yGrid = (int)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[_tile] / 5;
+ _xGrid = (_tile
+ - DAT_ViewportRenderState
+ .translationMatrix[DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[_tile]]
+ .addXgetTile)
+ / 5;
+ if ((_xGrid - 1U < 77) && (_yGrid - 1U < 77)) {
+ this->heatMaps[_xGrid][_yGrid].isNotNearEdgeUnk = 0;
+ }
+ if ((short)DAT_TileMapState.PathConnectionLayer[_tile]
+ != this->mapExtraInfo.largestSeparateArea) {
+ pbVar1 = &this->heatMaps[_xGrid][_yGrid].tilesNotPartOfLargestAreaCount;
+ *pbVar1 = *pbVar1 + 1;
+ }
+ if ((DAT_TileMapState.LogicLayer[_tile] & L_SEA | L_BORDER | L_BORDER_EDGE | L_RIVER
+ | L_FORD)
+ == 0) {
+ /*
+ not a body of water
+ */
+ bVar2 = DAT_TileMapState.DefaultHeightLayer[_tile];
+ if (bVar2 < this->heatMaps[_xGrid][_yGrid].lowestTerrainHeight) {
+ this->heatMaps[_xGrid][_yGrid].lowestTerrainHeight = bVar2;
+ }
+ if (this->heatMaps[_xGrid][_yGrid].highestTerrainHeight < bVar2) {
+ this->heatMaps[_xGrid][_yGrid].highestTerrainHeight = bVar2;
+ }
+ if (this->heatMaps[_xGrid][_yGrid].lowestTerrainHeight + 12
+ < (uint)this->heatMaps[_xGrid][_yGrid].highestTerrainHeight) {
+ this->heatMaps[_xGrid][_yGrid].terrainDiffHigherThan12 = 1;
+ }
+ LVar4 = DAT_TileMapState.LogicLayer[_tile];
+ if ((LVar4 & L_TREE) == 0) {
+ if ((LVar4 & L_BOULDERS) == 0) {
+ if ((LVar4 & L_IRON) == 0) {
+ if ((int)LVar4 < 0) {
+ pbVar1 = &this->heatMaps[_xGrid][_yGrid].oilCount;
+ /*
+ < 0 means signedness is set, which corresponds to L_OIL
+ */
+ *pbVar1 = *pbVar1 + 1;
+ } else if ((LVar4 & L_MARSH) == 0) {
+ if ((LVar4 & L_BUILDING | L_KEEP_NON_MANOR_HOUSE) == 0) {
+ if ((LVar4 & L_WALL_OR_GATEHOUSE) == 0) {
+ /*
+ L_ROCKY = 0x800 which is the signedness of a char
+ */
+ if ((char)LVar4 < 0) {
+ pbVar1 = &this->heatMaps[_xGrid][_yGrid].impassableCount;
+ /*
+ L_ROCKY yes, ROCKY no falls through
+ */
+ *pbVar1 = *pbVar1 + 1;
+ }
+ } else {
+ pbVar1 = &this->heatMaps[_xGrid][_yGrid].structureCount;
+ *pbVar1 = *pbVar1 + 1;
+ }
+ } else {
+ pbVar1 = &this->heatMaps[_xGrid][_yGrid].structureCount;
+ *pbVar1 = *pbVar1 + 1;
+ }
+ } else {
+ pbVar1 = &this->heatMaps[_xGrid][_yGrid].marshCount;
+ *pbVar1 = *pbVar1 + 1;
+ }
+ } else {
+ pbVar1 = &this->heatMaps[_xGrid][_yGrid].ironCount;
+ *pbVar1 = *pbVar1 + 1;
+ }
+ } else {
+ pbVar1 = &this->heatMaps[_xGrid][_yGrid].bouldersCount;
+ *pbVar1 = *pbVar1 + 1;
+ }
+ if ((DAT_TileMapState.LogicLayer[_tile] & L_RIVER) == 0) {
+ if ((DAT_TileMapState.Logic2Layer[_tile] & L2_SCRUB | L2_OASIS_GRASS
+ | L2_THICK_SCRUB)
+ != 0) {
+ pbVar1 = &this->heatMaps[_xGrid][_yGrid].oasisScrubCount;
+ *pbVar1 = *pbVar1 + 1;
+ }
+ if ((DAT_TileMapState.Logic2Layer[_tile] & L2_OASIS_GRASS
+ | L2_THICK_SCRUB)
+ != 0) {
+ pbVar1 = &this->heatMaps[_xGrid][_yGrid].oasisThickScrubCount;
+ *pbVar1 = *pbVar1 + 1;
+ }
+ }
+ } else {
+ _treeID = (int)DAT_TileMapState.OrganismLayer[_tile];
+ if (_treeID != 0) {
+ _treeType = DAT_LandscapeState.trees[_treeID].treeType;
+ if (((((_treeType == 1) || (_treeType == 2)) || (_treeType == 3))
+ || (_treeType == 4))
+ && (((DAT_LandscapeState.trees[_treeID].stage < 4
+ && (DAT_LandscapeState.trees[_treeID].state == 2))
+ && (BVar5
+ = isTreeAdult(
+ _treeID, DAT_LandscapeState.trees[_treeID].uid),
+ BVar5 != FALSE)))) {
+ pbVar1 = &this->heatMaps[_xGrid][_yGrid].treeCount;
+ *pbVar1 = *pbVar1 + 3;
+ this->mapExtraInfo.totalWoodAvailable
+ = this->mapExtraInfo.totalWoodAvailable + 3;
+ }
+ }
+ }
+ }
+ _tile = _tile + 1;
+ } while (_tile < 80400);
+ return;
+ }
+ do {
+ if ((DAT_TileMapState.LogicLayer[_treeID] & L_ROCKY | L_WALL_OR_GATEHOUSE | L_BUILDING
+ | L_TREE | L_KEEP_NON_MANOR_HOUSE)
+ != 0) {
+ if ((char)DAT_TileMapState.LogicLayer[_treeID] < 0) {
+ pbVar1 = &this->heatMaps[(_treeID
+ - DAT_ViewportRenderState
+ .translationMatrix[DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[_treeID]]
+ .addXgetTile)
+ / 5][(int)DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[_treeID]
+ / 5]
+ .impassableCount;
+ /*
+ L_OIL
+ */
+ *pbVar1 = *pbVar1 + 1;
+ }
+ if ((DAT_TileMapState.LogicLayer[_treeID] & L_TREE) == 0) {
+ if (DAT_TileMapState.BuildingLayer[_treeID] == 0) {
+ if ((DAT_TileMapState.LogicLayer[_treeID] & L_WALL_OR_GATEHOUSE) != 0) {
+ iVar7 = (_treeID
+ - DAT_ViewportRenderState
+ .translationMatrix[DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[_treeID]]
+ .addXgetTile)
+ / 5;
+ iVar6 = (int)DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[_treeID]
+ / 5;
+ pbVar1 = &this->heatMaps[iVar7][iVar6].structureCount;
+ *pbVar1 = *pbVar1 + 1;
+ this->heatMaps[iVar7][iVar6].tileOwnership
+ = (DAT_TileMapState.WallOwnerLayer[_treeID] & 7) + 1;
+ }
+ } else {
+ iVar7 = (_treeID
+ - DAT_ViewportRenderState
+ .translationMatrix[DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[_treeID]]
+ .addXgetTile)
+ / 5;
+ iVar6 = (int)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[_treeID]
+ / 5;
+ pbVar1 = &this->heatMaps[iVar7][iVar6].structureCount;
+ *pbVar1 = *pbVar1 + 1;
+ this->heatMaps[iVar7][iVar6].tileOwnership
+ = (byte)DAT_BuildingsState
+ .buildings[DAT_TileMapState.BuildingLayer[_treeID]]
+ .owner;
+ }
+ } else {
+ sVar3 = DAT_ViewportRenderState.tileTranslationMatrix_YComponent[_treeID];
+ iVar7 = DAT_ViewportRenderState.translationMatrix[sVar3].addXgetTile;
+ iVar6 = (int)DAT_TileMapState.OrganismLayer[_treeID];
+ if (iVar6 != 0) {
+ TVar4 = DAT_LandscapeState.trees[iVar6].treeType;
+ if ((((TVar4 == ((TreeType)1)) || (TVar4 == ((TreeType)2)))
+ || ((TVar4 == ((TreeType)3) || (TVar4 == ((TreeType)4)))))
+ && (((DAT_LandscapeState.trees[iVar6].stage < 4
+ && (DAT_LandscapeState.trees[iVar6].state == 2))
+ && (BVar5 = isTreeAdult(
+ iVar6, DAT_LandscapeState.trees[iVar6].uid),
+ BVar5 != FALSE)))) {
+ pbVar1 = &this->heatMaps[(_treeID - iVar7) / 5][(int)sVar3 / 5].treeCount;
+ *pbVar1 = *pbVar1 + 3;
+ this->mapExtraInfo.totalWoodAvailable = this->mapExtraInfo.totalWoodAvailable + 3;
+ }
+ }
+ }
+ }
+ _treeID = _treeID + 1;
+ } while (_treeID < 0x13a10);
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004f0e80", "name": "recomputeHeatmaps", "quelle": "ghidra", "p1": {"bereich": "KI", "zweck": "Berechnet die 80x80-Wärmekarten der KI (Bäume, Hindernisse, Bauwerke, Besitz) neu bzw. setzt sie beim Spielstart ganz auf."}, "p2": {"ein": "initialize (0 = laufende Auffrischung, sonst Erstaufbau)", "aus": "-", "liest": ["TileMapState.LogicLayer/Logic2Layer/BuildingLayer/WallOwnerLayer/OrganismLayer/DefaultHeightLayer/PathConnectionLayer", "LandscapeState.trees[].treeType/stage/state", "BuildingsState.buildings[].owner", "currentGameMode"], "schreibt": ["heatMaps[x][y] (treeCount, impassableCount, structureCount, tileOwnership, woodRelatedCountdownTo0, destructionBasedPlacementCooldown, oasisThickScrubCount, oasisScrubCount, marshCount, ironCount, bouldersCount, oilCount, lowest/highestTerrainHeight, terrainDiffHigherThan12, tilesNotPartOfLargestAreaCount, isNotNearEdgeUnk)", "mapExtraInfo.totalWoodAvailable", "mapExtraInfo.largestSeparateArea (nur Erstaufbau)"], "ruft": ["clearTheHeatmaps", "computeLargestSeparateArea", "isTreeAdult"], "regeln": ["Im Spielmodus GM_SOLITARY (Einzelspieler-Kampagne/Solitär) tut sie gar nichts", "Raster: 80x80 Felder, jedes Feld deckt 5x5 Kacheln ab; insgesamt werden 80400 Kacheln durchlaufen", "initialize = 0: Zähler treeCount, impassableCount, structureCount, tileOwnership aller Felder auf 0; woodRelatedCountdownTo0 und destructionBasedPlacementCooldown zählen je Aufruf um 1 herunter, solange sie über 0 sind", "initialize != 0: clearTheHeatmaps, dann oasisThickScrubCount = 250 und impassableCount = 1 in allen Feldern, danach largestSeparateArea berechnen", "Bäume: nur Typ 1 bis 4, Stadium unter 4, Zustand 2 und ausgewachsen (isTreeAdult) zählen; jeder Baum erhöht treeCount und totalWoodAvailable um je 3", "Erstaufbau zählt zusätzlich je Feld: Kacheln außerhalb der größten zusammenhängenden Fläche, Höhenunterschied (flag bei Spanne über 12, nur Land ohne See, Grenze, Fluss, Furt), Eisen, Felsbrocken, Öl, Sumpf, Gebäude/Mauern (structureCount), Fels (impassableCount), Gestrüpp und Oasen", "Nur wenn largestSeparateArea über 0 ist, wird gezählt; sonst bleibt totalWoodAvailable 0", "Laufende Auffrischung zählt nur Bäume, Gebäude/Mauern (mit Besitzer als tileOwnership; bei Mauern WallOwnerLayer & 7 plus 1) und Hindernisse neu"], "offen": ["Im laufenden Zweig gilt (char)LogicLayer < 0 als impassableCount, im Erstaufbau als 'Fels'; der Kommentar dort sagt aber L_OIL. Bit-Bedeutung widersprüchlich", "Zweck von woodRelatedCountdownTo0 und destructionBasedPlacementCooldown nur aus Namen erschlossen", "Warum 250 für oasisThickScrubCount (Kommentar fixme im Code)"]}, "p3": {"erklaerung": "Die KI führt eine grobe Landkarte, auf der sie zählt, wo Bäume, Felsen, Gebäude und Wasser sind. Einmal beim Start wird sie voll aufgebaut, danach jeden Monat teilweise aufgefrischt.", "gehirn": "Wärmekarte ist die Grundlage, auf der die KI Holzfäller, Farmen und Bauplätze wählt. Der Wert totalWoodAvailable zeigt, ob der Gegner noch Holzfäller setzen darf.", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x004f15c0 aiDecideOnNewBuildings | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004F15C0
+ void AIVState::aiDecideOnNewBuildings(PlayerID playerID)
+ {
+ int _aicResourceBuildDelay;
+ BOOLEnum _shouldDestroyWoodCutter;
+ BOOLEnum _decision;
+ uint _shouldBuildFarm;
+ MappersEnum _chosenFarm;
+ int _farmPlaceStatus;
+ uint _buildQuarry;
+ int _extraTethers;
+ uint _buildIronMine;
+ uint _buildPitchRig;
+ int _currentPauseValue;
+ BOOLEnum _housesDestroyed;
+ int _previousSteps;
+ int _isPausing;
+ int _currentPauseIndex;
+ int _currentPause;
+ int* _pStepGoal;
+ int _currentResourceBuildDelay;
+ int _currentGold;
+ int* _ptrAivPoorCounter;
+ int _inc1;
+ int _aivID;
+ int* _pIndicator;
+ PlayerID _playerID_2;
+ _playerID_2 = playerID;
+ _aivID = DAT_GameState.playerDataArray[playerID].aivID;
+ _isPausing = 0;
+ /*
+ richness indicator?
+ */
+ playerID = 1;
+ if (0 < _aivID) {
+ _currentResourceBuildDelay = DAT_GameState.playerDataArray[_playerID_2].resourceRebuildDelay;
+ if (_currentResourceBuildDelay != 0) {
+ DAT_GameState.playerDataArray[_playerID_2].resourceRebuildDelay
+ = _currentResourceBuildDelay + 1;
+ _aicResourceBuildDelay = getResourceRebuildDelay(_playerID_2);
+ if (DAT_GameState.playerDataArray[_playerID_2].resourceRebuildDelay
+ < _aicResourceBuildDelay) {
+ return;
+ }
+ DAT_GameState.playerDataArray[_playerID_2].resourceRebuildDelay = 0;
+ }
+ _currentGold = DAT_GameState.playerDataArray[_playerID_2].currentResources[0xf];
+ if (_currentGold < 16000) {
+ if (_currentGold < 5000) {
+ _ptrAivPoorCounter = &this->aivs[_aivID].aivPoorCounter;
+ *_ptrAivPoorCounter = *_ptrAivPoorCounter + 1;
+ if (this->aivs[_aivID].aivPoorCounter < this->aivs[_aivID].aivPoorLimit_OR_AIC_buildInterval) {
+ return;
+ }
+ } else {
+ /*
+ not poor
+ */
+ playerID = 1;
+ }
+ } else {
+ /*
+ rich
+ */
+ playerID = 2;
+ }
+ /*
+ Navigate section 1107 to this players AIV stuff
+ */
+ this->aivs[_aivID].aivPoorCounter = 0;
+ _pIndicator = &DAT_GameState.playerDataArray[_playerID_2].aiResourceBuildingFocusIndicator;
+ *_pIndicator = *_pIndicator + 1;
+ if (4 < DAT_GameState.playerDataArray[_playerID_2].aiResourceBuildingFocusIndicator) {
+ DAT_GameState.playerDataArray[_playerID_2].aiResourceBuildingFocusIndicator = 0;
+ }
+ _inc1 = DAT_GameState.playerDataArray[_playerID_2].aiResourceBuildingFocusIndicator;
+ if (_inc1 == 0) {
+ /*
+ something with destroying woodcutters?
+ */
+ _shouldDestroyWoodCutter = shouldDestroyWoodCutterUnk(_playerID_2);
+ if ((_shouldDestroyWoodCutter == FALSE)
+ && (_decision = aiShouldBuildWoodcutter(_playerID_2),
+ _decision != FALSE)) {
+ aiPlaceWoodcuttershut(_playerID_2);
+ }
+ } else if (_inc1 == 1) {
+ _shouldBuildFarm
+ = aiShouldBuildFarm(_playerID_2);
+ if (_shouldBuildFarm != 0) {
+ _chosenFarm
+ = aiFarmChoice(_playerID_2);
+ _farmPlaceStatus
+ = aiPlaceFarm(_playerID_2, _chosenFarm);
+ if (_farmPlaceStatus != 0) {
+ setNextFarmTypeToBuild(
+ _playerID_2);
+ }
+ }
+ } else if (_inc1 == 2) {
+ _buildQuarry = aiShouldBuildQuarry(
+ _playerID_2);
+ if (_buildQuarry != 0) {
+ aiPlaceQuarryAndOxtether(_playerID_2);
+ }
+ /*
+ fixme: a value is set in quarry buildings
+ */
+ _extraTethers = aiRequiresExtraOxtethers(_playerID_2);
+ if (_extraTethers != 0) {
+ aiPlaceAdditionalOxtether(_playerID_2);
+ }
+ } else if (_inc1 == 3) {
+ _buildIronMine = aiShouldBuildIronMine(_playerID_2);
+ if (_buildIronMine != 0) {
+ aiPlaceIronMine(_playerID_2);
+ }
+ } else if ((_inc1 == 4)
+ && (_buildPitchRig = aiShouldBuildPitchrig(_playerID_2),
+ _buildPitchRig != 0)) {
+ aiPlacePitchrig(_playerID_2);
+ }
+ _currentPause = DAT_GameState.playerDataArray[_playerID_2].aivCurrentPause;
+ if (_currentPause == 0) {
+ _currentPauseIndex = DAT_GameState.playerDataArray[_playerID_2].aivCurrentPauseIndex;
+ _currentPauseValue
+ = (int)DAT_GameState.playerDataArray[_playerID_2].aivPauses[_currentPauseIndex];
+ if ((0 < _currentPauseValue) && (_currentPauseValue <= this->aivs[_aivID].currentStepGoal)) {
+ DAT_GameState.playerDataArray[_playerID_2].aivCurrentPause
+ = DAT_GameState.playerDataArray[_playerID_2].aivPauseDelay;
+ DAT_GameState.playerDataArray[_playerID_2].aivCurrentPauseIndex = _currentPauseIndex + 1;
+ return;
+ }
+ _pStepGoal = &this->aivs[_aivID].currentStepGoal;
+ /*
+ doc: why can the step increment with 2, because it is like a goal it is aiming for
+ */
+ *_pStepGoal = *_pStepGoal + playerID;
+ } else if ((uint)playerID < 2) {
+ /*
+ not rich
+ */
+ DAT_GameState.playerDataArray[_playerID_2].aivCurrentPause = _currentPause + -1;
+ _isPausing = 1;
+ } else {
+ DAT_GameState.playerDataArray[_playerID_2].aivCurrentPause = 0;
+ _isPausing = 1;
+ }
+ if (this->aivs[_aivID].aivSubType == 0) {
+ executeDefaultCastleAIV(_playerID_2, _isPausing);
+ } else {
+ _housesDestroyed
+ = destroyHouse(_playerID_2);
+ if ((_housesDestroyed == FALSE) && (_previousSteps = 1, 0 < this->aivs[_aivID].totalSteps)) {
+ while (_previousSteps <= this->aivs[_aivID].currentStepGoal) {
+ _decision = aiPlaceAIVBuilding(
+ _playerID_2, _previousSteps, _isPausing);
+ if ((_decision != FALSE)
+ || (_previousSteps = _previousSteps + 1, this->aivs[_aivID].totalSteps < _previousSteps))
+ break;
+ }
+ }
+ }
+ aiPlaceFlag(_playerID_2);
+ aiPlaceBrazier(_playerID_2);
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004f15c0", "name": "aiDecideOnNewBuildings", "quelle": "ghidra", "p1": {"bereich": "KI", "zweck": "Steuert den Bautakt eines KI-Spielers: Reichtum prüfen, Rohstoffgebäude setzen, Bauschritt vorwärts schieben und bauen."}, "p2": {"ein": "playerID", "aus": "-", "liest": ["playerDataArray[sp].aivID/currentResources[0xf] (Gold)/resourceRebuildDelay/aiResourceBuildingFocusIndicator/aivCurrentPause/aivCurrentPauseIndex/aivPauses/aivPauseDelay", "aivs[aivID].aivPoorCounter/aivPoorLimit_OR_AIC_buildInterval/currentStepGoal/totalSteps/aivSubType"], "schreibt": ["resourceRebuildDelay", "aivPoorCounter", "aiResourceBuildingFocusIndicator", "aivCurrentPause", "aivCurrentPauseIndex", "aivs[aivID].currentStepGoal"], "ruft": ["getResourceRebuildDelay", "shouldDestroyWoodCutterUnk", "aiShouldBuildWoodcutter", "aiPlaceWoodcuttershut", "aiShouldBuildFarm", "aiFarmChoice", "aiPlaceFarm", "setNextFarmTypeToBuild", "aiShouldBuildQuarry", "aiPlaceQuarryAndOxtether", "aiRequiresExtraOxtethers", "aiPlaceAdditionalOxtether", "aiShouldBuildIronMine", "aiPlaceIronMine", "aiShouldBuildPitchrig", "aiPlacePitchrig", "executeDefaultCastleAIV", "destroyHouse", "aiPlaceAIVBuilding", "aiPlaceFlag", "aiPlaceBrazier"], "regeln": ["Nur für aivID größer 0", "Hat resourceRebuildDelay einen Wert, zählt er je Aufruf hoch; solange er unter getResourceRebuildDelay liegt, kommt sofort die Rückkehr, danach wird er auf 0 gesetzt", "Gold (currentResources[15]): unter 5000 = arm: aivPoorCounter steigt um 1, Rückkehr, bis er aivPoorLimit_OR_AIC_buildInterval erreicht; 5000 bis 15999 = normal; ab 16000 = reich", "aivPoorCounter wird dann auf 0 gesetzt", "aiResourceBuildingFocusIndicator läuft reihum 0 bis 4: 0 Holzfäller (kein Abriss nötig und aiShouldBuildWoodcutter), 1 Farm (Art wird danach weitergeschaltet), 2 Steinbruch mit Ochsenanbindung und ggf. zusätzliche Ochsenanbindung, 3 Eisenmine, 4 Pechquelle", "Pause: Ist aivCurrentPause = 0 und aivPauses[Index] liegt über 0 und höchstens bei currentStepGoal, startet die Pause (aivPauseDelay), Index plus 1, Rückkehr ohne Bau", "Ohne Pause steigt currentStepGoal um 1 (normal oder arm) oder um 2 (reich)", "Läuft eine Pause, zählt sie bei nicht reicher KI um 1 herunter, bei reicher KI wird sie auf 0 gesetzt; isPausing = 1 (dann dürfen nur Hütten gebaut werden)", "aivSubType = 0: executeDefaultCastleAIV. Sonst destroyHouse; falls nichts abgerissen wurde, wird von Schritt 1 bis currentStepGoal aiPlaceAIVBuilding versucht und beim ersten Erfolg abgebrochen", "Am Ende immer aiPlaceFlag und aiPlaceBrazier (nur wenn nicht vorher zurückgekehrt wurde)"], "offen": ["Kommentar 'richness indicator?' bei playerID = 1/2 (der Wert 1 oder 2 wird als Schrittzuwachs weitergenutzt)", "Was shouldDestroyWoodCutterUnk genau prüft", "Wer aivPauses füllt und wie aivPauseDelay festgelegt wird"]}, "p3": {"erklaerung": "Der Hauptbaustein der KI-Wirtschaft: Alle paar Spielticks entscheidet die KI, ob sie ein Rohstoffgebäude setzt und wie weit sie in ihrem Bauplan vorrückt. Eine reiche KI (ab 16000 Gold) rückt doppelt so schnell vor, eine arme (unter 5000) wartet.", "gehirn": "Gegnerische KI mit viel Gold baut doppelt so schnell; Gold des Gegners (Slot 15) zeigt, wie schnell er aufbaut. Pausen im Bauplan sind Zeitfenster für Angriffe.", "beleg": "code", "live": "KI-Spieler mit Gold über 16000 beobachten → aivs[aivID].currentStepGoal je Aufruf → steigt um 2 (bei 5000 bis 15999 um 1)", "live_art": "ki-welle"}}
+

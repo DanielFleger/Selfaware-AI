@@ -1,0 +1,680 @@
+### 0x0040d9c0 getKeepLocationForAIUnit | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0040D9C0
+ undefined4 BuildingsState::getKeepLocationForAIUnit(int playerID, int param_2, int unitID)
+ {
+ short sVar1;
+ short sVar2;
+ short* psVar3;
+ int iVar4;
+ int iVar5;
+ int iVar6;
+ bool bVar7;
+ if ((((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ && (DAT_GameSynchronyState.currentPlayerFullIDArray[playerID] == -1))
+ && (DAT_GameSynchronyState.currentAIArray[playerID] != 0))
+ && (DAT_UnitsState.units[unitID].aiUnitBehaviourType != 2)) {
+ /*
+ if not in solitary; playerID is an AI; and the unit is not doing ai behavior type 2; and the
+ player has a keep; return the keep location and true;
+ */
+ iVar4 = DAT_GameState.playerDataArray[playerID].keep.id;
+ if (iVar4 != 0) {
+ this->DAT_TempXOffset = (int)this->buildings[iVar4].someX;
+ this->DAT_TempYOffset = (int)this->buildings[iVar4].someY;
+ return (undefined4)(1);
+ }
+ return (undefined4)(0);
+ }
+ iVar4 = param_2;
+ /*
+ this applies to solitary game mode, so not sure what to think of this now
+ */
+ if (param_2 == 0x10) {
+ iVar4 = 0xd;
+ }
+ /*
+ fixme
+ */
+ /*
+ fixme
+ */
+ iVar5 = DAT_GameState.playerDataArray[playerID].rallySearchOffsetsUnk[iVar4];
+ if (DAT_GameState.playerDataArray[playerID].mercenaryAssemblyPoints[param_2 + -10][0] == 0) {
+ if (0 < DAT_GameState.playerDataArray[playerID].mercenaryPost.id) {
+ if (param_2 == 0x10) {
+ /*
+ fixme
+ */
+ if (DAT_GameState.playerDataArray[playerID].mercenaryAssemblyPoints[3][0] != 0) {
+ iVar5 = DAT_GameState.playerDataArray[playerID].someCount23;
+ }
+ } else if ((param_2 == 0xd)
+ && ((short)DAT_GameState.playerDataArray[playerID].countPitchRigs != 0)) {
+ iVar5 = iVar5 - DAT_GameState.playerDataArray[playerID].someCount23;
+ }
+ if (iVar5 < 0x48) {
+ psVar3 = DAT_GameState.playerDataArray[playerID].enemyIDArray + iVar4 * 0x90
+ + iVar5 * 2 + 0x57d;
+ while (true) {
+ iVar4 = (int)*psVar3;
+ iVar6 = (int)psVar3[-1];
+ if ((((short)DAT_TileMapState.UnitLayer
+ [DAT_ViewportRenderState.translationMatrix[iVar4].addXgetTile
+ + iVar6]
+ == 0)
+ || ((short)DAT_TileMapState.UnitLayer
+ [DAT_ViewportRenderState.translationMatrix[iVar4].addXgetTile
+ + iVar6]
+ == unitID))
+ || (DAT_UnitsState.units[unitID].movementRelated != 8))
+ break;
+ iVar5 = iVar5 + 1;
+ psVar3 = psVar3 + 2;
+ if (0x47 < iVar5) {
+ return (undefined4)(0);
+ }
+ }
+ this->DAT_TempXOffset = iVar6;
+ this->DAT_TempYOffset = iVar4;
+ if (iVar6 == DAT_UnitsState.units[unitID].x) {
+ bVar7 = iVar4 == DAT_UnitsState.units[unitID].y;
+ LAB_0040dc5b:
+ if (bVar7) {
+ return (undefined4)(0);
+ }
+ }
+ return (undefined4)(1);
+ }
+ }
+ } else {
+ if (param_2 == 0x10) {
+ iVar5 = DAT_GameState.playerDataArray[playerID].someCount23;
+ iVar4 = param_2;
+ } else if (param_2 == 0xd) {
+ iVar5 = iVar5 - DAT_GameState.playerDataArray[playerID].someCount23;
+ }
+ /*
+ fixme
+ */
+ sVar1 = DAT_GameState.playerDataArray[playerID].mercenaryAssemblyPoints[iVar4 + -10][0];
+ /*
+ fixme
+ */
+ sVar2 = DAT_GameState.playerDataArray[playerID].mercenaryAssemblyPoints[iVar4 + -10][1];
+ if (iVar5 < 0x31) {
+ psVar3 = &DAT_BuildingDefinedData.SearchRelatedXYOffsets_1[iVar5].y;
+ do {
+ iVar5 = (int)*psVar3 + (int)sVar2;
+ iVar6 = (int)((XYPairShort*)(psVar3 + -1))->x + (int)sVar1;
+ iVar4 = DAT_ViewportRenderState.translationMatrix[iVar5].addXgetTile + iVar6;
+ if (((((short)DAT_TileMapState.UnitLayer[iVar4] == 0)
+ || ((short)DAT_TileMapState.UnitLayer[iVar4] == unitID))
+ || (DAT_UnitsState.units[unitID].movementRelated != 8))
+ && (iVar4 = MACRO_CALL_MEMBER(
+ calculateCanPlayerUnitsNavigateToAreaFromArea,
+ DAT_PathFindingState)(playerID,
+ (dword)((int)((int)(short)DAT_TileMapState
+ .PathConnectionLayer[DAT_UnitsState.units[unitID].tile])),
+ (dword)((int)((int)(short)DAT_TileMapState.PathConnectionLayer[iVar4])),
+ 0),
+ iVar4 != 0)) {
+ if (iVar6 != DAT_UnitsState.units[unitID].x) {
+ this->DAT_TempXOffset = iVar6;
+ this->DAT_TempYOffset = iVar5;
+ return (undefined4)(1);
+ }
+ bVar7 = iVar5 == DAT_UnitsState.units[unitID].y;
+ this->DAT_TempXOffset = iVar6;
+ this->DAT_TempYOffset = iVar5;
+ goto LAB_0040dc5b;
+ }
+ psVar3 = psVar3 + 2;
+ } while ((int)psVar3 < 0x5c178e);
+ }
+ }
+ return (undefined4)(0);
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0040d9c0", "name": "getKeepLocationForAIUnit", "quelle": "ghidra", "p1": {"bereich": "Gebaeude", "zweck": "Sammelplatz einer Einheit: bei KI die Burg, sonst ein freier Platz am Söldner-Sammelpunkt (Name täuscht)."}, "p2": {"ein": "playerID, param_2 (Gruppe, 10 bis 16), unitID", "aus": "TRUE bei Fund (Platz in DAT_TempXOffset/DAT_TempYOffset), sonst FALSE", "liest": ["currentGameMode", "currentPlayerFullIDArray", "currentAIArray", "units[].aiUnitBehaviourType/movementRelated/x/y/tile", "playerDataArray[sp].keep.id", "mercenaryAssemblyPoints", "mercenaryPost.id", "rallySearchOffsetsUnk", "someCount23", "countPitchRigs", "SearchRelatedXYOffsets_1", "UnitLayer", "PathConnectionLayer"], "schreibt": ["this->DAT_TempXOffset", "this->DAT_TempYOffset"], "ruft": ["calculateCanPlayerUnitsNavigateToAreaFromArea"], "regeln": ["Nicht Alleinspiel (mode ungleich GM_SOLITARY), KI-Spieler, Einheit mit aiUnitBehaviourType ungleich 2: Platz = Burg (someX/someY); ohne Burg FALSE", "Gruppe 0x10 (16) nutzt die Suchliste von Gruppe 0xd (13)", "Mit gesetztem Sammelpunkt (mercenaryAssemblyPoints[Gruppe-10]): bis zu 0x31 = 49 Felder rund um den Punkt, Feld frei oder von der Einheit selbst belegt (oder movementRelated ungleich 8) und erreichbar", "Ohne Sammelpunkt, aber mit Söldnerposten: 0x48 = 72 Plätze der Liste, nur Prüfung auf freies Feld", "Gruppe 16 startet bei someCount23, Gruppe 13 hört davor auf (Teilung einer gemeinsamen Liste)", "Steht die Einheit schon auf dem gefundenen Feld: FALSE, sonst TRUE", "Ohne Söldnerposten und ohne Sammelpunkt: FALSE"], "offen": ["Ghidra-Zählung und Rückgabewerte; die Kommentare mit 'fixme' stammen vom OpenSHC-Team", "Bedeutung von someCount23, countPitchRigs hier (vermutlich Zähler für die geteilte Liste)", "Gruppennummern 10 bis 16"]}, "p3": {"erklaerung": "Der Name sagt nur die halbe Wahrheit: Nur für KI-Einheiten im Mehrspieler wird die Burg geliefert. Sonst sucht die Funktion einen freien Platz am Söldner-Sammelpunkt.", "gehirn": "Zeigt, wo Söldner und KI-Truppen sich versammeln. Die genaue Rolle bei Raids muss ein Aufrufer klären.", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0040dc70 createEntityForAssemblyPointsForActiveTabType | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0040DC70
+ void BuildingsState::createEntityForAssemblyPointsForActiveTabType()
+ {
+ // Shows the rally point flags and unit previews of the building whose menu is open
+ if (DAT_GameCore.activeMenuTab.tabType == BASMTT_BARRACKS_OR_MPMENU_MODEM) {
+ for (int i = 0; i < 7; ++i) {
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .barracksAssemblyPoints[i]
+ .x
+ == 0) {
+ continue;
+ }
+ int tile
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .barracksAssemblyPoints[i]
+ .x
+ + DAT_ViewportRenderState
+ .translationMatrix[DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .barracksAssemblyPoints[i]
+ .y]
+ .addXgetTile;
+ createFloatingLayerElement(GID_FLOATS_NEW,
+ (int)DAT_TileMapState.flagAnimationFrame % 10 + 97, 18, -1, tile, 0xa0022);
+ createFloatingLayerElement((GmID)DAT_BuildingDefinedData.field382_0x9e1c[i][0],
+ DAT_BuildingDefinedData.field382_0x9e1c[i][1],
+ DAT_BuildingDefinedData.field382_0x9e1c[i][2] + 41,
+ DAT_BuildingDefinedData.field382_0x9e1c[i][3] - 40, tile, 0xc0006);
+ if (i == 6) {
+ createFloatingLayerElement((GmID)DAT_BuildingDefinedData.field383_0x9e8c[0],
+ DAT_BuildingDefinedData.field383_0x9e8c[1],
+ DAT_BuildingDefinedData.field383_0x9e8c[2] + 41,
+ DAT_BuildingDefinedData.field383_0x9e8c[3] - 40, tile, 0xc0006);
+ }
+ }
+ return;
+ }
+ if (DAT_GameCore.activeMenuTab.tabType == BASMTT_MERCENARYPOST) {
+ for (int i = 0; i < 7; ++i) {
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .mercenaryAssemblyPoints[i][0]
+ == 0) {
+ continue;
+ }
+ int tile
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .mercenaryAssemblyPoints[i][0]
+ + DAT_ViewportRenderState
+ .translationMatrix[DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .mercenaryAssemblyPoints[i][1]]
+ .addXgetTile;
+ createFloatingLayerElement(GID_FLOATS_NEW,
+ (int)DAT_TileMapState.flagAnimationFrame % 10 + 97, 18, -1, tile, 0xa0022);
+ createFloatingLayerElement((GmID)DAT_BuildingDefinedData.field384_0x9e9c[i][0],
+ DAT_BuildingDefinedData.field384_0x9e9c[i][1],
+ DAT_BuildingDefinedData.field384_0x9e9c[i][2] + 41,
+ DAT_BuildingDefinedData.field384_0x9e9c[i][3] - 40, tile, 0xc0006);
+ if (i == 1) {
+ createFloatingLayerElement((GmID)DAT_BuildingDefinedData.field383_0x9e8c[0],
+ DAT_BuildingDefinedData.field383_0x9e8c[1],
+ DAT_BuildingDefinedData.field383_0x9e8c[2] + 41,
+ DAT_BuildingDefinedData.field383_0x9e8c[3] - 40, tile, 0xc0006);
+ }
+ }
+ return;
+ }
+ if (DAT_GameCore.activeMenuTab.tabType == BASMTT_ENGINEERSGUILD) {
+ for (int i = 0; i < 2; ++i) {
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .specialBuildingAssemblyPoints[i]
+ .x
+ == 0) {
+ continue;
+ }
+ int tile
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .specialBuildingAssemblyPoints[i]
+ .x
+ + DAT_ViewportRenderState
+ .translationMatrix[DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .specialBuildingAssemblyPoints[i]
+ .y]
+ .addXgetTile;
+ createFloatingLayerElement(GID_FLOATS_NEW,
+ (int)DAT_TileMapState.flagAnimationFrame % 10 + 97, 18, -1, tile, 0xa0022);
+ createFloatingLayerElement((GmID)DAT_BuildingDefinedData.field401_0x9f1c[i][0],
+ DAT_BuildingDefinedData.field401_0x9f1c[i][1],
+ DAT_BuildingDefinedData.field401_0x9f1c[i][2] + 41,
+ DAT_BuildingDefinedData.field401_0x9f1c[i][3] - 40, tile, 0xc0006);
+ }
+ return;
+ }
+ if (DAT_GameCore.activeMenuTab.tabType == BASMTT_TUNNELERSGUILD) {
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .specialBuildingAssemblyPoints[2]
+ .x
+ == 0) {
+ return;
+ }
+ int tile = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .specialBuildingAssemblyPoints[2]
+ .x
+ + DAT_ViewportRenderState
+ .translationMatrix[DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .specialBuildingAssemblyPoints[2]
+ .y]
+ .addXgetTile;
+ createFloatingLayerElement(GID_FLOATS_NEW,
+ (int)DAT_TileMapState.flagAnimationFrame % 10 + 97, 18, -1, tile, 0xa0022);
+ createFloatingLayerElement(GID_BODY_TUNNELOR, 3, 14, -40, tile, 0xc0006);
+ return;
+ }
+ if (DAT_GameCore.activeMenuTab.tabType == BASMTT_CATHEDRAL) {
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .specialBuildingAssemblyPoints[3]
+ .x
+ == 0) {
+ return;
+ }
+ int tile = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .specialBuildingAssemblyPoints[3]
+ .x
+ + DAT_ViewportRenderState
+ .translationMatrix[DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .specialBuildingAssemblyPoints[3]
+ .y]
+ .addXgetTile;
+ createFloatingLayerElement(GID_FLOATS_NEW,
+ (int)DAT_TileMapState.flagAnimationFrame % 10 + 97, 18, -1, tile, 0xa0022);
+ createFloatingLayerElement(
+ GID_BODY_FIGHTING_MONK, 3, 14, -40, tile, 0xc0006);
+ }
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0040dc70", "name": "createEntityForAssemblyPointsForActiveTabType", "quelle": "nachgebaut", "p1": {"bereich": "Gebaeude", "zweck": "Zeichnet Sammelpunkt-Fahnen und Einheiten-Vorschau für das gerade offene Gebäudemenü."}, "p2": {"ein": "-", "aus": "-", "liest": ["activeMenuTab.tabType", "playerDataArray[aktueller Slot].barracksAssemblyPoints[7]", "mercenaryAssemblyPoints[7][2]", "specialBuildingAssemblyPoints[0..3]", "flagAnimationFrame"], "schreibt": ["Darstellungselemente (createFloatingLayerElement)"], "ruft": ["createFloatingLayerElement"], "regeln": ["Kaserne: bis 7 Sammelpunkte; Söldnerposten: bis 7; Ingenieurgilde: 2 (Index 0 und 1); Tunnelgräbergilde: Punkt 2; Kathedrale: Punkt 3", "Ein Sammelpunkt mit x = 0 gilt als nicht gesetzt und wird übersprungen", "Fahnenbild = 97 + (flagAnimationFrame mod 10)", "Zusatzbild bei Kaserne ab Index 6, bei Söldnerposten bei Index 1"], "offen": []}, "p3": {"erklaerung": "Reine Darstellung: zeigt dem Spieler seine gesetzten Sammelpunkte im geöffneten Menü.", "gehirn": "-", "beleg": "nachgebaut", "live": "-", "live_art": "-"}}
+
+### 0x0040fc40 updateLordLadyJesterAndGhostUnits | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0040FC40
+ void BuildingsState::updateLordLadyJesterAndGhostUnits(int playerID)
+ {
+ validateBuildingCategoryReference(playerID, 0);
+ int keepID = DAT_GameState.playerDataArray[playerID].keep.id;
+ int campgroundX = DAT_GameState.playerDataArray[playerID].campground.xEntry;
+ int campgroundY = DAT_GameState.playerDataArray[playerID].campground.yEntry - 1;
+ if (keepID != 0 && DAT_BuildingsState.buildings[keepID].buildingType == BT_MANORHOUSE) {
+ ++campgroundY;
+ }
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ if (keepID <= 0 || DAT_GameState.playerDataArray[playerID].playerDeathRelated != 0) {
+ // Without a keep the lord and his court die
+ int ladyID = DAT_GameState.playerDataArray[playerID].ladyIDUnk;
+ if (ladyID != 0) {
+ DAT_UnitsState.units[ladyID].dying = 1;
+ DAT_UnitsState.units[ladyID].animationCycleNumber = 0;
+ DAT_UnitsState.units[ladyID].state.generic = US_DEATH_03;
+ DAT_UnitsState.units[ladyID].logicalState = ULS_REMOVE;
+ DAT_GameState.playerDataArray[playerID].ladyIDUnk = 0;
+ }
+ int lordID = DAT_GameState.playerDataArray[playerID].lordID;
+ if (lordID != 0) {
+ DAT_UnitsState.units[lordID].dying = 1;
+ DAT_UnitsState.units[lordID].animationCycleNumber = 0;
+ DAT_UnitsState.units[lordID].state.generic = US_DEATH_03;
+ DAT_UnitsState.units[lordID].logicalState = ULS_REMOVE;
+ DAT_GameState.playerDataArray[playerID].lordID = 0;
+ }
+ int jesterID = DAT_GameState.playerDataArray[playerID].jesterIDUnk;
+ if (jesterID != 0) {
+ DAT_UnitsState.units[jesterID].dying = 1;
+ DAT_UnitsState.units[jesterID].animationCycleNumber = 0;
+ DAT_UnitsState.units[jesterID].state.generic
+ = US_DEATH_03;
+ DAT_UnitsState.units[jesterID].logicalState = ULS_REMOVE;
+ DAT_GameState.playerDataArray[playerID].jesterIDUnk = 0;
+ }
+ int ghostID = DAT_GameState.playerDataArray[playerID].someUnitID01;
+ if (ghostID == 0) {
+ return;
+ }
+ DAT_GameState.playerDataArray[playerID].someUnitID01 = 0;
+ DAT_UnitsState.units[ghostID].animationCycleNumber = 0;
+ DAT_UnitsState.units[ghostID].dying = 1;
+ DAT_UnitsState.units[ghostID].state.generic = (UnitState)2;
+ return;
+ }
+ } else if (DAT_GameCore.mapU4Int0 != 0
+ && playerID == DAT_GameState.mapAndTime.somePlayerID) {
+ return;
+ }
+ // The lady, lord and jester stay at the keep
+ int ladyID = DAT_GameState.playerDataArray[playerID].ladyIDUnk;
+ if (ladyID == 0 && DAT_GameState.mapAndTime.unitLadyRelated != 0) {
+ ladyID = spawnUnit(
+ playerID, playerID, campgroundX * 8, campgroundY * 8, this->buildings[keepID].terrainHeightUnk,
+ UT_LADY);
+ if (ladyID != 0) {
+ DAT_GameState.playerDataArray[playerID].someUnitIDSelfRef
+ = DAT_UnitsState.units[ladyID].uid;
+ DAT_GameState.playerDataArray[playerID].ladyIDUnk = ladyID;
+ commitUnitLocation(
+ ladyID);
+ DAT_UnitsState.units[ladyID].state.generic = (UnitState)2;
+ }
+ }
+ if (ladyID != 0) {
+ if (DAT_GameState.playerDataArray[playerID].someUnitIDSelfRef
+ != DAT_UnitsState.units[ladyID].uid) {
+ DAT_GameState.playerDataArray[playerID].ladyIDUnk = 0;
+ DAT_GameState.playerDataArray[playerID].someUnitIDSelfRef = 0;
+ } else {
+ DAT_UnitsState.units[ladyID].workplaceBuildingID_1 = keepID;
+ DAT_UnitsState.units[ladyID].targetX_2 = campgroundX;
+ DAT_UnitsState.units[ladyID].targetY_2 = campgroundY;
+ }
+ }
+ int lordID = DAT_GameState.playerDataArray[playerID].lordID;
+ if (lordID == 0) {
+ lordID = spawnUnit(
+ playerID, playerID, campgroundX * 8, campgroundY * 8, this->buildings[keepID].terrainHeightUnk,
+ UT_LORD);
+ if (lordID != 0) {
+ DAT_GameState.playerDataArray[playerID].lordUID
+ = DAT_UnitsState.units[lordID].uid;
+ DAT_GameState.playerDataArray[playerID].lordID = lordID;
+ commitUnitLocation(
+ lordID);
+ DAT_UnitsState.units[lordID].state.generic = (UnitState)2;
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ if (getLordTypeForPlayer(playerID)
+ == 1) {
+ DAT_UnitsState.units[lordID].unknownLordTypeBasedMissionSpecificValue_01 = 1;
+ }
+ if (isAIPlayer(playerID)
+ != FALSE) {
+ // The health of AI lords depends on the AI character
+ DAT_UnitsState.units[lordID].maxHealthRatingLord
+ = DAT_SkirmishDefinedData
+ .MaxLordHealthMapping[DAT_GameState.playerDataArray[playerID].aiType
+ - 1]
+ .aiTypeA;
+ DAT_UnitsState.units[lordID].health
+ = DAT_UnitsState.units[lordID].health
+ * DAT_SkirmishDefinedData
+ .MaxLordHealthMapping[DAT_GameState.playerDataArray[playerID].aiType
+ - 1]
+ .maxHealthMultiplier
+ / 100;
+ DAT_UnitsState.units[lordID].maxHealth
+ = DAT_UnitsState.units[lordID].maxHealth
+ * DAT_SkirmishDefinedData
+ .MaxLordHealthMapping[DAT_GameState.playerDataArray[playerID].aiType
+ - 1]
+ .maxHealthMultiplier
+ / 100;
+ }
+ } else if (DAT_GameCore.gameMode_2 == GM_BUILDERUnk
+ && DAT_GameCore.selectedLordType_2Unk == 1) {
+ DAT_UnitsState.units[lordID].unknownLordTypeBasedMissionSpecificValue_01 = 1;
+ }
+ }
+ }
+ if (lordID != 0) {
+ if (DAT_GameState.playerDataArray[playerID].lordUID
+ != DAT_UnitsState.units[lordID].uid) {
+ if (DAT_GameCore.gameMode_2 == GM_BUILDERUnk
+ && DAT_MapPropertiesState.SEC_U3_MapType2_1 == MT_JUST_BUILD) {
+ DAT_GameState.playerDataArray[playerID].lordID = 0;
+ DAT_GameState.playerDataArray[playerID].lordUID = 0;
+ }
+ } else {
+ DAT_UnitsState.units[lordID].workplaceBuildingID_1 = keepID;
+ DAT_UnitsState.units[lordID].targetX_2 = campgroundX;
+ DAT_UnitsState.units[lordID].targetY_2 = campgroundY;
+ }
+ }
+ int jesterID = DAT_GameState.playerDataArray[playerID].jesterIDUnk;
+ if (jesterID == 0 && DAT_GameState.mapAndTime.unitJesterRelated != 0) {
+ jesterID = spawnUnit(
+ playerID, playerID, campgroundX * 8, campgroundY * 8, this->buildings[keepID].terrainHeightUnk,
+ UT_JESTER);
+ if (jesterID != 0) {
+ DAT_GameState.playerDataArray[playerID].jesterIDUnk = jesterID;
+ DAT_GameState.playerDataArray[playerID].someUnitIDSelfRef_2
+ = DAT_UnitsState.units[jesterID].uid;
+ commitUnitLocation(
+ jesterID);
+ DAT_UnitsState.units[jesterID].state.generic = (UnitState)2;
+ }
+ }
+ if (jesterID != 0) {
+ if (DAT_GameState.playerDataArray[playerID].someUnitIDSelfRef_2
+ != DAT_UnitsState.units[jesterID].uid) {
+ DAT_GameState.playerDataArray[playerID].jesterIDUnk = 0;
+ DAT_GameState.playerDataArray[playerID].someUnitIDSelfRef_2 = 0;
+ } else {
+ DAT_UnitsState.units[jesterID].workplaceBuildingID_1 = keepID;
+ DAT_UnitsState.units[jesterID].targetX_2 = campgroundX;
+ DAT_UnitsState.units[jesterID].targetY_2 = campgroundY;
+ }
+ }
+ // In solitary a ghost haunts the shrine of a populated castle
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY
+ || playerID != DAT_GameSynchronyState.currentPlayerSlotID) {
+ return;
+ }
+ int shrineID
+ = findFirstBuildingIDForPlayerAndType(playerID, BT_SHRINE);
+ if (shrineID <= 0 || DAT_GameState.playerDataArray[playerID].currentPopulation < 40) {
+ return;
+ }
+ int ghostID = DAT_GameState.playerDataArray[playerID].someUnitID01;
+ if (ghostID == 0) {
+ ghostID = spawnUnit(
+ playerID, playerID, this->buildings[shrineID].buildingEntryX * 8,
+ this->buildings[shrineID].buildingEntryY * 8, this->buildings[shrineID].terrainHeightUnk,
+ UT_GHOST);
+ if (ghostID == 0) {
+ return;
+ }
+ DAT_GameState.playerDataArray[playerID].someUnitID01 = ghostID;
+ DAT_GameState.playerDataArray[playerID].field708_0x22cc
+ = DAT_UnitsState.units[ghostID].uid;
+ DAT_UnitsState.units[ghostID].state.generic
+ = US_DETERMINE_NEXT_STATEUnk;
+ DAT_UnitsState.units[ghostID].disappearFadeAlphaCountdown = 32;
+ }
+ if (DAT_GameState.playerDataArray[playerID].field708_0x22cc
+ != DAT_UnitsState.units[ghostID].uid) {
+ DAT_GameState.playerDataArray[playerID].someUnitID01 = 0;
+ DAT_GameState.playerDataArray[playerID].field708_0x22cc = 0;
+ return;
+ }
+ DAT_UnitsState.units[ghostID].workplaceBuildingID_1 = shrineID;
+ DAT_UnitsState.units[ghostID].targetX_2 = this->buildings[shrineID].buildingEntryX;
+ DAT_UnitsState.units[ghostID].targetY_2 = this->buildings[shrineID].buildingEntryY;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0040fc40", "name": "updateLordLadyJesterAndGhostUnits", "quelle": "nachgebaut", "p1": {"bereich": "Gebaeude", "zweck": "Hält Lord, Lady, Hofnarr und Geist eines Spielers am Lagerplatz der Burg bereit: erzeugt sie bei Bedarf und entfernt sie ohne Burg."}, "p2": {"ein": "playerID", "aus": "-", "liest": ["playerDataArray[sp].keep.id/campground/lordID/ladyIDUnk/jesterIDUnk/someUnitID01/playerDeathRelated/currentPopulation/aiType", "buildings[keep].buildingType/terrainHeightUnk", "mapAndTime.unitLadyRelated/unitJesterRelated/somePlayerID", "currentGameMode/currentPlayerSlotID", "DAT_SkirmishDefinedData.MaxLordHealthMapping[aiType-1]"], "schreibt": ["units[lord/lady/jester/geist].dying/state/logicalState/workplaceBuildingID_1/targetX_2/targetY_2", "playerDataArray[sp].lordID/lordUID/ladyIDUnk/jesterIDUnk/someUnitID01", "units[lord].health/maxHealth/maxHealthRatingLord"], "ruft": ["validateBuildingCategoryReference", "spawnUnit", "commitUnitLocation", "getLordTypeForPlayer", "isAIPlayer", "findFirstBuildingIDForPlayerAndType"], "regeln": ["Standpunkt = campground.xEntry, yEntry-1; ist die Burg ein BT_MANORHOUSE, gilt yEntry", "Einzelspieler (GM_SOLITARY): Ohne Burg (keepID<=0) oder bei playerDeathRelated!=0 sterben Lady, Lord und Hofnarr (dying=1, State US_DEATH_03, logicalState ULS_REMOVE), der Geist stirbt mit State 2; danach Ende", "Nicht Einzelspieler: Ist mapU4Int0!=0 und playerID==mapAndTime.somePlayerID, passiert nichts", "Lady wird nur erzeugt, wenn mapAndTime.unitLadyRelated!=0; Hofnarr nur, wenn unitJesterRelated!=0; der Lord immer, wenn lordID==0", "Stimmt die gemerkte UID nicht mit der Einheit überein, wird die Zuordnung gelöscht (Lord nur im Baumodus MT_JUST_BUILD)", "Nicht Einzelspieler, KI-Lord: maxHealthRatingLord = MaxLordHealthMapping[aiType-1].aiTypeA; health und maxHealth werden mit maxHealthMultiplier/100 skaliert", "Geist: nur im Einzelspieler und nur für den eigenen Platz; braucht einen Schrein (BT_SHRINE) und currentPopulation>=40; wird am Schrein erzeugt mit disappearFadeAlphaCountdown=32"], "offen": ["Bedeutung von ladyIDUnk, jesterIDUnk, someUnitID01, field708_0x22cc, playerDeathRelated (alle ungesichert benannt)", "getLordTypeForPlayer==1 setzt unknownLordTypeBasedMissionSpecificValue_01=1, Sinn unklar"]}, "p3": {"erklaerung": "Der Lord steht im Gefecht immer wieder an der Burg neu da, falls er fehlt. KI-Lords bekommen je nach KI-Charakter mehr oder weniger Lebenspunkte. Lady, Hofnarr und Geist gibt es nur in bestimmten Spielarten.", "gehirn": "KI-Lord-Stärke steht in MaxLordHealthMapping; daraus lässt sich ablesen, wie hart ein Lord-Angriff gegen einen bestimmten KI-Charakter ist.", "beleg": "nachgebaut", "live": "MaxLordHealthMapping (DAT_SkirmishDefinedData) einmal auslesen → aiTypeA und maxHealthMultiplier je KI-Charakter → mit units[lord].maxHealth der KI vergleichen", "live_art": "tabelle"}}
+
+### 0x00410ee0 UpdatePitchRig | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00410EE0
+ void Buildings::UpdatePitchRig()
+ {
+ DAT_GameState
+ .playerDataArray[DAT_BuildingsState.buildings[DAT_CurrentBuildingID].owner]
+ .countPitchRigs += 1;
+ int animationDone = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].workers[0] != 0;
+ addBuildingToTargetableBuildings(
+ DAT_CurrentBuildingID);
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ // PitchRigAnimationFrames2/3 are declared byte, but the original reads them signed
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationActive != 0) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 3) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_PITCH_SCOOP);
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 20) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_PITCH_POUR);
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 1) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_PITCH_WATERLAP);
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 10
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 25) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_MUDBUB);
+ }
+ }
+ char const frame
+ = (char)DAT_BuildingDefinedData.PitchRigAnimationFrames2
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if (frame <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = frame;
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = 0;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 31;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex < 30) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength -= 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 0;
+ }
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 1
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 2
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 3) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationActive != 0) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 3) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_PITCH_SCOOP);
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 20) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_PITCH_POUR);
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 1) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_PITCH_WATERLAP);
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 10
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 25) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_MUDBUB);
+ }
+ }
+ char const frame
+ = DAT_BuildingDefinedData.PitchRigAnimationFrames1
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if (frame <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = frame;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 0;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 4) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationActive != 0) {
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 3) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_PITCH_SCOOP);
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 20) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_PITCH_POUR);
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 1) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_PITCH_WATERLAP);
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 10
+ || DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 25) {
+ playSFXAtLocation(
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,
+ FX_MUDBUB);
+ }
+ }
+ char const frame
+ = (char)DAT_BuildingDefinedData.PitchRigAnimationFrames3
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if (frame <= 0) {
+ animationDone = 1;
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationFrame = frame;
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex >= 40) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex - 40;
+ }
+ }
+ if (animationDone != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex = 0;
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 1;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 1) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 2;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 2) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 3;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 3) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 4;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state == 4) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationCycleCount += 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationCycleCompleted = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].state = 0;
+ }
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIncrement == 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 0;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength > 31) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 31;
+ } else if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength < 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderBlendStrength = 0;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].extraAnimationSprite1 = 0;
+ if (DAT_GameSynchronyState.currentGameMode != 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage += 1;
+ if (DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage / 2]
+ <= 0) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage = 0;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].overlayImageID
+ = DAT_BuildingDefinedData.SharedOverlayAnimationFrames
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].flagSlot.overlayImage
+ / 2];
+ } else {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].overlayImageID = 0;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00410ee0", "name": "UpdatePitchRig", "quelle": "nachgebaut", "p1": {"bereich": "Gebaeude", "zweck": "Takt-Update einer Pechgrube: zählt sie mit und steuert die Arbeitsanimation samt Ton."}, "p2": {"ein": "-", "aus": "-", "liest": ["buildings[cur].workers[0]", "state", "animationIndex", "animationActive", "animationIncrement", "BuildingDefinedData.PitchRigAnimationFrames1/2/3", "SharedOverlayAnimationFrames", "currentGameMode"], "schreibt": ["playerDataArray[owner].countPitchRigs +1", "renderAnimation", "animationFrame", "renderBlendStrength", "state", "animationIndex", "animationCycleCount", "animationCycleCompleted", "overlayImageID, flagSlot.overlayImage, displayOwnerFlag"], "ruft": ["addBuildingToTargetableBuildings", "addBuildingInRegistry", "playSFXAtLocation"], "regeln": ["Jeder Durchlauf erhöht countPitchRigs des Besitzers um 1", "renderAnimation = 1, wenn ein Arbeiter (workers[0]) da ist, sonst 0", "Fünf Animationsabschnitte state 0 bis 4: Frames-Tabellen 2 (state 0), 1 (state 1-3), 3 (state 4)", "Ist der Tabellenwert 0 oder kleiner, ist der Abschnitt fertig: animationIndex = 0, state +1", "Nach state 4: animationCycleCount +1, animationCycleCompleted = 1, state = 0", "Töne bei animationIndex 3 (Schöpfen), 20 (Gießen), 1 (Wasser), 10 und 25 (Blubbern)", "renderBlendStrength wird auf 0 bis 31 begrenzt, bei animationIncrement 0 auf 0", "Außerhalb des Einzelspielermodus (currentGameMode ungleich 0) läuft die Besitzerflagge"], "offen": ["Wo countPitchRigs wieder auf 0 gesetzt wird (vermutlich vor jedem Durchlauf aller Gebäude)", "Aufrufer und genaue Takt-Häufigkeit"]}, "p3": {"erklaerung": "Die Pechgrube zählt sich jeden Takt in den Spielerblock und spielt ihre Pech-Animation ab. Mit der Pechmenge selbst hat diese Funktion nichts zu tun.", "gehirn": "countPitchRigs gibt direkt die Zahl der Pechgruben eines Spielers an, falls der Zähler beim Lesen stimmt.", "beleg": "nachgebaut", "live": "Pechgrube bauen und fertigstellen → playerDataArray[sp].countPitchRigs → steigt um 1 je Grube (Wert muss beim Lesen gültig sein)", "live_art": "bauen"}}
+

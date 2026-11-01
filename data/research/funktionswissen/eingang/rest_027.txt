@@ -1,0 +1,1472 @@
+### 0x0043d420 RenderBuildingMenu_Well | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043D420
+ void BuildingMenus::RenderBuildingMenu_Well()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Well"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_WELL, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043d460 RenderBuildingMenu_WaterPot | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043D460
+ void BuildingMenus::RenderBuildingMenu_WaterPot()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Water Pot"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_WATERPOT, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043d4a0 RenderBuildingMenu_Oilsmelter | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043D4A0
+ void BuildingMenus::RenderBuildingMenu_Oilsmelter()
+ {
+ int iVar1;
+ char* pcVar2;
+ int iVar3;
+ TextAlignment alignment;
+ BGR24 color;
+ int iVar4;
+ uint color_00;
+ BOOLEnum keepOffsetX;
+ int iVar5;
+ int blendStrength;
+ iVar5 = 0;
+ keepOffsetX = FALSE;
+ iVar4 = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x1d3;
+ iVar3 = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Oil Smelter"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_OIL_SMELTER, 0);
+ renderTextToScreen(
+ pcVar2, iVar3, iVar1, alignment, color, iVar4, keepOffsetX, iVar5);
+ blendStrength = 0;
+ iVar5 = 0x12;
+ color_00 = 0;
+ iVar4 = 0x136;
+ iVar1 = DAT_MenuHandlerState.y + 0x1fb;
+ iVar3 = DAT_MenuHandlerState.x + 0xaf;
+ /*
+ added by script: "Boils oil for siege defence."
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_OIL_SMELTER, 1);
+ renderMultilineText5Unk(
+ pcVar2, iVar3, iVar1, iVar4, color_00, iVar5, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043d520 RenderBuildingMenu_Stables | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043D520
+ void BuildingMenus::RenderBuildingMenu_Stables()
+ {
+ int iVar1;
+ char* pcVar2;
+ int iVar3;
+ int xParam;
+ int iVar4;
+ TextAlignment TVar5;
+ BGR24 BVar6;
+ int iVar7;
+ BOOLEnum BVar8;
+ int iVar9;
+ iVar4 = DAT_BuildingsState.menuSelectedBuildingID;
+ iVar9 = 0;
+ BVar8 = FALSE;
+ iVar7 = 0x10;
+ BVar6 = 0;
+ TVar5 = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x1d3;
+ iVar3 = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Stables"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_STABLES, 0);
+ renderTextToScreen(
+ pcVar2, iVar3, iVar1, TVar5, BVar6, iVar7, BVar8, iVar9);
+ renderNumberToScreen2(
+ (int)(char)DAT_BuildingsState.buildings[iVar4].numberOfAnimals
+ - (int)DAT_BuildingsState.buildings[iVar4].randomOutpostField,
+ DAT_MenuHandlerState.x + 0xaf, DAT_MenuHandlerState.y + 0x205, TTA_LEFT,
+ 0, 0x12, FALSE, 0);
+ iVar7 = 0;
+ BVar8 = TRUE;
+ iVar3 = 0x12;
+ BVar6 = 0;
+ iVar1 = DAT_MenuHandlerState.y + 0x205;
+ TVar5 = TTA_LEFT;
+ if ((int)(char)DAT_BuildingsState.buildings[iVar4].numberOfAnimals
+ - (int)DAT_BuildingsState.buildings[iVar4].randomOutpostField
+ == 1) {
+ iVar9 = 3;
+ } else {
+ iVar9 = 1;
+ }
+ xParam = DAT_MenuHandlerState.x + 0xb4;
+ /*
+ added by script: "Horse Available"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_STABLES, iVar9);
+ renderTextToScreen(
+ pcVar2, xParam, iVar1, TVar5, BVar6, iVar3, BVar8, iVar7);
+ renderNumberToScreen2(
+ (int)DAT_BuildingsState.buildings[iVar4].randomOutpostField,
+ DAT_MenuHandlerState.x + 0xaf, DAT_MenuHandlerState.y + 0x219, TTA_LEFT,
+ 0, 0x12, FALSE, 0);
+ iVar3 = 0;
+ BVar8 = TRUE;
+ iVar1 = 0x12;
+ BVar6 = 0;
+ TVar5 = TTA_LEFT;
+ if (DAT_BuildingsState.buildings[iVar4].randomOutpostField == '\x01') {
+ iVar4 = 4;
+ } else {
+ iVar4 = 2;
+ }
+ iVar9 = DAT_MenuHandlerState.y + 0x219;
+ iVar7 = DAT_MenuHandlerState.x + 0xb4;
+ /*
+ added by script: "Horse In Use"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_STABLES, iVar4);
+ renderTextToScreen(
+ pcVar2, iVar7, iVar9, TVar5, BVar6, iVar1, BVar8, iVar3);
+ return;
+ }
+}
+}
+
+### 0x0043d690 RenderBuildingMenu_Drawbridge | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043D690
+ void BuildingMenus::RenderBuildingMenu_Drawbridge()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Drawbridge"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_DRAWBRIDGE, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043d6d0 RenderBuildingMenu_Unused_PosternGate | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043D6D0
+ void BuildingMenus::RenderBuildingMenu_Unused_PosternGate()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Postern Gate"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_POSTERN_GATE, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043d710 RenderBuildingMenu_TunnelEntrance | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043D710
+ void BuildingMenus::RenderBuildingMenu_TunnelEntrance()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Tunnel Entrance"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_TUNNEL_ENTERANCE, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043d750 RenderBuildingMenu_Signpost | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043D750
+ void BuildingMenus::RenderBuildingMenu_Signpost()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1f5;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Signpost"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_SIGNPOST, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043d790 RenderBuildingMenu_KillingPit | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043D790
+ void BuildingMenus::RenderBuildingMenu_KillingPit()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Killing Pit"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_KILLING_PIT, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043d7d0 RenderBuildingMenu_Campfire | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043D7D0
+ void BuildingMenus::RenderBuildingMenu_Campfire()
+ {
+ int iVar1;
+ char* pcVar2;
+ int iVar3;
+ TextAlignment alignment;
+ BGR24 color;
+ int iVar4;
+ uint color_00;
+ BOOLEnum keepOffsetX;
+ int iVar5;
+ int blendStrength;
+ iVar5 = 0;
+ keepOffsetX = FALSE;
+ iVar4 = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x1d3;
+ iVar3 = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Camp Ground"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_CAMP_FIRE, 0);
+ renderTextToScreen(
+ pcVar2, iVar3, iVar1, alignment, color, iVar4, keepOffsetX, iVar5);
+ blendStrength = 0;
+ iVar5 = 0x12;
+ color_00 = 0;
+ iVar4 = 0x136;
+ iVar1 = DAT_MenuHandlerState.y + 0x1fb;
+ iVar3 = DAT_MenuHandlerState.x + 0xaf;
+ /*
+ added by script: "Peasants gather here."
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_CAMP_FIRE, 1);
+ renderMultilineText5Unk(
+ pcVar2, iVar3, iVar1, iVar4, color_00, iVar5, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043d850 RenderBuildingMenu_Gallows | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043D850
+ void BuildingMenus::RenderBuildingMenu_Gallows()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Gallows"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_GALLOWS, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043d890 RenderBuildingMenu_Stocks | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043D890
+ void BuildingMenus::RenderBuildingMenu_Stocks()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Stocks"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_STOCKS, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043d8d0 RenderBuildingMenu_Unused_Witchhoist | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043D8D0
+ void BuildingMenus::RenderBuildingMenu_Unused_Witchhoist()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Witch Hoist"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_WITCH_HOIST, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043d910 RenderBuildingMenu_Maypole | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043D910
+ void BuildingMenus::RenderBuildingMenu_Maypole()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Maypole"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_MAYPOLE, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043d950 RenderBuildingMenu_Gardens | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043D950
+ void BuildingMenus::RenderBuildingMenu_Gardens()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Gardens"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_BUBBLE_HELP_TEXT, 0x7c);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043d990 RenderBuildingMenu_TrainingGrounds | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043D990
+ void BuildingMenus::RenderBuildingMenu_TrainingGrounds()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x11;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Training Ground"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_TRAINING_GROUND, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043d9d0 RenderBuildingMenu_CessPit | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043D9D0
+ void BuildingMenus::RenderBuildingMenu_CessPit()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x11;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Cesspit"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_CESS_PIT, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043da10 RenderBuildingMenu_BurningStake | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043DA10
+ void BuildingMenus::RenderBuildingMenu_BurningStake()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x11;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Burning stake"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_BURNING_STAKE, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043da50 RenderBuildingMenu_Gibbet | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043DA50
+ void BuildingMenus::RenderBuildingMenu_Gibbet()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x11;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Gibbet"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_GIBBET, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043da90 RenderBuildingMenu_Dungeon | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043DA90
+ void BuildingMenus::RenderBuildingMenu_Dungeon()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x11;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Dungeon"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_DUNGEON, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043dad0 RenderBuildingMenu_StretchingRack | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043DAD0
+ void BuildingMenus::RenderBuildingMenu_StretchingRack()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x11;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Stretching rack"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_STRETCHING_RACK, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043db10 RenderBuildingMenu_Unused_FloggingRack | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043DB10
+ void BuildingMenus::RenderBuildingMenu_Unused_FloggingRack()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x11;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Flogging rack"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_FLOGGING_RACK, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043db50 RenderBuildingMenu_ChoppingBlock | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043DB50
+ void BuildingMenus::RenderBuildingMenu_ChoppingBlock()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x11;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Chopping block"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_CHOPPING_BLOCK, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043db90 RenderBuildingMenu_DunkingStool | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043DB90
+ void BuildingMenus::RenderBuildingMenu_DunkingStool()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x11;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Dunking stool"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_DUNKING_STOOL, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043dbd0 RenderBuildingMenu_DogCage | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043DBD0
+ void BuildingMenus::RenderBuildingMenu_DogCage()
+ {
+ int iVar1;
+ char* pcVar2;
+ int iVar3;
+ TextAlignment TVar4;
+ BGR24 BVar5;
+ int iVar6;
+ BOOLEnum BVar7;
+ int iVar8;
+ iVar8 = 0;
+ BVar7 = FALSE;
+ iVar6 = 0x11;
+ BVar5 = 0;
+ TVar4 = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x1d3;
+ iVar3 = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Caged war dogs"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_DOG_CAGE, 0);
+ renderTextToScreen(
+ pcVar2, iVar3, iVar1, TVar4, BVar5, iVar6, BVar7, iVar8);
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .releaseDogsFlag
+ == 1) {
+ iVar8 = 0;
+ BVar7 = FALSE;
+ iVar6 = 0x11;
+ BVar5 = 0;
+ TVar4 = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x205;
+ iVar3 = DAT_MenuHandlerState.x + 200;
+ /*
+ added by script: "The dogs are loose!"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_DOG_CAGE, 2);
+ renderTextToScreen(
+ pcVar2, iVar3, iVar1, TVar4, BVar5, iVar6, BVar7, iVar8);
+ }
+ return;
+ }
+}
+}
+
+### 0x0043dc60 RenderBuildingMenu_Statue | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043DC60
+ void BuildingMenus::RenderBuildingMenu_Statue()
+ {
+ int iVar1;
+ int iVar2;
+ char* pcVar3;
+ int iVar4;
+ TextAlignment TVar5;
+ BGR24 BVar6;
+ int iVar7;
+ BOOLEnum BVar8;
+ int iVar9;
+ iVar1 = DAT_BuildingsState.menuSelectedBuildingID;
+ iVar9 = 0;
+ BVar8 = FALSE;
+ iVar7 = 0x11;
+ BVar6 = 0;
+ TVar5 = TTA_LEFT;
+ iVar2 = DAT_MenuHandlerState.y + 0x1d3;
+ iVar4 = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Statue"
+ */
+ pcVar3 = getTextStringInGroupAtOffset(TEXT_IN_STATUE, 0);
+ renderTextToScreen(
+ pcVar3, iVar4, iVar2, TVar5, BVar6, iVar7, BVar8, iVar9);
+ if (DAT_BuildingsState.buildings[iVar1].owner == 0) {
+ iVar9 = 0;
+ BVar8 = FALSE;
+ iVar7 = 0x12;
+ BVar6 = 0;
+ TVar5 = TTA_LEFT;
+ iVar2 = DAT_MenuHandlerState.y + 0x1fb;
+ iVar4 = DAT_MenuHandlerState.x + 0xaf;
+ /*
+ added by script: "Here lies the poor bones of"
+ */
+ pcVar3 = getTextStringInGroupAtOffset(TEXT_MISC2, 1);
+ renderTextToScreen(
+ pcVar3, iVar4, iVar2, TVar5, BVar6, iVar7, BVar8, iVar9);
+ renderTextToScreen(
+ DAT_GameSynchronyState.finalResults
+ .names[DAT_BuildingsState.buildings[iVar1].statueCommemoratingPlayerID],
+ DAT_MenuHandlerState.x + 0xaf, DAT_MenuHandlerState.y + 0x214,
+ TTA_LEFT, 0, 0x12, FALSE, 0);
+ }
+ return;
+ }
+}
+}
+
+### 0x0043dd30 RenderBuildingMenu_Shrine | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043DD30
+ void BuildingMenus::RenderBuildingMenu_Shrine()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x11;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Shrine"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_SHRINE, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043dd70 RenderBuildingMenu_Unused_BeeHive | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043DD70
+ void BuildingMenus::RenderBuildingMenu_Unused_BeeHive()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x11;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Beehive"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_BEEHIVE, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043ddb0 RenderBuildingMenu_DancingBear | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043DDB0
+ void BuildingMenus::RenderBuildingMenu_DancingBear()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x11;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Dancing bear"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_DANCING_BEAR, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043ddf0 RenderBuildingMenu_Unused_Pond | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043DDF0
+ void BuildingMenus::RenderBuildingMenu_Unused_Pond()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x11;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Pond"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_POND, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043de30 RenderBuildingMenu_Unused_BearCave | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043DE30
+ void BuildingMenus::RenderBuildingMenu_Unused_BearCave()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x11;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Bear cave"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_BEAR_CAVE, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ return;
+ }
+}
+}
+
+### 0x0043de70 RenderBuildingMenu_Siegetent_Catapult | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043DE70
+ void BuildingMenus::RenderBuildingMenu_Siegetent_Catapult()
+ {
+ int iVar1;
+ char* pcVar2;
+ int iVar3;
+ int iVar4;
+ TextAlignment TVar5;
+ BGR24 BVar6;
+ int iVar7;
+ BOOLEnum BVar8;
+ int blendStrength;
+ iVar3 = DAT_BuildingsState.menuSelectedBuildingID;
+ blendStrength = 0;
+ BVar8 = FALSE;
+ iVar7 = 0x11;
+ BVar6 = 0;
+ TVar5 = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x1eb;
+ iVar4 = DAT_MenuHandlerState.x + 0xb4;
+ /*
+ added by script: "Catapult"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_SIEGE_TENT, 1);
+ renderTextToScreen(
+ pcVar2, iVar4, iVar1, TVar5, BVar6, iVar7, BVar8, blendStrength);
+ renderNumberToScreen2(
+ (DAT_BuildingsState.buildings[iVar3].buildingProgress * 100) / 0x140,
+ DAT_MenuHandlerState.x + 0xb4, DAT_MenuHandlerState.y + 0x209, TTA_LEFT,
+ 0, 0x11, FALSE, 0);
+ iVar7 = 0;
+ BVar8 = TRUE;
+ iVar4 = 0x11;
+ BVar6 = 0;
+ TVar5 = TTA_LEFT;
+ iVar3 = DAT_MenuHandlerState.y + 0x209;
+ iVar1 = DAT_MenuHandlerState.x + 0xb4;
+ /*
+ added by script: "% Complete"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_SIEGE_TENT, 6);
+ renderTextToScreen(
+ pcVar2, iVar1, iVar3, TVar5, BVar6, iVar4, BVar8, iVar7);
+ return;
+ }
+}
+}
+
+### 0x0043df40 RenderBuildingMenu_Siegetent_Fireballista | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043DF40
+ void BuildingMenus::RenderBuildingMenu_Siegetent_Fireballista()
+ {
+ int iVar1;
+ char* pcVar2;
+ int iVar3;
+ int iVar4;
+ TextAlignment TVar5;
+ BGR24 BVar6;
+ int iVar7;
+ BOOLEnum BVar8;
+ int blendStrength;
+ iVar3 = DAT_BuildingsState.menuSelectedBuildingID;
+ blendStrength = 0;
+ BVar8 = FALSE;
+ iVar7 = 0x11;
+ BVar6 = 0;
+ TVar5 = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x1eb;
+ iVar4 = DAT_MenuHandlerState.x + 0xb4;
+ /*
+ added by script: "Fire Ballista"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_SIEGE_TENT, 7);
+ renderTextToScreen(
+ pcVar2, iVar4, iVar1, TVar5, BVar6, iVar7, BVar8, blendStrength);
+ renderNumberToScreen2(
+ (DAT_BuildingsState.buildings[iVar3].buildingProgress * 100) / 0x140,
+ DAT_MenuHandlerState.x + 0xb4, DAT_MenuHandlerState.y + 0x209, TTA_LEFT,
+ 0, 0x11, FALSE, 0);
+ iVar7 = 0;
+ BVar8 = TRUE;
+ iVar4 = 0x11;
+ BVar6 = 0;
+ TVar5 = TTA_LEFT;
+ iVar3 = DAT_MenuHandlerState.y + 0x209;
+ iVar1 = DAT_MenuHandlerState.x + 0xb4;
+ /*
+ added by script: "% Complete"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_SIEGE_TENT, 6);
+ renderTextToScreen(
+ pcVar2, iVar1, iVar3, TVar5, BVar6, iVar4, BVar8, iVar7);
+ return;
+ }
+}
+}
+
+### 0x0043e010 RenderBuildingMenu_Siegetent_Trebuchet | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043E010
+ void BuildingMenus::RenderBuildingMenu_Siegetent_Trebuchet()
+ {
+ int iVar1;
+ char* pcVar2;
+ int iVar3;
+ int iVar4;
+ TextAlignment TVar5;
+ BGR24 BVar6;
+ int iVar7;
+ BOOLEnum BVar8;
+ int blendStrength;
+ iVar3 = DAT_BuildingsState.menuSelectedBuildingID;
+ blendStrength = 0;
+ BVar8 = FALSE;
+ iVar7 = 0x11;
+ BVar6 = 0;
+ TVar5 = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x1eb;
+ iVar4 = DAT_MenuHandlerState.x + 0xb4;
+ /*
+ added by script: "Trebuchet"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_SIEGE_TENT, 2);
+ renderTextToScreen(
+ pcVar2, iVar4, iVar1, TVar5, BVar6, iVar7, BVar8, blendStrength);
+ renderNumberToScreen2(
+ (DAT_BuildingsState.buildings[iVar3].buildingProgress * 100) / 0x280,
+ DAT_MenuHandlerState.x + 0xb4, DAT_MenuHandlerState.y + 0x209, TTA_LEFT,
+ 0, 0x11, FALSE, 0);
+ iVar7 = 0;
+ BVar8 = TRUE;
+ iVar4 = 0x11;
+ BVar6 = 0;
+ TVar5 = TTA_LEFT;
+ iVar3 = DAT_MenuHandlerState.y + 0x209;
+ iVar1 = DAT_MenuHandlerState.x + 0xb4;
+ /*
+ added by script: "% Complete"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_SIEGE_TENT, 6);
+ renderTextToScreen(
+ pcVar2, iVar1, iVar3, TVar5, BVar6, iVar4, BVar8, iVar7);
+ return;
+ }
+}
+}
+
+### 0x0043e0e0 RenderBuildingMenu_Siegetent_Siegetower | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043E0E0
+ void BuildingMenus::RenderBuildingMenu_Siegetent_Siegetower()
+ {
+ int iVar1;
+ char* pcVar2;
+ int iVar3;
+ int iVar4;
+ TextAlignment TVar5;
+ BGR24 BVar6;
+ int iVar7;
+ BOOLEnum BVar8;
+ int blendStrength;
+ iVar3 = DAT_BuildingsState.menuSelectedBuildingID;
+ blendStrength = 0;
+ BVar8 = FALSE;
+ iVar7 = 0x11;
+ BVar6 = 0;
+ TVar5 = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x1eb;
+ iVar4 = DAT_MenuHandlerState.x + 0xb4;
+ /*
+ added by script: "Siege Tower"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_SIEGE_TENT, 3);
+ renderTextToScreen(
+ pcVar2, iVar4, iVar1, TVar5, BVar6, iVar7, BVar8, blendStrength);
+ renderNumberToScreen2(
+ (DAT_BuildingsState.buildings[iVar3].buildingProgress * 100) / 0x500,
+ DAT_MenuHandlerState.x + 0xb4, DAT_MenuHandlerState.y + 0x209, TTA_LEFT,
+ 0, 0x11, FALSE, 0);
+ iVar7 = 0;
+ BVar8 = TRUE;
+ iVar4 = 0x11;
+ BVar6 = 0;
+ TVar5 = TTA_LEFT;
+ iVar3 = DAT_MenuHandlerState.y + 0x209;
+ iVar1 = DAT_MenuHandlerState.x + 0xb4;
+ /*
+ added by script: "% Complete"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_SIEGE_TENT, 6);
+ renderTextToScreen(
+ pcVar2, iVar1, iVar3, TVar5, BVar6, iVar4, BVar8, iVar7);
+ return;
+ }
+}
+}
+
+### 0x0043e1b0 RenderBuildingMenu_Siegetent_BatteringRam | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043E1B0
+ void BuildingMenus::RenderBuildingMenu_Siegetent_BatteringRam()
+ {
+ int iVar1;
+ char* pcVar2;
+ int iVar3;
+ int iVar4;
+ TextAlignment TVar5;
+ BGR24 BVar6;
+ int iVar7;
+ BOOLEnum BVar8;
+ int blendStrength;
+ iVar3 = DAT_BuildingsState.menuSelectedBuildingID;
+ blendStrength = 0;
+ BVar8 = FALSE;
+ iVar7 = 0x11;
+ BVar6 = 0;
+ TVar5 = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x1eb;
+ iVar4 = DAT_MenuHandlerState.x + 0xb4;
+ /*
+ added by script: "Battering Ram"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_SIEGE_TENT, 4);
+ renderTextToScreen(
+ pcVar2, iVar4, iVar1, TVar5, BVar6, iVar7, BVar8, blendStrength);
+ renderNumberToScreen2(
+ (DAT_BuildingsState.buildings[iVar3].buildingProgress * 100) / 0x280,
+ DAT_MenuHandlerState.x + 0xb4, DAT_MenuHandlerState.y + 0x209, TTA_LEFT,
+ 0, 0x11, FALSE, 0);
+ iVar7 = 0;
+ BVar8 = TRUE;
+ iVar4 = 0x11;
+ BVar6 = 0;
+ TVar5 = TTA_LEFT;
+ iVar3 = DAT_MenuHandlerState.y + 0x209;
+ iVar1 = DAT_MenuHandlerState.x + 0xb4;
+ /*
+ added by script: "% Complete"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_SIEGE_TENT, 6);
+ renderTextToScreen(
+ pcVar2, iVar1, iVar3, TVar5, BVar6, iVar4, BVar8, iVar7);
+ return;
+ }
+}
+}
+
+### 0x0043e280 RenderBuildingMenu_Siegetent_Shield | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043E280
+ void BuildingMenus::RenderBuildingMenu_Siegetent_Shield()
+ {
+ int iVar1;
+ char* pcVar2;
+ int iVar3;
+ int iVar4;
+ TextAlignment TVar5;
+ BGR24 BVar6;
+ int iVar7;
+ BOOLEnum BVar8;
+ int blendStrength;
+ iVar3 = DAT_BuildingsState.menuSelectedBuildingID;
+ blendStrength = 0;
+ BVar8 = FALSE;
+ iVar7 = 0x11;
+ BVar6 = 0;
+ TVar5 = TTA_LEFT;
+ iVar1 = DAT_MenuHandlerState.y + 0x1eb;
+ iVar4 = DAT_MenuHandlerState.x + 0xb4;
+ /*
+ added by script: "Portable Shield"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_SIEGE_TENT, 5);
+ renderTextToScreen(
+ pcVar2, iVar4, iVar1, TVar5, BVar6, iVar7, BVar8, blendStrength);
+ renderNumberToScreen2(
+ (DAT_BuildingsState.buildings[iVar3].buildingProgress * 100) / 0x78,
+ DAT_MenuHandlerState.x + 0xb4, DAT_MenuHandlerState.y + 0x209, TTA_LEFT,
+ 0, 0x11, FALSE, 0);
+ iVar7 = 0;
+ BVar8 = TRUE;
+ iVar4 = 0x11;
+ BVar6 = 0;
+ TVar5 = TTA_LEFT;
+ iVar3 = DAT_MenuHandlerState.y + 0x209;
+ iVar1 = DAT_MenuHandlerState.x + 0xb4;
+ /*
+ added by script: "% Complete"
+ */
+ pcVar2 = getTextStringInGroupAtOffset(TEXT_IN_SIEGE_TENT, 6);
+ renderTextToScreen(
+ pcVar2, iVar1, iVar3, TVar5, BVar6, iVar4, BVar8, iVar7);
+ return;
+ }
+}
+}
+
+### 0x0043e350 RenderBuildingMenu_RenderTowerAndGateHealth | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x0043E350
+ void BuildingMenus::RenderBuildingMenu_RenderTowerAndGateHealth()
+ {
+ int bottom;
+ short sVar1;
+ int iVar2;
+ int iVar3;
+ int left;
+ int iVar4;
+ int local_20;
+ int local_1c;
+ ColorUnion local_18;
+ char local_14[16];
+ uint local_4;
+ iVar4 = DAT_MenuHandlerState.y;
+ iVar2 = DAT_MenuHandlerState.x;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)&local_20;
+ local_1c = DAT_BuildingsState.menuSelectedBuildingID * 0x32c;
+ iVar3 = (int)DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID]
+ .currentHealth;
+ local_18.shortValue = COL_LIME::instance.shortValue;
+ if ((iVar3 < 1)
+ || (sVar1
+ = DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID].maxHealth,
+ sVar1 < 1)) {
+ iVar3 = 0;
+ } else {
+ iVar3 = (iVar3 * 100) / (int)sVar1;
+ }
+ left = DAT_MenuHandlerState.x + 0x1d6;
+ drawBorderBox(left,
+ DAT_MenuHandlerState.y + 0x1d3, DAT_MenuHandlerState.x + 0x209,
+ DAT_MenuHandlerState.y + 0x1de, (ushort)((int)(COL_BLACK::instance.shortValue)));
+ bottom = iVar4 + 0x1dd;
+ iVar4 = iVar4 + 0x1d4;
+ local_20 = iVar2 + 0x1d7;
+ drawColorBox(
+ local_20, iVar4, iVar2 + 0x208, bottom, (ushort)((int)(COL_RED::instance.shortValue)));
+ if (1 < iVar3) {
+ drawColorBox(
+ local_20, iVar4, (iVar3 >> 1) + left, bottom, local_18._0_2_);
+ }
+ _sprintf(local_14, "%d/%d",
+ (int)*(short*)((int)DAT_BuildingsState.buildings[0].resources + local_1c + -0x14),
+ (int)*(short*)((int)DAT_BuildingsState.buildings[0].resources + local_1c + -0x12));
+ renderTextToScreen(local_14,
+ DAT_MenuHandlerState.x + 0x1ef, DAT_MenuHandlerState.y + 0x1e2,
+ TTA_CENTER, 0, 0x12, FALSE, 0);
+ ;
+ return;
+ }
+}
+}
+
+### 0x00447cf0 RenderBuildingMenu_Gatehouse | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00447CF0
+ void BuildingMenus::RenderBuildingMenu_Gatehouse()
+ {
+ int yParam;
+ char* textAddress;
+ int xParam;
+ TextAlignment alignment;
+ BGR24 color;
+ int fontSize;
+ BOOLEnum keepOffsetX;
+ int blendStrength;
+ blendStrength = 0;
+ keepOffsetX = FALSE;
+ fontSize = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ yParam = DAT_MenuHandlerState.y + 0x1d3;
+ xParam = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Gatehouse"
+ */
+ textAddress = getTextStringInGroupAtOffset(TEXT_IN_GATEHOUSE, 0);
+ renderTextToScreen(
+ textAddress, xParam, yParam, alignment, color, fontSize, keepOffsetX, blendStrength);
+ RenderBuildingMenu_RenderTowerAndGateHealth();
+ return;
+ }
+}
+}
+
+### 0x00447d30 RenderBuildingMenu_Tower | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00447D30
+ void BuildingMenus::RenderBuildingMenu_Tower()
+ {
+ BuildingTypeShort BVar1;
+ int iVar2;
+ char* pcVar3;
+ int iVar4;
+ TextAlignment alignment;
+ BGR24 color;
+ int iVar5;
+ uint color_00;
+ BOOLEnum keepOffsetX;
+ int iVar6;
+ int blendStrength;
+ BVar1
+ = DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID].buildingType;
+ iVar6 = 0;
+ keepOffsetX = FALSE;
+ iVar5 = 0x10;
+ color = 0;
+ alignment = TTA_LEFT;
+ iVar2 = DAT_MenuHandlerState.y + 0x1d3;
+ iVar4 = DAT_MenuHandlerState.x + 0x19;
+ /*
+ added by script: "Tower"
+ */
+ pcVar3 = getTextStringInGroupAtOffset(TEXT_IN_TOWER, 0);
+ renderTextToScreen(
+ pcVar3, iVar4, iVar2, alignment, color, iVar5, keepOffsetX, iVar6);
+ blendStrength = 0;
+ iVar6 = 0x12;
+ color_00 = 0;
+ iVar5 = 0x136;
+ iVar2 = DAT_MenuHandlerState.y + 0x1fb;
+ iVar4 = DAT_MenuHandlerState.x + 0xaf;
+ pcVar3 = getTextStringInGroupAtOffset(TEXT_IN_TOWER, (int)((int)((short)BVar1 + -0x49)));
+ renderMultilineText5Unk(
+ pcVar3, iVar4, iVar2, iVar5, color_00, iVar6, blendStrength);
+ RenderBuildingMenu_RenderTowerAndGateHealth();
+ return;
+ }
+}
+}
+

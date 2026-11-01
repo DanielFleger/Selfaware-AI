@@ -1,0 +1,985 @@
+### 0x004ca4d0 setAICParameters_15 | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CA4D0
+ void AICState::setAICParameters_15(int aicIndex)
+ {
+ this->aics[aicIndex].flagType = 13;
+ this->aics[aicIndex].unknown002 = 0;
+ this->aics[aicIndex].unknown001 = 0;
+ this->aics[aicIndex].unknown003 = 0;
+ this->aics[aicIndex].unknown004 = 1;
+ this->aics[aicIndex].unknown005 = 1;
+ this->aics[aicIndex].criticalPopularity = 4000;
+ this->aics[aicIndex].lowestPopularity = 5000;
+ this->aics[aicIndex].highestPopularity = 8000;
+ this->aics[aicIndex].taxesMin = 2;
+ this->aics[aicIndex].taxesMax = 10;
+ this->aics[aicIndex].farm1 = 33;
+ this->aics[aicIndex].farm2 = 31;
+ this->aics[aicIndex].farm3 = 33;
+ this->aics[aicIndex].farm4 = 33;
+ this->aics[aicIndex].populationPerFarm = 5;
+ this->aics[aicIndex].unknown011 = 10;
+ this->aics[aicIndex].maxFood = 100;
+ this->aics[aicIndex].minimumApples = 10;
+ this->aics[aicIndex].minimumCheese = 10;
+ this->aics[aicIndex].minimumBread = -1;
+ this->aics[aicIndex].minimumWheat = -1;
+ this->aics[aicIndex].minimumHop = 5;
+ this->aics[aicIndex].tradeAmountFood = 20;
+ this->aics[aicIndex].tradeAmountEquipment = 0;
+ this->aics[aicIndex].aiRequestDelay = 12;
+ this->aics[aicIndex].minimumGoodsRequiredAfterTrade = 0;
+ this->aics[aicIndex].doubleRationsFoodThreshold = 80;
+ this->aics[aicIndex].maxWood = 60;
+ this->aics[aicIndex].maxStone = 50;
+ this->aics[aicIndex].maxResourceOther = 12;
+ this->aics[aicIndex].maxEquipment = 10;
+ this->aics[aicIndex].maxBeer = 6;
+ this->aics[aicIndex].maxResourceVariance = 4;
+ this->aics[aicIndex].recruitGoldThreshold = 200;
+ this->aics[aicIndex].populationPerWoodcutter = 7;
+ this->aics[aicIndex].populationPerQuarry = 7;
+ this->aics[aicIndex].populationPerIronmine = 7;
+ this->aics[aicIndex].populationPerPitchrig = 0;
+ this->aics[aicIndex].maxQuarries = 1;
+ this->aics[aicIndex].maxIronmines = 3;
+ this->aics[aicIndex].maxWoodcutters = 8;
+ this->aics[aicIndex].maxPitchrigs = 1;
+ this->aics[aicIndex].maxFarms = 9;
+ this->aics[aicIndex].buildInterval = 3;
+ this->aics[aicIndex].resourceRebuildDelay = 40;
+ this->aics[aicIndex].blacksmithSetting = 22;
+ this->aics[aicIndex].fletcherSetting = 17;
+ this->aics[aicIndex].poleturnerSetting = 19;
+ this->aics[aicIndex].sellResource04 = 7;
+ this->aics[aicIndex].sellResource05 = 9;
+ this->aics[aicIndex].sellResource07 = 16;
+ this->aics[aicIndex].sellResource09 = 18;
+ this->aics[aicIndex].sellResource10 = 19;
+ this->aics[aicIndex].sellResource11 = 20;
+ this->aics[aicIndex].sellResource12 = 21;
+ this->aics[aicIndex].sellResource14 = 23;
+ this->aics[aicIndex].defWallPatrolRallyTime = 2;
+ this->aics[aicIndex].defWallPatrolGroups = 3;
+ this->aics[aicIndex].defSiegeEngineGoldThreshold = 100;
+ this->aics[aicIndex].defSiegeEngineBuildDelay = 4;
+ this->aics[aicIndex].unknown072 = 200;
+ this->aics[aicIndex].unknown073 = 20;
+ this->aics[aicIndex].recruitProbDefWeak = 50;
+ this->aics[aicIndex].recruitProbDefDefault = 30;
+ this->aics[aicIndex].recruitProbDefStrong = 20;
+ this->aics[aicIndex].recruitProbRaidWeak = 40;
+ this->aics[aicIndex].recruitProbRaidDefault = 40;
+ this->aics[aicIndex].recruitProbRaidStrong = 30;
+ this->aics[aicIndex].recruitProbAttackWeak = 10;
+ this->aics[aicIndex].recruitProbAttackDefault = 30;
+ this->aics[aicIndex].recruitProbAttackStrong = 50;
+ this->aics[aicIndex].RecruitIntervalWeak = 1;
+ this->aics[aicIndex].RecruitInterval = 1;
+ this->aics[aicIndex].RecruitIntervalStrong = 4;
+ this->aics[aicIndex].SortieUnitRangedMin = 4;
+ this->aics[aicIndex].SortieUnitRanged = 22;
+ this->aics[aicIndex].SortieUnitMeleeMin = 4;
+ this->aics[aicIndex].SortieUnitMelee = 28;
+ this->aics[aicIndex].DefDiggingUnitMax = 4;
+ this->aics[aicIndex].DefDiggingUnit = 22;
+ this->aics[aicIndex].DefWalls = 30;
+ this->aics[aicIndex].DefTotal = 40;
+ this->aics[aicIndex].OuterPatrolGroupsCount = 1;
+ this->aics[aicIndex].OuterPatrolGroupsMove = 1;
+ this->aics[aicIndex].OuterPatrolRallyDelay = 2;
+ this->aics[aicIndex].DefUnit1 = 22;
+ this->aics[aicIndex].RaidUnitsBase = 16;
+ this->aics[aicIndex].RaidUnitsRandom = 4;
+ this->aics[aicIndex].RaidUnit1 = 28;
+ this->aics[aicIndex].HarassingSiegeEnginesMax = 1;
+ this->aics[aicIndex].HarassingSiegeEngine1 = 190;
+ this->aics[aicIndex].RaidRetargetDelay = 4;
+ this->aics[aicIndex].AttForceBase = 10;
+ this->aics[aicIndex].AttForceRandom = 20;
+ this->aics[aicIndex].AttForceSupportAllyThreshold = 10;
+ this->aics[aicIndex].AttForceRallyPercentage = 50;
+ this->aics[aicIndex].AttMovingTribesThreshold = 100;
+ this->aics[aicIndex].AttAssaultDelay = 0;
+ this->aics[aicIndex].AttUnitPatrolRecommandDelay = 5;
+ this->aics[aicIndex].AttCoordinationPreference = 70;
+ this->aics[aicIndex].CowThrowInterval = 10000;
+ this->aics[aicIndex].SiegeEngine1 = 40;
+ this->aics[aicIndex].SiegeEngine2 = 40;
+ this->aics[aicIndex].AttMaxEngineers = 6;
+ this->aics[aicIndex].AttDiggingUnit = 22;
+ this->aics[aicIndex].AttDiggingUnitMax = 20;
+ this->aics[aicIndex].AttMaxAssassins = 0;
+ this->aics[aicIndex].AttUnit2 = 0;
+ this->aics[aicIndex].AttUnit2Max = 0;
+ this->aics[aicIndex].AttMaxLaddermen = 0;
+ this->aics[aicIndex].AttMaxTunnelers = 0;
+ this->aics[aicIndex].AttUnitPatrol = 0;
+ this->aics[aicIndex].AttUnitPatrolMax = 0;
+ this->aics[aicIndex].AttUnitPatrolGroupsCount = 0;
+ this->aics[aicIndex].AttUnitBackup = 22;
+ this->aics[aicIndex].AttUnitBackupMax = 30;
+ this->aics[aicIndex].AttUnitBackupGroupsCount = 3;
+ this->aics[aicIndex].AttUnitEngageMax = 0;
+ this->aics[aicIndex].AttUnitEngage = 0;
+ this->aics[aicIndex].AttUnitSiegeDef = 0;
+ this->aics[aicIndex].AttUnitSiegeDefMax = 0;
+ this->aics[aicIndex].AttUnitSiegeDefGroupsCount = 0;
+ this->aics[aicIndex].AttUnitMain1 = 27;
+ this->aics[aicIndex].AttMaxDefault = 200;
+ this->aics[aicIndex].AttMainGroupsCount = 2;
+ this->aics[aicIndex].TargetChoice = AITC_BALANCED;
+ return;
+ }
+}
+}
+
+### 0x004ca8a0 setAICParameters_16 | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CA8A0
+ void AICState::setAICParameters_16(int aicIndex)
+ {
+ this->aics[aicIndex].flagType = 13;
+ this->aics[aicIndex].unknown002 = 0;
+ this->aics[aicIndex].unknown001 = 0;
+ this->aics[aicIndex].unknown003 = 0;
+ this->aics[aicIndex].unknown004 = 1;
+ this->aics[aicIndex].unknown005 = 1;
+ this->aics[aicIndex].criticalPopularity = 4500;
+ this->aics[aicIndex].lowestPopularity = 5000;
+ this->aics[aicIndex].highestPopularity = 9000;
+ this->aics[aicIndex].taxesMin = 2;
+ this->aics[aicIndex].taxesMax = 12;
+ this->aics[aicIndex].farm1 = 31;
+ this->aics[aicIndex].farm2 = 30;
+ this->aics[aicIndex].farm3 = 30;
+ this->aics[aicIndex].populationPerFarm = 4;
+ this->aics[aicIndex].unknown011 = 10;
+ this->aics[aicIndex].maxFood = 100;
+ this->aics[aicIndex].minimumApples = 10;
+ this->aics[aicIndex].minimumCheese = -1;
+ this->aics[aicIndex].minimumBread = -1;
+ this->aics[aicIndex].minimumWheat = 2;
+ this->aics[aicIndex].minimumHop = 2;
+ this->aics[aicIndex].tradeAmountFood = 5;
+ this->aics[aicIndex].tradeAmountEquipment = 0;
+ this->aics[aicIndex].aiRequestDelay = 12;
+ this->aics[aicIndex].minimumGoodsRequiredAfterTrade = 10;
+ this->aics[aicIndex].doubleRationsFoodThreshold = 40;
+ this->aics[aicIndex].maxWood = 60;
+ this->aics[aicIndex].maxStone = 40;
+ this->aics[aicIndex].maxResourceOther = 10;
+ this->aics[aicIndex].maxEquipment = 4;
+ this->aics[aicIndex].maxBeer = 5;
+ this->aics[aicIndex].maxResourceVariance = 4;
+ this->aics[aicIndex].recruitGoldThreshold = 50;
+ this->aics[aicIndex].populationPerWoodcutter = 7;
+ this->aics[aicIndex].populationPerQuarry = 6;
+ this->aics[aicIndex].populationPerIronmine = 10;
+ this->aics[aicIndex].populationPerPitchrig = 0;
+ this->aics[aicIndex].maxQuarries = 4;
+ this->aics[aicIndex].maxIronmines = 2;
+ this->aics[aicIndex].maxWoodcutters = 10;
+ this->aics[aicIndex].maxPitchrigs = 0;
+ this->aics[aicIndex].maxFarms = 12;
+ this->aics[aicIndex].buildInterval = 2;
+ this->aics[aicIndex].resourceRebuildDelay = 40;
+ this->aics[aicIndex].blacksmithSetting = 22;
+ this->aics[aicIndex].fletcherSetting = 17;
+ this->aics[aicIndex].poleturnerSetting = 19;
+ this->aics[aicIndex].sellResource03 = 6;
+ this->aics[aicIndex].sellResource09 = 18;
+ this->aics[aicIndex].sellResource10 = 19;
+ this->aics[aicIndex].sellResource11 = 20;
+ this->aics[aicIndex].sellResource12 = 21;
+ this->aics[aicIndex].sellResource13 = 22;
+ this->aics[aicIndex].sellResource14 = 23;
+ this->aics[aicIndex].sellResource15 = 24;
+ this->aics[aicIndex].defWallPatrolRallyTime = 2;
+ this->aics[aicIndex].defWallPatrolGroups = 3;
+ this->aics[aicIndex].defSiegeEngineGoldThreshold = 100;
+ this->aics[aicIndex].defSiegeEngineBuildDelay = 4;
+ this->aics[aicIndex].unknown072 = 200;
+ this->aics[aicIndex].unknown073 = 20;
+ this->aics[aicIndex].recruitProbDefWeak = 80;
+ this->aics[aicIndex].recruitProbDefDefault = 40;
+ this->aics[aicIndex].recruitProbDefStrong = 20;
+ this->aics[aicIndex].recruitProbRaidWeak = 10;
+ this->aics[aicIndex].RecruitIntervalWeak = 1;
+ this->aics[aicIndex].RecruitInterval = 1;
+ this->aics[aicIndex].RecruitIntervalStrong = 1;
+ this->aics[aicIndex].SortieUnitRanged = 22;
+ this->aics[aicIndex].DefDiggingUnit = 22;
+ this->aics[aicIndex].OuterPatrolGroupsCount = 1;
+ this->aics[aicIndex].OuterPatrolGroupsMove = 1;
+ this->aics[aicIndex].OuterPatrolRallyDelay = 2;
+ this->aics[aicIndex].DefUnit1 = 22;
+ this->aics[aicIndex].recruitProbRaidDefault = 20;
+ this->aics[aicIndex].recruitProbRaidStrong = 30;
+ this->aics[aicIndex].recruitProbAttackWeak = 10;
+ this->aics[aicIndex].recruitProbAttackDefault = 40;
+ this->aics[aicIndex].recruitProbAttackStrong = 50;
+ this->aics[aicIndex].SortieUnitRangedMin = 4;
+ this->aics[aicIndex].SortieUnitMeleeMin = 20;
+ this->aics[aicIndex].SortieUnitMelee = 37;
+ this->aics[aicIndex].DefDiggingUnitMax = 4;
+ this->aics[aicIndex].DefWalls = 30;
+ this->aics[aicIndex].DefTotal = 30;
+ this->aics[aicIndex].RaidUnitsBase = 30;
+ this->aics[aicIndex].RaidUnitsRandom = 10;
+ this->aics[aicIndex].RaidUnit1 = 37;
+ this->aics[aicIndex].HarassingSiegeEnginesMax = 5;
+ this->aics[aicIndex].RaidRetargetDelay = 4;
+ this->aics[aicIndex].HarassingSiegeEngine1 = 190;
+ this->aics[aicIndex].AttForceBase = 50;
+ this->aics[aicIndex].AttForceRandom = 10;
+ this->aics[aicIndex].AttForceSupportAllyThreshold = 40;
+ this->aics[aicIndex].AttForceRallyPercentage = 80;
+ this->aics[aicIndex].AttMovingTribesThreshold = 100;
+ this->aics[aicIndex].AttAssaultDelay = 0;
+ this->aics[aicIndex].AttUnitPatrolRecommandDelay = 5;
+ this->aics[aicIndex].AttCoordinationPreference = 80;
+ this->aics[aicIndex].CowThrowInterval = 10000;
+ this->aics[aicIndex].SiegeEngine1 = 39;
+ this->aics[aicIndex].SiegeEngine2 = 39;
+ this->aics[aicIndex].SiegeEngine3 = 39;
+ this->aics[aicIndex].SiegeEngine4 = 39;
+ this->aics[aicIndex].AttMaxEngineers = 8;
+ this->aics[aicIndex].AttDiggingUnit = 22;
+ this->aics[aicIndex].AttDiggingUnitMax = 10;
+ this->aics[aicIndex].AttMaxAssassins = 0;
+ this->aics[aicIndex].AttUnit2 = 0;
+ this->aics[aicIndex].AttUnit2Max = 0;
+ this->aics[aicIndex].AttMaxLaddermen = 0;
+ this->aics[aicIndex].AttMaxTunnelers = 0;
+ this->aics[aicIndex].AttUnitPatrol = 0;
+ this->aics[aicIndex].AttUnitPatrolMax = 0;
+ this->aics[aicIndex].AttUnitPatrolGroupsCount = 0;
+ this->aics[aicIndex].AttUnitBackup = 22;
+ this->aics[aicIndex].AttUnitBackupMax = 40;
+ this->aics[aicIndex].AttUnitBackupGroupsCount = 1;
+ this->aics[aicIndex].AttUnitEngageMax = 0;
+ this->aics[aicIndex].AttUnitEngage = 0;
+ this->aics[aicIndex].AttUnitSiegeDef = 0;
+ this->aics[aicIndex].AttUnitSiegeDefMax = 0;
+ this->aics[aicIndex].AttUnitSiegeDefGroupsCount = 0;
+ this->aics[aicIndex].AttUnitMain1 = 37;
+ this->aics[aicIndex].AttMaxDefault = 200;
+ this->aics[aicIndex].AttMainGroupsCount = 2;
+ this->aics[aicIndex].TargetChoice = AITC_BALANCED;
+ return;
+ }
+}
+}
+
+### 0x004cac70 clearPlayerDataInformationChunk | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CAC70
+ void AICState::clearPlayerDataInformationChunk()
+ {
+ GameSynchronyState* piVar1;
+ int* _Dst;
+ _Dst = &DAT_GameState.playerDataArray[0].aiFarmIndex;
+ piVar1 = (GameSynchronyState*)DAT_GameSynchronyState.currentAIArray;
+ do {
+ if ((piVar1->currentPlayerFullIDArray[0] != -1) || (piVar1->currentAIArray[0] == 0)) {
+ _memset(_Dst, 0, (size_t)((int)(3748)));
+ }
+ piVar1 = (GameSynchronyState*)(piVar1->currentAIArray + 1);
+ _Dst = _Dst + 3709;
+ } while ((int)piVar1 < 0x191dea0);
+ return;
+ }
+}
+}
+
+### 0x004cacb0 setTargetForTribeBasedOnTargetChoiceLogic | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CACB0
+ void AICState::setTargetForTribeBasedOnTargetChoiceLogic(int owner, int tribe)
+ {
+ if (DAT_GameState.playerDataArray[owner].aiType == 0) {
+ return;
+ }
+ int const aicIndex = DAT_GameState.playerDataArray[owner].aiType - 1;
+ int targetPlayer = 0;
+ int minDistance = 10000;
+ int maxGold = 0;
+ int minPoints = 1000000;
+ int const ownerKeepX = DAT_GameState.playerDataArray[owner].campground.xEntry;
+ int const ownerKeepY = DAT_GameState.playerDataArray[owner].campground.yEntry;
+ for (int player = 1; player < 9; player++) {
+ if (DAT_GameState.mapAndTime.playerTeams[player]
+ == DAT_GameState.mapAndTime.playerTeams[owner]) {
+ continue;
+ }
+ if (getAliveLordForPlayer(player)
+ == 0) {
+ continue;
+ }
+ setAxisBasedDistanceResult(DAT_GameState.playerDataArray[player].campground.xEntry,
+ DAT_GameState.playerDataArray[player].campground.yEntry, ownerKeepX, ownerKeepY);
+ if (this->aics[aicIndex].TargetChoice == AIC::AITC_PLAYER) {
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[player] != -1
+ && DAT_DirectionAlgorithmState.distanceHigh <= minDistance) {
+ minDistance = DAT_DirectionAlgorithmState.distanceHigh;
+ targetPlayer = player;
+ }
+ } else if (this->aics[aicIndex].TargetChoice == AIC::AITC_CLOSEST) {
+ if (DAT_DirectionAlgorithmState.distanceHigh <= minDistance) {
+ minDistance = DAT_DirectionAlgorithmState.distanceHigh;
+ targetPlayer = player;
+ }
+ } else if (this->aics[aicIndex].TargetChoice == AIC::AITC_GOLD) {
+ if (DAT_GameState.playerDataArray[player].currentResources[Game::Resources::RT_GOLD]
+ >= maxGold) {
+ maxGold
+ = DAT_GameState.playerDataArray[player].currentResources[Game::Resources::RT_GOLD];
+ targetPlayer = player;
+ }
+ } else if (this->aics[aicIndex].TargetChoice == AIC::AITC_BALANCED) {
+ int const points = DAT_GameState.playerDataArray[player].currentPopulation * 5
+ + DAT_GameState.playerDataArray[player].totalTroopValue
+ + DAT_GameState.playerDataArray[player].currentResources[Game::Resources::RT_GOLD] / 100
+ + DAT_DirectionAlgorithmState.distanceHigh * 2;
+ if (points <= minPoints) {
+ minPoints = points;
+ targetPlayer = player;
+ }
+ }
+ }
+ if (targetPlayer == 0) {
+ // Fallback: pick the closest enemy with a living lord
+ for (int player = 1; player < 9; player++) {
+ if (DAT_GameState.mapAndTime.playerTeams[player]
+ == DAT_GameState.mapAndTime.playerTeams[owner]) {
+ continue;
+ }
+ if (getAliveLordForPlayer(player)
+ == 0) {
+ continue;
+ }
+ setAxisBasedDistanceResult(DAT_GameState.playerDataArray[player].campground.xEntry,
+ DAT_GameState.playerDataArray[player].campground.yEntry, ownerKeepX, ownerKeepY);
+ if (DAT_DirectionAlgorithmState.distanceHigh <= minDistance) {
+ minDistance = DAT_DirectionAlgorithmState.distanceHigh;
+ targetPlayer = player;
+ }
+ }
+ if (targetPlayer == 0) {
+ return;
+ }
+ }
+ DAT_TribesState.tribes[tribe].targetPlayer_outpost = (short)targetPlayer;
+ }
+}
+}
+
+### 0x004caea0 aiUpdateTaxesAndRations | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CAEA0
+ void AICState::aiUpdateTaxesAndRations(int playerID)
+ {
+ int const aiType = DAT_GameState.playerDataArray[playerID].aiType;
+ if (aiType == AIT_NULL)
+ return;
+ int const aicIndex = aiType - 1;
+ int const popularity = DAT_GameState.playerDataArray[playerID].popularity;
+ if (popularity <= this->aics[aicIndex].criticalPopularity)
+ DAT_GameState.playerDataArray[playerID].aiPopularityDecisionValue = 2;
+ else if (popularity <= this->aics[aicIndex].lowestPopularity)
+ DAT_GameState.playerDataArray[playerID].aiPopularityDecisionValue = 1;
+ else if (popularity >= this->aics[aicIndex].highestPopularity)
+ DAT_GameState.playerDataArray[playerID].aiPopularityDecisionValue = 0;
+ if (DAT_GameState.playerDataArray[playerID].aiPopularityDecisionValue == 2) {
+ DAT_GameState.playerDataArray[playerID].taxesSetting = 2;
+ if (DAT_GameState.playerDataArray[playerID].totalFood <= 0)
+ DAT_GameState.playerDataArray[playerID].rationsSetting = 0;
+ else if (DAT_GameState.playerDataArray[playerID].totalFood <= 4)
+ DAT_GameState.playerDataArray[playerID].rationsSetting = 2;
+ else if (DAT_GameState.playerDataArray[playerID].totalFood <= 8)
+ DAT_GameState.playerDataArray[playerID].rationsSetting = 3;
+ else
+ DAT_GameState.playerDataArray[playerID].rationsSetting = 4;
+ } else if (DAT_GameState.playerDataArray[playerID].aiPopularityDecisionValue == 1) {
+ if (DAT_GameState.playerDataArray[playerID].taxesSetting > this->aics[aicIndex].taxesMin)
+ DAT_GameState.playerDataArray[playerID].taxesSetting--;
+ else
+ DAT_GameState.playerDataArray[playerID].taxesSetting = this->aics[aicIndex].taxesMin;
+ if (DAT_GameState.playerDataArray[playerID].totalFood <= 0)
+ DAT_GameState.playerDataArray[playerID].rationsSetting = 0;
+ else if (DAT_GameState.playerDataArray[playerID].totalFood <= 10)
+ DAT_GameState.playerDataArray[playerID].rationsSetting = 2;
+ else
+ DAT_GameState.playerDataArray[playerID].rationsSetting = 3;
+ if (this->aics[aicIndex].doubleRationsFoodThreshold != 0
+ && DAT_GameState.playerDataArray[playerID].totalFood
+ >= this->aics[aicIndex].doubleRationsFoodThreshold)
+ DAT_GameState.playerDataArray[playerID].rationsSetting = 4;
+ } else if (DAT_GameState.playerDataArray[playerID].aiPopularityDecisionValue == 0) {
+ if (DAT_GameState.playerDataArray[playerID].taxesSetting < this->aics[aicIndex].taxesMax) {
+ int lowerTaxesLimit;
+ if (DAT_GameState.playerDataArray[playerID].previousAvailablePeasants >= 15)
+ lowerTaxesLimit = 6;
+ else if (DAT_GameState.playerDataArray[playerID].previousAvailablePeasants >= 10)
+ lowerTaxesLimit = 5;
+ else
+ lowerTaxesLimit = 4;
+ if (DAT_GameState.playerDataArray[playerID].storedPopularityPercent <= popularity)
+ DAT_GameState.playerDataArray[playerID].taxesSetting++;
+ else if (DAT_GameState.playerDataArray[playerID].taxesSetting > lowerTaxesLimit)
+ DAT_GameState.playerDataArray[playerID].taxesSetting--;
+ } else {
+ DAT_GameState.playerDataArray[playerID].taxesSetting = this->aics[aicIndex].taxesMax;
+ }
+ if (DAT_GameState.playerDataArray[playerID].totalFood <= 10) {
+ DAT_GameState.playerDataArray[playerID].rationsSetting = 0;
+ } else {
+ DAT_GameState.playerDataArray[playerID].rationsSetting = 2;
+ if (this->aics[aicIndex].doubleRationsFoodThreshold != 0
+ && DAT_GameState.playerDataArray[playerID].totalFood
+ >= this->aics[aicIndex].doubleRationsFoodThreshold)
+ DAT_GameState.playerDataArray[playerID].rationsSetting = 4;
+ }
+ }
+ if (DAT_GameState.playerDataArray[playerID].taxesSetting < 0)
+ DAT_GameState.playerDataArray[playerID].taxesSetting = 0;
+ if (DAT_GameState.playerDataArray[playerID].taxesSetting > 11)
+ DAT_GameState.playerDataArray[playerID].taxesSetting = 11;
+ if (DAT_GameState.playerDataArray[playerID].rationsSetting < 0)
+ DAT_GameState.playerDataArray[playerID].rationsSetting = 0;
+ if (DAT_GameState.playerDataArray[playerID].rationsSetting > 4)
+ DAT_GameState.playerDataArray[playerID].rationsSetting = 4;
+ }
+}
+}
+
+### 0x004cb060 setFoodBuyPlan | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CB060
+ void AICState::setFoodBuyPlan(int playerID)
+ {
+ int const aiType = DAT_GameState->playerDataArray[playerID].aiType;
+ // Early return if not an AI player (human player has aiType == 0)
+ if (aiType == AI::AITA_NULL) {
+ return;
+ }
+ // Get AI configuration index (convert 1-based to 0-based index)
+ int const aiConfigIndex = aiType - 1;
+ // Check each food type and queue purchase if current stock is below minimum
+ // Apples: special handling with >= 0 check (allows -1 to disable)
+ int const minimumApples = this->aics[aiConfigIndex].minimumApples;
+ int* currentResources = DAT_GameState->playerDataArray[playerID].currentResources;
+ if (minimumApples >= 0 && currentResources[Game::Resources::RT_APPLE] < minimumApples) {
+ DAT_GameState->playerDataArray[playerID].resourcesToAcquireArray[Game::Resources::RT_APPLE]
+ = this->aics[aiConfigIndex].tradeAmountFood;
+ }
+ // Cheese: standard check with > 0
+ int const minimumCheese = this->aics[aiConfigIndex].minimumCheese;
+ if (minimumCheese > 0 && currentResources[Game::Resources::RT_CHEESE] < minimumCheese) {
+ DAT_GameState->playerDataArray[playerID].resourcesToAcquireArray[Game::Resources::RT_CHEESE]
+ = this->aics[aiConfigIndex].tradeAmountFood;
+ }
+ // Bread: standard check with > 0
+ int const minimumBread = this->aics[aiConfigIndex].minimumBread;
+ if (minimumBread > 0 && currentResources[Game::Resources::RT_BREAD] < minimumBread) {
+ DAT_GameState->playerDataArray[playerID].resourcesToAcquireArray[Game::Resources::RT_BREAD]
+ = this->aics[aiConfigIndex].tradeAmountFood;
+ }
+ // Wheat: standard check with > 0
+ int const minimumWheat = this->aics[aiConfigIndex].minimumWheat;
+ if (minimumWheat > 0 && currentResources[Game::Resources::RT_WHEAT] < minimumWheat) {
+ DAT_GameState->playerDataArray[playerID].resourcesToAcquireArray[Game::Resources::RT_WHEAT]
+ = this->aics[aiConfigIndex].tradeAmountFood;
+ }
+ // Hops: standard check with > 0
+ int const minimumHop = this->aics[aiConfigIndex].minimumHop;
+ if (minimumHop > 0 && currentResources[Game::Resources::RT_HOPS] < minimumHop) {
+ DAT_GameState->playerDataArray[playerID].resourcesToAcquireArray[Game::Resources::RT_HOPS]
+ = this->aics[aiConfigIndex].tradeAmountFood;
+ }
+ }
+}
+}
+
+### 0x004cb120 getAIBuildInterval | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CB120
+ int AICState::getAIBuildInterval(int playerID)
+ {
+ int const aiType = DAT_GameState.playerDataArray[playerID].aiType;
+ if (aiType == AITA_NULL)
+ return 0;
+ return this->aics[aiType - 1].buildInterval;
+ }
+}
+}
+
+### 0x004cb150 getResourceRebuildDelay | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CB150
+ int AICState::getResourceRebuildDelay(int playerID)
+ {
+ int const aiType = DAT_GameState.playerDataArray[playerID].aiType;
+ if (aiType == AITA_NULL)
+ return 0;
+ return this->aics[aiType - 1].resourceRebuildDelay;
+ }
+}
+}
+
+### 0x004cb180 aiFarmChoice | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CB180
+ int AICState::aiFarmChoice(int playerID)
+ {
+ int const aiType = DAT_GameState.playerDataArray[playerID].aiType;
+ if (aiType == AITA_NULL)
+ return 0;
+ return (&this->aics[aiType - 1].farm1)[DAT_GameState.playerDataArray[playerID].aiFarmIndex];
+ }
+}
+}
+
+### 0x004cb1b0 setNextFarmTypeToBuild | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CB1B0
+ int AICState::setNextFarmTypeToBuild(int playerID)
+ {
+ int const aiType = DAT_GameState.playerDataArray[playerID].aiType;
+ if (aiType == AITA_NULL)
+ return 0;
+ int const aicIndex = aiType - 1;
+ DAT_GameState.playerDataArray[playerID].aiFarmIndex++;
+ if (DAT_GameState.playerDataArray[playerID].aiFarmIndex >= 8)
+ DAT_GameState.playerDataArray[playerID].aiFarmIndex = 0;
+ if ((&this->aics[aicIndex].farm1)[DAT_GameState.playerDataArray[playerID].aiFarmIndex] == 0)
+ DAT_GameState.playerDataArray[playerID].aiFarmIndex = 0;
+ return (&this->aics[aicIndex].farm1)[DAT_GameState.playerDataArray[playerID].aiFarmIndex];
+ }
+}
+}
+
+### 0x004cb220 aiShouldBuildFarm | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CB220
+ BOOLEnum AICState::aiShouldBuildFarm(int playerID)
+ {
+ AITypeInt AVar1;
+ int _farmCount;
+ int iVar2;
+ AVar1 = DAT_GameState.playerDataArray[playerID].aiType;
+ if (AVar1 == AIT_NULL) {
+ return FALSE;
+ }
+ _farmCount = countFarms(playerID, 1);
+ if (_farmCount < 1) {
+ return TRUE;
+ }
+ iVar2 = (AVar1 + ~AIT_NULL) * 676;
+ /*
+ maxFarms
+ */
+ if (*(int*)((int)this + iVar2 + 0x74) <= _farmCount) {
+ return FALSE;
+ }
+ return (uint)(*(int*)((int)this + iVar2 + 0x50)
+ <= DAT_GameState.playerDataArray[playerID].currentPopulation / _farmCount);
+ }
+}
+}
+
+### 0x004cb290 aiShouldBuildWoodcutter | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CB290
+ BOOLEnum AICState::aiShouldBuildWoodcutter(int playerID)
+ {
+ AITypeInt AVar1;
+ int iVar2;
+ int iVar3;
+ if (DAT_AIVState.mapExtraInfo.totalWoodAvailable < 1) {
+ return FALSE;
+ }
+ AVar1 = DAT_GameState.playerDataArray[playerID].aiType;
+ if (AVar1 == AIT_NULL) {
+ return FALSE;
+ }
+ iVar2 = (AVar1 + ~AIT_NULL) * 0x2a4;
+ if (*(int*)((int)this + iVar2 + 0x54) < 1) {
+ return FALSE;
+ }
+ iVar3 = countBuildingsForPlayer(playerID, BT_WOODCUTTERSHUT, 1);
+ if (iVar3 < 1) {
+ iVar3 = 1;
+ } else {
+ if (*(int*)((int)this + iVar2 + 0x6c) <= iVar3) {
+ return FALSE;
+ }
+ if ((5 < iVar3) && (DAT_AIVState.mapExtraInfo.totalWoodAvailable < 90)) {
+ return FALSE;
+ }
+ if ((2 < iVar3) && (DAT_AIVState.mapExtraInfo.totalWoodAvailable < 30)) {
+ return FALSE;
+ }
+ }
+ /*
+ populationPerWoodcutter
+ */
+ return (uint)(*(int*)((int)this + iVar2 + 0x54)
+ <= DAT_GameState.playerDataArray[playerID].currentPopulation / iVar3);
+ }
+}
+}
+
+### 0x004cb330 aiShouldBuildQuarry | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CB330
+ uint AICState::aiShouldBuildQuarry(PlayerID playerID)
+ {
+ AITypeInt AVar1;
+ int iVar2;
+ int _quarryCount;
+ AVar1 = DAT_GameState.playerDataArray[playerID].aiType;
+ if (AVar1 == AIT_NULL) {
+ return 0;
+ }
+ iVar2 = (AVar1 + ~AIT_NULL) * 0x2a4;
+ if (*(int*)((int)this + iVar2 + 0x58) < 1) {
+ return 0;
+ }
+ _quarryCount = countBuildingsForPlayer(playerID, BT_QUARRY, 1);
+ if (_quarryCount < 1) {
+ _quarryCount = 1;
+ } else if (*(int*)((int)this + iVar2 + 100) <= _quarryCount) {
+ return 0;
+ }
+ /*
+ populationPerQuarry
+ */
+ return (uint)(*(int*)((int)this + iVar2 + 0x58)
+ <= DAT_GameState.playerDataArray[playerID].currentPopulation / _quarryCount);
+ }
+}
+}
+
+### 0x004cb3a0 aiRequiresExtraOxtethers | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CB3A0
+ BOOLEnum AICState::aiRequiresExtraOxtethers(int playerID)
+ {
+ int quarryID
+ = findFirstBuildingIDForPlayerAndType(playerID, BT_QUARRY);
+ int highestQuarryID = 0;
+ int highestStonePerTether = 0;
+ if (countBuildingsForPlayer(playerID, BT_OXTETHER, 1)
+ >= 10)
+ return FALSE;
+ DAT_GameState.playerDataArray[playerID].highestLoadedQuarryUnk = 0;
+ for (; quarryID != 0;
+ quarryID = findNextBuildingForPlayerAndType(playerID, BT_QUARRY, quarryID)) {
+ // The (short) is load-bearing: quarryStockpileID is undefined2, and the original sign-extends it.
+ int const stone = DAT_BuildingsState
+ .buildings[(short)DAT_BuildingsState.buildings[quarryID].quarryStockpileID]
+ .resources[Game::Resources::RT_STONE];
+ int tetherCount = 0;
+ for (int i = 0; i < 3; i++) {
+ int const tetherID = DAT_BuildingsState.buildings[quarryID].quarryLinkedOxTethers[i];
+ if (tetherID == 0)
+ continue;
+ if (DAT_BuildingsState.buildings[tetherID].buildingType
+ == BT_OXTETHER
+ && DAT_BuildingsState.buildings[tetherID].oxtetherLinkedQuarryID == quarryID)
+ tetherCount++;
+ else
+ DAT_BuildingsState.buildings[quarryID].quarryLinkedOxTethers[i] = 0;
+ }
+ if (tetherCount <= 0) {
+ DAT_GameState.playerDataArray[playerID].highestLoadedQuarryUnk = quarryID;
+ return TRUE;
+ }
+ if (stone / tetherCount > highestStonePerTether) {
+ highestQuarryID = quarryID;
+ highestStonePerTether = stone / tetherCount;
+ }
+ }
+ if (highestStonePerTether > 20) {
+ DAT_GameState.playerDataArray[playerID].highestLoadedQuarryUnk = highestQuarryID;
+ return TRUE;
+ }
+ return FALSE;
+ }
+}
+}
+
+### 0x004cb4d0 aiShouldBuildIronMine | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CB4D0
+ uint AICState::aiShouldBuildIronMine(PlayerID playerID)
+ {
+ AITypeInt AVar1;
+ int iVar2;
+ int iVar3;
+ AVar1 = DAT_GameState.playerDataArray[playerID].aiType;
+ if (AVar1 == AIT_NULL) {
+ return 0;
+ }
+ iVar2 = (AVar1 + ~AIT_NULL) * 0x2a4;
+ if (*(int*)((int)this + iVar2 + 0x5c) < 1) {
+ return 0;
+ }
+ iVar3 = countBuildingsForPlayer(playerID, BT_IRONMINE, 1);
+ if (iVar3 < 1) {
+ iVar3 = 1;
+ } else if (*(int*)((int)this + iVar2 + 0x68) <= iVar3) {
+ return 0;
+ }
+ /*
+ populationPerIronmine
+ */
+ return (uint)(*(int*)((int)this + iVar2 + 0x5c)
+ <= DAT_GameState.playerDataArray[playerID].currentPopulation / iVar3);
+ }
+}
+}
+
+### 0x004cb540 aiShouldBuildPitchrig | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CB540
+ uint AICState::aiShouldBuildPitchrig(PlayerID param_1)
+ {
+ AITypeInt AVar1;
+ int iVar2;
+ int iVar3;
+ AVar1 = DAT_GameState.playerDataArray[param_1].aiType;
+ if (AVar1 == AIT_NULL) {
+ return 0;
+ }
+ iVar2 = (AVar1 + ~AIT_NULL) * 0x2a4;
+ if (*(int*)((int)this + iVar2 + 0x60) < 1) {
+ return 0;
+ }
+ iVar3 = countBuildingsForPlayer(param_1, BT_PITCHRIG, 1);
+ if (iVar3 < 1) {
+ iVar3 = 1;
+ } else {
+ /*
+ check if lowestPopularity <=
+ */
+ if (*(int*)((int)this + iVar2 + 0x70) <= iVar3) {
+ return 0;
+ }
+ }
+ /*
+ check if criticalPopularity <=
+ */
+ return (uint)(*(int*)((int)this + iVar2 + 0x60)
+ <= DAT_GameState.playerDataArray[param_1].currentPopulation / iVar3);
+ }
+}
+}
+
+### 0x004cb5b0 shouldNotBeBuildingHovel | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CB5B0
+ BOOLEnum AICState::shouldNotBeBuildingHovel(int playerID, Commands::MappersEnum mapper)
+ {
+ if (mapper != Commands::M_MAPPER_HOVEL) {
+ return FALSE;
+ }
+ int const populationCap = DAT_GameState.playerDataArray[playerID].populationCap;
+ if (populationCap <= 12) {
+ return FALSE;
+ }
+ if (DAT_GameState.playerDataArray[playerID].currentPopulation < populationCap) {
+ return TRUE;
+ }
+ if (DAT_GameState.playerDataArray[playerID].previousAvailablePeasants >= 5) {
+ return TRUE;
+ }
+ if (DAT_GameState.playerDataArray[playerID].averagePopulationGrowthUnk >= 5) {
+ return TRUE;
+ }
+ return DAT_GameState.playerDataArray[playerID].popularity < 5000;
+ }
+}
+}
+
+### 0x004cb610 shouldWaitWithBuildingNegativeFearFactor | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CB610
+ BOOLEnum AICState::shouldWaitWithBuildingNegativeFearFactor(int playerID, Commands::MappersEnum mapper)
+ {
+ switch (mapper) {
+ case Commands::M_MAPPER_GALLOWS:
+ case Commands::M_MAPPER_STOCKS:
+ case Commands::M_MAPPER_CESS_PIT1:
+ case Commands::M_MAPPER_CESS_PIT2:
+ case Commands::M_MAPPER_CESS_PIT3:
+ case Commands::M_MAPPER_CESS_PIT4:
+ case Commands::M_MAPPER_BURNING_STAKE:
+ case Commands::M_MAPPER_GIBBET:
+ case Commands::M_MAPPER_DUNGEON:
+ case Commands::M_MAPPER_RACK_STRETCHING:
+ case Commands::M_MAPPER_RACK_FLOGGING:
+ case Commands::M_MAPPER_CHOPPING_BLOCK:
+ case Commands::M_MAPPER_DUNKING_STOOL:
+ if (DAT_GameState.playerDataArray[playerID].popularity < 5000) {
+ return TRUE;
+ }
+ DAT_GameState.playerDataArray[playerID].aivNegativeFearFactorDelay++;
+ if (DAT_GameState.playerDataArray[playerID].aivNegativeFearFactorDelay < 100) {
+ return TRUE;
+ }
+ DAT_GameState.playerDataArray[playerID].aivNegativeFearFactorDelay = 0;
+ return FALSE;
+ }
+ return FALSE;
+ }
+}
+}
+
+### 0x004cb700 shouldWaitWithBuildingAPositiveFearFactor | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CB700
+ BOOLEnum AICState::shouldWaitWithBuildingAPositiveFearFactor(int playerID, Commands::MappersEnum mapper)
+ {
+ switch (mapper) {
+ case Commands::M_MAPPER_GARDEN1:
+ case Commands::M_MAPPER_GARDEN2:
+ case Commands::M_MAPPER_GARDEN3:
+ case Commands::M_MAPPER_GARDEN4:
+ case Commands::M_MAPPER_GARDEN5:
+ case Commands::M_MAPPER_GARDEN6:
+ case Commands::M_MAPPER_GARDEN7:
+ case Commands::M_MAPPER_GARDEN8:
+ case Commands::M_MAPPER_GARDEN9:
+ case Commands::M_MAPPER_GARDEN10:
+ case Commands::M_MAPPER_GARDEN11:
+ case Commands::M_MAPPER_GARDEN12:
+ case Commands::M_MAPPER_MAYPOLE:
+ case Commands::M_MAPPER_STATUE1:
+ case Commands::M_MAPPER_STATUE2:
+ case Commands::M_MAPPER_STATUE3:
+ case Commands::M_MAPPER_STATUE4:
+ case Commands::M_MAPPER_STATUE5:
+ case Commands::M_MAPPER_SHRINE1:
+ case Commands::M_MAPPER_SHRINE2:
+ case Commands::M_MAPPER_SHRINE3:
+ case Commands::M_MAPPER_SHRINE4:
+ case Commands::M_MAPPER_SHRINE5:
+ case Commands::M_MAPPER_DANCING_BEAR:
+ case Commands::M_MAPPER_POND1:
+ case Commands::M_MAPPER_POND2_SMALL:
+ case Commands::M_MAPPER_POND3_LARGE1:
+ case Commands::M_MAPPER_POND4_LARGE2:
+ DAT_GameState.playerDataArray[playerID].aivPositiveFearFactorDelay += 1;
+ if (DAT_GameState.playerDataArray[playerID].aivPositiveFearFactorDelay < 200) {
+ return TRUE;
+ }
+ DAT_GameState.playerDataArray[playerID].aivPositiveFearFactorDelay = 0;
+ }
+ return FALSE;
+ }
+}
+}
+
+### 0x004cb810 destroyHouse | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CB810
+ BOOLEnum AICState::destroyHouse(int playerID)
+ {
+ int _hovelID;
+ if ((((DAT_GameState.playerDataArray[playerID].aiType != AIT_NULL)
+ && (_hovelID = DAT_GameState.playerDataArray[playerID].currentPopulation,
+ _hovelID <= DAT_GameState.playerDataArray[playerID].populationCap))
+ && (8 < _hovelID))
+ && (0x14 < DAT_GameState.playerDataArray[playerID].averagePopulationGrowthUnk)) {
+ /*
+ if AI player and currentPopulation <= populationCap and currentPopulation > 8 and field_0x2b08 > 20
+ */
+ _hovelID
+ = findFirstBuildingIDForPlayerAndType(playerID, BT_HOVEL);
+ if (_hovelID == 0) {
+ return FALSE;
+ }
+ giveBackResourceForDestroyedBuilding(_hovelID, playerID, 0x32);
+ destroyBuilding(
+ _hovelID);
+ return TRUE;
+ }
+ return FALSE;
+ }
+}
+}
+
+### 0x004cb890 shouldDestroyWoodCutterUnk | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CB890
+ BOOLEnum AICState::shouldDestroyWoodCutterUnk(int playerID)
+ {
+ if (DAT_GameState.playerDataArray[playerID].aiType == AITA_NULL) {
+ return FALSE;
+ }
+ int buildingID;
+ if (DAT_AIVState.mapExtraInfo.totalWoodAvailable <= 0) {
+ buildingID = findFirstBuildingIDForPlayerAndType(playerID, Map::Buildings::BT_WOODCUTTERSHUT);
+ } else {
+ if (DAT_GameState.playerDataArray[playerID].currentResources[Game::Resources::RT_WOOD] <= 20) {
+ return FALSE;
+ }
+ if (DAT_GameState.playerDataArray[playerID].noLabourerBuildingCount < 2) {
+ return FALSE;
+ }
+ if (DAT_GameState.playerDataArray[playerID].someCount10 < 25) {
+ return FALSE;
+ }
+ buildingID = DAT_GameState.playerDataArray[playerID].someCount11;
+ }
+ if (buildingID != 0) {
+ resetCountdownInHeatMap(
+ (short)DAT_BuildingsState.buildings[buildingID].x,
+ (short)DAT_BuildingsState.buildings[buildingID].y);
+ giveBackResourceForDestroyedBuilding(buildingID, playerID, 50);
+ destroyBuilding(
+ buildingID);
+ return TRUE;
+ }
+ return FALSE;
+ }
+}
+}
+
+### 0x004cb940 destroyBuildingIfNoWorker | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CB940
+ BOOLEnum AICState::destroyBuildingIfNoWorker(int buildingID)
+ {
+ short const countdown = DAT_BuildingsState.buildings[buildingID].unknownTickRelatedValue;
+ int const owner = DAT_BuildingsState.buildings[buildingID].owner;
+ if (countdown <= 0)
+ return FALSE;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[owner] != -1)
+ return FALSE;
+ if (DAT_GameSynchronyState.currentAIArray[owner] == 0)
+ return FALSE;
+ if (DAT_GameSynchronyState.currentGameMode == Game::GM_SOLITARY)
+ return FALSE;
+ if (DAT_BuildingsState.buildings[buildingID].workers[0] != 0) {
+ if (DAT_GameState.mapAndTime.monthTicks == owner)
+ DAT_BuildingsState.buildings[buildingID].unknownTickRelatedValue = countdown - 1;
+ return FALSE;
+ }
+ if (countdown < 20)
+ return FALSE;
+ resetCountdownInHeatMap(
+ (short)DAT_BuildingsState.buildings[buildingID].x,
+ (short)DAT_BuildingsState.buildings[buildingID].y);
+ giveBackResourceForDestroyedBuilding(buildingID, owner, 50);
+ destroyBuilding(buildingID);
+ return TRUE;
+ }
+}
+}
+
+### 0x004cb9f0 shouldNotBuildMarketArmoryGranaryBarracksMercenarypost | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004CB9F0
+ BOOLEnum AICState::shouldNotBuildMarketArmoryGranaryBarracksMercenarypost(
+ int playerID, Commands::MappersEnum mapper)
+ {
+ if (DAT_GameState.playerDataArray[playerID].aiNervousActionsTracker > 0) {
+ // nervous: reject market/mercenarypost/barracks/armory types
+ if (mapper != Commands::M_MAPPER_TRADEPOST && mapper != Commands::M_MAPPER_BARRACKS_EURO
+ && mapper != Commands::M_MAPPER_BARRACKS_ARAB && mapper != Commands::M_MAPPER_ARMOURY) {
+ return mapper != Commands::M_MAPPER_GRANARY;
+ }
+ } else {
+ // not nervous: only reject if destroy tracker > 0 and not marketplace
+ if (DAT_GameState.playerDataArray[playerID].aiBuildingDestroyChoiceTracker > 0
+ && mapper != Commands::M_MAPPER_TRADEPOST) {
+ return mapper != Commands::M_MAPPER_GRANARY;
+ }
+ }
+ return FALSE;
+ }
+}
+}
+

@@ -1,0 +1,968 @@
+### 0x0053f940 UpdateOx | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0053F940
+ void Units::UpdateOx()
+ {
+ int* piVar1;
+ short* psVar2;
+ byte* pbVar3;
+ UnitState_OxStateShort UVar4;
+ ushort uVar5;
+ ushort uVar6;
+ short sVar7;
+ DestinationNeededEnumShort DVar8;
+ uint uVar9;
+ int _workplaceBuildingID;
+ int _buildingID_0;
+ int _accessible_0;
+ int _reachable_0;
+ BOOLEnum BVar10;
+ int _accessibleAndExists;
+ int _storeCount_2;
+ int _storageBuildingID_2;
+ int _isAccessible_2;
+ int _destinationStatus_2;
+ int iVar11;
+ uint _unitOffset;
+ uint _unitID_2;
+ bool bVar12;
+ uint _unitID_state2;
+ int _targetBuildingUID_2;
+ uint _unitID;
+ bool _isDying;
+ short _playerID;
+ GameModeInt _currentGameMode;
+ _unitID = DAT_CurrentUnitSlotID;
+ _unitOffset = DAT_CurrentUnitSlotID * 0x490;
+ _workplaceBuildingID
+ = (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingID_1;
+ _playerID = DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner;
+ if ((_workplaceBuildingID == 0)
+ || (DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingUID
+ != DAT_BuildingsState.buildings[_workplaceBuildingID].uid)) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_DISAPPEAR;
+ }
+ _currentGameMode = DAT_GameSynchronyState.currentGameMode;
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ DAT_UnitsState.units[_unitID].movementSpeed = 1;
+ }
+ piVar1 = &DAT_GameState.playerDataArray[_playerID].nonInteractiveCitizenCountUnk;
+ *piVar1 = *piVar1 + 1;
+ DAT_UnitsState.units[_unitID].calculatedOwnerPlayerIndex = 0;
+ _unitID_2 = DAT_CurrentUnitSlotID;
+ UVar4 = DAT_UnitsState.units[_unitID].state.ox;
+ if (UVar4 == USOS_RESET) {
+ DAT_UnitsState.units[_unitID].animationSpeed = 4;
+ DAT_UnitsState.units[_unitID].field_0x30_animRelated = 0;
+ if (DAT_UnitsState.units[_unitID].resourceToDeposit < 8) {
+ DAT_UnitsState.units[_unitID].destinationNeeded
+ = DNE_DESTINATION_NEEDED;
+ DAT_UnitsState.units[_unitID].state.ox = USOS_GOING_TO_WORKPLACE;
+ return;
+ }
+ _buildingID_0
+ = getBuildingThatCanStoreThisResource(
+ RT_STONE, 1, DAT_UnitsState.units[_unitID].owner);
+ _accessible_0 = buildingIsAccessible(_buildingID_0, 1);
+ uVar9 = DAT_CurrentUnitSlotID;
+ if (_accessible_0 != 0) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetID_OR_targetBuildingID
+ = (short)_buildingID_0;
+ DAT_UnitsState.units[uVar9].targetUID
+ = DAT_BuildingsState.buildings[_buildingID_0].uid;
+ _reachable_0 = setDestinationForUnit(uVar9,
+ (uint)((int)((int)DAT_BuildingsState.buildings[_buildingID_0].buildingEntryX)),
+ (uint)((int)((int)DAT_BuildingsState.buildings[_buildingID_0].buildingEntryY)), 0);
+ uVar9 = DAT_CurrentUnitSlotID;
+ if (_reachable_0 == 0) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].destinationNeeded
+ = DNE_DESTINATION_NEEDED;
+ DAT_UnitsState.units[uVar9].state.ox
+ = USOS_GOING_TO_WORKPLACE;
+ return;
+ }
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.ox
+ = USOS_TAKING_GOODS_TO_STORE;
+ DAT_UnitsState.units[uVar9].moveInstructionSpeedDelayTracker = 0x50;
+ return;
+ }
+ } else {
+ if (UVar4 == USOS_EATING_GRASS) {
+ uVar5 = DAT_BuildingsState.buildings[_workplaceBuildingID].y;
+ uVar6 = DAT_BuildingsState.buildings[_workplaceBuildingID].x;
+ DAT_UnitsState.units[_unitID].animationSpeed = 4;
+ DAT_UnitsState.units[_unitID].field_0x30_animRelated = 0;
+ calculateOrientation((int)DAT_UnitsState.units[_unitID].x,
+ DAT_UnitsState.units[_unitID].y, (int)((int)((short)uVar6)),
+ (int)((int)((short)uVar5)));
+ uVar9 = DAT_CurrentUnitSlotID;
+ if (DAT_DirectionAlgorithmState.orientation == 0xf) {
+ DAT_DirectionAlgorithmState.orientation = 4;
+ }
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].facingDirection
+ = (short)DAT_DirectionAlgorithmState.orientation;
+ iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field250_0x4b1c[DAT_UnitsState.units[uVar9].animationCycleNumber];
+ DAT_UnitsState.units[uVar9].animationFrame = iVar11;
+ if (iVar11 < 1) {
+ DAT_UnitsState.units[uVar9].gfxNumber
+ = DAT_UnitsState.units[uVar9].facingDirectionMapOrientationCorrected + 0x101;
+ } else {
+ bVar12 = DAT_UnitHasBecomeIdle == 0;
+ DAT_UnitsState.units[uVar9].gfxNumber
+ = DAT_UnitsState.units[uVar9].facingDirectionMapOrientationCorrected + 0xf9
+ + iVar11 * 8;
+ if (bVar12) {
+ if (DAT_UnitsState.units[uVar9].resourceToDeposit < 8) {
+ return;
+ }
+ if (DAT_UnitsState.units[uVar9].field279_0x3f2 != 0) {
+ return;
+ }
+ DAT_UnitsState.units[uVar9].animationCycleNumber = 0;
+ DAT_UnitsState.units[uVar9].state.generic
+ = US_DETERMINE_NEXT_STATEUnk;
+ DAT_UnitHasBecomeIdle = 0;
+ DAT_UnitsState.units[uVar9].field279_0x3f2 = 1;
+ return;
+ }
+ }
+ DAT_UnitsState.units[uVar9].animationCycleNumber = 0;
+ DAT_UnitHasBecomeIdle = 0;
+ DAT_UnitsState.units[uVar9].state.generic
+ = US_DETERMINE_NEXT_STATEUnk;
+ return;
+ }
+ if (UVar4 == USOS_TAKING_GOODS_TO_STORE) {
+ DAT_UnitsState.units[_unitID].animationSheetFrameOffset = 0x81;
+ DAT_UnitsState.units[_unitID].field_0x30_animRelated = 0x10;
+ DAT_UnitsState.units[_unitID].movementSpeed = 3;
+ if (_currentGameMode != GM_SOLITARY) {
+ DAT_UnitsState.units[_unitID].movementSpeed = 1;
+ }
+ DAT_UnitsState.units[_unitID].stateBasedSpeed = 0;
+ sVar7 = DAT_UnitsState.units[_unitID].moveInstructionSpeedDelayTracker;
+ if (sVar7 != 0) {
+ DAT_UnitsState.units[_unitID].moveInstructionSpeedDelayTracker = sVar7 + -1;
+ DAT_UnitsState.units[_unitID].stateBasedSpeed = -1;
+ psVar2 = &DAT_UnitsState.units[_unitID].movementSpeed;
+ *psVar2 = *psVar2 + 5;
+ DAT_UnitsState.units[_unitID].field_0x30_animRelated = 0;
+ return;
+ }
+ BVar10 = hasUnitReachedDestination(DAT_CurrentUnitSlotID);
+ if (BVar10 != FALSE) {
+ DAT_UnitsState.units[_unitID].updateTickTracker = 0;
+ DAT_UnitsState.units[_unitID].state.ox = USOS_WAITING;
+ return;
+ }
+ } else {
+ if (UVar4 == USOS_WAITING) {
+ DAT_UnitsState.units[_unitID].animationSheetFrameOffset = 1;
+ DAT_UnitsState.units[_unitID].field_0x30_animRelated = 0x10;
+ DAT_UnitsState.units[_unitID].field279_0x3f2 = 0;
+ if (DAT_UnitsState.units[_unitID].resourceToDeposit < 1) {
+ _accessibleAndExists
+ = setWorkplaceBuildingEntryAsTarget(DAT_CurrentUnitSlotID, 1);
+ uVar9 = DAT_CurrentUnitSlotID;
+ if (_accessibleAndExists == 0) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].logicalState
+ = ULS_REMOVE;
+ return;
+ }
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.ox
+ = USOS_GOING_TO_WORKPLACE;
+ DAT_UnitsState.units[uVar9].destinationNeeded
+ = DNE_DESTINATION_NEEDED;
+ DAT_UnitsState.units[uVar9].animationSheetFrameOffset = 1;
+ DAT_UnitsState.units[uVar9].moveInstructionSpeedDelayTracker = 2;
+ return;
+ }
+ _storeCount_2
+ = canBuildingStoreTheAmount(
+ (int)DAT_UnitsState.units[_unitID].targetID_OR_targetBuildingID,
+ RT_STONE, 48);
+ if (_storeCount_2 != 0) {
+ addResourceToStockpile(
+ (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID]
+ .targetID_OR_targetBuildingID,
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetUID,
+ RT_STONE, 1, 0x30, 1);
+ uVar9 = DAT_CurrentUnitSlotID;
+ piVar1 = DAT_GameSynchronyState.finalResults.finalStoneProduced
+ + DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner;
+ *piVar1 = *piVar1 + 1;
+ psVar2 = &DAT_UnitsState.units[uVar9].resourceToDeposit;
+ *psVar2 = *psVar2 + -1;
+ playSFXAtLocation(
+ (int)DAT_UnitsState.units[uVar9].x,
+ DAT_UnitsState.units[uVar9].y, FX_STOCK_STONE);
+ return;
+ }
+ _storageBuildingID_2 = getBuildingThatCanStoreThisResource(RT_STONE, 1,
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner);
+ _isAccessible_2
+ = buildingIsAccessible(_storageBuildingID_2, 1);
+ if (_isAccessible_2 == 0) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].resourceToDeposit = 0;
+ return;
+ }
+ _destinationStatus_2 = setDestinationForUnit(
+ DAT_CurrentUnitSlotID,
+ (uint)((int)((int)DAT_BuildingsState.buildings[_storageBuildingID_2].buildingEntryX)),
+ (uint)((int)((int)DAT_BuildingsState.buildings[_storageBuildingID_2].buildingEntryY)),
+ 0);
+ _unitID_state2 = DAT_CurrentUnitSlotID;
+ if (_destinationStatus_2 == 0) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].resourceToDeposit = 0;
+ return;
+ }
+ _targetBuildingUID_2 = DAT_BuildingsState.buildings[_storageBuildingID_2].uid;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetID_OR_targetBuildingID
+ = (short)_storageBuildingID_2;
+ DAT_UnitsState.units[_unitID_state2].targetUID = _targetBuildingUID_2;
+ return;
+ }
+ if (UVar4 == USOS_GOING_TO_WORKPLACE) {
+ DAT_UnitsState.units[_unitID].animationSheetFrameOffset = 1;
+ DAT_UnitsState.units[_unitID].field_0x30_animRelated = 0x10;
+ DAT_UnitsState.units[_unitID].movementSpeed = 3;
+ if (_currentGameMode != GM_SOLITARY) {
+ DAT_UnitsState.units[_unitID].movementSpeed = 1;
+ }
+ DAT_UnitsState.units[_unitID].stateBasedSpeed = 0;
+ DVar8 = DAT_UnitsState.units[_unitID].destinationNeeded;
+ if (DVar8 == DNE_DESTINATION_NEEDED) {
+ BVar10 = setDestinationForUnit(DAT_CurrentUnitSlotID,
+ (uint)((int)((int)DAT_UnitsState.units[_unitID].targetX_2)),
+ (uint)((int)((int)DAT_UnitsState.units[_unitID].targetY_2)), 0);
+ _unitOffset = DAT_CurrentUnitSlotID * 0x490;
+ if (BVar10 == FALSE) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].destinationNeeded
+ = DNE_OX_SPECIFIC_COUNTDOWN;
+ } else {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].destinationNeeded
+ = DNE_DESTINATION_HAS_BEEN_SET;
+ }
+ } else if (1 < (short)DVar8) {
+ DAT_UnitsState.units[_unitID].destinationNeeded
+ = DVar8 - DNE_DESTINATION_NEEDED;
+ }
+ /*
+ someBreaktakingCountdown == 0
+ */
+ if (*(short*)((int)DAT_UnitsState.units[0].manningEngineerUIDRef + _unitOffset + 0x58)
+ == 0) {
+ sVar7 = *(short*)(DAT_UnitsState.units[0].pathPlanStart + _unitOffset + 400);
+ if (sVar7 != 0) {
+ *(short*)(DAT_UnitsState.units[0].pathPlanStart + _unitOffset + 400) = sVar7 + -1;
+ *(undefined2*)((int)DAT_UnitsState.units[0].manningEngineerRef
+ + (_unitOffset - 0x56)) = 0xffff;
+ *(undefined4*)((int)&DAT_UnitsState.units[0].field_0x30_animRelated + _unitOffset)
+ = 0;
+ return;
+ }
+ BVar10 = hasUnitReachedDestination(DAT_CurrentUnitSlotID);
+ if (BVar10 != FALSE) {
+ *(undefined2*)((int)DAT_UnitsState.units[0].manningEngineerRef
+ + (_unitOffset - 0x4c)) = 0;
+ *(undefined4*)((int)DAT_UnitsState.units[0].manningEngineerRef
+ + (_unitOffset - 100)) = 0;
+ /*
+ state = 4
+ */
+ *(undefined2*)((int)DAT_UnitsState.units[0].manningEngineerRef
+ + (_unitOffset - 0x54)) = 4;
+ return;
+ }
+ }
+ } else {
+ if (UVar4 == 0x6c) {
+ DAT_UnitsState.units[_unitID].stateBasedSpeed = 0;
+ DAT_UnitsState.units[_unitID].field_0x30_animRelated = 0x10;
+ DAT_UnitsState.units[_unitID].animationSheetFrameOffset = 1;
+ return;
+ }
+ BVar10
+ = checkIfCitizenUnitIsAliveBasedOnState(DAT_CurrentUnitSlotID);
+ if (BVar10 == FALSE) {
+ if (UVar4 == 0x6e) {
+ pbVar3 = &DAT_UnitsState.units[_unitID].disappearFadeAlphaCountdown;
+ *pbVar3 = *pbVar3 + 1;
+ if (' ' < (char)DAT_UnitsState.units[_unitID].disappearFadeAlphaCountdown) {
+ DAT_UnitsState.units[_unitID].disappearFadeAlphaCountdown = 0x20;
+ }
+ psVar2 = &DAT_UnitsState.units[_unitID].updateTickTracker;
+ *psVar2 = *psVar2 + 1;
+ if (0x20 < DAT_UnitsState.units[_unitID].updateTickTracker) {
+ DAT_UnitsState.units[_unitID].logicalState = ULS_REMOVE;
+ return;
+ }
+ } else {
+ DAT_UnitsState.units[_unitID].state.ox = USOS_RESET;
+ makeUnitStopWalkingByClearingPathProgressState(_unitID_2);
+ }
+ } else {
+ DAT_UnitsState.units[_unitID].facingDirection = 0;
+ DAT_UnitsState.units[_unitID].animationSpeed = 4;
+ DAT_UnitsState.units[_unitID].field_0x30_animRelated = 0;
+ DAT_UnitsState.units[_unitID].animationFrame
+ = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field251_0x4bc4[DAT_UnitsState.units[_unitID].animationCycleNumber];
+ if ((DAT_UnitsState.units[_unitID].animationCycleNumber == 1)
+ && (DAT_UnitsState.units[_unitID].animationCycleNumberHasJustIncremented
+ != FALSE)) {
+ playSFXAtLocation(
+ (int)DAT_UnitsState.units[_unitID].x,
+ DAT_UnitsState.units[_unitID].y, FX_OX_DIE);
+ _unitID_2 = DAT_CurrentUnitSlotID;
+ }
+ iVar11 = DAT_UnitsState.units[_unitID_2].animationFrame;
+ if (iVar11 < 1) {
+ DAT_UnitsState.units[_unitID_2].gfxNumber = 0x14c;
+ DAT_UnitHasBecomeIdle = 1;
+ } else {
+ DAT_UnitsState.units[_unitID_2].gfxNumber = iVar11 + 0x140;
+ }
+ if (DAT_UnitsState.units[_unitID_2].resourceToDeposit != 0) {
+ piVar1 = &DAT_UnitsState.units[_unitID_2].gfxNumber;
+ *piVar1 = *piVar1 + 0xc;
+ }
+ if (DAT_UnitHasBecomeIdle != 0) {
+ DAT_UnitsState.units[_unitID_2].state.ox = 0x6e;
+ return;
+ }
+ }
+ }
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0053f940", "name": "UpdateOx", "quelle": "ghidra", "p1": {"bereich": "Spielablauf", "zweck": "Takt-Update des Ochsen am Steinbruch: Stein holen, zum Lager bringen, einlagern, sterben."}, "p2": {"ein": "- (aktuelle Einheit aus DAT_CurrentUnitSlotID)", "aus": "-", "liest": ["units[].workplaceBuildingID_1/workplaceBuildingUID", "buildings[].uid/buildingEntryX/Y/x/y", "resourceToDeposit", "moveInstructionSpeedDelayTracker", "currentGameMode", "destinationNeeded"], "schreibt": ["state.ox", "resourceToDeposit", "targetID_OR_targetBuildingID/targetUID", "movementSpeed/stateBasedSpeed/moveInstructionSpeedDelayTracker", "destinationNeeded", "nonInteractiveCitizenCountUnk +1", "finalResults.finalStoneProduced[besitzer] +1", "logicalState=ULS_REMOVE"], "ruft": ["getBuildingThatCanStoreThisResource", "buildingIsAccessible", "setDestinationForUnit", "setWorkplaceBuildingEntryAsTarget", "canBuildingStoreTheAmount", "addResourceToStockpile", "hasUnitReachedDestination", "calculateOrientation", "playSFXAtLocation", "checkIfCitizenUnitIsAliveBasedOnState", "makeUnitStopWalkingByClearingPathProgressState"], "regeln": ["Ist der Arbeitsplatz (Steinbruch) weg oder hat die Gebäude-UID gewechselt, geht der Ochse in DISAPPEAR", "Jeder Ochse zählt in nonInteractiveCitizenCountUnk des Besitzers", "Außerhalb des Einzelspieler-Modus (GM_SOLITARY) ist movementSpeed 1, im Einzelspieler 3", "RESET: Bei resourceToDeposit unter 8 zum Arbeitsplatz zurück; ab 8 zum Steinlager (RT_STONE, Menge 1) laufen, bei unerreichbarem Lager zurück zum Arbeitsplatz", "TAKING_GOODS_TO_STORE: Die ersten 80 Ticks (Wert 0x50) langsamer (stateBasedSpeed -1, movementSpeed +5 je Tick), am Ziel Wechsel in WAITING", "WAITING am Lager: Bei resourceToDeposit gleich 0 zurück zum Arbeitsplatz (ist der Arbeitsplatz nicht erreichbar, wird der Ochse entfernt)", "WAITING: Je Takt wird 1 Stein eingelagert, solange das Lagerfeld laut canBuildingStoreTheAmount(Grenze 48) noch Platz hat; je Stein finalStoneProduced +1 und Geräusch FX_STOCK_STONE", "Ist das Feld voll: anderes Lager mit Platz suchen; keins erreichbar, wird resourceToDeposit auf 0 gesetzt (Rest geht verloren)", "GOING_TO_WORKPLACE: Bei Ankunft Zustand 4 (laut Ghidra-Kommentar), vorher Wartezeit herunterzählen", "EATING_GRASS-Zustand: dreht sich zum Steinbruch und spielt eine Animation; ist der Ochse beladen (resourceToDeposit ab 8), geht er danach einmalig (field279_0x3f2) in DETERMINE_NEXT_STATE", "Tod (Zustand 0x6e): ausblenden, ab updateTickTracker über 32 entfernt; Todesgeräusch FX_OX_DIE"], "offen": ["Dass 8 Stein die volle Ladung sind, folgt nur aus den Schwellen 8 und 0; nicht belegt", "Bedeutung von Zustand 4 beim Ankommen und was genau EATING_GRASS im Spiel zeigt (Namen vermutet)", "Mehrere Feldzugriffe sind roh über Offsets (+0x58, +400) geschrieben und nicht benannt: Wartezeit-Zähler am Arbeitsplatz unklar"]}, "p3": {"erklaerung": "Der Ochse trägt Stein vom Steinbruch zu einem Lagerfeld und legt dort Stück für Stück ab. Ist kein Platz oder Lager erreichbar, geht die Ladung verloren.", "gehirn": "Steinversorgung hängt an Lagerplatz und Erreichbarkeit: Volle Steinlagerfelder (48 je Feld) lassen Ochsenladungen verfallen.", "beleg": "code", "live": "Ochse am Steinbruch beladen und beim Lager abgeladen → units[ochse].resourceToDeposit und Steinbestand → Bestand steigt je Abladetakt um 1, Ladung vor Abladen 8", "live_art": "wirtschaft"}}
+
+### 0x005401d0 UpdateMiner | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x005401D0
+ void Units::UpdateMiner()
+ {
+ byte* pbVar1;
+ short* psVar2;
+ short sVar3;
+ UnitStateShort UVar4;
+ uint unitID;
+ BOOLEnum BVar5;
+ int iVar6;
+ bool bVar7;
+ unitID = DAT_CurrentUnitSlotID;
+ sVar3 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingID_1;
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].movementSpeed = 1;
+ }
+ UVar4 = DAT_UnitsState.units[unitID].state.generic;
+ if (UVar4 == US_DETERMINE_NEXT_STATEUnk) {
+ DAT_UnitsState.units[unitID].animationSheetFrameOffset = 1;
+ DAT_UnitsState.units[unitID].field_0x30_animRelated = 0x10;
+ if (DAT_UnitsState.units[unitID].isDisappearingUnk == 0) {
+ if (DAT_UnitsState.units[unitID].goToRallyPoint != 0) {
+ DAT_UnitsState.units[unitID].goToRallyPoint = 0;
+ DAT_UnitsState.units[unitID].state.generic = ((UnitState)2);
+ setDestinationForUnit(
+ unitID, (uint)((int)((int)DAT_UnitsState.units[unitID].targetX_2)),
+ (uint)((int)((int)DAT_UnitsState.units[unitID].targetY_2)), 0);
+ return;
+ }
+ } else {
+ pbVar1 = &DAT_UnitsState.units[unitID].disappearFadeAlphaCountdown;
+ *pbVar1 = *pbVar1 - 1;
+ if ((char)*pbVar1 < '\0') {
+ DAT_UnitsState.units[unitID].disappearFadeAlphaCountdown = 0;
+ DAT_UnitsState.units[unitID].isDisappearingUnk = 0;
+ return;
+ }
+ }
+ } else {
+ if (UVar4 == US_IDLEUnk) {
+ DAT_UnitsState.units[unitID].animationCycleNumber = 0;
+ DAT_BuildingsState.buildings[sVar3]
+ .workers[DAT_UnitsState.units[unitID].workerIndex] = (short)unitID;
+ return;
+ }
+ if (UVar4 == ((UnitState)2)) {
+ DAT_UnitsState.units[unitID].animationSheetFrameOffset = 1;
+ DAT_UnitsState.units[unitID].field_0x30_animRelated = 0x10;
+ BVar5 = hasUnitReachedDestination(unitID);
+ if (BVar5 == FALSE) {
+ return;
+ }
+ commitUnitLocation(
+ unitID);
+ DAT_UnitsState.units[unitID].state.generic = US_IDLEUnk;
+ return;
+ }
+ if (UVar4 == 0x6c) {
+ DAT_UnitsState.units[unitID].stateBasedSpeed = 0;
+ DAT_UnitsState.units[unitID].field_0x30_animRelated = 0;
+ DAT_UnitsState.units[unitID].animationSheetFrameOffset = 1;
+ return;
+ }
+ if (UVar4 == US_DISAPPEAR) {
+ pbVar1 = &DAT_UnitsState.units[unitID].disappearFadeAlphaCountdown;
+ *pbVar1 = *pbVar1 + 1;
+ if (' ' < (char)DAT_UnitsState.units[unitID].disappearFadeAlphaCountdown) {
+ DAT_UnitsState.units[unitID].disappearFadeAlphaCountdown = 0x20;
+ }
+ psVar2 = &DAT_UnitsState.units[unitID].updateTickTracker;
+ *psVar2 = *psVar2 + 1;
+ if (DAT_UnitsState.units[unitID].updateTickTracker < 0x21) {
+ return;
+ }
+ DAT_UnitsState.units[unitID].logicalState = ULS_REMOVE;
+ if (DAT_UnitsState.units[unitID].killedFlagUnk != 0) {
+ return;
+ }
+ setLastEncounteredTroopUnit((int)DAT_UnitsState.units[unitID].owner, unitID);
+ return;
+ }
+ if (UVar4 == US_DEATH_01) {
+ DAT_UnitsState.units[unitID].facingDirection = 0;
+ DAT_UnitsState.units[unitID].animationSpeed = 2;
+ DAT_UnitsState.units[unitID].field_0x30_animRelated = 0;
+ iVar6 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .ANIM_Frames_UnitDeath[DAT_UnitsState.units[unitID].animationCycleNumber];
+ DAT_UnitsState.units[unitID].animationFrame = iVar6;
+ if (iVar6 < 1) {
+ DAT_UnitsState.units[unitID].gfxNumber = 0x118;
+ DAT_UnitHasBecomeIdle = 1;
+ goto LAB_00540411;
+ }
+ iVar6 = iVar6 + 0x100;
+ } else {
+ BVar5 = checkIfCitizenUnitIsAliveBasedOnState(unitID);
+ if (BVar5 == FALSE) {
+ DAT_UnitsState.units[unitID].state.generic
+ = US_DETERMINE_NEXT_STATEUnk;
+ makeUnitStopWalkingByClearingPathProgressState(unitID);
+ return;
+ }
+ DAT_UnitsState.units[unitID].facingDirection = 0;
+ DAT_UnitsState.units[unitID].animationSpeed = 2;
+ DAT_UnitsState.units[unitID].field_0x30_animRelated = 0;
+ iVar6 = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .ANIM_Frames_UnitDeath[DAT_UnitsState.units[unitID].animationCycleNumber];
+ DAT_UnitsState.units[unitID].animationFrame = iVar6;
+ if (iVar6 < 1) {
+ DAT_UnitsState.units[unitID].gfxNumber = 0x130;
+ DAT_UnitHasBecomeIdle = 1;
+ goto LAB_00540411;
+ }
+ iVar6 = iVar6 + 0x118;
+ }
+ bVar7 = DAT_UnitHasBecomeIdle != 0;
+ DAT_UnitsState.units[unitID].gfxNumber = iVar6;
+ if (bVar7) {
+ LAB_00540411:
+ DAT_UnitsState.units[unitID].state.generic = US_DISAPPEAR;
+ DAT_UnitsState.units[unitID].updateTickTracker = 0;
+ return;
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x005401d0", "name": "UpdateMiner", "quelle": "ghidra", "p1": {"bereich": "Spielablauf", "zweck": "Takt-Update des Minenarbeiters: zum Platz im Gebäude gehen, dort stehen, sterben."}, "p2": {"ein": "- (aktuelle Einheit aus DAT_CurrentUnitSlotID)", "aus": "-", "liest": ["units[].workplaceBuildingID_1/workerIndex", "goToRallyPoint", "isDisappearingUnk", "targetX_2/targetY_2", "Frames_Shared_UnitClimbingUp.ANIM_Frames_UnitDeath"], "schreibt": ["state.generic", "buildings[].workers[workerIndex]", "goToRallyPoint", "disappearFadeAlphaCountdown", "updateTickTracker", "gfxNumber", "logicalState=ULS_REMOVE"], "ruft": ["setDestinationForUnit", "hasUnitReachedDestination", "commitUnitLocation", "checkIfCitizenUnitIsAliveBasedOnState", "makeUnitStopWalkingByClearingPathProgressState", "setLastEncounteredTroopUnit"], "regeln": ["Außerhalb des Einzelspieler-Modus ist movementSpeed 1", "DETERMINE_NEXT_STATE: Bei goToRallyPoint wird dieses zurückgesetzt, Zustand 2 gesetzt und zum Ziel targetX_2/targetY_2 gelaufen", "Ist isDisappearingUnk gesetzt, zählt disappearFadeAlphaCountdown herunter; unter 0 wird er auf 0 gesetzt und isDisappearingUnk gelöscht", "Zustand 2: Läuft bis zum Ziel, dann commitUnitLocation und IDLE", "IDLE: Trägt sich in buildings[arbeitsplatz].workers[workerIndex] ein", "DISAPPEAR: Ausblenden bis 32; bei updateTickTracker über 32 wird die Einheit entfernt, ohne killedFlagUnk wird setLastEncounteredTroopUnit gerufen", "DEATH_01: Todesanimation, am Ende (Bild 0, gfx 0x118) Wechsel in DISAPPEAR", "Nicht lebender Zustand (laut Zustandsprüfung): zurück auf DETERMINE_NEXT_STATE; sonst Animation (gfx 0x130 + 0x118) und danach DISAPPEAR", "Zustand 0x6c: steht still"], "offen": ["Welche Mine oder welches Gebäude genau (Name vermutlich irreführend)", "Bedeutung von goToRallyPoint hier", "Zustand 0x6c"]}, "p3": {"erklaerung": "Der Minenarbeiter geht zu seinem Platz im Gebäude, steht dort und trägt sich als Arbeiter ein. Bei Tod blendet er aus und wird entfernt.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x00540440 UpdateHealer | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00540440
+ void Units::UpdateHealer()
+ {
+ int* piVar1;
+ byte* pbVar2;
+ short* psVar3;
+ UnitStateShort UVar4;
+ short sVar5;
+ BOOLEnum BVar6;
+ uint uVar7;
+ int _buildingID;
+ uint uVar8;
+ int _playerID;
+ int _unitOffset;
+ bool bVar9;
+ byte _currentRNG2Byte;
+ uVar8 = DAT_CurrentUnitSlotID;
+ _unitOffset = DAT_CurrentUnitSlotID * 0x490;
+ _playerID = (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner;
+ piVar1 = &DAT_GameState.playerDataArray[_playerID].healerCount;
+ *piVar1 = *piVar1 + 1;
+ DAT_UnitsState.units[uVar8].stateBasedSpeed = 0;
+ if (1 < DAT_UnitsState.units[uVar8].field280_0x3f4) {
+ DAT_UnitsState.units[uVar8].state.generic = US_DISAPPEAR;
+ }
+ UVar4 = DAT_UnitsState.units[uVar8].state.generic;
+ if (UVar4 == US_DETERMINE_NEXT_STATEUnk) {
+ DAT_UnitsState.units[uVar8].gfxNumber
+ = DAT_UnitsState.units[uVar8].facingDirectionMapOrientationCorrected + 1;
+ if (DAT_UnitsState.units[uVar8].isDisappearingUnk == 0) {
+ if (DAT_UnitsState.units[uVar8].goToRallyPoint == 0) {
+ return;
+ }
+ DAT_UnitsState.units[uVar8].goToRallyPoint = 0;
+ DAT_UnitsState.units[uVar8].state.generic = US_IDLEUnk;
+ DAT_UnitsState.units[uVar8].destinationNeeded
+ = DNE_DESTINATION_NEEDED;
+ return;
+ }
+ pbVar2 = &DAT_UnitsState.units[uVar8].disappearFadeAlphaCountdown;
+ *pbVar2 = *pbVar2 - 1;
+ if (-1 < (char)*pbVar2) {
+ return;
+ }
+ DAT_UnitsState.units[uVar8].disappearFadeAlphaCountdown = 0;
+ DAT_UnitsState.units[uVar8].isDisappearingUnk = 0;
+ return;
+ }
+ if (UVar4 == US_IDLEUnk) {
+ if (DAT_UnitsState.units[uVar8].destinationNeeded
+ != DNE_DESTINATION_HAS_BEEN_SET) {
+ _playerID = somethingWithSeparateAreas1(uVar8);
+ uVar8 = DAT_CurrentUnitSlotID;
+ if (_playerID == 0) {
+ setDestinationForUnit(
+ DAT_CurrentUnitSlotID,
+ (uint)((int)((int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetX_2)),
+ (uint)((int)((int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetY_2)),
+ 0);
+ uVar8 = DAT_CurrentUnitSlotID;
+ _unitOffset = DAT_CurrentUnitSlotID * 0x490;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].destinationNeeded
+ = DNE_DESTINATION_HAS_BEEN_SET;
+ } else {
+ _unitOffset = DAT_CurrentUnitSlotID * 0x490;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_AIM_WEAPONUnk;
+ DAT_UnitsState.units[uVar8].targetedUnitID__OR__engineerMannedSiegeEngineRef
+ = (short)_playerID;
+ DAT_UnitsState.units[uVar8]
+ .targetedUnitUIDUnk_OR_someAppearTileUnk_OR_buildingUID_OR_pitchDitchUID_OR_entityUID
+ = DAT_EntityState.entityArray[_playerID].uid;
+ DAT_EntityState.entityArray[_playerID].velocityUnk = -10000;
+ }
+ }
+ *(undefined4*)((int)&DAT_UnitsState.units[0].animationSheetFrameOffset + _unitOffset) = 1;
+ *(undefined4*)((int)&DAT_UnitsState.units[0].field_0x30_animRelated + _unitOffset) = 0x10;
+ BVar6 = hasUnitReachedDestination(uVar8);
+ if ((BVar6 != FALSE)
+ && (*(short*)((int)DAT_UnitsState.units[0].manningEngineerUIDRef + _unitOffset + 0x58)
+ == 0)) {
+ _playerID = somethingWithSeparateAreas1(uVar8);
+ uVar8 = DAT_CurrentUnitSlotID;
+ if (_playerID != 0) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_AIM_WEAPONUnk;
+ DAT_UnitsState.units[uVar8].targetedUnitID__OR__engineerMannedSiegeEngineRef
+ = (short)_playerID;
+ DAT_UnitsState.units[uVar8]
+ .targetedUnitUIDUnk_OR_someAppearTileUnk_OR_buildingUID_OR_pitchDitchUID_OR_entityUID
+ = DAT_EntityState.entityArray[_playerID].uid;
+ DAT_UnitsState.units[uVar8].destinationNeeded
+ = DNE_DESTINATION_NEEDED;
+ DAT_UnitsState.units[uVar8].animationCycleNumber = 0;
+ DAT_EntityState.entityArray[_playerID].velocityUnk = -10000;
+ return;
+ }
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_JESTER_ROAM_TO;
+ DAT_UnitsState.units[uVar8].disappearFadeAlphaCountdown = 0;
+ DAT_UnitsState.units[uVar8].engineerManningSiegeStateRef_checkType = 2;
+ DAT_UnitsState.units[uVar8].cachedState = ((UnitState)2);
+ DAT_UnitsState.units[uVar8].updateTickTracker = 0;
+ DAT_UnitsState.units[uVar8].animationCycleNumber = 0;
+ return;
+ }
+ LAB_00540655:
+ uVar7 = DAT_GameState.mapAndTime.totalGameTicksUnk & 0x80000007;
+ bVar9 = uVar7 == 0;
+ if ((int)uVar7 < 0) {
+ bVar9 = (uVar7 - 1 | 0xfffffff8) == 0xffffffff;
+ }
+ if ((bVar9)
+ && (_playerID = somethingWithSeparateAreas1(uVar8),
+ _playerID != 0)) {
+ makeUnitStopWalkingByClearingPathProgressState(DAT_CurrentUnitSlotID);
+ return;
+ }
+ return;
+ }
+ if (UVar4 != ((UnitState)2)) {
+ if (UVar4 == US_RELOAD_WEAPONUnk) {
+ DAT_UnitsState.units[uVar8].field_0x30_animRelated = 0x10;
+ DAT_UnitsState.units[uVar8].animationSheetFrameOffset = 1;
+ if (DAT_UnitsState.units[uVar8].destinationNeeded
+ != DNE_DESTINATION_HAS_BEEN_SET) {
+ BVar6 = computeLadderClimbPath(uVar8, 2, 0, 1);
+ if (BVar6 == FALSE) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_IDLEUnk;
+ return;
+ }
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].destinationNeeded
+ = DNE_DESTINATION_HAS_BEEN_SET;
+ return;
+ }
+ BVar6 = hasTunnelerNotFinishedDigging(uVar8);
+ if (BVar6 != FALSE) {
+ _playerID = somethingWithSeparateAreas1(uVar8);
+ uVar8 = DAT_CurrentUnitSlotID;
+ if (_playerID != 0) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_AIM_WEAPONUnk;
+ DAT_UnitsState.units[uVar8].targetedUnitID__OR__engineerMannedSiegeEngineRef
+ = (short)_playerID;
+ DAT_UnitsState.units[uVar8]
+ .targetedUnitUIDUnk_OR_someAppearTileUnk_OR_buildingUID_OR_pitchDitchUID_OR_entityUID
+ = DAT_EntityState.entityArray[_playerID].uid;
+ DAT_UnitsState.units[uVar8].animationCycleNumber = 0;
+ DAT_EntityState.entityArray[_playerID].velocityUnk = -10000;
+ DAT_UnitsState.units[uVar8].destinationNeeded
+ = DNE_DESTINATION_NEEDED;
+ return;
+ }
+ psVar3 = &DAT_UnitsState.units[DAT_CurrentUnitSlotID].resourceToDeposit;
+ *psVar3 = *psVar3 + -1;
+ if (DAT_UnitsState.units[uVar8].resourceToDeposit < 1) {
+ DAT_UnitsState.units[uVar8].state.generic = US_IDLEUnk;
+ DAT_UnitsState.units[uVar8].animationCycleNumber = 0;
+ }
+ DAT_UnitsState.units[uVar8].destinationNeeded
+ = DNE_DESTINATION_NEEDED;
+ return;
+ }
+ } else {
+ if (UVar4 != ((UnitState)3)) {
+ if (UVar4 == US_AIM_WEAPONUnk) {
+ DAT_UnitsState.units[uVar8].stateBasedSpeed = 0;
+ DAT_UnitsState.units[uVar8].field_0x30_animRelated = 0x10;
+ DAT_UnitsState.units[uVar8].animationSheetFrameOffset = 1;
+ if (DAT_UnitsState.units[uVar8].destinationNeeded
+ != DNE_DESTINATION_HAS_BEEN_SET) {
+ _playerID = (int)DAT_UnitsState.units[uVar8]
+ .targetedUnitID__OR__engineerMannedSiegeEngineRef;
+ if ((_playerID == 0)
+ || (DAT_UnitsState.units[uVar8]
+ .targetedUnitUIDUnk_OR_someAppearTileUnk_OR_buildingUID_OR_pitchDitchUID_OR_entityUID
+ != DAT_EntityState.entityArray[_playerID].uid)) {
+ DAT_UnitsState.units[uVar8].state.generic
+ = US_IDLEUnk;
+ } else {
+ setDestinationForUnit(uVar8,
+ (uint)((int)((int)DAT_EntityState.entityArray[_playerID].xPosition)),
+ (uint)((int)((int)DAT_EntityState.entityArray[_playerID].yPosition)), 0);
+ uVar8 = DAT_CurrentUnitSlotID;
+ _unitOffset = DAT_CurrentUnitSlotID * 0x490;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].destinationNeeded
+ = DNE_DESTINATION_HAS_BEEN_SET;
+ }
+ }
+ BVar6 = hasUnitReachedDestination(uVar8);
+ if (BVar6 == FALSE) {
+ return;
+ }
+ *(undefined2*)((int)DAT_UnitsState.units[0].manningEngineerRef + _unitOffset + -0x56)
+ = 0;
+ *(undefined4*)((int)DAT_UnitsState.units[0].manningEngineerRef + _unitOffset + -100)
+ = 0;
+ *(undefined2*)((int)DAT_UnitsState.units[0].manningEngineerRef + _unitOffset + -0x54)
+ = 6;
+ return;
+ }
+ if (UVar4 == US_FIRE_WEAPONUnk) {
+ DAT_UnitsState.units[uVar8].field_0x30_animRelated = 0;
+ DAT_UnitsState.units[uVar8].animationSpeed = 4;
+ _unitOffset = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field408_0x8208[DAT_UnitsState.units[uVar8].animationCycleNumber];
+ DAT_UnitsState.units[uVar8].animationFrame = _unitOffset;
+ if (_unitOffset < 1) {
+ DAT_UnitHasBecomeIdle = 1;
+ } else {
+ bVar9 = DAT_UnitHasBecomeIdle == 0;
+ DAT_UnitsState.units[uVar8].gfxNumber
+ = DAT_UnitsState.units[uVar8].facingDirectionMapOrientationCorrected + 0x79
+ + _unitOffset * 8;
+ if (bVar9) {
+ return;
+ }
+ }
+ DAT_UnitsState.units[uVar8].animationCycleNumber = 0;
+ DAT_UnitsState.units[uVar8].state.generic = US_IDLEUnk;
+ DAT_UnitsState.units[uVar8].destinationNeeded
+ = DNE_DESTINATION_NEEDED;
+ _unitOffset = (int)DAT_UnitsState.units[uVar8]
+ .targetedUnitID__OR__engineerMannedSiegeEngineRef;
+ if ((_unitOffset != 0)
+ && (DAT_UnitsState.units[uVar8]
+ .targetedUnitUIDUnk_OR_someAppearTileUnk_OR_buildingUID_OR_pitchDitchUID_OR_entityUID
+ == DAT_EntityState.entityArray[_unitOffset].uid)) {
+ DAT_EntityState.entityArray[_unitOffset].unknownAnimationFrameRelated = 0x3f8;
+ }
+ refreshPoisonCloudNearUnit(uVar8);
+ uVar8 = DAT_CurrentUnitSlotID;
+ piVar1 = &DAT_GameState.playerDataArray[_playerID].someCount60;
+ *piVar1 = *piVar1 + 2;
+ _playerID
+ = somethingWithSeparateAreas1(uVar8);
+ uVar8 = DAT_CurrentUnitSlotID;
+ if (_playerID == 0) {
+ return;
+ }
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_AIM_WEAPONUnk;
+ DAT_UnitsState.units[uVar8].targetedUnitID__OR__engineerMannedSiegeEngineRef
+ = (short)_playerID;
+ DAT_UnitsState.units[uVar8]
+ .targetedUnitUIDUnk_OR_someAppearTileUnk_OR_buildingUID_OR_pitchDitchUID_OR_entityUID
+ = DAT_EntityState.entityArray[_playerID].uid;
+ DAT_EntityState.entityArray[_playerID].velocityUnk = -10000;
+ DAT_UnitsState.units[uVar8].destinationNeeded
+ = DNE_DESTINATION_NEEDED;
+ return;
+ }
+ if (UVar4 == 0x6c) {
+ DAT_UnitsState.units[uVar8].stateBasedSpeed = 0;
+ DAT_UnitsState.units[uVar8].field_0x30_animRelated = 0;
+ DAT_UnitsState.units[uVar8].animationSheetFrameOffset = 1;
+ return;
+ }
+ if (UVar4 == US_JESTER_ROAM_TO) {
+ pbVar2 = &DAT_UnitsState.units[uVar8].disappearFadeAlphaCountdown;
+ *pbVar2
+ = *pbVar2 + DAT_UnitsState.units[uVar8].engineerManningSiegeStateRef_checkType;
+ if ((char)*pbVar2 < '\0') {
+ DAT_UnitsState.units[uVar8].disappearFadeAlphaCountdown = 0;
+ } else if ('\x1f' < (char)DAT_UnitsState.units[uVar8].disappearFadeAlphaCountdown) {
+ DAT_UnitsState.units[uVar8].disappearFadeAlphaCountdown = 0x1f;
+ }
+ psVar3 = &DAT_UnitsState.units[uVar8].updateTickTracker;
+ *psVar3 = *psVar3 + 1;
+ if (DAT_UnitsState.units[uVar8].updateTickTracker < 0x11) {
+ return;
+ }
+ DAT_UnitsState.units[uVar8].updateTickTracker = 0;
+ DAT_UnitsState.units[uVar8].disappearFadeAlphaCountdown = 0;
+ DAT_UnitsState.units[uVar8].state
+ = (UnitStateUnion)DAT_UnitsState.units[uVar8].cachedState;
+ if ((char)DAT_UnitsState.units[uVar8].engineerManningSiegeStateRef_checkType
+ < '\x01') {
+ return;
+ }
+ commitUnitLocation(uVar8);
+ return;
+ }
+ if (UVar4 == US_DEATH_01) {
+ DAT_UnitsState.units[uVar8].animationSpeed = 2;
+ DAT_UnitsState.units[uVar8].field_0x30_animRelated = 0;
+ _playerID = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field406_0x816c[DAT_UnitsState.units[uVar8].animationCycleNumber];
+ DAT_UnitsState.units[uVar8].animationFrame = _playerID;
+ if (_playerID < 1) {
+ DAT_UnitsState.units[uVar8].gfxNumber = 0x118;
+ DAT_UnitsState.units[uVar8].logicalState = ULS_REMOVE;
+ DAT_UnitHasBecomeIdle = 1;
+ return;
+ }
+ _playerID = _playerID + 0x100;
+ } else {
+ BVar6 = checkIfCitizenUnitIsAliveBasedOnState(uVar8);
+ if (BVar6 == FALSE) {
+ if (UVar4 != US_DISAPPEAR) {
+ DAT_UnitsState.units[uVar8].state.generic
+ = US_IDLEUnk;
+ DAT_UnitsState.units[uVar8].destinationNeeded
+ = DNE_DESTINATION_NEEDED;
+ MACRO_CALL_MEMBER(
+ makeUnitStopWalkingByClearingPathProgressState,
+ DAT_UnitsState)(uVar8);
+ return;
+ }
+ pbVar2 = &DAT_UnitsState.units[uVar8].disappearFadeAlphaCountdown;
+ *pbVar2 = *pbVar2 + 1;
+ if (' ' < (char)DAT_UnitsState.units[uVar8].disappearFadeAlphaCountdown) {
+ DAT_UnitsState.units[uVar8].disappearFadeAlphaCountdown = 0x20;
+ }
+ psVar3 = &DAT_UnitsState.units[uVar8].updateTickTracker;
+ *psVar3 = *psVar3 + 1;
+ if (DAT_UnitsState.units[uVar8].updateTickTracker < 0x21) {
+ return;
+ }
+ DAT_UnitsState.units[uVar8].logicalState = ULS_REMOVE;
+ return;
+ }
+ DAT_UnitsState.units[uVar8].facingDirection = 0;
+ DAT_UnitsState.units[uVar8].animationSpeed = 2;
+ DAT_UnitsState.units[uVar8].field_0x30_animRelated = 0;
+ _playerID = (int)(char)DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp
+ .field407_0x81bc[DAT_UnitsState.units[uVar8].animationCycleNumber];
+ DAT_UnitsState.units[uVar8].animationFrame = _playerID;
+ if (_playerID < 1) {
+ DAT_UnitsState.units[uVar8].gfxNumber = 0x130;
+ DAT_UnitsState.units[uVar8].logicalState = ULS_REMOVE;
+ DAT_UnitHasBecomeIdle = 1;
+ return;
+ }
+ _playerID = _playerID + 0x118;
+ }
+ bVar9 = DAT_UnitHasBecomeIdle == 0;
+ DAT_UnitsState.units[uVar8].gfxNumber = _playerID;
+ if (bVar9) {
+ return;
+ }
+ DAT_UnitsState.units[uVar8].logicalState = ULS_REMOVE;
+ return;
+ }
+ DAT_UnitsState.units[uVar8].animationSheetFrameOffset = 1;
+ DAT_UnitsState.units[uVar8].field_0x30_animRelated = 0x10;
+ if (DAT_UnitsState.units[uVar8].destinationNeeded
+ != DNE_DESTINATION_HAS_BEEN_SET) {
+ DAT_UnitsState.units[uVar8].gfxNumber
+ = (int)DAT_UnitsState.units[uVar8].facingDirectionMapOrientationCorrected;
+ sVar5 = DAT_UnitsState.units[uVar8].targetID_OR_targetBuildingID;
+ setDestinationForUnit(
+ uVar8, (uint)((int)((int)DAT_BuildingsState.buildings[sVar5].buildingEntryX)),
+ (uint)((int)((int)DAT_BuildingsState.buildings[sVar5].buildingEntryY)), 0);
+ uVar8 = DAT_CurrentUnitSlotID;
+ _unitOffset = DAT_CurrentUnitSlotID * 0x490;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].destinationNeeded
+ = DNE_DESTINATION_HAS_BEEN_SET;
+ }
+ BVar6 = hasUnitReachedDestination(uVar8);
+ if ((BVar6 != FALSE)
+ && (*(short*)((int)DAT_UnitsState.units[0].manningEngineerUIDRef + _unitOffset + 0x58)
+ == 0)) {
+ *(undefined4*)((int)DAT_UnitsState.units[0].manningEngineerRef + _unitOffset + -100) = 0;
+ _unitOffset
+ = somethingWithSeparateAreas1(uVar8);
+ uVar8 = DAT_CurrentUnitSlotID;
+ if (_unitOffset != 0) {
+ _playerID = DAT_EntityState.entityArray[_unitOffset].uid;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_AIM_WEAPONUnk;
+ DAT_UnitsState.units[uVar8].targetedUnitID__OR__engineerMannedSiegeEngineRef
+ = (short)_unitOffset;
+ DAT_UnitsState.units[uVar8]
+ .targetedUnitUIDUnk_OR_someAppearTileUnk_OR_buildingUID_OR_pitchDitchUID_OR_entityUID
+ = _playerID;
+ DAT_EntityState.entityArray[_unitOffset].unitUID
+ = DAT_UnitsState.units[uVar8].uid;
+ DAT_EntityState.entityArray[_unitOffset].velocityUnk = -10000;
+ DAT_EntityState.entityArray[_unitOffset].unitID_healer = (short)uVar8;
+ assignPoisonCloudTargetEntity(_unitOffset);
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].destinationNeeded
+ = DNE_DESTINATION_NEEDED;
+ return;
+ }
+ psVar3 = &DAT_UnitsState.units[DAT_CurrentUnitSlotID].resourceToDeposit;
+ *psVar3 = *psVar3 + -1;
+ if (DAT_UnitsState.units[uVar8].resourceToDeposit < 1) {
+ DAT_UnitsState.units[uVar8].state.generic = US_IDLEUnk;
+ DAT_UnitsState.units[uVar8].destinationNeeded
+ = DNE_DESTINATION_NEEDED;
+ return;
+ }
+ _playerID = findNextBuildingIDForOwnerAndType(_playerID, 0x42,
+ DAT_UnitsState.units[uVar8].targetID_OR_targetBuildingID);
+ uVar8 = DAT_CurrentUnitSlotID;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetID_OR_targetBuildingID
+ = (short)_playerID;
+ _playerID = somethingWithSeparateAreas1(uVar8);
+ uVar8 = DAT_CurrentUnitSlotID;
+ if ((DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetID_OR_targetBuildingID
+ == 0)
+ || (_playerID != 0)) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_IDLEUnk;
+ }
+ DAT_UnitsState.units[uVar8].destinationNeeded
+ = DNE_DESTINATION_NEEDED;
+ return;
+ }
+ }
+ goto LAB_00540655;
+ }
+ DAT_UnitsState.units[uVar8].field_0x30_animRelated = 0;
+ DAT_UnitsState.units[uVar8].animationSheetFrameOffset = 1;
+ psVar3 = &DAT_UnitsState.units[uVar8].updateTickTracker;
+ *psVar3 = *psVar3 + 1;
+ _currentRNG2Byte = (byte)SEC_RNG::instance.currentNumber2;
+ sVar5 = DAT_UnitsState.units[uVar8].updateTickTracker;
+ if (sVar5 < 0x12d) {
+ if ((int)sVar5 % 10 != 0) {
+ return;
+ }
+ _playerID = somethingWithSeparateAreas1(uVar8);
+ uVar8 = DAT_CurrentUnitSlotID;
+ if (_playerID == 0) {
+ return;
+ }
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].cachedState
+ = US_AIM_WEAPONUnk;
+ DAT_UnitsState.units[uVar8].targetedUnitID__OR__engineerMannedSiegeEngineRef = (short)_playerID;
+ DAT_UnitsState.units[uVar8]
+ .targetedUnitUIDUnk_OR_someAppearTileUnk_OR_buildingUID_OR_pitchDitchUID_OR_entityUID
+ = DAT_EntityState.entityArray[_playerID].uid;
+ DAT_UnitsState.units[uVar8].destinationNeeded
+ = DNE_DESTINATION_NEEDED;
+ DAT_EntityState.entityArray[_playerID].velocityUnk = 55536;
+ resetUnitMovementState(uVar8);
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationCycleNumber = 0;
+ return;
+ }
+ DAT_UnitsState.units[uVar8].updateTickTracker = 0;
+ DAT_UnitsState.units[uVar8].animationCycleNumber = 0;
+ DAT_UnitsState.units[uVar8].state.generic = US_JESTER_ROAM_TO;
+ DAT_UnitsState.units[uVar8].disappearFadeAlphaCountdown = 0x20;
+ DAT_UnitsState.units[uVar8].engineerManningSiegeStateRef_checkType = 0xfe;
+ DAT_UnitsState.units[uVar8].substate = 0;
+ _unitOffset = somethingWithSeparateAreas1(uVar8);
+ uVar8 = DAT_CurrentUnitSlotID;
+ if (_unitOffset != 0) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].cachedState
+ = US_AIM_WEAPONUnk;
+ DAT_UnitsState.units[uVar8].targetedUnitID__OR__engineerMannedSiegeEngineRef = (short)_unitOffset;
+ DAT_UnitsState.units[uVar8]
+ .targetedUnitUIDUnk_OR_someAppearTileUnk_OR_buildingUID_OR_pitchDitchUID_OR_entityUID
+ = DAT_EntityState.entityArray[_unitOffset].uid;
+ DAT_EntityState.entityArray[_unitOffset].velocityUnk = -10000;
+ goto LAB_005407a3;
+ }
+ if (3 < (_currentRNG2Byte & 7)) {
+ if (7 < (_currentRNG2Byte & 7))
+ goto LAB_005407a3;
+ _buildingID = pickARandomBuildingOfType(_playerID, BT_GARDEN);
+ uVar8 = DAT_CurrentUnitSlotID;
+ if (_buildingID != 0) {
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].cachedState = ((UnitState)3);
+ DAT_UnitsState.units[uVar8].targetID_OR_targetBuildingID = (short)_buildingID;
+ goto LAB_005407a3;
+ }
+ }
+ uVar8 = DAT_CurrentUnitSlotID;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].cachedState
+ = US_RELOAD_WEAPONUnk;
+ LAB_005407a3:
+ DAT_UnitsState.units[uVar8].resourceToDeposit
+ = (char)(SEC_RNG::instance.currentNumber2._1_1_ & 7) + 1;
+ DAT_UnitsState.units[uVar8].destinationNeeded
+ = DNE_DESTINATION_NEEDED;
+ resetUnitMovementState(uVar8);
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00540440", "name": "UpdateHealer", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Zustandsautomat der Heiler-Einheit: sucht Ziele in der Nähe, läuft hin, wirkt auf sie und streift sonst umher."}, "p2": {"ein": "- (aktuelle Einheit aus DAT_CurrentUnitSlotID)", "aus": "-", "liest": ["units[].state.generic", "units[].destinationNeeded", "units[].targetedUnitID__OR__engineerMannedSiegeEngineRef", "units[].updateTickTracker", "units[].resourceToDeposit", "units[].targetID_OR_targetBuildingID", "units[].field280_0x3f4", "mapAndTime.totalGameTicksUnk", "SEC_RNG.currentNumber2", "entityArray[].uid"], "schreibt": ["playerDataArray[owner].healerCount (+1 je Aufruf)", "playerDataArray[owner].someCount60 (+2 beim Wirken)", "units[].state / cachedState / destinationNeeded", "units[].disappearFadeAlphaCountdown", "units[].gfxNumber / animationFrame", "entityArray[ziel].velocityUnk", "entityArray[ziel].unitUID / unitID_healer", "entityArray[ziel].unknownAnimationFrameRelated = 0x3f8", "units[].logicalState = ULS_REMOVE beim Tod"], "ruft": ["somethingWithSeparateAreas1", "setDestinationForUnit", "hasUnitReachedDestination", "hasTunnelerNotFinishedDigging", "computeLadderClimbPath", "refreshPoisonCloudNearUnit", "assignPoisonCloudTargetEntity", "pickARandomBuildingOfType", "findNextBuildingIDForOwnerAndType", "makeUnitStopWalkingByClearingPathProgressState", "resetUnitMovementState", "commitUnitLocation", "checkIfCitizenUnitIsAliveBasedOnState"], "regeln": ["Jeder Aufruf zählt healerCount des Besitzers um 1 hoch und setzt stateBasedSpeed auf 0", "Ist field280_0x3f4 größer als 1, wechselt die Einheit sofort in US_DISAPPEAR", "Zustand 2 (Warten): updateTickTracker zählt hoch; alle 10 Takte Zielsuche über somethingWithSeparateAreas1, bei Treffer wird das Ziel gemerkt (cachedState = US_AIM_WEAPONUnk) und die Einheit blendet aus", "Nach 301 Takten (ab 0x12d) ohne Ziel: Ausblenden (JESTER_ROAM_TO mit Schritt 0xfe), danach wird der Folgezustand per Zufall gewählt", "Zufallswahl über die unteren 3 Bits von currentNumber2: Wert 0-3 gibt Streifzug (cachedState = US_RELOAD_WEAPONUnk); Wert 4-7 sucht ein zufälliges Gebäude BT_GARDEN und geht in Zustand 3 dorthin, ohne Garten ebenfalls Streifzug", "resourceToDeposit wird als Wiederholungszähler auf 1 bis 8 gesetzt (Zufall + 1)", "Zustand 3: läuft zum nächsten Gebäude vom Typ 0x42 des Besitzers (findNextBuildingIDForOwnerAndType); nach Ankunft Zähler -1, bei 0 zurück auf IDLE; wird unterwegs ein Ziel gefunden, wechselt er auf US_AIM_WEAPONUnk", "US_AIM_WEAPONUnk: läuft zur Position des Ziel-Entity, prüft dabei die uid; ist das Ziel weg, zurück auf IDLE", "US_FIRE_WEAPONUnk: Animation mit animationSpeed 4; am Ende setzt es unknownAnimationFrameRelated des Ziels auf 0x3f8, ruft refreshPoisonCloudNearUnit, erhöht someCount60 um 2 und sucht sofort das nächste Ziel", "Alle 8 Spieltakte (totalGameTicksUnk & 7 == 0) prüft die Einheit im Laufen, ob ein Ziel in der Nähe ist, und bleibt dann stehen", "US_DISAPPEAR: Ausblendwert steigt bis 0x20; nach 0x21 Takten wird die Einheit entfernt (ULS_REMOVE)", "Tod: US_DEATH_01 und der Fall einer nicht mehr lebenden Bürger-Einheit laufen über Animationstabellen und enden mit ULS_REMOVE"], "offen": ["Was somethingWithSeparateAreas1 genau liefert (vermutlich die Nummer eines nahen Entity wie einer Giftwolke)", "Was die Zustandsnummern 2, 3 und 0x6c bedeuten", "Wofür healerCount und someCount60 verwendet werden", "Ob der Zustand Typ 0x42 ein Gebäude mit Anlaufpunkt für Heiler ist", "Welchen Zweck die Unk-Felder field280_0x3f4 und der Entity-Wert 55536 (entspricht -10000 als 16-Bit-Zahl) haben"]}, "p3": {"erklaerung": "Der Heiler wartet, späht alle 10 Takte nach Zielen und geht dann zu ihnen, andernfalls wandert er zufällig zu einem Garten oder irgendwohin. Beim Wirken wird das Ziel verändert und eine Giftwolke in der Nähe aufgefrischt.", "gehirn": "-", "beleg": "code", "live": "Heiler im Spiel → playerDataArray[sp].healerCount nach einem Takt → entspricht der Zahl der aktiven Heiler des Spielers", "live_art": "sonstiges"}}
+

@@ -1,0 +1,753 @@
+### 0x00485830 SetUnitAssemblyPoint | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00485830
+ void Commands::SetUnitAssemblyPoint()
+ {
+ BuildingTypeShort BVar1;
+ uint uVar2;
+ uint _y;
+ int iVar3;
+ short _x;
+ short local_4[2];
+ int _unitCategory;
+ int _playerID;
+ DAT_GameSynchronyState.DAT_CommandSize = 5;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(local_4, 1, GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = (int)(char)local_4[0];
+ serializeOrDeserializeCommandParameter(local_4, 2, GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = (uint)local_4[0];
+ serializeOrDeserializeCommandParameter(local_4, 2, GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ _playerID = DAT_GameSynchronyState.protocolInvokerPlayerID;
+ uVar2 = DAT_GameSynchronyState.DAT_GameCommandParam1;
+ _unitCategory = DAT_GameSynchronyState.DAT_GameCommandParam0;
+ _y = (uint)local_4[0];
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = _y;
+ if (((DAT_GameSynchronyState.DAT_GameCommandParam1 < 400) && (_y < 400))
+ && (*(char*)(_y * 400 + 0x21aec98 + DAT_GameSynchronyState.DAT_GameCommandParam1) != '\0')) {
+ _x = (short)DAT_GameSynchronyState.DAT_GameCommandParam1;
+ if (DAT_GameSynchronyState.DAT_GameCommandParam0 < 10) {
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.protocolInvokerPlayerID]
+ .barracksAssemblyPoints[DAT_GameSynchronyState.DAT_GameCommandParam0]
+ .x = _x;
+ DAT_GameState.playerDataArray[_playerID].barracksAssemblyPoints[_unitCategory].y
+ = local_4[0];
+ iVar3 = (int)DAT_TileMapState
+ .BuildingLayer[DAT_ViewportRenderState.translationMatrix[_y].addXgetTile
+ + uVar2];
+ if ((iVar3 != 0) && (DAT_BuildingsState.buildings[iVar3].owner == _playerID)) {
+ switch (DAT_BuildingsState.buildings[iVar3].buildingType) {
+ case BT_MERCENARYPOST:
+ case BT_BARRACKS:
+ case BT_PARADEGROUND2:
+ case BT_PARADEGROUND3:
+ case BT_PARADEGROUND4:
+ DAT_GameState.playerDataArray[_playerID].barracksAssemblyPoints[_unitCategory].x
+ = 0;
+ DAT_GameState.playerDataArray[_playerID].barracksAssemblyPoints[_unitCategory].y
+ = 0;
+ return;
+ }
+ }
+ } else if (DAT_GameSynchronyState.DAT_GameCommandParam0 < 0x14) {
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.protocolInvokerPlayerID]
+ .mercenaryAssemblyPoints[DAT_GameSynchronyState.DAT_GameCommandParam0 + -10][0] = _x;
+ DAT_GameState.playerDataArray[_playerID].mercenaryAssemblyPoints[_unitCategory + -10][1]
+ = local_4[0];
+ iVar3 = (int)DAT_TileMapState
+ .BuildingLayer[DAT_ViewportRenderState.translationMatrix[_y].addXgetTile
+ + uVar2];
+ if ((iVar3 != 0) && (DAT_BuildingsState.buildings[iVar3].owner == _playerID)) {
+ switch (DAT_BuildingsState.buildings[iVar3].buildingType) {
+ case BT_MERCENARYPOST:
+ case BT_BARRACKS:
+ case BT_PARADEGROUND2:
+ case BT_PARADEGROUND3:
+ case BT_PARADEGROUND4:
+ DAT_GameState.playerDataArray[_playerID]
+ .mercenaryAssemblyPoints[_unitCategory + -10][0] = 0;
+ DAT_GameState.playerDataArray[_playerID]
+ .mercenaryAssemblyPoints[_unitCategory + -10][1] = 0;
+ return;
+ }
+ }
+ } else if (DAT_GameSynchronyState.DAT_GameCommandParam0 < 0x1e) {
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.protocolInvokerPlayerID]
+ .mercenaryAssemblyPoints[DAT_GameSynchronyState.DAT_GameCommandParam0 + 1][0] = _x;
+ DAT_GameState.playerDataArray[_playerID].mercenaryAssemblyPoints[_unitCategory + 1][1]
+ = local_4[0];
+ iVar3 = (int)DAT_TileMapState
+ .BuildingLayer[DAT_ViewportRenderState.translationMatrix[_y].addXgetTile
+ + uVar2];
+ if (((iVar3 != 0) && (DAT_BuildingsState.buildings[iVar3].owner == _playerID))
+ && ((BVar1 = DAT_BuildingsState.buildings[iVar3].buildingType,
+ BVar1 == BT_ENGINEERSGUILD
+ || (BVar1 == BT_PARADEGROUND)))) {
+ DAT_GameState.playerDataArray[_playerID].mercenaryAssemblyPoints[_unitCategory + 1][0]
+ = 0;
+ DAT_GameState.playerDataArray[_playerID].mercenaryAssemblyPoints[_unitCategory + 1][1]
+ = 0;
+ return;
+ }
+ } else if (DAT_GameSynchronyState.DAT_GameCommandParam0 < 0x28) {
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.protocolInvokerPlayerID]
+ .tunnelersGuildAssemblyPointY = local_4[0];
+ iVar3 = (int)DAT_TileMapState
+ .BuildingLayer[DAT_ViewportRenderState.translationMatrix[_y].addXgetTile
+ + uVar2];
+ DAT_GameState.playerDataArray[_playerID].tunnelersGuildAssemblyPointX = _x;
+ if (((iVar3 != 0) && (DAT_BuildingsState.buildings[iVar3].owner == _playerID))
+ && ((BVar1 = DAT_BuildingsState.buildings[iVar3].buildingType,
+ BVar1 == BT_TUNNELERSGUILD
+ || (BVar1 == BT_PARADEGROUND5)))) {
+ DAT_GameState.playerDataArray[_playerID].tunnelersGuildAssemblyPointX = 0;
+ DAT_GameState.playerDataArray[_playerID].tunnelersGuildAssemblyPointY = 0;
+ return;
+ }
+ } else if (DAT_GameSynchronyState.DAT_GameCommandParam0 < 0x32) {
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.protocolInvokerPlayerID]
+ .cathedralAssemblyPointY = local_4[0];
+ iVar3 = (int)DAT_TileMapState
+ .BuildingLayer[DAT_ViewportRenderState.translationMatrix[_y].addXgetTile
+ + uVar2];
+ DAT_GameState.playerDataArray[_playerID].cathedralAssemblyPointX = _x;
+ if (((iVar3 != 0) && (DAT_BuildingsState.buildings[iVar3].owner == _playerID))
+ && (DAT_BuildingsState.buildings[iVar3].buildingType
+ == BT_CATHEDRAL)) {
+ DAT_GameState.playerDataArray[_playerID].cathedralAssemblyPointX = 0;
+ DAT_GameState.playerDataArray[_playerID].cathedralAssemblyPointY = 0;
+ }
+ }
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00485830", "name": "SetUnitAssemblyPoint", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Verpackt den Befehl 'Sammelpunkt setzen' und führt ihn aus: setzt oder löscht einen Sammelpunkt des Absenders."}, "p2": {"ein": "- (Befehlsdaten: Kategorie 1 Byte, x 2 Byte, y 2 Byte)", "aus": "-", "liest": ["Befehlsdaten", "protocolInvokerPlayerID", "Gültigkeitstabelle ab 0x021AEC98 (400 mal 400 Byte)", "TileMapState.BuildingLayer", "buildings[b].owner/buildingType"], "schreibt": ["DAT_CommandSize = 5", "playerDataArray[sp].barracksAssemblyPoints[kat].x/y", "playerDataArray[sp].mercenaryAssemblyPoints[..][0/1]", "playerDataArray[sp].tunnelersGuildAssemblyPointX/Y", "playerDataArray[sp].cathedralAssemblyPointX/Y"], "ruft": ["serializeOrDeserializeCommandParameter"], "regeln": ["Befehlsgröße 5 Byte: Kategorie (1 Byte, mit Vorzeichen gelesen), x (2 Byte), y (2 Byte)", "Geschrieben wird nur, wenn x < 400, y < 400 und der Tabelleneintrag bei 0x021AEC98 + y·400 + x ungleich 0 ist (vermutlich: Feld liegt auf der Karte)", "Kategorie 0-9: barracksAssemblyPoints[Kategorie] = (x, y); 10-19: mercenaryAssemblyPoints[Kategorie - 10] = (x, y); 20-29: mercenaryAssemblyPoints[Kategorie + 1] = (x, y), also Platz 21-30", "Kategorie 30-39: ein einziger Punkt tunnelersGuildAssemblyPointX/Y (die Kategorie spielt keine Rolle); 40-49: ein einziger Punkt cathedralAssemblyPointX/Y; ab 50: nichts", "Löschen: Steht auf dem angeklickten Feld ein eigenes Gebäude der passenden Art, wird der eben gesetzte Punkt auf (0, 0) zurückgesetzt", "Passende Arten: Kategorie 0-19 BT_MERCENARYPOST, BT_BARRACKS, BT_PARADEGROUND2, BT_PARADEGROUND3, BT_PARADEGROUND4; 20-29 BT_ENGINEERSGUILD, BT_PARADEGROUND; 30-39 BT_TUNNELERSGUILD, BT_PARADEGROUND5; 40-49 BT_CATHEDRAL", "Sonst keine Prüfung: weder Begehbarkeit noch Besitz des Feldes, nur Kartengrenze und Gültigkeitstabelle; der Absender ist protocolInvokerPlayerID"], "offen": ["Welche Einheiten- oder Gebäudeart zu welcher Kategorie (0-49) gehört", "Warum Kategorie 20-29 auf Platz Kategorie + 1 landet statt auf Kategorie - 10 (vermutlich zeigt Ghidra mercenaryAssemblyPoints zu kurz und überläuft in Nachbarfelder)", "Ob (0, 0) im Spiel als 'kein Sammelpunkt' gilt (vermutlich)", "Verhalten bei negativer Kategorie nicht erkennbar"]}, "p3": {"erklaerung": "Jeder Spieler hat Sammelpunkte für Kaserne, Söldner, Ingenieure, Tunnelgräber und Kathedrale. Der Befehl setzt einen davon auf ein Feld; ein Klick auf das eigene passende Gebäude löscht ihn wieder.", "gehirn": "Sammelpunkte per Befehl setzen: Koordinaten in Feldern 0-399. Zum Zurücklesen playerDataArray[sp].barracksAssemblyPoints usw. direkt lesen; (0, 0) vermutlich = nicht gesetzt.", "beleg": "code", "live": "Sammelpunkt für die Kaserne setzen, dann auf die eigene Kaserne klicken → playerDataArray[sp].barracksAssemblyPoints[Kategorie].x/y vorher/nachher → erst das angeklickte Feld, dann (0, 0); dabei die Kategorie je Gebäudeart notieren"}}
+
+### 0x00486600 checkSkirmishGameDefeat | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00486600
+ void GameSynchronyState::checkSkirmishGameDefeat()
+ {
+ bool bVar1;
+ short sVar2;
+ PlayerData* psVar3;
+ int* piVar3;
+ PlayerData* piVar4;
+ int iVar4;
+ PlayerData* piVar5;
+ int _deadPlayerID;
+ int iVar5;
+ int* piVar6;
+ int iVar7;
+ int iVar8;
+ short* psVar9;
+ int iVar10;
+ int* local_68;
+ int iStack_48;
+ int local_44[17];
+ if (this->currentGameMode != GM_SOLITARY) {
+ _deadPlayerID = 1;
+ psVar9 = &DAT_GameState.playerDataArray[1].commemorationShrinePlacementCountdown;
+ do {
+ if ((0 < *psVar9) && (sVar2 = *psVar9 + -1, *psVar9 = sVar2, sVar2 == 0)) {
+ placeCommemoratingStatueAtGoodLocation(_deadPlayerID);
+ }
+ psVar9 = psVar9 + 0x1cfa;
+ _deadPlayerID = _deadPlayerID + 1;
+ } while ((int)psVar9 < 0x1180150);
+ if ((DAT_GameCore.gameMode_2 != GM_CAMPAIGN_MISSION)
+ && (DAT_GameState.mapAndTime.gameOver == FALSE)) {
+ if (DAT_GameCore.unknownAlwaysZero != 0) {
+ DAT_GameCore.unknownAlwaysZero = 0;
+ piVar3 = &DAT_GameState.playerDataArray[1].playerDeathRelated;
+ psVar3 = &DAT_GameState.mapAndTime.playerIsAlive + 1;
+ do {
+ psVar3->commemorationShrinePlacementCountdown = 0;
+ *piVar3 = 1;
+ psVar3 = &psVar3->someKeepRelatedX2;
+ piVar3 = piVar3 + 0xe7d;
+ } while ((int)psVar3 < 0x117ef52);
+ DAT_GameState.mapAndTime.gameOver = TRUE;
+ DAT_GameState.mapAndTime.gameOverTime = timeGetTime();
+ DAT_GameState.mapAndTime.playerIsAlive[this->currentPlayerSlotID] = 1;
+ DAT_GameCore.skipStoreSKMasters = 0;
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_WIN_DEFEAT_WINDOW, 1);
+ return;
+ }
+ piVar3 = this->currentAIArray + 1;
+ local_44[2] = 0;
+ local_44[1] = 0;
+ local_44[4] = 0;
+ local_44[3] = 0;
+ local_44[6] = 0;
+ local_44[5] = 0;
+ local_44[8] = 0;
+ local_44[7] = 0;
+ local_44[10] = 0;
+ local_44[9] = 0;
+ local_44[0xc] = 0;
+ local_44[0xb] = 0;
+ local_44[0xe] = 0;
+ local_44[0xd] = 0;
+ local_44[0x10] = 0;
+ local_44[0xf] = 0;
+ piVar5 = &DAT_GameState.playerDataArray[2];
+ local_68 = this->currentAIArray + 1;
+ do {
+ if ((piVar3[-0x1b] != -1) || (*piVar3 != 0)) {
+ iVar7 = piVar3[-0x1e824d];
+ (&iStack_48)[iVar7 * 2] = (&iStack_48)[iVar7 * 2] + 1;
+ if (piVar5[-0xe7d] != 0) {
+ local_44[iVar7 * 2] = local_44[iVar7 * 2] + 1;
+ }
+ }
+ if ((piVar3[-0x1a] != -1) || (piVar3[1] != 0)) {
+ iVar7 = piVar3[-0x1e824c];
+ (&iStack_48)[iVar7 * 2] = (&iStack_48)[iVar7 * 2] + 1;
+ if (piVar5->lordKilledByPlayerID != 0) {
+ local_44[iVar7 * 2] = local_44[iVar7 * 2] + 1;
+ }
+ }
+ if ((piVar3[-0x19] != -1) || (piVar3[2] != 0)) {
+ iVar7 = piVar3[-0x1e824b];
+ (&iStack_48)[iVar7 * 2] = (&iStack_48)[iVar7 * 2] + 1;
+ if (piVar5[0xe7d] != 0) {
+ local_44[iVar7 * 2] = local_44[iVar7 * 2] + 1;
+ }
+ }
+ if ((piVar3[-0x18] != -1) || (piVar3[3] != 0)) {
+ iVar7 = piVar3[-0x1e824a];
+ (&iStack_48)[iVar7 * 2] = (&iStack_48)[iVar7 * 2] + 1;
+ if (piVar5[0x1cfa] != 0) {
+ local_44[iVar7 * 2] = local_44[iVar7 * 2] + 1;
+ }
+ }
+ piVar5 = piVar5 + 0x39f4;
+ piVar3 = piVar3 + 4;
+ } while ((int)piVar5 < 0x1182390);
+ iVar7 = 0;
+ piVar3 = local_44 + 1;
+ iVar5 = 0;
+ iVar10 = 0;
+ iVar4 = 3;
+ do {
+ iVar8 = iVar7;
+ if (*piVar3 != 0) {
+ iVar10 = iVar10 + 1;
+ if (piVar3[1] == *piVar3) {
+ iVar5 = iVar5 + 1;
+ } else {
+ iVar8 = iVar4 + -2;
+ }
+ }
+ if (piVar3[2] != 0) {
+ iVar10 = iVar10 + 1;
+ if (piVar3[3] == piVar3[2]) {
+ iVar5 = iVar5 + 1;
+ } else {
+ iVar8 = iVar4 + -1;
+ }
+ }
+ iVar7 = iVar8;
+ if ((piVar3[4] != 0) && (iVar10 = iVar10 + 1, iVar7 = iVar4, piVar3[5] == piVar3[4])) {
+ iVar5 = iVar5 + 1;
+ iVar7 = iVar8;
+ }
+ if (piVar3[6] != 0) {
+ iVar10 = iVar10 + 1;
+ if (piVar3[7] == piVar3[6]) {
+ iVar5 = iVar5 + 1;
+ } else {
+ iVar7 = iVar4 + 1;
+ }
+ }
+ iVar8 = iVar4 + 2;
+ piVar3 = piVar3 + 8;
+ iVar4 = iVar4 + 4;
+ } while (iVar8 < 9);
+ local_44[0] = 0;
+ local_44[1] = 0;
+ local_44[2] = 0;
+ local_44[3] = 0;
+ local_44[4] = 0;
+ local_44[5] = 0;
+ local_44[6] = 0;
+ local_44[7] = 0;
+ if (iVar5 < iVar10 + -1) {
+ if (DAT_GameCore.mapU4Int0 == 0) {
+ return;
+ }
+ piVar4 = &DAT_GameState.playerDataArray[2];
+ bVar1 = false;
+ piVar3 = local_68;
+ do {
+ if (((piVar3[-0x1b] != -1) || (*piVar3 != 0)) && (piVar4[-0xe7d] == 0)) {
+ iVar7 = piVar3[-0x1e824d];
+ bVar1 = true;
+ }
+ if (((piVar3[-0x1a] != -1) || (piVar3[1] != 0)) && (piVar4->lordKilledByPlayerID == 0)) {
+ iVar7 = piVar3[-0x1e824c];
+ bVar1 = true;
+ }
+ if (((piVar3[-0x19] != -1) || (piVar3[2] != 0)) && (piVar4[0xe7d] == 0)) {
+ iVar7 = piVar3[-0x1e824b];
+ bVar1 = true;
+ }
+ if (((piVar3[-0x18] != -1) || (piVar3[3] != 0)) && (piVar4[0x1cfa] == 0)) {
+ iVar7 = piVar3[-0x1e824a];
+ bVar1 = true;
+ }
+ piVar4 = piVar4 + 0x39f4;
+ piVar3 = piVar3 + 4;
+ } while ((int)piVar4 < 0x118241c);
+ if (!bVar1) {
+ return;
+ }
+ } else {
+ DAT_GameCore.unknownAlwaysZero = 0;
+ }
+ iVar4 = 1;
+ piVar3 = local_68;
+ do {
+ if (((piVar3[-0x1b] != -1) || (*piVar3 != 0)) && (piVar3[-0x1e824d] == iVar7)) {
+ (&iStack_48)[iVar4] = 1;
+ }
+ iVar4 = iVar4 + 1;
+ piVar3 = piVar3 + 1;
+ } while (iVar4 < 9);
+ piVar6 = &DAT_GameState.playerDataArray[1].playerDeathRelated;
+ psVar9 = DAT_GameState.mapAndTime.playerIsAlive + 1;
+ piVar3 = local_44;
+ do {
+ if ((local_68[-0x1b] != -1) || (*local_68 != 0)) {
+ *psVar9 = (short)*piVar3;
+ DAT_GameState.mapAndTime.gameOver = TRUE;
+ *piVar6 = 1;
+ DAT_GameState.mapAndTime.gameOverTime = timeGetTime();
+ DAT_GameCore.skipStoreSKMasters = 0;
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_WIN_DEFEAT_WINDOW, 1);
+ if ((DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType
+ == BASMTT_SIEGETENT_BATTERINGRAM)
+ || (DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType
+ == BASMTT_SIEGETENT_SHIELD)) {
+ DAT_GameCore.buildmenuMenuTabToSwitchTo.buildMenuTab
+ = DAT_GameCore.tabTypeSiegeSubset;
+ switchToMenuView(
+ MVT_BUILD_MENU, 0);
+ }
+ DAT_TileMapState.currentMapperCommand = M_MAPPER_NULL;
+ if (0 < DAT_UnitsState.totalUnitsInSelection) {
+ deselectAllUnitsOneByOne();
+ queueEscapeCommand();
+ resetMouseCursorState();
+ }
+ }
+ psVar9 = psVar9 + 1;
+ local_68 = local_68 + 1;
+ piVar3 = piVar3 + 1;
+ piVar6 = piVar6 + 0xe7d;
+ } while ((int)psVar9 < 0x117ef52);
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00486600", "name": "checkSkirmishGameDefeat", "quelle": "ghidra", "p1": {"bereich": "Befehle/Takt", "zweck": "Prüft jeden Takt, ob ein Gefecht entschieden ist, und löst Sieg- und Niederlagenanzeige aus."}, "p2": {"ein": "-", "aus": "-", "liest": ["currentGameMode", "gameMode_2", "mapAndTime.gameOver", "currentPlayerFullIDArray und currentAIArray (besetzte Plätze)", "Mannschaftsnummer je Platz", "playerDataArray[].lordKilledByPlayerID (Ghidra-Name, ungesichert)", "DAT_GameCore.mapU4Int0", "commemorationShrinePlacementCountdown"], "schreibt": ["commemorationShrinePlacementCountdown", "mapAndTime.playerIsAlive[]", "mapAndTime.gameOver", "mapAndTime.gameOverTime", "playerDeathRelated", "DAT_GameCore.unknownAlwaysZero"], "ruft": ["placeCommemoratingStatueAtGoodLocation", "CheckDisplayElementByIDAndSetForUnlimitedDisplay", "switchToMenuView", "deselectAllUnitsOneByOne", "queueEscapeCommand", "resetMouseCursorState"], "regeln": ["Nicht im Modus GM_SOLITARY aktiv", "Pro Takt zählt für Spieler 1-8 ein Gedenkstätten-Countdown herunter; bei Erreichen von 0 wird die Gedenkstatue gesetzt", "Entfällt bei Kampagnenmission (gameMode_2) oder wenn gameOver schon gesetzt ist", "Ist unknownAlwaysZero ungleich 0 (laut Namen nie): sofort Spielende, eigener Platz gilt als lebend", "Sonst werden besetzte Plätze je Mannschaft gezählt und davon, wie viele den Lord verloren haben", "Eine Mannschaft ist ausgeschieden, wenn bei allen ihren Mitgliedern dieses Lord-Feld ungleich 0 ist", "Das Spiel endet, sobald höchstens eine Mannschaft übrig ist (ausgeschiedene Mannschaften >= Mannschaften mit Mitgliedern minus 1)", "Bei Ende: Plätze der übrig gebliebenen Mannschaft bekommen playerIsAlive=1, alle anderen 0; gameOver=TRUE, Zeit wird gemerkt, Sieg-/Niederlagefenster wird gezeigt, Auswahl und Bau-Tab (Rammbock/Schild) werden zurückgesetzt", "Sonderfall mapU4Int0 ungleich 0 bei noch mehreren Mannschaften: Ende nur, wenn ein besetzter Platz seinen Lord verloren hat"], "offen": ["Bedeutung von mapU4Int0 und der Sonderfall", "Ob das geprüfte Feld wirklich der gefallene Lord ist (Name nur Vermutung)", "Der Sonderzweig gilt nur für Gefecht/Mehrspieler, nicht für Kampagne"]}, "p3": {"erklaerung": "Ein Gefecht ist vorbei, wenn nur noch eine Mannschaft einen Lord hat. Dann zeigt das Spiel das Sieg- oder Niederlagefenster.", "gehirn": "Siegtest für das Gefecht: gameOver und playerIsAlive[Platz] lesen statt selbst zu zählen.", "beleg": "code", "live": "Gefecht: Lord des letzten Gegners töten → mapAndTime.gameOver und playerIsAlive[] → gameOver wird TRUE, eigener Platz 1", "live_art": "kampf"}}
+
+### 0x00486ad0 UpgradeOldSection1124 | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00486AD0
+ void Version::UpgradeOldSection1124()
+ {
+ char cVar1;
+ byte bVar2;
+ int iVar3;
+ int iVar4;
+ int iVar5;
+ SEC_SkirmishLobbySetupStructure::instance.mapu4int2
+ = DAT_SkirmishLobbySetupStructureLongMapName.mapu4int2;
+ SEC_SkirmishLobbySetupStructure::instance.mbr_0x4
+ = DAT_SkirmishLobbySetupStructureLongMapName.mbr_0x4;
+ iVar5 = 0;
+ do {
+ cVar1 = DAT_SkirmishLobbySetupStructureLongMapName.mapName[iVar5];
+ SEC_SkirmishLobbySetupStructure::instance.mapName[iVar5] = cVar1;
+ iVar5 = iVar5 + 1;
+ } while (cVar1 != '\0');
+ iVar5 = 0;
+ do {
+ bVar2 = DAT_SkirmishLobbySetupStructureLongMapName.playerGroupArray[iVar5];
+ SEC_SkirmishLobbySetupStructure::instance.roundTableOrderArray[iVar5]
+ = DAT_SkirmishLobbySetupStructureLongMapName.roundTableOrderArray[iVar5];
+ iVar3 = DAT_SkirmishLobbySetupStructureLongMapName.currentAIArray[iVar5];
+ SEC_SkirmishLobbySetupStructure::instance.playerGroupArray[iVar5] = bVar2;
+ iVar4 = DAT_SkirmishLobbySetupStructureLongMapName.aiVariationArray[iVar5];
+ SEC_SkirmishLobbySetupStructure::instance.currentAIArray[iVar5] = iVar3;
+ SEC_SkirmishLobbySetupStructure::instance.aiVariationArray[iVar5] = iVar4;
+ iVar5 = iVar5 + 1;
+ } while (iVar5 < 9);
+ /*
+ optimization of slotPosition setting
+ */
+ SEC_SkirmishLobbySetupStructure::instance.slot1Position
+ = DAT_SkirmishLobbySetupStructureLongMapName.slot1Position;
+ SEC_SkirmishLobbySetupStructure::instance.slot2Position
+ = DAT_SkirmishLobbySetupStructureLongMapName.slot2Position;
+ SEC_SkirmishLobbySetupStructure::instance.slot3Position
+ = DAT_SkirmishLobbySetupStructureLongMapName.slot3Position;
+ SEC_SkirmishLobbySetupStructure::instance.slot4Position
+ = DAT_SkirmishLobbySetupStructureLongMapName.slot4Position;
+ /*
+ optimization of slotPosition setting
+ */
+ SEC_SkirmishLobbySetupStructure::instance.slot5Position
+ = DAT_SkirmishLobbySetupStructureLongMapName.slot5Position;
+ SEC_SkirmishLobbySetupStructure::instance.slot6Position
+ = DAT_SkirmishLobbySetupStructureLongMapName.slot6Position;
+ SEC_SkirmishLobbySetupStructure::instance.slot7Position
+ = DAT_SkirmishLobbySetupStructureLongMapName.slot7Position;
+ SEC_SkirmishLobbySetupStructure::instance.slot8Position
+ = DAT_SkirmishLobbySetupStructureLongMapName.slot8Position;
+ SEC_SkirmishLobbySetupStructure::instance.currentPlayerSlotID
+ = DAT_SkirmishLobbySetupStructureLongMapName.currentPlayerSlotID;
+ SEC_SkirmishLobbySetupStructure::instance.currentAdvantageBalance
+ = DAT_SkirmishLobbySetupStructureLongMapName.currentAdvantageBalance;
+ SEC_SkirmishLobbySetupStructure::instance.currentAdvantageGroup
+ = DAT_SkirmishLobbySetupStructureLongMapName.currentAdvantageGroup;
+ SEC_SkirmishLobbySetupStructure::instance.mbr_0x80
+ = DAT_SkirmishLobbySetupStructureLongMapName.mbr_0x80;
+ SEC_SkirmishLobbySetupStructure::instance.playerLordTypeArray[0]
+ = DAT_SkirmishLobbySetupStructureLongMapName.playerLordTypeArray[0];
+ SEC_SkirmishLobbySetupStructure::instance.playerLordTypeArray[1]
+ = DAT_SkirmishLobbySetupStructureLongMapName.playerLordTypeArray[1];
+ SEC_SkirmishLobbySetupStructure::instance.playerLordTypeArray[2]
+ = DAT_SkirmishLobbySetupStructureLongMapName.playerLordTypeArray[2];
+ SEC_SkirmishLobbySetupStructure::instance.playerLordTypeArray[3]
+ = DAT_SkirmishLobbySetupStructureLongMapName.playerLordTypeArray[3];
+ SEC_SkirmishLobbySetupStructure::instance.playerLordTypeArray[4]
+ = DAT_SkirmishLobbySetupStructureLongMapName.playerLordTypeArray[4];
+ SEC_SkirmishLobbySetupStructure::instance.playerLordTypeArray[5]
+ = DAT_SkirmishLobbySetupStructureLongMapName.playerLordTypeArray[5];
+ SEC_SkirmishLobbySetupStructure::instance.playerLordTypeArray[6]
+ = DAT_SkirmishLobbySetupStructureLongMapName.playerLordTypeArray[6];
+ SEC_SkirmishLobbySetupStructure::instance.playerLordTypeArray[7]
+ = DAT_SkirmishLobbySetupStructureLongMapName.playerLordTypeArray[7];
+ SEC_SkirmishLobbySetupStructure::instance.playerLordTypeArray[8]
+ = DAT_SkirmishLobbySetupStructureLongMapName.playerLordTypeArray[8];
+ SEC_SkirmishLobbySetupStructure::instance.mbr_0xf0
+ = DAT_SkirmishLobbySetupStructureLongMapName.mbr_0xf0;
+ SEC_SkirmishLobbySetupStructure::instance.selectedLordType
+ = DAT_SkirmishLobbySetupStructureLongMapName.selectedLordType;
+ SEC_SkirmishLobbySetupStructure::instance.popularity
+ = DAT_SkirmishLobbySetupStructureLongMapName.popularity;
+ SEC_SkirmishLobbySetupStructure::instance.mapSelectionRelativeSelected
+ = DAT_SkirmishLobbySetupStructureLongMapName.mapSelectionRelativeSelected;
+ SEC_SkirmishLobbySetupStructure::instance.mapSelectionScrollOffset
+ = DAT_SkirmishLobbySetupStructureLongMapName.mapSelectionScrollOffset;
+ SEC_SkirmishLobbySetupStructure::instance.mbr_0xfc
+ = DAT_SkirmishLobbySetupStructureLongMapName.mbr_0xfc;
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00486ad0", "name": "UpgradeOldSection1124", "quelle": "ghidra", "p1": {"bereich": "Gebaeude", "zweck": "Kopiert die Gefechts-Lobbydaten aus der Version mit langem Kartennamen in die neue Struktur."}, "p2": {"ein": "-", "aus": "-", "liest": ["DAT_SkirmishLobbySetupStructureLongMapName.*"], "schreibt": ["SEC_SkirmishLobbySetupStructure::instance.*: mapName, roundTableOrderArray, playerGroupArray, currentAIArray, aiVariationArray, slot1Position..slot8Position, currentPlayerSlotID, currentAdvantageBalance, currentAdvantageGroup, playerLordTypeArray[0..8], selectedLordType, popularity, mapSelectionRelativeSelected, mapSelectionScrollOffset und unbenannte Felder"], "ruft": [], "regeln": ["Kartenname wird bis zur Endmarke 0 kopiert", "Vier Listen werden für 9 Spieler (Platz 0 bis 8) kopiert", "Acht Slot-Positionen werden einzeln kopiert", "Lord-Typen für 9 Plätze"], "offen": ["Name täuscht: Die Funktion gehört zu den Lobby-Daten, nicht zu Gebäuden", "Bedeutung der Felder mbr_0x4, mbr_0x80, mbr_0xf0, mbr_0xfc"]}, "p3": {"erklaerung": "Hilfsfunktion beim Laden alter Daten: Die Einstellungen der Gefechts-Lobby werden in das neue Format übernommen.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x00486c40 commitSkirmishSettings | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00486C40
+ void SkirmishLobbySetupStructure::commitSkirmishSettings()
+ {
+ char cVar1;
+ char* pcVar2;
+ this->mapu4int2 = DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes;
+ pcVar2 = DAT_GameSynchronyState.mapName;
+ this->mbr_0x4 = DAT_GameState.mapAndTime.skirmishFogOfWar;
+ do {
+ cVar1 = *pcVar2;
+ /*
+ DAT_Section1124.mapName
+ */
+ pcVar2[-0xc2ee7c] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ } while (cVar1 != '\0');
+ this->roundTableOrderArray[0] = DAT_GameSynchronyState.DAT_RoundTableOrderArray[0];
+ this->playerGroupArray[0] = DAT_GameSynchronyState.DAT_PlayerGroupArray[0];
+ this->currentAIArray[0] = DAT_GameSynchronyState.currentAIArray[0];
+ this->aiVariationArray[0] = DAT_GameSynchronyState.aiVariationArray[0];
+ this->roundTableOrderArray[1] = DAT_GameSynchronyState.DAT_RoundTableOrderArray[1];
+ this->playerGroupArray[1] = DAT_GameSynchronyState.DAT_PlayerGroupArray[1];
+ this->currentAIArray[1] = DAT_GameSynchronyState.currentAIArray[1];
+ this->aiVariationArray[1] = DAT_GameSynchronyState.aiVariationArray[1];
+ this->roundTableOrderArray[2] = DAT_GameSynchronyState.DAT_RoundTableOrderArray[2];
+ this->playerGroupArray[2] = DAT_GameSynchronyState.DAT_PlayerGroupArray[2];
+ this->currentAIArray[2] = DAT_GameSynchronyState.currentAIArray[2];
+ this->aiVariationArray[2] = DAT_GameSynchronyState.aiVariationArray[2];
+ this->roundTableOrderArray[3] = DAT_GameSynchronyState.DAT_RoundTableOrderArray[3];
+ this->playerGroupArray[3] = DAT_GameSynchronyState.DAT_PlayerGroupArray[3];
+ this->currentAIArray[3] = DAT_GameSynchronyState.currentAIArray[3];
+ this->aiVariationArray[3] = DAT_GameSynchronyState.aiVariationArray[3];
+ this->roundTableOrderArray[4] = DAT_GameSynchronyState.DAT_RoundTableOrderArray[4];
+ this->playerGroupArray[4] = DAT_GameSynchronyState.DAT_PlayerGroupArray[4];
+ this->currentAIArray[4] = DAT_GameSynchronyState.currentAIArray[4];
+ this->aiVariationArray[4] = DAT_GameSynchronyState.aiVariationArray[4];
+ this->roundTableOrderArray[5] = DAT_GameSynchronyState.DAT_RoundTableOrderArray[5];
+ this->playerGroupArray[5] = DAT_GameSynchronyState.DAT_PlayerGroupArray[5];
+ this->currentAIArray[5] = DAT_GameSynchronyState.currentAIArray[5];
+ this->aiVariationArray[5] = DAT_GameSynchronyState.aiVariationArray[5];
+ this->roundTableOrderArray[6] = DAT_GameSynchronyState.DAT_RoundTableOrderArray[6];
+ this->playerGroupArray[6] = DAT_GameSynchronyState.DAT_PlayerGroupArray[6];
+ this->currentAIArray[6] = DAT_GameSynchronyState.currentAIArray[6];
+ this->aiVariationArray[6] = DAT_GameSynchronyState.aiVariationArray[6];
+ this->roundTableOrderArray[7] = DAT_GameSynchronyState.DAT_RoundTableOrderArray[7];
+ this->playerGroupArray[7] = DAT_GameSynchronyState.DAT_PlayerGroupArray[7];
+ this->currentAIArray[7] = DAT_GameSynchronyState.currentAIArray[7];
+ this->aiVariationArray[7] = DAT_GameSynchronyState.aiVariationArray[7];
+ this->roundTableOrderArray[8] = DAT_GameSynchronyState.DAT_RoundTableOrderArray[8];
+ this->playerGroupArray[8] = DAT_GameSynchronyState.DAT_PlayerGroupArray[8];
+ this->currentAIArray[8] = DAT_GameSynchronyState.currentAIArray[8];
+ this->aiVariationArray[8] = DAT_GameSynchronyState.aiVariationArray[8];
+ this->slot1Position = DAT_GameSynchronyState.playerPositionsArray[0];
+ this->slot2Position = DAT_GameSynchronyState.playerPositionsArray[1];
+ this->slot3Position = DAT_GameSynchronyState.playerPositionsArray[2];
+ this->slot4Position = DAT_GameSynchronyState.playerPositionsArray[3];
+ this->slot5Position = DAT_GameSynchronyState.playerPositionsArray[4];
+ this->slot6Position = DAT_GameSynchronyState.playerPositionsArray[5];
+ this->slot7Position = DAT_GameSynchronyState.playerPositionsArray[6];
+ this->slot8Position = DAT_GameSynchronyState.playerPositionsArray[7];
+ this->currentPlayerSlotID = DAT_GameSynchronyState.currentPlayerSlotID;
+ this->currentAdvantageBalance = DAT_GameSynchronyState.skirmishCurrentAdvantageBalance;
+ this->currentAdvantageGroup = DAT_GameSynchronyState.skirmishGameIntensityType;
+ this->mbr_0x80 = DAT_GameSynchronyState.skirmishTechLevel;
+ this->playerLordTypeArray[0] = DAT_GameCore.selectedLordTypes[0];
+ this->playerLordTypeArray[1] = DAT_GameCore.selectedLordTypes[1];
+ this->playerLordTypeArray[2] = DAT_GameCore.selectedLordTypes[2];
+ this->playerLordTypeArray[3] = DAT_GameCore.selectedLordTypes[3];
+ this->playerLordTypeArray[4] = DAT_GameCore.selectedLordTypes[4];
+ this->playerLordTypeArray[5] = DAT_GameCore.selectedLordTypes[5];
+ this->playerLordTypeArray[6] = DAT_GameCore.selectedLordTypes[6];
+ this->playerLordTypeArray[7] = DAT_GameCore.selectedLordTypes[7];
+ this->playerLordTypeArray[8] = DAT_GameCore.selectedLordTypes[8];
+ this->mbr_0xf0 = DAT_GameCore.field152_0x2340;
+ this->selectedLordType = DAT_GameCore.selectedLordTypeUnk;
+ this->popularity = DAT_GameSynchronyState.skirmishDefaultPopularity;
+ this->mapSelectionRelativeSelected = DAT_GameSynchronyState.DAT_MapSelectionRelativeSelected;
+ this->mapSelectionScrollOffset = DAT_GameSynchronyState.DAT_MapSelectionScrollOffset;
+ this->mbr_0xfc = DAT_GameSynchronyState.field248_0x109250;
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00486c40", "name": "commitSkirmishSettings", "quelle": "ghidra", "p1": {"bereich": "Spielablauf", "zweck": "Sichert die aktuellen Gefechts-Lobbyeinstellungen in eine Zwischenstruktur."}, "p2": {"ein": "this (SkirmishLobbySetupStructure)", "aus": "-", "liest": ["DAT_GameSynchronyState: skirmishAutoSaveEveryMinutes, mapName, DAT_RoundTableOrderArray, DAT_PlayerGroupArray, currentAIArray, aiVariationArray[0..8], playerPositionsArray[0..7], currentPlayerSlotID, skirmishCurrentAdvantageBalance, skirmishGameIntensityType, skirmishTechLevel, skirmishDefaultPopularity, Kartenauswahl", "DAT_GameCore.selectedLordTypes[0..8]/field152_0x2340/selectedLordTypeUnk", "DAT_GameState.mapAndTime.skirmishFogOfWar"], "schreibt": ["this->mapu4int2", "this->mbr_0x4", "this->mapName", "this->roundTableOrderArray/playerGroupArray/currentAIArray/aiVariationArray[0..8]", "this->slot1Position..slot8Position", "this->currentPlayerSlotID/currentAdvantageBalance/currentAdvantageGroup/mbr_0x80", "this->playerLordTypeArray[0..8]", "this->mbr_0xf0", "this->selectedLordType", "this->popularity", "this->mapSelectionRelativeSelected/mapSelectionScrollOffset", "this->mbr_0xfc"], "ruft": [], "regeln": ["Reines Kopieren von Spiel-Zustand in die Struktur, ohne Prüfung", "Je Slot 0..8 werden Tischordnung, Gruppe, KI und KI-Variante kopiert", "Acht Startpositionen werden in slot1Position..slot8Position kopiert", "mbr_0x80 erhält skirmishTechLevel, currentAdvantageGroup erhält skirmishGameIntensityType"], "offen": ["Bedeutung von mbr_0x4, mbr_0xf0, mbr_0xfc, field152_0x2340", "mbr_0x4 wird aus dem Spielzustand (Nebel des Krieges) gelesen und hier in die Struktur geschrieben"]}, "p3": {"erklaerung": "Merkt sich den Zustand der Gefechts-Vorbereitung (Karte, Gegner, Teams, Positionen, Beliebtheit, Stufe) in einer Struktur.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x00487650 setupSkirmishLobby | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00487650
+ void GameSynchronyState::setupSkirmishLobby()
+ {
+ byte* pbVar1;
+ int iVar2;
+ int* piVar3;
+ int* piVar4;
+ byte* local_1c;
+ int (*local_18)[20];
+ char (*local_14)[250];
+ undefined2* local_10;
+ int (*local_c)[100][2];
+ int* local_8;
+ int local_4;
+ this->currentGameMode = GM_SOLITARY;
+ this->transmissionCounterUnk = 0;
+ this->DAT_GameHalted = 0;
+ this->field62_0xb90 = 0;
+ this->field78_0xbf0 = 0;
+ this->DAT_HashCountdown = 0;
+ this->quitGameVoteRelated = 0;
+ this->shouldSendAnnouncementUnk = 0;
+ this->field261_0x109298 = 0;
+ this->DAT_HostPlayerSlotID = 0;
+ this->DPLAYX_ReceivedPlayerID = 0;
+ this->DPLAY_ToID = 0;
+ this->DPLAYX_PlayerHandle = 0xffffffff;
+ this->currentPlayerSlotID = 0;
+ this->DAT_HostAnnounced = 0;
+ this->field57_0x79c[0] = 0;
+ this->field57_0x79c[1] = 0;
+ this->field57_0x79c[2] = 0;
+ this->field57_0x79c[3] = 0;
+ this->unknownIncrementBy40_01 = 1;
+ clearChatEvents();
+ DAT_GameCore.gameMode_2 = GM_SKIRMISH_AND_MULTIPLAYER;
+ resetTeams();
+ this->counter = 0xffffffff;
+ this->limit = 5;
+ this->laggingPlayerIDUnk = 0;
+ this->DAT_SomeTime = 0;
+ this->flag_0x7aad8 = FALSE;
+ this->DAT_TwoIfNotHost = 2;
+ setBMPFacesToMagenta();
+ local_1c = this->DAT_PlayerGroupArray;
+ local_10 = (undefined2*)((int)this->finalResults.unusedUnk + 0x12);
+ local_8 = &this->connectionLagInfoArray[0].checkFor0;
+ local_c = this->historicalLagInfoPerPlayer;
+ piVar3 = &this->HASH_PartialHashPerPlayer.player0.domain02;
+ local_14 = this->DAT_PlayerNames;
+ local_18 = this->DAT_ReceivedAIVFileAvailabilityPerAIArray;
+ piVar4 = this->currentAIArray;
+ local_4 = 9;
+ do {
+ piVar4[-0x1b] = -1;
+ piVar4[0x1e858] = -1;
+ *piVar4 = 0;
+ piVar4[9] = 0;
+ piVar4[0x419b9] = 0;
+ local_1c[0x33] = 0;
+ pbVar1 = (byte*)(piVar4 + 0x12);
+ pbVar1[0] = 0;
+ pbVar1[1] = 0;
+ pbVar1[2] = 0;
+ pbVar1[3] = 0;
+ piVar4[0x422ef] = 0;
+ piVar4[-9] = 0;
+ (*local_18)[0] = -1;
+ piVar4[0x1e861] = 0;
+ piVar4[0x1e86a] = 0;
+ _memset(local_14, 0, 0xfa);
+ piVar4[0x419a7] = 0;
+ piVar4[0x419b0] = 0;
+ *local_1c = 0;
+ piVar4[0x1e8e8] = FALSE;
+ piVar4[0x1e8df] = 0;
+ local_1c[0x12] = 0;
+ ((HashContainerElement*)(piVar3 + -1))->domain01 = 0;
+ *piVar3 = 0;
+ piVar3[1] = 0;
+ piVar3[2] = 0;
+ piVar3[3] = 0;
+ piVar3[4] = 0;
+ iVar2 = 100;
+ do {
+ (*local_c)[0][0] = 0;
+ local_c = (int (*)[100][2])(*local_c + 1);
+ iVar2 = iVar2 + -1;
+ } while (iVar2 != 0);
+ local_18 = local_18 + 1;
+ local_14 = local_14 + 1;
+ local_8[-4] = 0;
+ *local_8 = 0;
+ local_8[1] = 0;
+ piVar4[0x422d4] = 1;
+ piVar4[0x42489] = 0;
+ piVar4[0x424e3] = 0;
+ piVar4[0x42527] = 0;
+ piVar4[0x424ec] = 0;
+ piVar4[0x4251e] = 0;
+ piVar4[0x424f5] = 0;
+ piVar4[0x424fe] = 0;
+ piVar4[0x42507] = 0;
+ piVar4[0x42510] = 0;
+ local_1c[-0x2cc] = 0;
+ piVar4[0x42530] = 0;
+ piVar4[0x42539] = 0;
+ piVar4[0x42542] = 0;
+ piVar4[0x4254b] = 0;
+ piVar4[0x42554] = 0;
+ local_10[-9] = 0;
+ *local_10 = 0;
+ piVar4[0x42566] = 0;
+ piVar4[0x4256f] = 0;
+ pbVar1 = (byte*)(piVar4 + 0x42578);
+ pbVar1[0] = 0;
+ pbVar1[1] = 0;
+ pbVar1[2] = 0;
+ pbVar1[3] = 0;
+ pbVar1 = (byte*)(piVar4 + 0x42581);
+ pbVar1[0] = 0;
+ pbVar1[1] = 0;
+ pbVar1[2] = 0;
+ pbVar1[3] = 0;
+ piVar4[0x425b0] = 0;
+ local_10 = local_10 + 1;
+ local_8 = local_8 + 9;
+ piVar4 = piVar4 + 1;
+ piVar3 = piVar3 + 0xc;
+ local_4 = local_4 + -1;
+ local_1c = local_1c + 1;
+ } while (local_4 != 0);
+ this->skirmishUnknownSetting1[0] = 1;
+ this->skirmishUnknownSetting1[1] = 1;
+ this->skirmishUnknownSetting1[2] = 1;
+ this->skirmishUnknownSetting1[3] = 1;
+ this->skirmishStartGold = 0;
+ this->skirmishDefaultPopularity = 100;
+ this->skirmishGameSpeedLevel = 0x28;
+ this->skirmishCurrentAdvantageBalance = 3;
+ this->field235_0x1072e8 = -1;
+ this->field236_0x1072ec = -1;
+ DAT_TextureRenderCoreObject.unknownPlayerDependentRenderValue[0] = 0;
+ DAT_TextureRenderCoreObject.unknownPlayerDependentRenderValue[1] = 0;
+ DAT_TextureRenderCoreObject.unknownPlayerDependentRenderValue[2] = 0;
+ DAT_TextureRenderCoreObject.unknownPlayerDependentRenderValue[3] = 0;
+ DAT_TextureRenderCoreObject.unknownPlayerDependentRenderValue[4] = 0;
+ DAT_TextureRenderCoreObject.unknownPlayerDependentRenderValue[5] = 0;
+ DAT_TextureRenderCoreObject.unknownPlayerDependentRenderValue[6] = 0;
+ DAT_TextureRenderCoreObject.unknownPlayerDependentRenderValue[7] = 0;
+ this->skirmishTechLevel = 4;
+ this->skirmishGameIntensityType = 1;
+ this->skirmishGameIntensityType2 = 1;
+ this->skirmishWinCondition = 0;
+ this->skirmishTroopsCostGold = 1;
+ this->field248_0x109250 = 6;
+ if ((((this->skirmishAutoSaveEveryMinutes != 0) && (this->skirmishAutoSaveEveryMinutes != 5))
+ && (this->skirmishAutoSaveEveryMinutes != 10))
+ && (this->skirmishAutoSaveEveryMinutes != 0x14)) {
+ this->skirmishAutoSaveEveryMinutes = 10;
+ }
+ this->saveRelated = 0;
+ this->field75_0xbe4 = 0;
+ this->commandDelay = 0x23;
+ DAT_GameState.mapAndTime.gameOver = FALSE;
+ resetGameCommands();
+ DAT_GameCore.mapTimeInTicks = 0;
+ this->syncStatus = 0;
+ this->flag_0xbec = 0;
+ this->skirmishStrongWalls = 0;
+ this->skirmishAlliances = 0;
+ this->skirmishNoCowThrowing = 0;
+ this->skirmishNoDogs = 0;
+ this->skirmishNoRushSetting = 0;
+ this->skirmishExtremeMode = 1;
+ this->skirmishExtremeMode2 = 0;
+ this->DAT_MapFileReceivingState = 0;
+ DAT_GameState.mapAndTime.skirmishFogOfWar = 0;
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_WIN_DEFEAT_WINDOW, 0);
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00487650", "name": "setupSkirmishLobby", "quelle": "ghidra", "p1": {"bereich": "Befehle/Takt", "zweck": "Setzt alle Gefechts- und Lobby-Einstellungen auf ihre Grundwerte."}, "p2": {"ein": "-", "aus": "-", "liest": ["skirmishAutoSaveEveryMinutes"], "schreibt": ["currentGameMode", "gameMode_2", "Platzfelder aller 9 Plätze", "skirmish*-Einstellungen", "commandDelay", "mapTimeInTicks", "mapAndTime.gameOver", "skirmishFogOfWar"], "ruft": ["clearChatEvents", "resetTeams", "setBMPFacesToMagenta", "resetGameCommands", "CheckDisplayElementByIDAndSetForUnlimitedDisplay"], "regeln": ["currentGameMode=GM_SOLITARY, gameMode_2=GM_SKIRMISH_AND_MULTIPLAYER", "skirmishStartGold=0, skirmishDefaultPopularity=100, skirmishGameSpeedLevel=40 (0x28)", "skirmishCurrentAdvantageBalance=3, skirmishTechLevel=4, skirmishGameIntensityType und Type2=1", "skirmishWinCondition=0, skirmishTroopsCostGold=1 (Soldaten kosten Gold)", "skirmishStrongWalls, Alliances, NoCowThrowing, NoDogs, NoRushSetting=0; skirmishExtremeMode=1, ExtremeMode2=0; Nebel des Krieges=0", "commandDelay=35 (0x23), limit=5, counter=-1 (Latenz-Verlauf)", "Autospeicherung bleibt bei 0, 5, 10 oder 20 Minuten, jeder andere Wert wird 10", "Alle 9 Plätze: FullID=-1, Namen und Zähler auf 0; Spiel nicht beendet, Sieg-/Niederlagefenster aus"], "offen": ["Bedeutung der Felder mit field…/Unknown", "Welche Werte der Menü-Schalter hinter skirmishGameIntensityType, skirmishCurrentAdvantageBalance und field248 stehen"]}, "p3": {"erklaerung": "Beim Öffnen des Gefechtsmenüs werden alle Einstellungen auf Standard gestellt, zum Beispiel Startgold 0 und Truppenkosten an.", "gehirn": "Grundwerte der Gefechtseinstellungen nachlesen; die tatsächlichen Werte einer Partie stehen danach in denselben Feldern.", "beleg": "code", "live": "-", "live_art": "-"}}
+

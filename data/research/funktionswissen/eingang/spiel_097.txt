@@ -1,0 +1,926 @@
+### 0x004fc340 collectCliffEdgeTilesForClimbData | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004FC340
+ void TileMapState::collectCliffEdgeTilesForClimbData()
+ {
+ int _tile2;
+ int _tile;
+ int* piVar1;
+ int* _pLogicLayer;
+ _tile = 0;
+ this->temporaryTerrainTypeIndex = 0;
+ _pLogicLayer = this->LogicLayer;
+ do {
+ if ((*_pLogicLayer & L_BORDER | L_BORDER_EDGE) == 0) {
+ if (((*_pLogicLayer & L_RIVER) != 0)
+ && ((this->Logic2Layer[_tile] & L2_STONES_OR_DRIVEN_SANDUnk) != 0)) {
+ this->temporaryTerrainTypeBinaryArray[this->temporaryTerrainTypeIndex] = 1;
+ this->temporaryTerrainTypeArray[this->temporaryTerrainTypeIndex] = _tile;
+ piVar1 = DAT_ClimbLogicDefinedData.field5_0x2c;
+ do {
+ _tile2 = this->directionTranslationMatrix[DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[_tile]][*piVar1]
+ + _tile;
+ if (((this->LogicLayer[_tile2] & L_RIVER) != 0)
+ && (this->HeightLayer[_tile] + 0x50 < (uint)this->HeightLayer[_tile2])) {
+ this->temporaryTerrainTypeBinaryArray[this->temporaryTerrainTypeIndex] = 0;
+ break;
+ }
+ piVar1 = piVar1 + 1;
+ } while ((int)piVar1 < 0xb390c8);
+ this->temporaryTerrainTypeIndex = this->temporaryTerrainTypeIndex + 1;
+ if (999 < this->temporaryTerrainTypeIndex) {
+ return;
+ }
+ }
+ if ((((*_pLogicLayer & L_RIVER) != 0) && ((this->Logic2Layer[_tile] & L2_OASIS_GRASS) != 0))
+ || (((*_pLogicLayer & L_SEA) != 0 && ((this->Logic2Layer[_tile] & L2_PLATEAU_HIGH) != 0)))) {
+ this->temporaryTerrainTypeBinaryArray[this->temporaryTerrainTypeIndex] = 1;
+ this->temporaryTerrainTypeArray[this->temporaryTerrainTypeIndex] = _tile;
+ this->temporaryTerrainTypeIndex = this->temporaryTerrainTypeIndex + 1;
+ if (999 < this->temporaryTerrainTypeIndex) {
+ return;
+ }
+ }
+ }
+ _tile = _tile + 1;
+ _pLogicLayer = _pLogicLayer + 1;
+ if (0x13a0f < _tile) {
+ return;
+ }
+ } while (true);
+ }
+}
+}
+
+### 0x004fc490 generateDustClouds | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004FC490
+ void TileMapState::generateDustClouds()
+ {
+ uint uVar1;
+ uint uVar2;
+ int* _pTile;
+ int _rng2;
+ int iVar3;
+ int local_4;
+ short _rng1;
+ int _tile;
+ _rng1 = SEC_RNG::instance.currentNumber2;
+ _rng2 = (int)SEC_RNG::instance.currentNumber2;
+ nextRandomNumber2();
+ this->SEC_Section1052 = this->SEC_Section1052 + 1;
+ if (_rng2 % 500 == (int)this->SEC_Section1052 % 500) {
+ this->SEC_Section1053 = _rng2 % 0xb4;
+ }
+ if (_rng2 % 0x4b0 == (int)this->SEC_Section1052 % 0x4b0) {
+ this->SEC_Section1054 = _rng2 % 0xb4;
+ }
+ if (this->SEC_Section1053 != 0) {
+ this->SEC_Section1053 = this->SEC_Section1053 + -1;
+ }
+ if (this->SEC_Section1054 != 0) {
+ this->SEC_Section1054 = this->SEC_Section1054 + -1;
+ }
+ local_4 = 0;
+ if (0 < this->temporaryTerrainTypeIndex) {
+ _pTile = this->temporaryTerrainTypeArray;
+ do {
+ _tile = *_pTile;
+ uVar1 = (int)(short)(this->RandomLayer[_tile] ^ _rng1) & 0x8000003f;
+ if ((int)uVar1 < 0) {
+ uVar1 = (uVar1 - 1 | 0xffffffc0) + 1;
+ }
+ uVar2 = this->SEC_Section1052 & 0x8000003f;
+ if ((int)uVar2 < 0) {
+ uVar2 = (uVar2 - 1 | 0xffffffc0) + 1;
+ }
+ if (uVar1 == uVar2) {
+ /*
+ this access the array after the _pTile array
+ */
+ iVar3 = _pTile[1000];
+ if (iVar3 == 0) {
+ if (this->SEC_Section1054 == 0) {
+ LAB_004fc5fb:
+ spawnProjectileEntity(0, 0, 0,
+ (_tile
+ - DAT_ViewportRenderState
+ .translationMatrix[DAT_ViewportRenderState
+ .tileTranslationMatrix_YComponent[_tile]]
+ .addXgetTile)
+ * 8
+ + 4,
+ (int)((
+ int)(DAT_ViewportRenderState.tileTranslationMatrix_YComponent[_tile] * 8
+ + 4)),
+ (int)((int)((uint)this->HeightLayer[_tile])), 0, 0, 0,
+ ET_DUST_CLOUD, iVar3);
+ }
+ } else if (this->SEC_Section1053 == 0) {
+ if (iVar3 != 1) {
+ iVar3 = 2;
+ }
+ goto LAB_004fc5fb;
+ }
+ }
+ local_4 = local_4 + 1;
+ _pTile = _pTile + 1;
+ } while (local_4 < this->temporaryTerrainTypeIndex);
+ }
+ return;
+ }
+}
+}
+
+### 0x004fc650 computeWallCornerRenderRotation | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004FC650
+ int TileMapState::computeWallCornerRenderRotation(uint param_1)
+ {
+ int y;
+ int tile;
+ BOOLEnum BVar1;
+ uint uVar2;
+ tile = this->DAT_SomeTile;
+ y = this->DAT_SomeY;
+ BVar1 = isWallConnectionHeightValid(
+ this->DAT_SomeTile, this->DAT_SomeY, 2);
+ if (BVar1 == FALSE) {
+ BVar1 = isWallConnectionHeightValid(tile, y, 0);
+ if (BVar1 == FALSE) {
+ uVar2 = getWallFlagForOrientedDirection(
+ tile, y, 2);
+ if (uVar2 == 0) {
+ uVar2 = getWallFlagForOrientedDirection(
+ tile, y, 4);
+ return (-(uint)(uVar2 != 0) & 0x1e) + 0x21;
+ }
+ return (int)(48);
+ }
+ if (this->mapOrientation == 0) {
+ if ((y & 0xfU) != 0xf) {
+ return (int)(32 - (y & 0xfU));
+ }
+ } else {
+ if (this->mapOrientation != 4) {
+ if (this->mapOrientation == 6) {
+ if ((y & 0xfU) == 0) {
+ return 2;
+ }
+ return (y & 0xfU) + 2;
+ }
+ if (this->mapOrientation != 2) {
+ return 0;
+ }
+ if ((y & 0xfU) == 0xf) {
+ return 2;
+ }
+ return (int)(0x11 - (y & 0xfU));
+ }
+ if ((y & 0xfU) != 0) {
+ return (y & 0xfU) + 0x11;
+ }
+ }
+ return 1;
+ }
+ if (this->mapOrientation == 0) {
+ if ((param_1 & 0xf) != 0xf) {
+ return (int)(17 - (param_1 & 0xf));
+ }
+ } else {
+ if (this->mapOrientation != 4) {
+ if (this->mapOrientation == 2) {
+ if ((param_1 & 0xf) == 0) {
+ return 1;
+ }
+ return (param_1 & 0xf) + 0x11;
+ }
+ if (this->mapOrientation != 6) {
+ return 0;
+ }
+ if ((param_1 & 0xf) == 0xf) {
+ return 1;
+ }
+ return (int)(32 - (param_1 & 0xf));
+ }
+ if ((param_1 & 0xf) != 0) {
+ return (param_1 & 0xf) + 2;
+ }
+ }
+ return 2;
+ }
+}
+}
+
+### 0x004fc7c0 isCliffDropInDirection | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004FC7C0
+ BOOLEnum TileMapState::isCliffDropInDirection(int tile, undefined4 param_2, int y)
+ {
+ uint _direction;
+ _direction = this->field84_0x5548a4 + 4U & 0x80000007;
+ if ((int)_direction < 0) {
+ _direction = (_direction - 1 | 0xfffffff8) + 1;
+ }
+ return (uint)(this->HeightLayer[this->directionTranslationMatrix[y][_direction] + tile] + 0x14
+ < (uint)this->HeightLayer[tile]);
+ }
+}
+}
+
+### 0x004fc810 computeClimbRampRotation | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004FC810
+ int TileMapState::computeClimbRampRotation(int tile, uint x, uint y)
+ {
+ byte bVar1;
+ uint uVar2;
+ int iVar3;
+ uint uVar4;
+ uint uVar5;
+ uint uVar6;
+ if ((this->LogicLayer[tile] & L_WALL_OR_GATEHOUSE) == 0) {
+ bVar1 = this->HeightLayer[tile];
+ } else {
+ bVar1 = this->DefaultHeightLayer[tile];
+ }
+ uVar2 = (uint)bVar1;
+ iVar3 = this->directionTranslationMatrix[y][this->field86_0x5548ac] + tile;
+ if ((this->LogicLayer[iVar3] & L_WALL_OR_GATEHOUSE) == 0) {
+ bVar1 = this->HeightLayer[iVar3];
+ } else {
+ bVar1 = this->DefaultHeightLayer[iVar3];
+ }
+ uVar5 = (uint)bVar1;
+ iVar3 = this->directionTranslationMatrix[y][this->field85_0x5548a8] + tile;
+ if ((this->LogicLayer[iVar3] & L_WALL_OR_GATEHOUSE) == 0) {
+ bVar1 = this->HeightLayer[iVar3];
+ } else {
+ bVar1 = this->DefaultHeightLayer[iVar3];
+ }
+ uVar4 = (uint)bVar1;
+ iVar3 = this->directionTranslationMatrix[y][this->field84_0x5548a4] + tile;
+ if ((this->LogicLayer[iVar3] & L_WALL_OR_GATEHOUSE) == 0) {
+ bVar1 = this->HeightLayer[iVar3];
+ } else {
+ bVar1 = this->DefaultHeightLayer[iVar3];
+ }
+ uVar6 = (uint)bVar1;
+ if ((uVar5 + 0x14 < uVar2) && (uVar5 < 0x88)) {
+ if ((uVar4 + 0x14 < uVar2) && (uVar4 < 0x88)) {
+ if ((uVar6 + 0x14 < uVar2) && (uVar6 < 0x88)) {
+ uVar2 = 5;
+ } else {
+ LAB_004fc921:
+ uVar2 = 3;
+ }
+ } else {
+ uVar2 = 1;
+ }
+ } else if ((uVar4 + 0x14 < uVar2) && (uVar4 < 0x88)) {
+ if ((uVar5 + 0x14 < uVar2) && (uVar5 < 0x88))
+ goto LAB_004fc921;
+ uVar2 = 2;
+ } else if ((uVar5 < 0x88) || (uVar4 < 0x88)) {
+ uVar2 = (uVar2 <= uVar6 + 0x14) - 1 & 5;
+ } else {
+ uVar2 = 4;
+ }
+ if (this->mapOrientation == 0) {
+ if (uVar2 == 1) {
+ this->field112_0x554908 = 0x20 - (x & 0x1f);
+ goto LAB_004fc9b9;
+ }
+ LAB_004fc9a9:
+ this->field112_0x554908 = 0x20 - (y & 0x1f);
+ } else {
+ if (this->mapOrientation == 4) {
+ if (uVar2 == 1) {
+ this->field112_0x554908 = (x & 0x1f) + 1;
+ goto LAB_004fc9b9;
+ }
+ } else if (this->mapOrientation != 2)
+ goto LAB_004fc9a9;
+ this->field112_0x554908 = (y & 0x1f) + 1;
+ }
+ LAB_004fc9b9:
+ if (0x1f < this->field112_0x554908) {
+ this->field112_0x554908 = 1;
+ }
+ return (int)(uVar2);
+ }
+}
+}
+
+### 0x004fc9e0 updateGFXLayers | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x004FC9E0
+ void TileMapState::updateGFXLayers()
+ {
+ short sVar1;
+ short sVar2;
+ BOOLEnum _isY_lt;
+ BOOLEnum _valid;
+ int _mac2;
+ ushort _lum;
+ byte bVar3;
+ byte bVar4;
+ ushort _mac1;
+ uint _mac3;
+ short _lumOtherOffset;
+ short local_44;
+ short local_3c;
+ short local_34;
+ int local_30;
+ int _someYExtra;
+ short _lum2Offset;
+ int _curY;
+ int local_14;
+ int local_10;
+ int _curX;
+ int _mappingYRelated;
+ short _gmOffset1;
+ if (0 < this->forceUpdateGFXLayers) {
+ this->forceUpdateGFXLayers = this->forceUpdateGFXLayers + -1;
+ _isY_lt = getYSmallerThanYLimit();
+ if (_isY_lt != FALSE) {
+ _mappingYRelated = DAT_PathFindingState.mappingYRelated % 10;
+ for (_curY = this->someIndex; _curY <= this->someLimit; _curY = _curY + 1) {
+ for (_curX = this->someYLike; _curX <= this->someYLikeLimit; _curX = _curX + 1) {
+ if (*(char*)(_curY * 40 + 0x1f93438 + _curX) != '\0') {
+ _someYExtra = _mappingYRelated;
+ _mappingYRelated = 0;
+ for (; _someYExtra < 10; _someYExtra = _someYExtra + 1) {
+ this->DAT_SomeY = _curY * 10 + _someYExtra;
+ this->DAT_SomeX = _curX * 10;
+ for (local_30 = 0; local_30 < 10; local_30 = local_30 + 1) {
+ _valid = xyAreValid(this->DAT_SomeX, (uint)((int)(this->DAT_SomeY)));
+ /*
+ some 1001 related stuff
+ */
+ if (((_valid != FALSE)
+ && (this->DAT_SomeTile = translateXYToTile(this->DAT_SomeX, this->DAT_SomeY),
+ (this->LogicLayer[this->DAT_SomeTile] & L_DEFAULT_EARTH_OR_TEXTURE)
+ != 0))
+ && (this->GfxLayer[this->DAT_SomeTile] == 0)) {
+ _lum = (ushort)this->LuminesenceLayer[this->DAT_SomeTile];
+ if (_lum < 2) {
+ _lum = 2;
+ }
+ _mac1 = this->MacroLayer[this->DAT_SomeTile] & 0x3f;
+ _mac2 = (int)((int)(short)this->MacroLayer[this->DAT_SomeTile] & 0x7c0U) >> 6;
+ _mac3 = (int)((int)(short)this->MacroLayer[this->DAT_SomeTile] & 0xf000U) >> 0xc
+ & 3;
+ this->PillarGFXLayer[this->DAT_SomeTile]
+ = (ushort)GMTotalPicturesProcessed::instance[9];
+ if ((this->LogicLayer[this->DAT_SomeTile] & L_MARSH) == 0) {
+ if ((this->Logic2Layer[this->DAT_SomeTile] & 2) == 0) {
+ if ((this->Logic2Layer[this->DAT_SomeTile] & 0x10) == 0) {
+ if ((this->Logic2Layer[this->DAT_SomeTile] & 0x40) == 0) {
+ if ((this->Logic2Layer[this->DAT_SomeTile] & 1) == 0) {
+ if (((int)(char)this->Logic2Layer[this->DAT_SomeTile]
+ & 0x80U)
+ == 0) {
+ if ((this->Logic2Layer[this->DAT_SomeTile] & 4) == 0) {
+ if ((this->Logic2Layer[this->DAT_SomeTile] & 8)
+ == 0) {
+ if ((this->Logic2Layer[this->DAT_SomeTile]
+ & 0x20)
+ == 0) {
+ this->bitFlag = 0;
+ if ((*(uint*)(this->ptr_LogicLayer
+ + this->DAT_SomeTile * 4 + 4)
+ & 0x8000)
+ != 0) {
+ this->bitFlag = 0x20;
+ }
+ if ((*(uint*)(this->ptr_LogicLayer
+ + this->DAT_SomeTile * 4 + -4)
+ & 0x8000)
+ != 0) {
+ this->bitFlag = this->bitFlag | 2;
+ }
+ if ((*(uint*)(this->ptr_LogicLayer
+ + *(int*)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ * 4
+ + this->DAT_SomeTile * 4)
+ & 0x8000)
+ != 0) {
+ this->bitFlag = this->bitFlag | 0x80;
+ }
+ if ((*(uint*)(this->ptr_LogicLayer
+ + *(int*)((int)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY
+ * 0x20)
+ + 0x10)
+ * 4
+ + this->DAT_SomeTile * 4)
+ & 0x8000)
+ != 0) {
+ this->bitFlag = this->bitFlag | 8;
+ }
+ local_34 = 0x131;
+ local_44 = 0x133;
+ _lumOtherOffset = 0x145;
+ _lum2Offset = 0x151;
+ local_3c = 0x155;
+ local_10 = 2;
+ } else {
+ bVar3 = 0;
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap
+ + this->DAT_SomeTile + 1)
+ & 0x20)
+ != 0) {
+ bVar3 = 0x20;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap
+ + this->DAT_SomeTile + -1)
+ & 0x20)
+ != 0) {
+ bVar3 = bVar3 | 2;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + this->DAT_SomeTile)
+ & 0x20)
+ != 0) {
+ bVar3 = bVar3 | 0x80;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)((int)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY
+ * 0x20)
+ + 0x10)
+ + this->DAT_SomeTile)
+ & 0x20)
+ != 0) {
+ bVar3 = bVar3 | 8;
+ }
+ bVar4 = 0;
+ if ((*(uint*)(this->ptr_LogicLayer
+ + this->DAT_SomeTile * 4 + 4)
+ & 1)
+ != 0) {
+ bVar4 = 0x20;
+ }
+ if ((*(uint*)(this->ptr_LogicLayer
+ + this->DAT_SomeTile * 4 + -4)
+ & 1)
+ != 0) {
+ bVar4 = bVar4 | 2;
+ }
+ if ((*(uint*)(this->ptr_LogicLayer
+ + *(int*)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ * 4
+ + this->DAT_SomeTile * 4)
+ & 1)
+ != 0) {
+ bVar4 = bVar4 | 0x80;
+ }
+ if ((*(uint*)(this->ptr_LogicLayer
+ + *(int*)((int)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY
+ * 0x20)
+ + 0x10)
+ * 4
+ + this->DAT_SomeTile * 4)
+ & 1)
+ != 0) {
+ bVar4 = bVar4 | 8;
+ }
+ this->bitFlag = bVar4 | bVar3;
+ local_34 = 0x391;
+ local_44 = 0x393;
+ _lumOtherOffset = 0x3a5;
+ _lum2Offset = 0x3b1;
+ local_3c = 0x3b5;
+ local_10 = 0;
+ }
+ } else {
+ this->bitFlag = 0;
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap
+ + this->DAT_SomeTile + 1)
+ & 8)
+ != 0) {
+ this->bitFlag = 0x20;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap
+ + this->DAT_SomeTile + -1)
+ & 8)
+ != 0) {
+ this->bitFlag = this->bitFlag | 2;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + this->DAT_SomeTile)
+ & 8)
+ != 0) {
+ this->bitFlag = this->bitFlag | 0x80;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)((int)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + 0x10)
+ + this->DAT_SomeTile)
+ & 8)
+ != 0) {
+ this->bitFlag = this->bitFlag | 8;
+ }
+ local_34 = 0x131;
+ local_44 = 0x133;
+ _lumOtherOffset = 0x145;
+ _lum2Offset = 0x151;
+ local_3c = 0x155;
+ local_10 = 2;
+ }
+ } else {
+ this->bitFlag = 0;
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap
+ + this->DAT_SomeTile + 1)
+ & 4)
+ != 0) {
+ this->bitFlag = 0x20;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap
+ + this->DAT_SomeTile + -1)
+ & 4)
+ != 0) {
+ this->bitFlag = this->bitFlag | 2;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + this->DAT_SomeTile)
+ & 4)
+ != 0) {
+ this->bitFlag = this->bitFlag | 0x80;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)((int)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + 0x10)
+ + this->DAT_SomeTile)
+ & 4)
+ != 0) {
+ this->bitFlag = this->bitFlag | 8;
+ }
+ local_34 = 0x131;
+ local_44 = 0x133;
+ _lumOtherOffset = 0x145;
+ _lum2Offset = 0x151;
+ local_3c = 0x155;
+ local_10 = 2;
+ }
+ } else {
+ this->bitFlag = 0;
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap
+ + this->DAT_SomeTile + 1)
+ & 1)
+ != 0) {
+ this->bitFlag = 0x20;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap
+ + this->DAT_SomeTile + -1)
+ & 1)
+ != 0) {
+ this->bitFlag = this->bitFlag | 2;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + this->DAT_SomeTile)
+ & 1)
+ != 0) {
+ this->bitFlag = this->bitFlag | 0x80;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)((int)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + 0x10)
+ + this->DAT_SomeTile)
+ & 1)
+ != 0) {
+ this->bitFlag = this->bitFlag | 8;
+ }
+ local_34 = 0x4a9;
+ local_44 = 0x4ab;
+ _lumOtherOffset = 0x4bd;
+ _lum2Offset = 0x4c9;
+ local_3c = 0x4cd;
+ local_10 = 0;
+ }
+ } else {
+ this->bitFlag = 0;
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap
+ + this->DAT_SomeTile + 1)
+ & 1)
+ != 0) {
+ this->bitFlag = 0x20;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap
+ + this->DAT_SomeTile + -1)
+ & 1)
+ != 0) {
+ this->bitFlag = this->bitFlag | 2;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + this->DAT_SomeTile)
+ & 1)
+ != 0) {
+ this->bitFlag = this->bitFlag | 0x80;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)((int)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + 0x10)
+ + this->DAT_SomeTile)
+ & 1)
+ != 0) {
+ this->bitFlag = this->bitFlag | 8;
+ }
+ local_34 = 0x2f9;
+ local_44 = 0x2fb;
+ _lumOtherOffset = 0x30d;
+ _lum2Offset = 0x319;
+ local_3c = 0x31d;
+ local_10 = 0;
+ }
+ } else {
+ this->bitFlag = 0;
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap + this->DAT_SomeTile
+ + 1)
+ & 0x40)
+ != 0) {
+ this->bitFlag = 0x20;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap + this->DAT_SomeTile
+ + -1)
+ & 0x40)
+ != 0) {
+ this->bitFlag = this->bitFlag | 2;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + this->DAT_SomeTile)
+ & 0x40)
+ != 0) {
+ this->bitFlag = this->bitFlag | 0x80;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)((int)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + 0x10)
+ + this->DAT_SomeTile)
+ & 0x40)
+ != 0) {
+ this->bitFlag = this->bitFlag | 8;
+ }
+ local_34 = 0x261;
+ local_44 = 0x263;
+ _lumOtherOffset = 0x275;
+ _lum2Offset = 0x281;
+ local_3c = 0x285;
+ local_10 = 0;
+ }
+ } else {
+ this->bitFlag = 0;
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap + this->DAT_SomeTile + 1)
+ & 0x10)
+ != 0) {
+ this->bitFlag = 0x20;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap + this->DAT_SomeTile
+ + -1)
+ & 0x10)
+ != 0) {
+ this->bitFlag = this->bitFlag | 2;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + this->DAT_SomeTile)
+ & 0x10)
+ != 0) {
+ this->bitFlag = this->bitFlag | 0x80;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)((int)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + 0x10)
+ + this->DAT_SomeTile)
+ & 0x10)
+ != 0) {
+ this->bitFlag = this->bitFlag | 8;
+ }
+ local_34 = 0x1c9;
+ local_44 = 0x1cb;
+ _lumOtherOffset = 0x1dd;
+ _lum2Offset = 0x1e9;
+ local_3c = 0x1ed;
+ local_10 = 0;
+ }
+ } else {
+ this->bitFlag = 0;
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap + this->DAT_SomeTile + 1)
+ & 2)
+ != 0) {
+ this->bitFlag = 0x20;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap + this->DAT_SomeTile + -1)
+ & 2)
+ != 0) {
+ this->bitFlag = this->bitFlag | 2;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + this->DAT_SomeTile)
+ & 2)
+ != 0) {
+ this->bitFlag = this->bitFlag | 0x80;
+ }
+ if ((*(uint*)(this->ptr_TerrainTypeTileMap
+ + *(int*)((int)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + 0x10)
+ + this->DAT_SomeTile)
+ & 2)
+ != 0) {
+ this->bitFlag = this->bitFlag | 8;
+ }
+ local_34 = 0x99;
+ local_44 = 0x9b;
+ _lumOtherOffset = 0xad;
+ _lum2Offset = 0xb9;
+ local_3c = 0xbd;
+ local_10 = 0;
+ }
+ } else {
+ this->bitFlag = 0;
+ if ((*(uint*)(this->ptr_LogicLayer + this->DAT_SomeTile * 4 + 4)
+ & 0x20000000)
+ != 0) {
+ this->bitFlag = 0x20;
+ }
+ if ((*(uint*)(this->ptr_LogicLayer + this->DAT_SomeTile * 4 + -4)
+ & 0x20000000)
+ != 0) {
+ this->bitFlag = this->bitFlag | 2;
+ }
+ if ((*(uint*)(this->ptr_LogicLayer
+ + *(int*)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ * 4
+ + this->DAT_SomeTile * 4)
+ & 0x20000000)
+ != 0) {
+ this->bitFlag = this->bitFlag | 0x80;
+ }
+ if ((*(uint*)(this->ptr_LogicLayer
+ + *(int*)((int)(this->ptr_MovementDirectionTranslationMatrix
+ + this->DAT_SomeY * 0x20)
+ + 0x10)
+ * 4
+ + this->DAT_SomeTile * 4)
+ & 0x20000000)
+ != 0) {
+ this->bitFlag = this->bitFlag | 8;
+ }
+ local_34 = 1;
+ local_44 = 3;
+ _lumOtherOffset = 0x15;
+ _lum2Offset = 0x21;
+ local_3c = 0x25;
+ local_10 = 0;
+ }
+ if (_mac1 == 1) {
+ this->bitFlag = ~this->bitFlag & 0xaa;
+ if (this->mapOrientation == 0) {
+ this->bitFlag = MACRO_CALL_MEMBER(
+ rotateByteLeft,
+ DAT_DirectionAlgorithmState)(this->bitFlag, 0);
+ } else if (this->mapOrientation == 2) {
+ this->bitFlag = MACRO_CALL_MEMBER(
+ rotateByteLeft,
+ DAT_DirectionAlgorithmState)(this->bitFlag, 2);
+ } else if (this->mapOrientation == 4) {
+ this->bitFlag = MACRO_CALL_MEMBER(
+ rotateByteLeft,
+ DAT_DirectionAlgorithmState)(this->bitFlag, 4);
+ } else if (this->mapOrientation == 6) {
+ this->bitFlag = MACRO_CALL_MEMBER(
+ rotateByteLeft,
+ DAT_DirectionAlgorithmState)(this->bitFlag, 6);
+ }
+ if (local_10 == 1) {
+ this->GfxLayer[this->DAT_SomeTile] = 0;
+ for (local_14 = 0; local_14 < 4; local_14 = local_14 + 1) {
+ if (DAT_TerrainDefinedData.field2296_0x1d54[local_14][0]
+ == this->bitFlag) {
+ this->GfxLayer[this->DAT_SomeTile]
+ = (short)GMTotalPicturesProcessed::instance[0x37] + local_34
+ + -1 + (_lum - 2) * 4
+ + (this->RandomLayer[this->DAT_SomeTile] & 1)
+ + (ushort)DAT_TerrainDefinedData
+ .field2296_0x1d54[local_14][1];
+ }
+ }
+ for (local_14 = 4; local_14 < 8; local_14 = local_14 + 1) {
+ if (DAT_TerrainDefinedData.field2296_0x1d54[local_14][0]
+ == this->bitFlag) {
+ this->GfxLayer[this->DAT_SomeTile]
+ = (short)GMTotalPicturesProcessed::instance[0x37] + local_44
+ + -1 + (_lum - 2) * 4
+ + (ushort)DAT_TerrainDefinedData
+ .field2296_0x1d54[local_14][1];
+ }
+ }
+ if (this->GfxLayer[this->DAT_SomeTile] == 0) {
+ this->GfxLayer[this->DAT_SomeTile]
+ = (short)GMTotalPicturesProcessed::instance[0x37]
+ + _lumOtherOffset + -1 + (_lum - 2) * 4
+ + (this->RandomLayer[this->DAT_SomeTile] & 3);
+ }
+ } else {
+ _gmOffset1 = (short)GMTotalPicturesProcessed::instance[0x37];
+ if (_lum == 2) {
+ if (this->bitFlag == 0) {
+ this->GfxLayer[this->DAT_SomeTile] = _gmOffset1 + _lum2Offset
+ + -1 + (this->RandomLayer[this->DAT_SomeTile] & 7);
+ } else {
+ /*
+ sets 1001 based on the randomness of section 1008, called when
+ rotating the map as well
+ */
+ this->GfxLayer[this->DAT_SomeTile] = _gmOffset1
+ + _lumOtherOffset + -1
+ + (this->RandomLayer[this->DAT_SomeTile] & 7);
+ }
+ } else if (local_10 == 2) {
+ this->GfxLayer[this->DAT_SomeTile] = _gmOffset1 + local_34 + -1
+ + (_lum - 3) * 4 + (this->RandomLayer[this->DAT_SomeTile] & 3);
+ } else if (this->bitFlag == 0) {
+ this->GfxLayer[this->DAT_SomeTile] = _gmOffset1 + local_44 + -1
+ + (_lum - 3) * 4 + (this->RandomLayer[this->DAT_SomeTile] & 1);
+ } else {
+ this->GfxLayer[this->DAT_SomeTile] = _gmOffset1 + local_34 + -1
+ + (_lum - 3) * 4 + (this->RandomLayer[this->DAT_SomeTile] & 1);
+ }
+ }
+ } else {
+ sVar1 = (short)GMTotalPicturesProcessed::instance[0x37];
+ if (_lum < 3) {
+ if (_mac1 == 2) {
+ if (local_10 == 0) {
+ this->GfxLayer[this->DAT_SomeTile] = sVar1 + _lum2Offset + -1
+ + (this->RandomLayer[this->DAT_SomeTile] & 7);
+ } else {
+ this->GfxLayer[this->DAT_SomeTile] = sVar1 + _lum2Offset + -1
+ + (this->RandomLayer[this->DAT_SomeTile] & 3);
+ }
+ } else {
+ sVar2 = (short)_mac3;
+ if (_mac1 == 4) {
+ this->GfxLayer[this->DAT_SomeTile] = sVar1 + local_3c
+ + (short)*(undefined4*)((this->mapOrientation / 2) * 0x40
+ + 0xb4a9a8 + _mac2 * 4)
+ + -1 + sVar2 * 4;
+ } else if (_mac1 == 8) {
+ this->GfxLayer[this->DAT_SomeTile] = sVar2 * 9 + 0xf + sVar1
+ + local_3c
+ + (short)*(undefined4*)((this->mapOrientation / 2) * 0x40
+ + 0xb4aaa8 + _mac2 * 4);
+ } else if (_mac1 == 0x10) {
+ this->GfxLayer[this->DAT_SomeTile] = (short)(_mac3 << 4) + 0x33
+ + sVar1 + local_3c
+ + (short)*(undefined4*)((this->mapOrientation / 2) * 64
+ + 0xb4aba8 + _mac2 * 4);
+ }
+ }
+ } else if (local_10 == 0) {
+ this->GfxLayer[this->DAT_SomeTile] = sVar1 + local_44 + -1
+ + (_lum - 3) * 4 + (this->RandomLayer[this->DAT_SomeTile] & 1);
+ } else if (local_10 == 2) {
+ this->GfxLayer[this->DAT_SomeTile] = sVar1 + local_34 + -1
+ + (_lum - 3) * 4 + (this->RandomLayer[this->DAT_SomeTile] & 3);
+ } else {
+ this->GfxLayer[this->DAT_SomeTile] = sVar1 + _lum2Offset + -1
+ + (_lum - 2) * 4 + (this->RandomLayer[this->DAT_SomeTile] & 3);
+ }
+ }
+ }
+ this->DAT_SomeX = this->DAT_SomeX + 1;
+ }
+ }
+ }
+ }
+ }
+ }
+ }
+ return;
+ }
+}
+}
+

@@ -1,0 +1,387 @@
+### 0x00508910 floodMoatUnderRemovedBuilding | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00508910
+ void TileMapState::floodMoatUnderRemovedBuilding(int param_1)
+ {
+ uint uVar1;
+ int iVar2;
+ uint xPosition;
+ uint yPosition;
+ int (*paiVar3)[25];
+ int buildingSizeTileIndex;
+ int targetedTile;
+ yPosition = (uint)(short)DAT_BuildingsState.buildings[param_1].y;
+ xPosition = (uint)(short)DAT_BuildingsState.buildings[param_1].x;
+ uVar1 = DAT_BuildingsState.buildings[param_1].widthOrHeight;
+ buildingSizeTileIndex = 0;
+ paiVar3 = DAT_TerrainDefinedData.DrawbridgeOrientationMapping
+ + (int)DAT_BuildingsState.buildings[param_1].buildingVariation / 2;
+ do {
+ getBuildingSizeIndexMappingData(
+ buildingSizeTileIndex, 5);
+ targetedTile = DAT_ViewportRenderState.translationMatrix[this->buildingY + yPosition].addXgetTile
+ + this->buildingX + xPosition;
+ if ((*paiVar3)[0] != 0) {
+ iVar2 = returnOwnedMoatAtTile(targetedTile);
+ if (iVar2 != 0) {
+ this->LogicLayer[targetedTile] = this->LogicLayer[targetedTile] | 1073741824;
+ setMoatVisualStateAtTile(targetedTile, 2);
+ }
+ }
+ buildingSizeTileIndex = buildingSizeTileIndex + 1;
+ paiVar3 = (int (*)[25])(*paiVar3 + 1);
+ } while (buildingSizeTileIndex < this->constructionTileCount);
+ updateBuildingGraphicsLayer(param_1);
+ updatePathLinkagesForBuilding(param_1);
+ updateWalkAndPathLayer(uVar1 + 6, xPosition, yPosition);
+ DAT_PathFindingState.toggleUpdateSeparateAreaTileMap = 1;
+ return;
+ }
+}
+}
+
+### 0x00508a00 renderPreviewMapperWithBrush | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00508A00
+ void TileMapState::renderPreviewMapperWithBrush(uint x, uint y, MappersEnum param_3)
+ {
+ uint uVar1;
+ uint y_00;
+ MappersEnum MVar2;
+ int baseTile;
+ BOOLEnum BVar3;
+ ushort _gfx;
+ int iVar4;
+ MVar2 = param_3;
+ y_00 = y;
+ if (399 < x) {
+ return;
+ }
+ if (399 < y) {
+ return;
+ }
+ if (*(char*)(y * 400 + 0x21aec98 + x) == '\0') {
+ return;
+ }
+ uVar1 = DAT_TerrainDefinedData.BrushSizeArray[this->editorActiveBrush];
+ baseTile = DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x;
+ if (param_3 == M_MAPPER_POND1) {
+ this->buildingPlacementFail = FALSE;
+ return;
+ }
+ if (param_3 == M_MAPPER_POND2_SMALL) {
+ this->buildingPlacementFail = FALSE;
+ return;
+ }
+ if (param_3 == M_MAPPER_POND3_LARGE1) {
+ this->buildingPlacementFail = FALSE;
+ return;
+ }
+ if (param_3 == M_MAPPER_POND4_LARGE2) {
+ this->buildingPlacementFail = FALSE;
+ return;
+ }
+ this->buildingPlacementFail = TRUE;
+ if (param_3 == M_MAPPER_SIGNPOST) {
+ this->buildingPlacementFail = TRUE;
+ return;
+ }
+ y = uVar1;
+ if (0x154 < (int)param_3) {
+ switchD_00508acb_caseD_5:
+ _gfx = 0x38;
+ goto LAB_00508b05;
+ }
+ if (param_3 == M_MAPPER_DUNES) {
+ switchD_00508acb_caseD_7:
+ _gfx = 0x3c;
+ } else {
+ switch (param_3) {
+ case M_MAPPER_SEA:
+ case M_MAPPER_SHALLOWS:
+ case M_MAPPER_RIVER:
+ case M_MAPPER_MARSH:
+ case M_MAPPER_DUGMOAT:
+ case M_MAPPER_MOAT:
+ _gfx = 0x39;
+ break;
+ default : goto switchD_00508acb_caseD_5;
+ case M_MAPPER_SCRUB:
+ case M_MAPPER_DIRT:
+ goto switchD_00508acb_caseD_7;
+ case M_MAPPER_BEACH:
+ case M_MAPPER_FORD:
+ _gfx = 0x3a;
+ break;
+ case M_MAPPER_ROCKY:
+ case M_MAPPER_STONES:
+ case M_MAPPER_BOULDERS:
+ case M_MAPPER_PEBBLES:
+ case M_MAPPER_IRON:
+ _gfx = 0x3b;
+ break;
+ case M_MAPPER_CHESTNUT:
+ case M_MAPPER_OAK:
+ case M_MAPPER_PINE:
+ case M_MAPPER_BIRCH:
+ case M_MAPPER_SHRUB1A:
+ case M_MAPPER_SHRUB1B:
+ case M_MAPPER_SHRUB1C:
+ case M_MAPPER_SHRUB1D:
+ case M_MAPPER_SHRUB1E:
+ case M_MAPPER_SHRUB2A:
+ case M_MAPPER_SHRUB2B:
+ case M_MAPPER_SHRUB2C:
+ case M_MAPPER_SHRUB2D:
+ case M_MAPPER_SHRUB2E:
+ case M_MAPPER_SHRUB3A:
+ case M_MAPPER_SHRUB3B:
+ case M_MAPPER_SHRUB3C:
+ case M_MAPPER_SHRUB3D:
+ case M_MAPPER_DEER:
+ case M_MAPPER_LION:
+ case M_MAPPER_RABBIT:
+ case M_MAPPER_CAMEL:
+ case M_MAPPER_CROW_SEAGULL:
+ case M_MAPPER_SEAGULL:
+ y = 1;
+ case M_MAPPER_RAISE:
+ case M_MAPPER_LOWER:
+ case M_MAPPER_EQUALISE:
+ case M_MAPPER_MOUNTAIN:
+ case M_MAPPER_HILL:
+ case M_MAPPER_DELETE:
+ _gfx = 0x3e;
+ break;
+ case M_MAPPER_UNDUGMOAT:
+ case M_MAPPER_OIL:
+ _gfx = 0x3d;
+ }
+ }
+ LAB_00508b05:
+ switch (param_3) {
+ case M_MAPPER_UNDUGMOAT:
+ case M_MAPPER_DUGMOAT:
+ case M_MAPPER_MOAT:
+ case M_MAPPER_ANTIMOAT:
+ if ((DAT_GameCore.gameMode_2 != GM_EDITOR)
+ && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT)) {
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ iVar4 = 0x1e;
+ param_3 = M_MAPPER_TOWER | M_MAPPER_RAISE;
+ } else {
+ iVar4 = 0xf;
+ param_3 = M_MAPPER_SCRUB;
+ }
+ BVar3 = isEnemyTooCloseUnk(DAT_GameSynchronyState.currentPlayerSlotID, x, y_00, iVar4);
+ if (BVar3 != FALSE) {
+ _gfx = 0x3e;
+ }
+ BVar3 = isSignPostWithinDistance(x, y_00, DAT_GameState.mapAndTime.unk_signpostDistance + 5);
+ if (BVar3 != FALSE) {
+ _gfx = 0x3e;
+ }
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ iVar4 = getCastleBuildRangeForMapSize();
+ iVar4
+ = isOpponentBuildingInRange(DAT_GameSynchronyState.currentPlayerSlotID,
+ x, y_00, param_3, -1, -1, iVar4 + 5);
+ if (iVar4 != 0) {
+ _gfx = 0x3e;
+ }
+ }
+ }
+ }
+ x = DAT_ViewportRenderState.translationMatrix[y_00].addXgetTile + x;
+ if ((((MVar2 == M_MAPPER_DUGMOAT) || (MVar2 == M_MAPPER_UNDUGMOAT))
+ || (MVar2 == M_MAPPER_MOAT))
+ || (MVar2 == M_MAPPER_ANTIMOAT)) {
+ iVar4 = 0;
+ param_3 = y_00;
+ do {
+ getTileForBrush(
+ 0, iVar4, (int*)&x, (int*)&param_3, baseTile, y_00);
+ iVar4 = iVar4 + 1;
+ this->ConstructionGFXLayer[x] = _gfx;
+ } while (iVar4 < 9);
+ } else {
+ iVar4 = 0;
+ param_3 = y_00;
+ if (0 < (int)y) {
+ do {
+ getTileForBrush(
+ 1, iVar4, (int*)&x, (int*)&param_3, baseTile, y_00);
+ iVar4 = iVar4 + 1;
+ this->ConstructionGFXLayer[x] = _gfx;
+ } while (iVar4 < (int)y);
+ return;
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x00508dd0 applyTreeBrushToLogicalLayer | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00508DD0
+ void TileMapState::applyTreeBrushToLogicalLayer(int treeID, int noVariation)
+ {
+ int _stageRelated;
+ uint _y;
+ int _tile;
+ int _tileIndex;
+ uint _yDest;
+ int _brushSize;
+ int _treeID;
+ _treeID = treeID;
+ _stageRelated = getValueFrom0UpTo3ForTreeTypeAndTreeStage((int)(short)DAT_LandscapeState.trees[treeID].treeType,
+ DAT_LandscapeState.trees[treeID].stage);
+ _brushSize = DAT_TerrainDefinedData.BrushSizeArray[_stageRelated];
+ _y = (uint)(short)DAT_LandscapeState.trees[_treeID].yPosition;
+ _tile = (int)(short)DAT_LandscapeState.trees[_treeID].xPosition
+ + DAT_ViewportRenderState.translationMatrix[_y].addXgetTile;
+ _tileIndex = 0;
+ /*
+ repurposed parameter
+ */
+ treeID = _tile;
+ _yDest = _y;
+ if (0 < _brushSize) {
+ do {
+ getTileForBrush(
+ 1, _tileIndex, &treeID, (int*)&_yDest, _tile, _y);
+ if ((this->LogicLayer[treeID] & L_BORDER) != 0)
+ break;
+ if ((this->LogicLayer[treeID] & L_SEA | L_MARSH | L_MOAT) == 0) {
+ if (noVariation == 0) {
+ this->LogicLayer[treeID] = this->LogicLayer[treeID] | 8192;
+ } else {
+ /*
+ clear L_TREE_VARIATION
+ */
+ this->LogicLayer[treeID] = this->LogicLayer[treeID] & 0xffffdfff;
+ }
+ }
+ _tileIndex = _tileIndex + 1;
+ } while (_tileIndex < _brushSize);
+ }
+ updateWalkAndPathLayer(7,
+ (uint)((int)((int)(short)DAT_LandscapeState.trees[_treeID].xPosition)),
+ (uint)((int)((int)(short)DAT_LandscapeState.trees[_treeID].yPosition)));
+ return;
+ }
+}
+}
+
+### 0x00508ec0 eraseAreaWithBrush | quelle=ghidra | bereich=Karte
+// FUNCTION: STRONGHOLDCRUSADER 0x00508EC0
+ void TileMapState::eraseAreaWithBrush(uint param_1, uint param_2, uint param_3)
+ {
+ short sVar1;
+ ushort uVar2;
+ int iVar3;
+ uint uVar4;
+ uint xPosition;
+ uint uVar5;
+ int iVar6;
+ uint baseTile;
+ int iVar7;
+ int local_4;
+ xPosition = param_1;
+ if (((param_1 < 400) && (param_2 < 400)) && (*(char*)(param_2 * 400 + 0x21aec98 + param_1) != '\0')) {
+ iVar3 = DAT_TerrainDefinedData.BrushSizeArray[param_3];
+ baseTile = DAT_ViewportRenderState.translationMatrix[param_2].addXgetTile + param_1;
+ iVar7 = 0;
+ param_3 = param_2;
+ param_1 = baseTile;
+ if (0 < iVar3) {
+ do {
+ getTileForBrush(
+ 1, iVar7, (int*)&param_1, (int*)&param_2, baseTile, param_3);
+ if ((this->LogicLayer[param_1] & L_BORDER | L_BORDER_EDGE) != 0)
+ break;
+ iVar6 = (int)this->OrganismLayer[param_1];
+ if (iVar6 != 0) {
+ if (iVar6 < 2000) {
+ removeTree(
+ iVar6);
+ iVar6 = 3;
+ } else {
+ removeRock(
+ iVar6 + -2000);
+ iVar6 = 8;
+ }
+ updateWalkAndPathLayer(iVar6, xPosition, param_2);
+ DAT_PathFindingState.toggleUpdateSeparateAreaTileMap = 1;
+ this->field204_0x554a30 = 1;
+ }
+ iVar7 = iVar7 + 1;
+ } while (iVar7 < iVar3);
+ }
+ param_2 = param_3;
+ local_4 = 0;
+ if (0 < iVar3) {
+ do {
+ getTileForBrush(
+ 1, local_4, (int*)&param_1, (int*)&param_2, baseTile, param_3);
+ uVar5 = param_2;
+ if ((this->LogicLayer[param_1] & L_BORDER | L_BORDER_EDGE) != 0)
+ break;
+ this->field151_0x554998 = 0;
+ validateBuildingPlacementAtTile(
+ 0, xPosition, param_2);
+ uVar4 = this->field131_0x554954;
+ if (this->buildingPlacementFail == FALSE) {
+ if (this->field151_0x554998 == 0) {
+ if (this->field131_0x554954 != 0xffffffff) {
+ sVar1 = DAT_BuildingsState.buildings[this->field131_0x554954].owner;
+ if ((this->field131_0x554954 == DAT_GameState.playerDataArray[sVar1].keep.id)
+ && (DAT_GameState.playerDataArray[sVar1].stockpile.id != 0)) {
+ this->showNoRubbleWhenDestroyingBuilding = 1;
+ MACRO_CALL_MEMBER(
+ destroyBuildingAndLinkedDuplicates,
+ DAT_BuildingsState)(
+ DAT_GameState.playerDataArray[sVar1].stockpile.id);
+ }
+ if ((DAT_BuildingsState.buildings[uVar4].buildingType
+ == BT_STOCKPILE)
+ && (DAT_GameState.playerDataArray[sVar1].keep.id != 0)) {
+ this->showNoRubbleWhenDestroyingBuilding = 1;
+ MACRO_CALL_MEMBER(
+ destroyBuildingAndLinkedDuplicates,
+ DAT_BuildingsState)(
+ DAT_GameState.playerDataArray[sVar1].keep.id);
+ }
+ this->showNoRubbleWhenDestroyingBuilding = 1;
+ destroyBuildingAndLinkedDuplicates(this->field131_0x554954);
+ }
+ } else {
+ spawnEraserTileEffect(0,
+ DAT_ViewportRenderState.translationMatrix[uVar5].addXgetTile
+ + xPosition);
+ }
+ }
+ local_4 = local_4 + 1;
+ } while (local_4 < iVar3);
+ }
+ iVar7 = 0;
+ param_2 = param_3;
+ if (0 < iVar3) {
+ do {
+ getTileForBrush(
+ 1, iVar7, (int*)&param_1, (int*)&param_2, baseTile, param_3);
+ if ((this->LogicLayer[param_1] & L_BORDER | L_BORDER_EDGE) != 0) {
+ return;
+ }
+ uVar2 = this->UnitLayer[param_1];
+ while (iVar6 = (int)(short)uVar2, iVar6 != 0) {
+ DAT_UnitsState.units[iVar6].logicalState = ULS_REMOVE;
+ uVar2 = DAT_UnitsState.units[iVar6].nextUnitOnTheSameTile;
+ }
+ iVar7 = iVar7 + 1;
+ } while (iVar7 < iVar3);
+ }
+ }
+ return;
+ }
+}
+}
+

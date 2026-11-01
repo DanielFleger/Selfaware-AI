@@ -1,0 +1,334 @@
+### 0x00434120 MenuItemActionHandler_InGameMenu_Scrolling | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00434120
+ void InGameMenu::MenuItemActionHandler_InGameMenu_Scrolling(int param_1, ...)
+ {
+ BOOLEnum _debugNumbersDisplayed;
+ int _scrollDistance;
+ _debugNumbersDisplayed = GetIfDisplayElementStateNotZero(
+ DEID_DEBUG_NUMBERS);
+ if (_debugNumbersDisplayed == FALSE) {
+ /*
+ This call uses the function to compute the needed numbers, but the given element state indicates to
+ not print the debug numbers. -TheRedDaemon
+ */
+ RenderDebugNumbersDisplayElement(0, 0, 0xfffffc18);
+ }
+ if (DAT_MouseState.selectionBoxMode != 0) {
+ return;
+ }
+ if (DAT_MouseState.rightClickState != FALSE) {
+ return;
+ }
+ _scrollDistance = getScrollDistanceBaseUnk();
+ if (_scrollDistance == 0) {
+ return;
+ }
+ if ((DAT_CurrentFramerate < (int)DAT_GameCore.gameSpeedLevel)
+ && (DAT_CurrentFramerate != 0)) {
+ _scrollDistance = (int)(DAT_GameCore.gameSpeedLevel * _scrollDistance)
+ / ((int)(DAT_GameCore.gameSpeedLevel - DAT_CurrentFramerate) / 2
+ + DAT_CurrentFramerate);
+ }
+ switch (DAT_ScrollingHandler.scrollDirection_0x4) {
+ case SD_UP:
+ DAT_ViewportRenderState.viewportState.viewportY
+ = DAT_ViewportRenderState.viewportState.viewportY - _scrollDistance;
+ break;
+ case SD_UP_RIGHT:
+ DAT_ViewportRenderState.viewportState.viewportY
+ = DAT_ViewportRenderState.viewportState.viewportY - _scrollDistance;
+ case SD_RIGHT:
+ DAT_ViewportRenderState.viewportState.viewportX
+ = DAT_ViewportRenderState.viewportState.viewportX + _scrollDistance;
+ break;
+ case SD_DOWN_RIGHT:
+ DAT_ViewportRenderState.viewportState.viewportY
+ = DAT_ViewportRenderState.viewportState.viewportY + _scrollDistance;
+ DAT_ViewportRenderState.viewportState.viewportX
+ = DAT_ViewportRenderState.viewportState.viewportX + _scrollDistance;
+ break;
+ case SD_DOWN:
+ DAT_ViewportRenderState.viewportState.viewportY
+ = DAT_ViewportRenderState.viewportState.viewportY + _scrollDistance;
+ break;
+ case SD_DOWN_LEFT:
+ DAT_ViewportRenderState.viewportState.viewportY
+ = DAT_ViewportRenderState.viewportState.viewportY + _scrollDistance;
+ case SD_LEFT:
+ switchD_004341a6_caseD_6:
+ DAT_ViewportRenderState.viewportState.viewportX
+ = DAT_ViewportRenderState.viewportState.viewportX - _scrollDistance;
+ break;
+ case SD_UP_LEFT:
+ DAT_ViewportRenderState.viewportState.viewportY
+ = DAT_ViewportRenderState.viewportState.viewportY - _scrollDistance;
+ goto switchD_004341a6_caseD_6;
+ }
+ setViewportBasedOnMapSize();
+ if (DAT_GameCore.gameMode_2 == GM_CRUSADER_TUTORIAL) {
+ RecordTutorialPlayerAction(1);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00434270 MenuItemActionHandler_InGameMenu_MiniMapInteraction | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00434270
+ void InGameMenu::MenuItemActionHandler_InGameMenu_MiniMapInteraction(int param_1, ...)
+ {
+ if ((param_1 == 2)
+ && ((DAT_GameCore.activeMenuTab.buildMenuTab == BMTT_SOLDIERS
+ || (DAT_TileMapState.shiftRelated0or3 != 1)))) {
+ DAT_StopHandlingMenuItems = 0;
+ } else if ((((DAT_TileMapState.currentMapperCommand != M_MAPPER_WALL)
+ && ((
+ (DAT_TileMapState.currentMapperCommand != M_MAPPER_WOODWALL
+ && (DAT_TileMapState.currentMapperCommand
+ != M_MAPPER_STAIR))
+ && (DAT_TileMapState.currentMapperCommand
+ != M_MAPPER_CRENAL))))
+ || (DAT_MouseState.leftClickState == FALSE))
+ && (DAT_MouseState.field31_0x94 == 0)) {
+ if (DAT_GameCore.isBinkVideoPlaying != 0) {
+ activateModalDialog(MMT_NONE, FALSE);
+ return;
+ }
+ if (DAT_BuildingsState.DAT_IsBuildingOrPeasantBinkPlaying == FALSE) {
+ DAT_00ed31d0 = 200;
+ scrollViewportToMinimapClick();
+ return;
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00434350 MenuItemActionHandler_InGameMenu_PeasantBuildAndRightClickMenuSelection | quelle=ghidra | bereich=Menue/Oberflaeche
+// FUNCTION: STRONGHOLDCRUSADER 0x00434350
+ void InGameMenu::MenuItemActionHandler_InGameMenu_PeasantBuildAndRightClickMenuSelection(int param_1, ...)
+ {
+ DWORD DVar1;
+ int iVar2;
+ BOOLEnum BVar3;
+ dword elementState;
+ if (DAT_GameSynchronyState.syncStatus != 0) {
+ return;
+ }
+ if (DAT_GameSynchronyState.saveRelated != 0) {
+ return;
+ }
+ if (((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)
+ && (DAT_GameSynchronyState.currentGameMode != GM_SKIRMISH_SINGLE_PLAYER))
+ && (DAT_00b960f8 != 0x42)) {
+ if (INT_00b960f0::instance == 0) {
+ DVar1 = timeGetTime();
+ INT_00b960f0::instance = DVar1 + 20000;
+ } else {
+ DVar1 = timeGetTime();
+ if (0x5dc < (int)(DVar1 - INT_00b960f0::instance)) {
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = DAT_00b960f8;
+ DAT_GameSynchronyState.DAT_GameCommandParam1
+ = DAT_GameSynchronyState.currentPlayerSlotID;
+ INT_00b960f0::instance = DVar1;
+ queueCommand(
+ GCT_UPDATE_LOBBY_FACE_BITMAPSPECIALTRANSMITLOGIC);
+ DAT_00b960f8 = DAT_00b960f8 + 1;
+ }
+ }
+ }
+ if (DAT_GameCore.gameMode_2 == GM_EDITOR) {
+ LAB_004344b0:
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_PEOPLE_LEFT_TO_PLACE,
+ (dword)((int)((uint)(0x8fb < (int)DAT_UnitsState.unitCount))));
+ } else if (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT) {
+ LAB_004344a8:
+ if (DAT_GameCore.gameMode_2 == GM_EDITOR)
+ goto LAB_004344b0;
+ } else if ((DAT_GameCore.gameMode_2 != GM_BUILDERUnk)
+ || (DAT_MapPropertiesState.SEC_U3_MapType2_1 != MT_SIEGE)) {
+ if (DAT_GameCore.currentMenuViewType == MVT_BUILD_MENU) {
+ iVar2 = getArmySize(
+ DAT_GameSynchronyState.currentPlayerSlotID);
+ if (iVar2 == 0) {
+ if (DAT_GameCore.activeMenuTab.buildMenuTab
+ == BMTT_CASTLE_KEEPS) {
+ if (DAT_GameCore.menuSwitchDelay == -1) {
+ iVar2 = singlePlayerHasKeepAndGranaryCheck();
+ if (iVar2 == 1) {
+ MACRO_CALL(
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay)(
+ DEID_KEEP_AND_GRANERY_PLACEMENT_INFO, 0);
+ DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType
+ = BASMTT_HUNTERSHUT;
+ switchToMenuView(MVT_BUILD_MENU, 0);
+ goto LAB_004344a8;
+ }
+ elementState = 1;
+ goto LAB_00434498;
+ }
+ } else if (DAT_GameCore.activeMenuTab.buildMenuTab == ((BuildMenuTabType)0x31))
+ goto LAB_00434497;
+ DAT_UIDragDropDefinedData.MenuView_TriggerInitial = TRUE;
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_KEEP_AND_GRANERY_PLACEMENT_INFO, 0);
+ } else if (DAT_GameCore.activeMenuTab.tabType
+ == BASMTT_UNUSED_WITCHHOIST) {
+ LAB_00434497:
+ elementState = 2;
+ LAB_00434498:
+ CheckDisplayElementByIDAndSetForUnlimitedDisplay(
+ DEID_KEEP_AND_GRANERY_PLACEMENT_INFO, (dword)((int)(elementState)));
+ DAT_UIDragDropDefinedData.MenuView_TriggerInitial = TRUE;
+ }
+ }
+ goto LAB_004344a8;
+ }
+ if (DAT_MouseState.mouseBasedEvent == 1) {
+ triggerLoweredView(3);
+ DAT_GameCore.field83_0x15c = 1;
+ if (DAT_GameCore.gameMode_2 != GM_CRUSADER_TUTORIAL)
+ goto LAB_004345e4;
+ iVar2 = 4;
+ } else if ((((DAT_MouseState.rightClickState == FALSE)
+ || (DAT_MouseState.mouseBasedEvent == 2))
+ && ((DAT_ModifierKeyState.ctrl == 0
+ || (DAT_ModifierKeyState.downArrow == 0))))
+ && (DAT_ModifierKeyState.v == 0)) {
+ triggerLoweredView(4);
+ if (DAT_GameCore.gameMode_2 != GM_CRUSADER_TUTORIAL)
+ goto LAB_004345e4;
+ iVar2 = 5;
+ } else if (DAT_MouseState.mouseBasedEvent == 3) {
+ setMapRotation(
+ DAT_MouseState.mapOrientationCopy3);
+ DAT_GameCore.field83_0x15c = 1;
+ if (DAT_GameCore.gameMode_2 != GM_CRUSADER_TUTORIAL)
+ goto LAB_004345e4;
+ iVar2 = 2;
+ } else if (DAT_MouseState.mouseBasedEvent == 4) {
+ DAT_MouseState.field51_0x198 = 2;
+ resetupViewport(
+ (uint)(DAT_ViewportRenderState.viewportState.isZoomedOutUnk == 0));
+ DAT_WindowAndDirectDraw.unk_resetViewportRelated = 2;
+ DAT_UIDragDropDefinedData.MenuView_TriggerInitial = TRUE;
+ DAT_GameCore.field83_0x15c = 1;
+ if (DAT_GameCore.gameMode_2 != GM_CRUSADER_TUTORIAL)
+ goto LAB_004345e4;
+ iVar2 = 3;
+ } else {
+ if (DAT_MouseState.mouseBasedEvent != 5)
+ goto LAB_004345e4;
+ DAT_MouseState.field52_0x19c = 2;
+ toggleFlatView(
+ DAT_TileMapState.flatViewToggleValue1 ^ 1);
+ DAT_GameCore.field83_0x15c = 1;
+ if (DAT_GameCore.gameMode_2 != GM_CRUSADER_TUTORIAL)
+ goto LAB_004345e4;
+ iVar2 = 0x11;
+ }
+ RecordTutorialPlayerAction(iVar2);
+ LAB_004345e4:
+ if (DAT_ViewportRenderState.viewportState.field0_0x0 == 0) {
+ if (DAT_MouseState.rightClickStart != 0) {
+ DAT_TileMapState.currentMapperCommand = M_MAPPER_NULL;
+ DAT_GameCore.field83_0x15c = 0;
+ }
+ storeXYAndResetMouseState();
+ return;
+ }
+ if (DAT_MouseState.rightClickStart == 0) {
+ if (((DAT_MouseState.rightClickStop != 0)
+ && (DAT_TileMapState.currentMapperCommand == M_MAPPER_MOAT))
+ && (DAT_GameCore.field83_0x15c == 0)) {
+ DAT_TileMapState.currentMapperCommand = M_MAPPER_NULL;
+ }
+ noop1(
+ DAT_ViewportRenderState.viewportState.mouseTile);
+ if (DAT_MouseState.leftClickState == FALSE) {
+ if (DAT_UnitsState
+ .unitCountOfSelection[DAT_GameSynchronyState.currentPlayerSlotID]
+ < 1) {
+ ProcessBuildingClickBonus(
+ DAT_ViewportRenderState.viewportState.mouseRayBuildingID);
+ }
+ if (DAT_MouseState.draggingStopped == FALSE) {
+ return;
+ }
+ if (DAT_TileMapState.currentMapperCommand != M_MAPPER_NULL) {
+ return;
+ }
+ } else if (DAT_TileMapState.currentMapperCommand != M_MAPPER_NULL) {
+ if ((DAT_MouseState.leftClickStart == 0)
+ && (DAT_ViewportRenderState.viewportState.field4_0x10
+ == DAT_ViewportRenderState.viewportState.mouseTile)) {
+ return;
+ }
+ DAT_ViewportRenderState.viewportState.field4_0x10
+ = DAT_ViewportRenderState.viewportState.mouseTile;
+ setupMouseTileXY();
+ return;
+ }
+ if (((((DAT_UnitsState
+ .unitCountOfSelection[DAT_GameSynchronyState.currentPlayerSlotID]
+ < 1)
+ && (DAT_UnitsState.totalUnitsInSelection < 1))
+ && ((DVar1 = timeGetTime(),
+ DAT_MouseState.draggingStopped != FALSE
+ && ((((DAT_MouseState.field31_0x94 == 0
+ && (DAT_MouseState._152_4_ == 0))
+ && (BVar3
+ = MACRO_CALL_MEMBER(
+ SelectUnitAndOpenStatusMenu,
+ AlphaAndButtonSurfaceObj::ptr)(
+ DAT_ViewportRenderState.viewportState.mouseRayUnitID),
+ BVar3 == FALSE))
+ && ((199 < (int)(DVar1
+ - DAT_ViewportRenderState.viewportState.field13_0x34)
+ || (BVar3
+ = MACRO_CALL_MEMBER(
+ SelectUnitAndOpenStatusMenu,
+ AlphaAndButtonSurfaceObj::ptr)(
+ DAT_ViewportRenderState.viewportState.mouseRayLastUnitID),
+ BVar3 == FALSE))))))))
+ && ((
+ BVar3 = openBuildingStatusMenuForBuildingID(
+ DAT_ViewportRenderState.viewportState.mouseRayBuildingID),
+ BVar3 == FALSE
+ && (((DAT_TileMapState.LogicLayer[DAT_ViewportRenderState
+ .viewportState.mouseAtomRefFloorTile]
+ & 2)
+ != 0
+ && ((DAT_TileMapState.WallOwnerLayer[DAT_ViewportRenderState
+ .viewportState.mouseAtomRefFloorTile]
+ & 7)
+ + 1
+ == DAT_GameSynchronyState.currentPlayerSlotID))))))
+ && (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .stockpile.id
+ != 0)) {
+ DAT_GameCore.buildingandstatusmenuMenuTabToSwitchTo = 0xb;
+ switchToMenuView(
+ MVT_BUILDING_AND_STATUS_MENU, 0);
+ DAT_BuildingsState.newSelectedUnitID = 0;
+ DAT_BuildingsState.newSelectedBuildingID
+ = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .stockpile.id;
+ return;
+ }
+ } else {
+ if (DAT_TileMapState.currentMapperCommand != M_MAPPER_MOAT) {
+ DAT_TileMapState.currentMapperCommand = M_MAPPER_NULL;
+ }
+ DAT_GameCore.field83_0x15c = 0;
+ }
+ return;
+ }
+ }
+}
+}
+

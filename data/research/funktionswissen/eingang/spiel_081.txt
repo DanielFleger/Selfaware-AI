@@ -1,0 +1,1146 @@
+### 0x00480710 AnnouncePlayerInformationSuchAsNameLordTypeAndAvailableAIVS | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x00480710
+ void Commands::AnnouncePlayerInformationSuchAsNameLordTypeAndAvailableAIVS()
+ {
+ char cVar1;
+ char* pcVar2;
+ char (*pacVar3)[250];
+ char (*pacVar4)[90];
+ bool bVar5;
+ int iVar6;
+ int _receivedCurrentPlayerSlotID;
+ int local_3f4;
+ int local_3f0;
+ WCHAR local_3ec[500];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)&_receivedCurrentPlayerSlotID;
+ DAT_GameSynchronyState.DAT_CommandSize = 0x250;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.currentPlayerSlotID, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameCore.lordIconUnk, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameCore.selectedLordTypeUnk, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ iVar6 = 0xfa;
+ /*
+ get player name?
+ */
+ pcVar2 = getTextArrayPointer(0);
+ multiByteToWideCharWithSize(local_3ec, (LPCSTR)((int)(pcVar2)), iVar6);
+ serializeOrDeserializeCommandParameter(local_3ec, 500, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(DAT_AIVState.aivFileAvailabilityPerAIArray, 0x50,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ ;
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(&_receivedCurrentPlayerSlotID, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&local_3f4, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(&local_3f0, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ if (_receivedCurrentPlayerSlotID != 0) {
+ serializeOrDeserializeCommandParameter(local_3ec, 500, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ wideCharToMultiByteWithSize(
+ DAT_GameSynchronyState.DAT_PlayerNames[_receivedCurrentPlayerSlotID],
+ (LPWSTR)((int)(local_3ec)), 0xfa);
+ serializeOrDeserializeCommandParameter(
+ DAT_GameSynchronyState.DAT_ReceivedAIVFileAvailabilityPerAIArray
+ + _receivedCurrentPlayerSlotID,
+ 0x50, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ pacVar3 = DAT_GameSynchronyState.DAT_PlayerNames + _receivedCurrentPlayerSlotID;
+ iVar6 = (_receivedCurrentPlayerSlotID * 0x5a + 0x1a26d2c) - (int)pacVar3;
+ do {
+ cVar1 = (*pacVar3)[0];
+ *(char*)((int)pacVar3 + iVar6) = cVar1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ DAT_GameSynchronyState.isIncludedPlayer[_receivedCurrentPlayerSlotID] = TRUE;
+ pcVar2 = getTextArrayPointer(0);
+ pacVar3 = DAT_GameSynchronyState.DAT_PlayerNames
+ + DAT_GameSynchronyState.currentPlayerSlotID;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ pacVar3 = DAT_GameSynchronyState.DAT_PlayerNames
+ + DAT_GameSynchronyState.currentPlayerSlotID;
+ pacVar4 = DAT_GameSynchronyState.finalResults.names
+ + DAT_GameSynchronyState.currentPlayerSlotID;
+ do {
+ cVar1 = (*pacVar3)[0];
+ (*pacVar4)[0] = cVar1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ pacVar4 = (char (*)[90])(*pacVar4 + 1);
+ } while (cVar1 != '\0');
+ bVar5 = DAT_GameSynchronyState.isHost != FALSE;
+ DAT_GameCore.lordIcons[_receivedCurrentPlayerSlotID] = local_3f4;
+ DAT_GameCore.selectedLordTypes[_receivedCurrentPlayerSlotID] = local_3f0;
+ if (bVar5) {
+ hostChecksLobbyAIVAvailability();
+ }
+ }
+ };
+ return;
+ }
+}
+}
+
+### 0x00486040 AddAIPlayer | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x00486040
+ void Commands::AddAIPlayer()
+ {
+ DAT_GameSynchronyState.DAT_CommandSize = 0xc;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.currentAIArray
+ + DAT_GameSynchronyState.DAT_GameCommandParam0,
+ 4, GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.aiVariationArray
+ + DAT_GameSynchronyState.DAT_GameCommandParam0,
+ 4, GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.currentAIArray
+ + DAT_GameSynchronyState.DAT_GameCommandParam0,
+ 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ serializeOrDeserializeCommandParameter(DAT_GameSynchronyState.aiVariationArray
+ + DAT_GameSynchronyState.DAT_GameCommandParam0,
+ 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState
+ .DAT_PlayerSlotArraySomeValue[DAT_GameSynchronyState.DAT_GameCommandParam0]
+ = (uint)(0 < DAT_GameSynchronyState
+ .currentAIArray[DAT_GameSynchronyState.DAT_GameCommandParam0]);
+ /*
+ arg = aiTypeMin1
+ */
+ PutPlayerIntoRandomSlot(
+ DAT_GameSynchronyState.DAT_GameCommandParam0);
+ }
+ return;
+ }
+}
+}
+
+### 0x00486320 ShareAIVHash | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x00486320
+ void Commands::ShareAIVHash()
+ {
+ DAT_GameSynchronyState.DAT_CommandSize = 0x200;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(DAT_AIVState.aivFileHash, 0x200,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ return;
+ }
+ if ((DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE)
+ && (DAT_GameSynchronyState.protocolInvokerPlayerID - 1U < 8)) {
+ serializeOrDeserializeCommandParameter(
+ DAT_AIVState.receivedAIVFileHash + DAT_GameSynchronyState.protocolInvokerPlayerID,
+ 0x200, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ }
+ return;
+ }
+}
+}
+
+### 0x0048bc90 ResyncAIZone | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x0048BC90
+ void Commands::ResyncAIZone()
+ {
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ DAT_GameSynchronyState.DAT_CommandSize = 0xf04;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(
+ DAT_AIVState.heatMaps + DAT_GameSynchronyState.DAT_GameCommandParam0, 0xf00,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if ((DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE)
+ && (DAT_GameSynchronyState.isHost == FALSE)) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_DESERIALIZE_FROM_PARAM1);
+ MemCopyFromParameter(
+ (char*)(DAT_AIVState.heatMaps + DAT_GameSynchronyState.DAT_GameCommandParam0),
+ (size_t)((int)(3840)), DAT_GameSynchronyState.DAT_GameCommandParam0);
+ }
+ return;
+ }
+}
+}
+
+### 0x0048ffd0 HostRemoveAIPlayerBySlotID | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x0048FFD0
+ void Commands::HostRemoveAIPlayerBySlotID()
+ {
+ int local_4;
+ DAT_GameSynchronyState.DAT_GameCommandArray[DAT_GameSynchronyState.DAT_CurrentGameCommandID]
+ .time = 0;
+ DAT_GameSynchronyState.DAT_CommandSize = 4;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ DAT_GameSynchronyState.DAT_CommandActionPlan = GCS_EXECUTE;
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 4,
+ GCPL_FIXED_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if ((DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE)
+ && (DAT_GameSynchronyState.isHost == FALSE)) {
+ serializeOrDeserializeCommandParameter(&local_4, 4, GCPL_FIXED_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.currentAIArray[local_4] = 0;
+ RemovePositionOfPlayer(local_4);
+ reorderTeamsAndPositions();
+ }
+ return;
+ }
+}
+}
+
+### 0x004ae7c0 clearHoveredAI | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004AE7C0
+ void Helpers::ClearLobbyHoveredAI()
+ {
+ DAT_LobbyAddAICurrentlyHoveredAI = 0;
+ return;
+ }
+}
+}
+
+### 0x004d9290 Skirmish_SortAIOpponentOrder | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x004D9290
+ void Skirmish::Skirmish_SortAIOpponentOrder(int reverseOrder)
+ {
+ int iVar1;
+ int iVar2;
+ int iVar3;
+ uint* puVar4;
+ int iVar5;
+ uint* puVar6;
+ uint visitedBitMap[251];
+ _memset(visitedBitMap + 1, 0, 1000);
+ iVar2 = DAT_00eb9b60;
+ iVar5 = 0;
+ /*
+ sort by score
+ */
+ if (0 < DAT_00eb9b60) {
+ do {
+ iVar3 = -1;
+ iVar1 = 0;
+ do {
+ if ((visitedBitMap[iVar1 + 1] == 0)
+ && ((iVar3 == -1 || (visitedBitMap[0] < (uint)INT_ARRAY_00ed2be0::instance[iVar1])))) {
+ visitedBitMap[0] = INT_ARRAY_00ed2be0::instance[iVar1];
+ iVar3 = iVar1;
+ }
+ iVar1 = iVar1 + 1;
+ } while (iVar1 < iVar2);
+ if (iVar3 < 0) {
+ iVar3 = 0;
+ }
+ INT_ARRAY_00eb96d8::instance[iVar5] = INT_ARRAY_00ed27f0::instance[iVar3];
+ iVar5 = iVar5 + 1;
+ visitedBitMap[iVar3 + 1] = 1;
+ } while (iVar5 < iVar2);
+ }
+ /*
+ bubble sort
+ */
+ if (((DAT_MissionDefinedData.sortColumn == 2) && (1 < iVar2)) && (DAT_00ed3124 != 1)) {
+ iVar5 = 0;
+ while (true) {
+ iVar1 = 0;
+ iVar3 = 1;
+ if (iVar2 < 2)
+ break;
+ do {
+ iVar2 = __stricmp(
+ DAT_SkMasters2DataArray[*(int*)(DAT_ArrayOfStoredMenuStrings[0x20]
+ + iVar3 * 4 + 0x3fc)]
+ .mapName,
+ (CHAR_CONST*)((
+ int)(DAT_SkMasters2DataArray[INT_ARRAY_00eb96d8::instance[iVar3]].mapName)));
+ if (0 < iVar2) {
+ iVar2 = INT_ARRAY_00eb96d8::instance[iVar3];
+ INT_ARRAY_00eb96d8::instance[iVar3]
+ = *(int*)(DAT_ArrayOfStoredMenuStrings[0x20] + iVar3 * 4 + 0x3fc);
+ *(int*)(DAT_ArrayOfStoredMenuStrings[0x20] + iVar3 * 4 + 0x3fc) = iVar2;
+ iVar1 = iVar1 + 1;
+ }
+ iVar3 = iVar3 + 1;
+ } while (iVar3 < DAT_00eb9b60);
+ iVar2 = DAT_00eb9b60;
+ if ((iVar1 == 0) || (iVar5 = iVar5 + 1, 0x9c3 < iVar5))
+ break;
+ }
+ }
+ /*
+ reverse order
+ */
+ if (reverseOrder == 0) {
+ puVar4 = visitedBitMap;
+ iVar5 = 0;
+ puVar6 = (uint*)INT_ARRAY_00eb96d8::instance;
+ for (iVar3 = 0xfa; puVar4 = (uint*)((int)puVar4 + 4), iVar3 != 0; iVar3 = iVar3 + -1) {
+ *puVar4 = *puVar6;
+ puVar6 = puVar6 + 1;
+ }
+ if (0 < iVar2) {
+ puVar4 = visitedBitMap + iVar2;
+ do {
+ INT_ARRAY_00eb96d8::instance[iVar5] = *puVar4;
+ iVar5 = iVar5 + 1;
+ puVar4 = puVar4 + -1;
+ } while (iVar5 < iVar2);
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x0042a8e0 SetAIPlayerNickNames | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x0042A8E0
+void Synchrony::SetAIPlayerNickNames()
+{
+ char cVar1;
+ char* pcVar2;
+ char (*pacVar3)[250];
+ GameSynchronyState* piVar4;
+ char (*pacVar4)[250];
+ pacVar4 = DAT_GameSynchronyState.DAT_PlayerNames;
+ piVar4 = (GameSynchronyState*)(&DAT_GameSynchronyState.aiVariationArray + 1);
+ do {
+ pacVar4 = pacVar4 + 1;
+ if ((piVar4->currentPlayerFullIDArray[1] == -1) && (piVar4->currentAIArray[1] != 0)) {
+ switch (piVar4->currentAIArray[1]) {
+ case 1:
+ /*
+ AI Nicknames: rat
+ */
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0x6f);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 2:
+ /*
+ AI Nicknames: snake
+ */
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0x77);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 3:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0x7f);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 4:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0x87);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 5:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0x8f);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 6:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0x97);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 7:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0x9f);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 8:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0xa7);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 9:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0xaf);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 10:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0xb7);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 0xb:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0xbf);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 0xc:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 199);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 0xd:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0xcf);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 0xe:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0xd7);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 0xf:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0xdf);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ break;
+ case 0x10:
+ pcVar2 = getTextStringInGroupAtOffset(
+ TEXT_XPLAY_WAITING_ROOM, piVar4->aiVariationArray[1] + 0xe7);
+ pacVar3 = pacVar4;
+ do {
+ cVar1 = *pcVar2;
+ (*pacVar3)[0] = cVar1;
+ pcVar2 = pcVar2 + 1;
+ pacVar3 = (char (*)[250])(*pacVar3 + 1);
+ } while (cVar1 != '\0');
+ }
+ }
+ piVar4 = (GameSynchronyState*)(piVar4->aiVariationArray + 2);
+ } while ((int)piVar4 < 0x191dec4);
+ return;
+}
+}
+
+### 0x00518130 clearAttackInfo | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x00518130
+ void TroopValueState::clearAttackInfo()
+ {
+ fillMemory_IntegerValue(
+ 1062748, 0, (void*)((int)(&this->attackInfo)));
+ this->attackInfo.nof_fpoints = 0;
+ this->attackInfo.field127522_0x2b574 = 0;
+ this->attackInfo.field105440_0x25b00 = 0;
+ this->attackInfo.field128056_0x469d4 = 0;
+ this->attackInfo.tilemapOffset = 0;
+ this->attackInfo.inv_count = 1;
+ this->attackInfo.aiTroops = -1;
+ return;
+ }
+ }
+}
+}
+
+### 0x00518180 initializeAttackWaveSlot | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x00518180
+ void TroopValueState::initializeAttackWaveSlot(int param_1, int param_2)
+ {
+ int iVar1;
+ int iVar2;
+ this->attackInfo.value3Array01[param_1] = 0;
+ this->attackInfo.attackWaveTicker[param_1] = 0;
+ this->attackInfo.someIntArray2[param_1 + -1] = 0;
+ fillMemory_ByteValue(
+ 10, '\0', (void*)((int)(this->attackInfo.someSinglePlayerScore + param_1)));
+ this->attackInfo.field127522_0x2b574 = 0;
+ this->attackInfo.counter = 0x10;
+ this->attackInfo._134656_4_ = 0xffffffff;
+ this->attackInfo.field128057_0x469d8 = 0;
+ this->attackInfo.field128059_0x469e0 = 0;
+ this->attackInfo.field128058_0x469dc = 0;
+ this->attackInfo.playerInfo[0].field22_0x3ea4 = 0;
+ this->attackInfo.playerInfo[0]._16040_4_ = 0;
+ this->attackInfo.playerInfo[1].field22_0x3ea4 = 0;
+ this->attackInfo.playerInfo[1]._16040_4_ = 0;
+ this->attackInfo.playerInfo[2].field22_0x3ea4 = 0;
+ this->attackInfo.playerInfo[2]._16040_4_ = 0;
+ this->attackInfo.playerInfo[3].field22_0x3ea4 = 0;
+ this->attackInfo.playerInfo[3]._16040_4_ = 0;
+ this->attackInfo.playerInfo[4].field22_0x3ea4 = 0;
+ this->attackInfo.playerInfo[4]._16040_4_ = 0;
+ this->attackInfo.playerInfo[5].field22_0x3ea4 = 0;
+ this->attackInfo.playerInfo[5]._16040_4_ = 0;
+ this->attackInfo.playerInfo[6].field22_0x3ea4 = 0;
+ this->attackInfo.playerInfo[6]._16040_4_ = 0;
+ this->attackInfo.playerInfo[7].field22_0x3ea4 = 0;
+ this->attackInfo.playerInfo[7]._16040_4_ = 0;
+ iVar1 = pickRandomAccessibleSignpostEntry();
+ iVar2 = countActiveSignposts();
+ if ((param_2 <= iVar2) && (param_2 != 0)) {
+ (&this->attackInfo.unknownSignpostRelatedArray)[param_1] = param_2 + -1;
+ this->attackInfo.field128056_0x469d4 = param_2 + -1;
+ return;
+ }
+ (&this->attackInfo.unknownSignpostRelatedArray)[param_1] = iVar1;
+ this->attackInfo.field128056_0x469d4 = iVar1;
+ return;
+ }
+ }
+}
+}
+
+### 0x005182a0 searchTribeWithProperties | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x005182A0
+ BOOLEnum TroopValueState::searchTribeWithProperties(int param_1)
+ {
+ Tribe* piVar1;
+ int _tribeID;
+ int _owner;
+ if (this->attackInfo.nof_tribes[param_1] == 0) {
+ return FALSE;
+ }
+ _tribeID = 1;
+ piVar1 = &DAT_TribesState.tribes[1];
+ while (((piVar1->tribeState != 2 || (piVar1->owner == 0))
+ || (piVar1->owner == DAT_GameSynchronyState.currentPlayerSlotID))) {
+ piVar1 = piVar1 + 0xcd;
+ _tribeID = _tribeID + 1;
+ if (0x176238b < (int)piVar1) {
+ LAB_005182f7:
+ this->attackInfo.nof_tribes[param_1] = 0;
+ this->attackInfo.unknownByteArray02[param_1] = 0;
+ return FALSE;
+ }
+ }
+ _owner = DAT_TribesState.tribes[_tribeID].owner;
+ if (_owner != 0) {
+ this->attackInfo.attackWavePlayerIDArray[param_1] = (byte)_owner;
+ this->attackInfo.attacker = (int)(char)(byte)_owner;
+ this->attackInfo.attackWaveTicker[param_1] = 10000;
+ this->attackInfo.value3Array01[param_1] = 3;
+ this->attackInfo.value10 = 10;
+ return TRUE;
+ }
+ goto LAB_005182f7;
+ }
+ }
+}
+}
+
+### 0x00518350 isAttackWaveComplete | quelle=nachgebaut | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x00518350
+ BOOLEnum TroopValueState::isAttackWaveComplete()
+ {
+ for (int i = 0; i < 50; ++i) {
+ if (DAT_TroopValueState.attackInfo.nof_tribes[i] != 0
+ && DAT_TroopValueState.attackInfo.value3Array01[i] != 6) {
+ return FALSE;
+ }
+ }
+ return TRUE;
+ }
+ }
+}
+}
+
+### 0x00518380 sortAttackInfoTribeIDArrayBasedOn | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x00518380
+ void TroopValueState::sortAttackInfoTribeIDArrayBasedOn(
+ int attackWave, int shrinkSize, int tribeSizeSumLimit, SomeTribeBehaviorType someTribeTypeIdentifier)
+ {
+ int iVar1;
+ Tribe* psVar1;
+ int* piVar2;
+ int iVar3;
+ int _currentTribeType;
+ int _nextValue;
+ int _lookupValue3;
+ int _tribeID;
+ int _currentValue;
+ int _tribeType;
+ int _tribeSizeSum;
+ int _index;
+ int _nextTribeType;
+ int _counter2;
+ int _index2;
+ bool bVar4;
+ int _current;
+ int _next;
+ bool _swapped;
+ if (someTribeTypeIdentifier == 1010) {
+ someTribeTypeIdentifier = 0xb4c920;
+ } else if (someTribeTypeIdentifier == 1011) {
+ someTribeTypeIdentifier = 0xb4cb50;
+ } else if (someTribeTypeIdentifier == 1012) {
+ someTribeTypeIdentifier = 0xb4ca60;
+ } else if (someTribeTypeIdentifier == 1018) {
+ someTribeTypeIdentifier = 0xb4cbf0;
+ } else if (someTribeTypeIdentifier == 1040) {
+ someTribeTypeIdentifier = 0xb4cab0;
+ } else if (someTribeTypeIdentifier == 1045) {
+ someTribeTypeIdentifier = 0xb4cb00;
+ } else if (someTribeTypeIdentifier == 7) {
+ someTribeTypeIdentifier = 0xb4c830;
+ } else {
+ if (someTribeTypeIdentifier != 5) {
+ if (someTribeTypeIdentifier == 1014) {
+ someTribeTypeIdentifier = 0xb4c970;
+ goto LAB_005185a9;
+ }
+ if (someTribeTypeIdentifier == 1047) {
+ someTribeTypeIdentifier = 0xb4d0a0;
+ goto LAB_005185a9;
+ }
+ if (someTribeTypeIdentifier == 1043) {
+ someTribeTypeIdentifier = 0xb4c9c0;
+ goto LAB_005185a9;
+ }
+ if (someTribeTypeIdentifier == 1044) {
+ someTribeTypeIdentifier = 0xb4ca10;
+ goto LAB_005185a9;
+ }
+ if (someTribeTypeIdentifier == 1013) {
+ someTribeTypeIdentifier = 0xb4cc40;
+ goto LAB_005185a9;
+ }
+ if (someTribeTypeIdentifier == 1019) {
+ someTribeTypeIdentifier = 0xb4cc90;
+ goto LAB_005185a9;
+ }
+ if (someTribeTypeIdentifier == 1025) {
+ someTribeTypeIdentifier = 0xb4cce0;
+ goto LAB_005185a9;
+ }
+ if (someTribeTypeIdentifier == 1021) {
+ someTribeTypeIdentifier = 0xb4cd30;
+ goto LAB_005185a9;
+ }
+ if (someTribeTypeIdentifier == 1046) {
+ someTribeTypeIdentifier = 0xb4cd80;
+ goto LAB_005185a9;
+ }
+ if (someTribeTypeIdentifier == 1020) {
+ someTribeTypeIdentifier = 0xb4cec0;
+ goto LAB_005185a9;
+ }
+ if (someTribeTypeIdentifier == 1049) {
+ someTribeTypeIdentifier = 0xb4cf10;
+ goto LAB_005185a9;
+ }
+ if (someTribeTypeIdentifier == 1050) {
+ someTribeTypeIdentifier = 0xb4ce20;
+ goto LAB_005185a9;
+ }
+ if (someTribeTypeIdentifier == 1051) {
+ someTribeTypeIdentifier = 0xb4ce20;
+ goto LAB_005185a9;
+ }
+ if (someTribeTypeIdentifier == 1048) {
+ someTribeTypeIdentifier = 0xb4cf60;
+ goto LAB_005185a9;
+ }
+ if (someTribeTypeIdentifier == 1054) {
+ someTribeTypeIdentifier = 0xb4d000;
+ goto LAB_005185a9;
+ }
+ if (someTribeTypeIdentifier == 1042) {
+ someTribeTypeIdentifier = 0xb4cfb0;
+ goto LAB_005185a9;
+ }
+ if (someTribeTypeIdentifier == 1016) {
+ someTribeTypeIdentifier = 0xb4cdd0;
+ goto LAB_005185a9;
+ }
+ if (someTribeTypeIdentifier == 1017) {
+ someTribeTypeIdentifier = 0xb4ce70;
+ goto LAB_005185a9;
+ }
+ if (someTribeTypeIdentifier == 1015) {
+ someTribeTypeIdentifier = 0xb4cba0;
+ goto LAB_005185a9;
+ }
+ if (someTribeTypeIdentifier == 1041) {
+ someTribeTypeIdentifier = 0xb4d050;
+ goto LAB_005185a9;
+ }
+ bVar4 = someTribeTypeIdentifier == 1023;
+ someTribeTypeIdentifier = 0xb4c8d0;
+ if (bVar4)
+ goto LAB_005185a9;
+ }
+ someTribeTypeIdentifier = 0xb4c880;
+ }
+ LAB_005185a9:
+ piVar2 = this->attackInfo.tribeRelatedArrayValue0UpTo12;
+ do {
+ piVar2[-100] = 0;
+ *piVar2 = 0xc;
+ piVar2 = piVar2 + 1;
+ } while ((int)piVar2 < 0x17a9b98);
+ _index = 0;
+ _tribeID = 1;
+ this->attackInfo.tribeIDArraySize = 0;
+ psVar1 = &DAT_TribesState.tribes[1];
+ do {
+ if (((((psVar1->tribeState != 0) && (psVar1->tribeState != 3))
+ && (DAT_GameSynchronyState.currentPlayerFullIDArray[psVar1->owner] == -1))
+ && ((psVar1->attackWave == attackWave
+ && (psVar1->attackInfo_someCounter1 != this->attackInfo.someCounter1))))
+ && ((psVar1->tribeBehaviorType != 1040 && (psVar1->tribeBehaviorType != 1045)))) {
+ this->attackInfo.tribeIDArray[_index] = _tribeID;
+ _index = this->attackInfo.tribeIDArraySize + 1;
+ this->attackInfo.tribeIDArraySize = _index;
+ }
+ psVar1 = psVar1 + 0x19a;
+ _tribeID = _tribeID + 1;
+ } while ((int)psVar1 < 0x17623a0);
+ if ((0 < shrinkSize) && (0 < tribeSizeSumLimit)) {
+ do {
+ /*
+ This is a sorting algorithm
+ */
+ _index2 = 0;
+ _swapped = false;
+ if (_index + -1 < 1)
+ break;
+ do {
+ _current = this->attackInfo.tribeIDArray[_index2];
+ _next = this->attackInfo.tribeIDArray[_index2 + 1];
+ _currentTribeType = (int)(short)DAT_TribesState.tribes[_current].tribeType;
+ _nextTribeType = (int)(short)DAT_TribesState.tribes[_next].tribeType;
+ _currentValue = 0;
+ piVar2 = (int*)(someTribeTypeIdentifier + STBT_8);
+ do {
+ if (piVar2[-2] == _currentTribeType)
+ break;
+ if (piVar2[-1] == _currentTribeType) {
+ _currentValue = _currentValue + 1;
+ break;
+ }
+ if (*piVar2 == _currentTribeType) {
+ _currentValue = _currentValue + 2;
+ break;
+ }
+ if (piVar2[1] == _currentTribeType) {
+ _currentValue = _currentValue + 3;
+ break;
+ }
+ if (piVar2[2] == _currentTribeType) {
+ _currentValue = _currentValue + 4;
+ break;
+ }
+ if (piVar2[3] == _currentTribeType) {
+ _currentValue = _currentValue + 5;
+ break;
+ }
+ _currentValue = _currentValue + 6;
+ piVar2 = piVar2 + 6;
+ } while (_currentValue < 12);
+ _nextValue = 0;
+ piVar2 = (int*)(someTribeTypeIdentifier + STBT_8);
+ do {
+ if (piVar2[-2] == _nextTribeType)
+ break;
+ if (piVar2[-1] == _nextTribeType) {
+ _nextValue = _nextValue + 1;
+ break;
+ }
+ if (*piVar2 == _nextTribeType) {
+ _nextValue = _nextValue + 2;
+ break;
+ }
+ if (piVar2[1] == _nextTribeType) {
+ _nextValue = _nextValue + 3;
+ break;
+ }
+ if (piVar2[2] == _nextTribeType) {
+ _nextValue = _nextValue + 4;
+ break;
+ }
+ if (piVar2[3] == _nextTribeType) {
+ _nextValue = _nextValue + 5;
+ break;
+ }
+ _nextValue = _nextValue + 6;
+ piVar2 = piVar2 + 6;
+ } while (_nextValue < 0xc);
+ if (_nextValue < _currentValue) {
+ _swapped = true;
+ this->attackInfo.tribeIDArray[_index2] = _next;
+ this->attackInfo.tribeIDArray[_index2 + 1] = _current;
+ }
+ _index2 = _index2 + 1;
+ } while (_index2 < this->attackInfo.tribeIDArraySize + -1);
+ _index = this->attackInfo.tribeIDArraySize;
+ } while (_swapped);
+ _counter2 = 0;
+ if (0 < _index) {
+ do {
+ _tribeType
+ = (int)(short)DAT_TribesState.tribes[this->attackInfo.tribeIDArray[_counter2]]
+ .tribeType;
+ _lookupValue3 = 0;
+ piVar2 = (int*)(someTribeTypeIdentifier + STBT_8);
+ do {
+ if (piVar2[-2] == _tribeType)
+ break;
+ if (piVar2[-1] == _tribeType) {
+ _lookupValue3 = _lookupValue3 + 1;
+ break;
+ }
+ if (*piVar2 == _tribeType) {
+ _lookupValue3 = _lookupValue3 + 2;
+ break;
+ }
+ if (piVar2[1] == _tribeType) {
+ _lookupValue3 = _lookupValue3 + 3;
+ break;
+ }
+ if (piVar2[2] == _tribeType) {
+ _lookupValue3 = _lookupValue3 + 4;
+ break;
+ }
+ if (piVar2[3] == _tribeType) {
+ _lookupValue3 = _lookupValue3 + 5;
+ break;
+ }
+ _lookupValue3 = _lookupValue3 + 6;
+ piVar2 = piVar2 + 6;
+ } while (_lookupValue3 < 0xc);
+ this->attackInfo.tribeRelatedArrayValue0UpTo12[_counter2] = _lookupValue3;
+ _counter2 = _counter2 + 1;
+ _index = this->attackInfo.tribeIDArraySize;
+ } while (_counter2 < this->attackInfo.tribeIDArraySize);
+ }
+ _tribeSizeSum = 0;
+ iVar3 = 0;
+ if (0 < _index) {
+ do {
+ iVar1 = this->attackInfo.tribeIDArray[iVar3];
+ if (tribeSizeSumLimit < _tribeSizeSum) {
+ this->attackInfo.tribeRelatedArrayValue0UpTo12[iVar3] = 0xc;
+ _index = this->attackInfo.tribeIDArraySize;
+ }
+ iVar3 = iVar3 + 1;
+ _tribeSizeSum = _tribeSizeSum + DAT_TribesState.tribes[iVar1].size;
+ } while (iVar3 < _index);
+ }
+ if (shrinkSize < _index) {
+ this->attackInfo.tribeIDArraySize = shrinkSize;
+ }
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00518870 applyTribeBehaviorTypes | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x00518870
+ void TroopValueState::applyTribeBehaviorTypes(
+ SomeTribeBehaviorType tribeBehaviorType, SomeTribeBehaviorType tribeBehaviorType2, int off1, int off2)
+ {
+ short sVar1;
+ int _index;
+ int iVar2;
+ int _size;
+ int _tribeID;
+ iVar2 = 0;
+ _index = 0;
+ this->attackInfo.unknownTribeCounterRelated = 0;
+ if (0 < this->attackInfo.tribeIDArraySize) {
+ do {
+ _tribeID = this->attackInfo.tribeIDArray[_index];
+ if (this->attackInfo.tribeRelatedArrayValue0UpTo12[_index] < 11) {
+ DAT_TribesState.tribes[_tribeID].someUpdateUpperLimit
+ = ((short)_index + 1) * (short)off2 + (short)off1;
+ sVar1 = (short)this->attackInfo.someCounter1;
+ DAT_TribesState.tribes[_tribeID].someCounter1 = (short)iVar2;
+ iVar2 = iVar2 + 1;
+ DAT_TribesState.tribes[_tribeID].tribeBehaviorType
+ = (SomeTribeBehaviorTypeShort)tribeBehaviorType;
+ DAT_TribesState.tribes[_tribeID].attackInfo_someCounter1 = sVar1;
+ this->attackInfo.unknownTribeCounterRelated = iVar2;
+ } else if (tribeBehaviorType2 != ((SomeTribeBehaviorType)0)) {
+ DAT_TribesState.tribes[_tribeID].tribeBehaviorType
+ = (SomeTribeBehaviorTypeShort)tribeBehaviorType2;
+ }
+ _size = this->attackInfo.tribeIDArraySize;
+ _index = _index + 1;
+ DAT_TribesState.tribes[_tribeID].unknownAttackRelatedUpdateCounter = 0;
+ } while (_index < _size);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00518930 assignBehaviorTypeToNearbyTribes | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x00518930
+ void TroopValueState::assignBehaviorTypeToNearbyTribes(
+ SomeTribeBehaviorType param_1, undefined4 param_2, short param_3, short param_4)
+ {
+ int iVar1;
+ int iVar2;
+ int iVar3;
+ iVar3 = 0;
+ this->attackInfo.unknownTribeCounterRelated = 0;
+ if (0 < this->attackInfo.tribeIDArraySize) {
+ do {
+ iVar1 = this->attackInfo.tribeIDArray[iVar3];
+ if ((this->attackInfo.tribeRelatedArrayValue0UpTo12[iVar3] < 0xb)
+ && (iVar2 = MACRO_CALL_MEMBER(
+ calculateCanPlayerUnitsNavigateToAreaFromArea,
+ DAT_PathFindingState)(DAT_TribesState.tribes[iVar1].owner,
+ (dword)((int)((
+ int)(short)DAT_TileMapState.PathConnectionLayer[DAT_UnitsState
+ .units[DAT_TribesState.tribes[iVar1].selectionTargetUnitID]
+ .tile])),
+ (dword)((int)(this->attackInfo.someArea)), 1),
+ iVar2 != 0)) {
+ DAT_TribesState.tribes[iVar1].attackInfo_someCounter1
+ = (short)this->attackInfo.someCounter1;
+ DAT_TribesState.tribes[iVar1].someCounter1
+ = (short)this->attackInfo.unknownTribeCounterRelated;
+ this->attackInfo.unknownTribeCounterRelated = this->attackInfo.unknownTribeCounterRelated + 1;
+ DAT_TribesState.tribes[iVar1].someUpdateUpperLimit
+ = ((short)iVar3 + 1) * param_4 + param_3;
+ DAT_TribesState.tribes[iVar1].tribeBehaviorType = (undefined2)param_1;
+ if (4 < this->attackInfo.unknownTribeCounterRelated) {
+ return;
+ }
+ }
+ iVar2 = this->attackInfo.tribeIDArraySize;
+ iVar3 = iVar3 + 1;
+ DAT_TribesState.tribes[iVar1].unknownAttackRelatedUpdateCounter = 0;
+ } while (iVar3 < iVar2);
+ }
+ return;
+ }
+ }
+}
+}
+
+### 0x00518a10 assignBehaviorTypeAndLinkSupportTribe | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x00518A10
+ void TroopValueState::assignBehaviorTypeAndLinkSupportTribe(
+ int param_1, int param_2, SomeTribeBehaviorType param_3, undefined4 param_4, undefined4 param_5)
+ {
+ int iVar1;
+ int iVar2;
+ short* psVar3;
+ int iVar4;
+ if (param_2 < 1) {
+ param_2 = 2;
+ }
+ psVar3 = &DAT_TribesState.tribes[1].tribeID;
+ do {
+ if (*(int*)(psVar3 + -0xfa) == param_2) {
+ *psVar3 = 0;
+ }
+ psVar3 = psVar3 + 0x19a;
+ } while ((int)psVar3 < 0x1762580);
+ iVar4 = 0;
+ if (this->attackInfo.tribeIDArraySize < 1) {
+ return;
+ }
+ LAB_00518a50:
+ iVar1 = this->attackInfo.tribeIDArray[iVar4];
+ if (10 < this->attackInfo.tribeRelatedArrayValue0UpTo12[iVar4]) {
+ return;
+ }
+ iVar2 = (int)DAT_TribesState.tribes[iVar1].field56_0x1f2;
+ if ((iVar2 != 0)
+ && (DAT_TribesState.tribes[iVar1].uid2 == DAT_TribesState.tribes[iVar2].uid)) {
+ return;
+ }
+ DAT_TribesState.tribes[iVar1].tribeBehaviorType = (undefined2)param_3;
+ DAT_TribesState.tribes[iVar1].someUpdateUpperLimit
+ = ((short)iVar4 + 1) * (short)param_5 + (short)param_4;
+ DAT_TribesState.tribes[iVar1].attackInfo_someCounter1 = (short)this->attackInfo.someCounter1;
+ DAT_TribesState.tribes[iVar1].unknownAttackRelatedUpdateCounter = 0;
+ iVar2 = 1;
+ psVar3 = &DAT_TribesState.tribes[1].tribeState;
+ do {
+ if (((((*psVar3 != 0) && (*psVar3 != 3))
+ && (*(int*)(psVar3 + -10) == DAT_TribesState.tribes[iVar1].owner))
+ && (psVar3[0xf0] == 0))
+ && ((psVar3[1] == ((AITribeType)0x16) || (psVar3[1] == ((AITribeType)0x17)))))
+ goto LAB_00518b70;
+ psVar3 = psVar3 + 0x19a;
+ iVar2 = iVar2 + 1;
+ } while ((int)psVar3 < 0x17623a0);
+ iVar2 = 1;
+ psVar3 = &DAT_TribesState.tribes[1].tribeState;
+ do {
+ if (this->attackInfo.value3Array01[param_1] == 4)
+ break;
+ if ((((*psVar3 != 0) && (*psVar3 != 3))
+ && ((*(int*)(psVar3 + -10) == DAT_TribesState.tribes[iVar1].owner
+ && (psVar3[0xf0] == 0))))
+ && ((psVar3[1] == AITT_ARCHERS
+ || (psVar3[1] == AITT_CROSSBOWMEN))))
+ goto LAB_00518b70;
+ psVar3 = psVar3 + 0x19a;
+ iVar2 = iVar2 + 1;
+ } while ((int)psVar3 < 0x17623a0);
+ goto LAB_00518b92;
+ LAB_00518b70:
+ DAT_TribesState.tribes[iVar1].field56_0x1f2 = (short)iVar2;
+ DAT_TribesState.tribes[iVar1].uid2 = DAT_TribesState.tribes[iVar2].uid;
+ DAT_TribesState.tribes[iVar2].tribeID = (short)iVar1;
+ LAB_00518b92:
+ iVar4 = iVar4 + 1;
+ if (this->attackInfo.tribeIDArraySize <= iVar4) {
+ return;
+ }
+ goto LAB_00518a50;
+ }
+ }
+}
+}
+
+### 0x00518bb0 isLessThanPercentageOfTribesInAttackDying | quelle=ghidra | bereich=KI
+// FUNCTION: STRONGHOLDCRUSADER 0x00518BB0
+ BOOLEnum TroopValueState::isLessThanPercentageOfTribesInAttackDying(int attackID, int leDyingPerc)
+ {
+ int _status;
+ int _dying;
+ int _living;
+ Tribe* _pTribe;
+ int _tribeID;
+ _dying = 0;
+ _living = 0;
+ _tribeID = 1;
+ _pTribe = &DAT_TribesState.tribes[1];
+ do {
+ if ((((_pTribe->tribeState != 0) && (_pTribe->tribeState != 3))
+ && (DAT_GameSynchronyState.currentPlayerFullIDArray[_pTribe->owner] == -1))
+ && (_pTribe->attackWave == attackID)) {
+ _status = getTribeAliveStatus(_tribeID);
+ if (_status < 50) {
+ _living = _living + 1;
+ } else {
+ _dying = _dying + 1;
+ }
+ }
+ _pTribe = _pTribe + 0x19a;
+ _tribeID = _tribeID + 1;
+ } while ((int)_pTribe < 0x17623a0);
+ if (_dying + _living == 0) {
+ return (uint)(leDyingPerc < 100);
+ }
+ return (uint)(leDyingPerc <= (_dying * 100) / (_dying + _living));
+ }
+ }
+}
+}
+

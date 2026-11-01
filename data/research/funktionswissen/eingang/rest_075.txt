@@ -1,0 +1,1349 @@
+### 0x00496400 writeUserConfig | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x00496400
+ void SettingsFileState::writeUserConfig()
+ {
+ char configPath[1000];
+ // NOTE: Requires direct, non-resolved call due to copy elision.
+ strcpy(configPath, DAT_ResourceManager->paths_getDocumentsFolderString(true).c_str());
+ strcat(configPath, s_crusader_cfg_005a75bc);
+ FILE* _File = _fopen(configPath, s_wb_005a5510);
+ if (!_File) {
+ return;
+ }
+ WCHAR _wideCharBuffer[265];
+ multiByteToWideCharWithSize(_wideCharBuffer,
+ getTextArrayPointer(5), 15);
+ _fwrite(_wideCharBuffer, sizeof(WCHAR), 15, _File);
+ multiByteToWideCharWithSize(_wideCharBuffer,
+ getTextArrayPointer(6), 5);
+ _fwrite(_wideCharBuffer, sizeof(WCHAR), 5, _File);
+ multiByteToWideCharWithSize(_wideCharBuffer,
+ getTextArrayPointer(7), 15);
+ _fwrite(_wideCharBuffer, sizeof(WCHAR), 15, _File);
+ multiByteToWideCharWithSize(_wideCharBuffer,
+ getTextArrayPointer(0), 256);
+ _fwrite(_wideCharBuffer, sizeof(WCHAR), 256, _File);
+ _fwrite(
+ &DAT_GameCore.gameSpeedLevel, sizeof(DAT_GameCore.gameSpeedLevel), 1, _File);
+ _fwrite(
+ &DAT_GameCore.settingBubbleHelp, sizeof(DAT_GameCore.settingBubbleHelp), 1, _File);
+ _fwrite(&DAT_WindowAndDirectDraw.currentGameResolution,
+ sizeof(DAT_WindowAndDirectDraw.currentGameResolution), 1, _File);
+ _fwrite(&DAT_ViewportRenderState.viewportState.isZoomedOutUnk,
+ sizeof(DAT_ViewportRenderState.viewportState.isZoomedOutUnk), 1, _File);
+ _fwrite(&DAT_ScrollingHandler.scrollSpeedSetting_0x38,
+ sizeof(DAT_ScrollingHandler.scrollSpeedSetting_0x38), 1, _File);
+ _fwrite(&DAT_SoundSystemState.soundActiveUnk_0x0,
+ sizeof(DAT_SoundSystemState.soundActiveUnk_0x0), 1, _File);
+ _fwrite(&DAT_SoundSystemState.streamVolume[0],
+ sizeof(DAT_SoundSystemState.streamVolume[0]), 1, _File);
+ _fwrite(&DAT_SoundSystemState.streamVolume[1],
+ sizeof(DAT_SoundSystemState.streamVolume[1]), 1, _File);
+ _fwrite(&DAT_SoundSystemState.streamVolume[3],
+ sizeof(DAT_SoundSystemState.streamVolume[3]), 1, _File);
+ _fwrite(
+ &DAT_GameCore.scenarioProgress, sizeof(DAT_GameCore.scenarioProgress), 1, _File);
+ _fwrite(
+ &DAT_GameCore.furthestMission, sizeof(DAT_GameCore.furthestMission), 1, _File);
+ _fwrite(&DAT_GameCore.unused1, sizeof(DAT_GameCore.unused1), 1, _File);
+ _fwrite(&DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes,
+ sizeof(DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes), 1, _File);
+ _fwrite(
+ &DAT_GameCore.missionDifficulty, sizeof(DAT_GameCore.missionDifficulty), 1, _File);
+ _fwrite(
+ &DAT_GameCore.missionDifficulty2, sizeof(DAT_GameCore.missionDifficulty2), 1, _File);
+ _fwrite(
+ &DAT_GameCore.missionDifficulty_2, sizeof(DAT_GameCore.missionDifficulty_2), 1, _File);
+ _fwrite(
+ &DAT_GameCore.missionDifficulty_3, sizeof(DAT_GameCore.missionDifficulty_3), 1, _File);
+ _fwrite(
+ &DAT_GameCore.missionDifficulty_1, sizeof(DAT_GameCore.missionDifficulty_1), 1, _File);
+ _fwrite(
+ &DAT_GameCore.missionDifficulty_0, sizeof(DAT_GameCore.missionDifficulty_0), 1, _File);
+ _fwrite(
+ &DAT_MouseState.cursorType, sizeof(DAT_MouseState.cursorType), 1, _File);
+ multiByteToWideCharWithSize(_wideCharBuffer, DAT_GameSynchronyState.ipRelatedArray[0],
+ sizeof(DAT_GameSynchronyState.ipRelatedArray[0]));
+ _fwrite(
+ _wideCharBuffer, sizeof(WCHAR), sizeof(DAT_GameSynchronyState.ipRelatedArray[0]), _File);
+ multiByteToWideCharWithSize(_wideCharBuffer, DAT_GameSynchronyState.ipRelatedArray[1],
+ sizeof(DAT_GameSynchronyState.ipRelatedArray[1]));
+ _fwrite(
+ _wideCharBuffer, sizeof(WCHAR), sizeof(DAT_GameSynchronyState.ipRelatedArray[1]), _File);
+ multiByteToWideCharWithSize(_wideCharBuffer, DAT_GameSynchronyState.ipRelatedArray[2],
+ sizeof(DAT_GameSynchronyState.ipRelatedArray[2]));
+ _fwrite(
+ _wideCharBuffer, sizeof(WCHAR), sizeof(DAT_GameSynchronyState.ipRelatedArray[2]), _File);
+ multiByteToWideCharWithSize(_wideCharBuffer, DAT_GameSynchronyState.ipRelatedArray[3],
+ sizeof(DAT_GameSynchronyState.ipRelatedArray[3]));
+ _fwrite(
+ _wideCharBuffer, sizeof(WCHAR), sizeof(DAT_GameSynchronyState.ipRelatedArray[3]), _File);
+ _fwrite(&DAT_GameCore.furthestSkirmishTrailMission,
+ sizeof(DAT_GameCore.furthestSkirmishTrailMission), 1, _File);
+ _fwrite(
+ &DAT_GameCore.lordIconUnk, sizeof(DAT_GameCore.lordIconUnk), 1, _File);
+ _fwrite(&DAT_GameCore.skirmishTrailProgress,
+ sizeof(DAT_GameCore.skirmishTrailProgress), 1, _File);
+ _fwrite(
+ &DAT_GameCore.selectedLordTypeUnk, sizeof(DAT_GameCore.selectedLordTypeUnk), 1, _File);
+ _fwrite(&DAT_GameCore.skirmishTrailYearReached,
+ sizeof(DAT_GameCore.skirmishTrailYearReached), 1, _File);
+ _fwrite(DAT_GameCore.skirmishTrailMonthsTakenOrChicken,
+ sizeof(DAT_GameCore.skirmishTrailMonthsTakenOrChicken[0]),
+ sizeof(DAT_GameCore.skirmishTrailMonthsTakenOrChicken)
+ / sizeof(DAT_GameCore.skirmishTrailMonthsTakenOrChicken[0]),
+ _File);
+ _fwrite(
+ &DAT_GameCore.genieVoiceActive, sizeof(DAT_GameCore.genieVoiceActive), 1, _File);
+ _fwrite(&DAT_GameCore.furthestWarchestTrailMission,
+ sizeof(DAT_GameCore.furthestWarchestTrailMission), 1, _File);
+ _fwrite(&DAT_GameCore.warchestTrailProgress,
+ sizeof(DAT_GameCore.warchestTrailProgress), 1, _File);
+ _fwrite(&DAT_GameCore.warchestTrailYearReached,
+ sizeof(DAT_GameCore.warchestTrailYearReached), 1, _File);
+ _fwrite(DAT_GameCore.warchestTrailMonthsTakenOrChicken,
+ sizeof(DAT_GameCore.warchestTrailMonthsTakenOrChicken[0]), 30, _File);
+ _fwrite(&DAT_GameCore.furthestExtremeTrailMission,
+ sizeof(DAT_GameCore.furthestExtremeTrailMission), 1, _File);
+ _fwrite(&DAT_GameCore.extremeTrailProgress,
+ sizeof(DAT_GameCore.extremeTrailProgress), 1, _File);
+ _fwrite(&DAT_GameCore.extremeTrailYearReached,
+ sizeof(DAT_GameCore.extremeTrailYearReached), 1, _File);
+ _fwrite(DAT_GameCore.extremeTrailMonthsTakenOrChicken,
+ sizeof(DAT_GameCore.extremeTrailMonthsTakenOrChicken[0]), 30, _File);
+ _fwrite(&DAT_GameCore.tacticalPowersDisplayFlag,
+ sizeof(DAT_GameCore.tacticalPowersDisplayFlag), 1, _File);
+ _fwrite(
+ &DAT_GameCore.unusedOption1, sizeof(DAT_GameCore.unusedOption1), 1, _File);
+ _fwrite(&DAT_WindowAndDirectDraw.currentGameResolution,
+ sizeof(DAT_WindowAndDirectDraw.currentGameResolution), 1, _File);
+ _fclose(_File);
+ }
+}
+}
+
+### 0x0046cec0 Cosntructor_Stopwatch | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x0046CEC0
+ Stopwatch* Stopwatch::Constructor_Stopwatch()
+ {
+ this->running_0x4 = FALSE;
+ this->duration_0x0 = 0;
+ return this;
+ }
+ }
+}
+}
+
+### 0x0046ced0 start | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x0046CED0
+ void Stopwatch::start()
+ {
+ this->startTime_0x8 = timeGetTime();
+ this->running_0x4 = TRUE;
+ }
+ }
+}
+}
+
+### 0x0046cef0 stop | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x0046CEF0
+ void Stopwatch::stop()
+ {
+ if (!this->running_0x4) {
+ return;
+ }
+ this->stopTime_0xc = timeGetTime();
+ this->running_0x4 = FALSE;
+ this->duration_0x0 = this->stopTime_0xc - this->startTime_0x8;
+ }
+ }
+}
+}
+
+### 0x0046b080 wideCharToMultiByteComplete | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x0046B080
+ int WideCharMultiByteState::wideCharToMultiByteComplete(LPSTR charOut, LPCWSTR wideCharIn)
+ {
+ int numberOfWideChars = wcslen(wideCharIn) + 1; // +1 for null terminator
+ return WideCharToMultiByte(DAT_TextManagerObject.codePage, NULL, wideCharIn, numberOfWideChars,
+ charOut, numberOfWideChars, NULL, NULL);
+ }
+}
+}
+
+### 0x0046b0d0 multiByteToWideCharacter | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x0046B0D0
+ int WideCharMultiByteState::multiByteToWideCharacter(LPWSTR lpWideCharStr, LPCSTR lpMultiByteStr)
+ {
+ int const numberOfBytes = strlen(lpMultiByteStr) + 1; // includes null terminator
+ return MultiByteToWideChar(DAT_TextManagerObject.codePage, MB_PRECOMPOSED, lpMultiByteStr,
+ numberOfBytes, lpWideCharStr, numberOfBytes);
+ }
+}
+}
+
+### 0x0046b110 wideCharToMultiByteWithSize | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x0046B110
+ int WideCharMultiByteState::wideCharToMultiByteWithSize(
+ LPSTR lpMultiByteStr, LPWSTR lpWideCharStr, int numOfSymbols)
+ {
+ int const _numOfBytesWritten = WideCharToMultiByte(DAT_TextManagerObject.codePage, NULL,
+ lpWideCharStr, numOfSymbols, lpMultiByteStr, numOfSymbols, NULL, NULL);
+ lpMultiByteStr[numOfSymbols] = '\0';
+ return _numOfBytesWritten;
+ }
+}
+}
+
+### 0x0046b140 multiByteToWideCharThunk | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x0046B140
+ int WideCharMultiByteState::multiByteToWideCharWithSize(
+ LPWSTR lpWideCharStr, LPCSTR lpMultiByteStr, int numberOfSymbols)
+ {
+ int numberOfCharsWritten = MultiByteToWideChar(DAT_TextManagerObject.codePage, MB_PRECOMPOSED,
+ lpMultiByteStr, numberOfSymbols, lpWideCharStr, numberOfSymbols);
+ lpWideCharStr[numberOfSymbols] = L'\0';
+ return numberOfCharsWritten;
+ }
+}
+}
+
+### 0x0046b170 wideCharToByteUnk | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x0046B170
+ char WideCharMultiByteState::singleWideCharToMultiByte(WCHAR wideChar)
+ {
+ char _byteBuffer[12];
+ wideCharToMultiByteWithSize(
+ _byteBuffer, &wideChar, 1);
+ return _byteBuffer[0];
+ }
+}
+}
+
+### 0x0046b1b0 multiByteToWideCharThunk2 | quelle=nachgebaut | bereich=System
+// FUNCTION: STRONGHOLDCRUSADER 0x0046B1B0
+ WCHAR WideCharMultiByteState::singleMultiByteToWideChar(char character)
+ {
+ WCHAR buffer[10];
+ multiByteToWideCharWithSize(
+ buffer, &character, 1);
+ return buffer[0];
+ }
+}
+}
+
+### 0x0044a720 ResetGreatestLordGenieSpeechState | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0044A720
+ void ResetGreatestLordGenieSpeechState()
+ {
+ DAT_CurrentPlayerRanking = -1;
+ INT_00b98698::instance = -1;
+ INT_00b98484::instance = -1;
+ DAT_IsKeepEnclosed = 0;
+ unsigned int currentTime = timeGetTime();
+ DWORD_KeepEnclosementTimer::instance = currentTime;
+ DWORD_LatestPLayerStatusMessageTime::instance = currentTime;
+ DAT_KeepEnclosementCooldown = currentTime;
+ DAT_CurrentPlayerUnitLosses = 0;
+ for (int i = 0; i < 9; i++) {
+ DAT_UnitValueLossesPerEnemyPlayer[i] = 0;
+ }
+ memset(DAT_CurrentPlayerUnitLossesHistory, 0, sizeof(DAT_CurrentPlayerUnitLossesHistory));
+ memset(
+ DAT_TotalUnitValueLossesEnemyHistory, 0, sizeof(DAT_TotalUnitValueLossesEnemyHistory));
+ _memset(Dat_UnitValueLossesHistoryPerEnemyPlayer::ptr, 0,
+ sizeof(Dat_UnitValueLossesHistoryPerEnemyPlayer::instance));
+ INT_00b98664::instance = 1;
+ memset(DAT_DestroyedBuildingsCountHistory, 0, sizeof(DAT_DestroyedBuildingsCountHistory));
+ }
+}
+}
+
+### 0x0044aab0 UpdateUnitLossSpeechFeedback_RelativeValueForGenie | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0044AAB0
+ int UpdateUnitLossSpeechFeedback_RelativeValueForGenie(int larger, int smaller)
+ {
+ if (larger < 1) {
+ larger = 1;
+ }
+ if (smaller < 1) {
+ smaller = 1;
+ }
+ if (larger > smaller) {
+ int iVar1 = (larger * 100) / smaller;
+ if (iVar1 < 150) {
+ return 0;
+ }
+ if (iVar1 < 170) {
+ return 1;
+ }
+ if (iVar1 < 190) {
+ return 2;
+ }
+ if (iVar1 < 210) {
+ return 3;
+ }
+ if (iVar1 < 230) {
+ return 4;
+ }
+ if (iVar1 < 250) {
+ return 5;
+ }
+ if (iVar1 < 270) {
+ return 6;
+ }
+ return 7;
+ } else {
+ int iVar1 = (smaller * 100) / larger;
+ if (iVar1 < 150) {
+ return 0;
+ }
+ if (iVar1 < 190) {
+ return -1;
+ }
+ if (iVar1 < 240) {
+ return -2;
+ }
+ return -3;
+ }
+ }
+ }
+}
+}
+
+### 0x0044b840 UpdateUnitLossSpeechFeedback | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0044B840
+ void UpdateUnitLossSpeechFeedback()
+ {
+ if (DAT_GameCore.currentMenuViewType != UI::Enums::MVT_BUILD_MENU) {
+ return;
+ }
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .playerDeathRelated) {
+ return;
+ }
+ if (DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .lordKilledByPlayerID) {
+ return;
+ }
+ if (DAT_GameCore.gameMode_2 == Game::GM_CAMPAIGN_MISSION) {
+ return;
+ }
+ ++DAT_GL_Counter;
+ for (int _offset = 8; _offset >= 0; --_offset) {
+ DAT_CurrentPlayerUnitLossesHistory[_offset + 1]
+ = DAT_CurrentPlayerUnitLossesHistory[_offset];
+ DAT_TotalUnitValueLossesEnemyHistory[_offset + 1]
+ = DAT_TotalUnitValueLossesEnemyHistory[_offset];
+ for (int i = 0; i < 9; ++i) {
+ Dat_UnitValueLossesHistoryPerEnemyPlayer::instance[i][_offset + 1]
+ = Dat_UnitValueLossesHistoryPerEnemyPlayer::instance[i][_offset];
+ }
+ }
+ DAT_CurrentPlayerUnitLossesHistory[0] = DAT_CurrentPlayerUnitLosses;
+ DAT_TotalUnitValueLossesEnemyHistory[0] = 0;
+ for (int i = 1; i < 9; ++i) {
+ DAT_TotalUnitValueLossesEnemyHistory[0] += DAT_UnitValueLossesPerEnemyPlayer[i];
+ Dat_UnitValueLossesHistoryPerEnemyPlayer::instance[i][0]
+ = DAT_UnitValueLossesPerEnemyPlayer[i];
+ }
+ int iVar1
+ = DAT_CurrentPlayerUnitLossesHistory[0] + DAT_TotalUnitValueLossesEnemyHistory[0];
+ int iVar2 = DAT_CurrentPlayerUnitLossesHistory[1]
+ + DAT_TotalUnitValueLossesEnemyHistory[1] + DAT_CurrentPlayerUnitLossesHistory[2]
+ + DAT_TotalUnitValueLossesEnemyHistory[2];
+ if (DAT_GL_Counter >= 2 && 50 > iVar1 && iVar2 > 150) {
+ int smallPlayerUnitLossesSum
+ = DAT_CurrentPlayerUnitLossesHistory[1] + DAT_CurrentPlayerUnitLossesHistory[2];
+ int smallTotalEnemyUnitLossesSum = DAT_TotalUnitValueLossesEnemyHistory[1]
+ + DAT_TotalUnitValueLossesEnemyHistory[2];
+ int _relative1 = UpdateUnitLossSpeechFeedback_RelativeValueForGenie(
+ smallPlayerUnitLossesSum, smallTotalEnemyUnitLossesSum);
+ int playerUnitLossesSum = 0;
+ int totalEnemyUnitLossesSum = 0;
+ for (int i = 1; i < 10; ++i) {
+ playerUnitLossesSum += DAT_CurrentPlayerUnitLossesHistory[i];
+ totalEnemyUnitLossesSum += DAT_TotalUnitValueLossesEnemyHistory[i];
+ }
+ int _relative2 = UpdateUnitLossSpeechFeedback_RelativeValueForGenie(
+ playerUnitLossesSum, totalEnemyUnitLossesSum);
+ if (_relative1 == 0 && _relative2 == 0) {
+ if (DAT_GameCore.genieVoiceActive) {
+ /* "A Valliant Effort" */
+ playWAVSFX(s_Genie_29_wav_005a4ecc);
+ }
+ DAT_GL_Counter = 0;
+ }
+ if (_relative1 > 0 && _relative2 > 0) {
+ _relative1 = (_relative2 + _relative1) / 2;
+ if (DAT_GameCore.genieVoiceActive) {
+ if (_relative1 == 1) {
+ /* "Majestic" */
+ playWAVSFX(s_Genie_30_wav_005a4ebc);
+ } else if (_relative1 == 2) {
+ /* "Excellent" */
+ playWAVSFX(s_Genie_31_wav_005a4eac);
+ } else if (_relative1 == 3) {
+ /* "Impressive" */
+ playWAVSFX(s_Genie_32_wav_005a4e9c);
+ } else if (_relative1 == 4) {
+ /* "Glorious" */
+ playWAVSFX(s_Genie_34_wav_005a4e8c);
+ } else if (_relative1 == 5) {
+ /* "For the crown" */
+ playWAVSFX(s_Genie_37_wav_005a4e7c);
+ } else if (_relative1 == 6) {
+ /* "Heroic" */
+ playWAVSFX(s_Genie_38_wav_005a4e6c);
+ } else if (_relative1 >= 7) {
+ /* "It's a Rout" */
+ playWAVSFX(s_Genie_39_wav_005a4e5c);
+ }
+ }
+ DAT_GL_Counter = 0;
+ }
+ if (_relative1 < 0 && _relative2 < 0) {
+ int iVar3 = (_relative2 + _relative1) / 2;
+ if (DAT_GameCore.genieVoiceActive) {
+ if (iVar3 == -1) {
+ /* "Vanquished" */
+ playWAVSFX(s_Genie_42_wav_005a4e4c);
+ } else if (iVar3 == -2) {
+ /* "Crest falling" */
+ playWAVSFX(s_Genie_43_wav_005a4e3c);
+ }
+ }
+ if (iVar3 <= -3) {
+ if (DAT_GameCore.genieVoiceActive) {
+ /* "Humiliated" */
+ playWAVSFX(s_Genie_44_wav_005a4e2c);
+ }
+ int playerId = -1;
+ int maxLossesOfEnemy = 0;
+ for (int i = 1; i < 9; ++i) {
+ int summaryEnemyUnitLosses = 0;
+ for (int j = 1; j < 10; ++j) {
+ summaryEnemyUnitLosses += Dat_UnitValueLossesHistoryPerEnemyPlayer::instance[i][j];
+ }
+ if (summaryEnemyUnitLosses > maxLossesOfEnemy) {
+ maxLossesOfEnemy = summaryEnemyUnitLosses;
+ playerId = i;
+ }
+ }
+ if (playerId != -1
+ && DAT_GameState.mapAndTime.playerTeams[playerId]
+ != DAT_GameState.mapAndTime
+ .playerTeams[DAT_GameSynchronyState.currentPlayerSlotID]) {
+ playFriendlyVictoryBikFromPlayer(
+ playerId);
+ }
+ }
+ DAT_GL_Counter = 0;
+ }
+ }
+ DAT_CurrentPlayerUnitLosses = 0;
+ for (int i = 0; i < 9; ++i) {
+ DAT_UnitValueLossesPerEnemyPlayer[i] = 0;
+ }
+ if (DAT_DestroyedBuildingsCountHistory[0] > 1
+ && DAT_DestroyedBuildingsCountHistory[4] + DAT_DestroyedBuildingsCountHistory[3]
+ + DAT_DestroyedBuildingsCountHistory[2]
+ + DAT_DestroyedBuildingsCountHistory[1]
+ + DAT_DestroyedBuildingsCountHistory[0]
+ > 5) {
+ if (DAT_GameCore.genieVoiceActive) {
+ /* "Where is your Castle" */
+ playWAVSFX(s_Genie_41_wav_005a4e1c);
+ }
+ DAT_DestroyedBuildingsCountHistory[0] = 0;
+ DAT_DestroyedBuildingsCountHistory[1] = 0;
+ DAT_DestroyedBuildingsCountHistory[2] = 0;
+ DAT_DestroyedBuildingsCountHistory[3] = 0;
+ }
+ DAT_DestroyedBuildingsCountHistory[4] = DAT_DestroyedBuildingsCountHistory[3];
+ DAT_DestroyedBuildingsCountHistory[3] = DAT_DestroyedBuildingsCountHistory[2];
+ DAT_DestroyedBuildingsCountHistory[2] = DAT_DestroyedBuildingsCountHistory[1];
+ DAT_DestroyedBuildingsCountHistory[1] = DAT_DestroyedBuildingsCountHistory[0];
+ DAT_DestroyedBuildingsCountHistory[0] = 0;
+ }
+
+### 0x00408e10 zeroBinkPtrAndLoadBinkSoundSystem | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00408E10
+ void BinkControlClass::zeroBinkPtrAndLoadBinkSoundSystem(HDIGDRIVER drvrPtr)
+ {
+ this->binkObjPtrArray[0] = NULL;
+ this->binkObjPtrArray[1] = NULL;
+ BinkSetSoundSystem(BinkOpenMiles, (ulong)drvrPtr);
+ }
+ }
+}
+}
+
+### 0x00408e30 stopBinkPlayback | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00408E30
+ void BinkControlClass::stopBinkPlayback(int binkObjIndex)
+ {
+ if (this->binkObjPtrArray[binkObjIndex] != NULL) {
+ BinkClose(this->binkObjPtrArray[binkObjIndex]);
+ this->binkObjPtrArray[binkObjIndex] = NULL;
+ if (binkObjIndex == 1) {
+ DAT_GameCore.isBinkVideoPlaying = 0;
+ DAT_GameCore.countdown = binkObjIndex;
+ }
+ }
+ }
+ }
+}
+}
+
+### 0x00408e70 setBinkSndStreamAndStartTime | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00408E70
+ void BinkControlClass::setBinkSndStreamAndStartTime(int binkObjIndex, SHC_SoundStream soundStreamIndexUnk)
+ {
+ if ((DAT_SoundSystemState.waveOutOpenUnk_0x8)
+ && (DAT_SoundSystemState.soundActiveUnk_0x0 != 0)) {
+ this->soundStreamIndex[binkObjIndex] = soundStreamIndexUnk;
+ this->startTime[binkObjIndex] = timeGetTime();
+ }
+ }
+ }
+}
+}
+
+### 0x00408eb0 stopAllBinkPlayback | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00408EB0
+ void BinkControlClass::stopAllBinkPlayback()
+ {
+ for (int binkObjIndex = 0; binkObjIndex < 2; binkObjIndex++) {
+ stopBinkPlayback(
+ binkObjIndex);
+ }
+ }
+ }
+}
+}
+
+### 0x00408ed0 playBINK | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00408ED0
+ void BinkControlClass::playBINK(
+ int binkObjIndex, char* binkFileName, DWORD param_3, DWORD param_4, int xPos, int yPos, DWORD param_7)
+ {
+ char* _videoFileName;
+ HBINK _binkObjPtr;
+ int _fileSoundVolumne;
+ resolveResourceFileName(
+ FRT_BINKS, (char const*)((int)(binkFileName)));
+ if (this->binkObjPtrArray[binkObjIndex] != (HBINK)0x0) {
+ stopBinkPlayback(
+ binkObjIndex);
+ }
+ if ((DAT_SoundSystemState.waveOutOpenUnk_0x8 == FALSE)
+ || (DAT_SoundSystemState.soundActiveUnk_0x0 == 0)) {
+ _videoFileName = getFileNameOfCurrentActiveResource();
+ _binkObjPtr = BinkOpen(_videoFileName, UBF_BINKNOSKIP);
+ this->binkObjPtrArray[binkObjIndex] = _binkObjPtr;
+ BinkSetVolume(_binkObjPtr, 0, 0);
+ } else {
+ _videoFileName = getFileNameOfCurrentActiveResource();
+ _binkObjPtr = BinkOpen(_videoFileName, UBF_BINKNOSKIP);
+ this->binkObjPtrArray[binkObjIndex] = _binkObjPtr;
+ }
+ if ((DAT_SoundSystemState.waveOutOpenUnk_0x8 != FALSE)
+ && (DAT_SoundSystemState.soundActiveUnk_0x0 != 0)) {
+ _fileSoundVolumne = getSoundVolumeForFilename(binkFileName);
+ BinkSetVolume(this->binkObjPtrArray[binkObjIndex], 0, (long)((int)(_fileSoundVolumne * 250)));
+ }
+ this->xPos[binkObjIndex] = xPos;
+ this->yPos[binkObjIndex] = yPos;
+ this->frameReadyToDisplay[binkObjIndex] = FALSE;
+ this->unknown01_zero[binkObjIndex] = 0;
+ this->unknown02_zero[binkObjIndex] = 0;
+ this->soundStreamIndex[binkObjIndex] = SND_STR_MUSIC;
+ this->startTime[binkObjIndex] = 0;
+ this->unknownParam04[binkObjIndex] = param_4;
+ this->unknownParam03[binkObjIndex] = param_3;
+ this->unknownParam07[binkObjIndex] = param_7;
+ }
+ }
+}
+}
+
+### 0x00408fc0 copyBinkToVideoBuffer | quelle=ghidra | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00408FC0
+ void BinkControlClass::copyBinkToVideoBuffer(dword param_1)
+ {
+ BOOLEnum _soundPlaying;
+ DWORD _sysTime;
+ long _waitingForFrame;
+ HRESULT _hResultLock2;
+ HRESULT _hResultRestore;
+ HRESULT _hResultLock;
+ IDirectDrawSurface* _surfacePointer;
+ BinkControlClass* _binkStructPtr;
+ int _binkObjIndex;
+ FakeBink* _binkObjPtr;
+ Menu* _menu;
+ int _menuBorderHeight;
+ int _menuBorderWidth;
+ _binkObjIndex = 0;
+ _binkStructPtr = (BinkControlClass*)this->soundStreamIndex;
+ do {
+ if ((_binkStructPtr->soundStreamIndex[0] != SND_STR_MUSIC)
+ && ((_soundPlaying
+ = isSampleOrStreamPlaying(_binkStructPtr->soundStreamIndex[0]),
+ _soundPlaying == FALSE
+ || (_sysTime = timeGetTime(), 20000 < _sysTime - _binkStructPtr->startTime[0])))) {
+ _binkStructPtr->soundStreamIndex[0] = SND_STR_MUSIC;
+ }
+ if (_binkStructPtr->unknownParam07[0] == param_1) {
+ _binkStructPtr->unknown01_zero[0] = 0;
+ _binkStructPtr->unknown02_zero[0] = 0;
+ }
+ if ((_binkStructPtr->binkObjPtrArray[0] != (FakeBink*)0x0)
+ && (_binkStructPtr->unknownParam07[0] == param_1)) {
+ _waitingForFrame = BinkWait(_binkStructPtr->binkObjPtrArray[0]);
+ if (_waitingForFrame == 0) {
+ BinkDoFrame(_binkStructPtr->binkObjPtrArray[0]);
+ _binkObjPtr = _binkStructPtr->binkObjPtrArray[0];
+ if ((_binkObjPtr->frameNum == _binkObjPtr->frames)
+ && (_binkStructPtr->unknownParam03[0] == 0)) {
+ if (_binkStructPtr->soundStreamIndex[0] == SND_STR_MUSIC) {
+ if (param_1 != 2) {
+ _binkStructPtr->unknown01_zero[0] = 1;
+ stopBinkPlayback(_binkObjIndex);
+ goto LAB_004091dd;
+ }
+ } else if (param_1 != 2)
+ goto LAB_00409075;
+ _binkStructPtr->unknown02_zero[0] = 1;
+ } else {
+ BinkNextFrame(_binkObjPtr);
+ }
+ LAB_00409075:
+ _binkStructPtr->frameReadyToDisplay[0] = TRUE;
+ }
+ _menuBorderHeight = DAT_WindowAndDirectDraw.mainMenuBorderHeight;
+ _menuBorderWidth = DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ _menu = DAT_MenuHandlerState.currentMenu;
+ if (param_1 == 2) {
+ (DAT_MenuHandlerState.currentMenu)->xPosition
+ = DAT_WindowAndDirectDraw.mainMenuBorderWidth;
+ _menu->yPosition = _menuBorderHeight;
+ DAT_MenuHandlerState.y = _menuBorderHeight;
+ DAT_MenuHandlerState.x = _menuBorderWidth;
+ drawColorBox(0, 0, DAT_WindowAndDirectDraw.resolutionX,
+ DAT_WindowAndDirectDraw.resolutionY,
+ (ushort)((int)(COL_BLACK::instance.shortValue)));
+ }
+ if (_binkStructPtr->frameReadyToDisplay[0] != FALSE) {
+ if (_binkStructPtr.unknownParam04[0] == 0) {
+ /*
+ Stack pointer also broken here. Lock requires 5 inputs. Singature Overwrite
+ */
+ _hResultLock = (*(
+ DAT_WindowAndDirectDraw.directDrawOffscreenSurfacePointer_screenMenu)
+ ->vTable->Lock)(
+ DAT_WindowAndDirectDraw.directDrawOffscreenSurfacePointer_screenMenu,
+ (tagRECT*)0x0, &DAT_WindowAndDirectDraw.surfDescBink_offSurfScreenMenu_0x104,
+ 1, (void*)0x0);
+ while (_hResultLock == -0x7789fe3e) {
+ /*
+ Singature Overwrite
+ */
+ _hResultRestore
+ = (*(DAT_WindowAndDirectDraw.directDrawOffscreenSurfacePointer_screenMenu)
+ ->vTable->Restore)(
+ DAT_WindowAndDirectDraw.directDrawOffscreenSurfacePointer_screenMenu);
+ if (_hResultRestore != 0)
+ goto LAB_004091dd;
+ /*
+ Signature Overwrite
+ */
+ _hResultLock
+ = (*(DAT_WindowAndDirectDraw.directDrawOffscreenSurfacePointer_screenMenu)
+ ->vTable->Lock)(
+ DAT_WindowAndDirectDraw.directDrawOffscreenSurfacePointer_screenMenu,
+ (tagRECT*)0x0,
+ &DAT_WindowAndDirectDraw.surfDescBink_offSurfScreenMenu_0x104, 1,
+ (void*)0x0);
+ }
+ BinkCopyToBuffer(_binkStructPtr->binkObjPtrArray[0],
+ DAT_WindowAndDirectDraw.surfDescBink_offSurfScreenMenu_0x104.lpSurface,
+ DAT_WindowAndDirectDraw.surfDescBink_offSurfScreenMenu_0x104.pitchOrLinearSize
+ .lPitch,
+ _binkStructPtr->binkObjPtrArray[0]->height, _binkStructPtr->xPos[0],
+ _binkStructPtr->yPos[0],
+ this->screenMenuSurfaceType_0x5c | UBF_BINKCOPYALL);
+ _surfacePointer
+ = DAT_WindowAndDirectDraw.directDrawOffscreenSurfacePointer_screenMenu;
+ } else {
+ /*
+ Signature Overwrite
+ */
+ _hResultLock2
+ = (*(DAT_WindowAndDirectDraw.directDrawOffscreenSurfacePointer_mapGame)
+ ->vTable->Lock)(
+ DAT_WindowAndDirectDraw.directDrawOffscreenSurfacePointer_mapGame,
+ (tagRECT*)0x0, &DAT_WindowAndDirectDraw.surfDescBink_offSurfMapGame, 1,
+ (void*)0x0);
+ while (_hResultLock2 == -0x7789fe3e) {
+ /*
+ Signature Overwrite
+ */
+ _hResultRestore
+ = (*(DAT_WindowAndDirectDraw.directDrawOffscreenSurfacePointer_mapGame)
+ ->vTable->Restore)(
+ DAT_WindowAndDirectDraw.directDrawOffscreenSurfacePointer_mapGame);
+ if (_hResultRestore != 0)
+ goto LAB_004091dd;
+ /*
+ Singature Overwrite
+ */
+ _hResultLock2
+ = (*(DAT_WindowAndDirectDraw.directDrawOffscreenSurfacePointer_mapGame)
+ ->vTable->Lock)(
+ DAT_WindowAndDirectDraw.directDrawOffscreenSurfacePointer_mapGame,
+ (tagRECT*)0x0, &DAT_WindowAndDirectDraw.surfDescBink_offSurfMapGame,
+ 1, (void*)0x0);
+ }
+ /*
+ Bink flag seems plausible. -TheRedDaemon
+ */
+ BinkCopyToBuffer(_binkStructPtr->binkObjPtrArray[0],
+ DAT_WindowAndDirectDraw.surfDescBink_offSurfMapGame.lpSurface,
+ DAT_WindowAndDirectDraw.surfDescBink_offSurfMapGame.pitchOrLinearSize.lPitch,
+ _binkStructPtr->binkObjPtrArray[0]->height, _binkStructPtr->xPos[0],
+ _binkStructPtr->yPos[0],
+ this->mapGameSurfaceType | UBF_BINKCOPYALL);
+ _surfacePointer
+ = DAT_WindowAndDirectDraw.directDrawOffscreenSurfacePointer_mapGame;
+ }
+ (*_surfacePointer->vTable->Unlock)(_surfacePointer, (tagRECT*)0x0);
+ }
+ }
+ LAB_004091dd:
+ _binkObjIndex = _binkObjIndex + 1;
+ _binkStructPtr = (BinkControlClass*)(_binkStructPtr->soundStreamIndex + 1);
+ if (1 < _binkObjIndex) {
+ return;
+ }
+ } while (true);
+ }
+ }
+}
+}
+
+### 0x00409200 processBinkFrames | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00409200
+ void BinkControlClass::processBinkFrames()
+ {
+ for (int binkObjIndex = 0; binkObjIndex < 2; binkObjIndex++) {
+ if (this->soundStreamIndex[binkObjIndex] != SND_STR_MUSIC) {
+ if (isSampleOrStreamPlaying((SHC_SoundStream)this->soundStreamIndex[binkObjIndex])
+ == FALSE
+ || timeGetTime() - this->startTime[binkObjIndex] > 20000) {
+ this->soundStreamIndex[binkObjIndex] = SND_STR_MUSIC;
+ }
+ }
+ this->unknown01_zero[binkObjIndex] = 0;
+ this->unknown02_zero[binkObjIndex] = 0;
+ if (this->binkObjPtrArray[binkObjIndex] == (HBINK)0x0)
+ continue;
+ if (BinkWait(this->binkObjPtrArray[binkObjIndex]) != 0)
+ continue;
+ BinkDoFrame(this->binkObjPtrArray[binkObjIndex]);
+ if ((this->binkObjPtrArray[binkObjIndex]->FrameNum == this->binkObjPtrArray[binkObjIndex]->Frames)
+ && (this->unknownParam03[binkObjIndex] == 0)) {
+ if (this->soundStreamIndex[binkObjIndex] == SND_STR_MUSIC) {
+ if (this->unknownParam07[binkObjIndex] != 2) {
+ this->unknown01_zero[binkObjIndex] = 1;
+ stopBinkPlayback(
+ binkObjIndex);
+ continue;
+ }
+ this->unknown02_zero[binkObjIndex] = 1;
+ } else if (this->unknownParam07[binkObjIndex] == 2) {
+ this->unknown02_zero[binkObjIndex] = 1;
+ }
+ } else {
+ BinkNextFrame(this->binkObjPtrArray[binkObjIndex]);
+ }
+ this->frameReadyToDisplay[binkObjIndex] = TRUE;
+ }
+ }
+ }
+}
+}
+
+### 0x004092b0 stopAllBinkPlaybackThunk | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x004092B0
+ void BinkControlClass::stopAllBinkPlaybackThunk()
+ {
+ stopAllBinkPlayback();
+ }
+ }
+}
+}
+
+### 0x0046d140 Constructor_DecoderState | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0046D140
+ DecoderState* DecoderState::Constructor_DecoderState()
+ {
+ this->implodingType = 0;
+ this->implodingTypeSize = 0x1000; // 4096
+ return this;
+ }
+}
+}
+
+### 0x0046d150 compressRLE | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0046D150
+ int DecoderState::compressRLE(char* src, void* dst, int inputSize)
+ {
+ /*
+ // Roughly this logic:
+ *(int*)(dst + 4) = inputSize;
+ char* runDst = dst + 8;
+ int compressedSize = 8;
+ while (size > 0) {
+ if (src[1] == *src && src[2] == *src) {
+ int repeatedBytes = 0;
+ compressedSize += 3;
+ char currentByte = *src;
+ while (*src == currentByte) {
+ ++src;
+ ++repeatedBytes;
+ --size;
+ if (size <= 0 || 0x7fff <= repeatedBytes) break;
+ }
+ *(unsigned short*)runDst = (unsigned short)repeatedBytes - 1;
+ *(runDst + 2) = currentByte;
+ runDst += 3;
+ continue;
+ }
+ int numberOfBytes = 0;
+ compressedSize = compressedSize + 2;
+ char* forwardSrc = *src;
+ while (forwardSrc[1] != *forwardSrc || forwardSrc[2] != *forwardSrc) {
+ ++forwardSrc;
+ ++numberOfBytes;
+ ++compressedSize;
+ --size;
+ if (size <= 0 || 0x7fff <= numberOfBytes) break;
+ }
+ *(unsigned short*)runDst = ((unsigned short)numberOfBytes - 1) | 0x8000; // sets also marker bit
+ runDst += 2;
+ memcpy(runDst, src, numberOfBytes);
+ runDst += numberOfBytes;
+ src += numberOfBytes;
+ }
+ */
+ int compressedSize;
+ // ESI = src
+ // EDI = dst
+ // EBX = size
+ // EDX = output size
+ __asm {
+ mov edi, dst
+ mov ebx, inputSize
+ mov [edi+4], ebx
+ push edi
+ add edi, 8
+ mov edx, 8
+ mov esi, src
+ main_loop:
+ cmp ebx, 0
+ jle finish
+ mov al, [esi]
+ cmp [esi+1], al
+ jne literal
+ cmp [esi+2], al
+ jne literal
+ mov ecx, 0
+ add edx, 3
+ mov al, [esi]
+ rle_loop:
+ cmp [esi], al
+ jne write_run
+ inc esi
+ inc ecx
+ sub ebx, 1
+ cmp ebx, 0
+ jle write_run
+ cmp ecx, 0x7fff
+ jl rle_loop
+ write_run:
+ mov [edi+2], al
+ mov eax, ecx
+ sub eax, 1
+ mov [edi], ax
+ add edi, 3
+ jmp main_loop
+ literal:
+ mov ecx, 0
+ add edx, 2
+ push esi
+ literal_loop:
+ mov al, [esi]
+ cmp [esi+1], al
+ jne copy_literal
+ cmp [esi+2], al
+ jne copy_literal
+ jmp finish_literal
+ copy_literal:
+ inc esi
+ inc ecx
+ add edx, 1
+ sub ebx, 1
+ cmp ebx, 0
+ jle finish_literal
+ cmp ecx, 0x7fff
+ jl literal_loop
+ finish_literal:
+ pop esi
+ mov eax, ecx
+ sub eax, 1
+ or ax, 0x8000
+ mov [edi], ax
+ inc edi
+ inc edi
+ rep movsb
+ jmp main_loop
+ finish:
+ mov compressedSize, edx
+ pop edi
+ mov [edi], edx
+ }
+ return compressedSize;
+ }
+}
+}
+
+### 0x0046d200 decompressRLE | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x0046D200
+ int DecoderState::decompressRLE(char* src, char* dst)
+ {
+ /*
+ // Roughly this logic:
+ int uncompressedSizeCounted = 0;
+ int uncompressedSizeWritten = *(int*)((int)src + 4);
+ src += 8;
+ while (0 < uncompressedSizeWritten) {
+ if ((*(unsigned short*)src & 0x8000) == 0) {
+ char const currentByte = *(src + 2);
+ int numberOfBytes = (*(unsigned short*)src & 0x7fff) + 1;
+ uncompressedSizeCounted += numberOfBytes;
+ src += 3;
+ uncompressedSizeWritten -= numberOfBytes;
+ memset(dst, currentByte, numberOfBytes);
+ dst += numberOfBytes;
+ } else {
+ int numberOfBytes = (*(unsigned short*)src & 0x7fff) + 1;
+ uncompressedSizeCounted += numberOfBytes;
+ uncompressedSizeWritten -= numberOfBytes;
+ src += 2;
+ memcpy(dst, src, numberOfBytes);
+ src += numberOfBytes;
+ dst += numberOfBytes;
+ }
+ }
+ return uncompressedSizeCounted;
+ */
+ int uncompressedSizeCounted;
+ // ESI = src
+ // EDI = dst
+ // EBX = written size
+ // EDX = counting size
+ __asm {
+ mov esi, src
+ mov edx, 0
+ mov ebx, [esi + 4]
+ add esi, 8
+ mov edi, dst
+ main_loop:
+ cmp ebx, 0
+ jle finish
+ // check_type:
+ mov ax, [esi]
+ and ax, 0x8000
+ cmp ax, 0
+ jnz uncompress_literal
+ // uncompress_rle:
+ mov cx, [ESI]
+ mov al, [ESI + 0x2]
+ and ecx, 0x7fff
+ inc ecx
+ add edx, ecx
+ add esi, 0x3
+ sub ebx, ecx
+ rep stosb
+ jmp main_loop
+ uncompress_literal:
+ mov cx, [ESI]
+ and ecx, 0x7fff
+ inc ecx
+ add edx, ecx
+ add esi, 0x2
+ sub ebx, ecx
+ rep movsb
+ jmp main_loop
+ finish:
+ mov uncompressedSizeCounted, edx
+ }
+ return uncompressedSizeCounted;
+ }
+}
+}
+
+### 0x004724c0 doImplode | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x004724C0
+ BOOLEnum DecoderState::doImplode(int* ptrHash, int* ptrSize, undefined* src, undefined* dst, int sizeUncompressed)
+ {
+ BOOLEnum _status = TRUE;
+ HGLOBAL hMem = GlobalAlloc(GHND, sizeof(TCmpStruct));
+ if (!hMem) {
+ return FALSE;
+ }
+ TCmpStruct* _work_buf = (TCmpStruct*)GlobalLock(hMem);
+ if (!_work_buf) {
+ GlobalFree(hMem);
+ return FALSE;
+ }
+ Helpers::BufferHelper _param;
+ _memset(&_param, 0, sizeof(Helpers::BufferHelper));
+ _param.buffer0.size = sizeUncompressed;
+ _param.buffer1.size = sizeUncompressed;
+ _param.buffer0.data = src;
+ _param.imploding1orexploding2 = 1;
+ _param.hash = 0xffffffff;
+ _param.buffer1.data = dst;
+ unsigned int const _pkware_status = implode(ReadBufferAndComputeHash,
+ WriteBufferAndComputeHash, (char*)_work_buf, &_param, &this->implodingType,
+ &this->implodingTypeSize);
+ if (_pkware_status == CMP_NO_ERROR && _param.underflow == FALSE) {
+ _param.hash = ~_param.hash;
+ *ptrHash = _param.hash;
+ *ptrSize = _param.compressedSize;
+ } else {
+ _status = CMP_NO_ERROR;
+ }
+ GlobalUnlock(hMem);
+ GlobalFree(hMem);
+ return _status;
+ }
+}
+}
+
+### 0x004725a0 doExplode | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x004725A0
+ BOOLEnum DecoderState::doExplode(
+ int* hash, undefined* src, int sizeCompressed, undefined* dst, int sizeUncompressed)
+ {
+ BOOLEnum _status = TRUE;
+ HGLOBAL hMem = GlobalAlloc(GHND, sizeof(TCmpStruct));
+ if (!hMem) {
+ return FALSE;
+ }
+ TCmpStruct* _work_buf = (TCmpStruct*)GlobalLock(hMem);
+ if (!_work_buf) {
+ GlobalFree(hMem);
+ return FALSE;
+ }
+ Helpers::BufferHelper _param;
+ _memset(&_param, 0, sizeof(Helpers::BufferHelper));
+ _param.buffer1.data = src;
+ _param.buffer1.size = sizeCompressed;
+ _param.imploding1orexploding2 = 2;
+ _param.hash = 0xffffffff;
+ _param.buffer2.data = dst;
+ _param.buffer2.size = sizeUncompressed;
+ unsigned int const _pkware_status = explode(ReadBufferAndComputeHash,
+ WriteBufferAndComputeHash, (char*)_work_buf, &_param);
+ if (_pkware_status == CMP_NO_ERROR && _param.underflow == FALSE) {
+ _param.hash = ~_param.hash;
+ *hash = _param.hash;
+ } else {
+ _status = CMP_NO_ERROR;
+ }
+ GlobalUnlock(hMem);
+ GlobalFree(hMem);
+ return _status;
+ }
+}
+}
+
+### 0x00473c10 encodeData | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00473C10
+ int DecoderState::encodeData(int sizeUncompressed, undefined* src, undefined* dst)
+ {
+ this->sizeUncompressed = sizeUncompressed;
+ doImplode(
+ (int*)&this->crc32, &this->sizeCompressed, src, dst + 0xc, sizeUncompressed);
+ copyData(4, &this->sizeUncompressed, dst);
+ copyData(4, &this->sizeCompressed, dst + 4);
+ copyData(4, &this->crc32, dst + 8);
+ return this->sizeCompressed + 0xc;
+ }
+}
+}
+
+### 0x00473c70 decodeData | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00473C70
+ dword DecoderState::decodeData(void* source, void* destination)
+ {
+ void* sourcePtr = source;
+ copyData(
+ 4, sourcePtr, &this->sizeUncompressed);
+ copyData(
+ 4, (void*)((int)sourcePtr + 4), &this->sizeCompressed);
+ copyData(
+ 4, (void*)((int)sourcePtr + 8), &source);
+ doExplode((int*)&this->crc32, (undefined*)((int)sourcePtr + 12),
+ this->sizeCompressed, (undefined*)destination, this->sizeUncompressed);
+ /* source became hash */
+ if (source != (void*)this->crc32) {
+ return 0;
+ }
+ return this->sizeUncompressed;
+ }
+}
+}
+
+### 0x00439730 HandleBuildingSelectionSpeech | quelle=ghidra | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00439730
+ void Helpers::HandleBuildingSelectionSpeech(int buildingIndexUnk)
+ {
+ int _workerIndex;
+ BuildingTypeShort _buildingType;
+ short _currentEmployeeCount;
+ bool _noPeasantOnTheWay;
+ short _requiredEmployeeCount;
+ if (DAT_BuildingsState.buildings[buildingIndexUnk].owner
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ _buildingType = DAT_BuildingsState.buildings[buildingIndexUnk].buildingType;
+ if (_buildingType == BT_ENGINEERSGUILD) {
+ CheckIfEnoughGoldForLadderman();
+ if (DAT_EnoughGoldForRequestedUnit == FALSE) {
+ /*
+ "You do not have enough gold for apprentices"
+ */
+ playWAVSFX(
+ "units_warning1.wav");
+ return;
+ }
+ } else if (_buildingType == BT_TUNNELERSGUILD) {
+ CheckIfEnoughGoldForTunneler();
+ if (DAT_EnoughGoldForRequestedUnit == FALSE) {
+ /*
+ "You do not have enough gold to train a tunneler"
+ */
+ playWAVSFX(
+ "units_warning2.wav");
+ return;
+ }
+ } else if (0x27 < (short)_buildingType) {
+ return;
+ }
+ if (DAT_BuildingsState.buildings[buildingIndexUnk].sleeping != false) {
+ /*
+ "Work halted my lord"
+ */
+ playWAVSFX(
+ "other_warning12.wav");
+ return;
+ }
+ _currentEmployeeCount = DAT_BuildingsState.buildings[buildingIndexUnk].currentEmployeeCount;
+ if ((_currentEmployeeCount != 0)
+ || (DAT_BuildingsState.buildings[buildingIndexUnk].currentlyNeededEmployeeCount != 0)) {
+ _requiredEmployeeCount
+ = DAT_BuildingsState.buildings[buildingIndexUnk].currentlyNeededEmployeeCount;
+ if (0 < _requiredEmployeeCount) {
+ if (_currentEmployeeCount == 0) {
+ /*
+ "This building has no labor sire"
+ */
+ playWAVSFX(
+ "other_warning8.wav");
+ return;
+ }
+ if (_requiredEmployeeCount == 1) {
+ /*
+ "Needs one more person"
+ */
+ playWAVSFX(
+ "other_warning10.wav");
+ return;
+ }
+ if (1 < _requiredEmployeeCount) {
+ /*
+ "Needs two more people"
+ */
+ playWAVSFX(
+ "other_warning11.wav");
+ return;
+ }
+ }
+ _workerIndex = 0;
+ _noPeasantOnTheWay = true;
+ if (0 < _currentEmployeeCount) {
+ do {
+ if (3 < _workerIndex)
+ break;
+ if (DAT_UnitsState
+ .units[DAT_BuildingsState.buildings[buildingIndexUnk].workerID[_workerIndex]]
+ .unitType
+ == UT_PEASANT) {
+ _noPeasantOnTheWay = false;
+ }
+ _workerIndex = _workerIndex + 1;
+ } while (_workerIndex < _currentEmployeeCount);
+ if ((!_noPeasantOnTheWay) && (_buildingType != BT_OILSMELTER)) {
+ /*
+ "A peasant is on its way"
+ */
+ playWAVSFX(
+ "other_warning9.wav");
+ }
+ }
+ }
+ }
+ return;
+ }
+}
+}
+
+### 0x00449b20 freeMemoryAt | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00449B20
+ void SFXState::freeMemoryAt()
+ {
+ if (!this->DAT_SoundFileNameArrayMemoryPointer) {
+ return;
+ }
+ _free_base(this->DAT_SoundFileNameArrayMemoryPointer);
+ }
+ }
+}
+}
+
+### 0x00449b30 loadWavSounds | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00449B30
+ void SFXState::loadWavSounds(char* param_1)
+ {
+ // Might have arrived in a different format, maybe it was void, or an char(param_1)[270][8][1000] and they
+ // casted it to perform arithmetic?
+ char* soundNames = param_1;
+ int soundStructure2Index = 0;
+ while (soundStructure2Index < 270) {
+ this->DAT_SoundStructures2[soundStructure2Index].soundID = 0;
+ this->DAT_SoundStructures2[soundStructure2Index].field1_0x4 = 0;
+ this->DAT_SoundStructures2[soundStructure2Index].variationCount = 0;
+ this->DAT_SoundStructures2[soundStructure2Index].variationCounter = 0;
+ char* variation = soundNames;
+ for (int i = 0; i < 8; ++i) {
+ if (!strcmp(variation, s_Null_wav_005a4cf8))
+ break;
+ ++this->DAT_SoundStructures2[soundStructure2Index].field1_0x4;
+ variation += sizeof(char[1000]);
+ }
+ variation = soundNames;
+ for (int i = 0; i < 8; ++i) {
+ if (!strcmp(variation, s_Null_wav_005a4cf8))
+ break;
+ int soundID = loadSoundFileAndGetIndex(variation);
+ if (soundID < 0)
+ break;
+ ++this->DAT_SoundStructures2[soundStructure2Index].variationCount;
+ if (this->DAT_SoundStructures2[soundStructure2Index].soundID == 0)
+ this->DAT_SoundStructures2[soundStructure2Index].soundID = soundID;
+ this->DAT_SoundStructures[soundID].pointerToFilename = variation;
+ variation += sizeof(char[1000]);
+ }
+ soundNames += sizeof(char[8][1000]);
+ ++soundStructure2Index;
+ int loadingBar = soundStructure2Index * 80;
+ IO::Graphics::GmID currentGmId
+ = (IO::Graphics::GmID)(loadingBar / 270 + DAT_LoadingBarProgress);
+ drawLoadingBarUnk(currentGmId, DAT_LoadingBarProgress + 180);
+ }
+ }
+ }
+}
+}
+
+### 0x00449c40 setUpSFXToPlayUnk | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00449C40
+ void SFXState::setUpSFXToPlayUnk(SoundEffectID sfxOffsetInArray)
+ {
+ if (this->DAT_SoundStructures2[sfxOffsetInArray].variationCount <= 0) {
+ return;
+ }
+ int const variantSoundId = this->DAT_SoundStructures2[sfxOffsetInArray].soundID
+ + this->DAT_SoundStructures2[sfxOffsetInArray].variationCounter++;
+ if (this->DAT_SoundStructures2[sfxOffsetInArray].variationCounter
+ >= this->DAT_SoundStructures2[sfxOffsetInArray].variationCount) {
+ this->DAT_SoundStructures2[sfxOffsetInArray].variationCounter = 0;
+ }
+ ++this->DAT_SoundStructures[variantSoundId].scheduledPlayCounter;
+ this->DAT_SoundStructures[variantSoundId].volumePercentage
+ = this->DAT_SoundStructures[variantSoundId].baseVolumePercentageUnk;
+ this->DAT_SoundStructures[variantSoundId].samplePan = 64;
+ ++this->DAT_SFXCounter1;
+ if (this->DAT_SFXCounter1 > this->highestSFXCounter) {
+ this->highestSFXCounter = this->DAT_SFXCounter1;
+ }
+ }
+ }
+}
+}
+
+### 0x00449cc0 setSoundWithVariation | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00449CC0
+ void SFXState::setSoundWithVariation(int unknownSfxID, int volumePercentage)
+ {
+ if (this->DAT_SoundStructures2[unknownSfxID].variationCount <= 0) {
+ return;
+ }
+ if (volumePercentage < 0) {
+ volumePercentage = 0;
+ } else if (127 < volumePercentage) {
+ volumePercentage = 127;
+ }
+ int const variantSoundId = this->DAT_SoundStructures2[unknownSfxID].soundID
+ + this->DAT_SoundStructures2[unknownSfxID].variationCounter++;
+ if (this->DAT_SoundStructures2[unknownSfxID].variationCounter
+ >= this->DAT_SoundStructures2[unknownSfxID].variationCount) {
+ this->DAT_SoundStructures2[unknownSfxID].variationCounter = 0;
+ }
+ this->DAT_SoundStructures[variantSoundId].volumePercentage = volumePercentage;
+ ++this->DAT_SoundStructures[variantSoundId].scheduledPlayCounter;
+ this->DAT_SoundStructures[variantSoundId].samplePan = 64;
+ ++this->DAT_SFXCounter1;
+ if (this->DAT_SFXCounter1 > this->highestSFXCounter) {
+ this->highestSFXCounter = this->DAT_SFXCounter1;
+ }
+ }
+ }
+}
+}
+
+### 0x00449d50 scheduleSFXVariation | quelle=nachgebaut | bereich=Ton/Video
+// FUNCTION: STRONGHOLDCRUSADER 0x00449D50
+ void SFXState::scheduleSFXVariation(int sfxGroupID, int variationIndex)
+ {
+ if (variationIndex > this->DAT_SoundStructures2[sfxGroupID].variationCount - 1 || variationIndex < 0) {
+ return;
+ }
+ int const soundId = this->DAT_SoundStructures2[sfxGroupID].soundID + variationIndex;
+ this->DAT_SoundStructures[soundId].scheduledPlayCounter++;
+ this->DAT_SoundStructures[soundId].volumePercentage
+ = this->DAT_SoundStructures[soundId].baseVolumePercentageUnk;
+ this->DAT_SoundStructures[soundId].samplePan = 64;
+ ++this->DAT_SFXCounter1 = this->DAT_SFXCounter1;
+ if (this->DAT_SFXCounter1 > this->highestSFXCounter) {
+ this->highestSFXCounter = this->DAT_SFXCounter1;
+ }
+ }
+ }
+}
+}
+

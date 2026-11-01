@@ -1,0 +1,1443 @@
+### 0x004bd1b0 updateTutorialStepAndProgress | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x004BD1B0
+ void Helpers::UpdateTutorialStepAndProgress()
+ {
+ DWORD _now;
+ DWORD DVar1;
+ BOOLEnum BVar2;
+ int iVar3;
+ uint uVar4;
+ bool bVar5;
+ MenuModalType menuModalID;
+ int local_48;
+ char local_44[32];
+ char local_24[32];
+ uint local_4;
+ local_4 = MSVC_SecurityCookie::instance ^ (uint)&local_48;
+ local_48 = DAT_00df5560;
+ if (((INT_DisableTutorialRestrictions::instance != 0)
+ && (DAT_MenuModalComposition1.activeModalDialogID != MMT_TUTORIAL_BOX))
+ && (DAT_MenuModalComposition1.activeModalDialogID
+ != MMT_TUTORIAL_BOX_WITH_LEAVE))
+ goto LAB_004bd764;
+ _now = MACRO_CALL(timeGetTime)();
+ if (DAT_MenuModalComposition1.activeModalDialogID == MMT_NONE) {
+ if (DAT_TutorialCurrentStep == 0x1f) {
+ menuModalID = MMT_TUTORIAL_BOX_WITH_LEAVE;
+ } else {
+ menuModalID = MMT_TUTORIAL_BOX;
+ }
+ activateModalDialog(menuModalID, FALSE);
+ }
+ iVar3 = DAT_00df5558 + DAT_TutorialCurrentStep * 4;
+ if (iVar3 != INT_00df5654::instance) {
+ INT_00df5650::instance = 0;
+ INT_00df5654::instance = iVar3;
+ DWORD_00df564c::instance = MACRO_CALL(timeGetTime)();
+ }
+ if (((INT_00df5650::instance == 0) && (0 < DAT_00df5558))
+ && ((DAT_00df5558 < DAT_00df555c
+ && (DVar1 = MACRO_CALL(timeGetTime)(), 1000 < DVar1 - DWORD_00df564c::instance)))) {
+ INT_00df5650::instance = 1;
+ _sprintf(local_44, "%s%s", "fx\\speech\\",
+ (DAT_00df5558 + DAT_TutorialCurrentStep * 3) * 32 + 0xb3d810);
+ BVar2 = FileExists(local_44);
+ if (BVar2 != FALSE) {
+ playAmbientStreamWithLoop(local_44);
+ }
+ }
+ if ((DAT_00df5564 != 0) && (1000 < _now - DWORD_00df5568::instance)) {
+ DAT_00df5564 = 0;
+ }
+ if ((DAT_FileDoesntExist == FALSE)
+ && (((DAT_00df5558 == 0 || (INT_00df5650::instance != 0)) && (DAT_00df5540 == 0)))) {
+ uVar4 = DAT_00df5544;
+ if (DAT_00df5558 < DAT_00df555c + -1) {
+ BVar2 = isSampleOrStreamPlaying(SND_STR_SPEECH_1);
+ if (((BVar2 == FALSE)
+ && (BVar2 = isSampleOrStreamPlaying(SND_STR_SPEECH_2),
+ BVar2 == FALSE))
+ && ((DAT_SoundSystemState.waveOutOpenUnk_0x8 != FALSE
+ && (DAT_SoundSystemState.soundActiveUnk_0x0 != 0)))) {
+ MenuItemActionHandler_TutorialBox_Main(1);
+ }
+ goto LAB_004bd354;
+ }
+ LAB_004bd3e9:
+ DAT_00df5544 = uVar4;
+ if (DAT_00df5560 != 0)
+ goto LAB_004bd764;
+ } else {
+ LAB_004bd354:
+ if (DAT_00df5540 == 1) {
+ uVar4 = _now - DWORD_00df5548::instance >> 5;
+ if (uVar4 < 0x20) {
+ uVar4 = 0x1f - uVar4;
+ } else {
+ _sprintf(
+ local_44, "%s%s", "fx\\speech\\", DAT_TutorialCurrentStep * 96 + 0xb3d810);
+ BVar2 = FileExists(local_44);
+ if (BVar2 != FALSE) {
+ playAmbientStreamWithLoop(local_44);
+ }
+ DAT_00df5540 = 0;
+ uVar4 = DAT_00df5544;
+ }
+ goto LAB_004bd3e9;
+ }
+ uVar4 = DAT_00df5544;
+ if (DAT_00df5540 != 2)
+ goto LAB_004bd3e9;
+ uVar4 = _now - DWORD_00df5548::instance >> 5;
+ if (uVar4 == 0) {
+ uVar4 = 1;
+ goto LAB_004bd3e9;
+ }
+ if (uVar4 < 0x20)
+ goto LAB_004bd3e9;
+ DAT_TutorialCurrentStep = DAT_TutorialCurrentStep + 1;
+ if (INT_DisableTutorialRestrictions::instance != 0) {
+ activateModalDialog(MMT_NONE, FALSE);
+ uVar4 = DAT_00df5544;
+ goto LAB_004bd3e9;
+ }
+ if (DAT_TutorialCurrentStep == 0x1f) {
+ activateModalDialog(MMT_NONE, FALSE);
+ activateModalDialog(MMT_TUTORIAL_BOX_WITH_LEAVE, FALSE);
+ }
+ InitTutorialStepTransition(1);
+ ResetTutorialActionTrackers();
+ DAT_00df555c
+ = DAT_MissionAestheticsDefinedData.field1249_0x5324[DAT_TutorialCurrentStep];
+ DAT_00df5560 = 0;
+ DAT_00df5558 = 0;
+ }
+ if ((INT_DisableTutorialRestrictions::instance != 0) || (DAT_00df5540 == 2))
+ goto LAB_004bd764;
+ switch (DAT_TutorialCurrentStep) {
+ case 1:
+ iVar3 = INT_00df5574::instance;
+ goto joined_r0x004bd699;
+ case 2:
+ if (DAT_00df5558 == 0) {
+ bVar5 = DAT_00df5588 == 6;
+ } else {
+ iVar3 = DAT_00df5558;
+ if (DAT_00df5558 != 1)
+ goto joined_r0x004bd6ad;
+ bVar5 = DAT_00df5588 == 7;
+ }
+ if (bVar5) {
+ bVar5 = DAT_00df558c == 0x28;
+ goto LAB_004bd6bb;
+ }
+ break;
+ case 5:
+ if (DAT_00df5558 == 0) {
+ if (DAT_00df5588 != 6) {
+ bVar5 = DAT_00df5588 == 7;
+ goto LAB_004bd514;
+ }
+ if (DAT_00df558c == 0x13) {
+ DAT_00df5590 = 1;
+ }
+ } else {
+ joined_r0x004bd57e:
+ if (0 < DAT_00df5558)
+ goto switchD_004bd41e_caseD_0;
+ }
+ break;
+ case 6:
+ case 0x13:
+ bVar5 = DAT_00df5588 == 8;
+ LAB_004bd514:
+ if (bVar5) {
+ bVar5 = DAT_00df558c == 0x13;
+ goto LAB_004bd6bb;
+ }
+ break;
+ case 8:
+ if (DAT_00df5558 != 0)
+ goto joined_r0x004bd57e;
+ if (DAT_00df5588 == 0xc) {
+ bVar5 = DAT_00df558c == 4;
+ goto LAB_004bd6bb;
+ }
+ break;
+ case 9:
+ if (DAT_00df5558 != 0)
+ goto joined_r0x004bd57e;
+ if (DAT_GameCore.currentMenuViewType == MVT_BUILDING_AND_STATUS_MENU) {
+ bVar5 = DAT_GameCore.activeMenuTab.tabType == BASMTT_KEEP_OR_MPMENU_IPX;
+ goto LAB_004bd6bb;
+ }
+ break;
+ case 10:
+ if (DAT_00df5588 == 0xd) {
+ bVar5 = DAT_00df558c == 7;
+ goto LAB_004bd6bb;
+ }
+ break;
+ case 0xb:
+ if (DAT_00df5558 != 1)
+ goto switchD_004bd41e_caseD_0;
+ if (DAT_00df5588 == 0xe) {
+ DAT_00df5560 = 1;
+ }
+ if (DAT_GameCore.currentMenuViewType == MVT_BUILDING_AND_STATUS_MENU) {
+ bVar5 = DAT_GameCore.activeMenuTab.tabType == BASMTT_STATUS_OVERVIEW;
+ goto LAB_004bd6bb;
+ }
+ break;
+ case 0xc:
+ if ((DAT_00df5588 == 0xf) && (DAT_00df558c == 0x48)) {
+ DAT_00df5560 = 1;
+ }
+ if (DAT_GameCore.currentMenuViewType == MVT_BUILDING_AND_STATUS_MENU) {
+ bVar5 = DAT_GameCore.activeMenuTab.tabType == BASMTT_STATUS_POPULARITY;
+ goto LAB_004bd6bb;
+ }
+ break;
+ case 0xe:
+ case 0x14:
+ if (DAT_GameCore.currentMenuViewType != MVT_BUILDING_AND_STATUS_MENU) {
+ DAT_00df5560 = 1;
+ }
+ bVar5 = DAT_00df5588 == 0xb;
+ LAB_004bd6bb:
+ if (bVar5)
+ goto switchD_004bd41e_caseD_0;
+ break;
+ case 0x11:
+ if ((DAT_00df5588 == 7) && (DAT_00df558c == 3)) {
+ DAT_00df5590 = DAT_00df5590 + 1;
+ DAT_00df5588 = 0;
+ }
+ if (DAT_TileMapState.currentMapperCommand == M_MAPPER_NULL) {
+ bVar5 = DAT_00df5590 == 4;
+ goto LAB_004bd6bb;
+ }
+ break;
+ case 0x15:
+ if ((DAT_00df5588 == 7) && (DAT_00df558c == 7)) {
+ DAT_00df5590 = DAT_00df5590 + 1;
+ DAT_00df5588 = 0;
+ bVar5 = DAT_00df5590 == 4;
+ goto LAB_004bd6bb;
+ }
+ break;
+ case 0x18:
+ if (DAT_00df5588 == 7) {
+ bVar5 = DAT_00df558c == 1;
+ goto LAB_004bd6bb;
+ }
+ break;
+ case 0x1b:
+ iVar3 = TUT_RotateMapHappened::instance;
+ joined_r0x004bd699:
+ /*
+ hold right click to show extra interface controls
+ */
+ if (iVar3 != 0)
+ goto switchD_004bd41e_caseD_0;
+ break;
+ case 0x1c:
+ iVar3 = INT_00df557c::instance;
+ goto joined_r0x004bd6ad;
+ case 0x1d:
+ iVar3 = INT_00df5584::instance;
+ joined_r0x004bd6ad:
+ if (1 < iVar3)
+ goto switchD_004bd41e_caseD_0;
+ break;
+ case 0x1e:
+ if (DAT_00df5558 == 1) {
+ bVar5 = INT_00df5580::instance == 2;
+ goto LAB_004bd6bb;
+ }
+ case 0:
+ case 3:
+ case 4:
+ case 7:
+ case 0xd:
+ case 0xf:
+ case 0x10:
+ case 0x12:
+ case 0x16:
+ case 0x17:
+ case 0x19:
+ case 0x1a:
+ case 0x1f:
+ case 0x20:
+ switchD_004bd41e_caseD_0:
+ DAT_00df5560 = 1;
+ }
+ if (local_48 == 0) {
+ if (DAT_00df5560 == 0)
+ goto LAB_004bd764;
+ if (DAT_MissionAestheticsDefinedData.field1251_0x5464[DAT_TutorialCurrentStep] == 2) {
+ iVar3 = DAT_00df556c * 0x60;
+ DAT_00df556c = DAT_00df556c + 1;
+ _sprintf(local_24, "%s%s", "fx\\speech\\", iVar3 + 0xb3d810);
+ playAmbientStreamWithLoop(local_24);
+ if (0x27 < DAT_00df556c) {
+ DAT_00df556c = 0x24;
+ }
+ }
+ }
+ if (((DAT_00df5560 != 0)
+ && (DAT_MissionAestheticsDefinedData.field1250_0x53c4[DAT_TutorialCurrentStep]
+ != 0))
+ && (DAT_00df555c + -1 <= DAT_00df5558)) {
+ /*
+ show continue button?
+ */
+ MenuItemActionHandler_TutorialBox_Main(1);
+ }
+ LAB_004bd764:;
+ return;
+ }
+}
+}
+
+### 0x004db180 BuildIntroLogoSequence | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x004DB180
+ void Helpers::BuildIntroLogoSequence(undefined4 param_1, undefined4 param_2)
+ {
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("logo1.tgx");
+ loadGfxFile("logo2.tgx");
+ AppendCreditsSegmentEndCommand();
+ AppendCreditsSoundEntry(1, 0);
+ AppendCreditsListTerminator();
+ AppendCreditsCommand(0x12);
+ AppendCreditsSoundStreamCommand(
+ 0x14, SND_STR_MUSIC);
+ AppendCreditsSoundStreamCommand(1, 0x3c);
+ AppendCreditsCommand(0x13);
+ AppendCreditsSoundStreamCommand(
+ 0x14, SND_STR_MUSIC);
+ AppendCreditsPauseCommand();
+ AppendCreditsSoundStreamCommand(
+ 8, SND_STR_MUSIC);
+ return;
+ }
+}
+}
+
+### 0x004db210 PrepareHistoryBook | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x004DB210
+ int Helpers::PrepareHistoryBook()
+ {
+ int iVar1;
+ uint uVar2;
+ int* piVar3;
+ int* piVar4;
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("sand.tgx");
+ loadGfxFile("pc0.tgx");
+ loadGfxFile("pc1.tgx");
+ loadGfxFile("pc2.tgx");
+ loadGfxFile("pc3.tgx");
+ loadGfxFile("pc4.tgx");
+ loadGfxFile("pc5.tgx");
+ loadGfxFile("pc6.tgx");
+ loadGfxFile("pc7.tgx");
+ piVar3 = INT_ARRAY_ARRAY_00eb0b28::instance[0] + 1;
+ do {
+ iVar1 = _rand();
+ (*(int (*)[4])(piVar3 + -1))[0] = iVar1 % 900 << 8;
+ iVar1 = _rand();
+ *piVar3 = iVar1 % 600 << 8;
+ uVar2 = _rand();
+ uVar2 = uVar2 & 0x80000007;
+ if ((int)uVar2 < 0) {
+ uVar2 = (uVar2 - 1 | 0xfffffff8) + 1;
+ }
+ piVar3[1] = uVar2;
+ iVar1 = _rand();
+ piVar4 = piVar3 + 4;
+ piVar3[2] = iVar1 % 10 + 10;
+ piVar3 = piVar4;
+ } while ((int)piVar4 < 0xeb0e2c);
+ return iVar1 / 10;
+ }
+}
+}
+
+### 0x004dc1c0 BuildExtremeDemoIntroScript | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x004DC1C0
+ void Helpers::BuildExtremeDemoIntroScript()
+ {
+ char* textToStore;
+ int iVar1;
+ DAT_TextureRenderCoreObject.totalLoadedGfx = 0;
+ loadGfxFile("bullet2.tgx");
+ loadGfxFile("p4.tgx");
+ loadGfxFile("p3.tgx");
+ loadGfxFile("p1.tgx");
+ loadGfxFile("p2.tgx");
+ loadGfxFile("demo1.tgx");
+ loadGfxFile("demo2.tgx");
+ loadGfxFile("demo3.tgx");
+ loadGfxFile("demo4.tgx");
+ loadGfxFile("logo_280x100.tgx");
+ iVar1 = 0;
+ do {
+ /*
+ 'Cut a path through an increasingly tough extreme trail. As the numbers of opponents go up, so does the
+ challenge!' 'Relive the Crusades from both sides, with the original Stronghold Crusader and all the
+ additional content ever released.' '16 AI characters to fight against, 1000\u2019s of troops to battle,
+ months of game play to keep you hooked!' 'Battle your friends and enemies alike, online, in Extreme
+ multiplayer.' 'Make and distribute new play maps, with a fully featured map editor.'
+ */
+ textToStore = getTextStringInGroupAtOffset(TEXT_EXTREME_DEMO, iVar1 + 8);
+ StoreStringInMenuStringArray(textToStore);
+ iVar1 = iVar1 + 1;
+ } while (iVar1 < 5);
+ AppendCreditsSoundEntry(1, 5);
+ AppendCreditsCommand(0x12);
+ AppendCreditsSoundStreamCommand(
+ 0x14, SND_STR_MUSIC);
+ AppendCreditsSoundStreamCommand(0x2c, 0xb4);
+ AppendCreditsCommand(0x13);
+ AppendCreditsSoundStreamCommand(
+ 0x14, SND_STR_MUSIC);
+ AppendCreditsSoundEntry(1, 6);
+ AppendCreditsCommand(0x12);
+ AppendCreditsSoundStreamCommand(
+ 0x14, SND_STR_MUSIC);
+ AppendCreditsSoundStreamCommand(0x2c, 0xb4);
+ AppendCreditsCommand(0x13);
+ AppendCreditsSoundStreamCommand(
+ 0x14, SND_STR_MUSIC);
+ AppendCreditsSoundEntry(1, 7);
+ AppendCreditsCommand(0x12);
+ AppendCreditsSoundStreamCommand(
+ 0x14, SND_STR_MUSIC);
+ AppendCreditsSoundStreamCommand(0x2c, 0xb4);
+ AppendCreditsCommand(0x13);
+ AppendCreditsSoundStreamCommand(
+ 0x14, SND_STR_MUSIC);
+ AppendCreditsSoundEntry(1, 8);
+ AppendCreditsCommand(0x12);
+ AppendCreditsSoundStreamCommand(
+ 0x14, SND_STR_MUSIC);
+ AppendCreditsSoundStreamCommand(0x2c, 0xb4);
+ AppendCreditsCommand(0x2b);
+ AppendCreditsImageTransitionCommand(6, 9, 0x104, 10, 4);
+ AppendCreditsSoundStreamCommand(2, ((SHC_SoundStream)9));
+ AppendCreditsSoundStreamCommand(1, ((SHC_SoundStream)0x28));
+ AppendCreditsImageTransitionCommand(6, 0, 0x5f, 0x80, 4);
+ AppendCreditsTextCommand(0xf, 0, 0x12, 0, 0x87, 0x8c, 600, 0);
+ AppendCreditsSoundStreamCommand(
+ 3, SND_STR_MUSIC);
+ AppendCreditsSoundStreamCommand(1, ((SHC_SoundStream)0x28));
+ AppendCreditsImageTransitionCommand(6, 0, 0x5f, 0xd0, 4);
+ AppendCreditsTextCommand(0xf, 1, 0x12, 0, 0x87, 0xdc, 600, 0);
+ AppendCreditsSoundStreamCommand(
+ 3, SND_STR_SFX_1Unk);
+ AppendCreditsSoundStreamCommand(1, ((SHC_SoundStream)0x28));
+ AppendCreditsImageTransitionCommand(6, 0, 0x5f, 0x120, 4);
+ AppendCreditsTextCommand(0xf, 2, 0x12, 0, 0x87, 300, 600, 0);
+ AppendCreditsSoundStreamCommand(
+ 3, SND_STR_SFX_2Unk);
+ AppendCreditsSoundStreamCommand(1, ((SHC_SoundStream)0x28));
+ AppendCreditsImageTransitionCommand(6, 0, 0x5f, 0x170, 4);
+ AppendCreditsTextCommand(0xf, 3, 0x12, 0, 0x87, 0x17c, 600, 0);
+ AppendCreditsSoundStreamCommand(
+ 3, SND_STR_SPEECH_1);
+ AppendCreditsSoundStreamCommand(1, ((SHC_SoundStream)0x28));
+ AppendCreditsImageTransitionCommand(6, 0, 0x5f, 0x1c0, 4);
+ AppendCreditsTextCommand(0xf, 4, 0x12, 0, 0x87, 0x1cc, 600, 0);
+ AppendCreditsSoundStreamCommand(
+ 3, SND_STR_SPEECH_2);
+ AppendCreditsFixedImageCommand(1, 0x2ac, 0x226);
+ AppendCreditsSoundStreamCommand(
+ 0x16, SND_STR_MUSIC);
+ AppendCreditsSegmentEndCommand();
+ AppendCreditsSoundStreamCommand(
+ 0x19, SND_STR_MUSIC);
+ return;
+ }
+}
+}
+
+### 0x005010c0 clearHoveredState | quelle=nachgebaut | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x005010C0
+ void HoveredState::clearHoveredState()
+ {
+ for (int i = 0; i < 20; ++i) {
+ this->elements[i].type = M_MAPPER_NULL;
+ }
+ }
+}
+}
+
+### 0x0041a740 SwapInts | quelle=nachgebaut | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x0041A740
+void IO::SwapInts(int* param_1, int* param_2)
+{
+ int uVar1;
+ uVar1 = *param_1;
+ *param_1 = *param_2;
+ *param_2 = uVar1;
+}
+}
+
+### 0x00487090 Base64EncodeCharacterLookup | quelle=nachgebaut | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x00487090
+char IO::Base64Encode_CharacterLookup(char param_1)
+{
+ if ('?' < param_1) {
+ return '=';
+ }
+ return DAT_ProtocolDefinedData.field136_0x4f4[param_1];
+}
+
+### 0x004870b0 Base64Encode | quelle=nachgebaut | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x004870B0
+int IO::Base64Encode(char* input, int length, char* output, Base64State* state)
+{
+ char* inputEnd = input + length;
+ char* outputRunPtr = output;
+ char carryByte = state->carryByte;
+ switch (state->phase) {
+ while (true) {
+ case 0: {
+ if (input == inputEnd) {
+ state->phase = 0;
+ state->carryByte = carryByte;
+ return outputRunPtr - output;
+ }
+ char currentByte = *input;
+ ++input;
+ *outputRunPtr = Base64Encode_CharacterLookup(currentByte >> 2 & 0x3f);
+ ++outputRunPtr;
+ carryByte = (currentByte & 0x3) << 4;
+ }
+ case 1: {
+ if (input == inputEnd) {
+ state->phase = 1;
+ state->carryByte = carryByte;
+ return outputRunPtr - output;
+ }
+ char currentByte = *input;
+ ++input;
+ *outputRunPtr
+ = Base64Encode_CharacterLookup(currentByte >> 4 & 0xf | carryByte);
+ ++outputRunPtr;
+ carryByte = (currentByte & 0xf) << 2;
+ }
+ case 2: {
+ if (input == inputEnd) {
+ state->phase = 2;
+ state->carryByte = carryByte;
+ return outputRunPtr - output;
+ }
+ char currentByte = *input;
+ ++input;
+ *outputRunPtr
+ = Base64Encode_CharacterLookup(currentByte >> 6 & 0x3 | carryByte);
+ ++outputRunPtr;
+ carryByte = currentByte & 0x3f;
+ *outputRunPtr = Base64Encode_CharacterLookup(carryByte);
+ ++outputRunPtr;
+ ++state->lineCharacterCounter;
+ if (state->lineCharacterCounter != 7200) {
+ continue;
+ }
+ *outputRunPtr = '\n';
+ ++outputRunPtr;
+ state->lineCharacterCounter = 0;
+ }
+ }
+ }
+ return 0;
+}
+}
+
+### 0x004bc5b0 FileExists | quelle=nachgebaut | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x004BC5B0
+BOOLEnum IO::FileExists(char* param_1)
+{
+ FILE* _File = _fopen(param_1, s_rb_005a4e18);
+ if (!_File) {
+ DAT_FileDoesntExist = TRUE;
+ return FALSE;
+ }
+ _fclose(_File);
+ DAT_FileDoesntExist = FALSE;
+ return TRUE;
+}
+}
+
+### 0x004d5010 readSkMasters2 | quelle=nachgebaut | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x004D5010
+void IO::ReadSkMasters2()
+{
+ DAT_SkMasters2Data_Version = 3.0;
+ DAT_SkMasters2Data_Count = 0;
+ char path[1000];
+ // NOTE: Direct use to support copy elision
+ strcpy(path, DAT_ResourceManager.paths_getDocumentsFolderString(true).c_str());
+ strcat(path, s_skmasters2_dat_005aad80);
+ FILE* file = _fopen(path, s_rb_005a4e18);
+ if (!file) {
+ return;
+ }
+ float _version;
+ _fread(&_version, sizeof(_version), 1, file);
+ if (_version != 3.0) {
+ _fclose(file);
+ return;
+ }
+ int _count;
+ _fread(&_count, sizeof(_count), 1, file);
+ if (_count < 1) {
+ _fclose(file);
+ return;
+ }
+ DAT_SkMasters2Data_Count = _count;
+ _fread(
+ DAT_SkMasters2DataArray, sizeof(DAT_SkMasters2DataArray[0]), _count, file);
+ _fclose(file);
+}
+}
+
+### 0x004d5180 WriteSkMasters2 | quelle=nachgebaut | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x004D5180
+void IO::WriteSkMasters2()
+{
+ if (DAT_SkMasters2Data_Count < 1) {
+ return;
+ }
+ char path[1000];
+ // NOTE: Direct use to support copy elision
+ strcpy(path, DAT_ResourceManager.paths_getDocumentsFolderString(true).c_str());
+ strcat(path, s_skmasters2_dat_005aad80);
+ FILE* _File = _fopen(path, s_wb_005a5510);
+ if (!_File) {
+ return;
+ }
+ _fwrite(
+ DAT_SkMasters2Data_Version, sizeof(DAT_SkMasters2Data_Version), 1, _File);
+ _fwrite(
+ DAT_SkMasters2Data_Count, sizeof(DAT_SkMasters2Data_Count), 1, _File);
+ _fwrite(DAT_SkMasters2DataArray,
+ sizeof(DAT_SkMasters2DataArray[0]), DAT_SkMasters2Data_Count, _File);
+ _fclose(_File);
+}
+}
+
+### 0x0046a910 fillMemory_setMemoryToValue_0x010 | quelle=nachgebaut | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x0046a910
+ void LowLevelMemory::fillMemory_setMemoryToValue_0x010()
+ {
+ unsigned int* localDest = (unsigned int*)this->destination;
+ size_t localSize = this->size;
+ int localValue = this->value;
+ /*
+ while (localSize >= 0x10) {
+ // actually manually enrolled to 4 int assigns
+ for (int i = 0; i < 4; i++) {
+ localDest[i] = localValue;
+ }
+ localSrc += 4;
+ localDest += 4;
+ localSize -= 0x10;
+ }
+ */
+ __asm
+ {
+ mov edi, localDest
+ mov ebx, localSize
+ mov eax, localValue
+ loop_start:
+ cmp ebx, 0x10
+ jl loop_end
+ mov dword ptr [edi + 0x00], eax
+ mov dword ptr [edi + 0x04], eax
+ mov dword ptr [edi + 0x08], eax
+ mov dword ptr [edi + 0x0c], eax
+ sub ebx, 0x10
+ add edi, 0x10
+ jmp loop_start
+ loop_end:
+ mov localDest, edi
+ mov localSize, ebx
+ }
+ this->destination = (void*)localDest;
+ this->size = localSize;
+ }
+
+### 0x0046a970 fillMemory_setMemoryToValue_0x100 | quelle=nachgebaut | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x0046A970
+ void LowLevelMemory::fillMemory_setMemoryToValue_0x100()
+ {
+ unsigned int* localDest = (unsigned int*)this->destination;
+ size_t localSize = this->size;
+ int localValue = this->value;
+ /*
+ while (localSize >= 0x100) {
+ // actually manually enrolled to 64 int assigns
+ for (int i = 0; i < 64; i++) {
+ localDest[i] = localValue;
+ }
+ localSrc += 64;
+ localDest += 64;
+ localSize -= 0x100;
+ }
+ */
+ __asm
+ {
+ mov edi, localDest
+ mov ebx, localSize
+ mov eax, localValue
+ loop_start:
+ cmp ebx, 0x100
+ jl loop_end
+ mov dword ptr [edi + 0x00], eax
+ mov dword ptr [edi + 0x04], eax
+ mov dword ptr [edi + 0x08], eax
+ mov dword ptr [edi + 0x0c], eax
+ mov dword ptr [edi + 0x10], eax
+ mov dword ptr [edi + 0x14], eax
+ mov dword ptr [edi + 0x18], eax
+ mov dword ptr [edi + 0x1c], eax
+ mov dword ptr [edi + 0x20], eax
+ mov dword ptr [edi + 0x24], eax
+ mov dword ptr [edi + 0x28], eax
+ mov dword ptr [edi + 0x2c], eax
+ mov dword ptr [edi + 0x30], eax
+ mov dword ptr [edi + 0x34], eax
+ mov dword ptr [edi + 0x38], eax
+ mov dword ptr [edi + 0x3c], eax
+ mov dword ptr [edi + 0x40], eax
+ mov dword ptr [edi + 0x44], eax
+ mov dword ptr [edi + 0x48], eax
+ mov dword ptr [edi + 0x4c], eax
+ mov dword ptr [edi + 0x50], eax
+ mov dword ptr [edi + 0x54], eax
+ mov dword ptr [edi + 0x58], eax
+ mov dword ptr [edi + 0x5c], eax
+ mov dword ptr [edi + 0x60], eax
+ mov dword ptr [edi + 0x64], eax
+ mov dword ptr [edi + 0x68], eax
+ mov dword ptr [edi + 0x6c], eax
+ mov dword ptr [edi + 0x70], eax
+ mov dword ptr [edi + 0x74], eax
+ mov dword ptr [edi + 0x78], eax
+ mov dword ptr [edi + 0x7c], eax
+ mov dword ptr [edi + 0x80], eax
+ mov dword ptr [edi + 0x84], eax
+ mov dword ptr [edi + 0x88], eax
+ mov dword ptr [edi + 0x8c], eax
+ mov dword ptr [edi + 0x90], eax
+ mov dword ptr [edi + 0x94], eax
+ mov dword ptr [edi + 0x98], eax
+ mov dword ptr [edi + 0x9c], eax
+ mov dword ptr [edi + 0xa0], eax
+ mov dword ptr [edi + 0xa4], eax
+ mov dword ptr [edi + 0xa8], eax
+ mov dword ptr [edi + 0xac], eax
+ mov dword ptr [edi + 0xb0], eax
+ mov dword ptr [edi + 0xb4], eax
+ mov dword ptr [edi + 0xb8], eax
+ mov dword ptr [edi + 0xbc], eax
+ mov dword ptr [edi + 0xc0], eax
+ mov dword ptr [edi + 0xc4], eax
+ mov dword ptr [edi + 0xc8], eax
+ mov dword ptr [edi + 0xcc], eax
+ mov dword ptr [edi + 0xd0], eax
+ mov dword ptr [edi + 0xd4], eax
+ mov dword ptr [edi + 0xd8], eax
+ mov dword ptr [edi + 0xdc], eax
+ mov dword ptr [edi + 0xe0], eax
+ mov dword ptr [edi + 0xe4], eax
+ mov dword ptr [edi + 0xe8], eax
+ mov dword ptr [edi + 0xec], eax
+ mov dword ptr [edi + 0xf0], eax
+ mov dword ptr [edi + 0xf4], eax
+ mov dword ptr [edi + 0xf8], eax
+ mov dword ptr [edi + 0xfc], eax
+ sub ebx, 0x100
+ add edi, 0x100
+ jmp loop_start
+ loop_end:
+ mov localDest, edi
+ mov localSize, ebx
+ }
+ this->destination = (void*)localDest;
+ this->size = localSize;
+ }
+
+### 0x0046aaf0 copyData_0x001 | quelle=nachgebaut | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x0046AAF0
+ void LowLevelMemory::copyData_0x001()
+ {
+ unsigned char* localDest = (unsigned char*)this->destination;
+ unsigned char* localSrc = (unsigned char*)this->src;
+ size_t localSize = this->size;
+ /*
+ // assembly logic just uses localSize to count down and src and dest up
+ for(size_t i = 0; i < localSize; ++i) {
+ localDest[i] = localSrc[i];
+ }
+ */
+ __asm
+ {
+ mov edi, localDest
+ mov esi, localSrc
+ mov ebx, localSize
+ loop_start:
+ cmp ebx, 0
+ jle loop_end
+ mov al, [esi]
+ mov [edi], al
+ sub ebx, 1
+ add esi, 1
+ add edi, 1
+ jmp loop_start
+ loop_end:
+ }
+ }
+}
+}
+
+### 0x0046ab30 copyData_0x010 | quelle=nachgebaut | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x0046AB30
+ void LowLevelMemory::copyData_0x010()
+ {
+ unsigned int* localDest = (unsigned int*)this->destination;
+ unsigned int* localSrc = (unsigned int*)this->src;
+ size_t localSize = this->size;
+ /*
+ while (localSize >= 0x10) {
+ // actually manually enrolled to 4 int assigns
+ for (int i = 0; i < 4; i++) {
+ localDest[i] = localSrc[i];
+ }
+ localSrc += 4;
+ localDest += 4;
+ localSize -= 0x10;
+ }
+ */
+ __asm
+ {
+ mov edi, localDest
+ mov esi, localSrc
+ mov ebx, localSize
+ loop_start:
+ cmp ebx, 0x10
+ jl loop_end
+ mov eax, dword ptr [esi + 0x00]
+ mov dword ptr [edi + 0x00], eax
+ mov eax, dword ptr [esi + 0x04]
+ mov dword ptr [edi + 0x04], eax
+ mov eax, dword ptr [esi + 0x08]
+ mov dword ptr [edi + 0x08], eax
+ mov eax, dword ptr [esi + 0x0c]
+ mov dword ptr [edi + 0x0c], eax
+ sub ebx, 0x10
+ add esi, 0x10
+ add edi, 0x10
+ jmp loop_start
+ loop_end:
+ mov localDest, edi
+ mov localSrc, esi
+ mov localSize, ebx
+ }
+ this->destination = (void*)localDest;
+ this->src = (void*)localSrc;
+ this->size = localSize;
+ }
+
+### 0x0046aba0 copyData_0x100 | quelle=nachgebaut | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x0046ABA0
+ void LowLevelMemory::copyData_0x100()
+ {
+ unsigned int* localDest = (unsigned int*)this->destination;
+ unsigned int* localSrc = (unsigned int*)this->src;
+ size_t localSize = this->size;
+ /*
+ while (localSize >= 0x100) {
+ // actually manually enrolled to 64 int assigns
+ for (int i = 0; i < 64; i++) {
+ localDest[i] = localSrc[i];
+ }
+ localSrc += 64;
+ localDest += 64;
+ localSize -= 0x100;
+ }
+ */
+ __asm
+ {
+ mov edi, localDest
+ mov esi, localSrc
+ mov ebx, localSize
+ loop_start:
+ cmp ebx, 0x100
+ jl loop_end
+ mov eax, dword ptr [esi + 0x00]
+ mov dword ptr [edi + 0x00], eax
+ mov eax, dword ptr [esi + 0x04]
+ mov dword ptr [edi + 0x04], eax
+ mov eax, dword ptr [esi + 0x08]
+ mov dword ptr [edi + 0x08], eax
+ mov eax, dword ptr [esi + 0x0c]
+ mov dword ptr [edi + 0x0c], eax
+ mov eax, dword ptr [esi + 0x10]
+ mov dword ptr [edi + 0x10], eax
+ mov eax, dword ptr [esi + 0x14]
+ mov dword ptr [edi + 0x14], eax
+ mov eax, dword ptr [esi + 0x18]
+ mov dword ptr [edi + 0x18], eax
+ mov eax, dword ptr [esi + 0x1c]
+ mov dword ptr [edi + 0x1c], eax
+ mov eax, dword ptr [esi + 0x20]
+ mov dword ptr [edi + 0x20], eax
+ mov eax, dword ptr [esi + 0x24]
+ mov dword ptr [edi + 0x24], eax
+ mov eax, dword ptr [esi + 0x28]
+ mov dword ptr [edi + 0x28], eax
+ mov eax, dword ptr [esi + 0x2c]
+ mov dword ptr [edi + 0x2c], eax
+ mov eax, dword ptr [esi + 0x30]
+ mov dword ptr [edi + 0x30], eax
+ mov eax, dword ptr [esi + 0x34]
+ mov dword ptr [edi + 0x34], eax
+ mov eax, dword ptr [esi + 0x38]
+ mov dword ptr [edi + 0x38], eax
+ mov eax, dword ptr [esi + 0x3c]
+ mov dword ptr [edi + 0x3c], eax
+ mov eax, dword ptr [esi + 0x40]
+ mov dword ptr [edi + 0x40], eax
+ mov eax, dword ptr [esi + 0x44]
+ mov dword ptr [edi + 0x44], eax
+ mov eax, dword ptr [esi + 0x48]
+ mov dword ptr [edi + 0x48], eax
+ mov eax, dword ptr [esi + 0x4c]
+ mov dword ptr [edi + 0x4c], eax
+ mov eax, dword ptr [esi + 0x50]
+ mov dword ptr [edi + 0x50], eax
+ mov eax, dword ptr [esi + 0x54]
+ mov dword ptr [edi + 0x54], eax
+ mov eax, dword ptr [esi + 0x58]
+ mov dword ptr [edi + 0x58], eax
+ mov eax, dword ptr [esi + 0x5c]
+ mov dword ptr [edi + 0x5c], eax
+ mov eax, dword ptr [esi + 0x60]
+ mov dword ptr [edi + 0x60], eax
+ mov eax, dword ptr [esi + 0x64]
+ mov dword ptr [edi + 0x64], eax
+ mov eax, dword ptr [esi + 0x68]
+ mov dword ptr [edi + 0x68], eax
+ mov eax, dword ptr [esi + 0x6c]
+ mov dword ptr [edi + 0x6c], eax
+ mov eax, dword ptr [esi + 0x70]
+ mov dword ptr [edi + 0x70], eax
+ mov eax, dword ptr [esi + 0x74]
+ mov dword ptr [edi + 0x74], eax
+ mov eax, dword ptr [esi + 0x78]
+ mov dword ptr [edi + 0x78], eax
+ mov eax, dword ptr [esi + 0x7c]
+ mov dword ptr [edi + 0x7c], eax
+ mov eax, dword ptr [esi + 0x80]
+ mov dword ptr [edi + 0x80], eax
+ mov eax, dword ptr [esi + 0x84]
+ mov dword ptr [edi + 0x84], eax
+ mov eax, dword ptr [esi + 0x88]
+ mov dword ptr [edi + 0x88], eax
+ mov eax, dword ptr [esi + 0x8c]
+ mov dword ptr [edi + 0x8c], eax
+ mov eax, dword ptr [esi + 0x90]
+ mov dword ptr [edi + 0x90], eax
+ mov eax, dword ptr [esi + 0x94]
+ mov dword ptr [edi + 0x94], eax
+ mov eax, dword ptr [esi + 0x98]
+ mov dword ptr [edi + 0x98], eax
+ mov eax, dword ptr [esi + 0x9c]
+ mov dword ptr [edi + 0x9c], eax
+ mov eax, dword ptr [esi + 0xa0]
+ mov dword ptr [edi + 0xa0], eax
+ mov eax, dword ptr [esi + 0xa4]
+ mov dword ptr [edi + 0xa4], eax
+ mov eax, dword ptr [esi + 0xa8]
+ mov dword ptr [edi + 0xa8], eax
+ mov eax, dword ptr [esi + 0xac]
+ mov dword ptr [edi + 0xac], eax
+ mov eax, dword ptr [esi + 0xb0]
+ mov dword ptr [edi + 0xb0], eax
+ mov eax, dword ptr [esi + 0xb4]
+ mov dword ptr [edi + 0xb4], eax
+ mov eax, dword ptr [esi + 0xb8]
+ mov dword ptr [edi + 0xb8], eax
+ mov eax, dword ptr [esi + 0xbc]
+ mov dword ptr [edi + 0xbc], eax
+ mov eax, dword ptr [esi + 0xc0]
+ mov dword ptr [edi + 0xc0], eax
+ mov eax, dword ptr [esi + 0xc4]
+ mov dword ptr [edi + 0xc4], eax
+ mov eax, dword ptr [esi + 0xc8]
+ mov dword ptr [edi + 0xc8], eax
+ mov eax, dword ptr [esi + 0xcc]
+ mov dword ptr [edi + 0xcc], eax
+ mov eax, dword ptr [esi + 0xd0]
+ mov dword ptr [edi + 0xd0], eax
+ mov eax, dword ptr [esi + 0xd4]
+ mov dword ptr [edi + 0xd4], eax
+ mov eax, dword ptr [esi + 0xd8]
+ mov dword ptr [edi + 0xd8], eax
+ mov eax, dword ptr [esi + 0xdc]
+ mov dword ptr [edi + 0xdc], eax
+ mov eax, dword ptr [esi + 0xe0]
+ mov dword ptr [edi + 0xe0], eax
+ mov eax, dword ptr [esi + 0xe4]
+ mov dword ptr [edi + 0xe4], eax
+ mov eax, dword ptr [esi + 0xe8]
+ mov dword ptr [edi + 0xe8], eax
+ mov eax, dword ptr [esi + 0xec]
+ mov dword ptr [edi + 0xec], eax
+ mov eax, dword ptr [esi + 0xf0]
+ mov dword ptr [edi + 0xf0], eax
+ mov eax, dword ptr [esi + 0xf4]
+ mov dword ptr [edi + 0xf4], eax
+ mov eax, dword ptr [esi + 0xf8]
+ mov dword ptr [edi + 0xf8], eax
+ mov eax, dword ptr [esi + 0xfc]
+ mov dword ptr [edi + 0xfc], eax
+ sub ebx, 0x100
+ add esi, 0x100
+ add edi, 0x100
+ jmp loop_start
+ loop_end:
+ mov localDest, edi
+ mov localSrc, esi
+ mov localSize, ebx
+ }
+ this->destination = (void*)localDest;
+ this->src = (void*)localSrc;
+ this->size = localSize;
+ }
+
+### 0x0049b8c0 calcApproxEuclideanDistance | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x0049B8C0
+ int Navigation::calcApproxEuclideanDistance(int param_1, int param_2, int param_3, int param_4)
+ {
+ int iVar1;
+ int iVar2;
+ if (param_2 < param_1) {
+ iVar1 = param_1 - param_2;
+ } else {
+ iVar1 = param_2 - param_1;
+ }
+ if (param_4 < param_3) {
+ iVar2 = param_3 - param_4;
+ } else {
+ iVar2 = param_4 - param_3;
+ }
+ if (iVar1 < iVar2) {
+ if (iVar2 != 0) {
+ return (((iVar1 * 2) / 5) * iVar1) / iVar2 + iVar2;
+ }
+ } else if (iVar1 != 0) {
+ return (((iVar2 * 2) / 5) * iVar2) / iVar1 + iVar1;
+ }
+ return 0;
+ }
+}
+}
+
+### 0x004791b0 basic_ofstream_write | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x004791B0
+int* __stdcall OS::basic_ofstream_write(void* param_1, uint param_2)
+{
+ byte bVar1;
+ int* piVar2;
+ int* piVar3;
+ byte* pbVar4;
+ undefined1* puVar5;
+ bool bVar6;
+ uint uVar7;
+ int iVar8;
+ uint uVar9;
+ int* unaff_FS_OFFSET;
+ uint uStack_34;
+ int* local_24;
+ char local_20;
+ undefined4 local_1c;
+ int local_18;
+ undefined1* local_14;
+ int local_10;
+ code* pcStack_c;
+ undefined4 local_8;
+ local_8 = 0xffffffff;
+ pcStack_c = HoldStrong_lib::EH_FUN_00599f20::instance;
+ local_10 = *unaff_FS_OFFSET;
+ uStack_34 = MSVC_SecurityCookie::instance ^ (uint)&stack0xfffffffc;
+ local_14 = (undefined1*)&uStack_34;
+ *unaff_FS_OFFSET = (int)&local_10;
+ uVar9 = 0;
+ local_1c = 0;
+ FUN_00478dc0(&local_24, param_1);
+ if (local_20 != '\0') {
+ local_18 = *(int*)(*(int*)(*(int*)param_1 + 4) + 0x18 + (int)param_1);
+ if (local_18 < 2) {
+ local_18 = 0;
+ } else {
+ local_18 = local_18 + -1;
+ }
+ local_8 = 1;
+ if ((*(uint*)((int)param_1 + *(int*)(*(int*)param_1 + 4) + 0x10) & 0x1c0) == 0x40) {
+ LAB_00479280:
+ piVar2 = *(int**)(*(int*)(*(int*)param_1 + 4) + 0x28 + (int)param_1);
+ if ((*(int*)piVar2[9] == 0) || (piVar3 = (int*)piVar2[0xd], *piVar3 < 1)) {
+ uVar7 = (**(code**)(*piVar2 + 4))(param_2 & 0xff);
+ } else {
+ *piVar3 = *piVar3 + -1;
+ puVar5 = *(undefined1**)piVar2[9];
+ *(undefined1**)piVar2[9] = puVar5 + 1;
+ *puVar5 = (undefined1)param_2;
+ uVar7 = param_2 & 0xff;
+ }
+ if (uVar7 == 0xffffffff) {
+ uVar9 = 4;
+ local_1c = 4;
+ }
+ for (; (uVar9 == 0 && (0 < local_18)); local_18 = local_18 + -1) {
+ bVar1 = *(byte*)(*(int*)(*(int*)param_1 + 4) + 0x30 + (int)param_1);
+ piVar2 = *(int**)((int)param_1 + *(int*)(*(int*)param_1 + 4) + 0x28);
+ if ((*(int*)piVar2[9] == 0) || (piVar3 = (int*)piVar2[0xd], *piVar3 < 1)) {
+ uVar7 = (**(code**)(*piVar2 + 4))(bVar1);
+ } else {
+ *piVar3 = *piVar3 + -1;
+ pbVar4 = *(byte**)piVar2[9];
+ *(byte**)piVar2[9] = pbVar4 + 1;
+ *pbVar4 = bVar1;
+ uVar7 = (uint)bVar1;
+ }
+ if (uVar7 == 0xffffffff) {
+ uVar9 = 4;
+ local_1c = 4;
+ }
+ }
+ } else {
+ while (uVar9 == 0) {
+ if (local_18 < 1)
+ goto LAB_00479280;
+ bVar1 = *(byte*)((int)param_1 + *(int*)(*(int*)param_1 + 4) + 0x30);
+ piVar2 = *(int**)((int)param_1 + *(int*)(*(int*)param_1 + 4) + 0x28);
+ if ((*(int*)piVar2[9] == 0) || (piVar3 = (int*)piVar2[0xd], *piVar3 < 1)) {
+ uVar7 = (**(code**)(*piVar2 + 4))(bVar1);
+ } else {
+ *piVar3 = *piVar3 + -1;
+ pbVar4 = *(byte**)piVar2[9];
+ *(byte**)piVar2[9] = pbVar4 + 1;
+ *pbVar4 = bVar1;
+ uVar7 = (uint)bVar1;
+ }
+ if (uVar7 == 0xffffffff) {
+ uVar9 = 4;
+ local_1c = 4;
+ }
+ local_18 = local_18 + -1;
+ }
+ }
+ }
+ local_8 = 0;
+ *(undefined4*)((int)param_1 + *(int*)(*(int*)param_1 + 4) + 0x18) = 0;
+ iVar8 = *(int*)(*(int*)param_1 + 4) + (int)param_1;
+ if (uVar9 != 0) {
+ uVar9 = *(uint*)(iVar8 + 8) | uVar9;
+ if (*(int*)(iVar8 + 0x28) == 0) {
+ uVar9 = uVar9 | 4;
+ }
+ FUN_00477540(iVar8, uVar9, '\0');
+ }
+ local_8 = 6;
+ bVar6 = thunk_FUN_00586363();
+ if (!bVar6) {
+ FUN_00478e50(local_24);
+ }
+ iVar8 = *(int*)(*(int*)(*local_24 + 4) + 0x28 + (int)local_24);
+ local_8 = 0xffffffff;
+ if (iVar8 != 0) {
+MACRO_CALL_MEMBER(HoldStrong_lib::LockClass1_Func::releaseLock, ()()LockClass1 *)(iVar8 + 4));
+ }
+ *unaff_FS_OFFSET = local_10;
+ return (int*)(param_1);
+}
+}
+
+### 0x005816ee SetRNGSeed | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x005816EE
+void OS::_srand(ulong param_1)
+{
+ _tiddata* p_Var1;
+ p_Var1 = __getptd();
+ p_Var1->_holdrand = param_1;
+ return;
+}
+}
+
+### 0x00453600 ApplyBlending | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x00453600
+void Rendering::ApplyBlending(int param_1)
+{
+ short* psVar1;
+ int iVar2;
+ int iVar3;
+ void* pvVar4;
+ ushort uVar5;
+ ushort uVar6;
+ ushort uVar7;
+ ushort* puVar8;
+ int iVar9;
+ int iVar10;
+ short sVar11;
+ uint uVar12;
+ ushort* puVar13;
+ undefined* puVar14;
+ int* local_8;
+ pvVar4 = DAT_TextureRenderCoreObject.gmProcessedImageData;
+ uVar12 = (DAT_00ed3154 - DAT_RenderMap_YOffset) + DAT_RenderMap_DrawSomeY;
+ if (DAT_TextureRenderCoreObject.isZoom2 == 0) {
+ local_8 = DAT_BlendingDefinedData.field164_0x27fc;
+ if ((DAT_TextureRenderCoreObject.mapGameSurfaceHeightRange.start <= (int)uVar12)
+ && ((int)uVar12 < DAT_TextureRenderCoreObject.mapGameSurfaceHeightRange.end)) {
+ puVar8 = (ushort*)((int)DAT_TextureRenderCoreObject.gmProcessedImageData
+ + DAT_GMImageOffsets[DAT_GmImageAddressToBeRendered]);
+ if (DAT_BlendFilterArrays[0x20][0x1f][0] == 0) {
+ InitBlendFilterArraysUnk();
+ }
+ iVar9 = param_1 * 0x200;
+ iVar2 = param_1 * -0x200;
+ if (DAT_WindowAndDirectDraw.colorBitMode == RGB_555) {
+ puVar13 = DAT_WindowAndDirectDraw.surfacePointer_mapGame + DAT_RenderMap_DrawSomeX
+ + uVar12 * 0xfd8;
+ sVar11 = 0x100;
+ DAT_WindowAndDirectDraw.unknownSpecificPointer = (undefined*)puVar13;
+ do {
+ uVar5 = *puVar8 & 0xffe0 | *(ushort*)(iVar2 + 0xd812d8 + (*puVar8 & 0xffff001f) * 8);
+ uVar6 = uVar5 & 0xfc1f | *(ushort*)(iVar2 + 0xd812da + (uVar5 >> 5 & 0xffff001f) * 8);
+ uVar5 = *(ushort*)(iVar2 + 0xd812dc + (uVar6 >> 10 & 0xffff001f) * 8);
+ uVar7 = *(ushort*)((int)puVar13 + *local_8) & 0xffe0
+ | DAT_BlendFilterArrays[param_1][*(ushort*)((int)puVar13 + *local_8) & 0xffff001f][0];
+ uVar7 = uVar7 & 0xfc1f | *(ushort*)(iVar9 + 0xd7d2da + (uVar7 >> 5 & 0xffff001f) * 8);
+ iVar10 = *local_8;
+ *(ushort*)((int)puVar13 + iVar10)
+ = uVar7 & 0x83ff | *(ushort*)(iVar9 + 0xd7d2dc + (uVar7 >> 10 & 0xffff001f) * 8);
+ psVar1 = (short*)((int)puVar13 + iVar10);
+ *psVar1 = *psVar1 + (uVar6 & 0x3ff | uVar5);
+ puVar8 = puVar8 + 1;
+ local_8 = local_8 + 1;
+ sVar11 = sVar11 + -1;
+ } while (sVar11 != 0);
+ return;
+ }
+ puVar13 = DAT_WindowAndDirectDraw.surfacePointer_mapGame + DAT_RenderMap_DrawSomeX
+ + uVar12 * 0xfd8;
+ sVar11 = 0x100;
+ DAT_WindowAndDirectDraw.unknownSpecificPointer = (undefined*)puVar13;
+ do {
+ uVar5 = *puVar8 & 0xffe0 | *(ushort*)(iVar2 + 0xd812d8 + (*puVar8 & 0xffff001f) * 8);
+ uVar6 = uVar5 & 0xf81f | *(ushort*)(iVar2 + 0xd812da + (uVar5 >> 5 & 0xffff003f) * 8);
+ uVar5 = *(ushort*)(iVar2 + 0xd812dc + (uint)(uVar6 >> 0xb) * 8);
+ uVar7 = *(ushort*)((int)puVar13 + *local_8) & 0xffe0
+ | DAT_BlendFilterArrays[param_1][*(ushort*)((int)puVar13 + *local_8) & 0xffff001f][0];
+ uVar7 = uVar7 & 0xf81f | *(ushort*)(iVar9 + 0xd7d2da + (uVar7 >> 5 & 0xffff003f) * 8);
+ iVar10 = *local_8;
+ *(ushort*)((int)puVar13 + iVar10)
+ = uVar7 & 0x7ff | *(ushort*)(iVar9 + 0xd7d2dc + (uint)(uVar7 >> 0xb) * 8);
+ psVar1 = (short*)((int)puVar13 + iVar10);
+ *psVar1 = *psVar1 + (uVar6 & 0x7ff | uVar5);
+ puVar8 = puVar8 + 1;
+ local_8 = local_8 + 1;
+ sVar11 = sVar11 + -1;
+ } while (sVar11 != 0);
+ return;
+ }
+ } else {
+ local_8 = DAT_BlendingDefinedData.field166_0x2dfc;
+ if ((DAT_TextureRenderCoreObject.mapGameSurfaceHeightRange.start <= (int)uVar12)
+ && ((int)uVar12 < DAT_TextureRenderCoreObject.mapGameSurfaceHeightRange.end)) {
+ iVar2 = DAT_GMImageOffsets[DAT_GmImageAddressToBeRendered];
+ if (DAT_BlendFilterArrays[0x20][0x1f][0] == 0) {
+ InitBlendFilterArraysUnk();
+ }
+ iVar10 = param_1 * 0x200;
+ iVar9 = param_1 * -0x200;
+ if (DAT_WindowAndDirectDraw.colorBitMode == RGB_555) {
+ puVar14 = (undefined*)((int)DAT_WindowAndDirectDraw.surfacePointer_mapGame
+ + (uVar12 >> 1) * 0x1fb0 + (DAT_RenderMap_DrawSomeX & 0xfffffffe));
+ if ((uVar12 & 1) == 0) {
+ local_8 = DAT_BlendingDefinedData.field165_0x2bfc;
+ }
+ sVar11 = 0x40;
+ DAT_WindowAndDirectDraw.unknownSpecificPointer = puVar14;
+ do {
+ uVar5 = *(ushort*)((int)pvVar4 + *local_8 + iVar2);
+ uVar5 = uVar5 & 0xffe0 | *(ushort*)(iVar9 + 0xd812d8 + (uVar5 & 0xffff001f) * 8);
+ uVar6 = uVar5 & 0xfc1f | *(ushort*)(iVar9 + 0xd812da + (uVar5 >> 5 & 0xffff001f) * 8);
+ uVar5 = *(ushort*)(iVar9 + 0xd812dc + (uVar6 >> 10 & 0xffff001f) * 8);
+ uVar7 = *(ushort*)(puVar14 + local_8[1]) & 0xffe0
+ | DAT_BlendFilterArrays[param_1][*(ushort*)(puVar14 + local_8[1]) & 0xffff001f][0];
+ uVar7 = uVar7 & 0xfc1f | *(ushort*)(iVar10 + 0xd7d2da + (uVar7 >> 5 & 0xffff001f) * 8);
+ iVar3 = local_8[1];
+ *(ushort*)(puVar14 + iVar3)
+ = uVar7 & 0x83ff | *(ushort*)(iVar10 + 0xd7d2dc + (uVar7 >> 10 & 0xffff001f) * 8);
+ *(ushort*)(puVar14 + iVar3) = *(short*)(puVar14 + iVar3) + (uVar6 & 0x3ff | uVar5);
+ local_8 = local_8 + 2;
+ sVar11 = sVar11 + -1;
+ } while (sVar11 != 0);
+ return;
+ }
+ puVar14 = (undefined*)((int)DAT_WindowAndDirectDraw.surfacePointer_mapGame
+ + (uVar12 >> 1) * 0x1fb0 + (DAT_RenderMap_DrawSomeX & 0xfffffffe));
+ if ((uVar12 & 1) == 0) {
+ local_8 = DAT_BlendingDefinedData.field165_0x2bfc;
+ }
+ sVar11 = 0x40;
+ DAT_WindowAndDirectDraw.unknownSpecificPointer = puVar14;
+ do {
+ uVar5 = *(ushort*)((int)pvVar4 + *local_8 + iVar2);
+ uVar5 = uVar5 & 0xffe0 | *(ushort*)(iVar9 + 0xd812d8 + (uVar5 & 0xffff001f) * 8);
+ uVar6 = uVar5 & 0xf81f | *(ushort*)(iVar9 + 0xd812da + (uVar5 >> 5 & 0xffff003f) * 8);
+ uVar5 = *(ushort*)(iVar9 + 0xd812dc + (uint)(uVar6 >> 0xb) * 8);
+ uVar7 = *(ushort*)(puVar14 + local_8[1]) & 0xffe0
+ | DAT_BlendFilterArrays[param_1][*(ushort*)(puVar14 + local_8[1]) & 0xffff001f][0];
+ uVar7 = uVar7 & 0xf81f | *(ushort*)(iVar10 + 0xd7d2da + (uVar7 >> 5 & 0xffff003f) * 8);
+ iVar3 = local_8[1];
+ *(ushort*)(puVar14 + iVar3) = uVar7 & 0x7ff | *(ushort*)(iVar10 + 0xd7d2dc + (uint)(uVar7 >> 0xb) * 8);
+ *(ushort*)(puVar14 + iVar3) = *(short*)(puVar14 + iVar3) + (uVar6 & 0x7ff | uVar5);
+ local_8 = local_8 + 2;
+ sVar11 = sVar11 + -1;
+ } while (sVar11 != 0);
+ }
+ }
+ return;
+}
+}
+
+### 0x00467850 TransformToCurrentModeColor | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x00467850
+ uint Rendering::TransformToCurrentModeColor(int red, int green, int blue)
+ {
+ sbyte _redShift;
+ sbyte _greenShift;
+ if (DAT_WindowAndDirectDraw.colorBitMode == RGB_555) {
+ _greenShift = 3;
+ _redShift = 10;
+ } else {
+ _greenShift = 2;
+ _redShift = 11;
+ }
+ return (red >> 3) << _redShift | (green >> _greenShift) << 5 | blue >> 3;
+ }
+}
+}
+
+### 0x004bc910 renderTutorialFloatForUIElement | quelle=ghidra | bereich=Sonstiges
+// FUNCTION: STRONGHOLDCRUSADER 0x004BC910
+ void Rendering::RenderTutorialFloatForUIElement(int param_1)
+ {
+ if ((((DAT_GameCore.currentMenuViewType != MVT_BUILDING_AND_STATUS_MENU)
+ || (param_1 == 8))
+ || (param_1 == 10))
+ || ((param_1 == 0xb || (param_1 == 0xc)))) {
+ switch (param_1) {
+ case 2:
+ if ((DAT_TileMapState.currentMapperCommand != M_MAPPER_KEEP1)
+ && (DAT_00df5560 == 0)) {
+ RenderAnimatedTutorialFloatOverlay(0x78, 0x203);
+ return;
+ }
+ break;
+ case 5:
+ if (((DAT_00df5558 == 0)
+ && (DAT_TileMapState.currentMapperCommand != M_MAPPER_GRANARY))
+ && (DAT_00df5560 == 0)) {
+ RenderAnimatedTutorialFloatOverlay(0x3c, 0x203);
+ return;
+ }
+ break;
+ case 8:
+ if (((DAT_00df5558 == 0)
+ && (DAT_GameState
+ .playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .rationsSetting
+ != 4))
+ && (DAT_GameCore.activeMenuTab.tabType
+ == BASMTT_GRANARY_OR_MPMENU_TCPIP)) {
+ RenderAnimatedTutorialFloatOverlay(0x18b, 0x23a);
+ return;
+ }
+ break;
+ case 10:
+ if ((DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID]
+ .taxesSetting
+ != 7)
+ && (DAT_GameCore.activeMenuTab.tabType
+ == BASMTT_KEEP_OR_MPMENU_IPX)) {
+ RenderAnimatedTutorialFloatOverlay(0x1ba, 0x217);
+ return;
+ }
+ break;
+ case 0xb:
+ if ((DAT_00df5558 == 1) && (DAT_00df5560 == 0)) {
+ RenderAnimatedTutorialFloatOverlay(0x2df, 0x210);
+ return;
+ }
+ break;
+ case 0xc:
+ if (DAT_GameCore.activeMenuTab.tabType == BASMTT_STATUS_OVERVIEW) {
+ RenderAnimatedTutorialFloatOverlay(0x131, 0x1e0);
+ return;
+ }
+ break;
+ case 0x10:
+ RenderAnimatedTutorialFloatOverlay(0x78, 0x226);
+ return;
+ case 0x11:
+ if (DAT_00df5560 == 0) {
+ if (DAT_GameCore.activeMenuTab.tabType != BASMTT_QUARRY) {
+ RenderAnimatedTutorialFloatOverlay(0x44, 0x246);
+ return;
+ }
+ if (DAT_TileMapState.currentMapperCommand == M_MAPPER_NULL) {
+ RenderAnimatedTutorialFloatOverlay(0x78, 0x206);
+ return;
+ }
+ }
+ break;
+ case 0x15:
+ if (DAT_00df5560 == 0) {
+ if (DAT_GameCore.activeMenuTab.tabType != BASMTT_WATERPOT) {
+ RenderAnimatedTutorialFloatOverlay(0x69, 0x246);
+ return;
+ }
+ if (DAT_TileMapState.currentMapperCommand == M_MAPPER_NULL) {
+ RenderAnimatedTutorialFloatOverlay(0x4d, 0x203);
+ return;
+ }
+ }
+ break;
+ case 0x17:
+ RenderAnimatedTutorialFloatOverlay(0x2d7, 0x23a);
+ return;
+ case 0x18:
+ if (DAT_GameCore.activeMenuTab.tabType != BASMTT_HOPFARM) {
+ RenderAnimatedTutorialFloatOverlay(0x8c, 0x246);
+ return;
+ }
+ if (DAT_TileMapState.currentMapperCommand == M_MAPPER_NULL) {
+ RenderAnimatedTutorialFloatOverlay(0x28, 0x203);
+ }
+ }
+ }
+ return;
+ }
+}
+}
+
