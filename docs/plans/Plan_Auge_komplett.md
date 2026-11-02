@@ -2,9 +2,14 @@
 
 Erstellt 02.11.2026 von SRE (B-142), rein aus Export und Code, ohne das Spiel anzusehen. Noch nichts davon ist gebaut, außer der Feldliste und der Checkliste.
 
-**Ziel (Daniel):** Das Auge sieht alles, was im Spiel stattfindet, nicht nur eine Liste bestellter Punkte. Kontrolle über eine Checkliste, die sich in 1 bis 2 Läufen bestätigen oder widerlegen lässt.
+**Ziel (Daniel):** Das Auge sieht alles, was im Spiel stattfindet, nicht nur eine Liste bestellter Punkte. Kontrolle über eine Checkliste, die sich in wenigen Läufen bestätigen oder widerlegen lässt.
 
-**Maßstab:** Das Auge ist komplett, wenn sich im Lauf nichts Spielrelevantes ändert, was es nicht kennt, und wenn gleicher Stand plus gleiche Eingänge denselben Verlauf ergeben. Das prüft nicht das Gefühl, sondern die Gesamtproben A1 bis A12 in `data/research/auge_plan/Checkliste_Auge.md`.
+**Läufe (Daniels Aufteilung vom 02.11.2026):**
+- **F, friedlich:** Burgenbau, Karte „Prächtige Oase“, keine Gegner, unbegrenzt Zeit.
+- **K, Krieg:** Gefecht mit 8 verschiedenen KI-Lords und 5 Minuten Friedenszeit.
+- **S, Versuche:** Karte aus den eigenen Szenarien, z. B. „Liga_Grumpy Neighbors“, ungestört: Belagerung gegen alle Gebäude, Reichweiten, Tempo, Reaktionen, Massenschlachten, Angriffe auf einen Punkt.
+
+**Maßstab:** Das Auge ist komplett, wenn sich im Lauf nichts Spielrelevantes ändert, was es nicht kennt, und wenn gleicher Stand plus gleiche Eingänge denselben Verlauf ergeben. Das prüft nicht das Gefühl, sondern die Gesamtproben A1 bis A13 in `data/research/auge_plan/Checkliste_Auge.md`.
 
 ## Was gemessen ist
 
@@ -54,12 +59,17 @@ Alle Zahlen erzeugt `python data/research/auge_plan/zustand_ableiten.py` (Ergebn
 7. **Bedeutung:** 824 unklare Namen und die 3.340 offenen Punkte aus dem Funktionswissen. Das Auge sieht sie auch ohne Namen; die Läufe liefern die Belege.
 8. **Sichtschranke:** Das Auge liest alles, aber SamurAI darf im echten Spiel nur bekommen, was erlaubt ist. Jedes Feld bekommt die Marke „für den Spielentscheid erlaubt“ oder „nur Forschung“ (fremde Lager, Gegner-KI, Zufall). Die Marken sind ein Vorschlag an Daniel.
 
-**Reihenfolge:** 1 ist fertig. Dann 6 mit den Tests, 2 und 3, 4 und 5, dann Lauf 1, Fehler beheben, Lauf 2. 7 läuft dabei mit, 8 kommt vor der Übergabe an das Gehirn.
+9. **Versuchsskript für Lauf S:** Aufstellen, Befehl, Messen, Abräumen aus `versuche_szenario.csv`. `setze` und `sandkasten` gibt es schon im alten Werkzeug `werkzeug/shc.py`.
+10. **Gefecht mit Friedenszeit:** Das Werkzeug `gefecht` kennt bisher keine Friedenszeit und muss 8 KI-Lords ohne eigenen Spieler starten können. Ob das geht, ist noch nicht nachgesehen, außer dass es einen Selbstspiel-Weg gab.
+
+**Reihenfolge:** 1 ist fertig. Dann 6 mit den Tests, 2 und 3, 4 und 5, dann Lauf F, Fehler beheben, 10, Lauf K, Fehler beheben, 9, Lauf S. 7 läuft dabei mit, 8 kommt vor der Übergabe an das Gehirn.
 
 ## Was vorher zu klären ist
 
-- **Wo das Auge lebt:** `werkzeug/auge.py` steht nur auf dem Zweig `codex/auge` und im alten lokalen Stand, nicht auf `origin/main`. Dort arbeitet auch Codex, mit nicht committeten Änderungen. Das neue Auge sollte erst darauf aufbauen, wenn das geklärt ist.
-- **Lauf 1 und 2** brauchen jeweils Daniels Ja und eine freie Instanz.
+- **Wo das Auge lebt:** `werkzeug/auge.py`, `werkzeug/shc.py` und `werkzeug/sandkasten.py` stehen nicht auf `origin/main`, sondern nur im alten lokalen Stand, `auge.py` in neuester Fassung auf dem Zweig `codex/auge`. Dort arbeitet auch Codex, mit nicht committeten Änderungen. Das neue Auge sollte erst darauf aufbauen, wenn das geklärt ist.
+- **Spielart:** Burgenbau und Szenario laufen vermutlich nach anderen Regeln als das Gefecht, in dem SamurAI spielt. Betroffene Punkte tragen die Marke [Spielart] und zählen erst nach der Gegenprobe im Gefecht.
+- **Karten:** „Prächtige Oase“ und „Liga_Grumpy Neighbors“ habe ich unter diesen Namen in `Documents\Stronghold Crusader\Maps` nicht gefunden. Das Menü zeigt sie, der Dateiort wird vor dem Lauf gesucht.
+- **Jeder Lauf** braucht Daniels Ja und eine freie Instanz.
 
 ## Was das danach ermöglicht
 
