@@ -5,6 +5,7 @@ import os, subprocess, sys
 L = "src/selfaware/tools/experiments/auge_lauf_f.py"
 A = "src/selfaware/tools/experiments/auge_aufzeichnung.py"
 W = "src/selfaware/tools/analysis/auge_auswertung.py"
+K = "src/selfaware/tools/experiments/auge_lauf_k.py"
 P = "src/selfaware/tools/analysis/auge_punkte.py"
 FAELLE = [
     ("Anzeige 20 nicht geprueft", L, "if not l.warte_takte(WOCHE, lambda: s.anzeige_burg_korn() == 0):", "if False:"),
@@ -55,6 +56,18 @@ FAELLE = [
     ("A8: neuer Weg nicht erkannt", W, "    if ware != 15 and neuer_weg:\n", "    if False:\n"),
     ("A8: neuer Weg auch fuer Gold", W, "    if ware != 15 and neuer_weg:\n", "    if neuer_weg:\n"),
     ("Tor: 12 gilt als Fund", L, "ist in (zustand, TOR_FERTIG), ist=ist)", "ist == zustand, ist=ist)"),
+    ("K: Lords nicht geprueft", K, "if not l.warte_takte(200, lambda: s.lords() == len(KIS)):", "if False:"),
+    ("K: Friedenszeit nicht geprueft", K, "if not l.warte_takte(grenze, lambda: l.s.frieden() == 0):", "if False:"),
+    ("K: Takt steht nicht geprueft", K, "    if not steht:\n        raise Abbruch(f\"Der Takt steht", "    if False:\n        raise Abbruch(f\"Der Takt steht"),
+    ("K: Fenster nicht streng", K, "l.rek.starten(name, lf.TEMPO_JEDER_TAKT, streng=True, messen=False)", "l.rek.starten(name, lf.TEMPO_JEDER_TAKT, streng=False, messen=False)"),
+    ("K: Tempomessung im stehenden Spiel", K, "streng=True, messen=False)", "streng=True, messen=True)"),
+    ("K: fehlender Takt egal", K, "    if stand.get(\"fehlend\") or stand.get(\"gemischt\"):\n", "    if False:\n"),
+    ("K: Kernfelder egal", K, "        if kern:\n", "        if False:\n"),
+    ("K: Bremse bricht ab", K, "        if \"bremst\" not in str(e):\n            raise\n        l.wirkung", "        raise\n        l.wirkung"),
+    ("K: Ende nur am letzten Lord", K, "        elif l.uhr() >= l.weich:\n", "        elif False:\n"),
+    ("K: Endbildschirm nicht erkannt", K, "return s.ansicht() in ENDE_ANSICHTEN or s.lords() <= 1", "return s.lords() <= 1"),
+    ("K: letzter Lord nicht erkannt", K, "return s.ansicht() in ENDE_ANSICHTEN or s.lords() <= 1", "return s.ansicht() in ENDE_ANSICHTEN"),
+    ("K: Gefecht eingefroren", K, "    k.befehl({\"pause\": False}, lf.KANAL)  # sonst", "    pass  # sonst"),
     ("A10: Merkplatz zaehlt mit", W, "                if i < erster:\n                    continue\n", ""),
     ("A10: Einheiten ab Platz 0", W, "\"units[].uid\", 1)", "\"units[].uid\", 0)"),
     ("A8: Gold kommt von Arbeitern", W, "if ware != 15 and (betrieb or", "if (betrieb or"),
@@ -80,7 +93,7 @@ for name, pfad, alt, neu in FAELLE:
         continue
     try:
         open(pfad, "wb").write(text.replace(a, n).encode("utf-8"))
-        r = subprocess.run([sys.executable, "-m", "pytest", "tests/test_auge_lauf_f.py", "tests/test_auge_werkzeug.py", "-q", "--no-header", "-x", "--tb=no"], capture_output=True, text=True, env=env, encoding="utf-8", errors="replace", timeout=300)
+        r = subprocess.run([sys.executable, "-m", "pytest", "tests/test_auge_lauf_f.py", "tests/test_auge_lauf_k.py", "tests/test_auge_werkzeug.py", "-q", "--no-header", "-x", "--tb=no"], capture_output=True, text=True, env=env, encoding="utf-8", errors="replace", timeout=300)
         rot = r.returncode != 0
         zeile = [z for z in r.stdout.splitlines() if z.startswith("FAILED")][:1]
         print(("ROT  " if rot else "GRUEN"), name, "|", (zeile[0][7:100] if zeile else ""), flush=True)

@@ -698,6 +698,14 @@ def test_einzelpunkte_lesen_urteilen_und_lauf_k_bleibt_draussen(tmp_path):
     assert "P004" in ap.bericht(e)
 
 
+def test_einzelpunkte_von_lauf_k_lassen_sich_einzeln_lesen(tmp_path):
+    from selfaware.tools.analysis import auge_punkte as ap
+
+    d = tmp_path / "liste.md"
+    d.write_text(LISTE, encoding="utf-8")
+    assert [p.nr for p in ap.punkte_lesen(d, "K")] == ["P005"]
+
+
 def test_einzelpunkt_feld_ohne_aenderung_ist_nicht_gesehen():
     from selfaware.tools.analysis import auge_punkte as ap
 

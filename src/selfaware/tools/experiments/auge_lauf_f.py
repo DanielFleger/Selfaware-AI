@@ -51,6 +51,22 @@ BAU_NEU = (
     "local drehung = TOR[tonumber(b.mapper) or -1] and (b.richtung or 15) or 15",
     "local ok, err = befehlAbsetzen(28, { b.x, b.y, b.mapper, b.groesse, drehung, b.trupp or 0 })",
 )
+GEFECHT_ANKER = "    starteGefecht(0)                                  -- 0 = Burgen selbst waehlen"
+GEFECHT_NEU = (
+    "    -- B-142 Lauf K: { \"kis\": [8 KI-Nummern], \"friedenszeit\": Stufe }: kein Mensch, jeder gegen jeden",
+    "    if type(cmd.kis) == \"table\" then",
+    "      core.writeInteger(fullID + 4, 0xFFFFFFFF)",
+    "      for slot = 1, 8 do",
+    "        core.writeInteger(aiArr + slot * 4, tonumber(cmd.kis[slot]) or 0)",
+    "        resetAiVar(slot)",
+    "        core.writeByte(gruppe + slot, slot - 1)",
+    "      end",
+    "      for i = 0, 7 do core.writeByte(posArr + i, i + 1) end  -- feste Plaetze wie beim Selbstspiel: Die Zufallsverteilung greift ohne Menschen nicht (gemessen 02.11.)",
+    "      core.writeInteger(0x01A275DC, 0)                  -- currentPlayerSlotID: niemand, sonst zeigt der Tod dieses Lords den Endbildschirm",
+    "      core.writeInteger(0x01A26A2C, tonumber(cmd.friedenszeit) or 0)  -- skirmishNoRushSetting",
+    "      log(INFO, \"GEFECHT: Lauf K, KI \" .. table.concat(cmd.kis, \",\"))",
+    "    end",
+)
 BAU_LOG_ALT = "tostring(b.richtung or 0),"
 BAU_LOG_NEU = "tostring(drehung),"
 TEMPO_LAUF, TEMPO_JEDER_TAKT = 1000, 40  # 40: hoechste Stufe, auf der jeder Takt gelesen wird (gemessen 201 von 201; auf 100 fehlen 2 von 498)
@@ -95,7 +111,15 @@ def pruefe_laufinstanz(n):
 def logik_text(quelle):
     """Die logik.lua der Quelle mit dem neuen Knopf und Bildwert 15 beim Bauen; Zeilenenden bleiben, wie sie sind."""
     roh = open(quelle, "rb").read().decode("latin-1")
-    return _mit_bildwert(_mit_knopf(roh, quelle), quelle)
+    return _mit_gefecht(_mit_bildwert(_mit_knopf(roh, quelle), quelle))
+
+
+def _mit_gefecht(roh):
+    if GEFECHT_NEU[1] in roh or roh.count(GEFECHT_ANKER) != 1:  # ohne den Anker bleibt nur Lauf K aus, Lauf F braucht den Block nicht
+        return roh
+    i = roh.index(GEFECHT_ANKER)
+    ende = "\r\n" if "\r\n" in roh[i:i + 200] else "\n"
+    return roh[:i] + ende.join(GEFECHT_NEU) + ende + roh[i:]
 
 
 def _mit_bildwert(roh, quelle):
@@ -986,13 +1010,13 @@ class Rekorder:
         self.stop_datei, self.aus_datei, self.felder_datei = self.basis + ".stop", self.basis + ".aussetzen", self.basis + ".felder.json"
         self.p, self.pfad = None, None
 
-    def starten(self, name, tempo, streng=False, felder=False):
+    def starten(self, name, tempo, streng=False, felder=False, messen=True):
         self.pfad = f"{self.basis}_{name}.auge" if name else self.basis + ".auge"
         for d in (self.stop_datei, self.aus_datei):
             if os.path.exists(d):
                 os.remove(d)
         cmd = [sys.executable, "-m", "selfaware.tools.experiments.auge_aufzeichnung", "--instanz", str(self.n), "--ausgabe", self.pfad, "--lauf", "F", "--stop-datei", self.stop_datei,
-               "--aussetzen-datei", self.aus_datei, "--tempo-wert", str(tempo), "--tempo-takte", str(tempo)]
+               "--aussetzen-datei", self.aus_datei, "--tempo-wert", str(tempo), "--tempo-takte", str(tempo if messen else 0)]  # im angehaltenen Spiel laeuft kein Takt zum Messen
         if streng:
             cmd.append("--streng")
         if felder:

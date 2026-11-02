@@ -48,12 +48,13 @@ class Punkt:
         return " ".join((self.lage, self.messen, self.schaerfen))
 
 
-def punkte_lesen(pfad):
+def punkte_lesen(pfad, lauf="F"):
     aus, start = [], None
+    abschnitte = ABSCHNITTE if lauf == "F" else {f"### Lauf {lauf}": False}
     for z in open(pfad, encoding="utf-8"):
         z = z.rstrip("\n")
         if z.startswith("### "):
-            start = next((v for k, v in ABSCHNITTE.items() if z.startswith(k)), None)
+            start = next((v for k, v in abschnitte.items() if z.startswith(k)), None)
             continue
         if start is None:
             continue
@@ -232,9 +233,9 @@ def urteil(p, belege):
     return "gesehen", "Feld aendert sich, Urteil muss jemand lesen"
 
 
-def auswerten(checkliste, aufzeichnungen, karte):
+def auswerten(checkliste, aufzeichnungen, karte, lauf="F"):
     """aufzeichnungen: Liste von Aufzeichnung. Rueckgabe: je Punkt nr, funktion, urteil, grund, belege; dazu die Zaehlung."""
-    punkte = punkte_lesen(checkliste)
+    punkte = punkte_lesen(checkliste, lauf)
     index = feldindex(karte)
     je_punkt = {p.nr: felder_des_punkts(p, index) for p in punkte}
     alle = {}
