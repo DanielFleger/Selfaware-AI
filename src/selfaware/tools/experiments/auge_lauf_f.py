@@ -61,7 +61,7 @@ GEFECHT_NEU = (
     "        resetAiVar(slot)",
     "        core.writeByte(gruppe + slot, slot - 1)",
     "      end",
-    "      for i = 0, 7 do core.writeByte(posArr + i, i + 1) end  -- feste Plaetze wie beim Selbstspiel: Die Zufallsverteilung greift ohne Menschen nicht (gemessen 02.11.)",
+    "      for i = 0, 7 do core.writeByte(posArr + i, i) end  -- feste Plaetze, damit der Lauf wiederholbar ist. Eingetragen wird Spieler minus 1 (GetPlayerPosition 0x0042AC60), wer fehlt, bekommt keine Burg",
     "      core.writeInteger(0x01A275DC, 0)                  -- currentPlayerSlotID: niemand, sonst zeigt der Tod dieses Lords den Endbildschirm",
     "      core.writeInteger(0x01A26A2C, tonumber(cmd.friedenszeit) or 0)  -- skirmishNoRushSetting",
     "      log(INFO, \"GEFECHT: Lauf K, KI \" .. table.concat(cmd.kis, \",\"))",
