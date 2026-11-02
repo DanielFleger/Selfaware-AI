@@ -77,3 +77,12 @@ python data/research/auge_plan/ursachen_lauf_f/bauten.py <aus.json>
 python data/research/auge_plan/ursachen_lauf_f/warum_bauen.py <bauten.json> <platz_alle.json>
 python data/research/auge_plan/ursachen_lauf_f/wirkung.py <aus.json>
 ```
+
+## Nachtrag: Bauern, Beliebtheit, Treppe (02.11.2026, 19:18)
+
+- **gemessen:** 1 neuer Bewohner je rund 250 Takte (Takte 5.126, 5.378, 5.628 ...) bei Beliebtheit 87,75 und freiem Wohnplatz. Deckel: 10 mit Burg, 18 nach der ersten Hütte. Im Lauf blieb es bei 18 Leuten.
+- **gemessen:** Die Spieltabelle (`DAT_EmployeeCountPerBuildingType`, 0x005B8B58, je Typ 4 Bytes) nennt für die 63 Arten des Laufs 34 Arbeitsplätze. Alle zu besetzen braucht bei 1 je 250 also 8.500 Takte (**abgeleitet**). Selbst mit allen Gebäuden wären die meisten mit 18 Leuten leer geblieben.
+- **gemessen:** Beliebtheit stand im Lauf durchgehend bei 87,75, weil der Kalender stand. Nach dem Kornspeicher der Probe war sie 3.480 Takte später 0. Zuletzt im Lauf aufgezeichnet: Essen -250, Steuer +25. **vermutet:** Es liegt am fehlenden Essen, nicht geprüft.
+- **gemessen:** Die volle Tempotreppe meldete "bestaetigt", obwohl Stufe 1 nur 1 Takt hatte, weil das Spiel dort durch meine Pause stand. Das ist ein hohles Grün: `a4_tempotreppe` muss eine Stufe mit zu wenig Takten als "nicht gemessen" führen.
+- **gemessen:** Jeden Takt gelesen auf Tempo 40 (201 von 201). Auf Tempo 100 fehlen 2 von 498, auf 200 fehlen 262 von 1.000.
+- **gemessen:** Längste Lücke bis zum nächsten neuen Takt in der Aufzeichnung: 0,098 s.
