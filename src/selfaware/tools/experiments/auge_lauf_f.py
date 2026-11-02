@@ -176,6 +176,20 @@ def burgenbau_starten(k, karte=KARTE, warte=60, ruhe=time.sleep):
     return {"karte": karte, "eintrag": n, "von": anzahl}
 
 
+def baue_ohne_anhalten(k, takt, gebaeude_von, g, typ, stellen, sp=1, ruhe=time.sleep):
+    """Wie bauen.baue_irgendwo, aber das Spiel laeuft durch: Daniel 02.11.2026 18:39, Bauen darf das Tempo nicht herausnehmen.
+    baue_irgendwo haelt nach jedem Versuch an (laufe), die Tempomessung waere damit wertlos."""
+    vorher = {n for n, _, _ in gebaeude_von(sp, typ)}
+    for x, y in stellen:
+        t0 = takt()
+        k.befehl({"baue": {"mapper": g["mapper"], "x": x, "y": y, "groesse": g["b"], "richtung": 0}}, 0.3)
+        warte_auf(lambda: takt() >= t0 + 2, 10, "zwei Takte nach dem Bauen", schlaf=0.02, ruhe=ruhe)
+        neu = [e for e in gebaeude_von(sp, typ) if e[0] not in vorher]
+        if neu:
+            return neu[0]
+    return None
+
+
 def kandidaten(mitte, schritt=7, hoechstens=40, radius=140):
     """Stellen in Ringen um die Mitte, gueltige Karte 0 bis 399."""
     x0, y0 = mitte
@@ -299,20 +313,22 @@ PHASEN = [("vorrat", phase_vorrat), ("burg", phase_burg), ("bauen", phase_bauen)
           ("steuern", phase_steuern), ("mauern", phase_mauern), ("anwerben", phase_anwerben), ("abreissen", phase_abreissen), ("jahre", phase_jahre)]
 
 
-def programm(k, w, protokoll, phasen=PHASEN, wache=None):
+def programm(k, w, protokoll, phasen=PHASEN, wache=None, uhr=time.perf_counter):
     """Alle Phasen nacheinander. wache() darf mit Fehler den Lauf beenden; ein Fehler in einer Phase beendet nur die Phase."""
     lage, aus = {"mitte": (200, 200)}, []
     for name, f in phasen:
         if wache:
             wache()
-        t0 = w.takt()
+        t0, s0 = w.takt(), uhr()
         try:
             eintrag = {"phase": name, "ok": True, "daten": f(k, w, lage)}
         except Fehler as e:
             eintrag = {"phase": name, "ok": False, "fehler": str(e)}
         except Exception as e:  # noqa: BLE001  eine kaputte Phase darf die Aufzeichnung nicht beenden
             eintrag = {"phase": name, "ok": False, "fehler": f"{type(e).__name__}: {e}"}
-        eintrag.update(takt_von=t0, takt_bis=w.takt())
+        t1 = w.takt()
+        dauer = uhr() - s0
+        eintrag.update(takt_von=t0, takt_bis=t1, sekunden=round(dauer, 1), takte_je_s=round((t1 - t0) / dauer, 1) if dauer > 0 else None)
         protokoll(eintrag)
         aus.append(eintrag)
     return aus
@@ -447,7 +463,10 @@ class EchtesWerkzeug:
         from selfaware.game.ucp import bauen
         self._k, self._bauen, self._jahr = k, bauen, jahr_adresse
         self.NACH_TYP = bauen.NACH_TYP
-        self.gebaeude_von, self.baue_irgendwo, self.werbe = bauen.gebaeude_von, bauen.baue_irgendwo, bauen.werbe
+        self.gebaeude_von, self.werbe = bauen.gebaeude_von, bauen.werbe
+
+    def baue_irgendwo(self, typ, stellen):
+        return baue_ohne_anhalten(self._k, self.takt, self.gebaeude_von, self.NACH_TYP[typ], typ, stellen)
 
     def takt(self):
         return self._k.peek(TICK)[0]

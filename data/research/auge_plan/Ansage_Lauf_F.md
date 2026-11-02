@@ -28,6 +28,8 @@ Das Auge, nicht das Spiel und nicht SamurAI: Liest die Aufzeichnung lückenlos m
 - **Tempotreppe:** vor dem Programm im leeren und danach im bebauten Spiel je 7 Stufen, je Stufe 20 s ohne Lesen, 20 s mit Lesen, 20 s ohne Lesen.
 - **Abbruch:** Fehlen auf Tempo 40 mehr als 5 % der Takte oder sind mehr als 5 % der Rahmen gemischt, wird beendet. Die 5 % sind selbst gesetzt, einzelne fehlende Takte zählen in A3 trotzdem als Fehler. Dieselbe Wache läuft vor jedem Abschnitt. Scheitert nur ein Abschnitt, wird er notiert und der Lauf geht weiter.
 
+**Das Programm hält das Spiel nicht an.** Daniels Vorgabe vom 02.11.2026: Auch beim Bauen läuft das Spiel im vollen Tempo. Das Protokoll nennt je Abschnitt die erreichten Takte je Sekunde.
+
 **Was vermutlich beim ersten Mal hakt:** Das Bauprogramm kennt die Karte nicht, es probiert Stellen in Ringen um den Bergfried. Bauernhöfe, Mine, Steinbruch und Pechgrube brauchen besonderen Boden und bleiben deshalb vielleicht ungesetzt. Der Lauf schreibt auf, was fehlt, das wird danach gezielt nachgeholt. Die Knopf-Nummer für den Kartenstart stammt aus dem Code und ist im Spiel noch nie gedrückt worden.
 
 ## Nutzen fürs aktuelle Ziel

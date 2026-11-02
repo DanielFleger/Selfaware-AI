@@ -285,6 +285,29 @@ def test_tempotreppe_bricht_ab_wenn_das_tempo_nicht_wirkt():
         lf.tempotreppe(Kanal(), lambda: takt[0], None, stufen=(40,), sekunden=20, ruhe=ruhe, uhr=lambda: uhr[0])
 
 
+def test_bauen_haelt_das_spiel_nie_an():
+    k = Kanal()
+    takt = [0]
+
+    def ruhe(_):
+        takt[0] += 1
+    versuche = []
+
+    def gebaeude(sp, typ):
+        return [(7, 5, 5)] if len(k.log) >= 3 else []
+    e = lf.baue_ohne_anhalten(k, lambda: takt[0], gebaeude, {"mapper": 61, "b": 7}, 41, [(1, 1), (2, 2), (3, 3), (4, 4)], ruhe=ruhe)
+    assert e == (7, 5, 5)
+    assert len(k.log) == 3 and all("baue" in c for c in k.log)
+    assert not any("pause" in c or "tickpause" in c for c in k.log)
+
+
+def test_programm_nennt_das_tempo_jeder_phase():
+    uhr = iter(float(i) for i in range(1000))
+    w = Werkzeug()
+    e = lf.programm(Kanal(), w, lambda x: None, phasen=[("warenketten", lf.phase_warenketten)], uhr=lambda: next(uhr))
+    assert e[0]["sekunden"] == 1.0 and e[0]["takte_je_s"] == 6000.0
+
+
 def test_programm_laeuft_alle_phasen_und_schreibt_jede_auf():
     aus = []
     w = Werkzeug()
