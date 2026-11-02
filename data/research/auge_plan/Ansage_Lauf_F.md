@@ -1,6 +1,6 @@
 # Ansage Lauf F
 
-Erstellt 02.11.2026 von SRE (B-142), neu nach dem gescheiterten Lauf vom selben Tag. Stand 21:45, nach dem Abbruch von 21:30 (Warum-Kette unten). Der nächste Lauf braucht Daniels Ja.
+Erstellt 02.11.2026 von SRE (B-142), neu nach dem gescheiterten Lauf vom selben Tag. Stand 21:45, nach dem Abbruch von 21:30 (Warum-Kette unten). **Der Lauf von 21:42 war gültig, Ergebnis: `lauf_f_20261102/Ergebnis_Lauf_F.md`.**
 
 Plan und Gründe: `docs/plans/Plan_Lauf_F_neu.md`. Warum der alte Lauf scheiterte: `ursachen_lauf_f/Ursachen_Lauf_F.md`.
 

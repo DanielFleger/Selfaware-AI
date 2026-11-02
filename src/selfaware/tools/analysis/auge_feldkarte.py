@@ -17,7 +17,7 @@ ZEILE = re.compile(r"^\s*(\d+)\s+(.+?)\s+(\d+)\s+(\S+)\s+\"")
 ARRAY = re.compile(r"^(.+?)\[(\d+)\]")
 ALIAS = {"DAT_GameState": "GameStateStructures", "SEC_RNG": "RNG"}
 # Bereiche ohne Spielzustand; sie werden getrennt gezaehlt, nicht verschwiegen
-TECHNIK = re.compile(r"Render|Viewport|Sound|SFX|Bink|Video|Menu|Text|Texture|Mouse|Input|Button|Bitmap|Blend|Font|Gfx|Graphic|Window|DirectDraw|DirectPlay|DirectSound|TIME_|Chat|DPLAY|Lobby")
+TECHNIK = re.compile(r"Render|Viewport|Sound|SFX|Bink|Video|Menu|Text|Texture|Mouse|Input|Button|Bitmap|Blend|Font|Gfx|Graphic|Window|DirectDraw|DirectPlay|DirectSound|TIME_|Chat|DPLAY|Lobby|TickRate|GameLoop|GL_Counter|Millisec|Scrolling|Minimap|LowLevelMemory|Speech|Framerate|GmFileID|WasInteracting")  # gemessen in Lauf F: laufen mit der Uhr oder der Ansicht, kein Spielzustand
 
 
 def typen_lesen(ty):

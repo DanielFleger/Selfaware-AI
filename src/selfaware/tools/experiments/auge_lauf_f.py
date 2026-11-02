@@ -353,7 +353,7 @@ ANWERBEN = {9: [22, 23, 24, 25, 26, 27, 28], 8: [70, 71, 72, 73, 74, 75, 76], 24
 HANDELSWAREN = [w for w in range(2, 25) if w != 15]
 SPEER = 19
 STEUERSTUFEN, RATIONEN = range(12), range(5)
-TOR_ZU, TOR_AUF = 10, 11  # GateOpenOrClose
+TOR_ZU, TOR_AUF, TOR_FERTIG = 10, 11, 12  # GateOpenOrClose; UpdateGateHouse macht aus beiden nach dem Umschalten 12 (Lauf F: 11 dann 12)
 BEFEHL_MAUER, BEFEHL_GRABEN, BEFEHL_STEUER, BEFEHL_RATION, BEFEHL_HANDEL, BEFEHL_SCHLAF, BEFEHL_TOR = 25, 21, 34, 35, 38, 43, 45
 
 
@@ -694,7 +694,7 @@ def _tore(l):
             l.k.befehl({"spielbefehl": {"nr": BEFEHL_TOR, "werte": [nr, zustand, e["uid"]]}}, KANAL)
             l.warte_takte(10)
             ist = next(g for g in s.gebaeude() if g["nr"] == nr)["tor"]
-            l.wirkung(f"Tor {typ} auf {zustand}", ist == zustand, ist=ist)
+            l.wirkung(f"Tor {typ} auf {zustand}", ist in (zustand, TOR_FERTIG), ist=ist)
 
 
 def _schlafen(l):

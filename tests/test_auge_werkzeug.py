@@ -644,6 +644,20 @@ def test_a8_gold_ohne_sammelfeld_ist_ohne_ursache(tmp_path):
     assert a8_lauf(tmp_path, st).status == aw.WIDERLEGT
 
 
+def test_a8_neuer_weg_im_selben_takt_erklaert_waren_aber_nie_gold():
+    assert aw._ursache(16, False, False, False, set(), False, True) == "Arbeiter neuer Weg"
+    assert aw._ursache(15, False, False, False, set(), False, True) is None
+    assert aw._ursache(16, False, False, False, set(), False, False) is None
+
+
+def test_a9_zaehlt_nebeneinanderliegende_plaetze_einzeln(tmp_path):
+    def stoer(s, i):
+        if i == 4:
+            struct.pack_into("<ii", s.m[FREI], 0, 1, 1)
+    a = aufzeichnen(tmp_path / "a.auge", stoerung=stoer, bereiche=[Bereich("zeit", TAKT, 8), Bereich("befehle", FREI, 8)])
+    assert aw.a9_befehle(a, groesse=4).daten["plaetze"] == 2
+
+
 def test_a8_ein_betrieb_erklaert_waren_aber_nie_gold():
     assert aw._ursache(4, False, False, False, set(), True) == "Arbeiter"
     assert aw._ursache(15, False, False, False, set(), True) is None

@@ -364,7 +364,7 @@ class KunstSpiel:
                     self.best[w[1]] += lf.LOS if w[0] == 0 else -lf.LOS
                     self.best[15] += -10 if w[0] == 0 else 8
             if n == lf.BEFEHL_TOR:
-                self.geb[w[0]]["tor"] = w[1]
+                self.geb[w[0]]["tor"] = lf.TOR_FERTIG if self.f.get("tor_wird_fertig") else w[1]
             if n == lf.BEFEHL_SCHLAF:
                 self.schlaf[w[0]] ^= 1
             if n == lf.BEFEHL_MAUER:
@@ -629,6 +629,11 @@ def test_handel_laesst_auch_bei_fast_vollem_waffenlager_die_geplanten_speere():
     g.best[17] += lf.LOS  # die Bogner haben schon abgeliefert: Fuer die Speere ist nur noch ein Los frei
     lf._handel(l)
     assert g.best[lf.SPEER] == lf.WAFFEN_WAREN[lf.SPEER]
+
+
+def test_tor_zustand_12_ist_kein_fund():
+    g, l, e = ganzer_lauf(tor_wird_fertig=True)
+    assert not [f for f in l.funde if f["was"].startswith("Tor")], l.funde
 
 
 def test_deckel_darf_zucken():

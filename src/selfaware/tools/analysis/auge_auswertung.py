@@ -328,9 +328,14 @@ def a9_befehle(auf, gesendet=None, name="befehle", groesse=1272):
     b = auf.namen.index(name)
     je_takt = collections.Counter()
     for r, _, teile in auf.staende():
-        if r.bereich != b or r.art == VOLL:
+        if r.bereich != b or (r.art == VOLL and teile is None):
             continue
-        je_takt[r.takt] = len({o // groesse for o, _ in teile})
+        if r.art == VOLL:  # auch in vollen Rahmen stecken neue Befehle (Lauf F: sonst 147 statt 173)
+            teile = _voll_diff(teile, p)
+        plaetze = set()  # nebeneinanderliegende Plaetze kommen als ein Stueck
+        for o, l in teile:
+            plaetze.update(range(o // groesse, (o + l - 1) // groesse + 1))
+        je_takt[r.takt] = len(plaetze)
     daten = {"takte_mit_befehl": sum(1 for v in je_takt.values() if v), "plaetze": sum(je_takt.values())}
     if gesendet is None:
         return Ergebnis("A9", GEMESSEN, f"{daten['plaetze']} Plaetze geaendert, ohne Liste der eigenen Befehle nicht vergleichbar", daten)
@@ -432,12 +437,13 @@ SPIELERDATEN, SPIELER_SCHRITT = 0x0115BDF8, 0x39F4
 FELD_START, FELD_BESTAND = 0x46C, 0x4D0
 FELD_STEUER = 0x2144, 0x2158  # taxBribeMonthlyAccumulator, taxIncomeMonthlyAccumulator
 GEBAEUDE_SCHRITT, GEBAEUDE_TYP = 0x32C, 0xE6
+EINHEIT_0, EINHEIT_SCHRITT = 0x0138854C, 1168  # units[0]: Merkplatz vor der Wegsuche, siehe echte_listen
 LAGERARTEN = {10, 11, 19, 21}  # Lager, Waffenlager, Kornspeicher, Steinhalde: Ihr Bestand IST die Summe, er ist keine Ursache
 WARE_NAMEN = {2: "Holz", 3: "Hopfen", 4: "Stein", 6: "Eisen", 7: "Pech", 9: "Weizen", 10: "Brot", 11: "Kaese", 12: "Fleisch", 13: "Aepfel", 14: "Bier", 15: "Gold", 16: "Mehl",
               17: "Bogen", 18: "Armbrust", 19: "Speer", 20: "Pike", 21: "Keule", 22: "Schwert", 23: "Lederruestung", 24: "Eisenruestung"}
 
 
-def _ursache(ware, start_aenderung, steuer_aenderung, befehl_vor, felder, betrieb):
+def _ursache(ware, start_aenderung, steuer_aenderung, befehl_vor, felder, betrieb, neuer_weg=False):
     if start_aenderung:
         return "Startwaren"
     # updateTaxing (0x0045bf50) leert im Monatswechsel die Sammelfelder und bucht sie im selben Takt aufs Gold
@@ -450,6 +456,9 @@ def _ursache(ware, start_aenderung, steuer_aenderung, befehl_vor, felder, betrie
     # Gold ist keine Ware, die Arbeiter tragen: Ein Betrieb in der Naehe erklaert es nicht. Gibt es doch so einen Weg, faellt er als "ohne Ursache" auf
     if ware != 15 and (betrieb or any("resourceToDeposit" in f for f in felder)):
         return "Arbeiter"
+    # Mueller und Baecker liefern ohne diese Felder, bekommen aber im selben Takt einen neuen Weg (Lauf F: 6 von 6 Mehl-Aenderungen)
+    if ware != 15 and neuer_weg:
+        return "Arbeiter neuer Weg"
     return None
 
 
@@ -468,7 +477,7 @@ def a8_buchfuehrung(auf, karte, sp=1, fenster=3):
     def stand(p):
         return struct.unpack_from("<25i", p, best_o), struct.unpack_from("<25i", p, start_o), [struct.unpack_from("<i", p, o)[0] for o in steuer_o]
     alt_best = alt_start = alt_steuer = None
-    letzte = {"befehl": -10 ** 9, "betrieb": -10 ** 9}
+    letzte = {"befehl": -10 ** 9, "betrieb": -10 ** 9, "merkplatz": -10 ** 9}
     felder_je = collections.defaultdict(set)
     zaehler = collections.defaultdict(collections.Counter)
     rest = []
@@ -494,6 +503,8 @@ def a8_buchfuehrung(auf, karte, sp=1, fenster=3):
             for o, l in teile:
                 f = cache.setdefault((basis + o, l), karte.felder_einer_aenderung(basis + o, l))
                 felder_je[r.takt].update(x[1] for x in f)
+                if name == "DAT_UnitsState" and basis + o < EINHEIT_0 + EINHEIT_SCHRITT and basis + o + l > EINHEIT_0:
+                    letzte["merkplatz"] = r.takt
         if name == "DAT_GameState":
             best, start, steuer = stand(p)
             if alt_best is not None and best != alt_best:
@@ -503,7 +514,7 @@ def a8_buchfuehrung(auf, karte, sp=1, fenster=3):
                 for w in range(25):
                     d = best[w] - alt_best[w]
                     if d and w in WARE_NAMEN:
-                        ursache = _ursache(w, start[w] != alt_start[w], steuer != alt_steuer, r.takt - letzte["befehl"] <= fenster + 40, naehe, r.takt - letzte["betrieb"] <= fenster)
+                        ursache = _ursache(w, start[w] != alt_start[w], steuer != alt_steuer, r.takt - letzte["befehl"] <= fenster + 40, naehe, r.takt - letzte["betrieb"] <= fenster, r.takt == letzte["merkplatz"])
                         zaehler[WARE_NAMEN[w]][ursache or "ohne Ursache"] += 1
                         if ursache is None and len(rest) < 200:
                             rest.append([r.takt, WARE_NAMEN[w], d])

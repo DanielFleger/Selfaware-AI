@@ -1,0 +1,47 @@
+A9 Ring: geaenderte Plaetze zwischen erstem und letztem Rahmen: 173 [(21, 1), (25, 2), (28, 77), (29, 2), (31, 18), (34, 13), (35, 6), (38, 48), (43, 2), (45, 4)] Plaetze (0, 199) Zeiten 3810 3763
+  doppelte Eintraege (gleiche Zeit, Art, Werte): 1
+  erste [(3810, 28), (3864, 28), (3919, 28), (3967, 28), (4019, 28), (4085, 28)] letzte [(3625, 28), (3678, 28), (3717, 28), (3763, 28)]
+DAT_BarracksUnitCost [10, 30, 10, 40, 20, 60, 120, 1, 1, 1, 60, 10]
+DAT_EuroUnitResourceCosts [17, 0, 0, 0, 18, 23, 0, 0, 19, 0, 0, 0, 20, 24, 0, 0, 21, 23, 0, 0, 22, 24, 0, 0, 22, 24, 0, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0]
+DAT_MercenaryUnitCost None
+DAT_MarketResourceCycleArray [12, 11, 13, 10, 9, 16, 2, 4, 6, 8, 19, 17, 21, 18, 20, 22, 23, 24, 14, 3, -1, 10, 30, 10, 40, 20, 60, 120, 1, 1]
+MarketResourceCycleArray None
+Kostentabellen: [('DAT_MarketResourceCycleArray', '0xab90c0'), ('DAT_BarracksUnitCost', '0xab9114'), ('DAT_NonEuroUnitCost', '0xab913c')]
+Strukturen: []
+P016 MESSEN Liste der handelbaren Waren der Karte | ERWARTET deckt sich mit dem Marktfenster
+     [('mapAndTime.isResourceTradeable[]', [1, 27, 5505284, -1, 0])]
+P017 MESSEN Reihenfolge der Waren und Endwert | ERWARTET Reihenfolge entspricht dem Durchblättern im Marktfenster
+     [('MarketResourceCycleArray[]', [12, 11, 13, 10, 9, 16, 2, 4, 6, 8, 19, 17])]
+P018 MESSEN Anzahl Einträge vor 0xffffffff | ERWARTET 20
+     [('MarketResourceCycleArray[]', [12, 11, 13, 10, 9, 16, 2, 4, 6, 8, 19, 17])]
+P027 MESSEN AttForceBase, DefTotal, recruitProbRaidDefault, TargetChoice | ERWARTET 10, 40, 0, AITC_GOLD (0); Abweichung = UCP/AIC-Datei
+     [('aics[].AttForceBase', [0, 30, 50, 75, 42, 60, 46]), ('aics[].DefTotal', [0, 42, 110, 130, 30, 230, 95]), ('aics[].recruitProbRaidDefault', [0, 35, 52, 30, 100]), ('aics[].TargetChoice', [0, 1, 2])]
+P034 MESSEN Speicher von aics[10] (DAT_AICState 0x023FC8E8 + 10 × 0x2A4 = 0x023FE350) lesen: +0x1F4 AttForceBase, +0x170 DefTotal, +0x214 SiegeEngine1 | ERWARTET 10, 20, 0 (andere Werte = UCP oder eine AIC-Datei hat den Satz geändert)
+     [('', [0]), ('aics[].AttForceBase', [0, 30, 50, 75, 42, 60, 46]), ('aics[].DefTotal', [0, 42, 110, 130, 30, 230, 95]), ('aics[].SiegeEngine1', [0, 60, 77, 40, 59, 39])]
+P035 MESSEN Speicher von aics[11] (DAT_AICState 0x023FC8E8 + 11 × 0x2A4 = 0x023FE5F4) lesen: +0x1F4 AttForceBase, +0x210 AttCoordinationPreference, +0x1CC HarassingSiegeEngine1 | ERWARTET 40, 90, 358 (andere Werte = UCP oder eine AIC-Datei hat den Satz geändert)
+     [('', [0]), ('aics[].AttForceBase', [0, 30, 50, 75, 42, 60, 46]), ('aics[].AttCoordinationPreference', [0, 97, 89, 90, 100]), ('aics[].HarassingSiegeEngine1', [0, 358, 190])]
+P036 MESSEN Speicher von aics[12] (DAT_AICState 0x023FC8E8 + 12 × 0x2A4 = 0x023FE898) lesen: +0x74 maxFarms, +0x164 RecruitInterval, +0x2A0 TargetChoice | ERWARTET 16, 0, 0 (AITC_GOLD) (andere Werte = UCP oder eine AIC-Datei hat den Satz geändert)
+     [('', [0]), ('aics[].maxFarms', [0, 24, 10, 11, 12, 16]), ('aics[].RecruitInterval', [0, 1, 3]), ('aics[].TargetChoice', [0, 1, 2])]
+P037 MESSEN Speicher von aics[13] (DAT_AICState 0x023FC8E8 + 13 × 0x2A4 = 0x023FEB3C) lesen: +0x250 AttMaxAssassins, +0x1EC HarassingSiegeEnginesMax, +0x2A0 TargetChoice | ERWARTET 40, 0, 2 (AITC_CLOSEST) (andere Werte = UCP oder eine AIC-Datei hat den Satz geändert)
+     [('', [0]), ('aics[].AttMaxAssassins', [0]), ('aics[].HarassingSiegeEnginesMax', [0, 1, 2, 3]), ('aics[].TargetChoice', [0, 1, 2])]
+P038 MESSEN Speicher von aics[14] (DAT_AICState 0x023FC8E8 + 14 × 0x2A4 = 0x023FEDE0) lesen: +0x1F4 AttForceBase, +0x234 CowThrowInterval, +0x250 AttMaxAssassins | ERWARTET 50, 6, 10 (andere Werte = UCP oder eine AIC-Datei hat den Satz geändert)
+     [('', [0]), ('aics[].AttForceBase', [0, 30, 50, 75, 42, 60, 46]), ('aics[].CowThrowInterval', [0, 10000, 7, 100, 999, 1000]), ('aics[].AttMaxAssassins', [0])]
+P039 MESSEN Speicher von aics[15] (DAT_AICState 0x023FC8E8 + 15 × 0x2A4 = 0x023FF084) lesen: +0x1F4 AttForceBase, +0x18 criticalPopularity, +0x2A0 TargetChoice | ERWARTET 10, 4000, 1 (AITC_BALANCED) (andere Werte = UCP oder eine AIC-Datei hat den Satz geändert)
+     [('', [0]), ('aics[].AttForceBase', [0, 30, 50, 75, 42, 60, 46]), ('aics[].criticalPopularity', [0, 51, 5100, 6900, 8000, 8500]), ('aics[].TargetChoice', [0, 1, 2])]
+P040 MESSEN Speicher von aics[16] (DAT_AICState 0x023FC8E8 + 16 × 0x2A4 = 0x023FF328) lesen: +0x1F4 AttForceBase, +0x28 taxesMax, +0x288 AttUnitMain1 | ERWARTET 50, 12, 37 (andere Werte = UCP oder eine AIC-Datei hat den Satz geändert)
+     [('', [0]), ('aics[].AttForceBase', [0, 30, 50, 75, 42, 60, 46]), ('aics[].taxesMax', [0, 11, 8]), ('aics[].AttUnitMain1', [0, 22, 25, 26, 27])]
+P076 MESSEN Gold, Waffe, Rüstung, dritte Ware, Pferd je Einheitentyp 22 bis 31 | ERWARTET Preis und Warenbedarf je Typ (Pferdzahl -1 bei Einheiten mit Pferd, dritte Ware laut Code-Kommentar immer 0)
+     [('DAT_BarracksUnitCost[]', [10, 30, 40, 20, 60, 120, 1, 15]), ('DAT_EuroUnitResourceCosts[]', [17, 0]), ('playerDataArray[].currentResources[]', [1, 0, 100000, 2, 4, 5, 7, 9, 10, 6, 8, 3])]
+aics AttForceBase 0x23fcadc (4, 676, 20)
+P027 aics[3] {'AttForceBase': 75, 'DefTotal': 110, 'recruitProbRaidDefault': 52, 'TargetChoice': 1} Export-Grundwert [10, 40, 0, 0] ANDERS
+P028 aics[4] {'AttForceBase': 42, 'DefTotal': 130, 'CowThrowInterval': 100, 'TargetChoice': 2} Export-Grundwert [40, 100, 8, 2] ANDERS
+P029 aics[5] {'AttMaxAssassins': 0, 'AttForceBase': 60, 'maxFood': 40, 'TargetChoice': 2} Export-Grundwert [5, 50, 50, 0] ANDERS
+P030 aics[6] {'RaidUnitsBase': 5, 'RaidUnitsRandom': 0, 'AttMainGroupsCount': 1, 'TargetChoice': 1} Export-Grundwert [30, 30, 5, 1] ANDERS
+P031 aics[7] {'SiegeEngine1': 39, 'AttMaxEngineers': 8, 'AttUnitBackupMax': 9, 'TargetChoice': 1} Export-Grundwert [0, 0, 120, 2] ANDERS
+P032 aics[8] {'recruitProbAttackStrong': 60, 'AttMaxTunnelers': 0, 'recruitProbRaidDefault': 52, 'TargetChoice': 1} Export-Grundwert [90, 3, 0, 2] ANDERS
+P033 aics[9] {'AttForceBase': 84, 'AttMaxEngineers': 0, 'fletcherSetting': 17, 'TargetChoice': 2} Export-Grundwert [30, 18, -999, 0] ANDERS
+UT_PEASANT an 1143219 HoldStrong/Map/Units/UnitType\n\tDescription: \nValues: \n\tUT_PEASANT: 1 comment\n\tUT_BURNINGMAN: 
+Typnamen 0 {}
+resourceToDeposit hoechstens: {'1 None': 1, '3 None': 15, '4 None': 1, '6 None': 18, '8 None': 1, '11 None': 3, '12 None': 6, '13 None': 4, '14 None': 5, '15 None': 2, '16 None': 10, '17 None': 2, '18 None': 1, '19 None': 2, '20 None': 2, '21 None': 3, '24 None': 1, '32 None': 3, '33 None': 4, '34 None': 8, '35 None': 6, '36 None': 1, '52 None': 1, '55 None': 2, '63 None': 5}
+Statistik 0x117eaa8 (4, 0, 1) 0x117d590 (600, 600, 9)
+Index, Leute, Statistik[Index-1][1]: [(1342, 0, 0, None), (3327, 2, 9, 0), (4001, 3, 12, 257), (4800, 4, 16, 0), (5600, 5, 20, 0), (6401, 6, 24, 0), (7203, 7, 28, 0), (8010, 8, 32, 0), (9714, 10, 40, 0), (10402, 11, 44, 0), (11738, 12, 50, 0), (12002, 13, 52, 0), (12849, 14, 56, 0), (13607, 15, 58, 0), (14402, 16, 58, 0), (15200, 17, 58, 0), (16000, 18, 58, 0), (16803, 19, 42, 0)]

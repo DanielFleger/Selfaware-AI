@@ -39,6 +39,8 @@ def auswerten(basis, gueltig=None):
         aus.append(aw.a2_nie_gesehen(karte, gesehen))
     if haupt:
         aus += [aw.a3_takttreue(haupt), aw.a4_lesedauer(haupt)]
+        if jahr:
+            aus.append(aw.a9_befehle(haupt))  # die eigenen Befehle laufen im Hauptteil, im Jahr auf Tempo 40 kommt keiner
     fein = jahr or haupt
     if jahr:
         aus += [aw.a3_takttreue(jahr), aw.a4_lesedauer(jahr)]
