@@ -328,6 +328,12 @@ def fruehprobe(pfad):
     return True, f"{a3.text}; {a4.text}"
 
 
+def tempo_setzen(k, s):
+    """Zwei Befehle: Pause und Tempo im selben Befehl setzt das Tempo nicht (gemessen Lauf F 02.11.2026 18:16)."""
+    k.befehl({"pause": False}, 0.3)
+    k.befehl({"tempo": s}, 0.5)
+
+
 def tempotreppe(k, takt, lese_runde, stufen=STUFEN, sekunden=TREPPE_SEKUNDEN, ruhe=time.sleep, uhr=time.perf_counter):
     """Je Tempostufe Takte/s ohne Lesen, mit Lesen, wieder ohne Lesen. Die Haupt-Aufzeichnung darf dabei nicht laufen."""
     def zaehle():
@@ -337,9 +343,12 @@ def tempotreppe(k, takt, lese_runde, stufen=STUFEN, sekunden=TREPPE_SEKUNDEN, ru
 
     zeilen = []
     for s in stufen:
-        k.befehl({"pause": False, "tempo": s}, 0.5)
+        tempo_setzen(k, s)
         ruhe(2)
         ohne_1 = zaehle()
+        # bis 100 ist die Bildrate keine Grenze: Stimmt das Tempo nicht, misst die Stufe etwas anderes (Lauf F 18:16: ueberall 200)
+        if s <= 100 and abs(ohne_1 - s) > max(2.0, 0.2 * s):
+            raise Fehler(f"Tempo {s} wirkt nicht: {ohne_1:.1f} Takte/s gemessen")
         r = lese_runde(sekunden, s)
         ohne_2 = zaehle()
         zeilen.append({"tempo": s, "sekunden": sekunden, "ohne_1": ohne_1, "mit": r["takte_je_s"], "ohne_2": ohne_2, "gelesen": r["gelesen"], "gesamt": r["gesamt"]})
@@ -507,7 +516,7 @@ def los(n, tempo=40, ziel=None, laeuft_schon=False):
             e = a4_tempotreppe(z)
             schreib({"schritt": f"tempotreppe_{kennung}", "ergebnis": e.status, "text": e.text, "zeilen": e.daten.get("zeilen")})
         treppe("leer")
-        k.befehl({"pause": False, "tempo": tempo}, 0.5)
+        tempo_setzen(k, tempo)
         aufzeichner = subprocess.Popen([sys.executable, "-m", "selfaware.tools.experiments.auge_aufzeichnung", "--instanz", str(n), "--ausgabe", aufz, "--lauf", "F", "--stop-datei", stop], env=dict(os.environ))
         w = EchtesWerkzeug(k, karte.adresse(*JAHR_ADRESSE_FELD)[0])
         warte_auf(lambda: os.path.exists(aufz) and os.path.getsize(aufz) > 1000, 60, "Aufzeichnung laeuft")

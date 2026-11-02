@@ -201,12 +201,13 @@ def a4_lesedauer(auf):
 
 def a4_tempotreppe(zeilen):
     """Daniel 02.11.2026: auf Tempo 1 bis 1000 darf das Lesen kein Tempo abziehen. Je Stufe: ohne Lesen, mit Lesen, ohne Lesen.
-    Als Messrauschen gilt nur, was die beiden Laeufe ohne Lesen selbst unterscheidet, plus ein Takt Ablesefehler je Messung."""
+    Als Messrauschen gilt nur, was die beiden Laeufe ohne Lesen selbst unterscheidet, plus der Ablesefehler: je Zaehlung ein
+    Takt an beiden Enden, zwei Zaehlungen werden verglichen, also vier Takte."""
     if not zeilen:
         return Ergebnis("A4", NICHT_GESEHEN, "keine Tempotreppe gemessen", {})
     abzug = []
     for z in zeilen:
-        rauschen = abs(z["ohne_1"] - z["ohne_2"]) + 2 / z["sekunden"]
+        rauschen = abs(z["ohne_1"] - z["ohne_2"]) + 4 / z["sekunden"]
         z["abzug"] = max(0.0, min(z["ohne_1"], z["ohne_2"]) - z["mit"] - rauschen)
         if z["abzug"] > 0:
             abzug.append(z["tempo"])

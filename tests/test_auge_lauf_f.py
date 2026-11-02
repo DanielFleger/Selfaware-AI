@@ -255,18 +255,34 @@ def test_tempotreppe_misst_jede_stufe_ohne_mit_ohne():
     k = Kanal()
     uhr = [0.0]
 
+    def jetzt_tempo():
+        return [c["tempo"] for c in k.log if "tempo" in c][-1]
+
     def ruhe(s):
         uhr[0] += s
-        takt[0] += int(s * 40)
+        takt[0] += int(s * jetzt_tempo())
+
     def lese(sek, stufe):
         uhr[0] += sek
-        takt[0] += int(sek * 39)
-        return {"takte_je_s": 39.0, "gelesen": 780, "gesamt": 781}
+        takt[0] += int(sek * stufe)
+        return {"takte_je_s": float(stufe), "gelesen": 780, "gesamt": 781}
     z = lf.tempotreppe(k, lambda: takt[0], lese, stufen=(1, 1000), sekunden=20, ruhe=ruhe, uhr=lambda: uhr[0])
     assert [x["tempo"] for x in z] == [1, 1000]
-    assert z[0]["ohne_1"] == 40.0 and z[0]["mit"] == 39.0 and z[0]["ohne_2"] == 40.0
-    assert {"pause": False, "tempo": 1000} in k.log
+    assert z[0]["ohne_1"] == 1.0 and z[1]["mit"] == 1000.0
+    assert {"tempo": 1000} in k.log and {"pause": False} in k.log
+    assert not any("pause" in c and "tempo" in c for c in k.log)
     assert 1 in lf.STUFEN and 1000 in lf.STUFEN
+
+
+def test_tempotreppe_bricht_ab_wenn_das_tempo_nicht_wirkt():
+    takt = [0]
+    uhr = [0.0]
+
+    def ruhe(s):
+        uhr[0] += s
+        takt[0] += int(s * 200)  # das Spiel bleibt auf 200, wie im Lauf 18:16
+    with pytest.raises(lf.Fehler, match="wirkt nicht"):
+        lf.tempotreppe(Kanal(), lambda: takt[0], None, stufen=(40,), sekunden=20, ruhe=ruhe, uhr=lambda: uhr[0])
 
 
 def test_programm_laeuft_alle_phasen_und_schreibt_jede_auf():

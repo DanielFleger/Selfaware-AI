@@ -210,7 +210,7 @@ def test_a4_tempotreppe_ohne_abzug_mit_kleinem_rauschen():
 
 
 def test_a4_tempotreppe_kleiner_abzug_ist_widerlegt_es_gibt_keine_prozentgrenze():
-    e = aw.a4_tempotreppe([treppe(40, 40.0, 39.5, 40.0)])
+    e = aw.a4_tempotreppe([treppe(40, 40.0, 39.7, 40.0)])
     assert e.status == aw.WIDERLEGT and "[40]" in e.text and e.daten["zeilen"][0]["abzug"] > 0
 
 
