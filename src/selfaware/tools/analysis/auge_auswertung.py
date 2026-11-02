@@ -120,6 +120,7 @@ def a1_aenderungsmelder(auf, karte):
     zaehler = {"bekannt": collections.Counter(), "technik": collections.Counter(), "luecke": collections.Counter()}
     zuerst = {}
     rahmen = 0
+    cache = {}
     for r, p, teile in auf.staende():
         rahmen += 1
         if r.art == VOLL:
@@ -128,8 +129,10 @@ def a1_aenderungsmelder(auf, karte):
             teile = _voll_diff(teile, p)  # nach dem Laden: Unterschied zum vorigen Stand
         basis = auf.bereiche[r.bereich][1]
         for o, l in teile:
-            for g, f in karte.felder_einer_aenderung(basis + o, l):
-                k = karte.klasse(g, f)
+            felder = cache.get((basis + o, l))
+            if felder is None:
+                felder = cache[(basis + o, l)] = [(g, f, karte.klasse(g, f)) for g, f in karte.felder_einer_aenderung(basis + o, l)]
+            for g, f, k in felder:
                 zaehler[k][(g, f)] += 1
                 if k == "luecke":
                     zuerst.setdefault((g, f), r.takt)
@@ -156,13 +159,18 @@ def a2_nie_gesehen(karte, gesehen):
 
 def a3_takttreue(auf):
     letzter, je_bereich, unrein, zurueck, n = {}, collections.Counter(), 0, 0, 0
+    unrein_selten = 0
     luecken = []
     erster = {}
     for r in auf.rahmen():
         n += 1
-        if not r.rein:
-            unrein += 1
         alle = auf.bereiche[r.bereich][3]
+        if not r.rein:
+            # selten gelesene Bereiche dienen dem Aenderungsmelder, dort sagt eine gemischte Lesung nichts ueber die Takt-Treue
+            if alle == 1:
+                unrein += 1
+            else:
+                unrein_selten += 1
         v = letzter.get(r.bereich)
         erster.setdefault(r.bereich, r.takt)
         if v is not None:
@@ -174,7 +182,7 @@ def a3_takttreue(auf):
                 luecken.append([v, r.takt])
         letzter[r.bereich] = r.takt
     fehlend = max(je_bereich.values(), default=0)
-    daten = {"rahmen": n, "spanne": max((letzter[b] - erster[b] for b in letzter), default=0), "fehlende_takte": fehlend, "unreine_rahmen": unrein, "rueckspruenge": zurueck, "luecken": luecken[:50], "beschaedigt": auf.beschaedigt}
+    daten = {"rahmen": n, "spanne": max((letzter[b] - erster[b] for b in letzter), default=0), "fehlende_takte": fehlend, "unreine_rahmen": unrein, "unrein_selten": unrein_selten, "rueckspruenge": zurueck, "luecken": luecken[:50], "beschaedigt": auf.beschaedigt}
     if not n:
         return Ergebnis("A3", NICHT_GESEHEN, "keine Rahmen", daten)
     tempo = auf.kopf.get("tempo") or 0
@@ -198,9 +206,12 @@ def a4_lesedauer(auf):
     # Median je Folgetakt statt Gesamtdauer: Pausen im Lauf sind kein Bremsen durch das Lesen
     abstaende = [zeiten[b] - zeiten[a] for a, b in zip(takte, takte[1:]) if b == a + 1 and zeiten[b] > zeiten[a]]
     tempo = 1 / statistics.median(abstaende) if abstaende else 0.0
-    daten = {"takte": len(w), "median_s": statistics.median(w), "p95_s": w[int(len(w) * 0.95) - 1], "max_s": w[-1], "takte_je_s": tempo, "ohne_lesen": auf.kopf.get("tempo_ohne_lesen")}
+    # Der Median trifft wegen der Bildgrenzen nur Vielfache eines Bildes (gemessen 37,5 bei 40,0 gesamt), darum beides nennen
+    dauer = zeiten[takte[-1]] - zeiten[takte[0]]
+    gesamt = (takte[-1] - takte[0]) / dauer if dauer > 0 else 0.0
+    daten = {"takte": len(w), "median_s": statistics.median(w), "p95_s": w[int(len(w) * 0.95) - 1], "max_s": w[-1], "takte_je_s": tempo, "gesamt_je_s": gesamt, "ohne_lesen": auf.kopf.get("tempo_ohne_lesen")}
     ohne = daten["ohne_lesen"]
-    text = f"Lesen je Takt: Median {daten['median_s'] * 1000:.1f} ms, Hoechstwert {daten['max_s'] * 1000:.1f} ms; {tempo:.1f} Takte/s"
+    text = f"Lesen je Takt: Median {daten['median_s'] * 1000:.1f} ms, Hoechstwert {daten['max_s'] * 1000:.1f} ms; {gesamt:.1f} Takte/s gesamt, Median-Abstand {tempo:.1f}"
     return Ergebnis("A4", GEMESSEN, text + (f", ohne Lesen {ohne:.1f}" if ohne else "; kein Vergleichswert ohne Lesen"), daten)
 
 
@@ -210,16 +221,21 @@ def a4_tempotreppe(zeilen):
     Takt an beiden Enden, zwei Zaehlungen werden verglichen, also vier Takte."""
     if not zeilen:
         return Ergebnis("A4", NICHT_GESEHEN, "keine Tempotreppe gemessen", {})
-    abzug = []
+    abzug, nicht_gemessen = [], []
     for z in zeilen:
         rauschen = abs(z["ohne_1"] - z["ohne_2"]) + 4 / z["sekunden"]
         z["abzug"] = max(0.0, min(z["ohne_1"], z["ohne_2"]) - z["mit"] - rauschen)
         if z["abzug"] > 0:
             abzug.append(z["tempo"])
+        # Lauf F 02.11.2026: Stufe 1 hatte durch eine Pause nur einen Takt und galt trotzdem als bestaetigt, das war ein hohles Gruen
+        if "soll" in z and z["gezaehlt"] < z["soll"]:
+            nicht_gemessen.append(z["tempo"])
     fehlend = [z["tempo"] for z in zeilen if z["gelesen"] < z["gesamt"]]
     text = f"Stufen {[z['tempo'] for z in zeilen]}; Takte ausgelassen auf {fehlend or 'keiner Stufe'}"
     if abzug:
         return Ergebnis("A4", WIDERLEGT, f"Das Lesen zieht Tempo ab auf Stufe {abzug}. {text}", {"zeilen": zeilen})
+    if nicht_gemessen:
+        return Ergebnis("A4", NICHT_GESEHEN, f"Stufe {nicht_gemessen} hat zu wenige Takte und ist nicht gemessen. {text}", {"zeilen": zeilen})
     return Ergebnis("A4", BESTAETIGT, f"kein Tempoabzug ueber das Messrauschen hinaus in dieser Messung. {text}", {"zeilen": zeilen})
 
 
@@ -326,16 +342,26 @@ def a9_befehle(auf, gesendet=None, name="befehle", groesse=1272):
 
 
 def a10_lebenslauf(auf, listen, grenzen=()):
-    """listen: (Name, Adresse von uid des ersten Elements, Schritt, Anzahl); grenzen: (Name, Adresse, Format, kleinste, groesste)."""
+    """listen: (Name, Adresse von uid des ersten Elements, Schritt, Anzahl, erster echter Platz); grenzen: (Name, Adresse, Format, kleinste, groesste)."""
     verstoesse, belegt = [], {}
     wechsel = 0
     gesehen = {}
-    for r, p, _ in auf.staende():
+    for r, p, teile in auf.staende():
         bname, badr, blen, _ = auf.bereiche[r.bereich]
-        for name, adr, schritt, anzahl in listen:
+        for name, adr, schritt, anzahl, erster in listen:
             if not (badr <= adr and adr + schritt * anzahl <= badr + blen):
                 continue
-            for i in range(anzahl):
+            # nur Plaetze, die sich in diesem Rahmen geaendert haben; nach einem vollen Rahmen alle
+            if r.art == VOLL:
+                plaetze = range(anzahl)
+            else:
+                plaetze = set()
+                for o, l in teile:
+                    if badr + o < adr + schritt * anzahl and badr + o + l > adr:
+                        plaetze.update(range(max(0, (badr + o - adr) // schritt), min(anzahl - 1, (badr + o + l - 1 - adr) // schritt) + 1))
+            for i in plaetze:
+                if i < erster:
+                    continue
                 u = struct.unpack_from("<i", p, adr - badr + i * schritt)[0]
                 k = (name, i)
                 if belegt.get(k) != u:
@@ -384,10 +410,12 @@ def a13_spielart(aufzeichnungen):
 
 
 def echte_listen(karte):
+    """Einheiten ab Platz 1: setDestinationForUnit (0x0053d3d0) und computeLadderClimbPath (0x00533a10) kopieren die Einheit vor der Wegsuche
+    auf Platz 0, dort steht also immer wieder eine uid doppelt (Probe 02.11.2026: 19 Kopien in 1.900 Takten, jede hatte ihr Original)."""
     aus = []
-    for name, g, p in (("Einheiten", "DAT_UnitsState", "units[].uid"), ("Gebaeude", "DAT_BuildingsState", "buildings[].uid"), ("Geschosse", "DAT_EntityState", "entityArray[].uid")):
+    for name, g, p, erster in (("Einheiten", "DAT_UnitsState", "units[].uid", 1), ("Gebaeude", "DAT_BuildingsState", "buildings[].uid", 0), ("Geschosse", "DAT_EntityState", "entityArray[].uid", 0)):
         adr, _, schritt, anzahl = karte.adresse(g, p)
-        aus.append((name, adr, schritt, anzahl))
+        aus.append((name, adr, schritt, anzahl, erster))
     return aus
 
 
@@ -396,6 +424,111 @@ def echte_grenzen(karte):
     aus = [("Monat", karte.adresse("DAT_GameState", "mapAndTime.month")[0], "<i", 0, 11)]
     adr, _, schritt, _ = karte.adresse("DAT_EntityState", "entityArray[].uid")
     aus += [(f"Geschossplatz {i} uid", adr + i * schritt, "<i", 0, 0) for i in range(25)]
+    return aus
+
+
+# A8: Spielerdaten und Tabellen des Spiels, Herkunft siehe zustand_felder.csv
+SPIELERDATEN, SPIELER_SCHRITT = 0x0115BDF8, 0x39F4
+FELD_START, FELD_BESTAND = 0x46C, 0x4D0
+FELD_STEUER = 0x2144, 0x2158  # taxBribeMonthlyAccumulator, taxIncomeMonthlyAccumulator
+GEBAEUDE_SCHRITT, GEBAEUDE_TYP = 0x32C, 0xE6
+LAGERARTEN = {10, 11, 19, 21}  # Lager, Waffenlager, Kornspeicher, Steinhalde: Ihr Bestand IST die Summe, er ist keine Ursache
+WARE_NAMEN = {2: "Holz", 3: "Hopfen", 4: "Stein", 6: "Eisen", 7: "Pech", 9: "Weizen", 10: "Brot", 11: "Kaese", 12: "Fleisch", 13: "Aepfel", 14: "Bier", 15: "Gold", 16: "Mehl",
+              17: "Bogen", 18: "Armbrust", 19: "Speer", 20: "Pike", 21: "Keule", 22: "Schwert", 23: "Lederruestung", 24: "Eisenruestung"}
+
+
+def _ursache(ware, start_aenderung, steuer_aenderung, befehl_vor, felder, betrieb):
+    if start_aenderung:
+        return "Startwaren"
+    # updateTaxing (0x0045bf50) leert im Monatswechsel die Sammelfelder und bucht sie im selben Takt aufs Gold
+    if ware == 15 and steuer_aenderung:
+        return "Steuer"
+    if befehl_vor:
+        return "Befehl"
+    if ware in (10, 11, 12, 13) and any("food" in f.lower() for f in felder):
+        return "Essen"
+    # Gold ist keine Ware, die Arbeiter tragen: Ein Betrieb in der Naehe erklaert es nicht. Gibt es doch so einen Weg, faellt er als "ohne Ursache" auf
+    if ware != 15 and (betrieb or any("resourceToDeposit" in f for f in felder)):
+        return "Arbeiter"
+    return None
+
+
+def a8_buchfuehrung(auf, karte, sp=1, fenster=3):
+    """Jede Bestandsaenderung von Gold und Waren einer moeglichen Ursache zuordnen. Geht nur, wenn jeder Takt gelesen ist (Tempo-40-Jahr).
+    Ursachen im selben Takt oder bis zu fenster Takte davor; ein Befehl wirkt erst Takte nach dem Eintrag im Ring.
+    Zugeordnet wird zeitlich, nicht Stueck fuer Stueck: "Arbeiter" heisst, ein Betrieb aenderte in dem Fenster seine Ware."""
+    namen = auf.namen
+    if "DAT_GameState" not in namen:
+        return Ergebnis("A8", NICHT_GESEHEN, "Spielerdaten nicht aufgezeichnet", {})
+    g = namen.index("DAT_GameState")
+    gb = auf.bereiche[g][1]
+    start_o, best_o = SPIELERDATEN + sp * SPIELER_SCHRITT + FELD_START - gb, SPIELERDATEN + sp * SPIELER_SCHRITT + FELD_BESTAND - gb
+    steuer_o = [SPIELERDATEN + sp * SPIELER_SCHRITT + f - gb for f in FELD_STEUER]
+
+    def stand(p):
+        return struct.unpack_from("<25i", p, best_o), struct.unpack_from("<25i", p, start_o), [struct.unpack_from("<i", p, o)[0] for o in steuer_o]
+    alt_best = alt_start = alt_steuer = None
+    letzte = {"befehl": -10 ** 9, "betrieb": -10 ** 9}
+    felder_je = collections.defaultdict(set)
+    zaehler = collections.defaultdict(collections.Counter)
+    rest = []
+    cache = {}
+    bestand_takt = {}
+    for r, p, teile in auf.staende():
+        name = namen[r.bereich]
+        basis = auf.bereiche[r.bereich][1]
+        if r.art == VOLL or not r.rein:
+            if name == "DAT_GameState":
+                alt_best, alt_start, alt_steuer = stand(p)
+            continue
+        if name == "befehle" and teile:
+            letzte["befehl"] = r.takt
+        elif name == "DAT_BuildingsState":
+            for o, l in teile:
+                typ = struct.unpack_from("<h", p, o // GEBAEUDE_SCHRITT * GEBAEUDE_SCHRITT + GEBAEUDE_TYP)[0] if o // GEBAEUDE_SCHRITT else 0
+                if typ and typ not in LAGERARTEN:
+                    f = cache.setdefault((basis + o, l), karte.felder_einer_aenderung(basis + o, l))
+                    if any(".resource" in x[1] for x in f):
+                        letzte["betrieb"] = r.takt
+        elif name in ("DAT_UnitsState", "DAT_GameState"):
+            for o, l in teile:
+                f = cache.setdefault((basis + o, l), karte.felder_einer_aenderung(basis + o, l))
+                felder_je[r.takt].update(x[1] for x in f)
+        if name == "DAT_GameState":
+            best, start, steuer = stand(p)
+            if alt_best is not None and best != alt_best:
+                naehe = set()
+                for t in range(r.takt - fenster, r.takt + 1):
+                    naehe |= felder_je.get(t, set())
+                for w in range(25):
+                    d = best[w] - alt_best[w]
+                    if d and w in WARE_NAMEN:
+                        ursache = _ursache(w, start[w] != alt_start[w], steuer != alt_steuer, r.takt - letzte["befehl"] <= fenster + 40, naehe, r.takt - letzte["betrieb"] <= fenster)
+                        zaehler[WARE_NAMEN[w]][ursache or "ohne Ursache"] += 1
+                        if ursache is None and len(rest) < 200:
+                            rest.append([r.takt, WARE_NAMEN[w], d])
+            alt_best, alt_start, alt_steuer = best, start, steuer
+            for t in [t for t in felder_je if t < r.takt - fenster - 1]:
+                del felder_je[t]
+    gesamt = sum(sum(c.values()) for c in zaehler.values())
+    ohne = sum(c["ohne Ursache"] for c in zaehler.values())
+    daten = {"je_ware": {k: dict(v) for k, v in zaehler.items()}, "ohne_ursache": rest, "aenderungen": gesamt, "anzahl_ohne": ohne}
+    if not gesamt:
+        return Ergebnis("A8", NICHT_GESEHEN, "keine Bestandsaenderung in dieser Aufzeichnung", daten)
+    if ohne:
+        return Ergebnis("A8", WIDERLEGT, f"{ohne} von {gesamt} Bestandsaenderungen ohne Ursache, zuerst {rest[0]}", daten)
+    je_ursache = collections.Counter()
+    for c in zaehler.values():
+        je_ursache.update(c)
+    return Ergebnis("A8", BESTAETIGT, f"alle {gesamt} Bestandsaenderungen fallen mit einer moeglichen Ursache zusammen: {dict(je_ursache)}. Zeitlich zugeordnet, nicht Stueck fuer Stueck", daten)
+
+
+def echte_merker(karte):
+    """Fluechtige Werte fuer A12, soweit das Spiel sie benennt."""
+    aus = []
+    for a, n in karte.labels.items():
+        if n in ("DAT_CurrentUnitSlotID", "DAT_UnitHasBecomeIdle", "DAT_CurrentBuildingID", "DAT_CurrentEntityID"):
+            aus.append((n, a, "<i"))
     return aus
 
 

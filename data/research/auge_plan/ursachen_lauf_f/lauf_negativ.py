@@ -1,0 +1,77 @@
+# -*- coding: utf-8 -*-
+"""Negativlauf Lauf F: Jede ausgeschaltete Pruefung muss die Tests rot machen. Danach steht jede Datei wieder wie vorher."""
+import os, subprocess, sys
+
+L = "src/selfaware/tools/experiments/auge_lauf_f.py"
+A = "src/selfaware/tools/experiments/auge_aufzeichnung.py"
+W = "src/selfaware/tools/analysis/auge_auswertung.py"
+P = "src/selfaware/tools/analysis/auge_punkte.py"
+FAELLE = [
+    ("Anzeige 20 nicht geprueft", L, "if not l.warte_takte(WOCHE, lambda: s.anzeige_burg_korn() == 0):", "if False:"),
+    ("Kalender nicht geprueft", L, "if not l.warte_takte(WOCHE + ABLESEN, lambda: s.kalender() != woche):", "if False:"),
+    ("Waren nicht geprueft", L, "        if not ok:\n            raise Abbruch(f\"Waren kommen", "        if False:\n            raise Abbruch(f\"Waren kommen"),
+    ("Bewohner nicht geprueft", L, "elif t - self.bewohner[1] > KEIN_BEWOHNER:", "elif False:"),
+    ("Beliebtheit nicht geprueft", L, "if not frei and bel < BELIEBTHEIT_UNTEN:", "if False:"),
+    ("Stillstand nicht geprueft", L, "elif jetzt - self.puls[1] > self.stillstand_grenze():", "elif False:"),
+    ("Frist nicht geprueft", L, "if jetzt > self.ende:", "if False:"),
+    ("Handstopp nicht geprueft", L, "if self.stop():", "if False:"),
+    ("Aufzeichnung nicht geprueft", L, "        if grund:\n            raise Abbruch(f\"Aufzeichnung", "        if False:\n            raise Abbruch(f\"Aufzeichnung"),
+    ("Bremse nicht geprueft", L, "raise Abbruch(f\"Das Lesen bremst {wann}: {e.text}\")", "pass"),
+    ("Tempo nicht geprueft", L, "if stufe <= 100 and abs(o1[\"rate\"] - stufe) > max(2.0, 0.2 * stufe):", "if False:"),
+    ("Bau ohne Grenze gilt als gebaut", L, "raise Abbruch(f\"Art {typ} ({g.get('name')}): an den erlaubten Stellen", "return None; raise Abbruch(f\"Art {typ} ({g.get('name')}): an den erlaubten Stellen"),
+    ("Keine Stelle gilt als in Ordnung", L, "raise Abbruch(f\"Art {typ} ({g.get('name')}): keine vom Spiel erlaubte Stelle\")", "return None"),
+    ("Schluss immer gueltig", L, "pruefung[\"gueltig\"] = (not fehlen", "pruefung[\"gueltig\"] = True or (not fehlen"),
+    ("Lauf haelt das Spiel an", L, "        self.k.befehl({\"baue\":", "        self.k.befehl({\"pause\": True}, KANAL)\n        self.k.befehl({\"baue\":"),
+    ("Jahr auf Tempo 40 nicht streng", L, "l.rek.starten(\"jahr40\", TEMPO_JEDER_TAKT, streng=True)", "l.rek.starten(\"jahr40\", TEMPO_JEDER_TAKT, streng=False)"),
+    ("Essen kommt nicht nach", L, "if s.spieler(\"totalFood\") < ESSEN_UNTEN and t >= self.naechstes_essen:", "if False:"),
+    ("Spiel weg bleibt ein roher Fehler", L, "        except OSError as e:  # jedes Lesen", "        except ZeroDivisionError as e:  # jedes Lesen"),
+    ("Streng: fehlender Takt egal", A, "            if self.streng:\n                raise Streng(f\"Takt", "            if False:\n                raise Streng(f\"Takt"),
+    ("Streng: gemischt egal", A, "                    if self.streng:\n                        raise Streng(f\"Bereich", "                    if False:\n                        raise Streng(f\"Bereich"),
+    ("Streng: Schlange egal", A, "            if self.streng:\n                raise Streng(\"Die Warteschlange", "            if False:\n                raise Streng(\"Die Warteschlange"),
+    ("Seltene Bereiche zaehlen streng", A, "                if b.alle == 1:\n", "                if True:\n"),
+    ("Aussetzen zaehlt als fehlend", A, "self.letzter = None  # die ausgesetzten", "pass  # die ausgesetzten"),
+    ("Feldwache zaehlt ungelistete", A, "if f not in self.gesehen and self.karte.bekannt(*f):", "if f not in self.gesehen:"),
+    ("Stufe ohne Takte gilt als gemessen", W, "    if nicht_gemessen:\n", "    if False:\n"),
+    ("A3 selten zaehlt streng", W, "            if alle == 1:\n                unrein += 1", "            if True:\n                unrein += 1"),
+    ("A8 ohne Ursache verschwiegen", W, "    if ohne:\n        return Ergebnis(\"A8\", WIDERLEGT", "    if False:\n        return Ergebnis(\"A8\", WIDERLEGT"),
+    ("A10 nur volle Rahmen", W, "                        plaetze.update(range(max(0, (badr + o - adr) // schritt), min(anzahl - 1, (badr + o + l - 1 - adr) // schritt) + 1))", "                        pass"),
+    ("Punkte: gekappte Liste weicht ab", P, "if not any(b[\"mehr_werte\"] for b in belege):", "if True:"),
+    ("Punkte: ruhendes Feld zaehlt nicht", P, "if any(zahl in b[\"werte\"] for b in belege):", "if any(zahl in b[\"werte\"] for b in geaendert):"),
+    ("Bewohner: auch ohne offene Plaetze", L, " or offene_plaetze(self) == 0:", ":"),
+    ("Bewohner: auch nach den Bauern", L, "    l.bewohner_wache = False  # ob am Ende", "    pass  # ob am Ende"),
+    ("Bewohner: Schalter ohne Wirkung", L, "if not self.bewohner_wache or self.bewohner is None", "if self.bewohner is None"),
+    ("Gold ohne Ablesefrist", L, "if not l.warte_takte(ABLESEN, lambda: s.waren()[15] == GOLD):", "if s.waren()[15] != GOLD:"),
+    ("Gold nicht geprueft", L, "if not l.warte_takte(ABLESEN, lambda: s.waren()[15] == GOLD):", "if False:"),
+    ("A10: Merkplatz zaehlt mit", W, "                if i < erster:\n                    continue\n", ""),
+    ("A10: Einheiten ab Platz 0", W, "\"units[].uid\", 1)", "\"units[].uid\", 0)"),
+    ("A8: Gold kommt von Arbeitern", W, "if ware != 15 and (betrieb or", "if (betrieb or"),
+    ("A8: Steuer nicht erkannt", W, "if ware == 15 and steuer_aenderung:", "if False:"),
+    ("A8: Steuer auch fuer Waren", W, "if ware == 15 and steuer_aenderung:", "if steuer_aenderung:"),
+    ("los: Aufzeichnung vor dem Anhalten", L, "        steht = False\n        if k is not None and s is not None:", "        if rek is not None:\n            rek.beenden()\n        steht = False\n        if k is not None and s is not None:"),
+    ("los: Sperre frei, obwohl der Takt laeuft", L, "        if steht:\n            sperre_freigeben()\n        else:", "        if True:\n            sperre_freigeben()\n        else:"),
+    ("los: alte Schalter bleiben", L, "ALTE_SCHALTER = ({\"tickpause\": \"aus\"}, {\"ladepause\": \"aus\"})", "ALTE_SCHALTER = ()"),
+    ("los: alte Logzeile gilt", L, "                    f.seek(log_vorher)\n", "                    f.seek(0)\n"),
+    ("Menue: kein Warten auf den Wechsel", L, "warte_auf(lambda: k.peek(ANSICHT)[0] == HAUPTMENUE, 10, \"Hauptmenue (Ansicht 41)\", ruhe=ruhe)", "pass"),
+]
+env = dict(os.environ, PYTHONPATH="src", PYTHONIOENCODING="utf-8")
+schlecht = 0
+for name, pfad, alt, neu in FAELLE:
+    roh = open(pfad, "rb").read()
+    text = roh.decode("utf-8")
+    nl = "\r\n" if "\r\n" in text else "\n"
+    a, n = alt.replace("\n", nl), neu.replace("\n", nl)
+    if text.count(a) != 1:
+        print("NICHT GEFUNDEN", name, text.count(a))
+        schlecht += 1
+        continue
+    try:
+        open(pfad, "wb").write(text.replace(a, n).encode("utf-8"))
+        r = subprocess.run([sys.executable, "-m", "pytest", "tests/test_auge_lauf_f.py", "tests/test_auge_werkzeug.py", "-q", "--no-header", "-x", "--tb=no"], capture_output=True, text=True, env=env, encoding="utf-8", errors="replace", timeout=300)
+        rot = r.returncode != 0
+        zeile = [z for z in r.stdout.splitlines() if z.startswith("FAILED")][:1]
+        print(("ROT  " if rot else "GRUEN"), name, "|", (zeile[0][7:100] if zeile else ""), flush=True)
+        schlecht += 0 if rot else 1
+    finally:
+        open(pfad, "wb").write(roh)
+print("Sabotage nicht bemerkt:", schlecht, "von", len(FAELLE))
+sys.exit(1 if schlecht else 0)

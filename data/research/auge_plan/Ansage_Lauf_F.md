@@ -1,53 +1,86 @@
 # Ansage Lauf F
 
-Erstellt 02.11.2026 von SRE (B-142). Der Lauf ist noch nicht gestartet, er braucht Daniels Ja.
+Erstellt 02.11.2026 von SRE (B-142), neu nach dem gescheiterten Lauf vom selben Tag. Stand 21:00. Der Lauf ist noch nicht gestartet, er braucht Daniels Ja.
+
+Plan und Gründe: `docs/plans/Plan_Lauf_F_neu.md`. Warum der alte Lauf scheiterte: `ursachen_lauf_f/Ursachen_Lauf_F.md`.
 
 ## Was wird getestet
 
-Das Auge, nicht das Spiel und nicht SamurAI: Liest die Aufzeichnung lückenlos mit, und stimmen unser Wissen und die Feldliste für alles Friedliche?
+Das Auge, nicht das Spiel und nicht SamurAI: Sieht es alles, was im friedlichen Spiel passiert, ohne das Spiel zu bremsen?
 
 ## Was ich erhoffe, und was es widerlegt
 
 | Probe | Erhofft | Widerlegt, wenn |
 |---|---|---|
-| A1 | Jede Änderung liegt in einem Feld der Liste | Ein Byte eines Spielbereichs ändert sich außerhalb. Das erwarte ich sogar: Die Liste kennt Zeigerzugriffe nur teilweise, jede Lücke ist ein Gewinn |
-| A3 | Kein Takt fehlt, kein Schnappschuss ist gemischt | Ein Takt fehlt oder ein Rahmen ist gemischt |
-| A4 | Auf den Stufen 1 bis 1000 zieht das Lesen kein Tempo ab (Daniels Vorgabe, keine Prozentgrenze) | Mit Lesen weniger Takte als ohne Lesen, über das Messrauschen hinaus. Auf hohen Stufen darf das Lesen Takte auslassen, das Tempo geht vor |
+| A1 | Jede Änderung liegt in einem Feld der Liste | Ein Byte ändert sich außerhalb. Das erwarte ich: Die Jahresprobe fand schon 539 Felder außerhalb, jedes ist ein Gewinn für die Feldliste |
+| A3 | Auf Tempo 40 fehlt kein Takt, kein jeden Takt gelesener Bereich ist gemischt | Ein Takt fehlt oder ein Rahmen ist gemischt. Das beendet den Lauf sofort |
+| A4 | Auf den Stufen 1 bis 1000 zieht das Lesen kein Tempo ab | Mit Lesen weniger Takte als ohne, über das Messrauschen hinaus. Eine Stufe mit zu wenig Takten heißt "nicht gemessen", nicht bestätigt |
 | A7 | Jede gezogene Zufallszahl steht in der Tabelle | Eine Zahl passt nicht |
-| A10 | Keine `uid` doppelt, Monat 0 bis 11, Geschossplätze unter 25 mit `uid` 0 | Ein Wert liegt außerhalb. Die Monatsgrenze ist heute am Code berichtigt worden, hier zeigt sich zum ersten Mal, ob das stimmt |
-| A13 | Spielart im Burgenbau: `gameMode_2` = 2 | Ein anderer Wert. Dann muss die Spielart-Marke neu bewertet werden |
-| Einzelpunkte | Aus der Aufzeichnung lassen sich die 84 Tabellenpunkte und möglichst viele der 157 Punkte aus Lauf F später auswerten | Punkte bleiben „nicht gesehen“, das ist die Restliste |
+| A8 | Jede Änderung von Gold und Waren fällt mit einer möglichen Ursache zusammen | Rest ohne Ursache. **Grenze:** zeitlich zugeordnet, nicht Stück für Stück. "Arbeiter" heißt nur, dass ein Betrieb im selben Fenster seine Ware änderte |
+| A10 | Keine `uid` auf zwei echten Plätzen, Monat 0 bis 11 | Ein Wert liegt außerhalb. Einheiten-Platz 0 zählt nicht: Dort kopiert das Spiel die Einheit vor der Wegsuche hin (belegt im Code und in der Probe) |
+| Einzelpunkte | Jeder der 241 Punkte bekommt einen Beleg | Punkte bleiben "nicht gesehen" und gehen an Lauf K oder S. **Grenze:** Das Werkzeug sagt nur "Zahl passt" oder "Zahl weicht ab". Bestätigt oder widerlegt schreibe erst ich, wenn ich die Belege gelesen habe |
 
 ## Wie getestet wird
 
-- **Wo:** Instanz 2, frei laut Sperre, Karte `A Mighty Oasis.map`. Instanz 5 bleibt unberührt, das Werkzeug lehnt sie ab.
-- **Änderung an Instanz 2:** Ihre `logik.lua` vom 05.10. kennt die nötigen Knöpfe nicht. Sie bekommt die Fassung von Instanz 4 plus einen neuen Knopf für den Kartenstart. Instanz 5 nutzt ein anderes Modul mit Übernahme-Logik und taugt nicht als Vorlage. Außerdem kommt das Modul `villagestudio` zurück in die Ladeliste von `ucp-config.yml`, die Startreparatur vom 24.10. hatte es entfernt. Beide alten Dateien bleiben mit Datum daneben liegen, das ist der Rückweg.
-- **Ablauf:** Spiel starten ohne Maus, Burgenbau, Karte wählen, Aufzeichnung an. Dann Waren setzen, Bergfried, jedes Gebäude einmal, 6.000 Takte Warenketten, Handeln auch bei vollem Lager, alle Steuer- und Rationsstufen, Mauer und Graben, jede Einheit anwerben, 5 Gebäude abreißen, zwei Jahreswechsel.
-- **Tempo und Zeit:** Spieltempo 1000, dort erreicht das Spiel etwa 825 Takte je Sekunde. Das Programm hat höchstens 15 Minuten, die Bauphase davon höchstens 5, die Treppe danach höchstens 4. Kommen 30 s lang keine neuen Takte, ist das Spiel weg oder die Aufzeichnung tot, endet der Lauf sofort und wertet aus, was da ist.
-- **Messgrößen:** alle Hauptstrukturen jeden Takt (9,0 MB), Kartenebenen alle 25 Takte, der ganze Datenblock (31,9 MB) alle 250 Takte.
-- **Tempotreppe:** vor dem Programm im leeren und danach im bebauten Spiel je 7 Stufen, je Stufe ohne Lesen, mit Lesen, ohne Lesen; je Messung 20 s auf Stufe 1, 10 s auf Stufe 10, sonst 5 s. Sie zeigt auch, bis zu welchem Tempo jeder Takt lesbar ist.
-- **Abbruch:** Frist um, 30 s Stillstand, Spiel oder Aufzeichnung weg. Ausgelassene Takte beenden den Lauf auf Tempo 1000 nicht. Dieselbe Wache läuft vor jedem Abschnitt. Scheitert nur ein Abschnitt, wird er notiert und der Lauf geht weiter.
+- **Wo:** Instanz 2, Karte `A Mighty Oasis.map`. Instanz 5 lehnt das Werkzeug ab.
+- **Tempo und Dauer:** Stufe 1000 (gemessen 825 Takte je Sekunde): Abschnitte bis zu den Warenketten höchstens rund 50.000 Takte, also rund 60 Sekunden. Dann ein Jahr auf Tempo 40: 9.600 Takte, gemessen 242 Sekunden. Dann die Tempotreppe: gerechnet 220 Sekunden. **Ziel rund 9 Minuten, harte Grenze 10 Minuten.**
+- **Das Programm hält das Spiel nie an**, auch nicht für den Bauplan.
+- **Abschnitte, Grenzen und Abbruchgründe:** siehe Plan.
 
-**Das Programm hält das Spiel nicht an.** Daniels Vorgabe vom 02.11.2026: Auch beim Bauen läuft das Spiel im vollen Tempo. Das Protokoll nennt je Abschnitt die erreichten Takte je Sekunde.
+## Trockenlauf: was schon gemessen ist (02.11.2026 20:51 bis 20:55, Instanz 2, Spielstand "Anzeigebug repariert", ohne Bauen)
 
-**Was vermutlich beim ersten Mal hakt:** Das Bauprogramm kennt die Karte nicht, es probiert Stellen in Ringen um den Bergfried. Bauernhöfe, Mine, Steinbruch und Pechgrube brauchen besonderen Boden und bleiben deshalb vielleicht ungesetzt. Der Lauf schreibt auf, was fehlt, das wird danach gezielt nachgeholt. Die Knopf-Nummer für den Kartenstart stammt aus dem Code und ist im Spiel noch nie gedrückt worden.
+| Probe | Ergebnis |
+|---|---|
+| Strenge Aufzeichnung auf Tempo 40, ein ganzes Jahr | 9.607 Lesungen, 0 fehlend, 0 gemischt, Warteschlange nie voll, 61 MB, 242 s. Gemischt nur im selten gelesenen Datenblock (6 Mal), der zählt nicht als Fehler |
+| Anhalten am Ende | Takt steht, nachgelesen |
+| Bauplan am Spielstand | 59 Arten mit Stelle in 3,5 s, ohne Stelle: 6 (Pechgrube, kein Boden), 10, 11, 19 (nur neben Vorhandenem, in diesem Stand erwartet) |
+| Auswertung der Jahresprobe | A3 und A7 bestätigt, A8 bestätigt im genannten Umfang (12 Steuerbuchungen in 12 Monaten, 2 Essen), A10 bestätigt, A1 widerlegt (539 Felder fehlen in der Liste) |
+| Programm gegen ein künstliches Spiel | Ganzer Lauf und jeder Abbruchgrund, Tests grün, jede ausgeschaltete Prüfung macht sie rot (`ursachen_lauf_f/lauf_negativ.py`) |
+
+Die Probe lief in einem kleinen Dorf mit 89 belegten Einheitenplätzen. Das volle Dorf im Lauf kann mehr Daten je Takt ändern, das misst erst der Lauf.
+
+## Was vermutlich beim ersten Mal hakt
+
+Das sind die ungeprüften Stellen.
+
+**Beendet den Lauf, wenn es nicht klappt:**
+
+1. Der Weg aus der angehaltenen Partie ins Hauptmenü. Gemessen ist `{"menue": 41}` vom Ende-Bildschirm und aus einem laufenden Gefecht, nicht aus einer angehaltenen Partie. Scheitert es, endet der Lauf nach Sekunden, ohne Schaden.
+2. Startwaren für alle Waren zugleich. Einzeln gemessen ist nur Stein, "1 Stück je 4 Takte über alle Lagerwaren" ist aus dem Code abgelesen.
+3. 6 Hütten geben 58 Wohnplätze. Gemessen ist nur die erste Hütte.
+4. Das volle Dorf auf Tempo 40: Ein einzelner fehlender Takt beendet den Lauf. Das ist so gewollt und wird dann erklärt.
+5. Die Frist: Die Rechnung lässt rund eine Minute Luft.
+6. Die Beliebtheit: Unter 50 außerhalb des Steuertests beendet den Lauf. Gerechnet mit der Liga-Tabelle und den Wochenposten aus dem Spielstand fällt sie im Steuertest von 100 auf rund 71 und steigt danach wieder (Wochenbilanz rund +100 bei vier Essenssorten). Gemessen ist das nicht. Essen reicht laut Messung vom 11.10. (0,19 je Kopf und 1.000 Takte, 58 Leute also rund 11), die Nachlieferung kann 125 je 1.000 Takte.
+
+**Wird nur ein Fund, der Lauf geht weiter:** Tor auf und zu (Befehl 45), Arbeit ruhen lassen (Befehl 43), Anwerben aller Arten in einem Takt, Mauer und Graben an der neuen Stelle, Aussetzen der Aufzeichnung in der Bremsprobe.
+
+## Was der Lauf nicht zeigen kann
+
+Kampf und KI-Verhalten. Die Pechgrube, weil diese Karte 0 von 78.804 Feldern mit Pechvorkommen hat. Die 77 Punkte mit Marke [Spielart] brauchen die Gegenprobe in Lauf K.
+
+## Danach
+
+- **Scheitert er:** Spiel anhalten, nachlesen, dass der Takt steht, Aufzeichnung beenden, Sperre frei. Warum-Kette aus der Aufzeichnung, beheben, testen, committen, berichten. Neuer Lauf nur nach Daniels Ja.
+- **Gelingt er:** `lauf_f_<stempel>_Ergebnis.md` entsteht von selbst. Die Auswertung dauert: 61 MB brauchten 2 Minuten, die Hauptaufzeichnung wird deutlich größer. Danach lese ich die Belege der Einzelpunkte, trage Widerlegtes ins Funktionswissen und Lücken in die Feldliste ein, "nicht gesehen" geht an Lauf K oder S. Dann schlage ich Lauf K vor.
 
 ## Nutzen fürs aktuelle Ziel
 
-Es entscheidet, ob die Aufzeichnung so bleiben kann, wie viel Lesen das Spiel verträgt und welche Felder der Liste noch fehlen. Danach kommen Lauf K und Lauf S.
+Es entscheidet, ob die Aufzeichnung so bleiben kann und welche Felder noch fehlen. Danach kommen Lauf K und Lauf S.
 
 ## Nutzen fürs große Ziel in 3 Jahren
 
-SamurAI soll in jedem Takt alles wissen, was es wissen darf, und selbst lernen. Das geht nur auf einem Auge, dessen Vollständigkeit gemessen ist. Die Aufzeichnungen sind zugleich der Maßstab für einen späteren Rechner, der den Verlauf vorausberechnet.
+SamurAI soll in jedem Takt alles wissen, was es wissen darf, und selbst lernen. Das geht nur auf einem Auge, dessen Vollständigkeit gemessen ist.
 
-## Befehl
+## Befehle
 
 ```bash
-PYTHONPATH=src python -m selfaware.tools.experiments.auge_lauf_f los --instanz 2 --daniel-ja
+PYTHONPATH=src python -m selfaware.tools.experiments.auge_lauf_f pruefen --instanz 2 --laeuft-schon
 ```
 
-Trockenprobe, die nichts startet und nichts ändert:
+```bash
+PYTHONPATH=src python -m selfaware.tools.experiments.auge_lauf_f los --instanz 2 --daniel-ja --laeuft-schon
+```
 
 ```bash
-PYTHONPATH=src python -m selfaware.tools.experiments.auge_lauf_f pruefen --instanz 2
+PYTHONPATH=src python -m selfaware.tools.experiments.auge_lauf_f stop --instanz 2
 ```

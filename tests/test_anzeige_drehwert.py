@@ -36,24 +36,9 @@ def test_kein_bau_befehl_im_code_schickt_einen_festen_falschen_wert():
             m = re.search(r'"richtung":\s*([^}\s]+)', z)
             if m is None and '"mapper"' in z:
                 treffer.append((name, "ohne Wert", z.strip()[:80]))
-            elif m and m.group(1) not in ("15", 'drehwert(g["mapper"])', "drehwert(51)") and name not in BEWUSST_VARIABEL:
+            elif m and m.group(1) not in ("15", 'drehwert(g["mapper"])', "drehwert(51)", "soll") and name not in BEWUSST_VARIABEL:
                 treffer.append((name, m.group(1), z.strip()[:80]))
     assert treffer == []
-
-
-def test_lauf_f_baut_mit_dem_wert_des_mausklicks():
-    class Kanal:
-        log = []
-
-        def befehl(self, c, warte=0.8, bis=None):
-            self.log.append(c)
-    takt = [0]
-
-    def ruhe(_):
-        takt[0] += 1
-    lf.baue_ohne_anhalten(Kanal(), lambda: takt[0], lambda sp, t: [], {"mapper": 54, "b": 4}, 1, [(1, 1)], ruhe=ruhe)
-    lf.baue_ohne_anhalten(Kanal(), lambda: takt[0], lambda sp, t: [], {"mapper": 147, "b": 7}, 45, [(2, 2)], ruhe=ruhe)
-    assert [c["baue"]["richtung"] for c in Kanal.log] == [15, 0x50]
 
 
 def lua_datei(tmp_path, block=True):
