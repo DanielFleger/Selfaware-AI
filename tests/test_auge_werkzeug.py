@@ -165,6 +165,14 @@ def test_a3_gut_fehlender_takt_und_gemischter_rahmen(tmp_path):
     assert e.status == aw.WIDERLEGT and e.daten["unreine_rahmen"] > 0
 
 
+def test_a3_auf_hohem_tempo_ist_ausgelassen_nur_gemessen(tmp_path):
+    def spring(s, i):
+        s.weiter()
+    e = aw.a3_takttreue(aufzeichnen(tmp_path / "h.auge", stoerung=spring, kopf={"tempo": 1000}))
+    assert e.status == aw.GEMESSEN and e.daten["fehlende_takte"] > 0
+    assert aw.a3_takttreue(aufzeichnen(tmp_path / "n.auge", stoerung=spring, kopf={"tempo": 40})).status == aw.WIDERLEGT
+
+
 def test_a3_erkennt_abgeschnittene_und_verfaelschte_datei(tmp_path):
     a = aufzeichnen(tmp_path / "g.auge")
     roh = (tmp_path / "g.auge").read_bytes()

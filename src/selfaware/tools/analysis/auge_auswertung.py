@@ -177,6 +177,9 @@ def a3_takttreue(auf):
     daten = {"rahmen": n, "spanne": max((letzter[b] - erster[b] for b in letzter), default=0), "fehlende_takte": fehlend, "unreine_rahmen": unrein, "rueckspruenge": zurueck, "luecken": luecken[:50], "beschaedigt": auf.beschaedigt}
     if not n:
         return Ergebnis("A3", NICHT_GESEHEN, "keine Rahmen", daten)
+    tempo = auf.kopf.get("tempo") or 0
+    if tempo > 100 and not auf.beschaedigt:
+        return Ergebnis("A3", GEMESSEN, f"Auf Tempo {tempo} geht das Tempo vor: {fehlend} Takte ausgelassen, {unrein} Rahmen gemischt. Wie viele Takte je Stufe lesbar sind, zeigt die Tempotreppe", daten)
     if fehlend or unrein or auf.beschaedigt:
         return Ergebnis("A3", WIDERLEGT, f"{fehlend} Takte fehlen, {unrein} Rahmen sind gemischt, {auf.beschaedigt} Stellen beschaedigt", daten)
     return Ergebnis("A3", BESTAETIGT, f"kein Takt fehlt und kein Rahmen ist gemischt in dieser Aufzeichnung ({n} Rahmen)", daten)

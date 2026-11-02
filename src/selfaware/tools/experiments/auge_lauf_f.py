@@ -36,11 +36,23 @@ NEU = "SingleplayerMapChoice_ButtonsAndHands = 0x0042D640,"
 FRUEH_TAKTE = 200  # nach so vielen Takten zum ersten Mal auf fehlende Takte pruefen
 ABBRUCH_ANTEIL = 0.05  # selbst gesetzt: Einzelne fehlende Takte stehen nur in A3, erst darueber taugt die Aufzeichnung nicht
 STUFEN = (1, 10, 40, 100, 200, 500, 1000)  # Daniel 02.11.2026: auf Tempo 1 bis 1000 kein Abzug vom normalen Tempo
-TREPPE_SEKUNDEN = 20
+FRIST = 900  # Daniel 02.11.2026: kein Lauf ohne Zielzeit. Das Programm endet spaetestens hier, die Treppe danach hat 4 Minuten
+STILLSTAND = 30  # so viele Sekunden ohne neuen Takt heissen: Das Spiel steht oder ist abgestuerzt
+BAUEN_SEKUNDEN = 300
+TEMPO_LAUF = 1000  # kein Grund fuer weniger: Der Aenderungsmelder sieht auch ueber ausgelassene Takte, jeden Takt misst die Treppe
 
 
 class Fehler(RuntimeError):
     pass
+
+
+class Abbruch(Exception):
+    """Beendet den ganzen Lauf, nicht nur eine Phase: Frist um, Spiel steht, Aufzeichnung tot."""
+
+
+def sekunden_je_stufe(s):
+    """Niedrige Stufen brauchen laenger, sonst zaehlt die Messung zu wenige Takte; ab Stufe 40 reichen 5 s (200 Takte und mehr)."""
+    return 20 if s < 10 else 10 if s < 40 else 5
 
 
 def ordner(n):
@@ -235,15 +247,19 @@ def phase_burg(k, w, lage):
 
 
 def phase_bauen(k, w, lage):
-    gesetzt, fehl = [], []
+    gesetzt, fehl, offen = [], [], []
+    ende = time.perf_counter() + BAUEN_SEKUNDEN
     for typ in sorted(set(w.NACH_TYP) - set(BURGEN)):
-        e = w.baue_irgendwo(typ, kandidaten(lage["mitte"]))
+        if time.perf_counter() >= ende:
+            offen.append(typ)
+            continue
+        e = w.baue_irgendwo(typ, kandidaten(lage["mitte"], hoechstens=12))
         if e:
             gesetzt.append([typ, e[0]])
             lage.setdefault("gebaut", {})[typ] = e[0]
         else:
             fehl.append(typ)
-    return {"gesetzt": len(gesetzt), "nicht_gesetzt": fehl}
+    return {"gesetzt": len(gesetzt), "nicht_gesetzt": fehl, "nicht_versucht": offen}
 
 
 def phase_warenketten(k, w, lage):
@@ -322,6 +338,8 @@ def programm(k, w, protokoll, phasen=PHASEN, wache=None, uhr=time.perf_counter):
         t0, s0 = w.takt(), uhr()
         try:
             eintrag = {"phase": name, "ok": True, "daten": f(k, w, lage)}
+        except Abbruch:
+            raise
         except Fehler as e:
             eintrag = {"phase": name, "ok": False, "fehler": str(e)}
         except Exception as e:  # noqa: BLE001  eine kaputte Phase darf die Aufzeichnung nicht beenden
@@ -352,24 +370,25 @@ def tempo_setzen(k, s):
     k.befehl({"tempo": s}, 0.5)
 
 
-def tempotreppe(k, takt, lese_runde, stufen=STUFEN, sekunden=TREPPE_SEKUNDEN, ruhe=time.sleep, uhr=time.perf_counter):
+def tempotreppe(k, takt, lese_runde, stufen=STUFEN, sekunden=None, ruhe=time.sleep, uhr=time.perf_counter):
     """Je Tempostufe Takte/s ohne Lesen, mit Lesen, wieder ohne Lesen. Die Haupt-Aufzeichnung darf dabei nicht laufen."""
-    def zaehle():
+    def zaehle(d):
         a, t0 = takt(), uhr()
-        ruhe(sekunden)
+        ruhe(d)
         return (takt() - a) / (uhr() - t0)
 
     zeilen = []
     for s in stufen:
+        d = sekunden or sekunden_je_stufe(s)
         tempo_setzen(k, s)
         ruhe(2)
-        ohne_1 = zaehle()
+        ohne_1 = zaehle(d)
         # bis 100 ist die Bildrate keine Grenze: Stimmt das Tempo nicht, misst die Stufe etwas anderes (Lauf F 18:16: ueberall 200)
         if s <= 100 and abs(ohne_1 - s) > max(2.0, 0.2 * s):
             raise Fehler(f"Tempo {s} wirkt nicht: {ohne_1:.1f} Takte/s gemessen")
-        r = lese_runde(sekunden, s)
-        ohne_2 = zaehle()
-        zeilen.append({"tempo": s, "sekunden": sekunden, "ohne_1": ohne_1, "mit": r["takte_je_s"], "ohne_2": ohne_2, "gelesen": r["gelesen"], "gesamt": r["gesamt"]})
+        r = lese_runde(d, s)
+        ohne_2 = zaehle(d)
+        zeilen.append({"tempo": s, "sekunden": d, "ohne_1": ohne_1, "mit": r["takte_je_s"], "ohne_2": ohne_2, "gelesen": r["gelesen"], "gesamt": r["gesamt"]})
     return zeilen
 
 
@@ -459,9 +478,10 @@ class EchterKanal:
 
 
 class EchtesWerkzeug:
-    def __init__(self, k, jahr_adresse):
+    def __init__(self, k, jahr_adresse, wach=None):
         from selfaware.game.ucp import bauen
         self._k, self._bauen, self._jahr = k, bauen, jahr_adresse
+        self._wach = wach or (lambda: None)
         self.NACH_TYP = bauen.NACH_TYP
         self.gebaeude_von, self.werbe = bauen.gebaeude_von, bauen.werbe
 
@@ -473,17 +493,23 @@ class EchtesWerkzeug:
 
     def laufe_bis(self, ziel, sekunden=1800):
         self._k.befehl({"pause": False}, 0.3)
-        warte_auf(lambda: self.takt() >= ziel, sekunden, f"Takt {ziel}", schlaf=1.0)
+        def da():
+            self._wach()
+            return self.takt() >= ziel
+        warte_auf(da, sekunden, f"Takt {ziel}", schlaf=0.5)
         return self.takt()
 
     def laufe_bis_jahre(self, jahre, sekunden=3600):
         a = self._k.peek(self._jahr)[0]
         self._k.befehl({"pause": False}, 0.3)
-        warte_auf(lambda: self._k.peek(self._jahr)[0] >= a + jahre, sekunden, f"{jahre} Jahreswechsel", schlaf=2.0)
+        def da():
+            self._wach()
+            return self._k.peek(self._jahr)[0] >= a + jahre
+        warte_auf(da, sekunden, f"{jahre} Jahreswechsel", schlaf=1.0)
         return self.takt()
 
 
-def los(n, tempo=40, ziel=None, laeuft_schon=False, leertreppe=True):
+def los(n, tempo=TEMPO_LAUF, ziel=None, laeuft_schon=False, leertreppe=True, frist=FRIST):
     pruefe_laufinstanz(n)
     os.environ["SHC_INSTANZ"] = str(n)
     from selfaware import workspace
@@ -539,24 +565,42 @@ def los(n, tempo=40, ziel=None, laeuft_schon=False, leertreppe=True):
         if leertreppe:
             treppe("leer")
         tempo_setzen(k, tempo)
-        aufzeichner = subprocess.Popen([sys.executable, "-m", "selfaware.tools.experiments.auge_aufzeichnung", "--instanz", str(n), "--ausgabe", aufz, "--lauf", "F", "--stop-datei", stop], env=dict(os.environ))
-        w = EchtesWerkzeug(k, karte.adresse(*JAHR_ADRESSE_FELD)[0])
+        aufzeichner = subprocess.Popen([sys.executable, "-m", "selfaware.tools.experiments.auge_aufzeichnung", "--instanz", str(n), "--ausgabe", aufz, "--lauf", "F", "--stop-datei", stop, "--tempo-sekunden", "3", "--tempo-wert", str(tempo)], env=dict(os.environ))
+        ende = time.time() + frist
+        puls = {"takt": takt_roh(), "zeit": time.time()}
+
+        def wach():
+            """Vor jedem Abschnitt und in jedem Warten: Frist, Aufzeichnung, Spiel laeuft weiter."""
+            if time.time() > ende:
+                raise Abbruch(f"Frist von {frist} s ist um")
+            if aufzeichner.poll() is not None:
+                raise Abbruch("Aufzeichnung ist beendet")
+            if pid_der_instanz(n) is None:
+                raise Abbruch("Spiel laeuft nicht mehr")
+            t = takt_roh()
+            if t != puls["takt"]:
+                puls.update(takt=t, zeit=time.time())
+            elif time.time() - puls["zeit"] > STILLSTAND:
+                raise Abbruch(f"seit {STILLSTAND} s kein neuer Takt (Takt {t})")
+        w = EchtesWerkzeug(k, karte.adresse(*JAHR_ADRESSE_FELD)[0], wach)
         warte_auf(lambda: os.path.exists(aufz) and os.path.getsize(aufz) > 1000, 60, "Aufzeichnung laeuft")
-        t0 = w.takt()
-        warte_auf(lambda: w.takt() >= t0 + FRUEH_TAKTE, 300, f"{FRUEH_TAKTE} Takte", schlaf=0.5)
+        w.laufe_bis(w.takt() + FRUEH_TAKTE, 60)
 
         def wache():
-            if aufzeichner.poll() is not None:
-                raise Fehler("Aufzeichnung ist beendet")
+            wach()
             ok, text = fruehprobe(aufz)
             schreib({"schritt": "wache", "ok": ok, "text": text})
-            if not ok:
-                raise Fehler(f"Abbruch: {text}")
+            if not ok and tempo <= 100:  # darueber darf das Lesen Takte auslassen, das Tempo geht vor
+                raise Abbruch(text)
         wache()
-        programm(k, w, schreib, wache=wache)
+        try:
+            programm(k, w, schreib, wache=wache)
+        except Abbruch as e:
+            schreib({"schritt": "abbruch", "grund": str(e)})
         open(stop, "w").close()
         aufzeichner.wait(120)
-        treppe("voll")  # zweite Messung im bebauten Spiel; die Haupt-Aufzeichnung ist jetzt aus
+        if pid_der_instanz(n):
+            treppe("voll")  # zweite Messung im bebauten Spiel; die Haupt-Aufzeichnung ist jetzt aus
     finally:
         open(stop, "w").close()
         if aufzeichner:
@@ -573,7 +617,8 @@ def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("was", choices=["pruefen", "los"])
     p.add_argument("--instanz", type=int, required=True)
-    p.add_argument("--tempo", type=int, default=40)
+    p.add_argument("--tempo", type=int, default=TEMPO_LAUF)
+    p.add_argument("--frist", type=int, default=FRIST, help="Sekunden fuer das Programm; danach Abbruch mit dem, was da ist")
     p.add_argument("--daniel-ja", action="store_true", help="Lauf nur nach Daniels Ja")
     p.add_argument("--laeuft-schon", action="store_true", help="Die Instanz laeuft schon, nicht neu starten")
     p.add_argument("--ohne-leertreppe", action="store_true", help="Tempotreppe im leeren Spiel auslassen, sie ist schon gemessen")
@@ -586,7 +631,7 @@ def main(argv=None):
         return 0 if all(z[1] for z in aus) else 1
     if not a.daniel_ja:
         raise Fehler("Lauf F startet nur mit --daniel-ja")
-    print("Aufzeichnung:", los(a.instanz, a.tempo, laeuft_schon=a.laeuft_schon, leertreppe=not a.ohne_leertreppe))
+    print("Aufzeichnung:", los(a.instanz, a.tempo, laeuft_schon=a.laeuft_schon, leertreppe=not a.ohne_leertreppe, frist=a.frist))
     return 0
 
 

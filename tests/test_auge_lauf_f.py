@@ -301,6 +301,26 @@ def test_bauen_haelt_das_spiel_nie_an():
     assert not any("pause" in c or "tickpause" in c for c in k.log)
 
 
+def test_abbruch_beendet_den_ganzen_lauf_auch_aus_einer_phase():
+    def stirbt(k, w, lage):
+        raise lf.Abbruch("seit 30 s kein neuer Takt")
+    weiter = []
+    with pytest.raises(lf.Abbruch):
+        lf.programm(Kanal(), Werkzeug(), lambda x: None, phasen=[("a", stirbt), ("b", lambda k, w, l: weiter.append(1))])
+    assert not weiter
+
+
+def test_bauen_haelt_sein_zeitbudget_ein_und_nennt_den_rest(monkeypatch):
+    monkeypatch.setattr(lf, "BAUEN_SEKUNDEN", 0)
+    d = lf.phase_bauen(Kanal(), Werkzeug(), {"mitte": (200, 200)})
+    assert d["gesetzt"] == 0 and d["nicht_versucht"] == [8, 9, 10, 26]
+
+
+def test_treppe_misst_niedrige_stufen_laenger():
+    assert lf.sekunden_je_stufe(1) == 20 and lf.sekunden_je_stufe(10) == 10 and lf.sekunden_je_stufe(1000) == 5
+    assert lf.TEMPO_LAUF == 1000 and lf.FRIST > 0
+
+
 def test_programm_nennt_das_tempo_jeder_phase():
     uhr = iter(float(i) for i in range(1000))
     w = Werkzeug()

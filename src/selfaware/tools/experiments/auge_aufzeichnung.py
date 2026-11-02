@@ -253,6 +253,7 @@ def main(argv=None):
     p.add_argument("--pid", type=int)
     p.add_argument("--instanz", type=int, help="statt --pid: Nummer der Spielinstanz")
     p.add_argument("--stop-datei", help="die Aufzeichnung endet, sobald diese Datei da ist")
+    p.add_argument("--tempo-wert", type=int, help="eingestelltes Spieltempo, fuer die Auswertung")
     p.add_argument("--ausgabe", required=True)
     p.add_argument("--lauf", default="-", help="F, K oder S")
     p.add_argument("--takte", type=int)
@@ -267,7 +268,7 @@ def main(argv=None):
         p.error("Prozess nicht gefunden (--pid oder --instanz)")
     quelle = ProzessQuelle(pid)
     karte = Feldkarte.laden(feldliste=FELDLISTE)
-    kopf = {"lauf": a.lauf, "programm": quelle.pfad, "spielart": spielart_lesen(quelle, karte), "tempo_ohne_lesen": tempo_ohne_lesen(quelle, a.tempo_sekunden)}
+    kopf = {"tempo": a.tempo_wert, "lauf": a.lauf, "programm": quelle.pfad, "spielart": spielart_lesen(quelle, karte), "tempo_ohne_lesen": tempo_ohne_lesen(quelle, a.tempo_sekunden)}
     auf = Aufzeichner(quelle, standard_bereiche(karte, a.datenblock_alle, a.karte_alle), a.ausgabe, kopf, voll_bei=a.voll_bei)
     try:
         n = auf.lauf(takte=a.takte, sekunden=a.sekunden, stop=(lambda: os.path.exists(a.stop_datei)) if a.stop_datei else None)
