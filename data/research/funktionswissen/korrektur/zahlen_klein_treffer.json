@@ -1,0 +1,1687 @@
+{
+"0x00401150": {
+"name": "playerHasEntityOfType",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+25
+],
+"gegenprobe": [
+{
+"art": "grenze_um_eins",
+"zahl": 26,
+"schnitt": 26,
+"stelle": "ab 26",
+"regel": "Gesucht wird nur auf den Plätzen 1 bis 25 von entityArray; Platz 0 und alles ab 26 wird nie geprüft"
+}
+],
+"nur_im_paketcode": [
+25
+],
+"im_export_daneben": [
+24
+]
+},
+"0x00401430": {
+"name": "tickEntityDecayCounter",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+31
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+31
+],
+"im_export_daneben": [
+30
+]
+},
+"0x00401ae0": {
+"name": "reassignEntitiesOwner",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+3000
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+3000
+],
+"im_export_daneben": [
+2999
+]
+},
+"0x00402180": {
+"name": "UpdateEntity_CowFlying",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+120
+],
+"gegenprobe": [
+{
+"art": "grenze_um_eins",
+"zahl": 120,
+"schnitt": 121,
+"stelle": "über 120",
+"regel": "Nach dem Aufprall (Zähler ungleich 0): Bildzähler wird auf 100 bis 120 begrenzt (über 120 wird 0x77)"
+}
+],
+"nur_im_paketcode": [
+120
+],
+"im_export_daneben": [
+119
+]
+},
+"0x00402580": {
+"name": "UpdateEntity_31",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+16
+],
+"gegenprobe": [
+{
+"art": "grenze_um_eins",
+"zahl": 16,
+"schnitt": 17,
+"stelle": "über 16",
+"regel": "Variante 0: ist f über 16, wird logicalState=3 und f=0xf; graphicType2 = f + 1; unkMinusOne = f*2"
+}
+],
+"nur_im_paketcode": [
+16
+],
+"im_export_daneben": [
+15,
+17
+]
+},
+"0x00406650": {
+"name": "createSeagull",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+99
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+99
+],
+"im_export_daneben": [
+98,
+100
+]
+},
+"0x0040b720": {
+"name": "hasBuildingEntranceFlagForOrientation",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+3
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+3
+],
+"im_export_daneben": [
+2,
+4
+]
+},
+"0x0040b7b0": {
+"name": "hasBuildingExitFlagForOrientation",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+3
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+3
+],
+"im_export_daneben": [
+2,
+4
+]
+},
+"0x0040c4b0": {
+"name": "recomputePlayerDataStocksBasedOnStorageBuildings",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+25
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+25
+],
+"im_export_daneben": [
+24
+]
+},
+"0x0040cb90": {
+"name": "isFarmTileReadyForWheatStageChange",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+11
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+11,
+36
+],
+"im_export_daneben": [
+10,
+35
+]
+},
+"0x0040cc30": {
+"name": "growWheat",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+5,
+12
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+5,
+12
+],
+"im_export_daneben": [
+4,
+6,
+11
+]
+},
+"0x0040d6e0": {
+"name": "isSpaceAvailableAtUnitRallyPoint",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+399
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+399
+],
+"im_export_daneben": [
+400
+]
+},
+"0x0040ea00": {
+"name": "setNewOnFarmDestination",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+24
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+24,
+399
+],
+"im_export_daneben": [
+23,
+400
+]
+},
+"0x0040ebf0": {
+"name": "growHops",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+3
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+3
+],
+"im_export_daneben": [
+2,
+4
+]
+},
+"0x0040f1e0": {
+"name": "setSignpostDataForBuildings",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+2000
+],
+"gegenprobe": [
+{
+"art": "grenze_um_eins",
+"zahl": 8,
+"schnitt": 9,
+"stelle": "höchstens 8",
+"regel": "Die Liste fasst höchstens 8 Wegweiser, weitere werden nicht eingetragen"
+}
+],
+"nur_im_paketcode": [
+2000
+],
+"im_export_daneben": [
+1999
+]
+},
+"0x0040f460": {
+"name": "determinePeasantSitPosition",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+24
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+24
+],
+"im_export_daneben": [
+23
+]
+},
+"0x00410440": {
+"name": "canUnitReachBuildingPerimeter",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+2000
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+2000
+],
+"im_export_daneben": [
+1999
+]
+},
+"0x00410800": {
+"name": "spawnRandomFireEffectOnBuilding",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+400
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+400
+],
+"im_export_daneben": [
+399
+]
+},
+"0x00417fd0": {
+"name": "UpdateTunnel",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+9
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+9
+],
+"im_export_daneben": [
+10
+]
+},
+"0x00419370": {
+"name": "UpdateBadBuildingChoppingBlock",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+4
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+4
+],
+"im_export_daneben": [
+3
+]
+},
+"0x00422230": {
+"name": "getBuildingThatCanStoreThisResource",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+250
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+250
+],
+"im_export_daneben": [
+249
+]
+},
+"0x00422400": {
+"name": "findQuarryPileThatIsCloseAndHasMostStone",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+8,
+40
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+8,
+40
+],
+"im_export_daneben": [
+7,
+41
+]
+},
+"0x00440360": {
+"name": "CountPlayerUnitsByType",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+66,
+70
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+66,
+70
+],
+"im_export_daneben": [
+67,
+69
+]
+},
+"0x00456670": {
+"name": "updateDateAndTime",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+12
+],
+"gegenprobe": [
+{
+"art": "grenze_um_eins",
+"zahl": 12,
+"schnitt": 13,
+"stelle": "größer als 12",
+"regel": "Ist month dann größer als 12: year +1, month = 0, yearChanged = 1"
+}
+],
+"nur_im_paketcode": [
+12
+],
+"im_export_daneben": [
+11
+]
+},
+"0x00456870": {
+"name": "nof_fpoints_locationFinder",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [],
+"gegenprobe": [
+{
+"art": "zahl_fehlt",
+"zahl": 18337263,
+"schnitt": 18337264,
+"stelle": "über 0x117cdef",
+"regel": "Abbruch, wenn das Paar-Array voll ist (Zeiger über 0x117cdef)"
+}
+],
+"nur_im_paketcode": [
+2
+],
+"im_export_daneben": [
+1
+]
+},
+"0x00465080": {
+"name": "CheckIfEnoughGoldForLadderman",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+4
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+4
+],
+"im_export_daneben": [
+3
+]
+},
+"0x004650a0": {
+"name": "CheckIfEnoughGoldForMonk",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+10
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+10
+],
+"im_export_daneben": [
+9
+]
+},
+"0x0046a7d0": {
+"name": "nextRandomNumber2",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+20000
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+20000
+],
+"im_export_daneben": [
+19999
+]
+},
+"0x0046a800": {
+"name": "nextRandomNumber1",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+20000
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+20000
+],
+"im_export_daneben": [
+19999
+]
+},
+"0x0046b980": {
+"name": "processMenuViewSwitch",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+9
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+9
+],
+"im_export_daneben": [
+8
+]
+},
+"0x0046c2e0": {
+"name": "getLoadedMapNameForIndex",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+500
+],
+"gegenprobe": [
+{
+"art": "grenze_um_eins",
+"zahl": 500,
+"schnitt": 501,
+"stelle": "höchstens 500",
+"regel": "Sonst der Name aus loadedMapNames; es gibt höchstens 500 Einträge"
+}
+],
+"nur_im_paketcode": [
+500
+],
+"im_export_daneben": [
+499
+]
+},
+"0x004718f0": {
+"name": "incrementMissionProgress",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+6,
+11,
+16
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+6,
+11,
+16
+],
+"im_export_daneben": [
+5,
+7,
+12,
+17
+]
+},
+"0x0047f6a0": {
+"name": "addChatMessageToDisplayList",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+20
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+20
+],
+"im_export_daneben": [
+19,
+21
+]
+},
+"0x00480050": {
+"name": "resetGameCommands",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+9
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+9
+],
+"im_export_daneben": [
+8
+]
+},
+"0x00487c50": {
+"name": "transmitCommand",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+200
+],
+"gegenprobe": [
+{
+"art": "grenze_um_eins",
+"zahl": 200,
+"schnitt": 200,
+"stelle": "unter 200",
+"regel": "Daten unter 200 Byte oder Kategorie 65: ungepackt, Paket beginnt mit der Kategorie, danach 3 Byte Zeit"
+}
+],
+"nur_im_paketcode": [
+200
+],
+"im_export_daneben": [
+201
+]
+},
+"0x004880e0": {
+"name": "sendSyncPacket126",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+9
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+9
+],
+"im_export_daneben": [
+8
+]
+},
+"0x00489100": {
+"name": "queueCommand",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+200
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+200,
+1261
+],
+"im_export_daneben": [
+199,
+1260
+]
+},
+"0x0048c750": {
+"name": "sendPeriodicSyncMessages",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+180
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+180
+],
+"im_export_daneben": [
+179
+]
+},
+"0x0048da60": {
+"name": "checkLagAndSyncStatus",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+12,
+45000,
+60000
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+12,
+14,
+45000,
+60000
+],
+"im_export_daneben": [
+13,
+45001,
+60001
+]
+},
+"0x0048f3d0": {
+"name": "advanceSyncStatusAndKickLaggers",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+45000,
+60000
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+45000,
+60000
+],
+"im_export_daneben": [
+45001,
+60001
+]
+},
+"0x0048f4c0": {
+"name": "checkGameLagStatusAndKickAccordingly",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+45000
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+45000
+],
+"im_export_daneben": [
+45001
+]
+},
+"0x00490480": {
+"name": "checkMultiplayerLaggingPlayers",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+180
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+180
+],
+"im_export_daneben": [
+179
+]
+},
+"0x00490690": {
+"name": "receiveAllTransmittedCommands",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+126
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+126
+],
+"im_export_daneben": [
+125
+]
+},
+"0x0049b940": {
+"name": "findMapBorderEdgeTileAndStoreInSignpostData",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+50
+],
+"gegenprobe": [
+{
+"art": "grenze_um_eins",
+"zahl": 50,
+"schnitt": 51,
+"stelle": "> 50",
+"regel": "Abbruch, sobald der Zähler nach dem Speichern > 50 ist, also nach 51 Einträgen (Zähler 0 bis 50); die Feldgröße von signpostsMapEdge[signpostID] ist nicht zu sehen"
+}
+],
+"nur_im_paketcode": [
+50
+],
+"im_export_daneben": [
+49
+]
+},
+"0x004a6520": {
+"name": "storeDestinationOptionsUnk",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+40,
+80400
+],
+"gegenprobe": [
+{
+"art": "grenze_um_eins",
+"zahl": 40,
+"schnitt": 41,
+"stelle": "mehr als 40",
+"regel": "Abbruch, sobald mehr als 40 Paare gespeichert sind, also nach 41"
+}
+],
+"nur_im_paketcode": [
+40,
+80400
+],
+"im_export_daneben": [
+39,
+80399
+]
+},
+"0x004a65e0": {
+"name": "setDestinationPairsBasedOnPreviousSearch",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+40
+],
+"gegenprobe": [
+{
+"art": "grenze_um_eins",
+"zahl": 40,
+"schnitt": 41,
+"stelle": "mehr als 40",
+"regel": "Abbruch, sobald mehr als 40 Paare gespeichert sind, also nach 41"
+}
+],
+"nur_im_paketcode": [
+40
+],
+"im_export_daneben": [
+39
+]
+},
+"0x004a69f0": {
+"name": "computeAttackVectorsBasedOnXAndY",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+50
+],
+"gegenprobe": [
+{
+"art": "grenze_um_eins",
+"zahl": 50,
+"schnitt": 51,
+"stelle": "Höchstens 50",
+"regel": "Höchstens 50 Einträge, danach Ende"
+}
+],
+"nur_im_paketcode": [
+50
+],
+"im_export_daneben": [
+49
+]
+},
+"0x004ac650": {
+"name": "buildEnemyPlayerList",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+400
+],
+"gegenprobe": [
+{
+"art": "grenze_um_eins",
+"zahl": 400,
+"schnitt": 400,
+"stelle": "kleiner als 400",
+"regel": "Außerdem muss sein Lord leben, ausgenommen in den ersten 400 Ticks (mapTimeInTicks minus section1127 kleiner als 400)"
+},
+{
+"art": "grenze_um_eins",
+"zahl": 6,
+"schnitt": 7,
+"stelle": "Höchstens 6",
+"regel": "Höchstens 6 Einträge (Abbruch, sobald DAT_EnemyArrayIndex größer als 5)"
+}
+],
+"nur_im_paketcode": [
+400
+],
+"im_export_daneben": [
+401
+]
+},
+"0x004baec0": {
+"name": "commitBuildingAvailability",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+20
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+4,
+9,
+20
+],
+"im_export_daneben": [
+3,
+10,
+19,
+21
+]
+},
+"0x004c6b20": {
+"name": "LoadSkirmishCampaignData",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+10
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+10
+],
+"im_export_daneben": [
+9
+]
+},
+"0x004caea0": {
+"name": "aiUpdateTaxesAndRations",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+10
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+10
+],
+"im_export_daneben": [
+9,
+11
+]
+},
+"0x004cb1b0": {
+"name": "setNextFarmTypeToBuild",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+8
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+8
+],
+"im_export_daneben": [
+7
+]
+},
+"0x004cb290": {
+"name": "aiShouldBuildWoodcutter",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+90
+],
+"gegenprobe": [
+{
+"art": "grenze_um_eins",
+"zahl": 90,
+"schnitt": 90,
+"stelle": "< 90",
+"regel": "Mehr als 5 Hütten und totalWoodAvailable < 90 → FALSE"
+},
+{
+"art": "grenze_um_eins",
+"zahl": 30,
+"schnitt": 30,
+"stelle": "< 30",
+"regel": "Mehr als 2 Hütten und totalWoodAvailable < 30 → FALSE"
+}
+],
+"nur_im_paketcode": [
+90
+],
+"im_export_daneben": [
+91
+]
+},
+"0x004cb3a0": {
+"name": "aiRequiresExtraOxtethers",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+10
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+10
+],
+"im_export_daneben": [
+9
+]
+},
+"0x004cb890": {
+"name": "shouldDestroyWoodCutterUnk",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+20
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+20
+],
+"im_export_daneben": [
+21
+]
+},
+"0x004cb940": {
+"name": "destroyBuildingIfNoWorker",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+20
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+20
+],
+"im_export_daneben": [
+19,
+21
+]
+},
+"0x004ccfb0": {
+"name": "ChecksAndGenerateAITribesForPlayerIfNotExisting",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+10
+],
+"gegenprobe": [
+{
+"art": "grenze_um_eins",
+"zahl": 10,
+"schnitt": 11,
+"stelle": "höchstens 10",
+"regel": "Prüft Plätze 0 bis maxAmount-1, höchstens 10"
+}
+],
+"nur_im_paketcode": [
+10
+],
+"im_export_daneben": [
+9
+]
+},
+"0x004cdcf0": {
+"name": "aiShouldAttackOrWaitForTeamCoordination",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+48,
+100
+],
+"gegenprobe": [
+{
+"art": "grenze_um_eins",
+"zahl": 100,
+"schnitt": 100,
+"stelle": "< 100",
+"regel": "Hat der angegriffene Spieler totalTroopValue < 100, wird der Zufallsanteil currentWaveRandomAttackingStrength auf 0 gesetzt"
+}
+],
+"nur_im_paketcode": [
+48,
+100
+],
+"im_export_daneben": [
+49,
+101
+]
+},
+"0x004cde60": {
+"name": "setCurrentAttackStrength",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+10000
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+10000
+],
+"im_export_daneben": [
+10001
+]
+},
+"0x004ce040": {
+"name": "recomputeAIPathCostToAttackedKeep",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+90,
+120
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+90,
+120
+],
+"im_export_daneben": [
+91,
+121
+]
+},
+"0x004ce430": {
+"name": "removeOrganismsAndSetMoveDestinationPairs",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+20
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+20
+],
+"im_export_daneben": [
+21
+]
+},
+"0x004cf4f0": {
+"name": "sendAITribe_0xf_toAttackPatrol",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+2,
+16
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+2,
+16
+],
+"im_export_daneben": [
+1,
+15
+]
+},
+"0x004cffd0": {
+"name": "hasNoTroopsOrAllAreDiggers",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+12,
+16
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+12,
+16
+],
+"im_export_daneben": [
+13,
+17
+]
+},
+"0x004d0830": {
+"name": "playAnger1BikFromPlayer",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+600000
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+600000
+],
+"im_export_daneben": [
+599999
+]
+},
+"0x004d10b0": {
+"name": "someChatMessageSelection",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+2000
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+2000
+],
+"im_export_daneben": [
+2001
+]
+},
+"0x004d2e00": {
+"name": "sendTribeToAIVLocationSlot",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+10
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+10
+],
+"im_export_daneben": [
+9
+]
+},
+"0x004d3780": {
+"name": "computeNervousness",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+800
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+800
+],
+"im_export_daneben": [
+799
+]
+},
+"0x004d52a0": {
+"name": "StoreGameIntoSKMasters",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [],
+"gegenprobe": [
+{
+"art": "grenze_um_eins",
+"zahl": 250,
+"schnitt": 251,
+"stelle": "höchstens 250",
+"regel": "Die Liste fasst höchstens 250 Einträge"
+}
+],
+"nur_im_paketcode": [
+249
+],
+"im_export_daneben": [
+250
+]
+},
+"0x004eca90": {
+"name": "shouldNotBuildKillingPits",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+100
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+100
+],
+"im_export_daneben": [
+99
+]
+},
+"0x004ecad0": {
+"name": "setAvailableAIV",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+20
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+20
+],
+"im_export_daneben": [
+19,
+21
+]
+},
+"0x004eddf0": {
+"name": "findSuitableFarmLocationAndPlaceFarm",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+14,
+16,
+20,
+6400
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+2,
+14,
+16,
+20,
+79,
+6400
+],
+"im_export_daneben": [
+1,
+15,
+19,
+21,
+80,
+6399
+]
+},
+"0x004ee140": {
+"name": "findAppropriateWoodCutterGridLocation",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+6,
+6400
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+6,
+79,
+6400
+],
+"im_export_daneben": [
+5,
+80,
+6399
+]
+},
+"0x004eebd0": {
+"name": "findSuitableGridLocationFittingCriteria",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+6400
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+79,
+6400
+],
+"im_export_daneben": [
+80,
+6399
+]
+},
+"0x004efc30": {
+"name": "aiPlaceAdditionalOxtether",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+3,
+20
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+3,
+20
+],
+"im_export_daneben": [
+2,
+19,
+21
+]
+},
+"0x004efd90": {
+"name": "aiPlacePitchrig",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+20
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+20
+],
+"im_export_daneben": [
+19,
+21
+]
+},
+"0x004efe30": {
+"name": "aiPlaceIronMine",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+20
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+20
+],
+"im_export_daneben": [
+19,
+21
+]
+},
+"0x004efed0": {
+"name": "aiPlaceQuarryAndOxtether",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+4,
+20
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+4,
+20
+],
+"im_export_daneben": [
+5,
+19,
+21
+]
+},
+"0x004f1860": {
+"name": "updateBuildingsStateAndUpdateAIBuildingDecisions",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+31
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+31
+],
+"im_export_daneben": [
+30
+]
+},
+"0x004f2140": {
+"name": "createRock",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+3999
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+3999
+],
+"im_export_daneben": [
+3998,
+4000
+]
+},
+"0x004f3730": {
+"name": "updateWind",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+40
+],
+"gegenprobe": [
+{
+"art": "grenze_um_eins",
+"zahl": 41,
+"schnitt": 41,
+"stelle": "mindestens 41",
+"regel": "Danach index plus 1; größer 40 beginnt wieder bei 0, die Tabelle hat also mindestens 41 Einträge"
+}
+],
+"nur_im_paketcode": [
+40
+],
+"im_export_daneben": [
+39
+]
+},
+"0x004f9980": {
+"name": "storeMinAndMaxHeightOfArea",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+399
+],
+"gegenprobe": [
+{
+"art": "grenze_um_eins",
+"zahl": 399,
+"schnitt": 399,
+"stelle": "unter 399",
+"regel": "Nur wenn x und y unter 399 liegen und das Feld gültig ist, sonst bleiben die Startwerte"
+}
+],
+"nur_im_paketcode": [
+399
+],
+"im_export_daneben": [
+400
+]
+},
+"0x004fbd80": {
+"name": "getTileForBrush",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+37,
+48
+],
+"gegenprobe": [
+{
+"art": "grenze_um_eins",
+"zahl": 37,
+"schnitt": 38,
+"stelle": "über 37",
+"regel": "Sonst Index über 37 wird auf 0 gesetzt"
+},
+{
+"art": "grenze_um_eins",
+"zahl": 48,
+"schnitt": 49,
+"stelle": "über 48",
+"regel": "Wert 8-27: zwei Schritte, Wert 28-48: drei Schritte (Richtung aus Tabellen); über 48: keine Änderung"
+}
+],
+"nur_im_paketcode": [
+37,
+48
+],
+"im_export_daneben": [
+36,
+47
+]
+},
+"0x005002d0": {
+"name": "clearMoatData",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+15999
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+15999
+],
+"im_export_daneben": [
+16000
+]
+},
+"0x00500500": {
+"name": "advanceMoatDigProgress",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+3
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+3
+],
+"im_export_daneben": [
+2,
+4
+]
+},
+"0x00518350": {
+"name": "isAttackWaveComplete",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+50
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+50
+],
+"im_export_daneben": [
+49
+]
+},
+"0x0051bf70": {
+"name": "giveLightPitchInstructionToUnitClosestToPitch",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+2500
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+2500
+],
+"im_export_daneben": [
+2501
+]
+},
+"0x0051ccb0": {
+"name": "assignMacemenAndKnightsNotFromPlayer1ToTribes",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+18
+],
+"gegenprobe": [
+{
+"art": "grenze_um_eins",
+"zahl": 18,
+"schnitt": 18,
+"stelle": "ab 18",
+"regel": "Größe je Ritter-Gruppe: ab 18 Ritter 6, 13 bis 17 Ritter 4, bis 12 Ritter 2"
+}
+],
+"nur_im_paketcode": [
+18
+],
+"im_export_daneben": [
+19
+]
+},
+"0x0051fa70": {
+"name": "recomputeTotalTroopValueOfTroopsNearKeep",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+40
+],
+"gegenprobe": [
+{
+"art": "grenze_um_eins",
+"zahl": 40,
+"schnitt": 40,
+"stelle": "kleiner als 40",
+"regel": "Zählt nur, wenn distanceHigh (Abstand zwischen campground-Eingang des Besitzers und Einheit) kleiner als 40 ist"
+}
+],
+"nur_im_paketcode": [
+40
+],
+"im_export_daneben": [
+41
+]
+},
+"0x0052b390": {
+"name": "updateRabbitTribeBehavior",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+4
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+4
+],
+"im_export_daneben": [
+3
+]
+},
+"0x0052b860": {
+"name": "updateTribes",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+1250
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+1250
+],
+"im_export_daneben": [
+1249
+]
+},
+"0x0052f730": {
+"name": "removeUnitsSameTileLinkageIfNoLongerApplicable",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+50,
+2500
+],
+"gegenprobe": [
+{
+"art": "grenze_um_eins",
+"zahl": 50,
+"schnitt": 51,
+"stelle": "über 50",
+"regel": "Fenster 1-99: wird um 1 erhöht; über 50 springt es auf 0"
+},
+{
+"art": "grenze_um_eins",
+"zahl": 2500,
+"schnitt": 2501,
+"stelle": "über 2500",
+"regel": "Bereinigung: Eintrag kleiner 0 oder über 2500 wird 0; fremde Einheit in der Kette (anderes tile, kein Teleport, field303_0x413 == 0) lässt die Kette dort neu am Nachfolger beginnen"
+}
+],
+"nur_im_paketcode": [
+50,
+2500
+],
+"im_export_daneben": [
+49,
+2499
+]
+},
+"0x005300b0": {
+"name": "playHurtSFXForUnit",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+10
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+10
+],
+"im_export_daneben": [
+11
+]
+},
+"0x00530fd0": {
+"name": "checkIfCitizenUnitIsAliveBasedOnState",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+111,
+116
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+111,
+116
+],
+"im_export_daneben": [
+110,
+117
+]
+},
+"0x00532f80": {
+"name": "computeDistanceToNearestEnemyForLegacyMissions",
+"quelle": "ghidra",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+100
+],
+"gegenprobe": [
+{
+"art": "grenze_um_eins",
+"zahl": 100,
+"schnitt": 100,
+"stelle": "unter 100",
+"regel": "Nur im Spielmodus GM_SOLITARY und bei unitCount unter 100, sonst sofort 10000"
+}
+],
+"nur_im_paketcode": [
+100
+],
+"im_export_daneben": [
+101
+]
+},
+"0x005346d0": {
+"name": "selectNewBlessingTarget",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+40
+],
+"gegenprobe": [
+{
+"art": "zahl_fehlt",
+"zahl": 62,
+"schnitt": 63,
+"stelle": "höchstens 62",
+"regel": "Vorzug = (4000 minus blessedAmount) geteilt durch 64 (höchstens 62)"
+}
+],
+"nur_im_paketcode": [
+40
+],
+"im_export_daneben": [
+41
+]
+},
+"0x00536cc0": {
+"name": "queueClickNavigateMenuOrEscape",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+2
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+2
+],
+"im_export_daneben": [
+1
+]
+},
+"0x0053e900": {
+"name": "setPositionOfUnit",
+"quelle": "nachgebaut",
+"zahlen_nur_im_paketcode_in_der_erklaerung": [
+399
+],
+"gegenprobe": [],
+"nur_im_paketcode": [
+399
+],
+"im_export_daneben": [
+400
+]
+}
+}
