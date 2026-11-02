@@ -1,0 +1,766 @@
+### 0x0049e9e0 updateAIZoneWithFloodFill0x20 | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0049E9E0
+ void PathFindingState::updateAIZoneWithFloodFill0x20(int max, uint x, uint y)
+ {
+ short sVar1;
+ short sVar2;
+ int iVar3;
+ int _candidate;
+ int _tile;
+ if (((x < 400) && (y < 400)) && (*(char*)(y * 400 + 0x21aec98 + x) != '\0')) {
+ this->searchGeneration = this->searchGeneration + 1;
+ if (32000 < this->searchGeneration) {
+ this->searchGeneration = 1;
+ fillMemory_ByteValue(
+ 0x27420, '\0', (void*)((int)(DAT_TileMapState.WalkLayer)));
+ }
+ this->searchQueue.readIndex = 0;
+ this->searchQueue.writeIndex = 1;
+ this->searchQueue.currentDistance = 1;
+ this->searchQueue.yQueue[0] = (short)y;
+ this->searchQueue.xQueue[0] = (short)x;
+ this->searchQueue.tilesQueue[0]
+ = DAT_ViewportRenderState.translationMatrix[y].addXgetTile + x;
+ DAT_TileMapState.CertainPathLayer[this->searchQueue.tilesQueue[0]] = 1;
+ DAT_TileMapState.WalkLayer[this->searchQueue.tilesQueue[0]] = (short)this->searchGeneration;
+ if (this->searchQueue.readIndex != this->searchQueue.writeIndex) {
+ do {
+ _tile = this->searchQueue.tilesQueue[this->searchQueue.readIndex];
+ DAT_TileMapState.AIInfoLayer[_tile]
+ = DAT_TileMapState.AIInfoLayer[_tile] | 0x20;
+ sVar1 = this->searchQueue.xQueue[this->searchQueue.readIndex];
+ sVar2 = this->searchQueue.yQueue[this->searchQueue.readIndex];
+ this->searchQueue.currentDistance = (int)DAT_TileMapState.CertainPathLayer[_tile];
+ if (max < this->searchQueue.currentDistance) {
+ return;
+ }
+ iVar3 = 0;
+ do {
+ /*
+ fixme: why are there nested identical if else statements here? shouldn't it tested the
+ edge-ness of the candidate !?
+ */
+ if ((DAT_TileMapState.LogicLayer[_tile] & 0x30) == 0) {
+ _candidate
+ = DAT_TileMapState.directionTranslationMatrix[sVar2][iVar3] + _tile;
+ if (DAT_TileMapState.WalkLayer[_candidate] != this->searchGeneration) {
+ DAT_TileMapState.CertainPathLayer[_candidate]
+ = (short)this->searchQueue.currentDistance + 1;
+ DAT_TileMapState.WalkLayer[_candidate] = (short)this->searchGeneration;
+ this->searchQueue.xQueue[this->searchQueue.writeIndex]
+ = DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[iVar3]
+ .short.xOffset
+ + sVar1;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix
+ + iVar3 * 8 + 4)
+ + sVar2;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = _candidate;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ if ((DAT_TileMapState.LogicLayer[_tile] & 0x30) == 0) {
+ _candidate = DAT_TileMapState.directionTranslationMatrix[sVar2][iVar3 + 1]
+ + _tile;
+ if (DAT_TileMapState.WalkLayer[_candidate] != this->searchGeneration) {
+ DAT_TileMapState.CertainPathLayer[_candidate]
+ = (short)this->searchQueue.currentDistance + 1;
+ DAT_TileMapState.WalkLayer[_candidate]
+ = (short)this->searchGeneration;
+ this->searchQueue.xQueue[this->searchQueue.writeIndex]
+ = DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix[iVar3 + 1]
+ .short.xOffset
+ + sVar1;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix
+ + iVar3 * 8 + 0xc)
+ + sVar2;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = _candidate;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ if ((DAT_TileMapState.LogicLayer[_tile] & 0x30) == 0) {
+ _candidate
+ = DAT_TileMapState.directionTranslationMatrix[sVar2][iVar3 + 2]
+ + _tile;
+ if (DAT_TileMapState.WalkLayer[_candidate]
+ != this->searchGeneration) {
+ DAT_TileMapState.CertainPathLayer[_candidate]
+ = (short)this->searchQueue.currentDistance + 1;
+ DAT_TileMapState.WalkLayer[_candidate]
+ = (short)this->searchGeneration;
+ this->searchQueue.xQueue[this->searchQueue.writeIndex]
+ = DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix[iVar3 + 2]
+ .short.xOffset
+ + sVar1;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix
+ + iVar3 * 8 + 0x14)
+ + sVar2;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = _candidate;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ if (((DAT_TileMapState.LogicLayer[_tile] & 0x30) == 0)
+ && (_candidate = DAT_TileMapState
+ .directionTranslationMatrix[sVar2][iVar3 + 3]
+ + _tile,
+ DAT_TileMapState.WalkLayer[_candidate]
+ != this->searchGeneration)) {
+ DAT_TileMapState.CertainPathLayer[_candidate]
+ = (short)this->searchQueue.currentDistance + 1;
+ DAT_TileMapState.WalkLayer[_candidate]
+ = (short)this->searchGeneration;
+ this->searchQueue.xQueue[this->searchQueue.writeIndex]
+ = DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix[iVar3 + 3]
+ .short.xOffset
+ + sVar1;
+ this->searchQueue.yQueue[this->searchQueue.writeIndex]
+ = *(short*)((int)DAT_TerrainDefinedData
+ .clockwiseCardinalTranslationMatrix
+ + iVar3 * 8 + 0x1c)
+ + sVar2;
+ this->searchQueue.tilesQueue[this->searchQueue.writeIndex] = _candidate;
+ this->searchQueue.writeIndex = this->searchQueue.writeIndex + 1;
+ if (0x13a0f < this->searchQueue.writeIndex) {
+ this->searchQueue.writeIndex = 0;
+ }
+ }
+ }
+ }
+ }
+ iVar3 = iVar3 + 4;
+ } while (iVar3 < 8);
+ this->searchQueue.readIndex = this->searchQueue.readIndex + 1;
+ if (0x13a0f < this->searchQueue.readIndex) {
+ this->searchQueue.readIndex = 0;
+ }
+ } while (this->searchQueue.readIndex != this->searchQueue.writeIndex);
+ }
+ }
+ return;
+ }
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0049e9e0", "name": "updateAIZoneWithFloodFill0x20", "quelle": "ghidra", "p1": {"bereich": "Wegfindung", "zweck": "Setzt per Flutfüllung das Bit 0x20 in AIInfoLayer rund um ein Startfeld."}, "p2": {"ein": "max (größte Entfernung), x, y", "aus": "keine", "liest": ["LogicLayer", "CertainPathLayer", "WalkLayer"], "schreibt": ["AIInfoLayer[feld] |= 0x20", "CertainPathLayer", "WalkLayer", "searchGeneration"], "ruft": ["fillMemory_ByteValue"], "regeln": ["Nur wenn x<400, y<400 und Startfeld gültig", "searchGeneration +1; über 32000 auf 1 und WalkLayer löschen", "Jedes aus der Warteschlange genommene Feld bekommt Bit 0x20", "Stopp, sobald die Entfernung des Felds größer als max ist (das Feld selbst ist da schon markiert)", "Ausdehnung nur, wenn LogicLayer des aktuellen Felds & 0x30 == 0; alle 8 Nachbarn, ohne PathLinkageLayer", "Warteschlange 0x13A10 Plätze, Rundlauf"], "offen": ["Bedeutung von Bit 0x20 und LogicLayer-Bits 0x30", "Das OpenSHC-Team vermutet einen Fehler: Die wiederholten gleichen Prüfungen betreffen das aktuelle Feld statt den Nachbarn"]}, "p3": {"erklaerung": "Markiert eine Zone um einen Punkt als KI-Zone. Die Kantenprüfung bezieht sich auf das Ausgangsfeld, nicht auf den Nachbarn.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}, "korrigiert": "nein", "aenderung": "-"}
+
+### 0x0048cc90 recomputeHashesAndSendResync | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0048CC90
+ void GameSynchronyState::recomputeHashesAndSendResync(int dontSendSyncCommand)
+ {
+ int* piVar1;
+ int* piVar2;
+ int* piVar3;
+ int* piVar4;
+ Entity* address;
+ short sVar5;
+ short sVar6;
+ short sVar7;
+ short sVar8;
+ short sVar9;
+ short sVar10;
+ short sVar11;
+ short sVar12;
+ short sVar13;
+ short sVar14;
+ short sVar15;
+ short sVar16;
+ int iVar17;
+ undefined4 uVar18;
+ uint uVar19;
+ int iVar20;
+ uint uVar21;
+ uint uVar22;
+ uint uVar23;
+ uint uVar24;
+ uint uVar25;
+ uint uVar26;
+ uint uVar27;
+ uint uVar28;
+ uint uVar29;
+ uint uVar30;
+ uint uVar31;
+ uint uVar32;
+ uint uVar33;
+ uint uVar34;
+ uint uVar35;
+ uint uVar36;
+ uint uVar37;
+ uint _moatIndex;
+ int _treeIndex;
+ int _playerDataIndex;
+ int _someIndex;
+ short* psVar38;
+ uint _pitchDitchIndex;
+ int _unitIndex;
+ int _buildingIndex;
+ int iVar39;
+ int* piVar41;
+ byte* pbVar42;
+ Unit* piVar40;
+ Unit* piVar44;
+ Unit* piVar43;
+ int iVar45;
+ Moat* address_00;
+ ClimbData* address_01;
+ PitchDitch* address_02;
+ AIVSpec* address_03;
+ int _hashSubTotal;
+ int _entityIndex;
+ int _tribeIndex;
+ int _heatMapIndex;
+ int _aivIndex;
+ if (this->DAT_GameHalted == 0) {
+ if (this->DAT_HashCountdown == 0) {
+ this->HASH_HashTotal[this->currentPlayerSlotID] = 0;
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID] = DAT_GameCore.mapTimeInTicks;
+ _hashSubTotal = 0;
+ _unitIndex = 0;
+ piVar40 = &DAT_UnitsState.units[0];
+ do {
+ iVar39 = piVar40->field309_0x420;
+ iVar45 = piVar40->field308_0x41c;
+ piVar40->field309_0x420 = 0;
+ piVar40->field308_0x41c = 0;
+ uVar19 = computeHash(1028, (int*)((int)(&piVar40->logicalState)));
+ piVar44 = piVar40 + 0x124;
+ iVar20 = uVar19 + piVar40->animationLeapTicksTotal + piVar40->animationSpeed
+ + piVar40->animationTicker;
+ _hashSubTotal = _hashSubTotal + iVar20;
+ this->HASH_Units[this->currentPlayerSlotID][_unitIndex] = iVar20;
+ piVar40->field308_0x41c = iVar45;
+ piVar40->field309_0x420 = iVar39;
+ _unitIndex = _unitIndex + 1;
+ piVar40 = piVar44;
+ } while ((int)piVar44 < 0x16513cc);
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 9] = _hashSubTotal;
+ this->HASH_HashTotal[this->currentPlayerSlotID]
+ = this->HASH_HashTotal[this->currentPlayerSlotID] + _hashSubTotal;
+ _buildingIndex = 0;
+ _hashSubTotal = 0;
+ psVar38 = &DAT_BuildingsState.buildings[0].animationIndex;
+ do {
+ sVar5 = psVar38[0x16e];
+ psVar38[0x16e] = 0;
+ uVar19 = computeHash(0x25c, (int*)((int)((psVar38 + 0x58))));
+ piVar41 = (int*)(psVar38 + 0x1a);
+ piVar1 = (int*)(psVar38 + 0x18);
+ sVar6 = *psVar38;
+ piVar2 = (int*)(psVar38 + 0x16);
+ piVar3 = (int*)(psVar38 + 0x14);
+ psVar38[0x16e] = sVar5;
+ piVar4 = (int*)(psVar38 + -8);
+ psVar38 = psVar38 + 0x196;
+ iVar39 = (int)sVar6 + uVar19 + *piVar41 + *piVar1 + *piVar2 + *piVar3 + *piVar4;
+ _hashSubTotal = _hashSubTotal + iVar39;
+ this->HASH_Buildings[this->currentPlayerSlotID][_buildingIndex] = iVar39;
+ _buildingIndex = _buildingIndex + 1;
+ } while ((int)psVar38 < 0x1124d14);
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 10] = _hashSubTotal;
+ this->HASH_HashTotal[this->currentPlayerSlotID]
+ = this->HASH_HashTotal[this->currentPlayerSlotID] + _hashSubTotal;
+ iVar39 = 0;
+ _treeIndex = 0;
+ psVar38 = &DAT_LandscapeState.trees[0].state;
+ do {
+ uVar19 = computeHash(88, (int*)((int)(psVar38)));
+ psVar38 = psVar38 + 0x4e;
+ iVar39 = iVar39 + uVar19;
+ this->HASH_Trees[this->currentPlayerSlotID][_treeIndex] = uVar19;
+ _treeIndex = _treeIndex + 1;
+ } while ((int)psVar38 < 0xf78f58);
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0xb] = iVar39;
+ this->HASH_HashTotal[this->currentPlayerSlotID]
+ = this->HASH_HashTotal[this->currentPlayerSlotID] + iVar39;
+ iVar39 = 0;
+ piVar41 = &DAT_TribesState.tribes[0].owner;
+ _tribeIndex = 0;
+ do {
+ uVar19 = computeHash(816, piVar41);
+ piVar41 = piVar41 + 0xcd;
+ iVar39 = iVar39 + uVar19;
+ this->HASH_Tribes[this->currentPlayerSlotID][_tribeIndex] = uVar19;
+ _tribeIndex = _tribeIndex + 1;
+ } while ((int)piVar41 < 0x176238c);
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0xc] = iVar39;
+ this->HASH_HashTotal[this->currentPlayerSlotID]
+ = this->HASH_HashTotal[this->currentPlayerSlotID] + iVar39;
+ _hashSubTotal = 0;
+ piVar43 = &DAT_GameState.playerDataArray[0].someAiCountdown3;
+ _playerDataIndex = 0;
+ do {
+ iVar39 = piVar43->animationFrame;
+ iVar45 = piVar43->animationSpeed;
+ iVar20 = piVar43->woodCutterChopsCount;
+ iVar17 = piVar43->animationTicker;
+ uVar18 = *(undefined4*)(piVar43->pathPlanStart + 0x6e);
+ pbVar42 = piVar43->pathPlanStart;
+ pbVar42[0x6e] = 0;
+ pbVar42[0x6f] = 0;
+ pbVar42[0x70] = 0;
+ pbVar42[0x71] = 0;
+ piVar43->woodCutterChopsCount = 0;
+ piVar43->animationFrame = 0;
+ piVar43->animationSpeed = 0;
+ piVar43->animationTicker = 0;
+ uVar19 = computeHash(14748, (int*)((int)(piVar43 + -0xe13)));
+ _hashSubTotal = _hashSubTotal + uVar19;
+ this->HASH_PlayerDatas[this->currentPlayerSlotID][_playerDataIndex] = uVar19;
+ piVar43->animationSpeed = iVar45;
+ piVar43->animationTicker = iVar17;
+ piVar43->animationFrame = iVar39;
+ piVar43->woodCutterChopsCount = iVar20;
+ *(undefined4*)(piVar43->pathPlanStart + 0x6e) = uVar18;
+ piVar43 = piVar43 + 0xe7d;
+ _playerDataIndex = _playerDataIndex + 1;
+ } while ((int)piVar43 < 0x1180030);
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0xd] = _hashSubTotal;
+ this->HASH_HashTotal[this->currentPlayerSlotID]
+ = this->HASH_HashTotal[this->currentPlayerSlotID] + _hashSubTotal;
+ iVar39 = 0;
+ piVar41 = &DAT_GameState.mapAndTime.field192_0x194;
+ _someIndex = 0;
+ do {
+ iVar45 = _someIndex;
+ uVar19 = computeHash(14566, piVar41);
+ piVar41 = (int*)((int)piVar41 + 14566);
+ iVar39 = iVar39 + uVar19;
+ this->HASH_Section1023[this->currentPlayerSlotID][iVar45] = uVar19;
+ _someIndex = iVar45 + 1;
+ } while ((int)piVar41 < 0x11bc94c);
+ uVar19 = computeHash(0x10,
+ (int*)((
+ int)(((int)DAT_GameState.mapAndTime.signpostsMapEdge + iVar45 * 0x38e6 + 0x1022))));
+ this->HASH_Section1023[this->currentPlayerSlotID][iVar45 + 1] = uVar19;
+ uVar21 = computeHash(
+ 0x330, (int*)((int)(&DAT_AIVState.mapExtraInfo.totalWoodAvailable)));
+ iVar39 = iVar39 + uVar19 + uVar21;
+ this->HASH_Section1023[this->currentPlayerSlotID][0x13] = uVar21;
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0xe] = iVar39;
+ this->HASH_HashTotal[this->currentPlayerSlotID]
+ = this->HASH_HashTotal[this->currentPlayerSlotID] + iVar39;
+ piVar41 = DAT_TileMapState.LogicLayer;
+ iVar45 = 0;
+ iVar39 = 0;
+ do {
+ uVar19 = computeHash(2512, piVar41);
+ piVar41 = piVar41 + 0x274;
+ iVar45 = iVar45 + uVar19;
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0].componentArray[iVar39]
+ = uVar19;
+ iVar39 = iVar39 + 1;
+ } while ((int)piVar41 < 0x1c46b68);
+ psVar38 = DAT_TileMapState.BuildingLayer;
+ iVar39 = 0;
+ do {
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[1].componentArray[iVar39] = 0;
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[2].componentArray[iVar39] = 0;
+ /*
+ tree and rock id tile map
+ */
+ uVar19 = computeHash(2512, (int*)((int)((psVar38 + -0x13a10))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[3].componentArray[iVar39]
+ = uVar19;
+ /*
+ building id tile map
+ */
+ uVar21 = computeHash(0x9d0, (int*)((int)(psVar38)));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[4].componentArray[iVar39]
+ = uVar21;
+ /*
+ unit id tile map
+ */
+ uVar22 = computeHash(0x9d0, (int*)((int)((psVar38 + 0x1d718))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[5].componentArray[iVar39]
+ = uVar22;
+ /*
+ entity id tile map
+ */
+ uVar23 = computeHash(0x9d0, (int*)((int)((psVar38 + 0x31128))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[6].componentArray[iVar39]
+ = uVar23;
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[7].componentArray[iVar39] = 0;
+ /*
+ area id tile map
+ */
+ uVar24 = computeHash(0x9d0, (int*)((int)((psVar38 + 0xb0a90))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[8].componentArray[iVar39]
+ = uVar24;
+ psVar38 = psVar38 + 0x4e8;
+ iVar45 = iVar45 + uVar19 + uVar21 + uVar22 + uVar23 + uVar24;
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[9].componentArray[iVar39] = 0;
+ iVar39 = iVar39 + 1;
+ } while ((int)psVar38 < 0x1cbcfb8);
+ pbVar42 = DAT_TileMapState.WallOwnerLayer;
+ iVar39 = 0;
+ do {
+ uVar19 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x62250))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[10].componentArray[iVar39]
+ = uVar19;
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0xb].componentArray[iVar39] = 0;
+ uVar21 = computeMaskedBitAccumulator(2512, (uint*)((int)(pbVar42)), 0x7070707);
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0xc].componentArray[iVar39]
+ = uVar21;
+ uVar22 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0xc44a0))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0xd].componentArray[iVar39]
+ = uVar22;
+ uVar23 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0xd7eb0))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0xe].componentArray[iVar39]
+ = uVar23;
+ uVar24 = computeHash(0x9d0, (int*)((int)((pbVar42 + -0x27420))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0xf].componentArray[iVar39]
+ = uVar24;
+ uVar25 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x14db10))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0x10].componentArray[iVar39]
+ = uVar25;
+ uVar26 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x13a100))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0x11].componentArray[iVar39]
+ = uVar26;
+ uVar27 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x174f30))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0x12].componentArray[iVar39]
+ = uVar27;
+ uVar28 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x161520))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0x13].componentArray[iVar39]
+ = uVar28;
+ uVar29 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x188940))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0x14].componentArray[iVar39]
+ = uVar29;
+ uVar30 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x19c350))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0x15].componentArray[iVar39]
+ = uVar30;
+ uVar31 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x1afd60))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0x16].componentArray[iVar39]
+ = uVar31;
+ uVar32 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x1c3770))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0x17].componentArray[iVar39]
+ = uVar32;
+ uVar33 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x1d7180))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0x18].componentArray[iVar39]
+ = uVar33;
+ uVar34 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x1eab90))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0x19].componentArray[iVar39]
+ = uVar34;
+ uVar35 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x1fe5a0))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0x1a].componentArray[iVar39]
+ = uVar35;
+ uVar36 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x211fb0))));
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0x1b].componentArray[iVar39]
+ = uVar36;
+ uVar37 = computeHash(0x9d0, (int*)((int)((pbVar42 + 0x2259c0))));
+ pbVar42 = pbVar42 + 0x9d0;
+ iVar45 = iVar45 + uVar19 + uVar21 + uVar22 + uVar23 + uVar24 + uVar25 + uVar26 + uVar27 + uVar28
+ + uVar29 + uVar30 + uVar31 + uVar32 + uVar33 + uVar34 + uVar35 + uVar36 + uVar37;
+ this->HASH_LogicalTileMap[this->currentPlayerSlotID].hashDataArray[0x1c].componentArray[iVar39]
+ = uVar37;
+ iVar39 = iVar39 + 1;
+ } while ((int)pbVar42 < 0x1d6da58);
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0xf] = iVar45;
+ this->HASH_HashTotal[this->currentPlayerSlotID]
+ = this->HASH_HashTotal[this->currentPlayerSlotID] + iVar45;
+ _hashSubTotal = 0;
+ _entityIndex = 25;
+ psVar38 = &DAT_EntityState.entityArray[0x19].x1;
+ do {
+ sVar5 = psVar38[8];
+ sVar6 = *psVar38;
+ sVar7 = psVar38[1];
+ sVar8 = psVar38[6];
+ sVar9 = psVar38[7];
+ sVar10 = psVar38[10];
+ sVar11 = psVar38[0x59];
+ iVar39 = ((Entity*)(psVar38 + -6))->graphicType2;
+ address = (Entity*)(psVar38 + -6);
+ iVar45 = *(int*)(psVar38 + 0x5c);
+ sVar12 = psVar38[0x5a];
+ sVar13 = psVar38[0x5e];
+ sVar14 = psVar38[0x5f];
+ sVar15 = psVar38[0x60];
+ sVar16 = psVar38[0x61];
+ psVar38[8] = 0;
+ *psVar38 = 0;
+ psVar38[1] = 0;
+ psVar38[6] = 0;
+ psVar38[7] = 0;
+ address->graphicType2 = 0;
+ psVar38[10] = 0;
+ psVar38[0x61] = 0;
+ psVar38[0x60] = 0;
+ psVar38[0x5f] = 0;
+ psVar38[0x5e] = 0;
+ *(int*)(psVar38 + 0x5c) = 0;
+ psVar38[0x5a] = 0;
+ psVar38[0x59] = 0;
+ uVar19 = computeHash(0xe8, (int*)((int)(address)));
+ psVar38[8] = sVar5;
+ *psVar38 = sVar6;
+ psVar38[1] = sVar7;
+ psVar38[6] = sVar8;
+ psVar38[7] = sVar9;
+ address->graphicType2 = iVar39;
+ psVar38[10] = sVar10;
+ psVar38[0x59] = sVar11;
+ _hashSubTotal = _hashSubTotal + uVar19;
+ *(int*)(psVar38 + 0x5c) = iVar45;
+ psVar38[0x5a] = sVar12;
+ psVar38[0x60] = sVar15;
+ psVar38[0x5e] = sVar13;
+ psVar38[0x61] = sVar16;
+ psVar38[0x5f] = sVar14;
+ this->HASH_Entities[this->currentPlayerSlotID][_entityIndex] = uVar19;
+ _entityIndex = _entityIndex + 1;
+ psVar38 = psVar38 + 0x74;
+ } while ((int)psVar38 < 0x23fa1e0);
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0x10] = _hashSubTotal;
+ this->HASH_HashTotal[this->currentPlayerSlotID]
+ = this->HASH_HashTotal[this->currentPlayerSlotID] + _hashSubTotal;
+ _hashSubTotal = 0;
+ uVar19 = 0;
+ address_00 = DAT_TileMapState.moats;
+ do {
+ uVar21 = computeHash(1600, (int*)((int)(address_00)));
+ _hashSubTotal = _hashSubTotal + uVar21;
+ _moatIndex = uVar19 / 100;
+ address_00 = address_00 + 100;
+ uVar19 = uVar19 + 100;
+ this->HASH_Moats[this->currentPlayerSlotID][_moatIndex] = uVar21;
+ } while ((int)address_00 < 0x1fd2278);
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0x11] = _hashSubTotal;
+ this->HASH_HashTotal[this->currentPlayerSlotID]
+ = this->HASH_HashTotal[this->currentPlayerSlotID] + _hashSubTotal;
+ _hashSubTotal = 0;
+ address_01 = DAT_PathFindingState.climbData;
+ iVar39 = 0;
+ do {
+ uVar19 = computeHash(516, (int*)((int)(&address_01->canBeUsed)));
+ _hashSubTotal = _hashSubTotal + uVar19;
+ address_01 = address_01 + 1;
+ this->HASH_ClimbData[this->currentPlayerSlotID][iVar39] = uVar19;
+ iVar39 = iVar39 + 1;
+ } while ((int)address_01 < 0x12d5c6c);
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0x12] = _hashSubTotal;
+ this->HASH_HashTotal[this->currentPlayerSlotID]
+ = this->HASH_HashTotal[this->currentPlayerSlotID] + _hashSubTotal;
+ _hashSubTotal = 0;
+ _pitchDitchIndex = 0;
+ address_02 = DAT_TileMapState.pitchDitches;
+ do {
+ uVar19 = computeHash(2000, (int*)((int)(&address_02->tile)));
+ _hashSubTotal = _hashSubTotal + uVar19;
+ uVar21 = _pitchDitchIndex / 100;
+ address_02 = address_02 + 100;
+ _pitchDitchIndex = _pitchDitchIndex + 100;
+ this->HASH_PitchDitches[this->currentPlayerSlotID][uVar21] = uVar19;
+ } while ((int)address_02 < 0x1fe5b0c);
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0x13] = _hashSubTotal;
+ this->HASH_HashTotal[this->currentPlayerSlotID]
+ = this->HASH_HashTotal[this->currentPlayerSlotID] + _hashSubTotal;
+ iVar39 = 0;
+ do {
+ iVar45 = iVar39 + 1;
+ this->HASH_Unknown2[this->currentPlayerSlotID][iVar39] = 0;
+ iVar39 = iVar45;
+ } while (iVar45 < 40);
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0x14] = 0;
+ _hashSubTotal = 0;
+ address_03 = DAT_AIVState.aivs;
+ _aivIndex = 0;
+ do {
+ uVar19 = computeHash(28056, (int*)((int)(&address_03->playerID)));
+ _hashSubTotal = _hashSubTotal + uVar19;
+ address_03 = address_03 + 1;
+ this->HASH_AIVS[this->currentPlayerSlotID][_aivIndex] = uVar19;
+ _aivIndex = _aivIndex + 1;
+ } while ((int)address_03 < 0x18a450c);
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0x15] = _hashSubTotal;
+ this->HASH_HashTotal[this->currentPlayerSlotID]
+ = this->HASH_HashTotal[this->currentPlayerSlotID] + _hashSubTotal;
+ _hashSubTotal = 0;
+ _heatMapIndex = 0x18c37f4;
+ iVar39 = 0;
+ do {
+ /*
+ fixme: it is wasteful to network latency to send the heatmap because it is a derivative of the
+ map state, as long as the map and tree state is correct, this is unnecessary
+ */
+ uVar19 = computeHash(3840, (int*)((int)(_heatMapIndex)));
+ _hashSubTotal = _hashSubTotal + uVar19;
+ _heatMapIndex = _heatMapIndex + 0xf00;
+ this->HASH_HeatMaps[this->currentPlayerSlotID][iVar39] = uVar19;
+ iVar39 = iVar39 + 1;
+ } while (_heatMapIndex < 0x190e7f4);
+ this->DAT_PlayerMatchTimes[this->currentPlayerSlotID * 0xc + 0x16] = _hashSubTotal;
+ this->HASH_HashTotal[this->currentPlayerSlotID]
+ = this->HASH_HashTotal[this->currentPlayerSlotID] + _hashSubTotal;
+ if (dontSendSyncCommand == 0) {
+ queueCommand(
+ GCT_ANNOUNCE_PLAYER_INFORMATION_AVAILABLE_AIVSSPECIALTRANSMITLOGIC);
+ return;
+ }
+ } else {
+ this->DAT_HashCountdown = this->DAT_HashCountdown + -1;
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0048cc90", "name": "recomputeHashesAndSendResync", "quelle": "ghidra", "p1": {"bereich": "Befehle/Takt", "zweck": "Berechnet, sobald der Countdown abgelaufen ist, Prüfsummen über große Teile des Spielzustands (Einzelwerte und Teilsummen je Bereich) und reiht danach auf Wunsch einen Meldebefehl ein."}, "p2": {"ein": "dontSendSyncCommand (0 = nach der Berechnung den Meldebefehl einreihen; ungleich 0 = nur berechnen)", "aus": "nichts", "liest": ["DAT_GameHalted", "DAT_HashCountdown", "currentPlayerSlotID", "DAT_GameCore.mapTimeInTicks", "DAT_UnitsState.units, DAT_BuildingsState.buildings, DAT_LandscapeState.trees, DAT_TribesState.tribes, DAT_GameState.playerDataArray", "DAT_GameState.mapAndTime ab field192_0x194, DAT_AIVState.mapExtraInfo.totalWoodAvailable, DAT_AIVState.aivs", "DAT_TileMapState (LogicLayer, BuildingLayer, WallOwnerLayer, moats, pitchDitches)", "DAT_EntityState.entityArray ab Index 25, DAT_PathFindingState.climbData, Heatmap-Speicher ab Adresse 0x18c37f4"], "schreibt": ["HASH_HashTotal[slot]", "DAT_PlayerMatchTimes[slot]", "DAT_PlayerMatchTimes[slot*0xc + 9 bis 0x16] (Teilsummen)", "HASH_Units/Buildings/Trees/Tribes/PlayerDatas/Section1023/LogicalTileMap/Entities/Moats/ClimbData/PitchDitches/Unknown2/AIVS/HeatMaps[slot][i]", "DAT_HashCountdown (nur um 1 verringert, und nur wenn er ungleich 0 ist)", "Felder von Einheiten, Gebäuden, Spielerdaten und Entitäten: nur kurz auf 0 gesetzt und sofort zurückgeschrieben"], "ruft": ["computeHash", "computeMaskedBitAccumulator", "queueCommand"], "regeln": ["Läuft nur, wenn DAT_GameHalted == 0. Ist DAT_HashCountdown dann ungleich 0, wird er nur um 1 verringert und sonst nichts getan; in dieser Funktion wird er nie neu gesetzt (nach der Berechnung bleibt er 0).", "Bei DAT_HashCountdown == 0: HASH_HashTotal[slot] = 0 und DAT_PlayerMatchTimes[slot] = mapTimeInTicks. Danach je Bereich: Einzel-Hash je Eintrag nach HASH_<Bereich>[slot][i], Teilsumme nach DAT_PlayerMatchTimes[slot*0xc + n] und auf HASH_HashTotal[slot] addiert.", "Teilsummen-Index n: Einheiten 9, Gebäude 0xa, Bäume 0xb, Tribes 0xc, Spielerdaten 0xd, Section1023 0xe, Tile-Karte 0xf, Entitäten 0x10, Gräben 0x11, Kletterdaten 0x12, Pechgräben 0x13, Unknown2 0x14 (fest 0), AIV 0x15, Heatmaps 0x16.", "Gehashte Länge je Eintrag in Byte: Einheit 1028 (ab logicalState), Gebäude 0x25c = 604, Baum 88, Tribe 816, Spielerdaten 14748, Section1023-Block 14566 (dazu 16 und 0x330 = 816), Entität 0xe8 = 232, Gräben 1600 je Block zu 100 Stück, Kletterdaten 516 (ab canBeUsed), Pechgräben 2000 je Block zu 100 Stück, AIV 28056 (ab playerID), Heatmap 3840 (80 Stück laut Adressspanne 0x18c37f4 bis 0x190e7f4), alle Tile-Karten-Zeilen 2512 (= 0x9d0, dieselbe Zahl).", "Zum Einheiten-Hash werden animationLeapTicksTotal, animationSpeed und animationTicker als Summanden addiert; zum Gebäude-Hash animationIndex und fünf weitere Ganzzahlen bei animationIndex -16, +40, +44, +48 und +52 Byte.", "Vor dem Hashen kurz auf 0 gesetzt und danach zurückgeschrieben: Einheit field308_0x41c und field309_0x420; Gebäude ein 2-Byte-Wert bei animationIndex +0x2dc; Spielerdaten vier Ganzzahlen (von Ghidra mit Unit-Namen animationFrame, animationSpeed, woodCutterChopsCount, animationTicker benannt) und 4 Byte bei pathPlanStart+0x6e bis 0x71; Entität 14 Felder (darunter x1 und graphicType2). Alle übrigen Bereiche werden unverändert gehasht.", "Entitäten: die Schleife beginnt bei entityArray[0x19]; HASH_Entities[slot][0..24] werden hier nicht beschrieben.", "Section1023: Blöcke zu 14566 Byte ab DAT_GameState.mapAndTime.field192_0x194 (vermutlich 18 Blöcke, Index 0..17), dann Index 18 = 16 Byte bei signpostsMapEdge + letzter Blockindex*0x38e6 + 0x1022, dann Index 0x13 = 0x330 Byte ab DAT_AIVState.mapExtraInfo.totalWoodAvailable; Teilsumme = Summe aller drei Teile.", "Tile-Karte (Teilsumme 0xf): Ebene 0 aus LogicLayer; Ebenen 3, 4, 5, 6, 8 aus BuildingLayer-Bereichen (Team-Kommentare: Baum/Fels-ID, Gebäude-ID, Einheiten-ID, Entitäten-ID, Gebiets-ID); Ebenen 10 und 13 bis 28 aus WallOwnerLayer-Bereichen mit computeHash; Ebene 12 (0xc) ebenfalls aus WallOwnerLayer, aber mit computeMaskedBitAccumulator(2512, ..., 0x7070707).", "Ebenen 1, 2, 7, 9 und 11 der Tile-Karte werden fest auf 0 gesetzt und tragen nichts zur Summe bei. Ebene 29 wird hier gar nicht beschrieben. Zeilenzahlen (aus broadcastDesyncResyncCommands, nicht an den Schleifen hier ablesbar): Ebene 0 = 128, Ebenen 1..9 = 64, Ebenen 10..29 = 32.", "HASH_Unknown2: 40 Einträge fest 0, Teilsumme [slot*0xc + 0x14] = 0, und sie wird nicht auf HASH_HashTotal addiert. HASH_HashTotal[slot] ist damit die Summe aller Teilsummen außer Unknown2.", "Zum Schluss: bei dontSendSyncCommand == 0 wird queueCommand(GCT_ANNOUNCE_PLAYER_INFORMATION_AVAILABLE_AIVSSPECIALTRANSMITLOGIC) aufgerufen; sonst endet die Funktion ohne Befehl (die Hash-Tabellen sind trotzdem berechnet)."], "offen": ["DAT_PlayerMatchTimes wird je Spieler mit Schrittweite 0xc indiziert, aber mit Offsets bis 0x16 beschrieben (Teilsummen verschiedener Spieler überlappen sich); vermutlich ein Typfehler in Ghidra. Außerdem wird DAT_PlayerMatchTimes[slot] ohne Faktor 0xc beschrieben.", "Die Feldnamen in der Spielerdaten-Schleife (animationFrame, woodCutterChopsCount usw.) stammen vermutlich von einem falsch angenommenen Typ (Unit*); was diese vier Felder in den Spielerdaten sind, ist offen.", "Warum die genullten Felder nicht mitzählen, steht nicht im Code; vermutlich dürfen sie zwischen Rechnern abweichen. Ob animationLeapTicksTotal, animationSpeed und animationTicker schon im gehashten Bereich liegen (dann doppelt gezählt), ist ohne Strukturlayout nicht erkennbar.", "Was Tribes (816 Byte je Eintrag) und Section1023 fachlich sind, ist unklar.", "Was der eingereihte Befehl genau auslöst und wie die Hashes zu den anderen Rechnern gelangen, steht nicht in dieser Funktion; der Name wirkt wie die Zusammenlegung zweier Befehlsnamen.", "Wer DAT_HashCountdown setzt und auf welchen Wert, ist hier nicht zu sehen.", "Team-Kommentar im Code (fixme): Heatmaps mitzuschicken sei verschwenderisch, da sie aus Karten- und Baumzustand ableitbar sind."]}, "p3": {"erklaerung": "Wenn der Countdown abgelaufen ist, rechnet das Spiel für fast alle Teile des Spielzustands Prüfsummen aus und reiht danach, falls gewünscht, einen Meldebefehl ein. Damit können die Rechner vermutlich im Mehrspieler vergleichen, ob ihre Spielstände gleich sind; der Spielablauf bleibt unverändert, da kurz genullte Felder sofort zurückgeschrieben werden.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}, "korrigiert": "ja", "aenderung": "Irreführend oder falsch waren: Tile-Zeilen als \"2512 oder 0x9d0\" (dieselbe Zahl), Tribes als \"Gruppen\" und Section1023 als \"Kartenzustand\" als Tatsache, die genullten Felder unvollständig und teils falsch benannt (Holzfäller-Hiebe stammt aus einem falschen Typ), die Zusatzsummanden fehlten, und \"meldet an die anderen Spieler\" sowie \"ändert nichts am Spiel\" waren zu stark."}
+
+### 0x00485830 SetUnitAssemblyPoint | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00485830
+ void Commands::SetUnitAssemblyPoint()
+ {
+ BuildingTypeShort BVar1;
+ uint uVar2;
+ uint _y;
+ int iVar3;
+ short _x;
+ short local_4[2];
+ int _unitCategory;
+ int _playerID;
+ DAT_GameSynchronyState.DAT_CommandSize = 5;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam2, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(local_4, 1, GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = (int)(char)local_4[0];
+ serializeOrDeserializeCommandParameter(local_4, 2, GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = (uint)local_4[0];
+ serializeOrDeserializeCommandParameter(local_4, 2, GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ _playerID = DAT_GameSynchronyState.protocolInvokerPlayerID;
+ uVar2 = DAT_GameSynchronyState.DAT_GameCommandParam1;
+ _unitCategory = DAT_GameSynchronyState.DAT_GameCommandParam0;
+ _y = (uint)local_4[0];
+ DAT_GameSynchronyState.DAT_GameCommandParam2 = _y;
+ if (((DAT_GameSynchronyState.DAT_GameCommandParam1 < 400) && (_y < 400))
+ && (*(char*)(_y * 400 + 0x21aec98 + DAT_GameSynchronyState.DAT_GameCommandParam1) != '\0')) {
+ _x = (short)DAT_GameSynchronyState.DAT_GameCommandParam1;
+ if (DAT_GameSynchronyState.DAT_GameCommandParam0 < 10) {
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.protocolInvokerPlayerID]
+ .barracksAssemblyPoints[DAT_GameSynchronyState.DAT_GameCommandParam0]
+ .x = _x;
+ DAT_GameState.playerDataArray[_playerID].barracksAssemblyPoints[_unitCategory].y
+ = local_4[0];
+ iVar3 = (int)DAT_TileMapState
+ .BuildingLayer[DAT_ViewportRenderState.translationMatrix[_y].addXgetTile
+ + uVar2];
+ if ((iVar3 != 0) && (DAT_BuildingsState.buildings[iVar3].owner == _playerID)) {
+ switch (DAT_BuildingsState.buildings[iVar3].buildingType) {
+ case BT_MERCENARYPOST:
+ case BT_BARRACKS:
+ case BT_PARADEGROUND2:
+ case BT_PARADEGROUND3:
+ case BT_PARADEGROUND4:
+ DAT_GameState.playerDataArray[_playerID].barracksAssemblyPoints[_unitCategory].x
+ = 0;
+ DAT_GameState.playerDataArray[_playerID].barracksAssemblyPoints[_unitCategory].y
+ = 0;
+ return;
+ }
+ }
+ } else if (DAT_GameSynchronyState.DAT_GameCommandParam0 < 0x14) {
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.protocolInvokerPlayerID]
+ .mercenaryAssemblyPoints[DAT_GameSynchronyState.DAT_GameCommandParam0 + -10][0] = _x;
+ DAT_GameState.playerDataArray[_playerID].mercenaryAssemblyPoints[_unitCategory + -10][1]
+ = local_4[0];
+ iVar3 = (int)DAT_TileMapState
+ .BuildingLayer[DAT_ViewportRenderState.translationMatrix[_y].addXgetTile
+ + uVar2];
+ if ((iVar3 != 0) && (DAT_BuildingsState.buildings[iVar3].owner == _playerID)) {
+ switch (DAT_BuildingsState.buildings[iVar3].buildingType) {
+ case BT_MERCENARYPOST:
+ case BT_BARRACKS:
+ case BT_PARADEGROUND2:
+ case BT_PARADEGROUND3:
+ case BT_PARADEGROUND4:
+ DAT_GameState.playerDataArray[_playerID]
+ .mercenaryAssemblyPoints[_unitCategory + -10][0] = 0;
+ DAT_GameState.playerDataArray[_playerID]
+ .mercenaryAssemblyPoints[_unitCategory + -10][1] = 0;
+ return;
+ }
+ }
+ } else if (DAT_GameSynchronyState.DAT_GameCommandParam0 < 0x1e) {
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.protocolInvokerPlayerID]
+ .mercenaryAssemblyPoints[DAT_GameSynchronyState.DAT_GameCommandParam0 + 1][0] = _x;
+ DAT_GameState.playerDataArray[_playerID].mercenaryAssemblyPoints[_unitCategory + 1][1]
+ = local_4[0];
+ iVar3 = (int)DAT_TileMapState
+ .BuildingLayer[DAT_ViewportRenderState.translationMatrix[_y].addXgetTile
+ + uVar2];
+ if (((iVar3 != 0) && (DAT_BuildingsState.buildings[iVar3].owner == _playerID))
+ && ((BVar1 = DAT_BuildingsState.buildings[iVar3].buildingType,
+ BVar1 == BT_ENGINEERSGUILD
+ || (BVar1 == BT_PARADEGROUND)))) {
+ DAT_GameState.playerDataArray[_playerID].mercenaryAssemblyPoints[_unitCategory + 1][0]
+ = 0;
+ DAT_GameState.playerDataArray[_playerID].mercenaryAssemblyPoints[_unitCategory + 1][1]
+ = 0;
+ return;
+ }
+ } else if (DAT_GameSynchronyState.DAT_GameCommandParam0 < 0x28) {
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.protocolInvokerPlayerID]
+ .tunnelersGuildAssemblyPointY = local_4[0];
+ iVar3 = (int)DAT_TileMapState
+ .BuildingLayer[DAT_ViewportRenderState.translationMatrix[_y].addXgetTile
+ + uVar2];
+ DAT_GameState.playerDataArray[_playerID].tunnelersGuildAssemblyPointX = _x;
+ if (((iVar3 != 0) && (DAT_BuildingsState.buildings[iVar3].owner == _playerID))
+ && ((BVar1 = DAT_BuildingsState.buildings[iVar3].buildingType,
+ BVar1 == BT_TUNNELERSGUILD
+ || (BVar1 == BT_PARADEGROUND5)))) {
+ DAT_GameState.playerDataArray[_playerID].tunnelersGuildAssemblyPointX = 0;
+ DAT_GameState.playerDataArray[_playerID].tunnelersGuildAssemblyPointY = 0;
+ return;
+ }
+ } else if (DAT_GameSynchronyState.DAT_GameCommandParam0 < 0x32) {
+ DAT_GameState.playerDataArray[DAT_GameSynchronyState.protocolInvokerPlayerID]
+ .cathedralAssemblyPointY = local_4[0];
+ iVar3 = (int)DAT_TileMapState
+ .BuildingLayer[DAT_ViewportRenderState.translationMatrix[_y].addXgetTile
+ + uVar2];
+ DAT_GameState.playerDataArray[_playerID].cathedralAssemblyPointX = _x;
+ if (((iVar3 != 0) && (DAT_BuildingsState.buildings[iVar3].owner == _playerID))
+ && (DAT_BuildingsState.buildings[iVar3].buildingType
+ == BT_CATHEDRAL)) {
+ DAT_GameState.playerDataArray[_playerID].cathedralAssemblyPointX = 0;
+ DAT_GameState.playerDataArray[_playerID].cathedralAssemblyPointY = 0;
+ }
+ }
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00485830", "name": "SetUnitAssemblyPoint", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Befehl 'Sammelpunkt setzen': Beim Senden verpackt er Kategorie und Feld, beim Ausführen trägt er den Sammelpunkt des Absenders ein oder löscht ihn wieder."}, "p2": {"ein": "keine Parameter; Befehlsdaten: Kategorie (1 Byte, mit Vorzeichen), x (2 Byte, mit Vorzeichen), y (2 Byte, mit Vorzeichen)", "aus": "-", "liest": ["DAT_CommandActionPlan", "protocolInvokerPlayerID", "Gültigkeitstabelle 400 mal 400 Byte ab 0x021AEC98 (Byte bei y*400 + x)", "TileMapState.BuildingLayer über translationMatrix[y].addXgetTile + x", "buildings[b].owner und buildingType"], "schreibt": ["DAT_CommandSize = 5", "DAT_GameCommandParam0/1/2 (nur beim Ausführen, gleich nach dem Lesen, vor allen Prüfungen)", "playerDataArray[sp].barracksAssemblyPoints[Kategorie].x/y", "playerDataArray[sp].mercenaryAssemblyPoints[..][0/1]", "playerDataArray[sp].tunnelersGuildAssemblyPointX/Y", "playerDataArray[sp].cathedralAssemblyPointX/Y"], "ruft": ["serializeOrDeserializeCommandParameter"], "regeln": ["Befehlsgröße 5 Byte (Kategorie 1, x 2, y 2). DAT_CommandActionPlan = 1 (GCS_SCHEDULE_AND_SEND): verpackt nur Kategorie, x und y und kehrt zurück, ohne etwas zu setzen. = 0 (GCS_EXECUTE): liest die drei Werte und führt aus. Jeder andere Wert: nur DAT_CommandSize wird gesetzt", "Ausführen: Param0 (Kategorie), Param1 (x) und Param2 (y) werden sofort aus den Befehlsdaten übernommen, noch vor allen Prüfungen; sie bleiben also auch gesetzt, wenn danach eine Prüfung scheitert", "Gesetzt wird nur, wenn x <= 399 und y <= 399 (ohne Vorzeichen verglichen, negative Werte fallen durch) und das Byte der Gültigkeitstabelle bei 0x021AEC98 + y*400 + x ungleich 0 ist; sonst Rückkehr ohne Änderung", "Die Kategorie wird mit Vorzeichen verglichen: kleiner 10 (auch alle negativen Werte) -> barracksAssemblyPoints[Kategorie] = (x, y); 10-19 -> mercenaryAssemblyPoints[Kategorie - 10]; 20-29 -> mercenaryAssemblyPoints[Kategorie + 1]; 30-39 -> der eine Punkt tunnelersGuildAssemblyPointX/Y; 40-49 -> der eine Punkt cathedralAssemblyPointX/Y; 50 und mehr: nichts. Betroffen ist immer der Absender (protocolInvokerPlayerID)", "Negative Kategorie: Der Index ist negativ, und der Schreibzugriff liegt ohne Prüfung vor dem Feld barracksAssemblyPoints (4 Byte je Kategorie); ob solche Werte vorkommen, ist offen", "Löschen: Der Punkt wird zuerst gesetzt. Liegt auf dem Feld (x, y) ein Gebäude (BuildingLayer ungleich 0) des Absenders (owner == Absender) von passender Art, wird der Punkt sofort auf (0, 0) zurückgesetzt; sonst bleibt er stehen", "Passende Gebäudearten: Kategorie unter 20: BT_MERCENARYPOST, BT_BARRACKS, BT_PARADEGROUND2, BT_PARADEGROUND3, BT_PARADEGROUND4; Kategorie 20-29: BT_ENGINEERSGUILD oder BT_PARADEGROUND (Typnummern 0x18 und 0x35); 30-39: BT_TUNNELERSGUILD oder BT_PARADEGROUND5 (Typnummern 0x19 und 0x3b); 40-49: nur BT_CATHEDRAL (Typnummer 0x26)", "Keine Prüfung auf Begehbarkeit oder Besitz des Feldes, nur Kartengrenze und Gültigkeitstabelle", "Adressen aus dem Maschinencode (Spieler 0; je Spieler +0x39F4): Kategorie unter 10 bei 0x0115E0D8 + 4*Kategorie; 10-19 bei 0x0115F720 + 4*Kategorie; 20-29 bei 0x0115F74C + 4*Kategorie; Tunnelgräber-Punkt bei 0x0115F7A4, Kathedralen-Punkt bei 0x0115F7A8 (je x und y als 2 Byte). Kategorie 22 trifft damit dieselben Speicherworte wie der Tunnelgräber-Punkt, Kategorie 23 die des Kathedralen-Punkts"], "offen": ["Welche Einheiten- oder Gebäudeart zu welcher Kategorie (0-49) gehört", "Bedeutung der Gültigkeitstabelle bei 0x021AEC98 (vermutlich: Feld liegt auf der Karte)", "Warum Kategorie 20-29 nicht an 10-19 anschließt und mit 22 und 23 auf Tunnelgräber- und Kathedralenfelder fällt (vermutlich ist der Ghidra-Feldtyp zu kurz; der echte Aufbau ist nicht geklärt)", "Ob (0, 0) im Spiel als 'kein Sammelpunkt' gilt (vermutlich)", "Ob negative Kategorien oder Spielerkennungen außerhalb des Bereichs je vorkommen"]}, "p3": {"erklaerung": "Der Befehl legt für den Absender einen Sammelpunkt fest (je Kategorie ein Feld aus x und y); klickt man dabei auf ein eigenes Gebäude der passenden Art, wird der Punkt gleich wieder auf (0, 0) gelöscht.", "gehirn": "Sammelpunkte lassen sich per Befehl setzen: Kategorie (Zuordnung zu Einheiten- und Gebäudeart noch offen) und ein Feld 0-399; ein Feld ohne eigenes passendes Gebäude wählen, sonst wird der Punkt sofort wieder gelöscht. Zum Zurücklesen die Sammelpunktfelder des Spielers lesen; (0, 0) bedeutet vermutlich 'nicht gesetzt'.", "beleg": "code", "live": "Sammelpunkt je Gebäudeart (Kaserne, Söldnerposten, Ingenieurgilde, Tunnelgilde, Kathedrale) einmal im Spiel auf ein freies Feld setzen → Sammelpunktfelder des Spielers (Kaserne ab 0x0115E0D8, 4 Byte je Kategorie, +0x39F4 je Spieler) vorher/nachher → eine Kategorie bekommt x und y des Feldes (so ergibt sich Kategorie je Gebäudeart); danach das eigene Gebäude anklicken → derselbe Eintrag wird (0, 0)", "live_art": "anwerben"}, "korrigiert": "ja", "aenderung": "Die Kategorie wird mit Vorzeichen verglichen, also gehen alle Werte unter 10 (auch negative) in den ersten Zweig und nicht nur 0-9; außerdem fehlten der Sendezweig, das Schreiben von Param0-2 vor den Prüfungen, die Überlappung der Kategorien 22/23 mit den Tunnelgräber- und Kathedralenfeldern und live_art."}
+

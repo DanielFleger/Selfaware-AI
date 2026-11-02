@@ -1,0 +1,590 @@
+### 0x0048acb0 CommandSwitchTeams | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0048ACB0
+ void Commands::CommandSwitchTeams()
+ {
+ char cVar1;
+ bool bVar2;
+ int iVar3;
+ DWORD DVar4;
+ char* pcVar5;
+ int iVar6;
+ int iVar7;
+ char* pcVar8;
+ byte bVar9;
+ short local_28[2];
+ int aiStack_24[9];
+ DAT_GameSynchronyState.DAT_CommandSize = 3;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam0, 2,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ serializeOrDeserializeCommandParameter(&DAT_GameSynchronyState.DAT_GameCommandParam1, 1,
+ GCPL_DYNAMIC_COMMAND_DATA_ADDRESS, GCPRW_SERIALIZE_INTO_PARAM_1);
+ return;
+ }
+ bVar2 = false;
+ if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+ serializeOrDeserializeCommandParameter(local_28, 2, GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ DAT_GameSynchronyState.DAT_GameCommandParam0 = (int)local_28[0];
+ serializeOrDeserializeCommandParameter(local_28, 1, GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+ GCPRW_DESERIALIZE_FROM_PARAM1);
+ iVar6 = DAT_GameSynchronyState.DAT_GameCommandParam0;
+ DAT_GameSynchronyState.DAT_GameCommandParam1 = (int)(char)local_28[0];
+ if (DAT_GameSynchronyState.DAT_GameCommandParam1 == 0) {
+ if (DAT_GameSynchronyState.DAT_GameCommandParam0
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ aiStack_24[1] = 0;
+ aiStack_24[2] = 0;
+ aiStack_24[3] = 0;
+ aiStack_24[4] = 0;
+ aiStack_24[5] = 0;
+ aiStack_24[6] = 0;
+ aiStack_24[7] = 0;
+ aiStack_24[8] = 0;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[1] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[1]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[1]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[2] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[2]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[2]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[3] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[3]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[3]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[4] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[4]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[4]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[5] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[5]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[5]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[6] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[6]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[6]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[7] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[7]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[7]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[8] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[8]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[8]] + 1;
+ }
+ bVar9 = aiStack_24[1] != 0;
+ if (aiStack_24[2] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[3] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[4] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[5] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[6] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[7] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[8] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if ((2 < bVar9) || (aiStack_24[DAT_GameSynchronyState.protocolInvokerPlayerID] != 1)) {
+ DVar4 = timeGetTime();
+ DAT_GameSynchronyState
+ .unknownPlayerInfoArray_01[DAT_GameSynchronyState.protocolInvokerPlayerID]
+ = DVar4;
+ /*
+ "Wishes to become an ally" added by script: "wishes to become an ally."
+ */
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_MULTIPLAYER_CONNECTION, 0x25);
+ pcVar8 = DAT_GameSynchronyState.receivedChatMessage;
+ do {
+ cVar1 = *pcVar5;
+ *pcVar8 = cVar1;
+ pcVar5 = pcVar5 + 1;
+ pcVar8 = pcVar8 + 1;
+ } while (cVar1 != '\0');
+ addChatMessageToDisplayList(DAT_GameSynchronyState.protocolInvokerPlayerID, 0);
+ return;
+ }
+ }
+ } else {
+ if (DAT_GameSynchronyState.DAT_GameCommandParam1 == 2) {
+ aiStack_24[1] = 0;
+ aiStack_24[2] = 0;
+ aiStack_24[3] = 0;
+ aiStack_24[4] = 0;
+ aiStack_24[5] = 0;
+ aiStack_24[6] = 0;
+ aiStack_24[7] = 0;
+ aiStack_24[8] = 0;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[1] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[1]] = 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[2] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[2]] = 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[3] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[3]] = 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[4] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[4]] = 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[5] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[5]] = 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[6] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[6]] = 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[7] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[7]] = 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[8] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[8]] = 1;
+ }
+ iVar6 = 1;
+ do {
+ if (aiStack_24[iVar6] == 0) {
+ DAT_GameState.mapAndTime
+ .playerTeams[DAT_GameSynchronyState.protocolInvokerPlayerID] = iVar6;
+ break;
+ }
+ iVar6 = iVar6 + 1;
+ } while (iVar6 < 9);
+ /*
+ "has cancelled the alliance" added by script: "has cancelled the alliance"
+ */
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_MULTIPLAYER_CONNECTION, 0x27);
+ pcVar8 = DAT_GameSynchronyState.receivedChatMessage;
+ do {
+ cVar1 = *pcVar5;
+ *pcVar8 = cVar1;
+ pcVar5 = pcVar5 + 1;
+ pcVar8 = pcVar8 + 1;
+ } while (cVar1 != '\0');
+ addChatMessageToDisplayList(DAT_GameSynchronyState.protocolInvokerPlayerID, 0);
+ return;
+ }
+ if (DAT_GameSynchronyState.DAT_GameCommandParam1 == 1) {
+ aiStack_24[1] = 0;
+ aiStack_24[2] = 0;
+ aiStack_24[3] = 0;
+ aiStack_24[4] = 0;
+ aiStack_24[5] = 0;
+ aiStack_24[6] = 0;
+ aiStack_24[7] = 0;
+ aiStack_24[8] = 0;
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[1] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[1]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[1]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[2] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[2]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[2]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[3] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[3]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[3]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[4] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[4]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[4]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[5] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[5]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[5]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[6] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[6]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[6]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[7] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[7]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[7]] + 1;
+ }
+ if (DAT_GameSynchronyState.currentPlayerFullIDArray[8] != -1) {
+ aiStack_24[DAT_GameState.mapAndTime.playerTeams[8]]
+ = aiStack_24[DAT_GameState.mapAndTime.playerTeams[8]] + 1;
+ }
+ bVar9 = aiStack_24[1] != 0;
+ if (aiStack_24[2] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[3] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[4] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[5] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[6] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[7] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if (aiStack_24[8] != 0) {
+ bVar9 = bVar9 + 1;
+ }
+ if ((2 < bVar9) || (aiStack_24[DAT_GameSynchronyState.DAT_GameCommandParam0] != 1)) {
+ bVar2 = true;
+ }
+ iVar7 = countPlayersInSameTeam(DAT_GameSynchronyState.DAT_GameCommandParam0);
+ iVar3 = DAT_GameSynchronyState.protocolInvokerPlayerID;
+ if (((iVar7 < 2)
+ && (iVar7
+ = countPlayersInSameTeam(
+ DAT_GameSynchronyState.protocolInvokerPlayerID),
+ iVar7 < 2))
+ && (bVar2)) {
+ DAT_GameState.mapAndTime.playerTeams[iVar6]
+ = DAT_GameState.mapAndTime.playerTeams[iVar3];
+ /*
+ "has joined with" added by script: "has joined with"
+ */
+ pcVar5 = getTextStringInGroupAtOffset(TEXT_MULTIPLAYER_CONNECTION, 0x26);
+ pcVar8 = DAT_GameSynchronyState.receivedChatMessage;
+ do {
+ cVar1 = *pcVar5;
+ *pcVar8 = cVar1;
+ pcVar5 = pcVar5 + 1;
+ pcVar8 = pcVar8 + 1;
+ } while (cVar1 != '\0');
+ addChatMessageToDisplayList(DAT_GameSynchronyState.DAT_GameCommandParam0,
+ DAT_GameSynchronyState.protocolInvokerPlayerID);
+ }
+ }
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0048acb0", "name": "CommandSwitchTeams", "quelle": "ghidra", "p1": {"bereich": "Befehle/Takt", "zweck": "Befehl für Bündnisse im Mehrspieler: Anfrage an einen Mitspieler (Art 0), Zusammenschluss zu einem Team (Art 1) und Bündnis verlassen (Art 2); verändert die Teamnummern in mapAndTime.playerTeams."}, "p2": {"ein": "Befehlsdaten: Param0 = Spielerplatz (2 Byte, mit Vorzeichen), Param1 = Art (1 Byte, mit Vorzeichen; 0, 1 oder 2)", "aus": "-", "liest": ["DAT_CommandActionPlan", "currentPlayerFullIDArray[1..8]", "mapAndTime.playerTeams[1..8]", "protocolInvokerPlayerID", "currentPlayerSlotID"], "schreibt": ["DAT_CommandSize = 3", "DAT_GameCommandParam0/1 (beim Ausführen, vor allen Prüfungen)", "mapAndTime.playerTeams[Absender] (Art 2)", "mapAndTime.playerTeams[Param0] (Art 1)", "unknownPlayerInfoArray_01[Absender] = timeGetTime() (Art 0)", "receivedChatMessage"], "ruft": ["serializeOrDeserializeCommandParameter", "countPlayersInSameTeam", "getTextStringInGroupAtOffset", "addChatMessageToDisplayList", "timeGetTime"], "regeln": ["Befehlsgröße 3 Byte (Param0 2 Byte, Param1 1 Byte). DAT_CommandActionPlan = 1 (GCS_SCHEDULE_AND_SEND): verpackt nur Param0 und Param1. = 0 (GCS_EXECUTE): liest beide (mit Vorzeichen) und wertet Param1 aus. Jede andere Art als 0, 1 oder 2 hat keine Wirkung", "Hilfszählung: Für jede Teamnummer t (1-8) wird gezählt, wie viele Plätze 1..8 mit currentPlayerFullIDArray != -1 (vermutlich nur Menschen, KI-Plätze zählen nicht) in diesem Team stehen (playerTeams == t). 'Belegte Teams' = Zahl der Nummern t mit Zähler ungleich 0. Art 2 markiert die Nummern nur (1 statt Zähler)", "Art 0 (Anfrage) wirkt nur auf dem Rechner, auf dem Param0 gleich currentPlayerSlotID ist; alle anderen tun nichts. Dort: Gibt es mehr als 2 belegte Teams oder ist der Zähler an der Stelle der PLATZNUMMER des Absenders (protocolInvokerPlayerID) ungleich 1, wird unknownPlayerInfoArray_01[Absender] = timeGetTime() gesetzt und der Chat-Text 0x25 ('wishes to become an ally') mit dem Absender angezeigt", "Der Zähler wird mit der Platznummer indiziert (Art 0: Absender, Art 1: Param0), nicht mit der Teamnummer dieses Spielers; verglichen wird also die Besetzung des Teams mit der Nummer des Platzes. Das ist nur gleichwertig, solange Teamnummer = Platznummer gilt", "Art 1 (Zusammenschluss): Nur wenn countPlayersInSameTeam(Param0) < 2 und countPlayersInSameTeam(Absender) < 2 (beide haben keinen Mitspieler im eigenen Team) und zusätzlich mehr als 2 belegte Teams ODER Zähler[Platznummer von Param0] ungleich 1. Dann playerTeams[Param0] = playerTeams[Absender] und Chat-Text 0x26 ('has joined with') mit Param0 und Absender", "Art 2 (Bündnis verlassen), auf allen Rechnern und ohne Prüfung von Param0: Der Absender bekommt die kleinste Teamnummer 1-8, in der kein Mensch steht (seine alte Nummer zählt als belegt); gibt es keine, bleibt sein Team unverändert. Chat-Text 0x27 ('has cancelled the alliance') mit dem Absender", "Durch Art 1 entsteht höchstens ein Zweierteam (beide mussten vorher allein sein); über Teams aus anderen Wegen (z. B. aus der Lobby) sagt diese Funktion nichts"], "offen": ["Bedeutung von Param0 bei Art 0 (vermutlich der angefragte Platz) und bei Art 1 (vermutlich der Platz, der sich anschließt); nur aus dem Verhalten geschlossen", "Ob Teamnummer = Platznummer vor dem ersten Wechsel immer gilt (dann wären die Zählerabfragen anfangs gleichwertig); ungeprüft", "Warum bei Art 0 nichts angezeigt wird, wenn es genau 2 belegte Teams gibt und das Team mit der Platznummer des Absenders genau einen Menschen hat"]}, "p3": {"erklaerung": "Im Mehrspieler können sich Spieler zu Teams zusammenschließen: erst eine Anfrage (Chat-Meldung beim Angefragten), dann der Zusammenschluss (nur wenn beide vorher allein sind, so entstehen Zweierteams), und mit Art 2 verlässt man das Team wieder. Die Zählprüfung nimmt dabei die Platznummer als Teamnummer.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}, "korrigiert": "ja", "aenderung": "Die Zählprüfung indiziert mit der Platznummer des Absenders bzw. von Param0 statt mit dem Team des Spielers, Art 0 wirkt nur auf dem Rechner mit Param0 = lokalem Platz, 'Teams nur zu zweit' stand als Tatsache da, und die Unklarheit zu iVar6 ist gelöst (es ist Param0)."}
+
+### 0x0047db10 initializeDirectPlayAndCreateOrJoinSession | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0047DB10
+ int GameSynchronyState::initializeDirectPlayAndCreateOrJoinSession(BOOLEnum join)
+ {
+ IDirectPlay4A** ppIVar1;
+ uint uVar2;
+ DPERRInt _lobbyStatus;
+ void* pvVar3;
+ int _status;
+ DPERRInt _dpStatus;
+ DPERRInt _cpStatus;
+ DPERRInt _setStatus;
+ IDirectPlay4A** unaff_EDI;
+ IDirectPlay4A** _dplay4;
+ SIZE_T local_58;
+ DPSESSIONDESC2 _session;
+ ppIVar1 = this->DPLAYX_4A;
+ uVar2 = MSVC_SecurityCookie::instance ^ (uint)&_dplay4;
+ _dplay4 = (IDirectPlay4A**)0x0;
+ local_58 = 0;
+ if (this->DPLAYX_LOBBY == (IDirectPlayLobby3**)0x0) {
+ _lobbyStatus = DPERR_INVALIDOBJECT;
+ ;
+ return (int)(_lobbyStatus);
+ }
+ if (join == FALSE) {
+ if (this->DPLAYX_Connection != (void*)0x0) {
+ pvVar3 = MACRO_CALL(GlobalHandle)(this->DPLAYX_Connection);
+ GlobalUnlock(pvVar3);
+ pvVar3 = MACRO_CALL(GlobalHandle)(this->DPLAYX_Connection);
+ GlobalFree(pvVar3);
+ this->DPLAYX_Connection = (void*)0x0;
+ }
+ _status = createCompoundAddressBasedOnSelectedProvider(
+ (void**)&this->DPLAYX_Connection, &local_58);
+ if (_status < 0)
+ goto LAB_return;
+ if (this->DPLAYX_4A != (IDirectPlay4A**)0x0) {
+ (*(*this->DPLAYX_4A)->Close)(this->DPLAYX_4A);
+ (*(*this->DPLAYX_4A)->Release)((IDirectPlay4A*)this->DPLAYX_4A);
+ this->DPLAYX_4A = (IDirectPlay4A**)0x0;
+ }
+ _status = CoCreateInstance(
+ (IID*)GUID_CLSID_DirectPlay::ptr, (IUnknown*)0x0, 1, (IID*)GUID_IID_IDirectPlay4::ptr, &_dplay4);
+ if (_status < 0)
+ goto LAB_return;
+ _dpStatus = (*(*_dplay4)->InitializeConnection)(_dplay4, this->DPLAYX_Connection, 0);
+ if (_dpStatus < DPERR_DP_OK)
+ goto LAB_release;
+ if (this->isHost != FALSE) {
+ _memset(&_session, 0, (size_t)((int)(80)));
+ _session.guidApplication.Data1 = 0x1d5e2f48;
+ builtin_memcpy(_session.guidApplication.Data4 + 4, "ڞ0Y", 4);
+ _session.dwSize = 80;
+ _session.dwFlags = DPSESSION_OPTIMIZELATENCY
+ | DPSESSION_DIRECTPLAYPROTOCOL | DPSESSION_KEEPALIVE
+ | DPSESSION_MIGRATEHOST;
+ _session.guidApplication.Data2 = 0xe8c0;
+ _session.guidApplication.Data3 = 0x49e5;
+ _session.guidApplication.Data4[0] = 0xae;
+ _session.guidApplication.Data4[1] = 0xd8;
+ _session.guidApplication.Data4[2] = 0xb1;
+ _session.guidApplication.Data4[3] = 0x24;
+ _session.dwMaxPlayers = 8;
+ setDPlaySessionNameValue();
+ _session.lpszSessionName = this->DPLAYX_SessionName;
+ _dpStatus = (*(*_dplay4)->Open)(_dplay4, &_session, OFE_CREATE);
+ goto LAB_close_and_release_if_err;
+ }
+ DPLAY_CurrentSessionGUID::instance.Data1 = 0;
+ DPLAY_CurrentSessionGUID::instance.Data2 = 0;
+ DPLAY_CurrentSessionGUID::instance.Data3 = 0;
+ DPLAY_InterfacePointer::instance = _dplay4;
+ DPLAY_CurrentSessionGUID::instance.Data4[0] = '\0';
+ DPLAY_CurrentSessionGUID::instance.Data4[1] = '\0';
+ DPLAY_CurrentSessionGUID::instance.Data4[2] = '\0';
+ DPLAY_CurrentSessionGUID::instance.Data4[3] = '\0';
+ DPLAY_CurrentSessionGUID::instance.Data4[4] = '\0';
+ DPLAY_CurrentSessionGUID::instance.Data4[5] = '\0';
+ DPLAY_CurrentSessionGUID::instance.Data4[6] = '\0';
+ DPLAY_CurrentSessionGUID::instance.Data4[7] = '\0';
+ } else {
+ _dplay4 = this->DPLAYX_4A;
+ _memset(&_session, 0, (size_t)((int)(80)));
+ _session.guidApplication.Data1 = 0x1d5e2f48;
+ _session.guidApplication.Data2 = 0xe8c0;
+ _session.guidApplication.Data3 = 0x49e5;
+ builtin_memcpy(_session.guidApplication.Data4 + 4, "ڞ0Y", 4);
+ _session.guidInstance.Data1 = DPLAY_CurrentSessionGUID::instance.Data1;
+ _session.guidApplication.Data4[0] = 0xae;
+ _session.guidApplication.Data4[1] = 0xd8;
+ _session.guidApplication.Data4[2] = 0xb1;
+ _session.guidApplication.Data4[3] = 0x24;
+ _session.guidInstance.Data4[0] = DPLAY_CurrentSessionGUID::instance.Data4[0];
+ _session.guidInstance.Data4[1] = DPLAY_CurrentSessionGUID::instance.Data4[1];
+ _session.guidInstance.Data4[2] = DPLAY_CurrentSessionGUID::instance.Data4[2];
+ _session.guidInstance.Data4[3] = DPLAY_CurrentSessionGUID::instance.Data4[3];
+ _session.guidInstance.Data4[4] = DPLAY_CurrentSessionGUID::instance.Data4[4];
+ _session.guidInstance.Data4[5] = DPLAY_CurrentSessionGUID::instance.Data4[5];
+ _session.guidInstance.Data4[6] = DPLAY_CurrentSessionGUID::instance.Data4[6];
+ _session.guidInstance.Data4[7] = DPLAY_CurrentSessionGUID::instance.Data4[7];
+ _session.dwSize = 80;
+ _session.guidInstance.Data2 = DPLAY_CurrentSessionGUID::instance.Data2;
+ _session.guidInstance.Data3 = DPLAY_CurrentSessionGUID::instance.Data3;
+ _dpStatus = (*(*ppIVar1)->Open)(ppIVar1, &_session, OFE_JOIN);
+ LAB_close_and_release_if_err:
+ if (_dpStatus < DPERR_DP_OK) {
+ /*
+ Close?
+ */
+ (*(*unaff_EDI)->Close)(unaff_EDI);
+ LAB_release:
+ (*(*_dplay4)->Release)((IDirectPlay4A*)_dplay4);
+ this->DPLAYX_4A = (IDirectPlay4A**)0x0;
+ ;
+ return (int)(_dpStatus);
+ }
+ this->DPLAY_PlayerNameStructure.dwFlags = 0;
+ this->DPLAY_PlayerNameStructure.lpszLongName = (WCHAR*)0x0;
+ this->DPLAY_PlayerNameStructure.dwSize = 0x10;
+ this->DPLAY_PlayerNameStructure.lpszShortName = this->DPLAY_PlayerShortName;
+ _cpStatus
+ = (*(*unaff_EDI)->CreatePlayer)(unaff_EDI, 0x191de0c, (DPNAME*)0x191ddf0, (void*)0x0, (void*)0x0, 0, 0);
+ if (_cpStatus != DPERR_DP_OK) {
+ _setStatus = DPERR_ABORTED;
+ ;
+ return (int)(_setStatus);
+ }
+ }
+ _status = 0;
+ this->DPLAYX_4A = _dplay4;
+ LAB_return:;
+ return _status;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0047db10", "name": "initializeDirectPlayAndCreateOrJoinSession", "quelle": "ghidra", "p1": {"bereich": "Befehle/Takt", "zweck": "Startet DirectPlay und legt eine Mehrspieler-Sitzung an (Host) oder tritt einer bestehenden bei (join)."}, "p2": {"ein": "join (FALSE = Verbindung neu aufbauen und als Host eine Sitzung anlegen; TRUE = dem vorhandenen DirectPlay-Objekt DPLAYX_4A die Sitzung DPLAY_CurrentSessionGUID beitreten lassen)", "aus": "0 bei Erfolg, sonst ein Fehlercode (DPERR_INVALIDOBJECT, DPERR_ABORTED oder der Fehlerwert der aufgerufenen DirectPlay-/COM-Funktion)", "liest": ["DPLAYX_LOBBY", "DPLAYX_Connection", "DPLAYX_4A", "isHost", "DPLAY_CurrentSessionGUID", "DPLAYX_SessionName", "DPLAY_PlayerShortName"], "schreibt": ["DPLAYX_Connection (freigegeben, neu gesetzt)", "DPLAYX_4A", "DPLAY_PlayerNameStructure", "DPLAY_CurrentSessionGUID (nur join=FALSE ohne Host: auf 0)", "DPLAY_InterfacePointer (nur join=FALSE ohne Host)"], "ruft": ["createCompoundAddressBasedOnSelectedProvider", "CoCreateInstance", "InitializeConnection", "Open", "Close", "Release", "CreatePlayer", "setDPlaySessionNameValue", "GlobalHandle", "GlobalUnlock", "GlobalFree"], "regeln": ["Ohne DPLAYX_LOBBY: sofort DPERR_INVALIDOBJECT", "join = FALSE: eine vorhandene DPLAYX_Connection wird entsperrt, freigegeben und auf 0 gesetzt; dann neue Adresse über createCompoundAddressBasedOnSelectedProvider; Rückgabe unter 0 beendet die Funktion mit diesem Wert", "Danach wird ein vorhandenes DPLAYX_4A geschlossen (Close), freigegeben (Release) und auf 0 gesetzt; neues Objekt per CoCreateInstance (Rückgabe unter 0 beendet mit diesem Wert); InitializeConnection mit der Adresse; Fehler: Objekt freigeben (ohne Close), DPLAYX_4A = 0, Fehlercode zurück", "join = FALSE und isHost != FALSE: Sitzung anlegen (Open, OFE_CREATE) mit Flags OPTIMIZELATENCY, DIRECTPLAYPROTOCOL, KEEPALIVE, MIGRATEHOST, dwMaxPlayers = 8, Sitzungsname aus setDPlaySessionNameValue (DPLAYX_SessionName) und fester Anwendungs-GUID 0x1d5e2f48-e8c0-49e5-…", "join = FALSE und isHost == FALSE: keine Sitzung, kein Spieler; DPLAY_CurrentSessionGUID wird auf 0 gesetzt, DPLAY_InterfacePointer und DPLAYX_4A bekommen das neue Objekt, Rückgabe 0", "join = TRUE: benutzt das vorhandene DPLAYX_4A (ohne Prüfung auf 0) und tritt per Open mit OFE_JOIN bei, mit derselben Anwendungs-GUID und der Sitzungskennung DPLAY_CurrentSessionGUID, alle anderen Felder 0", "Schlägt Open fehl (Wert unter 0; Host-Anlegen oder Beitritt): Close, Release, DPLAYX_4A = 0, Fehlercode zurück", "Gelingt Open: Namensstruktur füllen (dwSize 0x10, dwFlags 0, langer Name 0, kurzer Name = DPLAY_PlayerShortName) und CreatePlayer aufrufen; das gilt für Host-Anlegen und Beitritt, nicht für den Fall ohne Host", "CreatePlayer ungleich DPERR_DP_OK: Rückgabe DPERR_ABORTED; die Sitzung wird nicht geschlossen, das Objekt nicht freigegeben und DPLAYX_4A nicht neu gesetzt (beim Anlegen bleibt es 0)", "Sonst DPLAYX_4A = das Objekt und Rückgabe 0"], "offen": ["Ghidra zeigt Open, Close und CreatePlayer teils über eine Hilfsvariable unaff_EDI statt über _dplay4 bzw. DPLAYX_4A; gemeint ist vermutlich das jeweils aktuelle DirectPlay-Objekt (Kommentar im Code: „Close?“)", "CreatePlayer bekommt feste Adressen 0x191de0c (vermutlich Ziel der Spieler-ID) und 0x191ddf0 (vermutlich die Namensstruktur DPLAY_PlayerNameStructure); Ghidra benennt sie nicht", "Die letzten 4 Byte der Anwendungs-GUID sind im Ghidra-Text nicht lesbar", "Wann das Spiel join = TRUE statt FALSE verwendet, steht nicht in dieser Funktion"]}, "p3": {"erklaerung": "Netzwerk-Grundlage: Das alte DirectPlay wird gestartet; der Gastgeber legt eine Sitzung für höchstens 8 Spieler an, ein Beitretender tritt der gemerkten Sitzung bei, und in beiden Fällen wird ein Spieler angemeldet.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}, "korrigiert": "ja", "aenderung": "CreatePlayer läuft auch beim Anlegen der Sitzung als Host (nicht nur beim Beitritt); DPLAY_InterfacePointer und das Nullen von DPLAY_CurrentSessionGUID gelten nur für join=FALSE ohne Host; die Folgen eines CreatePlayer-Fehlers sind ergänzt."}
+
+### 0x004f15c0 aiDecideOnNewBuildings | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004F15C0
+ void AIVState::aiDecideOnNewBuildings(PlayerID playerID)
+ {
+ int _aicResourceBuildDelay;
+ BOOLEnum _shouldDestroyWoodCutter;
+ BOOLEnum _decision;
+ uint _shouldBuildFarm;
+ MappersEnum _chosenFarm;
+ int _farmPlaceStatus;
+ uint _buildQuarry;
+ int _extraTethers;
+ uint _buildIronMine;
+ uint _buildPitchRig;
+ int _currentPauseValue;
+ BOOLEnum _housesDestroyed;
+ int _previousSteps;
+ int _isPausing;
+ int _currentPauseIndex;
+ int _currentPause;
+ int* _pStepGoal;
+ int _currentResourceBuildDelay;
+ int _currentGold;
+ int* _ptrAivPoorCounter;
+ int _inc1;
+ int _aivID;
+ int* _pIndicator;
+ PlayerID _playerID_2;
+ _playerID_2 = playerID;
+ _aivID = DAT_GameState.playerDataArray[playerID].aivID;
+ _isPausing = 0;
+ /*
+ richness indicator?
+ */
+ playerID = 1;
+ if (0 < _aivID) {
+ _currentResourceBuildDelay = DAT_GameState.playerDataArray[_playerID_2].resourceRebuildDelay;
+ if (_currentResourceBuildDelay != 0) {
+ DAT_GameState.playerDataArray[_playerID_2].resourceRebuildDelay
+ = _currentResourceBuildDelay + 1;
+ _aicResourceBuildDelay = getResourceRebuildDelay(_playerID_2);
+ if (DAT_GameState.playerDataArray[_playerID_2].resourceRebuildDelay
+ < _aicResourceBuildDelay) {
+ return;
+ }
+ DAT_GameState.playerDataArray[_playerID_2].resourceRebuildDelay = 0;
+ }
+ _currentGold = DAT_GameState.playerDataArray[_playerID_2].currentResources[0xf];
+ if (_currentGold < 16000) {
+ if (_currentGold < 5000) {
+ _ptrAivPoorCounter = &this->aivs[_aivID].aivPoorCounter;
+ *_ptrAivPoorCounter = *_ptrAivPoorCounter + 1;
+ if (this->aivs[_aivID].aivPoorCounter < this->aivs[_aivID].aivPoorLimit_OR_AIC_buildInterval) {
+ return;
+ }
+ } else {
+ /*
+ not poor
+ */
+ playerID = 1;
+ }
+ } else {
+ /*
+ rich
+ */
+ playerID = 2;
+ }
+ /*
+ Navigate section 1107 to this players AIV stuff
+ */
+ this->aivs[_aivID].aivPoorCounter = 0;
+ _pIndicator = &DAT_GameState.playerDataArray[_playerID_2].aiResourceBuildingFocusIndicator;
+ *_pIndicator = *_pIndicator + 1;
+ if (4 < DAT_GameState.playerDataArray[_playerID_2].aiResourceBuildingFocusIndicator) {
+ DAT_GameState.playerDataArray[_playerID_2].aiResourceBuildingFocusIndicator = 0;
+ }
+ _inc1 = DAT_GameState.playerDataArray[_playerID_2].aiResourceBuildingFocusIndicator;
+ if (_inc1 == 0) {
+ /*
+ something with destroying woodcutters?
+ */
+ _shouldDestroyWoodCutter = shouldDestroyWoodCutterUnk(_playerID_2);
+ if ((_shouldDestroyWoodCutter == FALSE)
+ && (_decision = aiShouldBuildWoodcutter(_playerID_2),
+ _decision != FALSE)) {
+ aiPlaceWoodcuttershut(_playerID_2);
+ }
+ } else if (_inc1 == 1) {
+ _shouldBuildFarm
+ = aiShouldBuildFarm(_playerID_2);
+ if (_shouldBuildFarm != 0) {
+ _chosenFarm
+ = aiFarmChoice(_playerID_2);
+ _farmPlaceStatus
+ = aiPlaceFarm(_playerID_2, _chosenFarm);
+ if (_farmPlaceStatus != 0) {
+ setNextFarmTypeToBuild(
+ _playerID_2);
+ }
+ }
+ } else if (_inc1 == 2) {
+ _buildQuarry = aiShouldBuildQuarry(
+ _playerID_2);
+ if (_buildQuarry != 0) {
+ aiPlaceQuarryAndOxtether(_playerID_2);
+ }
+ /*
+ fixme: a value is set in quarry buildings
+ */
+ _extraTethers = aiRequiresExtraOxtethers(_playerID_2);
+ if (_extraTethers != 0) {
+ aiPlaceAdditionalOxtether(_playerID_2);
+ }
+ } else if (_inc1 == 3) {
+ _buildIronMine = aiShouldBuildIronMine(_playerID_2);
+ if (_buildIronMine != 0) {
+ aiPlaceIronMine(_playerID_2);
+ }
+ } else if ((_inc1 == 4)
+ && (_buildPitchRig = aiShouldBuildPitchrig(_playerID_2),
+ _buildPitchRig != 0)) {
+ aiPlacePitchrig(_playerID_2);
+ }
+ _currentPause = DAT_GameState.playerDataArray[_playerID_2].aivCurrentPause;
+ if (_currentPause == 0) {
+ _currentPauseIndex = DAT_GameState.playerDataArray[_playerID_2].aivCurrentPauseIndex;
+ _currentPauseValue
+ = (int)DAT_GameState.playerDataArray[_playerID_2].aivPauses[_currentPauseIndex];
+ if ((0 < _currentPauseValue) && (_currentPauseValue <= this->aivs[_aivID].currentStepGoal)) {
+ DAT_GameState.playerDataArray[_playerID_2].aivCurrentPause
+ = DAT_GameState.playerDataArray[_playerID_2].aivPauseDelay;
+ DAT_GameState.playerDataArray[_playerID_2].aivCurrentPauseIndex = _currentPauseIndex + 1;
+ return;
+ }
+ _pStepGoal = &this->aivs[_aivID].currentStepGoal;
+ /*
+ doc: why can the step increment with 2, because it is like a goal it is aiming for
+ */
+ *_pStepGoal = *_pStepGoal + playerID;
+ } else if ((uint)playerID < 2) {
+ /*
+ not rich
+ */
+ DAT_GameState.playerDataArray[_playerID_2].aivCurrentPause = _currentPause + -1;
+ _isPausing = 1;
+ } else {
+ DAT_GameState.playerDataArray[_playerID_2].aivCurrentPause = 0;
+ _isPausing = 1;
+ }
+ if (this->aivs[_aivID].aivSubType == 0) {
+ executeDefaultCastleAIV(_playerID_2, _isPausing);
+ } else {
+ _housesDestroyed
+ = destroyHouse(_playerID_2);
+ if ((_housesDestroyed == FALSE) && (_previousSteps = 1, 0 < this->aivs[_aivID].totalSteps)) {
+ while (_previousSteps <= this->aivs[_aivID].currentStepGoal) {
+ _decision = aiPlaceAIVBuilding(
+ _playerID_2, _previousSteps, _isPausing);
+ if ((_decision != FALSE)
+ || (_previousSteps = _previousSteps + 1, this->aivs[_aivID].totalSteps < _previousSteps))
+ break;
+ }
+ }
+ }
+ aiPlaceFlag(_playerID_2);
+ aiPlaceBrazier(_playerID_2);
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004f15c0", "name": "aiDecideOnNewBuildings", "quelle": "ghidra", "p1": {"bereich": "KI", "zweck": "Steuert den Bautakt eines KI-Spielers: prüft Wartezeit und Gold, erwägt reihum ein Rohstoffgebäude, steuert die Pausen im Bauplan, lässt das Bauziel vorrücken und baut dann einen Schritt."}, "p2": {"ein": "playerID", "aus": "-", "liest": ["playerData.aivID, resourceRebuildDelay, currentResources[0xf] (laut Paketcode das Gold), aiResourceBuildingFocusIndicator, aivCurrentPause, aivCurrentPauseIndex, aivPauses[], aivPauseDelay", "aivs[aivID].aivPoorCounter, aivPoorLimit_OR_AIC_buildInterval, currentStepGoal, totalSteps, aivSubType"], "schreibt": ["playerData.resourceRebuildDelay (+1 oder 0), aiResourceBuildingFocusIndicator, aivCurrentPause, aivCurrentPauseIndex", "aivs[aivID].aivPoorCounter (+1 bei arm, sonst 0), currentStepGoal (+1 oder +2)"], "ruft": ["getResourceRebuildDelay", "shouldDestroyWoodCutterUnk", "aiShouldBuildWoodcutter", "aiPlaceWoodcuttershut", "aiShouldBuildFarm", "aiFarmChoice", "aiPlaceFarm", "setNextFarmTypeToBuild", "aiShouldBuildQuarry", "aiPlaceQuarryAndOxtether", "aiRequiresExtraOxtethers", "aiPlaceAdditionalOxtether", "aiShouldBuildIronMine", "aiPlaceIronMine", "aiShouldBuildPitchrig", "aiPlacePitchrig", "executeDefaultCastleAIV", "destroyHouse", "aiPlaceAIVBuilding", "aiPlaceFlag", "aiPlaceBrazier"], "regeln": ["Nur bei aivID > 0, sonst sofort zurück", "Wartezeit nach einem Rohstoffbau: ist resourceRebuildDelay ungleich 0, wird er um 1 erhöht; liegt er dann unter getResourceRebuildDelay(Spieler), Rückkehr, sonst wird er auf 0 gesetzt und es geht weiter", "Gold = currentResources[0xf] (vorzeichenbehaftet, Vergleiche laut Assembly): bis einschließlich 5000 = arm, 5001 bis 16000 = normal, über 16000 (ab 16001) = reich. Schrittzuwachs: arm und normal 1, reich 2", "Arm: aivPoorCounter + 1; solange er unter aivPoorLimit_OR_AIC_buildInterval liegt, Rückkehr; erst wenn er das Limit erreicht, geht es weiter. Normal und reich zählen nicht und gehen immer weiter. Auf jedem weitergehenden Weg wird aivPoorCounter = 0 gesetzt", "Rohstoffstufe: aiResourceBuildingFocusIndicator wird je Aufruf um 1 erhöht und bei Werten über 4 auf 0 gesetzt (Folge 1, 2, 3, 4, 0, 1, ...). Wert 0: wenn shouldDestroyWoodCutterUnk FALSE und aiShouldBuildWoodcutter wahr, aiPlaceWoodcuttershut. 1: wenn aiShouldBuildFarm, aiPlaceFarm(aiFarmChoice), und nur bei einem Ergebnis ungleich 0 setNextFarmTypeToBuild. 2: wenn aiShouldBuildQuarry, aiPlaceQuarryAndOxtether; danach unabhängig davon, wenn aiRequiresExtraOxtethers, aiPlaceAdditionalOxtether. 3: wenn aiShouldBuildIronMine, aiPlaceIronMine. 4: wenn aiShouldBuildPitchrig, aiPlacePitchrig", "Keine Pause aktiv (aivCurrentPause == 0): Pausenwert = aivPauses[aivCurrentPauseIndex]. Ist er > 0 und <= currentStepGoal (vor dem Erhöhen), beginnt eine Pause: aivCurrentPause = aivPauseDelay, aivCurrentPauseIndex + 1 und Rückkehr; die Rohstoffstufe dieses Aufrufs ist da schon gelaufen, der Bauplan-Schritt, aiPlaceFlag und aiPlaceBrazier entfallen. Sonst steigt currentStepGoal um den Schrittzuwachs (1 oder 2)", "Pause aktiv (aivCurrentPause != 0): currentStepGoal bleibt gleich, isPausing = 1; bei nicht reicher KI sinkt aivCurrentPause um 1, bei reicher KI wird es sofort 0", "isPausing wird nur an executeDefaultCastleAIV und aiPlaceAIVBuilding weitergereicht; dort dürfen bei isPausing != 0 nur Hütten (M_MAPPER_HOVEL) gebaut werden", "aivSubType == 0 (kein Burgplan): executeDefaultCastleAIV(Spieler, isPausing)", "aivSubType != 0: destroyHouse(Spieler); liefert es FALSE und ist totalSteps >= 1, wird aiPlaceAIVBuilding(Spieler, Schritt, isPausing) für die Schritte 1 bis min(currentStepGoal, totalSteps) der Reihe nach aufgerufen und beim ersten TRUE abgebrochen", "Am Ende aller Wege, die nicht vorher zurückgekehrt sind, laufen aiPlaceFlag(Spieler) und aiPlaceBrazier(Spieler), auch wenn destroyHouse wahr war oder kein Schritt gebaut wurde", "Herkunft der Pausenwerte: applyAIV (Paket korr_047) kopiert 20 Werte aus der Burgvorlage nach aivPauses, setzt aivCurrentPauseIndex = 1 und aivPauseDelay (Standard 100)"], "offen": ["Was shouldDestroyWoodCutterUnk prüft (Name ungesichert) und wie aivPoorLimit_OR_AIC_buildInterval zu verstehen ist (der Name nennt zwei Deutungen)", "Wie oft die Funktion aufgerufen wird, ist in diesem Paket nicht sichtbar; aivPauseDelay und die Armutswartezeit zählen in Aufrufen, nicht in Spielzeit", "Dass currentResources[0xf] das Gold ist, folgt nur aus dem Kommentar im Paketcode, nicht aus dieser Funktion", "Kommentar 'richness indicator?' bei der Zuweisung 1 oder 2: der Wert dient hier als Schrittzuwachs"]}, "p3": {"erklaerung": "Bautakt der KI: Bei jedem Aufruf wird zuerst reihum ein Rohstoffgebäude erwogen (Holzfäller, Farm, Steinbruch, Eisenmine, Pechquelle), dann rückt das Bauziel im Bauplan um 1 vor (bei Gold über 16000 um 2) und ein Bauplan-Schritt wird gebaut. Eine arme KI (Gold bis 5000) handelt erst, wenn ihr Armutszähler das Limit erreicht. In den Pausen des Bauplans bleibt das Bauziel stehen und es werden nur Hütten gebaut.", "gehirn": "Das Bauziel (currentStepGoal) einer KI wächst je Aufruf um 1, bei Gold über 16000 um 2; bei Gold bis 5000 geht es erst nach aivPoorLimit_OR_AIC_buildInterval Aufrufen weiter. Pausen halten das Ziel an und lassen nur Hütten bauen; eine reiche KI beendet sie sofort. Das Gold des Gegners (currentResources[0xf]) zeigt also, wie schnell sein Bauplan voranschreitet; dass Pausen Angriffsfenster sind, ist nicht belegt.", "beleg": "code", "live": "KI-Spieler mit Gold über 16000 ohne laufende Pause (aivCurrentPause = 0) und ohne erreichten Pausenwert beobachten → aivs[aivID].currentStepGoal von Aufruf zu Aufruf lesen → steigt um 2 (bei Gold 5001 bis 16000 um 1; bei Gold bis 5000 um 1, aber erst nach aivPoorLimit_OR_AIC_buildInterval Aufrufen)", "live_art": "bauen"}, "korrigiert": "ja", "aenderung": "Die Goldschwellen waren um eins falsch (Assembly: arm bis einschließlich 5000, reich ab 16001, nicht unter 5000 und ab 16000), die Bauplan-Schleife endet auch bei totalSteps, setNextFarmTypeToBuild läuft nur nach erfolgreichem aiPlaceFarm, der Pausenstart überspringt die Rohstoffstufe nicht, und 'doppelt so schnell' und 'Pausen sind Angriffsfenster' waren überzeichnet bzw. nicht belegt."}
+

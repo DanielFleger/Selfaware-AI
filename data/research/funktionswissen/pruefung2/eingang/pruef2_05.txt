@@ -1,0 +1,669 @@
+### 0x0053c300 UpdateShield | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0053C300
+ void Units::UpdateShield()
+ {
+ int* piVar1;
+ byte* pbVar2;
+ short sVar3;
+ UnitStateShort UVar4;
+ short sVar5;
+ short sVar6;
+ int iVar7;
+ BOOLEnum BVar8;
+ uint uVar9;
+ uint uVar10;
+ uint uVar11;
+ int iVar12;
+ Unit* _pUnits1;
+ uint uVar13;
+ uint uVar14;
+ short* psVar15;
+ Unit* _pUnits3;
+ int iVar16;
+ int* local_50;
+ int local_4c;
+ uint local_48[18];
+ Unit* _pUnits2;
+ uVar11 = DAT_CurrentUnitSlotID;
+ sVar3 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].tribeID;
+ iVar16 = (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner;
+ piVar1 = &DAT_GameState.playerDataArray[iVar16].armySize;
+ *piVar1 = *piVar1 + 1;
+ piVar1 = &DAT_GameState.playerDataArray[iVar16].currentSiegeWeaponCount;
+ *piVar1 = *piVar1 + 1;
+ DAT_UnitsState.units[uVar11].isSelectable_OR_matchTime = 1;
+ DAT_UnitsState.units[uVar11].calculatedOwnerPlayerIndex = iVar16;
+ UVar4 = DAT_UnitsState.units[uVar11].state.generic;
+ local_4c = 0;
+ if (UVar4 == US_DETERMINE_NEXT_STATEUnk) {
+ DAT_UnitsState.units[uVar11].substate = -1;
+ DAT_UnitsState.units[uVar11].stateBasedSpeed = 0;
+ DAT_UnitsState.units[uVar11].gfxNumber
+ = DAT_UnitsState.units[uVar11].facingDirectionMapOrientationCorrected + 9;
+ DAT_UnitsState.units[uVar11].state.generic
+ = -(ushort)(DAT_UnitsState.units[uVar11]
+ .digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300
+ != 1)
+ & US_FIRE_WEAPONUnk;
+ return;
+ }
+ if (UVar4 == US_FIRE_WEAPONUnk) {
+ DAT_UnitsState.units[uVar11].field39_0x58 = 0;
+ DAT_UnitsState.units[uVar11].field_0x30_animRelated = 0;
+ DAT_UnitsState.units[uVar11].gfxNumber
+ = DAT_UnitsState.units[uVar11].facingDirectionMapOrientationCorrected + 1;
+ DAT_UnitsState.units[uVar11].animationCycleNumber = 0;
+ if ((DAT_GameSynchronyState.currentPlayerFullIDArray[DAT_UnitsState.units[uVar11].owner]
+ == -1)
+ && (DAT_UnitsState.units[uVar11]
+ .digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300
+ == 1)) {
+ local_50 = DAT_UnitsState.units[uVar11].manningEngineerUIDRef;
+ iVar16 = 0;
+ psVar15 = DAT_UnitsState.units[uVar11].manningEngineerRef;
+ do {
+ iVar7 = (int)*psVar15;
+ if (((*local_50 != DAT_UnitsState.units[iVar7].uid)
+ || (BVar8
+ = hasUnitReachedDestination(iVar7),
+ BVar8 == FALSE))
+ || (uVar9 = (((int)DAT_UnitsState.units[iVar7].buildingHeight
+ - (int)DAT_UnitsState.units[uVar11].buildingHeight)
+ - (int)DAT_UnitsState.units[uVar11].terrainOrClimbHeight)
+ + (int)DAT_UnitsState.units[iVar7].terrainOrClimbHeight,
+ uVar13 = (int)uVar9 >> 0x1f, 0x10 < (int)((uVar9 ^ uVar13) - uVar13)))
+ break;
+ sVar3 = DAT_UnitsState.units[iVar7].microXPosition;
+ sVar5 = DAT_UnitsState.units[uVar11].microXPosition;
+ if (sVar5 < sVar3) {
+ iVar12 = (int)sVar3 - (int)sVar5;
+ } else {
+ iVar12 = (int)sVar5 - (int)sVar3;
+ }
+ sVar3 = DAT_UnitsState.units[iVar7].microYPosition;
+ sVar5 = DAT_UnitsState.units[uVar11].microYPosition;
+ if (sVar5 < sVar3) {
+ iVar7 = (int)sVar3 - (int)sVar5;
+ } else {
+ iVar7 = (int)sVar5 - (int)sVar3;
+ }
+ if (iVar7 < iVar12) {
+ iVar7 = iVar12;
+ }
+ if (iVar7 < 0x1e) {
+ local_4c = local_4c + 1;
+ }
+ local_50 = local_50 + 1;
+ iVar16 = iVar16 + 1;
+ psVar15 = psVar15 + 1;
+ } while (iVar16 < 1);
+ if (local_4c == 1) {
+ sVar3 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].manningEngineerRef[0];
+ DAT_UnitsState.units[sVar3].animationCycleNumber = 0;
+ DAT_UnitsState.units[sVar3].state.generic
+ = US_JESTER_ROAM_TO;
+ DAT_UnitsState.units[sVar3].disappearFadeAlphaCountdown = 0;
+ DAT_UnitsState.units[sVar3].engineerManningSiegeStateRef_checkType = 2;
+ DAT_UnitsState.units[sVar3].cachedState = US_AIM_WEAPONUnk;
+ DAT_UnitsState.units[sVar3].updateTickTracker = 0;
+ DAT_UnitsState.units[uVar11].state.generic
+ = US_DETERMINE_NEXT_STATEUnk;
+ }
+ }
+ uVar9 = DAT_CurrentUnitSlotID;
+ if ((((DAT_UnitsState.units[uVar11].fixedRng
+ ^ DAT_GameState.mapAndTime.totalGameTicksUnk ^ 0xfffffff8)
+ & 0xf)
+ == 0)
+ && (DAT_UnitsState.units[uVar11].state.generic
+ == US_FIRE_WEAPONUnk)) {
+ local_48[0] = 0;
+ local_48[1] = 0;
+ local_48[2] = 0;
+ local_48[3] = 0;
+ local_48[4] = 0;
+ local_48[5] = 0;
+ local_48[6] = 0;
+ local_48[7] = 0;
+ local_48[8] = 0;
+ uVar13 = 1;
+ if (1 < (int)DAT_UnitsState.maxUnitCount) {
+ _pUnits1 = &DAT_UnitsState.units[1];
+ do {
+ if (((_pUnits1->logicalState == ULS_NORMAL) && (_pUnits1->dying == 0))
+ && ((_pUnits1->unitType == UT_E_ENGINEER
+ && (((_pUnits1->targetingType == UIT_MAN_SIEGE_EQUIPMENT
+ && ((int)_pUnits1->targetedUnitID__OR__engineerMannedSiegeEngineRef
+ == DAT_CurrentUnitSlotID))
+ && (uVar10 = (((int)_pUnits1->terrainOrClimbHeight
+ - (int)DAT_UnitsState.units[uVar11].buildingHeight)
+ - (int)DAT_UnitsState.units[uVar11].terrainOrClimbHeight)
+ + (int)_pUnits1->buildingHeight,
+ uVar14 = (int)uVar10 >> 0x1f, (int)((uVar10 ^ uVar14) - uVar14) < 0x11)))))) {
+ sVar3 = _pUnits1->microXPosition;
+ sVar5 = DAT_UnitsState.units[uVar11].microXPosition;
+ sVar6 = sVar3;
+ if (sVar5 < sVar3) {
+ sVar6 = sVar5;
+ sVar5 = sVar3;
+ }
+ sVar3 = DAT_UnitsState.units[uVar11].microYPosition;
+ iVar16 = (int)_pUnits1->microYPosition;
+ if (sVar3 < _pUnits1->microYPosition) {
+ iVar7 = iVar16;
+ iVar16 = (int)sVar3;
+ } else {
+ iVar7 = (int)sVar3;
+ }
+ iVar12 = iVar7 - iVar16;
+ if (iVar7 - iVar16 < (int)sVar5 - (int)sVar6) {
+ iVar12 = (int)sVar5 - (int)sVar6;
+ }
+ if (iVar12 < 0x1e) {
+ iVar16 = (int)_pUnits1->owner;
+ uVar10 = local_48[iVar16];
+ if ((int)uVar10 < 1) {
+ local_48[iVar16 + uVar10 + 9] = uVar13;
+ local_48[iVar16] = uVar10 + 1;
+ }
+ }
+ }
+ uVar13 = uVar13 + 1;
+ _pUnits1 = _pUnits1 + 0x248;
+ } while ((int)uVar13 < (int)DAT_UnitsState.maxUnitCount);
+ }
+ iVar16 = (int)DAT_UnitsState.units[uVar11].owner;
+ if (local_48[iVar16] != 1) {
+ iVar16 = 1;
+ while (local_48[iVar16] != 1) {
+ iVar16 = iVar16 + 1;
+ if (8 < iVar16) {
+ return;
+ }
+ }
+ deselectUnit(
+ DAT_CurrentUnitSlotID);
+ clearOrDeselectUnitFromSelection((int)DAT_UnitsState.units[uVar11].owner, uVar9, 0);
+ uVar11 = DAT_CurrentUnitSlotID;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner = (short)iVar16;
+ if (DAT_UnitsState.units[uVar11].calculatedOwnerPlayerIndex != 0) {
+ DAT_UnitsState.units[uVar11].calculatedOwnerPlayerIndex = iVar16;
+ }
+ if (DAT_UnitsState.units[uVar11].displayColorPlayerID != 0) {
+ DAT_UnitsState.units[uVar11].displayColorPlayerID = (short)iVar16;
+ }
+ uVar11 = createTribe((int)DAT_UnitsState.units[uVar13].owner, 0);
+ addUnitToTribe(
+ uVar11, DAT_CurrentUnitSlotID);
+ }
+ uVar9 = DAT_CurrentUnitSlotID;
+ uVar11 = local_48[iVar16 + 9];
+ DAT_UnitsState.units[uVar11].animationCycleNumber = 0;
+ DAT_UnitsState.units[uVar11].state.generic = US_JESTER_ROAM_TO;
+ DAT_UnitsState.units[uVar11].disappearFadeAlphaCountdown = 0;
+ DAT_UnitsState.units[uVar11].engineerManningSiegeStateRef_checkType = 2;
+ DAT_UnitsState.units[uVar11].cachedState = US_AIM_WEAPONUnk;
+ DAT_UnitsState.units[uVar11].updateTickTracker = 0;
+ DAT_UnitsState.units[uVar11].targetingType
+ = UIT_NO_INSTRUCTION_OR_MOVEUnk;
+ DAT_UnitsState.units[uVar9].manningEngineerRef[0] = (short)uVar11;
+ DAT_UnitsState.units[uVar9].manningEngineerUIDRef[0]
+ = DAT_UnitsState.units[uVar11].uid;
+ deselectUnit(uVar11);
+ clearOrDeselectUnitFromSelection((int)DAT_UnitsState.units[uVar11].owner, uVar11, 0);
+ uVar11 = DAT_CurrentUnitSlotID;
+ DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic
+ = US_DETERMINE_NEXT_STATEUnk;
+ DAT_UnitsState.units[uVar11]
+ .digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300 = 1;
+ return;
+ }
+ } else if ((UVar4 == US_MOVE_TO_DESTINATION)
+ || (UVar4 == US_IDLEUnk)) {
+ DAT_UnitsState.units[uVar11].field_0x30_animRelated = 0x10;
+ DAT_UnitsState.units[uVar11].animationSheetFrameOffset = 9;
+ sVar5 = DAT_UnitsState.units[uVar11].moveInstructionSpeedDelayTracker;
+ if (sVar5 == 0) {
+ DAT_UnitsState.units[uVar11].animationSheetFrameOffset = 9;
+ DAT_UnitsState.units[uVar11].stateBasedSpeed = 1;
+ } else if (sVar5 < 0x47) {
+ DAT_UnitsState.units[uVar11].stateBasedSpeed = 0;
+ } else {
+ DAT_UnitsState.units[uVar11].stateBasedSpeed = -1;
+ DAT_UnitsState.units[uVar11].field_0x30_animRelated = 0;
+ }
+ BVar8 = hasUnitReachedDestination(DAT_CurrentUnitSlotID);
+ if (BVar8 != FALSE) {
+ DAT_UnitsState.units[uVar11].stateBasedSpeed = 0;
+ DAT_UnitsState.units[uVar11].animationCycleNumber = 0;
+ DAT_UnitsState.units[uVar11].state.generic
+ = US_DETERMINE_NEXT_STATEUnk;
+ DAT_UnitsState.units[uVar11].field248_0x3bc = 0;
+ if (DAT_GameSynchronyState
+ .currentPlayerFullIDArray[DAT_UnitsState.units[uVar11].owner]
+ == -1) {
+ DAT_UnitsState.units[uVar11].facingDirection
+ = DAT_TribesState.tribes[sVar3].orientation;
+ }
+ }
+ } else {
+ if (UVar4 == 0x6c) {
+ DAT_UnitsState.units[uVar11].stateBasedSpeed = 0;
+ DAT_UnitsState.units[uVar11].field_0x30_animRelated = 0;
+ DAT_UnitsState.units[uVar11].animationSheetFrameOffset = 1;
+ return;
+ }
+ if (((UVar4 == US_DEATH_01)
+ || (UVar4 == US_DEATH_03))
+ || (UVar4 == US_STONE_DEATH_01)) {
+ DAT_UnitsState.units[uVar11].animationSpeed = 10000;
+ DAT_UnitsState.units[uVar11].field_0x30_animRelated = 0;
+ DAT_UnitsState.units[uVar11].gfxNumber = 0x89;
+ if ((DAT_UnitsState.units[uVar11].animationCycleNumberHasJustIncremented != FALSE)
+ && (DAT_UnitsState.units[uVar11].animationCycleNumber == 1)) {
+ playSFXAtLocation(
+ (int)DAT_UnitsState.units[uVar11].x,
+ DAT_UnitsState.units[uVar11].y, FX_DEATH_SHIELD);
+ uVar11 = DAT_CurrentUnitSlotID;
+ }
+ if (((DAT_UnitsState.units[uVar11].animationCycleNumber == 0)
+ && (DAT_UnitsState.units[uVar11].killedFlagUnk == 0))
+ && (iVar7 = 0,
+ 0 < DAT_UnitsState.units[uVar11]
+ .digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300)) {
+ _pUnits3 = (Unit*)DAT_UnitsState.units[uVar11];
+ _pUnits2 = (Unit*)DAT_UnitsState.units[uVar11];
+ do {
+ if (DAT_UnitsState.units[_pUnits2->manningEngineerRef[0]].uid
+ == _pUnits3->manningEngineerUIDRef[0]) {
+ DAT_UnitsState.units[_pUnits2->manningEngineerRef[0]].logicalState
+ = ULS_REMOVE;
+ if (iVar16 == DAT_GameSynchronyState.currentPlayerSlotID) {
+ piVar1 = DAT_GameState.mapAndTime.emenyHitArray
+ + DAT_UnitsState.units[uVar11].lastEncounteredEnemyPlayerID + -9;
+ *piVar1 = *piVar1 + 1;
+ } else if (DAT_UnitsState.units[uVar11].lastEncounteredEnemyPlayerID
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ piVar1 = DAT_GameState.mapAndTime.emenyHitArray + iVar16;
+ *piVar1 = *piVar1 + 1;
+ }
+ }
+ iVar7 = iVar7 + 1;
+ _pUnits2 = (Unit*)(_pUnits2->manningEngineerRef + 1);
+ _pUnits3 = (Unit*)(_pUnits3->manningEngineerUIDRef + 1);
+ } while (iVar7 < DAT_UnitsState.units[uVar11]
+ .digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300);
+ }
+ piVar1 = &DAT_UnitsState.units[uVar11].animationCycleNumber;
+ *piVar1 = *piVar1 + 1;
+ if (200 < DAT_UnitsState.units[uVar11].animationCycleNumber) {
+ DAT_UnitsState.units[uVar11].logicalState = ULS_REMOVE;
+ return;
+ }
+ } else if ((UVar4 == US_DISAPPEAR)
+ || (UVar4 == US_JESTER_ROAM_TO)) {
+ pbVar2 = &DAT_UnitsState.units[uVar11].disappearFadeAlphaCountdown;
+ *pbVar2 = *pbVar2 + 1;
+ if (' ' < (char)DAT_UnitsState.units[uVar11].disappearFadeAlphaCountdown) {
+ DAT_UnitsState.units[uVar11].disappearFadeAlphaCountdown = 0x20;
+ }
+ psVar15 = &DAT_UnitsState.units[uVar11].updateTickTracker;
+ *psVar15 = *psVar15 + 1;
+ if ((0x20 < DAT_UnitsState.units[uVar11].updateTickTracker)
+ && (DAT_UnitsState.units[uVar11].logicalState = ULS_REMOVE,
+ DAT_UnitsState.units[uVar11].killedFlagUnk == 0)) {
+ if (DAT_UnitsState.units[uVar11]
+ .digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300
+ == 1) {
+ processUnitLossStatistic(iVar16, DAT_CurrentUnitSlotID);
+ uVar11 = DAT_CurrentUnitSlotID;
+ }
+ if (iVar16 == DAT_GameSynchronyState.currentPlayerSlotID) {
+ piVar1 = DAT_GameState.mapAndTime.emenyHitArray
+ + DAT_UnitsState.units[uVar11].lastEncounteredEnemyPlayerID + -9;
+ *piVar1 = *piVar1 + 1;
+ return;
+ }
+ if (DAT_UnitsState.units[uVar11].lastEncounteredEnemyPlayerID
+ == DAT_GameSynchronyState.currentPlayerSlotID) {
+ piVar1 = DAT_GameState.mapAndTime.emenyHitArray + iVar16;
+ *piVar1 = *piVar1 + 1;
+ return;
+ }
+ }
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0053c300", "name": "UpdateShield", "quelle": "ghidra", "p1": {"bereich": "Einheiten", "zweck": "Taktet pro Spielschritt ein Schild (UT_S_SHIELD, Belagerungsgerät): zählt es für den Besitzer mit, sucht und verbucht einen bemannenden Ingenieur, steuert Bewegungs- und Todeszustände und räumt es am Ende ab."}, "p2": {"ein": "- (die Einheit kommt aus DAT_CurrentUnitSlotID)", "aus": "-", "liest": ["units[cur].tribeID, owner, state.generic, digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300 (Zähler, im Code nur als 1, != 1 und > 0 geprüft), manningEngineerRef[0], manningEngineerUIDRef[0], fixedRng, facingDirectionMapOrientationCorrected", "units[cur].microXPosition, microYPosition, buildingHeight, terrainOrClimbHeight, moveInstructionSpeedDelayTracker, animationCycleNumber, animationCycleNumberHasJustIncremented, killedFlagUnk, lastEncounteredEnemyPlayerID, disappearFadeAlphaCountdown, updateTickTracker, calculatedOwnerPlayerIndex, displayColorPlayerID, x, y", "alle Einheitenplätze 1 bis maxUnitCount-1: logicalState, dying, unitType, targetingType, targetedUnitID__OR__engineerMannedSiegeEngineRef, owner, microXPosition, microYPosition, buildingHeight, terrainOrClimbHeight", "Ingenieur manningEngineerRef[0]: uid, Höhen, Mikroposition", "DAT_GameSynchronyState.currentPlayerFullIDArray[owner], currentPlayerSlotID", "DAT_GameState.mapAndTime.totalGameTicksUnk", "DAT_TribesState.tribes[tribeID].orientation"], "schreibt": ["playerDataArray[owner].armySize und currentSiegeWeaponCount (je +1 bei jedem Aufruf)", "units[cur]: isSelectable_OR_matchTime = 1, calculatedOwnerPlayerIndex, state.generic, substate, stateBasedSpeed, gfxNumber, field42_0x58, field_0x30_animRelated, animationCycleNumber, animationSheetFrameOffset, animationSpeed, facingDirection, field265_0x3bc, disappearFadeAlphaCountdown, updateTickTracker, logicalState (ULS_REMOVE)", "units[cur]: owner, displayColorPlayerID, digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300 (= 1), manningEngineerRef[0], manningEngineerUIDRef[0] (bei Übernahme)", "Ingenieur-Einheit: animationCycleNumber, state.generic (0x6d), disappearFadeAlphaCountdown, engineerManningSiegeStateRef_checkType (2), cachedState (5), updateTickTracker, targetingType (3), logicalState (ULS_REMOVE beim Tod des Schilds)", "mapAndTime.emenyHitArray (Zähler)", "TribesState (neuer Trupp beim Besitzerwechsel)"], "ruft": ["hasUnitReachedDestination", "deselectUnit", "clearOrDeselectUnitFromSelection", "createTribe", "addUnitToTribe", "playSFXAtLocation (FX_DEATH_SHIELD, 0xab)", "processUnitLossStatistic"], "regeln": ["Bei jedem Aufruf, vor allen Zuständen: playerDataArray[owner].armySize += 1 und currentSiegeWeaponCount += 1 (es gibt keine Grenze im Code); isSelectable_OR_matchTime = 1; calculatedOwnerPlayerIndex = owner. Danach nach state.generic: 0; 6 (US_FIRE_WEAPONUnk); 0x65 oder 1; 0x6c; 0x6f, 0x71, 0x72; 0x6e oder 0x6d; jeder andere Zustand tut nichts weiter.", "Zustand 0 (US_DETERMINE_NEXT_STATEUnk): substate = -1, stateBasedSpeed = 0, gfxNumber = facingDirectionMapOrientationCorrected + 9. state.generic wird 6, wenn der Zähler (digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300) != 1 ist, sonst 0. Mit Bemannung (Zähler 1) bleibt das Schild also in Zustand 0 und wiederholt das jeden Aufruf; ohne Bemannung geht es in Zustand 6.", "Zustand 6, jeder Aufruf zuerst: field42_0x58 = 0, field_0x30_animRelated = 0, gfxNumber = facingDirectionMapOrientationCorrected + 1, animationCycleNumber = 0.", "Zustand 6, Prüfung des vorhandenen Ingenieurs, nur wenn DAT_GameSynchronyState.currentPlayerFullIDArray[owner] == -1 und der Zähler == 1 ist: geprüft wird nur manningEngineerRef[0] (die Schleife läuft einmal). Der Ingenieur zählt, wenn seine uid mit manningEngineerUIDRef[0] übereinstimmt, hasUnitReachedDestination(Ingenieur) wahr ist, |(buildingHeight + terrainOrClimbHeight des Ingenieurs) - (dasselbe des Schilds)| <= 16 ist und die größere der beiden Mikro-Achsendifferenzen < 30 ist. Zählt er genau einmal: Ingenieur animationCycleNumber = 0, state.generic = 0x6d (US_JESTER_ROAM_TO), disappearFadeAlphaCountdown = 0, engineerManningSiegeStateRef_checkType = 2, cachedState = 5 (US_AIM_WEAPONUnk), updateTickTracker = 0 (der Ingenieur wird also ausgeblendet, nicht freigegeben); Schild state.generic = 0. Sonst ändert sich nichts.", "Zustand 6, Suche nach einem Ingenieur nur, wenn ((fixedRng XOR totalGameTicksUnk XOR 0xfffffff8) & 0xf) == 0 ist, also (fixedRng XOR totalGameTicksUnk) & 0xf == 8 (nicht 7), das heißt einmal in 16 Spielschritten, je Schild versetzt, und das Schild noch in Zustand 6 ist.", "Suchschleife über die Einheitenplätze 1 bis maxUnitCount-1: ein Platz passt, wenn logicalState == ULS_NORMAL (2), dying == 0, unitType == UT_E_ENGINEER (30), targetingType == UIT_MAN_SIEGE_EQUIPMENT (16), targetedUnitID__OR__engineerMannedSiegeEngineRef == dieses Schild, |(terrainOrClimbHeight + buildingHeight des Ingenieurs) - (dasselbe des Schilds)| <= 16 (im Code < 0x11) und die größere der beiden Mikro-Achsendifferenzen < 30 (0x1e) ist. Je Besitzer (0 bis 8) wird nur der erste passende Ingenieur in Platzreihenfolge gemerkt (mindestens einer genügt; mehr werden nicht gezählt).", "Entscheidung: Hat der Besitzer des Schilds einen passenden Ingenieur, übernimmt dieser. Sonst erhält der erste Spieler 1 bis 8 (aufsteigend) mit passendem Ingenieur das Schild, ohne Team- oder Feindprüfung; gibt es keinen, endet der Aufruf ohne Änderung. Besitzerwechsel: deselectUnit(Schild), clearOrDeselectUnitFromSelection(alter Besitzer, Schild, 0), owner = neuer Spieler, calculatedOwnerPlayerIndex und displayColorPlayerID nur dann auch auf den neuen Spieler, wenn sie vorher != 0 waren, dann createTribe und addUnitToTribe(neuer Trupp, Schild).", "Bemannung (beim Besitzer wie beim Wechsel): Ingenieur animationCycleNumber = 0, state.generic = 0x6d, disappearFadeAlphaCountdown = 0, engineerManningSiegeStateRef_checkType = 2, cachedState = 5, updateTickTracker = 0, targetingType = 3 (UIT_NO_INSTRUCTION_OR_MOVEUnk); Schild manningEngineerRef[0] = Ingenieur, manningEngineerUIDRef[0] = dessen uid; deselectUnit(Ingenieur) und clearOrDeselectUnitFromSelection(Besitzer des Ingenieurs, Ingenieur, 0); Schild state.generic = 0 und Zähler = 1.", "Bewegung, Zustände 0x65 (US_MOVE_TO_DESTINATION) und 1: field_0x30_animRelated = 0x10, animationSheetFrameOffset = 9; moveInstructionSpeedDelayTracker (vorzeichenbehaftet) 0 → stateBasedSpeed 1; 1 bis 70 und alle negativen Werte → 0; ab 71 (0x47) → -1 und field_0x30_animRelated = 0. Ist hasUnitReachedDestination wahr: stateBasedSpeed = 0, animationCycleNumber = 0, state.generic = 0, field265_0x3bc = 0 und, nur wenn currentPlayerFullIDArray[owner] == -1, facingDirection = tribes[tribeID].orientation. Der Zweig prüft keinen Ingenieur.", "Zustand 0x6c (ohne Namen): stateBasedSpeed = 0, field_0x30_animRelated = 0, animationSheetFrameOffset = 1, sonst nichts.", "Tod, Zustände 0x6f, 0x71, 0x72 (US_DEATH_01, US_DEATH_03, US_STONE_DEATH_01): animationSpeed = 10000, field_0x30_animRelated = 0, gfxNumber = 0x89. Ton FX_DEATH_SHIELD nur, wenn animationCycleNumberHasJustIncremented != 0 und animationCycleNumber == 1. Nur wenn animationCycleNumber == 0, killedFlagUnk == 0 und der Zähler > 0 ist, wird jeder Ingenieur manningEngineerRef[i] (i < Zähler), dessen uid mit manningEngineerUIDRef[i] übereinstimmt, auf logicalState = ULS_REMOVE gesetzt.", "Tod, Statistik je entfernten Ingenieur: ist owner == currentPlayerSlotID, emenyHitArray[lastEncounteredEnemyPlayerID - 9] += 1; sonst, wenn lastEncounteredEnemyPlayerID == currentPlayerSlotID, emenyHitArray[owner] += 1. Danach in jedem Aufruf animationCycleNumber += 1; ab Wert 201 (> 200) logicalState = ULS_REMOVE.", "Zustände 0x6e (US_DISAPPEAR) und 0x6d (US_JESTER_ROAM_TO) des Schilds: disappearFadeAlphaCountdown += 1 (höchstens 0x20), updateTickTracker += 1; ab updateTickTracker > 0x20 (bei Start 0 also im 33. Aufruf) logicalState = ULS_REMOVE. Ist dann killedFlagUnk == 0: bei Zähler == 1 processUnitLossStatistic(owner, Schild), danach dieselben emenyHitArray-Zähler wie beim Tod."], "offen": ["Bedeutung von currentPlayerFullIDArray[owner] == -1 (vermutlich ein Spieler ohne Netzwerkkennung, etwa KI oder lokal); 'lokal gesteuert' ist nur Deutung. Der Zustand 0x6c, field42_0x58 und field265_0x3bc sind ungeklärt.", "createTribe bekommt im Maschinencode den Besitzer von units[EBP], wobei EBP der Schleifenzähler der Ingenieursuche ist (nach der Schleife = maxUnitCount, also ein Platz hinter der durchsuchten Liste), nicht den neuen Besitzer. Das ist kein Dekompilierfehler; welcher Besitzer dort steht, ist ungeprüft.", "Der Zähler digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300 wird im Code nur auf 1 gesetzt und als 1, != 1 und > 0 gelesen; ob er sonst größere Werte annimmt, ist nicht sichtbar. Die Schleifen zur Ingenieur-Prüfung laufen nur über Platz 0.", "Bedeutung der beiden Hälften von emenyHitArray (Index -9 bis -1 und 0 bis 8; vermutlich Treffer- oder Verlust-Zähler je Gegner) ist ungeprüft."]}, "p3": {"erklaerung": "Das Schild (Belagerungsgerät) wird von einem Ingenieur bemannt: Ohne Besatzung sucht es alle 16 Spielschritte einen Ingenieur in der Nähe, der den Bemannungsbefehl auf dieses Schild hat. Der Ingenieur verschwindet im Schild, danach kann es gehen. Hat nur ein anderer Spieler einen solchen Ingenieur, wechselt das Schild den Besitzer.", "gehirn": "Schilde zählen in armySize und currentSiegeWeaponCount des Besitzers mit. Diese Funktion bemannt das Schild, sobald ein Ingenieur den Befehl UIT_MAN_SIEGE_EQUIPMENT (16) mit dem Schild als Ziel hat, höchstens 16 Höhenunterschied und unter 30 Mikropunkten Abstand (größere Achse) zum Schild; geprüft wird nur alle 16 Spielschritte. Hat der Besitzer keinen solchen Ingenieur, geht das Schild an den niedrigsten Spieler 1 bis 8 mit passendem Ingenieur (kein Feind- oder Teamtest im Code). Wie der Befehl vergeben wird, steht nicht in dieser Funktion.", "beleg": "code", "live": "Ingenieur mit dem Befehl 'bemannen' (16) zu einem unbesetzten Schild schicken → units[schild].state.generic und units[schild].digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300 lesen → Zähler 0 → 1 und state 6 → 0 spätestens 16 Spielschritte nach Ankunft des Ingenieurs (unter 30 Mikropunkte), Ingenieur danach state 0x6d", "live_art": "kampf"}, "korrigiert": "ja", "aenderung": "Die Bemannungsprüfung heißt (fixedRng XOR totalGameTicksUnk) & 0xF == 8 (nicht 7); 'genau einen Ingenieur' war falsch (mindestens einer, der erste je Spieler zählt); der Zweig mit Bemannung blendet den Ingenieur aus (nicht 'freigeben') und verlangt hasUnitReachedDestination; die gehirn-Aussagen (Abstand für Bewegung, gegnerische Ingenieure, Heeresplatz) waren nicht belegt, und viele Schreibzugriffe, Zustände (0x6c, 0x6d, 0x6e) und der createTribe-Aufruf mit dem Schleifenzähler fehlten."}
+
+### 0x004ca0c0 setAICParameters_14 | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004CA0C0
+ void AICState::setAICParameters_14(int aicIndex)
+ {
+ this->aics[aicIndex].flagType = 13;
+ this->aics[aicIndex].unknown002 = 0;
+ this->aics[aicIndex].unknown001 = 0;
+ this->aics[aicIndex].unknown003 = 0;
+ this->aics[aicIndex].unknown004 = 1;
+ this->aics[aicIndex].unknown005 = 1;
+ this->aics[aicIndex].criticalPopularity = 4000;
+ this->aics[aicIndex].lowestPopularity = 6000;
+ this->aics[aicIndex].highestPopularity = 9000;
+ this->aics[aicIndex].taxesMin = 3;
+ this->aics[aicIndex].taxesMax = 11;
+ this->aics[aicIndex].farm1 = 32;
+ this->aics[aicIndex].farm2 = 31;
+ this->aics[aicIndex].farm3 = 33;
+ this->aics[aicIndex].populationPerFarm = 4;
+ this->aics[aicIndex].unknown011 = 10;
+ this->aics[aicIndex].maxFood = 300;
+ this->aics[aicIndex].minimumApples = 20;
+ this->aics[aicIndex].minimumCheese = 20;
+ this->aics[aicIndex].minimumBread = -1;
+ this->aics[aicIndex].minimumWheat = -1;
+ this->aics[aicIndex].minimumHop = 2;
+ this->aics[aicIndex].tradeAmountFood = 10;
+ this->aics[aicIndex].tradeAmountEquipment = 2;
+ this->aics[aicIndex].aiRequestDelay = 40;
+ this->aics[aicIndex].minimumGoodsRequiredAfterTrade = 40;
+ this->aics[aicIndex].doubleRationsFoodThreshold = 40;
+ this->aics[aicIndex].maxWood = 50;
+ this->aics[aicIndex].maxStone = 50;
+ this->aics[aicIndex].maxResourceOther = 10;
+ this->aics[aicIndex].maxEquipment = 10;
+ this->aics[aicIndex].maxBeer = 10;
+ this->aics[aicIndex].maxResourceVariance = 5;
+ this->aics[aicIndex].recruitGoldThreshold = 200;
+ this->aics[aicIndex].populationPerWoodcutter = 7;
+ this->aics[aicIndex].populationPerQuarry = 10;
+ this->aics[aicIndex].populationPerIronmine = 12;
+ this->aics[aicIndex].populationPerPitchrig = 15;
+ this->aics[aicIndex].maxQuarries = 3;
+ this->aics[aicIndex].maxIronmines = 6;
+ this->aics[aicIndex].maxWoodcutters = 10;
+ this->aics[aicIndex].maxPitchrigs = 4;
+ this->aics[aicIndex].maxFarms = 10;
+ this->aics[aicIndex].buildInterval = 3;
+ this->aics[aicIndex].resourceRebuildDelay = 8;
+ this->aics[aicIndex].blacksmithSetting = 21;
+ this->aics[aicIndex].fletcherSetting = 18;
+ this->aics[aicIndex].poleturnerSetting = 20;
+ this->aics[aicIndex].sellResource05 = 9;
+ this->aics[aicIndex].sellResource07 = 16;
+ this->aics[aicIndex].sellResource08 = 17;
+ this->aics[aicIndex].sellResource10 = 19;
+ this->aics[aicIndex].sellResource11 = 20;
+ this->aics[aicIndex].sellResource13 = 22;
+ this->aics[aicIndex].sellResource15 = 24;
+ this->aics[aicIndex].defWallPatrolRallyTime = 8;
+ this->aics[aicIndex].defWallPatrolGroups = 2;
+ this->aics[aicIndex].defSiegeEngineGoldThreshold = 200;
+ this->aics[aicIndex].defSiegeEngineBuildDelay = 4;
+ this->aics[aicIndex].unknown072 = 200;
+ this->aics[aicIndex].unknown073 = 30;
+ this->aics[aicIndex].recruitProbDefWeak = 100;
+ this->aics[aicIndex].recruitProbDefDefault = 50;
+ this->aics[aicIndex].recruitProbDefStrong = 30;
+ this->aics[aicIndex].recruitProbRaidWeak = 0;
+ this->aics[aicIndex].recruitProbRaidDefault = 30;
+ this->aics[aicIndex].recruitProbRaidStrong = 50;
+ this->aics[aicIndex].recruitProbAttackWeak = 0;
+ this->aics[aicIndex].recruitProbAttackDefault = 20;
+ this->aics[aicIndex].recruitProbAttackStrong = 20;
+ this->aics[aicIndex].RecruitIntervalWeak = 1;
+ this->aics[aicIndex].RecruitInterval = 4;
+ this->aics[aicIndex].RecruitIntervalStrong = 4;
+ this->aics[aicIndex].SortieUnitRangedMin = 10;
+ this->aics[aicIndex].SortieUnitRanged = 23;
+ this->aics[aicIndex].SortieUnitMeleeMin = 10;
+ this->aics[aicIndex].SortieUnitMelee = 26;
+ this->aics[aicIndex].DefDiggingUnitMax = 4;
+ this->aics[aicIndex].DefDiggingUnit = 26;
+ this->aics[aicIndex].DefWalls = 40;
+ this->aics[aicIndex].DefTotal = 50;
+ this->aics[aicIndex].OuterPatrolGroupsCount = 1;
+ this->aics[aicIndex].OuterPatrolGroupsMove = 1;
+ this->aics[aicIndex].OuterPatrolRallyDelay = 5;
+ this->aics[aicIndex].DefUnit1 = 23;
+ this->aics[aicIndex].DefUnit2 = 23;
+ this->aics[aicIndex].RaidUnitsBase = 10;
+ this->aics[aicIndex].RaidUnitsRandom = 4;
+ this->aics[aicIndex].DefUnit3 = 23;
+ this->aics[aicIndex].DefUnit4 = 76;
+ this->aics[aicIndex].DefUnit5 = 73;
+ this->aics[aicIndex].RaidUnit1 = 26;
+ this->aics[aicIndex].HarassingSiegeEnginesMax = 5;
+ this->aics[aicIndex].HarassingSiegeEngine1 = 190;
+ this->aics[aicIndex].HarassingSiegeEngine2 = 358;
+ this->aics[aicIndex].RaidRetargetDelay = 4;
+ this->aics[aicIndex].AttForceBase = 50;
+ this->aics[aicIndex].AttForceRandom = 20;
+ this->aics[aicIndex].AttForceSupportAllyThreshold = 50;
+ this->aics[aicIndex].AttForceRallyPercentage = 80;
+ this->aics[aicIndex].AttMovingTribesThreshold = 100;
+ this->aics[aicIndex].AttAssaultDelay = 5;
+ this->aics[aicIndex].AttUnitPatrolRecommandDelay = 8;
+ this->aics[aicIndex].AttCoordinationPreference = 50;
+ this->aics[aicIndex].CowThrowInterval = 6;
+ this->aics[aicIndex].SiegeEngine1 = 39;
+ this->aics[aicIndex].SiegeEngine2 = 39;
+ this->aics[aicIndex].SiegeEngine3 = 77;
+ this->aics[aicIndex].SiegeEngine4 = 77;
+ this->aics[aicIndex].SiegeEngine5 = 77;
+ this->aics[aicIndex].AttMaxEngineers = 10;
+ this->aics[aicIndex].AttDiggingUnit = 71;
+ this->aics[aicIndex].AttDiggingUnitMax = 80;
+ this->aics[aicIndex].AttMaxAssassins = 10;
+ this->aics[aicIndex].AttUnit2 = 26;
+ this->aics[aicIndex].AttUnit2Max = 10;
+ this->aics[aicIndex].AttMaxLaddermen = 0;
+ this->aics[aicIndex].AttMaxTunnelers = 0;
+ this->aics[aicIndex].AttUnitPatrol = 76;
+ this->aics[aicIndex].AttUnitPatrolMax = 0;
+ this->aics[aicIndex].AttUnitPatrolGroupsCount = 0;
+ this->aics[aicIndex].AttUnitBackup = 23;
+ this->aics[aicIndex].AttUnitBackupMax = 50;
+ this->aics[aicIndex].AttUnitBackupGroupsCount = 1;
+ this->aics[aicIndex].AttUnitEngageMax = 0;
+ this->aics[aicIndex].AttUnitEngage = 0;
+ this->aics[aicIndex].AttUnitSiegeDef = 26;
+ this->aics[aicIndex].AttUnitSiegeDefMax = 6;
+ this->aics[aicIndex].AttUnitSiegeDefGroupsCount = 1;
+ this->aics[aicIndex].AttUnitMain1 = 26;
+ this->aics[aicIndex].AttUnitMain2 = 26;
+ this->aics[aicIndex].AttMaxDefault = 200;
+ this->aics[aicIndex].AttMainGroupsCount = 3;
+ this->aics[aicIndex].TargetChoice = AITC_CLOSEST;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004ca0c0", "name": "setAICParameters_14", "quelle": "nachgebaut", "p1": {"bereich": "KI", "zweck": "Setzt die festen Grundwerte des KI-Parametersatzes aics[14] (Satz Nr. 14, vermutlich der Satz von AIT_SHERIFF)."}, "p2": {"ein": "aicIndex (Platz im Feld aics, 20 Blöcke; setInitialAIC übergibt hier 14)", "aus": "nichts", "liest": [], "schreibt": ["aics[aicIndex]: 134 Felder der Struktur AICSpecification (vollständige Liste in regeln)"], "ruft": [], "regeln": ["Alle 134 Zuweisungen gehen unbedingt (ohne Verzweigung, ohne Prüfung von aicIndex) auf aics[aicIndex] (Struktur AICSpecification, 0x2a4 = 676 Byte; aics hat 20 Blöcke); es sind 134 verschiedene Felder, keines wird doppelt gesetzt. Einziger bekannter Aufrufer ist setInitialAIC (0x004d18b0) mit aicIndex 14, direkt nach wipeAICMemory (setzt alle 20 Blöcke auf 0)", "Kopfwerte (Felder unknown… ungesichert): flagType 13, unknown001 0, unknown002 0, unknown003 0, unknown004 1, unknown005 1, unknown011 10, unknown072 200, unknown073 30", "Beliebtheit und Steuern: criticalPopularity 4000, lowestPopularity 6000, highestPopularity 9000, taxesMin 3, taxesMax 11", "Farmen, Nahrung und Handel: farm1..3 = 32/31/33, populationPerFarm 4, maxFarms 10, maxFood 300, minimumApples 20, minimumCheese 20, minimumBread -1, minimumWheat -1, minimumHop 2, tradeAmountFood 10, tradeAmountEquipment 2, aiRequestDelay 40, minimumGoodsRequiredAfterTrade 40, doubleRationsFoodThreshold 40", "Lagergrenzen und Anwerbe-Gold: maxWood 50, maxStone 50, maxResourceOther 10, maxEquipment 10, maxBeer 10, maxResourceVariance 5, recruitGoldThreshold 200", "Bauten und Werkstätten: populationPerWoodcutter 7, populationPerQuarry 10, populationPerIronmine 12, populationPerPitchrig 15, maxQuarries 3, maxIronmines 6, maxWoodcutters 10, maxPitchrigs 4, buildInterval 3, resourceRebuildDelay 8, blacksmithSetting 21, fletcherSetting 18, poleturnerSetting 20", "Verkauf: sellResource05/07/08/10/11/13/15 = 9/16/17/19/20/22/24", "Anwerbung: recruitProbDefWeak/Default/Strong = 100/50/30, recruitProbRaidWeak/Default/Strong = 0/30/50, recruitProbAttackWeak/Default/Strong = 0/20/20, RecruitIntervalWeak/RecruitInterval/RecruitIntervalStrong = 1/4/4", "Verteidigung, Patrouillen und Ausfall: defWallPatrolRallyTime 8, defWallPatrolGroups 2, defSiegeEngineGoldThreshold 200, defSiegeEngineBuildDelay 4, DefWalls 40, DefTotal 50, DefDiggingUnitMax 4, DefDiggingUnit 26, OuterPatrolGroupsCount 1, OuterPatrolGroupsMove 1, OuterPatrolRallyDelay 5, DefUnit1..5 = 23/23/23/76/73, SortieUnitRangedMin 10, SortieUnitRanged 23, SortieUnitMeleeMin 10, SortieUnitMelee 26", "Raubzug und Belagerungs-Störer: RaidUnitsBase 10, RaidUnitsRandom 4, RaidUnit1 26, HarassingSiegeEnginesMax 5, HarassingSiegeEngine1..2 = 190/358, RaidRetargetDelay 4", "Angriffswelle: AttForceBase 50, AttForceRandom 20, AttForceSupportAllyThreshold 50, AttForceRallyPercentage 80, AttMovingTribesThreshold 100, AttAssaultDelay 5, AttUnitPatrolRecommandDelay 8, AttCoordinationPreference 50, CowThrowInterval 6", "Angriffseinheiten und Belagerung: SiegeEngine1..5 = 39/39/77/77/77, AttMaxEngineers 10, AttDiggingUnit 71, AttDiggingUnitMax 80, AttUnit2 26, AttUnit2Max 10, AttMaxAssassins 10, AttMaxLaddermen 0, AttMaxTunnelers 0, AttUnitPatrol 76, AttUnitPatrolMax 0, AttUnitPatrolGroupsCount 0, AttUnitBackup 23, AttUnitBackupMax 50, AttUnitBackupGroupsCount 1, AttUnitEngage 0, AttUnitEngageMax 0, AttUnitSiegeDef 26, AttUnitSiegeDefMax 6, AttUnitSiegeDefGroupsCount 1, AttUnitMain1..2 = 26/26, AttMaxDefault 200, AttMainGroupsCount 3, TargetChoice AITC_CLOSEST", "Nicht gesetzt (Wert bleibt, wie er ist; über setInitialAIC also 0): farm4..8, sellResource01/02/03/04/06/09/12/14, DefUnit6..8, RaidUnit2..8, HarassingSiegeEngine3..8, SiegeEngine6..8, Unknown142, AttUnitMain3..4"], "offen": ["Zuordnung zum KI-Herrn nur erschlossen: setInitialAIC ruft diese Funktion mit aicIndex 14 auf, renderDebugDataAiInfo, recruitHarrassingSiegeEngines und updateAIStrengthState lesen aics[aiType - 1], und der Ghidra-Enum AIType nennt den Wert 15 AIT_SHERIFF; der Satz gehört daher vermutlich zu AIT_SHERIFF.", "Weak/Default/Strong bei recruitProb… und RecruitInterval… gehören vermutlich zum Stärkegefühl aiStrengthFeeling (AIST_WEAK, AIST_DEFAULT, AIST_STRONG), das updateAIStrengthState (0x004d3320) aus Gold, Bevölkerung, Nahrung und Truppen bestimmt.", "Zahlenbedeutung nur über die Ghidra-Enums gelesen und im Code dieser Funktion nicht belegt (vermutlich): Einheitentypen (UnitType) in den …Unit-, Sortie-, Raid- und SiegeEngine-Feldern: 23 UT_E_XBOW, 26 UT_E_MACE, 39 UT_S_CATAPULT, 71 UT_A_SLAVE, 73 UT_A_ASSASSIN, 76 UT_A_FIRETHROWER, 77 UT_S_FBALLISTA; farmN = BuildingType der N-ten Farm: 31 BT_HOPFARM, 32 BT_APPLEFARM, 33 BT_DAIRYFARM; sellResourceNN sowie blacksmith-/fletcher-/poleturnerSetting = ResourceType: 9 RT_WHEAT, 16 RT_FLOUR, 17 RT_BOW, 18 RT_CROSSBOW, 19 RT_SPEAR, 20 RT_PIKE, 21 RT_MACE, 22 RT_SWORD, 24 RT_IRONARMOR; HarassingSiegeEngineN = MappersEnum (recruitHarrassingSiegeEngines gibt den Wert an placeBuilding): 190 M_MAPPER_CATAPULT, 358 M_MAPPER_ARAB_BALLISTA", "Nicht im Code stehen: Einheit und Skala der Zahlen (Beliebtheit, Takte, Verzögerungen, Wahrscheinlichkeiten), die Rolle von AttForceRandom, die Wirkung von TargetChoice und was 'Digging' in DefDiggingUnit und AttDiggingUnit meint (Tunnelgräber sind mit AttMaxTunnelers getrennt); die Felder unknown001..005, unknown011, unknown072 und unknown073 sind ungesichert.", "AttUnitPatrol 76 ist gesetzt, AttUnitPatrolMax und AttUnitPatrolGroupsCount sind 0; AttDiggingUnit 71 hat AttDiggingUnitMax 80 (71 ist Typ, 80 Höchstzahl).", "Ob UCP oder AIC-Dateien diesen Satz später ändern, zeigt dieser Code nicht."]}, "p3": {"erklaerung": "Setzt die festen Grundwerte des KI-Satzes aics[14]: großer Nahrungsvorrat (maxFood 300), aiRequestDelay 40, Wellenstärke AttForceBase 50 plus AttForceRandom 20, Maschinen SiegeEngine1..5 = 39/39/77/77/77 bei AttMaxEngineers 10, AttMaxAssassins 10, CowThrowInterval 6, Verteidigung DefWalls 40 und DefTotal 50, TargetChoice AITC_CLOSEST. AttMaxLaddermen und AttMaxTunnelers sind 0.", "gehirn": "Wellenziel = AttForceBase 50 plus currentWaveRandomAttackingStrength (Zuschlag vermutlich 0 bis AttForceRandom 20), mit fünf Maschinenplätzen (vermutlich zwei Katapulte und drei Feuerballisten), bis zu 10 Ingenieuren und AttMaxAssassins 10; keine Leiterträger und Tunnelgräber (AttMaxLaddermen 0, AttMaxTunnelers 0). Raubzug-Maschinen bis HarassingSiegeEnginesMax 5 (190, 358). CowThrowInterval 6 ist in den Sätzen 10 bis 16 der einzige Wert unter 10000; seine Wirkung steht nicht in diesem Code. Grundwerte; UCP oder AIC-Dateien können sie ändern.", "beleg": "nachgebaut", "live": "Spiel mit KI läuft → Speicher von aics[14] (DAT_AICState 0x023FC8E8 + 14 × 0x2A4 = 0x023FEDE0) lesen: +0x1F4 AttForceBase, +0x234 CowThrowInterval, +0x250 AttMaxAssassins → 50, 6, 10 (andere Werte = UCP oder eine AIC-Datei hat den Satz geändert)", "live_art": "tabelle"}, "korrigiert": "ja", "aenderung": "'mit Maschinen, Assassinen und Tunnelgräbern' war falsch (AttMaxTunnelers und AttMaxLaddermen sind 0), '(sonst 10000)', 'der gründlichste dieser Gruppe' und 'langsame Anforderungen' standen nicht im Code, und es fehlten gesetzte Werte (defSiegeEngineGoldThreshold 200, defSiegeEngineBuildDelay 4, DefDiggingUnit 26 mit Max 4, OuterPatrol 1/1/5, RaidRetargetDelay 4, AttForceSupportAllyThreshold 50, AttMovingTribesThreshold 100, AttUnitPatrolRecommandDelay 8, AttMaxLaddermen 0, AttMaxTunnelers 0, unknown001..005, unknown011, unknown072 200, unknown073 30)."}
+
+### 0x00423cd0 UpdateGateHouseSmall | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00423CD0
+ void Buildings::UpdateGateHouseSmall()
+ {
+ byte bVar1;
+ int iVar2;
+ uint uVar3;
+ int iVar4;
+ uint uVar5;
+ uint uVar6;
+ uint uVar7;
+ int local_14;
+ int local_10[4];
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ local_14 = (int)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingVariation;
+ updateGateDrawBridgeOpenCloseLogic();
+ iVar2 = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].someX
+ = DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x + 3;
+ DAT_BuildingsState.buildings[iVar2].someY = DAT_BuildingsState.buildings[iVar2].y + 2;
+ if ((DAT_TileMapState.mapOrientation == 2) || (DAT_TileMapState.mapOrientation == 6)) {
+ local_14 = local_14 + 1;
+ }
+ if (0x51 < local_14) {
+ local_14 = 0x50;
+ }
+ DAT_BuildingsState.buildings[iVar2].renderAnimation = 0;
+ DAT_BuildingsState.buildings[iVar2].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[iVar2].field20_0x38 = 0;
+ DAT_BuildingsState.buildings[iVar2].field21_0x3c = 0;
+ DAT_BuildingsState.buildings[iVar2].field22_0x40 = 0;
+ DAT_BuildingsState.buildings[iVar2].field23_0x44 = 0;
+ if (local_14 == 0x50) {
+ DAT_BuildingsState.buildings[iVar2].field22_0x40 = 0xb;
+ } else {
+ DAT_BuildingsState.buildings[iVar2].field23_0x44 = 0xc;
+ }
+ DAT_BuildingsState.buildings[iVar2].field33_0x6c = 0;
+ DAT_BuildingsState.buildings[iVar2].field34_0x70 = 0;
+ DAT_BuildingsState.buildings[iVar2].field35_0x74 = 0;
+ DAT_BuildingsState.buildings[iVar2].field36_0x78 = 0;
+ DAT_BuildingsState.buildings[iVar2].field37_0x7c = 0;
+ DAT_BuildingsState.buildings[iVar2].ownerFlagFrame = 0;
+ DAT_BuildingsState.buildings[iVar2].field39_0x84 = 0;
+ local_10[1] = 0;
+ DAT_BuildingsState.buildings[iVar2].field40_0x88 = 0;
+ local_10[0] = 0;
+ local_10[2] = 0;
+ local_10[3] = 0;
+ iVar4 = 5
+ - (DAT_BuildingsState.buildings[iVar2].currentHealth * 5)
+ / (int)DAT_BuildingsState.buildings[iVar2].maxHealth;
+ if (iVar4 < 5) {
+ if (iVar4 == 0)
+ goto LAB_00423e8d;
+ } else {
+ iVar4 = 4;
+ }
+ if (0 < iVar4) {
+ uVar6 = DAT_BuildingsState.buildings[iVar2].fireRelatedRNG1;
+ uVar3 = (int)uVar6 >> 8;
+ do {
+ uVar7 = uVar6 & 0xf;
+ uVar5 = uVar3 & 3;
+ uVar6 = uVar6 + 1;
+ uVar3 = uVar3 + 1;
+ iVar4 = iVar4 + -1;
+ local_10[uVar5] = uVar7 + 1;
+ } while (iVar4 != 0);
+ }
+ if (local_14 == 0x50) {
+ DAT_BuildingsState.buildings[iVar2].field33_0x6c = local_10[0];
+ DAT_BuildingsState.buildings[iVar2].field34_0x70 = local_10[1];
+ DAT_BuildingsState.buildings[iVar2].field35_0x74 = local_10[2];
+ DAT_BuildingsState.buildings[iVar2].field36_0x78 = local_10[3];
+ } else {
+ DAT_BuildingsState.buildings[iVar2].field37_0x7c = local_10[0];
+ DAT_BuildingsState.buildings[iVar2].ownerFlagFrame = local_10[1];
+ DAT_BuildingsState.buildings[iVar2].field39_0x84 = local_10[2];
+ DAT_BuildingsState.buildings[iVar2].field40_0x88 = local_10[3];
+ }
+ LAB_00423e8d:
+ DAT_BuildingsState.buildings[iVar2].field29_0x5c = 0;
+ DAT_BuildingsState.buildings[iVar2].shouldRenderRoof = 0;
+ DAT_BuildingsState.buildings[iVar2].animationIncrement = 1;
+ DAT_BuildingsState.buildings[iVar2].renderAnimation = 1;
+ bVar1 = DAT_BuildingsState.buildings[iVar2].pathLinkageRelated2;
+ if (bVar1 == 0) {
+ if (DAT_BuildingsState.buildings[iVar2].gateState == 10) {
+ DAT_BuildingsState.buildings[iVar2].pathLinkageRelated2 = 1;
+ DAT_BuildingsState.buildings[iVar2].gateState = 0xc;
+ DAT_BuildingsState.buildings[iVar2].animationIndex = 0;
+ return;
+ }
+ } else {
+ if (bVar1 == 2) {
+ if (DAT_BuildingsState.buildings[iVar2].gateState == 0xb) {
+ DAT_BuildingsState.buildings[iVar2].pathLinkageRelated2 = 3;
+ DAT_BuildingsState.buildings[iVar2].gateState = 0xc;
+ DAT_BuildingsState.buildings[iVar2].animationIndex = 0;
+ }
+ if (local_14 != 0x50) {
+ DAT_BuildingsState.buildings[iVar2].shouldRenderRoof = 6;
+ return;
+ }
+ DAT_BuildingsState.buildings[iVar2].field29_0x5c = 0xc;
+ return;
+ }
+ if (bVar1 == 1) {
+ if (DAT_BuildingsState.buildings[iVar2].animationActive != 0) {
+ if (DAT_BuildingsState.buildings[iVar2].animationIndex == 1) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[iVar2].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[iVar2].y)),
+ FX_PC_DROP);
+ }
+ if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex
+ == 0x14) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x,
+ (int)((
+ int)((short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y)),
+ FX_PC_SLAM);
+ }
+ }
+ iVar2 = DAT_CurrentBuildingID;
+ bVar1 = DAT_BuildingDefinedData.field142_0x6b44
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if ('\0' < (char)bVar1) {
+ if (local_14 != 0x50) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].shouldRenderRoof
+ = (int)(char)bVar1;
+ return;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field29_0x5c
+ = (char)bVar1 + 6;
+ return;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].pathLinkageRelated2 = 2;
+ updatePathLinkageTileMapRelatedToGates(iVar2);
+ if (local_14 != 0x50) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].shouldRenderRoof = 6;
+ return;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field29_0x5c = 0xc;
+ return;
+ }
+ if (bVar1 == 3) {
+ if ((DAT_BuildingsState.buildings[iVar2].animationActive != 0)
+ && (DAT_BuildingsState.buildings[iVar2].animationIndex == 1)) {
+ playSFXAtLocation(
+ (int)(short)DAT_BuildingsState.buildings[iVar2].x,
+ (int)((int)((short)DAT_BuildingsState.buildings[iVar2].y)),
+ FX_PC_LIFT);
+ }
+ iVar2 = DAT_CurrentBuildingID;
+ bVar1 = DAT_BuildingDefinedData.field141_0x6b28
+ [DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+ if ((char)bVar1 < '\x01') {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].pathLinkageRelated2 = 0;
+ updatePathLinkageTileMapRelatedToGates(iVar2);
+ return;
+ }
+ if (local_14 == 0x50) {
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field29_0x5c
+ = (char)bVar1 + 6;
+ return;
+ }
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].shouldRenderRoof
+ = (int)(char)bVar1;
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00423cd0", "name": "UpdateGateHouseSmall", "quelle": "ghidra", "p1": {"bereich": "Gebaeude", "zweck": "Takt-Aktualisierung eines kleinen Torhauses: setzt Bild- und Schadensfelder und schaltet den Torablauf (pathLinkageRelated2 mit den Zuständen 0 bis 3) samt Tönen und Wegeverknüpfung weiter."}, "p2": {"ein": "- (nutzt DAT_CurrentBuildingID)", "aus": "-", "liest": ["buildings[cur].buildingVariation/x/y/currentHealth/maxHealth/fireRelatedRNG1/gateState/pathLinkageRelated2/animationIndex/animationActive", "DAT_TileMapState.mapOrientation", "DAT_BuildingDefinedData.field142_0x6b44[animationIndex] (Byte, vorzeichenbehaftet gelesen)", "DAT_BuildingDefinedData.field141_0x6b28[animationIndex] (Byte, vorzeichenbehaftet gelesen)"], "schreibt": ["buildings[cur].someX = x+3, someY = y+2", "displayOwnerFlag = 1, renderAnimation = 1, animationIncrement = 1", "field20_0x38, field21_0x3c, field22_0x40, field23_0x44", "field33_0x6c bis field36_0x78 (Variante 0x50) bzw. field37_0x7c, ownerFlagFrame, field39_0x84, field40_0x88 (sonst)", "field29_0x5c, shouldRenderRoof", "pathLinkageRelated2, gateState, animationIndex (nur bei Zustandswechsel)"], "ruft": ["addBuildingInRegistry", "updateGateDrawBridgeOpenCloseLogic", "playSFXAtLocation (FX_PC_DROP, FX_PC_SLAM, FX_PC_LIFT)", "updatePathLinkageTileMapRelatedToGates"], "regeln": ["Ablauf je Aufruf: addBuildingInRegistry(cur); buildingVariation wird gelesen; dann updateGateDrawBridgeOpenCloseLogic(); someX = x+3, someY = y+2.", "Variante v: bei mapOrientation 2 oder 6 wird v um 1 erhöht; ist v danach >= 0x52, wird v = 0x50 (0x51 bleibt 0x51, 0x50 ist also nicht der Höchstwert). Danach zählt nur v == 0x50 gegen v != 0x50 (auch 0x51).", "Grundbild bei jedem Aufruf: renderAnimation = 0, displayOwnerFlag = 1, field20_0x38 = field21_0x3c = field22_0x40 = field23_0x44 = 0; dann bei v == 0x50 field22_0x40 = 0xb, sonst field23_0x44 = 0xc; field33_0x6c, field34_0x70, field35_0x74, field36_0x78, field37_0x7c, ownerFlagFrame, field39_0x84, field40_0x88 = 0.", "Schadensstufe s = 5 - (currentHealth*5)/maxHealth (ganzzahlig; maxHealth = 0 würde durch 0 teilen). Bei s >= 5 gilt s = 4; bei s <= 0 (Lebenspunkte ab 100 %) gibt es keine Schadensbilder. Schwellen: unter 40 % der Lebenspunkte s = 4, 40 bis unter 60 % s = 3, 60 bis unter 80 % s = 2, 80 bis unter 100 % s = 1.", "Für k = 0 bis s-1 erhält Platz ((fireRelatedRNG1 >> 8) + k) & 3 den Wert ((fireRelatedRNG1 + k) & 0xf) + 1 (also 1 bis 16). Der Wert zählt je Schritt um 1 hoch und ist nicht für alle Plätze gleich. Weil s höchstens 4 ist, werden genau s verschiedene Plätze gefüllt, die übrigen bleiben 0.", "Die 4 Plätze (0 bis 3) gehen bei v == 0x50 nach field33_0x6c, field34_0x70, field35_0x74, field36_0x78, sonst nach field37_0x7c, ownerFlagFrame, field39_0x84, field40_0x88; die jeweils andere Vierergruppe bleibt 0.", "Danach immer: field29_0x5c = 0, shouldRenderRoof = 0, animationIncrement = 1, renderAnimation = 1.", "pathLinkageRelated2 == 0: nur wenn gateState == 10 wird pathLinkageRelated2 = 1, gateState = 0xc, animationIndex = 0; sonst passiert nichts weiter.", "pathLinkageRelated2 == 1: Töne nur wenn animationActive != 0: FX_PC_DROP bei animationIndex == 1, FX_PC_SLAM bei animationIndex == 0x14 (Ort = x/y des Gebäudes). Dann w = field142_0x6b44[animationIndex] als vorzeichenbehaftetes Byte; bei w > 0 bleibt der Zustand 1, und es gilt v != 0x50: shouldRenderRoof = w, v == 0x50: field29_0x5c = w + 6.", "pathLinkageRelated2 == 1 und w <= 0 (auch negativ): pathLinkageRelated2 = 2 und updatePathLinkageTileMapRelatedToGates(Gebäude-ID); dann v != 0x50: shouldRenderRoof = 6, sonst field29_0x5c = 0xc.", "pathLinkageRelated2 == 2: wenn gateState == 0xb, wird pathLinkageRelated2 = 3, gateState = 0xc, animationIndex = 0. Danach in jedem Fall (auch im selben Aufruf nach dem Wechsel): v != 0x50: shouldRenderRoof = 6, sonst field29_0x5c = 0xc.", "pathLinkageRelated2 == 3: Ton FX_PC_LIFT bei animationIndex == 1, nur wenn animationActive != 0. w = field141_0x6b28[animationIndex] (vorzeichenbehaftet). w <= 0: pathLinkageRelated2 = 0 und updatePathLinkageTileMapRelatedToGates(Gebäude-ID), die Bildwerte bleiben 0. w > 0: v == 0x50: field29_0x5c = w + 6, sonst shouldRenderRoof = w.", "pathLinkageRelated2 >= 4: nur das Grundbild (Regeln 1 bis 7). animationIndex wird in dieser Funktion nur auf 0 gesetzt, nie hochgezählt."], "offen": ["Die Zuordnung der Zustände zu offen/zu ist nicht belegt. Die Töne FX_PC_DROP/FX_PC_SLAM in Zustand 1 und FX_PC_LIFT in Zustand 3 deuten vermutlich auf ein Fallgitter, das in Zustand 1 fällt und in Zustand 3 hochgeht; die bisherige Beschriftung 0 = zu, 1 = öffnet passt dazu eher nicht.", "Wer animationIndex hochzählt und gateState auf 10 bzw. 0xb setzt (vermutlich updateGateDrawBridgeOpenCloseLogic oder die Animationsroutine) und was gateState 10, 0xb und 0xc bedeuten.", "Die Byte-Tabellen field141_0x6b28 und field142_0x6b44 sind vermutlich Bildnummern je Animationsschritt (bei Variante 0x50 um 6 verschoben); Länge ungeprüft (Adressabstand 0x1c spricht vermutlich für 28 Einträge bei field141), Zugriff ohne Grenzprüfung.", "Feldnamen field20..field40, field29_0x5c, shouldRenderRoof und ownerFlagFrame sind Ghidra-Vermutungen; ownerFlagFrame wird hier mit einem Schadens-Platzwert gefüllt, der Name täuscht vermutlich.", "Breite von fireRelatedRNG1 unbekannt: ist es ein Byte, ergibt (RNG >> 8) immer 0 und der erste Platz ist k & 3.", "Die Variante wird vor updateGateDrawBridgeOpenCloseLogic() gelesen; ob dieser Aufruf sie ändert, ist offen."]}, "p3": {"erklaerung": "Läuft jeden Spieltakt für ein kleines Torhaus: setzt die Bild- und Schadensanzeige (je nach Lebenspunkten und Gebäudevariante) und schaltet die Torbewegung in vier Zuständen weiter, mit Tönen. Am Ende der Bewegung (Übergang 1 nach 2 und 3 nach 0) wird die Wegeverknüpfung des Tores aktualisiert.", "gehirn": "Vermutlich bestimmt die Wegeverknüpfung, die nur bei den Übergängen 1 nach 2 und 3 nach 0 neu gesetzt wird, ob das Tor durchlässig ist. Welcher Zustand (0 oder 2) durchlässig ist, ist ungeklärt; bis zur Messung nicht nutzen.", "beleg": "code", "live": "Kleines Torhaus öffnen und wieder schließen lassen → pathLinkageRelated2, gateState und animationIndex jeden Takt lesen → Folge 0→1→2 bei einem Befehl und 2→3→0 beim anderen, gateState 10 bzw. 0xb dann 0xc; notieren, in welchem Zustand (0 oder 2) Einheiten durchs Tor kommen", "live_art": "sonstiges"}, "korrigiert": "ja", "aenderung": "Die Zustände waren als zu/öffnet/offen/schließt benannt (die Töne DROP/SLAM bzw. LIFT sprechen eher dagegen), der Schadensbild-Wert war falsch (Wert und Platz wandern je Schritt), und die Bedingung animationActive != 0 für Töne sowie die Bildwerte je Variante 0x50 fehlten."}
+

@@ -1,0 +1,413 @@
+### 0x00512100 setupAllMapSections | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00512100
+ void TileMapState::setupAllMapSections()
+ {
+ ushort* puVar1;
+ short* psVar2;
+ ushort uVar3;
+ int* piVar4;
+ int iVar5;
+ this->temporaryTerrainTypeIndex = 0;
+ this->SEC_Section1052 = 0;
+ this->SEC_Section1053 = 0;
+ this->SEC_Section1054 = 0;
+ setupTileMapSections();
+ DAT_WallAndPitchState.countdown = 0;
+ setTileSystemMemoryLookupArrays();
+ tweakValidTilesToExcludeMapBorders();
+ setupViewport(0,
+ 0, (undefined4)((int)(DAT_WindowAndDirectDraw.resolutionX)),
+ (undefined4)((int)(DAT_WindowAndDirectDraw.resolutionY + -128)));
+ setupLogicalMapBorders();
+ updateShowHiLayerOrResetChangedLayer();
+ puVar1 = this->GfxLayer + 1;
+ piVar4 = this->LogicLayer + 1;
+ iVar5 = 13400;
+ do {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2];
+ if (piVar4[-1] != 0x10) {
+ if (piVar4[-1] == 0x20) {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 1;
+ } else {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 2;
+ }
+ }
+ puVar1[-1] = uVar3;
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2];
+ if (*piVar4 != 0x10) {
+ if (*piVar4 == 0x20) {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 1;
+ } else {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 2;
+ }
+ }
+ *puVar1 = uVar3;
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2];
+ if (piVar4[1] != 0x10) {
+ if (piVar4[1] == 0x20) {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 1;
+ } else {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 2;
+ }
+ }
+ puVar1[1] = uVar3;
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2];
+ if (piVar4[2] != 0x10) {
+ if (piVar4[2] == 0x20) {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 1;
+ } else {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 2;
+ }
+ }
+ puVar1[2] = uVar3;
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2];
+ if (piVar4[3] != 0x10) {
+ if (piVar4[3] == 0x20) {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 1;
+ } else {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 2;
+ }
+ }
+ puVar1[3] = uVar3;
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2];
+ if (piVar4[4] != 0x10) {
+ if (piVar4[4] == 0x20) {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 1;
+ } else {
+ uVar3 = (ushort)GMTotalPicturesProcessed::instance[2] + 2;
+ }
+ }
+ puVar1[4] = uVar3;
+ piVar4 = piVar4 + 6;
+ puVar1 = puVar1 + 6;
+ iVar5 = iVar5 + -1;
+ } while (iVar5 != 0);
+ fillMemory_ShortValue(
+ 80400, 1, (void*)((int)(this->PillarGFXLayer)));
+ fillMemory_ByteValue(
+ 80400, '\b', (void*)((int)(this->HeightLayer)));
+ fillMemory_ByteValue(
+ 80400, '\b', (void*)((int)(this->DefaultHeightLayer)));
+ DAT_PathFindingState.searchGeneration = 1;
+ fillMemory_ByteValue(
+ 160800, '\0', (void*)((int)(this->WalkLayer)));
+ setChangedLayerZeroBasedOn40x40Layer(0);
+ updateLogicalTileMapRelatedSections();
+ updateGfxLayer();
+ updateGFXLayers();
+ resetMoatArray();
+ resetPitchDitchArray();
+ toggleFlatView(0);
+ this->_5589200_4_ = 0;
+ this->flatViewToggleValue2 = 0;
+ clearBuildings();
+ clearRocksAndTrees();
+ resetWind();
+ DoNothing();
+ clearAllUnits();
+ clearAllTribes();
+ clearMapAndTimeAndPlayerData();
+ resetVariousCountsAndStatisticsAndStartGoodsAndResources();
+ clearCurrentResourcesAndStrongWalls();
+ initializeGameStateAfterMapLoad();
+ fillWith0xFF();
+ clearAnimalSpawnLocationsUnk();
+ piVar4 = DAT_AICState.tribeUIDArray;
+ psVar2 = DAT_AICState.tribeIDArray;
+ do {
+ *psVar2 = 0;
+ *piVar4 = 0;
+ psVar2 = psVar2 + 1;
+ piVar4 = piVar4 + 1;
+ } while ((int)psVar2 < 0x24026cc);
+ DoNothing();
+ DoNothing();
+ clearEntityArrayAndSeagullArray();
+ setChangedLayerToThreeAndMapping0x40x40();
+ this->forceUpdateLogicalAndMiscDisplayLayers = 1;
+ this->forceUpdateTextureTilemap = 1;
+ this->forceUpdateGFXLayers = 1;
+ this->forceUpdateMacroLayerFlag = 1;
+ this->field68_0x55487c = 200;
+ updatePathLinkageLayerForEachBuildingAtEachTile();
+ updateSeparateAreaTileMap(1);
+ this->forceUpdateMacroLayerFlag = 1;
+ this->field68_0x55487c = 500;
+ setTileColorsDependingOnMapSize(0, 100);
+ setMapPropertyDependingOnMapSize(0, 100);
+ DAT_GameCore.currentlyInGameUnk_0xa4 = FALSE;
+ ResetSomeValuesFunctionUnk();
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x00512100", "name": "setupAllMapSections", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Setzt Kartenebenen und viele Spielzustände auf Anfangswerte zurück (Grundzustand einer neuen Karte) und stößt dazu die Lösch- und Neuberechnungs-Funktionen an."}, "p2": {"ein": "- (this = TileMapState)", "aus": "-", "liest": ["DAT_TileMapState.LogicLayer (ganzer 32-Bit-Wert je Feld, nur zum Füllen der GfxLayer)", "16-Bit-Wert an Adresse 0x00d7ce98 (Ghidra-Name GMTotalPicturesProcessed[2], Name ungesichert) als Basis der GfxLayer-Werte", "DAT_WindowAndDirectDraw.resolutionX/resolutionY"], "schreibt": ["temporaryTerrainTypeIndex = 0, SEC_Section1052 bis SEC_Section1054 = 0", "DAT_WallAndPitchState.countdown = 0", "GfxLayer (alle 80400 Felder)", "PillarGFXLayer (die ersten 80400 Byte = 1)", "HeightLayer und DefaultHeightLayer (je 80400 Byte = 8)", "WalkLayer (160800 Byte = 0)", "DAT_PathFindingState.searchGeneration = 1", "_5589200_4_ = 0, flatViewToggleValue2 = 0", "DAT_AICState.tribeIDArray (1000 Einträge zu 2 Byte) und tribeUIDArray (1000 Einträge zu 4 Byte) = 0", "forceUpdateLogicalAndMiscDisplayLayers, forceUpdateTextureTilemap, forceUpdateGFXLayers, forceUpdateMacroLayerFlag = 1", "field68_0x55487c = 200, danach 500", "DAT_GameCore.currentlyInGameUnk_0xa4 = FALSE"], "ruft": ["setupTileMapSections", "setTileSystemMemoryLookupArrays", "tweakValidTilesToExcludeMapBorders", "setupViewport", "setupLogicalMapBorders", "updateShowHiLayerOrResetChangedLayer", "fillMemory_ShortValue", "fillMemory_ByteValue", "setChangedLayerZeroBasedOn40x40Layer", "updateLogicalTileMapRelatedSections", "updateGfxLayer", "updateGFXLayers", "resetMoatArray", "resetPitchDitchArray", "toggleFlatView", "clearBuildings", "clearRocksAndTrees", "resetWind", "DoNothing (dreimal)", "clearAllUnits", "clearAllTribes", "clearMapAndTimeAndPlayerData", "resetVariousCountsAndStatisticsAndStartGoodsAndResources", "clearCurrentResourcesAndStrongWalls", "initializeGameStateAfterMapLoad", "fillWith0xFF", "clearAnimalSpawnLocationsUnk", "clearEntityArrayAndSeagullArray", "setChangedLayerToThreeAndMapping0x40x40", "updatePathLinkageLayerForEachBuildingAtEachTile", "updateSeparateAreaTileMap", "setTileColorsDependingOnMapSize", "setMapPropertyDependingOnMapSize", "ResetSomeValuesFunctionUnk"], "regeln": ["Reihenfolge: (1) vier Zähler/Abschnittswerte auf 0, setupTileMapSections; (2) countdown = 0, Nachschlage-Tabellen, Kartenränder, setupViewport(0, 0, resolutionX, resolutionY - 128), setupLogicalMapBorders, updateShowHiLayerOrResetChangedLayer; (3) GfxLayer-Schleife; (4) Füllungen von PillarGFXLayer, HeightLayer, DefaultHeightLayer, WalkLayer, danach setChangedLayerZeroBasedOn40x40Layer(0), updateLogicalTileMapRelatedSections, updateGfxLayer, updateGFXLayers; (5) resetMoatArray, resetPitchDitchArray, toggleFlatView(0); (6) Lösch-Aufrufe für Gebäude, Felsen/Bäume, Wind, Einheiten, Tribes, Spielerdaten, Waren, Tiere, Objekte; (7) Wege-/Gebiets-Karten, Minikarte", "GfxLayer-Schleife (13400 Durchläufe zu je 6 Feldern = 80400 Felder): Ist der ganze LogicLayer-Wert genau 0x10, wird Basis geschrieben; genau 0x20 ergibt Basis + 1; jeder andere Wert (auch 0) ergibt Basis + 2. Verglichen wird der ganze Wert, nicht einzelne Bits", "0x10 ist in der Enum-Liste L_BORDER, 0x20 L_BORDER_EDGE (laut Kommentar in resetHeightAndMapBorders die beiden äußeren Randreihen der Karte); also bekommen vermutlich nur die Randfelder Basis und Basis + 1, alle übrigen Felder Basis + 2", "fillMemory_ShortValue(80400, 1, PillarGFXLayer): Die Größe zählt in Byte (die Füllhelfer ziehen 0x100, 0x10 und 2 Byte ab), also werden nur 80400 Byte = 40200 Zwei-Byte-Einträge auf 1 gesetzt. setupTileMapSections leert dieselbe Ebene mit 160800 Byte; die zweite Hälfte bleibt daher vermutlich 0", "HeightLayer und DefaultHeightLayer: je 80400 Byte = 8 (alle Felder); WalkLayer: 160800 Byte = 0; searchGeneration der Wegfindung = 1", "Die Funktion leert die LogicLayer nicht selbst, sie liest sie nur. Laut Ghidra-Export von setupTileMapSections (nicht Teil dieser Funktion) füllt dieses u. a. GfxLayer, LogicLayer, BuildingLayer, HeightLayer mit 0", "AIC-Listen: tribeIDArray (2 Byte je Eintrag) und tribeUIDArray (4 Byte je Eintrag) werden in einer Schleife von 1000 Durchläufen (Adresse 0x02401efc bis 0x024026cc in 2-Byte-Schritten) auf 0 gesetzt", "Lösch-Aufrufe in dieser Reihenfolge: clearBuildings, clearRocksAndTrees, resetWind, clearAllUnits, clearAllTribes, clearMapAndTimeAndPlayerData, resetVariousCountsAndStatisticsAndStartGoodsAndResources, clearCurrentResourcesAndStrongWalls, initializeGameStateAfterMapLoad, fillWith0xFF, clearAnimalSpawnLocationsUnk (setzt laut Export deerSpawnLocationsXY u. a. in mapAndTime auf 0), clearEntityArrayAndSeagullArray; was jede davon im Einzelnen leert, steht hier nicht", "DoNothing wird dreimal gerufen (nach resetWind und zweimal nach der AIC-Schleife) und tut nichts", "Merker: forceUpdateLogicalAndMiscDisplayLayers, forceUpdateTextureTilemap, forceUpdateGFXLayers, forceUpdateMacroLayerFlag = 1 und field68_0x55487c = 200; nach updatePathLinkageLayerForEachBuildingAtEachTile und updateSeparateAreaTileMap(1) wird forceUpdateMacroLayerFlag erneut 1 und field68_0x55487c = 500 gesetzt", "Zum Schluss setTileColorsDependingOnMapSize(0, 100), setMapPropertyDependingOnMapSize(0, 100), currentlyInGameUnk_0xa4 = FALSE und ResetSomeValuesFunctionUnk (als Sprung am Ende)"], "offen": ["Bedeutung des Basiswerts an 0x00d7ce98 (Ghidra-Name GMTotalPicturesProcessed[2]) und welche Bilder Basis, Basis + 1 und Basis + 2 sind", "Bedeutung von field68_0x55487c, _5589200_4_, flatViewToggleValue2, currentlyInGameUnk_0xa4 und der SEC_Section-Felder", "Was die Teilfunktionen im Einzelnen leeren oder berechnen (hier nur gerufen); ob PillarGFXLayer wirklich 2 Byte je Feld hat, folgt nur aus der Größe 160800 in setupTileMapSections", "Wofür 'Tribes' stehen (vermutlich Truppengruppen der KI), nur aus den Namen"]}, "p3": {"erklaerung": "Setzt beim Anlegen einer neuen Karte die Kartenebenen (Bilder, Höhen, Laufebene, Gräben) auf Anfangswerte und ruft die Lösch-Funktionen für Gebäude, Felsen und Bäume, Einheiten, Tribe-Daten, Spielerdaten und Waren; danach werden Wege- und Gebietskarten und die Minikarte neu berechnet. Was die einzelnen Lösch-Funktionen genau leeren, steht nicht in dieser Funktion.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}, "korrigiert": "ja", "aenderung": "ruft und schreibt waren unvollständig (u. a. Wind, Tier-Spawnplätze, Objekt-Feld, Merker, 1000-Einträge-Listen); 'nichts bleibt stehen' und 'Ebenen leeren' waren aus diesem Code nicht belegt, und PillarGFXLayer wird nur mit 80400 Byte (nicht 80400 Feldern) auf 1 gesetzt."}
+
+### 0x004c94f0 setAICParameters_11 | quelle=nachgebaut
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004C94F0
+ void AICState::setAICParameters_11(int aicIndex)
+ {
+ this->aics[aicIndex].flagType = 10;
+ this->aics[aicIndex].unknown002 = 0;
+ this->aics[aicIndex].unknown001 = 0;
+ this->aics[aicIndex].unknown003 = 0;
+ this->aics[aicIndex].unknown004 = 1;
+ this->aics[aicIndex].unknown005 = 1;
+ this->aics[aicIndex].criticalPopularity = 4500;
+ this->aics[aicIndex].lowestPopularity = 5000;
+ this->aics[aicIndex].highestPopularity = 8000;
+ this->aics[aicIndex].taxesMin = 2;
+ this->aics[aicIndex].taxesMax = 12;
+ this->aics[aicIndex].farm1 = 30;
+ this->aics[aicIndex].populationPerFarm = 5;
+ this->aics[aicIndex].unknown011 = 10;
+ this->aics[aicIndex].maxFood = 100;
+ this->aics[aicIndex].minimumApples = -1;
+ this->aics[aicIndex].minimumCheese = -1;
+ this->aics[aicIndex].minimumBread = -1;
+ this->aics[aicIndex].minimumWheat = 2;
+ this->aics[aicIndex].minimumHop = -1;
+ this->aics[aicIndex].tradeAmountFood = 20;
+ this->aics[aicIndex].tradeAmountEquipment = 0;
+ this->aics[aicIndex].aiRequestDelay = 22;
+ this->aics[aicIndex].minimumGoodsRequiredAfterTrade = 30;
+ this->aics[aicIndex].doubleRationsFoodThreshold = 50;
+ this->aics[aicIndex].maxWood = 60;
+ this->aics[aicIndex].maxStone = 40;
+ this->aics[aicIndex].maxResourceOther = 10;
+ this->aics[aicIndex].maxEquipment = 4;
+ this->aics[aicIndex].maxBeer = 10;
+ this->aics[aicIndex].maxResourceVariance = 4;
+ this->aics[aicIndex].recruitGoldThreshold = 100;
+ this->aics[aicIndex].populationPerWoodcutter = 7;
+ this->aics[aicIndex].populationPerQuarry = 6;
+ this->aics[aicIndex].populationPerIronmine = 12;
+ this->aics[aicIndex].populationPerPitchrig = 6;
+ this->aics[aicIndex].maxQuarries = 3;
+ this->aics[aicIndex].maxIronmines = 1;
+ this->aics[aicIndex].maxWoodcutters = 10;
+ this->aics[aicIndex].maxPitchrigs = 4;
+ this->aics[aicIndex].maxFarms = 8;
+ this->aics[aicIndex].buildInterval = 3;
+ this->aics[aicIndex].resourceRebuildDelay = 50;
+ this->aics[aicIndex].blacksmithSetting = 22;
+ this->aics[aicIndex].fletcherSetting = 17;
+ this->aics[aicIndex].poleturnerSetting = 19;
+ this->aics[aicIndex].sellResource02 = 3;
+ this->aics[aicIndex].sellResource03 = 6;
+ this->aics[aicIndex].sellResource06 = 14;
+ this->aics[aicIndex].sellResource08 = 17;
+ this->aics[aicIndex].sellResource09 = 18;
+ this->aics[aicIndex].sellResource10 = 19;
+ this->aics[aicIndex].sellResource11 = 20;
+ this->aics[aicIndex].sellResource12 = 21;
+ this->aics[aicIndex].sellResource13 = 22;
+ this->aics[aicIndex].sellResource14 = 23;
+ this->aics[aicIndex].sellResource15 = 24;
+ this->aics[aicIndex].defWallPatrolRallyTime = 2;
+ this->aics[aicIndex].defWallPatrolGroups = 3;
+ this->aics[aicIndex].defSiegeEngineGoldThreshold = 100;
+ this->aics[aicIndex].defSiegeEngineBuildDelay = 4;
+ this->aics[aicIndex].unknown072 = 200;
+ this->aics[aicIndex].unknown073 = 20;
+ this->aics[aicIndex].recruitProbDefWeak = 70;
+ this->aics[aicIndex].recruitProbDefDefault = 30;
+ this->aics[aicIndex].recruitProbDefStrong = 20;
+ this->aics[aicIndex].recruitProbRaidWeak = 0;
+ this->aics[aicIndex].recruitProbRaidDefault = 20;
+ this->aics[aicIndex].recruitProbRaidStrong = 20;
+ this->aics[aicIndex].recruitProbAttackWeak = 30;
+ this->aics[aicIndex].recruitProbAttackDefault = 50;
+ this->aics[aicIndex].recruitProbAttackStrong = 60;
+ this->aics[aicIndex].RecruitIntervalWeak = 1;
+ this->aics[aicIndex].RecruitInterval = 1;
+ this->aics[aicIndex].RecruitIntervalStrong = 1;
+ this->aics[aicIndex].SortieUnitRangedMin = 6;
+ this->aics[aicIndex].SortieUnitRanged = 74;
+ this->aics[aicIndex].SortieUnitMeleeMin = 10;
+ this->aics[aicIndex].SortieUnitMelee = 75;
+ this->aics[aicIndex].DefDiggingUnitMax = 4;
+ this->aics[aicIndex].DefDiggingUnit = 71;
+ this->aics[aicIndex].DefWalls = 40;
+ this->aics[aicIndex].DefTotal = 40;
+ this->aics[aicIndex].OuterPatrolGroupsCount = 1;
+ this->aics[aicIndex].OuterPatrolGroupsMove = 1;
+ this->aics[aicIndex].OuterPatrolRallyDelay = 2;
+ this->aics[aicIndex].DefUnit1 = 70;
+ this->aics[aicIndex].DefUnit2 = 76;
+ this->aics[aicIndex].RaidUnitsBase = 30;
+ this->aics[aicIndex].RaidUnitsRandom = 10;
+ this->aics[aicIndex].RaidUnit1 = 74;
+ this->aics[aicIndex].HarassingSiegeEnginesMax = 4;
+ this->aics[aicIndex].HarassingSiegeEngine1 = 358;
+ this->aics[aicIndex].RaidRetargetDelay = 4;
+ this->aics[aicIndex].AttForceBase = 40;
+ this->aics[aicIndex].AttForceRandom = 5;
+ this->aics[aicIndex].AttForceSupportAllyThreshold = 30;
+ this->aics[aicIndex].AttForceRallyPercentage = 80;
+ this->aics[aicIndex].AttMovingTribesThreshold = 100;
+ this->aics[aicIndex].AttAssaultDelay = 4;
+ this->aics[aicIndex].AttUnitPatrolRecommandDelay = 5;
+ this->aics[aicIndex].AttCoordinationPreference = 90;
+ this->aics[aicIndex].CowThrowInterval = 10000;
+ this->aics[aicIndex].SiegeEngine1 = 40;
+ this->aics[aicIndex].SiegeEngine2 = 77;
+ this->aics[aicIndex].SiegeEngine3 = 77;
+ this->aics[aicIndex].SiegeEngine4 = 77;
+ this->aics[aicIndex].AttMaxEngineers = 9;
+ this->aics[aicIndex].AttDiggingUnit = 71;
+ this->aics[aicIndex].AttDiggingUnitMax = 15;
+ this->aics[aicIndex].AttMaxAssassins = 0;
+ this->aics[aicIndex].AttUnit2 = 0;
+ this->aics[aicIndex].AttUnit2Max = 0;
+ this->aics[aicIndex].AttMaxLaddermen = 0;
+ this->aics[aicIndex].AttMaxTunnelers = 0;
+ this->aics[aicIndex].AttUnitPatrol = 0;
+ this->aics[aicIndex].AttUnitPatrolMax = 0;
+ this->aics[aicIndex].AttUnitPatrolGroupsCount = 0;
+ this->aics[aicIndex].AttUnitBackup = 74;
+ this->aics[aicIndex].AttUnitBackupMax = 80;
+ this->aics[aicIndex].AttUnitBackupGroupsCount = 1;
+ this->aics[aicIndex].AttUnitEngageMax = 10;
+ this->aics[aicIndex].AttUnitEngage = 76;
+ this->aics[aicIndex].AttUnitSiegeDef = 0;
+ this->aics[aicIndex].AttUnitSiegeDefMax = 0;
+ this->aics[aicIndex].AttUnitSiegeDefGroupsCount = 0;
+ this->aics[aicIndex].AttUnitMain1 = 75;
+ this->aics[aicIndex].AttMaxDefault = 200;
+ this->aics[aicIndex].AttMainGroupsCount = 2;
+ this->aics[aicIndex].TargetChoice = AITC_BALANCED;
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004c94f0", "name": "setAICParameters_11", "quelle": "nachgebaut", "p1": {"bereich": "KI", "zweck": "Setzt die festen Grundwerte des KI-Parametersatzes aics[11] (Satz Nr. 11, vermutlich der Satz von AIT_WAZIR)."}, "p2": {"ein": "aicIndex (Platz im Feld aics, 20 Blöcke; setInitialAIC übergibt hier 11)", "aus": "nichts", "liest": [], "schreibt": ["aics[aicIndex]: 130 Felder der Struktur AICSpecification (vollständige Liste in regeln)"], "ruft": [], "regeln": ["Alle 130 Zuweisungen gehen unbedingt (ohne Verzweigung, ohne Prüfung von aicIndex) auf aics[aicIndex] (Struktur AICSpecification, 0x2a4 = 676 Byte; aics hat 20 Blöcke); es sind 130 verschiedene Felder, keines wird doppelt gesetzt. Einziger bekannter Aufrufer ist setInitialAIC (0x004d18b0) mit aicIndex 11, direkt nach wipeAICMemory (setzt alle 20 Blöcke auf 0)", "Kopfwerte (Felder unknown… ungesichert): flagType 10, unknown001 0, unknown002 0, unknown003 0, unknown004 1, unknown005 1, unknown011 10, unknown072 200, unknown073 20", "Beliebtheit und Steuern: criticalPopularity 4500, lowestPopularity 5000, highestPopularity 8000, taxesMin 2, taxesMax 12", "Farmen, Nahrung und Handel: farm1 30, populationPerFarm 5, maxFarms 8, maxFood 100, minimumApples -1, minimumCheese -1, minimumBread -1, minimumWheat 2, minimumHop -1, tradeAmountFood 20, tradeAmountEquipment 0, aiRequestDelay 22, minimumGoodsRequiredAfterTrade 30, doubleRationsFoodThreshold 50", "Lagergrenzen und Anwerbe-Gold: maxWood 60, maxStone 40, maxResourceOther 10, maxEquipment 4, maxBeer 10, maxResourceVariance 4, recruitGoldThreshold 100", "Bauten und Werkstätten: populationPerWoodcutter 7, populationPerQuarry 6, populationPerIronmine 12, populationPerPitchrig 6, maxQuarries 3, maxIronmines 1, maxWoodcutters 10, maxPitchrigs 4, buildInterval 3, resourceRebuildDelay 50, blacksmithSetting 22, fletcherSetting 17, poleturnerSetting 19", "Verkauf: sellResource02/03/06/08/09/10/11/12/13/14/15 = 3/6/14/17/18/19/20/21/22/23/24", "Anwerbung: recruitProbDefWeak/Default/Strong = 70/30/20, recruitProbRaidWeak/Default/Strong = 0/20/20, recruitProbAttackWeak/Default/Strong = 30/50/60, RecruitIntervalWeak/RecruitInterval/RecruitIntervalStrong = 1/1/1", "Verteidigung, Patrouillen und Ausfall: defWallPatrolRallyTime 2, defWallPatrolGroups 3, defSiegeEngineGoldThreshold 100, defSiegeEngineBuildDelay 4, DefWalls 40, DefTotal 40, DefDiggingUnitMax 4, DefDiggingUnit 71, OuterPatrolGroupsCount 1, OuterPatrolGroupsMove 1, OuterPatrolRallyDelay 2, DefUnit1..2 = 70/76, SortieUnitRangedMin 6, SortieUnitRanged 74, SortieUnitMeleeMin 10, SortieUnitMelee 75", "Raubzug und Belagerungs-Störer: RaidUnitsBase 30, RaidUnitsRandom 10, RaidUnit1 74, HarassingSiegeEnginesMax 4, HarassingSiegeEngine1 358, RaidRetargetDelay 4", "Angriffswelle: AttForceBase 40, AttForceRandom 5, AttForceSupportAllyThreshold 30, AttForceRallyPercentage 80, AttMovingTribesThreshold 100, AttAssaultDelay 4, AttUnitPatrolRecommandDelay 5, AttCoordinationPreference 90, CowThrowInterval 10000", "Angriffseinheiten und Belagerung: SiegeEngine1..4 = 40/77/77/77, AttMaxEngineers 9, AttDiggingUnit 71, AttDiggingUnitMax 15, AttUnit2 0, AttUnit2Max 0, AttMaxAssassins 0, AttMaxLaddermen 0, AttMaxTunnelers 0, AttUnitPatrol 0, AttUnitPatrolMax 0, AttUnitPatrolGroupsCount 0, AttUnitBackup 74, AttUnitBackupMax 80, AttUnitBackupGroupsCount 1, AttUnitEngage 76, AttUnitEngageMax 10, AttUnitSiegeDef 0, AttUnitSiegeDefMax 0, AttUnitSiegeDefGroupsCount 0, AttUnitMain1 75, AttMaxDefault 200, AttMainGroupsCount 2, TargetChoice AITC_BALANCED", "Nicht gesetzt (Wert bleibt, wie er ist; über setInitialAIC also 0): farm2..8, sellResource01/04/05/07, DefUnit3..8, RaidUnit2..8, HarassingSiegeEngine2..8, SiegeEngine5..8, Unknown142, AttUnitMain2..4"], "offen": ["Zuordnung zum KI-Herrn nur erschlossen: setInitialAIC ruft diese Funktion mit aicIndex 11 auf, renderDebugDataAiInfo, recruitHarrassingSiegeEngines und updateAIStrengthState lesen aics[aiType - 1], und der Ghidra-Enum AIType nennt den Wert 12 AIT_WAZIR; der Satz gehört daher vermutlich zu AIT_WAZIR.", "Weak/Default/Strong bei recruitProb… und RecruitInterval… gehören vermutlich zum Stärkegefühl aiStrengthFeeling (AIST_WEAK, AIST_DEFAULT, AIST_STRONG), das updateAIStrengthState (0x004d3320) aus Gold, Bevölkerung, Nahrung und Truppen bestimmt.", "Zahlenbedeutung nur über die Ghidra-Enums gelesen und im Code dieser Funktion nicht belegt (vermutlich): Einheitentypen (UnitType) in den …Unit-, Sortie-, Raid- und SiegeEngine-Feldern: 40 UT_S_TREBUCHET, 70 UT_A_ARCHER, 71 UT_A_SLAVE, 74 UT_A_HARCHER, 75 UT_A_SWORDSMAN, 76 UT_A_FIRETHROWER, 77 UT_S_FBALLISTA; farmN = BuildingType der N-ten Farm: 30 BT_WHEATFARM; sellResourceNN sowie blacksmith-/fletcher-/poleturnerSetting = ResourceType: 3 RT_HOPS, 6 RT_IRON, 14 RT_ALE, 17 RT_BOW, 18 RT_CROSSBOW, 19 RT_SPEAR, 20 RT_PIKE, 21 RT_MACE, 22 RT_SWORD, 23 RT_LEATHERARMOR, 24 RT_IRONARMOR; HarassingSiegeEngineN = MappersEnum (recruitHarrassingSiegeEngines gibt den Wert an placeBuilding): 358 M_MAPPER_ARAB_BALLISTA", "Nicht im Code stehen: Einheit und Skala der Zahlen (Beliebtheit, Takte, Verzögerungen, Wahrscheinlichkeiten), die Rolle von AttForceRandom, die Wirkung von TargetChoice und was 'Digging' in DefDiggingUnit und AttDiggingUnit meint (Tunnelgräber sind mit AttMaxTunnelers getrennt); die Felder unknown001..005, unknown011, unknown072 und unknown073 sind ungesichert.", "Die Raubzug-Liste hat nur den Eintrag HarassingSiegeEngine1 (358) bei HarassingSiegeEnginesMax 4; recruitHarrassingSiegeEngines wiederholt den ersten Eintrag, wenn der nächste 0 ist.", "Ob UCP oder AIC-Dateien diesen Satz später ändern, zeigt dieser Code nicht."]}, "p3": {"erklaerung": "Setzt die festen Grundwerte des KI-Satzes aics[11]: Wellenstärke AttForceBase 40 plus AttForceRandom 5, AttForceRallyPercentage 80 und AttCoordinationPreference 90, Maschinen SiegeEngine1..4 = 40/77/77/77 bei AttMaxEngineers 9, Anwerbe-Takt RecruitIntervalWeak/RecruitInterval/RecruitIntervalStrong 1/1/1, Verteidigung DefWalls 40 und DefTotal 40, TargetChoice AITC_BALANCED.", "gehirn": "Wellenziel = AttForceBase 40 plus currentWaveRandomAttackingStrength (Zuschlag vermutlich 0 bis AttForceRandom 5). Die Welle bringt Maschinen mit (vermutlich ein Trebuchet, Typ 40, und drei Feuerballisten, Typ 77) und bis zu 9 Ingenieure; Raubzug-Maschinen bis HarassingSiegeEnginesMax 4 (358, vermutlich M_MAPPER_ARAB_BALLISTA). Grundwerte; UCP oder AIC-Dateien können sie ändern.", "beleg": "nachgebaut", "live": "Spiel mit KI läuft → Speicher von aics[11] (DAT_AICState 0x023FC8E8 + 11 × 0x2A4 = 0x023FE5F4) lesen: +0x1F4 AttForceBase, +0x210 AttCoordinationPreference, +0x1CC HarassingSiegeEngine1 → 40, 90, 358 (andere Werte = UCP oder eine AIC-Datei hat den Satz geändert)", "live_art": "tabelle"}, "korrigiert": "ja", "aenderung": "Die Zahl 190 steht nicht im Code (die Raubzug-Maschine ist 358), p3 stellte Vermutungen als Tatsache dar ('höchste Abstimmung mit Verbündeten', 'Geld liegt knapp', 'wirbt sehr oft an'), und in regeln fehlten 31 gesetzte Werte (u. a. CowThrowInterval, AttForceSupportAllyThreshold, AttMovingTribesThreshold, defSiegeEngine…, DefDiggingUnit, OuterPatrol, RaidRetargetDelay, AttUnitPatrolRecommandDelay, unknown… und die Nullwerte der Angriffsfelder)."}
+
+### 0x0041eb00 UpdateTower3 | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0041EB00
+ void Buildings::UpdateTower3()
+ {
+ int iVar1;
+ uint uVar2;
+ int* piVar3;
+ uint uVar4;
+ uint uVar5;
+ int iVar6;
+ int iVar7;
+ uint uVar8;
+ int local_20[8];
+ addBuildingInRegistry(
+ DAT_CurrentBuildingID);
+ iVar6 = DAT_CurrentBuildingID;
+ DAT_BuildingsState.buildings[DAT_CurrentBuildingID].renderAnimation = 1;
+ DAT_BuildingsState.buildings[iVar6].displayOwnerFlag = 1;
+ DAT_BuildingsState.buildings[iVar6].field20_0x38 = 4;
+ DAT_BuildingsState.buildings[iVar6].field21_0x3c = 0;
+ DAT_BuildingsState.buildings[iVar6].field22_0x40 = 0;
+ DAT_BuildingsState.buildings[iVar6].field23_0x44 = 0;
+ DAT_BuildingsState.buildings[iVar6].field29_0x5c = 0;
+ DAT_BuildingsState.buildings[iVar6].animationFrame = 0;
+ DAT_BuildingsState.buildings[iVar6].field33_0x6c = 0;
+ DAT_BuildingsState.buildings[iVar6].field34_0x70 = 0;
+ DAT_BuildingsState.buildings[iVar6].field35_0x74 = 0;
+ DAT_BuildingsState.buildings[iVar6].field36_0x78 = 0;
+ DAT_BuildingsState.buildings[iVar6].field37_0x7c = 0;
+ DAT_BuildingsState.buildings[iVar6].ownerFlagFrame = 0;
+ DAT_BuildingsState.buildings[iVar6].field39_0x84 = 0;
+ DAT_BuildingsState.buildings[iVar6].field40_0x88 = 0;
+ DAT_BuildingsState.buildings[iVar6].someX = DAT_BuildingsState.buildings[iVar6].x + 2;
+ DAT_BuildingsState.buildings[iVar6].someY = DAT_BuildingsState.buildings[iVar6].y + 2;
+ piVar3 = &DAT_BuildingsState.buildings[iVar6].buildingProgress;
+ *piVar3 = *piVar3 + 1;
+ if (0x27 < DAT_BuildingsState.buildings[iVar6].buildingProgress) {
+ DAT_BuildingsState.buildings[iVar6].buildingProgress = 0;
+ computeBuildingEntranceFlagsForOrientations(iVar6);
+ }
+ iVar1 = hasBuildingExitFlagForOrientation(iVar6);
+ if (iVar1 != 0) {
+ DAT_BuildingsState.buildings[iVar6].field21_0x3c = 0x51;
+ DAT_BuildingsState.buildings[iVar6].animationFrame = 1;
+ }
+ iVar1 = hasBuildingEntranceFlagForOrientation(iVar6);
+ if (iVar1 != 0) {
+ DAT_BuildingsState.buildings[iVar6].field23_0x44 = 0x5a;
+ DAT_BuildingsState.buildings[iVar6].animationFrame = 1;
+ }
+ local_20[1] = 0;
+ local_20[2] = 0;
+ local_20[3] = 0;
+ local_20[4] = 0;
+ local_20[5] = 0;
+ local_20[6] = 0;
+ local_20[7] = 0;
+ local_20[0] = 0;
+ iVar1 = 9
+ - (DAT_BuildingsState.buildings[iVar6].currentHealth * 9)
+ / (int)DAT_BuildingsState.buildings[iVar6].maxHealth;
+ if (iVar1 < 9) {
+ if (iVar1 == 0)
+ goto LAB_0041ecf0;
+ } else {
+ iVar1 = 8;
+ }
+ if (0 < iVar1) {
+ uVar4 = DAT_BuildingsState.buildings[iVar6].fireRelatedRNG1;
+ uVar2 = (int)uVar4 >> 8;
+ do {
+ uVar8 = uVar4 & 0xf;
+ uVar5 = uVar2 & 7;
+ uVar4 = uVar4 + 1;
+ uVar2 = uVar2 + 1;
+ iVar1 = iVar1 + -1;
+ local_20[uVar5] = uVar8 + 1;
+ } while (iVar1 != 0);
+ }
+ DAT_BuildingsState.buildings[iVar6].field33_0x6c = local_20[0];
+ DAT_BuildingsState.buildings[iVar6].field34_0x70 = local_20[1];
+ DAT_BuildingsState.buildings[iVar6].field35_0x74 = local_20[2];
+ DAT_BuildingsState.buildings[iVar6].field36_0x78 = local_20[3];
+ DAT_BuildingsState.buildings[iVar6].field37_0x7c = local_20[4];
+ DAT_BuildingsState.buildings[iVar6].ownerFlagFrame = local_20[5];
+ DAT_BuildingsState.buildings[iVar6].field39_0x84 = local_20[6];
+ DAT_BuildingsState.buildings[iVar6].field40_0x88 = local_20[7];
+ LAB_0041ecf0:
+ if (DAT_BuildingsState.field34_0x18e074 != 0) {
+ iVar6 = 0;
+ do {
+ getBuildingSizeIndexMappingData(iVar6, 5);
+ iVar1 = DAT_ViewportRenderState
+ .translationMatrix
+ [(short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y
+ + DAT_TileMapState.buildingY]
+ .addXgetTile
+ + (int)(short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x
+ + DAT_TileMapState.buildingX;
+ iVar7 = 0;
+ DAT_TileMapState.MiscDisplayLayer[iVar1]
+ = DAT_TileMapState.MiscDisplayLayer[iVar1] & 0xffef;
+ piVar3 = DAT_BuildingDefinedData.field420_0xa77c
+ + (DAT_TileMapState.mapOrientation / 2) * 6;
+ do {
+ if (*piVar3 == iVar6) {
+ DAT_TileMapState.MiscDisplayLayer[iVar1]
+ = DAT_TileMapState.MiscDisplayLayer[iVar1] | 0x10;
+ break;
+ }
+ iVar7 = iVar7 + 1;
+ piVar3 = piVar3 + 1;
+ } while (iVar7 < 6);
+ iVar6 = iVar6 + 1;
+ } while (iVar6 < DAT_TileMapState.constructionTileCount);
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x0041eb00", "name": "UpdateTower3", "quelle": "ghidra", "p1": {"bereich": "Gebaeude", "zweck": "Taktfunktion eines Turmtyps (Ghidra-Name UpdateTower3, Größenindex 5): setzt Anzeigefelder, pflegt Eingangs-/Ausgangsmarken, berechnet schadensabhängige Anzeigewerte und markiert Kacheln der Grundfläche."}, "p2": {"ein": "- (aktuelles Gebäude über DAT_CurrentBuildingID)", "aus": "-", "liest": ["buildings[id].buildingProgress/currentHealth/maxHealth/fireRelatedRNG1/x/y", "Ergebnis von hasBuildingExitFlagForOrientation / hasBuildingEntranceFlagForOrientation", "DAT_BuildingDefinedData.field420_0xa77c", "DAT_TileMapState.mapOrientation/constructionTileCount/buildingX/buildingY", "DAT_BuildingsState.field34_0x18e074", "DAT_ViewportRenderState.translationMatrix[].addXgetTile"], "schreibt": ["buildings[id].renderAnimation=1, displayOwnerFlag=1, field20_0x38=4", "buildings[id].field21_0x3c, field22_0x40, field23_0x44, field29_0x5c, animationFrame (erst 0, dann ggf. 0x51 / 0x5a / 1)", "buildings[id].field33_0x6c, field34_0x70, field35_0x74, field36_0x78, field37_0x7c, ownerFlagFrame, field39_0x84, field40_0x88 (8 Werte: 0 oder bei Schaden 1..16)", "buildings[id].someX = x+2, someY = y+2", "buildings[id].buildingProgress", "DAT_TileMapState.MiscDisplayLayer[Kachel] (Bit 0x10)"], "ruft": ["addBuildingInRegistry", "computeBuildingEntranceFlagsForOrientations", "hasBuildingExitFlagForOrientation", "hasBuildingEntranceFlagForOrientation", "getBuildingSizeIndexMappingData(.,5)"], "regeln": ["Jeder Aufruf beginnt mit addBuildingInRegistry und setzt dann renderAnimation=1, displayOwnerFlag=1, field20_0x38=4, field21_0x3c=field22_0x40=field23_0x44=field29_0x5c=0, animationFrame=0, die 8 Felder field33_0x6c..field40_0x88 (darunter ownerFlagFrame)=0, someX=x+2, someY=y+2", "buildingProgress wird je Aufruf um 1 erhöht; ist er danach größer als 0x27 (39), also ab 40, wird er auf 0 gesetzt und computeBuildingEntranceFlagsForOrientations aufgerufen: Zyklus von 40 Aufrufen, nur dann werden die Eingangs-/Ausgangsflaggen neu berechnet (die Abfrage unten läuft dagegen bei jedem Aufruf)", "hasBuildingExitFlagForOrientation != 0: field21_0x3c=0x51 (81) und animationFrame=1", "hasBuildingEntranceFlagForOrientation != 0: field23_0x44=0x5a (90) und animationFrame=1 (beide Abfragen sind unabhängig, es können beide Werte gesetzt werden)", "Schadensstufe n = 9 - (currentHealth*9)/maxHealth (ganzzahlige Division); n >= 9 (currentHealth unter einem Neuntel von maxHealth) wird auf 8 gekappt, es gibt also die Stufen 1..8. n = 0 (volle Gesundheit) oder kleiner: keine Werte, alle 8 Felder bleiben 0", "Bei n >= 1 werden n der 8 Felder gefüllt: für k = 0..n-1 erhält Platz ((fireRelatedRNG1 >> 8) + k) & 7 den Wert ((fireRelatedRNG1 + k) & 0xf) + 1 (1..16, nach 16 wieder 1; jeder Platz bekommt also einen anderen Wert). Plätze 0..7 = field33_0x6c, field34_0x70, field35_0x74, field36_0x78, field37_0x7c, ownerFlagFrame, field39_0x84, field40_0x88", "fireRelatedRNG1 wird hier nur gelesen: bei gleicher Schadensstufe entsteht jedes Mal dasselbe Muster", "Kachelmarkierung nur wenn DAT_BuildingsState.field34_0x18e074 != 0: für i = 0..constructionTileCount-1 (mindestens einmal) liefert getBuildingSizeIndexMappingData(i,5) den Versatz; Kachel = translationMatrix[y+buildingY].addXgetTile + x + buildingX", "Auf dieser Kachel wird Bit 0x10 in MiscDisplayLayer zuerst gelöscht (& 0xffef) und danach wieder gesetzt, wenn i unter den 6 Werten der Tabellenzeile field420_0xa77c[(mapOrientation/2)*6 .. +5] vorkommt"], "offen": ["Bedeutung von field20_0x38=4, field34_0x18e074 und von Bit 0x10 in MiscDisplayLayer", "Bedeutung der Werte 0x51 / 0x5a (vermutlich Bildnummern für Tor/Eingang)", "Ob die 8 Felder wirklich Feuer-/Rauchanzeige sind (nur der Name fireRelatedRNG1 deutet darauf); ownerFlagFrame ist hier ein Anzeigeplatz für den Schadenswert, der Name ist vermutlich irreführend", "Wer constructionTileCount setzt (hier nicht), und wie viele Zeilen field420_0xa77c hat", "Welcher Turm genau; UpdateTower1/2 liegen nicht in diesem Paket"]}, "p3": {"erklaerung": "Pflegt bei jedem Aufruf die Darstellung dieses Turms: setzt Anzeigewerte zurück, hält Tor-/Eingangsmarken fest und füllt je nach Schaden bis zu 8 Anzeigeplätze mit Werten. Zusätzlich werden Kacheln der Grundfläche markiert. Eine Wirkung auf Wirtschaft oder Kampf ist im Code nicht sichtbar.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}, "korrigiert": "ja", "aenderung": "Unbelegte Angaben (3x3, mittlerer Turm, wie UpdateTower2 / kleiner Turm) entfernt; Feuerwerte sind je Platz verschieden (nicht überall (RNG&0xf)+1); die Bedingung field34_0x18e074 != 0 für die Kachelmarkierung und das Löschen/Setzen von Bit 0x10 fehlte."}
+

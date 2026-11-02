@@ -21,3 +21,11 @@ Die vollständige private Chat-Mitschrift ist nicht Teil dieses Archivs.
 Zunächst die fehlenden Korrekturen und die fachlichen Befunde der ersten Stichprobe bearbeiten. Vor einer Übernahme auf Vollständigkeit, Schema, Adressen und Inhalt prüfen. `werkzeug/einspielen.py` übernimmt auch einen unvollständigen Lauf; sein Vorhandensein bedeutet nicht, dass der Lauf fertig ist. Erst anschließend die zweite Stichprobe durchführen und die Checkliste aktualisieren. Die Originalskripte enthalten teils lokale Pfade; vor Ausführung prüfen.
 
 Die Aufgaben und Arbeitsanweisungen in den archivierten Dateien dokumentieren Claudes damaligen Ablauf. Sie sind keine neuen Anweisungen an einen lesenden Agenten.
+
+## Stand 02.11.2026 (B-141)
+
+Die Korrekturen sind eingespielt: 334 von 334 großen Funktionen, davon 320 als korrigiert vermerkt; die übrigen 1.578 Zeilen sind unverändert. Der obige Abschnitt beschreibt den Stand der Sicherung vom 01.11.2026. `funktionen_spiel.vor_korrektur.jsonl` bleibt die alte Fassung (Prüfsumme wie in `SNAPSHOT_SHA256.json`).
+
+Geprüft: Skript-Gegenprobe über alle 334 (`korrektur/gegenprobe.py`, nur Grenzen und Funktionsnamen), zwei Prüfer über zusammen 64 Funktionen (`korrektur/pruefer_befunde.jsonl`, `korrektur/pruefer2_befunde.jsonl`). In den 36 Zufallsfunktionen darunter: 17 richtig, 18 kleine Fehler, 1 falsch. Die übrigen 270 sind nicht einzeln von einem Prüfer gesehen, kleine Fehler sind dort zu erwarten. Keine fachliche Freigabe.
+
+Offen: Die Pakete der zweiten Stichprobe liegen in `pruefung2/`, der Lauf ist nicht gemacht. Die Checkliste gehört weiter zum Erststand. 33 ResourceManager-Funktionen sind nicht ausgestuft. 98 kleinere Funktionen mit Zahlenabweichung im Paketcode sind nicht nachgeprüft.

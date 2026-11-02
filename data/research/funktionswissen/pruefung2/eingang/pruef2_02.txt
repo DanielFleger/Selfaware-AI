@@ -1,0 +1,728 @@
+### 0x005029d0 validateWallBuildPath | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x005029D0
+ void TileMapState::validateWallBuildPath(int playerID, uint x1, uint y1, uint x2, uint y2, undefined4 command)
+ {
+ int iVar1;
+ BOOLEnum BVar2;
+ uint uVar3;
+ int iVar4;
+ int _castleBuildingRange;
+ TileMapState* extraout_ECX;
+ int extraout_ECX_00;
+ TileMapState* _tileMapState;
+ uint _y1;
+ uint _x1;
+ TileMapState* _tileMapState2;
+ int* local_1c;
+ int local_18;
+ int local_14;
+ int local_10;
+ int local_c;
+ int local_8;
+ int local_4;
+ uint _logic;
+ _tileMapState = this;
+ _tileMapState2 = this;
+ local_c = 0;
+ if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+ local_8 = 0x1e;
+ local_4 = 0x1e;
+ } else {
+ local_8 = 0xf;
+ local_4 = 7;
+ }
+ this->buildingPlacementFail = FALSE;
+ this->illegalBuild = TRUE;
+ this->field118_0x554920 = 0;
+ if (((399 < x1) || (399 < y1)) || (*(char*)(y1 * 400 + 0x21aec98 + x1) == '\0')) {
+ this->buildingPlacementFail = TRUE;
+ return;
+ }
+ if (((399 < x2) || (399 < y2)) || (*(char*)(y2 * 400 + 0x21aec98 + x2) == '\0')) {
+ this->buildingPlacementFail = TRUE;
+ return;
+ }
+ local_1c = &DAT_ViewportRenderState.translationMatrix[y1].addXgetTile;
+ iVar1 = *local_1c + x1;
+ this->DAT_SomeY = y1;
+ this->DAT_SomeTile = iVar1;
+ if ((short)command == 0x1b) {
+ BVar2 = isTileEnclosedByWallsOrGates(
+ iVar1, y1);
+ if (BVar2 == FALSE) {
+ return;
+ }
+ this->field119_0x554924
+ = getMaxWallHeightInBrushArea(iVar1, y1);
+ if (this->field119_0x554924 < 0x11) {
+ return;
+ }
+ _tileMapState = this;
+ local_c = this->field119_0x554924;
+ } else if (((short)command == 0x1a)
+ && (iVar1 = isTileEnclosedByWalls(
+ iVar1, y1),
+ _tileMapState = extraout_ECX, iVar1 == 0)) {
+ extraout_ECX->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x13);
+ return;
+ }
+ local_10 = 2;
+ local_18 = y1 - y2;
+ local_14 = y2 - y1;
+ uVar3 = x2 - x1;
+ _tileMapState->field118_0x554920 = 1;
+ _y1 = y1;
+ _x1 = x1;
+ x1 = x1 - x2;
+ y1 = uVar3;
+ do {
+ iVar1 = *local_1c + _x1;
+ _logic = _tileMapState->LogicLayer[iVar1];
+ if ((_logic & L_PLAIN1_AND_FARM | L_BORDER) != 0) {
+ return;
+ }
+ if ((_logic & L_SEA | L_BUILDING | L_KEEP_NON_MANOR_HOUSE | L_MARSH | L_MOAT) != 0) {
+ return;
+ }
+ if (_tileMapState->BuildingLayer[iVar1] != 0) {
+ return;
+ }
+ if ((((_logic & L_TREE | L_TREE_VARIATION) != 0)
+ && (iVar4 = (int)_tileMapState->OrganismLayer[iVar1], iVar4 != 0))
+ && (iVar4 < 2000)) {
+ switch (DAT_LandscapeState.trees[iVar4].treeType) {
+ case ((TreeType)5):
+ case ((TreeType)6):
+ case ((TreeType)7):
+ case ((TreeType)8):
+ case ((TreeType)9):
+ case ((TreeType)10):
+ case 0xb:
+ case 0xc:
+ case 0xd:
+ case 0xe:
+ case ((TreeType)0x10):
+ case ((TreeType)0x11):
+ case ((TreeType)0x12):
+ case ((TreeType)0x13):
+ break;
+ default : goto switchD_00502bde_caseD_f;
+ }
+ }
+ if ((_logic & L_RIVER | L_FORD) != 0) {
+ return;
+ }
+ if ((char)_logic < '\0') {
+ return;
+ }
+ if (((_tileMapState->UnitLayer[iVar1] != 0) && ((_logic & L_WALL_OR_GATEHOUSE) == 0))
+ && (DAT_UnitsState.units[(short)_tileMapState->UnitLayer[iVar1]].unitType
+ != UT_CHICKEN)) {
+ return;
+ }
+ if (((DAT_GameCore.gameMode_2 != GM_EDITOR)
+ && (DAT_GameCore.gameMode_2 != GM_SIEGE_THAT))
+ && (BVar2 = isEnemyTooCloseUnk(playerID, _x1, _y1, local_8),
+ BVar2 != FALSE)) {
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x11);
+ return;
+ }
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ iVar4 = isOpponentBuildingInRange(playerID, _x1, _y1, local_4, -1, -1, -1);
+ if (iVar4 != 0) {
+ if (this->buildingPlacementFailReason == ((BuildingFailReasonEnum)0x12)) {
+ return;
+ }
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x13);
+ return;
+ }
+ if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ _castleBuildingRange
+ = getCastleBuildRangeForMapSize();
+ iVar4 = isTileInRangeOfKeepRange(playerID, _x1, _y1, _castleBuildingRange);
+ if (iVar4 != 0) {
+ if (this->buildingPlacementFailReason == ((BuildingFailReasonEnum)0x12)) {
+ return;
+ }
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x13);
+ return;
+ }
+ }
+ }
+ if ((DAT_GameCore.gameMode_2 == GM_EDITOR)
+ && (iVar4
+ = isOpponentBuildingInRange(playerID, _x1, _y1, 7, -1, -1, -1),
+ iVar4 != 0)) {
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x11);
+ return;
+ }
+ iVar4 = findSomeSuitableLocationUnk(playerID, _x1, _y1, 2);
+ if (iVar4 != 0) {
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x11);
+ return;
+ }
+ BVar2 = isSignPostWithinDistance(_x1, _y1, DAT_GameState.mapAndTime.unk_signpostDistance + 5);
+ if (BVar2 != FALSE) {
+ this->buildingPlacementFailReason = ((BuildingFailReasonEnum)0x15);
+ return;
+ }
+ if ((short)command == 0x1a) {
+ iVar1 = isTileEnclosedByWalls(
+ iVar1, _y1);
+ if (iVar1 == 0) {
+ *(undefined4*)(extraout_ECX_00 + 0x554938) = 0x13;
+ return;
+ }
+ } else if (((short)command == 0x1b) && ((local_c < 0x11 || ((this->LogicLayer[iVar1] & 0x100U) != 0))))
+ break;
+ uVar3 = x1;
+ if ((int)_x1 < (int)x2) {
+ uVar3 = y1;
+ }
+ iVar1 = local_18;
+ if ((int)_y1 < (int)y2) {
+ iVar1 = local_14;
+ }
+ if ((short)command == 0x1b) {
+ if (iVar1 < (int)uVar3) {
+ if ((int)_x1 < (int)x2) {
+ x1 = x1 + 1;
+ _x1 = _x1 + 1;
+ y1 = y1 - 1;
+ } else {
+ x1 = x1 - 1;
+ _x1 = _x1 - 1;
+ y1 = y1 + 1;
+ }
+ } else {
+ if (iVar1 < 1)
+ goto LAB_00502e46;
+ if ((int)_y1 < (int)y2) {
+ local_1c = local_1c + 3;
+ local_18 = local_18 + 1;
+ _y1 = _y1 + 1;
+ local_14 = local_14 + -1;
+ } else {
+ local_1c = local_1c + -3;
+ local_18 = local_18 + -1;
+ _y1 = _y1 - 1;
+ local_14 = local_14 + 1;
+ }
+ }
+ } else {
+ if (uVar3 != 0) {
+ if ((int)_x1 < (int)x2) {
+ x1 = x1 + 1;
+ _x1 = _x1 + 1;
+ y1 = y1 - 1;
+ } else {
+ x1 = x1 - 1;
+ _x1 = _x1 - 1;
+ y1 = y1 + 1;
+ }
+ }
+ if (iVar1 != 0) {
+ if ((int)_y1 < (int)y2) {
+ local_1c = local_1c + 3;
+ local_18 = local_18 + 1;
+ _y1 = _y1 + 1;
+ local_14 = local_14 + -1;
+ } else {
+ local_1c = local_1c + -3;
+ local_18 = local_18 + -1;
+ _y1 = _y1 - 1;
+ local_14 = local_14 + 1;
+ }
+ }
+ if ((_x1 == x2) && (_y1 == y2)) {
+ LAB_00502e46:
+ local_10 = local_10 + -1;
+ }
+ }
+ if (0x10 < local_c) {
+ local_c = local_c + -0x10;
+ }
+ _tileMapState = _tileMapState2;
+ } while (((_x1 != x2) || (_y1 != y2)) || (local_10 != 0));
+ this->illegalBuild = FALSE;
+ switchD_00502bde_caseD_f:
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x005029d0", "name": "validateWallBuildPath", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Prüft Feld für Feld die Ziehlinie eines Mauer-, Zinnen-, Treppen- oder Holzmauer-Baus und setzt illegalBuild (FALSE = zulässig) sowie bei manchen Ablehnungen einen Fehlergrund in buildingPlacementFailReason."}, "p2": {"ein": "playerID, x1, y1 (Startfeld), x2, y2 (Zielfeld), command (nur die unteren 16 Bit): 0x19 = M_MAPPER_WALL, 0x1a = M_MAPPER_CRENAL (Zinnen), 0x1b = M_MAPPER_STAIR (Treppe), 0x2e = M_MAPPER_WOODWALL; Sonderregeln gibt es nur für 0x1a und 0x1b", "aus": "nichts; das Ergebnis steht in illegalBuild (FALSE = zulässig), buildingPlacementFail und buildingPlacementFailReason", "liest": ["Gültigkeitstabelle bei 0x021aec98 (400 x 400 Byte)", "LogicLayer", "BuildingLayer", "UnitLayer", "OrganismLayer", "trees[Nr].treeType", "units[].unitType", "translationMatrix[y].addXgetTile", "DAT_GameSynchronyState.currentGameMode", "DAT_GameCore.gameMode_2", "DAT_GameState.mapAndTime.unk_signpostDistance", "buildingPlacementFailReason (nur Vergleich mit 0x12)"], "schreibt": ["illegalBuild", "buildingPlacementFail", "buildingPlacementFailReason (0x11, 0x13 oder 0x15)", "field118_0x554920 (0 oder 1)", "field119_0x554924 (nur Treppe)", "DAT_SomeY und DAT_SomeTile (Startfeld, schon vor der Befehlsprüfung)"], "ruft": ["isTileEnclosedByWallsOrGates", "getMaxWallHeightInBrushArea", "isTileEnclosedByWalls", "isEnemyTooCloseUnk", "isOpponentBuildingInRange", "getCastleBuildRangeForMapSize", "isTileInRangeOfKeepRange", "findSomeSuitableLocationUnk", "isSignPostWithinDistance"], "regeln": ["Zuerst: illegalBuild = TRUE, buildingPlacementFail = FALSE, field118_0x554920 = 0. Radien: in GM_SOLITARY (currentGameMode == 0) ist Radius A = 30 (0x1e) und B = 30, sonst A = 15 (0xf) und B = 7", "Eingangsprüfung: x1, y1, x2, y2 müssen kleiner 400 sein und die Gültigkeitstabelle bei 0x021aec98 muss für Start und Ziel ungleich 0 sein; sonst buildingPlacementFail = TRUE und Ende (illegalBuild bleibt TRUE). Danach DAT_SomeY = y1 und DAT_SomeTile = Startfeld", "Befehl 0x1b (Treppe), Startfeld: isTileEnclosedByWallsOrGates muss wahr sein, sonst Ende ohne Fehlergrund. field119_0x554924 = getMaxWallHeightInBrushArea(Startfeld) wird noch vor der Prüfung gespeichert; ist der Wert kleiner 0x11 (höchstens 16), Ende. Die Resthöhe local_c startet mit diesem Wert", "Befehl 0x1a (Zinnen), Startfeld: isTileEnclosedByWalls muss wahr sein, sonst buildingPlacementFailReason = 0x13 und Ende", "Hilfsfunktionen laut Export: isTileEnclosedByWalls ist wahr, wenn mindestens eines der vier Nachbarfelder in Richtung 0, 2, 4, 6 Bit 0x100 trägt und nicht Bit 2 (der Name 'umschlossen' täuscht, ein Nachbar genügt); isTileEnclosedByWallsOrGates ebenso, zählt aber auch Nachbarn mit Bit 0x200 nicht; getMaxWallHeightInBrushArea = größte HeightLayer-Höhe der vier Brush-Nachbarn mit Bit 0x100 ohne Bit 2 und ohne Bit 0x200", "Sind die Startprüfungen bestanden, wird field118_0x554920 = 1 gesetzt (für alle Befehle) und die Linie vom Start zum Ziel abgegangen, wobei jedes Feld nacheinander geprüft wird; jede Ablehnung beendet die Funktion sofort mit illegalBuild = TRUE", "Pro Feld abgelehnt, in dieser Reihenfolge: LogicLayer-Bits 0x14 (L_PLAIN1_AND_FARM und L_BORDER, nicht L_BORDER_EDGE); Bits 0x70000401 (L_SEA, L_BUILDING, L_KEEP_NON_MANOR_HOUSE, L_MARSH, L_MOAT); BuildingLayer != 0; Baum (Regel 8); Fluss oder Furt (0x300000); Bit 0x80 (Ghidra-Name L_ROCKY, Bedeutung nicht belegt); eine Einheit auf dem Feld (UnitLayer != 0), wenn das Feld kein Mauer- oder Torhausbit 0x100 trägt und die Einheit nicht UT_CHICKEN ist", "Bäume werden nur geprüft, wenn LogicLayer Bit 0x3000 (L_TREE oder L_TREE_VARIATION) trägt und der OrganismLayer-Wert 1 bis 1999 beträgt: Baumarten 5 bis 14 und 16 bis 19 sind erlaubt, jede andere Art lehnt ab; OrganismLayer-Werte ab 2000 werden nicht geprüft", "Gegner zu nah: außer bei gameMode_2 == GM_EDITOR (1) und GM_SIEGE_THAT (6) lehnt isEnemyTooCloseUnk(playerID, x, y, A) ab, mit buildingPlacementFailReason = 0x11 (A = 30 in GM_SOLITARY, sonst 15)", "Nur außerhalb GM_SOLITARY: isOpponentBuildingInRange(playerID, x, y, 7, -1, -1, -1) ungleich 0 lehnt ab, danach isTileInRangeOfKeepRange(playerID, x, y, getCastleBuildRangeForMapSize()) ungleich 0 ebenso; Fehlergrund jeweils 0x13, es sei denn, buildingPlacementFailReason ist schon 0x12 (dann bleibt er, und die Funktion endet)", "Im Editor (gameMode_2 == GM_EDITOR): isOpponentBuildingInRange(.., 7, ..) ungleich 0 gibt 0x11. In jeder Spielart: findSomeSuitableLocationUnk(playerID, x, y, 2) ungleich 0 gibt 0x11, und isSignPostWithinDistance(x, y, unk_signpostDistance + 5) gibt 0x15", "Am Ende der Feldprüfung: Befehl 0x1a verlangt für jedes Feld der Strecke (auch das Startfeld) isTileEnclosedByWalls, sonst 0x13 und Ende. Befehl 0x1b beendet die Schleife (break), wenn local_c < 0x11 oder das Feld Bit 0x100 trägt; illegalBuild wird dann trotzdem FALSE, die Treppe gilt bis dahin als zulässig", "Weg wie in renderWallDragPreview: außer bei 0x1b geht jeder Schritt gleichzeitig ein Feld in x und in y auf das Ziel zu (Diagonale), bei 0x1b nur auf der Achse mit dem größeren Restabstand (bei Gleichstand y). local_c sinkt nach jedem Schritt um 0x10, solange es größer als 0x10 ist. Der Zähler local_10 (Start 2) sinkt nur am Ziel; die Linie wird also genau einmal abgegangen, das Zielfeld wird bei Mauer, Zinnen und Holzmauer einmal, bei Treppen zweimal (bei Start gleich Ziel zweimal) geprüft", "Nur wenn die Schleife ohne Ablehnung endet (oder per Treppen-break), wird illegalBuild = FALSE. Fehlergrund 0x12 wird hier nur verglichen, nie gesetzt"], "offen": ["Die Fehlergründe 0x11, 0x13 und 0x15 sind in der Aufzählung BuildingFailReasonEnum nicht benannt; welche Meldung der Aufrufer dazu zeigt, ist hier nicht belegt", "Die Zuordnung der Befehlszahlen zu Namen (0x19 Mauer, 0x1a Zinnen, 0x1b Treppe, 0x2e Holzmauer) stammt aus der Ghidra-Aufzählung MappersEnum und dem Aufrufer TriggerPlaceWallCommand, nicht aus dieser Funktion selbst", "Bedeutung von isEnemyTooCloseUnk, findSomeSuitableLocationUnk und der Parameter -1 bei isOpponentBuildingInRange ist ungesichert; ebenso Bit 0x80 und L_PLAIN1_AND_FARM im Zusammenhang mit Mauern", "Aufrufer laut Export: MenuItemActionHandler_InGameMenu_TriggerPlaceWallCommand (setzt vorher buildingPlacementFailReason = 0 und zeigt bei illegalBuild einen Text mit dem Fehlergrund) und placeWalls (0x00502f30); was placeWalls mit dem Ergebnis macht, ist hier nicht gelesen"]}, "p3": {"erklaerung": "Geht die gezogene Linie für Mauer, Zinnen, Treppe oder Holzmauer Feld für Feld ab und entscheidet, ob so gebaut werden darf: Wasser, Sumpf, Gebäude, Bäume, Einheiten, Fluss und Gegnernähe sperren; Zinnen brauchen eine Mauer daneben, Treppen eine Mauer und genug Höhe. Der Fehlergrund (0x11, 0x13, 0x15) sagt dem Spieler, warum nicht.", "gehirn": "Vor Mauerbefehlen beachten: Abgelehnt wird, wenn isEnemyTooCloseUnk anschlägt (Radius 15, im Einzelspiel 30), außerhalb des Einzelspiels bei einem Gegnergebäude im Radius 7 oder verletzter Burgreichweite, und bei einem Wegweiser in Reichweite; Zinnen und Treppen setzen eine angrenzende Mauer voraus.", "beleg": "code", "live": "Mauer (0x19) bis dicht an ein Gegnergebäude ziehen (nicht im Einzelspiel; Radius 7 vermutlich in Feldern) → TileMapState.illegalBuild und buildingPlacementFailReason → TRUE und 0x13", "live_art": "bauen"}, "korrigiert": "ja", "aenderung": "Befehl 0x1a verlangt die Mauer-Nachbarschaft (isTileEnclosedByWalls) für jedes Feld der Strecke und nicht nur fürs Startfeld, findSomeSuitableLocationUnk (Grund 0x11) gilt in allen Spielarten, die Baumregel gilt nur bei Baumbit und OrganismLayer 1 bis 1999, schreibt fehlten DAT_SomeY und DAT_SomeTile, die Ablehnungsmasken waren ungenau (0x14 ohne L_BORDER_EDGE, 0x80 heißt in der Ghidra-Aufzählung L_ROCKY), und die Befehle sind jetzt belegt (0x1a Zinnen, 0x1b Treppe laut MappersEnum), während 'zwei Durchgänge' ungenau war (die Linie wird einmal abgegangen)."}
+
+### 0x004d3ae0 aiRecruitUnits | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004D3AE0
+ void AICState::aiRecruitUnits(int playerID)
+ {
+ int* piVar1;
+ AIRecruitUnitChoiceInt AVar2;
+ bool bVar3;
+ int iVar4;
+ int iVar5;
+ int _tribeID_defDiggingUnitMax;
+ int _unitID;
+ UnitType _unitType;
+ int iVar6;
+ AICState* _pAICState;
+ int local_8;
+ int _aicRecruitInterval;
+ int _nervousActionTracker;
+ int _buildingID;
+ int _unitChoiceIndex;
+ AIRecruitUnitChoiceInt _unitTypeChoice;
+ int _defTotal;
+ AITypeInt _aiType;
+ int _playerID2;
+ bool _recruitDefDiggingUnit;
+ _playerID2 = playerID;
+ _aiType = DAT_GameState.playerDataArray[playerID].aiType;
+ _unitType = ((UnitType)0);
+ _pAICState = this;
+ if (_aiType != AIT_NULL) {
+ bVar3 = false;
+ _recruitDefDiggingUnit = false;
+ iVar6 = _aiType + ~AIT_NULL;
+ if (((DAT_GameCore.gameMode_2 == GM_SKIRMISH_AND_MULTIPLAYER)
+ && (DAT_GameCore.isSkirmishTrail == TRUE))
+ && (DAT_GameCore.currentTrailType == TT_EXTREME)) {
+ bVar3 = true;
+ }
+ iVar4 = iVar6 * 0xa9;
+ _aicRecruitInterval = *(int*)((int)this
+ + (DAT_GameState.playerDataArray[playerID].aiStrengthFeeling + iVar4) * 4 + 0x164);
+ local_8 = -(uint)(_aicRecruitInterval != 0) + 2;
+ if (bVar3) {
+ local_8 = -(uint)(_aicRecruitInterval != 0) + 3;
+ }
+ _nervousActionTracker = DAT_GameState.playerDataArray[playerID].aiNervousActionsTracker;
+ if (_nervousActionTracker < 1) {
+ piVar1 = &DAT_GameState.playerDataArray[playerID].aiRecruitIntervalTracker;
+ *piVar1 = *piVar1 + 1;
+ if (DAT_GameState.playerDataArray[playerID].aiRecruitIntervalTracker < _aicRecruitInterval) {
+ return;
+ }
+ } else {
+ local_8 = 4;
+ }
+ iVar5 = DAT_GameState.playerDataArray[playerID].idlePeasantsCount;
+ DAT_GameState.playerDataArray[playerID].aiRecruitIntervalTracker = 0;
+ if ((0 < iVar5) && (DAT_GameState.playerDataArray[playerID].canStartSpending != 0)) {
+ AVar2 = DAT_GameState.playerDataArray[playerID].aiRecruitUnitChoiceState;
+ if (AVar2 == AIRUC_DEFENSIVE) {
+ _defTotal = *(int*)((int)this + iVar6 * 0x2a4 + 0x170);
+ if (bVar3) {
+ _defTotal = (_defTotal * 4) / 3;
+ }
+ if (0 < _nervousActionTracker) {
+ _defTotal = _defTotal * 4;
+ }
+ if (_defTotal <= DAT_GameState.playerDataArray[playerID].totalDefensiveTroopsUnk) {
+ return;
+ }
+ } else if (AVar2 == AIRUC_RAIDING) {
+ iVar5 = getCurrentDesiredAttackRaidUnitCount(
+ iVar6, playerID);
+ if (iVar5 <= DAT_GameState.playerDataArray[playerID].totalRaidingTroopsUnk) {
+ return;
+ }
+ } else if ((AVar2 == AIRUC_ATTACKING)
+ && (DAT_GameState.playerDataArray[playerID].aiPlayerState != 0)) {
+ return;
+ }
+ iVar6 = iVar6 * 0x2a4;
+ /*
+ DefDiggingUnitMax
+ */
+ /*
+ DefDiggingUnitMax
+ */
+ if (((*(int*)((int)this + iVar6 + 0x15c) != 0)
+ && (iVar5
+ = countUnfinishedMoatTilesForPlayer(playerID),
+ iVar5 != 0))
+ && ((_tribeID_defDiggingUnitMax
+ = (int)DAT_GameState.playerDataArray[playerID].aiTribeIDs[10],
+ _tribeID_defDiggingUnitMax == 0
+ || ((DAT_GameState.playerDataArray[playerID].aiTribeUIDs[10]
+ != DAT_TribesState.tribes[_tribeID_defDiggingUnitMax].uid
+ || ((int)DAT_TribesState.tribes[_tribeID_defDiggingUnitMax].size
+ < *(int*)((int)this + iVar6 + 0x15c))))))) {
+ _recruitDefDiggingUnit = true;
+ }
+ playerID = 0;
+ if (0 < local_8) {
+ do {
+ if (_recruitDefDiggingUnit) {
+ if (((byte)SEC_RNG::instance.currentNumber2 & 1) != 0) {
+ _recruitDefDiggingUnit = false;
+ goto LAB_004d3cc1;
+ }
+ if (DAT_GameState.playerDataArray[_playerID2].barracks.id == 0) {
+ if (DAT_GameState.playerDataArray[_playerID2].mercenaryPost.id == 0) {
+ return;
+ }
+ /*
+ DefDiggingUnit
+ */
+ _unitType = *(UnitType*)((int)this + iVar6 + 0x160);
+ } else {
+ /*
+ DefDiggingUnit
+ */
+ _unitType = *(UnitType*)((int)this + iVar6 + 0x160);
+ }
+ } else {
+ LAB_004d3cc1:
+ _unitTypeChoice
+ = DAT_GameState.playerDataArray[_playerID2].aiRecruitUnitChoiceState;
+ if (_unitTypeChoice == AIRUC_DEFENSIVE) {
+ if (7 < DAT_GameState.playerDataArray[_playerID2].aiDefUnitChoiceIndex) {
+ DAT_GameState.playerDataArray[_playerID2].aiDefUnitChoiceIndex = 0;
+ }
+ /*
+ DefUnit 1 up to 8
+ */
+ if (*(int*)((int)this
+ + (DAT_GameState.playerDataArray[_playerID2].aiDefUnitChoiceIndex
+ + iVar4)
+ * 4
+ + 0x184)
+ == 0) {
+ DAT_GameState.playerDataArray[_playerID2].aiDefUnitChoiceIndex = 0;
+ }
+ _unitChoiceIndex
+ = DAT_GameState.playerDataArray[_playerID2].aiDefUnitChoiceIndex;
+ /*
+ DefUnit 1 up to 8
+ */
+ _unitType = *(UnitType*)((int)this + (iVar4 + _unitChoiceIndex) * 4 + 0x184);
+ DAT_GameState.playerDataArray[_playerID2].aiDefUnitChoiceIndex
+ = _unitChoiceIndex + 1;
+ } else if (_unitTypeChoice == AIRUC_RAIDING) {
+ if (7 < DAT_GameState.playerDataArray[_playerID2].aiRaidUnitChoiceIndex) {
+ DAT_GameState.playerDataArray[_playerID2].aiRaidUnitChoiceIndex = 0;
+ }
+ if (*(int*)((int)this
+ + (DAT_GameState.playerDataArray[_playerID2].aiRaidUnitChoiceIndex
+ + iVar4)
+ * 4
+ + 0x1ac)
+ == 0) {
+ DAT_GameState.playerDataArray[_playerID2].aiRaidUnitChoiceIndex = 0;
+ }
+ iVar5 = DAT_GameState.playerDataArray[_playerID2].aiRaidUnitChoiceIndex;
+ _unitType = *(UnitType*)((int)this + (iVar4 + iVar5) * 4 + 0x1ac);
+ DAT_GameState.playerDataArray[_playerID2].aiRaidUnitChoiceIndex = iVar5 + 1;
+ } else if (_unitTypeChoice == AIRUC_ATTACKING) {
+ _pAICState = (AICState*)randomlySelectAttackUnitTypeToRecruit(
+ _playerID2);
+ _unitType
+ = getUnitTypeForUnitBehaviourType(_playerID2, (AIUnitBehaviourType)((int)(_pAICState)));
+ }
+ }
+ if (_unitType == ((UnitType)0)) {
+ return;
+ }
+ if (_unitType == UT_E_ENGINEER) {
+ _buildingID = DAT_GameState.playerDataArray[_playerID2].engineersGuild.id;
+ } else if (_unitType == UT_E_LADDER) {
+ _buildingID = DAT_GameState.playerDataArray[_playerID2].engineersGuild.id;
+ } else if (_unitType == UT_TUNNELER) {
+ _buildingID = DAT_GameState.playerDataArray[_playerID2].tunnelersGuild.id;
+ } else if (_unitType == UT_E_MONK) {
+ _buildingID = findFirstBuildingIDForPlayerAndType(_playerID2, BT_CATHEDRAL);
+ } else if ((int)_unitType < 0x46) {
+ _buildingID = DAT_GameState.playerDataArray[_playerID2].barracks.id;
+ } else {
+ _buildingID = DAT_GameState.playerDataArray[_playerID2].mercenaryPost.id;
+ }
+ if (_buildingID == 0) {
+ return;
+ }
+ if ((((_unitType == UT_E_ENGINEER)
+ || (_unitType == UT_E_LADDER))
+ || (_unitType == UT_TUNNELER))
+ || ((_unitType == UT_E_MONK || (0x45 < (int)_unitType)))) {
+ _unitID = nonEuroRecruit(_unitType, (undefined4)((int)(_buildingID)), _playerID2, 0);
+ } else {
+ _unitID = euroRecruit(_unitType, (undefined4)((int)(_buildingID)), _playerID2, 0);
+ }
+ if (_unitID == 0) {
+ /*
+ tradeAmountEquipment
+ */
+ iVar6 = *(int*)((int)this + iVar6 + 0x9c);
+ if (iVar6 < 1) {
+ return;
+ }
+ if (DAT_UnitsState.euroUnitAcquisitionFailReason != 2) {
+ return;
+ }
+ if (DAT_GameState.playerDataArray[_playerID2].aiNervousActionsTracker < 1) {
+ DAT_GameState.playerDataArray[_playerID2]
+ .resourcesToAcquireArray[DAT_UnitsState.euroUnitRequiredResource] = iVar6;
+ return;
+ }
+ DAT_GameState.playerDataArray[_playerID2]
+ .resourcesToAcquireArray[DAT_UnitsState.euroUnitRequiredResource] = 5;
+ return;
+ }
+ if (_recruitDefDiggingUnit) {
+ /*
+ digging units?
+ */
+ aiAddUnitToMoatDiggerTribe(_unitID);
+ } else {
+ AVar2 = DAT_GameState.playerDataArray[_playerID2].aiRecruitUnitChoiceState;
+ /*
+ 0 = defensive, 1 = raid, 2 = army
+ */
+ if (AVar2 == AIRUC_DEFENSIVE) {
+ if (DAT_GameState.playerDataArray[_playerID2].totalDefensiveTroopsUnk
+ < *(int*)((int)this + iVar6 + 0x180)) {
+ assignUnitToATribe(_unitID);
+ } else {
+ addUnitToSmallestPatrolTribe(
+ _unitID);
+ }
+ } else if (AVar2 == AIRUC_RAIDING) {
+ aiAssignUnitToDefensiveTribe(
+ _unitID);
+ } else if (AVar2 == AIRUC_ATTACKING) {
+ addUnitToItsTribe(
+ _unitID, _pAICState);
+ }
+ }
+ playerID = playerID + 1;
+ if (local_8 <= playerID) {
+ return;
+ }
+ } while (true);
+ }
+ }
+ }
+ return;
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004d3ae0", "name": "aiRecruitUnits", "quelle": "ghidra", "p1": {"bereich": "KI", "zweck": "Wirbt im Takt des Rekrutierintervalls bis zu vier Einheiten für die KI an (Art nach Rekrutierungsart) und teilt sie einer Gruppe zu."}, "p2": {"ein": "playerID", "aus": "-", "liest": ["playerDataArray[sp].aiType/aiStrengthFeeling/aiRecruitUnitChoiceState/aiNervousActionsTracker/aiRecruitIntervalTracker/idlePeasantsCount/canStartSpending/aiPlayerState/totalDefensiveTroopsUnk/totalRaidingTroopsUnk/aiDefUnitChoiceIndex/aiRaidUnitChoiceIndex", "aiTribeIDs[10], aiTribeUIDs[10], tribes[].uid/size", "engineersGuild.id, tunnelersGuild.id, barracks.id, mercenaryPost.id", "GameCore.gameMode_2/isSkirmishTrail/currentTrailType", "SEC_RNG.currentNumber2", "KI-Einstellungen (aiType-1)*0x2a4: Rekrutierintervall (+0x164 + 4*aiStrengthFeeling), DefTotal (+0x170), tradeAmountEquipment (+0x9c), DefDiggingUnitMax (+0x15c), DefDiggingUnit (+0x160), Wert +0x180, DefUnit 1-8 (ab +0x184), RaidUnit 1-8 (ab +0x1ac)", "UnitsState.euroUnitAcquisitionFailReason/euroUnitRequiredResource"], "schreibt": ["aiRecruitIntervalTracker", "aiDefUnitChoiceIndex", "aiRaidUnitChoiceIndex", "resourcesToAcquireArray[euroUnitRequiredResource]"], "ruft": ["getCurrentDesiredAttackRaidUnitCount", "countUnfinishedMoatTilesForPlayer", "randomlySelectAttackUnitTypeToRecruit", "getUnitTypeForUnitBehaviourType", "findFirstBuildingIDForPlayerAndType", "euroRecruit", "nonEuroRecruit", "aiAddUnitToMoatDiggerTribe", "assignUnitToATribe", "addUnitToSmallestPatrolTribe", "aiAssignUnitToDefensiveTribe", "addUnitToItsTribe"], "regeln": ["Nur für KI (aiType != AIT_NULL). Gefechtspfad-Merkmal G = gameMode_2 == GM_SKIRMISH_AND_MULTIPLAYER UND isSkirmishTrail == TRUE UND currentTrailType == TT_EXTREME (nicht jedes Gefecht). Aufruf durch updateAIBehaviour bei dayTicks == playerID (alle 50 Ticks je KI), nur bei totalNoRushTicks == 0, nicht in GM_SOLITARY und nicht für KI mit getötetem Lord.", "Höchstzahl N der Durchgänge: Intervall I = KI-Wert bei (aiType-1)*0x2a4 + 4*aiStrengthFeeling + 0x164 (je Stärkegefühl ein Eintrag). I != 0: N = 1; I == 0: N = 2; mit G je +1; nervös (aiNervousActionsTracker > 0): immer N = 4. N ist nur eine Obergrenze: jedes return in der Schleife beendet die ganze Funktion.", "Takt: nicht nervös: aiRecruitIntervalTracker += 1, bei Tracker < I Ende; nervös: kein Warten. Danach wird der Tracker auf 0 gesetzt, noch bevor idlePeasantsCount und canStartSpending geprüft werden, also auch ohne Anwerbung. Weiter nur mit idlePeasantsCount > 0 und canStartSpending != 0.", "Vorabprüfung nach aiRecruitUnitChoiceState: DEFENSIVE: DefTotal (+0x170); mit G (DefTotal*4)/3 ganzzahlig, danach bei nervös zusätzlich *4 auf den schon angepassten Wert; Ende bei totalDefensiveTroopsUnk >= DefTotal. RAIDING: Ende bei totalRaidingTroopsUnk >= getCurrentDesiredAttackRaidUnitCount (currentAttackRaidParameter + RaidUnitsBase, mit G mal 4/3). ATTACKING: Ende bei aiPlayerState != 0. Andere Werte: keine Prüfung.", "Grabeneinheit-Merker D = true, wenn DefDiggingUnitMax (+0x15c) != 0 UND countUnfinishedMoatTilesForPlayer != 0 UND (aiTribeIDs[10] == 0 ODER aiTribeUIDs[10] != tribes[..].uid ODER tribes[..].size < DefDiggingUnitMax).", "Schleife mit einem Anwerbeversuch je Durchgang. Bei D: Zufallsbit SEC_RNG.currentNumber2 & 1 (wird hier nicht weitergeschaltet): Bit = 1 setzt D für den Rest des Aufrufs auf false (danach nur noch normale Wahl); Bit = 0: ohne Kaserne UND ohne Söldnerposten Abbruch der ganzen Funktion, sonst Typ = DefDiggingUnit (+0x160).", "Normale Wahl: DEFENSIVE: aiDefUnitChoiceIndex > 7 wird 0; ist der Eintrag DefUnit (+0x184 + 4*Index) gleich 0, wird der Index 0; Typ = Eintrag, Index += 1 (reihum durch bis zu 8 Einträge, 0 beendet die Liste). RAIDING ebenso mit aiRaidUnitChoiceIndex und Basis +0x1ac. ATTACKING: Typ = getUnitTypeForUnitBehaviourType(randomlySelectAttackUnitTypeToRecruit). Anderer Zustand: der Typ bleibt vom vorigen Durchgang (zu Beginn 0). Typ 0 beendet die Funktion.", "Anwerbegebäude: Typ 0x1e (UT_E_ENGINEER) und 0x1d (UT_E_LADDER) = engineersGuild.id; Typ 5 (UT_TUNNELER) = tunnelersGuild.id; Typ 0x25 (UT_E_MONK) = erste Kathedrale (BT_CATHEDRAL, 0x26) über findFirstBuildingIDForPlayerAndType; Typ < 0x46 = barracks.id; Typ >= 0x46 = mercenaryPost.id. Gebäude-ID 0 beendet die Funktion.", "nonEuroRecruit(Typ, Gebäude, playerID, 0) für Typ 0x1e, 0x1d, 5, 0x25 und alle Typen >= 0x46, sonst euroRecruit.", "Anwerbung gescheitert (ID 0): die Funktion endet; vorher, wenn tradeAmountEquipment (+0x9c) > 0 und euroUnitAcquisitionFailReason == 2: resourcesToAcquireArray[euroUnitRequiredResource] = tradeAmountEquipment, bei nervös stattdessen 5.", "Zuteilung nach Erfolg: bei D aiAddUnitToMoatDiggerTribe (Gruppe 10, Haltung defensiv); sonst DEFENSIVE: totalDefensiveTroopsUnk < Wert bei +0x180 dann assignUnitToATribe, sonst addUnitToSmallestPatrolTribe; RAIDING: aiAssignUnitToDefensiveTribe; ATTACKING: addUnitToItsTribe(Einheit, Verhaltenstyp). Dann nächster Durchgang bis N."], "offen": ["Bedeutung des Werts bei +0x180 (Grenze für die Zuteilung von Verteidigern), Name unbekannt", "Der Name aiAssignUnitToDefensiveTribe täuscht vermutlich bei RAIDING (die Funktion setzt aiUnitBehaviourType = 2 und sucht mit getDefensiveTribeForUnit eine Gruppe)", "Bedeutung von aiPlayerState != 0 (vermutlich: KI ist in einer Angriffswelle)", "Ob nonEuroRecruit euroUnitAcquisitionFailReason setzt, ist hier nicht sichtbar; nach einem Fehlschlag von nonEuroRecruit kann dort ein alter Wert stehen", "Der zweite Parameter von addUnitToItsTribe ist bei ATTACKING ein Verhaltenstyp (Ghidra zeigt ihn als _pAICState)"]}, "p3": {"erklaerung": "Die KI wirbt im Takt ihres Rekrutierintervalls einige Einheiten an, wenn freie Bauern da sind und sie ausgeben darf. Welche Einheit entsteht, hängt von ihrer Rekrutierungsart und den Listen der KI-Persönlichkeit ab. Fehlt eine Ware, merkt sie sich den Bedarf in resourcesToAcquireArray.", "gehirn": "Fehlende Ware lässt sich aus euroUnitAcquisitionFailReason == 2 und resourcesToAcquireArray der KI ablesen (Betrag tradeAmountEquipment, nervös 5). Intervall, Listen und Grenzen kommen aus den KI-Einstellungen (vermutlich per AIC-Datei oder UCP änderbar, im Code nicht belegt). Eine nervöse KI wirbt ohne Wartezeit bis zu 4 Einheiten je Aufruf an, und ihr Verteidigungssoll DefTotal wird vervierfacht.", "beleg": "code", "live": "KI (nicht nervös) wirbt an, Ware fehlt (euroUnitAcquisitionFailReason = 2) → resourcesToAcquireArray[euroUnitRequiredResource] der KI → Wert = tradeAmountEquipment (KI-Wert +0x9c), nervös 5; aiRecruitIntervalTracker springt nach dem Takt auf 0", "live_art": "anwerben"}, "korrigiert": "ja", "aenderung": "Die Gefechtsbedingung war ungenau (gameMode_2, isSkirmishTrail und TT_EXTREME zusammen), die DefTotal-Anpassungen wirken nacheinander, das Zufallsbit schaltet die Grabeneinheit für den Rest des Aufrufs ab, die Zahl 1 bis 4 ist nur eine Obergrenze, das Intervall hängt vom Stärkegefühl ab, und countUnfinishedMoatTilesForPlayer gehört unter 'ruft'."}
+
+### 0x004bc1c0 spawnAttackWaveForPlayer | quelle=ghidra
+--- CODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004BC1C0
+ void MapPropertiesState::spawnAttackWaveForPlayer(
+ int param_1, int param_2, int param_3, int param_4, int param_5, int param_6)
+ {
+ byte(*pabVar1)[10];
+ byte* pbVar2;
+ int iVar3;
+ int iVar4;
+ int iVar5;
+ char cVar6;
+ int iVar7;
+ int iVar8;
+ UnitType UVar9;
+ int local_10;
+ int local_c;
+ int local_8;
+ iVar3 = DAT_GameState.mapAndTime.signpostsMapEdgeDataCounter;
+ DAT_TroopValueState.attackInfo.inv_count = DAT_TroopValueState.attackInfo.inv_count + 1;
+ local_c = 0;
+ if (0x31 < DAT_TroopValueState.attackInfo.inv_count) {
+ DAT_TroopValueState.attackInfo.inv_count = 1;
+ }
+ initializeAttackWaveSlot(DAT_TroopValueState.attackInfo.inv_count, 0);
+ local_8 = 0;
+ DAT_TroopValueState.attackInfo
+ .attackWavePlayerIDArray[DAT_TroopValueState.attackInfo.inv_count] = (byte)param_1;
+ iVar7 = param_1;
+ iVar8 = param_1;
+ UVar9 = param_1;
+ do {
+ iVar4 = param_2;
+ iVar5 = param_3;
+ if ((local_8 != 0) && (iVar4 = param_4, iVar5 = param_5, param_4 < 1)) {
+ return;
+ }
+ switch (iVar4) {
+ case 5:
+ iVar8 = 2;
+ UVar9 = UT_TUNNELER;
+ break;
+ default:
+ goto switchD_004bc254_caseD_6;
+ case 0x16:
+ iVar8 = 3;
+ UVar9 = UT_E_ARCHER;
+ break;
+ case 0x17:
+ iVar8 = 7;
+ UVar9 = UT_E_XBOW;
+ break;
+ case 0x18:
+ iVar8 = 5;
+ UVar9 = UT_E_SPEAR;
+ break;
+ case 0x19:
+ iVar8 = 6;
+ UVar9 = UT_E_PIKE;
+ break;
+ case 0x1a:
+ iVar8 = 9;
+ UVar9 = UT_E_MACE;
+ break;
+ case 0x1b:
+ iVar8 = 8;
+ UVar9 = UT_E_SWORD;
+ break;
+ case 0x1c:
+ iVar8 = 10;
+ UVar9 = UT_E_KNIGHT;
+ iVar7 = 10;
+ goto switchD_004bc254_caseD_6;
+ case 0x1d:
+ iVar8 = 4;
+ UVar9 = UT_E_LADDER;
+ break;
+ case 0x1e:
+ iVar8 = 0xb;
+ UVar9 = UT_E_ENGINEER;
+ break;
+ case 0x25:
+ iVar8 = 0xc;
+ UVar9 = UT_E_MONK;
+ break;
+ case 0x27:
+ iVar8 = 0x16;
+ UVar9 = UT_S_CATAPULT;
+ break;
+ case 0x28:
+ iVar8 = 0x17;
+ UVar9 = UT_S_TREBUCHET;
+ break;
+ case 0x3a:
+ iVar8 = 0x14;
+ UVar9 = UT_S_TOWER;
+ break;
+ case 0x3b:
+ iVar8 = 0x13;
+ UVar9 = UT_S_BATTERINGRAM;
+ break;
+ case 0x3c:
+ iVar8 = 0x15;
+ UVar9 = UT_S_SHIELD;
+ break;
+ case 0x46:
+ iVar8 = 0x19;
+ UVar9 = UT_A_ARCHER;
+ break;
+ case 0x47:
+ iVar8 = 0x1a;
+ UVar9 = UT_A_SLAVE;
+ iVar7 = 0x14;
+ goto switchD_004bc254_caseD_6;
+ case 0x48:
+ iVar8 = 0x1b;
+ UVar9 = UT_A_SLINGER;
+ iVar7 = 0x14;
+ goto switchD_004bc254_caseD_6;
+ case 0x49:
+ iVar8 = 0x1c;
+ UVar9 = UT_A_ASSASSIN;
+ iVar7 = 2;
+ goto switchD_004bc254_caseD_6;
+ case 0x4a:
+ iVar8 = 0x1d;
+ UVar9 = UT_A_HARCHER;
+ break;
+ case 0x4b:
+ iVar8 = 0x1e;
+ UVar9 = UT_A_SWORDSMAN;
+ iVar7 = 8;
+ goto switchD_004bc254_caseD_6;
+ case 0x4c:
+ iVar8 = 0x1f;
+ UVar9 = UT_A_FIRETHROWER;
+ iVar7 = 4;
+ goto switchD_004bc254_caseD_6;
+ case 0x4d:
+ iVar8 = 0x18;
+ UVar9 = UT_S_FBALLISTA;
+ }
+ iVar7 = 10;
+ switchD_004bc254_caseD_6:
+ iVar4 = 100;
+ if (DAT_GameState.mapAndTime.difficulty == 0) {
+ iVar4 = 0x32;
+ } else if (DAT_GameState.mapAndTime.difficulty == 2) {
+ iVar4 = 0x8c;
+ } else if (DAT_GameState.mapAndTime.difficulty == 3) {
+ iVar4 = 200;
+ }
+ iVar4 = (iVar4 * iVar5) / 100;
+ cVar6 = (char)iVar4;
+ if (iVar8 == 0x16) {
+ pabVar1 = DAT_TroopValueState.attackInfo.someSinglePlayerScore
+ + DAT_TroopValueState.attackInfo.inv_count;
+ (*pabVar1)[0] = (*pabVar1)[0] + cVar6;
+ } else if (iVar8 == 0x17) {
+ pbVar2 = DAT_TroopValueState.attackInfo
+ .someSinglePlayerScore[DAT_TroopValueState.attackInfo.inv_count]
+ + 1;
+ *pbVar2 = *pbVar2 + cVar6;
+ } else if (iVar8 == 0x13) {
+ pbVar2 = DAT_TroopValueState.attackInfo
+ .someSinglePlayerScore[DAT_TroopValueState.attackInfo.inv_count]
+ + 2;
+ *pbVar2 = *pbVar2 + cVar6;
+ } else if (iVar8 == 0x14) {
+ pbVar2 = DAT_TroopValueState.attackInfo
+ .someSinglePlayerScore[DAT_TroopValueState.attackInfo.inv_count]
+ + 3;
+ *pbVar2 = *pbVar2 + cVar6;
+ } else if (iVar8 == 0x15) {
+ pbVar2 = DAT_TroopValueState.attackInfo
+ .someSinglePlayerScore[DAT_TroopValueState.attackInfo.inv_count]
+ + 4;
+ *pbVar2 = *pbVar2 + cVar6;
+ } else if (iVar8 == 0x18) {
+ pbVar2 = DAT_TroopValueState.attackInfo
+ .someSinglePlayerScore[DAT_TroopValueState.attackInfo.inv_count]
+ + 8;
+ *pbVar2 = *pbVar2 + cVar6;
+ } else {
+ local_10 = iVar4 / (iVar4 / iVar7 + 1);
+ while (0 < iVar4) {
+ if (iVar4 < local_10) {
+ local_10 = iVar4;
+ }
+ iVar5 = (&DAT_TroopValueState.attackInfo
+ .unknownSignpostRelatedArray)[DAT_TroopValueState.attackInfo.inv_count];
+ spawnUnitsForAITribe(iVar8,
+ DAT_GameState.mapAndTime.signpostsMapEdge[iVar5][local_c].x,
+ DAT_GameState.mapAndTime.signpostsMapEdge[iVar5][local_c].y, param_1, UVar9, local_10,
+ param_6);
+ iVar4 = iVar4 - local_10;
+ local_c = local_c + 1;
+ if (iVar3 <= local_c) {
+ local_c = 0;
+ }
+ }
+ }
+ local_8 = local_8 + 1;
+ if (1 < local_8) {
+ return;
+ }
+ } while (true);
+ }
+}
+}
+--- ERKLAERUNG ---
+{"adr": "0x004bc1c0", "name": "spawnAttackWaveForPlayer", "quelle": "ghidra", "p1": {"bereich": "Karte", "zweck": "Legt den nächsten KI-Wellenplatz an und erzeugt daraus eine Angriffswelle aus bis zu zwei Einheitenarten an den Kartenrand-Wegweisern."}, "p2": {"ein": "param_1 = Spieler (Besitzer der Welle); param_2 = Einheitenart 1 (Code), param_3 = Menge 1; param_4 = Einheitenart 2 (zweiter Durchlauf nur bei param_4 >= 1), param_5 = Menge 2; param_6 = Wert, den spawnUnitsForAITribe als calculatedOwnerPlayerIndex der erzeugten Einheiten setzt", "aus": "-", "liest": ["DAT_GameState.mapAndTime.difficulty", "DAT_GameState.mapAndTime.signpostsMapEdgeDataCounter", "DAT_GameState.mapAndTime.signpostsMapEdge[Zeile][Spalte].x/.y", "attackInfo.unknownSignpostRelatedArray[inv_count] (Wegweiser-Zeile, von initializeAttackWaveSlot gesetzt)", "attackInfo.inv_count"], "schreibt": ["attackInfo.inv_count", "attackInfo.attackWavePlayerIDArray[inv_count]", "attackInfo.someSinglePlayerScore[inv_count][0,1,2,3,4,8] (Byte-Zähler)", "über initializeAttackWaveSlot: Wellenplatz inv_count (u. a. someSinglePlayerScore[inv_count] 10 Byte auf 0, unknownSignpostRelatedArray[inv_count])", "über spawnUnitsForAITribe: neue Einheiten mit calculatedOwnerPlayerIndex und KI-Trupp-Zuordnung"], "ruft": ["initializeAttackWaveSlot", "spawnUnitsForAITribe"], "regeln": ["Wellenplatz: attackInfo.inv_count wird um 1 erhöht und springt bei 0x31 < inv_count (über 49) auf 1; es ist ein Ring 1 bis 49, und inv_count ist der Index des zuletzt angelegten Platzes, keine Gesamtzahl der Wellen (ab der 50. Welle werden alte Plätze überschrieben). Danach initializeAttackWaveSlot(inv_count, 0) (laut Funktion: u. a. attackWaveTicker[inv_count] und value3Array01[inv_count] auf 0, die 10 Byte someSinglePlayerScore[inv_count] auf 0, Wegweiser-Zeile unknownSignpostRelatedArray[inv_count] = pickRandomAccessibleSignpostEntry() bei Parameter 0) und attackWavePlayerIDArray[inv_count] = (byte)param_1", "Zwei Durchläufe: erst (param_2, param_3), dann (param_4, param_5); der zweite nur, wenn param_4 >= 1 (param_2 wird nicht geprüft)", "Arten (param_2 / param_4 → Typ): 5 UT_TUNNELER; 0x16 UT_E_ARCHER, 0x17 UT_E_XBOW, 0x18 UT_E_SPEAR, 0x19 UT_E_PIKE, 0x1a UT_E_MACE, 0x1b UT_E_SWORD, 0x1c UT_E_KNIGHT, 0x1d UT_E_LADDER, 0x1e UT_E_ENGINEER, 0x25 UT_E_MONK; 0x46 UT_A_ARCHER, 0x47 UT_A_SLAVE, 0x48 UT_A_SLINGER, 0x49 UT_A_ASSASSIN, 0x4a UT_A_HARCHER, 0x4b UT_A_SWORDSMAN, 0x4c UT_A_FIRETHROWER; Belagerung: 0x27 UT_S_CATAPULT, 0x28 UT_S_TREBUCHET, 0x3a UT_S_TOWER, 0x3b UT_S_BATTERINGRAM, 0x3c UT_S_SHIELD, 0x4d UT_S_FBALLISTA", "Menge: Prozentsatz nach mapAndTime.difficulty: 0 → 50, 2 → 140 (0x8c), 3 → 200, jeder andere Wert (auch 1) → 100; Ergebnis m = (Prozent * Menge) / 100 ganzzahlig (zur Null hin gerundet), z. B. Menge 5 bei Stufe 0 → 2, bei Stufe 2 → 7", "Belagerungsgeräte werden hier nicht erzeugt: m wird als Byte ((char)-Umwandlung, Überlauf modulo 256) auf someSinglePlayerScore[inv_count] an Stelle 0 (UT_S_CATAPULT), 1 (UT_S_TREBUCHET), 2 (UT_S_BATTERINGRAM), 3 (UT_S_TOWER), 4 (UT_S_SHIELD) bzw. 8 (UT_S_FBALLISTA) addiert; die Stellen 5, 6, 7, 9 bleiben hier unberührt", "Alle anderen Arten werden in Gruppen erzeugt: Gruppengröße g = m / (m / G + 1) (ganzzahlig, G = Grundgröße); jede Gruppe hat höchstens g Einheiten, die letzte nimmt den Rest; m <= 0 erzeugt nichts. Grundgröße G: 10 bei UT_TUNNELER, allen UT_E_* (UT_E_KNIGHT ausdrücklich 10), UT_A_ARCHER und UT_A_HARCHER; 20 bei UT_A_SLAVE und UT_A_SLINGER; 2 bei UT_A_ASSASSIN; 8 bei UT_A_SWORDSMAN; 4 bei UT_A_FIRETHROWER", "Ort: pro Gruppe ein Aufruf spawnUnitsForAITribe(Kategorie iVar8, x, y, param_1, Typ, g, param_6) mit (x, y) = signpostsMapEdge[Zeile][Spalte]; Zeile = unknownSignpostRelatedArray[inv_count] (je Welle fest), Spalte läuft ab 0 reihum bis signpostsMapEdgeDataCounter - 1 und beginnt dann wieder bei 0; die Spalte wird nur einmal je Aufruf der Funktion auf 0 gesetzt, also zwischen erstem und zweitem Durchlauf nicht zurückgesetzt", "Laut spawnUnitsForAITribe: g Einheiten der Art entstehen auf derselben Kachel (x*8, y*8), nur wenn (x > 0 oder y > 0) und g > 0; param_6 wird calculatedOwnerPlayerIndex jeder erzeugten Einheit; jede Einheit wird dem KI-Trupp zugeordnet (AICState::addUnitToItsTribe) mit Verhalten 0x11 bei UT_E_ARCHER, UT_E_XBOW, UT_A_ARCHER, UT_A_SLINGER, UT_A_HARCHER, UT_A_FIRETHROWER, sonst 0x14; die Kategorie iVar8 wird dort nicht ausgewertet", "Aufrufer laut Ghidra-Verweisen: nur updateMilitaryCampaignMissionState (3 Stellen; laut Kommentar im Export die geskripteten Militär-Kampagnenmissionen 16 bis 20), jeweils mit Spieler 2 und param_6 = 3 oder 2, z. B. (2, 0x18, 5, 0x4b, 10, 3), (2, 0x48, 0x32, 0x47, 0x14, 3), (2, 0x46, 8, 0x48, 0x16, 2)"], "offen": ["Art außerhalb der Tabelle (Zweig default, auch param_2 = 0): iVar8, iVar7 und UVar9 behalten den Wert des vorigen Durchlaufs, im ersten Durchlauf den Anfangswert param_1 (den Spieler); Folgen (Typ = Spielernummer, Division durch 0 bei param_1 = 0) ungeprüft, die Aufrufer übergeben nur Tabellenwerte", "Wer die Byte-Zähler someSinglePlayerScore später auswertet und ob die Belagerungsgeräte daraus entstehen, ist in diesem Paket nicht sichtbar", "Bedeutung von param_6 über calculatedOwnerPlayerIndex hinaus (die Aufrufer übergeben 3 oder 2)", "Die Zuordnung Typcode → Einheit ist nur aus den UT_-Namen im Code abgeleitet", "Bedeutung der Schwierigkeitsstufen 0 bis 3 (nur die Prozentwerte sind sicher)"]}, "p3": {"erklaerung": "So entsteht eine Angriffswelle der KI: Die Mengen werden nach Schwierigkeit skaliert (50/100/140/200 %) und in Gruppen auf die Kartenrand-Wegweiser verteilt. Belagerungsgeräte werden hier nur in Zählern vermerkt.", "gehirn": "Für Gefechte vermutlich ohne Bedeutung: laut Ghidra-Verweisen ruft nur updateMilitaryCampaignMissionState (geskriptete Kampagnenmissionen) diese Funktion. Die Stärke der Wellen skaliert dort mit der Schwierigkeit (50/100/140/200 %). attackInfo.inv_count ist der Index des zuletzt angelegten Wellenplatzes (Ring 1 bis 49), keine Gesamtzahl der Wellen.", "beleg": "code", "live": "-", "live_art": "-"}, "korrigiert": "ja", "aenderung": "gehirn: attackInfo.inv_count ist der Ring-Index des zuletzt angelegten Wellenplatzes (1 bis 49), keine Wellenzahl; live: „Editor-Menge“ war nicht belegt (die Mengen kommen vom Aufrufer, das Ergebnis wird abgerundet, Belagerungsgeräte sind nur Byte-Zähler) und der Prüfpunkt entfällt, weil nur geskriptete Kampagnenmissionen die Funktion aufrufen; Wegweiser-Zeile, param_6 und Aufrufer sind ergänzt."}
+
