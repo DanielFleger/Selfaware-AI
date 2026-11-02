@@ -52,7 +52,7 @@ Sonderregeln der 31 Befehle (Spielprüfung, gemessen an der Karte): Eisenmine un
 | Jede fehlende Art steht auf erlaubter Stelle, nur der Pechgräber nicht | 51 von 53 stehen; Pechgräber 0 erlaubte Stellen; Pechgraben fehlte in der Gebäudeliste | fast bestätigt |
 | (Nachprobe) Pechgraben steht in eigener Liste `pitchDitches` | Eintrag bei (222,221), Bit 8 im Feld gesetzt | bestätigt: **meine Prüfung sah in der falschen Liste nach** |
 
-Damit: keine erlaubte Stelle führte zu keinem Bau. 53 von 53 fehlenden Arten sind erklärt.
+Damit in dieser Probe: 52 Arten auf erlaubter Stelle, alle 52 gebaut. Die 53. Art hatte keine erlaubte Stelle.
 
 ## Daraus abgeleitet
 
@@ -63,9 +63,9 @@ Damit: keine erlaubte Stelle führte zu keinem Bau. 53 von 53 fehlenden Arten si
 
 1. **129 Befehle an damals freien Stellen:** Das Spiel lehnt sie heute ab, aber die Stellen sind inzwischen überbaut. Warum es sie damals ablehnte, lässt sich an diesem Spielstand nicht mehr zeigen. Der gemeldete Grund ist unzuverlässig, weil das Spiel ihn nicht zurücksetzt. Kein Fall ist bekannt, in dem eine erlaubte Stelle scheiterte. Schließt sich im neuen Lauf: Vor jedem Bau fragt das Programm das Spiel und bricht ab, wenn "erlaubt" nicht zu "steht" führt.
 2. **Woher die 75 Bilder je Sekunde kommen.** Sie begrenzen das Tempo auf 825.
-3. **Jeden Takt sehen auf Tempo 1000:** von außen unmöglich, weil 11 Takte gebündelt je Bild kommen. Das ginge nur von innen, im Takt des Spiels.
+3. **Jeden Takt sehen auf Tempo 1000:** von außen gemessen nur 27 %, weil 11 Takte gebündelt je Bild kommen. Ob es von innen geht, im Takt des Spiels, ist nicht geprüft.
 4. Karte "Eine prächtige Oase" ist nur per Ausschluss belegt; `KARTENNAME` bleibt im Burgenbau leer.
-5. Pechgräber lässt sich auf dieser Karte nicht bauen, gehört in Lauf K oder S auf eine Karte mit Pechboden.
+5. Pechgräber: In diesem Spielstand erlaubt die Spielprüfung 0 von 160.000 Stellen. Gehört in Lauf K oder S auf eine Karte mit Pechboden.
 
 ## Wiederholen
 
