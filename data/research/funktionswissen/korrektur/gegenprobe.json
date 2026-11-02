@@ -1,0 +1,1140 @@
+{
+"0x00402e20": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 24,
+"schnitt": 24,
+"stelle": ">= 24",
+"regel": "Schräge Linien, Vorabprüfung nur wenn Schutzbereich > 0 und Hauptachsen-Abstand >= 24 (3 Kacheln): die 1 bis 3 Kacheln (min(Abstand/8 - 1, 4) - 1 Stück) unmittelbar vor der Zielkachel in Zielzeile bzw. Zielspalte werden mit returnSomeHeight(Kachel, 1) gemessen; ist eine höher als targetHeight, sinkt der Schutzbereich von 100 auf 28. Läuft auch bei param_7 != 0"
+}
+],
+"0x00403a20": [
+{
+"art": "name_fehlt",
+"feld": "ruft",
+"name": "param_7"
+}
+],
+"0x00405680": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 5,
+"schnitt": 6,
+"stelle": "über 5",
+"regel": "Zu Beginn jedes Aufrufs: unkMinusOne nach fireParameter_0xb6: 5 gibt 8, 4 gibt 9, 3 gibt 12, 2 gibt 14, jeder andere Wert (auch 0, 1, über 5, negativ) gibt 16; gmID = 0x76."
+}
+],
+"0x00415110": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 4,
+"schnitt": 5,
+"stelle": "höchstens 4",
+"regel": "Je Art 10, 11, 12, 13 unabhängig: ist startResources[Art] > 0 und computeResourceSumForBuilding < 250 (0xFA), wandert 1 Stück: startResources -1, currentResources +1, resources des Gebäudes +1, resourceRelatedCountDown = 100. Die Summe wird je Art neu berechnet; höchstens 4 Stück je Aufruf und Kornspeicher"
+}
+],
+"0x00415e80": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 32,
+"schnitt": 33,
+"stelle": "höchstens 32",
+"regel": "Zustand 3: Bild = field148_0x73e0[animationIndex] + 0x20. Wechsel nach 4 (animationIndex = 0), sobald dieser Tabellenwert < 1 oder field66_0xbe < 1 ist; sonst field66_0xbe um 1 verringert. Ab 0x1f sind das höchstens 32 Aufrufe (31 Abzüge, der Wechsel beim 32.)"
+}
+],
+"0x004167e0": [
+{
+"art": "grenze_um_eins",
+"zahl": 3,
+"schnitt": 3,
+"stelle": "< 3",
+"regel": "Zustand 0 (field214_0x298 == 0), Pfad A: ist numberOfAnimals < 3 und flagonsOfAleOrCheeseOrReleaseDogs == 0, zählt outpostRelatedUnk4 je Aufruf +1 (unabhängig von resources[11]); bei Wert > 400 (401. Aufruf) folgen Zustand 1, outpostRelatedUnk4 = 0, field66_0xbe = 0x20"
+},
+{
+"art": "grenze_um_eins",
+"zahl": 3,
+"schnitt": 3,
+"stelle": ">= 3",
+"regel": "Zustand 0, Pfad B (numberOfAnimals >= 3 oder flagonsOfAleOrCheeseOrReleaseDogs != 0): nur bei resources[11] == 0 zählt outpostRelatedUnk4 +1; bei Wert > 400 wird field215_0x299 um 1 erhöht (über 3 wieder 1) und workerID[field215_0x299] gewählt. Ist der Platz 0 oder passt units[].uid nicht zu workerUID, endet die Funktion sofort mit return, ohne Schlussteil (Zähler bleibt > 400, der nächste Aufruf nimmt den nächsten Platz). Sonst: outpostRelatedUnk4 = 0, Zustand 3, field66_0xbe = 0x20; die Kuh bekommt state.generic = US_JESTER_ROAM_TO, animationCycleNumber = 0, engineerManningSiegeStateRef_checkType = 1"
+},
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 7,
+"schnitt": 7,
+"stelle": ">= 7",
+"regel": "Zustand 5: field146_0x70c4[field26_0x50] == 0 -> field22_0x40 = 0x36, field26_0x50 = 0, Zustand 6; sonst field22_0x40 = Wert + 0x2f, field66_0xbe = 0. Zustand 6: field22_0x40 = 0, field23_0x44 = 0x37, resources[11] = 1, Zustand 0. Zustand >= 7: Animationsfelder auf 0, Zustand bleibt"
+}
+],
+"0x00418100": [
+{
+"art": "grenze_um_eins",
+"zahl": 7,
+"schnitt": 7,
+"stelle": "ab 7",
+"regel": "Stufen 0, 1 und ab 7 haben bei field155 >= 5 keinen Zweig; campStage ändert sich dann nicht, erst field155 <= 4 setzt wieder 1 oder 3"
+}
+],
+"0x0041cc70": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 24,
+"schnitt": 24,
+"stelle": "ab 24",
+"regel": "Wert field168_0x292 (laut Kommentar im Nachbau die Glut des Ofens) nur in Ofenzustand 1 (aus Frames10) und 2 (aus Frames11), Tabellenwert h vorzeichenbehaftet an extraAnimationFrame1: h < 4 → 24; 4–7 → 20; 8–11 → 16; 12–15 → 12; 16–19 → 16; 20–23 → 20; ab 24 → 24. In Ofenzustand 0 bleibt er unverändert"
+}
+],
+"0x0041e240": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 2,
+"schnitt": 3,
+"stelle": "mehr als 2",
+"regel": "Jede andere Anzahl (0, 1 oder mehr als 2; Obergrenze hier nicht erkennbar): je Ingenieur state.generic = US_JESTER_ROAM_TO, disappearFadeAlphaCountdown = 0x20, engineerManningSiegeStateRef_checkType = 0xfe, cachedState = US_DETERMINE_NEXT_STATEUnk, totalSizeOfPathPlan = 0, unknownMovementRelated_0x2d2 = 0, resetUnitMovementState, targetingType = UIT_MAN_SIEGE_EQUIPMENT, Zieleinheit = Ballista; hatte der Ingenieur aiUnitBehaviourType 0x16, erhält die Ballista 0x15. Danach currentEmployeeCount = 0."
+}
+],
+"0x0041e870": [
+{
+"art": "grenze_um_eins",
+"zahl": 2,
+"schnitt": 2,
+"stelle": "unter 2",
+"regel": "Schadensstufe = 9 - (currentHealth * 9) / maxHealth (ganzzahlig), bei 9 oder mehr auf 8 begrenzt. Stufe 0 (volle Lebenspunkte) oder negativ: kein Slot belegt. Stufe n von 1 bis 8: n der 8 Slots belegt, alle 8 bei Lebenspunkten unter 2/9 von maxHealth."
+}
+],
+"0x00423370": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 16,
+"schnitt": 16,
+"stelle": ">= 16",
+"regel": "Zustand 0 und 7 (Ein-/Ausblenden): Zustand 0 endet, wenn die vorzeichenbehaftet gelesene HuntersPostAnimationFrames1[animationIndex] <= 0 ist oder renderBlendStrength = (16 - animationIndex) * 2 auf <= 0 fällt (animationIndex >= 16; dann 0). Zustand 7 endet bei HuntersPostAnimationFrames3[animationIndex] <= 0 oder wenn renderBlendStrength = animationIndex * 2 auf >= 32 steigt (animationIndex >= 16; dann 32). Ist der Tabellenwert > 0, wird animationFrame darauf gesetzt"
+},
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 16,
+"schnitt": 16,
+"stelle": ">= 16",
+"regel": "Zustand 0 und 7 (Ein-/Ausblenden): Zustand 0 endet, wenn die vorzeichenbehaftet gelesene HuntersPostAnimationFrames1[animationIndex] <= 0 ist oder renderBlendStrength = (16 - animationIndex) * 2 auf <= 0 fällt (animationIndex >= 16; dann 0). Zustand 7 endet bei HuntersPostAnimationFrames3[animationIndex] <= 0 oder wenn renderBlendStrength = animationIndex * 2 auf >= 32 steigt (animationIndex >= 16; dann 32). Ist der Tabellenwert > 0, wird animationFrame darauf gesetzt"
+}
+],
+"0x004238b0": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 20,
+"schnitt": 20,
+"stelle": "unter 20",
+"regel": "Schadensstufe s = 5 - (currentHealth * 5 / maxHealth) (ganzzahlig). s >= 5 (Gesundheit unter 20 Prozent) gilt als 4; s == 0 (volle Gesundheit) und s < 0 (mehr Gesundheit als Maximum) setzen keine Schadenswerte"
+}
+],
+"0x00423cd0": [
+{
+"art": "zahl_fehlt",
+"zahl": 100,
+"schnitt": 100,
+"stelle": "ab 100",
+"regel": "Schadensstufe s = 5 - (currentHealth*5)/maxHealth (ganzzahlig; maxHealth = 0 würde durch 0 teilen). Bei s >= 5 gilt s = 4; bei s <= 0 (Lebenspunkte ab 100 %) gibt es keine Schadensbilder. Schwellen: unter 40 % der Lebenspunkte s = 4, 40 bis unter 60 % s = 3, 60 bis unter 80 % s = 2, 80 bis unter 100 % s = 1."
+},
+{
+"art": "zahl_fehlt",
+"zahl": 40,
+"schnitt": 40,
+"stelle": "unter 40",
+"regel": "Schadensstufe s = 5 - (currentHealth*5)/maxHealth (ganzzahlig; maxHealth = 0 würde durch 0 teilen). Bei s >= 5 gilt s = 4; bei s <= 0 (Lebenspunkte ab 100 %) gibt es keine Schadensbilder. Schwellen: unter 40 % der Lebenspunkte s = 4, 40 bis unter 60 % s = 3, 60 bis unter 80 % s = 2, 80 bis unter 100 % s = 1."
+},
+{
+"art": "zahl_fehlt",
+"zahl": 60,
+"schnitt": 60,
+"stelle": "unter 60",
+"regel": "Schadensstufe s = 5 - (currentHealth*5)/maxHealth (ganzzahlig; maxHealth = 0 würde durch 0 teilen). Bei s >= 5 gilt s = 4; bei s <= 0 (Lebenspunkte ab 100 %) gibt es keine Schadensbilder. Schwellen: unter 40 % der Lebenspunkte s = 4, 40 bis unter 60 % s = 3, 60 bis unter 80 % s = 2, 80 bis unter 100 % s = 1."
+},
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 80,
+"schnitt": 80,
+"stelle": "unter 80",
+"regel": "Schadensstufe s = 5 - (currentHealth*5)/maxHealth (ganzzahlig; maxHealth = 0 würde durch 0 teilen). Bei s >= 5 gilt s = 4; bei s <= 0 (Lebenspunkte ab 100 %) gibt es keine Schadensbilder. Schwellen: unter 40 % der Lebenspunkte s = 4, 40 bis unter 60 % s = 3, 60 bis unter 80 % s = 2, 80 bis unter 100 % s = 1."
+},
+{
+"art": "zahl_fehlt",
+"zahl": 100,
+"schnitt": 100,
+"stelle": "unter 100",
+"regel": "Schadensstufe s = 5 - (currentHealth*5)/maxHealth (ganzzahlig; maxHealth = 0 würde durch 0 teilen). Bei s >= 5 gilt s = 4; bei s <= 0 (Lebenspunkte ab 100 %) gibt es keine Schadensbilder. Schwellen: unter 40 % der Lebenspunkte s = 4, 40 bis unter 60 % s = 3, 60 bis unter 80 % s = 2, 80 bis unter 100 % s = 1."
+},
+{
+"art": "grenze_um_eins",
+"zahl": 4,
+"schnitt": 4,
+"stelle": ">= 4",
+"regel": "pathLinkageRelated2 >= 4: nur das Grundbild (Regeln 1 bis 7). animationIndex wird in dieser Funktion nur auf 0 gesetzt, nie hochgezählt."
+}
+],
+"0x0042a8e0": [
+{
+"art": "grenze_um_eins",
+"zahl": 16,
+"schnitt": 17,
+"stelle": "über 16",
+"regel": "KI-Typ t = currentAIArray: bei t von 1 bis 16 (0x10) wird der Text mit der Nummer Basis(t) + aiVariationArray gelesen. Bei jedem anderen Wert (auch über 16) bleibt der Name unverändert; es gibt keinen Default-Zweig."
+}
+],
+"0x0045a060": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 18203336,
+"schnitt": 18203336,
+"stelle": "ab 0x115c2c8",
+"regel": "Zeile 'player N', darunter 25 Ganzzahlen ab 0x115c2c8 + Spieler × 0x39f4 (0x39f4 = Größe eines Spielerblocks), durch '-' getrennt"
+}
+],
+"0x0045cd10": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 11,
+"schnitt": 11,
+"stelle": "ab 11",
+"regel": "syncStatus != 0, Host: 10 ruft checkLagAndSyncStatus; 1 broadcastDesyncResyncCommands; 2 sendPendingResyncCommandsInBudget; andere Werte unter 3 (nur negative): nichts; alle übrigen (3 bis 9 und ab 11) advanceSyncStatusAndKickLaggers. Danach Ende."
+}
+],
+"0x00481f40": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 2,
+"schnitt": 3,
+"stelle": "höchstens 2",
+"regel": "Dann wird für jedes Gebäude (nicht nur Zugbrücken) mit findParticularBuilding ein BT_DRAWBRIDGE-Gebäude mit gleichem Besitzer, x, y und widthOrHeight gesucht; gefunden: showNoRubble = 1, giveBackResourceForDestroyedBuilding(gefunden, protocolInvokerPlayerID, Param1), destroyBuilding(gefunden). Nur nach einem Fund folgt eine zweite Suche mit dem ersten Fund als letztem Parameter (vermutlich zum Ausschließen), gleich behandelt: höchstens 2 Zugbrücken-Teile"
+}
+],
+"0x00486ad0": [
+{
+"art": "zahl_fehlt",
+"zahl": 79,
+"schnitt": 80,
+"stelle": "mehr als 79",
+"regel": "Kartenname: Byte für Byte bis einschließlich der Endmarke 0, ohne Längenprüfung; das Quellfeld ist 1000 Byte groß, das Zielfeld 80 Byte (aus den Adressabständen im Maschinencode), ein Name mit mehr als 79 Zeichen würde in die Folgefelder überlaufen"
+}
+],
+"0x0048dc50": [
+{
+"art": "grenze_um_eins",
+"zahl": 2,
+"schnitt": 3,
+"stelle": "höchstens 2",
+"regel": "field68_0xba8 = 40000, wenn das Maximum höchstens 2 ist; = 10000, wenn es größer als 2 ist."
+},
+{
+"art": "grenze_um_eins",
+"zahl": 2,
+"schnitt": 3,
+"stelle": "größer als 2",
+"regel": "field68_0xba8 = 40000, wenn das Maximum höchstens 2 ist; = 10000, wenn es größer als 2 ist."
+}
+],
+"0x00497740": [
+{
+"art": "grenze_um_eins",
+"zahl": 799,
+"schnitt": 799,
+"stelle": "mindestens 799",
+"regel": "Abstandsgrenze: ist cD (CertainPathLayer des geholten Felds) mindestens 799 (cD + 1 ist 800 oder mehr), endet die Suche mit FALSE, ohne dieses Feld zu erweitern; readIndex bleibt darauf stehen. Die Prüfung steht hinter dem Zielvergleich"
+}
+],
+"0x00498020": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 16,
+"schnitt": 16,
+"stelle": "16 <= t",
+"regel": "Höhe: cH = Höhe des Nachbarn (HeightLayer), bei Bit 0x10000000 in c plus getBuildingHeightForBuildingID(BuildingLayer[Nachbar]); tH = Höhe des aktuellen Felds. Gilt cH - 16 <= tH <= cH + 16 (beide Grenzen eingeschlossen), wird eingereiht. Ghidra zeigt die untere Grenze als 'cH - 4294967280'; im Assembler steht cH - 16"
+}
+],
+"0x00498a40": [
+{
+"art": "grenze_um_eins",
+"zahl": 80400,
+"schnitt": 80401,
+"stelle": "80400 < r",
+"regel": "Nach dem Erweitern readIndex + 1; beim Erreichen von 0x13a10 (80 400) springt er auf 0. Der Referenz-Export hat 0x13a0f < readIndex, der Assembler prüft readIndex < 0x13a10 und setzt sonst 0, wie bei writeIndex (nur der aufbereitete Eingang zeigte fälschlich 80400 < readIndex). Ist danach readIndex gleich writeIndex, endet die Suche mit 0"
+}
+],
+"0x00498fd0": [
+{
+"art": "grenze_um_eins",
+"zahl": 800,
+"schnitt": 801,
+"stelle": "höchstens 800",
+"regel": "Wegplan höchstens 800 Schritte: nach jedem Schritt Rückgabe, sobald pathPlanIndex mindestens 800 ist (2 Schritte je Byte, also 400 Bytes; den Puffer legt der Aufrufer an)"
+}
+],
+"0x004999c0": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 16,
+"schnitt": 16,
+"stelle": "16 <= H",
+"regel": "Kandidatentest, N ohne 0x10000000: N hat 0x100 und iVar6 != 0 -> verbunden, wenn DamageLayer[N] <= 20. Sonst, wenn die Mitte bVar3 oder bVar4 ist und N hat 0x100 und BuildingLayer[N] != 0 -> verbunden, wenn DamageLayer[tile] <= 20. Sonst Höhentest: verbunden, wenn h-16 <= HeightLayer[N] <= h+16"
+}
+],
+"0x00499fa0": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 16,
+"schnitt": 17,
+"stelle": "höchstens 16",
+"regel": "Je Paar (Außenfeld, Durchgangsende) wird die Verbindung gesetzt, wenn alle drei Bedingungen gelten: LogicLayer[Außenfeld] & 0x4a5014b1 == 0 (nur das Außenfeld wird geprüft, nicht das Torfeld), Höhenunterschied zwischen beiden Feldern höchstens 16 (beide Grenzen eingeschlossen) und pathLinkageRelated2 != 2. Sonst wird die Verbindung gelöscht"
+}
+],
+"0x0049aad0": [
+{
+"art": "grenze_um_eins",
+"zahl": 80400,
+"schnitt": 80401,
+"stelle": "> 80400",
+"regel": "Start: Abstand 1 im CertainPathLayer, WalkLayer[Start] = searchGeneration, Warteschlange (Ringpuffer mit 80400 Plätzen) enthält nur das Startfeld. Lese- und Schreibindex springen bei >= 80400 auf 0: Referenz-Export (0x13a0f <) und Assembler haben an allen vier Stellen den Vergleich mit 0x13A10 (>= 80400); nur der aufbereitete Eingang zeigte beim ersten Nachbarn '> 80400'"
+}
+],
+"0x0049b5b0": [
+{
+"art": "zahl_fehlt",
+"zahl": 6,
+"schnitt": 6,
+"stelle": "ab 6",
+"regel": "Aufrufer laut Ghidra-Export: UnitsState::findTunnelTarget (Tunnelgräbergilde): distance 20, 40 oder 80 je nach tunnelerCounter (0-1, 2-3, 4-5; ab 6 Zähler -1 ohne Suche), Start (x, y-1) bei geradem und (x-1, y) bei ungeradem Zähler, bei Treffer Zähler -1. TileMapState::checkBuildingCanBePlacedHere für M_MAPPER_TUNNEL_CONSTRUCTION: targetPlayerID 0, distance 0x4C (76); ohne Treffer (ALG_TargetTile == 0) schlägt die Platzierung fehl"
+}
+],
+"0x0049c690": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 24,
+"schnitt": 25,
+"stelle": "> 0x18",
+"regel": "Aufrufer laut Ghidra-Export: shouldLightPitchBasedOnTroopValue rechnet eigene Einheiten (1, 1, Reichweite 10) und fremde (0, 1, Reichweite 6) und zündet Pech, wenn der Wert der Fremden größer als das Doppelte des eigenen ist; UpdateCageDog (fremde Einheiten, 0, 1, Reichweite 16) lässt die Hunde bei Wert > 0x18 (24) oder Anzahl > 5 los; queueOilThrowForIdleArchers und ifNecessaryThrowOilAutomatically zählen fremde Einheiten (0, 0, Reichweite 3 bis 5) und nutzen units[field34_0x64] als Wurfziel"
+},
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 5,
+"schnitt": 6,
+"stelle": "> 5",
+"regel": "Aufrufer laut Ghidra-Export: shouldLightPitchBasedOnTroopValue rechnet eigene Einheiten (1, 1, Reichweite 10) und fremde (0, 1, Reichweite 6) und zündet Pech, wenn der Wert der Fremden größer als das Doppelte des eigenen ist; UpdateCageDog (fremde Einheiten, 0, 1, Reichweite 16) lässt die Hunde bei Wert > 0x18 (24) oder Anzahl > 5 los; queueOilThrowForIdleArchers und ifNecessaryThrowOilAutomatically zählen fremde Einheiten (0, 0, Reichweite 3 bis 5) und nutzen units[field34_0x64] als Wurfziel"
+}
+],
+"0x0049fc00": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 160800,
+"schnitt": 160801,
+"stelle": "über 0x27420",
+"regel": "Gültiger Start: calculations + 1 und searchGeneration + 1; ist searchGeneration danach über 32000, wird sie 1 und WalkLayer über 0x27420 Bytes (160800) mit 0 gefüllt. Startfeld: Abstandswert (CertainPathLayer) 1 und WalkLayer = searchGeneration; Startwert = Byte der Kostenkarte [param_4][Startkachel]"
+},
+{
+"art": "grenze_um_eins",
+"zahl": 3,
+"schnitt": 3,
+"stelle": "kleiner als 3",
+"regel": "Aufrufer (Ghidra-Export, nicht im Paketcode): UpdateCatapult und UpdateFireBallista rufen nacheinander mit param_1 = 5, 10, 20, 60, 120 und param_4 = siegeTargetPlayerID der Einheit und gehen zur nächsten Stufe, solange field51_0x9c (vorzeichenbehaftet verglichen) kleiner als 3 ist; updateTribeBehaviorBasedOnBehaviorType ruft mit param_1 = 2"
+}
+],
+"0x004a0e50": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 160800,
+"schnitt": 160801,
+"stelle": "über 160800",
+"regel": "Kein Parameter. Zuerst searchGeneration + 1 und resultTile, resultY, resultX = 0; ist searchGeneration danach über 32000, wird sie 1 und WalkLayer über 160800 Bytes (0x27420) mit 0 gefüllt. calculations wird nicht erhöht"
+}
+],
+"0x004a1230": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 160800,
+"schnitt": 160801,
+"stelle": "über 160800",
+"regel": "Bei gültigem Standfeld: searchGeneration + 1 (über 32000: 1 und WalkLayer über 160800 Bytes gelöscht); das Standfeld bekommt Abstandswert 1 und WalkLayer = searchGeneration, auch wenn es danach gesperrt ist. Die Suche läuft nur, wenn LogicLayer[Standfeld] & 0x30 == 0"
+}
+],
+"0x004a21b0": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 160800,
+"schnitt": 160801,
+"stelle": "über 160800",
+"regel": "Bei gültigem Start: calculations + 1 und searchGeneration + 1 (über 32000: 1 und WalkLayer über 160800 Bytes gelöscht); das Startfeld hat Abstandswert 1"
+},
+{
+"art": "grenze_um_eins",
+"zahl": 19,
+"schnitt": 20,
+"stelle": "höchstens 19",
+"regel": "Breitensuche: Felder der Reihe nach aus der Schlange, zuerst das Startfeld. Abbruch ohne Bau, wenn die Kachelnummer negativ oder über 0x13a0f liegt, der Abstandswert über 0x13a10 oder über 20 (0x14) liegt oder die Schlange leer ist. Geprüft werden also Felder bis Abstandswert 20, höchstens 19 Schritte vom Startfeld (1 Schritt = ein Nachbarfeld in einer der 8 Richtungen)"
+}
+],
+"0x004a2dd0": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 160800,
+"schnitt": 160801,
+"stelle": "über 160800",
+"regel": "calculations + 1 und searchGeneration + 1 (über 32000: searchGeneration = 1 und WalkLayer über 160800 Bytes gelöscht). Die Mitte wird nicht geprüft: kein Kartenbyte-Test, keine LogicLayer-Prüfung; nur die Schleife verlangt Kachelnummer < 0x13a10 (vorzeichenlos)"
+},
+{
+"art": "zahl_fehlt",
+"zahl": 9,
+"schnitt": 10,
+"stelle": "höchstens 9",
+"regel": "Aufrufer (Ghidra-Export, nicht im Paketcode): lightUpTree mit maxDistance 2 bei den Baumtypen 1 bis 4 und 1 beim Baumtyp 0xf, also höchstens 9 Felder"
+}
+],
+"0x004a3220": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 160800,
+"schnitt": 160801,
+"stelle": "über 160800",
+"regel": "searchGeneration + 1 und calculations + 1 (über 32000: searchGeneration = 1 und WalkLayer über 160800 Bytes gelöscht). Die Startkachel wird nicht geprüft (kein Kartenbyte-Test, keine LogicLayer-Prüfung); Abstandswert 1, WalkLayer = searchGeneration"
+},
+{
+"art": "grenze_um_eins",
+"zahl": 11,
+"schnitt": 12,
+"stelle": "höchstens 11",
+"regel": "Breitensuche: Felder aus der Schlange; eine Kachelnummer außerhalb 0 bis 0x13a0f beendet die Suche mit FALSE. Rückgabe FALSE auch, wenn der Abstandswert über 0x13a10 oder über 12 liegt oder die Schlange leer ist. Betrachtet werden also Felder bis Abstandswert 12, höchstens 11 Schritte von der Startkachel (1 Schritt = ein Nachbarfeld in einer der 8 Richtungen)"
+},
+{
+"art": "grenze_um_eins",
+"zahl": 3,
+"schnitt": 3,
+"stelle": "mindestens 3",
+"regel": "Treffer-Test je Feld nur ab Abstandswert 4 (mindestens 3 Schritte von der Startkachel; die Abstandswerte 1 bis 3 zählen nie) und nur bei gesetztem LogicLayer-Bit 0x100 (Ghidra-Kommentar: 'wall or gatehouse (or tower?)'). Besitzer, Team, Gebäude und Gehverbindungen werden nicht geprüft: jede Kachel mit Bit 0x100 zählt, auch die eigene"
+}
+],
+"0x004a36b0": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 160800,
+"schnitt": 160801,
+"stelle": "über 160800",
+"regel": "searchGeneration + 1 und calculations + 1 (über 32000: searchGeneration = 1 und WalkLayer über 160800 Bytes gelöscht). Die Mittelkachel param_1 wird nicht geprüft (nur die Schleife verlangt Kachelnummer < 0x13a10, vorzeichenlos); Abstandswert 1"
+},
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 5,
+"schnitt": 6,
+"stelle": "höchstens 5",
+"regel": "Aufrufer HandleActivateTacticalPowers (Ghidra-Export, nicht im Paketcode): Fähigkeit 1 mit der Zielkachel des Befehls als Mitte, param_2 = 6 (höchstens 5 Schritte), Besitzer = aktivierender Spieler, param_4 = 8000 (Grundwert)"
+}
+],
+"0x004a3b20": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 160800,
+"schnitt": 160801,
+"stelle": "über 160800",
+"regel": "searchGeneration + 1 und calculations + 1 (über 32000: searchGeneration = 1 und WalkLayer über 160800 Bytes gelöscht). Die Mittelkachel param_1 wird nicht geprüft (nur die Schleife verlangt Kachelnummer < 0x13a10, vorzeichenlos); Abstandswert 1"
+}
+],
+"0x004a4140": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 160800,
+"schnitt": 160801,
+"stelle": "über 0x27420",
+"regel": "Reihenfolge: calculations + 1; CertainPathLayer wird über 0x27420 Bytes (160800) komplett mit 0 gefüllt; *out_x = *out_y = 0. Das geschieht noch vor der Prüfung des Startfelds, also auch bei ungültigem Start. *out_successUnk wird zu Beginn nicht verändert"
+},
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 160800,
+"schnitt": 160801,
+"stelle": "über 160800",
+"regel": "Startfeld gültig nur bei x < 400, y < 400 und Kartenbyte != 0; sonst Rückgabe FALSE. Sonst searchGeneration + 1 (über 32000: 1 und WalkLayer über 160800 Bytes gelöscht); Abstandswert 1. Es gibt keine Abstandsgrenze: Die Suche läuft, bis sie trifft, die Schlange leer ist oder eine Kachelnummer außerhalb 0 bis 0x13a0f erscheint"
+}
+],
+"0x004a6ab0": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 4,
+"schnitt": 5,
+"stelle": "über 4",
+"regel": "Die Ausbreitung läuft nur über 4 der 8 Richtungen: jede zweite (Richtungen 0, 2, 4, 6; im Maschinencode ADD EBP,0x10 bis 0xb4908c, also 4 Durchläufe)."
+}
+],
+"0x004a7090": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 4,
+"schnitt": 5,
+"stelle": "über 4",
+"regel": "Ausgebreitet wird nur von einem Feld mit (LogicLayer & 0x100031) == 0 und nur über 4 der 8 Richtungen (Richtungen 0, 2, 4, 6; im Maschinencode ADD ECX,0x10 bis 0xb4908c, also 4 Durchläufe)."
+}
+],
+"0x004a8ab0": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 160800,
+"schnitt": 160801,
+"stelle": "über 0x27420",
+"regel": "Je Aufruf searchGeneration + 1 und calculations + 1; ist searchGeneration danach größer als 32000, wird sie 1 und WalkLayer wird über 0x27420 Byte mit 0 gefüllt"
+}
+],
+"0x004a97d0": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 2,
+"schnitt": 2,
+"stelle": "2 <= w",
+"regel": "Je Schritt werden die Richtungen 0 bis 7 der Reihe nach geprüft; Nachbar = directionTranslationMatrix[y2][Richtung] + aktuelles Feld; er kommt in Frage, wenn die Verbindungsregel des Modus ihn zulässt (Regeln 5 bis 8), sein WalkLayer gleich der Bezugsnummer ist und sein CertainPathLayer-Wert w die Bedingung y-2 <= w < y erfüllt"
+},
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 16,
+"schnitt": 17,
+"stelle": "höchstens 16",
+"regel": "Modus 2: ist dieses Bit gesetzt, wie Modus 1; sonst nur, wenn (a) das aktuelle Feld nicht das Bit 0x40000000 hat und der Nachbar es hat, oder (b) das aktuelle Feld das Bit 0x40000000 hat, der Nachbar keines der Bits 0xa5014b1 hat und die HeightLayer-Werte beider Felder höchstens 16 auseinander liegen (16 eingeschlossen)"
+}
+],
+"0x004c13f0": [
+{
+"art": "grenze_um_eins",
+"zahl": 25,
+"schnitt": 26,
+"stelle": "über 25",
+"regel": "Die Schleife läuft über 25 Regler (Index 0 bis 0x18 = 24); Regler mit dem Wert genau 0 werden übersprungen. Die Anzahlen werden hier nicht nach Schwierigkeit skaliert (anders als in spawnAttackWaveForPlayer)"
+},
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 9,
+"schnitt": 10,
+"stelle": "höchstens 9",
+"regel": "Alle anderen Regler: Gruppengröße g = n / (n / 10 + 1) (ganzzahlig, höchstens 9; die letzte Gruppe nimmt den Rest), z. B. n = 25 → 8, 8, 8, 1. Jede Gruppe wird mit spawnUnitsIntoNewTribe(Gruppenzähler, Kategorie, x, y, crusaderArabian + 2, Typ, 0, g, 0) als eigener Trupp erzeugt (laut Funktion: createTribe, tribeType = Kategorie, someIndex = Gruppenzähler, attackWave = inv_count, g Einheiten auf der Kachel (x*8, y*8) mit aiUnitBehaviourType = 0; nichts, wenn x < 1 und y < 1)"
+}
+],
+"0x004c62c0": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 8000,
+"schnitt": 8001,
+"stelle": "über 8000",
+"regel": "SEC_EventsExtra (laut Typtabelle 200 Einträge zu je 160 Byte = 32000 Byte) wird vollständig auf 0 gesetzt: im Assembly ein rep stosd über 8000 Doppelwörter ab this+0xB7D0. Der Ghidra-Text (8000 Schritte, nur conditionOneIsTrue = 0) täuscht: gelöscht werden alle Felder aller Einträge, nicht nur conditionOneIsTrue"
+}
+],
+"0x004d0280": [
+{
+"art": "zahl_fehlt",
+"zahl": 500,
+"schnitt": 501,
+"stelle": "<= 500",
+"regel": "Aufrufer ist updateAIStrengthState (0x004d3320): bei Nervosität (aiNervousActionsTracker 1 bis 7, solange teamIsWeakRelativeToEnemy wahr bleibt, Gold <= 500) je Aufruf AINDBC_FEAR_FACTOR_BUILDINGS und AINDBC_WORKSHOPS_AND_RELIGIOUS_BUILDINGS; bei Versorgungsmangel (hasNotEnoughSupplies) zählt aiBuildingDestroyChoiceTracker von 8 herunter: bei 8 FEAR_FACTOR, 7 WORKSHOPS_AND_RELIGIOUS, 6 GATEHOUSES_TOWERS_GUILDS plus BARRACKS_MERCPOST_STABLES plus WATER_BUILDINGS, 5 RESOURCE_BUILDINGS, 4 FARMS (bei 3 bis 1 wird nur heruntergezählt). Vorher setzt der Aufrufer aiStrengthFeeling = AIST_WEAK und aiRecruitUnitChoiceState = AIRUC_DEFENSIVE."
+}
+],
+"0x004d1a00": [
+{
+"art": "zahl_fehlt",
+"zahl": 10,
+"schnitt": 11,
+"stelle": "> 10",
+"regel": "Anfang: checkTribeActivityPercentages(tribeID, FALSE, TRUE) != FALSE → tribes[tribeID].counter = 0 und Ende (kein neuer Befehl). Laut Rohcode von CheckTribeActivityPercentages (0x004cd070) ist das wahr, wenn percentageMovingUnk > 10, percentageShootingUnk > 10 oder percentageAttackingUnk > 10 gilt (Felder 'Unk', vermutlich Anteile der Gruppe in Prozent)."
+},
+{
+"art": "zahl_fehlt",
+"zahl": 10,
+"schnitt": 11,
+"stelle": "> 10",
+"regel": "Anfang: checkTribeActivityPercentages(tribeID, FALSE, TRUE) != FALSE → tribes[tribeID].counter = 0 und Ende (kein neuer Befehl). Laut Rohcode von CheckTribeActivityPercentages (0x004cd070) ist das wahr, wenn percentageMovingUnk > 10, percentageShootingUnk > 10 oder percentageAttackingUnk > 10 gilt (Felder 'Unk', vermutlich Anteile der Gruppe in Prozent)."
+},
+{
+"art": "zahl_fehlt",
+"zahl": 10,
+"schnitt": 11,
+"stelle": "> 10",
+"regel": "Anfang: checkTribeActivityPercentages(tribeID, FALSE, TRUE) != FALSE → tribes[tribeID].counter = 0 und Ende (kein neuer Befehl). Laut Rohcode von CheckTribeActivityPercentages (0x004cd070) ist das wahr, wenn percentageMovingUnk > 10, percentageShootingUnk > 10 oder percentageAttackingUnk > 10 gilt (Felder 'Unk', vermutlich Anteile der Gruppe in Prozent)."
+}
+],
+"0x004d2000": [
+{
+"art": "name_fehlt",
+"feld": "ruft",
+"name": "UIT_CONSTRUCT_SIEGE_EQUIPMENT"
+}
+],
+"0x004d2a70": [
+{
+"art": "grenze_um_eins",
+"zahl": 6,
+"schnitt": 7,
+"stelle": "über 6",
+"regel": "Schleife über 6 Gruppen i = 0 bis 5 mit tribeID = aiTribeIDs[0xb4+i]. VOR jeder Prüfung wird tribes[tribeID].unitStance = USE_AGGRESSIVE (Wert 2) gesetzt, auch bei tribeID = 0 (also tribes[0]) und bei nicht passender UID. Weiter nur, wenn tribeID != 0 und tribes[tribeID].uid == aiTribeUIDs[0xb4+i]."
+},
+{
+"art": "zahl_fehlt",
+"zahl": 10,
+"schnitt": 11,
+"stelle": "über 10",
+"regel": "Fall 3 (sonst, wenn TribeTypeID[i] == 0xb5 oder 0xb6): nur bei Zählerstand 0 und wenn CheckTribeActivityPercentages(Gruppe, i, FALSE) FALSE liefert (kein Schießen oder Angriff über 10 %; Bewegung zählt nicht): Ziel = zufälliges Gebäude des Angriffsziels attackedPlayerID_2Unk, ersatzweise chooseRandomBuildingIDFromPlayersArrayOfBuildings(attackedPlayerID_2Unk)."
+},
+{
+"art": "zahl_fehlt",
+"zahl": 10,
+"schnitt": 11,
+"stelle": "> 10",
+"regel": "CheckTribeActivityPercentages(tribeID, ignoreShooting, includeMoving) liefert TRUE (beschäftigt), wenn (includeMoving und Bewegungsanteil > 10) oder (Schussanteil > 10 und ignoreShooting != 1) oder Angriffsanteil > 10. Der Aufruf übergibt als zweiten Parameter den Gruppenindex i statt FALSE; das Schießen wird deshalb nur bei i == 1 ignoriert."
+},
+{
+"art": "zahl_fehlt",
+"zahl": 10,
+"schnitt": 11,
+"stelle": "> 10",
+"regel": "CheckTribeActivityPercentages(tribeID, ignoreShooting, includeMoving) liefert TRUE (beschäftigt), wenn (includeMoving und Bewegungsanteil > 10) oder (Schussanteil > 10 und ignoreShooting != 1) oder Angriffsanteil > 10. Der Aufruf übergibt als zweiten Parameter den Gruppenindex i statt FALSE; das Schießen wird deshalb nur bei i == 1 ignoriert."
+},
+{
+"art": "zahl_fehlt",
+"zahl": 10,
+"schnitt": 11,
+"stelle": "> 10",
+"regel": "CheckTribeActivityPercentages(tribeID, ignoreShooting, includeMoving) liefert TRUE (beschäftigt), wenn (includeMoving und Bewegungsanteil > 10) oder (Schussanteil > 10 und ignoreShooting != 1) oder Angriffsanteil > 10. Der Aufruf übergibt als zweiten Parameter den Gruppenindex i statt FALSE; das Schießen wird deshalb nur bei i == 1 ignoriert."
+}
+],
+"0x004d9400": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 5,
+"schnitt": 5,
+"stelle": ">= 5",
+"regel": "sortColumn >= 5: keine Wirkung; Liste und DAT_00eb9b60 behalten den alten Stand."
+}
+],
+"0x004ee430": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 12,
+"schnitt": 12,
+"stelle": "< 12",
+"regel": "Öl: oilCount > 2 und marshCount >= 10 und highestTerrainHeight - lowestTerrainHeight < 12"
+},
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 12,
+"schnitt": 12,
+"stelle": "< 12",
+"regel": "Eisen: ironCount > 6 und Höhenunterschied < 12"
+}
+],
+"0x004f1ce0": [
+{
+"art": "name_fehlt",
+"feld": "ruft",
+"name": "UpdateTree1"
+}
+],
+"0x004f2380": [
+{
+"art": "zahl_fehlt",
+"zahl": 11828760,
+"schnitt": 11828760,
+"stelle": "ab 0x00b47e18",
+"regel": "Zuständigkeit: createTree ruft die Funktion über die Tabelle UpdateTree (ab 0x00b47e18, Index = Baumart). Der Export zeigt Datenverweise auf UpdateTree1 an den vier Plätzen 0x00b47e1c bis 0x00b47e28, also für die Baumarten 1, 2, 3 und 4 (nicht nur Art 1)"
+}
+],
+"0x004f70f0": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 16,
+"schnitt": 17,
+"stelle": "0x10 >= o",
+"regel": "ShowHiLayer bei field93_0x5548c8 == 0: bis zu 8 Schritte (k = 0, 0x10, ... 0x70) von der Kachel aus in Richtung field84_0x5548a4, je Schritt Zeile + field88_0x5548b4. Abbruch ohne Wirkung am ersten Feld mit Rand-Bit (0x30). Gilt heightBasedScreenYOffset[Höhe des Schrittfelds] - k - 0x10 >= off, wird ShowHiLayer = 0xff und abgebrochen. Ist danach h == 0 oder ShowHiLayer == 0xff, ist das Feld fertig (Regeln 7 bis 13 entfallen). Bei field93_0x5548c8 != 0: ShowHiLayer = 8, und die Regeln 7 bis 13 laufen für alle Höhen"
+}
+],
+"0x004f9a60": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 20,
+"schnitt": 20,
+"stelle": "ab 20",
+"regel": "Bäume: bei LogicLayer-Bit 0x3000 (L_TREE oder L_TREE_VARIATION) und einem OrganismLayer-Wert von 1 bis 1999 (Baumnummer) sperren die Baumarten 5 bis 14 und 16 bis 19 nicht; jede andere Art (0 bis 4, 15 und ab 20) sperrt in GM_SOLITARY (0) immer, sonst für menschliche Spieler; die KI darf dort außerhalb von GM_SOLITARY bauen. OrganismLayer-Werte ab 2000 werden hier nicht geprüft"
+}
+],
+"0x005037b0": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 35318936,
+"schnitt": 35318936,
+"stelle": "ab 0x21aec98",
+"regel": "Feld-Schleife über alle Felder der Fläche: x oder y außerhalb 0 bis 399 (vorzeichenlos), Karten-Maske (Byte ab 0x21aec98 + y mal 400 + x) gleich 0 oder LogicLayer & 0x30 (L_BORDER, L_BORDER_EDGE) -> buildingPlacementFail = 2 und sofortiger Rücksprung ohne neuen Grund. isBuildingPlacementAllowedAtTile(Feld, playerID, Typ, 0) != 0 -> Fehlschlag TRUE ohne Grund (laut Ghidra-Kommentar: 0 erlaubt, 1 nicht erlaubt, 2 Kollision)"
+},
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 11833784,
+"schnitt": 11833784,
+"stelle": "ab 0xb491b8",
+"regel": "Mehrteilige Bauten prüfen weitere Teilflächen (ungültiges Feld oder LogicLayer & 0x30 -> Fehlschlag 2; isBuildingPlacementAllowedAtTile != 0 -> TRUE): Burg 1-3: drei feste Einzelfelder (Tabelle ab 0xb491b8), dann Fläche 7x7 und Fläche 5x5 (Offsets aus DAT_TerrainDefinedData); Kasernen (Euro, Arab): drei Flächen 5x5 an BuildingPartsOffsets[DAT_TempBuildingRotation][0] bis [2]; Ingenieur- und Tunnelgräbergilde: eine Fläche 5x5 an [..][1]; Ölschmelze: Fläche 4x4 an field63_0x19c[Rotation]; Holztor 1A-1D: zwei Flächen 3x3 und sechs Einzelfelder"
+}
+],
+"0x00504f10": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 11833784,
+"schnitt": 11833784,
+"stelle": "ab 0xb491b8",
+"regel": "Markierungsmodus, Zusatzflächen (gleiche Überspringen-und-Markieren-Regel, Versätze aus festen Tabellen): Burgen M_MAPPER_KEEP1 bis KEEP3 (60 bis 62) haben 3 Einzelfelder (Tabelle ab 0xb491b8, 96 Byte je Typ), einen 7x7-Block (Tabelle ab 0xb492d8, 32 Byte je Typ) und einen 5x5-Block (Tabelle ab 0xb49338). Kasernen (86, 87): drei 5x5-Blöcke bei (+5, 0), (0, +5) und (+5, +5) vom Klickfeld. Ingenieur- und Tunnelgräbergilde (88, 89): ein 5x5-Block bei (0, +5). Ölschmelze (180): ein 4x4-Block bei (0, +4), geprüft fest als Typ 180. KEEP4, KEEP5, Steintore (144 bis 147) und alle übrigen Typen haben keine Zusatzfläche"
+},
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 11834072,
+"schnitt": 11834072,
+"stelle": "ab 0xb492d8",
+"regel": "Markierungsmodus, Zusatzflächen (gleiche Überspringen-und-Markieren-Regel, Versätze aus festen Tabellen): Burgen M_MAPPER_KEEP1 bis KEEP3 (60 bis 62) haben 3 Einzelfelder (Tabelle ab 0xb491b8, 96 Byte je Typ), einen 7x7-Block (Tabelle ab 0xb492d8, 32 Byte je Typ) und einen 5x5-Block (Tabelle ab 0xb49338). Kasernen (86, 87): drei 5x5-Blöcke bei (+5, 0), (0, +5) und (+5, +5) vom Klickfeld. Ingenieur- und Tunnelgräbergilde (88, 89): ein 5x5-Block bei (0, +5). Ölschmelze (180): ein 4x4-Block bei (0, +4), geprüft fest als Typ 180. KEEP4, KEEP5, Steintore (144 bis 147) und alle übrigen Typen haben keine Zusatzfläche"
+},
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 11834168,
+"schnitt": 11834168,
+"stelle": "ab 0xb49338",
+"regel": "Markierungsmodus, Zusatzflächen (gleiche Überspringen-und-Markieren-Regel, Versätze aus festen Tabellen): Burgen M_MAPPER_KEEP1 bis KEEP3 (60 bis 62) haben 3 Einzelfelder (Tabelle ab 0xb491b8, 96 Byte je Typ), einen 7x7-Block (Tabelle ab 0xb492d8, 32 Byte je Typ) und einen 5x5-Block (Tabelle ab 0xb49338). Kasernen (86, 87): drei 5x5-Blöcke bei (+5, 0), (0, +5) und (+5, +5) vom Klickfeld. Ingenieur- und Tunnelgräbergilde (88, 89): ein 5x5-Block bei (0, +5). Ölschmelze (180): ein 4x4-Block bei (0, +4), geprüft fest als Typ 180. KEEP4, KEEP5, Steintore (144 bis 147) und alle übrigen Typen haben keine Zusatzfläche"
+},
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 11834560,
+"schnitt": 11834560,
+"stelle": "ab 0xb494c0",
+"regel": "Markierungsmodus, Holztore (140 bis 143): zwei 3x3-Blöcke (Versätze aus Tabelle ab 0xb494c0, 24 Byte je Variante) und 6 Einzelfelder (Tabelle ab 0xb49520, 48 Byte je Variante). Diese Felder haben keinen Test auf 0x10000500: sie werden immer markiert, auch wenn Wand, Gebäude oder Burg darauf stehen"
+},
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 11834656,
+"schnitt": 11834656,
+"stelle": "ab 0xb49520",
+"regel": "Markierungsmodus, Holztore (140 bis 143): zwei 3x3-Blöcke (Versätze aus Tabelle ab 0xb494c0, 24 Byte je Variante) und 6 Einzelfelder (Tabelle ab 0xb49520, 48 Byte je Variante). Diese Felder haben keinen Test auf 0x10000500: sie werden immer markiert, auch wenn Wand, Gebäude oder Burg darauf stehen"
+},
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 11834464,
+"schnitt": 11834464,
+"stelle": "ab 0xb49460",
+"regel": "Zusatz Holztore (140 bis 143), nach der Hauptfläche: zwei 2x2-Blöcke (Bild GMTotalPicturesProcessed[0x34] + buildingRotationRelatedValue, Versätze Tabelle ab 0xb49460), je 5 Einzelfelder (Bild GMTotalPicturesProcessed[0x34] + 0x60e + j; ab j = 1 zusätzlich 4 mal ((Richtungswert aus Tabelle - mapOrientation, plus 8 wenn negativ) / 2)) und 6 Felder mit GMTotalPicturesProcessed[6] + 0x138 + (RandomLayer & 3)"
+},
+{
+"art": "zahl_fehlt",
+"zahl": 190,
+"schnitt": 190,
+"stelle": "unter 190",
+"regel": "Aufrufer (laut Ghidra-Ausgabe): MenuItemActionHandler_InGameMenu_TriggerPlaceBuildingCommand mit altem field188 = 0 (Klickkachel, aktueller Befehl, DAT_BuildingSize), und zwar bei Befehl unter 190, über 194 (außer M_MAPPER_ARAB_BALLISTA) oder bei buildingPlacementFail != FALSE; HoveredState::calculateHoveredTile (nur wenn currentGameMode != GM_SOLITARY) setzt field188 = 1 und uiBuildingRotation (danach zurückgesetzt) und ruft diese Funktion für jedes Listenelement auf, außer für die Typen 120 bis 123, 129, 148, 190 bis 194, 210, 211 und 358, die es selbst als Schwebebilder zeichnet. Die Liste füllt createHoverStateElement beim Absenden eines Bau-Befehls; die Einträge laufen nach commandDelay + 5 Ticks ab"
+},
+{
+"art": "zahl_fehlt",
+"zahl": 194,
+"schnitt": 195,
+"stelle": "über 194",
+"regel": "Aufrufer (laut Ghidra-Ausgabe): MenuItemActionHandler_InGameMenu_TriggerPlaceBuildingCommand mit altem field188 = 0 (Klickkachel, aktueller Befehl, DAT_BuildingSize), und zwar bei Befehl unter 190, über 194 (außer M_MAPPER_ARAB_BALLISTA) oder bei buildingPlacementFail != FALSE; HoveredState::calculateHoveredTile (nur wenn currentGameMode != GM_SOLITARY) setzt field188 = 1 und uiBuildingRotation (danach zurückgesetzt) und ruft diese Funktion für jedes Listenelement auf, außer für die Typen 120 bis 123, 129, 148, 190 bis 194, 210, 211 und 358, die es selbst als Schwebebilder zeichnet. Die Liste füllt createHoverStateElement beim Absenden eines Bau-Befehls; die Einträge laufen nach commandDelay + 5 Ticks ab"
+}
+],
+"0x005076a0": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 11833488,
+"schnitt": 11833488,
+"stelle": "ab 0xb49090",
+"regel": "Drei Teile in dieser Reihenfolge: BT_PARADEGROUND3 (57), BT_PARADEGROUND4 (58), BT_PARADEGROUND2 (56). Jeder wird mit setupBuildingData(playerID, x + Offset.x, y + Offset.y, Höhe, Teiltyp, 5, playerID, 0xf) angelegt, wobei Offset = BuildingPartsOffsets[n][k] mit k = 0, 1, 2 (Tabelle ab 0xb49090, 4 Zeilen zu je 3 x/y-Paaren, 24 Byte je Zeile). Jeder Teil bekommt die uidWhenPlaced des Hauptgebäudes und quarryStockpileID = placedBuildingID (16 Bit)"
+}
+],
+"0x00517790": [
+{
+"art": "zahl_fehlt",
+"zahl": 11833184,
+"schnitt": 11833184,
+"stelle": "ab 0xb48f60",
+"regel": "9 Durchläufe (Index 0 bis 8) über getTileForBrush(0, Index): Die Pinselliste (Tabelle ab 0xb48f60, jeder Schritt vom vorigen Feld aus) führt für die Einträge 0 bis 8 einmal über alle 9 Felder des 3x3-Blocks um das Mittelfeld. Jedes Feld bekommt den vollen Schaden, ohne Abschwächung nach Abstand. Nach dem letzten Feld folgt einmal updateWalkAndPathLayer(9, x_2, ursprüngliches y_2)"
+},
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 6001752,
+"schnitt": 6001752,
+"stelle": "ab 0x5b9458",
+"regel": "BuildingTypeHasHealth (Tabelle ab 0x5b9458, 4 Byte je Typ) ist im Grundwert der Referenz-EXE 0 für: 0xa (BT_STOCKPILE), 0x27-0x2c (BT_UNKNOWN1, BT_MANORHOUSE, BT_STONEKEEP, BT_STRONGHOLD, BT_KEEPFOUR, BT_KEEPFIVE), 0x31 (BT_DRAWBRIDGE), 0x33-0x35 (BT_CAMPFIRE, BT_SIGNPOST, BT_PARADEGROUND), 0x37-0x3d (BT_CAMPGROUND, BT_PARADEGROUND2-5, BT_GATEHOUSE, BT_TOWER), 0x40 (BT_WITCHHOIST), 0x43 (BT_KILLINGPIT), 0x44 (BT_PITCHDITCH), 0x47-0x49 (BT_KEEPDOOR_LEFT/RIGHT, BT_KEEPDOOR) und 0x68 (BT_POND); diese Gebäude nehmen hier keinen Schaden"
+}
+],
+"0x00518380": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 24811840,
+"schnitt": 24811840,
+"stelle": "ab 0x17a9940",
+"regel": "Zuerst werden die ersten 50 Einträge (0x32) von tribeIDArray (ab 0x17a9940) auf 0 und von tribeRelatedArrayValue0UpTo12 (ab 0x17a9ad0) auf 12 gesetzt; tribeIDArraySize = 0"
+},
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 24812240,
+"schnitt": 24812240,
+"stelle": "ab 0x17a9ad0",
+"regel": "Zuerst werden die ersten 50 Einträge (0x32) von tribeIDArray (ab 0x17a9940) auf 0 und von tribeRelatedArrayValue0UpTo12 (ab 0x17a9ad0) auf 12 gesetzt; tribeIDArraySize = 0"
+}
+],
+"0x00519990": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 32385432,
+"schnitt": 32385432,
+"stelle": "ab 0x1ee2998",
+"regel": "Kosten = Byte der Wegekostenebene ab 0x1ee2998 (80400 Byte = 0x13a10 je Spieler, ein Byte je Kachel; geschrieben von updateWalkLayerAndAIPathCostLayer, vermutlich Schrittabstand von der KI-Zone des Ziels; 0 vermutlich nicht erreicht). Die Mauerstellen (Hack) nutzen die Ebene des Parameters attackedPlayerID, alle anderen Listen die Ebene hackValuesArray[-0x10]"
+},
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 9999,
+"schnitt": 9999,
+"stelle": "< 9999",
+"regel": "Verbraucher außerhalb des Pakets: findEnemyWalls wählt unter den Mauerstellen mit Punktwert < 9999 und Feld +0xc gleich 0 (frei) die mit dem kleinsten Wert aus Abstand zur Einheit + 8 * Punktwert (nur Werte unter 1000); findNearestAvailableScalePoint wählt unter den freien Leiterstellen mit Punktwert < 5999 die mit dem kleinsten Abstand (unter 1000)"
+},
+{
+"art": "zahl_fehlt",
+"zahl": 1000,
+"schnitt": 1000,
+"stelle": "unter 1000",
+"regel": "Verbraucher außerhalb des Pakets: findEnemyWalls wählt unter den Mauerstellen mit Punktwert < 9999 und Feld +0xc gleich 0 (frei) die mit dem kleinsten Wert aus Abstand zur Einheit + 8 * Punktwert (nur Werte unter 1000); findNearestAvailableScalePoint wählt unter den freien Leiterstellen mit Punktwert < 5999 die mit dem kleinsten Abstand (unter 1000)"
+},
+{
+"art": "zahl_fehlt",
+"zahl": 5999,
+"schnitt": 5999,
+"stelle": "< 5999",
+"regel": "Verbraucher außerhalb des Pakets: findEnemyWalls wählt unter den Mauerstellen mit Punktwert < 9999 und Feld +0xc gleich 0 (frei) die mit dem kleinsten Wert aus Abstand zur Einheit + 8 * Punktwert (nur Werte unter 1000); findNearestAvailableScalePoint wählt unter den freien Leiterstellen mit Punktwert < 5999 die mit dem kleinsten Abstand (unter 1000)"
+},
+{
+"art": "zahl_fehlt",
+"zahl": 1000,
+"schnitt": 1000,
+"stelle": "unter 1000",
+"regel": "Verbraucher außerhalb des Pakets: findEnemyWalls wählt unter den Mauerstellen mit Punktwert < 9999 und Feld +0xc gleich 0 (frei) die mit dem kleinsten Wert aus Abstand zur Einheit + 8 * Punktwert (nur Werte unter 1000); findNearestAvailableScalePoint wählt unter den freien Leiterstellen mit Punktwert < 5999 die mit dem kleinsten Abstand (unter 1000)"
+}
+],
+"0x0051b710": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 11847628,
+"schnitt": 11847628,
+"stelle": "ab 0xb4c7cc",
+"regel": "Tabellen (Grundwerte der Referenz-EXE): Zeltart ab 0xb4c7cc und Ingenieure je Zelt ab 0xb4d0f0: Byte 0 = 190 M_MAPPER_CATAPULT mit 2 Ingenieuren, Byte 1 = 191 M_MAPPER_TREBUCHET mit 3, Byte 2 = 193 M_MAPPER_BATTERING_RAM mit 4, Byte 3 = 192 M_MAPPER_SIEGE_TOWER mit 4, Byte 4 = 194 M_MAPPER_PORTABLE_SHIELD mit 1, Byte 8 = 358 M_MAPPER_ARAB_BALLISTA mit 2 (Einträge 5 bis 7 sind 0 und werden nicht gelesen)"
+},
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 11849968,
+"schnitt": 11849968,
+"stelle": "ab 0xb4d0f0",
+"regel": "Tabellen (Grundwerte der Referenz-EXE): Zeltart ab 0xb4c7cc und Ingenieure je Zelt ab 0xb4d0f0: Byte 0 = 190 M_MAPPER_CATAPULT mit 2 Ingenieuren, Byte 1 = 191 M_MAPPER_TREBUCHET mit 3, Byte 2 = 193 M_MAPPER_BATTERING_RAM mit 4, Byte 3 = 192 M_MAPPER_SIEGE_TOWER mit 4, Byte 4 = 194 M_MAPPER_PORTABLE_SHIELD mit 1, Byte 8 = 358 M_MAPPER_ARAB_BALLISTA mit 2 (Einträge 5 bis 7 sind 0 und werden nicht gelesen)"
+}
+],
+"0x0051d7f0": [
+{
+"art": "zahl_fehlt",
+"zahl": 1055,
+"schnitt": 1055,
+"stelle": "ab 1055",
+"regel": "Einzeln behandelt werden Z = 1, 3, 5, 7, 8, 1010 (0x3f2) und aus 1011 bis 1054 (0x3f3 bis 0x41e) die Werte 1011-1017, 1019-1023, 1025, 1030, 1041-1044, 1046, 1048-1051 und 1054 (am Sprungtabellen-Inhalt der EXE geprüft). Standardfall = updateTribeCombatStanceBehavior(tribeID): Z = 0, 2, 9 bis 1009, 1018 (0x3fa), 1026-1029, 1031-1040 (darunter 1040 = 0x410), 1045 (0x415), 1047 (0x417), 1052-1053, ab 1055 und negative Werte. Z = 4, 6 und 1024 (0x400) tun nichts. Einzeln behandelte Zustände, deren Bedingung nicht erfüllt ist, tun ebenfalls nichts (kein Aufruf von updateTribeCombatStanceBehavior)"
+}
+],
+"0x0051e300": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 16,
+"schnitt": 17,
+"stelle": "höchstens 16",
+"regel": "people: nur wenn zusätzlich PathConnectionLayer[Feld] == startCon, unknownTestAgainst0_1 (OpenSHC: isStalked) == 0 und isSelectable_OR_matchTime != 0 sind (Einheitenart egal): people1 + 1. Dann für die vier Richtungen 0, 2, 4, 6, deren Nachbar PathConnectionLayer == startCon hat: Schleife endet bei people2 >= 1000 (999 < people2) oder wenn das Feld in attackInfo.targetedBuildingTilesArray steht; sonst Eintrag (Feld, Nachbar) in peopleValuesArray und people2 + 1, wenn h0 höchstens 16 von getTotalHeightAtTile(Nachbar) abweicht. Bis zu vier Einträge je Einheit."
+},
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 16,
+"schnitt": 17,
+"stelle": "<= 16",
+"regel": "Danach (auch für Felder ohne Einheit) zwei Zweige. A: kein Gebäude auf dem Feld oder Gebäudebesitzer != attackedPlayerID. B: das Gebäude gehört attackedPlayerID. Hilfswörter: T = Feld steht in attackInfo.targetedBuildingTilesArray (getTileInTargetedBuildingTiles); Richtungen sind immer 0, 2, 4, 6 (ohne Diagonalen); 'Nachbar tauglich' = LogicLayer[Nachbar] & 0x10000100 == 0 und |DefaultHeightLayer[Feld] - getTotalHeightAtTile(Nachbar)| <= 16 (im Code zwei Vergleiche +0x10 und -0x10); 'erreichbar' = calculateCanPlayerUnitsNavigateToAreaFromArea(playerID, startCon, Gebiet des Nachbarn, 0) != 0. Jede Liste endet bei 1000 Einträgen."
+},
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 16,
+"schnitt": 17,
+"stelle": "<= 16",
+"regel": "Zweig B, sonstiges Gebäude mit BuildingTypeHasHealth != 0 (town): nur wenn Logic & 0xf000000 == 0: town-Zähler (-0xc) + 1. Für d = 0, 2, 4, 6, deren Nachbar PathConnectionLayer == startCon hat: bei town-Liste >= 1000 oder T ist das Feld fertig; Eintrag (Feld, Nachbar), town-Liste + 1 und Feld fertig, wenn nur |DefaultHeightLayer[Feld] - getTotalHeightAtTile(Nachbar)| <= 16 gilt (hier weder Logic-Maske noch K noch AIZone-Aufruf)."
+},
+{
+"art": "name_fehlt",
+"feld": "ruft",
+"name": "permitClimb"
+}
+],
+"0x0051f5c0": [
+{
+"art": "grenze_um_eins",
+"zahl": 64,
+"schnitt": 65,
+"stelle": "64 < Z",
+"regel": "Angenommen wird nur bei Zähler >= 64 (Assembly: CMP 0x40, JL; Ghidra: 0x3f < Zähler; der aufbereitete Eingang zeigte fälschlich 64 < Zähler, das wäre nie erfüllbar). Das heißt: alle 8 n1 und alle 64 n2-Prüfungen müssen bestehen."
+}
+],
+"0x0051fb90": [
+{
+"art": "zahl_fehlt",
+"zahl": 32,
+"schnitt": 32,
+"stelle": "ab 0x20",
+"regel": "Einteilung der Truppengruppen (je Gruppe +1): Typ 5 und 9 -> spearmenAndMacemen; Typ 6, 8, 0xc, 0x1c und 0x1e -> pikemenSwordsmenAndMore; Typ 0xa -> knights; Typ 3, 7, 0x19, 0x1b, 0x1d und 0x1f -> ranged; Typ 0x1a -> field86627_0x20e04. Typ 0, 1 und ab 0x20 stecken nur in aiTroops und field86974_0x20f74."
+}
+],
+"0x005205a0": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 11847548,
+"schnitt": 11847548,
+"stelle": "ab 0xb4c77c",
+"regel": "Takt: attackWaveTicker[p] (0x1793b1c + p * 4) + 1 bei jedem Aufruf. Ist er danach kleiner als DAT_AttackInfoDefinedData.field3_0x78[attacker] (Tabelle ab 0xb4c77c), endet die Funktion hier. Sonst attackWaveTicker[p] = 0 und value10 (0x1784f98, gilt für alle Wellen gemeinsam) + 1."
+},
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 11847588,
+"schnitt": 11847588,
+"stelle": "ab 0xb4c7a4",
+"regel": "attacker != 8: field89399_0x21c48 (0x1784f9c) = 0. Ist catapults (0x17842b4) != 0: field89399_0x21c48 = field4_0xa0[attacker] (Tabelle ab 0xb4c7a4), dazu +10 bei zoneSize < 3000 (0x1788e4c); dann sort(1, 10000, STBT_0x401), apply(STBT_0x401, STBT_1, 0, 0x32). Ohne Katapulte ist d = value10."
+}
+],
+"0x005244d0": [
+{
+"art": "zahl_fehlt",
+"zahl": 1000,
+"schnitt": 1000,
+"stelle": "unter 1000",
+"regel": "Die Suchfunktionen arbeiten auf den Listen aus recomputeAttackInfo (Block des Einheiten-Besitzers, außer people und lord): sie nehmen den Eintrag mit dem kleinsten Abstand (distanceHigh aus setAxisBasedDistanceResult) unter 1000 (moat unter 100000), und zwar nur freie Einträge (Feld +0xc == 0); dazu muss das Wertungsfeld +8 bei hack unter 9999 und bei scale, gate, wide und moat unter 5999 liegen (town, people, lord ohne diese Grenze). Zuschläge auf den Abstand: hack und moat + Wertung * 8, town + (100 - Wertung) * 2, wide + Abstand zwischen dem Lagereingang des Spielers aus hackValuesArray[-0x10] (setzt aiRecomputeAttacks2) und dem Eintrag. Sie tragen die unitID in +0xc ein und setzen DAT_TroopValueState.tile (Angriffskachel = tile des Eintrags) sowie x und y (Laufziel = tile2, Nachbarfeld). findEnemyLord nimmt den ersten freien Lord-Eintrag, sonst Eintrag 0; findEnemyTowersOrGates gibt, wenn nichts Freies da ist, alle +0xc der gate-Liste frei und sucht noch einmal (ohne die Einheit einzutragen)."
+},
+{
+"art": "zahl_fehlt",
+"zahl": 100000,
+"schnitt": 100000,
+"stelle": "unter 100000",
+"regel": "Die Suchfunktionen arbeiten auf den Listen aus recomputeAttackInfo (Block des Einheiten-Besitzers, außer people und lord): sie nehmen den Eintrag mit dem kleinsten Abstand (distanceHigh aus setAxisBasedDistanceResult) unter 1000 (moat unter 100000), und zwar nur freie Einträge (Feld +0xc == 0); dazu muss das Wertungsfeld +8 bei hack unter 9999 und bei scale, gate, wide und moat unter 5999 liegen (town, people, lord ohne diese Grenze). Zuschläge auf den Abstand: hack und moat + Wertung * 8, town + (100 - Wertung) * 2, wide + Abstand zwischen dem Lagereingang des Spielers aus hackValuesArray[-0x10] (setzt aiRecomputeAttacks2) und dem Eintrag. Sie tragen die unitID in +0xc ein und setzen DAT_TroopValueState.tile (Angriffskachel = tile des Eintrags) sowie x und y (Laufziel = tile2, Nachbarfeld). findEnemyLord nimmt den ersten freien Lord-Eintrag, sonst Eintrag 0; findEnemyTowersOrGates gibt, wenn nichts Freies da ist, alle +0xc der gate-Liste frei und sucht noch einmal (ohne die Einheit einzutragen)."
+},
+{
+"art": "zahl_fehlt",
+"zahl": 9999,
+"schnitt": 9999,
+"stelle": "unter 9999",
+"regel": "Die Suchfunktionen arbeiten auf den Listen aus recomputeAttackInfo (Block des Einheiten-Besitzers, außer people und lord): sie nehmen den Eintrag mit dem kleinsten Abstand (distanceHigh aus setAxisBasedDistanceResult) unter 1000 (moat unter 100000), und zwar nur freie Einträge (Feld +0xc == 0); dazu muss das Wertungsfeld +8 bei hack unter 9999 und bei scale, gate, wide und moat unter 5999 liegen (town, people, lord ohne diese Grenze). Zuschläge auf den Abstand: hack und moat + Wertung * 8, town + (100 - Wertung) * 2, wide + Abstand zwischen dem Lagereingang des Spielers aus hackValuesArray[-0x10] (setzt aiRecomputeAttacks2) und dem Eintrag. Sie tragen die unitID in +0xc ein und setzen DAT_TroopValueState.tile (Angriffskachel = tile des Eintrags) sowie x und y (Laufziel = tile2, Nachbarfeld). findEnemyLord nimmt den ersten freien Lord-Eintrag, sonst Eintrag 0; findEnemyTowersOrGates gibt, wenn nichts Freies da ist, alle +0xc der gate-Liste frei und sucht noch einmal (ohne die Einheit einzutragen)."
+},
+{
+"art": "zahl_fehlt",
+"zahl": 5999,
+"schnitt": 5999,
+"stelle": "unter 5999",
+"regel": "Die Suchfunktionen arbeiten auf den Listen aus recomputeAttackInfo (Block des Einheiten-Besitzers, außer people und lord): sie nehmen den Eintrag mit dem kleinsten Abstand (distanceHigh aus setAxisBasedDistanceResult) unter 1000 (moat unter 100000), und zwar nur freie Einträge (Feld +0xc == 0); dazu muss das Wertungsfeld +8 bei hack unter 9999 und bei scale, gate, wide und moat unter 5999 liegen (town, people, lord ohne diese Grenze). Zuschläge auf den Abstand: hack und moat + Wertung * 8, town + (100 - Wertung) * 2, wide + Abstand zwischen dem Lagereingang des Spielers aus hackValuesArray[-0x10] (setzt aiRecomputeAttacks2) und dem Eintrag. Sie tragen die unitID in +0xc ein und setzen DAT_TroopValueState.tile (Angriffskachel = tile des Eintrags) sowie x und y (Laufziel = tile2, Nachbarfeld). findEnemyLord nimmt den ersten freien Lord-Eintrag, sonst Eintrag 0; findEnemyTowersOrGates gibt, wenn nichts Freies da ist, alle +0xc der gate-Liste frei und sucht noch einmal (ohne die Einheit einzutragen)."
+}
+],
+"0x005263a0": [
+{
+"art": "zahl_fehlt",
+"zahl": 1073741824,
+"schnitt": 1073741825,
+"stelle": "über 0x40000000",
+"regel": "Erst danach werden PathFindingState.field50_0x98 = 0 und fcn_mtribe += 1 geschrieben. Dann gibt es zwei Kurzwege, beide VOR der Prüfung des Zielgebiets: (a) Die Bezugseinheit (tribes[t].selectionTargetUnitID) ist die erste lebende Einheit der Gruppe, die auf einer Kachel mit LogicLayer-Bit 0x40000000 steht (getFirstUnitInTribeThatIsOnXTerrain; vermutlich Mauerkrone), und canNavigateFunctionReturnsArea(owner, Gebiet der Zielkachel, x/y der Bezugseinheit) liefert 0 (es sucht über 0x40000000-Kacheln eine Abstiegsstelle, von der aus das Zielgebiet erreichbar ist); liefert es != 0, gilt stattdessen der Kletterweg mit dem gelieferten Gebiet. (b) Die Bezugseinheit ist nicht diese Einheit und ihr eigenes Gebiet (PathConnectionLayer als signed short) ist 0. In beiden Fällen gibt die Funktion das Ergebnis von applyMoveCommandOrRallyCommandToTribe zurück (immer 1): Alle Einheiten mit ULS_NORMAL, nicht sterbend, nicht usingTeleport, field303_0x413 == 0, nicht im Nahkampfzustand, moveableUnk != 0 und moveRelatedFlag != 1 bekommen dasselbe Zielfeld (plannedDestination = x1/y1, state 101, targetingType 3), ohne Typfilter; den Sammelpunkt speichert dabei applyMoveCommandOrRallyCommandToTribe selbst (bei storeAsRallyPoint != 0, ohne field71_0x212 zu ändern)."
+},
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 40,
+"schnitt": 40,
+"stelle": "unter 40",
+"regel": "Danach applyUnitTopSpeedDelayBasedOnTribeSize(t, FALSE): vergibt units[].topSpeedDelayIndex an alle lebenden Einheiten (Gruppe unter 40: Rang nach movementDistance aufsteigend; ab 40: Reihenfolge in der Gruppe, höchstens 199)."
+},
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 40,
+"schnitt": 40,
+"stelle": "ab 40",
+"regel": "Danach applyUnitTopSpeedDelayBasedOnTribeSize(t, FALSE): vergibt units[].topSpeedDelayIndex an alle lebenden Einheiten (Gruppe unter 40: Rang nach movementDistance aufsteigend; ab 40: Reihenfolge in der Gruppe, höchstens 199)."
+},
+{
+"art": "zahl_fehlt",
+"zahl": 199,
+"schnitt": 200,
+"stelle": "höchstens 199",
+"regel": "Danach applyUnitTopSpeedDelayBasedOnTribeSize(t, FALSE): vergibt units[].topSpeedDelayIndex an alle lebenden Einheiten (Gruppe unter 40: Rang nach movementDistance aufsteigend; ab 40: Reihenfolge in der Gruppe, höchstens 199)."
+}
+],
+"0x00527440": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 18337360,
+"schnitt": 18337361,
+"stelle": "über 0x0117ce50",
+"regel": "Builder-/Tutorialzweig, Schritt 1: ALLE 20 Ints von siegeInformation (Schleife über 0x0117ce50 bis < 0x0117cea0, nicht nur 'archers') werden mit p/100 multipliziert (ganzzahlig, zur Null hin). p hängt von mapAndTime.difficulty, currentPlayerSlotID und A = DAT_SH1_SiegeAdvancedMode ab: Stufe 0: Platz 1 -> 67, sonst 167 wenn A == 0; Stufe 2: Platz 1 -> 133, sonst 75 wenn A == 0; Stufe 3: Platz 1 -> 167, sonst 50 wenn A == 0; alle anderen Fälle 100 (auch Platz != 1 bei A != 0 und Stufe 1)."
+}
+],
+"0x00527c80": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 19749996,
+"schnitt": 19749996,
+"stelle": "ab 0x012d5c6c",
+"regel": "Befehl 4, Nahkämpfer (TUNNELER, E_SPEAR, E_PIKE, E_MACE, E_SWORD, E_KNIGHT, E_MONK, LORD, A_SLAVE, A_ASSASSIN, A_SWORDSMAN): In der ersten Schleife werden sie nur gezählt, und zwar nur wenn das ZIEL kein UT_ANTELOPESHDEER ist und nicht (param_5 == 1 und das ZIEL im Zustand US_MELEE_ATTACK); es zählt der Zustand des Ziels, nicht der des Angreifers. Bei Zähler != 0: predictUnitInterceptPosition(Bezugseinheit selectionTargetUnitID, Ziel, &x, &y); pathPlanningForTribe(t, Ziel, x, y, Zähler, Gebiet der Bezugseinheit, deren Besitzer) füllt die Zielliste (12-Byte-Einträge ab 0x012d5c6c: tile1, tile2OrAHelper, tile3OrAnotherHelper); someUnitID = Ziel-ID, someUnitUID = UID, someTile = Zielkachel, someTile2 = Kachel aus destinationX_2Unk/Y_2Unk des Ziels. Je Nahkämpfer (NORMAL, nicht sterbend, field303 == 0, nicht (param_5 == 1 und eigener Zustand US_MELEE_ATTACK)) mit tile1 != 0: targetingType = 4 samt Zielkennung, wenn tile2 != 0, sonst 0 (UT_LORD wird dann übersprungen); plannedDestinationX/Y = tile1; targetedBuildingTile = 0; movementType_OR_targetUnitID = 0; im Nahkampfzustand unknownMovementRelated_0x2d2 = movementSpeed * -4; state 101; Merker allAssassinsUnk bzw. notAllAssassinsUnk = 1; setDestinationForUnit; lookForEnemy = -50; Eintrag +12 Byte; notAllAssassinsUnk = 0. Zum Schluss field168_0x2be = max(8, 8 * größter halber totalSizeOfPathPlan). Rückgabe 1."
+}
+],
+"0x0052a7d0": [
+{
+"art": "zahl_fehlt",
+"zahl": 500,
+"schnitt": 500,
+"stelle": "unter 500",
+"regel": "Gültiger Eintrag mit dX*dX + dY*dY < 250000 (micro-Differenzen zu selectionTargetUnitID, also Abstand unter 500 Mikro-Einheiten; genau 500 zählt nicht): die Suche endet hier. Nur wenn zugleich unknownAttackRelatedUpdateCounter == 0 und field93_0x22a == 59 (0x3b) ist, folgt die Gruppenprüfung, sonst passiert nichts. Ein gültiger Eintrag mit 500 oder mehr Abstand wird übersprungen und die Suche geht weiter"
+},
+{
+"art": "zahl_fehlt",
+"zahl": 8,
+"schnitt": 8,
+"stelle": "mindestens 8",
+"regel": "Befehlsnummern laut giveTribeAnInstruction: UIT_UNIT_ATTACK_UNIT ist 4; 0x20 teilt sich den Zweig mit UIT_SHOOT_TARGETUnk (Ziel: Einheit mit UID-Prüfung), 0x25 mit UIT_ATTACK_WALL (Ziel: Kachel), 0x26 mit UIT_ATTACK_BUILDING (Ziel: Gebäude). Dieselbe Funktion setzt bei UIT_UNIT_ATTACK_UNIT (wenn die Gruppe Nahkämpfer hat) someUnitID/someUnitUID auf das Ziel, someTile auf dessen Kachel, someTile2 auf dessen Zielkachel und field168_0x2be auf mindestens 8"
+}
+],
+"0x0052cab0": [
+{
+"art": "grenze_um_eins",
+"zahl": 1600,
+"schnitt": 1601,
+"stelle": "1600 < I",
+"regel": "Breitensuche über die 8 Nachbarfelder (clockwiseCardinalTranslationMatrix) in einer Umlauf-Warteschlange mit 1600 Plätzen: candidateIndex2 und candidateIndex gehen bei 1600 (0x640) wieder auf 0. Der Paketcode zeigt diesen Vergleich um eins falsch (1600 < Index, also 1601 Plätze); Export und Assembly vergleichen mit 0x640"
+}
+],
+"0x00531220": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 11857504,
+"schnitt": 11857504,
+"stelle": "ab 0x00b4ee60",
+"regel": "Schaden = MELEE_DAMAGE[Typ des Angreifers][Typ des Opfers] (80x80 Ints ab 0x00b4ee60, Zeile = Angreifertyp). Ist der Angreifer kein UT_LORD, geht der Wert durch computeDamageFearFactorBonus(Schaden, Besitzer des Angreifers) = Schaden*(fearFactorLevel+20)*5/100 ganzzahlig, also +5 % je Stufe und bei negativer Stufe weniger; ein Lord-Angreifer bekommt keinen Angstfaktor"
+}
+],
+"0x00531920": [
+{
+"art": "grenze_um_eins",
+"zahl": 2,
+"schnitt": 2,
+"stelle": "ab 2",
+"regel": "Giftschaden: tileDistance 0 → 400, 1 → 200, ab 2 → 150; dann nach healerCount des Zielbesitzers: genau 1 → 80 %, genau 2 → 60 %, 3 oder mehr → 40 %, sonst 100 % (ganzzahlig durch 100). health -= Schaden; bei health unter 1: health 0, dying 1, animationCycleNumber 0, state.generic = US_STONE_DEATH_02 (115), tunnelerFinishedDigging 1; healthPercentage/healthbar werden neu gesetzt; Rückgabe immer FALSE, ohne lastEncountered-Eintrag, Alarm-Ton oder Gruppenfelder"
+}
+],
+"0x00532ba0": [
+{
+"art": "grenze_um_eins",
+"zahl": 2499,
+"schnitt": 2500,
+"stelle": "höchstens 2499",
+"regel": "Ist enemies schon 2499, wird mit SEC_RNG.currentNumber2 % 2500 (Zufallszahl 0..32767, danach nextRandomNumber2) ein Platz gewürfelt und dort überschrieben; bei Wert 2499 entfällt der Eintrag; die Liste fasst also höchstens 2499 Einheiten"
+}
+],
+"0x00537f60": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 10,
+"schnitt": 10,
+"stelle": "ab 10",
+"regel": "UT_MILLER (keine Ware vorab): 0, 1, 6 → 1; 2 → 5; 3 → 9 (ohne Ware); 4 → 6 mit RT_WHEAT; 5 → 7; 7 → 2; 8 → 10 mit RT_FLOUR (16); sonst 0. UT_BAKER (RT_BREAD = 10 vorab): 0, 1 → 1; 2 → 5; 5 → 2; 6 → 10; 7 → 9 mit RT_FLOUR; 8 → 6 mit RT_FLOUR; jeder andere Zustand (3, 4 u. a.) → 7. UT_BREWER (keine Ware vorab): 0, 1 → 1; 2 → 9 mit RT_HOPS; 3 → 6 mit RT_HOPS; 4 → 5; 7 → 2; 8 → 10 mit RT_ALE (14); 9 → 4; jeder andere Zustand (5, 6, ab 10) → 7."
+},
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 7,
+"schnitt": 7,
+"stelle": "ab 7",
+"regel": "UT_MINER: Zustand 1 → 7, sonst die Tabelle von UT_TRANSPORTMINER (keine Ware): 0, 1, 5 → 1; 2 → 5; 3 → 2; 4 → 10; jeder andere Zustand → 7. UT_PRIEST: 0 → 1; 1 → 5; 2, 4, 6, 7, 8, 10, 0xb → 7; 3 → 0x2b; 5 → 0x2a; 9 → substate + 0x18 (ohne Grenzprüfung); sonst 0. UT_HEALER: 0 → 1; 1 → 5; 3 → 0x2d; 4 → 0x2e; 5 → 0x2f; 6 → 0x30; jeder andere Zustand (auch 2 und ab 7) → 7."
+}
+],
+"0x00544750": [
+{
+"art": "grenze_um_eins",
+"zahl": 4,
+"schnitt": 5,
+"stelle": "höchstens 4",
+"regel": "FIRE_WEAPON, Suche: nur wenn ((fixedRng ^ totalGameTicksUnk ^ 0xfffffff8) & 0xf)==0 (untere 4 Bit von fixedRng^Takt gleich 8, also alle 16 Takte) und der Zustand noch FIRE_WEAPON ist. Durchsucht werden die Einheiten 1 bis maxUnitCount-1: logicalState ULS_NORMAL, Typ UT_E_ENGINEER, targetingType UIT_MAN_SIEGE_EQUIPMENT, das Feld dying (pUVar13[0x109], Name aus dem Export von UpdateBatteringRam) gleich 0, ein Zielfeld (pUVar13[0x188], vermutlich Ziel-ID) gleich dem Turm-Slot, Höhenunterschied nach obiger Formel höchstens 16, Abstand max(|dx|,|dy|) unter 30. Je Besitzer des Ingenieurs (pUVar13[4], vermutlich owner) werden höchstens 4 gesammelt"
+}
+],
+"0x005459b0": [
+{
+"art": "grenze_um_eins",
+"zahl": 4,
+"schnitt": 5,
+"stelle": "höchstens 4",
+"regel": "FIRE_WEAPON, Suche: nur wenn ((fixedRng ^ totalGameTicksUnk ^ 0xfffffff8) & 0xf)==0 (alle 16 Takte, untere 4 Bit von fixedRng^Takt gleich 8) und der Zustand noch FIRE_WEAPON ist. Durchsucht werden die Einheiten 1 bis maxUnitCount-1: logicalState ULS_NORMAL, dying==0, Typ UT_E_ENGINEER, targetingType UIT_MAN_SIEGE_EQUIPMENT, ein Zielfeld (vermutlich Ziel-ID) gleich dem Bock-Slot, Höhenunterschied nach obiger Formel höchstens 16, Abstand max(|dx|,|dy|) unter 30 (hasUnitReachedDestination wird hier nicht verlangt). Je Besitzer des Ingenieurs werden höchstens 4 gesammelt"
+}
+],
+"0x0054a7b0": [
+{
+"art": "grenze_um_eins",
+"zahl": 15,
+"schnitt": 16,
+"stelle": "höchstens 15",
+"regel": "Erreichbarkeit: ein Feind wird nur genommen, wenn eines seiner 8 Nachbarfelder (field84_0x11cb4) frei ist (UnitLayer 0) und dessen Gesamthöhe so liegt, dass der Feind höchstens 15 abweicht; nur dann werden _minimumValue, local_14 (Abstand des Feindes) und _foundEnemyID gesetzt"
+}
+],
+"0x0054b0d0": [
+{
+"art": "grenze_um_eins",
+"zahl": 2,
+"schnitt": 2,
+"stelle": "2 <= R",
+"regel": "Typ (_entityType) nach unitType: UT_E_XBOW 7, UT_S_CATAPULT 2, UT_S_TREBUCHET 3, UT_S_MANGONEL 4, UT_S_BALLISTA 20 (0x14), UT_A_SLINGER 33 (0x21), UT_A_FIRETHROWER 34 (0x22), UT_S_FBALLISTA 37 (0x25), alle anderen 1. Reichweite R = EntityTypeArrayForProjectileRange[Typ]; geprüft wird (Felddistanz)^2 <= R^2 mit Felddistanz aus Mikro >> 3"
+},
+{
+"art": "grenze_um_eins",
+"zahl": 2,
+"schnitt": 2,
+"stelle": "2 <= R",
+"regel": "Feind in Reichweite (Felddistanz^2 <= R^2); Wertung = max(dX,dY) in Mikroeinheiten + field282_0x3dc*0x32 (Zahl bereits zugeteilter Schützen). Danach Typgewicht je Schütze (Regeln 10 bis 12); kleinster Wert gewinnt, nur mit Sichtwert > 0 aus arrowShootingRelated"
+}
+],
+"0x005521d0": [
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 120,
+"schnitt": 120,
+"stelle": "< 0x78",
+"regel": "Zustand 7 (Ernte, Tabelle field255): gfxNumber mit Basis 0x201 wie in Zustand 4. Bei animationCycleNumber == 1 und DamageLayer[Zielkachel] (vorzeichenbehaftet) < 0x78 steigt resourcesGatheredCount um 1; ist er danach < 3, wird DamageLayer = 0x78, sonst resourcesGatheredCount = 0 und DamageLayer = 0x79. Nur wenn DAT_UnitHasBecomeIdle != 0: ist isFarmTileReadyForWheatStageChange wahr und wheatGrowStateRelated 6 oder 8, dann state = dieser Wert, neues Ziel, changeDestinationByAmount(Einheit, 1); sonst state = 2, destinationNeeded = 1 (DNE_DESTINATION_NEEDED)."
+}
+],
+"0x00553ae0": [
+{
+"art": "grenze_um_eins",
+"zahl": 3,
+"schnitt": 3,
+"stelle": "mindestens 3",
+"regel": "Ladung: Beim Wechsel in Zustand 7 (aus Zustand 3 oder 6) wird resourceToDeposit = ComputeGoodsProduced(Einheit, 3, TRUE) gesetzt, unabhängig von der Zahl der Pflückvorgänge: im Einzelspiel (GM_SOLITARY) mindestens 3, sonst mindestens 4 (Grundmenge 3 plus Bonus aus +50 Produktivität; bei Produktivität 100 vermutlich abwechselnd 4 und 5)."
+},
+{
+"art": "zahl_da_grenze_nicht",
+"zahl": 250,
+"schnitt": 250,
+"stelle": "unter 250",
+"regel": "Zustand 7 (einbuchen): animationSheetFrameOffset = 0x411; updateTickTracker +1, erst ab 5 und bei hasUnitReachedDestination geht es weiter, dann updateTickTracker = 0. Ist getResourceCountThatCanBeDeposited(Ziel, 0xd, 0xfa) != 0 (Gesamtbestand des Gebäudes unter 250), bucht addResourceToStockpile(…, RT_APPLE, 1 Stück, Grenze 0xfa) ein Stück ein (Rückgabewert ungeprüft), finalFoodProduced[owner] +1, resourceToDeposit -1, FX_STOCK_FOOD (0x21). Sonst neuer Speicher über getBuildingThatCanStoreThisResource; nicht erreichbar oder setDestinationForUnit scheitert: resourceToDeposit = 0. Bei resourceToDeposit < 1: IncrementAndOptionalUpdateAVValueRelated(Einheit, TRUE), state = 5, destinationNeeded = 1."
+}
+],
+"0x00558cb0": [
+{
+"art": "zahl_fehlt",
+"zahl": 100,
+"schnitt": 101,
+"stelle": "<= 100",
+"regel": "Zustand 5: Arbeitszeitzähler +1, field131_0x2ac = 1, updateBuildingSignpostCounter(Werkstatt, 1); sie liefert den Zähler field14_0x2c der Werkstatt, und solange er 0 ist, passiert nichts (die 1 ist der Anzeigemodus, nicht der erwartete Zählerwert). Danach Werkstatt-RT_IRONARMOR +1 (0x30, 1) und state = 6 (der Tracker steht seit Zustand 6 auf 0, die zweite Wartezeit von 30 beginnt neu). Menge aus Zustand 6: ComputeGoodsProduced(Arbeiter, 1, TRUE) = 1 + Bonus; Produktivität des Besitzers <= 100 zählt als 100, außer in GM_SOLITARY kommen +50 dazu, der Bruchteil wird in productivityMod100 mitgeführt: bei Produktivität 100 also in GM_SOLITARY immer 1 Stück, sonst abwechselnd 1 und 2 (im Mittel 1,5) je Eisen."
+},
+{
+"art": "zahl_fehlt",
+"zahl": 100,
+"schnitt": 100,
+"stelle": "< 100",
+"regel": "Zustand 8, wenn danach resourceToDeposit <= 0: destinationNeeded = 1, Arbeitszeit-Durchschnitt av neu berechnen (IncrementAndOptionalUpdateAVValueRelated mit TRUE), ConsiderHavingABreakNowUnk(…, 4) (kann bei Produktivität < 100 eine Pause einlegen: state 0x79, danach state 4; Rückgabe TRUE beendet den Aufruf). Sonst Lager suchen (RT_IRON, 1, owner) und gleich state = 2 (ohne das Warten aus Zustand 1), Fallbacks wie in Regel 5. Ist resourceToDeposit noch > 0, bleibt state 8 und die nächste Ablieferung folgt nach weiteren 5 Aufrufen."
+}
+],
+"0x00569410": [
+{
+"art": "grenze_um_eins",
+"zahl": 3,
+"schnitt": 4,
+"stelle": "höchstens 3",
+"regel": "Suche und Übernahme: lebende (ULS_NORMAL, dying 0) UT_E_ENGINEER mit targetingType UIT_MAN_SIEGE_EQUIPMENT und Ziel = diese Triböke, Höhenunterschied unter 17, Achsenabstand unter 0x1e; je Besitzer des Ingenieurs höchstens 3 gemerkt. Hat der Besitzer der Triböke 3, nimmt sie diese; sonst der erste Spieler 1 bis 8 mit 3: dann owner, calculatedOwnerPlayerIndex (falls != 0), displayColorPlayerID (falls != 0) auf ihn, deselectUnit, createTribe/addUnitToTribe. Alle drei Ingenieure: US_JESTER_ROAM_TO, checkType 2, cachedState US_AIM_WEAPONUnk, targetingType 0, in manningEngineerRef/UIDRef eingetragen, abgewählt; Triböke DETERMINE, Zähler 3"
+}
+],
+"0x00579300": [
+{
+"art": "name_fehlt",
+"feld": "ruft",
+"name": "UpdateHorseArcher"
+}
+]
+}
