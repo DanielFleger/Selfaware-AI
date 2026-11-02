@@ -202,7 +202,7 @@ def abschnitt_sichern(l):
     und setzt Einheiten mit vollem Leben auf den Tabellenwert, KI-Lords verlieren so ihren Faktor (prepareMap, Probe 02.11.)."""
     t = anhalten(l)
     l.rek.beenden()
-    name = f"AugeK T{t}"
+    name = f"AugeK {time.strftime('%H%M%S')} T{t}"  # eindeutig: Ein vorhandener Name fragt nach dem Ueberschreiben
     l.speichern(name)
     if l.s.takt() != t:
         raise Abbruch(f"Das Speichern hat den Takt bewegt: {t} auf {l.s.takt()}")
