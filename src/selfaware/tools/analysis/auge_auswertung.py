@@ -330,12 +330,12 @@ def a9_befehle(auf, gesendet=None, name="befehle", groesse=1272):
     for r, _, teile in auf.staende():
         if r.bereich != b or (r.art == VOLL and teile is None):
             continue
-        if r.art == VOLL:  # auch in vollen Rahmen stecken neue Befehle (Lauf F: sonst 147 statt 173)
+        if r.art == VOLL:  # auch in vollen Rahmen koennen neue Befehle stecken
             teile = _voll_diff(teile, p)
         plaetze = set()  # nebeneinanderliegende Plaetze kommen als ein Stueck
         for o, l in teile:
             plaetze.update(range(o // groesse, (o + l - 1) // groesse + 1))
-        je_takt[r.takt] = len(plaetze)
+        je_takt[r.takt] += len(plaetze)  # auf hohen Stufen kann ein Takt zwei Rahmen haben
     daten = {"takte_mit_befehl": sum(1 for v in je_takt.values() if v), "plaetze": sum(je_takt.values())}
     if gesendet is None:
         return Ergebnis("A9", GEMESSEN, f"{daten['plaetze']} Plaetze geaendert, ohne Liste der eigenen Befehle nicht vergleichbar", daten)
