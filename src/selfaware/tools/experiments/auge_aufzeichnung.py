@@ -192,9 +192,11 @@ class FeldWache:
 
 
 class Aufzeichner:
-    def __init__(self, quelle, bereiche, datei, kopf=None, takt_adresse=TAKT_ADRESSE, uhr=time.perf_counter, voll_bei=(), streng=False, felder=None):
+    def __init__(self, quelle, bereiche, datei, kopf=None, takt_adresse=TAKT_ADRESSE, uhr=time.perf_counter, voll_bei=(), streng=False, felder=None, warte_ms=0):
         """voll_bei: Takte, in denen alle Bereiche gelesen werden, z. B. der Takt des Speicherns fuer Probe A5.
-        streng: jeder Takt muss ankommen, sonst Streng. felder: FeldWache, sie laeuft im Packfaden."""
+        streng: jeder Takt muss ankommen, sonst Streng. felder: FeldWache, sie laeuft im Packfaden.
+        warte_ms: so lange nach dem Hochzaehlen warten: Der Zaehler steigt am Anfang des Takts, ohne Warten zeigt das Lesen einen halb gerechneten Stand (Probe K 02.11.)."""
+        self.warte_ms = warte_ms
         self.quelle, self.bereiche, self.takt_adresse, self.uhr = quelle, list(bereiche), takt_adresse, uhr
         self.voll_bei = set(voll_bei)
         self.streng, self.felder = streng, felder
@@ -231,6 +233,10 @@ class Aufzeichner:
             if self.streng:
                 raise Streng(f"Takt {self.letzter + 1} bis {t - 1} fehlt")
         self.letzter = t
+        if self.warte_ms:
+            bis = self.uhr() + self.warte_ms / 1000
+            while self.uhr() < bis:
+                pass
         for i, b in enumerate(self.bereiche):
             if i in self._zuletzt and t - self._zuletzt[i] < b.alle and t not in self.voll_bei:
                 continue
@@ -365,6 +371,7 @@ def main(argv=None):
     p.add_argument("--tempo-takte", type=int, default=1000, help="Vergleichswert: so viele Takte ohne Lesen messen, 0 = nicht messen")
     p.add_argument("--voll-bei", type=int, nargs="*", default=[], help="Takte, in denen alle Bereiche gelesen werden (Takt des Speicherns)")
     p.add_argument("--streng", action="store_true", help="jeder Takt muss ankommen, sonst Ende mit Rueckgabe 3")
+    p.add_argument("--warte-ms", type=float, default=0, help="so lange nach dem Hochzaehlen warten, bis der Takt fertig gerechnet ist")
     p.add_argument("--aussetzen-datei", help="solange diese Datei da ist, wird nichts gelesen")
     p.add_argument("--felder-datei", help="hierhin schreibt die Feld-Wache ihren Stand")
     p.add_argument("--felder-alle", type=int, default=800, help="Abstand der Feld-Wache in Takten")
@@ -378,7 +385,7 @@ def main(argv=None):
     kopf = {"tempo": a.tempo_wert, "lauf": a.lauf, "programm": quelle.pfad, "spielart": spielart_lesen(quelle, karte), "tempo_ohne_lesen": tempo_ohne_lesen(quelle, a.tempo_takte) if a.tempo_takte else None}
     bereiche = standard_bereiche(karte, a.datenblock_alle, a.karte_alle)
     felder = FeldWache(karte, bereiche, a.felder_datei, a.felder_alle) if a.felder_datei else None
-    auf = Aufzeichner(quelle, bereiche, a.ausgabe, kopf, voll_bei=a.voll_bei, streng=a.streng, felder=felder)
+    auf = Aufzeichner(quelle, bereiche, a.ausgabe, kopf, voll_bei=a.voll_bei, streng=a.streng, felder=felder, warte_ms=a.warte_ms)
     stand = {"gelesen": 0, "grund": None}
     code = 0
     try:

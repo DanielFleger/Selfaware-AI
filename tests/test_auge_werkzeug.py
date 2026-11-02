@@ -698,6 +698,33 @@ def test_einzelpunkte_lesen_urteilen_und_lauf_k_bleibt_draussen(tmp_path):
     assert "P004" in ap.bericht(e)
 
 
+def test_warten_nach_dem_hochzaehlen(tmp_path):
+    from selfaware.tools.experiments import auge_aufzeichnung as aa
+
+    class Quelle:
+        def __init__(self):
+            self.gelesen = []
+
+        def lies(self, adr, n):
+            self.gelesen.append((adr, uhr.jetzt))
+            return bytes(n)
+
+    class Uhr:
+        jetzt = 0.0
+
+        def __call__(self):
+            Uhr.jetzt += 0.001
+            return Uhr.jetzt
+    uhr = Uhr()
+    q = Quelle()
+    a = aa.Aufzeichner(q, [aa.Bereich("x", 0x1000, 8, 1)], str(tmp_path / "a.auge"), takt_adresse=0x2000, uhr=uhr, warte_ms=5)
+    t0 = uhr.jetzt
+    a.schritt()
+    a.schliessen()
+    erste = next(z for ad, z in q.gelesen if ad == 0x1000)
+    assert erste - t0 >= 0.005, "Das Lesen beginnt erst nach der Wartezeit"
+
+
 def test_einzelpunkte_von_lauf_k_lassen_sich_einzeln_lesen(tmp_path):
     from selfaware.tools.analysis import auge_punkte as ap
 

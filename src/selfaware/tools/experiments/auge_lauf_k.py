@@ -20,6 +20,9 @@ from selfaware.tools.experiments.auge_lauf_f import Abbruch, Fehler
 KIS = (14, 15, 1, 9, 2, 5, 7, 4)  # die 8 verschiedensten der 16 KI-Saetze, gerechnet aus den Kennwerten in Lauf F
 SOLL_LORDS = list(range(1, len(KIS) + 1))  # je Spieler genau ein Lord
 LORD = 55
+ALLE_PLAETZE = 2500  # maxUnitCount taugt nicht: updateUnits setzt ihn in jedem Takt auf 0 und zaehlt hoch, mitten im Takt fehlen Einheiten (Fehlalarm "letzter Lord" 02.11.)
+LORD_PRUEFUNG = 50  # Takte; so genau muss das Ende nicht sein, und jedes Nachsehen liest alle Plaetze
+WARTE_MS = 5  # gemessen auf Tempo 40: Die Spielfelder aendern sich in den ersten 5 ms nach dem Hochzaehlen, die Takte liegen 26 ms auseinander (takt_dauer_messen.py)
 LORDS_STEHEN = 200  # gemessen: spaetestens Takt 100 auf allen 24 Karten mit 8 Spielern (02.11.), die Grenze ist das Doppelte
 FRIEDEN_NORMAL, FENSTER_NORMAL = 1, 2000  # Stufe 1 = 12.000 Takte = 5 Minuten bei Tempo 40; Fenster laut Checkliste
 FENSTER_PROBE, ENDE_PROBE = 200, 2000
@@ -94,12 +97,11 @@ def karte_pruefen(n, karte):
 
 class SpeicherK(lf.Speicher):
     def lord_besitzer(self):
-        n = min(self.i32(lf.EINHEITEN_ANZAHL), 2500)
-        roh = self.q.lies(lf.EINHEITEN, n * lf.E_SCHRITT) if n > 0 else b""
+        roh = self.q.lies(lf.EINHEITEN, ALLE_PLAETZE * lf.E_SCHRITT)
 
         def feld(i, o):
             return struct.unpack_from("<h", roh, i * lf.E_SCHRITT + o)[0]
-        return sorted(feld(i, lf.E_BESITZER) for i in range(1, n) if feld(i, lf.E_DA) and feld(i, lf.E_TYP) == LORD)
+        return sorted(feld(i, lf.E_BESITZER) for i in range(1, ALLE_PLAETZE) if feld(i, lf.E_DA) and feld(i, lf.E_TYP) == LORD)
 
     def lords(self):
         return len(self.lord_besitzer())
@@ -112,9 +114,9 @@ class SpeicherK(lf.Speicher):
 
 
 class LaufK(lf.Lauf):
-    def __init__(self, *a, speichern=None, laden=None, frieden=FRIEDEN_NORMAL, fenster=FENSTER_NORMAL, ende_takte=None, frist_ende=FRIST_ENDE, **kw):
+    def __init__(self, *a, karte="", speichern=None, laden=None, frieden=FRIEDEN_NORMAL, fenster=FENSTER_NORMAL, ende_takte=None, frist_ende=FRIST_ENDE, **kw):
         super().__init__(*a, **kw)
-        self.speichern, self.laden = speichern, laden
+        self.karte, self.speichern, self.laden = karte, speichern, laden
         self.frieden_stufe, self.fenster, self.ende_takte = frieden, fenster, ende_takte
         self.weich = self.uhr() + frist_ende
 
@@ -172,10 +174,10 @@ def abschnitt_frieden(l):
     return {"takt": l.s.takt()}
 
 
-def aufnahme_im_stand(l, name, tempo, streng):
+def aufnahme_im_stand(l, name, tempo, streng, warte_ms=0):
     """Das Spiel steht: Tempo setzen, Aufzeichnung starten, dann erst weiter. Erst weiter und dann Tempo hiesse 0,3 s auf dem alten Tempo: Die Probe brach daran ab, der erste strenge Takt kam gemischt an (02.11.)."""
     l.k.befehl({"tempo": tempo}, lf.KANAL)
-    l.rek.starten(name, tempo, streng=streng, messen=False)  # im stehenden Spiel laeuft kein Takt zum Messen
+    l.rek.starten(name, tempo, streng=streng, messen=False, warte_ms=warte_ms)  # im stehenden Spiel laeuft kein Takt zum Messen
     lf.warte_auf(l.rek.laeuft, 60, f"Aufzeichnung {name} laeuft", uhr=l.uhr, ruhe=l.ruhe)
     a = l.s.takt()
     l.k.befehl({"pause": False}, lf.KANAL)
@@ -186,7 +188,7 @@ def aufnahme_im_stand(l, name, tempo, streng):
 
 def fenster_aufzeichnen(l, name):
     """Das Spiel steht. Strenge Aufzeichnung, Fenster auf Tempo 40 laufen lassen, wieder anhalten."""
-    a = aufnahme_im_stand(l, name, lf.TEMPO_JEDER_TAKT, streng=True)
+    a = aufnahme_im_stand(l, name, lf.TEMPO_JEDER_TAKT, streng=True, warte_ms=WARTE_MS)
     l.warte_takte(l.fenster)
     b = anhalten(l)
     stand = l.rek.beenden()
@@ -209,9 +211,8 @@ def abschnitt_sichern(l):
 
 
 def laden_und_fenster(l, name, t, fenster):
-    """Beide Male aus dem Hauptmenue: Nach dem Kampf kann das Spiel auf dem Endbildschirm stehen, und der Weg soll gleich sein."""
-    l.k.befehl({"menue": lf.HAUPTMENUE}, 1.5)
-    lf.warte_auf(lambda: l.s.ansicht() == lf.HAUPTMENUE, 10, "Hauptmenue (Ansicht 41)", uhr=l.uhr, ruhe=l.ruhe)
+    """Aus einer frisch gestarteten Partie, beide Male derselbe Weg. Im Hauptmenue blieb das Laden nach dem Kampf im Ladefenster haengen, erst eine laufende Partie liess es weiter (Lauf K 02.11.)."""
+    gefecht_starten(l.k, l.karte, l.frieden_stufe, ruhe=l.ruhe, startpause=1)
     t2 = l.laden(name)
     if t2 != t:
         raise Abbruch(f"Geladen auf Takt {t2} statt {t}")
@@ -234,10 +235,10 @@ def abschnitt_bis_zum_ende(l):
     naechste_probe = a + BREMS_ALLE
     grund = None
     while grund is None:
-        def fertig():
-            return s.ansicht() in ENDE_ANSICHTEN or s.lords() <= 1
-        if l.warte_takte(1000, fertig):
-            grund = f"Ansicht {s.ansicht()}" if s.ansicht() in ENDE_ANSICHTEN else "letzter Lord"
+        if s.ansicht() in ENDE_ANSICHTEN:
+            grund = f"Ansicht {s.ansicht()}"
+        elif s.lords() <= 1:
+            grund = "letzter Lord"
         elif l.ende_takte and s.takt() - a >= l.ende_takte:
             grund = "Probe zu Ende"
         elif l.uhr() >= l.weich:
@@ -245,6 +246,8 @@ def abschnitt_bis_zum_ende(l):
         elif s.takt() >= naechste_probe:
             naechste_probe = s.takt() + BREMS_ALLE
             bremsprobe_k(l, f"bei Takt {s.takt()}")
+        else:
+            l.warte_takte(LORD_PRUEFUNG)
     return {"grund": grund, "von": a, "bis": s.takt(), "lords": s.lords()}
 
 
@@ -320,7 +323,7 @@ def los(n, karte, ziel=None, laeuft_schon=True, frieden=FRIEDEN_NORMAL, fenster=
         lf.warte_auf(rek.laeuft, 60, "Aufzeichnung laeuft")
         k.befehl({"pause": False}, lf.KANAL)
 
-        l = LaufK(k, s, {}, rek, schreib, frist=frist, stop=lambda: os.path.exists(stop), speichern=speichern_mod.speichere, laden=lambda st: laden_mod.lade_stand(st, mit_bild=False),
+        l = LaufK(k, s, {}, rek, schreib, frist=frist, stop=lambda: os.path.exists(stop), karte=karte, speichern=speichern_mod.speichere, laden=lambda st: laden_mod.lade_stand(st, mit_bild=False),
                   frieden=frieden, fenster=fenster, ende_takte=ende_takte, frist_ende=frist_ende)
         aus = lf.programm(l, ABSCHNITTE)
         ergebnis = schluss(aus)

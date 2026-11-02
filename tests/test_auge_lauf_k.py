@@ -21,6 +21,7 @@ class Spiel:
         self.frieden_rest = f.get("frieden", 12000)
         self.log, self.protokoll, self.gestartet, self.stand = [], [], [], {"fehlend": 0, "gemischt": 0}
         self.tempo_beim_weiter = []
+        self.gewartet = {}
         self.pfad = None
         self.gespeichert = None
 
@@ -42,10 +43,16 @@ class Spiel:
             if self.f.get("ende_bei", 10 ** 9) <= self.t:
                 self.ansicht_jetzt = 30
 
+    def peek(self, adr, n=1):
+        return [self.ansicht_jetzt]
+
     def befehl(self, c, warte=0.8, bis=None):
         self.log.append(c)
         if c.get("menue") == lf.HAUPTMENUE:
             self.ansicht_jetzt = lf.HAUPTMENUE
+        if c.get("eigenesGefecht"):
+            self.ansicht_jetzt = lf.IN_PARTIE
+            self.t = 0
         if "pause" in c:
             if self.pausiert and not c["pause"]:
                 self.tempo_beim_weiter.append(self.tempo)
@@ -76,8 +83,9 @@ class Spiel:
     def fehler(self):
         return "beendet mit 3" if self.f.get("streng_bei", 10 ** 9) <= self.t else None
 
-    def starten(self, name, tempo, streng=False, messen=True, felder=False):
+    def starten(self, name, tempo, streng=False, messen=True, felder=False, warte_ms=0):
         self.gestartet.append((name, tempo, streng, messen))
+        self.gewartet[name] = warte_ms
         self.pfad = f"{name}.auge"
 
     def laeuft(self):
@@ -122,9 +130,10 @@ def test_ganzer_lauf_endet_am_letzten_lord_und_ist_gueltig():
     assert e["gueltig"] and e["ende"] == "letzter Lord" and e["lords_start"] == 8 and e["lords_ende"] == 1
     assert [x[:3] for x in g.gestartet] == [("t1", 40, True), ("danach", 1000, False), ("t2", 40, True), ("t3", 40, True)], "Geladen wird erst nach dem Kampf, zweimal"
     assert all(not x[3] for x in g.gestartet), "im angehaltenen Spiel wird das Tempo nicht gemessen"
-    assert g.tempo_beim_weiter == [40, 1000, 40, 40], "Das Tempo steht, bevor das Spiel weiterlaeuft: Die Probe brach sonst am ersten strengen Takt ab"
+    assert g.tempo_beim_weiter == [40, 1000, 1000, 40, 40, 40], "Das Tempo steht, bevor das Spiel weiterlaeuft: Die Probe brach sonst am ersten strengen Takt ab. Dazwischen je ein Weiter fuer die frische Partie vor dem Laden"
     assert [x for x in g.log if x in ("gespeichert", "geladen")] == ["gespeichert", "geladen", "geladen"]
-    assert g.log.count({"menue": lf.HAUPTMENUE}) == 2, "Beide Male derselbe Weg zum Laden"
+    assert sum(1 for c in g.log if isinstance(c, dict) and c.get("eigenesGefecht")) == 2, "Beide Male derselbe Weg zum Laden: aus einer frisch gestarteten Partie"
+    assert {n: g.gewartet[n] for n in ("t1", "t2", "t3")} == {"t1": lk.WARTE_MS, "t2": lk.WARTE_MS, "t3": lk.WARTE_MS}, "In den strengen Fenstern fertige Takte lesen"
 
 
 def test_ohne_letzten_lord_endet_der_lauf_normal_wenn_die_zeit_um_ist():
@@ -214,6 +223,20 @@ def test_startpause_steht_nur_im_befehl_wenn_sie_gewuenscht_ist():
     k = K()
     lk.gefecht_starten(k, "Karte", lk.FRIEDEN_NORMAL, ruhe=lambda _: None)
     assert "startpause" not in next(c for c in k.log if c.get("eigenesGefecht"))
+
+
+def test_lord_zaehler_haengt_nicht_an_max_unit_count():
+    """updateUnits setzt maxUnitCount mitten im Takt auf 0. Der erste echte Lauf endete so bei 3 Lebenden mit "letzter Lord"."""
+    roh = bytearray(lk.ALLE_PLAETZE * lf.E_SCHRITT)
+    for platz, besitzer in ((9, 1), (2000, 2), (2400, 3)):
+        struct.pack_into("<h", roh, platz * lf.E_SCHRITT + lf.E_DA, 1)
+        struct.pack_into("<h", roh, platz * lf.E_SCHRITT + lf.E_TYP, lk.LORD)
+        struct.pack_into("<h", roh, platz * lf.E_SCHRITT + lf.E_BESITZER, besitzer)
+
+    class Quelle:
+        def lies(self, adr, n):
+            return bytes(roh[:n]) if adr == lf.EINHEITEN else struct.pack("<i", 0) + bytes(max(0, n - 4))
+    assert lk.SpeicherK(Quelle()).lord_besitzer() == [1, 2, 3]
 
 
 def test_jeder_spieler_bekommt_einen_platz():

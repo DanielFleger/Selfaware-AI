@@ -1010,7 +1010,7 @@ class Rekorder:
         self.stop_datei, self.aus_datei, self.felder_datei = self.basis + ".stop", self.basis + ".aussetzen", self.basis + ".felder.json"
         self.p, self.pfad = None, None
 
-    def starten(self, name, tempo, streng=False, felder=False, messen=True):
+    def starten(self, name, tempo, streng=False, felder=False, messen=True, warte_ms=0):
         self.pfad = f"{self.basis}_{name}.auge" if name else self.basis + ".auge"
         for d in (self.stop_datei, self.aus_datei):
             if os.path.exists(d):
@@ -1019,6 +1019,8 @@ class Rekorder:
                "--aussetzen-datei", self.aus_datei, "--tempo-wert", str(tempo), "--tempo-takte", str(tempo if messen else 0)]  # im angehaltenen Spiel laeuft kein Takt zum Messen
         if streng:
             cmd.append("--streng")
+        if warte_ms:
+            cmd += ["--warte-ms", str(warte_ms)]
         if felder:
             cmd += ["--felder-datei", self.felder_datei]
         self.p = subprocess.Popen(cmd, env=dict(os.environ))
