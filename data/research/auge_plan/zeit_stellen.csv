@@ -1,0 +1,224 @@
+datei;zeile;art;klasse;wert;text
+src\selfaware\game\ucp\bauen.py;62;uhr;frist;;t0, ende = tick(), time.time() + 10
+src\selfaware\game\ucp\bauen.py;63;uhr;frist;;while tick() < t0 + 2 and time.time() < ende:
+src\selfaware\game\ucp\bauen.py;64;sleep;abfragetakt;0.02;time.sleep(0.02)
+src\selfaware\game\ucp\bauen.py;78;uhr;unklar;;vorher, t0 = os.path.getsize(LOG), time.time()
+src\selfaware\game\ucp\bauen.py;81;uhr;frist;;while time.time() - t0 < hoechstens:
+src\selfaware\game\ucp\bauen.py;88;uhr;messung;;return int(m.group(1)), int(m.group(2)), round(time.time() - t0, 1)
+src\selfaware\game\ucp\bauen.py;89;sleep;abfragetakt;1.0;time.sleep(1.0)
+src\selfaware\game\ucp\befehl.py;66;uhr;unklar;;nummer = max(int(time.time()) * 8, letzte + 1, _LETZTE + 1)
+src\selfaware\game\ucp\befehl.py;107;uhr;unklar;;alter = time.time() - os.path.getmtime(LAUF)
+src\selfaware\game\ucp\befehl.py;120;uhr;frist;;ende = time.time() + 30
+src\selfaware\game\ucp\befehl.py;131;uhr;frist;;if time.time() - os.path.getmtime(SENDE) > 8:
+src\selfaware\game\ucp\befehl.py;135;uhr;frist;;if time.time() > ende:
+src\selfaware\game\ucp\befehl.py;137;sleep;abfragetakt;0.005;time.sleep(0.005)
+src\selfaware\game\ucp\befehl.py;186;uhr;frist;;ende = time.time() + (max(warte, 20.0) if PARTNER else warte)
+src\selfaware\game\ucp\befehl.py;187;uhr;frist;;while time.time() < ende:
+src\selfaware\game\ucp\befehl.py;188;sleep;abfragetakt;0.02;time.sleep(0.02)
+src\selfaware\game\ucp\laden.py;96;sleep;abfragetakt;1.0;"t1 = peek(TICK)[0]; time.sleep(1.0); t2 = peek(TICK)[0]"
+src\selfaware\game\ucp\speichern.py;55;sleep;abfragetakt;1.0;time.sleep(1)                                             # Schreiben abwarten
+src\selfaware\game\ucp\speichern.py;63;sleep;abfragetakt;1.0;time.sleep(1)
+src\selfaware\game\ucp\steuerkarte.py;42;sleep;abfragetakt;0.3;time.sleep(0.3)
+src\selfaware\game\ucp\steuerkarte.py;82;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\learning\lernen_1v1.py;158;uhr;unklar;;t0 = time.time()
+src\selfaware\learning\lernen_1v1.py;168;uhr;messung;;"""dauer_s"": round(time.time() - t0), ""konsole"": os.path.relpath(konsole, os.path.join(_workspace.ROOT))}"
+src\selfaware\learning\lernen_1v1.py;222;sleep;warten_spiel;5.0;time.sleep(5)
+src\selfaware\macro\eroeffnung.py;267;uhr;unklar;;t0 = time.time()
+src\selfaware\macro\eroeffnung.py;270;uhr;messung;;"p[""sekunden""] = round(time.time() - t0, 1)"
+src\selfaware\macro\farmen_mischen.py;44;uhr;unklar;;t0 = time.time()
+src\selfaware\macro\farmen_mischen.py;97;uhr;messung;;"""sekunden"": {""stufe1"": t1, ""stufe2"": round(loeser.WallTime(), 2), ""gesamt"": round(time.time() - t0, 2)},"
+src\selfaware\macro\farmen_packen.py;72;uhr;unklar;;t0, knoten, abgebrochen = time.time(), [0], [False]
+src\selfaware\macro\farmen_packen.py;80;uhr;frist;;if time.time() - t0 > zeitgrenze:
+src\selfaware\macro\farmen_packen.py;96;uhr;unklar;;t0 = time.time()
+src\selfaware\macro\farmen_packen.py;114;uhr;messung;;"""sekunden"": round(time.time() - t0, 1), ""abstand"": {p: round(abstand[p], 1) for p in kand}}"
+src\selfaware\macro\standort.py;71;uhr;unklar;;t = time.time()
+src\selfaware\macro\standort.py;75;uhr;unklar;;"print(""Platzkarten: Hof %d Stellen, Mine %d Stellen (%.0f s)"" % (len(hof), len(mine), time.time() - t), flush=True)"
+src\selfaware\runtime\live\erstes_spiel.py;47;uhr;unklar;;PROZESS_START = time.time()     # 19.10. (1v1): Signale aelter als dieser Lenker gelten nicht (alte Dateien eines frueheren Laufs)
+src\selfaware\runtime\live\erstes_spiel.py;91;uhr;frist;;ende = time.time() + sekunden
+src\selfaware\runtime\live\erstes_spiel.py;92;uhr;frist;;while time.time() < ende:
+src\selfaware\runtime\live\erstes_spiel.py;95;sleep;abfragetakt;0.02;time.sleep(0.02)        # unter einem Tick (Daniel 23:01: keine festen Wartezeiten)
+src\selfaware\runtime\live\erstes_spiel.py;205;uhr;unklar;;t0 = time.time()
+src\selfaware\runtime\live\erstes_spiel.py;206;uhr;messung;;while time.time() - t0 < 20 and tick() < 1:
+src\selfaware\runtime\live\erstes_spiel.py;207;sleep;abfragetakt;0.05;time.sleep(0.05)
+src\selfaware\runtime\live\erstes_spiel.py;261;uhr;unklar;;"_j.dump({""pid"": os.getpid(), ""tick"": tick(), ""zeit"": time.time()}, open(BARRIERE_START, ""w""))"
+src\selfaware\runtime\live\erstes_spiel.py;263;uhr;unklar;;t0 = time.time()
+src\selfaware\runtime\live\erstes_spiel.py;265;uhr;messung;;if time.time() - t0 > 600:
+src\selfaware\runtime\live\erstes_spiel.py;271;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\runtime\live\erstes_spiel.py;285;uhr;unklar;;t0 = time.time()
+src\selfaware\runtime\live\erstes_spiel.py;287;uhr;messung;;if time.time() - t0 > 900:
+src\selfaware\runtime\live\erstes_spiel.py;292;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\runtime\live\erstes_spiel.py;298;uhr;unklar;;"_j.dump({""pid"": os.getpid(), ""tick"": tick(), ""zeit"": time.time()}, open(BARRIERE_BEREIT, ""w""))"
+src\selfaware\runtime\live\erstes_spiel.py;1452;sleep;abfragetakt;0.05;time.sleep(0.05)
+src\selfaware\runtime\live\erstes_spiel.py;2195;uhr;frist;;ende, letzter_tick, stand, runde, t0 = time.time() + 60 * minuten, None, 0, 0, time.time()
+src\selfaware\runtime\live\erstes_spiel.py;2195;uhr;frist;;ende, letzter_tick, stand, runde, t0 = time.time() + 60 * minuten, None, 0, 0, time.time()
+src\selfaware\runtime\live\erstes_spiel.py;2200;uhr;messung;;zeiten[name] = zeiten.get(name, 0.0) + time.time() - t0
+src\selfaware\runtime\live\erstes_spiel.py;2201;uhr;messung;;diese_runde[name] = time.time() - t0
+src\selfaware\runtime\live\erstes_spiel.py;2202;uhr;unklar;;return time.time()
+src\selfaware\runtime\live\erstes_spiel.py;2306;uhr;frist;;while time.time() < ende and not os.path.exists(os.path.join(_workspace.STATE, 'STOP')):
+src\selfaware\runtime\live\erstes_spiel.py;2308;uhr;unklar;;tz = time.time()
+src\selfaware\runtime\live\erstes_spiel.py;2387;uhr;unklar;;"fruehpruefung[""ansicht_weg""] = time.time()"
+src\selfaware\runtime\live\erstes_spiel.py;2389;uhr;unklar;;"if time.time() - fruehpruefung[""ansicht_weg""] < 120:"
+src\selfaware\runtime\live\erstes_spiel.py;2390;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\runtime\live\erstes_spiel.py;2414;uhr;unklar;;if stand and time.time() - stand >= 1.0:
+src\selfaware\runtime\live\erstes_spiel.py;2415;uhr;unklar;;"schreib(""SPIELZEIT stand %.1f s bei Tick %s (Pause %s)"" % (time.time() - stand, letzter_tick, st.get(""pause"")))"
+src\selfaware\runtime\live\erstes_spiel.py;2418;uhr;unklar;;stand = time.time()
+src\selfaware\runtime\live\erstes_spiel.py;2419;uhr;unklar;;elif time.time() - stand >= 30 and MENSCH_GEGNER:
+src\selfaware\runtime\live\erstes_spiel.py;2424;uhr;unklar;;stand = time.time()
+src\selfaware\runtime\live\erstes_spiel.py;2425;uhr;unklar;;elif time.time() - stand >= 30:
+src\selfaware\runtime\live\erstes_spiel.py;2428;uhr;unklar;;"if PT.stillstand(time.time() - stand, fortgesetzt, PARTNER) == ""fortsetzen"":"
+src\selfaware\runtime\live\erstes_spiel.py;2431;uhr;unklar;;"time.time() - stand, st[""t""], st.get(""pause""), fortgesetzt))"
+src\selfaware\runtime\live\erstes_spiel.py;2433;uhr;unklar;;stand = time.time()
+src\selfaware\runtime\live\erstes_spiel.py;2436;uhr;unklar;;"schreib(""ABBRUCH - Spielzeit steht bei %d (seit %.0f s)"" % (st[""t""], time.time() - stand)); break"
+src\selfaware\runtime\live\erstes_spiel.py;2446;uhr;unklar;;tz = time.time()
+src\selfaware\runtime\live\erstes_spiel.py;3362;uhr;unklar;;tz = time.time()
+src\selfaware\runtime\live\erstes_spiel.py;3398;sleep;abfragetakt;0.2;time.sleep(0.2)
+src\selfaware\runtime\live\erstes_spiel.py;3417;uhr;messung;;"st.get(""t""), runde, (time.time() - t0) / max(runde, 1), st.get(""G19"", 0), st.get(""G3"", 0), st.get(""G32"", 0),"
+src\selfaware\runtime\live\erstes_spiel.py;3513;uhr;unklar;;t0_ = time.time()
+src\selfaware\runtime\live\erstes_spiel.py;3515;uhr;messung;;if time.time() - t0_ > 900:
+src\selfaware\runtime\live\erstes_spiel.py;3517;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\runtime\live\erstes_spiel.py;3527;uhr;frist;;ende_l = time.time() + 180
+src\selfaware\runtime\live\erstes_spiel.py;3528;uhr;frist;;while not eig_l and time.time() < ende_l:
+src\selfaware\runtime\live\erstes_spiel.py;3531;sleep;abfragetakt;1.0;time.sleep(1.0)
+src\selfaware\runtime\live\partner.py;48;uhr;unklar;;"self.eigene = {""sp"": self.sp, ""art"": art, ""grund"": grund, ""tick"": tick, ""pid"": os.getpid(), ""zeit"": time.time()}"
+src\selfaware\runtime\live\samurai_wache.py;199;sleep;warten_spiel;5.0;time.sleep(5)
+src\selfaware\runtime\live\samurai_wache.py;255;sleep;unklar;;time.sleep(PAUSE_S if bedient else SCHNELL_S)
+src\selfaware\tools\checks\eroeffnung_holz_pruefen.py;29;uhr;unklar;;t = time.time()
+src\selfaware\tools\checks\eroeffnung_holz_pruefen.py;31;uhr;unklar;;return p, time.time() - t
+src\selfaware\tools\checks\nahrung_alle_plaetze.py;31;uhr;unklar;;t = time.time()
+src\selfaware\tools\checks\nahrung_alle_plaetze.py;40;uhr;unklar;;"len(g[""herden""]), time.time() - t), flush=True)"
+src\selfaware\tools\checks\partner_pruefen.py;43;uhr;unklar;;start = time.time()
+src\selfaware\tools\experiments\absender_live_pruefen.py;84;uhr;unklar;;t0 = time.time()
+src\selfaware\tools\experiments\absender_live_pruefen.py;85;uhr;messung;;while time.time() - t0 < 60 and len(S2.lords()) < 2:
+src\selfaware\tools\experiments\absender_live_pruefen.py;86;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\tools\experiments\auge_aufzeichnung.py;204;sleep;unklar;;time.sleep(pause)
+src\selfaware\tools\experiments\auge_aufzeichnung.py;219;uhr;unklar;;a, t0 = lies(), time.perf_counter()
+src\selfaware\tools\experiments\auge_aufzeichnung.py;220;uhr;messung;;while time.perf_counter() - t0 < sekunden:
+src\selfaware\tools\experiments\auge_aufzeichnung.py;221;sleep;abfragetakt;0.01;time.sleep(0.01)
+src\selfaware\tools\experiments\auge_aufzeichnung.py;222;uhr;messung;;return (lies() - a) / (time.perf_counter() - t0)
+src\selfaware\tools\experiments\auge_lauf_f.py;251;uhr;frist;;ende = time.perf_counter() + BAUEN_SEKUNDEN
+src\selfaware\tools\experiments\auge_lauf_f.py;253;uhr;frist;;if time.perf_counter() >= ende:
+src\selfaware\tools\experiments\auge_lauf_f.py;401;uhr;unklar;;a, t0 = auf.takt(), time.perf_counter()
+src\selfaware\tools\experiments\auge_lauf_f.py;403;uhr;unklar;;e, t1 = auf.takt(), time.perf_counter()
+src\selfaware\tools\experiments\auge_lauf_f.py;569;uhr;frist;;ende = time.time() + frist
+src\selfaware\tools\experiments\auge_lauf_f.py;570;uhr;unklar;;"puls = {""takt"": takt_roh(), ""zeit"": time.time()}"
+src\selfaware\tools\experiments\auge_lauf_f.py;574;uhr;frist;;if time.time() > ende:
+src\selfaware\tools\experiments\auge_lauf_f.py;582;uhr;unklar;;puls.update(takt=t, zeit=time.time())
+src\selfaware\tools\experiments\auge_lauf_f.py;583;uhr;unklar;;"elif time.time() - puls[""zeit""] > STILLSTAND:"
+src\selfaware\tools\experiments\beobachter.py;38;uhr;frist;;ende = time.time() + 60 * (float(sys.argv[3]) if len(sys.argv) > 3 else 40)
+src\selfaware\tools\experiments\beobachter.py;40;uhr;frist;;while time.time() < ende:
+src\selfaware\tools\experiments\beobachter.py;51;sleep;unklar;;time.sleep(abstand)
+src\selfaware\tools\experiments\editor_messen.py;52;sleep;abfragetakt;0.25;time.sleep(0.25)
+src\selfaware\tools\experiments\editor_messen.py;85;sleep;abfragetakt;0.05;time.sleep(0.05)
+src\selfaware\tools\experiments\editor_messen.py;136;uhr;frist;;ende = time.time() + ticks / 20.0 + 30
+src\selfaware\tools\experiments\editor_messen.py;137;uhr;frist;;while time.time() < ende and not os.path.exists(quelle):
+src\selfaware\tools\experiments\editor_messen.py;138;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\tools\experiments\editor_messen.py;139;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\tools\experiments\editor_messen.py;195;sleep;abfragetakt;0.05;time.sleep(0.05)
+src\selfaware\tools\experiments\editor_messen.py;240;sleep;abfragetakt;0.05;time.sleep(0.05)
+src\selfaware\tools\experiments\editor_messen.py;291;sleep;abfragetakt;0.05;time.sleep(0.05)
+src\selfaware\tools\experiments\editor_messen.py;345;sleep;abfragetakt;0.05;time.sleep(0.05)
+src\selfaware\tools\experiments\editor_test.py;57;sleep;abfragetakt;0.15;time.sleep(0.15)
+src\selfaware\tools\experiments\editor_test.py;71;sleep;unklar;;time.sleep(warte)
+src\selfaware\tools\experiments\einheiten_steuern.py;53;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\tools\experiments\gegner_pruefen.py;93;uhr;frist;;t0, ende = time.time(), None
+src\selfaware\tools\experiments\gegner_pruefen.py;94;uhr;messung;;while time.time() - t0 < 120:
+src\selfaware\tools\experiments\gegner_pruefen.py;98;sleep;abfragetakt;0.3;time.sleep(0.3)
+src\selfaware\tools\experiments\graben_pruefen.py;52;uhr;frist;;ende = time.time() + 5
+src\selfaware\tools\experiments\graben_pruefen.py;53;uhr;frist;;while time.time() < ende and (tick() or 0) < t0 + 2:
+src\selfaware\tools\experiments\graben_pruefen.py;54;sleep;abfragetakt;0.1;time.sleep(0.1)
+src\selfaware\tools\experiments\graben_pruefen.py;141;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\tools\experiments\graben_pruefen.py;152;uhr;frist;;verlauf, ende = [], time.time() + 90
+src\selfaware\tools\experiments\graben_pruefen.py;153;uhr;frist;;while time.time() < ende:
+src\selfaware\tools\experiments\graben_pruefen.py;157;sleep;warten_spiel;3.0;time.sleep(3)
+src\selfaware\tools\experiments\graben_pruefen.py;161;sleep;warten_spiel;3.0;time.sleep(3)
+src\selfaware\tools\experiments\graben_pruefen.py;163;uhr;frist;;t0, ende, gb = tick() or 0, time.time() + 60, 0
+src\selfaware\tools\experiments\graben_pruefen.py;164;uhr;frist;;while time.time() < ende:
+src\selfaware\tools\experiments\graben_pruefen.py;168;sleep;warten_spiel;5.0;time.sleep(5)
+src\selfaware\tools\experiments\grube_pruefen.py;62;uhr;frist;;reihe, t_ende = [], time.time() + sekunden
+src\selfaware\tools\experiments\grube_pruefen.py;63;uhr;frist;;while time.time() < t_ende:
+src\selfaware\tools\experiments\grube_pruefen.py;72;sleep;abfragetakt;0.15;time.sleep(0.15)
+src\selfaware\tools\experiments\grube_pruefen.py;107;sleep;warten_spiel;1.5;time.sleep(1.5)
+src\selfaware\tools\experiments\grube_pruefen.py;124;uhr;frist;;ende = time.time() + 20
+src\selfaware\tools\experiments\grube_pruefen.py;125;uhr;frist;;while time.time() < ende and (tick() or 0) < t0 + 200:
+src\selfaware\tools\experiments\grube_pruefen.py;126;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\tools\experiments\grube_pruefen.py;137;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\tools\experiments\grube_pruefen.py;156;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\tools\experiments\grube_pruefen.py;164;sleep;warten_spiel;2.0;time.sleep(2.0)
+src\selfaware\tools\experiments\grube_pruefen.py;169;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\tools\experiments\karten_holen.py;60;uhr;unklar;;t0 = time.time()
+src\selfaware\tools\experiments\karten_holen.py;61;uhr;messung;;while time.time() - t0 < 60:
+src\selfaware\tools\experiments\karten_holen.py;64;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\tools\experiments\karten_holen.py;164;uhr;unklar;;t0 = time.time()
+src\selfaware\tools\experiments\karten_holen.py;165;uhr;messung;;while time.time() - t0 < 90:
+src\selfaware\tools\experiments\karten_holen.py;168;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\tools\experiments\kern_pruefen.py;53;uhr;unklar;;t0 = time.time()
+src\selfaware\tools\experiments\kern_pruefen.py;54;uhr;messung;;while time.time() - t0 < 60 and len(S2.lords()) < 2:
+src\selfaware\tools\experiments\kern_pruefen.py;55;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\tools\experiments\lage_mitschnitt.py;31;sleep;abfragetakt;0.03;time.sleep(0.03)
+src\selfaware\tools\experiments\lordduell.py;41;uhr;frist;;ende = time.time() + zeit
+src\selfaware\tools\experiments\lordduell.py;42;uhr;frist;;while time.time() < ende:
+src\selfaware\tools\experiments\lordduell.py;48;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\tools\experiments\lordduell.py;80;uhr;frist;;ende = time.time() + 600
+src\selfaware\tools\experiments\lordduell.py;81;uhr;frist;;while time.time() < ende:
+src\selfaware\tools\experiments\lordduell.py;90;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\tools\experiments\lordduell.py;102;sleep;warten_spiel;2.0;time.sleep(2.0)
+src\selfaware\tools\experiments\lordduell.py;105;sleep;abfragetakt;1.0;time.sleep(1.0)
+src\selfaware\tools\experiments\lordring_messen.py;41;uhr;frist;;ende = time.time() + sekunden
+src\selfaware\tools\experiments\lordring_messen.py;42;uhr;frist;;while time.time() < ende and (tick() or 0) < t0 + n:
+src\selfaware\tools\experiments\lordring_messen.py;43;sleep;abfragetakt;0.3;time.sleep(0.3)
+src\selfaware\tools\experiments\lordring_messen.py;80;uhr;frist;;ende = time.time() + sekunden
+src\selfaware\tools\experiments\lordring_messen.py;81;uhr;frist;;while time.time() < ende:
+src\selfaware\tools\experiments\lordring_messen.py;86;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\tools\experiments\lordring_messen.py;108;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\tools\experiments\lordring_messen.py;113;uhr;frist;;ende = time.time() + 240
+src\selfaware\tools\experiments\lordring_messen.py;114;uhr;frist;;while time.time() < ende and (tick() or 0) < t0 + ticks:
+src\selfaware\tools\experiments\lordring_messen.py;131;sleep;abfragetakt;0.4;time.sleep(0.4)
+src\selfaware\tools\experiments\mauer_pruefen.py;61;uhr;frist;;ende = time.time() + 5
+src\selfaware\tools\experiments\mauer_pruefen.py;62;uhr;frist;;while time.time() < ende and (tick() or 0) < t0 + 2:
+src\selfaware\tools\experiments\mauer_pruefen.py;63;sleep;abfragetakt;0.1;time.sleep(0.1)
+src\selfaware\tools\experiments\navigation.py;79;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\tools\experiments\raid_messen.py;74;uhr;frist;;ende = time.time() + sekunden
+src\selfaware\tools\experiments\raid_messen.py;75;uhr;frist;;while time.time() < ende and (tick() or 0) < t0 + n:
+src\selfaware\tools\experiments\raid_messen.py;76;sleep;abfragetakt;0.3;time.sleep(0.3)
+src\selfaware\tools\experiments\raid_messen.py;102;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\tools\experiments\raid_messen.py;106;uhr;frist;;ende = time.time() + 120
+src\selfaware\tools\experiments\raid_messen.py;107;uhr;frist;;while time.time() < ende and (tick() or 0) < t0 + ticks:
+src\selfaware\tools\experiments\raid_messen.py;126;sleep;abfragetakt;0.4;time.sleep(0.4)
+src\selfaware\tools\experiments\raid_messen.py;177;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\tools\experiments\raid_messen.py;187;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\tools\experiments\raid_messen.py;195;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\tools\experiments\raid_messen.py;200;uhr;frist;;ende = time.time() + 150
+src\selfaware\tools\experiments\raid_messen.py;201;uhr;frist;;while time.time() < ende and (tick() or 0) < t0 + ticks:
+src\selfaware\tools\experiments\raid_messen.py;219;sleep;abfragetakt;0.3;time.sleep(0.3)
+src\selfaware\tools\experiments\serie.py;123;sleep;warten_spiel;2.0;time.sleep(2.0)
+src\selfaware\tools\experiments\serie.py;152;uhr;unklar;;t0 = time.time()
+src\selfaware\tools\experiments\serie.py;157;uhr;messung;;if time.time() - t0 > 60 * warte:
+src\selfaware\tools\experiments\serie.py;161;sleep;warten_spiel;30.0;time.sleep(30)
+src\selfaware\tools\experiments\sieg_pruefen.py;54;sleep;warten_spiel;2.0;time.sleep(2)
+src\selfaware\tools\experiments\spielende.py;38;uhr;frist;;ende = time.time() + 120
+src\selfaware\tools\experiments\spielende.py;39;uhr;frist;;while time.time() < ende:
+src\selfaware\tools\experiments\spielende.py;48;sleep;abfragetakt;0.2;time.sleep(0.2)
+src\selfaware\tools\experiments\spieler2_pruefen.py;48;sleep;unklar;;"s({""player"": 1, ""pause"": False}, 0.5); time.sleep(t); s({""player"": 1, ""pause"": True}, 0.5)"
+src\selfaware\tools\experiments\spieler2_pruefen.py;90;uhr;unklar;;t0 = time.time()
+src\selfaware\tools\experiments\spieler2_pruefen.py;91;uhr;messung;;while time.time() - t0 < 60 and len(lords()) < 2:
+src\selfaware\tools\experiments\spieler2_pruefen.py;92;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\tools\experiments\streitkolben_messen.py;53;sleep;abfragetakt;0.05;time.sleep(0.05)
+src\selfaware\tools\experiments\streitkolben_messen.py;161;sleep;abfragetakt;0.3;time.sleep(0.3)
+src\selfaware\tools\experiments\streitkolben_serie.py;137;uhr;unklar;;t0 = time.time()
+src\selfaware\tools\experiments\streitkolben_serie.py;143;uhr;messung;;if time.time() - t0 > 60 * warte_minuten:
+src\selfaware\tools\experiments\streitkolben_serie.py;145;sleep;warten_spiel;30.0;time.sleep(30)
+src\selfaware\tools\experiments\uebernahme_probe.py;40;uhr;frist;;ende = time.time() + sek
+src\selfaware\tools\experiments\uebernahme_probe.py;41;uhr;frist;;while time.time() < ende:
+src\selfaware\tools\experiments\uebernahme_probe.py;45;sleep;abfragetakt;0.3;time.sleep(0.3)
+src\selfaware\tools\experiments\wirkung.py;29;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\tools\setup\gui.py;75;uhr;frist;;ende = time.time() + WARTE
+src\selfaware\tools\setup\gui.py;76;uhr;frist;;while time.time() < ende and gui_pids():
+src\selfaware\tools\setup\gui.py;77;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\tools\setup\gui.py;102;uhr;frist;;ende = time.time() + 30
+src\selfaware\tools\setup\gui.py;103;uhr;frist;;while time.time() < ende and not gui_pids():
+src\selfaware\tools\setup\gui.py;104;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\tools\setup\gui.py;108;sleep;warten_spiel;10.0;time.sleep(10)  # der GUI Zeit geben, eine Config zu schreiben, falls sie es beim Oeffnen tut
+src\selfaware\tools\setup\spiel.py;74;uhr;frist;;ende = time.time() + sekunden
+src\selfaware\tools\setup\spiel.py;75;uhr;frist;;while time.time() < ende:
+src\selfaware\tools\setup\spiel.py;78;sleep;abfragetakt;0.5;time.sleep(0.5)
+src\selfaware\tools\setup\spiel.py;102;uhr;unklar;;kennung = int(time.time())
