@@ -65,8 +65,8 @@ def paket_bau(lord2, lord1, belegt, runde=0):
     v1 = [(10, 20), (-10, 20), (20, -10), (-20, -10), (0, 25), (25, 0)]
     a2 = stelle(2, lord2, belegt, v2[runde:] + v2[:runde])
     b1 = stelle(1, lord1, belegt + [a2], v1[runde:] + v1[:runde])
-    kanal.sende({"befehle": [{"player": 2, "id": kanal.neue_id(), "baue": {"mapper": 51, "x": a2[0], "y": a2[1], "groesse": 3}},
-                             {"id": kanal.neue_id(), "baue": {"mapper": 51, "x": b1[0], "y": b1[1], "groesse": 3}}]}, 1.5)
+    kanal.sende({"befehle": [{"player": 2, "id": kanal.neue_id(), "baue": {"mapper": 51, "x": a2[0], "y": a2[1], "groesse": 3, "richtung": 15}},
+                             {"id": kanal.neue_id(), "baue": {"mapper": 51, "x": b1[0], "y": b1[1], "groesse": 3, "richtung": 15}}]}, 1.5)
     ich_danach = peek_roh(SLOT)
     S2.lauf()
     E, G = S2.lage()

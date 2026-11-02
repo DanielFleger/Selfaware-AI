@@ -59,7 +59,8 @@ def main():
                 befehl({"abreissen": {"nr": nr}}, 0.6, bis="ABREISSEN")
             warte_ticks(5)
             lx, ly = map(int, arg["lager"].split(","))
-            befehl({"baue": {"mapper": 52, "x": lx, "y": ly, "groesse": 5, "richtung": 0}}, 0.8, bis="BAUE")
+            # B-144, wie B-271 im Altstand (Daniel 27.10. 18:33 "immer mit Drehwert 15 bauen, auch auf die Eingangslenkung verzichten - Grafik geht vor")
+            befehl({"baue": {"mapper": 52, "x": lx, "y": ly, "groesse": 5, "richtung": 15}}, 0.8, bis="BAUE")
             warte_ticks(6)
             neu_teile = [g for g in E.runde_lesen()[2].values() if g["besitzer"] == SP and g["typ"] == P.LAGER]
             erg["lager_versetzt"] = {"nach": [lx, ly], "teile": len(neu_teile), "alt": [teile[0]["x"], teile[0]["y"]]}
@@ -97,7 +98,7 @@ def main():
         erg["plan"] = bericht
         P.zeichne_plan(plan, os.path.join(D, "aufbau_%s_plan.png" % stempel), "Plan Runde 2: %d+%d" % (n, n))
         for art, x, y, r, e in plan.bauten:
-            befehl({"baue": {"mapper": MAPPER[art], "x": x, "y": y, "groesse": 4, "richtung": r}}, 0.8, bis="BAUE")
+            befehl({"baue": {"mapper": MAPPER[art], "x": x, "y": y, "groesse": 4, "richtung": 15}}, 0.8, bis="BAUE")  # B-144: nicht r
             warte_ticks(3)
         warte_ticks(5)
         k2 = W.holen(k["x0"], k["y0"], k["x1"], k["y1"])

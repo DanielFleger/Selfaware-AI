@@ -19,6 +19,8 @@ import subprocess
 import sys
 import time
 
+from selfaware.game.ucp.drehwert import drehwert
+
 KARTE = "A Mighty Oasis"
 STAMM = r"C:\Program Files (x86)\Steam\steamapps\common\Stronghold Crusader Extreme"
 DANIELS_INSTANZ = 5
@@ -33,6 +35,16 @@ JAHR_ADRESSE_FELD = ("DAT_GameState", "mapAndTime.year")
 KNOPF_START = 0x41
 ANKER = "CustomScenarios_Main = 0x00440770,"
 NEU = "SingleplayerMapChoice_ButtonsAndHands = 0x0042D640,"
+BAU_ALT = "local ok, err = befehlAbsetzen(28, { b.x, b.y, b.mapper, b.groesse, b.richtung or 0, b.trupp or 0 })"
+BAU_NEU = (
+    "-- B-144 (Daniel 02.11.2026, wie B-271 im Altstand): Feste Werte nur bei Toren und der Zugbruecke, sonst zieht das Spiel gedreht fremde Bilder",
+    "local TOR = { [101] = true, [102] = true, [105] = true, [140] = true, [141] = true, [142] = true,",
+    "              [143] = true, [144] = true, [145] = true, [146] = true, [147] = true }",
+    "local drehung = TOR[tonumber(b.mapper) or -1] and (b.richtung or 15) or 15",
+    "local ok, err = befehlAbsetzen(28, { b.x, b.y, b.mapper, b.groesse, drehung, b.trupp or 0 })",
+)
+BAU_LOG_ALT = "tostring(b.richtung or 0),"
+BAU_LOG_NEU = "tostring(drehung),"
 FRUEH_TAKTE = 200  # nach so vielen Takten zum ersten Mal auf fehlende Takte pruefen
 ABBRUCH_ANTEIL = 0.05  # selbst gesetzt: Einzelne fehlende Takte stehen nur in A3, erst darueber taugt die Aufzeichnung nicht
 STUFEN = (1, 10, 40, 100, 200, 500, 1000)  # Daniel 02.11.2026: auf Tempo 1 bis 1000 kein Abzug vom normalen Tempo
@@ -66,8 +78,24 @@ def pruefe_laufinstanz(n):
 
 
 def logik_text(quelle):
-    """Die logik.lua der Quelle mit dem neuen Knopf; Zeilenenden bleiben, wie sie sind."""
+    """Die logik.lua der Quelle mit dem neuen Knopf und Bildwert 15 beim Bauen; Zeilenenden bleiben, wie sie sind."""
     roh = open(quelle, "rb").read().decode("latin-1")
+    return _mit_bildwert(_mit_knopf(roh, quelle), quelle)
+
+
+def _mit_bildwert(roh, quelle):
+    if BAU_NEU[3] in roh:
+        return roh
+    if roh.count(BAU_ALT) != 1 or roh.count(BAU_LOG_ALT) != 1:
+        raise Fehler(f"{quelle}: Stelle fuer den Bildwert nicht eindeutig ({roh.count(BAU_ALT)}, {roh.count(BAU_LOG_ALT)} Treffer)")
+    i = roh.index(BAU_ALT)
+    anfang = roh.rfind("\n", 0, i) + 1
+    ende = "\r\n" if "\r\n" in roh[i:i + 200] else "\n"
+    block = ende.join(roh[anfang:i] + z for z in BAU_NEU)
+    return roh[:anfang] + block + roh[i + len(BAU_ALT):].replace(BAU_LOG_ALT, BAU_LOG_NEU, 1)
+
+
+def _mit_knopf(roh, quelle):
     if roh.count(NEU):
         return roh
     if roh.count(ANKER) != 1:
@@ -194,7 +222,7 @@ def baue_ohne_anhalten(k, takt, gebaeude_von, g, typ, stellen, sp=1, ruhe=time.s
     vorher = {n for n, _, _ in gebaeude_von(sp, typ)}
     for x, y in stellen:
         t0 = takt()
-        k.befehl({"baue": {"mapper": g["mapper"], "x": x, "y": y, "groesse": g["b"], "richtung": 0}}, 0.3)
+        k.befehl({"baue": {"mapper": g["mapper"], "x": x, "y": y, "groesse": g["b"], "richtung": drehwert(g["mapper"])}}, 0.3)
         warte_auf(lambda: takt() >= t0 + 2, 10, "zwei Takte nach dem Bauen", schlaf=0.02, ruhe=ruhe)
         neu = [e for e in gebaeude_von(sp, typ) if e[0] not in vorher]
         if neu:

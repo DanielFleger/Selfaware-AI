@@ -15,6 +15,7 @@ Als Baustein:    from bauen import baue_irgendwo, werbe, vorrat, kosten
 from selfaware import workspace as _workspace
 import io, json, os, re, sys
 
+from selfaware.game.ucp.drehwert import drehwert
 from selfaware.game.ucp.laden import lade_stand, befehl, peek
 from selfaware.game.ucp.steuerkarte import laufe
 
@@ -37,7 +38,7 @@ def baue_irgendwo(typ, kandidaten, sp=1):
     g = NACH_TYP[typ]
     vorher = {n for n, _, _ in gebaeude_von(sp, typ)}
     for x, y in kandidaten:
-        befehl({"baue": {"mapper": g["mapper"], "x": x, "y": y, "groesse": g["b"], "richtung": 0}}, 0.8)
+        befehl({"baue": {"mapper": g["mapper"], "x": x, "y": y, "groesse": g["b"], "richtung": drehwert(g["mapper"])}}, 0.8)
         laufe(5)
         neu = [e for e in gebaeude_von(sp, typ) if e[0] not in vorher]
         if neu:
@@ -54,7 +55,7 @@ def baue_viele(auftraege, sp=1, live=False):
     liste = []
     for t, x, y in auftraege:
         g = NACH_TYP[t]
-        liste.append({"player": 1, "id": neue_id(), "baue": {"mapper": g["mapper"], "x": x, "y": y, "groesse": g["b"], "richtung": 0}})
+        liste.append({"player": 1, "id": neue_id(), "baue": {"mapper": g["mapper"], "x": x, "y": y, "groesse": g["b"], "richtung": drehwert(g["mapper"])}})
     sende({"befehle": liste}, 1.0)
     if live:                    # Live-Partie (Daniel 05.10. 22:54 "ohne komische Pausen"): 2 Ticks abwarten, nicht anhalten
         import time
@@ -102,7 +103,7 @@ def probe(stand, sp):
     # Gegenlauf: belegter Platz (Lager) - darf nichts bauen und nichts kosten
     lager = gebaeude_von(sp, 10)
     if lager:
-        befehl({"baue": {"mapper": 51, "x": lager[0][1], "y": lager[0][2], "groesse": 3, "richtung": 0}}, 0.8)
+        befehl({"baue": {"mapper": 51, "x": lager[0][1], "y": lager[0][2], "groesse": 3, "richtung": drehwert(51)}}, 0.8)
         laufe(10)
         print("GEGENLAUF (auf dem Lager): Holz %d -> %d, Huetten %d -> %s" % (
             v0["holz"], vorrat(sp)["holz"], 0, len(gebaeude_von(sp, 3))))

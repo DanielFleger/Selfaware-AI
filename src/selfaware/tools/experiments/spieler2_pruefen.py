@@ -101,8 +101,8 @@ def main():
     # 1
     a2 = frei(2, 51, 3, lord2[0] - 20, lord2[1] + 25, belegt)
     b1 = frei(1, 51, 3, lord1[0] + 10, lord1[1] + 20, belegt)
-    s({"befehle": [{"player": 2, "id": kanal.neue_id(), "baue": {"mapper": 51, "x": a2[0], "y": a2[1], "groesse": 3}},
-                   {"player": 1, "id": kanal.neue_id(), "baue": {"mapper": 51, "x": b1[0], "y": b1[1], "groesse": 3}}]}, 1.5)
+    s({"befehle": [{"player": 2, "id": kanal.neue_id(), "baue": {"mapper": 51, "x": a2[0], "y": a2[1], "groesse": 3, "richtung": 15}},
+                   {"player": 1, "id": kanal.neue_id(), "baue": {"mapper": 51, "x": b1[0], "y": b1[1], "groesse": 3, "richtung": 15}}]}, 1.5)
     lauf()
     E, G = lage()
     pruefe(1, "ein Paket: Holzfaeller fuer Spieler 2 an %s -> Besitzer %s, fuer Spieler 1 an %s -> Besitzer %s" % (
@@ -110,8 +110,8 @@ def main():
     # 2
     pp = frei(2, 86, 5, lord2[0] - 10, lord2[1] - 12, belegt + [a2])
     pm = frei(2, 77, 5, lord2[0] + 14, lord2[1] - 12, belegt + [a2, pp])
-    s({"befehle": [{"player": 2, "id": kanal.neue_id(), "baue": {"mapper": 86, "x": pp[0], "y": pp[1], "groesse": 5}},
-                   {"player": 2, "id": kanal.neue_id(), "baue": {"mapper": 77, "x": pm[0], "y": pm[1], "groesse": 5}}]}, 1.5)
+    s({"befehle": [{"player": 2, "id": kanal.neue_id(), "baue": {"mapper": 86, "x": pp[0], "y": pp[1], "groesse": 5, "richtung": 15}},
+                   {"player": 2, "id": kanal.neue_id(), "baue": {"mapper": 77, "x": pm[0], "y": pm[1], "groesse": 5, "richtung": 15}}]}, 1.5)
     lauf()
     E, G = lage()
     posten = [int(g[0]) for g in G if g[1] == "2" and g[2] == "8"]

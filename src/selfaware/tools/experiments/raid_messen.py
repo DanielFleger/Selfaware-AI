@@ -151,7 +151,7 @@ def grube_abriss_versuch():
         befehl({"player": 1, "spielbefehl": {"nr": 38, "werte": [0, 2]}}, 1.0, bis="SPIELBEFEHL")
         warte_ticks(20)
     h0 = holz()
-    befehl({"player": 1, "baue": {"mapper": 98, "x": p[0], "y": p[1], "groesse": 1, "richtung": 0}}, 1.0, bis="BAUE")
+    befehl({"player": 1, "baue": {"mapper": 98, "x": p[0], "y": p[1], "groesse": 1, "richtung": 15}}, 1.0, bis="BAUE")
     warte_ticks(60)
     G = gebaeude()
     nr = [n for n, b in G.items() if b["typ"] == 67 and (b["x"], b["y"]) == p]

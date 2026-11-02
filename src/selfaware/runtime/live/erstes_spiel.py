@@ -591,7 +591,7 @@ def baue_schnell(typ, x, y, r, mapper=None, zweck="", mit_grund=False):
         # "platz" kommt aus der echten Platzsuche und darf nach Wiederholung dauerhaft gesperrt werden. "schutz"
         # bedeutet dagegen nur, dass gerade eine Einheit/Laufspur oder eine noch offene Reservierung dort liegt.
         return rueckgabe(None, "platz" if not platz_frei else "schutz")
-    befehl({"baue": {"mapper": g["mapper"], "x": frei[0][0], "y": frei[0][1], "groesse": g["b"], "richtung": 0}}, 1.0, bis="BAUE")
+    befehl({"baue": {"mapper": g["mapper"], "x": frei[0][0], "y": frei[0][1], "groesse": g["b"], "richtung": 15}}, 1.0, bis="BAUE")  # B-144: 0 zeichnet in gedrehter Ansicht fremde Bilder
     if BUCH is not None:
         BUCH.vormerken(typ, frei[0], zweck)
     return rueckgabe(frei[0], "gebaut")
@@ -687,7 +687,7 @@ def setze_grube(x, y):
                         bis="PLATZSUCHE"))
     if "(%d,%d)" % (x, y) not in z.split("geprueft:")[-1]:
         return False
-    befehl({"baue": {"mapper": 98, "x": x, "y": y, "groesse": 1, "richtung": 0}}, 1.0, bis="BAUE")
+    befehl({"baue": {"mapper": 98, "x": x, "y": y, "groesse": 1, "richtung": 15}}, 1.0, bis="BAUE")
     return True
 
 def lies_haltung(gruppen):

@@ -111,7 +111,8 @@ def test_warte_auf_gibt_nach_der_frist_einen_fehler():
 def lua(tmp_path, ende="\r\n", anker=True):
     p = tmp_path / "quelle.lua"
     zeile = f"      {lf.ANKER}{ende}" if anker else ""
-    p.write_bytes(f"local HANDLER = {{{ende}{zeile}      Ende = 1,{ende}}}{ende}".encode("latin-1"))
+    bau = f"    {lf.BAU_ALT}{ende}    log(INFO, {lf.BAU_LOG_ALT}{ende}      0){ende}"
+    p.write_bytes(f"local HANDLER = {{{ende}{zeile}      Ende = 1,{ende}}}{ende}{bau}".encode("latin-1"))
     return str(p)
 
 

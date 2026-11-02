@@ -36,7 +36,7 @@ def baue_alle(typ, stellen, sp=SP):
         vorher = {n for n, _, _ in gebaeude_von(sp, typ)}
         neu = []
         for versuch in range(5):
-            befehl({"baue": {"mapper": g["mapper"], "x": x, "y": y, "groesse": g["b"], "richtung": 0}}, 0.6)
+            befehl({"baue": {"mapper": g["mapper"], "x": x, "y": y, "groesse": g["b"], "richtung": 15}}, 0.6)
             laufe(5)
             neu = [e for e in gebaeude_von(sp, typ) if e[0] not in vorher]
             if neu:

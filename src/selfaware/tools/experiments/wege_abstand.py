@@ -88,7 +88,7 @@ class Prober:
         """Baut so, dass die linke obere Ecke des Grundrisses auf (x, y) liegt."""
         typ, mapper, b = ART[name]
         dx, dy = self.versatz.get(name, (0, 0))
-        befehl({"baue": {"mapper": mapper, "x": x - dx, "y": y - dy, "groesse": b, "richtung": 0}}, 0.8, bis="BAUE")
+        befehl({"baue": {"mapper": mapper, "x": x - dx, "y": y - dy, "groesse": b, "richtung": 15}}, 0.8, bis="BAUE")
 
     def g(self, name):
         return max(self.groesse.get(name, (ART[name][2],) * 2))

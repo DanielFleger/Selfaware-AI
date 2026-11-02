@@ -17,12 +17,12 @@ Marken: **gemessen** (Speicher, Aufzeichnung, Log), **Code** (Ghidra-Export), **
 | Wache meldete 37,7 statt 40 Takte je Sekunde | Der Median misst einzelne Takt-Abstände; Takte liegen auf Bildgrenzen (13,33 ms), meist 26,67 ms Abstand = 37,5 | Gesamt über die Stufe gemessen: 40,0. Kein Fehler im Spiel, nur meine Messart | gemessen + abgeleitet | `voll_tempo40.auge`: Median 37,6, gesamt 40,0 |
 | Auf Tempo 1000 fehlen Takte | Lesen dauert länger als ein Takt, 11 Takte kommen gebündelt je Bild | Auf der Tempostufe 1000 gelesen: 27 % der Takte. Im ganzen Lauf meldete die Wache zuletzt 92.559 fehlende Takte und 66.356 gemischte Rahmen | gemessen | `voll_tempo1000.auge`, Wache im Protokoll |
 
-Sonderregeln der 31 Befehle (Spielprüfung, gemessen an der Karte): Eisenmine und Pechgräber nur auf ihrem Boden, Lagerfeld und Waffenlager nur neben dem vorhandenen.
+Sonderregeln der 31 Befehle (Spielprüfung, gemessen an der Karte): Eisenmine und Pechgrube nur auf ihrem Boden, Lagerfeld und Waffenlager nur neben dem vorhandenen.
 
 ## Eigene Fehler, die dabei auffielen
 
 - **"Spiel angehalten" war falsch.** TaskStop beendete nur die Hülle, das Python-Programm lief weiter, hob die Pause um 18:54:45 auf und fuhr die Tempotreppe zu Ende. Das Spiel lief bis 19:01:02 auf Tempo 1000, und die Sperre war in dieser Zeit schon frei. Log: `ucp3.log`. Seit 19:01:02 steht es, nachgeprüft (Takt ändert sich nicht).
-- **Bauten mit Drehwert 0.** Alle Bau-Befehle des Laufs und der Proben tragen Drehung 0. Wissensstand 13y sagt: Normale Gebäude brauchen 15, sonst stimmt das Bild in zwei von vier Ansichten nicht. Das hatte ich beim Bau des Programms nicht beachtet.
+- **Bauten mit Drehwert 0.** Alle Bau-Befehle des Laufs und der Proben tragen Drehung 0. Wissensstand 13y sagt: Normale Gebäude brauchen 15, sonst stimmt das Bild in den gedrehten Ansichten nicht. Das hatte ich beim Bau des Programms nicht beachtet. Behoben mit B-144, siehe `../anzeigefehler/Anzeigefehler.md`.
 - **Vermutung `recomputePlayerDataStocks...` war falsch.** Die läuft nur beim Monatswechsel, der kam nie. Richtig ist `countPlayerResources`.
 - **Vermutung "Handel wirkungslos" war falsch.** Kaufen und Verkaufen wirkten, auch ohne Marktplatz (Takt 91.636: Gold -180, Bogen +5).
 
@@ -49,7 +49,7 @@ Sonderregeln der 31 Befehle (Spielprüfung, gemessen an der Karte): Eisenmine un
 | Kaserne steht trotz 0 Stein | steht, Stein bleibt 0 (Spielbefehl prüft im Einzelspiel keine Kosten, das macht nur das Menü) | bestätigt |
 | Stein über `startResources` fließt mit 1 je 4 Takte | Stein blieb 0 | **widerlegt**: alle 4 Lagerfelder hielten Holz, ein Lagerfeld nimmt nur eine Ware |
 | Mit neuem Lager fließt der Stein | 100 Stein da (48 + 48 + 4 auf den neuen Feldern) | bestätigt |
-| Jede fehlende Art steht auf erlaubter Stelle, nur der Pechgräber nicht | 51 von 53 stehen; Pechgräber 0 erlaubte Stellen; Pechgraben fehlte in der Gebäudeliste | fast bestätigt |
+| Jede fehlende Art steht auf erlaubter Stelle, nur die Pechgrube nicht | 51 von 53 stehen; Pechgrube 0 erlaubte Stellen; Pechgraben fehlte in der Gebäudeliste | fast bestätigt |
 | (Nachprobe) Pechgraben steht in eigener Liste `pitchDitches` | Eintrag bei (222,221), Bit 8 im Feld gesetzt | bestätigt: **meine Prüfung sah in der falschen Liste nach** |
 
 Damit in dieser Probe: 52 Arten auf erlaubter Stelle, alle 52 gebaut. Die 53. Art hatte keine erlaubte Stelle.
@@ -65,7 +65,7 @@ Damit in dieser Probe: 52 Arten auf erlaubter Stelle, alle 52 gebaut. Die 53. Ar
 2. **Woher die 75 Bilder je Sekunde kommen.** Sie begrenzen das Tempo auf 825.
 3. **Jeden Takt sehen auf Tempo 1000:** von außen gemessen nur 27 %, weil 11 Takte gebündelt je Bild kommen. Ob es von innen geht, im Takt des Spiels, ist nicht geprüft.
 4. Karte "Eine prächtige Oase" ist nur per Ausschluss belegt; `KARTENNAME` bleibt im Burgenbau leer.
-5. Pechgräber: In diesem Spielstand erlaubt die Spielprüfung 0 von 160.000 Stellen. Gehört in Lauf K oder S auf eine Karte mit Pechboden.
+5. Pechgrube (`BT_PITCHRIG`, Typ 6, Spielname aus cr.tex; "Pechgräber" ist ihr Arbeiter): Die Karte hat 0 von 78.804 Feldern mit Pechvorkommen (Speicher, Bit `L_OIL`). Gehört in Lauf K oder S auf eine Karte mit Pechboden. Der Pechgraben (`BT_PITCHDITCH`, Typ 68) geht dagegen fast überall.
 
 ## Wiederholen
 
@@ -86,3 +86,7 @@ python data/research/auge_plan/ursachen_lauf_f/wirkung.py <aus.json>
 - **gemessen:** Die volle Tempotreppe meldete "bestaetigt", obwohl Stufe 1 nur 1 Takt hatte, weil das Spiel dort durch meine Pause stand. Das ist ein hohles Grün: `a4_tempotreppe` muss eine Stufe mit zu wenig Takten als "nicht gemessen" führen.
 - **gemessen:** Jeden Takt gelesen auf Tempo 40 (201 von 201). Auf Tempo 100 fehlen 2 von 498, auf 200 fehlen 262 von 1.000.
 - **gemessen:** Längste Lücke bis zum nächsten neuen Takt in der Aufzeichnung: 0,098 s.
+
+## Nachtrag: Tempo-Stufen (02.11.2026, 19:29)
+
+- **gemessen:** Stufen 1000, 900, 850, 825, 800, 1000, 900, je 2.000 Takte ohne Aufzeichnung: 825,1 / 826,3 / 826,2 / 827,1 / 826,3 / 825,9 / 826,7 Takte je Sekunde. Ab Stufe 800 macht die Einstellung keinen Unterschied. Daniel: Dass auf Stufe 1000 nur rund 830 ankommen und nicht jeder Takt gelesen wird, ist in Ordnung. Jeden Takt belegt der Lauf auf Tempo 40.

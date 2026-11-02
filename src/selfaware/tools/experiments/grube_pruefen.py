@@ -102,7 +102,7 @@ def main():
     # Gegenprobe stand 2 Felder daneben, das Spiel lehnt Bauen mit Feind in der Naehe ab)
     def baue_grube(q):
         z = K.sende({"befehle": [{"player": besitzer, "id": K.neue_id(),
-                                  "baue": {"mapper": GRUBE_MAPPER, "x": q[0], "y": q[1], "groesse": 1, "richtung": 0}}]}, 2.0,
+                                  "baue": {"mapper": GRUBE_MAPPER, "x": q[0], "y": q[1], "groesse": 1, "richtung": 15}}]}, 2.0,
                     bis="BAUE")
         time.sleep(1.5)
         G = gebaeude()
