@@ -1,8 +1,8 @@
-"""Sammelt alle Prüfpunkte (p3.live) aus den Ergebnissen zu einer Checkliste für möglichst wenige Spielläufe.
+"""Sammelt alle Prüfpunkte (p3.live) aus funktionen_spiel.jsonl zu einer Checkliste für möglichst wenige Spielläufe.
 
 Gruppiert nach Spielsituation, damit ein Lauf viele Punkte nebenbei abhakt. Schreibt checkliste.md.
 """
-import collections, glob, json, os, re
+import collections, json, os, re
 
 W = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 GRUPPEN = [  # (Überschrift, Suchmuster im Prüfpunkt), erste passende gewinnt
@@ -19,7 +19,7 @@ ARTEN = {"markt": "Markt: kaufen/verkaufen", "anwerben": "Anwerben", "bauen": "B
          "tabelle": "Tabellen einmal auslesen", "sonstiges": "Sonstiges"}
 GRUPPEN.append(("Tabellen einmal auslesen", r"Tabelle.*auslesen|einmal auslesen"))
 punkte = collections.defaultdict(list)
-for pfad in [os.path.join(W, "probe_ergebnis.jsonl")] + sorted(f for f in glob.glob(os.path.join(W, "ergebnisse", "*.jsonl")) if re.search(r"(spiel|rest)_\d{3}\.jsonl$", f)):
+for pfad in [os.path.join(W, "funktionen_spiel.jsonl")]:
     for z in open(pfad, encoding="utf-8"):
         if not z.strip():
             continue

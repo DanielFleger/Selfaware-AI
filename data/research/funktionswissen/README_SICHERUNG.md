@@ -30,4 +30,6 @@ Geprüft: Skript-Gegenprobe über alle 334 (`korrektur/gegenprobe.py`, nur Grenz
 
 Zweite Stichprobe (`pruefung2/ergebnisse.jsonl`, 36 große Funktionen, Maßstab wie in der ersten: im Zweifel kein Fehler; Export als Maßstab statt Paketcode): 18 Funktionen aus der ersten Stichprobe vorher 7 falsch und 11 kleine Fehler, nachher 17 richtig und 1 kleiner Fehler; 18 neue: 14 richtig, 4 kleine Fehler, 0 falsch. Die erste Gruppe wurde mit ihren alten Befunden korrigiert, unabhängig ist nur die zweite. Die 5 kleinen Fehler sind eingearbeitet. Damit hat ein Prüfer 95 der 334 Funktionen gesehen.
 
-Offen: Die Checkliste gehört weiter zum Erststand. 33 ResourceManager-Funktionen sind nicht ausgestuft. 98 kleinere Funktionen mit Zahlenabweichung im Paketcode sind nicht nachgeprüft.
+Offen: 33 ResourceManager-Funktionen sind nicht ausgestuft. 98 kleinere Funktionen mit Zahlenabweichung im Paketcode sind nicht nachgeprüft.
+
+`checkliste.md` ist aus der korrigierten Gesamtdatei neu gebaut (376 Prüfpunkte, keiner im Spiel abgehakt); `werkzeug/checkliste.py` liest seitdem `funktionen_spiel.jsonl`. Die alte Liste bleibt als `checkliste.vor_korrektur.md`.

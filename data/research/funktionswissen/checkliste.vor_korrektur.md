@@ -1,0 +1,382 @@
+# Spiel-Checkliste (aus p3.live)
+
+Ziel: alles in 1–2 Läufen. Je Gruppe eine Spielsituation, die Punkte werden nebenbei gemessen.
+
+## Markt: kaufen/verkaufen (10)
+- [ ] `processResourceGain` (0x0041c310): Befehl 38 kaufen bei vollem Lager → Gold vorher/nachher → unverändert
+- [ ] `getSellResourceAmount` (0x00458940): Befehl 38 verkaufen bei 120 Stein → Steinbestand vorher/nachher → sinkt um 20
+- [ ] `buyGoods` (0x004cc000): KI-Kauf beobachten bei Lospreis nicht durch 5 teilbar → Gold-Differenz der KI → (Lospreis/5)·5
+- [ ] `SetStorageMarketFailState` (0x00465db0): Befehl 38 kaufen bei vollem Lager → playerDataArray[sp].storageMarketFailState → 9 (Kornspeicher 8, Waffenkammer 10)
+- [ ] `getResourceSpace` (0x0040c1f0): Kauf bei vollem Lager versuchen → Warenbestand und Gold vorher/nachher → unverändert
+- [ ] `sellExcessGoods` (0x004d1d60): KI-Verkauf beobachten → currentResources[ware] und Gold der KI vorher/nachher → Bestand fällt auf die Obergrenze aus dem AIC (Warengruppe nach Tabelle)
+- [ ] `aiBuyAndSellGoods` (0x004d48f0): KI mit Marktplatz beobachten → willBuy bei jedem KI-Tagestakt → wechselt jeweils zwischen 0 und 1
+- [ ] `ProcessBuyOrSell` (0x00465e60): Kauf am Markt → Gold und Warenbestand vorher/nachher → Gold sinkt um getBatchBuyPrice, Ware steigt um 5
+- [ ] `ClickBuyOrSell` (0x00482620): Kaufen und Verkaufen je einmal auslösen → DAT_GameCommandParam0 im Befehlspuffer → die beiden Werte unterscheiden sich; so ist klar, welcher Wert Kauf ist
+- [ ] `getSellResourceAmount` (0x00458940): Befehl 38 verkaufen bei 120 Stein → Steinbestand vorher/nachher → sinkt um 20
+
+## Anwerben (18)
+- [ ] `euroRecruit` (0x0052e960): Anwerben ohne Waffe → UnitsState.euroUnitAcquisitionFailReason → 2
+- [ ] `nonEuroRecruit` (0x0052ec10): Assassine anwerben → Gold vorher/nachher → Live-Preis (L63: 70) statt 60
+- [ ] `ProcessRecruitUnit` (0x00464ef0): Anwerben bei Heer am Limit → armySize und Gold vorher/nachher → unverändert
+- [ ] `ClickRecruitUnit` (0x004821e0): Anwerben per Klick in der Kaserne → DAT_GameCommandParam0/1 beim Ausführen mitlesen → Param0 = Einheitentyp, Param1 = Gebäudenummer (zu bestätigen)
+- [ ] `SetUnitAssemblyPoint` (0x00485830): Sammelpunkt für die Kaserne setzen, dann auf die eigene Kaserne klicken → playerDataArray[sp].barracksAssemblyPoints[Kategorie].x/y vorher/nachher → erst das angeklickte Feld, dann (0, 0); dabei die Kategorie je Gebäudeart notieren
+- [ ] `IsEuroUnitRecruitableUnk` (0x00464da0): armySizeLimit und count_2 + armySize lesen, bei Gleichstand Anwerben versuchen → kein neuer Soldat, Heer bleibt gleich
+- [ ] `CheckIfEnoughGoldForMonk` (0x004650a0): Mönch anwerben → Gold vorher/nachher → sinkt um 10
+- [ ] `CheckIfEnoughGoldForTunneler` (0x004650f0): Tunnelgräber anwerben → Gold vorher/nachher → sinkt um 30
+- [ ] `UpdatePeasant` (0x0053eaa0): Soldat anwerben mit freiem Bauern → playerDataArray[sp].count und count_2 über die rund 33 Takte der Verwandlung → beide steigen um 1
+- [ ] `euroRecruit` (0x0052e960): Anwerben ohne Waffe → UnitsState.euroUnitAcquisitionFailReason → 2
+- [ ] `nonEuroRecruit` (0x0052ec10): Ingenieur anwerben → Gold vorher/nachher → sinkt um 30 (Grundwert, UCP könnte abweichen)
+- [ ] `recruitHarrassingSiegeEngines` (0x004cd2a0): KI mit Ingenieurgilde und ≥ 500 Gold beobachten → units[].aiUnitBehaviourType der neuen Ingenieure und siegeTargetPlayerID der Katapulte/Feuerballisten mit 0x15 → Ingenieure tragen 0x16, Maschinen zeigen auf attackedPlayerID
+- [ ] `aiRecruitUnits` (0x004d3ae0): KI wirbt an, Waffe fehlt → resourcesToAcquireArray[Waffe] der KI → tradeAmountEquipment (nervös 5)
+- [ ] `recountTotalTroopValue` (0x0051f9c0): Soldaten anwerben → attackInfo.playerTotalTroopValueArray[spieler] vorher/nachher → steigt um getValueOfTroopType(Typ) je Einheit; Ingenieur anwerben → unverändert
+- [ ] `UpdateStables` (0x004174e0): Stall steht, leer → buildings[stall].numberOfAnimals alle paar Sekunden → steigt um 1 etwa alle 551 Takte bis 4
+- [ ] `recountStablesAndHorses` (0x004598b0): Stall mit Pferden bauen, Ritter anwerben → availableHorses vorher/nachher → sinkt um 1
+- [ ] `UpdateSlinger` (0x00572e80): N Schleuderer im Heer, einen Spieltakt abwarten → playerDataArray[sp].countSlingers2 und armySize → countSlingers2 gleich N (Zähler wird vermutlich je Takt neu gesammelt)
+- [ ] `CheckIfEnoughGoldForLadderman` (0x00465080): Leiterträger anwerben mit 3 und mit 4 Gold → DAT_EnoughGoldForRequestedUnit → 0 bei 3, 1 bei 4
+
+## Bauen/Abreißen (50)
+- [ ] `spawnUnit` (0x0053e440): Katapult oder Tribock bauen lassen → units[neue ID].stoneAmmunition → 20
+- [ ] `ProcessTowerRepair` (0x00466260): Beschädigten Turm reparieren → Holz und Stein vorher/nachher sowie currentHealth → Bestände sinken um die Befehlswerte, currentHealth = maxHealth
+- [ ] `UpdatePitchRig` (0x00410ee0): Pechgrube bauen und fertigstellen → playerDataArray[sp].countPitchRigs → steigt um 1 je Grube (Wert muss beim Lesen gültig sein)
+- [ ] `UpdateBarracks` (0x00411480): Kaserne bauen → playerDataArray[sp].someCount04 pro Takt vor/nach dem Zurücksetzen → +10 je Kaserne
+- [ ] `UpdateFletchersWorkshop` (0x00412d50): Bogner-Werkstatt bauen → playerDataArray[sp].countFletchersPoleturners lesen → Wert gleich Zahl der Werkstätten oder wächst jeden Tick
+- [ ] `UpdateCatapultBuilding` (0x0041f3b0): Zelt mit Ingenieuren besetzen → buildings[zelt].buildingProgress je Takt → steigt um die Ingenieurzahl, Katapult erscheint bei über 320
+- [ ] `UpdateTrebutchetBuilding` (0x0041f7c0): Trebuchet-Bauplatz mit 3 Ingenieuren beobachten → buildings[id].buildingProgress je Takt → steigt um 3 und das Trebuchet erscheint bei über 640
+- [ ] `UpdateSiegeTowerBuilding` (0x0041fc90): Turm-Bauplatz mit 4 Ingenieuren beobachten → buildings[id].buildingProgress je Takt → steigt um 4, Turm erscheint bei über 1280
+- [ ] `UpdateBatteringRamBuilding` (0x00420120): Rammen-Bauplatz mit 4 Ingenieuren beobachten → buildings[id].buildingProgress je Takt → steigt um 4, Ramme erscheint bei über 640
+- [ ] `UpdateShieldBuilding` (0x004205b0): Schild-Bauplatz mit 1 Ingenieur beobachten → buildings[id].buildingProgress je Takt → steigt um 1, Schild erscheint bei über 120
+- [ ] `UpdateGateHouseLarge` (0x004238b0): Tor an großem Torhaus öffnen → buildings[id].pathLinkageRelated2 → läuft 0, 1, 2 und beim Schließen 2, 3, 0
+- [ ] `convertCommandBuildingTypeToBuildingType` (0x00409370): Gebäude per Baubefehl setzen (z. B. Rammbock-Menüwert) → buildings[].buildingType → Typ laut Zuordnung (Rammbock-Menüwert ergibt BT_SIEGETOWER)
+- [ ] `chooseProductionItemType` (0x0040a8a0): Zweiten Waffenbetrieb gleicher Art neben einen bestehenden mit Grundwaffe bauen → buildings[neu].producedItemTypeNext → RT_MACE bzw. RT_PIKE / RT_CROSSBOW, wenn das neue Gebäude nicht mitgezählt wird; sonst die Grundware
+- [ ] `recomputeAllFearFactors` (0x0040b260): Gute und schlechte Gebäude nacheinander bauen, Bevölkerung notieren → playerDataArray[sp].currentPopulation, goodStuffCount, badStuffCount, fearFactorLevel, objectsLeftUntilNextLevel → Stufe = (gut-schlecht) / (Bevölkerung/16 abgerundet + 1), zur Null hin abgerundet, Grenzen -5 und +5
+- [ ] `updateRepairCostAndReturnIfDamaged` (0x00410320): Beschädigtes Gebäude auswählen → INT_SelectedBuildingStoneRepairCost und INT_SelectedBuildingStoneWoodCost → (max-akt)*Baukosten/max, mindestens 1
+- [ ] `processPlacementResourceLossForBuildingType` (0x0041bfd0): 4 Pechgräben nacheinander platzieren → Pechbestand vorher/nachher → sinkt nur um 1; Gebäude bei Holz unter Holzfällerkosten ohne Holzfäller bauen → Holz vorher/nachher → unverändert
+- [ ] `processWallBuildingLoss` (0x0041c190): 8 niedrige Mauerteile platzieren → Steinbestand vorher/nachher → sinkt um 2
+- [ ] `applyGateOrDrawbridgeOpenCloseChange` (0x0041c570): Eigenes Tor per Befehl öffnen → buildings[tor].gateState und gateCloseOpenTimer → 11 und 600 (mit Timer), beim Schließen 10 und -1
+- [ ] `setupBuildingData` (0x00420d20): Eigenes Gebäude platzieren und KI-Gebäude beobachten → buildings[id].cooldownTimer → 400 beim Menschen, 2000 bei KI
+- [ ] `giveBackResourceForDestroyedBuilding` (0x00421d70): Eigenes Gebäude mit Holz- und Steinkosten abreißen → Holz- und Steinbestand vorher/nachher → steigt um Kosten × Prozent / 100 (Prozentwert aus der Messung ableiten)
+- [ ] `ClickDestroyBuilding` (0x00481f40): Eigenes Gebäude abreißen → Goldbestand und Warenbestand vorher/nachher → Rückerstattung gemäß Param1
+- [ ] `RemoveTowerSiegeEngine` (0x00484b10): Mangonel oder Ballista per Entfernen-Befehl (P0=2) abbauen → Bestand der Baukosten-Waren vorher/nachher → Zuwachs gleich den Baukosten (100 Prozent)?
+- [ ] `UpdateEngineer` (0x00564250): Ingenieur zum Ölwerfen schicken (Pech im Lager) → Pechbestand vorher/nachher und units[].state → sinkt um 1, Zustand wechselt auf 10 beim Wurf
+- [ ] `destroyWall` (0x00500e20): Mauer abreißen bei vollem Steinlager → Steinbestand vorher/nachher → unverändert, wenn Lager voll
+- [ ] `confirmAndQueueDestructionCommand` (0x005118c0): Abriss bestätigen → Befehlsliste → Befehl GCT_DESTROY_BUILDING mit Param1 = 100
+- [ ] `addBuildingToTargetableBuildings` (0x004cda50): Spieler baut Gebäude → playerDataArray[sp].top100TargetableBuildingsTracker vorher/nachher → steigt je gemeldetem Gebäude um 1 und bleibt ab 100 stehen
+- [ ] `isMapperAvailable` (0x004bb010): Gefecht ohne Wild → Jäger bauen versuchen → nicht möglich (rawDeerCount == 0)
+- [ ] `renderWallDragPreview` (0x004f8bd0): Mauer ziehen über 10 freie Felder → DAT_WallTileCountCurrentDrag → 10
+- [ ] `validateWallPlacementAtTile` (0x004f94a0): Mauer in 4 Feldern Abstand zu Feindgebäude bauen → illegalBuild → TRUE
+- [ ] `isBuildingPlacementAllowedAtTile` (0x004f9a60): Farm (Weizen) auf zu hohem Gelände setzen → TileMapState.placementWarning → 4
+- [ ] `getCastleBuildRangeForMapSize` (0x004fbc30): Gefechtskarte mit mapSize 160/200/300/400 laden → Rückgabe der Funktion (per Aufruf-Hook) → 45/50/60/70
+- [ ] `countMoatsOwnedByEachPlayer` (0x005000e0): Graben ausheben (n Felder) → playerDataArray[sp].moatsOwned vorher/nachher → steigt um die Zahl der ausgehobenen Felder
+- [ ] `countUnfinishedMoatTilesForPlayer` (0x00500180): Graben bauen, waehrend Arbeiter graben → Rueckgabe dieser Funktion oder Bit 0x40000000 der Grabenfelder im LogicLayer → faellt auf 0, sobald alle Felder fertig sind
+- [ ] `advanceMoatDigProgress` (0x00500500): Graben graben lassen → moats[id].fillProgress und stage beobachten → fillProgress steigt je Schritt bis 4, dann stage 2
+- [ ] `updateMoatCountdownTimers` (0x00500640): Graben anlegen, mehrere Takte warten → moats[id].someCountDown vorher/nachher → sinkt um 1 je Aufruf, nie unter 0
+- [ ] `placeWalls` (0x00502f30): Steinmauer über 10 Felder bauen → Steinbestand vorher/nachher und Zahl neuer Mauerfelder → Abzug je Feld notieren; bei knappem Stein prüfen, ob ein Feld mehr als bezahlbar entsteht
+- [ ] `checkBuildingCanBePlacedHere` (0x005037b0): Farm auf Fläche mit unter 50 Grasfeldern setzen → buildingPlacementFailReason → 0x17; 11. Hundekäfig setzen → buildingPlacementFailReason → 1000; Gebäude 14 Felder neben Gegnergebäude im Mehrspielerspiel → 0x11
+- [ ] `placeWorkshopOrHovel` (0x00506bd0): Mehrere Hütten nacheinander bauen → buildings[id].hovelVisualStyle → 0,1,2,...,6,0 zyklisch
+- [ ] `placeBarracks` (0x005076a0): Kaserne bauen → buildings[Exerzierplatz].quarryStockpileID → ID der Kaserne
+- [ ] `placeQuarry` (0x00508250): Steinbruch eng zwischen Hindernissen bauen → buildings[Steinbruch].quarryStockpileID → 0 oder ID
+- [ ] `createMoatData` (0x005110b0): Graben ausheben lassen und fertigstellen → moats[id].stage und fillProgress → von 1/0 auf 2/4
+- [ ] `placeWheatfarm` (0x00514f30): Weizenfarm bauen → Kacheln im LogicLayer mit Bit 0x1000000 zählen → 36
+- [ ] `placeHopfarm` (0x005151c0): Hopfenfarm bauen → Kacheln im LogicLayer mit Bit 0x2000000 zählen → 24
+- [ ] `placeDairyfarm` (0x005154d0): Mehrere Molkereien nacheinander bauen → playerDataArray[sp].dairyFarmVariationMod4 → 1,2,3,0,1
+- [ ] `placeBuilding` (0x005162d0): Gebäude auf Kachel mit eigener Einheit bauen → eigene Einheitenzahl vorher/nachher → sinkt um 1 (Einheit gelöscht)
+- [ ] `computeBuildingCategoryEntryPointAndDestroyEarlierBuilding` (0x00456fd0): Zweite Kaserne bauen → playerDataArray[sp].barracks.id und Zustand der alten Kaserne → id zeigt auf die neue, die alte wird zerstört
+- [ ] `getWallTilesThatCanBeBuilt` (0x00457e80): Steinbestand 20 → baubare Mauerfelder in der Bauanzeige → 40 (39 bei angebrochenem Stück)
+- [ ] `recomputeReligionBonuses` (0x00458f70): Kapelle bauen → playerData.religionVar1 vorher/nachher → steigt um 1
+- [ ] `algTunnelerFindTarget` (0x0049b5b0): Tunnelgräber (eigener oder gegnerischer) beginnt zu graben → ALG_TargetTile/X/Y sowie BuildingLayer und buildingType am Zielfeld lesen → Zielfeld ist ein Mauerfeld oder Gebäudetyp 0x4A bis 0x4C
+- [ ] `isTileInRangeOfKeepRange` (0x004a1c40): Gebäude mit Burgabstandsgrenze weit von der Burg platzieren → TileMapState.buildingPlacementFailReason → 0x12
+
+## Kampf/Einheiten (60)
+- [ ] `tryAttackUnitID` (0x00537d60): Assassine greift an → units[ziel].huntedBy → steigt um 1
+- [ ] `checkSkirmishGameDefeat` (0x00486600): Gefecht: Lord des letzten Gegners töten → mapAndTime.gameOver und playerIsAlive[] → gameOver wird TRUE, eigener Platz 1
+- [ ] `ClickGiveUnitsInstruction` (0x00482420): Marsch-, Angriffs- und Haltebefehl an eine Gruppe geben → Param0 bis Param4 beim Ausführen mitlesen → Anweisungsart (Param1) und Bedeutung von Param2 bis Param4 je Befehl
+- [ ] `UpdateBurningMan` (0x0053bc20): Einheit brennt (z. B. Öl) → units[id].owner und dying → owner 0, dying 1
+- [ ] `UpdateTunneler` (0x0054e6c0): Tunnelgräber am Ziel beobachten → units[].tunnelerFrame und Gebäude-Trefferpunkte an der Kachel → Einsturz bei Frame 60 bis 64, Schaden 5×20 am Gebäude (Grundwert)
+- [ ] `UpdateCrusaderArcher` (0x0055a800): Eigenen Bogenschützen ohne Feind in der Nähe stehen lassen → units[id].closestEnemyMicroDistance und units[id].state → bei Abstand über 400 wechselt der Zustand zu Hinsetzen (US_SIT_DOWNUnk)
+- [ ] `UpdateSpearman` (0x0055da50): Speerträger greift Mauer an → Gebäude-Trefferpunkte pro Treffer vorher/nachher → sinkt um 8 (Tor oder Turm: 3, im UCP-Spiel möglicherweise geändert)
+- [ ] `UpdatePikeman` (0x0055f110): Pikenier greift Mauer bzw. Turm an → Gebäude-Trefferpunkte vorher/nachher je Treffer → Mauer sinkt um 20, Turm/Tor um 4
+- [ ] `UpdateKnight` (0x00562aa0): Ritter schlägt auf eine Steinmauer (Tor/Turm zum Vergleich) → Trefferpunkte des Gebäudes vorher/nachher → Verlust je Schlag 70 (Mauer) bzw. 6 (Turm, Tor)
+- [ ] `UpdateLord` (0x0056c560): Gegnerischen Lord töten (Mehrspieler/Gefecht) → Gold des Töters und des Opfers vorher/nachher → Töter gewinnt max(500, min(100000, Opfergold*25/100)) Gold
+- [ ] `UpdateArabianArcher` (0x00570400): Mehrere arab. Bogenschützen aufstellen → playerDataArray[sp].countArabianArcher über zwei Takte → entspricht der Zahl lebender Bogenschützen (Neuzählung je Takt)
+- [ ] `UpdateSlave` (0x00571c00): Sklaven greifen Mauer an (nicht brennbar) → Trefferpunkte des Mauergebäudes vorher/nachher → sinkt um 8 je Schlag
+- [ ] `UpdateAssassin` (0x005744d0): Assassine schlägt eine Mauer an → Gebäude-Trefferpunkte vorher/nachher je Schlag → sinkt um 70 (Tor oder Turm um 6)
+- [ ] `UpdateHorseArcher` (0x0057ab50): Pferdebogenschütze läuft, Feind in Reichweite → units[].state → wechselt innerhalb von rund 100 Takten auf Schießen/Nachladen
+- [ ] `shouldUnitsEngageInMelee` (0x00531000): Gefecht mit Rush-Schutz → skirmishNoRushTicks im GameState → ab Wert 0 kämpfen gegnerische Soldaten
+- [ ] `ComputeDamageFearFactorBonus` (0x005311f0): Angstfaktor ändern (Steuern/Gasthaus) → fearFactorLevel und Schaden im Kampf → 5 Prozent je Stufe
+- [ ] `recomputeTroopValuesForPlayer` (0x00532ba0): Feindliche Truppen im Umkreis des Lagers erscheinen lassen → playerDataArray[sp].totalEnemyTroopValue und totalEnemyRangedTroopValue lesen → totalEnemyRangedTroopValue wächst nur bei Nahkämpfern
+- [ ] `getRemainingRequiredEngineers` (0x005334a0): Belagerungsmaschine mit Ingenieuren bemannen → countCurrentlyManningEnginers-Feld der Maschine → steigt je Ingenieur um 1, bis Sollzahl (Trebuchet 3)
+- [ ] `findClosestLaddermanWithLadderPosition` (0x00533630): Feindlicher Leiterträger legt Leiter an Mauer → units[leiter].state.generic → 3
+- [ ] `playerMakeUnitSelection` (0x00535bc0): Belagerungsgerät mit 1 Ingenieur bemannen → Zählerfeld digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300 und getRemainingRequiredEngineers → Feld = Zahl der Ingenieure, Rest = Bedarf minus Feld
+- [ ] `tryAttackUnitID` (0x00537d60): Einheit greift per Befehl eine feindliche Einheit an → units[ziel].huntedBy → steigt um 1
+- [ ] `harassBuildingsWithSiegeAI` (0x0053d030): Gegnerisches Katapult beobachten, bis Munition leer ist → units[id].stoneAmmunition → 0 und keine Schüsse mehr
+- [ ] `processMeleeInitiation` (0x00549c70): Zwei gegnerische Nahkämpfer laufen aufeinander zu → units[a].attackedUnitID und state → state wechselt auf US_MELEE_ATTACK, sobald der Gegner im Umkreis von 2 Feldern ist
+- [ ] `findNearestEnemyAndHeadTowardsIt` (0x0054a7b0): Gruppe in Haltung aggressiv, Feind in Sicht → units[].movementType_OR_targetUnitID und lookForEnemy → Feind-ID und lookForEnemy negativ (-30 minus Abstand, mindestens -50)
+- [ ] `updateUnits` (0x00579300): Gegnerische Assassinen schicken → playerDataArray[sp].totalAssassinTroops und totalAttackTroops → beide steigen um die Zahl der Assassinen und fallen auf 0, wenn sie tot sind
+- [ ] `UpdateUnitLossData` (0x0044aa80): Eigene Einheit stirbt im Gefecht gegen Gegner X → DAT_UnitValueLossesPerEnemyPlayer vorher/nachher → ein Eintrag steigt um den Truppenwert; prüfen, welcher Index (Verlierer oder Gegner)
+- [ ] `UpdateTower4` (0x0041eda0): Einheit auf großen Turm stellen → buildings[turm].hasUnitsOntop → springt innerhalb von 100 Takten auf 1
+- [ ] `removeSiegeBuildings` (0x0040b540): Ende einer KI-Angriffswelle (siehe isAttackWaveComplete) → logicalState der Belagerungsgebäude und Tunnel dieses Spielers → wechselt auf BLS_REMOVE
+- [ ] `processDamageFromKillingPit` (0x00419800): Feindliche Einheit läuft über Mordgrube → units[ziel].health und buildings[grube].state vorher/nachher → health sinkt um 18000 oder wird 0, state 0 → 1
+- [ ] `lightUpBuilding` (0x0041c810): Gegnerisches Gebäude kurz nach dem Bau mit Brandpfeilen angreifen → buildings[id].fireDuration → bleibt 0, solange cooldownTimer größer 0
+- [ ] `updateGateDrawBridgeOpenCloseLogic` (0x004224f0): Feindliche Einheit nähert sich Tor mit pathLinkageRelated2 = 2 → buildings[tor].gateState2 → springt auf 1200 bei Abstand unter 25 Feldern
+- [ ] `UpdateSiegeTower` (0x00544750): 4 Ingenieure auf Turm bemannen und an Mauer fahren → units[turm].state und Bemannungszahl (digTileX__OR__...) → Zustand wechselt über FIRE_WEAPON, Bemannung 4, am Ende STAND_UP|IDLE und neues Gebäude
+- [ ] `UpdateCatapult` (0x00568320): Katapult schießt 3 Mal → units[k].stoneAmmunition vorher/nachher → sinkt um 3
+- [ ] `UpdateTrebuchet` (0x00569410): Triböke schießt Stein, dann Kuhwurf → units[triboeke].stoneAmmunition vorher/nachher → Stein sinkt um 1, Kuh lässt Steinbestand unverändert
+- [ ] `UpdateMangonel` (0x0056a3f0): Katapult feuert → neue Projektile ET_MANGONEL pro Salve zählen → 7
+- [ ] `UpdateBallista` (0x0056ecd0): Zwei Ingenieure auf Balliste schicken → Besatzungszähler der Balliste (digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300) → 2
+- [ ] `UpdateFireBallista` (0x00577cc0): Zwei Ingenieure bemannen eine Feuerballiste → units[id].digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300 → 2
+- [ ] `aiRecruitSortieRangedUnits` (0x004cd560): KI-Gegner mit Ausfalltruppe beobachten → AIC-Werte +0x14c/+0x150 des Gegners, totalTroopsType6 und unknownCounter_01 → Typ der neuen Einheiten = Wert bei +0x150; Nachwerben stoppt, sobald totalTroopsType6 ≥ unknownCounter_01 / 2 + Wert bei +0x14c
+- [ ] `aiRecruitSortieMeleeUnits` (0x004cd690): KI-Gegner mit Ausfalltruppe beobachten → AIC-Werte +0x154/+0x158 des Gegners und totalTroopsType7 → Typ der neuen Einheiten = Wert bei +0x158; Nachwerben stoppt, sobald totalTroopsType7 ≥ Wert bei +0x154
+- [ ] `aiShouldAttackOrWaitForTeamCoordination` (0x004cdcf0): Welle einer KI beobachten → beim Verlassen des aiPlayerState 0: totalAttackTroops - totalAttackingEngineerTroops und currentWaveRandomAttackingStrength lesen → Truppenzahl liegt nicht unter AttForceBase (AIC +0x1f4) + Zufallsanteil
+- [ ] `resetCountdownInHeatMap` (0x004edcb0): Gebäude der KI zerstören → heatMaps[x/5][y/5].destructionBasedPlacementCooldown → 10, danach sinkend
+- [ ] `ifNecessaryThrowOilAutomatically` (0x0051c570): Ingenieur mit Öl, 1 Feind nahe, Haltung aggressiv vs. normal → units[ing].targetingType → aggressiv: THROW_OIL, normal: unverändert
+- [ ] `updatePitchDitches` (0x005114c0): Pechgraben anzünden → pitchDitches[].state über die Zeit → 2, nach 20 Schritten 3, nach weiteren 200 Schritten -1
+- [ ] `processDamageToBuilding` (0x00516b80): Mauerfeld mit 2 Nachbarn angreifen → HeightLayer[tile] vorher/nachher → sinkt um den Schaden (bei weniger als 2 Nachbarn um 1,5-fach)
+- [ ] `UpdateEntity_PoisonCloud` (0x00401ff0): Giftwolke entsteht → rng_2 und logicalState der Entität jeden Takt lesen → logicalState wird 3 etwa 800 plus 8 Takte nach Beginn
+- [ ] `processUnitLossStatistic` (0x004563d0): Eigene Einheit fällt durch einen Gegner → finalKillMatrix[Gegner][eigener Slot] vorher/nachher → +1
+- [ ] `areActivePlayersMostlySameTeam` (0x004597d0): Gefecht 2 gegen 1: letzten Gegner besiegen → Aufrufergebnis oder Spielende-Meldung → TRUE
+- [ ] `UpdateBatteringRam` (0x005459b0): Rammbock schlägt auf Tor → buildings[ziel].currentHealth vorher/nachher → sinkt um 50 pro Treffer (UCP kann ändern)
+- [ ] `UpdateCrossbowman` (0x0055c7b0): Armbrustschützen im Marsch an einem Feind vorbeiführen → Zustand der Einheit (state.generic) → wechselt nur etwa alle 32 Ticks zum Schießen, bei Haltung Stand Ground gar nicht
+- [ ] `UpdateMaceman` (0x00560700): Keulenträger schlägt auf Gebäude (nicht Tor/Turm) → Gebäude-Trefferpunkte vorher/nachher → sinkt pro Schlag um 35 (Grundwert; UCP kann abweichen)
+- [ ] `UpdateSwordsman` (0x00561c10): Schwertkämpfer schlagen eine Mauer, dann ein Tor → Gebäude-Lebenspunkte vor/nach je Schlag → Mauer 70, Tor/Turm 6 (Grundwerte, UCP kann abweichen)
+- [ ] `UpdateArabianSwordsman` (0x00575c40): Arab. Schwertkämpfer schlägt auf normale Mauer und auf Tor → HP des Gebäudes vorher/nachher je Schlag → Mauer etwa 70, Tor oder Turm etwa 6 (Rüstung kann abweichen)
+- [ ] `CheckTribeActivityPercentages` (0x004cd070): Gegnerische Gruppe im Kampf → tribes[id].percentageAttackingUnk → über 10
+- [ ] `SelectionReplenishAmmo` (0x00465f90): Munition-auffüllen-Befehl bei Katapult mit 0 Munition und mindestens 10 Stein → Stein und units[].stoneAmmunition vorher/nachher → Stein sinkt um 10, Munition steigt auf 20
+- [ ] `computeTribePercentages` (0x005270f0): Gruppe im Nahkampf beobachten → tribes[id].percentageAttackingUnk → steigt über 0 und bleibt höchstens 100
+- [ ] `giveTribeAnInstruction` (0x00527c80): Nahkampftrupp per Befehl 0x20 auf einen Gegner schicken → units[ziel].huntedBy vorher/nachher → steigt um die Zahl der Nahkämpfer, die noch nicht auf das Ziel zeigen
+- [ ] `updateTribeCombatStanceBehavior` (0x0052a7d0): Aggressive Gruppe, Feind nähert sich → Abstand beim ersten Angriffsbefehl → unter 500 Mikro-Einheiten
+- [ ] `UpdateCageDog` (0x0056f9b0): Gruppe mit 6 Einheiten auf unter 16 Felder an einen Hundekäfig → Hundezustand units[].state → wechselt von 0xd2 weg
+- [ ] `UpdateLadderManState01` (0x004a4d60): Leiterträger stellt Leiter an Mauer → climbData[id].ladderDirection → gleich facingDirection der Einheit
+- [ ] `TryAcquireAmmunitionOrPlanToBuyStone` (0x00465f20): Einheit lädt Stein-Munition nach → Steinbestand und units[id].stoneAmmunition vorher/nachher → Stein -10, Munition +20
+
+## Bewegung/Wegfindung (17)
+- [ ] `UpdateTunnel` (0x00417fd0): Tunnelgräber graben lassen → units[tunnelgräber].tunnelerFinishedDigging → 2 nach Ende der Animation
+- [ ] `IgniteFireAtMiniTile` (0x004052e0): Tabelle EntityDefinedData.XYOffsetsInAllDirections einmal auslesen (64 Paare) → Wertebereich der Versätze → Streuung der Flamme um den Zielpunkt
+- [ ] `UpdateMonk` (0x00567640): Mönch mit Sammelbefehl zur Kathedrale schicken → units[mönch].state.generic → 0x69, nach Ankunft weiter 0x69 mit Sammelfeldwechsel alle 40 Takte
+- [ ] `calculateUnitMovementSpeed` (0x0052f7e0): Trupp bergauf und auf Ebene marschieren lassen → units[].calculatedMovementSpeed gegenüber movementSpeed → bergauf höher
+- [ ] `unitIsInMoat` (0x00534460): Einheit in einen Graben schicken → LogicLayer[tile] Bit 30 → 1
+- [ ] `isTowerTileOvercrowdedByCurrentPlayer` (0x00536780): Eigene Einheiten auf Turm der Stufe 1 schicken, bis 5 oben sind → Einheitenzahl auf den Gebäudekacheln → Obergrenze 5
+- [ ] `setDestinationForUnit` (0x0053d3d0): Einheit zu unerreichbarem Feld schicken → units[id].logicalState und Einheitenzahl → ob die Einheit verschwindet
+- [ ] `unitClimbing` (0x0054c1c0): Einheit klettert eine Leiter (climbData.type 1) → units[].climbingState und field203_0x35c über mehrere Takte → field203 zählt bis 96, climbingState steigt dabei um 1, Ende bei 5
+- [ ] `findClosestInnBuildingID` (0x0040b1a0): Wirtshaus mit laufender Bierlieferung beobachten → buildings[inn].flagonsOfAleOrCheeseOrReleaseDogs → größer 0 mit Bier, sinkt beim Verbrauch, 0 ohne Bier
+- [ ] `selectBuildingFromAListOfBuildingTypes` (0x004cdab0): Beliebiger Spielstand → DAT_SkirmishDefinedData.BuildingTargetPrioritySet1/2/3 einmal auslesen (je 46 Einträge) → Reihenfolge der Gebäudearten, die die KI als Ziele bevorzugt
+- [ ] `setCurrentAttackRaidParameter` (0x004cdf10): KI-Überfall beobachten → currentAttackRaidParameter, Gold der KI und des Ziels → KI-Gold < 1000 und Ziel-Gold ≥ 500: 0; Ziel-Gold < 500: Wert zwischen -(AIC +0x1a4 / 2) und 0
+- [ ] `computeEnemyKeepApproachTile` (0x004ce200): KI-Welle startet → playerDataArray[ki].shortestDistanceX/Y und mapAndTime.signpostEntryData[ki-1].x/y lesen → beide gleich, das Feld liegt am Rand der Zone des Ziels
+- [ ] `recomputeTotalTroopValueOfTroopsNearKeep` (0x0051fa70): Soldaten 39 und 41 Felder vom Lagerplatz stellen → playerTotalTroopValueOfTroopsNearKeep[spieler] → nur die 39er zählen
+- [ ] `applyMoveCommandOrRallyCommandToTribe` (0x00524340): Marschbefehl an Gruppe mit einer Einheit im Nahkampf → plannedDestinationX/Y dieser Einheit und der übrigen → Nahkämpfer unverändert, übrige = Zielkachel
+- [ ] `giveTribeMoveInstruction` (0x005263a0): Marschbefehl an Gruppe mit Trebuchet → units[trebuchet].x/y → bleibt unverändert
+- [ ] `ClickMoveUnit` (0x00480f00): Gruppe per Mausklick bewegen → Param0..Param4 des Befehls → Gruppennummer, Ziel x, Ziel y, Schalter, Geschwindigkeit
+- [ ] `doMoveFromTileToTile` (0x00497280): Einheit läuft auf brennendes Feld zu → units[].counter und field295_0x40a → counter steigt, field295 = 1
+
+## KI-Verhalten (43)
+- [ ] `isAttackWaveComplete` (0x00518350): Ende einer KI-Angriffswelle → attackInfo.value3Array01 → alle Gruppen 6
+- [ ] `getCurrentDesiredAttackRaidUnitCount` (0x004d12a0): KI-Raid beobachten → Einheitenzahl der Gruppe → gleich currentAttackRaidParameter + RaidUnitsBase
+- [ ] `ProcessAllyRequestAttackDefense` (0x004ad2f0): Verbündeter KI um Angriffshilfe bitten → playerDataArray[ki].requestStateUnk → 1 bei Zusage, sonst 0
+- [ ] `UpdateOutpostBuilding` (0x00411540): Außenposten-Wellen zeitlich messen → field268_0x308 vor/nach einer Welle sowie Abstand in Takten → Wartezeit 2000 minus 100 je bisheriger Welle, mindestens 100 (Einzelspiel) bzw. 400
+- [ ] `setTargetForTribeBasedOnTargetChoiceLogic` (0x004cacb0): KI-Gruppe bekommt Ziel → tribes[gruppe].targetPlayer_outpost → Spieler mit niedrigster Punktzahl laut Formel
+- [ ] `randomlySelectAttackUnitTypeToRecruit` (0x004cc070): KI-Angriffswelle vorbereiten → attackUnitRequired[0..10].required nach dem Aufruf → gesetzt für alle Gruppen mit Ist < Max
+- [ ] `aiRecruitEngineers` (0x004cc520): KI-Ingenieur wird angeworben → Gold der KI vorher/nachher → sinkt um 30 (Grundwert)
+- [ ] `setCurrentAttackStrength` (0x004cde60): Neue Welle einer KI → currentAttackWave und currentWaveRandomAttackingStrength vorher/nachher → Welle +1; Stärke = AttForceRandom × (0 bis 99) / 100 + Welle × 5 (× 7 bei Gold > 10000), höchstens 200
+- [ ] `setTribe0x11ToAggressiveAndAttackIfConditionMet` (0x004cf560): KI-Angriff gegen Burg mit Graben beobachten → attackInfo.playerInfo[sp-1].moat2 → größer 0 und Gruppe 17 bekommt aggressive Haltung
+- [ ] `giveSomeRaidCommand` (0x004cf920): KI-Raid beobachten → tribes[].targetBuildingID → wechselt, sobald das Ziel brennt
+- [ ] `aiCommandSiegeEngineTribes` (0x004cfcd0): KI-Belagerung beobachten → attackInfo.playerInfo[sp-1].gate2 / wide3 → Rammen wählen bei gate2 != 0 das Tor
+- [ ] `setAttackCoordinationLevel` (0x004d0110): Mehrere Angriffswellen einer KI beobachten → playerDataArray[sp].aiAttackCoordinationLevel nach jeder Welle → Stufe 0, 1 oder 2, höhere Stufe wird häufiger
+- [ ] `teamIsWeakRelativeToEnemy` (0x004d0190): Feindliche Fernkämpfer vor KI aufstellen → relativeStrengthOfTeamComparedToEnemy → KI wird nervös unter 250 vor Tick 12000
+- [ ] `aiCreateSiegeUnits` (0x004d2000): KI baut Belagerungsgerät → playerDataArray[ki].isEngineerRequired und aiSiegeCreationInformation → Feld steigt auf 1 bei Ingenieurmangel
+- [ ] `aiGiveRaidInstructions` (0x004d2a70): Jahreswechsel bei laufendem KI-Raubzug → tribes[Raubzug-Gruppe].targetBuildingID → wird 0
+- [ ] `updateAIStrengthState` (0x004d3320): KI-Gegner mit Gold/Volk/Nahrung/Truppen in bekannter Höhe → playerDataArray[ki].aiStrengthState und aiStrengthFeeling → Summenwert, Gefühl bei <3 / 3-7 / >=8
+- [ ] `computeNervousness` (0x004d3780): KI mit bekanntem Truppenwert in Burgnähe und Feindwert 150 → isNotNervousByEnemyTroopValue → Umschlag bei Truppenwert Burg = 170
+- [ ] `selectAttackTarget` (0x004d4680): KI im Gefecht mit zwei Gegnern unterschiedlicher Entfernung → playerDataArray[ki].attackedPlayerID nach dem Monatstakt → bei CLOSEST der Gegner mit kleinerem achsenbasierten Abstand
+- [ ] `updateAIPlayerState` (0x004d49e0): KI-Welle über mehrere Wochentakte beobachten → playerDataArray[ki].aiPlayerState → Folge 0,1,2,3,4 (dann 5/6) und bei attackTicker >= 200 oder Nervosität 8 dann 9
+- [ ] `recomputeAIAvailableGridTiles` (0x004ee830): KI-Spielstart auf Karte mit Eisen in der Nähe → playerDataArray[sp].availableIronGridTiles und algoIronCooldown → Zähler > 0 und Cooldown 0
+- [ ] `aiDecideOnNewBuildings` (0x004f15c0): KI-Spieler mit Gold über 16000 beobachten → aivs[aivID].currentStepGoal je Aufruf → steigt um 2 (bei 5000 bis 15999 um 1)
+- [ ] `searchTribeWithProperties` (0x005182a0): KI-Welle startet → attackInfo.value3Array01[platz], attackWaveTicker[platz], attacker → 3, 10000, Spieler-ID des Opfers
+- [ ] `isAttackWaveComplete` (0x00518350): Ende einer KI-Angriffswelle → attackInfo.value3Array01 → alle Plätze mit Gruppen stehen auf 6
+- [ ] `isLessThanPercentageOfTribesInAttackDying` (0x00518bb0): KI-Welle mit Verlusten → getTribeAliveStatus je Gruppe der Welle (ab 50 sterbend) → Anteil sterbend gegen Schwelle vergleichen
+- [ ] `computeAttackWaveTroopComposition` (0x00519310): KI-Angriffswelle bei bekannter Stufe field86974_0x20f74 → attackInfo ab Offset 134972 (Dezimal) → Werte passen zur Stufentabelle
+- [ ] `assignMacemenAndKnightsNotFromPlayer1ToTribes` (0x0051ccb0): KI hat 41 Streitkolbenträger → attackInfo.macemenTribeCount → 5
+- [ ] `trySendMacemenTribeToAttack` (0x0051cf90): KI-Welle läuft → attackInfo.macemenTribeCount über mehrere Takte → sinkt jeweils um 1
+- [ ] `advanceAttackWaveStaging` (0x0051d690): KI-Welle beginnt → attackInfo.value3Array01[welle] → 2 und attackWaveTicker → 0
+- [ ] `updateActiveAttackWaveState` (0x0051d730): Laufende KI-Welle → attackInfo.attackWaveTicker[welle] mehrfach lesen → steigt je Aufruf um 1, nach 1000 wieder 0
+- [ ] `updateTribeBehaviorBasedOnBehaviorType` (0x0051d7f0): KI-Angriffswelle beobachten → tribes[id].tribeBehaviorType und unknownAttackRelatedUpdateCounter mehrfach lesen → Zustand wechselt in der Reihenfolge der Fälle (z.B. 3 dann 4, 5 dann 6, 0x3ff dann 0x400), Zähler setzt bei Wechsel auf 0
+- [ ] `executeAttackWaveTargetAssignment` (0x005205a0): KI-Welle in Zustand 3 beobachten → attackInfo.value10 und value3Array01 → value10 steigt je Zuweisungsrunde um 1
+- [ ] `executeDelayedAttackWaveTargetAssignment` (0x00520cd0): KI-Welle in Zustand 4 beobachten → attackInfo.attackWaveTicker[Gruppe] → zählt bis 400 und springt dann auf 0
+- [ ] `aiControlNonSkirmishUnitMovement` (0x00520f70): KI-Angriffswelle beobachten → attackInfo.value3Array01[Gruppe] → durchläuft die Zustände 0 bis 6 und endet bei 6
+- [ ] `spawnAttackWaveForPlayer` (0x004bc1c0): Eine Invasionswelle auslösen bei Schwierigkeit 0 und 2 → Einheitenzahl der Welle → 50 % bzw. 140 % der Editor-Menge
+- [ ] `spawnInvasionEventAttackWave` (0x004c13f0): Invasions-Ereignis einer Szenariokarte auslösen → attackInfo.inv_count vorher/nachher → steigt um 1 (nach 49 wieder 1)
+- [ ] `processSingleplayerEvents` (0x004c31a0): Szenario mit Invasionsereignis (10 Bogenschützen) auf Schwierigkeit 3 → Zahl der erzeugten UT_E_ARCHER der Welle → 20
+- [ ] `UpdateFlag_1_2_4_Entity` (0x00402900): KI-Flagge einer Gegner-Burg über die Zeit lesen → Entität someTracker und aiRecruitUnitChoiceState des Gegners → Flaggenwert folgt dem Zustand (0 defensiv, 1 Raubzug, 2 sonst, 3 bei aiNervousActionsTracker ungleich 0) mit Verzögerung bis zum Ende der Animation
+- [ ] `moveUnitToBehaviorTarget` (0x00521280): KI-Welle läuft → units[].unknownDigMoatOrWallAttackFlag1015 und targetedBuildingTile der Angreifer lesen → Werte aus 0x3f2, 0x3f5, 0x3f6, 0x3f7, 0x3fb, 0x3fd, 0x413 oder 0x414
+- [ ] `assignAttackTargetsForTribe` (0x005244d0): KI-Welle beobachten → units[].unknownDigMoatOrWallAttackFlag1015 der Angreifer → targetType-Wert (zum Beispiel 1013 Gebäude, 1021 Lord)
+- [ ] `spawnQueuedReinforcementWaves` (0x00527440): Gefecht mit Wellen laufen lassen → mapAndTime.countUpTo201 über die Zeit → zählt hoch, springt nach 200 auf 0, danach neue Gruppe mit höchstens 9 Einheiten
+- [ ] `findAppropriateLocationForSiegeTent` (0x0049f7d0): KI-Belagerungszelt wird gesetzt → Abstand zum Startpunkt der Suche → mindestens 5 Schritte
+- [ ] `computeAIZoneLayer` (0x004a4470): Burg mit Mauer und Graben im Spiel → AIZoneLayer an Kacheln vor und hinter der Mauer lesen → Sprung von etwa 7 an der Mauer
+- [ ] `computeAttackVectorsBasedOnXAndY` (0x004a69f0): Beginn einer KI-Angriffswelle → mapAndTime.attackVectors[spieler] → bis zu 50 Einträge mit x/y, tribeID zuerst 0
+
+## Wirtschaft/Lager (60)
+- [ ] `ComputePlayerPoints1` (0x0044a830): Punktzahl-Anzeige im Spiel mit Rechnung aus Beständen vergleichen → angezeigte Punkte → gleich der Formel
+- [ ] `UpdatePoleTurner` (0x00557230): Pike-Werkstatt arbeiten lassen → Holzbestand und Pikenbestand über mehrere Waffen → je Pike sinkt Holz um 2
+- [ ] `UpdateQuarryWorker` (0x00550d70): Steinbruch beobachten → buildings[steinbruch].resources[4] und Steinbestand des Lagers → resources[4] steigt je 1 bis 8, fällt dann auf 0, danach steigt der Steinbestand
+- [ ] `getWorkerBlockingStateIfStuck` (0x0053a150): Betrieb ohne Eisen laufen lassen (Schmied wartet) → Rueckgabe der Funktion bzw. Anzeige → 0x38
+- [ ] `UpdateBakery` (0x00414720): Bäckerei mit vollem Personal bauen, dann ohne Personal → playerDataArray[sp].countBakers und someCount13 → countBakers steigt um 1 je Bäckerei, someCount13 nur bei voller Besetzung
+- [ ] `UpdateBrewery` (0x00414b60): Brauerei mit vollem Personal bauen, dann ohne Personal → playerDataArray[sp].countBrewers und someCount12 → countBrewers steigt um 1 je Brauerei, someCount12 nur bei voller Besetzung
+- [ ] `UpdateGranary` (0x00415110): Nahrungsart im Verteilungsmenü sperren (Kornspeicher mit Vorrat) → playerDataArray.totalFood vorher/nachher → sinkt um den Bestand dieser Art
+- [ ] `UpdateInn` (0x004156f0): Schenke mit Ale und Arbeiter beobachten → flagonsOfAle und playerDataArray.aleRate → flagons sinkt alle aleRate Ticks um 1
+- [ ] `UpdateWheatFarm` (0x00416540): Weizenfarm beobachten → buildings[id].growCounter → zählt bis 150 und springt dann auf 0 (Takt 151)
+- [ ] `UpdateHopsFarm` (0x00416630): Hopfenfarm beobachten → buildings[id].growCounter → zählt bis 400 und springt dann auf 0 (Takt 401)
+- [ ] `UpdateDairyFarm` (0x004167e0): Milchfarm mit Arbeiter beobachten → buildings[id].resources[11] und field214_0x298 → Käse-Wert wird 1 beim Wechsel Zustand 6 nach 0, Abstand der Käse über 400 Ticks
+- [ ] `UpdateKeepStronghold` (0x00417aa0): Spielstart mit Startgold 5000 → currentResources[15] und startResources[15] über einige Ticks → Konto steigt alle 4 Ticks um 100, Rest sinkt gleich
+- [ ] `getPriceForDisbandedUnitType` (0x0040c800): Bogenschützen entlassen → Gold vorher/nachher → Differenz je Einheit (Grundwert 12)
+- [ ] `growWheat` (0x0040cc30): Weizenfarm beobachten → buildings[id].farmGrowState und DamageLayer der Felder → Zustand 8 bei mindestens 4 Feldern auf Stufe 121
+- [ ] `growHops` (0x0040ebf0): Hopfenfarm beobachten → buildings[b].farmGrowState und DamageLayer der tileRefs → Zustand 5 bei mindestens 6 Kacheln mit Stufe 14-27
+- [ ] `updateNeededEmployeeCount` (0x0040f620): Gebäude mit Arbeitsplätzen ohne freie Bauern bauen → buildings[b].currentlyNeededEmployeeCount → gleich Zahl der Plätze
+- [ ] `updateAllBuildingsSnoozedState` (0x0040f750): Gebäudetyp pausieren → buildings[b].resources und sleeping vorher/nachher → Bestände 0, sleeping 1
+- [ ] `processBuildingIDsNeedPeasantsQueue` (0x0040f9d0): Neuen Steinbruch bauen mit freien Bauern → buildings[b].workerID[0..2] → alle drei belegt
+- [ ] `UpdateInnkeeper` (0x00540ec0): Wirtshaus mit Ale im Lager laufen lassen → Ale im Lager und flagonsOfAleOrCheeseOrReleaseDogs des Wirtshauses vorher/nachher → Ale sinkt um 1, Füllstand steigt um 160 je Gang
+- [ ] `UpdatePitchman` (0x00551980): Pechgrube mit Lager, Pech wird geliefert → finalResults.finalPitchProduced[eigener Spieler] vorher/nachher → steigt um 1 je eingelagertem Stück
+- [ ] `UpdateWheatFarmer` (0x005521d0): Weizenbauer mit vollem Lager → Weizenbestand und Zustand des Bauern über mehrere Takte → Bestand bleibt gleich, Bauer wartet in AWAITING_STORE_SPACE
+- [ ] `UpdateHopsFarmer` (0x00552f80): Hopfenbauer bringt Ladung zum Lager → units[bauer].resourceToDeposit nach Look-Around → Wert aus ComputeGoodsProduced (Modus 2 im Mehrspieler, 1 im Einzelspiel)
+- [ ] `UpdateAppleFarmer` (0x00553ae0): Apfelbauer liefert ab → Apfelbestand und finalResults.finalFoodProduced[sp] vorher/nachher → steigen um 1 je Apfel
+- [ ] `UpdateDairyFarmer` (0x00554500): Milchbauer bei vollem Kornspeicher beobachten → resources[0xb] der Molkerei und Käsebestand → Käse bleibt im Gebäude, Bestand steigt nicht
+- [ ] `UpdateMiller` (0x00554cc0): Mühle laufen lassen → Weizen- und Mehlbestand vorher/nachher → Weizen sinkt um 1 je Gang, Mehl steigt um den Wert aus ComputeGoodsProduced
+- [ ] `aiUpdateTaxesAndRations` (0x004caea0): KI-Beliebtheit fällt unter criticalPopularity → taxesSetting der KI → 2
+- [ ] `aiShouldBuildWoodcutter` (0x004cb290): totalWoodAvailable lesen und KI-Holzfällerzahl zählen → KI baut ab 3. Hütte nicht mehr bei Wert < 30
+- [ ] `planToBuyWhenLowOnResourceAndSnoozeBuildings` (0x004cba50): KI ohne Holz im Lager beobachten → playerDataArray[sp].noWoodTracker und resourcesToAcquireArray[2] → Zähler steigt je Aufruf um 1, ab Wert 37 steht Wunsch 5
+- [ ] `shareGoldAmongTeamMembers` (0x004d05d0): Team mit KI-Verbündeten, Gold des Gebers und Empfängers vor/nach beobachten → currentResources[GOLD] → Geber minus n*(gold/n), Empfänger plus gold/n
+- [ ] `requestGoods` (0x004d1f00): Bündnis-KI bittet um Ware → playerDataArray[mensch].requestedGoodsArray1Unk[ki] und requestedGoodsArray2Unk[ki] → Warennummer und Menge der Bitte
+- [ ] `UpdateQuarry` (0x0041d510): Steinbruch mit 3 Arbeitern und freiem Lager laufen lassen → Stein im Lagerfeld des Steinbruchs über Zeit → steigt um 1 je Durchlauf und stoppt bei 47 bis 48
+- [ ] `UpdateHuntersPost` (0x00423370): Jägerposten mit Jäger laufen lassen → resources[RT_MEAT] im Gebäude über einen Zyklus → Zuwachs je Zustandsende, höchstens 6
+- [ ] `processFoodConsumption` (0x00458ad0): Rationen auf 3 stellen → foodClockSpeed → 1,5 × (Einwohner × 3), bei 40 Einwohnern 180
+- [ ] `updateAleRate` (0x00458d50): aleRate eines Spielers mit Burg lesen → Feld playerData.aleRate → 36
+- [ ] `updateFearFactorProductivity` (0x00458ec0): Angstfaktor-Stufe 3 einstellen → fearFactorProductivityUnk → 70
+- [ ] `calculateTaxIncomeForPlayer` (0x00459080): Steuerstufe 5 bei 40 Bauern im Einzelspiel → Goldzuwachs je Takt → 80
+- [ ] `calculateTaxBribeExpenseForPlayer` (0x00459140): Steuerstufe 1 mit 40 Einwohnern und Gold über 0 → Goldabfluss je Takt → 80
+- [ ] `despawnPeasantOrWorker` (0x004591f0): Bevölkerung bei null freien Bauern verringern → welcher Berufstyp verschwindet → Heiler vor Priester vor Wirt
+- [ ] `computePopulationStatistics` (0x0045af30): Gold-Spende erhalten (Gefecht, Verbündeter) → currentResources[15] über mehrere Takte → steigt in Schritten von höchstens 10
+- [ ] `updatePopularity` (0x0045b830): Wochenwechsel abwarten und popularityChangeBasedOnTax/Crowding/Food lesen → Steuerstufe 5: -100, Ration 4: +200, Enge über 180: -250
+- [ ] `updateTaxing` (0x0045bf50): Steuerstufe 5 setzen, Monatswechsel abwarten → Gold vorher/nachher und lastMonthsIncomeTax → Gold steigt um lastMonthsIncomeTax
+- [ ] `processSingleTimeTick` (0x0045ca20): Zwei Wochenwechsel beobachten → mapTimeInTicks bei weekChanged → Abstand in Takten notieren (Ticks je Woche)
+- [ ] `UpdateOx` (0x0053f940): Ochse am Steinbruch beladen und beim Lager abgeladen → units[ochse].resourceToDeposit und Steinbestand → Bestand steigt je Abladetakt um 1, Ladung vor Abladen 8
+- [ ] `UpdateFletcher` (0x0054d8f0): Bogenmacher fertigt einen Bogen → Holz im Lager und Waffenbestand vorher/nachher → Holz sinkt um 2, Bogenbestand steigt (für die andere Waffe: Holz um 3)
+- [ ] `UpdateHunter` (0x0054f860): Jäger liefert eine Ladung ab → finalFoodProduced des Spielers vorher/nachher → steigt um die Ladung (erwartet 6, einzeln +1 je Takt)
+- [ ] `UpdateBaker` (0x00555880): Bäckerei läuft einen Zyklus → Mehl- und Brotbestand vorher/nachher → Mehl sinkt um 1, Brot steigt um die Zahl aus ComputeGoodsProduced
+- [ ] `UpdateBrewer` (0x005565d0): Brauerei läuft einen Zyklus → Hopfen- und Alebestand vorher/nachher → Hopfen sinkt um 1 je Runde, Ale steigt um die Zahl aus ComputeGoodsProduced
+- [ ] `UpdateBlacksmith` (0x00557f70): Waffenschmied liefert ab → Waffenbestand in der Waffenkammer und finalWeaponsProduced[Spieler] vorher/nachher → beide steigen je Ablieferung um 1
+- [ ] `UpdateArmorer` (0x00558cb0): Rüstungsschmied liefert ab → Rüstungsbestand der Waffenkammer und finalWeaponsProduced[Spieler] vorher/nachher → beide steigen je Ablieferung um 1
+- [ ] `UpdateTanner` (0x005598d0): Gerber über mehrere Zyklen beobachten → RT_LEATHERARMOR in der Waffenkammer und finalWeaponsProduced vorher/nachher → +1 je Rüstung, Menge je Zyklus aus ComputeGoodsProduced
+- [ ] `ChangeTaxes` (0x00465800): Steuerstufe im Spiel ändern → playerDataArray[sp].taxesSetting → Rohwert je Stufe notieren
+- [ ] `ChangeRations` (0x00465890): Rationsstufe im Spiel ändern → playerDataArray[sp].rationsSetting → Rohwert je Stufe notieren
+- [ ] `UpdateWoodcuttersHut` (0x00410d20): Holzfällerhütte bauen und besetzen → playerDataArray[sp].countWoodcutters und noLabourerBuildingCount → Zähler der passenden Hütte steigt um 1
+- [ ] `UpdateIronMine` (0x0041cc70): Eisenmine mit Arbeiter beobachten → buildings[mine].resources[RT_IRON] vorher/nachher je Gussabschluss → steigt um 1 (Obergrenze 8)
+- [ ] `QueueChangeTaxes` (0x00465700): Steuerschieber verstellen → taxesSliderUI und taxesSetting2 des Spielers → beide gleich der neuen Stufe
+- [ ] `updateFoodTypesInStockForAllPlayers` (0x00458a70): Spieler mit Brot und Käse, ohne Fleisch und Äpfel → foodTypesInStock → 2
+- [ ] `SomePopularityRelatedComputation` (0x0043e540): Beliebtheit im Spiel auf bekannten Wert bringen (z. B. 50) → popularity des Spielers lesen → vermutlich 5000
+- [ ] `ComputeGoodsProduced` (0x00530d70): Produktionsgebäude beobachten bei fearFactorProductivityUnk = 120 → Warenzuwachs über 10 Schritte → 12 statt 10 Stück
+- [ ] `UpdateWoodcutter` (0x0054c710): Holzfäller liefert ins Lager → finalResults.finalWoodProduced[spieler] und RT_WOOD des Lagers vorher/nachher → beide steigen um je 1 pro Stück, Lagerbestand höchstens bis zur Grenze 48 je Lagerfeld
+- [ ] `UpdateMinerIronFetcher` (0x00566010): Eisenträger liefert ins Lager → finalResults.finalIronProduced[spieler] und Eisenbestand vorher/nachher → steigen um denselben Betrag je Lieferung
+
+## Tabellen einmal auslesen (78)
+- [ ] `initializeProjectileVelocities` (0x00403a20): EntityArrayCurveTypeForProjectileType einmal aus dem Speicher lesen → Wert je Geschosstyp → Werte 0 bis 10 den Geschossarten zuordnen
+- [ ] `checkUnitHasPropertyBasedOnUnitType` (0x0052f0a0): Tabelle UnitClimbStateFlags aus dem Speicher lesen → Zeilen je property und Einheitentyp → Zuordnung der Zeilen zu Eigenschaften
+- [ ] `isComputerManagedNonPeasant` (0x00530080): COMPUTER_MANAGED-Tabelle aus dem Speicher lesen → Wert je Einheitentyp → Liste der selbstgesteuerten Typen
+- [ ] `processUnitAttackOtherUnit` (0x00531220): MELEE_DAMAGE-Tabelle aus dem Speicher lesen → Zeilen für Assassine, Schwertkämpfer, Ritter → Werte als Grundwerte notieren (UCP kann abweichen)
+- [ ] `processEntityDamageToUnit` (0x00531920): ARROW_DAMAGE, STONE_DAMAGE und BOLT_DAMAGE aus dem Speicher lesen → Werte je Einheitentyp → mit Grundwerten vergleichen
+- [ ] `setUnitValues` (0x0053b8e0): BASE_HP[typ] und UNIT_MOVEMENT_SPEED_ARRAY[typ] einmal aus DAT_UnitPropertiesDefinedData lesen → Werte je Typ → Grundwerte (UCP kann sie ändern)
+- [ ] `acquireShootTarget` (0x0054b0d0): EntityTypeArrayForProjectileRange für die Typen 1, 2, 3, 4, 7, 20, 33, 34, 37 einmal aus dem Speicher lesen → Tabellenwerte → Reichweite in Feldern (Grundwert, UCP kann ändern)
+- [ ] `buildingHasSpaceForResource` (0x0040be70): StorageLimitResourceTypeArray einmal auslesen → Tabelle je Ware → Grenzen notieren (Grundwerte)
+- [ ] `getBuildingStorageTypeForResourceType` (0x0040bfd0): StorageBuildingTypeArray einmal auslesen → Tabelle je Ware → Gebäudetyp notieren
+- [ ] `getBuildingCost` (0x0040c5f0): buildingCosts[] einmal auslesen → Tabelle → Gold-/Steinkosten mit den Grundwerten vergleichen
+- [ ] `getBuildingPriority` (0x0040f700): BuildingPrioritiesWhenFire und BuildingPrioritiesWhenNoFire aus dem Speicher lesen → je 30 Gebäudetypen
+- [ ] `updateLordLadyJesterAndGhostUnits` (0x0040fc40): MaxLordHealthMapping (DAT_SkirmishDefinedData) einmal auslesen → aiTypeA und maxHealthMultiplier je KI-Charakter → mit units[lord].maxHealth der KI vergleichen
+- [ ] `initBuildingCosts` (0x00419780): buildingCosts[typ] (Holz, Stein, weitere Felder) einmal aus dem Speicher lesen → mit BuildingCost-Tabelle vergleichen → Abweichungen zeigen UCP-Änderungen
+- [ ] `rebuildTileLogicLayerForKeeps` (0x00419be0): BuildingIsKeepArray einmal aus dem Speicher lesen → Typen mit Wert != 0 → Liste der Burgtypen
+- [ ] `determineBuildingEntranceFromKeepArea` (0x0041ade0): BuildingAccessibleTilesCount[größe], BuildingAccessibleTilesCountForOneLarger[größe] und ABuildingTypeValueArray[typ] aus dem Speicher lesen → Tabellenwerte je Größe/Typ
+- [ ] `processResourceGain` (0x0041c310): StorageLimitResourceTypeArray einmal aus dem Speicher lesen → Grenze je Ware
+- [ ] `getBuildingSizeIndexMappingData` (0x004f9880): DAT_BuildingSizeIndexMapping einmal aus dem Speicher lesen → Einträge je Kante und Index → X, Y und vier Drehwerte
+- [ ] `SetBuildingsEmployeeCountToValue` (0x0041a390): EmployeeCountPerBuildingType einmal aus dem Speicher lesen → Wert je Gebäudetyp → Arbeitsplätze laut Tabelle (Grundwert, UCP kann ändern)
+- [ ] `UpgradeMapUnitsTo_UnknownVersion1` (0x0053b3e0): UNIT_ENEMY_NOTICE_RANGE und UNIT_CLIMB je Einheitentyp einmal aus UnitPropertiesDefinedData lesen → Tabellenwerte → mit UCP-Stand vergleichen
+- [ ] `UpgradeMapUnitsLordHealthTo_169` (0x0053b610): MaxLordHealthMapping aus DAT_SkirmishDefinedData einmal lesen → maxHealthMultiplier je KI-Art → Werte notieren (Prozent)
+- [ ] `setAICParameters_01` (0x004c6d60): AICState.aics[n] einmal aus dem Speicher lesen → AttForceBase, DefTotal, TargetChoice → mit diesem Satz vergleichen (UCP und Karten können abweichen)
+- [ ] `setAICParameters_02` (0x004c7120): AICState.aics[n] einmal aus dem Speicher lesen → AttForceBase, DefTotal, AttMaxLaddermen, TargetChoice → mit diesem Satz vergleichen (UCP und Karten können abweichen)
+- [ ] `setAICParameters_03` (0x004c7520): KI-Block aics[idx] einmal aus dem Speicher lesen → Felder wie AttForceBase, TargetChoice → gleich den Werten hier (Abweichung = UCP/AIC-Datei)
+- [ ] `setAICParameters_04` (0x004c7910): KI-Block aics[idx] einmal aus dem Speicher lesen → AttForceBase, CowThrowInterval, TargetChoice → gleich den Werten hier (Abweichung = UCP/AIC-Datei)
+- [ ] `setAICParameters_05` (0x004c7d20): KI-Block aics[idx] einmal aus dem Speicher lesen → AttMaxAssassins, AttForceBase, TargetChoice → 5, 50, GOLD (Abweichung = UCP/AIC-Datei)
+- [ ] `setAICParameters_06` (0x004c8110): KI-Block aics[idx] einmal aus dem Speicher lesen → RaidUnitsBase, AttMainGroupsCount, TargetChoice → 30, 5, BALANCED (Abweichung = UCP/AIC-Datei)
+- [ ] `setAICParameters_07` (0x004c8530): KI-Block aics[idx] einmal aus dem Speicher lesen → SiegeEngine1, AttMaxEngineers, AttUnitBackupMax → 0, 0, 120 (Abweichung = UCP/AIC-Datei)
+- [ ] `setAICParameters_08` (0x004c8920): KI-Block aics[idx] einmal aus dem Speicher lesen → recruitProbAttackStrong, AttMaxTunnelers, TargetChoice → 90, 3, CLOSEST (Abweichung = UCP/AIC-Datei)
+- [ ] `setAICParameters_09` (0x004c8d20): Gegner mit KI-Satz 09 in der Partie → aics[aicIndex] im Speicher → Werte gleich wie hier (z. B. maxFood 200, AttForceBase 30), sonst von UCP geändert
+- [ ] `setAICParameters_10` (0x004c9120): Gegner mit KI-Satz 10 → aics[aicIndex] im Speicher → AttForceBase 10, DefTotal 20, SiegeEngine1 0
+- [ ] `setAICParameters_11` (0x004c94f0): Gegner mit KI-Satz 11 → aics[aicIndex] im Speicher → AttForceBase 40, AttCoordinationPreference 90
+- [ ] `setAICParameters_12` (0x004c9900): Gegner mit KI-Satz 12 → aics[aicIndex] im Speicher → maxFarms 16, RecruitInterval 0, TargetChoice Gold
+- [ ] `setAICParameters_13` (0x004c9cf0): Gegner mit KI-Satz 13 → aics[aicIndex] im Speicher → AttMaxAssassins 40, TargetChoice Closest
+- [ ] `setAICParameters_14` (0x004ca0c0): Gegner mit KI-Satz 14 → aics[aicIndex] im Speicher → AttForceBase 50, CowThrowInterval 6, AttMaxAssassins 10
+- [ ] `setAICParameters_15` (0x004ca4d0): aics-Block der KI lesen → Felder wie criticalPopularity, AttForceBase → gleich den Codewerten (4000, 10)
+- [ ] `setAICParameters_16` (0x004ca8a0): aics-Block der KI lesen → AttForceBase, taxesMax → gleich den Codewerten (50, 12)
+- [ ] `unitIDIsRangedOrArmored` (0x004cc8d0): RangedAndArmoredUnits[0..6] aus dem Speicher lesen → 7 Einheitentypen
+- [ ] `getDefensiveTribeForUnit` (0x004ccbe0): DefenseTribesUnitTypeArray[0..19] aus dem Speicher lesen → 20 Einheitentypen in Gruppenreihenfolge
+- [ ] `addUnitToSmallestBehaviourTypeTribe` (0x004ccd20): AIUnitBehaviourTypeMapping einmal aus dem Speicher lesen → Zuordnung Verhaltenstyp-10 zu Gruppenplatz
+- [ ] `aiChoiceAttForceRallyPercentage` (0x004cec80): Tabelle aics[].AttForceRallyPercentage für alle KI-Figuren einmal auslesen → Werte notieren → je Figur eine Prozentzahl 0-100
+- [ ] `percentageNonMovingTribesGTEAICSpecified` (0x004ced90): Tabelle aics[].AttMovingTribesThreshold einmal auslesen → Werte notieren → je Figur eine Prozentzahl
+- [ ] `useAITribe_0x12_toPlaceSiegeTentsAndAssignEngineers` (0x004cefd0): Tabelle SiegeEngineTypeRequiredEngineers[0..5] und SiegeEngineUnitType[0..5] einmal auslesen → Werte notieren → Ingenieure je Gerät
+- [ ] `isResourceLargerOrEqualThanMinimumGoodsRequiredAfterTrade` (0x004d0520): Tabelle aics[].minimumGoodsRequiredAfterTrade einmal auslesen → Werte notieren → eine Zahl je Figur
+- [ ] `setInitialAIC` (0x004d18b0): aics-Tabelle einmal aus dem Speicher lesen → Werte je KI-Figur → mit setAICParameters_NN vergleichen (zeigt UCP-Änderungen)
+- [ ] `buyRequiredGoods` (0x004d39b0): ResourceAcquisitionPreferenceOrder (25 Einträge) einmal aus dem Speicher lesen → Reihenfolge der Waren
+- [ ] `updateTribeLocations` (0x004d4940): aics[typ].defWallPatrolRallyTime je KI-Typ einmal aus dem Speicher lesen → Zahl je Typ → Takt der Patrouillenwechsel
+- [ ] `convertAIVBuildingTypeToCommandBuildingType` (0x004ecfe0): Tabelle DAT_AIVDefinedData.field21_0xf4 einmal auslesen → 80 Werte → Zuordnung AIVBT_TOWER1 + i zu Baubefehls-Typ
+- [ ] `SetAIPlayerNickNames` (0x0042a8e0): Gefecht mit mehreren KI-Typen starten → aiVariationArray und currentAIArray je Slot lesen → Slot-Name passt zur Textnummer Basis+Variante
+- [ ] `sortAttackInfoTribeIDArrayBasedOn` (0x00518380): Tabellen ab 0xb4c830 bis 0xb4d0a0 aus dem Speicher lesen → 12 Truppenarten je Verhaltenstyp → Rangfolge der KI-Truppen
+- [ ] `getValueOfTroopType` (0x0051c360): Tabelle DAT_RenderingDefinedData (Felder TUNNELER, MONK, CATAPULT, A_ARCHER, SLAVE, SLINGER, ASSASSIN, HARCHER, A_SWORDSMAN, FIRETHROWER, S_FBALLISTA und NoRushTicks) aus dem Speicher lesen → Werte je Einheitenart → Grundwerte notieren (UCP kann abweichen)
+- [ ] `initializeOrAdvanceAttackWave` (0x0051ff90): Tabelle DAT_AttackInfoDefinedData.field1_0x28 einmal auslesen → Wert je Gegner (attacker 1-8) → Takte der Vorbereitung
+- [ ] `updateInProgressAttackWave` (0x00520450): Tabelle DAT_AttackInfoDefinedData.AttackWaveDurationPerAttacker einmal auslesen → Wert je Gegner (attacker 1-8) → Dauer einer Welle in Takten
+- [ ] `setTreeStageRelatedValues` (0x004f2020): TreeRelated1 und TreeRelated2 [Baumart][Stufe] einmal aus dem Speicher lesen → Werte je Art und Stufe → ob sie Holz oder Haltbarkeit sind, danach klären
+- [ ] `importTradingCosts` (0x004b7800): Spielstart → mapAndTime.copyOfBuyAndSalesPrice[0..49] und isResourceTradeable[0..24] einmal lesen → Preise gleich BuyPricePerResource/SalesPricePerResource (UCP kann abweichen)
+- [ ] `commitBuildingAvailability` (0x004baec0): Karte mit gesperrtem Gebäude laden → buildingAvailabilityRelatedFlags der Gebäudenummer → 0
+- [ ] `setMapSize` (0x004f6f90): MapSizes aus DAT_TerrainDefinedData einmal auslesen → Tabelle → Werte absteigend, Ende -1
+- [ ] `getBuildingSizeForCommandBuildingType` (0x004fa550): Sprungtabelle bei 0x004fa5e8 einmal aus dem Speicher lesen → Klasse je Gebäudetyp → Werte 0-12 gemäß obiger Zuordnung
+- [ ] `useEraserBrush` (0x005017c0): BrushSizeArray einmal aus dem Speicher lesen → Pinselgrößen je Art
+- [ ] `applyTreeBrushToLogicalLayer` (0x00508dd0): BrushSizeArray einmal aus dem Speicher lesen → Werte je Index 0..3 → Felderzahl je Baumstufe
+- [ ] `eraseAreaWithBrush` (0x00508ec0): BrushSizeArray einmal aus dem Speicher lesen → Werte je Pinselindex → Felderzahl des Radierers
+- [ ] `prepareMap` (0x00512450): maxUnitCount, maxBuildingsCount und maxEntityCount lesen → in laufender Partie → 2500, 2000, 3000 (sonst UCP-Änderung)
+- [ ] `setTerrain` (0x00512940): BrushSizeArray in DAT_TerrainDefinedData einmal auslesen → Pinselgröße je brushType → Werte notieren
+- [ ] `createWaterForDrawBridge` (0x00515c80): DrawbridgeOrientationMapping einmal aus dem Speicher lesen → Tabelle → Werte je Ausrichtung festhalten
+- [ ] `placeTree` (0x00515da0): BrushSizeArray einmal aus dem Speicher lesen → DAT_TerrainDefinedData.BrushSizeArray[0..3] → Werte festhalten
+- [ ] `LaunchSkirmishGame` (0x00441270): Tabellen StartGoods, StartingTroops, NoRushTicks einmal aus dem Speicher lesen → Werte je Intensität → mit startGoods und startingTroops zu Spielbeginn vergleichen
+- [ ] `isSameTeam` (0x00401090): Gefecht mit Bündnis starten → mapAndTime.playerTeams[0..8] → Verbündete haben gleiche Nummer
+- [ ] `resetVariousCountsAndStatisticsAndStartGoodsAndResources` (0x00455e10): Gefecht starten (Mensch und KI, je Stufe) → startResources[0xf] aller Spieler → entspricht Tabelle field451_0x53bb4 (Mensch +0xC, KI +0xD)
+- [ ] `resetCountsAndStatistics` (0x004560f0): armySize eines Spielers über mehrere Takte lesen → Wert → fällt kurz auf 0 und baut sich wieder auf; previousArmySize bleibt stabil
+- [ ] `checkRequiredResourcesForBuildingOrPlanToBuy` (0x00457b80): buildingCosts je Gebäudetyp aus dem Speicher lesen → Eisen/Pech/Holz/Stein/Gold je Typ → mit den Grundwerten vergleichen, Abweichungen stammen von UCP
+- [ ] `isResourceTypeTradeable` (0x00458740): isResourceTradeable je Ware einmal lesen → Liste der handelbaren Waren der Karte → deckt sich mit dem Marktfenster
+- [ ] `getNextGoodFilteringUnallowed` (0x004587a0): MarketResourceCycleArray einmal lesen → Reihenfolge der Waren und Endwert → Reihenfolge entspricht dem Durchblättern im Marktfenster
+- [ ] `getPreviousGoodsFilteringUnallowed` (0x00458820): MarketResourceCycleArray einmal lesen → Anzahl Einträge vor 0xffffffff → 20
+- [ ] `getBatchBuyPrice` (0x00458890): buyAndSalesPriceArray einmal lesen → buyPrice und salesPrice je Ware → Zahlen wie im Marktfenster
+- [ ] `initializeGameStateAfterMapLoad` (0x0045b3e0): Gefecht starten → mapAndTime.buyAndSalesPriceArray einmal lesen → Standardpreise des Gefechts, nicht aus der Karte
+- [ ] `updateTrader` (0x0045b6b0): traderRelatedCounter2 und traderRelated1 aus mapAndTime lesen → Wartezeiten des Händlers (vermutlich in Takten) je Karte
+- [ ] `GetDifficultyMultipliedValue` (0x004b7ab0): DifficultyEventMultipliers einmal aus dem Speicher lesen → Prozentwert je Schwierigkeitsstufe → Tabelle festhalten
+- [ ] `SetupSkirmishBalanceAndOrIntensity` (0x00429710): Die Tabellen SkirmishIntensityRelatedArray und SkirmishIntensityRelatedArray2 einmal aus dem Speicher lesen und mit den Startwerten eines Gefechts vergleichen
+- [ ] `initPopularityAndRecruitableDefaults` (0x0045ad10): Spielstart → mapAndTime.euroRecruitable[0..6], mercRecruitable[0..6] und playerDataArray[1..8].someCount44 lesen → alle Freigaben 1, someCount44 gleich storedPopularityPercent
+
+## Sonstiges (25)
+- [ ] `CommandSpawnEntity` (0x004845b0): Feuerkorb im Modus GM_SIEGE_THAT setzen → Gold vorher/nachher → sinkt um den Preis von M_MAPPER_BRAZIER
+- [ ] `determineGameTicksToPerform` (0x00487a30): Normale Spielgeschwindigkeit (Stufe 40) → mapTimeInTicks über 10 Sekunden Echtzeit → steigt um etwa 400
+- [ ] `queueCommand` (0x00489100): Beliebigen Befehl absetzen → GameSynchronyState.commandDelay lesen und Tick, an dem die Wirkung eintritt, mit mapTimeInTicks vergleichen → Wirkung kommt etwa commandDelay Ticks nach dem Absetzen (Grundwert 35)
+- [ ] `ClickUnitStance` (0x004847b0): Haltung einer Gruppe im Spiel wechseln (jede Stufe einmal) → Param1 beim Ausführen mitlesen → Zuordnung Haltung zu Zahl; Param0 = Kennung der gewählten Gruppe
+- [ ] `UpdateFireEntity` (0x00405680): Brand an einem Holzgebäude im normalen Spiel beobachten → entityArray[id].someTracker/fireParameter_0xb6/field79_0xb8 und buildings[b].fireDuration je Spielschritt mitschreiben → Phase 1 hält bis fireDuration 0; Nachbarfeuer haben Stufe - 1; Brenndauer in Spielschritten
+- [ ] `CountPlayerUnitsByType` (0x00440360): Spiel mit bekanntem Heer → DAT_UnitTypeRelatedCounter[typ] gegen eigene Zählung → gleich; Einträge 66 bis 70 bleiben 0
+- [ ] `UpdateHealer` (0x00540440): Heiler im Spiel → playerDataArray[sp].healerCount nach einem Takt → entspricht der Zahl der aktiven Heiler des Spielers
+- [ ] `findTunnelTarget` (0x00537700): Tunnelgräber-Suche beobachten → buildings[id].tunnelerCounter → läuft 0 bis 5 hoch, dann -1
+- [ ] `GateOpenOrClose` (0x004654f0): Tor per Befehl öffnen und schließen → buildings[tor].gateState und gateCloseOpenTimer → 11 mit Timer 600 bzw. 10 mit Timer -1
+- [ ] `ProcessBuildingSleepUpdate` (0x004660f0): Gebäudeart per Befehl pausieren → Byte 0x0115DF8C + sp·0x39F4 + Typ → 0 wird 1
+- [ ] `countBuildingsForPlayer` (0x0040a9b0): Gebäude eines Typs (zum Beispiel Farm) im Normalbetrieb, mit und ohne Arbeiter, beobachten → buildings[id].field201_0x2c8 (Offset 0x2c8 im Gebäudeeintrag) → erwartet 0 im normalen Betrieb, ungleich 0 in einem noch zu klärenden Sonderzustand
+- [ ] `updateEnemyBuildings` (0x00419d70): Normaler Spielverlauf → playerBuildingInfoIndex[sp] und playerEnemyBuildingIDs[sp] lesen → Anzahl entspricht den Gegnergebäuden ohne die ausgeschlossenen Typen
+- [ ] `destroyBuildings` (0x0041a860): Spieler besiegt oder alle Gebäude zerstört → buildings[id].noRubble je Typ → Zusammenhang mit BuildingShowRubbleWhenDestroyed[typ] klären
+- [ ] `updateAIBehaviour` (0x004d53e0): dayTicks, weekTicks, monthTicks über mehrere Spieltakte mitlesen → Umlaufdauer je Zähler → Tag-, Wochen- und Monatslänge in Takten
+- [ ] `setKeepOffsetAndOrientation` (0x004ecf70): KI-Burg beim Spielstart → aivs[id].keepOrientation und keepX/keepY → Wert 0, 2, 4 oder 6, Offset = Burgposition - 43
+- [ ] `UpdateMercenaryPost` (0x004113c0): Söldnerposten gebaut, Spiel läuft → playerDataArray[sp].someCount04 über mehrere Takte → steigt um 5 je Takt oder wird vom Spiel zurückgesetzt
+- [ ] `UpdateCampGround` (0x00418100): Lagerplatz mit Bauern → campStage und field155_0x270 über mehrere hundert Takte → Stufenfolge 3, 5, 6, 2, 4, 3 mit den Schwellen 1000/300/80/200/600
+- [ ] `updateDateAndTime` (0x00456670): Spiel über einen Jahreswechsel laufen lassen → mapAndTime.month/year → month erreicht höchstens 12, danach year +1 und month = 0
+- [ ] `teamToBitFlagsUnk` (0x00459740): Gefecht mit 2 Teams → Rückgabe für eine Einheit lesen (Aufruf in der Spielfunktion) → Bits der Teamkameraden gelöscht
+- [ ] `WindowMsgProcessingFunc` (0x004b2ae0): Taste + auf dem Ziffernblock im Einzelgefecht drücken, bei gameSpeedLevel 20 → DAT_GameCore.gameSpeedLevel vorher/nachher → 25; bei 90 bleibt es 90; Taste - bei 20 bleibt 20
+- [ ] `UpdateChild` (0x005477c0): Kinder je Spieler in units[] (unitType UT_CHILD) zählen → Anzahl → nie über 75
+- [ ] `UpdateQuarryMason` (0x00550a50): Steinmetz stirbt → buildings[Steinbruch].idleTimerUnk → 4000
+- [ ] `UpdatePriest` (0x00566750): Priester segnet eine Einheit → units[ziel].blessedAmount → 8000
+- [ ] `setUnitStance` (0x00522c20): Haltung einer Gruppe im Spiel ändern → tribes[id].unitStance → 0 / 1 / 2 je Haltung
+- [ ] `updateSeparateAreaTileMap` (0x004995e0): Während des Spiels counterForUpdatingSeparateAreaTileMaps mehrfach lesen → Zähler → sinkt je Aufruf um 1 und springt bei 0 auf 200
