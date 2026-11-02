@@ -84,8 +84,7 @@ def lua_fehler(text):
     except ImportError:
         return "nicht geprueft: lupa fehlt"
     lua = lupa.LuaRuntime(unpack_returned_tuples=True, encoding="latin-1")
-    _, fehler = lua.globals().load(text)
-    return fehler
+    return lua.eval("function(t) local f, e = load(t); return e end")(text)
 
 
 def warte_auf(bedingung, sekunden, was, schlaf=0.25, uhr=time.time, ruhe=time.sleep):
