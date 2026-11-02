@@ -70,8 +70,9 @@ def bild(datei):
     Image.open(os.path.join(SPIEL, "ucp", "villagestudio", "vs_karte.bmp")).save(os.path.join(BILDER, datei))
     return os.path.join(BILDER, datei)
 
-def lade_stand(ziel, mit_bild=True):
-    """Laedt den Stand, haelt beim ersten Tick an und gibt diese Spielzeit zurueck."""
+def lade_stand(ziel, mit_bild=True, zuvor=()):
+    """Laedt den Stand, haelt beim ersten Tick an und gibt diese Spielzeit zurueck.
+    zuvor: Befehle, die im selben Auftrag vor dem Laden laufen (Messlaeufe: Werte, die das Laden nicht zuruecksetzt)."""
     oeffne_dialog()
     namen = liste()
     if ziel not in namen:
@@ -83,7 +84,7 @@ def lade_stand(ziel, mit_bild=True):
     print("Eintrag %d '%s' -> Scrollstand %d, Zeile %d; Spielzeit vorher %d" % (n, ziel, scroll, zeile, vorher))
 
     print(befehl({"ladepause": True}))                            # haelt beim ersten Tick nach dem Laden
-    antwort = sende({"befehle": [
+    antwort = sende({"befehle": [dict(c, id=neue_id(), player=1) for c in zuvor] + [
         {"id": neue_id(), "player": 1, "poke": SCROLL, "wert": scroll},
         {"id": neue_id(), "player": 1, "poke": MARKIERT, "wert": zeile},
         {"id": neue_id(), "player": 1, "laden": 2}]}, 4.0, bis="LADEPAUSE: Laden erkannt")

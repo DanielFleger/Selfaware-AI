@@ -698,6 +698,50 @@ def test_einzelpunkte_lesen_urteilen_und_lauf_k_bleibt_draussen(tmp_path):
     assert "P004" in ap.bericht(e)
 
 
+def test_rechne_hash_wie_compute_hash():
+    import numpy as np
+
+    from selfaware.tools.analysis import auge_auswertung as aw
+
+    # 1 -> gedreht 2; 2 + 2 = 4 -> gedreht 8. Das hoechste Bit kommt unten wieder an.
+    werte = np.array([[1, 2], [0x80000000, 0]], dtype=np.uint64)
+    assert aw.rechne_hash(werte).tolist() == [8, 2]
+
+
+def test_spielstand_gleich_achtet_nur_auf_die_maske(tmp_path, monkeypatch):
+    import numpy as np
+
+    from selfaware.tools.analysis import auge_auswertung as aw
+    from selfaware.tools.experiments import auge_aufzeichnung as aa
+
+    class Quelle:
+        def __init__(self, stand):
+            self.t, self.stand = 0, stand
+
+        def lies(self, adr, n):
+            return struct.pack("<I", self.t) if adr == 0x2000 else bytes(self.stand)
+
+    def aufnahme(name, staende):
+        q = Quelle(bytearray(4))
+        a = aa.Aufzeichner(q, [aa.Bereich("x", 0x1000, 4, 1)], str(tmp_path / name), takt_adresse=0x2000)
+        for i, s in enumerate(staende):
+            q.t, q.stand = i + 1, s
+            a.schritt()
+        a.schliessen()
+        return aw.Aufzeichnung(str(tmp_path / name))
+
+    monkeypatch.setattr(aw, "spielmasken", lambda karte, auf: {"x": np.array([True, True, False, False])})
+
+    class Karte:
+        def felder_einer_aenderung(self, adr, l):
+            return [("g", f"feld{adr - 0x1000}")]
+
+    a = aufnahme("a.auge", [bytes((1, 0, 0, 0)), bytes((2, 0, 0, 0))])
+    assert aw.spielstand_gleich(a, 1, aufnahme("b.auge", [bytes((1, 0, 7, 0)), bytes((2, 0, 9, 9))]), 1, 1, Karte()).status == aw.BESTAETIGT, "Ausserhalb der Maske zaehlt nicht"
+    e = aw.spielstand_gleich(a, 1, aufnahme("c.auge", [bytes((1, 0, 0, 0)), bytes((3, 0, 0, 0))]), 1, 1, Karte())
+    assert e.status == aw.WIDERLEGT and e.daten["erster"] == 1 and e.daten["felder"][0][0] == "g feld0"
+
+
 def test_warten_nach_dem_hochzaehlen(tmp_path):
     from selfaware.tools.experiments import auge_aufzeichnung as aa
 

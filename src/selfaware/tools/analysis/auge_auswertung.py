@@ -3,7 +3,6 @@
 
 Jede Aussage gilt nur fuer die ausgewertete Aufzeichnung. Der Aenderungsmelder sieht nur, was sich zwischen zwei
 Lesungen unterscheidet; was im Takt hin und zurueck wechselt, sieht er nicht.
-Noch nicht gebaut: A8 (Buchfuehrung), A11 (Pruefsummen), Einzelpunkte und Versuche.
 Aufruf: python -m selfaware.tools.analysis.auge_auswertung lauf_f.auge [--zweite lauf_k2.auge --t1 T --t2 T --takte 2000]
 """
 import argparse
@@ -295,6 +294,197 @@ def a6_gleicher_verlauf(auf1, t1, auf2, t2, takte, karte):
     return Ergebnis("A6", BESTAETIGT, f"{verglichen - gemischt} Rahmen gleich in diesem Abschnitt, {gemischt} gemischte uebersprungen", {"rahmen": verglichen, "gemischt": gemischt})
 
 
+def _setze(m, basis, adr, n, wert=True):
+    a, b = max(0, adr - basis), min(len(m), adr + n - basis)
+    if a < b:
+        m[a:b] = wert
+
+
+def spielmasken(karte, auf):
+    """Die Bytes, die das Spiel selbst als Zustand ansieht: Das sind die Bereiche seiner Pruefsumme (recomputeHashesAndSendResync 0x0048CC90), mit ihren Ausnahmen.
+    Alles andere sind Zeichnen, Merker fuer den Takt und nicht gespeicherte Reste. Rueckgabe: {Bereich: Wahrheitsfeld}; der Zufall gilt ganz."""
+    import numpy as np
+
+    masken = {}
+
+    def neu(name):
+        i = auf.namen.index(name)
+        masken[name] = np.zeros(auf.bereiche[i][2], dtype=bool)
+        return masken[name], auf.bereiche[i][1]
+
+    m, b = neu("DAT_UnitsState")
+    adr, _, s, n = karte.adresse("DAT_UnitsState", "units[].animationTicker")
+    for i in range(n):
+        a = adr + i * s
+        _setze(m, b, a - 4, 12)
+        _setze(m, b, a + 0x4C, 0x404)
+        _setze(m, b, a + 0x3DC, 8, False)  # field325_0x41c, field326_0x420
+    m, b = neu("DAT_BuildingsState")
+    adr, _, s, n = karte.adresse("DAT_BuildingsState", "buildings[].animationIndex")
+    for i in range(n):
+        a = adr + i * s
+        _setze(m, b, a + 0xB0, 0x25C)
+        _setze(m, b, a + 0x2DC, 2, False)
+        _setze(m, b, a, 2)
+        for o in (0x34, 0x30, 0x2C, 0x28, -0x10):
+            _setze(m, b, a + o, 4)
+    m, b = neu("DAT_LandscapeState")
+    adr, _, s, n = karte.adresse("DAT_LandscapeState", "trees[].state")
+    for i in range(n):
+        _setze(m, b, adr + i * s, 0x58)
+    m, b = neu("DAT_TribesState")
+    adr, _, s, n = karte.adresse("DAT_TribesState", "tribes[].owner")
+    for i in range(n):
+        _setze(m, b, adr + i * s, 0x330)
+    m, b = neu("DAT_GameState")
+    adr, _, s, n = karte.adresse("DAT_GameState", "playerDataArray[].someAiCountdown3")
+    for i in range(n):
+        a = adr + i * s
+        _setze(m, b, a - 0x384C, 0x399C)
+        _setze(m, b, a, 16, False)
+        _setze(m, b, a + 0x12C, 4, False)
+    adr = karte.adresse("DAT_GameState", "mapAndTime.field192_0x194")[0]
+    _setze(m, b, adr, 0x11BC94C - adr)
+    m, b = neu("DAT_EntityState")
+    adr, _, s, n = karte.adresse("DAT_EntityState", "entityArray[].x1")
+    for i in range(0x19, n):
+        e = adr + i * s
+        _setze(m, b, e - 0xC, 0xE8)
+        _setze(m, b, e - 0xC, 4, False)  # graphicType2
+        for k in (8, 0, 1, 6, 7, 10, 0x59, 0x5A, 0x5E, 0x5F, 0x60, 0x61):
+            _setze(m, b, e + 2 * k, 2, False)
+        _setze(m, b, e + 0xB8, 4, False)
+    return masken
+
+
+def _luecken(d):
+    """(Versatz, Laenge) der wahren Stellen eines Wahrheitsfelds."""
+    import numpy as np
+
+    w = np.flatnonzero(d)
+    if not len(w):
+        return []
+    g = np.flatnonzero(np.diff(w) > 1)
+    a, e = np.concatenate(([w[0]], w[g + 1])), np.concatenate((w[g], [w[-1]]))
+    return list(zip(a.tolist(), (e - a + 1).tolist()))
+
+
+def spielstand_gleich(auf1, t1, auf2, t2, takte, karte, nr="A6"):
+    """Takt fuer Takt: Weichen die Bytes ab, die das Spiel selbst als Zustand ansieht? Sagt nur etwas, wenn die Fenster fertige Takte gelesen haben (warte_ms)."""
+    import numpy as np
+
+    masken = spielmasken(karte, auf1)
+    takte_gesehen, je_bereich, felder, erster = set(), collections.Counter(), collections.Counter(), None
+    verglichen = gemischt = 0
+    for (r1, p1), (r2, p2) in zip(_je_takt(auf1, t1, t1 + takte), _je_takt(auf2, t2, t2 + takte)):
+        if r1.takt - t1 != r2.takt - t2 or r1.bereich != r2.bereich:
+            return Ergebnis(nr, WIDERLEGT, f"die Aufzeichnungen laufen auseinander: Takt {r1.takt} gegen {r2.takt}", {"gleich_bis": verglichen})
+        name = auf1.namen[r1.bereich]
+        if name not in masken and name != "SEC_RNG":
+            continue
+        verglichen += 1
+        if not (r1.rein and r2.rein):
+            gemischt += 1
+            continue
+        d = np.frombuffer(p1, dtype=np.uint8) != np.frombuffer(p2, dtype=np.uint8)
+        if name in masken:
+            d &= masken[name]
+        if d.any():
+            takte_gesehen.add(r1.takt - t1)
+            je_bereich[name] += 1
+            if erster is None:
+                erster = r1.takt - t1
+            if len(takte_gesehen) <= 200:
+                basis = auf1.bereiche[r1.bereich][1]
+                for o, l in _luecken(d):
+                    for g, f in karte.felder_einer_aenderung(basis + o, l):
+                        felder[f"{g} {f}"] += 1
+    daten = {"rahmen": verglichen, "gemischt": gemischt, "takte_mit_abweichung": len(takte_gesehen), "erster": erster, "bereiche": dict(je_bereich), "felder": felder.most_common(60)}
+    if not verglichen:
+        return Ergebnis(nr, NICHT_GESEHEN, "kein gemeinsamer Abschnitt", daten)
+    if erster is not None:
+        return Ergebnis(nr, WIDERLEGT, f"{len(takte_gesehen)} Takte weichen ab, zuerst {erster} Takte nach dem Start, Bereiche {dict(je_bereich)}, Felder {[f for f, _ in felder.most_common(6)]}", daten)
+    return Ergebnis(nr, BESTAETIGT, f"{verglichen - gemischt} Rahmen in den Bytes der Spiel-Pruefsumme und im Zufall gleich, {gemischt} gemischte uebersprungen", daten)
+
+
+def rechne_hash(werte):
+    """computeHash 0x0046CD30 ueber die Zeilen einer Matrix aus 32-Bit-Zahlen, je Spalte: Summe, dann um 1 nach links drehen."""
+    import numpy as np
+
+    x = np.zeros(werte.shape[0], dtype=np.uint64)
+    for j in range(werte.shape[1]):
+        x = (x + werte[:, j]) & 0xFFFFFFFF
+        x = ((x << 1) | (x >> 31)) & 0xFFFFFFFF
+    return x
+
+
+def _zeilen(roh, basis, adr, schritt, anzahl, laenge, nullen=()):
+    """Zeilen aus 32-Bit-Zahlen: je Eintrag laenge Bytes ab adr. nullen: (Versatz, Laenge) in der Zeile, die das Spiel vor dem Rechnen auf 0 setzt."""
+    import numpy as np
+
+    z = np.frombuffer(roh, dtype=np.uint8)
+    a = adr - basis
+    feld = np.stack([z[a + i * schritt:a + i * schritt + laenge] for i in range(anzahl)]).copy()
+    for o, l in nullen:
+        feld[:, o:o + l] = 0
+    return np.frombuffer(feld.tobytes(), dtype="<u4").reshape(anzahl, laenge // 4).astype(np.uint64)
+
+
+def a11_pruefsummen(auf, karte, slot=0):
+    """HASH_HashTotal ueber die Zeit und die Teilsummen aus dem ersten Takt nachgerechnet. Im Gefecht fuer einen Spieler rechnet das Spiel nur beim Start (processSingleTimeTick prueft die Spielart).
+    Stimmen die Teilsummen, liegen auch die Bereiche von spielmasken richtig."""
+    import numpy as np
+
+    noetig = ("datenblock", "DAT_UnitsState", "DAT_BuildingsState", "DAT_LandscapeState", "DAT_TribesState", "DAT_GameState")
+    if any(n not in auf.namen for n in noetig):
+        return Ergebnis("A11", NICHT_GESEHEN, "Datenblock oder Spielbereiche nicht aufgezeichnet", {})
+    summe = karte.adresse("DAT_GameSynchronyState", "HASH_HashTotal")
+    i_daten = auf.namen.index("datenblock")
+    b_daten = auf.bereiche[i_daten][1]
+    werte, erste = [], {}
+    for r, p, _ in auf.staende():
+        n = auf.namen[r.bereich]
+        if n == "datenblock":
+            w = struct.unpack_from("<9i", p, summe[0] - b_daten)
+            if not werte or werte[-1][1] != w:
+                werte.append((r.takt, w))
+        if n in noetig and n not in erste:
+            erste[n] = (r.takt, bytes(p))
+    if "datenblock" not in erste:
+        return Ergebnis("A11", NICHT_GESEHEN, "kein Stand gelesen", {})
+
+    def basis(n):
+        return auf.bereiche[auf.namen.index(n)][1]
+
+    def gespeichert(feld, anzahl):
+        return np.frombuffer(erste["datenblock"][1], dtype="<u4", offset=karte.adresse("DAT_GameSynchronyState", feld)[0] - b_daten, count=anzahl).astype(np.uint64)
+
+    teile = {}
+    adr, _, s, n = karte.adresse("DAT_UnitsState", "units[].animationTicker")
+    g = "DAT_UnitsState"
+    roh = erste[g][1]
+    rest = (rechne_hash(_zeilen(roh, basis(g), adr + 0x4C, s, n, 0x404, ((0x3DC - 0x4C, 8),))) + sum(_zeilen(roh, basis(g), adr + o, s, n, 4)[:, 0] for o in (-4, 0, 4))) & 0xFFFFFFFF
+    teile["Einheiten"] = (rest, gespeichert("HASH_Units", n))
+    adr, _, s, n = karte.adresse("DAT_BuildingsState", "buildings[].animationIndex")
+    g = "DAT_BuildingsState"
+    roh = erste[g][1]
+    kurz = np.frombuffer(np.stack([np.frombuffer(roh, dtype=np.uint8)[adr - basis(g) + i * s:adr - basis(g) + i * s + 2] for i in range(n)]).tobytes(), dtype="<i2").astype(np.int64)
+    rest = (rechne_hash(_zeilen(roh, basis(g), adr + 0xB0, s, n, 0x25C, ((0x2DC - 0xB0, 2),))).astype(np.int64) + kurz + sum(_zeilen(roh, basis(g), adr + o, s, n, 4)[:, 0].astype(np.int64) for o in (0x34, 0x30, 0x2C, 0x28, -0x10))) & 0xFFFFFFFF
+    teile["Gebaeude"] = (rest.astype(np.uint64), gespeichert("HASH_Buildings", n))
+    adr, _, s, n = karte.adresse("DAT_LandscapeState", "trees[].state")
+    teile["Baeume"] = (rechne_hash(_zeilen(erste["DAT_LandscapeState"][1], basis("DAT_LandscapeState"), adr, s, n, 0x58)), gespeichert("HASH_Trees", n))
+    adr, _, s, n = karte.adresse("DAT_TribesState", "tribes[].owner")
+    teile["Gruppen"] = (rechne_hash(_zeilen(erste["DAT_TribesState"][1], basis("DAT_TribesState"), adr, s, n, 0x330)), gespeichert("HASH_Tribes", n))
+    adr, _, s, n = karte.adresse("DAT_GameState", "playerDataArray[].someAiCountdown3")
+    teile["Spieler"] = (rechne_hash(_zeilen(erste["DAT_GameState"][1], basis("DAT_GameState"), adr - 0x384C, s, n, 0x399C, ((0x384C, 16), (0x384C + 0x12C, 4)))), gespeichert("HASH_PlayerDatas", n))
+    ergebnis = {k: {"gleich": int((a == b).sum()), "gesamt": len(a), "nicht_null": int((b != 0).sum())} for k, (a, b) in teile.items()}
+    daten = {"werte": [[t, list(w)] for t, w in werte[:20]], "wechsel": len(werte) - 1, "teile": ergebnis, "takte": {k: v[0] for k, v in erste.items()}}
+    text = f"HASH_HashTotal wechselt {len(werte) - 1} Mal, Platz {slot}: {werte[-1][1][slot]}; nachgerechnet aus Takt {erste['DAT_UnitsState'][0]}: " + ", ".join(f"{k} {v['gleich']} von {v['gesamt']} ({v['nicht_null']} nicht 0)" for k, v in ergebnis.items())
+    if not any(any(w) for _, w in werte):
+        return Ergebnis("A11", GEMESSEN, "Pruefsummen bleiben 0, die Probe entfaellt. " + text, daten)
+    return Ergebnis("A11", BESTAETIGT if all(v["gleich"] == v["gesamt"] for v in ergebnis.values()) else WIDERLEGT, text, daten)
+
+
 def a7_zufall(auf, name="SEC_RNG"):
     """currentNumber = randomNumbers[index - 1], Umlauf bei 20.000 (nextRandomNumber1, nextRandomNumber2)."""
     if name not in auf.namen:
@@ -327,7 +517,7 @@ def a9_befehle(auf, gesendet=None, name="befehle", groesse=1272):
         return Ergebnis("A9", NICHT_GESEHEN, "Befehlsring nicht aufgezeichnet", {})
     b = auf.namen.index(name)
     je_takt = collections.Counter()
-    for r, _, teile in auf.staende():
+    for r, p, teile in auf.staende():
         if r.bereich != b or (r.art == VOLL and teile is None):
             continue
         if r.art == VOLL:  # auch in vollen Rahmen koennen neue Befehle stecken
