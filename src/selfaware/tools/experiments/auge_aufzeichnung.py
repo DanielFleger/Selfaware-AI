@@ -10,7 +10,9 @@ import argparse
 import ctypes
 import json
 import os
+import queue
 import struct
+import threading
 import time
 import zlib
 from ctypes import wintypes
@@ -131,12 +133,18 @@ class Aufzeichner:
         self.letzter = None
         self._stand = {}
         self._zuletzt = {}
+        self._fehler = None
         self._f = open(datei, "wb")
         k = dict(kopf or {})
         k["bereiche"] = [[b.name, b.adresse, b.laenge, b.alle] for b in self.bereiche]
         k["takt_adresse"] = self.takt_adresse
         roh = json.dumps(k, ensure_ascii=False).encode("utf-8")
         self._f.write(KENNUNG + struct.pack("<I", len(roh)) + roh)
+        # Lesen und Packen getrennt: Vergleichen, Packen und Schreiben kosten mehr Zeit als ein Takt auf Tempo 40 hat (Lauf F
+        # 02.11.2026: 7 Takte fehlten). Ist die Schlange voll, wartet nur das Lesen, nie das Spiel; dann fehlen Takte.
+        self._schlange = queue.Queue(maxsize=128)
+        self._packer = threading.Thread(target=self._packen, daemon=True)
+        self._packer.start()
 
     def takt(self):
         return struct.unpack("<I", self.quelle.lies(self.takt_adresse, 4))[0]
@@ -148,7 +156,6 @@ class Aufzeichner:
             return False
         zurueck = self.letzter is not None and t < self.letzter
         if zurueck:
-            self._stand.clear()
             self._zuletzt.clear()
         self.letzter = t
         for i, b in enumerate(self.bereiche):
@@ -159,15 +166,33 @@ class Aufzeichner:
             roh = self.quelle.lies(b.adresse, b.laenge)
             nach = self.takt()
             dauer = self.uhr() - start
-            alt = self._stand.get(i)
-            art, nutz = (VOLL, roh) if alt is None else (AENDERUNG, aenderungen(alt, roh))
-            self._stand[i] = roh
             self._zuletzt[i] = t
-            z = zlib.compress(nutz, 1)
-            self._f.write(RAHMEN.pack(art, i, REIN if vor == nach else 0, vor, nach, start, dauer, len(nutz), len(z)))
-            self._f.write(z)
-            self._f.write(struct.pack("<I", zlib.crc32(z)))
+            self._schlange.put((i, zurueck, vor, nach, start, dauer, roh))
+        if self._fehler:
+            raise self._fehler
         return True
+
+    def _packen(self):
+        n = 0
+        while True:
+            auftrag = self._schlange.get()
+            if auftrag is None:
+                return
+            try:
+                i, voll, vor, nach, start, dauer, roh = auftrag
+                alt = None if voll else self._stand.get(i)
+                art, nutz = (VOLL, roh) if alt is None else (AENDERUNG, aenderungen(alt, roh))
+                self._stand[i] = roh
+                z = zlib.compress(nutz, 1)
+                self._f.write(RAHMEN.pack(art, i, REIN if vor == nach else 0, vor, nach, start, dauer, len(nutz), len(z)))
+                self._f.write(z)
+                self._f.write(struct.pack("<I", zlib.crc32(z)))
+                n += 1
+                if n % 50 == 0:
+                    self._f.flush()  # damit die Wache des Laufs mitlesen kann
+            except Exception as e:  # noqa: BLE001  der Lesefaden meldet den Fehler weiter
+                self._fehler = e
+                return
 
     def lauf(self, takte=None, sekunden=None, pause=0.001, stop=None):
         """Bis die Takte voll sind, die Zeit um ist oder stop() wahr wird."""
@@ -175,15 +200,17 @@ class Aufzeichner:
         while (takte is None or n < takte) and (sekunden is None or self.uhr() - anfang < sekunden) and not (stop and stop()):
             if self.schritt():
                 n += 1
-                if n % 50 == 0:
-                    self._f.flush()  # damit die Wache des Laufs mitlesen kann
             else:
                 time.sleep(pause)
-        self._f.flush()
         return n
 
     def schliessen(self):
+        if self._packer.is_alive():
+            self._schlange.put(None)
+            self._packer.join()
         self._f.close()
+        if self._fehler:
+            raise self._fehler
 
 
 def tempo_ohne_lesen(quelle, sekunden=10.0, takt_adresse=TAKT_ADRESSE):

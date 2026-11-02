@@ -98,6 +98,15 @@ def test_wiedergabe_entspricht_genau_dem_speicher(tmp_path):
     assert any(r.art == AENDERUNG for r in a.rahmen())
 
 
+def test_packfehler_kommt_beim_schliessen_an(tmp_path, monkeypatch):
+    import selfaware.tools.experiments.auge_aufzeichnung as az
+    monkeypatch.setattr(az.zlib, "compress", lambda *a: (_ for _ in ()).throw(ValueError("kaputt")))
+    auf = Aufzeichner(Spiel(), BEREICHE, tmp_path / "f.auge", {}, takt_adresse=TAKT)
+    auf.schritt()
+    with pytest.raises(ValueError, match="kaputt"):
+        auf.schliessen()
+
+
 def test_aenderungen_finden_auch_einzelne_bytes_am_rand():
     alt = bytes(100)
     neu = bytearray(alt)

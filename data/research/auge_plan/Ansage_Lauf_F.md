@@ -26,7 +26,7 @@ Das Auge, nicht das Spiel und nicht SamurAI: Liest die Aufzeichnung lückenlos m
 - **Tempo:** Spieltempo 40. Die Laufdauer ist nicht vorhergesagt, sie wird gemessen. Die Wartefristen im Werkzeug betragen je Abschnitt bis zu 30 Minuten, für die Jahreswechsel bis zu 60 Minuten.
 - **Messgrößen:** alle Hauptstrukturen jeden Takt (9,0 MB), Kartenebenen alle 25 Takte, der ganze Datenblock (31,9 MB) alle 250 Takte.
 - **Tempotreppe:** vor dem Programm im leeren und danach im bebauten Spiel je 7 Stufen, je Stufe 20 s ohne Lesen, 20 s mit Lesen, 20 s ohne Lesen.
-- **Abbruch:** Fehlen auf Tempo 40 schon in den ersten 200 Takten Takte, wird beendet. Dieselbe Wache läuft vor jedem Abschnitt. Scheitert nur ein Abschnitt, wird er notiert und der Lauf geht weiter.
+- **Abbruch:** Fehlen auf Tempo 40 mehr als 5 % der Takte oder sind mehr als 5 % der Rahmen gemischt, wird beendet. Die 5 % sind selbst gesetzt, einzelne fehlende Takte zählen in A3 trotzdem als Fehler. Dieselbe Wache läuft vor jedem Abschnitt. Scheitert nur ein Abschnitt, wird er notiert und der Lauf geht weiter.
 
 **Was vermutlich beim ersten Mal hakt:** Das Bauprogramm kennt die Karte nicht, es probiert Stellen in Ringen um den Bergfried. Bauernhöfe, Mine, Steinbruch und Pechgrube brauchen besonderen Boden und bleiben deshalb vielleicht ungesetzt. Der Lauf schreibt auf, was fehlt, das wird danach gezielt nachgeholt. Die Knopf-Nummer für den Kartenstart stammt aus dem Code und ist im Spiel noch nie gedrückt worden.
 

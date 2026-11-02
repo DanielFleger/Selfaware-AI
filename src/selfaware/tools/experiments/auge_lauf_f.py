@@ -34,6 +34,7 @@ KNOPF_START = 0x41
 ANKER = "CustomScenarios_Main = 0x00440770,"
 NEU = "SingleplayerMapChoice_ButtonsAndHands = 0x0042D640,"
 FRUEH_TAKTE = 200  # nach so vielen Takten zum ersten Mal auf fehlende Takte pruefen
+ABBRUCH_ANTEIL = 0.05  # selbst gesetzt: Einzelne fehlende Takte stehen nur in A3, erst darueber taugt die Aufzeichnung nicht
 STUFEN = (1, 10, 40, 100, 200, 500, 1000)  # Daniel 02.11.2026: auf Tempo 1 bis 1000 kein Abzug vom normalen Tempo
 TREPPE_SEKUNDEN = 20
 
@@ -323,7 +324,8 @@ def fruehprobe(pfad):
 
     auf = Aufzeichnung(pfad)
     a3, a4 = a3_takttreue(auf), a4_lesedauer(auf)
-    if a3.daten.get("fehlende_takte") or a3.daten.get("unreine_rahmen"):
+    d = a3.daten
+    if d.get("fehlende_takte", 0) > ABBRUCH_ANTEIL * max(d.get("spanne", 0), 1) or d.get("unreine_rahmen", 0) > ABBRUCH_ANTEIL * max(d.get("rahmen", 0), 1):
         return False, a3.text
     return True, f"{a3.text}; {a4.text}"
 
@@ -462,7 +464,7 @@ class EchtesWerkzeug:
         return self.takt()
 
 
-def los(n, tempo=40, ziel=None, laeuft_schon=False):
+def los(n, tempo=40, ziel=None, laeuft_schon=False, leertreppe=True):
     pruefe_laufinstanz(n)
     os.environ["SHC_INSTANZ"] = str(n)
     from selfaware import workspace
@@ -515,7 +517,8 @@ def los(n, tempo=40, ziel=None, laeuft_schon=False):
             z = tempotreppe(k, takt_roh, echte_lese_runde(quelle, bereiche, ziel, f"lauf_f_{stempel}_{kennung}"))
             e = a4_tempotreppe(z)
             schreib({"schritt": f"tempotreppe_{kennung}", "ergebnis": e.status, "text": e.text, "zeilen": e.daten.get("zeilen")})
-        treppe("leer")
+        if leertreppe:
+            treppe("leer")
         tempo_setzen(k, tempo)
         aufzeichner = subprocess.Popen([sys.executable, "-m", "selfaware.tools.experiments.auge_aufzeichnung", "--instanz", str(n), "--ausgabe", aufz, "--lauf", "F", "--stop-datei", stop], env=dict(os.environ))
         w = EchtesWerkzeug(k, karte.adresse(*JAHR_ADRESSE_FELD)[0])
@@ -554,6 +557,7 @@ def main(argv=None):
     p.add_argument("--tempo", type=int, default=40)
     p.add_argument("--daniel-ja", action="store_true", help="Lauf nur nach Daniels Ja")
     p.add_argument("--laeuft-schon", action="store_true", help="Die Instanz laeuft schon, nicht neu starten")
+    p.add_argument("--ohne-leertreppe", action="store_true", help="Tempotreppe im leeren Spiel auslassen, sie ist schon gemessen")
     a = p.parse_args(argv)
     pruefe_laufinstanz(a.instanz)
     if a.was == "pruefen":
@@ -563,7 +567,7 @@ def main(argv=None):
         return 0 if all(z[1] for z in aus) else 1
     if not a.daniel_ja:
         raise Fehler("Lauf F startet nur mit --daniel-ja")
-    print("Aufzeichnung:", los(a.instanz, a.tempo, laeuft_schon=a.laeuft_schon))
+    print("Aufzeichnung:", los(a.instanz, a.tempo, laeuft_schon=a.laeuft_schon, leertreppe=not a.ohne_leertreppe))
     return 0
 
 

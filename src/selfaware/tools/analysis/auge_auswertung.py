@@ -157,12 +157,14 @@ def a2_nie_gesehen(karte, gesehen):
 def a3_takttreue(auf):
     letzter, je_bereich, unrein, zurueck, n = {}, collections.Counter(), 0, 0, 0
     luecken = []
+    erster = {}
     for r in auf.rahmen():
         n += 1
         if not r.rein:
             unrein += 1
         alle = auf.bereiche[r.bereich][3]
         v = letzter.get(r.bereich)
+        erster.setdefault(r.bereich, r.takt)
         if v is not None:
             d = r.takt - v
             if d < 0:
@@ -172,7 +174,7 @@ def a3_takttreue(auf):
                 luecken.append([v, r.takt])
         letzter[r.bereich] = r.takt
     fehlend = max(je_bereich.values(), default=0)
-    daten = {"rahmen": n, "fehlende_takte": fehlend, "unreine_rahmen": unrein, "rueckspruenge": zurueck, "luecken": luecken[:50], "beschaedigt": auf.beschaedigt}
+    daten = {"rahmen": n, "spanne": max((letzter[b] - erster[b] for b in letzter), default=0), "fehlende_takte": fehlend, "unreine_rahmen": unrein, "rueckspruenge": zurueck, "luecken": luecken[:50], "beschaedigt": auf.beschaedigt}
     if not n:
         return Ergebnis("A3", NICHT_GESEHEN, "keine Rahmen", daten)
     if fehlend or unrein or auf.beschaedigt:
