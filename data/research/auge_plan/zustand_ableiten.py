@@ -65,65 +65,11 @@ print("nach Bereich", collections.Counter(ein.get("0x" + a, {}).get("bereich", "
 wichtig = "updateUnits updateBuildings updateEntities updateTribes updateWind updateDateAndTime processSingleTimeTick recomputeAttackInfo queueCommand UpdateTree1 updatePopularity aiBuyAndSellGoods renderTextToScreen playHurtSFXForUnit".split()
 print({w: any(kurzname(a) == w for a in sicht) for w in wichtig})
 
-# --- Schreibziele auf Felder abbilden ---
-ty = json.load(open(os.path.join(R, "types.json"), encoding="utf-8"))
-ZEILE = re.compile(r"^\s*(\d+)\s+(.+?)\s+(\d+)\s+(\S+)\s+\"")
-typen = {}
-for t in ty:
-    d = t.get("definition") or ""
-    if "Structure " not in d:
-        continue
-    gl = []
-    for l in d.splitlines():
-        m = ZEILE.match(l)
-        if m:
-            gl.append((int(m.group(1)), m.group(2), int(m.group(3)), m.group(4)))
-    na = t["path"].rsplit("/", 1)[-1]
-    if na not in typen or t["length"] > typen[na]["laenge"]:  # gleichnamige Typen: der groesste ist die Spielstruktur
-        typen[na] = {"laenge": t["length"], "felder": gl}
-def aufloesen(typ, off, pfad=""):
-    s = typen.get(typ)
-    if not s:
-        return pfad, off, typ
-    for o, tt, gr, na in s["felder"]:
-        if o <= off < o + gr:
-            m = re.match(r"^(.+?)\[(\d+)\]", tt)
-            if m:
-                rest = off - o
-                el = m.group(1).strip()
-                eg = typen[el]["laenge"] if el in typen else (gr // int(m.group(2)) or 1)
-                return aufloesen(el, rest % eg, f"{pfad}.{na}[]".lstrip("."))
-            return aufloesen(tt.strip(), off - o, f"{pfad}.{na}".lstrip("."))
-    return f"{pfad}.+0x{off:x}".lstrip("."), off, "?"
-sy = json.load(open(os.path.join(R, "symbols.json"), encoding="utf-8"))
-DA, DE = 0x005b6000, 0x0242923f
-lab = {}
-for s in sy:
-    if s["kind"] == "Label" and s["source"] == "USER_DEFINED" and re.fullmatch(r"[0-9a-f]{8}", s["address"]):
-        a = int(s["address"], 16)
-        if DA <= a <= DE:
-            lab.setdefault(a, s["name"])
-glob_s = []
-for a, n in lab.items():
-    t = {"DAT_GameState": "GameStateStructures"}.get(n, n[4:] if n.startswith("DAT_") else n)
-    if t in typen:
-        glob_s.append((a, a + typen[t]["laenge"], n, t))
-    elif n == "SEC_RNG":
-        glob_s.append((a, a + typen.get("RNG", {"laenge": 8})["laenge"], n, "RNG"))
-glob_s.sort()
-labs = sorted(lab)
-import bisect
-def ziel(adr):
-    # verschachtelte Bezeichner: die groesste umfassende Struktur gewinnt, damit Code und Assembly denselben Pfad nennen
-    tr = [g for g in glob_s if g[0] <= adr < g[1]]
-    if tr:
-        g = max(tr, key=lambda g: g[1] - g[0])
-        p, _, _ = aufloesen(g[3], adr - g[0])
-        return g[2], p
-    j = bisect.bisect_right(labs, adr) - 1
-    if j >= 0 and adr - labs[j] < 4096:
-        return lab[labs[j]], ("+0x%x" % (adr - labs[j]) if adr != labs[j] else "")
-    return "ohne_Namen", "%08x" % adr
+# --- Schreibziele auf Felder abbilden: derselbe Baustein wie der Aenderungsmelder ---
+sys.path.insert(0, os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(HIER))), "src"))
+from selfaware.tools.analysis.auge_feldkarte import DATEN_ANFANG as DA, DATEN_ENDE as DE, Feldkarte
+karte = Feldkarte.laden(R)
+ziel = karte.ziel
 ein = json.load(open("data/research/funktionswissen/eingang.json", encoding="utf-8"))
 def spiel(a):
     return bool(ein.get("0x" + a, {}).get("spiel"))
@@ -164,8 +110,7 @@ for a in ges:
             if DA <= z <= DE:
                 aussen.add(ziel(z))
 pro = collections.Counter(k[0] for k in schreib)
-print("GameState", [g for g in glob_s if g[2] == "DAT_GameState"], "State-Bezeichner ohne Typ", [n for a, n in lab.items() if re.fullmatch(r"DAT_\w+State", n) and not any(g[2] == n for g in glob_s)][:30])
-print("Globale Strukturen mit Typ", len(glob_s), "Bytes", sum(g[1] - g[0] for g in glob_s))
+print("Globale Strukturen mit Typ", len(karte.strukturen), "Bytes", sum(g[1] - g[0] for g in karte.strukturen))
 print("Felder mit Schreibzugriff im Takt", len(schreib), "je Oberbegriff", pro.most_common(45))
 print("nur gelesen im Takt, nie im Takt geschrieben:", len([k for k in lese if k not in schreib]), "davon ausserhalb geschrieben:", len([k for k in lese if k not in schreib and k in aussen]))
 json.dump({"schreib": [[k[0], k[1], sorted(v["q"]), len(v["f"]), [kurzname(a) for a in sorted(v["f"])[:4]]] for k, v in sorted(schreib.items())],

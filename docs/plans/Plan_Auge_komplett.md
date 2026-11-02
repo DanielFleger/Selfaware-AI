@@ -1,6 +1,6 @@
 # Plan: das komplette Auge
 
-Erstellt 02.11.2026 von SRE (B-142), rein aus Export und Code, ohne das Spiel anzusehen. Noch nichts davon ist gebaut, außer der Feldliste und der Checkliste.
+Erstellt 02.11.2026 von SRE (B-142), rein aus Export und Code, ohne das Spiel anzusehen. Gebaut sind bisher Feldliste, Checkliste, Aufzeichnung und Auswerter; nichts davon lief bisher am echten Spiel.
 
 **Ziel (Daniel):** Das Auge sieht alles, was im Spiel stattfindet, nicht nur eine Liste bestellter Punkte. Kontrolle über eine Checkliste, die sich in wenigen Läufen bestätigen oder widerlegen lässt.
 
@@ -62,7 +62,16 @@ Alle Zahlen erzeugt `python data/research/auge_plan/zustand_ableiten.py` (Ergebn
 9. **Versuchsskript für Lauf S:** Aufstellen, Befehl, Messen, Abräumen aus `versuche_szenario.csv`. `setze` und `sandkasten` gibt es schon im alten Werkzeug `werkzeug/shc.py`.
 10. **Gefecht mit Friedenszeit:** Das Werkzeug `gefecht` kennt bisher keine Friedenszeit und muss 8 KI-Lords ohne eigenen Spieler starten können. Ob das geht, ist noch nicht nachgesehen, außer dass es einen Selbstspiel-Weg gab.
 
-**Reihenfolge:** 1 ist fertig. Dann 6 mit den Tests, 2 und 3, 4 und 5, dann Lauf F, Fehler beheben, 10, Lauf K, Fehler beheben, 9, Lauf S. 7 läuft dabei mit, 8 kommt vor der Übergabe an das Gehirn.
+**Stand Baustein 6 (02.11.2026):**
+- `selfaware.tools.experiments.auge_aufzeichnung` zeichnet auf, nur lesend, und lehnt Instanz 5 ab.
+- `selfaware.tools.analysis.auge_auswertung` wertet A1 bis A7, A9, A10, A12 und A13 aus.
+- `selfaware.tools.analysis.auge_feldkarte` ordnet Adressen den Feldern zu.
+- `tests/test_auge_werkzeug.py` prüft sie an einem künstlichen Spiel mit eingebauten Fehlern.
+- Noch nicht gebaut: A8 (Buchführung), A11 (Prüfsummen), die Auswertung der Einzelpunkte und Versuche.
+
+Damit sind auch 2, 3, 4 und 5 in der ersten Fassung abgedeckt: Die Aufzeichnung liest die Hauptstrukturen jeden Takt, Kartenebenen alle 25 Takte und den ganzen Datenblock alle 250 Takte. Ob das Tempo das trägt, zeigt erst A4.
+
+**Reihenfolge:** 1 und 6 sind fertig. Dann Lauf F, Fehler beheben, 10, Lauf K, Fehler beheben, 9, Lauf S. 7 läuft dabei mit, 8 kommt vor der Übergabe an das Gehirn.
 
 ## Was vorher zu klären ist
 
