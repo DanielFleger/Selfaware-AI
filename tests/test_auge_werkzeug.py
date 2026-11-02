@@ -182,6 +182,23 @@ def test_a4_vergleicht_mit_tempo_ohne_lesen(tmp_path):
     assert e.daten["takte"] == 10
 
 
+def test_a4_pause_im_lauf_zaehlt_nicht_als_bremsen(tmp_path):
+    jetzt = [0.0]
+
+    def uhr():
+        jetzt[0] += 0.001
+        return jetzt[0]
+    spiel = Spiel()
+    auf = Aufzeichner(spiel, [Bereich("zeit", TAKT, 8)], tmp_path / "p.auge", {"tempo_ohne_lesen": 100.0}, takt_adresse=TAKT, uhr=uhr)
+    for i in range(20):
+        auf.schritt()
+        spiel.weiter()
+        jetzt[0] += 500.0 if i == 10 else 0.005
+    auf.schliessen()
+    e = aw.a4_lesedauer(aw.Aufzeichnung(tmp_path / "p.auge"))
+    assert e.status == aw.BESTAETIGT and e.daten["takte_je_s"] > 95
+
+
 def test_a4_ohne_vergleichswert_ist_nur_gemessen(tmp_path):
     assert aw.a4_lesedauer(aufzeichnen(tmp_path / "a.auge")).status == aw.GEMESSEN
 
@@ -330,6 +347,14 @@ def test_prozessquelle_liest_den_eigenen_prozess():
     assert q.lies(ctypes.addressof(puffer), 10) == b"auge-probe"
     with pytest.raises(OSError):
         q.lies(0x10, 4)
+
+
+@pytest.mark.skipif(sys.platform != "win32", reason="Windows-Speicherzugriff")
+def test_pid_der_instanz_findet_einen_laufenden_prozess_am_ordner():
+    from selfaware.tools.experiments.auge_aufzeichnung import pid_der_instanz, prozesspfade
+    assert any(p.lower() == sys.executable.lower() for p in prozesspfade())
+    assert pid_der_instanz(1, stamm=os.path.dirname(sys.executable)) is not None
+    assert pid_der_instanz(1, stamm=r"C:\gibt\es\nicht") is None
 
 
 @pytest.mark.skipif(not os.path.exists(os.path.join(EXPORT, "types.json")), reason="Export fehlt")

@@ -191,8 +191,9 @@ def a4_lesedauer(auf):
         return Ergebnis("A4", NICHT_GESEHEN, "zu wenige Takte", {})
     w = sorted(je_takt.values())
     takte = sorted(zeiten)
-    dauer = zeiten[takte[-1]] - zeiten[takte[0]]
-    tempo = (takte[-1] - takte[0]) / dauer if dauer > 0 else 0.0
+    # Median je Folgetakt statt Gesamtdauer: Pausen im Lauf sind kein Bremsen durch das Lesen
+    abstaende = [zeiten[b] - zeiten[a] for a, b in zip(takte, takte[1:]) if b == a + 1 and zeiten[b] > zeiten[a]]
+    tempo = 1 / statistics.median(abstaende) if abstaende else 0.0
     daten = {"takte": len(w), "median_s": statistics.median(w), "p95_s": w[int(len(w) * 0.95) - 1], "max_s": w[-1], "takte_je_s": tempo, "ohne_lesen": auf.kopf.get("tempo_ohne_lesen")}
     ohne = daten["ohne_lesen"]
     text = f"Lesen je Takt: Median {daten['median_s'] * 1000:.1f} ms, Hoechstwert {daten['max_s'] * 1000:.1f} ms; {tempo:.1f} Takte/s"

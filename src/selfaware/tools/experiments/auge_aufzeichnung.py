@@ -9,6 +9,7 @@ Aufruf (nur nach Daniels Ja, nur in einer freien Instanz):
 import argparse
 import ctypes
 import json
+import os
 import struct
 import time
 import zlib
@@ -60,6 +61,43 @@ class ProzessQuelle:
         if not self._k.ReadProcessMemory(self._griff, ctypes.c_void_p(adresse), puffer, laenge, ctypes.byref(gelesen)) or gelesen.value != laenge:
             raise OSError(f"Lesen {adresse:#x}+{laenge} fehlgeschlagen: {ctypes.get_last_error()}")
         return puffer.raw
+
+
+def prozesspfade():
+    """Programmpfade aller lesbaren Prozesse."""
+    return [p for _, p in _prozesse()]
+
+
+def _prozesse():
+    k = ctypes.WinDLL("kernel32", use_last_error=True)
+    psapi = ctypes.WinDLL("psapi", use_last_error=True)
+    k.OpenProcess.restype = wintypes.HANDLE
+    ids = (wintypes.DWORD * 8192)()
+    n = wintypes.DWORD(0)
+    if not psapi.EnumProcesses(ids, ctypes.sizeof(ids), ctypes.byref(n)):
+        raise OSError("EnumProcesses fehlgeschlagen")
+    aus = []
+    k.QueryFullProcessImageNameW.argtypes = [wintypes.HANDLE, wintypes.DWORD, wintypes.LPWSTR, ctypes.POINTER(wintypes.DWORD)]
+    k.CloseHandle.argtypes = [wintypes.HANDLE]
+    for pid in ids[:n.value // 4]:
+        h = k.OpenProcess(0x1000, False, pid)
+        if not h:
+            continue
+        puffer = ctypes.create_unicode_buffer(1024)
+        m = wintypes.DWORD(1024)
+        if k.QueryFullProcessImageNameW(h, 0, puffer, ctypes.byref(m)):
+            aus.append((pid, puffer.value))
+        k.CloseHandle(h)
+    return aus
+
+
+def pid_der_instanz(n, stamm=r"C:\Program Files (x86)\Steam\steamapps\common\Stronghold Crusader Extreme"):
+    """Prozess der Spielinstanz n, erkannt am Programmordner; None, wenn sie nicht laeuft."""
+    ziel = (stamm if n == 1 else f"{stamm} Instanz{n}").lower()
+    for pid, pfad in _prozesse():
+        if pfad.lower().rsplit("\\", 1)[0] == ziel and pfad.lower().endswith(".exe"):
+            return pid
+    return None
 
 
 def pruefe_instanz(pfad):
@@ -137,6 +175,8 @@ class Aufzeichner:
         while (takte is None or n < takte) and (sekunden is None or self.uhr() - anfang < sekunden) and not (stop and stop()):
             if self.schritt():
                 n += 1
+                if n % 50 == 0:
+                    self._f.flush()  # damit die Wache des Laufs mitlesen kann
             else:
                 time.sleep(pause)
         self._f.flush()
@@ -183,7 +223,9 @@ def main(argv=None):
     from selfaware.tools.analysis.auge_feldkarte import FELDLISTE, Feldkarte
 
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("--pid", type=int, required=True)
+    p.add_argument("--pid", type=int)
+    p.add_argument("--instanz", type=int, help="statt --pid: Nummer der Spielinstanz")
+    p.add_argument("--stop-datei", help="die Aufzeichnung endet, sobald diese Datei da ist")
     p.add_argument("--ausgabe", required=True)
     p.add_argument("--lauf", default="-", help="F, K oder S")
     p.add_argument("--takte", type=int)
@@ -193,12 +235,15 @@ def main(argv=None):
     p.add_argument("--tempo-sekunden", type=float, default=10.0)
     p.add_argument("--voll-bei", type=int, nargs="*", default=[], help="Takte, in denen alle Bereiche gelesen werden (Takt des Speicherns)")
     a = p.parse_args(argv)
-    quelle = ProzessQuelle(a.pid)
+    pid = a.pid if a.pid else pid_der_instanz(a.instanz) if a.instanz else None
+    if not pid:
+        p.error("Prozess nicht gefunden (--pid oder --instanz)")
+    quelle = ProzessQuelle(pid)
     karte = Feldkarte.laden(feldliste=FELDLISTE)
     kopf = {"lauf": a.lauf, "programm": quelle.pfad, "spielart": spielart_lesen(quelle, karte), "tempo_ohne_lesen": tempo_ohne_lesen(quelle, a.tempo_sekunden)}
     auf = Aufzeichner(quelle, standard_bereiche(karte, a.datenblock_alle, a.karte_alle), a.ausgabe, kopf, voll_bei=a.voll_bei)
     try:
-        n = auf.lauf(takte=a.takte, sekunden=a.sekunden)
+        n = auf.lauf(takte=a.takte, sekunden=a.sekunden, stop=(lambda: os.path.exists(a.stop_datei)) if a.stop_datei else None)
     finally:
         auf.schliessen()
     print(f"{n} Takte aufgezeichnet: {a.ausgabe}")

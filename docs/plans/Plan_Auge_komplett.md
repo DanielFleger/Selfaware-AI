@@ -71,13 +71,15 @@ Alle Zahlen erzeugt `python data/research/auge_plan/zustand_ableiten.py` (Ergebn
 
 Damit sind auch 2, 3, 4 und 5 in der ersten Fassung abgedeckt: Die Aufzeichnung liest die Hauptstrukturen jeden Takt, Kartenebenen alle 25 Takte und den ganzen Datenblock alle 250 Takte. Ob das Tempo das trägt, zeigt erst A4.
 
+**Stand Lauf F (02.11.2026):** `selfaware.tools.experiments.auge_lauf_f` startet ohne Maus den Burgenbau auf `A Mighty Oasis.map`, nimmt auf und fährt das Programm. Die Trockenprobe ist grün, gelaufen ist es noch nicht. Ansage: `data/research/auge_plan/Ansage_Lauf_F.md`.
+
 **Reihenfolge:** 1 und 6 sind fertig. Dann Lauf F, Fehler beheben, 10, Lauf K, Fehler beheben, 9, Lauf S. 7 läuft dabei mit, 8 kommt vor der Übergabe an das Gehirn.
 
 ## Was vorher zu klären ist
 
 - **Wo das Auge lebt:** `werkzeug/auge.py`, `werkzeug/shc.py` und `werkzeug/sandkasten.py` stehen nicht auf `origin/main`, sondern nur im alten lokalen Stand, `auge.py` in neuester Fassung auf dem Zweig `codex/auge`. Dort arbeitet auch Codex, mit nicht committeten Änderungen. Das neue Auge sollte erst darauf aufbauen, wenn das geklärt ist.
 - **Spielart:** Burgenbau und Szenario laufen vermutlich nach anderen Regeln als das Gefecht, in dem SamurAI spielt. Betroffene Punkte tragen die Marke [Spielart] und zählen erst nach der Gegenprobe im Gefecht.
-- **Karten:** „Prächtige Oase“ und „Liga_Grumpy Neighbors“ habe ich unter diesen Namen in `Documents\Stronghold Crusader\Maps` nicht gefunden. Das Menü zeigt sie, der Dateiort wird vor dem Lauf gesucht.
+- **Karten:** „Eine prächtige Oase“ ist `maps/A Mighty Oasis.map`, belegt nur per Ausschluss über die Namensliste in `cr.tex`. „Liga_Grumpy Neighbors“ liegt nicht unter diesem Namen in `Documents\Stronghold Crusader\Maps`; der Dateiort wird vor Lauf K gesucht.
 - **Jeder Lauf** braucht Daniels Ja und eine freie Instanz.
 
 ## Was das danach ermöglicht
