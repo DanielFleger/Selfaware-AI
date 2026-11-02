@@ -21,7 +21,7 @@ Das Auge, nicht das Spiel und nicht SamurAI: Liest die Aufzeichnung lückenlos m
 ## Wie getestet wird
 
 - **Wo:** Instanz 2, frei laut Sperre, Karte `A Mighty Oasis.map`. Instanz 5 bleibt unberührt, das Werkzeug lehnt sie ab.
-- **Änderung an Instanz 2:** Ihre `logik.lua` vom 05.10. kennt die nötigen Knöpfe nicht. Sie bekommt die Fassung von Instanz 5 plus einen neuen Knopf für den Kartenstart. Die alte Datei bleibt mit Datum daneben liegen, das ist der Rückweg.
+- **Änderung an Instanz 2:** Ihre `logik.lua` vom 05.10. kennt die nötigen Knöpfe nicht. Sie bekommt die Fassung von Instanz 4 plus einen neuen Knopf für den Kartenstart. Instanz 5 nutzt ein anderes Modul mit Übernahme-Logik und taugt nicht als Vorlage. Außerdem kommt das Modul `villagestudio` zurück in die Ladeliste von `ucp-config.yml`, die Startreparatur vom 24.10. hatte es entfernt. Beide alten Dateien bleiben mit Datum daneben liegen, das ist der Rückweg.
 - **Ablauf:** Spiel starten ohne Maus, Burgenbau, Karte wählen, Aufzeichnung an. Dann Waren setzen, Bergfried, jedes Gebäude einmal, 6.000 Takte Warenketten, Handeln auch bei vollem Lager, alle Steuer- und Rationsstufen, Mauer und Graben, jede Einheit anwerben, 5 Gebäude abreißen, zwei Jahreswechsel.
 - **Tempo:** Spieltempo 40. Die Laufdauer ist nicht vorhergesagt, sie wird gemessen. Die Wartefristen im Werkzeug betragen je Abschnitt bis zu 30 Minuten, für die Jahreswechsel bis zu 60 Minuten.
 - **Messgrößen:** alle Hauptstrukturen jeden Takt (9,0 MB), Kartenebenen alle 25 Takte, der ganze Datenblock (31,9 MB) alle 250 Takte.

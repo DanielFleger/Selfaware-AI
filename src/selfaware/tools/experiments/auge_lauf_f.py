@@ -7,7 +7,9 @@
 Menueweg aus dem Export: Hauptmenue Knopf 3 setzt GM_BUILDERUnk und oeffnet die Kartenwahl (Ansicht 35),
 SingleplayerMapChoice_ButtonsAndHands(0x41) startet die markierte Karte (LaunchSinglePlayerGameUnk). Den Knopf-Handler
 kennt logik.lua noch nicht; "los" spielt ihn in die Laufinstanz ein, die alte Datei bleibt mit Datum liegen.
-Die Laufinstanz bekommt die logik.lua von Instanz 5 (nur gelesen). Instanz 5 selbst wird nie angefasst.
+Die Laufinstanz bekommt die logik.lua von Instanz 4 (nur gelesen): Sie lief mit demselben Modulordner villagestudio-0.1.0.
+Instanz 5 nutzt seit 24.10. ein anderes Modul (selfaware-runtime, mit Uebernahme-Logik) und wird nie angefasst.
+Die Ladeliste der Laufinstanz enthaelt das Modul seit der Startreparatur vom 24.10. nicht mehr; "los" traegt es wieder ein.
 """
 import argparse
 import json
@@ -19,7 +21,8 @@ import time
 
 KARTE = "A Mighty Oasis"
 STAMM = r"C:\Program Files (x86)\Steam\steamapps\common\Stronghold Crusader Extreme"
-QUELL_INSTANZ = 5
+DANIELS_INSTANZ = 5
+QUELL_INSTANZ = 4
 SPERRE_NAME = "SRE_auge"
 HAUPTMENUE, KARTENWAHL, IN_PARTIE = 41, 35, 14
 ANSICHT, TICK, PAUSE, GAMEOVER = 0x01FE7D1C, 0x0117CADC, 0x01FEA054, 0x0117D500
@@ -44,7 +47,7 @@ def ordner(n):
 
 
 def pruefe_laufinstanz(n):
-    if n == QUELL_INSTANZ:
+    if n == DANIELS_INSTANZ:
         raise Fehler("Instanz 5 ist Daniels Spiel und bleibt unberuehrt")
     return n
 
@@ -89,6 +92,41 @@ def lua_fehler(text):
     return lua.eval("function(t) local f, e = load(t); return e end")(text)
 
 
+def modul_eintragen(pfad, stempel=None):
+    """Traegt villagestudio in die Ladelisten von ucp-config.yml ein, sichert vorher, prueft danach. Rueckgabe: Sicherung oder None."""
+    import yaml
+
+    if "instanz5" in pfad.replace(" ", "").lower():
+        raise Fehler("Instanz 5 ist Daniels Spiel und bleibt unberuehrt")
+    roh = open(pfad, "rb").read().decode("utf-8")
+    alt = yaml.safe_load(roh)
+    drin = lambda d, teil: any(e.get("extension") == "villagestudio" for e in d[teil]["load-order"])
+    if drin(alt, "config-sparse") and drin(alt, "config-full") and "villagestudio" in (alt["config-sparse"].get("modules") or {}):
+        return None
+    nl = "\r\n" if "\r\n" in roh else "\n"
+    eintrag = f"  - extension: villagestudio{nl}    version: 0.1.0{nl}"
+    t = roh
+    leer = f"  modules: {{}}{nl}"
+    if leer not in t[:t.index("config-full:")]:
+        raise Fehler(f"{pfad}: config-sparse.modules ist nicht leer, von Hand ansehen")
+    t = t.replace(leer, f"  modules:{nl}    villagestudio:{nl}      config: {{}}{nl}", 1)
+    t = t.replace(f"config-full:{nl}", eintrag + f"config-full:{nl}", 1)
+    t = t.rstrip("\r\n") + nl + eintrag
+    neu = yaml.safe_load(t)
+    if not (drin(neu, "config-sparse") and drin(neu, "config-full")):
+        raise Fehler(f"{pfad}: Eintrag ist nicht in beiden Ladelisten angekommen")
+    for teil in ("config-sparse", "config-full"):
+        neu[teil]["load-order"] = [e for e in neu[teil]["load-order"] if e.get("extension") != "villagestudio"]
+    neu["config-sparse"]["modules"] = {k: v for k, v in neu["config-sparse"]["modules"].items() if k != "villagestudio"} or {}
+    if neu != alt:
+        raise Fehler(f"{pfad}: Das Eintragen haette noch etwas anderes geaendert")
+    sicherung = f"{pfad}.vor_auge_{stempel or time.strftime('%Y%m%d_%H%M%S')}"
+    shutil.copy2(pfad, sicherung)
+    with open(pfad, "wb") as f:
+        f.write(t.encode("utf-8"))
+    return sicherung
+
+
 def warte_auf(bedingung, sekunden, was, schlaf=0.25, uhr=time.time, ruhe=time.sleep):
     ende = uhr() + sekunden
     while uhr() < ende:
@@ -101,6 +139,17 @@ def warte_auf(bedingung, sekunden, was, schlaf=0.25, uhr=time.time, ruhe=time.sl
 def name_von(k, nummer):
     roh = b"".join(w.to_bytes(4, "little") for w in k.peek(NAMEN + nummer * NAMENSLAENGE, 12))
     return roh.split(b"\0")[0].decode("latin-1")
+
+
+def warte_auf_modul(k, sekunden=120, ruhe=time.sleep, uhr=time.time):
+    """Das Modul meldet "aktiv", bevor das Spiel im Menue ist und Befehle liest (Lauf F 02.11.2026 18:12, gemessen)."""
+    def antwortet():
+        try:
+            k.peek(ANSICHT)
+            return True
+        except Exception:  # noqa: BLE001  jede Kanalstoerung heisst hier nur: noch nicht
+            return False
+    warte_auf(antwortet, sekunden, "Modul antwortet auf Befehle", schlaf=2.0, ruhe=ruhe, uhr=uhr)
 
 
 def burgenbau_starten(k, karte=KARTE, warte=60, ruhe=time.sleep):
@@ -311,7 +360,7 @@ def echte_lese_runde(quelle, bereiche, ordner_aus, kennung):
     return runde
 
 
-def pruefen(n, quell=QUELL_INSTANZ):
+def pruefen(n, quell=QUELL_INSTANZ, laeuft_schon=False):
     """Trockenprobe: liest nur. Jede Zeile (Name, ok, Aussage)."""
     from selfaware.tools.experiments.auge_aufzeichnung import pid_der_instanz, prozesspfade
     aus = []
@@ -319,15 +368,19 @@ def pruefen(n, quell=QUELL_INSTANZ):
     def pruef(name, ok, text=""):
         aus.append((name, bool(ok), text))
 
-    pruef("Laufinstanz ist nicht Instanz 5", n != QUELL_INSTANZ, f"Instanz {n}")
+    pruef("Laufinstanz ist nicht Instanz 5", n != DANIELS_INSTANZ, f"Instanz {n}")
     o = ordner(n)
     pruef("Ordner und Programm da", os.path.exists(os.path.join(o, "Stronghold Crusader.exe")), o)
     pruef("Karte da", os.path.exists(os.path.join(o, "maps", KARTE + ".map")), KARTE + ".map")
     pruef("Modul da", os.path.exists(os.path.join(o, "ucp", "modules", "villagestudio-0.1.0", "init.lua")))
     log = os.path.join(o, "ucp3.log")
+    # keine Bedingung: Der Lauf traegt das Modul selbst ein; ob es laeuft, zeigt erst seine Antwort im Spiel
     aktiv = os.path.exists(log) and "villagestudio aktiv" in open(log, encoding="utf-8", errors="replace").read()
-    pruef("Modul lief beim letzten Start dieser Instanz", aktiv, time.strftime("%d.%m. %H:%M", time.localtime(os.path.getmtime(log))) if os.path.exists(log) else "kein Log")
-    pruef("Instanz laeuft gerade nicht", pid_der_instanz(n) is None)
+    pruef("Stand des letzten Starts bekannt", True, ("Modul war aktiv" if aktiv else "Modul war nicht aktiv") + (time.strftime(", %d.%m. %H:%M", time.localtime(os.path.getmtime(log))) if os.path.exists(log) else ""))
+    if laeuft_schon:
+        pruef("Instanz laeuft schon, wie angegeben", pid_der_instanz(n) is not None)
+    else:
+        pruef("Instanz laeuft gerade nicht", pid_der_instanz(n) is None)
     pfade = prozesspfade()
     pruef("UCP3-GUI ist zu", not any("ucp3-gui" in p.lower() or "ucp3 gui" in p.lower() for p in pfade))
     q = os.path.join(ordner(quell), "ucp", "villagestudio", "logik.lua")
@@ -400,7 +453,7 @@ class EchtesWerkzeug:
         return self.takt()
 
 
-def los(n, tempo=40, ziel=None):
+def los(n, tempo=40, ziel=None, laeuft_schon=False):
     pruefe_laufinstanz(n)
     os.environ["SHC_INSTANZ"] = str(n)
     from selfaware import workspace
@@ -412,7 +465,7 @@ def los(n, tempo=40, ziel=None):
     aufz = os.path.join(ziel, f"lauf_f_{stempel}.auge")
     prot = os.path.join(ziel, f"lauf_f_{stempel}.protokoll.jsonl")
     stop = aufz + ".stop"
-    fehlt = [z for z in pruefen(n) if not z[1]]
+    fehlt = [z for z in pruefen(n, laeuft_schon=laeuft_schon) if not z[1]]
     if fehlt:
         raise Fehler(f"Trockenprobe rot: {fehlt}")
     r = subprocess.run([sys.executable, sperre_pfad(), "holen", SPERRE_NAME, "Lauf F Auge (B-142)"], capture_output=True, text=True, env=dict(os.environ), timeout=30)
@@ -428,12 +481,17 @@ def los(n, tempo=40, ziel=None):
     try:
         q = os.path.join(ordner(QUELL_INSTANZ), "ucp", "villagestudio", "logik.lua")
         schreib({"schritt": "logik", "sicherung": logik_einspielen(os.path.join(ordner(n), "ucp", "villagestudio", "logik.lua"), q, stempel)})
+        schreib({"schritt": "ladeliste", "sicherung": modul_eintragen(os.path.join(ordner(n), "ucp-config.yml"), stempel)})
         ps = os.path.join(workspace.ROOT, "tools", "windows", "spiel_starten.ps1")
-        s = subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", ps, "-Instanz", str(n)], capture_output=True, text=True, timeout=120)
-        schreib({"schritt": "start", "ausgabe": s.stdout.strip()[-200:]})
-        if s.returncode != 0:
-            raise Fehler(f"Spielstart: {s.stdout} {s.stderr}")
+        if not laeuft_schon:
+            s = subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", ps, "-Instanz", str(n)], capture_output=True, text=True, timeout=120)
+            schreib({"schritt": "start", "ausgabe": s.stdout.strip()[-200:]})
+            if s.returncode != 0:
+                raise Fehler(f"Spielstart: {s.stdout} {s.stderr}")
         k = EchterKanal()
+        warte_auf_modul(k)
+        if "villagestudio aktiv" not in open(os.path.join(ordner(n), "ucp3.log"), encoding="utf-8", errors="replace").read():
+            raise Fehler("Modul antwortet, steht aber nicht im neuen ucp3.log")
         karte = Feldkarte.laden()
         schreib({"schritt": "burgenbau", **burgenbau_starten(k)})
         schreib({"schritt": "karte_geladen", "name": b"".join(w.to_bytes(4, "little") for w in k.peek(KARTENNAME, 8)).split(b"\0")[0].decode("latin-1")})
@@ -486,16 +544,17 @@ def main(argv=None):
     p.add_argument("--instanz", type=int, required=True)
     p.add_argument("--tempo", type=int, default=40)
     p.add_argument("--daniel-ja", action="store_true", help="Lauf nur nach Daniels Ja")
+    p.add_argument("--laeuft-schon", action="store_true", help="Die Instanz laeuft schon, nicht neu starten")
     a = p.parse_args(argv)
     pruefe_laufinstanz(a.instanz)
     if a.was == "pruefen":
-        aus = pruefen(a.instanz)
+        aus = pruefen(a.instanz, laeuft_schon=a.laeuft_schon)
         for name, ok, text in aus:
             print(("OK:     " if ok else "FEHLER: ") + name + (f" - {text}" if text else ""))
         return 0 if all(z[1] for z in aus) else 1
     if not a.daniel_ja:
         raise Fehler("Lauf F startet nur mit --daniel-ja")
-    print("Aufzeichnung:", los(a.instanz, a.tempo))
+    print("Aufzeichnung:", los(a.instanz, a.tempo, laeuft_schon=a.laeuft_schon))
     return 0
 
 

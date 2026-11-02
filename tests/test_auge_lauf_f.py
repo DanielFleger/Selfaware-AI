@@ -46,6 +46,26 @@ def ohne_warten(_):
     return None
 
 
+def test_warte_auf_modul_haelt_fehlende_antworten_aus_und_gibt_sonst_auf():
+    class Spaet:
+        def __init__(self, n):
+            self.n = n
+
+        def peek(self, adr, n=1):
+            self.n -= 1
+            if self.n > 0:
+                raise lf.Fehler("keine Antwort")
+            return [41]
+    lf.warte_auf_modul(Spaet(3), 60, ruhe=ohne_warten)
+    zeit = [0.0]
+
+    def uhr():
+        zeit[0] += 1.0
+        return zeit[0]
+    with pytest.raises(lf.Fehler, match="Modul antwortet"):
+        lf.warte_auf_modul(Spaet(10 ** 6), 5, ruhe=ohne_warten, uhr=uhr)
+
+
 def test_burgenbau_waehlt_die_richtige_karte_und_startet():
     k = Kanal()
     e = lf.burgenbau_starten(k, ruhe=ohne_warten)
@@ -101,6 +121,54 @@ def test_logik_text_fuegt_den_knopf_einmal_und_mit_gleichem_einzug_ein(tmp_path)
     assert f"      {lf.ANKER}\r\n      {lf.NEU}\r\n" in t
     (tmp_path / "zweit.lua").write_bytes(t.encode("latin-1"))
     assert lf.logik_text(str(tmp_path / "zweit.lua")) == t
+
+
+CONFIG = """meta:
+  version: 1.0.0
+active: true
+config-sparse:
+  modules: {}
+  plugins:
+    Mod-KI-Team-Liga:
+      config: {}
+  load-order:
+  - extension: Mod-KI-Team-Liga
+    version: 2.0.2
+config-full:
+  load-order:
+  - extension: gmResourceModifier
+    version: 0.2.0
+  - extension: Mod-KI-Team-Liga
+    version: 2.0.2
+"""
+
+
+@pytest.mark.parametrize("nl", ["\n", "\r\n"])
+def test_modul_eintragen_aendert_nur_die_ladelisten(tmp_path, nl):
+    yaml = pytest.importorskip("yaml")
+    p = tmp_path / "ucp-config.yml"
+    p.write_bytes(CONFIG.replace("\n", nl).encode())
+    s = lf.modul_eintragen(str(p), "T1")
+    assert open(s, "rb").read() == CONFIG.replace("\n", nl).encode()
+    neu = yaml.safe_load(p.read_bytes())
+    assert neu["config-sparse"]["modules"] == {"villagestudio": {"config": {}}}
+    assert neu["config-sparse"]["load-order"][-1] == {"extension": "villagestudio", "version": "0.1.0"}
+    assert neu["config-full"]["load-order"][-1] == {"extension": "villagestudio", "version": "0.1.0"}
+    assert len(neu["config-full"]["load-order"]) == 3 and neu["active"] is True
+    assert lf.modul_eintragen(str(p), "T2") is None
+
+
+def test_modul_eintragen_mit_vollen_modulen_bricht_ab_statt_zu_raten(tmp_path):
+    pytest.importorskip("yaml")
+    p = tmp_path / "ucp-config.yml"
+    p.write_text(CONFIG.replace("  modules: {}", "  modules:\n    fremd:\n      config: {}"))
+    with pytest.raises(lf.Fehler, match="von Hand"):
+        lf.modul_eintragen(str(p))
+
+
+def test_modul_eintragen_nie_in_instanz_5():
+    with pytest.raises(lf.Fehler):
+        lf.modul_eintragen(lf.ordner(5) + r"\ucp-config.yml")
 
 
 def test_lua_probe_findet_syntaxfehler():
