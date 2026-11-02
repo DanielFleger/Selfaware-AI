@@ -182,6 +182,25 @@ def test_gold_wird_von_den_waren_nicht_ueberschrieben():
     assert not any(isinstance(c, dict) and c.get("ware", {}).get("typ") == 15 for c in k.log)
 
 
+def test_tempotreppe_misst_jede_stufe_ohne_mit_ohne():
+    takt = [0]
+    k = Kanal()
+    uhr = [0.0]
+
+    def ruhe(s):
+        uhr[0] += s
+        takt[0] += int(s * 40)
+    def lese(sek, stufe):
+        uhr[0] += sek
+        takt[0] += int(sek * 39)
+        return {"takte_je_s": 39.0, "gelesen": 780, "gesamt": 781}
+    z = lf.tempotreppe(k, lambda: takt[0], lese, stufen=(1, 1000), sekunden=20, ruhe=ruhe, uhr=lambda: uhr[0])
+    assert [x["tempo"] for x in z] == [1, 1000]
+    assert z[0]["ohne_1"] == 40.0 and z[0]["mit"] == 39.0 and z[0]["ohne_2"] == 40.0
+    assert {"pause": False, "tempo": 1000} in k.log
+    assert 1 in lf.STUFEN and 1000 in lf.STUFEN
+
+
 def test_programm_laeuft_alle_phasen_und_schreibt_jede_auf():
     aus = []
     w = Werkzeug()

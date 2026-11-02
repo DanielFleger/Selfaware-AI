@@ -17,7 +17,6 @@ from dataclasses import dataclass, field
 from selfaware.tools.experiments.auge_aufzeichnung import KENNUNG, RAHMEN, REIN, VOLL
 
 BESTAETIGT, WIDERLEGT, NICHT_GESEHEN, GEMESSEN = "bestaetigt", "widerlegt", "nicht gesehen", "gemessen"
-TEMPO_GRENZE = 0.95  # darunter gilt das Lesen als bremsend; selbst gesetzt, bis A4 einen besseren Wert liefert
 
 
 @dataclass
@@ -197,11 +196,25 @@ def a4_lesedauer(auf):
     daten = {"takte": len(w), "median_s": statistics.median(w), "p95_s": w[int(len(w) * 0.95) - 1], "max_s": w[-1], "takte_je_s": tempo, "ohne_lesen": auf.kopf.get("tempo_ohne_lesen")}
     ohne = daten["ohne_lesen"]
     text = f"Lesen je Takt: Median {daten['median_s'] * 1000:.1f} ms, Hoechstwert {daten['max_s'] * 1000:.1f} ms; {tempo:.1f} Takte/s"
-    if not ohne:
-        return Ergebnis("A4", GEMESSEN, text + "; kein Vergleichswert ohne Lesen", daten)
-    if tempo < ohne * TEMPO_GRENZE:
-        return Ergebnis("A4", WIDERLEGT, text + f", ohne Lesen {ohne:.1f}: Das Lesen bremst das Spiel", daten)
-    return Ergebnis("A4", BESTAETIGT, text + f", ohne Lesen {ohne:.1f}", daten)
+    return Ergebnis("A4", GEMESSEN, text + (f", ohne Lesen {ohne:.1f}" if ohne else "; kein Vergleichswert ohne Lesen"), daten)
+
+
+def a4_tempotreppe(zeilen):
+    """Daniel 02.11.2026: auf Tempo 1 bis 1000 darf das Lesen kein Tempo abziehen. Je Stufe: ohne Lesen, mit Lesen, ohne Lesen.
+    Als Messrauschen gilt nur, was die beiden Laeufe ohne Lesen selbst unterscheidet, plus ein Takt Ablesefehler je Messung."""
+    if not zeilen:
+        return Ergebnis("A4", NICHT_GESEHEN, "keine Tempotreppe gemessen", {})
+    abzug = []
+    for z in zeilen:
+        rauschen = abs(z["ohne_1"] - z["ohne_2"]) + 2 / z["sekunden"]
+        z["abzug"] = max(0.0, min(z["ohne_1"], z["ohne_2"]) - z["mit"] - rauschen)
+        if z["abzug"] > 0:
+            abzug.append(z["tempo"])
+    fehlend = [z["tempo"] for z in zeilen if z["gelesen"] < z["gesamt"]]
+    text = f"Stufen {[z['tempo'] for z in zeilen]}; Takte ausgelassen auf {fehlend or 'keiner Stufe'}"
+    if abzug:
+        return Ergebnis("A4", WIDERLEGT, f"Das Lesen zieht Tempo ab auf Stufe {abzug}. {text}", {"zeilen": zeilen})
+    return Ergebnis("A4", BESTAETIGT, f"kein Tempoabzug ueber das Messrauschen hinaus in dieser Messung. {text}", {"zeilen": zeilen})
 
 
 def _felder_diff(a, b, auf, karte):

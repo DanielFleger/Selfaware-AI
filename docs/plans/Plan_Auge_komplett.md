@@ -73,6 +73,8 @@ Damit sind auch 2, 3, 4 und 5 in der ersten Fassung abgedeckt: Die Aufzeichnung 
 
 **Stand Lauf F (02.11.2026):** `selfaware.tools.experiments.auge_lauf_f` startet ohne Maus den Burgenbau auf `A Mighty Oasis.map`, nimmt auf und fährt das Programm. Die Trockenprobe ist grün, gelaufen ist es noch nicht. Ansage: `data/research/auge_plan/Ansage_Lauf_F.md`.
 
+**Vorgabe Tempo (Daniel 02.11.2026):** Auf Tempo 1 bis 1000 darf das Auge kein Tempo vom normalen abziehen. Der alte Gegendruck (B-253), bei dem das Spiel auf das Lesen wartet, scheidet damit aus. Das Lesen läuft von außen; auf hohen Stufen lässt es Takte aus. Wo jeder Takt gebraucht wird, wird der Abschnitt aus dem Spielstand langsamer wiederholt, falls Probe A6 das erlaubt.
+
 **Reihenfolge:** 1 und 6 sind fertig. Dann Lauf F, Fehler beheben, 10, Lauf K, Fehler beheben, 9, Lauf S. 7 läuft dabei mit, 8 kommt vor der Übergabe an das Gehirn.
 
 ## Was vorher zu klären ist

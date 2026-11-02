@@ -178,8 +178,8 @@ def test_a4_vergleicht_mit_tempo_ohne_lesen(tmp_path):
         spiel.weiter()
     auf.schliessen()
     e = aw.a4_lesedauer(aw.Aufzeichnung(tmp_path / "a.auge"))
-    assert e.status == aw.WIDERLEGT
-    assert e.daten["takte"] == 10
+    assert e.status == aw.GEMESSEN
+    assert e.daten["takte"] == 10 and e.daten["ohne_lesen"] == 1000.0
 
 
 def test_a4_pause_im_lauf_zaehlt_nicht_als_bremsen(tmp_path):
@@ -196,7 +196,26 @@ def test_a4_pause_im_lauf_zaehlt_nicht_als_bremsen(tmp_path):
         jetzt[0] += 500.0 if i == 10 else 0.005
     auf.schliessen()
     e = aw.a4_lesedauer(aw.Aufzeichnung(tmp_path / "p.auge"))
-    assert e.status == aw.BESTAETIGT and e.daten["takte_je_s"] > 95
+    assert e.status == aw.GEMESSEN and e.daten["takte_je_s"] > 95
+
+
+def treppe(tempo, o1, mit, o2, gelesen=100, gesamt=100):
+    return {"tempo": tempo, "sekunden": 20, "ohne_1": o1, "mit": mit, "ohne_2": o2, "gelesen": gelesen, "gesamt": gesamt}
+
+
+def test_a4_tempotreppe_ohne_abzug_mit_kleinem_rauschen():
+    e = aw.a4_tempotreppe([treppe(40, 40.0, 40.0, 40.0), treppe(1000, 600.0, 598.0, 595.0, 50, 12000)])
+    assert e.status == aw.BESTAETIGT
+    assert "1000" in e.text.split("ausgelassen auf")[1]
+
+
+def test_a4_tempotreppe_kleiner_abzug_ist_widerlegt_es_gibt_keine_prozentgrenze():
+    e = aw.a4_tempotreppe([treppe(40, 40.0, 39.5, 40.0)])
+    assert e.status == aw.WIDERLEGT and "[40]" in e.text and e.daten["zeilen"][0]["abzug"] > 0
+
+
+def test_a4_tempotreppe_ohne_messung_ist_nicht_gesehen():
+    assert aw.a4_tempotreppe([]).status == aw.NICHT_GESEHEN
 
 
 def test_a4_ohne_vergleichswert_ist_nur_gemessen(tmp_path):

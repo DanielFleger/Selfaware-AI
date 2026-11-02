@@ -31,6 +31,8 @@ KNOPF_START = 0x41
 ANKER = "CustomScenarios_Main = 0x00440770,"
 NEU = "SingleplayerMapChoice_ButtonsAndHands = 0x0042D640,"
 FRUEH_TAKTE = 200  # nach so vielen Takten zum ersten Mal auf fehlende Takte pruefen
+STUFEN = (1, 10, 40, 100, 200, 500, 1000)  # Daniel 02.11.2026: auf Tempo 1 bis 1000 kein Abzug vom normalen Tempo
+TREPPE_SEKUNDEN = 20
 
 
 class Fehler(RuntimeError):
@@ -268,15 +270,45 @@ def programm(k, w, protokoll, phasen=PHASEN, wache=None):
 
 def fruehprobe(pfad):
     """Takt-Treue nach den ersten Takten. Das abgeschnittene Dateiende zaehlt hier nicht, die Aufzeichnung laeuft ja noch."""
-    from selfaware.tools.analysis.auge_auswertung import Aufzeichnung, a3_takttreue, a4_lesedauer, BESTAETIGT, WIDERLEGT
+    from selfaware.tools.analysis.auge_auswertung import Aufzeichnung, a3_takttreue, a4_lesedauer
 
     auf = Aufzeichnung(pfad)
     a3, a4 = a3_takttreue(auf), a4_lesedauer(auf)
     if a3.daten.get("fehlende_takte") or a3.daten.get("unreine_rahmen"):
         return False, a3.text
-    if a4.status == WIDERLEGT:
-        return False, a4.text
-    return True, f"{a3.text}; {a4.text}" if a3.status == BESTAETIGT else a3.text
+    return True, f"{a3.text}; {a4.text}"
+
+
+def tempotreppe(k, takt, lese_runde, stufen=STUFEN, sekunden=TREPPE_SEKUNDEN, ruhe=time.sleep, uhr=time.perf_counter):
+    """Je Tempostufe Takte/s ohne Lesen, mit Lesen, wieder ohne Lesen. Die Haupt-Aufzeichnung darf dabei nicht laufen."""
+    def zaehle():
+        a, t0 = takt(), uhr()
+        ruhe(sekunden)
+        return (takt() - a) / (uhr() - t0)
+
+    zeilen = []
+    for s in stufen:
+        k.befehl({"pause": False, "tempo": s}, 0.5)
+        ruhe(2)
+        ohne_1 = zaehle()
+        r = lese_runde(sekunden, s)
+        ohne_2 = zaehle()
+        zeilen.append({"tempo": s, "sekunden": sekunden, "ohne_1": ohne_1, "mit": r["takte_je_s"], "ohne_2": ohne_2, "gelesen": r["gelesen"], "gesamt": r["gesamt"]})
+    return zeilen
+
+
+def echte_lese_runde(quelle, bereiche, ordner_aus, kennung):
+    """Liest eine Runde wie die Aufzeichnung, in eine eigene Datei."""
+    from selfaware.tools.experiments.auge_aufzeichnung import Aufzeichner
+
+    def runde(sekunden, stufe):
+        auf = Aufzeichner(quelle, bereiche, os.path.join(ordner_aus, f"{kennung}_tempo{stufe}.auge"), {"lauf": "Treppe", "tempo": stufe})
+        a, t0 = auf.takt(), time.perf_counter()
+        n = auf.lauf(sekunden=sekunden, pause=0.0002)
+        e, t1 = auf.takt(), time.perf_counter()
+        auf.schliessen()
+        return {"takte_je_s": (e - a) / (t1 - t0), "gelesen": n, "gesamt": e - a + 1}
+    return runde
 
 
 def pruefen(n, quell=QUELL_INSTANZ):
@@ -405,6 +437,18 @@ def los(n, tempo=40, ziel=None):
         karte = Feldkarte.laden()
         schreib({"schritt": "burgenbau", **burgenbau_starten(k)})
         schreib({"schritt": "karte_geladen", "name": b"".join(w.to_bytes(4, "little") for w in k.peek(KARTENNAME, 8)).split(b"\0")[0].decode("latin-1")})
+        from selfaware.tools.analysis.auge_auswertung import a4_tempotreppe
+        from selfaware.tools.experiments.auge_aufzeichnung import ProzessQuelle, TAKT_ADRESSE, pid_der_instanz, standard_bereiche
+        import struct
+        quelle = ProzessQuelle(pid_der_instanz(n))
+        bereiche = standard_bereiche(karte)
+        takt_roh = lambda: struct.unpack("<I", quelle.lies(TAKT_ADRESSE, 4))[0]
+
+        def treppe(kennung):
+            z = tempotreppe(k, takt_roh, echte_lese_runde(quelle, bereiche, ziel, f"lauf_f_{stempel}_{kennung}"))
+            e = a4_tempotreppe(z)
+            schreib({"schritt": f"tempotreppe_{kennung}", "ergebnis": e.status, "text": e.text, "zeilen": e.daten.get("zeilen")})
+        treppe("leer")
         k.befehl({"pause": False, "tempo": tempo}, 0.5)
         aufzeichner = subprocess.Popen([sys.executable, "-m", "selfaware.tools.experiments.auge_aufzeichnung", "--instanz", str(n), "--ausgabe", aufz, "--lauf", "F", "--stop-datei", stop], env=dict(os.environ))
         w = EchtesWerkzeug(k, karte.adresse(*JAHR_ADRESSE_FELD)[0])
@@ -421,6 +465,9 @@ def los(n, tempo=40, ziel=None):
                 raise Fehler(f"Abbruch: {text}")
         wache()
         programm(k, w, schreib, wache=wache)
+        open(stop, "w").close()
+        aufzeichner.wait(120)
+        treppe("voll")  # zweite Messung im bebauten Spiel; die Haupt-Aufzeichnung ist jetzt aus
     finally:
         open(stop, "w").close()
         if aufzeichner:

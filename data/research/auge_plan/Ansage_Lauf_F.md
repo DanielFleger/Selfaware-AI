@@ -12,7 +12,7 @@ Das Auge, nicht das Spiel und nicht SamurAI: Liest die Aufzeichnung lückenlos m
 |---|---|---|
 | A1 | Jede Änderung liegt in einem Feld der Liste | Ein Byte eines Spielbereichs ändert sich außerhalb. Das erwarte ich sogar: Die Liste kennt Zeigerzugriffe nur teilweise, jede Lücke ist ein Gewinn |
 | A3 | Kein Takt fehlt, kein Schnappschuss ist gemischt | Ein Takt fehlt oder ein Rahmen ist gemischt |
-| A4 | Das Lesen kostet höchstens 5 % Spieltempo | Es kostet mehr. Dann werden Bereiche seltener gelesen |
+| A4 | Auf den Stufen 1 bis 1000 zieht das Lesen kein Tempo ab (Daniels Vorgabe, keine Prozentgrenze) | Mit Lesen weniger Takte als ohne Lesen, über das Messrauschen hinaus. Auf hohen Stufen darf das Lesen Takte auslassen, das Tempo geht vor |
 | A7 | Jede gezogene Zufallszahl steht in der Tabelle | Eine Zahl passt nicht |
 | A10 | Keine `uid` doppelt, Monat 0 bis 11, Geschossplätze unter 25 mit `uid` 0 | Ein Wert liegt außerhalb. Die Monatsgrenze ist heute am Code berichtigt worden, hier zeigt sich zum ersten Mal, ob das stimmt |
 | A13 | Spielart im Burgenbau: `gameMode_2` = 2 | Ein anderer Wert. Dann muss die Spielart-Marke neu bewertet werden |
@@ -25,7 +25,8 @@ Das Auge, nicht das Spiel und nicht SamurAI: Liest die Aufzeichnung lückenlos m
 - **Ablauf:** Spiel starten ohne Maus, Burgenbau, Karte wählen, Aufzeichnung an. Dann Waren setzen, Bergfried, jedes Gebäude einmal, 6.000 Takte Warenketten, Handeln auch bei vollem Lager, alle Steuer- und Rationsstufen, Mauer und Graben, jede Einheit anwerben, 5 Gebäude abreißen, zwei Jahreswechsel.
 - **Tempo:** Spieltempo 40. Die Laufdauer ist nicht vorhergesagt, sie wird gemessen. Die Wartefristen im Werkzeug betragen je Abschnitt bis zu 30 Minuten, für die Jahreswechsel bis zu 60 Minuten.
 - **Messgrößen:** alle Hauptstrukturen jeden Takt (9,0 MB), Kartenebenen alle 25 Takte, der ganze Datenblock (31,9 MB) alle 250 Takte.
-- **Abbruch:** Fehlen schon in den ersten 200 Takten Takte oder bremst das Lesen, wird beendet. Dieselbe Wache läuft vor jedem Abschnitt. Scheitert nur ein Abschnitt, wird er notiert und der Lauf geht weiter.
+- **Tempotreppe:** vor dem Programm im leeren und danach im bebauten Spiel je 7 Stufen, je Stufe 20 s ohne Lesen, 20 s mit Lesen, 20 s ohne Lesen.
+- **Abbruch:** Fehlen auf Tempo 40 schon in den ersten 200 Takten Takte, wird beendet. Dieselbe Wache läuft vor jedem Abschnitt. Scheitert nur ein Abschnitt, wird er notiert und der Lauf geht weiter.
 
 **Was vermutlich beim ersten Mal hakt:** Das Bauprogramm kennt die Karte nicht, es probiert Stellen in Ringen um den Bergfried. Bauernhöfe, Mine, Steinbruch und Pechgrube brauchen besonderen Boden und bleiben deshalb vielleicht ungesetzt. Der Lauf schreibt auf, was fehlt, das wird danach gezielt nachgeholt. Die Knopf-Nummer für den Kartenstart stammt aus dem Code und ist im Spiel noch nie gedrückt worden.
 
