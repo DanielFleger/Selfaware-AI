@@ -343,7 +343,8 @@ LAGER_BEFEHLE = 3  # je Befehl 4 Felder (gemessen); Holz braucht 4, die 7 andere
 GOLD = 100000
 LAGERWAREN = {2: 96, 3: 16, 4: 48, 6: 48, 7: 16, 9: 32, 14: 16, 16: 32}  # je ein volles Feld laut StorageLimitResourceTypeArray; Holz mehr, die Bauten kosten Holz
 ESSEN = {10: 60, 11: 60, 12: 60, 13: 40}  # der Kornspeicher fasst 250, die Karte bringt 20 Aepfel
-WAFFEN_WAREN = {w: 20 for w in range(17, 25)}
+WAFFENLAGER_FASST, LOS = 50, 5  # getArmoryIDIfSpaceLeft: 50 ueber alle Waffen zusammen (Lauf 21:30: 7+7+6x6, der Rest hing); Handel je 5 Stueck
+WAFFEN_WAREN = {w: 5 for w in range(17, 25)}  # Anwerben braucht je Art hoechstens 3 (Eisenruestung), der Rest bleibt frei fuer Handel und Schmieden
 ESSEN_UNTEN, ESSEN_NACH = 100, 100
 ZUSATZ = (33, 33, 12, 62)  # zwei Milchhoefe mehr (dairyFarmVariationMod4), zweiter Bogenmacher, Galgen zum Abreissen
 ZUSATZ_PECHGRAEBEN = 3
@@ -509,8 +510,9 @@ class Lauf:
                     return st
         return None
 
-    def setze(self, typ, anker=None, wert=None):
-        """Baut typ auf eine vom Spiel erlaubte Stelle, ohne das Spiel anzuhalten. Rueckgabe: Eintrag, None wenn keine Stelle erlaubt ist."""
+    def setze(self, typ, anker=None, wert=None, pflicht=True):
+        """Baut typ auf eine vom Spiel erlaubte Stelle, ohne das Spiel anzuhalten. Rueckgabe: Eintrag, None wenn keine Stelle erlaubt ist.
+        pflicht=False: Der Bau ist keine Grundlage des Laufs, scheitert er, kommt None zurueck statt eines Abbruchs."""
         g = self.arten[typ]
         soll = drehwert(g["mapper"]) if wert is None else wert
         versucht = []
@@ -518,7 +520,7 @@ class Lauf:
         for _ in range(3):
             st = self.stelle_fuer(typ, anker, versucht)
             if st is None:
-                if typ == PECHGRUBE or versucht:
+                if typ == PECHGRUBE or versucht or not pflicht:
                     break
                 raise Abbruch(f"Art {typ} ({g.get('name')}): keine vom Spiel erlaubte Stelle")
             versucht.append(st)
@@ -538,6 +540,8 @@ class Lauf:
                 return neu[0] if neu else {"nr": 0, "typ": typ, "x": st[0], "y": st[1]}
         if typ == PECHGRUBE and not versucht:
             self.keine_stelle.append(typ)
+            return None
+        if not pflicht:
             return None
         raise Abbruch(f"Art {typ} ({g.get('name')}): an den erlaubten Stellen {versucht} steht nach je {BAU_GRENZE} Takten kein Gebaeude")
 
@@ -567,11 +571,11 @@ def abschnitt_grundstock(l):
     mengen = {**LAGERWAREN, **ESSEN, **WAFFEN_WAREN}
     l.startwaren_geben(mengen, "Startwaren")
     grenze = l.warte_eingebucht(mengen)
-    deckel = s.spieler("populationCap")
-    if deckel < 10 + HUETTEN * 8:
-        raise Abbruch(f"Wohnplaetze {deckel}, erwartet mindestens {10 + HUETTEN * 8}")
+    # updateBuildings rechnet den Deckel in jedem Takt neu auf: Mitten darin steht er kurz auf 0 (Lauf 21:30 Takt 3244)
+    if not l.warte_takte(ABLESEN, lambda: s.spieler("populationCap") >= 10 + HUETTEN * 8):
+        raise Abbruch(f"Wohnplaetze {s.spieler('populationCap')}, erwartet mindestens {10 + HUETTEN * 8}")
     l.lage_an = True
-    return {"burg": l.mitte, "kalender": s.kalender(), "deckel": deckel, "eingebucht_grenze": grenze, "waren": s.waren()}
+    return {"burg": l.mitte, "kalender": s.kalender(), "deckel": s.spieler("populationCap"), "eingebucht_grenze": grenze, "waren": s.waren()}
 
 
 def abschnitt_bauen(l):
@@ -579,10 +583,9 @@ def abschnitt_bauen(l):
     for typ in sorted(l.arten):
         if not l.gebaut[typ] and typ != BURG:
             l.setze(typ)
-    for typ in ZUSATZ:
-        l.setze(typ)
-    for _ in range(ZUSATZ_PECHGRAEBEN):
-        l.setze(PECHGRABEN)
+    for typ in ZUSATZ + (PECHGRABEN,) * ZUSATZ_PECHGRAEBEN:
+        if l.setze(typ, pflicht=False) is None:
+            l.wirkung(f"Zusatzbau Art {typ}", False)
     jetzt = s.waren()
     start = s.startwaren()
     nach = {w: m - jetzt[w] - start[w] for w, m in LAGERWAREN.items() if m - jetzt[w] - start[w] > 0}
@@ -607,25 +610,32 @@ def abschnitt_bauern(l):
 
 def _handel(l):
     s = l.s
+    # Erst verkaufen: Das Waffenlager fasst 50, jedes Waffen-Los muss beim Kaufen noch hineinpassen
     vor = s.waren()
+    l.k.liste([{"spielbefehl": {"nr": BEFEHL_HANDEL, "werte": [1, w]}} for w in HANDELSWAREN], KANAL)
+    l.warte_takte(10)
+    nach = s.waren()
+    l.wirkung("verkaufen", nach[15] > vor[15], gold=[vor[15], nach[15]], ohne_abgang=[w for w in HANDELSWAREN if nach[w] >= vor[w]])
+    vor = nach
     l.k.liste([{"spielbefehl": {"nr": BEFEHL_HANDEL, "werte": [0, w]}} for w in HANDELSWAREN], KANAL)
     l.warte_takte(10)
     nach = s.waren()
     fehlt = [w for w in HANDELSWAREN if nach[w] <= vor[w]]
     l.wirkung("kaufen", nach[15] < vor[15] and len(fehlt) < len(HANDELSWAREN), gold=[vor[15], nach[15]], ohne_zuwachs=fehlt)
-    vor = nach
-    l.k.liste([{"spielbefehl": {"nr": BEFEHL_HANDEL, "werte": [1, w]}} for w in HANDELSWAREN], KANAL)
-    l.warte_takte(10)
-    nach = s.waren()
-    l.wirkung("verkaufen", nach[15] > vor[15], gold=[vor[15], nach[15]], ohne_abgang=[w for w in HANDELSWAREN if nach[w] >= vor[w]])
     # Kauf bei vollem Waffenlager: Das Spiel lehnt ab und nennt den Grund (storageMarketFailState 10)
-    l.k.liste([{"spielbefehl": {"nr": BEFEHL_HANDEL, "werte": [0, SPEER]}} for _ in range(12)], KANAL)
+    lose = (WAFFENLAGER_FASST - sum(WAFFEN_WAREN.values())) // LOS
+    l.k.liste([{"spielbefehl": {"nr": BEFEHL_HANDEL, "werte": [0, SPEER]}} for _ in range(lose)], KANAL)
     l.warte_takte(10)
     vor = s.waren()
     l.k.liste([{"spielbefehl": {"nr": BEFEHL_HANDEL, "werte": [0, SPEER]}}], KANAL)
     l.warte_takte(10)
     nach = s.waren()
     l.schreib({"messung": "Kauf bei vollem Waffenlager", "speer": [vor[SPEER], nach[SPEER]], "gold": [vor[15], nach[15]], "fail_state": s.spieler("storageMarketFailState")})
+    # wieder Platz schaffen: Die Waffenschmieden sollen abliefern koennen, und fuers Anwerben bleibt die geplante Menge
+    zurueck = (s.waren()[SPEER] - WAFFEN_WAREN[SPEER]) // LOS
+    if zurueck > 0:
+        l.k.liste([{"spielbefehl": {"nr": BEFEHL_HANDEL, "werte": [1, SPEER]}} for _ in range(zurueck)], KANAL)
+        l.warte_takte(10)
 
 
 def _steuern_rationen(l):
@@ -727,7 +737,7 @@ def _anwerben(l):
 
 def _zweite_kaserne(l):
     alt = l.gebaut[KASERNE][0] if l.gebaut[KASERNE] else None
-    e = l.setze(KASERNE)
+    e = l.setze(KASERNE, pflicht=False)
     l.warte_takte(20)
     da = {g["nr"] for g in l.s.gebaeude()}
     l.wirkung("zweite Kaserne ersetzt die erste", e and e["nr"] in da and alt not in da, alt=alt, neu=e and e["nr"])

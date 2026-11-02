@@ -42,6 +42,15 @@ FAELLE = [
     ("Bewohner: Schalter ohne Wirkung", L, "if not self.bewohner_wache or self.bewohner is None", "if self.bewohner is None"),
     ("Gold ohne Ablesefrist", L, "if not l.warte_takte(ABLESEN, lambda: s.waren()[15] == GOLD):", "if s.waren()[15] != GOLD:"),
     ("Gold nicht geprueft", L, "if not l.warte_takte(ABLESEN, lambda: s.waren()[15] == GOLD):", "if False:"),
+    ("Waffen passen nicht ins Lager", L, "WAFFEN_WAREN = {w: 5 for w in range(17, 25)}", "WAFFEN_WAREN = {w: 20 for w in range(17, 25)}"),
+    ("Handel kauft nicht", L, "    l.k.liste([{\"spielbefehl\": {\"nr\": BEFEHL_HANDEL, \"werte\": [0, w]}} for w in HANDELSWAREN], KANAL)\n", ""),
+    ("Handel: Speer bleibt liegen", L, "    if zurueck > 0:\n", "    if False:\n"),
+    ("Handel: zu viele Speere zurueck", L, "for _ in range(zurueck)], KANAL)", "for _ in range(lose)], KANAL)"),
+    ("Deckel ohne Ablesefrist", L, "if not l.warte_takte(ABLESEN, lambda: s.spieler(\"populationCap\") >= 10 + HUETTEN * 8):", "if s.spieler(\"populationCap\") < 10 + HUETTEN * 8:"),
+    ("Deckel nicht geprueft", L, "if not l.warte_takte(ABLESEN, lambda: s.spieler(\"populationCap\") >= 10 + HUETTEN * 8):", "if False:"),
+    ("Zweite Kaserne bricht ab", L, "e = l.setze(KASERNE, pflicht=False)", "e = l.setze(KASERNE)"),
+    ("Zusatzbau bricht ab", L, "if l.setze(typ, pflicht=False) is None:", "if l.setze(typ) is None:"),
+    ("Zusatzbau ohne Fund", L, "            l.wirkung(f\"Zusatzbau Art {typ}\", False)\n", "            pass\n"),
     ("A10: Merkplatz zaehlt mit", W, "                if i < erster:\n                    continue\n", ""),
     ("A10: Einheiten ab Platz 0", W, "\"units[].uid\", 1)", "\"units[].uid\", 0)"),
     ("A8: Gold kommt von Arbeitern", W, "if ware != 15 and (betrieb or", "if (betrieb or"),
@@ -53,6 +62,7 @@ FAELLE = [
     ("los: alte Logzeile gilt", L, "                    f.seek(log_vorher)\n", "                    f.seek(0)\n"),
     ("Menue: kein Warten auf den Wechsel", L, "warte_auf(lambda: k.peek(ANSICHT)[0] == HAUPTMENUE, 10, \"Hauptmenue (Ansicht 41)\", ruhe=ruhe)", "pass"),
 ]
+FAELLE = [f for f in FAELLE if not sys.argv[1:] or any(a in f[0] for a in sys.argv[1:])]  # Aufruf mit Namensteilen: nur diese Faelle
 env = dict(os.environ, PYTHONPATH="src", PYTHONIOENCODING="utf-8")
 schlecht = 0
 for name, pfad, alt, neu in FAELLE:

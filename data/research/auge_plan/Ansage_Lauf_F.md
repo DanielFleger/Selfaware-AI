@@ -1,6 +1,6 @@
 # Ansage Lauf F
 
-Erstellt 02.11.2026 von SRE (B-142), neu nach dem gescheiterten Lauf vom selben Tag. Stand 21:00. Der Lauf ist noch nicht gestartet, er braucht Daniels Ja.
+Erstellt 02.11.2026 von SRE (B-142), neu nach dem gescheiterten Lauf vom selben Tag. Stand 21:45, nach dem Abbruch von 21:30 (Warum-Kette unten). Der nächste Lauf braucht Daniels Ja.
 
 Plan und Gründe: `docs/plans/Plan_Lauf_F_neu.md`. Warum der alte Lauf scheiterte: `ursachen_lauf_f/Ursachen_Lauf_F.md`.
 
@@ -13,7 +13,7 @@ Das Auge, nicht das Spiel und nicht SamurAI: Sieht es alles, was im friedlichen 
 | Probe | Erhofft | Widerlegt, wenn |
 |---|---|---|
 | A1 | Jede Änderung liegt in einem Feld der Liste | Ein Byte ändert sich außerhalb. Das erwarte ich: Die Jahresprobe fand schon 539 Felder außerhalb, jedes ist ein Gewinn für die Feldliste |
-| A3 | Auf Tempo 40 fehlt kein Takt, kein jeden Takt gelesener Bereich ist gemischt | Ein Takt fehlt oder ein Rahmen ist gemischt. Das beendet den Lauf sofort |
+| A3 | Auf Tempo 40 fehlt kein Takt, kein jeden Takt gelesener Bereich ist gemischt | Ein Takt fehlt oder ein Rahmen ist gemischt. Das beendet den Lauf sofort. **Grenze:** "rein" heißt, der Taktzähler ist vor und nach dem Lesen derselbe. Er steigt mitten im Takt, ob das je einen Rahmen verfälscht, ist nicht gemessen |
 | A4 | Auf den Stufen 1 bis 1000 zieht das Lesen kein Tempo ab | Mit Lesen weniger Takte als ohne, über das Messrauschen hinaus. Eine Stufe mit zu wenig Takten heißt "nicht gemessen", nicht bestätigt |
 | A7 | Jede gezogene Zufallszahl steht in der Tabelle | Eine Zahl passt nicht |
 | A8 | Jede Änderung von Gold und Waren fällt mit einer möglichen Ursache zusammen | Rest ohne Ursache. **Grenze:** zeitlich zugeordnet, nicht Stück für Stück. "Arbeiter" heißt nur, dass ein Betrieb im selben Fenster seine Ware änderte |
@@ -39,20 +39,42 @@ Das Auge, nicht das Spiel und nicht SamurAI: Sieht es alles, was im friedlichen 
 
 Die Probe lief in einem kleinen Dorf mit 89 belegten Einheitenplätzen. Das volle Dorf im Lauf kann mehr Daten je Takt ändern, das misst erst der Lauf.
 
-## Was vermutlich beim ersten Mal hakt
+## Warum der Lauf um 21:30 abbrach
+
+1. **Abbruch:** "Waren kommen nach 1604 Takten nicht an", offen waren nur Waffen, je 13 oder 14 Stück.
+2. **Warum hingen sie?** Im Waffenlager standen genau 50 Stück: 7+7+6x6. Mehr lässt das Spiel nicht hinein (`getArmoryIDIfSpaceLeft`: 50 über alle Waffen zusammen).
+3. **Warum war das geplant?** Ich hatte "Waffen 50" aus der Lagertabelle als Grenze je Art gelesen und 20 je Art geplant, also 160. Falsch abgelesen, nicht gemessen.
+4. **Warum fiel es im Trockenlauf nicht auf?** Das künstliche Spiel kannte die Grenze nicht, und im Trockenlauf wird nichts eingebucht.
+5. **Behoben:** Waffen je 5 (das Anwerben braucht je Art höchstens 3), der Handel verkauft zuerst und kauft dann, das künstliche Spiel kennt jetzt die Grenze, ein Test prüft die geplanten Mengen gegen die Lager.
+
+Der Abbruch selbst war richtig: Er kam mit seinem Namen, das Spiel stand danach, die Sperre war frei.
+
+## Was der Lauf um 21:30 schon gemessen hat
+
+| Vorher ungeprüft | Ergebnis |
+|---|---|
+| Weg aus der angehaltenen Partie ins Hauptmenü und in den Burgenbau | geht |
+| Gold, Burg, Kornspeicher, Anzeige 20, Kalender | gehen |
+| 6 Hütten | 58 Wohnplätze |
+| Startwaren alle zugleich | Lagerwaren 1 Stück je 4,1 Takte, Essen vollständig |
+| Zuzug bei Beliebtheit 90 bis 99 | 1 Bewohner je rund 222 Takte |
+| Beliebtheit mit 4 Essenssorten | +150 je Woche |
+
+Neu gefunden: Der Deckel und andere neu aufgerechnete Felder stehen mitten im Takt kurz auf 0. Das hätte beim Lesen des Deckels zu einem falschen Abbruch führen können, jetzt gibt es eine Ablesefrist. Der Zusatzbau und die zweite Kaserne brechen den Lauf nicht mehr ab, sie sind keine Grundlage.
+
+## Was vermutlich als Nächstes hakt
 
 Das sind die ungeprüften Stellen.
 
 **Beendet den Lauf, wenn es nicht klappt:**
 
-1. Der Weg aus der angehaltenen Partie ins Hauptmenü. Gemessen ist `{"menue": 41}` vom Ende-Bildschirm und aus einem laufenden Gefecht, nicht aus einer angehaltenen Partie. Scheitert es, endet der Lauf nach Sekunden, ohne Schaden.
-2. Startwaren für alle Waren zugleich. Einzeln gemessen ist nur Stein, "1 Stück je 4 Takte über alle Lagerwaren" ist aus dem Code abgelesen.
-3. 6 Hütten geben 58 Wohnplätze. Gemessen ist nur die erste Hütte.
-4. Das volle Dorf auf Tempo 40: Ein einzelner fehlender Takt beendet den Lauf. Das ist so gewollt und wird dann erklärt.
-5. Die Frist: Die Rechnung lässt rund eine Minute Luft.
-6. Die Beliebtheit: Unter 50 außerhalb des Steuertests beendet den Lauf. Gerechnet mit der Liga-Tabelle und den Wochenposten aus dem Spielstand fällt sie im Steuertest von 100 auf rund 71 und steigt danach wieder (Wochenbilanz rund +100 bei vier Essenssorten). Gemessen ist das nicht. Essen reicht laut Messung vom 11.10. (0,19 je Kopf und 1.000 Takte, 58 Leute also rund 11), die Nachlieferung kann 125 je 1.000 Takte.
+1. Alle 62 Arten bauen. Am Stand des Laufs von 21:30 (Takt 3604, gelesen 21:41) findet die Spielprüfung für 62 von 63 Arten eine Stelle, nur die Pechgrube nicht. Gebaut sind davon bisher nur die Arten des Grundstocks. Eine erlaubte Stelle ohne Gebäude beendet den Lauf.
+2. Die erste echte Bremsprobe: zweimal Abzug beendet den Lauf. Live gelaufen ist sie noch nie, auch das Aussetzen der Aufzeichnung nicht.
+3. Das volle Dorf auf Tempo 40: Ein einzelner fehlender Takt beendet den Lauf. Das ist so gewollt und wird dann erklärt.
+4. Die Frist: Die Rechnung lässt rund eine Minute Luft.
+5. Die Beliebtheit: Unter 50 außerhalb des Steuertests beendet den Lauf. Gerechnet mit der Liga-Tabelle und den Wochenposten fällt sie im Steuertest von 100 auf rund 71 und steigt danach wieder. Gemessen ist das nicht. Essen reicht laut Messung vom 11.10. (0,19 je Kopf und 1.000 Takte, 58 Leute also rund 11), die Nachlieferung kann 125 je 1.000 Takte.
 
-**Wird nur ein Fund, der Lauf geht weiter:** Tor auf und zu (Befehl 45), Arbeit ruhen lassen (Befehl 43), Anwerben aller Arten in einem Takt, Mauer und Graben an der neuen Stelle, Aussetzen der Aufzeichnung in der Bremsprobe.
+**Wird nur ein Fund, der Lauf geht weiter:** Handel, Steuern und Rationen, Tor auf und zu (Befehl 45), Arbeit ruhen lassen (Befehl 43), Abreißen, Anwerben aller Arten in einem Takt, Mauer und Graben an der neuen Stelle, Zusatzbauten, zweite Kaserne.
 
 ## Was der Lauf nicht zeigen kann
 

@@ -300,7 +300,7 @@ class KunstSpiel:
         if self.t % 4 == 0 and self.gebaeude_von(lf.BURG) and not self.f.get("waren_haengen"):
             lager = next((w for w in (2, 3, 4, 6, 7, 9, 14, 16) if self.start[w] > 0), None)
             for w in [lager] + [w for w in list(range(10, 14)) + list(range(17, 25)) if self.start[w] > 0]:
-                if w is not None:
+                if w is not None and not (w >= 17 and sum(self.best[17:25]) >= lf.WAFFENLAGER_FASST):
                     self.start[w] -= 1
                     self.best[w] += 1
         if self.gebaeude_von(lf.BURG) and self.pop < self.deckel and self.t - self.letzter_bewohner >= 250 and not self.f.get("kein_bewohner"):
@@ -356,8 +356,13 @@ class KunstSpiel:
             if n == lf.BEFEHL_RATION:
                 self.ration = w[0]
             if n == lf.BEFEHL_HANDEL:
-                self.best[w[1]] += 5 if w[0] == 0 else -5
-                self.best[15] += -10 if w[0] == 0 else 8
+                if w[0] == 0 and w[1] >= 17 and sum(self.best[17:25]) + lf.LOS > lf.WAFFENLAGER_FASST:
+                    self.fail = 10  # storageMarketFailState: Lager voll, nichts passiert
+                elif w[0] == 1 and self.best[w[1]] < lf.LOS:
+                    self.fail = 11
+                else:
+                    self.best[w[1]] += lf.LOS if w[0] == 0 else -lf.LOS
+                    self.best[15] += -10 if w[0] == 0 else 8
             if n == lf.BEFEHL_TOR:
                 self.geb[w[0]]["tor"] = w[1]
             if n == lf.BEFEHL_SCHLAF:
@@ -377,6 +382,8 @@ class KunstSpiel:
         if typ == lf.PECHGRABEN:
             self.pech += 1
             return
+        if self.f.get("zweiter_bau_scheitert") and typ in (*lf.ZUSATZ, lf.KASERNE) and self.gebaeude_von(typ):
+            return
         if typ == lf.KASERNE:
             for n in [n for n, g in self.geb.items() if g["typ"] == typ]:
                 del self.geb[n]
@@ -384,7 +391,7 @@ class KunstSpiel:
         self.nr += 1
         if typ == lf.KORN and not self.f.get("anzeige_bleibt"):
             self.anzeige = 0
-        if typ == lf.HUETTE:
+        if typ == lf.HUETTE and not self.f.get("huette_ohne_platz"):
             self.deckel = max(self.deckel, 10) + 8
         if typ == lf.BURG:
             self.deckel += 10
@@ -408,6 +415,10 @@ class KunstSpiel:
         return self.jahr, self.monat, self.woche
 
     def spieler(self, name, sp=1):
+        if name == "populationCap" and self.f.get("deckel_zuckt"):
+            self.zucken = not getattr(self, "zucken", False)
+            if self.zucken:
+                return 0  # mitten in der Neuberechnung
         return {"popularity": self.bel, "populationCap": self.deckel, "availablePeasantsAtFire": self.feuer, "storageMarketFailState": self.fail, "armySize": self.armee, "totalFood": sum(self.best[10:14]) if not self.f.get("kein_essen") else 0,
                 "currentPopulation": self.pop, "taxesSetting": self.steuer, "rationsSetting": self.ration}[name]
 
@@ -518,6 +529,7 @@ def test_pechgrube_ohne_boden_ist_kein_abbruch_und_steht_in_der_liste():
 
 @pytest.mark.parametrize("fehler, text", [
     ({"gold_kommt_nicht": True}, "Gold kam nicht an"),
+    ({"huette_ohne_platz": True}, "Wohnplaetze"),
     ({"anzeige_bleibt": True}, "Anzeige 20 bleibt"),
     ({"woche_steht": True}, "Kalender zaehlt nicht"),
     ({"waren_haengen": True}, "Waren kommen"),
@@ -580,6 +592,55 @@ def test_gold_darf_kurz_brauchen():
     g._baue = _baue
     lf.abschnitt_grundstock(l)
     assert g.best[15] >= lf.GOLD - 1000
+
+
+def test_die_geplanten_waren_passen_in_ihre_lager():
+    assert sum(lf.WAFFEN_WAREN.values()) <= lf.WAFFENLAGER_FASST
+    assert sum(lf.ESSEN.values()) + 20 <= 250  # der Kornspeicher fasst 250, die Karte bringt 20 Aepfel
+
+
+def test_zu_viele_waffen_haengen_und_beenden_den_lauf(monkeypatch):
+    monkeypatch.setattr(lf, "WAFFEN_WAREN", {w: 20 for w in range(17, 25)})
+    with pytest.raises(lf.Abbruch, match="Waren kommen"):
+        lf.programm(lauf_von(KunstSpiel()))
+
+
+def test_handel_testet_jede_ware_und_laesst_waffen_und_platz_zum_anwerben():
+    g = KunstSpiel()
+    l = lauf_von(g)
+    for w in lf.HANDELSWAREN:
+        g.best[w] = lf.WAFFEN_WAREN.get(w, 50)
+    g.best[15] = lf.GOLD
+    lf._handel(l)
+    assert l.funde == [], l.funde
+    kaufen = next(e for e in g.protokoll if e.get("wirkung") == "kaufen")
+    verkaufen = next(e for e in g.protokoll if e.get("wirkung") == "verkaufen")
+    assert kaufen["ohne_zuwachs"] == [] and verkaufen["ohne_abgang"] == [], "jede Ware einmal gehandelt"
+    voll = next(e for e in g.protokoll if e.get("messung"))
+    assert voll["speer"][0] == voll["speer"][1] and voll["fail_state"] == 10, "der Kauf beim vollen Lager wird abgelehnt"
+    assert g.best[17:25] == [lf.WAFFEN_WAREN[w] for w in range(17, 25)], "Waffen wie vorher, Platz fuer die Schmieden"
+
+
+def test_handel_laesst_auch_bei_fast_vollem_waffenlager_die_geplanten_speere():
+    g = KunstSpiel()
+    l = lauf_von(g)
+    for w in lf.HANDELSWAREN:
+        g.best[w] = lf.WAFFEN_WAREN.get(w, 50)
+    g.best[17] += lf.LOS  # die Bogner haben schon abgeliefert: Fuer die Speere ist nur noch ein Los frei
+    lf._handel(l)
+    assert g.best[lf.SPEER] == lf.WAFFEN_WAREN[lf.SPEER]
+
+
+def test_deckel_darf_zucken():
+    g, l, e = ganzer_lauf(deckel_zuckt=True)
+    assert e["gueltig"], e
+
+
+def test_zusatzbau_und_zweite_kaserne_sind_keine_grundlage():
+    g, l, e = ganzer_lauf(zweiter_bau_scheitert=True)
+    was = {f["was"] for f in l.funde}
+    assert e["gueltig"], e
+    assert {f"Zusatzbau Art {t}" for t in lf.ZUSATZ} <= was and "zweite Kaserne ersetzt die erste" in was, was
 
 
 def test_frist_und_handstopp_beenden_den_lauf():

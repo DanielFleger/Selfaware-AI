@@ -30,6 +30,8 @@ Dazu zweimal eine kurze Bremsprobe (Stufe 1000, ohne, mit, ohne), einmal nach de
 6. **Kein neuer Bewohner:** Abbruch nur, solange Arbeitsplätze offen sind, und nur bis zum Ende des Abschnitts Bauern. Die Rate 1 je 250 Takte ist nur bei Beliebtheit 87,75 gemessen, und danach braucht der Lauf keine neuen Leute mehr. Ob am Ende alle Plätze besetzt sind, sagt die Schlussprüfung. Die alte Fassung hätte auch mit besetzten Plätzen abgebrochen, obwohl die Bevölkerung bei 21 bis 23 Wartenden am Feuer gemessen nur in 306 von 2.144 Schritten stieg (Wissensstand 13v).
 7. **Einzelpunkte:** Das Werkzeug sagt "Zahl passt" oder "Zahl weicht ab", nicht bestätigt oder widerlegt. Es sieht Feldwerte, nicht die Lage des Punkts: In der Probe nannte es "Goldzuwachs je Takt 80" widerlegt, weil es die 80 im Goldbestand suchte.
 8. **A10:** Einheiten-Platz 0 zählt nicht mit. `setDestinationForUnit` und `computeLadderClimbPath` kopieren die Einheit vor der Wegsuche dorthin.
+9. **Zusatzbauten und zweite Kaserne:** Scheitert einer, ist das ein Fund und kein Abbruch. Sie sind keine Grundlage des Laufs, Abbruch gilt nur für die erste Kopie jeder Art.
+10. **Handel:** erst verkaufen, dann kaufen, danach das volle Waffenlager prüfen und die Speere wieder verkaufen. So passt jedes Waffen-Los hinein, und die Schmieden haben Platz.
 
 ## Abbruch
 
@@ -45,7 +47,7 @@ Frist 10 Minuten, von Hand gestoppt, Spiel weg, Aufzeichnung weg, 1 s kein Takt 
 
 - **Lagerwaren:** je ein volles Lagerfeld laut `StorageLimitResourceTypeArray`: Hopfen 16, Stein 48, Eisen 48, Pech 16, Weizen 32, Bier 16, Mehl 32. Holz 96, weil die Karte nur 50 mitbringt und die Bauten Holz kosten.
 - **Essen:** Der Kornspeicher fasst 250. Die Karte bringt 20 Äpfel. Dazu Brot, Käse, Fleisch je 60, Äpfel 40. Fällt das Essen unter 100, kommen 100 Äpfel nach, weil Essen hier nicht die Prüffrage ist. Jede Nachlieferung steht im Protokoll und zählt in A8 als Eingang.
-- **Waffen:** je 20, für das Anwerben.
+- **Waffen:** je 5. Ein Waffenlager fasst 50 Stück über alle Waffen zusammen (`getArmoryIDIfSpaceLeft`; Lauf 21:30: Bei 20 je Art hingen 110 Stück). Das Anwerben braucht je Art höchstens 3, der Rest bleibt frei für Handel und Schmieden.
 - **Weg:** `startResources` (+0x46C), nie `currentResources`. Gold direkt (das Spiel lässt es beim Nachzählen stehen).
 
 ## Werkzeuge
