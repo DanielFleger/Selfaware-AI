@@ -57,13 +57,16 @@ FELDER_BAHN = 60  # groesste Reichweite laut Tabelle 0x5B6358: Pfeil 54 Felder; 
 GRENZE_BAHN = FELDER_BAHN * 32 + 2 * 228 + 19 * WARTESCHLANGE  # langsamste Art 32 Takte je Feld, dazu 2 Schuss Armbrust und die Warteschlange
 SCHUSS_WEITE = {22: 54, 23: 40, 70: 54, 72: 18, 74: 54, 76: 11}  # Felder, Tabelle 0x5B6358 je Geschossart: Pfeil 54, Bolzen 40, Schleuder 18, Feuer 11
 GRENZE_SCHUSSWEITE = 36 * WARTESCHLANGE + 2 * 228  # alle Befehle, dann 2 Schuss Armbrust
+FAELLE_SCHUSSWEITE = [(t, d) for t, r in SCHUSS_WEITE.items() for d in (r // 2, r - 2, r - 1, r, r + 1, r + 2)]
+FAELLE_PFEIL = [(t, d) for t in (22, 70, 74) for d in range(28, 52, 2)]  # Pfeil schoss auf 27 Felder, auf 52 nicht mehr (Lauf 20:30): dazwischen liegt die Grenze, die Tabelle sagt 54
 ABSTAND_PENDEL, FELDER_PENDEL, GRENZE_PENDEL = 8, 20, 1323  # 5 Schuss Armbrust (228) und die Warteschlange. Abstand 8: Das reicht auch dem Feuerwerfer (flog bis 8,5 Felder)
 PENDLER = 26  # Streitkolbenkaempfer: 25.000 Leben, schnell, schlaegt auf Abstand 8 nicht zu
 HALTUNGEN = (("aggressiv", 2, 24), ("aggressiv", 2, 26), ("defensiv", 1, 4), ("defensiv", 1, 6), ("stehen", 0, 4))  # Code: aggressiv 200 Mikro, defensiv 40 Mikro, 8 je Feld
 HALTUNG_ARTEN = (28, 24, 30)  # Ritter, Speertraeger, Ingenieur: je eine Pruefrunde 63, 127, 255. Keine Schuetzen: Sie schiessen ueber 40 Felder, das stoert die Nachbarn
-HALTUNG_RASTER = 60  # Abstand der Faelle, weiter als der groesste Radius
+HALTUNG_RASTER_X, HALTUNG_RASTER_Y = 60, 40  # Abstand der Faelle: Der naechste fremde Feind steht mindestens 34 Felder weg, groesster Radius 25. Mit 60 x 60 gab es nur 10 Plaetze
 GRENZE_HALTUNG, HALTUNG_TRUPP, HALTUNG_BEFEHL = 1024, 15 * WARTESCHLANGE, 100  # 2 volle Pruefrunden der langsamsten Art; alle Gruppen; Befehl im naechsten Takt, gemessen wird es hier
 STARTPLAETZE = (0, 1, 246, 246, 246, 246, 246, 246)  # playerPositionsArray: Platz je Spieler, 246 = keiner
+LORD_RUHE, LORD_WEG = 300, 600  # Takte: Am Anfang geht der Lord von selbst auf die Burg (gemessen 97 bis 197). Weg zum Ring: 10 Felder, 24 Takte je Feld, mal 2
 NACH_LORD = 300  # Takte: Wann das Spiel das Ende merkt, ist hier die Frage, die Pruefrunde des Lords liegt bei 64 Takten
 STUECK = 100  # Befehle je Sendung
 GRENZE_NAH = 251 + 256  # groesster erster Treffer vom 18.10. plus groesste Pruefrunde (Maske 255), alte_schuesse.txt
@@ -264,11 +267,10 @@ def aufbau_reichweite(l, arten=SOLDATEN):
     return {"einheiten": mit_kontrolle(aus, frei), "eben": eben}
 
 
-def aufbau_schussweite(l):
+def aufbau_schussweite(l, faelle=FAELLE_SCHUSSWEITE):
     """Schuetzen laufen auf einen Angriffsbefehl nicht los (giveTribeAnInstruction, UIT_UNIT_ATTACK_UNIT: makeUnitStopWalking), Szene reichweite_g hat es gezeigt. Darum eine Leiter: jede Art mit Befehl auf eine Ramme in Abstaenden rund um den Tabellenwert. Gezaehlt werden nur Geschosse auf das befohlene Ziel."""
     frei, hoehe, _ = l.s.raster()
-    faelle = [(t, d) for t, r in SCHUSS_WEITE.items() for d in (r // 2, r - 2, r - 1, r, r + 1, r + 2)]
-    breite = max(SCHUSS_WEITE.values()) + 4
+    breite = max(d for _, d in faelle) + 2
     orte = gitter(frei, hoehe, breite, 1, breite + 4, 6, len(faelle), flach=True)
     eben = len(orte) >= len(faelle)
     if not eben:
@@ -428,7 +430,7 @@ def szene_haltung(l):
     lk.anhalten(l)
     frei, hoehe, _ = s.raster()
     faelle = list(itertools.product(HALTUNG_ARTEN, HALTUNGEN))
-    orte = gitter(frei, hoehe, 28, 1, HALTUNG_RASTER, HALTUNG_RASTER, len(faelle))
+    orte = gitter(frei, hoehe, 28, 1, HALTUNG_RASTER_X, HALTUNG_RASTER_Y, len(faelle))
     if len(orte) < len(faelle):
         raise Abbruch(f"Nur {len(orte)} Plaetze fuer {len(faelle)} Haltungs-Faelle")
     wachen = [{"rolle": "wache", "fall": i, "haltung": h[0], "wert": h[1], "abstand": h[2], "spieler": 1, "typ": t, "x": x, "y": y} for i, ((t, h), (x, y)) in enumerate(zip(faelle, orte))]
@@ -476,8 +478,10 @@ def freie_mitte(frei, x, y, rand=2, mindestens=6):
 
 
 def szene_lord(l):
-    """P313, P362, P306: Der Lord steht auf der Burg, Ritter finden dorthin keinen Weg (Lauf 20:25). Darum geht er erst vor die Burg, mitten in einen Ring aus 8 Rittern von Spieler 1, und der Nahkampf beginnt von selbst (Umkreis 2 Felder). Danach ist das Gefecht vorbei, darum kommt diese Szene zuletzt. Fertig ist sie, wenn das Spiel das Ende gemerkt hat oder NACH_LORD Takte um sind."""
+    """P313, P362, P306: Der Lord steht auf der Burg, Ritter finden dorthin keinen Weg (Lauf 20:25). Darum geht er erst vor die Burg, mitten in einen Ring aus 8 Rittern von Spieler 1, und der Nahkampf beginnt von selbst (Umkreis 2 Felder). Ein Direktbefehl (einheit_ziel) liess ihn dort nicht hin (Lauf 20:29), darum der Truppenbefehl. Bleibt er trotzdem oben, faellt er per Befehl: Die Niederlage-Pruefung soll in jedem Fall gemessen werden, und per_befehl sagt es dazu. Danach ist das Gefecht vorbei, darum kommt diese Szene zuletzt. Fertig ist sie, wenn das Spiel das Ende gemerkt hat oder NACH_LORD Takte um sind."""
     k, s = l.k, l.s
+    lk.aufnahme_im_stand_ohne(l, lf.TEMPO_JEDER_TAKT)
+    l.warte_takte(LORD_RUHE)
     lk.anhalten(l)
     lord = next((e for e in s.einheiten_alle() if e["typ"] == 55 and e["besitzer"] == 2), None)
     if lord is None:
@@ -491,15 +495,21 @@ def szene_lord(l):
     mx, my = mitte
     plan = {"einheiten": [{"rolle": "ritter", "spieler": 1, "typ": 28, "x": mx + dx, "y": my + dy} for dx, dy in ((-2, -2), (0, -2), (2, -2), (-2, 0), (2, 0), (-2, 2), (0, 2), (2, 2))], "mitte": mitte}
     setzen(l, plan["einheiten"])
-    k.liste([{"einheit_ziel": {"nr": lord["nr"], "x": mx, "y": my}}], lf.KANAL)
+    k.liste([{"player": 2, "angriff": {"einheiten": [lord["nr"]], "lauf": [mx, my]}}], lf.KANAL)
     a = lk.aufnahme_im_stand(l, "lord_g", lf.TEMPO_JEDER_TAKT, False)
 
     def lebt():
         return any(e["nr"] == lord["nr"] and e["uid"] == lord["uid"] and e["leben"] > 0 for e in s.einheiten_alle())
+
+    def im_ring():
+        return any(e["nr"] == lord["nr"] and max(abs(e["x"] - mx), abs(e["y"] - my)) <= 2 for e in s.einheiten_alle())
+    per_befehl = not l.warte_takte(LORD_WEG, lambda: im_ring() or not lebt())
+    if per_befehl:
+        k.liste([{"toeteAlle": {"spieler": 2, "typen": [55]}}], lf.KANAL)
     gefallen = l.warte_takte(LORD_GRENZE, lambda: not lebt())
     tod = s.takt()
     ende = gefallen and l.warte_takte(NACH_LORD, lambda: k.peek(lf.GAMEOVER)[0] != 0)
-    lage = {"gefallen": gefallen, "tod": tod, "ende_gemerkt": ende, "gameover": k.peek(lf.GAMEOVER)[0], "ansicht": k.peek(lf.ANSICHT)[0]}
+    lage = {"per_befehl": per_befehl, "gefallen": gefallen, "tod": tod, "ende_gemerkt": ende, "gameover": k.peek(lf.GAMEOVER)[0], "ansicht": k.peek(lf.ANSICHT)[0]}
     b = lk.anhalten(l)
     pfad = l.rek.pfad
     stand = l.rek.beenden()
@@ -522,7 +532,8 @@ SZENEN = {
     "laufen_trupp": Szene("laufen_trupp", 200, False, GRENZE_TRUPP, aufbau_laufen, befehle_laufen_trupp, alle_am_ziel, treffer_noetig=False),
     "reichweite": Szene("reichweite", 200, False, GRENZE_BAHN, aufbau_reichweite, befehle_auf_partner),
     "schussweite": Szene("schussweite", 200, False, GRENZE_SCHUSSWEITE, aufbau_schussweite, befehle_auf_partner),
-    "laufziel": Szene("laufziel", 200, False, GRENZE_PENDEL, aufbau_laufziel, befehle_laufziel, pendeln),
+    "schussweite_pfeil": Szene("schussweite_pfeil", 200, False, GRENZE_SCHUSSWEITE, lambda l: aufbau_schussweite(l, FAELLE_PFEIL), befehle_auf_partner),
+    "laufziel": Szene("laufziel", lf.TEMPO_JEDER_TAKT, True, GRENZE_PENDEL, aufbau_laufziel, befehle_laufziel, pendeln),  # jeder Takt: Wo steht der Laeufer beim Einschlag?
     "haltung": szene_haltung,
     "laufen_trupp_g": Szene("laufen_trupp_g", 200, False, GRENZE_TRUPP, lambda l: aufbau_laufen(l, OHNE_LORD), befehle_laufen_trupp, alle_am_ziel, treffer_noetig=False),
     "reichweite_g": Szene("reichweite_g", 200, False, GRENZE_BAHN, lambda l: aufbau_reichweite(l, OHNE_LORD), befehle_auf_partner),

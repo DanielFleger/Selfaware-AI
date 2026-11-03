@@ -59,6 +59,7 @@ def geschosse_lesen(pfad, karte):
     ad = {k: karte.adresse("DAT_EntityState", "entityArray[]." + f) for k, f in G_FELDER.items()}
     arten = list(GESCHOSSE)
     aus = {}
+    letzter = None
     for r, p, _ in auf.staende():
         if r.bereich != ie or not r.rein:
             continue
@@ -69,8 +70,13 @@ def geschosse_lesen(pfad, karte):
             g = aus.get(sch)
             if g is None:
                 g = aus[sch] = {"art": GESCHOSSE[int(sp["art"][i])], "besitzer": int(sp["besitzer"][i]), "schuetze": int(sp["schuetze"][i]), "ziel": int(sp["ziel"][i]), "von": r.takt, "bis": None, "start": (int(sp["mx"][i]), int(sp["my"][i])), "punkt": (int(sp["zx"][i]), int(sp["zy"][i]))}
+            g["zuletzt"] = r.takt
             if sp["da"][i] != 2 and g["bis"] is None:
                 g["bis"] = r.takt
+        letzter = r.takt
+    for g in aus.values():
+        if g["bis"] is None and g["zuletzt"] < letzter:  # zwischen zwei Rahmen gelandet, auf Tempo 200 fehlen viele Takte
+            g["bis"] = g["zuletzt"]
     return list(aus.values())
 
 
@@ -337,8 +343,22 @@ def laufziel_werten(geschosse, reihen, einheiten):
     for nr, e in schuetzen.items():
         g = [x for x in geschosse if x["schuetze"] == nr and x["ziel"] == partner[e["paar"]]]
         w = geschosse_werten(g, reihen)
-        aus.append({"typ": e["typ"], "alle_geschosse": sum(1 for x in geschosse if x["schuetze"] == nr), **{k: v for k, v in w.items()}})
+        aus.append({"typ": e["typ"], "alle_geschosse": sum(1 for x in geschosse if x["schuetze"] == nr), **_vorhalt(g, reihen, partner[e["paar"]]), **{k: v for k, v in w.items()}})
     return aus
+
+
+def _vorhalt(geschosse, reihen, ziel):
+    """Zielt das Geschoss auf den Ort beim Abschuss oder auf den beim Einschlag? Abstand des Zielpunkts zum Laeufer, je Mikro, Median. Der Laeufer laeuft 1 Feld in 12 bis 16 Takten."""
+    stand = dict(reihen)
+    takte = sorted(stand)
+    abschuss, einschlag = [], []
+    for g in geschosse:
+        if g["bis"] is None:
+            continue
+        for t, liste in ((g["von"], abschuss), (g["bis"], einschlag)):
+            s = stand[takte[min(int(np.searchsorted(takte, t)), len(takte) - 1)]]
+            liste.append(_abstand(*g["punkt"], int(s["mx"][ziel]), int(s["my"][ziel])))
+    return {"punkt_zum_laeufer_abschuss": int(np.median(abschuss)) if abschuss else None, "punkt_zum_laeufer_einschlag": int(np.median(einschlag)) if einschlag else None}
 
 
 def haltung_werten(reihen, einheiten):

@@ -83,7 +83,7 @@ class Spiel:
             if "toeteAlle" in c:
                 t = c["toeteAlle"]
                 if isinstance(t, dict):
-                    assert t["ohneLord"]
+                    assert t.get("ohneLord") or t["typen"] == [55]  # den Lord nimmt nur der ausdrueckliche Befehl
                     self.tod_typen = set(t["typen"])
                     t = t["spieler"]
                 self.tod.add(t)
@@ -204,20 +204,24 @@ def test_lord_szene_merkt_das_ende(tmp_path):
 
     def ruhe(d):
         ruhe_alt(d)
-        if g.t > 200 and not g.pausiert:
-            lord["leben"] = 0
-            g.einheiten = [x if x["nr"] != 900 else lord for x in g.einheiten]
-        if g.t > 400 and not g.pausiert:
-            g.speicher[lf.GAMEOVER] = 1
+        befohlen = any(isinstance(c, dict) and c.get("player") == 2 and "angriff" in c for c in g.log)
+        if befohlen and not g.pausiert:
+            lord["x"], lord["y"] = next(c["angriff"]["lauf"] for c in g.log if isinstance(c, dict) and "angriff" in c)
+            lord["leben"] = 0 if g.t > g_start["t"] + 50 else lord["leben"]
+            if lord["leben"] == 0:
+                g.speicher[lf.GAMEOVER] = 1
+        else:
+            g_start["t"] = g.t
+    g_start = {"t": 0}
     g.ruhe = ruhe
     l.ruhe = ruhe
     e = ls.szene_lord(l)
-    assert e["gefallen"] and e["ende_gemerkt"] and e["gameover"] == 1
+    assert e["gefallen"] and e["ende_gemerkt"] and e["gameover"] == 1 and not e["per_befehl"]
     assert any(isinstance(c, dict) and c.get("menue") == ls.HAUPTMENUE for c in g.log)
-    a = next(c for c in g.log if isinstance(c, dict) and "einheit_ziel" in c)
+    a = next(c for c in g.log if isinstance(c, dict) and "angriff" in c)
     plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
     mx, my = plan["mitte"]
-    assert a["einheit_ziel"] == {"nr": 900, "x": mx, "y": my} and max(abs(mx - 100), abs(my - 100)) >= 6
+    assert a["player"] == 2 and a["angriff"] == {"einheiten": [900], "lauf": [mx, my]} and max(abs(mx - 100), abs(my - 100)) >= 6
     ritter = plan["einheiten"]
     assert len(ritter) == 8 and all(x["typ"] == 28 and x["spieler"] == 1 and max(abs(x["x"] - mx), abs(x["y"] - my)) == 2 for x in ritter)
     assert len({(x["x"], x["y"]) for x in ritter}) == 8
@@ -239,7 +243,16 @@ def test_lord_steht_nicht_gemerkt_ist_kein_ende(tmp_path):
     g.einheiten = [{"nr": 900, "uid": 900, "typ": 55, "besitzer": 2, "x": 100, "y": 100, "leben": 100}]
     l = lauf_von(g)
     e = ls.szene_lord(l)
-    assert not e["gefallen"] and not e["ende_gemerkt"] and e["bis"] - e["von"] >= ls.LORD_GRENZE
+    assert e["per_befehl"] and e["gefallen"] and not e["ende_gemerkt"]  # er blieb oben: Er faellt per Befehl, und das steht dabei
+    assert {"toeteAlle": {"spieler": 2, "typen": [55]}} in g.log
+    assert e["bis"] - e["von"] >= ls.LORD_WEG
+
+
+def test_lord_faellt_nicht_ist_ein_fund(tmp_path):
+    g = Spiel(tmp_path, steintod_bleibt=True)
+    g.einheiten = [{"nr": 900, "uid": 900, "typ": 55, "besitzer": 2, "x": 100, "y": 100, "leben": 100}]
+    e = ls.szene_lord(lauf_von(g))
+    assert e["per_befehl"] and not e["gefallen"] and not e["ende_gemerkt"] and e["bis"] - e["von"] >= ls.LORD_WEG + ls.LORD_GRENZE
 
 
 def test_szenen_mischen_geht_nicht():
@@ -336,6 +349,57 @@ def test_schussweite_zaehlt_nur_das_befohlene_ziel():
     assert ar.schussweite_grenzen(z) == {22: {"weitester_schuss": 54, "naechster_ohne": 55, "eindeutig": True}}
     z2 = [{"typ": 22, "abstand": 54, "auf_ziel": 0}, {"typ": 22, "abstand": 55, "auf_ziel": 1}]
     assert not ar.schussweite_grenzen(z2)[22]["eindeutig"]
+
+
+def test_schussweite_pfeil_liegt_zwischen_den_gemessenen_grenzen(tmp_path):
+    e = ls.szene_fahren(lauf_von(Spiel(tmp_path)), ls.SZENEN["schussweite_pfeil"])
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    laeufer = [x for x in plan["einheiten"] if x["rolle"] == "laeufer"]
+    assert len(laeufer) == 36 and {x["typ"] for x in laeufer} == {22, 70, 74} and min(x["abstand"] for x in laeufer) == 28 and max(x["abstand"] for x in laeufer) == 50
+
+
+def test_geschoss_zwischen_zwei_rahmen_gelandet_zaehlt_als_gelandet():
+    class Karte:
+        @staticmethod
+        def adresse(b, f):
+            o = {"logicalState": 0, "entityType": 2, "unitID": 4, "unitID_OR_seaGullID": 6, "owner": 8, "uid": 10, "targetX": 14, "targetY": 16, "microX": 18, "microY": 20}[f.split(".")[-1]]
+            return (1000 + o, 4 if f.endswith("uid") else 2, 32, 3)
+
+    class R:
+        def __init__(self, t):
+            self.takt, self.bereich, self.rein = t, 0, True
+
+    def eintrag(da):
+        return np.array([0] * 16, dtype="<i2").tobytes() + np.array([da, 1, 2, 1, 1, 7, 0, 80, 0, 0, 0, 0, 0, 0, 0, 0], dtype="<i2").tobytes() + bytes(32)
+
+    class Auf:
+        namen = ["DAT_EntityState"]
+        bereiche = [(0, 1000)]
+
+        def __init__(self, pfad):
+            pass
+
+        @staticmethod
+        def staende():
+            return [(R(10), eintrag(2), None), (R(14), eintrag(2), None), (R(20), bytes(96), None)]
+    import selfaware.tools.analysis.auge_auswertung as aa
+    alt = aa.Aufzeichnung
+    aa.Aufzeichnung = Auf
+    try:
+        g = ar.geschosse_lesen("x", Karte)
+    finally:
+        aa.Aufzeichnung = alt
+    assert len(g) == 1 and g[0]["von"] == 10 and g[0]["bis"] == 14 and g[0]["schuetze"] == 1 and g[0]["ziel"] == 2 and g[0]["art"] == "pfeil"
+
+
+def test_vorhalt_nennt_den_abstand_bei_abschuss_und_einschlag():
+    r = []
+    for i in range(5):
+        s = {k: np.zeros(ar.PLAETZE, dtype=np.int64) for k in ar.FELDER}
+        s["mx"][2], s["my"][2] = 80, 8 * i
+        r.append((100 + i, s))
+    g = [{"von": 100, "bis": 104, "punkt": (80, 32)}]
+    assert ar._vorhalt(g, r, 2) == {"punkt_zum_laeufer_abschuss": 32, "punkt_zum_laeufer_einschlag": 0}
 
 
 def test_laufen_trupp_laeuft_ueber_den_gruppenbefehl(tmp_path):
