@@ -542,7 +542,7 @@ def main(argv=None):
         return 0
     plan = json.load(open(a.aufzeichnung + ".plan.json", encoding="utf-8"))
     reihen, tab = reihen_lesen(a.aufzeichnung, Feldkarte.laden(feldliste=FELDLISTE))
-    art = plan["szene"].removesuffix("_g").removesuffix("_pfeil")
+    art = plan["szene"].removesuffix("_g").removesuffix("_pfeil").removesuffix("2")
     if art in ("last", "lord") or art.startswith("schlacht"):
         m = masse_werten(reihen, tab)
         json.dump({"szene": plan["szene"], "von": plan["von"], "bis": plan["bis"], **m}, open(a.aufzeichnung + ".regeln.json", "w", encoding="utf-8"), ensure_ascii=False)

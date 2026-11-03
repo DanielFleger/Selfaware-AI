@@ -43,6 +43,7 @@ class Spiel:
             self.t += 1
             if self.tod_ab is not None and self.t >= self.tod_ab and not self.f.get("steintod_bleibt"):
                 self.einheiten = [e for e in self.einheiten if not (e["besitzer"] in self.tod and (self.tod_typen is None or e["typ"] in self.tod_typen))]
+                self.tod, self.tod_ab, self.tod_typen = set(), None, None
 
     def takt(self):
         return self.t
@@ -456,6 +457,18 @@ def test_haltung_erst_gruppe_dann_haltung_dann_feind(tmp_path):
     arten = [("trupp" if "angriff" in c else "haltung" if "spielbefehl" in c else "feind") for c in g.log if isinstance(c, dict) and ("angriff" in c or "spielbefehl" in c or ("setzeEinheit" in c and c["setzeEinheit"]["spieler"] == 2))]
     assert arten == ["trupp"] * 15 + ["haltung"] * 15 + ["feind"] * 15
     assert all(c["spielbefehl"]["werte"][1] in (0, 1, 2) for c in g.log if isinstance(c, dict) and "spielbefehl" in c)
+
+
+def test_haltung_zwei_szenen_decken_alle_faelle(tmp_path):
+    g = Spiel(tmp_path)
+    l = lauf_von(g)
+    a = ls.SZENEN["haltung"](l)
+    b = ls.SZENEN["haltung2"](l)
+    pa = json.load(open(a["pfad"] + ".plan.json", encoding="utf-8"))
+    pb = json.load(open(b["pfad"] + ".plan.json", encoding="utf-8"))
+    alle = [(x["typ"], x["haltung"], x["abstand"]) for p in (pa, pb) for x in p["einheiten"] if x["rolle"] == "wache"]
+    assert pa["szene"] == "haltung" and pb["szene"] == "haltung2" and len(alle) == 15 and len(set(alle)) == 15
+    assert sum(1 for x in pa["einheiten"] if x["rolle"] == "wache") <= 11 and sum(1 for x in pb["einheiten"] if x["rolle"] == "wache") <= 11  # mehr passt nicht auf die Karte
 
 
 def test_haltung_ohne_wirkung_bricht_ab(tmp_path):

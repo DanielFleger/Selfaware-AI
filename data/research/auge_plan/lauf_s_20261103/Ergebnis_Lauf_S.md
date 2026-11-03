@@ -110,7 +110,70 @@ Schachbrett, 4 Einheiten je Feld, kein Befehl, Tempo 1000. Belege: `schlacht_*.r
 - **Das Auge liest bei 2.000 Einheiten rund jeden 4. Takt, einen sauberen Rahmen rund jeden 10. Takt** (1.351 gelesen, 565 rein in 5.666 Takten). Die Warteschlange zum Schreiben war 7.611-mal voll: Die Platte bremst das Lesen, nicht das Spiel. Für jeden Takt braucht es hier Tempo 40.
 - Warum die Schützen so schnell fallen, ist nicht einzeln ausgewertet; Feuer ist nicht getrennt gezählt. Die Reihen mit 100 Einheiten sind nicht gefahren, sie sind aus den großen Schlachten gerechnet, sobald A1 bis A3 laufen.
 
+## Szene Schlacht mit jedem Takt, 03.11. 20:30
+
+20 gegen 20, Nahkampf gemischt, Tempo 40 streng. **Die Regel „Schaden mehrerer Angreifer addiert sich“ stimmt in allen 2.417 gewerteten Fällen, keine Abweichung.** Die 1,1 Prozent aus den Schlachten auf Tempo 1000 waren Angreifer, die zwischen zwei Rahmen gewechselt haben. Beleg: `schlacht_streng.regeln.json`.
+
+## Gegenprobe im Gefecht, 03.11. 20:08 bis 20:25
+
+Zwei Mensch-Plätze ohne KI, die Lords stehen, Spielart 99 und 3 nachgelesen. **Feste Startplätze sind nötig:** Ohne sie bekommt Spieler 2 Platz 246, also 6 Bogenschützen, aber weder Burg noch Lord. Der Lord fehlt in diesen Szenen, sein Fall ist eine eigene Szene.
+
+| Szene | Ergebnis gegen den Editor | Beleg |
+|---|---|---|
+| Laufen, Direktbefehl | 36 von 36 Zeilen gleich, also auch der Streitkolbenkämpfer: 16 Takte je Feld in beiden | `laufen_g.regeln.json` |
+| Nahkampf | Tabellen gleich. Bei 169 von 171 Paaren sind die Leben ab Takt 2 je Takt gleich, 2 Paare beginnen 1 Takt versetzt: Streitkolbenkämpfer gegen Streitkolbenkämpfer, Schwertkämpfer gegen Leiterträger | `gefecht_gegen_editor.txt`, Befehl oben in `gefecht_gegen_editor.py` |
+| Beschuss | 18 von 18 Arten: kein Betrag ungeklärt, gleiche Geschosswerte | `beschuss_g.regeln.json` |
+
+**Vorhersage widerlegt:** Im Plan stand, der Streitkolbenkämpfer gehe im Editor und renne im Gefecht (`UpdateMaceman`, die Stelle hat UCP umgebaut, Sprung bei 0x560B4F). Er ist in beiden gleich schnell, mit Direktbefehl 16, mit Truppenbefehl 12 Takte je Feld. Die Spielart ändert beim Laufen hier nichts.
+
+**Der erste Rahmen im Gefecht zeigt noch den alten Stand:** Takt 1 nach dem Weiterlaufen sieht aus wie Takt 0, in Takt 2 stehen dann zwei Takte Schaden. Darum sah der Prüfer je Paar einmal den doppelten Wert. Das ist das Lesen, nicht das Spiel: Ab Takt 2 sind die Leben dieselben wie im Editor. Warum es nur im Gefecht so ist, weiß ich nicht. Der Prüfer zählt diesen Fall und versteckt ihn nicht.
+
+## Szene Truppenbefehl, 03.11. 20:23 und 20:30
+
+**Der wichtigste Fund zum Tempo: Mit dem echten Truppenbefehl (Spielbefehle 16 und 17) laufen die meisten Einheiten schneller als mit dem Direktbefehl.** Das erklärt die kleineren Werte aus den echten Partien (L80: Bogenschütze 11,5, Pikenier 24). In Editor und Gefecht gleich.
+
+| Takte je Feld | Arten | Direktbefehl |
+|---|---|---|
+| 12 | Bogenschütze (E_ARCHER 22), Speerträger (E_SPEAR 24), Streitkolbenkämpfer (E_MACE 26), Leiterträger (E_LADDER 29), Tunnelgräber (TUNNELER 5), arabischer Bogenschütze (A_ARCHER 70), Sklave (A_SLAVE 71), Schleuderer (A_SLINGER 72) | 16 |
+| 10,4 bis 12,1 | Ritter (E_KNIGHT 28), Berittener Bogenschütze (A_HARCHER 74) | 16 |
+| 16 | Ingenieur (E_ENGINEER 30), Assassine (A_ASSASSIN 73) | 16 |
+| 24 | Armbrustschütze (E_XBOW 23), Pikenier (E_PIKE 25), Mönch (E_MONK 37), arabischer Schwertkämpfer (A_SWORDSMAN 75), Feuerwerfer (A_FIRETHROWER 76), Lord (55) | 24 |
+| 32 | Schwertkämpfer (E_SWORD 27) | 32 |
+
+Warum der Truppenbefehl schneller ist, steht noch nicht im Code nachgelesen. Gerade und schräg kosten je Feld gleich viel.
+
+## Szene Anlauf, 03.11. 20:25 und 20:30
+
+Jeder Nahkämpfer mit Angriffsbefehl auf eine unbemannte Ramme, 60 Felder weit (`reichweite.regeln.json`). **Im Angriff laufen sie so schnell wie mit dem Truppenbefehl,** Editor und Gefecht gleich: Speerträger 11,9, Pikenier 23,9, Streitkolbenkämpfer 11,9, Schwertkämpfer 31,9, Ritter 10,6, Mönch 23,9, Assassine 15,7, arabischer Schwertkämpfer 23,8 Takte je Feld. Sie bleiben 1,8 bis 2,4 Felder vor der Ramme stehen und schlagen dort jeden Takt.
+
+**Mein Aufbau war für die Schützen falsch:** Sie laufen auf einen Angriffsbefehl nicht los. Der Code setzt das Ziel und hält sie an (`giveTribeAnInstruction`, `UIT_UNIT_ATTACK_UNIT`, `makeUnitStopWalkingByClearingPathProgressState`), sie schießen nur, wenn das Ziel schon in Reichweite steht. Darum die Leiter unten.
+
+## Szene Schussweite, 03.11. 20:30 und 20:35
+
+Jede Art mit Angriffsbefehl auf eine Ramme in Abständen rund um den Tabellenwert. Gezählt werden nur Geschosse auf das befohlene Ziel. Belege: `schussweite.regeln.json`, `schussweite_pfeil.regeln.json`.
+
+| Geschoss | Arten | Schießt bis | Schießt nicht mehr auf | Tabelle 0x5B6358 |
+|---|---|---|---|---|
+| Bolzen | Armbrustschütze | 40 Felder | 41 | 40, stimmt |
+| Stein | Schleuderer | 18 | 19 | 18, stimmt |
+| Feuer | Feuerwerfer | 11 | 12 | 11, stimmt |
+| Pfeil | Bogenschütze, arabischer Bogenschütze, Berittener Bogenschütze | 40 | 42 | **54, stimmt nicht.** 41 ist nicht gefahren |
+
+Abstände hier auf ebener Bahn, ohne Höhe. Warum der Pfeil nicht bis 54 reicht, ist offen: Der Tabellenwert 54 steht beim Geschoss, die Grenze kommt also von anderswo.
+
+## Geschosse, aus den Aufzeichnungen gelesen
+
+Neu auslesbar: Jedes Geschoss steht mit Art, Schütze (`unitID_OR_seaGullID`, 794 von 795 gehören dem Besitzer), Ziel (`unitID`), Zielpunkt und Flugzeit in `DAT_EntityState`.
+
+| Geschoss | Mikro je Takt (8 Mikro = 1 Feld) | Stehendes Ziel, Verlust rund um den Einschlag |
+|---|---|---|
+| Pfeil | 5,75 | 336 von 353 |
+| Bolzen | 6,18 | 68 von 70 |
+| Stein | 5,63 | 247 von 251 |
+| Feuer | 3,78 | 68 von 82 |
+
+Editor, Szene Beschuss, gleiche Werte im Gefecht. Der Verlust kommt im Takt der Landung oder bis zu 2 Takte davor. **Die rund 5 Prozent ohne Verlust sind noch nicht erklärt.** Zielwahl: 378 von 795 Schüssen gehen auf den nächsten Feind, 417 nicht.
+
 ## Noch offen
 
-Gegenprobe im Gefecht, Reichweite, Flugzeit, Trefferquote, Haltung, Geräte und Belagerung, Angriff auf einen Punkt, Sonderfälle, Lauf-K-Stand. A1, A2, A3, A9, A10, A12 über diese Aufzeichnungen sind noch nicht gerechnet.
-
+Laufendes Ziel, Haltung, Geräte und Belagerung, Fall des Lords, Angriff auf einen Punkt, Sonderfälle, Lauf-K-Stand. A1, A2, A3, A9, A10, A12 über diese Aufzeichnungen sind noch nicht gerechnet.

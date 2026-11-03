@@ -63,7 +63,8 @@ ABSTAND_PENDEL, FELDER_PENDEL, GRENZE_PENDEL = 8, 20, 1323  # 5 Schuss Armbrust 
 PENDLER = 26  # Streitkolbenkaempfer: 25.000 Leben, schnell, schlaegt auf Abstand 8 nicht zu
 HALTUNGEN = (("aggressiv", 2, 24), ("aggressiv", 2, 26), ("defensiv", 1, 4), ("defensiv", 1, 6), ("stehen", 0, 4))  # Code: aggressiv 200 Mikro, defensiv 40 Mikro, 8 je Feld
 HALTUNG_ARTEN = (28, 24, 30)  # Ritter, Speertraeger, Ingenieur: je eine Pruefrunde 63, 127, 255. Keine Schuetzen: Sie schiessen ueber 40 Felder, das stoert die Nachbarn
-HALTUNG_RASTER_X, HALTUNG_RASTER_Y = 60, 40  # Abstand der Faelle: Der naechste fremde Feind steht mindestens 34 Felder weg, groesster Radius 25. Mit 60 x 60 gab es nur 10 Plaetze
+HALTUNG_RASTER_X, HALTUNG_RASTER_Y = 60, 40  # Abstand der Faelle: Der naechste fremde Feind steht mindestens 34 Felder weg, groesster Radius 25. Es passen 11 Faelle, darum zwei Szenen
+FAELLE_HALTUNG = list(itertools.product(HALTUNG_ARTEN, HALTUNGEN))
 GRENZE_HALTUNG, HALTUNG_TRUPP, HALTUNG_BEFEHL = 1024, 15 * WARTESCHLANGE, 100  # 2 volle Pruefrunden der langsamsten Art; alle Gruppen; Befehl im naechsten Takt, gemessen wird es hier
 BESATZUNG = {39: 2, 40: 3, 41: 2, 61: 2, 77: 2, 59: 4, 58: 4, 60: 1}  # getRemainingRequiredEngineers 0x5334A0
 SCHIESSEN, FAHREN = (39, 40, 41, 61, 77), (39, 77, 60, 59, 58)  # Trebuchet, Mangonel, Ballista fahren nicht (DAT_UNIT_MOVABLE 0)
@@ -354,6 +355,7 @@ class Szene:
     fertig: Optional[Callable] = None
     treffer_noetig: bool = True
     masse: bool = False
+    am_ende_am_ziel: bool = True
 
 
 def aufbau_schlacht(a, b, n, je_feld=4):
@@ -570,12 +572,11 @@ def szene_geraete(l, name, aufbau, befehle, tempo, grenze):
     return {"szene": name, "von": a, "bis": b, "einheiten": len(plan["einheiten"]), "bemannt": plan["bemannt"], "bemannt_nach": plan["bemannt_nach"], "nicht_gesetzt": plan.get("nicht_gesetzt"), "nicht_gefahren": plan.get("nicht_gefahren"), "abraeumen_takte": abr, "stand": stand, "pfad": pfad}
 
 
-def szene_haltung(l):
+def szene_haltung(l, faelle=FAELLE_HALTUNG, name="haltung"):
     """Der Radius der Haltung. Erst stehen die Gruppen mit ihrer Haltung, dann erst kommt der Feind, sonst reagiert jemand mit der Grundhaltung. Der Feind hat keine Gruppe, er laeuft also nicht los (tribeID 0, L77)."""
     k, s = l.k, l.s
     lk.anhalten(l)
     frei, hoehe, _ = s.raster()
-    faelle = list(itertools.product(HALTUNG_ARTEN, HALTUNGEN))
     orte = gitter(frei, hoehe, 28, 1, HALTUNG_RASTER_X, HALTUNG_RASTER_Y, len(faelle))
     if len(orte) < len(faelle):
         raise Abbruch(f"Nur {len(orte)} Plaetze fuer {len(faelle)} Haltungs-Faelle")
@@ -586,7 +587,7 @@ def szene_haltung(l):
 
     def jetzt():
         return {e["nr"]: e for e in s.einheiten_alle()}
-    if not l.warte_takte(HALTUNG_TRUPP, lambda: all(jetzt()[e["nr"]]["trupp"] for e in wachen)):
+    if not l.warte_takte(HALTUNG_TRUPP, lambda: all(jetzt().get(e["nr"], {}).get("trupp") for e in wachen)):
         raise Abbruch("Haltung: Nicht alle stehen in einer Gruppe")
     orte_jetzt = jetzt()
     for e in wachen:
@@ -601,15 +602,15 @@ def szene_haltung(l):
     feinde = [{"rolle": "feind", "fall": e["fall"], "spieler": 2, "typ": 24, "x": e["x"] + e["abstand"], "y": e["y"]} for e in wachen]
     einheiten = mit_kontrolle(wachen + feinde, frei)
     setzen(l, feinde + einheiten[-1:])
-    a = lk.aufnahme_im_stand(l, "haltung", 200, False)
+    a = lk.aufnahme_im_stand(l, name, 200, False)
     l.warte_takte(GRENZE_HALTUNG)
     b = lk.anhalten(l)
     pfad = l.rek.pfad
     stand = l.rek.beenden()
     with open(pfad + ".plan.json", "w", encoding="utf-8") as f:
-        json.dump({"szene": "haltung", "von": a, "bis": b, "tempo": 200, "einheiten": einheiten}, f, ensure_ascii=False)
+        json.dump({"szene": name, "von": a, "bis": b, "tempo": 200, "einheiten": einheiten}, f, ensure_ascii=False)
     abr = abraeumen(l)
-    return {"szene": "haltung", "von": a, "bis": b, "einheiten": len(einheiten), "abraeumen_takte": abr, "stand": stand, "pfad": pfad}
+    return {"szene": name, "von": a, "bis": b, "einheiten": len(einheiten), "abraeumen_takte": abr, "stand": stand, "pfad": pfad}
 
 
 def freie_mitte(frei, x, y, rand=2, mindestens=6):
@@ -679,8 +680,9 @@ SZENEN = {
     "reichweite": Szene("reichweite", 200, False, GRENZE_BAHN, aufbau_reichweite, befehle_auf_partner),
     "schussweite": Szene("schussweite", 200, False, GRENZE_SCHUSSWEITE, aufbau_schussweite, befehle_auf_partner),
     "schussweite_pfeil": Szene("schussweite_pfeil", 200, False, GRENZE_SCHUSSWEITE, lambda l: aufbau_schussweite(l, FAELLE_PFEIL), befehle_auf_partner),
-    "laufziel": Szene("laufziel", 100, False, GRENZE_PENDEL, aufbau_laufziel, befehle_laufziel, pendeln, treffer_noetig=False),  # Tempo 100: fast jeder Takt (2 von 498 fehlten), ohne Abbruch bei einem gemischten Rahmen. Streng brach es 03.11. 20:37 nach 630 Takten ab
-    "haltung": szene_haltung,
+    "laufziel": Szene("laufziel", 100, False, GRENZE_PENDEL, aufbau_laufziel, befehle_laufziel, pendeln, treffer_noetig=False, am_ende_am_ziel=False),  # Tempo 100: fast jeder Takt (2 von 498 fehlten), ohne Abbruch bei einem gemischten Rahmen. Streng brach es 03.11. 20:37 nach 630 Takten ab
+    "haltung": lambda l: szene_haltung(l, FAELLE_HALTUNG[:10], "haltung"),
+    "haltung2": lambda l: szene_haltung(l, FAELLE_HALTUNG[10:], "haltung2"),
     "besatzung": lambda l: szene_geraete(l, "besatzung", aufbau_besatzung, befehle_besatzung, 200, GRENZE_GERAET),
     "belagerung": lambda l: szene_geraete(l, "belagerung", aufbau_belagerung, befehle_belagerung, 500, GRENZE_BELAGERUNG),
     "gebaeude_nah": Szene("gebaeude_nah", lf.TEMPO_JEDER_TAKT, True, GRENZE_NAH_GEBAEUDE, aufbau_gebaeude_nah, befehle_gebaeude_nah, treffer_noetig=False),
@@ -733,7 +735,7 @@ def szene_fahren(l, sz):
         raise Abbruch(f"Szene {sz.name}: Takt fehlt oder ist gemischt: {stand}")
     if sz.treffer_noetig and not sz.masse and not hat_treffer(s, plan):
         raise Abbruch(f"Szene {sz.name}: Kein einziger Treffer in {b - a} Takten, der Aufbau stimmt nicht")
-    if not sz.treffer_noetig and fertig and not am_ziel and not sz.masse:
+    if not sz.treffer_noetig and fertig and not am_ziel and not sz.masse and sz.am_ende_am_ziel:
         l.wirkung(f"Szene {sz.name}: nicht alle am Ziel", False, takte=b - a)
     with open(pfad + ".plan.json", "w", encoding="utf-8") as f:
         json.dump({"szene": sz.name, "von": a, "bis": b, "tempo": sz.tempo, **plan}, f, ensure_ascii=False)
