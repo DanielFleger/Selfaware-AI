@@ -57,6 +57,9 @@ class Spiel:
     def kachel(self, x, y):
         return 1000 * y + x
 
+    def platzkarte(self, mapper, groesse, x0, y0, x1, y1, sp=1):
+        return ["+" * (x1 - x0 + 1)] * (y1 - y0 + 1)
+
     def feld(self, gruppe, name):
         return 7000, 100
 
@@ -621,6 +624,38 @@ def test_zweiter_durchgang_sonderfaelle_wie_der_code_es_verlangt(tmp_path):
     # Pech: gebaut von Spieler 2, angezuendet ueber Nummer und uid
     assert sum(1 for c in bef if "baue" in c and c["player"] == 2) == 5
     assert an[34]["player"] == 2 and an[34]["angriff"]["a"] == 7 and an[34]["angriff"]["b"] == 52
+
+
+def test_spielbefehle_verschiedener_spieler_laufen_in_verschiedenen_takten(tmp_path):
+    g = Spiel(tmp_path)
+    l = lauf_von(g)
+    l.gefecht = True
+    ls.SZENEN["sonder2_g"](l)
+    b = [c for c in g.log if isinstance(c, dict)]
+    p1 = max(i for i, c in enumerate(b) if c.get("player") == 1 and ("ware" in c or c.get("spielbefehl", {}).get("nr") == 21))
+    p2 = min(i for i, c in enumerate(b) if c.get("player") == 2 and ("ware" in c or "baue" in c))
+    assert p1 < p2 and any(c.get("pause") is False for c in b[p1:p2])
+
+
+def test_erlaubte_stelle_fragt_das_spiel_und_nimmt_die_naechste(tmp_path):
+    g = Spiel(tmp_path)
+    karte = ["-" * 13 for _ in range(13)]
+    karte[9] = "-" * 12 + "+"
+    karte[6] = "-" * 8 + "+" + "-" * 4
+    g.platzkarte = lambda *a, **k: karte
+    z = {"mapper": 1, "groesse": 3, "x": 100, "y": 200, "spieler": 2}
+    assert ls.erlaubte_stelle(lauf_von(g), z) == (102, 200)
+    g.platzkarte = lambda *a, **k: ["-" * 13] * 13
+    assert ls.erlaubte_stelle(lauf_von(g), z) is None
+
+
+def test_oel_einzeln_werfen_und_hingehen(tmp_path):
+    g = Spiel(tmp_path)
+    l = lauf_von(g)
+    l.gefecht = True
+    ls.SZENEN["sonder2_g"](l)
+    w = [c["angriff"] for c in g.log if isinstance(c, dict) and c.get("angriff", {}).get("art") == 20]
+    assert len(w) == 4 and all(len(c["einheiten"]) == 1 for c in w)
 
 
 def test_stufen_laufen_in_der_reihenfolge_ihrer_takte(tmp_path):

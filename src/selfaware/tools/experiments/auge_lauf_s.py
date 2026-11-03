@@ -80,6 +80,7 @@ GRENZE_GERAETE_WEITE = 1000  # 3 Schuss Trebuchet (296 Takte)
 PUNKT_FAELLE = (("feld", 10), ("feld", 100), ("feld", 500), ("tor", 100), ("tor", 500), ("turm", 100), ("luecke", 100), ("luecke", 500))  # Liste V6
 PUNKT_WEG, GRENZE_PUNKT = 30, 3000  # Felder bis zum Ziel; 30 Felder zu 12 Takten, mal 8 fuer den Stau bei 500
 GRENZE_SONDER, SONDER_ABSTAND = 3000, 30  # Takte; Abstand der Posten, Feuerwerfer reicht 11, Schuetzen haben ihr Ziel per Befehl
+SONDER_SPIELER_TAKTE = 40  # Takte je Spieler fuer die Spielbefehle davor: Im selben Takt laufen alle als der zuletzt gesetzte Spieler (Modul: PLATZ_TAKTE 1), Graben, Mauern und Pech kamen so nie an (Lauf 21:30)
 SONDER_BEMANNEN = 400  # Takte: Geraete waren nach 356 Takten bemannt (Szene besatzung)
 GRENZE_NAH_GEBAEUDE = 300  # Takte auf Tempo 40: Schaden je Schlag, Weg hoechstens 2 Felder
 STARTPLAETZE = (0, 1, 246, 246, 246, 246, 246, 246)  # playerPositionsArray: Platz je Spieler, 246 = keiner
@@ -514,6 +515,18 @@ def gebaeude_setzen(l, ziele):
     return [z for z in ziele if "nr" not in z]
 
 
+def erlaubte_stelle(l, z, rand=6):
+    """Das Spiel selbst fragen: Frei und eben reichte nicht, checkBuildingCanBePlacedHere lehnte Kaefig und Wachturm trotzdem ab (Lauf 21:30). Rueckgabe: die naechste erlaubte Stelle (x, y) oder None."""
+    zeilen = l.k.platzkarte(z["mapper"], z["groesse"], z["x"] - rand, z["y"] - rand, z["x"] + rand, z["y"] + rand, z["spieler"])
+    beste = None
+    for j, reihe in enumerate(zeilen):
+        for i, c in enumerate(reihe):
+            d = max(abs(i - rand), abs(j - rand))
+            if c == "+" and (beste is None or d < beste[0]):
+                beste = (d, z["x"] - rand + i, z["y"] - rand + j)
+    return beste[1:] if beste else None
+
+
 def aufbau_besatzung(l):
     """Je Geraet eine Zeile mit voller Besatzung und eine mit einem Mann zu wenig, einmal schiessen, einmal fahren. Das Ziel beim Schiessen ist ein Pikenier von Spieler 2: 80.000 Leben, er laeuft ohne Gruppe nicht los."""
     frei, hoehe, _ = l.s.raster()
@@ -799,7 +812,7 @@ def sonder_g2(l):
 
     def graben(x, y):
         wer = [_e("graeber", 71, x + 2 + i, y + 4) for i in range(3)]
-        fueller = [_e("fueller", 71, x + 20, y + 3 + i, 2) for i in range(2)]
+        fueller = [_e("fueller", 71, x + 34, y + 3 + i, 2) for i in range(2)]  # so weit weg, dass sie nicht schon beim Graben kaempfen (Lauf 21:30)
         plan = [{"player": 1, "spielbefehl": {"nr": 21, "werte": [x + 11, y + 4, 0, 0x40000000, 0]}}]  # L126: Flag 2 = 0 plant, 2 wuerde sofort ausheben
         return [], wer + fueller, plan, lambda: [_angriff(wer, art=6, a=x + 11, b=y + 4)], [(1500, lambda: [_angriff(fueller, 2, art=7, a=x + 11, b=y + 4)])], [(x + 10 + i, y + 3 + j) for i in range(3) for j in range(3)]
 
@@ -823,13 +836,13 @@ def sonder_g2(l):
 
     def pech(x, y):
         baue = [{"player": 2, "baue": {"mapper": 99, "x": x + 10 + i, "y": y + 4, "groesse": 1, "richtung": 15}} for i in range(5)]
-        schuetze = _e("schuetze", 22, x + 20, y + 2, 2)
+        schuetze = _e("schuetze", 22, x + 30, y + 2, 2)
         opfer = _e("opfer", 25, x + 2, y + 4)
 
         def anzuenden():
             nah = [d for d in s.pech_liste(2) if abs(d["y"] - (y + 4)) <= 1 and x + 8 <= d["x"] <= x + 16]
             return [_angriff([schuetze], 2, art=34, a=nah[len(nah) // 2]["nr"], b=nah[len(nah) // 2]["uid"])] if nah else []
-        return [], [schuetze, opfer], baue, lambda: [_angriff([opfer], lauf=[x + 18, y + 4])], [(200, anzuenden)]
+        return [], [schuetze, opfer], baue, lambda: [_angriff([opfer], lauf=[x + 13, y + 4])], [(200, anzuenden)]
 
     def oel(x, y):
         g = [_g(28, x + 6, y + 1, spieler=1)]
@@ -839,7 +852,12 @@ def sonder_g2(l):
 
         def holen():
             return [{"poke": adr + schritt * g[0]["nr"], "wert": 20}, _angriff(leute, art=15, a=g[0]["nr"], b=g[0]["uid"])] if "nr" in g[0] else []
-        return g, leute + [opfer], [], holen, [(800, lambda: [_angriff(leute, art=20, a=x + 18, b=y + 3)])]
+        def werfen():
+            return [_angriff([w], art=20, a=x + 18, b=y + 3) for w in leute]  # einzeln: Als Gruppe traf der Befehl nur den, der noch kein Oel hatte (Lauf 21:30)
+
+        def hingehen():
+            return [_angriff([w], lauf=[x + 14, y + 3 + i]) for i, w in enumerate(leute)]
+        return g, leute + [opfer], [], holen, [(800, werfen), (1800, hingehen), (2400, werfen)]
 
     def tunnel(x, y):
         g = [_g(74, x + 22, y + 2)]
@@ -848,7 +866,7 @@ def sonder_g2(l):
         wand = [_e("taeter_mauer", 5, x + 2, y + 10 + i) for i in range(3)]
         return g, wer + wand, mauer, lambda: ([_angriff(wer, gebaeude=g[0]["nr"])] if "nr" in g[0] else []) + [_angriff(wand, art=23, a=s.kachel(x + 24, y + 11), b=0)], None
 
-    return (("graben", graben, 26, 8), ("leiter", leiter, 30, 16), ("kuh", kuh, 36, 8), ("hunde", hunde, 20, 8), ("pech", pech, 24, 8), ("oel", oel, 24, 8), ("tunnel", tunnel, 30, 16))
+    return (("graben", graben, 40, 8), ("leiter", leiter, 30, 16), ("kuh", kuh, 36, 8), ("hunde", hunde, 20, 8), ("pech", pech, 34, 8), ("oel", oel, 24, 8), ("tunnel", tunnel, 30, 16))
 
 
 SONDER_G = (("graben", p_graben, 24, 8), ("leiter", p_leiter, 30, 16), ("turmgeraet", p_turmgeraet, 30, 12), ("schild", p_schild, 34, 10), ("hoehe", p_hoehe, 60, 6), ("tor", p_tor, 30, 10), ("oel", p_oel, 24, 8))
@@ -877,13 +895,18 @@ def szene_sonder(l, name, posten):
         if sp:
             stufen += sp if isinstance(sp, list) else [(SONDER_BEMANNEN, sp)]
         karte.append({"posten": n, "x": o[0], "y": o[1], "breite": b, "hoehe": h, "felder": [[x, y, s.kachel(x, y)] for x, y in felder[0]] if felder else []})
+    if l.gefecht:
+        for z in gebaeude:
+            ort = erlaubte_stelle(l, z)
+            if ort:
+                z["x"], z["y"] = ort
     nicht_gesetzt = gebaeude_setzen(l, gebaeude)
     if l.gefecht:
         davor = [{"player": p, "ware": {"typ": t, "menge": m}} for p in SPIELER_S for t, m in SONDER_WAREN] + davor
-    if davor:
-        k.liste(davor, lf.KANAL)
+    for sp_ in sorted({c.get("player", 1) for c in davor}):
+        k.liste([c for c in davor if c.get("player", 1) == sp_], lf.KANAL)
         lk.aufnahme_im_stand_ohne(l, lf.TEMPO_JEDER_TAKT)
-        l.warte_takte(40)
+        l.warte_takte(SONDER_SPIELER_TAKTE)
         lk.anhalten(l)
     einheiten = mit_kontrolle(einheiten, frei)
     setzen(l, einheiten)
