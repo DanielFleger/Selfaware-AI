@@ -410,3 +410,7 @@ Tick 4.731-7.737, Aufloesung 14,5 Ticks (`daten/lage_ablauf_fein_20261006_224521
 | S22 | Starttruppen im Gefecht: je Spieler 6 Bogenschuetzen bei Takt 202, 8 Speertraeger bei Takt 403. Wer vorher raeumt, hat sie danach im Feld | getestet | `stoerung_starttruppen.txt` |
 | S23 | Hunde: 4 kommen von selbst, wenn genug Feinde nahe sind (Code: mehr als 5 oder Truppenwert ueber 24 binnen 16 Schritten; gemessen: 8 ja, 3 nein). 80 Leben je Takt und Hund. Spielbefehl 74 setzt 4 weitere auf den Kaefig, die feststecken | getestet | `sonder3_g`, `sonder3_g_drei_opfer`, `belege_sonderfaelle.txt` |
 | S24 | Zuschuetten geht nur beim Graben eines anderen Teams, rund 220 Takte je Feld und Sklave. Eigene Sklaven tun auf Anweisung 7 nichts | getestet | `sonder3_g`, `sonder3_g_starttruppen`, `belege_sonderfaelle.txt` |
+| S25 | Besatzung: Der Zaehler springt von 0 auf die Sollzahl, mit zu wenig Ingenieuren bleibt er 0 und sie warten daneben | getestet | `Punkte_Lauf_S.md` P334, P337, `punkte_rechnung4.txt` |
+| S26 | Mauer: Tunnelgraeber in der Mitte 20 Schaden und 20 Hoehe je Schlag, am Ende 30, beim ersten Treffer 20 Hoehe mehr | getestet | P322, `punkte_rechnung2.txt` |
+| S27 | huntedBy steigt nicht beim Angriffsbefehl, nur wenn die Einheit ihr Ziel selbst waehlt (Hunde). countArabianArcher summiert die Lebenden je Takt | getestet | P339, P365, `punkte_rechnung3.txt`, `punkte_rechnung4.txt` |
+| S28 | Giftwolke 828 Takte. Ramme 125 je Treffer, der Code uebergibt 50, Faktor ungeklaert | getestet | P297, P345, `punkte_rechnung1.txt`, `punkte_rechnung3.txt` |

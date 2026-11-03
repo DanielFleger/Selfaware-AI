@@ -17,7 +17,7 @@ HIER = os.path.dirname(os.path.abspath(__file__))
 L = os.path.join(HIER, "..", "laeufe")
 CHECK = os.path.join(HIER, "..", "Checkliste_Auge.md")
 SZENEN = ("nahkampf", "laufen", "beschuss", "schlacht_20", "schlacht_1000", "schlacht_schuetzen", "schlacht_araber", "last", "schlacht_streng", "laufen_trupp", "reichweite", "schussweite", "schussweite_pfeil", "laufziel",
-          "haltung", "haltung2", "besatzung", "geraete_weite", "belagerung", "gebaeude_nah", "punkt", "sonder1", "sonder2", "laufen_g", "nahkampf_g", "beschuss_g", "laufen_trupp_g", "reichweite_g", "sonder_g", "lord_g")
+          "haltung", "haltung2", "besatzung", "geraete_weite", "belagerung", "gebaeude_nah", "punkt", "sonder1", "sonder2", "laufen_g", "nahkampf_g", "beschuss_g", "laufen_trupp_g", "reichweite_g", "sonder_g", "lord_g", "sonder2_g", "sonder3", "sonder3_g", "sonder4_g", "sonder5", "sonder5_g", "sonder6_g", "sonder7_g")
 
 
 def neueste(s):

@@ -553,6 +553,10 @@ td.z { text-align: right; white-space: nowrap; }
     <tr><td>Schild</td><td>Pfeile auf den Mann dahinter treffen den Schild: Mann 0, Schild 1.200, Mann ohne Schild 48.000.</td></tr>
     <tr><td>Mordgrube</td><td>18.000 je Grube beim Darüberlaufen.</td></tr>
     <tr><td>Burgbereich</td><td>Im Gefecht gehen Mauer, Graben, Pechgraben, Käfig und Turm nur nahe der eigenen Burg, bis 45 Felder war fast alles erlaubt. Der Befehl meldet auch sonst Erfolg, also nachlesen.</td></tr>
+    <tr><td>Besatzung</td><td>Der Zähler springt von 0 auf die Sollzahl. Mit zu wenig Ingenieuren bleibt er 0, sie warten daneben. Gemessen an 7 Gerätearten.</td></tr>
+    <tr><td>Mauer unter Schlägen</td><td>Tunnelgräber: Mitte 20 Schaden und 20 Höhe je Schlag, Ende 30, beim ersten Treffer 20 Höhe mehr. Gefallen bei Höhe 8.</td></tr>
+    <tr><td>Giftwolke</td><td>828 Takte bis zum Ende.</td></tr>
+    <tr><td>Ramme</td><td>125 je Treffer an Hütte, Tor und Turm. Der Code übergibt 50, der Faktor ist ungeklärt.</td></tr>
     <tr><td>Starttruppen</td><td>Im Gefecht kommen je Spieler 6 Bogenschützen bei Takt 202 und 8 Speerträger bei Takt 403 an der Burg dazu. Wer vorher räumt, hat sie danach im Feld.</td></tr>
     <tr><td>Graben</td><td>Plan mit Spielbefehl 21, Flag 2 = 0. Rund 260 Takte je Feld und Sklave, 9 Felder je Plan. Zuschütten geht nur beim Graben eines anderen Teams, rund 220 Takte je Feld und Sklave.</td></tr>
     <tr><td>Tunnel</td><td>Bauen mit Mapper 66, Größe 3 und dem Trupp des Gräbers. Laut Code erlaubt nur mit feindlicher Mauer oder kleinem Turm binnen 76 Schritten. Ein Gräber je Eingang. Rund 572 Takte Eingang, 223 Vorbereitung, 48 je Feld, 65 am Ziel. Wachturm fällt ganz, von der Mauer ein Stück, der Gang wird zur Grube. Fällt der Eingang (100 Leben), stürzt der Gang ein und das Ziel bleibt.</td></tr>
@@ -567,7 +571,8 @@ td.z { text-align: right; white-space: nowrap; }
   </table>
   <div class="merk"><b>Nicht erreicht:</b> Löschen, Durchgang durchs Tor, Anlegen des Belagerungsturms. Noch nicht erklärt: warum der Truppenbefehl schneller ist, warum der Pfeil nicht bis 54 reicht, rund 5 Prozent Schüsse ohne Verlust am stehenden Ziel.</div>
   <div class="merk"><b>Learning 03.11.:</b> In diesem Lauf lagen drei Vorhersagen aus dem Code daneben, weil ich den Code gelesen, aber nicht den Weg bedacht hatte: Der Stein hat im Speicher andere Werte, das Tempo hängt am Befehl, nicht an der Spielart, und der Zielpunkt führt das Ziel. Ein Messlauf prüft zuerst, ob seine Befehle überhaupt ankommen: Mein Kanal schrieb jeden Befehl auf Spieler 1 um.</div>
-  <p><b>Als Nächstes:</b> 50 Punkte der Checkliste gegen die Erwartung lesen. Noch aus Lauf F: 8 offene und 27 nicht nachgerechnete Punkte.</p>
+  <p><b>Einzelpunkte:</b> Alle 75 gegen die Erwartung gerechnet: 28 bestätigt, 17 teils, 6 widerlegt, 21 Lage fehlte, 2 offen, 1 gemessen (<code>Punkte_Lauf_S.md</code>).</p>
+  <p><b>Als Nächstes:</b> die fehlenden Lagen. Noch aus Lauf F: 8 offene und 27 nicht nachgerechnete Punkte.</p>
 </section>
 
 <section id="offen">
