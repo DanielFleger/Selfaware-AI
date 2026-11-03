@@ -515,7 +515,7 @@ td.z { text-align: right; white-space: nowrap; }
 
 <section id="auge">
   <h2><small>12</small>Das Auge: Was im Spiel stattfindet</h2>
-  <p>Stand 03.11.2026, B-142. Das Auge liest die Spielbereiche Takt für Takt mit, ohne einzugreifen. Zwei Läufe sind ausgewertet: Lauf F (Burgenbau, 241 Punkte) und Lauf K (Gefecht mit 8 KI auf <code>Green Haven</code>, 133.512 Takte Kampf, 75 Punkte). Belege: <code>data/research/auge_plan/lauf_k_20261102/Ergebnis_Lauf_K.md</code>.</p>
+  <p>Stand 03.11.2026, B-142. Das Auge liest die Spielbereiche Takt für Takt mit, ohne einzugreifen. Drei Läufe sind ausgewertet: Lauf F (Burgenbau, 241 Punkte), Lauf K (Gefecht mit 8 KI auf <code>Green Haven</code>, 133.512 Takte Kampf, 75 Punkte) und Lauf S (Szenen im Editor und Gefecht). Belege: <code>data/research/auge_plan/lauf_k_20261102/Ergebnis_Lauf_K.md</code>.</p>
   <h3>Lauf K: die Punkte <span class="status gemessen">gemessen</span></h3>
   <table>
     <tr><th>Liste</th><th class="z">bestätigt</th><th class="z">widerlegt</th><th class="z">gemessen</th><th class="z">Lage fehlte</th><th class="z">offen</th></tr>
@@ -533,7 +533,32 @@ td.z { text-align: right; white-space: nowrap; }
     <li><b>Falle für jede Auswertung:</b> Platz 0 der Einheiten ist ein Merkplatz; 788 von 1.777 Zielwechseln waren dort nur Kopien.</li>
   </ul>
   <div class="merk"><b>Learning 03.11.:</b> Der Spielcode im Export beschreibt die Datei, im Speicher sind 309 Stellen in 158 Funktionen anders. Wer eine Formel aus dem Export nimmt, prüft zuerst <code>code_aenderungen.csv</code>.</div>
-  <p><b>Als Nächstes:</b> Lauf S (freies Spiel, Belagerung, Massenschlacht). Noch aus Lauf F: 8 offene und 27 nicht nachgerechnete Punkte.</p>
+  <h3>Lauf S: Regeln statt Zeilen <span class="status gemessen">gemessen</span></h3>
+  <p>Instanz 2, <code>Liga_Grumpy Neighbors</code>, im Karteneditor und zur Gegenprobe im Gefecht. Belege: <code>data/research/auge_plan/lauf_s_20261103/Ergebnis_Lauf_S.md</code>.</p>
+  <table>
+    <tr><th>Regel</th><th>Gemessen</th></tr>
+    <tr><td>Nahkampf</td><td>Verlust je Takt = Tabellenwert. Mehrere Angreifer addieren sich: 2.417 von 2.417 Fällen auf Tempo 40. Wer auf demselben Feld steht, nimmt dasselbe Ziel.</td></tr>
+    <tr><td>Editor gegen Gefecht</td><td>Schaden, Beschuss und Tempo gleich. Bei 169 von 171 Paaren sind die Leben ab Takt 2 je Takt gleich.</td></tr>
+    <tr><td>Tempo mit Truppen- oder Angriffsbefehl</td><td>12 Takte je Feld: Bogenschütze, Speerträger, Streitkolbenkämpfer, Leiterträger, Tunnelgräber, arabischer Bogenschütze, Sklave, Schleuderer. Rund 10,5: Ritter, Berittener Bogenschütze. 16: Ingenieur, Assassine. 24: Armbrustschütze, Pikenier, Mönch, arabischer Schwertkämpfer, Feuerwerfer, Lord. 32: Schwertkämpfer. Alle Geräte 77.</td></tr>
+    <tr><td>Tempo mit Direktbefehl (<code>einheit_ziel</code>)</td><td>8 x (Tempo-Wert + 1): 16, 24, 32. Das ist nicht das Tempo im echten Spiel.</td></tr>
+    <tr><td>Reichweite am Boden</td><td>Pfeil 40 Felder (Tabelle sagt 54), Bolzen 40, Stein 18, Feuer 11, Ballista 68, Feuerballiste 39. Auf einen Angriffsbefehl laufen Schützen nicht los.</td></tr>
+    <tr><td>Reichweite auf der Mauer</td><td>Pfeil trifft auch auf 46 Felder, nur je 1 Treffer gesehen.</td></tr>
+    <tr><td>Geschosse</td><td>Pfeil 5,75 Mikro je Takt, Bolzen 6,2, Stein 5,6, Feuer 3,8 (8 Mikro = 1 Feld). Das Spiel schießt voraus: laufendes Ziel 67 von 70 getroffen.</td></tr>
+    <tr><td>Haltung (Spielbefehl 70)</td><td>Aggressiv reagiert auf 24 Felder, nicht auf 26. Defensiv auf 4, nicht auf 6. Stehen gar nicht. Reaktion nach 49 bis 100 Takten. Wer nicht schlagen kann, reagiert nie.</td></tr>
+    <tr><td>Besatzung</td><td>Trebuchet 3, Katapult, Mangonel, Ballista, Feuerballiste 2, Ramme und Turm 4, Schild 1. Mit einem Mann zu wenig tut das Gerät nichts (20 von 20).</td></tr>
+    <tr><td>Schusstakt</td><td>Katapult 130 Takte, Trebuchet 296, Ballista 155, Feuerballiste 100.</td></tr>
+    <tr><td>Stein am Gebäude</td><td>Mit UCP: Katapult 40 direkt und 15 je Nebenfeld, voller Treffer 130. Trebuchet 120 und 30, voller Treffer 300. Mangonel 5. Burg und Mordgrube haben kein Leben.</td></tr>
+    <tr><td>Nahkampf am Gebäude</td><td>Hütte: Speerträger 10 je Schlag, Pikenier 40, Streitkolbenkämpfer 80, Schwertkämpfer und Ritter 100. Tore: 2 bis 10. Schläge alle 24 bis 96 Takte, je Art. Tabelle im Ergebnis.</td></tr>
+    <tr><td>Stau</td><td>Einheiten stapeln sich, bis zu 54 auf einem Feld in einer Lücke von 3 Feldern. 500 auf einen Punkt: Mittelwert 494 Takte, durch die Lücke 649.</td></tr>
+    <tr><td>Schild</td><td>Pfeile auf den Mann dahinter treffen den Schild: Mann 0, Schild 1.200, Mann ohne Schild 48.000.</td></tr>
+    <tr><td>Mordgrube</td><td>18.000 je Grube beim Darüberlaufen.</td></tr>
+    <tr><td>Feuer</td><td>Hütte: 4 Leben je rund 28 Takte. Die Hütte daneben fängt nach 989 Takten Feuer.</td></tr>
+    <tr><td>Lord</td><td>Steht oben auf der Burg, Ritter finden keinen Weg. Spielende 5 bis 13 Takte nach seinem Verschwinden.</td></tr>
+    <tr><td>Lesen unter Last</td><td>2.412 Einheiten im Nahkampf, Wechselprobe: Kein Abzug über der Grenze auf den Stufen 40 bis 1000 (Grenze 2 Takte je Sekunde, auf Stufe 1000 rund 9). Das Spiel hält rund 825 Takte je Sekunde.</td></tr>
+  </table>
+  <div class="merk"><b>Nicht erreicht:</b> Tunnel gegen ein Gebäude, Graben, Leiter, Pechgraben, Kochöl, Hunde, Kuhwurf, Löschen. Noch nicht erklärt: warum der Truppenbefehl schneller ist, warum der Pfeil nicht bis 54 reicht, rund 5 Prozent Schüsse ohne Verlust am stehenden Ziel.</div>
+  <div class="merk"><b>Learning 03.11.:</b> In diesem Lauf lagen drei Vorhersagen aus dem Code daneben, weil ich den Code gelesen, aber nicht den Weg bedacht hatte: Der Stein hat im Speicher andere Werte, das Tempo hängt am Befehl, nicht an der Spielart, und der Zielpunkt führt das Ziel. Ein Messlauf prüft zuerst, ob seine Befehle überhaupt ankommen: Mein Kanal schrieb jeden Befehl auf Spieler 1 um.</div>
+  <p><b>Als Nächstes:</b> die nicht erreichten Sonderfälle. Noch aus Lauf F: 8 offene und 27 nicht nachgerechnete Punkte.</p>
 </section>
 
 <section id="offen">

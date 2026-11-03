@@ -174,6 +174,156 @@ Neu auslesbar: Jedes Geschoss steht mit Art, Schütze (`unitID_OR_seaGullID`, 79
 
 Editor, Szene Beschuss, gleiche Werte im Gefecht. Der Verlust kommt im Takt der Landung oder bis zu 2 Takte davor. **Die rund 5 Prozent ohne Verlust sind noch nicht erklärt.** Zielwahl: 378 von 795 Schüssen gehen auf den nächsten Feind, 417 nicht.
 
+## Szene Laufendes Ziel, 03.11. 20:39
+
+Jeder Fußschütze mit Angriffsbefehl auf einen Streitkolbenkämpfer, der 8 Felder entfernt quer hin und her läuft. Tempo 100. **Meine Vorhersage „laufendes Ziel wird verfehlt“ ist widerlegt.** Beleg: `laufziel.regeln.json`.
+
+| Schütze | Getroffen von gelandet | Zielpunkt zum Läufer beim Abschuss, in Mikro | beim Einschlag |
+|---|---|---|---|
+| Bogenschütze (E_ARCHER 22) | 10 von 10 | 5 | 1 |
+| Armbrustschütze (E_XBOW 23) | 6 von 6 | 4 | 3 |
+| arabischer Bogenschütze (A_ARCHER 70) | 14 von 14 | 4 | 2 |
+| Schleuderer (A_SLINGER 72) | 22 von 23 | 7 | 3 |
+| Berittener Bogenschütze (A_HARCHER 74) | 15 von 17 | 5 | 2 |
+| Feuerwerfer (A_FIRETHROWER 76) | 4 von 6 | 2 | 7 |
+
+**Das Spiel schießt voraus:** Der Zielpunkt steht beim Abschuss fest und liegt beim Einschlag fast genau beim Läufer (1 bis 3 Mikro, 8 Mikro sind ein Feld). Pfeil, Bolzen und Stein: 67 von 70. Ausweichen hilft also nur, wenn der Läufer während des Flugs die Richtung ändert; ob das die 3 Fehlschüsse sind, ist nicht einzeln geprüft.
+
+## Szene Haltung, 03.11. 20:41
+
+Befehl 70 in der Befehlstabelle der exe (`lauf_s_plan/befehl_nummern.txt`), Werte Gruppe und Haltung, nachgelesen in `tribes[].unitStance`. Erst die Gruppe, dann die Haltung, zuletzt der Feind. Belege: `haltung.regeln.json`, `haltung2.regeln.json`.
+
+| Haltung | Abstand | Ritter (E_KNIGHT 28) | Speerträger (E_SPEAR 24) | Ingenieur (E_ENGINEER 30) |
+|---|---|---|---|---|
+| aggressiv | 24 Felder | reagiert nach 49 Takten | nach 84 | nein |
+| aggressiv | 26 | nein | nein | nein |
+| defensiv | 4 | nach 100 | nach 89 | nein |
+| defensiv | 6 | nein | nein | nein |
+| stehen | 4 | nein | nein | nein |
+
+**Bestätigt für alle, die schlagen können.** Der Ingenieur reagiert nie: Er kann nicht schlagen (`DAT_UNIT_CAN_MELEE` 0), das hatte der Plan nicht bedacht. Schützen sind hier nicht gefahren.
+
+## Szene Besatzung, 03.11. 20:41
+
+Je Gerät volle Besatzung und ein Mann zu wenig, einmal schießen, einmal fahren, Anweisung 16 zum Einsteigen. **20 von 20 Fällen bestätigt:** Mit einem Mann zu wenig steigt keiner ein, das Gerät rührt sich nicht. Beleg: `besatzung.regeln.json`.
+
+| Gerät | Besatzung | Schusstakt | Takte je Feld |
+|---|---|---|---|
+| Katapult (S_CATAPULT 39) | 2 | 130 (Lauf K: 123) | 77 |
+| Trebuchet (S_TREBUCHET 40) | 3 | 296 | fährt nicht |
+| Mangonel (S_MANGONEL 41) | 2 | Salve: 77 Geschosse in rund 1.600 Takten | fährt nicht |
+| Ballista (S_BALLISTA 61) | 2 | 155 | fährt nicht |
+| Feuerballiste (S_FBALLISTA 77) | 2 | 100 | 77 |
+| Ramme (S_BATTERINGRAM 59) | 4 | | 77 |
+| Belagerungsturm (S_TOWER 58) | 4 | | 77 |
+| Schild (S_SHIELD 60) | 1 | | 77 |
+
+Das Tempo ist für alle gleich, mit Truppenbefehl, 20 Felder. Bemannt waren alle nach 356 Takten, das meiste davon Warteschlange meines Moduls (20 Takte je Befehl).
+
+## Szene Reichweite der Geräte, 03.11. 20:49
+
+| Gerät | Tabelle | Gemessen | Beleg in `geraete_weite.regeln.json` |
+|---|---|---|---|
+| Ballista | 68 | Schießt auf 68, auf 70 nicht | eindeutig |
+| Feuerballiste | 39 | Schießt auf 39, auf 41 nicht | eindeutig |
+| Katapult | 57 | Auf 59 Felder befohlen, weitester Einschlag 462 Mikro (57,8 Felder) | Der Stein streut, einzelne Stufen sind leer. Passt, nicht scharf |
+| Trebuchet | 68 | Auf 70 befohlen, weitester Einschlag 552 Mikro (69 Felder) | wie oben |
+| Mangonel | 54 | Auf 54 befohlen, Einschlag 450 Mikro, auf 56 kein Stein aufs Ziel | Er schießt vor allem auf Nachbarn |
+
+Beim Pfeil stimmte die Tabelle nicht, bei den Geräten passt sie. Katapult und Trebuchet zielen aufs Feld, nicht auf die Einheit (`targetingType` wird `UIT_ATTACK_LAND`).
+
+## Szene Belagerung, 03.11. 20:50
+
+**Meine Regel „Katapult 20, Trebuchet 60, Mangonel 5 je Stein“ war falsch gelesen, die neue stimmt.** Das Spiel im Speicher ist nicht die exe: UCP setzt in `processEntityHitBuildingOrUnit` andere Werte ein (Stellen in `lauf_k_20261102/code_aenderungen.csv`). Ein Stein wirkt direkt und auf Nebenfelder, und ein voller Treffer erwischt 6 Nebenfelder.
+
+| Gerät | Direkt (exe, UCP) | Nebenfeld (exe, UCP) | Voller Treffer gerechnet | Gemessen |
+|---|---|---|---|---|
+| Katapult | 20, **40** | 10, **15** | 40 + 6 x 15 = **130** | 29 x 130, 14 x 100 (4 Nebenfelder), je 1 bis 2 x 75, 60, 45 |
+| Trebuchet | 60, **120** | 30, 30 | 120 + 6 x 30 = **300** | 1 x 300 |
+| Mangonel | 5 | 0 | 5 | 5 x 5, 1 x 10 |
+
+| Weiter gemessen, ohne Regel | Verlust je Treffer | Fälle |
+|---|---|---|
+| Ballista | 2 und 5 | 4, nur an der Hütte |
+| Feuerballiste | 10 | 4, nur an der Hütte |
+| Ramme | 125 | 3, an Hütte, Tor, Turm |
+
+- 53 Gebäudearten standen gegen ein Katapult, 27 davon wurden getroffen, je Ziel 3 Steine (156 insgesamt). **1 Wert ist ungeklärt:** 20 am Marktplatz.
+- **Kein Leben:** Burg und Mordgrube (`maxHealth` 0), kein Verlust.
+- Nicht setzbar mit meinem Befehl: Farmen, Steinbruch, Lager, Eisenmine, Pechgrube, Pechgraben. Vermutlich brauchen sie besonderen Boden. Für Trebuchet, Mangonel, Ballista und Feuerballiste stehen deshalb nur wenige Ziele drin, die Zeile im Plan „gegen 4 Klassen“ ist nur zum Teil erfüllt.
+- 6 Zeilen nahmen wegen eines Fehlers von mir das Gebäude des Nachbarn. Der Prüfer zählt sie als „falsches Gebäude“, das Werkzeug prüft jetzt Art und Ort. Beleg: `belagerung.regeln.json`.
+
+## Szene Nahkampf gegen Gebäude, 03.11. 20:51
+
+Tempo 40, jeder Nahkämpfer direkt daneben, Angriffsbefehl. Verlust je Schlag und Takte zwischen zwei Schlägen. Beleg: `gebaeude_nah.regeln.json`.
+
+| Art | Takte je Schlag | Hütte (200 Leben) | Großes Tor (3.000) | Kleines Tor (1.500) | Wachturm (500) |
+|---|---|---|---|---|---|
+| Speerträger (E_SPEAR 24) | 48 | 10 | 2 | 2 | |
+| Pikenier (E_PIKE 25) | 28 | 40 | 5 | 5 | 10 |
+| Streitkolbenkämpfer (E_MACE 26) | 48 | 80 | 5 | 5 | |
+| Schwertkämpfer (E_SWORD 27) | 60 | 100 | | 10 | 10 |
+| Ritter (E_KNIGHT 28) | 72 | 100 | | 10 | 10 |
+| Mönch (E_MONK 37) | 24 | 20 | 2 | | |
+| Lord (55) | 56 | 100 | | 10 | 10 |
+| Sklave (A_SLAVE 71) | 93 | **kein Verlust** | | 1 | 1 |
+| Assassine (A_ASSASSIN 73) | 93 | 75 | 3 | 3 | 5 |
+| arabischer Schwertkämpfer (A_SWORDSMAN 75) | 96 | 100 | 10 | 10 | 10 |
+
+Leere Felder: Das Gebäude stand dort nicht. Gegen die Burg (kein Leben) gibt es keinen Verlust, das ist nur an einem Fall gesehen. Warum der Sklave die Hütte nicht beschädigt, ist offen: Vermutlich zündet er sie an, das ist nicht nachgesehen. **Lager, Holztor und Mauern fehlen.**
+
+## Szene Angriff auf einen Punkt, 03.11. 20:51
+
+Liste V6, alle 8 zugleich, Speerträger im Block, 30 Felder bis zum Ziel. Ein Besitzer, die Ziele leer. Ankunft in Takten nach dem Start. Beleg: `punkt.regeln.json`.
+
+| Ziel | Einheiten | Angekommen (innerhalb 3, bei Gebäuden 6 Felder) | 10, 50, 90 Prozent | Letzter | Dichtestes Feld |
+|---|---|---|---|---|---|
+| Feld | 10 | 10 | 349, 365, 377 | 385 | 4 |
+| Feld | 100 | 39 | 352, 398, 431 | 460 | 8 |
+| Feld | 500 | 75 | 407, 494, 570 | 604 | 15 |
+| Kleines Tor | 100 | 100 | 332, 391, 460 | 510 | 10 |
+| Kleines Tor | 500 | 248 | 369, 478, 661 | 740 | 15 |
+| Wachturm | 100 | 100 | 332, 396, 500 | 548 | 12 |
+| Lücke in der Mauer | 100 | 68 | 395, 484, 571 | 601 | 14 |
+| Lücke in der Mauer | 500 | 215 | 473, 649, 794 | 852 | **54** |
+
+- **Einheiten blockieren sich nicht hart:** Durch die Lücke von 3 Feldern laufen sie gestapelt, bis zu 54 auf einem Feld. Die ersten kommen trotzdem später an als ohne Mauer, der Mittelwert von 500 steigt von 494 auf 649 Takte.
+- **Ein Befehl auf ein Feld ist kein Treffpunkt:** Von 500 stehen nur 75 innerhalb 3 Feldern, der Rest verteilt sich um den Punkt.
+- **Wegwahl:** Von den 100 gingen alle durch die Lücke. Von den 500 gingen 367 durch die Lücke, 127 standen an anderer Stelle der Mauerlinie. Das Letzte heißt: um die Mauer herum oder gestaut, das ist nicht unterschieden.
+- Die Mauern gehörten in dieser Szene wegen des Kanalfehlers (unten) Spieler 1 statt 2. Für den Weg macht das keinen Unterschied, eigene Mauern sperren ohne Tor genauso.
+
+## Sonderfälle, 03.11. 20:52 bis 20:59
+
+Liste V7. **Hier ist nur ein Teil gelungen.** Belege: `sonder1.regeln.json`, `sonder2.regeln.json`, `sonder_g.regeln.json`.
+
+| Fall | Ergebnis | Stand |
+|---|---|---|
+| Feuer an Gebäude | Feuerwerfer zündet eine Hütte. Sie verliert 4 Leben je rund 28 Takte, weg nach 1.390 Takten. Die Hütte daneben fängt 989 Takte nach der ersten Feuer | gemessen, Löschen nicht |
+| Mordgrube | **18.000 Schaden je Grube,** beim Darüberlaufen (Pikenier: 3 Gruben, 3 x 18.000, je 24 Takte auseinander). Die Gruben sind rund 2.100 Takte später weg | gemessen |
+| Schild | **Pfeile mit Befehl auf den Mann hinter dem Schild:** Er verliert nichts, der Schild verliert 1.200, der Mann ohne Schild 48.000 | bestätigt |
+| Höhe | Schützen über Treppe auf die Mauer: Sie treffen auf 46 Felder (am Boden Schluss bei 40). Nur je 1 Treffer auf 42 und 46 | gesehen, wenige Fälle |
+| Belagerungsturm | Fährt an die Mauer und hält davor | gesehen, Anlegen nicht geprüft |
+| Tor | Befehl 45 wirkt, `gateState` wechselt von 257 auf 268. Durchgang nicht geprüft, im Gefecht stand das Tor nicht | gesehen |
+| Tunnelgräber | Schlägt die Hütte mit 40 je Schlag, ohne Tunnel. Einen Tunnel gegen ein Gebäude habe ich nicht ausgelöst | nicht erreicht |
+| Graben | Sklaven gehen hin, ob gegraben wird, ist nicht abgelesen | nicht erreicht |
+| Leiter | Die Leiterträger rühren sich nicht, Befehl 24 wird nicht ausgeführt, Ursache offen | nicht erreicht |
+| Pechgraben | Lässt sich mit meinem Befehl nicht setzen | nicht erreicht |
+| Kochöl | Ingenieure gehen zur Ölschmelze (Anweisung 15), geworfen wird nicht | nicht erreicht |
+| Hunde | Befehl 74 entfernt den Käfig, Hunde habe ich keine gesehen | nicht erreicht |
+| Kuhwurf | Befehl 22 angenommen, es fliegen nur Steine | nicht erreicht |
+
+## Fall des Lords, 03.11. 20:59
+
+Im Gefecht. Der Lord geht am Anfang von selbst auf die Burg, Ritter finden dorthin keinen Weg. Mit Truppenbefehl kommt er herunter, schaffte es aber nicht in 600 Takten zum Ring aus Rittern. Er fiel darum per Befehl (`per_befehl` in `lord_g.plan.json`). **13 und 5 Takte nach seinem Verschwinden meldet das Spiel das Ende** (`GAMEOVER`), die Ansicht bleibt 14. Der Steintod dauert rund 306 Takte. Das Ende nach einem echten Kampf zeigt Lauf K.
+
+## Meine Fehler in diesem Lauf
+
+- **Der Kanal überschrieb den Spieler.** `liste` setzte bei jedem Befehl Spieler 1. Alle Befehle für Spieler 2 liefen als Spieler 1 oder wurden abgelehnt, die Mauern gehörten dem falschen Spieler. Erst die Sonderfälle zeigten es. Das erste Schild-Ergebnis war deshalb wertlos, es ist neu gefahren. Behoben, mit Test.
+- **Prüffall startete echte Szenen.** Beim Prüfen meiner Tests (ein absichtlich eingebauter Fehler) liefen um 19:57 und 20:01 echte Szenen auf Instanz 2. Instanz 5 war nie betroffen. `los` bricht jetzt aus Tests heraus ab. Die Aufzeichnungen liegen in `laeufe/versehen_20261103/`.
+- **Schützen im Angriffsbefehl:** Ich hatte angenommen, sie laufen los. Der Code hält sie an.
+- **Schaden am Gebäude:** Ich hatte die Werte der exe genommen, UCP ändert sie.
+- **Lord:** Ich hatte nicht geprüft, wo er steht.
+
 ## Noch offen
 
-Laufendes Ziel, Haltung, Geräte und Belagerung, Fall des Lords, Angriff auf einen Punkt, Sonderfälle, Lauf-K-Stand. A1, A2, A3, A9, A10, A12 über diese Aufzeichnungen sind noch nicht gerechnet.
+Sonderfälle in der Tabelle oben: Tunnel, Graben, Leiter, Pechgraben, Kochöl, Hunde, Kuhwurf. Löschen. Lager, Holztor, Mauern als Ziel. Warum der Truppenbefehl schneller ist. Warum der Pfeil nicht bis 54 reicht. Rund 5 Prozent Schüsse ohne Verlust am stehenden Ziel. Warum der erste Rahmen im Gefecht alt ist. Lauf-K-Stand (Szene 8b im Plan) ist nicht gefahren. Die Liste `versuche_szenario.csv` hat noch keinen Status je Zeile.

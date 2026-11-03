@@ -1,5 +1,7 @@
 # Plan: Lauf S (B-142)
 
+**Gefahren am 03.11.2026, Ergebnis in `data/research/auge_plan/lauf_s_20261103/Ergebnis_Lauf_S.md`. Abweichungen vom Plan: Lastprobe mit 1.150 gegen 1.150 Pikenieren ohne Schützen; Reichweite über eine Leiter statt Anlauf; Haltung in zwei Szenen; Lauf-K-Stand nicht gefahren. Widerlegt: laufendes Ziel verfehlt, Streitkolbenkämpfer im Gefecht schneller, Katapult 20 und Trebuchet 60 je Stein.**
+
 Erstellt 03.11.2026 von SRE, neu gefasst nach Daniels Einwand ("niemand will 102 minuten", "schlau testen", "viele dinge extrapolieren") und dem Rat. Der lange Vorgänger mit 1.158 Einzelversuchen steht in Commit `6a78841`. **Noch nichts gebaut, nichts gestartet.** Belege und Befehle: `data/research/auge_plan/lauf_s_plan/`.
 
 ## Der Gedanke

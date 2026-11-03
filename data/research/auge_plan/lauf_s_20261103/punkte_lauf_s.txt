@@ -1,0 +1,45 @@
+fehlt: []
+| Urteil | Punkte |
+|---|---|
+| gesehen | 50 |
+| nicht gesehen | 6 |
+| nicht zuordenbar | 15 |
+| zahl passt | 4 |
+
+**Nicht gesehen:** P302 UpdateTower4, P306 processUnitLossStatistic, P317 UpdateLadderManState01, P320 resetCountdownInHeatMap, P331 shouldUnitsEngageInMelee, P370 updateUnits
+
+**Nicht zuordenbar:** P305 UpdateUnitLossData, P307 areActivePlayersMostlySameTeam, P310 ClickMoveUnit, P311 ClickGiveUnitsInstruction, P334 getRemainingRequiredEngineers, P335 findClosestLaddermanWithLadderPosition, P338 isTowerTileOvercrowdedByCurrentPlayer, P353 UpdateSpearman, P354 UpdatePikeman, P355 UpdateMaceman, P356 UpdateSwordsman, P361 UpdateMangonel, P366 UpdateSlave, P367 UpdateAssassin, P368 UpdateArabianSwordsman
+
+=== punkt
+| Probe | Ergebnis | Aussage |
+|---|---|---|
+| A1 | widerlegt | 241 geaenderte Felder stehen nicht in der Feldliste |
+| A2 | gemessen | 2754 von 3564 Feldern der Liste haben sich in den ausgewerteten Laeufen nie geaendert; das heisst nur: nicht gesehen |
+| A3 | gemessen | Auf Tempo 200 geht das Tempo vor: 1855 Takte ausgelassen, 1442 Rahmen gemischt. Wie viele Takte je Stufe lesbar sind, zeigt die Tempotreppe |
+| A4 | gemessen | Lesen je Takt: Median 1.2 ms, Hoechstwert 15.3 ms; 197.9 Takte/s gesamt, Median-Abstand 820.3; kein Vergleichswert ohne Lesen |
+| A7 | bestaetigt | 2315 Lesungen passen zur Tabelle in dieser Aufzeichnung |
+| A9 | gemessen | 25 Plaetze geaendert, ohne Liste der eigenen Befehle nicht vergleichbar |
+| A10 | bestaetigt | 7776 Platzwechsel ohne Verstoss in dieser Aufzeichnung |
+
+=== sonder_g
+| Probe | Ergebnis | Aussage |
+|---|---|---|
+| A1 | widerlegt | 10 geaenderte Felder stehen nicht in der Feldliste |
+| A2 | gemessen | 2735 von 3564 Feldern der Liste haben sich in den ausgewerteten Laeufen nie geaendert; das heisst nur: nicht gesehen |
+| A3 | widerlegt | 848 Takte fehlen, 782 Rahmen sind gemischt, 0 Stellen beschaedigt |
+| A4 | gemessen | Lesen je Takt: Median 2.6 ms, Hoechstwert 14.6 ms; 99.5 Takte/s gesamt, Median-Abstand 77.4; kein Vergleichswert ohne Lesen |
+| A7 | bestaetigt | 5120 Lesungen passen zur Tabelle in dieser Aufzeichnung |
+| A9 | gemessen | 54 Plaetze geaendert, ohne Liste der eigenen Befehle nicht vergleichbar |
+| A10 | bestaetigt | 17912 Platzwechsel ohne Verstoss in dieser Aufzeichnung |
+
+=== schlacht_1000
+| Probe | Ergebnis | Aussage |
+|---|---|---|
+| A1 | widerlegt | 3 geaenderte Felder stehen nicht in der Feldliste |
+| A2 | gemessen | 3036 von 3564 Feldern der Liste haben sich in den ausgewerteten Laeufen nie geaendert; das heisst nur: nicht gesehen |
+| A3 | gemessen | Auf Tempo 1000 geht das Tempo vor: 4595 Takte ausgelassen, 2497 Rahmen gemischt. Wie viele Takte je Stufe lesbar sind, zeigt die Tempotreppe |
+| A4 | gemessen | Lesen je Takt: Median 0.6 ms, Hoechstwert 15.3 ms; 733.3 Takte/s gesamt, Median-Abstand 1547.5; kein Vergleichswert ohne Lesen |
+| A7 | widerlegt | 1 von 2174 Lesungen passen nicht zur Tabelle |
+| A9 | gemessen | 0 Plaetze geaendert, ohne Liste der eigenen Befehle nicht vergleichbar |
+| A10 | bestaetigt | 9745 Platzwechsel ohne Verstoss in dieser Aufzeichnung |
+
