@@ -542,7 +542,7 @@ td.z { text-align: right; white-space: nowrap; }
     <tr><td>Tempo mit Truppen- oder Angriffsbefehl</td><td>12 Takte je Feld: Bogenschütze, Speerträger, Streitkolbenkämpfer, Leiterträger, Tunnelgräber, arabischer Bogenschütze, Sklave, Schleuderer. Rund 10,5: Ritter, Berittener Bogenschütze. 16: Ingenieur, Assassine. 24: Armbrustschütze, Pikenier, Mönch, arabischer Schwertkämpfer, Feuerwerfer, Lord. 32: Schwertkämpfer. Alle Geräte 77.</td></tr>
     <tr><td>Tempo mit Direktbefehl (<code>einheit_ziel</code>)</td><td>8 x (Tempo-Wert + 1): 16, 24, 32. Das ist nicht das Tempo im echten Spiel.</td></tr>
     <tr><td>Reichweite am Boden</td><td>Pfeil 40 Felder (Tabelle sagt 54), Bolzen 40, Stein 18, Feuer 11, Ballista 68, Feuerballiste 39. Auf einen Angriffsbefehl laufen Schützen nicht los.</td></tr>
-    <tr><td>Reichweite auf der Mauer</td><td>Pfeil trifft auch auf 46 Felder, nur je 1 Treffer gesehen.</td></tr>
+    <tr><td>Reichweite auf der Mauer</td><td>Über die Leiter oben (Höhe 98): Pfeil schießt auf 38 Felder, auf 42 nicht. Keine Mehrreichweite in dieser Probe, Schaden 1.500 an der Ramme wie am Boden.</td></tr>
     <tr><td>Geschosse</td><td>Pfeil 5,75 Mikro je Takt, Bolzen 6,2, Stein 5,6, Feuer 3,8 (8 Mikro = 1 Feld). Das Spiel schießt voraus: laufendes Ziel 67 von 70 getroffen.</td></tr>
     <tr><td>Haltung (Spielbefehl 70)</td><td>Aggressiv reagiert auf 24 Felder, nicht auf 26. Defensiv auf 4, nicht auf 6. Stehen gar nicht. Reaktion nach 49 bis 100 Takten. Wer nicht schlagen kann, reagiert nie.</td></tr>
     <tr><td>Besatzung</td><td>Trebuchet 3, Katapult, Mangonel, Ballista, Feuerballiste 2, Ramme und Turm 4, Schild 1. Mit einem Mann zu wenig tut das Gerät nichts (20 von 20).</td></tr>
@@ -552,13 +552,20 @@ td.z { text-align: right; white-space: nowrap; }
     <tr><td>Stau</td><td>Einheiten stapeln sich, bis zu 54 auf einem Feld in einer Lücke von 3 Feldern. 500 auf einen Punkt: Mittelwert 494 Takte, durch die Lücke 649.</td></tr>
     <tr><td>Schild</td><td>Pfeile auf den Mann dahinter treffen den Schild: Mann 0, Schild 1.200, Mann ohne Schild 48.000.</td></tr>
     <tr><td>Mordgrube</td><td>18.000 je Grube beim Darüberlaufen.</td></tr>
+    <tr><td>Burgbereich</td><td>Im Gefecht gehen Mauer, Graben, Pechgraben, Käfig und Turm nur nahe der eigenen Burg, bis 45 Felder war alles erlaubt. Der Befehl meldet auch sonst Erfolg, also nachlesen.</td></tr>
+    <tr><td>Graben</td><td>Plan mit Spielbefehl 21, Flag 2 = 0. Rund 275 Takte je Feld und Sklave, 9 Felder je Plan.</td></tr>
+    <tr><td>Leiter</td><td>Anweisung 24 mit der Feldnummer der Mauer. Speerträger steigen hinauf, oben rund 780 Takte nach ihrem Laufbefehl.</td></tr>
+    <tr><td>Kochöl</td><td>Ingenieur holt es in der Schmelze (Anweisung 15, Pech in der Schmelze nötig), wirft mit Anweisung 20 auf 4 Felder. Speerträger tot in 167 Takten, der Werfer verbrennt selbst.</td></tr>
+    <tr><td>Pechgraben</td><td>Ein Feuerwerfer zündet ihn, er brennt rund 230 Takte. Der Bogenschütze zündet ihn in dieser Probe nicht.</td></tr>
+    <tr><td>Hunde</td><td>Spielbefehl 74: 8 Hunde, Feinde im Umkreis von 15 Feldern. 3 Speerträger tot nach 677 bis 819 Takten, nach rund 1.070 Takten sind Hunde und Käfig weg.</td></tr>
+    <tr><td>Kuhwurf</td><td>Anweisung 22 braucht den Kuh-Zähler, sonst fliegen Steine. 1 Kuh, 7 Giftwolken, bis zu 8.150 Schaden an einem Pikenier. Wenige Fälle.</td></tr>
     <tr><td>Feuer</td><td>Hütte: meist 4 Leben auf einmal, im Schnitt alle 20 bis 25 Takte. Die Hütte daneben fängt nach 989 Takten Feuer.</td></tr>
     <tr><td>Lord</td><td>Steht oben auf der Burg, Ritter finden keinen Weg. Spielende spätestens 5 und 13 Takte nach seinem Verschwinden (zwei Läufe).</td></tr>
     <tr><td>Lesen unter Last</td><td>2.412 Einheiten im Nahkampf, Wechselprobe: Kein Abzug über der Grenze auf den Stufen 40 bis 1000 (Grenze 2 Takte je Sekunde, auf Stufe 1000 rund 9). Das Spiel hält rund 825 Takte je Sekunde.</td></tr>
   </table>
-  <div class="merk"><b>Nicht erreicht:</b> Tunnel gegen ein Gebäude, Graben, Leiter, Pechgraben, Kochöl, Hunde, Kuhwurf, Löschen. Noch nicht erklärt: warum der Truppenbefehl schneller ist, warum der Pfeil nicht bis 54 reicht, rund 5 Prozent Schüsse ohne Verlust am stehenden Ziel.</div>
+  <div class="merk"><b>Nicht erreicht:</b> Tunnel (auf Befehl schlagen Tunnelgräber nur), Löschen, Zuschütten, Durchgang durchs Tor. Noch nicht erklärt: warum der Truppenbefehl schneller ist, warum der Pfeil nicht bis 54 reicht, rund 5 Prozent Schüsse ohne Verlust am stehenden Ziel.</div>
   <div class="merk"><b>Learning 03.11.:</b> In diesem Lauf lagen drei Vorhersagen aus dem Code daneben, weil ich den Code gelesen, aber nicht den Weg bedacht hatte: Der Stein hat im Speicher andere Werte, das Tempo hängt am Befehl, nicht an der Spielart, und der Zielpunkt führt das Ziel. Ein Messlauf prüft zuerst, ob seine Befehle überhaupt ankommen: Mein Kanal schrieb jeden Befehl auf Spieler 1 um.</div>
-  <p><b>Als Nächstes:</b> die nicht erreichten Sonderfälle. Noch aus Lauf F: 8 offene und 27 nicht nachgerechnete Punkte.</p>
+  <p><b>Als Nächstes:</b> 50 Punkte der Checkliste gegen die Erwartung lesen, Tunnel. Noch aus Lauf F: 8 offene und 27 nicht nachgerechnete Punkte.</p>
 </section>
 
 <section id="offen">

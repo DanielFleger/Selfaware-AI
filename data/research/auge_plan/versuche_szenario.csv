@@ -1147,13 +1147,13 @@ V6.006;V6;100 Einheiten;ein Turm;Ankunft je Einheit, Stau, Wegwahl, Einheiten je
 V6.007;V6;100 Einheiten;Lücke in der Mauer;Ankunft je Einheit, Stau, Wegwahl, Einheiten je Feld, ohne Beschuss;commitUnitPathPlanUsingWalkLayer, processMeleeInitiation;gemessen
 V6.008;V6;500 Einheiten;Lücke in der Mauer;Ankunft je Einheit, Stau, Wegwahl, Einheiten je Feld, ohne Beschuss;commitUnitPathPlanUsingWalkLayer, processMeleeInitiation;gemessen
 V7.001;V7;Feuer an Gebäude und Einheit;-;Ausbreitung, Schaden, Löschen;UpdateFireEntity, spawnRandomFireEffectOnBuilding;gemessen, Loeschen offen
-V7.002;V7;Pechgraben anzünden;-;Brenndauer, Schaden je Takt;giveLightPitchInstructionToUnitClosestToPitch;offen: Pechgraben nicht gesetzt
-V7.003;V7;Kochöl;-;Reichweite, Schaden;aiRecruitEngineerForOilDuty, Geschossart Öl;offen: nicht geworfen
-V7.004;V7;Mordloch und Hunde;-;Auslöser, Schaden, Zielwahl;BT_KILLINGPIT, BT_DOGCAGE, UT_CAGEDOG;Mordloch gemessen, Hunde offen
-V7.005;V7;Seuche durch Kuhwurf;-;Einschlag, Dauer, Schaden, Heilung;UpdateEntity_PoisonCloud, processEntityDamageToUnit;offen: nur Steine geflogen
-V7.006;V7;Graben graben und füllen;-;Takte je Feld, Fortschritt bis Stufe 4;advanceMoatDigProgress;offen: Graben nicht abgelesen
-V7.007;V7;Leiter und Belagerungsturm;-;Anlegen, Steigen, Besetzung;UT_E_LADDER, UpdateSiegeTower;Turm gesehen, Leiter offen
+V7.002;V7;Pechgraben anzünden;-;Brenndauer, Schaden je Takt;giveLightPitchInstructionToUnitClosestToPitch;gemessen: Feuerwerfer zuendet, rund 230 Takte, Schaden nicht getrennt
+V7.003;V7;Kochöl;-;Reichweite, Schaden;aiRecruitEngineerForOilDuty, Geschossart Öl;gemessen
+V7.004;V7;Mordloch und Hunde;-;Auslöser, Schaden, Zielwahl;BT_KILLINGPIT, BT_DOGCAGE, UT_CAGEDOG;gemessen
+V7.005;V7;Seuche durch Kuhwurf;-;Einschlag, Dauer, Schaden, Heilung;UpdateEntity_PoisonCloud, processEntityDamageToUnit;gesehen: eine Kuh, wenige Faelle
+V7.006;V7;Graben graben und füllen;-;Takte je Feld, Fortschritt bis Stufe 4;advanceMoatDigProgress;gemessen, Zuschuetten offen
+V7.007;V7;Leiter und Belagerungsturm;-;Anlegen, Steigen, Besetzung;UT_E_LADDER, UpdateSiegeTower;Leiter gemessen, Turm gesehen
 V7.008;V7;Tunnel;-;Grabziel, Schaden am Gebäude;algTunnelerFindTarget, applyTunnelDamageAlongPathPlan;offen: kein Tunnel ausgeloest
 V7.009;V7;Schild gegen Pfeile;-;Treffer und Schaden hinter dem Schild;UT_S_SHIELD, processEntityDamageToUnit;gemessen
-V7.010;V7;Höhe: Schütze auf Turm und Mauer;-;Reichweite und Schaden gegen die Bodenwerte;acquireShootTarget, UNIT_CLIMB;gesehen auf der Mauer, wenige Faelle
+V7.010;V7;Höhe: Schütze auf Turm und Mauer;-;Reichweite und Schaden gegen die Bodenwerte;acquireShootTarget, UNIT_CLIMB;gemessen auf der Mauer
 V7.011;V7;Tor öffnen und schließen;-;Zustand, Durchgang, Reaktion auf Feinde;UpdateGateHouseSmall, GateOpenOrClose;gesehen: Zustand wechselt, Durchgang offen

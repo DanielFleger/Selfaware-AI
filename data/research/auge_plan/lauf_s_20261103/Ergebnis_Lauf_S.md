@@ -292,25 +292,28 @@ Liste V6, alle 8 zugleich, Speerträger im Block, 30 Felder bis zum Ziel. Ein Be
 - **Wegwahl:** Von den 100 gingen alle durch die Lücke. Von den 500 gingen 367 durch die Lücke, 127 standen an anderer Stelle der Mauerlinie. Das Letzte heißt: um die Mauer herum oder gestaut, das ist nicht unterschieden.
 - Die Mauern gehörten in dieser Szene wegen des Kanalfehlers (unten) Spieler 1 statt 2. Für den Weg macht das keinen Unterschied, eigene Mauern sperren ohne Tor genauso.
 
-## Sonderfälle, 03.11. 20:52 bis 20:59
+## Sonderfälle, 03.11. 20:52 bis 22:05
 
-Liste V7. **Hier ist nur ein Teil gelungen.** Belege: `sonder1.regeln.json`, `sonder2.regeln.json`, `sonder_g.regeln.json`.
+Liste V7, in mehreren Durchgängen. Belege: `sonder1`, `sonder2`, `sonder_g`, `sonder2_g`, `sonder3`, `sonder3_g`, `sonder4_g`, `sonder5`, `sonder5_g`, je `.regeln.json`.
+
+**Burgbereich, die wichtigste Regel dabei:** Im Gefecht gehen Mauer, Graben, Pechgraben, Käfig und Turm nur nahe der eigenen Burg (`checkBuildingCanBePlacedHere`: `getCastleBuildRangeForMapSize`, `isTileInRangeOfKeepRange`). Weit weg antwortet das Spiel mit `i`, Hütte und Ölschmelze gehen überall. Bis 45 Felder um die Burg war alles erlaubt, die Grenze selbst ist nicht ausgemessen. Beim Absetzen meldet der Befehl trotzdem Erfolg. Belege: `probe_befehle_gefecht.txt`, `probe_burgbereich.txt`. Im Karteneditor gilt der Bereich nicht.
 
 | Fall | Ergebnis | Stand |
 |---|---|---|
 | Feuer an Gebäude | Feuerwerfer zündet eine Hütte. Sie verliert meist 4 Leben auf einmal, im Schnitt alle 20 bis 25 Takte, und ist nach 1.390 Takten weg. Die Hütte daneben fängt 989 Takte nach der ersten Feuer und brennt in 982 Takten ab | gemessen, Löschen nicht |
+| Pechgraben | Im Burgbereich mit `baue` gesetzt. **Ein Feuerwerfer zündet ihn:** Zustand 1, 2, 3, nach rund 230 Takten weg (auf 25 Takte genau). Der Bogenschütze zündet ihn nicht: Anweisung 34 wird angenommen, es fliegen nur normale Pfeile. Von 5 Bauten standen 2 | gemessen, Schaden des Brands nicht vom Feuerwerfer getrennt |
+| Kochöl | Anweisung 15 schickt Ingenieure zur Ölschmelze, mit Pech in der Schmelze (gesetzt) holt einer das Öl (`resourceToDeposit` 1). Er geht hin und wirft auf Anweisung 20, Abstand 4 Felder. 49 Flammen, der Speerträger stirbt in 167 Takten. **Der Werfer verbrennt selbst,** der zweite Ingenieur verliert 2.250 | gemessen |
 | Mordgrube | **18.000 Schaden je Grube,** beim Darüberlaufen (Pikenier: 3 Gruben, 3 x 18.000, je 24 Takte auseinander). Die Gruben sind rund 2.100 Takte später weg | gemessen |
+| Hunde | Spielbefehl 74 lässt 8 Hunde los (Art 67, Besitzer 0). Im Gefecht töten sie 3 Speerträger: erster Verlust nach 267 bis 420 Takten, tot nach 677 bis 819. Der Code sucht Feinde im Umkreis von 15 Feldern um den Käfig. Nach rund 1.070 Takten sind Hunde und Käfig weg. Im Editor griffen sie nicht an, Grund offen | gemessen im Gefecht |
+| Kuhwurf | Anweisung 22 wirkt nur mit Kuh-Zähler (`playerDataArray[].counter`, sonst Steine), den hat dieser Messlauf gesetzt, normal füllt ihn der Milchhof. 1 Kuh, 7 Giftwolken, Pikeniere verlieren bis zu 8.150 und 150, erster Verlust rund 640 Takte nach dem Befehl. Trotz Zähler 5 flog nur eine Kuh, Grund offen | gesehen, wenige Fälle |
+| Graben | Im Burgbereich: Plan mit Spielbefehl 21, Flag 2 = 0 (Bit 0x4000). 3 Sklaven heben alle 9 Felder aus (Bit 0x40000000), je 3 Felder bei 351 bis 376, 601 bis 650, 875 bis 900 Takten: **rund 275 Takte je Feld und Sklave.** Mit Flag 2 = 2 wäre es der Editorweg, sofort fertig. Zuschütten des eigenen Grabens mit Anweisung 7: Nach 3.000 Takten standen noch alle 9 | gemessen, Zuschütten offen |
+| Leiter | Anweisung 24 nimmt die **Feldnummer** der Mauer, nicht x und y. Leiterträger gehen an die Mauer von Spieler 2, Speerträger steigen hinauf: Höhe von 8 auf 98, oben rund 780 Takte nach ihrem Laufbefehl | gemessen |
+| Belagerungsturm | Fährt an die Mauer und hält davor. Anlegen nicht geprüft | gesehen |
+| Mauerangriff | Anweisung 23 nimmt ebenfalls die Feldnummer. Tunnelgräber gehen hin und schlagen | gesehen |
+| Tunnel | **Nicht erreicht.** Auf Angriffsbefehl schlagen Tunnelgräber nur: Wachturm 40 und 80 je Schlag, Hütte wie zuvor. Im Code beginnt der Tunnel in `UpdateTunneler` aus der Gilde (`findTunnelTarget` mit Gilde und Zielspieler), den Auslöser von außen habe ich nicht gefunden | nicht erreicht |
 | Schild | **Pfeile mit Befehl auf den Mann hinter dem Schild:** Er verliert nichts, der Schild verliert 1.200, der Mann ohne Schild 48.000 | bestätigt |
-| Höhe | Schützen über Treppe auf die Mauer: Sie treffen auf 46 Felder (am Boden Schluss bei 40). Nur je 1 Treffer auf 42 und 46 | gesehen, wenige Fälle |
-| Belagerungsturm | Fährt an die Mauer und hält davor | gesehen, Anlegen nicht geprüft |
-| Tor | Befehl 45 wirkt, `gateState` wechselt von 257 auf 268. Durchgang nicht geprüft, im Gefecht stand das Tor nicht | gesehen |
-| Tunnelgräber | Schlägt die Hütte mit 40 je Schlag, ohne Tunnel. Einen Tunnel gegen ein Gebäude habe ich nicht ausgelöst | nicht erreicht |
-| Graben | Sklaven gehen hin, ob gegraben wird, ist nicht abgelesen | nicht erreicht |
-| Leiter | Die Leiterträger rühren sich nicht, Befehl 24 wird nicht ausgeführt, Ursache offen | nicht erreicht |
-| Pechgraben | Lässt sich mit meinem Befehl nicht setzen | nicht erreicht |
-| Kochöl | Ingenieure gehen zur Ölschmelze (Anweisung 15), geworfen wird nicht | nicht erreicht |
-| Hunde | Befehl 74 entfernt den Käfig, Hunde habe ich keine gesehen | nicht erreicht |
-| Kuhwurf | Befehl 22 angenommen, es fliegen nur Steine | nicht erreicht |
+| Höhe | Bogenschützen über die Leiter auf der Mauer (Höhe 98): Sie schießen auf 38 Felder, auf 42, 46, 50 nicht. Schaden 1.500 je Pfeil an der Ramme wie am Boden. **Die Mauer bringt in dieser Probe keine Mehrreichweite.** Stufen 39 bis 41 nicht gefahren | gemessen |
+| Tor | Befehl 45 wirkt, `gateState` wechselt von 257 auf 268. Durchgang nicht geprüft, das Tor stand ohne Mauer | gesehen |
 
 ## Fall des Lords, 03.11. 20:59
 
@@ -323,7 +326,9 @@ Im Gefecht. Der Lord geht am Anfang von selbst auf die Burg, Ritter finden dorth
 - **Schützen im Angriffsbefehl:** Ich hatte angenommen, sie laufen los. Der Code hält sie an.
 - **Schaden am Gebäude:** Ich hatte die Werte der exe genommen, UCP ändert sie.
 - **Lord:** Ich hatte nicht geprüft, wo er steht.
+- **Höhe, falsche Zwischenaussage:** Im ersten Durchgang stand die Mauer gar nicht, der Befehl meldet auch ohne Burgbereich Erfolg. „Der Pfeil trifft von der Mauer auf 46 Felder“ stimmte nicht, das stand kurz in Ergebnis, Handbuch und Register und in meiner Nachricht. Vermutlich flogen Pfeile in der Reihe zu weit, nachgeprüft ist das nicht.
+- **Vermutung widerlegt:** Ich hielt zuerst das angehaltene Spiel für die Ursache, die Probe zeigte: Es ist der Burgbereich.
 
 ## Noch offen
 
-Sonderfälle in der Tabelle oben: Tunnel, Graben, Leiter, Pechgraben, Kochöl, Hunde, Kuhwurf. Löschen. Lager, Holztor, Mauern als Ziel. Warum der Truppenbefehl schneller ist. Warum der Pfeil nicht bis 54 reicht. Rund 5 Prozent Schüsse ohne Verlust am stehenden Ziel. Warum der erste Rahmen im Gefecht alt ist. Lauf-K-Stand (Szene 8b im Plan) ist nicht gefahren. Die Liste `versuche_szenario.csv` hat noch keinen Status je Zeile.
+Tunnel, Löschen, Zuschütten, Durchgang durchs Tor, Hunde im Editor, warum nur eine Kuh flog. Lager, Holztor, Mauern als Ziel im Nahkampf. Warum der Truppenbefehl schneller ist. Warum der Pfeil nicht bis 54 reicht. Rund 5 Prozent Schüsse ohne Verlust am stehenden Ziel. Warum der erste Rahmen im Gefecht alt ist. Lauf-K-Stand (Szene 8b im Plan) ist nicht gefahren. 50 Punkte der Checkliste sind nur gesehen, noch nicht gegen die Erwartung gelesen.
