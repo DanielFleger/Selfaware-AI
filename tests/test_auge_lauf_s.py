@@ -252,23 +252,29 @@ def test_treffer_enden_mit_dem_tod_und_neuer_belegung():
     assert len(ar.treffer_lesen(r2, PAAR[0], PAAR[1])) == 1
 
 
-def test_beschuss_soll_je_geschossart_und_nur_gemessen_beim_schleuderer():
-    p = [dict(PAAR[0], typ=22), PAAR[1]]
-    rr = reihen_von([1000] * 3, [1000, 0 + 1000, 0])
-    for _, s in rr:
-        s["typ"][1] = 22
-    r = reihen_von([1000] * 4, [4000, 3000, 2000, 1000])
-    for _, s in r:
-        s["typ"][1] = 22
-    assert ar.beschuss_werten(r, p, TAB)[0]["urteil"] == "bestaetigt"
-    p2 = [dict(PAAR[0], typ=23), PAAR[1]]
-    for _, s in r:
-        s["typ"][1] = 23
-    assert ar.beschuss_werten(r, p2, TAB)[0]["urteil"] == "weicht ab"
-    p3 = [dict(PAAR[0], typ=72), PAAR[1]]
-    for _, s in r:
-        s["typ"][1] = 72
-    assert ar.beschuss_werten(r, p3, TAB)[0]["urteil"] == "gemessen"
+def test_beschuss_wertet_nach_dem_opfer_und_nennt_was_fehlt():
+    r = reihen_von([1000] * 4, [9000, 8000, 5000, 4100])  # Pfeil, Bolzen, Stein
+    z = {x["ziel"]: x for x in ar.beschuss_werten(r, PAAR, TAB)}[27]
+    assert z["gesehen"] == {"pfeil": 1, "bolzen": 1, "stein": 1} and z["urteil"] == "bestaetigt" and not z["nicht_gesehen"]
+    r = reihen_von([1000] * 2, [9000, 8000])
+    assert {x["ziel"]: x for x in ar.beschuss_werten(r, PAAR, TAB)}[27]["nicht_gesehen"] == ["bolzen", "stein"]
+
+
+def test_beschuss_unerklaerter_betrag_weicht_ab():
+    r = reihen_von([1000] * 2, [9000, 8123])
+    z = {x["ziel"]: x for x in ar.beschuss_werten(r, PAAR, TAB)}[27]
+    assert z["urteil"] == "weicht ab" and z["ungeklaert"] == {877: 1}
+
+
+def test_beschuss_zwei_geschosse_im_selben_takt_und_feuer_sind_erklaert():
+    r = reihen_von([1000] * 3, [9000, 7000, 6963])  # zwei Pfeile, dann Feuer 37
+    z = {x["ziel"]: x for x in ar.beschuss_werten(r, PAAR, TAB)}[27]
+    assert z["urteil"] == "bestaetigt" and z["feuer"] == 1
+
+
+def test_beschuss_letzter_treffer_nimmt_den_rest():
+    r = reihen_von([1000] * 2, [300, 0])
+    assert {x["ziel"]: x for x in ar.beschuss_werten(r, PAAR, TAB)}[27]["urteil"] == "bestaetigt"
 
 
 def test_laufen_zaehlt_takte_je_feld_ab_dem_ersten_schritt():

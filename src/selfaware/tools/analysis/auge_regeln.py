@@ -13,8 +13,8 @@ import sys
 import numpy as np
 
 PLAETZE = 2500
+FEUER_SONST, FEUER = 37.5, {55: 12.5, 76: 5.0}  # je Flamme und Takt, gemessen Lauf S 03.11. (Szene Beschuss)
 FELDER = {"da": ("logicalState", "<i2"), "typ": ("unitType", "<i2"), "leben": ("health", "<i4"), "schlaegt": ("attackedUnitID", "<i2"), "mx": ("microXPosition", "<i2"), "my": ("microYPosition", "<i2")}
-GESCHOSS_ART = {22: "pfeil", 70: "pfeil", 74: "pfeil", 23: "bolzen"}  # Schleuderer und Feuerwerfer: Ihr Schaden ist laut Handbuch 17.10. nicht die Tabelle, dort wird nur gemessen
 
 
 def tabellen_aus(block, basis, karte):
@@ -96,24 +96,44 @@ def nahkampf_werten(reihen, einheiten, tab):
 
 
 def beschuss_werten(reihen, einheiten, tab):
-    """Regel: Der Verlust je Treffer ist der Tabellenwert der Geschossart gegen das Ziel. Schleuderer und Feuerwerfer: nur gemessen. Die Treffer vom Ziel auf den Schuetzen zaehlen hier nicht."""
-    aus = []
-    t0 = reihen[0][0] if reihen else 0
-    for i, p in sorted(_paare(einheiten).items()):
-        w, o = p["a"], p["b"]
-        tr = treffer_lesen(reihen, w, o)
-        art = GESCHOSS_ART.get(w["typ"])
-        soll = int(tab[art][o["typ"]]) if art else None
-        werte = collections.Counter(x["betrag"] for x in tr if not x["rest"])
-        abst = collections.Counter(b["takt"] - a["takt"] for a, b in zip(tr, tr[1:]))
-        if not tr:
-            urteil = "kein Treffer"
-        elif soll is None:
-            urteil = "gemessen"
-        else:
-            urteil = "bestaetigt" if set(werte) <= {soll} and all(x["betrag"] <= soll for x in tr if x["rest"]) else "weicht ab"
-        aus.append({"paar": i, "schuetze": w["typ"], "ziel": o["typ"], "soll": soll, "treffer": len(tr), "werte": dict(werte), "abstaende": dict(abst), "erster": tr[0]["takt"] - t0 if tr else None, "urteil": urteil})
-    return aus
+    """Regel: Jeder Verlust eines Beschossenen ist eine Summe aus den Geschosswerten seiner Art (Pfeil, Bolzen, Stein) und dem Feuer. Schuetzen schiessen nicht nur auf den naechsten Feind (Lauf S 03.11.), darum wird nach dem Opfer gewertet, nicht nach dem Paar.
+    Feuer steht in keiner bekannten Tabelle, FEUER ist gemessen: Betraege 37, 75, 112 je Takt, Lord 12, Feuerwerfer 5 und 10."""
+    aus = {}
+    for e in einheiten:
+        if e.get("rolle") == "kontrolle":
+            continue
+        z = aus.setdefault(e["typ"], {"ziel": e["typ"], "pfeil": int(tab["pfeil"][e["typ"]]), "bolzen": int(tab["bolzen"][e["typ"]]), "stein": int(tab["stein"][e["typ"]]), "gesehen": collections.Counter(), "feuer": 0, "ungeklaert": collections.Counter()})
+        arten = {"pfeil": z["pfeil"], "bolzen": z["bolzen"], "stein": z["stein"]}
+        vor = None
+        for _, s in reihen:
+            if s["typ"][e["nr"]] != e["typ"] or not s["da"][e["nr"]]:
+                break
+            lo = int(s["leben"][e["nr"]])
+            if vor is not None and lo < vor:
+                d = vor - lo
+                einzel = [n for n, w in arten.items() if w == d]
+                if einzel:
+                    z["gesehen"][einzel[0]] += 1
+                elif lo <= 0:
+                    pass  # der letzte Treffer nimmt nur, was noch da ist
+                elif _erklaert(d, arten, FEUER.get(e["typ"], FEUER_SONST)):
+                    z["feuer"] += 1
+                else:
+                    z["ungeklaert"][d] += 1
+            vor = lo
+            if lo <= 0:
+                break
+    zeilen = []
+    for typ, z in sorted(aus.items()):
+        fehlt = [n for n in ("pfeil", "bolzen", "stein") if not z["gesehen"][n]]
+        zeilen.append({**z, "gesehen": dict(z["gesehen"]), "ungeklaert": dict(z["ungeklaert"]), "nicht_gesehen": fehlt, "urteil": "weicht ab" if z["ungeklaert"] else "bestaetigt"})
+    return zeilen
+
+
+def _erklaert(d, arten, feuer):
+    """Mehrere Geschosse im selben Takt, bis zu 3 je Art, dazu bis zu 3 Flammen. Eine Flamme zaehlt abgerundet."""
+    w = list(arten.values())
+    return any(a * w[0] + b * w[1] + c * w[2] + int(f * feuer) == d for a in range(4) for b in range(4) for c in range(4) for f in range(4))
 
 
 def laufen_werten(reihen, einheiten, felder):
