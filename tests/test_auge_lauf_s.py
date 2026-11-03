@@ -214,8 +214,24 @@ def test_lord_szene_merkt_das_ende(tmp_path):
     e = ls.szene_lord(l)
     assert e["gefallen"] and e["ende_gemerkt"] and e["gameover"] == 1
     assert any(isinstance(c, dict) and c.get("menue") == ls.HAUPTMENUE for c in g.log)
-    a = next(c for c in g.log if isinstance(c, dict) and "angriff" in c)
-    assert a["player"] == 1 and a["angriff"]["ziel"] == 900 and len(a["angriff"]["einheiten"]) == 8
+    a = next(c for c in g.log if isinstance(c, dict) and "einheit_ziel" in c)
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    mx, my = plan["mitte"]
+    assert a["einheit_ziel"] == {"nr": 900, "x": mx, "y": my} and max(abs(mx - 100), abs(my - 100)) >= 6
+    ritter = plan["einheiten"]
+    assert len(ritter) == 8 and all(x["typ"] == 28 and x["spieler"] == 1 and max(abs(x["x"] - mx), abs(x["y"] - my)) == 2 for x in ritter)
+    assert len({(x["x"], x["y"]) for x in ritter}) == 8
+
+
+def test_freie_mitte_hat_einen_freien_rand_und_abstand():
+    frei = np.zeros((400, 400), dtype=bool)
+    frei[100:103, 105:125] = True  # zu schmal
+    frei[200:205, 100:105] = True  # genau 5 x 5
+    assert ls.freie_mitte(frei, 102, 102) == (102, 202)
+    assert ls.freie_mitte(np.zeros((400, 400), dtype=bool), 10, 10) is None
+    frei = np.ones((400, 400), dtype=bool)
+    x, y = ls.freie_mitte(frei, 100, 100)
+    assert max(abs(x - 100), abs(y - 100)) == 6
 
 
 def test_lord_steht_nicht_gemerkt_ist_kein_ende(tmp_path):
@@ -298,6 +314,28 @@ def test_reichweite_nimmt_unebene_bahnen_nur_wenn_es_sein_muss():
                 return np.ones((400, 400), dtype=bool), np.indices((400, 400))[1] // 2, np.zeros((400, 400))
     p = ls.aufbau_reichweite(L)
     assert p["eben"] is False and len([x for x in p["einheiten"] if x["rolle"] == "laeufer"]) == 19
+
+
+def test_schussweite_leiter_rund_um_den_tabellenwert(tmp_path):
+    g = Spiel(tmp_path)
+    e = ls.szene_fahren(lauf_von(g), ls.SZENEN["schussweite"])
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    laeufer = [x for x in plan["einheiten"] if x["rolle"] == "laeufer"]
+    ziele = {x["paar"]: x for x in plan["einheiten"] if x["rolle"] == "ziel"}
+    assert len(laeufer) == 36 and all(ziele[x["paar"]]["x"] - x["x"] == x["abstand"] for x in laeufer)
+    assert {x["abstand"] for x in laeufer if x["typ"] == 72} == {9, 16, 17, 18, 19, 20} and {x["abstand"] for x in laeufer if x["typ"] == 22} == {27, 52, 53, 54, 55, 56}
+    assert sum(1 for c in g.log if isinstance(c, dict) and "angriff" in c) == 36
+
+
+def test_schussweite_zaehlt_nur_das_befohlene_ziel():
+    e = [{"rolle": "laeufer", "paar": 0, "typ": 22, "nr": 1, "abstand": 54}, {"rolle": "ziel", "paar": 0, "typ": 59, "nr": 2}, {"rolle": "laeufer", "paar": 1, "typ": 22, "nr": 3, "abstand": 55}, {"rolle": "ziel", "paar": 1, "typ": 59, "nr": 4}]
+    g = [{"schuetze": 1, "ziel": 2, "start": (0, 0), "punkt": (432, 0)}, {"schuetze": 3, "ziel": 2, "start": (0, 8), "punkt": (440, 0)}]
+    z = ar.schussweite_werten(g, e)
+    assert z[0]["auf_ziel"] == 1 and z[0]["abstand_mikro"] == 432 and z[0]["urteil"] == "schiesst"
+    assert z[1]["auf_ziel"] == 0 and z[1]["andere"] == 1 and z[1]["urteil"] == "kein Treffer"
+    assert ar.schussweite_grenzen(z) == {22: {"weitester_schuss": 54, "naechster_ohne": 55, "eindeutig": True}}
+    z2 = [{"typ": 22, "abstand": 54, "auf_ziel": 0}, {"typ": 22, "abstand": 55, "auf_ziel": 1}]
+    assert not ar.schussweite_grenzen(z2)[22]["eindeutig"]
 
 
 def test_laufen_trupp_laeuft_ueber_den_gruppenbefehl(tmp_path):

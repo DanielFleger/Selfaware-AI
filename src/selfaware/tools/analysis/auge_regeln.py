@@ -305,6 +305,30 @@ def reichweite_werten(reihen, einheiten, tab):
     return aus
 
 
+def schussweite_werten(geschosse, einheiten):
+    """Je Fall: Fliegen Geschosse auf das befohlene Ziel? Der Abstand ist der echte, vom Start des Geschosses zum Zielpunkt. Je Art am Ende: weitester Fall mit Schuss, naechster ohne."""
+    ziele = {e["paar"]: e for e in einheiten if e.get("rolle") == "ziel"}
+    aus = []
+    for e in einheiten:
+        if e.get("rolle") != "laeufer":
+            continue
+        z = ziele[e["paar"]]
+        g = [x for x in geschosse if x["schuetze"] == e["nr"]]
+        auf = [x for x in g if x["ziel"] == z["nr"]]
+        aus.append({"typ": e["typ"], "abstand": e["abstand"], "auf_ziel": len(auf), "andere": len(g) - len(auf), "abstand_mikro": max((_abstand(*x["start"], *x["punkt"]) for x in auf), default=None), "urteil": "schiesst" if auf else "kein Treffer"})
+    return aus
+
+
+def schussweite_grenzen(zeilen):
+    """Je Art der groesste Abstand mit Schuss und der kleinste ohne. Liegt ein Schuss jenseits eines Falls ohne Schuss, sagt die Leiter nichts Eindeutiges."""
+    aus = {}
+    for typ in sorted({z["typ"] for z in zeilen}):
+        mit = [z["abstand"] for z in zeilen if z["typ"] == typ and z["auf_ziel"]]
+        ohne = [z["abstand"] for z in zeilen if z["typ"] == typ and not z["auf_ziel"]]
+        aus[typ] = {"weitester_schuss": max(mit, default=None), "naechster_ohne": min(ohne, default=None), "eindeutig": not mit or not ohne or max(mit) < min(ohne)}
+    return aus
+
+
 def laufziel_werten(geschosse, reihen, einheiten):
     """Geschosse der Schuetzen auf ihren Laeufer, je Art. Die Liste fragt nach der Trefferquote gegen ein laufendes Ziel."""
     schuetzen = {e["nr"]: e for e in einheiten if e.get("rolle") == "schuetze"}
@@ -382,7 +406,7 @@ def bericht(szene, zeilen, kontrollen):
     if kontrollen:
         text.append("Kontrolle: " + ("ungestoert" if all(k["ungestoert"] for k in kontrollen) else f"GESTOERT {kontrollen}"))
     for r in zeilen:
-        if r.get("urteil") in ("weicht ab", "kein Treffer", "Treffer ohne Nahkampf") or szene.startswith(("reichweite", "laufziel", "haltung")):
+        if r.get("urteil") in ("weicht ab", "kein Treffer", "Treffer ohne Nahkampf") or szene.startswith(("reichweite", "schussweite", "laufziel", "haltung")):
             text.append("  " + json.dumps({k: v for k, v in r.items() if k != "paar"}, ensure_ascii=False))
     return "\n".join(text)
 
@@ -421,6 +445,9 @@ def main(argv=None):
         g = geschosse_werten(geschosse_lesen(a.aufzeichnung, Feldkarte.laden(feldliste=FELDLISTE)), reihen)
         json.dump(g, open(a.aufzeichnung + ".geschosse.json", "w", encoding="utf-8"), ensure_ascii=False)
         print("Geschosse:", g)
+    elif art == "schussweite":
+        zeilen = schussweite_werten(geschosse_lesen(a.aufzeichnung, Feldkarte.laden(feldliste=FELDLISTE)), plan["einheiten"])
+        print("Grenzen je Art:", schussweite_grenzen(zeilen))
     elif art == "laufziel":
         zeilen = laufziel_werten(geschosse_lesen(a.aufzeichnung, Feldkarte.laden(feldliste=FELDLISTE)), reihen, plan["einheiten"])
     elif art == "haltung":

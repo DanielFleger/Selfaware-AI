@@ -55,6 +55,8 @@ LORD_GRENZE = 2000  # Takte; 150.000 Leben, 8 Ritter schlagen zusammen rund 800 
 WARTESCHLANGE = 20  # Takte je Angriffsbefehl hoechstens: So lange wartet das Modul, bis die Gruppe steht
 FELDER_BAHN = 60  # groesste Reichweite laut Tabelle 0x5B6358: Pfeil 54 Felder; geflogen sind schon 40
 GRENZE_BAHN = FELDER_BAHN * 32 + 2 * 228 + 19 * WARTESCHLANGE  # langsamste Art 32 Takte je Feld, dazu 2 Schuss Armbrust und die Warteschlange
+SCHUSS_WEITE = {22: 54, 23: 40, 70: 54, 72: 18, 74: 54, 76: 11}  # Felder, Tabelle 0x5B6358 je Geschossart: Pfeil 54, Bolzen 40, Schleuder 18, Feuer 11
+GRENZE_SCHUSSWEITE = 36 * WARTESCHLANGE + 2 * 228  # alle Befehle, dann 2 Schuss Armbrust
 ABSTAND_PENDEL, FELDER_PENDEL, GRENZE_PENDEL = 8, 20, 1323  # 5 Schuss Armbrust (228) und die Warteschlange. Abstand 8: Das reicht auch dem Feuerwerfer (flog bis 8,5 Felder)
 PENDLER = 26  # Streitkolbenkaempfer: 25.000 Leben, schnell, schlaegt auf Abstand 8 nicht zu
 HALTUNGEN = (("aggressiv", 2, 24), ("aggressiv", 2, 26), ("defensiv", 1, 4), ("defensiv", 1, 6), ("stehen", 0, 4))  # Code: aggressiv 200 Mikro, defensiv 40 Mikro, 8 je Feld
@@ -250,15 +252,32 @@ def befehle_laufen_trupp(plan):
 def aufbau_reichweite(l, arten=SOLDATEN):
     """Jede Art auf eigener Bahn gegen eine unbemannte Ramme von Spieler 2: 400.000 Leben, sie wehrt sich nicht. Mit Angriffsbefehl laufen Schuetzen, bis sie schiessen, Nahkaempfer, bis sie schlagen. Das misst Reichweite, Schusstakt und das Tempo im Angriff in einer Szene."""
     frei, hoehe, _ = l.s.raster()
-    orte = gitter(frei, hoehe, FELDER_BAHN + 2, 1, FELDER_BAHN + 6, 8, len(arten), flach=True)
+    orte = gitter(frei, hoehe, FELDER_BAHN + 2, 1, FELDER_BAHN + 6, 6, len(arten), flach=True)
     eben = len(orte) >= len(arten)
     if not eben:
-        orte = gitter(frei, hoehe, FELDER_BAHN + 2, 1, FELDER_BAHN + 6, 8, len(arten))
+        orte = gitter(frei, hoehe, FELDER_BAHN + 2, 1, FELDER_BAHN + 6, 6, len(arten))
     if len(orte) < len(arten):
         raise Abbruch(f"Nur {len(orte)} Bahnen fuer {len(arten)} Arten")
     aus = []
     for i, (t, (x, y)) in enumerate(zip(arten, orte)):
         aus += [{"rolle": "laeufer", "paar": i, "spieler": 1, "typ": t, "x": x, "y": y}, {"rolle": "ziel", "paar": i, "spieler": 2, "typ": 59, "x": x + FELDER_BAHN, "y": y}]
+    return {"einheiten": mit_kontrolle(aus, frei), "eben": eben}
+
+
+def aufbau_schussweite(l):
+    """Schuetzen laufen auf einen Angriffsbefehl nicht los (giveTribeAnInstruction, UIT_UNIT_ATTACK_UNIT: makeUnitStopWalking), Szene reichweite_g hat es gezeigt. Darum eine Leiter: jede Art mit Befehl auf eine Ramme in Abstaenden rund um den Tabellenwert. Gezaehlt werden nur Geschosse auf das befohlene Ziel."""
+    frei, hoehe, _ = l.s.raster()
+    faelle = [(t, d) for t, r in SCHUSS_WEITE.items() for d in (r // 2, r - 2, r - 1, r, r + 1, r + 2)]
+    breite = max(SCHUSS_WEITE.values()) + 4
+    orte = gitter(frei, hoehe, breite, 1, breite + 4, 6, len(faelle), flach=True)
+    eben = len(orte) >= len(faelle)
+    if not eben:
+        orte = gitter(frei, hoehe, breite, 1, breite + 4, 6, len(faelle))
+    if len(orte) < len(faelle):
+        raise Abbruch(f"Nur {len(orte)} Bahnen fuer {len(faelle)} Faelle")
+    aus = []
+    for i, ((t, d), (x, y)) in enumerate(zip(faelle, orte)):
+        aus += [{"rolle": "laeufer", "paar": i, "spieler": 1, "typ": t, "x": x, "y": y, "abstand": d}, {"rolle": "ziel", "paar": i, "spieler": 2, "typ": 59, "x": x + d, "y": y}]
     return {"einheiten": mit_kontrolle(aus, frei), "eben": eben}
 
 
@@ -445,14 +464,19 @@ def szene_haltung(l):
     return {"szene": "haltung", "von": a, "bis": b, "einheiten": len(einheiten), "abraeumen_takte": abr, "stand": stand, "pfad": pfad}
 
 
-def naechste_felder(frei, x, y, n):
+def freie_mitte(frei, x, y, rand=2, mindestens=6):
+    """Das naechste Feld, um das herum alles frei ist, nicht zu nah an (x, y). None, wenn es keins gibt."""
     ys, xs = np.nonzero(frei)
-    o = np.argsort(np.maximum(np.abs(xs - x), np.abs(ys - y)), kind="stable")[:n]
-    return [(int(xs[i]), int(ys[i])) for i in o]
+    d = np.maximum(np.abs(xs - x), np.abs(ys - y))
+    for i in np.argsort(d, kind="stable"):
+        ax, ay = int(xs[i]), int(ys[i])
+        if d[i] >= mindestens and rand <= ay < frei.shape[0] - rand and rand <= ax < frei.shape[1] - rand and frei[ay - rand:ay + rand + 1, ax - rand:ax + rand + 1].all():
+            return ax, ay
+    return None
 
 
 def szene_lord(l):
-    """P313, P362, P306: 8 Ritter von Spieler 1 greifen den Lord von Spieler 2 an. Danach ist das Gefecht vorbei, darum kommt diese Szene zuletzt. Fertig ist sie, wenn das Spiel das Ende gemerkt hat oder NACH_LORD Takte um sind."""
+    """P313, P362, P306: Der Lord steht auf der Burg, Ritter finden dorthin keinen Weg (Lauf 20:25). Darum geht er erst vor die Burg, mitten in einen Ring aus 8 Rittern von Spieler 1, und der Nahkampf beginnt von selbst (Umkreis 2 Felder). Danach ist das Gefecht vorbei, darum kommt diese Szene zuletzt. Fertig ist sie, wenn das Spiel das Ende gemerkt hat oder NACH_LORD Takte um sind."""
     k, s = l.k, l.s
     lk.anhalten(l)
     lord = next((e for e in s.einheiten_alle() if e["typ"] == 55 and e["besitzer"] == 2), None)
@@ -461,9 +485,13 @@ def szene_lord(l):
     fern, s.fern = s.fern, 0
     frei = s.raster()[0]
     s.fern = fern
-    plan = {"einheiten": [{"rolle": "ritter", "spieler": 1, "typ": 28, "x": x, "y": y} for x, y in naechste_felder(frei, lord["x"], lord["y"], 8)]}
+    mitte = freie_mitte(frei, lord["x"], lord["y"])
+    if mitte is None:
+        raise Abbruch("Kein freier Platz fuer den Ring um den Lord")
+    mx, my = mitte
+    plan = {"einheiten": [{"rolle": "ritter", "spieler": 1, "typ": 28, "x": mx + dx, "y": my + dy} for dx, dy in ((-2, -2), (0, -2), (2, -2), (-2, 0), (2, 0), (-2, 2), (0, 2), (2, 2))], "mitte": mitte}
     setzen(l, plan["einheiten"])
-    k.liste([{"player": 1, "angriff": {"einheiten": [e["nr"] for e in plan["einheiten"]], "ziel": lord["nr"]}}], lf.KANAL)
+    k.liste([{"einheit_ziel": {"nr": lord["nr"], "x": mx, "y": my}}], lf.KANAL)
     a = lk.aufnahme_im_stand(l, "lord_g", lf.TEMPO_JEDER_TAKT, False)
 
     def lebt():
@@ -476,7 +504,7 @@ def szene_lord(l):
     pfad = l.rek.pfad
     stand = l.rek.beenden()
     with open(pfad + ".plan.json", "w", encoding="utf-8") as f:
-        json.dump({"szene": "lord_g", "von": a, "bis": b, "tempo": lf.TEMPO_JEDER_TAKT, "lord": lord, "einheiten": plan["einheiten"], **lage}, f, ensure_ascii=False)
+        json.dump({"szene": "lord_g", "von": a, "bis": b, "tempo": lf.TEMPO_JEDER_TAKT, "lord": lord, **plan, **lage}, f, ensure_ascii=False)
     k.befehl({"menue": HAUPTMENUE}, 1.5)  # eine haengende Partie wird ueber den Kanal zurueckgesetzt, nicht beendet
     return {"szene": "lord_g", "von": a, "bis": b, **lage, "stand": stand, "pfad": pfad}
 
@@ -493,6 +521,7 @@ SZENEN = {
     "last": szene_last,
     "laufen_trupp": Szene("laufen_trupp", 200, False, GRENZE_TRUPP, aufbau_laufen, befehle_laufen_trupp, alle_am_ziel, treffer_noetig=False),
     "reichweite": Szene("reichweite", 200, False, GRENZE_BAHN, aufbau_reichweite, befehle_auf_partner),
+    "schussweite": Szene("schussweite", 200, False, GRENZE_SCHUSSWEITE, aufbau_schussweite, befehle_auf_partner),
     "laufziel": Szene("laufziel", 200, False, GRENZE_PENDEL, aufbau_laufziel, befehle_laufziel, pendeln),
     "haltung": szene_haltung,
     "laufen_trupp_g": Szene("laufen_trupp_g", 200, False, GRENZE_TRUPP, lambda l: aufbau_laufen(l, OHNE_LORD), befehle_laufen_trupp, alle_am_ziel, treffer_noetig=False),
