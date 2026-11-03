@@ -65,6 +65,16 @@ HALTUNGEN = (("aggressiv", 2, 24), ("aggressiv", 2, 26), ("defensiv", 1, 4), ("d
 HALTUNG_ARTEN = (28, 24, 30)  # Ritter, Speertraeger, Ingenieur: je eine Pruefrunde 63, 127, 255. Keine Schuetzen: Sie schiessen ueber 40 Felder, das stoert die Nachbarn
 HALTUNG_RASTER_X, HALTUNG_RASTER_Y = 60, 40  # Abstand der Faelle: Der naechste fremde Feind steht mindestens 34 Felder weg, groesster Radius 25. Mit 60 x 60 gab es nur 10 Plaetze
 GRENZE_HALTUNG, HALTUNG_TRUPP, HALTUNG_BEFEHL = 1024, 15 * WARTESCHLANGE, 100  # 2 volle Pruefrunden der langsamsten Art; alle Gruppen; Befehl im naechsten Takt, gemessen wird es hier
+BESATZUNG = {39: 2, 40: 3, 41: 2, 61: 2, 77: 2, 59: 4, 58: 4, 60: 1}  # getRemainingRequiredEngineers 0x5334A0
+SCHIESSEN, FAHREN = (39, 40, 41, 61, 77), (39, 77, 60, 59, 58)  # Trebuchet, Mangonel, Ballista fahren nicht (DAT_UNIT_MOVABLE 0)
+ABSTAND_GERAET, GRENZE_GERAET = 20, 1600  # innerhalb jeder Reichweite der Tabelle (kleinste 39); Grenze: 8 Steine Katapult (123) oder 20 Felder bei 64 Takten je Feld, der langsamste Wert ist noch nicht gemessen
+GRENZE_BEMANNEN = 40 * WARTESCHLANGE
+KLASSEN = (1, 41, 46, 74)  # Huette, Burg (kein Leben), kleines Tor, Turm. Mauern haben kein Gebaeude, sie kommen mit den Sonderfaellen
+ANDERE_GERAETE = (40, 41, 61, 77, 59)
+ABSTAND_BELAGERUNG, GRENZE_BELAGERUNG = 16, 1000  # 8 Steine Katapult
+NAH_GEGEN_GEBAEUDE = (24, 25, 26, 27, 28, 37, 55, 71, 73, 75)  # die 10 der Liste V4b
+NAH_ZIELE = (1, 10, 45, 46, 74)  # Huette, Lager (kein Leben), grosses und kleines Tor, Turm. Holztor und Mauern fehlen hier, siehe Plan
+GRENZE_NAH_GEBAEUDE = 300  # Takte auf Tempo 40: Schaden je Schlag, Weg hoechstens 2 Felder
 STARTPLAETZE = (0, 1, 246, 246, 246, 246, 246, 246)  # playerPositionsArray: Platz je Spieler, 246 = keiner
 LORD_RUHE, LORD_WEG = 300, 600  # Takte: Am Anfang geht der Lord von selbst auf die Burg (gemessen 97 bis 197). Weg zum Ring: 10 Felder, 24 Takte je Feld, mal 2
 NACH_LORD = 300  # Takte: Wann das Spiel das Ende merkt, ist hier die Frage, die Pruefrunde des Lords liegt bei 64 Takten
@@ -93,6 +103,10 @@ class SpeicherS(lk.SpeicherK):
                 aus.append({"nr": i, "typ": h(lf.E_TYP), "besitzer": h(lf.E_BESITZER), "x": h(E_MX) // 8, "y": h(E_MY) // 8, "trupp": h(E_TRUPP),
                             "leben": struct.unpack_from("<i", roh, b + E_LEBEN)[0], "uid": struct.unpack_from("<i", roh, b + E_UID)[0]})
         return aus
+
+    def besatzung(self, nr):
+        adr, _, schritt, _ = self.karte.adresse("DAT_UnitsState", "units[].digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300")
+        return struct.unpack("<h", self.q.lies(adr + nr * schritt, 2))[0]
 
     def haltung(self, trupp):
         adr, _, schritt, _ = self.karte.adresse("DAT_TribesState", "tribes[].unitStance")
@@ -307,7 +321,11 @@ def befehle_laufziel(plan):
 
 
 def pendeln(l, plan):
-    """Wer am Wendepunkt ist, bekommt den anderen. Immer False: Die Szene endet an der Grenze."""
+    """Wer am Wendepunkt ist, bekommt den anderen. Immer False: Die Szene endet an der Grenze. Nachgesehen wird alle 8 Takte, das ist ein halbes Feld: Jedes Nachsehen liest alle Plaetze."""
+    t = l.s.takt()
+    if t < plan.get("naechstes_wenden", 0):
+        return False
+    plan["naechstes_wenden"] = t + 8
     orte = {e["nr"]: (e["x"], e["y"]) for e in l.s.einheiten_alle()}
     bef = []
     for e in plan["einheiten"]:
@@ -424,6 +442,134 @@ def szene_last(l):
     return {"szene": "last", "von": a, "bis": b, "ergebnis": e.status, "text": e.text, "einheiten": zahlen, "abraeumen_takte": abr, "stand": stand, "pfad": pfad}
 
 
+def gebaeude_setzen(l, ziele):
+    """Das Spiel steht. setzeGebaeude meldet immer ok, also wird nachgelesen, was wirklich steht: Jedes Ziel bekommt nr und uid des neuen Gebaeudes an seinem Ort. Rueckgabe: was nicht steht, das ist ein Fund."""
+    vorher = {g["nr"] for g in l.s.gebaeude(None)}
+    bef = [{"setzeGebaeude": {"spieler": z["spieler"], "x": z["x"], "y": z["y"], "mapper": z["mapper"], "groesse": z["groesse"]}} for z in ziele]
+    for i in range(0, len(bef), STUECK):
+        l.k.liste(bef[i:i + STUECK], lf.KANAL)
+    neu = []
+    ende = l.uhr() + SETZEN_FRIST
+    while l.uhr() < ende:
+        neu = [g for g in l.s.gebaeude(None) if g["nr"] not in vorher]
+        if len(neu) >= len(ziele):
+            break
+        l.ruhe(0.2)
+    for z in ziele:
+        g = next((g for g in neu if max(abs(g["x"] - z["x"]), abs(g["y"] - z["y"])) <= z["groesse"]), None)
+        if g is not None:
+            neu.remove(g)
+            z.update(nr=g["nr"], uid=g["uid"], laufzeit=g["typ"])
+    return [z for z in ziele if "nr" not in z]
+
+
+def aufbau_besatzung(l):
+    """Je Geraet eine Zeile mit voller Besatzung und eine mit einem Mann zu wenig, einmal schiessen, einmal fahren. Das Ziel beim Schiessen ist ein Pikenier von Spieler 2: 80.000 Leben, er laeuft ohne Gruppe nicht los."""
+    frei, hoehe, _ = l.s.raster()
+    faelle = [("schiessen", t, n) for t in SCHIESSEN for n in (BESATZUNG[t], BESATZUNG[t] - 1)] + [("fahren", t, n) for t in FAHREN for n in (BESATZUNG[t], BESATZUNG[t] - 1)]
+    b, h = ABSTAND_GERAET + 8, 9
+    orte = gitter(frei, hoehe, b, h, b + 6, h + 6, len(faelle), flach=True)
+    if len(orte) < len(faelle):
+        orte = gitter(frei, hoehe, b, h, b + 6, h + 6, len(faelle))
+    if len(orte) < len(faelle):
+        raise Abbruch(f"Nur {len(orte)} Plaetze fuer {len(faelle)} Geraete-Faelle")
+    aus = []
+    for i, ((art, t, n), (x, y)) in enumerate(zip(faelle, orte)):
+        gx, gy = x + 4, y + 4
+        aus.append({"rolle": "geraet", "fall": i, "art": art, "soll": BESATZUNG[t], "mann": n, "spieler": 1, "typ": t, "x": gx, "y": gy, "dorthin": [gx + ABSTAND_GERAET, gy]})
+        aus += [{"rolle": "ingenieur", "fall": i, "spieler": 1, "typ": 30, "x": x + j % 2, "y": y + 2 + j // 2 * 2} for j in range(n)]
+        if art == "schiessen":
+            aus.append({"rolle": "ziel", "fall": i, "spieler": 2, "typ": 25, "x": gx + ABSTAND_GERAET, "y": gy})
+    return {"einheiten": mit_kontrolle(aus, frei)}
+
+
+def befehle_einsteigen(plan):
+    """Anweisung 16 (UIT_MAN_SIEGE_EQUIPMENT): Die Ingenieure eines Geraets werden eine Gruppe und steigen ein."""
+    aus = []
+    for g in plan["einheiten"]:
+        if g["rolle"] == "geraet":
+            leute = [e["nr"] for e in plan["einheiten"] if e["rolle"] == "ingenieur" and e["fall"] == g["fall"]]
+            if leute:
+                aus.append({"player": 1, "angriff": {"einheiten": leute, "art": 16, "a": g["nr"], "b": g["uid"]}})
+    return aus
+
+
+def befehle_besatzung(plan):
+    ziele = {e["fall"]: e["nr"] for e in plan["einheiten"] if e["rolle"] == "ziel"}
+    return [{"player": 1, "angriff": {"einheiten": [g["nr"]], **({"ziel": ziele[g["fall"]]} if g["art"] == "schiessen" else {"lauf": list(g["dorthin"])})}} for g in plan["einheiten"] if g["rolle"] == "geraet"]
+
+
+def aufbau_belagerung(l):
+    """Der Schaden je Stein steht fest (processEntityHitBuildingOrUnit), das Leben steht in der Tabelle: Darum alle Gebaeude mit Bauzeile gegen ein Katapult und die anderen Geraete gegen 4 Klassen. Es zaehlt, was auf die Karte passt, zuerst die Klassen; der Rest ist gerechnet und so gekennzeichnet."""
+    from selfaware.game.ucp.bauen import NACH_TYP
+
+    frei, hoehe, _ = l.s.raster()
+    faelle = [(t, z) for t in ANDERE_GERAETE for z in KLASSEN] + [(39, z) for z in KLASSEN] + [(39, z) for z in sorted(NACH_TYP) if z not in KLASSEN]
+    b, h = 40, 15
+    orte = gitter(frei, hoehe, b, h, b + 2, h + 2, len(faelle))
+    if len(orte) < len(KLASSEN) * (len(ANDERE_GERAETE) + 1):
+        raise Abbruch(f"Nur {len(orte)} Plaetze fuer die Belagerung")
+    einheiten, ziele = [], []
+    for i, ((t, z), (x, y)) in enumerate(zip(faelle, orte)):
+        gx, gy = x + 3, y + 7
+        einheiten.append({"rolle": "geraet", "fall": i, "art": "belagern", "soll": BESATZUNG[t], "mann": BESATZUNG[t], "spieler": 1, "typ": t, "x": gx, "y": gy})
+        einheiten += [{"rolle": "ingenieur", "fall": i, "spieler": 1, "typ": 30, "x": x + j % 2, "y": y + 5 + j // 2 * 2} for j in range(BESATZUNG[t])]
+        ziele.append({"fall": i, "spieler": 2, "typ": z, "mapper": NACH_TYP[z]["mapper"], "groesse": NACH_TYP[z]["b"], "name": NACH_TYP[z]["laufzeitName"], "x": gx + ABSTAND_BELAGERUNG, "y": y + 1})
+    fehlt = gebaeude_setzen(l, ziele)
+    faelle_da = {z["fall"] for z in ziele if "nr" in z}
+    return {"einheiten": mit_kontrolle([e for e in einheiten if e["fall"] in faelle_da], frei), "gebaeude": ziele, "nicht_gesetzt": [z["name"] for z in fehlt], "nicht_gefahren": [NACH_TYP[z]["laufzeitName"] for _, z in faelle[len(orte):]]}
+
+
+def befehle_belagerung(plan):
+    ziele = {z["fall"]: z["nr"] for z in plan["gebaeude"] if "nr" in z}
+    return [{"player": 1, "angriff": {"einheiten": [g["nr"]], "gebaeude": ziele[g["fall"]]}} for g in plan["einheiten"] if g["rolle"] == "geraet"]
+
+
+def aufbau_gebaeude_nah(l):
+    """Die 10 Nahkaempfer der Liste gegen 5 Gebaeude, jeder direkt daneben, mit Angriffsbefehl: Schlaegt er, und was kostet ein Schlag?"""
+    from selfaware.game.ucp.bauen import NACH_TYP
+
+    frei, hoehe, _ = l.s.raster()
+    faelle = list(itertools.product(NAH_GEGEN_GEBAEUDE, NAH_ZIELE))
+    orte = gitter(frei, hoehe, 12, 9, 14, 11, len(faelle))
+    if len(orte) < len(faelle):
+        raise Abbruch(f"Nur {len(orte)} Plaetze fuer {len(faelle)} Paare")
+    einheiten, ziele = [], []
+    for i, ((t, z), (x, y)) in enumerate(zip(faelle, orte)):
+        einheiten.append({"rolle": "angreifer", "fall": i, "spieler": 1, "typ": t, "x": x, "y": y + 4})
+        ziele.append({"fall": i, "spieler": 2, "typ": z, "mapper": NACH_TYP[z]["mapper"], "groesse": NACH_TYP[z]["b"], "name": NACH_TYP[z]["laufzeitName"], "x": x + 2, "y": y + 1})
+    fehlt = gebaeude_setzen(l, ziele)
+    da = {z["fall"] for z in ziele if "nr" in z}
+    return {"einheiten": mit_kontrolle([e for e in einheiten if e["fall"] in da], frei), "gebaeude": ziele, "nicht_gesetzt": [z["name"] for z in fehlt]}
+
+
+def befehle_gebaeude_nah(plan):
+    ziele = {z["fall"]: z["nr"] for z in plan["gebaeude"] if "nr" in z}
+    return [{"player": 1, "angriff": {"einheiten": [e["nr"]], "gebaeude": ziele[e["fall"]]}} for e in plan["einheiten"] if e["rolle"] == "angreifer"]
+
+
+def szene_geraete(l, name, aufbau, befehle, tempo, grenze):
+    """Erst steigen die Ingenieure ein, dann kommt der Befehl fuer alle, auch fuer die Geraete mit einem Mann zu wenig. Wer sich dann nicht ruehrt, zeigt die Besatzungsregel."""
+    k, s = l.k, l.s
+    lk.anhalten(l)
+    plan = aufbau(l)
+    setzen(l, plan["einheiten"])
+    k.liste(befehle_einsteigen(plan), lf.KANAL)
+    a = lk.aufnahme_im_stand(l, name, tempo, False)
+    voll = [e for e in plan["einheiten"] if e["rolle"] == "geraet" and e["mann"] == e["soll"]]
+    plan["bemannt"] = l.warte_takte(GRENZE_BEMANNEN, lambda: all(s.besatzung(e["nr"]) >= e["soll"] for e in voll))
+    plan["bemannt_nach"] = s.takt() - a
+    k.liste(befehle(plan), lf.KANAL)
+    l.warte_takte(grenze)
+    b = lk.anhalten(l)
+    pfad = l.rek.pfad
+    stand = l.rek.beenden()
+    with open(pfad + ".plan.json", "w", encoding="utf-8") as f:
+        json.dump({"szene": name, "von": a, "bis": b, "tempo": tempo, **plan}, f, ensure_ascii=False)
+    abr = abraeumen(l)
+    return {"szene": name, "von": a, "bis": b, "einheiten": len(plan["einheiten"]), "bemannt": plan["bemannt"], "bemannt_nach": plan["bemannt_nach"], "nicht_gesetzt": plan.get("nicht_gesetzt"), "nicht_gefahren": plan.get("nicht_gefahren"), "abraeumen_takte": abr, "stand": stand, "pfad": pfad}
+
+
 def szene_haltung(l):
     """Der Radius der Haltung. Erst stehen die Gruppen mit ihrer Haltung, dann erst kommt der Feind, sonst reagiert jemand mit der Grundhaltung. Der Feind hat keine Gruppe, er laeuft also nicht los (tribeID 0, L77)."""
     k, s = l.k, l.s
@@ -533,8 +679,11 @@ SZENEN = {
     "reichweite": Szene("reichweite", 200, False, GRENZE_BAHN, aufbau_reichweite, befehle_auf_partner),
     "schussweite": Szene("schussweite", 200, False, GRENZE_SCHUSSWEITE, aufbau_schussweite, befehle_auf_partner),
     "schussweite_pfeil": Szene("schussweite_pfeil", 200, False, GRENZE_SCHUSSWEITE, lambda l: aufbau_schussweite(l, FAELLE_PFEIL), befehle_auf_partner),
-    "laufziel": Szene("laufziel", lf.TEMPO_JEDER_TAKT, True, GRENZE_PENDEL, aufbau_laufziel, befehle_laufziel, pendeln),  # jeder Takt: Wo steht der Laeufer beim Einschlag?
+    "laufziel": Szene("laufziel", 100, False, GRENZE_PENDEL, aufbau_laufziel, befehle_laufziel, pendeln, treffer_noetig=False),  # Tempo 100: fast jeder Takt (2 von 498 fehlten), ohne Abbruch bei einem gemischten Rahmen. Streng brach es 03.11. 20:37 nach 630 Takten ab
     "haltung": szene_haltung,
+    "besatzung": lambda l: szene_geraete(l, "besatzung", aufbau_besatzung, befehle_besatzung, 200, GRENZE_GERAET),
+    "belagerung": lambda l: szene_geraete(l, "belagerung", aufbau_belagerung, befehle_belagerung, 500, GRENZE_BELAGERUNG),
+    "gebaeude_nah": Szene("gebaeude_nah", lf.TEMPO_JEDER_TAKT, True, GRENZE_NAH_GEBAEUDE, aufbau_gebaeude_nah, befehle_gebaeude_nah, treffer_noetig=False),
     "laufen_trupp_g": Szene("laufen_trupp_g", 200, False, GRENZE_TRUPP, lambda l: aufbau_laufen(l, OHNE_LORD), befehle_laufen_trupp, alle_am_ziel, treffer_noetig=False),
     "reichweite_g": Szene("reichweite_g", 200, False, GRENZE_BAHN, lambda l: aufbau_reichweite(l, OHNE_LORD), befehle_auf_partner),
     "laufen_g": Szene("laufen_g", 200, False, GRENZE_LAUF, lambda l: aufbau_laufen(l, OHNE_LORD), befehle_laufen, alle_am_ziel, treffer_noetig=False),

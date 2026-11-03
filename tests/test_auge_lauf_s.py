@@ -25,6 +25,7 @@ class Spiel:
         self.stand = {"fehlend": f.get("fehlend", 0), "gemischt": 0}
         self.tod_ab = None
         self.tod_typen = None
+        self.gebaeude_liste = []
         self.speicher = {}
         self.haltungen = {}
         self.fern = 0
@@ -48,6 +49,12 @@ class Spiel:
 
     def haltung(self, trupp):
         return self.haltungen.get(trupp, 1)
+
+    def besatzung(self, nr):
+        return 0 if self.f.get("steigt_nicht_ein") else 9
+
+    def gebaeude(self, sp=1):
+        return [dict(g) for g in self.gebaeude_liste if sp is None or g["besitzer"] == sp]
 
     def peek(self, adr, n=1):
         return [self.speicher.get(adr, 0)]
@@ -80,6 +87,11 @@ class Spiel:
             if "spielbefehl" in c and c["spielbefehl"]["nr"] == 70 and not self.f.get("haltung_wirkt_nicht"):
                 t, w = c["spielbefehl"]["werte"]
                 self.haltungen[t] = w
+            if "setzeGebaeude" in c:
+                z = c["setzeGebaeude"]
+                assert self.pausiert, "gesetzt wird im angehaltenen Spiel"
+                if not self.f.get("kein_gebaeude") or z["mapper"] != self.f["kein_gebaeude"]:
+                    self.gebaeude_liste.append({"nr": 1000 + len(self.gebaeude_liste), "uid": 5000 + len(self.gebaeude_liste), "typ": z["mapper"], "x": z["x"], "y": z["y"], "besitzer": z["spieler"]})
             if "toeteAlle" in c:
                 t = c["toeteAlle"]
                 if isinstance(t, dict):
@@ -417,6 +429,8 @@ def test_laufziel_wendet_am_wendepunkt(tmp_path):
     l = lauf_von(g)
     assert ls.pendeln(l, p) is False and not any(isinstance(c, dict) and "einheit_ziel" in c for c in g.log)
     g.einheiten[0]["y"] = 30
+    assert ls.pendeln(l, p) is False and p["einheiten"][0]["weiter"] == 0  # noch keine 8 Takte seit dem letzten Nachsehen
+    g.t += 8
     assert ls.pendeln(l, p) is False and p["einheiten"][0]["weiter"] == 1
     assert [c for c in g.log if isinstance(c, dict) and "einheit_ziel" in c] == [{"einheit_ziel": {"nr": 7, "x": 10, "y": 10}}]
 
@@ -525,6 +539,107 @@ def test_gefecht_erster_rahmen_alt_wird_gezaehlt_nicht_versteckt():
     r3 = reihen_von([1000, 1000 - w, 1000 - 3 * w, 1000 - 4 * w], [1000] * 4)  # doppelt nicht am Anfang bleibt ein Fund
     assert next(x for x in ar.nahkampf_werten(r3, PAAR, TAB, erster_rahmen_alt=True) if x["opfer"] == 24)["urteil"] == "weicht ab"
     assert not next(x for x in ar.nahkampf_werten(r3, PAAR, TAB, erster_rahmen_alt=True) if x["opfer"] == 24)["erster_doppelt"]
+
+
+def test_besatzung_voll_und_ein_mann_zu_wenig(tmp_path):
+    g = Spiel(tmp_path)
+    e = ls.SZENEN["besatzung"](lauf_von(g))
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    geraete = [x for x in plan["einheiten"] if x["rolle"] == "geraet"]
+    assert len(geraete) == 20 and {(x["art"], x["typ"], x["mann"]) for x in geraete} == {(a, t, n) for a, ts in (("schiessen", ls.SCHIESSEN), ("fahren", ls.FAHREN)) for t in ts for n in (ls.BESATZUNG[t], ls.BESATZUNG[t] - 1)}
+    for x in geraete:
+        assert sum(1 for i in plan["einheiten"] if i["rolle"] == "ingenieur" and i["fall"] == x["fall"]) == x["mann"]
+    assert plan["bemannt"] is True
+    bef = [c["angriff"] for c in g.log if isinstance(c, dict) and "angriff" in c]
+    einstieg = [c for c in bef if c.get("art") == 16]
+    assert len(einstieg) == 19  # der Schild mit einem Mann zu wenig hat keinen
+    assert all(c["b"] == next(x["uid"] for x in geraete if x["nr"] == c["a"]) for c in einstieg)
+    danach = bef[19:]
+    assert len(danach) == 20 and sum("ziel" in c for c in danach) == 10 and sum("lauf" in c for c in danach) == 10
+
+
+def test_besatzung_steigt_nicht_ein_ist_ein_fund_kein_abbruch(tmp_path):
+    e = ls.SZENEN["besatzung"](lauf_von(Spiel(tmp_path, steigt_nicht_ein=True)))
+    assert e["bemannt"] is False and e["bemannt_nach"] >= ls.GRENZE_BEMANNEN
+
+
+def test_gebaeude_setzen_liest_nach_was_wirklich_steht(tmp_path):
+    g = Spiel(tmp_path, kein_gebaeude=2)
+    g.pausiert = 1
+    z = [{"spieler": 2, "x": 100, "y": 100, "mapper": 1, "groesse": 4}, {"spieler": 2, "x": 200, "y": 100, "mapper": 2, "groesse": 4}, {"spieler": 2, "x": 100, "y": 200, "mapper": 3, "groesse": 4}]
+    fehlt = ls.gebaeude_setzen(lauf_von(g), z)
+    assert [x["mapper"] for x in fehlt] == [2] and z[0]["nr"] == 1000 and z[2]["nr"] == 1001 and "nr" not in z[1]
+
+
+def test_belagerung_klassen_zuerst_und_jedes_ziel_ein_geraet(tmp_path):
+    g = Spiel(tmp_path)
+    e = ls.SZENEN["belagerung"](lauf_von(g))
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    geraete = {x["fall"]: x for x in plan["einheiten"] if x["rolle"] == "geraet"}
+    z = plan["gebaeude"]
+    assert all(geraete[x["fall"]]["x"] + ls.ABSTAND_BELAGERUNG == x["x"] for x in z)
+    assert [(geraete[x["fall"]]["typ"], x["typ"]) for x in z[:24]] == [(t, k) for t in ls.ANDERE_GERAETE + (39,) for k in ls.KLASSEN]
+    assert all(geraete[x["fall"]]["typ"] == 39 for x in z[24:]) and len(z) + len(plan["nicht_gefahren"]) == 24 + 59
+
+
+def test_gebaeude_nah_alle_paare(tmp_path):
+    g = Spiel(tmp_path)
+    e = ls.szene_fahren(lauf_von(g), ls.SZENEN["gebaeude_nah"])
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    wer = {x["fall"]: x for x in plan["einheiten"] if x["rolle"] == "angreifer"}
+    assert len(wer) == 50 and {(wer[z["fall"]]["typ"], z["typ"]) for z in plan["gebaeude"]} == {(a, b) for a in ls.NAH_GEGEN_GEBAEUDE for b in ls.NAH_ZIELE}
+    bef = [c["angriff"] for c in g.log if isinstance(c, dict) and "angriff" in c]
+    assert len(bef) == 50 and all(c["gebaeude"] >= 1000 and len(c["einheiten"]) == 1 for c in bef)
+
+
+def gebaeude_reihe(leben, hoechst=None, da=None):
+    aus = []
+    for i, w in enumerate(leben):
+        s = {k: np.zeros(2000, dtype=np.int64) for k in ("leben", "hoechst", "da")}
+        s["leben"][5], s["hoechst"][5], s["da"][5] = w, hoechst or leben[0], 1 if da is None else da[i]
+        aus.append((100 + i, s))
+    return aus
+
+
+def test_belagerung_vielfache_des_steins_sind_die_regel():
+    e = [{"rolle": "geraet", "fall": 0, "typ": 39, "nr": 1}]
+    z = [{"fall": 0, "nr": 5, "name": "BT_HOVEL", "laufzeit": 1}]
+    g = [{"schuetze": 1}, {"schuetze": 1}, {"schuetze": 2}]
+    r = ar.belagerung_werten(gebaeude_reihe([200, 200, 180, 140]), g, e, z)[0]
+    assert r["urteil"] == "bestaetigt" and r["steine"] == 2 and r["verluste"] == {20: 1, 40: 1} and r["erster_verlust"] == 102
+    assert ar.belagerung_werten(gebaeude_reihe([200, 185]), g, e, z)[0]["urteil"] == "weicht ab"
+    assert ar.belagerung_werten(gebaeude_reihe([200, 200]), g, e, z)[0]["urteil"] == "gemessen"
+    e2 = [dict(e[0], typ=59)]
+    assert ar.belagerung_werten(gebaeude_reihe([200, 185]), g, e2, z)[0]["urteil"] == "gemessen"
+
+
+def test_gebaeude_verlauf_merkt_das_ende():
+    v = ar._gebaeude_verlauf(gebaeude_reihe([100, 50, 0, 0], da=[1, 1, 0, 0]), 5)
+    assert v["weg"] == 102 and v["erster_verlust"] == 101 and v["verluste"] == [50, 50] and v["leben"] == 100
+
+
+def geraet_reihe(orte, mann=2):
+    aus = []
+    for i, x in enumerate(orte):
+        s = {k: np.zeros(ar.PLAETZE, dtype=np.int64) for k in ar.FELDER}
+        s["da"][1], s["typ"][1], s["mann"][1] = 1, 59, mann
+        s["mx"][1], s["my"][1] = x, 40
+        aus.append((100 + i * 10, s))
+    return aus
+
+
+def test_besatzung_prueft_beide_richtungen():
+    fahren = {"rolle": "geraet", "fall": 0, "art": "fahren", "soll": 4, "mann": 4, "typ": 59, "nr": 1}
+    r = ar.besatzung_werten(geraet_reihe([0, 0, 32, 64]), [], [fahren])[0]
+    assert r["urteil"] == "bestaetigt" and r["felder"] == 8.0 and r["takte_je_feld"] == 1.25 and r["besetzt"] == 2
+    assert ar.besatzung_werten(geraet_reihe([0, 0, 0]), [], [fahren])[0]["urteil"] == "weicht ab"
+    assert ar.besatzung_werten(geraet_reihe([0, 0, 32]), [], [dict(fahren, mann=3)])[0]["urteil"] == "weicht ab"
+    assert ar.besatzung_werten(geraet_reihe([0, 0, 0]), [], [dict(fahren, mann=3)])[0]["urteil"] == "bestaetigt"
+    sch = dict(fahren, art="schiessen", soll=2, mann=2)
+    g = [{"schuetze": 1, "von": 100}, {"schuetze": 1, "von": 223}, {"schuetze": 1, "von": 346}]
+    r = ar.besatzung_werten(geraet_reihe([0, 0]), g, [sch])[0]
+    assert r["urteil"] == "bestaetigt" and r["schuesse"] == 3 and r["schusstakt"] == 123
+    assert ar.besatzung_werten(geraet_reihe([0, 0]), g, [dict(sch, mann=1)])[0]["urteil"] == "weicht ab"
 
 
 def test_kein_einziger_treffer_bricht_ab(tmp_path):
