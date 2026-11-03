@@ -3,7 +3,7 @@
 
 Aufruf: python data/research/auge_plan/lauf_s_plan/rechnung_szenen.py > data/research/auge_plan/lauf_s_plan/rechnung_szenen.txt
 """
-TAKTE_JE_S = {40: 1 / 0.026, 200: 200, 500: 500, 1000: 766}  # 40 und 1000: Lauf K, gemessen. 200 und 500: Stufenwert, Lauf F im Dorf gemessen. Bei 2.400 Einheiten ungemessen
+TAKTE_JE_S = {40: 1 / 0.026, 100: 100, 200: 200, 500: 500, 1000: 766}  # 40 und 1000: Lauf K, gemessen. 200 und 500: Stufenwert, Lauf F im Dorf gemessen. Bei 2.400 Einheiten ungemessen
 SZENEN = [
     ("1 Laufen: 24 Arten, ein Besitzer, 20 Felder", [(200, 20 * 72 * 2)]),  # Tempo-Wert 6 (Katapult) je rund 12 Takte (L80), Annahme; mal 2
     ("2 Nahkampf: 190 Paare dicht", [(40, 251 + 256)]),  # groesster erster Treffer 18.10. plus groesste Pruefrunde
@@ -16,7 +16,7 @@ SZENEN = [
     ("6a Angriff auf einen Punkt: 8 zugleich", [(200, 5000)]),
     ("6b Sonderfaelle: 11 zugleich", [(40, 3000)]),
     ("7a Schlachten: 20, 1000, 500 Schuetzen, 500 Araber", [(1000, 4 * 10000)]),
-    ("7b Lesen unter Last, 2.400 Einheiten", [(1000, 11 * 1000), (500, 3 * 1000), (200, 3 * 400), (40, 3 * 80)]),
+    ("7b Lesen unter Last, 2.400 Einheiten", [(1000, 11 * 1000), (500, 3 * 1000), (200, 3 * 400), (100, 3 * 200), (40, 3 * 80)]),
     ("8a Gegenprobe Gefecht: Szenen 1, 2, 3a, 5b", [(200, 20 * 72 * 2), (40, 251 + 256), (40, 411 + 2 * 228), (1000, 40 * 123)]),
     ("8b Lauf-K-Stand, laufende KI", [(1000, 30000)]),
 ]

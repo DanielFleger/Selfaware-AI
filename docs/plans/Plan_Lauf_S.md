@@ -32,11 +32,11 @@ Jede Szene: Spiel anhalten, alles setzen, weiter, das Auge zeichnet auf, fertig 
 | 6a | **Angriff auf einen Punkt:** alle 8 zugleich | Ein Besitzer, kein Feind außer dem leeren Tor und Turm, also kein Beschuss | 200 | 5.000 | 25 |
 | 6b | **Sonderfälle:** alle 11 zugleich, weit auseinander | Feuer, Pech, Öl, Mordloch, Hunde, Kuhwurf, Graben, Leiter, Tunnel, Schild, Tor | 40 | 3.000 | 78 |
 | 7a | **Schlachten:** 20 gegen 20, 1.000 gegen 1.000, 500 Schützen, 500 Araber | Eine große Schlacht läuft selbst durch alle kleineren Größen. Die Reihen mit 100 werden daraus abgelesen | 1000 | 40.000 | 52 |
-| 7b | **Lesen unter Last:** 2.400 Einheiten, Wechselprobe | Siehe unten | 1000 bis 40 | 15.440 | 26 |
-| 8a | **Gegenprobe Gefecht:** Szenen 1, 2, 3a, 5b noch einmal, Spieler 2 ohne KI | Dieselben Szenen, dieselbe Auswertung, Vergleich Zeile für Zeile. Weicht etwas ab, gilt der Editor-Wert dort nicht | wie oben | | 56 |
+| 7b | **Lesen unter Last:** 2.400 Einheiten, Wechselprobe | Siehe unten | 1000 bis 40 | 16.040 | 39 |
+| 8a | **Gegenprobe Gefecht:** Szenen 1, 2, 3a, 5b noch einmal, Spieler 2 ohne KI | Dieselben Szenen, dieselbe Auswertung, Vergleich Zeile für Zeile. Weicht etwas ab, gilt der Editor-Wert dort nicht | wie oben | | 57 |
 | 8b | **Lauf-K-Stand:** was nur eine laufende KI zeigt | Bis nach dem übernächsten Lord-Fall in Lauf K | 1000 | 30.000 | 39 |
 
-**Zusammen 6,4 Minuten, ohne Setzen und Laden.** Das ist eine Obergrenze.
+**Zusammen 6,6 Minuten, ohne Setzen und Laden.** Das ist eine Obergrenze.
 
 Die erste Szene ist zugleich die Probe. Scheitert eine Szene, wird erklärt und nur sie neu gefahren. Es gibt keinen Lauf am Stück, den man abwarten muss.
 
