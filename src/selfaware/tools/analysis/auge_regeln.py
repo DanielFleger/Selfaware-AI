@@ -16,7 +16,7 @@ import numpy as np
 PLAETZE = 2500
 FEUER_SONST, FEUER = 37.5, {55: 12.5, 76: 5.0}  # je Flamme und Takt, gemessen Lauf S 03.11. (Szene Beschuss)
 FELDER = {"da": ("logicalState", "<i2"), "typ": ("unitType", "<i2"), "leben": ("health", "<i4"), "schlaegt": ("attackedUnitID", "<i2"), "mx": ("microXPosition", "<i2"), "my": ("microYPosition", "<i2"), "besitzer": ("owner", "<i2"), "mann": ("digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300", "<i2")}
-STEIN = {39: 20, 40: 60, 41: 5}  # Schaden je Stein am Gebaeude, processEntityHitBuildingOrUnit Zeile 480 bis 488
+STEIN = {39: (40, 15), 40: (120, 30), 41: (5, 0)}  # Schaden je Stein am Gebaeude (direkt, je Nebenfeld): processEntityHitBuildingOrUnit Zeile 480 bis 488 mit den Werten, die UCP dort einsetzt (0x407CD5, 0x407CE5, 0x407A96; ohne UCP 60, 20 und 10). Mangonel ohne Nebenfelder
 
 
 def tabellen_aus(block, basis, karte):
@@ -137,6 +137,12 @@ def gebaeude_lesen(pfad, karte):
     return aus
 
 
+def _stein_passt(d, direkt, neben):
+    """Ein Verlust zwischen zwei Rahmen: 1 oder 2 Steine, jeder direkt oder nicht, dazu bis zu 8 Nebenfelder."""
+    einer = {t * direkt + k * neben for t in (0, 1) for k in range(9)}
+    return d in einer or any(d - a in einer for a in einer)
+
+
 def _gebaeude_verlauf(reihen_g, nr):
     """Leben am Anfang, Verluste (Betrag je Rahmenabstand), erster Verlust, Takt bis weg."""
     verluste, vor, erster, weg, letzter = [], None, None, None, None
@@ -200,7 +206,12 @@ def belagerung_werten(reihen_g, geschosse, einheiten, gebaeude):
         v = _gebaeude_verlauf(reihen_g, z["nr"])
         wert = STEIN.get(g["typ"])
         steine = sum(1 for x in geschosse if x["schuetze"] == g["nr"])
-        urteil = "gemessen" if wert is None or not v["verluste"] else ("bestaetigt" if all(d % wert == 0 for d in v["verluste"]) else "weicht ab")
+        if z.get("laufzeit") != z.get("typ"):
+            urteil = "falsches Gebaeude"  # das Ziel stand nicht, das naechste neue Gebaeude wurde genommen (bis Lauf 20:51 moeglich)
+        elif wert is None or not v["verluste"]:
+            urteil = "gemessen"
+        else:
+            urteil = "bestaetigt" if all(_stein_passt(d, *wert) for d in v["verluste"]) else "weicht ab"
         aus.append({"geraet": g["typ"], "ziel": z["name"], "laufzeit": z.get("laufzeit"), "steine": steine, **{k: v[k] for k in ("leben", "hoechst", "erster_verlust", "weg")}, "verluste": dict(collections.Counter(v["verluste"])), "urteil": urteil})
     return aus
 
@@ -214,7 +225,7 @@ def gebaeude_nah_werten(reihen_g, reihen, einheiten, gebaeude):
             continue
         e = wer[z["fall"]]
         v = _gebaeude_verlauf(reihen_g, z["nr"])
-        aus.append({"wer": e["typ"], "ziel": z["name"], **{k: v[k] for k in ("leben", "hoechst", "erster_verlust", "weg", "takte_zwischen")}, "verluste": dict(collections.Counter(v["verluste"])), "urteil": "schlaegt" if v["verluste"] else "kein Treffer"})
+        aus.append({"wer": e["typ"], "ziel": z["name"], **{k: v[k] for k in ("leben", "hoechst", "erster_verlust", "weg", "takte_zwischen")}, "verluste": dict(collections.Counter(v["verluste"])), "urteil": "falsches Gebaeude" if z.get("laufzeit") != z.get("typ") else "schlaegt" if v["verluste"] else "kein Treffer"})
     return aus
 
 

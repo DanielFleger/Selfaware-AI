@@ -95,7 +95,9 @@ class Spiel:
                 z = c["setzeGebaeude"]
                 assert self.pausiert, "gesetzt wird im angehaltenen Spiel"
                 if not self.f.get("kein_gebaeude") or z["mapper"] != self.f["kein_gebaeude"]:
-                    self.gebaeude_liste.append({"nr": 1000 + len(self.gebaeude_liste), "uid": 5000 + len(self.gebaeude_liste), "typ": z["mapper"], "x": z["x"], "y": z["y"], "besitzer": z["spieler"]})
+                    from selfaware.game.ucp.bauen import NACH_TYP
+                    typ = next((t for t, v in NACH_TYP.items() if v["mapper"] == z["mapper"]), z["mapper"])
+                    self.gebaeude_liste.append({"nr": 1000 + len(self.gebaeude_liste), "uid": 5000 + len(self.gebaeude_liste), "typ": typ, "x": z["x"], "y": z["y"], "besitzer": z["spieler"]})
             if "toeteAlle" in c:
                 t = c["toeteAlle"]
                 if isinstance(t, dict):
@@ -688,9 +690,17 @@ def test_besatzung_steigt_nicht_ein_ist_ein_fund_kein_abbruch(tmp_path):
 def test_gebaeude_setzen_liest_nach_was_wirklich_steht(tmp_path):
     g = Spiel(tmp_path, kein_gebaeude=2)
     g.pausiert = 1
-    z = [{"spieler": 2, "x": 100, "y": 100, "mapper": 1, "groesse": 4}, {"spieler": 2, "x": 200, "y": 100, "mapper": 2, "groesse": 4}, {"spieler": 2, "x": 100, "y": 200, "mapper": 3, "groesse": 4}]
+    z = [{"spieler": 2, "typ": 1001, "x": 100, "y": 100, "mapper": 1001, "groesse": 4}, {"spieler": 2, "typ": 2, "x": 200, "y": 100, "mapper": 2, "groesse": 4}, {"spieler": 2, "typ": 1003, "x": 100, "y": 200, "mapper": 1003, "groesse": 4}]
     fehlt = ls.gebaeude_setzen(lauf_von(g), z)
     assert [x["mapper"] for x in fehlt] == [2] and z[0]["nr"] == 1000 and z[2]["nr"] == 1001 and "nr" not in z[1]
+
+
+def test_gebaeude_setzen_nimmt_nicht_das_gebaeude_des_nachbarn(tmp_path):
+    g = Spiel(tmp_path, kein_gebaeude=2)
+    g.pausiert = 1
+    z = [{"spieler": 2, "typ": 2, "x": 100, "y": 100, "mapper": 2, "groesse": 4}, {"spieler": 2, "typ": 1003, "x": 103, "y": 100, "mapper": 1003, "groesse": 4}]
+    fehlt = ls.gebaeude_setzen(lauf_von(g), z)
+    assert [x["typ"] for x in fehlt] == [2] and z[1]["nr"] == 1000
 
 
 def test_belagerung_klassen_zuerst_und_jedes_ziel_ein_geraet(tmp_path):
@@ -727,14 +737,20 @@ def gebaeude_reihe(leben, hoechst=None, da=None):
 
 def test_belagerung_vielfache_des_steins_sind_die_regel():
     e = [{"rolle": "geraet", "fall": 0, "typ": 39, "nr": 1}]
-    z = [{"fall": 0, "nr": 5, "name": "BT_HOVEL", "laufzeit": 1}]
+    z = [{"fall": 0, "nr": 5, "name": "BT_HOVEL", "laufzeit": 1, "typ": 1}]
     g = [{"schuetze": 1}, {"schuetze": 1}, {"schuetze": 2}]
-    r = ar.belagerung_werten(gebaeude_reihe([200, 200, 180, 140]), g, e, z)[0]
-    assert r["urteil"] == "bestaetigt" and r["steine"] == 2 and r["verluste"] == {20: 1, 40: 1} and r["erster_verlust"] == 102
-    assert ar.belagerung_werten(gebaeude_reihe([200, 185]), g, e, z)[0]["urteil"] == "weicht ab"
+    r = ar.belagerung_werten(gebaeude_reihe([500, 500, 370, 270]), g, e, z)[0]
+    assert r["urteil"] == "bestaetigt" and r["steine"] == 2 and r["verluste"] == {130: 1, 100: 1} and r["erster_verlust"] == 102
+    assert ar.belagerung_werten(gebaeude_reihe([200, 199]), g, e, z)[0]["urteil"] == "weicht ab"
     assert ar.belagerung_werten(gebaeude_reihe([200, 200]), g, e, z)[0]["urteil"] == "gemessen"
     e2 = [dict(e[0], typ=59)]
     assert ar.belagerung_werten(gebaeude_reihe([200, 185]), g, e2, z)[0]["urteil"] == "gemessen"
+    assert ar.belagerung_werten(gebaeude_reihe([200, 70]), g, e, [dict(z[0], laufzeit=74)])[0]["urteil"] == "falsches Gebaeude"
+
+
+def test_stein_voller_treffer_und_rand():
+    assert ar._stein_passt(130, 40, 15) and ar._stein_passt(100, 40, 15) and ar._stein_passt(75, 40, 15) and ar._stein_passt(300, 120, 30) and ar._stein_passt(10, 5, 0)
+    assert not ar._stein_passt(20, 40, 15) and not ar._stein_passt(7, 5, 0)
 
 
 def test_gebaeude_verlauf_merkt_das_ende():

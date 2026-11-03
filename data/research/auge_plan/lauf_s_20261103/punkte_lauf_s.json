@@ -1,0 +1,4231 @@
+{
+"punkte": [
+{
+"nr": "P297",
+"funktion": "UpdateEntity_PoisonCloud",
+"start": false,
+"lage": "Giftwolke entsteht",
+"messen": "rng_2 und logicalState der Entität jeden Takt lesen",
+"erwartet": "logicalState wird 3 etwa 800 plus 8 Takte nach Beginn",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_EntityState",
+"feld": "entityArray[].rng_2",
+"aenderungen": 658039,
+"werte": [
+0,
+161,
+-37,
+65,
+191,
+45,
+160,
+-33,
+-36,
+190,
+44,
+159,
+-32,
+-35,
+189,
+43,
+158,
+-31,
+-34,
+188,
+42,
+157,
+-30,
+187,
+41,
+156,
+-29,
+186,
+40,
+155,
+-28,
+185,
+39,
+154,
+-27,
+184,
+38,
+153,
+-26,
+183
+],
+"mehr_werte": true,
+"min": -58,
+"max": 827,
+"erster_takt": 7807580,
+"letzter_takt": 4767,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_BuildingsState",
+"feld": "buildings[].logicalState",
+"aenderungen": 544,
+"werte": [
+0,
+2,
+3,
+1
+],
+"mehr_werte": false,
+"min": 0,
+"max": 3,
+"erster_takt": 7807562,
+"letzter_takt": 5048,
+"anfang": [
+0,
+2
+]
+},
+{
+"global": "DAT_UnitsState",
+"feld": "units[].logicalState",
+"aenderungen": 19607,
+"werte": [
+2,
+1,
+3,
+0,
+4
+],
+"mehr_werte": false,
+"min": 0,
+"max": 4,
+"erster_takt": 7807580,
+"letzter_takt": 5043,
+"anfang": [
+2,
+1
+]
+},
+{
+"global": "DAT_EntityState",
+"feld": "entityArray[].logicalState",
+"aenderungen": 574541,
+"werte": [
+0,
+3,
+2,
+1,
+6,
+7,
+5,
+8
+],
+"mehr_werte": false,
+"min": 0,
+"max": 8,
+"erster_takt": 7807591,
+"letzter_takt": 5043,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P298",
+"funktion": "UpdateFireEntity",
+"start": false,
+"lage": "Brand an einem brennbaren Gebäude im normalen Spiel beobachten",
+"messen": "je Spielschritt entityArray[id].someTracker, fireParameter_0xb6, someCounter_OR_hitGround, field79_0xb8 und buildings[b].fireDuration lesen",
+"erwartet": "someTracker bleibt 1 und der Zähler wird 0, solange fireDuration ungleich 0 ist; bei fireDuration 0 wechselt someTracker auf 2; neue Nachbarfeuer haben fireParameter_0xb6 gleich Stufe - 1",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_EntityState",
+"feld": "entityArray[].someTracker",
+"aenderungen": 89623,
+"werte": [
+0,
+1,
+2,
+-32,
+-64,
+-59,
+-52,
+-27,
+-91,
+-100,
+-31,
+-62,
+-112,
+-63,
+-58,
+-51,
+-26,
+-90,
+-99,
+-30,
+-61,
+-111,
+-57,
+-50,
+-25,
+-89,
+-98,
+-29,
+-60,
+-110,
+-28,
+-55,
+-48,
+-23,
+-87,
+-96,
+-108,
+-54,
+-47,
+-22
+],
+"mehr_werte": true,
+"min": -116,
+"max": 2,
+"erster_takt": 7807942,
+"letzter_takt": 5042,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_EntityState",
+"feld": "entityArray[].fireParameter_0xb6",
+"aenderungen": 87508,
+"werte": [
+0,
+2,
+1,
+3
+],
+"mehr_werte": false,
+"min": 0,
+"max": 3,
+"erster_takt": 7807942,
+"letzter_takt": 4767,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_EntityState",
+"feld": "entityArray[].someCounter_OR_hitGround",
+"aenderungen": 168240,
+"werte": [
+0,
+40,
+9,
+2,
+39,
+38,
+37,
+36,
+35,
+34,
+33,
+32,
+31,
+30,
+29,
+28,
+27,
+26,
+25,
+24,
+23,
+22,
+21,
+20,
+19,
+18,
+17,
+16,
+15,
+14,
+13,
+12,
+11,
+10,
+8,
+7,
+6,
+5,
+4,
+3
+],
+"mehr_werte": true,
+"min": 0,
+"max": 40,
+"erster_takt": 7807581,
+"letzter_takt": 5048,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_EntityState",
+"feld": "entityArray[].field79_0xb8",
+"aenderungen": 86294,
+"werte": [
+0,
+1,
+2,
+3,
+4
+],
+"mehr_werte": false,
+"min": 0,
+"max": 4,
+"erster_takt": 7807948,
+"letzter_takt": 4767,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_BuildingsState",
+"feld": "buildings[].fireDuration",
+"aenderungen": 1657,
+"werte": [
+0,
+1,
+2,
+3,
+5,
+6,
+7,
+9,
+10,
+11,
+13,
+14,
+15,
+17,
+18,
+19,
+21,
+22,
+23,
+25,
+26,
+27,
+29,
+30,
+31,
+32,
+33,
+34,
+35,
+37,
+38,
+39,
+41,
+42,
+43,
+45,
+46,
+47,
+49,
+50
+],
+"mehr_werte": true,
+"min": 0,
+"max": 982,
+"erster_takt": 7807562,
+"letzter_takt": 5047,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P299",
+"funktion": "UpdateTunnel",
+"start": false,
+"lage": "Tunnelgräber graben lassen",
+"messen": "units[tunnelgräber].tunnelerFinishedDigging",
+"erwartet": "2 nach Ende der Animation",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].tunnelerFinishedDigging",
+"aenderungen": 195445,
+"werte": [
+0,
+5,
+1,
+2
+],
+"mehr_werte": false,
+"min": 0,
+"max": 5,
+"erster_takt": 7807580,
+"letzter_takt": 5043,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P300",
+"funktion": "processDamageFromKillingPit",
+"start": false,
+"lage": "Feindliche Einheit läuft über Mordgrube",
+"messen": "units[ziel].health und buildings[grube].state vorher/nachher → health sinkt um 18000 oder wird 0, state 0",
+"erwartet": "1",
+"spielart": true,
+"urteil": "zahl passt",
+"grund": "1 kommt in einem der Felder vor, die Lage des Punkts ist ungeprueft",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].health",
+"aenderungen": 1141195,
+"werte": [
+2500,
+10000,
+17500,
+9990,
+9980,
+9975,
+9970,
+9895,
+9800,
+9950,
+9775,
+9875,
+9850,
+17480,
+17470,
+17430,
+17350,
+17450,
+17490,
+17485,
+17275,
+17375,
+12475,
+12470,
+12430,
+12350,
+12480,
+12450,
+12490,
+12380,
+12375,
+79970,
+79945,
+79850,
+79985,
+79950,
+79980,
+79990,
+79880,
+79875
+],
+"mehr_werte": true,
+"min": 0,
+"max": 500000,
+"erster_takt": 7807580,
+"letzter_takt": 5043,
+"anfang": [
+2500,
+10000,
+17500
+]
+},
+{
+"global": "DAT_BuildingsState",
+"feld": "buildings[].state",
+"aenderungen": 14,
+"werte": [
+0,
+2,
+-2,
+3,
+4,
+1
+],
+"mehr_werte": false,
+"min": -2,
+"max": 4,
+"erster_takt": 7807562,
+"letzter_takt": 7809941,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P301",
+"funktion": "lightUpBuilding",
+"start": false,
+"lage": "Gegnerisches Gebäude kurz nach dem Bau mit Brandpfeilen angreifen",
+"messen": "buildings[id].fireDuration",
+"erwartet": "bleibt 0, solange cooldownTimer größer 0",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_BuildingsState",
+"feld": "buildings[].fireDuration",
+"aenderungen": 1657,
+"werte": [
+0,
+1,
+2,
+3,
+5,
+6,
+7,
+9,
+10,
+11,
+13,
+14,
+15,
+17,
+18,
+19,
+21,
+22,
+23,
+25,
+26,
+27,
+29,
+30,
+31,
+32,
+33,
+34,
+35,
+37,
+38,
+39,
+41,
+42,
+43,
+45,
+46,
+47,
+49,
+50
+],
+"mehr_werte": true,
+"min": 0,
+"max": 982,
+"erster_takt": 7807562,
+"letzter_takt": 5047,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P302",
+"funktion": "UpdateTower4",
+"start": false,
+"lage": "Einheit auf die Grundfläche des Turms stellen, später abziehen",
+"messen": "buildings[turm].field261_0x2fa und hasUnitsOntop je Aufruf lesen",
+"erwartet": "Zähler zählt von 100 auf 0; hasUnitsOntop wechselt nur beim Erreichen von 0 (1 bei Einheit auf der Grundfläche, sonst 0); steht der Zähler dauerhaft auf 0, wird nicht geprüft",
+"spielart": false,
+"urteil": "nicht gesehen",
+"grund": "keines der genannten Felder aendert sich in diesem Lauf",
+"belege": [
+{
+"global": "DAT_BuildingsState",
+"feld": "buildings[].hasUnitsOntop",
+"aenderungen": 0,
+"werte": [
+0
+],
+"mehr_werte": false,
+"min": 0,
+"max": 0,
+"erster_takt": null,
+"letzter_takt": null,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P303",
+"funktion": "updateGateDrawBridgeOpenCloseLogic",
+"start": false,
+"lage": "Feindliche Einheit steht ohne eigene Einheit auf den Torfeldern",
+"messen": "buildings[tor].field241_0x2c6, gateState und Flaggen-Entity (alle 10 Ticks) → field241_0x2c6 = Spieler mit höchster Truppensumme, gateState = 0xb, Flagge entsteht | Feind kommt bei gateCloseOpenTimer == 0 unter 25 Felder → gateState2 (alle 50 Ticks)",
+"erwartet": "springt auf 1200, bei pathLinkageRelated2 == 0 zusätzlich gateState = 10",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_BuildingsState",
+"feld": "buildings[].gateState",
+"aenderungen": 52,
+"werte": [
+0,
+12
+],
+"mehr_werte": false,
+"min": 0,
+"max": 12,
+"erster_takt": 7807589,
+"letzter_takt": 7807644,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_BuildingsState",
+"feld": "buildings[].gateCloseOpenTimer",
+"aenderungen": 228,
+"werte": [
+0
+],
+"mehr_werte": false,
+"min": 0,
+"max": 0,
+"erster_takt": 7807562,
+"letzter_takt": 5043,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_BuildingsState",
+"feld": "buildings[].gateState2",
+"aenderungen": 11612,
+"werte": [
+0,
+99,
+86,
+69,
+97,
+78,
+82,
+80,
+63,
+91,
+72,
+76,
+59,
+87,
+68,
+95,
+73,
+56,
+84,
+65,
+92,
+70,
+53,
+81,
+62,
+89,
+66,
+77,
+58,
+85,
+64,
+75,
+83,
+60,
+51,
+55,
+57,
+90,
+96,
+79
+],
+"mehr_werte": true,
+"min": 0,
+"max": 100,
+"erster_takt": 7807562,
+"letzter_takt": 5047,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P304",
+"funktion": "UpdateGateHouseLarge",
+"start": false,
+"lage": "Feind nähert sich einem Torhaus mit gateCloseOpenTimer == 0 bis unter 25 Felder",
+"messen": "buildings[id].pathLinkageRelated2 und gateState über die Zeit → 0 → 1 (gateState 10, dann 0xc) → 2; nach Entwarnung 2 → 3",
+"erwartet": "0 (gateState 0xb); dabei prüfen, ob Einheiten in Zustand 0 oder in Zustand 2 durchs Tor kommen",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_BuildingsState",
+"feld": "buildings[].gateCloseOpenTimer",
+"aenderungen": 228,
+"werte": [
+0
+],
+"mehr_werte": false,
+"min": 0,
+"max": 0,
+"erster_takt": 7807562,
+"letzter_takt": 5043,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_BuildingsState",
+"feld": "buildings[].pathLinkageRelated2",
+"aenderungen": 50,
+"werte": [
+0,
+1,
+2
+],
+"mehr_werte": false,
+"min": 0,
+"max": 2,
+"erster_takt": 7807589,
+"letzter_takt": 7807692,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_BuildingsState",
+"feld": "buildings[].gateState",
+"aenderungen": 52,
+"werte": [
+0,
+12
+],
+"mehr_werte": false,
+"min": 0,
+"max": 12,
+"erster_takt": 7807589,
+"letzter_takt": 7807644,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P305",
+"funktion": "UpdateUnitLossData",
+"start": false,
+"lage": "Eigene Einheit stirbt im Gefecht gegen Gegner X",
+"messen": "DAT_UnitValueLossesPerEnemyPlayer vorher/nachher",
+"erwartet": "ein Eintrag steigt um den Truppenwert; prüfen, welcher Index (Verlierer oder Gegner)",
+"spielart": false,
+"urteil": "nicht zuordenbar",
+"grund": "im Text ist kein Feld der Feldkarte zu erkennen",
+"belege": []
+},
+{
+"nr": "P306",
+"funktion": "processUnitLossStatistic",
+"start": false,
+"lage": "Eigene Einheit fällt durch einen Gegner",
+"messen": "finalKillMatrix[Gegner][eigener Slot] vorher/nachher",
+"erwartet": "+1",
+"spielart": true,
+"urteil": "nicht gesehen",
+"grund": "keines der genannten Felder aendert sich in diesem Lauf",
+"belege": [
+{
+"global": "DAT_SkMasterDataEntry",
+"feld": "results.finalKillMatrix[]",
+"aenderungen": 0,
+"werte": [
+0
+],
+"mehr_werte": false,
+"min": 0,
+"max": 0,
+"erster_takt": null,
+"letzter_takt": null,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_GameSynchronyState",
+"feld": "finalResults.finalKillMatrix[]",
+"aenderungen": 0,
+"werte": [
+0
+],
+"mehr_werte": false,
+"min": 0,
+"max": 0,
+"erster_takt": null,
+"letzter_takt": null,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P307",
+"funktion": "areActivePlayersMostlySameTeam",
+"start": false,
+"lage": "Gefecht 2 gegen 1: letzten Gegner besiegen",
+"messen": "Aufrufergebnis oder Spielende-Meldung",
+"erwartet": "TRUE",
+"spielart": false,
+"urteil": "nicht zuordenbar",
+"grund": "im Text ist kein Feld der Feldkarte zu erkennen",
+"belege": []
+},
+{
+"nr": "P308",
+"funktion": "TryAcquireAmmunitionOrPlanToBuyStone",
+"start": false,
+"lage": "Einheit lädt Stein-Munition nach",
+"messen": "Steinbestand und units[id].stoneAmmunition vorher/nachher",
+"erwartet": "Stein -10, Munition +20",
+"spielart": true,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].stoneAmmunition",
+"aenderungen": 2066,
+"werte": [
+0,
+10,
+9,
+8,
+7,
+6,
+5,
+4,
+3,
+2,
+1
+],
+"mehr_werte": false,
+"min": 0,
+"max": 10,
+"erster_takt": 7807737,
+"letzter_takt": 433,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_GameState",
+"feld": "playerDataArray[].currentResources[]",
+"aenderungen": 39550,
+"werte": [
+1,
+0,
+25,
+2500,
+26,
+2600,
+27,
+2700,
+28,
+2800,
+30,
+3000,
+31,
+3010,
+32,
+3020,
+33,
+3030,
+34,
+3040,
+35,
+3050,
+36,
+3060,
+37,
+3070,
+38,
+3080,
+39,
+3090,
+40,
+3100,
+41,
+3110,
+42,
+3120,
+43,
+3130,
+44,
+3140
+],
+"mehr_werte": true,
+"min": 0,
+"max": 4000,
+"erster_takt": 101,
+"letzter_takt": 4801,
+"anfang": [
+1,
+0
+]
+}
+]
+},
+{
+"nr": "P309",
+"funktion": "SelectionReplenishAmmo",
+"start": false,
+"lage": "Munition-auffüllen-Befehl bei Katapult mit 0 Munition und mindestens 10 Stein",
+"messen": "Stein und units[].stoneAmmunition vorher/nachher",
+"erwartet": "Stein sinkt um 10, Munition steigt auf 20",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].stoneAmmunition",
+"aenderungen": 2066,
+"werte": [
+0,
+10,
+9,
+8,
+7,
+6,
+5,
+4,
+3,
+2,
+1
+],
+"mehr_werte": false,
+"min": 0,
+"max": 10,
+"erster_takt": 7807737,
+"letzter_takt": 433,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_GameState",
+"feld": "playerDataArray[].currentResources[]",
+"aenderungen": 39550,
+"werte": [
+1,
+0,
+25,
+2500,
+26,
+2600,
+27,
+2700,
+28,
+2800,
+30,
+3000,
+31,
+3010,
+32,
+3020,
+33,
+3030,
+34,
+3040,
+35,
+3050,
+36,
+3060,
+37,
+3070,
+38,
+3080,
+39,
+3090,
+40,
+3100,
+41,
+3110,
+42,
+3120,
+43,
+3130,
+44,
+3140
+],
+"mehr_werte": true,
+"min": 0,
+"max": 4000,
+"erster_takt": 101,
+"letzter_takt": 4801,
+"anfang": [
+1,
+0
+]
+}
+]
+},
+{
+"nr": "P310",
+"funktion": "ClickMoveUnit",
+"start": false,
+"lage": "Gruppe per Mausklick bewegen",
+"messen": "Param0..Param4 des Befehls",
+"erwartet": "Gruppennummer, Ziel x, Ziel y, Schalter, Geschwindigkeit",
+"spielart": false,
+"urteil": "nicht zuordenbar",
+"grund": "im Text ist kein Feld der Feldkarte zu erkennen",
+"belege": []
+},
+{
+"nr": "P311",
+"funktion": "ClickGiveUnitsInstruction",
+"start": false,
+"lage": "Marsch-, Angriffs- und Haltebefehl an eine Gruppe geben",
+"messen": "Param0 bis Param4 beim Ausführen mitlesen",
+"erwartet": "Anweisungsart (Param1) und Bedeutung von Param2 bis Param4 je Befehl",
+"spielart": false,
+"urteil": "nicht zuordenbar",
+"grund": "im Text ist kein Feld der Feldkarte zu erkennen",
+"belege": []
+},
+{
+"nr": "P312",
+"funktion": "CommandSpawnEntity",
+"start": false,
+"lage": "Feuerkorb im Modus GM_SIEGE_THAT setzen",
+"messen": "Gold vorher/nachher",
+"erwartet": "sinkt um den Preis von M_MAPPER_BRAZIER",
+"spielart": true,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_GameState",
+"feld": "playerDataArray[].currentResources[]",
+"aenderungen": 39550,
+"werte": [
+1,
+0,
+25,
+2500,
+26,
+2600,
+27,
+2700,
+28,
+2800,
+30,
+3000,
+31,
+3010,
+32,
+3020,
+33,
+3030,
+34,
+3040,
+35,
+3050,
+36,
+3060,
+37,
+3070,
+38,
+3080,
+39,
+3090,
+40,
+3100,
+41,
+3110,
+42,
+3120,
+43,
+3130,
+44,
+3140
+],
+"mehr_werte": true,
+"min": 0,
+"max": 4000,
+"erster_takt": 101,
+"letzter_takt": 4801,
+"anfang": [
+1,
+0
+]
+}
+]
+},
+{
+"nr": "P313",
+"funktion": "checkSkirmishGameDefeat",
+"start": false,
+"lage": "Gefecht gegen einen Gegner: dessen Lord töten",
+"messen": "lordKilledByPlayerID des Gegners (0x011619FC + (Platz-1)*0x39F4), mapAndTime.gameOver (0x0117D500), playerIsAlive[] (Shorts ab 0x0117EF40) vorher/nachher",
+"erwartet": "Feld wird ungleich 0, gameOver wird TRUE, playerIsAlive[eigener Platz] = 1 und [Gegner] = 0",
+"spielart": true,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_GameState",
+"feld": "playerDataArray[].lordKilledByPlayerID",
+"aenderungen": 0,
+"werte": [
+0
+],
+"mehr_werte": false,
+"min": 0,
+"max": 0,
+"erster_takt": null,
+"letzter_takt": null,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_GameState",
+"feld": "mapAndTime.gameOver",
+"aenderungen": 1,
+"werte": [
+0,
+1
+],
+"mehr_werte": false,
+"min": 0,
+"max": 1,
+"erster_takt": 5043,
+"letzter_takt": 5043,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_GameState",
+"feld": "mapAndTime.playerIsAlive[]",
+"aenderungen": 9,
+"werte": [
+0,
+10000,
+1
+],
+"mehr_werte": false,
+"min": 0,
+"max": 10000,
+"erster_takt": 5043,
+"letzter_takt": 5043,
+"anfang": [
+0,
+10000
+]
+}
+]
+},
+{
+"nr": "P314",
+"funktion": "doMoveFromTileToTile",
+"start": false,
+"lage": "Einheit läuft auf brennendes Feld zu",
+"messen": "units[].counter und field295_0x40a",
+"erwartet": "counter steigt, field295 = 1",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].counter",
+"aenderungen": 4557,
+"werte": [
+0
+],
+"mehr_werte": false,
+"min": 0,
+"max": 0,
+"erster_takt": 7807737,
+"letzter_takt": 5043,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P315",
+"funktion": "computeTotalUnitsWithinDistance",
+"start": false,
+"lage": "Gegner nähert sich einem Zwinger oder eigenem Pech",
+"messen": "ALGO_TotalTroopValue (PathFindingState+0x5C) und ALGO_TotalTroopCount (+0x60) nach dem Aufruf lesen und mit den Gegnern im Radius vergleichen",
+"erwartet": "Anzahl = lebende Einheiten mit owner != 0, Wert = Summe von getValueOfTroopType",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_PathFindingState",
+"feld": "ALGO_TotalTroopValue",
+"aenderungen": 3,
+"werte": [
+0,
+6,
+12
+],
+"mehr_werte": false,
+"min": 0,
+"max": 12,
+"erster_takt": 7807620,
+"letzter_takt": 7807640,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_PathFindingState",
+"feld": "",
+"aenderungen": 0,
+"werte": [
+0,
+11712,
+1000,
+161
+],
+"mehr_werte": false,
+"min": 0,
+"max": 11712,
+"erster_takt": null,
+"letzter_takt": null,
+"anfang": [
+0,
+11712,
+1000,
+161
+]
+},
+{
+"global": "DAT_PathFindingState",
+"feld": "ALGO_TotalTroopCount",
+"aenderungen": 3,
+"werte": [
+0,
+2,
+3
+],
+"mehr_werte": false,
+"min": 0,
+"max": 3,
+"erster_takt": 7807620,
+"letzter_takt": 7807640,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_GameState",
+"feld": "playerDataArray[].currentResources[]",
+"aenderungen": 39550,
+"werte": [
+1,
+0,
+25,
+2500,
+26,
+2600,
+27,
+2700,
+28,
+2800,
+30,
+3000,
+31,
+3010,
+32,
+3020,
+33,
+3030,
+34,
+3040,
+35,
+3050,
+36,
+3060,
+37,
+3070,
+38,
+3080,
+39,
+3090,
+40,
+3100,
+41,
+3110,
+42,
+3120,
+43,
+3130,
+44,
+3140
+],
+"mehr_werte": true,
+"min": 0,
+"max": 4000,
+"erster_takt": 101,
+"letzter_takt": 4801,
+"anfang": [
+1,
+0
+]
+}
+]
+},
+{
+"nr": "P316",
+"funktion": "updateUnitDeathHeatmapIn3SpacesAroundTile",
+"start": false,
+"lage": "KI-Einheit wird gelöscht (stirbt)",
+"messen": "unitDeathHeatMap am Todesfeld und den verbundenen Nachbarfeldern vorher/nachher lesen",
+"erwartet": "Todesfeld +3, Nachbarn +2, deren Nachbarn +1 (nur bei Feldwert < 250); beim Tod einer Einheit eines menschlichen Spielers bleibt die Karte gleich",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_TileMapState",
+"feld": "unitDeathHeatMap[]",
+"aenderungen": 1327424,
+"werte": [
+0,
+1,
+2,
+3,
+4,
+6,
+5,
+7,
+9,
+8,
+10,
+12,
+11,
+14,
+15,
+13,
+16,
+18,
+20,
+28,
+25,
+19,
+17,
+21,
+29,
+26,
+22,
+23,
+24,
+27,
+30,
+31,
+33,
+35,
+32,
+34,
+36,
+37,
+38,
+39
+],
+"mehr_werte": true,
+"min": 0,
+"max": 235,
+"erster_takt": 7807754,
+"letzter_takt": 1357,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P317",
+"funktion": "UpdateLadderManState01",
+"start": false,
+"lage": "Leiterträger stellt Leiter an Mauer",
+"messen": "climbData[id].ladderDirection",
+"erwartet": "gleich facingDirection der Einheit",
+"spielart": false,
+"urteil": "nicht gesehen",
+"grund": "keines der genannten Felder aendert sich in diesem Lauf",
+"belege": [
+{
+"global": "DAT_PathFindingState",
+"feld": "climbData[].ladderDirection",
+"aenderungen": 0,
+"werte": [
+0
+],
+"mehr_werte": false,
+"min": 0,
+"max": 0,
+"erster_takt": null,
+"letzter_takt": null,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P318",
+"funktion": "CheckTribeActivityPercentages",
+"start": false,
+"lage": "Gegnerische Gruppe im Kampf",
+"messen": "tribes[id].percentageAttackingUnk",
+"erwartet": "über 10",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_TribesState",
+"feld": "tribes[].percentageAttackingUnk",
+"aenderungen": 7241,
+"werte": [
+0,
+100,
+1,
+4,
+8,
+9,
+12,
+10,
+15,
+11,
+2,
+16,
+18,
+3,
+20,
+19,
+33
+],
+"mehr_werte": false,
+"min": 0,
+"max": 100,
+"erster_takt": 7807580,
+"letzter_takt": 4737,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P319",
+"funktion": "aiPlaceAIVBuilding",
+"start": false,
+"lage": "Eigene Einheiten zum Lord einer KI führen und ein Bauwerk der KI zerstören",
+"messen": "closestEnemyDistanceToTheLord des KI-Spielers sowie buildStatus und wait des zugehörigen Schritts über Zeit lesen",
+"erwartet": "solange der Wert unter 120 liegt, bleibt der Status 3 und wait unverändert (kein Wiederaufbau)",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_GameState",
+"feld": "playerDataArray[].closestEnemyDistanceToTheLord",
+"aenderungen": 87,
+"werte": [
+420,
+0,
+8,
+345,
+350,
+359,
+370,
+382,
+385,
+346,
+344,
+348,
+355,
+364,
+376,
+392,
+399,
+408,
+418,
+428,
+439,
+452,
+465,
+479,
+494,
+509,
+525,
+539,
+554,
+568,
+584,
+599,
+615,
+636,
+665,
+694,
+725,
+753,
+759,
+61
+],
+"mehr_werte": true,
+"min": 0,
+"max": 759,
+"erster_takt": 7807580,
+"letzter_takt": 206,
+"anfang": [
+420
+]
+},
+{
+"global": "DAT_AIVState",
+"feld": "aivs[].aivBuildingSteps[].buildStatus",
+"aenderungen": 0,
+"werte": [
+0
+],
+"mehr_werte": false,
+"min": 0,
+"max": 0,
+"erster_takt": null,
+"letzter_takt": null,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P320",
+"funktion": "resetCountdownInHeatMap",
+"start": false,
+"lage": "Gebäude der KI zerstören",
+"messen": "heatMaps[x/5][y/5].destructionBasedPlacementCooldown",
+"erwartet": "10, danach sinkend",
+"spielart": false,
+"urteil": "nicht gesehen",
+"grund": "keines der genannten Felder aendert sich in diesem Lauf",
+"belege": [
+{
+"global": "DAT_AIVState",
+"feld": "heatMaps[]",
+"aenderungen": 0,
+"werte": [
+0
+],
+"mehr_werte": false,
+"min": 0,
+"max": 0,
+"erster_takt": null,
+"letzter_takt": null,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_AIVState",
+"feld": "heatMaps[].destructionBasedPlacementCooldown",
+"aenderungen": 0,
+"werte": [
+0
+],
+"mehr_werte": false,
+"min": 0,
+"max": 0,
+"erster_takt": null,
+"letzter_takt": null,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P321",
+"funktion": "updatePitchDitches",
+"start": false,
+"lage": "Pechgraben anzünden",
+"messen": "pitchDitches[].state über die Zeit",
+"erwartet": "2, nach 20 Schritten 3, nach weiteren 200 Schritten -1",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_TileMapState",
+"feld": "pitchDitches[].state",
+"aenderungen": 32,
+"werte": [
+0,
+1,
+2,
+3
+],
+"mehr_werte": false,
+"min": 0,
+"max": 3,
+"erster_takt": 7807586,
+"letzter_takt": 7807965,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_GameState",
+"feld": "playerDataArray[].currentResources[]",
+"aenderungen": 39550,
+"werte": [
+1,
+0,
+25,
+2500,
+26,
+2600,
+27,
+2700,
+28,
+2800,
+30,
+3000,
+31,
+3010,
+32,
+3020,
+33,
+3030,
+34,
+3040,
+35,
+3050,
+36,
+3060,
+37,
+3070,
+38,
+3080,
+39,
+3090,
+40,
+3100,
+41,
+3110,
+42,
+3120,
+43,
+3130,
+44,
+3140
+],
+"mehr_werte": true,
+"min": 0,
+"max": 4000,
+"erster_takt": 101,
+"letzter_takt": 4801,
+"anfang": [
+1,
+0
+]
+}
+]
+},
+{
+"nr": "P322",
+"funktion": "processDamageToBuilding",
+"start": false,
+"lage": "Mauerfeld mit genau 2 Nachbarn (Mauer oder Burg in den vier Himmelsrichtungen) angreifen",
+"messen": "HeightLayer[tile] und DamageLayer[tile] vorher/nachher",
+"erwartet": "DamageLayer steigt um den Schaden und HeightLayer sinkt um den Schaden (beim ersten Treffer auf eine Mauer über Standardhöhe + 60 zusätzlich um 20); bei höchstens 1 Nachbarn 1,5-facher Schaden, bei mehr als 2 halber Schaden",
+"spielart": true,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_TileMapState",
+"feld": "HeightLayer[]",
+"aenderungen": 6720,
+"werte": [
+8,
+10,
+13,
+11,
+9,
+19,
+16,
+12,
+26,
+25,
+17,
+15,
+27,
+22,
+14,
+18,
+98,
+4
+],
+"mehr_werte": false,
+"min": 4,
+"max": 98,
+"erster_takt": 7807586,
+"letzter_takt": 7807965,
+"anfang": [
+8,
+10,
+13,
+11,
+9,
+19,
+16,
+12
+]
+},
+{
+"global": "DAT_TileMapState",
+"feld": "DamageLayer[]",
+"aenderungen": 0,
+"werte": [
+0
+],
+"mehr_werte": false,
+"min": 0,
+"max": 0,
+"erster_takt": null,
+"letzter_takt": null,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P323",
+"funktion": "ifNecessaryThrowOilAutomatically",
+"start": false,
+"lage": "Ingenieur mit Öl, 1 Feind nahe, Haltung aggressiv vs. normal",
+"messen": "units[ing].targetingType",
+"erwartet": "aggressiv: THROW_OIL, normal: unverändert",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].targetingType",
+"aenderungen": 2151,
+"werte": [
+0,
+3,
+4,
+16,
+5,
+9,
+6,
+20
+],
+"mehr_werte": false,
+"min": 0,
+"max": 20,
+"erster_takt": 7808279,
+"letzter_takt": 5043,
+"anfang": [
+0,
+3
+]
+}
+]
+},
+{
+"nr": "P324",
+"funktion": "recomputeTotalTroopValueOfTroopsNearKeep",
+"start": false,
+"lage": "Soldaten 39 und 41 Felder vom Lagerplatz stellen",
+"messen": "playerTotalTroopValueOfTroopsNearKeep[spieler]",
+"erwartet": "nur die 39er zählen",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_TroopValueState",
+"feld": "attackInfo.playerTotalTroopValueOfTroopsNearKeep[]",
+"aenderungen": 297,
+"werte": [
+0,
+91,
+40,
+2,
+30,
+15,
+16,
+4,
+350,
+164,
+236,
+364,
+560,
+720,
+808,
+812,
+36,
+68
+],
+"mehr_werte": false,
+"min": 0,
+"max": 812,
+"erster_takt": 7814058,
+"letzter_takt": 495,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P325",
+"funktion": "applyMoveCommandOrRallyCommandToTribe",
+"start": false,
+"lage": "Marschbefehl an Gruppe mit einer Einheit im Nahkampf",
+"messen": "plannedDestinationX/Y dieser Einheit und der übrigen",
+"erwartet": "Nahkämpfer unverändert, übrige = Zielkachel",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].plannedDestinationX",
+"aenderungen": 29292,
+"werte": [
+285,
+0,
+90,
+88,
+92,
+168,
+136,
+137,
+138,
+139,
+140,
+141,
+142,
+146,
+143,
+144,
+145,
+147,
+148,
+149,
+150,
+151,
+152,
+153,
+154,
+192,
+258,
+324,
+240,
+120,
+160,
+296,
+228,
+126,
+194,
+301,
+230,
+174,
+156,
+171
+],
+"mehr_werte": true,
+"min": 0,
+"max": 324,
+"erster_takt": 7807580,
+"letzter_takt": 5043,
+"anfang": [
+285,
+0,
+90,
+88,
+92
+]
+}
+]
+},
+{
+"nr": "P326",
+"funktion": "giveTribeMoveInstruction",
+"start": false,
+"lage": "Gruppe aus 6 Schwertkämpfern auf ein freies Bodenfeld schicken",
+"messen": "plannedDestinationX/Y jeder Einheit direkt nach dem Befehl",
+"erwartet": "paarweiser Abstand der Zielfelder; wenn Modulo wirklich der Abstand ist, liegen sie 2 Kacheln auseinander (Mauer-/Burgziel 1, Tiergruppe 3, Katapult/Ramme 4)",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].plannedDestinationX",
+"aenderungen": 29292,
+"werte": [
+285,
+0,
+90,
+88,
+92,
+168,
+136,
+137,
+138,
+139,
+140,
+141,
+142,
+146,
+143,
+144,
+145,
+147,
+148,
+149,
+150,
+151,
+152,
+153,
+154,
+192,
+258,
+324,
+240,
+120,
+160,
+296,
+228,
+126,
+194,
+301,
+230,
+174,
+156,
+171
+],
+"mehr_werte": true,
+"min": 0,
+"max": 324,
+"erster_takt": 7807580,
+"letzter_takt": 5043,
+"anfang": [
+285,
+0,
+90,
+88,
+92
+]
+}
+]
+},
+{
+"nr": "P327",
+"funktion": "computeTribePercentages",
+"start": false,
+"lage": "Gruppe im Nahkampf beobachten",
+"messen": "tribes[id].percentageAttackingUnk",
+"erwartet": "steigt über 0 und bleibt höchstens 100",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_TribesState",
+"feld": "tribes[].percentageAttackingUnk",
+"aenderungen": 7241,
+"werte": [
+0,
+100,
+1,
+4,
+8,
+9,
+12,
+10,
+15,
+11,
+2,
+16,
+18,
+3,
+20,
+19,
+33
+],
+"mehr_werte": false,
+"min": 0,
+"max": 100,
+"erster_takt": 7807580,
+"letzter_takt": 4737,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P328",
+"funktion": "giveTribeAnInstruction",
+"start": false,
+"lage": "Ramme mit 1, 2, 3 bzw. 4 Ingenieuren besetzen und je einen Gebäude- oder Mauerangriff befehlen",
+"messen": "units[Ramme].digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300 und targetedBuildingTile/plannedDestinationX/Y",
+"erwartet": "nur bei Zähler 4 wird die Ramme losgeschickt (targetedBuildingTile gesetzt), sonst bleiben die Felder unverändert",
+"spielart": true,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300",
+"aenderungen": 119,
+"werte": [
+0,
+2,
+3,
+1,
+4
+],
+"mehr_werte": false,
+"min": 0,
+"max": 4,
+"erster_takt": 7810156,
+"letzter_takt": 552,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_UnitsState",
+"feld": "units[].targetedBuildingTile",
+"aenderungen": 169,
+"werte": [
+0,
+13867,
+13919,
+14743,
+14672,
+3088,
+3818,
+4703,
+5582,
+6666,
+7219,
+7701,
+7716,
+8102,
+8484,
+8888,
+8960,
+9092,
+9919,
+10158,
+10720,
+10611,
+11042,
+11488,
+11279,
+11746,
+11383,
+11726,
+12314,
+12688,
+13589,
+13945,
+13949,
+14477,
+14253,
+14575,
+15791,
+15825,
+16605,
+17985
+],
+"mehr_werte": true,
+"min": 0,
+"max": 21295,
+"erster_takt": 7810804,
+"letzter_takt": 120,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_UnitsState",
+"feld": "units[].plannedDestinationX",
+"aenderungen": 29292,
+"werte": [
+285,
+0,
+90,
+88,
+92,
+168,
+136,
+137,
+138,
+139,
+140,
+141,
+142,
+146,
+143,
+144,
+145,
+147,
+148,
+149,
+150,
+151,
+152,
+153,
+154,
+192,
+258,
+324,
+240,
+120,
+160,
+296,
+228,
+126,
+194,
+301,
+230,
+174,
+156,
+171
+],
+"mehr_werte": true,
+"min": 0,
+"max": 324,
+"erster_takt": 7807580,
+"letzter_takt": 5043,
+"anfang": [
+285,
+0,
+90,
+88,
+92
+]
+}
+]
+},
+{
+"nr": "P329",
+"funktion": "updateTribeCombatStanceBehavior",
+"start": false,
+"lage": "Gruppe mit Haltung USE_AGGRESSIVE (2) ohne Sammelpunkte laufen lassen",
+"messen": "tribes[].unknownAttackRelatedUpdateCounter und field93_0x22a je Takt, beim Sprung field93_0x22a 59 → 0 den Abstand der Leit-Einheit zu DAT_PathFindingState.ALG_ResultTile",
+"erwartet": "Zähler +1 je Takt, ab 51 zählt field93_0x22a bis 59 und springt auf 0; Abstand in Kacheln höchstens 15, falls die Reichweite Kacheln meint",
+"spielart": true,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_TribesState",
+"feld": "tribes[].unknownAttackRelatedUpdateCounter",
+"aenderungen": 2528559,
+"werte": [
+107,
+0,
+2,
+1,
+4,
+6,
+3,
+8,
+10,
+5,
+12,
+14,
+7,
+16,
+18,
+9,
+20,
+22,
+11,
+24,
+26,
+13,
+28,
+30,
+15,
+32,
+34,
+17,
+36,
+38,
+19,
+40,
+42,
+21,
+44,
+46,
+23,
+48,
+50,
+25
+],
+"mehr_werte": true,
+"min": 0,
+"max": 32656,
+"erster_takt": 7807580,
+"letzter_takt": 5048,
+"anfang": [
+107,
+0
+]
+},
+{
+"global": "DAT_TribesState",
+"feld": "tribes[].field93_0x22a",
+"aenderungen": 2303,
+"werte": [
+0,
+2,
+3,
+4,
+5,
+7,
+8,
+9,
+10,
+12,
+13,
+11,
+15,
+16,
+14,
+18,
+19,
+20,
+21,
+23,
+24,
+22,
+26,
+27,
+28,
+29,
+31,
+32,
+30,
+34,
+35,
+36,
+37,
+39,
+40,
+38,
+42,
+43,
+44,
+45
+],
+"mehr_werte": true,
+"min": 0,
+"max": 59,
+"erster_takt": 7808289,
+"letzter_takt": 4737,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_PathFindingState",
+"feld": "ALG_ResultTile",
+"aenderungen": 679,
+"werte": [
+41750,
+37033,
+32186,
+42539,
+37419,
+0,
+34004,
+41757,
+2869,
+2979,
+2657,
+2980,
+2555,
+6201,
+6198,
+6189,
+5877,
+5889,
+3451,
+5745,
+5723,
+5899,
+5583,
+5286,
+4989,
+5885,
+5590,
+5431,
+5883,
+6043,
+5427,
+6195,
+5279,
+5433,
+4728,
+4064,
+5138,
+6049,
+4715,
+5891
+],
+"mehr_werte": true,
+"min": 0,
+"max": 51104,
+"erster_takt": 7807729,
+"letzter_takt": 4660,
+"anfang": [
+41750
+]
+}
+]
+},
+{
+"nr": "P330",
+"funktion": "calculateUnitMovementSpeed",
+"start": false,
+"lage": "Trupp bergauf und auf ebener Strecke marschieren lassen",
+"messen": "units[].calculatedMovementSpeed und movementSpeed je Takt",
+"erwartet": "eben gleich dem Grundwert (außer bei Trupp-Angleichung), bergauf zeitweise um 1 bis 5 größer",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].calculatedMovementSpeed",
+"aenderungen": 47431,
+"werte": [
+1,
+2,
+3,
+0,
+5,
+6,
+4,
+7
+],
+"mehr_werte": false,
+"min": 0,
+"max": 7,
+"erster_takt": 7807581,
+"letzter_takt": 5043,
+"anfang": [
+1,
+2
+]
+},
+{
+"global": "DAT_UnitsState",
+"feld": "units[].movementSpeed",
+"aenderungen": 51197,
+"werte": [
+3,
+1,
+2,
+0,
+5,
+6,
+4
+],
+"mehr_werte": false,
+"min": 0,
+"max": 6,
+"erster_takt": 7807581,
+"letzter_takt": 5043,
+"anfang": [
+3,
+1,
+2
+]
+},
+{
+"global": "DAT_TribesState",
+"feld": "tribes[].movementSpeed",
+"aenderungen": 5638,
+"werte": [
+1,
+3,
+2,
+0,
+6,
+5,
+4
+],
+"mehr_werte": false,
+"min": 0,
+"max": 6,
+"erster_takt": 7807580,
+"letzter_takt": 4737,
+"anfang": [
+1,
+3
+]
+}
+]
+},
+{
+"nr": "P331",
+"funktion": "shouldUnitsEngageInMelee",
+"start": false,
+"lage": "Gefecht mit Rush-Schutz",
+"messen": "skirmishNoRushTicks im GameState",
+"erwartet": "ab Wert 0 kämpfen gegnerische Soldaten",
+"spielart": true,
+"urteil": "nicht gesehen",
+"grund": "keines der genannten Felder aendert sich in diesem Lauf",
+"belege": [
+{
+"global": "DAT_GameState",
+"feld": "",
+"aenderungen": 0,
+"werte": [
+-1
+],
+"mehr_werte": false,
+"min": -1,
+"max": -1,
+"erster_takt": null,
+"letzter_takt": null,
+"anfang": [
+-1
+]
+}
+]
+},
+{
+"nr": "P332",
+"funktion": "ComputeDamageFearFactorBonus",
+"start": false,
+"lage": "Angstfaktor ändern (Steuern/Gasthaus)",
+"messen": "fearFactorLevel und Schaden im Kampf",
+"erwartet": "5 Prozent je Stufe",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_GameState",
+"feld": "playerDataArray[].fearFactorLevel",
+"aenderungen": 3,
+"werte": [
+0
+],
+"mehr_werte": false,
+"min": 0,
+"max": 0,
+"erster_takt": 7809239,
+"letzter_takt": 5047,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P333",
+"funktion": "recomputeTroopValuesForPlayer",
+"start": false,
+"lage": "Feindliche Truppen in Lagernähe erscheinen lassen",
+"messen": "playerDataArray[sp].totalEnemyTroopValue (+14560), totalEnemyRangedTroopValue (+14608) und totalTeamTroopValue (+14624) laufend lesen",
+"erwartet": "Werte ändern sich nur in den Taktfenstern 10-18, 60-68, 101-108, 160-168 und totalEnemyRangedTroopValue wächst nur bei Nicht-Fernkämpfern",
+"spielart": true,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_GameState",
+"feld": "playerDataArray[].totalEnemyTroopValue",
+"aenderungen": 8,
+"werte": [
+0,
+149,
+146,
+133,
+130,
+15,
+12,
+8,
+4
+],
+"mehr_werte": false,
+"min": 0,
+"max": 149,
+"erster_takt": 7808525,
+"letzter_takt": 7808426,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_GameState",
+"feld": "playerDataArray[].totalEnemyRangedTroopValue",
+"aenderungen": 8,
+"werte": [
+0,
+116,
+113,
+108,
+105,
+15,
+12,
+8,
+4
+],
+"mehr_werte": false,
+"min": 0,
+"max": 116,
+"erster_takt": 7808525,
+"letzter_takt": 7808426,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_GameState",
+"feld": "playerDataArray[].totalTeamTroopValue",
+"aenderungen": 29,
+"werte": [
+0,
+200,
+169,
+72,
+2,
+21,
+9,
+47,
+41,
+35,
+1014,
+1002,
+990,
+984,
+972,
+960,
+948,
+936,
+930,
+918,
+900,
+2000,
+36,
+68
+],
+"mehr_werte": false,
+"min": 0,
+"max": 2000,
+"erster_takt": 7808525,
+"letzter_takt": 412,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P334",
+"funktion": "getRemainingRequiredEngineers",
+"start": false,
+"lage": "Belagerungsmaschine mit Ingenieuren bemannen",
+"messen": "countCurrentlyManningEnginers-Feld der Maschine",
+"erwartet": "steigt je Ingenieur um 1, bis Sollzahl (Trebuchet 3)",
+"spielart": false,
+"urteil": "nicht zuordenbar",
+"grund": "im Text ist kein Feld der Feldkarte zu erkennen",
+"belege": []
+},
+{
+"nr": "P335",
+"funktion": "findClosestLaddermanWithLadderPosition",
+"start": false,
+"lage": "Feindlicher Leiterträger legt Leiter an Mauer",
+"messen": "units[leiter].state.generic",
+"erwartet": "3",
+"spielart": false,
+"urteil": "nicht zuordenbar",
+"grund": "im Text ist kein Feld der Feldkarte zu erkennen",
+"belege": []
+},
+{
+"nr": "P336",
+"funktion": "unitIsInMoat",
+"start": false,
+"lage": "Einheit in einen Graben schicken",
+"messen": "LogicLayer[tile] Bit 30",
+"erwartet": "1",
+"spielart": false,
+"urteil": "zahl passt",
+"grund": "1 kommt in einem der Felder vor, die Lage des Punkts ist ungeprueft",
+"belege": [
+{
+"global": "DAT_TileMapState",
+"feld": "LogicLayer[]",
+"aenderungen": 74944,
+"werte": [
+16,
+8224,
+32,
+8192,
+12288,
+0,
+32768,
+128,
+40960,
+557056,
+524288,
+131072,
+45056,
+1282,
+258,
+32896,
+34050,
+33026,
+262144,
+163840,
+294912,
+33792,
+268468224,
+36864,
+536903680,
+256,
+33024,
+4096,
+2129920,
+4224,
+-1610579968,
+1,
+524320,
+32776,
+1048576
+],
+"mehr_werte": false,
+"min": -1610579968,
+"max": 536903680,
+"erster_takt": 7807586,
+"letzter_takt": 4660,
+"anfang": [
+16,
+8224,
+32,
+8192,
+12288,
+0,
+32768,
+128
+]
+}
+]
+},
+{
+"nr": "P337",
+"funktion": "playerMakeUnitSelection",
+"start": false,
+"lage": "Belagerungsgerät mit 1 Ingenieur bemannen",
+"messen": "Zählerfeld digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300 und getRemainingRequiredEngineers",
+"erwartet": "Feld = Zahl der Ingenieure, Rest = Bedarf minus Feld",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300",
+"aenderungen": 119,
+"werte": [
+0,
+2,
+3,
+1,
+4
+],
+"mehr_werte": false,
+"min": 0,
+"max": 4,
+"erster_takt": 7810156,
+"letzter_takt": 552,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P338",
+"funktion": "isTowerTileOvercrowdedByCurrentPlayer",
+"start": false,
+"lage": "Eigene Einheiten auf Turm der Stufe 1 schicken, bis 5 oben sind",
+"messen": "Einheitenzahl auf den Gebäudekacheln",
+"erwartet": "Obergrenze 5",
+"spielart": false,
+"urteil": "nicht zuordenbar",
+"grund": "im Text ist kein Feld der Feldkarte zu erkennen",
+"belege": []
+},
+{
+"nr": "P339",
+"funktion": "tryAttackUnitID",
+"start": false,
+"lage": "Einheit greift per Befehl eine feindliche Einheit an",
+"messen": "units[ziel].huntedBy",
+"erwartet": "steigt um 1",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].huntedBy",
+"aenderungen": 55,
+"werte": [
+0,
+1,
+2
+],
+"mehr_werte": false,
+"min": 0,
+"max": 2,
+"erster_takt": 7807629,
+"letzter_takt": 7808665,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P340",
+"funktion": "UpdateBurningMan",
+"start": false,
+"lage": "Einheit brennt (z. B. Öl)",
+"messen": "units[id].owner und dying",
+"erwartet": "owner 0, dying 1",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].owner",
+"aenderungen": 7113,
+"werte": [
+0,
+1,
+2
+],
+"mehr_werte": false,
+"min": 0,
+"max": 2,
+"erster_takt": 7807720,
+"letzter_takt": 5043,
+"anfang": [
+0,
+1,
+2
+]
+},
+{
+"global": "DAT_UnitsState",
+"feld": "units[].dying",
+"aenderungen": 6446,
+"werte": [
+0,
+1
+],
+"mehr_werte": false,
+"min": 0,
+"max": 1,
+"erster_takt": 7807605,
+"letzter_takt": 5043,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P341",
+"funktion": "UpdateShield",
+"start": false,
+"lage": "Ingenieur mit dem Befehl 'bemannen' (16) zu einem unbesetzten Schild schicken",
+"messen": "units[schild].state.generic und units[schild].digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300 lesen → Zähler 0 → 1 und state 6",
+"erwartet": "0 spätestens 16 Spielschritte nach Ankunft des Ingenieurs (unter 30 Mikropunkte), Ingenieur danach state 0x6d",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300",
+"aenderungen": 119,
+"werte": [
+0,
+2,
+3,
+1,
+4
+],
+"mehr_werte": false,
+"min": 0,
+"max": 4,
+"erster_takt": 7810156,
+"letzter_takt": 552,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P342",
+"funktion": "harassBuildingsWithSiegeAI",
+"start": false,
+"lage": "Gegnerisches Katapult beobachten, bis Munition leer ist",
+"messen": "units[id].stoneAmmunition",
+"erwartet": "0 und keine Schüsse mehr",
+"spielart": true,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].stoneAmmunition",
+"aenderungen": 2066,
+"werte": [
+0,
+10,
+9,
+8,
+7,
+6,
+5,
+4,
+3,
+2,
+1
+],
+"mehr_werte": false,
+"min": 0,
+"max": 10,
+"erster_takt": 7807737,
+"letzter_takt": 433,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P343",
+"funktion": "setDestinationForUnit",
+"start": false,
+"lage": "Einheit zu unerreichbarem Feld schicken",
+"messen": "units[id].logicalState und Einheitenzahl",
+"erwartet": "ob die Einheit verschwindet",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].logicalState",
+"aenderungen": 19607,
+"werte": [
+2,
+1,
+3,
+0,
+4
+],
+"mehr_werte": false,
+"min": 0,
+"max": 4,
+"erster_takt": 7807580,
+"letzter_takt": 5043,
+"anfang": [
+2,
+1
+]
+}
+]
+},
+{
+"nr": "P344",
+"funktion": "UpdateSiegeTower",
+"start": false,
+"lage": "4 Ingenieure auf Turm bemannen und an Mauer fahren",
+"messen": "units[turm].state und Bemannungszahl (digTileX__OR__...)",
+"erwartet": "Zustand wechselt über FIRE_WEAPON, Bemannung 4, am Ende STAND_UP|IDLE und neues Gebäude",
+"spielart": true,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].state",
+"aenderungen": 173620,
+"werte": [
+101,
+0,
+205,
+8,
+106,
+11,
+1,
+2,
+5,
+113,
+114,
+110,
+4,
+6,
+111,
+120,
+116,
+117,
+109,
+107,
+7,
+207,
+12,
+13,
+204,
+3,
+203,
+9
+],
+"mehr_werte": false,
+"min": 0,
+"max": 207,
+"erster_takt": 7807580,
+"letzter_takt": 5048,
+"anfang": [
+101,
+0,
+205
+]
+}
+]
+},
+{
+"nr": "P345",
+"funktion": "UpdateBatteringRam",
+"start": false,
+"lage": "Rammbock schlägt auf Tor",
+"messen": "buildings[ziel].currentHealth vorher/nachher",
+"erwartet": "sinkt um 50 pro Treffer (UCP kann ändern)",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_BuildingsState",
+"feld": "buildings[].currentHealth",
+"aenderungen": 1218,
+"werte": [
+0,
+500,
+190,
+198,
+3870,
+2900,
+1870,
+1400,
+2370,
+200,
+495,
+220,
+870,
+670,
+300,
+400,
+180,
+2770,
+1770,
+3740,
+196,
+170,
+490,
+1740,
+100,
+740,
+485,
+370,
+1370,
+480,
+570,
+175,
+270,
+191,
+2640,
+3610,
+160,
+70,
+1270,
+2240
+],
+"mehr_werte": true,
+"min": -40,
+"max": 3870,
+"erster_takt": 7807562,
+"letzter_takt": 5047,
+"anfang": [
+0,
+500
+]
+}
+]
+},
+{
+"nr": "P346",
+"funktion": "processMeleeInitiation",
+"start": false,
+"lage": "Zwei gegnerische Nahkämpfer laufen aufeinander zu",
+"messen": "units[a].attackedUnitID und Zustand",
+"erwartet": "Zustand wechselt auf den Nahkampf, sobald der Gegner im Umkreis von 2 Feldern ist",
+"spielart": true,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].attackedUnitID",
+"aenderungen": 24351,
+"werte": [
+0,
+2,
+1,
+4,
+3,
+138,
+137,
+140,
+139,
+142,
+141,
+144,
+143,
+146,
+145,
+152,
+151,
+154,
+153,
+156,
+155,
+158,
+157,
+160,
+159,
+162,
+161,
+164,
+163,
+166,
+165,
+168,
+167,
+170,
+169,
+172,
+171,
+174,
+173,
+176
+],
+"mehr_werte": true,
+"min": 0,
+"max": 2341,
+"erster_takt": 7807580,
+"letzter_takt": 5043,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P347",
+"funktion": "findNearestEnemyAndHeadTowardsIt",
+"start": false,
+"lage": "Gruppe in Haltung aggressiv, Feind in Sicht",
+"messen": "units[].movementType_OR_targetUnitID und lookForEnemy",
+"erwartet": "Feind-ID und lookForEnemy höchstens -50 (-30 minus Abstand, wenn das kleiner ist)",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].movementType_OR_targetUnitID",
+"aenderungen": 40691,
+"werte": [
+0,
+143,
+148,
+150,
+145,
+142,
+144
+],
+"mehr_werte": false,
+"min": 0,
+"max": 150,
+"erster_takt": 7807581,
+"letzter_takt": 5043,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_UnitsState",
+"feld": "units[].lookForEnemy",
+"aenderungen": 1537,
+"werte": [
+0,
+-49,
+-48,
+-46,
+-47,
+-44,
+-45,
+-43,
+-41,
+-42,
+-40,
+-38,
+-39,
+-37,
+-36,
+-30,
+-31,
+-32,
+-33,
+-34,
+-28,
+-29,
+-35,
+-26,
+-27,
+-25,
+-23,
+-24,
+-22,
+-20,
+-21,
+-18,
+-19,
+-17,
+-16,
+-14,
+-15,
+-12,
+-13,
+-10
+],
+"mehr_werte": true,
+"min": -221,
+"max": 0,
+"erster_takt": 7810804,
+"letzter_takt": 164,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P348",
+"funktion": "unitClimbing",
+"start": false,
+"lage": "Einheit klettert eine Leiter (climbData.type 1)",
+"messen": "units[].climbingState und field219_0x35c über mehrere Takte",
+"erwartet": "field219 zählt bis 96, climbingState steigt dabei um 1, Ende bei 5",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_PathFindingState",
+"feld": "climbData[].type",
+"aenderungen": 4,
+"werte": [
+0
+],
+"mehr_werte": false,
+"min": 0,
+"max": 0,
+"erster_takt": 7809905,
+"letzter_takt": 7809982,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_UnitsState",
+"feld": "units[].climbingState",
+"aenderungen": 1591,
+"werte": [
+0
+],
+"mehr_werte": false,
+"min": 0,
+"max": 0,
+"erster_takt": 7807737,
+"letzter_takt": 433,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_UnitsState",
+"feld": "units[].field219_0x35c",
+"aenderungen": 1975,
+"werte": [
+0
+],
+"mehr_werte": false,
+"min": 0,
+"max": 0,
+"erster_takt": 7807737,
+"letzter_takt": 433,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P349",
+"funktion": "UpdateTunneler",
+"start": false,
+"lage": "Tunnelgräber in Zustand 3 und 4 beobachten",
+"messen": "units[].tunnelerFrame je Tick, Kachelhöhe und Trefferpunkte des Gebäudes an der Einsturzkachel",
+"erwartet": "in Zustand 3 zählt der Frame 1 bis 24 und springt bei 24 auf 0 (Höhe steigt bei 6, 12, 18 und 24); in Zustand 4 Schaden nur bei Frame 60 bis 64, logicalState ULS_REMOVE bei Frame 65",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].tunnelerFrame",
+"aenderungen": 156,
+"werte": [
+0
+],
+"mehr_werte": false,
+"min": 0,
+"max": 0,
+"erster_takt": 7809124,
+"letzter_takt": 3376,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P350",
+"funktion": "UpdateQuarryMason",
+"start": false,
+"lage": "Steinmetz stirbt -> buildings[Steinbruch].idleTimerUnk -> 4000",
+"messen": "",
+"erwartet": "",
+"spielart": true,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_BuildingsState",
+"feld": "buildings[].idleTimerUnk",
+"aenderungen": 0,
+"werte": [
+0
+],
+"mehr_werte": false,
+"min": 0,
+"max": 0,
+"erster_takt": null,
+"letzter_takt": null,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_GameState",
+"feld": "playerDataArray[].currentResources[]",
+"aenderungen": 39550,
+"werte": [
+1,
+0,
+25,
+2500,
+26,
+2600,
+27,
+2700,
+28,
+2800,
+30,
+3000,
+31,
+3010,
+32,
+3020,
+33,
+3030,
+34,
+3040,
+35,
+3050,
+36,
+3060,
+37,
+3070,
+38,
+3080,
+39,
+3090,
+40,
+3100,
+41,
+3110,
+42,
+3120,
+43,
+3130,
+44,
+3140
+],
+"mehr_werte": true,
+"min": 0,
+"max": 4000,
+"erster_takt": 101,
+"letzter_takt": 4801,
+"anfang": [
+1,
+0
+]
+}
+]
+},
+{
+"nr": "P351",
+"funktion": "UpdateCrusaderArcher",
+"start": false,
+"lage": "Eigenen Bogenschützen ohne Angriffsanweisung und ohne Feind in der Nähe stehen lassen -> units[id].closestEnemyMicroDistance, playerDataArray[sp].aiControlStatusRelated und units[id].state -> bei Abstand über 400 und aiControlStatusRelated <= 0 wechselt der Zustand in DETERMINE_NEXT_STATE zu Hinsetzen (US_SIT_DOWNUnk)",
+"messen": "",
+"erwartet": "",
+"spielart": true,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].closestEnemyMicroDistance",
+"aenderungen": 138736,
+"werte": [
+0,
+10000,
+846,
+562,
+683,
+430,
+503,
+462,
+579,
+495,
+329,
+702,
+263,
+618,
+726,
+424,
+334,
+799,
+711,
+524,
+792,
+763,
+486,
+287,
+628,
+543,
+582,
+744,
+690,
+433,
+290,
+300,
+677,
+602,
+634,
+635,
+796,
+772,
+273,
+578
+],
+"mehr_werte": true,
+"min": 0,
+"max": 10000,
+"erster_takt": 7807580,
+"letzter_takt": 5048,
+"anfang": [
+0,
+10000
+]
+},
+{
+"global": "DAT_GameState",
+"feld": "playerDataArray[].aiControlStatusRelated",
+"aenderungen": 0,
+"werte": [
+-1000
+],
+"mehr_werte": false,
+"min": -1000,
+"max": -1000,
+"erster_takt": null,
+"letzter_takt": null,
+"anfang": [
+-1000
+]
+},
+{
+"global": "DAT_UnitsState",
+"feld": "units[].state",
+"aenderungen": 173620,
+"werte": [
+101,
+0,
+205,
+8,
+106,
+11,
+1,
+2,
+5,
+113,
+114,
+110,
+4,
+6,
+111,
+120,
+116,
+117,
+109,
+107,
+7,
+207,
+12,
+13,
+204,
+3,
+203,
+9
+],
+"mehr_werte": false,
+"min": 0,
+"max": 207,
+"erster_takt": 7807580,
+"letzter_takt": 5048,
+"anfang": [
+101,
+0,
+205
+]
+}
+]
+},
+{
+"nr": "P352",
+"funktion": "UpdateCrossbowman",
+"start": false,
+"lage": "Armbrustschützen im Marsch an einem Feind vorbeiführen -> units[].state.generic, targetingType und die Tribe-Anweisung -> ein UIT_SHOOT_TARGET-Auftrag erscheint höchstens alle 32 Ticks und bei Haltung USE_STAND_GROUND gar nicht",
+"messen": "",
+"erwartet": "",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].targetingType",
+"aenderungen": 2151,
+"werte": [
+0,
+3,
+4,
+16,
+5,
+9,
+6,
+20
+],
+"mehr_werte": false,
+"min": 0,
+"max": 20,
+"erster_takt": 7808279,
+"letzter_takt": 5043,
+"anfang": [
+0,
+3
+]
+}
+]
+},
+{
+"nr": "P353",
+"funktion": "UpdateSpearman",
+"start": false,
+"lage": "Speerträger greift eine Mauer an -> Gebäude-Trefferpunkte vorher/nachher und der vierte Parameter von processDamageToBuildingThunk -> prüfen, ob die Änderung je Treffer zu 8 (Tor oder Turm 3) passt",
+"messen": "",
+"erwartet": "",
+"spielart": true,
+"urteil": "nicht zuordenbar",
+"grund": "im Text ist kein Feld der Feldkarte zu erkennen",
+"belege": []
+},
+{
+"nr": "P354",
+"funktion": "UpdatePikeman",
+"start": false,
+"lage": "Pikenier greift Mauer bzw. Turm an",
+"messen": "Gebäude-Trefferpunkte vorher/nachher je Treffer",
+"erwartet": "Mauer sinkt stärker als Turm/Tor",
+"spielart": true,
+"urteil": "nicht zuordenbar",
+"grund": "im Text ist kein Feld der Feldkarte zu erkennen",
+"belege": []
+},
+{
+"nr": "P355",
+"funktion": "UpdateMaceman",
+"start": false,
+"lage": "Keulenträger schlägt auf Gebäude (nicht Tor/Turm)",
+"messen": "Gebäude-Trefferpunkte vorher/nachher",
+"erwartet": "sinkt pro Schlag stärker als bei Tor/Turm (Wert 35 gegen 4; UCP kann abweichen)",
+"spielart": true,
+"urteil": "nicht zuordenbar",
+"grund": "im Text ist kein Feld der Feldkarte zu erkennen",
+"belege": []
+},
+{
+"nr": "P356",
+"funktion": "UpdateSwordsman",
+"start": false,
+"lage": "Schwertkämpfer schlagen eine Mauer, dann ein Tor",
+"messen": "Gebäude-Lebenspunkte vor/nach je Schlag",
+"erwartet": "normales Gebäude stärker als Tor/Turm (Grundwerte 70 gegen 6, Bit-0x100-Kachel 10, UCP kann abweichen)",
+"spielart": true,
+"urteil": "nicht zuordenbar",
+"grund": "im Text ist kein Feld der Feldkarte zu erkennen",
+"belege": []
+},
+{
+"nr": "P357",
+"funktion": "UpdateKnight",
+"start": false,
+"lage": "Ritter schlägt auf eine Steinmauer (Tor/Turm zum Vergleich)",
+"messen": "Trefferpunkte des Gebäudes vorher/nachher",
+"erwartet": "Verlust je Schlag deutlich größer bei Mauer als bei Turm/Tor (Wert 70 gegen 6)",
+"spielart": true,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_GameState",
+"feld": "playerDataArray[].currentResources[]",
+"aenderungen": 39550,
+"werte": [
+1,
+0,
+25,
+2500,
+26,
+2600,
+27,
+2700,
+28,
+2800,
+30,
+3000,
+31,
+3010,
+32,
+3020,
+33,
+3030,
+34,
+3040,
+35,
+3050,
+36,
+3060,
+37,
+3070,
+38,
+3080,
+39,
+3090,
+40,
+3100,
+41,
+3110,
+42,
+3120,
+43,
+3130,
+44,
+3140
+],
+"mehr_werte": true,
+"min": 0,
+"max": 4000,
+"erster_takt": 101,
+"letzter_takt": 4801,
+"anfang": [
+1,
+0
+]
+}
+]
+},
+{
+"nr": "P358",
+"funktion": "UpdateMonk",
+"start": false,
+"lage": "Mönch mit Arbeitsplatz Kathedrale und gesetztem goToRallyPoint",
+"messen": "units[mönch].state.generic",
+"erwartet": "0x69, nach Ankunft weiter 0x69 mit Sammelfeldwechsel alle 40 Takte",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].goToRallyPoint",
+"aenderungen": 85,
+"werte": [
+0,
+1
+],
+"mehr_werte": false,
+"min": 0,
+"max": 1,
+"erster_takt": 7808083,
+"letzter_takt": 282,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P359",
+"funktion": "UpdateCatapult",
+"start": false,
+"lage": "Katapult schießt 3 Mal",
+"messen": "units[k].stoneAmmunition vorher/nachher",
+"erwartet": "sinkt um 3",
+"spielart": true,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].stoneAmmunition",
+"aenderungen": 2066,
+"werte": [
+0,
+10,
+9,
+8,
+7,
+6,
+5,
+4,
+3,
+2,
+1
+],
+"mehr_werte": false,
+"min": 0,
+"max": 10,
+"erster_takt": 7807737,
+"letzter_takt": 433,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P360",
+"funktion": "UpdateTrebuchet",
+"start": false,
+"lage": "Triböke schießt Stein, dann Kuhwurf",
+"messen": "units[triboeke].stoneAmmunition vorher/nachher",
+"erwartet": "Stein sinkt um 1, Kuh lässt den Steinbestand unverändert",
+"spielart": true,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].stoneAmmunition",
+"aenderungen": 2066,
+"werte": [
+0,
+10,
+9,
+8,
+7,
+6,
+5,
+4,
+3,
+2,
+1
+],
+"mehr_werte": false,
+"min": 0,
+"max": 10,
+"erster_takt": 7807737,
+"letzter_takt": 433,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_GameState",
+"feld": "playerDataArray[].currentResources[]",
+"aenderungen": 39550,
+"werte": [
+1,
+0,
+25,
+2500,
+26,
+2600,
+27,
+2700,
+28,
+2800,
+30,
+3000,
+31,
+3010,
+32,
+3020,
+33,
+3030,
+34,
+3040,
+35,
+3050,
+36,
+3060,
+37,
+3070,
+38,
+3080,
+39,
+3090,
+40,
+3100,
+41,
+3110,
+42,
+3120,
+43,
+3130,
+44,
+3140
+],
+"mehr_werte": true,
+"min": 0,
+"max": 4000,
+"erster_takt": 101,
+"letzter_takt": 4801,
+"anfang": [
+1,
+0
+]
+}
+]
+},
+{
+"nr": "P361",
+"funktion": "UpdateMangonel",
+"start": false,
+"lage": "Katapult feuert",
+"messen": "neue Projektile ET_MANGONEL pro Salve zählen",
+"erwartet": "7",
+"spielart": false,
+"urteil": "nicht zuordenbar",
+"grund": "im Text ist kein Feld der Feldkarte zu erkennen",
+"belege": []
+},
+{
+"nr": "P362",
+"funktion": "UpdateLord",
+"start": false,
+"lage": "Gegnerischen Lord töten (Mehrspieler/Gefecht)",
+"messen": "currentResources[0xf] des Töters und des Opfers vorher/nachher",
+"erwartet": "Töter erhält min(100000, max(500, Opferbestand * 25 / 100))",
+"spielart": true,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_GameState",
+"feld": "playerDataArray[].currentResources[]",
+"aenderungen": 39550,
+"werte": [
+1,
+0,
+25,
+2500,
+26,
+2600,
+27,
+2700,
+28,
+2800,
+30,
+3000,
+31,
+3010,
+32,
+3020,
+33,
+3030,
+34,
+3040,
+35,
+3050,
+36,
+3060,
+37,
+3070,
+38,
+3080,
+39,
+3090,
+40,
+3100,
+41,
+3110,
+42,
+3120,
+43,
+3130,
+44,
+3140
+],
+"mehr_werte": true,
+"min": 0,
+"max": 4000,
+"erster_takt": 101,
+"letzter_takt": 4801,
+"anfang": [
+1,
+0
+]
+}
+]
+},
+{
+"nr": "P363",
+"funktion": "UpdateBallista",
+"start": false,
+"lage": "Zwei Ingenieure auf Balliste schicken",
+"messen": "Besatzungszähler der Balliste (digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300)",
+"erwartet": "2",
+"spielart": false,
+"urteil": "zahl passt",
+"grund": "2 kommt in einem der Felder vor, die Lage des Punkts ist ungeprueft",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300",
+"aenderungen": 119,
+"werte": [
+0,
+2,
+3,
+1,
+4
+],
+"mehr_werte": false,
+"min": 0,
+"max": 4,
+"erster_takt": 7810156,
+"letzter_takt": 552,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P364",
+"funktion": "UpdateCageDog",
+"start": false,
+"lage": "Gruppe mit 6 Einheiten nahe an einen Hundekäfig bringen",
+"messen": "Hundezustand units[].state",
+"erwartet": "wechselt nach der nächsten Prüfung von 0xd2 zu US_JESTER_ROAM_TO",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].state",
+"aenderungen": 173620,
+"werte": [
+101,
+0,
+205,
+8,
+106,
+11,
+1,
+2,
+5,
+113,
+114,
+110,
+4,
+6,
+111,
+120,
+116,
+117,
+109,
+107,
+7,
+207,
+12,
+13,
+204,
+3,
+203,
+9
+],
+"mehr_werte": false,
+"min": 0,
+"max": 207,
+"erster_takt": 7807580,
+"letzter_takt": 5048,
+"anfang": [
+101,
+0,
+205
+]
+}
+]
+},
+{
+"nr": "P365",
+"funktion": "UpdateArabianArcher",
+"start": false,
+"lage": "Mehrere arab. Bogenschützen aufstellen",
+"messen": "playerDataArray[sp].countArabianArcher über zwei Takte",
+"erwartet": "entspricht vermutlich der Zahl lebender Bogenschützen",
+"spielart": true,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_GameState",
+"feld": "playerDataArray[].countArabianArcher",
+"aenderungen": 7993,
+"werte": [
+0,
+8,
+16,
+24,
+32,
+40,
+48,
+56,
+64,
+72,
+80,
+88,
+96,
+104,
+112,
+120,
+128,
+136,
+144,
+152,
+160,
+168,
+176,
+184,
+192,
+200,
+208,
+216,
+224,
+232,
+240,
+248,
+256,
+264,
+272,
+280,
+288,
+296,
+304,
+312
+],
+"mehr_werte": true,
+"min": 0,
+"max": 18784,
+"erster_takt": 7807580,
+"letzter_takt": 139,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P366",
+"funktion": "UpdateSlave",
+"start": false,
+"lage": "Sklaven greifen Mauer an (nicht brennbar)",
+"messen": "Zustand des Mauergebäudes vorher/nachher",
+"erwartet": "Schadensaufruf mit Wert 8 je Schlag (Umrechnung in Trefferpunkte ungeprüft)",
+"spielart": false,
+"urteil": "nicht zuordenbar",
+"grund": "im Text ist kein Feld der Feldkarte zu erkennen",
+"belege": []
+},
+{
+"nr": "P367",
+"funktion": "UpdateAssassin",
+"start": false,
+"lage": "Assassine schlägt eine Mauer an",
+"messen": "Gebäudezustand vorher/nachher je Schlag",
+"erwartet": "Schadensaufruf mit Wert 70 bei normalem Gebäude, 10 bei Bit-0x100-Kachel (Tor oder Turm 6; Umrechnung in Trefferpunkte ungeprüft)",
+"spielart": true,
+"urteil": "nicht zuordenbar",
+"grund": "im Text ist kein Feld der Feldkarte zu erkennen",
+"belege": []
+},
+{
+"nr": "P368",
+"funktion": "UpdateArabianSwordsman",
+"start": false,
+"lage": "Arab. Schwertkämpfer schlägt auf normale Mauer und auf Tor",
+"messen": "HP des Gebäudes vorher/nachher je Schlag",
+"erwartet": "Mauer etwa 70, Tor oder Turm etwa 6 (Rüstung kann abweichen)",
+"spielart": true,
+"urteil": "nicht zuordenbar",
+"grund": "im Text ist kein Feld der Feldkarte zu erkennen",
+"belege": []
+},
+{
+"nr": "P369",
+"funktion": "UpdateFireBallista",
+"start": false,
+"lage": "Zwei Ingenieure bemannen eine Feuerballiste",
+"messen": "units[id].digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300",
+"erwartet": "2",
+"spielart": false,
+"urteil": "zahl passt",
+"grund": "2 kommt in einem der Felder vor, die Lage des Punkts ist ungeprueft",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300",
+"aenderungen": 119,
+"werte": [
+0,
+2,
+3,
+1,
+4
+],
+"mehr_werte": false,
+"min": 0,
+"max": 4,
+"erster_takt": 7810156,
+"letzter_takt": 552,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P370",
+"funktion": "updateUnits",
+"start": false,
+"lage": "Gegnerische Assassinen schicken",
+"messen": "playerDataArray[sp].totalAssassinTroops und totalAttackTroops",
+"erwartet": "beide steigen um die Zahl der Assassinen und fallen auf 0, wenn sie tot sind",
+"spielart": false,
+"urteil": "nicht gesehen",
+"grund": "keines der genannten Felder aendert sich in diesem Lauf",
+"belege": [
+{
+"global": "DAT_GameState",
+"feld": "playerDataArray[].totalAssassinTroops",
+"aenderungen": 0,
+"werte": [
+0
+],
+"mehr_werte": false,
+"min": 0,
+"max": 0,
+"erster_takt": null,
+"letzter_takt": null,
+"anfang": [
+0
+]
+},
+{
+"global": "DAT_GameState",
+"feld": "playerDataArray[].totalAttackTroops",
+"aenderungen": 0,
+"werte": [
+0
+],
+"mehr_werte": false,
+"min": 0,
+"max": 0,
+"erster_takt": null,
+"letzter_takt": null,
+"anfang": [
+0
+]
+}
+]
+},
+{
+"nr": "P371",
+"funktion": "UpdateHorseArcher",
+"start": false,
+"lage": "Berittener Bogenschütze läuft, Feind in Reichweite",
+"messen": "units[].state",
+"erwartet": "Wechsel auf Schießen/Nachladen (in der Entscheidung sofort, im Laufen spätestens nach rund 100 Takten)",
+"spielart": false,
+"urteil": "gesehen",
+"grund": "Feld aendert sich, Urteil muss jemand lesen",
+"belege": [
+{
+"global": "DAT_UnitsState",
+"feld": "units[].state",
+"aenderungen": 173620,
+"werte": [
+101,
+0,
+205,
+8,
+106,
+11,
+1,
+2,
+5,
+113,
+114,
+110,
+4,
+6,
+111,
+120,
+116,
+117,
+109,
+107,
+7,
+207,
+12,
+13,
+204,
+3,
+203,
+9
+],
+"mehr_werte": false,
+"min": 0,
+"max": 207,
+"erster_takt": 7807580,
+"letzter_takt": 5048,
+"anfang": [
+101,
+0,
+205
+]
+}
+]
+}
+],
+"zaehlung": {
+"gesehen": 50,
+"zahl passt": 4,
+"nicht gesehen": 6,
+"nicht zuordenbar": 15
+}
+}

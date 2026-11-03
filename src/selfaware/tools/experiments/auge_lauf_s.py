@@ -486,7 +486,7 @@ def gebaeude_setzen(l, ziele):
             break
         l.ruhe(0.2)
     for z in ziele:
-        g = next((g for g in neu if max(abs(g["x"] - z["x"]), abs(g["y"] - z["y"])) <= z["groesse"]), None)
+        g = next((g for g in neu if g["typ"] == z["typ"] and max(abs(g["x"] - z["x"]), abs(g["y"] - z["y"])) <= z["groesse"]), None)  # Art und Ort: Sonst nimmt ein nicht gesetztes Ziel das Gebaeude des Nachbarn
         if g is not None:
             neu.remove(g)
             z.update(nr=g["nr"], uid=g["uid"], laufzeit=g["typ"])
