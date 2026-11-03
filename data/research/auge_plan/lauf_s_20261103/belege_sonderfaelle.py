@@ -67,7 +67,11 @@ def graben():
             if t is not None:
                 zu.append(next((a - start for a, w in verlauf if a - start > t and not w & 0x40000000), None))
         print("  ausgehoben bei", sorted(x for x in fertig if x is not None), "nicht ausgehoben", sum(x is None for x in fertig))
-        print("  zugeschuettet bei", sorted(x for x in zu if x is not None), "nicht zugeschuettet", sum(x is None for x in zu))
+        s = sorted(x for x in fertig if x is not None)
+        gruppen = [sum(s[i:i + 3]) / 3 for i in range(0, 9, 3)]
+        print("  3 Sklaven, 3 Felder je Gruppe, Mittel der Gruppen", [round(x) for x in gruppen], "Abstaende, also Takte je Feld und Sklave:", [round(b - a) for a, b in zip(gruppen, gruppen[1:])])
+        s = sorted(x for x in zu if x is not None)
+        print("  zugeschuettet bei", s, "nicht zugeschuettet", sum(x is None for x in zu), ("2 Sklaven: Takte je Feld und Sklave " + str(round((s[-1] - s[0]) * 2 / (len(s) - 1)))) if len(s) > 1 else "")
         print("  Graben-Felder im Plan am Ende:", plan.get("graben_felder_am_ende"))
         for e in plan["einheiten"]:
             if e.get("posten") == "graben" and e["rolle"] == "fueller" and "nr" in e:
@@ -202,6 +206,15 @@ def oel():
     k = next(z for z in plan["karte"] if z["posten"] == "oel")
     im = [x for x in g if x["art"] in ("brand", "feuer", "feuer_frei") and k["x"] - 10 <= x["start"][0] // 8 < k["x"] + k["breite"] + 10 and k["y"] - 10 <= x["start"][1] // 8 < k["y"] + k["hoehe"] + 10]
     print("   Brand-Eintraege im Posten:", collections.Counter(x["art"] for x in im), "erster bei", min((x["von"] - start for x in im), default=None), "Opfer", (op["x"], op["y"]))
+    for e in wer:
+        v = []
+        for t, r in reihen:
+            if not r["da"][e["nr"]] or r["typ"][e["nr"]] != e["typ"]:
+                break
+            le = int(r["leben"][e["nr"]])
+            if not v or v[-1][1] != le:
+                v.append((t - start, le))
+        print("  ", e["rolle"], e["nr"], "erster Verlust", v[1][0] if len(v) > 1 else None, "Leben 0 bei", next((t for t, le in v if le == 0), None), "letztes Leben", v[-1][1])
 
 
 def hoehen(p, plan, zeile, x0, x1):
@@ -254,6 +267,11 @@ def tunnel(szene):
         print("     Zustaende (Takt, Wert):", zu[:14])
         print("     tunnelerFinishedDigging:", graben[e["nr"]][:10])
         print("     Ort alle 100 Takte:", ort[:24])
+
+        def ab(w):
+            return next((t for t, z in zu if w == z), None)
+        if None not in (ab(8), ab(109), ab(9), ab(3)):
+            print("     Abschnitte in Takten: Eingang bauen", ab(109) - ab(8), "dann", ab(9) - ab(109), "und", ab(3) - ab(9), "Vorbereitung, graben bis zum Ziel", (ab(4) - ab(3)) if ab(4) else None)
         unten = [o for o in ort if o[0] >= 1000]
         if len(unten) > 2:
             h = hoehen(p, plan, unten[0][2], unten[0][1], unten[-1][1])

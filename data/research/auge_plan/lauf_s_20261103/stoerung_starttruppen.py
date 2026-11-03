@@ -30,7 +30,7 @@ def nachsehen(p):
     o = {k: karte.adresse("DAT_UnitsState", "units[]." + ar.FELDER[k][0])[0] - bu for k in ("da", "typ", "schlaegt", "besitzer", "leben", "mx", "my")}
     ziele = np.array(sorted(im_plan), dtype=np.int16)
     start, fremd_schlaegt, fremd_erster = None, collections.Counter(), {}
-    fremde = {}
+    fremde, erstmals = {}, {}
     for r, roh, _ in auf.staende():
         if r.bereich != iu or not r.rein:
             continue
@@ -45,6 +45,7 @@ def nachsehen(p):
         da[0] = False  # Platz 0 ist die Kopie der gerade laufenden Einheit
         for i in np.nonzero(da & (s["besitzer"] > 0) & (s["besitzer"] <= 2) & ~np.isin(np.arange(ar.PLAETZE), ziele))[0]:
             fremde.setdefault((int(s["typ"][i]), int(s["besitzer"][i])), set()).add(int(i))
+            erstmals.setdefault((int(s["typ"][i]), int(s["besitzer"][i])), r.takt)
     g = ar.geschosse_lesen(p, karte)
     pfeile = collections.Counter()
     for x in g:
@@ -54,6 +55,7 @@ def nachsehen(p):
     alle_plan = collections.Counter(x["art"] for x in g if x["schuetze"] in im_plan)
     print("==", os.path.basename(p), "Beginn", start, "Takte", plan["bis"] - plan["von"])
     print("   fremde Einheiten (Art, Spieler: Anzahl):", {k: len(v) for k, v in sorted(fremde.items()) if k[0] != 1})
+    print("   erstmals gesehen, Takt seit Spielbeginn (vor Szenenbeginn gekommen = Beginn):", {k: v for k, v in sorted(erstmals.items()) if k[0] in (22, 24)})
     print("   fremde Schlaeger auf den Plan (Art, Spieler, Posten, Rolle: Rahmen, erster Takt):", {str(k): (v, fremd_erster[k]) for k, v in fremd_schlaegt.items()} or "keine")
     print("   fremde Geschosse auf den Plan (Art, Spieler, Posten, Rolle):", {str(k): v for k, v in pfeile.items()} or "keine")
     print("   alle Geschosse: fremde", dict(alle_fremd), "vom Plan", dict(alle_plan))
