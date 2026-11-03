@@ -205,6 +205,23 @@ def test_nahkampf_tabellenwert_ist_bestaetigt():
     assert r["urteil"] == "bestaetigt" and r["treffer"] == 4 and r["abstaende"] == {1: 3} and r["erster"] == 1
 
 
+def test_nahkampf_der_letzte_schlag_nimmt_nur_den_rest():
+    z = ar.nahkampf_werten(reihen_von([1000] * 4, [60, 35, 10, 0]), PAAR, TAB)
+    r = next(x for x in z if x["schlaeger"] == 24)
+    assert r["urteil"] == "bestaetigt" and r["treffer"] == 3 and r["werte"] == {"25": 2} or r["werte"] == {25: 2}
+
+
+def test_nahkampf_mehr_als_der_schaden_ist_auch_beim_letzten_schlag_falsch():
+    z = ar.nahkampf_werten(reihen_von([1000] * 3, [60, 35, 0]), PAAR, TAB)
+    assert next(x for x in z if x["schlaeger"] == 24)["urteil"] == "weicht ab"
+
+
+def test_nahkampf_fremdes_geschoss_im_selben_takt_ist_kein_fehler_des_schlaegers():
+    z = ar.nahkampf_werten(reihen_von([1000] * 4, [5000, 4975, 3950, 3925]), PAAR, TAB)  # 1025 = 25 + Pfeil 1000
+    r = next(x for x in z if x["schlaeger"] == 24)
+    assert r["urteil"] == "bestaetigt" and r["fremde_geschosse"] == 1
+
+
 def test_nahkampf_falscher_wert_weicht_ab():
     z = ar.nahkampf_werten(reihen_von([1000] * 4, [1000, 975, 940, 915]), PAAR, TAB)
     assert next(x for x in z if x["schlaeger"] == 24)["urteil"] == "weicht ab"

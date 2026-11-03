@@ -60,7 +60,7 @@ def treffer_lesen(reihen, wer, opfer):
         if s["typ"][opfer["nr"]] != opfer["typ"] or s["typ"][wer["nr"]] != wer["typ"] or not s["da"][opfer["nr"]] or not s["da"][wer["nr"]]:
             break
         if vor is not None and lo < vor:
-            aus.append({"takt": t, "betrag": vor - lo, "partner": int(s["schlaegt"][wer["nr"]]) == opfer["nr"]})
+            aus.append({"takt": t, "betrag": vor - lo, "partner": int(s["schlaegt"][wer["nr"]]) == opfer["nr"], "rest": lo <= 0})  # der letzte Treffer nimmt nur, was noch da ist
         vor = lo
         if lo <= 0 or lw <= 0:
             break
@@ -78,17 +78,20 @@ def nahkampf_werten(reihen, einheiten, tab):
             tr = treffer_lesen(reihen, w, o)
             soll = int(tab["nah"][w["typ"], o["typ"]])
             kann = bool(tab["schlaegt"][w["typ"]])
-            werte = collections.Counter(x["betrag"] for x in tr)
+            geschoss = {int(tab[n][o["typ"]]) for n in ("pfeil", "bolzen", "stein")}
+            ganz = [x for x in tr if not x["rest"]]
+            fremd = [x for x in ganz if x["betrag"] - soll in geschoss]  # im selben Takt traf noch ein Geschoss von anderswo, wie in Lauf K
+            werte = collections.Counter(x["betrag"] for x in ganz if x not in fremd)
             abst = collections.Counter(b["takt"] - a["takt"] for a, b in zip(tr, tr[1:]))
             if not tr:
                 urteil = "schlaegt nicht, wie die Tabelle sagt" if not kann else "kein Treffer"
-            elif set(werte) == {soll}:
+            elif set(werte) <= {soll} and all(x["betrag"] <= soll for x in tr if x["rest"]):
                 urteil = "bestaetigt"
             elif not any(x["partner"] for x in tr):
                 urteil = "Treffer ohne Nahkampf"
             else:
                 urteil = "weicht ab"
-            aus.append({"paar": i, "schlaeger": w["typ"], "opfer": o["typ"], "soll": soll, "treffer": len(tr), "werte": dict(werte), "abstaende": dict(abst), "erster": tr[0]["takt"] - t0 if tr else None, "urteil": urteil})
+            aus.append({"paar": i, "schlaeger": w["typ"], "opfer": o["typ"], "soll": soll, "treffer": len(tr), "werte": dict(werte), "abstaende": dict(abst), "erster": tr[0]["takt"] - t0 if tr else None, "fremde_geschosse": len(fremd), "urteil": urteil})
     return aus
 
 
@@ -101,14 +104,14 @@ def beschuss_werten(reihen, einheiten, tab):
         tr = treffer_lesen(reihen, w, o)
         art = GESCHOSS_ART.get(w["typ"])
         soll = int(tab[art][o["typ"]]) if art else None
-        werte = collections.Counter(x["betrag"] for x in tr)
+        werte = collections.Counter(x["betrag"] for x in tr if not x["rest"])
         abst = collections.Counter(b["takt"] - a["takt"] for a, b in zip(tr, tr[1:]))
         if not tr:
             urteil = "kein Treffer"
         elif soll is None:
             urteil = "gemessen"
         else:
-            urteil = "bestaetigt" if set(werte) == {soll} else "weicht ab"
+            urteil = "bestaetigt" if set(werte) <= {soll} and all(x["betrag"] <= soll for x in tr if x["rest"]) else "weicht ab"
         aus.append({"paar": i, "schuetze": w["typ"], "ziel": o["typ"], "soll": soll, "treffer": len(tr), "werte": dict(werte), "abstaende": dict(abst), "erster": tr[0]["takt"] - t0 if tr else None, "urteil": urteil})
     return aus
 
@@ -144,6 +147,12 @@ def kontrolle_werten(reihen, einheiten):
 def bericht(szene, zeilen, kontrollen):
     z = collections.Counter(r["urteil"] for r in zeilen if "urteil" in r)
     text = [f"Szene {szene}: {len(zeilen)} Zeilen, {dict(z)}"]
+    erste = [r["erster"] for r in zeilen if r.get("erster") is not None]
+    if erste:
+        abst = collections.Counter()
+        for r in zeilen:
+            abst.update({int(k): v for k, v in r.get("abstaende", {}).items()})
+        text.append(f"Erster Treffer nach Takten: kleinster {min(erste)}, Median {sorted(erste)[len(erste) // 2]}, groesster {max(erste)}. Abstaende zwischen Treffern: {abst.most_common(6)}. Fremde Geschosse: {sum(r.get('fremde_geschosse', 0) for r in zeilen)}")
     if kontrollen:
         text.append("Kontrolle: " + ("ungestoert" if all(k["ungestoert"] for k in kontrollen) else f"GESTOERT {kontrollen}"))
     for r in zeilen:
