@@ -1009,13 +1009,14 @@ class Rekorder:
         self.basis = os.path.join(ordner_aus, f"lauf_f_{stempel}")
         self.stop_datei, self.aus_datei, self.felder_datei = self.basis + ".stop", self.basis + ".aussetzen", self.basis + ".felder.json"
         self.p, self.pfad = None, None
+        self.lauf = "F"
 
     def starten(self, name, tempo, streng=False, felder=False, messen=True, warte_ms=0):
         self.pfad = f"{self.basis}_{name}.auge" if name else self.basis + ".auge"
         for d in (self.stop_datei, self.aus_datei):
             if os.path.exists(d):
                 os.remove(d)
-        cmd = [sys.executable, "-m", "selfaware.tools.experiments.auge_aufzeichnung", "--instanz", str(self.n), "--ausgabe", self.pfad, "--lauf", "F", "--stop-datei", self.stop_datei,
+        cmd = [sys.executable, "-m", "selfaware.tools.experiments.auge_aufzeichnung", "--instanz", str(self.n), "--ausgabe", self.pfad, "--lauf", self.lauf, "--stop-datei", self.stop_datei,
                "--aussetzen-datei", self.aus_datei, "--tempo-wert", str(tempo), "--tempo-takte", str(tempo if messen else 0)]  # im angehaltenen Spiel laeuft kein Takt zum Messen
         if streng:
             cmd.append("--streng")

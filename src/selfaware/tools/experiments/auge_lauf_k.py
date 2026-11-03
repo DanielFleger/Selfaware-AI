@@ -186,6 +186,16 @@ def aufnahme_im_stand(l, name, tempo, streng, warte_ms=0):
     return a
 
 
+def aufnahme_im_stand_ohne(l, tempo):
+    """Das Spiel steht: Tempo setzen, weiter, ohne Aufzeichnung. Rueckgabe: Takt beim Weiterlaufen."""
+    l.k.befehl({"tempo": tempo}, lf.KANAL)
+    a = l.s.takt()
+    l.k.befehl({"pause": False}, lf.KANAL)
+    l.tempo = tempo
+    l.puls_neu()
+    return a
+
+
 def fenster_aufzeichnen(l, name):
     """Das Spiel steht. Strenge Aufzeichnung, Fenster auf Tempo 40 laufen lassen, wieder anhalten."""
     a = aufnahme_im_stand(l, name, lf.TEMPO_JEDER_TAKT, streng=True, warte_ms=WARTE_MS)

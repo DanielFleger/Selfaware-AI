@@ -303,6 +303,32 @@ def a4_tempotreppe(zeilen):
     return Ergebnis("A4", BESTAETIGT, f"kein Tempoabzug ueber das Messrauschen hinaus in dieser Messung. {text}", {"zeilen": zeilen})
 
 
+def a4_wechselprobe(stufen):
+    """Daniels Vorgabe unter Last. Der alte Vergleich zaehlt jede Laständerung als Rauschen (Lauf K: 827, 812,7, 800,1, er haette erst ab rund 5 Prozent angeschlagen).
+    Hier wechseln ohne und mit Lesen; jede Phase mit Lesen wird mit ihren beiden Nachbarn verglichen, so faellt eine gleichmaessige Laständerung heraus.
+    stufen: {Tempo: {"ohne": [n + 1 Raten], "mit": [n Raten], "sekunden": Dauer einer Phase}}. Das Ergebnis nennt je Stufe, ab welchem Abzug es angeschlagen haette."""
+    import numpy as np
+
+    aus, abzug_ueber, zu_wenig = {}, [], []
+    for tempo, z in sorted(stufen.items()):
+        if not z["mit"] or len(z["ohne"]) != len(z["mit"]) + 1:
+            zu_wenig.append(tempo)
+            continue
+        je = [(z["ohne"][i] + z["ohne"][i + 1]) / 2 - m for i, m in enumerate(z["mit"])]
+        abzug = float(np.median(je))
+        streuung = float(np.median([abs(x - abzug) for x in je]))
+        grenze = max(3 * streuung, 4 / z["sekunden"])  # Ablesefehler wie im alten Vergleich: je Zaehlung ein Takt an beiden Enden
+        aus[tempo] = {"abzug": round(abzug, 2), "grenze": round(grenze, 2), "phasen": len(z["mit"])}
+        if abzug > grenze:
+            abzug_ueber.append(tempo)
+    text = "; ".join(f"Stufe {t}: Abzug {v['abzug']}, haette ab {v['grenze']} Takten je Sekunde angeschlagen" for t, v in aus.items())
+    if abzug_ueber:
+        return Ergebnis("A4", WIDERLEGT, f"Das Lesen zieht Tempo ab auf Stufe {abzug_ueber}. {text}", {"stufen": aus})
+    if zu_wenig or not aus:
+        return Ergebnis("A4", NICHT_GESEHEN, f"Stufe {zu_wenig} hat zu wenige Phasen. {text}", {"stufen": aus})
+    return Ergebnis("A4", BESTAETIGT, f"Kein Abzug ueber der Grenze. {text}", {"stufen": aus})
+
+
 def _felder_diff(a, b, auf, karte):
     aus = collections.Counter()
     for name, puffer in a.items():

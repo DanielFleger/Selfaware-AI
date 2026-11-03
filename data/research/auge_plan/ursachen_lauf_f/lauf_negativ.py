@@ -7,6 +7,8 @@ A = "src/selfaware/tools/experiments/auge_aufzeichnung.py"
 W = "src/selfaware/tools/analysis/auge_auswertung.py"
 K = "src/selfaware/tools/experiments/auge_lauf_k.py"
 P = "src/selfaware/tools/analysis/auge_punkte.py"
+S = "src/selfaware/tools/experiments/auge_lauf_s.py"
+R = "src/selfaware/tools/analysis/auge_regeln.py"
 FAELLE = [
     ("Anzeige 20 nicht geprueft", L, "if not l.warte_takte(WOCHE, lambda: s.anzeige_burg_korn() == 0):", "if False:"),
     ("Kalender nicht geprueft", L, "if not l.warte_takte(WOCHE + ABLESEN, lambda: s.kalender() != woche):", "if False:"),
@@ -100,6 +102,26 @@ FAELLE = [
     ("A8: Gold kommt von Arbeitern", W, "if ware != 15 and (betrieb or", "if (betrieb or"),
     ("A8: Steuer nicht erkannt", W, "if ware == 15 and steuer_aenderung:", "if False:"),
     ("A8: Steuer auch fuer Waren", W, "if ware == 15 and steuer_aenderung:", "if steuer_aenderung:"),
+    ("S: Takt fehlt egal", S, "    if sz.streng and (stand.get(\"fehlend\") or stand.get(\"gemischt\")):\n", "    if False:\n"),
+    ("S: kein Treffer egal", S, "    if sz.treffer_noetig and not hat_treffer(s, plan):\n", "    if False:\n"),
+    ("S: fehlende Einheit egal", S, "    if fehlt:\n        raise Abbruch(f\"{fehlt} von", "    if False:\n        raise Abbruch(f\"{fehlt} von"),
+    ("S: Feld nicht verschoben", S, "\"x\": e[\"x\"] - 1, \"y\": e[\"y\"] - 1,", "\"x\": e[\"x\"], \"y\": e[\"y\"],"),
+    ("S: Abraeumen ohne Grenze", S, "    if not weg:\n", "    if False:\n"),
+    ("S: setzen im laufenden Spiel", S, "    lk.anhalten(l)\n    plan = sz.aufbau(l)\n", "    plan = sz.aufbau(l)\n"),
+    ("S: Nahkampf nicht streng", S, "Szene(\"nahkampf\", lf.TEMPO_JEDER_TAKT, True,", "Szene(\"nahkampf\", lf.TEMPO_JEDER_TAKT, False,"),
+    ("S: Paare zu dicht", S, "orte = gitter(frei, hoehe, 2, 1, 6, 6, len(paare))", "orte = gitter(frei, hoehe, 2, 1, 2, 1, len(paare))"),
+    ("S: Schuetzen zu dicht", S, "orte = gitter(frei, hoehe, 9, 1, 20, 12, len(paare))", "orte = gitter(frei, hoehe, 9, 1, 10, 6, len(paare))"),
+    ("S: Kontrolle nah dran", S, "def kontrollort(frei, belegt, abstand=60):", "def kontrollort(frei, belegt, abstand=6):"),
+    ("S: Regel: Wert egal", R, "            elif set(werte) == {soll}:\n                urteil = \"bestaetigt\"", "            elif True:\n                urteil = \"bestaetigt\""),
+    ("S: Regel: Kontrolle immer gut", R, "\"ungestoert\": len(leben) == 1 and len(orte) == 1", "\"ungestoert\": True"),
+    ("S: Regel: kein Schlag gilt immer als gut", R, "\"schlaegt nicht, wie die Tabelle sagt\" if not kann else \"kein Treffer\"", "\"schlaegt nicht, wie die Tabelle sagt\""),
+    ("S: Regel: Treffer nach dem Tod zaehlen", R, "        if lo <= 0 or lw <= 0:\n            break\n", ""),
+    ("S: Regel: Platz neu belegt egal", R, "if s[\"typ\"][opfer[\"nr\"]] != opfer[\"typ\"] or s[\"typ\"][wer[\"nr\"]] != wer[\"typ\"] or not", "if not"),
+    ("S: Regel: gleiche Art doppelt", R, "            if w[\"typ\"] == o[\"typ\"] and w[\"rolle\"] == \"b\":\n                continue", "            if False:\n                continue"),
+    ("S: Regel: Schleuderer gegen Tabelle", R, "GESCHOSS_ART = {22: \"pfeil\", 70: \"pfeil\", 74: \"pfeil\", 23: \"bolzen\"}", "GESCHOSS_ART = {22: \"pfeil\", 70: \"pfeil\", 74: \"pfeil\", 23: \"bolzen\", 72: \"stein\"}"),
+    ("S: Wechselprobe: Abzug egal", W, "        if abzug > grenze:\n", "        if False:\n"),
+    ("S: Wechselprobe: nur eine Nachbarphase", W, "je = [(z[\"ohne\"][i] + z[\"ohne\"][i + 1]) / 2 - m for", "je = [z[\"ohne\"][i] - m for"),
+    ("S: Wechselprobe: zu wenig Phasen gelten", W, "    if zu_wenig or not aus:\n", "    if False:\n"),
     ("los: Aufzeichnung vor dem Anhalten", L, "        steht = False\n        if k is not None and s is not None:", "        if rek is not None:\n            rek.beenden()\n        steht = False\n        if k is not None and s is not None:"),
     ("los: Sperre frei, obwohl der Takt laeuft", L, "        if steht:\n            sperre_freigeben()\n        else:", "        if True:\n            sperre_freigeben()\n        else:"),
     ("los: alte Schalter bleiben", L, "ALTE_SCHALTER = ({\"tickpause\": \"aus\"}, {\"ladepause\": \"aus\"})", "ALTE_SCHALTER = ()"),
@@ -120,7 +142,7 @@ for name, pfad, alt, neu in FAELLE:
         continue
     try:
         open(pfad, "wb").write(text.replace(a, n).encode("utf-8"))
-        r = subprocess.run([sys.executable, "-m", "pytest", "tests/test_auge_lauf_f.py", "tests/test_auge_lauf_k.py", "tests/test_auge_werkzeug.py", "-q", "--no-header", "-x", "--tb=no"], capture_output=True, text=True, env=env, encoding="utf-8", errors="replace", timeout=300)
+        r = subprocess.run([sys.executable, "-m", "pytest", "tests/test_auge_lauf_f.py", "tests/test_auge_lauf_k.py", "tests/test_auge_lauf_s.py", "tests/test_auge_werkzeug.py", "-q", "--no-header", "-x", "--tb=no"], capture_output=True, text=True, env=env, encoding="utf-8", errors="replace", timeout=300)
         rot = r.returncode != 0
         zeile = [z for z in r.stdout.splitlines() if z.startswith("FAILED")][:1]
         print(("ROT  " if rot else "GRUEN"), name, "|", (zeile[0][7:100] if zeile else ""), flush=True)
