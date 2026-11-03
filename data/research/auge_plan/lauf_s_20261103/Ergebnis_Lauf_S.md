@@ -78,20 +78,37 @@ Die 3 Abweichungen:
 
 Auswertung `a4_wechselprobe`: Kein Abzug ueber der Grenze. Stufe 40: Abzug -0.51, haette ab 1.99 Takten je Sekunde angeschlagen; Stufe 100: Abzug 0.02, haette ab 1.96 Takten je Sekunde angeschlagen; Stufe 200: Abzug -0.77, haette ab 1.99 Takten je Sekunde angeschlagen; Stufe 500: Abzug 1.37, haette ab 1.99 Takten je Sekunde angeschlagen; Stufe 1000: Abzug -0.41, haette ab 9.05 Takten je Sekunde angeschlagen
 
+**Warum die Zahl sank:** 42 von 2.300 fielen in 16.328 Takten, der erste nach 7.176. Ein Pikenier hat 80.000 Leben, der Schaden stand auf 1, aber es schlagen bis zu 12 zugleich auf einen. Das passt zur Regel unten (Beleg `last_tode.txt`, Befehl oben in `last_tode.py`).
+
+**Mein Satz im Plan stimmte nicht:** Nicht alle ändern ihr Leben je Takt. Im letzten Rahmen verlieren 556 Leben, 1.702 werden von niemandem angegriffen, 490 haben genau 4 Angreifer. Alle schlagen zu, aber wer auf demselben Feld steht, nimmt dasselbe Ziel. Das ist die Lage, nicht das Lesen: Gelesen wird der ganze Block, also bleibt die Aussage zum Lesen gültig.
+
 Grenze der Aussage: Auf Stufe 500 bis 40 je nur eine Phase mit Lesen. Die Stufen 1 und 10 sind nicht gemessen, dort ist das Lesen fertig, bevor der nächste Takt kommt. Die Einheiten stehen im Nahkampf, Wegsuche belastet erst der Marsch.
 
 ## Szenen Schlachten, 03.11. 19:37
 
-Schachbrett, kein Befehl, Tempo 1000. Es zählt die Lage beim Ende, das Ende selbst steht im Protokoll (`schlachten_last.protokoll.jsonl`).
+Schachbrett, 4 Einheiten je Feld, kein Befehl, Tempo 1000. Belege: `schlacht_*.regeln.json` mit dem Verlauf je Seite über die Zeit, Protokoll `schlachten_last.protokoll.jsonl`.
 
-| Szene | Takte bis zum Ende | Takte je Sekunde |
-|---|---|---|
-| 20 gegen 20, Nahkampf gemischt | 1.667 | 837,5 |
-| 1.000 gegen 1.000, Nahkampf gemischt | 5.666 | 747,5 |
-| 500 Schützen gegen 500 Nahkampf | 634 | 859,3 |
-| 500 Europäer gegen 500 Araber | 635 | 742,7 |
+| Szene | Start je Seite | Ende je Seite | Takte | Erster Tod nach | Takte je Sekunde | Plätze belegt |
+|---|---|---|---|---|---|---|
+| 20 gegen 20, Nahkampf gemischt | 20, 20 | 0, 10 | 1.667 | 245 | 837,5 | 172 |
+| 1.000 gegen 1.000, Nahkampf gemischt | 1.000, 1.000 | 31, 170 | 5.666 | 199 | 747,5 | 2.132 |
+| 500 Schützen gegen 500 Nahkampf | 500, 500 | 0, 498 | 634 | 137 | 859,3 | 1.132 |
+| 500 Europäer gegen 500 Araber | 500, 500 | 420, 0 | 635 | 131 | 742,7 | 1.132 |
 
-Dass die beiden Schlachten mit Feuerwerfern (A_FIRETHROWER 76) nach rund 635 Takten enden, fällt auf; die Ursache ist nicht ausgewertet, vermutlich das Feuer im dichten Schachbrett. Die Reihen mit 100 Einheiten sind nicht gefahren.
+- **Regel: Der Schaden mehrerer Angreifer addiert sich.** Verlust eines Opfers = Summe der Tabellenwerte aller, die es als Ziel eingetragen haben, mal Takte. Gewertet nur, wo zwischen zwei Rahmen dieselben Angreifer blieben:
+
+| Szene | Fälle | Gleich | Weniger | Mehr |
+|---|---|---|---|---|
+| 20 gegen 20 | 296 | 296 | 0 | 0 |
+| 1.000 gegen 1.000 | 12.447 | 12.411 | 14 | 22 |
+| Schützen | 574 | 574 | 0 | 0 |
+| Europäer gegen Araber | 1.547 | 1.547 | 0 | 0 |
+| Lastprobe | 511.653 | 505.927 | 2.307 | 3.419 |
+
+- **Die Rahmen liegen hier Takte auseinander,** ein Angreifer kann dazwischen gewechselt haben: Die 1,1 Prozent Abweichung sind so nicht entschieden. Eine Szene auf Tempo 40 mit jedem Takt (`schlacht_streng`) soll das klären.
+- **1.000 gegen 1.000 endet durch Ruhe, nicht durch Sieg:** 201 stehen am Ende noch, 2.000 Takte lang fällt keiner. Sie gehen ohne Befehl nicht aufeinander zu (Einzelspiel, ohne Trupp).
+- **Das Auge liest bei 2.000 Einheiten rund jeden 4. Takt, einen sauberen Rahmen rund jeden 10. Takt** (1.351 gelesen, 565 rein in 5.666 Takten). Die Warteschlange zum Schreiben war 7.611-mal voll: Die Platte bremst das Lesen, nicht das Spiel. Für jeden Takt braucht es hier Tempo 40.
+- Warum die Schützen so schnell fallen, ist nicht einzeln ausgewertet; Feuer ist nicht getrennt gezählt. Die Reihen mit 100 Einheiten sind nicht gefahren, sie sind aus den großen Schlachten gerechnet, sobald A1 bis A3 laufen.
 
 ## Noch offen
 

@@ -69,6 +69,40 @@ GEFECHT_NEU = (
 )
 BAU_LOG_ALT = "tostring(b.richtung or 0),"
 BAU_LOG_NEU = "tostring(drehung),"
+TOETE_ANKER = "  if cmd.toeteAlle ~= nil then"
+TOETE_NEU = (
+    "    -- B-142 Lauf S, aus B-149: { \"toeteAlle\": {\"spieler\": 2, \"ohneLord\": true, \"typen\": [22, 23]} }: wie killUnits 0x00530390, aber der Lord (Typ 55) bleibt, sonst ist das Gefecht vorbei",
+    "    if type(cmd.toeteAlle) == \"table\" then",
+    "      local t = cmd.toeteAlle",
+    "      local sp, n, lords = tonumber(t.spieler) or -1, 0, 0",
+    "      local nurTyp = nil",
+    "      if type(t.typen) == \"table\" then",
+    "        nurTyp = {}",
+    "        for _, ty in ipairs(t.typen) do nurTyp[tonumber(ty)] = true end",
+    "      end",
+    "      local maxN = core.readInteger(0x01387F38) or 0",
+    "      for i = 1, math.min(maxN, 2999) do",
+    "        local u = 0x0138854C + i * 1168",
+    "        if (core.readSmallInteger(u + 0x8C) or 0) == 2 and (core.readSmallInteger(u + 0x2A0) or 1) == 0",
+    "            and (core.readByte(u + 0x32C) or 1) == 0 and (core.readSmallInteger(u + 0x96) or -1) == sp then",
+    "          local ty = core.readSmallInteger(u + 0x8E) or 0",
+    "          if t.ohneLord and ty == 55 then",
+    "            lords = lords + 1",
+    "          elseif nurTyp == nil or nurTyp[ty] then",
+    "            core.writeSmallInteger(u + 0x2C0, 0x72)",
+    "            core.writeInteger(u + 0x2B0, 0)",
+    "            core.writeSmallInteger(u + 0x2A0, 1)",
+    "            core.writeSmallInteger(u + 0x3F0, 1)",
+    "            n = n + 1",
+    "          end",
+    "        end",
+    "      end",
+    "      log(INFO, string.format(\"TOETE ALLE: Spieler %d, %d Einheiten, Lord verschont: %d\", sp, n, lords))",
+    "      return true",
+    "    end",
+)
+ART_ANKER = "    local ok1 = befehlAbsetzen(16, { gruppe })"
+ART_NEU = "    if a.art then art, zielNr, zielUid = tonumber(a.art), tonumber(a.a) or 0, tonumber(a.b) or 0 end  -- B-142 Lauf S: jede Anweisung (UnitInstructionType), a und b wie in Spielbefehl 36"
 TEMPO_LAUF, TEMPO_JEDER_TAKT = 1000, 40  # 40: hoechste Stufe, auf der jeder Takt gelesen wird (gemessen 201 von 201; auf 100 fehlen 2 von 498)
 STUFEN = (1, 10, 40, 100, 200, 500, 1000)  # Daniel 02.11.2026: auf Tempo 1 bis 1000 kein Abzug vom normalen Tempo
 TREPPE_TAKTE = {1: 20, 10: 100}  # sonst 1.000: Ablesefehler 4 Takte = 0,4 %. Auf Stufe 1 und 10 kann das Lesen nicht bremsen (Lesen 3 ms je Takt), dort genuegt grob
@@ -111,7 +145,23 @@ def pruefe_laufinstanz(n):
 def logik_text(quelle):
     """Die logik.lua der Quelle mit dem neuen Knopf und Bildwert 15 beim Bauen; Zeilenenden bleiben, wie sie sind."""
     roh = open(quelle, "rb").read().decode("latin-1")
-    return _mit_gefecht(_mit_bildwert(_mit_knopf(roh, quelle), quelle))
+    return _mit_art(_mit_toete(_mit_gefecht(_mit_bildwert(_mit_knopf(roh, quelle), quelle))))
+
+
+def _mit_toete(roh):
+    if TOETE_NEU[1] in roh or roh.count(TOETE_ANKER) != 1:  # ohne den Anker bleibt nur das Gefecht in Lauf S aus
+        return roh
+    i = roh.index(TOETE_ANKER) + len(TOETE_ANKER)
+    ende = "\r\n" if "\r\n" in roh[i:i + 2] else "\n"
+    return roh[:i] + ende + ende.join(TOETE_NEU) + roh[i:]
+
+
+def _mit_art(roh):
+    if ART_NEU in roh or roh.count(ART_ANKER) != 1:
+        return roh
+    i = roh.index(ART_ANKER)
+    ende = "\r\n" if "\r\n" in roh[i:i + 200] else "\n"
+    return roh[:i] + ART_NEU + ende + roh[i:]
 
 
 def _mit_gefecht(roh):

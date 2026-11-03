@@ -2,6 +2,7 @@
 """B-142 Lauf S: Regel-Pruefer. Liest die Aufzeichnung einer Szene und ihren Plan, prueft die Regel an jedem Paar und gibt nur Fallzahlen und Abweichungen aus. Plan: docs/plans/Plan_Lauf_S.md.
 
   python -m selfaware.tools.analysis.auge_regeln <aufzeichnung.auge>
+  python -m selfaware.tools.analysis.auge_regeln --vergleich <editor.regeln.json> <gefecht.regeln.json>
 
 Ergebnis: <aufzeichnung>.regeln.json, je Paar und Richtung. Die Tabellen kommen aus dem Datenblock derselben Aufzeichnung, damit UCP zaehlt.
 """
@@ -14,7 +15,7 @@ import numpy as np
 
 PLAETZE = 2500
 FEUER_SONST, FEUER = 37.5, {55: 12.5, 76: 5.0}  # je Flamme und Takt, gemessen Lauf S 03.11. (Szene Beschuss)
-FELDER = {"da": ("logicalState", "<i2"), "typ": ("unitType", "<i2"), "leben": ("health", "<i4"), "schlaegt": ("attackedUnitID", "<i2"), "mx": ("microXPosition", "<i2"), "my": ("microYPosition", "<i2")}
+FELDER = {"da": ("logicalState", "<i2"), "typ": ("unitType", "<i2"), "leben": ("health", "<i4"), "schlaegt": ("attackedUnitID", "<i2"), "mx": ("microXPosition", "<i2"), "my": ("microYPosition", "<i2"), "besitzer": ("owner", "<i2")}
 
 
 def tabellen_aus(block, basis, karte):
@@ -162,6 +163,41 @@ def laufen_werten(reihen, einheiten, felder):
     return aus
 
 
+def masse_werten(reihen, tab, seiten=(1, 2)):
+    """Ueberlebende je Takt und Plaetze im Einheitenfeld (Liste V5). Dazu die Regel fuer viele Angreifer: Der Verlust des Opfers ist je Takt die Summe der Tabellenwerte aller, die es als Ziel eingetragen haben. Gewertet wird nur, wo zwischen zwei Rahmen dieselben Angreifer dieselben blieben und das Opfer lebt, sonst ist die Summe nicht bekannt."""
+    verlauf, fall = [], collections.Counter()
+    vor = None
+    for t, s in reihen:
+        da = s["da"] != 0
+        da[0] = False  # Platz 0 ist ein Merkplatz (Lauf K), er zaehlte hier als Einheit
+        verlauf.append((int(t), *[int((da & (s["besitzer"] == p)).sum()) for p in seiten], int(da.sum())))
+        if vor is not None:
+            fall.update(_summen_pruefen(vor[1], s, tab, t - vor[0]))
+        vor = (t, s)
+    if not verlauf:
+        return {"rahmen": 0}
+    gefallen = next((v[0] for v in verlauf if v[1] + v[2] < verlauf[0][1] + verlauf[0][2]), None)
+    return {"rahmen": len(verlauf), "start": verlauf[0][1:], "ende": verlauf[-1][1:], "takte": verlauf[-1][0] - verlauf[0][0], "erster_tod_nach": gefallen - verlauf[0][0] if gefallen is not None else None,
+            "plaetze_hoechstens": max(v[3] for v in verlauf), "summe": dict(fall), "verlauf": verlauf[::max(1, len(verlauf) // 40)]}
+
+
+def _summen_pruefen(a, b, tab, dt):
+    """Zwischen zwei Rahmen: gleich, wenn der Verlust genau dt mal die Summe ist; zu wenig, wenn Angreifer zwischendurch nicht schlugen; mehr heisst, die Regel haelt nicht."""
+    gleich = (a["da"] != 0) & (b["da"] != 0) & (a["typ"] == b["typ"])
+    gleich[0] = False
+    fest = gleich & (a["schlaegt"] == b["schlaegt"]) & (a["schlaegt"] > 0)
+    ziel = a["schlaegt"][fest].astype(np.int64)
+    if not len(ziel):
+        return {}
+    summe = np.zeros(PLAETZE, dtype=np.int64)
+    np.add.at(summe, ziel, tab["nah"][a["typ"][fest], a["typ"][ziel]])
+    alle_a, alle_b, nur_fest = (np.bincount(x, minlength=PLAETZE) for x in (a["schlaegt"][np.maximum(a["schlaegt"], 0) > 0], b["schlaegt"][np.maximum(b["schlaegt"], 0) > 0], ziel))
+    pruef = np.nonzero((summe > 0) & gleich & (alle_a == nur_fest) & (alle_b == nur_fest) & (b["leben"] > 0))[0]
+    verlust = a["leben"][pruef] - b["leben"][pruef]
+    soll = summe[pruef] * dt
+    return {"gleich": int((verlust == soll).sum()), "weniger": int((verlust < soll).sum()), "mehr": int((verlust > soll).sum())}
+
+
 def kontrolle_werten(reihen, einheiten):
     """Die Kontrolle steht allein: Leben und Ort bleiben. Sonst stoert etwas, das niemand kennt, und die Szene gilt als gestoert."""
     aus = []
@@ -172,6 +208,31 @@ def kontrolle_werten(reihen, einheiten):
         orte = {(int(s["mx"][e["nr"]]) // 8, int(s["my"][e["nr"]]) // 8) for _, s in reihen}
         aus.append({"typ": e["typ"], "leben": sorted(leben), "orte": sorted(orte), "ungestoert": len(leben) == 1 and len(orte) == 1})
     return aus
+
+
+def vergleichen(a, b):
+    """Editor gegen Gefecht, Zeile fuer Zeile, nur was in beiden vorkommt. Gleich heisst: dieselben Schadenswerte und dasselbe Urteil, beim Laufen hoechstens 1 Takt je Feld Unterschied."""
+    def schluessel(z):
+        return tuple(z.get(k) for k in ("schlaeger", "opfer", "ziel", "typ", "lage"))
+    zb = {schluessel(z): z for z in b["zeilen"]}
+    aus = {"gleich": 0, "anders": [], "nur_erste": 0, "nur_zweite": len(set(zb) - {schluessel(z) for z in a["zeilen"]})}
+    for z in a["zeilen"]:
+        g = zb.get(schluessel(z))
+        if g is None:
+            aus["nur_erste"] += 1
+        elif _gleich(z, g):
+            aus["gleich"] += 1
+        else:
+            aus["anders"].append({"erste": z, "zweite": g})
+    return aus
+
+
+def _gleich(x, y):
+    if "takte_je_feld" in x:
+        return x["takte_je_feld"] is not None and y["takte_je_feld"] is not None and abs(x["takte_je_feld"] - y["takte_je_feld"]) <= 1
+    if "soll" in x:
+        return x["soll"] == y["soll"] and x["urteil"] == y["urteil"] and set(x["werte"]) == set(y["werte"])
+    return x["urteil"] == y["urteil"] and (x["pfeil"], x["bolzen"], x["stein"]) == (y["pfeil"], y["bolzen"], y["stein"])
 
 
 def bericht(szene, zeilen, kontrollen):
@@ -195,13 +256,26 @@ def main(argv=None):
     from selfaware.tools.analysis.auge_feldkarte import FELDLISTE, Feldkarte
 
     p = argparse.ArgumentParser(description=__doc__)
-    p.add_argument("aufzeichnung")
+    p.add_argument("aufzeichnung", nargs="?")
+    p.add_argument("--vergleich", nargs=2)
     a = p.parse_args(argv)
+    if a.vergleich:
+        v = vergleichen(*[json.load(open(x, encoding="utf-8")) for x in a.vergleich])
+        print({k: (len(w) if k == "anders" else w) for k, w in v.items()})
+        for z in v["anders"]:
+            print("  ", json.dumps(z, ensure_ascii=False)[:400])
+        return 0
     plan = json.load(open(a.aufzeichnung + ".plan.json", encoding="utf-8"))
     reihen, tab = reihen_lesen(a.aufzeichnung, Feldkarte.laden(feldliste=FELDLISTE))
-    if plan["szene"] == "nahkampf":
+    art = plan["szene"].removesuffix("_g")
+    if art in ("last", "lord") or art.startswith("schlacht"):
+        m = masse_werten(reihen, tab)
+        json.dump({"szene": plan["szene"], "von": plan["von"], "bis": plan["bis"], **m}, open(a.aufzeichnung + ".regeln.json", "w", encoding="utf-8"), ensure_ascii=False)
+        print(plan["szene"], {k: v for k, v in m.items() if k != "verlauf"})
+        return 0
+    if art == "nahkampf":
         zeilen = nahkampf_werten(reihen, plan["einheiten"], tab)
-    elif plan["szene"] == "beschuss":
+    elif art == "beschuss":
         zeilen = beschuss_werten(reihen, plan["einheiten"], tab)
     else:
         from selfaware.tools.experiments.auge_lauf_s import FELDER_LAUF

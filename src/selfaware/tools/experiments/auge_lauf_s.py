@@ -2,6 +2,9 @@
 """B-142 Lauf S: wenige Szenen im Karteneditor, das Auge zeichnet auf, der Regel-Pruefer wertet aus. Plan: docs/plans/Plan_Lauf_S.md.
 
   python -m selfaware.tools.experiments.auge_lauf_s los --instanz 2 --szenen nahkampf --daniel-ja
+  python -m selfaware.tools.experiments.auge_lauf_s los --instanz 2 --szenen laufen_g nahkampf_g beschuss_g lord_g --daniel-ja
+
+Szenen mit _g laufen im Gefecht statt im Karteneditor: zwei Mensch-Plaetze ohne KI, die Lords bleiben stehen. Beides zugleich geht nicht.
 
 Jede Szene: anhalten, setzen, weiter, bis fertig oder Grenze, anhalten, abraeumen. Grenzen in Takten, die Uhr nur gegen Haengen.
 Scheitert eine Szene, wird erklaert und nur sie neu gefahren. Setzen und Abraeumen gibt es nur in diesem Messlauf, nichts davon geht in SamurAI.
@@ -43,6 +46,12 @@ NAHKAEMPFER = (24, 25, 26, 27, 28, 71, 73, 75)
 EUROPAEER, ARABER = (22, 23, 24, 25, 26, 27, 28), (70, 71, 72, 73, 74, 75, 76)
 LAST_STUFEN = ((1000, 1000, 11), (500, 1000, 3), (200, 400, 3), (100, 200, 3), (40, 80, 3))  # Plan: Stufe 1 und 10 und die leere Karte sind leichter, Begruendung dort
 MELEE = 0x00B4EE60  # DAT_MELEE_DAMAGE, 80 x 80 Ints, Tabellen.txt
+OHNE_LORD = tuple(t for t in SOLDATEN if t != 55)  # im Gefecht: Faellt ein gesetzter Lord, entscheidet vielleicht die Niederlage-Pruefung (P313), das klaert die Szene lord_g
+GESETZT = OHNE_LORD + LAUFENDE_GERAETE + (40, 41, 61)  # Trebuchet, Mangonel, Ballista; das raeumt das Abraeumen im Gefecht weg, Bauern und Lords nicht
+GEFECHT_ABSTAND = 60  # Felder zu allem, was schon steht: Lords stoeren nicht, ihr Radius ist 25 (aggressiv), Bauern laufen nicht weit
+GRENZE_NAH_G = 120  # Takte: Im Editor kam jeder erste Treffer nach 1 oder 2 Takten, und jeder Takt traf
+LORD_GRENZE = 2000  # Takte; 150.000 Leben, 8 Ritter schlagen zusammen rund 800 je Takt, dazu der Laufweg
+NACH_LORD = 300  # Takte: Wann das Spiel das Ende merkt, ist hier die Frage, die Pruefrunde des Lords liegt bei 64 Takten
 STUECK = 100  # Befehle je Sendung
 GRENZE_NAH = 251 + 256  # groesster erster Treffer vom 18.10. plus groesste Pruefrunde (Maske 255), alte_schuesse.txt
 GRENZE_SCHUSS = 411 + 2 * 228  # groesster erster Treffer plus 2 Schuesse Armbrust, Handbuch 17.10.
@@ -54,6 +63,7 @@ class SpeicherS(lk.SpeicherK):
     def __init__(self, quelle, karte):
         super().__init__(quelle)
         self.karte = karte
+        self.fern = 0
 
     def einheiten_alle(self):
         """Alle belegten Plaetze ab Platz 1: Platz 0 ist ein Merkplatz (Lauf K)."""
@@ -79,7 +89,18 @@ class SpeicherS(lk.SpeicherK):
         werte, zahl = np.unique(lo[kachel[gueltig]], return_counts=True)
         haeufig = werte[zahl.argmax()]
         frei = gueltig & (lo[kachel] == haeufig) & (og[kachel] == 0) & (ge[kachel] == 0) & (ei[kachel] == 0)
+        if self.fern:
+            frei = fern_maske(frei, self.einheiten_alle(), self.fern)
         return frei, ho[kachel].astype(np.int32), ge[kachel]
+
+
+def fern_maske(frei, einheiten, abstand):
+    """Nur Felder mit Abstand zu allem, was einem Spieler gehoert. Tiere gehoeren keinem (besitzer 0), sie liessen die Szenen im Editor unberuehrt."""
+    aus = frei.copy()
+    for e in einheiten:
+        if 1 <= e["besitzer"] <= 8:
+            aus[max(0, e["y"] - abstand):e["y"] + abstand + 1, max(0, e["x"] - abstand):e["x"] + abstand + 1] = False
+    return aus
 
 
 def gitter(frei, hoehe, breite, hoch, dx, dy, n, flach=False):
@@ -160,10 +181,10 @@ def mit_kontrolle(einheiten, frei, typ=24):
     return einheiten
 
 
-def aufbau_nahkampf(l):
+def aufbau_nahkampf(l, arten=SOLDATEN):
     """Alle 190 ungeordneten Paare der 19 Arten, je Paar Abstand 1: Der naechste Feind ist der Partner, weil die Paare 6 Felder auseinander stehen. Kein Befehl: Nahkampf beginnt im Umkreis von 2 Feldern von selbst (P346)."""
     frei, hoehe, _ = l.s.raster()
-    paare = list(itertools.combinations_with_replacement(SOLDATEN, 2))
+    paare = list(itertools.combinations_with_replacement(arten, 2))
     orte = gitter(frei, hoehe, 2, 1, 6, 6, len(paare))
     if len(orte) < len(paare):
         raise Abbruch(f"Nur {len(orte)} Plaetze fuer {len(paare)} Paare")
@@ -173,10 +194,10 @@ def aufbau_nahkampf(l):
     return {"einheiten": mit_kontrolle(aus, frei)}
 
 
-def aufbau_beschuss(l):
+def aufbau_beschuss(l, arten=SOLDATEN):
     """Jeder Fussschuetze gegen jede der 19 Arten, Abstand 8: Der Schaden ist von 4 bis 20 Feldern gleich (Handbuch 17.10.), der Feuerwerfer reicht bis 10. Raster 20 x 12: Der naechste Feind ist das eigene Ziel. Kein Befehl: Schuetzen waehlen ihr Ziel selbst."""
     frei, hoehe, _ = l.s.raster()
-    paare = list(itertools.product(FUSS_SCHUETZEN, SOLDATEN))
+    paare = list(itertools.product(FUSS_SCHUETZEN, arten))
     orte = gitter(frei, hoehe, 9, 1, 20, 12, len(paare))
     if len(orte) < len(paare):
         raise Abbruch(f"Nur {len(orte)} Plaetze fuer {len(paare)} Paare")
@@ -186,10 +207,9 @@ def aufbau_beschuss(l):
     return {"einheiten": mit_kontrolle(aus, frei)}
 
 
-def aufbau_laufen(l):
+def aufbau_laufen(l, arten=SOLDATEN):
     """Alle Soldaten nebeneinander, ein Besitzer: Es gibt keinen Feind, also stoert nichts. Einmal gerade, einmal schraeg. Eben, sonst misst das Tempo den Hang mit."""
     frei, hoehe, _ = l.s.raster()
-    arten = list(SOLDATEN)
     n = len(arten)
     g = gitter(frei, hoehe, FELDER_LAUF + 3, n + 2, 4, 4, 1, flach=True)
     s = gitter(frei, hoehe, FELDER_LAUF + n + 2, FELDER_LAUF + n + 2, 4, 4, 1, flach=True)
@@ -268,7 +288,7 @@ def schlacht_zu_ende():
 
 
 def szene_last(l):
-    """Daniels Vorgabe unter Last: 2.300 Einheiten im Nahkampf, im Wechsel ohne und mit Lesen. Niemand stirbt am Nahkampf, weil der Schaden Pikenier gegen Pikenier fuer diese Szene auf 1 steht; so bleibt die Last gleich, und jeder Takt aendert alle Leben. Danach kommt der alte Wert zurueck."""
+    """Daniels Vorgabe unter Last: 2.300 Einheiten im Nahkampf, im Wechsel ohne und mit Lesen. Der Schaden Pikenier gegen Pikenier steht fuer diese Szene auf 1, so bleibt die Last fast gleich: Gemessen fielen 42 von 2.300 in 16.328 Takten (80.000 Leben, bis zu 12 Angreifer). Es verliert nur rund jeder Vierte je Takt Leben, weil alle auf einem Feld dasselbe Ziel nehmen. Danach kommt der alte Wert zurueck."""
     from selfaware.tools.analysis.auge_auswertung import a4_wechselprobe
 
     k, s = l.k, l.s
@@ -310,6 +330,42 @@ def szene_last(l):
     return {"szene": "last", "von": a, "bis": b, "ergebnis": e.status, "text": e.text, "einheiten": zahlen, "abraeumen_takte": abr, "stand": stand, "pfad": pfad}
 
 
+def naechste_felder(frei, x, y, n):
+    ys, xs = np.nonzero(frei)
+    o = np.argsort(np.maximum(np.abs(xs - x), np.abs(ys - y)), kind="stable")[:n]
+    return [(int(xs[i]), int(ys[i])) for i in o]
+
+
+def szene_lord(l):
+    """P313, P362, P306: 8 Ritter von Spieler 1 greifen den Lord von Spieler 2 an. Danach ist das Gefecht vorbei, darum kommt diese Szene zuletzt. Fertig ist sie, wenn das Spiel das Ende gemerkt hat oder NACH_LORD Takte um sind."""
+    k, s = l.k, l.s
+    lk.anhalten(l)
+    lord = next((e for e in s.einheiten_alle() if e["typ"] == 55 and e["besitzer"] == 2), None)
+    if lord is None:
+        raise Abbruch("Kein Lord von Spieler 2")
+    fern, s.fern = s.fern, 0
+    frei = s.raster()[0]
+    s.fern = fern
+    plan = {"einheiten": [{"rolle": "ritter", "spieler": 1, "typ": 28, "x": x, "y": y} for x, y in naechste_felder(frei, lord["x"], lord["y"], 8)]}
+    setzen(l, plan["einheiten"])
+    k.liste([{"player": 1, "angriff": {"einheiten": [e["nr"] for e in plan["einheiten"]], "ziel": lord["nr"]}}], lf.KANAL)
+    a = lk.aufnahme_im_stand(l, "lord_g", lf.TEMPO_JEDER_TAKT, False)
+
+    def lebt():
+        return any(e["nr"] == lord["nr"] and e["uid"] == lord["uid"] and e["leben"] > 0 for e in s.einheiten_alle())
+    gefallen = l.warte_takte(LORD_GRENZE, lambda: not lebt())
+    tod = s.takt()
+    ende = gefallen and l.warte_takte(NACH_LORD, lambda: k.peek(lf.GAMEOVER)[0] != 0)
+    lage = {"gefallen": gefallen, "tod": tod, "ende_gemerkt": ende, "gameover": k.peek(lf.GAMEOVER)[0], "ansicht": k.peek(lf.ANSICHT)[0]}
+    b = lk.anhalten(l)
+    pfad = l.rek.pfad
+    stand = l.rek.beenden()
+    with open(pfad + ".plan.json", "w", encoding="utf-8") as f:
+        json.dump({"szene": "lord_g", "von": a, "bis": b, "tempo": lf.TEMPO_JEDER_TAKT, "lord": lord, "einheiten": plan["einheiten"], **lage}, f, ensure_ascii=False)
+    k.befehl({"menue": HAUPTMENUE}, 1.5)  # eine haengende Partie wird ueber den Kanal zurueckgesetzt, nicht beendet
+    return {"szene": "lord_g", "von": a, "bis": b, **lage, "stand": stand, "pfad": pfad}
+
+
 SZENEN = {
     "laufen": Szene("laufen", 200, False, GRENZE_LAUF, aufbau_laufen, befehle_laufen, alle_am_ziel, treffer_noetig=False),
     "nahkampf": Szene("nahkampf", lf.TEMPO_JEDER_TAKT, True, GRENZE_NAH, aufbau_nahkampf),
@@ -318,7 +374,12 @@ SZENEN = {
     "schlacht_1000": Szene("schlacht_1000", lf.TEMPO_LAUF, False, GRENZE_SCHLACHT, aufbau_schlacht(NAHKAEMPFER, NAHKAEMPFER, 1000), None, schlacht_zu_ende(), masse=True),
     "schlacht_schuetzen": Szene("schlacht_schuetzen", lf.TEMPO_LAUF, False, GRENZE_SCHLACHT, aufbau_schlacht(FUSS_SCHUETZEN, NAHKAEMPFER, 500), None, schlacht_zu_ende(), masse=True),
     "schlacht_araber": Szene("schlacht_araber", lf.TEMPO_LAUF, False, GRENZE_SCHLACHT, aufbau_schlacht(EUROPAEER, ARABER, 500), None, schlacht_zu_ende(), masse=True),
-    "last": "szene_last",
+    "schlacht_streng": Szene("schlacht_streng", lf.TEMPO_JEDER_TAKT, True, 500, aufbau_schlacht(NAHKAEMPFER, NAHKAEMPFER, 20), masse=True),  # jeder Takt: Die Summe der Angreifer ohne Luecken
+    "last": szene_last,
+    "laufen_g": Szene("laufen_g", 200, False, GRENZE_LAUF, lambda l: aufbau_laufen(l, OHNE_LORD), befehle_laufen, alle_am_ziel, treffer_noetig=False),
+    "nahkampf_g": Szene("nahkampf_g", lf.TEMPO_JEDER_TAKT, True, GRENZE_NAH_G, lambda l: aufbau_nahkampf(l, OHNE_LORD)),
+    "beschuss_g": Szene("beschuss_g", lf.TEMPO_JEDER_TAKT, True, GRENZE_SCHUSS, lambda l: aufbau_beschuss(l, OHNE_LORD)),
+    "lord_g": szene_lord,
 }
 
 
@@ -328,13 +389,15 @@ def hat_treffer(s, plan):
 
 
 def abraeumen(l, spieler=SPIELER_S):
-    """toeteAlle ist der Steintod: Die Einheiten brauchen ein paar Takte, bis ihr Platz frei ist. Gemessen, weil das bisher nur eine Wartezeit war."""
-    l.k.liste([{"toeteAlle": p} for p in spieler], lf.KANAL)
+    """toeteAlle ist der Steintod: Die Einheiten brauchen ein paar Takte, bis ihr Platz frei ist. Gemessen, weil das bisher nur eine Wartezeit war. Im Gefecht bleiben Lord und Bauern: Ohne Lord ist die Partie vorbei (B-149)."""
+    def steht_noch(e):
+        return e["besitzer"] in spieler and (not l.gefecht or e["typ"] in GESETZT)
+    l.k.liste([{"toeteAlle": {"spieler": p, "ohneLord": True, "typen": list(GESETZT)} if l.gefecht else p} for p in spieler], lf.KANAL)
     a = lk.aufnahme_im_stand_ohne(l, lf.TEMPO_LAUF)
-    weg = l.warte_takte(ABRAEUMEN_GRENZE, lambda: not any(e["besitzer"] in spieler for e in l.s.einheiten_alle()))
+    weg = l.warte_takte(ABRAEUMEN_GRENZE, lambda: not any(steht_noch(e) for e in l.s.einheiten_alle()))
     b = lk.anhalten(l)
     if not weg:
-        rest = sum(1 for e in l.s.einheiten_alle() if e["besitzer"] in spieler)
+        rest = sum(1 for e in l.s.einheiten_alle() if steht_noch(e))
         raise Abbruch(f"Abraeumen: Nach {ABRAEUMEN_GRENZE} Takten stehen noch {rest} Einheiten")
     return b - a
 
@@ -403,6 +466,23 @@ def editor_oeffnen(k, s, n, ruhe=time.sleep):
     return {"eintrag": i, "von": len(namen), "kopie": kopie, "ansicht": k.peek(lf.ANSICHT)[0]}
 
 
+def gefecht_oeffnen(k, ruhe=time.sleep):
+    """Zwei Mensch-Plaetze, keine KI (L119): Spieler 2 tut nur, was befohlen wird."""
+    if k.peek(lf.ANSICHT)[0] != HAUPTMENUE:
+        k.befehl({"menue": HAUPTMENUE}, 1.5)
+        lf.warte_auf(lambda: k.peek(lf.ANSICHT)[0] == HAUPTMENUE, 10, "Hauptmenue", ruhe=ruhe)
+    k.befehl({"pause": False}, lf.KANAL)  # sonst startet das neue Gefecht eingefroren (selbstspiel.py)
+    k.befehl({"eigenesGefecht": True, "karte": KARTE, "menschen": 2, "gegner": 0, "trotzdem": True, "startpause": 1}, 5.0)
+    lf.warte_auf(lambda: k.peek(lf.ANSICHT)[0] == lf.IN_PARTIE, 60, "Partie laeuft (Ansicht 14)", ruhe=ruhe)
+    return {"ansicht": k.peek(lf.ANSICHT)[0]}
+
+
+def richtige_lords(s):
+    """Genau die Lords der zwei Menschen, jeder bei einem Haufen der Karte: Das ist die Karte, und niemand sonst spielt mit."""
+    lords = [e for e in s.einheiten_alle() if e["typ"] == 55]
+    return sorted(e["besitzer"] for e in lords) == [1, 2] and all(min(max(abs(e["x"] - x), abs(e["y"] - y)) for x, y in START_HAUFEN) <= 40 for e in lords)
+
+
 def karte_kopieren(n):
     ziel = os.path.join(lf.ordner(n), "maps", KARTE + ".map")
     for o in lk.karten_ordner(n):
@@ -421,10 +501,14 @@ def richtige_karte(s):
 class LaufS(lk.LaufK):
     def __init__(self, k, s, rek, schreib, uhr=time.perf_counter, ruhe=time.sleep, stop=lambda: False):
         super().__init__(k, s, {}, rek, schreib, frist=10 ** 9, uhr=uhr, ruhe=ruhe, stop=stop)  # keine Frist: Die Grenzen sind Takte, gegen Haengen wacht die Stillstandsgrenze
+        self.gefecht = False
 
 
 def los(n, szenen, ziel=None):
     lf.pruefe_laufinstanz(n)
+    gefecht = all(z.endswith("_g") for z in szenen)
+    if not gefecht and any(z.endswith("_g") for z in szenen):
+        raise Fehler("Szenen mit _g laufen im Gefecht, die anderen im Editor: nicht im selben Lauf")
     os.environ["SHC_INSTANZ"] = str(n)
     from selfaware import workspace
     from selfaware.tools.analysis.auge_feldkarte import FELDLISTE, Feldkarte
@@ -478,21 +562,34 @@ def los(n, szenen, ziel=None):
         quelle = ProzessQuelle(pid_der_instanz(n))
         s = SpeicherS(quelle, karte)
         schreib({"schritt": "spielart_vorher", **spielart_lesen(quelle, karte)})
-        schreib({"schritt": "editor", **editor_oeffnen(k, s, n)})
-        if not richtige_karte(s):
-            raise Abbruch(f"Nicht die Karte {KARTE}: An den Startplaetzen steht kein Gebaeude")
+        if gefecht:
+            schreib({"schritt": "gefecht", **gefecht_oeffnen(k)})
+        else:
+            schreib({"schritt": "editor", **editor_oeffnen(k, s, n)})
+            if not richtige_karte(s):
+                raise Abbruch(f"Nicht die Karte {KARTE}: An den Startplaetzen steht kein Gebaeude")
         art = spielart_lesen(quelle, karte)
         schreib({"schritt": "spielart", **art})
-        if art["gameMode_2"] != 1:
+        if gefecht and (art["currentGameMode"], art["gameMode_2"]) != (99, 3):
+            raise Abbruch(f"Nicht im Gefecht: {art}")
+        if not gefecht and art["gameMode_2"] != 1:
             raise Abbruch(f"Nicht im Editor: gameMode_2 {art['gameMode_2']}")
         rek = lf.Rekorder(n, ziel, stempel, quelle, standard_bereiche(karte))
         rek.lauf = "S"
         rek.basis = basis
         rek.stop_datei, rek.aus_datei, rek.felder_datei = basis + ".stop", basis + ".aussetzen", basis + ".felder.json"
         l = LaufS(k, s, rek, schreib, stop=lambda: os.path.exists(stop))
-        schreib({"schritt": "start_raeumen", "takte": abraeumen(l, spieler=tuple(range(1, 9))), "bleiben": len(s.einheiten_alle()), "freie_felder": int(s.raster()[0].sum())})
+        if gefecht:
+            l.gefecht, s.fern = True, GEFECHT_ABSTAND
+            lk.aufnahme_im_stand_ohne(l, lf.TEMPO_JEDER_TAKT)
+            if not l.warte_takte(lk.LORDS_STEHEN, lambda: richtige_lords(s)):
+                raise Abbruch(f"Nicht die erwarteten Lords: {[(e['besitzer'], e['x'], e['y']) for e in s.einheiten_alle() if e['typ'] == 55]}")
+            lk.anhalten(l)
+            schreib({"schritt": "lords", "lords": [e for e in s.einheiten_alle() if e["typ"] == 55], "bleiben": len(s.einheiten_alle()), "freie_felder": int(s.raster()[0].sum())})
+        else:
+            schreib({"schritt": "start_raeumen", "takte": abraeumen(l, spieler=tuple(range(1, 9))), "bleiben": len(s.einheiten_alle()), "freie_felder": int(s.raster()[0].sum())})
         for name in szenen:
-            e = szene_last(l) if SZENEN[name] == "szene_last" else szene_fahren(l, SZENEN[name])
+            e = SZENEN[name](l) if callable(SZENEN[name]) else szene_fahren(l, SZENEN[name])
             schreib(e)
             ergebnis["szenen"].append(e)
     except Abbruch as e:

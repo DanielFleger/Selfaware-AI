@@ -24,6 +24,9 @@ class Spiel:
         self.nr = 0
         self.stand = {"fehlend": f.get("fehlend", 0), "gemischt": 0}
         self.tod_ab = None
+        self.tod_typen = None
+        self.speicher = {}
+        self.fern = 0
 
     def uhr(self):
         return self.jetzt
@@ -37,10 +40,13 @@ class Spiel:
             self.rest -= 1
             self.t += 1
             if self.tod_ab is not None and self.t >= self.tod_ab and not self.f.get("steintod_bleibt"):
-                self.einheiten = [e for e in self.einheiten if e["besitzer"] not in self.tod]
+                self.einheiten = [e for e in self.einheiten if not (e["besitzer"] in self.tod and (self.tod_typen is None or e["typ"] in self.tod_typen))]
 
     def takt(self):
         return self.t
+
+    def peek(self, adr, n=1):
+        return [self.speicher.get(adr, 0)]
 
     def befehl(self, c, warte=0.8, bis=None):
         self.log.append(c)
@@ -64,7 +70,12 @@ class Spiel:
                 assert self.pausiert, "gesetzt wird im angehaltenen Spiel"
                 self.einheiten.append({"nr": self.nr, "uid": 1000 + self.nr, "typ": e["typ"], "besitzer": e["spieler"], "x": e["x"] + 1, "y": e["y"] + 1, "leben": 100})
             if "toeteAlle" in c:
-                self.tod.add(c["toeteAlle"])
+                t = c["toeteAlle"]
+                if isinstance(t, dict):
+                    assert t["ohneLord"]
+                    self.tod_typen = set(t["typen"])
+                    t = t["spieler"]
+                self.tod.add(t)
                 self.tod_ab = self.t + 30
         self.ruhe(0.01)
 
@@ -90,7 +101,7 @@ class Spiel:
     def beenden(self):
         self.log.append("aufzeichnung_beendet")
         if not self.f.get("kein_treffer"):
-            for e in self.einheiten[:2]:
+            for e in [x for x in self.einheiten if x["nr"] < 900][:2]:  # ab 900: Lords und Bauern des Gefechts
                 e["leben"] = 90
         return dict(self.stand)
 
@@ -148,6 +159,88 @@ def test_schuetze_hat_sein_ziel_am_naechsten():
 def test_fehlender_takt_bricht_ab(tmp_path):
     with pytest.raises(lf.Abbruch, match="Takt fehlt"):
         ls.szene_fahren(lauf_von(Spiel(tmp_path, fehlend=1)), ls.SZENEN["nahkampf"])
+
+
+def test_gefecht_raeumt_ohne_lord_und_bauern(tmp_path):
+    g = Spiel(tmp_path)
+    g.einheiten = [{"nr": 900 + i, "uid": 900 + i, "typ": t, "besitzer": p, "x": 20, "y": 20, "leben": 100} for i, (t, p) in enumerate(((55, 1), (55, 2), (56, 1)))]
+    l = lauf_von(g)
+    l.gefecht = True
+    e = ls.szene_fahren(l, ls.SZENEN["nahkampf_g"])
+    assert e["einheiten"] == 171 * 2 + 1 and sorted(x["typ"] for x in g.einheiten) == [55, 55, 56]
+    assert 55 not in {c["setzeEinheit"]["typ"] for c in g.log if isinstance(c, dict) and "setzeEinheit" in c}
+    assert e["bis"] - e["von"] >= ls.GRENZE_NAH_G
+
+
+def test_im_editor_raeumt_das_abraeumen_alles():
+    assert ls.SZENEN["nahkampf"].aufbau is ls.aufbau_nahkampf
+
+
+def test_fern_maske_sperrt_nur_um_spieler():
+    frei = np.ones((400, 400), dtype=bool)
+    m = ls.fern_maske(frei, [{"besitzer": 1, "x": 100, "y": 200}, {"besitzer": 0, "x": 300, "y": 300}], 60)
+    assert not m[200, 100] and not m[200, 160] and m[200, 161] and not m[140, 100] and m[139, 100] and m[300, 300]
+    assert frei.all()
+
+
+def test_lord_szene_merkt_das_ende(tmp_path):
+    g = Spiel(tmp_path)
+    lord = {"nr": 900, "uid": 900, "typ": 55, "besitzer": 2, "x": 100, "y": 100, "leben": 100}
+    g.einheiten = [lord]
+    l = lauf_von(g)
+    l.gefecht = True
+    ruhe_alt = g.ruhe
+
+    def ruhe(d):
+        ruhe_alt(d)
+        if g.t > 200 and not g.pausiert:
+            lord["leben"] = 0
+            g.einheiten = [x if x["nr"] != 900 else lord for x in g.einheiten]
+        if g.t > 400 and not g.pausiert:
+            g.speicher[lf.GAMEOVER] = 1
+    g.ruhe = ruhe
+    l.ruhe = ruhe
+    e = ls.szene_lord(l)
+    assert e["gefallen"] and e["ende_gemerkt"] and e["gameover"] == 1
+    assert any(isinstance(c, dict) and c.get("menue") == ls.HAUPTMENUE for c in g.log)
+    a = next(c for c in g.log if isinstance(c, dict) and "angriff" in c)
+    assert a["player"] == 1 and a["angriff"]["ziel"] == 900 and len(a["angriff"]["einheiten"]) == 8
+
+
+def test_lord_steht_nicht_gemerkt_ist_kein_ende(tmp_path):
+    g = Spiel(tmp_path)
+    g.einheiten = [{"nr": 900, "uid": 900, "typ": 55, "besitzer": 2, "x": 100, "y": 100, "leben": 100}]
+    l = lauf_von(g)
+    e = ls.szene_lord(l)
+    assert not e["gefallen"] and not e["ende_gemerkt"] and e["bis"] - e["von"] >= ls.LORD_GRENZE
+
+
+def test_szenen_mischen_geht_nicht():
+    with pytest.raises(lf.Fehler):
+        ls.los(2, ["nahkampf", "nahkampf_g"])
+
+
+def test_richtige_lords_prueft_besitzer_und_ort():
+    class S:
+        def __init__(self, e):
+            self.e = e
+
+        def einheiten_alle(self):
+            return self.e
+    hier = {"typ": 55, "besitzer": 1, "x": 165, "y": 107}
+    dort = {"typ": 55, "besitzer": 2, "x": 251, "y": 127}
+    assert ls.richtige_lords(S([hier, dort]))
+    assert not ls.richtige_lords(S([hier]))
+    assert not ls.richtige_lords(S([hier, dict(dort, besitzer=3)]))
+    assert not ls.richtige_lords(S([hier, dict(dort, x=20, y=20)]))
+
+
+def test_modul_bekommt_toete_ohne_lord_und_jede_anweisung():
+    roh = lf.TOETE_ANKER + "\n    local sp = tonumber(cmd.toeteAlle)\n" + lf.ART_ANKER + "\n"
+    neu = lf._mit_art(lf._mit_toete(roh))
+    assert neu.index(lf.TOETE_NEU[1]) < neu.index("local sp = tonumber") and neu.index(lf.ART_NEU) < neu.index(lf.ART_ANKER)
+    assert lf._mit_art(lf._mit_toete(neu)) == neu  # zweimal einspielen aendert nichts
+    assert lf._mit_toete("ohne") == "ohne" and lf._mit_art("ohne") == "ohne"
 
 
 def test_kein_einziger_treffer_bricht_ab(tmp_path):
@@ -286,6 +379,39 @@ def test_laufen_zaehlt_takte_je_feld_ab_dem_ersten_schritt():
         r.append((i, s))
     z = ar.laufen_werten(r, [{"rolle": "gerade", "typ": 22, "x": 5, "y": 5, "ziel": (7, 5), "nr": 1}], 2)
     assert z[0]["takte_je_feld"] == 12.0 and z[0]["erster_schritt"] == 15
+
+
+def masse_rahmen(t, leben, schlaegt=(3, 3), da=(1, 1, 1)):
+    s = {k: np.zeros(ar.PLAETZE, dtype=np.int64) for k in ar.FELDER}
+    s["da"][0], s["besitzer"][0] = 1, 1  # der Merkplatz
+    s["da"][[1, 2, 3]] = da
+    s["besitzer"][[1, 2, 3]] = 1, 1, 2
+    s["typ"][[1, 2, 3]] = 24
+    s["leben"][[1, 2, 3]] = 1000, 1000, leben
+    s["schlaegt"][[1, 2]] = schlaegt
+    return t, s
+
+
+def test_masse_zaehlt_ohne_merkplatz_und_nennt_den_ersten_tod():
+    w = int(TAB["nah"][24, 24])
+    m = ar.masse_werten([masse_rahmen(100, 1000), masse_rahmen(101, 1000 - 2 * w), masse_rahmen(105, 1000 - 2 * w, da=(1, 0, 1))], TAB)
+    assert m["start"] == (2, 1, 3) and m["ende"] == (1, 1, 2) and m["erster_tod_nach"] == 5 and m["takte"] == 5 and m["plaetze_hoechstens"] == 3
+
+
+def test_masse_summe_der_angreifer():
+    w = int(TAB["nah"][24, 24])
+    assert ar.masse_werten([masse_rahmen(100, 1000), masse_rahmen(103, 1000 - 3 * 2 * w)], TAB)["summe"] == {"gleich": 1, "weniger": 0, "mehr": 0}
+    assert ar.masse_werten([masse_rahmen(100, 1000), masse_rahmen(103, 1000 - 3 * 2 * w - 1)], TAB)["summe"]["mehr"] == 1
+    assert ar.masse_werten([masse_rahmen(100, 1000), masse_rahmen(103, 1000 - 2 * w)], TAB)["summe"]["weniger"] == 1
+    # wechselt ein Angreifer das Ziel, ist die Summe nicht bekannt: kein Fall
+    assert ar.masse_werten([masse_rahmen(100, 1000), masse_rahmen(103, 900, schlaegt=(3, 0))], TAB)["summe"] == {"gleich": 0, "weniger": 0, "mehr": 0}
+
+
+def test_vergleich_editor_gegen_gefecht():
+    a = {"zeilen": [{"schlaeger": 1, "opfer": 2, "soll": 5, "werte": {"5": 3}, "urteil": "bestaetigt"}, {"typ": 22, "lage": "gerade", "takte_je_feld": 16.0}, {"typ": 23, "lage": "gerade", "takte_je_feld": 16.0}, {"schlaeger": 9, "opfer": 9, "soll": 5, "werte": {"5": 1}, "urteil": "bestaetigt"}]}
+    b = {"zeilen": [{"schlaeger": 1, "opfer": 2, "soll": 5, "werte": {"5": 9}, "urteil": "bestaetigt"}, {"typ": 22, "lage": "gerade", "takte_je_feld": 16.9}, {"typ": 23, "lage": "gerade", "takte_je_feld": 11.0}, {"schlaeger": 7, "opfer": 7, "soll": 5, "werte": {"5": 1}, "urteil": "bestaetigt"}]}
+    v = ar.vergleichen(a, b)
+    assert v["gleich"] == 2 and len(v["anders"]) == 1 and v["anders"][0]["zweite"]["typ"] == 23 and v["nur_erste"] == 1 and v["nur_zweite"] == 1
 
 
 def test_kontrolle_schlaegt_an():
