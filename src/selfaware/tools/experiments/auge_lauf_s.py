@@ -35,6 +35,14 @@ SPIELER_S = (1, 2)
 E_UID, E_MX, E_MY, E_LEBEN = 0x98, 0xB6, 0xB8, 0x3C8  # gegen die Feldkarte geprueft 03.11.
 ABRAEUMEN_GRENZE = 1000  # Takte; das alte Werkzeug wartete 400 (Steintod), gemessen wird das in der ersten Szene
 SETZEN_FRIST = 20.0  # s, Kanal; das Spiel steht dabei
+MASSE_FRIST = 60.0  # s, Kanal; 381 Einheiten brauchten 1,33 s
+PLATZ_FUER_MASSE = 1150  # je Seite: 2.498 Plaetze (spawnUnit) minus 132 Tiere der Karte, die toeteAlle nicht nimmt, also keine 1.200 je Seite wie in der Liste
+GRENZE_SCHLACHT = 10000  # Takte; laengste Toetung laut Tabelle 8.000 (Sklave gegen Pikenier). Kein Ende ist ein Ergebnis
+RUHE_SCHLACHT = 2000  # Takte ohne einen Toten: Die Reste stehen zu weit auseinander, sie suchen sich ohne Befehl keinen Gegner
+NAHKAEMPFER = (24, 25, 26, 27, 28, 71, 73, 75)
+EUROPAEER, ARABER = (22, 23, 24, 25, 26, 27, 28), (70, 71, 72, 73, 74, 75, 76)
+LAST_STUFEN = ((1000, 1000, 11), (500, 1000, 3), (200, 400, 3), (100, 200, 3), (40, 80, 3))  # Plan: Stufe 1 und 10 und die leere Karte sind leichter, Begruendung dort
+MELEE = 0x00B4EE60  # DAT_MELEE_DAMAGE, 80 x 80 Ints, Tabellen.txt
 STUECK = 100  # Befehle je Sendung
 GRENZE_NAH = 251 + 256  # groesster erster Treffer vom 18.10. plus groesste Pruefrunde (Maske 255), alte_schuesse.txt
 GRENZE_SCHUSS = 411 + 2 * 228  # groesster erster Treffer plus 2 Schuesse Armbrust, Handbuch 17.10.
@@ -101,6 +109,21 @@ def kontrollort(frei, belegt, abstand=60):
         if (np.maximum(np.abs(pos[:, 0] - x), np.abs(pos[:, 1] - y)) >= abstand).all():
             return int(x), int(y)
     return None
+
+
+def setzen_masse(l, einheiten):
+    """Mehrere Einheiten je Feld, darum ohne Zuordnung je Einheit: Hier zaehlt nur die Zahl. Das Spiel steht."""
+    vorher = {(e["nr"], e["uid"]) for e in l.s.einheiten_alle()}
+    bef = [{"setzeEinheit": {"spieler": e["spieler"], "typ": e["typ"], "x": e["x"] - 1, "y": e["y"] - 1, "anzahl": e["anzahl"]}} for e in einheiten]
+    for i in range(0, len(bef), STUECK):
+        l.k.liste(bef[i:i + STUECK], lf.KANAL)
+    soll, neu = sum(e["anzahl"] for e in einheiten), 0
+    ende = l.uhr() + MASSE_FRIST
+    while l.uhr() < ende and neu < soll:
+        neu = sum(1 for e in l.s.einheiten_alle() if (e["nr"], e["uid"]) not in vorher)
+        l.ruhe(0.5)
+    if neu < soll:
+        raise Abbruch(f"Nur {neu} von {soll} Einheiten stehen")
 
 
 def setzen(l, einheiten):
@@ -198,12 +221,104 @@ class Szene:
     befehle: Optional[Callable] = None
     fertig: Optional[Callable] = None
     treffer_noetig: bool = True
+    masse: bool = False
+
+
+def aufbau_schlacht(a, b, n, je_feld=4):
+    """Beide Seiten im Schachbrett: Jeder hat von Anfang an einen Feind neben sich, Nahkampf beginnt dort in 1 oder 2 Takten ohne Befehl (Szene Nahkampf). So aendern sich alle Einheiten in jedem Takt, das ist die schwerste Lage fuers Lesen."""
+    def aufbau(l):
+        frei, hoehe, _ = l.s.raster()
+        seite = int(np.ceil(np.sqrt(2 * n / je_feld)))
+        ecke = gitter(frei, hoehe, seite + 1, seite + 1, 4, 4, 1)
+        if not ecke:
+            raise Abbruch(f"Keine freie Flaeche {seite} x {seite}")
+        aus, zahl = [], {1: 0, 2: 0}
+        for j in range(seite):
+            for i in range(seite):
+                sp = 1 if (i + j) % 2 == 0 else 2
+                arten = a if sp == 1 else b
+                rest = n - zahl[sp]
+                if rest <= 0:
+                    continue
+                k = min(je_feld, rest)
+                aus.append({"rolle": "masse", "spieler": sp, "typ": arten[(i + j // 2) % len(arten)], "x": ecke[0][0] + i, "y": ecke[0][1] + j, "anzahl": k})
+                zahl[sp] += k
+        return {"einheiten": aus}
+    return aufbau
+
+
+def schlacht_zu_ende():
+    """Eine Seite ist weg, oder RUHE_SCHLACHT Takte lang ist niemand gefallen. Nachgesehen wird alle 200 Takte: Jedes Nachsehen liest alle Plaetze."""
+    z = {"takt": None, "zahl": None, "ruhe_ab": None}
+
+    def fertig(l, plan):
+        t = l.s.takt()
+        if z["takt"] is not None and t - z["takt"] < 200:
+            return False
+        z["takt"] = t
+        e = l.s.einheiten_alle()
+        je = {p: sum(1 for x in e if x["besitzer"] == p) for p in SPIELER_S}
+        if min(je.values()) == 0:
+            return True
+        n = sum(je.values())
+        if n != z["zahl"]:
+            z["zahl"], z["ruhe_ab"] = n, t
+        return t - z["ruhe_ab"] >= RUHE_SCHLACHT
+    return fertig
+
+
+def szene_last(l):
+    """Daniels Vorgabe unter Last: 2.300 Einheiten im Nahkampf, im Wechsel ohne und mit Lesen. Niemand stirbt am Nahkampf, weil der Schaden Pikenier gegen Pikenier fuer diese Szene auf 1 steht; so bleibt die Last gleich, und jeder Takt aendert alle Leben. Danach kommt der alte Wert zurueck."""
+    from selfaware.tools.analysis.auge_auswertung import a4_wechselprobe
+
+    k, s = l.k, l.s
+    lk.anhalten(l)
+    plan = aufbau_schlacht((25,), (25,), PLATZ_FUER_MASSE)(l)
+    setzen_masse(l, plan["einheiten"])
+    adr = MELEE + (25 * 80 + 25) * 4
+    alt = k.peek(adr)[0]
+    k.liste([{"poke": adr, "wert": 1}], lf.KANAL)
+    a = lk.aufnahme_im_stand(l, "last", 1000, False)
+    l.warte_takte(100)  # bis alle kaempfen
+    wechsel, zahlen = {}, {}
+    try:
+        for stufe, takte, phasen in LAST_STUFEN:
+            k.befehl({"tempo": stufe}, lf.KANAL)
+            l.tempo = stufe
+            l.puls_neu()
+            ohne, mit, sek = [], [], 0.0
+            for i in range(phasen):
+                l.rek.aussetzen(i % 2 == 0)
+                m = l.messe(takte)
+                (mit if i % 2 else ohne).append(m["rate"])
+                sek = m["sekunden"]
+            l.rek.aussetzen(False)
+            zahlen[stufe] = len(s.einheiten_alle())
+            wechsel[stufe] = {"ohne": ohne, "mit": mit, "sekunden": sek}
+            l.schreib({"stufe": stufe, "ohne": [round(x, 1) for x in ohne], "mit": [round(x, 1) for x in mit], "einheiten": zahlen[stufe]})
+    finally:
+        k.liste([{"poke": adr, "wert": alt}], lf.KANAL)
+    if k.peek(adr)[0] != alt:
+        raise Abbruch("Der Tabellenwert ist nicht zurueck")
+    b = lk.anhalten(l)
+    pfad = l.rek.pfad
+    stand = l.rek.beenden()
+    e = a4_wechselprobe(wechsel)
+    with open(pfad + ".plan.json", "w", encoding="utf-8") as f:
+        json.dump({"szene": "last", "von": a, "bis": b, "tempo": 1000, "einheiten": plan["einheiten"], "wechsel": {str(t): v for t, v in wechsel.items()}, "zahlen": {str(t): v for t, v in zahlen.items()}, "ergebnis": e.status, "text": e.text}, f, ensure_ascii=False)
+    abr = abraeumen(l)
+    return {"szene": "last", "von": a, "bis": b, "ergebnis": e.status, "text": e.text, "einheiten": zahlen, "abraeumen_takte": abr, "stand": stand, "pfad": pfad}
 
 
 SZENEN = {
     "laufen": Szene("laufen", 200, False, GRENZE_LAUF, aufbau_laufen, befehle_laufen, alle_am_ziel, treffer_noetig=False),
     "nahkampf": Szene("nahkampf", lf.TEMPO_JEDER_TAKT, True, GRENZE_NAH, aufbau_nahkampf),
     "beschuss": Szene("beschuss", lf.TEMPO_JEDER_TAKT, True, GRENZE_SCHUSS, aufbau_beschuss),
+    "schlacht_20": Szene("schlacht_20", lf.TEMPO_LAUF, False, GRENZE_SCHLACHT, aufbau_schlacht(NAHKAEMPFER, NAHKAEMPFER, 20), None, schlacht_zu_ende(), masse=True),
+    "schlacht_1000": Szene("schlacht_1000", lf.TEMPO_LAUF, False, GRENZE_SCHLACHT, aufbau_schlacht(NAHKAEMPFER, NAHKAEMPFER, 1000), None, schlacht_zu_ende(), masse=True),
+    "schlacht_schuetzen": Szene("schlacht_schuetzen", lf.TEMPO_LAUF, False, GRENZE_SCHLACHT, aufbau_schlacht(FUSS_SCHUETZEN, NAHKAEMPFER, 500), None, schlacht_zu_ende(), masse=True),
+    "schlacht_araber": Szene("schlacht_araber", lf.TEMPO_LAUF, False, GRENZE_SCHLACHT, aufbau_schlacht(EUROPAEER, ARABER, 500), None, schlacht_zu_ende(), masse=True),
+    "last": "szene_last",
 }
 
 
@@ -229,26 +344,28 @@ def szene_fahren(l, sz):
     lk.anhalten(l)
     plan = sz.aufbau(l)
     u0 = l.uhr()
-    setzen(l, plan["einheiten"])
+    (setzen_masse if sz.masse else setzen)(l, plan["einheiten"])
     setzen_s = round(l.uhr() - u0, 2)
     if sz.befehle:
         k.liste(sz.befehle(plan), lf.KANAL)
     a = lk.aufnahme_im_stand(l, sz.name, sz.tempo, sz.streng, warte_ms=lk.WARTE_MS if sz.streng else 0)
     fertig = sz.fertig
+    u1 = l.uhr()
     am_ziel = l.warte_takte(sz.grenze, (lambda: fertig(l, plan)) if fertig else None)
+    d = l.uhr() - u1
     b = lk.anhalten(l)
     pfad = l.rek.pfad
     stand = l.rek.beenden()
     if sz.streng and (stand.get("fehlend") or stand.get("gemischt")):
         raise Abbruch(f"Szene {sz.name}: Takt fehlt oder ist gemischt: {stand}")
-    if sz.treffer_noetig and not hat_treffer(s, plan):
+    if sz.treffer_noetig and not sz.masse and not hat_treffer(s, plan):
         raise Abbruch(f"Szene {sz.name}: Kein einziger Treffer in {b - a} Takten, der Aufbau stimmt nicht")
-    if not sz.treffer_noetig and fertig and not am_ziel:
+    if not sz.treffer_noetig and fertig and not am_ziel and not sz.masse:
         l.wirkung(f"Szene {sz.name}: nicht alle am Ziel", False, takte=b - a)
     with open(pfad + ".plan.json", "w", encoding="utf-8") as f:
         json.dump({"szene": sz.name, "von": a, "bis": b, "tempo": sz.tempo, "einheiten": plan["einheiten"]}, f, ensure_ascii=False)
     abr = abraeumen(l)
-    return {"szene": sz.name, "von": a, "bis": b, "einheiten": len(plan["einheiten"]), "setzen_s": setzen_s, "abraeumen_takte": abr, "stand": stand, "pfad": pfad}
+    return {"szene": sz.name, "von": a, "bis": b, "einheiten": len(plan["einheiten"]), "setzen_s": setzen_s, "takte_je_s": round((b - a) / d, 1) if d > 0 else None, "abraeumen_takte": abr, "stand": stand, "pfad": pfad}
 
 
 # --- Karte im Editor ---
@@ -375,7 +492,7 @@ def los(n, szenen, ziel=None):
         l = LaufS(k, s, rek, schreib, stop=lambda: os.path.exists(stop))
         schreib({"schritt": "start_raeumen", "takte": abraeumen(l, spieler=tuple(range(1, 9))), "bleiben": len(s.einheiten_alle()), "freie_felder": int(s.raster()[0].sum())})
         for name in szenen:
-            e = szene_fahren(l, SZENEN[name])
+            e = szene_last(l) if SZENEN[name] == "szene_last" else szene_fahren(l, SZENEN[name])
             schreib(e)
             ergebnis["szenen"].append(e)
     except Abbruch as e:
