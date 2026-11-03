@@ -157,6 +157,7 @@ FAELLE = [
     ("S: Gefecht ohne Waren", S, "    if l.gefecht:\n        davor = [{\"player\": p, \"ware\":", "    if False:\n        davor = [{\"player\": p, \"ware\":"),
     ("S: Graben per Editorweg", S, "\"werte\": [x, y, 0, 0x40000000, 0]}}]", "\"werte\": [x, y, 0, 0x40000000, 2]}}]"),
     ("S: Leiter mit x statt Feldnummer", S, "_angriff(trag, art=24, a=s.kachel(x, y), b=0)", "_angriff(trag, art=24, a=x, b=y)"),
+    ("S: Kontrolle im Ring", S, "einheiten = mit_kontrolle(einheiten, frei_kontrolle)", "einheiten = mit_kontrolle(einheiten, frei)"),
     ("S: Tunnel ohne Trupp", S, "\"richtung\": 15, \"trupp\": trupp}}] if ort and trupp else []", "\"richtung\": 15, \"trupp\": 0}}] if ort and trupp else []"),
     ("S: Tunnel im eigenen Burgbereich", S, "sonder6_g(l), frei_maske=burgbereich(l, sp=2)", "sonder6_g(l), frei_maske=burgbereich(l)"),
     ("S: Tunnel ohne ersten Befehl", S, "wer, wand, lambda: [_angriff(wer, lauf=[x + 2, y + 6])],", "wer, wand, lambda: [],"),

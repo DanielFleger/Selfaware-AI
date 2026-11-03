@@ -712,6 +712,8 @@ def test_tunnel_erst_mauer_und_turm_dann_eingang_mit_trupp(tmp_path):
     plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
     for k in plan["karte"]:
         assert 14 <= max(abs(k["x"] - 250), abs(k["y"] - 250)) <= 40  # im Burgbereich von Spieler 2
+    ko = next(x for x in plan["einheiten"] if x["rolle"] == "kontrolle")
+    assert max(abs(ko["x"] - 250), abs(ko["y"] - 250)) > 40  # die Posten belegen den Ring, die Kontrolle steht ausserhalb
     b = [c for c in g.log if isinstance(c, dict)]
     baue = [c for c in b if "baue" in c]
     assert len(baue) == 4 and all(c["player"] == 1 and c["baue"]["mapper"] == 66 and c["baue"]["groesse"] == 3 and c["baue"]["trupp"] for c in baue)  # ohne Trupp geht niemand hin

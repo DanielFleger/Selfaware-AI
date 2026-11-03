@@ -1008,10 +1008,12 @@ def szene_sonder(l, name, posten, frei_maske=None, rand=SONDER_ABSTAND, raeumen=
     lk.anhalten(l)
     if raeumen:
         abraeumen(l)  # die 6 Bogenschuetzen vom Start schiessen sonst auf alles
-    fern, s.fern = s.fern, 0 if frei_maske else s.fern
     frei, _, _ = s.raster()
-    s.fern = fern
+    frei_kontrolle = frei  # fern von allem, auch wenn die Posten im Ring um eine Burg liegen und ihn belegen (Lauf 22:30)
     if frei_maske:
+        fern, s.fern = s.fern, 0
+        frei, _, _ = s.raster()
+        s.fern = fern
         frei = frei_maske(frei)
     orte = packen(frei, [(b, h) for _, _, b, h in posten], rand=rand)
     gebaeude, einheiten, davor, jetzt, stufen, karte, fehlt = [], [], [], [], [], [], []
@@ -1042,7 +1044,7 @@ def szene_sonder(l, name, posten, frei_maske=None, rand=SONDER_ABSTAND, raeumen=
         lk.aufnahme_im_stand_ohne(l, lf.TEMPO_JEDER_TAKT)
         l.warte_takte(SONDER_SPIELER_TAKTE)
         lk.anhalten(l)
-    einheiten = mit_kontrolle(einheiten, frei)
+    einheiten = mit_kontrolle(einheiten, frei_kontrolle)
     setzen(l, einheiten)
     k.liste([c for j in jetzt for c in j()], lf.KANAL)
     a = lk.aufnahme_im_stand(l, name, 100, False)
