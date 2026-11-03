@@ -541,6 +541,19 @@ def _neue_einheiten(reihen, k, plan_nummern, rand=15):
     return aus
 
 
+def _fremde_treffer(reihen, geschosse, im_posten, im_plan):
+    """Wer nicht im Plan steht und eine Einheit des Postens schlaegt (Rahmen je Art/Besitzer) oder beschiesst (Geschosse je Art). Die Starttruppen trafen die Opfer der Hunde, und ich schrieb es den Hunden zu (Lauf 21:41). Das soll man hier sehen, bevor man einem Posten etwas zuschreibt."""
+    ziele, plan_nr = np.array(sorted(im_posten), dtype=np.int32), np.array(sorted(im_plan), dtype=np.int32)
+    schlaeger = collections.Counter()
+    for _, s in reihen:
+        m = (s["da"] != 0) & np.isin(s["schlaegt"], ziele)
+        m[plan_nr] = False
+        m[0] = False  # Platz 0 ist die Kopie der gerade laufenden Einheit
+        for i in np.nonzero(m)[0]:
+            schlaeger[f"{int(s['typ'][i])}/{int(s['besitzer'][i])}"] += 1
+    return {"schlaeger": dict(schlaeger), "geschosse": dict(collections.Counter(x["art"] for x in geschosse if x["schuetze"] not in im_plan and x["ziel"] in im_posten))}
+
+
 def sonder_werten(reihen, reihen_g, geschosse, plan, felder=None):
     """Je Posten nur, was sich getan hat: Ort und Leben jeder Einheit am Anfang und Ende, erster Verlust, Geschosse je Art, Leben und Ende jedes Gebaeudes. Geurteilt wird hier nicht, die Regeln fuer die Sonderfaelle stehen noch nicht fest."""
     aus = []
@@ -548,6 +561,8 @@ def sonder_werten(reihen, reihen_g, geschosse, plan, felder=None):
         n = k["posten"]
         im_gebiet = [x for x in geschosse if k["x"] - 10 <= x["start"][0] // 8 < k["x"] + k["breite"] + 10 and k["y"] - 10 <= x["start"][1] // 8 < k["y"] + k["hoehe"] + 10]
         zeile = {"posten": n, "einheiten": [], "gebaeude": [], "geschosse": dict(collections.Counter(x["art"] for x in im_gebiet)), "neu": _neue_einheiten(reihen, k, {e.get("nr") for e in plan["einheiten"]})}
+        im_plan = {e["nr"] for e in plan["einheiten"] if "nr" in e}
+        zeile["fremd"] = _fremde_treffer(reihen, geschosse, {e["nr"] for e in plan["einheiten"] if "nr" in e and e.get("posten") == n}, im_plan)
         if felder and k.get("felder"):
             zeile["felder"] = {f"{x},{y}": [(t - reihen[0][0], hex(w)) for t, w in felder[z][:5]] for x, y, z in k["felder"]}
         for e in plan["einheiten"]:

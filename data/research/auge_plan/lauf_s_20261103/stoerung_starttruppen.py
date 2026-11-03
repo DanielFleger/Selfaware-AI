@@ -38,10 +38,11 @@ def nachsehen(p):
         s = {k: np.ndarray(shape=(ar.PLAETZE,), dtype=ar.FELDER[k][1], buffer=a, offset=o[k], strides=(schritt,)) for k in o}
         start = r.takt if start is None else start
         da = s["da"] != 0
-        for i in np.nonzero(da & (s["besitzer"] > 0) & (s["besitzer"] <= 2) & np.isin(s["schlaegt"], ziele) & ~np.isin(np.arange(ar.PLAETZE), ziele))[0]:
+        for i in np.nonzero(np.r_[False, da[1:]] & (s["besitzer"] > 0) & (s["besitzer"] <= 2) & np.isin(s["schlaegt"], ziele) & ~np.isin(np.arange(ar.PLAETZE), ziele))[0]:
             k = (int(s["typ"][i]), int(s["besitzer"][i]), im_plan[int(s["schlaegt"][i])].get("posten"), im_plan[int(s["schlaegt"][i])]["rolle"])
             fremd_schlaegt[k] += 1
             fremd_erster.setdefault(k, r.takt - start)
+        da[0] = False  # Platz 0 ist die Kopie der gerade laufenden Einheit
         for i in np.nonzero(da & (s["besitzer"] > 0) & (s["besitzer"] <= 2) & ~np.isin(np.arange(ar.PLAETZE), ziele))[0]:
             fremde.setdefault((int(s["typ"][i]), int(s["besitzer"][i])), set()).add(int(i))
     g = ar.geschosse_lesen(p, karte)

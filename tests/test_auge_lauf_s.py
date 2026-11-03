@@ -713,6 +713,22 @@ def test_tunnel_zweiter_lauf_raeumt_erst_nach_den_starttruppen(tmp_path):
     assert abs(st["x"] - (k["x"] + 11)) >= 6  # weiter als 5 Felder vom Graeber, sonst greift er von selbst an
 
 
+def test_pruefer_zeigt_fremde_treffer_je_posten():
+    s = {k: np.zeros(ar.PLAETZE, dtype=ar.FELDER[k][1]) for k in ar.FELDER}
+    s["zustand"] = np.zeros(ar.PLAETZE, dtype=np.int16)
+    for nr, typ, besitzer, x in ((5, 24, 2, 11), (6, 24, 2, 60), (7, 22, 1, 12), (8, 76, 1, 13)):
+        s["da"][nr], s["typ"][nr], s["besitzer"][nr], s["mx"][nr], s["my"][nr], s["leben"][nr] = 2, typ, besitzer, x * 8, 80, 100
+    s["schlaegt"][7] = 5  # fremd auf den Posten a
+    s["da"][0], s["typ"][0], s["besitzer"][0], s["schlaegt"][0] = 2, 67, 0, 5  # Platz 0 ist nur eine Kopie
+    s["schlaegt"][8] = 5  # im Plan: kein Fremder
+    plan = {"karte": [{"posten": "a", "x": 10, "y": 8, "breite": 5, "hoehe": 5}, {"posten": "b", "x": 58, "y": 8, "breite": 5, "hoehe": 5}], "gebaeude": [],
+            "einheiten": [{"nr": 5, "posten": "a", "typ": 24, "rolle": "opfer"}, {"nr": 8, "posten": "a", "typ": 76, "rolle": "taeter"}, {"nr": 6, "posten": "b", "typ": 24, "rolle": "opfer"}]}
+    geschosse = [{"art": "pfeil", "schuetze": 7, "ziel": 6, "start": (480, 80)}, {"art": "pfeil", "schuetze": 7, "ziel": 6, "start": (480, 80)}, {"art": "feuer", "schuetze": 8, "ziel": 5, "start": (100, 80)}]
+    a, b = ar.sonder_werten([(100, s), (101, s)], [], geschosse, plan)
+    assert a["fremd"] == {"schlaeger": {"22/1": 2}, "geschosse": {}}
+    assert b["fremd"] == {"schlaeger": {}, "geschosse": {"pfeil": 2}}
+
+
 def test_tunnel_ohne_eingang_bricht_gleich_ab(tmp_path):
     g = Spiel(tmp_path, kein_eingang=True)
     g.einheiten = [{"nr": 900 + i, "uid": 900 + i, "typ": 55, "besitzer": i + 1, "x": 150 + 100 * i, "y": 150 + 100 * i, "leben": 100, "trupp": 0} for i in range(2)]

@@ -48,20 +48,72 @@ def feld_verlauf(pfad, feld, nummern):
     return aus, start
 
 
+def alle(szene, n=3):
+    return sorted(glob.glob(L + f"*_{szene}.auge"), key=os.path.getmtime)[-n:]
+
+
 def graben():
-    p = neueste("sonder3_g")
-    plan = plan_von(p)
-    k = next(z for z in plan["karte"] if z["posten"] == "graben")
-    v = ar.logik_verlauf(p, karte, [z[2] for z in k["felder"]])
-    start = plan["von"]
-    print("== Graben", os.path.basename(p), "Felder", len(k["felder"]), "Beginn", start, "Ende", plan["bis"] - start)
-    fertig = []
-    for z, verlauf in v.items():
-        t = next((t - start for t, w in verlauf if w & ar.BITS_FELD & 0x40000000), None)
-        fertig.append(t)
-    print("  ausgehoben bei", sorted(x for x in fertig if x is not None), "nicht ausgehoben", sum(x is None for x in fertig))
-    print("  am Schluss noch ausgehoben:", sum(1 for z, verlauf in v.items() if verlauf and verlauf[-1][1] & 0x40000000), "(Zuschuetten befohlen bei Takt 2000)")
-    print("  Graben-Felder im Plan am Ende:", plan.get("graben_felder_am_ende"))
+    """21:41: eigene Sklaven schuetten bei Takt 2000 zu. 23:06: Spieler 2 ab 1500, die Graeber stehen noch da. 23:16: Spieler 2 ab 1500, die Graeber gehen bei 1000 weg."""
+    for p in alle("sonder3_g"):
+        plan = plan_von(p)
+        k = next(z for z in plan["karte"] if z["posten"] == "graben")
+        v = ar.logik_verlauf(p, karte, [z[2] for z in k["felder"]])
+        start = plan["von"]
+        print("== Graben", os.path.basename(p), "Felder", len(k["felder"]), "Beginn", start, "Ende", plan["bis"] - start)
+        fertig, zu = [], []
+        for z, verlauf in v.items():
+            t = next((t - start for t, w in verlauf if w & 0x40000000), None)
+            fertig.append(t)
+            if t is not None:
+                zu.append(next((a - start for a, w in verlauf if a - start > t and not w & 0x40000000), None))
+        print("  ausgehoben bei", sorted(x for x in fertig if x is not None), "nicht ausgehoben", sum(x is None for x in fertig))
+        print("  zugeschuettet bei", sorted(x for x in zu if x is not None), "nicht zugeschuettet", sum(x is None for x in zu))
+        print("  Graben-Felder im Plan am Ende:", plan.get("graben_felder_am_ende"))
+        for e in plan["einheiten"]:
+            if e.get("posten") == "graben" and e["rolle"] == "fueller" and "nr" in e:
+                reihen, _ = ar.reihen_lesen(p, karte)
+                print("  Zuschuetter", e["nr"], "Leben Anfang, Ende:", int(reihen[0][1]["leben"][e["nr"]]), int(reihen[-1][1]["leben"][e["nr"]]) if reihen[-1][1]["da"][e["nr"]] and reihen[-1][1]["typ"][e["nr"]] == 71 else "weg")
+
+
+def hunde():
+    """21:41: Befehl 74, 3 Opfer, die Starttruppen schiessen. 23:06: Befehl 74, 3 Opfer, geraeumt. 23:16: kein Befehl, 8 Opfer, geraeumt."""
+    for p in alle("sonder3_g"):
+        plan = plan_von(p)
+        reihen, _ = ar.reihen_lesen(p, karte)
+        start = reihen[0][0]
+        g = ar.geschosse_lesen(p, karte)
+        k = next(z for z in plan["gebaeude"] if z["typ"] == 99)
+        print("== Hunde", os.path.basename(p), "Kaefig bei", (k["x"], k["y"]))
+        opfer = [e for e in plan["einheiten"] if e.get("posten") == "hunde" and e["rolle"] == "opfer"]
+        for e in opfer:
+            v, null = [], None
+            for t, s in reihen:
+                le = int(s["leben"][e["nr"]]) if s["da"][e["nr"]] and s["typ"][e["nr"]] == 24 else 0
+                if not v or v[-1][1] != le:
+                    v.append((t - start, le))
+                if le == 0 and null is None:
+                    null = t - start
+            pf = [x for x in g if x["ziel"] == e["nr"] and x["art"] == "pfeil"]
+            print("   Opfer", e["nr"], "erster Verlust", v[1][0] if len(v) > 1 else None, "Leben 0 bei", null, "Pfeile darauf", len(pf), "Schritte", v[1:4])
+        h = {}
+        for t, s in reihen:
+            for i in np.nonzero((s["da"] != 0) & (s["typ"] == 67))[0]:
+                i = int(i)
+                if i == 0:  # Platz 0 ist die Kopie der gerade laufenden Einheit
+                    continue
+                z = h.setdefault(i, {"von": t - start, "ort": (int(s["mx"][i]) // 8, int(s["my"][i]) // 8), "zu": [], "ziele": collections.Counter(), "erster": None, "leben": None})
+                z["bis"], z["ende"], z["leben"] = t - start, (int(s["mx"][i]) // 8, int(s["my"][i]) // 8), int(s["leben"][i])
+                w = int(s["zustand"][i])
+                if len(z["zu"]) < 5 and (not z["zu"] or z["zu"][-1][1] != w):
+                    z["zu"].append((t - start, w))
+                if s["schlaegt"][i]:
+                    z["ziele"][int(s["schlaegt"][i])] += 1
+                    z["erster"] = z["erster"] if z["erster"] is not None else t - start
+        print("   Hunde:", len(h))
+        for i, z in sorted(h.items()):
+            print("    Nr", i, "von", z["von"], "bis", z["bis"], "Ort", z["ort"], "Ende", z["ende"], "Leben am Ende", z["leben"], "Ziele", len(z["ziele"]), "erster Biss", z["erster"], "Zustaende", z["zu"])
+        r = json.load(open(p + ".regeln.json", encoding="utf-8"))["zeilen"]
+        print("   Kaefig:", [(x["leben"], x["weg"]) for z in r if z["posten"] == "hunde" for x in z["gebaeude"]], "fremd:", [z.get("fremd") for z in r if z["posten"] == "hunde"])
 
 
 def pech():
@@ -143,9 +195,9 @@ def oel():
     op = next(e for e in wer if e["rolle"] == "opfer")
     for e in wer:
         zeile = []
-        for t, r in reihen:
-            if t - start in (0, 800, 1800, 2399, 2400, 2450, 2500):
-                zeile.append((t - start, int(r["mx"][e["nr"]]) // 8, int(r["my"][e["nr"]]) // 8, int(r["leben"][e["nr"]])))
+        for soll in (0, 800, 1800, 2400, 2469):
+            t, r = next((t, r) for t, r in reihen if t - start >= soll)
+            zeile.append((t - start, int(r["mx"][e["nr"]]) // 8, int(r["my"][e["nr"]]) // 8, int(r["leben"][e["nr"]])))
         print("  ", e["rolle"], e["nr"], "(Takt, x, y, Leben):", zeile)
     k = next(z for z in plan["karte"] if z["posten"] == "oel")
     im = [x for x in g if x["art"] in ("brand", "feuer", "feuer_frei") and k["x"] - 10 <= x["start"][0] // 8 < k["x"] + k["breite"] + 10 and k["y"] - 10 <= x["start"][1] // 8 < k["y"] + k["hoehe"] + 10]
@@ -232,7 +284,7 @@ def tunnel(szene):
 
 
 if __name__ == "__main__":
-    for f in (graben, pech, steiger, schussweite, oel, lambda: tunnel("sonder6_g"), lambda: tunnel("sonder7_g")):
+    for f in (graben, hunde, pech, steiger, schussweite, oel, lambda: tunnel("sonder6_g"), lambda: tunnel("sonder7_g")):
         try:
             f()
         except Exception as e:

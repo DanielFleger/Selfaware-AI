@@ -151,7 +151,7 @@ td.z { text-align: right; white-space: nowrap; }
     <tr><td>Pfeil gegen Assassine</td><td>1.200 (Speertraeger: 3.000)</td><td>Assassinen halten Beschuss gut aus</td></tr>
     <tr><td>Schussweite Bogen/Armbrust</td><td>40 Felder</td><td>Gefahrenzaehlung jetzt bis 40 (vorher 16)</td></tr>
     <tr><td>Schrecken</td><td>Kampfkraft 80 % bis 140 %</td><td>Galgen 40 Gold - billiger Hebel <span class="status offen">offen</span></td></tr>
-    <tr><td>Hunde</td><td>Zwinger ab 16 Feinden</td><td>20 Assassinen vor ihrer Burg wecken die Hunde</td></tr>
+    <tr><td>Hunde</td><td>Zwinger: mehr als 5 Feinde binnen 16 Schritten <span class="status gemessen">Lauf S</span></td><td>8 Speerträger wecken sie, 3 nicht. Die alte Angabe „ab 16 Feinden“ stimmt nicht</td></tr>
     <tr><td>Hoehenvorteil</td><td>reduce_height_advantage</td><td>wirkt bei uns nicht (nur Extreme), Mauerschuetzen voll</td></tr>
     <tr><td>Schlagende Arbeiter</td><td>Holzfaeller/Steinmetz/Schmied 10, Jaeger 5</td><td>zaehlen bei der Uebermacht mit (Gewicht Schaden / 25)</td></tr>
     <tr><td>Preise</td><td>Kaese 30, Brot 20, Apfel 15, Fleisch 5 je 5 Stueck</td><td>Fleisch behalten kostet fast nichts</td></tr>
@@ -553,19 +553,21 @@ td.z { text-align: right; white-space: nowrap; }
     <tr><td>Schild</td><td>Pfeile auf den Mann dahinter treffen den Schild: Mann 0, Schild 1.200, Mann ohne Schild 48.000.</td></tr>
     <tr><td>Mordgrube</td><td>18.000 je Grube beim Darüberlaufen.</td></tr>
     <tr><td>Burgbereich</td><td>Im Gefecht gehen Mauer, Graben, Pechgraben, Käfig und Turm nur nahe der eigenen Burg, bis 45 Felder war alles erlaubt. Der Befehl meldet auch sonst Erfolg, also nachlesen.</td></tr>
-    <tr><td>Graben</td><td>Plan mit Spielbefehl 21, Flag 2 = 0. Rund 275 Takte je Feld und Sklave, 9 Felder je Plan.</td></tr>
+    <tr><td>Starttruppen</td><td>Im Gefecht kommen je Spieler 6 Bogenschützen bei Takt 202 und 8 Speerträger bei Takt 403 an der Burg dazu. Wer vorher räumt, hat sie danach im Feld.</td></tr>
+    <tr><td>Graben</td><td>Plan mit Spielbefehl 21, Flag 2 = 0. Rund 275 Takte je Feld und Sklave, 9 Felder je Plan. Zuschütten geht nur beim Graben eines anderen Teams, rund 220 Takte je Feld und Sklave.</td></tr>
+    <tr><td>Tunnel</td><td>Bauen mit Mapper 66, Größe 3 und dem Trupp des Gräbers. Erlaubt nur mit feindlicher Mauer oder kleinem Turm binnen 76 Schritten. Ein Gräber je Eingang. Rund 572 Takte Eingang, 223 Vorbereitung, 48 je Feld, 65 am Ziel. Wachturm fällt ganz, von der Mauer ein Stück, der Gang wird zur Grube. Fällt der Eingang (100 Leben), stürzt der Gang ein und das Ziel bleibt.</td></tr>
     <tr><td>Leiter</td><td>Anweisung 24 mit der Feldnummer der Mauer. Speerträger steigen hinauf, oben rund 780 Takte nach ihrem Laufbefehl.</td></tr>
     <tr><td>Kochöl</td><td>Ingenieur holt es in der Schmelze (Anweisung 15, Pech in der Schmelze nötig), wirft mit Anweisung 20 auf 4 Felder. Speerträger tot in 167 Takten, der Werfer verbrennt selbst.</td></tr>
     <tr><td>Pechgraben</td><td>Ein Feuerwerfer zündet ihn, er brennt rund 230 Takte. Der Bogenschütze zündet ihn in dieser Probe nicht.</td></tr>
-    <tr><td>Hunde</td><td>Spielbefehl 74: 8 Hunde, Feinde im Umkreis von 15 Feldern. 3 Speerträger tot nach 677 bis 819 Takten, nach rund 1.070 Takten sind Hunde und Käfig weg.</td></tr>
+    <tr><td>Hunde</td><td>4 Hunde kommen von selbst, wenn genug Feinde nahe sind: 8 Speerträger tot bei Takt 663, 80 Leben je Takt und Hund. Bei 3 Speerträgern bleiben sie drin. Spielbefehl 74 setzt 4 weitere auf den Käfig, die feststecken, nach rund 1.040 Takten ist alles weg. Wozu er dient, ist offen.</td></tr>
     <tr><td>Kuhwurf</td><td>Anweisung 22 braucht den Kuh-Zähler, sonst fliegen Steine. 1 Kuh, 7 Giftwolken, bis zu 8.150 Schaden an einem Pikenier. Wenige Fälle.</td></tr>
     <tr><td>Feuer</td><td>Hütte: meist 4 Leben auf einmal, im Schnitt alle 20 bis 25 Takte. Die Hütte daneben fängt nach 989 Takten Feuer.</td></tr>
     <tr><td>Lord</td><td>Steht oben auf der Burg, Ritter finden keinen Weg. Spielende spätestens 5 und 13 Takte nach seinem Verschwinden (zwei Läufe).</td></tr>
     <tr><td>Lesen unter Last</td><td>2.412 Einheiten im Nahkampf, Wechselprobe: Kein Abzug über der Grenze auf den Stufen 40 bis 1000 (Grenze 2 Takte je Sekunde, auf Stufe 1000 rund 9). Das Spiel hält rund 825 Takte je Sekunde.</td></tr>
   </table>
-  <div class="merk"><b>Nicht erreicht:</b> Tunnel (auf Befehl schlagen Tunnelgräber nur), Löschen, Zuschütten, Durchgang durchs Tor. Noch nicht erklärt: warum der Truppenbefehl schneller ist, warum der Pfeil nicht bis 54 reicht, rund 5 Prozent Schüsse ohne Verlust am stehenden Ziel.</div>
+  <div class="merk"><b>Nicht erreicht:</b> Löschen, Durchgang durchs Tor, Anlegen des Belagerungsturms. Noch nicht erklärt: warum der Truppenbefehl schneller ist, warum der Pfeil nicht bis 54 reicht, rund 5 Prozent Schüsse ohne Verlust am stehenden Ziel.</div>
   <div class="merk"><b>Learning 03.11.:</b> In diesem Lauf lagen drei Vorhersagen aus dem Code daneben, weil ich den Code gelesen, aber nicht den Weg bedacht hatte: Der Stein hat im Speicher andere Werte, das Tempo hängt am Befehl, nicht an der Spielart, und der Zielpunkt führt das Ziel. Ein Messlauf prüft zuerst, ob seine Befehle überhaupt ankommen: Mein Kanal schrieb jeden Befehl auf Spieler 1 um.</div>
-  <p><b>Als Nächstes:</b> 50 Punkte der Checkliste gegen die Erwartung lesen, Tunnel. Noch aus Lauf F: 8 offene und 27 nicht nachgerechnete Punkte.</p>
+  <p><b>Als Nächstes:</b> 50 Punkte der Checkliste gegen die Erwartung lesen. Noch aus Lauf F: 8 offene und 27 nicht nachgerechnete Punkte.</p>
 </section>
 
 <section id="offen">

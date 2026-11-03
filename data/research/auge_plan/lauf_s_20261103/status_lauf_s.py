@@ -25,7 +25,7 @@ belagerung = {(z["geraet"], z["ziel"]): z for z in zeilen("belagerung") if z["ur
 nahbau = {(z["wer"], z["ziel"]): z for n in ("gebaeude_nah_erster", "gebaeude_nah") for z in zeilen(n) if z["urteil"] != "falsches Gebaeude"}
 STEIN_REGEL = {39, 40, 41}
 V5 = {"V5.001": "gemessen", "V5.002": "gerechnet aus Regel: laeuft in 1.000 gegen 1.000 durch diese Groesse", "V5.003": "gerechnet aus Regel: wie V5.002", "V5.004": "gemessen", "V5.005": "gerechnet aus Regel: wie V5.002", "V5.006": "gemessen", "V5.007": "gemessen", "V5.008": "gemessen mit 1.150 gegen 1.150: 132 Plaetze belegen Tiere"}
-V7 = {"V7.001": "gemessen, Loeschen offen", "V7.002": "gemessen: Feuerwerfer zuendet, rund 230 Takte, Schaden nicht getrennt", "V7.003": "gemessen", "V7.004": "gemessen", "V7.005": "gesehen: eine Kuh, wenige Faelle", "V7.006": "gemessen, Zuschuetten offen", "V7.007": "Leiter gemessen, Turm gesehen", "V7.008": "offen: kein Tunnel ausgeloest", "V7.009": "gemessen", "V7.010": "gemessen auf der Mauer", "V7.011": "gesehen: Zustand wechselt, Durchgang offen"}
+V7 = {"V7.001": "gemessen, Loeschen offen", "V7.002": "gemessen: Feuerwerfer zuendet, rund 230 Takte, Schaden nicht getrennt", "V7.003": "gemessen", "V7.004": "gemessen: Mordgrube 18.000 je Grube; Hunde kommen bei 8 Feinden, bei 3 nicht", "V7.005": "gesehen: eine Kuh, wenige Faelle", "V7.006": "gemessen: 275 Takte je Feld, Zuschuetten nur beim fremden Graben, rund 220 Takte", "V7.007": "Leiter gemessen, Turm gesehen", "V7.008": "gemessen: Eingang 66, 48 Takte je Feld, Ziel faellt, Gang wird Grube", "V7.009": "gemessen", "V7.010": "gemessen auf der Mauer", "V7.011": "gesehen: Zustand wechselt, Durchgang offen"}
 
 
 def status(r):
