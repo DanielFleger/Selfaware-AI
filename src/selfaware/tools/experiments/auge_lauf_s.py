@@ -869,17 +869,74 @@ def sonder_g2(l):
     return (("graben", graben, 40, 8), ("leiter", leiter, 30, 16), ("kuh", kuh, 36, 8), ("hunde", hunde, 20, 8), ("pech", pech, 34, 8), ("oel", oel, 24, 8), ("tunnel", tunnel, 30, 16))
 
 
+def burgbereich(l, sp=1, innen=14, aussen=40):
+    """Burgbauten (Mauer, Graben, Pechgraben, Kaefig, Turm) gehen im Gefecht nur nahe der eigenen Burg (checkBuildingCanBePlacedHere: getCastleBuildRangeForMapSize, probe_burgbereich.txt). Innen 14 Felder Abstand zum Lord, damit er nicht eingreift."""
+    lord = next(e for e in l.s.einheiten_alle() if e["typ"] == 55 and e["besitzer"] == sp)
+
+    def maske(frei):
+        ys, xs = np.indices(frei.shape)
+        d = np.maximum(np.abs(xs - lord["x"]), np.abs(ys - lord["y"]))
+        return frei & (d >= innen) & (d <= aussen)
+    return maske
+
+
+def sonder3(l):
+    """Im Editor gilt der Burgbereich nicht: Leiter, Belagerungsturm, Tunnel, Tor und Schuetzen auf der Mauer."""
+    d = {z[0]: z for z in sonder_g2(l)}
+
+    def hoehe(x, y):
+        """Im ersten Durchgang stand die Mauer nicht (Burgbereich), die Treffer auf 42 und 46 Felder sagten also nichts."""
+        mauer = [{"player": 1, "spielbefehl": {"nr": 25, "werte": [x + 3, y + 3, x + 9, y + 3, 25, 13]}}, {"player": 1, "spielbefehl": {"nr": 25, "werte": [x + 2, y + 3, x + 2, y + 3, 27, 13]}}]
+        wer = [dict(_e("laeufer", 22, x, y + i), paar=i, abstand=a) for i, a in enumerate((38, 42, 46, 50))]
+        ziele = [dict(_e("ziel", 59, x + 6 + a, y + 1 + 2 * i, 2), paar=i) for i, a in enumerate((38, 42, 46, 50))]
+        return [], wer + ziele, mauer, lambda: [_angriff(wer, lauf=[x + 6, y + 3])], [(400, lambda: [_angriff([w], ziel=z["nr"]) for w, z in zip(wer, ziele)])], [(x + 6, y + 3), (x + 2, y + 3)]
+    return (d["leiter"], ("turmgeraet", p_turmgeraet, 30, 12), d["tunnel"], ("hoehe", hoehe, 64, 10), ("tor", p_tor, 30, 10))
+
+
+def sonder3_g(l):
+    """Im Gefecht und im Burgbereich von Spieler 1: Graben und Hunde."""
+    d = {z[0]: z for z in sonder_g2(l)}
+
+    def graben(x, y):
+        wer = [_e("graeber", 71, x + 2 + i, y + 4) for i in range(3)]
+        plan = [{"player": 1, "spielbefehl": {"nr": 21, "werte": [x + 11, y + 4, 0, 0x40000000, 0]}}]
+        return [], wer, plan, lambda: [_angriff(wer, art=6, a=x + 11, b=y + 4)], [(2000, lambda: [_angriff(wer, art=7, a=x + 11, b=y + 4)])], [(x + 10 + i, y + 3 + j) for i in range(3) for j in range(3)]
+    return (("graben", graben, 20, 8), d["hunde"])
+
+
+def sonder4_g(l):
+    """Pechgraben von Spieler 1 im Burgbereich, sein Bogenschuetze zuendet ihn an, ein Pikenier von Spieler 2 steht darauf. Allein, weil der Schuetze sonst auf alles schiesst."""
+    s = l.s
+
+    def pech(x, y):
+        baue = [{"player": 1, "baue": {"mapper": 99, "x": x + 10 + i, "y": y + 4, "groesse": 1, "richtung": 15}} for i in range(5)]
+        schuetze = _e("schuetze", 22, x + 12, y + 1)
+        opfer = _e("opfer", 25, x + 2, y + 4, 2)
+
+        def anzuenden():
+            nah = [g for g in s.pech_liste(1) if abs(g["y"] - (y + 4)) <= 1 and x + 8 <= g["x"] <= x + 16]
+            return [_angriff([schuetze], art=34, a=nah[len(nah) // 2]["nr"], b=nah[len(nah) // 2]["uid"])] if nah else []
+        return [], [schuetze, opfer], baue, lambda: [_angriff([opfer], 2, lauf=[x + 12, y + 4])], [(250, anzuenden)]
+    return (("pech", pech, 24, 8),)
+
+
 SONDER_G = (("graben", p_graben, 24, 8), ("leiter", p_leiter, 30, 16), ("turmgeraet", p_turmgeraet, 30, 12), ("schild", p_schild, 34, 10), ("hoehe", p_hoehe, 60, 6), ("tor", p_tor, 30, 10), ("oel", p_oel, 24, 8))
 SONDER_WAREN = ((4, 2000), (7, 500))  # Stein fuer Mauern, Pech fuer das Oel: Im Gefecht kosten Spielbefehle Waren, der Start reicht nicht
 SONDER2 = (("leiter", p_leiter, 30, 16), ("turmgeraet", p_turmgeraet, 30, 12), ("tunnel", p_tunnel, 28, 10), ("schild", p_schild, 34, 10), ("hoehe", p_hoehe, 60, 6), ("tor", p_tor, 30, 10), ("oel", p_oel, 24, 6))
 
 
-def szene_sonder(l, name, posten):
+def szene_sonder(l, name, posten, frei_maske=None, rand=SONDER_ABSTAND, raeumen=False):
     """Die Sonderfaelle, weit auseinander. Jeder Posten bekommt seine Befehle in drei Stufen: Spielbefehle davor, Befehle beim Start, Befehle nach dem Einsteigen. Ein Posten, der keinen Platz findet oder dessen Gebaeude nicht steht, ist ein Fund und haelt die anderen nicht auf."""
     k, s = l.k, l.s
     lk.anhalten(l)
+    if raeumen:
+        abraeumen(l)  # die 6 Bogenschuetzen vom Start schiessen sonst auf alles
+    fern, s.fern = s.fern, 0 if frei_maske else s.fern
     frei, _, _ = s.raster()
-    orte = packen(frei, [(b, h) for _, _, b, h in posten], rand=SONDER_ABSTAND)
+    s.fern = fern
+    if frei_maske:
+        frei = frei_maske(frei)
+    orte = packen(frei, [(b, h) for _, _, b, h in posten], rand=rand)
     gebaeude, einheiten, davor, jetzt, stufen, karte, fehlt = [], [], [], [], [], [], []
     for (n, f, b, h), o in zip(posten, orte):
         if o is None:
@@ -1074,6 +1131,9 @@ SZENEN = {
     "sonder2": lambda l: szene_sonder(l, "sonder2", SONDER2),
     "sonder_g": lambda l: szene_sonder(l, "sonder_g", SONDER_G),
     "sonder2_g": lambda l: szene_sonder(l, "sonder2_g", sonder_g2(l)),
+    "sonder3": lambda l: szene_sonder(l, "sonder3", sonder3(l)),
+    "sonder3_g": lambda l: szene_sonder(l, "sonder3_g", sonder3_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),
+    "sonder4_g": lambda l: szene_sonder(l, "sonder4_g", sonder4_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),
     "gebaeude_nah": Szene("gebaeude_nah", lf.TEMPO_JEDER_TAKT, True, GRENZE_NAH_GEBAEUDE, aufbau_gebaeude_nah, befehle_gebaeude_nah, treffer_noetig=False),
     "laufen_trupp_g": Szene("laufen_trupp_g", 200, False, GRENZE_TRUPP, lambda l: aufbau_laufen(l, OHNE_LORD), befehle_laufen_trupp, alle_am_ziel, treffer_noetig=False),
     "reichweite_g": Szene("reichweite_g", 200, False, GRENZE_BAHN, lambda l: aufbau_reichweite(l, OHNE_LORD), befehle_auf_partner),

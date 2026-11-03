@@ -626,6 +626,62 @@ def test_zweiter_durchgang_sonderfaelle_wie_der_code_es_verlangt(tmp_path):
     assert an[34]["player"] == 2 and an[34]["angriff"]["a"] == 7 and an[34]["angriff"]["b"] == 52
 
 
+def lauf_im_gefecht(tmp_path):
+    g = Spiel(tmp_path)
+    g.einheiten = [{"nr": 900, "uid": 900, "typ": 55, "besitzer": 1, "x": 150, "y": 150, "leben": 100}]
+    l = lauf_von(g)
+    l.gefecht = True
+    return g, l
+
+
+def test_burgbereich_nur_nahe_der_eigenen_burg():
+    class L:
+        class s:
+            @staticmethod
+            def einheiten_alle():
+                return [{"typ": 55, "besitzer": 1, "x": 100, "y": 100}, {"typ": 55, "besitzer": 2, "x": 300, "y": 300}]
+    m = ls.burgbereich(L)(np.ones((400, 400), dtype=bool))
+    assert not m[100, 100] and not m[100, 113] and m[100, 114] and m[100, 140] and not m[100, 141] and not m[300, 300]
+
+
+def test_graben_und_hunde_im_burgbereich_von_spieler_1(tmp_path):
+    g, l = lauf_im_gefecht(tmp_path)
+    e = ls.SZENEN["sonder3_g"](l)
+    assert e["kein_platz"] == [] and any(x["typ"] == 55 for x in g.einheiten)  # der Lord bleibt
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    for k in plan["karte"]:
+        assert 14 <= max(abs(k["x"] - 150), abs(k["y"] - 150)) <= 40
+    p = next(c["spielbefehl"]["werte"] for c in g.log if isinstance(c, dict) and c.get("spielbefehl", {}).get("nr") == 21)
+    assert p[3:] == [0x40000000, 0]
+    arten = [c["angriff"].get("art") for c in g.log if isinstance(c, dict) and "angriff" in c]
+    assert arten.index(6) < arten.index(7)
+    assert any(c.get("spielbefehl", {}).get("nr") == 74 for c in g.log if isinstance(c, dict))
+
+
+def test_pech_von_spieler_1_und_der_gegner_steht_darauf(tmp_path):
+    g, l = lauf_im_gefecht(tmp_path)
+    e = ls.SZENEN["sonder4_g"](l)
+    assert e["kein_platz"] == []
+    b = [c for c in g.log if isinstance(c, dict)]
+    assert sum(1 for c in b if "baue" in c and c["player"] == 1) == 5
+    an = next(c for c in b if c.get("angriff", {}).get("art") == 34)
+    assert an["player"] == 1
+    lauf = next(c for c in b if "lauf" in c.get("angriff", {}))
+    assert lauf["player"] == 2
+
+
+def test_hoehe_mit_treppe_mauer_und_leiter_der_abstaende(tmp_path):
+    g = Spiel(tmp_path)
+    e = ls.SZENEN["sonder3"](lauf_von(g))
+    assert e["kein_platz"] == [] and e["nicht_gesetzt"] == []
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    wer = {x["paar"]: x for x in plan["einheiten"] if x.get("posten") == "hoehe" and x["rolle"] == "laeufer"}
+    ziel = {x["paar"]: x for x in plan["einheiten"] if x.get("posten") == "hoehe" and x["rolle"] == "ziel"}
+    assert [wer[i]["abstand"] for i in range(4)] == [38, 42, 46, 50] and all(ziel[i]["x"] == plan["karte"][3]["x"] + 6 + wer[i]["abstand"] for i in range(4))
+    mapper = [c["spielbefehl"]["werte"][4] for c in g.log if isinstance(c, dict) and c.get("spielbefehl", {}).get("nr") == 25]
+    assert 27 in mapper and 25 in mapper
+
+
 def test_spielbefehle_verschiedener_spieler_laufen_in_verschiedenen_takten(tmp_path):
     g = Spiel(tmp_path)
     l = lauf_von(g)

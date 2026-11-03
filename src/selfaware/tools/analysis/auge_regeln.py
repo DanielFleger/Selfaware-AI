@@ -9,6 +9,7 @@ Ergebnis: <aufzeichnung>.regeln.json, je Paar und Richtung. Die Tabellen kommen 
 import argparse
 import collections
 import json
+import re
 import sys
 
 import numpy as np
@@ -666,7 +667,7 @@ def main(argv=None):
         return 0
     plan = json.load(open(a.aufzeichnung + ".plan.json", encoding="utf-8"))
     reihen, tab = reihen_lesen(a.aufzeichnung, Feldkarte.laden(feldliste=FELDLISTE))
-    art = plan["szene"].removesuffix("_g").removesuffix("_pfeil").removesuffix("2").removesuffix("1")
+    art = re.sub(r"\d+$", "", plan["szene"].removesuffix("_g").removesuffix("_pfeil"))
     if art in ("last", "lord") or art.startswith("schlacht"):
         m = masse_werten(reihen, tab)
         json.dump({"szene": plan["szene"], "von": plan["von"], "bis": plan["bis"], **m}, open(a.aufzeichnung + ".regeln.json", "w", encoding="utf-8"), ensure_ascii=False)
