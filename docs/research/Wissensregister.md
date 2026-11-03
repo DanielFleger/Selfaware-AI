@@ -386,3 +386,5 @@ Tick 4.731-7.737, Aufloesung 14,5 Ticks (`daten/lage_ablauf_fein_20261006_224521
 | K8 | Das Wellen-System (`attackInfo.value3Array01` und mehr) läuft im Gefecht nicht, die KI dort über `updateAIBehaviour` | getestet | alle Felder 0 über 133.512 Takte; Code `aiControlNonSkirmishUnitMovement` |
 | K9 | Die KI zahlt beim Anwerben dieselben Liga-Preise, das Gold fällt, wenn der Bauer die neue Art bekommt | getestet | `punkte_rechnung9.txt` |
 | K10 | Platz 0 der Einheiten ist ein Merkplatz; Zählungen ab Platz 1, sonst entstehen Scheinereignisse (788 von 1.777 Zielwechseln) | getestet | `punkte_rechnung8.txt` |
+| S1 | Nahkampf: Lebensverlust gleich Tabelle Schläger gegen Opfer mal Angstfaktor, jeden Takt. 4.556 Fälle aus Lauf K, keiner ungeklärt (9 traf zusätzlich ein Geschoss). Angstfaktor Stufe 1 gibt beim Ritter 162 statt 150, also 8 statt der 5 Prozent aus der Datei | getestet | `lauf_s_plan/regeln_aus_lauf_k.txt` |
+| S2 | Prüfrunde: `(totalGameTicksUnk + 1) & Maske` gleich `fixedRng & Maske`, auf den Takt vorhersagbar. 54.497 Fälle aus Lauf K, keiner ungeklärt | getestet | `lauf_s_plan/regeln_aus_lauf_k.txt` |
