@@ -150,6 +150,8 @@ FAELLE = [
     ("S: Dichte zaehlt nur ein Feld", R, "dicht = max(dicht, int(np.unique(felder, return_counts=True)[1].max()))", "dicht = 1"),
     ("S: Ankunft immer", R, "neu = (ankunft < 0) & da & (np.maximum(np.abs(mx - tx), np.abs(my - ty)) <= radius)", "neu = (ankunft < 0) & da"),
     ("S: Katapult nicht aufs Feld", R, " or (\"x\" in z and _abstand(*x[\"punkt\"], z[\"x\"] * 8 + 4, z[\"y\"] * 8 + 4) <= 24)", ""),
+    ("S: Kanal ueberschreibt den Spieler", "src/selfaware/tools/experiments/auge_lauf_f.py", "[{\"player\": 1, **c, \"id\": self._neue_id()} for c in cmds]", "[dict(c, player=1, id=self._neue_id()) for c in cmds]"),
+    ("S: Gefecht ohne Waren", S, "    if l.gefecht:\n        davor = [{\"player\": p, \"ware\":", "    if False:\n        davor = [{\"player\": p, \"ware\":"),
     ("S: Mischen erlaubt", S, "    if not gefecht and any(z.endswith(\"_g\") for z in szenen):\n", "    if False:\n"),
     ("S: Test darf einen Lauf starten", S, "    if os.environ.get(\"PYTEST_CURRENT_TEST\"):\n", "    if False:\n"),
     ("S: Spieler 2 ohne Startplatz", S, ", \"startliste\": list(STARTPLAETZE)}, 5.0)", "}, 5.0)"),

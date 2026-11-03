@@ -1040,7 +1040,7 @@ class EchterKanal:
         raise Fehler(f"keine Antwort auf {kennung}")
 
     def liste(self, cmds, warte=1.0):
-        return self._sende({"befehle": [dict(c, player=1, id=self._neue_id()) for c in cmds]}, warte)
+        return self._sende({"befehle": [{"player": 1, **c, "id": self._neue_id()} for c in cmds]}, warte)  # 03.11.: dict(c, player=1) ueberschrieb den Spieler, alle Befehle fuer Spieler 2 liefen als Spieler 1
 
     def platzkarte(self, mapper, groesse, x0, y0, x1, y1, sp=1):
         """Spielpruefung je Stelle des Fensters: "+" erlaubt. Der Haken wartet auf die Fertig-Zeile im Log, nicht auf eine feste Zeit."""

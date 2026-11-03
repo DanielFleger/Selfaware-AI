@@ -557,6 +557,28 @@ def test_gefecht_erster_rahmen_alt_wird_gezaehlt_nicht_versteckt():
     assert not next(x for x in ar.nahkampf_werten(r3, PAAR, TAB, erster_rahmen_alt=True) if x["opfer"] == 24)["erster_doppelt"]
 
 
+def test_kanal_behaelt_den_spieler_des_befehls():
+    k = lf.EchterKanal.__new__(lf.EchterKanal)
+    k._sende = lambda d, w: d["befehle"]
+    k._neue_id = lambda: 7
+    assert k.liste([{"player": 2, "x": 1}, {"x": 2}]) == [{"player": 2, "x": 1, "id": 7}, {"player": 1, "x": 2, "id": 7}]
+
+
+def test_gefecht_sonderfaelle_bekommen_waren_und_alle_posten(tmp_path):
+    g = Spiel(tmp_path)
+    l = lauf_von(g)
+    l.gefecht = True
+    e = ls.SZENEN["sonder_g"](l)
+    assert e["kein_platz"] == []
+    waren = [c for c in g.log if isinstance(c, dict) and "ware" in c]
+    assert len(waren) == 4 and {c["player"] for c in waren} == {1, 2}
+    i = g.log.index(waren[0])
+    assert all(g.log.index(c) > i for c in g.log if isinstance(c, dict) and "spielbefehl" in c)  # erst die Waren, dann die Mauern
+    assert {"graben", "leiter", "turmgeraet", "schild", "hoehe", "tor", "oel"} == {k["posten"] for k in json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))["karte"]}
+    arten = [c["angriff"].get("art") for c in g.log if isinstance(c, dict) and "angriff" in c]
+    assert arten.index(15) < arten.index(20)  # das Oel holen, dann erst werfen
+
+
 def test_packen_legt_dicht_und_sperrt_den_rand():
     frei = np.zeros((400, 400), dtype=bool)
     frei[10:30, 10:50] = True

@@ -127,7 +127,7 @@ def gebaeude_lesen(pfad, karte):
     auf = Aufzeichnung(pfad)
     ib = auf.namen.index("DAT_BuildingsState")
     bb = auf.bereiche[ib][1]
-    ad = {k: karte.adresse("DAT_BuildingsState", "buildings[]." + f) for k, f in (("leben", "currentHealth"), ("hoechst", "maxHealth"), ("da", "logicalState"))}
+    ad = {k: karte.adresse("DAT_BuildingsState", "buildings[]." + f) for k, f in (("leben", "currentHealth"), ("hoechst", "maxHealth"), ("da", "logicalState"), ("tor", "gateState"))}
     aus = []
     for r, p, _ in auf.staende():
         if r.bereich != ib or not r.rein:
@@ -512,7 +512,11 @@ def sonder_werten(reihen, reihen_g, geschosse, plan):
         for g in plan["gebaeude"]:
             if g.get("posten") == n and "nr" in g:
                 v = _gebaeude_verlauf(reihen_g, g["nr"])
-                zeile["gebaeude"].append({"name": g["name"], "leben": v["leben"], "hoechst": v["hoechst"], "verluste": dict(collections.Counter(v["verluste"]).most_common(4)), "erster_verlust": v["erster_verlust"] - reihen[0][0] if v["erster_verlust"] is not None else None, "weg": v["weg"] - reihen[0][0] if v["weg"] is not None else None})
+                tor = []
+                for t, s in reihen_g:
+                    if not tor or tor[-1][1] != int(s["tor"][g["nr"]]):
+                        tor.append((t - reihen[0][0], int(s["tor"][g["nr"]])))
+                zeile["gebaeude"].append({"name": g["name"], "tor": tor[:8], "leben": v["leben"], "hoechst": v["hoechst"], "verluste": dict(collections.Counter(v["verluste"]).most_common(4)), "erster_verlust": v["erster_verlust"] - reihen[0][0] if v["erster_verlust"] is not None else None, "weg": v["weg"] - reihen[0][0] if v["weg"] is not None else None})
         aus.append(zeile)
     return aus
 
@@ -643,7 +647,7 @@ def main(argv=None):
     elif art == "sonder":
         k_ = Feldkarte.laden(feldliste=FELDLISTE)
         zeilen = sonder_werten(reihen, gebaeude_lesen(a.aufzeichnung, k_), geschosse_lesen(a.aufzeichnung, k_), plan)
-        print("Nicht gesetzt:", plan.get("nicht_gesetzt"), "kein Platz:", plan.get("kein_platz"))
+        print("Nicht gesetzt:", plan.get("nicht_gesetzt"), "kein Platz:", plan.get("kein_platz"), "Grabenfelder am Ende:", plan.get("graben_felder_am_ende"))
     elif art == "schussweite":
         zeilen = schussweite_werten(geschosse_lesen(a.aufzeichnung, Feldkarte.laden(feldliste=FELDLISTE)), plan["einheiten"])
         print("Grenzen je Art:", schussweite_grenzen(zeilen))

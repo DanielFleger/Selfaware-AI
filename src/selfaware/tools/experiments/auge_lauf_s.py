@@ -750,10 +750,11 @@ def p_schild(x, y):
 
 
 def p_hoehe(x, y):
-    g = [_g(74, x + 2, y + 2, spieler=1)]
-    wer = [_e("schuetze", 22, x, y + 3 + i) for i in range(2)]
-    ziele = [_e("ziel", 59, x + 3 + d, y + 3, 2) for d in (44, 52)]
-    return g, wer + ziele, [], lambda: [_angriff(wer, lauf=[x + 3, y + 3])], lambda: [_angriff(wer[:1], ziel=ziele[0]["nr"]), _angriff(wer[1:], ziel=ziele[1]["nr"])]
+    """Schuetzen auf der Mauer: Auf einen einzelnen Turm fanden sie im Editor keinen Weg (Lauf 20:50), darum Treppe und Mauer. Am Boden reicht der Pfeil bis 40 Felder."""
+    mauer = [{"player": 1, "spielbefehl": {"nr": 25, "werte": [x + 3, y + 3, x + 9, y + 3, 25, 13]}}, {"player": 1, "spielbefehl": {"nr": 25, "werte": [x + 2, y + 3, x + 2, y + 3, 27, 13]}}]
+    wer = [_e("schuetze", 22, x, y + 2 + i) for i in range(3)]
+    ziele = [_e("ziel", 59, x + 6 + d, y + 3, 2) for d in (38, 42, 46)]
+    return [], wer + ziele, mauer, lambda: [_angriff(wer, lauf=[x + 6, y + 3])], lambda: [_angriff([w], ziel=z["nr"]) for w, z in zip(wer, ziele)]
 
 
 def p_tor(x, y):
@@ -763,12 +764,16 @@ def p_tor(x, y):
 
 
 def p_oel(x, y):
+    """Ein Ingenieur holt Oel erst in der Oelschmelze (Anweisung 15, Code giveTribeAnInstruction), ohne sie blieb er stehen (Lauf 20:50)."""
+    g = [_g(28, x + 6, y + 1, spieler=1)]
     leute = [_e("oel", 30, x + 2, y + 3 + i) for i in range(2)]
-    opfer = _e("opfer", 24, x + 12, y + 3, 2)
-    return [], leute + [opfer], [], lambda: [_angriff(leute, art=20, a=x + 12, b=y + 3)], None
+    opfer = _e("opfer", 24, x + 18, y + 3, 2)
+    return g, leute + [opfer], [], lambda: [_angriff(leute, art=15, a=g[0]["nr"], b=g[0]["uid"])] if "nr" in g[0] else [], lambda: [_angriff(leute, art=20, a=x + 18, b=y + 3)]
 
 
 SONDER1 = (("feuer", p_feuer, 24, 12), ("pech", p_pech, 24, 8), ("mordloch", p_mordloch, 24, 6), ("hunde", p_hunde, 20, 8), ("kuh", p_kuh, 36, 8), ("graben", p_graben, 24, 8))
+SONDER_G = (("graben", p_graben, 24, 8), ("leiter", p_leiter, 30, 16), ("turmgeraet", p_turmgeraet, 30, 12), ("schild", p_schild, 34, 10), ("hoehe", p_hoehe, 60, 6), ("tor", p_tor, 30, 10), ("oel", p_oel, 24, 8))
+SONDER_WAREN = ((4, 2000), (7, 500))  # Stein fuer Mauern, Pech fuer das Oel: Im Gefecht kosten Spielbefehle Waren, der Start reicht nicht
 SONDER2 = (("leiter", p_leiter, 30, 16), ("turmgeraet", p_turmgeraet, 30, 12), ("tunnel", p_tunnel, 28, 10), ("schild", p_schild, 34, 10), ("hoehe", p_hoehe, 60, 6), ("tor", p_tor, 30, 10), ("oel", p_oel, 24, 6))
 
 
@@ -794,6 +799,8 @@ def szene_sonder(l, name, posten):
             spaeter.append(sp)
         karte.append({"posten": n, "x": o[0], "y": o[1], "breite": b, "hoehe": h})
     nicht_gesetzt = gebaeude_setzen(l, gebaeude)
+    if l.gefecht:
+        davor = [{"player": p, "ware": {"typ": t, "menge": m}} for p in SPIELER_S for t, m in SONDER_WAREN] + davor
     if davor:
         k.liste(davor, lf.KANAL)
         lk.aufnahme_im_stand_ohne(l, lf.TEMPO_JEDER_TAKT)
@@ -810,8 +817,9 @@ def szene_sonder(l, name, posten):
     b = lk.anhalten(l)
     pfad = l.rek.pfad
     stand = l.rek.beenden()
+    graben = len(s.felder_mit_bit(lf.BIT_GRABEN)) if hasattr(s, "felder_mit_bit") else None
     with open(pfad + ".plan.json", "w", encoding="utf-8") as f:
-        json.dump({"szene": name, "von": a, "bis": b, "tempo": 100, "einheiten": einheiten, "gebaeude": gebaeude, "karte": karte, "nicht_gesetzt": [z["name"] for z in nicht_gesetzt], "kein_platz": fehlt}, f, ensure_ascii=False)
+        json.dump({"szene": name, "von": a, "bis": b, "tempo": 100, "einheiten": einheiten, "gebaeude": gebaeude, "karte": karte, "nicht_gesetzt": [z["name"] for z in nicht_gesetzt], "kein_platz": fehlt, "graben_felder_am_ende": graben}, f, ensure_ascii=False)
     abr = abraeumen(l)
     return {"szene": name, "von": a, "bis": b, "einheiten": len(einheiten), "nicht_gesetzt": [z["name"] for z in nicht_gesetzt], "kein_platz": fehlt, "abraeumen_takte": abr, "stand": stand, "pfad": pfad}
 
@@ -960,6 +968,7 @@ SZENEN = {
     "punkt": szene_punkt,
     "sonder1": lambda l: szene_sonder(l, "sonder1", SONDER1),
     "sonder2": lambda l: szene_sonder(l, "sonder2", SONDER2),
+    "sonder_g": lambda l: szene_sonder(l, "sonder_g", SONDER_G),
     "gebaeude_nah": Szene("gebaeude_nah", lf.TEMPO_JEDER_TAKT, True, GRENZE_NAH_GEBAEUDE, aufbau_gebaeude_nah, befehle_gebaeude_nah, treffer_noetig=False),
     "laufen_trupp_g": Szene("laufen_trupp_g", 200, False, GRENZE_TRUPP, lambda l: aufbau_laufen(l, OHNE_LORD), befehle_laufen_trupp, alle_am_ziel, treffer_noetig=False),
     "reichweite_g": Szene("reichweite_g", 200, False, GRENZE_BAHN, lambda l: aufbau_reichweite(l, OHNE_LORD), befehle_auf_partner),
