@@ -64,3 +64,36 @@ Die 3 Abweichungen:
 
 **Noch nicht beantwortet:** Trefferquote und Flugzeit (dafür müssen die Geschosse selbst ausgewertet werden), welches Ziel ein Schütze wählt, Reichweite. Das braucht eine Szene, in der jeder Schütze nur ein Ziel hat.
 
+## Szene Lesen unter Last, 03.11. 19:37
+
+**Daniels Vorgabe hält: Mit 2.412 Einheiten im Nahkampf zieht das Lesen auf keiner Stufe messbar Tempo ab, und das Spiel hält trotz der Einheiten rund 825 Takte je Sekunde.** Im Wechsel ohne und mit Lesen. Der Schaden Pikenier gegen Pikenier stand dabei auf 1 und ist zurück, nachgelesen. Beleg: `last.plan.json`.
+
+| Stufe | ohne Lesen | mit Lesen | Einheiten |
+|---|---|---|---|
+| 1000 | 810,7, 824,8, 811,7, 824,4, 824,9, 827,8 | 771,2, 821,2, 821,5, 825,1, 813,5 | 2.412 |
+| 500 | 499,4, 499,6 | 498,1 | 2.407 |
+| 200 | 197,5, 199,1 | 199,1 | 2.407 |
+| 100 | 98,7, 98,4 | 98,5 | 2.407 |
+| 40 | 39,2, 39,8 | 40,0 | 2.390 |
+
+Auswertung `a4_wechselprobe`: Kein Abzug ueber der Grenze. Stufe 40: Abzug -0.51, haette ab 1.99 Takten je Sekunde angeschlagen; Stufe 100: Abzug 0.02, haette ab 1.96 Takten je Sekunde angeschlagen; Stufe 200: Abzug -0.77, haette ab 1.99 Takten je Sekunde angeschlagen; Stufe 500: Abzug 1.37, haette ab 1.99 Takten je Sekunde angeschlagen; Stufe 1000: Abzug -0.41, haette ab 9.05 Takten je Sekunde angeschlagen
+
+Grenze der Aussage: Auf Stufe 500 bis 40 je nur eine Phase mit Lesen. Die Stufen 1 und 10 sind nicht gemessen, dort ist das Lesen fertig, bevor der nächste Takt kommt. Die Einheiten stehen im Nahkampf, Wegsuche belastet erst der Marsch.
+
+## Szenen Schlachten, 03.11. 19:37
+
+Schachbrett, kein Befehl, Tempo 1000. Es zählt die Lage beim Ende, das Ende selbst steht im Protokoll (`schlachten_last.protokoll.jsonl`).
+
+| Szene | Takte bis zum Ende | Takte je Sekunde |
+|---|---|---|
+| 20 gegen 20, Nahkampf gemischt | 1.667 | 837,5 |
+| 1.000 gegen 1.000, Nahkampf gemischt | 5.666 | 747,5 |
+| 500 Schützen gegen 500 Nahkampf | 634 | 859,3 |
+| 500 Europäer gegen 500 Araber | 635 | 742,7 |
+
+Dass die beiden Schlachten mit Feuerwerfern (A_FIRETHROWER 76) nach rund 635 Takten enden, fällt auf; die Ursache ist nicht ausgewertet, vermutlich das Feuer im dichten Schachbrett. Die Reihen mit 100 Einheiten sind nicht gefahren.
+
+## Noch offen
+
+Gegenprobe im Gefecht, Reichweite, Flugzeit, Trefferquote, Haltung, Geräte und Belagerung, Angriff auf einen Punkt, Sonderfälle, Lauf-K-Stand. A1, A2, A3, A9, A10, A12 über diese Aufzeichnungen sind noch nicht gerechnet.
+
