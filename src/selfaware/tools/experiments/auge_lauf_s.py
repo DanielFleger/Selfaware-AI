@@ -74,7 +74,13 @@ KLASSEN = (1, 41, 46, 74)  # Huette, Burg (kein Leben), kleines Tor, Turm. Mauer
 ANDERE_GERAETE = (40, 41, 61, 77, 59)
 ABSTAND_BELAGERUNG, GRENZE_BELAGERUNG = 16, 1000  # 8 Steine Katapult
 NAH_GEGEN_GEBAEUDE = (24, 25, 26, 27, 28, 37, 55, 71, 73, 75)  # die 10 der Liste V4b
-NAH_ZIELE = (1, 10, 45, 46, 74)  # Huette, Lager (kein Leben), grosses und kleines Tor, Turm. Holztor und Mauern fehlen hier, siehe Plan
+NAH_ZIELE = (1, 41, 45, 46, 74)  # Huette, Burg (kein Leben), grosses und kleines Tor, Turm. Das Lager liess sich nicht setzen (Lauf 20:41), Holztor und Mauern fehlen hier
+GERAETE_WEITE = {39: 57, 40: 68, 41: 54, 61: 68, 77: 39}  # Felder, Tabelle 0x5B6358 je Geschossart. Beim Pfeil stimmte sie nicht
+GRENZE_GERAETE_WEITE = 1000  # 3 Schuss Trebuchet (296 Takte)
+PUNKT_FAELLE = (("feld", 10), ("feld", 100), ("feld", 500), ("tor", 100), ("tor", 500), ("turm", 100), ("luecke", 100), ("luecke", 500))  # Liste V6
+PUNKT_WEG, GRENZE_PUNKT = 30, 3000  # Felder bis zum Ziel; 30 Felder zu 12 Takten, mal 8 fuer den Stau bei 500
+GRENZE_SONDER, SONDER_ABSTAND = 3000, 30  # Takte; Abstand der Posten, Feuerwerfer reicht 11, Schuetzen haben ihr Ziel per Befehl
+SONDER_BEMANNEN = 400  # Takte: Geraete waren nach 356 Takten bemannt (Szene besatzung)
 GRENZE_NAH_GEBAEUDE = 300  # Takte auf Tempo 40: Schaden je Schlag, Weg hoechstens 2 Felder
 STARTPLAETZE = (0, 1, 246, 246, 246, 246, 246, 246)  # playerPositionsArray: Platz je Spieler, 246 = keiner
 LORD_RUHE, LORD_WEG = 300, 600  # Takte: Am Anfang geht der Lord von selbst auf die Burg (gemessen 97 bis 197). Weg zum Ring: 10 Felder, 24 Takte je Feld, mal 2
@@ -128,6 +134,24 @@ class SpeicherS(lk.SpeicherK):
         if self.fern:
             frei = fern_maske(frei, self.einheiten_alle(), self.fern)
         return frei, ho[kachel].astype(np.int32), ge[kachel]
+
+
+def packen(frei, masse, rand=2):
+    """Legt Rechtecke (Breite, Hoehe) der Reihe nach an die erste freie Stelle und sperrt sie samt Rand. Die Karte ist zerklueftet, im festen Raster gab es nur 15 Plaetze 40 x 15. Rueckgabe je Eintrag (x, y), None, wenn nichts mehr passt."""
+    belegt = ~frei
+    aus = []
+    for b, h in masse:
+        s = np.zeros((frei.shape[0] + 1, frei.shape[1] + 1), dtype=np.int64)
+        s[1:, 1:] = (~belegt).cumsum(0).cumsum(1)
+        f = s[h:, b:] - s[:-h, b:] - s[h:, :-b] + s[:-h, :-b]
+        ys, xs = np.nonzero(f == b * h)
+        if not len(ys):
+            aus.append(None)
+            continue
+        x, y = int(xs[0]), int(ys[0])
+        belegt[max(0, y - rand):y + h + rand, max(0, x - rand):x + b + rand] = True
+        aus.append((x, y))
+    return aus
 
 
 def fern_maske(frei, einheiten, abstand):
@@ -301,6 +325,10 @@ def aufbau_schussweite(l, faelle=FAELLE_SCHUSSWEITE):
 def befehle_auf_partner(plan, rolle_a="laeufer", rolle_b="ziel"):
     ziele = {e["paar"]: e["nr"] for e in plan["einheiten"] if e["rolle"] == rolle_b}
     return [{"player": 1, "angriff": {"einheiten": [e["nr"]], "ziel": ziele[e["paar"]]}} for e in plan["einheiten"] if e["rolle"] == rolle_a]
+
+
+def befehle_auf_geraet(plan):
+    return befehle_auf_partner(plan, "geraet", "ziel")
 
 
 def aufbau_laufziel(l):
@@ -506,20 +534,23 @@ def aufbau_belagerung(l):
     from selfaware.game.ucp.bauen import NACH_TYP
 
     frei, hoehe, _ = l.s.raster()
-    faelle = [(t, z) for t in ANDERE_GERAETE for z in KLASSEN] + [(39, z) for z in KLASSEN] + [(39, z) for z in sorted(NACH_TYP) if z not in KLASSEN]
-    b, h = 40, 15
-    orte = gitter(frei, hoehe, b, h, b + 2, h + 2, len(faelle))
-    if len(orte) < len(KLASSEN) * (len(ANDERE_GERAETE) + 1):
-        raise Abbruch(f"Nur {len(orte)} Plaetze fuer die Belagerung")
+    rest = sorted((z for z in NACH_TYP if z not in KLASSEN), key=lambda z: -NACH_TYP[z]["b"])  # die grossen zuerst, sonst passen sie nicht mehr
+    faelle = [(t, z) for t in ANDERE_GERAETE for z in KLASSEN] + [(39, z) for z in KLASSEN] + [(39, z) for z in rest]
+    orte = packen(frei, [(3 + ABSTAND_BELAGERUNG + NACH_TYP[z]["b"] + 2, max(NACH_TYP[z]["b"] + 2, 9)) for _, z in faelle], rand=3)
+    if any(o is None for o in orte[:len(KLASSEN) * (len(ANDERE_GERAETE) + 1)]):
+        raise Abbruch(f"Nur {sum(o is not None for o in orte)} Plaetze fuer die Belagerung")
     einheiten, ziele = [], []
-    for i, ((t, z), (x, y)) in enumerate(zip(faelle, orte)):
-        gx, gy = x + 3, y + 7
+    for i, ((t, z), o) in enumerate(zip(faelle, orte)):
+        if o is None:
+            continue
+        x, y = o
+        gx, gy = x + 3, y + 4
         einheiten.append({"rolle": "geraet", "fall": i, "art": "belagern", "soll": BESATZUNG[t], "mann": BESATZUNG[t], "spieler": 1, "typ": t, "x": gx, "y": gy})
-        einheiten += [{"rolle": "ingenieur", "fall": i, "spieler": 1, "typ": 30, "x": x + j % 2, "y": y + 5 + j // 2 * 2} for j in range(BESATZUNG[t])]
+        einheiten += [{"rolle": "ingenieur", "fall": i, "spieler": 1, "typ": 30, "x": x + j % 2, "y": y + 2 + j // 2 * 2} for j in range(BESATZUNG[t])]
         ziele.append({"fall": i, "spieler": 2, "typ": z, "mapper": NACH_TYP[z]["mapper"], "groesse": NACH_TYP[z]["b"], "name": NACH_TYP[z]["laufzeitName"], "x": gx + ABSTAND_BELAGERUNG, "y": y + 1})
     fehlt = gebaeude_setzen(l, ziele)
     faelle_da = {z["fall"] for z in ziele if "nr" in z}
-    return {"einheiten": mit_kontrolle([e for e in einheiten if e["fall"] in faelle_da], frei), "gebaeude": ziele, "nicht_gesetzt": [z["name"] for z in fehlt], "nicht_gefahren": [NACH_TYP[z]["laufzeitName"] for _, z in faelle[len(orte):]]}
+    return {"einheiten": mit_kontrolle([e for e in einheiten if e["fall"] in faelle_da], frei), "gebaeude": ziele, "nicht_gesetzt": [z["name"] for z in fehlt], "nicht_gefahren": [NACH_TYP[z]["laufzeitName"] for (_, z), o in zip(faelle, orte) if o is None]}
 
 
 def befehle_belagerung(plan):
@@ -533,9 +564,9 @@ def aufbau_gebaeude_nah(l):
 
     frei, hoehe, _ = l.s.raster()
     faelle = list(itertools.product(NAH_GEGEN_GEBAEUDE, NAH_ZIELE))
-    orte = gitter(frei, hoehe, 12, 9, 14, 11, len(faelle))
-    if len(orte) < len(faelle):
-        raise Abbruch(f"Nur {len(orte)} Plaetze fuer {len(faelle)} Paare")
+    orte = packen(frei, [(12, 10)] * len(faelle), rand=3)
+    if any(o is None for o in orte):
+        raise Abbruch(f"Nur {sum(o is not None for o in orte)} Plaetze fuer {len(faelle)} Paare")
     einheiten, ziele = [], []
     for i, ((t, z), (x, y)) in enumerate(zip(faelle, orte)):
         einheiten.append({"rolle": "angreifer", "fall": i, "spieler": 1, "typ": t, "x": x, "y": y + 4})
@@ -543,6 +574,246 @@ def aufbau_gebaeude_nah(l):
     fehlt = gebaeude_setzen(l, ziele)
     da = {z["fall"] for z in ziele if "nr" in z}
     return {"einheiten": mit_kontrolle([e for e in einheiten if e["fall"] in da], frei), "gebaeude": ziele, "nicht_gesetzt": [z["name"] for z in fehlt]}
+
+
+def aufbau_geraete_weite(l):
+    """Die Leiter fuer die schiessenden Geraete, je Geraet 5 Abstaende bis etwas ueber den Tabellenwert. Das Ziel ist eine unbemannte Ramme von Spieler 2."""
+    frei, hoehe, _ = l.s.raster()
+    faelle = [(t, d) for t, r in GERAETE_WEITE.items() for d in (r // 2, r * 7 // 10, r * 85 // 100, r, r + 2)]
+    orte = packen(frei, [(d + 8, 9) for _, d in faelle], rand=3)
+    einheiten = []
+    fehlt = []
+    for i, ((t, d), o) in enumerate(zip(faelle, orte)):
+        if o is None:
+            fehlt.append((t, d))
+            continue
+        x, y = o
+        gx, gy = x + 4, y + 4
+        einheiten.append({"rolle": "geraet", "fall": i, "paar": i, "art": "schiessen", "soll": BESATZUNG[t], "mann": BESATZUNG[t], "abstand": d, "spieler": 1, "typ": t, "x": gx, "y": gy})
+        einheiten += [{"rolle": "ingenieur", "fall": i, "spieler": 1, "typ": 30, "x": x + j % 2, "y": y + 2 + j // 2 * 2} for j in range(BESATZUNG[t])]
+        einheiten.append({"rolle": "ziel", "fall": i, "paar": i, "spieler": 2, "typ": 59, "x": gx + d, "y": gy})
+    return {"einheiten": mit_kontrolle(einheiten, frei), "nicht_gefahren": fehlt}
+
+
+def aufbau_punkt(l):
+    """Liste V6, alle 8 zugleich: Bloecke von Speertraegern laufen auf ein freies Feld, greifen ein leeres Tor oder einen Turm an oder muessen durch eine Luecke in der Mauer. Ein Besitzer je Block, die Ziele gehoeren Spieler 2: Kein Beschuss, denn dort steht niemand."""
+    from selfaware.game.ucp.bauen import NACH_TYP
+
+    frei, hoehe, _ = l.s.raster()
+    faelle = []
+    for art, n in PUNKT_FAELLE:
+        s = int(np.ceil(np.sqrt(n / 4))) + 1
+        faelle.append((art, n, s, s + PUNKT_WEG + 8, max(s + 4, 26)))
+    orte = packen(frei, [(b, h) for *_, b, h in faelle], rand=6)
+    if any(o is None for o in orte):
+        raise Abbruch(f"Nur {sum(o is not None for o in orte)} Plaetze fuer {len(faelle)} Punkte")
+    posten, masse, ziele, mauern = [], [], [], []
+    for i, ((art, n, s, b, h), (x, y)) in enumerate(zip(faelle, orte)):
+        mitte = y + h // 2
+        tx, ty = x + s + PUNKT_WEG, mitte
+        rest = n
+        for j in range(s):
+            for m in range(s):
+                k = min(4, rest)
+                if k:
+                    masse.append({"rolle": "masse", "fall": i, "spieler": 1, "typ": 24, "x": x + m, "y": y + (h - s) // 2 + j, "anzahl": k})
+                rest -= k
+        p = {"fall": i, "art": art, "anzahl": n, "x": x, "y": y, "breite": s + 2, "hoehe": h, "ziel": [tx, ty]}
+        if art in ("tor", "turm"):
+            typ = 46 if art == "tor" else 74
+            z = {"fall": i, "spieler": 2, "typ": typ, "mapper": NACH_TYP[typ]["mapper"], "groesse": NACH_TYP[typ]["b"], "name": NACH_TYP[typ]["laufzeitName"], "x": tx, "y": ty - 2}
+            ziele.append(z)
+        if art == "luecke":
+            wx = x + s + PUNKT_WEG // 2
+            p["mauer"] = [wx, y, y + h - 1, mitte]
+            mauern += [{"player": 2, "spielbefehl": {"nr": 25, "werte": [wx, y, wx, mitte - 2, 25, 13]}}, {"player": 2, "spielbefehl": {"nr": 25, "werte": [wx, mitte + 2, wx, y + h - 1, 25, 13]}}]
+        posten.append(p)
+    fehlt = gebaeude_setzen(l, ziele)
+    return {"einheiten": masse, "posten": posten, "gebaeude": ziele, "mauern": mauern, "nicht_gesetzt": [z["name"] for z in fehlt]}
+
+
+def szene_punkt(l):
+    """Die Mauern kommen ueber Spielbefehl 25, der nur im laufenden Spiel wirkt, darum zuerst. Dann erst die Einheiten: Wer zu welchem Block gehoert, sagt der Ort."""
+    k, s = l.k, l.s
+    lk.anhalten(l)
+    plan = aufbau_punkt(l)
+    if plan["mauern"]:
+        k.liste(plan["mauern"], lf.KANAL)
+        lk.aufnahme_im_stand_ohne(l, lf.TEMPO_JEDER_TAKT)
+        l.warte_takte(40)
+        lk.anhalten(l)
+    plan["mauer_felder"] = len(s.felder_mit_bit(lf.BIT_MAUER)) if hasattr(s, "felder_mit_bit") else None
+    setzen_masse(l, plan["einheiten"])
+    alle = [e for e in s.einheiten_alle() if e["besitzer"] == 1 and e["typ"] == 24]
+    bef = []
+    ziele = {z["fall"]: z for z in plan["gebaeude"] if "nr" in z}
+    for p in plan["posten"]:
+        p["nummern"] = [e["nr"] for e in alle if p["x"] <= e["x"] < p["x"] + p["breite"] and p["y"] <= e["y"] < p["y"] + p["hoehe"]]
+        if p["art"] in ("tor", "turm") and p["fall"] in ziele:
+            bef.append({"player": 1, "angriff": {"einheiten": p["nummern"], "gebaeude": ziele[p["fall"]]["nr"]}})
+        else:
+            bef.append({"player": 1, "angriff": {"einheiten": p["nummern"], "lauf": list(p["ziel"])}})
+    k.liste(bef, lf.KANAL)
+    a = lk.aufnahme_im_stand(l, "punkt", 200, False)
+    l.warte_takte(GRENZE_PUNKT)
+    b = lk.anhalten(l)
+    pfad = l.rek.pfad
+    stand = l.rek.beenden()
+    with open(pfad + ".plan.json", "w", encoding="utf-8") as f:
+        json.dump({"szene": "punkt", "von": a, "bis": b, "tempo": 200, **plan}, f, ensure_ascii=False)
+    abr = abraeumen(l)
+    return {"szene": "punkt", "von": a, "bis": b, "bloecke": [len(p["nummern"]) for p in plan["posten"]], "mauer_felder": plan["mauer_felder"], "nicht_gesetzt": plan["nicht_gesetzt"], "abraeumen_takte": abr, "stand": stand, "pfad": pfad}
+
+
+def _g(typ, x, y, spieler=2, **f):
+    from selfaware.game.ucp.bauen import NACH_TYP
+    return {"spieler": spieler, "typ": typ, "mapper": NACH_TYP[typ]["mapper"], "groesse": NACH_TYP[typ]["b"], "name": NACH_TYP[typ]["laufzeitName"], "x": x, "y": y, **f}
+
+
+def _e(rolle, typ, x, y, spieler=1):
+    return {"rolle": rolle, "typ": typ, "x": x, "y": y, "spieler": spieler}
+
+
+def _ing(x, y, n):
+    return [_e("ingenieur", 30, x + j % 2, y + j // 2) for j in range(n)]
+
+
+def _angriff(wer, spieler=1, **f):
+    return {"player": spieler, "angriff": {"einheiten": [e["nr"] for e in wer], **f}}
+
+
+# Die Posten der Liste V7. Jeder: Breite, Hoehe, und eine Funktion (x, y) -> Gebaeude, Einheiten, Befehle davor (Spielbefehle), Befehle(nachher), Befehle nach dem Einsteigen
+def p_feuer(x, y):
+    g = [_g(1, x + 10, y + 2), _g(1, x + 15, y + 2)]
+    ft, opfer = _e("taeter", 76, x + 1, y + 4), _e("opfer", 25, x + 12, y + 8, 2)
+    return g, [ft, opfer], [], lambda: [_angriff([ft], gebaeude=g[0]["nr"])] if "nr" in g[0] else [], None
+
+
+def p_pech(x, y):
+    g = [_g(68, x + 10 + i, y + 4) for i in range(5)]
+    ft, opfer = _e("taeter", 76, x + 4, y + 4), _e("opfer", 25, x + 12, y + 4, 2)
+    return g, [ft, opfer], [], lambda: [_angriff([ft], ziel=opfer["nr"])], None
+
+
+def p_mordloch(x, y):
+    g = [_g(67, x + 10 + i, y + 3) for i in range(3)]
+    wer = _e("opfer", 25, x + 2, y + 3)
+    return g, [wer], [], lambda: [_angriff([wer], lauf=[x + 20, y + 3])], None
+
+
+def p_hunde(x, y):
+    g = [_g(99, x + 2, y + 2, spieler=1)]
+    opfer = [_e("opfer", 24, x + 12, y + 3 + i, 2) for i in range(3)]
+    return g, opfer, [], lambda: [{"player": 1, "spielbefehl": {"nr": 74, "werte": [g[0]["nr"], g[0]["uid"]]}}] if "nr" in g[0] else [], None
+
+
+def p_kuh(x, y):
+    t = dict(_e("geraet", 40, x + 4, y + 4), mann=3, soll=3)
+    leute = _ing(x, y + 2, 3)
+    opfer = [_e("opfer", 25, x + 28, y + 3, 2), _e("opfer", 25, x + 28, y + 5, 2)]
+    return [], [t] + leute + opfer, [], lambda: [_angriff(leute, art=16, a=t["nr"], b=t["uid"])], lambda: [_angriff([t], art=22, a=x + 28, b=y + 4)]
+
+
+def p_graben(x, y):
+    sklaven = [_e("graeber", 71, x + 2 + i, y + 4) for i in range(3)]
+    plan = [{"player": 1, "spielbefehl": {"nr": 21, "werte": [x + 10 + i, y + 4, 0, 0x40000000, 2]}} for i in range(3)]
+    return [], sklaven, plan, lambda: [_angriff(sklaven, art=6, a=x + 10, b=y + 4)], None
+
+
+def p_leiter(x, y):
+    mauer = [{"player": 2, "spielbefehl": {"nr": 25, "werte": [x + 20, y, x + 20, y + 15, 25, 13]}}]
+    leiter = [_e("leiter", 29, x + 8, y + 6), _e("leiter", 29, x + 8, y + 8)]
+    speer = [_e("steiger", 24, x + 4, y + 6 + i) for i in range(3)]
+    return [], leiter + speer, mauer, lambda: [_angriff(leiter, art=24, a=x + 20, b=y + 7), _angriff(speer, lauf=[x + 20, y + 7])], None
+
+
+def p_turmgeraet(x, y):
+    mauer = [{"player": 2, "spielbefehl": {"nr": 25, "werte": [x + 20, y, x + 20, y + 11, 25, 13]}}]
+    t = dict(_e("geraet", 58, x + 4, y + 6), mann=4, soll=4)
+    leute = _ing(x, y + 4, 4)
+    return [], [t] + leute, mauer, lambda: [_angriff(leute, art=16, a=t["nr"], b=t["uid"])], lambda: [_angriff([t], lauf=[x + 19, y + 6])]
+
+
+def p_tunnel(x, y):
+    g = [_g(1, x + 22, y + 3)]
+    wer = [_e("taeter", 5, x + 2, y + 3 + i) for i in range(3)]
+    return g, wer, [], lambda: [_angriff(wer, gebaeude=g[0]["nr"])] if "nr" in g[0] else [], None
+
+
+def p_schild(x, y):
+    s_ = dict(_e("geraet", 60, x + 8, y + 3), mann=1, soll=1)
+    leute = _ing(x + 6, y, 1)
+    hinten, offen = _e("hinter_schild", 25, x + 4, y + 3), _e("ohne_schild", 25, x + 4, y + 7)
+    a = [_e("schuetze", 22, x + 28, y + 2 + i, 2) for i in range(2)]
+    b = [_e("schuetze", 22, x + 28, y + 6 + i, 2) for i in range(2)]
+    return [], [s_] + leute + [hinten, offen] + a + b, [], lambda: [_angriff(leute, art=16, a=s_["nr"], b=s_["uid"])], lambda: [_angriff(a, 2, ziel=hinten["nr"]), _angriff(b, 2, ziel=offen["nr"])]
+
+
+def p_hoehe(x, y):
+    g = [_g(74, x + 2, y + 2, spieler=1)]
+    wer = [_e("schuetze", 22, x, y + 3 + i) for i in range(2)]
+    ziele = [_e("ziel", 59, x + 3 + d, y + 3, 2) for d in (44, 52)]
+    return g, wer + ziele, [], lambda: [_angriff(wer, lauf=[x + 3, y + 3])], lambda: [_angriff(wer[:1], ziel=ziele[0]["nr"]), _angriff(wer[1:], ziel=ziele[1]["nr"])]
+
+
+def p_tor(x, y):
+    g = [_g(46, x + 10, y + 2, spieler=1)]
+    feind = [_e("feind", 24, x + 24, y + 4 + i, 2) for i in range(2)]
+    return g, feind, [], lambda: ([{"player": 1, "spielbefehl": {"nr": 45, "werte": [g[0]["nr"], 1, g[0]["uid"]]}}] if "nr" in g[0] else []) + [_angriff(feind, 2, lauf=[x + 4, y + 4])], None
+
+
+def p_oel(x, y):
+    leute = [_e("oel", 30, x + 2, y + 3 + i) for i in range(2)]
+    opfer = _e("opfer", 24, x + 12, y + 3, 2)
+    return [], leute + [opfer], [], lambda: [_angriff(leute, art=20, a=x + 12, b=y + 3)], None
+
+
+SONDER1 = (("feuer", p_feuer, 24, 12), ("pech", p_pech, 24, 8), ("mordloch", p_mordloch, 24, 6), ("hunde", p_hunde, 20, 8), ("kuh", p_kuh, 36, 8), ("graben", p_graben, 24, 8))
+SONDER2 = (("leiter", p_leiter, 30, 16), ("turmgeraet", p_turmgeraet, 30, 12), ("tunnel", p_tunnel, 28, 10), ("schild", p_schild, 34, 10), ("hoehe", p_hoehe, 60, 6), ("tor", p_tor, 30, 10), ("oel", p_oel, 24, 6))
+
+
+def szene_sonder(l, name, posten):
+    """Die Sonderfaelle, weit auseinander. Jeder Posten bekommt seine Befehle in drei Stufen: Spielbefehle davor, Befehle beim Start, Befehle nach dem Einsteigen. Ein Posten, der keinen Platz findet oder dessen Gebaeude nicht steht, ist ein Fund und haelt die anderen nicht auf."""
+    k, s = l.k, l.s
+    lk.anhalten(l)
+    frei, _, _ = s.raster()
+    orte = packen(frei, [(b, h) for _, _, b, h in posten], rand=SONDER_ABSTAND)
+    gebaeude, einheiten, davor, jetzt, spaeter, karte, fehlt = [], [], [], [], [], [], []
+    for (n, f, b, h), o in zip(posten, orte):
+        if o is None:
+            fehlt.append(n)
+            continue
+        g, e, d, j, sp = f(*o)
+        for z in g + e:
+            z["posten"] = n
+        gebaeude += g
+        einheiten += e
+        davor += d
+        jetzt.append(j)
+        if sp:
+            spaeter.append(sp)
+        karte.append({"posten": n, "x": o[0], "y": o[1], "breite": b, "hoehe": h})
+    nicht_gesetzt = gebaeude_setzen(l, gebaeude)
+    if davor:
+        k.liste(davor, lf.KANAL)
+        lk.aufnahme_im_stand_ohne(l, lf.TEMPO_JEDER_TAKT)
+        l.warte_takte(40)
+        lk.anhalten(l)
+    einheiten = mit_kontrolle(einheiten, frei)
+    setzen(l, einheiten)
+    k.liste([c for j in jetzt for c in j()], lf.KANAL)
+    a = lk.aufnahme_im_stand(l, name, 100, False)
+    if spaeter:
+        l.warte_takte(SONDER_BEMANNEN)
+        k.liste([c for sp in spaeter for c in sp()], lf.KANAL)
+    l.warte_takte(GRENZE_SONDER)
+    b = lk.anhalten(l)
+    pfad = l.rek.pfad
+    stand = l.rek.beenden()
+    with open(pfad + ".plan.json", "w", encoding="utf-8") as f:
+        json.dump({"szene": name, "von": a, "bis": b, "tempo": 100, "einheiten": einheiten, "gebaeude": gebaeude, "karte": karte, "nicht_gesetzt": [z["name"] for z in nicht_gesetzt], "kein_platz": fehlt}, f, ensure_ascii=False)
+    abr = abraeumen(l)
+    return {"szene": name, "von": a, "bis": b, "einheiten": len(einheiten), "nicht_gesetzt": [z["name"] for z in nicht_gesetzt], "kein_platz": fehlt, "abraeumen_takte": abr, "stand": stand, "pfad": pfad}
 
 
 def befehle_gebaeude_nah(plan):
@@ -685,6 +956,10 @@ SZENEN = {
     "haltung2": lambda l: szene_haltung(l, FAELLE_HALTUNG[10:], "haltung2"),
     "besatzung": lambda l: szene_geraete(l, "besatzung", aufbau_besatzung, befehle_besatzung, 200, GRENZE_GERAET),
     "belagerung": lambda l: szene_geraete(l, "belagerung", aufbau_belagerung, befehle_belagerung, 500, GRENZE_BELAGERUNG),
+    "geraete_weite": lambda l: szene_geraete(l, "geraete_weite", aufbau_geraete_weite, befehle_auf_geraet, 500, GRENZE_GERAETE_WEITE),
+    "punkt": szene_punkt,
+    "sonder1": lambda l: szene_sonder(l, "sonder1", SONDER1),
+    "sonder2": lambda l: szene_sonder(l, "sonder2", SONDER2),
     "gebaeude_nah": Szene("gebaeude_nah", lf.TEMPO_JEDER_TAKT, True, GRENZE_NAH_GEBAEUDE, aufbau_gebaeude_nah, befehle_gebaeude_nah, treffer_noetig=False),
     "laufen_trupp_g": Szene("laufen_trupp_g", 200, False, GRENZE_TRUPP, lambda l: aufbau_laufen(l, OHNE_LORD), befehle_laufen_trupp, alle_am_ziel, treffer_noetig=False),
     "reichweite_g": Szene("reichweite_g", 200, False, GRENZE_BAHN, lambda l: aufbau_reichweite(l, OHNE_LORD), befehle_auf_partner),

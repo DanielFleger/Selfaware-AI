@@ -81,6 +81,9 @@ class Spiel:
                 self.nr += 1
                 assert self.pausiert, "gesetzt wird im angehaltenen Spiel"
                 self.einheiten.append({"nr": self.nr, "uid": 1000 + self.nr, "typ": e["typ"], "besitzer": e["spieler"], "x": e["x"] + 1, "y": e["y"] + 1, "leben": 100, "trupp": 0})
+                for _ in range(e.get("anzahl", 1) - 1):
+                    self.nr += 1
+                    self.einheiten.append({"nr": self.nr, "uid": 1000 + self.nr, "typ": e["typ"], "besitzer": e["spieler"], "x": e["x"] + 1, "y": e["y"] + 1, "leben": 100, "trupp": 0})
             if "angriff" in c:
                 for e in self.einheiten:
                     if e["nr"] in c["angriff"]["einheiten"]:
@@ -554,6 +557,90 @@ def test_gefecht_erster_rahmen_alt_wird_gezaehlt_nicht_versteckt():
     assert not next(x for x in ar.nahkampf_werten(r3, PAAR, TAB, erster_rahmen_alt=True) if x["opfer"] == 24)["erster_doppelt"]
 
 
+def test_packen_legt_dicht_und_sperrt_den_rand():
+    frei = np.zeros((400, 400), dtype=bool)
+    frei[10:30, 10:50] = True
+    o = ls.packen(frei, [(10, 5), (10, 5), (40, 20)], rand=2)
+    assert o[0] == (10, 10) and o[1] == (22, 10) and o[2] is None
+    assert frei[10:30, 10:50].all()  # die Eingabe bleibt unberuehrt
+
+
+def test_geraete_weite_leiter(tmp_path):
+    g = Spiel(tmp_path)
+    e = ls.SZENEN["geraete_weite"](lauf_von(g))
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    gr = [x for x in plan["einheiten"] if x["rolle"] == "geraet"]
+    ziele = {x["paar"]: x for x in plan["einheiten"] if x["rolle"] == "ziel"}
+    assert len(gr) == 25 and all(ziele[x["paar"]]["x"] - x["x"] == x["abstand"] for x in gr)
+    assert {x["abstand"] for x in gr if x["typ"] == 40} == {34, 47, 57, 68, 70}
+    bef = [c["angriff"] for c in g.log if isinstance(c, dict) and "angriff" in c]
+    assert sum(1 for c in bef if c.get("art") == 16) == 25 and sum(1 for c in bef if "ziel" in c) == 25
+
+
+def test_punkt_alle_acht_bloecke_und_die_mauer_mit_luecke(tmp_path):
+    g = Spiel(tmp_path)
+    e = ls.szene_punkt(lauf_von(g))
+    assert e["bloecke"] == [10, 100, 500, 100, 500, 100, 100, 500]
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    mauern = [c for c in plan["mauern"]]
+    assert len(mauern) == 4 and all(c["player"] == 2 and c["spielbefehl"]["nr"] == 25 for c in mauern)
+    l1 = next(p for p in plan["posten"] if p["art"] == "luecke")
+    wx, y0, y1, m = l1["mauer"]
+    w = [c["spielbefehl"]["werte"] for c in mauern[:2]]
+    assert w[0][:4] == [wx, y0, wx, m - 2] and w[1][:4] == [wx, m + 2, wx, y1]
+    bef = [c["angriff"] for c in g.log if isinstance(c, dict) and "angriff" in c]
+    assert sum("gebaeude" in c for c in bef) == 3 and sum("lauf" in c for c in bef) == 5
+    assert sum(len(c["einheiten"]) for c in bef) == 1910
+
+
+def test_sonderfaelle_jeder_posten_steht_und_hat_befehle(tmp_path):
+    g = Spiel(tmp_path)
+    l = lauf_von(g)
+    a = ls.SZENEN["sonder1"](l)
+    assert a["kein_platz"] == [] and a["nicht_gesetzt"] == []
+    b = ls.SZENEN["sonder2"](l)
+    assert b["kein_platz"] == [] and b["nicht_gesetzt"] == []
+    bef = [c for c in g.log if isinstance(c, dict)]
+    arten = {c["angriff"].get("art") for c in bef if "angriff" in c}
+    assert {6, 16, 20, 22, 24} <= arten
+    nummern = {c["spielbefehl"]["nr"] for c in bef if "spielbefehl" in c}
+    assert {21, 25, 45, 74} <= nummern
+    pa = json.load(open(a["pfad"] + ".plan.json", encoding="utf-8"))
+    pb = json.load(open(b["pfad"] + ".plan.json", encoding="utf-8"))
+    assert {k["posten"] for k in pa["karte"]} == {"feuer", "pech", "mordloch", "hunde", "kuh", "graben"}
+    assert {k["posten"] for k in pb["karte"]} == {"leiter", "turmgeraet", "tunnel", "schild", "hoehe", "tor", "oel"}
+
+
+def test_sonderfall_ohne_platz_haelt_die_anderen_nicht_auf(tmp_path):
+    g = Spiel(tmp_path)
+    r = ls.szene_sonder(lauf_von(g), "sonder1", (("riesig", ls.p_feuer, 399, 399), ("feuer", ls.p_feuer, 24, 12)))
+    assert r["kein_platz"] == ["riesig"] and r["einheiten"] == 3
+
+
+def punkt_rahmen(orte):
+    aus = []
+    for i, o in enumerate(orte):
+        s = {k: np.zeros(ar.PLAETZE, dtype=np.int64) for k in ar.FELDER}
+        for j, (x, y) in enumerate(o):
+            s["da"][j + 1], s["typ"][j + 1], s["mx"][j + 1], s["my"][j + 1] = 1, 24, x * 8, y * 8
+        aus.append((100 + i * 10, s))
+    return aus
+
+
+def test_punkt_ankunft_dichte_und_luecke():
+    p = {"art": "luecke", "anzahl": 2, "nummern": [1, 2], "ziel": [20, 10], "mauer": [15, 0, 20, 10]}
+    r = punkt_rahmen([[(0, 10), (0, 3)], [(15, 10), (15, 3)], [(20, 10), (15, 3)], [(20, 10), (20, 10)]])
+    z = ar.punkt_werten(r, [p])[0]
+    assert z["angekommen"] == 2 and z["takte_10_50_90"][1] == 25 and z["letzter"] == 30 and z["dichtestes_feld"] == 2 and z["durch_luecke"] == 1 and z["anderswo_an_mauerlinie"] == 1
+
+
+def test_schussweite_katapult_zielt_aufs_feld():
+    e = [{"rolle": "geraet", "paar": 0, "typ": 39, "nr": 1, "abstand": 30}, {"rolle": "ziel", "paar": 0, "typ": 59, "nr": 2, "x": 40, "y": 10}]
+    g = [{"schuetze": 1, "ziel": 0, "start": (80, 84), "punkt": (324, 84)}, {"schuetze": 1, "ziel": 0, "start": (80, 84), "punkt": (500, 84)}]
+    z = ar.schussweite_werten(g, e)[0]
+    assert z["auf_ziel"] == 1 and z["andere"] == 1
+
+
 def test_besatzung_voll_und_ein_mann_zu_wenig(tmp_path):
     g = Spiel(tmp_path)
     e = ls.SZENEN["besatzung"](lauf_von(g))
@@ -593,6 +680,8 @@ def test_belagerung_klassen_zuerst_und_jedes_ziel_ein_geraet(tmp_path):
     assert all(geraete[x["fall"]]["x"] + ls.ABSTAND_BELAGERUNG == x["x"] for x in z)
     assert [(geraete[x["fall"]]["typ"], x["typ"]) for x in z[:24]] == [(t, k) for t in ls.ANDERE_GERAETE + (39,) for k in ls.KLASSEN]
     assert all(geraete[x["fall"]]["typ"] == 39 for x in z[24:]) and len(z) + len(plan["nicht_gefahren"]) == 24 + 59
+    breit = [x["groesse"] for x in z[24:]]
+    assert breit == sorted(breit, reverse=True)  # die grossen zuerst
 
 
 def test_gebaeude_nah_alle_paare(tmp_path):
