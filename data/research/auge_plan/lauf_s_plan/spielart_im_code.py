@@ -45,7 +45,7 @@ for p, (name, a, marke) in sorted(pkt.items()):
 
 print("\n=== Stellen mit Umgebung, die Regeln statt Ton oder Anzeige betreffen koennten")
 ZEIGEN = [("processMeleeInitiation", 0x00549c70, 43, 58), ("UpdateMaceman", 0x00560700, 405, 416), ("processDamageFromKillingPit", 0x00419800, 18, 29), ("shouldUnitsEngageInMelee", 0x00531000, 45, 49),
-          ("spawnUnit", 0x0053e440, None, "stoneAmmunition"), ("giveTribeAnInstruction", 0x00527c80, 481, 485), ("UpdateOutpostBuilding", 0x00411540, None, "GM_EDITOR"), ("MenuView_CustomScenarios_Prepare", 0x00425ea0, 25, 31)]
+          ("spawnUnit", 0x0053e440, None, "stoneAmmunition"), ("giveTribeAnInstruction", 0x00527c80, 481, 485), ("updateUnits, Pruefrunde", 0x00579300, 369, 373), ("findNearestEnemyAndHeadTowardsIt, Haltung", 0x0054a7b0, 55, 67), ("killUnits, nimmt auch den Lord", 0x00530390, 12, 24),("UpdateOutpostBuilding", 0x00411540, None, "GM_EDITOR"), ("MenuView_CustomScenarios_Prepare", 0x00425ea0, 25, 31)]
 for name, a, von, bis in ZEIGEN:
     z = code(a)
     print("---", name, hex(a))

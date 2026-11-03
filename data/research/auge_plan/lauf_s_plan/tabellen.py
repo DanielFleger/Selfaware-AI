@@ -42,6 +42,10 @@ NAH = lies(karte.adresse("DAT_UnitPropertiesDefinedData", "DAT_MELEE_DAMAGE")[0]
 print("\n%-13s %3s %7s %5s %5s %6s %6s %6s %6s" % ("Art", "Nr", "Leben", "Tempo", "Klett", "Maske", "Pfeil", "Bolzen", "Stein"))
 for t, n in sorted(NAME.items()):
     print("%-13s %3d %7d %5d %5d %6d %6d %6d %6d" % (n, t, HP[t], TEMPO[t], KLETTERN[t], MASKE[t], PFEIL[t], BOLZEN[t], STEIN[t]))
+GEHT, SCHLAEGT, SONDER = (einheit(f) for f in ("DAT_UNIT_MOVABLE", "DAT_UNIT_CAN_MELEE", "field66_0x7774"))
+print("\nKann laufen (DAT_UNIT_MOVABLE):", {NAME[t]: GEHT[t] for t in sorted(NAME)})
+print("Kann schlagen (DAT_UNIT_CAN_MELEE):", {NAME[t]: SCHLAEGT[t] for t in sorted(NAME)})
+print("Sonderweg in processMeleeInitiation, Tabelle field66_0x7774 (setUnitValues Zeile 15): ungleich 0 bei", [NAME[t] for t in sorted(NAME) if SONDER[t]], "von", len(NAME), "Arten")
 reich = lies(karte.adresse("DAT_EntityDefinedData", "DAT_EntityTypeArrayForProjectileRange")[0], 38)
 print("\nReichweite je Geschossart, Tabelle:", {k: v for k, v in enumerate(reich) if v})
 K = [22, 23, 24, 25, 26, 27, 28, 29, 30, 5, 37, 70, 71, 72, 73, 74, 75, 76, 55]

@@ -2,7 +2,7 @@
 
 Lauf 02.11.2026 23:49 bis 23:55, Instanz 2, Karte `Green Haven` („Der grüne Punkt“), 8 KI ohne Menschen: Spieler 1 bis 8 = KI 14, 15, 1, 9, 2, 5, 7, 4 (Mirza, Marschall, Rotkäppchen, David, Rattenfänger, Bauer, Gardist, Karl von Festenberg). Liga-Balance aktiv. Basis `laeufe/lauf_k_20261102_234952`.
 
-**Der Lauf ist gültig:** 8 Lords am Start, je Spieler einer, Friedenszeit 12.000 Takte zu Ende, alle drei Fenster je 2.002 Takte ohne fehlenden oder gemischten Takt, zweimal auf denselben Takt 15.039 geladen, kein Abzug in der Bremsprobe. Der Kampf lief bis zum letzten Lord.
+**Der Lauf ist gültig:** 8 Lords am Start, je Spieler einer, Friedenszeit 12.000 Takte zu Ende, alle drei Fenster je 2.002 Takte ohne fehlenden oder gemischten Takt, zweimal auf denselben Takt 15.039 geladen, kein Abzug in der Bremsprobe (**Berichtigung 03.11.:** Diese Probe war ungenau. 827, 812,7, 800,1 Takte je Sekunde: Weil die Last sich ändert, hätte sie erst ab rund 5 Prozent Abzug angeschlagen. Die genauere Wechselprobe steht in `docs/plans/Plan_Lauf_S.md`). Der Kampf lief bis zum letzten Lord.
 
 ## Der Kampf
 

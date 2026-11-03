@@ -156,6 +156,37 @@ Punkte 75
    482          (DAT_GameState.mapAndTime.strongWalls2 == 0)) ||
    483         (4 < (int)(short)DAT_BuildingsState.buildings[iVar11].buildingType - 0x4aU)) &&
    484        (id_x_tile != 0)) {
+--- updateUnits, Pruefrunde 0x579300
+   369         if ((DAT_UnitsState.units[uVar19].enemyNoticeFrequencyUnk != 0) &&
+   370            (uVar18 = DAT_UnitsState.units[uVar19].enemyNoticeFrequencyUnk,
+   371            (DAT_GameState.mapAndTime.totalGameTicksUnk & uVar18) ==
+   372            (DAT_UnitsState.units[uVar19].fixedRng & uVar18))) {
+--- findNearestEnemyAndHeadTowardsIt, Haltung 0x54a7b0
+    55   if (((DAT_UnitsState.units[unitID].SA != 0) ||
+    56       ((DAT_UnitsState.units[unitID].movementType_OR_targetUnitID != 0 &&
+    57        (DAT_UnitsState.units[unitID].state.generic == US_MOVE_TO_DESTINATION)))) &&
+    58      (iVar12 = (int)DAT_UnitsState.units[unitID].tribeID, iVar12 != 0)) {
+    59     sVar4 = DAT_TribesState.tribes[iVar12].isRallyingUnk;
+    60     UVar5 = DAT_TribesState.tribes[iVar12].unitStance;
+    61     if (UVar5 == USE_DEFENSIVE) {
+    62       _stanceBasedRange = 0x28;
+    63     }
+    64     else if (UVar5 == USE_AGGRESSIVE) {
+    65       _stanceBasedRange = 200;
+    66     }
+--- killUnits, nimmt auch den Lord 0x530390
+    12     do {
+    13       if ((((*(UnitLogicStateShort *)(pbVar1 + -0x2a0) == ULS_NORMAL) &&
+    14            (*(short *)(pbVar1 + -0x8c) == 0)) && (*pbVar1 == 0)) &&
+    15          (*(short *)(pbVar1 + -0x296) == playerID)) {
+    16         ((UnitStateUnion *)(pbVar1 + -0x6c))->generic = US_STONE_DEATH_01;
+    17         *(int *)(pbVar1 + -0x7c) = 0;
+    18         *(short *)(pbVar1 + -0x8c) = 1;
+    19         *(short *)(pbVar1 + 0xc4) = 1;
+    20       }
+    21       iVar2 = iVar2 + 1;
+    22       pbVar1 = pbVar1 + 0x490;
+    23     } while (iVar2 < (int)DAT_UnitsState.maxUnitCount);
 --- UpdateOutpostBuilding 0x411540
     52                     [DAT_BuildingsState.buildings[iVar9].ownerFlagFrame / 2];
     53   }
