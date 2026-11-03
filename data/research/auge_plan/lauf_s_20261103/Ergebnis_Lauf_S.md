@@ -172,7 +172,7 @@ Neu auslesbar: Jedes Geschoss steht mit Art, Schütze (`unitID_OR_seaGullID`, 79
 | Stein | 5,63 | 247 von 251 |
 | Feuer | 3,78 | 68 von 82 |
 
-Editor, Szene Beschuss, gleiche Werte im Gefecht. Der Verlust kommt im Takt der Landung oder bis zu 2 Takte davor. **Die rund 5 Prozent ohne Verlust sind noch nicht erklärt.** Zielwahl: 378 von 795 Schüssen gehen auf den nächsten Feind, 417 nicht.
+Editor, Szene Beschuss, im Gefecht ähnlich (`beschuss_g.geschosse.json`). Befehl und Zahlen: `geschosse_beschuss.py`, `geschosse_beschuss.txt`. Der Verlust kommt im Takt der Landung oder bis zu 2 Takte davor. **Die rund 5 Prozent ohne Verlust sind noch nicht erklärt.** Zielwahl: 378 von 795 Schüssen gehen auf den nächsten Feind, 417 nicht.
 
 ## Szene Laufendes Ziel, 03.11. 20:39
 
@@ -253,24 +253,24 @@ Beim Pfeil stimmte die Tabelle nicht, bei den Geräten passt sie. Katapult und T
 - Nicht setzbar mit meinem Befehl: Farmen, Steinbruch, Lager, Eisenmine, Pechgrube, Pechgraben. Vermutlich brauchen sie besonderen Boden. Für Trebuchet, Mangonel, Ballista und Feuerballiste stehen deshalb nur wenige Ziele drin, die Zeile im Plan „gegen 4 Klassen“ ist nur zum Teil erfüllt.
 - 6 Zeilen nahmen wegen eines Fehlers von mir das Gebäude des Nachbarn. Der Prüfer zählt sie als „falsches Gebäude“, das Werkzeug prüft jetzt Art und Ort. Beleg: `belagerung.regeln.json`.
 
-## Szene Nahkampf gegen Gebäude, 03.11. 20:51
+## Szene Nahkampf gegen Gebäude, 03.11. 20:42 und 20:51
 
-Tempo 40, jeder Nahkämpfer direkt daneben, Angriffsbefehl. Verlust je Schlag und Takte zwischen zwei Schlägen. Beleg: `gebaeude_nah.regeln.json`.
+Tempo 40, jeder Nahkämpfer direkt daneben, Angriffsbefehl. Verlust je Schlag und Takte zwischen zwei Schlägen. Zwei Läufe, weil nicht jedes Gebäude jedes Mal stand; wo beide einen Wert haben, sind sie gleich. Belege: `gebaeude_nah_erster.regeln.json`, `gebaeude_nah.regeln.json`.
 
 | Art | Takte je Schlag | Hütte (200 Leben) | Großes Tor (3.000) | Kleines Tor (1.500) | Wachturm (500) |
 |---|---|---|---|---|---|
-| Speerträger (E_SPEAR 24) | 48 | 10 | 2 | 2 | |
+| Speerträger (E_SPEAR 24) | 48 | 10 | 2 | 2 | 3 |
 | Pikenier (E_PIKE 25) | 28 | 40 | 5 | 5 | 10 |
-| Streitkolbenkämpfer (E_MACE 26) | 48 | 80 | 5 | 5 | |
-| Schwertkämpfer (E_SWORD 27) | 60 | 100 | | 10 | 10 |
-| Ritter (E_KNIGHT 28) | 72 | 100 | | 10 | 10 |
-| Mönch (E_MONK 37) | 24 | 20 | 2 | | |
-| Lord (55) | 56 | 100 | | 10 | 10 |
-| Sklave (A_SLAVE 71) | 93 | **kein Verlust** | | 1 | 1 |
+| Streitkolbenkämpfer (E_MACE 26) | 48 | 80 | 5 | 5 | 15 |
+| Schwertkämpfer (E_SWORD 27) | 60 | 100 | 10 | 10 | 10 |
+| Ritter (E_KNIGHT 28) | 72 | 100 | 10 | 10 | 10 |
+| Mönch (E_MONK 37) | 24 | 20 | 2 | 2 | 3 |
+| Lord (55) | 56 | 100 | 10 | 10 | 10 |
+| Sklave (A_SLAVE 71) | 93 | **kein Verlust** | 1 | 1 | 1 |
 | Assassine (A_ASSASSIN 73) | 93 | 75 | 3 | 3 | 5 |
 | arabischer Schwertkämpfer (A_SWORDSMAN 75) | 96 | 100 | 10 | 10 | 10 |
 
-Leere Felder: Das Gebäude stand dort nicht. Gegen die Burg (kein Leben) gibt es keinen Verlust, das ist nur an einem Fall gesehen. Warum der Sklave die Hütte nicht beschädigt, ist offen: Vermutlich zündet er sie an, das ist nicht nachgesehen. **Lager, Holztor und Mauern fehlen.**
+Gegen die Burg (kein Leben) gibt es keinen Verlust, das ist nur an einem Fall gesehen. Warum der Sklave die Hütte nicht beschädigt, ist offen: Vermutlich zündet er sie an, das ist nicht nachgesehen. **Lager, Holztor und Mauern fehlen.**
 
 ## Szene Angriff auf einen Punkt, 03.11. 20:51
 
@@ -298,7 +298,7 @@ Liste V7. **Hier ist nur ein Teil gelungen.** Belege: `sonder1.regeln.json`, `so
 
 | Fall | Ergebnis | Stand |
 |---|---|---|
-| Feuer an Gebäude | Feuerwerfer zündet eine Hütte. Sie verliert 4 Leben je rund 28 Takte, weg nach 1.390 Takten. Die Hütte daneben fängt 989 Takte nach der ersten Feuer | gemessen, Löschen nicht |
+| Feuer an Gebäude | Feuerwerfer zündet eine Hütte. Sie verliert meist 4 Leben auf einmal, im Schnitt alle 20 bis 25 Takte, und ist nach 1.390 Takten weg. Die Hütte daneben fängt 989 Takte nach der ersten Feuer und brennt in 982 Takten ab | gemessen, Löschen nicht |
 | Mordgrube | **18.000 Schaden je Grube,** beim Darüberlaufen (Pikenier: 3 Gruben, 3 x 18.000, je 24 Takte auseinander). Die Gruben sind rund 2.100 Takte später weg | gemessen |
 | Schild | **Pfeile mit Befehl auf den Mann hinter dem Schild:** Er verliert nichts, der Schild verliert 1.200, der Mann ohne Schild 48.000 | bestätigt |
 | Höhe | Schützen über Treppe auf die Mauer: Sie treffen auf 46 Felder (am Boden Schluss bei 40). Nur je 1 Treffer auf 42 und 46 | gesehen, wenige Fälle |
@@ -314,7 +314,7 @@ Liste V7. **Hier ist nur ein Teil gelungen.** Belege: `sonder1.regeln.json`, `so
 
 ## Fall des Lords, 03.11. 20:59
 
-Im Gefecht. Der Lord geht am Anfang von selbst auf die Burg, Ritter finden dorthin keinen Weg. Mit Truppenbefehl kommt er herunter, schaffte es aber nicht in 600 Takten zum Ring aus Rittern. Er fiel darum per Befehl (`per_befehl` in `lord_g.plan.json`). **13 und 5 Takte nach seinem Verschwinden meldet das Spiel das Ende** (`GAMEOVER`), die Ansicht bleibt 14. Der Steintod dauert rund 306 Takte. Das Ende nach einem echten Kampf zeigt Lauf K.
+Im Gefecht. Der Lord geht am Anfang von selbst auf die Burg, Ritter finden dorthin keinen Weg. Mit Truppenbefehl kommt er herunter, schaffte es aber nicht in 600 Takten zum Ring aus Rittern. Er fiel darum per Befehl (`per_befehl` in `lord_g.plan.json`). **Spätestens 13 und 5 Takte nach seinem Verschwinden meldet das Spiel das Ende** (`GAMEOVER`, zwei Läufe, die Zahl enthält das Anhalten), die Ansicht bleibt 14. Der Steintod dauert rund 306 Takte. Das Ende nach einem echten Kampf zeigt Lauf K.
 
 ## Meine Fehler in diesem Lauf
 

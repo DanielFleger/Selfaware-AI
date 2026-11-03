@@ -22,7 +22,7 @@ def zeilen(n):
 nah = {(z["schlaeger"], z["opfer"]): z["urteil"] for z in zeilen("nahkampf")}
 ziel_beschuss = {z["ziel"]: z for z in zeilen("beschuss")}
 belagerung = {(z["geraet"], z["ziel"]): z for z in zeilen("belagerung") if z["urteil"] != "falsches Gebaeude"}
-nahbau = {(z["wer"], z["ziel"]): z for z in zeilen("gebaeude_nah") if z["urteil"] != "falsches Gebaeude"}
+nahbau = {(z["wer"], z["ziel"]): z for n in ("gebaeude_nah_erster", "gebaeude_nah") for z in zeilen(n) if z["urteil"] != "falsches Gebaeude"}
 STEIN_REGEL = {39, 40, 41}
 V5 = {"V5.001": "gemessen", "V5.002": "gerechnet aus Regel: laeuft in 1.000 gegen 1.000 durch diese Groesse", "V5.003": "gerechnet aus Regel: wie V5.002", "V5.004": "gemessen", "V5.005": "gerechnet aus Regel: wie V5.002", "V5.006": "gemessen", "V5.007": "gemessen", "V5.008": "gemessen mit 1.150 gegen 1.150: 132 Plaetze belegen Tiere"}
 V7 = {"V7.001": "gemessen, Loeschen offen", "V7.002": "offen: Pechgraben nicht gesetzt", "V7.003": "offen: nicht geworfen", "V7.004": "Mordloch gemessen, Hunde offen", "V7.005": "offen: nur Steine geflogen", "V7.006": "offen: Graben nicht abgelesen", "V7.007": "Turm gesehen, Leiter offen", "V7.008": "offen: kein Tunnel ausgeloest", "V7.009": "gemessen", "V7.010": "gesehen auf der Mauer, wenige Faelle", "V7.011": "gesehen: Zustand wechselt, Durchgang offen"}

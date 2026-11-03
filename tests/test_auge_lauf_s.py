@@ -201,8 +201,11 @@ def test_gefecht_raeumt_ohne_lord_und_bauern(tmp_path):
     assert e["bis"] - e["von"] >= ls.GRENZE_NAH_G
 
 
-def test_im_editor_raeumt_das_abraeumen_alles():
-    assert ls.SZENEN["nahkampf"].aufbau is ls.aufbau_nahkampf
+def test_im_editor_raeumt_das_abraeumen_alles(tmp_path):
+    g = Spiel(tmp_path)
+    g.einheiten = [{"nr": 900, "uid": 900, "typ": 55, "besitzer": 1, "x": 20, "y": 20, "leben": 100}, {"nr": 901, "uid": 901, "typ": 56, "besitzer": 2, "x": 20, "y": 20, "leben": 100}]
+    ls.abraeumen(lauf_von(g))
+    assert g.einheiten == [] and {"toeteAlle": 1} in g.log and {"toeteAlle": 2} in g.log
 
 
 def test_fern_maske_sperrt_nur_um_spieler():

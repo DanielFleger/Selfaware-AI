@@ -402,4 +402,4 @@ Tick 4.731-7.737, Aufloesung 14,5 Ticks (`daten/lage_ablauf_fein_20261006_224521
 | S14 | Nahkampf gegen Gebaeude: Schaden und Schlagtakt je Art und Gebaeude, Tabelle im Ergebnis. Rund 10 je Schlag an Toren, 100 an der Huette | getestet | `gebaeude_nah.regeln.json` |
 | S15 | Einheiten stapeln sich: bis zu 54 auf einem Feld in einer Luecke von 3 Feldern. 500 auf ein Feld verteilen sich, nur 75 stehen innerhalb 3 Feldern | getestet | `punkt.regeln.json` |
 | S16 | Pfeile mit Befehl auf den Mann hinter einem Schild treffen den Schild: Der Mann verliert nichts, der Schild 1.200, ohne Schild 48.000. Mordgrube 18.000 je Grube | getestet | `sonder_g.regeln.json`, `sonder1.regeln.json` |
-| S17 | Lord: Steht nach dem Start oben auf der Burg, Ritter finden keinen Weg. Spielende 5 bis 13 Takte nach seinem Verschwinden, Steintod rund 306 Takte | getestet | `lord_g.plan.json` |
+| S17 | Lord: Steht nach dem Start oben auf der Burg, Ritter finden keinen Weg. Spielende spaetestens 5 und 13 Takte nach seinem Verschwinden (zwei Laeufe), Steintod rund 306 Takte | getestet | `lord_g.plan.json` |
