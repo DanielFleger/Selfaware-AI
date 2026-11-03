@@ -1,0 +1,208 @@
+=== Funktionen mit Sonderfall Editor (GM_EDITOR)
+  00411540 UpdateOutpostBuilding 1
+  00412360 UpdateStockpile 1
+  00412730 UpdateArmory 1
+  00415110 UpdateGranary 1
+  004178e0 UpdateKeepManorHouse 1
+  004179b0 UpdateKeepStoneKeep 1
+  00417aa0 UpdateKeepStronghold 1
+  0041bfd0 processPlacementResourceLossForBuildingType 1
+  0041c190 processWallBuildingLoss 1
+  00420d20 setupBuildingData 2
+  004251a0 MenuItemActionHandler_MainMenu_Main 1
+  00425ea0 MenuView_CustomScenarios_Prepare 1
+  00431b60 MenuView_BuildMenu_DoInitial 19
+  00433370 MenuItemActionHandler_InGameMenu_ProcessScribeAnimationChange 1
+  00433da0 RenderStartingGoodDisplayElement 1
+  00434230 MenuItemRenderFunction_BuildMenu_BuildingKeepSubcategoryButton 1
+  00434350 MenuItemActionHandler_InGameMenu_PeasantBuildAndRightClickMenuSelection 2
+  004387d0 MenuItemActionHandler_BuildMenu_DeleteAction 1
+  00438be0 MenuItemRenderFunction_BuildMenu_UnitActionButtons 4
+  004398b0 MenuView_BuildingAndStatusMenu_DoInitial 44
+  00440430 SetCursorDependingOnProgramState 1
+  00443070 MenuItemActionHandler_MapEditorProperties_MainButtons 1
+  00444410 MenuItemActionHandler_General_ToolbarButtonPressed 2
+  00444b80 MenuItemActionHandler_InGameMenu_MainButtons 3
+  0044a620 playVictoryMusic678 1
+  00457b80 checkRequiredResourcesForBuildingOrPlanToBuy 1
+  00457e80 getWallTilesThatCanBeBuilt 1
+  004580c0 spawnChicken 1
+  00458280 spawnMotherOrChild 1
+  004589e0 processPeasantsForBuildings 1
+  00458ad0 processFoodConsumption 1
+  004595d0 singlePlayerHasKeepAndGranaryCheck 1
+  00459640 resetTeams 1
+  0045af30 computePopulationStatistics 1
+  0045ca20 processSingleTimeTick 1
+  0045cd10 processGameTick 1
+  00463310 openBuildingStatusMenuForBuildingID 2
+  00463a00 SelectUnitAndOpenStatusMenu 1
+  004643f0 MenuItemRenderFunction_InGameMenu_MainButtons 7
+  0047af50 handleBattleEndMusicTransition 1
+  00491840 MenuItemRenderFunction_OptionsMenu_Buttons 1
+  004950b0 MenuItemActionHandler_ProgressBarBox_LoadAndSaveGameButtonLogic 1
+  00496b80 MenuItemActionHandler_OptionsMenu_Buttons 2
+  004b0390 RenderPlayerInfoOnHoverDisplayElement 2
+  004b2ae0 WindowMsgProcessingFunc 8
+  004bb010 isMapperAvailable 3
+  004bb0b0 isMercRecruitableForBuildingType 1
+  004c31a0 processSingleplayerEvents 1
+  004e8cf0 renderMap 1
+  004f3d60 updateTrees 1
+  004f4f60 renderCurrentlyDisplayedTextConstructionCost 1
+  005024f0 isValidCastleSiteLocation 1
+  005029d0 validateWallBuildPath 2
+  005037b0 checkBuildingCanBePlacedHere 3
+  00504a30 evaluateBuildingPlacementAtCursor 2
+  00506370 updateBuildingGraphicsLayer 1
+  00508a00 renderPreviewMapperWithBrush 1
+  00509180 updateGfxLayer 3
+  00512940 setTerrain 2
+  00520f70 aiControlNonSkirmishUnitMovement 1
+  005261b0 respawnDeer 1
+  00527440 spawnQueuedReinforcementWaves 1
+  0056c560 UpdateLord 1
+Zusammen 63
+
+=== Punkte Lauf S: Spielart-Stellen im Code
+Punkte 75
+ P300 processDamageFromKillingPit                Marke ja   Stellen 1: ((((DAT_GameCore.gameMode_2 == GM_SKIRMISH_AND_MULTIPLAYER ||
+ P306 processUnitLossStatistic                   Marke ja   Stellen 1: if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ P308 TryAcquireAmmunitionOrPlanToBuyStone       Marke ja   Stellen 1: if (((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) &&
+ P312 CommandSpawnEntity                         Marke ja   Stellen 1: if ((DAT_GameCore.gameMode_2 == GM_SIEGE_THAT) &&
+ P313 checkSkirmishGameDefeat                    Marke ja   Stellen 2: if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ P322 processDamageToBuilding                    Marke ja   Stellen 2: if ((((((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) &&
+ P328 giveTribeAnInstruction                     Marke ja   Stellen 4: if ((((DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) ||
+ P331 shouldUnitsEngageInMelee                   Marke ja   Stellen 2: (DAT_GameSynchronyState.currentGameMode == GM_SKIRMISH_SINGLE_PLAYER)) ||
+ P333 recomputeTroopValuesForPlayer              Marke ja   Stellen 1: bVar9 = DAT_GameSynchronyState.currentGameMode == GM_SOLITARY;
+ P342 harassBuildingsWithSiegeAI                 Marke ja   Stellen 3: if ((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) &&
+ P344 UpdateSiegeTower                           Marke ja   Stellen 1: if ((DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) ||
+ P346 processMeleeInitiation                     Marke ja   Stellen 1: (((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY ||
+ P350 UpdateQuarryMason                          Marke ja   Stellen 1: if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ P351 UpdateCrusaderArcher                       Marke ja   Stellen 2: if (DAT_GameCore.gameMode_2 != GM_SKIRMISH_AND_MULTIPLAYER) {
+ P353 UpdateSpearman                             Marke ja   Stellen 1: bVar17 = DAT_GameCore.gameMode_2 != GM_SKIRMISH_AND_MULTIPLAYER;
+ P354 UpdatePikeman                              Marke ja   Stellen 2: GVar9 = DAT_GameSynchronyState.currentGameMode;
+ P355 UpdateMaceman                              Marke ja   Stellen 2: bVar16 = DAT_GameCore.gameMode_2 != GM_SKIRMISH_AND_MULTIPLAYER;
+ P356 UpdateSwordsman                            Marke ja   Stellen 1: bVar14 = DAT_GameCore.gameMode_2 != GM_SKIRMISH_AND_MULTIPLAYER;
+ P357 UpdateKnight                               Marke ja   Stellen 1: bVar14 = DAT_GameCore.gameMode_2 != GM_SKIRMISH_AND_MULTIPLAYER;
+ P359 UpdateCatapult                             Marke ja   Stellen 3: if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ P360 UpdateTrebuchet                            Marke ja   Stellen 3: if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+ P362 UpdateLord                                 Marke ja   Stellen 12: (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY)) {
+ P365 UpdateArabianArcher                        Marke ja   Stellen 2: if (DAT_GameCore.gameMode_2 != GM_SKIRMISH_AND_MULTIPLAYER) {
+ P367 UpdateAssassin                             Marke ja   Stellen 1: if ((DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) ||
+ P368 UpdateArabianSwordsman                     Marke ja   Stellen 1: bVar15 = DAT_GameCore.gameMode_2 != GM_SKIRMISH_AND_MULTIPLAYER;
+
+=== Stellen mit Umgebung, die Regeln statt Ton oder Anzeige betreffen koennten
+--- processMeleeInitiation 0x549c70
+    43     if (DAT_UnitsState.units[unitID].stateBasedSpeed < 1) {
+    44                     /* 50 or 150 depending on selectable */
+    45       iVar8 = (-(uint)(DAT_UnitsState.units[unitID].isSelectable_OR_matchTime != 0) & 100) + 0x32;
+    46     }
+    47     else {
+    48       iVar8 = 0x10e;
+    49     }
+    50     if (((DAT_UnitsState.units[unitID].closestEnemyMicroDistance <= iVar8) ||
+    51         (DAT_UnitsState.units[unitID].attackedUnitID != 0)) ||
+    52        ((DAT_UnitsState.units[unitID].unitType == UT_LIONSHWOLF ||
+    53         ((DAT_UnitsState.units[unitID].unknownTestAgainst0_1 != 0 &&
+    54          (((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY ||
+    55            (100 < (int)DAT_UnitsState.DAT_UnitCount)) &&
+    56           (((DAT_UnitsState.units[unitID].fixedRng ^ DAT_GameState.mapAndTime.totalGameTicksUnk) &
+    57            0xf) == 0)))))))) {
+--- UpdateMaceman 0x560700
+   405     if (DAT_UnitsState.units[uVar9].moveInstructionSpeedDelayTracker == 0) {
+   406       if ((DAT_UnitsState.units[uVar9].movementRunUpTime != 0) ||
+   407          ((DAT_UnitsState.units[uVar9].movementType_OR_targetUnitID == 0 &&
+   408           ((DAT_UnitsState.units[uVar9].isMatchingSpeed != false ||
+   409            ((0xc0 < DAT_UnitsState.units[uVar9].closestEnemyMicroDistance &&
+   410             (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY)))))))) {
+   411         DAT_UnitsState.units[uVar9].animationSheetFrameOffset = 1;
+   412         goto LAB_00560b95;
+   413       }
+   414       DAT_UnitsState.units[uVar9].animationSheetFrameOffset = 0x81;
+   415       DAT_UnitsState.units[uVar9].stateBasedSpeed = 1;
+--- processDamageFromKillingPit 0x419800
+    18   if (((((iVar4 != 0) && (UVar2 = DAT_UnitsState.units[unitID].unitType, UVar2 != UT_TRADER)) &&
+    19        (UVar2 != UT_TRADERHORSE)) &&
+    20       ((((DAT_GameCore.gameMode_2 == GM_SKIRMISH_AND_MULTIPLAYER ||
+    21          (DAT_BuildingsState.buildings[iVar4].owner == DAT_GameSynchronyState.currentPlayerSlotID))
+    22         || (DAT_UnitsState.units[unitID].owner == DAT_GameSynchronyState.currentPlayerSlotID)) &&
+    23        ((DAT_BuildingsState.buildings[iVar4].buildingType == BT_KILLINGPIT &&
+    24         (DAT_BuildingsState.buildings[iVar4].state == 0)))))) &&
+    25      ((DAT_UnitsState.units[unitID].unknownTestAgainst0_1 == 0 &&
+    26       ((DAT_GameState.mapAndTime.playerTeams[DAT_BuildingsState.buildings[iVar4].owner] !=
+    27         DAT_GameState.mapAndTime.playerTeams[DAT_UnitsState.units[unitID].owner] &&
+    28        (DAT_UnitsState.units[unitID].dying == 0)))))) {
+--- shouldUnitsEngageInMelee 0x531000
+    45         if (((DAT_GameState.mapAndTime.totalNoRushTicks == 0) ||
+    46             (DAT_GameSynchronyState.currentGameMode == GM_SKIRMISH_SINGLE_PLAYER)) ||
+    47            (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY)) {
+    48           return false;
+--- spawnUnit 0x53e440
+    71   if (unitType == UT_S_CATAPULT) {
+    72     if (DAT_GameSynchronyState.currentPlayerFullIDArray[playerID] == -1) {
+    73       DAT_UnitsState.units[unitID].stoneAmmunition =
+    74            (-(ushort)(DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) & 0xffec) + 0x28;
+   101     }
+   102     if (DAT_GameSynchronyState.currentPlayerFullIDArray[playerID] == -1) {
+   103       DAT_UnitsState.units[unitID].stoneAmmunition =
+   104            (-(ushort)(DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) & 0xffec) + 0x28;
+   106     }
+   107   }
+   108   DAT_UnitsState.units[unitID].stoneAmmunition = 0x14;
+   109 LAB_0053e69d:
+--- giveTribeAnInstruction 0x527c80
+   481     if ((((DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) ||
+   482          (DAT_GameState.mapAndTime.strongWalls2 == 0)) ||
+   483         (4 < (int)(short)DAT_BuildingsState.buildings[iVar11].buildingType - 0x4aU)) &&
+   484        (id_x_tile != 0)) {
+--- UpdateOutpostBuilding 0x411540
+    52                     [DAT_BuildingsState.buildings[iVar9].ownerFlagFrame / 2];
+    53   }
+    54   if (DAT_GameCore.gameMode_2 == GM_EDITOR) {
+    55     return;
+--- MenuView_CustomScenarios_Prepare 0x425ea0
+    25   DAT_GameCore.gameMode_2 = GM_EDITOR;
+    26   INT_00b960e4 = 0;
+    27   if (DAT_GameSynchronyState.currentPlayerSlotID == 0) {
+    28     DAT_GameSynchronyState.currentPlayerSlotID = 1;
+    29   }
+    30   DAT_GameSynchronyState.currentPlayerFullIDArray[DAT_GameSynchronyState.currentPlayerSlotID] = 1;
+
+=== Reine Ton-Stellen im Schadenscode (kein Einfluss auf den Schaden)
+ processUnitAttackOtherUnit   Zeile 107 -> Audio::SFX::SFXState::playSFXWeAreUnderAttack(&DAT_SFXState);
+ processUnitAttackOtherUnit   Zeile 227 -> Audio::MSS::SoundSystem::setSomeSoundTime(&DAT_SoundSystemState);
+ processEntityDamageToUnit    Zeile 188 -> Audio::SFX::SFXState::playSFXWeAreUnderAttack(&DAT_SFXState);
+ processDamageToBuilding      Zeile 229 -> (BVar12 = Audio::MSS::SoundSystem::shouldSoundXNotBePlaying(&DAT_SoundSystemStat
+ processDamageToBuilding      Zeile 400 -> Audio::SFX::SFXState::playWAVSFX(&DAT_SFXState,"Genie_23.wav");
+
+=== Was UCP im Speicher am Kampfweg aendert (Lauf K, code_aenderungen.csv)
+ ComputeDamageFearFactorBonus   1 Stellen, erste 0x531200 Stueck ersetzt
+ UpdateArabianArcher            5 Stellen, erste 0x5705ad Zahl oder kurzer Tausch
+ UpdateArabianSwordsman         1 Stellen, erste 0x57612d Zahl oder kurzer Tausch
+ UpdateAssassin                 3 Stellen, erste 0x574629 Zahl oder kurzer Tausch
+ UpdateBallista                 1 Stellen, erste 0x56ee2b Zahl oder kurzer Tausch
+ UpdateBatteringRam             1 Stellen, erste 0x54624d Zahl oder kurzer Tausch
+ UpdateBatteringRamBuilding     1 Stellen, erste 0x420237 Sprung nach aussen
+ UpdateCatapultBuilding         1 Stellen, erste 0x41f4ca Sprung nach aussen
+ UpdateCrossbowman              4 Stellen, erste 0x55c93b Zahl oder kurzer Tausch
+ UpdateCrusaderArcher           5 Stellen, erste 0x55ac00 Zahl oder kurzer Tausch
+ UpdateFireBallista             4 Stellen, erste 0x577dc9 Zahl oder kurzer Tausch
+ UpdateFireBallistaBuilding     1 Stellen, erste 0x41e35a Sprung nach aussen
+ UpdateFireThrower              5 Stellen, erste 0x576b5c Zahl oder kurzer Tausch
+ UpdateHorseArcher              4 Stellen, erste 0x57acb5 Zahl oder kurzer Tausch
+ UpdateKnight                   1 Stellen, erste 0x562fda Zahl oder kurzer Tausch
+ UpdateLord                     3 Stellen, erste 0x56d6c1 Zahl oder kurzer Tausch
+ UpdateMaceman                  3 Stellen, erste 0x560b4f Sprung nach aussen
+ UpdateMangonel                 2 Stellen, erste 0x56a4d7 Zahl oder kurzer Tausch
+ UpdateMonk                     1 Stellen, erste 0x567b5c Zahl oder kurzer Tausch
+ UpdatePikeman                  2 Stellen, erste 0x55f865 Zahl oder kurzer Tausch
+ UpdateSiegeTowerBuilding       1 Stellen, erste 0x41fda7 Sprung nach aussen
+ UpdateSlave                    2 Stellen, erste 0x571ff6 Sprung nach aussen
+ UpdateSlinger                  7 Stellen, erste 0x572fec Zahl oder kurzer Tausch
+ UpdateSpearman                 3 Stellen, erste 0x55e044 Sprung nach aussen
+ UpdateSwordsman                1 Stellen, erste 0x5620eb Zahl oder kurzer Tausch
+ UpdateTunneler                 2 Stellen, erste 0x54f2df Zahl oder kurzer Tausch
+ acquireShootTarget             3 Stellen, erste 0x54b201 Sprung nach aussen
+ processEntityDamageToUnit      2 Stellen, erste 0x531dff Stueck ersetzt
+ spawnUnit                      1 Stellen, erste 0x53e5e5 Zahl oder kurzer Tausch
