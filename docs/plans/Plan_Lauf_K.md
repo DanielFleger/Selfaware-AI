@@ -59,3 +59,10 @@ Gestartet nach Daniels "fange dann an" (02.11. 23:10).
 | Probe 1, 23:10 | erster strenger Takt gemischt | Erst weiter, dann Tempo: 0,3 s lief das Spiel auf Tempo 1000 | Tempo im Stand setzen, Test |
 | Probe 2, 23:19 | Kernfelder nach dem Laden | Das Laden rechnet einen Schritt ohne Takt | Vergleich einen Takt versetzt, Laden erst nach dem Kampf |
 | Probe 2 | keine Friedenszeit | Stufe 6 ergibt 0 Takte, die „500“ waren falsch gelesen | Stufe 1 auch in der Probe, Prüfung am Start |
+| Lauf K, 1. Durchgang | „letzter Lord“ bei 3 Lebenden (Fehlalarm) | `updateUnits` setzt `maxUnitCount` in jedem Takt auf 0 und zählt hoch, der Zähler las nur bis dorthin | Lord-Zähler über alle 2.500 Plätze, Test |
+| Lauf K, 1. Durchgang | Laden hing im Hauptmenü | Das Ladefenster läuft dort nicht weiter (Modal 14, Aktion 31), erst eine laufende Partie lässt es fertig werden | Vor dem Laden ein Gefecht starten, Test |
+| Lauf K, 1. Durchgang | halbe Takte im Vergleich | Der Takt steigt vor der Rechnung | In den strengen Fenstern 5 ms warten, Test |
+
+## Ergebnis
+
+Durchgang 2, 02.11. 23:49 bis 23:55, gültig. Bericht: `data/research/auge_plan/lauf_k_20261102/Ergebnis_Lauf_K.md`, Punkte: `Punkte_Lauf_K.md`.

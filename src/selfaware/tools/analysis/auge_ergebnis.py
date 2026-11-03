@@ -2,12 +2,16 @@
 """B-142: Fasst einen Lauf F oder K zusammen: Gesamtproben aus den Aufzeichnungen, Beleg je Einzelpunkt, Funde und Abbruch aus dem Protokoll.
 
 Aufruf: python -m selfaware.tools.analysis.auge_ergebnis data/research/auge_plan/laeufe/lauf_f_<stempel>
-        python -m selfaware.tools.analysis.auge_ergebnis data/research/auge_plan/laeufe/lauf_k_<stempel> --lauf K --lauf-f data/research/auge_plan/laeufe/lauf_f_<stempel>
-Was der Lauf wirklich gesehen hat, steht im Bericht <basis>_Ergebnis.md, die Belege in <basis>.ergebnis.json und <basis>.punkte.json.
+        python -m selfaware.tools.analysis.auge_ergebnis data/research/auge_plan/laeufe/lauf_k_<stempel> --lauf K --lauf-f data/research/auge_plan/laeufe/lauf_f_<stempel> --prozesse 8
+Was der Lauf wirklich gesehen hat, steht im Bericht <basis>_Ergebnis.md, die Belege in <basis>.ergebnis.json und <basis>.punkte.json. Fertige Proben von Lauf K liegen in <basis>.proben.
 """
 import argparse
+import concurrent.futures
 import json
 import os
+import pickle
+import re
+import time
 
 from selfaware.tools.analysis import auge_auswertung as aw
 from selfaware.tools.analysis import auge_punkte
@@ -90,59 +94,123 @@ def auswerten(basis, gueltig=None):
     return pfad
 
 
-def auswerten_k(basis, lauf_f=None):
-    """Lauf K: haupt (Friedenszeit), t1 (2.000 Takte, jeder Takt), danach (Kampf), t2 und t3 (zweimal geladen, jeder Takt), t4 und t5 (a6_festgelegt.py). Rueckgabe: Pfad des Berichts."""
+ENDUNGEN_K = {"haupt": ".auge", "t1": "_t1.auge", "danach": "_danach.auge", "t2": "_t2.auge", "t3": "_t3.auge", "t4": "_t4.auge", "t5": "_t5.auge", "t6": "_t6.auge", "t7": "_t7.auge", "t8": "_t8.auge", "t9": "_t9.auge"}
+
+
+def aufgaben_k(da, prot):
+    """Die Proben von Lauf K in der Reihenfolge des Berichts: (Art, Zusatz, Argumente). da: die vorhandenen Aufzeichnungen.
+    haupt Friedenszeit, t1 jeder Takt, danach Kampf, t2 und t3 zweimal geladen, t4 und t5 mit gleichem Zaehler, t6 bis t9 dasselbe im Kampf (a6_festgelegt.py)."""
+    aus = [("A1", k, (k,)) for k in da] + [("A3", k, (k,)) for k in da]
+    t = next((z["daten"]["t"] for z in prot if z.get("abschnitt") == "sichern" and "daten" in z), None)
+    takte = next((z["daten"]["t1"]["bis"] - z["daten"]["t1"]["von"] for z in prot if z.get("abschnitt") == "sichern" and "daten" in z), 0)
+    if t is not None and {"t1", "t2", "t3"} <= set(da):
+        aus += [("A5", "gespeichert gegen geladen", ("t1", t, "t2", t)), ("A5", "zweimal geladen", ("t2", t, "t3", t)),
+                ("gleich", "ohne Laden gegen geladen, ein Takt versetzt", ("t1", t + 1, "t2", t, takte - 1)), ("gleich", "zweimal geladen", ("t2", t, "t3", t, takte))]
+        for a, b, zu in (("t4", "t5", "zweimal geladen, Zaehler gleich gesetzt"), ("t6", "t7", "im Kampf, Zaehler gleich gesetzt"), ("t8", "t9", "im Kampf, Zaehler und Geschosszeiger gleich gesetzt")):
+            if {a, b} <= set(da):
+                aus.append(("gleich", zu, (a, None, b, None, takte)))
+    fein = "t1" if "t1" in da else ("haupt" if "haupt" in da else None)
+    if fein:
+        aus.append(("A7", "t1", (fein,)))
+    aus += [("A9", k, (k,)) for k in ("haupt", "danach") if k in da]
+    aus += [("A10", k, (k,)) for k in ("t1", "danach") if k in da]
+    if "haupt" in da:
+        aus += [("A11", "", ("haupt",)), ("A13", "", ("haupt",))]
+    if fein:
+        aus.append(("A12", "t1", (fein,)))
+    return aus + [("Punkte", "K", ()), ("Punkte", "F", ())]
+
+
+def _rechne_k(basis, lauf_f, art, zu, arg):
     from selfaware import workspace
     from selfaware.tools.analysis.auge_feldkarte import FELDLISTE, Feldkarte
 
     karte = Feldkarte.laden(feldliste=FELDLISTE)
-    auf = {k: aw.Aufzeichnung(basis + e) for k, e in (("haupt", ".auge"), ("t1", "_t1.auge"), ("danach", "_danach.auge"), ("t2", "_t2.auge"), ("t3", "_t3.auge"), ("t4", "_t4.auge"), ("t5", "_t5.auge")) if os.path.exists(basis + e)}
-    prot = protokoll_lesen(basis)
-    gueltig = next((z for z in prot if z.get("schritt") == "schluss"), None)
-    aus, gesehen = [], []
 
-    def probe(e, zu=None):
-        e.nr = f"{e.nr} {zu}" if zu else e.nr
-        aus.append(e)
-        return e
+    def auf(k):
+        return aw.Aufzeichnung(basis + ENDUNGEN_K[k])
 
-    for k, a in auf.items():
-        gesehen += probe(aw.a1_aenderungsmelder(a, karte), k).daten["gesehen"]
-    probe(aw.a2_nie_gesehen(karte, gesehen), "nur Lauf K")
-    for k, a in auf.items():
-        probe(aw.a3_takttreue(a), k)
-    t = next((z["daten"]["t"] for z in prot if z.get("abschnitt") == "sichern" and "daten" in z), None)
-    takte = next((z["daten"]["t1"]["bis"] - z["daten"]["t1"]["von"] for z in prot if z.get("abschnitt") == "sichern" and "daten" in z), 0)
-    if t is not None and {"t1", "t2", "t3"} <= set(auf):
-        probe(aw.a5_laden_gleich_sichern(auf["t1"], t, auf["t2"], t, karte), "gespeichert gegen geladen")
-        probe(aw.a5_laden_gleich_sichern(auf["t2"], t, auf["t3"], t, karte), "zweimal geladen")
-        probe(aw.spielstand_gleich(auf["t1"], t + 1, auf["t2"], t, takte - 1, karte), "ohne Laden gegen geladen, ein Takt versetzt")
-        probe(aw.spielstand_gleich(auf["t2"], t, auf["t3"], t, takte, karte), "zweimal geladen")
-        if {"t4", "t5"} <= set(auf):
-            probe(aw.spielstand_gleich(auf["t4"], t, auf["t5"], t, takte, karte), "zweimal geladen, Zaehler gleich gesetzt")
-    fein = auf.get("t1") or auf.get("haupt")
-    if fein:
-        probe(aw.a7_zufall(fein), "t1")
-    for k in ("haupt", "danach"):
-        if k in auf:
-            probe(aw.a9_befehle(auf[k]), k)
-    for k in ("t1", "danach"):
-        if k in auf:
-            probe(aw.a10_lebenslauf(auf[k], aw.echte_listen(karte), aw.echte_grenzen(karte)), k)
-    if "haupt" in auf:
-        probe(aw.a11_pruefsummen(auf["haupt"], karte))
-        vergleich = {"K": auf["haupt"]}
+    if art == "Punkte":
+        checkliste = os.path.join(workspace.DATA, "auge_plan", "Checkliste_Auge.md")
+        return auge_punkte.auswerten(checkliste, [auf(k) for k in ("haupt", "t1", "danach") if os.path.exists(basis + ENDUNGEN_K[k])], karte, lauf=zu)
+    if art == "gleich":
+        k1, t1, k2, t2, takte = arg
+        a1, a2 = auf(k1), auf(k2)
+        t1 = next(a1.rahmen()).takt if t1 is None else t1  # die Fenster aus a6_festgelegt.py beginnen beide am geladenen Takt
+        t2 = next(a2.rahmen()).takt if t2 is None else t2
+        e = aw.spielstand_gleich(a1, t1, a2, t2, takte, karte)
+    elif art == "A1":
+        e = aw.a1_aenderungsmelder(auf(arg[0]), karte)
+    elif art == "A3":
+        e = aw.a3_takttreue(auf(arg[0]))
+    elif art == "A5":
+        e = aw.a5_laden_gleich_sichern(auf(arg[0]), arg[1], auf(arg[2]), arg[3], karte)
+    elif art == "A7":
+        e = aw.a7_zufall(auf(arg[0]))
+    elif art == "A9":
+        e = aw.a9_befehle(auf(arg[0]))
+    elif art == "A10":
+        e = aw.a10_lebenslauf(auf(arg[0]), aw.echte_listen(karte), aw.echte_grenzen(karte))
+    elif art == "A11":
+        e = aw.a11_pruefsummen(auf(arg[0]), karte)
+    elif art == "A12":
+        e = aw.a12_fluechtig(auf(arg[0]), aw.echte_merker(karte))
+    elif art == "A13":
+        vergleich = {"K": auf(arg[0])}
         if lauf_f and os.path.exists(lauf_f + ".auge"):
             vergleich["F"] = aw.Aufzeichnung(lauf_f + ".auge")
-        probe(aw.a13_spielart(vergleich))
-    if fein:
-        probe(aw.a12_fluechtig(fein, aw.echte_merker(karte)), "t1")
+        e = aw.a13_spielart(vergleich)
+    else:
+        raise ValueError(art)
+    e.nr = f"{e.nr} {zu}" if zu else e.nr
+    return e
 
-    checkliste = os.path.join(workspace.DATA, "auge_plan", "Checkliste_Auge.md")
-    aufz = [auf[k] for k in ("haupt", "t1", "danach") if k in auf]
-    punkte = auge_punkte.auswerten(checkliste, aufz, karte, lauf="K")
+
+def probe_k(basis, lauf_f, aufgabe, ordner=None):
+    """Eine Probe, auch in einem eigenen Prozess. Fertige Proben liegen in ordner: Eine abgebrochene Auswertung rechnet sie nicht noch einmal."""
+    art, zu, arg = aufgabe
+    pfad = os.path.join(ordner, re.sub(r"[^A-Za-z0-9]+", "_", f"{art} {zu}").strip("_") + ".pkl") if ordner else None
+    if pfad and os.path.exists(pfad):
+        with open(pfad, "rb") as f:
+            return pickle.load(f)
+    start = time.time()
+    e = _rechne_k(basis, lauf_f, art, zu, arg)
+    if pfad:
+        with open(pfad + ".neu", "wb") as f:
+            pickle.dump(e, f)
+        os.replace(pfad + ".neu", pfad)
+    print(f"{art} {zu}: {getattr(e, 'status', 'fertig')} nach {time.time() - start:.0f} s", flush=True)
+    return e
+
+
+def auswerten_k(basis, lauf_f=None, prozesse=1):
+    """Lauf K. prozesse: wie viele Proben gleichzeitig laufen; die Aufzeichnung des Kampfs hat 2 GB. Rueckgabe: Pfad des Berichts."""
+    from selfaware.tools.analysis.auge_feldkarte import FELDLISTE, Feldkarte
+
+    karte = Feldkarte.laden(feldliste=FELDLISTE)
+    prot = protokoll_lesen(basis)
+    gueltig = next((z for z in prot if z.get("schritt") == "schluss"), None)
+    da = [k for k, e in ENDUNGEN_K.items() if os.path.exists(basis + e)]
+    aufgaben = aufgaben_k(da, prot)
+    ordner = basis + ".proben"
+    os.makedirs(ordner, exist_ok=True)
+    if prozesse > 1:
+        with concurrent.futures.ProcessPoolExecutor(max_workers=prozesse) as pool:
+            fertig = list(pool.map(probe_k, *zip(*[(basis, lauf_f, a, ordner) for a in aufgaben])))
+    else:
+        fertig = [probe_k(basis, lauf_f, a, ordner) for a in aufgaben]
+    aus, gesehen, punkte, spielart = [], [], None, None
+    for a, e in zip(aufgaben, fertig):
+        if a[0] == "Punkte":
+            punkte, spielart = (e, spielart) if a[1] == "K" else (punkte, e)
+            continue
+        aus.append(e)
+        if a[0] == "A1":
+            gesehen += e.daten["gesehen"]
+    a2 = aw.a2_nie_gesehen(karte, gesehen)
+    a2.nr = f"{a2.nr} nur Lauf K"
+    aus.insert(len(da), a2)
     auge_punkte.schreiben(punkte, basis + ".punkte.json")
-    spielart = auge_punkte.auswerten(checkliste, aufz, karte, lauf="F")
     auge_punkte.schreiben({"punkte": [p for p in spielart["punkte"] if p["spielart"]], "zaehlung": {}}, basis + ".spielart.json")
 
     with open(basis + ".ergebnis.json", "w", encoding="utf-8") as f:
@@ -168,8 +236,9 @@ def main(argv=None):
     p.add_argument("basis")
     p.add_argument("--lauf", default="F", choices=["F", "K"])
     p.add_argument("--lauf-f", help="Basis eines gueltigen Lauf F, fuer den Vergleich der Spielart")
+    p.add_argument("--prozesse", type=int, default=1, help="Lauf K: Proben gleichzeitig; abgebrochene Auswertungen gehen weiter, wo sie standen")
     a = p.parse_args(argv)
-    print(auswerten_k(a.basis, a.lauf_f) if a.lauf == "K" else auswerten(a.basis))
+    print(auswerten_k(a.basis, a.lauf_f, a.prozesse) if a.lauf == "K" else auswerten(a.basis))
 
 
 if __name__ == "__main__":

@@ -17,7 +17,7 @@ import json
 import re
 import struct
 
-from selfaware.tools.analysis.auge_auswertung import VOLL
+from selfaware.tools.analysis.auge_auswertung import GROSSER_BEREICH, VOLL, Bytekarte, felder_der_teile
 from selfaware.tools.analysis.auge_feldkarte import ARRAY
 
 ABSCHNITTE = {"### Lauf F, Start": True, "### Lauf F: Burgenbau": False}
@@ -147,7 +147,10 @@ class Belege:
         self.felder = {(f[0], f[1]): f for f in felder}
         self.karte = karte
         self.daten = {k: {"global": k[0], "feld": k[1], "aenderungen": 0, "werte": [], "mehr_werte": False, "min": None, "max": None, "erster_takt": None, "letzter_takt": None, "anfang": None} for k in self.felder}
-        self._cache = {}
+        self._bytes = Bytekarte(karte)
+        self._gewuenscht = {}
+        self._liste = list(self.felder)
+        self._nummer = {k: i for i, k in enumerate(self._liste)}
 
     def _merke(self, k, w, takt, aenderung):
         d = self.daten[k]
@@ -188,6 +191,17 @@ class Belege:
                 if 0 <= o <= len(p) - gr:
                     self._merke(k, _wert(p, o, gr), r.takt, aenderung)
 
+    def _wunsch(self, basis, laenge):
+        """Je Byte des Bereichs die Nummer des gewuenschten Felds, sonst -1."""
+        import numpy as np
+
+        w = self._gewuenscht.get(basis)
+        if w is None:
+            ids = self._bytes.bereich(basis, laenge)
+            uebersetzung = np.fromiter((self._nummer.get(k, -1) for k in self._bytes.felder), dtype=np.int32, count=len(self._bytes.felder))
+            w = self._gewuenscht[basis] = uebersetzung[ids]
+        return w
+
     def lies(self, auf):
         haupt = {b[0] for b in auf.bereiche if b[0] != "datenblock"}
         for r, p, teile in auf.staende():
@@ -200,17 +214,20 @@ class Belege:
                         self._element(k, f, None, basis, p, r, False)
                         self.daten[k]["anfang"] = self.daten[k]["werte"][:8] if len(self.daten[k]["werte"]) > vorher else None
                 continue
-            for o, l in teile:
-                c = (r.bereich, o, l)
-                treffer = self._cache.get(c)
-                if treffer is None:
-                    treffer = []
+            if not teile:
+                continue
+            if laenge > GROSSER_BEREICH:
+                for o, l in teile:
                     for fg, fp in self.karte.felder_einer_aenderung(basis + o, l):
                         if (fg, fp) in self.felder and not (name == "datenblock" and fg in haupt):
-                            treffer.append((fg, fp))
-                    self._cache[c] = treffer
-                for k in treffer:
-                    self._element(k, self.felder[k], (basis + o, basis + o + l), basis, p, r, True)
+                            self._element((fg, fp), self.felder[(fg, fp)], (basis + o, basis + o + l), basis, p, r, True)
+                continue
+            nummern, stuecke, anfang, laengen = felder_der_teile(self._wunsch(basis, laenge), teile)
+            gewuenscht = nummern >= 0
+            for n, s in zip(nummern[gewuenscht].tolist(), stuecke[gewuenscht].tolist()):
+                k = self._liste[n]
+                o = int(anfang[s])
+                self._element(k, self.felder[k], (basis + o, basis + o + int(laengen[s])), basis, p, r, True)
 
 
 def urteil(p, belege):

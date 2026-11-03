@@ -71,6 +71,7 @@ td.z { text-align: right; white-space: nowrap; }
     <li><a href="#lord">Lord-Angriff</a></li>
     <li><a href="#testen">So wird getestet</a></li>
     <li><a href="#architektur">Zielarchitektur nach Sharky</a></li>
+    <li><a href="#auge">Das Auge</a></li>
     <li><a href="#offen">Offen</a></li>
     <li><a href="#quellen">Dateien</a></li>
   </ol>
@@ -78,7 +79,7 @@ td.z { text-align: right; white-space: nowrap; }
 
 <main>
 <header>
-  <span class="marke">Stronghold Crusader &middot; UCP3 &middot; Stand 11.10.2026</span>
+  <span class="marke">Stronghold Crusader &middot; UCP3 &middot; Stand 03.11.2026</span>
   <h1>Selfaware-AI Handbuch</h1>
   <p>Alles, was die Selfaware-KI bisher gelernt hat: wie sie das Spiel steuert, was gemessen ist, was nur aus dem Spielcode abgelesen ist, und was noch offen ist. Jede Zahl stammt aus einem Testlauf oder aus einer Datei; Vermutungen sind als offen markiert.</p>
   <div class="legende">
@@ -510,6 +511,29 @@ td.z { text-align: right; white-space: nowrap; }
   Pruefung ohne Spiel: <code>werkzeug/zuweisung_pruefen.py</code> (10), <code>lordwache_pruefen.py</code> (9). Belegt in 1018p: Lordwache 4
   statt 195 Ausloesungen, 0 von 58 Abwehren gegen Assassinen mit 10+ Mann.</p>
   <p><b>Abgleich mit dem echten Sharky-Code (19.10.2026 21:40, Daniel: „Referenz von Krari – welche Ordnung es haben soll“):</b> <a href="Audit_Sharky.html">Audit_Sharky.html</a> – Kerndateien gelesen (Manager-Liste und Reihenfolge, MicroTasks mit Einheiten-Anspruch nach Vorrang, UnitCommander, Soll/Ist beim Bauen, Bauphasen mit Übergang, Gegnerstrategien, Bauwahl nach Bilanz). Rot: Spielrunde als eine Funktion (1.416 Zeilen), fünf Teile befehlen Einheiten mit Schalter-Vorrang (<code>feldzug_ruht</code>), 24 Bau-Zwecke bauen selbst. Vorschlag: zuerst das Gerüst ohne Verhaltensänderung, dann Aufgaben mit Anspruch. <span class="status offen">offen</span></p>
+</section>
+
+<section id="auge">
+  <h2><small>12</small>Das Auge: Was im Spiel stattfindet</h2>
+  <p>Stand 03.11.2026, B-142. Das Auge liest die Spielbereiche Takt für Takt mit, ohne einzugreifen. Zwei Läufe sind ausgewertet: Lauf F (Burgenbau, 241 Punkte) und Lauf K (Gefecht mit 8 KI auf <code>Green Haven</code>, 133.512 Takte Kampf, 75 Punkte). Belege: <code>data/research/auge_plan/lauf_k_20261102/Ergebnis_Lauf_K.md</code>.</p>
+  <h3>Lauf K: die Punkte <span class="status gemessen">gemessen</span></h3>
+  <table>
+    <tr><th>Liste</th><th class="z">bestätigt</th><th class="z">widerlegt</th><th class="z">gemessen</th><th class="z">Lage fehlte</th><th class="z">offen</th></tr>
+    <tr><td>55 Punkte Lauf K</td><td class="z">28</td><td class="z">7</td><td class="z">2</td><td class="z">18</td><td class="z">0</td></tr>
+    <tr><td>20 aus Lauf F verschoben</td><td class="z">9</td><td class="z">0</td><td class="z">2</td><td class="z">9</td><td class="z">0</td></tr>
+  </table>
+  <h3>Was das für SamurAI heißt <span class="status gemessen">gemessen</span></h3>
+  <ul>
+    <li><b>Laden ist nicht derselbe Stand:</b> ein Rechenschritt ohne Takt, Tempo und volles Leben aus den Tabellen. KI-Lords verlieren ihren Faktor (75.000 bis 180.000 werden 150.000). Messungen an Lords nie nach dem Laden.</li>
+    <li><b>Das Spiel rechnet festgelegt,</b> wenn zwei Eingänge gleich sind: <code>counterForUpdatingSeparateAreaTileMaps</code> und der Geschoss-Suchzeiger <code>every10Ticks</code>. Gemessen 2.001 Takte Frieden und 2.001 Takte Kampf gleich.</li>
+    <li><b>Nur 4 von 8 KI griffen an,</b> und das hing an der KI, nicht am Platz. KI 2 und 5 wählen Angriff nur, wenn sie stark sind, und wurden es nicht; KI 4 hatte kein Gold; KI 7 fiel zu früh.</li>
+    <li><b>Angriffsstärke mit UCP:</b> AttForceBase x Welle + 5, ohne Zufall und ohne Deckel 200. Ab Zustand 3 bleibt das Ziel, solange dessen Lord lebt.</li>
+    <li><b>Wandangriff:</b> Ziel 1010 sucht reihum 4 x Mauern, 2 x Türme und Tore, 1 x Gebäude.</li>
+    <li><b>Wellen-System:</b> läuft im Gefecht nicht (<code>gameMode_2</code> 3), die KI dort über <code>updateAIBehaviour</code>.</li>
+    <li><b>Falle für jede Auswertung:</b> Platz 0 der Einheiten ist ein Merkplatz; 788 von 1.777 Zielwechseln waren dort nur Kopien.</li>
+  </ul>
+  <div class="merk"><b>Learning 03.11.:</b> Der Spielcode im Export beschreibt die Datei, im Speicher sind 309 Stellen in 158 Funktionen anders. Wer eine Formel aus dem Export nimmt, prüft zuerst <code>code_aenderungen.csv</code>.</div>
+  <p><b>Als Nächstes:</b> Lauf S (freies Spiel, Belagerung, Massenschlacht). Noch aus Lauf F: 8 offene und 27 nicht nachgerechnete Punkte.</p>
 </section>
 
 <section id="offen">

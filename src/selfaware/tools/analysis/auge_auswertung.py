@@ -115,26 +115,91 @@ def _voll_diff(alt, neu):
     return teile
 
 
+GROSSER_BEREICH = 8_000_000  # der Datenblock: 32 MB ohne Felder, selten gelesen; der lohnt keine Bytekarte
+
+
+class Bytekarte:
+    """Je Byte eines Bereichs die Nummer seines Felds. So kosten Millionen Aenderungsstuecke keinen Zwischenspeicher: Der Kampf von Lauf K brauchte damit 38 GB und mehr."""
+
+    def __init__(self, karte):
+        self.karte, self.nummer, self.felder, self._bereiche = karte, {}, [], {}
+
+    def bereich(self, basis, laenge):
+        import numpy as np
+
+        ids = self._bereiche.get(basis)
+        if ids is None:
+            ids = self._bereiche[basis] = np.zeros(laenge, dtype=np.int32)
+            z, ende = basis, basis + laenge
+            while z < ende:
+                g, pf, e = self.karte._ziel(z)
+                e = min(max(e, z + 1), ende)
+                n = self.nummer.setdefault((g, pf), len(self.nummer))
+                if n == len(self.felder):
+                    self.felder.append((g, pf))
+                ids[z - basis:e - basis] = n
+                z = e
+        return ids
+
+
+def felder_der_teile(ids, teile):
+    """Je Aenderungsstueck jedes beruehrte Feld einmal, in der Reihenfolge der Bytes. Rueckgabe: Feldnummern, Stueck-Nummern, Anfaenge und Laengen der Stuecke."""
+    import numpy as np
+
+    o = np.fromiter((t[0] for t in teile), dtype=np.int64, count=len(teile))
+    l = np.fromiter((t[1] for t in teile), dtype=np.int64, count=len(teile))
+    n = int(l.sum())
+    alle = np.repeat(o - (np.cumsum(l) - l), l) + np.arange(n)
+    f, st = ids[alle], np.repeat(np.arange(len(l)), l)
+    neu = np.ones(n, dtype=bool)
+    neu[1:] = (f[1:] != f[:-1]) | (st[1:] != st[:-1])
+    return f[neu], st[neu], o, l
+
+
 def a1_aenderungsmelder(auf, karte):
+    import numpy as np
+
     zaehler = {"bekannt": collections.Counter(), "technik": collections.Counter(), "luecke": collections.Counter()}
     zuerst = {}
     rahmen = 0
-    cache = {}
+    bk = Bytekarte(karte)
+    summe = np.zeros(1024, dtype=np.int64)
+    erster = np.full(1024, -1, dtype=np.int64)
+    gross = {}
+
+    def zaehle_gross(g, f, takt):
+        k = gross.setdefault((g, f), karte.klasse(g, f))
+        zaehler[k][(g, f)] += 1
+        if k == "luecke":
+            zuerst.setdefault((g, f), takt)
+
     for r, p, teile in auf.staende():
         rahmen += 1
         if r.art == VOLL:
             if teile is None:
                 continue
             teile = _voll_diff(teile, p)  # nach dem Laden: Unterschied zum vorigen Stand
-        basis = auf.bereiche[r.bereich][1]
-        for o, l in teile:
-            felder = cache.get((basis + o, l))
-            if felder is None:
-                felder = cache[(basis + o, l)] = [(g, f, karte.klasse(g, f)) for g, f in karte.felder_einer_aenderung(basis + o, l)]
-            for g, f, k in felder:
-                zaehler[k][(g, f)] += 1
-                if k == "luecke":
-                    zuerst.setdefault((g, f), r.takt)
+        if not teile:
+            continue
+        basis, laenge = auf.bereiche[r.bereich][1], auf.bereiche[r.bereich][2]
+        if laenge > GROSSER_BEREICH:
+            for o, l in teile:
+                for g, f in karte.felder_einer_aenderung(basis + o, l):
+                    zaehle_gross(g, f, r.takt)
+            continue
+        ids = bk.bereich(basis, laenge)
+        if len(bk.felder) > len(summe):
+            summe = np.resize(np.append(summe, np.zeros(len(bk.felder) * 2, dtype=np.int64)), len(bk.felder) * 2)
+            erster = np.resize(np.append(erster, np.full(len(bk.felder) * 2, -1, dtype=np.int64)), len(bk.felder) * 2)
+        nummern, anzahl = np.unique(felder_der_teile(ids, teile)[0], return_counts=True)
+        summe[nummern] += anzahl
+        erster[nummern[erster[nummern] < 0]] = r.takt
+    for i, (g, f) in enumerate(bk.felder):
+        if summe[i]:
+            k = karte.klasse(g, f)
+            zaehler[k][(g, f)] += int(summe[i])
+            if k == "luecke" and ((g, f) not in zuerst or erster[i] < zuerst[(g, f)]):
+                zuerst[(g, f)] = int(erster[i])
     daten = {k: len(v) for k, v in zaehler.items()}
     daten["luecken"] = [{"global": g, "feld": f, "aenderungen": n, "erster_takt": zuerst[(g, f)]} for (g, f), n in zaehler["luecke"].most_common()]
     daten["gesehen"] = sorted(list(k) for k in zaehler["bekannt"])

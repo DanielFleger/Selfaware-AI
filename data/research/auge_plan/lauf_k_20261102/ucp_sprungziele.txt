@@ -1,0 +1,137 @@
+===== selectAttackTarget 0x4d477b
+  004d477b jmp 0x2d207c8
+  004d4780 nop 
+  004d4781 nop 
+  004d4782 nop 
+  004d4783 mov edx, dword ptr [esi - 0x330]
+  004d4789 push eax
+  004d478a mov eax, dword ptr [esi - 0x334]
+  004d4790 push ecx
+  004d4791 push edx
+  004d4792 push eax
+  004d4793 mov ecx, 0xee23bc
+  004d4798 call 0x46cc80
+  004d479d mov ecx, dword ptr [esp + 0x24]
+  004d47a1 mov edx, dword ptr [esp + 0x28]
+  004d47a5 imul ecx, ecx, 0x2a4
+  004d47ab mov eax, dword ptr [ecx + edx + 0x2a0]
+  --- Sprungziel 0x2d207c8
+  02d207c8 cmp dword ptr [ebx + 0x115e99c], 3
+  02d207cf jl 0x2d207e3
+  02d207d1 cmp dword ptr [ebx + 0x115e9d0], edi
+  02d207d7 jne 0x2d207e3
+  02d207d9 pop edi
+  02d207da pop esi
+  02d207db pop ebp
+  02d207dc pop ebx
+  02d207dd add esp, 0x20
+  02d207e0 ret 4
+===== assignAttackTargetsForTribe 0x524633
+  00524633 jmp 0x2d207f8
+  00524638 test eax, eax
+  0052463a je 0x5247b0
+  00524640 cmp dword ptr [esp + 0x2c], 0x414
+  00524648 mov esi, dword ptr [0x1763350]
+  0052464e mov ebp, dword ptr [0x176334c]
+  00524654 mov ebx, dword ptr [0x1763348]
+  0052465a mov word ptr [edi + 0x138880c], 0x65
+  00524663 jne 0x52471e
+  00524669 mov ebx, dword ptr [esp + 0x10]
+  0052466d push esi
+  0052466e push ebx
+  0052466f mov ecx, 0x1387f38
+  00524674 call 0x5371f0
+  00524679 test eax, eax
+  0052467b je 0x5247b0
+  --- Sprungziel 0x2d207f8
+  02d207f8 mov ebx, dword ptr [0x4bcdc40]
+  02d207fe cmp ebx, 4
+  02d20801 jge 0x2d2080a
+  02d20803 call 0x519cc0
+  02d20808 jmp 0x2d2081b
+    --- weiter 0x2d2081b
+  02d2081b inc ebx
+  02d2081c cmp ebx, 7
+  02d2081f jl 0x2d20823
+  02d20821 xor ebx, ebx
+  02d20823 mov dword ptr [0x4bcdc40], ebx
+  02d20829 jmp 0x524638
+===== setCurrentAttackStrength 0x4cde60
+  004cde60 push ebp
+  004cde61 push esi
+  004cde62 mov esi, dword ptr [esp + 0xc]
+  004cde66 imul esi, esi, 0x39f4
+  004cde6c mov eax, dword ptr [esi + 0x115e0f8]
+  004cde72 test eax, eax
+  004cde74 mov ebp, ecx
+  004cde76 je 0x4cdf0b
+  004cde7c sub eax, 1
+  004cde7f imul eax, eax, 0x2a4
+  004cde85 mov eax, dword ptr [eax + ebp + 0x1f4]
+  004cde8c mov ecx, dword ptr [esi + 0x115f71c]
+  004cde92 imul ecx
+  004cde94 imul eax, eax, 0xa
+  004cde9a mov ecx, 0xa
+  004cde9f idiv ecx
+===== updateAIStrengthState 0x4d34a8 0x4d34a8
+  004d34a8 jae 0x4d34a3
+  004d34aa inc dword ptr [ecx - 0x18257c3]
+  004d34b0 add dword ptr [eax], eax
+  004d34b2 add byte ptr [eax], al
+  004d34b4 add byte ptr [ebp + 8], bh
+  004d34b7 mov edx, dword ptr [esp + 0x10]
+  004d34bb xor ebp, ebp
+  004d34bd jmp 0x4d3502
+  004d34bf mov eax, dword ptr [esp + 0x14]
+  004d34c3 cmp eax, ebp
+  004d34c5 jge 0x4d34cf
+  004d34c7 mov edx, dword ptr [esp + 0x10]
+  004d34cb xor ebp, ebp
+  004d34cd jmp 0x4d3502
+  004d34cf add ebx, ebp
+  004d34d1 cmp eax, ebx
+===== aiCreateSiegeUnits 0x4d2090 0x4d2090
+  004d2090 add edx, ecx
+  004d2092 mov edi, dword ptr [edx*4 + 0x115ee84]
+  004d2099 xor edx, edx
+  004d209b cmp edi, 3
+  004d209e mov dword ptr [esp + 0x24], edi
+  004d20a2 jmp 0x4d20ae
+  004d20a4 mov dword ptr [esp + 0x24], 3
+  004d20ac jmp 0x4d20c0
+  004d20ae cmp edi, ebp
+  004d20b0 jle 0x4d23c1
+  004d20b6 jmp 0x4d20c0
+  004d20b8 lea esp, [esp]
+  004d20bf nop 
+  004d20c0 mov eax, dword ptr [eax + 0xb42688]
+  004d20c6 mov ebx, edx
+  004d20c8 lea eax, [eax + eax*4]
+===== recomputeAttackInfo 0x51ef10 0x51ef10
+  0051ef10 inc dword ptr [ebp - 0x7ea28b40]
+  0051ef16 mov esi, 0x179351c
+  0051ef1b call 0xf51ef23
+  0051ef20 lea ecx, [ebp + 1]
+  0051ef23 add byte ptr [eax], al
+  0051ef25 jmp 0x51ef37
+  0051ef27 and al, 0x18
+  0051ef29 push ebp
+  0051ef2a call 0x519960
+  0051ef2f test eax, eax
+  0051ef31 jne 0x51f072
+  0051ef37 mov eax, dword ptr [0x1fe7c40]
+  0051ef3c lea ecx, [edi + eax*8]
+  0051ef3f mov eax, dword ptr [ecx*4 + 0x1a93208]
+  0051ef46 add eax, ebp
+  0051ef48 nop 
+  --- Sprungziel 0xf51ef23
+Traceback (most recent call last):
+  File "C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI-fw\data\research\auge_plan\lauf_k_20261102\ucp_sprungziele.py", line 41, in <module>
+    for y in dict.fromkeys(zeige(z, 90, 1)):
+                           ^^^^^^^^^^^^^^^
+  File "C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI-fw\data\research\auge_plan\lauf_k_20261102\ucp_sprungziele.py", line 19, in zeige
+    roh = q.lies(adr, n * 8)
+          ^^^^^^^^^^^^^^^^^^
+  File "C:\Users\danie\Documents\PC_Affe\Games\Stronghold_Crusader\Stronghold Crusader Modding\Tools\Selfaware-AI-fw\src\selfaware\tools\experiments\auge_aufzeichnung.py", line 66, in lies
+    raise OSError(f"Lesen {adresse:#x}+{laenge} fehlgeschlagen: {ctypes.get_last_error()}")
+OSError: Lesen 0xf51ef23+720 fehlgeschlagen: 299
