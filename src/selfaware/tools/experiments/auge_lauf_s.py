@@ -823,7 +823,7 @@ def sonder_g2(l):
         wer = [_e("graeber", 71, x + 2 + i, y + 4) for i in range(3)]
         fueller = [_e("fueller", 71, x + 34, y + 3 + i, 2) for i in range(2)]  # so weit weg, dass sie nicht schon beim Graben kaempfen (Lauf 21:30)
         plan = _grabenplan(x + 11, y + 4)
-        return [], wer + fueller, plan, lambda: [_angriff(wer, art=6, a=x + 11, b=y + 4)], [(1500, lambda: [_angriff(fueller, 2, art=7, a=x + 11, b=y + 4)])], [(x + 10 + i, y + 3 + j) for i in range(3) for j in range(3)]
+        return [], wer + fueller, plan, lambda: [_angriff(wer, art=6, a=x + 11, b=y + 4)], [(1000, lambda: [_angriff(wer, lauf=[x + 1, y + 1])]), (1500, lambda: [_angriff(fueller, 2, art=7, a=x + 11, b=y + 4)])], [(x + 10 + i, y + 3 + j) for i in range(3) for j in range(3)]  # bei 1000 gehen die Graeber weg: Sonst erschlagen sie die Zuschuetter (Lauf 23:06, 9 Felder fertig bei 901)
 
     def leiter(x, y):
         mauer = [{"player": 2, "spielbefehl": {"nr": 25, "werte": [x + 20, y, x + 20, y + 15, 25, 13]}}]
@@ -905,7 +905,13 @@ def sonder3(l):
 def sonder3_g(l):
     """Im Gefecht und im Burgbereich von Spieler 1: Graben und Hunde. Zuschuetten geht nur beim Graben eines anderen Teams (findNearestFriendlyMoatTileForDigging, Stufe 2): Eigene Sklaven taten nichts (Lauf 21:41), darum schuettet Spieler 2 zu."""
     d = {z[0]: z for z in sonder_g2(l)}
-    return (d["graben"], d["hunde"])
+
+    def hunde(x, y):
+        """Die Hunde kommen von selbst, wenn mehr als 5 Feinde oder Truppenwert ueber 24 binnen 16 Schritten stehen (UpdateCageDog). 3 Speertraeger reichten nicht (Lauf 23:06). Ohne Befehl 74: Der setzt 4 weitere Hunde in den Kaefig, die dort feststecken."""
+        g = [_g(99, x + 2, y + 2, spieler=1)]
+        opfer = [_e("opfer", 24, x + 8 + i % 2, y + 1 + i // 2, 2) for i in range(8)]
+        return g, opfer, [], lambda: [], None
+    return (d["graben"], ("hunde", hunde, 20, 8))
 
 
 def sonder4_g(l):

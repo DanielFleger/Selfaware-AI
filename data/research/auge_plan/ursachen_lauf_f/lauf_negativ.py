@@ -160,6 +160,8 @@ FAELLE = [
     ("S: Kontrolle im Ring", S, "einheiten = mit_kontrolle(einheiten, frei_kontrolle)", "einheiten = mit_kontrolle(einheiten, frei)"),
     ("S: Raeumen vor den Starttruppen", S, "        starttruppen_abwarten(l)\n", ""),
     ("S: Stoerer neben dem Graeber", S, "st = _e(\"stoerer\", 24, x + 20, y + 10, 2)", "st = _e(\"stoerer\", 24, x + 9, y + 9, 2)"),
+    ("S: Zu wenig Opfer fuer die Hunde", S, "opfer = [_e(\"opfer\", 24, x + 8 + i % 2, y + 1 + i // 2, 2) for i in range(8)]", "opfer = [_e(\"opfer\", 24, x + 8 + i % 2, y + 1 + i // 2, 2) for i in range(3)]"),
+    ("S: Graeber bleiben beim Zuschuetten", S, "[(1000, lambda: [_angriff(wer, lauf=[x + 1, y + 1])]), (1500, lambda: [_angriff(fueller, 2, art=7,", "[(1500, lambda: [_angriff(fueller, 2, art=7,"),
     ("S: Tunnel ohne Trupp", S, "\"richtung\": 15, \"trupp\": trupp}}] if ort and trupp else []", "\"richtung\": 15, \"trupp\": 0}}] if ort and trupp else []"),
     ("S: Tunnel im eigenen Burgbereich", S, "sonder6_g(l), frei_maske=burgbereich(l, sp=2)", "sonder6_g(l), frei_maske=burgbereich(l)"),
     ("S: Tunnel ohne ersten Befehl", S, "wer, wand, lambda: [_angriff(wer, lauf=[x + 2, y + 6])],", "wer, wand, lambda: [],"),

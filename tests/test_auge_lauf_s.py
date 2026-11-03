@@ -660,7 +660,10 @@ def test_graben_und_hunde_im_burgbereich_von_spieler_1(tmp_path):
     assert an[6]["player"] == 1 and an[7]["player"] == 2  # nur ein anderes Team schuettet zu
     assert g.log.index(an[6]) < g.log.index(an[7])
     assert g.geraeumt[0] >= ls.STARTTRUPPEN_TAKT  # sonst schiessen die Starttruppen auf die Opfer der Hunde (17 Pfeile, Lauf 21:41)
-    assert any(c.get("spielbefehl", {}).get("nr") == 74 for c in g.log if isinstance(c, dict))
+    assert not any(c.get("spielbefehl", {}).get("nr") == 74 for c in g.log if isinstance(c, dict))  # der setzt nur feststeckende Hunde dazu
+    assert sum(1 for x in plan["einheiten"] if x.get("posten") == "hunde" and x["rolle"] == "opfer") > 5  # sonst kommen die Hunde nicht heraus
+    lauf = next(c for c in g.log if isinstance(c, dict) and "lauf" in c.get("angriff", {}))
+    assert lauf["player"] == 1 and g.log.index(an[6]) < g.log.index(lauf) < g.log.index(an[7])  # die Graeber gehen weg, bevor zugeschuettet wird
 
 
 def test_pech_von_spieler_1_und_der_gegner_steht_darauf(tmp_path):
