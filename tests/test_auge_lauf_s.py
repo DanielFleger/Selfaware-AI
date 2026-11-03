@@ -583,7 +583,7 @@ def test_punkt_alle_acht_bloecke_und_die_mauer_mit_luecke(tmp_path):
     assert e["bloecke"] == [10, 100, 500, 100, 500, 100, 100, 500]
     plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
     mauern = [c for c in plan["mauern"]]
-    assert len(mauern) == 4 and all(c["player"] == 2 and c["spielbefehl"]["nr"] == 25 for c in mauern)
+    assert len(mauern) == 4 and all(c["player"] == 2 and c["spielbefehl"]["nr"] == 25 and c in g.log for c in mauern)
     l1 = next(p for p in plan["posten"] if p["art"] == "luecke")
     wx, y0, y1, m = l1["mauer"]
     w = [c["spielbefehl"]["werte"] for c in mauern[:2]]
