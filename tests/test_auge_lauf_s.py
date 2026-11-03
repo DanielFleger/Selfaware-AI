@@ -656,8 +656,10 @@ def test_graben_und_hunde_im_burgbereich_von_spieler_1(tmp_path):
         assert 14 <= max(abs(k["x"] - 150), abs(k["y"] - 150)) <= 40
     p = next(c["spielbefehl"]["werte"] for c in g.log if isinstance(c, dict) and c.get("spielbefehl", {}).get("nr") == 21)
     assert p[3:] == [0x40000000, 0]
-    arten = [c["angriff"].get("art") for c in g.log if isinstance(c, dict) and "angriff" in c]
-    assert arten.index(6) < arten.index(7)
+    an = {c["angriff"].get("art"): c for c in g.log if isinstance(c, dict) and "art" in c.get("angriff", {})}
+    assert an[6]["player"] == 1 and an[7]["player"] == 2  # nur ein anderes Team schuettet zu
+    assert g.log.index(an[6]) < g.log.index(an[7])
+    assert g.geraeumt[0] >= ls.STARTTRUPPEN_TAKT  # sonst schiessen die Starttruppen auf die Opfer der Hunde (17 Pfeile, Lauf 21:41)
     assert any(c.get("spielbefehl", {}).get("nr") == 74 for c in g.log if isinstance(c, dict))
 
 

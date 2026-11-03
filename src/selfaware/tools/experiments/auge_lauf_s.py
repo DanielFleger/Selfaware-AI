@@ -903,14 +903,9 @@ def sonder3(l):
 
 
 def sonder3_g(l):
-    """Im Gefecht und im Burgbereich von Spieler 1: Graben und Hunde."""
+    """Im Gefecht und im Burgbereich von Spieler 1: Graben und Hunde. Zuschuetten geht nur beim Graben eines anderen Teams (findNearestFriendlyMoatTileForDigging, Stufe 2): Eigene Sklaven taten nichts (Lauf 21:41), darum schuettet Spieler 2 zu."""
     d = {z[0]: z for z in sonder_g2(l)}
-
-    def graben(x, y):
-        wer = [_e("graeber", 71, x + 2 + i, y + 4) for i in range(3)]
-        plan = _grabenplan(x + 11, y + 4)
-        return [], wer, plan, lambda: [_angriff(wer, art=6, a=x + 11, b=y + 4)], [(2000, lambda: [_angriff(wer, art=7, a=x + 11, b=y + 4)])], [(x + 10 + i, y + 3 + j) for i in range(3) for j in range(3)]
-    return (("graben", graben, 20, 8), d["hunde"])
+    return (d["graben"], d["hunde"])
 
 
 def sonder4_g(l):
