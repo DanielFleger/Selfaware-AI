@@ -15,7 +15,9 @@ import numpy as np
 
 PLAETZE = 2500
 FEUER_SONST, FEUER = 37.5, {55: 12.5, 76: 5.0}  # je Flamme und Takt, gemessen Lauf S 03.11. (Szene Beschuss)
-FELDER = {"da": ("logicalState", "<i2"), "typ": ("unitType", "<i2"), "leben": ("health", "<i4"), "schlaegt": ("attackedUnitID", "<i2"), "mx": ("microXPosition", "<i2"), "my": ("microYPosition", "<i2"), "besitzer": ("owner", "<i2"), "mann": ("digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300", "<i2")}
+FELDER = {"da": ("logicalState", "<i2"), "typ": ("unitType", "<i2"), "leben": ("health", "<i4"), "schlaegt": ("attackedUnitID", "<i2"), "mx": ("microXPosition", "<i2"), "my": ("microYPosition", "<i2"), "besitzer": ("owner", "<i2"), "mann": ("digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300", "<i2"), "ziel_art": ("targetingType", "<i2"), "zustand": ("", "<i2")}
+ZUSTAND_ABSTAND = 0x2C0 - 0x8C  # state.generic, die Feldkarte kennt den Typ dieser Vereinigung nicht
+BITS_FELD = 0x40004100  # L_MOAT, geplant, Mauer (L126)
 STEIN = {39: (40, 15), 40: (120, 30), 41: (5, 0)}  # Schaden je Stein am Gebaeude (direkt, je Nebenfeld): processEntityHitBuildingOrUnit Zeile 480 bis 488 mit den Werten, die UCP dort einsetzt (0x407CD5, 0x407CE5, 0x407A96; ohne UCP 60, 20 und 10). Mangonel ohne Nebenfelder
 
 
@@ -34,7 +36,8 @@ def reihen_lesen(pfad, karte):
     iu, id_ = auf.namen.index("DAT_UnitsState"), auf.namen.index("datenblock")
     bu, bd = auf.bereiche[iu][1], auf.bereiche[id_][1]
     schritt = karte.adresse("DAT_UnitsState", "units[].logicalState")[2]
-    o = {k: karte.adresse("DAT_UnitsState", "units[]." + f)[0] - bu for k, (f, _) in FELDER.items()}
+    o = {k: karte.adresse("DAT_UnitsState", "units[]." + f)[0] - bu for k, (f, _) in FELDER.items() if f}
+    o["zustand"] = o["da"] + ZUSTAND_ABSTAND
     tabellen, reihen = None, []
     for r, p, _ in auf.staende():
         if r.bereich == id_ and tabellen is None:
@@ -46,7 +49,7 @@ def reihen_lesen(pfad, karte):
     return reihen, tabellen
 
 
-GESCHOSSE = {1: "pfeil", 2: "katapult", 3: "trebuchet", 4: "mangonel", 7: "bolzen", 20: "ballista", 23: "kuh", 33: "schleuder", 34: "feuer", 36: "feuer_frei", 37: "feuerballiste"}  # EntityType, Ghidra-Typen
+GESCHOSSE = {9: "brand", 22: "giftwolke", 1: "pfeil", 2: "katapult", 3: "trebuchet", 4: "mangonel", 7: "bolzen", 20: "ballista", 23: "kuh", 33: "schleuder", 34: "feuer", 36: "feuer_frei", 37: "feuerballiste"}  # EntityType, Ghidra-Typen
 G_FELDER = {"da": "logicalState", "art": "entityType", "ziel": "unitID", "schuetze": "unitID_OR_seaGullID", "besitzer": "owner", "uid": "uid", "zx": "targetX", "zy": "targetY", "mx": "microX", "my": "microY"}
 
 
@@ -118,6 +121,28 @@ def _abstand(ax, ay, bx, by):
     a, b = abs(ax - bx), abs(ay - by)
     g, k = max(a, b), min(a, b)
     return g + (2 * k // 5) * k // g if g else 0
+
+
+def logik_verlauf(pfad, karte, kacheln):
+    """Wie sich die Graben- und Mauer-Bits eines Felds aendern. Die Kartenebenen stehen nur in jedem 25. Rahmen, genauer ist diese Zahl nicht."""
+    import struct
+
+    from selfaware.tools.analysis.auge_auswertung import Aufzeichnung
+
+    auf = Aufzeichnung(pfad)
+    ib = auf.namen.index("DAT_TileMapState")
+    b0 = auf.bereiche[ib][1]
+    adr = karte.adresse("DAT_TileMapState", "LogicLayer")[0]
+    aus = {k: [] for k in kacheln}
+    for r, p, _ in auf.staende():
+        if r.bereich != ib:
+            continue
+        a = bytes(p)
+        for k in kacheln:
+            w = struct.unpack_from("<I", a, adr - b0 + k * 4)[0] & BITS_FELD
+            if not aus[k] or aus[k][-1][1] != w:
+                aus[k].append((r.takt, w))
+    return aus
 
 
 def gebaeude_lesen(pfad, karte):
@@ -500,26 +525,48 @@ def punkt_werten(reihen, posten):
     return aus
 
 
-def sonder_werten(reihen, reihen_g, geschosse, plan):
+def _neue_einheiten(reihen, k, plan_nummern, rand=15):
+    """Wer im Gebiet eines Postens auftaucht, ohne gesetzt zu sein: Hunde, Kuehe. Je Art und Besitzer: erster, letzter Takt, hoechste Zahl. Nachgesehen wird in jedem 20. Rahmen."""
+    aus = {}
+    t0 = reihen[0][0] if reihen else 0
+    for t, s in reihen[::20]:
+        x, y = s["mx"] // 8, s["my"] // 8
+        m = (s["da"] != 0) & (x >= k["x"] - rand) & (x < k["x"] + k["breite"] + rand) & (y >= k["y"] - rand) & (y < k["y"] + k["hoehe"] + rand)
+        m[0] = False
+        c = collections.Counter((int(s["typ"][i]), int(s["besitzer"][i])) for i in np.nonzero(m)[0] if int(i) not in plan_nummern and s["typ"][i] != 44)
+        for w, n in c.items():
+            z = aus.setdefault(f"{w[0]}/{w[1]}", {"erster": t - t0, "letzter": t - t0, "hoechstens": 0})
+            z["letzter"], z["hoechstens"] = t - t0, max(z["hoechstens"], n)
+    return aus
+
+
+def sonder_werten(reihen, reihen_g, geschosse, plan, felder=None):
     """Je Posten nur, was sich getan hat: Ort und Leben jeder Einheit am Anfang und Ende, erster Verlust, Geschosse je Art, Leben und Ende jedes Gebaeudes. Geurteilt wird hier nicht, die Regeln fuer die Sonderfaelle stehen noch nicht fest."""
     aus = []
     for k in plan["karte"]:
         n = k["posten"]
-        zeile = {"posten": n, "einheiten": [], "gebaeude": [], "geschosse": dict(collections.Counter(x["art"] for x in geschosse if x["schuetze"] in {e.get("nr") for e in plan["einheiten"] if e.get("posten") == n}))}
+        im_gebiet = [x for x in geschosse if k["x"] - 10 <= x["start"][0] // 8 < k["x"] + k["breite"] + 10 and k["y"] - 10 <= x["start"][1] // 8 < k["y"] + k["hoehe"] + 10]
+        zeile = {"posten": n, "einheiten": [], "gebaeude": [], "geschosse": dict(collections.Counter(x["art"] for x in im_gebiet)), "neu": _neue_einheiten(reihen, k, {e.get("nr") for e in plan["einheiten"]})}
+        if felder and k.get("felder"):
+            zeile["felder"] = {f"{x},{y}": [(t - reihen[0][0], hex(w)) for t, w in felder[z][:5]] for x, y, z in k["felder"]}
         for e in plan["einheiten"]:
             if e.get("posten") != n or "nr" not in e:
                 continue
             a, b, erster, weg = None, None, None, None
+            wechsel = []
             for t, s in reihen:
                 if not s["da"][e["nr"]] or s["typ"][e["nr"]] != e["typ"]:
                     weg = t
                     break
+                z = (int(s["zustand"][e["nr"]]), int(s["ziel_art"][e["nr"]]))
+                if not wechsel or wechsel[-1][1:] != z:
+                    wechsel.append((t - reihen[0][0], *z))
                 w = (int(s["mx"][e["nr"]]) // 8, int(s["my"][e["nr"]]) // 8, int(s["leben"][e["nr"]]))
                 a = a or w
                 if erster is None and b is not None and w[2] < b[2]:
                     erster = t - reihen[0][0]
                 b = w
-            zeile["einheiten"].append({"rolle": e["rolle"], "typ": e["typ"], "von": a[:2] if a else None, "nach": b[:2] if b else None, "leben": (a[2], b[2]) if a and b else None, "erster_verlust": erster, "weg": weg - reihen[0][0] if weg is not None else None})
+            zeile["einheiten"].append({"rolle": e["rolle"], "typ": e["typ"], "von": a[:2] if a else None, "nach": b[:2] if b else None, "leben": (a[2], b[2]) if a and b else None, "erster_verlust": erster, "weg": weg - reihen[0][0] if weg is not None else None, "zustaende": wechsel[:6]})
         for g in plan["gebaeude"]:
             if g.get("posten") == n and "nr" in g:
                 v = _gebaeude_verlauf(reihen_g, g["nr"])
@@ -657,7 +704,8 @@ def main(argv=None):
         print("Nicht gesetzt:", plan.get("nicht_gesetzt"), "Mauerfelder:", plan.get("mauer_felder"))
     elif art == "sonder":
         k_ = Feldkarte.laden(feldliste=FELDLISTE)
-        zeilen = sonder_werten(reihen, gebaeude_lesen(a.aufzeichnung, k_), geschosse_lesen(a.aufzeichnung, k_), plan)
+        kacheln = [z for p_ in plan["karte"] for _, _, z in p_.get("felder", [])]
+        zeilen = sonder_werten(reihen, gebaeude_lesen(a.aufzeichnung, k_), geschosse_lesen(a.aufzeichnung, k_), plan, logik_verlauf(a.aufzeichnung, k_, kacheln) if kacheln else None)
         print("Nicht gesetzt:", plan.get("nicht_gesetzt"), "kein Platz:", plan.get("kein_platz"), "Grabenfelder am Ende:", plan.get("graben_felder_am_ende"))
     elif art == "schussweite":
         zeilen = schussweite_werten(geschosse_lesen(a.aufzeichnung, Feldkarte.laden(feldliste=FELDLISTE)), plan["einheiten"])

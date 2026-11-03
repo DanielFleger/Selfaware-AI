@@ -54,6 +54,15 @@ class Spiel:
     def besatzung(self, nr):
         return 0 if self.f.get("steigt_nicht_ein") else 9
 
+    def kachel(self, x, y):
+        return 1000 * y + x
+
+    def feld(self, gruppe, name):
+        return 7000, 100
+
+    def pech_liste(self, sp):
+        return [{"nr": 5 + i, "uid": 50 + i, "x": c["baue"]["x"], "y": c["baue"]["y"]} for i, c in enumerate(c for c in self.log if isinstance(c, dict) and "baue" in c)]
+
     def gebaeude(self, sp=1):
         return [dict(g) for g in self.gebaeude_liste if sp is None or g["besitzer"] == sp]
 
@@ -582,6 +591,46 @@ def test_gefecht_sonderfaelle_bekommen_waren_und_alle_posten(tmp_path):
     assert {"graben", "leiter", "turmgeraet", "schild", "hoehe", "tor", "oel"} == {k["posten"] for k in json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))["karte"]}
     arten = [c["angriff"].get("art") for c in g.log if isinstance(c, dict) and "angriff" in c]
     assert arten.index(15) < arten.index(20)  # das Oel holen, dann erst werfen
+
+
+def test_zweiter_durchgang_sonderfaelle_wie_der_code_es_verlangt(tmp_path):
+    g = Spiel(tmp_path)
+    l = lauf_von(g)
+    l.gefecht = True
+    e = ls.SZENEN["sonder2_g"](l)
+    assert e["kein_platz"] == []
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    ort = {k["posten"]: k for k in plan["karte"]}
+    assert set(ort) == {"graben", "leiter", "kuh", "hunde", "pech", "oel", "tunnel"}
+    bef = [c for c in g.log if isinstance(c, dict)]
+    # Graben: geplant mit Flag 2 = 0, nicht der Editorweg
+    planung = next(c["spielbefehl"]["werte"] for c in bef if c.get("spielbefehl", {}).get("nr") == 21)
+    assert planung[3:] == [0x40000000, 0] and len(ort["graben"]["felder"]) == 9
+    an = {c["angriff"].get("art"): c for c in bef if "angriff" in c and "art" in c["angriff"]}
+    assert an[6]["player"] == 1 and an[7]["player"] == 2
+    # Leiter und Mauerangriff nehmen die Feldnummer
+    x, y = ort["leiter"]["x"], ort["leiter"]["y"]
+    assert an[24]["angriff"]["a"] == 1000 * (y + 7) + x + 20
+    x, y = ort["tunnel"]["x"], ort["tunnel"]["y"]
+    assert an[23]["angriff"]["a"] == 1000 * (y + 11) + x + 24
+    # Kuh: erst der Zaehler, dann der Wurf
+    i = next(j for j, c in enumerate(bef) if c.get("poke") == 7100)
+    assert bef[i]["wert"] == 5 and bef.index(an[22]) == i + 1
+    # Oel: Pech in die Schmelze, holen, spaeter werfen
+    assert any(c.get("poke", 0) > 7100 for c in bef) and bef.index(an[15]) < bef.index(an[20])
+    # Pech: gebaut von Spieler 2, angezuendet ueber Nummer und uid
+    assert sum(1 for c in bef if "baue" in c and c["player"] == 2) == 5
+    assert an[34]["player"] == 2 and an[34]["angriff"]["a"] == 7 and an[34]["angriff"]["b"] == 52
+
+
+def test_stufen_laufen_in_der_reihenfolge_ihrer_takte(tmp_path):
+    g = Spiel(tmp_path)
+    g.pausiert = 1
+    zeit = []
+    def posten(x, y):
+        return [], [ls._e("a", 24, x, y)], [], lambda: [], [(500, lambda: zeit.append(("spaet", g.t)) or []), (100, lambda: zeit.append(("frueh", g.t)) or [])]
+    ls.szene_sonder(lauf_von(g), "sonder1", (("p", posten, 10, 4),))
+    assert [z[0] for z in zeit] == ["frueh", "spaet"] and zeit[1][1] - zeit[0][1] >= 400
 
 
 def test_packen_legt_dicht_und_sperrt_den_rand():

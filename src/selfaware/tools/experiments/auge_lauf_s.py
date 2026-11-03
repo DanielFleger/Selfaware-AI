@@ -111,6 +111,27 @@ class SpeicherS(lk.SpeicherK):
                             "leben": struct.unpack_from("<i", roh, b + E_LEBEN)[0], "uid": struct.unpack_from("<i", roh, b + E_UID)[0]})
         return aus
 
+    def kachel(self, x, y):
+        """Feldnummer: Mauerangriff und Leiter nehmen sie statt x und y (giveTribeAnInstruction, tileTranslationMatrix)."""
+        return struct.unpack("<i", self.q.lies(lf.ZEILEN + y * 12 + 8, 4))[0] + x
+
+    def feld(self, gruppe, name):
+        adr, _, schritt, _ = self.karte.adresse(gruppe, name)
+        return adr, schritt
+
+    def pech_liste(self, sp):
+        """Die Pechgraeben eines Spielers: Nummer und uid fuer Anweisung 34."""
+        a = self.karte.adresse("DAT_TileMapState", "pitchDitches[].uid")
+        roh = self.q.lies(a[0], a[2] * a[3])
+        aus = []
+        o = {n: self.karte.adresse("DAT_TileMapState", "pitchDitches[]." + n)[0] - a[0] for n in ("x", "y", "owner")}
+        for i in range(1, a[3]):
+            b = i * a[2]
+            u = struct.unpack_from("<i", roh, b)[0]
+            if u and struct.unpack_from("<h", roh, b + o["owner"])[0] == sp:
+                aus.append({"nr": i, "uid": u, "x": struct.unpack_from("<h", roh, b + o["x"])[0], "y": struct.unpack_from("<h", roh, b + o["y"])[0]})
+        return aus
+
     def besatzung(self, nr):
         adr, _, schritt, _ = self.karte.adresse("DAT_UnitsState", "units[].digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300")
         return struct.unpack("<h", self.q.lies(adr + nr * schritt, 2))[0]
@@ -772,6 +793,64 @@ def p_oel(x, y):
 
 
 SONDER1 = (("feuer", p_feuer, 24, 12), ("pech", p_pech, 24, 8), ("mordloch", p_mordloch, 24, 6), ("hunde", p_hunde, 20, 8), ("kuh", p_kuh, 36, 8), ("graben", p_graben, 24, 8))
+def sonder_g2(l):
+    """Die Sonderfaelle, die im ersten Durchgang nicht erreicht wurden, jeder mit dem, was der Code verlangt (Ergebnis_Lauf_S.md). Kuh-Zaehler und Pech in der Schmelze werden gesetzt: Das ist ein Messlauf, nichts davon geht in SamurAI."""
+    s = l.s
+
+    def graben(x, y):
+        wer = [_e("graeber", 71, x + 2 + i, y + 4) for i in range(3)]
+        fueller = [_e("fueller", 71, x + 20, y + 3 + i, 2) for i in range(2)]
+        plan = [{"player": 1, "spielbefehl": {"nr": 21, "werte": [x + 11, y + 4, 0, 0x40000000, 0]}}]  # L126: Flag 2 = 0 plant, 2 wuerde sofort ausheben
+        return [], wer + fueller, plan, lambda: [_angriff(wer, art=6, a=x + 11, b=y + 4)], [(1500, lambda: [_angriff(fueller, 2, art=7, a=x + 11, b=y + 4)])], [(x + 10 + i, y + 3 + j) for i in range(3) for j in range(3)]
+
+    def leiter(x, y):
+        mauer = [{"player": 2, "spielbefehl": {"nr": 25, "werte": [x + 20, y, x + 20, y + 15, 25, 13]}}]
+        trag = [_e("leiter", 29, x + 8, y + 6), _e("leiter", 29, x + 8, y + 8)]
+        speer = [_e("steiger", 24, x + 4, y + 6 + i) for i in range(3)]
+        return [], trag + speer, mauer, lambda: [_angriff(trag, art=24, a=s.kachel(x + 20, y + 7), b=0)], [(500, lambda: [_angriff(speer, lauf=[x + 20, y + 7])])]
+
+    def kuh(x, y):
+        adr, schritt = s.feld("DAT_GameState", "playerDataArray[].counter")
+        t = dict(_e("geraet", 40, x + 4, y + 4), mann=3, soll=3)
+        leute = _ing(x, y + 2, 3)
+        opfer = [_e("opfer", 25, x + 28, y + 3, 2), _e("opfer", 25, x + 28, y + 5, 2)]
+        return [], [t] + leute + opfer, [], lambda: [_angriff(leute, art=16, a=t["nr"], b=t["uid"])], lambda: [{"poke": adr + schritt, "wert": 5}, _angriff([t], art=22, a=x + 28, b=y + 4)]
+
+    def hunde(x, y):
+        g = [_g(99, x + 2, y + 2, spieler=1)]
+        opfer = [_e("opfer", 24, x + 8, y + 2 + i, 2) for i in range(3)]
+        return g, opfer, [], lambda: [{"player": 1, "spielbefehl": {"nr": 74, "werte": [g[0]["nr"], g[0]["uid"]]}}] if "nr" in g[0] else [], None
+
+    def pech(x, y):
+        baue = [{"player": 2, "baue": {"mapper": 99, "x": x + 10 + i, "y": y + 4, "groesse": 1, "richtung": 15}} for i in range(5)]
+        schuetze = _e("schuetze", 22, x + 20, y + 2, 2)
+        opfer = _e("opfer", 25, x + 2, y + 4)
+
+        def anzuenden():
+            nah = [d for d in s.pech_liste(2) if abs(d["y"] - (y + 4)) <= 1 and x + 8 <= d["x"] <= x + 16]
+            return [_angriff([schuetze], 2, art=34, a=nah[len(nah) // 2]["nr"], b=nah[len(nah) // 2]["uid"])] if nah else []
+        return [], [schuetze, opfer], baue, lambda: [_angriff([opfer], lauf=[x + 18, y + 4])], [(200, anzuenden)]
+
+    def oel(x, y):
+        g = [_g(28, x + 6, y + 1, spieler=1)]
+        adr, schritt = s.feld("DAT_BuildingsState", "buildings[].resourcePitch")
+        leute = [_e("oel", 30, x + 2, y + 3 + i) for i in range(2)]
+        opfer = _e("opfer", 24, x + 18, y + 3, 2)
+
+        def holen():
+            return [{"poke": adr + schritt * g[0]["nr"], "wert": 20}, _angriff(leute, art=15, a=g[0]["nr"], b=g[0]["uid"])] if "nr" in g[0] else []
+        return g, leute + [opfer], [], holen, [(800, lambda: [_angriff(leute, art=20, a=x + 18, b=y + 3)])]
+
+    def tunnel(x, y):
+        g = [_g(74, x + 22, y + 2)]
+        mauer = [{"player": 2, "spielbefehl": {"nr": 25, "werte": [x + 24, y + 9, x + 24, y + 14, 25, 13]}}]
+        wer = [_e("taeter", 5, x + 2, y + 2 + i) for i in range(3)]
+        wand = [_e("taeter_mauer", 5, x + 2, y + 10 + i) for i in range(3)]
+        return g, wer + wand, mauer, lambda: ([_angriff(wer, gebaeude=g[0]["nr"])] if "nr" in g[0] else []) + [_angriff(wand, art=23, a=s.kachel(x + 24, y + 11), b=0)], None
+
+    return (("graben", graben, 26, 8), ("leiter", leiter, 30, 16), ("kuh", kuh, 36, 8), ("hunde", hunde, 20, 8), ("pech", pech, 24, 8), ("oel", oel, 24, 8), ("tunnel", tunnel, 30, 16))
+
+
 SONDER_G = (("graben", p_graben, 24, 8), ("leiter", p_leiter, 30, 16), ("turmgeraet", p_turmgeraet, 30, 12), ("schild", p_schild, 34, 10), ("hoehe", p_hoehe, 60, 6), ("tor", p_tor, 30, 10), ("oel", p_oel, 24, 8))
 SONDER_WAREN = ((4, 2000), (7, 500))  # Stein fuer Mauern, Pech fuer das Oel: Im Gefecht kosten Spielbefehle Waren, der Start reicht nicht
 SONDER2 = (("leiter", p_leiter, 30, 16), ("turmgeraet", p_turmgeraet, 30, 12), ("tunnel", p_tunnel, 28, 10), ("schild", p_schild, 34, 10), ("hoehe", p_hoehe, 60, 6), ("tor", p_tor, 30, 10), ("oel", p_oel, 24, 6))
@@ -783,12 +862,12 @@ def szene_sonder(l, name, posten):
     lk.anhalten(l)
     frei, _, _ = s.raster()
     orte = packen(frei, [(b, h) for _, _, b, h in posten], rand=SONDER_ABSTAND)
-    gebaeude, einheiten, davor, jetzt, spaeter, karte, fehlt = [], [], [], [], [], [], []
+    gebaeude, einheiten, davor, jetzt, stufen, karte, fehlt = [], [], [], [], [], [], []
     for (n, f, b, h), o in zip(posten, orte):
         if o is None:
             fehlt.append(n)
             continue
-        g, e, d, j, sp = f(*o)
+        g, e, d, j, sp, *felder = f(*o)
         for z in g + e:
             z["posten"] = n
         gebaeude += g
@@ -796,8 +875,8 @@ def szene_sonder(l, name, posten):
         davor += d
         jetzt.append(j)
         if sp:
-            spaeter.append(sp)
-        karte.append({"posten": n, "x": o[0], "y": o[1], "breite": b, "hoehe": h})
+            stufen += sp if isinstance(sp, list) else [(SONDER_BEMANNEN, sp)]
+        karte.append({"posten": n, "x": o[0], "y": o[1], "breite": b, "hoehe": h, "felder": [[x, y, s.kachel(x, y)] for x, y in felder[0]] if felder else []})
     nicht_gesetzt = gebaeude_setzen(l, gebaeude)
     if l.gefecht:
         davor = [{"player": p, "ware": {"typ": t, "menge": m}} for p in SPIELER_S for t, m in SONDER_WAREN] + davor
@@ -810,9 +889,11 @@ def szene_sonder(l, name, posten):
     setzen(l, einheiten)
     k.liste([c for j in jetzt for c in j()], lf.KANAL)
     a = lk.aufnahme_im_stand(l, name, 100, False)
-    if spaeter:
-        l.warte_takte(SONDER_BEMANNEN)
-        k.liste([c for sp in spaeter for c in sp()], lf.KANAL)
+    gewartet = 0
+    for nach, f in sorted(stufen, key=lambda z: z[0]):
+        l.warte_takte(nach - gewartet)
+        k.liste(f(), lf.KANAL)
+        gewartet = nach
     l.warte_takte(GRENZE_SONDER)
     b = lk.anhalten(l)
     pfad = l.rek.pfad
@@ -969,6 +1050,7 @@ SZENEN = {
     "sonder1": lambda l: szene_sonder(l, "sonder1", SONDER1),
     "sonder2": lambda l: szene_sonder(l, "sonder2", SONDER2),
     "sonder_g": lambda l: szene_sonder(l, "sonder_g", SONDER_G),
+    "sonder2_g": lambda l: szene_sonder(l, "sonder2_g", sonder_g2(l)),
     "gebaeude_nah": Szene("gebaeude_nah", lf.TEMPO_JEDER_TAKT, True, GRENZE_NAH_GEBAEUDE, aufbau_gebaeude_nah, befehle_gebaeude_nah, treffer_noetig=False),
     "laufen_trupp_g": Szene("laufen_trupp_g", 200, False, GRENZE_TRUPP, lambda l: aufbau_laufen(l, OHNE_LORD), befehle_laufen_trupp, alle_am_ziel, treffer_noetig=False),
     "reichweite_g": Szene("reichweite_g", 200, False, GRENZE_BAHN, lambda l: aufbau_reichweite(l, OHNE_LORD), befehle_auf_partner),
