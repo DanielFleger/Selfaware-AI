@@ -45,6 +45,74 @@ def reihen_lesen(pfad, karte):
     return reihen, tabellen
 
 
+GESCHOSSE = {1: "pfeil", 2: "katapult", 3: "trebuchet", 4: "mangonel", 7: "bolzen", 20: "ballista", 23: "kuh", 33: "schleuder", 34: "feuer", 36: "feuer_frei", 37: "feuerballiste"}  # EntityType, Ghidra-Typen
+G_FELDER = {"da": "logicalState", "art": "entityType", "ziel": "unitID", "schuetze": "unitID_OR_seaGullID", "besitzer": "owner", "uid": "uid", "zx": "targetX", "zy": "targetY", "mx": "microX", "my": "microY"}
+
+
+def geschosse_lesen(pfad, karte):
+    """Jedes Geschoss einmal: Art, Besitzer, Schuetze, Ziel, erster und letzter Flugtakt, Start und Zielpunkt in Mikro. Fliegt heisst logicalState 2, danach 3 oder beim Feuer 7. Auf Tempo 40 auf den Takt genau, sonst auf den Abstand der Rahmen."""
+    from selfaware.tools.analysis.auge_auswertung import Aufzeichnung
+
+    auf = Aufzeichnung(pfad)
+    ie = auf.namen.index("DAT_EntityState")
+    be = auf.bereiche[ie][1]
+    ad = {k: karte.adresse("DAT_EntityState", "entityArray[]." + f) for k, f in G_FELDER.items()}
+    arten = list(GESCHOSSE)
+    aus = {}
+    for r, p, _ in auf.staende():
+        if r.bereich != ie or not r.rein:
+            continue
+        a = bytes(p)
+        sp = {k: np.ndarray(shape=(v[3],), dtype={2: "<i2", 4: "<i4"}[v[1]], buffer=a, offset=v[0] - be, strides=(v[2],)) for k, v in ad.items()}
+        for i in np.nonzero(np.isin(sp["art"], arten) & (sp["da"] != 0))[0]:
+            sch = (int(i), int(sp["uid"][i]))
+            g = aus.get(sch)
+            if g is None:
+                g = aus[sch] = {"art": GESCHOSSE[int(sp["art"][i])], "besitzer": int(sp["besitzer"][i]), "schuetze": int(sp["schuetze"][i]), "ziel": int(sp["ziel"][i]), "von": r.takt, "bis": None, "start": (int(sp["mx"][i]), int(sp["my"][i])), "punkt": (int(sp["zx"][i]), int(sp["zy"][i]))}
+            if sp["da"][i] != 2 and g["bis"] is None:
+                g["bis"] = r.takt
+    return list(aus.values())
+
+
+def geschosse_werten(geschosse, reihen):
+    """Je Art: Wie viele flogen, wie viele trafen, wie schnell. Getroffen heisst: Das Ziel hatte rund um den Einschlag weniger Leben als davor. Fremde Treffer in diesen Rahmen zaehlen mit, das ist die Grenze dieser Zahl."""
+    takte = [t for t, _ in reihen]
+    stand = dict(reihen)
+    zeilen = collections.defaultdict(lambda: {"flogen": 0, "gelandet": 0, "traf": 0, "verfehlt": 0, "ziel_weg": 0, "mikro_je_takt": [], "abstand": []})
+    for g in geschosse:
+        z = zeilen[g["art"]]
+        z["flogen"] += 1
+        if g["bis"] is None:
+            continue
+        z["gelandet"] += 1
+        d = _abstand(*g["start"], *g["punkt"])
+        if g["bis"] > g["von"] and d:
+            z["mikro_je_takt"].append(d / (g["bis"] - g["von"]))
+        z["abstand"].append(d)
+        i = np.searchsorted(takte, g["bis"])
+        if i == 0 or i >= len(takte) or g["ziel"] <= 0:
+            continue
+        vor, nach = stand[takte[max(0, i - 3)]], stand[takte[min(len(takte) - 1, i + 1)]]  # der Verlust kam bis zu 2 Takte vor dem Ende des Flugs (Szene Beschuss)
+        if not nach["da"][g["ziel"]] or nach["typ"][g["ziel"]] != vor["typ"][g["ziel"]]:
+            z["ziel_weg"] += 1
+        elif nach["leben"][g["ziel"]] < vor["leben"][g["ziel"]]:
+            z["traf"] += 1
+        else:
+            z["verfehlt"] += 1
+    aus = {}
+    for art, z in sorted(zeilen.items()):
+        tempo, ab = z.pop("mikro_je_takt"), z.pop("abstand")
+        aus[art] = {**z, "mikro_je_takt": round(float(np.median(tempo)), 2) if tempo else None, "abstand_hoechstens": max(ab) if ab else None}
+    return aus
+
+
+def _abstand(ax, ay, bx, by):
+    """In Mikro, 8 je Feld, nach der Formel des Spiels."""
+    a, b = abs(ax - bx), abs(ay - by)
+    g, k = max(a, b), min(a, b)
+    return g + (2 * k // 5) * k // g if g else 0
+
+
 def _paare(einheiten):
     p = collections.defaultdict(dict)
     for e in einheiten:
@@ -68,8 +136,9 @@ def treffer_lesen(reihen, wer, opfer):
     return aus
 
 
-def nahkampf_werten(reihen, einheiten, tab):
-    """Regel: Das Opfer verliert je Treffer genau den Tabellenwert Schlaeger gegen Opfer. Laeuft auf Stufe 40, jeder Takt ist da. Wer nicht schlagen kann, darf auch nicht treffen."""
+def nahkampf_werten(reihen, einheiten, tab, erster_rahmen_alt=False):
+    """Regel: Das Opfer verliert je Treffer genau den Tabellenwert Schlaeger gegen Opfer. Laeuft auf Stufe 40, jeder Takt ist da. Wer nicht schlagen kann, darf auch nicht treffen.
+    erster_rahmen_alt: Im Gefecht zeigt der erste Rahmen nach dem Weiterlaufen noch den Stand davor (gefecht_gegen_editor.txt), der zweite traegt dann zwei Takte. Ein doppelter Wert genau dort ist also kein Fund, gezaehlt wird er trotzdem."""
     aus = []
     t0 = reihen[0][0] if reihen else 0
     for i, p in sorted(_paare(einheiten).items()):
@@ -80,6 +149,9 @@ def nahkampf_werten(reihen, einheiten, tab):
             soll = int(tab["nah"][w["typ"], o["typ"]])
             kann = bool(tab["schlaegt"][w["typ"]])
             geschoss = {int(tab[n][o["typ"]]) for n in ("pfeil", "bolzen", "stein")}
+            doppelt = bool(erster_rahmen_alt and tr and tr[0]["takt"] - t0 == 2 and tr[0]["betrag"] == 2 * soll)
+            if doppelt:
+                tr[0] = dict(tr[0], betrag=soll)
             ganz = [x for x in tr if not x["rest"]]
             fremd = [x for x in ganz if x["betrag"] - soll in geschoss]  # im selben Takt traf noch ein Geschoss von anderswo, wie in Lauf K
             werte = collections.Counter(x["betrag"] for x in ganz if x not in fremd)
@@ -92,7 +164,7 @@ def nahkampf_werten(reihen, einheiten, tab):
                 urteil = "Treffer ohne Nahkampf"
             else:
                 urteil = "weicht ab"
-            aus.append({"paar": i, "schlaeger": w["typ"], "opfer": o["typ"], "soll": soll, "treffer": len(tr), "werte": dict(werte), "abstaende": dict(abst), "erster": tr[0]["takt"] - t0 if tr else None, "fremde_geschosse": len(fremd), "urteil": urteil})
+            aus.append({"paar": i, "schlaeger": w["typ"], "opfer": o["typ"], "soll": soll, "treffer": len(tr), "werte": dict(werte), "abstaende": dict(abst), "erster": tr[0]["takt"] - t0 if tr else None, "fremde_geschosse": len(fremd), "erster_doppelt": doppelt, "urteil": urteil})
     return aus
 
 
@@ -198,6 +270,69 @@ def _summen_pruefen(a, b, tab, dt):
     return {"gleich": int((verlust == soll).sum()), "weniger": int((verlust < soll).sum()), "mehr": int((verlust > soll).sum())}
 
 
+def reichweite_werten(reihen, einheiten, tab):
+    """Je Bahn: Wann laeuft die Einheit los, wie schnell, in welchem Abstand bleibt sie vor dem ersten Treffer stehen, wie oft und in welchem Takt faellt das Leben des Ziels."""
+    ziele = {e["paar"]: e for e in einheiten if e.get("rolle") == "ziel"}
+    aus = []
+    for e in einheiten:
+        if e.get("rolle") != "laeufer":
+            continue
+        z = ziele[e["paar"]]
+        start = letzter_ort = erster = letzter = vor = halt_ort = None
+        treffer = []
+        ziel_ort = None
+        for t, s in reihen:
+            if s["typ"][e["nr"]] != e["typ"] or not s["da"][e["nr"]] or s["typ"][z["nr"]] != z["typ"]:
+                break
+            ort = (int(s["mx"][e["nr"]]), int(s["my"][e["nr"]]))
+            ziel_ort = ziel_ort or (int(s["mx"][z["nr"]]), int(s["my"][z["nr"]]))
+            start = start or ort
+            if not treffer and ort != (letzter_ort or start):
+                erster = erster if erster is not None else t
+                letzter, halt_ort = t, ort
+            letzter_ort = ort
+            lz = int(s["leben"][z["nr"]])
+            if vor is not None and lz < vor:
+                treffer.append((t, vor - lz))
+            vor = lz
+        halt_ort = halt_ort or start
+        ab = _abstand(*halt_ort, *ziel_ort) if ziel_ort and halt_ort else None
+        gelaufen = (_abstand(*start, *ziel_ort) - ab) / 8 if ab is not None else 0
+        schuss = collections.Counter(b[0] - a[0] for a, b in zip(treffer, treffer[1:]))
+        aus.append({"typ": e["typ"], "erster_schritt": erster, "halt": letzter, "felder_gelaufen": round(gelaufen, 1), "takte_je_feld": round((letzter - erster) / gelaufen, 2) if erster is not None and gelaufen >= 5 and letzter > erster else None,
+                    "tempo_soll": 8 * (int(tab["tempo"][e["typ"]]) + 1), "abstand_mikro": ab, "abstand_felder": round(ab / 8, 1) if ab is not None else None, "treffer": len(treffer), "erster_treffer": treffer[0][0] if treffer else None,
+                    "werte": dict(collections.Counter(w for _, w in treffer)), "abstaende": dict(schuss.most_common(5)), "urteil": "trifft" if treffer else "kein Treffer"})
+    return aus
+
+
+def laufziel_werten(geschosse, reihen, einheiten):
+    """Geschosse der Schuetzen auf ihren Laeufer, je Art. Die Liste fragt nach der Trefferquote gegen ein laufendes Ziel."""
+    schuetzen = {e["nr"]: e for e in einheiten if e.get("rolle") == "schuetze"}
+    partner = {e["paar"]: e["nr"] for e in einheiten if e.get("rolle") == "pendel"}
+    aus = []
+    for nr, e in schuetzen.items():
+        g = [x for x in geschosse if x["schuetze"] == nr and x["ziel"] == partner[e["paar"]]]
+        w = geschosse_werten(g, reihen)
+        aus.append({"typ": e["typ"], "alle_geschosse": sum(1 for x in geschosse if x["schuetze"] == nr), **{k: v for k, v in w.items()}})
+    return aus
+
+
+def haltung_werten(reihen, einheiten):
+    """Reagiert heisst: Die Wache verlaesst ihr Feld oder traegt einen Gegner als Ziel ein. Soll aus dem Code: aggressiv bis 25 Felder, defensiv bis 5, stehen gar nicht."""
+    aus = []
+    for e in einheiten:
+        if e.get("rolle") != "wache":
+            continue
+        erste = None
+        for t, s in reihen:
+            if (int(s["mx"][e["nr"]]) // 8, int(s["my"][e["nr"]]) // 8) != (e["x"], e["y"]) or s["schlaegt"][e["nr"]] != 0:
+                erste = t
+                break
+        soll = {2: 25, 1: 5, 0: 0}[e["wert"]] >= e["abstand"]
+        aus.append({"typ": e["typ"], "haltung": e["haltung"], "abstand": e["abstand"], "soll": soll, "reagiert": erste is not None, "nach_takten": erste - reihen[0][0] if erste is not None else None, "urteil": "bestaetigt" if soll == (erste is not None) else "weicht ab"})
+    return aus
+
+
 def kontrolle_werten(reihen, einheiten):
     """Die Kontrolle steht allein: Leben und Ort bleiben. Sonst stoert etwas, das niemand kennt, und die Szene gilt als gestoert."""
     aus = []
@@ -247,7 +382,7 @@ def bericht(szene, zeilen, kontrollen):
     if kontrollen:
         text.append("Kontrolle: " + ("ungestoert" if all(k["ungestoert"] for k in kontrollen) else f"GESTOERT {kontrollen}"))
     for r in zeilen:
-        if r.get("urteil") in ("weicht ab", "kein Treffer", "Treffer ohne Nahkampf"):
+        if r.get("urteil") in ("weicht ab", "kein Treffer", "Treffer ohne Nahkampf") or szene.startswith(("reichweite", "laufziel", "haltung")):
             text.append("  " + json.dumps({k: v for k, v in r.items() if k != "paar"}, ensure_ascii=False))
     return "\n".join(text)
 
@@ -274,9 +409,22 @@ def main(argv=None):
         print(plan["szene"], {k: v for k, v in m.items() if k != "verlauf"})
         return 0
     if art == "nahkampf":
-        zeilen = nahkampf_werten(reihen, plan["einheiten"], tab)
+        zeilen = nahkampf_werten(reihen, plan["einheiten"], tab, erster_rahmen_alt=plan["szene"].endswith("_g"))
+        print("Erster Treffer doppelt, weil der erste Rahmen den alten Stand zeigt:", sum(z["erster_doppelt"] for z in zeilen))
     elif art == "beschuss":
         zeilen = beschuss_werten(reihen, plan["einheiten"], tab)
+        g = geschosse_werten(geschosse_lesen(a.aufzeichnung, Feldkarte.laden(feldliste=FELDLISTE)), reihen)
+        json.dump(g, open(a.aufzeichnung + ".geschosse.json", "w", encoding="utf-8"), ensure_ascii=False)
+        print("Geschosse:", g)
+    elif art == "reichweite":
+        zeilen = reichweite_werten(reihen, plan["einheiten"], tab)
+        g = geschosse_werten(geschosse_lesen(a.aufzeichnung, Feldkarte.laden(feldliste=FELDLISTE)), reihen)
+        json.dump(g, open(a.aufzeichnung + ".geschosse.json", "w", encoding="utf-8"), ensure_ascii=False)
+        print("Geschosse:", g)
+    elif art == "laufziel":
+        zeilen = laufziel_werten(geschosse_lesen(a.aufzeichnung, Feldkarte.laden(feldliste=FELDLISTE)), reihen, plan["einheiten"])
+    elif art == "haltung":
+        zeilen = haltung_werten(reihen, plan["einheiten"])
     else:
         from selfaware.tools.experiments.auge_lauf_s import FELDER_LAUF
         zeilen = laufen_werten(reihen, plan["einheiten"], FELDER_LAUF)

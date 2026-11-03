@@ -26,6 +26,7 @@ class Spiel:
         self.tod_ab = None
         self.tod_typen = None
         self.speicher = {}
+        self.haltungen = {}
         self.fern = 0
 
     def uhr(self):
@@ -44,6 +45,9 @@ class Spiel:
 
     def takt(self):
         return self.t
+
+    def haltung(self, trupp):
+        return self.haltungen.get(trupp, 1)
 
     def peek(self, adr, n=1):
         return [self.speicher.get(adr, 0)]
@@ -68,7 +72,14 @@ class Spiel:
                     continue
                 self.nr += 1
                 assert self.pausiert, "gesetzt wird im angehaltenen Spiel"
-                self.einheiten.append({"nr": self.nr, "uid": 1000 + self.nr, "typ": e["typ"], "besitzer": e["spieler"], "x": e["x"] + 1, "y": e["y"] + 1, "leben": 100})
+                self.einheiten.append({"nr": self.nr, "uid": 1000 + self.nr, "typ": e["typ"], "besitzer": e["spieler"], "x": e["x"] + 1, "y": e["y"] + 1, "leben": 100, "trupp": 0})
+            if "angriff" in c:
+                for e in self.einheiten:
+                    if e["nr"] in c["angriff"]["einheiten"]:
+                        e["trupp"] = 1000 + e["nr"]
+            if "spielbefehl" in c and c["spielbefehl"]["nr"] == 70 and not self.f.get("haltung_wirkt_nicht"):
+                t, w = c["spielbefehl"]["werte"]
+                self.haltungen[t] = w
             if "toeteAlle" in c:
                 t = c["toeteAlle"]
                 if isinstance(t, dict):
@@ -265,6 +276,153 @@ def test_modul_bekommt_toete_ohne_lord_und_jede_anweisung():
     assert neu.index(lf.TOETE_NEU[1]) < neu.index("local sp = tonumber") and neu.index(lf.ART_NEU) < neu.index(lf.ART_ANKER)
     assert lf._mit_art(lf._mit_toete(neu)) == neu  # zweimal einspielen aendert nichts
     assert lf._mit_toete("ohne") == "ohne" and lf._mit_art("ohne") == "ohne"
+
+
+def test_reichweite_jede_bahn_hat_ihr_ziel_und_den_befehl(tmp_path):
+    g = Spiel(tmp_path)
+    e = ls.szene_fahren(lauf_von(g), ls.SZENEN["reichweite"])
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    laeufer = [x for x in plan["einheiten"] if x["rolle"] == "laeufer"]
+    ziele = {x["paar"]: x for x in plan["einheiten"] if x["rolle"] == "ziel"}
+    assert len(laeufer) == 19 and plan["eben"] is True and all(ziele[x["paar"]]["typ"] == 59 and ziele[x["paar"]]["x"] - x["x"] == ls.FELDER_BAHN and ziele[x["paar"]]["spieler"] == 2 for x in laeufer)
+    bef = [c for c in g.log if isinstance(c, dict) and "angriff" in c]
+    assert len(bef) == 19 and all(c["player"] == 1 and c["angriff"]["ziel"] == ziele[x["paar"]]["nr"] and c["angriff"]["einheiten"] == [x["nr"]] for c, x in zip(bef, laeufer))
+    assert e["bis"] - e["von"] >= ls.GRENZE_BAHN
+
+
+def test_reichweite_nimmt_unebene_bahnen_nur_wenn_es_sein_muss():
+    class L:
+        class s:
+            @staticmethod
+            def raster():
+                return np.ones((400, 400), dtype=bool), np.indices((400, 400))[1] // 2, np.zeros((400, 400))
+    p = ls.aufbau_reichweite(L)
+    assert p["eben"] is False and len([x for x in p["einheiten"] if x["rolle"] == "laeufer"]) == 19
+
+
+def test_laufen_trupp_laeuft_ueber_den_gruppenbefehl(tmp_path):
+    g = Spiel(tmp_path)
+    ls.szene_fahren(lauf_von(g), ls.SZENEN["laufen_trupp"])
+    bef = [c for c in g.log if isinstance(c, dict) and "angriff" in c]
+    assert len(bef) == 38 and all(c["player"] == 1 and len(c["angriff"]["einheiten"]) == 1 and "lauf" in c["angriff"] for c in bef)
+    assert not any(isinstance(c, dict) and "einheit_ziel" in c for c in g.log)
+
+
+def test_laufziel_wendet_am_wendepunkt(tmp_path):
+    g = Spiel(tmp_path)
+    p = {"einheiten": [{"rolle": "pendel", "nr": 7, "wende": [[10, 30], [10, 10]], "weiter": 0}, {"rolle": "schuetze", "nr": 8}]}
+    g.einheiten = [{"nr": 7, "x": 10, "y": 20, "besitzer": 2, "typ": 26}]
+    l = lauf_von(g)
+    assert ls.pendeln(l, p) is False and not any(isinstance(c, dict) and "einheit_ziel" in c for c in g.log)
+    g.einheiten[0]["y"] = 30
+    assert ls.pendeln(l, p) is False and p["einheiten"][0]["weiter"] == 1
+    assert [c for c in g.log if isinstance(c, dict) and "einheit_ziel" in c] == [{"einheit_ziel": {"nr": 7, "x": 10, "y": 10}}]
+
+
+def test_laufziel_schuetzen_haben_ihr_ziel_und_alle_einen_laeufer(tmp_path):
+    g = Spiel(tmp_path)
+    e = ls.szene_fahren(lauf_von(g), ls.SZENEN["laufziel"])
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    s = {x["paar"]: x for x in plan["einheiten"] if x["rolle"] == "schuetze"}
+    z = {x["paar"]: x for x in plan["einheiten"] if x["rolle"] == "pendel"}
+    assert len(s) == 6 and all(z[i]["x"] - s[i]["x"] == ls.ABSTAND_PENDEL and z[i]["typ"] == ls.PENDLER for i in s)
+    assert sum(1 for c in g.log if isinstance(c, dict) and "einheit_ziel" in c) >= 6
+
+
+def test_haltung_erst_gruppe_dann_haltung_dann_feind(tmp_path):
+    g = Spiel(tmp_path)
+    e = ls.szene_haltung(lauf_von(g))
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    wachen = [x for x in plan["einheiten"] if x["rolle"] == "wache"]
+    feinde = {x["fall"]: x for x in plan["einheiten"] if x["rolle"] == "feind"}
+    assert len(wachen) == 15 and {(x["typ"], x["haltung"], x["abstand"]) for x in wachen} == {(t, h[0], h[2]) for t in ls.HALTUNG_ARTEN for h in ls.HALTUNGEN}
+    assert all(feinde[x["fall"]]["x"] - x["x"] == x["abstand"] and feinde[x["fall"]]["y"] == x["y"] and feinde[x["fall"]]["spieler"] == 2 for x in wachen)
+    arten = [("trupp" if "angriff" in c else "haltung" if "spielbefehl" in c else "feind") for c in g.log if isinstance(c, dict) and ("angriff" in c or "spielbefehl" in c or ("setzeEinheit" in c and c["setzeEinheit"]["spieler"] == 2))]
+    assert arten == ["trupp"] * 15 + ["haltung"] * 15 + ["feind"] * 15
+    assert all(c["spielbefehl"]["werte"][1] in (0, 1, 2) for c in g.log if isinstance(c, dict) and "spielbefehl" in c)
+
+
+def test_haltung_ohne_wirkung_bricht_ab(tmp_path):
+    with pytest.raises(lf.Abbruch, match="Befehl 70"):
+        ls.szene_haltung(lauf_von(Spiel(tmp_path, haltung_wirkt_nicht=True)))
+
+
+def schuss_reihe(leben):
+    aus = []
+    for i, w in enumerate(leben):
+        s = {k: np.zeros(ar.PLAETZE, dtype=np.int64) for k in ar.FELDER}
+        s["da"][[1, 2]], s["typ"][[1, 2]] = 1, 22
+        s["leben"][1], s["leben"][2] = 1000, w
+        aus.append((100 + i, s))
+    return aus
+
+
+def test_geschoss_trifft_nur_wenn_das_ziel_leben_verliert():
+    r = schuss_reihe([500] * 3 + [400] * 7)
+    g = [{"art": "pfeil", "schuetze": 1, "ziel": 2, "von": 95, "bis": 103, "start": (0, 0), "punkt": (40, 0)}, {"art": "pfeil", "schuetze": 1, "ziel": 2, "von": 100, "bis": 109, "start": (0, 0), "punkt": (45, 0)}, {"art": "pfeil", "schuetze": 1, "ziel": 2, "von": 100, "bis": None, "start": (0, 0), "punkt": (45, 0)}]
+    w = ar.geschosse_werten(g, r)["pfeil"]
+    assert w["flogen"] == 3 and w["gelandet"] == 2 and w["traf"] == 1 and w["verfehlt"] == 1 and w["mikro_je_takt"] == 5.0 and w["abstand_hoechstens"] == 45
+
+
+def test_abstand_wie_im_spiel():
+    assert ar._abstand(0, 0, 80, 0) == 80 and ar._abstand(0, 0, 0, 0) == 0 and ar._abstand(0, 0, 80, 40) == 80 + (2 * 40 // 5) * 40 // 80
+
+
+def reichweite_reihe(orte, leben):
+    aus = []
+    for i, (x, w) in enumerate(zip(orte, leben)):
+        s = {k: np.zeros(ar.PLAETZE, dtype=np.int64) for k in ar.FELDER}
+        s["da"][[1, 2]], s["typ"][1], s["typ"][2] = 1, 22, 59
+        s["mx"][1], s["my"][1], s["mx"][2], s["my"][2] = x, 40, 480, 40
+        s["leben"][2] = w
+        aus.append((100 + i, s))
+    return aus
+
+
+def test_reichweite_liest_lauf_halt_und_schusstakt():
+    r = reichweite_reihe([0] * 2 + list(range(0, 320, 2)) + [318] * 40 + [330] * 20, [1000] * 170 + [900] * 20 + [800] * 32)
+    e = [{"rolle": "laeufer", "paar": 0, "typ": 22, "nr": 1}, {"rolle": "ziel", "paar": 0, "typ": 59, "nr": 2}]
+    tab = {"tempo": np.full(80, 1)}
+    z = ar.reichweite_werten(r, e, tab)[0]
+    assert z["abstand_mikro"] == 162 and z["abstand_felder"] == 20.2 and z["felder_gelaufen"] == 39.8 and z["treffer"] == 2 and z["abstaende"] == {20: 1} and z["werte"] == {100: 2} and z["urteil"] == "trifft" and z["tempo_soll"] == 16
+
+
+def test_reichweite_ohne_treffer_ist_ein_fund():
+    r = reichweite_reihe([0] * 10, [1000] * 10)
+    z = ar.reichweite_werten(r, [{"rolle": "laeufer", "paar": 0, "typ": 22, "nr": 1}, {"rolle": "ziel", "paar": 0, "typ": 59, "nr": 2}], {"tempo": np.full(80, 1)})[0]
+    assert z["urteil"] == "kein Treffer" and z["erster_schritt"] is None and z["takte_je_feld"] is None
+
+
+def test_haltung_prueft_beide_seiten_des_radius():
+    def reihe(zieht):
+        s0 = {k: np.zeros(ar.PLAETZE, dtype=np.int64) for k in ar.FELDER}
+        s0["mx"][1], s0["my"][1] = 84, 84
+        s1 = {k: v.copy() for k, v in s0.items()}
+        if zieht:
+            s1["mx"][1] = 92
+        return [(100, s0), (130, s1)]
+    w = {"rolle": "wache", "nr": 1, "x": 10, "y": 10, "typ": 28}
+    assert ar.haltung_werten(reihe(True), [dict(w, wert=2, abstand=24, haltung="aggressiv")])[0]["urteil"] == "bestaetigt"
+    assert ar.haltung_werten(reihe(False), [dict(w, wert=2, abstand=24, haltung="aggressiv")])[0]["urteil"] == "weicht ab"
+    assert ar.haltung_werten(reihe(False), [dict(w, wert=2, abstand=26, haltung="aggressiv")])[0]["urteil"] == "bestaetigt"
+    assert ar.haltung_werten(reihe(True), [dict(w, wert=2, abstand=26, haltung="aggressiv")])[0]["urteil"] == "weicht ab"
+    assert ar.haltung_werten(reihe(True), [dict(w, wert=0, abstand=4, haltung="stehen")])[0]["urteil"] == "weicht ab"
+    assert ar.haltung_werten(reihe(True), [dict(w, wert=1, abstand=6, haltung="defensiv")])[0]["urteil"] == "weicht ab"
+    assert ar.haltung_werten(reihe(True), [dict(w, wert=1, abstand=4, haltung="defensiv")])[0]["urteil"] == "bestaetigt"
+    assert ar.haltung_werten(reihe(True), [dict(w, wert=1, abstand=4, haltung="defensiv")])[0]["nach_takten"] == 30
+
+
+def test_gefecht_erster_rahmen_alt_wird_gezaehlt_nicht_versteckt():
+    w = int(TAB["nah"][24, 27])
+    r = reihen_von([1000, 1000, 1000 - 2 * w, 1000 - 3 * w], [1000] * 4)
+    z = next(x for x in ar.nahkampf_werten(r, PAAR, TAB, erster_rahmen_alt=True) if x["schlaeger"] == 27 or x["opfer"] == 24)
+    r2 = next(x for x in ar.nahkampf_werten(r, PAAR, TAB) if x["opfer"] == 24)
+    assert r2["urteil"] == "weicht ab"
+    z = next(x for x in ar.nahkampf_werten(r, PAAR, TAB, erster_rahmen_alt=True) if x["opfer"] == 24)
+    assert z["urteil"] == "bestaetigt" and z["erster_doppelt"] is True
+    r3 = reihen_von([1000, 1000 - w, 1000 - 3 * w, 1000 - 4 * w], [1000] * 4)  # doppelt nicht am Anfang bleibt ein Fund
+    assert next(x for x in ar.nahkampf_werten(r3, PAAR, TAB, erster_rahmen_alt=True) if x["opfer"] == 24)["urteil"] == "weicht ab"
+    assert not next(x for x in ar.nahkampf_werten(r3, PAAR, TAB, erster_rahmen_alt=True) if x["opfer"] == 24)["erster_doppelt"]
 
 
 def test_kein_einziger_treffer_bricht_ab(tmp_path):
