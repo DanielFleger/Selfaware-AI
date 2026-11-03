@@ -31,7 +31,7 @@ V7 = {"V7.001": "gemessen, Loeschen offen", "V7.002": "offen: Pechgraben nicht g
 def status(r):
     g, nr, wer, ziel = r["gruppe"], r["nr"], TYP.get(r["wer"]), r["ziel"]
     if g == "V1":
-        return "teils gemessen: Leben, Tempo, bei Schuetzen Reichweite und Schusstakt; Steigen offen, Reaktion nur an 3 Arten"
+        return "teils gemessen: Leben, Tempo, bei Schuetzen Reichweite und Schusstakt, Steigen offen, Reaktion nur an 3 Arten"
     if g == "V2":
         u = nah.get((wer, TYP.get(ziel))) or nah.get((TYP.get(ziel), wer))
         return f"gemessen: {u}" if u else "offen"
@@ -67,7 +67,7 @@ def status(r):
 text = open(LISTE, encoding="utf-8", newline="").read()
 nl = "\r\n" if "\r\n" in text else "\n"
 rd = list(csv.DictReader(text.splitlines(), delimiter=";"))
-felder = list(rd[0].keys())
+felder = [f for f in rd[0] if f is not None]  # ein Strichpunkt im Status haette eine Spalte zu viel gemacht (03.11.), der Status wird hier neu gerechnet
 zahl = collections.defaultdict(collections.Counter)
 aus = [";".join(felder)]
 for r in rd:
