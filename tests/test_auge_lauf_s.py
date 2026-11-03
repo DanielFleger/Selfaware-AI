@@ -729,6 +729,98 @@ def test_pruefer_zeigt_fremde_treffer_je_posten():
     assert b["fremd"] == {"schlaeger": {}, "geschosse": {"pfeil": 2}}
 
 
+def test_nachlauf_editor_mauer_je_art_mit_feldnummer(tmp_path):
+    g = Spiel(tmp_path)
+    e = ls.SZENEN["sonder8"](lauf_von(g))
+    assert e["kein_platz"] == [] and e["nicht_gesetzt"] == []
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    ort = {k["posten"]: k for k in plan["karte"]}
+    b = [c for c in g.log if isinstance(c, dict)]
+    # Mauer je Art: von Spieler 2, Angriff mit der Feldnummer des Mittelstuecks
+    wer = [x for x in plan["einheiten"] if x.get("posten") == "mauer_art"]
+    assert [x["typ"] for x in wer if x["rolle"] == "taeter"] == list(ls.MAUER_ARTEN) and sum(1 for x in wer if x["rolle"] == "kreuz") == 1
+    x0, y0 = ort["mauer_art"]["x"], ort["mauer_art"]["y"]
+    an = {c["angriff"]["einheiten"][0]: c for c in b if c.get("angriff", {}).get("art") == 23}
+    erster = next(x for x in wer if x["typ"] == 24)
+    assert an[erster["nr"]]["angriff"]["a"] == 1000 * (y0 + 2) + x0 + 6
+    wand = [c for c in b if c.get("spielbefehl", {}).get("nr") == 25]
+    assert all(c["player"] == 2 for c in wand) and len(wand) >= 10
+    assert len(ort["mauer_art"]["felder"]) == 9
+    # Das Kreuz: Das Zielfeld hat drei Nachbarn
+    kr = next(x for x in wer if x["rolle"] == "kreuz")
+    assert an[kr["nr"]]["angriff"]["a"] == 1000 * (y0 + 19) + x0 + 6
+    # Belagerungsturm mit Anweisung 23, nicht laufen
+    t = next(x for x in plan["einheiten"] if x.get("posten") == "turmgeraet" and x["typ"] == 58)
+    assert an[t["nr"]]["player"] == 1
+    # Rammen mit 1, 2, 3, 4 Mann, alle bekommen den Gebaeudeangriff
+    r = [x for x in plan["einheiten"] if x.get("posten") == "ramme" and x["typ"] == 59]
+    assert [x["mann"] for x in r] == [1, 2, 3, 4]
+    assert sum(1 for c in b if "gebaeude" in c.get("angriff", {}) and c["angriff"]["einheiten"][0] in {x["nr"] for x in r}) == 4
+    # Abstand 24 und 26 vor dem Tor
+    for n, d in (("tor_24", 24), ("tor_26", 26)):
+        f = next(x for x in plan["einheiten"] if x.get("posten") == n)
+        tor = next(x for x in plan["gebaeude"] if x.get("posten") == n)
+        assert tor["x"] - f["x"] == d and tor["spieler"] == 2 and f["spieler"] == 1
+    # Haltung stehen fuer genau einen Armbrustschuetzen
+    assert any(c.get("spielbefehl", {}).get("nr") == 70 and c["spielbefehl"]["werte"][1] == 0 for c in b)
+    # Trupp: 6 Schwertkaempfer in einem Befehl
+    assert sum(1 for c in b if len(c.get("angriff", {}).get("einheiten", [])) == 6) == 2
+    k = next(x for x in plan["einheiten"] if x.get("posten") == "trupp_kampf" and x["rolle"] == "feind")
+    nah = [x for x in plan["einheiten"] if x.get("posten") == "trupp_kampf" and x["rolle"] == "trupp" and max(abs(x["x"] - k["x"]), abs(x["y"] - k["y"])) <= 2]
+    assert len(nah) == 1  # nur einer steht in Reichweite
+
+
+def test_steigung_nur_ansteigend_und_frei():
+    frei = np.ones((30, 40), dtype=bool)
+    h = np.full((30, 40), 8)
+    assert ls.steigung(frei, h) is None
+    h[5, 10:24] = np.arange(8, 22)
+    assert ls.steigung(frei, h) == (5, 5)  # das erste Fenster: erst eben, dann 8 hoeher
+    h2 = h.copy()
+    h2[5, 15] = 5  # eine Delle: nicht nur ansteigend
+    assert ls.steigung(frei, h2) is None
+    f2 = frei.copy()
+    f2[5, 12] = False
+    assert ls.steigung(f2, h) is None
+
+
+def test_nachlauf_gefecht_stein_oel_und_grenze(tmp_path):
+    g, l = lauf_im_gefecht(tmp_path)
+    g.speicher[7100] = 150  # Lagerplatz von Spieler 1: feld() liefert im Prueffall Adresse 7000, Schritt 100
+    e = ls.SZENEN["sonder8_g"](l)
+    assert e["kein_platz"] == [] and g.geraeumt[0] >= ls.STARTTRUPPEN_TAKT
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    b = [c for c in g.log if isinstance(c, dict)]
+    st = next(c for c in b if c.get("wert") == ls.STEIN_START)
+    assert st["poke"] == 7000 + 100 + 16  # Ware 4 von Spieler 1
+    assert any(c.get("spielbefehl", {}).get("nr") == 86 and c["spielbefehl"]["werte"][0] for c in b)
+    haltung = [c["spielbefehl"]["werte"][1] for c in b if c.get("spielbefehl", {}).get("nr") == 70]
+    assert sorted(haltung) == [0, 1, 2]
+    gr = {x["rolle"]: x for x in plan["einheiten"] if x.get("posten") == "grenze"}
+    assert max(abs(gr["nah"]["x"] - 150), abs(gr["nah"]["y"] - 150)) == 39 and max(abs(gr["weit"]["x"] - 150), abs(gr["weit"]["y"] - 150)) == 41
+    assert gr["nah"]["typ"] == 24 and gr["weit"]["typ"] == 22
+
+
+def test_nachlauf_pech_gegner_laufen_quer_durch(tmp_path):
+    g, l = lauf_im_gefecht(tmp_path)
+    e = ls.SZENEN["sonder9_g"](l)
+    assert e["kein_platz"] == []
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    k = plan["karte"][0]
+    geher = [x for x in plan["einheiten"] if x["rolle"] == "geher"]
+    assert len(geher) == 5 and all(x["spieler"] == 2 and x["y"] > k["y"] + 4 for x in geher)
+    lauf = [c for c in g.log if isinstance(c, dict) and "lauf" in c.get("angriff", {}) and c["angriff"]["einheiten"][0] in {x["nr"] for x in geher}]
+    assert len(lauf) == 5 and all(c["player"] == 2 and c["angriff"]["lauf"][1] < k["y"] + 4 for c in lauf)  # auf die andere Seite des Grabens
+
+
+def test_lord_selbst_ohne_testbefehl(tmp_path):
+    g = Spiel(tmp_path)
+    g.einheiten = [{"nr": 900 + i, "uid": 900 + i, "typ": 55, "besitzer": i + 1, "x": 150 + 100 * i, "y": 150 + 100 * i, "leben": 100, "trupp": 0} for i in range(2)]
+    e = ls.szene_lord(lauf_von(g), "lord2_g", True)
+    assert e["szene"] == "lord2_g" and not e["per_befehl"]
+    assert not any(isinstance(c, dict) and isinstance(c.get("toeteAlle"), dict) and c["toeteAlle"].get("typen") == [55] for c in g.log)
+
+
 def test_tunnel_ohne_eingang_bricht_gleich_ab(tmp_path):
     g = Spiel(tmp_path, kein_eingang=True)
     g.einheiten = [{"nr": 900 + i, "uid": 900 + i, "typ": 55, "besitzer": i + 1, "x": 150 + 100 * i, "y": 150 + 100 * i, "leben": 100, "trupp": 0} for i in range(2)]

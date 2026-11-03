@@ -999,6 +999,191 @@ def sonder6_g(l):
     return (("weit", weit, 44, 10), ("mauer", mauer, 26, 14), ("turm", turm, 26, 10), ("abbruch", abbruch, 28, 12))  # der breiteste zuerst, sonst passt der Ring um die Burg nicht
 
 
+MAUER_ARTEN = (24, 25, 26, 27, 28, 71, 73, 75)  # Speer, Pike, Keule, Schwert, Ritter, Sklave, Assassine, arabisches Schwert: P353 bis P357, P366 bis P368
+STEIN_START = 200  # Stueck: Das Lager nimmt 1 je 4 Takte aus startResources (UpdateStockpile); ware blieb in den Aufzeichnungen bei 0 (punkte_rechnung2.txt)
+NACH_FUELLEN, OEL_HALTUNG, OEL_FEIND = 800, 500, 600  # Takte: Das Oel war bei 350 da (Lauf 21:35)
+LORD_SELBST = 6000  # Takte: Niemand hilft nach, 8 Ritter schlagen, bis der Lord faellt
+
+
+def steigung(frei, hoehe, laenge=14, mindestens=8):
+    """Die erste Zeile, die ueber laenge Felder frei ist und nur ansteigt, um mindestens so viel. P330 braucht bergauf. Rueckgabe (x, y) des unteren Endes oder None."""
+    w = np.lib.stride_tricks.sliding_window_view
+    fr = w(frei, laenge, axis=1).all(axis=-1)
+    st = w(np.diff(hoehe, axis=1) >= 0, laenge - 1, axis=1).all(axis=-1)
+    m = fr & st & (hoehe[:, laenge - 1:] - hoehe[:, :-(laenge - 1)] >= mindestens)
+    ys, xs = np.nonzero(m)
+    return (int(xs[0]), int(ys[0])) if len(ys) else None
+
+
+def sonder8(l):
+    """Die Lagen, die in Lauf S fehlten (Punkte_Lauf_S.md), im Editor: Dort gilt der Burgbereich nicht, und Spieler 2 tut nichts von selbst."""
+    s = l.s
+    frei, hoehe, _ = s.raster()
+    hang = steigung(frei, hoehe)
+
+    def vorbei(x, y):
+        """P352, P371: Armbrust mit und ohne Haltung stehen, berittener Bogenschuetze laufen an einem Feind vorbei."""
+        wer = [_e("laeufer", 23, x + 1, y + 1), _e("steher", 23, x + 1, y + 3), _e("reiter", 74, x + 1, y + 5)]
+        feind = _e("feind", 25, x + 18, y + 11, 2)
+
+        def stehen():
+            trupp = {e["nr"]: e["trupp"] for e in s.einheiten_alle()}.get(wer[1]["nr"], 0)
+            return [{"player": 1, "spielbefehl": {"nr": 70, "werte": [trupp, 0]}}] if trupp else []
+        return [], wer + [feind], [], lambda: [_angriff([w], lauf=[x + 34, y + 1 + 2 * i]) for i, w in enumerate(wer)], [(20, stehen)]
+
+    def mauer_art(x, y):
+        """Je Art 5 Mauerstuecke, Ziel das mittlere (2 Nachbarn). Dazu ein Kreuz: Das Feld dort hat 3 Nachbarn (P322)."""
+        wer, wand, ziele = [], [], []
+        for i, typ in enumerate(MAUER_ARTEN):
+            cx, cy = x + 10 * (i % 4), y + 8 * (i // 4)
+            wand.append({"player": 2, "spielbefehl": {"nr": 25, "werte": [cx + 6, cy, cx + 6, cy + 5, 25, 13]}})
+            wer.append(_e("taeter", typ, cx + 1, cy + 2))
+            ziele.append((cx + 6, cy + 2))
+        cx, cy = x, y + 16
+        wand.append({"player": 2, "spielbefehl": {"nr": 25, "werte": [cx + 6, cy, cx + 6, cy + 7, 25, 13]}})
+        wand.append({"player": 2, "spielbefehl": {"nr": 25, "werte": [cx + 7, cy + 3, cx + 12, cy + 3, 25, 13]}})
+        wer.append(_e("kreuz", 25, cx + 1, cy + 3))
+        ziele.append((cx + 6, cy + 3))
+        return [], wer, wand, lambda: [_angriff([w], art=23, a=s.kachel(fx, fy), b=0) for w, (fx, fy) in zip(wer, ziele)], None, ziele
+
+    def turm_oben(x, y):
+        """P338: 8 Leute auf einen Wachturm, die Obergrenze soll 5 sein."""
+        wer = [_e("steiger", 24, x + 1, y + i) for i in range(8)]
+        return [_g(74, x + 12, y + 2, spieler=1)], wer, [], lambda: [_angriff([w], lauf=[x + 13, y + 3]) for w in wer], None
+
+    def turm4(x, y):
+        """P302: Einer auf die Grundflaeche des grossen Turms, spaeter wieder herunter."""
+        wer = [_e("steiger", 24, x + 1, y + 3)]
+        return [_g(77, x + 12, y + 1, spieler=1)], wer, [], lambda: [_angriff(wer, lauf=[x + 14, y + 3])], [(1500, lambda: [_angriff(wer, lauf=[x + 1, y + 3])])]
+
+    def tor_vor(abstand):
+        """P303, P304: Der Feind steht 24 oder 26 Felder vor dem Tor (Code: unter 200 Mikro) und geht spaeter weg."""
+        def f(x, y):
+            feind = [_e("feind", 24, x + 30 - abstand, y + 4)]
+            return [_g(46, x + 30, y + 2)], feind, [], lambda: [], [(1500, lambda: [_angriff(feind, lauf=[x, y + 4])])]
+        return f
+
+    def tor_feld(x, y):
+        """P303: Der Feind geht auf die Torfelder."""
+        feind = [_e("feind", 24, x + 3, y + 4)]
+        return [_g(46, x + 6, y + 2)], feind, [], lambda: [_angriff(feind, lauf=[x + 8, y + 4])], None
+
+    def trupp_frei(x, y):
+        """P326: 6 Schwertkaempfer auf ein freies Feld. Die Zielfelder gleich nach dem Befehl."""
+        wer = [_e("trupp", 27, x + 1 + 2 * (i % 3), y + 1 + 2 * (i // 3)) for i in range(6)]
+        return [], wer, [], lambda: [_angriff(wer, lauf=[x + 24, y + 3])], None
+
+    def trupp_kampf(x, y):
+        """P325: Einer steht in Reichweite eines Feindes (2 Felder), die anderen nicht. Der Marschbefehl kommt, wenn er kaempft."""
+        wer = [_e("trupp", 27, x + 1 + 3 * i, y + 2) for i in range(6)]
+        feind = _e("feind", 25, x + 1, y + 4, 2)
+        return [], wer + [feind], [], lambda: [], [(150, lambda: [_angriff(wer, lauf=[x + 30, y + 2])])]
+
+    def unerreichbar(x, y):
+        """P343: Das Ziel liegt in einem geschlossenen Mauerring."""
+        ring = [[x + 10, y, x + 19, y], [x + 10, y + 8, x + 19, y + 8], [x + 10, y + 1, x + 10, y + 8], [x + 18, y + 1, x + 18, y + 8]]
+        wer = [_e("laeufer", 24, x + 2, y + 4)]
+        return [], wer, [{"player": 2, "spielbefehl": {"nr": 25, "werte": r + [25, 13]}} for r in ring], lambda: [_angriff(wer, lauf=[x + 14, y + 4])], None
+
+    def bergauf(x, y):
+        """P330: bergauf. Der Ort kommt von der Karte, nicht vom Packen."""
+        if hang is None:
+            return [], [], [], lambda: [], None
+        wer = [_e("laeufer", 24, hang[0], hang[1])]
+        return [], wer, [], lambda: [_angriff(wer, lauf=[hang[0] + 13, hang[1]])], None
+
+    def ramme(x, y):
+        """P328, P345: 4 Rammen mit 1, 2, 3 und 4 Mann, Gebaeudeangriff auf ein Tor, das viele Treffer aushaelt."""
+        tor = [_g(46, x + 30, y + 8)]
+        paare = []
+        for i, n in enumerate((1, 2, 3, 4)):
+            paare.append((dict(_e("geraet", 59, x + 6, y + 1 + 5 * i), mann=n, soll=4), _ing(x, y + 5 * i, n)))
+        return tor, [e for r, m in paare for e in [r] + m], [], lambda: [_angriff(m, art=16, a=r["nr"], b=r["uid"]) for r, m in paare], [(SONDER_BEMANNEN, lambda: [_angriff([r], gebaeude=tor[0]["nr"]) for r, _ in paare] if "nr" in tor[0] else [])]
+
+    def turmgeraet(x, y):
+        """P344: Belagerungsturm mit Anweisung 23 an die Mauer. Ein Laufbefehl haelt nur davor (Lauf 21:42, UpdateSiegeTower)."""
+        mauer = [{"player": 2, "spielbefehl": {"nr": 25, "werte": [x + 20, y, x + 20, y + 11, 25, 13]}}]
+        t = dict(_e("geraet", 58, x + 4, y + 6), mann=4, soll=4)
+        leute = _ing(x, y + 4, 4)
+        return [], [t] + leute, mauer, lambda: [_angriff(leute, art=16, a=t["nr"], b=t["uid"])], [(SONDER_BEMANNEN, lambda: [_angriff([t], art=23, a=s.kachel(x + 20, y + 6), b=0)])]
+
+    return (("vorbei", vorbei, 36, 13), ("mauer_art", mauer_art, 40, 24), ("ramme", ramme, 38, 22), ("turmgeraet", turmgeraet, 30, 12), ("tor_24", tor_vor(24), 36, 8), ("tor_26", tor_vor(26), 36, 8), ("tor_feld", tor_feld, 14, 8), ("turm_oben", turm_oben, 18, 8), ("turm4", turm4, 20, 8), ("trupp_frei", trupp_frei, 28, 6), ("unerreichbar", unerreichbar, 20, 9), ("bergauf", bergauf, 2, 2), ("trupp_kampf", trupp_kampf, 32, 6))
+
+
+def sonder8_g(l):
+    """Lagen, die Waren brauchen oder die echten Regeln des Gefechts: Nachladen mit Stein, Oel und Haltung, die Grenze um das Lager."""
+    s = l.s
+
+    def nachladen(x, y):
+        """P308: Ein Katapult schiesst seine 10 Steine, dann soll es selbst nachladen. P309: Ein zweites bekommt den Befehl zum Auffuellen (Spielbefehl 86)."""
+        adr, schritt = s.feld("DAT_GameState", "playerDataArray[].startResources[]")
+        stein = [{"player": 1, "poke": adr + schritt + 4 * 4, "wert": STEIN_START}]
+        a, b = dict(_e("geraet", 39, x + 4, y + 2), mann=2, soll=2), dict(_e("geraet", 39, x + 4, y + 10), mann=2, soll=2)
+        la, lb = _ing(x, y + 1, 2), _ing(x, y + 9, 2)
+        ziel = _e("ziel", 25, x + 28, y + 2, 2)
+
+        def schiessen():
+            return [_angriff([a], ziel=ziel["nr"]), _angriff([b], lauf=[x + 4, y + 10])]  # der Laufbefehl macht den Trupp fuer Spielbefehl 86
+
+        def auffuellen():
+            trupp = {e["nr"]: e["trupp"] for e in s.einheiten_alle()}.get(b["nr"], 0)
+            return [{"player": 1, "spielbefehl": {"nr": 86, "werte": [trupp, 0]}}] if trupp else []
+        return [], [a, b] + la + lb + [ziel], stein, lambda: [_angriff(la, art=16, a=a["nr"], b=a["uid"]), _angriff(lb, art=16, a=b["nr"], b=b["uid"])], [(SONDER_BEMANNEN, schiessen), (NACH_FUELLEN, auffuellen)]
+
+    def oel(wert):
+        """P323: Ingenieur mit Oel, ein Feind kommt nahe. Code: Nur die Haltung stehen wirft nicht (ifNecessaryThrowOilAutomatically)."""
+        def f(x, y):
+            g = [_g(28, x + 6, y + 1, spieler=1)]
+            adr, schritt = s.feld("DAT_BuildingsState", "buildings[].resourcePitch")
+            ing = _e("oel", 30, x + 2, y + 3)
+            feind = _e("feind", 24, x + 22, y + 3, 2)
+
+            def jetzt():
+                return {e["nr"]: e for e in s.einheiten_alle()}.get(ing["nr"], {})
+
+            def holen():
+                return [{"poke": adr + schritt * g[0]["nr"], "wert": 20}, _angriff([ing], art=15, a=g[0]["nr"], b=g[0]["uid"])] if "nr" in g[0] else []
+
+            def haltung():
+                return [{"player": 1, "spielbefehl": {"nr": 70, "werte": [jetzt().get("trupp", 0), wert]}}] if jetzt().get("trupp") else []
+
+            def kommen():
+                e = jetzt()
+                return [_angriff([feind], 2, lauf=[e["x"] + 4, e["y"]])] if e else []
+            return g, [ing, feind], [], holen, [(OEL_HALTUNG, haltung), (OEL_FEIND, kommen)]
+        return f
+
+    def grenze(x, y):
+        """P324: Ein Speertraeger 39 Felder vom Lager, ein Bogenschuetze 41. Code: unter 41 zaehlt. Der Ort kommt vom Lager, nicht vom Packen."""
+        ax, sch = s.feld("DAT_GameState", "playerDataArray[].campground.xEntry")
+        ay, _ = s.feld("DAT_GameState", "playerDataArray[].campground.yEntry")
+        cx, cy = l.k.peek(ax + sch)[0], l.k.peek(ay + sch)[0]
+        fern, s.fern = s.fern, 0
+        frei = s.raster()[0]
+        s.fern = fern
+        ys, xs = np.indices(frei.shape)
+        d = np.maximum(np.abs(xs - cx), np.abs(ys - cy))
+        wer = []
+        for abstand, rolle, typ in ((39, "nah", 24), (41, "weit", 22)):
+            f = np.argwhere(frei & (d == abstand))
+            if len(f):
+                wer.append(dict(_e(rolle, typ, int(f[0][1]), int(f[0][0])), abstand=abstand))
+        return [], wer, [], lambda: [], None
+
+    return (("nachladen", nachladen, 34, 14), ("oel_aggressiv", oel(2), 28, 7), ("oel_defensiv", oel(1), 28, 7), ("oel_stehen", oel(0), 28, 7), ("grenze", grenze, 2, 2))
+
+
+def sonder9_g(l):
+    """P314: 5 Gegner laufen quer durch den brennenden Pechgraben. Aufbau wie sonder5_g, dort brannte er von Takt 501 bis 729."""
+    def pech(x, y):
+        baue = [{"player": 1, "baue": {"mapper": 99, "x": x + 10 + i, "y": y + 4, "groesse": 1, "richtung": 15}} for i in range(5)]
+        ft = _e("taeter", 76, x + 12, y + 1)
+        opfer = _e("opfer", 25, x + 2, y + 4, 2)
+        geher = [_e("geher", 24, x + 10 + i, y + 9, 2) for i in range(5)]
+        return [], [ft, opfer] + geher, baue, lambda: [_angriff([opfer], 2, lauf=[x + 12, y + 4])], [(300, lambda: [_angriff([ft], ziel=opfer["nr"])]), (510, lambda: [_angriff([g], 2, lauf=[g["x"], y + 2]) for g in geher])]
+    return (("pech", pech, 24, 11),)
+
+
 SONDER_G = (("graben", p_graben, 24, 8), ("leiter", p_leiter, 30, 16), ("turmgeraet", p_turmgeraet, 30, 12), ("schild", p_schild, 34, 10), ("hoehe", p_hoehe, 60, 6), ("tor", p_tor, 30, 10), ("oel", p_oel, 24, 8))
 SONDER_WAREN = ((4, 2000), (7, 500))  # Stein fuer Mauern, Pech fuer das Oel: Im Gefecht kosten Spielbefehle Waren, der Start reicht nicht
 SONDER2 = (("leiter", p_leiter, 30, 16), ("turmgeraet", p_turmgeraet, 30, 12), ("tunnel", p_tunnel, 28, 10), ("schild", p_schild, 34, 10), ("hoehe", p_hoehe, 60, 6), ("tor", p_tor, 30, 10), ("oel", p_oel, 24, 6))
@@ -1154,7 +1339,7 @@ def freie_mitte(frei, x, y, rand=2, mindestens=6):
     return None
 
 
-def szene_lord(l):
+def szene_lord(l, name="lord_g", selbst=False):
     """P313, P362, P306: Der Lord steht auf der Burg, Ritter finden dorthin keinen Weg (Lauf 20:25). Darum geht er erst vor die Burg, mitten in einen Ring aus 8 Rittern von Spieler 1, und der Nahkampf beginnt von selbst (Umkreis 2 Felder). Ein Direktbefehl (einheit_ziel) liess ihn dort nicht hin (Lauf 20:29), darum der Truppenbefehl. Bleibt er trotzdem oben, faellt er per Befehl: Die Niederlage-Pruefung soll in jedem Fall gemessen werden, und per_befehl sagt es dazu. Danach ist das Gefecht vorbei, darum kommt diese Szene zuletzt. Fertig ist sie, wenn das Spiel das Ende gemerkt hat oder NACH_LORD Takte um sind."""
     k, s = l.k, l.s
     lk.aufnahme_im_stand_ohne(l, lf.TEMPO_JEDER_TAKT)
@@ -1173,17 +1358,17 @@ def szene_lord(l):
     plan = {"einheiten": [{"rolle": "ritter", "spieler": 1, "typ": 28, "x": mx + dx, "y": my + dy} for dx, dy in ((-2, -2), (0, -2), (2, -2), (-2, 0), (2, 0), (-2, 2), (0, 2), (2, 2))], "mitte": mitte}
     setzen(l, plan["einheiten"])
     k.liste([{"player": 2, "angriff": {"einheiten": [lord["nr"]], "lauf": [mx, my]}}], lf.KANAL)
-    a = lk.aufnahme_im_stand(l, "lord_g", lf.TEMPO_JEDER_TAKT, False)
+    a = lk.aufnahme_im_stand(l, name, lf.TEMPO_JEDER_TAKT, False)
 
     def lebt():
         return any(e["nr"] == lord["nr"] and e["uid"] == lord["uid"] and e["leben"] > 0 for e in s.einheiten_alle())
 
     def im_ring():
         return any(e["nr"] == lord["nr"] and max(abs(e["x"] - mx), abs(e["y"] - my)) <= 2 for e in s.einheiten_alle())
-    per_befehl = not l.warte_takte(LORD_WEG, lambda: im_ring() or not lebt())
+    per_befehl = not selbst and not l.warte_takte(LORD_WEG, lambda: im_ring() or not lebt())
     if per_befehl:
         k.liste([{"toeteAlle": {"spieler": 2, "typen": [55]}}], lf.KANAL)
-    gefallen = l.warte_takte(LORD_GRENZE, lambda: not lebt())
+    gefallen = l.warte_takte(LORD_SELBST if selbst else LORD_GRENZE, lambda: not lebt())  # selbst: P362 braucht einen echten Toeter, der Testbefehl gibt kein Gold
     tod = s.takt()
     ende = gefallen and l.warte_takte(NACH_LORD, lambda: k.peek(lf.GAMEOVER)[0] != 0)
     lage = {"per_befehl": per_befehl, "gefallen": gefallen, "tod": tod, "ende_gemerkt": ende, "gameover": k.peek(lf.GAMEOVER)[0], "ansicht": k.peek(lf.ANSICHT)[0]}
@@ -1191,9 +1376,9 @@ def szene_lord(l):
     pfad = l.rek.pfad
     stand = l.rek.beenden()
     with open(pfad + ".plan.json", "w", encoding="utf-8") as f:
-        json.dump({"szene": "lord_g", "von": a, "bis": b, "tempo": lf.TEMPO_JEDER_TAKT, "lord": lord, **plan, **lage}, f, ensure_ascii=False)
+        json.dump({"szene": name, "von": a, "bis": b, "tempo": lf.TEMPO_JEDER_TAKT, "lord": lord, **plan, **lage}, f, ensure_ascii=False)
     k.befehl({"menue": HAUPTMENUE}, 1.5)  # eine haengende Partie wird ueber den Kanal zurueckgesetzt, nicht beendet
-    return {"szene": "lord_g", "von": a, "bis": b, **lage, "stand": stand, "pfad": pfad}
+    return {"szene": name, "von": a, "bis": b, **lage, "stand": stand, "pfad": pfad}
 
 
 SZENEN = {
@@ -1227,6 +1412,10 @@ SZENEN = {
     "sonder5": lambda l: szene_sonder(l, "sonder5", sonder5(l)),
     "sonder5_g": lambda l: szene_sonder(l, "sonder5_g", sonder5_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),
     "sonder6_g": lambda l: szene_sonder(l, "sonder6_g", sonder6_g(l), frei_maske=burgbereich(l, sp=2), rand=10, raeumen=True),
+    "sonder8": lambda l: szene_sonder(l, "sonder8", sonder8(l), rand=15),
+    "sonder8_g": lambda l: szene_sonder(l, "sonder8_g", sonder8_g(l), rand=15, raeumen=True),
+    "sonder9_g": lambda l: szene_sonder(l, "sonder9_g", sonder9_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),
+    "lord2_g": lambda l: szene_lord(l, "lord2_g", True),
     "sonder7_g": lambda l: szene_sonder(l, "sonder7_g", tuple(z for z in sonder6_g(l) if z[0] in ("mauer", "abbruch")), frei_maske=burgbereich(l, sp=2), rand=10, raeumen=True),  # die Graeber fielen vor dem Graben durch die Starttruppen (Lauf 22:41)
     "gebaeude_nah": Szene("gebaeude_nah", lf.TEMPO_JEDER_TAKT, True, GRENZE_NAH_GEBAEUDE, aufbau_gebaeude_nah, befehle_gebaeude_nah, treffer_noetig=False),
     "laufen_trupp_g": Szene("laufen_trupp_g", 200, False, GRENZE_TRUPP, lambda l: aufbau_laufen(l, OHNE_LORD), befehle_laufen_trupp, alle_am_ziel, treffer_noetig=False),
