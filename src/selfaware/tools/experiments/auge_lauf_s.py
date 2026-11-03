@@ -716,6 +716,14 @@ def _angriff(wer, spieler=1, **f):
     return {"player": spieler, "angriff": {"einheiten": [e["nr"] for e in wer], **f}}
 
 
+def _grabenplan(x, y):
+    return [{"player": 1, "spielbefehl": {"nr": 21, "werte": [x, y, 0, 0x40000000, 0]}}]  # L126: Flag 2 = 0 plant, 2 wuerde sofort ausheben
+
+
+def _leiter_an(s, trag, x, y):
+    return _angriff(trag, art=24, a=s.kachel(x, y), b=0)  # die Feldnummer der Mauer, nicht x und y
+
+
 # Die Posten der Liste V7. Jeder: Breite, Hoehe, und eine Funktion (x, y) -> Gebaeude, Einheiten, Befehle davor (Spielbefehle), Befehle(nachher), Befehle nach dem Einsteigen
 def p_feuer(x, y):
     g = [_g(1, x + 10, y + 2), _g(1, x + 15, y + 2)]
@@ -813,14 +821,14 @@ def sonder_g2(l):
     def graben(x, y):
         wer = [_e("graeber", 71, x + 2 + i, y + 4) for i in range(3)]
         fueller = [_e("fueller", 71, x + 34, y + 3 + i, 2) for i in range(2)]  # so weit weg, dass sie nicht schon beim Graben kaempfen (Lauf 21:30)
-        plan = [{"player": 1, "spielbefehl": {"nr": 21, "werte": [x + 11, y + 4, 0, 0x40000000, 0]}}]  # L126: Flag 2 = 0 plant, 2 wuerde sofort ausheben
+        plan = _grabenplan(x + 11, y + 4)
         return [], wer + fueller, plan, lambda: [_angriff(wer, art=6, a=x + 11, b=y + 4)], [(1500, lambda: [_angriff(fueller, 2, art=7, a=x + 11, b=y + 4)])], [(x + 10 + i, y + 3 + j) for i in range(3) for j in range(3)]
 
     def leiter(x, y):
         mauer = [{"player": 2, "spielbefehl": {"nr": 25, "werte": [x + 20, y, x + 20, y + 15, 25, 13]}}]
         trag = [_e("leiter", 29, x + 8, y + 6), _e("leiter", 29, x + 8, y + 8)]
         speer = [_e("steiger", 24, x + 4, y + 6 + i) for i in range(3)]
-        return [], trag + speer, mauer, lambda: [_angriff(trag, art=24, a=s.kachel(x + 20, y + 7), b=0)], [(500, lambda: [_angriff(speer, lauf=[x + 20, y + 7])])]
+        return [], trag + speer, mauer, lambda: [_leiter_an(s, trag, x + 20, y + 7)], [(500, lambda: [_angriff(speer, lauf=[x + 20, y + 7])])]
 
     def kuh(x, y):
         adr, schritt = s.feld("DAT_GameState", "playerDataArray[].counter")
@@ -899,7 +907,7 @@ def sonder3_g(l):
 
     def graben(x, y):
         wer = [_e("graeber", 71, x + 2 + i, y + 4) for i in range(3)]
-        plan = [{"player": 1, "spielbefehl": {"nr": 21, "werte": [x + 11, y + 4, 0, 0x40000000, 0]}}]
+        plan = _grabenplan(x + 11, y + 4)
         return [], wer, plan, lambda: [_angriff(wer, art=6, a=x + 11, b=y + 4)], [(2000, lambda: [_angriff(wer, art=7, a=x + 11, b=y + 4)])], [(x + 10 + i, y + 3 + j) for i in range(3) for j in range(3)]
     return (("graben", graben, 20, 8), d["hunde"])
 
@@ -929,7 +937,7 @@ def sonder5(l):
         trag = [_e("leiter", 29, x + 8, y + 6), _e("leiter", 29, x + 8, y + 8)]
         wer = [dict(_e("laeufer", 22, x + 4, y + 5 + i), paar=i, abstand=a) for i, a in enumerate((38, 42, 46, 50))]
         ziele = [dict(_e("ziel", 59, x + 20 + a, y + 1 + 4 * i, 2), paar=i) for i, a in enumerate((38, 42, 46, 50))]
-        return [], trag + wer + ziele, mauer, lambda: [_angriff(trag, art=24, a=s.kachel(x + 20, y + 7), b=0)], [(500, lambda: [_angriff(wer, lauf=[x + 20, y + 7])]), (1500, lambda: [_angriff([w], ziel=z["nr"]) for w, z in zip(wer, ziele)])]
+        return [], trag + wer + ziele, mauer, lambda: [_leiter_an(s, trag, x + 20, y + 7)], [(500, lambda: [_angriff(wer, lauf=[x + 20, y + 7])]), (1500, lambda: [_angriff([w], ziel=z["nr"]) for w, z in zip(wer, ziele)])]
     return (("hoehe", hoehe, 74, 16),)
 
 
@@ -941,6 +949,52 @@ def sonder5_g(l):
         opfer = _e("opfer", 25, x + 2, y + 4, 2)
         return [], [ft, opfer], baue, lambda: [_angriff([opfer], 2, lauf=[x + 12, y + 4])], [(300, lambda: [_angriff([ft], ziel=opfer["nr"])])]
     return (("pech", pech, 24, 8),)
+
+
+MAPPER_TUNNEL, EINGANG = 66, (85, 50)  # M_MAPPER_TUNNEL_CONSTRUCTION, Groesse 3; BT_UNKNOWN4 bis der Graeber da ist, dann BT_TUNNEL
+TUNNEL_TRUPP, TUNNEL_PRUEFEN, TUNNEL_STOEREN = 60, 120, 400  # Takte: Der Trupp entsteht erst mit dem ersten Befehl; der Eingang steht spaetestens im naechsten Takt, 60 sind reichlich; der Graeber soll schon unter der Erde sein
+
+
+def sonder6_g(l):
+    """Tunnel wie beim Menschen: Bauen mit Mapper 66, Groesse 3 und dem Trupp des Graebers (ClickPlaceBuilding), setupBuildingData gibt dem Trupp Anweisung 21. Das Spiel erlaubt den Eingang nur mit feindlicher Mauer oder kleinem Turm (Art 74 bis 76) binnen 76 Schritten (algTunnelerFindTarget, probe_tunnel.txt: ohne beides nirgends). Im Burgbereich von Spieler 2, weil nur dort seine Mauer und sein Turm stehen."""
+    s = l.s
+
+    def eingang_bauen(wer, x, y):
+        def f():
+            ort = erlaubte_stelle(l, {"mapper": MAPPER_TUNNEL, "groesse": 3, "x": x, "y": y, "spieler": 1})
+            trupp = {e["nr"]: e["trupp"] for e in s.einheiten_alle()}.get(wer[0]["nr"], 0)
+            return [{"player": 1, "baue": {"mapper": MAPPER_TUNNEL, "x": ort[0], "y": ort[1], "groesse": 3, "richtung": 15, "trupp": trupp}}] if ort and trupp else []
+        return f
+
+    def eingang_da():
+        if not any(g["typ"] in EINGANG for g in s.gebaeude(None)):
+            raise Abbruch("Tunnel: Kein Eingang steht, der Lauf beweist nichts")
+        return []
+
+    def mauer(x, y):
+        wer = [_e("taeter", 5, x + 2, y + 5), _e("reserve", 5, x + 2, y + 8)]  # je Eingang geht einer (giveTribeAnInstruction), der zweite bleibt
+        wand = [{"player": 2, "spielbefehl": {"nr": 25, "werte": [x + 20, y, x + 20, y + 13, 25, 13]}}]
+        return [], wer, wand, lambda: [_angriff(wer, lauf=[x + 2, y + 6])], [(TUNNEL_TRUPP, eingang_bauen(wer, x + 8, y + 5)), (TUNNEL_PRUEFEN, eingang_da)], [(x + 20, y + i) for i in range(14)]
+
+    def turm(x, y):
+        wer = [_e("taeter", 5, x + 2, y + 4)]
+        return [_g(74, x + 20, y + 3)], wer, [], lambda: [_angriff(wer, lauf=[x + 2, y + 4])], [(TUNNEL_TRUPP, eingang_bauen(wer, x + 8, y + 4))]
+
+    def weit(x, y):
+        """Weiter als die ersten 20 Felder der Zielsuche (findTunnelTarget: 20, 40, 80)."""
+        wer = [_e("taeter", 5, x + 2, y + 4)]
+        return [_g(74, x + 38, y + 3)], wer, [], lambda: [_angriff(wer, lauf=[x + 2, y + 4])], [(TUNNEL_TRUPP, eingang_bauen(wer, x + 8, y + 4))]
+
+    def abbruch(x, y):
+        """Der Gegner schlaegt den Eingang, waehrend gegraben wird (processDamageToBuilding, BT_TUNNEL)."""
+        wer = [_e("taeter", 5, x + 2, y + 4)]
+        st = _e("stoerer", 24, x + 9, y + 9, 2)
+
+        def stoeren():
+            g = next((g for g in s.gebaeude(None) if g["typ"] in EINGANG and abs(g["x"] - (x + 8)) <= 8 and abs(g["y"] - (y + 4)) <= 8), None)
+            return [_angriff([st], 2, gebaeude=g["nr"])] if g else []
+        return [_g(74, x + 22, y + 3)], wer + [st], [], lambda: [_angriff(wer, lauf=[x + 2, y + 4])], [(TUNNEL_TRUPP, eingang_bauen(wer, x + 8, y + 4)), (TUNNEL_STOEREN, stoeren)]
+    return (("weit", weit, 44, 10), ("mauer", mauer, 26, 14), ("turm", turm, 26, 10), ("abbruch", abbruch, 28, 12))  # der breiteste zuerst, sonst passt der Ring um die Burg nicht
 
 
 SONDER_G = (("graben", p_graben, 24, 8), ("leiter", p_leiter, 30, 16), ("turmgeraet", p_turmgeraet, 30, 12), ("schild", p_schild, 34, 10), ("hoehe", p_hoehe, 60, 6), ("tor", p_tor, 30, 10), ("oel", p_oel, 24, 8))
@@ -1159,6 +1213,7 @@ SZENEN = {
     "sonder4_g": lambda l: szene_sonder(l, "sonder4_g", sonder4_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),
     "sonder5": lambda l: szene_sonder(l, "sonder5", sonder5(l)),
     "sonder5_g": lambda l: szene_sonder(l, "sonder5_g", sonder5_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),
+    "sonder6_g": lambda l: szene_sonder(l, "sonder6_g", sonder6_g(l), frei_maske=burgbereich(l, sp=2), rand=10, raeumen=True),
     "gebaeude_nah": Szene("gebaeude_nah", lf.TEMPO_JEDER_TAKT, True, GRENZE_NAH_GEBAEUDE, aufbau_gebaeude_nah, befehle_gebaeude_nah, treffer_noetig=False),
     "laufen_trupp_g": Szene("laufen_trupp_g", 200, False, GRENZE_TRUPP, lambda l: aufbau_laufen(l, OHNE_LORD), befehle_laufen_trupp, alle_am_ziel, treffer_noetig=False),
     "reichweite_g": Szene("reichweite_g", 200, False, GRENZE_BAHN, lambda l: aufbau_reichweite(l, OHNE_LORD), befehle_auf_partner),

@@ -110,6 +110,8 @@ class Spiel:
                     from selfaware.game.ucp.bauen import NACH_TYP
                     typ = next((t for t, v in NACH_TYP.items() if v["mapper"] == z["mapper"]), z["mapper"])
                     self.gebaeude_liste.append({"nr": 1000 + len(self.gebaeude_liste), "uid": 5000 + len(self.gebaeude_liste), "typ": typ, "x": z["x"], "y": z["y"], "besitzer": z["spieler"]})
+            if "baue" in c and c["baue"]["mapper"] == ls.MAPPER_TUNNEL and not self.f.get("kein_eingang"):
+                self.gebaeude_liste.append({"nr": 2000 + len(self.gebaeude_liste), "uid": 6000 + len(self.gebaeude_liste), "typ": 85, "x": c["baue"]["x"], "y": c["baue"]["y"], "besitzer": c["player"]})
             if "toeteAlle" in c:
                 t = c["toeteAlle"]
                 if isinstance(t, dict):
@@ -628,7 +630,7 @@ def test_zweiter_durchgang_sonderfaelle_wie_der_code_es_verlangt(tmp_path):
 
 def lauf_im_gefecht(tmp_path):
     g = Spiel(tmp_path)
-    g.einheiten = [{"nr": 900, "uid": 900, "typ": 55, "besitzer": 1, "x": 150, "y": 150, "leben": 100}]
+    g.einheiten = [{"nr": 900, "uid": 900, "typ": 55, "besitzer": 1, "x": 150, "y": 150, "leben": 100, "trupp": 0}]
     l = lauf_von(g)
     l.gefecht = True
     return g, l
@@ -689,6 +691,39 @@ def test_hoehe_ueber_die_leiter_und_dann_erst_der_schuss(tmp_path):
     bef = [c for c in g.log if isinstance(c, dict) and "angriff" in c]
     arten = [("leiter" if c["angriff"].get("art") == 24 else "lauf" if "lauf" in c["angriff"] else "ziel") for c in bef]
     assert arten == ["leiter", "lauf"] + ["ziel"] * 4
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    assert bef[0]["angriff"]["a"] == 1000 * (plan["karte"][0]["y"] + 7) + plan["karte"][0]["x"] + 20  # die Feldnummer
+
+
+def test_tunnel_ohne_eingang_bricht_gleich_ab(tmp_path):
+    g = Spiel(tmp_path, kein_eingang=True)
+    g.einheiten = [{"nr": 900 + i, "uid": 900 + i, "typ": 55, "besitzer": i + 1, "x": 150 + 100 * i, "y": 150 + 100 * i, "leben": 100, "trupp": 0} for i in range(2)]
+    l = lauf_von(g)
+    l.gefecht = True
+    with pytest.raises(ls.Abbruch, match="Kein Eingang"):
+        ls.SZENEN["sonder6_g"](l)
+
+
+def test_tunnel_erst_mauer_und_turm_dann_eingang_mit_trupp(tmp_path):
+    g, l = lauf_im_gefecht(tmp_path)
+    g.einheiten.append({"nr": 901, "uid": 901, "typ": 55, "besitzer": 2, "x": 250, "y": 250, "leben": 100, "trupp": 0})
+    e = ls.SZENEN["sonder6_g"](l)
+    assert e["kein_platz"] == [] and e["nicht_gesetzt"] == []
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    for k in plan["karte"]:
+        assert 14 <= max(abs(k["x"] - 250), abs(k["y"] - 250)) <= 40  # im Burgbereich von Spieler 2
+    b = [c for c in g.log if isinstance(c, dict)]
+    baue = [c for c in b if "baue" in c]
+    assert len(baue) == 4 and all(c["player"] == 1 and c["baue"]["mapper"] == 66 and c["baue"]["groesse"] == 3 and c["baue"]["trupp"] for c in baue)  # ohne Trupp geht niemand hin
+    mauer = next(c for c in b if c.get("spielbefehl", {}).get("nr") == 25)
+    assert mauer["player"] == 2 and b.index(mauer) < b.index(baue[0])  # ohne Ziel erlaubt das Spiel den Eingang nicht
+    assert all(z["spieler"] == 2 and z["typ"] == 74 for z in plan["gebaeude"])
+    los = [c for c in b if "lauf" in c.get("angriff", {})]
+    assert b.index(los[0]) < b.index(baue[0])  # der Trupp entsteht erst mit dem ersten Befehl
+    wer = {x["rolle"]: x for x in plan["einheiten"] if x.get("posten") == "mauer"}
+    assert set(wer) == {"taeter", "reserve"} and wer["taeter"]["typ"] == 5
+    st = next(c for c in b if "gebaeude" in c.get("angriff", {}))
+    assert st["player"] == 2 and st["angriff"]["gebaeude"] >= 2000  # der Gegner schlaegt den Eingang, nicht den Turm
 
 
 def test_pech_mit_feuerwerfer(tmp_path):
