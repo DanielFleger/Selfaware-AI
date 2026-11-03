@@ -116,10 +116,14 @@ def beschuss_werten(reihen, einheiten, tab):
                     z["gesehen"][einzel[0]] += 1
                 elif lo <= 0:
                     pass  # der letzte Treffer nimmt nur, was noch da ist
-                elif _erklaert(d, arten, FEUER.get(e["typ"], FEUER_SONST)):
-                    z["feuer"] += 1
                 else:
-                    z["ungeklaert"][d] += 1
+                    flammen = _erklaert(d, arten, FEUER.get(e["typ"], FEUER_SONST))
+                    if flammen is None:
+                        z["ungeklaert"][d] += 1
+                    elif flammen:
+                        z["feuer"] += 1
+                    else:
+                        z["gesehen"]["mehrere"] += 1
             vor = lo
             if lo <= 0:
                 break
@@ -131,9 +135,15 @@ def beschuss_werten(reihen, einheiten, tab):
 
 
 def _erklaert(d, arten, feuer):
-    """Mehrere Geschosse im selben Takt, bis zu 3 je Art, dazu bis zu 3 Flammen. Eine Flamme zaehlt abgerundet."""
+    """Mehrere Geschosse im selben Takt, bis zu 3 je Art, dazu bis zu 3 Flammen. Eine Flamme zaehlt abgerundet. Rueckgabe: Zahl der Flammen, None, wenn nichts passt."""
     w = list(arten.values())
-    return any(a * w[0] + b * w[1] + c * w[2] + int(f * feuer) == d for a in range(4) for b in range(4) for c in range(4) for f in range(4))
+    for f in range(4):
+        for a in range(4):
+            for b in range(4):
+                for c in range(4):
+                    if a * w[0] + b * w[1] + c * w[2] + int(f * feuer) == d:
+                        return f
+    return None
 
 
 def laufen_werten(reihen, einheiten, felder):

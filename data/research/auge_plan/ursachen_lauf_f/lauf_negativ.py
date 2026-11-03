@@ -119,7 +119,7 @@ FAELLE = [
     ("S: Regel: Platz neu belegt egal", R, "if s[\"typ\"][opfer[\"nr\"]] != opfer[\"typ\"] or s[\"typ\"][wer[\"nr\"]] != wer[\"typ\"] or not", "if not"),
     ("S: Regel: gleiche Art doppelt", R, "            if w[\"typ\"] == o[\"typ\"] and w[\"rolle\"] == \"b\":\n                continue", "            if False:\n                continue"),
     ("S: Regel: Beschuss unerklaert egal", R, "\"urteil\": \"weicht ab\" if z[\"ungeklaert\"] else \"bestaetigt\"", "\"urteil\": \"bestaetigt\""),
-    ("S: Regel: Beschuss Summen nicht erklaert", R, "for a in range(4) for b in range(4) for c in range(4) for f in range(4))", "for a in range(2) for b in range(2) for c in range(2) for f in range(2) if a + b + c + f < 2)"),
+    ("S: Regel: Beschuss Summen nicht erklaert", R, "    for f in range(4):\n", "    for f in range(1):\n"),
     ("S: Wechselprobe: Abzug egal", W, "        if abzug > grenze:\n", "        if False:\n"),
     ("S: Wechselprobe: nur eine Nachbarphase", W, "je = [(z[\"ohne\"][i] + z[\"ohne\"][i + 1]) / 2 - m for", "je = [z[\"ohne\"][i] - m for"),
     ("S: Wechselprobe: zu wenig Phasen gelten", W, "    if zu_wenig or not aus:\n", "    if False:\n"),

@@ -269,7 +269,7 @@ def test_beschuss_unerklaerter_betrag_weicht_ab():
 def test_beschuss_zwei_geschosse_im_selben_takt_und_feuer_sind_erklaert():
     r = reihen_von([1000] * 3, [9000, 7000, 6963])  # zwei Pfeile, dann Feuer 37
     z = {x["ziel"]: x for x in ar.beschuss_werten(r, PAAR, TAB)}[27]
-    assert z["urteil"] == "bestaetigt" and z["feuer"] == 1
+    assert z["urteil"] == "bestaetigt" and z["feuer"] == 1 and z["gesehen"] == {"mehrere": 1}
 
 
 def test_beschuss_letzter_treffer_nimmt_den_rest():
