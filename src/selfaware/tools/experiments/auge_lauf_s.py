@@ -920,6 +920,29 @@ def sonder4_g(l):
     return (("pech", pech, 24, 8),)
 
 
+def sonder5(l):
+    """Hoehe: Bogenschuetzen steigen ueber eine Leiter wirklich auf die Mauer (Speertraeger kamen so auf Hoehe 98, Lauf 21:50), dann Befehl auf Rammen jenseits der 40 Felder, die am Boden gelten."""
+    s = l.s
+
+    def hoehe(x, y):
+        mauer = [{"player": 2, "spielbefehl": {"nr": 25, "werte": [x + 20, y, x + 20, y + 15, 25, 13]}}]
+        trag = [_e("leiter", 29, x + 8, y + 6), _e("leiter", 29, x + 8, y + 8)]
+        wer = [dict(_e("laeufer", 22, x + 4, y + 5 + i), paar=i, abstand=a) for i, a in enumerate((38, 42, 46, 50))]
+        ziele = [dict(_e("ziel", 59, x + 20 + a, y + 1 + 4 * i, 2), paar=i) for i, a in enumerate((38, 42, 46, 50))]
+        return [], trag + wer + ziele, mauer, lambda: [_angriff(trag, art=24, a=s.kachel(x + 20, y + 7), b=0)], [(500, lambda: [_angriff(wer, lauf=[x + 20, y + 7])]), (1500, lambda: [_angriff([w], ziel=z["nr"]) for w, z in zip(wer, ziele)])]
+    return (("hoehe", hoehe, 74, 16),)
+
+
+def sonder5_g(l):
+    """Pechgraben, Versuch 2: Der Bogenschuetze zuendete ihn nicht an (Lauf 21:50, Anweisung 34 angenommen, nur normale Pfeile). Jetzt ein Feuerwerfer auf den Gegner, der auf dem Graben steht."""
+    def pech(x, y):
+        baue = [{"player": 1, "baue": {"mapper": 99, "x": x + 10 + i, "y": y + 4, "groesse": 1, "richtung": 15}} for i in range(5)]
+        ft = _e("taeter", 76, x + 12, y + 1)
+        opfer = _e("opfer", 25, x + 2, y + 4, 2)
+        return [], [ft, opfer], baue, lambda: [_angriff([opfer], 2, lauf=[x + 12, y + 4])], [(300, lambda: [_angriff([ft], ziel=opfer["nr"])])]
+    return (("pech", pech, 24, 8),)
+
+
 SONDER_G = (("graben", p_graben, 24, 8), ("leiter", p_leiter, 30, 16), ("turmgeraet", p_turmgeraet, 30, 12), ("schild", p_schild, 34, 10), ("hoehe", p_hoehe, 60, 6), ("tor", p_tor, 30, 10), ("oel", p_oel, 24, 8))
 SONDER_WAREN = ((4, 2000), (7, 500))  # Stein fuer Mauern, Pech fuer das Oel: Im Gefecht kosten Spielbefehle Waren, der Start reicht nicht
 SONDER2 = (("leiter", p_leiter, 30, 16), ("turmgeraet", p_turmgeraet, 30, 12), ("tunnel", p_tunnel, 28, 10), ("schild", p_schild, 34, 10), ("hoehe", p_hoehe, 60, 6), ("tor", p_tor, 30, 10), ("oel", p_oel, 24, 6))
@@ -1134,6 +1157,8 @@ SZENEN = {
     "sonder3": lambda l: szene_sonder(l, "sonder3", sonder3(l)),
     "sonder3_g": lambda l: szene_sonder(l, "sonder3_g", sonder3_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),
     "sonder4_g": lambda l: szene_sonder(l, "sonder4_g", sonder4_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),
+    "sonder5": lambda l: szene_sonder(l, "sonder5", sonder5(l)),
+    "sonder5_g": lambda l: szene_sonder(l, "sonder5_g", sonder5_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),
     "gebaeude_nah": Szene("gebaeude_nah", lf.TEMPO_JEDER_TAKT, True, GRENZE_NAH_GEBAEUDE, aufbau_gebaeude_nah, befehle_gebaeude_nah, treffer_noetig=False),
     "laufen_trupp_g": Szene("laufen_trupp_g", 200, False, GRENZE_TRUPP, lambda l: aufbau_laufen(l, OHNE_LORD), befehle_laufen_trupp, alle_am_ziel, treffer_noetig=False),
     "reichweite_g": Szene("reichweite_g", 200, False, GRENZE_BAHN, lambda l: aufbau_reichweite(l, OHNE_LORD), befehle_auf_partner),

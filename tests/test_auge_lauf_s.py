@@ -682,6 +682,23 @@ def test_hoehe_mit_treppe_mauer_und_leiter_der_abstaende(tmp_path):
     assert 27 in mapper and 25 in mapper
 
 
+def test_hoehe_ueber_die_leiter_und_dann_erst_der_schuss(tmp_path):
+    g = Spiel(tmp_path)
+    e = ls.SZENEN["sonder5"](lauf_von(g))
+    assert e["kein_platz"] == []
+    bef = [c for c in g.log if isinstance(c, dict) and "angriff" in c]
+    arten = [("leiter" if c["angriff"].get("art") == 24 else "lauf" if "lauf" in c["angriff"] else "ziel") for c in bef]
+    assert arten == ["leiter", "lauf"] + ["ziel"] * 4
+
+
+def test_pech_mit_feuerwerfer(tmp_path):
+    g, l = lauf_im_gefecht(tmp_path)
+    e = ls.SZENEN["sonder5_g"](l)
+    assert e["kein_platz"] == []
+    b = [c for c in g.log if isinstance(c, dict)]
+    assert sum(1 for c in b if "baue" in c) == 5 and any("ziel" in c.get("angriff", {}) and c["player"] == 1 for c in b)
+
+
 def test_spielbefehle_verschiedener_spieler_laufen_in_verschiedenen_takten(tmp_path):
     g = Spiel(tmp_path)
     l = lauf_von(g)
