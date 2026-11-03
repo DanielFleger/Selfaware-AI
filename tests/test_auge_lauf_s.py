@@ -216,8 +216,32 @@ def test_lord_steht_nicht_gemerkt_ist_kein_ende(tmp_path):
 
 
 def test_szenen_mischen_geht_nicht():
+    assert ls.bank_von(["nahkampf_g", "lord_g"]) and not ls.bank_von(["nahkampf", "last"])
     with pytest.raises(lf.Fehler):
-        ls.los(2, ["nahkampf", "nahkampf_g"])
+        ls.bank_von(["nahkampf", "nahkampf_g"])
+
+
+def test_aus_einem_test_startet_kein_echter_lauf(monkeypatch):
+    def nie(n):
+        raise AssertionError("Der Lauf ist bis zum Spiel gekommen")
+    monkeypatch.setattr(lf, "pruefe_laufinstanz", nie)  # faellt die Sperre weg, wird dieser Test rot, ohne das Spiel anzufassen
+    with pytest.raises(lf.Fehler):
+        ls.los(2, ["nahkampf"])
+
+
+def test_gefecht_gibt_beiden_spielern_einen_startplatz():
+    assert ls.STARTPLAETZE[:2] == (0, 1) and set(ls.STARTPLAETZE[2:]) == {246}
+    g = []
+
+    class K:
+        def peek(self, adr):
+            return [ls.HAUPTMENUE] if not g else [lf.IN_PARTIE]
+
+        def befehl(self, c, warte=0):
+            g.append(c)
+    ls.gefecht_oeffnen(K(), ruhe=lambda d: None)
+    start = next(c for c in g if "eigenesGefecht" in c)
+    assert start["startliste"] == list(ls.STARTPLAETZE) and start["menschen"] == 2 and start["gegner"] == 0
 
 
 def test_richtige_lords_prueft_besitzer_und_ort():

@@ -51,6 +51,7 @@ GESETZT = OHNE_LORD + LAUFENDE_GERAETE + (40, 41, 61)  # Trebuchet, Mangonel, Ba
 GEFECHT_ABSTAND = 60  # Felder zu allem, was schon steht: Lords stoeren nicht, ihr Radius ist 25 (aggressiv), Bauern laufen nicht weit
 GRENZE_NAH_G = 120  # Takte: Im Editor kam jeder erste Treffer nach 1 oder 2 Takten, und jeder Takt traf
 LORD_GRENZE = 2000  # Takte; 150.000 Leben, 8 Ritter schlagen zusammen rund 800 je Takt, dazu der Laufweg
+STARTPLAETZE = (0, 1, 246, 246, 246, 246, 246, 246)  # playerPositionsArray: Platz je Spieler, 246 = keiner
 NACH_LORD = 300  # Takte: Wann das Spiel das Ende merkt, ist hier die Frage, die Pruefrunde des Lords liegt bei 64 Takten
 STUECK = 100  # Befehle je Sendung
 GRENZE_NAH = 251 + 256  # groesster erster Treffer vom 18.10. plus groesste Pruefrunde (Maske 255), alte_schuesse.txt
@@ -467,12 +468,12 @@ def editor_oeffnen(k, s, n, ruhe=time.sleep):
 
 
 def gefecht_oeffnen(k, ruhe=time.sleep):
-    """Zwei Mensch-Plaetze, keine KI (L119): Spieler 2 tut nur, was befohlen wird."""
+    """Zwei Mensch-Plaetze, keine KI (L119): Spieler 2 tut nur, was befohlen wird. Feste Startplaetze: Ohne sie bekommt Spieler 2 Platz 246, also 6 Bogenschuetzen, aber weder Burg noch Lord (gemessen 03.11. 20:04)."""
     if k.peek(lf.ANSICHT)[0] != HAUPTMENUE:
         k.befehl({"menue": HAUPTMENUE}, 1.5)
         lf.warte_auf(lambda: k.peek(lf.ANSICHT)[0] == HAUPTMENUE, 10, "Hauptmenue", ruhe=ruhe)
     k.befehl({"pause": False}, lf.KANAL)  # sonst startet das neue Gefecht eingefroren (selbstspiel.py)
-    k.befehl({"eigenesGefecht": True, "karte": KARTE, "menschen": 2, "gegner": 0, "trotzdem": True, "startpause": 1}, 5.0)
+    k.befehl({"eigenesGefecht": True, "karte": KARTE, "menschen": 2, "gegner": 0, "trotzdem": True, "startpause": 1, "startliste": list(STARTPLAETZE)}, 5.0)
     lf.warte_auf(lambda: k.peek(lf.ANSICHT)[0] == lf.IN_PARTIE, 60, "Partie laeuft (Ansicht 14)", ruhe=ruhe)
     return {"ansicht": k.peek(lf.ANSICHT)[0]}
 
@@ -504,11 +505,19 @@ class LaufS(lk.LaufK):
         self.gefecht = False
 
 
-def los(n, szenen, ziel=None):
-    lf.pruefe_laufinstanz(n)
+def bank_von(szenen):
+    """Gefecht ja oder nein. Beides in einem Lauf geht nicht."""
     gefecht = all(z.endswith("_g") for z in szenen)
     if not gefecht and any(z.endswith("_g") for z in szenen):
         raise Fehler("Szenen mit _g laufen im Gefecht, die anderen im Editor: nicht im selben Lauf")
+    return gefecht
+
+
+def los(n, szenen, ziel=None):
+    if os.environ.get("PYTEST_CURRENT_TEST"):
+        raise Fehler("Aus einem Test startet kein echter Lauf")  # 03.11.: ein Prueffall kam bis hierher und fuhr zweimal echte Szenen auf Instanz 2
+    lf.pruefe_laufinstanz(n)
+    gefecht = bank_von(szenen)
     os.environ["SHC_INSTANZ"] = str(n)
     from selfaware import workspace
     from selfaware.tools.analysis.auge_feldkarte import FELDLISTE, Feldkarte

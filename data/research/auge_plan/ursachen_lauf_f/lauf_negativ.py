@@ -114,6 +114,8 @@ FAELLE = [
     ("S: Lord auch ohne Besitzer", S, "    return sorted(e[\"besitzer\"] for e in lords) == [1, 2] and all(", "    return all("),
     ("S: Lord-Szene wartet nicht aufs Ende", S, "    ende = gefallen and l.warte_takte(NACH_LORD, lambda: k.peek(lf.GAMEOVER)[0] != 0)\n", "    ende = gefallen\n"),
     ("S: Mischen erlaubt", S, "    if not gefecht and any(z.endswith(\"_g\") for z in szenen):\n", "    if False:\n"),
+    ("S: Test darf einen Lauf starten", S, "    if os.environ.get(\"PYTEST_CURRENT_TEST\"):\n", "    if False:\n"),
+    ("S: Spieler 2 ohne Startplatz", S, ", \"startliste\": list(STARTPLAETZE)}, 5.0)", "}, 5.0)"),
     ("S: Takt fehlt egal", S, "    if sz.streng and (stand.get(\"fehlend\") or stand.get(\"gemischt\")):\n", "    if False:\n"),
     ("S: kein Treffer egal", S, "    if sz.treffer_noetig and not sz.masse and not hat_treffer(s, plan):\n", "    if False:\n"),
     ("S: fehlende Einheit egal", S, "    if fehlt:\n        raise Abbruch(f\"{fehlt} von", "    if False:\n        raise Abbruch(f\"{fehlt} von"),
