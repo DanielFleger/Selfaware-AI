@@ -113,6 +113,7 @@ class Spiel:
             if "baue" in c and c["baue"]["mapper"] == ls.MAPPER_TUNNEL and not self.f.get("kein_eingang"):
                 self.gebaeude_liste.append({"nr": 2000 + len(self.gebaeude_liste), "uid": 6000 + len(self.gebaeude_liste), "typ": 85, "x": c["baue"]["x"], "y": c["baue"]["y"], "besitzer": c["player"]})
             if "toeteAlle" in c:
+                self.geraeumt = getattr(self, "geraeumt", []) + [self.t]
                 t = c["toeteAlle"]
                 if isinstance(t, dict):
                     assert t.get("ohneLord") or t["typen"] == [55]  # den Lord nimmt nur der ausdrueckliche Befehl
@@ -693,6 +694,18 @@ def test_hoehe_ueber_die_leiter_und_dann_erst_der_schuss(tmp_path):
     assert arten == ["leiter", "lauf"] + ["ziel"] * 4
     plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
     assert bef[0]["angriff"]["a"] == 1000 * (plan["karte"][0]["y"] + 7) + plan["karte"][0]["x"] + 20  # die Feldnummer
+
+
+def test_tunnel_zweiter_lauf_raeumt_erst_nach_den_starttruppen(tmp_path):
+    g, l = lauf_im_gefecht(tmp_path)
+    g.einheiten.append({"nr": 901, "uid": 901, "typ": 55, "besitzer": 2, "x": 250, "y": 250, "leben": 100, "trupp": 0})
+    e = ls.SZENEN["sonder7_g"](l)
+    assert e["kein_platz"] == [] and g.geraeumt[0] >= ls.STARTTRUPPEN_TAKT
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    assert {k["posten"] for k in plan["karte"]} == {"mauer", "abbruch"}
+    k = next(k for k in plan["karte"] if k["posten"] == "abbruch")
+    st = next(x for x in plan["einheiten"] if x["rolle"] == "stoerer")
+    assert abs(st["x"] - (k["x"] + 11)) >= 6  # weiter als 5 Felder vom Graeber, sonst greift er von selbst an
 
 
 def test_tunnel_ohne_eingang_bricht_gleich_ab(tmp_path):

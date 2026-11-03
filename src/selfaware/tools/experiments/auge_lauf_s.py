@@ -80,6 +80,7 @@ GRENZE_GERAETE_WEITE = 1000  # 3 Schuss Trebuchet (296 Takte)
 PUNKT_FAELLE = (("feld", 10), ("feld", 100), ("feld", 500), ("tor", 100), ("tor", 500), ("turm", 100), ("luecke", 100), ("luecke", 500))  # Liste V6
 PUNKT_WEG, GRENZE_PUNKT = 30, 3000  # Felder bis zum Ziel; 30 Felder zu 12 Takten, mal 8 fuer den Stau bei 500
 GRENZE_SONDER, SONDER_ABSTAND = 3000, 30  # Takte; Abstand der Posten, Feuerwerfer reicht 11, Schuetzen haben ihr Ziel per Befehl
+STARTTRUPPEN_TAKT = 410  # Gefecht: 6 Bogenschuetzen kamen bei Takt 202, 8 Speertraeger bei 403, je Spieler an der Burg (Lauf 22:41). Wer vorher raeumt, hat sie danach im Feld
 SONDER_SPIELER_TAKTE = 40  # Takte je Spieler fuer die Spielbefehle davor: Im selben Takt laufen alle als der zuletzt gesetzte Spieler (Modul: PLATZ_TAKTE 1), Graben, Mauern und Pech kamen so nie an (Lauf 21:30)
 SONDER_BEMANNEN = 400  # Takte: Geraete waren nach 356 Takten bemannt (Szene besatzung)
 GRENZE_NAH_GEBAEUDE = 300  # Takte auf Tempo 40: Schaden je Schlag, Weg hoechstens 2 Felder
@@ -952,7 +953,7 @@ def sonder5_g(l):
 
 
 MAPPER_TUNNEL, EINGANG = 66, (85, 50)  # M_MAPPER_TUNNEL_CONSTRUCTION, Groesse 3; BT_UNKNOWN4 bis der Graeber da ist, dann BT_TUNNEL
-TUNNEL_TRUPP, TUNNEL_PRUEFEN, TUNNEL_STOEREN = 60, 120, 400  # Takte: Der Trupp entsteht erst mit dem ersten Befehl; der Eingang steht spaetestens im naechsten Takt, 60 sind reichlich; der Graeber soll schon unter der Erde sein
+TUNNEL_TRUPP, TUNNEL_PRUEFEN, TUNNEL_STOEREN = 60, 120, 1100  # Takte: Der Trupp entsteht erst mit dem ersten Befehl; der Eingang steht spaetestens im naechsten Takt, 60 sind reichlich; der Graeber grub ab Takt 1001 und 1012 (Lauf 22:41)
 
 
 def sonder6_g(l):
@@ -988,7 +989,7 @@ def sonder6_g(l):
     def abbruch(x, y):
         """Der Gegner schlaegt den Eingang, waehrend gegraben wird (processDamageToBuilding, BT_TUNNEL)."""
         wer = [_e("taeter", 5, x + 2, y + 4)]
-        st = _e("stoerer", 24, x + 9, y + 9, 2)
+        st = _e("stoerer", 24, x + 20, y + 10, 2)  # 9 Felder vom Graeber: Auf 5 griff er ihn von selbst an (Lauf 22:41)
 
         def stoeren():
             g = next((g for g in s.gebaeude(None) if g["typ"] in EINGANG and abs(g["x"] - (x + 8)) <= 8 and abs(g["y"] - (y + 4)) <= 8), None)
@@ -1002,12 +1003,21 @@ SONDER_WAREN = ((4, 2000), (7, 500))  # Stein fuer Mauern, Pech fuer das Oel: Im
 SONDER2 = (("leiter", p_leiter, 30, 16), ("turmgeraet", p_turmgeraet, 30, 12), ("tunnel", p_tunnel, 28, 10), ("schild", p_schild, 34, 10), ("hoehe", p_hoehe, 60, 6), ("tor", p_tor, 30, 10), ("oel", p_oel, 24, 6))
 
 
+def starttruppen_abwarten(l):
+    rest = STARTTRUPPEN_TAKT - l.s.takt()
+    if rest > 0:
+        lk.aufnahme_im_stand_ohne(l, lf.TEMPO_LAUF)
+        l.warte_takte(rest)
+        lk.anhalten(l)
+
+
 def szene_sonder(l, name, posten, frei_maske=None, rand=SONDER_ABSTAND, raeumen=False):
     """Die Sonderfaelle, weit auseinander. Jeder Posten bekommt seine Befehle in drei Stufen: Spielbefehle davor, Befehle beim Start, Befehle nach dem Einsteigen. Ein Posten, der keinen Platz findet oder dessen Gebaeude nicht steht, ist ein Fund und haelt die anderen nicht auf."""
     k, s = l.k, l.s
     lk.anhalten(l)
     if raeumen:
-        abraeumen(l)  # die 6 Bogenschuetzen vom Start schiessen sonst auf alles
+        starttruppen_abwarten(l)
+        abraeumen(l)  # die Starttruppen schiessen sonst auf alles
     frei, _, _ = s.raster()
     frei_kontrolle = frei  # fern von allem, auch wenn die Posten im Ring um eine Burg liegen und ihn belegen (Lauf 22:30)
     if frei_maske:
@@ -1216,6 +1226,7 @@ SZENEN = {
     "sonder5": lambda l: szene_sonder(l, "sonder5", sonder5(l)),
     "sonder5_g": lambda l: szene_sonder(l, "sonder5_g", sonder5_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),
     "sonder6_g": lambda l: szene_sonder(l, "sonder6_g", sonder6_g(l), frei_maske=burgbereich(l, sp=2), rand=10, raeumen=True),
+    "sonder7_g": lambda l: szene_sonder(l, "sonder7_g", tuple(z for z in sonder6_g(l) if z[0] in ("mauer", "abbruch")), frei_maske=burgbereich(l, sp=2), rand=10, raeumen=True),  # die Graeber fielen vor dem Graben durch die Starttruppen (Lauf 22:41)
     "gebaeude_nah": Szene("gebaeude_nah", lf.TEMPO_JEDER_TAKT, True, GRENZE_NAH_GEBAEUDE, aufbau_gebaeude_nah, befehle_gebaeude_nah, treffer_noetig=False),
     "laufen_trupp_g": Szene("laufen_trupp_g", 200, False, GRENZE_TRUPP, lambda l: aufbau_laufen(l, OHNE_LORD), befehle_laufen_trupp, alle_am_ziel, treffer_noetig=False),
     "reichweite_g": Szene("reichweite_g", 200, False, GRENZE_BAHN, lambda l: aufbau_reichweite(l, OHNE_LORD), befehle_auf_partner),
