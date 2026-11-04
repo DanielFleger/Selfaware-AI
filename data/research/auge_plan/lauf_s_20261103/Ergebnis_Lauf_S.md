@@ -334,7 +334,7 @@ Alle 75 Punkte der Checkliste sind gegen ihre Erwartung gerechnet: `Punkte_Lauf_
 
 | Einheit | Schaden | Schläge je Stück |
 |---|---|---|
-| Ritter | 15 | 5 |
+| Ritter | 10 | 8 |
 | Schwertkämpfer, arabischer Schwertkämpfer | 10 | 8 |
 | Pikenier, Keulenträger | 5 | 15 |
 | Speerträger | 2 | 36 |
@@ -358,14 +358,14 @@ Damit lösen sich meine „unerklärten“ Messwerte auf:
 | Tor bleibt zu nach Feind | 1.200 Takte | 100 Takte | gateState2 springt auf 100 |
 | Ramme je Treffer | 50 | 125 | 125 |
 | Pfeil, Bolzen, weiteste Stufe | 432 Mikro (54 Felder) | 320 Mikro (40 Felder) | Pfeil trifft bis 40, nicht mehr auf 42 |
-| Munition Start und Auffüllen | 20 | 10 | 10 |
+| Munition auffüllen bis, und von mir gesetzte Geräte | 20 | 10 | 6 auf 10. Aus dem Zelt: 20 (Lauf K) |
 | Nachladen je Einheit | +20 | +10 | 5 auf 15, KI in Lauf K +10 |
 | Stein je Schuss beim Auffüllen | 1 Stein, 2 Schuss | 1 Stein, 1 Schuss | 2 Stein gaben +2 |
 | Angst | 5 Prozent je Stufe | Tabelle 80 bis 140 Prozent | 105, 87 und 60 bei Grund 75 |
 | Mauer je Schlag Speer, Pike, Keule, Tunnel | 4, 6, 6, 6 | 2, 5, 5, 20 | 2, 5, 5, 20 |
 | Gebäude je Schlag Schwert, Ritter | 70 oder 6 | 100 oder 10 | Hütte 100, Tor und Turm 10 |
 | Gebäude je Schlag Keule | 35 oder 4 | 80 oder 15 | Hütte 80 |
-| Hunde kommen ab Wert | 25 | 16 | noch nicht an der Grenze gefahren |
+| Hunde kommen ab Wert | 25 | 16 | 3 Speerträger (Wert 12) nein, 4 (Wert 16) ja |
 
 **Regel für alles Weitere:** Eine Zahl aus dem Export ist ein Grundwert. Vor jeder Aussage „der Code sagt“ steht der Blick in `code_abgleich.json`.
 
@@ -395,6 +395,27 @@ Danach: 8 von 8 auf dem Wachturm. Die Grenze 5 gilt nur beim Mausklick. Beim Kle
 
 **KI aus Lauf K (`punkte_rechnen_k.py`):** Kein Wiederaufbau, solange ein Feind unter 120 am Lord steht: 1 von 117 Fällen. Sperre nach Zerstörung: 10, dann -1 alle rund 800 Takte. Steinbruch: 4.000, sobald der Steinmetz fällt. Mönche der Kathedrale: Zustand 0x69 gesehen.
 
+## Befehle aus Lauf F, 04.11. 18:05 bis 18:14
+
+Szenen `sonder19`, `sonder19_g`, `sonder20_g`, Rechnung `punkte_rechnung14.txt`, `punkte_rechnung15.txt`. Zelte aus Lauf K: `punkte_rechnung_k.txt`.
+
+| Was | Ergebnis |
+|---|---|
+| Mauerlücke | 3 Ritter brechen ein Stück auf (Takt 1.478). Der Laufbefehl vorher wirkt nicht, der bei Takt 2.500 führt durch die Lücke in den Ring |
+| Ritter an der Mauer | **Berichtigt: 10 je Schlag, nicht 15.** Die 15 aus sonder8 war ein Mauerende: Er brach erst das Nachbarstück. Code und sonder19 sagen 10 |
+| Hunde | Täter belegt (Art 67, Besitzer 0). 3 Speerträger nein, 4, 5, 6 ja. Grenze Wert 16 wie im Speicher, im Export 25 |
+| Lager als Ziel | 3 Schwertkämpfer daneben, Angriffsbefehl: Zustand 107 für einen Augenblick, dann nichts. Das Lager verlor in 3.000 Takten kein Leben |
+| Steuer | Spielbefehl 34 setzt taxesSetting, 2 auf 7 |
+| Sammelpunkt | Spielbefehl 102 setzt den Punkt der Kaserne |
+| Turm reparieren | Spielbefehl 68: 200 auf 500 Leben, Holz -5 wie der Befehlswert |
+| Abreißen | Spielbefehl 41: Mauerstück weg. Spielbefehl 29: Hütte weg |
+| Mauer mit zu wenig Stein | 3 Stein, 15 Felder verlangt: 7 gebaut, also 2S+1 |
+| Heer am Limit | Das Limit ist 1.160. Der gesetzte Wert blieb in der Aufzeichnung unsichtbar, geworben wurde weiter. Nicht erreicht |
+| Zelte der KI | Katapult bis 319, Trebuchet bis 639, Ramme bis 644, Schild bis 121, Feuerballiste bis 312. Art 83 ergibt die Ramme: Der Name BT_SIEGETOWER im Typ-Verzeichnis ist falsch |
+| Produktivität | Stufe -5 bis +5 laut Speicher 180, 164, 148, 132, 116, 100, 92, 84, 76, 68, 60. Gemessen +5: 60, +2: 84, -5: 180 |
+
+**Lauf F steht damit bei 103 bestätigt, 11 widerlegt, 73 gemessen, 11 gesehen, 42 Lage fehlt, 1 offen.** Die übrigen fehlenden Lagen sind Einzelfälle: Bündnis, Grenzen, die nur beim echten Klick oder bei 1.160 Mann greifen, und reine Anzeige.
+
 ## Fall des Lords, 03.11. 20:59
 
 Im Gefecht. Der Lord geht am Anfang von selbst auf die Burg, Ritter finden dorthin keinen Weg. Mit Truppenbefehl kommt er herunter, schaffte es aber nicht in 600 Takten zum Ring aus Rittern. Er fiel darum per Befehl (`per_befehl` in `lord_g.plan.json`). **Spätestens 13 und 5 Takte nach seinem Verschwinden meldet das Spiel das Ende** (`GAMEOVER`, zwei Läufe, die Zahl enthält das Anhalten), die Ansicht bleibt 14. Der Steintod dauert rund 306 Takte. Das Ende nach einem echten Kampf zeigt Lauf K.
@@ -414,4 +435,4 @@ Im Gefecht. Der Lord geht am Anfang von selbst auf die Burg, Ritter finden dorth
 
 ## Noch offen
 
-Ob man durch die Mauerlücke und den eingestürzten Gang laufen kann, warum nur eine Kuh flog, wozu Spielbefehl 74 im echten Spiel dient, die genaue Grenze der Hunde (im Speicher 16). Lager und Holztor als Ziel im Nahkampf. Rund 5 Prozent Schüsse ohne Verlust am stehenden Ziel. Warum der erste Rahmen im Gefecht alt ist. Lauf-K-Stand (Szene 8b im Plan) ist nicht gefahren. Feuerkorb: Befehl 69 wirkte nicht (P312).
+Ob man durch den eingestürzten Gang laufen kann, warum nur eine Kuh flog, Holztor als Ziel im Nahkampf. Rund 5 Prozent Schüsse ohne Verlust am stehenden Ziel. Warum der erste Rahmen im Gefecht alt ist. Lauf-K-Stand (Szene 8b im Plan) ist nicht gefahren. Feuerkorb: Befehl 69 wirkte nicht (P312). Lauf F: Lagen wie Bündnis und Heer am Limit fehlen, Liste in `Punkte_Lauf_F.md`.

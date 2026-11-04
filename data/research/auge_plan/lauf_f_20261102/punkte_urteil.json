@@ -1,11 +1,11 @@
 {
 "lauf": "Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance",
 "zaehlung": {
-"Lage fehlte": 59,
-"gemessen": 70,
-"bestaetigt": 90,
+"Lage fehlte": 42,
+"gemessen": 73,
+"bestaetigt": 103,
 "gesehen": 11,
-"widerlegt": 10,
+"widerlegt": 11,
 "offen": 1
 },
 "punkte": [
@@ -692,8 +692,8 @@
 {
 "nr": "P086",
 "funktion": "convertCommandBuildingTypeToBuildingType",
-"urteil": "Lage fehlte",
-"grund": "Kein Belagerungsgerät gebaut. Lauf S.",
+"urteil": "bestaetigt",
+"grund": "Lauf K: Art 83 ergibt die Ramme (9 Mal Art 59), Art 84 den Schild (8 Mal Art 60). Der Name BT_SIEGETOWER für 83 im Typ-Verzeichnis stimmt also nicht, BT_S_BATTERINGRAM schon. Art 82 baute keine KI. `punkte_rechnung_k.txt`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
@@ -741,7 +741,7 @@
 "nr": "P092",
 "funktion": "getPriceForDisbandedUnitType",
 "urteil": "Lage fehlte",
-"grund": "Niemand entlassen.",
+"grund": "Geld zurück gibt es laut Code nur in Siege That (`disbandUnit`), das kommt in unseren Partien nicht vor.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
@@ -988,24 +988,24 @@
 {
 "nr": "P123",
 "funktion": "UpdateFireBallistaBuilding",
-"urteil": "Lage fehlte",
-"grund": "Kein Belagerungszelt. Lauf S.",
+"urteil": "gemessen",
+"grund": "Lauf K: 2 Zelte der Feuerballiste, Art 54, Fortschritt bis 312, +1 je Takt.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
 {
 "nr": "P124",
 "funktion": "UpdateCatapultBuilding",
-"urteil": "Lage fehlte",
-"grund": "Kein Belagerungszelt. Lauf S.",
+"urteil": "bestaetigt",
+"grund": "Lauf K: 9 Zelte, Art 80, Fortschritt höchstens 319, dann Katapult (6 Mal bis 40 Takte danach gesehen). +1 oder +2 je Takt.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
 {
 "nr": "P125",
 "funktion": "UpdateTrebutchetBuilding",
-"urteil": "Lage fehlte",
-"grund": "Kein Belagerungszelt. Lauf S.",
+"urteil": "bestaetigt",
+"grund": "Lauf K: 12 Zelte, Art 81, Fortschritt höchstens 639, +1 je Takt, dann Trebuchet (9 Mal gesehen).",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
@@ -1013,23 +1013,23 @@
 "nr": "P126",
 "funktion": "UpdateSiegeTowerBuilding",
 "urteil": "Lage fehlte",
-"grund": "Kein Belagerungszelt. Lauf S.",
+"grund": "Art 82 baute keine KI in Lauf K.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
 {
 "nr": "P127",
 "funktion": "UpdateBatteringRamBuilding",
-"urteil": "Lage fehlte",
-"grund": "Kein Belagerungszelt. Lauf S.",
+"urteil": "bestaetigt",
+"grund": "Lauf K: 10 Zelte, Art 83, Fortschritt höchstens 644, +2 je Takt, dann Ramme (9 Mal gesehen).",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
 {
 "nr": "P128",
 "funktion": "UpdateShieldBuilding",
-"urteil": "Lage fehlte",
-"grund": "Kein Belagerungszelt. Lauf S.",
+"urteil": "bestaetigt",
+"grund": "Lauf K: 12 Zelte, Art 84, Fortschritt höchstens 121, +1 je Takt, dann Schild (8 Mal gesehen).",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
@@ -1148,8 +1148,8 @@
 {
 "nr": "P143",
 "funktion": "updateFearFactorProductivity",
-"urteil": "Lage fehlte",
-"grund": "Stufe +3 kam nicht vor. Gemessen -1: 116, -2: 132, -3: 148; die Liga hätte bei +3: 76, nicht 70.",
+"urteil": "widerlegt",
+"grund": "Stufe +3 ergibt laut Speicher 76, nicht 70 (UCP3). Gemessen: +5 ergibt 60, +2 ergibt 84, -5 ergibt 180 (sonder10_g), dazu -1: 116, -2: 132, -3: 148 aus Lauf F.",
 "lauf_f_werkzeug": "zahl weicht ab",
 "spielart": false
 },
@@ -1237,7 +1237,7 @@
 "nr": "P154",
 "funktion": "IsEuroUnitRecruitableUnk",
 "urteil": "Lage fehlte",
-"grund": "armySizeLimit 10000, nicht erreicht.",
+"grund": "Limit 1.160. Der gesetzte Wert steht im Log, in der Aufzeichnung blieb 1.160 und das Anwerben ging weiter (sonder19_g). Bis 1.160 Mann ist nicht gefahren.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
@@ -1245,7 +1245,7 @@
 "nr": "P155",
 "funktion": "ProcessRecruitUnit",
 "urteil": "Lage fehlte",
-"grund": "Heer nicht am Limit.",
+"grund": "Wie P154: Das Limit war nicht zu erreichen.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
@@ -1284,8 +1284,8 @@
 {
 "nr": "P160",
 "funktion": "QueueChangeTaxes",
-"urteil": "Lage fehlte",
-"grund": "Schieber nicht benutzt, Steuer kam als Befehl.",
+"urteil": "gemessen",
+"grund": "Spielbefehl 34 setzt taxesSetting: 2 auf 7, Takt 205 (sonder19_g). Die beiden Felder der Erwartung gehören zum Schieber, der nicht benutzt wurde, sie blieben 0.",
 "lauf_f_werkzeug": "nicht gesehen",
 "spielart": true
 },
@@ -1332,8 +1332,8 @@
 {
 "nr": "P166",
 "funktion": "ProcessTowerRepair",
-"urteil": "Lage fehlte",
-"grund": "Kein Turm beschädigt.",
+"urteil": "bestaetigt",
+"grund": "Turm von 200 zurück auf 500 bei Takt 293, Holz -5 wie der Befehlswert (sonder19_g). Stein ist nicht zu sehen, der Bestand wird aus dem Lager neu gerechnet.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
@@ -1364,8 +1364,8 @@
 {
 "nr": "P170",
 "funktion": "ClickUnitStance",
-"urteil": "Lage fehlte",
-"grund": "Keine Haltung geändert.",
+"urteil": "bestaetigt",
+"grund": "Spielbefehl 70, Werte Gruppe und Haltung, wirkt (Lauf S, Szene Haltung).",
 "lauf_f_werkzeug": "nicht zuordenbar",
 "spielart": false
 },
@@ -1380,8 +1380,8 @@
 {
 "nr": "P172",
 "funktion": "SetUnitAssemblyPoint",
-"urteil": "Lage fehlte",
-"grund": "Kein Sammelpunkt gesetzt.",
+"urteil": "bestaetigt",
+"grund": "Spielbefehl 102 (0, x, y): barracksAssemblyPoints[0].x auf den Befehlswert bei Takt 209 (sonder19_g).",
 "lauf_f_werkzeug": "nicht zuordenbar",
 "spielart": false
 },
@@ -1428,8 +1428,8 @@
 {
 "nr": "P178",
 "funktion": "isTileInRangeOfKeepRange",
-"urteil": "Lage fehlte",
-"grund": "Gründe 22, 3, 5 kamen vor, 0x12 nicht.",
+"urteil": "bestaetigt",
+"grund": "Platzkarte in der Probe: Käfig und Wachturm außerhalb des Burgbereichs zeigen Zeichen i, das ist Grund 18 = 0x12 (`probe_befehle_gefecht.txt`).",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
@@ -1588,8 +1588,8 @@
 {
 "nr": "P198",
 "funktion": "destroyWall",
-"urteil": "Lage fehlte",
-"grund": "Keine Mauer abgerissen.",
+"urteil": "gemessen",
+"grund": "Spielbefehl 41 (Feldnummer, 100): Das Mauerstück ist bei Takt 225 weg (sonder19_g). Der Stein ist nicht zu sehen, der Bestand wird aus dem Lager neu gerechnet.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
@@ -1604,8 +1604,8 @@
 {
 "nr": "P200",
 "funktion": "placeWalls",
-"urteil": "Lage fehlte",
-"grund": "Stein reichte.",
+"urteil": "bestaetigt",
+"grund": "3 Stein, 15 Felder verlangt: 7 Felder gebaut, also 2S+1 (sonder19_g).",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
@@ -1644,8 +1644,8 @@
 {
 "nr": "P205",
 "funktion": "confirmAndQueueDestructionCommand",
-"urteil": "Lage fehlte",
-"grund": "Abriss kam als Befehl, nicht über die Abfrage.",
+"urteil": "bestaetigt",
+"grund": "Spielbefehl 29 (Nummer, 100, uid): Hütte weg bei Takt 295 (sonder19_g).",
 "lauf_f_werkzeug": "nicht zuordenbar",
 "spielart": false
 },
@@ -1692,8 +1692,8 @@
 {
 "nr": "P211",
 "funktion": "setUnitStance",
-"urteil": "Lage fehlte",
-"grund": "Keine Haltung geändert.",
+"urteil": "bestaetigt",
+"grund": "tribes[].unitStance folgt dem Befehl (Lauf S, Szene Haltung): Werte 1 und 2 gesehen.",
 "lauf_f_werkzeug": "nicht gesehen",
 "spielart": false
 },
@@ -1732,8 +1732,8 @@
 {
 "nr": "P216",
 "funktion": "spawnUnit",
-"urteil": "Lage fehlte",
-"grund": "Kein Katapult. Lauf S.",
+"urteil": "bestaetigt",
+"grund": "Aus dem Zelt 20: Lauf K, 15 von 15 Katapulten und Trebuchets. Von mir gesetzte Katapulte haben 10 (sonder10_g).",
 "lauf_f_werkzeug": "zahl weicht ab",
 "spielart": true
 },

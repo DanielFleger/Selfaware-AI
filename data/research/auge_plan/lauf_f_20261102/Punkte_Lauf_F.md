@@ -6,20 +6,21 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 
 | Urteil | Punkte |
 |---|---|
-| bestaetigt | 90 |
-| widerlegt | 10 |
-| gemessen | 70 |
+| bestaetigt | 103 |
+| widerlegt | 11 |
+| gemessen | 73 |
 | gesehen | 11 |
-| Lage fehlte | 59 |
+| Lage fehlte | 42 |
 | offen | 1 |
 
-## Widerlegt (10)
+## Widerlegt (11)
 
 | Punkt | Funktion | Beleg |
 |---|---|---|
 | P117 | `UpdateCampGround` | vclock folgt nicht der Beliebtheit: Es ist die Zuzugsuhr. Sie läuft von 2000 bis 4000, je Takt um gathering_rate/4 (gemessen +9 bei Beliebtheit 90 bis 94, +10 ab 95). Über 4000 kommt ein Bewohner und sie fällt um 2000. Also 1 Bewohner je 8000/gathering_rate Takte. Kein Platz frei: Sie steht auf 4000. |
 | P118 | `processPlacementResourceLossForBuildingType` | 4 Pechgräben kosteten 2 Pech, nicht 1: 16 auf 15 beim ersten, 14 beim dritten. |
 | P131 | `UpdateHuntersPost` | Bis 15 statt 6: Im Speicher steht 15 (`UpdateHunter`, UCP3). Gemessen: Jäger trägt bis 18, das ist 15 mal Produktivität. Fleisch im Lager +1 je Stück. |
+| P143 | `updateFearFactorProductivity` | Stufe +3 ergibt laut Speicher 76, nicht 70 (UCP3). Gemessen: +5 ergibt 60, +2 ergibt 84, -5 ergibt 180 (sonder10_g), dazu -1: 116, -2: 132, -3: 148 aus Lauf F. |
 | P163 | `SetStorageMarketFailState` | Kauf bei vollem Waffenlager über Befehl 38 wird abgelehnt, das Feld bleibt aber 0. Der Grund wird über diesen Weg nicht gesetzt. |
 | P174 | `queueCommand` | commandDelay steht im Einzelspiel auf 0, nicht auf 35. Vom Befehl bis zum Gebäude vergehen gemessen 2 bis 6 Takte. |
 | P218 | `UpdateOx` | Ladung 12, nicht 8: Im Speicher steht 12 (`UpdateQuarryWorker`, UCP3). |
@@ -28,7 +29,7 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P228 | `UpdateHopsFarmer` | Hopfenbauer trägt im Einzelspiel bis 6, nicht 1. |
 | P241 | `UpdateSlinger` | countSlingers2 zählt keine Schleuderer: Es steigt seit Takt 16.541 je Takt um 1 auf 32.261, ohne einen einzigen Schleuderer zu Beginn. Der Name ist falsch. |
 
-## Bestätigt (90)
+## Bestätigt (103)
 
 | Punkt | Funktion | Beleg |
 |---|---|---|
@@ -44,6 +45,7 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P061 | `placeBarracks` | Beträge 0 oder 5. |
 | P070 | `sortAttackInfoTribeIDArrayBasedOn` | Ganze Rangtabelle (2160 Byte) gleich wie in der Programmdatei, 0xb4c880 beginnt mit 10, 9, 5, 3 wie erwartet. |
 | P071 | `placeSiegeTentsAndAssignEngineers` | Zeltart 190, 191, 193, 192, 194, an Platz 8: 358. Ingenieure 2, 3, 4, 4, 1, an Platz 8: 2. Gleich wie in der Programmdatei. |
+| P086 | `convertCommandBuildingTypeToBuildingType` | Lauf K: Art 83 ergibt die Ramme (9 Mal Art 59), Art 84 den Schild (8 Mal Art 60). Der Name BT_SIEGETOWER für 83 im Typ-Verzeichnis stimmt also nicht, BT_S_BATTERINGRAM schon. Art 82 baute keine KI. `punkte_rechnung_k.txt`. |
 | P087 | `chooseProductionItemType` | Zweiter Bogenmacher fertigt wieder Bogen (17): Das neue Gebäude wird mitgezählt. |
 | P088 | `countBuildingsForPlayer` | +0x2C8 war in 20.909 Lesungen je Gebäude immer 0. Der Sonderzustand kam nicht vor. |
 | P089 | `findClosestInnBuildingID` | Humpen sinken, Lieferung füllt auf, vor der ersten Lieferung 0. |
@@ -67,6 +69,10 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P114 | `UpdateDairyFarm` | Zähler bis 400, dann 0, 3 Kühe. |
 | P115 | `UpdateStables` | 4 Pferde im Abstand von zusammen 3 x 551 Takten. |
 | P120 | `applyGateOrDrawbridgeOpenCloseChange` | Offen 11 mit Timer 600 und abwärts, zu Timer -1. Danach wird der Zustand 12, siehe P132. |
+| P124 | `UpdateCatapultBuilding` | Lauf K: 9 Zelte, Art 80, Fortschritt höchstens 319, dann Katapult (6 Mal bis 40 Takte danach gesehen). +1 oder +2 je Takt. |
+| P125 | `UpdateTrebutchetBuilding` | Lauf K: 12 Zelte, Art 81, Fortschritt höchstens 639, +1 je Takt, dann Trebuchet (9 Mal gesehen). |
+| P127 | `UpdateBatteringRamBuilding` | Lauf K: 10 Zelte, Art 83, Fortschritt höchstens 644, +2 je Takt, dann Ramme (9 Mal gesehen). |
+| P128 | `UpdateShieldBuilding` | Lauf K: 12 Zelte, Art 84, Fortschritt höchstens 121, +1 je Takt, dann Schild (8 Mal gesehen). |
 | P129 | `setupBuildingData` | currentGameMode 0, cooldownTimer höchstens 400. |
 | P130 | `giveBackResourceForDestroyedBuilding` | Mit Param1 50 genau die Hälfte: Bogenmacher (Liga 18 Holz, 100 Gold) gab 9 und 50, Galgen (40 Gold) gab 20. |
 | P132 | `UpdateGateHouseSmall` | gateState 11 dann 12, pathLinkageRelated2 0, 2, 1. |
@@ -92,21 +98,29 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P162 | `ChangeRations` | Rohwerte 0 bis 4. |
 | P164 | `ProcessBuyOrSell` | Alle Waren +5, Gold -3.420 = Summe von getBatchBuyPrice. |
 | P165 | `ProcessBuildingSleepUpdate` | Byte 0, 1, 0 beim Ein- und Ausschalten. |
+| P166 | `ProcessTowerRepair` | Turm von 200 zurück auf 500 bei Takt 293, Holz -5 wie der Befehlswert (sonder19_g). Stein ist nicht zu sehen, der Bestand wird aus dem Lager neu gerechnet. |
 | P168 | `ClickRecruitUnit` | Param0 Einheitentyp, Param1 Gebäude: 18 von 18 Einheiten erschienen. |
 | P169 | `ClickBuyOrSell` | Param0 0 ist Kauf, 1 ist Verkauf. |
+| P170 | `ClickUnitStance` | Spielbefehl 70, Werte Gruppe und Haltung, wirkt (Lauf S, Szene Haltung). |
+| P172 | `SetUnitAssemblyPoint` | Spielbefehl 102 (0, x, y): barracksAssemblyPoints[0].x auf den Befehlswert bei Takt 209 (sonder19_g). |
 | P173 | `determineGameTicksToPerform` | 39,9 Takte je Sekunde im vollen Dorf. |
 | P176 | `updatePathLinkageTileMapRelatedToGates` | Tor schließt: Außenfeld oben verliert Bit 0x10, unten Bit 1. Tor öffnet: Beide kommen wieder (sonder10, Takt 100 und 1.253). |
+| P178 | `isTileInRangeOfKeepRange` | Platzkarte in der Probe: Käfig und Wachturm außerhalb des Burgbereichs zeigen Zeichen i, das ist Grund 18 = 0x12 (`probe_befehle_gefecht.txt`). |
 | P190 | `updateAIBehaviour` | Tag 50, Woche 200, Monat 800 Takte. |
 | P195 | `countUnfinishedMoatTilesForPlayer` | Der Graben wurde fertig: stage 2, fillProgress 4. |
 | P196 | `advanceMoatDigProgress` | fillProgress 0 bis 4, dann stage 2. |
+| P200 | `placeWalls` | 3 Stein, 15 Felder verlangt: 7 Felder gebaut, also 2S+1 (sonder19_g). |
 | P202 | `placeWorkshopOrHovel` | Sechs Hütten 0, 1, 2, 3, 4, 5 in Bau-Reihenfolge. |
 | P203 | `placeQuarry` | Steinbruch 55 zeigt auf Halde 56, Typ 21. |
 | P204 | `createMoatData` | stage 2, fillProgress 4. |
+| P205 | `confirmAndQueueDestructionCommand` | Spielbefehl 29 (Nummer, 100, uid): Hütte weg bei Takt 295 (sonder19_g). |
 | P206 | `placeWheatfarm` | Genau 36 Felder mit Bit 0x1000000 bei einer Getreidefarm. |
 | P207 | `placeHopfarm` | Genau 24 Felder mit Bit 0x2000000 bei einer Hopfenfarm. |
 | P208 | `placeDairyfarm` | 0, 1, 2, 3 bei drei Milchviehhöfen. |
 | P210 | `recountTotalTroopValue` | 0 auf 224 nach dem Anwerben. |
+| P211 | `setUnitStance` | tribes[].unitStance folgt dem Befehl (Lauf S, Szene Haltung): Werte 1 und 2 gesehen. |
 | P212 | `nonEuroRecruit` | Liga 50 statt 30: Das ganze Anwerben kostete -850, genau die Summe der Tabelle. |
+| P216 | `spawnUnit` | Aus dem Zelt 20: Lauf K, 15 von 15 Katapulten und Trebuchets. Von mir gesetzte Katapulte haben 10 (sonder10_g). |
 | P217 | `UpdatePeasant` | count bis 2, count_2 18 nach 18 Anwerbungen. |
 | P219 | `UpdateHealer` | healerCount 1. |
 | P222 | `UpdateWoodcutter` | Holz steigt je Stück um 1 (68 Mal, 2 und 3 sind mehrere in einem Rahmen). Der Holzfäller trägt 13 bis 15. |
@@ -123,7 +137,7 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P239 | `UpdateMinerIronFetcher` | Eisen +1 je Stück (15 Mal). Der Träger trägt 2 und 3. |
 | P240 | `UpdatePriest` | Höchstwert 8000. |
 
-## Gemessen (70)
+## Gemessen (73)
 
 | Punkt | Funktion | Beleg |
 |---|---|---|
@@ -194,9 +208,12 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P083 | `setUnitValues` | Einmal gelesen, Werte in punkte.json. |
 | P084 | `acquireShootTarget` | Einmal gelesen, Werte in punkte.json. |
 | P085 | `IgniteFireAtMiniTile` | Tabelle gelesen: 0, 0, 1, 0, 2, 0, 3, 0, ... Keine Flamme im Lauf. |
+| P123 | `UpdateFireBallistaBuilding` | Lauf K: 2 Zelte der Feuerballiste, Art 54, Fortschritt bis 312, +1 je Takt. |
 | P134 | `CountPlayerUnitsByType` | Der Zähler liegt bei 0xb95f70 und wird nur von dieser Anzeige-Funktion gefüllt (`CountPlayerUnitsByType`, sie löscht ihn zuerst). Einträge 67 bis 69 sind 0. Der Vergleich mit einem bekannten Heer ist nicht gefahren. |
+| P160 | `QueueChangeTaxes` | Spielbefehl 34 setzt taxesSetting: 2 auf 7, Takt 205 (sonder19_g). Die beiden Felder der Erwartung gehören zum Schieber, der nicht benutzt wurde, sie blieben 0. |
 | P167 | `ClickDestroyBuilding` | Befehl 29 mit Param1 50: Rückgabe genau die Hälfte, siehe P130. |
 | P175 | `updateSeparateAreaTileMap` | Zähler läuft 1 bis 50. |
+| P198 | `destroyWall` | Spielbefehl 41 (Feldnummer, 100): Das Mauerstück ist bei Takt 225 weg (sonder19_g). Der Stein ist nicht zu sehen, der Bestand wird aus dem Lager neu gerechnet. |
 
 ## Gesehen, nicht nachgerechnet (11)
 
@@ -214,7 +231,7 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P234 | `UpdatePoleTurner` | Piken steigen je Stück um 1. Das Holz je Durchgang ist von anderen Verbrauchern nicht getrennt. |
 | P238 | `UpdateEngineer` | Feld ändert sich, nicht nachgerechnet. |
 
-## Lage fehlte (59)
+## Lage fehlte (42)
 
 | Punkt | Funktion | Beleg |
 |---|---|---|
@@ -224,34 +241,22 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P053 | `applyAIV` | Keine KI mit Burgvorlage. Lauf K. |
 | P054 | `recomputeHeatmaps` | Zellen im Burgenbau leer. Lauf K. |
 | P059 | `updateMacroLayerRelated` | Kein Sumpffeld auf den gefahrenen Karten: Lauf F 0, Lauf K 0 Felder mit Bit 0x20000000. |
-| P086 | `convertCommandBuildingTypeToBuildingType` | Kein Belagerungsgerät gebaut. Lauf S. |
-| P092 | `getPriceForDisbandedUnitType` | Niemand entlassen. |
+| P092 | `getPriceForDisbandedUnitType` | Geld zurück gibt es laut Code nur in Siege That (`disbandUnit`), das kommt in unseren Partien nicht vor. |
 | P100 | `updateRepairCostAndReturnIfDamaged` | Kein Gebäude beschädigt, die Felder gehören zur Anzeige. |
 | P102 | `UpdatePitchRig` | Karte ohne Pechvorkommen. |
 | P109 | `UpdateGranary` | Keine Nahrungsart gesperrt. |
 | P111 | `UpdateOilSmelter` | Ölbrennerei steht, aber kein Ingenieur wurde zugewiesen. |
 | P116 | `UpdateKeepStronghold` | Gold kam direkt, nicht über Startgold. |
-| P123 | `UpdateFireBallistaBuilding` | Kein Belagerungszelt. Lauf S. |
-| P124 | `UpdateCatapultBuilding` | Kein Belagerungszelt. Lauf S. |
-| P125 | `UpdateTrebutchetBuilding` | Kein Belagerungszelt. Lauf S. |
-| P126 | `UpdateSiegeTowerBuilding` | Kein Belagerungszelt. Lauf S. |
-| P127 | `UpdateBatteringRamBuilding` | Kein Belagerungszelt. Lauf S. |
-| P128 | `UpdateShieldBuilding` | Kein Belagerungszelt. Lauf S. |
+| P126 | `UpdateSiegeTowerBuilding` | Art 82 baute keine KI in Lauf K. |
 | P135 | `ComputePlayerPoints1` | Anzeige, nicht gemessen. |
 | P138 | `getWallTilesThatCanBeBuilt` | Bauanzeige, nicht gemessen. |
 | P140 | `updateFoodTypesInStockForAllPlayers` | Immer 0, 1 oder 4 Sorten. Das Werkzeug fand die 2 zufällig im Warenfeld. |
-| P143 | `updateFearFactorProductivity` | Stufe +3 kam nicht vor. Gemessen -1: 116, -2: 132, -3: 148; die Liga hätte bei +3: 76, nicht 70. |
 | P147 | `despawnPeasantOrWorker` | Bevölkerung nicht verringert. |
-| P154 | `IsEuroUnitRecruitableUnk` | armySizeLimit 10000, nicht erreicht. |
-| P155 | `ProcessRecruitUnit` | Heer nicht am Limit. |
+| P154 | `IsEuroUnitRecruitableUnk` | Limit 1.160. Der gesetzte Wert steht im Log, in der Aufzeichnung blieb 1.160 und das Anwerben ging weiter (sonder19_g). Bis 1.160 Mann ist nicht gefahren. |
+| P155 | `ProcessRecruitUnit` | Wie P154: Das Limit war nicht zu erreichen. |
 | P156 | `CheckIfEnoughGoldForLadderman` | Nicht mit 3 und 4 Gold versucht. Die Liga verlangt 20. |
-| P160 | `QueueChangeTaxes` | Schieber nicht benutzt, Steuer kam als Befehl. |
-| P166 | `ProcessTowerRepair` | Kein Turm beschädigt. |
-| P170 | `ClickUnitStance` | Keine Haltung geändert. |
 | P171 | `RemoveTowerSiegeEngine` | Kein Gerät entfernt. |
-| P172 | `SetUnitAssemblyPoint` | Kein Sammelpunkt gesetzt. |
 | P177 | `algTunnelerFindTarget` | Kein Tunnel. Lauf S. |
-| P178 | `isTileInRangeOfKeepRange` | Gründe 22, 3, 5 kamen vor, 0x12 nicht. |
 | P179 | `WindowMsgProcessingFunc` | Keine Taste gedrückt, das Tempo kam über das Modul. |
 | P180 | `isMapperAvailable` | Karte mit Wild. |
 | P181 | `aiUpdateTaxesAndRations` | Keine KI. Das Werkzeug fand die 2 im eigenen Feld. Lauf K. |
@@ -267,16 +272,11 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P192 | `validateWallPlacementAtTile` | Kein Feindgebäude. Lauf K. |
 | P193 | `isBuildingPlacementAllowedAtTile` | Nicht versucht, Grenze 200 gelesen. |
 | P194 | `countMoatsOwnedByEachPlayer` | moatsOwned blieb trotz Graben 0: Nur updateAIBehaviour ruft die Zählung. Lauf K. |
-| P198 | `destroyWall` | Keine Mauer abgerissen. |
 | P199 | `validateWallBuildPath` | Kein Feindgebäude. Lauf K. |
-| P200 | `placeWalls` | Stein reichte. |
 | P201 | `checkBuildingCanBePlacedHere` | Nicht im Gefecht versucht. Lauf K. |
-| P205 | `confirmAndQueueDestructionCommand` | Abriss kam als Befehl, nicht über die Abfrage. |
 | P209 | `placeBuilding` | Holz reichte. |
-| P211 | `setUnitStance` | Keine Haltung geändert. |
 | P213 | `ComputeGoodsProduced` | Produktivität 120 gibt es in der Liga-Tabelle nicht. |
 | P214 | `findTunnelTarget` | Kein Tunnel. Lauf S. |
-| P216 | `spawnUnit` | Kein Katapult. Lauf S. |
 
 ## Offen (1)
 

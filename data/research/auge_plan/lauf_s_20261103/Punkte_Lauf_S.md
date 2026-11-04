@@ -85,7 +85,7 @@
 | P354 | `UpdatePikeman` | Pikenier: Mauer 5 je Schlag, 15 Schläge je Stück. Turm 10 (50 Schläge), Tor 5 (300 Schläge). Die Mauer fällt also am schnellsten. |
 | P355 | `UpdateMaceman` | Keulenträger: Mauer 5 je Schlag, Hütte 80, Tor 5. Die Werte weichen von 35 und 4 ab. |
 | P356 | `UpdateSwordsman` | Schwertkämpfer: Mauer 10 je Schlag (8 Schläge je Stück), Hütte 100, Tor und Turm 10. Die Werte weichen von 70 und 6 ab. |
-| P357 | `UpdateKnight` | Ritter: Mauer 15 je Schlag (5 Schläge je Stück), Hütte 100, Tor und Turm 10. |
+| P357 | `UpdateKnight` | Ritter: Mauer 10 je Schlag, 8 Schläge je Stück, wie im Code. Hütte 100, Tor und Turm 10. Berichtigt: Hier stand 15. Das war das Mauerende: Der Ritter brach erst das Nachbarstück bei +10, danach hatte das Zielstück nur noch 1 Nachbarn (sonder8), und in sonder19 machten 3 Ritter je +10. |
 | P359 | `UpdateCatapult` | Verbrauch gleich Schüsse: 10 von 10, 7 von 7 bei 5 Katapulten. |
 | P360 | `UpdateTrebuchet` | Verbrauch gleich Schüsse: 5 von 5, 3 von 3, 1 von 1. Der Kuhwurf lässt die Munition unverändert. |
 | P361 | `UpdateMangonel` | 11 Salven mit je 7 Geschossen. |

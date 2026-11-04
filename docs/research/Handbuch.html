@@ -564,7 +564,12 @@ td.z { text-align: right; white-space: nowrap; }
     <tr><td>Rush-Schutz</td><td>Gilt nicht im Einzelspieler-Gefecht. Mit gesetzter Spielart Mehrspieler: kein Kampf, bis der Zähler 0 ist, dann sofort. 1 je Takt.</td></tr>
     <tr><td>Verluste</td><td>troopsLost +1, weightedLosses +Truppenwert (Speerträger 4). finalKillMatrix[Töter][Opfer] +1, nicht in der Aufzeichnung.</td></tr>
     <tr><td>KI baut wieder auf</td><td>Nicht, solange ein Feind unter 120 am Lord steht (1 von 117 Fällen). Sperre nach Zerstörung 10, dann -1 alle rund 800 Takte. Steinbruch 4.000, wenn der Steinmetz fällt.</td></tr>
-    <tr><td>Mauer unter Schlägen</td><td>Schaden je Schlag: Tunnelgräber 20, Ritter 15, Schwertkämpfer und arabischer Schwertkämpfer 10, Pikenier und Keulenträger 5, Speerträger 2, Sklave und Assassine nichts. Ein Stück fällt über 70 Schaden. Ende einer Mauer 1,5-fach, Kreuzung halb. Beim ersten Treffer 20 Höhe mehr.</td></tr>
+    <tr><td>Hunde</td><td>Kommen von selbst ab Truppenwert 16 binnen 16 Feldern (im Export 25): 3 Speerträger nein, 4 ja. Sie gehören Besitzer 0.</td></tr>
+    <tr><td>Mauerlücke</td><td>Ist ein Stück gefallen, führt ein neuer Laufbefehl hindurch. Der Befehl davor bleibt wirkungslos.</td></tr>
+    <tr><td>Lager</td><td>Nimmt im Nahkampf keinen Schaden: 3 Schwertkämpfer, 3.000 Takte, 500 von 500 Leben.</td></tr>
+    <tr><td>Zelte der KI</td><td>Fortschritt bis Katapult 319, Trebuchet 639, Ramme 644, Schild 121, Feuerballiste 312. Aus dem Zelt 20 Munition.</td></tr>
+    <tr><td>Produktivität</td><td>Angststufe -5 bis +5 gibt 180, 164, 148, 132, 116, 100, 92, 84, 76, 68, 60.</td></tr>
+    <tr><td>Mauer unter Schlägen</td><td>Schaden je Schlag: Tunnelgräber 20, Ritter, Schwertkämpfer und arabischer Schwertkämpfer 10, Pikenier und Keulenträger 5, Speerträger 2, Sklave und Assassine nichts. Ein Stück fällt über 70 Schaden. Ende einer Mauer 1,5-fach, Kreuzung halb. Beim ersten Treffer 20 Höhe mehr.</td></tr>
     <tr><td>Belagerungsturm</td><td>Nur mit Anweisung 23 legt er an: neues Gebäude Art 69, Bemannung 0. Ein Laufbefehl hält davor.</td></tr>
     <tr><td>Tod des Lords</td><td>Echter Töter bekommt 25 % des gegnerischen Goldes, mindestens 500 laut Code, gemessen +1.000 bei 4.000. Spielende rund 305 Takte später.</td></tr>
     <tr><td>Tor</td><td>Schließt bei einem Feind unter 140 Mikro: 17 Felder ja, 18 nein. 100 Takte nach dem letzten Feind öffnet es. Von Schritt 1 auf 2 meist 47 oder 48 Takte. Offen: Der Besitzer geht hindurch. Zu: Er geht außen herum.</td></tr>
@@ -588,7 +593,7 @@ td.z { text-align: right; white-space: nowrap; }
   <div class="merk"><b>Nicht erreicht:</b> Löschen, Durchgang durchs Tor, Anlegen des Belagerungsturms. Noch nicht erklärt: warum der Truppenbefehl schneller ist, warum der Pfeil nicht bis 54 reicht, rund 5 Prozent Schüsse ohne Verlust am stehenden Ziel.</div>
   <div class="merk"><b>Learning 03.11.:</b> In diesem Lauf lagen drei Vorhersagen aus dem Code daneben, weil ich den Code gelesen, aber nicht den Weg bedacht hatte: Der Stein hat im Speicher andere Werte, das Tempo hängt am Befehl, nicht an der Spielart, und der Zielpunkt führt das Ziel. Ein Messlauf prüft zuerst, ob seine Befehle überhaupt ankommen: Mein Kanal schrieb jeden Befehl auf Spieler 1 um.</div>
   <p><b>Einzelpunkte:</b> Alle 75 gegen die Erwartung gerechnet, nach zwei Nachläufen: 52 bestätigt, 16 widerlegt, 4 gemessen, 2 teils, 1 Lage fehlt, 0 offen (<code>Punkte_Lauf_S.md</code>).</p>
-  <p><b>Als Nächstes:</b> Die Reste aus „Noch offen“ im Ergebnis von Lauf S. Lauf F steht jetzt bei 90 bestätigt, 10 widerlegt, 70 gemessen, 11 gesehen, 59 Lage fehlt, 1 offen.</p>
+  <p><b>Als Nächstes:</b> Die Reste aus „Noch offen“ im Ergebnis von Lauf S. Lauf F steht jetzt bei 103 bestätigt, 11 widerlegt, 73 gemessen, 11 gesehen, 42 Lage fehlt, 1 offen.</p>
 </section>
 
 <section id="offen">
