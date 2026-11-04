@@ -1188,6 +1188,93 @@ def sonder9_g(l):
     return (("pech", pech, 24, 11),)
 
 
+TREPPE, ANGST_TAKT, TOR_ZU_TAKT = 27, 800, 300  # Mapper der Treppe (sonder3); Takte: Angst erst, wenn genug Schlaege ohne sie gezaehlt sind; das Tor ist nach 3 bis 50 Takten zu (Lauf 00:30)
+
+
+def sonder10(l):
+    """Der zweite Nachlauf im Editor: was im ersten nicht zustande kam (Punkte_Lauf_S.md)."""
+    s = l.s
+    frei, hoehe, _ = s.raster()
+    hang = steigung(frei, hoehe, 8, 3)
+
+    def treppe(x, y, spieler=1):
+        return [{"player": spieler, "spielbefehl": {"nr": 25, "werte": [x + 3, y + 3, x + 10, y + 3, 25, 13]}}, {"player": spieler, "spielbefehl": {"nr": 25, "werte": [x + 2, y + 3, x + 2, y + 3, TREPPE, 13]}}]
+
+    def turm_oben(x, y):
+        """P338: Ein Laufbefehl vom Boden wirkte nicht (Lauf 00:30). Jetzt mit Treppe und Mauer bis an den Wachturm."""
+        wer = [_e("steiger", 24, x, y + i) for i in range(8)]
+        return [_g(74, x + 10, y + 2, spieler=1)], wer, treppe(x, y), lambda: [_angriff([w], lauf=[x + 11, y + 3]) for w in wer], None
+
+    def turm4(x, y):
+        """P302: Mit Treppe und Mauer auf den grossen Turm, spaeter wieder herunter."""
+        wer = [_e("steiger", 24, x, y + 3)]
+        return [_g(77, x + 10, y + 1, spieler=1)], wer, treppe(x, y), lambda: [_angriff(wer, lauf=[x + 12, y + 3])], [(1500, lambda: [_angriff(wer, lauf=[x, y + 3])])]
+
+    def tor_weg(x, y):
+        """P304: Feind auf 10 Feldern, das Tor schliesst. Er geht weg: Entwarnung."""
+        feind = [_e("feind", 24, x + 20, y + 4)]
+        return [_g(46, x + 30, y + 2)], feind, [], lambda: [], [(1000, lambda: [_angriff(feind, lauf=[x, y + 4])])]
+
+    def tor_gang(mit_feind):
+        """P304: Die eigene Einheit geht durchs Tor, einmal offen, einmal zu. Rechts und links Mauer, sonst geht sie aussen herum."""
+        def f(x, y):
+            wand = [{"player": 2, "spielbefehl": {"nr": 25, "werte": w + [25, 13]}} for w in ([x, y + 5, x + 10, y + 5], [x + 15, y + 5, x + 26, y + 5])]
+            geher = [_e("geher", 24, x + 12, y, 2)]
+            feind = [_e("feind", 24, x + 3, y + 10)] if mit_feind else []
+            return [_g(46, x + 10, y + 3)], geher + feind, wand, lambda: [], [(TOR_ZU_TAKT, lambda: [_angriff(geher, 2, lauf=[x + 12, y + 11])])]
+        return f
+
+    def trupp_nah(x, y):
+        """P325: Der erste steht direkt am Feind, der Abstand 2 reichte nicht (Lauf 00:30)."""
+        wer = [_e("trupp", 27, x + 1 + 3 * i, y + 2) for i in range(6)]
+        feind = _e("feind", 25, x + 1, y + 3, 2)
+        return [], wer + [feind], [], lambda: [], [(150, lambda: [_angriff(wer, lauf=[x + 30, y + 2])])]
+
+    def bergauf(x, y):
+        """P330: Der erste Lauf fand mit 8 Hoehe auf 14 Felder keinen Hang."""
+        if hang is None:
+            return [], [], [], lambda: [], None
+        wer = [_e("laeufer", 24, hang[0], hang[1])]
+        return [], wer, [], lambda: [_angriff(wer, lauf=[hang[0] + 7, hang[1]])], None
+
+    return (("turm_oben", turm_oben, 18, 9), ("turm4", turm4, 22, 9), ("tor_weg", tor_weg, 36, 8), ("tor_offen", tor_gang(False), 28, 12), ("tor_zu", tor_gang(True), 28, 12), ("trupp_nah", trupp_nah, 32, 6), ("bergauf", bergauf, 2, 2))
+
+
+def sonder10_g(l):
+    """Der zweite Nachlauf im Gefecht: Loeschen und Angst."""
+    s = l.s
+
+    def loeschen(x, y):
+        """V7.001: Eine Huette von Spieler 1 brennt, ein Brunnen steht daneben (UpdateFireWatch, Art 53). Ohne Brunnen brannte sie rund 960 bis 980 Takte (sonder1)."""
+        h = _g(1, x + 10, y + 2, spieler=1)
+        ft = _e("taeter", 76, x + 1, y + 4, 2)
+        return [h, _g(27, x + 16, y + 2, spieler=1)], [ft], [], lambda: [], [(SONDER_BEMANNEN, lambda: [_angriff([ft], 2, gebaeude=h["nr"])] if "nr" in h else [])]
+
+    def angst(x, y):
+        """P332: Schaden je Schlag ohne Angst, dann mit Angststufe 5."""
+        adr, schritt = s.feld("DAT_GameState", "playerDataArray[].fearFactorLevel")
+        wer = [_e("taeter", 27, x + 2, y + 2), _e("opfer", 25, x + 3, y + 2, 2)]
+        return [], wer, [], lambda: [], [(ANGST_TAKT, lambda: [{"poke": adr + schritt, "wert": 5}])]
+    return (("loeschen", loeschen, 22, 8), ("angst", angst, 8, 5))
+
+
+def sonder11_g(l):
+    """P314: Wie sonder9_g, aber die Gegner gehen genau auf ein Feld des brennenden Pechs (Lauf 00:40: bis 1 Feld daneben, counter blieb 0)."""
+    s = l.s
+
+    def pech(x, y):
+        baue = [{"player": 1, "baue": {"mapper": 99, "x": x + 10 + i, "y": y + 4, "groesse": 1, "richtung": 15}} for i in range(5)]
+        ft = _e("taeter", 76, x + 12, y + 1)
+        opfer = _e("opfer", 25, x + 2, y + 4, 2)
+        geher = [_e("geher", 24, x + 10 + i, y + 9, 2) for i in range(5)]
+
+        def hin():
+            nah = [g for g in s.pech_liste(1) if abs(g["y"] - (y + 4)) <= 1 and x + 8 <= g["x"] <= x + 16]
+            return [_angriff([g], 2, lauf=[nah[i % len(nah)]["x"], nah[i % len(nah)]["y"]]) for i, g in enumerate(geher)] if nah else []
+        return [], [ft, opfer] + geher, baue, lambda: [_angriff([opfer], 2, lauf=[x + 12, y + 4])], [(300, lambda: [_angriff([ft], ziel=opfer["nr"])]), (510, hin)]
+    return (("pech", pech, 24, 11),)
+
+
 SONDER_G = (("graben", p_graben, 24, 8), ("leiter", p_leiter, 30, 16), ("turmgeraet", p_turmgeraet, 30, 12), ("schild", p_schild, 34, 10), ("hoehe", p_hoehe, 60, 6), ("tor", p_tor, 30, 10), ("oel", p_oel, 24, 8))
 SONDER_WAREN = ((4, 2000), (7, 500))  # Stein fuer Mauern, Pech fuer das Oel: Im Gefecht kosten Spielbefehle Waren, der Start reicht nicht
 SONDER2 = (("leiter", p_leiter, 30, 16), ("turmgeraet", p_turmgeraet, 30, 12), ("tunnel", p_tunnel, 28, 10), ("schild", p_schild, 34, 10), ("hoehe", p_hoehe, 60, 6), ("tor", p_tor, 30, 10), ("oel", p_oel, 24, 6))
@@ -1417,6 +1504,9 @@ SZENEN = {
     "sonder5_g": lambda l: szene_sonder(l, "sonder5_g", sonder5_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),
     "sonder6_g": lambda l: szene_sonder(l, "sonder6_g", sonder6_g(l), frei_maske=burgbereich(l, sp=2), rand=10, raeumen=True),
     "sonder8": lambda l: szene_sonder(l, "sonder8", sonder8(l), rand=15),
+    "sonder10": lambda l: szene_sonder(l, "sonder10", sonder10(l), rand=15),
+    "sonder10_g": lambda l: szene_sonder(l, "sonder10_g", sonder10_g(l), rand=15, raeumen=True),
+    "sonder11_g": lambda l: szene_sonder(l, "sonder11_g", sonder11_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),
     "sonder8_g": lambda l: szene_sonder(l, "sonder8_g", sonder8_g(l), rand=15, raeumen=True),
     "sonder9_g": lambda l: szene_sonder(l, "sonder9_g", sonder9_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),
     "lord2_g": lambda l: szene_lord(l, "lord2_g", True),

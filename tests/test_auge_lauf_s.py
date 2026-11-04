@@ -824,6 +824,51 @@ def test_lord_selbst_ohne_testbefehl(tmp_path):
     assert not any(isinstance(c, dict) and isinstance(c.get("toeteAlle"), dict) and c["toeteAlle"].get("typen") == [55] for c in g.log)
 
 
+def test_zweiter_nachlauf_editor(tmp_path):
+    g = Spiel(tmp_path)
+    e = ls.SZENEN["sonder10"](lauf_von(g))
+    assert e["kein_platz"] == [] and e["nicht_gesetzt"] == []
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    b = [c for c in g.log if isinstance(c, dict)]
+    sp = [c for c in b if c.get("spielbefehl", {}).get("nr") == 25]
+    assert sum(1 for c in sp if c["spielbefehl"]["werte"][4] == ls.TREPPE and c["player"] == 1) == 2  # je Turm eine Treppe von Spieler 1
+    assert sum(1 for c in sp if c["player"] == 2) == 4  # Mauer links und rechts der beiden Tore
+    ort = {k["posten"]: k for k in plan["karte"]}
+    t = next(x for x in plan["gebaeude"] if x.get("posten") == "turm_oben")
+    assert t["spieler"] == 1
+    assert sum(1 for x in plan["einheiten"] if x.get("posten") == "tor_zu" and x["rolle"] == "feind") == 1 and not any(x.get("posten") == "tor_offen" and x["rolle"] == "feind" for x in plan["einheiten"])
+    geher = [c for c in b if "lauf" in c.get("angriff", {}) and c["player"] == 2]
+    assert len(geher) == 2 and all(c["angriff"]["lauf"][1] == ort[n]["y"] + 11 for c, n in zip(geher, ("tor_offen", "tor_zu")))
+    k = next(x for x in plan["einheiten"] if x.get("posten") == "trupp_nah" and x["rolle"] == "feind")
+    nah = [x for x in plan["einheiten"] if x.get("posten") == "trupp_nah" and x["rolle"] == "trupp" and max(abs(x["x"] - k["x"]), abs(x["y"] - k["y"])) <= 1]
+    assert len(nah) == 1
+
+
+def test_zweiter_nachlauf_loeschen_und_angst(tmp_path):
+    g, l = lauf_im_gefecht(tmp_path)
+    e = ls.SZENEN["sonder10_g"](l)
+    assert e["kein_platz"] == [] and e["nicht_gesetzt"] == []
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    b = [c for c in g.log if isinstance(c, dict)]
+    assert {x["typ"] for x in plan["gebaeude"]} == {1, 27} and all(x["spieler"] == 1 for x in plan["gebaeude"])
+    h = next(x for x in plan["gebaeude"] if x["typ"] == 1)
+    an = next(c for c in b if "gebaeude" in c.get("angriff", {}))
+    assert an["player"] == 2 and an["angriff"]["gebaeude"] == h["nr"]
+    assert any(c.get("wert") == 5 and c.get("poke") == 7100 for c in b)  # Angst fuer Spieler 1
+
+
+def test_zweiter_nachlauf_geher_auf_das_pech(tmp_path):
+    g, l = lauf_im_gefecht(tmp_path)
+    e = ls.SZENEN["sonder11_g"](l)
+    assert e["kein_platz"] == []
+    b = [c for c in g.log if isinstance(c, dict)]
+    pech = {(c["baue"]["x"], c["baue"]["y"]) for c in b if "baue" in c}
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    geher = {x["nr"] for x in plan["einheiten"] if x["rolle"] == "geher"}
+    ziele = [tuple(c["angriff"]["lauf"]) for c in b if "lauf" in c.get("angriff", {}) and c["angriff"]["einheiten"][0] in geher]
+    assert len(ziele) == 5 and all(z in pech for z in ziele)
+
+
 def test_tunnel_ohne_eingang_bricht_gleich_ab(tmp_path):
     g = Spiel(tmp_path, kein_eingang=True)
     g.einheiten = [{"nr": 900 + i, "uid": 900 + i, "typ": 55, "besitzer": i + 1, "x": 150 + 100 * i, "y": 150 + 100 * i, "leben": 100, "trupp": 0} for i in range(2)]
