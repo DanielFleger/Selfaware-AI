@@ -403,11 +403,10 @@ fn anvisiert_reflex(z: &mut Zustand, tick: i32) -> bool {
 static R3_MODUS: AtomicI32 = AtomicI32::new(1);
 const R3_SCHALTER_NR: i32 = -2;
 const R3_WEG: i32 = 3;
-/// Mehrere Haken im selben Takt gingen verloren (gemessen 28.10.: 231 von 231 verlorenen Haken aus solchen Takten, bis 12 je Salve).
-/// Ursache vermutlich hier, nicht im Spiel: In 89 von 89 Takten hatten alle Befehle dieselbe Gruppennummer, gruppe_frei reserviert im
-/// selben Takt nicht (logik.lua: angriffReserve). Zwei verschiedene Nummern im selben Takt sind nicht gemessen. Darum vorerst: Warteschlange,
-/// je Takt der dringendste Haken - zusammen mit allen Einheiten, die in dieselbe Richtung ausweichen und hoechstens R3_GRUPPE_R Felder
-/// neben ihm stehen (ein Gruppenbefehl).
+/// Je Takt kommt nur EIN Befehl an (SRE 04.11., Instanz 2, ueber das Modul: 2 bis 12 Gruppen mit verschiedenen Nummern im selben Takt - alle
+/// laufen zum letzten Ziel; in aufeinanderfolgenden Takten 36 von 36). Hier zuvor 231 von 231 verlorenen Haken aus Takten mit mehreren.
+/// Darum: Warteschlange, je Takt der dringendste Haken - zusammen mit allen Einheiten, die in dieselbe Richtung ausweichen und hoechstens
+/// R3_GRUPPE_R Felder neben ihm stehen (ein Gruppenbefehl).
 const R3_GRUPPE_R: i32 = 4;
 const R3_GRUPPE_TOL: i32 = 3;
 

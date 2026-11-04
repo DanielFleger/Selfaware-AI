@@ -108,7 +108,7 @@ zaehlt "getroffen/verfehlt", ohne zu befehlen. Das ist die Vergleichsgruppe.
 
 **Rueckweg:** Der Schalter zur Laufzeit (Einheit -2, wie R1 -1); Kern 23 bleibt im Paket.
 
-**Stand 04.11.:** Frage-Agent ROT (28.10. 02:50): Flucht ohne Vorrang, zwei Befehlsschlangen, Schleife Haken/Fortsetzen. Nicht gebaut, Frage an Daniel offen (ein Befehlsweg). Berichtigung: Die Annahme 'nur ein Gruppenbefehl je Takt' ist nicht belegt (L203), Messbitte bei SRE; davon haengt ab, ob Warteschlange und Buendelung noetig sind.
+**Stand 04.11.:** Frage-Agent ROT (28.10. 02:50): Flucht ohne Vorrang, zwei Befehlsschlangen, Schleife Haken/Fortsetzen. Nicht gebaut, Frage an Daniel offen (ein Befehlsweg). SRE hat 04.11. gemessen: Je Takt kommt ein Befehl an, also bis 825 je Sekunde (L203). Warteschlange und Buendelung bleiben noetig; Kern und logik.lua duerfen nicht gegeneinander senden. Das spricht fuer den einen Befehlsweg.
 
 ## Uebergabe der Assassinen an den Kern (Daniel 28.10. 02:12 "ja", Schritt 3)
 
