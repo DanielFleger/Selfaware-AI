@@ -107,8 +107,51 @@ def befehle():
     print("Lager von Spieler 2 (Takt, Leben):", la[:6], "...", la[-2:], "Schwertkaempfer", [e["nr"] for e in wer])
 
 
+def rest20():
+    p = pl.neueste("sonder19_g")
+    S = pl.plan_von(p)["von"]
+    v = []
+    for t, g in pl.stand(p, "DAT_GameState", {"s": "playerDataArray[].taxesSetting"}):
+        if not v or v[-1][1] != int(g["s"][1]):
+            v.append((t - S, int(g["s"][1])))
+    print("P160 taxesSetting sonder19_g:", v[:4])
+    p = pl.neueste("sonder20_g")
+    if not p:
+        print("sonder20_g fehlt")
+        return
+    plan = pl.plan_von(p)
+    S = plan["von"]
+    print("sonder20_g Takte", plan["bis"] - S, "nicht gesetzt", plan["nicht_gesetzt"], "kein Platz", plan["kein_platz"], "Posten", {k["posten"]: (k["x"], k["y"]) for k in plan["karte"]})
+    ort = {k["posten"]: k for k in plan["karte"]}
+    hu = collections.defaultdict(list)
+    alle = collections.Counter()
+    for t, u in pl.stand(p, "DAT_UnitsState", U):
+        m = (u["da"] != 0) & (u["typ"] == HUND)
+        m[0] = False
+        for i in np.nonzero(m)[0]:
+            alle[(int(u["b"][i]))] += 1
+            x, y = int(u["mx"][i]) // 8, int(u["my"][i]) // 8
+            for n in ("hunde_5", "hunde_6"):
+                o = ort[n]
+                if o["x"] - 8 <= x <= o["x"] + 24 and o["y"] - 8 <= y <= o["y"] + 16 and not hu[n]:
+                    hu[n].append((t - S, int(i), x, y))
+    print("Hunde je Besitzer, Rahmen:", dict(alle), "erster Hund je Posten:", dict(hu))
+    la = []
+    for t, b in pl.stand(p, "DAT_BuildingsState", {"ty": "buildings[].buildingType", "o": "buildings[].owner", "le": "buildings[].currentHealth", "da": "buildings[].logicalState"}):
+        m = np.nonzero((b["ty"] == 10) & (b["o"] == 2) & (b["da"] != 0))[0]
+        w = int(b["le"][m[0]]) if len(m) else None
+        if not la or la[-1][1] != w:
+            la.append((t - S, w))
+    wer = [e for e in plan["einheiten"] if e.get("posten") == "lager"]
+    z = []
+    for t, u in pl.stand(p, "DAT_UnitsState", {**U, "tb": "units[].targetedBuildingTile"}, jeder=25):
+        if wer:
+            z.append((t - S, int(u["z"][wer[0]["nr"]]), int(u["mx"][wer[0]["nr"]]) // 8, int(u["my"][wer[0]["nr"]]) // 8))
+    print("Lager von Spieler 2 (Takt, Leben):", la[:8], "...", la[-2:], "Schwertkaempfer (Takt, Zustand, x, y):", z[:4], "...", z[-2:], "gesetzt", [(e["x"], e["y"]) for e in wer])
+
+
 if __name__ == "__main__":
-    for f in (luecke, befehle):
+    for f in (luecke, befehle, rest20):
         try:
             f()
         except Exception as e:

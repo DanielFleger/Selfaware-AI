@@ -198,6 +198,8 @@ FAELLE = [
     ("S19: Reparatur ohne uid", S, "\"werte\": [t[\"nr\"], 5, 5, t[\"uid\"]]", "\"werte\": [t[\"nr\"], 5, 5, 0]"),
     ("S19: Kein Durchbruch-Befehl", S, "_angriff(ritter, art=23, a=s.kachel(x + 10, y + 4), b=0), ", ""),
     ("S19: Kein zweiter Lauf", S, "(LUECKE_DANACH, lambda: [_angriff(geher, lauf=[x + 14, y + 4])])", ""),
+    ("S20: Hunde 6 wie 5", S, "(\"hunde_6\", hunde_n(6), 16, 8)", "(\"hunde_6\", hunde_n(5), 16, 8)"),
+    ("S20: Lager weit weg", S, "wer = [_e(\"taeter\", 27, z[\"x\"] - 1, z[\"y\"] + i) for i in range(3)]", "wer = [_e(\"taeter\", 27, z[\"x\"] - 30, z[\"y\"] + i) for i in range(3)]"),
     ("S15: Nachbarfeld ueberschrieben", S, "\"wert\": (alt & 0xFFFF0000) | (wert & 0xFFFF)}", "\"wert\": wert & 0xFFFF}"),
     ("S15: Falscher Auftrag", S, "AUFTRAG_ASSASSINE, AUFTRAG_TAKT, AUFTRAG_TOD = 12, 200, 1200", "AUFTRAG_ASSASSINE, AUFTRAG_TAKT, AUFTRAG_TOD = 11, 200, 1200"),
     ("S15: Korb ohne Vergleich", S, "[(KORB_TAKT, lambda: korb_setzen(1)), (KORB_TAKT + 60,", "[(KORB_TAKT + 60,"),

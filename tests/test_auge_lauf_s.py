@@ -1069,6 +1069,21 @@ def test_mauerluecke_und_befehle(tmp_path):
     assert an["player"] == 1 and len(an["angriff"]["einheiten"]) == 3
 
 
+def test_letzte_reste_hunde_und_lager(tmp_path):
+    g, l = lauf_im_gefecht(tmp_path)
+    g.gebaeude_liste.append({"nr": 77, "uid": 78, "typ": 10, "x": 250, "y": 240, "besitzer": 2})
+    e = ls.SZENEN["sonder20_g"](l)
+    assert e["kein_platz"] == [] and e["nicht_gesetzt"] == []
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    b = [c for c in g.log if isinstance(c, dict)]
+    assert sum(x.get("posten") == "hunde_5" and x["rolle"] == "opfer" for x in plan["einheiten"]) == 5
+    assert sum(x.get("posten") == "hunde_6" and x["rolle"] == "opfer" for x in plan["einheiten"]) == 6
+    w = [x for x in plan["einheiten"] if x.get("posten") == "lager"]
+    assert len(w) == 3 and all(abs(x["x"] - 250) <= 1 and abs(x["y"] - 240) <= 2 for x in w)
+    an = next(c for c in b if c.get("angriff", {}).get("gebaeude") == 77)
+    assert an["player"] == 1
+
+
 def test_poke_zwei_byte_laesst_den_nachbarn():
     class L:
         class k:

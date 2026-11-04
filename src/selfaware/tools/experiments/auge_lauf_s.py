@@ -1602,6 +1602,24 @@ def sonder19_g(l):
     return (("steuer", steuer, 2, 2), ("sammel", sammel, 6, 3), ("reparatur", reparatur, 8, 6), ("abriss", abriss, 18, 6), ("mauer_knapp", mauer_knapp, 18, 4), ("heer", heer, 10, 8), ("hunde4", hunde4, 16, 8), ("lager", lager, 6, 3))
 
 
+def sonder20_g(l):
+    """Letzte Reste im Gefecht. Hunde: Bei 3 und 4 Speertraegern kam keiner (sonder3_g, sonder19_g), bei 8 schon. Lager: 3 Schwertkaempfer direkt daneben, in sonder19_g war der Weg laenger als der Lauf."""
+    s = l.s
+    z = next((g for g in s.gebaeude(2) if g["typ"] == 10), None)
+
+    def hunde_n(n):
+        def f(x, y):
+            return [_g(99, x + 2, y + 2, spieler=1)], [_e("opfer", 24, x + 8, y + 1 + i, 2) for i in range(n)], [], lambda: [], None
+        return f
+
+    def lager(x, y):
+        if z is None:
+            return [], [], [], lambda: [], None
+        wer = [_e("taeter", 27, z["x"] - 1, z["y"] + i) for i in range(3)]
+        return [], wer, [], lambda: [_angriff(wer, gebaeude=z["nr"])], None
+    return (("hunde_5", hunde_n(5), 16, 8), ("hunde_6", hunde_n(6), 16, 8), ("lager", lager, 2, 2))
+
+
 def sonder11_g(l):
     """P314: Wie sonder9_g, aber die Gegner gehen genau auf ein Feld des brennenden Pechs (Lauf 00:40: bis 1 Feld daneben, counter blieb 0)."""
     s = l.s
@@ -1872,6 +1890,7 @@ SZENEN = {
     "sonder14": lambda l: szene_sonder(l, "sonder14", sonder14(l), rand=15),
     "sonder17": lambda l: szene_sonder(l, "sonder17", sonder17(l), rand=15),
     "sonder19": lambda l: szene_sonder(l, "sonder19", sonder19(l), rand=15),
+    "sonder20_g": lambda l: szene_sonder(l, "sonder20_g", sonder20_g(l), frei_maske=burgbereich(l), rand=12, raeumen=True),
     "sonder19_g": lambda l: szene_sonder(l, "sonder19_g", sonder19_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),
     "sonder15_g": lambda l: szene_sonder(l, "sonder15_g", sonder15_g(l), rand=15, raeumen=True),
     "sonder16_g": lambda l: szene_sonder(l, "sonder16_g", sonder16_g(l), rand=15, raeumen=True),
