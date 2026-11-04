@@ -1,12 +1,12 @@
 {
 "lauf": "Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance",
 "zaehlung": {
-"Lage fehlte": 58,
-"gemessen": 67,
-"bestaetigt": 74,
-"offen": 8,
-"gesehen": 27,
-"widerlegt": 7
+"Lage fehlte": 59,
+"gemessen": 70,
+"bestaetigt": 90,
+"gesehen": 11,
+"widerlegt": 10,
+"offen": 1
 },
 "punkte": [
 {
@@ -332,8 +332,8 @@
 {
 "nr": "P041",
 "funktion": "unitIDIsRangedOrArmored",
-"urteil": "offen",
-"grund": "Die Tabelle hat keine Marke in der Feldkarte, nicht gelesen.",
+"urteil": "gemessen",
+"grund": "Aus dem Speicher gelesen (Tabelle 0xb3eb34): UT_E_ARCHER, UT_E_XBOW, UT_E_PIKE, UT_E_SWORD, UT_A_ARCHER, UT_A_FIRETHROWER, UT_A_SWORDSMAN, gleich wie in der Programmdatei: ja. `punkte_rechnung5.txt`.",
 "lauf_f_werkzeug": "nicht zuordenbar",
 "spielart": false
 },
@@ -468,16 +468,16 @@
 {
 "nr": "P058",
 "funktion": "getBuildingSizeForCommandBuildingType",
-"urteil": "offen",
-"grund": "Die Sprungtabelle liegt im Codebereich, die Aufzeichnung enthält sie nicht.",
+"urteil": "bestaetigt",
+"grund": "Die Sprungtabelle ab 0x4fa5e8 ist im Speicher gleich wie in der Programmdatei, UCP3 ändert hier nichts. `punkte_rechnung5.txt`.",
 "lauf_f_werkzeug": "nicht zuordenbar",
 "spielart": false
 },
 {
 "nr": "P059",
 "funktion": "updateMacroLayerRelated",
-"urteil": "offen",
-"grund": "Kein Sumpffeld ausgewählt, nicht nachgerechnet.",
+"urteil": "Lage fehlte",
+"grund": "Kein Sumpffeld auf den gefahrenen Karten: Lauf F 0, Lauf K 0 Felder mit Bit 0x20000000.",
 "lauf_f_werkzeug": "gemessen",
 "spielart": false
 },
@@ -524,8 +524,8 @@
 {
 "nr": "P065",
 "funktion": "placeKeep",
-"urteil": "offen",
-"grund": "Tabellen ohne Marke, nicht ausgelesen.",
+"urteil": "gemessen",
+"grund": "Gelesen, gleich wie in der Programmdatei. Türen 2,7 / 3,7 / 4,7 / 7,4 / 7,3 / 7,2 und gegenüber. Lagerstelle 0,8 / 8,0 / 0,-8 / -8,0. Lagerplatz 7,2 / 2,-5 / -5,0 / 0,7.",
 "lauf_f_werkzeug": "nicht zuordenbar",
 "spielart": false
 },
@@ -564,16 +564,16 @@
 {
 "nr": "P070",
 "funktion": "sortAttackInfoTribeIDArrayBasedOn",
-"urteil": "offen",
-"grund": "Tabellen ohne Marke, nicht ausgelesen.",
+"urteil": "bestaetigt",
+"grund": "Ganze Rangtabelle (2160 Byte) gleich wie in der Programmdatei, 0xb4c880 beginnt mit 10, 9, 5, 3 wie erwartet.",
 "lauf_f_werkzeug": "nicht zuordenbar",
 "spielart": false
 },
 {
 "nr": "P071",
 "funktion": "placeSiegeTentsAndAssignEngineers",
-"urteil": "offen",
-"grund": "Tabellen ohne Marke, nicht ausgelesen.",
+"urteil": "bestaetigt",
+"grund": "Zeltart 190, 191, 193, 192, 194, an Platz 8: 358. Ingenieure 2, 3, 4, 4, 1, an Platz 8: 2. Gleich wie in der Programmdatei.",
 "lauf_f_werkzeug": "nicht zuordenbar",
 "spielart": true
 },
@@ -1052,8 +1052,8 @@
 {
 "nr": "P131",
 "funktion": "UpdateHuntersPost",
-"urteil": "gesehen",
-"grund": "Fleisch kommt an, Zustände nicht nachgerechnet.",
+"urteil": "widerlegt",
+"grund": "Bis 15 statt 6: Im Speicher steht 15 (`UpdateHunter`, UCP3). Gemessen: Jäger trägt bis 18, das ist 15 mal Produktivität. Fleisch im Lager +1 je Stück.",
 "lauf_f_werkzeug": "nicht zuordenbar",
 "spielart": true
 },
@@ -1076,8 +1076,8 @@
 {
 "nr": "P134",
 "funktion": "CountPlayerUnitsByType",
-"urteil": "offen",
-"grund": "Der Zähler hat keine Marke in der Feldkarte.",
+"urteil": "gemessen",
+"grund": "Der Zähler liegt bei 0xb95f70 und wird nur von dieser Anzeige-Funktion gefüllt (`CountPlayerUnitsByType`, sie löscht ihn zuerst). Einträge 67 bis 69 sind 0. Der Vergleich mit einem bekannten Heer ist nicht gefahren.",
 "lauf_f_werkzeug": "nicht zuordenbar",
 "spielart": false
 },
@@ -1412,8 +1412,8 @@
 {
 "nr": "P176",
 "funktion": "updatePathLinkageTileMapRelatedToGates",
-"urteil": "gesehen",
-"grund": "pathLinkageRelated2 wechselt, die Bits sind nicht nachgerechnet.",
+"urteil": "bestaetigt",
+"grund": "Tor schließt: Außenfeld oben verliert Bit 0x10, unten Bit 1. Tor öffnet: Beide kommen wieder (sonder10, Takt 100 und 1.253).",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
@@ -1748,8 +1748,8 @@
 {
 "nr": "P218",
 "funktion": "UpdateOx",
-"urteil": "gesehen",
-"grund": "Der Ochse lief über Platz 160 hinaus nicht in der Rechnung. Die Liga-Ladung ist 12, nicht 8.",
+"urteil": "widerlegt",
+"grund": "Ladung 12, nicht 8: Im Speicher steht 12 (`UpdateQuarryWorker`, UCP3).",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
@@ -1773,15 +1773,15 @@
 "nr": "P221",
 "funktion": "UpdateChild",
 "urteil": "gesehen",
-"grund": "Mütter und Kinder kommen vor, Höchstzahl nicht nachgerechnet.",
+"grund": "Höchstens 16 Mütter und Kinder in Lauf F. Die Grenze 75 wurde nicht erreicht.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
 {
 "nr": "P222",
 "funktion": "UpdateWoodcutter",
-"urteil": "gesehen",
-"grund": "Feld ändert sich, nicht nachgerechnet.",
+"urteil": "bestaetigt",
+"grund": "Holz steigt je Stück um 1 (68 Mal, 2 und 3 sind mehrere in einem Rahmen). Der Holzfäller trägt 13 bis 15.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
@@ -1789,23 +1789,23 @@
 "nr": "P223",
 "funktion": "UpdateFletcher",
 "urteil": "gesehen",
-"grund": "Feld ändert sich, nicht nachgerechnet.",
+"grund": "Bogen und Armbrust steigen je Stück um 1. Das Holz je Durchlauf ist von anderen Verbrauchern nicht getrennt.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
 {
 "nr": "P224",
 "funktion": "UpdateHunter",
-"urteil": "gesehen",
-"grund": "Feld ändert sich, nicht nachgerechnet.",
+"urteil": "bestaetigt",
+"grund": "Fleisch +1 je Stück (32 Mal). Ladung bis 18, siehe P131.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
 {
 "nr": "P225",
 "funktion": "UpdateQuarryWorker",
-"urteil": "gesehen",
-"grund": "Feld ändert sich, nicht nachgerechnet.",
+"urteil": "widerlegt",
+"grund": "Der Bruch füllt bis 12, nicht bis 8, siehe P218. Stein im Lager +1 je Stück (23 Mal), 2 und 3 sind mehrere in einem Rahmen.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
@@ -1820,8 +1820,8 @@
 {
 "nr": "P227",
 "funktion": "UpdateWheatFarmer",
-"urteil": "gesehen",
-"grund": "Ladung bis 3, Abfolge nicht nachgerechnet.",
+"urteil": "bestaetigt",
+"grund": "Ladung 2 und 3, wie erwartet ab 2 bei Produktivität 100. Weizen +1 je Stück (21 Mal).",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
@@ -1836,40 +1836,40 @@
 {
 "nr": "P229",
 "funktion": "UpdateAppleFarmer",
-"urteil": "gesehen",
-"grund": "Ladung bis 4, finalFoodProduced steigt, Abfolge nicht nachgerechnet.",
+"urteil": "bestaetigt",
+"grund": "Ladung 3 und 4, im Burgenbau wie erwartet ab 3. Apfel +1 je Stück (66 Mal).",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
 {
 "nr": "P230",
 "funktion": "UpdateDairyFarmer",
-"urteil": "gesehen",
-"grund": "Feld ändert sich, nicht nachgerechnet.",
+"urteil": "bestaetigt",
+"grund": "Käse +1 je Stück (42 Mal). Ladung 4 und 5: Im Speicher steht 4 statt 3 (`UpdateDairyFarmer`, UCP3).",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
 {
 "nr": "P231",
 "funktion": "UpdateMiller",
-"urteil": "gesehen",
-"grund": "Feld ändert sich, nicht nachgerechnet.",
+"urteil": "bestaetigt",
+"grund": "Weizen -1 (60 Mal), Mehl +1 (61 Mal).",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
 {
 "nr": "P232",
 "funktion": "UpdateBaker",
-"urteil": "gesehen",
-"grund": "Feld ändert sich, nicht nachgerechnet.",
+"urteil": "bestaetigt",
+"grund": "Mehl -1 (8 Mal), Brot +1 je Stück (36 Mal). Der Bäcker trägt 8 bis 10.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
 {
 "nr": "P233",
 "funktion": "UpdateBrewer",
-"urteil": "gesehen",
-"grund": "Feld ändert sich, nicht nachgerechnet.",
+"urteil": "bestaetigt",
+"grund": "Hopfen -1 (8 Mal), Ale +1 (8 Mal).",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
@@ -1877,31 +1877,31 @@
 "nr": "P234",
 "funktion": "UpdatePoleTurner",
 "urteil": "gesehen",
-"grund": "Feld ändert sich, nicht nachgerechnet.",
+"grund": "Piken steigen je Stück um 1. Das Holz je Durchgang ist von anderen Verbrauchern nicht getrennt.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
 {
 "nr": "P235",
 "funktion": "UpdateBlacksmith",
-"urteil": "gesehen",
-"grund": "Feld ändert sich, nicht nachgerechnet.",
+"urteil": "bestaetigt",
+"grund": "Schwert +1 je Stück (8 Mal), Keule 2 Mal.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
 {
 "nr": "P236",
 "funktion": "UpdateArmorer",
-"urteil": "gesehen",
-"grund": "Feld ändert sich, nicht nachgerechnet.",
+"urteil": "bestaetigt",
+"grund": "Eisenrüstung +1 (6 Mal), Eisen -1 (9 Mal).",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
 {
 "nr": "P237",
 "funktion": "UpdateTanner",
-"urteil": "gesehen",
-"grund": "Feld ändert sich, nicht nachgerechnet.",
+"urteil": "bestaetigt",
+"grund": "Lederrüstung +1 je Stück, 2 sind mehrere in einem Rahmen. Der Gerber trägt 2 und 3.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
@@ -1916,8 +1916,8 @@
 {
 "nr": "P239",
 "funktion": "UpdateMinerIronFetcher",
-"urteil": "gesehen",
-"grund": "Feld ändert sich, nicht nachgerechnet.",
+"urteil": "bestaetigt",
+"grund": "Eisen +1 je Stück (15 Mal). Der Träger trägt 2 und 3.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },

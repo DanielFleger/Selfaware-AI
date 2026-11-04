@@ -6,26 +6,29 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 
 | Urteil | Punkte |
 |---|---|
-| bestaetigt | 74 |
-| widerlegt | 7 |
-| gemessen | 67 |
-| gesehen | 27 |
-| Lage fehlte | 58 |
-| offen | 8 |
+| bestaetigt | 90 |
+| widerlegt | 10 |
+| gemessen | 70 |
+| gesehen | 11 |
+| Lage fehlte | 59 |
+| offen | 1 |
 
-## Widerlegt (7)
+## Widerlegt (10)
 
 | Punkt | Funktion | Beleg |
 |---|---|---|
 | P117 | `UpdateCampGround` | vclock folgt nicht der Beliebtheit: Es ist die Zuzugsuhr. Sie läuft von 2000 bis 4000, je Takt um gathering_rate/4 (gemessen +9 bei Beliebtheit 90 bis 94, +10 ab 95). Über 4000 kommt ein Bewohner und sie fällt um 2000. Also 1 Bewohner je 8000/gathering_rate Takte. Kein Platz frei: Sie steht auf 4000. |
 | P118 | `processPlacementResourceLossForBuildingType` | 4 Pechgräben kosteten 2 Pech, nicht 1: 16 auf 15 beim ersten, 14 beim dritten. |
+| P131 | `UpdateHuntersPost` | Bis 15 statt 6: Im Speicher steht 15 (`UpdateHunter`, UCP3). Gemessen: Jäger trägt bis 18, das ist 15 mal Produktivität. Fleisch im Lager +1 je Stück. |
 | P163 | `SetStorageMarketFailState` | Kauf bei vollem Waffenlager über Befehl 38 wird abgelehnt, das Feld bleibt aber 0. Der Grund wird über diesen Weg nicht gesetzt. |
 | P174 | `queueCommand` | commandDelay steht im Einzelspiel auf 0, nicht auf 35. Vom Befehl bis zum Gebäude vergehen gemessen 2 bis 6 Takte. |
+| P218 | `UpdateOx` | Ladung 12, nicht 8: Im Speicher steht 12 (`UpdateQuarryWorker`, UCP3). |
 | P220 | `UpdateInnkeeper` | Füllstand steigt um 120 je Bier, nicht um 160: Die Liga setzt flagons_per_beer 120. |
+| P225 | `UpdateQuarryWorker` | Der Bruch füllt bis 12, nicht bis 8, siehe P218. Stein im Lager +1 je Stück (23 Mal), 2 und 3 sind mehrere in einem Rahmen. |
 | P228 | `UpdateHopsFarmer` | Hopfenbauer trägt im Einzelspiel bis 6, nicht 1. |
 | P241 | `UpdateSlinger` | countSlingers2 zählt keine Schleuderer: Es steigt seit Takt 16.541 je Takt um 1 auf 32.261, ohne einen einzigen Schleuderer zu Beginn. Der Name ist falsch. |
 
-## Bestätigt (74)
+## Bestätigt (90)
 
 | Punkt | Funktion | Beleg |
 |---|---|---|
@@ -37,7 +40,10 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P039 | `setAICParameters_15` | aics[15]: 10, 4000, 1, gleich dem Grundwert. |
 | P040 | `setAICParameters_16` | aics[16]: 50, 12, 37, gleich dem Grundwert. |
 | P056 | `setMapSize` | 400, 300, 200, 160, 100, -1: absteigend mit Ende -1. |
+| P058 | `getBuildingSizeForCommandBuildingType` | Die Sprungtabelle ab 0x4fa5e8 ist im Speicher gleich wie in der Programmdatei, UCP3 ändert hier nichts. `punkte_rechnung5.txt`. |
 | P061 | `placeBarracks` | Beträge 0 oder 5. |
+| P070 | `sortAttackInfoTribeIDArrayBasedOn` | Ganze Rangtabelle (2160 Byte) gleich wie in der Programmdatei, 0xb4c880 beginnt mit 10, 9, 5, 3 wie erwartet. |
+| P071 | `placeSiegeTentsAndAssignEngineers` | Zeltart 190, 191, 193, 192, 194, an Platz 8: 358. Ingenieure 2, 3, 4, 4, 1, an Platz 8: 2. Gleich wie in der Programmdatei. |
 | P087 | `chooseProductionItemType` | Zweiter Bogenmacher fertigt wieder Bogen (17): Das neue Gebäude wird mitgezählt. |
 | P088 | `countBuildingsForPlayer` | +0x2C8 war in 20.909 Lesungen je Gebäude immer 0. Der Sonderzustand kam nicht vor. |
 | P089 | `findClosestInnBuildingID` | Humpen sinken, Lieferung füllt auf, vor der ersten Lieferung 0. |
@@ -89,6 +95,7 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P168 | `ClickRecruitUnit` | Param0 Einheitentyp, Param1 Gebäude: 18 von 18 Einheiten erschienen. |
 | P169 | `ClickBuyOrSell` | Param0 0 ist Kauf, 1 ist Verkauf. |
 | P173 | `determineGameTicksToPerform` | 39,9 Takte je Sekunde im vollen Dorf. |
+| P176 | `updatePathLinkageTileMapRelatedToGates` | Tor schließt: Außenfeld oben verliert Bit 0x10, unten Bit 1. Tor öffnet: Beide kommen wieder (sonder10, Takt 100 und 1.253). |
 | P190 | `updateAIBehaviour` | Tag 50, Woche 200, Monat 800 Takte. |
 | P195 | `countUnfinishedMoatTilesForPlayer` | Der Graben wurde fertig: stage 2, fillProgress 4. |
 | P196 | `advanceMoatDigProgress` | fillProgress 0 bis 4, dann stage 2. |
@@ -102,9 +109,21 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P212 | `nonEuroRecruit` | Liga 50 statt 30: Das ganze Anwerben kostete -850, genau die Summe der Tabelle. |
 | P217 | `UpdatePeasant` | count bis 2, count_2 18 nach 18 Anwerbungen. |
 | P219 | `UpdateHealer` | healerCount 1. |
+| P222 | `UpdateWoodcutter` | Holz steigt je Stück um 1 (68 Mal, 2 und 3 sind mehrere in einem Rahmen). Der Holzfäller trägt 13 bis 15. |
+| P224 | `UpdateHunter` | Fleisch +1 je Stück (32 Mal). Ladung bis 18, siehe P131. |
+| P227 | `UpdateWheatFarmer` | Ladung 2 und 3, wie erwartet ab 2 bei Produktivität 100. Weizen +1 je Stück (21 Mal). |
+| P229 | `UpdateAppleFarmer` | Ladung 3 und 4, im Burgenbau wie erwartet ab 3. Apfel +1 je Stück (66 Mal). |
+| P230 | `UpdateDairyFarmer` | Käse +1 je Stück (42 Mal). Ladung 4 und 5: Im Speicher steht 4 statt 3 (`UpdateDairyFarmer`, UCP3). |
+| P231 | `UpdateMiller` | Weizen -1 (60 Mal), Mehl +1 (61 Mal). |
+| P232 | `UpdateBaker` | Mehl -1 (8 Mal), Brot +1 je Stück (36 Mal). Der Bäcker trägt 8 bis 10. |
+| P233 | `UpdateBrewer` | Hopfen -1 (8 Mal), Ale +1 (8 Mal). |
+| P235 | `UpdateBlacksmith` | Schwert +1 je Stück (8 Mal), Keule 2 Mal. |
+| P236 | `UpdateArmorer` | Eisenrüstung +1 (6 Mal), Eisen -1 (9 Mal). |
+| P237 | `UpdateTanner` | Lederrüstung +1 je Stück, 2 sind mehrere in einem Rahmen. Der Gerber trägt 2 und 3. |
+| P239 | `UpdateMinerIronFetcher` | Eisen +1 je Stück (15 Mal). Der Träger trägt 2 und 3. |
 | P240 | `UpdatePriest` | Höchstwert 8000. |
 
-## Gemessen (67)
+## Gemessen (70)
 
 | Punkt | Funktion | Beleg |
 |---|---|---|
@@ -139,6 +158,7 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P036 | `setAICParameters_12` | aics[12]: 8, 1, 2 statt 16, 0, 0. Liga-KI. |
 | P037 | `setAICParameters_13` | aics[13]: 20, 2, 1 statt 40, 0, 2. Liga-KI. |
 | P038 | `setAICParameters_14` | aics[14]: 58, 100, 0 statt 50, 6, 10. Liga-KI. |
+| P041 | `unitIDIsRangedOrArmored` | Aus dem Speicher gelesen (Tabelle 0xb3eb34): UT_E_ARCHER, UT_E_XBOW, UT_E_PIKE, UT_E_SWORD, UT_A_ARCHER, UT_A_FIRETHROWER, UT_A_SWORDSMAN, gleich wie in der Programmdatei: ja. `punkte_rechnung5.txt`. |
 | P042 | `getDefensiveTribeForUnit` | 28, 74, 22, 23, 70, 72, 76, 24, 26, 37, 71, 73, 25, 27, 75, 39, 58, 59, 60, 77. |
 | P043 | `addUnitToSmallestBehaviourTypeTribe` | Einmal gelesen, Werte in punkte.json. |
 | P044 | `aiChoiceAttForceRallyPercentage` | Einmal gelesen, Werte in punkte.json. |
@@ -155,6 +175,7 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P062 | `applyTreeBrushToLogicalLayer` | Einmal gelesen, Werte in punkte.json. |
 | P063 | `eraseAreaWithBrush` | Einmal gelesen, Werte in punkte.json. |
 | P064 | `setTerrain` | Einmal gelesen, Werte in punkte.json. |
+| P065 | `placeKeep` | Gelesen, gleich wie in der Programmdatei. Türen 2,7 / 3,7 / 4,7 / 7,4 / 7,3 / 7,2 und gegenüber. Lagerstelle 0,8 / 8,0 / 0,-8 / -8,0. Lagerplatz 7,2 / 2,-5 / -5,0 / 0,7. |
 | P066 | `placeApplefarm` | Einmal gelesen, Werte in punkte.json. |
 | P067 | `createWaterForDrawBridge` | Einmal gelesen, Werte in punkte.json. |
 | P068 | `placeTree` | Einmal gelesen, Werte in punkte.json. |
@@ -173,10 +194,11 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P083 | `setUnitValues` | Einmal gelesen, Werte in punkte.json. |
 | P084 | `acquireShootTarget` | Einmal gelesen, Werte in punkte.json. |
 | P085 | `IgniteFireAtMiniTile` | Tabelle gelesen: 0, 0, 1, 0, 2, 0, 3, 0, ... Keine Flamme im Lauf. |
+| P134 | `CountPlayerUnitsByType` | Der Zähler liegt bei 0xb95f70 und wird nur von dieser Anzeige-Funktion gefüllt (`CountPlayerUnitsByType`, sie löscht ihn zuerst). Einträge 67 bis 69 sind 0. Der Vergleich mit einem bekannten Heer ist nicht gefahren. |
 | P167 | `ClickDestroyBuilding` | Befehl 29 mit Param1 50: Rückgabe genau die Hälfte, siehe P130. |
 | P175 | `updateSeparateAreaTileMap` | Zähler läuft 1 bis 50. |
 
-## Gesehen, nicht nachgerechnet (27)
+## Gesehen, nicht nachgerechnet (11)
 
 | Punkt | Funktion | Beleg |
 |---|---|---|
@@ -185,30 +207,14 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P119 | `processWallBuildingLoss` | Je 13 Felder kosteten -1 und -3 Stein, die Zuordnung zu niedrig und hoch ist nicht geklärt. |
 | P121 | `UpdateIronMine` | Eisen kommt an (finalIronProduced 23), Zustände nicht nachgerechnet. |
 | P122 | `UpdateQuarry` | Stein kommt an, Zustände nicht nachgerechnet. |
-| P131 | `UpdateHuntersPost` | Fleisch kommt an, Zustände nicht nachgerechnet. |
-| P176 | `updatePathLinkageTileMapRelatedToGates` | pathLinkageRelated2 wechselt, die Bits sind nicht nachgerechnet. |
 | P197 | `updateMoatCountdownTimers` | Immer 0, der Abwärtslauf war nicht zu sehen. |
-| P218 | `UpdateOx` | Der Ochse lief über Platz 160 hinaus nicht in der Rechnung. Die Liga-Ladung ist 12, nicht 8. |
-| P221 | `UpdateChild` | Mütter und Kinder kommen vor, Höchstzahl nicht nachgerechnet. |
-| P222 | `UpdateWoodcutter` | Feld ändert sich, nicht nachgerechnet. |
-| P223 | `UpdateFletcher` | Feld ändert sich, nicht nachgerechnet. |
-| P224 | `UpdateHunter` | Feld ändert sich, nicht nachgerechnet. |
-| P225 | `UpdateQuarryWorker` | Feld ändert sich, nicht nachgerechnet. |
+| P221 | `UpdateChild` | Höchstens 16 Mütter und Kinder in Lauf F. Die Grenze 75 wurde nicht erreicht. |
+| P223 | `UpdateFletcher` | Bogen und Armbrust steigen je Stück um 1. Das Holz je Durchlauf ist von anderen Verbrauchern nicht getrennt. |
 | P226 | `UpdatePitchman` | Feld ändert sich, nicht nachgerechnet. |
-| P227 | `UpdateWheatFarmer` | Ladung bis 3, Abfolge nicht nachgerechnet. |
-| P229 | `UpdateAppleFarmer` | Ladung bis 4, finalFoodProduced steigt, Abfolge nicht nachgerechnet. |
-| P230 | `UpdateDairyFarmer` | Feld ändert sich, nicht nachgerechnet. |
-| P231 | `UpdateMiller` | Feld ändert sich, nicht nachgerechnet. |
-| P232 | `UpdateBaker` | Feld ändert sich, nicht nachgerechnet. |
-| P233 | `UpdateBrewer` | Feld ändert sich, nicht nachgerechnet. |
-| P234 | `UpdatePoleTurner` | Feld ändert sich, nicht nachgerechnet. |
-| P235 | `UpdateBlacksmith` | Feld ändert sich, nicht nachgerechnet. |
-| P236 | `UpdateArmorer` | Feld ändert sich, nicht nachgerechnet. |
-| P237 | `UpdateTanner` | Feld ändert sich, nicht nachgerechnet. |
+| P234 | `UpdatePoleTurner` | Piken steigen je Stück um 1. Das Holz je Durchgang ist von anderen Verbrauchern nicht getrennt. |
 | P238 | `UpdateEngineer` | Feld ändert sich, nicht nachgerechnet. |
-| P239 | `UpdateMinerIronFetcher` | Feld ändert sich, nicht nachgerechnet. |
 
-## Lage fehlte (58)
+## Lage fehlte (59)
 
 | Punkt | Funktion | Beleg |
 |---|---|---|
@@ -217,6 +223,7 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P052 | `recomputeAIAvailableGridTiles` | Keine KI. Lauf K. |
 | P053 | `applyAIV` | Keine KI mit Burgvorlage. Lauf K. |
 | P054 | `recomputeHeatmaps` | Zellen im Burgenbau leer. Lauf K. |
+| P059 | `updateMacroLayerRelated` | Kein Sumpffeld auf den gefahrenen Karten: Lauf F 0, Lauf K 0 Felder mit Bit 0x20000000. |
 | P086 | `convertCommandBuildingTypeToBuildingType` | Kein Belagerungsgerät gebaut. Lauf S. |
 | P092 | `getPriceForDisbandedUnitType` | Niemand entlassen. |
 | P100 | `updateRepairCostAndReturnIfDamaged` | Kein Gebäude beschädigt, die Felder gehören zur Anzeige. |
@@ -271,15 +278,8 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P214 | `findTunnelTarget` | Kein Tunnel. Lauf S. |
 | P216 | `spawnUnit` | Kein Katapult. Lauf S. |
 
-## Offen (8)
+## Offen (1)
 
 | Punkt | Funktion | Beleg |
 |---|---|---|
-| P041 | `unitIDIsRangedOrArmored` | Die Tabelle hat keine Marke in der Feldkarte, nicht gelesen. |
-| P058 | `getBuildingSizeForCommandBuildingType` | Die Sprungtabelle liegt im Codebereich, die Aufzeichnung enthält sie nicht. |
-| P059 | `updateMacroLayerRelated` | Kein Sumpffeld ausgewählt, nicht nachgerechnet. |
-| P065 | `placeKeep` | Tabellen ohne Marke, nicht ausgelesen. |
-| P070 | `sortAttackInfoTribeIDArrayBasedOn` | Tabellen ohne Marke, nicht ausgelesen. |
-| P071 | `placeSiegeTentsAndAssignEngineers` | Tabellen ohne Marke, nicht ausgelesen. |
-| P134 | `CountPlayerUnitsByType` | Der Zähler hat keine Marke in der Feldkarte. |
 | P215 | `getWorkerBlockingStateIfStuck` | Rückgabewert, nicht in der Aufzeichnung. |
