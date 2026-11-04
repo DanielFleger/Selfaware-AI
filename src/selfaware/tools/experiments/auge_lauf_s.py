@@ -1139,7 +1139,11 @@ def sonder8_g(l):
             feind = _e("feind", 24, x + 22, y + 3, 2)
 
             def jetzt():
-                return {e["nr"]: e for e in s.einheiten_alle()}.get(leute[0]["nr"], {})
+                return {e["nr"]: e for e in s.einheiten_alle()}.get(leute[1]["nr"], {})  # das Oel hat immer der zweite (Lauf 01:02), ohne Trupp bricht der Code ab (Lauf 01:05)
+
+            def trupp_machen():
+                e = jetzt()
+                return [_angriff([leute[1]], lauf=[e["x"], e["y"]])] if e else []
 
             def holen():
                 return [{"poke": adr + schritt * g[0]["nr"], "wert": 20}, _angriff(leute, art=15, a=g[0]["nr"], b=g[0]["uid"])] if "nr" in g[0] else []
@@ -1150,7 +1154,7 @@ def sonder8_g(l):
             def kommen():
                 traeger = {e["nr"]: e for e in s.einheiten_alle()}.get(leute[1]["nr"], {})  # das Oel hatte immer der zweite (Lauf 01:02)
                 return [_angriff([feind], 2, lauf=[traeger["x"] + 2, traeger["y"]])] if traeger else []  # Code: Umkreis 4 Schritte
-            return g, leute + [feind], [], holen, [(OEL_HALTUNG, haltung), (OEL_FEIND, kommen)]
+            return g, leute + [feind], [], holen, [(OEL_HALTUNG - 60, trupp_machen), (OEL_HALTUNG, haltung), (OEL_FEIND, kommen)]
         return f
 
     def grenze(x, y):
