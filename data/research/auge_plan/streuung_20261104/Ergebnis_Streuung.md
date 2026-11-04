@@ -48,9 +48,9 @@ Streut er, gilt: 2 von 8 Fällen seitlich und längs bis Stufe / 8 Mikro, 4 von 
 | Katapult S_CATAPULT 39 | -96 bis 31 | -48 bis 47 | -48 bis 15 | im Mittel 4 Felder **zu weit** |
 | Trebuchet S_TREBUCHET 40 | 3 von 4 Schüssen 0, sonst -48 bis 47 | -48 bis 47 | -16 bis 15 | genau in der Länge |
 | Mangonel S_MANGONEL 41 | -112 bis 111 | -64 bis 63 | -64 bis 63 | **7 Steine, jeder startet am Punkt des vorigen** |
-| Ballista S_BALLISTA 61 am Boden | -24 bis 7 | -20 bis 19 | -20 bis 19 | auf eine Stelle mit Gegner: 0, genau |
+| Ballista S_BALLISTA 61 am Boden | -24 bis 7 | -20 bis 19 | -20 bis 19 | auf einen Gegner: in dieser Stufe 0 |
 
-Liegt der Punkt näher als die halbe Länge, halbieren sich längs und quer. Vor jedem Schuss steht der Ausgangspunkt wieder auf dem befohlenen Feld, Streuung summiert sich also nur innerhalb einer Mangonel-Salve.
+Die zweite Stufe greift bei gleicher Höhe beim Katapult und der Ballista zu 13 %, beim Trebuchet zu 20 %, beim Mangonel zu 23 %. Bei den Schützen hängt sie an der Höhe, die die erste Stufe ausgewürfelt hat. Liegt der Punkt näher als die halbe Länge, halbieren sich längs und quer. Vor jedem Schuss steht der Ausgangspunkt wieder auf dem befohlenen Feld, Streuung summiert sich also nur innerhalb einer Mangonel-Salve.
 
 **Wo es wirklich landet** (gerechnet mit dem geprüften Nachbau, ebener Boden, jede 10. Tabellenzahl, `verteilung.txt`):
 
@@ -87,7 +87,7 @@ Geschosse fliegen eine echte Wurfbahn, ohne Zufall:
 - nicht der Schütze ist, nicht stirbt und nicht zum eigenen Team gehört (Tiere zählen als Gegner),
 - und die Geschosshöhe zwischen ihrem Boden und Boden + 42 liegt. Als Ziel haben Trebuchet und Belagerungsturm 80, Schild 90, Katapult 50, Ramme 40, Mangonel 70 (Code, in den Aufnahmen trafen nur die 42 zu).
 
-Gemessen: 1.321 Treffer am anvisierten Ziel, 47 an einem anderen Feind, 4 an Tieren. Die Einheit bewegt sich im Takt vor dem Geschoss; wer im selben Takt schon von einem anderen Geschoss getötet wurde, fängt nichts mehr.
+Gemessen: 1.321 Treffer am anvisierten Ziel, 47 an einem anderen Feind, 4 an Tieren. 77 Flüge gingen durch einen Freund im Trefferfenster und flogen weiter. Die Einheit bewegt sich im Takt vor dem Geschoss; wer im selben Takt schon von einem anderen Geschoss getötet wurde, fängt nichts mehr.
 
 **Darum wirkt es zufällig:** Pfeile treffen, was im Weg steht, und fliegen über alles andere hinweg. Wo das ist, steht fest (`gefahr_tabelle.txt`, ebener Boden):
 
