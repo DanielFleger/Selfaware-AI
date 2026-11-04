@@ -1198,7 +1198,7 @@ RUSH_LAUF, RUSH_SETZEN, RUSH_TAKTE, RUSH_NACH, GM_MEHRSPIELER, GM_EINZEL = 50, 1
 KNAPP_STEIN = 2  # weniger, als zum Auffuellen noetig: Das Katapult hat bei Takt 1000 noch 5 bis 6 von 10
 LUECKE_DANACH = 2500  # Takte: 3 Ritter, 5 Schlaege je Stueck, alle rund 190 Takte, also lange vorbei
 BEFEHL_TAKT, STEUER_STUFE, REPARATUR_LEBEN = 200, 7, 200  # Der Wachturm hat 500 Leben
-LAUF_NACH_BAU = 300  # Takte: Die Flaechenkarte rechnet das Spiel alle 50 Takte neu (updateSeparateAreaTileMap), ein Vielfaches davon ist sicher
+LAUF_NACH_BAU = 300  # Takte: sonder14 wartete so lange. Noetig ist es nicht, der Befehl wirkt sofort (sonder21)
 MAUER_VERSUCHE, GEBAEUDE_VERSUCHE = 5, 2  # Wie oft ein abgelehnter Bau neu geschickt wird. Ein Tier geht in 40 Takten weiter, ein Felsen nie
 
 
@@ -1426,7 +1426,7 @@ def sonder13(l):
 
 
 def sonder14(l):
-    """Fuenfter Nachlauf im Editor. giveTribeMoveInstruction gibt auf, wenn die Flaechen nicht verbunden sind (return 0), und die Flaechenkarte wird nur alle 50 Takte neu gerechnet (updateSeparateAreaTileMap, im Speicher 50 statt 200). In sonder13 kam der Laufbefehl im selben Augenblick wie die Mauer: Niemand ging los. Darum Befehl erst nach LAUF_NACH_BAU, und zum Vergleich ein Ziel auf der Mauer selbst und eines in der Turmmitte."""
+    """Fuenfter Nachlauf im Editor: Befehl erst nach LAUF_NACH_BAU, Ziel auf der Mauer, auf dem Eckfeld und in der Turmmitte. Meine Annahme dabei, die Flaechenkarte brauche Zeit, war falsch (sonder21). Es lag am Eckfeld."""
     def nur_mauer(x, y):
         """Der einfachste Fall: Treppe und Mauer, das Ziel liegt auf der Mauer. Geht das nicht, ist die Frage nach dem Turm verfrueht."""
         wer = [_e("steiger", 24, x, y + 4)]

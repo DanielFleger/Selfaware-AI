@@ -420,7 +420,7 @@ Tick 4.731-7.737, Aufloesung 14,5 Ticks (`daten/lage_ablauf_fein_20261006_224521
 | S32 | Menschliches Katapult laedt nicht selbst nach. Der Oeltraeger wirft nicht von selbst, in keiner Haltung. Laufbefehl auf einen Turm wirkt nicht | getestet | P308, P323, P338, P302, `punkte_rechnung6.txt`, `punkte_rechnung7.txt` |
 | S33 | Der laufende Spielcode ist nicht der Ghidra-Export: 814 von 428.114 Befehlen in 157 Funktionen weichen ab (UCP3). Export-Zahlen sind Grundwerte | getestet | `code_abgleich.py`, `code_abgleich.txt` |
 | S34 | Tor: 140 Mikro und 100 Takte, 17 Felder reagiert, 18 nicht. Kette 0, 1, 2, 3, 0. Offenes Tor: durch, geschlossenes: aussen herum | getestet | P303, P304, `punkte_rechnung8.txt` bis `10` |
-| S35 | Weg auf den Turm: Treppe als Linie von der Mauer weg, Laufbefehl erst nach der neuen Flaechenkarte, Ziel Turmmitte, Ecken gesperrt. Mauerlinie ganz oder gar nicht. Grenze 5 auf dem Wachturm nur beim Mausklick | getestet | P302, P338, `punkte_rechnung11.txt`, `13` |
+| S35 | Weg auf den Turm: Treppe als Linie von der Mauer weg, Ziel Turmmitte, Ecken gesperrt, Laufbefehl wirkt sofort (sonder21). Mauerlinie ganz oder gar nicht. Grenze 5 auf dem Wachturm nur beim Mausklick | getestet | P302, P338, `punkte_rechnung11.txt`, `13` |
 | S36 | Angst als Tabelle 80 bis 140 Prozent, Gaerten heben, Galgen senken, Bevoelkerung senkt den Betrag | getestet | P332, `punkte_rechnung12.txt` |
 | S37 | Loeschen: Mit Brunnen 221 bis 254 Takte statt 960 bis 980. Feuerwache kommt von selbst | getestet | V7.001, `punkte_rechnung12.txt` |
 | S38 | Munition: Start 10, Spielbefehl 86 Wert 1 fuellt bis 10 (1 Stein je Schuss), Wert 0 gibt +10 fuer 10 Stein | getestet | P308, P309, `punkte_rechnung12.txt` |

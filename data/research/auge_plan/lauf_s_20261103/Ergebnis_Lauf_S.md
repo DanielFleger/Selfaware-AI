@@ -348,7 +348,7 @@ Ein Stück fällt, wenn der Schaden über 70 steigt. Am Ende einer Mauer (1 Nach
 
 ## Code-Abgleich und zweiter Nachlauf, 04.11. 16:50 bis 17:54
 
-**Der wichtigste Fund des Tages: Das laufende Spiel ist nicht der Export.** Ich habe jeden Befehl aus dem Ghidra-Export mit dem Speicher von Instanz 2 verglichen, nur lesend: 814 von 428.114 Befehlen weichen ab, in 157 Funktionen. Das ist UCP3, es ändert Befehle beim Laufen. Dazu Tausende Werte in den Daten-Tabellen. Beleg: `code_abgleich.py`, `code_abgleich.txt`, `code_abgleich.json`, `daten_abgleich.py`, `daten_abgleich.txt`.
+**Der wichtigste Fund des Tages: Das laufende Spiel ist nicht der Export.** Ich habe jeden Befehl aus dem Ghidra-Export mit dem Speicher von Instanz 2 verglichen, nur lesend: 814 von 428.114 Befehlen weichen ab, in 157 Funktionen. Dazu Tausende Werte in den Daten-Tabellen. Gemessen am Speicher: Die Programmdatei auf der Platte hat die Export-Werte (Tor 200, Ramme 50, Hunde 25), erst im Speicher stehen die neuen. Die Konfiguration nennt `o_responsivegates` und `rebalancer` (Liga), darum sage ich UCP3. Den Code von UCP3 selbst habe ich nicht gelesen. Beleg: `code_abgleich.py`, `code_abgleich.txt`, `code_abgleich.json`, `daten_abgleich.py`, `daten_abgleich.txt`.
 
 Damit lösen sich meine „unerklärten“ Messwerte auf:
 
@@ -369,18 +369,18 @@ Damit lösen sich meine „unerklärten“ Messwerte auf:
 
 **Regel für alles Weitere:** Eine Zahl aus dem Export ist ein Grundwert. Vor jeder Aussage „der Code sagt“ steht der Blick in `code_abgleich.json`.
 
-**Weg auf den Turm (sonder10, 12, 13, 14, 17):** Fünf Läufe, vier Fehler von mir, jeder aus den Daten erklärt:
+**Weg auf den Turm (sonder10, 12, 13, 14, 17, 21):** Sechs Läufe, drei Fehler von mir und eine falsche Erklärung:
 
-1. Eine Mauerlinie, die auf ein belegtes Feld reicht, baut das Spiel gar nicht (`validateWallBuildPath`). Eine Einheit auf der Linie genügt ebenso. Das Werkzeug liest jetzt nach, wiederholt bis zu 5 Mal und schreibt `mauer_fehlt` in den Plan. Ein Ring blieb so nie mehr still offen.
+1. Eine Mauerlinie, die auf ein Gebäude reicht, baut das Spiel gar nicht (gemessen sonder10). Laut Code (`validateWallBuildPath`) genügt auch eine Einheit auf der Linie. In sonder12 fehlten 2 von 4 Seiten eines Rings, die Ursache ist nicht belegt. Das Werkzeug liest jetzt nach, wiederholt bis zu 5 Mal und schreibt `mauer_fehlt` in den Plan, ein offener Ring fällt so auf.
 2. Eine Treppe aus einem Feld springt von 8 auf 82. Die Treppe ist eine Linie weg von der Mauer: 82, 66, 50, 34, 18.
-3. Der Laufbefehl im selben Augenblick wie der Bau wirkt nicht: `giveTribeMoveInstruction` gibt auf, wenn die Flächen nicht verbunden sind, und die Flächenkarte kommt erst später neu. 300 Takte nach dem Bau läuft die Einheit los.
-4. Die vier Turmecken sind gesperrt (Fläche 0, Bit 0x400), nicht der Eingang, wie ich gelesen hatte. Die Mitte ist begehbar.
+3. Die vier Turmecken sind gesperrt (Fläche 0, Bit 0x400), nicht der Eingang, wie ich gelesen hatte. Die Mitte ist begehbar.
+4. **Falsche Erklärung, berichtigt:** Ich behauptete, der Laufbefehl müsse nach dem Bau warten, bis die Flächenkarte neu ist. In sonder14 hatte ich aber Zeit und Ziel zugleich geändert. Die Gegenprobe sonder21 zeigt: Der Befehl wirkt sofort, die Mauer hat schon bei Takt 0 Fläche 1. Es lag nur am Ziel.
 
 Danach: 8 von 8 auf dem Wachturm. Die Grenze 5 gilt nur beim Mausklick. Beim Klettern steigt das Tempo um 4 und 5. Der Turm hat auf der Karte Höhe 8, das ist richtig so.
 
-**Tor:** Die Kette 0, 1, 2, 3, 0 stimmt. Entwarnung: Feind geht ab Takt 1.000 weg, Tor öffnet ab Takt 1.185. Durch ein offenes Tor geht der Besitzer hindurch, um ein geschlossenes läuft er außen herum, auch wenn das 12 Felder Umweg sind.
+**Tor:** Die Kette 0, 1, 2, 3, 0 stimmt. Entwarnung: Feind geht ab Takt 1.000 weg, Tor öffnet ab Takt 1.185. Durch ein offenes Tor geht der Besitzer hindurch, um ein geschlossenes läuft er außen herum, bis ans Ende der Mauer.
 
-**Löschen (sonder10_g):** Mit Brunnen brennt die Hütte 254 und beim zweiten Mal 221 Takte, ohne Brunnen waren es 960 bis 980 (sonder1). Die Feuerwache (Art 53, Arbeitsplatz der Brunnen) ist ein Bauer, der von selbst kommt und zum Feuer geht. Die Hütte verlor dabei 53 und 45 Leben.
+**Löschen (sonder10_g):** Mit Brunnen brennt die Hütte 254 und beim zweiten Mal 221 Takte, ohne Brunnen waren es 960 bis 980 (sonder1). Die Feuerwache (Art 53, Arbeitsplatz der Brunnen) kommt von selbst und geht zum Feuer. Die Hütte verlor dabei 53 und 45 Leben.
 
 **Angst (sonder10_g):** 5 Gärten geben Stufe +5, Schaden 140 Prozent. 5 Galgen geben Stufe -5, Schaden 80 Prozent. Wächst die Bevölkerung, sinkt die Stufe: von +5 auf +2 bei Takt 303. Die Stufe rechnet das Spiel aus den Bauten neu, ein gesetzter Wert hielte nicht.
 
