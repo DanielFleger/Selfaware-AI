@@ -1148,7 +1148,8 @@ def sonder8_g(l):
                 return [{"player": 1, "spielbefehl": {"nr": 70, "werte": [jetzt().get("trupp", 0), wert]}}] if jetzt().get("trupp") else []
 
             def kommen():
-                return [_angriff([feind], 2, lauf=[x + 11, y + 3])]  # 5 Felder von der Schmelze, unter den 10 Feldern des Codes
+                traeger = {e["nr"]: e for e in s.einheiten_alle()}.get(leute[1]["nr"], {})  # das Oel hatte immer der zweite (Lauf 01:02)
+                return [_angriff([feind], 2, lauf=[traeger["x"] + 2, traeger["y"]])] if traeger else []  # Code: Umkreis 4 Schritte
             return g, leute + [feind], [], holen, [(OEL_HALTUNG, haltung), (OEL_FEIND, kommen)]
         return f
 

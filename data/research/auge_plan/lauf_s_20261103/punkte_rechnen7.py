@@ -72,6 +72,10 @@ def oel():
         wer = [e for e in plan["einheiten"] if e.get("posten") == name and "nr" in e]
         v, ende = einheiten(p, start, wer, {"ziel": "units[].targetingType", "d": "units[].closestEnemyMicroDistance"})
         ing = next(e for e in wer if e["rolle"] == "oel")
+        for e in wer:
+            if e["rolle"] == "oel":
+                r = [(a2[0], a2[2]) for a2 in v[e["nr"]] if len(a2) > 2]
+                print("  ", name, "Ingenieur", e["nr"], "Anweisungen", pl.wechsel(r)[:5], "letzter Zustand", v[e["nr"]][-1][:2], "Ort", ende.get(e["nr"]))
         fe = next(e for e in wer if e["rolle"] == "feind")
         zw = [(w[0], w[2]) for w in v[ing["nr"]] if len(w) > 2]
         z20 = next((t for t, a in zw if a == 20), None)
