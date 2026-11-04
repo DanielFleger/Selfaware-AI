@@ -8,8 +8,12 @@ import pytest
 
 from selfaware.tools.analysis import auge_auswertung as aw
 from selfaware.tools.analysis import auge_regeln as ar
+from selfaware.tools.analysis.auge_feldkarte import FELDLISTE, Feldkarte
 from selfaware.tools.experiments import auge_lauf_f as lf
 from selfaware.tools.experiments import auge_lauf_s as ls
+
+
+KARTE = Feldkarte.laden(feldliste=FELDLISTE)
 
 
 class Spiel:
@@ -64,6 +68,7 @@ class Spiel:
         return ["+" * (x1 - x0 + 1)] * (y1 - y0 + 1)
 
     def feld(self, gruppe, name):
+        KARTE.adresse(gruppe, name)  # sonder19_g: Ein falscher Feldname fiel erst im Lauf auf
         return 7000, 100
 
     def pech_liste(self, sp):
@@ -1058,7 +1063,7 @@ def test_mauerluecke_und_befehle(tmp_path):
     assert sp[34] == [ls.STEUER_STUFE] and sp[102][0] == 0 and sp[68][1:3] == [5, 5] and sp[41][1] == 100 and sp[29][1] == 100
     gb = {x["typ"]: x for x in plan["gebaeude"]}
     assert sp[68][0] == gb[74]["nr"] and sp[68][3] == gb[74]["uid"] and sp[29][0] == gb[1]["nr"] and sp[29][2] == gb[1]["uid"]
-    assert sum(1 for c in b if c.get("werbe")) == 2 and sum(1 for c in b if c.get("poke") == 7100 and c.get("wert") == 0) == 1
+    assert sum(1 for c in b if c.get("werbe")) == 2 and sum(1 for c in b if c.get("poke") == 7000 and c.get("wert") == 1) == 1
     assert sum(x.get("posten") == "hunde4" and x["rolle"] == "opfer" for x in plan["einheiten"]) == 4
     an = next(c for c in b if c.get("angriff", {}).get("gebaeude") == 77)
     assert an["player"] == 1 and len(an["angriff"]["einheiten"]) == 3

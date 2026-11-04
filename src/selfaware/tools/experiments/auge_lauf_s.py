@@ -1580,12 +1580,11 @@ def sonder19_g(l):
     def heer(x, y):
         """P154, P155: Anwerben geht, dann armySizeLimit auf die jetzige Heeresgroesse, nochmal anwerben. Der Bestand wird knapp davor gesetzt."""
         k = _g(9, x + 2, y + 1, spieler=1)
-        adr, _ = s.feld("DAT_GameState", "playerDataArray[].armySizeLimit")
-        schritt = s.feld("DAT_GameState", "playerDataArray[].armySizeLimit")[1]
+        adr, _ = s.feld("DAT_GameState", "mapAndTime.armySizeLimit")  # gilt fuer alle Spieler
 
         def werben():
             return [{"player": 1, "ware": {"typ": 19, "menge": 5}}, {"player": 1, "ware": {"typ": 15, "menge": 500}}, {"player": 1, "werbe": {"typ": 24, "gebaeude": k["nr"]}}] if "nr" in k else []
-        return [k], [], [], lambda: [], [(BEFEHL_TAKT, werben), (BEFEHL_TAKT + 200, lambda: [{"poke": adr + schritt, "wert": 0}]), (BEFEHL_TAKT + 260, werben)]
+        return [k], [], [], lambda: [], [(BEFEHL_TAKT, werben), (BEFEHL_TAKT + 200, lambda: [{"poke": adr, "wert": 1}]), (BEFEHL_TAKT + 260, werben)]
 
     def hunde4(x, y):
         """Grenze der Hunde: Im Speicher 16 statt 25 (UpdateCageDog), 4 Speertraeger haben Wert 16. Mit 3 kamen sie nicht, mit 8 schon (sonder3_g)."""

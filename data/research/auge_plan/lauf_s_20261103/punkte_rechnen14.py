@@ -6,6 +6,7 @@
 import collections
 import json
 import os
+import re
 
 import numpy as np
 
@@ -13,6 +14,7 @@ import punkte_lesen as pl
 from selfaware.tools.analysis import auge_regeln as ar
 
 U = {"da": "units[].logicalState", "typ": "units[].unitType", "b": "units[].owner", "mx": "units[].microXPosition", "my": "units[].microYPosition", "z": ("units[].logicalState", ar.ZUSTAND_ABSTAND)}
+HUND = int(re.search(r"UT_CAGEDOG: (\d+)", open(r"C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference\types.json", encoding="utf-8").read().replace("\\n", " ")).group(1))
 FN = json.load(open(os.path.join(os.path.dirname(pl.__file__), "feldnummern.json"), encoding="utf-8"))
 
 
@@ -45,14 +47,18 @@ def befehle():
     print("sonder19_g Takte", plan["bis"] - S, "Mauer fehlt", plan["mauer_fehlt"], "wiederholt", plan["mauer_wiederholt"], "kein Platz", plan["kein_platz"], "nicht gesetzt", plan["nicht_gesetzt"])
     ort = {k["posten"]: k for k in plan["karte"]}
     z = collections.defaultdict(list)
-    for t, g in pl.stand(p, "DAT_GameState", {"s1": "playerDataArray[].taxesSliderUI", "s2": "playerDataArray[].taxesSetting2", "sx": "playerDataArray[].barracksAssemblyPoints[].x", "lim": "playerDataArray[].armySizeLimit", "h": "playerDataArray[].armySize", "gold": ("playerDataArray[].currentResources[]", 60), "st": ("playerDataArray[].currentResources[]", 16), "ho": ("playerDataArray[].currentResources[]", 8)}):
-        for k in ("s1", "s2", "sx", "lim", "h", "gold", "st", "ho"):
+    for t, g in pl.stand(p, "DAT_GameState", {"s1": "playerDataArray[].taxesSliderUI", "s2": "playerDataArray[].taxesSetting2", "sx": "playerDataArray[].barracksAssemblyPoints[].x", "h": "playerDataArray[].armySize", "gold": ("playerDataArray[].currentResources[]", 60), "st": ("playerDataArray[].currentResources[]", 16), "ho": ("playerDataArray[].currentResources[]", 8)}):
+        for k in ("s1", "s2", "sx", "h", "gold", "st", "ho"):
             w = int(g[k][1])
             if not z[k] or z[k][-1][1] != w:
                 z[k].append((t - S, w))
     print("P160 taxesSliderUI", z["s1"][:4], "taxesSetting2", z["s2"][:4])
     print("P172 Sammelpunkt x", z["sx"][:4], "Soll", ort["sammel"]["x"] + 3)
-    print("P154/155 armySizeLimit", z["lim"][:4], "armySize", z["h"][:10])
+    lim = []
+    for t, g in pl.stand(p, "DAT_GameState", {"l": "mapAndTime.armySizeLimit"}):
+        if not lim or lim[-1][1] != int(g["l"]):
+            lim.append((t - S, int(g["l"])))
+    print("P154/155 armySizeLimit", lim[:4], "armySize", z["h"][:10])
     print("    Gold", z["gold"][:10])
     print("    Stein", z["st"][:12], "Holz", z["ho"][:8])
     gb = {g["typ"]: g for g in plan["gebaeude"] if "nr" in g}
@@ -82,7 +88,7 @@ def befehle():
     op = [e for e in plan["einheiten"] if e.get("posten") == "hunde4" and e["rolle"] == "opfer"]
     for t, u in pl.stand(p, "DAT_UnitsState", U):
         n = int(((u["da"] != 0) & (u["typ"] == 69)).sum()) if False else 0
-        m = (u["da"] != 0) & (u["b"] == 1) & np.isin(u["typ"], [68, 69, 66, 67])
+        m = (u["da"] != 0) & (u["b"] == 1) & (u["typ"] == HUND)
         m[0] = False
         if m.any():
             for ty in u["typ"][m]:
