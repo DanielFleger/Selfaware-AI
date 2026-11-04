@@ -953,7 +953,7 @@ def sonder5_g(l):
     return (("pech", pech, 24, 8),)
 
 
-MAPPER_ZELT_TURM = 94  # M_MAPPER_SIEGE_TOWER_BASE
+MAPPER_ZELT_TURM = 192  # M_MAPPER_SIEGE_TOWER wird Art 82. M_MAPPER_SIEGE_TOWER_BASE (94) wird Art 69, kein Zelt (Lauf 20:22)
 MAPPER_TUNNEL, EINGANG = 66, (85, 50)  # M_MAPPER_TUNNEL_CONSTRUCTION, Groesse 3; BT_UNKNOWN4 bis der Graeber da ist, dann BT_TUNNEL
 TUNNEL_TRUPP, TUNNEL_PRUEFEN, TUNNEL_STOEREN = 60, 120, 1100  # Takte: Der Trupp entsteht erst mit dem ersten Befehl; der Eingang steht spaetestens im naechsten Takt, 60 sind reichlich; der Graeber grub ab Takt 1001 und 1012 (Lauf 22:41)
 
@@ -1666,7 +1666,11 @@ def sonder24_g(l):
                 ort = erlaubte_stelle(l, {"mapper": MAPPER_ZELT_TURM, "groesse": 3, "x": x + 8, "y": y + 3, "spieler": 1})
                 trupp = {e["nr"]: e["trupp"] for e in s.einheiten_alle()}.get(wer[0]["nr"], 0)
                 return [{"player": 1, "ware": {"typ": 15, "menge": 2000}}, {"player": 1, "baue": {"mapper": MAPPER_ZELT_TURM, "x": ort[0], "y": ort[1], "groesse": 3, "richtung": 15, "trupp": trupp}}] if ort and trupp else []
-            return [], wer, [], lambda: [_angriff(wer, lauf=[x + 1, y + 3])], [(TUNNEL_TRUPP, bauen)]
+            def anweisen():
+                """Falls der Trupp beim Bauen nicht ankommt: Anweisung 15 auf das Zelt, wie an der Oelschmelze."""
+                z = next((g for g in s.gebaeude(1) if g["typ"] == 82 and abs(g["x"] - (x + 8)) <= 8 and abs(g["y"] - (y + 3)) <= 8), None)
+                return [_angriff(wer, art=15, a=z["nr"], b=z["uid"])] if z else []
+            return [], wer, [], lambda: [_angriff(wer, lauf=[x + 1, y + 3])], [(TUNNEL_TRUPP, bauen), (TUNNEL_TRUPP + 40, anweisen)]
         return f
 
     def oel_wurf(x, y):
@@ -1998,7 +2002,10 @@ SZENEN = {
     "rufen_g": lambda l: __import__("selfaware.tools.experiments.auge_rufen", fromlist=["szene"]).szene(l),
     "rufen2_g": lambda l: __import__("selfaware.tools.experiments.auge_rufen", fromlist=["szene2"]).szene2(l),
     "rufen3_g": lambda l: __import__("selfaware.tools.experiments.auge_rufen", fromlist=["szene3"]).szene3(l),
+    "rufen4_g": lambda l: __import__("selfaware.tools.experiments.auge_rufen", fromlist=["szene4"]).szene4(l),
     "sonder24_g": lambda l: szene_sonder(l, "sonder24_g", sonder24_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),
+    "sonder25_g": lambda l: szene_sonder(l, "sonder25_g", tuple(z for z in sonder24_g(l) if z[0] in ("zelt4", "zelt2")), frei_maske=burgbereich(l), rand=10, raeumen=True),
+    "rufen_e": lambda l: __import__("selfaware.tools.experiments.auge_rufen", fromlist=["szene_e"]).szene_e(l),
     "sonder22": lambda l: szene_sonder(l, "sonder22", sonder22(l), rand=15),
     "sonder20_g": lambda l: szene_sonder(l, "sonder20_g", sonder20_g(l), frei_maske=burgbereich(l), rand=12, raeumen=True),
     "sonder19_g": lambda l: szene_sonder(l, "sonder19_g", sonder19_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),

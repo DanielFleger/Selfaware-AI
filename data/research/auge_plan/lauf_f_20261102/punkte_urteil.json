@@ -1,12 +1,9 @@
 {
 "lauf": "Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance",
 "zaehlung": {
-"bestaetigt": 113,
+"bestaetigt": 151,
 "gemessen": 75,
-"Lage fehlte": 30,
-"gesehen": 11,
-"widerlegt": 11,
-"offen": 1
+"widerlegt": 15
 },
 "punkte": [
 {
@@ -476,8 +473,8 @@
 {
 "nr": "P059",
 "funktion": "updateMacroLayerRelated",
-"urteil": "Lage fehlte",
-"grund": "Kein Sumpffeld auf den gefahrenen Karten: Lauf F 0, Lauf K 0 Felder mit Bit 0x20000000.",
+"urteil": "bestaetigt",
+"grund": "Im Editor gesetzt (Spielbefehl 21, Pinsel 1, Flag 0x20000000): Randfelder `MacroLayer & 0x3f` = 1, innere 2, 4, 8. 0x10 kam nicht vor. Mit Pinsel 0 setzt der Befehl nichts, nur der Graben setzt seine Größe selbst. `rufen_*.json`.",
 "lauf_f_werkzeug": "gemessen",
 "spielart": false
 },
@@ -740,16 +737,16 @@
 {
 "nr": "P092",
 "funktion": "getPriceForDisbandedUnitType",
-"urteil": "Lage fehlte",
-"grund": "Geld zurück gibt es laut Code nur in Siege That (`disbandUnit`), das kommt in unseren Partien nicht vor.",
+"urteil": "bestaetigt",
+"grund": "Tafel direkt aus der Funktion: Bogenschütze 12 wie erwartet, Speerträger 8, Armbrust, Pikenier, Keule, Tunnelgräber 20, Schwert, Ritter 40, Leiter 1, Ingenieur 30, Mönch 10, Art 39: 150, Art 40: 200, Art 41 und 61: 80, Art 77: 100. Gold gibt es laut Code nur in Siege That, das ist nicht gefahren. `rufen_*.json`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
 {
 "nr": "P093",
 "funktion": "growWheat",
-"urteil": "gesehen",
-"grund": "Stufe 121 kommt vor, farmGrowState fehlt in der Feldkarte.",
+"urteil": "bestaetigt",
+"grund": "Wechsel auf 8: 11 von 13 mit 4 Feldern auf 121, 2 mit 3 Feldern, dafür hat der Code einen zweiten Weg. Es zählt nur beim Wachstumsschritt. `punkte_rechnung26.txt`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
@@ -772,8 +769,8 @@
 {
 "nr": "P096",
 "funktion": "growHops",
-"urteil": "gesehen",
-"grund": "Stufen kommen vor, farmGrowState fehlt in der Feldkarte.",
+"urteil": "bestaetigt",
+"grund": "Stand 5 mit mindestens 6 Feldern auf Stufe 14 bis 27 in 334 Kartenrahmen, in keinem anderen Stand. `punkte_rechnung21.txt`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
@@ -804,8 +801,8 @@
 {
 "nr": "P100",
 "funktion": "updateRepairCostAndReturnIfDamaged",
-"urteil": "Lage fehlte",
-"grund": "Kein Gebäude beschädigt, die Felder gehören zur Anzeige.",
+"urteil": "bestaetigt",
+"grund": "Direkt gerufen, Wachturm 500 Leben: voll Rückgabe 0, Kosten ungeschrieben. Leben 499: Stein 1, 250: 6, 125: 9, 1: 11, Holz 0. Das passt zu (max-akt)*12/max, mindestens 1. `rufen_*.json`.",
 "lauf_f_werkzeug": "nicht gesehen",
 "spielart": false
 },
@@ -820,8 +817,8 @@
 {
 "nr": "P102",
 "funktion": "UpdatePitchRig",
-"urteil": "Lage fehlte",
-"grund": "Karte ohne Pechvorkommen.",
+"urteil": "bestaetigt",
+"grund": "Pechgrube ohne Vorkommen gesetzt (Prüfung umgangen): countPitchRigs 1 in 200 Lesungen über 4.000 Takte, also je Durchlauf neu gezählt. `rufen_*.json`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
@@ -876,8 +873,8 @@
 {
 "nr": "P109",
 "funktion": "UpdateGranary",
-"urteil": "Lage fehlte",
-"grund": "Keine Nahrungsart gesperrt.",
+"urteil": "bestaetigt",
+"grund": "Kornkammer gesetzt, Brot gesperrt: totalFood 25 auf 16, Zähler Brot 0, die Kammer behält ihre 13. Frei: Es zählt wieder. Sperren ist kein Spielbefehl, sondern ein Knopf der Oberfläche, der nur im Einzelspiel wirkt. `rufen_*.json`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
@@ -892,8 +889,8 @@
 {
 "nr": "P111",
 "funktion": "UpdateOilSmelter",
-"urteil": "Lage fehlte",
-"grund": "Ölbrennerei steht, aber kein Ingenieur wurde zugewiesen.",
+"urteil": "bestaetigt",
+"grund": "Schmelze mit 2 Ingenieuren und Lager: Pech +1 in Zustand 4 (Takt 1.335), -1 beim Übergang 7 nach 8 (Takt 1.750), im selben Takt hat der zweite Ingenieur Traglast 1. Zustand 1 verlässt sie, wenn ein Ingenieur einsteigt: mit Pech nach 6, ohne nach 2. `punkte_rechnung24.txt`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
@@ -932,8 +929,8 @@
 {
 "nr": "P116",
 "funktion": "UpdateKeepStronghold",
-"urteil": "Lage fehlte",
-"grund": "Gold kam direkt, nicht über Startgold.",
+"urteil": "bestaetigt",
+"grund": "Startgold 2.000 (Lauf K, Bündnislauf): Rest und Konto gehen gleich, alle 4 Takte: über 1.000 um 100, über 100 um 10, darunter um 1. Bei Takt 800 bis 802 ist der Rest 0. `punkte_rechnung18.txt`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
@@ -956,8 +953,8 @@
 {
 "nr": "P119",
 "funktion": "processWallBuildingLoss",
-"urteil": "gesehen",
-"grund": "Je 13 Felder kosteten -1 und -3 Stein, die Zuordnung zu niedrig und hoch ist nicht geklärt.",
+"urteil": "bestaetigt",
+"grund": "Direkt gerufen: 8 niedere 2 Stein, 8 hohe 4, 13 niedere 3, 13 hohe 6. Im echten Befehl gleich: Art 25 mit 13 Feldern 6, Art 46 mit 13 Feldern 3, Art 46 mit 8 Feldern 2, Art 25 mit 8 Feldern 4 (sonder24_g). Die -1 aus Lauf F erklärt das nicht. `rufen_*.json`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
@@ -972,16 +969,16 @@
 {
 "nr": "P121",
 "funktion": "UpdateIronMine",
-"urteil": "gesehen",
-"grund": "Eisen kommt an (finalIronProduced 23), Zustände nicht nachgerechnet.",
+"urteil": "bestaetigt",
+"grund": "Menge 7 gesetzt: Am Ende von Zustand 5 geht die Mine mit 6 nach 0, mit 7 nach 6 (Takt 6.564). Guss +1, Stand 8 gelesen. In Lauf F höchstens 3. `rufen_*.json`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
 {
 "nr": "P122",
 "funktion": "UpdateQuarry",
-"urteil": "gesehen",
-"grund": "Stein kommt an, Zustände nicht nachgerechnet.",
+"urteil": "bestaetigt",
+"grund": "46 von 50 Steinen kommen bis 9 Takte nach dem Wechsel von 1 auf 0. Der Stapel steht höchstens auf 47. Bei 47 endet der laufende Zyklus (Zustand 0 bei Takt 34.069). `punkte_rechnung26.txt`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
@@ -1012,8 +1009,8 @@
 {
 "nr": "P126",
 "funktion": "UpdateSiegeTowerBuilding",
-"urteil": "Lage fehlte",
-"grund": "Art 82 baute keine KI in Lauf K.",
+"urteil": "bestaetigt",
+"grund": "Zelt Art 82 (Mapper 192, Mapper 94 baut Art 69, kein Zelt): 4 Ingenieure +4 je Takt, Turm bei Takt 540 über 1.280, Zählfeld 4. 2 Ingenieure +2 je Takt, Turm bei Takt 854, Zählfeld 0. `punkte_rechnung25.txt`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
@@ -1084,8 +1081,8 @@
 {
 "nr": "P135",
 "funktion": "ComputePlayerPoints1",
-"urteil": "Lage fehlte",
-"grund": "Anzeige, nicht gemessen.",
+"urteil": "bestaetigt",
+"grund": "Direkt gerufen: Rückgabe gleich der Formel für alle Spieler (754, 540, Rest 0). 1.000 Gold mehr geben 100 Punkte mehr. Die Anzeige im Spiel ist nicht verglichen. `rufen_*.json`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
@@ -1108,8 +1105,8 @@
 {
 "nr": "P138",
 "funktion": "getWallTilesThatCanBeBuilt",
-"urteil": "Lage fehlte",
-"grund": "Bauanzeige, nicht gemessen.",
+"urteil": "bestaetigt",
+"grund": "Direkt gerufen: Stein 20 gibt 40, mit Rest 39, Stein 1 gibt 2, mit Rest 1, ab Stein 125 Decke 250. Holz genauso. `rufen_*.json`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
@@ -1124,8 +1121,8 @@
 {
 "nr": "P140",
 "funktion": "updateFoodTypesInStockForAllPlayers",
-"urteil": "Lage fehlte",
-"grund": "Immer 0, 1 oder 4 Sorten. Das Werkzeug fand die 2 zufällig im Warenfeld.",
+"urteil": "bestaetigt",
+"grund": "Lauf K: Das Feld ist die Zahl der Sorten, 2 Sorten in 31.876 Rahmen. Zusatz: Das Feld steht rund 5 bis 9 Prozent der Rahmen kurz auf 0 (2 bis 7 Takte, einmal 18), obwohl Essen da ist, nie auf einem anderen falschen Wert. Warum, ist offen. `punkte_rechnung18.txt`, `punkte_rechnung21.txt`.",
 "lauf_f_werkzeug": "zahl passt",
 "spielart": false
 },
@@ -1180,8 +1177,8 @@
 {
 "nr": "P147",
 "funktion": "despawnPeasantOrWorker",
-"urteil": "Lage fehlte",
-"grund": "Bevölkerung nicht verringert.",
+"urteil": "bestaetigt",
+"grund": "Direkt gerufen, ohne Bauern: UT_HEALER 34, UT_PRIEST 33, UT_INNKEEPER 36, dann UT_BREWER 17, UT_TANNER 21, UT_ARMORER 20, Art 19, UT_POLETURNER 18, UT_FLETCHER 4, Art 12. Danach nahm die Funktion einen echten Arbeiter, dort endete die Probe. `rufen_*.json`.",
 "lauf_f_werkzeug": "nicht zuordenbar",
 "spielart": false
 },
@@ -1236,24 +1233,24 @@
 {
 "nr": "P154",
 "funktion": "IsEuroUnitRecruitableUnk",
-"urteil": "Lage fehlte",
-"grund": "Limit 1.160. Der gesetzte Wert steht im Log, in der Aufzeichnung blieb 1.160 und das Anwerben ging weiter (sonder19_g). Bis 1.160 Mann ist nicht gefahren.",
+"urteil": "bestaetigt",
+"grund": "Direkt gerufen: normal 1, ein Platz frei 1, am Limit 3 (Heer voll), ohne Gold 0, ohne Speer 0. Das Limit ist 1.160, ein gesetzter Wert ist nach 3 Takten wieder 1.160. `rufen_*.json`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
 {
 "nr": "P155",
 "funktion": "ProcessRecruitUnit",
-"urteil": "Lage fehlte",
-"grund": "Wie P154: Das Limit war nicht zu erreichen.",
+"urteil": "bestaetigt",
+"grund": "armySize knapp davor aufs Limit gesetzt: Gold 500 auf 502, also kein Abzug. Gegenprobe davor: 500 auf 491, count_2 1. Nach einem Takt steht armySize wieder richtig. `rufen_*.json`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
 {
 "nr": "P156",
 "funktion": "CheckIfEnoughGoldForLadderman",
-"urteil": "Lage fehlte",
-"grund": "Nicht mit 3 und 4 Gold versucht. Die Liga verlangt 20.",
+"urteil": "bestaetigt",
+"grund": "Die Prüfung: 0 bei 3 Gold, 1 bei 4, auch im Speicher. Der echte Befehl verlangt 20 (Liga): bei 3, 4, 19 kein Abzug, bei 20 und 21 sinkt das Gold um 20. Die Oberfläche passt also nicht zum Preis. `rufen_*.json`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
@@ -1372,8 +1369,8 @@
 {
 "nr": "P171",
 "funktion": "RemoveTowerSiegeEngine",
-"urteil": "Lage fehlte",
-"grund": "Kein Gerät entfernt.",
+"urteil": "bestaetigt",
+"grund": "Befehl 42 setzt Art 41 und Art 61 auf den Turm, das Konto sinkt um 79, Befehl 75 Art 2 gibt 81: Das sind 80 Gold hin und her, dazu Einkommen. Turmfeld 1 und 2, danach 0. Holz und Stein 0. `rufen_*.json`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
@@ -1420,8 +1417,8 @@
 {
 "nr": "P177",
 "funktion": "algTunnelerFindTarget",
-"urteil": "Lage fehlte",
-"grund": "Kein Tunnel. Lauf S.",
+"urteil": "bestaetigt",
+"grund": "Direkt gerufen: Ohne Ziel findet die Suche auch mit 150 Feldern nichts, Bauplatz Fehler 1. Mit Feindturm Art 74: Ziel genau dieser Turm, Bauplatz 8 bis 60 Felder entfernt geht. In sonder6_g auch Mauerfeld 0x100 ohne Bit 2. `rufen_*.json`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
@@ -1436,16 +1433,16 @@
 {
 "nr": "P179",
 "funktion": "WindowMsgProcessingFunc",
-"urteil": "Lage fehlte",
-"grund": "Keine Taste gedrückt, das Tempo kam über das Modul.",
+"urteil": "widerlegt",
+"grund": "Die Taste geht als Fensternachricht ohne Maus. + von 20 auf 25 stimmt, die Grenzen nicht: + 88 auf 93, 90 auf 100, 200 auf 300, 1.000 auf 1.100. - 20 auf 15, 11 auf 6, bei 10 und darunter bleibt es. Die Stelle weicht im Speicher ab (13 Befehle). `rufen_*.json`.",
 "lauf_f_werkzeug": "nicht gesehen",
 "spielart": true
 },
 {
 "nr": "P180",
 "funktion": "isMapperAvailable",
-"urteil": "Lage fehlte",
-"grund": "Karte mit Wild.",
+"urteil": "bestaetigt",
+"grund": "Direkt gerufen: Jäger 1, bei Wild 0: 0, bei Wild 5: 1. Käfig 1, auch bei noDogs 1, das gilt laut Code nicht im Gefecht. Geprüft ist die Oberfläche, nicht ein Baubefehl. `rufen_*.json`.",
 "lauf_f_werkzeug": "nicht zuordenbar",
 "spielart": true
 },
@@ -1460,16 +1457,16 @@
 {
 "nr": "P182",
 "funktion": "aiShouldBuildWoodcutter",
-"urteil": "Lage fehlte",
-"grund": "Keine KI. Lauf K.",
+"urteil": "bestaetigt",
+"grund": "Direkt gerufen, echte KI: 5 Hütten: Wert 30 nein, 31 ja. 6 und 7 Hütten: 90 nein, 91 ja. Gezählt wird mit Filter: Spieler 1 hat 7, gezählt 5. Decke je KI 1 bis 10. `rufen_*.json`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
 {
 "nr": "P183",
 "funktion": "planToBuyWhenLowOnResourceAndSnoozeBuildings",
-"urteil": "Lage fehlte",
-"grund": "Keine KI. Lauf K.",
+"urteil": "widerlegt",
+"grund": "Direkt gerufen, echte KI: Zähler +1 je Aufruf stimmt. Der Wunsch 5 entsteht aber bei Zähler 3, nicht bei 37. War er schon 3, bleibt er. Die Funktion weicht im Speicher ab (14 Befehle). `rufen_*.json`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
@@ -1500,8 +1497,8 @@
 {
 "nr": "P187",
 "funktion": "requestGoods",
-"urteil": "Lage fehlte",
-"grund": "Zwischen KI und KI gab es im Lauf mit Bündnis keine Bitte. Die Erwartung braucht einen menschlichen Verbündeten.",
+"urteil": "bestaetigt",
+"grund": "Direkt gerufen: Ware und Menge stehen beim Partner (Holz 7, Stein 9). Hopfen und Bier nicht, ohne gleiches Team nicht. Der Partner braucht eine Kennung ungleich -1, die hat nur ein Mensch: Darum gab es zwischen KI und KI keine Bitte. `rufen_bitte_20261104.json`.",
 "lauf_f_werkzeug": "nicht gesehen",
 "spielart": false
 },
@@ -1532,24 +1529,24 @@
 {
 "nr": "P191",
 "funktion": "aiDecideOnNewBuildings",
-"urteil": "Lage fehlte",
-"grund": "Keine KI. Lauf K.",
+"urteil": "bestaetigt",
+"grund": "Im Lauf, Gold alle 5 Takte gesetzt: 20.000: +2 (17 Sprünge), 10.000: +1 (19), je rund alle 50 Takte. 3.000: +1 nur rund alle 100 Takte (Wartezeit 2). Direkt gerufen endete das Spiel mit Absturz bei 0x42E812, Ursache nicht geklärt. `rufen_*.json`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
 {
 "nr": "P192",
 "funktion": "validateWallPlacementAtTile",
-"urteil": "Lage fehlte",
-"grund": "Kein Feindgebäude. Lauf K.",
+"urteil": "widerlegt",
+"grund": "Feindgebäude: nur das angrenzende Feld ist verboten, Turm, Hütte und Lager gleich. 4 Felder Abstand sind erlaubt. Die Grenze 5 gilt für Feind-Einheiten: Abstand 1 bis 4 verboten, ab 5 frei. `rufen_*.json`.",
 "lauf_f_werkzeug": "nicht gesehen",
 "spielart": false
 },
 {
 "nr": "P193",
 "funktion": "isBuildingPlacementAllowedAtTile",
-"urteil": "Lage fehlte",
-"grund": "Nicht versucht, Grenze 200 gelesen.",
+"urteil": "bestaetigt",
+"grund": "Direkt gerufen: Über der Grenze Rückgabe 1 und Warnung Weizen 4, Hopfen 3, Apfel 2, Vieh 1. Genau an der Grenze 0. `rufen_*.json`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
@@ -1580,8 +1577,8 @@
 {
 "nr": "P197",
 "funktion": "updateMoatCountdownTimers",
-"urteil": "gesehen",
-"grund": "Immer 0, der Abwärtslauf war nicht zu sehen.",
+"urteil": "bestaetigt",
+"grund": "Zähler auf 3 gesetzt: 2 bei Takt 841, 1 bei 1.050, 0 bei 1.249, bleibt 0. Einmal je 200 Takte, bei Stand 40 des Balancers. `rufen_*.json`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
@@ -1596,8 +1593,8 @@
 {
 "nr": "P199",
 "funktion": "validateWallBuildPath",
-"urteil": "Lage fehlte",
-"grund": "Kein Feindgebäude. Lauf K.",
+"urteil": "bestaetigt",
+"grund": "Direkt, Einzelfeld: Lager des Gegners (Art 10): unter 7 Felder vom Rand verboten mit Grund 0x13. Hütte und Turm zählen nicht. Feind-Einheit: unter 15 Felder verboten, Grund 0x11. Außerhalb der Reichweite: Grund 0x12. `rufen_*.json`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
@@ -1612,8 +1609,8 @@
 {
 "nr": "P201",
 "funktion": "checkBuildingCanBePlacedHere",
-"urteil": "Lage fehlte",
-"grund": "Nicht im Gefecht versucht. Lauf K.",
+"urteil": "bestaetigt",
+"grund": "Direkt gerufen: Reichweite 45, 50, 60, 70 je Kartengröße 160, 200, 300, 400, um den Punkt 140, 268 bei Burg 138, 262. Karte 200: entferntestes Feld 50 geht, 51 Grund 0x12. Käfige ab 10 Grund 1000. Farm: Grund 0x16 an 742 Stellen, 0x17 (unter 50 Gras) an einer. `rufen_*.json`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
@@ -1676,8 +1673,8 @@
 {
 "nr": "P209",
 "funktion": "placeBuilding",
-"urteil": "Lage fehlte",
-"grund": "Holz reichte.",
+"urteil": "bestaetigt",
+"grund": "Erste Hütte ohne Holz: Holz bleibt 0, Feld 0x288 = 1. Mit eigener Einheit im Grundriss lehnt die Prüfung ab (Fehler 1). Ohne Prüfung gesetzt ist die Einheit weg. `rufen_*.json`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
@@ -1708,24 +1705,24 @@
 {
 "nr": "P213",
 "funktion": "ComputeGoodsProduced",
-"urteil": "Lage fehlte",
-"grund": "Produktivität 120 gibt es in der Liga-Tabelle nicht.",
+"urteil": "bestaetigt",
+"grund": "Direkt gerufen, 10 Durchgänge je 1 Ware: Produktivität 120 gibt 12, bis 100 gibt 10, 116: 11, 132: 13, 148: 14, 180: 18. Mit Zuschlag im Gefecht 5 mehr. `rufen_*.json`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
 {
 "nr": "P214",
 "funktion": "findTunnelTarget",
-"urteil": "Lage fehlte",
-"grund": "Kein Tunnel. Lauf S.",
+"urteil": "bestaetigt",
+"grund": "Direkt ohne Ziel: Stand 1, 2, 3, 4, 5, 6, dann -1, Rückgabe 0. In sonder6_g mit Turm: 0, 1, 2, -1 und 0, -1. `rufen_*.json`, `punkte_rechnung18.txt`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
 {
 "nr": "P215",
 "funktion": "getWorkerBlockingStateIfStuck",
-"urteil": "offen",
-"grund": "Rückgabewert, nicht in der Aufzeichnung.",
+"urteil": "bestaetigt",
+"grund": "Direkt gerufen, Tafel je Arbeiterart und Zustand: Art 19 und 20 in Zustand 1 und 9: 0x38, wie erwartet. Dazu 47, 48, 49, 53 bis 58. `rufen_*.json`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
@@ -1772,8 +1769,8 @@
 {
 "nr": "P221",
 "funktion": "UpdateChild",
-"urteil": "gesehen",
-"grund": "Höchstens 16 Mütter und Kinder in Lauf F. Die Grenze 75 wurde nicht erreicht.",
+"urteil": "bestaetigt",
+"grund": "Kinder mit gesetztem Zuhause: 60 bleiben. Von 90 gehen genau 15 in Zustand 110, 75 bleiben. Ohne Zuhause verschwinden alle. `rufen_*.json`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
@@ -1788,8 +1785,8 @@
 {
 "nr": "P223",
 "funktion": "UpdateFletcher",
-"urteil": "gesehen",
-"grund": "Bogen und Armbrust steigen je Stück um 1. Das Holz je Durchlauf ist von anderen Verbrauchern nicht getrennt.",
+"urteil": "bestaetigt",
+"grund": "Holz in der Werkstatt 0, 1, 2, 0, viermal: 2 Holz je Bogen. `punkte_rechnung20.txt`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
@@ -1812,8 +1809,8 @@
 {
 "nr": "P226",
 "funktion": "UpdatePitchman",
-"urteil": "gesehen",
-"grund": "Feld ändert sich, nicht nachgerechnet.",
+"urteil": "bestaetigt",
+"grund": "Pechgrube ohne Vorkommen gesetzt: rund alle 2.380 Takte 1 Pech, finalPitchProduced 4, im Lager 4. `rufen_*.json`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
@@ -1876,8 +1873,8 @@
 {
 "nr": "P234",
 "funktion": "UpdatePoleTurner",
-"urteil": "gesehen",
-"grund": "Piken steigen je Stück um 1. Das Holz je Durchgang ist von anderen Verbrauchern nicht getrennt.",
+"urteil": "widerlegt",
+"grund": "Holz in der Werkstatt 0, 1, 0, fünfmal: 1 Holz je Pike, nicht 2. `punkte_rechnung20.txt`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },
@@ -1908,8 +1905,8 @@
 {
 "nr": "P238",
 "funktion": "UpdateEngineer",
-"urteil": "gesehen",
-"grund": "Feld ändert sich, nicht nachgerechnet.",
+"urteil": "bestaetigt",
+"grund": "Anweisung 20: Zustand 10 ab Takt 584 mit Traglast 1, bei Takt 607 Traglast 0, der Feind verliert ab Takt 637 Leben. Holen aus dem Lager: Pech sinkt im selben Takt um 1 (658, 2.278, 3.636). `punkte_rechnung24.txt`.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": true
 },

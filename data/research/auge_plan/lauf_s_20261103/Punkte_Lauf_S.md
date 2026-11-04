@@ -117,7 +117,7 @@
 
 | Punkt | Funktion | Beleg |
 |---|---|---|
-| P312 | `CommandSpawnEntity` | Spielbefehl 69 abgesetzt (Log), in Spielart 3 und mit gesetzter Spielart 6: Es entstand kein Korb, Gold blieb gleich (sonder15_g). Warum, ist ungeklärt. Siege That kommt in unseren Partien nicht vor. |
+| P312 | `CommandSpawnEntity` | Spielbefehl 69 abgesetzt (Log), in Spielart 3 und mit gesetzter Spielart 6: Es entstand kein Korb, Gold blieb gleich (sonder15_g). Auch im KI-Gefecht entstand mit Befehl 69 (Spielart 3 und 6) und Befehl 97 kein neuer Korb (`rufen_korb_20261104.json`). Warum, ist ungeklärt. Siege That kommt in unseren Partien nicht vor. |
 
 ## Offen (0)
 

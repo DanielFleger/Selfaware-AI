@@ -453,7 +453,37 @@ Belege: `sonder23`, `punkte_rechnung_b.txt`. Daniel hat entschieden: SamurAI dar
 
 **Lauf F steht damit bei 113 bestätigt, 11 widerlegt, 75 gemessen, 11 gesehen, 30 Lage fehlt, 1 offen.**
 
+## Direkt gerufen, 04.11. 20:00 bis 20:40
+
+Viele offene Punkte sind Prüfungen der Oberfläche: Sie laufen nur, wenn ein Mensch klickt, ihr Ergebnis steht in keinem Feld. `spielcode_rufen.py` ruft die Funktion im angehaltenen Spiel direkt auf, nur Instanz 2, nur Messlauf, nichts davon geht in SamurAI. Proben: `auge_rufen.py`, Ergebnisse: `rufen_*.json`. Zweimal stürzte das Spiel ab, weil ich der Funktion kein `this` gab (Export zeigt es nicht, Maschinencode nimmt ECX), einmal bei `aiDecideOnNewBuildings` direkt gerufen, Ursache dort nicht geklärt. Die Regel lief dann im echten Lauf.
+
+| Punkt | Gemessen |
+|---|---|
+| Bau-Reichweite | 45, 50, 60, 70 je Kartengröße 160, 200, 300, 400, um einen Punkt bei der Burg (Burg 138, 262, Punkt 140, 268). Das entfernteste Feld zählt: Karte 200: 50 geht, 51 Grund 0x12 |
+| Mauer nahe am Feind | Einheit: Mauerfeld unter 5 verboten, Weg unter 15 (Grund 0x11). Gebäude: nur angrenzend. Weg unter 7 nur bei Arten wie Lager (Grund 0x13), Hütte und Turm zählen nicht |
+| Mauerkosten | Art 25: 13 Felder 6 Stein, 8 Felder 4. Art 46: 13 Felder 3, 8 Felder 2 |
+| Leiterträger | Prüfung der Oberfläche ab 4 Gold, der Befehl verlangt 20 |
+| Geräte auf dem Turm | Befehl 42, Befehl 75 Art 2: 80 Gold hin, 80 zurück |
+| Belagerungsturm | Mapper 192 (94 baut Art 69, kein Zelt). Fortschritt +Mann je Takt, über 1.280 kommt der Turm. Zählfeld 4 nur bei 4 Mann |
+| Öl | Anweisung 20: Zustand 10, Wurf 23 Takte später. Pech im Lager sinkt beim Holen um 1. Die Schmelze nimmt +1 in Zustand 4, gibt -1 von 7 nach 8 |
+| Holz je Waffe | Bogen 2, Pike 1 (Export sagte 2) |
+| Mine, Stein | Mine: Menge 7 führt von Zustand 5 nach 6, Stand 8 gelesen. Stapel bis 47 |
+| Pechgrube | Ohne Vorkommen gesetzt läuft sie: rund alle 2.380 Takte 1 Pech |
+| Kinder | Mit Zuhause: 60 bleiben, von 90 gehen genau 15. Ohne Zuhause gehen alle |
+| Entlassen ohne Bauern | UT_HEALER 34, UT_PRIEST 33, UT_INNKEEPER 36, UT_BREWER 17, UT_TANNER 21, UT_ARMORER 20, Art 19, UT_POLETURNER 18, UT_FLETCHER 4, Art 12 |
+| KI Holzfäller | 3 Hütten: Wert ab 31, 6 Hütten: ab 91. Gezählt wird mit Filter |
+| KI Holz kaufen | Wunsch 5 ab Zähler 3, Export sagt 37 |
+| KI Bau-Ziel | Gold über 16.000: +2, bis 16.000: +1, je rund 50 Takte. Bis 5.000: +1 rund alle 100 Takte |
+| KI bittet um Ware | Holz und Stein ja, Hopfen und Bier nein. Nur an einen Partner im selben Team mit Kennung, also an einen Menschen |
+| Essen sperren | Kein Spielbefehl, ein Knopf: Der Zähler der Art geht auf 0, die Ware bleibt in der Kammer |
+| Graben-Zähler | -1 einmal je 200 Takte |
+| Tempotasten | Unter 90: 5er-Schritte. 90 bis unter 200: 10er. Ab 200: 100er. Bei 10 und darunter tut Minus nichts. Export sagte 20 bis 90 |
+| Stapel | Wiederholter Befehl alle 50 Takte: 8 Mann stehen von rund Takt 200 bis 1.200 auf einem Feld, nach dem letzten Befehl (Takt 1.000) gehen sie auseinander |
+| Holztor | Mapper 103 und 140 bis 143: Die Prüfung sagt ja, es entsteht kein Gebäude. Als Ziel nicht gefahren |
+
+**Lauf F steht damit bei 151 bestätigt, 15 widerlegt, 75 gemessen, 0 gesehen, 0 Lage fehlt, 0 offen.**
+
 ## Noch offen
 
-Warum rund 5 Prozent der Schüsse ohne Verlust landen. Warum der erste Rahmen im Gefecht alt ist. Holztor als Ziel. Feuerkorb: Befehl 69 wirkte nicht (P312). Lauf-K-Stand (Szene 8b im Plan) ist nicht gefahren, die KI-Punkte kamen aus der Aufzeichnung von Lauf K. Lauf F: 30 Lagen fehlen, 11 Punkte sind nur gesehen, 1 ist offen. Liste in `Punkte_Lauf_F.md`.
+Warum rund 5 Prozent der Schüsse ohne Verlust landen. Warum der erste Rahmen im Gefecht alt ist. Holztor als Ziel. Feuerkorb: Befehl 69 wirkte nicht (P312). Lauf-K-Stand (Szene 8b im Plan) ist nicht gefahren, die KI-Punkte kamen aus der Aufzeichnung von Lauf K. Lauf F: siehe `Punkte_Lauf_F.md`.
 

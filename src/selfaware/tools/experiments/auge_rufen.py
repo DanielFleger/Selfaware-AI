@@ -40,6 +40,8 @@ class Messung:
         self.TM = karte.struktur("DAT_TileMapState")[0]
         self.PF = karte.struktur("DAT_PathFindingState")[0]
         self.MP = karte.struktur("DAT_MapPropertiesState")[0]
+        self.AIC = karte.struktur("DAT_AICState")[0]  # thiscall: Die Funktion rechnet mit ECX, auch wenn der Export es nicht zeigt (Absturz bei 0x4CB2C2 ohne Zeiger)
+        self.AIV = karte.struktur("DAT_AIVState")[0]
         self.aus = {}
         self.datei = ZIEL_DATEI.format(time.strftime("%Y%m%d_%H%M%S"))
 
@@ -519,9 +521,12 @@ class Messung:
         return z
 
     def p059_sumpf(self, x, y):
-        """Erwartet: Sumpffeld am Rand: MacroLayer & 0x3f = 1. Mit 8 Sumpf-Nachbarn: 2, 4, 8 oder 0x10. Gesetzt per Spielbefehl 21 mit Bit 0x20000000, wie der Graben mit 0x40000000."""
-        befehle = [{"player": 1, "spielbefehl": {"nr": 21, "werte": [x + i, y + j, 0, 0x20000000, 0]}} for i in range(7) for j in range(7)]
-        self.takte(60, *befehle)
+        """Erwartet: Sumpffeld am Rand: MacroLayer & 0x3f = 1. Mit 8 Sumpf-Nachbarn: 2, 4, 8 oder 0x10. Gesetzt per Spielbefehl 21 mit Bit 0x20000000. Der dritte Wert ist die Pinselgroesse: Nur der Graben setzt sie selbst (setTerrain), mit 0 geschieht sonst nichts (Lauf 20:27)."""
+        befehle = [{"player": 1, "spielbefehl": {"nr": 21, "werte": [x + i, y + j, 1, 0x20000000, 0]}} for i in range(7) for j in range(7)]
+        vorher = [[self.r.lies_i(*self.ebene("MacroLayer", self.s.kachel(x + i, y + j))) & 0x3f for i in range(-1, 8)] for j in range(-1, 8)]
+        self.takte(10, *befehle)
+        self.tm_setze("forceUpdateMacroLayerFlag", 1)
+        self.takte(60)
         z = {}
         reihen = []
         for j in range(-1, 8):
@@ -532,6 +537,7 @@ class Messung:
                 a, g = self.ebene("MacroLayer", t)
                 r.append(("S" if lo & 0x20000000 else "-", self.r.lies_i(a, g) & 0x3f))
             reihen.append(r)
+        z["vorher MacroLayer & 0x3f"] = vorher
         z["reihen (Sumpfbit, MacroLayer & 0x3f)"] = reihen
         return z
 
@@ -1111,3 +1117,392 @@ def szene3(l):
         m.probe("P221 Kinder Zustand", m.p221_zustand, p_kinder[0] + 2, p_kinder[1] + 2)
         m.probe("P197 Graben lang", m.p197_lang, p_graben[0] + 1, p_graben[1] + 1)
         return {"szene": "rufen3_g", "datei": m.datei, "proben": len(m.aus)}
+
+
+F_HOLZFAELLER, F_KAUFPLAN, F_NEUBAU, F_BITTE = 0x004cb290, 0x004cba50, 0x004f15c0, 0x004d1f00
+F_ZAEHLE = 0x0040a9b0  # countBuildingsForPlayer(this=Gebaeude, Spieler, Art, Filter)
+
+
+class Messung4(Messung3):
+    def ki_stand(self, n):
+        return {"aiType": self.p("aiType", n), "aivID": self.p("aivID", n), "Gold": self.ware(n, "Gold"), "Holz": self.ware(n, "Holz"), "Bevoelkerung": self.p("currentPopulation", n)}
+
+    def eigentum_tafel(self):
+        """Welche Gebaeudearten zaehlen als Feindgebaeude fuer den Radius 7 (DAT_BuildingTypeOwnable)? Die Hutte in Runde 3 zaehlte nicht."""
+        a, g, sch, n = self.K.adresse("DAT_BuildingDefinedData", "DAT_BuildingTypeOwnable[]")
+        s_ = sch or g
+        return [i for i in range(min(n, 120)) if self.r.lies_i(a + i * s_, g)]
+
+    def p214_ohne_ziel_gebaeude(self, nr):
+        """Die Suche nimmt vom Gebaeude nur Ort und Besitzer. Hier ein eigener Turm, kein Ziel im Umkreis. Erwartet: 0 bis 5, dann -1, Rueckgabe 0."""
+        x, y = self.b("x", nr), self.b("y", nr)
+        z = {"gebaeude": (nr, self.b("buildingType", nr), x, y), "Zaehler (Rueckgabe, Stand, Zielfeld)": []}
+        alt = self.b("tunnelerCounter", nr)
+        for _ in range(8):
+            w = self.r.rufe(F_TUNNEL, nr, 0, this=self.U)
+            z["Zaehler (Rueckgabe, Stand, Zielfeld)"].append((w, self.b("tunnelerCounter", nr), self.r.lies_i(self.K.adresse("DAT_PathFindingState", "ALG_TargetTile")[0])))
+        self.b_setze("tunnelerCounter", nr, alt)
+        for d in (20, 40, 80, 150):
+            self.r.rufe(F_TUNNELSUCHE, 1, 0, d, x, y - 1, this=self.PF)
+            z[f"Suche {d} Felder"] = self.r.lies_i(self.K.adresse("DAT_PathFindingState", "ALG_TargetTile")[0])
+        frei = self.s.raster()[0]
+        for dx, dy in ((8, 0), (-8, 0), (0, 8), (0, -8)):
+            if frei[y + dy, x + dx]:
+                self.tm_setze("buildingPlacementFailReason", 0)
+                self.r.rufe(F_BAUPLATZ, 1, x + dx, y + dy, MAPPER_TUNNEL, 3, this=self.TM)
+                z["Bauplatz ohne Ziel (Fehler, Grund)"] = (self.tm("buildingPlacementFail"), self.tm("buildingPlacementFailReason"), (x + dx, y + dy))
+                break
+        return z
+
+    def p221_mit_heim(self, x, y, heim, uid):
+        """Kinder ohne Zuhause verschwinden gleich. Mit Zuhause: 60 bleiben, von 90 sollen die ueber 75 gehen."""
+        z = {}
+        for n in (60, 90):
+            vorher = {e["nr"] for e in self.s.einheiten_alle()}
+            self.k.liste([{"setzeEinheit": {"spieler": 1, "typ": 64, "x": x, "y": y, "anzahl": n}}], lf.KANAL)
+            ende = time.time() + 8
+            neu = []
+            while time.time() < ende and len(neu) < n:
+                neu = [e["nr"] for e in self.s.einheiten_alle() if e["nr"] not in vorher and e["typ"] == 64]
+                time.sleep(0.2)
+            for i in neu:
+                self.u_setze("workplaceBuildingID_1", i, heim)
+                self.u_setze("workplaceBuildingUID", i, uid)
+            self.takte(2)
+            st = collections.Counter(self.u("state", i) for i in neu)
+            eintrag = {"gesetzt": len(neu), "nach 2 Takten Zustaende": st.most_common(5), "Zaehler 03": self.p("someCount03", 1)}
+            self.takte(36)
+            eintrag["nach 38 Takten noch da"] = sum(1 for e in self.s.einheiten_alle() if e["nr"] in set(neu))
+            z[f"{n} Kinder"] = eintrag
+            for i in neu:
+                self.u_setze("logicalState", i, ULS_REMOVE)
+            self.takte(3)
+        return z
+
+    def p182_holzfaeller(self, n, huetten):
+        """Erwartet: ab 3 Huetten kein Neubau, wenn der Wert unter 31 liegt, ab 6 unter 91, bei unter 1 nie."""
+        a, g = self.adr("DAT_AIVState", "mapExtraInfo.totalWoodAvailable")
+        alt = self.r.lies_i(a, g)
+        pop = self.p("currentPopulation", n)
+        self.p_setze("currentPopulation", n, 2000)
+        z = {"Wert jetzt": alt, "huetten": huetten}
+        for w in (0, 1, 30, 31, 90, 91, 500):
+            self.r.setze_i(a, w, g)
+            z[f"Wert {w}"] = self.r.rufe(F_HOLZFAELLER, n, this=self.AIC)
+        self.r.setze_i(a, alt, g)
+        self.p_setze("currentPopulation", n, pop)
+        return z
+
+    def p183_kaufplan(self, n):
+        """Erwartet: Zaehler steigt je Aufruf um 1, bei 37 steht im Wunsch Holz 5, sofern er vorher 0 war."""
+        a, gr, sch, _ = self.K.adresse("DAT_GameState", "playerDataArray[].resourcesToAcquireArray[]")
+        el = 4 if gr == 4 else gr
+        wunsch = a + n * sch + 2 * el
+        alt = (self.ware(n, "Holz"), self.p("noWoodTracker", n), self.r.lies_i(wunsch, el), self.p("countFletchersPoleturners", n), self.p("canStartSpending", n))
+        self.ware_setze(n, "Holz", 0)
+        self.p_setze("noWoodTracker", n, 30)
+        self.r.setze_i(wunsch, 0, el)
+        self.p_setze("countFletchersPoleturners", n, 1)
+        self.p_setze("canStartSpending", n, 1)
+        z = []
+        for _ in range(12):
+            self.r.rufe(F_KAUFPLAN, n, this=self.AIC)
+            z.append((self.p("noWoodTracker", n), self.r.lies_i(wunsch, el)))
+        self.ware_setze(n, "Holz", 50)
+        self.r.rufe(F_KAUFPLAN, n, this=self.AIC)
+        z.append(("mit Holz", self.p("noWoodTracker", n), self.r.lies_i(wunsch, el)))
+        self.ware_setze(n, "Holz", alt[0])
+        self.p_setze("noWoodTracker", n, alt[1])
+        self.r.setze_i(wunsch, alt[2], el)
+        self.p_setze("countFletchersPoleturners", n, alt[3])
+        self.p_setze("canStartSpending", n, alt[4])
+        return {"vorher": alt, "(Zaehler, Wunsch Holz)": z}
+
+    def p191_neubau(self, n):
+        """Erwartet: Gold ueber 16.000: Ziel +2 je Aufruf, bis 16.000: +1, bis 5.000: +1, aber erst nach aivPoorLimit Aufrufen."""
+        kid = self.p("aivID", n)
+        if kid <= 0:
+            return {"fehler": f"aivID {kid}"}
+
+        def av(f):
+            a, g = self.adr("DAT_AIVState", f"aivs[].{f}", kid)
+            return a, g
+        z = {"aivID": kid, "limit": self.r.lies_i(*av("aivPoorLimit_OR_AIC_buildInterval"))}
+        gold = self.ware(n, "Gold")
+        for wert in (20000, 10000, 3000):
+            self.ware_setze(n, "Gold", wert)
+            self.r.setze_i(*(av("aivPoorCounter")[:1]), 0, av("aivPoorCounter")[1])
+            r = []
+            for _ in range(8):
+                self.p_setze("resourceRebuildDelay", n, 0)
+                vor = self.r.lies_i(*av("currentStepGoal"))
+                self.r.rufe(F_NEUBAU, n, this=self.AIV)
+                r.append(self.r.lies_i(*av("currentStepGoal")) - vor)
+            z[f"Gold {wert}: Zuwachs je Aufruf"] = r
+        self.ware_setze(n, "Gold", gold)
+        return z
+
+    def p187_bitte(self, ki):
+        """Erwartet: Eine verbuendete KI bittet um Ware: beim Verbuendeten stehen Warennummer und Menge. Gesetzt: Spieler 1 und die KI im selben Team, dann requestGoods direkt."""
+        a, g, sch, _ = self.K.adresse("DAT_GameState", "mapAndTime.playerTeams[]")
+        el = sch or g
+        teams = [self.r.lies_i(a + i * el, g) for i in range(9)]
+        z = {"teams vorher": teams, "aiRequestDelay": self.p("aiRequestDelay", ki)}
+        self.r.setze_i(a + ki * el, teams[1], g)
+        self.p_setze("aiRequestDelay", ki, 0)
+        self.r.rufe(F_BITTE, ki, 2, 7, this=self.AIC)
+        z["Spieler 1: Ware, Menge"] = (self.p("requestedGoodsArray1Unk[]", 1, 2 * ki), self.p("requestedGoodsArray2Unk[]", 1, 2 * ki))
+        z["Spieler 3 (kein Team): Ware"] = self.p("requestedGoodsArray1Unk[]", 3, 2 * ki)
+        self.p_setze("requestedGoodsArray1Unk[]", 1, 0, 2 * ki)
+        self.p_setze("requestedGoodsArray2Unk[]", 1, 0, 2 * ki)
+        self.r.setze_i(a + ki * el, teams[ki], g)
+        self.r.rufe(F_BITTE, ki, 2, 7, this=self.AIC)
+        z["ohne Team: Spieler 1 bekommt"] = self.p("requestedGoodsArray1Unk[]", 1, 2 * ki)
+        return z
+
+
+def szene4(l):
+    from selfaware.game.ucp.bauen import NACH_TYP
+    from selfaware.tools.analysis.auge_feldkarte import FELDLISTE, Feldkarte
+    from selfaware.tools.experiments import auge_lauf_s as ls
+    from selfaware.tools.experiments.auge_aufzeichnung import pid_der_instanz
+
+    k, s = l.k, l.s
+    lk.anhalten(l)
+    ls.starttruppen_abwarten(l)
+    ls.abraeumen(l)
+    s.fern = 0
+    frei = s.raster()[0]
+    innen = ls.burgbereich(l)(frei)
+    feind = ls.burgbereich(l, sp=2)(frei)
+    orte = ls.packen(innen, [(8, 8), (10, 8), (30, 8), (8, 8)], rand=5)
+    orte_f = ls.packen(feind, [(12, 12), (24, 6)], rand=4)
+    if None in orte or None in orte_f:
+        raise ls.Abbruch(f"Kein Platz: {orte} {orte_f}")
+    (p_turm, p_heim, p_ziel, p_kinder) = orte
+    (p_feind, p_huetten) = orte_f
+    karte = Feldkarte.laden(feldliste=FELDLISTE)
+    turm = ls._g(74, p_turm[0] + 2, p_turm[1] + 2, spieler=1)
+    o = ls.erlaubte_stelle(l, turm)
+    if o:
+        turm["x"], turm["y"] = o
+    heim = ls._g(1, p_heim[0] + 2, p_heim[1] + 2, spieler=1)
+    rest = ls.gebaeude_setzen(l, [turm, heim])
+    lk.aufnahme_im_stand_ohne(l, lf.TEMPO_JEDER_TAKT)
+    l.warte_takte(2)
+    lk.anhalten(l)
+    h = next(v for v in NACH_TYP.values() if "WOODCUT" in str(v.get("laufzeitName")).upper())
+    with Rufer(pid_der_instanz(2)) as r:
+        m = Messung4(l, r, karte)
+        m.aus["aufbau"] = {"nicht_gesetzt": [z["name"] for z in rest], "turm": turm.get("nr"), "heim": heim.get("nr"), "KI 2": m.ki_stand(2), "Spieler 1": m.ki_stand(1)}
+        if "nr" in turm:
+            m.probe("P214 ohne Ziel", m.p214_ohne_ziel_gebaeude, turm["nr"])
+        m.probe("Eigentum-Tafel", m.eigentum_tafel)
+        tafel = m.aus["Eigentum-Tafel"]["ergebnis"]
+        wahl = next((t for t in (10, 19, 26, 9, 24, 25, 8) if isinstance(tafel, list) and t in tafel and t in NACH_TYP), None)
+        if wahl is not None:
+            fg = {"spieler": 2, "typ": wahl, "mapper": NACH_TYP[wahl]["mapper"], "groesse": NACH_TYP[wahl]["b"], "name": NACH_TYP[wahl]["laufzeitName"], "x": p_ziel[0] + 14, "y": p_ziel[1] + 2}
+            m.aus["aufbau"]["feindgebaeude"] = m.bau_ohne_pruefung(fg) + (wahl, fg.get("nr"), fg.get("x"), fg.get("y"))
+            if "nr" in fg:
+                m.probe("P199 an eigentumsfaehigem Feindgebaeude", m.p192_p199_naehe, fg["x"], fg["y"])
+        ft = ls._g(74, p_feind[0] + 5, p_feind[1] + 5, spieler=2)
+        o = ls.erlaubte_stelle(l, ft)
+        if o:
+            ft["x"], ft["y"] = o
+        m.aus["aufbau"]["feindturm nicht gesetzt"] = [z["name"] for z in ls.gebaeude_setzen(l, [ft])]
+        if "nr" in ft and "nr" in turm:
+            m.probe("P177 mit Ziel", m.p177_mit_ziel, turm["nr"], ft["nr"])
+        if "nr" in heim:
+            m.probe("P221 Kinder mit Zuhause", m.p221_mit_heim, p_kinder[0] + 2, p_kinder[1] + 2, heim["nr"], heim["uid"])
+        m.probe("P183 Kaufplan", m.p183_kaufplan, 2)
+        m.probe("P182 Holzfaeller 0 Huetten", m.p182_holzfaeller, 2, 0)
+        for i in range(1, 7):
+            hu = {"spieler": 2, "typ": 3, "mapper": h["mapper"], "groesse": h["b"], "name": h["laufzeitName"], "x": p_huetten[0] + 3 * (i - 1), "y": p_huetten[1] + 1}
+            m.aus["aufbau"][f"huette {i}"] = m.bau_ohne_pruefung(hu)
+            if i in (3, 6):
+                lk.aufnahme_im_stand_ohne(l, lf.TEMPO_JEDER_TAKT)
+                l.warte_takte(3)
+                lk.anhalten(l)
+                m.probe(f"P182 Holzfaeller {i} Huetten", m.p182_holzfaeller, 2, i)
+        m.probe("P191 Neubau", m.p191_neubau, 2)
+        m.probe("P187 Bitte um Ware", m.p187_bitte, 2)
+        return {"szene": "rufen4_g", "datei": m.datei, "proben": len(m.aus)}
+
+
+class OhneAufzeichnung:
+    """Der KI-Lauf zeichnet nichts auf, die Wache fragt trotzdem nach Fehlern der Aufzeichnung (Lauf 20:30)."""
+
+    def fehler(self):
+        return None
+
+
+class MessungKI(Messung4):
+    def p182_tafel(self):
+        """Wie zaehlt das Spiel die Huetten? countBuildingsForPlayer mit und ohne Filter, dazu die Grenzen je KI (Versatz 0x54 und 0x6c der KI-Daten)."""
+        z = {}
+        beste, ziel = -1, 1
+        for n in range(1, 9):
+            ai = self.p("aiType", n)
+            ba = self.AIC + (ai - 1) * 0x2a4
+            voll = self.r.rufe(F_ZAEHLE, n, 3, 0, this=self.B)
+            gefiltert = self.r.rufe(F_ZAEHLE, n, 3, 1, this=self.B)
+            bev, hoechst = self.r.lies_i(ba + 0x54), self.r.lies_i(ba + 0x6c)
+            z[n] = {"KI": ai, "Huetten alle": voll, "gezaehlt": gefiltert, "Leute je Huette": bev, "hoechstens": hoechst}
+            if hoechst > beste and bev > 0:
+                beste, ziel = hoechst, n
+        return {"je Spieler": z, "ziel": ziel}
+
+    def p183_schwelle(self, n):
+        """Bei welchem Zaehler entsteht der Holzwunsch? Erwartet laut Export: ueber 36, also bei 37. In der letzten Probe stand er schon bei 31."""
+        a, gr, sch, _ = self.K.adresse("DAT_GameState", "playerDataArray[].resourcesToAcquireArray[]")
+        el = 4 if gr == 4 else gr
+        wunsch = a + n * sch + 2 * el
+        alt = (self.ware(n, "Holz"), self.p("noWoodTracker", n), self.r.lies_i(wunsch, el), self.p("countFletchersPoleturners", n), self.p("canStartSpending", n))
+        self.p_setze("countFletchersPoleturners", n, 1)
+        self.p_setze("canStartSpending", n, 1)
+        self.ware_setze(n, "Holz", 0)
+        self.p_setze("noWoodTracker", n, 0)
+        self.r.setze_i(wunsch, 0, el)
+        z = []
+        for _ in range(45):
+            self.r.rufe(F_KAUFPLAN, n, this=self.AIC)
+            w = (self.p("noWoodTracker", n), self.r.lies_i(wunsch, el))
+            if not z or z[-1][1] != w[1]:
+                z.append(w)
+        erg = {"vorher": alt, "(Zaehler, Wunsch) bei jedem Wechsel des Wunsches": z}
+        self.r.setze_i(wunsch, 3, el)
+        self.p_setze("noWoodTracker", n, 44)
+        self.r.rufe(F_KAUFPLAN, n, this=self.AIC)
+        erg["Wunsch war 3, Zaehler 45"] = self.r.lies_i(wunsch, el)
+        self.ware_setze(n, "Holz", alt[0])
+        self.p_setze("noWoodTracker", n, alt[1])
+        self.r.setze_i(wunsch, alt[2], el)
+        self.p_setze("countFletchersPoleturners", n, alt[3])
+        self.p_setze("canStartSpending", n, alt[4])
+        return erg
+
+    def p191_im_lauf(self, gold, takte, schritt):
+        """Erwartet: Das Ziel steigt ueber 16.000 Gold um 2 je Aufruf, bis 16.000 um 1, bis 5.000 um 1 erst nach der Wartezeit. Das Gold wird alle paar Takte neu gesetzt, das Spiel laeuft dazwischen."""
+        z = {}
+        reihen = {n: [] for n in gold}
+        kids = {n: self.p("aivID", n) for n in gold}
+        def lies(n, f):
+            a, g = self.adr("DAT_AIVState", f"aivs[].{f}", kids[n])
+            return self.r.lies_i(a, g)
+        z["limit"] = {n: lies(n, "aivPoorLimit_OR_AIC_buildInterval") for n in gold}
+        for _ in range(takte // schritt):
+            for n, g in gold.items():
+                self.ware_setze(n, "Gold", g)
+            self.takte(schritt)
+            for n in gold:
+                v = lies(n, "currentStepGoal")
+                if not reihen[n] or reihen[n][-1][1] != v:
+                    reihen[n].append((self.s.takt(), v))
+        for n, g in gold.items():
+            sp = collections.Counter(b[1] - a[1] for a, b in zip(reihen[n], reihen[n][1:]))
+            ab = collections.Counter(b[0] - a[0] for a, b in zip(reihen[n], reihen[n][1:]))
+            z[f"Spieler {n}, Gold {g}"] = {"Spruenge": sp.most_common(5), "Abstand Takte": ab.most_common(5), "Anfang": reihen[n][:10]}
+        return z
+
+    def p187_bitte_ki(self, ki, ziel):
+        """Erwartet: Beim Verbuendeten stehen Warennummer und Menge. Das Ziel ist nicht der angezeigte Spieler, damit keine Bildbotschaft startet."""
+        a, g, sch, _ = self.K.adresse("DAT_GameState", "mapAndTime.playerTeams[]")
+        el = sch or g
+        teams = [self.r.lies_i(a + i * el, g) for i in range(9)]
+        z = {"teams vorher": teams, "aiType": self.p("aiType", ki), "aiRequestDelay": self.p("aiRequestDelay", ki), "Essen": self.p("totalFood", ki)}
+        self.r.setze_i(a + ki * el, teams[ziel], g)
+        self.p_setze("aiRequestDelay", ki, 0)
+        self.p_setze("requestedGoodsArray1Unk[]", ziel, 0, 2 * ki)
+        self.p_setze("requestedGoodsArray2Unk[]", ziel, 0, 2 * ki)
+        self.r.rufe(F_BITTE, ki, 2, 7, this=self.AIC)
+        z["Holz, Menge 7: beim Partner"] = (self.p("requestedGoodsArray1Unk[]", ziel, 2 * ki), self.p("requestedGoodsArray2Unk[]", ziel, 2 * ki))
+        self.p_setze("requestedGoodsArray1Unk[]", ziel, 0, 2 * ki)
+        self.p_setze("requestedGoodsArray2Unk[]", ziel, 0, 2 * ki)
+        self.r.rufe(F_BITTE, ki, 3, 7, this=self.AIC)
+        z["Hopfen ist ausgenommen: beim Partner"] = self.p("requestedGoodsArray1Unk[]", ziel, 2 * ki)
+        self.r.setze_i(a + ki * el, teams[ki], g)
+        self.r.rufe(F_BITTE, ki, 2, 7, this=self.AIC)
+        z["ohne Team: beim Partner"] = self.p("requestedGoodsArray1Unk[]", ziel, 2 * ki)
+        return z
+
+
+def ki_main(n=2, karte_name="Green Haven", takte=2500):
+    """Ein KI-Gefecht bis Takt 2500, dann die KI-Regeln direkt. Erwartungen stehen bei den Proben."""
+    from selfaware.game.ucp.bauen import NACH_TYP
+    from selfaware.tools.analysis.auge_feldkarte import FELDLISTE, Feldkarte
+    from selfaware.tools.experiments import auge_lauf_s as ls
+    from selfaware.tools.experiments.auge_aufzeichnung import ProzessQuelle, pid_der_instanz
+
+    lf.pruefe_laufinstanz(n)
+    lf.sperre_holen("Rufen KI (B-142)")
+    steht = False
+    k = s = None
+    try:
+        k = lf.EchterKanal()
+        lf.warte_auf_modul(k)
+        for rest in lf.ALTE_SCHALTER:
+            k.befehl(rest, lf.KANAL)
+        karte = Feldkarte.laden(feldliste=FELDLISTE)
+        quelle = ProzessQuelle(pid_der_instanz(n))
+        s = ls.SpeicherS(quelle, karte)
+        lk.gefecht_starten(k, karte_name, lk.FRIEDEN_NORMAL, startpause=1)
+        steht, t = lf.anhalten_und_pruefen(k, s)
+        if not steht:
+            raise lf.Abbruch(f"Steht nicht am Start: {t}")
+        l = ls.LaufS(k, s, OhneAufzeichnung(), print)
+        l.gefecht = True
+        s.fern = 0
+        lk.aufnahme_im_stand_ohne(l, lf.TEMPO_LAUF)
+        l.warte_takte(takte)
+        lk.anhalten(l)
+        h = next(v for v in NACH_TYP.values() if "WOODCUT" in str(v.get("laufzeitName")).upper())
+        with Rufer(pid_der_instanz(n)) as r:
+            m = MessungKI(l, r, karte)
+            m.aus["aufbau"] = {"takt": s.takt(), "spieler": {i: m.ki_stand(i) for i in range(1, 9)}, "huetten": {i: sum(1 for g in s.gebaeude(i) if g["typ"] == 3) for i in range(1, 9)}}
+            m.probe("P182 Tafel", m.p182_tafel)
+            ziel = m.aus["P182 Tafel"]["ergebnis"]["ziel"]
+            lord = next(e for e in s.einheiten_alle() if e["typ"] == 55 and e["besitzer"] == ziel)
+            for _ in range(10):
+                c = m.r.rufe(F_ZAEHLE, ziel, 3, 1, this=m.B)
+                m.probe(f"P182 mit {c} Huetten", m.p182_holzfaeller, ziel, c)
+                if c >= 7:
+                    break
+                o = ls.erlaubte_stelle(l, {"mapper": h["mapper"], "groesse": h["b"], "x": lord["x"] + 14, "y": lord["y"], "spieler": ziel}, rand=25)
+                if not o:
+                    break
+                z = {"spieler": ziel, "typ": 3, "mapper": h["mapper"], "groesse": h["b"], "name": h["laufzeitName"], "x": o[0], "y": o[1]}
+                if not m.bau_ohne_pruefung(z)[0]:
+                    break
+                lk.aufnahme_im_stand_ohne(l, lf.TEMPO_JEDER_TAKT)
+                l.warte_takte(1)
+                lk.anhalten(l)
+            m.probe("P183 Schwelle Spieler 2", m.p183_schwelle, 2)
+            m.probe("P191 Neubau im Lauf", m.p191_im_lauf, {2: 20000, 5: 10000, 6: 3000}, 800, 5)
+            m.probe("P187 Bitte um Ware", m.p187_bitte_ki, 3, 2)
+            print("DATEI", m.datei)
+        steht, t = lf.anhalten_und_pruefen(k, s)
+    finally:
+        if steht:
+            lf.sperre_freigeben()
+
+
+def szene_e(l):
+    """P059 im Editor: Sumpf per Spielbefehl 21 wie der Graben (setTerrain, Flag 0x20000000). Erwartet: Sumpffeld am Rand MacroLayer & 0x3f = 1, mit 8 Sumpf-Nachbarn 2, 4, 8 oder 0x10."""
+    from selfaware.tools.analysis.auge_feldkarte import FELDLISTE, Feldkarte
+    from selfaware.tools.experiments import auge_lauf_s as ls
+    from selfaware.tools.experiments.auge_aufzeichnung import pid_der_instanz
+
+    lk.anhalten(l)
+    frei = l.s.raster()[0]
+    ort = ls.packen(frei, [(14, 14)], rand=10)[0]
+    if ort is None:
+        raise ls.Abbruch("Kein Platz fuer den Sumpf")
+    karte = Feldkarte.laden(feldliste=FELDLISTE)
+    with Rufer(pid_der_instanz(2)) as r:
+        m = Messung4(l, r, karte)
+        m.probe("P059 Sumpf im Editor", m.p059_sumpf, ort[0] + 3, ort[1] + 3)
+        return {"szene": "rufen_e", "datei": m.datei, "proben": len(m.aus)}
+
+
+if __name__ == "__main__":
+    ki_main()

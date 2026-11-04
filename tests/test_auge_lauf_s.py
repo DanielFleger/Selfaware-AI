@@ -1110,6 +1110,7 @@ def test_sonder24_baut_zelt_mit_trupp_und_wirft_oel(tmp_path):
     assert len(wer) == 4 and {e["typ"] for e in wer} == {30}
     assert stufen[0][0] == ls.TUNNEL_TRUPP
     assert len(p["zelt2"](100, 100)[1]) == 2
+    assert ls.MAPPER_ZELT_TURM == 192  # 94 baut Art 69, kein Zelt
     _, _, _, _, stufen = p["punkt_halten"](100, 100)
     assert [t for t, _ in stufen] == list(range(50, 1001, 50))
     _, _, _, _, stufen = p["mauer_real"](100, 100)

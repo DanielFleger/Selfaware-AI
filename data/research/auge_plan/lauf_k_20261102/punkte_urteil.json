@@ -394,9 +394,10 @@
 }
 ],
 "aus_lauf_f_zaehlung": {
-"Lage fehlte": 9,
-"bestaetigt": 9,
-"gemessen": 2
+"Lage fehlte": 3,
+"bestaetigt": 13,
+"gemessen": 2,
+"widerlegt": 2
 },
 "aus_lauf_f": [
 {
@@ -444,14 +445,14 @@
 {
 "nr": "P182",
 "funktion": "aiShouldBuildWoodcutter",
-"urteil": "Lage fehlte",
-"grund": "`mapExtraInfo.totalWoodAvailable` fiel nie unter 435, die Grenzen 31 und 91 griffen nicht. Zuständig: Karte mit wenig Holz."
+"urteil": "bestaetigt",
+"grund": "Direkt gerufen, echte KI: 5 Hütten: Wert 30 nein, 31 ja. 6 und 7 Hütten: 90 nein, 91 ja. Gezählt wird mit Filter: Spieler 1 hat 7, gezählt 5. Decke je KI 1 bis 10. `rufen_*.json`."
 },
 {
 "nr": "P183",
 "funktion": "planToBuyWhenLowOnResourceAndSnoozeBuildings",
-"urteil": "Lage fehlte",
-"grund": "Der Zähler steigt je Aufruf um 1 (4 Schritte in den strengen Fenstern). Bei 37 stand der Holzwunsch in 63 Lesungen schon auf 17 oder 22; der Fall Wunsch vorher 0 kam nicht vor."
+"urteil": "widerlegt",
+"grund": "Direkt gerufen, echte KI: Zähler +1 je Aufruf stimmt. Der Wunsch 5 entsteht aber bei Zähler 3, nicht bei 37. War er schon 3, bleibt er. Die Funktion weicht im Speicher ab (14 Befehle). `rufen_*.json`."
 },
 {
 "nr": "P184",
@@ -492,14 +493,14 @@
 {
 "nr": "P191",
 "funktion": "aiDecideOnNewBuildings",
-"urteil": "Lage fehlte",
-"grund": "Gold über 16.000 kam nicht vor. Bei Gold bis 16.000 steigt das Ziel je Lesung um 1 (8.162 Fälle); die Wartezeit `aivPoorLimit` ist nicht nachgerechnet."
+"urteil": "bestaetigt",
+"grund": "Im Lauf, Gold alle 5 Takte gesetzt: 20.000: +2 (17 Sprünge), 10.000: +1 (19), je rund alle 50 Takte. 3.000: +1 nur rund alle 100 Takte (Wartezeit 2). Direkt gerufen endete das Spiel mit Absturz bei 0x42E812, Ursache nicht geklärt. `rufen_*.json`."
 },
 {
 "nr": "P192",
 "funktion": "validateWallPlacementAtTile",
-"urteil": "Lage fehlte",
-"grund": "Braucht einen Baubefehl neben einem Feindgebäude. Zuständig: Lauf S."
+"urteil": "widerlegt",
+"grund": "Feindgebäude: nur das angrenzende Feld ist verboten, Turm, Hütte und Lager gleich. 4 Felder Abstand sind erlaubt. Die Grenze 5 gilt für Feind-Einheiten: Abstand 1 bis 4 verboten, ab 5 frei. `rufen_*.json`."
 },
 {
 "nr": "P194",
@@ -510,14 +511,14 @@
 {
 "nr": "P199",
 "funktion": "validateWallBuildPath",
-"urteil": "Lage fehlte",
-"grund": "Gründe im Lauf 17, 23, 22, 3; 0x13 kam nicht vor. Braucht einen Mauerbefehl dicht am Gegner. Zuständig: Lauf S."
+"urteil": "bestaetigt",
+"grund": "Direkt, Einzelfeld: Lager des Gegners (Art 10): unter 7 Felder vom Rand verboten mit Grund 0x13. Hütte und Turm zählen nicht. Feind-Einheit: unter 15 Felder verboten, Grund 0x11. Außerhalb der Reichweite: Grund 0x12. `rufen_*.json`."
 },
 {
 "nr": "P201",
 "funktion": "checkBuildingCanBePlacedHere",
-"urteil": "Lage fehlte",
-"grund": "Grund 23 (0x17) kam vor, die Lage dazu ist nicht geprüft; 0x12 und 1000 nicht. Braucht gezielte Baubefehle. Zuständig: Lauf S."
+"urteil": "bestaetigt",
+"grund": "Direkt gerufen: Reichweite 45, 50, 60, 70 je Kartengröße 160, 200, 300, 400, um den Punkt 140, 268 bei Burg 138, 262. Karte 200: entferntestes Feld 50 geht, 51 Grund 0x12. Käfige ab 10 Grund 1000. Farm: Grund 0x16 an 742 Stellen, 0x17 (unter 50 Gras) an einer. `rufen_*.json`."
 }
 ]
 }

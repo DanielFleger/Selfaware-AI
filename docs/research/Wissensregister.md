@@ -432,3 +432,8 @@ Tick 4.731-7.737, Aufloesung 14,5 Ticks (`daten/lage_ablauf_fein_20261006_224521
 | S44 | SamurAI darf alles, was ein Mensch auch kann, auch Einheiten auf einen Punkt packen. Dazu per Befehl mehr als 5 Mann auf einen Wachturm, die Grenze 5 gilt nur beim Mausklick | Daniel | Entscheidung 04.11.2026, P338 |
 | S45 | Einheiten auf einen Punkt: Einzeln befohlen stehen 8 ab Takt 135 auf einem Feld, das haelt bis Takt 376, bei 677 stehen alle einzeln. Als Trupp verteilt | getestet | `sonder23`, `punkte_rechnung_b.txt` |
 | S46 | Buendnis: Teams im Speicher halten, Gold geht genau an den Partner (332, 272, 60). Am Ende lebten nur Lords eines Teams, dann gameOver | getestet | Lauf F P001, P185, `punkte_rechnung_b.txt` |
+| S47 | Funktionen des Spiels lassen sich im Messlauf direkt rufen (`spielcode_rufen.py`, nur Instanz 2). Der Export verschweigt ECX: Ohne echten this-Zeiger stuerzt das Spiel ab | getestet | `rufen_*.json`, Ereignisprotokoll 0x4CB2C2 |
+| S48 | Bau-Reichweite 45, 50, 60, 70 je Kartengroesse, um einen Punkt bei der Burg, das entfernteste Feld zaehlt | getestet | `rufen_20261104_201127.json` |
+| S49 | Mauer am Feind: Einheit Feld unter 5, Weg unter 15. Gebaeude nur angrenzend, Weg unter 7 nur bei eigentumsfaehigen Arten wie Lager | getestet | `rufen_20261104_201941.json`, `rufen_20261104_202401.json` |
+| S50 | KI: Holz kaufen ab Zaehler 3 statt 37, Bitte um Ware nur an Menschen im Team, Bau-Ziel +2 ueber 16.000 Gold | getestet | `rufen_20261104_203818.json`, `rufen_bitte_20261104.json` |
+| S51 | Leitertraeger 20 Gold, Pike 1 Holz, Bogen 2 Holz, Kinder 75, Tempotasten bis 1.100 | getestet | `rufen_*.json`, `punkte_rechnung20.txt` |

@@ -94,7 +94,7 @@ Lauf K 02.11.2026 23:49, Instanz 2, Green Haven, 8 KI, Liga-Balance. Geschrieben
 
 ## Aus Lauf F verschoben (20)
 
-Das Urteil von Lauf F schob diese Punkte auf Lauf K. bestaetigt: 9, gemessen: 2, Lage fehlte: 9.
+Das Urteil von Lauf F schob diese Punkte auf Lauf K. bestaetigt: 13, widerlegt: 2, gemessen: 2, Lage fehlte: 3.
 
 | Punkt | Funktion | Urteil | Beleg |
 |---|---|---|---|
@@ -105,16 +105,16 @@ Das Urteil von Lauf F schob diese Punkte auf Lauf K. bestaetigt: 9, gemessen: 2,
 | P053 | `applyAIV` | bestaetigt | Nur Status 0 und 1. 1.634 von 1.634 Bau-Schritten liegen im 100x100-Feld ab dem Versatz. Bei den 593 Wand-Schritten ist `location` keine Kachel, sondern der Anfang in `locationsArray`; davon je Spieler 9 Felder geprüft, alle im Feld. |
 | P054 | `recomputeHeatmaps` | gemessen | Eisen in 62 Zellen, Summe 595; Felsbrocken in 147 Zellen, Summe 1.729; Öl 0. Mit den Vorkommen der Karte nicht verglichen. |
 | P181 | `aiUpdateTaxesAndRations` | bestaetigt | Unter der kritischen Beliebtheit steht die Steuer im Wochentakt auf 2: 1.056 von 1.058 Lesungen (Spieler 6 und 8, die einzigen unter ihrer Grenze). Die 2 anderen zeigen 3 bei Spieler 8, nicht einzeln nachgesehen. |
-| P182 | `aiShouldBuildWoodcutter` | Lage fehlte | `mapExtraInfo.totalWoodAvailable` fiel nie unter 435, die Grenzen 31 und 91 griffen nicht. Zuständig: Karte mit wenig Holz. |
-| P183 | `planToBuyWhenLowOnResourceAndSnoozeBuildings` | Lage fehlte | Der Zähler steigt je Aufruf um 1 (4 Schritte in den strengen Fenstern). Bei 37 stand der Holzwunsch in 63 Lesungen schon auf 17 oder 22; der Fall Wunsch vorher 0 kam nicht vor. |
+| P182 | `aiShouldBuildWoodcutter` | bestaetigt | Direkt gerufen, echte KI: 5 Hütten: Wert 30 nein, 31 ja. 6 und 7 Hütten: 90 nein, 91 ja. Gezählt wird mit Filter: Spieler 1 hat 7, gezählt 5. Decke je KI 1 bis 10. `rufen_*.json`. |
+| P183 | `planToBuyWhenLowOnResourceAndSnoozeBuildings` | widerlegt | Direkt gerufen, echte KI: Zähler +1 je Aufruf stimmt. Der Wunsch 5 entsteht aber bei Zähler 3, nicht bei 37. War er schon 3, bleibt er. Die Funktion weicht im Speicher ab (14 Befehle). `rufen_*.json`. |
 | P184 | `addBuildingToTargetableBuildings` | bestaetigt | Schritt +1 (52 von 60 Wechseln), Höchstwert 100. Dazu -1 (8 Wechsel): `getTargetableBuildingForPlayerID` zieht ab. |
 | P185 | `shareGoldAmongTeamMembers` | Lage fehlte | Kein Team. Zuständig: Gefecht mit Bündnis. |
 | P186 | `sellExcessGoods` | bestaetigt | Stichprobe: Spieler 3 verkauft Ware 13 bei 56 auf 50, Grenze 52 mit Spielraum. In 54 Fällen fiel eine Ware über ihrer Grenze im Verkaufstakt; je Aufruf wird nur eine Ware verkauft, die übrigen gezählten Fälle sind Verbrauch im selben Takt. |
 | P187 | `requestGoods` | Lage fehlte | Kein Bündnis. Zuständig: Gefecht mit Bündnis. |
 | P188 | `aiRecruitUnits` | gemessen | 12 von 47 neuen Warenwünschen im Wert +0x9c der KI, 15 weitere gehören zum Holz. Die anderen stammen aus anderen Wegen; `euroUnitAcquisitionFailReason` ist nicht mitgelesen, die Lage ist daher nicht eindeutig. |
 | P189 | `aiBuyAndSellGoods` | bestaetigt | `willBuy` wechselt nur im Tagestakt des Spielers: 764 von 768, sonst 0 von 38.065. Die 4 ohne Wechsel sind nicht einzeln nachgesehen. |
-| P191 | `aiDecideOnNewBuildings` | Lage fehlte | Gold über 16.000 kam nicht vor. Bei Gold bis 16.000 steigt das Ziel je Lesung um 1 (8.162 Fälle); die Wartezeit `aivPoorLimit` ist nicht nachgerechnet. |
-| P192 | `validateWallPlacementAtTile` | Lage fehlte | Braucht einen Baubefehl neben einem Feindgebäude. Zuständig: Lauf S. |
+| P191 | `aiDecideOnNewBuildings` | bestaetigt | Im Lauf, Gold alle 5 Takte gesetzt: 20.000: +2 (17 Sprünge), 10.000: +1 (19), je rund alle 50 Takte. 3.000: +1 nur rund alle 100 Takte (Wartezeit 2). Direkt gerufen endete das Spiel mit Absturz bei 0x42E812, Ursache nicht geklärt. `rufen_*.json`. |
+| P192 | `validateWallPlacementAtTile` | widerlegt | Feindgebäude: nur das angrenzende Feld ist verboten, Turm, Hütte und Lager gleich. 4 Felder Abstand sind erlaubt. Die Grenze 5 gilt für Feind-Einheiten: Abstand 1 bis 4 verboten, ab 5 frei. `rufen_*.json`. |
 | P194 | `countMoatsOwnedByEachPlayer` | bestaetigt | `moatsOwned` gleich eigener Zählung der Grabenfelder in `moats[]`: 448 von 448 Monatstakten. |
-| P199 | `validateWallBuildPath` | Lage fehlte | Gründe im Lauf 17, 23, 22, 3; 0x13 kam nicht vor. Braucht einen Mauerbefehl dicht am Gegner. Zuständig: Lauf S. |
-| P201 | `checkBuildingCanBePlacedHere` | Lage fehlte | Grund 23 (0x17) kam vor, die Lage dazu ist nicht geprüft; 0x12 und 1000 nicht. Braucht gezielte Baubefehle. Zuständig: Lauf S. |
+| P199 | `validateWallBuildPath` | bestaetigt | Direkt, Einzelfeld: Lager des Gegners (Art 10): unter 7 Felder vom Rand verboten mit Grund 0x13. Hütte und Turm zählen nicht. Feind-Einheit: unter 15 Felder verboten, Grund 0x11. Außerhalb der Reichweite: Grund 0x12. `rufen_*.json`. |
+| P201 | `checkBuildingCanBePlacedHere` | bestaetigt | Direkt gerufen: Reichweite 45, 50, 60, 70 je Kartengröße 160, 200, 300, 400, um den Punkt 140, 268 bei Burg 138, 262. Karte 200: entferntestes Feld 50 geht, 51 Grund 0x12. Käfige ab 10 Grund 1000. Farm: Grund 0x16 an 742 Stellen, 0x17 (unter 50 Gras) an einer. `rufen_*.json`. |
