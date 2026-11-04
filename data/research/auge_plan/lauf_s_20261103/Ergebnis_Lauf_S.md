@@ -319,7 +319,7 @@ Liste V7, in mehreren Durchgängen. Belege: `sonder1`, `sonder2`, `sonder_g`, `s
 
 ## Einzelpunkte und Nachlauf, 04.11.
 
-Alle 75 Punkte der Checkliste sind gegen ihre Erwartung gerechnet: `Punkte_Lauf_S.md`. 41 bestätigt, 11 widerlegt, 4 teils, 2 gemessen, 14 Lage fehlte, 3 offen. Der Nachlauf hat dafür die fehlenden Lagen gefahren: `sonder8` (Editor), `sonder8_g`, `sonder9_g`, `lord2_g` (Gefecht), Auswertung `punkte_rechnung6.txt` und `punkte_rechnung7.txt`.
+Alle 75 Punkte der Checkliste sind gegen ihre Erwartung gerechnet: `Punkte_Lauf_S.md`. Stand nach dem ersten Nachlauf: 41 bestätigt, 11 widerlegt, 4 teils, 2 gemessen, 14 Lage fehlte, 3 offen. Stand nach dem zweiten: 52 bestätigt, 16 widerlegt, 4 gemessen, 2 teils, 1 Lage fehlt, 0 offen. Der Nachlauf hat dafür die fehlenden Lagen gefahren: `sonder8` (Editor), `sonder8_g`, `sonder9_g`, `lord2_g` (Gefecht), Auswertung `punkte_rechnung6.txt` und `punkte_rechnung7.txt`.
 
 **Widerlegt:**
 
@@ -346,6 +346,55 @@ Ein Stück fällt, wenn der Schaden über 70 steigt. Am Ende einer Mauer (1 Nach
 
 **Nachladen (P308):** Laut Code nur für die KI. Beim Menschen blieb die Munition trotz 200 Stein auf 0. **Befehl 86 (P309):** abgesetzt, ohne Wirkung, ungeklärt.
 
+## Code-Abgleich und zweiter Nachlauf, 04.11. 16:50 bis 17:54
+
+**Der wichtigste Fund des Tages: Das laufende Spiel ist nicht der Export.** Ich habe jeden Befehl aus dem Ghidra-Export mit dem Speicher von Instanz 2 verglichen, nur lesend: 814 von 428.114 Befehlen weichen ab, in 157 Funktionen. Das ist UCP3, es ändert Befehle beim Laufen. Dazu Tausende Werte in den Daten-Tabellen. Beleg: `code_abgleich.py`, `code_abgleich.txt`, `code_abgleich.json`, `daten_abgleich.py`, `daten_abgleich.txt`.
+
+Damit lösen sich meine „unerklärten“ Messwerte auf:
+
+| Was | Export | Im Speicher | Gemessen |
+|---|---|---|---|
+| Tor reagiert unter | 200 Mikro (25 Felder) | 140 Mikro (17,5 Felder) | reagiert bei 17, nicht bei 18 |
+| Tor bleibt zu nach Feind | 1.200 Takte | 100 Takte | gateState2 springt auf 100 |
+| Ramme je Treffer | 50 | 125 | 125 |
+| Pfeil, Bolzen, weiteste Stufe | 432 Mikro (54 Felder) | 320 Mikro (40 Felder) | Pfeil trifft bis 40, nicht mehr auf 42 |
+| Munition Start und Auffüllen | 20 | 10 | 10 |
+| Nachladen je Einheit | +20 | +10 | 5 auf 15, KI in Lauf K +10 |
+| Stein je Schuss beim Auffüllen | 1 Stein, 2 Schuss | 1 Stein, 1 Schuss | 2 Stein gaben +2 |
+| Angst | 5 Prozent je Stufe | Tabelle 80 bis 140 Prozent | 105, 87 und 60 bei Grund 75 |
+| Mauer je Schlag Speer, Pike, Keule, Tunnel | 4, 6, 6, 6 | 2, 5, 5, 20 | 2, 5, 5, 20 |
+| Gebäude je Schlag Schwert, Ritter | 70 oder 6 | 100 oder 10 | Hütte 100, Tor und Turm 10 |
+| Gebäude je Schlag Keule | 35 oder 4 | 80 oder 15 | Hütte 80 |
+| Hunde kommen ab Wert | 25 | 16 | noch nicht an der Grenze gefahren |
+
+**Regel für alles Weitere:** Eine Zahl aus dem Export ist ein Grundwert. Vor jeder Aussage „der Code sagt“ steht der Blick in `code_abgleich.json`.
+
+**Weg auf den Turm (sonder10, 12, 13, 14, 17):** Fünf Läufe, vier Fehler von mir, jeder aus den Daten erklärt:
+
+1. Eine Mauerlinie, die auf ein belegtes Feld reicht, baut das Spiel gar nicht (`validateWallBuildPath`). Eine Einheit auf der Linie genügt ebenso. Das Werkzeug liest jetzt nach, wiederholt bis zu 5 Mal und schreibt `mauer_fehlt` in den Plan. Ein Ring blieb so nie mehr still offen.
+2. Eine Treppe aus einem Feld springt von 8 auf 82. Die Treppe ist eine Linie weg von der Mauer: 82, 66, 50, 34, 18.
+3. Der Laufbefehl im selben Augenblick wie der Bau wirkt nicht: `giveTribeMoveInstruction` gibt auf, wenn die Flächen nicht verbunden sind, und die Flächenkarte kommt erst später neu. 300 Takte nach dem Bau läuft die Einheit los.
+4. Die vier Turmecken sind gesperrt (Fläche 0, Bit 0x400), nicht der Eingang, wie ich gelesen hatte. Die Mitte ist begehbar.
+
+Danach: 8 von 8 auf dem Wachturm. Die Grenze 5 gilt nur beim Mausklick. Beim Klettern steigt das Tempo um 4 und 5. Der Turm hat auf der Karte Höhe 8, das ist richtig so.
+
+**Tor:** Die Kette 0, 1, 2, 3, 0 stimmt. Entwarnung: Feind geht ab Takt 1.000 weg, Tor öffnet ab Takt 1.185. Durch ein offenes Tor geht der Besitzer hindurch, um ein geschlossenes läuft er außen herum, auch wenn das 12 Felder Umweg sind.
+
+**Löschen (sonder10_g):** Mit Brunnen brennt die Hütte 254 und beim zweiten Mal 221 Takte, ohne Brunnen waren es 960 bis 980 (sonder1). Die Feuerwache (Art 53, Arbeitsplatz der Brunnen) ist ein Bauer, der von selbst kommt und zum Feuer geht. Die Hütte verlor dabei 53 und 45 Leben.
+
+**Angst (sonder10_g):** 5 Gärten geben Stufe +5, Schaden 140 Prozent. 5 Galgen geben Stufe -5, Schaden 80 Prozent. Wächst die Bevölkerung, sinkt die Stufe: von +5 auf +2 bei Takt 303. Die Stufe rechnet das Spiel aus den Bauten neu, ein gesetzter Wert hielte nicht.
+
+**Warum der Truppenbefehl schneller ist:** Der Direktbefehl läuft im Zustand 2 mit Tempo-Zuschlag 0, der Truppenbefehl im Zustand 101 mit Zuschlag 1 (`laufen`, `laufen_trupp`, `updateUnits`).
+
+**Zwei Aussagen von mir waren falsch und sind berichtigt:**
+
+- „finalKillMatrix ändert sich nie“: Das Feld stand gar nicht in der Aufzeichnung, ich hatte nichts gelesen. Aus dem Speicher gelesen stimmt es: [Töter][Opfer] +1.
+- „Spielbefehl 86 ohne Wirkung, ungeklärt“: Mein Befehl hatte den falschen zweiten Wert.
+
+**Beim Melden hat mich mein eigener Ablauf aufgehalten:** Ein Lauf hängt an der Gegenprobe. Sie schlug an, also fuhr nichts, und ich meldete fälschlich „Szenen zu Ende“. Das Werkzeug war richtig, meine Meldung nicht.
+
+**KI aus Lauf K (`punkte_rechnen_k.py`):** Kein Wiederaufbau, solange ein Feind unter 120 am Lord steht: 1 von 117 Fällen. Sperre nach Zerstörung: 10, dann -1 alle rund 800 Takte. Steinbruch: 4.000, sobald der Steinmetz fällt. Mönche der Kathedrale: Zustand 0x69 gesehen.
+
 ## Fall des Lords, 03.11. 20:59
 
 Im Gefecht. Der Lord geht am Anfang von selbst auf die Burg, Ritter finden dorthin keinen Weg. Mit Truppenbefehl kommt er herunter, schaffte es aber nicht in 600 Takten zum Ring aus Rittern. Er fiel darum per Befehl (`per_befehl` in `lord_g.plan.json`). **Spätestens 13 und 5 Takte nach seinem Verschwinden meldet das Spiel das Ende** (`GAMEOVER`, zwei Läufe, die Zahl enthält das Anhalten), die Ansicht bleibt 14. Der Steintod dauert rund 306 Takte. Das Ende nach einem echten Kampf zeigt Lauf K.
@@ -365,4 +414,4 @@ Im Gefecht. Der Lord geht am Anfang von selbst auf die Burg, Ritter finden dorth
 
 ## Noch offen
 
-Löschen, Durchgang durchs Tor, Anlegen des Belagerungsturms, ob man durch die Mauerlücke und den eingestürzten Gang laufen kann, warum nur eine Kuh flog, wozu Spielbefehl 74 im echten Spiel dient, die genaue Grenze der Hunde. Lager, Holztor, Mauern als Ziel im Nahkampf. Warum der Truppenbefehl schneller ist. Warum der Pfeil nicht bis 54 reicht. Rund 5 Prozent Schüsse ohne Verlust am stehenden Ziel. Warum der erste Rahmen im Gefecht alt ist. Lauf-K-Stand (Szene 8b im Plan) ist nicht gefahren. 14 Punkte warten auf ihre Lage, 3 sind offen (Liste in `Punkte_Lauf_S.md`). Oben auf einen Turm kommen Einheiten mit dem Laufbefehl nicht.
+Ob man durch die Mauerlücke und den eingestürzten Gang laufen kann, warum nur eine Kuh flog, wozu Spielbefehl 74 im echten Spiel dient, die genaue Grenze der Hunde (im Speicher 16). Lager und Holztor als Ziel im Nahkampf. Rund 5 Prozent Schüsse ohne Verlust am stehenden Ziel. Warum der erste Rahmen im Gefecht alt ist. Lauf-K-Stand (Szene 8b im Plan) ist nicht gefahren. Feuerkorb: Befehl 69 wirkte nicht (P312).
