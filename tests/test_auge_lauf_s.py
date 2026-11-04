@@ -1093,6 +1093,15 @@ def test_gegenprobe_befehl_sofort(tmp_path):
         assert jetzt()[0]["angriff"]["lauf"] == {"sofort_mitte": [114, 103], "sofort_mauer": [109, 102]}[n]  # Mitte des Turms, ein Feld der Mauer
 
 
+def test_holztor_als_ziel(tmp_path):
+    g = Spiel(tmp_path)
+    e = ls.SZENEN["sonder22"](lauf_von(g))
+    assert e["kein_platz"] == []
+    b = [c for c in g.log if isinstance(c, dict)]
+    s = next(c for c in b if "setzeGebaeude" in c)
+    assert s["setzeGebaeude"]["mapper"] == 103 and s["setzeGebaeude"]["spieler"] == 2
+
+
 def test_poke_zwei_byte_laesst_den_nachbarn():
     class L:
         class k:

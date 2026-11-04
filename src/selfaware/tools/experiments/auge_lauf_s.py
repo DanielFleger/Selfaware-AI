@@ -1632,6 +1632,15 @@ def sonder21(l):
     return (("sofort_mitte", sofort_mitte, 17, 8), ("sofort_mauer", sofort_mauer, 17, 6))
 
 
+def sonder22(l):
+    """Holztor als Ziel im Nahkampf. Art 47, Mapper 103 (M_MAPPER_GATE_WOOD), steht nicht in der Bauliste, Groesse aus dem Versuch: Klappt es nicht, steht es in nicht_gesetzt."""
+    def holztor(x, y):
+        t = {"spieler": 2, "typ": 47, "mapper": 103, "groesse": 3, "name": "BT_WOODGATE1", "x": x + 8, "y": y + 1}
+        wer = [_e("taeter", 27, x + 1 + i, y + 2) for i in range(3)]
+        return [t], wer, [], lambda: [_angriff(wer, gebaeude=t["nr"])] if "nr" in t else [], None
+    return (("holztor", holztor, 14, 6),)
+
+
 def sonder11_g(l):
     """P314: Wie sonder9_g, aber die Gegner gehen genau auf ein Feld des brennenden Pechs (Lauf 00:40: bis 1 Feld daneben, counter blieb 0)."""
     s = l.s
@@ -1903,6 +1912,7 @@ SZENEN = {
     "sonder17": lambda l: szene_sonder(l, "sonder17", sonder17(l), rand=15),
     "sonder19": lambda l: szene_sonder(l, "sonder19", sonder19(l), rand=15),
     "sonder21": lambda l: szene_sonder(l, "sonder21", sonder21(l), rand=15),
+    "sonder22": lambda l: szene_sonder(l, "sonder22", sonder22(l), rand=15),
     "sonder20_g": lambda l: szene_sonder(l, "sonder20_g", sonder20_g(l), frei_maske=burgbereich(l), rand=12, raeumen=True),
     "sonder19_g": lambda l: szene_sonder(l, "sonder19_g", sonder19_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),
     "sonder15_g": lambda l: szene_sonder(l, "sonder15_g", sonder15_g(l), rand=15, raeumen=True),
