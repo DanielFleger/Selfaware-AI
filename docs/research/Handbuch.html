@@ -553,7 +553,13 @@ td.z { text-align: right; white-space: nowrap; }
     <tr><td>Schild</td><td>Pfeile auf den Mann dahinter treffen den Schild: Mann 0, Schild 1.200, Mann ohne Schild 48.000.</td></tr>
     <tr><td>Mordgrube</td><td>18.000 je Grube beim Darüberlaufen.</td></tr>
     <tr><td>Burgbereich</td><td>Im Gefecht gehen Mauer, Graben, Pechgraben, Käfig und Turm nur nahe der eigenen Burg, bis 45 Felder war fast alles erlaubt. Der Befehl meldet auch sonst Erfolg, also nachlesen.</td></tr>
-    <tr><td>Mauer unter Schlägen</td><td>Tunnelgräber: Mitte 20 Schaden und 20 Höhe je Schlag, Ende 30, beim ersten Treffer 20 Höhe mehr. Gefallen bei Höhe 8.</td></tr>
+    <tr><td>Mauer unter Schlägen</td><td>Schaden je Schlag: Tunnelgräber 20, Ritter 15, Schwertkämpfer und arabischer Schwertkämpfer 10, Pikenier und Keulenträger 5, Speerträger 2, Sklave und Assassine nichts. Ein Stück fällt über 70 Schaden. Ende einer Mauer 1,5-fach, Kreuzung halb. Beim ersten Treffer 20 Höhe mehr.</td></tr>
+    <tr><td>Belagerungsturm</td><td>Nur mit Anweisung 23 legt er an: neues Gebäude Art 69, Bemannung 0. Ein Laufbefehl hält davor.</td></tr>
+    <tr><td>Tod des Lords</td><td>Echter Töter bekommt 25 % des gegnerischen Goldes, mindestens 500 laut Code, gemessen +1.000 bei 4.000. Spielende rund 305 Takte später.</td></tr>
+    <tr><td>Tor</td><td>Schließt bei einem Feind auf 3 bis 16 Feldern, bei 24 nicht. Von Schritt 1 auf 2 meist 47 oder 48 Takte.</td></tr>
+    <tr><td>Schießen im Laufen</td><td>Berittener Bogenschütze ja, alle 92 bis 102 Takte. Armbrustschütze nein.</td></tr>
+    <tr><td>Nachladen</td><td>Ein menschliches Katapult lädt nicht selbst nach, auch nicht mit Stein im Lager. Laut Code macht das nur die KI.</td></tr>
+    <tr><td>Öl</td><td>Der Träger wirft nicht von selbst, in keiner Haltung. Der Feind erschlug ihn.</td></tr>
     <tr><td>Giftwolke</td><td>828 Takte bis zum Ende.</td></tr>
     <tr><td>Ramme</td><td>125 je Treffer an Hütte, Tor und Turm. Der Code übergibt 50, der Faktor ist ungeklärt.</td></tr>
     <tr><td>Starttruppen</td><td>Im Gefecht kommen je Spieler 6 Bogenschützen bei Takt 202 und 8 Speerträger bei Takt 403 an der Burg dazu. Wer vorher räumt, hat sie danach im Feld.</td></tr>
@@ -570,8 +576,8 @@ td.z { text-align: right; white-space: nowrap; }
   </table>
   <div class="merk"><b>Nicht erreicht:</b> Löschen, Durchgang durchs Tor, Anlegen des Belagerungsturms. Noch nicht erklärt: warum der Truppenbefehl schneller ist, warum der Pfeil nicht bis 54 reicht, rund 5 Prozent Schüsse ohne Verlust am stehenden Ziel.</div>
   <div class="merk"><b>Learning 03.11.:</b> In diesem Lauf lagen drei Vorhersagen aus dem Code daneben, weil ich den Code gelesen, aber nicht den Weg bedacht hatte: Der Stein hat im Speicher andere Werte, das Tempo hängt am Befehl, nicht an der Spielart, und der Zielpunkt führt das Ziel. Ein Messlauf prüft zuerst, ob seine Befehle überhaupt ankommen: Mein Kanal schrieb jeden Befehl auf Spieler 1 um.</div>
-  <p><b>Einzelpunkte:</b> Alle 75 gegen die Erwartung gerechnet: 28 bestätigt, 17 teils, 6 widerlegt, 21 Lage fehlte, 2 offen, 1 gemessen (<code>Punkte_Lauf_S.md</code>).</p>
-  <p><b>Als Nächstes:</b> die fehlenden Lagen. Noch aus Lauf F: 8 offene und 27 nicht nachgerechnete Punkte.</p>
+  <p><b>Einzelpunkte:</b> Alle 75 gegen die Erwartung gerechnet, mit Nachlauf: 41 bestätigt, 11 widerlegt, 4 teils, 2 gemessen, 14 Lage fehlte, 3 offen (<code>Punkte_Lauf_S.md</code>).</p>
+  <p><b>Als Nächstes:</b> Das Auge ist für Lauf S durchgeprüft, 14 Lagen brauchen KI, einen anderen Modus oder den Weg auf einen Turm. Noch aus Lauf F: 8 offene und 27 nicht nachgerechnete Punkte.</p>
 </section>
 
 <section id="offen">

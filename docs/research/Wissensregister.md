@@ -414,3 +414,7 @@ Tick 4.731-7.737, Aufloesung 14,5 Ticks (`daten/lage_ablauf_fein_20261006_224521
 | S26 | Mauer: Tunnelgraeber in der Mitte 20 Schaden und 20 Hoehe je Schlag, am Ende 30, beim ersten Treffer 20 Hoehe mehr | getestet | P322, `punkte_rechnung2.txt` |
 | S27 | huntedBy steigt nicht beim Angriffsbefehl, nur wenn die Einheit ihr Ziel selbst waehlt (Hunde). countArabianArcher summiert die Lebenden je Takt | getestet | P339, P365, `punkte_rechnung3.txt`, `punkte_rechnung4.txt` |
 | S28 | Giftwolke 828 Takte. Ramme 125 je Treffer, der Code uebergibt 50, Faktor ungeklaert | getestet | P297, P345, `punkte_rechnung1.txt`, `punkte_rechnung3.txt` |
+| S29 | Mauer je Schlag: Tunnelgraeber 20, Ritter 15, Schwert und arabisches Schwert 10, Pike und Keule 5, Speer 2, Sklave und Assassine 0. Ende 1,5-fach, Kreuzung halb, faellt ueber 70 | getestet | P322, P353 bis P357, P366 bis P368, `punkte_rechnung6.txt` |
+| S30 | Lord: echter Toeter bekommt 25 % des gegnerischen Goldes (+1.000 bei 4.000), Spielende rund 305 Takte spaeter | getestet | P313, P362, `punkte_rechnung7.txt` |
+| S31 | Belagerungsturm legt nur mit Anweisung 23 an (Gebaeude Art 69, Bemannung 0). Tor reagiert bei 3 bis 16 Feldern, nicht bei 24. Berittener schiesst im Laufen, Armbrust nicht | getestet | P344, P303, P304, P352, P371, `punkte_rechnung6.txt` |
+| S32 | Menschliches Katapult laedt nicht selbst nach. Der Oeltraeger wirft nicht von selbst, in keiner Haltung. Laufbefehl auf einen Turm wirkt nicht | getestet | P308, P323, P338, P302, `punkte_rechnung6.txt`, `punkte_rechnung7.txt` |

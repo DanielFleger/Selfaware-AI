@@ -1,6 +1,6 @@
 # Punkte Lauf S
 
-75 Punkte der Checkliste (Abschnitt Lauf S). Das Werkzeug `auge_punkte` sagt nur, ob sich ein Feld ändert (`punkte_lauf_s.py`, `punkte_lauf_s.txt`, 38 Aufzeichnungen). Die Urteile hier sind je Punkt gegen die Erwartung gerechnet: `punkte_rechnen1.py` bis `punkte_rechnen5.py`, Ausgaben in `punkte_rechnung1.txt` bis `punkte_rechnung5.txt`, dazu `belege_sonderfaelle.txt` und die `.regeln.json`. Die Tabelle erzeugt `punkte_urteile.py`.
+75 Punkte der Checkliste (Abschnitt Lauf S). Das Werkzeug `auge_punkte` sagt nur, ob sich ein Feld ändert (`punkte_lauf_s.py`, `punkte_lauf_s.txt`, 38 Aufzeichnungen). Die Urteile hier sind je Punkt gegen die Erwartung gerechnet: `punkte_rechnen1.py` bis `punkte_rechnen7.py`, Ausgaben in `punkte_rechnung1.txt` bis `punkte_rechnung7.txt`, dazu `belege_sonderfaelle.txt` und die `.regeln.json`. Die Tabelle erzeugt `punkte_urteile.py`.
 
 **Worte:** bestätigt und widerlegt heißen: Die Lage kam vor und die Rechnung ist gemacht. teils: Ein Teil ist gerechnet, der Rest der Lage fehlte. gemessen: Erwartung war nur „notieren“. Lage fehlte: Die Lage kam in Lauf S nicht vor. offen: Lage kam vor, Feld nicht lesbar oder ungeklärt.
 
@@ -30,7 +30,7 @@
 |---|---|---|
 | P297 | `UpdateEntity_PoisonCloud` | 7 von 7 Giftwolken: logicalState 3 nach 828 Takten, nicht 808. Im Code läuft ab rng_2 800 eine Ausblendung, sie dauert 28 Takte statt der angenommenen 8. |
 | P303 | `updateGateDrawBridgeOpenCloseLogic` | Bei einem Feind 24 und 26 Felder vor dem Tor geschah in 4.500 Takten nichts (sonder8), die Grenze 25 stimmt so nicht. Reaktion kam bei 3 bis 16 Feldern. gateState2 springt auf 100, nicht auf 1.200. Auf die Torfelder kam der Feind nicht, sein Laufbefehl wirkte nicht. |
-| P323 | `ifNecessaryThrowOilAutomatically` | 3 Haltungen, Öl beim Träger ab Takt 361 bis 370, ein Feind 2 bis 3 Felder daneben: kein Wurf, auch nicht bei aggressiv, Anweisung blieb 0 (sonder8_g). Warum, ist ungeklärt, die Haltung selbst ist nicht nachgelesen. |
+| P323 | `ifNecessaryThrowOilAutomatically` | Öl beim Träger ab Takt 361 bis 370, eigener Trupp, Haltung aggressiv, defensiv und stehen, ein Feind 2 bis 3 Felder daneben: In keiner Haltung ein Wurf, Anweisung blieb 3. Der Feind erschlug den Träger (Trupp weg ab Takt 1.182 bis 1.190). Ob der Code beim Menschen überhaupt gerufen wird, ist nicht nachgelesen. |
 | P326 | `giveTribeMoveInstruction` | 6 Schwertkämpfer: Zielfelder eng um den Punkt, kleinster Abstand 1 (schräg), größter 3. Nicht 2 auseinander. |
 | P334 | `getRemainingRequiredEngineers` | Der Zähler steigt nicht je Ingenieur, er springt: Schild 0 auf 1, Katapult 0 auf 2, Trebuchet 0 auf 3, Belagerungsturm 0 auf 4. |
 | P337 | `playerMakeUnitSelection` | Mit zu wenig Ingenieuren bleibt das Feld 0, in 5 Gerätearten mit 1 Mann zu wenig. Der Ingenieur wartet 2 Felder daneben. |
@@ -72,10 +72,10 @@
 | P349 | `UpdateTunneler` | Frame steigt bis 23, dann 0. Zustand 4: 5 x 50 Schaden bei Frame 60 bis 64, Ende bei 65. Die Höhe steigt im Gang von 8 auf bis 22, die einzelnen Schritte 6, 12, 18, 24 kann das Raster von 25 Takten nicht zeigen. |
 | P351 | `UpdateCrusaderArcher` | Weit weg sitzen sie: 21.411 Rahmen über 400. Fast alle Wechsel zum Hinsetzen liegen an der Grenze (902 bei 390 bis 399, 17 bei 400 bis 409), dort wechselt es ständig. |
 | P353 | `UpdateSpearman` | Speerträger: Mauer 2 je Schlag, alle 100 Takte. Hütte 10, Tor 2. Zu 8 und 3 aus dem Code passt das nicht, die Rangfolge schon. |
-| P354 | `UpdatePikeman` | Pikenier: Mauer 5 je Schlag, 16 Schläge je Stück. Turm 10 (50 Schläge), Tor 5 (300 Schläge). Die Mauer fällt also am schnellsten. |
+| P354 | `UpdatePikeman` | Pikenier: Mauer 5 je Schlag, 15 Schläge je Stück. Turm 10 (50 Schläge), Tor 5 (300 Schläge). Die Mauer fällt also am schnellsten. |
 | P355 | `UpdateMaceman` | Keulenträger: Mauer 5 je Schlag, Hütte 80, Tor 5. Die Werte weichen von 35 und 4 ab. |
 | P356 | `UpdateSwordsman` | Schwertkämpfer: Mauer 10 je Schlag (8 Schläge je Stück), Hütte 100, Tor und Turm 10. Die Werte weichen von 70 und 6 ab. |
-| P357 | `UpdateKnight` | Ritter: Mauer 15 je Schlag (6 Schläge je Stück), Hütte 100, Tor und Turm 10. |
+| P357 | `UpdateKnight` | Ritter: Mauer 15 je Schlag (5 Schläge je Stück), Hütte 100, Tor und Turm 10. |
 | P359 | `UpdateCatapult` | Verbrauch gleich Schüsse: 10 von 10, 7 von 7 bei 5 Katapulten. |
 | P360 | `UpdateTrebuchet` | Verbrauch gleich Schüsse: 5 von 5, 3 von 3, 1 von 1. Der Kuhwurf lässt die Munition unverändert. |
 | P361 | `UpdateMangonel` | 11 Salven mit je 7 Geschossen. |

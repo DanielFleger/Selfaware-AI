@@ -36,7 +36,7 @@ U = {
     "P320": (L, "Keine KI in Lauf S."),
     "P321": (B, "sonder5_g, 2 von 2: Zustand 2 bei Takt 501, 3 bei 526, weg bei 729. Auf 25 Takte genau."),
     "P322": (B, "Mitte der Mauer: Schaden +20, Höhe -20, erster Treffer -40. Ende (1 Nachbar): +30, 1,5-fach. Kreuzung (3 Nachbarn): Pikenier 2 statt 5, also halb, abgerundet."),
-    "P323": (W, "3 Haltungen, Öl beim Träger ab Takt 361 bis 370, ein Feind 2 bis 3 Felder daneben: kein Wurf, auch nicht bei aggressiv, Anweisung blieb 0 (sonder8_g). Warum, ist ungeklärt, die Haltung selbst ist nicht nachgelesen."),
+    "P323": (W, "Öl beim Träger ab Takt 361 bis 370, eigener Trupp, Haltung aggressiv, defensiv und stehen, ein Feind 2 bis 3 Felder daneben: In keiner Haltung ein Wurf, Anweisung blieb 3. Der Feind erschlug den Träger (Trupp weg ab Takt 1.182 bis 1.190). Ob der Code beim Menschen überhaupt gerufen wird, ist nicht nachgelesen."),
     "P324": (B, "Speerträger auf 39 Feldern zählt, Bogenschütze auf 41 nicht: Wert 4 ab Takt 195 (sonder8_g, 2 Läufe). Vorher: 6 Bogenschützen 36, 8 Speerträger 32."),
     "P325": (L, "Der Schwertkämpfer 2 Felder neben dem Feind kämpfte beim Marschbefehl (Takt 150) noch nicht. So kam die Lage nicht zustande."),
     "P326": (W, "6 Schwertkämpfer: Zielfelder eng um den Punkt, kleinster Abstand 1 (schräg), größter 3. Nicht 2 auseinander."),
@@ -67,10 +67,10 @@ U = {
     "P351": (B, "Weit weg sitzen sie: 21.411 Rahmen über 400. Fast alle Wechsel zum Hinsetzen liegen an der Grenze (902 bei 390 bis 399, 17 bei 400 bis 409), dort wechselt es ständig."),
     "P352": (G, "Im Marsch kein Schuss, bei beiden Armbrustschützen. Am Ziel je 6 Schüsse, alle 228 Takte, auch mit Haltung stehen (sonder8)."),
     "P353": (B, "Speerträger: Mauer 2 je Schlag, alle 100 Takte. Hütte 10, Tor 2. Zu 8 und 3 aus dem Code passt das nicht, die Rangfolge schon."),
-    "P354": (B, "Pikenier: Mauer 5 je Schlag, 16 Schläge je Stück. Turm 10 (50 Schläge), Tor 5 (300 Schläge). Die Mauer fällt also am schnellsten."),
+    "P354": (B, "Pikenier: Mauer 5 je Schlag, 15 Schläge je Stück. Turm 10 (50 Schläge), Tor 5 (300 Schläge). Die Mauer fällt also am schnellsten."),
     "P355": (B, "Keulenträger: Mauer 5 je Schlag, Hütte 80, Tor 5. Die Werte weichen von 35 und 4 ab."),
     "P356": (B, "Schwertkämpfer: Mauer 10 je Schlag (8 Schläge je Stück), Hütte 100, Tor und Turm 10. Die Werte weichen von 70 und 6 ab."),
-    "P357": (B, "Ritter: Mauer 15 je Schlag (6 Schläge je Stück), Hütte 100, Tor und Turm 10."),
+    "P357": (B, "Ritter: Mauer 15 je Schlag (5 Schläge je Stück), Hütte 100, Tor und Turm 10."),
     "P358": (L, "Keine Kathedrale."),
     "P359": (B, "Verbrauch gleich Schüsse: 10 von 10, 7 von 7 bei 5 Katapulten."),
     "P360": (B, "Verbrauch gleich Schüsse: 5 von 5, 3 von 3, 1 von 1. Der Kuhwurf lässt die Munition unverändert."),
@@ -96,7 +96,7 @@ def schreiben():
     assert set(p) == set(U), (set(p) ^ set(U))
     z = collections.Counter(u[0] for u in U.values())
     roh = open(os.path.join(HIER, "punkte_lauf_s.txt"), encoding="utf-8").read()
-    aus = ["# Punkte Lauf S", "", "75 Punkte der Checkliste (Abschnitt Lauf S). Das Werkzeug `auge_punkte` sagt nur, ob sich ein Feld ändert (`punkte_lauf_s.py`, `punkte_lauf_s.txt`, 38 Aufzeichnungen). Die Urteile hier sind je Punkt gegen die Erwartung gerechnet: `punkte_rechnen1.py` bis `punkte_rechnen5.py`, Ausgaben in `punkte_rechnung1.txt` bis `punkte_rechnung5.txt`, dazu `belege_sonderfaelle.txt` und die `.regeln.json`. Die Tabelle erzeugt `punkte_urteile.py`.", "", "**Worte:** bestätigt und widerlegt heißen: Die Lage kam vor und die Rechnung ist gemacht. teils: Ein Teil ist gerechnet, der Rest der Lage fehlte. gemessen: Erwartung war nur „notieren“. Lage fehlte: Die Lage kam in Lauf S nicht vor. offen: Lage kam vor, Feld nicht lesbar oder ungeklärt.", "", "| Urteil | Punkte |", "|---|---|"]
+    aus = ["# Punkte Lauf S", "", "75 Punkte der Checkliste (Abschnitt Lauf S). Das Werkzeug `auge_punkte` sagt nur, ob sich ein Feld ändert (`punkte_lauf_s.py`, `punkte_lauf_s.txt`, 38 Aufzeichnungen). Die Urteile hier sind je Punkt gegen die Erwartung gerechnet: `punkte_rechnen1.py` bis `punkte_rechnen7.py`, Ausgaben in `punkte_rechnung1.txt` bis `punkte_rechnung7.txt`, dazu `belege_sonderfaelle.txt` und die `.regeln.json`. Die Tabelle erzeugt `punkte_urteile.py`.", "", "**Worte:** bestätigt und widerlegt heißen: Die Lage kam vor und die Rechnung ist gemacht. teils: Ein Teil ist gerechnet, der Rest der Lage fehlte. gemessen: Erwartung war nur „notieren“. Lage fehlte: Die Lage kam in Lauf S nicht vor. offen: Lage kam vor, Feld nicht lesbar oder ungeklärt.", "", "| Urteil | Punkte |", "|---|---|"]
     for w in WORTE:
         aus.append(f"| {w} | {z[w]} |")
     aus += ["", "## Was die Lauf-S-Lagen noch brauchen", "", "| Versuch | Punkte |", "|---|---|"]

@@ -317,19 +317,34 @@ Liste V7, in mehreren Durchgängen. Belege: `sonder1`, `sonder2`, `sonder_g`, `s
 | Höhe | Bogenschützen über die Leiter auf der Mauer (Höhe 98): Sie schießen auf 38 Felder, auf 42, 46, 50 nicht. Schaden 1.500 je Pfeil an der Ramme wie am Boden. **Die Mauer bringt in dieser Probe keine Mehrreichweite.** Die Abstände 39 bis 41 sind nicht gefahren | gemessen |
 | Tor | Befehl 45 wirkt, `gateState` wechselt von 257 auf 268. Durchgang nicht geprüft, das Tor stand ohne Mauer | gesehen |
 
-## Einzelpunkte, 04.11.
+## Einzelpunkte und Nachlauf, 04.11.
 
-Alle 75 Punkte der Checkliste sind jetzt gegen ihre Erwartung gerechnet, nicht nur als „Feld ändert sich“ gesehen: `Punkte_Lauf_S.md`. 28 bestätigt, 17 teils, 6 widerlegt, 21 Lage fehlte, 2 offen, 1 gemessen. Von den 52, die das Werkzeug „gesehen“ nannte, kam bei 15 die Lage gar nicht vor.
+Alle 75 Punkte der Checkliste sind gegen ihre Erwartung gerechnet: `Punkte_Lauf_S.md`. 41 bestätigt, 11 widerlegt, 4 teils, 2 gemessen, 14 Lage fehlte, 3 offen. Der Nachlauf hat dafür die fehlenden Lagen gefahren: `sonder8` (Editor), `sonder8_g`, `sonder9_g`, `lord2_g` (Gefecht), Auswertung `punkte_rechnung6.txt` und `punkte_rechnung7.txt`.
 
 **Widerlegt:**
 
-- **Besatzung (P334, P337):** Der Zähler steigt nicht je Ingenieur. Er springt von 0 auf die Sollzahl. Mit zu wenig Leuten bleibt er 0, sie warten daneben.
-- **huntedBy (P339):** Beim Angriffsbefehl bleibt das Feld 0. Es steigt nur, wenn die Einheit ihr Ziel selbst wählt, gemessen an den Hunden.
-- **countArabianArcher (P365):** Das Feld zählt nicht die Lebenden, es summiert sie je Takt.
-- **Giftwolke (P297):** 828 Takte, nicht 808.
-- **Ramme (P345):** 125 je Treffer an Hütte, Tor und Turm, der Code übergibt 50. Der Faktor ist ungeklärt.
+- **Besatzung (P334, P337):** Der Zähler springt von 0 auf die Sollzahl, mit zu wenig Leuten bleibt er 0.
+- **Tor (P303):** Bei einem Feind auf 24 und 26 Feldern geschah nichts, Reaktion kam bei 3 bis 16 Feldern. gateState2 springt auf 100, nicht auf 1.200.
+- **Öl (P323):** Der Träger warf in keiner Haltung von selbst, der Feind erschlug ihn.
+- **Trupp (P326):** Die Zielfelder liegen schräg 1 auseinander, nicht 2.
+- **huntedBy (P339), countArabianArcher (P365), Giftwolke 828 Takte (P297), Ramme 125 je Treffer (P345):** wie in `Punkte_Lauf_S.md`.
+- **Sklave und Assassine an der Mauer (P366, P367):** kein Schaden.
 
-**Neu als Regel:** Mauer in der Mitte 20 Schaden je Schlag des Tunnelgräbers und 20 Höhe, am Ende 30, beim ersten Treffer 20 Höhe mehr (P322). Tor 0, 1, 2 mit gateState 12 (P304). Mangonel 7 Geschosse je Salve (P361).
+**Mauer je Schlag (2 Nachbarn):**
+
+| Einheit | Schaden | Schläge je Stück |
+|---|---|---|
+| Ritter | 15 | 5 |
+| Schwertkämpfer, arabischer Schwertkämpfer | 10 | 8 |
+| Pikenier, Keulenträger | 5 | 15 |
+| Speerträger | 2 | 36 |
+| Sklave, Assassine | 0 | - |
+
+Ein Stück fällt, wenn der Schaden über 70 steigt. Am Ende einer Mauer (1 Nachbar) 1,5-fach, an einer Kreuzung (3 Nachbarn) halb, abgerundet.
+
+**Bestätigt im Nachlauf:** Der Sieger bekommt beim Tod des Lords 25 % des gegnerischen Goldes (+1.000 bei 4.000). Nur die Grenze 39 zählt ums Lager, 41 nicht. Der Belagerungsturm legt mit Anweisung 23 an, es entsteht ein Gebäude der Art 69, die Bemannung geht auf 0. Eine Ramme fährt nur mit 4 Mann. Ein berittener Bogenschütze schießt im Laufen, ein Armbrustschütze nicht. Ein Ziel im Mauerring lässt die Einheit stehen.
+
+**Nachladen (P308):** Laut Code nur für die KI. Beim Menschen blieb die Munition trotz 200 Stein auf 0. **Befehl 86 (P309):** abgesetzt, ohne Wirkung, ungeklärt.
 
 ## Fall des Lords, 03.11. 20:59
 
@@ -350,4 +365,4 @@ Im Gefecht. Der Lord geht am Anfang von selbst auf die Burg, Ritter finden dorth
 
 ## Noch offen
 
-Löschen, Durchgang durchs Tor, Anlegen des Belagerungsturms, ob man durch die Mauerlücke und den eingestürzten Gang laufen kann, warum nur eine Kuh flog, wozu Spielbefehl 74 im echten Spiel dient, die genaue Grenze der Hunde. Lager, Holztor, Mauern als Ziel im Nahkampf. Warum der Truppenbefehl schneller ist. Warum der Pfeil nicht bis 54 reicht. Rund 5 Prozent Schüsse ohne Verlust am stehenden Ziel. Warum der erste Rahmen im Gefecht alt ist. Lauf-K-Stand (Szene 8b im Plan) ist nicht gefahren. 21 Punkte der Checkliste warten auf ihre Lage (Liste in `Punkte_Lauf_S.md`), 2 sind offen.
+Löschen, Durchgang durchs Tor, Anlegen des Belagerungsturms, ob man durch die Mauerlücke und den eingestürzten Gang laufen kann, warum nur eine Kuh flog, wozu Spielbefehl 74 im echten Spiel dient, die genaue Grenze der Hunde. Lager, Holztor, Mauern als Ziel im Nahkampf. Warum der Truppenbefehl schneller ist. Warum der Pfeil nicht bis 54 reicht. Rund 5 Prozent Schüsse ohne Verlust am stehenden Ziel. Warum der erste Rahmen im Gefecht alt ist. Lauf-K-Stand (Szene 8b im Plan) ist nicht gefahren. 14 Punkte warten auf ihre Lage, 3 sind offen (Liste in `Punkte_Lauf_S.md`). Oben auf einen Turm kommen Einheiten mit dem Laufbefehl nicht.
