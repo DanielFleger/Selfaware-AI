@@ -1188,7 +1188,16 @@ def sonder9_g(l):
     return (("pech", pech, 24, 11),)
 
 
-TREPPE, ANGST_TAKT, TOR_ZU_TAKT = 27, 800, 300  # Mapper der Treppe (sonder3); Takte: Angst erst, wenn genug Schlaege ohne sie gezaehlt sind; das Tor ist nach 3 bis 50 Takten zu (Lauf 00:30)
+TREPPE, TOR_ZU_TAKT = 27, 300  # Mapper der Treppe (sonder3); Takte: Das Tor ist nach 3 bis 50 Takten zu (Lauf 00:30)
+ANGST_BAUTEN = 5  # Die Stufe ist gut minus schlecht, bei kleiner Bevoelkerung geteilt durch 1, begrenzt auf 5 (recomputeAllFearFactors)
+MUNITION_TRUPP, MUNITION_EINHEIT = 1000, 1100  # Takte: Das Katapult schiesst ab Takt 400 alle rund 130 Takte (sonder8_g), bei 1000 ist also noch Munition da, aber nicht mehr voll
+VERLUSTE = 0xb98460  # DAT_UnitValueLossesPerEnemyPlayer (UpdateUnitLossData, Maschinencode)
+
+
+def verluste_lesen(l):
+    """P305, P306: Beide Zaehler stehen nicht in der Aufzeichnung (DAT_GameSynchronyState fehlt dort), also direkt aus dem Speicher."""
+    adr, _ = l.s.feld("DAT_GameSynchronyState", "finalResults.finalKillMatrix[]")
+    return {"kills": l.k.peek(adr, 81), "verlust": l.k.peek(VERLUSTE, 9)}
 
 
 def sonder10(l):
@@ -1241,8 +1250,9 @@ def sonder10(l):
 
 
 def sonder10_g(l):
-    """Der zweite Nachlauf im Gefecht: Loeschen und Angst."""
+    """Der zweite Nachlauf im Gefecht: Loeschen, Angst, Munition und die Verlustzaehler."""
     s = l.s
+    lords = {e["besitzer"]: e for e in s.einheiten_alle() if e["typ"] == 55}
 
     def loeschen(x, y):
         """V7.001: Eine Huette von Spieler 1 brennt, ein Brunnen steht daneben (UpdateFireWatch, Art 53). Ohne Brunnen brannte sie rund 960 bis 980 Takte (sonder1)."""
@@ -1251,11 +1261,106 @@ def sonder10_g(l):
         return [h, _g(27, x + 16, y + 2, spieler=1)], [ft], [], lambda: [], [(SONDER_BEMANNEN, lambda: [_angriff([ft], 2, gebaeude=h["nr"])] if "nr" in h else [])]
 
     def angst(x, y):
-        """P332: Schaden je Schlag ohne Angst, dann mit Angststufe 5."""
-        adr, schritt = s.feld("DAT_GameState", "playerDataArray[].fearFactorLevel")
-        wer = [_e("taeter", 27, x + 2, y + 2), _e("opfer", 25, x + 3, y + 2, 2)]
-        return [], wer, [], lambda: [], [(ANGST_TAKT, lambda: [{"poke": adr + schritt, "wert": 5}])]
-    return (("loeschen", loeschen, 22, 8), ("angst", angst, 8, 5))
+        """P332: Schwert gegen Schwert. Spieler 1 hat Gaerten, Spieler 2 Galgen: Die Stufe rechnet das Spiel aus gut minus schlecht (recomputeAllFearFactors), ein gesetzter Wert hielte nicht. Der Schaden folgt laut Speicher einer Tabelle von UCP3, nicht 5 Prozent je Stufe."""
+        g1 = [_g(66, x + 8 + 4 * i, y, spieler=1) for i in range(ANGST_BAUTEN)]
+        lp = lords.get(2)
+        g2 = []
+        if lp:
+            dx, dy = (16 if lp["x"] < 200 else -16), (16 if lp["y"] < 200 else -16)  # zur Kartenmitte
+            g2 = [_g(93, lp["x"] + dx + (3 * i if dx > 0 else -3 * i), lp["y"] + dy, spieler=2) for i in range(ANGST_BAUTEN)]
+        return g1 + g2, [_e("taeter", 27, x + 2, y + 2), _e("opfer", 27, x + 3, y + 2, 2)], [], lambda: [], None
+
+    def munition(x, y):
+        """P308, P309: Spielbefehl 86 hat zwei Werte (CommandSelectionReplenishAmmo): 0 laedt die Einheit mit der Nummer im ersten Wert (TryAcquireAmmunitionOrPlanToBuyStone), sonst fuellt er den Trupp auf (SelectionReplenishAmmo). Lauf 01:08 schickte den Trupp mit 0, also den falschen Zweig."""
+        a, b = dict(_e("geraet", 39, x + 4, y + 2), mann=2, soll=2), dict(_e("geraet", 39, x + 4, y + 10), mann=2, soll=2)
+        la, lb = _ing(x, y + 1, 2), _ing(x, y + 9, 2)
+        za, zb = _e("ziel", 25, x + 28, y + 2, 2), _e("ziel", 25, x + 28, y + 10, 2)
+
+        def stein():
+            return [{"player": 1, "ware": {"typ": 4, "menge": STEIN_MENGE}}]
+
+        def schiessen():
+            return [_angriff([a], ziel=za["nr"]), _angriff([b], ziel=zb["nr"])]
+
+        def trupp_auffuellen():
+            trupp = {e["nr"]: e["trupp"] for e in s.einheiten_alle()}.get(b["nr"], 0)
+            return stein() + ([{"player": 1, "spielbefehl": {"nr": 86, "werte": [trupp, 1]}}] if trupp else [])
+
+        def einheit_laden():
+            return stein() + [{"player": 1, "spielbefehl": {"nr": 86, "werte": [a["nr"], 0]}}]
+        return [], [a, b] + la + lb + [za, zb], [], lambda: [_angriff(la, art=16, a=a["nr"], b=a["uid"]), _angriff(lb, art=16, a=b["nr"], b=b["uid"])], [(SONDER_BEMANNEN, schiessen), (MUNITION_TRUPP, trupp_auffuellen), (MUNITION_EINHEIT, einheit_laden)]
+
+    def verlust(x, y):
+        """P305, P306: Ein Speertraeger von Spieler 1 faellt durch einen Ritter von Spieler 2. Beide Zaehler stehen nicht in der Aufzeichnung, szene_sonder liest sie vorher und nachher."""
+        return [], [_e("opfer", 24, x + 1, y + 1), _e("taeter", 28, x + 2, y + 1, 2)], [], lambda: [], None
+    return (("munition", munition, 36, 14), ("angst", angst, 30, 5), ("loeschen", loeschen, 22, 8), ("verlust", verlust, 6, 4))
+
+
+def sonder12(l):
+    """Dritter Nachlauf im Editor. Turm: Nur die vier Eckfelder tragen Bit 0x400, der Rest 0x10000000 (placeTower, gelesen in sonder10), und eine Mauerlinie, die auf ein belegtes Feld reicht, baut das Spiel gar nicht. Darum Mauer bis vor den Turm, Ziel ist das Eckfeld."""
+    s = l.s
+    frei, hoehe, _ = s.raster()
+    hang = steigung(frei, hoehe, 8, 3)
+
+    def weg(x, zeile, nur_treppe=False):
+        if nur_treppe:
+            return [{"player": 1, "spielbefehl": {"nr": 25, "werte": [x + 9, zeile, x + 9, zeile, TREPPE, 13]}}]
+        return [{"player": 1, "spielbefehl": {"nr": 25, "werte": [x + 3, zeile, x + 9, zeile, 25, 13]}}, {"player": 1, "spielbefehl": {"nr": 25, "werte": [x + 2, zeile, x + 2, zeile, TREPPE, 13]}}]
+
+    def turm_eck(x, y):
+        """P338: 8 Mann ueber Treppe und Mauer auf den Wachturm. Die Obergrenze 5 prueft laut Code nur der Mausklick (MenuItemActionHandler), der Befehl selbst nicht."""
+        wer = [_e("steiger", 24, x, y + i) for i in range(8)]
+        return [_g(74, x + 10, y + 2, spieler=1)], wer, weg(x, y + 2), lambda: [_angriff([w], lauf=[x + 10, y + 2]) for w in wer], None
+
+    def turm_mitte(x, y):
+        """Wie turm_eck, aber die Mauer trifft den Turm in der Mitte seiner Seite."""
+        wer = [_e("steiger", 24, x, y + 3)]
+        return [_g(74, x + 10, y + 2, spieler=1)], wer, weg(x, y + 3), lambda: [_angriff(wer, lauf=[x + 10, y + 2])], None
+
+    def turm_treppe(x, y):
+        """Nur eine Treppe direkt am Eckfeld, keine Mauer."""
+        wer = [_e("steiger", 24, x, y + 2)]
+        return [_g(74, x + 10, y + 2, spieler=1)], wer, weg(x, y + 2, True), lambda: [_angriff(wer, lauf=[x + 10, y + 2])], None
+
+    def turm_direkt(x, y):
+        """P302 woertlich: Die Einheit steht von Anfang an auf dem Eckfeld des grossen Turms, spaeter geht sie herunter."""
+        wer = [_e("steiger", 24, x + 10, y + 1)]
+        return [_g(77, x + 10, y + 1, spieler=1)], wer, [], lambda: [], [(1500, lambda: [_angriff(wer, lauf=[x, y + 1])])]
+
+    def turm4_weg(x, y):
+        """P302: Der Weg auf den grossen Turm, spaeter zurueck."""
+        wer = [_e("steiger", 24, x, y + 1)]
+        return [_g(77, x + 10, y + 1, spieler=1)], wer, weg(x, y + 1), lambda: [_angriff(wer, lauf=[x + 10, y + 1])], [(1500, lambda: [_angriff(wer, lauf=[x, y + 1])])]
+
+    def tor_abstand(abstand):
+        """P303: Im Speicher steht 140 Mikro statt der 200 aus dem Export (code_abgleich.txt), also 17,5 Felder."""
+        def f(x, y):
+            return [_g(46, x + 30, y + 2)], [_e("feind", 24, x + 30 - abstand, y + 4)], [], lambda: [], None
+        return f
+
+    def tor_wand(mit_feind):
+        """P304: Mauer links und rechts bis vor das Tor. In sonder10 reichte die linke Linie auf das Torfeld und fehlte darum ganz."""
+        def f(x, y):
+            wand = [{"player": 2, "spielbefehl": {"nr": 25, "werte": w + [25, 13]}} for w in ([x, y + 5, x + 9, y + 5], [x + 15, y + 5, x + 26, y + 5])]
+            geher = [_e("geher", 24, x + 12, y, 2)]
+            feind = [_e("feind", 24, x + 3, y + 10)] if mit_feind else []
+            return [_g(46, x + 10, y + 3)], geher + feind, wand, lambda: [], [(TOR_ZU_TAKT, lambda: [_angriff(geher, 2, lauf=[x + 12, y + 11])])]
+        return f
+
+    def trupp_ring(x, y):
+        """P325: applyMoveCommandOrRallyCommandToTribe laeuft nur, wenn das Ziel nicht erreichbar ist, sonst rechnet giveTribeMoveInstruction die Zielfelder selbst (sonder10: Der Kaempfer lief mit). Darum liegt das Ziel im Mauerring. Der erste steht neben dem Feind und kaempft (Zustand 106)."""
+        ring = [[x + 30, y, x + 39, y], [x + 30, y + 8, x + 39, y + 8], [x + 30, y + 1, x + 30, y + 8], [x + 38, y + 1, x + 38, y + 8]]
+        wer = [_e("trupp", 27, x + 1 + 3 * i, y + 2) for i in range(6)]
+        gegner = _e("feind", 25, x + 1, y + 3, 2)
+        return [], wer + [gegner], [{"player": 2, "spielbefehl": {"nr": 25, "werte": r + [25, 13]}} for r in ring], lambda: [], [(150, lambda: [_angriff(wer, lauf=[x + 34, y + 4])])]
+
+    def bergab_auf(x, y):
+        """P330: Die gesetzte Einheit hat Hoehe 8, auch auf einem Feld mit 4 (sonder10). Also erst hinunter, dann hinauf: Der Code erhoeht das Tempo nur, wenn das Feld hoeher liegt als die Einheit."""
+        if hang is None:
+            return [], [], [], lambda: [], None
+        wer = [_e("laeufer", 24, hang[0] + 7, hang[1])]
+        return [], wer, [], lambda: [_angriff(wer, lauf=[hang[0], hang[1]])], [(400, lambda: [_angriff(wer, lauf=[hang[0] + 7, hang[1]])])]
+    return (("turm_eck", turm_eck, 14, 9), ("turm_mitte", turm_mitte, 14, 6), ("turm_treppe", turm_treppe, 14, 6), ("turm_direkt", turm_direkt, 18, 9), ("turm4_weg", turm4_weg, 18, 9), ("tor_17", tor_abstand(17), 36, 8), ("tor_18", tor_abstand(18), 36, 8), ("tor_offen_w", tor_wand(False), 28, 12), ("tor_zu_w", tor_wand(True), 28, 12), ("trupp_ring", trupp_ring, 40, 10), ("bergab_auf", bergab_auf, 2, 2))
 
 
 def sonder11_g(l):
@@ -1334,6 +1439,7 @@ def szene_sonder(l, name, posten, frei_maske=None, rand=SONDER_ABSTAND, raeumen=
     einheiten = mit_kontrolle(einheiten, frei_kontrolle)
     setzen(l, einheiten)
     k.liste([c for j in jetzt for c in j()], lf.KANAL)
+    vorher = verluste_lesen(l)
     a = lk.aufnahme_im_stand(l, name, 100, False)
     gewartet = 0
     for nach, f in sorted(stufen, key=lambda z: z[0]):
@@ -1346,7 +1452,7 @@ def szene_sonder(l, name, posten, frei_maske=None, rand=SONDER_ABSTAND, raeumen=
     stand = l.rek.beenden()
     graben = len(s.felder_mit_bit(lf.BIT_GRABEN)) if hasattr(s, "felder_mit_bit") else None
     with open(pfad + ".plan.json", "w", encoding="utf-8") as f:
-        json.dump({"szene": name, "von": a, "bis": b, "tempo": 100, "einheiten": einheiten, "gebaeude": gebaeude, "karte": karte, "nicht_gesetzt": [z["name"] for z in nicht_gesetzt], "kein_platz": fehlt, "graben_felder_am_ende": graben}, f, ensure_ascii=False)
+        json.dump({"szene": name, "von": a, "bis": b, "tempo": 100, "einheiten": einheiten, "gebaeude": gebaeude, "karte": karte, "nicht_gesetzt": [z["name"] for z in nicht_gesetzt], "kein_platz": fehlt, "graben_felder_am_ende": graben, "verluste": {"vorher": vorher, "nachher": verluste_lesen(l)}}, f, ensure_ascii=False)
     abr = abraeumen(l)
     return {"szene": name, "von": a, "bis": b, "einheiten": len(einheiten), "nicht_gesetzt": [z["name"] for z in nicht_gesetzt], "kein_platz": fehlt, "abraeumen_takte": abr, "stand": stand, "pfad": pfad}
 
@@ -1505,7 +1611,8 @@ SZENEN = {
     "sonder6_g": lambda l: szene_sonder(l, "sonder6_g", sonder6_g(l), frei_maske=burgbereich(l, sp=2), rand=10, raeumen=True),
     "sonder8": lambda l: szene_sonder(l, "sonder8", sonder8(l), rand=15),
     "sonder10": lambda l: szene_sonder(l, "sonder10", sonder10(l), rand=15),
-    "sonder10_g": lambda l: szene_sonder(l, "sonder10_g", sonder10_g(l), rand=15, raeumen=True),
+    "sonder10_g": lambda l: szene_sonder(l, "sonder10_g", sonder10_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),
+    "sonder12": lambda l: szene_sonder(l, "sonder12", sonder12(l), rand=15),
     "sonder11_g": lambda l: szene_sonder(l, "sonder11_g", sonder11_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),
     "sonder8_g": lambda l: szene_sonder(l, "sonder8_g", sonder8_g(l), rand=15, raeumen=True),
     "sonder9_g": lambda l: szene_sonder(l, "sonder9_g", sonder9_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),

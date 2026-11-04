@@ -1,0 +1,619 @@
+Programm: C:\Program Files (x86)\Steam\steamapps\common\Stronghold Crusader Extreme Instanz2\Stronghold Crusader.exe
+Funktionen 4581, Befehle geprueft 428114, gleich 427300, abweichend 814, nicht lesbar {}
+Funktionen mit Abweichung: 157
+Fast ganz ersetzt (mindestens die Haelfte): 2
+00407190 processEntityHitBuildingOrUnit: 4 von 1132 Befehlen
+    00407a95 MOV EDI,0xa                                                  Export bf0a000000               Speicher bf0f000000
+    00407cd4 MOV EDI,0x3c                                                 Export bf3c000000               Speicher bf78000000
+    00407cd9 LEA EBP,[EDI + -0x1e]                                        Export 8d6fe2                   Speicher 8d6fa6
+    00407ce4 MOV EDI,0x14                                                 Export bf14000000               Speicher bf28000000
+0040b260 recomputeAllFearFactors: 2 von 175 Befehlen
+    0040b41e SAR ECX,0x4                                                  Export c1f904                   Speicher e9bd94
+    0040b421 ADD ECX,0x1                                                  Export 83c101                   Speicher 7e0490
+0041bfd0 processPlacementResourceLossForBuildingType: 1 von 145 Befehlen
+    0041c138 MOV word ptr [ESI],0x1                                       Export 66c7060100               Speicher 66c7060300
+0041e240 UpdateFireBallistaBuilding: 1 von 236 Befehlen
+    0041e35a MOVSX EAX,word ptr [EAX + 0xf98622]                          Export 0fbf802286f900           Speicher e989267d049090
+0041f3b0 UpdateCatapultBuilding: 1 von 235 Befehlen
+    0041f4ca MOVSX EAX,word ptr [EAX + 0xf98622]                          Export 0fbf802286f900           Speicher e9a1147d049090
+0041f7c0 UpdateTrebutchetBuilding: 1 von 277 Befehlen
+    0041f8d7 MOVSX EAX,word ptr [EAX + 0xf98622]                          Export 0fbf802286f900           Speicher e9ac107d049090
+0041fc90 UpdateSiegeTowerBuilding: 1 von 260 Befehlen
+    0041fda7 MOVSX EAX,word ptr [EAX + 0xf98622]                          Export 0fbf802286f900           Speicher e9f40b7d049090
+00420120 UpdateBatteringRamBuilding: 1 von 260 Befehlen
+    00420237 MOVSX EAX,word ptr [EAX + 0xf98622]                          Export 0fbf802286f900           Speicher e97c077d049090
+004205b0 UpdateShieldBuilding: 1 von 260 Befehlen
+    004206c4 MOVSX EAX,word ptr [EAX + 0xf98622]                          Export 0fbf802286f900           Speicher e907037d049090
+004224f0 updateGateDrawBridgeOpenCloseLogic: 2 von 455 Befehlen
+    00422acc CMP ECX,0xc8                                                 Export 81f9c8000000             Speicher 81f98c000000
+    00422b35 MOV word ptr [EDI + 0xf987f4],0x4b0                          Export 66c787f487f900b004       Speicher 66c787f487f9006400
+00424270 updateHeatmapBasedOnBuildingAccessibility: 1 von 51 Befehlen
+    004242c3 JNZ 0x004242cc                                               Export 7507                     Speicher eb07
+00424da0 MenuView_MainMenu_DoEveryFrame: 1 von 109 Befehlen
+    00424ef1 PUSH 0x5a1fdc                                                Export 68dc1f5a00               Speicher 68d82a6304
+00433370 MenuItemActionHandler_InGameMenu_ProcessScribeAnimationChange: 1 von 129 Befehlen
+    004334a6 MOV ECX,dword ptr [ESI + 0x115be58]                          Export 8b8e58be1501             Speicher b9d313000090
+004348d0 MenuItemActionHandler_InGameMenu_UnitSelectionAndControlsUnk: 33 von 2830 Befehlen
+    0043571d MOV EBP,0xb64                                                Export bd640b0000               Speicher e9e6f77b04
+    00435727 MOV EBP,0x1e4                                                Export bde4010000               Speicher bd44010000
+    0043573b MOV EBP,0x15f9                                               Export bdf9150000               Speicher bdb10c0000
+    00435745 MOV EBP,0x1c39                                               Export bd391c0000               Speicher e93eae7b04
+    0043574c MOV EBP,0x1324                                               Export bd24130000               Speicher bd640b0000
+    00435bec MOV ESI,0xb64                                                Export be640b0000               Speicher e9a7f37b04
+    ... noch 27
+0043a9f0 RenderBuildingMenu_Keep: 25 von 376 Befehlen
+    0043ae5d CMP EAX,0x3                                                  Export 83f803                   Speicher 83f802
+    0043ae60 JGE 0x0043ae69                                               Export 7d07                     Speicher 7d09
+    0043ae67 JLE 0x0043ae94                                               Export 7e2b                     Speicher 7f02
+    0043ae69 TEST EAX,EAX                                                 Export 85c0                     Speicher b002
+    0043ae6b JNZ 0x0043ae77                                               Export 750a                     Speicher c1e0
+    0043ae6d MOV EAX,0xaf                                                 Export b8af000000               Speicher 028b807cae
+    ... noch 19
+0043af40 RenderBuildingMenu_Inn: 31 von 331 Befehlen
+    0043afe7 MOV EAX,0x66666667                                           Export b867666666               Speicher 31d28bc1b9
+    0043afec IMUL ECX                                                     Export f7e9                     Speicher 7800
+    0043afee SAR EDX,0x6                                                  Export c1fa06                   Speicher 0000f7
+    0043aff1 MOV ECX,EDX                                                  Export 8bca                     Speicher f150
+    0043aff3 SHR ECX,0x1f                                                 Export c1e91f                   Speicher 909090
+    0043aff6 ADD ECX,EDX                                                  Export 03ca                     Speicher 9090
+    ... noch 25
+0043b3b0 RenderBuildingMenu_Granary: 7 von 404 Befehlen
+    0043b6cb MOV ESI,0xffffff38                                           Export be38ffffff               Speicher be06ffffff
+    0043b6e9 MOV ESI,0xc8                                                 Export bec8000000               Speicher befa000000
+    0043b6f5 LEA ESI,[EAX + 0x61]                                         Export 8d7061                   Speicher 8d707a
+    0043b707 MOV ESI,0xffffff9c                                           Export be9cffffff               Speicher be83ffffff
+    0043b710 MOV ESI,0xffffff38                                           Export be38ffffff               Speicher be06ffffff
+    0043b8a5 LEA ESI,[EDI + 0x2f]                                         Export 8d772f                   Speicher 8d7748
+    ... noch 1
+0043e6c0 RenderStatusMenu_Popularity: 67 von 860 Befehlen
+    0043e882 MOV ESI,0xffffff38                                           Export be38ffffff               Speicher be06ffffff
+    0043e894 MOV ESI,0xc8                                                 Export bec8000000               Speicher befa000000
+    0043e8a0 LEA ESI,[ECX + 0x61]                                         Export 8d7161                   Speicher 8d717a
+    0043e8b3 LEA ESI,[ECX + -0x65]                                        Export 8d719b                   Speicher 8d7182
+    0043e8ba MOV ESI,0xffffff38                                           Export be38ffffff               Speicher be06ffffff
+    0043e8e3 ADD ESI,0x32                                                 Export 83c632                   Speicher 83c64b
+    ... noch 61
+0043f2f0 RenderStatusMenu_FearFactor: 9 von 302 Befehlen
+    0043f41d CMP EAX,0x1                                                  Export 83f801                   Speicher e9ee54
+    0043f420 JL 0x0043f427                                                Export 7c05                     Speicher 7b04
+    0043f422 IMUL EAX,EAX,0x19                                            Export 6bc019                   Speicher 909090
+    0043f425 JMP 0x0043f433                                               Export eb0c                     Speicher 9090
+    0043f427 CMP EAX,-0x1                                                 Export 83f8ff                   Speicher 909090
+    0043f42a JG 0x0043f431                                                Export 7f05                     Speicher 9090
+    ... noch 3
+0043fe10 RenderStatusMenu_Religion: 29 von 294 Befehlen
+    0043ff9d CMP EAX,0x18                                                 Export 83f818                   Speicher e9e646
+    0043ffa0 JG 0x0043ffa6                                                Export 7f04                     Speicher 7b04
+    0043ffa2 XOR EAX,EAX                                                  Export 33c0                     Speicher 9090
+    0043ffa4 JMP 0x0043ffd4                                               Export eb2e                     Speicher 9090
+    0043ffa6 CMP EAX,0x31                                                 Export 83f831                   Speicher 909090
+    0043ffa9 JG 0x0043ffb2                                                Export 7f07                     Speicher 9090
+    ... noch 23
+004451c0 MenuItemActionHandler_InGameMenu_TriggerPlaceBuildingCommand: 7 von 1446 Befehlen
+    00445d8c CMP ESI,0x63                                                 Export 83fe63                   Speicher e96fac
+    00445d8f JNZ 0x00445e6a                                               Export 0f85d5000000             Speicher 7a0490909090
+    00445d9e CMP EAX,ESI                                                  Export 3bc6                     Speicher e995
+    00445da0 JZ 0x00445dd3                                                Export 7431                     Speicher ac7a
+    00445da2 MOV ESI,dword ptr [0x0059e228]                               Export 8b3528e25900             Speicher 049090909090
+    00445dbc CMP EDX,0xc8                                                 Export 81fac8000000             Speicher 81fa64000000
+    ... noch 1
+0044a290 playUnitSpeechEffect: 1 von 75 Befehlen
+    0044a2e9 CMP dword ptr [0x01fe7d4c],0x2                               Export 833d4c7dfe0102           Speicher 833d24a0fe0101
+0044b210 playUnitSpeech: 4 von 279 Befehlen
+    0044b53b ADD EBX,EDX                                                  Export 03da                     Speicher e958
+    0044b53d IMUL EBX,EBX,0x25                                            Export 6bdb25                   Speicher 5f7a04
+    0044b540 ADD EBX,EAX                                                  Export 03d8                     Speicher 9090
+    0044b542 MOV EDX,dword ptr [EBX*0x4 + 0xa3702c]                       Export 8b149d2c70a300           Speicher 90909090909090
+0044c740 soundRelatedMethod1: 1 von 52 Befehlen
+    0044c740 CMP dword ptr [0x0191dd80],0x0                               Export 833d80dd910100           Speicher e97b3e7a049090
+0044c850 drawLoadingBarUnk: 1 von 37 Befehlen
+    0044c850 CALL dword ptr [0x0059e228]                                  Export ff1528e25900             Speicher e9933d7a0490
+00455e10 resetVariousCountsAndStatisticsAndStartGoodsAndResources: 1 von 146 Befehlen
+    00455e8c MOV dword ptr [ESI + 0xe0],0x3                               Export c786e000000003000000     Speicher c786e000000002000000
+004576e0 canNavigateFromKeepToKeep: 1 von 41 Befehlen
+    0045774a PUSH 0x0                                                     Export 6a00                     Speicher 6a01
+00457b80 checkRequiredResourcesForBuildingOrPlanToBuy: 1 von 205 Befehlen
+    00457dfe CMP EBX,dword ptr [ESI + 0x337b8]                            Export 3b9eb8370300             Speicher e9358a790490
+00458ec0 updateFearFactorProductivity: 10 von 49 Befehlen
+    00458ecd MOV dword ptr [ECX],0x96                                     Export c70196000000             Speicher c701b4000000
+    00458eda MOV dword ptr [ECX],0x8c                                     Export c7018c000000             Speicher c701a4000000
+    00458ee7 MOV dword ptr [ECX],0x82                                     Export c70182000000             Speicher c70194000000
+    00458ef4 MOV dword ptr [ECX],0x78                                     Export c70178000000             Speicher c70184000000
+    00458f01 MOV dword ptr [ECX],0x6e                                     Export c7016e000000             Speicher c70174000000
+    00458f1a MOV dword ptr [ECX],0x5a                                     Export c7015a000000             Speicher c7015c000000
+    ... noch 4
+00459080 calculateTaxIncomeForPlayer: 7 von 57 Befehlen
+    00459080 MOV EAX,dword ptr [ESP + 0x8]                                Export 8b442408                 Speicher e84b7479
+    00459084 ADD EAX,-0x1                                                 Export 83c0ff                   Speicher 04e866
+    00459087 IMUL EAX,dword ptr [ESP + 0xc]                               Export 0faf44240c               Speicher 747904eb02
+    0045908c CDQ                                                          Export 99                       Speicher 90
+    0045908d SUB EAX,EDX                                                  Export 2bc2                     Speicher 90c1
+    0045908f SAR EAX,0x1                                                  Export d1f8                     Speicher f803
+    ... noch 1
+00459140 calculateTaxBribeExpenseForPlayer: 3 von 12 Befehlen
+    00459140 MOV EAX,0x5                                                  Export b805000000               Speicher e88b737904
+    00459145 SUB EAX,dword ptr [ESP + 0x8]                                Export 2b442408                 Speicher e8a67379
+    00459149 IMUL EAX,dword ptr [ESP + 0xc]                               Export 0faf44240c               Speicher 0490c1f802
+00459170 getNumberToDisplayPlayerTaxIncome: 1 von 20 Befehlen
+    00459176 CMP EAX,0x3                                                  Export 83f803                   Speicher 83f802
+004591b0 getNumberToDisplayBribeIncome: 1 von 20 Befehlen
+    004591b6 CMP EAX,0x3                                                  Export 83f803                   Speicher 83f802
+0045b830 updatePopularity: 66 von 471 Befehlen
+    0045b935 MOV ECX,0xffffff38                                           Export b938ffffff               Speicher b906ffffff
+    0045b947 MOV ECX,0xffffff38                                           Export b938ffffff               Speicher b906ffffff
+    0045b953 LEA ECX,[EAX + -0x65]                                        Export 8d489b                   Speicher 8d4882
+    0045b966 MOV ECX,0xc8                                                 Export b9c8000000               Speicher b9fa000000
+    0045b970 MOV ECX,0x64                                                 Export b964000000               Speicher b97d000000
+    0045b991 ADD ECX,0x32                                                 Export 83c132                   Speicher 83c14b
+    ... noch 60
+0045bf50 updateTaxing: 1 von 74 Befehlen
+    0045bf7d CMP EAX,0x3                                                  Export 83f803                   Speicher 83f802
+0045cd10 processGameTick: 1 von 246 Befehlen
+    0045cd10 CMP dword ptr [0x0191e424],0x0                               Export 833d24e4910100           Speicher e87be9155a9090
+00465f20 TryAcquireAmmunitionOrPlanToBuyStone: 1 von 25 Befehlen
+    00465f53 ADD word ptr [EAX + 0x13888ae],0x14                          Export 668380ae88380114         Speicher 668380ae8838010a
+00465f90 SelectionReplenishAmmo: 4 von 85 Befehlen
+    0046600f MOV EDI,0x14                                                 Export bf14000000               Speicher bf0a000000
+    0046601a LEA EAX,[EDI + 0x1]                                          Export 8d4701                   Speicher 8d4700
+    00466028 SAR EAX,0x1                                                  Export d1f8                     Speicher 9090
+    00466081 LEA ESI,[EAX + EAX*0x1]                                      Export 8d3400                   Speicher 89c690
+00466e20 MenuItemActionHandler_BuildingAndStatusMenu_EngineerAndMonkPortraits: 1 von 79 Befehlen
+    00466ed2 PUSH 0x5a4a94                                                Export 68944a5a00               Speicher e901a67804
+00467a90 createWindow: 1 von 61 Befehlen
+    00467aa6 MOV dword ptr [ESP + 0x14],0x4b2ae0                          Export c7442414e02a4b00         Speicher c74424149012dc02
+00467b40 getDeviceCapsAndSetup: 6 von 49 Befehlen
+    00467b40 PUSH ECX                                                     Export 51                       Speicher b8
+    00467b41 PUSH EBX                                                     Export 53                       Speicher 50
+    00467b42 PUSH ESI                                                     Export 56                       Speicher 3c
+    00467b43 PUSH EDI                                                     Export 57                       Speicher dd
+    00467b44 PUSH 0x0                                                     Export 6a00                     Speicher 02ff
+    00467b46 MOV ESI,ECX                                                  Export 8bf1                     Speicher e0f1
+00467d80 releaseSurfacesAndDirectDraw: 2 von 66 Befehlen
+    00467d80 PUSH EBX                                                     Export 53                       Speicher c2
+    00467d81 MOV EBX,dword ptr [ESP + 0x8]                                Export 8b5c2408                 Speicher 04002408
+00467ec0 restoreDXSurfaces: 2 von 46 Befehlen
+    00467ec0 PUSH ESI                                                     Export 56                       Speicher 31
+    00467ec1 MOV ESI,ECX                                                  Export 8bf1                     Speicher c0c3
+0046a050 getTextStringInGroupAtOffset: 2 von 92 Befehlen
+    0046a050 MOV EAX,dword ptr [ESP + 0x4]                                Export 8b442404                 Speicher e93b7f89
+    0046a054 LEA EDX,[EAX + -0x5]                                         Export 8d50fb                   Speicher 0250fb
+0046f750 setWindowStyleRectAndPosition: 1 von 109 Befehlen
+    0046f750 SUB ESP,0x10                                                 Export 83ec10                   Speicher c3ec10
+0046f880 setupPreferredScreenResolution: 1 von 119 Befehlen
+    0046fa0b CMP EBX,0x5                                                  Export 83fb05                   Speicher 83fb1f
+0046fa70 initializeDirectDraw: 1 von 384 Befehlen
+    0046fa70 SUB ESP,0x1e8                                                Export 81ece8010000             Speicher b801000000c3
+00470040 renderBltAndFlip: 1 von 389 Befehlen
+    00470040 SUB ESP,0x7f4                                                Export 81ecf4070000             Speicher e84bb6145a90
+00477ee0 discoverMapFiles: 2 von 318 Befehlen
+    00477ee0 PUSH -0x1                                                    Export 6aff                     Speicher e8ab
+    00477ee2 PUSH 0x599d6b                                                Export 686b9d5900               Speicher 37145a9090
+0047c400 initMiles: 6 von 121 Befehlen
+    0047c5b0 PUSH 0x1                                                     Export 6a01                     Speicher 9090
+    0047c5b2 PUSH EDI                                                     Export 57                       Speicher 90
+    0047c5b3 PUSH 0x47b510                                                Export 6810b54700               Speicher 9090909090
+    0047c5b8 PUSH ESI                                                     Export 56                       Speicher 90
+    0047c5b9 PUSH 0x32                                                    Export 6a32                     Speicher 9090
+    0047c5bb CALL dword ptr [0x0059e21c]                                  Export ff151ce25900             Speicher 909090909090
+00481f40 ClickDestroyBuilding: 1 von 165 Befehlen
+    0048201b MOV EAX,dword ptr [ESI + 0xf9862c]                           Export 8b862c86f900             Speicher e978eb760490
+00486530 ActiveTacticalPowers: 1 von 60 Befehlen
+    00486530 PUSH ECX                                                     Export 51                       Speicher c3
+00486a70 getLordTypeForPlayer: 3 von 16 Befehlen
+    00486a8a ADD EAX,-0x2                                                 Export 83c0fe                   Speicher e8315d
+    00486a8d CMP EAX,0xf                                                  Export 83f80f                   Speicher 135a90
+    00486a90 JA 0x00486aa5                                                Export 7713                     Speicher 9090
+004892f0 processWaitingCommands: 2 von 47 Befehlen
+    00489387 MOV EAX,dword ptr [EDX*0x4 + 0xb38e10]                       Export 8b0495108eb300           Speicher e864bd76049090
+    0048938e CALL EAX                                                     Export ffd0                     Speicher 9090
+00489c80 CommandLoadMapHeader: 2 von 104 Befehlen
+    00489ceb PUSH 0x7d0                                                   Export 68d0070000               Speicher 68e0030000
+    00489d73 PUSH 0x7d0                                                   Export 68d0070000               Speicher 68e0030000
+0048f870 AskForPlayerSlotAssignment: 2 von 51 Befehlen
+    0048f919 MOV dword ptr [0x01a275dc],EDI                               Export 893ddc75a201             Speicher e96a16760490
+    0048f91f MOV dword ptr [0x0191de14],EDI                               Export 893d14de9101             Speicher 909090909090
+004950b0 MenuItemActionHandler_ProgressBarBox_LoadAndSaveGameButtonLogic: 4 von 487 Befehlen
+    004956fb JNZ 0x00495704                                               Export 7507                     Speicher 9090
+    004956fd MOV EAX,EBP                                                  Export 8bc5                     Speicher 9089
+    004956ff MOV [0x01a275dc],EAX                                         Export a3dc75a201               Speicher 1ddc75a201
+    00495704 MOV dword ptr [EAX*0x4 + 0x191de10],EBP                      Export 892c8510de9101           Speicher 893c8510de9101
+004995e0 updateSeparateAreaTileMap: 1 von 285 Befehlen
+    00499618 MOV dword ptr [0x0117cad8],0xc8                              Export c705d8ca1701c8000000     Speicher c705d8ca170132000000
+004aea50 MenuItemActionHandler_Roundtable_Main: 2 von 312 Befehlen
+    004aeb49 CMP dword ptr [EDI*0x4 + 0x191de7c],0x1                      Export 833cbd7cde910101         Speicher 833cbd7cde9101ff
+    004aeb7e CMP dword ptr [EDI*0x4 + 0x191de7c],0x7                      Export 833cbd7cde910107         Speicher 833cbd7cde9101ff
+004b2ae0 WindowMsgProcessingFunc: 13 von 2223 Befehlen
+    004b4748 CMP EAX,0x5a                                                 Export 83f85a                   Speicher 3d1027
+    004b474b JGE 0x004b3bd3                                               Export 0f8d82f4ffff             Speicher 00007d1989c7
+    004b4751 ADD EAX,0x5                                                  Export 83c005                   Speicher 3dc800
+    004b4754 CMP EAX,0x5a                                                 Export 83f85a                   Speicher 00000f
+    004b4757 MOV [0x01fe7dd8],EAX                                         Export a3d87dfe01               Speicher 8c6cc47304
+    004b475c JLE 0x004b4768                                               Export 7e0a                     Speicher 83c7
+    ... noch 7
+004b7f60 PlayAMessageFromAI: 2 von 16 Befehlen
+    004b7f60 MOV ECX,dword ptr [ESP + 0x4]                                Export 8b4c2404                 Speicher e93ba18e
+    004b7f64 CMP ECX,0x10                                                 Export 83f910                   Speicher 02f910
+004bea90 playBikVideoFromPlayer: 3 von 50 Befehlen
+    004bea90 PUSH EBP                                                     Export 55                       Speicher e9
+    004bea91 PUSH ESI                                                     Export 56                       Speicher 0b
+    004bea92 MOV ESI,dword ptr [ESP + 0x10]                               Export 8b742410                 Speicher 358e0210
+004cb3a0 aiRequiresExtraOxtethers: 3 von 102 Befehlen
+    004cb3a0 SUB ESP,0x8                                                  Export 83ec08                   Speicher e8eb02
+    004cb3a3 PUSH EBP                                                     Export 55                       Speicher 0f
+    004cb3a4 MOV EBP,dword ptr [ESP + 0x10]                               Export 8b6c2410                 Speicher 5a909090
+004cb5b0 shouldNotBeBuildingHovel: 6 von 23 Befehlen
+    004cb5cc CMP ECX,0xc                                                  Export 83f90c                   Speicher e91f53
+    004cb5cf JLE 0x004cb5b7                                               Export 7ee6                     Speicher 7204
+    004cb5e1 MOV ECX,0x5                                                  Export b905000000               Speicher b908000000
+    004cb5ee CMP dword ptr [EAX + 0x115e900],ECX                          Export 398800e91501             Speicher 7cc790909090
+    004cb5f4 JGE 0x004cb5d9                                               Export 7de3                     Speicher 9090
+    004cb5f6 XOR ECX,ECX                                                  Export 33c9                     Speicher 9090
+004cb810 destroyHouse: 1 von 39 Befehlen
+    004cb824 JNZ 0x004cb82c                                               Export 7506                     Speicher 9090
+004cba50 planToBuyWhenLowOnResourceAndSnoozeBuildings: 14 von 248 Befehlen
+    004cbcd5 SETZ DL                                                      Export 0f94c2                   Speicher 30d290
+    004cbcda SETZ CL                                                      Export 0f94c1                   Speicher 30c990
+    004cbce7 SETZ DL                                                      Export 0f94c2                   Speicher 30d290
+    004cbcf2 SETZ CL                                                      Export 0f94c1                   Speicher 30c990
+    004cbcfd SETZ DL                                                      Export 0f94c2                   Speicher 30d290
+    004cbd0a SETZ CL                                                      Export 0f94c1                   Speicher 30c990
+    ... noch 8
+004cde60 setCurrentAttackStrength: 33 von 47 Befehlen
+    004cde7c PUSH EBX                                                     Export 53                       Speicher 83
+    004cde7d PUSH EDI                                                     Export 57                       Speicher e8
+    004cde7e LEA EDI,[EAX + -0x1]                                         Export 8d78ff                   Speicher 0169c0
+    004cde81 MOVSX EAX,word ptr [0x01a279c2]                              Export 0fbf05c279a201           Speicher a40200008b8428
+    004cde88 CDQ                                                          Export 99                       Speicher f4
+    004cde89 MOV ECX,0x64                                                 Export b964000000               Speicher 0100008b8e
+    ... noch 27
+004d0280 destroyAnyBuildingInCategory: 4 von 166 Befehlen
+    004d0280 PUSH EBP                                                     Export 55                       Speicher c2
+    004d0281 MOV EBP,0x1                                                  Export bd01000000               Speicher 0800909090
+    004d03f4 MOVZX EAX,word ptr [ESI]                                     Export 0fb706                   Speicher e91501
+    004d03f7 CMP AX,0x2d                                                  Export 663d2d00                 Speicher 00009090
+004d2000 aiCreateSiegeUnits: 1 von 322 Befehlen
+    004d20a2 JLE 0x004d20ae                                               Export 7e0a                     Speicher eb0a
+004d30e0 sendUnitsToAttackBreachedCastle: 1 von 154 Befehlen
+    004d31cd JNZ 0x004d3218                                               Export 7549                     Speicher 9090
+004d3320 updateAIStrengthState: 1 von 326 Befehlen
+    004d34ab CMP dword ptr [0x01fe7da8],0x12c0                            Export 813da87dfe01c0120000     Speicher 813da87dfe0100000000
+004d3ae0 aiRecruitUnits: 1 von 301 Befehlen
+    004d3e6f MOV EDX,dword ptr [ESI + 0x115eee0]                          Export 8b96e0ee1501             Speicher e934ca710490
+004d4680 selectAttackTarget: 2 von 171 Befehlen
+    004d477b MOV EAX,dword ptr [ESP + 0x1c]                               Export 8b44241c                 Speicher e948c071
+    004d477f MOV ECX,dword ptr [ESP + 0x20]                               Export 8b4c2420                 Speicher 04909090
+004da050 MenuItemActionHandler_TacticalPowerBar_Main: 1 von 60 Befehlen
+    004da050 MOV EAX,[0x0191dd80]                                         Export a180dd9101               Speicher c380dd9101
+004e8cf0 renderMap: 2 von 3782 Befehlen
+    004ea265 JZ 0x004ea2c6                                                Export 745f                     Speicher eb5f
+    004ec86c MOV dword ptr [0x01fe7bc0],EBP                               Export 892dc07bfe01             Speicher 8915c07bfe01
+004ecad0 setAvailableAIV: 5 von 71 Befehlen
+    004ecad0 SUB ESP,0xc                                                  Export 83ec0c                   Speicher e8bbeb
+    004ecad3 PUSH EBX                                                     Export 53                       Speicher 0c
+    004ecad4 PUSH EBP                                                     Export 55                       Speicher 5a
+    004ecad5 PUSH ESI                                                     Export 56                       Speicher 90
+    004ecad6 PUSH EDI                                                     Export 57                       Speicher 90
+004efed0 aiPlaceQuarryAndOxtether: 1 von 113 Befehlen
+    004eff93 CMP dword ptr [0x01fe7b3c],0x0                               Export 833d3c7bfe0100           Speicher e9d00670049090
+004f1860 updateBuildingsStateAndUpdateAIBuildingDecisions: 1 von 125 Befehlen
+    004f1988 JNZ 0x004f19bf                                               Export 7535                     Speicher eb35
+004f3610 selectClosestTree: 2 von 93 Befehlen
+    004f36bd ADD dword ptr [EDI + 0x14],-0x2                              Export 834714fe                 Speicher e966de6f
+    004f36c1 POP EDI                                                      Export 5f                       Speicher 04
+004f4f60 renderCurrentlyDisplayedTextConstructionCost: 5 von 1387 Befehlen
+    004f5c8a MOV EBX,0x1e                                                 Export bb1e000000               Speicher b332eb0fb3
+    004f5c8f JMP 0x004f5c9d                                               Export eb0c                     Speicher 14eb
+    004f5c91 MOV EBX,0x4                                                  Export bb04000000               Speicher 0bb319eb07
+    004f5c96 JMP 0x004f5c9d                                               Export eb05                     Speicher b30a
+    004f5c98 MOV EBX,0xa                                                  Export bb0a000000               Speicher eb03909090
+004f6280 handleMenuItems: 1 von 128 Befehlen
+    004f6286 MOV dword ptr [EBX + 0x14],0x0                               Export c7431400000000           Speicher e9f5b16f049090
+004f94a0 validateWallPlacementAtTile: 1 von 62 Befehlen
+    004f94da CMP byte ptr [ESI + EDI*0x1 + 0x3290a0],0xc                  Export 80bc3ea09032000c         Speicher 80bc3ea090320001
+005160c0 prepareAreaForBuildingPlacement: 1 von 149 Befehlen
+    005161fb JNZ 0x005162a0                                               Export 0f859f000000             Speicher 0f8507a76d04
+0051e300 recomputeAttackInfo: 3 von 997 Befehlen
+    0051ef25 MOV ECX,dword ptr [ESP + 0x18]                               Export 8b4c2418                 Speicher eb102418
+    0051ef48 TEST dword ptr [EAX*0x4 + 0x1bf8368],0x10000100              Export f704856883bf0100010010   Speicher 9090909090909090909090
+    0051ef53 JNZ 0x0051ef72                                               Export 751d                     Speicher 9090
+005244d0 assignAttackTargetsForTribe: 1 von 223 Befehlen
+    00524633 CALL 0x00519cc0                                              Export e88856ffff               Speicher e9c0c16c04
+0052ec10 nonEuroRecruit: 27 von 134 Befehlen
+    0052ec14 CMP EAX,0x1e                                                 Export 83f81e                   Speicher 83f846
+    0052ec22 JNZ 0x0052ec28                                               Export 7504                     Speicher 7c10
+    0052ec24 MOV EBP,EAX                                                  Export 8be8                     Speicher 5083
+    0052ec26 JMP 0x0052ec8e                                               Export eb66                     Speicher e846
+    0052ec28 CMP EAX,0x5                                                  Export 83f805                   Speicher c1e002
+    0052ec2b JNZ 0x0052ec32                                               Export 7505                     Speicher 8ba8
+    ... noch 21
+005311f0 ComputeDamageFearFactorBonus: 3 von 13 Befehlen
+    00531200 ADD EAX,0x14                                                 Export 83c014                   Speicher 31c9e9
+    00531203 IMUL EAX,dword ptr [ESP + 0x4]                               Export 0faf442404               Speicher 39376c0490
+    00531208 LEA ECX,[EAX + EAX*0x4]                                      Export 8d0c80                   Speicher 909090
+00531920 processEntityDamageToUnit: 78 von 676 Befehlen
+    00531dff CMP CX,0x37                                                  Export 6683f937                 Speicher 498b0c8d
+    00531e03 JNZ 0x00531e0f                                               Export 750a                     Speicher 98b8
+    00531e05 MOV ECX,0x32                                                 Export b932000000               Speicher 700290e953
+    00531e0a JMP 0x00531f60                                               Export e951010000               Speicher 010000bb00
+    00531e0f CMP CX,0x3c                                                  Export 6683f93c                 Speicher 000000bb
+    00531e13 JNZ 0x00531e1f                                               Export 750a                     Speicher 0000
+    ... noch 72
+00532460 processFireDamageToUnit: 5 von 162 Befehlen
+    00532495 CMP DI,0x37                                                  Export 6683ff37                 Speicher 8b04bde0
+    00532499 JNZ 0x005324a2                                               Export 7507                     Speicher b970
+    0053249b MOV EAX,0x19                                                 Export b819000000               Speicher 02bd010000
+    005324a0 JMP 0x005324c3                                               Export eb21                     Speicher 00eb
+    005324a2 CMP DI,0x35                                                  Export 6683ff35                 Speicher 2583ff35
+005345a0 findEligibleUnitByTimeAndLocation: 3 von 82 Befehlen
+    005345a0 SUB ESP,0x8                                                  Export 83ec08                   Speicher e993c7
+    005345a3 PUSH EBX                                                     Export 53                       Speicher 6b
+    005345a4 PUSH EBP                                                     Export 55                       Speicher 04
+0053d030 harassBuildingsWithSiegeAI: 6 von 223 Befehlen
+    0053d21b MOV ECX,0x34                                                 Export b934000000               Speicher b925000000
+    0053d222 SUB ECX,0x3                                                  Export 83e903                   Speicher e9a97e
+    0053d225 NEG ECX                                                      Export f7d9                     Speicher 6b04
+    0053d227 SBB ECX,ECX                                                  Export 1bc9                     Speicher 9090
+    0053d229 AND ECX,0xfffffff6                                           Export 83e1f6                   Speicher 909090
+    0053d22c ADD ECX,0x53                                                 Export 83c153                   Speicher 909090
+0053d3d0 setDestinationForUnit: 3 von 270 Befehlen
+    0053d3d9 IMUL EDX,EDX,0x490                                           Export 69d290040000             Speicher e97a366b0490
+    0053d694 CMP AX,BX                                                    Export 663bc3                   Speicher e9df33
+    0053d697 MOV word ptr [ESI + 0x8bc],AX                                Export 668986bc080000           Speicher 6b049090909090
+0053d900 exitLadder: 2 von 48 Befehlen
+    0053d900 PUSH EBX                                                     Export 53                       Speicher e9
+    0053d901 MOV EBX,dword ptr [ESP + 0x8]                                Export 8b5c2408                 Speicher 03326b04
+0053e440 spawnUnit: 1 von 155 Befehlen
+    0053e5de MOV word ptr [ESI + 0x976],0x14                              Export 66c786760900001400       Speicher 66c786760900000a00
+00540440 UpdateHealer: 9 von 642 Befehlen
+    00540440 PUSH ECX                                                     Export 51                       Speicher e9
+    00540441 PUSH EBX                                                     Export 53                       Speicher 93
+    00540442 PUSH EBP                                                     Export 55                       Speicher 0a
+    00540443 PUSH ESI                                                     Export 56                       Speicher 6b
+    00540444 PUSH EDI                                                     Export 57                       Speicher 04
+    00540750 MOV EAX,EDX                                                  Export 8bc2                     Speicher e9a3
+    ... noch 3
+00540ec0 UpdateInnkeeper: 1 von 505 Befehlen
+    00541350 ADD word ptr [EAX + 0xf987e4],0xa0                           Export 668180e487f900a000       Speicher 668180e487f9007800
+005459b0 UpdateBatteringRam: 1 von 647 Befehlen
+    0054624c PUSH 0x32                                                    Export 6a32                     Speicher 6a7d
+00549b30 SetRestingForUnit: 1 von 81 Befehlen
+    00549b40 ADD word ptr [ESI + 0x1388856],0x1                           Export 6683865688380101         Speicher 6683865688380102
+0054b0d0 acquireShootTarget: 3 von 797 Befehlen
+    0054b201 MOV EAX,dword ptr [EAX*0x4 + 0x5b6358]                       Export 8b048558635b00           Speicher e9ba9c6a049090
+    0054ba54 ADD EAX,-0x16                                                Export 83c0ea                   Speicher e9a75a
+    0054ba57 CMP EAX,0x37                                                 Export 83f837                   Speicher 6a0490
+0054c1c0 unitClimbing: 2 von 202 Befehlen
+    0054c3e5 MOVSX EDX,word ptr [ESI + 0x702]                             Export 0fbf9602070000           Speicher e946476a049090
+    0054c3ec MOVSX EAX,word ptr [ESI + 0x700]                             Export 0fbf8600070000           Speicher 90909090909090
+0054d8f0 UpdateFletcher: 4 von 876 Befehlen
+    0054de74 PUSH EBP                                                     Export 55                       Speicher e9
+    0054de75 PUSH EBP                                                     Export 55                       Speicher ef
+    0054de76 MOV word ptr [ESI + 0x1388814],BX                            Export 66899e14883801           Speicher 376a0490909090
+    0054e389 MOV word ptr [EAX + 0x138880c],0x3                           Export 66c7800c8838010300       Speicher 66c7800c8838010100
+0054e6c0 UpdateTunneler: 3 von 1063 Befehlen
+    0054f2de MOV ECX,0x6                                                  Export b906000000               Speicher b914000000
+    0054f318 AND ECX,0xfffffff0                                           Export 83e1f0                   Speicher 83e100
+    0054f31b ADD ECX,0x14                                                 Export 83c114                   Speicher 83c128
+0054f860 UpdateHunter: 1 von 1124 Befehlen
+    00550287 PUSH 0x6                                                     Export 6a06                     Speicher 6a0f
+00550d70 UpdateQuarryWorker: 2 von 730 Befehlen
+    00550fc1 PUSH 0x1                                                     Export 6a01                     Speicher 6a00
+    00550fc3 PUSH 0x8                                                     Export 6a08                     Speicher 6a0c
+005521d0 UpdateWheatFarmer: 2 von 831 Befehlen
+    00552b45 PUSH EBX                                                     Export 53                       Speicher e9
+    00552b46 MOV word ptr [ESI + 0x1388882],DI                            Export 6689be82883801           Speicher eeea6904906a00
+00554500 UpdateDairyFarmer: 1 von 484 Befehlen
+    00554923 PUSH 0x3                                                     Export 6a03                     Speicher 6a04
+00555880 UpdateBaker: 3 von 847 Befehlen
+    00555d55 MOV word ptr [ECX + 0x13885d8],0x3                           Export 66c781d88538010300       Speicher 909090909090909090
+    00555f5a PUSH EBX                                                     Export 53                       Speicher e9
+    00555f5b MOV byte ptr [ESI + 0x138887b],0xfe                          Export c6867b883801fe           Speicher c1b66904906a00
+005565d0 UpdateBrewer: 3 von 809 Befehlen
+    00556cc9 PUSH EBP                                                     Export 55                       Speicher e9
+    00556cca MOV byte ptr [ESI + 0x138887b],0xfe                          Export c6867b883801fe           Speicher 82a969046a016a
+    00556cd1 PUSH EBP                                                     Export 55                       Speicher 01
+00557230 UpdatePoleTurner: 3 von 840 Befehlen
+    005577d5 PUSH EBP                                                     Export 55                       Speicher e9
+    005577d6 MOV byte ptr [ESI + 0x138887b],0xfe                          Export c6867b883801fe           Speicher d69e6904909090
+    005577dd PUSH EBP                                                     Export 55                       Speicher 90
+00557f70 UpdateBlacksmith: 3 von 844 Befehlen
+    00558424 PUSH EBP                                                     Export 55                       Speicher e9
+    00558425 PUSH EBP                                                     Export 55                       Speicher cf
+    00558426 MOV word ptr [ESI + 0x1388814],BX                            Export 66899e14883801           Speicher 92690490909090
+00558cb0 UpdateArmorer: 3 von 783 Befehlen
+    0055924f PUSH EBP                                                     Export 55                       Speicher e9
+    00559250 MOV byte ptr [ESI + 0x138887b],0xfe                          Export c6867b883801fe           Speicher 647269046a016a
+    00559257 PUSH EBP                                                     Export 55                       Speicher 01
+005598d0 UpdateTanner: 6 von 959 Befehlen
+    00559c6e CMP ECX,dword ptr [EBP + 0x13885e4]                          Export 3b8de4853801             Speicher e94d79690490
+    00559c7a CMP word ptr [EBP + 0x138880c],0x0                           Export 6683bd0c88380100         Speicher e971796904909090
+    0055a10e PUSH EBX                                                     Export 53                       Speicher e9
+    0055a10f PUSH EBX                                                     Export 53                       Speicher 2d
+    0055a110 PUSH EAX                                                     Export 50                       Speicher 76
+    0055a111 MOV word ptr [ESI + 0x1388814],BP                            Export 6689ae14883801           Speicher 69046a016a0250
+0055a800 UpdateCrusaderArcher: 6 von 1906 Befehlen
+    0055abf9 CMP word ptr [EAX + 0x13887f2],0x190                         Export 6681b8f28738019001       Speicher 6681b8f28738012001
+    0055ac2a CMP CX,0x190                                                 Export 6681f99001               Speicher 6681f92001
+    0055ac40 CMP CX,0x1b0                                                 Export 6681f9b001               Speicher 6681f94001
+    0055b1b9 AND ECX,0xfffffffd                                           Export 83e1fd                   Speicher 83e100
+    0055b1bc ADD ECX,0x4                                                  Export 83c104                   Speicher 83c101
+    0055bb79 MOVZX EAX,word ptr [EAX + 0x13888e8]                         Export 0fb780e8883801           Speicher e9424d69049090
+0055c7b0 UpdateCrossbowman: 8 von 1121 Befehlen
+    0055c938 CMP CX,0x190                                                 Export 6681f99001               Speicher 6681f92001
+    0055c94e CMP CX,0x1b0                                                 Export 6681f9b001               Speicher 6681f94001
+    0055cdf7 XOR EAX,EAX                                                  Export 33c0                     Speicher 8b04
+    0055cdf9 CMP dword ptr [EDX*0x4 + 0x5b9980],EAX                       Export 39049580995b00           Speicher 9580995b003c01
+    0055ce00 SETZ AL                                                      Export 0f94c0                   Speicher 750431
+    0055ce03 XOR EDI,EDI                                                  Export 33ff                     Speicher c02c
+    ... noch 2
+0055da50 UpdateSpearman: 4 von 1325 Befehlen
+    0055e044 CMP word ptr [ESI + 0x13887da],DI                            Export 6639beda873801           Speicher e9272769049090
+    0055e3a3 MOV ECX,0x4                                                  Export b904000000               Speicher b902000000
+    0055e3cc AND ECX,0xfffffffb                                           Export 83e1fb                   Speicher 83e1f9
+    0055e3cf ADD ECX,0x8                                                  Export 83c108                   Speicher 83c10a
+0055f110 UpdatePikeman: 3 von 1261 Befehlen
+    0055f864 MOV ECX,0x6                                                  Export b906000000               Speicher b905000000
+    0055f8a0 AND ECX,0xfffffff0                                           Export 83e1f0                   Speicher 83e1e2
+    0055f8a3 ADD ECX,0x14                                                 Export 83c114                   Speicher 83c128
+00560700 UpdateMaceman: 4 von 1228 Befehlen
+    00560b4f CMP word ptr [ESI + 0x1388808],CX                            Export 66398e08883801           Speicher e944fb68049090
+    00560e7f MOV ECX,0x6                                                  Export b906000000               Speicher b905000000
+    00560eb2 AND ECX,0xffffffe1                                           Export 83e1e1                   Speicher 83e1bf
+    00560eb5 ADD ECX,0x23                                                 Export 83c123                   Speicher 83c150
+00561c10 UpdateSwordsman: 2 von 845 Befehlen
+    005620e9 AND ECX,0xffffffc0                                           Export 83e1c0                   Speicher 83e1a6
+    005620ec ADD ECX,0x46                                                 Export 83c146                   Speicher 83c164
+00562aa0 UpdateKnight: 2 von 826 Befehlen
+    00562fd8 AND ECX,0xffffffc0                                           Export 83e1c0                   Speicher 83e1a6
+    00562fdb ADD ECX,0x46                                                 Export 83c146                   Speicher 83c164
+00566010 UpdateMinerIronFetcher: 6 von 463 Befehlen
+    00566136 XOR ECX,ECX                                                  Export 33c9                     Speicher 83b8
+    00566138 CMP dword ptr [EAX + 0xf9866c],ECX                           Export 39886c86f900             Speicher 6c86f900010f
+    0056613e SETZ CL                                                      Export 0f94c1                   Speicher 9ec190
+    005662fe ADD dword ptr [EAX + 0xf9866c],-0x1                          Export 83806c86f900ff           Speicher 83806c86f900fe
+    00566305 PUSH 0x1                                                     Export 6a01                     Speicher 6a00
+    0056630d PUSH 0x1                                                     Export 6a01                     Speicher 6a02
+00567640 UpdateMonk: 1 von 734 Befehlen
+    00567b5b MOV ECX,0x4                                                  Export b904000000               Speicher b902000000
+0056a3f0 UpdateMangonel: 2 von 809 Befehlen
+    0056a4d0 CMP word ptr [ESI + 0x13887f2],0x2a8                         Export 6681bef2873801a802       Speicher 6681bef28738012002
+    0056a5b0 CMP word ptr [ESI + 0x13887f2],0x2a8                         Export 6681bef2873801a802       Speicher 6681bef28738012002
+0056c560 UpdateLord: 5 von 1696 Befehlen
+    0056d6bf AND ECX,0xffffffc0                                           Export 83e1c0                   Speicher 83e1a6
+    0056d6c2 ADD ECX,0x46                                                 Export 83c146                   Speicher 83c164
+    0056d86b MOV word ptr [EAX + 0x138880c],BP                            Export 6689a80c883801           Speicher e9383d68049090
+    0056e142 CMP dword ptr [0x0191dd80],0x0                               Export 833d80dd910100           Speicher e9013468049090
+    0056e149 MOV dword ptr [ESI + 0x13887fc],0x0                          Export c786fc87380100000000     Speicher 90909090909090909090
+0056e190 UpdateJester: 15 von 707 Befehlen
+    0056e190 PUSH ECX                                                     Export 51                       Speicher e9
+    0056e191 PUSH EBX                                                     Export 53                       Speicher c3
+    0056e192 PUSH EBP                                                     Export 55                       Speicher 2b
+    0056e193 PUSH ESI                                                     Export 56                       Speicher 68
+    0056e194 PUSH EDI                                                     Export 57                       Speicher 04
+    0056e61a CMP AX,BP                                                    Export 663bc5                   Speicher e95927
+    ... noch 9
+0056ecd0 UpdateBallista: 1 von 825 Befehlen
+    0056ee24 CMP word ptr [ESI + 0x13887f2],0x2a8                         Export 6681bef2873801a802       Speicher 6681bef28738012002
+0056f9b0 UpdateCageDog: 1 von 589 Befehlen
+    0056fb6c CMP dword ptr [0x012bb924],0x19                              Export 833d24b92b0119           Speicher 833d24b92b0110
+00570400 UpdateArabianArcher: 6 von 1439 Befehlen
+    005705ac MOV EBP,0x190                                                Export bd90010000               Speicher bd20010000
+    005705fe CMP CX,0x1b0                                                 Export 6681f9b001               Speicher 6681f94001
+    00570677 MOV word ptr [ESI + 0x138880a],BP                            Export 6689ae0a883801           Speicher 90909090909090
+    00570b61 AND ECX,0xfffffffd                                           Export 83e1fd                   Speicher 83e1fc
+    00570b64 ADD ECX,0x4                                                  Export 83c104                   Speicher 83c105
+    0057150d MOV EBP,0x190                                                Export bd90010000               Speicher bd20010000
+00571c00 UpdateSlave: 2 von 1058 Befehlen
+    00571ff6 MOVZX EAX,word ptr [ESI + 0x13887da]                         Export 0fb786da873801           Speicher e92de767049090
+    0057239c PUSH 0x8                                                     Export 6a08                     Speicher 6a01
+00572e80 UpdateSlinger: 8 von 1340 Befehlen
+    00572fe9 CMP CX,0x190                                                 Export 6681f99001               Speicher 6681f9b800
+    00572fff CMP CX,0x1b0                                                 Export 6681f9b001               Speicher 6681f9b800
+    00573082 MOV word ptr [ESI + 0x138880a],AX                            Export 6689860a883801           Speicher 90909090909090
+    00573182 CMP word ptr [ESI + 0x1388808],CX                            Export 66398e08883801           Speicher e959d567049090
+    005734f7 AND ECX,0xfffffffd                                           Export 83e1fd                   Speicher 83e1fc
+    005734fa ADD ECX,0x4                                                  Export 83c104                   Speicher 83c105
+    ... noch 2
+005744d0 UpdateAssassin: 4 von 1058 Befehlen
+    00574629 MOV word ptr [ESI + 0x138880a],AX                            Export 6689860a883801           Speicher 90909090909090
+    00574a99 MOV ECX,0xa                                                  Export b90a000000               Speicher b903000000
+    00574ad2 AND ECX,0xffffffc0                                           Export 83e1c0                   Speicher 83e1ba
+    00574ad5 ADD ECX,0x46                                                 Export 83c146                   Speicher 83c14b
+00575c40 UpdateArabianSwordsman: 2 von 795 Befehlen
+    0057612b AND ECX,0xffffffc0                                           Export 83e1c0                   Speicher 83e1a6
+    0057612e ADD ECX,0x46                                                 Export 83c146                   Speicher 83c164
+005769f0 UpdateFireThrower: 7 von 1137 Befehlen
+    00576b59 CMP CX,0x190                                                 Export 6681f99001               Speicher 6681f98000
+    00576b6f CMP CX,0x1b0                                                 Export 6681f9b001               Speicher 6681f98000
+    00576bf2 MOV word ptr [ESI + 0x138880a],AX                            Export 6689860a883801           Speicher 90909090909090
+    00577017 AND ECX,0xfffffffd                                           Export 83e1fd                   Speicher 83e1fc
+    0057701a ADD ECX,0x4                                                  Export 83c104                   Speicher 83c105
+    005772ec ADD EDX,ECX                                                  Export 03d1                     Speicher e967
+    ... noch 1
+00577cc0 UpdateFireBallista: 4 von 950 Befehlen
+    00577dc2 CMP word ptr [ESI + 0x13887f2],0x2a8                         Export 6681bef2873801a802       Speicher 6681bef28738012002
+    00577e01 PUSH 0x34                                                    Export 6a34                     Speicher 6a25
+    00577e8a CMP word ptr [ESI + 0x13887f2],0x1b0                         Export 6681bef2873801b001       Speicher 6681bef28738013801
+    00578797 CMP EBX,0xb64                                                Export 81fb640b0000             Speicher 81fbf1050000
+00578c40 processUnitMove: 2 von 413 Befehlen
+    005790cb MOV word ptr [EDI + ESI*0x1 + 0x700],CX                      Export 66898c3700070000         Speicher e9f0796704909090
+    005790d3 MOV word ptr [EDI + ESI*0x1 + 0x702],DX                      Export 6689943702070000         Speicher 9090909090909090
+00579300 updateUnits: 3 von 1228 Befehlen
+    0057953b CMP word ptr [EAX + ESI*0x1 + 0x6a8],0x1                     Export 6683bc30a806000001       Speicher e93876670490909090
+    00579879 MOV EAX,0x1162358                                            Export b858231601               Speicher e9d26f6704
+    00579a7c IMUL EDI,EDI,0x39f4                                          Export 69fff4390000             Speicher e9f76d670490
+0057ab50 UpdateHorseArcher: 5 von 851 Befehlen
+    0057acae CMP word ptr [EDX + 0x13887f2],0x1b0                         Export 6681baf2873801b001       Speicher 6681baf28738014001
+    0057ad87 CMP word ptr [ESI + 0x13887f2],0x1b0                         Export 6681bef2873801b001       Speicher 6681bef28738014001
+    0057af36 CMP word ptr [ESI + 0x13887f2],0x1b0                         Export 6681bef2873801b001       Speicher 6681bef28738014001
+    0057b1e2 AND ECX,0xfffffffd                                           Export 83e1fd                   Speicher 83e1fc
+    0057b1e5 ADD ECX,0x4                                                  Export 83c104                   Speicher 83c105
+0057be10 WinMain: 6 von 624 Befehlen
+    0057bee9 CALL 0x00473870                                              Export e88279efff               Speicher e812607802
+    0057bf65 CALL 0x0046ff50                                              Export e8e63fefff               Speicher e8d67c8502
+    0057c0f8 CALL 0x00455c60                                              Export e8639bedff               Speicher e8d358a80f
+    0057c230 CMP dword ptr [0x00f9839c],EBX                               Export 391d9c83f900             Speicher e88b05045a90
+    0057c699 MOV ECX,0x1667ef8                                            Export b9f87e6601               Speicher 9090909090
+    0057c69e CALL 0x004b0b30                                              Export e88d44f3ff               Speicher 9090909090
+0057fcb2 _fclose: 2 von 39 Befehlen
+    0057fcb2 PUSH 0xc                                                     Export 6a0c                     Speicher e919
+    0057fcb4 PUSH 0x5b39a0                                                Export 68a0395b00               Speicher 5868769090
+0057ff34 _fread_s: 2 von 46 Befehlen
+    0057ff34 PUSH 0xc                                                     Export 6a0c                     Speicher e9f7
+    0057ff36 PUSH 0x5b39c0                                                Export 68c0395b00               Speicher ec65769090
+0058028f _ftell: 2 von 33 Befehlen
+    0058028f PUSH 0xc                                                     Export 6a0c                     Speicher e97c
+    00580291 PUSH 0x5b3a00                                                Export 68003a5b00               Speicher 2f68769090
+00580384 _fseek: 2 von 42 Befehlen
+    00580384 PUSH 0xc                                                     Export 6a0c                     Speicher e9a7
+    00580386 PUSH 0x5b3a20                                                Export 68203a5b00               Speicher 5968769090
+00580409 __fsopen: 2 von 64 Befehlen
+    00580409 PUSH 0xc                                                     Export 6a0c                     Speicher e9b2
+    0058040b PUSH 0x5b3a40                                                Export 68403a5b00               Speicher 9865769090
+005804cd _fopen: 2 von 6 Befehlen
+    005804cd PUSH 0x40                                                    Export 6a40                     Speicher e8be
+    005804cf PUSH dword ptr [ESP + 0xc]                                   Export ff74240c                 Speicher b1035a90
+00580735 _fgetwc: 2 von 34 Befehlen
+    00580735 PUSH 0xc                                                     Export 6a0c                     Speicher e966
+    00580737 PUSH 0x5b3a60                                                Export 68603a5b00               Speicher 116d769090
+0058099b _fwrite: 2 von 40 Befehlen
+    0058099b PUSH 0xc                                                     Export 6a0c                     Speicher e960
+    0058099d PUSH 0x5b3aa0                                                Export 68a03a5b00               Speicher 3664769090
+00580f38 _ucrt_close: 2 von 59 Befehlen
+    00580f38 PUSH 0x10                                                    Export 6a10                     Speicher e953
+    00580f3a PUSH 0x5b3ac0                                                Export 68c03a5b00               Speicher 4568769090
+005815c6 _ucrt_read: 2 von 73 Befehlen
+    005815c6 PUSH 0x10                                                    Export 6a10                     Speicher e9c5
+    005815c8 PUSH 0x5b3ae0                                                Export 68e03a5b00               Speicher ae64769090
+005816c3 _ucrt_open: 4 von 20 Befehlen
+    005816c3 PUSH EBP                                                     Export 55                       Speicher e8
+    005816c4 MOV EBP,ESP                                                  Export 8bec                     Speicher c89f
+    005816c6 PUSH ECX                                                     Export 51                       Speicher 03
+    005816c7 PUSH 0x0                                                     Export 6a00                     Speicher 5a90
+00581f6f _ucrt_write: 2 von 63 Befehlen
+    00581f6f PUSH 0x10                                                    Export 6a10                     Speicher e99c
+    00581f71 PUSH 0x5b3b00                                                Export 68003b5b00               Speicher dd69769090
+0058277e _ucrt_lseek: 2 von 63 Befehlen
+    0058277e PUSH 0x10                                                    Export 6a10                     Speicher e94d
+    00582780 PUSH 0x5b3b20                                                Export 68203b5b00               Speicher 2868769090
+005831be _flsall: 2 von 65 Befehlen
+    005831be PUSH 0x14                                                    Export 6a14                     Speicher e91d
+    005831c0 PUSH 0x5b3ba0                                                Export 68a03b5b00               Speicher 4e6a769090
+00583298 _fflush: 2 von 23 Befehlen
+    00583298 PUSH 0xc                                                     Export 6a0c                     Speicher e9e3
+    0058329a PUSH 0x5b3bc8                                                Export 68c83b5b00               Speicher 3368769090
+005833f2 _fgetpos: 3 von 45 Befehlen
+    005833f2 PUSH EDI                                                     Export 57                       Speicher e9
+    005833f3 XOR EDI,EDI                                                  Export 33ff                     Speicher 29ff
+    005833f5 CMP dword ptr [ESP + 0x8],EDI                                Export 397c2408                 Speicher 67769090
+0058345d _fsetpos: 3 von 27 Befehlen
+    0058345d PUSH ESI                                                     Export 56                       Speicher e9
+    0058345e XOR ESI,ESI                                                  Export 33f6                     Speicher fe25
+    00583460 CMP dword ptr [ESP + 0x8],ESI                                Export 39742408                 Speicher 68769090
+00584026 entry: 1 von 2 Befehlen
+    00584026 CALL 0x00591049                                              Export e81ed00000               Speicher e815d5735b
+0058c4cb __fileno: 2 von 20 Befehlen
+    0058c4cb MOV EAX,dword ptr [ESP + 0x4]                                Export 8b442404                 Speicher e930b863
+    0058c4cf PUSH ESI                                                     Export 56                       Speicher 76
+0059c9a0 Constructor_TextureRenderingCore: 1 von 9 Befehlen
+    0059c9a7 PUSH 0x40f1fa0                                               Export 68a01f0f04               Speicher 6800e1f505

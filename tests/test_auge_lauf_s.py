@@ -844,17 +844,71 @@ def test_zweiter_nachlauf_editor(tmp_path):
     assert len(nah) == 1
 
 
-def test_zweiter_nachlauf_loeschen_und_angst(tmp_path):
-    g, l = lauf_im_gefecht(tmp_path)
+def test_zweiter_nachlauf_gefecht(tmp_path):
+    class S(Spiel):
+        n = 0
+
+        def peek(self, adr, n=1):
+            if adr == ls.VERLUSTE:
+                S.n += 1
+                return [S.n] * n
+            return super().peek(adr, n)
+    g = S(tmp_path)
+    g.einheiten = [{"nr": 900 + i, "uid": 900 + i, "typ": 55, "besitzer": i + 1, "x": 150 + 100 * i, "y": 150 + 100 * i, "leben": 100, "trupp": 0} for i in range(2)]
+    l = lauf_von(g)
+    l.gefecht = True
     e = ls.SZENEN["sonder10_g"](l)
     assert e["kein_platz"] == [] and e["nicht_gesetzt"] == []
     plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
     b = [c for c in g.log if isinstance(c, dict)]
-    assert {x["typ"] for x in plan["gebaeude"]} == {1, 27} and all(x["spieler"] == 1 for x in plan["gebaeude"])
-    h = next(x for x in plan["gebaeude"] if x["typ"] == 1)
+    gb = plan["gebaeude"]
+    assert {x["typ"] for x in gb} == {1, 27, 66, 93}
+    assert all(x["spieler"] == 1 for x in gb if x["typ"] in (1, 27, 66)) and all(x["spieler"] == 2 for x in gb if x["typ"] == 93)
+    assert sum(x["typ"] == 66 for x in gb) == ls.ANGST_BAUTEN == sum(x["typ"] == 93 for x in gb)
+    assert all(14 <= max(abs(x["x"] - 250), abs(x["y"] - 250)) <= 40 for x in gb if x["typ"] == 93)  # im Burgbereich von Spieler 2
+    h = next(x for x in gb if x["typ"] == 1)
     an = next(c for c in b if "gebaeude" in c.get("angriff", {}))
     assert an["player"] == 2 and an["angriff"]["gebaeude"] == h["nr"]
-    assert any(c.get("wert") == 5 and c.get("poke") == 7100 for c in b)  # Angst fuer Spieler 1
+    assert not any("poke" in c for c in b)
+    k = [x for x in plan["einheiten"] if x["typ"] == 39]
+    bef = [c for c in b if c.get("spielbefehl", {}).get("nr") == 86]
+    assert len(bef) == 2 and bef[0]["spielbefehl"]["werte"][1] == 1 and bef[1]["spielbefehl"]["werte"] == [k[0]["nr"], 0]
+    assert bef[0]["spielbefehl"]["werte"][0] == 1000 + k[1]["nr"]  # der Trupp des zweiten Katapults
+    i0, i1 = b.index(bef[0]), b.index(bef[1])
+    assert b[i0 - 1].get("ware", {}).get("typ") == 4 and b[i1 - 1].get("ware", {}).get("typ") == 4  # Stein kurz davor
+    assert plan["verluste"]["vorher"]["verlust"] != plan["verluste"]["nachher"]["verlust"]
+    v = [x for x in plan["einheiten"] if x.get("posten") == "verlust"]
+    assert {(x["rolle"], x["spieler"], x["typ"]) for x in v} == {("opfer", 1, 24), ("taeter", 2, 28)}
+
+
+def test_dritter_nachlauf_editor(tmp_path):
+    g = Spiel(tmp_path)
+    e = ls.SZENEN["sonder12"](lauf_von(g))
+    assert e["kein_platz"] == [] and e["nicht_gesetzt"] == []
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    b = [c for c in g.log if isinstance(c, dict)]
+    ort = {k["posten"]: k for k in plan["karte"]}
+    gb = {x["posten"]: x for x in plan["gebaeude"]}
+    sp = [c["spielbefehl"]["werte"] for c in b if c.get("spielbefehl", {}).get("nr") == 25]
+    for n in ("turm_eck", "turm_mitte", "turm4_weg"):
+        t = gb[n]
+        linie = [w for w in sp if w[4] == 25 and w[1] == w[3] and ort[n]["y"] <= w[1] < ort[n]["y"] + ort[n]["hoehe"] and ort[n]["x"] <= w[0] <= ort[n]["x"] + 3]
+        assert len(linie) == 1 and linie[0][2] == t["x"] - 1  # bis vor den Turm, nicht darauf
+    laeufe = {tuple(c["angriff"]["lauf"]) for c in b if "lauf" in c.get("angriff", {})}
+    for n in ("turm_eck", "turm_mitte", "turm_treppe", "turm4_weg"):
+        assert (gb[n]["x"], gb[n]["y"]) in laeufe  # das Eckfeld
+    d = next(x for x in plan["einheiten"] if x.get("posten") == "turm_direkt")
+    assert (d["x"], d["y"]) == (gb["turm_direkt"]["x"], gb["turm_direkt"]["y"])
+    for n, a in (("tor_17", 17), ("tor_18", 18)):
+        f = next(x for x in plan["einheiten"] if x.get("posten") == n)
+        assert gb[n]["x"] - f["x"] == a
+    for n in ("tor_offen_w", "tor_zu_w"):
+        assert [gb[n]["x"] - 10, gb[n]["y"] + 2, gb[n]["x"] - 1, gb[n]["y"] + 2, 25, 13] in sp  # linke Wand bis vor das Tor
+    assert any(x.get("posten") == "tor_zu_w" and x["rolle"] == "feind" for x in plan["einheiten"]) and not any(x.get("posten") == "tor_offen_w" and x["rolle"] == "feind" for x in plan["einheiten"])
+    o = ort["trupp_ring"]
+    assert (o["x"] + 34, o["y"] + 4) in laeufe  # im Ring
+    k = next(x for x in plan["einheiten"] if x.get("posten") == "trupp_ring" and x["rolle"] == "feind")
+    assert sum(max(abs(x["x"] - k["x"]), abs(x["y"] - k["y"])) <= 1 for x in plan["einheiten"] if x.get("posten") == "trupp_ring" and x["rolle"] == "trupp") == 1
 
 
 def test_zweiter_nachlauf_geher_auf_das_pech(tmp_path):
