@@ -507,6 +507,25 @@ Mein Bericht von 20:45 sagte, die Checkliste sei durch. Das stimmte nicht ganz: 
 | P373 | `commitBuildingAvailability` | Lage fehlte | Braucht eine Karte mit gesperrtem Gebäude |
 | P376 | `updateTribeBehaviorBasedOnBehaviorType` | Lage fehlte | Nur in der Einzelspieler-Mission, die kommt in unseren Partien nicht vor |
 
+## Mehrere Gruppenbefehle im selben Takt (Bitte von SAI), 04.11. 21:16
+
+Weg: Befehl 16 und 17 über das Modul, direkt ohne seine Warteschlange, Spieler 1, Gefecht, Tempo 1. Belege: `rufen_20261104_211605.json` (direkt), `rufen_20261104_211354.json` (Warteschlange, die direkten Fälle dort sind ungültig: Im angehaltenen Spiel abgesetzt entstand keine Gruppe).
+
+| Fall | Im selben Takt | Gruppen im Spiel | Eigenes Ziel |
+|---|---|---|---|
+| 1 Gruppe je 3 (Gegenprobe) | 1 Befehl | 1 | 3 von 3 |
+| 2 Gruppen je 3, verschiedene Nummern | 2 | 1 | 2 von 6 |
+| 5 Gruppen je 3, verschiedene Nummern | 5 | 1 | 2 von 15 |
+| 12 Gruppen je 3, verschiedene Nummern | 12 | 1 | 6 von 36 |
+| Einzelbefehle 8, 20, 50, 100 | je einer Einheit | 1 | 1, 1, 1, 0 |
+| Einzelbefehle 120 | | 1 | 1, 20 Einheiten ohne Ziel |
+| Warteschlange 12 Gruppen je 3 | 1 je Takt, 12 Takte | 12 | 36 von 36 |
+| Warteschlange 20 Einzelbefehle | 1 je Takt, 20 Takte | 20 | 20 von 20 |
+
+**Verschiedene Nummern helfen nicht:** Alle Einheiten aller Befehle eines Takts landen in einer Gruppe und laufen zum Ziel des letzten Befehls. Ein Befehl je Takt kommt immer richtig an. Die Gegenprobe mit derselben Nummer ist nicht sauber gelaufen (3 und 4 Nummern statt 1), sie zählt nicht. Grenze: gemessen über das Modul, nicht über den Weg des Kerns (`haende.rs`).
+
+Dazu `spielwerte_gemessen.json` (gebaut von `spielwerte_bauen.py`): Laufen, Reichweite, Geschoss-Tempo, Schaden, Schusstakt, je Wert mit Marke, Quelle und Spielart.
+
 ## Noch offen
 
 Warum 4 von 82 Feuerschüssen 60 Takte keinen Verlust zeigen. Warum der erste Rahmen im Gefecht alt ist. Feuerkorb: Warum Befehl 69 auf Bergfried, Turm und niedriger Mauer in der Kurzprobe keinen Korb setzte, und was er in Siege That kostet (P312). Warum das Spiel beim Direktaufruf von `aiDecideOnNewBuildings` abstürzt. Die -1 aus P119 und das kurze 0 in P140. Lauf-K-Stand (Szene 8b im Plan) ist nicht gefahren, die KI-Punkte kamen aus der Aufzeichnung von Lauf K. Lauf F: siehe `Punkte_Lauf_F.md`.

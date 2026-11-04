@@ -2003,6 +2003,7 @@ SZENEN = {
     "rufen2_g": lambda l: __import__("selfaware.tools.experiments.auge_rufen", fromlist=["szene2"]).szene2(l),
     "rufen3_g": lambda l: __import__("selfaware.tools.experiments.auge_rufen", fromlist=["szene3"]).szene3(l),
     "rufen4_g": lambda l: __import__("selfaware.tools.experiments.auge_rufen", fromlist=["szene4"]).szene4(l),
+    "rufen5_g": lambda l: __import__("selfaware.tools.experiments.auge_rufen", fromlist=["szene5"]).szene5(l),
     "sonder24_g": lambda l: szene_sonder(l, "sonder24_g", sonder24_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),
     "sonder25_g": lambda l: szene_sonder(l, "sonder25_g", tuple(z for z in sonder24_g(l) if z[0] in ("zelt4", "zelt2")), frei_maske=burgbereich(l), rand=10, raeumen=True),
     "rufen_e": lambda l: __import__("selfaware.tools.experiments.auge_rufen", fromlist=["szene_e"]).szene_e(l),

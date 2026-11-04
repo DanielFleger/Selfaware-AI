@@ -442,3 +442,4 @@ Tick 4.731-7.737, Aufloesung 14,5 Ticks (`daten/lage_ablauf_fein_20261006_224521
 | S54 | Feuerkorb: erlaubt auf Bergfried, Tuermen, Torhaeusern, Mauern des Besitzers, kaum auf Zinnen | Daniel, getestet | `rufen_korb_felder_20261104.json`, `rufen_korb_gebaeude_20261104.json` |
 | S55 | Holztor gibt es im SHC nicht, nur Reste aus Stronghold 1. Waldsterben nur als Ton | Daniel | `rufen_mapper_20261104.txt` |
 | S56 | Geschosse und Feuerausbreitung ziehen aus dem Spielstrom, Feuerschaden an Einheiten aus dem ersten Strom | abgelesen | Export, Ergebnis Lauf S |
+| S57 | Mehrere Gruppenbefehle im selben Takt, auch mit verschiedenen Nummern: alle in einer Gruppe, zum letzten Ziel. Ein Befehl je Takt immer richtig. Gemessen ueber das Modul | getestet | `rufen_20261104_211605.json`, `rufen_20261104_211354.json` |

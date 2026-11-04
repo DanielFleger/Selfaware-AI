@@ -140,5 +140,16 @@ def test_die_suche_findet_einen_fremden_import(tmp_path):
     assert wer_importiert(str(tmp_path)) == {"bot.py"}
 
 
+def test_spielwerte_datei_traegt_marke_und_quelle():
+    import json
+    d = json.load(open("data/research/auge_plan/lauf_s_20261103/spielwerte_gemessen.json", encoding="utf-8"))
+    assert d["instanz"] == 2 and len(d["liga_sha256"]) == 64
+    for teil in ("laufen", "reichweite", "geschoss_tempo", "schaden_geschoss", "schaden_nahkampf", "schusstakt"):
+        assert d[teil], teil
+        assert all(z["marke"] in ("gemessen", "abgelesen") and z["quelle"] and z["spielart"] for z in d[teil])
+    pfeil = next(z for z in d["reichweite"] if z["typ"] == 22 and z["spielart"] == "editor")
+    assert (pfeil["schiesst_bis_feld"], pfeil["nicht_ab_feld"]) == (40, 42)
+
+
 def test_aus_einem_test_startet_keine_messung():
     assert callable(auge_rufen.szene)

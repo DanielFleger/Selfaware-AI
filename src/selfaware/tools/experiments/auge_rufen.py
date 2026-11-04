@@ -1504,5 +1504,110 @@ def szene_e(l):
         return {"szene": "rufen_e", "datei": m.datei, "proben": len(m.aus)}
 
 
+def szene5(l):
+    """Bitte von SAI (04.11. 21:10): Kommen mehrere Gruppenbefehle im selben Takt an? Jeder Befehl: Auswahl (16) und Laufen (17), direkt ohne die Warteschlange des Moduls.
+    Faelle: 2, 5, 12 Gruppen mit verschiedenen Nummern, Gegenprobe mit derselben Nummer, Einzelbefehle je Einheit, zum Vergleich die Warteschlange. Beleg: Laufziel jeder Einheit und der Takt im Log."""
+    import re
+    from selfaware import workspace  # noqa: F401
+    from selfaware.tools.analysis.auge_feldkarte import FELDLISTE, Feldkarte
+    from selfaware.tools.experiments import auge_lauf_s as ls
+    from selfaware.tools.experiments.auge_aufzeichnung import pid_der_instanz
+
+    TICK = 0x01FE7DD8 if False else None
+    k, s = l.k, l.s
+    lk.anhalten(l)
+    ls.starttruppen_abwarten(l)
+    ls.abraeumen(l)
+    frei = s.raster()[0]
+    ort = ls.packen(frei, [(80, 46)], rand=2)[0]
+    if ort is None:
+        raise ls.Abbruch("Kein Platz fuer die Messung")
+    x0, y0 = ort
+    karte = Feldkarte.laden(feldliste=FELDLISTE)
+    log = os.path.join(lf.ordner(2), "ucp3.log")
+    with Rufer(pid_der_instanz(2)) as r:
+        m = Messung4(l, r, karte)
+        takt_adr = next(a for a in (0x0117CADC, ) if True)  # dasselbe Feld, das s.takt() liest, wird unten gegengeprueft
+        ergebnis_ort = {"platz": (x0, y0), "takt_feld_ok": r.lies_i(takt_adr) == s.takt()}
+        m.aus["aufbau"] = ergebnis_ort
+
+        def fall(gruppen, je, gleich=False, schlange=False):
+            ein = []
+            for g in range(gruppen):
+                for i in range(je):
+                    ein.append(ls._e("m", 24, x0 + (g * je + i) % 25, y0 + (g * je + i) // 25))
+            ls.setzen(l, ein)
+            ziele, bef = [], []
+            for g in range(gruppen):
+                wer = ein[g * je:(g + 1) * je]
+                z = (x0 + (g % 25) * 3, y0 + 30 + (g // 25) * 3)
+                ziele.append(z)
+                c = {"player": 1, "angriff": {"einheiten": [e["nr"] for e in wer], "lauf": list(z)}}
+                if not schlange:
+                    c["ausSchlange"] = True
+                bef.append(c)
+            start_log = os.path.getsize(log)
+            if not schlange:  # Im angehaltenen Spiel abgesetzt entstand keine einzige Gruppe (Lauf 21:13). Darum laeuft das Spiel, 1 Takt je Sekunde: Das Log zeigt, ob alle im selben Takt lagen
+                lk.aufnahme_im_stand_ohne(l, 1)
+                time.sleep(1.2)
+            t0 = s.takt()
+            if gleich:  # die Reserve des Moduls gilt je Takt: Der Takt wird je Befehl kurz weitergestellt
+                for i, c in enumerate(bef):
+                    r.setze_i(takt_adr, t0 + i)
+                    k.liste([c], lf.KANAL)
+                r.setze_i(takt_adr, t0)
+            else:
+                for i in range(0, len(bef), ls.STUECK):
+                    k.liste(bef[i:i + ls.STUECK], lf.KANAL)
+            stand_ziel = lambda n: (m.u("plannedDestinationX", n), m.u("plannedDestinationY", n))
+            if schlange:
+                lk.aufnahme_im_stand_ohne(l, lf.TEMPO_JEDER_TAKT)
+            else:
+                k.befehl({"tempo": lf.TEMPO_JEDER_TAKT}, lf.KANAL)
+            l.warte_takte(3)
+            lk.anhalten(l)
+            nach3 = [(m.u("tribeID", e["nr"]), stand_ziel(e["nr"])) for e in ein]
+            lk.aufnahme_im_stand_ohne(l, lf.TEMPO_JEDER_TAKT)
+            l.warte_takte(60)
+            lk.anhalten(l)
+            nach60 = [(m.u("tribeID", e["nr"]), stand_ziel(e["nr"]), (m.u("x", e["nr"]), m.u("y", e["nr"]))) for e in ein]
+            # Wer steuert auf sein eigenes Ziel zu? Geplantes Ziel naeher am eigenen als an jedem anderen, und hoechstens 4 Felder daneben
+            richtig = 0
+            falsch_auf = collections.Counter()
+            ohne = 0
+            for g in range(gruppen):
+                for i in range(je):
+                    _, pz, _ = nach60[g * je + i]
+                    if pz == (0, 0):
+                        ohne += 1
+                        continue
+                    best = min(range(gruppen), key=lambda h: max(abs(pz[0] - ziele[h][0]), abs(pz[1] - ziele[h][1])))
+                    d = max(abs(pz[0] - ziele[g][0]), abs(pz[1] - ziele[g][1]))
+                    if d <= 4 and (best == g or d == max(abs(pz[0] - ziele[best][0]), abs(pz[1] - ziele[best][1]))):
+                        richtig += 1
+                    else:
+                        falsch_auf[best] += 1
+            with open(log, encoding="utf-8", errors="replace") as d:
+                d.seek(start_log)
+                zeilen = re.findall(r"ANGRIFF Tick (\d+): (\d+) Einheiten, Gruppe (\d+), Art (\d+).*Auswahl=(\w+) Befehl=(\w+)", d.read())
+            je_takt = collections.Counter(z[0] for z in zeilen)
+            aus = {
+                "Gruppen": gruppen, "je": je, "Einheiten": len(ein), "richtiges Ziel": richtig, "ohne Ziel": ohne, "falsche Ziele (Gruppe: Zahl)": falsch_auf.most_common(6),
+                "Log: Befehle": len(zeilen), "Log: Takte (Takt: Befehle)": sorted(je_takt.items())[:8], "Log: Takte insgesamt": len(je_takt), "Log: verschiedene Nummern": len({z[2] for z in zeilen}),
+                "Log: nicht abgesetzt": sum(1 for z in zeilen if z[4] != "true" or z[5] != "true"),
+                "Gruppen im Spiel nach 3 Takten": len({a for a, _ in nach3 if a}), "nach 60 Takten": len({a for a, _, _ in nach60 if a}),
+                "Beispiele (Ziel, geplant, Gruppe)": [(ziele[g], nach60[g * je][1], nach60[g * je][0]) for g in list(range(gruppen))[:4]],
+            }
+            ls.abraeumen(l)
+            return aus
+        for name, a in (("Gegenprobe 1 Gruppe je 3", (1, 3)), ("2 Gruppen je 3, verschiedene Nummern", (2, 3)), ("5 Gruppen je 3, verschiedene Nummern", (5, 3)), ("12 Gruppen je 3, verschiedene Nummern", (12, 3))):
+            m.probe(name, fall, *a)
+        m.probe("Gegenprobe 5 Gruppen je 3, dieselbe Nummer", fall, 5, 3, gleich=True)
+        m.probe("Gegenprobe 12 Gruppen je 3, dieselbe Nummer", fall, 12, 3, gleich=True)
+        for n in (8, 20, 50, 100, 120):
+            m.probe(f"Einzelbefehle {n} Einheiten", fall, n, 1)
+        return {"szene": "rufen5_g", "datei": m.datei, "proben": len(m.aus)}
+
+
 if __name__ == "__main__":
     ki_main()
