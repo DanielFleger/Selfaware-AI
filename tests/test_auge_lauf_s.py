@@ -29,6 +29,9 @@ class Spiel:
         self.speicher = {}
         self.haltungen = {}
         self.fern = 0
+        self.hoehe = np.zeros((400, 400), dtype=np.int32)
+        self.linien_abgelehnt = f.get("linien_abgelehnt", 0)
+        self.gebaeude_abgelehnt = f.get("gebaeude_abgelehnt", 0)
 
     def uhr(self):
         return self.jetzt
@@ -100,13 +103,21 @@ class Spiel:
                 for e in self.einheiten:
                     if e["nr"] in c["angriff"]["einheiten"]:
                         e["trupp"] = 1000 + e["nr"]
+            if "spielbefehl" in c and c["spielbefehl"]["nr"] == 25:
+                if self.linien_abgelehnt > 0:
+                    self.linien_abgelehnt -= 1
+                else:
+                    for x, y in ls.linie_felder(c["spielbefehl"]["werte"]):
+                        self.hoehe[y, x] = 90
             if "spielbefehl" in c and c["spielbefehl"]["nr"] == 70 and not self.f.get("haltung_wirkt_nicht"):
                 t, w = c["spielbefehl"]["werte"]
                 self.haltungen[t] = w
             if "setzeGebaeude" in c:
                 z = c["setzeGebaeude"]
                 assert self.pausiert, "gesetzt wird im angehaltenen Spiel"
-                if not self.f.get("kein_gebaeude") or z["mapper"] != self.f["kein_gebaeude"]:
+                if self.gebaeude_abgelehnt > 0:
+                    self.gebaeude_abgelehnt -= 1
+                elif not self.f.get("kein_gebaeude") or z["mapper"] != self.f["kein_gebaeude"]:
                     from selfaware.game.ucp.bauen import NACH_TYP
                     typ = next((t for t, v in NACH_TYP.items() if v["mapper"] == z["mapper"]), z["mapper"])
                     self.gebaeude_liste.append({"nr": 1000 + len(self.gebaeude_liste), "uid": 5000 + len(self.gebaeude_liste), "typ": typ, "x": z["x"], "y": z["y"], "besitzer": z["spieler"]})
@@ -129,7 +140,7 @@ class Spiel:
     def raster(self):
         frei = np.zeros((400, 400), dtype=bool)
         frei[50:350, 50:350] = True
-        return frei, np.zeros((400, 400), dtype=np.int32), np.zeros((400, 400), dtype=np.int32)
+        return frei, self.hoehe.copy(), np.zeros((400, 400), dtype=np.int32)
 
     # Rekorder
     def fehler(self):
@@ -909,6 +920,55 @@ def test_dritter_nachlauf_editor(tmp_path):
     assert (o["x"] + 34, o["y"] + 4) in laeufe  # im Ring
     k = next(x for x in plan["einheiten"] if x.get("posten") == "trupp_ring" and x["rolle"] == "feind")
     assert sum(max(abs(x["x"] - k["x"]), abs(x["y"] - k["y"])) <= 1 for x in plan["einheiten"] if x.get("posten") == "trupp_ring" and x["rolle"] == "trupp") == 1
+
+
+def test_vierter_nachlauf_treppe_mit_stufen(tmp_path):
+    g = Spiel(tmp_path)
+    e = ls.SZENEN["sonder13"](lauf_von(g))
+    assert e["kein_platz"] == [] and e["nicht_gesetzt"] == []
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    assert plan["mauer_fehlt"] == [] and plan["mauer_wiederholt"] == 0
+    b = [c for c in g.log if isinstance(c, dict)]
+    gb = {x["posten"]: x for x in plan["gebaeude"]}
+    sp = [c["spielbefehl"]["werte"] for c in b if c.get("spielbefehl", {}).get("nr") == 25]
+    laeufe = {tuple(c["angriff"]["lauf"]) for c in b if "lauf" in c.get("angriff", {})}
+    for n, zeile in (("turm_eck", 0), ("turm_mitte", 1), ("turm4_weg", 0)):
+        t = gb[n]
+        mauer = next(w for w in sp if w[4] == 25 and w[2] == t["x"] - 1 and w[1] == t["y"] + zeile)
+        assert (t["x"], t["y"]) in laeufe  # das Eckfeld
+        treppe = next(w for w in sp if w[4] == ls.TREPPE and w[1] == t["y"] + zeile and w[0] == mauer[0] - 1)  # beginnt neben dem Mauerende
+        assert treppe[0] - treppe[2] == 4  # 5 Stufen, weg von der Mauer
+    wer = [x for x in plan["einheiten"] if x.get("posten") == "turm_eck"]
+    assert len(wer) == 8
+    assert not any(x["y"] == gb["turm_eck"]["y"] for x in wer)  # keiner steht auf der Linie, sonst baut das Spiel sie nicht
+    o = next(k for k in plan["karte"] if k["posten"] == "tor_17")
+    f = next(x for x in plan["einheiten"] if x.get("posten") == "tor_17")
+    assert gb["tor_17"]["x"] - f["x"] == 17 and gb["tor_17"]["x"] == o["x"] + 30
+    k = next(x for x in plan["einheiten"] if x.get("posten") == "trupp_ring" and x["rolle"] == "feind")
+    assert sum(max(abs(x["x"] - k["x"]), abs(x["y"] - k["y"])) <= 1 for x in plan["einheiten"] if x.get("posten") == "trupp_ring" and x["rolle"] == "trupp") == 1
+    r = next(k for k in plan["karte"] if k["posten"] == "trupp_ring")
+    assert (r["x"] + 34, r["y"] + 4) in laeufe  # im Ring
+
+
+def test_abgelehnte_mauer_wird_wiederholt_und_bleibt_sichtbar(tmp_path):
+    g = Spiel(tmp_path, linien_abgelehnt=3)
+    plan = json.load(open(ls.SZENEN["sonder13"](lauf_von(g))["pfad"] + ".plan.json", encoding="utf-8"))
+    assert plan["mauer_fehlt"] == [] and plan["mauer_wiederholt"] >= 1
+    g = Spiel(tmp_path, linien_abgelehnt=10000)
+    plan = json.load(open(ls.SZENEN["sonder13"](lauf_von(g))["pfad"] + ".plan.json", encoding="utf-8"))
+    assert len(plan["mauer_fehlt"]) == 10  # 3 mal Mauer und Treppe, 4 Seiten des Rings: Am Ende steht offen da, was fehlt
+    assert sum(c.get("spielbefehl", {}).get("nr") == 25 for c in g.log if isinstance(c, dict)) == 10 * ls.MAUER_VERSUCHE
+
+
+def test_abgelehntes_gebaeude_wird_wiederholt(tmp_path):
+    g = Spiel(tmp_path, gebaeude_abgelehnt=1)
+    e = ls.SZENEN["sonder13"](lauf_von(g))
+    assert e["nicht_gesetzt"] == []
+
+
+def test_linie_felder_endet_bei_der_erlaubten_laenge():
+    assert ls.linie_felder([5, 7, 1, 7, 27, 13]) == [(5, 7), (4, 7), (3, 7), (2, 7), (1, 7)]
+    assert ls.linie_felder([3, 0, 3, 20, 25, 13]) == [(3, i) for i in range(13)]
 
 
 def test_zweiter_nachlauf_geher_auf_das_pech(tmp_path):
