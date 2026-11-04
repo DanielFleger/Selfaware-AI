@@ -1084,6 +1084,15 @@ def test_letzte_reste_hunde_und_lager(tmp_path):
     assert an["player"] == 1
 
 
+def test_gegenprobe_befehl_sofort(tmp_path):
+    for n, f, _, _ in ls.sonder21(lauf_von(Spiel(tmp_path))):
+        g, wer, d, jetzt, stufen = f(100, 100)
+        assert stufen is None and len(d) == 2
+        for w in wer:
+            w["nr"], w["uid"] = 1, 1
+        assert jetzt()[0]["angriff"]["lauf"] == {"sofort_mitte": [114, 103], "sofort_mauer": [109, 102]}[n]  # Mitte des Turms, ein Feld der Mauer
+
+
 def test_poke_zwei_byte_laesst_den_nachbarn():
     class L:
         class k:

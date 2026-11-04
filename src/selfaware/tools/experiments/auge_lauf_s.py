@@ -1620,6 +1620,18 @@ def sonder20_g(l):
     return (("hunde_5", hunde_n(5), 16, 8), ("hunde_6", hunde_n(6), 16, 8), ("lager", lager, 2, 2))
 
 
+def sonder21(l):
+    """Gegenprobe zu sonder14: War die Wartezeit nach dem Bau noetig? In sonder13 ging niemand los, das Ziel war aber das gesperrte Eckfeld, und die Mauer hatte schon bei Takt 0 Flaeche 1. Hier der Befehl sofort beim Start, einmal auf die Turmmitte, einmal auf die Mauer."""
+    def sofort_mitte(x, y):
+        wer = [_e("steiger", 24, x, y + 6)]
+        return [_g(74, x + 13, y + 2, spieler=1)], wer, treppe_und_mauer(x, y + 3), lambda: [_angriff(wer, lauf=[x + 14, y + 3])], None
+
+    def sofort_mauer(x, y):
+        wer = [_e("steiger", 24, x, y + 4)]
+        return [], wer, treppe_und_mauer(x, y + 2), lambda: [_angriff(wer, lauf=[x + 9, y + 2])], None
+    return (("sofort_mitte", sofort_mitte, 17, 8), ("sofort_mauer", sofort_mauer, 17, 6))
+
+
 def sonder11_g(l):
     """P314: Wie sonder9_g, aber die Gegner gehen genau auf ein Feld des brennenden Pechs (Lauf 00:40: bis 1 Feld daneben, counter blieb 0)."""
     s = l.s
@@ -1890,6 +1902,7 @@ SZENEN = {
     "sonder14": lambda l: szene_sonder(l, "sonder14", sonder14(l), rand=15),
     "sonder17": lambda l: szene_sonder(l, "sonder17", sonder17(l), rand=15),
     "sonder19": lambda l: szene_sonder(l, "sonder19", sonder19(l), rand=15),
+    "sonder21": lambda l: szene_sonder(l, "sonder21", sonder21(l), rand=15),
     "sonder20_g": lambda l: szene_sonder(l, "sonder20_g", sonder20_g(l), frei_maske=burgbereich(l), rand=12, raeumen=True),
     "sonder19_g": lambda l: szene_sonder(l, "sonder19_g", sonder19_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),
     "sonder15_g": lambda l: szene_sonder(l, "sonder15_g", sonder15_g(l), rand=15, raeumen=True),

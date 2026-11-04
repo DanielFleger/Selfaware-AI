@@ -65,7 +65,7 @@ def kopf():
 def tuerme():
     """P338, P302, P330 an der Treppe."""
     h, _ = karte_ende()
-    for name in ("nur_mauer", "turm_eck", "turm_mitte", "turm_treppe", "turm_direkt", "turm4_weg", "turm_voll", "turm4_gang"):
+    for name in ("nur_mauer", "sofort_mauer", "sofort_mitte", "turm_eck", "turm_mitte", "turm_treppe", "turm_direkt", "turm4_weg", "turm_voll", "turm4_gang"):
         if name not in ort:
             continue
         if not gb[name]:
