@@ -1,3 +1,4 @@
 Kurzproben vom 04.11.2026 im stehenden Spiel auf Instanz 2. Jede Datei ist ein einmaliger Messzug, die Ergebnisse stehen in rufen_*.json eine Ebene hoeher.
 Achtung: sumpf.py und korb_und_waren.py rechnen die Feldnummer selbst und treffen damit falsche Felder. Ihre Feld-Aussagen zaehlen nicht. Richtig: s.kachel(x, y), siehe korb_klassen.py und korb_letzte.py.
 Der Warenversand in korb_und_waren.py (Befehl 113) nutzt keine Feldnummer und gilt.
+Achtung (04.11. spaet): korb_klassen.py und korb_letzte.py gehen x und y von 0 bis 399 durch und treffen ausserhalb der Raute Felder doppelt, mit falschen Koordinaten. Ihre Zaehlungen und ihre Ziele fuer Befehl 69 zaehlen nicht. Richtig: streuung_20261104/korb_lauf.py, korb_pruefen.py, korb_zaehlen.py.

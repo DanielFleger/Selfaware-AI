@@ -100,7 +100,7 @@
 
 | Punkt | Funktion | Beleg |
 |---|---|---|
-| P312 | `CommandSpawnEntity` | Befehl 69 setzt den Korb nur erhöht: Auf Torhaus Art 46 (Höhe 98) und Mauer mit Zinne (Höhe 106) entstand er, auf Boden, niedriger Mauer (Höhe 8), Treppe (Höhe 40), Bergfried und Turm in der Kurzprobe nicht, warum, ist offen. Gold im Modus Siege That nicht gemessen: Die Probe traf ein Feld ohne Korb. `rufen_korb_felder_20261104.json`, `rufen_korb_gebaeude_20261104.json`. |
+| P312 | `CommandSpawnEntity` | Geklärt 04.11.: Der Korb bleibt auf jedem Feld von Bergfried, Turm und Torhaus, dazu auf Mauer, Treppe und Zinne an der Mauer, nicht auf Hütte, Boden und außerhalb der Karte (241 Felder, keine Abweichung). Siege That 5 Gold, auf verbotenem Feld am Ende 0, im Gefecht 0. Die alte Kurzprobe zielte außerhalb der Karte. `streuung_20261104/korb_pruefung.txt`, Abschnitt Feuerkorb in `streuung_20261104/Ergebnis_Streuung.md`. Die alten Ausgaben `rufen_korb_felder_20261104.json`, `rufen_korb_gebaeude_20261104.json` zählen Felder mehrfach. |
 | P329 | `updateTribeCombatStanceBehavior` | Zähler +1 je Takt, field93 läuft ab 51 bis 59 und fällt auf 0. Der Abstand zur Leit-Einheit ist nicht gemessen. |
 | P358 | `UpdateMonk` | Lauf K: 301 Mönche mit Arbeitsplatz Kathedrale im Zustand 0x69, 2.715 Rahmen. Der Zielwechsel alle 40 Takte ist nur im Code gelesen (Spielzeit plus Platz teilbar durch 40, und nur, wenn ein Feld frei ist), mein gelesenes Feld zeigte ihn nicht. |
 

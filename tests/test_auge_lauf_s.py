@@ -4,6 +4,8 @@ from __future__ import annotations
 import json
 
 import numpy as np
+import struct
+
 import pytest
 
 from selfaware.tools.analysis import auge_auswertung as aw
@@ -1696,9 +1698,48 @@ def test_wechselprobe_mit_zu_wenig_phasen_ist_nicht_gemessen():
     e = aw.a4_wechselprobe({1000: {"ohne": [825.0], "mit": [], "sekunden": 1.2}})
     assert e.status == aw.NICHT_GESEHEN
 
+def test_im_gefecht_bekommt_jeder_versuch_wieder_stein(tmp_path):
+    """korb_g 04.11.: Nach dem ersten Bau steht der Stein wieder auf dem echten Lagerbestand, ohne neuen Stein bleibt jede weitere Linie aus. Was am Ende fehlt, steht im Ergebnis, nicht nur im Plan."""
+    g, l = lauf_im_gefecht(tmp_path)
+    g.linien_abgelehnt = 10000
+    e = ls.SZENEN["sonder_g"](l)
+    assert len(e["mauer_fehlt"]) == 4  # zwei Linien je Spieler
+    for sp in (1, 2):
+        versuche = ls.MAUER_VERSUCHE + 2
+        assert sum(isinstance(c, dict) and c.get("player") == sp and c.get("spielbefehl", {}).get("nr") == 25 for c in g.log) == 2 * versuche
+        assert sum(isinstance(c, dict) and c.get("player") == sp and c.get("ware", {}).get("typ") == 4 for c in g.log) == versuche
+
+
+def test_kontrollort_auch_ohne_einheiten():
+    frei = np.zeros((400, 400), dtype=bool)
+    frei[100, 150] = True
+    assert ls.kontrollort(frei, []) == (150, 100)
+    assert ls.kontrollort(frei, [(150, 110)]) is None
+
+
+def test_auf_der_karte_trennt_die_alte_probe():
+    """P312: Die vier Felder ohne Korb lagen ausserhalb der Raute, die zwei mit Korb auf ihr."""
+    for x, y, drin in ((326, 59, False), (356, 73, False), (386, 85, False), (389, 267, False), (277, 93, True), (330, 222, True)):
+        assert ls.auf_der_karte(x, y) is drin, (x, y)
+    assert sum(ls.auf_der_karte(x, y) for y in range(400) for x in range(400)) == 80400  # genau die Zahl der Felder des Spiels
+
+
+def test_kachel_lehnt_felder_ausserhalb_ab():
+    s = ls.SpeicherS.__new__(ls.SpeicherS)
+
+    class Q:
+        def lies(self, adr, n):
+            assert adr == lf.ZEILEN + 85 * 12 + 8
+            return struct.pack("<i", 1000)
+    s.q = Q()
+    assert s.kachel(200, 85) == 1200
+    with pytest.raises(lf.Fehler):
+        s.kachel(386, 85)
+
+
 def test_streuung_szenen_stehen_bereit():
     import inspect
-    for n in ("streuung", "streuung2", "streuung3", "streuung4", "streuung4_g"):
+    for n in ("streuung", "streuung2", "streuung3", "streuung4", "streuung4_g", "korb_g"):
         assert n in ls.SZENEN, n
     p = inspect.signature(ls.szene_sonder).parameters
     assert p["tempo"].default == 100 and p["grenze"].default == ls.GRENZE_SONDER  # die alten Sonderszenen bleiben, wie sie waren

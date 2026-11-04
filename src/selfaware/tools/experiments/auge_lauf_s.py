@@ -80,6 +80,12 @@ GRENZE_GERAETE_WEITE = 1000  # 3 Schuss Trebuchet (296 Takte)
 PUNKT_FAELLE = (("feld", 10), ("feld", 100), ("feld", 500), ("tor", 100), ("tor", 500), ("turm", 100), ("luecke", 100), ("luecke", 500))  # Liste V6
 PUNKT_WEG, GRENZE_PUNKT = 30, 3000  # Felder bis zum Ziel; 30 Felder zu 12 Takten, mal 8 fuer den Stau bei 500
 BIT_BAUM = 0x1000  # LogicLayer: Baum auf dem Feld (AFireSpreadFunction, lightUpTree)
+GRENZE_KORB = 100  # Takte nach der letzten Stufe. Jeder Korb steht dann schon ueber 300 Takte, und das Spiel prueft ihn in jedem Takt (processEntityHitBuildingOrUnit)
+KORB_STUECK, KORB_ERSTE, KORB_ABSTAND, KORB_RUNDEN = 20, 40, 10, 14  # Rund 250 Felder in Runden zu 20 Befehlen, alle 10 Takte: Der Befehlspuffer des Spiels ist nicht vermessen, ein Ueberlauf saehe sonst aus wie eine Spielregel
+KORB_AUSSEN, KORB_PAARE = 15, 3  # Takt der Befehle ausserhalb der Karte, vor allen echten. Drei Felder Doppelprobe: Eines kann Zufall sein, die Regel ist eine Zeile Code
+KORB_ALTE_PROBE = ((326, 59), (356, 73), (386, 85), (389, 267))  # P312: Die Ziele, auf denen die alte Probe keinen Korb fand (rufen_korb_*_20261104.json)
+KORB_OBERFLAECHE = None  # Feldnummer -> Antwort der Oberflaeche. Setzt nur die Probe streuung_20261104/korb_lauf.py: Der Direktaufruf bleibt ausserhalb von src (Fairness, test_das_werkzeug_bleibt_im_messlauf)
+ARTEN_BURG = (41, 42, 43, 44)  # BT_STONEKEEP, BT_STRONGHOLD, BT_KEEPFOUR, BT_KEEPFIVE
 GRENZE_PECH = 700  # Takte nach dem Befehl: Der Schuetze schiesst alle 129 Takte, der Graben brennt rund 230 Takte
 GRENZE_STREUUNG = 1500  # Takte nach dem Einsteigen: Das Katapult wirft alle 200 bis 300 Takte, so kommen je Geraet mindestens 5 Schuesse
 GRENZE_SONDER, SONDER_ABSTAND = 3000, 30  # Takte; Abstand der Posten, Feuerwerfer reicht 11, Schuetzen haben ihr Ziel per Befehl
@@ -117,7 +123,9 @@ class SpeicherS(lk.SpeicherK):
         return aus
 
     def kachel(self, x, y):
-        """Feldnummer: Mauerangriff und Leiter nehmen sie statt x und y (giveTribeAnInstruction, tileTranslationMatrix)."""
+        """Feldnummer: Mauerangriff und Leiter nehmen sie statt x und y (giveTribeAnInstruction, tileTranslationMatrix). Ausserhalb der Raute liefert die Tabelle die Nummer eines anderen, echten Feldes (P312), darum hier ein Fehler."""
+        if not auf_der_karte(x, y):
+            raise Fehler(f"Feld ({x}, {y}) liegt nicht auf der Karte, die Feldnummer waere die eines anderen Feldes")
         return struct.unpack("<i", self.q.lies(lf.ZEILEN + y * 12 + 8, 4))[0] + x
 
     def feld(self, gruppe, name):
@@ -160,6 +168,13 @@ class SpeicherS(lk.SpeicherK):
         if self.fern:
             frei = fern_maske(frei, self.einheiten_alle(), self.fern)
         return frei, ho[kachel].astype(np.int32), ge[kachel]
+
+
+def auf_der_karte(x, y):
+    """Das Spielfeld ist eine Raute (Wissensstand): Zeile y unter 200 hat 2 * (y + 1) Felder ab x = 199 - y, ab Zeile 200 hat sie 2 * (400 - y) Felder ab x = y - 200. Die Zeilentabelle rechnet auch ausserhalb, dort trifft sie ein anderes Feld."""
+    if y < 200:
+        return 199 - y <= x <= 200 + y
+    return y - 200 <= x <= 599 - y
 
 
 def packen(frei, masse, rand=2):
@@ -211,7 +226,7 @@ def gitter(frei, hoehe, breite, hoch, dx, dy, n, flach=False):
 def kontrollort(frei, belegt, abstand=60):
     """Ein freies Feld mit Abstand zu allem in dieser Szene. None, wenn keins da ist."""
     ys, xs = np.nonzero(frei)
-    pos = np.array(belegt)
+    pos = np.array(belegt).reshape(-1, 2)  # auch ohne Einheiten in der Szene
     for x, y in zip(xs[::7], ys[::7]):
         if (np.maximum(np.abs(pos[:, 0] - x), np.abs(pos[:, 1] - y)) >= abstand).all():
             return int(x), int(y)
@@ -1922,6 +1937,133 @@ def streuung4(l):
     return (("pech", pech, 20, 14),)
 
 
+def korb_g(l):
+    """P312: Wo bleibt der Feuerkorb nach Befehl 69 stehen? Jedes Feld von eigenem Bergfried, fuenf Turmarten, kleinem Torhaus und Huette, dazu Mauer, Treppe, Zinne und Boden. Die Holzwand fehlt: Im echten Spiel nicht baubar (Daniel 04.11.). Dazu die Doppelprobe wie in der alten Probe: dieselbe Feldnummer einmal mit Koordinaten ausserhalb der Karte, einmal mit den echten, am fremden Bergfried, weil nur dort beides geht. Danach das Gold in Siege That auf echter Mauer und auf Boden. Ausgewertet mit streuung_20261104/korb_pruefen.py."""
+    s = l.s
+    gebaeude, linien, boden, ziele = [], [], [], []
+    gold_mauer, gold_boden = [], []
+
+    def zeile(art, mapper, x0, x1, y, ziel_bis=None):
+        linien.append((art, [(a, y) for a in range(x0, (ziel_bis or x1) + 1)]))
+        return {"player": 1, "spielbefehl": {"nr": 25, "werte": [x0, y, x1, y, mapper, 13]}}
+
+    def ziele_lesen():
+        """Das Spiel steht, alles ist gebaut. Nur Felder auf der Karte: raster prueft die Kartenmaske. Die Oberflaeche wird im Stand gefragt, solange noch kein Korb dort steht."""
+        if ziele:
+            return []
+        _, hoehe, bau = s.raster()
+        zeilen = np.frombuffer(s.q.lies(lf.ZEILEN, 400 * 12), dtype="<i4").reshape(400, 3)[:, 2]
+        maske = np.frombuffer(s.q.lies(lf.KARTENMASKE, 400 * 400), dtype="u1").reshape(400, 400) != 0
+        lo = s.karte.adresse("DAT_TileMapState", "LogicLayer[]")
+        raute = np.array([[auf_der_karte(x, y) for x in range(400)] for y in range(400)])
+        print(json.dumps({"schritt": "korb_maske", "felder_maske": int(maske.sum()), "raute_ohne_maske": int((raute & ~maske).sum()), "maske_ohne_raute": int((maske & ~raute).sum())}), flush=True)
+
+        def aussen(x, y):
+            """Gleiche Feldnummer, Ort ausserhalb der Karte."""
+            feld = int(zeilen[y]) + x
+            for yy in range(400):
+                xx = feld - int(zeilen[yy])
+                if 0 <= xx < 400 and not auf_der_karte(xx, yy):
+                    return xx, yy
+            return None
+
+        def eintrag(art, x, y, innen, **mehr):
+            feld = s.kachel(x, y)
+            return {"art": art, "x": x, "y": y, "h": int(hoehe[y, x]), "innen": innen, "logik": struct.unpack("<I", s.q.lies(lo[0] + feld * lo[2], 4))[0], "gebaeude": int(bau[y, x]), "ober": KORB_OBERFLAECHE(feld) if KORB_OBERFLAECHE else None, "aussen": False, **mehr}
+
+        def ausserhalb(art, x, y, echt=None):
+            return {"art": art, "x": x, "y": y, "h": 8, "innen": None, "logik": None, "gebaeude": None, "ober": None, "aussen": True, "feld": int(zeilen[y]) + x, "echt": echt}
+        burg = [g for g in s.gebaeude(1) if g["typ"] in ARTEN_BURG][:1]
+        for g in burg + [z for z in gebaeude if "nr" in z]:
+            ys, xs = np.nonzero(bau == g["nr"])
+            for a, b in zip(xs.tolist(), ys.tolist()):
+                ziele.append(eintrag(g["typ"], a, b, bool(np.all(bau[b - 1:b + 2, a - 1:a + 2] == g["nr"]))))
+        for art, felder in linien:
+            ziele.extend(eintrag(art, a, b, True) for a, b in felder)
+        ziele.extend(eintrag("Boden", a, b, True) for a, b in boden)
+        paare = 0
+        for g in [g for g in s.gebaeude(2) if g["typ"] in ARTEN_BURG][:1]:
+            ys, xs = np.nonzero(bau == g["nr"])
+            for a, b in zip(xs.tolist(), ys.tolist()):
+                ort = aussen(a, b)
+                if ort and paare < KORB_PAARE and np.all(bau[b - 1:b + 2, a - 1:a + 2] == g["nr"]):
+                    ziele.append(eintrag(g["typ"], a, b, True, fremd=True))
+                    ziele.append(ausserhalb("aussen, Nummer des fremden Bergfrieds", ort[0], ort[1], echt=[a, b]))
+                    paare += 1
+        ziele.extend(ausserhalb("aussen, Ziel der alten Probe", x, y) for x, y in KORB_ALTE_PROBE)
+        print(json.dumps({"schritt": "korb_ziele", "ziele": ziele, "nicht_gesetzt": [z["typ"] for z in gebaeude if "nr" not in z]}), flush=True)
+        return []
+
+    def befehl(z):
+        return {"player": 1, "spielbefehl": {"nr": 69, "werte": [1, z["x"] * 8, z["y"] * 8, z["h"], ET_BRAZIER, 1]}}
+
+    def aussen_runde():
+        return [befehl(z) for z in ziele if z["aussen"]]
+
+    def runde(i):
+        return lambda: [befehl(z) for z in [z for z in ziele if not z["aussen"]][i * KORB_STUECK:(i + 1) * KORB_STUECK]]
+
+    def listenkopf(feld):
+        en = s.karte.adresse("DAT_TileMapState", "EntityLayer[]")
+        ty = s.karte.adresse("DAT_EntityState", "entityArray[].entityType")
+        kopf = struct.unpack("<h", s.q.lies(en[0] + feld * en[2], 2))[0]
+        return kopf, struct.unpack("<h", s.q.lies(ty[0] + kopf * ty[2], 2))[0] if kopf else None
+
+    def alt_lesen():
+        """Die Lesart der alten Probe, nachdem nur die Befehle ausserhalb der Karte liefen."""
+        print(json.dumps({"schritt": "korb_alt", "takt": s.takt(), "aussen": [[z["x"], z["y"], z["feld"], *listenkopf(z["feld"])] for z in ziele if z["aussen"]]}), flush=True)
+        return []
+
+    def ende():
+        print(json.dumps({"schritt": "korb_ende", "takt": s.takt(), "listenkopf": [[z["x"], z["y"], *listenkopf(s.kachel(z["x"], z["y"]))] for z in ziele if not z["aussen"]]}), flush=True)
+        return []
+
+    def gold_stufe(was, bef=lambda: []):
+        def f():
+            adr, _ = s.feld("DAT_GameCore", "gameMode_2")
+            print(json.dumps({"schritt": "korb_gold", "was": was, "takt": s.takt(), "modus": struct.unpack("<i", s.q.lies(adr, 4))[0], "gold": s.waren(1)[15], "start": s.startwaren(1)[15]}), flush=True)
+            return bef()
+        return f
+
+    def korb_auf(ort):
+        return [{"player": 1, "spielbefehl": {"nr": 69, "werte": [1, ort[0] * 8, ort[1] * 8, 8, ET_BRAZIER, 1]}}]
+
+    def modus(wert):
+        return [{"poke": s.feld("DAT_GameCore", "gameMode_2")[0], "wert": wert}]
+
+    def tuerme1(x, y):
+        g = [_g(74, x + 3, y + 4, spieler=1), _g(75, x + 11, y + 4, spieler=1), _g(76, x + 20, y + 4, spieler=1)]
+        gebaeude.extend(g)
+        return g, [], [], ziele_lesen, [(KORB_AUSSEN, aussen_runde), (KORB_AUSSEN + 10, alt_lesen)] + [(KORB_ERSTE + i * KORB_ABSTAND, runde(i)) for i in range(KORB_RUNDEN)]
+
+    def tuerme2(x, y):
+        g = [_g(77, x + 4, y + 4, spieler=1), _g(78, x + 14, y + 4, spieler=1), _g(46, x + 25, y + 4, spieler=1), _g(1, x + 34, y + 4, spieler=1)]
+        gebaeude.extend(g)
+        return g, [], [], ziele_lesen, None
+
+    def mauern(x, y):
+        wand = [zeile("hohe Mauer", 25, x + 3, x + 12, y + 2, ziel_bis=x + 10), zeile("Treppe", 27, x + 2, x + 2, y + 2), zeile("Zinne an Mauer", 26, x + 3, x + 9, y + 3), zeile("Zinne allein", 26, x + 3, x + 9, y + 6)]
+        boden.extend((a, y + 6) for a in range(x + 13, x + 16))
+        gold_mauer.extend([(x + 11, y + 2), (x + 12, y + 2)])
+        gold_boden.append((x + 17, y + 6))
+        t0 = KORB_ERSTE + KORB_RUNDEN * KORB_ABSTAND + 50
+        gold_stufen = [
+            (t0, gold_stufe("vorher, Gold setzen", lambda: [{"player": 1, "ware": {"typ": 15, "menge": KORB_GOLD}}])),
+            (t0 + 30, gold_stufe("Gold gesetzt, jetzt Korb auf Mauer im Gefecht", lambda: korb_auf(gold_mauer[0]))),
+            (t0 + 40, gold_stufe("10 Takte danach, jetzt Modus Siege That", lambda: modus(GM_SIEGE_THAT))),
+            (t0 + 60, gold_stufe("jetzt Korb auf Mauer in Siege That", lambda: korb_auf(gold_mauer[1]))),
+            (t0 + 70, gold_stufe("10 Takte nach Korb auf Mauer")),
+            (t0 + 100, gold_stufe("40 Takte nach Korb auf Mauer, jetzt Korb auf Boden in Siege That", lambda: korb_auf(gold_boden[0]))),
+            (t0 + 105, gold_stufe("5 Takte nach Korb auf Boden")),
+            (t0 + 115, gold_stufe("15 Takte nach Korb auf Boden")),
+            (t0 + 140, gold_stufe("40 Takte nach Korb auf Boden")),
+            (t0 + 240, gold_stufe("140 Takte nach Korb auf Boden, jetzt zurueck auf Gefecht", lambda: modus(GM_GEFECHT_2))),
+            (t0 + 250, ende),
+        ]
+        return [], [], wand, ziele_lesen, gold_stufen
+    return (("tuerme1", tuerme1, 30, 12), ("tuerme2", tuerme2, 42, 12), ("mauern", mauern, 23, 9))
+
+
 def sonder24_g(l):
     """Lagen aus Lauf F und S, die noch fehlen: Belagerungszelt mit 4 und 2 Ingenieuren (P126), Oel werfen auf Befehl (P238), Schmelze holt Pech aus dem Lager (P111), Mauerkosten im echten Befehl (P119), Stapel halten, Holztor als Ziel."""
     s = l.s
@@ -2074,7 +2216,8 @@ def szene_sonder(l, name, posten, frei_maske=None, rand=SONDER_ABSTAND, raeumen=
     mauer_fehlt, mauer_wiederholt = [], 0
     for sp_ in sorted({c.get("player", 1) for c in davor}):
         offen = [c for c in davor if c.get("player", 1) == sp_]
-        for versuch in range(MAUER_VERSUCHE):
+        linien = sum(1 for c in offen if c.get("spielbefehl", {}).get("nr") == 25)
+        for versuch in range(MAUER_VERSUCHE + (linien if l.gefecht else 0)):  # Im Gefecht baut ein Versuch nur eine Linie (korb_g 04.11.): Danach steht der Stein wieder auf dem echten Lagerbestand, der Rest der Liste geht leer aus
             k.liste(offen, lf.KANAL)
             lk.aufnahme_im_stand_ohne(l, lf.TEMPO_JEDER_TAKT)
             l.warte_takte(SONDER_SPIELER_TAKTE)
@@ -2083,7 +2226,9 @@ def szene_sonder(l, name, posten, frei_maske=None, rand=SONDER_ABSTAND, raeumen=
             if not offen:
                 break
             mauer_wiederholt += 1
-        mauer_fehlt += [c["spielbefehl"]["werte"] for c in offen]
+            if l.gefecht:
+                offen = [{"player": sp_, "ware": {"typ": w, "menge": m}} for w, m in SONDER_WAREN] + offen
+        mauer_fehlt += [c["spielbefehl"]["werte"] for c in offen if "spielbefehl" in c]
     einheiten = mit_kontrolle(einheiten, frei_kontrolle)
     setzen(l, einheiten)
     k.liste([c for j in jetzt for c in j()], lf.KANAL)
@@ -2102,7 +2247,7 @@ def szene_sonder(l, name, posten, frei_maske=None, rand=SONDER_ABSTAND, raeumen=
     with open(pfad + ".plan.json", "w", encoding="utf-8") as f:
         json.dump({"szene": name, "von": a, "bis": b, "tempo": tempo, "einheiten": einheiten, "gebaeude": gebaeude, "karte": karte, "nicht_gesetzt": [z["name"] for z in nicht_gesetzt], "kein_platz": fehlt, "graben_felder_am_ende": graben, "verluste": {"vorher": vorher, "nachher": verluste_lesen(l)}, "mauer_fehlt": mauer_fehlt, "mauer_wiederholt": mauer_wiederholt}, f, ensure_ascii=False)
     abr = abraeumen(l)
-    return {"szene": name, "von": a, "bis": b, "einheiten": len(einheiten), "nicht_gesetzt": [z["name"] for z in nicht_gesetzt], "kein_platz": fehlt, "abraeumen_takte": abr, "stand": stand, "pfad": pfad}
+    return {"szene": name, "von": a, "bis": b, "einheiten": len(einheiten), "nicht_gesetzt": [z["name"] for z in nicht_gesetzt], "kein_platz": fehlt, "mauer_fehlt": mauer_fehlt, "abraeumen_takte": abr, "stand": stand, "pfad": pfad}
 
 
 def befehle_gebaeude_nah(plan):
@@ -2271,6 +2416,7 @@ SZENEN = {
     "streuung2": lambda l: szene_sonder(l, "streuung2", streuung2(l), rand=12, tempo=lf.TEMPO_JEDER_TAKT, grenze=GRENZE_STREUUNG),
     "streuung3": lambda l: szene_sonder(l, "streuung3", streuung3(l), rand=12, tempo=lf.TEMPO_JEDER_TAKT, grenze=GRENZE_STREUUNG),
     "streuung4": lambda l: szene_sonder(l, "streuung4", streuung4(l), rand=12, tempo=lf.TEMPO_JEDER_TAKT, grenze=GRENZE_PECH),
+    "korb_g": lambda l: szene_sonder(l, "korb_g", korb_g(l), frei_maske=burgbereich(l), rand=3, raeumen=True, tempo=lf.TEMPO_JEDER_TAKT, grenze=GRENZE_KORB),
     "streuung4_g": lambda l: szene_sonder(l, "streuung4_g", streuung4(l), frei_maske=burgbereich(l), rand=10, raeumen=True, tempo=lf.TEMPO_JEDER_TAKT, grenze=GRENZE_PECH),
     "rufen_g": lambda l: __import__("selfaware.tools.experiments.auge_rufen", fromlist=["szene"]).szene(l),
     "rufen2_g": lambda l: __import__("selfaware.tools.experiments.auge_rufen", fromlist=["szene2"]).szene2(l),

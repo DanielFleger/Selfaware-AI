@@ -162,8 +162,51 @@ Das Spiel hat zwei Zeiger auf **dieselbe** Tabelle. Der Spielstrom (`nextRandomN
 
 **Daniels Schalter, nicht von mir entschieden:** Den Stand des Zufallszeigers auslesen und damit den nächsten Einschlag vorhersagen wäre verborgenes Wissen. Das Wissen steht hier im Register, der faire Spielweg nutzt es nicht, bis Daniel anders entscheidet.
 
+## Feuerkorb: Wo er steht und was er kostet (P312)
+
+Szene `korb_g`, jedes Feld einzeln, jeder Takt aufgezeichnet. Ausgabe: `korb_pruefung.txt`, Neuzählung: `korb_zaehlung.txt`.
+
+**Es gibt zwei Regeln, nicht eine.** Befehl 69 setzt den Korb ohne Prüfung, danach prüft das Spiel ihn beim Erzeugen und in jedem Takt (`processEntityHitBuildingOrUnit`). Ein Mensch kommt nur über das Menü dorthin, und das Menü fragt vorher `getHeightAtTileIncludingOwnersBuildings`, für Vorschau und Klick (`MenuItemActionHandler_InGameMenu_TriggerPlaceBuildingCommand`).
+
+| Ziel | Korb bleibt mit Befehl 69 | Prüfung des Menüs sagt ja | Höhe des Korbs |
+|---|---|---|---|
+| Bergfried (BT_STONEKEEP 41) | 49 von 49 | 25, die inneren | 100 |
+| Wachturm (BT_TOWER1 74) | 9 von 9 | 1 | 304 |
+| Verteidigungsturm (BT_TOWER2 75) | 16 von 16 | 4 | 156 |
+| Geschützturm (BT_TOWER3 76) | 25 von 25 | 9 | 188 |
+| Eckiger Turm (BT_TOWER4 77) | 36 von 36 | 16 | 200 |
+| Runder Turm (BT_TOWER5 78) | 36 von 36 | 16 | 200 |
+| Kleines Torhaus (BT_GATEHOUSESMALL 46) | 25 von 25 | 25 | 136 |
+| Hohe Mauer (M_MAPPER_WALL 25) | 8 von 8 | 8 | 98 |
+| Treppe (M_MAPPER_STAIR 27) | 1 von 1 | 1 | 82 |
+| Zinne an der Mauer (M_MAPPER_CRENAL 26) | 7 von 7 | 3 | 106 |
+| Bergfried von Spieler 2, gesetzt von Spieler 1 | 3 von 3 | 0 | 100 |
+| Hütte (BT_HOVEL 1) | 0 von 16 | 0 | |
+| Boden | 0 von 3 | 0 | |
+| Außerhalb der Karte | 0 von 7 | | |
+
+Die Regel aus dem Code stimmt auf allen 241 geprüften Feldern. Der Prüfer schlägt an: Hütte als erlaubt gerechnet 16 Abweichungen, Bergfried als verboten 52, ohne gelesene Körbe 215. Die Prüfung des Menüs ist direkt gerufen, solange noch kein Korb dort stand. Das Menü selbst ist nicht angeklickt.
+
+**Warum die alte Kurzprobe nichts fand:** Sie zielte außerhalb der Karte. Sie ging x und y von 0 bis 399 durch, das Spielfeld ist aber eine Raute. Außerhalb der Raute liefert die Zeilentabelle die Nummer eines anderen, echten Feldes: 40.002 der 80.400 Feldnummern wurden so doppelt oder dreifach getroffen (gerechnet aus `zeilen.npy`), und die Probe merkte sich dabei auch falsche Koordinaten. Alle 4 Ziele ohne Korb lagen außerhalb der Karte, die 2 mit Korb auf ihr. Das Spiel setzt dort Zustand 3, der Korb erscheint in keinem Takt.
+
+Doppelprobe auf 3 Feldern des fremden Bergfrieds, je dieselbe Feldnummer: mit den Koordinaten außerhalb kein Korb und leerer Listenkopf wie damals, mit den echten steht er. Die 4 alten Ziele brachten wieder keinen Korb. `s.kachel` bricht jetzt bei Feldern außerhalb ab. Die Kartenmaske ist die Raute ohne 1.596 Felder, kein Feld der Maske liegt außerhalb der Raute.
+
+Mein erster Verdacht, die zweite Feldliste `EntityLayerLT25`, war falsch: 217 Körbe, keiner mit Nummer unter 25. Der Listenkopf täuscht trotzdem: Auf einem Feld stand die Flagge (Art 11) vorn, der Korb dahinter.
+
+**Zinnen:** Zinnenfelder tragen auf x + y ungerade das Bit 0x400000 (`placeWalls`, 7 von 7 Feldern). Mit Bit sagt die Prüfung des Menüs nein, ohne Bit ja. 8 KI-Burgen, letzter Stand von Lauf K, jede Feldnummer einmal: 230 mit Bit alle nein, 88 ohne Bit alle ja. Mauer 951 ja, 166 nein. Treppe 198 ja, 1 nein. Die Rechnung ist vorher an 16 direkten Aufrufen bestätigt. Die alten Zahlen (Mauer 3.089 zu 488, Zinne 169 zu 683) zählten Felder mehrfach.
+
+Eine Zinne allein entsteht nicht: 9 Versuche mit Stein, `validateWallBuildPath` verlangt für M_MAPPER_CRENAL Mauer daneben (Grund 0x13). Auf einer fertigen Mauer auch nicht (`validateWallPlacementAtTile`).
+
+**Gold:** Befehl 69 kostet nur in Siege That, und zwar 5 Gold aus `startResources[15]`, der Bestand `currentResources` bleibt. Gemessen: 0 auf -5 auf der Mauer, ein Korb auf Boden danach lässt es bei -5, das Gold kommt im selben Befehl zurück. Im Gefecht 0. Der Befehl fragt nicht, ob das Gold reicht, darum -5. Das Menü fragt es laut Code. Siege That ist hier nur durch Setzen von `gameMode_2` im laufenden Gefecht hergestellt.
+
+**Holzwand (M_MAPPER_WOODWALL 46):** Im echten Spiel nicht baubar, weder im Spiel noch im eigenen Szenario, Stufe Daniel. Der Code ist noch da: Befehl 25 baute sie in einem abgebrochenen Start (Höhe 8 auf 68, `placeWalls` +60, keine Aufzeichnung), und ein KI-Bauplan könnte sie laut Code anfordern (`AIVBT_LOW_WALL`). Darum nicht weiter geprüft. Das Feld, das in P312 „niedrige Mauer (Höhe 8)“ hieß, war mein eigener Name.
+
+**Falle beim Aufbau im Gefecht:** Eine Befehlsliste baut nur die erste Mauerlinie. Gesetzter Stein gilt bis zum ersten Bau, danach steht er wieder auf dem echten Lagerbestand (0), die übrigen Linien bleiben aus, obwohl der Befehl „abgesetzt“ meldet. `szene_sonder` gibt jetzt je Versuch neuen Stein, fährt je Linie einen Versuch mehr und nennt Fehlendes im Ergebnis, nicht nur im Plan. 6 eingebaute Fehler zu diesen Änderungen, 6 rot.
+
 ## Noch offen
 
+- Feuerkorb im Menü: nicht geklickt, Tests laufen nie über die Maus. „Prüfung des Menüs sagt ja“ heißt, die Funktion antwortet ja. Bei den Feldern ohne Bit widerspricht das Daniels Angabe „keine Zinnen“, das klärt nur ein Blick ins Spiel.
+- Feuerkorb auf großem Torhaus und den Bergfried-Arten 42 bis 44: nur Code.
 - Abprall an Turm und Burg: nur 1 Flug (Ballista am Bergfried), alle anderen an der Mauer.
 - Nachbarfeld bei den Arten 9, 50 und 51: Sie tragen dasselbe Merkmal, kamen nicht vor.
 - Schütze auf dem Turm gegen ein Ziel auf der Mauer: gerechnet, nicht geflogen.
@@ -173,4 +216,4 @@ Das Spiel hat zwei Zeiger auf **dieselbe** Tabelle. Der Spielstrom (`nextRandomN
 
 ## Dateien
 
-Alle unter `data/research/auge_plan/streuung_20261104/`: `flug_modell.py`, `streuung_modell.py` (die Regeln als Rechnung), `flug_pruefen.py`, `ziel_pruefen.py`, `feuer_pruefen.py`, `brand_pruefen.py`, `streuung_rufen.py`, `fenster_rufen.py`, `reste_pruefen.py`, `oben_pruefen.py`, `pech_pruefen.py`, `verteilung.py`, `gefahr_tabelle.py`, je mit Ausgabe `.txt`. Festwerte für die Tests: `streuung_beispiele.json`, `flug_beispiele.json`, `fenster_beispiele.json`. Szenen: `streuung`, `streuung2`, `streuung3`, `streuung4_g` in `auge_lauf_s.py`.
+Alle unter `data/research/auge_plan/streuung_20261104/`: `korb_lauf.py`, `korb_pruefen.py`, `korb_zaehlen.py` (Feuerkorb), `flug_modell.py`, `streuung_modell.py` (die Regeln als Rechnung), `flug_pruefen.py`, `ziel_pruefen.py`, `feuer_pruefen.py`, `brand_pruefen.py`, `streuung_rufen.py`, `fenster_rufen.py`, `reste_pruefen.py`, `oben_pruefen.py`, `pech_pruefen.py`, `verteilung.py`, `gefahr_tabelle.py`, je mit Ausgabe `.txt`. Festwerte für die Tests: `streuung_beispiele.json`, `flug_beispiele.json`, `fenster_beispiele.json`. Szenen: `streuung`, `streuung2`, `streuung3`, `streuung4_g` in `auge_lauf_s.py`.
