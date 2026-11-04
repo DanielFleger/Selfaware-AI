@@ -45,9 +45,20 @@ def oberflaeche_mauer(s):
     return (s["weg"] != 0) & ((s["misc"] & 0x1000) == 0) & ((s["logik"] & 0x100) != 0)
 
 
+def mehrfach(zeilen):
+    """Wie oft trifft die alte Abtastung (x und y von 0 bis 399, Feldnummer im gueltigen Bereich) jede Feldnummer?"""
+    treffer = np.zeros(KACHELN, dtype=int)
+    for y in range(400):
+        feld = int(zeilen[y]) + np.arange(400)
+        np.add.at(treffer, feld[(feld >= 0) & (feld < KACHELN)], 1)
+    return int((treffer == 1).sum()), int((treffer == 2).sum()), int((treffer >= 3).sum()), int((treffer == 0).sum())
+
+
 def main():
     k = Feldkarte.laden(feldliste=FELDLISTE)
     aus = []
+    a1, a2, a3, a0 = mehrfach(np.load(os.path.join(HIER, "zeilen.npy")))
+    aus.append("Alte Abtastung, Feldnummern getroffen: einmal %d, zweimal %d, dreimal oder oefter %d, nie %d. Mehrfach zusammen %d von %d" % (a1, a2, a3, a0, a2 + a3, KACHELN))
     # Gegenprobe der Rechnung an den direkten Aufrufen der Szene korb_g
     pfad = sorted(glob.glob(os.path.join(HIER, "..", "laeufe", "lauf_s_*_korb_g.auge")), key=os.path.getmtime)[-1]
     takt, s = schichten_lesen(pfad, k, erster=True)

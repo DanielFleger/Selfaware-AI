@@ -1699,7 +1699,7 @@ def test_wechselprobe_mit_zu_wenig_phasen_ist_nicht_gemessen():
     assert e.status == aw.NICHT_GESEHEN
 
 def test_im_gefecht_bekommt_jeder_versuch_wieder_stein(tmp_path):
-    """korb_g 04.11.: Nach dem ersten Bau steht der Stein wieder auf dem echten Lagerbestand, ohne neuen Stein bleibt jede weitere Linie aus. Was am Ende fehlt, steht im Ergebnis, nicht nur im Plan."""
+    """korb_g 04.11.: Gesetzter Stein faellt auf den echten Lagerbestand zurueck, ohne neuen Stein bleiben die weiteren Linien aus. Was am Ende fehlt, steht im Ergebnis, nicht nur im Plan."""
     g, l = lauf_im_gefecht(tmp_path)
     g.linien_abgelehnt = 10000
     e = ls.SZENEN["sonder_g"](l)

@@ -191,7 +191,7 @@ Die Regel aus dem Code stimmt auf allen 241 geprüften Feldern. Der Prüfer schl
 
 Doppelprobe auf 3 Feldern des fremden Bergfrieds, je dieselbe Feldnummer: mit den Koordinaten außerhalb kein Korb und leerer Listenkopf wie damals, mit den echten steht er. Die 4 alten Ziele brachten wieder keinen Korb. `s.kachel` bricht jetzt bei Feldern außerhalb ab. Die Kartenmaske ist die Raute ohne 1.596 Felder, kein Feld der Maske liegt außerhalb der Raute.
 
-Mein erster Verdacht, die zweite Feldliste `EntityLayerLT25`, war falsch: 217 Körbe, keiner mit Nummer unter 25. Der Listenkopf täuscht trotzdem: Auf einem Feld stand die Flagge (Art 11) vorn, der Korb dahinter.
+Mein erster Verdacht, die zweite Feldliste `EntityLayerLT25`, war falsch: 217 Körbe, keiner mit Nummer unter 25. Der Listenkopf täuscht trotzdem: Auf einem Feld stand die Flagge (ET_FLAG_4, Art 11) vorn, der Korb dahinter.
 
 **Zinnen:** Zinnenfelder tragen auf x + y ungerade das Bit 0x400000 (`placeWalls`, 7 von 7 Feldern). Mit Bit sagt die Prüfung des Menüs nein, ohne Bit ja. 8 KI-Burgen, letzter Stand von Lauf K, jede Feldnummer einmal: 230 mit Bit alle nein, 88 ohne Bit alle ja. Mauer 951 ja, 166 nein. Treppe 198 ja, 1 nein. Die Rechnung ist vorher an 16 direkten Aufrufen bestätigt. Die alten Zahlen (Mauer 3.089 zu 488, Zinne 169 zu 683) zählten Felder mehrfach.
 
@@ -201,7 +201,7 @@ Eine Zinne allein entsteht nicht: 9 Versuche mit Stein, `validateWallBuildPath` 
 
 **Holzwand (M_MAPPER_WOODWALL 46):** Im echten Spiel nicht baubar, weder im Spiel noch im eigenen Szenario, Stufe Daniel. Der Code ist noch da: Befehl 25 baute sie in einem abgebrochenen Start (Höhe 8 auf 68, `placeWalls` +60, keine Aufzeichnung), und ein KI-Bauplan könnte sie laut Code anfordern (`AIVBT_LOW_WALL`). Darum nicht weiter geprüft. Das Feld, das in P312 „niedrige Mauer (Höhe 8)“ hieß, war mein eigener Name.
 
-**Falle beim Aufbau im Gefecht:** Eine Befehlsliste baut nur die erste Mauerlinie. Gesetzter Stein gilt bis zum ersten Bau, danach steht er wieder auf dem echten Lagerbestand (0), die übrigen Linien bleiben aus, obwohl der Befehl „abgesetzt“ meldet. `szene_sonder` gibt jetzt je Versuch neuen Stein, fährt je Linie einen Versuch mehr und nennt Fehlendes im Ergebnis, nicht nur im Plan. 6 eingebaute Fehler zu diesen Änderungen, 6 rot.
+**Falle beim Aufbau im Gefecht:** Eine Befehlsliste baut nicht alle Mauerlinien, obwohl jeder Befehl „abgesetzt“ meldet. Im ersten Versuch entstanden 1 von 5, 2 von 5 und 2 von 4 Linien, danach mit neuem Stein je höchstens 1, ohne neuen Stein keine (`korb_mauerlinien.txt`). Gesetzter Stein fällt auf den echten Lagerbestand zurück, beim nächsten Versuch 40 Takte später stand er wieder auf 0. Wann genau das passiert, ist nicht gemessen. `szene_sonder` gibt jetzt je Versuch neuen Stein, fährt je Linie einen Versuch mehr und nennt Fehlendes im Ergebnis, nicht nur im Plan. 6 eingebaute Fehler zu diesen Änderungen, 6 rot.
 
 ## Noch offen
 

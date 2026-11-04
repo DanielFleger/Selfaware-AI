@@ -2217,7 +2217,7 @@ def szene_sonder(l, name, posten, frei_maske=None, rand=SONDER_ABSTAND, raeumen=
     for sp_ in sorted({c.get("player", 1) for c in davor}):
         offen = [c for c in davor if c.get("player", 1) == sp_]
         linien = sum(1 for c in offen if c.get("spielbefehl", {}).get("nr") == 25)
-        for versuch in range(MAUER_VERSUCHE + (linien if l.gefecht else 0)):  # Im Gefecht baut ein Versuch nur eine Linie (korb_g 04.11.): Danach steht der Stein wieder auf dem echten Lagerbestand, der Rest der Liste geht leer aus
+        for versuch in range(MAUER_VERSUCHE + (linien if l.gefecht else 0)):  # Im Gefecht entstehen je Versuch nur 1 bis 2 Linien (korb_g 04.11.): Gesetzter Stein faellt auf den echten Lagerbestand zurueck, der Rest der Liste geht leer aus. Wann genau, ist nicht gemessen
             k.liste(offen, lf.KANAL)
             lk.aufnahme_im_stand_ohne(l, lf.TEMPO_JEDER_TAKT)
             l.warte_takte(SONDER_SPIELER_TAKTE)
