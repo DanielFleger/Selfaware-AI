@@ -66,3 +66,11 @@ als "nur sichtbare Felder plus erlernbare Regeln" gefasst, nicht als gemessene L
 ## Rückweg
 
 `wissen="alles"` liefert den alten Stand. `gehirn_sicht.py` ist eine einzelne Datei.
+
+## Frage-Agent ROT (04.11. 21:42), nicht gebaut
+
+- **Nur ein Filter davor reicht nicht:** `prognose` liest an ihm vorbei rohe Daten: `simulator.py:607,614` (Geschosse, `sre_bahn`), `:535-540` (Zugphase), `:704-708` (Feindliste, `_geister`), `:692` (Teams, Lastverteiler), `:215` (+246). Die Dichtheitsprobe muss den ganzen Schnappschuss ueberschreiben, nicht nur die Liste.
+- **Sicht im Pruefer ungeklaert:** `gehirn_pruefen.py:71-89` rechnet fuer alle Spieler zugleich; je Fenster muss eine Sicht gelten, `basis` gleich gemessen werden, Verluste durch Unsichtbare getrennt. Die Grenzen 80/75 % liegen weit unter den Ausgangswerten (0,988 bis 0,996) und sagen wenig.
+- **Fehlende Felder sind nicht 'unbekannt':** `_aufbau` rechnet stumm mit Standardwerten (`:196` Suche nie, `:197` Feind ganz nah, `:199` Assassine unsichtbar). Ersatzwerte muessen ausdruecklich gesetzt werden.
+- **Fairness-Pruefung:** `:158-159` meldet schon das Laden von gehirn/simulator rot; der Feldname-Regex `:60` kennt `destination`, `sre_wegpunkte`, `fixedRng` u. a. nicht. `sre_naechster_schuss_takte` verraet per Vorhandensein das Ziel (`auge.py:1139`) und nutzt den Ticker (`:1122`).
+- **Vorschlag:** eigener Simulator-Eingang `mensch` statt Filter: ein sichtbarer Schnappschuss, aus dem alle Lesewege bedient werden.
