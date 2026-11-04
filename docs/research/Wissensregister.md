@@ -430,3 +430,5 @@ Tick 4.731-7.737, Aufloesung 14,5 Ticks (`daten/lage_ablauf_fein_20261006_224521
 | S42 | Befehle: 34 Steuer, 102 Sammelpunkt, 68 Turm reparieren, 41 Mauerstueck weg, 29 Gebaeude weg. Mauer mit S Stein baut 2S+1 Felder | getestet | Lauf F P160, P166, P172, P198, P200, P205 |
 | S43 | Zelte der KI: Katapult 319, Trebuchet 639, Ramme 644 (Art 83), Schild 121, Feuerballiste 312. Aus dem Zelt 20 Munition | getestet | Lauf F P086, P123 bis P128, P216, `punkte_rechnung_k.txt` |
 | S44 | SamurAI darf alles, was ein Mensch auch kann, auch Einheiten auf einen Punkt packen. Dazu per Befehl mehr als 5 Mann auf einen Wachturm, die Grenze 5 gilt nur beim Mausklick | Daniel | Entscheidung 04.11.2026, P338 |
+| S45 | Einheiten auf einen Punkt: Einzeln befohlen stehen 8 ab Takt 135 auf einem Feld, das haelt bis Takt 376, bei 677 stehen alle einzeln. Als Trupp verteilt | getestet | `sonder23`, `punkte_rechnung_b.txt` |
+| S46 | Buendnis: Teams im Speicher halten, Gold geht genau an den Partner (332, 272, 60). Am Ende lebten nur Lords eines Teams, dann gameOver | getestet | Lauf F P001, P185, `punkte_rechnung_b.txt` |
