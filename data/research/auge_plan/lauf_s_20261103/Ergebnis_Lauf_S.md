@@ -59,7 +59,7 @@ Die 3 Abweichungen:
 | Jeder Verlust ist eine Summe aus Pfeil, Bolzen, Stein des Opfers und Feuer | 19 von 19 Arten: kein Betrag ungeklärt |
 | Geschossarten gegen Arten gesehen | 54 von 57. Es fehlen Pfeil und Bolzen gegen Tunnelgräber und Stein gegen Leiterträger, dessen Stein- und Pfeilwert gleich sind |
 | Schleuderer | Trifft mit dem Stein-Wert. Am 17.10. stand im Handbuch 400 gegen Assassine, jetzt ist es 900, vermutlich eine andere Einstellung damals |
-| Feuer, gemessen | 37,5 je Flamme und Takt, gegen den Lord 12,5, gegen den Feuerwerfer selbst 5. Betrag abgerundet, mehrere Flammen addieren sich (37, 75, 112) |
+| Feuer, gemessen | 37 je Takt auf dem Feuerfeld, gegen den Lord 12, gegen den Feuerwerfer selbst 5. **Berichtigt 04.11.:** 75 und 112 sind nicht mehrere Flammen, sondern der erste Takt eines neuen Feuers (`../streuung_20261104/Ergebnis_Streuung.md`) |
 | Schusstakt, aus den Abständen abgelesen | Bogenschütze 129, Armbrust 228, arabischer Bogenschütze 90, Schleuderer 56, Berittener Bogenschütze 78. Passt zum 17.10. Täter je Treffer ist hier nicht zugeordnet |
 
 **Noch nicht beantwortet:** Trefferquote und Flugzeit (dafür müssen die Geschosse selbst ausgewertet werden), welches Ziel ein Schütze wählt, Reichweite. Das braucht eine Szene, in der jeder Schütze nur ein Ziel hat.
@@ -526,7 +526,11 @@ Weg: Befehl 16 und 17 über das Modul, direkt ohne seine Warteschlange, Spieler 
 
 Dazu `spielwerte_gemessen.json` (gebaut von `spielwerte_bauen.py`): Laufen, Reichweite, Geschoss-Tempo, Schaden, Schusstakt, je Wert mit Marke, Quelle und Spielart.
 
+## Streuung der Geschosse und des Feuers, 04.11. 22:00
+
+Eigene Auswertung: `../streuung_20261104/Ergebnis_Streuung.md`. Die 4 Feuerschüsse ohne Verlust sind erklärt: Bei 2 war das Ziel schon tot, bei 2 landete das Feuer durch den Versatz auf dem Nachbarfeld.
+
 ## Noch offen
 
-Warum 4 von 82 Feuerschüssen 60 Takte keinen Verlust zeigen. Warum der erste Rahmen im Gefecht alt ist. Feuerkorb: Warum Befehl 69 auf Bergfried, Turm und niedriger Mauer in der Kurzprobe keinen Korb setzte, und was er in Siege That kostet (P312). Warum das Spiel beim Direktaufruf von `aiDecideOnNewBuildings` abstürzt. Die -1 aus P119 und das kurze 0 in P140. Lauf-K-Stand (Szene 8b im Plan) ist nicht gefahren, die KI-Punkte kamen aus der Aufzeichnung von Lauf K. Lauf F: siehe `Punkte_Lauf_F.md`.
+Warum der erste Rahmen im Gefecht alt ist. Feuerkorb: Warum Befehl 69 auf Bergfried, Turm und niedriger Mauer in der Kurzprobe keinen Korb setzte, und was er in Siege That kostet (P312). Warum das Spiel beim Direktaufruf von `aiDecideOnNewBuildings` abstürzt. Die -1 aus P119 und das kurze 0 in P140. Lauf-K-Stand (Szene 8b im Plan) ist nicht gefahren, die KI-Punkte kamen aus der Aufzeichnung von Lauf K. Lauf F: siehe `Punkte_Lauf_F.md`.
 

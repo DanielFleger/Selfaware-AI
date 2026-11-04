@@ -10,6 +10,8 @@ P = "src/selfaware/tools/analysis/auge_punkte.py"
 S = "src/selfaware/tools/experiments/auge_lauf_s.py"
 R = "src/selfaware/tools/analysis/auge_regeln.py"
 C = "src/selfaware/tools/experiments/spielcode_rufen.py"
+ST = "data/research/auge_plan/streuung_20261104/streuung_modell.py"
+FM = "data/research/auge_plan/streuung_20261104/flug_modell.py"
 FAELLE = [
     ("Anzeige 20 nicht geprueft", L, "if not l.warte_takte(WOCHE, lambda: s.anzeige_burg_korn() == 0):", "if False:"),
     ("Kalender nicht geprueft", L, "if not l.warte_takte(WOCHE + ABLESEN, lambda: s.kalender() != woche):", "if False:"),
@@ -207,6 +209,19 @@ FAELLE = [
     ("R: Werte in falscher Folge", C, "for v in reversed(werte):", "for v in werte:"),
     ("R: Stapel nicht zurueck", C, 'b += b"\\x89\\xEC\\x5D\\x31\\xC0\\xC2\\x04\\x00"', 'b += b"\\x5D\\x31\\xC0\\xC2\\x04\\x00"'),
     ("R: Sperre auf Instanz 2 weg", C, "if ERLAUBT not in puffer.value:", "if False:"),
+    ("St: Halbieren bei kurzem Abstand fehlt", ST, "if _ab(abstand, 2) < e:", "if False:"),
+    ("St: Katapult streut anders", ST, "(r & 0x7f) - 0x60", "(r & 0x7f) - 0x50"),
+    ("St: Blickrichtung 3 falsch", ST, "x, y = tx - b - a, ty + a - b", "x, y = tx - b + a, ty + a - b"),
+    ("St: Zweite Stufe fehlt", ST, "x, y, z, zog = streuung_einheit(x, y, z, typ, z_eigen, tabelle[(i + 1) % 20000], rng_eigen, 0)", "zog = False"),
+    ("St: Vorhalt falsch", ST, "v = _ab(abstand * 0x85, 100)", "v = abstand"),
+    ("St: Streuung auf gleicher Hoehe", ST, "    if v < 1:\n        return 0\n    return min(v, 0x118)", "    return min(v + 30, 0x118)"),
+    ("St: Feuerschaden falsch", ST, "s = FEUER_SCHADEN.get(typ, 75)", "s = FEUER_SCHADEN.get(typ, 100)"),
+    ("St: Feuer-Versatz falsch", ST, "(7, -7), (8, -8)]", "(7, -7), (9, -9)]"),
+    ("St: Schwerkraft falsch", FM, "G_HALB = 4.906", "G_HALB = 4.0"),
+    ("St: Zeitschritt zu grob", FM, "ziel = _ftol(vc * tt * 0.25)", "ziel = _ftol(vc * tt * 0.26)"),
+    ("St: Winkel ohne Hoehe", FM, "((q + q) * _ftol(hd / 2))", "0"),
+    ("St: Festes Tempo der Geraete falsch", FM, "n = d * 2\n", "n = d * 3\n"),
+    ("St: Trefferfenster falsch", FM, ".get(typ, 42)", ".get(typ, 60)"),
     ("S23: Einzeln wird Trupp", S, "lambda: [_angriff([w], lauf=[x + 4, y + 8]) for w in wer], None", "lambda: [_angriff(wer, lauf=[x + 4, y + 8])], None\n\n    def _x(x, y):\n        return None"),
     ("S15: Nachbarfeld ueberschrieben", S, "\"wert\": (alt & 0xFFFF0000) | (wert & 0xFFFF)}", "\"wert\": wert & 0xFFFF}"),
     ("S15: Falscher Auftrag", S, "AUFTRAG_ASSASSINE, AUFTRAG_TAKT, AUFTRAG_TOD = 12, 200, 1200", "AUFTRAG_ASSASSINE, AUFTRAG_TAKT, AUFTRAG_TOD = 11, 200, 1200"),
@@ -296,7 +311,7 @@ for name, pfad, alt, neu in FAELLE:
         continue
     try:
         open(pfad, "wb").write(text.replace(a, n).encode("utf-8"))
-        r = subprocess.run([sys.executable, "-m", "pytest", "tests/test_auge_lauf_f.py", "tests/test_auge_lauf_k.py", "tests/test_spielcode_rufen.py", "tests/test_auge_lauf_s.py", "tests/test_auge_werkzeug.py", "-q", "--no-header", "-x", "--tb=no"], capture_output=True, text=True, env=env, encoding="utf-8", errors="replace", timeout=300)
+        r = subprocess.run([sys.executable, "-m", "pytest", "tests/test_auge_lauf_f.py", "tests/test_auge_lauf_k.py", "tests/test_spielcode_rufen.py", "tests/test_streuung.py", "tests/test_auge_lauf_s.py", "tests/test_auge_werkzeug.py", "-q", "--no-header", "-x", "--tb=no"], capture_output=True, text=True, env=env, encoding="utf-8", errors="replace", timeout=300)
         rot = r.returncode != 0
         zeile = [z for z in r.stdout.splitlines() if z.startswith("FAILED")][:1]
         print(("ROT  " if rot else "GRUEN"), name, "|", (zeile[0][7:100] if zeile else ""), flush=True)

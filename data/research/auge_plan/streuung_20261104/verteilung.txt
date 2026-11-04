@@ -1,0 +1,55 @@
+Zufallstabelle: 20000 Zahlen, kleinste 1, groesste 32766, Mittel 16480
+
+Teil 1, nur erste Stufe, ueber alle Zahlen. Art | entlang kleinste..groesste (Mikro, minus = zu weit) | quer | Hoehe | Anteil ohne Laengsfehler | im Feld (unter 4 Mikro) | bis 1 | bis 2 | bis 4 Felder
+Bogenschuetze (E_ARCHER 22) | -48..47, Mittel -0.7 | -40..39 | -40..39 | 1% | 1% | 8% | 21% | 66%
+Armbrust (E_XBOW 23) | -48..47, Mittel -0.7 | -40..39 | -40..39 | 1% | 1% | 8% | 21% | 66%
+Arab. Bogen (A_ARCHER 70) | -48..47, Mittel -0.7 | -40..39 | -40..39 | 1% | 1% | 8% | 21% | 66%
+Schleuder (A_SLINGER 72) | -48..47, Mittel -0.7 | -40..39 | -40..39 | 1% | 1% | 8% | 21% | 66%
+Pferdebogen (A_HARCHER 74) | -48..47, Mittel -0.7 | -40..39 | -40..39 | 1% | 1% | 8% | 21% | 66%
+Feuerwerfer (A_FIRETHROWER 76) | -48..47, Mittel -0.7 | -40..39 | -40..39 | 1% | 1% | 8% | 21% | 66%
+Katapult (S_CATAPULT 39) | -96..31, Mittel -32.6 | -48..47 | -48..15 | 1% | 0% | 3% | 10% | 37%
+Trebuchet (S_TREBUCHET 40) | -48..44, Mittel -0.6 | -48..47 | -16..15 | 76% | 4% | 14% | 28% | 66%
+Mangonel (S_MANGONEL 41) | -112..111, Mittel -0.3 | -64..63 | -64..63 | 0% | 0% | 2% | 5% | 18%
+Ballista (S_BALLISTA 61) | 0..0, Mittel 0.0 | 0..0 | 0..0 | 100% | 100% | 100% | 100% | 100%
+Ballista (S_BALLISTA 61) (Bodenbefehl) | -24..7, Mittel -8.6 | -20..19 | -20..19 | 3% | 3% | 32% | 82% | 100%
+Feuerballista (S_FBALLISTA 77) | 0..0, Mittel 0.0 | 0..0 | 0..29 | 100% | 100% | 100% | 100% | 100%
+Feuerballista (S_FBALLISTA 77) (Bodenbefehl) | -48..47, Mittel -0.7 | -40..39 | -40..39 | 1% | 1% | 8% | 21% | 66%
+
+Schuss auf eine Einheit: Chance auf Streuung (Stufe / 300), Ziel hoeher als der Boden des Schuetzen um d:
+Bogenschuetze (E_ARCHER 22): d=-50: 0%, d=0: 0%, d=10: 3%, d=30: 10%, d=60: 20%, d=100: 50%, d=150: 75%
+Feuerballista (S_FBALLISTA 77): d=-50: 3%, d=0: 0%, d=10: 0%, d=30: 0%, d=60: 0%, d=100: 0%, d=150: 0%
+
+Teil 2, Landeort auf ebenem Boden mit beiden Stufen. Abstand Landefeld zum befohlenen Feld. Art | Abstand in Feldern | Zahl | genau | bis 1 | bis 2 | bis 4 | bis 8 | Mittel Laenge (plus = zu weit) | Mittel quer
+Bogenschuetze (E_ARCHER 22) | 10 | 2000 | 0% | 9% | 22% | 57% | 100% | +2.5 | 2.8
+Bogenschuetze (E_ARCHER 22) | 20 | 2000 | 0% | 3% | 14% | 49% | 99% | +2.1 | 2.6
+Bogenschuetze (E_ARCHER 22) | 30 | 2000 | 1% | 8% | 23% | 65% | 100% | +1.9 | 2.5
+Armbrust (E_XBOW 23) | 10 | 2000 | 1% | 8% | 24% | 70% | 100% | +0.9 | 2.4
+Armbrust (E_XBOW 23) | 20 | 2000 | 1% | 6% | 20% | 60% | 100% | +0.7 | 2.4
+Armbrust (E_XBOW 23) | 30 | 2000 | 1% | 8% | 23% | 69% | 100% | +0.6 | 2.4
+Arab. Bogen (A_ARCHER 70) | 10 | 2000 | 0% | 9% | 22% | 57% | 100% | +2.5 | 2.8
+Arab. Bogen (A_ARCHER 70) | 20 | 2000 | 0% | 3% | 14% | 49% | 99% | +2.1 | 2.6
+Arab. Bogen (A_ARCHER 70) | 30 | 2000 | 1% | 8% | 23% | 65% | 100% | +1.9 | 2.5
+Schleuder (A_SLINGER 72) | 10 | 2000 | 1% | 11% | 26% | 63% | 100% | +1.9 | 2.7
+Schleuder (A_SLINGER 72) | 20 | 2000 | 0% | 1% | 5% | 47% | 99% | +1.4 | 2.5
+Schleuder (A_SLINGER 72) | 30 | 2000 | 1% | 8% | 23% | 65% | 100% | +1.9 | 2.5
+Pferdebogen (A_HARCHER 74) | 10 | 2000 | 1% | 10% | 24% | 58% | 100% | +2.4 | 2.8
+Pferdebogen (A_HARCHER 74) | 20 | 2000 | 0% | 3% | 12% | 56% | 100% | +2.1 | 2.6
+Pferdebogen (A_HARCHER 74) | 30 | 2000 | 1% | 8% | 23% | 60% | 100% | +1.9 | 2.5
+Feuerwerfer (A_FIRETHROWER 76) | 10 | 2000 | 1% | 11% | 49% | 85% | 100% | +0.4 | 2.4
+Feuerwerfer (A_FIRETHROWER 76) | 20 | 2000 | 0% | 1% | 5% | 19% | 99% | -0.2 | 2.2
+Feuerwerfer (A_FIRETHROWER 76) | 30 | 2000 | 1% | 8% | 23% | 65% | 100% | +1.9 | 2.5
+Katapult (S_CATAPULT 39) | 10 | 2000 | 0% | 3% | 8% | 36% | 75% | +4.7 | 3.4
+Katapult (S_CATAPULT 39) | 20 | 2000 | 0% | 3% | 8% | 35% | 75% | +5.0 | 3.4
+Katapult (S_CATAPULT 39) | 30 | 2000 | 0% | 3% | 8% | 34% | 73% | +5.3 | 3.4
+Trebuchet (S_TREBUCHET 40) | 10 | 2000 | 1% | 14% | 27% | 67% | 100% | +0.0 | 3.2
+Trebuchet (S_TREBUCHET 40) | 20 | 2000 | 1% | 14% | 26% | 67% | 100% | -0.0 | 3.2
+Trebuchet (S_TREBUCHET 40) | 30 | 2000 | 1% | 14% | 26% | 67% | 100% | -0.1 | 3.2
+Mangonel (S_MANGONEL 41) | 10 | 13841 | 0% | 1% | 4% | 14% | 38% | +9.0 | 8.4
+Mangonel (S_MANGONEL 41) | 20 | 13918 | 0% | 1% | 3% | 10% | 34% | +6.0 | 8.3
+Mangonel (S_MANGONEL 41) | 30 | 13957 | 0% | 1% | 3% | 9% | 29% | +3.7 | 8.2
+Ballista (S_BALLISTA 61) | 10 | 2000 | 8% | 16% | 26% | 75% | 95% | +3.4 | 1.6
+Ballista (S_BALLISTA 61) | 20 | 2000 | 0% | 15% | 72% | 85% | 100% | +2.1 | 1.4
+Ballista (S_BALLISTA 61) | 30 | 2000 | 0% | 32% | 53% | 97% | 100% | +2.1 | 1.4
+Feuerballista (S_FBALLISTA 77) | 10 | 2000 | 1% | 5% | 19% | 69% | 98% | +1.7 | 2.6
+Feuerballista (S_FBALLISTA 77) | 20 | 2000 | 2% | 9% | 20% | 71% | 100% | +1.0 | 2.4
+Feuerballista (S_FBALLISTA 77) | 30 | 2000 | 2% | 8% | 18% | 69% | 100% | +0.7 | 2.4

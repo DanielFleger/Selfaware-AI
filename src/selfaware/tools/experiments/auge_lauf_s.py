@@ -79,6 +79,7 @@ GERAETE_WEITE = {39: 57, 40: 68, 41: 54, 61: 68, 77: 39}  # Felder, Tabelle 0x5B
 GRENZE_GERAETE_WEITE = 1000  # 3 Schuss Trebuchet (296 Takte)
 PUNKT_FAELLE = (("feld", 10), ("feld", 100), ("feld", 500), ("tor", 100), ("tor", 500), ("turm", 100), ("luecke", 100), ("luecke", 500))  # Liste V6
 PUNKT_WEG, GRENZE_PUNKT = 30, 3000  # Felder bis zum Ziel; 30 Felder zu 12 Takten, mal 8 fuer den Stau bei 500
+GRENZE_STREUUNG = 1500  # Takte nach dem Einsteigen: Das Katapult wirft alle 200 bis 300 Takte, so kommen je Geraet mindestens 5 Schuesse
 GRENZE_SONDER, SONDER_ABSTAND = 3000, 30  # Takte; Abstand der Posten, Feuerwerfer reicht 11, Schuetzen haben ihr Ziel per Befehl
 STARTTRUPPEN_TAKT = 410  # Gefecht: 6 Bogenschuetzen kamen bei Takt 202, 8 Speertraeger bei 403, je Spieler an der Burg (Lauf 22:41). Wer vorher raeumt, hat sie danach im Feld
 SONDER_SPIELER_TAKTE = 40  # Takte je Spieler fuer die Spielbefehle davor: Im selben Takt laufen alle als der zuletzt gesetzte Spieler (Modul: PLATZ_TAKTE 1), Graben, Mauern und Pech kamen so nie an (Lauf 21:30)
@@ -1654,6 +1655,78 @@ def sonder23(l):
     return (("punkt_einzeln", punkt_einzeln, 10, 10), ("punkt_trupp", punkt_trupp, 10, 10))
 
 
+def streuung(l):
+    """Wohin Schuesse wirklich gehen, jeder Takt aufgezeichnet: Schuetzen und Geraete auf den Boden (Anweisung 5, Feld x und y), Geraete auf Einheiten und Gebaeude, Pfeile in eine Reihe Feinde, Schuss mit verdeckter Sicht, Schuss an eine Mauer, Feuer an Huetten. Ausgewertet mit data/research/auge_plan/streuung_20261104/."""
+    geraete = (39, 40, 41, 61, 77)
+
+    def boden_schuetzen(x, y):
+        wer, ziele = [], []
+        for i, t in enumerate((22, 23, 70, 72, 74, 76)):
+            for j in range(2):
+                e = _e("schuetze", t, x + 1, y + 1 + i * 3 + j)
+                wer.append(e)
+                ziele.append((e, x + (9 if t == 76 else 17), y + 1 + i * 3 + j))
+        return [], wer, [], lambda: [_angriff([e], art=5, a=a, b=b) for e, a, b in ziele], None
+
+    def geraet_reihe(x, y, schiessen):
+        alle, leute = [], []
+        for i, t in enumerate(geraete):
+            g = dict(_e("geraet", t, x + 4, y + 2 + i * 6), mann=BESATZUNG[t], soll=BESATZUNG[t])
+            m = _ing(x, y + 1 + i * 6, BESATZUNG[t])
+            alle += [g] + m
+            leute.append((m, g))
+        return alle, (lambda: [_angriff(m, art=16, a=g["nr"], b=g["uid"]) for m, g in leute]), [g for _, g in leute]
+
+    def geraete_boden(x, y):
+        alle, jetzt, gs = geraet_reihe(x, y, None)
+        return [], alle, [], jetzt, lambda: [_angriff([g], art=5, a=x + (16 if g["typ"] == 41 else 24), b=g["y"]) for g in gs]
+
+    def geraete_einheit(x, y):
+        alle, jetzt, gs = geraet_reihe(x, y, None)
+        opfer, rest = {}, []
+        for g in gs:
+            ox = x + (14 if g["typ"] == 41 else 20)
+            o = _e("ziel", 24, ox, g["y"], 2)
+            opfer[g["typ"]] = o
+            rest += [o, _e("feind_daneben", 24, ox + 1, g["y"], 2), _e("freund_daneben", 24, ox, g["y"] + 1, 1)]
+        return [], alle + rest, [], jetzt, lambda: [_angriff([g], ziel=opfer[g["typ"]]["nr"]) for g in gs]
+
+    def geraete_gebaeude(x, y):
+        bau, alle, leute, nach = [], [], [], []
+        for i, t in enumerate((39, 40)):
+            g = dict(_e("geraet", t, x + 4, y + 2 + i * 6), mann=BESATZUNG[t], soll=BESATZUNG[t])
+            m = _ing(x, y + 1 + i * 6, BESATZUNG[t])
+            z = _g(10, x + 22, y + 1 + i * 6)
+            bau.append(z)
+            alle += [g] + m
+            leute.append((m, g))
+            nach.append((g, z))
+        return bau, alle, [], lambda: [_angriff(m, art=16, a=g["nr"], b=g["uid"]) for m, g in leute], lambda: [_angriff([g], gebaeude=z["nr"]) for g, z in nach if "nr" in z]
+
+    def menge(x, y):
+        schuetzen = [_e("schuetze", 22, x + 1, y + 1 + i) for i in range(4)]
+        reihe = [_e("reihe", 24, x + 6 + i, y + 2, 2) for i in range(14)]
+        return [], schuetzen + reihe, [], lambda: [_angriff([e], ziel=reihe[-1]["nr"]) for e in schuetzen], None
+
+    def sicht(x, y):
+        schuetzen = [_e("schuetze", 22, x + 1, y + 3 + i) for i in range(3)]
+        ziel = _e("ziel", 24, x + 15, y + 4, 2)
+        return [_g(19, x + 7, y + 2)], schuetzen + [ziel], [], lambda: [_angriff([e], ziel=ziel["nr"]) for e in schuetzen], None
+
+    def feuer(x, y):
+        g = [_g(1, x + 9, y + 2), _g(1, x + 14, y + 2), _g(1, x + 9, y + 7)]
+        ft = [_e("taeter", 76, x + 1, y + 3 + i) for i in range(2)]
+        return g, ft + [_e("opfer", 25, x + 12, y + 6, 2)], [], lambda: [_angriff(ft, gebaeude=g[0]["nr"])] if "nr" in g[0] else [], None
+
+    def wand(x, y):
+        schuetzen = [_e("schuetze", 22, x + 1, y + 3 + i) for i in range(3)]
+        ziel = _e("ziel", 24, x + 12, y + 4, 2)
+        davor = [{"player": 2, "ware": {"typ": 4, "menge": 200}}, {"player": 2, "spielbefehl": {"nr": 25, "werte": [x + 8, y, x + 8, y + 8, 25, 9]}}]
+        return [], schuetzen + [ziel], davor, lambda: [_angriff([e], ziel=ziel["nr"]) for e in schuetzen], None
+    return (("boden_schuetzen", boden_schuetzen, 22, 20), ("geraete_boden", geraete_boden, 30, 32), ("geraete_einheit", geraete_einheit, 26, 32), ("geraete_gebaeude", geraete_gebaeude, 28, 14),
+            ("menge", menge, 24, 8), ("sicht", sicht, 18, 10), ("feuer", feuer, 20, 12), ("wand", wand, 18, 10))
+
+
 def sonder24_g(l):
     """Lagen aus Lauf F und S, die noch fehlen: Belagerungszelt mit 4 und 2 Ingenieuren (P126), Oel werfen auf Befehl (P238), Schmelze holt Pech aus dem Lager (P111), Mauerkosten im echten Befehl (P119), Stapel halten, Holztor als Ziel."""
     s = l.s
@@ -1757,7 +1830,7 @@ def starttruppen_abwarten(l):
         lk.anhalten(l)
 
 
-def szene_sonder(l, name, posten, frei_maske=None, rand=SONDER_ABSTAND, raeumen=False):
+def szene_sonder(l, name, posten, frei_maske=None, rand=SONDER_ABSTAND, raeumen=False, tempo=100, grenze=GRENZE_SONDER):
     """Die Sonderfaelle, weit auseinander. Jeder Posten bekommt seine Befehle in drei Stufen: Spielbefehle davor, Befehle beim Start, Befehle nach dem Einsteigen. Ein Posten, der keinen Platz findet oder dessen Gebaeude nicht steht, ist ein Fund und haelt die anderen nicht auf."""
     k, s = l.k, l.s
     lk.anhalten(l)
@@ -1820,19 +1893,19 @@ def szene_sonder(l, name, posten, frei_maske=None, rand=SONDER_ABSTAND, raeumen=
     setzen(l, einheiten)
     k.liste([c for j in jetzt for c in j()], lf.KANAL)
     vorher = verluste_lesen(l)
-    a = lk.aufnahme_im_stand(l, name, 100, False)
+    a = lk.aufnahme_im_stand(l, name, tempo, False)
     gewartet = 0
     for nach, f in sorted(stufen, key=lambda z: z[0]):
         l.warte_takte(nach - gewartet)
         k.liste(f(), lf.KANAL)
         gewartet = nach
-    l.warte_takte(GRENZE_SONDER)
+    l.warte_takte(grenze)
     b = lk.anhalten(l)
     pfad = l.rek.pfad
     stand = l.rek.beenden()
     graben = len(s.felder_mit_bit(lf.BIT_GRABEN)) if hasattr(s, "felder_mit_bit") else None
     with open(pfad + ".plan.json", "w", encoding="utf-8") as f:
-        json.dump({"szene": name, "von": a, "bis": b, "tempo": 100, "einheiten": einheiten, "gebaeude": gebaeude, "karte": karte, "nicht_gesetzt": [z["name"] for z in nicht_gesetzt], "kein_platz": fehlt, "graben_felder_am_ende": graben, "verluste": {"vorher": vorher, "nachher": verluste_lesen(l)}, "mauer_fehlt": mauer_fehlt, "mauer_wiederholt": mauer_wiederholt}, f, ensure_ascii=False)
+        json.dump({"szene": name, "von": a, "bis": b, "tempo": tempo, "einheiten": einheiten, "gebaeude": gebaeude, "karte": karte, "nicht_gesetzt": [z["name"] for z in nicht_gesetzt], "kein_platz": fehlt, "graben_felder_am_ende": graben, "verluste": {"vorher": vorher, "nachher": verluste_lesen(l)}, "mauer_fehlt": mauer_fehlt, "mauer_wiederholt": mauer_wiederholt}, f, ensure_ascii=False)
     abr = abraeumen(l)
     return {"szene": name, "von": a, "bis": b, "einheiten": len(einheiten), "nicht_gesetzt": [z["name"] for z in nicht_gesetzt], "kein_platz": fehlt, "abraeumen_takte": abr, "stand": stand, "pfad": pfad}
 
@@ -1999,6 +2072,7 @@ SZENEN = {
     "sonder19": lambda l: szene_sonder(l, "sonder19", sonder19(l), rand=15),
     "sonder21": lambda l: szene_sonder(l, "sonder21", sonder21(l), rand=15),
     "sonder23": lambda l: szene_sonder(l, "sonder23", sonder23(l), rand=15),
+    "streuung": lambda l: szene_sonder(l, "streuung", streuung(l), rand=12, tempo=lf.TEMPO_JEDER_TAKT, grenze=GRENZE_STREUUNG),
     "rufen_g": lambda l: __import__("selfaware.tools.experiments.auge_rufen", fromlist=["szene"]).szene(l),
     "rufen2_g": lambda l: __import__("selfaware.tools.experiments.auge_rufen", fromlist=["szene2"]).szene2(l),
     "rufen3_g": lambda l: __import__("selfaware.tools.experiments.auge_rufen", fromlist=["szene3"]).szene3(l),
