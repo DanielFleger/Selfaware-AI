@@ -44,10 +44,17 @@ def punkt():
                 hoch, wann = m, t - S
             letzt = c
         print("  ", n, "hoechstens auf einem Feld", hoch, "bei Takt", wann, "am Ende:", letzt.most_common())
+        v = []
+        for t, u in pl.stand(p, "DAT_UnitsState", {"mx": "units[].microXPosition", "my": "units[].microYPosition"}):
+            m = collections.Counter((int(u["mx"][e["nr"]]) // 8, int(u["my"][e["nr"]]) // 8) for e in wer).most_common(1)[0][1]
+            if t - S >= wann and (not v or v[-1][1] != m):
+                v.append((t - S, m))
+        print("      ab da (Takt, meiste auf einem Feld):", v[:10])
 
 
 def buendnis():
-    f = sorted(glob.glob(os.path.join(pl.L, "buendnis_k_*.auge")), key=os.path.getsize)
+    f = [x for x in sorted(glob.glob(os.path.join(pl.L, "buendnis_k_*.auge")), key=os.path.getmtime) if os.path.basename(x).startswith(sorted(os.path.basename(y)[:26] for y in glob.glob(os.path.join(pl.L, "buendnis_k_*.auge")))[-1])]
+    f = sorted(f, key=os.path.getsize)
     if not f:
         print("kein Lauf")
         return

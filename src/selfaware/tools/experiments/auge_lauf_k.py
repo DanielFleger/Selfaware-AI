@@ -331,6 +331,11 @@ def los(n, karte, ziel=None, laeuft_schon=True, frieden=FRIEDEN_NORMAL, fenster=
         steht, t = lf.anhalten_und_pruefen(k, s)
         if not steht:
             raise Abbruch(f"Der Takt steht am Start nicht (Takt {t})")
+        if teams:
+            # Der Startbefehl allein wirkte in diesem Weg nicht (Lauf 19:18: Takt 0 wieder jeder gegen jeden). Nur im Messlauf
+            adr = karte_felder.adresse("DAT_GameState", "mapAndTime.playerTeams[]")[0]
+            for i, wert in enumerate(teams, 1):
+                k.befehl({"poke": adr + 4 * i, "wert": wert}, lf.KANAL)
         k.befehl({"tempo": lf.TEMPO_LAUF}, lf.KANAL)
         rek.starten(None, lf.TEMPO_LAUF, messen=False)
         lf.warte_auf(rek.laeuft, 60, "Aufzeichnung laeuft")
