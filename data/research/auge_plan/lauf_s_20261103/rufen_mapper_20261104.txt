@@ -1,0 +1,23 @@
+Kurzprobe 04.11.2026, Instanz 2, stehendes Spiel, Skript rufen_kurzproben/tor_art.py: setzeGebaeude, danach neue Gebaeude im Speicher gelesen.
+Die Pruefung checkBuildingCanBePlacedHere sagte bei allen ausser 90 und 91 Fehler 0 (tor_groesse.py). Bei den Eintraegen "nichts" ist trotzdem kein Gebaeude entstanden.
+
+Mapper  Groesse Drehung  Stelle      Ergebnis
+103     3       0        160,245     nichts
+140     3       0        168,245     nichts
+192     3       0        176,245     Nr 33, Art 82
+94      3       0        184,245     Nr 34, Art 69
+104     3       0        160,253     Nr 35, Art 48
+103     5       0        160,261     nichts
+103     7       0        170,261     nichts
+103     1       0        180,261     nichts
+140     5       0        160,269     nichts
+140     7       0        170,269     nichts
+141     5       0        180,269     nichts
+103     3       15       160,277     nichts
+103     3       2        170,277     nichts
+103     3       4        180,277     nichts
+100     3       15       160,285     nichts
+101     3       15       170,285     Nr 43, Art 45
+102     3       15       180,285     Nr 44, Art 46
+
+Grenze der Probe: Nur dieser Weg (placeBuilding ueber das Modul), auf freiem Boden, ohne Mauer daneben. Ob ein Holztor an einer Mauer entsteht, ist nicht geprueft.

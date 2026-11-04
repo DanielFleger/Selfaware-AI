@@ -120,5 +120,25 @@ def test_jedes_feld_der_proben_steht_in_der_karte(gruppe, feld):
     assert K.adresse(gruppe, feld)[0] > 0
 
 
+def wer_importiert(wurzel):
+    aus = set()
+    for ordner, _, dateien in os.walk(wurzel):
+        for d in dateien:
+            p = os.path.join(ordner, d)
+            if d.endswith(".py") and d != "spielcode_rufen.py" and "spielcode_rufen" in open(p, encoding="utf-8", errors="replace").read():
+                aus.add(d)
+    return aus
+
+
+def test_das_werkzeug_bleibt_im_messlauf():
+    """Fairness: SamurAI darf das nie benutzen. Nur die Proben kennen es."""
+    assert wer_importiert(os.path.join("src", "selfaware")) == {"auge_rufen.py"}
+
+
+def test_die_suche_findet_einen_fremden_import(tmp_path):
+    (tmp_path / "bot.py").write_text("from selfaware.tools.experiments.spielcode_rufen import Rufer", encoding="utf-8")
+    assert wer_importiert(str(tmp_path)) == {"bot.py"}
+
+
 def test_aus_einem_test_startet_keine_messung():
     assert callable(auge_rufen.szene)

@@ -172,7 +172,7 @@ Neu auslesbar: Jedes Geschoss steht mit Art, Schütze (`unitID_OR_seaGullID`, 79
 | Stein | 5,63 | 247 von 251 |
 | Feuer | 3,78 | 68 von 82 |
 
-Editor, Szene Beschuss, im Gefecht ähnlich (`beschuss_g.geschosse.json`). Befehl und Zahlen: `geschosse_beschuss.py`, `geschosse_beschuss.txt`. Der Verlust kommt im Takt der Landung oder bis zu 2 Takte davor. **Die rund 5 Prozent ohne Verlust sind noch nicht erklärt.** Zielwahl: 378 von 795 Schüssen gehen auf den nächsten Feind, 417 nicht.
+Editor, Szene Beschuss, im Gefecht ähnlich (`beschuss_g.geschosse.json`). Befehl und Zahlen: `geschosse_beschuss.py`, `geschosse_beschuss.txt`. Der Verlust kommt im Takt der Landung oder bis zu 2 Takte davor. **Die rund 5 Prozent ohne Verlust (37 von 795), nachgerechnet am 04.11.: 17 Ziel war schon tot, 3 ein anderer verlor am Ort Leben, 3 Ziel lief 2 Felder oder mehr, 10 Feuerschüsse wirken erst 6 bis 13 Takte nach der Landung, 4 Feuerschüsse zeigen 60 Takte keinen Verlust, das ist offen (`geschosse_ohne_verlust.txt`, `rufen_kurzproben/feuer_rest.py`).** Zielwahl: 378 von 795 Schüssen gehen auf den nächsten Feind, 417 nicht.
 
 ## Szene Laufendes Ziel, 03.11. 20:39
 
@@ -485,5 +485,5 @@ Viele offene Punkte sind Prüfungen der Oberfläche: Sie laufen nur, wenn ein Me
 
 ## Noch offen
 
-Warum rund 5 Prozent der Schüsse ohne Verlust landen. Warum der erste Rahmen im Gefecht alt ist. Holztor als Ziel. Feuerkorb: Befehl 69 wirkte nicht (P312). Lauf-K-Stand (Szene 8b im Plan) ist nicht gefahren, die KI-Punkte kamen aus der Aufzeichnung von Lauf K. Lauf F: siehe `Punkte_Lauf_F.md`.
+Warum 4 von 82 Feuerschüssen 60 Takte keinen Verlust zeigen. Warum der erste Rahmen im Gefecht alt ist. Holztor als Ziel: Auf freiem Boden entsteht es nicht (`rufen_mapper_20261104.txt`), an einer Mauer ist es nicht geprüft. Feuerkorb: Befehl 69 und 97 ohne Korb (P312). Warum das Spiel beim Direktaufruf von `aiDecideOnNewBuildings` abstürzt. Die -1 aus P119 und das kurze 0 in P140. Lauf-K-Stand (Szene 8b im Plan) ist nicht gefahren, die KI-Punkte kamen aus der Aufzeichnung von Lauf K. Lauf F: siehe `Punkte_Lauf_F.md`.
 
