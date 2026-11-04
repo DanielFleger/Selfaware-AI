@@ -455,5 +455,5 @@ Belege: `sonder23`, `punkte_rechnung_b.txt`. Daniel hat entschieden: SamurAI dar
 
 ## Noch offen
 
-Warum rund 5 Prozent der Schüsse ohne Verlust landen. Warum der erste Rahmen im Gefecht alt ist. Holztor als Ziel. Feuerkorb: Befehl 69 wirkte nicht (P312). Lauf-K-Stand (Szene 8b im Plan) ist nicht gefahren, die KI-Punkte kamen aus der Aufzeichnung von Lauf K. Lauf F: 42 Lagen fehlen, 11 Punkte sind nur gesehen, 1 ist offen. Liste in `Punkte_Lauf_F.md`.
+Warum rund 5 Prozent der Schüsse ohne Verlust landen. Warum der erste Rahmen im Gefecht alt ist. Holztor als Ziel. Feuerkorb: Befehl 69 wirkte nicht (P312). Lauf-K-Stand (Szene 8b im Plan) ist nicht gefahren, die KI-Punkte kamen aus der Aufzeichnung von Lauf K. Lauf F: 30 Lagen fehlen, 11 Punkte sind nur gesehen, 1 ist offen. Liste in `Punkte_Lauf_F.md`.
 

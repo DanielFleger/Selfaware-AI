@@ -9,6 +9,7 @@ K = "src/selfaware/tools/experiments/auge_lauf_k.py"
 P = "src/selfaware/tools/analysis/auge_punkte.py"
 S = "src/selfaware/tools/experiments/auge_lauf_s.py"
 R = "src/selfaware/tools/analysis/auge_regeln.py"
+C = "src/selfaware/tools/experiments/spielcode_rufen.py"
 FAELLE = [
     ("Anzeige 20 nicht geprueft", L, "if not l.warte_takte(WOCHE, lambda: s.anzeige_burg_korn() == 0):", "if False:"),
     ("Kalender nicht geprueft", L, "if not l.warte_takte(WOCHE + ABLESEN, lambda: s.kalender() != woche):", "if False:"),
@@ -200,6 +201,12 @@ FAELLE = [
     ("S19: Kein zweiter Lauf", S, "(LUECKE_DANACH, lambda: [_angriff(geher, lauf=[x + 14, y + 4])])", ""),
     ("S20: Hunde 6 wie 5", S, "(\"hunde_6\", hunde_n(6), 16, 8)", "(\"hunde_6\", hunde_n(5), 16, 8)"),
     ("S20: Lager weit weg", S, "wer = [_e(\"taeter\", 27, z[\"x\"] - 1, z[\"y\"] + i) for i in range(3)]", "wer = [_e(\"taeter\", 27, z[\"x\"] - 30, z[\"y\"] + i) for i in range(3)]"),
+    ("S24: Zelt mit 3 statt 4 Ingenieuren", S, '("zelt4", zelt(4), 20, 10)', '("zelt4", zelt(3), 20, 10)'),
+    ("S24: Falsche Mauerart", S, "(BEFEHL_TAKT + 100, b(46, 3, 13))", "(BEFEHL_TAKT + 100, b(25, 3, 13))"),
+    ("S24: Stapel nur einmal befohlen", S, "[(t, nochmal) for t in range(50, 1001, 50)]", "[(50, nochmal)]"),
+    ("R: Werte in falscher Folge", C, "for v in reversed(werte):", "for v in werte:"),
+    ("R: Stapel nicht zurueck", C, 'b += b"\\x89\\xEC\\x5D\\x31\\xC0\\xC2\\x04\\x00"', 'b += b"\\x5D\\x31\\xC0\\xC2\\x04\\x00"'),
+    ("R: Sperre auf Instanz 2 weg", C, "if ERLAUBT not in puffer.value:", "if False:"),
     ("S23: Einzeln wird Trupp", S, "lambda: [_angriff([w], lauf=[x + 4, y + 8]) for w in wer], None", "lambda: [_angriff(wer, lauf=[x + 4, y + 8])], None\n\n    def _x(x, y):\n        return None"),
     ("S15: Nachbarfeld ueberschrieben", S, "\"wert\": (alt & 0xFFFF0000) | (wert & 0xFFFF)}", "\"wert\": wert & 0xFFFF}"),
     ("S15: Falscher Auftrag", S, "AUFTRAG_ASSASSINE, AUFTRAG_TAKT, AUFTRAG_TOD = 12, 200, 1200", "AUFTRAG_ASSASSINE, AUFTRAG_TAKT, AUFTRAG_TOD = 11, 200, 1200"),
@@ -289,7 +296,7 @@ for name, pfad, alt, neu in FAELLE:
         continue
     try:
         open(pfad, "wb").write(text.replace(a, n).encode("utf-8"))
-        r = subprocess.run([sys.executable, "-m", "pytest", "tests/test_auge_lauf_f.py", "tests/test_auge_lauf_k.py", "tests/test_auge_lauf_s.py", "tests/test_auge_werkzeug.py", "-q", "--no-header", "-x", "--tb=no"], capture_output=True, text=True, env=env, encoding="utf-8", errors="replace", timeout=300)
+        r = subprocess.run([sys.executable, "-m", "pytest", "tests/test_auge_lauf_f.py", "tests/test_auge_lauf_k.py", "tests/test_spielcode_rufen.py", "tests/test_auge_lauf_s.py", "tests/test_auge_werkzeug.py", "-q", "--no-header", "-x", "--tb=no"], capture_output=True, text=True, env=env, encoding="utf-8", errors="replace", timeout=300)
         rot = r.returncode != 0
         zeile = [z for z in r.stdout.splitlines() if z.startswith("FAILED")][:1]
         print(("ROT  " if rot else "GRUEN"), name, "|", (zeile[0][7:100] if zeile else ""), flush=True)

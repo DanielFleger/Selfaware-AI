@@ -953,6 +953,7 @@ def sonder5_g(l):
     return (("pech", pech, 24, 8),)
 
 
+MAPPER_ZELT_TURM = 94  # M_MAPPER_SIEGE_TOWER_BASE
 MAPPER_TUNNEL, EINGANG = 66, (85, 50)  # M_MAPPER_TUNNEL_CONSTRUCTION, Groesse 3; BT_UNKNOWN4 bis der Graeber da ist, dann BT_TUNNEL
 TUNNEL_TRUPP, TUNNEL_PRUEFEN, TUNNEL_STOEREN = 60, 120, 1100  # Takte: Der Trupp entsteht erst mit dem ersten Befehl; der Eingang steht spaetestens im naechsten Takt, 60 sind reichlich; der Graeber grub ab Takt 1001 und 1012 (Lauf 22:41)
 
@@ -1653,6 +1654,75 @@ def sonder23(l):
     return (("punkt_einzeln", punkt_einzeln, 10, 10), ("punkt_trupp", punkt_trupp, 10, 10))
 
 
+def sonder24_g(l):
+    """Lagen aus Lauf F und S, die noch fehlen: Belagerungszelt mit 4 und 2 Ingenieuren (P126), Oel werfen auf Befehl (P238), Schmelze holt Pech aus dem Lager (P111), Mauerkosten im echten Befehl (P119), Stapel halten, Holztor als Ziel."""
+    s = l.s
+
+    def zelt(n):
+        def f(x, y):
+            wer = _ing(x, y + 2, n)
+
+            def bauen():
+                ort = erlaubte_stelle(l, {"mapper": MAPPER_ZELT_TURM, "groesse": 3, "x": x + 8, "y": y + 3, "spieler": 1})
+                trupp = {e["nr"]: e["trupp"] for e in s.einheiten_alle()}.get(wer[0]["nr"], 0)
+                return [{"player": 1, "ware": {"typ": 15, "menge": 2000}}, {"player": 1, "baue": {"mapper": MAPPER_ZELT_TURM, "x": ort[0], "y": ort[1], "groesse": 3, "richtung": 15, "trupp": trupp}}] if ort and trupp else []
+            return [], wer, [], lambda: [_angriff(wer, lauf=[x + 1, y + 3])], [(TUNNEL_TRUPP, bauen)]
+        return f
+
+    def oel_wurf(x, y):
+        """Der Traeger bekommt Oel wie in sonder8_g, dann ein Wurf auf den Feind: Anweisung 20 mit Ziel x und y."""
+        g = [_g(28, x + 6, y + 1, spieler=1)]
+        adr, schritt = s.feld("DAT_BuildingsState", "buildings[].resourcePitch")
+        leute = [_e("oel", 30, x + 2, y + 3 + i) for i in range(2)]
+        feind = _e("feind", 24, x + 12, y + 4, 2)
+
+        def jetzt():
+            return {e["nr"]: e for e in s.einheiten_alle()}.get(leute[1]["nr"], {})
+
+        def trupp_machen():
+            e = jetzt()
+            return [_angriff([leute[1]], lauf=[e["x"], e["y"]])] if e else []
+
+        def holen():
+            return [{"poke": adr + schritt * g[0]["nr"], "wert": 20}, _angriff(leute, art=15, a=g[0]["nr"], b=g[0]["uid"])] if "nr" in g[0] else []
+
+        def werfen():
+            return [_angriff([leute[1]], art=20, a=x + 12, b=y + 4)]
+        return g, leute + [feind], [], holen, [(OEL_HALTUNG - 60, trupp_machen), (OEL_HALTUNG, werfen)]
+
+    def oel_lager(x, y):
+        """P111, P238: Keine Hilfe an der Schmelze, 30 Pech im Lager. Holt sie es sich? Erwartet: Pech der Schmelze +1 in Zustand 4, Bestand -1."""
+        g = [_g(28, x + 6, y + 1, spieler=1)]
+        leute = [_e("oel", 30, x + 2, y + 3 + i) for i in range(2)]
+        adr, schritt = s.feld("DAT_BuildingsState", "buildings[].resourcePitch")
+
+        def holen():
+            lager = next((b for b in s.gebaeude(1) if b["typ"] == 10), None)
+            return ([{"poke": adr + schritt * lager["nr"], "wert": 30}] if lager else []) + ([_angriff(leute, art=15, a=g[0]["nr"], b=g[0]["uid"])] if "nr" in g[0] else [])
+        return g, leute, [], holen, None
+
+    def mauer_real(x, y):
+        """P119: Je 13 Felder kosteten in Lauf F -1 und -3. Direkt gerufen gab die Funktion 13 hoch 6, 13 nieder 3. Hier der echte Befehl mit Art 25 und 46, je 100 Takte Abstand."""
+        def b(m, zeile, laenge):
+            return lambda: [{"player": 1, "ware": {"typ": 4, "menge": 200}}, {"player": 1, "spielbefehl": {"nr": 25, "werte": [x, y + zeile, x + laenge - 1, y + zeile, m, 13]}}]
+        return [], [], [], lambda: [], [(BEFEHL_TAKT, b(25, 0, 13)), (BEFEHL_TAKT + 100, b(46, 3, 13)), (BEFEHL_TAKT + 200, b(46, 6, 8)), (BEFEHL_TAKT + 300, b(25, 9, 8))]
+
+    def punkt_halten(x, y):
+        """Stapel: In sonder23 hielt er bis Takt 376. Haelt ein wiederholter Befehl ihn laenger? Alle 50 Takte derselbe Befehl, bis Takt 1.000."""
+        wer = [_e("packer", 24, x + i, y) for i in range(8)]
+
+        def nochmal():
+            return [_angriff([w], lauf=[x + 4, y + 8]) for w in wer]
+        return [], wer, [], nochmal, [(t, nochmal) for t in range(50, 1001, 50)]
+
+    def holztor(x, y):
+        """Holztor als Ziel. Mapper 103 Groesse 3 ging nicht, Mapper 140 bis 143 gehoeren zu Art 47. 3 Speertraeger des Gegners schlagen darauf."""
+        t = {"spieler": 1, "typ": 47, "mapper": 140, "groesse": 3, "name": "BT_GATE_WOOD", "x": x + 8, "y": y + 4}
+        wer = [_e("taeter", 24, x + 2 + i, y + 8, 2) for i in range(3)]
+        return [t], wer, [], lambda: [_angriff(wer, 2, gebaeude=t["nr"])] if "nr" in t else [], None
+    return (("zelt4", zelt(4), 20, 10), ("zelt2", zelt(2), 20, 10), ("oel_wurf", oel_wurf, 22, 8), ("oel_lager", oel_lager, 16, 7), ("mauer_real", mauer_real, 16, 12), ("punkt_halten", punkt_halten, 12, 14), ("holztor", holztor, 16, 12))
+
+
 def sonder11_g(l):
     """P314: Wie sonder9_g, aber die Gegner gehen genau auf ein Feld des brennenden Pechs (Lauf 00:40: bis 1 Feld daneben, counter blieb 0)."""
     s = l.s
@@ -1925,6 +1995,10 @@ SZENEN = {
     "sonder19": lambda l: szene_sonder(l, "sonder19", sonder19(l), rand=15),
     "sonder21": lambda l: szene_sonder(l, "sonder21", sonder21(l), rand=15),
     "sonder23": lambda l: szene_sonder(l, "sonder23", sonder23(l), rand=15),
+    "rufen_g": lambda l: __import__("selfaware.tools.experiments.auge_rufen", fromlist=["szene"]).szene(l),
+    "rufen2_g": lambda l: __import__("selfaware.tools.experiments.auge_rufen", fromlist=["szene2"]).szene2(l),
+    "rufen3_g": lambda l: __import__("selfaware.tools.experiments.auge_rufen", fromlist=["szene3"]).szene3(l),
+    "sonder24_g": lambda l: szene_sonder(l, "sonder24_g", sonder24_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),
     "sonder22": lambda l: szene_sonder(l, "sonder22", sonder22(l), rand=15),
     "sonder20_g": lambda l: szene_sonder(l, "sonder20_g", sonder20_g(l), frei_maske=burgbereich(l), rand=12, raeumen=True),
     "sonder19_g": lambda l: szene_sonder(l, "sonder19_g", sonder19_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),

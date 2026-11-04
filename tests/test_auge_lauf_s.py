@@ -1102,6 +1102,22 @@ def test_holztor_als_ziel(tmp_path):
     assert s["setzeGebaeude"]["mapper"] == 103 and s["setzeGebaeude"]["spieler"] == 2
 
 
+def test_sonder24_baut_zelt_mit_trupp_und_wirft_oel(tmp_path):
+    g = Spiel(tmp_path)
+    p = dict((n, f) for n, f, _, _ in ls.sonder24_g(lauf_von(g)))
+    assert set(p) == {"zelt4", "zelt2", "oel_wurf", "oel_lager", "mauer_real", "punkt_halten", "holztor"}
+    _, wer, _, _, stufen = p["zelt4"](100, 100)
+    assert len(wer) == 4 and {e["typ"] for e in wer} == {30}
+    assert stufen[0][0] == ls.TUNNEL_TRUPP
+    assert len(p["zelt2"](100, 100)[1]) == 2
+    _, _, _, _, stufen = p["punkt_halten"](100, 100)
+    assert [t for t, _ in stufen] == list(range(50, 1001, 50))
+    _, _, _, _, stufen = p["mauer_real"](100, 100)
+    c = [f() for _, f in stufen]
+    assert [x[1]["spielbefehl"]["werte"][4] for x in c] == [25, 46, 46, 25]
+    assert [x[1]["spielbefehl"]["werte"][2] - x[1]["spielbefehl"]["werte"][0] + 1 for x in c] == [13, 13, 8, 8]
+
+
 def test_einheiten_auf_einen_punkt(tmp_path):
     g = Spiel(tmp_path)
     e = ls.SZENEN["sonder23"](lauf_von(g))
