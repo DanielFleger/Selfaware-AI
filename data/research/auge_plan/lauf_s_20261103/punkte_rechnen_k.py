@@ -63,7 +63,7 @@ def main():
     bruch = {}
     bruch_sprung = []
     arten = None
-    mason = set()
+    mason = {}
     mason_tod = []
     moench_zustand = collections.Counter()
     moench_ziel = {}
@@ -127,10 +127,11 @@ def main():
             d_ = feld_("logicalState")
             ty_ = feld_("unitType")
             zu_ = np.ndarray(shape=(U["logicalState"][3],), dtype="<i2", buffer=a, offset=ZUSTAND - b, strides=(U["logicalState"][2],))
+            wo_ = feld_("workplaceBuildingID_1")
             jetzt_m = {int(i) for i in np.nonzero((d_ != 0) & (ty_ == STEINMETZ))[0] if i}
-            for i in mason - jetzt_m:
-                mason_tod.append((t, i))
-            mason = jetzt_m
+            for i in set(mason) - jetzt_m:
+                mason_tod.append((t, i, mason[i]))
+            mason = {i: int(wo_[i]) for i in jetzt_m}
             for i in np.nonzero((d_ != 0) & (ty_ == MOENCH))[0]:
                 i = int(i)
                 if not i:
@@ -140,7 +141,7 @@ def main():
                 moench_zustand[(z, int(arten[wo]) if arten is not None and 0 <= wo < len(arten) else None)] += 1
                 if z == 0x69:
                     ziel = (int(feld_("targetX_2")[i]), int(feld_("targetY_2")[i]))
-                    if moench_ziel.get(i) != ziel and len(moench_folge) < 30:
+                    if moench_ziel.get(i) != ziel:
                         moench_folge.append((t, i, ziel))
                     moench_ziel[i] = ziel
             for i in np.nonzero((d_ != 0) & (ty_ == ASSASSINE))[0]:
@@ -215,8 +216,17 @@ def main():
     print("    Spruenge:", collections.Counter(z[5] - z[4] for z in auf_mun).most_common(6), "Stein-Abzug:", collections.Counter((z[6] - z[7]) if z[6] is not None else None for z in auf_mun).most_common(6))
     print("P320 Wechsel (vorher, nachher): haeufigste", kuehl.most_common(14))
     print("   Beispiele (Feld, Folge Takt und Wert):", list(kuehl_beispiele.items())[:6])
-    print("P350 Steinbruch: Spruenge von idleTimerUnk (Takt, Platz, vorher, nachher):", bruch_sprung[:20], "Anzahl", len(bruch_sprung), "Steinmetz weg (Takt, Platz):", mason_tod[:20], "Anzahl", len(mason_tod))
-    print("P358 Moench je (Zustand, Art des Arbeitsplatzes), Rahmen:", moench_zustand.most_common(10), "Folge bei 0x69 (Takt, Platz, Ziel):", moench_folge[:20])
+    print("P350 Steinbruch: Spruenge von idleTimerUnk (Takt, Platz, vorher, nachher):", bruch_sprung[:20], "Anzahl", len(bruch_sprung), "Steinmetz weg:", len(mason_tod))
+    for t_, i_, a_, w_ in bruch_sprung:
+        print("    Sprung bei Takt", t_, "Steinbruch", i_, "Steinmetze dieses Bruchs, die weg sind (Takt, Platz):", [(m[0], m[1]) for m in mason_tod if m[2] == i_][:6])
+    je = collections.defaultdict(list)
+    for t_, i_, z_ in moench_folge:
+        je[i_].append((t_, z_))
+    abst = collections.Counter()
+    for f_ in je.values():
+        for a_, b_ in zip(f_, f_[1:]):
+            abst[(b_[0] - a_[0]) // 10 * 10] += 1
+    print("P358 Moench je (Zustand, Art des Arbeitsplatzes), Rahmen:", moench_zustand.most_common(10), "Moenche mit 0x69:", len(je), "Abstand zwischen Zielwechseln, auf 10 Takte gerundet:", abst.most_common(8), "laengste Folge:", max(je.values(), key=len)[:12] if je else None)
     print("P370 Assassinen je aiUnitBehaviourType, Rahmen:", auftrag.most_common(6))
     print("P319 Wiederaufbau an alter Stelle (Lord in Gefahr, Art): Anzahl", sorted(wiederaufbau.items(), key=lambda z: -z[1])[:24], "Beispiele in Gefahr (Takt, Spieler, (Art, x, y), (Takt der Naehe, Naehe)):", wiederaufbau_nah)
     print("P319 Naehe je Spieler, Rahmen unter 120 nur als Wechsel:")

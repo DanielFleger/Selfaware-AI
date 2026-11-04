@@ -65,8 +65,13 @@ def kopf():
 def tuerme():
     """P338, P302, P330 an der Treppe."""
     h, _ = karte_ende()
-    for name in ("turm_eck", "turm_mitte", "turm_treppe", "turm_direkt", "turm4_weg"):
+    for name in ("nur_mauer", "turm_eck", "turm_mitte", "turm_treppe", "turm_direkt", "turm4_weg", "turm_voll", "turm4_gang"):
+        if name not in ort:
+            continue
         if not gb[name]:
+            v = reihe(wer[name], {"h": "units[].terrainOrClimbHeight", "c": "units[].calculatedMovementSpeed", "m": "units[].movementSpeed"})
+            for s in v.values():
+                print(name, "ohne Turm (Takt, x, y, Zustand, Hoehe, berechnet, Grund): Wechsel", len(s), s[:40], "Ende", s[-2:])
             continue
         t0 = gb[name][0]
         o = ort[name]
@@ -131,6 +136,8 @@ def tore():
 
 def trupp():
     """P325."""
+    if "trupp_ring" not in ort:
+        return
     liste = wer["trupp_ring"]
     tr = [e for e in liste if e["rolle"] == "trupp"]
     k = next(e for e in liste if e["rolle"] == "feind")
@@ -151,6 +158,26 @@ def trupp():
         print("    y", o["y"] + j, " ".join(f"{int(h[FN[o['y'] + j] + o['x'] + i]):3d}" for i in range(28, o["breite"])))
 
 
+def trupp_flaeche():
+    """P325 mit erster Einheit ohne Flaeche."""
+    name = next((n for n in ("trupp_ohne_flaeche", "trupp_eck") if n in ort), None)
+    if name is None:
+        return
+    liste = wer[name]
+    tr = [e for e in liste if e["rolle"] == "trupp"]
+    k = next(e for e in liste if e["rolle"] == "feind")
+    stufen = {}
+    letzter = None
+    for t, u in pl.stand(p, "DAT_UnitsState", {**U, "px": "units[].plannedDestinationX", "py": "units[].plannedDestinationY", "l": "units[].health", "tri": "units[].tribeID"}):
+        ist = tuple((int(u["px"][e["nr"]]), int(u["py"][e["nr"]])) for e in tr)
+        if ist not in stufen:
+            stufen[ist] = (t - START, tuple(int(u["z"][e["nr"]]) for e in tr), tuple(int(u["tri"][e["nr"]]) for e in tr), tuple((int(u["mx"][e["nr"]]) // 8, int(u["my"][e["nr"]]) // 8) for e in tr), int(u["l"][k["nr"]]), letzter)
+        letzter = (t - START, tuple(int(u["z"][e["nr"]]) for e in tr))
+    print(name, "Einheiten", [(e["nr"], e["x"], e["y"]) for e in tr], "Feind", (k["nr"], k["x"], k["y"]), "Ziel", (ort[name]["x"] + 30, ort[name]["y"] + 3))
+    for ist, (t, z, tri, wo, l, vor) in list(stufen.items())[:8]:
+        print("   Takt", t, "Zielfelder", ist, "Zustand", z, "Trupps", tri, "Orte", wo, "Leben Feind", l, "davor", vor)
+
+
 def hang():
     """P330."""
     if "bergab_auf" not in ort:
@@ -165,7 +192,7 @@ def hang():
 
 
 if __name__ == "__main__":
-    for f in (kopf, tuerme, tore, trupp, hang):
+    for f in (kopf, tuerme, tore, trupp, trupp_flaeche, hang):
         try:
             f()
         except Exception as e:

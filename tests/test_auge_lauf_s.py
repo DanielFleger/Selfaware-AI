@@ -976,6 +976,78 @@ def test_fuenfter_nachlauf_befehl_erst_nach_dem_bau(tmp_path):
     assert an["angriff"]["einheiten"][0] == t[0]["nr"] and len(an["angriff"]["einheiten"]) == 6
 
 
+def test_sechster_nachlauf_turm_mitte_und_trupp_auf_der_ecke(tmp_path):
+    g = Spiel(tmp_path)
+    e = ls.SZENEN["sonder17"](lauf_von(g))
+    assert e["kein_platz"] == [] and e["nicht_gesetzt"] == []
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    b = [c for c in g.log if isinstance(c, dict)]
+    gb = {x["posten"]: x for x in plan["gebaeude"]}
+    laeufe = [tuple(c["angriff"]["lauf"]) for c in b if "lauf" in c.get("angriff", {})]
+    t = gb["turm_voll"]
+    assert laeufe.count((t["x"] + 1, t["y"] + 1)) == 8  # 8 Mann in die Mitte
+    g4 = gb["turm4_gang"]
+    assert (g4["x"] + 2, g4["y"] + 2) in laeufe  # nicht auf eine Ecke
+    sp = [c["spielbefehl"]["werte"] for c in b if c.get("spielbefehl", {}).get("nr") == 25]
+    for t_, zeile in ((t, t["y"] + 1), (g4, g4["y"] + 2)):
+        assert next(w for w in sp if w[4] == 25 and w[2] == t_["x"] - 1)[1] == zeile  # Mauer trifft eine Zeile ohne Ecke
+    tr = [x for x in plan["einheiten"] if x.get("posten") == "trupp_eck" and x["rolle"] == "trupp"]
+    ecke = gb["trupp_eck"]
+    assert (tr[0]["x"], tr[0]["y"]) == (ecke["x"], ecke["y"])  # erste Einheit auf der Ecke
+    k = next(x for x in plan["einheiten"] if x.get("posten") == "trupp_eck" and x["rolle"] == "feind")
+    assert max(abs(tr[1]["x"] - k["x"]), abs(tr[1]["y"] - k["y"])) <= 1
+    an = next(c for c in b if c.get("angriff", {}).get("lauf") and tr[1]["nr"] in c["angriff"]["einheiten"])
+    assert an["angriff"]["einheiten"][0] == tr[0]["nr"]
+
+
+def test_gesetzte_schalter_assassinen_und_feuerkorb(tmp_path):
+    g, l = lauf_im_gefecht(tmp_path)
+    g.speicher[7000 + 100 * 3] = 0x00070001  # Nachbarfeld oben 7, darf nicht verloren gehen
+    e = ls.SZENEN["sonder15_g"](l)
+    assert e["kein_platz"] == []
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    b = [c for c in g.log if isinstance(c, dict)]
+    wer = [x for x in plan["einheiten"] if x.get("posten") == "assassinen"]
+    assert len(wer) == 2 and all(x["typ"] == 73 for x in wer)
+    pokes = [c for c in b if "poke" in c]
+    gesetzt = {c["poke"]: c["wert"] for c in pokes}
+    assert all(gesetzt[7000 + 100 * x["nr"]] & 0xFFFF == 12 for x in wer)  # updateUnits: case 0xc
+    t = next(c for c in b if isinstance(c.get("toeteAlle"), dict) and c["toeteAlle"].get("typen") == [73])
+    assert t["toeteAlle"]["spieler"] == 1 and t["toeteAlle"]["ohneLord"]
+    korb = [c for c in b if c.get("spielbefehl", {}).get("nr") == 69]
+    assert len(korb) == 2 and all(c["spielbefehl"]["werte"][4] == ls.ET_BRAZIER and c["spielbefehl"]["werte"][0] == 1 for c in korb)
+    ik = [b.index(c) for c in korb]
+    modi = [i for i, c in enumerate(b) if c.get("poke") == 7000 and c.get("wert") in (ls.GM_SIEGE_THAT, ls.GM_GEFECHT_2)]
+    assert len(modi) == 2 and b[modi[0]]["wert"] == ls.GM_SIEGE_THAT and b[modi[1]]["wert"] == ls.GM_GEFECHT_2  # gesetzt und zurueck
+    assert ik[0] < modi[0] < ik[1] < modi[1]  # erst ohne, dann mit, dann zurueck
+    assert all(b[i - 1].get("ware", {}).get("typ") == 15 for i in ik)  # Gold kurz davor
+
+
+def test_poke_zwei_byte_laesst_den_nachbarn():
+    class L:
+        class k:
+            @staticmethod
+            def peek(adr):
+                return [0xABCD0001]
+    assert ls.poke2(L, 500, 12) == {"poke": 500, "wert": 0xABCD000C}
+
+
+def test_rush_schutz_setzen_und_zurueck(tmp_path):
+    g, l = lauf_im_gefecht(tmp_path)
+    e = ls.SZENEN["sonder16_g"](l)
+    assert e["kein_platz"] == []
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    b = [c for c in g.log if isinstance(c, dict)]
+    a, o = [next(x for x in plan["einheiten"] if x.get("rolle") == r and x.get("posten") == "rush") for r in ("taeter", "opfer")]
+    assert (a["spieler"], o["spieler"]) == (1, 2) and a["typ"] == o["typ"]
+    lauf = next(c for c in b if "lauf" in c.get("angriff", {}))
+    assert tuple(lauf["angriff"]["lauf"]) == (o["x"] - 1, o["y"])  # neben den Gegner
+    i = b.index(lauf)
+    werte = [c["wert"] for c in b[i:] if "poke" in c]
+    assert werte == [ls.RUSH_TAKTE, ls.GM_MEHRSPIELER, ls.GM_EINZEL]  # Schutz, Spielart, und zurueck
+    assert ls.RUSH_SETZEN < ls.RUSH_LAUF + 12 * 12  # der Schutz gilt, bevor er ankommt
+
+
 def test_abgelehnte_mauer_wird_wiederholt_und_bleibt_sichtbar(tmp_path):
     g = Spiel(tmp_path, linien_abgelehnt=3)
     plan = json.load(open(ls.SZENEN["sonder13"](lauf_von(g))["pfad"] + ".plan.json", encoding="utf-8"))
