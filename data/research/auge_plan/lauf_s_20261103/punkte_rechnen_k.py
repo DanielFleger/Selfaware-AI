@@ -19,7 +19,9 @@ ASSASSINE, KATAPULT, TREBUCHET = 73, 39, 40
 A = {n: K.adresse("DAT_GameState", "playerDataArray[]." + n) for n in ("totalAssassinTroops", "totalAttackTroops", "closestEnemyDistanceToTheLord", "aivID")}
 STEIN = K.adresse("DAT_GameState", "playerDataArray[].currentResources[]")
 U = {n: K.adresse("DAT_UnitsState", "units[]." + n) for n in ("logicalState", "unitType", "owner", "stoneAmmunition", "health", "aiUnitBehaviourType", "workplaceBuildingID_1", "targetX_2", "targetY_2")}
-B = {n: K.adresse("DAT_BuildingsState", "buildings[]." + n) for n in ("logicalState", "buildingType", "idleTimerUnk", "owner", "x", "y", "uid")}
+B = {n: K.adresse("DAT_BuildingsState", "buildings[]." + n) for n in ("logicalState", "buildingType", "idleTimerUnk", "owner", "x", "y", "uid", "buildingProgress")}
+ZELTE = (80, 81, 82, 83, 84, 54)
+GERAETE = (39, 40, 41, 42, 58, 59, 60, 61)
 ZUSTAND = U["logicalState"][0] + 564
 STEINMETZ, MOENCH, STEINBRUCH, KATHEDRALE = 7, 37, 20, 38
 H = K.adresse("DAT_AIVState", "heatMaps[][].destructionBasedPlacementCooldown")
@@ -69,6 +71,11 @@ def main():
     moench_ziel = {}
     moench_folge = []
     auftrag = collections.Counter()
+    # P123 bis P128, P086: Zelte der KI
+    zelt = {}
+    zelt_ende = []
+    geraet_alt = set()
+    geraet_neu = []
     # P319: Bau an einer Stelle, an der schon einmal dasselbe stand
     uid_alt = None
     gesehen = set()
@@ -98,6 +105,17 @@ def main():
             da = np.ndarray(shape=(B["logicalState"][3],), dtype="<i2", buffer=a, offset=B["logicalState"][0] - b, strides=(B["logicalState"][2],))
             uhr = np.ndarray(shape=(B["idleTimerUnk"][3],), dtype=pl.TYP[B["idleTimerUnk"][1]], buffer=a, offset=B["idleTimerUnk"][0] - b, strides=(B["idleTimerUnk"][2],))
             arten = art.copy()
+            prog = np.ndarray(shape=(B["buildingProgress"][3],), dtype=pl.TYP[B["buildingProgress"][1]], buffer=a, offset=B["buildingProgress"][0] - b, strides=(B["buildingProgress"][2],))
+            x_z, y_z = (np.ndarray(shape=(B[n_][3],), dtype=pl.TYP[B[n_][1]], buffer=a, offset=B[n_][0] - b, strides=(B[n_][2],)) for n_ in ("x", "y"))
+            jetzt_z = {int(i) for i in np.nonzero((da != 0) & np.isin(art, ZELTE))[0]}
+            for i in jetzt_z:
+                w = int(prog[i])
+                z_ = zelt.setdefault(i, {"art": int(art[i]), "von": t, "x": int(x_z[i]), "y": int(y_z[i]), "folge": [], "letzt": w})
+                if z_["letzt"] != w:
+                    z_["folge"].append((t, w))
+                z_["letzt"], z_["bis"] = w, t
+            for i in set(zelt) - jetzt_z:
+                zelt_ende.append(zelt.pop(i))
             f_ = lambda n: np.ndarray(shape=(B[n][3],), dtype=pl.TYP[B[n][1]], buffer=a, offset=B[n][0] - b, strides=(B[n][2],))  # noqa: E731
             uid = f_("uid")
             wem_b, x_b, y_b = f_("owner"), f_("x"), f_("y")
@@ -144,6 +162,10 @@ def main():
                     if moench_ziel.get(i) != ziel:
                         moench_folge.append((t, i, ziel))
                     moench_ziel[i] = ziel
+            g_jetzt = {int(i) for i in np.nonzero((d_ != 0) & np.isin(ty_, GERAETE))[0] if i}
+            for i in g_jetzt - geraet_alt:
+                geraet_neu.append((t, i, int(ty_[i]), int(feld_("stoneAmmunition")[i])))
+            geraet_alt = g_jetzt
             for i in np.nonzero((d_ != 0) & (ty_ == ASSASSINE))[0]:
                 if i:
                     auftrag[int(feld_("aiUnitBehaviourType")[i])] += 1
@@ -228,6 +250,16 @@ def main():
             abst[(b_[0] - a_[0]) // 10 * 10] += 1
     print("P358 Moench je (Zustand, Art des Arbeitsplatzes), Rahmen:", moench_zustand.most_common(10), "Moenche mit 0x69:", len(je), "Abstand zwischen Zielwechseln, auf 10 Takte gerundet:", abst.most_common(8), "laengste Folge:", max(je.values(), key=len)[:12] if je else None)
     print("P370 Assassinen je aiUnitBehaviourType, Rahmen:", auftrag.most_common(6))
+    print("P123 bis P128 Zelte fertig (Art: Anzahl):", collections.Counter(z["art"] for z in zelt_ende).most_common(), "noch offen", len(zelt))
+    for art_ in ZELTE:
+        li = [z for z in zelt_ende if z["art"] == art_]
+        if li:
+            z = max(li, key=lambda q_: len(q_["folge"]))
+            f_ = z["folge"]
+            schritt = [round((b_[1] - a_[1]) / max(1, b_[0] - a_[0]), 2) for a_, b_ in zip(f_, f_[1:])]
+            hoch = max(x_["letzt"] for x_ in li)
+            danach = [g_ for g_ in geraet_neu if any(abs(g_[0] - x_["bis"]) <= 40 for x_ in li)]
+            print("   Art", art_, "Anzahl", len(li), "Dauer", z["bis"] - z["von"], "letzter Fortschritt hoechstens", hoch, "Anstieg je Takt, haeufig:", collections.Counter(schritt).most_common(3), "neue Geraete bis 40 Takte nach dem Ende (Art: Anzahl):", collections.Counter(g_[2] for g_ in danach).most_common(3), "Munition:", collections.Counter(g_[3] for g_ in danach).most_common(3))
     print("P319 Wiederaufbau an alter Stelle (Lord in Gefahr, Art): Anzahl", sorted(wiederaufbau.items(), key=lambda z: -z[1])[:24], "Beispiele in Gefahr (Takt, Spieler, (Art, x, y), (Takt der Naehe, Naehe)):", wiederaufbau_nah)
     print("P319 Naehe je Spieler, Rahmen unter 120 nur als Wechsel:")
     for sp in range(1, 9):

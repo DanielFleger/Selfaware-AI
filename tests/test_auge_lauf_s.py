@@ -1036,6 +1036,34 @@ def test_knapper_stein_vor_dem_auffuellen(tmp_path):
     assert w["ware"] == {"typ": 4, "menge": 2}
 
 
+def test_mauerluecke_und_befehle(tmp_path):
+    g = Spiel(tmp_path)
+    e = ls.SZENEN["sonder19"](lauf_von(g))
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    b = [c for c in g.log if isinstance(c, dict)]
+    o = plan["karte"][0]
+    laeufe = [tuple(c["angriff"]["lauf"]) for c in b if "lauf" in c.get("angriff", {})]
+    assert laeufe.count((o["x"] + 14, o["y"] + 4)) == 2  # vor und nach dem Durchbruch
+    assert any(c.get("angriff", {}).get("art") == 23 for c in b)
+    g = Spiel(tmp_path)
+    g.einheiten = [{"nr": 900 + i, "uid": 900 + i, "typ": 55, "besitzer": i + 1, "x": 150 + 100 * i, "y": 150 + 100 * i, "leben": 100, "trupp": 0} for i in range(2)]
+    g.gebaeude_liste.append({"nr": 77, "uid": 78, "typ": 10, "x": 250, "y": 240, "besitzer": 2})
+    l = lauf_von(g)
+    l.gefecht = True
+    e = ls.SZENEN["sonder19_g"](l)
+    assert e["kein_platz"] == [] and e["nicht_gesetzt"] == []
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    b = [c for c in g.log if isinstance(c, dict)]
+    sp = {c["spielbefehl"]["nr"]: c["spielbefehl"]["werte"] for c in b if "spielbefehl" in c}
+    assert sp[34] == [ls.STEUER_STUFE] and sp[102][0] == 0 and sp[68][1:3] == [5, 5] and sp[41][1] == 100 and sp[29][1] == 100
+    gb = {x["typ"]: x for x in plan["gebaeude"]}
+    assert sp[68][0] == gb[74]["nr"] and sp[68][3] == gb[74]["uid"] and sp[29][0] == gb[1]["nr"] and sp[29][2] == gb[1]["uid"]
+    assert sum(1 for c in b if c.get("werbe")) == 2 and sum(1 for c in b if c.get("poke") == 7100 and c.get("wert") == 0) == 1
+    assert sum(x.get("posten") == "hunde4" and x["rolle"] == "opfer" for x in plan["einheiten"]) == 4
+    an = next(c for c in b if c.get("angriff", {}).get("gebaeude") == 77)
+    assert an["player"] == 1 and len(an["angriff"]["einheiten"]) == 3
+
+
 def test_poke_zwei_byte_laesst_den_nachbarn():
     class L:
         class k:

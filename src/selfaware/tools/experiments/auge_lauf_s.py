@@ -1196,6 +1196,8 @@ AUFTRAG_ASSASSINE, AUFTRAG_TAKT, AUFTRAG_TOD = 12, 200, 1200  # updateUnits: cas
 KORB_GOLD, KORB_TAKT, ET_BRAZIER, GM_SIEGE_THAT, GM_GEFECHT_2 = 2000, 300, 14, 6, 3  # Typen: EntityType, GameMode2. Gefecht misst 3 (Protokoll spielart)
 RUSH_LAUF, RUSH_SETZEN, RUSH_TAKTE, RUSH_NACH, GM_MEHRSPIELER, GM_EINZEL = 50, 100, 1000, 800, 1, 99  # Takte: Der Weg dauert rund 12 Takte je Feld, 12 Felder also rund 150: Die Einheit kommt an, wenn der Schutz schon gilt
 KNAPP_STEIN = 2  # weniger, als zum Auffuellen noetig: Das Katapult hat bei Takt 1000 noch 5 bis 6 von 10
+LUECKE_DANACH = 2500  # Takte: 3 Ritter, 5 Schlaege je Stueck, alle rund 190 Takte, also lange vorbei
+BEFEHL_TAKT, STEUER_STUFE, REPARATUR_LEBEN = 200, 7, 200  # Der Wachturm hat 500 Leben
 LAUF_NACH_BAU = 300  # Takte: Die Flaechenkarte rechnet das Spiel alle 50 Takte neu (updateSeparateAreaTileMap), ein Vielfaches davon ist sicher
 MAUER_VERSUCHE, GEBAEUDE_VERSUCHE = 5, 2  # Wie oft ein abgelehnter Bau neu geschickt wird. Ein Tier geht in 40 Takten weiter, ein Felsen nie
 
@@ -1534,6 +1536,73 @@ def sonder16_g(l):
     return (("rush", rush, 18, 3),)
 
 
+def sonder19(l):
+    """Editor: Geht man durch eine Mauerluecke? Ritter von Spieler 1 brechen den Ring von Spieler 2 auf (Ritter 15 je Schlag, faellt ueber 70, sonder8), danach Laufbefehl in den Ring. Vorher gibt der Befehl auf, weil das Ziel nicht verbunden ist (sonder13)."""
+    s = l.s
+
+    def luecke(x, y):
+        ring = [[x + 10, y, x + 19, y], [x + 10, y + 8, x + 19, y + 8], [x + 10, y + 1, x + 10, y + 8], [x + 18, y + 1, x + 18, y + 8]]
+        ritter = [_e("taeter", 28, x + 8, y + 3 + i) for i in range(3)]
+        geher = [_e("geher", 24, x + 2, y + 4)]
+        return [], ritter + geher, [{"player": 2, "spielbefehl": {"nr": 25, "werte": r + [25, 13]}} for r in ring], lambda: [], [(LAUF_NACH_BAU, lambda: [_angriff(ritter, art=23, a=s.kachel(x + 10, y + 4), b=0), _angriff(geher, lauf=[x + 14, y + 4])]), (LUECKE_DANACH, lambda: [_angriff(geher, lauf=[x + 14, y + 4])])]
+    return (("luecke", luecke, 22, 10),)
+
+
+def sonder19_g(l):
+    """Befehle, die bisher nur im Code standen: Steuer, Sammelpunkt, Turm reparieren, Mauer und Gebaeude abreissen, Heer am Limit, Mauer laenger als bezahlbar, Hunde an der Grenze, Lager als Ziel. Gemessen im Gefecht."""
+    s = l.s
+    lp2 = next((e for e in s.einheiten_alle() if e["typ"] == 55 and e["besitzer"] == 2), None)
+
+    def steuer(x, y):
+        """P160: Spielbefehl 34, Wert ist die Stufe (ChangeTaxes)."""
+        return [], [], [], lambda: [], [(BEFEHL_TAKT, lambda: [{"player": 1, "spielbefehl": {"nr": 34, "werte": [STEUER_STUFE]}}])]
+
+    def sammel(x, y):
+        """P172: Spielbefehl 102: Art des Gebaeudes (0 Kaserne), x, y."""
+        return [], [], [], lambda: [], [(BEFEHL_TAKT, lambda: [{"player": 1, "spielbefehl": {"nr": 102, "werte": [0, x + 3, y + 1]}}])]
+
+    def reparatur(x, y):
+        """P166: Wachturm beschaedigen (Leben setzen), dann Spielbefehl 68: Nummer, Holz, Stein, uid. Bestand knapp davor gesetzt: Das Spiel rechnet ihn aus dem Lager neu."""
+        t = _g(74, x + 2, y + 1, spieler=1)
+        adr, schritt = s.feld("DAT_BuildingsState", "buildings[].currentHealth")
+        return [t], [], [], lambda: [], [(BEFEHL_TAKT, lambda: [poke2(l, adr + schritt * t["nr"], REPARATUR_LEBEN)] if "nr" in t else []), (BEFEHL_TAKT + 60, lambda: [{"player": 1, "ware": {"typ": 2, "menge": 100}}, {"player": 1, "ware": {"typ": 4, "menge": 100}}, {"player": 1, "spielbefehl": {"nr": 68, "werte": [t["nr"], 5, 5, t["uid"]]}}] if "nr" in t else [])]
+
+    def abriss(x, y):
+        """P198, P205: Mauer mit Spielbefehl 41 (Feldnummer, 100), Huette mit Spielbefehl 29 (Nummer, 100, uid). Stein knapp davor gesetzt."""
+        h = _g(1, x + 10, y, spieler=1)
+        wand = [{"player": 1, "spielbefehl": {"nr": 25, "werte": [x + 1, y + 2, x + 8, y + 2, 25, 13]}}]
+        return [h], [], wand, lambda: [], [(BEFEHL_TAKT, lambda: [{"player": 1, "ware": {"typ": 4, "menge": 50}}, {"player": 1, "spielbefehl": {"nr": 41, "werte": [s.kachel(x + 4, y + 2), 100]}}]), (BEFEHL_TAKT + 60, lambda: [{"player": 1, "spielbefehl": {"nr": 29, "werte": [h["nr"], 100, h["uid"]]}}] if "nr" in h else [])]
+
+    def mauer_knapp(x, y):
+        """P200: 13 Felder Mauer mit nur 3 Stein."""
+        return [], [], [], lambda: [], [(BEFEHL_TAKT, lambda: [{"player": 1, "ware": {"typ": 4, "menge": 3}}, {"player": 1, "spielbefehl": {"nr": 25, "werte": [x, y + 1, x + 14, y + 1, 25, 13]}}])]
+
+    def heer(x, y):
+        """P154, P155: Anwerben geht, dann armySizeLimit auf die jetzige Heeresgroesse, nochmal anwerben. Der Bestand wird knapp davor gesetzt."""
+        k = _g(9, x + 2, y + 1, spieler=1)
+        adr, _ = s.feld("DAT_GameState", "playerDataArray[].armySizeLimit")
+        schritt = s.feld("DAT_GameState", "playerDataArray[].armySizeLimit")[1]
+
+        def werben():
+            return [{"player": 1, "ware": {"typ": 19, "menge": 5}}, {"player": 1, "ware": {"typ": 15, "menge": 500}}, {"player": 1, "werbe": {"typ": 24, "gebaeude": k["nr"]}}] if "nr" in k else []
+        return [k], [], [], lambda: [], [(BEFEHL_TAKT, werben), (BEFEHL_TAKT + 200, lambda: [{"poke": adr + schritt, "wert": 0}]), (BEFEHL_TAKT + 260, werben)]
+
+    def hunde4(x, y):
+        """Grenze der Hunde: Im Speicher 16 statt 25 (UpdateCageDog), 4 Speertraeger haben Wert 16. Mit 3 kamen sie nicht, mit 8 schon (sonder3_g)."""
+        g = [_g(99, x + 2, y + 2, spieler=1)]
+        return g, [_e("opfer", 24, x + 8, y + 2 + i, 2) for i in range(4)], [], lambda: [], None
+
+    def lager(x, y):
+        """Lager als Ziel im Nahkampf: 3 Schwertkaempfer gegen das Lager von Spieler 2. Es ist nicht setzbar, also das aus dem Gefechtsstart."""
+        wer = [_e("taeter", 27, x + 1 + i, y + 1) for i in range(3)]
+
+        def los_():
+            z = next((g for g in s.gebaeude(2) if g["typ"] == 10), None)
+            return ([{"poke_z": 0}] if False else []) + ([_angriff(wer, gebaeude=z["nr"])] if z else [])
+        return [], wer, [], lambda: [], [(BEFEHL_TAKT, los_)]
+    return (("steuer", steuer, 2, 2), ("sammel", sammel, 6, 3), ("reparatur", reparatur, 8, 6), ("abriss", abriss, 18, 6), ("mauer_knapp", mauer_knapp, 18, 4), ("heer", heer, 10, 8), ("hunde4", hunde4, 16, 8), ("lager", lager, 6, 3))
+
+
 def sonder11_g(l):
     """P314: Wie sonder9_g, aber die Gegner gehen genau auf ein Feld des brennenden Pechs (Lauf 00:40: bis 1 Feld daneben, counter blieb 0)."""
     s = l.s
@@ -1803,6 +1872,8 @@ SZENEN = {
     "sonder13": lambda l: szene_sonder(l, "sonder13", sonder13(l), rand=15),
     "sonder14": lambda l: szene_sonder(l, "sonder14", sonder14(l), rand=15),
     "sonder17": lambda l: szene_sonder(l, "sonder17", sonder17(l), rand=15),
+    "sonder19": lambda l: szene_sonder(l, "sonder19", sonder19(l), rand=15),
+    "sonder19_g": lambda l: szene_sonder(l, "sonder19_g", sonder19_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),
     "sonder15_g": lambda l: szene_sonder(l, "sonder15_g", sonder15_g(l), rand=15, raeumen=True),
     "sonder16_g": lambda l: szene_sonder(l, "sonder16_g", sonder16_g(l), rand=15, raeumen=True),
     "sonder18_g": lambda l: szene_sonder(l, "sonder18_g", sonder18_g(l), rand=15, raeumen=True),
