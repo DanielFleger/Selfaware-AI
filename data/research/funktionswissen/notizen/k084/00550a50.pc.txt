@@ -1,0 +1,159 @@
+
+/* WARNING: Enum "DPSEND_EnumInt": Some values do not have unique names */
+/* WARNING: Enum "DPERRInt": Some values do not have unique names */
+/* decompilerscript: committed: 2025-01-30 21:57:43.216000 */
+
+void _HoldStrong::Global::UpdateQuarryMason(void)
+
+{
+  byte *pbVar1;
+  short *psVar2;
+  short sVar3;
+  UnitStateShort UVar4;
+  BOOLEnum BVar5;
+  int iVar6;
+  uint unitID;
+  bool bVar7;
+  undefined6 uVar8;
+  
+  unitID = DAT_CurrentUnitSlotID;
+  sVar3 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingID_1;
+  if (DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) {
+    DAT_UnitsState.units[DAT_CurrentUnitSlotID].movementSpeed = 1;
+  }
+  UVar4 = DAT_UnitsState.units[unitID].state.generic;
+  if (UVar4 == US_DETERMINE_NEXT_STATEUnk) {
+    DAT_UnitsState.units[unitID].animationSheetFrameOffset = 1;
+    DAT_UnitsState.units[unitID].field_0x30_animRelated = 0x10;
+    if (DAT_UnitsState.units[unitID].isDisappearingUnk == 0) {
+      if (DAT_UnitsState.units[unitID].goToRallyPoint != 0) {
+        DAT_UnitsState.units[unitID].goToRallyPoint = 0;
+        DAT_UnitsState.units[unitID].state.generic = 2;
+        Map::Units::UnitsState::setDestinationForUnit
+                  (&DAT_UnitsState,unitID,(int)DAT_UnitsState.units[unitID].targetX_2,
+                   (int)DAT_UnitsState.units[unitID].targetY_2,0);
+        return;
+      }
+    }
+    else {
+      pbVar1 = &DAT_UnitsState.units[unitID].disappearFadeAlphaCountdown;
+      *pbVar1 = *pbVar1 - 1;
+      if ((char)*pbVar1 < '\0') {
+        DAT_UnitsState.units[unitID].disappearFadeAlphaCountdown = 0;
+        DAT_UnitsState.units[unitID].isDisappearingUnk = 0;
+        return;
+      }
+    }
+  }
+  else if (UVar4 == 2) {
+    DAT_UnitsState.units[unitID].animationSheetFrameOffset = 1;
+    DAT_UnitsState.units[unitID].field_0x30_animRelated = 0x10;
+    BVar5 = Map::Units::UnitsState::hasUnitReachedDestination(&DAT_UnitsState,unitID);
+    if (BVar5 != FALSE) {
+      DAT_UnitsState.units[unitID].state.generic = US_IDLEUnk;
+      Map::Units::UnitsState::commitUnitLocation(&DAT_UnitsState,unitID);
+      return;
+    }
+  }
+  else {
+    if (UVar4 == US_IDLEUnk) {
+      DAT_UnitsState.units[unitID].animationCycleNumber = 0;
+      DAT_BuildingsState.buildings[sVar3].workers[DAT_UnitsState.units[unitID].workerIndex] =
+           (short)unitID;
+      return;
+    }
+    if (UVar4 == 0x6c) {
+      DAT_UnitsState.units[unitID].stateBasedSpeed = 0;
+      DAT_UnitsState.units[unitID].field_0x30_animRelated = 0;
+      DAT_UnitsState.units[unitID].animationSheetFrameOffset = 1;
+      return;
+    }
+    if (UVar4 == US_MELEE_ATTACK) {
+      DAT_UnitsState.units[unitID].animationSpeed = 3;
+      DAT_UnitsState.units[unitID].field_0x30_animRelated = 0;
+      iVar6 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+                         field220_0x41bc[DAT_UnitsState.units[unitID].animationCycleNumber];
+      DAT_UnitsState.units[unitID].animationFrame = iVar6;
+      if (iVar6 < 1) {
+        DAT_UnitsState.units[unitID].gfxNumber =
+             DAT_UnitsState.units[unitID].facingDirectionMapOrientationCorrected + 0x131;
+        DAT_UnitHasBecomeIdle = 1;
+      }
+      else {
+        bVar7 = DAT_UnitHasBecomeIdle == 0;
+        DAT_UnitsState.units[unitID].gfxNumber =
+             DAT_UnitsState.units[unitID].facingDirectionMapOrientationCorrected + 0x129 + iVar6 * 8
+        ;
+        if (bVar7) {
+          return;
+        }
+      }
+      DAT_UnitsState.units[unitID].animationCycleNumber = 0;
+      Map::Units::UnitsState::resumeMovementIfNoAttackTarget(&DAT_UnitsState,unitID);
+      return;
+    }
+    if (UVar4 == US_DEATH_01) {
+      DAT_UnitsState.units[unitID].facingDirection = 0;
+      DAT_UnitsState.units[unitID].animationSpeed = 3;
+      DAT_UnitsState.units[unitID].field_0x30_animRelated = 0;
+      iVar6 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+                         field248_0x4ab0[DAT_UnitsState.units[unitID].animationCycleNumber];
+      DAT_UnitsState.units[unitID].animationFrame = iVar6;
+      if (iVar6 < 1) {
+        DAT_UnitsState.units[unitID].gfxNumber = 0x118;
+        DAT_UnitsState.units[unitID].state.generic = US_DISAPPEAR;
+        DAT_UnitHasBecomeIdle = 1;
+        return;
+      }
+      iVar6 = iVar6 + 0x100;
+    }
+    else {
+      uVar8 = Map::Units::UnitsState::checkIfCitizenUnitIsAliveBasedOnState(unitID);
+      if ((int)uVar8 == 0) {
+        if ((short)((uint6)uVar8 >> 0x20) != 0x6e) {
+          DAT_UnitsState.units[unitID].state.generic = US_DETERMINE_NEXT_STATEUnk;
+          Map::Units::UnitsState::makeUnitStopWalkingByClearingPathProgressState(unitID);
+          return;
+        }
+        pbVar1 = &DAT_UnitsState.units[unitID].disappearFadeAlphaCountdown;
+        *pbVar1 = *pbVar1 + 1;
+        if (' ' < (char)DAT_UnitsState.units[unitID].disappearFadeAlphaCountdown) {
+          DAT_UnitsState.units[unitID].disappearFadeAlphaCountdown = 0x20;
+        }
+        psVar2 = &DAT_UnitsState.units[unitID].updateTickTracker;
+        *psVar2 = *psVar2 + 1;
+        if ((0x20 < DAT_UnitsState.units[unitID].updateTickTracker) &&
+           (DAT_UnitsState.units[unitID].logicalState = ULS_REMOVE,
+           DAT_UnitsState.units[unitID].killedFlagUnk == 0)) {
+          Game::GameStateStructures::setLastEncounteredTroopUnit
+                    (&DAT_GameState,(int)DAT_UnitsState.units[unitID].owner,unitID);
+          unitID = DAT_CurrentUnitSlotID;
+        }
+        DAT_BuildingsState.buildings[DAT_UnitsState.units[unitID].workplaceBuildingID_1].
+        idleTimerUnk = 4000;
+        return;
+      }
+      DAT_UnitsState.units[unitID].facingDirection = 0;
+      DAT_UnitsState.units[unitID].animationSpeed = 3;
+      DAT_UnitsState.units[unitID].field_0x30_animRelated = 0;
+      iVar6 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+                         field248_0x4ab0[DAT_UnitsState.units[unitID].animationCycleNumber];
+      DAT_UnitsState.units[unitID].animationFrame = iVar6;
+      if (iVar6 < 1) {
+        DAT_UnitsState.units[unitID].gfxNumber = 0x130;
+        DAT_UnitsState.units[unitID].state.generic = US_DISAPPEAR;
+        DAT_UnitHasBecomeIdle = 1;
+        return;
+      }
+      iVar6 = iVar6 + 0x118;
+    }
+    bVar7 = DAT_UnitHasBecomeIdle != 0;
+    DAT_UnitsState.units[unitID].gfxNumber = iVar6;
+    if (bVar7) {
+      DAT_UnitsState.units[unitID].state.generic = US_DISAPPEAR;
+      return;
+    }
+  }
+  return;
+}
+

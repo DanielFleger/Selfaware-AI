@@ -1,0 +1,1310 @@
+### 0x00519990 computeSiegeSpotScores
+--- CODE (Ghidra-Export, vollstaendig) ---
+/* WARNING: Enum "MappersEnum": Some values do not have unique names */
+/* decompilerscript: committed: 2025-01-30 21:57:43.216000 */
+void __thiscall
+_HoldStrong::Map::Units::TroopValueState::computeSiegeSpotScores
+(TroopValueState *this,int attackedPlayerID,int attackingPlayerID)
+{
+int *piVar1;
+int iVar2;
+uint *puVar3;
+uint uVar4;
+int iVar5;
+int iVar6;
+uint uVar7;
+int iVar8;
+bool bVar9;
+bool bVar10;
+iVar5 = attackedPlayerID;
+if (DAT_GameState.playerDataArray[attackedPlayerID].campground.id != 0) {
+iVar8 = attackingPlayerID * 0x177bc;
+iVar2 = *(int *)((int)DAT_TroopValueState.attackInfo.hackValuesArray + iVar8 + -8);
+iVar6 = 0;
+*(undefined4 *)((int)DAT_TroopValueState.attackInfo.scaleValuesArray + iVar8 + -0x1c) = 10000;
+if (0 < iVar2) {
+piVar1 = (int *)((int)DAT_TroopValueState.attackInfo.hackValuesArray + iVar8);
+do {
+uVar4 = (uint)*(byte *)(attackedPlayerID * 0x13a10 + 0x1ee2998 + *piVar1);
+if ((int)uVar4 <
+*(int *)((int)DAT_TroopValueState.attackInfo.scaleValuesArray + iVar8 + -0x1c)) {
+*(uint *)((int)DAT_TroopValueState.attackInfo.scaleValuesArray + iVar8 + -0x1c) = uVar4;
+}
+iVar6 = iVar6 + 1;
+piVar1 = piVar1 + 4;
+} while (iVar6 < iVar2);
+}
+*(undefined4 *)((int)DAT_TroopValueState.attackInfo.hackValuesArray + iVar8 + -4) = 0;
+/* warning: */
+attackedPlayerID = 0;
+if (0 < iVar2) {
+puVar3 = (uint *)((int)DAT_TroopValueState.attackInfo.hackValuesArray + iVar8 + 8);
+do {
+uVar4 = puVar3[-2];
+uVar7 = (uint)*(byte *)(uVar4 + iVar5 * 0x13a10 + 0x1ee2998);
+iVar2 = UnitsState::ifAnyUnitOnSameTileIsLadderInRightDirection
+(&DAT_UnitsState,uVar4,
+(int)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[uVar4]);
+if (iVar2 == 0) {
+if (uVar7 == 0) {
+*puVar3 = 9999;
+}
+else {
+iVar2 = *(int *)((int)DAT_TroopValueState.attackInfo.scaleValuesArray + iVar8 + -0x1c);
+if (iVar2 < 0x32) {
+if ((int)uVar7 < iVar2 + 0xf) {
+piVar1 = (int *)((int)DAT_TroopValueState.attackInfo.hackValuesArray + iVar8 + -4);
+*piVar1 = *piVar1 + 1;
+*puVar3 = uVar7;
+}
+else {
+*puVar3 = 9999;
+}
+}
+else {
+*puVar3 = 9999;
+}
+}
+}
+else {
+*puVar3 = 9999;
+}
+attackedPlayerID = attackedPlayerID + 1;
+puVar3 = puVar3 + 4;
+} while (attackedPlayerID <
+*(int *)((int)DAT_TroopValueState.attackInfo.hackValuesArray + iVar8 + -8));
+}
+iVar5 = 0;
+if (0 < *(int *)((int)DAT_TroopValueState.attackInfo.scaleValuesArray + iVar8 + -8)) {
+puVar3 = (uint *)((int)DAT_TroopValueState.attackInfo.scaleValuesArray + iVar8 + 8);
+do {
+*puVar3 = -(uint)(5 < *(byte *)(*(int *)((int)DAT_TroopValueState.attackInfo.hackValuesArray
++ iVar8 + -0x10) * 0x13a10 + 0x1ee2998 + puVar3[-2])
+) & 9999;
+iVar5 = iVar5 + 1;
+puVar3 = puVar3 + 4;
+} while (iVar5 < *(int *)((int)DAT_TroopValueState.attackInfo.scaleValuesArray + iVar8 + -8));
+}
+iVar5 = 0;
+if (0 < *(int *)((int)DAT_TroopValueState.attackInfo.townValuesArray + iVar8 + -8)) {
+puVar3 = (uint *)((int)DAT_TroopValueState.attackInfo.townValuesArray + iVar8 + 8);
+do {
+uVar4 = (uint)*(byte *)(puVar3[-2] + 0x1ee2998 +
+*(int *)((int)DAT_TroopValueState.attackInfo.hackValuesArray +
+iVar8 + -0x10) * 0x13a10);
+if (uVar4 == 0) {
+*puVar3 = 100;
+}
+else {
+*puVar3 = uVar4;
+}
+iVar5 = iVar5 + 1;
+puVar3 = puVar3 + 4;
+} while (iVar5 < *(int *)((int)DAT_TroopValueState.attackInfo.townValuesArray + iVar8 + -8));
+}
+iVar5 = *(int *)((int)DAT_TroopValueState.attackInfo.gateValuesArray + iVar8 + -8);
+iVar2 = 0;
+*(undefined4 *)((int)DAT_TroopValueState.attackInfo.scaleValuesArray + iVar8 + -0x18) = 10000;
+if (0 < iVar5) {
+iVar6 = *(int *)((int)DAT_TroopValueState.attackInfo.hackValuesArray + iVar8 + -0x10);
+piVar1 = (int *)((int)DAT_TroopValueState.attackInfo.gateValuesArray + iVar8);
+do {
+uVar4 = (uint)*(byte *)(iVar6 * 0x13a10 + 0x1ee2998 + *piVar1);
+if ((int)uVar4 <
+*(int *)((int)DAT_TroopValueState.attackInfo.scaleValuesArray + iVar8 + -0x18)) {
+*(uint *)((int)DAT_TroopValueState.attackInfo.scaleValuesArray + iVar8 + -0x18) = uVar4;
+}
+iVar2 = iVar2 + 1;
+piVar1 = piVar1 + 4;
+} while (iVar2 < iVar5);
+}
+iVar2 = 0;
+if (0 < iVar5) {
+puVar3 = (uint *)((int)DAT_TroopValueState.attackInfo.gateValuesArray + iVar8 + 8);
+do {
+uVar4 = (uint)*(byte *)(puVar3[-2] + 0x1ee2998 +
+*(int *)((int)DAT_TroopValueState.attackInfo.hackValuesArray +
+iVar8 + -0x10) * 0x13a10);
+if (*(int *)((int)DAT_TroopValueState.attackInfo.scaleValuesArray + iVar8 + -0x18) < 0xb) {
+bVar10 = SBORROW4(uVar4,10);
+iVar5 = -10;
+bVar9 = uVar4 == 10;
+}
+else {
+bVar10 = SBORROW4(uVar4,0x14);
+iVar5 = -0x14;
+bVar9 = uVar4 == 0x14;
+}
+iVar2 = iVar2 + 1;
+*puVar3 = (bVar9 || bVar10 != (int)(uVar4 + iVar5) < 0) - 1 & 9999;
+puVar3 = puVar3 + 4;
+} while (iVar2 < *(int *)((int)DAT_TroopValueState.attackInfo.gateValuesArray + iVar8 + -8));
+}
+iVar5 = 0;
+if (0 < *(int *)((int)DAT_TroopValueState.attackInfo.wideValuesArray + iVar8 + -8)) {
+puVar3 = (uint *)((int)DAT_TroopValueState.attackInfo.wideValuesArray + iVar8 + 8);
+do {
+*puVar3 = -(uint)(5 < *(byte *)(puVar3[-2] + 0x1ee2998 +
+*(int *)((int)DAT_TroopValueState.attackInfo.hackValuesArray
++ iVar8 + -0x10) * 0x13a10)) & 9999;
+iVar5 = iVar5 + 1;
+puVar3 = puVar3 + 4;
+} while (iVar5 < *(int *)((int)DAT_TroopValueState.attackInfo.wideValuesArray + iVar8 + -8));
+}
+iVar5 = 0;
+if (0 < *(int *)((int)DAT_TroopValueState.attackInfo.moatValuesArray + iVar8 + -8)) {
+puVar3 = (uint *)((int)DAT_TroopValueState.attackInfo.moatValuesArray + iVar8 + 8);
+do {
+uVar4 = (uint)*(byte *)(puVar3[-2] + 0x1ee2998 +
+*(int *)((int)DAT_TroopValueState.attackInfo.hackValuesArray +
+iVar8 + -0x10) * 0x13a10);
+if (uVar4 == 0) {
+LAB_00519ca1:
+*puVar3 = 9999;
+}
+else if (uVar4 < 0xb) {
+*puVar3 = uVar4;
+}
+else if (uVar4 < 0x10) {
+*puVar3 = uVar4 * 2;
+}
+else if (uVar4 < 0x15) {
+*puVar3 = uVar4 * 3;
+}
+else if (uVar4 < 0x1a) {
+*puVar3 = uVar4 * 4;
+}
+else if (uVar4 < 0x33) {
+*puVar3 = uVar4 * 5;
+}
+else {
+if (0x46 < uVar4) goto LAB_00519ca1;
+*puVar3 = uVar4 * 6;
+}
+iVar5 = iVar5 + 1;
+puVar3 = puVar3 + 4;
+} while (iVar5 < *(int *)((int)DAT_TroopValueState.attackInfo.moatValuesArray + iVar8 + -8));
+}
+}
+return;
+}
+--- NAMEN NUR IM PAKETCODE ---
+AttackInfoSubElement, _attackedPlayerID, _counter, _counterTillHack2, _hack2, _offset, _pTileArray, _pathFindingCost, _tile, _tile2, _tile3, bVar6, bVar7, field4_0x10, iVar1, iVar4, piVar5, puVar4
+--- KOMMENTARE IM PAKETCODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00519990
+/*
+--- ERKLAERUNG ---
+{"adr": "0x00519990", "name": "computeSiegeSpotScores", "p1": {"bereich": "KI", "zweck": "Bewertet für einen Angreifer die Angriffsstellen (Mauer, Leiter, Stadt, Tor, breite Stellen, Graben) gegen den Zielspieler anhand der Wegekostenebene und schreibt je Stelle einen Punktwert (9999 = unbrauchbar)."}, "p2": {"ein": "attackedPlayerID (Zielspieler), attackingPlayerID (Angreifer, wählt den Spielerblock)", "aus": "-", "liest": ["playerDataArray[attackedPlayerID].campground.id", "attackInfo.hackValuesArray/scaleValuesArray/townValuesArray/gateValuesArray/wideValuesArray/moatValuesArray (Anzahl bei Offset -8, Kachel je Eintrag bei Offset +0)", "hackValuesArray[-0x10] (Zielspieler des Angreifers)", "AI-Wegekostenebene (Byte je Kachel, ab 0x1ee2998 + Spieler*0x13a10)", "ViewportRenderState.tileTranslationMatrix_YComponent"], "schreibt": ["Punktwert (Offset +8 des 16-Byte-Eintrags) der sechs Listen", "scaleValuesArray[-0x1c] (kleinste Mauerkosten) und scaleValuesArray[-0x18] (kleinste Torkosten)", "hackValuesArray[-4] (Zahl brauchbarer Mauerstellen)"], "ruft": ["ifAnyUnitOnSameTileIsLadderInRightDirection"], "regeln": ["Nur wenn playerDataArray[attackedPlayerID].campground.id ungleich 0 ist (Gebäude-ID des Lagerplatzes BT_CAMPGROUND des Zielspielers; die Burg hat ein eigenes Feld keep). Sonst passiert nichts", "Aufbau: Spielerblock des Angreifers = attackingPlayerID * 0x177bc (96188 Byte). Jede der sechs Listen hat einen Kopf vor dem ersten Eintrag (Anzahl bei Offset -8). Ein Eintrag hat 16 Byte: Feld +0 = Kachelindex, dessen Kosten gelesen werden, Feld +8 = Punktwert (wird hier geschrieben), Feld +4 wird hier nicht gelesen. hackValuesArray[-0x10] ist der Zielspieler (gesetzt von recomputeAIPathCostToAttackedKeep). 9999 steht für unbrauchbar", "Kosten = Byte der Wegekostenebene ab 0x1ee2998 (80400 Byte = 0x13a10 je Spieler, ein Byte je Kachel; geschrieben von updateWalkLayerAndAIPathCostLayer, vermutlich Schrittabstand von der KI-Zone des Ziels; 0 vermutlich nicht erreicht). Die Mauerstellen (Hack) nutzen die Ebene des Parameters attackedPlayerID, alle anderen Listen die Ebene hackValuesArray[-0x10]", "Reihenfolge: kleinste Mauerkosten, Mauer-Punktwerte, Leiter, Stadt, kleinste Torkosten, Tor-Punktwerte, breite Stellen, Graben. Leere Listen (Anzahl <= 0) werden übersprungen, die Werte scaleValuesArray[-0x1c] und [-0x18] werden aber auch dann auf 10000 gesetzt und hackValuesArray[-4] auf 0", "Mauer (Hack): scaleValuesArray[-0x1c] = kleinste Kosten über alle Mauerstellen (Startwert 10000). Punktwert je Stelle in dieser Reihenfolge: Leiter in richtiger Richtung auf der Kachel (ifAnyUnitOnSameTileIsLadderInRightDirection) = 9999; Kosten <= 0 = 9999; kleinste Kosten >= 50 = 9999; Kosten >= kleinste Kosten + 15 = 9999; sonst Punktwert = Kosten, und hackValuesArray[-4] zählt um 1 hoch", "Leiter (Scale) und breite Stellen (Wide): Kosten > 5 gibt 9999, sonst 0 (Kosten 0 ergeben also 0)", "Stadt (Town): Kosten > 0 gibt die Kosten, Kosten 0 gibt 100", "Tor (Gate): scaleValuesArray[-0x18] = kleinste Torkosten (Startwert 10000). Schwelle = 10, wenn diese <= 10 sind, sonst 20. Punktwert = 0 bei Kosten <= Schwelle (Kosten 0 eingeschlossen), sonst 9999. Das Assembly nutzt SETLE (kleiner oder gleich); der Ghidra-Ausdruck mit Überlaufmerker meint dasselbe", "Graben (Moat): Kosten <= 0 gibt 9999; Kosten 1-10 geben Kosten; 11-15 Kosten*2; 16-20 Kosten*3; 21-25 Kosten*4; 26-50 Kosten*5; 51-70 Kosten*6; über 70 geben 9999", "Verbraucher außerhalb des Pakets: findEnemyWalls wählt unter den Mauerstellen mit Punktwert < 9999 und Feld +0xc gleich 0 (frei) die mit dem kleinsten Wert aus Abstand zur Einheit + 8 * Punktwert (nur Werte unter 1000); findNearestAvailableScalePoint wählt unter den freien Leiterstellen mit Punktwert < 5999 die mit dem kleinsten Abstand (unter 1000)"], "offen": ["Genaue Bedeutung der Wegekostenebene (Werte 0, 1 und höher) und warum Kosten 0 bei Mauer und Graben 9999, bei Tor, Leiter und breiten Stellen aber den besten Wert ergeben", "Bedeutung von Feld +4 und Feld +12 der Einträge sowie der Kopffelder außer Anzahl, Zielspieler und den beiden Minimalkosten", "Was die Wegekostenebene für Kacheln außerhalb der Suche enthält"]}, "p3": {"erklaerung": "Die KI bewertet für einen Angriff die möglichen Stellen an der Gegnerburg (Mauer, Leiter, Stadt, Tor, breite Stellen, Graben) nach einer Wegekostenebene: Kleine Werte sind gut, 9999 heißt unbrauchbar. Mauerstellen zählen nur, wenn sie höchstens 14 Kosten weiter weg liegen als die nächste; Gräben werden mit zunehmenden Kosten teurer gerechnet.", "gehirn": "Die Punktwerte im Spielerblock des Angreifers (Offset +8 je 16-Byte-Eintrag der Listen) zeigen, welche Stellen die Gegner-KI für ihren Angriff nutzen kann: Unter 9999 gilt als verwendbar (Leiterstellen unter 5999), bei Mauerstellen ist ein kleinerer Wert besser.", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0049fc00 pathFindingRelated
+--- CODE (Ghidra-Export, vollstaendig) ---
+/* WARNING: Enum "MappersEnum": Some values do not have unique names */
+/* decompilerscript: committed: 2025-01-30 21:57:43.216000 */
+dword __thiscall
+_HoldStrong::Map::Navigation::PathFindingState::pathFindingRelated
+(PathFindingState *this,int param_1,uint param_2,uint param_3,int param_4)
+{
+byte bVar1;
+short sVar2;
+short sVar3;
+short sVar4;
+uint uVar5;
+dword dVar6;
+int iVar7;
+int iVar8;
+uint uVar9;
+int iVar10;
+uint local_1c;
+int local_18;
+dword local_14;
+dVar6 = 1000;
+local_1c = 1000;
+local_14 = 0;
+local_18 = 10000;
+if (((param_2 < 400) && (param_3 < 400)) &&
+(*(char *)(param_3 * 400 + 0x21aec98 + param_2) != '\0')) {
+DAT_PathFindingState.calculations = DAT_PathFindingState.calculations + 1;
+DAT_PathFindingState.searchGeneration = DAT_PathFindingState.searchGeneration + 1;
+if (32000 < DAT_PathFindingState.searchGeneration) {
+DAT_PathFindingState.searchGeneration = 1;
+IO::LowLevelMemory::fillMemory_ByteValue
+(&DAT_LowLevelMemory,0x27420,'\0',DAT_TileMapState.WalkLayer);
+}
+DAT_PathFindingState.searchQueue.readIndex = 0;
+DAT_PathFindingState.searchQueue.writeIndex = 1;
+DAT_PathFindingState.searchQueue.currentDistance = 1;
+DAT_PathFindingState.searchQueue.yQueue[0] = (short)param_3;
+DAT_PathFindingState.searchQueue.xQueue[0] = (short)param_2;
+DAT_PathFindingState.searchQueue.tilesQueue[0] =
+DAT_ViewportRenderState.translationMatrix[param_3].addXgetTile + param_2;
+bVar1 = *(byte *)(param_4 * 0x13a10 + 0x1ee2998 + DAT_PathFindingState.searchQueue.tilesQueue[0]
+);
+DAT_TileMapState.CertainPathLayer[DAT_PathFindingState.searchQueue.tilesQueue[0]] = 1;
+DAT_TileMapState.WalkLayer[DAT_PathFindingState.searchQueue.tilesQueue[0]] =
+(short)DAT_PathFindingState.searchGeneration;
+if (DAT_PathFindingState.searchQueue.readIndex != DAT_PathFindingState.searchQueue.writeIndex) {
+while (uVar5 = DAT_PathFindingState.searchQueue.tilesQueue
+[DAT_PathFindingState.searchQueue.readIndex], uVar5 < 0x13a10) {
+sVar2 = DAT_PathFindingState.searchQueue.xQueue[DAT_PathFindingState.searchQueue.readIndex];
+DAT_PathFindingState.searchQueue.currentDistance =
+(int)DAT_TileMapState.CertainPathLayer[uVar5];
+sVar3 = DAT_PathFindingState.searchQueue.yQueue[DAT_PathFindingState.searchQueue.readIndex];
+iVar7 = (int)sVar3;
+if ((0x13a10 < DAT_PathFindingState.searchQueue.currentDistance) ||
+(param_1 < DAT_PathFindingState.searchQueue.currentDistance)) break;
+iVar10 = 0;
+do {
+if (((DAT_TileMapState.PathLinkageLayer[uVar5] &
+DAT_ClimbLogicDefinedData.DAT_BitFlagHelperForPathLinkage[iVar10]) != 0) &&
+(dVar6 = DAT_TileMapState.directionTranslationMatrix[iVar7][iVar10] + uVar5,
+DAT_TileMapState.WalkLayer[dVar6] != DAT_PathFindingState.searchGeneration)) {
+uVar9 = (uint)*(byte *)(param_4 * 0x13a10 + 0x1ee2998 + dVar6);
+if (uVar9 < 4) {
+uVar9 = 0;
+LAB_0049fdba:
+if ((uVar9 == local_1c) &&
+(iVar8 = DirectionAlgorithmState::setAxisBasedDistanceResult
+(&DAT_DirectionAlgorithmState,param_2,param_3,
+DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix
+[iVar10].int.xOffset + (int)sVar2,
+*(int *)((int)DAT_TerrainDefinedData.
+clockwiseCardinalTranslationMatrix +
+iVar10 * 8 + 4) + iVar7), iVar8 < local_18))
+goto LAB_0049fdee;
+}
+else {
+if ((uVar9 == 0) || (local_1c <= uVar9)) goto LAB_0049fdba;
+iVar8 = DirectionAlgorithmState::setAxisBasedDistanceResult
+(&DAT_DirectionAlgorithmState,param_2,param_3,
+DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[iVar10].
+int.xOffset + (int)sVar2,
+*(int *)((int)DAT_TerrainDefinedData.
+clockwiseCardinalTranslationMatrix + iVar10 * 8 + 4)
++ iVar7);
+LAB_0049fdee:
+local_1c = uVar9;
+local_18 = iVar8;
+local_14 = dVar6;
+}
+DAT_TileMapState.CertainPathLayer[dVar6] =
+(short)DAT_PathFindingState.searchQueue.currentDistance + 1;
+sVar4 = DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix[iVar10].short.xOffset;
+DAT_TileMapState.WalkLayer[dVar6] = (short)DAT_PathFindingState.searchGeneration;
+DAT_PathFindingState.searchQueue.xQueue[DAT_PathFindingState.searchQueue.writeIndex] =
+sVar4 + sVar2;
+DAT_PathFindingState.searchQueue.yQueue[DAT_PathFindingState.searchQueue.writeIndex] =
+*(short *)((int)DAT_TerrainDefinedData.clockwiseCardinalTranslationMatrix +
+iVar10 * 8 + 4) + sVar3;
+DAT_PathFindingState.searchQueue.tilesQueue[DAT_PathFindingState.searchQueue.writeIndex]
+= dVar6;
+DAT_PathFindingState.searchQueue.writeIndex =
+DAT_PathFindingState.searchQueue.writeIndex + 1;
+if (0x13a0f < DAT_PathFindingState.searchQueue.writeIndex) {
+DAT_PathFindingState.searchQueue.writeIndex = 0;
+}
+}
+iVar10 = iVar10 + 1;
+} while (iVar10 < 8);
+DAT_PathFindingState.searchQueue.readIndex = DAT_PathFindingState.searchQueue.readIndex + 1;
+if (0x13a0f < DAT_PathFindingState.searchQueue.readIndex) {
+DAT_PathFindingState.searchQueue.readIndex = 0;
+}
+if (DAT_PathFindingState.searchQueue.readIndex ==
+DAT_PathFindingState.searchQueue.writeIndex) break;
+}
+}
+DAT_PathFindingState.field51_0x9c = bVar1 - local_1c;
+dVar6 = local_14;
+}
+return dVar6;
+}
+--- NAMEN NUR IM PAKETCODE ---
+BitFlagHelperForPathLinkage, MACRO_CALL_MEMBER
+--- KOMMENTARE IM PAKETCODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0049FC00
+--- ERKLAERUNG ---
+{"adr": "0x0049fc00", "name": "pathFindingRelated", "p1": {"bereich": "Wegfindung", "zweck": "Breitensuche über die Gehverbindungen (PathLinkageLayer) ab einem Startfeld: sucht unter den erreichten Nachbarfeldern das mit dem kleinsten Wert ab 4 in einer Kostenkarte (SEC_PathfindingCostTileMap1105, gewählte Ebene) und merkt sich in field51_0x9c, um wie viel es besser ist als das Startfeld."}, "p2": {"ein": "param_1 (größter Abstandswert der Suche; Startfeld = 1), param_2 (x), param_3 (y), param_4 (Ebene der Kostenkarte SEC_PathfindingCostTileMap1105: je Ebene 0x13a10 Bytes ab 0x1ee2998)", "aus": "Kachelnummer des besten Nachbarfeldes; 0, wenn keines gefunden wurde; 1000 bei ungültigem Startfeld (1000 ist selbst eine mögliche Kachelnummer)", "liest": ["DAT_BinaryTileMap400x400 (Kartenbyte bei 0x21aec98, nur am Startfeld)", "SEC_PathfindingCostTileMap1105[param_4][Kachel] (Byte)", "PathLinkageLayer", "BitFlagHelperForPathLinkage", "directionTranslationMatrix", "clockwiseCardinalTranslationMatrix", "translationMatrix.addXgetTile", "CertainPathLayer", "WalkLayer"], "schreibt": ["this->field51_0x9c (nur bei gültigem Startfeld)", "calculations + 1 und searchGeneration + 1 (nur bei gültigem Startfeld)", "searchQueue", "CertainPathLayer", "WalkLayer"], "ruft": ["fillMemory_ByteValue (nur beim Rücksprung von searchGeneration)", "DirectionAlgorithmState.setAxisBasedDistanceResult (Manhattan-Abstand)"], "regeln": ["Startfeld gültig nur bei param_2 < 400, param_3 < 400 (vorzeichenlos) und Kartenbyte DAT_BinaryTileMap400x400[y * 400 + x] != 0 (Adresse 0x21aec98); sonst Rückgabe 1000 und es wird nichts geschrieben (auch field51_0x9c, calculations und searchGeneration bleiben unverändert)", "Gültiger Start: calculations + 1 und searchGeneration + 1; ist searchGeneration danach über 32000, wird sie 1 und WalkLayer über 0x27420 Bytes (160800) mit 0 gefüllt. Startfeld: Abstandswert (CertainPathLayer) 1 und WalkLayer = searchGeneration; Startwert = Byte der Kostenkarte [param_4][Startkachel]", "Schlange: Das Feld an readIndex wird nur bearbeitet, wenn seine Kachelnummer unter 0x13a10 liegt; Abbruch, sobald sein Abstandswert über 0x13a10 oder über param_1 liegt, oder wenn die Schlange leer ist. Erweitert werden also Felder bis Abstandswert param_1; die Kandidaten liegen damit höchstens param_1 Schritte vom Start (1 Schritt = ein Nachbarfeld in einer der 8 Richtungen)", "Nachbarn: je Richtung k = 0 bis 7 nur, wenn PathLinkageLayer[Feld] & (1 << k) gesetzt ist (BitFlagHelperForPathLinkage = 1, 2, 4, 8, 0x10, 0x20, 0x40, 0x80, aus der Programmdatei gelesen) und WalkLayer[Nachbar] != searchGeneration. Jeder solche Nachbar wird unabhängig von seinem Kostenwert sofort als besucht markiert (CertainPathLayer = Wert + 1, WalkLayer = searchGeneration) und hinten in die Ringschlange gestellt (Rücksprung ab 0x13a10); LogicLayer, Kartenbyte und Gebäude werden dafür nicht geprüft", "Kandidatenwert v = Kostenbyte des Nachbarn. v unter 4 gilt als 0 und wird nie gewählt (der beste Wert startet bei 1000 und kann nie 0 werden)", "Auswahl bei v ab 4: neuer bester Kandidat, wenn v kleiner als der bisher beste Wert ist; bei gleichem v nur, wenn der Manhattan-Abstand |dx| + |dy| (setAxisBasedDistanceResult) vom Startfeld zum Kandidaten kleiner ist als beim bisher besten (Anfangswert 10000). Beide Vergleiche sind streng: bei vollem Gleichstand bleibt der zuerst gefundene", "Die Suche endet nicht beim ersten Treffer, sondern erst an der Tiefengrenze oder bei leerer Schlange. Das Startfeld ist nie Kandidat; der beste Kandidat kann einen höheren Wert haben als der Start", "Am Ende: field51_0x9c = Startwert - bester Wert (ohne Kandidaten ist der beste Wert 1000, also Startwert - 1000); Rückgabe = Kachelnummer des besten Kandidaten, 0 ohne Kandidat", "Aufrufer (Ghidra-Export, nicht im Paketcode): UpdateCatapult und UpdateFireBallista rufen nacheinander mit param_1 = 5, 10, 20, 60, 120 und param_4 = siegeTargetPlayerID der Einheit und gehen zur nächsten Stufe, solange field51_0x9c (vorzeichenbehaftet verglichen) kleiner als 3 ist; updateTribeBehaviorBasedOnBehaviorType ruft mit param_1 = 2"], "offen": ["Bedeutung der Kostenkarte SEC_PathfindingCostTileMap1105 (nur der Symbolname ist bekannt): Die Aufrufer wählen die Ebene nach siegeTargetPlayerID, und UpdateCatapult behandelt das Ziel als erreicht, wenn der Wert an der Einheitenkachel unter 0x10 liegt; vermutlich ein Annäherungswert zum Zielspieler. Warum Werte unter 4 ausgeschlossen sind, ist ungeklärt", "Bedeutung von field51_0x9c (Name ungesichert); die Aufrufer prüfen es auf kleiner als 3, vermutlich als Mindestgewinn", "Bedeutung des Kartenbytes DAT_BinaryTileMap400x400 (hier nur Gültigkeitsprüfung des Startfelds; Wert 0 vermutlich außerhalb der Karte)", "Der Rückgabewert 1000 bei ungültigem Start ist selbst eine mögliche Kachelnummer; ob Aufrufer das beachten, ist nicht untersucht"]}, "p3": {"erklaerung": "Sucht von einem Standpunkt aus über die Gehverbindungen das Nachbarfeld mit dem kleinsten Wert ab 4 in der Kostenkarte eines Spielers und merkt sich, um wie viel das besser ist als am Standpunkt. Laut Aufrufern nutzen das Katapulte und Feuerballisten, die sich damit vermutlich Schritt für Schritt dem Ziel eines Gegners nähern.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x004c8d20 setAICParameters_09
+--- CODE (Ghidra-Export, vollstaendig) ---
+/* decompilerscript: committed: 2025-01-30 21:57:43.216000 */
+void __thiscall _HoldStrong::AI::AICState::setAICParameters_09(AICState *this,int param_1)
+{
+DAT_AICState.aics[param_1].unknown004 = 1;
+DAT_AICState.aics[param_1].unknown005 = 1;
+DAT_AICState.aics[param_1].minimumApples = 5;
+DAT_AICState.aics[param_1].minimumCheese = 5;
+DAT_AICState.aics[param_1].minimumBread = -1;
+DAT_AICState.aics[param_1].minimumWheat = -1;
+DAT_AICState.aics[param_1].minimumHop = -1;
+DAT_AICState.aics[param_1].maxWood = 0x3c;
+DAT_AICState.aics[param_1].maxStone = 0x3c;
+DAT_AICState.aics[param_1].flagType = 0xd;
+DAT_AICState.aics[param_1].unknown002 = 0;
+DAT_AICState.aics[param_1].unknown001 = 0;
+DAT_AICState.aics[param_1].unknown003 = 0;
+DAT_AICState.aics[param_1].criticalPopularity = 4000;
+DAT_AICState.aics[param_1].lowestPopularity = 0x157c;
+DAT_AICState.aics[param_1].highestPopularity = 9000;
+DAT_AICState.aics[param_1].taxesMin = 3;
+DAT_AICState.aics[param_1].taxesMax = 10;
+DAT_AICState.aics[param_1].farm1 = 0x21;
+DAT_AICState.aics[param_1].farm2 = 0x20;
+DAT_AICState.aics[param_1].farm3 = 0x1f;
+DAT_AICState.aics[param_1].populationPerFarm = 4;
+DAT_AICState.aics[param_1].unknown011 = 0xc;
+DAT_AICState.aics[param_1].maxFood = 200;
+DAT_AICState.aics[param_1].tradeAmountFood = 10;
+DAT_AICState.aics[param_1].tradeAmountEquipment = 0;
+DAT_AICState.aics[param_1].aiRequestDelay = 0x16;
+DAT_AICState.aics[param_1].minimumGoodsRequiredAfterTrade = 10;
+DAT_AICState.aics[param_1].doubleRationsFoodThreshold = 0x28;
+DAT_AICState.aics[param_1].maxResourceOther = 0xf;
+DAT_AICState.aics[param_1].maxEquipment = 0x14;
+DAT_AICState.aics[param_1].maxBeer = 10;
+DAT_AICState.aics[param_1].maxResourceVariance = 4;
+DAT_AICState.aics[param_1].recruitGoldThreshold = 200;
+DAT_AICState.aics[param_1].populationPerWoodcutter = 7;
+DAT_AICState.aics[param_1].populationPerQuarry = 0xc;
+DAT_AICState.aics[param_1].populationPerIronmine = 10;
+DAT_AICState.aics[param_1].populationPerPitchrig = 0;
+DAT_AICState.aics[param_1].maxQuarries = 4;
+DAT_AICState.aics[param_1].maxIronmines = 5;
+DAT_AICState.aics[param_1].maxWoodcutters = 0xc;
+DAT_AICState.aics[param_1].maxPitchrigs = 1;
+DAT_AICState.aics[param_1].maxFarms = 0xc;
+DAT_AICState.aics[param_1].buildInterval = 4;
+DAT_AICState.aics[param_1].resourceRebuildDelay = 0x1e;
+DAT_AICState.aics[param_1].blacksmithSetting = 0x16;
+DAT_AICState.aics[param_1].fletcherSetting = -999;
+DAT_AICState.aics[param_1].poleturnerSetting = 0x14;
+DAT_AICState.aics[param_1].sellResource04 = 7;
+DAT_AICState.aics[param_1].sellResource05 = 9;
+DAT_AICState.aics[param_1].sellResource07 = 0x10;
+DAT_AICState.aics[param_1].sellResource10 = 0x13;
+DAT_AICState.aics[param_1].sellResource11 = 0x14;
+DAT_AICState.aics[param_1].sellResource12 = 0x15;
+DAT_AICState.aics[param_1].defWallPatrolRallyTime = 8;
+DAT_AICState.aics[param_1].defWallPatrolGroups = 2;
+DAT_AICState.aics[param_1].defSiegeEngineGoldThreshold = 200;
+DAT_AICState.aics[param_1].defSiegeEngineBuildDelay = 2;
+DAT_AICState.aics[param_1].unknown072 = 100;
+DAT_AICState.aics[param_1].unknown073 = 0x14;
+DAT_AICState.aics[param_1].recruitProbDefWeak = 100;
+DAT_AICState.aics[param_1].recruitProbDefDefault = 0x32;
+DAT_AICState.aics[param_1].recruitProbDefStrong = 0x14;
+DAT_AICState.aics[param_1].recruitProbRaidWeak = 0;
+DAT_AICState.aics[param_1].recruitProbRaidDefault = 0x14;
+DAT_AICState.aics[param_1].AttForceSupportAllyThreshold = 0x14;
+DAT_AICState.aics[param_1].RecruitInterval = 4;
+DAT_AICState.aics[param_1].RecruitIntervalStrong = 4;
+DAT_AICState.aics[param_1].SortieUnitRanged = 0x16;
+DAT_AICState.aics[param_1].SortieUnitMeleeMin = 4;
+DAT_AICState.aics[param_1].DefDiggingUnitMax = 10;
+DAT_AICState.aics[param_1].DefDiggingUnit = 0x16;
+DAT_AICState.aics[param_1].OuterPatrolRallyDelay = 10;
+DAT_AICState.aics[param_1].DefUnit1 = 0x16;
+DAT_AICState.aics[param_1].DefUnit2 = 0x16;
+DAT_AICState.aics[param_1].RaidUnitsBase = 4;
+DAT_AICState.aics[param_1].AttForceRandom = 4;
+DAT_AICState.aics[param_1].recruitProbRaidStrong = 0x1e;
+DAT_AICState.aics[param_1].recruitProbAttackWeak = 0;
+DAT_AICState.aics[param_1].recruitProbAttackDefault = 0x1e;
+DAT_AICState.aics[param_1].recruitProbAttackStrong = 0x32;
+DAT_AICState.aics[param_1].RecruitIntervalWeak = 1;
+DAT_AICState.aics[param_1].SortieUnitRangedMin = 0xc;
+DAT_AICState.aics[param_1].SortieUnitMelee = 0x1b;
+DAT_AICState.aics[param_1].DefWalls = 0x32;
+DAT_AICState.aics[param_1].DefTotal = 0x50;
+DAT_AICState.aics[param_1].OuterPatrolGroupsCount = 2;
+DAT_AICState.aics[param_1].OuterPatrolGroupsMove = 1;
+DAT_AICState.aics[param_1].DefUnit3 = 0x17;
+DAT_AICState.aics[param_1].RaidUnitsRandom = 0;
+DAT_AICState.aics[param_1].RaidUnit1 = 0x1c;
+DAT_AICState.aics[param_1].HarassingSiegeEnginesMax = 2;
+DAT_AICState.aics[param_1].HarassingSiegeEngine1 = 0xbe;
+DAT_AICState.aics[param_1].RaidRetargetDelay = 6;
+DAT_AICState.aics[param_1].AttForceBase = 0x1e;
+DAT_AICState.aics[param_1].AttForceRallyPercentage = 0x32;
+DAT_AICState.aics[param_1].AttMovingTribesThreshold = 100;
+DAT_AICState.aics[param_1].AttAssaultDelay = 0x14;
+DAT_AICState.aics[param_1].AttUnitPatrolRecommandDelay = 5;
+DAT_AICState.aics[param_1].AttCoordinationPreference = 0x32;
+DAT_AICState.aics[param_1].CowThrowInterval = 10000;
+DAT_AICState.aics[param_1].SiegeEngine1 = 0x28;
+DAT_AICState.aics[param_1].SiegeEngine2 = 0x28;
+DAT_AICState.aics[param_1].SiegeEngine3 = 0x28;
+DAT_AICState.aics[param_1].SiegeEngine4 = 0x28;
+DAT_AICState.aics[param_1].SiegeEngine5 = 0x28;
+DAT_AICState.aics[param_1].SiegeEngine6 = 0x28;
+DAT_AICState.aics[param_1].AttMaxEngineers = 0x12;
+DAT_AICState.aics[param_1].AttDiggingUnit = 0x16;
+DAT_AICState.aics[param_1].AttDiggingUnitMax = 0x14;
+DAT_AICState.aics[param_1].AttMaxAssassins = 0;
+DAT_AICState.aics[param_1].AttUnit2 = 0;
+DAT_AICState.aics[param_1].AttUnit2Max = 0;
+DAT_AICState.aics[param_1].AttMaxLaddermen = 0;
+DAT_AICState.aics[param_1].AttMaxTunnelers = 0;
+DAT_AICState.aics[param_1].AttUnitPatrol = 0x17;
+DAT_AICState.aics[param_1].AttUnitPatrolMax = 0x14;
+DAT_AICState.aics[param_1].AttUnitPatrolGroupsCount = 1;
+DAT_AICState.aics[param_1].AttUnitBackup = 0x16;
+DAT_AICState.aics[param_1].AttUnitBackupMax = 0x1e;
+DAT_AICState.aics[param_1].AttUnitBackupGroupsCount = 2;
+DAT_AICState.aics[param_1].AttUnitEngageMax = 0;
+DAT_AICState.aics[param_1].AttUnitEngage = 0;
+DAT_AICState.aics[param_1].AttUnitSiegeDef = 0x17;
+DAT_AICState.aics[param_1].AttUnitSiegeDefMax = 10;
+DAT_AICState.aics[param_1].AttUnitSiegeDefGroupsCount = 1;
+DAT_AICState.aics[param_1].AttUnitMain1 = 0x1b;
+DAT_AICState.aics[param_1].AttUnitMain2 = 0x1b;
+DAT_AICState.aics[param_1].AttMaxDefault = 200;
+DAT_AICState.aics[param_1].AttMainGroupsCount = 4;
+DAT_AICState.aics[param_1].TargetChoice = AITC_GOLD;
+return;
+}
+--- NAMEN NUR IM PAKETCODE ---
+aicIndex
+--- KOMMENTARE IM PAKETCODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004C8D20
+--- ERKLAERUNG ---
+{"adr": "0x004c8d20", "name": "setAICParameters_09", "p1": {"bereich": "KI", "zweck": "Belegt den KI-Eintrag aics[aicIndex] (AICSpecification, 676 Byte) mit dem festen Werte-Satz Nr. 09 (131 Felder: Wirtschaft, Anwerbung, Verteidigung, Raubzug, Angriff)."}, "p2": {"ein": "aicIndex (Index in AICState.aics; Eintragsgröße 676 Byte, keine Bereichsprüfung)", "aus": "-", "liest": [], "schreibt": ["AICState.aics[aicIndex]: 131 Felder (siehe regeln)"], "ruft": [], "regeln": ["flagType 13; unknown001 0, unknown002 0, unknown003 0, unknown004 1, unknown005 1", "Zufriedenheit und Steuern: criticalPopularity 4000, lowestPopularity 5500, highestPopularity 9000; taxesMin 3, taxesMax 10", "Nahrung: farm1 33, farm2 32, farm3 31, populationPerFarm 4, unknown011 12, maxFood 200, minimumApples 5, minimumCheese 5, minimumBread -1, minimumWheat -1, minimumHop -1, tradeAmountFood 10, tradeAmountEquipment 0, aiRequestDelay 22, minimumGoodsRequiredAfterTrade 10, doubleRationsFoodThreshold 40", "Lagergrenzen: maxWood 60, maxStone 60, maxResourceOther 15, maxEquipment 20, maxBeer 10, maxResourceVariance 4, recruitGoldThreshold 200", "Bau: populationPerWoodcutter 7, populationPerQuarry 12, populationPerIronmine 10, populationPerPitchrig 0; maxQuarries 4, maxIronmines 5, maxWoodcutters 12, maxPitchrigs 1, maxFarms 12; buildInterval 4, resourceRebuildDelay 30; blacksmithSetting 22, fletcherSetting -999, poleturnerSetting 20", "Verkaufsliste: sellResource04 7, sellResource05 9, sellResource07 16, sellResource10 19, sellResource11 20, sellResource12 21; nicht gesetzt: sellResource01, sellResource02, sellResource03, sellResource06, sellResource08, sellResource09, sellResource13, sellResource14, sellResource15", "Mauerpatrouille und Belagerungsabwehr: defWallPatrolRallyTime 8, defWallPatrolGroups 2, defSiegeEngineGoldThreshold 200, defSiegeEngineBuildDelay 2, unknown072 100, unknown073 20", "Anwerbung: recruitProbDefWeak 100, recruitProbDefDefault 50, recruitProbDefStrong 20; recruitProbRaidWeak 0, recruitProbRaidDefault 20, recruitProbRaidStrong 30; recruitProbAttackWeak 0, recruitProbAttackDefault 30, recruitProbAttackStrong 50; RecruitIntervalWeak 1, RecruitInterval 4, RecruitIntervalStrong 4", "Verteidigung: SortieUnitRanged 22, SortieUnitRangedMin 12, SortieUnitMelee 27, SortieUnitMeleeMin 4, DefDiggingUnit 22, DefDiggingUnitMax 10; DefWalls 50, DefTotal 80; OuterPatrolGroupsCount 2, OuterPatrolGroupsMove 1, OuterPatrolRallyDelay 10; DefUnit1 22, DefUnit2 22, DefUnit3 23", "Raubzug: RaidUnitsBase 4, RaidUnitsRandom 0, RaidUnit1 28, RaidRetargetDelay 6; HarassingSiegeEngine1 190, HarassingSiegeEnginesMax 2", "Angriffsstärke und Takte: AttForceBase 30, AttForceRandom 4, AttForceSupportAllyThreshold 20, AttForceRallyPercentage 50, AttMovingTribesThreshold 100, AttAssaultDelay 20, AttUnitPatrolRecommandDelay 5, AttCoordinationPreference 50", "Belagerung und Sonderkräfte: SiegeEngine1 40, SiegeEngine2 40, SiegeEngine3 40, SiegeEngine4 40, SiegeEngine5 40, SiegeEngine6 40, CowThrowInterval 10000; AttMaxEngineers 18, AttMaxAssassins 0, AttMaxLaddermen 0, AttMaxTunnelers 0", "Angriffsgruppen: AttDiggingUnit 22, AttDiggingUnitMax 20, AttUnit2 0, AttUnit2Max 0, AttUnitPatrol 23, AttUnitPatrolMax 20, AttUnitPatrolGroupsCount 1, AttUnitBackup 22, AttUnitBackupMax 30, AttUnitBackupGroupsCount 2, AttUnitEngage 0, AttUnitEngageMax 0, AttUnitSiegeDef 23, AttUnitSiegeDefMax 10, AttUnitSiegeDefGroupsCount 1; AttUnitMain1 27, AttUnitMain2 27; AttMaxDefault 200, AttMainGroupsCount 4", "TargetChoice = AITC_GOLD (Wert 0)", "Die Funktion enthält nur diese Zuweisungen, ohne Bedingung, Lesezugriff oder Aufruf, jedes Feld genau einmal. Nicht gesetzt (bleiben unverändert, nach wipeAICMemory 0): farm4 bis farm8, DefUnit4 bis DefUnit8, RaidUnit2 bis RaidUnit8, HarassingSiegeEngine2 bis HarassingSiegeEngine8, SiegeEngine7 bis SiegeEngine8, Unknown142, AttUnitMain3 bis AttUnitMain4 sowie die oben genannten sellResource-Felder"], "offen": ["Welche benannte KI-Figur hinter Satz 09 steckt, steht nicht im Code; laut Ghidra-Export ruft setInitialAIC (0x004d18b0) diese Funktion nach wipeAICMemory mit aicIndex 9 auf", "Felder unknown001-005, unknown011, unknown072, unknown073 sind ungedeutet (Werte hier: unknown001 0, unknown002 0, unknown003 0, unknown004 1, unknown005 1, unknown011 12, unknown072 100, unknown073 20)", "Die Einheiten- und Belagerungsnummern sind im Code nur Zahlen; vermutlich sind es UnitTypeShort-Nummern (laut Typtabelle: 22 = UT_E_ARCHER, 23 = UT_E_XBOW, 27 = UT_E_SWORD, 28 = UT_E_KNIGHT, 40 = UT_S_TREBUCHET); 190 steht nicht in UnitTypeShort", "Bedeutung von fletcherSetting -999 (nur in diesem Satz; die anderen Sätze haben 17 oder 18)", "Die Bedeutung der Feldnamen (Weak/Default/Strong, ...Random, ...Interval, TargetChoice-Werte) ist nicht aus dem Code belegt; die Deutungen in gehirn sind Vermutungen", "Gefecht-KI lädt vermutlich Werte aus eigenen Dateien (AIC), die diese Grundwerte überschreiben; hier nicht belegt"]}, "p3": {"erklaerung": "Legt für den KI-Eintrag mit Index 9 fest, wie er wirtschaftet, anwirbt, verteidigt und angreift. Auffällig sind fletcherSetting -999 (nur in diesem Satz), sechs gleiche Belagerungsgeräte (SiegeEngine1-6 = 40), die meisten Ingenieure (AttMaxEngineers 18), 4 Hauptgruppen im Angriff (AttMainGroupsCount 4) und der kleinste Raubzug (RaidUnitsBase 4, RaidUnitsRandom 0).", "gehirn": "Vermutlich greift dieser Gegner mit AttForceBase 30 plus bis zu AttForceRandom 4 Einheiten in 4 Hauptgruppen an, mit bis zu 18 Ingenieuren und 6 Belagerungsgeräten der Nummer 40 (vermutlich UT_S_TREBUCHET); AttMaxAssassins, AttMaxLaddermen und AttMaxTunnelers sind 0; TargetChoice AITC_GOLD (Zielwahl vermutlich nach Gold). Echte Werte live aus aics[9] lesen: UCP und AIC-Dateien können abweichen.", "beleg": "nachgebaut", "live": "aics[9] einmal aus dem Speicher lesen (keine Spielhandlung) → AttForceBase, AttMaxEngineers, fletcherSetting, TargetChoice → 30, 18, -999, AITC_GOLD (0); Abweichung = UCP/AIC-Datei", "live_art": "tabelle"}}
+
+### 0x00441270 LaunchSkirmishGame
+--- CODE (Ghidra-Export, vollstaendig) ---
+/* WARNING: Enum "DPSEND_EnumInt": Some values do not have unique names */
+/* WARNING: Enum "DPERRInt": Some values do not have unique names */
+/* WARNING: Enum "MappersEnum": Some values do not have unique names */
+/* WARNING: Enum "MappersEnumShort": Some values do not have unique names */
+/* This function stores a bunch of variables a .map file shouldn't overwrite, to then reapply those
+stored info to the game again. For example, a .map file could contain the results of a skirmish,
+but of course you don't want that if you start a game new and fresh
+decompilerscript: committed: 2025-01-30 21:57:43.216000 */
+void __cdecl _HoldStrong::Global::LaunchSkirmishGame(int whichCastle)
+{
+char cVar1;
+byte bVar2;
+ushort uVar3;
+GameModeInt GVar4;
+int iVar5;
+int iVar6;
+int iVar7;
+int iVar8;
+int iVar9;
+int iVar10;
+int iVar11;
+int iVar12;
+int iVar13;
+int iVar14;
+BOOLEnum BVar15;
+char *pcVar16;
+uint uVar17;
+char *pcVar18;
+int iVar19;
+int iVar20;
+uint uVar21;
+BuySellPair *pBVar22;
+int iVar23;
+BuildingEntryInfo *pBVar24;
+char (*pacVar25) [250];
+int *piVar26;
+SkirmishLobbySetupStructure *pSVar27;
+SkirmishStatistics *pSVar28;
+undefined4 *puVar29;
+dword *pdVar30;
+int *piVar31;
+StartingResourceStructureInt *pSVar32;
+int (*paiVar33) [20];
+int unaff_EDI;
+int iVar34;
+AITypeInt *pAVar35;
+int (*paiVar36) [9];
+undefined1 auStack_d8c [4];
+dword _playerIndex;
+char (*_aiType2) [250];
+int *local_d80;
+int _whichCastle;
+int _s1023;
+int _section1093;
+int _autoSaveMinutes;
+int _storedCurrentAIArray [9];
+int _storedLordTypes [9];
+int _storedArray1 [9];
+int _playerTeams [9];
+int local_ca0;
+int local_c9c;
+dword _mapMagicU4Int2 [66];
+undefined4 local_b78 [477];
+char uStack1025;
+char _mapName [1000];
+uVar17 = MSVC_SecurityCookie ^ (uint)auStack_d8c;
+_whichCastle = whichCastle;
+Game::Skirmish::SkirmishLobbySetupStructure::commitSkirmishSettings
+(&SEC_SkirmishLobbySetupStructure);
+GVar4 = DAT_GameSynchronyState.currentGameMode;
+pSVar27 = &SEC_SkirmishLobbySetupStructure;
+pdVar30 = _mapMagicU4Int2;
+for (iVar23 = 0x42; iVar23 != 0; iVar23 = iVar23 + -1) {
+*pdVar30 = pSVar27->mapu4int2;
+pSVar27 = (SkirmishLobbySetupStructure *)&pSVar27->mbr_0x4;
+pdVar30 = pdVar30 + 1;
+}
+_s1023 = DAT_GameState.mapAndTime.skirmishFogOfWar;
+_autoSaveMinutes = DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes;
+DAT_AIVPlacementFit[0] = -10;
+DAT_AIVPlacementFit[1] = -10;
+DAT_AIVPlacementFit[2] = -10;
+DAT_AIVPlacementFit[3] = -10;
+DAT_AIVPlacementFit[4] = -10;
+DAT_AIVPlacementFit[5] = -10;
+DAT_AIVPlacementFit[6] = -10;
+DAT_AIVPlacementFit[7] = -10;
+DAT_AIVPlacementFit[8] = -10;
+_section1093 = DAT_GameSynchronyState.skirmishPoints;
+DAT_GameCore.missionNumber1to20 = 1;
+iVar23 = 0;
+do {
+cVar1 = DAT_GameSynchronyState.mapName[iVar23];
+_mapName[iVar23] = cVar1;
+iVar23 = iVar23 + 1;
+} while (cVar1 != '\0');
+/* this appends .map to the map name */
+pcVar16 = &uStack1025;
+do {
+pcVar18 = pcVar16;
+pcVar16 = pcVar18 + 1;
+} while (pcVar18[1] != '\0');
+/* .map */
+*(undefined4 *)(pcVar18 + 1) = s__map_005a2294._0_4_;
+pcVar18[5] = s__map_005a2294[4];
+IO::ResourceManager::resolveResourceFileName(&DAT_ResourceManager,FRT_MAPS,_mapName);
+Map::TileMapState::setupAllMapSections(&DAT_TileMapState);
+iVar23 = 0;
+iVar19 = 1;
+do {
+bVar2 = DAT_GameSynchronyState.DAT_PlayerGroupArray[iVar19];
+iVar34 = (int)(char)bVar2;
+DAT_GameState.mapAndTime.playerGroupArray[iVar19] = iVar34;
+if (('\0' < (char)bVar2) &&
+(DAT_GameState.mapAndTime.playerTeams[iVar19] = iVar34, iVar23 < iVar34)) {
+iVar23 = iVar34;
+}
+bVar2 = DAT_GameSynchronyState.DAT_PlayerGroupArray[iVar19 + 1];
+iVar34 = (int)(char)bVar2;
+DAT_GameState.mapAndTime.playerGroupArray[iVar19 + 1] = iVar34;
+if (('\0' < (char)bVar2) &&
+(DAT_GameState.mapAndTime.playerTeams[iVar19 + 1] = iVar34, iVar23 < iVar34)) {
+iVar23 = iVar34;
+}
+bVar2 = DAT_GameSynchronyState.DAT_PlayerGroupArray[iVar19 + 2];
+iVar34 = (int)(char)bVar2;
+DAT_GameState.mapAndTime.playerGroupArray[iVar19 + 2] = iVar34;
+if (('\0' < (char)bVar2) &&
+(DAT_GameState.mapAndTime.playerTeams[iVar19 + 2] = iVar34, iVar23 < iVar34)) {
+iVar23 = iVar34;
+}
+bVar2 = DAT_GameSynchronyState.DAT_PlayerGroupArray[iVar19 + 3];
+iVar34 = (int)(char)bVar2;
+DAT_GameState.mapAndTime.playerGroupArray[iVar19 + 3] = iVar34;
+if (('\0' < (char)bVar2) &&
+(DAT_GameState.mapAndTime.playerTeams[iVar19 + 3] = iVar34, iVar23 < iVar34)) {
+iVar23 = iVar34;
+}
+BVar15 = DAT_GameCore.isSkirmishTrail;
+iVar14 = SEC_RNG.seed;
+iVar13 = DAT_GameSynchronyState.currentPlayerSlotID;
+iVar12 = DAT_GameSynchronyState.skirmishGameIntensityType;
+iVar11 = DAT_GameSynchronyState.SEC_AIVariationArray[8];
+iVar10 = DAT_GameSynchronyState.SEC_AIVariationArray[7];
+iVar9 = DAT_GameSynchronyState.SEC_AIVariationArray[6];
+iVar8 = DAT_GameSynchronyState.SEC_AIVariationArray[5];
+iVar7 = DAT_GameSynchronyState.SEC_AIVariationArray[4];
+iVar6 = DAT_GameSynchronyState.SEC_AIVariationArray[3];
+iVar5 = DAT_GameSynchronyState.SEC_AIVariationArray[2];
+iVar20 = DAT_GameSynchronyState.SEC_AIVariationArray[1];
+iVar34 = DAT_GameSynchronyState.SEC_AIVariationArray[0];
+iVar19 = iVar19 + 4;
+} while (iVar19 < 9);
+if (DAT_GameSynchronyState.DAT_PlayerGroupArray[1] == 0) {
+iVar23 = iVar23 + 1;
+DAT_GameState.mapAndTime.playerTeams[1] = iVar23;
+}
+if (DAT_GameSynchronyState.DAT_PlayerGroupArray[2] == 0) {
+iVar23 = iVar23 + 1;
+DAT_GameState.mapAndTime.playerTeams[2] = iVar23;
+}
+if (DAT_GameSynchronyState.DAT_PlayerGroupArray[3] == 0) {
+iVar23 = iVar23 + 1;
+DAT_GameState.mapAndTime.playerTeams[3] = iVar23;
+}
+if (DAT_GameSynchronyState.DAT_PlayerGroupArray[4] == 0) {
+iVar23 = iVar23 + 1;
+DAT_GameState.mapAndTime.playerTeams[4] = iVar23;
+}
+if (DAT_GameSynchronyState.DAT_PlayerGroupArray[5] == 0) {
+iVar23 = iVar23 + 1;
+DAT_GameState.mapAndTime.playerTeams[5] = iVar23;
+}
+if (DAT_GameSynchronyState.DAT_PlayerGroupArray[6] == 0) {
+iVar23 = iVar23 + 1;
+DAT_GameState.mapAndTime.playerTeams[6] = iVar23;
+}
+if (DAT_GameSynchronyState.DAT_PlayerGroupArray[7] == 0) {
+iVar23 = iVar23 + 1;
+DAT_GameState.mapAndTime.playerTeams[7] = iVar23;
+}
+if (DAT_GameSynchronyState.DAT_PlayerGroupArray[8] == 0) {
+DAT_GameState.mapAndTime.playerTeams[8] = iVar23 + 1;
+}
+local_d80 = (int *)DAT_GameSynchronyState.skirmishCurrentAdvantageBalance;
+_playerIndex = DAT_GameCore.skirmishTrailProgress;
+_aiType2 = (char (*) [250])DAT_GameCore.currentTrailType;
+if (DAT_GameCore.currentTrailType == TT_WARCHEST) {
+_playerIndex = DAT_GameCore.warchestTrailProgress;
+}
+else if (DAT_GameCore.currentTrailType == TT_EXTREME) {
+_playerIndex = DAT_GameCore.extremeTrailProgress;
+}
+_playerTeams[0] = DAT_GameState.mapAndTime.playerTeams[0];
+_storedArray1[0] = DAT_GameState.mapAndTime.playerGroupArray[0];
+_storedCurrentAIArray[0] = DAT_GameSynchronyState.currentAIArray[0];
+_storedLordTypes[0] = DAT_GameCore.selectedLordTypes[0];
+_playerTeams[1] = DAT_GameState.mapAndTime.playerTeams[1];
+_storedArray1[1] = DAT_GameState.mapAndTime.playerGroupArray[1];
+_storedCurrentAIArray[1] = DAT_GameSynchronyState.currentAIArray[1];
+_storedLordTypes[1] = DAT_GameCore.selectedLordTypes[1];
+_playerTeams[2] = DAT_GameState.mapAndTime.playerTeams[2];
+_storedArray1[2] = DAT_GameState.mapAndTime.playerGroupArray[2];
+_storedCurrentAIArray[2] = DAT_GameSynchronyState.currentAIArray[2];
+_storedLordTypes[2] = DAT_GameCore.selectedLordTypes[2];
+_playerTeams[3] = DAT_GameState.mapAndTime.playerTeams[3];
+_storedArray1[3] = DAT_GameState.mapAndTime.playerGroupArray[3];
+_storedCurrentAIArray[3] = DAT_GameSynchronyState.currentAIArray[3];
+_storedLordTypes[3] = DAT_GameCore.selectedLordTypes[3];
+_playerTeams[4] = DAT_GameState.mapAndTime.playerTeams[4];
+_storedArray1[4] = DAT_GameState.mapAndTime.playerGroupArray[4];
+_storedCurrentAIArray[4] = DAT_GameSynchronyState.currentAIArray[4];
+_storedLordTypes[4] = DAT_GameCore.selectedLordTypes[4];
+_playerTeams[5] = DAT_GameState.mapAndTime.playerTeams[5];
+_storedArray1[5] = DAT_GameState.mapAndTime.playerGroupArray[5];
+_storedCurrentAIArray[5] = DAT_GameSynchronyState.currentAIArray[5];
+_storedLordTypes[5] = DAT_GameCore.selectedLordTypes[5];
+_playerTeams[6] = DAT_GameState.mapAndTime.playerTeams[6];
+_storedArray1[6] = DAT_GameState.mapAndTime.playerGroupArray[6];
+_storedCurrentAIArray[6] = DAT_GameSynchronyState.currentAIArray[6];
+_storedLordTypes[6] = DAT_GameCore.selectedLordTypes[6];
+_playerTeams[7] = DAT_GameState.mapAndTime.playerTeams[7];
+_storedArray1[7] = DAT_GameState.mapAndTime.playerGroupArray[7];
+_storedCurrentAIArray[7] = DAT_GameSynchronyState.currentAIArray[7];
+_storedLordTypes[7] = DAT_GameCore.selectedLordTypes[7];
+_storedArray1[8] = DAT_GameState.mapAndTime.playerGroupArray[8];
+_storedLordTypes[8] = DAT_GameCore.selectedLordTypes[8];
+_playerTeams[8] = DAT_GameState.mapAndTime.playerTeams[8];
+pSVar28 = &DAT_GameSynchronyState.finalResults;
+puVar29 = local_b78;
+for (iVar23 = 0x1de; iVar23 != 0; iVar23 = iVar23 + -1) {
+*puVar29 = *(undefined4 *)pSVar28->names[0];
+pSVar28 = (SkirmishStatistics *)(pSVar28->names[0] + 4);
+puVar29 = puVar29 + 1;
+}
+_storedCurrentAIArray[8] = DAT_GameSynchronyState.currentAIArray[8];
+IO::FilePackager::readMapOrSavFile(&FilePackagerObj,DAT_MapDefinedData.DAT_MapSectionAddressArray)
+;
+Audio::MSS::SoundSystem::mapLoadingAndLaunchGameRelated1(&DAT_SoundSystemState);
+puVar29 = local_b78;
+pSVar28 = &DAT_GameSynchronyState.finalResults;
+for (iVar23 = 0x1de; iVar23 != 0; iVar23 = iVar23 + -1) {
+*(undefined4 *)pSVar28->names[0] = *puVar29;
+puVar29 = puVar29 + 1;
+pSVar28 = (SkirmishStatistics *)(pSVar28->names[0] + 4);
+}
+pdVar30 = _mapMagicU4Int2;
+pSVar27 = &SEC_SkirmishLobbySetupStructure;
+for (iVar23 = 0x42; iVar23 != 0; iVar23 = iVar23 + -1) {
+pSVar27->mapu4int2 = *pdVar30;
+pdVar30 = pdVar30 + 1;
+pSVar27 = (SkirmishLobbySetupStructure *)&pSVar27->mbr_0x4;
+}
+DAT_GameSynchronyState.skirmishCurrentAdvantageBalance = (int)local_d80;
+DAT_GameCore.mapTimeInTicks = 1;
+DAT_GameCore.section1127 = 1;
+DAT_GameCore.currentTrailType = (TrailTypeInt)_aiType2;
+DAT_GameCore.isVictoryOrDefeatUnk = 0;
+if (_aiType2 == (char (*) [250])0x2) {
+DAT_GameCore.extremeTrailProgress = _playerIndex;
+}
+else if (_aiType2 == (char (*) [250])0x1) {
+DAT_GameCore.warchestTrailProgress = _playerIndex;
+}
+else {
+DAT_GameCore.skirmishTrailProgress = _playerIndex;
+}
+if ((DAT_GameSynchronyState.currentPlayerFullIDArray[0] == -1) && (_storedCurrentAIArray[0] != 0))
+{
+DAT_GameSynchronyState.SEC_AIVariationArray[0] = iVar34;
+}
+if ((DAT_GameSynchronyState.currentPlayerFullIDArray[1] == -1) && (_storedCurrentAIArray[1] != 0))
+{
+DAT_GameSynchronyState.SEC_AIVariationArray[1] = iVar20;
+}
+if ((DAT_GameSynchronyState.currentPlayerFullIDArray[2] == -1) && (_storedCurrentAIArray[2] != 0))
+{
+DAT_GameSynchronyState.SEC_AIVariationArray[2] = iVar5;
+}
+if ((DAT_GameSynchronyState.currentPlayerFullIDArray[3] == -1) && (_storedCurrentAIArray[3] != 0))
+{
+DAT_GameSynchronyState.SEC_AIVariationArray[3] = iVar6;
+}
+if ((DAT_GameSynchronyState.currentPlayerFullIDArray[4] == -1) && (_storedCurrentAIArray[4] != 0))
+{
+DAT_GameSynchronyState.SEC_AIVariationArray[4] = iVar7;
+}
+if ((DAT_GameSynchronyState.currentPlayerFullIDArray[5] == -1) && (_storedCurrentAIArray[5] != 0))
+{
+DAT_GameSynchronyState.SEC_AIVariationArray[5] = iVar8;
+}
+if ((DAT_GameSynchronyState.currentPlayerFullIDArray[6] == -1) && (_storedCurrentAIArray[6] != 0))
+{
+DAT_GameSynchronyState.SEC_AIVariationArray[6] = iVar9;
+}
+if ((DAT_GameSynchronyState.currentPlayerFullIDArray[7] == -1) && (_storedCurrentAIArray[7] != 0))
+{
+DAT_GameSynchronyState.SEC_AIVariationArray[7] = iVar10;
+}
+if ((DAT_GameSynchronyState.currentPlayerFullIDArray[8] == -1) && (_storedCurrentAIArray[8] != 0))
+{
+DAT_GameSynchronyState.SEC_AIVariationArray[8] = iVar11;
+}
+DAT_GameSynchronyState.skirmishGameIntensityType = iVar12;
+DAT_GameCore.isSkirmishTrail = BVar15;
+AI::AIVState::wipeAIVsAndHeatMaps(&DAT_AIVState);
+DAT_GameCore.isTimeHalted = FALSE;
+DAT_GameCore.section1095 = 0;
+DAT_GameSynchronyState.skirmishAutoSaveEveryMinutes = _autoSaveMinutes;
+DAT_GameSynchronyState.currentPlayerSlotID = iVar13;
+SEC_RNG.seed = iVar14;
+Random::RNG::populateRNG1040(&SEC_RNG);
+DAT_GameSynchronyState.skirmishPoints = _section1093;
+DAT_GameState.mapAndTime.skirmishFogOfWar = _s1023;
+DAT_GameState.mapAndTime.playerTeams[0] = _playerTeams[0];
+DAT_GameState.mapAndTime.playerGroupArray[0] = _storedArray1[0];
+DAT_GameSynchronyState.currentAIArray[0] = _storedCurrentAIArray[0];
+DAT_GameCore.selectedLordTypes[0] = _storedLordTypes[0];
+DAT_GameState.mapAndTime.playerTeams[1] = _playerTeams[1];
+DAT_GameState.mapAndTime.playerGroupArray[1] = _storedArray1[1];
+DAT_GameSynchronyState.currentAIArray[1] = _storedCurrentAIArray[1];
+DAT_GameCore.selectedLordTypes[1] = _storedLordTypes[1];
+DAT_GameState.mapAndTime.playerTeams[2] = _playerTeams[2];
+DAT_GameState.mapAndTime.playerGroupArray[2] = _storedArray1[2];
+DAT_GameSynchronyState.currentAIArray[2] = _storedCurrentAIArray[2];
+DAT_GameCore.selectedLordTypes[2] = _storedLordTypes[2];
+DAT_GameState.mapAndTime.playerTeams[3] = _playerTeams[3];
+DAT_GameState.mapAndTime.playerGroupArray[3] = _storedArray1[3];
+DAT_GameSynchronyState.currentAIArray[3] = _storedCurrentAIArray[3];
+DAT_GameCore.selectedLordTypes[3] = _storedLordTypes[3];
+DAT_GameState.mapAndTime.playerTeams[4] = _playerTeams[4];
+DAT_GameState.mapAndTime.playerGroupArray[4] = _storedArray1[4];
+DAT_GameSynchronyState.currentAIArray[4] = _storedCurrentAIArray[4];
+DAT_GameCore.selectedLordTypes[4] = _storedLordTypes[4];
+DAT_GameState.mapAndTime.playerTeams[5] = _playerTeams[5];
+DAT_GameState.mapAndTime.playerGroupArray[5] = _storedArray1[5];
+DAT_GameSynchronyState.currentAIArray[5] = _storedCurrentAIArray[5];
+DAT_GameCore.selectedLordTypes[5] = _storedLordTypes[5];
+DAT_GameCore.gameMode_2 = GM_SKIRMISH_AND_MULTIPLAYER;
+DAT_GameCore.xbowProducible_logic = 1;
+DAT_GameCore.bowProducible_logic = 1;
+DAT_GameCore.spearProducible_logic = 1;
+DAT_GameCore.maceProducible_logic = 1;
+DAT_GameState.mapAndTime.field2272_0xe02 = 1;
+DAT_GameState.mapAndTime.field2271_0xe00 = 0;
+DAT_GameState.mapAndTime.difficulty = 1;
+DAT_GameSynchronyState.skirmishTroopsCostGold = 1;
+DAT_GameState.mapAndTime.playerTeams[6] = _playerTeams[6];
+DAT_GameState.mapAndTime.playerGroupArray[6] = _storedArray1[6];
+DAT_GameSynchronyState.currentAIArray[6] = _storedCurrentAIArray[6];
+DAT_GameCore.selectedLordTypes[6] = _storedLordTypes[6];
+DAT_GameState.mapAndTime.playerTeams[7] = _playerTeams[7];
+DAT_GameSynchronyState.currentAIArray[7] = _storedCurrentAIArray[7];
+DAT_GameState.mapAndTime.playerGroupArray[7] = _storedArray1[7];
+DAT_GameCore.selectedLordTypes[7] = _storedLordTypes[7];
+DAT_GameState.mapAndTime.playerGroupArray[8] = _storedArray1[8];
+DAT_GameState.mapAndTime.playerTeams[8] = _playerTeams[8];
+DAT_GameSynchronyState.currentAIArray[8] = _storedCurrentAIArray[8];
+DAT_GameCore.missionNumber1to20 = DAT_GameSynchronyState.skirmishTechLevel + 0x16;
+DAT_GameCore.selectedLordTypes[8] = _storedLordTypes[8];
+DAT_GameCore.swordProducible_logic = (int)(DAT_GameSynchronyState.skirmishTechLevel != 2);
+DAT_GameCore.pikeProducible_logic = (int)(DAT_GameSynchronyState.skirmishTechLevel != 2);
+_aiType2 = (char (*) [250])0x0;
+_playerIndex = 0;
+local_d80 = DAT_GameSynchronyState.currentAIArray + 1;
+piVar31 = &DAT_GameState.playerDataArray[1].lordID;
+piVar26 = _playerTeams + 3;
+do {
+uVar21 = ((BuildingEntryInfo *)(piVar31 + -0x859))->id;
+piVar26[-1] = -1;
+*piVar26 = -1;
+if (uVar21 != 0) {
+_aiType2 = (char (*) [250])((int)_aiType2 + 1);
+uVar3 = DAT_BuildingsState.buildings[uVar21].y;
+piVar26[-1] = (int)(short)DAT_BuildingsState.buildings[uVar21].x;
+*piVar26 = (int)(short)uVar3;
+DAT_TileMapState.showNoRubbleWhenDestroyingBuilding = 1;
+Map::Buildings::BuildingsState::destroyBuildingAndLinkedDuplicates(&DAT_BuildingsState,uVar21)
+;
+DAT_TileMapState.showNoRubbleWhenDestroyingBuilding = 1;
+Map::Buildings::BuildingsState::destroyBuildingAndLinkedDuplicates
+(&DAT_BuildingsState,((BuildingEntryInfo *)(piVar31 + -0x84f))->id);
+uVar21 = *piVar31;
+if (uVar21 != 0) {
+if (piVar31[1] == DAT_UnitsState.units[uVar21].uid) {
+Map::Units::UnitsState::deleteUnit(&DAT_UnitsState,uVar21);
+}
+*piVar31 = 0;
+piVar31[1] = 0;
+}
+piVar31[6] = 0;
+}
+if ((local_d80[-0x1b] != -1) || (*local_d80 != 0)) {
+_playerIndex = _playerIndex + 1;
+}
+piVar31 = piVar31 + 0xe7d;
+local_d80 = local_d80 + 1;
+piVar26 = piVar26 + 2;
+} while ((int)piVar31 < 0x117e984);
+if ((int)_playerIndex < (int)_aiType2) {
+iVar23 = 1;
+piVar26 = _playerTeams;
+do {
+piVar26 = piVar26 + 2;
+if (((char)DAT_GameSynchronyState.field297_0x109e5f[iVar23 + 8] < '\0') && (*piVar26 != -1)) {
+Game::GameStateStructures::destroyPlayerCompletely(&DAT_GameState,iVar23);
+}
+iVar23 = iVar23 + 1;
+} while (iVar23 < 9);
+}
+iVar23 = 1;
+pAVar35 = &DAT_GameState.playerDataArray[1].aiType;
+do {
+iVar19 = DAT_GameSynchronyState.currentPlayerFullIDArray[iVar23];
+_storedLordTypes[iVar23] = 0;
+*pAVar35 = AIT_NULL;
+if ((iVar19 != -1) || (DAT_GameSynchronyState.currentAIArray[iVar23] != 0)) {
+iVar19 = GetPlayerPosition(iVar23);
+_storedLordTypes[iVar23] = iVar19;
+if (iVar23 == iVar19) {
+Game::GameStateStructures::swapOwnership(iVar23,iVar23);
+_storedLordTypes[iVar23] = 0;
+}
+}
+pAVar35 = pAVar35 + 0xe7d;
+iVar23 = iVar23 + 1;
+} while ((int)pAVar35 < 0x117ea8c);
+local_d80 = (int *)0x8;
+do {
+iVar23 = 1;
+do {
+if (((DAT_GameSynchronyState.currentPlayerFullIDArray[iVar23] != -1) ||
+(DAT_GameSynchronyState.currentAIArray[iVar23] != 0)) &&
+(iVar19 = _storedLordTypes[iVar23], iVar19 != 0)) {
+Game::GameStateStructures::swapOwnership(iVar19,iVar23);
+iVar34 = 1;
+do {
+if (_storedLordTypes[iVar34] == iVar23) {
+_storedLordTypes[iVar34] = iVar19;
+break;
+}
+iVar34 = iVar34 + 1;
+} while (iVar34 < 9);
+_storedLordTypes[iVar23] = 0;
+}
+iVar23 = iVar23 + 1;
+} while (iVar23 < 9);
+local_d80 = (int *)((int)local_d80 + -1);
+} while (local_d80 != (int *)0x0);
+AI::AIVState::setAIVFilePresenceByFileHashArray(&DAT_AIVState,unaff_EDI);
+_section1093 = _whichCastle + -0x191de14;
+iVar23 = 1;
+piVar26 = &DAT_GameState.playerDataArray[1].aivID;
+do {
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[iVar23] == -1) {
+if (DAT_GameSynchronyState.currentAIArray[iVar23] != 0) {
+iVar19 = GetPlayerPosition(iVar23);
+piVar26[-0x18] = DAT_GameSynchronyState.skirmishPoints;
+DAT_TileMapState.field195_0x554a24 = 1;
+DAT_TileMapState.field122_0x554930 = 1;
+DAT_TileMapState.buildingPlacementFail = FALSE;
+/* set aiType to 1 + ai */
+piVar26[1] = DAT_GameSynchronyState.currentAIArray[iVar23] + 1;
+iVar34 = AI::AIVState::setupAIVMetadata(&DAT_AIVState,iVar23);
+_s1023 = _playerTeams[iVar19 * 2 + 1];
+_autoSaveMinutes = _playerTeams[iVar19 * 2];
+*piVar26 = iVar34;
+AI::AIVState::setKeepOffsetAndOrientation(&DAT_AIVState,iVar34,_autoSaveMinutes,_s1023);
+if (_whichCastle == 0) {
+AI::AIVState::selectBestAIVwithRandomStart(&DAT_AIVState,*piVar26);
+}
+else {
+/* local_d74 = param_1 - 4 or something */
+iVar19 = AI::AIVState::tryPlaceAIVAndReturnFitPercentage
+(&DAT_AIVState,*piVar26,*(int *)(_section1093 + 0x191de10 + iVar23 * 4)
+);
+DAT_AIVPlacementFit[iVar23] = iVar19;
+}
+iVar19 = *piVar26;
+if (DAT_AIVState.aivs[iVar19].aivSubType == 0) {
+/* aiv placement failed, choose default castle */
+Map::TileMapState::placeBuilding
+(&DAT_TileMapState,iVar23,_autoSaveMinutes,_s1023,M_MAPPER_KEEP2,7,0xf);
+}
+else {
+/* successfull aiv placement trying */
+AI::AIVState::applyAIV(&DAT_AIVState,iVar19,iVar23);
+Map::TileMapState::placeBuilding
+(&DAT_TileMapState,iVar23,DAT_AIVState.keepX,DAT_AIVState.keepY,M_MAPPER_KEEP2,7
+,DAT_AIVState.aivs[iVar19].keepOrientation);
+iVar19 = ((BuildingEntryInfo *)(piVar26 + -0x89a))->id;
+if (iVar19 != 0) {
+iVar34 = (int)(short)DAT_BuildingsState.buildings[iVar19].y;
+iVar19 = (int)(short)DAT_BuildingsState.buildings[iVar19].x;
+iVar20 = DAT_TileMapState.DefaultHeightLayer
+[DAT_ViewportRenderState.translationMatrix[iVar34].addXgetTile + iVar19 + 6] +
+0x5a;
+iVar34 = iVar34 * 8;
+iVar19 = iVar19 * 8 + 0x37;
+Map::Entities::EntityState::spawnProjectileEntity
+(&DAT_EntityState,0,iVar23,iVar23,iVar19,iVar34,iVar20,iVar19,iVar34,iVar20,
+ET_FLAG_4,0);
+}
+}
+}
+}
+else {
+iVar20 = GetPlayerPosition(iVar23);
+iVar19 = DAT_GameSynchronyState.skirmishPoints;
+iVar34 = _playerTeams[iVar20 * 2 + 1];
+_s1023 = _playerTeams[iVar20 * 2];
+piVar26[0x5b6] = 0;
+DAT_TileMapState.buildingPlacementFail = FALSE;
+DAT_TileMapState.field195_0x554a24 = 1;
+DAT_TileMapState.field122_0x554930 = 1;
+piVar26[-0x18] = iVar19;
+Map::TileMapState::placeBuilding(&DAT_TileMapState,iVar23,_s1023,iVar34,M_MAPPER_KEEP2,7,0xf);
+iVar20 = DAT_TileMapState.DefaultHeightLayer
+[DAT_ViewportRenderState.translationMatrix[iVar34].addXgetTile + _s1023] + 0x5a;
+iVar19 = _s1023 * 8 + 0x37;
+Map::Entities::EntityState::spawnProjectileEntity
+(&DAT_EntityState,0,iVar23,iVar23,iVar19,iVar34 * 8,iVar20,iVar19,iVar34 * 8,iVar20,
+ET_FLAG_4,0);
+if (iVar23 == DAT_GameSynchronyState.currentPlayerSlotID) {
+Rendering::ViewportRenderState::focusOnCoordinate
+(&DAT_ViewportRenderState,
+(short)DAT_BuildingsState.buildings
+[((BuildingEntryInfo *)(piVar26 + -0x89a))->id].x + 2,
+(short)DAT_BuildingsState.buildings
+[((BuildingEntryInfo *)(piVar26 + -0x89a))->id].y + 2);
+}
+}
+iVar23 = iVar23 + 1;
+piVar26 = piVar26 + 0xe7d;
+} while (iVar23 < 9);
+if (DAT_GameCore.mapU4Int0 != 0) {
+iVar23 = 1;
+do {
+/* produce the startup keep destroyal visual effects? */
+if ((DAT_GameSynchronyState.currentPlayerFullIDArray[iVar23] == -1) &&
+(DAT_GameSynchronyState.currentAIArray[iVar23] == 0)) {
+DAT_TileMapState.buildingPlacementFail = FALSE;
+DAT_GameState.mapAndTime.somePlayerID = iVar23;
+Map::TileMapState::placeBuilding
+(&DAT_TileMapState,iVar23,local_ca0,local_c9c,M_MAPPER_KEEP2,7,0xf);
+iVar19 = DAT_ViewportRenderState.translationMatrix[local_c9c].addXgetTile + local_ca0;
+uVar3 = DAT_TileMapState.BuildingLayer[iVar19];
+iVar34 = DAT_TileMapState.DefaultHeightLayer[iVar19] + 0x7c;
+iVar19 = local_ca0 * 8 + 0x37;
+DAT_GameState.playerDataArray[iVar23].keep.id = 0;
+uVar21 = Map::Entities::EntityState::spawnProjectileEntity
+(&DAT_EntityState,0,iVar23,5,iVar19,local_c9c * 8,iVar34,iVar19,
+local_c9c * 8,iVar34,ET_FLAG_4,0);
+*(short *)&DAT_BuildingsState.buildings[(short)uVar3].field_0x2c2 = (short)uVar21;
+break;
+}
+iVar23 = iVar23 + 1;
+} while (iVar23 < 9);
+}
+/* copy start gold, note that this value is written after the goods, event
+thoguh in the decompiler it shows up as if written before (and then
+overwritten by the goods...) */
+DAT_GameState.mapAndTime.startGoods[0xf] =
+(int)(&PTR_s_bad_allocation_005c2a68)[DAT_GameSynchronyState.skirmishGameIntensityType];
+/* copy start goods */
+pSVar32 = DAT_RenderingDefinedData.DAT_StartGoods +
+DAT_GameSynchronyState.skirmishGameIntensityType + -1;
+piVar26 = DAT_GameState.mapAndTime.startGoods;
+for (iVar23 = 0x19; iVar23 != 0; iVar23 = iVar23 + -1) {
+*piVar26 = pSVar32->invalid1;
+pSVar32 = (StartingResourceStructureInt *)&pSVar32->invalid2;
+piVar26 = piVar26 + 1;
+}
+DAT_GameState.mapAndTime.euroRecruitable[0] = 1;
+DAT_GameState.mapAndTime.mercRecruitable[0] = 1;
+DAT_GameState.mapAndTime.euroRecruitable[1] = 1;
+DAT_GameState.mapAndTime.mercRecruitable[1] = 1;
+DAT_GameState.mapAndTime.euroRecruitable[2] = 1;
+DAT_GameState.mapAndTime.mercRecruitable[2] = 1;
+DAT_GameState.mapAndTime.euroRecruitable[3] = 1;
+DAT_GameState.mapAndTime.mercRecruitable[3] = 1;
+DAT_GameState.mapAndTime.euroRecruitable[4] = 1;
+DAT_GameState.mapAndTime.mercRecruitable[4] = 1;
+DAT_GameState.mapAndTime.euroRecruitable[5] = 1;
+DAT_GameState.mapAndTime.mercRecruitable[5] = 1;
+DAT_GameState.mapAndTime.euroRecruitable[6] = 1;
+DAT_GameState.mapAndTime.mercRecruitable[6] = 1;
+_playerIndex = 1;
+paiVar33 = DAT_GameState.mapAndTime.startingTroops;
+_aiType2 = (char (*) [250])&DAT_GameState.playerDataArray[1].aiType;
+iVar23 = _whichCastle;
+do {
+_whichCastle = iVar23;
+iVar23 = 100;
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[_playerIndex] == -1) {
+if (DAT_GameSynchronyState.currentAIArray[_playerIndex] == 0) {
+iVar19 = 0;
+}
+else {
+iVar23 = *(int *)((int)(DAT_RenderingDefinedData.DAT_StartingTroops + -1) +
+(DAT_GameSynchronyState.skirmishCurrentAdvantageBalance + 0x35) * 4);
+iVar19 = *(AITypeInt *)_aiType2 + ~AIT_NULL;
+}
+}
+else {
+iVar19 = Synchrony::GameSynchronyState::getLordTypeForPlayer
+(&DAT_GameSynchronyState,_playerIndex);
+iVar23 = *(int *)((int)(DAT_RenderingDefinedData.DAT_StartingTroops + -1) +
+(DAT_GameSynchronyState.skirmishCurrentAdvantageBalance + 0x2f) * 4);
+iVar19 = 0x13 - (uint)(iVar19 != 1);
+}
+/* This points to the starting troops array. */
+piVar26 = (int *)((int)DAT_RenderingDefinedData.DAT_StartGoods +
+(DAT_GameSynchronyState.skirmishGameIntensityType + iVar19 * 3) * 0x50 + 0x110)
+;
+_whichCastle = 0x14;
+do {
+(*paiVar33)[0] = (*piVar26 * iVar23) / 100;
+piVar26 = piVar26 + 1;
+paiVar33 = (int (*) [20])(*paiVar33 + 1);
+_whichCastle = _whichCastle + -1;
+} while (_whichCastle != 0);
+_aiType2 = (char (*) [250])((int)_aiType2 + 0x39f4);
+_playerIndex = _playerIndex + 1;
+iVar23 = 0;
+} while ((int)_playerIndex < 9);
+DAT_GameState.mapAndTime.startingPopularity =
+DAT_GameSynchronyState.skirmishDefaultPopularity * 10;
+Map::TileMapState::prepareMap(&DAT_TileMapState);
+Map::WildlifeState::clearWildlifeState(&DAT_WildlifeState);
+DAT_GameSynchronyState.currentGameMode = GVar4;
+DAT_GameState.mapAndTime.rawDeerCount = Map::Units::UnitsState::getRawDeerCount(&DAT_UnitsState);
+/* This applies the start goods! */
+Game::GameStateStructures::clearEnemyRelatedStructures(&DAT_GameState);
+DAT_GameState.mapAndTime.field3179_0x27d4 = 0;
+DAT_GameState.mapAndTime.field3183_0x27dc = 0;
+DAT_GameState.mapAndTime.field3180_0x27d6 = 0;
+DAT_GameState.mapAndTime.yearCopy = 0;
+DAT_GameState.mapAndTime.monthCopy = 0;
+DAT_GameState.mapAndTime.field3184_0x27de = 0;
+Game::GameStateStructures::setMonthAndYear(&DAT_GameState,6,0x49d);
+DAT_GameState.mapAndTime.traderRelated1 = 4;
+DAT_GameState.mapAndTime.traderRelatedCounter2 = 4;
+DAT_GameState.mapAndTime.field1363_0x71c = 1;
+DAT_GameState.mapAndTime.field1364_0x720 = 0;
+DAT_GameState.mapAndTime.traderRelated2 = 0;
+DAT_GameState.mapAndTime.traderRelatedCounter1 = 0;
+pBVar24 = &DAT_GameState.playerDataArray[2].keep;
+iVar23 = 0;
+do {
+if (((*(int *)((int)DAT_GameSynchronyState.currentPlayerFullIDArray + iVar23 + 4) != -1) ||
+(*(int *)((int)DAT_GameSynchronyState.currentAIArray + iVar23 + 4) != 0)) &&
+(*(int *)((int)(pBVar24 + -0x173) + 4) != 0)) {
+*(uint *)((int)DAT_GameState.mapAndTime.field22_0x58[0] + iVar23 + 4) =
+DAT_BuildingsState.buildings[*(int *)((int)(pBVar24 + -0x173) + 4)].
+currentTilePositionAdjusted;
+}
+if (((*(int *)((int)DAT_GameSynchronyState.currentPlayerFullIDArray + iVar23 + 8) != -1) ||
+(*(int *)((int)DAT_GameSynchronyState.currentAIArray + iVar23 + 8) != 0)) &&
+(pBVar24->id != 0)) {
+*(uint *)((int)DAT_GameState.mapAndTime.field22_0x58[0] + iVar23 + 8) =
+DAT_BuildingsState.buildings[pBVar24->id].currentTilePositionAdjusted;
+}
+if (((*(int *)((int)DAT_GameSynchronyState.currentPlayerFullIDArray + iVar23 + 0xc) != -1) ||
+(*(int *)((int)DAT_GameSynchronyState.currentAIArray + iVar23 + 0xc) != 0)) &&
+(*(int *)((int)(pBVar24 + 0x172) + 0x24) != 0)) {
+*(uint *)((int)DAT_GameState.mapAndTime.field22_0x58[0] + iVar23 + 0xc) =
+DAT_BuildingsState.buildings[*(int *)((int)(pBVar24 + 0x172) + 0x24)].
+currentTilePositionAdjusted;
+}
+if (((*(int *)((int)DAT_GameSynchronyState.currentPlayerFullIDArray + iVar23 + 0x10) != -1) ||
+(*(int *)((int)DAT_GameSynchronyState.currentAIArray + iVar23 + 0x10) != 0)) &&
+(*(int *)((int)(pBVar24 + 0x2e5) + 0x20) != 0)) {
+*(uint *)((int)DAT_GameState.mapAndTime.field22_0x58[0] + iVar23 + 0x10) =
+DAT_BuildingsState.buildings[*(int *)((int)(pBVar24 + 0x2e5) + 0x20)].
+currentTilePositionAdjusted;
+}
+pBVar24 = (BuildingEntryInfo *)((int)(pBVar24 + 0x5cb) + 0x18);
+iVar23 = iVar23 + 0x10;
+} while ((int)pBVar24 < 0x1180214);
+pBVar22 = DAT_GameState.mapAndTime.copyOfBuyAndSalesPrice;
+iVar23 = 0;
+do {
+/* this code resets the buy and sell prices to the default */
+iVar19 = *(int *)((int)DAT_RenderingDefinedData.DAT_BuyPricePerResource + iVar23);
+pBVar22[0x19].buyPrice = iVar19;
+pBVar22->buyPrice = iVar19;
+iVar19 = *(int *)((int)DAT_RenderingDefinedData.DAT_SalesPricePerResource + iVar23);
+pBVar22[0x19].salesPrice = iVar19;
+pBVar22->salesPrice = iVar19;
+/* this code sets every trade good as tradeable */
+*(undefined4 *)((int)DAT_GameState.mapAndTime.isResourceTradeable + iVar23) = 1;
+*(undefined4 *)((int)DAT_GameState.mapAndTime.unknownResouceFlagArray1 + iVar23) = 0;
+*(undefined4 *)((int)DAT_GameState.mapAndTime.unknownResourceFlagArray2 + iVar23) = 0;
+pBVar22 = pBVar22 + 1;
+iVar23 = iVar23 + 4;
+} while ((int)pBVar22 < 0x117cfd4);
+if (DAT_GameSynchronyState.skirmishTechLevel < 3) {
+DAT_GameState.mapAndTime.isResourceTradeable[0x10] = 0;
+}
+DAT_GameState.mapAndTime.euroRecruitableCopy_index_0 = 1;
+DAT_GameState.mapAndTime.euroRecruitableCopy_index_2 = 1;
+DAT_GameState.mapAndTime.field2257_0xda8 = 1;
+DAT_GameState.mapAndTime.euroRecruitableCopy_index_1_b = 1;
+DAT_GameState.mapAndTime.euroRecruitableCopy_index_3_b = 1;
+DAT_GameState.mapAndTime.euroRecruitableCopy_index_6_a = 1;
+DAT_GameState.mapAndTime.euroRecruitableCopy_index_1_a = 1;
+DAT_GameState.mapAndTime.euroRecruitableCopy_index_3_a_and_6_b = 1;
+DAT_GameState.mapAndTime.euroRecruitableCopy_index_6_c = 1;
+SetAIPlayerNickNames();
+if ((DAT_GameSynchronyState.currentGameMode == GM_SKIRMISH_SINGLE_PLAYER) &&
+(DAT_GameSynchronyState.currentPlayerSlotID == 0)) {
+DAT_GameState.playerDataArray[0].playerDeathRelated = 1;
+}
+iVar23 = 1;
+_aiType2 = DAT_GameSynchronyState.DAT_PlayerNames + 1;
+iVar19 = 0x1a26d86;
+do {
+if ((DAT_GameSynchronyState.currentPlayerFullIDArray[iVar23] == -1) &&
+(DAT_GameSynchronyState.currentAIArray[iVar23] == 0)) {
+DAT_GameSynchronyState.finalResults.active[iVar23] = 0;
+}
+else {
+DAT_GameSynchronyState.finalResults.active[iVar23] = 1;
+pacVar25 = _aiType2;
+do {
+cVar1 = (*pacVar25)[0];
+*(char *)((int)pacVar25 + (iVar19 - (int)_aiType2)) = cVar1;
+pacVar25 = (char (*) [250])(*pacVar25 + 1);
+} while (cVar1 != '\0');
+DAT_GameSynchronyState.finalResults.finalGold[iVar23] = 0;
+DAT_GameSynchronyState.finalResults.finalMaxPopulation[iVar23] = 0;
+DAT_GameSynchronyState.finalResults.finalMaxGoodThings[iVar23] = 0;
+DAT_GameSynchronyState.finalResults.finalMaxBadThings[iVar23] = 0;
+DAT_GameSynchronyState.finalResults.finalBuildingsBurned[iVar23] = 0;
+DAT_GameSynchronyState.finalResults.finalBuidingsDestroyed[iVar23] = 0;
+DAT_GameSynchronyState.finalResults.finalFoodProduced[iVar23] = 0;
+DAT_GameSynchronyState.finalResults.finalWeaponsProduced[iVar23] = 0;
+DAT_GameSynchronyState.finalResults.finalIronProduced[iVar23] = 0;
+DAT_GameSynchronyState.finalResults.finalStoneProduced[iVar23] = 0;
+DAT_GameSynchronyState.finalResults.finalWoodProduced[iVar23] = 0;
+DAT_GameSynchronyState.finalResults.finalPitchProduced[iVar23] = 0;
+DAT_GameSynchronyState.finalResults.finalKilledLords[iVar23] = 0;
+DAT_GameSynchronyState.finalResults.finalTroopsKilledWeighted[iVar23] = 0;
+DAT_GameSynchronyState.finalResults.finalBuildingsDestroyedWeighted[iVar23] = 0;
+/* monthStart */
+DAT_GameSynchronyState.finalResults.finalDateOfDeathInMonths[iVar23 + 9] = 0;
+}
+_aiType2 = _aiType2 + 1;
+iVar19 = iVar19 + 0x5a;
+iVar23 = iVar23 + 1;
+} while (iVar19 < 0x1a27056);
+paiVar36 = DAT_GameSynchronyState.finalResults.finalKillMatrix;
+for (iVar23 = 0x51; iVar23 != 0; iVar23 = iVar23 + -1) {
+(*paiVar36)[0] = 0;
+paiVar36 = (int (*) [9])(*paiVar36 + 1);
+}
+DAT_GameSynchronyState.finalResults.monthStart = DAT_GameState.mapAndTime.month;
+DAT_GameSynchronyState.finalResults.yearStart = DAT_GameState.mapAndTime.year;
+Map::Units::TroopValueState::clearAttackInfo(&DAT_TroopValueState);
+AI::AIVState::recomputeHeatmaps(&DAT_AIVState,1);
+AI::AICState::recomputeAttackAIZone(&DAT_AICState);
+iVar23 = 1;
+do {
+if ((DAT_GameSynchronyState.currentPlayerFullIDArray[iVar23] == -1) &&
+(DAT_GameSynchronyState.currentAIArray[iVar23] != 0)) {
+AI::AIVState::recomputeAIAvailableGridTiles(&DAT_AIVState,iVar23);
+}
+iVar23 = iVar23 + 1;
+} while (iVar23 < 9);
+Rendering::Bink::AIMessageQueue::playNextStoredBinkVideo(&DAT_VideoBikQueue);
+DAT_GameState.mapAndTime.strongWalls2 = DAT_GameSynchronyState.skirmishStrongWalls;
+DAT_GameState.mapAndTime.field598_0x348 = DAT_GameSynchronyState.skirmishAlliances;
+DAT_GameState.mapAndTime.noDogs = DAT_GameSynchronyState.skirmishNoDogs;
+DAT_GameState.mapAndTime.noCowThrowing = DAT_GameSynchronyState.skirmishNoCowThrowing;
+DAT_GameState.mapAndTime.field3186_0x27e4 = DAT_GameSynchronyState.skirmishExtremeMode;
+DAT_GameState.mapAndTime.totalNoRushTicks =
+DAT_RenderingDefinedData.DAT_NoRushTicks[DAT_GameSynchronyState.skirmishNoRushSetting];
+DAT_GameState.mapAndTime.field3187_0x27e8 = DAT_GameSynchronyState.skirmishExtremeMode2;
+DAT_GameState.mapAndTime.countUpTo201 = 0;
+DAT_GameState.mapAndTime.noRushTicksLeftUnk = DAT_GameState.mapAndTime.totalNoRushTicks;
+UI::MenuTextInputState::clearModalDialog2to6(&DAT_MenuTextInputState);
+DAT_GameSynchronyState.DAT_TimeRelated1 = timeGetTime();
+DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType = BASMTT_HUNTERSHUT;
+DAT_MissionDefinedData.field26_0xaf8[0]._0_1_ = 0;
+if ((DAT_GameCore.currentMenuViewType == MVT_SELECT_CRUSADE) ||
+(DAT_GameCore.currentMenuViewType == MVT_CRUSADE_MISSION_INTRO)) {
+iVar23 = 0;
+}
+else {
+iVar23 = 10000;
+}
+Game::GameCore::switchToMenuView(&DAT_GameCore,MVT_BUILD_MENU,iVar23);
+DAT_UIDragDropDefinedData.DAT_MenuView_TriggerInitial = TRUE;
+DAT_WindowAndDirectDraw.unk_resetViewportRelated = 1;
+DWORD_00b95b1c = timeGetTime();
+DAT_00b960dc = 1;
+Synchrony::GameSynchronyState::recomputeHashesAndSendResync(&DAT_GameSynchronyState,0);
+DAT_GameSynchronyState.DAT_TwoIfNotHost = 0;
+DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[0] = 0;
+DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[1] = 0;
+DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[2] = 0;
+DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[3] = 0;
+DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[4] = 0;
+DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[5] = 0;
+DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[6] = 0;
+DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[7] = 0;
+DAT_GameSynchronyState.DAT_PlayerSlotArraySomeValue[8] = 0;
+DAT_GameCore.timeSum_2 = timeGetTime();
+DAT_GameCore.gameDuration = 0;
+TIME_ReceivedMessage_2 = 0;
+DAT_00b960f8 = 0;
+INT_00b960f0 = 0;
+HoldStrong_lib::__security_check_cookie(uVar17 ^ (uint)auStack_d8c);
+return;
+}
+--- NAMEN NUR IM PAKETCODE ---
+BVar13, BuyPricePerResource, CHAR_CONST, MACRO_CALL, MapSectionAddressArray, MenuView_TriggerInitial, NoRushTicks, PlayerData, SalesPricePerResource, StartGoods, StartingTroops, _advantage, _aiNumber, _anotherPlayerIDUnk, _arrayIndex1, _charIndex, _counter, _delay, _finalResultsIndex, _fitPercentage, _gameMode, _index, _indexFinalResults, _keepBuildingID, _keepID, _killMatrix, _lordType, _pFinalResults, _pKeepPlayer2, _playerID, _playerIDby4, _playerPosition, _ptrAIVID, _ptrFinalResults, _ptrSection1124, _resourceIndex, _seed, _startingTroopsPlayerData, aiVariationArray, builtin_strncpy, field294_0x109e5f, iVar17, iVar18, iVar25, lordKilledByPlayerID, lordUID, pAVar27, pBVar20, pSVar24, pSVar26, pacVar21, pcVar14, pdVar23, piVar14, piVar27, puVar22, sVar4, skirmishNoRushTicks, skirmishNoRushTicksLeft, timeSkirmishGameStart, uVar15, uVar19, unitJesterRelated, unitLadyRelated
+--- KOMMENTARE IM PAKETCODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00441270
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+--- ERKLAERUNG ---
+{"adr": "0x00441270", "name": "LaunchSkirmishGame", "p1": {"bereich": "Spielablauf", "zweck": "Richtet ein Gefecht ein und startet es: Karte laden, Teams und Burgen setzen, Startwaren, Starttruppen, Preise und Regeln festlegen, Statistik nullen, Bauansicht öffnen."}, "p2": {"ein": "whichCastle (als int deklariert): 0 = Burgvorlagen der KI zufällig wählen; sonst wird der Wert im Code als Adresse eines Felds aus 8 Ganzzahlen gelesen (Eintrag p-1 für Platz p, als zweites Argument an tryPlaceAIVAndReturnFitPercentage, nur für KI-Plätze)", "aus": "-", "liest": ["GameSynchronyState: currentGameMode, mapName, DAT_PlayerGroupArray, currentPlayerFullIDArray, currentAIArray, aiVariationArray, currentPlayerSlotID, skirmishGameIntensityType, skirmishCurrentAdvantageBalance, skirmishPoints, skirmishTechLevel, skirmishDefaultPopularity, skirmishNoRushSetting, skirmishStrongWalls/Alliances/NoDogs/NoCowThrowing/ExtremeMode/ExtremeMode2, skirmishAutoSaveEveryMinutes, DAT_PlayerNames, finalResults", "GameState.mapAndTime: skirmishFogOfWar, playerTeams, playerGroupArray, month, year", "SkirmishLobbySetupStructure (66 Werte)", "GameCore: currentTrailType, skirmishTrailProgress, warchestTrailProgress, extremeTrailProgress, isSkirmishTrail, selectedLordTypes, mapU4Int0, currentMenuViewType", "RenderingDefinedData: StartGoods (Warenzeilen; ab +0x110 die Truppenzeilen), StartingTroops (Vorteilstabelle), BuyPricePerResource, SalesPricePerResource, NoRushTicks", "Tabelle bei PTR_s_bad_allocation_005c2a68 (Startgold je Intensität)", "playerDataArray[p]: keep.id, stockpile.id, lordID, lordUID", "BuildingsState.buildings (x, y, currentTilePositionAdjusted), AIVState (aivs[].aivSubType, aivs[].keepOrientation, keepX, keepY)"], "schreibt": ["GameState.mapAndTime: playerGroupArray, playerTeams, startGoods[0..24] (Index 0xf = Startgold), startingTroops (20 Werte je Platz), startingPopularity, copyOfBuyAndSalesPrice, isResourceTradeable, unknownResouceFlagArray1/2, euroRecruitable[0..6], mercRecruitable[0..6], euroRecruitableCopy_*, difficulty, unitJesterRelated, unitLadyRelated, rawDeerCount, traderRelated*, field22_0x58[1..8] (Burgkachel), skirmishStrongWalls/Alliances/NoDogs/NoCowThrowing/ExtremeMode/ExtremeMode2, skirmishNoRushTicks, skirmishNoRushTicksLeft, countUpTo201, Datum", "GameCore: missionNumber1to20, gameMode_2, xbow/bow/spear/mace/sword/pikeProducible_logic, mapTimeInTicks, section1127, section1095, isTimeHalted, isVictoryOrDefeatUnk, Trail-Werte (zurückgeschrieben), buildmenuMenuTabToSwitchTo.tabType, timeSum_2, gameDuration", "GameSynchronyState: skirmishTroopsCostGold, aiVariationArray (nur KI-Plätze), finalResults (active, Namen, Zähler, Kill-Matrix, monthStart, yearStart), timeSkirmishGameStart, DAT_TwoIfNotHost, DAT_PlayerSlotArraySomeValue[0..8], currentGameMode", "playerDataArray[p]: aiType, aivID, keep.id (Platz der Zusatzburg), lordID, lordUID, lordKilledByPlayerID, playerDeathRelated (Platz 0), unbenannte Felder bei aivID-0x18 und aivID+0x5b6", "DAT_AIVPlacementFit[0..8] (zuerst -10)", "Gebäude/Karte: Burgen, Vorratslager und Lords der Karte zerstört, neue Burgen gesetzt, Flaggenentitäten ET_FLAG_4"], "ruft": ["commitSkirmishSettings", "resolveResourceFileName", "setupAllMapSections", "readMapOrSavFile", "mapLoadingAndLaunchGameRelated1", "wipeAIVsAndHeatMaps", "populateRNG1040", "destroyBuildingAndLinkedDuplicates", "deleteUnit", "destroyPlayerCompletely", "GetPlayerPosition", "swapOwnership", "setAIVFilePresenceByFileHashArray", "setupAIVMetadata", "setKeepOffsetAndOrientation", "selectBestAIVwithRandomStart", "tryPlaceAIVAndReturnFitPercentage", "applyAIV", "placeBuilding", "spawnProjectileEntity", "focusOnCoordinate", "getLordTypeForPlayer", "prepareMap", "clearWildlifeState", "getRawDeerCount", "clearEnemyRelatedStructures", "setMonthAndYear", "SetAIPlayerNickNames", "clearAttackInfo", "recomputeHeatmaps", "recomputeAttackAIZone", "recomputeAIAvailableGridTiles", "playNextStoredBinkVideo", "clearModalDialog2to6", "switchToMenuView", "recomputeHashesAndSendResync", "timeGetTime"], "regeln": ["Große Funktion, Ablauf in 5 Schritten: (1) Lobby-Einstellungen, Teams, Trail-Fortschritt, Zufallsstartwert und finalResults sichern, Karte laden (resolveResourceFileName, setupAllMapSections, readMapOrSavFile, mapLoadingAndLaunchGameRelated1) und das Gesicherte zurückschreiben; (2) Burgen und Lords der Karte zerstören, Plätze auf ihre Zielpositionen umordnen; (3) je Platz 1 bis 8 die Burg setzen; (4) Startwaren, Starttruppen, Preise, Handel, Regeln und Datum setzen; (5) Statistik nullen, Karten neu berechnen (clearAttackInfo, recomputeHeatmaps(1), recomputeAttackAIZone), Bauansicht öffnen, Zeitstempel setzen", "Teams: playerGroupArray[p] wird für Platz 1 bis 8 aus der Lobbygruppe (vorzeichenbehaftetes Byte) kopiert; ist sie > 0, wird auch playerTeams[p] auf sie gesetzt (eine negative Gruppe lässt playerTeams unberührt). Plätze mit Lobbygruppe == 0 bekommen in der Reihenfolge 1 bis 8 eigene Teamnummern ab (höchste Gruppe + 1)", "Sichern und Zurückschreiben: vor dem Kartenladen werden 66 Lobbywerte, finalResults (478 Werte), playerTeams, playerGroupArray, currentAIArray, selectedLordTypes (je Plätze 0 bis 8), skirmishCurrentAdvantageBalance, Trail-Typ und -Fortschritt, isSkirmishTrail, Zufallsstartwert (danach populateRNG1040), skirmishFogOfWar, skirmishAutoSaveEveryMinutes, skirmishPoints, skirmishGameIntensityType, currentPlayerSlotID und currentGameMode gesichert und nach dem Laden zurückgeschrieben (currentGameMode erst nach prepareMap und clearWildlifeState). aiVariationArray[i] (i = 0 bis 8) kommt nur zurück, wenn kein Mensch auf dem Platz ist (currentPlayerFullIDArray[i] == -1) und die gesicherte currentAIArray[i] != 0 ist. Trail-Fortschritt: TT_WARCHEST warchestTrailProgress, TT_EXTREME extremeTrailProgress, sonst skirmishTrailProgress", "Feste Werte: missionNumber1to20 wird vor dem Kartenladen auf 1 gesetzt und danach auf skirmishTechLevel + 0x16 (22 plus Techstufe) überschrieben; gameMode_2 = GM_SKIRMISH_AND_MULTIPLAYER; difficulty = 1; skirmishTroopsCostGold = 1; unitJesterRelated = 1; unitLadyRelated = 0; xbow, bow, spear, mace Producible = 1; sword und pike Producible = 1 nur wenn skirmishTechLevel != 2, sonst 0; mapTimeInTicks = 1, section1127 = 1, isVictoryOrDefeatUnk = 0, isTimeHalted = FALSE, section1095 = 0", "Zerstörung: für Platz 1 bis 8 mit keep.id != 0 (Burg der Karte) wird die Burgposition (x, y) gemerkt (sonst -1, -1), Burg und Vorratslager mit destroyBuildingAndLinkedDuplicates zerstört (showNoRubbleWhenDestroyingBuilding = 1, vermutlich ohne Schutt), die Lord-Einheit nur gelöscht, wenn lordUID zur Einheit lordID passt, und lordID, lordUID, lordKilledByPlayerID auf 0 gesetzt. Gibt es weniger belegte Plätze (Mensch: currentPlayerFullIDArray != -1, oder KI: currentAIArray != 0) als Karten-Burgen, wird destroyPlayerCompletely(p) für jeden Platz mit gemerkter Burg (x != -1) aufgerufen, dessen Byte field294_0x109e5f[p + 8] negativ ist", "Umordnen: alle Plätze 1 bis 8 bekommen zuerst aiType = AIT_NULL. Für jeden belegten Platz p liefert GetPlayerPosition(p) die Zielposition; ist sie gleich p, wird swapOwnership(p, p) aufgerufen, sonst wird sie vermerkt. Danach bis zu 8 Durchgänge: für jeden belegten Platz mit vermerktem Ziel T wird swapOwnership(T, p) aufgerufen, der erste Platz q, dessen Ziel p war, bekommt T als Ziel, und der Vermerk von p wird gelöscht. Dann setAIVFilePresenceByFileHashArray", "Burg KI (kein Mensch, currentAIArray[p] != 0): aiType = currentAIArray[p] + 1; skirmishPoints wird in ein unbenanntes Spielerfeld (aivID-0x18) geschrieben; buildingPlacementFail = FALSE; zwei TileMapState-Flags = 1; Position (x, y) = gemerkte Burgposition des Zielplatzes GetPlayerPosition(p); setupAIVMetadata(p) liefert aivID, dann setKeepOffsetAndOrientation(aivID, x, y). Bei whichCastle == 0 selectBestAIVwithRandomStart(aivID), sonst DAT_AIVPlacementFit[p] = tryPlaceAIVAndReturnFitPercentage(aivID, whichCastle[p-1]); ohne diesen Aufruf bleibt der Eintrag -10", "Ergebnis KI: ist aivs[aivID].aivSubType == 0 (Kommentar im Code: Platzierung fehlgeschlagen), wird die Standardburg placeBuilding(p, x, y, M_MAPPER_KEEP2, 7, 0xf) gesetzt, ohne Flagge. Sonst applyAIV(aivID, p) und placeBuilding an DAT_AIVState.keepX/keepY mit der keepOrientation der Vorlage; ist danach keep.id != 0, erscheint eine Flaggenentität ET_FLAG_4 bei (x*8+0x37, y*8) in Höhe Höhenfeld + 0x5a", "Burg Mensch (currentPlayerFullIDArray[p] != -1): immer Standardburg placeBuilding(p, x, y, M_MAPPER_KEEP2, 7, 0xf) an der Zielposition, kein applyAIV. Dazu skirmishPoints nach aivID-0x18, ein unbenanntes Feld bei aivID+0x5b6 auf 0, Flaggenentität ET_FLAG_4 (Höhenfeld + 0x5a), und Kamera (focusOnCoordinate auf Burg x+2, y+2) nur beim eigenen Platz p == currentPlayerSlotID. Leere Plätze (weder Mensch noch KI) bekommen in dieser Schleife keine Burg", "Zusatzburg: nur wenn GameCore.mapU4Int0 != 0, für den ersten leeren Platz (kein Mensch, currentAIArray == 0): somePlayerID = p, Standardburg an (local_ca0, local_c9c), keep.id des Platzes auf 0, Flaggenentität ET_FLAG_4 (Höhenfeld + 0x7c) erzeugt, ihre Nummer (16 Bit) in field_0x2c2 des gesetzten Gebäudes abgelegt, Suche beendet. Code-Kommentar: vermutlich Zerstörungseffekt der Start-Burg", "Startwaren: 25 Werte aus StartGoods + Intensität - 1 nach startGoods[0..24]; danach startGoods[0xf] = Startgold aus der Tabelle bei PTR_s_bad_allocation_005c2a68, Index skirmishGameIntensityType (Code-Kommentar: zeitlich nach den Waren, Ghidra zeigt es davor). Der StartGoods-Wert für Index 0xf wird also überschrieben. Alle Werte sind Grundwerte", "Starttruppen: Plätze 1 bis 8 in Reihenfolge, je 20 Werte nacheinander ab startingTroops[0]: Wert = Tabellenwert × Vorteil / 100 (ganzzahlig). Tabellenzeile = StartGoods + (Intensität + 3 × Nr) × 0x50 + 0x110. Nr: KI = aiType + ~AIT_NULL (bei AIT_NULL = 0 also currentAIArray[p]); Mensch 19 bei getLordTypeForPlayer == 1, sonst 18; leerer Platz 0. Vorteil: leerer Platz 100; KI und Mensch aus StartingTroops, Zahlenindex skirmishCurrentAdvantageBalance + 0x35 (KI) bzw. + 0x2f (Mensch) bei Zeiger StartingTroops - 1 (Elementgröße vermutlich 4 Byte)", "Preise und Handel: je Ware (vermutlich 25) copyOfBuyAndSalesPrice[i] und [i + 25] (Kauf und Verkauf) = BuyPricePerResource[i] und SalesPricePerResource[i]; isResourceTradeable[i] = 1; unknownResouceFlagArray1/2[i] = 0; ist skirmishTechLevel < 3, wird isResourceTradeable[0x10] = 0. euroRecruitable[0..6] und mercRecruitable[0..6] = 1 sowie neun euroRecruitableCopy_*-Felder = 1", "Startwerte: startingPopularity = skirmishDefaultPopularity × 10; sechs Felder (field3179, field3180, field3183, field3184, yearCopy, monthCopy) = 0 und setMonthAndYear(6, 1181) (Reihenfolge vermutlich Monat, Jahr); rawDeerCount = getRawDeerCount(); traderRelated1 = traderRelatedCounter2 = 4, field1363_0x71c = 1, field1364_0x720 = traderRelated2 = traderRelatedCounter1 = 0; field22_0x58[p] = currentTilePositionAdjusted der Burg für belegte Plätze mit keep.id != 0; bei GM_SKIRMISH_SINGLE_PLAYER und currentPlayerSlotID == 0 wird playerDataArray[0].playerDeathRelated = 1", "Abschluss: finalResults: Plätze ohne Mensch und ohne KI bekommen active = 0, alle anderen active = 1, Namen aus DAT_PlayerNames, 15 Zähler (Gold, Höchstbevölkerung, Gutes, Schlechtes, Gebäude verbrannt und zerstört, Nahrung, Waffen, Eisen, Stein, Holz, Pech, getötete Lords, gewichtete Truppen- und Gebäudeverluste) und finalDateOfDeathInMonths[p + 9] = 0; Kill-Matrix (81 Werte) = 0; monthStart und yearStart = aktuelles Datum. Lobby-Regeln (StrongWalls, Alliances, NoDogs, NoCowThrowing, ExtremeMode, ExtremeMode2) werden übernommen; skirmishNoRushTicks = NoRushTicks[skirmishNoRushSetting], skirmishNoRushTicksLeft = skirmishNoRushTicks, countUpTo201 = 0; für KI-Plätze recomputeAIAvailableGridTiles; switchToMenuView(MVT_BUILD_MENU, 0) bei MVT_SELECT_CRUSADE oder MVT_CRUSADE_MISSION_INTRO, sonst mit 10000 (Einheit unbekannt); Bautab BASMTT_HUNTERSHUT; recomputeHashesAndSendResync(0); timeSkirmishGameStart und timeSum_2 = timeGetTime(), gameDuration = 0"], "offen": ["whichCastle: Der Code liest den Wert als Adresse eines 8er-Felds; was die Einträge bedeuten (vermutlich vorgegebene Burgvorlage je Platz), ist nicht gesichert", "local_ca0 und local_c9c (Koordinaten der Zusatzburg) werden im sichtbaren Code nie gesetzt (Ghidra-Stapelüberlagerung); Herkunft und Bedeutung von mapU4Int0 unbekannt", "Bedeutung von field294_0x109e5f[p+8], der Felder bei aivID-0x18 und aivID+0x5b6, der TileMapState-Flags field195_0x554a24 und field122_0x554930 sowie von swapOwnership(p, p)", "GetPlayerPosition: Wertebereich vermutlich 1 bis 8 (Kartenposition), nicht belegt; die Belegungsprüfung im Zerstörungsschritt steht in Ghidra als Versatz -0x1b und ist vermutlich dieselbe Prüfung wie überall", "Startgold-Tabelle: Elementgröße und Inhalt unklar (Ghidra benennt sie als Zeiger auf die Zeichenkette bad allocation); Zeilengrößen von StartGoods und StartingTroops sowie ob die Intensität bei 0 oder 1 beginnt, sind aus der Funktion nicht ablesbar", "Platz p schreibt auf startingTroops[p-1] (Schreibbeginn bei Eintrag 0); ob das Feld ab Platz 1 oder Platz 0 gezählt wird, ist offen", "Einheit von NoRushTicks und der Menüverzögerung 10000; Bedeutung von skirmishTroopsCostGold, unitJesterRelated, unitLadyRelated, traderRelated*, Ware 0x10 und vieler Felder mit Unk oder field…"]}, "p3": {"erklaerung": "Hier wird aus den Lobby-Einstellungen ein laufendes Gefecht: Die Karte wird geladen, die Burgen der Karte weichen den gewählten (Mensch: Standardburg, KI: Burgvorlage), und Startgold, Startwaren, Starttruppen, Preise und Regeln werden gesetzt. Startgold und Startwaren hängen von der Intensität ab, die Starttruppen zusätzlich von der KI-Art und dem Vorteilswert.", "gehirn": "Nach dem Start Startwaren (startGoods, Gold bei Index 0xf) und Starttruppen (startingTroops, 20 Werte je Platz) direkt lesen, statt sie aus Tabellen nachzurechnen. Preise beginnen bei den Grundwerten, alle Waren sind handelbar (Ware 0x10 nur ab skirmishTechLevel 3). skirmishNoRushTicksLeft startet bei NoRushTicks[Einstellung]; vermutlich die Zeit ohne Angriffe (Einheit ungeklärt). Alles Grundwerte, UCP kann sie ändern.", "beleg": "code", "live": "Gefecht mit KI starten (beliebige Intensität und Vorteil) → startGoods[0..24], startingTroops[0..7][0..19], skirmishNoRushTicks/TicksLeft sowie die Tabellen StartGoods, StartingTroops, NoRushTicks und Startgold lesen → startGoods[0xf] = Startgold[Intensität]; startingTroops[p-1][k] = Tabellenzeile(Intensität + 3 × KI-Nr)[k] × Vorteil / 100 (Mensch Zeile 18 oder 19, leerer Platz Zeile 0 mit 100); TicksLeft = NoRushTicks[Einstellung]", "live_art": "sonstiges"}}

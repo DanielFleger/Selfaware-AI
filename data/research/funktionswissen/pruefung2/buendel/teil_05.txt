@@ -1,0 +1,1366 @@
+### 0x004c62c0 loadMap
+--- CODE (Ghidra-Export, vollstaendig) ---
+/* WARNING: Enum "DPSEND_EnumInt": Some values do not have unique names */
+/* WARNING: Enum "DPERRInt": Some values do not have unique names */
+/* WARNING: Enum "MappersEnum": Some values do not have unique names */
+/* decompilerscript: committed: 2025-01-30 21:57:43.216000 */
+void __thiscall
+_HoldStrong::Map::MapPropertiesState::loadMap(MapPropertiesState *this,char *mapName)
+{
+char cVar1;
+GameMode2Int GVar2;
+UnitTypeShort *pUVar3;
+int *piVar4;
+SiegeUnitCounts *pSVar5;
+int iVar6;
+int *piVar7;
+SiegeUnitCounts *pSVar8;
+InGameEventExtra *pIVar9;
+int local_34;
+int local_30;
+int local_2c;
+int local_28;
+int local_24;
+int local_20;
+int local_1c;
+int local_18;
+int local_14;
+int local_10;
+int local_c;
+int local_8;
+uint local_4;
+GVar2 = DAT_GameCore.gameMode_2;
+iVar6 = DAT_GameCore.missionNumber1to20;
+local_4 = MSVC_SecurityCookie ^ (uint)&local_34;
+local_14 = DAT_GameSynchronyState.currentPlayerSlotID;
+local_30 = DAT_GameState.mapAndTime.difficulty;
+local_10 = DAT_GameCore.xbowProducible_logic;
+local_18 = DAT_GameCore.swordProducible_logic;
+local_28 = DAT_GameCore.pikeProducible_logic;
+local_20 = DAT_GameCore.bowProducible_logic;
+local_24 = (int)DAT_GameState.mapAndTime.field2272_0xe02;
+local_2c = DAT_GameCore.maceProducible_logic;
+local_34 = DAT_GameCore.spearProducible_logic;
+local_1c = (int)DAT_GameState.mapAndTime.field2271_0xe00;
+local_c = DAT_GameState.mapAndTime.field43_0xf0;
+local_8 = DAT_GameState.mapAndTime.field44_0xf4;
+Game::GameStateStructures::resetTeams(&DAT_GameState);
+TileMapState::setupAllMapSections(&DAT_TileMapState);
+IO::ResourceManager::resolveResourceFileName(&DAT_ResourceManager,FRT_MAPS,mapName);
+IO::FilePackager::readMapOrSavFile(&FilePackagerObj,DAT_MapDefinedData.DAT_MapSectionAddressArray)
+;
+Audio::MSS::SoundSystem::mapLoadingAndLaunchGameRelated1(&DAT_SoundSystemState);
+DAT_GameState.mapAndTime.difficulty = local_30;
+DAT_GameCore.xbowProducible_logic = local_10;
+DAT_GameCore.pikeProducible_logic = local_28;
+DAT_GameCore.swordProducible_logic = local_18;
+DAT_GameCore.bowProducible_logic = local_20;
+DAT_GameCore.mapTimeInTicks = 1;
+DAT_GameCore.section1127 = 1;
+DAT_GameCore.spearProducible_logic = local_34;
+DAT_GameCore.maceProducible_logic = local_2c;
+DAT_GameCore.missionNumber1to20 = iVar6;
+DAT_GameCore.gameMode_2 = GVar2;
+if (iVar6 == 1) {
+iVar6 = 8;
+pUVar3 = &DAT_UnitsState.units[1].unitType;
+do {
+if (((pUVar3[-1] != ULS_INVISIBLE) && (*pUVar3 == UT_E_ARCHER)) && (pUVar3[4] == 1)) {
+iVar6 = iVar6 + -1;
+*(int *)(pUVar3 + -0x3f) = 3;
+if (iVar6 == 0) break;
+}
+pUVar3 = pUVar3 + 0x248;
+} while ((int)pUVar3 < 0x165141a);
+}
+DAT_GameState.mapAndTime.field2271_0xe00 = (short)local_1c;
+DAT_GameSynchronyState.currentPlayerFullIDArray[0] = -1;
+DAT_GameSynchronyState.currentPlayerFullIDArray[1] = -1;
+DAT_GameSynchronyState.currentPlayerFullIDArray[2] = -1;
+DAT_GameSynchronyState.currentPlayerFullIDArray[3] = -1;
+DAT_GameSynchronyState.currentPlayerFullIDArray[4] = -1;
+DAT_GameSynchronyState.currentPlayerFullIDArray[5] = -1;
+DAT_GameSynchronyState.currentPlayerFullIDArray[6] = -1;
+DAT_GameSynchronyState.currentPlayerFullIDArray[7] = -1;
+DAT_GameSynchronyState.currentPlayerFullIDArray[8] = -1;
+DAT_GameState.mapAndTime.field2272_0xe02 = (short)local_24;
+DAT_GameSynchronyState.currentPlayerSlotID = local_14;
+DAT_GameState.mapAndTime.field44_0xf4 = local_8;
+DAT_GameSynchronyState.currentPlayerFullIDArray[local_14] = 1;
+DAT_GameState.mapAndTime.field43_0xf0 = local_c;
+DAT_GameState.playerDataArray[1].tacticalPowersBarLevel = 0;
+DAT_GameState.playerDataArray[2].tacticalPowersBarLevel = 0;
+DAT_GameState.playerDataArray[3].tacticalPowersBarLevel = 0;
+DAT_GameState.playerDataArray[4].tacticalPowersBarLevel = 0;
+DAT_GameState.playerDataArray[5].tacticalPowersBarLevel = 0;
+DAT_GameState.playerDataArray[6].tacticalPowersBarLevel = 0;
+DAT_GameState.playerDataArray[7].tacticalPowersBarLevel = 0;
+DAT_GameState.playerDataArray[8].tacticalPowersBarLevel = 0;
+DAT_GameCore.isTimeHalted = FALSE;
+DAT_GameCore.section1095 = 0;
+iVar6 = (int)&DAT_MapPropertiesState - (int)mapName;
+do {
+cVar1 = *mapName;
+mapName[iVar6] = cVar1;
+mapName = mapName + 1;
+} while (cVar1 != '\0');
+if (DAT_GameCore.gameMode_2 == GM_CAMPAIGN_MISSION) {
+Game::GameCore::removeJesterAndLadyUnitsInCertainMissions(&DAT_GameCore);
+}
+else if (DAT_GameCore.gameMode_2 == GM_ECONOMIC_CAMPAIGN_SH1) {
+Game::GameCore::removeLadyAndJester(&DAT_GameCore);
+}
+pIVar9 = DAT_MapPropertiesState.SEC_EventsExtra;
+for (iVar6 = 8000; iVar6 != 0; iVar6 = iVar6 + -1) {
+pIVar9->conditionOneIsTrue = 0;
+pIVar9 = (InGameEventExtra *)&pIVar9->conditionTwoIsTrue;
+}
+DAT_GameState.mapAndTime.month = DAT_MapPropertiesState.SEC_StartingMonth;
+DAT_GameState.mapAndTime.year = DAT_MapPropertiesState.SEC_StartingYear;
+if (DAT_GameCore.missionNumber1to20 - 0x10U < 5) {
+adjustEventMonthAndYearForSection1047(&DAT_MapPropertiesState);
+}
+if ((DAT_GameState.mapAndTime.month == DAT_MapPropertiesState.SEC_StartingMonth) &&
+(DAT_GameState.mapAndTime.year == DAT_MapPropertiesState.SEC_StartingYear)) {
+piVar4 = DAT_GameState.mapAndTime.startGoods;
+piVar7 = DAT_MapPropertiesState.SEC_StartingResources;
+do {
+*piVar4 = *piVar7;
+piVar4 = piVar4 + 1;
+piVar7 = piVar7 + 1;
+} while ((int)piVar4 < 0x117ce50);
+DAT_GameState.mapAndTime.startGoods[7] = DAT_GameState.mapAndTime.startGoods[8];
+DAT_GameState.mapAndTime.startGoods[8] = 0;
+pSVar5 = &DAT_GameState.mapAndTime.siegeInformation;
+pSVar8 = &DAT_MapPropertiesState.SEC_SiegeInformation;
+do {
+pSVar5->archers = pSVar8->archers;
+pSVar5 = (SiegeUnitCounts *)&pSVar5->field1_0x4;
+pSVar8 = (SiegeUnitCounts *)&pSVar8->field1_0x4;
+} while ((int)pSVar5 < 0x117cea0);
+DAT_GameState.mapAndTime.startingPopularity = DAT_MapPropertiesState.SEC_StartingPopularity * 10
+;
+Game::GameStateStructures::setMonthAndYear
+(&DAT_GameState,DAT_MapPropertiesState.SEC_StartingMonth,
+DAT_MapPropertiesState.SEC_StartingYear);
+}
+DAT_MapPropertiesState.SEC_Section1080 = 0;
+DAT_MapPropertiesState.SEC_Section1081 = 0;
+Units::TribesState::countDeerEfficiently(&DAT_TribesState);
+TileMapState::prepareMap(&DAT_TileMapState);
+Game::GameStateStructures::clearEnemyRelatedStructures(&DAT_GameState);
+DAT_UnitsState.DAT_LastSelectedUnitID = 0;
+Units::UnitsState::deselectAllUnitsOneByOne(&DAT_UnitsState);
+Units::UnitsState::clearSelectionCountsAndPlayerIDs(&DAT_UnitsState);
+DAT_GameState.mapAndTime.euroRecruitable[4] =
+(int)DAT_MapPropertiesState.barracksRecruitability.recruitability.macemen;
+DAT_GameState.mapAndTime.euroRecruitable[5] =
+(int)DAT_MapPropertiesState.barracksRecruitability.recruitability.swordsmen;
+DAT_GameState.mapAndTime.euroRecruitable[6] =
+(int)DAT_MapPropertiesState.barracksRecruitability.recruitability.knights;
+DAT_GameState.mapAndTime.mercRecruitable[0] = (int)DAT_MapPropertiesState.SEC_MercRecruitable[0];
+DAT_GameState.mapAndTime.euroRecruitable[0] =
+(int)DAT_MapPropertiesState.barracksRecruitability.recruitability.archers;
+DAT_GameState.mapAndTime.euroRecruitable[1] =
+(int)DAT_MapPropertiesState.barracksRecruitability.recruitability.crossbowmen;
+DAT_GameState.mapAndTime.euroRecruitable[2] =
+(int)DAT_MapPropertiesState.barracksRecruitability.recruitability.spearmen;
+DAT_GameState.mapAndTime.euroRecruitable[3] =
+(int)DAT_MapPropertiesState.barracksRecruitability.recruitability.pikemen;
+DAT_GameState.mapAndTime.mercRecruitable[1] = (int)DAT_MapPropertiesState.SEC_MercRecruitable[1];
+DAT_GameState.mapAndTime.mercRecruitable[2] = (int)DAT_MapPropertiesState.SEC_MercRecruitable[2];
+DAT_GameState.mapAndTime.mercRecruitable[3] = (int)DAT_MapPropertiesState.SEC_MercRecruitable[3];
+DAT_GameState.mapAndTime.mercRecruitable[4] = (int)DAT_MapPropertiesState.SEC_MercRecruitable[4];
+DAT_GameState.mapAndTime.mercRecruitable[5] = (int)DAT_MapPropertiesState.SEC_MercRecruitable[5];
+DAT_GameState.mapAndTime.mercRecruitable[6] = (int)DAT_MapPropertiesState.SEC_MercRecruitable[6];
+DAT_GameState.mapAndTime.euroRecruitableCopy_index_0 =
+(int)(DAT_GameState.mapAndTime.euroRecruitable[0] != 0);
+DAT_GameState.mapAndTime.euroRecruitableCopy_index_1_a =
+(int)(DAT_GameState.mapAndTime.euroRecruitable[1] != 0);
+DAT_GameState.mapAndTime.euroRecruitableCopy_index_1_b =
+(int)(DAT_GameState.mapAndTime.euroRecruitable[1] != 0);
+DAT_GameState.mapAndTime.euroRecruitableCopy_index_2 =
+(int)(DAT_GameState.mapAndTime.euroRecruitable[2] != 0);
+DAT_GameState.mapAndTime.euroRecruitableCopy_index_3_a_and_6_b =
+(int)(DAT_GameState.mapAndTime.euroRecruitable[3] != 0);
+DAT_GameState.mapAndTime.euroRecruitableCopy_index_3_b =
+(int)(DAT_GameState.mapAndTime.euroRecruitable[3] != 0);
+if (DAT_GameState.mapAndTime.euroRecruitable[4] != 0) {
+DAT_GameState.mapAndTime.euroRecruitableCopy_index_1_a = 1;
+}
+DAT_GameState.mapAndTime.field2257_0xda8 = (int)(DAT_GameState.mapAndTime.euroRecruitable[4] != 0)
+;
+if (DAT_GameState.mapAndTime.euroRecruitable[5] != 0) {
+DAT_GameState.mapAndTime.euroRecruitableCopy_index_3_a_and_6_b = 1;
+}
+DAT_GameState.mapAndTime.euroRecruitableCopy_index_6_a =
+(int)(DAT_GameState.mapAndTime.euroRecruitable[5] != 0);
+if (DAT_GameState.mapAndTime.euroRecruitable[6] != 0) {
+DAT_GameState.mapAndTime.euroRecruitableCopy_index_6_a = 1;
+DAT_GameState.mapAndTime.euroRecruitableCopy_index_3_a_and_6_b = 1;
+}
+DAT_GameState.mapAndTime.euroRecruitableCopy_index_6_c =
+(int)(DAT_GameState.mapAndTime.euroRecruitable[6] != 0);
+DAT_GameState.mapAndTime.countUpTo201 = 0;
+DAT_GameState.mapAndTime.cathedralRelated1 = 0;
+importTradingCosts(&DAT_MapPropertiesState);
+Units::TroopValueState::clearAttackInfo(&DAT_TroopValueState);
+AI::AICState::recomputeAIZonerLayer(&DAT_AICState);
+TileMapState::setSignpostDistanceForCampaignMission();
+Rendering::Bink::AIMessageQueue::playNextStoredBinkVideo(&DAT_VideoBikQueue);
+DAT_GameCore.xbowProducible_logic = (int)DAT_MapPropertiesState.SEC_XbowProducible_save;
+DAT_GameCore.bowProducible_logic = (int)DAT_MapPropertiesState.SEC_BowProducible_save;
+DAT_GameCore.pikeProducible_logic = (int)DAT_MapPropertiesState.SEC_PikeProducible_save;
+DAT_GameCore.spearProducible_logic = (int)DAT_MapPropertiesState.SEC_SpearProducible_save;
+DAT_GameCore.swordProducible_logic = (int)DAT_MapPropertiesState.SEC_SwordProducible_save;
+DAT_GameCore.maceProducible_logic = (int)DAT_MapPropertiesState.SEC_MaceProducible_save;
+DAT_GameCore.timeSum_2 = timeGetTime();
+DAT_GameCore.gameDuration = 0;
+TIME_ReceivedMessage_2 = 0;
+HoldStrong_lib::__security_check_cookie(local_4 ^ (uint)&local_34);
+return;
+}
+--- NAMEN NUR IM PAKETCODE ---
+CHAR_CONST, MapSectionAddressArray, lastSelectedUnitID, unitJesterRelated, unitLadyRelated
+--- KOMMENTARE IM PAKETCODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004C62C0
+--- ERKLAERUNG ---
+{"adr": "0x004c62c0", "name": "loadMap", "p1": {"bereich": "Karte", "zweck": "Lädt eine Kartendatei in den MapPropertiesState (this) und setzt danach den Spielstand für den Start der Karte neu auf."}, "p2": {"ein": "mapName (char*, Name der Kartendatei; wird mit FRT_MAPS zu einem Dateipfad aufgelöst und danach an den Anfang von this kopiert); this = MapPropertiesState", "aus": "-", "liest": ["DAT_GameCore.gameMode_2, missionNumber1to20 und die sechs Producible_logic-Schalter (xbow, bow, pike, spear, sword, mace) nur zum Merken", "DAT_GameState.mapAndTime: difficulty, unitJesterRelated, unitLadyRelated, field43_0xf0, field44_0xf4 nur zum Merken; euroRecruitable[0..6] für die Kopien", "DAT_GameSynchronyState.currentPlayerSlotID", "DAT_UnitsState.units[1..2499]: logicalState (Element vor unitType), unitType, 2-Byte-Feld bei Einheit+150 (nur bei gemerkter Missionsnummer 1)", "MapPropertiesState: SEC_StartingMonth, SEC_StartingYear, SEC_StartingResources[25], SEC_SiegeInformation (20 Ints), SEC_StartingPopularity, barracksRecruitability (7 Werte), SEC_MercRecruitable[7], SEC_Xbow/Bow/Pike/Spear/Sword/MaceProducible_save"], "schreibt": ["this (MapPropertiesState): Kopie von mapName am Anfang, SEC_EventsExtra (32000 Byte = 8000 Ints) = 0, SEC_Section1080 = 0, SEC_Section1081 = 0", "DAT_GameCore: mapTimeInTicks = 1, section1127 = 1, section1095 = 0, isTimeHalted = FALSE, gameDuration = 0, timeSum_2 = timeGetTime(); gemerkte gameMode_2 und missionNumber1to20 zurück; die sechs Producible_logic erst zurück, am Ende = SEC_*_save", "DAT_GameSynchronyState: currentPlayerFullIDArray[0..8] = -1 und danach [currentPlayerSlotID] = 1; gemerktes currentPlayerSlotID zurück", "DAT_GameState.playerDataArray[1..8].tacticalPowersBarLevel = 0", "DAT_GameState.mapAndTime: gemerkte difficulty, unitJesterRelated, unitLadyRelated, field43_0xf0, field44_0xf4 zurück; month, year; nur bei unverändertem Startdatum startGoods[0..24], siegeInformation (20 Ints), startingPopularity; euroRecruitable[0..6], mercRecruitable[0..6], euroRecruitableCopy_*, field2257_0xda8; countUpTo201 = 0, cathedralRelated1 = 0", "DAT_UnitsState.lastSelectedUnitID = 0; bei Missionsnummer 1 das 4-Byte-Feld Einheit+16 einiger Bogenschützen = 3", "TIME_ReceivedMessage_2::instance = 0"], "ruft": ["resetTeams", "setupAllMapSections", "resolveResourceFileName", "readMapOrSavFile", "mapLoadingAndLaunchGameRelated1", "removeJesterAndLadyUnitsInCertainMissions", "removeLadyAndJester", "adjustEventMonthAndYearForSection1047", "setMonthAndYear", "countDeerEfficiently", "prepareMap", "clearEnemyRelatedStructures", "deselectAllUnitsOneByOne", "clearSelectionCountsAndPlayerIDs", "importTradingCosts", "clearAttackInfo", "recomputeAIZonerLayer", "setSignpostDistanceForCampaignMission", "playNextStoredBinkVideo", "timeGetTime"], "regeln": ["Vor dem Einlesen werden gemerkt: difficulty, gameMode_2, missionNumber1to20, currentPlayerSlotID, die sechs Producible_logic-Schalter sowie unitJesterRelated, unitLadyRelated, field43_0xf0 und field44_0xf4 (Bedeutung der letzten vier unbekannt). Ablauf: resetTeams, setupAllMapSections, resolveResourceFileName(FRT_MAPS, mapName), readMapOrSavFile(MapSectionAddressArray), mapLoadingAndLaunchGameRelated1. Danach werden alle gemerkten Werte zurückgeschrieben und mapTimeInTicks = 1, section1127 = 1 gesetzt. Das Ergebnis von readMapOrSavFile wird nicht ausgewertet (kein Fehlerzweig)", "Die sechs Producible_logic-Schalter werden zwar zurückgeschrieben, ganz am Ende aber mit SEC_XbowProducible_save, SEC_BowProducible_save, SEC_PikeProducible_save, SEC_SpearProducible_save, SEC_SwordProducible_save und SEC_MaceProducible_save der Karte überschrieben (2-Byte-Werte, auf int erweitert); der Endwert kommt also aus der Karte", "Nur bei gemerkter Missionsnummer 1: die Einheitenplätze 1 bis 2499 werden der Reihe nach geprüft (Schritt 0x490 Byte = Größe einer Unit, Ende bei Adresse 0x165141a). Trifft logicalState != ULS_INVISIBLE (0) UND unitType == UT_E_ARCHER (22) UND das 2-Byte-Feld bei Einheit+150 (laut Typtabelle owner) == 1 zu, wird das 4-Byte-Feld bei Einheit+16 (laut Typtabelle calculatedOwnerPlayerIndex) auf 3 gesetzt; nach dem 8. Treffer endet die Suche. Ob die Einheit lebt, wird nicht geprüft (ULS_NORMAL, ULS_REMOVE und ULS_TRANSITIONING zählen mit)", "Spieler-Plätze: currentPlayerFullIDArray[0..8] = -1; danach currentPlayerSlotID = gemerkter Wert und currentPlayerFullIDArray[currentPlayerSlotID] = 1 (ohne Prüfung des Index); playerDataArray[1..8].tacticalPowersBarLevel = 0 (Spieler 0 bleibt unberührt)", "Kartenname: die Zeichenkette mapName wird byteweise mit Endnull an den Anfang von this kopiert (laut Typtabelle das 128-Byte-Feld SEC_Section1089), ohne Längenprüfung", "Spielmodus (der zurückgeschriebene Wert): gameMode_2 == GM_CAMPAIGN_MISSION (0) -> removeJesterAndLadyUnitsInCertainMissions; sonst gameMode_2 == GM_ECONOMIC_CAMPAIGN_SH1 (5) -> removeLadyAndJester; alle anderen Modi: nichts", "SEC_EventsExtra (laut Typtabelle 200 Einträge zu je 160 Byte = 32000 Byte) wird vollständig auf 0 gesetzt: im Assembly ein rep stosd über 8000 Doppelwörter ab this+0xB7D0. Der Ghidra-Text (8000 Schritte, nur conditionOneIsTrue = 0) täuscht: gelöscht werden alle Felder aller Einträge, nicht nur conditionOneIsTrue", "Startdatum: month = SEC_StartingMonth, year = SEC_StartingYear. Liegt missionNumber1to20 im Bereich 16 bis 20 (Assembly: ADD -0x10, CMP 4, JA; der Ghidra-Ausdruck '- 4294967280 < 5' täuscht), wird adjustEventMonthAndYearForSection1047 aufgerufen und kann month/year verändern", "Nur wenn month und year danach noch gleich SEC_StartingMonth und SEC_StartingYear sind: startGoods[0..24] = SEC_StartingResources[0..24] (25 Ints), danach startGoods[7] = startGoods[8] und startGoods[8] = 0; siegeInformation = SEC_SiegeInformation (alle 20 Ints); startingPopularity = SEC_StartingPopularity * 10; setMonthAndYear(SEC_StartingMonth, SEC_StartingYear). Sonst wird davon nichts geschrieben", "Rekrutierbarkeit (immer): euroRecruitable[0..6] = barracksRecruitability archers, crossbowmen, spearmen, pikemen, macemen, swordsmen, knights; mercRecruitable[0..6] = SEC_MercRecruitable[0..6] (Kurzwerte, auf int erweitert)", "Kopien, mit e[i] = (euroRecruitable[i] != 0) und Ergebnis 1 oder 0: euroRecruitableCopy_index_0 = e0; _index_1_b = e1; _index_2 = e2; _index_3_b = e3; field2257_0xda8 = e4; _index_6_c = e6; _index_1_a = e1 ODER e4; _index_6_a = e5 ODER e6; _index_3_a_and_6_b = e3 ODER e5 ODER e6 (Namen der Kopien ungesichert)", "Reihenfolge nach dem Einlesen: SEC_Section1080/1081 = 0, countDeerEfficiently, prepareMap, clearEnemyRelatedStructures, lastSelectedUnitID = 0, deselectAllUnitsOneByOne, clearSelectionCountsAndPlayerIDs, Rekrutierbarkeit und Kopien, countUpTo201 = 0, cathedralRelated1 = 0, importTradingCosts, clearAttackInfo, recomputeAIZonerLayer, setSignpostDistanceForCampaignMission, playNextStoredBinkVideo, Producible_logic aus SEC_*_save, zuletzt timeSum_2 = timeGetTime(), gameDuration = 0, TIME_ReceivedMessage_2::instance = 0"], "offen": ["Bedeutung von unitJesterRelated, unitLadyRelated, field43_0xf0, field44_0xf4, section1127, section1095, SEC_Section1080, SEC_Section1081, countUpTo201 und cathedralRelated1 (nur Feldnamen)", "Mission 1: Bedeutung des Wertes 3 im Feld Einheit+16 und warum gerade die ersten 8 Bogenschützen mit Feld +150 gleich 1 betroffen sind", "adjustEventMonthAndYearForSection1047 liegt nicht in diesem Paket; nach ihrem Ghidra-Export setzt sie monthCopy/yearCopy und ändert month/year nur, wenn month größer als 11 ist", "Verwendung der euroRecruitableCopy_*-Felder und ihre Zuordnung zu Einheiten ist aus dieser Funktion nicht ersichtlich", "Was readMapOrSavFile und mapLoadingAndLaunchGameRelated1 im Einzelnen schreiben, ist hier nicht sichtbar"]}, "p3": {"erklaerung": "Beim Laden einer Karte liest das Spiel die Datei ein und setzt danach Spieler-Plätze, Zeitzähler, Startdatum, Rekrutierbarkeit und alle Ereignisse neu; Schwierigkeit, Spielmodus, Missionsnummer und der eigene Platz bleiben von vorher erhalten. Startwaren, Belagerungszahlen und Beliebtheit kommen nur dann aus der Karte, wenn das Startdatum nach dem Anpassen unverändert ist.", "gehirn": "Rekrutierbarkeit (barracksRecruitability, SEC_MercRecruitable) und die Producible-Schalter (SEC_*_save) kommen immer aus der Karte; Startwaren (25 Werte), Belagerungszahlen und Beliebtheit (SEC_StartingPopularity * 10) nur bei unverändertem Startdatum. Diese SEC_*-Felder stehen im MapPropertiesState und lassen sich nach dem Laden dort lesen.", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x00519310 computeAttackWaveTroopComposition
+--- CODE (Ghidra-Export, vollstaendig) ---
+/* WARNING: Enum "MappersEnum": Some values do not have unique names */
+/* decompilerscript: committed: 2025-01-30 21:57:43.216000 */
+void __thiscall
+_HoldStrong::Map::Units::TroopValueState::computeAttackWaveTroopComposition(TroopValueState *this)
+{
+DAT_TroopValueState.attackInfo._134988_4_ = 6;
+if (DAT_TroopValueState.attackInfo.field86974_0x20f74 < 6) {
+DAT_TroopValueState.attackInfo._134980_4_ = DAT_TroopValueState.attackInfo.spearmenAndMacemen;
+DAT_TroopValueState.attackInfo._134984_4_ = 1;
+DAT_TroopValueState.attackInfo._134988_4_ = 1;
+DAT_TroopValueState.attackInfo._134996_4_ = 1;
+DAT_TroopValueState.attackInfo._135000_4_ = 1;
+DAT_TroopValueState.attackInfo._135004_4_ = 0;
+DAT_TroopValueState.attackInfo._134976_4_ = 0;
+goto LAB_00519672;
+}
+if (9 < DAT_TroopValueState.attackInfo.field86974_0x20f74) {
+if (DAT_TroopValueState.attackInfo.field86974_0x20f74 < 0x14) {
+if (DAT_TroopValueState.attackInfo.spearmenAndMacemen < 1) {
+DAT_TroopValueState.attackInfo._134980_4_ = 0;
+}
+else if (DAT_TroopValueState.attackInfo.spearmenAndMacemen < 2) {
+DAT_TroopValueState.attackInfo._134980_4_ = 1;
+}
+else if (DAT_TroopValueState.attackInfo.spearmenAndMacemen < 4) {
+DAT_TroopValueState.attackInfo._134980_4_ =
+DAT_TroopValueState.attackInfo.spearmenAndMacemen + -1;
+}
+else {
+DAT_TroopValueState.attackInfo._134980_4_ = 3;
+}
+DAT_TroopValueState.attackInfo._135004_4_ = 4;
+DAT_TroopValueState.attackInfo._134984_4_ =
+(1 < DAT_TroopValueState.attackInfo.pikemenSwordsmenAndMore) + 2;
+DAT_TroopValueState.attackInfo._134988_4_ =
+(6 < DAT_TroopValueState.attackInfo.spearmenAndMacemen) + 3;
+DAT_TroopValueState.attackInfo._134996_4_ =
+(4 < DAT_TroopValueState.attackInfo.pikemenSwordsmenAndMore) + 2;
+DAT_TroopValueState.attackInfo._135000_4_ =
+(0 < DAT_TroopValueState.attackInfo.pikemenSwordsmenAndMore) + 1;
+if (DAT_TroopValueState.attackInfo.laddermen < 5) {
+DAT_TroopValueState.attackInfo._135004_4_ = DAT_TroopValueState.attackInfo.laddermen;
+}
+DAT_TroopValueState.attackInfo._134976_4_ = 1;
+}
+else if (DAT_TroopValueState.attackInfo.field86974_0x20f74 < 0x1e) {
+if (DAT_TroopValueState.attackInfo.spearmenAndMacemen < 1) {
+DAT_TroopValueState.attackInfo._134980_4_ = 0;
+}
+else if (DAT_TroopValueState.attackInfo.spearmenAndMacemen < 2) {
+DAT_TroopValueState.attackInfo._134980_4_ = 1;
+}
+else if (DAT_TroopValueState.attackInfo.spearmenAndMacemen < 4) {
+DAT_TroopValueState.attackInfo._134980_4_ =
+DAT_TroopValueState.attackInfo.spearmenAndMacemen + -1;
+}
+else {
+DAT_TroopValueState.attackInfo._134980_4_ = 3;
+}
+DAT_TroopValueState.attackInfo._134984_4_ =
+(uint)(4 < DAT_TroopValueState.attackInfo.pikemenSwordsmenAndMore) * 2 + 2;
+if (DAT_TroopValueState.attackInfo.spearmenAndMacemen < 0xb) {
+DAT_TroopValueState.attackInfo._134988_4_ =
+(uint)(5 < DAT_TroopValueState.attackInfo.spearmenAndMacemen) * 2 + 2;
+}
+if (DAT_TroopValueState.attackInfo.pikemenSwordsmenAndMore < 9) {
+DAT_TroopValueState.attackInfo._134996_4_ =
+(uint)(4 < DAT_TroopValueState.attackInfo.pikemenSwordsmenAndMore) * 2 + 2;
+}
+else {
+DAT_TroopValueState.attackInfo._134996_4_ = 5;
+}
+DAT_TroopValueState.attackInfo._135000_4_ = 2;
+DAT_TroopValueState.attackInfo._135004_4_ = 5;
+if (DAT_TroopValueState.attackInfo.laddermen < 6) {
+DAT_TroopValueState.attackInfo._135004_4_ = DAT_TroopValueState.attackInfo.laddermen;
+}
+DAT_TroopValueState.attackInfo._134976_4_ =
+(4 < DAT_TroopValueState.attackInfo.pikemenSwordsmenAndMore) + 1;
+}
+else {
+if (DAT_TroopValueState.attackInfo.spearmenAndMacemen < 1) {
+DAT_TroopValueState.attackInfo._134980_4_ = 0;
+}
+else if (DAT_TroopValueState.attackInfo.spearmenAndMacemen < 2) {
+DAT_TroopValueState.attackInfo._134980_4_ = 1;
+}
+else if (DAT_TroopValueState.attackInfo.spearmenAndMacemen < 5) {
+DAT_TroopValueState.attackInfo._134980_4_ =
+DAT_TroopValueState.attackInfo.spearmenAndMacemen + -1;
+}
+else {
+DAT_TroopValueState.attackInfo._134980_4_ = 4;
+}
+DAT_TroopValueState.attackInfo._134984_4_ =
+((DAT_TroopValueState.attackInfo.pikemenSwordsmenAndMore < 6) - 1 & 3) + 2;
+if (DAT_TroopValueState.attackInfo.spearmenAndMacemen < 0xd) {
+DAT_TroopValueState.attackInfo._134988_4_ =
+(uint)(6 < DAT_TroopValueState.attackInfo.spearmenAndMacemen) * 2 + 3;
+}
+else {
+DAT_TroopValueState.attackInfo._134988_4_ = 8;
+}
+if (DAT_TroopValueState.attackInfo.pikemenSwordsmenAndMore < 0xb) {
+DAT_TroopValueState.attackInfo._134996_4_ =
+(uint)(8 < DAT_TroopValueState.attackInfo.pikemenSwordsmenAndMore) * 2 + 3;
+}
+else {
+DAT_TroopValueState.attackInfo._134996_4_ = 6;
+}
+DAT_TroopValueState.attackInfo._135004_4_ = 6;
+DAT_TroopValueState.attackInfo._135000_4_ =
+(0 < DAT_TroopValueState.attackInfo.pikemenSwordsmenAndMore) + 2;
+if (DAT_TroopValueState.attackInfo.laddermen < 7) {
+DAT_TroopValueState.attackInfo._135004_4_ = DAT_TroopValueState.attackInfo.laddermen;
+}
+DAT_TroopValueState.attackInfo._134976_4_ = 2;
+}
+goto LAB_00519672;
+}
+if (DAT_TroopValueState.attackInfo.spearmenAndMacemen < 1) {
+DAT_TroopValueState.attackInfo._134980_4_ = 0;
+}
+else if (DAT_TroopValueState.attackInfo.spearmenAndMacemen < 2) {
+DAT_TroopValueState.attackInfo._134980_4_ = 1;
+}
+else if (DAT_TroopValueState.attackInfo.spearmenAndMacemen < 3) {
+DAT_TroopValueState.attackInfo._134980_4_ =
+DAT_TroopValueState.attackInfo.spearmenAndMacemen + -1;
+}
+else {
+DAT_TroopValueState.attackInfo._134980_4_ = 2;
+}
+DAT_TroopValueState.attackInfo._134984_4_ =
+(DAT_TroopValueState.attackInfo.pikemenSwordsmenAndMore != 0) + 1;
+DAT_TroopValueState.attackInfo._134988_4_ =
+(4 < DAT_TroopValueState.attackInfo.spearmenAndMacemen) + 2;
+if (DAT_TroopValueState.attackInfo.pikemenSwordsmenAndMore == 0) {
+DAT_TroopValueState.attackInfo._134996_4_ = 0;
+LAB_005193ed:
+DAT_TroopValueState.attackInfo._135000_4_ = 0;
+}
+else {
+DAT_TroopValueState.attackInfo._134996_4_ = 1;
+DAT_TroopValueState.attackInfo._135000_4_ = 1;
+if (DAT_TroopValueState.attackInfo.pikemenSwordsmenAndMore < 1) goto LAB_005193ed;
+}
+DAT_TroopValueState.attackInfo._135004_4_ = 2;
+if (DAT_TroopValueState.attackInfo.laddermen < 3) {
+DAT_TroopValueState.attackInfo._135004_4_ = DAT_TroopValueState.attackInfo.laddermen;
+}
+DAT_TroopValueState.attackInfo._134976_4_ =
+ZEXT14(DAT_TroopValueState.attackInfo.pikemenSwordsmenAndMore != 0);
+LAB_00519672:
+DAT_TroopValueState.attackInfo._134992_4_ = DAT_TroopValueState.attackInfo.engineers;
+DAT_TroopValueState.attackInfo._134972_4_ = 3;
+if ((int)DAT_TroopValueState.attackInfo._134984_4_ <
+DAT_TroopValueState.attackInfo.field86627_0x20e04) {
+DAT_TroopValueState.attackInfo._134984_4_ = DAT_TroopValueState.attackInfo.field86627_0x20e04;
+}
+return;
+}
+--- NAMEN NUR IM PAKETCODE ---
+-
+--- KOMMENTARE IM PAKETCODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00519310
+--- ERKLAERUNG ---
+{"adr": "0x00519310", "name": "computeAttackWaveTroopComposition", "p1": {"bereich": "KI", "zweck": "Berechnet aus einem Zählwert (field86974_0x20f74) und den Gruppenzahlen je Truppenart (Spieß/Keule, Pike/Schwert u. a., Leiter, Ingenieure) neun Zahlen in attackInfo ab Offset 134972; sie begrenzen vermutlich, wie viele Gruppen die Angriffswelle je Aufgabe einsetzt."}, "p2": {"ein": "-", "aus": "-; Ergebnis sind 9 Ganzzahlen in attackInfo ab Offset 134972 (0x01784290 bis 0x017842b0)", "liest": ["attackInfo.field86974_0x20f74 (0x017842c8, im Folgenden L)", "attackInfo.spearmenAndMacemen (S)", "attackInfo.pikemenSwordsmenAndMore (P)", "attackInfo.laddermen (Ld)", "attackInfo.engineers (Eg)", "attackInfo.field86627_0x20e04 (F)"], "schreibt": ["attackInfo._134972_4_ bis _135004_4_ (alle 9 Werte; die Feldnamen sind reine Ghidra-Offsets)"], "ruft": [], "regeln": ["Zweige nach L (vorzeichenbehaftet, im Assembly bestätigt): L < 6; 6 bis 9; 10 bis 19; 20 bis 29; ab 30. Abkürzungen: S = spearmenAndMacemen, P = pikemenSwordsmenAndMore, Ld = laddermen, Eg = engineers, F = field86627_0x20e04", "L < 6: _134980 = S (ohne Deckel); _134984 = _134988 = _134996 = _135000 = 1; _135004 = 0; _134976 = 0", "L 6 bis 9: _134980 = 0 bei S <= 0, 1 bei S = 1 oder 2, 2 ab S = 3; _134984 = 2 bei P != 0, sonst 1; _134988 = 3 bei S > 4, sonst 2; _134996 und _135000 = 1 bei P != 0, sonst 0; _135004 = min(2, Ld); _134976 = 1 bei P != 0, sonst 0", "L 10 bis 19: _134980 = 0 bei S <= 0, 1 bei S = 1, S-1 bei S = 2 oder 3, 3 ab S = 4; _134984 = 3 bei P > 1, sonst 2; _134988 = 4 bei S > 6, sonst 3; _134996 = 3 bei P > 4, sonst 2; _135000 = 2 bei P > 0, sonst 1; _135004 = min(4, Ld); _134976 = 1", "L 20 bis 29: _134980 wie bei 10 bis 19; _134984 = 4 bei P > 4, sonst 2; _134988 = 2 bei S <= 5, 4 bei S 6 bis 10, 6 ab S = 11 (hier bleibt der Startwert 6 stehen); _134996 = 2 bei P <= 4, 4 bei P 5 bis 8, 5 ab P = 9; _135000 = 2; _135004 = min(5, Ld); _134976 = 2 bei P > 4, sonst 1", "L ab 30: _134980 = 0 bei S <= 0, 1 bei S = 1, S-1 bei S 2 bis 4, 4 ab S = 5; _134984 = 5 bei P >= 6, sonst 2; _134988 = 3 bei S <= 6, 5 bei S 7 bis 12, 8 ab S = 13; _134996 = 3 bei P <= 8, 5 bei P 9 oder 10, 6 ab P = 11; _135000 = 3 bei P > 0, sonst 2; _135004 = min(6, Ld); _134976 = 2", "In allen Zweigen zum Schluss: _134992 = Eg und _134972 = 3; _134984 wird auf F angehoben, wenn F größer ist (_134984 = max(_134984, F), vorzeichenbehaftet). _134988 hat vor den Zweigen den Startwert 6, der nur im Bereich 20 bis 29 ab S = 11 erhalten bleibt", "Verwendung außerhalb des Pakets (executeAttackWaveTargetAssignment, nicht Teil dieser Prüfung): _134972, _134980, _134984, _134988, _134996 und _135000 gehen dort als shrinkSize (Höchstzahl Gruppen) an sortAttackInfoTribeIDArrayBasedOn, und zwar _134972 für Verhaltenstyp 1021 (0x3fd, bei attacker 4 verdoppelt), _134980 für 1018 (0x3fa), _134984 für 1013 (0x3f5), _134988 für 1015 (0x3f7, bei attacker 4 halbiert), _134996 für 1019 (0x3fb) und _135000 für 1014 (0x3f6); _134976, _134992 und _135004 kommen dort nicht vor"], "offen": ["Die Feldnamen _1349xx sind nur Offsets; die Bedeutung ist nur über die Verwendung als shrinkSize (Gruppenzahl je Aufgabe) vermutet", "Was L (field86974_0x20f74) und F (field86627_0x20e04) genau zählen: laut recountAttackTroopValue (außerhalb des Pakets) zählt L die KI-Gruppen mit Truppentyp 3, 5-10, 12 oder ab 25 (je Gruppe 1), S die Gruppen vom Typ SPEARMEN/MACEMEN, P die Gruppen PIKEMEN/SWORDSMEN/12/28/30, Ld und Eg die Gruppen LADDERMEN/ENGINEERS und F die Gruppen vom Typ 26; es wären also Gruppenzahlen, keine Einheitenzahlen", "Wofür _134976, _134992 und _135004 gebraucht werden"]}, "p3": {"erklaerung": "Aus dem Zählwert field86974_0x20f74 (vermutlich die Zahl der KI-Truppengruppen) und den Gruppenzahlen je Truppenart rechnet die KI neun Zahlen für ihre Angriffswelle aus, die vermutlich begrenzen, wie viele Gruppen für welche Aufgabe eingesetzt werden. Der Zählwert wählt einen von fünf Bereichen (unter 6, 6-9, 10-19, 20-29, ab 30); darin hängen die Zahlen von den Gruppenzahlen ab und steigen nicht überall mit dem Bereich (Beispiel S = 5: _134980 ist 5 bei L unter 6, aber nur 2 bei L 6 bis 9).", "gehirn": "Die neun Zahlen der Gegner-KI lassen sich nur aus L zusammen mit S, P, Ld, Eg und F vorhersagen (Tabelle in regeln), nicht aus dem Zählwert allein. Sie begrenzen vermutlich die Gruppen je Aufgabe der Welle; die Zuordnung der Felder ist nicht gesichert.", "beleg": "code", "live": "field86974_0x20f74, spearmenAndMacemen, pikemenSwordsmenAndMore, laddermen, engineers, field86627_0x20e04 und die 9 Werte ab 0x01784290 (je 4 Byte) im selben Takt lesen → die Werte entsprechen der Tabelle in regeln, z. B. L = 12, S = 3, P = 2, F = 0 ergibt _134980 = 2, _134984 = 3, _134988 = 3, _134996 = 2, _135000 = 2, _134976 = 1, _134972 = 3", "live_art": "ki-welle"}}
+
+### 0x004fdb00 updateMacroLayerRelated
+--- CODE (Ghidra-Export, vollstaendig) ---
+/* WARNING: Inlined function: computeTileXOffset */
+/* WARNING: Restarted to delay deadcode elimination for space: ram */
+/* WARNING: Enum "MappersEnum": Some values do not have unique names */
+/* decompilerscript: committed: 2025-01-30 21:57:43.216000 */
+void __thiscall
+_HoldStrong::Map::TileMapState::updateMacroLayerRelated
+(TileMapState *this,uint param_1,uint param_2,int param_3)
+{
+ushort uVar1;
+BOOLEnum BVar2;
+int iVar3;
+int iVar4;
+byte bVar5;
+byte bVar6;
+uint *puVar7;
+int local_24;
+int local_20;
+int local_18;
+int local_14;
+int local_10;
+int local_c;
+local_c = DAT_PathFindingState.mappingYRelated % 10;
+local_18 = DAT_TileMapState.someIndex;
+do {
+if (DAT_TileMapState.someLimit < local_18) {
+local_c = DAT_PathFindingState.mappingYRelated % 10;
+for (local_18 = DAT_TileMapState.someIndex; local_18 <= DAT_TileMapState.someLimit;
+local_18 = local_18 + 1) {
+for (local_10 = DAT_TileMapState.someYLike; local_10 <= DAT_TileMapState.someYLikeLimit;
+local_10 = local_10 + 1) {
+if (*(char *)(local_18 * 0x28 + 0x1f93438 + local_10) != '\0') {
+local_20 = local_c;
+local_c = 0;
+for (; local_20 < 10; local_20 = local_20 + 1) {
+DAT_TileMapState.DAT_SomeY = local_18 * 10 + local_20;
+DAT_TileMapState.DAT_SomeX = local_10 * 10;
+for (local_24 = 0; local_24 < 10; local_24 = local_24 + 1) {
+BVar2 = Rendering::ViewportRenderState::xyAreValid
+(&DAT_ViewportRenderState,DAT_TileMapState.DAT_SomeX,
+DAT_TileMapState.DAT_SomeY);
+if ((BVar2 != FALSE) &&
+(DAT_TileMapState.DAT_SomeTile =
+Rendering::ViewportRenderState::translateXYToTile
+(&DAT_ViewportRenderState,DAT_TileMapState.DAT_SomeX,
+DAT_TileMapState.DAT_SomeY),
+DAT_TileMapState.MacroLayer[DAT_TileMapState.DAT_SomeTile] == 0x800)) {
+iVar3 = DAT_TileMapState.DAT_SomeTile -
+DAT_ViewportRenderState.translationMatrix[DAT_TileMapState.DAT_SomeY].
+addXgetTile;
+uVar1 = DAT_TileMapState.RandomLayer[DAT_TileMapState.DAT_SomeTile];
+local_14 = 0;
+while ((local_14 < 0x10 &&
+(iVar4 = Rendering::ViewportRenderState::translateXYToTile
+(&DAT_ViewportRenderState,
+iVar3 + DAT_TerrainDefinedData.field2292_0x19d4
+[local_14].x,
+DAT_TileMapState.DAT_SomeY +
+DAT_TerrainDefinedData.field2292_0x19d4[local_14].y),
+DAT_TileMapState.MacroLayer[iVar4] == 0x800))) {
+local_14 = local_14 + 1;
+}
+if (0xf < local_14) {
+for (local_14 = 0; local_14 < 0x10; local_14 = local_14 + 1) {
+iVar4 = Rendering::ViewportRenderState::translateXYToTile
+(&DAT_ViewportRenderState,
+iVar3 + DAT_TerrainDefinedData.field2292_0x19d4[local_14].x
+,DAT_TileMapState.DAT_SomeY +
+DAT_TerrainDefinedData.field2292_0x19d4[local_14].y);
+DAT_TileMapState.MacroLayer[iVar4] = 0x10;
+DAT_TileMapState.MacroLayer[iVar4] =
+DAT_TileMapState.MacroLayer[iVar4] + (short)(local_14 << 6);
+DAT_TileMapState.MacroLayer[iVar4] =
+DAT_TileMapState.MacroLayer[iVar4] + uVar1 * 0x1000;
+}
+}
+}
+DAT_TileMapState.DAT_SomeX = DAT_TileMapState.DAT_SomeX + 1;
+}
+}
+}
+}
+}
+local_c = DAT_PathFindingState.mappingYRelated % 10;
+for (local_18 = DAT_TileMapState.someIndex; local_18 <= DAT_TileMapState.someLimit;
+local_18 = local_18 + 1) {
+for (local_10 = DAT_TileMapState.someYLike; local_10 <= DAT_TileMapState.someYLikeLimit;
+local_10 = local_10 + 1) {
+if (*(char *)(local_18 * 0x28 + 0x1f93438 + local_10) != '\0') {
+local_20 = local_c;
+local_c = 0;
+for (; local_20 < 10; local_20 = local_20 + 1) {
+DAT_TileMapState.DAT_SomeY = local_18 * 10 + local_20;
+DAT_TileMapState.DAT_SomeX = local_10 * 10;
+for (local_24 = 0; local_24 < 10; local_24 = local_24 + 1) {
+BVar2 = Rendering::ViewportRenderState::xyAreValid
+(&DAT_ViewportRenderState,DAT_TileMapState.DAT_SomeX,
+DAT_TileMapState.DAT_SomeY);
+if ((BVar2 != FALSE) &&
+(DAT_TileMapState.DAT_SomeTile =
+Rendering::ViewportRenderState::translateXYToTile
+(&DAT_ViewportRenderState,DAT_TileMapState.DAT_SomeX,
+DAT_TileMapState.DAT_SomeY),
+DAT_TileMapState.MacroLayer[DAT_TileMapState.DAT_SomeTile] == 0x800)) {
+iVar3 = DAT_TileMapState.DAT_SomeTile -
+DAT_ViewportRenderState.translationMatrix[DAT_TileMapState.DAT_SomeY].
+addXgetTile;
+uVar1 = DAT_TileMapState.RandomLayer[DAT_TileMapState.DAT_SomeTile];
+local_14 = 0;
+while ((local_14 < 9 &&
+(iVar4 = Rendering::ViewportRenderState::translateXYToTile
+(&DAT_ViewportRenderState,
+iVar3 + DAT_TerrainDefinedData.field2291_0x198c
+[local_14].x,
+DAT_TileMapState.DAT_SomeY +
+DAT_TerrainDefinedData.field2291_0x198c[local_14].y),
+DAT_TileMapState.MacroLayer[iVar4] == 0x800))) {
+local_14 = local_14 + 1;
+}
+if (8 < local_14) {
+for (local_14 = 0; local_14 < 9; local_14 = local_14 + 1) {
+iVar4 = Rendering::ViewportRenderState::translateXYToTile
+(&DAT_ViewportRenderState,
+iVar3 + DAT_TerrainDefinedData.field2291_0x198c[local_14].x
+,DAT_TileMapState.DAT_SomeY +
+DAT_TerrainDefinedData.field2291_0x198c[local_14].y);
+DAT_TileMapState.MacroLayer[iVar4] = 8;
+DAT_TileMapState.MacroLayer[iVar4] =
+DAT_TileMapState.MacroLayer[iVar4] + (short)(local_14 << 6);
+DAT_TileMapState.MacroLayer[iVar4] =
+DAT_TileMapState.MacroLayer[iVar4] + uVar1 * 0x1000;
+}
+}
+}
+DAT_TileMapState.DAT_SomeX = DAT_TileMapState.DAT_SomeX + 1;
+}
+}
+}
+}
+}
+local_c = DAT_PathFindingState.mappingYRelated % 10;
+for (local_18 = DAT_TileMapState.someIndex; local_18 <= DAT_TileMapState.someLimit;
+local_18 = local_18 + 1) {
+for (local_10 = DAT_TileMapState.someYLike; local_10 <= DAT_TileMapState.someYLikeLimit;
+local_10 = local_10 + 1) {
+if (*(char *)(local_18 * 0x28 + 0x1f93438 + local_10) != '\0') {
+local_20 = local_c;
+local_c = 0;
+for (; local_20 < 10; local_20 = local_20 + 1) {
+DAT_TileMapState.DAT_SomeY = local_18 * 10 + local_20;
+DAT_TileMapState.DAT_SomeX = local_10 * 10;
+for (local_24 = 0; local_24 < 10; local_24 = local_24 + 1) {
+BVar2 = Rendering::ViewportRenderState::xyAreValid
+(&DAT_ViewportRenderState,DAT_TileMapState.DAT_SomeX,
+DAT_TileMapState.DAT_SomeY);
+if ((BVar2 != FALSE) &&
+(DAT_TileMapState.DAT_SomeTile =
+Rendering::ViewportRenderState::translateXYToTile
+(&DAT_ViewportRenderState,DAT_TileMapState.DAT_SomeX,
+DAT_TileMapState.DAT_SomeY),
+DAT_TileMapState.MacroLayer[DAT_TileMapState.DAT_SomeTile] == 0x800)) {
+iVar3 = DAT_TileMapState.DAT_SomeTile -
+DAT_ViewportRenderState.translationMatrix[DAT_TileMapState.DAT_SomeY].
+addXgetTile;
+uVar1 = DAT_TileMapState.RandomLayer[DAT_TileMapState.DAT_SomeTile];
+local_14 = 0;
+while ((local_14 < 4 &&
+(iVar4 = Rendering::ViewportRenderState::translateXYToTile
+(&DAT_ViewportRenderState,
+iVar3 + DAT_TerrainDefinedData.field2290_0x196c
+[local_14].x,
+DAT_TileMapState.DAT_SomeY +
+DAT_TerrainDefinedData.field2290_0x196c[local_14].y),
+DAT_TileMapState.MacroLayer[iVar4] == 0x800))) {
+local_14 = local_14 + 1;
+}
+if (3 < local_14) {
+for (local_14 = 0; local_14 < 4; local_14 = local_14 + 1) {
+iVar4 = Rendering::ViewportRenderState::translateXYToTile
+(&DAT_ViewportRenderState,
+iVar3 + DAT_TerrainDefinedData.field2290_0x196c[local_14].x
+,DAT_TileMapState.DAT_SomeY +
+DAT_TerrainDefinedData.field2290_0x196c[local_14].y);
+DAT_TileMapState.MacroLayer[iVar4] = 4;
+DAT_TileMapState.MacroLayer[iVar4] =
+DAT_TileMapState.MacroLayer[iVar4] + (short)(local_14 << 6);
+DAT_TileMapState.MacroLayer[iVar4] =
+DAT_TileMapState.MacroLayer[iVar4] + uVar1 * 0x1000;
+}
+}
+}
+DAT_TileMapState.DAT_SomeX = DAT_TileMapState.DAT_SomeX + 1;
+}
+}
+}
+}
+}
+local_c = DAT_PathFindingState.mappingYRelated % 10;
+for (local_18 = DAT_TileMapState.someIndex; local_18 <= DAT_TileMapState.someLimit;
+local_18 = local_18 + 1) {
+for (local_10 = DAT_TileMapState.someYLike; local_10 <= DAT_TileMapState.someYLikeLimit;
+local_10 = local_10 + 1) {
+if (*(char *)(local_18 * 0x28 + 0x1f93438 + local_10) != '\0') {
+local_20 = local_c;
+local_c = 0;
+for (; local_20 < 10; local_20 = local_20 + 1) {
+DAT_TileMapState.DAT_SomeY = local_18 * 10 + local_20;
+DAT_TileMapState.DAT_SomeX = local_10 * 10;
+for (local_24 = 0; local_24 < 10; local_24 = local_24 + 1) {
+BVar2 = Rendering::ViewportRenderState::xyAreValid
+(&DAT_ViewportRenderState,DAT_TileMapState.DAT_SomeX,
+DAT_TileMapState.DAT_SomeY);
+if ((BVar2 != FALSE) &&
+(DAT_TileMapState.DAT_SomeTile =
+Rendering::ViewportRenderState::translateXYToTile
+(&DAT_ViewportRenderState,DAT_TileMapState.DAT_SomeX,
+DAT_TileMapState.DAT_SomeY),
+DAT_TileMapState.MacroLayer[DAT_TileMapState.DAT_SomeTile] == 0x800)) {
+DAT_TileMapState.MacroLayer[DAT_TileMapState.DAT_SomeTile] = 2;
+}
+DAT_TileMapState.DAT_SomeX = DAT_TileMapState.DAT_SomeX + 1;
+}
+}
+}
+}
+}
+return;
+}
+for (local_10 = DAT_TileMapState.someYLike; local_10 <= DAT_TileMapState.someYLikeLimit;
+local_10 = local_10 + 1) {
+if (*(char *)(local_18 * 0x28 + 0x1f93438 + local_10) != '\0') {
+local_20 = local_c;
+local_c = 0;
+for (; local_20 < 10; local_20 = local_20 + 1) {
+DAT_TileMapState.DAT_SomeY = local_18 * 10 + local_20;
+DAT_TileMapState.DAT_SomeX = local_10 * 10;
+for (local_24 = 0; local_24 < 10; local_24 = local_24 + 1) {
+BVar2 = Rendering::ViewportRenderState::xyAreValid
+(&DAT_ViewportRenderState,DAT_TileMapState.DAT_SomeX,
+DAT_TileMapState.DAT_SomeY);
+if ((BVar2 != FALSE) &&
+(DAT_TileMapState.DAT_SomeTile =
+Rendering::ViewportRenderState::translateXYToTile
+(&DAT_ViewportRenderState,DAT_TileMapState.DAT_SomeX,
+DAT_TileMapState.DAT_SomeY),
+DAT_TileMapState.ChangedLayer[DAT_TileMapState.DAT_SomeTile] != 0)) {
+uVar1 = DAT_TileMapState.MacroLayer[DAT_TileMapState.DAT_SomeTile];
+if (param_3 != 0) {
+DAT_TileMapState.MacroLayer[DAT_TileMapState.DAT_SomeTile] = 0;
+}
+if (((DAT_TileMapState.LogicLayer[DAT_TileMapState.DAT_SomeTile] & param_1) != 0) ||
+(((int)(char)DAT_TileMapState.Logic2Layer[DAT_TileMapState.DAT_SomeTile] & param_2)
+!= 0)) {
+if ((DAT_TileMapState.LogicLayer[DAT_TileMapState.DAT_SomeTile] & 0x30U) == 0) {
+if (param_1 == 0x8000) {
+DAT_TileMapState.bitFlag = 0;
+if ((*(uint *)(DAT_TileMapState.ptr_LogicLayer +
+DAT_TileMapState.DAT_SomeTile * 4 + 4) & 0x8000) != 0) {
+DAT_TileMapState.bitFlag = 0x20;
+}
+if ((*(uint *)(DAT_TileMapState.ptr_LogicLayer +
+DAT_TileMapState.DAT_SomeTile * 4 + -4) & 0x8000) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 2;
+}
+puVar7 = (uint *)(DAT_TileMapState.ptr_LogicLayer +
+*(int *)(DAT_TileMapState.
+ptr_MovementDirectionTranslationMatrix +
+DAT_TileMapState.DAT_SomeY * 0x20) * 4 +
+DAT_TileMapState.DAT_SomeTile * 4);
+if ((puVar7[-1] & 0x8000) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 1;
+}
+if ((puVar7[1] & 0x8000) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x40;
+}
+if ((*puVar7 & 0x8000) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x80;
+}
+puVar7 = (uint *)(DAT_TileMapState.ptr_LogicLayer +
+*(int *)((int)(DAT_TileMapState.
+ptr_MovementDirectionTranslationMatrix +
+DAT_TileMapState.DAT_SomeY * 0x20) + 0x10) * 4 +
+DAT_TileMapState.DAT_SomeTile * 4);
+if ((puVar7[-1] & 0x8000) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 4;
+}
+if ((puVar7[1] & 0x8000) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x10;
+}
+if ((*puVar7 & 0x8000) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 8;
+}
+}
+else if (param_1 == 0x20000000) {
+if ((DAT_TileMapState.LogicLayer[DAT_TileMapState.DAT_SomeTile] & 0x80000000U)
+!= 0) goto LAB_004fdbd3;
+DAT_TileMapState.bitFlag = 0;
+if ((*(uint *)(DAT_TileMapState.ptr_LogicLayer +
+DAT_TileMapState.DAT_SomeTile * 4 + 4) & 0x20000000) != 0) {
+DAT_TileMapState.bitFlag = 0x20;
+}
+if ((*(uint *)(DAT_TileMapState.ptr_LogicLayer +
+DAT_TileMapState.DAT_SomeTile * 4 + -4) & 0x20000000) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 2;
+}
+puVar7 = (uint *)(DAT_TileMapState.ptr_LogicLayer +
+*(int *)(DAT_TileMapState.
+ptr_MovementDirectionTranslationMatrix +
+DAT_TileMapState.DAT_SomeY * 0x20) * 4 +
+DAT_TileMapState.DAT_SomeTile * 4);
+if ((puVar7[-1] & 0x20000000) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 1;
+}
+if ((puVar7[1] & 0x20000000) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x40;
+}
+if ((*puVar7 & 0x20000000) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x80;
+}
+puVar7 = (uint *)(DAT_TileMapState.ptr_LogicLayer +
+*(int *)((int)(DAT_TileMapState.
+ptr_MovementDirectionTranslationMatrix +
+DAT_TileMapState.DAT_SomeY * 0x20) + 0x10) * 4 +
+DAT_TileMapState.DAT_SomeTile * 4);
+if ((puVar7[-1] & 0x20000000) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 4;
+}
+if ((puVar7[1] & 0x20000000) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x10;
+}
+if ((*puVar7 & 0x20000000) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 8;
+}
+}
+else if (param_2 == 2) {
+DAT_TileMapState.bitFlag = 0;
+if ((*(uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+DAT_TileMapState.DAT_SomeTile + 1) & 2) != 0) {
+DAT_TileMapState.bitFlag = 0x20;
+}
+if ((*(uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+DAT_TileMapState.DAT_SomeTile + -1) & 2) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 2;
+}
+puVar7 = (uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+*(int *)(DAT_TileMapState.
+ptr_MovementDirectionTranslationMatrix +
+DAT_TileMapState.DAT_SomeY * 0x20) +
+DAT_TileMapState.DAT_SomeTile);
+if ((*(uint *)((int)puVar7 + -1) & 2) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 1;
+}
+if ((*(uint *)((int)puVar7 + 1) & 2) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x40;
+}
+if ((*puVar7 & 2) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x80;
+}
+puVar7 = (uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+*(int *)((int)(DAT_TileMapState.
+ptr_MovementDirectionTranslationMatrix +
+DAT_TileMapState.DAT_SomeY * 0x20) + 0x10) +
+DAT_TileMapState.DAT_SomeTile);
+if ((*(uint *)((int)puVar7 + -1) & 2) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 4;
+}
+if ((*(uint *)((int)puVar7 + 1) & 2) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x10;
+}
+if ((*puVar7 & 2) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 8;
+}
+}
+else if (param_2 == 0x10) {
+DAT_TileMapState.bitFlag = 0;
+if ((*(uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+DAT_TileMapState.DAT_SomeTile + 1) & 0x10) != 0) {
+DAT_TileMapState.bitFlag = 0x20;
+}
+if ((*(uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+DAT_TileMapState.DAT_SomeTile + -1) & 0x10) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 2;
+}
+puVar7 = (uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+*(int *)(DAT_TileMapState.
+ptr_MovementDirectionTranslationMatrix +
+DAT_TileMapState.DAT_SomeY * 0x20) +
+DAT_TileMapState.DAT_SomeTile);
+if ((*(uint *)((int)puVar7 + -1) & 0x10) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 1;
+}
+if ((*(uint *)((int)puVar7 + 1) & 0x10) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x40;
+}
+if ((*puVar7 & 0x10) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x80;
+}
+puVar7 = (uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+*(int *)((int)(DAT_TileMapState.
+ptr_MovementDirectionTranslationMatrix +
+DAT_TileMapState.DAT_SomeY * 0x20) + 0x10) +
+DAT_TileMapState.DAT_SomeTile);
+if ((*(uint *)((int)puVar7 + -1) & 0x10) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 4;
+}
+if ((*(uint *)((int)puVar7 + 1) & 0x10) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x10;
+}
+if ((*puVar7 & 0x10) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 8;
+}
+}
+else if (param_2 == 1) {
+DAT_TileMapState.bitFlag = 0;
+if ((*(uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+DAT_TileMapState.DAT_SomeTile + 1) & 1) != 0) {
+DAT_TileMapState.bitFlag = 0x20;
+}
+if ((*(uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+DAT_TileMapState.DAT_SomeTile + -1) & 1) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 2;
+}
+puVar7 = (uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+*(int *)(DAT_TileMapState.
+ptr_MovementDirectionTranslationMatrix +
+DAT_TileMapState.DAT_SomeY * 0x20) +
+DAT_TileMapState.DAT_SomeTile);
+if ((*(uint *)((int)puVar7 + -1) & 1) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 1;
+}
+if ((*(uint *)((int)puVar7 + 1) & 1) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x40;
+}
+if ((*puVar7 & 1) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x80;
+}
+puVar7 = (uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+*(int *)((int)(DAT_TileMapState.
+ptr_MovementDirectionTranslationMatrix +
+DAT_TileMapState.DAT_SomeY * 0x20) + 0x10) +
+DAT_TileMapState.DAT_SomeTile);
+if ((*(uint *)((int)puVar7 + -1) & 1) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 4;
+}
+if ((*(uint *)((int)puVar7 + 1) & 1) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x10;
+}
+if ((*puVar7 & 1) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 8;
+}
+}
+else if (param_2 == 0x80) {
+DAT_TileMapState.bitFlag = 0;
+if ((*(uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+DAT_TileMapState.DAT_SomeTile + 1) & 0x80) != 0) {
+DAT_TileMapState.bitFlag = 0x20;
+}
+if ((*(uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+DAT_TileMapState.DAT_SomeTile + -1) & 0x80) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 2;
+}
+puVar7 = (uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+*(int *)(DAT_TileMapState.
+ptr_MovementDirectionTranslationMatrix +
+DAT_TileMapState.DAT_SomeY * 0x20) +
+DAT_TileMapState.DAT_SomeTile);
+if ((*(uint *)((int)puVar7 + -1) & 0x80) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 1;
+}
+if ((*(uint *)((int)puVar7 + 1) & 0x80) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x40;
+}
+if ((*puVar7 & 0x80) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x80;
+}
+puVar7 = (uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+*(int *)((int)(DAT_TileMapState.
+ptr_MovementDirectionTranslationMatrix +
+DAT_TileMapState.DAT_SomeY * 0x20) + 0x10) +
+DAT_TileMapState.DAT_SomeTile);
+if ((*(uint *)((int)puVar7 + -1) & 0x80) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 4;
+}
+if ((*(uint *)((int)puVar7 + 1) & 0x80) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x10;
+}
+if ((*puVar7 & 0x80) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 8;
+}
+}
+else if (param_2 == 0x40) {
+DAT_TileMapState.bitFlag = 0;
+if ((*(uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+DAT_TileMapState.DAT_SomeTile + 1) & 0x40) != 0) {
+DAT_TileMapState.bitFlag = 0x20;
+}
+if ((*(uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+DAT_TileMapState.DAT_SomeTile + -1) & 0x40) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 2;
+}
+puVar7 = (uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+*(int *)(DAT_TileMapState.
+ptr_MovementDirectionTranslationMatrix +
+DAT_TileMapState.DAT_SomeY * 0x20) +
+DAT_TileMapState.DAT_SomeTile);
+if ((*(uint *)((int)puVar7 + -1) & 0x40) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 1;
+}
+if ((*(uint *)((int)puVar7 + 1) & 0x40) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x40;
+}
+if ((*puVar7 & 0x40) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x80;
+}
+puVar7 = (uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+*(int *)((int)(DAT_TileMapState.
+ptr_MovementDirectionTranslationMatrix +
+DAT_TileMapState.DAT_SomeY * 0x20) + 0x10) +
+DAT_TileMapState.DAT_SomeTile);
+if ((*(uint *)((int)puVar7 + -1) & 0x40) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 4;
+}
+if ((*(uint *)((int)puVar7 + 1) & 0x40) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x10;
+}
+if ((*puVar7 & 0x40) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 8;
+}
+}
+else if (param_2 == 0x20) {
+bVar5 = 0;
+if ((*(uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+DAT_TileMapState.DAT_SomeTile + 1) & 0x20) != 0) {
+bVar5 = 0x20;
+}
+if ((*(uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+DAT_TileMapState.DAT_SomeTile + -1) & 0x20) != 0) {
+bVar5 = bVar5 | 2;
+}
+puVar7 = (uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+*(int *)(DAT_TileMapState.
+ptr_MovementDirectionTranslationMatrix +
+DAT_TileMapState.DAT_SomeY * 0x20) +
+DAT_TileMapState.DAT_SomeTile);
+if ((*(uint *)((int)puVar7 + -1) & 0x20) != 0) {
+bVar5 = bVar5 | 1;
+}
+if ((*(uint *)((int)puVar7 + 1) & 0x20) != 0) {
+bVar5 = bVar5 | 0x40;
+}
+if ((*puVar7 & 0x20) != 0) {
+bVar5 = bVar5 | 0x80;
+}
+puVar7 = (uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+*(int *)((int)(DAT_TileMapState.
+ptr_MovementDirectionTranslationMatrix +
+DAT_TileMapState.DAT_SomeY * 0x20) + 0x10) +
+DAT_TileMapState.DAT_SomeTile);
+if ((*(uint *)((int)puVar7 + -1) & 0x20) != 0) {
+bVar5 = bVar5 | 4;
+}
+if ((*(uint *)((int)puVar7 + 1) & 0x20) != 0) {
+bVar5 = bVar5 | 0x10;
+}
+if ((*puVar7 & 0x20) != 0) {
+bVar5 = bVar5 | 8;
+}
+bVar6 = 0;
+if ((*(uint *)(DAT_TileMapState.ptr_LogicLayer +
+DAT_TileMapState.DAT_SomeTile * 4 + 4) & 1) != 0) {
+bVar6 = 0x20;
+}
+if ((*(uint *)(DAT_TileMapState.ptr_LogicLayer +
+DAT_TileMapState.DAT_SomeTile * 4 + -4) & 1) != 0) {
+bVar6 = bVar6 | 2;
+}
+puVar7 = (uint *)(DAT_TileMapState.ptr_LogicLayer +
+*(int *)(DAT_TileMapState.
+ptr_MovementDirectionTranslationMatrix +
+DAT_TileMapState.DAT_SomeY * 0x20) * 4 +
+DAT_TileMapState.DAT_SomeTile * 4);
+if ((puVar7[-1] & 1) != 0) {
+bVar6 = bVar6 | 1;
+}
+if ((puVar7[1] & 1) != 0) {
+bVar6 = bVar6 | 0x40;
+}
+if ((*puVar7 & 1) != 0) {
+bVar6 = bVar6 | 0x80;
+}
+puVar7 = (uint *)(DAT_TileMapState.ptr_LogicLayer +
+*(int *)((int)(DAT_TileMapState.
+ptr_MovementDirectionTranslationMatrix +
+DAT_TileMapState.DAT_SomeY * 0x20) + 0x10) * 4 +
+DAT_TileMapState.DAT_SomeTile * 4);
+if ((puVar7[-1] & 1) != 0) {
+bVar6 = bVar6 | 4;
+}
+if ((puVar7[1] & 1) != 0) {
+bVar6 = bVar6 | 0x10;
+}
+if ((*puVar7 & 1) != 0) {
+bVar6 = bVar6 | 8;
+}
+DAT_TileMapState.bitFlag = bVar6 | bVar5;
+}
+else if (param_2 == 4) {
+DAT_TileMapState.bitFlag = 0;
+if ((*(uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+DAT_TileMapState.DAT_SomeTile + 1) & 4) != 0) {
+DAT_TileMapState.bitFlag = 0x20;
+}
+if ((*(uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+DAT_TileMapState.DAT_SomeTile + -1) & 4) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 2;
+}
+puVar7 = (uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+*(int *)(DAT_TileMapState.
+ptr_MovementDirectionTranslationMatrix +
+DAT_TileMapState.DAT_SomeY * 0x20) +
+DAT_TileMapState.DAT_SomeTile);
+if ((*(uint *)((int)puVar7 + -1) & 4) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 1;
+}
+if ((*(uint *)((int)puVar7 + 1) & 4) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x40;
+}
+if ((*puVar7 & 4) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x80;
+}
+puVar7 = (uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+*(int *)((int)(DAT_TileMapState.
+ptr_MovementDirectionTranslationMatrix +
+DAT_TileMapState.DAT_SomeY * 0x20) + 0x10) +
+DAT_TileMapState.DAT_SomeTile);
+if ((*(uint *)((int)puVar7 + -1) & 4) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 4;
+}
+if ((*(uint *)((int)puVar7 + 1) & 4) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x10;
+}
+if ((*puVar7 & 4) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 8;
+}
+}
+else if (param_2 == 8) {
+DAT_TileMapState.bitFlag = 0;
+if ((*(uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+DAT_TileMapState.DAT_SomeTile + 1) & 8) != 0) {
+DAT_TileMapState.bitFlag = 0x20;
+}
+if ((*(uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+DAT_TileMapState.DAT_SomeTile + -1) & 8) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 2;
+}
+puVar7 = (uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+*(int *)(DAT_TileMapState.
+ptr_MovementDirectionTranslationMatrix +
+DAT_TileMapState.DAT_SomeY * 0x20) +
+DAT_TileMapState.DAT_SomeTile);
+if ((*(uint *)((int)puVar7 + -1) & 8) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 1;
+}
+if ((*(uint *)((int)puVar7 + 1) & 8) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x40;
+}
+if ((*puVar7 & 8) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x80;
+}
+puVar7 = (uint *)(DAT_TileMapState.ptr_TerrainTypeTileMap +
+*(int *)((int)(DAT_TileMapState.
+ptr_MovementDirectionTranslationMatrix +
+DAT_TileMapState.DAT_SomeY * 0x20) + 0x10) +
+DAT_TileMapState.DAT_SomeTile);
+if ((*(uint *)((int)puVar7 + -1) & 8) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 4;
+}
+if ((*(uint *)((int)puVar7 + 1) & 8) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 0x10;
+}
+if ((*puVar7 & 8) != 0) {
+DAT_TileMapState.bitFlag = DAT_TileMapState.bitFlag | 8;
+}
+}
+else {
+DAT_TileMapState.bitFlag = 0;
+}
+}
+else {
+DAT_TileMapState.bitFlag = 0;
+}
+if (DAT_TileMapState.bitFlag == 0xff) {
+if ((DAT_TileMapState.RandomLayer[DAT_TileMapState.DAT_SomeTile] & 0xf) == 0) {
+DAT_TileMapState.MacroLayer[DAT_TileMapState.DAT_SomeTile] = 2;
+}
+else {
+DAT_TileMapState.MacroLayer[DAT_TileMapState.DAT_SomeTile] = 0x800;
+}
+}
+else {
+DAT_TileMapState.MacroLayer[DAT_TileMapState.DAT_SomeTile] = 1;
+}
+if (uVar1 != DAT_TileMapState.MacroLayer[DAT_TileMapState.DAT_SomeTile]) {
+Navigation::PathFindingState::updateWalkAndPathLayer
+(&DAT_PathFindingState,1,DAT_TileMapState.DAT_SomeX,
+DAT_TileMapState.DAT_SomeY);
+}
+}
+}
+LAB_004fdbd3:
+DAT_TileMapState.DAT_SomeX = DAT_TileMapState.DAT_SomeX + 1;
+}
+}
+}
+}
+local_18 = local_18 + 1;
+} while( true );
+}
+--- NAMEN NUR IM PAKETCODE ---
+-
+--- KOMMENTARE IM PAKETCODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004FDB00
+--- ERKLAERUNG ---
+{"adr": "0x004fdb00", "name": "updateMacroLayerRelated", "p1": {"bereich": "Karte", "zweck": "Berechnet für einen Geländetyp (param_1 = LogicLayer-Maske, param_2 = Logic2Layer-Maske) die MacroLayer der geänderten Felder neu: Randfelder bekommen Typ 1, Innenfelder werden zu Blöcken (Typ 4, 8, 0x10) oder Einzelfeldern (Typ 2) zusammengefasst."}, "p2": {"ein": "param_1 (LogicLayer-Maske), param_2 (Logic2Layer-Maske, als vorzeichenbehaftetes Byte verundet), param_3 (ungleich 0: MacroLayer des Felds vorher auf 0 setzen)", "aus": "nichts", "liest": ["ChangedLayer", "LogicLayer", "Logic2Layer", "TerrainTypeTileMap (über ptr_TerrainTypeTileMap)", "RandomLayer", "MacroLayer", "ptr_MovementDirectionTranslationMatrix[Zeile][0] und [4]", "translationMatrix[y].addXgetTile", "DAT_PathFindingState.mappingYRelated", "someIndex, someLimit, someYLike, someYLikeLimit", "Blocktabelle bei 0x01f93438 (40 Byte je Blockzeile)", "DAT_TerrainDefinedData.field2292_0x19d4 (16 Punkte), field2291_0x198c (9 Punkte), field2290_0x196c (4 Punkte)"], "schreibt": ["MacroLayer", "bitFlag", "DAT_SomeX, DAT_SomeY, DAT_SomeTile (Arbeitsfelder)", "indirekt über updateWalkAndPathLayer: ChangedLayer, CertainPathLayer, WalkLayer, Suchwarteschlange, Blocktabelle und die Änderungsgrenzen"], "ruft": ["xyAreValid", "translateXYToTile", "computeTileXOffset (im Export eingebettet: x = Kachel - addXgetTile[y])", "updateWalkAndPathLayer"], "regeln": ["Einziger Aufrufer laut Export: updateMacroLayer (0x00511020), sobald forceUpdateMacroLayerFlag > 0. Dort sieben Aufrufe mit (param_1, param_2, param_3) = (0x8000, 1, 0), (0x20000000, 0, 0), (0, 2, 0), (0, 0x10, 0), (0, 0x20, 0), (0, 4, 0), (0, 8, 0); danach updateMacroLayerRelated2. param_3 ist dort immer 0; späte Aufrufe überschreiben frühere bei Feldern, die mehrere Typen erfüllen", "Blockauswahl wie in updateGFXLayers: blockY von someIndex bis someLimit, blockX von someYLike bis someYLikeLimit (je einschließlich), Block (10 mal 10 Felder) nur bei Blocktabelle[blockY * 40 + blockX] ungleich 0; der erste markierte Block beginnt in Zeile mappingYRelated % 10, alle weiteren in Zeile 0", "Feldfilter: xyAreValid(SomeX, SomeY) und ChangedLayer[tile] ungleich 0. Dann merkt sich die Funktion den alten MacroLayer-Wert; bei param_3 != 0 wird er zuerst auf 0 gesetzt", "Typfilter: bearbeitet wird nur, wenn (LogicLayer & param_1) != 0 oder (Logic2Layer & param_2) != 0; sonst bleibt MacroLayer unverändert (außer der Nullung durch param_3). Felder mit LogicLayer-Rand-Bits (0x30) bekommen bitFlag 0, also Typ 1", "Nachbarmaske bitFlag (alle 8 Nachbarn): tile+1 gibt 0x20, tile-1 gibt 0x02; mit R0 = tile + MovementDirectionTranslationMatrix[SomeY][0] gibt R0-1 0x01, R0+1 0x40, R0 0x80; mit R4 = tile + ...[SomeY][4] gibt R4-1 0x04, R4+1 0x10, R4 0x08. Ein Bit steht, wenn der Nachbar die Eigenschaft trägt", "Eigenschaft des Nachbarn: bei param_1 == 0x8000 LogicLayer-Bit 0x8000; bei param_1 == 0x20000000 (Sumpf) LogicLayer-Bit 0x20000000; sonst nach param_2: 2, 0x10, 1, 0x80, 0x40, 4 und 8 jeweils dasselbe Bit in TerrainTypeTileMap; bei 0x20 (Strand) TerrainTypeTileMap-Bit 0x20 oder LogicLayer-Bit 1 (L_SEA) zusammen; jeder andere Wert gibt bitFlag 0. Bei param_1 == 0x8000 oder 0x20000000 wird param_2 nicht für die Maske benutzt", "Sonderfall Sumpf (param_1 == 0x20000000): trägt das Feld LogicLayer-Bit 0x80000000 (L_OIL), wird es übersprungen: kein neuer MacroLayer-Wert und kein updateWalkAndPathLayer", "Ergebnis: bitFlag == 0xff (alle 8 Nachbarn tragen die Eigenschaft): MacroLayer = 2, wenn (RandomLayer & 0xf) == 0, sonst 0x800 (vorläufig, wird unten aufgelöst). Jeder andere bitFlag: MacroLayer = 1 (Randfeld)", "Hat sich der MacroLayer-Wert gegenüber dem alten (vor der Nullung) geändert, folgt updateWalkAndPathLayer(1, SomeX, SomeY). Laut Export setzt es ChangedLayer des Felds auf 2, markiert den 10x10-Block in der Blocktabelle mit 2 und erweitert die Änderungsgrenzen (mappingYRelated, yLimit, someIndex, someLimit, someYLike, someYLikeLimit)", "Nachbearbeitung nach allen Blockzeilen, einmal je Aufruf, in vier Durchläufen über dieselben Blöcke (Zeilenversatz mappingYRelated % 10 jeweils wieder für den ersten Block), nur für Felder mit MacroLayer == 0x800 und ohne ChangedLayer-Prüfung: (1) sind alle 16 Musterfelder (x + field2292_0x19d4[i].x, y + ...[i].y, i = 0 bis 15) 0x800, bekommt Musterfeld i den Wert 0x10 + (i << 6) + RandomLayer(Anker) * 0x1000 (16 Bit); (2) ebenso 9 Felder (field2291_0x198c) mit 8 + (i << 6) + ...; (3) ebenso 4 Felder (field2290_0x196c) mit 4 + (i << 6) + ...; (4) jedes dann noch übrige 0x800-Feld wird 2", "Die Musterfelder werden ohne xyAreValid-Prüfung mit translateXYToTile geholt. Bereits vergebene Blockwerte verhindern, dass dasselbe Feld später in einem kleineren Block landet (ein Feld muss für den Block noch 0x800 sein)", "Aufbau des MacroLayer-Werts: Bits 0 bis 5 Typ (1 Rand, 2 Einzelfeld innen, 4, 8, 0x10 Feld eines 2x2-, 3x3-, 4x4-Blocks), Bits 6 bis 10 Platz im Block, Bits 12 bis 15 Zufallsnibble des Ankerfelds; updateGFXLayers wertet davon Typ (& 0x3f), Platz (& 0x7c0 >> 6) und 2 Zufallsbits ((>> 12) & 3) aus", "Weitere Verwendung laut Export: calculateUnitMovementSpeed lässt bei einem Sumpffeld (LogicLayer 0x20000000) mit (MacroLayer & 0x3f) == 1 den Sumpf-Zweig weg; Randfelder des Sumpfs gelten dort also nicht als Sumpf", "Von updateMacroLayer aus nicht erreichbar sind die Zweige param_2 == 1, 0x40 und 0x80 (ohne param_1 = 0x8000), weil nur die oben genannten sieben Parameterpaare vorkommen"], "offen": ["Die Punktmuster field2292_0x19d4, field2291_0x198c und field2290_0x196c (Lage der 16, 9 und 4 Felder) sind hier nicht gelesen", "Bedeutung von bitFlag-Bits, Feldnamen someIndex bis someYLikeLimit und der Blocktabelle bei 0x01f93438 ist ungesichert (vermutlich Blöcke mit geändertem Gelände)", "Die Wirkung der Sumpf-Behandlung in calculateUnitMovementSpeed (Verlangsamung?) ist nur aus dem Aufbau dieser Fremdfunktion erschlossen und hier nicht nachgemessen", "Warum 1 von 16 Innenfeldern (RandomLayer & 0xf == 0) sofort Typ 2 bekommt, statt in einen Block zu gehen, ist nicht belegt (vermutlich Optik-Auflockerung)"]}, "p3": {"erklaerung": "Pflegt die Makro-Schicht des Geländes: Für jeden Geländetyp (Erde, Sumpf, Erde und Steine, Oase, Strand, Plateaus) wird je geändertem Feld geprüft, ob alle 8 Nachbarn gleich sind. Randfelder bekommen Typ 1, Innenfelder werden zu 2x2-, 3x3- und 4x4-Blöcken zusammengefasst. Die Schicht dient laut Export der Bodenbild-Wahl (updateGFXLayers) und nimmt Sumpf-Randfeldern die Sumpf-Behandlung der Bewegung (calculateUnitMovementSpeed).", "gehirn": "Randfelder eines Sumpfs (MacroLayer & 0x3f == 1) werden laut calculateUnitMovementSpeed nicht als Sumpf behandelt; Innenfelder mit lauter Sumpf-Nachbarn (Typ 2, 4, 8, 0x10) werden weiter als Sumpf behandelt. Für Wege durch Sumpf lässt sich das Randfeld-Kennzeichen aus MacroLayer lesen.", "beleg": "code", "live": "MacroLayer & 0x3f eines Sumpffelds (LogicLayer 0x20000000) am Rand lesen → 1; eines Sumpffelds mit 8 Sumpf-Nachbarn → 2, 4, 8 oder 0x10", "live_art": "tabelle"}}
+
+### 0x005205a0 executeAttackWaveTargetAssignment
+--- CODE (Ghidra-Export, vollstaendig) ---
+/* WARNING: Enum "MappersEnum": Some values do not have unique names */
+/* WARNING: Enum "DPSEND_EnumInt": Some values do not have unique names */
+/* WARNING: Enum "DPERRInt": Some values do not have unique names */
+/* decompilerscript: committed: 2025-01-30 21:57:43.216000 */
+void __thiscall
+_HoldStrong::Map::Units::TroopValueState::executeAttackWaveTargetAssignment
+(TroopValueState *this,int param_1)
+{
+int *piVar1;
+int iVar2;
+BOOLEnum BVar3;
+int iVar4;
+int iVar5;
+int local_8;
+int local_4;
+iVar5 = (int)(char)DAT_TroopValueState.attackInfo.attackWavePlayerIDArray[param_1];
+local_8 = 0;
+local_4 = 0;
+if ((DAT_GameCore.gameMode_2 == GM_BUILDERUnk) &&
+(DAT_MapPropertiesState.SEC_U3_MapType2_1 == MT_SIEGE)) {
+iVar5 = 2;
+local_8 = 5;
+local_4 = -1;
+}
+piVar1 = DAT_TroopValueState.attackInfo.attackWaveTicker + param_1;
+*piVar1 = *piVar1 + 1;
+iVar4 = DAT_GameSynchronyState.currentPlayerSlotID;
+if (DAT_AttackInfoDefinedData.field3_0x78[DAT_TroopValueState.attackInfo.attacker] <=
+DAT_TroopValueState.attackInfo.attackWaveTicker[param_1]) {
+DAT_TroopValueState.attackInfo.attackWaveTicker[param_1] = 0;
+DAT_TroopValueState.attackInfo.value10 = DAT_TroopValueState.attackInfo.value10 + 1;
+BVar3 = Game::GameStateStructures::canKeepReachSignpostZone(&DAT_GameState,iVar4,iVar5,param_1);
+if ((BVar3 != FALSE) && (DAT_TroopValueState.attackInfo.attacker != 8)) {
+DAT_TroopValueState.attackInfo.value3Array01[param_1] = 4;
+DAT_TroopValueState.attackInfo.attackWaveTicker[param_1] = 10000;
+DAT_TroopValueState.attackInfo.field127574_0x30b1a[param_1] = 0;
+return;
+}
+DAT_TroopValueState.attackInfo.someCounter1 = DAT_TroopValueState.attackInfo.someCounter1 + 1;
+aiRecomputeAttacks2(&DAT_TroopValueState,0,param_1);
+iVar4 = iVar5 * 0x177bc;
+if (*(int *)((int)DAT_TroopValueState.attackInfo.scaleValuesArray + iVar4 + -0x18) <
+*(int *)((int)DAT_TroopValueState.attackInfo.scaleValuesArray + iVar4 + -0x1c)) {
+DAT_TroopValueState.attackInfo._135000_4_ = DAT_TroopValueState.attackInfo._135000_4_ + 1;
+}
+if (DAT_TroopValueState.attackInfo.attacker == 8) {
+if (9 < DAT_TroopValueState.attackInfo.someCounter1) {
+DAT_TroopValueState.attackInfo.attackWaveTicker[param_1] = 0;
+DAT_TroopValueState.attackInfo.value3Array01[param_1] = 6;
+Audio::MSS::SoundSystem::handleBattleEndMusicTransition(&DAT_SoundSystemState);
+return;
+}
+BVar3 = Game::GameStateStructures::canKeepReachSignpostZone
+(&DAT_GameState,DAT_GameSynchronyState.currentPlayerSlotID,iVar5,param_1);
+if ((BVar3 != FALSE) &&
+(*(int *)((int)DAT_TroopValueState.attackInfo.gateValuesArray + iVar4 + -4) != 0)) {
+sortAttackInfoTribeIDArrayBasedOn(&DAT_TroopValueState,param_1,1000,10000,STBT_0x3f6);
+applyTribeBehaviorTypes(&DAT_TroopValueState,STBT_0x3f6,STBT_1,0,10);
+}
+iVar5 = *(int *)((int)DAT_TroopValueState.attackInfo.townValuesArray + iVar4 + -4);
+if (iVar5 != 0) {
+sortAttackInfoTribeIDArrayBasedOn(&DAT_TroopValueState,param_1,1000,iVar5,STBT_0x3f5);
+applyTribeBehaviorTypes(&DAT_TroopValueState,STBT_0x3f5,STBT_1,0,0x14);
+}
+sortAttackInfoTribeIDArrayBasedOn
+(&DAT_TroopValueState,param_1,1000,
+*(int *)((int)DAT_TroopValueState.attackInfo.hackValuesArray + iVar4 + -4),
+STBT_0x3f2);
+applyTribeBehaviorTypes(&DAT_TroopValueState,STBT_0x3f2,STBT_1,0,10);
+return;
+}
+DAT_TroopValueState.attackInfo.field89399_0x21c48 = 0;
+if (DAT_TroopValueState.attackInfo.catapults != 0) {
+DAT_TroopValueState.attackInfo.field89399_0x21c48 =
+DAT_AttackInfoDefinedData.field4_0xa0[DAT_TroopValueState.attackInfo.attacker];
+if (DAT_TroopValueState.attackInfo.zoneSize < 3000) {
+DAT_TroopValueState.attackInfo.field89399_0x21c48 =
+DAT_TroopValueState.attackInfo.field89399_0x21c48 + 10;
+}
+sortAttackInfoTribeIDArrayBasedOn(&DAT_TroopValueState,param_1,1,10000,STBT_0x401);
+applyTribeBehaviorTypes(&DAT_TroopValueState,STBT_0x401,STBT_1,0,0x32);
+}
+if ((DAT_TroopValueState.attackInfo.lord2 != 0) &&
+(2 < DAT_TroopValueState.attackInfo.value10 -
+DAT_TroopValueState.attackInfo.field89399_0x21c48)) {
+if (DAT_TroopValueState.attackInfo.attacker == 4) {
+DAT_TroopValueState.attackInfo._134972_4_ = DAT_TroopValueState.attackInfo._134972_4_ * 2;
+}
+sortAttackInfoTribeIDArrayBasedOn
+(&DAT_TroopValueState,param_1,DAT_TroopValueState.attackInfo._134972_4_,1000,
+STBT_0x3fd);
+assignBehaviorTypeToNearbyTribes(&DAT_TroopValueState,STBT_0x3fd,1,0,1);
+}
+if (DAT_TroopValueState.attackInfo.attacker == 3) {
+*(int *)((int)DAT_TroopValueState.attackInfo.townValuesArray + iVar4 + -4) =
+*(int *)((int)DAT_TroopValueState.attackInfo.townValuesArray + iVar4 + -4) * 2;
+}
+iVar2 = *(int *)((int)DAT_TroopValueState.attackInfo.townValuesArray + iVar4 + -4);
+if ((iVar2 != 0) &&
+(2 < DAT_TroopValueState.attackInfo.value10 -
+DAT_TroopValueState.attackInfo.field89399_0x21c48)) {
+sortAttackInfoTribeIDArrayBasedOn
+(&DAT_TroopValueState,param_1,DAT_TroopValueState.attackInfo._134984_4_,iVar2,
+STBT_0x3f5);
+applyTribeBehaviorTypes(&DAT_TroopValueState,STBT_0x3f5,STBT_1,0,0x14);
+}
+BVar3 = Game::GameStateStructures::canKeepReachSignpostZoneViaPathfinder
+(&DAT_GameState,DAT_GameSynchronyState.currentPlayerSlotID,iVar5,param_1);
+if (BVar3 != FALSE) {
+sortAttackInfoTribeIDArrayBasedOn
+(&DAT_TroopValueState,param_1,DAT_TroopValueState.attackInfo._134980_4_,10000,
+STBT_0x3fa);
+applyTribeBehaviorTypes(&DAT_TroopValueState,STBT_7,STBT_1,10,0x14);
+}
+if ((0 < *(int *)((int)DAT_TroopValueState.attackInfo.moatValuesArray + iVar4 + -4)) &&
+(2 < DAT_TroopValueState.attackInfo.value10 -
+DAT_TroopValueState.attackInfo.field89399_0x21c48)) {
+if (DAT_TroopValueState.attackInfo.attacker == 4) {
+DAT_TroopValueState.attackInfo._134988_4_ =
+(int)DAT_TroopValueState.attackInfo._134988_4_ / 2;
+}
+sortAttackInfoTribeIDArrayBasedOn
+(&DAT_TroopValueState,param_1,DAT_TroopValueState.attackInfo._134988_4_,
+*(int *)((int)DAT_TroopValueState.attackInfo.moatValuesArray + iVar4 + -4),
+STBT_0x3f7);
+applyTribeBehaviorTypes(&DAT_TroopValueState,STBT_0x3f7,STBT_1,10,10);
+DAT_TroopValueState.attackInfo.field89400_0x21c4c =
+DAT_TroopValueState.attackInfo.unknownTribeCounterRelated;
+}
+sortAttackInfoTribeIDArrayBasedOn(&DAT_TroopValueState,param_1,1000,10000,STBT_0x418);
+applyTribeBehaviorTypes(&DAT_TroopValueState,STBT_0x418,STBT_1,0x14,0x46);
+sortAttackInfoTribeIDArrayBasedOn(&DAT_TroopValueState,param_1,1000,10000,STBT_0x419);
+applyTribeBehaviorTypes(&DAT_TroopValueState,STBT_0x419,STBT_1,0x14,0x46);
+if (*(int *)((int)DAT_TroopValueState.attackInfo.gateValuesArray + iVar4 + -4) != 0) {
+sortAttackInfoTribeIDArrayBasedOn(&DAT_TroopValueState,param_1,2,10000,STBT_0x41a);
+applyTribeBehaviorTypes(&DAT_TroopValueState,STBT_0x41a,STBT_1,10,0x1e);
+}
+sortAttackInfoTribeIDArrayBasedOn(&DAT_TroopValueState,param_1,1000,10000,STBT_0x41b);
+applyTribeBehaviorTypes(&DAT_TroopValueState,STBT_0x41b,STBT_1,0x14,0x14);
+if ((0 < DAT_TroopValueState.attackInfo.archerPoints) &&
+(local_8 + 1 <
+DAT_TroopValueState.attackInfo.value10 - DAT_TroopValueState.attackInfo.field89399_0x21c48))
+{
+DAT_TroopValueState.attackInfo._138324_4_ = DAT_TroopValueState.attackInfo._138324_4_ + 1;
+sortAttackInfoTribeIDArrayBasedOn
+(&DAT_TroopValueState,param_1,DAT_TroopValueState.attackInfo.archerPoints,10000,
+STBT_0x3fc);
+applyTribeBehaviorTypes(&DAT_TroopValueState,STBT_0x3fc,STBT_1,0,5);
+}
+if (DAT_TroopValueState.attackInfo.people3 != 0) {
+sortAttackInfoTribeIDArrayBasedOn
+(&DAT_TroopValueState,param_1,DAT_TroopValueState.attackInfo._134996_4_,
+DAT_TroopValueState.attackInfo.people3,STBT_0x3fb);
+applyTribeBehaviorTypes(&DAT_TroopValueState,STBT_0x3fb,STBT_1,5,0x1e);
+}
+if ((*(int *)((int)DAT_TroopValueState.attackInfo.gateValuesArray + iVar4 + -4) != 0) &&
+(3 < DAT_TroopValueState.attackInfo.value10 -
+DAT_TroopValueState.attackInfo.field89399_0x21c48)) {
+sortAttackInfoTribeIDArrayBasedOn
+(&DAT_TroopValueState,param_1,DAT_TroopValueState.attackInfo._135000_4_,10000,
+STBT_0x3f6);
+applyTribeBehaviorTypes(&DAT_TroopValueState,STBT_0x3f6,STBT_1,0,10);
+}
+iVar2 = *(int *)((int)DAT_TroopValueState.attackInfo.wideValuesArray + iVar4 + -4);
+if ((iVar2 != 0) &&
+(3 < DAT_TroopValueState.attackInfo.value10 -
+DAT_TroopValueState.attackInfo.field89399_0x21c48)) {
+sortAttackInfoTribeIDArrayBasedOn(&DAT_TroopValueState,param_1,iVar2,10000,STBT_0x413);
+applyTribeBehaviorTypes(&DAT_TroopValueState,STBT_0x413,STBT_1,0,0x28);
+}
+iVar2 = *(int *)((int)DAT_TroopValueState.attackInfo.wideValuesArray + iVar4 + -4);
+if (iVar2 != 0) {
+sortAttackInfoTribeIDArrayBasedOn(&DAT_TroopValueState,param_1,iVar2,10000,STBT_0x414);
+applyTribeBehaviorTypes(&DAT_TroopValueState,STBT_0x414,STBT_1,0,0x28);
+}
+sortAttackInfoTribeIDArrayBasedOn(&DAT_TroopValueState,param_1,1000,10000,STBT_0x411);
+assignBehaviorTypeAndLinkSupportTribe(&DAT_TroopValueState,param_1,iVar5,STBT_0x411,0,0x14);
+if ((5 < DAT_TroopValueState.attackInfo.aiTribeSizesPerTribeType.aiTroops_L) &&
+(2 < DAT_TroopValueState.attackInfo.value10 -
+DAT_TroopValueState.attackInfo.field89399_0x21c48)) {
+iVar5 = *(int *)((int)DAT_TroopValueState.attackInfo.scaleValuesArray + iVar4 + -4);
+if (1 < iVar5) {
+if (iVar5 < 3) {
+iVar5 = 1;
+}
+else if (iVar5 < 7) {
+iVar5 = 2;
+}
+else if (iVar5 < 0xd) {
+iVar5 = 3;
+}
+else {
+iVar5 = 4;
+}
+sortAttackInfoTribeIDArrayBasedOn(&DAT_TroopValueState,param_1,iVar5,10000,STBT_0x3f4);
+applyTribeBehaviorTypes(&DAT_TroopValueState,STBT_0x3f4,STBT_5,0,0x19);
+}
+if (DAT_TroopValueState.attackInfo.field89400_0x21c4c != 0) {
+sortAttackInfoTribeIDArrayBasedOn
+(&DAT_TroopValueState,param_1,DAT_TroopValueState.attackInfo.field89400_0x21c4c,
+10000,STBT_0x3f4);
+applyTribeBehaviorTypes(&DAT_TroopValueState,STBT_0x3fc,STBT_1,0,0x14);
+}
+}
+if (local_4 + 4 <
+DAT_TroopValueState.attackInfo.value10 - DAT_TroopValueState.attackInfo.field89399_0x21c48)
+{
+sortAttackInfoTribeIDArrayBasedOn
+(&DAT_TroopValueState,param_1,1000,
+*(int *)((int)DAT_TroopValueState.attackInfo.hackValuesArray + iVar4 + -4),
+STBT_0x3f2);
+applyTribeBehaviorTypes(&DAT_TroopValueState,STBT_0x3f2,0,0,10);
+}
+iVar5 = *(int *)((int)DAT_TroopValueState.attackInfo.moatValuesArray + iVar4 + -4);
+if ((0 < iVar5) &&
+(4 < DAT_TroopValueState.attackInfo.value10 -
+DAT_TroopValueState.attackInfo.field89399_0x21c48)) {
+sortAttackInfoTribeIDArrayBasedOn(&DAT_TroopValueState,param_1,1000,iVar5,STBT_0x3f7);
+applyTribeBehaviorTypes(&DAT_TroopValueState,STBT_0x3f7,STBT_1,10,5);
+}
+if (((DAT_TroopValueState.attackInfo.knights != 0) &&
+(*(int *)((int)DAT_TroopValueState.attackInfo.gateValuesArray + iVar4 + -4) != 0)) &&
+(3 < DAT_TroopValueState.attackInfo.value10 -
+DAT_TroopValueState.attackInfo.field89399_0x21c48)) {
+sortAttackInfoTribeIDArrayBasedOn(&DAT_TroopValueState,param_1,1000,10000,STBT_0x417);
+applyTribeBehaviorTypes(&DAT_TroopValueState,STBT_0x3f6,STBT_1,0,10);
+}
+sortAttackInfoTribeIDArrayBasedOn(&DAT_TroopValueState,param_1,1000,10000,STBT_0x41e);
+applyTribeBehaviorTypes(&DAT_TroopValueState,STBT_0x41e,STBT_1,10,0x28);
+}
+return;
+}
+--- NAMEN NUR IM PAKETCODE ---
+SomeTribeBehaviorType
+--- KOMMENTARE IM PAKETCODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x005205A0
+--- ERKLAERUNG ---
+{"adr": "0x005205a0", "name": "executeAttackWaveTargetAssignment", "p1": {"bereich": "KI", "zweck": "Zustand 3 einer KI-Angriffswelle (der Aufrufer aiControlNonSkirmishUnitMovement ruft sie bei value3Array01[p] == 3): zählt einen Takt hoch und teilt nach Ablauf der Wartezeit (Tabelle je attacker) den Gruppen der Welle in fester Reihenfolge Verhaltenstypen (STBT_...) zu, gestaffelt nach Runden (value10); kann stattdessen die Welle auf Zustand 4 (executeDelayedAttackWaveTargetAssignment) oder 6 (updateActiveAttackWaveState) setzen."}, "p2": {"ein": "param_1: Nummer der Angriffswelle (im Text p)", "aus": "-", "liest": ["attackWavePlayerIDArray[p] (0x1793c48), attackWaveTicker[p] (0x1793b1c), unknownSignpostRelatedArray[p] (über canKeepReachSignpostZone)", "DAT_AttackInfoDefinedData.field3_0x78[attacker] (Tabelle ab 0xb4c77c) und field4_0xa0[attacker] (Tabelle ab 0xb4c7a4)", "attackInfo.attacker (0x17842cc), value10 (0x1784f98), someCounter1 (0x17842f4), zoneSize (0x1788e4c), catapults (0x17842b4), knights (0x17a9d38), lord2 (0x178fbbc), archerPoints (0x177e99c), people3 (0x17a5aa4), aiTribeSizesPerTribeType.aiTroops_L (0x1793ee4), unknownTribeCounterRelated (0x17a993c), field89400_0x21c4c (0x1784fa0), _134972_4_ (0x1784290), _134980_4_ (0x1784298), _134984_4_ (0x178429c), _134988_4_ (0x17842a0), _134996_4_ (0x17842a8), _135000_4_ (0x17842ac)", "DAT_GameCore.gameMode_2 (0x1fe7d78), DAT_MapPropertiesState.SEC_U3_MapType2_1 (0x1666d90), DAT_GameSynchronyState.currentPlayerSlotID (0x1a275dc)", "Block des Spielers iVar5 (Versatz iVar5 * 0x177bc): Zähler 4 Byte vor dem Listenanfang von hack (0x1793520), scale (0x17973cc), town (0x179b268), gate (0x179f104), moat (0x17a2fa0), wide (0x17a6e3c) sowie bei scaleValuesArray die Plätze -0x1c (0x17973b4) und -0x18 (0x17973b8); Adressen für iVar5 = 0"], "schreibt": ["attackWaveTicker[p] (+1, dann 0 oder 10000), value3Array01[p] (0x1793a54; 4 oder 6), field127574_0x30b1a[p] (0x1793e6e; 0)", "value10 (+1), someCounter1 (+1), _135000_4_ (+1 unter der Bedingung aus Regel 4), field89399_0x21c48 (0x1784f9c), field89400_0x21c4c (nach der Graben-Zuteilung), _138324_4_ (0x1784fa8; +1 bei den Bogenpunkten)", "_134972_4_ (verdoppelt, nur attacker 4), _134988_4_ (halbiert, nur attacker 4), town(-4) im Block von iVar5 (verdoppelt, nur attacker 3)", "Nebenwirkungen der Aufrufe: aiRecomputeAttacks2 (rechnet u. a. die Listen-Zähler und die Zusammensetzung neu), sortAttackInfoTribeIDArrayBasedOn (tribeIDArray, tribeRelatedArrayValue0UpTo12), applyTribeBehaviorTypes, assignBehaviorTypeToNearbyTribes und assignBehaviorTypeAndLinkSupportTribe (Gruppenfelder tribeBehaviorType, someUpdateUpperLimit, attackInfo_someCounter1, unknownAttackRelatedUpdateCounter), handleBattleEndMusicTransition (Musik)"], "ruft": ["canKeepReachSignpostZone", "canKeepReachSignpostZoneViaPathfinder", "aiRecomputeAttacks2", "sortAttackInfoTribeIDArrayBasedOn", "applyTribeBehaviorTypes", "assignBehaviorTypeToNearbyTribes", "assignBehaviorTypeAndLinkSupportTribe", "handleBattleEndMusicTransition"], "regeln": ["Parameter: p = param_1. iVar5 = attackWavePlayerIDArray[p] (0x1793c48 + p, Byte mit Vorzeichen) wählt später den Listenblock (Versatz iVar5 * 0x177bc, siehe recomputeAttackInfo); local_8 = 0, local_4 = 0. Ist DAT_GameCore.gameMode_2 == 2 (GM_BUILDERUnk) und SEC_U3_MapType2_1 == 0 (MT_SIEGE), dann iVar5 = 2, local_8 = 5, local_4 = -1 (die Stufen mit local_8 und local_4 in Regel 11 und 14 werden dann um 5 strenger bzw. um 1 lockerer).", "Takt: attackWaveTicker[p] (0x1793b1c + p * 4) + 1 bei jedem Aufruf. Ist er danach kleiner als DAT_AttackInfoDefinedData.field3_0x78[attacker] (Tabelle ab 0xb4c77c), endet die Funktion hier. Sonst attackWaveTicker[p] = 0 und value10 (0x1784f98, gilt für alle Wellen gemeinsam) + 1.", "Abkürzung: canKeepReachSignpostZone(currentPlayerSlotID, iVar5, p) ist wahr, wenn das Wegegebiet am Lager-Eingang (campground.tileEntry) des Spielers currentPlayerSlotID und das am Wegweiser der Welle (signpostEntryData[unknownSignpostRelatedArray[p]].tile) beide != 0 sind und gleich oder für Einheiten von iVar5 (permitClimb 0) erreichbar. Ist sie wahr und attacker != 8: value3Array01[p] = 4 (der Aufrufer ruft dann executeDelayedAttackWaveTargetAssignment), attackWaveTicker[p] = 10000, field127574_0x30b1a[p] = 0, Ende.", "Sonst: someCounter1 + 1, aiRecomputeAttacks2(0, p) (rechnet die Angriffsdaten neu, auch die Zähler bei Listenanfang -4 und über computeAttackWaveTroopComposition die Felder _1349xx_4_). Ist im Block von iVar5 der Wert bei scaleValuesArray -0x18 kleiner als der bei -0x1c, dann _135000_4_ + 1. Schreibweise unten: sort(N, S, T) = sortAttackInfoTribeIDArrayBasedOn(p, N, S, T) wählt aus den KI-Gruppen der Welle p (tribeState weder 0 noch 3, in dieser Runde noch nicht eingeteilt, Verhalten nicht STBT_0x410 oder STBT_0x415) nach einer Vorrangtabelle von T höchstens N Gruppen (S begrenzt die Summe der Gruppengrößen); apply(T, T2, a, b) = applyTribeBehaviorTypes gibt den gewählten Gruppen das Verhalten T mit Obergrenze (Platz + 1) * b + a und den übrigen T2 (nur wenn T2 != 0). X(-4) = Zähler 4 Byte vor dem Listenanfang X im Block von iVar5 (vermutlich Zahl freier Plätze, von setScale3, setTown2, setGate2, setWide3 und setMoat3 berechnet); d = value10 - field89399_0x21c48.", "attacker == 8: ist someCounter1 >= 10 (9 < someCounter1), dann attackWaveTicker[p] = 0, value3Array01[p] = 6 (updateActiveAttackWaveState), handleBattleEndMusicTransition, Ende. Sonst der Reihe nach: wenn canKeepReachSignpostZone(currentPlayerSlotID, iVar5, p) wahr und gate(-4) != 0: sort(1000, 10000, STBT_0x3f6), apply(STBT_0x3f6, STBT_1, 0, 10); wenn town(-4) = X != 0: sort(1000, X, STBT_0x3f5), apply(STBT_0x3f5, STBT_1, 0, 0x14); immer sort(1000, hack(-4), STBT_0x3f2), apply(STBT_0x3f2, STBT_1, 0, 10); dann Ende.", "attacker != 8: field89399_0x21c48 (0x1784f9c) = 0. Ist catapults (0x17842b4) != 0: field89399_0x21c48 = field4_0xa0[attacker] (Tabelle ab 0xb4c7a4), dazu +10 bei zoneSize < 3000 (0x1788e4c); dann sort(1, 10000, STBT_0x401), apply(STBT_0x401, STBT_1, 0, 0x32). Ohne Katapulte ist d = value10.", "Lord: lord2 (0x178fbbc) != 0 und d > 2: bei attacker == 4 wird _134972_4_ (0x1784290) verdoppelt; sort(_134972_4_, 1000, STBT_0x3fd), assignBehaviorTypeToNearbyTribes(STBT_0x3fd, 1, 0, 1) (höchstens 5 Gruppen, die das Gebiet attackInfo.someArea erreichen können).", "Stadt: bei attacker == 3 wird town(-4) verdoppelt, unabhängig von der Bedingung danach. Ist town(-4) = X != 0 und d > 2: sort(_134984_4_ (0x178429c), X, STBT_0x3f5), apply(STBT_0x3f5, STBT_1, 0, 0x14).", "Pfad: canKeepReachSignpostZoneViaPathfinder(currentPlayerSlotID, iVar5, p) wahr (gleiche Gebiete wie in Regel 3, aber permitClimb 2 und ohne die Gleichheit als Abkürzung): sort(_134980_4_ (0x1784298), 10000, STBT_0x3fa), apply(STBT_7, STBT_1, 10, 0x14) (Typ 7, nicht 0x3fa). Graben: moat(-4) = M > 0 und d > 2: bei attacker == 4 wird _134988_4_ (0x17842a0) vorzeichenbehaftet durch 2 geteilt; sort(_134988_4_, M, STBT_0x3f7), apply(STBT_0x3f7, STBT_1, 10, 10); danach field89400_0x21c4c (0x1784fa0) = unknownTribeCounterRelated (Zahl der dabei eingeteilten Gruppen).", "Ohne Bedingung folgen sort(1000, 10000, STBT_0x418), apply(STBT_0x418, STBT_1, 0x14, 0x46) und sort(1000, 10000, STBT_0x419), apply(STBT_0x419, STBT_1, 0x14, 0x46); dann nur bei gate(-4) != 0 sort(2, 10000, STBT_0x41a), apply(STBT_0x41a, STBT_1, 10, 0x1e); dann ohne Bedingung sort(1000, 10000, STBT_0x41b), apply(STBT_0x41b, STBT_1, 0x14, 0x14).", "Bogenpunkte: archerPoints (0x177e99c) > 0 und d > local_8 + 1: _138324_4_ (0x1784fa8) + 1, sort(archerPoints, 10000, STBT_0x3fc), apply(STBT_0x3fc, STBT_1, 0, 5). Menschen: people3 (0x17a5aa4) != 0: sort(_134996_4_ (0x17842a8), people3, STBT_0x3fb), apply(STBT_0x3fb, STBT_1, 5, 0x1e).", "Tor: gate(-4) != 0 und d > 3: sort(_135000_4_ (0x17842ac), 10000, STBT_0x3f6), apply(STBT_0x3f6, STBT_1, 0, 10). Breite: wide(-4) = W != 0: bei d > 3 sort(W, 10000, STBT_0x413), apply(STBT_0x413, STBT_1, 0, 0x28); danach ohne d-Bedingung sort(W, 10000, STBT_0x414), apply(STBT_0x414, STBT_1, 0, 0x28).", "Ohne Bedingung sort(1000, 10000, STBT_0x411), assignBehaviorTypeAndLinkSupportTribe(p, iVar5, STBT_0x411, 0, 0x14). Leiterträger: aiTribeSizesPerTribeType.aiTroops_L (0x1793ee4, Summe der Gruppengrößen vom Typ AITT_LADDERMEN) > 5 und d > 2: ist scale(-4) = Sc > 1, dann n = 1 (Sc = 2), 2 (Sc 3 bis 6), 3 (Sc 7 bis 12), 4 (Sc ab 13); sort(n, 10000, STBT_0x3f4), apply(STBT_0x3f4, STBT_5, 0, 0x19). Ist field89400_0x21c4c != 0: sort(field89400_0x21c4c, 10000, STBT_0x3f4), apply(STBT_0x3fc, STBT_1, 0, 0x14) (Typ 0x3fc beim Zuteilen).", "Hack: d > local_4 + 4: sort(1000, hack(-4), STBT_0x3f2), apply(STBT_0x3f2, 0, 0, 10) (zweiter Typ 0: übrige Gruppen bekommen keinen). Graben: moat(-4) = M > 0 und d > 4: sort(1000, M, STBT_0x3f7), apply(STBT_0x3f7, STBT_1, 10, 5). Ritter: knights (0x17a9d38) != 0, gate(-4) != 0 und d > 3: sort(1000, 10000, STBT_0x417), apply(STBT_0x3f6, STBT_1, 0, 10) (Typ 0x3f6 beim Zuteilen). Zum Schluss ohne Bedingung sort(1000, 10000, STBT_0x41e), apply(STBT_0x41e, STBT_1, 10, 0x28).", "Die Reihenfolge der Zuteilungen ist ein Vorrang: apply trägt bei jeder eingeteilten Gruppe someCounter1 in attackInfo_someCounter1 ein, sort überspringt Gruppen mit diesem Wert, spätere Aufrufe derselben Runde bekommen sie also nicht mehr. Die Zahlen _134972_4_, _134980_4_, _134984_4_, _134988_4_, _134996_4_ und _135000_4_ setzt aiRecomputeAttacks2 über computeAttackWaveTroopComposition in jeder Runde neu aus der Truppenzusammensetzung (_134972_4_ immer 3); Verdopplung, Halbierung und +1 hier gelten also nur für diese Runde. value10 wird laut Export in initializeOrAdvanceAttackWave und updateInProgressAttackWave auf 0 gesetzt (vermutlich: Runden seit Wellenstart)."], "offen": ["Bedeutung der Verhaltenstypen STBT_0x3f2 bis STBT_0x41e (1010 bis 1054) und der Vorrangtabellen in sortAttackInfoTribeIDArrayBasedOn: die Zielarten von 0x3f2 bis 0x3f7, 0x3fb, 0x3fd, 0x413 und 0x414 zeigt assignAttackTargetsForTribe, für 0x401, 0x3fa, 7, 0x3fc, 0x411, 0x417 bis 0x41b und 0x41e ist die Bedeutung offen (Katapulte und Bogenpunkte nur aus den Bedingungen davor vermutet). Wer die Typen sonst auswertet und was die Obergrenze (Platz + 1) * b + a in someUpdateUpperLimit bewirkt, ist in diesem Paket nicht zu sehen.", "attacker ist der Spielerplatz der Welle: der Aufrufer setzt attackInfo.attacker = attackWavePlayerIDArray[Welle], aiRecomputeAttacks2 übergibt ihn als playerID an recomputeAttackInfo. Warum die Plätze 3, 4 und 8 Sonderfälle sind, ist offen. Zustände in value3Array01 laut Aufrufer: 0 initializeOrAdvanceAttackWave, 1 advanceAttackWaveStaging, 2 updateInProgressAttackWave, 3 diese Funktion, 4 executeDelayedAttackWaveTargetAssignment, 5 keine Aktion, 6 updateActiveAttackWaveState.", "Bedeutung der Werte bei scaleValuesArray -0x1c und -0x18 (Vergleich ergibt _135000_4_ + 1), von field127574_0x30b1a und _138324_4_ ungeklärt. Die Zähler bei Listenanfang -4 sind aus setScale3, setTown2, setGate2, setWide3 und setMoat3 als Zahl freier Plätze erschlossen; für hack(-4) ist kein Schreiber in aiRecomputeAttacks2 sichtbar.", "Einheit des Takts (Aufrufe je Spielsekunde) hängt vom Aufrufer ab und ist hier nicht sichtbar; die Tabellenwerte field3_0x78 und field4_0xa0 sind Daten, nicht Code, und wurden nicht gelesen."]}, "p3": {"erklaerung": "Nach jeweils field3_0x78[attacker] Aufrufen teilt die KI den Gruppen einer Angriffswelle neue Verhaltenstypen zu. Was zugeteilt wird, wächst mit der Zahl der Runden (value10 minus Katapult-Verzögerung): ab Runde 2 (Bogenpunkte, bei GM_BUILDERUnk mit MT_SIEGE erst ab Runde 7), 3, 4 und 5 kommen weitere Typen dazu, andere gelten sofort. Ist der Wegweiser der Welle erreichbar (und attacker != 8), setzt sie stattdessen value3Array01[p] = 4 (vermutlich der nächste Wellenzustand).", "gehirn": "Der Aufrufer aiControlNonSkirmishUnitMovement tut nichts bei gameMode_2 == GM_EDITOR (1), GM_SKIRMISH_AND_MULTIPLAYER (3) oder GM_SIEGE_THAT (6): in Skirmish- und Mehrspielerpartien läuft diese Wellenlogik also nicht, nur in Missions- und Kampagnenmodi. Dort verteilt die KI ihre Gruppen in fester Reihenfolge auf Verhaltenstypen, wer früher drankommt, hat Vorrang (Reihenfolge im Code: catapults, lord2, town, Pfad, moat, 0x418 bis 0x41b, archerPoints, people3, gate, wide, 0x411, Leiterträger, hack, moat, knights, 0x41e). Die Zielart hinter 0x3f2 bis 0x3f7, 0x3fb, 0x3fd, 0x413 und 0x414 zeigt assignAttackTargetsForTribe (Mauer, Leiterpunkt, Gebäude, Tor oder Turm, Graben, Leute, Lord, breite Mauerstelle). Weitere Typen schalten erst bei d > 1 (Bogenpunkte), 2, 3 oder 4 frei; mit Katapulten verschiebt sich das um field4_0xa0[attacker] Runden (+10 bei zoneSize < 3000). Wie viele Gruppen je Typ kommen, folgt aus den freien Angriffsplätzen (Zähler -4) und der Truppenstärke der KI (computeAttackWaveTroopComposition).", "beleg": "code", "live": "Tabellen DAT_AttackInfoDefinedData.field3_0x78 (ab 0xb4c77c) und field4_0xa0 (ab 0xb4c7a4) einmal aus dem Speicher lesen → je attacker 0 bis 9 die Wartezeit (Aufrufe bis zur nächsten Zuteilung) und die Verzögerung bei Katapulten (Runden); dazu in einer Welle attackWaveTicker[p] (0x1793b1c + p * 4) und value10 (0x1784f98) mehrfach lesen → der Ticker zählt je Aufruf um 1 und fällt bei field3_0x78[attacker] auf 0, value10 steigt dabei um 1", "live_art": "tabelle"}}

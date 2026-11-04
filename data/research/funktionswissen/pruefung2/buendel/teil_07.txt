@@ -1,0 +1,3208 @@
+### 0x0046d390 GetStringBasedOnHardcodedMaps
+--- CODE (Ghidra-Export, vollstaendig) ---
+/* decompilerscript: committed: 2025-01-30 21:57:43.216000 */
+char * __cdecl
+_HoldStrong::Global::GetStringBasedOnHardcodedMaps
+(char *mapName,int *hardcodedMapDescriptionGroupNum)
+{
+int iVar1;
+char *pcVar2;
+*hardcodedMapDescriptionGroupNum = 0;
+iVar1 = OS::__toupper((int)*mapName);
+switch(iVar1) {
+case 0x41:
+iVar1 = OS::__toupper((int)mapName[2]);
+if (iVar1 == 0x52) {
+iVar1 = OS::__stricmp(mapName,"A resourceful divide");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 2;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "A Resourceful Divide" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,1);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[4]);
+if (iVar1 == 0x57) {
+iVar1 = OS::__stricmp(mapName,"A New Land");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x70;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "A new land" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x6f);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[2]);
+if (iVar1 == 0x46) {
+iVar1 = OS::__stricmp(mapName,"A Friend Indeed");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x3e;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "A Friend Indeed" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x3d);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[2]);
+if (iVar1 == 0x54) {
+iVar1 = OS::__stricmp(mapName,"Antioch");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x58;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Antioch" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x57);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[3]);
+if (iVar1 == 0x49) {
+iVar1 = OS::__stricmp(mapName,"A Mighty Oasis");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x5e;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "A Mighty Oasis" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x5d);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[3]);
+if (iVar1 == 0x45) {
+iVar1 = OS::__stricmp(mapName,"Armenia");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x54;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Armenia" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x53);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[4]);
+if ((iVar1 == 0x4e) && (iVar1 = OS::__stricmp(mapName,"Arnon River"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x7c;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Arnon River" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x7b);
+return pcVar2;
+}
+}
+}
+}
+}
+}
+}
+break;
+case 0x42:
+iVar1 = OS::__toupper((int)mapName[2]);
+if (iVar1 == 0x52) {
+iVar1 = OS::__stricmp(mapName,"Border Patrol");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x50;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Border Patrol" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x4f);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[2]);
+if (iVar1 == 0x57) {
+iVar1 = OS::__stricmp(mapName,"Bow Ridge");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0xc;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Bow Ridge" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0xb);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[2]);
+if ((iVar1 == 0x4f) && (iVar1 = OS::__stricmp(mapName,"Broken Dune"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x7e;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Broken Dune" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x7d);
+return pcVar2;
+}
+}
+}
+break;
+case 0x43:
+iVar1 = OS::__toupper((int)mapName[5]);
+if (iVar1 == 0x45) {
+iVar1 = OS::__stricmp(mapName,"Centre of the Oasis");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0xe;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Centre of the Oasis" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0xd);
+return pcVar2;
+}
+break;
+}
+iVar1 = OS::__toupper((int)mapName[5]);
+if (iVar1 == 0x20) {
+iVar1 = OS::__toupper((int)mapName[6]);
+if (iVar1 == 0x45) {
+iVar1 = OS::__stricmp(mapName,"Close Encounters");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x20;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Close Encounters" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x1f);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[6]);
+if ((iVar1 == 0x50) && (iVar1 = OS::__stricmp(mapName,"Crete Peninsula"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x86;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Crete Peninsula" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x85);
+return pcVar2;
+}
+}
+break;
+}
+iVar1 = OS::__toupper((int)mapName[5]);
+if (iVar1 == 0x53) {
+iVar1 = OS::__stricmp(mapName,"Cactus Valley");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x60;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Cactus Valley" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x5f);
+return pcVar2;
+}
+break;
+}
+iVar1 = OS::__toupper((int)mapName[5]);
+if (iVar1 != 0x4e) {
+iVar1 = OS::__toupper((int)mapName[5]);
+if (iVar1 == 0x44) {
+iVar1 = OS::__toupper((int)mapName[7]);
+if (iVar1 == 0x52) {
+iVar1 = OS::__stricmp(mapName,"Crusader Demo");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x6e;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Crusader Demo" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x6d);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[7]);
+if ((iVar1 == 0x53) && (iVar1 = OS::__stricmp(mapName,"Cyclades"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x88;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Cyclades" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x87);
+return pcVar2;
+}
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[5]);
+if (iVar1 == 0x52) {
+iVar1 = OS::__stricmp(mapName,"Caesarea Swampland");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x80;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Caesarea Swampland" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x7f);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[5]);
+if (iVar1 == 0x55) {
+iVar1 = OS::__stricmp(mapName,"Coconut Twist");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x82;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Coconut Twist" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x81);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[5]);
+if ((iVar1 == 0x59) && (iVar1 = OS::__stricmp(mapName,"Craggy Cliffs"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x84;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Craggy Cliffs" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x83);
+return pcVar2;
+}
+}
+}
+}
+break;
+}
+pcVar2 = "Canyons";
+goto LAB_0046d823;
+case 0x44:
+iVar1 = OS::__toupper((int)mapName[1]);
+if (iVar1 == 0x45) {
+iVar1 = OS::__stricmp(mapName,"Desert Island Blues");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x12;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Desert Island Blues" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x11);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[1]);
+if (iVar1 == 0x52) {
+iVar1 = OS::__stricmp(mapName,"Drawn and Quartered");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x8a;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Drawn and Quartered" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x89);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[1]);
+if ((iVar1 == 0x55) && (iVar1 = OS::__stricmp(mapName,"Dunes of Nicaea"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x8c;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Dunes of Nicaea" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x8b);
+return pcVar2;
+}
+}
+}
+break;
+case 0x45:
+iVar1 = OS::__toupper((int)mapName[1]);
+if (iVar1 == 0x4d) {
+iVar1 = OS::__stricmp(mapName,"Empty Handed");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x40;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Empty Handed" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x3f);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[1]);
+if ((iVar1 == 0x44) && (iVar1 = OS::__stricmp(mapName,"Edessa"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x56;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Edessa" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x55);
+return pcVar2;
+}
+}
+break;
+case 0x46:
+iVar1 = OS::__toupper((int)mapName[1]);
+if ((iVar1 == 0x4c) && (iVar1 = OS::__stricmp(mapName,"Flood Plains of Jordan"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x8e;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Flood Plains of Jordan" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x8d);
+return pcVar2;
+}
+break;
+case 0x47:
+iVar1 = OS::__toupper((int)mapName[6]);
+if (iVar1 == 0x42) {
+iVar1 = OS::__stricmp(mapName,"Green Belt");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x1c;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Green Belt" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x1b);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[6]);
+if (iVar1 == 0x48) {
+iVar1 = OS::__stricmp(mapName,"Green Haven");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x28;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Green Haven" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x27);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[6]);
+if ((iVar1 == 0x45) && (iVar1 = OS::__stricmp(mapName,"Great Euphrates"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x90;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Great Euphrates" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x8f);
+return pcVar2;
+}
+}
+}
+break;
+case 0x48:
+iVar1 = OS::__toupper((int)mapName[4]);
+if (iVar1 == 0x59) {
+iVar1 = OS::__stricmp(mapName,"Happy Land");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x1e;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Happy Land" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x1d);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[4]);
+if (iVar1 == 0x48) {
+iVar1 = OS::__stricmp(mapName,"Height Advantage");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 10;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Height Advantage" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,9);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[4]);
+if (iVar1 == 0x20) {
+iVar1 = OS::__stricmp(mapName,"Hell On The Hill");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x4a;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Hell On The Hill" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x49);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[4]);
+if (iVar1 == 0x54) {
+iVar1 = OS::__stricmp(mapName,"Hilltop Hideout");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x48;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Hilltop Hideout" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x47);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[4]);
+if (iVar1 == 0x53) {
+iVar1 = OS::__toupper((int)mapName[6]);
+if (iVar1 == 0x52) {
+iVar1 = OS::__stricmp(mapName,"Halys River");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x92;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Halys River" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x91);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[6]);
+if ((iVar1 == 0x4f) &&
+(iVar1 = OS::__stricmp(mapName,"Hills of Antioch"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x96;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Hills of Antioch" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x95);
+return pcVar2;
+}
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[4]);
+if ((iVar1 == 0x45) && (iVar1 = OS::__stricmp(mapName,"Hidden Crater"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x94;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Hidden Crater" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x93);
+return pcVar2;
+}
+}
+}
+}
+}
+}
+break;
+case 0x49:
+iVar1 = OS::__toupper((int)mapName[3]);
+if (iVar1 == 0x48) {
+iVar1 = OS::__stricmp(mapName,"Inches Apart");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x36;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Inches Apart" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x35);
+return pcVar2;
+}
+break;
+}
+iVar1 = OS::__toupper((int)mapName[3]);
+if (iVar1 == 0x41) {
+iVar1 = OS::__stricmp(mapName,"Island Hoppin");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x26;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Island Hopping" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x25);
+return pcVar2;
+}
+break;
+}
+iVar1 = OS::__toupper((int)mapName[4]);
+if (iVar1 == 0x41) {
+iVar1 = OS::__stricmp(mapName,"Its a jungle out there");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x46;
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Its a Jungle Out There" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,0x45);
+return pcVar2;
+}
+break;
+}
+iVar1 = OS::__toupper((int)mapName[7]);
+if (iVar1 != 0x43) {
+iVar1 = OS::__toupper((int)mapName[3]);
+if (iVar1 == 0x54) {
+iVar1 = OS::__stricmp(mapName,"In The Shadow");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x72;
+iVar1 = 0x71;
+goto LAB_0046d83c;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[4]);
+if ((iVar1 == 0x4a) && (iVar1 = OS::__stricmp(mapName,"Its just not fair"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x7a;
+iVar1 = 0x79;
+goto LAB_0046d83c;
+}
+}
+break;
+}
+pcVar2 = "In The canyons";
+LAB_0046d823:
+iVar1 = OS::__stricmp(mapName,pcVar2);
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x62;
+iVar1 = 0x61;
+LAB_0046d83c:
+DAT_GameCore.mapDescUseStringTable = 1;
+/* added by script: "Canyons" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MAP_NAMES,iVar1);
+return pcVar2;
+}
+break;
+case 0x4c:
+iVar1 = OS::__toupper((int)mapName[6]);
+if (iVar1 == 0x48) {
+iVar1 = OS::__stricmp(mapName,"Love Thy Neighbour");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x3a;
+iVar1 = 0x39;
+goto LAB_0046d83c;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[6]);
+if (iVar1 == 0x42) {
+iVar1 = OS::__stricmp(mapName,"Large Barren Desert");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 100;
+iVar1 = 99;
+goto LAB_0046d83c;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[6]);
+if (iVar1 == 0x49) {
+iVar1 = OS::__stricmp(mapName,"Large Island");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x66;
+iVar1 = 0x65;
+goto LAB_0046d83c;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[6]);
+if (iVar1 == 0x46) {
+iVar1 = OS::__stricmp(mapName,"Land of the Cactus");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x78;
+iVar1 = 0x77;
+goto LAB_0046d83c;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[6]);
+if (iVar1 == 0x4d) {
+iVar1 = OS::__stricmp(mapName,"Lacus Magnus");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x98;
+iVar1 = 0x97;
+goto LAB_0046d83c;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[6]);
+if (iVar1 == 0x4f) {
+iVar1 = OS::__stricmp(mapName,"Lakes of Konya");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x9a;
+iVar1 = 0x99;
+goto LAB_0046d83c;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[6]);
+if (iVar1 == 0x41) {
+iVar1 = OS::__stricmp(mapName,"Lake Qaddas");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x9c;
+iVar1 = 0x9b;
+goto LAB_0046d83c;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[6]);
+if ((iVar1 == 0x20) &&
+(iVar1 = OS::__stricmp(mapName,"Litani and Jordan"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x9e;
+iVar1 = 0x9d;
+goto LAB_0046d83c;
+}
+}
+}
+}
+}
+}
+}
+}
+break;
+case 0x4d:
+iVar1 = OS::__toupper((int)mapName[2]);
+if (iVar1 != 0x52) {
+iVar1 = OS::__toupper((int)mapName[2]);
+if ((iVar1 == 0x4c) && (iVar1 = OS::__stricmp(mapName,"Melos"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0xa0;
+iVar1 = 0x9f;
+goto LAB_0046d83c;
+}
+break;
+}
+iVar1 = OS::__stricmp(mapName,"Marshy Mayhem");
+if (iVar1 != 0) break;
+*hardcodedMapDescriptionGroupNum = 0x42;
+iVar1 = 0x41;
+goto LAB_0046d83c;
+case 0x4e:
+iVar1 = OS::__toupper((int)mapName[2]);
+if (iVar1 == 0x20) {
+iVar1 = OS::__stricmp(mapName,"No Escape");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x22;
+iVar1 = 0x21;
+goto LAB_0046d83c;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[2]);
+if ((iVar1 == 0x52) && (iVar1 = OS::__stricmp(mapName,"North vs South"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x2a;
+iVar1 = 0x29;
+goto LAB_0046d83c;
+}
+}
+break;
+case 0x4f:
+iVar1 = OS::__toupper((int)mapName[6]);
+if (iVar1 == 0x53) {
+iVar1 = OS::__stricmp(mapName,"Oasis Struggle");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 4;
+iVar1 = 3;
+goto LAB_0046d83c;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[6]);
+if ((iVar1 == 0x42) && (iVar1 = OS::__stricmp(mapName,"Oasis by the Sea"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x6c;
+iVar1 = 0x6b;
+goto LAB_0046d83c;
+}
+}
+break;
+case 0x50:
+iVar1 = OS::__toupper((int)mapName[3]);
+if (iVar1 == 0x47) {
+iVar1 = OS::__stricmp(mapName,"Piggy in the middle");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x18;
+iVar1 = 0x17;
+goto LAB_0046d83c;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[3]);
+if (iVar1 == 0x20) {
+iVar1 = OS::__stricmp(mapName,"Pig in a Poke");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0xa2;
+iVar1 = 0xa1;
+goto LAB_0046d83c;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[3]);
+if ((iVar1 == 0x56) && (iVar1 = OS::__stricmp(mapName,"Province of Bodrum"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0xa4;
+iVar1 = 0xa3;
+goto LAB_0046d83c;
+}
+}
+}
+break;
+case 0x52:
+iVar1 = OS::__toupper((int)mapName[6]);
+if (iVar1 == 0x49) {
+iVar1 = OS::__stricmp(mapName,"Riverside Rampage");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x44;
+iVar1 = 0x43;
+goto LAB_0046d83c;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[6]);
+if (iVar1 == 0x4f) {
+iVar1 = OS::__stricmp(mapName,"Rocky Oasis");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x68;
+iVar1 = 0x67;
+goto LAB_0046d83c;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[6]);
+if (iVar1 == 0x45) {
+iVar1 = OS::__stricmp(mapName,"Reed Sea");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0xa6;
+iVar1 = 0xa5;
+goto LAB_0046d83c;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[6]);
+if (iVar1 == 0x20) {
+iVar1 = OS::__stricmp(mapName,"Region of Corinth");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0xa8;
+iVar1 = 0xa7;
+goto LAB_0046d83c;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[6]);
+if ((iVar1 == 0x41) && (iVar1 = OS::__stricmp(mapName,"Rock Face"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0xaa;
+iVar1 = 0xa9;
+goto LAB_0046d83c;
+}
+}
+}
+}
+}
+break;
+case 0x53:
+iVar1 = OS::__toupper((int)mapName[1]);
+if (iVar1 == 0x4c) {
+iVar1 = OS::__stricmp(mapName,"Sleeping With The Enemy");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x38;
+iVar1 = 0x37;
+goto LAB_0046d83c;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[1]);
+if (iVar1 == 0x54) {
+iVar1 = OS::__stricmp(mapName,"Strati");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0xac;
+iVar1 = 0xab;
+goto LAB_0046d83c;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[6]);
+if (iVar1 == 0x42) {
+iVar1 = OS::__stricmp(mapName,"Small Barren Desert");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x52;
+iVar1 = 0x51;
+goto LAB_0046d83c;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[6]);
+if ((iVar1 == 0x49) && (iVar1 = OS::__stricmp(mapName,"Small Island"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x6a;
+iVar1 = 0x69;
+goto LAB_0046d83c;
+}
+}
+}
+}
+break;
+case 0x54:
+iVar1 = OS::__toupper((int)mapName[1]);
+if (iVar1 == 0x59) {
+iVar1 = OS::__stricmp(mapName,"Tyre");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x5c;
+iVar1 = 0x5b;
+goto LAB_0046d83c;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[4]);
+switch(iVar1) {
+case 0x42:
+iVar1 = OS::__toupper((int)mapName[5]);
+if ((iVar1 == 0x55) && (iVar1 = OS::__stricmp(mapName,"The Bulls Eye"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x16;
+iVar1 = 0x15;
+goto LAB_0046d83c;
+}
+break;
+case 0x43:
+iVar1 = OS::__toupper((int)mapName[1]);
+if ((iVar1 == 0x4f) && (iVar1 = OS::__stricmp(mapName,"Too Close For Comfort"), iVar1 == 0))
+{
+*hardcodedMapDescriptionGroupNum = 6;
+iVar1 = 5;
+goto LAB_0046d83c;
+}
+break;
+case 0x44:
+iVar1 = OS::__toupper((int)mapName[5]);
+if ((iVar1 == 0x55) && (iVar1 = OS::__stricmp(mapName,"The Dunes"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x76;
+iVar1 = 0x75;
+goto LAB_0046d83c;
+}
+break;
+case 0x45:
+iVar1 = OS::__toupper((int)mapName[1]);
+if (iVar1 == 0x41) {
+iVar1 = OS::__stricmp(mapName,"Target Zone");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x10;
+iVar1 = 0xf;
+goto LAB_0046d83c;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[1]);
+if ((iVar1 == 0x52) && (iVar1 = OS::__stricmp(mapName,"Trapesac Island"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0xb2;
+iVar1 = 0xb1;
+goto LAB_0046d83c;
+}
+}
+break;
+case 0x46:
+iVar1 = OS::__toupper((int)mapName[7]);
+if (iVar1 == 0x44) {
+iVar1 = OS::__stricmp(mapName,"The ford across the river");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 8;
+iVar1 = 7;
+goto LAB_0046d83c;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[7]);
+if ((iVar1 == 0x45) && (iVar1 = OS::__stricmp(mapName,"The Forest Oasis"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x34;
+iVar1 = 0x33;
+goto LAB_0046d83c;
+}
+}
+break;
+case 0x47:
+iVar1 = OS::__toupper((int)mapName[5]);
+if (iVar1 == 0x52) {
+iVar1 = OS::__stricmp(mapName,"The Great lake");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x1a;
+iVar1 = 0x19;
+goto LAB_0046d83c;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[5]);
+if ((iVar1 == 0x55) && (iVar1 = OS::__stricmp(mapName,"The Guardians"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x30;
+iVar1 = 0x2f;
+goto LAB_0046d83c;
+}
+}
+break;
+case 0x49:
+iVar1 = OS::__toupper((int)mapName[5]);
+if ((iVar1 == 0x4e) && (iVar1 = OS::__stricmp(mapName,"Two in a bed"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0xb4;
+iVar1 = 0xb3;
+goto LAB_0046d83c;
+}
+break;
+case 0x4b:
+iVar1 = OS::__toupper((int)mapName[5]);
+if ((iVar1 == 0x49) && (iVar1 = OS::__stricmp(mapName,"The Killing Plains"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x24;
+iVar1 = 0x23;
+goto LAB_0046d83c;
+}
+break;
+case 0x4c:
+iVar1 = OS::__toupper((int)mapName[5]);
+if ((iVar1 == 0x41) && (iVar1 = OS::__stricmp(mapName,"The Last Stand"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x32;
+iVar1 = 0x31;
+goto LAB_0046d83c;
+}
+break;
+case 0x4f:
+iVar1 = OS::__toupper((int)mapName[5]);
+if (iVar1 == 0x4c) {
+iVar1 = OS::__stricmp(mapName,"Tripoli");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x5a;
+iVar1 = 0x59;
+goto LAB_0046d83c;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[5]);
+if ((iVar1 == 0x53) && (iVar1 = OS::__stricmp(mapName,"Thasos"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0xae;
+iVar1 = 0xad;
+goto LAB_0046d83c;
+}
+}
+break;
+case 0x52:
+iVar1 = OS::__toupper((int)mapName[5]);
+if ((iVar1 == 0x49) && (iVar1 = OS::__stricmp(mapName,"The River"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x14;
+iVar1 = 0x13;
+goto LAB_0046d83c;
+}
+break;
+case 0x53:
+iVar1 = OS::__toupper((int)mapName[3]);
+if ((iVar1 == 0x4f) && (iVar1 = OS::__stricmp(mapName,"Tilos"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0xb0;
+iVar1 = 0xaf;
+goto LAB_0046d83c;
+}
+break;
+case 0x54:
+iVar1 = OS::__toupper((int)mapName[5]);
+if ((iVar1 == 0x52) && (iVar1 = OS::__stricmp(mapName,"The Trench"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x3c;
+iVar1 = 0x3b;
+goto LAB_0046d83c;
+}
+break;
+case 0x56:
+iVar1 = OS::__toupper((int)mapName[5]);
+if ((iVar1 == 0x41) && (iVar1 = OS::__stricmp(mapName,"The Valley"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x4e;
+iVar1 = 0x4d;
+goto LAB_0046d83c;
+}
+break;
+case 0x57:
+iVar1 = OS::__toupper((int)mapName[5]);
+if ((iVar1 == 0x45) && (iVar1 = OS::__stricmp(mapName,"The Wet Lands"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x4c;
+iVar1 = 0x4b;
+goto LAB_0046d83c;
+}
+}
+}
+break;
+case 0x55:
+iVar1 = OS::__toupper((int)mapName[1]);
+if ((iVar1 == 0x50) && (iVar1 = OS::__stricmp(mapName,"Upwards Alliance"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x2c;
+iVar1 = 0x2b;
+goto LAB_0046d83c;
+}
+break;
+case 0x57:
+iVar1 = OS::__toupper((int)mapName[2]);
+if (iVar1 == 0x53) {
+iVar1 = OS::__stricmp(mapName,"West Coast");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x2e;
+iVar1 = 0x2d;
+goto LAB_0046d83c;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[2]);
+if (iVar1 == 0x54) {
+iVar1 = OS::__stricmp(mapName,"Watering Holes");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x74;
+iVar1 = 0x73;
+goto LAB_0046d83c;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[2]);
+if ((iVar1 == 0x4c) && (iVar1 = OS::__stricmp(mapName,"Wall of Iron"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0xb6;
+iVar1 = 0xb5;
+goto LAB_0046d83c;
+}
+}
+}
+}
+iVar1 = OS::__toupper((int)*mapName);
+switch(iVar1) {
+case 0x42:
+iVar1 = OS::__toupper((int)mapName[1]);
+if (iVar1 == 0x45) {
+iVar1 = OS::__stricmp(mapName,"Best_Friends");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x5e;
+/* added by script: "Best Friends" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x5d);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[1]);
+if ((iVar1 == 0x49) && (iVar1 = OS::__stricmp(mapName,"Bird_In_Flight"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x53;
+/* added by script: "Bird in Flight" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x52);
+return pcVar2;
+}
+}
+break;
+case 0x43:
+iVar1 = OS::__toupper((int)mapName[1]);
+if (iVar1 == 0x4f) {
+iVar1 = OS::__stricmp(mapName,"Coastal_Trap");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x58;
+/* added by script: "Coastal Trap" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x57);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[1]);
+if ((iVar1 == 0x52) && (iVar1 = OS::__stricmp(mapName,"Crossroads"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 100;
+/* added by script: "Crossroads" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,99);
+return pcVar2;
+}
+}
+break;
+case 0x44:
+iVar1 = OS::__toupper((int)mapName[1]);
+if ((iVar1 == 0x49) && (iVar1 = OS::__stricmp(mapName,"Divided"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x60;
+/* added by script: "Divided" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x5f);
+return pcVar2;
+}
+break;
+case 0x45:
+iVar1 = OS::__toupper((int)mapName[1]);
+if ((iVar1 == 0x4e) && (iVar1 = OS::__stricmp(mapName,"Enclosure"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x5b;
+/* added by script: "Enclosure" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x5a);
+return pcVar2;
+}
+break;
+case 0x46:
+iVar1 = OS::__toupper((int)mapName[1]);
+if ((iVar1 == 0x55) && (iVar1 = OS::__stricmp(mapName,"Fury_Bay"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x54;
+/* added by script: "Fury Bay" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x53);
+return pcVar2;
+}
+break;
+case 0x4a:
+iVar1 = OS::__toupper((int)mapName[1]);
+if ((iVar1 == 0x45) && (iVar1 = OS::__stricmp(mapName,"Jealous_Neighbours"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x61;
+/* added by script: "Jealous Neighbours" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x60);
+return pcVar2;
+}
+break;
+case 0x4c:
+iVar1 = OS::__toupper((int)mapName[1]);
+if (iVar1 == 0x49) {
+iVar1 = OS::__stricmp(mapName,"Lionheart");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 99;
+/* added by script: "Lionheart" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x62);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[1]);
+if ((iVar1 == 0x4f) && (iVar1 = OS::__stricmp(mapName,"Look_Out"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x52;
+/* added by script: "Look Out" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x51);
+return pcVar2;
+}
+}
+break;
+case 0x4d:
+iVar1 = OS::__toupper((int)mapName[3]);
+switch(iVar1) {
+case 0x44:
+iVar1 = OS::__toupper((int)mapName[4]);
+if (iVar1 == 0x49) {
+iVar1 = OS::__stricmp(mapName,"MP-Divided");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x66;
+/* added by script: "MP-Divided" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x65);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[4]);
+if ((iVar1 == 0x4f) && (iVar1 = OS::__stricmp(mapName,"MP-Downhill Scrum"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x67;
+/* added by script: "MP-Downhill Scrum" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x66);
+return pcVar2;
+}
+}
+break;
+case 0x4e:
+iVar1 = OS::__toupper((int)mapName[6]);
+if (iVar1 == 0x4d) {
+iVar1 = OS::__stricmp(mapName,"MP-No Mans Land");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x68;
+/* added by script: "MP-No Mans Land" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x67);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[6]);
+if ((iVar1 == 0x57) && (iVar1 = OS::__stricmp(mapName,"MP-No Where to Hide"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x69;
+/* added by script: "MP-No Where to Hide" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x68);
+return pcVar2;
+}
+}
+break;
+case 0x53:
+iVar1 = OS::__toupper((int)mapName[4]);
+if (iVar1 == 0x4c) {
+iVar1 = OS::__stricmp(mapName,"MP-Slopes of Doom");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x6a;
+/* added by script: "MP-Slopes of Doom" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x69);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[4]);
+if (iVar1 == 0x4e) {
+iVar1 = OS::__stricmp(mapName,"MP-Snake River");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x6b;
+/* added by script: "MP-Snake River" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x6a);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[4]);
+if ((iVar1 == 0x55) && (iVar1 = OS::__stricmp(mapName,"MP-Surrounded"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x6c;
+/* added by script: "MP-Surrounded" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x6b);
+return pcVar2;
+}
+}
+}
+break;
+case 0x54:
+iVar1 = OS::__toupper((int)mapName[4]);
+if (iVar1 == 0x48) {
+iVar1 = OS::__stricmp(mapName,"MP-The Rocky Divide");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x6d;
+/* added by script: "MP-The Rocky Divide" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x6c);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[4]);
+if ((iVar1 == 0x57) && (iVar1 = OS::__stricmp(mapName,"MP-Two Falls"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x6e;
+/* added by script: "MP-Two Falls" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x6d);
+return pcVar2;
+}
+}
+break;
+case 0x56:
+iVar1 = OS::__toupper((int)mapName[4]);
+if ((iVar1 == 0x41) && (iVar1 = OS::__stricmp(mapName,"MP-Valley of the Lords"), iVar1 == 0))
+{
+*hardcodedMapDescriptionGroupNum = 0x6f;
+/* added by script: "MP-Valley of the Lords" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x6e);
+return pcVar2;
+}
+}
+break;
+case 0x50:
+iVar1 = OS::__toupper((int)mapName[1]);
+if ((iVar1 == 0x48) && (iVar1 = OS::__stricmp(mapName,"Phoenix"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x57;
+/* added by script: "Phoenix" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x56);
+return pcVar2;
+}
+break;
+case 0x52:
+iVar1 = OS::__toupper((int)mapName[1]);
+if ((iVar1 == 0x49) && (iVar1 = OS::__stricmp(mapName,"Rivers_Fork"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x5a;
+/* added by script: "Rivers Fork" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x59);
+return pcVar2;
+}
+break;
+case 0x53:
+iVar1 = OS::__toupper((int)mapName[1]);
+if (iVar1 == 0x4e) {
+iVar1 = OS::__stricmp(mapName,"Snake_River");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x55;
+/* added by script: "Snake River" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x54);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[1]);
+if (iVar1 == 0x50) {
+iVar1 = OS::__stricmp(mapName,"Spider_Island");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x5f;
+/* added by script: "Spider Island" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x5e);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[1]);
+if ((iVar1 == 0x57) && (iVar1 = OS::__stricmp(mapName,"Swampy_Island"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x56;
+/* added by script: "Swampy Island" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x55);
+return pcVar2;
+}
+}
+}
+break;
+case 0x54:
+iVar1 = OS::__toupper((int)mapName[4]);
+if (iVar1 == 0x48) {
+iVar1 = OS::__stricmp(mapName,"The_Host");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x5d;
+/* added by script: "The Host" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x5c);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[4]);
+if ((iVar1 == 0x45) && (iVar1 = OS::__stricmp(mapName,"Three_Little_Pigs"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x62;
+/* added by script: "Three Little Pigs" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x61);
+return pcVar2;
+}
+}
+break;
+case 0x55:
+iVar1 = OS::__toupper((int)mapName[1]);
+if ((iVar1 == 0x4c) && (iVar1 = OS::__stricmp(mapName,"Ultimate_Victory"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x65;
+/* added by script: "Ultimate Victory" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,100);
+return pcVar2;
+}
+break;
+case 0x57:
+iVar1 = OS::__toupper((int)mapName[1]);
+if (iVar1 == 0x41) {
+iVar1 = OS::__stricmp(mapName,"Wazirs_Fortress");
+if (iVar1 == 0) {
+*hardcodedMapDescriptionGroupNum = 0x59;
+/* added by script: "Wazirs Fortress" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x58);
+return pcVar2;
+}
+}
+else {
+iVar1 = OS::__toupper((int)mapName[1]);
+if ((iVar1 == 0x49) && (iVar1 = OS::__stricmp(mapName,"Wide_Open_Plain"), iVar1 == 0)) {
+*hardcodedMapDescriptionGroupNum = 0x5c;
+/* added by script: "Wide Open Plain" */
+pcVar2 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_TRAIL_NAMES_CRU,0x5b);
+return pcVar2;
+}
+}
+}
+return mapName;
+}
+--- NAMEN NUR IM PAKETCODE ---
+CHAR_CONST, _charTest, pcVar1
+--- KOMMENTARE IM PAKETCODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0046D390
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+--- ERKLAERUNG ---
+{"adr": "0x0046d390", "name": "GetStringBasedOnHardcodedMaps", "p1": {"bereich": "Karte", "zweck": "Wandelt den Namen einer fest eingebauten Karte in ihren Text aus der Texttabelle um und liefert dazu eine Textgruppen-Nummer."}, "p2": {"ein": "mapName (Kartenname, vermutlich Dateiname ohne Endung), hardcodedMapDescriptionGroupNum (Zeiger für die Ausgabe der Gruppennummer)", "aus": "Zeiger auf den Namenstext aus der Texttabelle; bei unbekanntem Namen derselbe mapName-Zeiger", "liest": ["mapName (Zeichen 0 bis 7 als Vorfilter, dann Volltext-Vergleich)", "TEXT_MAP_NAMES", "TEXT_TRAIL_NAMES_CRU"], "schreibt": ["*hardcodedMapDescriptionGroupNum (zuerst immer 0, bei Treffer die Gruppennummer)", "DAT_GameCore.mapDescUseStringTable = 1 (nur bei Treffer in Block 1)"], "ruft": ["__toupper", "__stricmp", "getTextStringInGroupAtOffset"], "regeln": ["Ablauf: *hardcodedMapDescriptionGroupNum wird zuerst immer auf 0 gesetzt. Dann wählt toupper(mapName[0]) eine Weiche (Block 1: A,B,C,D,E,F,G,H,I,L,M,N,O,P,R,S,T,U,W). Darin prüfen einzelne weitere Großbuchstaben (Index 1 bis 7) nur als Vorfilter; entscheidend ist __stricmp gegen den ganzen Namen (Groß-/Kleinschreibung egal, der ganze Name muss gleich sein)", "Block 1 (TEXT_MAP_NAMES): 92 feste Namen, z.B. 'Antioch' = Gruppe 0x58, 'A New Land' = 0x70, 'Tyre' = 0x5C, 'Wall of Iron' = 0xB6. Treffer: Ausgabe = Gruppe, mapDescUseStringTable = 1, Rückgabe = getTextStringInGroupAtOffset(TEXT_MAP_NAMES, Gruppe - 1), sofortige Rückkehr", "Block 1, Zahlen: Die Gruppen sind genau die geraden Zahlen 2 bis 0xB6 (182), also 91 Werte; die Textposition ist immer Gruppe - 1 (ungerade, 1 bis 0xB5). Zwei Namen teilen sich Gruppe 0x62 / Position 0x61: 'Canyons' (Weiche C, mapName[5] = 'N') und 'In The canyons' (Weiche I, mapName[7] = 'C'); darum 92 Namen, aber 91 Gruppen", "Block 2 (TEXT_TRAIL_NAMES_CRU) wird nur erreicht, wenn Block 1 keinen Treffer hatte (jeder Fehlschlag verlässt Block 1 per break). Zweite Weiche auf toupper(mapName[0]) (B,C,D,E,F,J,L,M,P,R,S,T,U,W); Vorfilter meist mapName[1], bei 'MP-' mapName[3] und dann [4] oder [6], bei 'T' mapName[4]", "Block 2, Namen: 30 feste Namen, davon 15 mit Unterstrich (z.B. 'Best_Friends', 'Wazirs_Fortress'), 10 mit Vorsatz 'MP-' (z.B. 'MP-Two Falls') und 5 ohne beides (Crossroads, Divided, Enclosure, Lionheart, Phoenix)", "Block 2, Zahlen: Gruppen 0x52 bis 0x6F (82 bis 111) lückenlos, jede einmal; Textposition = Gruppe - 1 (81 bis 110). Treffer: Ausgabe = Gruppe, Rückgabe = getTextStringInGroupAtOffset(TEXT_TRAIL_NAMES_CRU, Gruppe - 1). Beispiele: 'Look Out' = 0x52, 'Lionheart' = 99, 'MP-Two Falls' = 0x6E, 'MP-Valley of the Lords' = 0x6F", "mapDescUseStringTable wird nur bei einem Treffer in Block 1 auf 1 gesetzt (38 eigene Zweige plus der gemeinsame Ausgang LAB_0046d83c). Block 2 und der Fall 'kein Treffer' lassen das Feld unberührt; die Funktion setzt es nie auf 0", "Kein Treffer in beiden Blöcken: Ausgabe bleibt 0, Rückgabe ist mapName selbst, das Feld bleibt unberührt. Der kleinste Trefferwert ist 2, also heißt Ausgabe ungleich 0 sicher 'Treffer'", "Die Gruppennummern beider Blöcke überschneiden sich (Block 1: gerade Zahlen, darunter alle geraden von 82 bis 110; Block 2: 82 bis 111). Dieselbe Zahl kann in beiden Blöcken vorkommen, z.B. 0x52 = 'Small Barren Desert' (Block 1) und 'Look Out' (Block 2); die Zahl allein sagt nicht, welche Texttabelle gilt", "Der Name muss vollständig passen: 'Island Hopping' trifft nicht (verglichen wird 'Island Hoppin'); 'Antioch.map', 'Antioch ' (mit Leerzeichen), 'The Host' und 'Best Friends' (Leerzeichen statt Unterstrich) treffen ebenfalls nicht", "Durchgespielt (Code 1:1 nach JavaScript übersetzt): Alle 122 Namen treffen, auch ganz groß oder ganz klein geschrieben, mit den oben genannten Gruppen; 300000 Zufallsnamen und 2353 abgewandelte Namen ergaben keinen weiteren Treffer"], "offen": ["Was die Gruppennummer in der Texttabelle ansteuert: vermutlich die Kartenbeschreibung (nur aus dem Parameternamen und dem Feldnamen mapDescUseStringTable abgeleitet). In Block 1 liegt der Name an ungeraden Positionen und die Gruppen sind gerade: vermutlich wechseln sich Name und Beschreibung ab, nicht belegt", "Der Ghidra-Kommentar 'Canyons' am gemeinsamen Ausgang LAB_0046d83c täuscht: Er steht für 54 Namen (52 Sprünge dorthin plus 'Canyons' und 'In The canyons'), nicht nur für Canyons", "Der Ghidra-Kommentar nennt 'Island Hopping', verglichen wird aber 'Island Hoppin' (ohne g)", "Das Feld heißt hier mapDescUseStringTable, in InitializeBasicMap descriptionUseStringTable: vermutlich dasselbe Feld, nicht belegt", "Was die Karten in TEXT_TRAIL_NAMES_CRU gemeinsam haben, steht nicht im Code (vermutlich Crusader-Trail-Karten, die 'MP-'-Namen vermutlich Mehrspielerkarten)", "Kein Längencheck: Die Vorfilter lesen mapName[0] bis mapName[7] auch bei kürzeren Namen (Zeichen hinter dem Ende); ein Treffer ist dann nicht möglich, weil __stricmp scheitert", "Ob mapName mit oder ohne Dateiendung ankommt, hängt vom Aufrufer ab; Aufrufer unbekannt"]}, "p3": {"erklaerung": "Das Spiel kennt 122 Kartennamen fest eingebaut und holt dafür den Text aus der Texttabelle; 'Canyons' und 'In The canyons' führen auf denselben Eintrag. Eigene oder unbekannte Karten bekommen keinen Eintrag und behalten ihren Namen.", "gehirn": "Nur Anzeige. Höchstens nützlich, um eine der 122 fest eingebauten Standardkarten am Namen zu erkennen (Treffer = Ausgabe ungleich 0); die Gruppennummer allein ist zwischen den beiden Blöcken nicht eindeutig.", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x00561c10 UpdateSwordsman
+--- CODE (Ghidra-Export, vollstaendig) ---
+/* WARNING: Enum "DPSEND_EnumInt": Some values do not have unique names */
+/* WARNING: Enum "DPERRInt": Some values do not have unique names */
+/* WARNING: Enum "MappersEnum": Some values do not have unique names */
+/* decompilerscript: committed: 2025-01-30 21:57:43.216000 */
+void _HoldStrong::Global::UpdateSwordsman(void)
+{
+int *piVar1;
+byte *pbVar2;
+char *pcVar3;
+short *psVar4;
+byte bVar5;
+short sVar6;
+UnitTypeShort UVar7;
+BOOLEnum BVar8;
+uint uVar9;
+int extraout_EAX;
+uint uVar10;
+int iVar11;
+int iVar12;
+uint uVar13;
+bool bVar14;
+eSFX eVar15;
+uVar9 = DAT_CurrentUnitSlotID;
+iVar12 = (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner;
+piVar1 = &DAT_GameState.playerDataArray[iVar12].armySize;
+*piVar1 = *piVar1 + 1;
+piVar1 = &DAT_GameState.playerDataArray[iVar12].currentSwordsmen;
+*piVar1 = *piVar1 + 1;
+DAT_UnitsState.units[uVar9].isSelectable_OR_matchTime = 1;
+Map::Units::TribesState::addUnitToNewTribe(&DAT_TribesState,uVar9);
+uVar9 = DAT_CurrentUnitSlotID;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].calculatedOwnerPlayerIndex = iVar12;
+switch(DAT_UnitsState.units[uVar9].state.generic) {
+case US_DETERMINE_NEXT_STATEUnk:
+DAT_UnitsState.units[uVar9].substate = -1;
+DAT_UnitsState.units[uVar9].stateBasedSpeed = 0;
+if (DAT_UnitsState.units[uVar9].isDisappearingUnk != 0) {
+pbVar2 = &DAT_UnitsState.units[uVar9].disappearFadeAlphaCountdown;
+*pbVar2 = *pbVar2 - 1;
+if (-1 < (char)*pbVar2) {
+return;
+}
+DAT_UnitsState.units[uVar9].disappearFadeAlphaCountdown = 0;
+DAT_UnitsState.units[uVar9].isDisappearingUnk = 0;
+return;
+}
+if (DAT_UnitsState.units[uVar9].goToRallyPoint == 0) {
+iVar12 = DAT_GameState.playerDataArray[iVar12].aiControlStatusRelated;
+if ((0 < iVar12) &&
+((400 < DAT_UnitsState.units[uVar9].closestEnemyMicroDistance || (iVar12 == 100000)))) {
+DAT_UnitsState.units[uVar9].state.generic = 3;
+return;
+}
+DAT_UnitsState.units[uVar9].state.generic = US_IDLEUnk;
+return;
+}
+DAT_UnitsState.units[uVar9].goToRallyPoint = 0;
+DAT_UnitsState.units[uVar9].state.generic = 0x69;
+iVar11 = Map::Buildings::BuildingsState::isSpaceAvailableAtUnitRallyPoint
+(&DAT_BuildingsState,iVar12,5,uVar9);
+goto joined_r0x00561dae;
+case US_IDLEUnk:
+DAT_UnitsState.units[uVar9].animationSpeed = 5;
+DAT_UnitsState.units[uVar9].field_0x30_animRelated = 0;
+DAT_UnitsState.units[uVar9].field134_0x2ac = 10;
+uVar10 = uVar9 & 3;
+DAT_UnitsState.units[uVar9].SA = 1;
+iVar11 = DAT_UnitsState.units[uVar9].animationCycleNumber;
+if (uVar10 == 0) {
+iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field106_0x1ec4[iVar11];
+}
+else if (uVar10 == 1) {
+iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field107_0x1f3c[iVar11];
+}
+else if (uVar10 == 2) {
+iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field108_0x1f84[iVar11];
+}
+else {
+iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field109_0x1fec[iVar11];
+}
+DAT_UnitsState.units[uVar9].animationFrame = iVar11;
+if ((DAT_UnitsState.units[uVar9].animationCycleNumberHasJustIncremented != FALSE) &&
+(2 < uVar10)) {
+if ((DAT_UnitsState.units[uVar9].animationCycleNumber == 0xb) &&
+(Random::RNG::nextRandomNumber1(&SEC_RNG), uVar9 = DAT_CurrentUnitSlotID,
+((byte)SEC_RNG.currentNumber1 & 1) != 0)) {
+Audio::SFX::SFXState::playSFXAtLocation
+(&DAT_SFXState,(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].x,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].y,FX_SHEATH_OUT);
+uVar9 = DAT_CurrentUnitSlotID;
+}
+if ((DAT_UnitsState.units[uVar9].animationCycleNumber == 0x50) &&
+(Random::RNG::nextRandomNumber1(&SEC_RNG), uVar9 = DAT_CurrentUnitSlotID,
+((byte)SEC_RNG.currentNumber1 & 1) != 0)) {
+Audio::SFX::SFXState::playSFXAtLocation
+(&DAT_SFXState,(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].x,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].y,FX_SHEATH_IN);
+uVar9 = DAT_CurrentUnitSlotID;
+}
+}
+iVar11 = DAT_UnitsState.units[uVar9].animationFrame;
+if (iVar11 < 1) {
+DAT_UnitHasBecomeIdle = 1;
+}
+else {
+DAT_UnitsState.units[uVar9].gfxNumber = iVar11 + 0x141;
+}
+if (DAT_GameState.playerDataArray[iVar12].aiControlStatusRelated < 1) {
+if (DAT_UnitHasBecomeIdle == 0) {
+return;
+}
+}
+else {
+DAT_UnitHasBecomeIdle = 1;
+}
+DAT_UnitsState.units[uVar9].animationCycleNumber = 0;
+DAT_UnitsState.units[uVar9].state.generic = US_DETERMINE_NEXT_STATEUnk;
+Map::Units::UnitsState::moveToFreeTileNearby(&DAT_UnitsState,uVar9);
+return;
+case 3:
+bVar14 = DAT_GameCore.gameMode_2 != GM_SKIRMISH_AND_MULTIPLAYER;
+DAT_UnitsState.units[uVar9].seated = 0;
+DAT_UnitsState.units[uVar9].animationSpeed = 4;
+DAT_UnitsState.units[uVar9].field_0x30_animRelated = 0;
+DAT_UnitsState.units[uVar9].field134_0x2ac = 10;
+DAT_UnitsState.units[uVar9].SA = 1;
+if (bVar14) {
+Map::Units::UnitsState::setUnitFacingDirectionBasedOnBuilding
+(&DAT_UnitsState,uVar9,DAT_GameState.mapAndTime.signpostIDs[0]);
+uVar9 = DAT_CurrentUnitSlotID;
+}
+if ((DAT_UnitsState.units[uVar9].fixedRng & 1) == 0) {
+bVar5 = DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.field110_0x2058
+[DAT_UnitsState.units[uVar9].animationCycleNumber];
+}
+else {
+bVar5 = DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.field110_0x2058
+[DAT_UnitsState.units[uVar9].animationCycleNumber];
+}
+iVar12 = (int)(char)bVar5;
+DAT_UnitsState.units[uVar9].animationFrame = iVar12;
+if (iVar12 < 1) {
+DAT_UnitHasBecomeIdle = 1;
+}
+else {
+bVar14 = DAT_UnitHasBecomeIdle == 0;
+DAT_UnitsState.units[uVar9].gfxNumber = iVar12 + 0x158;
+if (bVar14) {
+return;
+}
+}
+DAT_UnitsState.units[uVar9].animationCycleNumber = 0;
+DAT_UnitsState.units[uVar9].state.generic = US_DETERMINE_NEXT_STATEUnk;
+Map::Units::UnitsState::moveToFreeTileNearby(&DAT_UnitsState,uVar9);
+return;
+case US_MOVE_TO_DESTINATION:
+DAT_UnitsState.units[uVar9].stateBasedSpeed = 0;
+DAT_UnitsState.units[uVar9].field_0x30_animRelated = 0x10;
+if (DAT_TribesState.tribes[DAT_UnitsState.units[uVar9].tribeID].isRallyingUnk != 0) {
+DAT_UnitsState.units[uVar9].SA = 1;
+}
+if (DAT_UnitsState.units[uVar9].moveInstructionSpeedDelayTracker == 0) {
+DAT_UnitsState.units[uVar9].animationSheetFrameOffset = 1;
+LAB_00561e47:
+DAT_UnitsState.units[uVar9].stateBasedSpeed = 0;
+}
+else {
+DAT_UnitsState.units[uVar9].animationSheetFrameOffset = 1;
+if (DAT_UnitsState.units[uVar9].moveInstructionSpeedDelayTracker < 0x47) goto LAB_00561e47;
+DAT_UnitsState.units[uVar9].stateBasedSpeed = -1;
+DAT_UnitsState.units[uVar9].field_0x30_animRelated = 0;
+}
+BVar8 = Map::Units::UnitsState::hasUnitReachedDestination(&DAT_UnitsState,uVar9);
+if (BVar8 != FALSE) {
+DAT_UnitsState.units[uVar9].stateBasedSpeed = 0;
+DAT_UnitsState.units[uVar9].animationCycleNumber = 0;
+DAT_UnitsState.units[uVar9].state.generic = US_DETERMINE_NEXT_STATEUnk;
+if (DAT_TribesState.tribes[DAT_UnitsState.units[uVar9].tribeID].tribeBehaviorType ==
+STBT_0x400) {
+DAT_UnitsState.units[uVar9].state.generic = US_DISAPPEAR;
+}
+iVar12 = Map::Units::UnitsState::handleUnitMovementWhenTargetingBuildings
+(&DAT_UnitsState,uVar9);
+if (0 < iVar12) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_MELEE_ATTACK_WALL;
+return;
+}
+}
+break;
+case 0x69:
+DAT_UnitsState.units[uVar9].animationSheetFrameOffset = 1;
+DAT_UnitsState.units[uVar9].field_0x30_animRelated = 0x10;
+DAT_UnitsState.units[uVar9].SA = 1;
+DAT_UnitsState.units[uVar9].calculatedMovementSpeed = DAT_UnitsState.units[uVar9].movementSpeed;
+BVar8 = Map::Units::UnitsState::hasUnitReachedDestination(&DAT_UnitsState,uVar9);
+if ((BVar8 == FALSE) ||
+(iVar11 = DAT_GameCore.mapTimeInTicks + uVar9,
+DAT_UnitsState.units[uVar9].facingDirection = 4, iVar11 % 0x28 != 0)) goto LAB_00561dd0;
+iVar11 = Map::Buildings::BuildingsState::isSpaceAvailableAtUnitRallyPoint
+(&DAT_BuildingsState,iVar12,5,uVar9);
+joined_r0x00561dae:
+if (iVar11 != 0) {
+Map::Units::UnitsState::setDestinationForUnit
+(&DAT_UnitsState,DAT_CurrentUnitSlotID,DAT_BuildingsState.DAT_TempXOffset,
+DAT_BuildingsState.DAT_TempYOffset,0);
+}
+LAB_00561dd0:
+piVar1 = DAT_GameState.playerDataArray[iVar12].rallySearchOffsetsUnk + 5;
+*piVar1 = *piVar1 + 1;
+return;
+case US_MELEE_ATTACK:
+DAT_UnitsState.units[uVar9].animationSpeed = 2;
+DAT_UnitsState.units[uVar9].field_0x30_animRelated = 0;
+if (DAT_UnitsState.units[uVar9].substate == 0) {
+iVar12 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field104_0x1e7c[DAT_UnitsState.units[uVar9].animationCycleNumber];
+DAT_UnitsState.units[uVar9].animationFrame = iVar12;
+if (iVar12 < 1) {
+DAT_UnitHasBecomeIdle = 1;
+}
+else {
+DAT_UnitsState.units[uVar9].gfxNumber =
+DAT_UnitsState.units[uVar9].facingDirectionMapOrientationCorrected + 0x79 + iVar12 * 8;
+}
+sVar6 = DAT_UnitsState.units[uVar9].attackedUnitID;
+if ((sVar6 != 0) &&
+(DAT_UnitsState.units[uVar9].animationCycleNumberHasJustIncremented != FALSE)) {
+if (DAT_UnitsState.units[uVar9].animationCycleNumber == 7) {
+Map::Units::UnitsState::playHurtSFXForUnit(&DAT_UnitsState,(int)sVar6);
+uVar9 = DAT_CurrentUnitSlotID;
+}
+if ((DAT_UnitsState.units[uVar9].animationCycleNumber == 5) &&
+((((UVar7 = DAT_UnitsState.units[sVar6].unitType, UVar7 == UT_E_SPEAR ||
+(UVar7 == UT_E_PIKE)) || (UVar7 == UT_LORD)) ||
+(((UVar7 == UT_E_MACE || (UVar7 == UT_E_SWORD)) ||
+((UVar7 == UT_E_KNIGHT || ((UVar7 == UT_A_ASSASSIN || (UVar7 == UT_A_SWORDSMAN)))))))))
+) {
+eVar15 = FX_STEEL1;
+LAB_00562456:
+Audio::SFX::SFXState::playSFXAtLocation
+(&DAT_SFXState,(int)DAT_UnitsState.units[uVar9].x,
+(int)DAT_UnitsState.units[uVar9].y,eVar15);
+uVar9 = DAT_CurrentUnitSlotID;
+}
+LAB_00562476:
+if (DAT_UnitsState.units[uVar9].animationCycleNumber == 4) {
+Audio::SFX::SFXState::playSFXAtLocation
+(&DAT_SFXState,(int)DAT_UnitsState.units[uVar9].x,
+(int)DAT_UnitsState.units[uVar9].y,FX_SWISH);
+uVar9 = DAT_CurrentUnitSlotID;
+}
+}
+}
+else {
+iVar12 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field105_0x1ea0[DAT_UnitsState.units[uVar9].animationCycleNumber];
+DAT_UnitsState.units[uVar9].animationFrame = iVar12;
+if (iVar12 < 1) {
+DAT_UnitHasBecomeIdle = 1;
+}
+else {
+DAT_UnitsState.units[uVar9].gfxNumber =
+DAT_UnitsState.units[uVar9].facingDirectionMapOrientationCorrected + 0xd9 + iVar12 * 8;
+}
+sVar6 = DAT_UnitsState.units[uVar9].attackedUnitID;
+if ((sVar6 != 0) &&
+(DAT_UnitsState.units[uVar9].animationCycleNumberHasJustIncremented != FALSE)) {
+if (DAT_UnitsState.units[uVar9].animationCycleNumber == 6) {
+Map::Units::UnitsState::playHurtSFXForUnit(&DAT_UnitsState,(int)sVar6);
+uVar9 = DAT_CurrentUnitSlotID;
+}
+if ((DAT_UnitsState.units[uVar9].animationCycleNumber == 5) &&
+(((((UVar7 = DAT_UnitsState.units[sVar6].unitType, UVar7 == UT_E_SPEAR ||
+(UVar7 == UT_E_PIKE)) || (UVar7 == UT_E_MACE)) ||
+((UVar7 == UT_E_SWORD || (UVar7 == UT_E_KNIGHT)))) || (UVar7 == UT_A_ASSASSIN)))) {
+eVar15 = FX_STEEL2;
+goto LAB_00562456;
+}
+goto LAB_00562476;
+}
+}
+if (DAT_UnitHasBecomeIdle != 0) {
+DAT_UnitsState.units[uVar9].substate = (ushort)(DAT_UnitsState.units[uVar9].substate == 0);
+DAT_UnitsState.units[uVar9].animationCycleNumber = 0;
+Map::Units::UnitsState::resumeMovementIfNoAttackTarget(&DAT_UnitsState,uVar9);
+return;
+}
+break;
+case US_MELEE_ATTACK_WALL:
+DAT_UnitsState.units[uVar9].animationSpeed = 3;
+DAT_UnitsState.units[uVar9].field_0x30_animRelated = 0;
+Map::Units::UnitsState::setUnitFacingDirectionForTargetXandY
+(&DAT_UnitsState,uVar9,(int)DAT_UnitsState.units[uVar9].attackAtTileX,
+(int)DAT_UnitsState.units[uVar9].attackAtTileY);
+uVar9 = DAT_CurrentUnitSlotID;
+iVar12 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field104_0x1e7c
+[DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationCycleNumber];
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationFrame = iVar12;
+if (iVar12 < 1) {
+DAT_UnitHasBecomeIdle = 1;
+}
+else {
+DAT_UnitsState.units[uVar9].gfxNumber =
+DAT_UnitsState.units[uVar9].facingDirectionMapOrientationCorrected + 0x79 + iVar12 * 8;
+}
+if ((DAT_UnitsState.units[uVar9].animationCycleNumberHasJustIncremented != FALSE) &&
+(DAT_UnitsState.units[uVar9].animationCycleNumber == 7)) {
+uVar9 = Map::TileMapState::getBuildingHurtSFXID
+(&DAT_TileMapState,DAT_UnitsState.units[uVar9].targetedBuildingTile);
+if (uVar9 == 1) {
+eVar15 = FX_ATTACK_WOOD;
+}
+else {
+if (uVar9 != 2) goto LAB_0056206a;
+eVar15 = FX_ATTACK_STONE;
+}
+Audio::SFX::SFXState::playSFXAtLocation
+(&DAT_SFXState,(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].x,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].y,eVar15);
+}
+LAB_0056206a:
+uVar9 = DAT_CurrentUnitSlotID;
+if (DAT_UnitHasBecomeIdle != 0) {
+pcVar3 = &DAT_UnitsState.units[DAT_CurrentUnitSlotID].nextAttackHurtsWall;
+*pcVar3 = *pcVar3 + '\x01';
+if ('\x01' < DAT_UnitsState.units[uVar9].nextAttackHurtsWall) {
+DAT_UnitsState.units[uVar9].nextAttackHurtsWall = '\0';
+}
+uVar10 = DAT_UnitsState.units[uVar9].targetedBuildingTile;
+uVar13 = DAT_TileMapState.LogicLayer[uVar10] & 0x100;
+if (uVar13 == 0) {
+iVar12 = (int)(short)DAT_TileMapState.BuildingLayer[uVar10];
+if (iVar12 < 1) {
+DAT_UnitsState.units[uVar9].state.generic = US_DETERMINE_NEXT_STATEUnk;
+return;
+}
+/* 6 if gate or tower, else 70 */
+iVar11 = (-(uint)(DAT_BuildingDefinedData.DAT_IsGateOrTowerArray
+[(short)DAT_BuildingsState.buildings[iVar12].buildingType] != FALSE) &
+0xffffffc0) + 0x46;
+}
+else {
+iVar11 = 10;
+iVar12 = 0;
+}
+Map::TileMapState::processDamageToBuildingThunk
+(&DAT_TileMapState,uVar10,(int)DAT_UnitsState.units[uVar9].attackAtTileX,
+(int)DAT_UnitsState.units[uVar9].attackAtTileY,iVar11,
+(int)DAT_UnitsState.units[uVar9].nextAttackHurtsWall,
+(int)DAT_UnitsState.units[uVar9].owner,TRUE);
+if (extraout_EAX == 0) {
+iVar11 = (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner;
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[iVar11] == -1) {
+if (uVar13 == 0) {
+if (((DAT_BuildingDefinedData.DAT_IsGateOrTowerArray
+[(short)DAT_BuildingsState.buildings[iVar12].buildingType] != FALSE) &&
+(*(int *)((int)DAT_TroopValueState.attackInfo.scaleValuesArray +
+iVar11 * 0x177bc + -0x1c) + 10 <
+(int)(uint)*(byte *)(*(int *)((int)DAT_TroopValueState.attackInfo.hackValuesArray +
+iVar11 * 0x177bc + -0x10) * 0x13a10 + 0x1ee2998 +
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].
+targetedBuildingTile))) &&
+(iVar12 = Map::Units::TribesState::moveUnitToBehaviorTarget
+(&DAT_TribesState,DAT_CurrentUnitSlotID,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].
+unknownDigMoatOrWallAttackFlag1015),
+uVar9 = DAT_CurrentUnitSlotID, iVar12 == 0)) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_DETERMINE_NEXT_STATEUnk
+;
+DAT_UnitsState.units[uVar9].animationCycleNumber = 0;
+return;
+}
+}
+else if (*(int *)((int)DAT_TroopValueState.attackInfo.scaleValuesArray +
+iVar11 * 0x177bc + -0x1c) + 0xf <
+(int)(uint)*(byte *)(*(int *)((int)DAT_TroopValueState.attackInfo.hackValuesArray
++ iVar11 * 0x177bc + -0x10) * 0x13a10 + 0x1ee2998 +
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].
+targetedBuildingTile)) {
+iVar12 = Map::Units::TribesState::moveUnitToBehaviorTarget
+(&DAT_TribesState,DAT_CurrentUnitSlotID,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].
+unknownDigMoatOrWallAttackFlag1015);
+if (iVar12 != 0) {
+return;
+}
+iVar12 = Map::Units::UnitsState::setDestinationNearTargetedBuilding
+(&DAT_UnitsState,DAT_CurrentUnitSlotID,1);
+if (iVar12 != 0) {
+return;
+}
+goto LAB_0056216f;
+}
+}
+}
+else {
+if ((uVar13 != 0) &&
+(iVar12 = Map::Units::UnitsState::setDestinationNearTargetedBuilding
+(&DAT_UnitsState,DAT_CurrentUnitSlotID,1), iVar12 != 0)) {
+return;
+}
+uVar9 = DAT_CurrentUnitSlotID;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetedBuildingTile = 0;
+iVar12 = Map::Units::TribesState::moveUnitToBehaviorTarget
+(&DAT_TribesState,uVar9,
+(int)DAT_UnitsState.units[uVar9].unknownDigMoatOrWallAttackFlag1015);
+if (iVar12 == 0) {
+LAB_0056216f:
+uVar9 = DAT_CurrentUnitSlotID;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_DETERMINE_NEXT_STATEUnk;
+DAT_UnitsState.units[uVar9].animationCycleNumber = 0;
+return;
+}
+}
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationCycleNumber = 0;
+return;
+}
+break;
+case 0x6c:
+DAT_UnitsState.units[uVar9].stateBasedSpeed = 0;
+DAT_UnitsState.units[uVar9].field_0x30_animRelated = 0;
+DAT_UnitsState.units[uVar9].animationSheetFrameOffset = 1;
+return;
+case US_JESTER_ROAM_TO:
+pbVar2 = &DAT_UnitsState.units[uVar9].disappearFadeAlphaCountdown;
+*pbVar2 = *pbVar2 + DAT_UnitsState.units[uVar9].engineerManningSiegeStateRef_checkType;
+if ((char)*pbVar2 < '\0') {
+DAT_UnitsState.units[uVar9].disappearFadeAlphaCountdown = 0;
+}
+else if ('\x1f' < (char)DAT_UnitsState.units[uVar9].disappearFadeAlphaCountdown) {
+DAT_UnitsState.units[uVar9].disappearFadeAlphaCountdown = 0x1f;
+}
+psVar4 = &DAT_UnitsState.units[uVar9].updateTickTracker;
+*psVar4 = *psVar4 + 1;
+if (0x20 < DAT_UnitsState.units[uVar9].updateTickTracker) {
+DAT_UnitsState.units[uVar9].updateTickTracker = 0;
+DAT_UnitsState.units[uVar9].disappearFadeAlphaCountdown = 0;
+DAT_UnitsState.units[uVar9].state = (UnitStateUnion)DAT_UnitsState.units[uVar9].cachedState;
+bVar5 = DAT_UnitsState.units[uVar9].engineerManningSiegeStateRef_checkType;
+if ((char)bVar5 < '\0') {
+if (DAT_UnitsState.units[uVar9].isDisappearingUnk != 0) {
+Map::Buildings::BuildingsState::prepareCampgroundCoords(&DAT_BuildingsState,iVar12);
+Map::Units::UnitsState::setDestinationForUnit
+(&DAT_UnitsState,DAT_CurrentUnitSlotID,DAT_BuildingsState.DAT_TempXOffset,
+DAT_BuildingsState.DAT_TempYOffset,0);
+return;
+}
+}
+else if (('\0' < (char)bVar5) && (DAT_UnitsState.units[uVar9].isDisappearingUnk != 0)) {
+DAT_UnitsState.units[uVar9].logicalState = ULS_TRANSITIONING;
+DAT_UnitsState.units[uVar9].disappearFadeAlphaCountdown = 0x20;
+return;
+}
+}
+break;
+case US_DISAPPEAR:
+pbVar2 = &DAT_UnitsState.units[uVar9].disappearFadeAlphaCountdown;
+/* Disappearing state */
+*pbVar2 = *pbVar2 + 1;
+if (' ' < (char)DAT_UnitsState.units[uVar9].disappearFadeAlphaCountdown) {
+DAT_UnitsState.units[uVar9].disappearFadeAlphaCountdown = 0x20;
+DAT_UnitsState.units[uVar9].logicalState = ULS_REMOVE;
+if (DAT_UnitsState.units[uVar9].killedFlagUnk == 0) {
+Game::GameStateStructures::processUnitLossStatistic(&DAT_GameState,iVar12,uVar9);
+if (iVar12 == DAT_GameSynchronyState.currentPlayerSlotID) {
+piVar1 = DAT_GameState.mapAndTime.emenyHitArray +
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].lastEncounteredEnemyPlayerID + -9;
+/* Track unit killed */
+*piVar1 = *piVar1 + 1;
+return;
+}
+if (DAT_UnitsState.units[DAT_CurrentUnitSlotID].lastEncounteredEnemyPlayerID ==
+DAT_GameSynchronyState.currentPlayerSlotID) {
+piVar1 = DAT_GameState.mapAndTime.emenyHitArray + iVar12;
+/* Track unit lost */
+*piVar1 = *piVar1 + 1;
+}
+}
+}
+break;
+case US_DEATH_01:
+DAT_UnitsState.units[uVar9].facingDirection = 0;
+DAT_UnitsState.units[uVar9].animationSpeed = 2;
+DAT_UnitsState.units[uVar9].field_0x30_animRelated = 0;
+iVar12 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+ANIM_Worker_Shared1[DAT_UnitsState.units[uVar9].animationCycleNumber];
+DAT_UnitsState.units[uVar9].animationFrame = iVar12;
+if (iVar12 < 1) {
+DAT_UnitsState.units[uVar9].gfxNumber = 0x180;
+DAT_UnitsState.units[uVar9].state.generic = US_DISAPPEAR;
+DAT_UnitHasBecomeIdle = 1;
+return;
+}
+iVar12 = iVar12 + 0x168;
+goto LAB_00562886;
+case US_DEATH_02:
+case US_STONE_DEATH_01:
+case US_STONE_DEATH_02:
+case US_STONE_DEATH_03:
+/* Stone crushed */
+DAT_UnitsState.units[uVar9].facingDirection = 0;
+DAT_UnitsState.units[uVar9].animationSpeed = 2;
+DAT_UnitsState.units[uVar9].field_0x30_animRelated = 0;
+iVar12 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+ANIM_Worker_Shared1[DAT_UnitsState.units[uVar9].animationCycleNumber];
+DAT_UnitsState.units[uVar9].animationFrame = iVar12;
+if (iVar12 < 1) {
+DAT_UnitsState.units[uVar9].gfxNumber = 0x1b0;
+DAT_UnitsState.units[uVar9].state.generic = US_DISAPPEAR;
+DAT_UnitHasBecomeIdle = 1;
+return;
+}
+iVar12 = iVar12 + 0x198;
+goto LAB_00562886;
+case US_DEATH_03:
+/* Stone death too */
+DAT_UnitsState.units[uVar9].facingDirection = 0;
+DAT_UnitsState.units[uVar9].animationSpeed = 2;
+DAT_UnitsState.units[uVar9].field_0x30_animRelated = 0;
+iVar12 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+ANIM_Worker_Shared1[DAT_UnitsState.units[uVar9].animationCycleNumber];
+DAT_UnitsState.units[uVar9].animationFrame = iVar12;
+if (iVar12 < 1) {
+DAT_UnitsState.units[uVar9].gfxNumber = 0x198;
+DAT_UnitsState.units[uVar9].state.generic = US_DISAPPEAR;
+DAT_UnitHasBecomeIdle = 1;
+return;
+}
+iVar12 = iVar12 + 0x180;
+LAB_00562886:
+bVar14 = DAT_UnitHasBecomeIdle != 0;
+DAT_UnitsState.units[uVar9].gfxNumber = iVar12;
+if (bVar14) {
+DAT_UnitsState.units[uVar9].state.generic = US_DISAPPEAR;
+return;
+}
+break;
+case US_APPEAR:
+/* Appear */
+DAT_UnitsState.units[uVar9].stateBasedSpeed = 0;
+DAT_UnitsState.units[uVar9].field_0x30_animRelated = 0x10;
+sVar6 = DAT_UnitsState.units[uVar9].moveInstructionSpeedDelayTracker;
+DAT_UnitsState.units[uVar9].animationSheetFrameOffset = 1;
+if ((sVar6 == 0) || (DAT_UnitsState.units[uVar9].moveInstructionSpeedDelayTracker < 0x47)) {
+DAT_UnitsState.units[uVar9].stateBasedSpeed = 0;
+}
+else {
+DAT_UnitsState.units[uVar9].stateBasedSpeed = -1;
+DAT_UnitsState.units[uVar9].field_0x30_animRelated = 0;
+}
+BVar8 = Map::Units::UnitsState::hasUnitReachedDestination(&DAT_UnitsState,uVar9);
+if (BVar8 != FALSE) {
+iVar12 = DAT_UnitsState.units[uVar9].
+targetedUnitUIDUnk_OR_someAppearTileUnk_OR_buildingUID_OR_pitchDitchUID_OR_entityUID;
+Map::Units::UnitsState::setPositionOfUnit
+(&DAT_UnitsState,uVar9,
+iVar12 - DAT_ViewportRenderState.translationMatrix
+[DAT_ViewportRenderState.tileTranslationMatrix_YComponent[iVar12]].
+addXgetTile,
+(int)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[iVar12],
+(uint)DAT_TileMapState.HeightLayer[iVar12]);
+Map::Units::UnitsState::setDestinationForUnit
+(&DAT_UnitsState,DAT_CurrentUnitSlotID,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].plannedDestinationX,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].plannedDestinationY,0);
+uVar9 = DAT_CurrentUnitSlotID;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_MOVE_TO_DESTINATION;
+DAT_UnitsState.units[uVar9].fadeType = 1;
+DAT_UnitsState.units[uVar9].fadeCounter = 0;
+return;
+}
+}
+return;
+}
+--- NAMEN NUR IM PAKETCODE ---
+Frames_Shared_UnitClimbingUp, IsGateOrTowerArray, UnitState, _damage, _ownerPlayerIndex, bVar13, eVar14, field131_0x2ac, uVar12, undefined4
+--- KOMMENTARE IM PAKETCODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00561C10
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+--- ERKLAERUNG ---
+{"adr": "0x00561c10", "name": "UpdateSwordsman", "p1": {"bereich": "Spielablauf", "zweck": "Taktschritt eines Schwertkämpfers: zählt ihn zum Heer und führt den Ablauf je nach Einheitenzustand aus (Warten, Sammelpunkt, Laufen, Nahkampf, Mauerangriff, Sterben, Verschwinden)."}, "p2": {"ein": "keine Parameter; die Einheit steht in DAT_CurrentUnitSlotID", "aus": "nichts (void)", "liest": ["units[].state.generic/substate/owner/goToRallyPoint/isDisappearingUnk/disappearFadeAlphaCountdown/tribeID/fixedRng/killedFlagUnk/lastEncounteredEnemyPlayerID", "units[].moveInstructionSpeedDelayTracker/closestEnemyMicroDistance/attackedUnitID/targetedBuildingTile/attackAtTileX/Y/unitType (des Ziels)/animationCycleNumber", "playerDataArray[owner].aiControlStatusRelated", "tribes[].isRallyingUnk/tribeBehaviorType", "BuildingDefinedData.IsGateOrTowerArray", "TileMapState.LogicLayer/BuildingLayer/HeightLayer", "GameCore.mapTimeInTicks/gameMode_2", "GameSynchronyState.currentPlayerFullIDArray/currentPlayerSlotID", "TroopValueState.attackInfo (nur bei currentPlayerFullIDArray == -1)", "SEC_RNG.currentNumber1"], "schreibt": ["playerDataArray[owner].armySize+1", "playerDataArray[owner].currentSwordsmen+1", "units[].isSelectable_OR_matchTime=1, calculatedOwnerPlayerIndex=owner", "units[].state/substate/stateBasedSpeed/animationFrame/animationCycleNumber/gfxNumber/animationSpeed/animationSheetFrameOffset/field_0x30_animRelated/SA/facingDirection/seated", "units[].goToRallyPoint/targetedBuildingTile", "units[].logicalState (ULS_REMOVE, ULS_TRANSITIONING)", "units[].nextAttackHurtsWall", "units[].disappearFadeAlphaCountdown/updateTickTracker/isDisappearingUnk/fadeType/fadeCounter", "playerDataArray[owner].rallySearchOffsetsUnk[5] (+1)", "mapAndTime.emenyHitArray", "SEC_RNG (nextRandomNumber1 im IDLE-Zustand)", "DAT_UnitHasBecomeIdle"], "ruft": ["addUnitToNewTribe", "isSpaceAvailableAtUnitRallyPoint", "setDestinationForUnit", "moveToFreeTileNearby", "hasUnitReachedDestination", "handleUnitMovementWhenTargetingBuildings", "resumeMovementIfNoAttackTarget", "processDamageToBuildingThunk", "moveUnitToBehaviorTarget", "setDestinationNearTargetedBuilding", "processUnitLossStatistic", "setPositionOfUnit", "prepareCampgroundCoords", "playSFXAtLocation", "playHurtSFXForUnit", "nextRandomNumber1", "getBuildingHurtSFXID", "setUnitFacingDirectionForTargetXandY", "setUnitFacingDirectionBasedOnBuilding"], "regeln": ["Bei jedem Aufruf zuerst: armySize und currentSwordsmen des Besitzers je +1, isSelectable_OR_matchTime=1, addUnitToNewTribe, calculatedOwnerPlayerIndex=owner (ohne Bedingung); danach switch über state.generic, nicht behandelte Zustände tun nichts", "DETERMINE_NEXT_STATE: substate=-1, stateBasedSpeed=0. Ist isDisappearingUnk!=0: disappearFadeAlphaCountdown -1, bei negativem Wert beide auf 0, Rückkehr. Ohne goToRallyPoint: aiControlStatusRelated>0 und (closestEnemyMicroDistance>400 oder aiControlStatusRelated==100000) gibt Zustand 3, sonst IDLE. Mit goToRallyPoint: Flag gelöscht, state=0x69, isSpaceAvailableAtUnitRallyPoint(owner,5,Slot), bei !=0 setDestinationForUnit, rallySearchOffsetsUnk[5] +1", "Zustand 0x69: SA=1, calculatedMovementSpeed=movementSpeed; nur bei erreichtem Ziel facingDirection=4 und bei (mapTimeInTicks+Slot)%0x28==0 neue Platzsuche mit setDestinationForUnit; rallySearchOffsetsUnk[5] bei jedem Aufruf +1", "IDLE: animationSpeed 5, SA=1, Frame-Tabelle nach Slot&3 (field106/107/108/109), gfx=Frame+0x141. Bei Slot&3==3 und gerade erhöhtem Zyklus: Zyklus 0xb bzw. 0x50 ruft nextRandomNumber1, bei ungeradem Wert FX_SHEATH_OUT bzw. FX_SHEATH_IN. Ende bei Idle-Flag oder sofort bei aiControlStatusRelated>0, dann Zyklus 0, DETERMINE_NEXT, moveToFreeTileNearby", "Zustand 3: seated=0, Speed 4, bei gameMode_2 != GM_SKIRMISH_AND_MULTIPLAYER Blick zu signpostIDs[0], Frame field110_0x2058 (beide fixedRng-Zweige gleich), gfx=Frame+0x158; Rückkehr bis Animationsende, dann DETERMINE_NEXT und moveToFreeTileNearby", "MOVE_TO_DESTINATION: Speed 0, field_0x30=0x10, isRallyingUnk gibt SA=1; Tracker ab 0x47 (71) gibt Speed -1 und field_0x30=0, sonst 0. Nur bei erreichtem Ziel: Speed 0, Zyklus 0, DETERMINE_NEXT, bei tribeBehaviorType STBT_0x400 US_DISAPPEAR; danach handleUnitMovementWhenTargetingBuildings>0 gibt US_MELEE_ATTACK_WALL (überschreibt auch DISAPPEAR)", "MELEE_ATTACK substate 0: Frame field104_0x1e7c, gfx=Richtung+0x79+Frame*8; bei attackedUnitID!=0 und gerade erhöhtem Zyklus: Zyklus 7 playHurtSFXForUnit, Zyklus 5 FX_STEEL1 wenn das Ziel UT_E_SPEAR/E_PIKE/LORD/E_MACE/E_SWORD/E_KNIGHT/A_ASSASSIN/A_SWORDSMAN ist, Zyklus 4 FX_SWISH", "MELEE_ATTACK substate !=0: Frame field105_0x1ea0, gfx=Richtung+0xd9+Frame*8; Zyklus 6 Hurt-Ton, Zyklus 5 FX_STEEL2 nur bei Ziel E_SPEAR/E_PIKE/E_MACE/E_SWORD/E_KNIGHT/A_ASSASSIN, Zyklus 4 FX_SWISH. Bei Idle-Flag: substate wechselt 0 und 1, Zyklus 0, resumeMovementIfNoAttackTarget. Schaden an Einheiten wird hier nicht berechnet", "MELEE_ATTACK_WALL: Speed 3, Blick zum Ziel, Frame field104_0x1e7c, gfx=Richtung+0x79+Frame*8; bei Zyklus 7 (gerade erhöht) FX_ATTACK_WOOD bzw. FX_ATTACK_STONE. Der Rest nur bei Idle-Flag: nextAttackHurtsWall wechselt 0/1; LogicLayer[Zielkachel]&0x100 gesetzt: Wert 10 (Bedeutung ungeklärt); sonst Gebäude aus BuildingLayer, <1 gibt DETERMINE_NEXT, Wert 6 bei Turm/Tor, sonst 70. Aufruf processDamageToBuildingThunk(Kachel, attackAtTileX/Y, Wert, nextAttackHurtsWall, owner, TRUE)", "Nach dem Schlag, Rückgabe 0: nur bei currentPlayerFullIDArray[owner]==-1: ohne Bit 0x100 bei Turm/Tor und attackInfo-Wert+10 kleiner als Karten-Byte und moveUnitToBehaviorTarget==0 gibt DETERMINE_NEXT; mit Bit 0x100 Vergleich mit +0xf, dann moveUnitToBehaviorTarget, setDestinationNearTargetedBuilding, sonst DETERMINE_NEXT. Rückgabe !=0: bei Bit 0x100 setDestinationNearTargetedBuilding, sonst targetedBuildingTile=0 und moveUnitToBehaviorTarget; bei 0 DETERMINE_NEXT", "DISAPPEAR: Countdown+1, ab 0x21 auf 0x20, ULS_REMOVE, bei killedFlagUnk==0 processUnitLossStatistic; ist owner == currentPlayerSlotID: emenyHitArray[lastEncounteredEnemyPlayerID-9] +1, sonst bei lastEncounteredEnemyPlayerID==currentPlayerSlotID: emenyHitArray[owner] +1", "Tod: DEATH_01 (gfx 0x180, Frame+0x168), DEATH_02 und STONE_DEATH_01..03 (0x1b0, +0x198), DEATH_03 (0x198, +0x180): facingDirection=0, Speed 2, ANIM_Worker_Shared1; Idle-Flag gibt US_DISAPPEAR. APPEAR: Speed wie Laufen (0 oder -1), bei Ziel setPositionOfUnit auf die gemerkte Kachel, setDestinationForUnit auf plannedDestinationX/Y, state=MOVE_TO_DESTINATION, fadeType=1, fadeCounter=0", "JESTER_ROAM_TO: Countdown += engineerManningSiegeStateRef_checkType (Klemme 0..0x1f), updateTickTracker+1; über 0x20 zurück auf cachedState, bei negativem checkType (und isDisappearingUnk) Lagerplatz-Ziel per prepareCampgroundCoords, bei positivem ULS_TRANSITIONING mit Countdown 0x20. Zustand 0x6c: nur Speed 0, field_0x30=0, Offset 1"], "offen": ["Welche Einheitentypen diese Funktion aufrufen (nur Schwertkämpfer, auch arab. Schwertkämpfer?)", "Bedeutung von Zustand 3 und 0x6c; Zustandswerte nur aus Ghidra-Namen abgeleitet", "Bedeutung von LogicLayer-Bit 0x100 (vermutlich Mauer) und der Zahl 10", "Welche Rückgabe von processDamageToBuildingThunk was heißt (extraout_EAX); Bedeutung der attackInfo-Schwellwerte und von currentPlayerFullIDArray==-1 (vermutlich KI)", "Zähler emenyHitArray: Ghidra-Kommentare Killed/Lost wirken vertauscht; Index lastEncounteredEnemyPlayerID-9 nicht klar", "Ob armySize/currentSwordsmen anderswo zurückgesetzt werden, steht nicht in dieser Funktion", "Tabellenname Frames_Shared_UnitClimbingUp täuscht, vermutlich gemeinsame Animationstabelle", "UT_A_ASSASSIN/UT_A_SWORDSMAN als arabische Typen nur aus den Namen vermutet"]}, "p3": {"erklaerung": "Das ist der Takt-Ablauf eines Schwertkämpfers: Er wird bei jedem Aufruf ins Heer gezählt, wartet, geht zum Sammelpunkt, läuft, schlägt zu, stirbt und verschwindet. Beim Mauerangriff geht an die Schadensfunktion der Wert 70, bei Toren und Türmen 6, bei gesetztem Bit 0x100 der Wert 10.", "gehirn": "Normale Gebäude fallen unter Schwertkämpfern viel schneller als Tore und Türme (Wert 70 gegen 6, wenn der Wert Trefferpunkten entspricht, vermutlich); Kacheln mit Bit 0x100 (vermutlich Mauer) bekommen Wert 10. Wegen nextRandomNumber1 im Warten verbraucht ein wartender Schwertkämpfer mit Slot&3==3 Zufallszahlen bei frisch erreichtem Zyklus 0xb/0x50.", "beleg": "code", "live": "Schwertkämpfer schlagen eine Mauer, dann ein Tor → Gebäude-Lebenspunkte vor/nach je Schlag → normales Gebäude stärker als Tor/Turm (Grundwerte 70 gegen 6, Bit-0x100-Kachel 10, UCP kann abweichen)", "live_art": "kampf"}}
+
+### 0x0047eed0 renderDebugDataSplitInfo
+--- CODE (Ghidra-Export, vollstaendig) ---
+/* WARNING: Enum "DPSEND_EnumInt": Some values do not have unique names */
+/* WARNING: Enum "DPERRInt": Some values do not have unique names */
+/* decompilerscript: committed: 2025-01-30 21:57:43.216000 */
+void __thiscall
+_HoldStrong::Synchrony::GameSynchronyState::renderDebugDataSplitInfo
+(GameSynchronyState *this,int x,int y,int width,int height)
+{
+int iVar1;
+int xParam;
+int iVar2;
+uint color;
+int *piVar3;
+char *textAddress;
+iVar2 = x + 2;
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,"Splinter box ",iVar2,y,TTA_LEFT,0xffffff,0x11,FALSE,0);
+if (DAT_GameSynchronyState.splinterType == 0) {
+textAddress = " - Chimps";
+}
+else if (DAT_GameSynchronyState.splinterType == 1) {
+textAddress = " - Structures";
+}
+else if (DAT_GameSynchronyState.splinterType == 2) {
+textAddress = " - Vegetation";
+}
+else if (DAT_GameSynchronyState.splinterType == 3) {
+textAddress = " - Tribes";
+}
+else if (DAT_GameSynchronyState.splinterType == 4) {
+textAddress = " - Players";
+}
+else {
+if (DAT_GameSynchronyState.splinterType != 5) goto LAB_0047efc0;
+textAddress = " - Game elements";
+}
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,textAddress,x + 0xc,y,TTA_LEFT,0xffffff,0x11,TRUE,0);
+LAB_0047efc0:
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,"Total split data items:  ",iVar2,y + 0x1c,TTA_LEFT,0xffffff,
+0x12,FALSE,0);
+xParam = x + 0xc;
+Text::TextManager::renderNumberToScreen2
+(&DAT_TextManagerObject,DAT_GameSynchronyState.totalSplitDataItems,xParam,y + 0x1c,
+TTA_LEFT,0x80ff,0x12,TRUE,0);
+if (DAT_GameSynchronyState.splinterType == 0) {
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,"Total split chimps:  ",iVar2,y + 0x2a,TTA_LEFT,0xffffff,0x12,
+FALSE,0);
+Text::TextManager::renderNumberToScreen2
+(&DAT_TextManagerObject,DAT_GameSynchronyState.totalSplitChimps,xParam,y + 0x2a,
+TTA_LEFT,0x80ff,0x12,TRUE,0);
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,"First split chimp:  ",x + 0xca,y + 0x2a,TTA_LEFT,0xffffff,
+0x12,FALSE,0);
+Text::TextManager::renderNumberToScreen2
+(&DAT_TextManagerObject,DAT_GameSynchronyState.firstSplitChimps,x + 0xd4,y + 0x2a,
+TTA_LEFT,0x80ff,0x12,TRUE,0);
+piVar3 = DAT_GameSynchronyState.HASH_Units[2];
+iVar2 = 10;
+do {
+piVar3 = piVar3 + 1;
+color = (-(uint)(piVar3[-0x9c4] != *piVar3) & 0xff000100) + 0xffffff;
+Text::TextManager::renderNumberToScreen2
+(&DAT_TextManagerObject,piVar3[-0x9c4],xParam,y + 0x46,TTA_LEFT,color,0x12,FALSE,0);
+Text::TextManager::renderNumberToScreen2
+(&DAT_TextManagerObject,*piVar3,xParam,y + 0x54,TTA_LEFT,color,0x12,FALSE,0);
+xParam = xParam + 0x28;
+iVar2 = iVar2 + -1;
+} while (iVar2 != 0);
+return;
+}
+if (DAT_GameSynchronyState.splinterType == 1) {
+iVar1 = y + 0x2a;
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,"Total split structures:  ",iVar2,iVar1,TTA_LEFT,0xffffff,0x12
+,FALSE,0);
+Text::TextManager::renderNumberToScreen2
+(&DAT_TextManagerObject,DAT_GameSynchronyState.totalSplitStructures,xParam,iVar1,
+TTA_LEFT,0x80ff,0x12,TRUE,0);
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,"First split structure:  ",x + 0xca,iVar1,TTA_LEFT,0xffffff,
+0x12,FALSE,0);
+Text::TextManager::renderNumberToScreen2
+(&DAT_TextManagerObject,DAT_GameSynchronyState.firstSplitStructures,x + 0xd4,iVar1,
+TTA_LEFT,0x80ff,0x12,TRUE,0);
+return;
+}
+if (DAT_GameSynchronyState.splinterType == 2) {
+iVar1 = y + 0x2a;
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,"Total split veg:  ",iVar2,iVar1,TTA_LEFT,0xffffff,0x12,FALSE,
+0);
+Text::TextManager::renderNumberToScreen2
+(&DAT_TextManagerObject,DAT_GameSynchronyState.totalSplitVeg,xParam,iVar1,TTA_LEFT,
+0x80ff,0x12,TRUE,0);
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,"First split veg:  ",x + 0xca,iVar1,TTA_LEFT,0xffffff,0x12,
+FALSE,0);
+Text::TextManager::renderNumberToScreen2
+(&DAT_TextManagerObject,DAT_GameSynchronyState.firstSplitVeg,x + 0xd4,iVar1,TTA_LEFT,
+0x80ff,0x12,TRUE,0);
+return;
+}
+if (DAT_GameSynchronyState.splinterType != 3) {
+if (DAT_GameSynchronyState.splinterType == 4) {
+iVar1 = y + 0x2a;
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,"Total split players:  ",iVar2,iVar1,TTA_LEFT,0xffffff,0x12,
+FALSE,0);
+Text::TextManager::renderLeftAlignedNumberToScreen
+(&DAT_TextManagerObject,DAT_GameSynchronyState.totalSplitPlayers,xParam,iVar1,0x80ff
+,0x12,1);
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,"First split player:  ",x + 0xca,iVar1,TTA_LEFT,0xffffff,
+0x12,FALSE,0);
+iVar2 = DAT_GameSynchronyState.firstSplitPlayer;
+}
+else if (DAT_GameSynchronyState.splinterType == 5) {
+iVar1 = y + 0x2a;
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,"Total split elements:  ",iVar2,iVar1,TTA_LEFT,0xffffff,0x12
+,FALSE,0);
+Text::TextManager::renderLeftAlignedNumberToScreen
+(&DAT_TextManagerObject,DAT_GameSynchronyState.totalSplitElements,xParam,iVar1,
+0x80ff,0x12,1);
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,"First split element:  ",x + 0xca,iVar1,TTA_LEFT,0xffffff,
+0x12,FALSE,0);
+iVar2 = DAT_GameSynchronyState.firstSplitElement;
+}
+else if (DAT_GameSynchronyState.splinterType == 6) {
+iVar1 = y + 0x2a;
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,"Total split layers:  ",iVar2,iVar1,TTA_LEFT,0xffffff,0x12,
+FALSE,0);
+Text::TextManager::renderLeftAlignedNumberToScreen
+(&DAT_TextManagerObject,DAT_GameSynchronyState.totalSplitLayers,xParam,iVar1,0x80ff,
+0x12,1);
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,"First split layer:  ",x + 0xca,iVar1,TTA_LEFT,0xffffff,0x12
+,FALSE,0);
+iVar2 = DAT_GameSynchronyState.firstSplitLayer;
+}
+else if (DAT_GameSynchronyState.splinterType == 7) {
+iVar1 = y + 0x2a;
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,"Total split flies:  ",iVar2,iVar1,TTA_LEFT,0xffffff,0x12,
+FALSE,0);
+Text::TextManager::renderLeftAlignedNumberToScreen
+(&DAT_TextManagerObject,DAT_GameSynchronyState.totalSplitFlies,xParam,iVar1,0x80ff,
+0x12,1);
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,"First split fly:  ",x + 0xca,iVar1,TTA_LEFT,0xffffff,0x12,
+FALSE,0);
+iVar2 = DAT_GameSynchronyState.firstSplitFly;
+}
+else if (DAT_GameSynchronyState.splinterType == 8) {
+iVar1 = y + 0x2a;
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,"Total split moats:  ",iVar2,iVar1,TTA_LEFT,0xffffff,0x12,
+FALSE,0);
+Text::TextManager::renderLeftAlignedNumberToScreen
+(&DAT_TextManagerObject,DAT_GameSynchronyState.totalSplitMoats,xParam,iVar1,0x80ff,
+0x12,1);
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,"First split moat:  ",x + 0xca,iVar1,TTA_LEFT,0xffffff,0x12,
+FALSE,0);
+iVar2 = DAT_GameSynchronyState.firstSplitMoat;
+}
+else if (DAT_GameSynchronyState.splinterType == 9) {
+iVar1 = y + 0x2a;
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,"Total split teleports:  ",iVar2,iVar1,TTA_LEFT,0xffffff,
+0x12,FALSE,0);
+Text::TextManager::renderLeftAlignedNumberToScreen
+(&DAT_TextManagerObject,DAT_GameSynchronyState.totalSplitTeleports,xParam,iVar1,
+0x80ff,0x12,1);
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,"First split teleport:  ",x + 0xca,iVar1,TTA_LEFT,0xffffff,
+0x12,FALSE,0);
+iVar2 = DAT_GameSynchronyState.firstSplitTeleports;
+}
+else if (DAT_GameSynchronyState.splinterType == 10) {
+iVar1 = y + 0x2a;
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,"Total split pitch ditchs:  ",iVar2,iVar1,TTA_LEFT,0xffffff,
+0x12,FALSE,0);
+Text::TextManager::renderLeftAlignedNumberToScreen
+(&DAT_TextManagerObject,DAT_GameSynchronyState.totalSplitPitchDitches,xParam,iVar1,
+0x80ff,0x12,1);
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,"First split pitch ditch:  ",x + 0xca,iVar1,TTA_LEFT,
+0xffffff,0x12,FALSE,0);
+iVar2 = DAT_GameSynchronyState.firstSplitPitchDitch;
+}
+else {
+if (DAT_GameSynchronyState.splinterType != 0xb) {
+return;
+}
+iVar1 = y + 0x2a;
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,"Total split zones:  ",iVar2,iVar1,TTA_LEFT,0xffffff,0x12,
+FALSE,0);
+Text::TextManager::renderLeftAlignedNumberToScreen
+(&DAT_TextManagerObject,DAT_GameSynchronyState.totalSplitZones,xParam,iVar1,0x80ff,
+0x12,1);
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,"First split zone:  ",x + 0xca,iVar1,TTA_LEFT,0xffffff,0x12,
+FALSE,0);
+iVar2 = DAT_GameSynchronyState.firstSplitZone;
+}
+Text::TextManager::renderLeftAlignedNumberToScreen
+(&DAT_TextManagerObject,iVar2,x + 0xd4,y + 0x2a,0x80ff,0x12,1);
+return;
+}
+iVar1 = y + 0x2a;
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,"Total split tribes:  ",iVar2,iVar1,TTA_LEFT,0xffffff,0x12,FALSE
+,0);
+Text::TextManager::renderNumberToScreen2
+(&DAT_TextManagerObject,DAT_GameSynchronyState.totalSplitTribes,xParam,iVar1,TTA_LEFT,
+0x80ff,0x12,TRUE,0);
+Text::TextManager::renderTextToScreen
+(&DAT_TextManagerObject,"First split tribe:  ",x + 0xca,iVar1,TTA_LEFT,0xffffff,0x12,
+FALSE,0);
+Text::TextManager::renderNumberToScreen2
+(&DAT_TextManagerObject,DAT_GameSynchronyState.firstSplitTribe,x + 0xd4,iVar1,TTA_LEFT,
+0x80ff,0x12,TRUE,0);
+return;
+}
+--- NAMEN NUR IM PAKETCODE ---
+-
+--- KOMMENTARE IM PAKETCODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0047EED0
+--- ERKLAERUNG ---
+{"adr": "0x0047eed0", "name": "renderDebugDataSplitInfo", "p1": {"bereich": "Befehle/Takt", "zweck": "Zeichnet ein Entwickler-Fenster mit Zählern zur Aufteilung der Spieldaten (Splinter) auf den Bildschirm."}, "p2": {"ein": "x, y, width, height", "aus": "-", "liest": ["splinterType 0-11", "totalSplit*", "firstSplit*", "HASH_Units"], "schreibt": [], "ruft": ["renderTextToScreen", "renderNumberToScreen2", "renderLeftAlignedNumberToScreen"], "regeln": ["splinterType 0 Chimps, 1 Structures, 2 Vegetation, 3 Tribes, 4 Players, 5 Game elements, 6 Layers, 7 Flies, 8 Moats, 9 Teleports, 10 Pitch ditches, 11 Zones", "Bei Typ 0 zusätzlich 10 Hash-Paare (Wert gegen Wert), Abweichungen werden farbig markiert"], "offen": ["Ob Typ 6 bis 11 in 1.41 überhaupt vorkommen"]}, "p3": {"erklaerung": "Reine Entwickleranzeige der Mehrspieler-Abgleichdaten, ohne Wirkung auf das Spiel.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x00572e80 UpdateSlinger
+--- CODE (Ghidra-Export, vollstaendig) ---
+/* WARNING: Enum "DPSEND_EnumInt": Some values do not have unique names */
+/* WARNING: Enum "DPERRInt": Some values do not have unique names */
+/* WARNING: Enum "MappersEnum": Some values do not have unique names */
+/* decompilerscript: committed: 2025-01-30 21:57:43.216000 */
+void _HoldStrong::Global::UpdateSlinger(void)
+{
+int *piVar1;
+byte *pbVar2;
+char *pcVar3;
+short *psVar4;
+byte bVar5;
+short sVar6;
+short sVar7;
+short sVar8;
+UnitInstructionTypeShort UVar9;
+uint targetedTile;
+uint uVar10;
+GameModeInt GVar11;
+UnitStateUnion *pUVar12;
+BOOLEnum BVar13;
+int extraout_EAX;
+int in_ECX;
+short *unitID;
+int iVar14;
+int iVar15;
+uint uVar16;
+bool bVar17;
+EntityType projectileType;
+uVar10 = DAT_CurrentUnitSlotID;
+iVar14 = (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner;
+piVar1 = &DAT_GameState.playerDataArray[iVar14].armySize;
+*piVar1 = *piVar1 + 1;
+piVar1 = &DAT_GameState.playerDataArray[iVar14].countSlingers2;
+*piVar1 = *piVar1 + 1;
+if (DAT_UnitsState.units[uVar10].isSelectable_OR_matchTime == 0) {
+DAT_UnitsState.units[uVar10].isSelectable_OR_matchTime = (short)DAT_GameCore.mapTimeInTicks;
+}
+DAT_UnitsState.units[uVar10].field333_0x430 = 1;
+Map::Units::TribesState::addUnitToNewTribe(&DAT_TribesState,uVar10);
+unitID = (short *)DAT_CurrentUnitSlotID;
+iVar15 = DAT_CurrentUnitSlotID * 0x490;
+/* note translated state is used! */
+switch(DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic) {
+case US_DETERMINE_NEXT_STATEUnk:
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].substate = -1;
+DAT_UnitsState.units[(int)unitID].stateBasedSpeed = 0;
+if (DAT_UnitsState.units[(int)unitID].isDisappearingUnk != 0) {
+pbVar2 = &DAT_UnitsState.units[(int)unitID].disappearFadeAlphaCountdown;
+*pbVar2 = *pbVar2 - 1;
+if (-1 < (char)*pbVar2) {
+return;
+}
+DAT_UnitsState.units[(int)unitID].disappearFadeAlphaCountdown = 0;
+DAT_UnitsState.units[(int)unitID].isDisappearingUnk = 0;
+return;
+}
+if (DAT_UnitsState.units[(int)unitID].goToRallyPoint == 0) {
+UVar9 = DAT_UnitsState.units[(int)unitID].targetingType;
+if (((((UVar9 != UIT_UNIT_ATTACK_UNIT) && (UVar9 != UIT_ATTACK_BUILDING)) &&
+(UVar9 != UIT_LIGHT_PITCH)) && (UVar9 != UIT_ATTACK_LAND)) ||
+(BVar13 = Map::Units::UnitsState::acquireShootTarget(&DAT_UnitsState,unitID),
+unitID = (short *)DAT_CurrentUnitSlotID, BVar13 == FALSE)) {
+sVar6 = DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance;
+if (400 < sVar6) {
+DAT_UnitsState.units[(int)unitID].state.generic = US_SIT_DOWNUnk;
+return;
+}
+if (0x1b0 < sVar6) {
+DAT_UnitsState.units[(int)unitID].state.generic = US_STAND_UPUnk;
+return;
+}
+BVar13 = Map::Units::UnitsState::acquireShootTarget(&DAT_UnitsState,unitID);
+if (BVar13 == FALSE) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_STAND_UPUnk;
+return;
+}
+}
+uVar10 = DAT_CurrentUnitSlotID;
+pUVar12 = &DAT_UnitsState.units[DAT_CurrentUnitSlotID].state;
+if (pUVar12->generic == US_MOVE_TO_DESTINATION) {
+return;
+}
+pUVar12->generic = US_RELOAD_WEAPONUnk;
+Map::Units::UnitsState::ifOnADefensiveStructureSetDestinationInDirectionOfTarget
+(&DAT_UnitsState,uVar10);
+return;
+}
+DAT_UnitsState.units[(int)unitID].goToRallyPoint = 0;
+DAT_UnitsState.units[(int)unitID].state.generic = 0x69;
+iVar15 = Map::Buildings::BuildingsState::getKeepLocationForAIUnit
+(&DAT_BuildingsState,iVar14,0xe,(int)unitID);
+goto joined_r0x00573118;
+case 2:
+case US_MOVE_TO_DESTINATION:
+case US_APPEAR|US_IDLEUnk:
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].field_0x30_animRelated = 0x10;
+if (DAT_UnitsState.units[(int)unitID].moveInstructionSpeedDelayTracker == 0) {
+if (((DAT_UnitsState.units[(int)unitID].movementRunUpTime != 0) ||
+(DAT_TribesState.tribes[DAT_UnitsState.units[(int)unitID].tribeID].isRallyingUnk != 0)) ||
+(DAT_UnitsState.units[(int)unitID].isMatchingSpeed != false)) {
+DAT_UnitsState.units[(int)unitID].animationSheetFrameOffset = 1;
+goto LAB_005731b3;
+}
+DAT_UnitsState.units[(int)unitID].animationSheetFrameOffset = 0x81;
+DAT_UnitsState.units[(int)unitID].stateBasedSpeed = 1;
+}
+else {
+DAT_UnitsState.units[(int)unitID].animationSheetFrameOffset = 1;
+if (DAT_UnitsState.units[(int)unitID].moveInstructionSpeedDelayTracker < 0x47) {
+LAB_005731b3:
+DAT_UnitsState.units[(int)unitID].stateBasedSpeed = 0;
+}
+else {
+DAT_UnitsState.units[(int)unitID].stateBasedSpeed = -1;
+DAT_UnitsState.units[(int)unitID].field_0x30_animRelated = 0;
+}
+}
+sVar6 = DAT_UnitsState.units[(int)unitID].tribeID;
+if (((((DAT_TribesState.tribes[sVar6].isRallyingUnk != 0) ||
+(DAT_GameSynchronyState.currentPlayerFullIDArray[iVar14] == -1)) &&
+((DAT_TribesState.tribes[sVar6].unitStance != USE_STAND_GROUND &&
+((unitID == (short *)(int)DAT_UnitsState.units[(int)unitID].selectionTargetUnitID &&
+(((DAT_UnitsState.units[(int)unitID].fixedRng ^
+DAT_GameState.mapAndTime.totalGameTicksUnk) & 0x1f) == 0)))))) &&
+(BVar13 = Map::Units::UnitsState::acquireShootTarget(&DAT_UnitsState,unitID),
+unitID = (short *)DAT_CurrentUnitSlotID, BVar13 != FALSE)) &&
+(iVar14 = (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].shootTargetedUnit, 0 < iVar14)) {
+Map::Units::TribesState::giveTribeAnInstruction
+(&DAT_TribesState,(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].tribeID,
+UIT_SHOOT_TARGETUnk,iVar14,DAT_UnitsState.units[iVar14].uid,0);
+return;
+}
+BVar13 = Map::Units::UnitsState::hasUnitReachedDestination(&DAT_UnitsState,(int)unitID);
+if (BVar13 != FALSE) {
+DAT_UnitsState.units[(int)unitID].stateBasedSpeed = 0;
+DAT_UnitsState.units[(int)unitID].animationCycleNumber = 0;
+DAT_UnitsState.units[(int)unitID].state.generic = US_DETERMINE_NEXT_STATEUnk;
+if (DAT_UnitsState.units[(int)unitID].field147_0x2c4 == 0x7b) {
+Map::Units::UnitsState::moveToFreeTileNearby(&DAT_UnitsState,(int)unitID);
+unitID = (short *)DAT_CurrentUnitSlotID;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic =
+(-(ushort)(DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic !=
+US_MOVE_TO_DESTINATION) & 0xff89) + (US_APPEAR|US_IDLEUnk);
+}
+if (DAT_TribesState.tribes[DAT_UnitsState.units[(int)unitID].tribeID].tribeBehaviorType ==
+STBT_0x400) {
+DAT_UnitsState.units[(int)unitID].state.generic = US_DISAPPEAR;
+}
+}
+iVar14 = Map::Units::UnitsState::handleUnitMovementWhenTargetingBuildings
+(&DAT_UnitsState,(int)unitID);
+if (0 < iVar14) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_MELEE_ATTACK_WALL;
+return;
+}
+break;
+case US_RELOAD_WEAPONUnk:
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationSpeed = 2;
+DAT_UnitsState.units[(int)unitID].field_0x30_animRelated = 0;
+DAT_UnitsState.units[(int)unitID].field42_0x58 = 0;
+iVar14 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+ANIM_Slinger_4[DAT_UnitsState.units[(int)unitID].animationCycleNumber];
+DAT_UnitsState.units[(int)unitID].animationFrame = iVar14;
+if (0 < iVar14) {
+sVar6 = DAT_UnitsState.units[(int)unitID].jugglerCount;
+if (sVar6 == 0) {
+DAT_UnitsState.units[(int)unitID].gfxNumber =
+DAT_UnitsState.units[(int)unitID].facingDirectionMapOrientationCorrected + 0x1c1 +
+iVar14 * 8;
+return;
+}
+if (sVar6 != -1) {
+if (sVar6 != 1) {
+return;
+}
+DAT_UnitsState.units[(int)unitID].gfxNumber =
+DAT_UnitsState.units[(int)unitID].facingDirectionMapOrientationCorrected + 0x221 +
+iVar14 * 8;
+return;
+}
+DAT_UnitsState.units[(int)unitID].gfxNumber =
+DAT_UnitsState.units[(int)unitID].facingDirectionMapOrientationCorrected + 0x161 +
+iVar14 * 8;
+return;
+}
+DAT_UnitsState.units[(int)unitID].animationCycleNumber = 0;
+iVar14 = (int)DAT_UnitsState.units[(int)unitID].shootTargetedUnit;
+if (iVar14 < 1) {
+if ((DAT_UnitsState.units[(int)unitID].targetingType != UIT_ATTACK_BUILDING) ||
+(sVar6 = DAT_UnitsState.units[(int)unitID].targetID_OR_targetBuildingID,
+DAT_BuildingsState.buildings[sVar6].uid !=
+DAT_UnitsState.units[(int)unitID].
+targetedUnitUIDUnk_OR_someAppearTileUnk_OR_buildingUID_OR_pitchDitchUID_OR_entityUID))
+goto LAB_005737c2;
+iVar14 = (int)DAT_BuildingsState.buildings[sVar6].widthOrHeight / 2;
+iVar15 = (short)DAT_BuildingsState.buildings[sVar6].x + iVar14;
+iVar14 = (short)DAT_BuildingsState.buildings[sVar6].y + iVar14;
+}
+else {
+iVar15 = (int)DAT_UnitsState.units[iVar14].x;
+iVar14 = (int)DAT_UnitsState.units[iVar14].y;
+}
+if ((iVar15 == 0) ||
+(iVar14 = iVar14 - DAT_UnitsState.units[(int)unitID].y,
+iVar15 = iVar15 - DAT_UnitsState.units[(int)unitID].x,
+iVar15 * iVar15 + iVar14 * iVar14 < 0x1e5)) {
+LAB_005737c2:
+DAT_UnitsState.units[(int)unitID].state.generic = US_AIM_WEAPONUnk;
+return;
+}
+DAT_UnitsState.units[(int)unitID].field265_0x3bc = -0x28;
+goto LAB_005737b5;
+case US_AIM_WEAPONUnk:
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationSpeed = 0;
+DAT_UnitsState.units[(int)unitID].field_0x30_animRelated = 0;
+if ((DAT_UnitsState.units[(int)unitID].animationCycleNumber == 1) &&
+(DAT_UnitsState.units[(int)unitID].animationCycleNumberHasJustIncremented != FALSE)) {
+Audio::SFX::SFXState::playSFXAtLocation
+(&DAT_SFXState,(int)DAT_UnitsState.units[(int)unitID].x,
+(int)DAT_UnitsState.units[(int)unitID].y,FX_SLING_THROW);
+unitID = (short *)DAT_CurrentUnitSlotID;
+}
+UVar9 = DAT_UnitsState.units[(int)unitID].targetingType;
+if (UVar9 == UIT_ATTACK_BUILDING) {
+sVar6 = DAT_UnitsState.units[(int)unitID].targetID_OR_targetBuildingID;
+iVar15 = (int)(short)DAT_BuildingsState.buildings[sVar6].y;
+iVar14 = (int)(short)DAT_BuildingsState.buildings[sVar6].x;
+LAB_00573920:
+Map::Units::UnitsState::setUnitFacingDirectionForTargetXandY
+(&DAT_UnitsState,(int)unitID,iVar14,iVar15);
+}
+else {
+if (UVar9 == UIT_LIGHT_PITCH) {
+sVar6 = DAT_UnitsState.units[(int)unitID].targetID_OR_targetBuildingID;
+iVar15 = (int)DAT_TileMapState.pitchDitches[sVar6].y;
+iVar14 = (int)DAT_TileMapState.pitchDitches[sVar6].x;
+goto LAB_00573920;
+}
+if ((UVar9 == UIT_ATTACK_LAND) ||
+(sVar6 = DAT_UnitsState.units[(int)unitID].shootTargetedUnit, sVar6 == -2)) {
+iVar14 = (int)DAT_UnitsState.units[(int)unitID].shootTargetMicroY;
+iVar15 = (int)(iVar14 + (iVar14 >> 0x1f & 7U)) >> 3;
+iVar14 = (int)DAT_UnitsState.units[(int)unitID].shootTargetMicroX;
+iVar14 = (int)(iVar14 + (iVar14 >> 0x1f & 7U)) >> 3;
+goto LAB_00573920;
+}
+Map::Units::UnitsState::setUnitFacingDirectionTowardsTarget
+(&DAT_UnitsState,(int)unitID,(int)sVar6);
+}
+uVar10 = DAT_CurrentUnitSlotID;
+sVar6 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].jugglerCount;
+if (sVar6 == 0) {
+iVar14 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+ANIM_Slinger_Throwing
+[DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationCycleNumber];
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationFrame = iVar14;
+if (0 < iVar14) {
+iVar14 = DAT_UnitsState.units[uVar10].facingDirectionMapOrientationCorrected + 0x1c1 +
+iVar14 * 8;
+LAB_005739c6:
+DAT_UnitsState.units[uVar10].gfxNumber = iVar14;
+}
+}
+else if (sVar6 == -1) {
+iVar14 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+ANIM_Slinger_Throwing
+[DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationCycleNumber];
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationFrame = iVar14;
+if (0 < iVar14) {
+iVar14 = DAT_UnitsState.units[uVar10].facingDirectionMapOrientationCorrected + 0x161 +
+iVar14 * 8;
+goto LAB_005739c6;
+}
+}
+else if (sVar6 == 1) {
+iVar14 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+ANIM_Slinger_Throwing
+[DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationCycleNumber];
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationFrame = iVar14;
+if (0 < iVar14) {
+iVar14 = DAT_UnitsState.units[uVar10].facingDirectionMapOrientationCorrected + 0x221 +
+iVar14 * 8;
+goto LAB_005739c6;
+}
+}
+if (DAT_UnitsState.units[uVar10].animationFrame < 1) {
+DAT_UnitsState.units[uVar10].animationCycleNumber = 0;
+iVar14 = (int)DAT_UnitsState.units[uVar10].shootTargetedUnit;
+if (-1 < iVar14) {
+if (((DAT_UnitsState.units[iVar14].logicalState != ULS_NORMAL) ||
+(DAT_UnitsState.units[uVar10].targetUID != DAT_UnitsState.units[iVar14].uid)) ||
+(DAT_UnitsState.units[iVar14].dying != 0)) {
+BVar13 = Map::Units::UnitsState::acquireShootTarget(&DAT_UnitsState,(short *)uVar10);
+if (BVar13 != FALSE) {
+return;
+}
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_DETERMINE_NEXT_STATEUnk;
+return;
+}
+DAT_UnitsState.units[uVar10].shootTargetMicroX = DAT_UnitsState.units[iVar14].microXPosition
+;
+DAT_UnitsState.units[uVar10].shootTargetMicroY = DAT_UnitsState.units[iVar14].microYPosition
+;
+DAT_UnitsState.units[uVar10].shootTargetZ =
+DAT_UnitsState.units[iVar14].buildingHeight +
+DAT_UnitsState.units[iVar14].terrainOrClimbHeight;
+}
+DAT_UnitsState.units[uVar10].state.generic = US_FIRE_WEAPONUnk;
+return;
+}
+break;
+case US_FIRE_WEAPONUnk:
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationSpeed = 1;
+DAT_UnitsState.units[(int)unitID].field_0x30_animRelated = 0;
+sVar6 = DAT_UnitsState.units[(int)unitID].jugglerCount;
+if (sVar6 == 0) {
+iVar14 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field150_0x2c7c[DAT_UnitsState.units[(int)unitID].animationCycleNumber];
+DAT_UnitsState.units[(int)unitID].animationFrame = iVar14;
+if (0 < iVar14) {
+iVar14 = DAT_UnitsState.units[(int)unitID].facingDirectionMapOrientationCorrected + 0x1c1 +
+iVar14 * 8;
+LAB_00573b1c:
+DAT_UnitsState.units[(int)unitID].gfxNumber = iVar14;
+}
+}
+else if (sVar6 == -1) {
+iVar14 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field150_0x2c7c[DAT_UnitsState.units[(int)unitID].animationCycleNumber];
+DAT_UnitsState.units[(int)unitID].animationFrame = iVar14;
+if (0 < iVar14) {
+iVar14 = DAT_UnitsState.units[(int)unitID].facingDirectionMapOrientationCorrected + 0x161 +
+iVar14 * 8;
+goto LAB_00573b1c;
+}
+}
+else if (sVar6 == 1) {
+iVar14 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field150_0x2c7c[DAT_UnitsState.units[(int)unitID].animationCycleNumber];
+DAT_UnitsState.units[(int)unitID].animationFrame = iVar14;
+if (0 < iVar14) {
+iVar14 = DAT_UnitsState.units[(int)unitID].facingDirectionMapOrientationCorrected + 0x221 +
+iVar14 * 8;
+goto LAB_00573b1c;
+}
+}
+if ((DAT_UnitsState.units[(int)unitID].animationFrame == 0xc) &&
+(DAT_UnitsState.units[(int)unitID].animationCycleNumberHasJustIncremented != FALSE)) {
+DAT_UnitsState.units[(int)unitID].field_0x40e = 0;
+iVar14 = (int)DAT_UnitsState.units[(int)unitID].shootTargetedUnit;
+if (iVar14 < 0) {
+Map::Units::UnitsState::prepareProjectileTarget(&DAT_UnitsState,(int)unitID,-1,200);
+sVar6 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].shootTargetZ;
+sVar7 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].shootTargetMicroY;
+sVar8 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].shootTargetMicroX;
+projectileType = ET_FIRETHROWER|ET_ARROW_AND_DEFAULT;
+}
+else {
+iVar15 = Map::Entities::EntityState::arrowShootingRelated
+(&DAT_EntityState,(int)DAT_UnitsState.units[(int)unitID].microXPosition,
+(int)DAT_UnitsState.units[(int)unitID].microYPosition,
+DAT_UnitsState.units[(int)unitID].buildingHeight + 0x1e +
+(int)DAT_UnitsState.units[(int)unitID].terrainOrClimbHeight,
+(int)DAT_UnitsState.units[iVar14].microXPosition,
+(int)DAT_UnitsState.units[iVar14].microYPosition,
+DAT_UnitsState.units[iVar14].buildingHeight + 0x1a +
+(int)DAT_UnitsState.units[iVar14].terrainOrClimbHeight);
+if (((iVar15 < 1) ||
+(DAT_UnitsState.units[iVar14].uid !=
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetUID)) ||
+((DAT_UnitsState.units[iVar14].logicalState != ULS_NORMAL ||
+(DAT_UnitsState.units[iVar14].dying != 0)))) {
+BVar13 = Map::Units::UnitsState::acquireShootTarget
+(&DAT_UnitsState,(short *)DAT_CurrentUnitSlotID);
+iVar15 = DAT_CurrentUnitSlotID * 0x490;
+if (BVar13 == FALSE) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_DETERMINE_NEXT_STATEUnk;
+}
+else if (DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic !=
+US_MOVE_TO_DESTINATION) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_AIM_WEAPONUnk;
+}
+goto LAB_00573cab;
+}
+Map::Units::UnitsState::prepareProjectileTarget
+(&DAT_UnitsState,DAT_CurrentUnitSlotID,iVar14,iVar15);
+sVar6 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].shootTargetZ;
+sVar7 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].shootTargetMicroY;
+sVar8 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].shootTargetMicroX;
+projectileType = ET_SLINGER;
+}
+Map::Units::UnitsState::shootProjectile
+(&DAT_UnitsState,DAT_CurrentUnitSlotID,projectileType,(int)sVar8,(int)sVar7,
+sVar6 + 0x1e);
+iVar15 = DAT_CurrentUnitSlotID * 0x490;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].field300_0x3f8 = 0;
+}
+LAB_00573cab:
+if (*(int *)((int)&DAT_UnitsState.units[0].animationFrame + iVar15) < 1) {
+*(undefined4 *)((int)DAT_UnitsState.units[0].manningEngineerRef + iVar15 + -100) = 0;
+*(undefined2 *)((int)DAT_UnitsState.units[0].manningEngineerRef + iVar15 + -0x54) = 0;
+return;
+}
+break;
+case US_STAND_UPUnk:
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationSpeed = 5;
+DAT_UnitsState.units[(int)unitID].field_0x30_animRelated = 0;
+if ((DAT_UnitsState.units[(int)unitID].field300_0x3f8 == 0) &&
+((((UVar9 = DAT_UnitsState.units[(int)unitID].targetingType, UVar9 == UIT_UNIT_ATTACK_UNIT ||
+(UVar9 == UIT_ATTACK_BUILDING)) || (UVar9 == UIT_LIGHT_PITCH)) ||
+(UVar9 == UIT_ATTACK_LAND)))) {
+DAT_UnitsState.units[(int)unitID].field300_0x3f8 = 1;
+DAT_UnitHasBecomeIdle = 1;
+}
+if (DAT_UnitsState.units[(int)unitID].seated == 0) {
+iVar14 = DAT_UnitsState.units[(int)unitID].animationCycleNumber;
+if (((uint)unitID & 1) == 0) {
+bVar5 = DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.ANIM_Slinger_8
+[iVar14];
+}
+else {
+bVar5 = DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.field146_0x2ba0
+[iVar14];
+}
+iVar14 = (int)(char)bVar5;
+DAT_UnitsState.units[(int)unitID].animationFrame = iVar14;
+if (iVar14 < 1) {
+DAT_UnitsState.units[(int)unitID].gfxNumber = 0x289;
+DAT_UnitHasBecomeIdle = 1;
+goto LAB_00573db2;
+}
+iVar14 = iVar14 + 0x288;
+}
+else {
+DAT_UnitsState.units[(int)unitID].field42_0x58 = 1;
+iVar14 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field145_0x2b80[DAT_UnitsState.units[(int)unitID].animationCycleNumber];
+DAT_UnitsState.units[(int)unitID].animationFrame = iVar14;
+if (iVar14 < 1) {
+DAT_UnitsState.units[(int)unitID].substate = 0x66;
+DAT_UnitsState.units[(int)unitID].seated = 0;
+DAT_UnitHasBecomeIdle = 1;
+goto LAB_00573db2;
+}
+iVar14 = iVar14 + 0x298;
+}
+bVar17 = DAT_UnitHasBecomeIdle != 0;
+DAT_UnitsState.units[(int)unitID].gfxNumber = iVar14;
+if (bVar17) {
+LAB_00573db2:
+DAT_UnitsState.units[(int)unitID].animationCycleNumber = 0;
+DAT_UnitsState.units[(int)unitID].state.generic = US_DETERMINE_NEXT_STATEUnk;
+Map::Units::UnitsState::moveToFreeTileNearby(&DAT_UnitsState,(int)unitID);
+return;
+}
+break;
+case US_SIT_DOWNUnk:
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].seated = 0;
+DAT_UnitsState.units[(int)unitID].animationSpeed = 3;
+DAT_UnitsState.units[(int)unitID].field_0x30_animRelated = 0;
+DAT_UnitsState.units[(int)unitID].field134_0x2ac = 10;
+if (DAT_UnitsState.units[(int)unitID].substate == -1) {
+DAT_UnitsState.units[(int)unitID].animationCycleNumber = (uint)unitID & 0xf;
+DAT_UnitsState.units[(int)unitID].substate = 0x66;
+}
+if ((DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance < 400) ||
+((DAT_UnitsState.units[(int)unitID].field300_0x3f8 == 0 &&
+(((UVar9 = DAT_UnitsState.units[(int)unitID].targetingType, UVar9 == UIT_UNIT_ATTACK_UNIT ||
+(UVar9 == UIT_ATTACK_BUILDING)) ||
+((UVar9 == UIT_LIGHT_PITCH || (UVar9 == UIT_ATTACK_LAND)))))))) {
+DAT_UnitsState.units[(int)unitID].field300_0x3f8 = 1;
+DAT_UnitHasBecomeIdle = 1;
+}
+GVar11 = DAT_GameSynchronyState.currentGameMode;
+sVar6 = DAT_UnitsState.units[(int)unitID].substate;
+if (sVar6 == 0x65) {
+iVar14 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+ANIM_Slinger_Idle_101_sit_down
+[DAT_UnitsState.units[(int)unitID].animationCycleNumber];
+DAT_UnitsState.units[(int)unitID].animationFrame = iVar14;
+if (iVar14 < 1) {
+DAT_UnitsState.units[(int)unitID].substate = 0x6a;
+DAT_UnitsState.units[(int)unitID].seated = 1;
+DAT_UnitHasBecomeIdle = 1;
+}
+else {
+LAB_00573ea3:
+DAT_UnitsState.units[(int)unitID].gfxNumber = iVar14 + 0x298;
+}
+LAB_00573eae:
+if ((DAT_UnitsState.units[(int)unitID].isSelected == 0) || (GVar11 != GM_SOLITARY)) {
+LAB_00573f22:
+if (DAT_UnitHasBecomeIdle == 0) {
+return;
+}
+}
+else {
+DAT_UnitHasBecomeIdle = 1;
+}
+}
+else {
+if ((sVar6 == 0x6a) || (sVar6 == 0x6b)) {
+DAT_UnitsState.units[(int)unitID].seated = 1;
+iVar14 = DAT_UnitsState.units[(int)unitID].animationCycleNumber;
+if (((uint)unitID & 1) == 0) {
+bVar5 = DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+ANIM_Slinger_Idle_1_0x6a_0x6b[iVar14];
+}
+else {
+bVar5 = DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+ANIM_Slinger_Idle_2_0x6a_0x6b[iVar14];
+}
+iVar14 = (int)(char)bVar5;
+DAT_UnitsState.units[(int)unitID].animationFrame = iVar14;
+if (0 < iVar14) goto LAB_00573ea3;
+DAT_UnitHasBecomeIdle = 1;
+goto LAB_00573eae;
+}
+if (sVar6 != 100) {
+DAT_UnitsState.units[(int)unitID].seated = 0;
+DAT_UnitsState.units[(int)unitID].animationSheetFrameOffset = 1;
+DAT_UnitsState.units[(int)unitID].field_0x30_animRelated = 0x10;
+if ((int)((DAT_UnitsState.units[(int)unitID].fixedRng & 7) + 1) <
+DAT_UnitsState.units[(int)unitID].animationCycleNumber) {
+DAT_UnitHasBecomeIdle = 1;
+goto LAB_00573f2e;
+}
+goto LAB_00573f22;
+}
+DAT_UnitsState.units[(int)unitID].field42_0x58 = 1;
+iVar14 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field145_0x2b80[DAT_UnitsState.units[(int)unitID].animationCycleNumber];
+DAT_UnitsState.units[(int)unitID].animationFrame = iVar14;
+if (0 < iVar14) {
+DAT_UnitsState.units[(int)unitID].gfxNumber = iVar14 + 0x298;
+goto LAB_00573f22;
+}
+DAT_UnitsState.units[(int)unitID].substate = 0x66;
+DAT_UnitsState.units[(int)unitID].seated = 0;
+DAT_UnitHasBecomeIdle = 1;
+}
+LAB_00573f2e:
+DAT_UnitsState.units[(int)unitID].animationCycleNumber = 0;
+if ((((DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance < 0x191) ||
+(UVar9 = DAT_UnitsState.units[(int)unitID].targetingType, UVar9 == UIT_UNIT_ATTACK_UNIT))
+|| (UVar9 == UIT_ATTACK_BUILDING)) ||
+((UVar9 == UIT_LIGHT_PITCH || (UVar9 == UIT_ATTACK_LAND)))) {
+LAB_005737b5:
+DAT_UnitsState.units[(int)unitID].state.generic = US_DETERMINE_NEXT_STATEUnk;
+return;
+}
+if ((DAT_UnitsState.units[(int)unitID].isSelected == 0) || (GVar11 != GM_SOLITARY)) {
+Map::Units::UnitsState::moveToFreeTileNearby(&DAT_UnitsState,(int)unitID);
+sVar6 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].seated;
+if ((sVar6 == 0) &&
+((DAT_TileMapState.LogicLayer[DAT_UnitsState.units[DAT_CurrentUnitSlotID].tile] &
+0x10000100U) == 0)) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].substate = 0x65;
+return;
+}
+if (((DAT_TileMapState.LogicLayer[DAT_UnitsState.units[DAT_CurrentUnitSlotID].tile] &
+0x10000100U) != 0) && (sVar6 != 0)) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].substate = 100;
+return;
+}
+}
+else {
+if (DAT_UnitsState.units[(int)unitID].seated != 0) {
+DAT_UnitsState.units[(int)unitID].substate = 100;
+return;
+}
+if (DAT_UnitsState.units[(int)unitID].substate == 0x65) {
+DAT_UnitsState.units[(int)unitID].substate = 0x66;
+return;
+}
+}
+break;
+case 0x68:
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].stateBasedSpeed = 0;
+DAT_UnitsState.units[(int)unitID].field_0x30_animRelated = 0;
+DAT_UnitsState.units[(int)unitID].animationSheetFrameOffset = 0x379;
+return;
+case 0x69:
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationSheetFrameOffset = 1;
+DAT_UnitsState.units[(int)unitID].field_0x30_animRelated = 0x10;
+DAT_UnitsState.units[(int)unitID].stateBasedSpeed = 1;
+DAT_UnitsState.units[(int)unitID].calculatedMovementSpeed =
+DAT_UnitsState.units[(int)unitID].movementSpeed;
+BVar13 = Map::Units::UnitsState::hasUnitReachedDestination(&DAT_UnitsState,(int)unitID);
+if ((BVar13 == FALSE) ||
+(iVar15 = DAT_GameCore.mapTimeInTicks + (int)unitID,
+DAT_UnitsState.units[(int)unitID].facingDirection = 4, iVar15 % 0x28 != 0))
+goto LAB_0057313a;
+if ((DAT_UnitsState.units[(int)unitID].closestEnemyMicroDistance < 0x1b1) &&
+(BVar13 = Map::Units::UnitsState::acquireShootTarget(&DAT_UnitsState,unitID),
+uVar10 = DAT_CurrentUnitSlotID, unitID = (short *)DAT_CurrentUnitSlotID, BVar13 != FALSE)) {
+piVar1 = &DAT_GameState.playerDataArray[iVar14].countSlingers;
+*piVar1 = *piVar1 + 1;
+DAT_UnitsState.units[uVar10].state.generic = US_RELOAD_WEAPONUnk;
+return;
+}
+iVar15 = Map::Buildings::BuildingsState::getKeepLocationForAIUnit
+(&DAT_BuildingsState,iVar14,0xe,(int)unitID);
+joined_r0x00573118:
+if (iVar15 != 0) {
+Map::Units::UnitsState::setDestinationForUnit
+(&DAT_UnitsState,DAT_CurrentUnitSlotID,DAT_BuildingsState.DAT_TempXOffset,
+DAT_BuildingsState.DAT_TempYOffset,0);
+}
+LAB_0057313a:
+piVar1 = &DAT_GameState.playerDataArray[iVar14].countSlingers;
+*piVar1 = *piVar1 + 1;
+return;
+case US_MELEE_ATTACK:
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationSpeed = 2;
+DAT_UnitsState.units[(int)unitID].field_0x30_animRelated = 0;
+sVar6 = DAT_UnitsState.units[(int)unitID].attackedUnitID;
+if (((sVar6 != 0) &&
+(DAT_UnitsState.units[(int)unitID].animationCycleNumberHasJustIncremented != FALSE)) &&
+(DAT_UnitsState.units[(int)unitID].animationCycleNumber == 4)) {
+Map::Units::UnitsState::playHurtSFXForUnit(&DAT_UnitsState,(int)sVar6);
+unitID = (short *)DAT_CurrentUnitSlotID;
+}
+iVar14 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+ANIM_Slinger_Melee[DAT_UnitsState.units[(int)unitID].animationCycleNumber];
+DAT_UnitsState.units[(int)unitID].animationFrame = iVar14;
+if (iVar14 < 1) {
+DAT_UnitsState.units[(int)unitID].gfxNumber =
+DAT_UnitsState.units[(int)unitID].facingDirectionMapOrientationCorrected + 0x101;
+DAT_UnitHasBecomeIdle = 1;
+}
+else {
+bVar17 = DAT_UnitHasBecomeIdle == 0;
+DAT_UnitsState.units[(int)unitID].gfxNumber =
+DAT_UnitsState.units[(int)unitID].facingDirectionMapOrientationCorrected + 0xf9 +
+iVar14 * 8;
+if (bVar17) {
+return;
+}
+}
+psVar4 = &DAT_UnitsState.units[(int)unitID].substate;
+*psVar4 = *psVar4 + 1;
+if (2 < DAT_UnitsState.units[(int)unitID].substate) {
+DAT_UnitsState.units[(int)unitID].substate = 0;
+}
+DAT_UnitsState.units[(int)unitID].animationCycleNumber = 0;
+Map::Units::UnitsState::resumeMovementIfNoAttackTarget(&DAT_UnitsState,(int)unitID);
+return;
+case US_MELEE_ATTACK_WALL:
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationSpeed = 3;
+DAT_UnitsState.units[(int)unitID].field_0x30_animRelated = 0;
+Map::Units::UnitsState::setUnitFacingDirectionForTargetXandY
+(&DAT_UnitsState,(int)unitID,(int)DAT_UnitsState.units[(int)unitID].attackAtTileX,
+(int)DAT_UnitsState.units[(int)unitID].attackAtTileY);
+uVar10 = DAT_CurrentUnitSlotID;
+iVar14 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+ANIM_Slinger_Melee
+[DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationCycleNumber];
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationFrame = iVar14;
+iVar15 = (int)DAT_UnitsState.units[uVar10].facingDirectionMapOrientationCorrected;
+if (iVar14 < 1) {
+DAT_UnitsState.units[uVar10].gfxNumber = iVar15 + 0x101;
+DAT_UnitHasBecomeIdle = 1;
+}
+else {
+bVar17 = DAT_UnitHasBecomeIdle == 0;
+DAT_UnitsState.units[uVar10].gfxNumber = iVar15 + 0xf9 + iVar14 * 8;
+if (bVar17) {
+return;
+}
+}
+pcVar3 = &DAT_UnitsState.units[uVar10].nextAttackHurtsWall;
+*pcVar3 = *pcVar3 + '\x01';
+if ('\x01' < DAT_UnitsState.units[uVar10].nextAttackHurtsWall) {
+DAT_UnitsState.units[uVar10].nextAttackHurtsWall = '\0';
+}
+targetedTile = DAT_UnitsState.units[uVar10].targetedBuildingTile;
+uVar16 = DAT_TileMapState.LogicLayer[targetedTile] & 0x100;
+if (uVar16 == 0) {
+in_ECX = (int)(short)DAT_TileMapState.BuildingLayer[targetedTile];
+if (in_ECX < 1) {
+DAT_UnitsState.units[uVar10].state.generic = US_DETERMINE_NEXT_STATEUnk;
+return;
+}
+/* 1 if gate or tower else 4 */
+iVar14 = (-(uint)(DAT_BuildingDefinedData.DAT_IsGateOrTowerArray
+[(short)DAT_BuildingsState.buildings[in_ECX].buildingType] != FALSE) &
+0xfffffffd) + 4;
+}
+else {
+iVar14 = 2;
+}
+Map::TileMapState::processDamageToBuildingThunk
+(&DAT_TileMapState,targetedTile,(int)DAT_UnitsState.units[uVar10].attackAtTileX,
+(int)DAT_UnitsState.units[uVar10].attackAtTileY,iVar14,
+(int)DAT_UnitsState.units[uVar10].nextAttackHurtsWall,
+(int)DAT_UnitsState.units[uVar10].owner,TRUE);
+if (extraout_EAX == 0) {
+iVar14 = (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner;
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[iVar14] == -1) {
+if (uVar16 == 0) {
+if (((DAT_BuildingDefinedData.DAT_IsGateOrTowerArray
+[(short)DAT_BuildingsState.buildings[in_ECX].buildingType] != FALSE) &&
+(*(int *)((int)DAT_TroopValueState.attackInfo.scaleValuesArray +
+iVar14 * 0x177bc + -0x1c) + 10 <
+(int)(uint)*(byte *)(*(int *)((int)DAT_TroopValueState.attackInfo.hackValuesArray +
+iVar14 * 0x177bc + -0x10) * 0x13a10 + 0x1ee2998 +
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetedBuildingTile)
+)) && (iVar14 = Map::Units::TribesState::moveUnitToBehaviorTarget
+(&DAT_TribesState,DAT_CurrentUnitSlotID,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].
+unknownDigMoatOrWallAttackFlag1015),
+uVar10 = DAT_CurrentUnitSlotID, iVar14 == 0)) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_DETERMINE_NEXT_STATEUnk;
+DAT_UnitsState.units[uVar10].animationCycleNumber = 0;
+return;
+}
+}
+else if ((*(int *)((int)DAT_TroopValueState.attackInfo.scaleValuesArray +
+iVar14 * 0x177bc + -0x1c) + 0xf <
+(int)(uint)*(byte *)(*(int *)((int)DAT_TroopValueState.attackInfo.hackValuesArray
++ iVar14 * 0x177bc + -0x10) * 0x13a10 + 0x1ee2998 +
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].
+targetedBuildingTile)) &&
+(iVar14 = Map::Units::UnitsState::setDestinationNearTargetedBuilding
+(&DAT_UnitsState,DAT_CurrentUnitSlotID,1), iVar14 != 0)) {
+return;
+}
+}
+}
+else {
+if ((uVar16 != 0) &&
+(iVar14 = Map::Units::UnitsState::setDestinationNearTargetedBuilding
+(&DAT_UnitsState,DAT_CurrentUnitSlotID,1), iVar14 != 0)) {
+return;
+}
+uVar10 = DAT_CurrentUnitSlotID;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetedBuildingTile = 0;
+iVar14 = Map::Units::TribesState::moveUnitToBehaviorTarget
+(&DAT_TribesState,uVar10,
+(int)DAT_UnitsState.units[uVar10].unknownDigMoatOrWallAttackFlag1015);
+uVar10 = DAT_CurrentUnitSlotID;
+if (iVar14 == 0) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_DETERMINE_NEXT_STATEUnk;
+DAT_UnitsState.units[uVar10].animationCycleNumber = 0;
+return;
+}
+}
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationCycleNumber = 0;
+return;
+case 0x6c:
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].stateBasedSpeed = 0;
+DAT_UnitsState.units[(int)unitID].field_0x30_animRelated = 0;
+DAT_UnitsState.units[(int)unitID].animationSheetFrameOffset = 1;
+return;
+case US_JESTER_ROAM_TO:
+pbVar2 = &DAT_UnitsState.units[DAT_CurrentUnitSlotID].disappearFadeAlphaCountdown;
+*pbVar2 = *pbVar2 + DAT_UnitsState.units[DAT_CurrentUnitSlotID].
+engineerManningSiegeStateRef_checkType;
+if ((char)*pbVar2 < '\0') {
+DAT_UnitsState.units[(int)unitID].disappearFadeAlphaCountdown = 0;
+}
+else if ('\x1f' < (char)DAT_UnitsState.units[(int)unitID].disappearFadeAlphaCountdown) {
+DAT_UnitsState.units[(int)unitID].disappearFadeAlphaCountdown = 0x1f;
+}
+psVar4 = &DAT_UnitsState.units[(int)unitID].updateTickTracker;
+*psVar4 = *psVar4 + 1;
+if (0x20 < DAT_UnitsState.units[(int)unitID].updateTickTracker) {
+DAT_UnitsState.units[(int)unitID].updateTickTracker = 0;
+DAT_UnitsState.units[(int)unitID].disappearFadeAlphaCountdown = 0;
+DAT_UnitsState.units[(int)unitID].state =
+(UnitStateUnion)DAT_UnitsState.units[(int)unitID].cachedState;
+bVar5 = DAT_UnitsState.units[(int)unitID].engineerManningSiegeStateRef_checkType;
+if ((char)bVar5 < '\0') {
+if (DAT_UnitsState.units[(int)unitID].isDisappearingUnk != 0) {
+Map::Buildings::BuildingsState::prepareCampgroundCoords(&DAT_BuildingsState,iVar14);
+Map::Units::UnitsState::setDestinationForUnit
+(&DAT_UnitsState,DAT_CurrentUnitSlotID,DAT_BuildingsState.DAT_TempXOffset,
+DAT_BuildingsState.DAT_TempYOffset,0);
+return;
+}
+}
+else if (('\0' < (char)bVar5) && (DAT_UnitsState.units[(int)unitID].isDisappearingUnk != 0)) {
+DAT_UnitsState.units[(int)unitID].logicalState = ULS_TRANSITIONING;
+DAT_UnitsState.units[(int)unitID].disappearFadeAlphaCountdown = 0x20;
+return;
+}
+}
+break;
+case US_DISAPPEAR:
+pbVar2 = &DAT_UnitsState.units[DAT_CurrentUnitSlotID].disappearFadeAlphaCountdown;
+*pbVar2 = *pbVar2 + 1;
+if (' ' < (char)DAT_UnitsState.units[(int)unitID].disappearFadeAlphaCountdown) {
+DAT_UnitsState.units[(int)unitID].disappearFadeAlphaCountdown = 0x20;
+DAT_UnitsState.units[(int)unitID].logicalState = ULS_REMOVE;
+if (DAT_UnitsState.units[(int)unitID].killedFlagUnk == 0) {
+Game::GameStateStructures::processUnitLossStatistic(&DAT_GameState,iVar14,(int)unitID);
+if (iVar14 == DAT_GameSynchronyState.currentPlayerSlotID) {
+piVar1 = DAT_GameState.mapAndTime.emenyHitArray +
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].lastEncounteredEnemyPlayerID + -9;
+*piVar1 = *piVar1 + 1;
+return;
+}
+if (DAT_UnitsState.units[DAT_CurrentUnitSlotID].lastEncounteredEnemyPlayerID ==
+DAT_GameSynchronyState.currentPlayerSlotID) {
+piVar1 = DAT_GameState.mapAndTime.emenyHitArray + iVar14;
+*piVar1 = *piVar1 + 1;
+}
+}
+}
+break;
+case US_DEATH_01:
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].facingDirection = 0;
+DAT_UnitsState.units[(int)unitID].animationSpeed = 2;
+DAT_UnitsState.units[(int)unitID].field_0x30_animRelated = 0;
+iVar14 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+ANIM_Frames_UnitDeath
+[DAT_UnitsState.units[(int)unitID].animationCycleNumber];
+DAT_UnitsState.units[(int)unitID].animationFrame = iVar14;
+if (iVar14 < 1) {
+DAT_UnitsState.units[(int)unitID].gfxNumber = 0x2c2;
+DAT_UnitsState.units[(int)unitID].state.generic = US_DISAPPEAR;
+DAT_UnitHasBecomeIdle = 1;
+return;
+}
+iVar14 = iVar14 + 0x2aa;
+goto LAB_005741cc;
+case US_DEATH_02:
+case US_STONE_DEATH_01:
+case US_STONE_DEATH_02:
+case US_STONE_DEATH_03:
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].facingDirection = 0;
+DAT_UnitsState.units[(int)unitID].animationSpeed = 2;
+DAT_UnitsState.units[(int)unitID].field_0x30_animRelated = 0;
+iVar14 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.field9_0x824
+[DAT_UnitsState.units[(int)unitID].animationCycleNumber];
+DAT_UnitsState.units[(int)unitID].animationFrame = iVar14;
+if (iVar14 < 1) {
+DAT_UnitsState.units[(int)unitID].gfxNumber = 0x2ea;
+DAT_UnitsState.units[(int)unitID].state.generic = US_DISAPPEAR;
+DAT_UnitHasBecomeIdle = 1;
+return;
+}
+iVar14 = iVar14 + 0x2da;
+goto LAB_005741cc;
+case US_DEATH_03:
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].facingDirection = 0;
+DAT_UnitsState.units[(int)unitID].animationSpeed = 2;
+DAT_UnitsState.units[(int)unitID].field_0x30_animRelated = 0;
+iVar14 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+ANIM_Frames_UnitDeath
+[DAT_UnitsState.units[(int)unitID].animationCycleNumber];
+DAT_UnitsState.units[(int)unitID].animationFrame = iVar14;
+if (iVar14 < 1) {
+DAT_UnitsState.units[(int)unitID].gfxNumber = 0x2da;
+DAT_UnitsState.units[(int)unitID].state.generic = US_DISAPPEAR;
+DAT_UnitHasBecomeIdle = 1;
+return;
+}
+iVar14 = iVar14 + 0x2c2;
+LAB_005741cc:
+bVar17 = DAT_UnitHasBecomeIdle != 0;
+DAT_UnitsState.units[(int)unitID].gfxNumber = iVar14;
+if (bVar17) {
+DAT_UnitsState.units[(int)unitID].state.generic = US_DISAPPEAR;
+return;
+}
+break;
+case US_APPEAR:
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].stateBasedSpeed = 0;
+DAT_UnitsState.units[(int)unitID].field_0x30_animRelated = 0x10;
+sVar6 = DAT_UnitsState.units[(int)unitID].moveInstructionSpeedDelayTracker;
+DAT_UnitsState.units[(int)unitID].animationSheetFrameOffset = 1;
+if ((sVar6 == 0) || (DAT_UnitsState.units[(int)unitID].moveInstructionSpeedDelayTracker < 0x47))
+{
+DAT_UnitsState.units[(int)unitID].stateBasedSpeed = 0;
+}
+else {
+DAT_UnitsState.units[(int)unitID].stateBasedSpeed = -1;
+DAT_UnitsState.units[(int)unitID].field_0x30_animRelated = 0;
+}
+BVar13 = Map::Units::UnitsState::hasUnitReachedDestination(&DAT_UnitsState,(int)unitID);
+if (BVar13 != FALSE) {
+iVar14 = DAT_UnitsState.units[(int)unitID].
+targetedUnitUIDUnk_OR_someAppearTileUnk_OR_buildingUID_OR_pitchDitchUID_OR_entityUID;
+Map::Units::UnitsState::setPositionOfUnit
+(&DAT_UnitsState,(int)unitID,
+iVar14 - DAT_ViewportRenderState.translationMatrix
+[DAT_ViewportRenderState.tileTranslationMatrix_YComponent[iVar14]].
+addXgetTile,
+(int)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[iVar14],
+(uint)DAT_TileMapState.HeightLayer[iVar14]);
+Map::Units::UnitsState::setDestinationForUnit
+(&DAT_UnitsState,DAT_CurrentUnitSlotID,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].plannedDestinationX,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].plannedDestinationY,0);
+uVar10 = DAT_CurrentUnitSlotID;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_MOVE_TO_DESTINATION;
+DAT_UnitsState.units[uVar10].fadeType = 1;
+DAT_UnitsState.units[uVar10].fadeCounter = 0;
+return;
+}
+}
+return;
+}
+--- NAMEN NUR IM PAKETCODE ---
+BVar12, Frames_Shared_UnitClimbingUp, GVar10, IsGateOrTowerArray, UnitState, UnitState_SlingerUnitInt, _damage, _targetedUnit, _translatedState, field131_0x2ac, field143_0x2c4, field248_0x3bc, field283_0x3f8, field298_0x40e, field316_0x430, field39_0x58, iVar11, pUVar11, uVar13
+--- KOMMENTARE IM PAKETCODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00572E80
+/*
+/*
+--- ERKLAERUNG ---
+{"adr": "0x00572e80", "name": "UpdateSlinger", "p1": {"bereich": "Spielablauf", "zweck": "Rechnet in jedem Spieltakt den Ablauf eines Schleuderers (Zustandsautomat: Bewegen, Zielen, Schießen, Hinsetzen, Nahkampf, Sterben, Erscheinen)."}, "p2": {"ein": "keine; arbeitet auf der aktuellen Einheit DAT_CurrentUnitSlotID", "aus": "kein Rückgabewert", "liest": ["units[cur].state/substate/targetingType/closestEnemyMicroDistance/goToRallyPoint/isDisappearingUnk/shootTargetedUnit/targetUID/jugglerCount/seated/tribeID/fixedRng", "units[cur].animationCycleNumber/animationCycleNumberHasJustIncremented/animationFrame/moveInstructionSpeedDelayTracker/movementRunUpTime/isMatchingSpeed/selectionTargetUnitID/attackedUnitID/isSelected", "units[cur].targetedBuildingTile/attackAtTileX/Y/unknownDigMoatOrWallAttackFlag1015/field300_0x3f8/field147_0x2c4/killedFlagUnk/plannedDestinationX/Y", "units[cur].disappearFadeAlphaCountdown/engineerManningSiegeStateRef_checkType/cachedState/updateTickTracker/x/y", "units[Ziel].x/y/uid/logicalState/dying/Mikroposition/Höhen; buildings[Ziel].uid/x/y/widthOrHeight/buildingType", "tribes[].isRallyingUnk/unitStance/tribeBehaviorType", "currentPlayerFullIDArray[owner], currentPlayerSlotID, currentGameMode, mapTimeInTicks, totalGameTicksUnk", "TileMapState.LogicLayer/BuildingLayer/HeightLayer, pitchDitches[].x/y, BuildingDefinedData.IsGateOrTowerArray, attackInfo-Tabellen (rohe Offsets)", "Animationstabellen (Feldname Frames_Shared_UnitClimbingUp irreführend, enthält ANIM_Slinger_* u. a.)"], "schreibt": ["playerDataArray[owner].armySize +1 und countSlingers2 +1 (jeden Aufruf)", "playerDataArray[owner].countSlingers +1 (Zustand 0x69 und goToRallyPoint-Zweig von DETERMINE_NEXT)", "units[cur].isSelectable_OR_matchTime (nur wenn 0, dann mapTimeInTicks), field333_0x430=1", "units[cur].state/substate/stateBasedSpeed/seated/goToRallyPoint/isDisappearingUnk/field265_0x3bc/field300_0x3f8/field_0x40e", "units[cur].animationFrame/animationCycleNumber/animationSpeed/gfxNumber/animationSheetFrameOffset/field_0x30_animRelated/field42_0x58/facingDirection/field134_0x2ac/nextAttackHurtsWall/targetedBuildingTile/calculatedMovementSpeed", "units[cur].shootTargetMicroX/Y/Z", "units[cur].disappearFadeAlphaCountdown/updateTickTracker/logicalState (ULS_REMOVE/ULS_TRANSITIONING)/fadeType/fadeCounter", "rohe Offsets -100 und -0x54 auf 0 (Zustand FIRE), Bedeutung unklar", "mapAndTime.emenyHitArray", "DAT_UnitHasBecomeIdle=1"], "ruft": ["addUnitToNewTribe", "acquireShootTarget", "giveTribeAnInstruction", "hasUnitReachedDestination", "handleUnitMovementWhenTargetingBuildings", "moveToFreeTileNearby", "getKeepLocationForAIUnit", "setDestinationForUnit", "setDestinationNearTargetedBuilding", "moveUnitToBehaviorTarget", "processDamageToBuildingThunk", "prepareProjectileTarget", "arrowShootingRelated", "shootProjectile", "setUnitFacingDirectionTowardsTarget", "setUnitFacingDirectionForTargetXandY", "playSFXAtLocation", "playHurtSFXForUnit", "resumeMovementIfNoAttackTarget", "processUnitLossStatistic", "setPositionOfUnit", "prepareCampgroundCoords", "ifOnADefensiveStructureSetDestinationInDirectionOfTarget"], "regeln": ["Jeder Aufruf: armySize +1, countSlingers2 +1; isSelectable_OR_matchTime wird bei 0 auf (short)mapTimeInTicks gesetzt; field333_0x430=1; addUnitToNewTribe", "US_DETERMINE_NEXT_STATEUnk: substate=-1, stateBasedSpeed=0; isDisappearingUnk!=0: Countdown -1 (bei Ergebnis unter 0: Countdown=0, isDisappearingUnk=0) und Ende; goToRallyPoint!=0: Reset, Zustand 0x69, bei getKeepLocationForAIUnit(owner,0xe) ungleich 0 Ziel setzen, countSlingers +1", "DETERMINE_NEXT sonst: hat die Einheit einen Befehl UIT_UNIT_ATTACK_UNIT, UIT_ATTACK_BUILDING, UIT_LIGHT_PITCH oder UIT_ATTACK_LAND und acquireShootTarget gelingt, sofort Schuss (state nicht US_MOVE_TO_DESTINATION: US_RELOAD_WEAPONUnk plus ifOnADefensiveStructure...); sonst Feindabstand über 400 gibt US_SIT_DOWNUnk, über 0x1b0 (432) US_STAND_UPUnk, sonst acquireShootTarget (FALSE gibt US_STAND_UPUnk)", "Zustände 2, US_MOVE_TO_DESTINATION, (US_APPEAR|US_IDLEUnk): Tempo nach moveInstructionSpeedDelayTracker (0: stateBasedSpeed 0 bei movementRunUpTime/isRallyingUnk/isMatchingSpeed, sonst 1 mit frameOffset 0x81; ab 0x47: -1). Schießen im Gehen nur wenn (isRallyingUnk!=0 oder currentPlayerFullIDArray[owner]==-1), unitStance!=USE_STAND_GROUND, die Einheit ihr eigenes selectionTargetUnitID ist, (fixedRng XOR totalGameTicksUnk)&0x1f==0, acquireShootTarget gelingt und shootTargetedUnit>0: dann giveTribeAnInstruction(UIT_SHOOT_TARGETUnk) an den Trupp", "Bei Ankunft: stateBasedSpeed=0, Zyklus 0, DETERMINE_NEXT; bei field147_0x2c4==0x7b zusätzlich moveToFreeTileNearby und ein Zustand aus einer Konstantenrechnung (Wert unklar); bei tribeBehaviorType==STBT_0x400 US_DISAPPEAR. Unabhängig von der Ankunft: handleUnitMovementWhenTargetingBuildings>0 gibt US_MELEE_ATTACK_WALL", "US_RELOAD_WEAPONUnk: Animation ANIM_Slinger_4 (Bild nach jugglerCount: 0 +0x1c1, 1 +0x221, -1 +0x161); bei Frame unter 1: Zyklus 0; ist shootTargetedUnit größer 0 oder ein ATTACK_BUILDING-Ziel mit passender UID vorhanden (Gebäudemitte), wird Abstand im Quadrat geprüft: unter 0x1e5 (485) oder x gleich 0 gibt US_AIM_WEAPONUnk, sonst field265_0x3bc=-0x28 und US_DETERMINE_NEXT_STATEUnk; ohne diese Ziele direkt US_AIM_WEAPONUnk", "US_AIM_WEAPONUnk: animationSpeed 0; Ton FX_SLING_THROW bei Zyklus 1; Blick zu Gebäude, Pechgraben, Landpunkt (ATTACK_LAND oder shootTargetedUnit==-2) oder Zieleinheit; Animation ANIM_Slinger_Throwing; bei Frame unter 1: Zyklus 0, bei shootTargetedUnit>=0 und ungültigem Ziel (nicht ULS_NORMAL, andere UID, dying) acquireShootTarget (gelingt: bleiben, sonst DETERMINE_NEXT), sonst Zielposition und Z übernehmen; dann US_FIRE_WEAPONUnk", "US_FIRE_WEAPONUnk: animationSpeed 1, Animation field150_0x2c7c; geschossen wird bei animationFrame==0xc (12) mit HasJustIncremented: bei shootTargetedUnit unter 0 prepareProjectileTarget(-1,200) und Typ ET_FIRETHROWER|ET_ARROW_AND_DEFAULT; sonst arrowShootingRelated (Schütze +0x1e, Ziel +0x1a) und bei Wert unter 1 oder ungültigem Ziel neu zielen (DETERMINE_NEXT oder US_AIM_WEAPONUNk), sonst ET_SLINGER; shootProjectile mit Z + 0x1e; field_0x40e=0 und field300_0x3f8=0; bei Frame unter 1 rohe Offsets -100/-0x54 auf 0", "US_STAND_UPUnk: Animation ANIM_Slinger_8 oder field146_0x2ba0 (nach Einheitsnummer&1), im Sitzen field145_0x2b80 (substate 0x66, seated=0); am Ende Zyklus 0, DETERMINE_NEXT und moveToFreeTileNearby; ein Angriffsbefehl bei field300_0x3f8==0 beendet die Animation sofort", "US_SIT_DOWNUnk: substate -1 setzt Zyklus (Einheitsnummer&0xf) und 0x66; Abstand unter 400 oder Angriffsbefehl beendet das Warten; substate 0x65 (Hinsetzen), 0x6a/0x6b (Leerlauf nach Einheitsnummer&1), 100 (Aufstehen), sonst Warten bis Zyklus über (fixedRng&7)+1; danach DETERMINE_NEXT bei Abstand unter 0x191 (401) oder Angriffsbefehl, sonst moveToFreeTileNearby und Wahl des nächsten substate über LogicLayer&0x10000100", "Zustände 0x68 (stehen, frameOffset 0x379) und 0x6c (stehen): stateBasedSpeed 0. Zustand 0x69: stateBasedSpeed 1; am Ziel mit facingDirection=4 und nur wenn (mapTimeInTicks+Einheitsnummer)%0x28==0: bei Abstand unter 0x1b1 (433) und gelingendem acquireShootTarget US_RELOAD_WEAPONUnk, sonst Ziel über getKeepLocationForAIUnit(owner,0xe) neu setzen; countSlingers +1 je Aufruf", "US_MELEE_ATTACK: Animation ANIM_Slinger_Melee, playHurtSFXForUnit bei Zyklus 4, am Ende substate +1 (über 2 gleich 0), Zyklus 0 und resumeMovementIfNoAttackTarget", "US_MELEE_ATTACK_WALL: Schaden über processDamageToBuildingThunk: 2 bei LogicLayer-Bit 0x100, sonst 1 bei Tor oder Turm und 4 bei anderen Gebäuden (ohne Gebäude auf der Kachel DETERMINE_NEXT); nextAttackHurtsWall wechselt 0/1. Danach (Bedeutung des Rückgabewerts ungeklärt) KI-Zweig bei Slot -1: Vergleich eines attackInfo-Werts +10 (Tor/Turm) bzw. +15 (Kachel mit Bit 0x100) mit einem Tabellenbyte, dann moveUnitToBehaviorTarget bzw. setDestinationNearTargetedBuilding", "US_JESTER_ROAM_TO: Countdown += checkType (0 bis 0x1f); nach über 0x20 Takten Zustand = cachedState; bei negativem checkType und isDisappearingUnk!=0 Ziel über prepareCampgroundCoords, bei positivem ULS_TRANSITIONING und Countdown 0x20. US_APPEAR: bei Ankunft setPositionOfUnit auf die Zielkachel, Ziel plannedDestination, US_MOVE_TO_DESTINATION, fadeType=1", "Tod und Verschwinden: US_DEATH_01, US_DEATH_02, US_DEATH_03 und US_STONE_DEATH_01-03 spielen Animationen (facingDirection=0) und führen zu US_DISAPPEAR; dort zählt der Countdown, ab über 0x20 ULS_REMOVE und nur bei killedFlagUnk==0 processUnitLossStatistic; emenyHitArray[lastEncounteredEnemyPlayerID-9] +1 wenn der Besitzer der aktuelle Spieler ist, emenyHitArray[Besitzer] +1 wenn der Gegner es ist"], "offen": ["Bedeutung von field333_0x430, field300_0x3f8, field265_0x3bc, field_0x40e (ungesichert; field265_0x3bc wirkt als Wartezähler)", "Zustände 0x68, 0x6c, 0x69 und die substates 100/0x65/0x66/0x6a/0x6b nur aus dem Ablauf gedeutet (Sitzen/Aufstehen), nicht benannt", "Bedeutung des Rückgabewerts (extraout_EAX) nach processDamageToBuildingThunk und der attackInfo-Schwellen im Wandangriff der KI (Zeiger-Rechnung)", "Der Schaden eines Schleuderer-Geschosses steht nicht hier, sondern im Geschoss-Code", "Zustand nach field147_0x2c4==0x7b ist eine Konstantenrechnung mit unklarem Ergebnis"]}, "p3": {"erklaerung": "Das ist das Gehirn eines Schleuderers: Er sitzt, steht auf, zielt, wirft einen Stein und kämpft im Nahkampf, jeweils einen Schritt pro Spieltakt. Nebenbei zählt er sich selbst in die Heeresgröße des Spielers ein.", "gehirn": "Schleudererzahl lässt sich aus countSlingers2 (alle Schleuderer) ablesen; countSlingers zählt nur die im Burg-Sammelzustand 0x69 (und im Sammelbefehl-Zweig). Stehend suchen alle Schleuderer selbst Ziele (acquireShootTarget); im Gehen schießt nur der Trupp auf Befehl, wenn gesammelt wird oder der Besitzer Slot -1 hat.", "beleg": "code", "live": "N Schleuderer im Heer, einen Spieltakt abwarten → playerDataArray[sp].countSlingers2 und armySize → countSlingers2 gleich N (Zähler wird vermutlich je Takt neu gesammelt)", "live_art": "anwerben"}}

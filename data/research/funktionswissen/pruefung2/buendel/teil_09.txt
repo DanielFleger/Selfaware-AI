@@ -1,0 +1,3359 @@
+### 0x00518380 sortAttackInfoTribeIDArrayBasedOn
+--- CODE (Ghidra-Export, vollstaendig) ---
+/* WARNING: Enum "MappersEnum": Some values do not have unique names */
+/* WARNING: Enum "DPSEND_EnumInt": Some values do not have unique names */
+/* WARNING: Enum "DPERRInt": Some values do not have unique names */
+/* decompilerscript: committed: 2025-01-30 21:57:43.216000 */
+void __thiscall
+_HoldStrong::Map::Units::TroopValueState::sortAttackInfoTribeIDArrayBasedOn
+(TroopValueState *this,int attackWave,int shrinkSize,int tribeSizeSumLimit,
+SomeTribeBehaviorType someTribeTypeIdentifier)
+{
+short *psVar1;
+int *piVar2;
+int iVar3;
+int iVar4;
+int iVar5;
+int iVar6;
+int iVar7;
+int iVar8;
+bool bVar9;
+if (someTribeTypeIdentifier == STBT_0x3f2) {
+someTribeTypeIdentifier = 0xb4c920;
+}
+else if (someTribeTypeIdentifier == STBT_0x3f3) {
+someTribeTypeIdentifier = 0xb4cb50;
+}
+else if (someTribeTypeIdentifier == STBT_0x3f4) {
+someTribeTypeIdentifier = 0xb4ca60;
+}
+else if (someTribeTypeIdentifier == STBT_0x3fa) {
+someTribeTypeIdentifier = 0xb4cbf0;
+}
+else if (someTribeTypeIdentifier == STBT_0x410_SIEGE_EQUIPMENT_CONSTRUCTION) {
+someTribeTypeIdentifier = 0xb4cab0;
+}
+else if (someTribeTypeIdentifier == STBT_0x415) {
+someTribeTypeIdentifier = 0xb4cb00;
+}
+else if (someTribeTypeIdentifier == STBT_7) {
+someTribeTypeIdentifier = 0xb4c830;
+}
+else {
+if (someTribeTypeIdentifier != STBT_5) {
+if (someTribeTypeIdentifier == STBT_0x3f6) {
+someTribeTypeIdentifier = 0xb4c970;
+goto LAB_005185a9;
+}
+if (someTribeTypeIdentifier == STBT_0x417) {
+someTribeTypeIdentifier = 0xb4d0a0;
+goto LAB_005185a9;
+}
+if (someTribeTypeIdentifier == STBT_0x413) {
+someTribeTypeIdentifier = 0xb4c9c0;
+goto LAB_005185a9;
+}
+if (someTribeTypeIdentifier == STBT_0x414) {
+someTribeTypeIdentifier = 0xb4ca10;
+goto LAB_005185a9;
+}
+if (someTribeTypeIdentifier == STBT_0x3f5) {
+someTribeTypeIdentifier = 0xb4cc40;
+goto LAB_005185a9;
+}
+if (someTribeTypeIdentifier == STBT_0x3fb) {
+someTribeTypeIdentifier = 0xb4cc90;
+goto LAB_005185a9;
+}
+if (someTribeTypeIdentifier == STBT_0x401) {
+someTribeTypeIdentifier = 0xb4cce0;
+goto LAB_005185a9;
+}
+if (someTribeTypeIdentifier == STBT_0x3fd) {
+someTribeTypeIdentifier = 0xb4cd30;
+goto LAB_005185a9;
+}
+if (someTribeTypeIdentifier == STBT_0x416) {
+someTribeTypeIdentifier = 0xb4cd80;
+goto LAB_005185a9;
+}
+if (someTribeTypeIdentifier == STBT_0x3fc) {
+someTribeTypeIdentifier = 0xb4cec0;
+goto LAB_005185a9;
+}
+if (someTribeTypeIdentifier == STBT_0x419) {
+someTribeTypeIdentifier = 0xb4cf10;
+goto LAB_005185a9;
+}
+if (someTribeTypeIdentifier == STBT_0x41a) {
+someTribeTypeIdentifier = 0xb4ce20;
+goto LAB_005185a9;
+}
+if (someTribeTypeIdentifier == STBT_0x41b) {
+someTribeTypeIdentifier = 0xb4ce20;
+goto LAB_005185a9;
+}
+if (someTribeTypeIdentifier == STBT_0x418) {
+someTribeTypeIdentifier = 0xb4cf60;
+goto LAB_005185a9;
+}
+if (someTribeTypeIdentifier == STBT_0x41e) {
+someTribeTypeIdentifier = 0xb4d000;
+goto LAB_005185a9;
+}
+if (someTribeTypeIdentifier == STBT_0x412) {
+someTribeTypeIdentifier = 0xb4cfb0;
+goto LAB_005185a9;
+}
+if (someTribeTypeIdentifier == STBT_0x3f8) {
+someTribeTypeIdentifier = 0xb4cdd0;
+goto LAB_005185a9;
+}
+if (someTribeTypeIdentifier == STBT_0x3f9) {
+someTribeTypeIdentifier = 0xb4ce70;
+goto LAB_005185a9;
+}
+if (someTribeTypeIdentifier == STBT_0x3f7) {
+someTribeTypeIdentifier = 0xb4cba0;
+goto LAB_005185a9;
+}
+if (someTribeTypeIdentifier == STBT_0x411) {
+someTribeTypeIdentifier = 0xb4d050;
+goto LAB_005185a9;
+}
+bVar9 = someTribeTypeIdentifier == STBT_0x3ff;
+someTribeTypeIdentifier = 0xb4c8d0;
+if (bVar9) goto LAB_005185a9;
+}
+someTribeTypeIdentifier = 0xb4c880;
+}
+LAB_005185a9:
+piVar2 = DAT_TroopValueState.attackInfo.tribeRelatedArrayValue0UpTo12;
+do {
+piVar2[-100] = 0;
+*piVar2 = 0xc;
+piVar2 = piVar2 + 1;
+} while ((int)piVar2 < 0x17a9b98);
+iVar7 = 0;
+iVar4 = 1;
+DAT_TroopValueState.attackInfo.tribeIDArraySize = 0;
+psVar1 = &DAT_TribesState.tribes[1].tribeState;
+do {
+if (((((*psVar1 != 0) && (*psVar1 != 3)) &&
+(DAT_GameSynchronyState.currentPlayerFullIDArray[*(int *)(psVar1 + -10)] == -1)) &&
+((psVar1[0x13e] == attackWave &&
+(psVar1[0x146] != DAT_TroopValueState.attackInfo.someCounter1)))) &&
+((psVar1[8] != STBT_0x410_SIEGE_EQUIPMENT_CONSTRUCTION && (psVar1[8] != STBT_0x415)))) {
+DAT_TroopValueState.attackInfo.tribeIDArray[iVar7] = iVar4;
+iVar7 = DAT_TroopValueState.attackInfo.tribeIDArraySize + 1;
+DAT_TroopValueState.attackInfo.tribeIDArraySize = iVar7;
+}
+psVar1 = psVar1 + 0x19a;
+iVar4 = iVar4 + 1;
+} while ((int)psVar1 < 0x17623a0);
+if ((0 < shrinkSize) && (0 < tribeSizeSumLimit)) {
+do {
+/* This is a sorting algorithm */
+iVar4 = 0;
+bVar9 = false;
+if (iVar7 + -1 < 1) break;
+do {
+iVar7 = DAT_TroopValueState.attackInfo.tribeIDArray[iVar4];
+iVar6 = DAT_TroopValueState.attackInfo.tribeIDArray[iVar4 + 1];
+iVar3 = (int)(short)DAT_TribesState.tribes[iVar7].tribeType;
+iVar8 = (int)(short)DAT_TribesState.tribes[iVar6].tribeType;
+iVar5 = 0;
+piVar2 = (int *)(someTribeTypeIdentifier + STBT_8);
+do {
+if (piVar2[-2] == iVar3) break;
+if (piVar2[-1] == iVar3) {
+iVar5 = iVar5 + 1;
+break;
+}
+if (*piVar2 == iVar3) {
+iVar5 = iVar5 + 2;
+break;
+}
+if (piVar2[1] == iVar3) {
+iVar5 = iVar5 + 3;
+break;
+}
+if (piVar2[2] == iVar3) {
+iVar5 = iVar5 + 4;
+break;
+}
+if (piVar2[3] == iVar3) {
+iVar5 = iVar5 + 5;
+break;
+}
+iVar5 = iVar5 + 6;
+piVar2 = piVar2 + 6;
+} while (iVar5 < 0xc);
+iVar3 = 0;
+piVar2 = (int *)(someTribeTypeIdentifier + STBT_8);
+do {
+if (piVar2[-2] == iVar8) break;
+if (piVar2[-1] == iVar8) {
+iVar3 = iVar3 + 1;
+break;
+}
+if (*piVar2 == iVar8) {
+iVar3 = iVar3 + 2;
+break;
+}
+if (piVar2[1] == iVar8) {
+iVar3 = iVar3 + 3;
+break;
+}
+if (piVar2[2] == iVar8) {
+iVar3 = iVar3 + 4;
+break;
+}
+if (piVar2[3] == iVar8) {
+iVar3 = iVar3 + 5;
+break;
+}
+iVar3 = iVar3 + 6;
+piVar2 = piVar2 + 6;
+} while (iVar3 < 0xc);
+if (iVar3 < iVar5) {
+bVar9 = true;
+DAT_TroopValueState.attackInfo.tribeIDArray[iVar4] = iVar6;
+DAT_TroopValueState.attackInfo.tribeIDArray[iVar4 + 1] = iVar7;
+}
+iVar4 = iVar4 + 1;
+} while (iVar4 < DAT_TroopValueState.attackInfo.tribeIDArraySize + -1);
+iVar7 = DAT_TroopValueState.attackInfo.tribeIDArraySize;
+} while (bVar9);
+iVar4 = 0;
+if (0 < iVar7) {
+do {
+iVar6 = (int)(short)DAT_TribesState.tribes
+[DAT_TroopValueState.attackInfo.tribeIDArray[iVar4]].tribeType;
+iVar7 = 0;
+piVar2 = (int *)(someTribeTypeIdentifier + STBT_8);
+do {
+if (piVar2[-2] == iVar6) break;
+if (piVar2[-1] == iVar6) {
+iVar7 = iVar7 + 1;
+break;
+}
+if (*piVar2 == iVar6) {
+iVar7 = iVar7 + 2;
+break;
+}
+if (piVar2[1] == iVar6) {
+iVar7 = iVar7 + 3;
+break;
+}
+if (piVar2[2] == iVar6) {
+iVar7 = iVar7 + 4;
+break;
+}
+if (piVar2[3] == iVar6) {
+iVar7 = iVar7 + 5;
+break;
+}
+iVar7 = iVar7 + 6;
+piVar2 = piVar2 + 6;
+} while (iVar7 < 0xc);
+DAT_TroopValueState.attackInfo.tribeRelatedArrayValue0UpTo12[iVar4] = iVar7;
+iVar4 = iVar4 + 1;
+iVar7 = DAT_TroopValueState.attackInfo.tribeIDArraySize;
+} while (iVar4 < DAT_TroopValueState.attackInfo.tribeIDArraySize);
+}
+iVar6 = 0;
+iVar4 = 0;
+if (0 < iVar7) {
+do {
+iVar3 = DAT_TroopValueState.attackInfo.tribeIDArray[iVar4];
+if (tribeSizeSumLimit < iVar6) {
+DAT_TroopValueState.attackInfo.tribeRelatedArrayValue0UpTo12[iVar4] = 0xc;
+iVar7 = DAT_TroopValueState.attackInfo.tribeIDArraySize;
+}
+iVar4 = iVar4 + 1;
+iVar6 = iVar6 + DAT_TribesState.tribes[iVar3].size;
+} while (iVar4 < iVar7);
+}
+if (shrinkSize < iVar7) {
+DAT_TroopValueState.attackInfo.tribeIDArraySize = shrinkSize;
+}
+}
+return;
+}
+--- NAMEN NUR IM PAKETCODE ---
+_counter2, _current, _currentTribeType, _currentValue, _index, _index2, _lookupValue3, _next, _nextTribeType, _nextValue, _swapped, _tribeID, _tribeSizeSum, _tribeType, attackInfo_someCounter1, bVar4, iVar1, tribeBehaviorType
+--- KOMMENTARE IM PAKETCODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00518380
+/*
+--- ERKLAERUNG ---
+{"adr": "0x00518380", "name": "sortAttackInfoTribeIDArrayBasedOn", "p1": {"bereich": "KI", "zweck": "Sammelt die KI-Gruppen einer Angriffswelle in attackInfo.tribeIDArray, ordnet sie nach einer Rangtabelle der Gruppentypen des gewünschten Verhaltenstyps und markiert und kürzt die Liste nach Größengrenzen."}, "p2": {"ein": "attackWave (Welle, wird mit tribes[].attackWave verglichen), shrinkSize (so viele Plätze bleiben höchstens in der Liste), tribeSizeSumLimit (Grenze für die Summe der Gruppengrößen), someTribeTypeIdentifier (Verhaltenstyp, wählt die Rangtabelle)", "aus": "-; Ergebnis in attackInfo.tribeIDArray, tribeIDArraySize und tribeRelatedArrayValue0UpTo12", "liest": ["tribes[1..1249].tribeState/owner/attackWave/attackInfo_someCounter1/tribeBehaviorType/tribeType/size", "currentPlayerFullIDArray (GameSynchronyState+0x6a8, Index = owner)", "attackInfo.someCounter1", "attackInfo.tribeIDArray/tribeIDArraySize", "Rangtabellen ab 0xb4c830 (0x50 Byte Abstand, 12 Plätze genutzt)"], "schreibt": ["attackInfo.tribeIDArray (erste 50 Einträge gelöscht, dann gefüllt und sortiert)", "attackInfo.tribeIDArraySize", "attackInfo.tribeRelatedArrayValue0UpTo12[] (erste 50 Einträge = 12, dann Ränge)"], "ruft": [], "regeln": ["Tabellenwahl nach someTribeTypeIdentifier (dezimal, Hex in Klammern): 7 gibt 0xb4c830; 5 und jeder nicht aufgeführte Wert (u. a. 1022, 1024, 1026-1039, 1052, 1053) geben 0xb4c880; 1010 (0x3f2) gibt 0xb4c920, 1011 0xb4cb50, 1012 0xb4ca60, 1013 0xb4cc40, 1014 0xb4c970, 1015 0xb4cba0, 1016 0xb4cdd0, 1017 0xb4ce70, 1018 0xb4cbf0, 1019 0xb4cc90, 1020 0xb4cec0, 1021 0xb4cd30, 1023 (0x3ff) 0xb4c8d0, 1025 (0x401) 0xb4cce0, 1040 (0x410) 0xb4cab0, 1041 0xb4d050, 1042 0xb4cfb0, 1043 0xb4c9c0, 1044 0xb4ca10, 1045 (0x415) 0xb4cb00, 1046 0xb4cd80, 1047 0xb4d0a0, 1048 0xb4cf60, 1049 0xb4cf10, 1050 und 1051 gemeinsam 0xb4ce20, 1054 (0x41e) 0xb4d000. Nicht alle Werte von 1010 bis 1054 haben also eine eigene Tabelle", "Zuerst werden die ersten 50 Einträge (0x32) von tribeIDArray (ab 0x17a9940) auf 0 und von tribeRelatedArrayValue0UpTo12 (ab 0x17a9ad0) auf 12 gesetzt; tribeIDArraySize = 0", "Sammeln: Für tribes[1] bis tribes[1249] (820 Byte je Eintrag) kommt die ID an das Ende von tribeIDArray, wenn tribeState weder 0 noch 3 ist, currentPlayerFullIDArray[owner] gleich -1 ist (vermutlich Platz ohne Mensch = KI), tribes[].attackWave gleich dem Parameter ist, attackInfo_someCounter1 ungleich attackInfo.someCounter1 ist und tribeBehaviorType weder 1040 (0x410) noch 1045 (0x415) ist. Eine Obergrenze beim Eintragen gibt es nicht", "Nur wenn shrinkSize > 0 und tribeSizeSumLimit > 0 gilt, laufen die folgenden Schritte. Sonst bleibt die gesammelte Liste unsortiert und ungekürzt (Größe = Zahl der Treffer, alle Rangwerte 12); es wird also nicht 'keine Gruppe ausgewählt'", "Rang einer Gruppe = Platz ihres tribeType (short) in der gewählten Tabelle, gesucht in den ersten 12 Einträgen (Rang 0 bis 11); steht er dort nicht, ist der Rang 12", "Sortierung: Blasensortierung über tribeIDArray, aufsteigend nach Rang (getauscht wird nur, wenn der Nachfolger einen kleineren Rang hat, gleiche Ränge behalten ihre Reihenfolge), wiederholt bis zu einem Durchlauf ohne Tausch; bei weniger als 2 Einträgen entfällt sie", "Danach wird tribeRelatedArrayValue0UpTo12[i] = Rang von tribeIDArray[i] gesetzt (für alle i unter tribeIDArraySize)", "Größensumme: Für i = 0, 1, ... wird der Rang auf 12 gesetzt, wenn die Summe der size-Werte der Gruppen 0 bis i-1 größer als tribeSizeSumLimit ist. Die Gruppe, die die Grenze erst überschreitet, bleibt noch ohne Markierung; tribeSizeSumLimit ist also keine harte Höchstzahl. Markierte Gruppen bleiben in der Liste", "Ist tribeIDArraySize größer als shrinkSize, wird tribeIDArraySize = shrinkSize gesetzt (die Liste wird hinten abgeschnitten)", "Tabelleninhalt (Grundwert der Referenz-EXE; Reihenfolge = Rang 0, 1, 2 ...; unbenutzte der 12 Plätze sind 0; Nummern: 2 TUNNELERS, 3 ARCHERS, 4 LADDERMEN, 5 SPEARMEN, 6 PIKEMEN, 7 CROSSBOWMEN, 8 SWORDSMEN, 9 MACEMEN, 10 KNIGHTS, 11 ENGINEERS; 12, 19-21 und 25-31 sind im Enum AITribeType nicht benannt). Standard 0xb4c880: 10,9,5,3,7,12,6,4,11,8,25,26. Typ 1023: 10,9,5,3,7,12,6,4,11,8,2,25. Typ 7: 8,6,9,5,12,30,28,26", "Weitere Tabellen (Reihenfolge = Rang): 1010: 5,9,8,6,30,3,7,25,26,27; 1011: 5,9; 1012: 4; 1013: 26,12,10,9,5,6,8,30,28; 1014: 19,8,30,6,9,5; 1015: 5,9,11,3,6,26; 1016: 9,5,8,6,30,28,26; 1017: 3,7,25,31; 1018: 9,5,3; 1019: 12,10,9,5,6,8,30,28,26; 1020: 3,7,25,29,27,31; 1021: 8,9,5,6,12,28,30; 1025: 31,10,12,9,8,6,5,3,7,27; 1040: 11; 1041: 21; 1042: 3,7,25,29,27; 1043: 19; 1044: 20; 1045: 2; 1046: 3,7,25,29,27,31; 1047: 10; 1048: 29; 1049: 31; 1050 und 1051: 28; 1054: 3,7,25,29,27"], "offen": ["Bedeutung der Verhaltenstypen 1010 bis 1054 (im Enum nur Zahlen als Namen); die Gruppentyp-Nummern 12, 19-21 und 25-31 sind im Enum AITribeType nicht benannt: laut recountAttackTroopValue (außerhalb des Pakets) zählen 25, 27, 29 und 31 dort wie Fernkämpfer, 12, 28 und 30 wie Pike/Schwert, 26 für sich und 19 bis 21 gar nicht mit", "Bedeutung von Rang 12 für die Aufrufer (vermutlich: Gruppe nicht verwenden); die Aufrufer liegen außerhalb des Pakets (z. B. executeAttackWaveTargetAssignment: meist shrinkSize 1000 und Summengrenze 10000, also praktisch ohne Grenze, oder eine der von computeAttackWaveTroopComposition berechneten Zahlen als shrinkSize)", "Ob tribes[].size die Zahl der Einheiten der Gruppe ist (nur der Name)", "tribeIDArray hat bis zum nächsten Feld 100 Plätze, gelöscht werden nur 50, und beim Eintragen gibt es keine Prüfung"]}, "p3": {"erklaerung": "Die KI sucht aus ihren Gruppen die für eine Welle passenden heraus und ordnet sie nach einer festen Rangliste der Gruppentypen, die vom Auftrag (Verhaltenstyp) abhängt. Gruppen hinter der Größengrenze bekommen Rang 12, und die Liste wird auf shrinkSize Plätze gekürzt. Ist shrinkSize oder tribeSizeSumLimit höchstens 0, bleibt die Liste ungeordnet und ungekürzt.", "gehirn": "Die Tabellen zeigen, welche Gruppentypen die KI für welchen Auftrag zuerst nimmt: im Standardfall KNIGHTS vor MACEMEN, SPEARMEN, ARCHERS, CROSSBOWMEN, dann PIKEMEN, LADDERMEN, ENGINEERS, SWORDSMEN. Einige Aufträge haben nur einen Typ (1012: LADDERMEN, 1040: ENGINEERS, 1045: TUNNELERS, 1047: KNIGHTS). Das hilft bei der Vorhersage der Wellenzusammensetzung.", "beleg": "code", "live": "Rangtabellen von 0xb4c830 bis 0xb4d0a0 (Abstand 0x50 Byte, 12 Plätze) einmal aus dem Speicher lesen → müssen den Grundwerten aus der EXE entsprechen, z. B. 0xb4c880 = 10,9,5,3,7,12,6,4,11,8,25,26", "live_art": "tabelle"}}
+
+### 0x0054c710 UpdateWoodcutter
+--- CODE (Ghidra-Export, vollstaendig) ---
+/* WARNING: Enum "DPSEND_EnumInt": Some values do not have unique names */
+/* WARNING: Enum "DPERRInt": Some values do not have unique names */
+/* decompilerscript: committed: 2025-01-30 21:57:43.216000 */
+BOOLEnum _HoldStrong::Global::UpdateWoodcutter(void)
+{
+byte *pbVar1;
+int *piVar2;
+undefined1 *puVar3;
+short *psVar4;
+UnitStateShort UVar5;
+short sVar6;
+ushort uVar7;
+BOOLEnum BVar8;
+BOOLEnum extraout_EAX;
+BOOLEnum BVar9;
+BOOL BVar10;
+uint uVar11;
+BOOLEnum extraout_EAX_00;
+BOOLEnum extraout_EAX_01;
+BOOLEnum extraout_EAX_02;
+BOOLEnum extraout_EAX_03;
+ushort uVar12;
+short sVar13;
+int iVar14;
+int iVar15;
+int iVar16;
+bool bVar17;
+undefined6 uVar18;
+eSFX sfxOffsetInArray;
+uVar11 = DAT_CurrentUnitSlotID;
+iVar16 = DAT_CurrentUnitSlotID * 0x490;
+iVar15 = (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingTilePosition;
+iVar14 = (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingID_1;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].field171_0x300 = 10;
+UVar5 = DAT_UnitsState.units[uVar11].state.generic;
+BVar8 = FALSE;
+if (UVar5 == US_DETERMINE_NEXT_STATEUnk) {
+DAT_UnitsState.units[uVar11].gfxNumber = 0x3d8;
+DAT_UnitsState.units[uVar11].field_0x30_animRelated = 0;
+if (DAT_UnitsState.units[uVar11].isDisappearingUnk != 0) {
+pbVar1 = &DAT_UnitsState.units[uVar11].disappearFadeAlphaCountdown;
+*pbVar1 = *pbVar1 - 1;
+if (-1 < (char)*pbVar1) {
+return FALSE;
+}
+DAT_UnitsState.units[uVar11].disappearFadeAlphaCountdown = 0;
+DAT_UnitsState.units[uVar11].isDisappearingUnk = 0;
+return BVar8;
+}
+if (DAT_UnitsState.units[uVar11].goToRallyPoint != 0) {
+DAT_UnitsState.units[uVar11].goToRallyPoint = 0;
+DAT_UnitsState.units[uVar11].state.generic = US_STAND_UPUnk|US_IDLEUnk;
+DAT_UnitsState.units[uVar11].destinationNeeded = 2;
+return BVar8;
+}
+piVar2 = &DAT_UnitsState.units[uVar11].animationCycleNumber;
+*piVar2 = *piVar2 + 1;
+if (DAT_UnitsState.units[uVar11].animationCycleNumber < 10) {
+return FALSE;
+}
+iVar14 = (int)DAT_UnitsState.units[uVar11].workplaceBuildingID_1;
+iVar14 = Map::Buildings::BuildingsState::getBuildingResourceAmountByUid
+(&DAT_BuildingsState,iVar14,DAT_BuildingsState.buildings[iVar14].uid,RT_LOGS)
+;
+if (2 < iVar14) {
+Map::Units::UnitsState::commitUnitLocation(&DAT_UnitsState,uVar11);
+DAT_UnitsState.units[uVar11].state.generic = US_FIRE_WEAPONUnk;
+DAT_UnitsState.units[uVar11].updateTickTracker = 0;
+return extraout_EAX;
+}
+iVar14 = Map::LandscapeState::findTree
+(&DAT_LandscapeState,(int)DAT_UnitsState.units[uVar11].owner,
+(int)DAT_UnitsState.units[uVar11].x,(int)DAT_UnitsState.units[uVar11].y);
+uVar11 = DAT_CurrentUnitSlotID;
+if (iVar14 == 0) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = 10;
+return FALSE;
+}
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingTilePosition = (short)iVar14;
+DAT_UnitsState.units[uVar11].woodcutterTreeUID = DAT_LandscapeState.trees[iVar14].uid;
+Map::Navigation::PathFindingState::findBestAdjacentClimbTileToTarget
+(&DAT_PathFindingState,(int)DAT_UnitsState.units[uVar11].owner,
+(int)DAT_UnitsState.units[uVar11].x,(int)DAT_UnitsState.units[uVar11].y,
+(int)(short)DAT_LandscapeState.trees[iVar14].xPosition,
+(int)(short)DAT_LandscapeState.trees[iVar14].yPosition);
+uVar11 = DAT_CurrentUnitSlotID;
+if ((DAT_PathFindingState.climbX == (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].x) &&
+(DAT_PathFindingState.climbY == (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].y)) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_IDLEUnk;
+BVar8 = Map::Units::UnitsState::makeUnitStopWalkingByClearingPathProgressState(uVar11);
+return BVar8;
+}
+BVar8 = Map::Units::UnitsState::setDestinationForUnit
+(&DAT_UnitsState,DAT_CurrentUnitSlotID,DAT_PathFindingState.climbX,
+DAT_PathFindingState.climbY,0);
+uVar11 = DAT_CurrentUnitSlotID;
+if (BVar8 == FALSE) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = 10;
+return FALSE;
+}
+iVar14 = DAT_CurrentUnitSlotID * 0x490;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_IDLEUnk;
+sVar13 = DAT_UnitsState.units[uVar11].totalSizeOfPathPlan;
+DAT_BuildingsState.buildings[DAT_UnitsState.units[uVar11].workplaceBuildingID_1].field273_0x2d4
+= sVar13;
+return CONCAT22((short)((uint)iVar14 >> 0x10),sVar13);
+}
+if (UVar5 == US_IDLEUnk) {
+IncrementAndOptionalUpdateAVValueRelated(uVar11,FALSE);
+BVar9 = Map::Units::UnitsState::hasUnitReachedDestination(&DAT_UnitsState,uVar11);
+BVar8 = FALSE;
+if (BVar9 != FALSE) {
+DAT_UnitsState.units[uVar11].animationCycleNumber = 0;
+if (DAT_UnitsState.units[uVar11].unitOrderWhenOnSameTile == 0) {
+BVar8 = Map::LandscapeState::isTreeAliveAndMatchingUID
+(&DAT_LandscapeState,iVar15,DAT_UnitsState.units[uVar11].woodcutterTreeUID
+);
+uVar11 = DAT_CurrentUnitSlotID;
+if (BVar8 == FALSE) {
+BVar8 = Map::LandscapeState::isTreeAdult
+(&DAT_LandscapeState,iVar15,
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].woodcutterTreeUID);
+uVar11 = DAT_CurrentUnitSlotID;
+iVar16 = DAT_CurrentUnitSlotID * 0x490;
+if (BVar8 == FALSE) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_DETERMINE_NEXT_STATEUnk;
+}
+else {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = 3;
+*(undefined4 *)&DAT_UnitsState.units[uVar11].field_0x4c = 0;
+}
+}
+else {
+iVar16 = DAT_CurrentUnitSlotID * 0x490;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = 2;
+*(undefined4 *)&DAT_UnitsState.units[uVar11].field_0x4c = 0;
+}
+}
+else {
+BVar10 = Map::Navigation::PathFindingState::
+findNeighbourTileThatCanServeAsClimbPointClosestToXY
+(&DAT_PathFindingState,(int)DAT_UnitsState.units[uVar11].x,
+(int)DAT_UnitsState.units[uVar11].y,
+(int)(short)DAT_LandscapeState.trees[iVar15].xPosition,
+(int)(short)DAT_LandscapeState.trees[iVar15].yPosition);
+if (BVar10 == 0) {
+iVar16 = DAT_CurrentUnitSlotID * 0x490;
+BVar8 = FALSE;
+}
+else {
+BVar8 = Map::Units::UnitsState::setDestinationForUnit
+(&DAT_UnitsState,DAT_CurrentUnitSlotID,DAT_PathFindingState.climbX,
+DAT_PathFindingState.climbY,0);
+iVar16 = DAT_CurrentUnitSlotID * 0x490;
+if (BVar8 != FALSE) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_IDLEUnk;
+goto LAB_0054ca95;
+}
+}
+*(undefined2 *)((int)DAT_UnitsState.units[0].manningEngineerRef + iVar16 + -0x54) = 9;
+*(undefined2 *)((int)DAT_UnitsState.units[0].manningEngineerRef + iVar16 + 0x60) = 1;
+}
+}
+LAB_0054ca95:
+*(undefined4 *)((int)&DAT_UnitsState.units[0].animationSheetFrameOffset + iVar16) = 1;
+*(undefined4 *)((int)&DAT_UnitsState.units[0].field_0x30_animRelated + iVar16) = 0x10;
+return BVar8;
+}
+if (UVar5 == 2) {
+DAT_UnitsState.units[uVar11].animationSpeed = 2;
+DAT_UnitsState.units[uVar11].field_0x30_animRelated = 0;
+IncrementAndOptionalUpdateAVValueRelated(uVar11,FALSE);
+Map::Navigation::DirectionAlgorithmState::calculateOrientation
+(&DAT_DirectionAlgorithmState,(int)DAT_UnitsState.units[uVar11].x,
+(int)DAT_UnitsState.units[uVar11].y,
+(int)(short)DAT_LandscapeState.trees[iVar15].xPosition,
+(int)(short)DAT_LandscapeState.trees[iVar15].yPosition);
+uVar11 = DAT_CurrentUnitSlotID;
+if (DAT_DirectionAlgorithmState.orientation == 0xf) {
+DAT_DirectionAlgorithmState.orientation = 4;
+}
+iVar14 = DAT_DirectionAlgorithmState.orientation + 2;
+if (7 < iVar14) {
+iVar14 = DAT_DirectionAlgorithmState.orientation + -6;
+}
+DAT_DirectionAlgorithmState.orientation = iVar14;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].facingDirection = (short)iVar14;
+iVar14 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field213_0x3ff4[DAT_UnitsState.units[uVar11].animationCycleNumber];
+DAT_UnitsState.units[uVar11].animationFrame = iVar14;
+if ((iVar14 == 0xc) &&
+(DAT_UnitsState.units[uVar11].animationCycleNumberHasJustIncremented != FALSE)) {
+Audio::SFX::SFXState::playSFXAtLocation
+(&DAT_SFXState,(int)DAT_UnitsState.units[uVar11].x,
+(int)DAT_UnitsState.units[uVar11].y,FX_CHOP);
+}
+uVar11 = DAT_CurrentUnitSlotID;
+BVar8 = DAT_CurrentUnitSlotID * 0x490;
+iVar14 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationFrame;
+if (iVar14 < 1) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationFrame = 1;
+DAT_UnitsState.units[uVar11].animationCycleNumber = 0;
+DAT_UnitsState.units[uVar11].gfxNumber =
+DAT_UnitsState.units[uVar11].facingDirectionMapOrientationCorrected + 0x359;
+uVar11 = Map::LandscapeState::isTreeAliveAndMatchingUID
+(&DAT_LandscapeState,iVar15,DAT_UnitsState.units[uVar11].woodcutterTreeUID)
+;
+if (uVar11 == 0) {
+BVar8 = Map::LandscapeState::isTreeAdult
+(&DAT_LandscapeState,iVar15,
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].woodcutterTreeUID);
+if (BVar8 == FALSE) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_DETERMINE_NEXT_STATEUnk;
+return FALSE;
+}
+}
+else {
+iVar14 = Map::LandscapeState::damageTreeAndTriggerDeathIfDepleted
+(&DAT_LandscapeState,iVar15,0xffffffff,
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].woodcutterTreeUID);
+if (iVar14 == 0) {
+return FALSE;
+}
+if (DAT_LandscapeState.trees[iVar15].stage < 2) {
+sVar13 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].y;
+sVar6 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].x;
+sfxOffsetInArray = FX_LILTREE_FALL;
+}
+else {
+sVar13 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].y;
+sVar6 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].x;
+sfxOffsetInArray = FX_TREE_FALL;
+}
+Audio::SFX::SFXState::playSFXAtLocation
+(&DAT_SFXState,(int)sVar6,(int)sVar13,sfxOffsetInArray);
+}
+uVar11 = DAT_CurrentUnitSlotID;
+BVar8 = DAT_CurrentUnitSlotID * 0x490;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = 3;
+*(undefined4 *)&DAT_UnitsState.units[uVar11].field_0x4c = 0;
+return BVar8;
+}
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].gfxNumber =
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].facingDirectionMapOrientationCorrected + 0x2f9
++ iVar14 * 8;
+return BVar8;
+}
+if (UVar5 == 3) {
+uVar12 = DAT_LandscapeState.trees[iVar15].yPosition;
+uVar7 = DAT_LandscapeState.trees[iVar15].xPosition;
+DAT_UnitsState.units[uVar11].animationSpeed = 2;
+DAT_UnitsState.units[uVar11].field_0x30_animRelated = 0;
+Map::Navigation::DirectionAlgorithmState::calculateOrientation
+(&DAT_DirectionAlgorithmState,(int)DAT_UnitsState.units[uVar11].x,
+(int)DAT_UnitsState.units[uVar11].y,(int)(short)uVar7,(int)(short)uVar12);
+uVar11 = DAT_CurrentUnitSlotID;
+if (DAT_DirectionAlgorithmState.orientation == 0xf) {
+DAT_DirectionAlgorithmState.orientation = 4;
+}
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].facingDirection =
+(short)DAT_DirectionAlgorithmState.orientation;
+IncrementAndOptionalUpdateAVValueRelated(uVar11,FALSE);
+if (*(int *)&DAT_UnitsState.units[uVar11].field_0x4c == 0) {
+DAT_UnitsState.units[uVar11].animationFrame =
+(int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field214_0x4020[DAT_UnitsState.units[uVar11].animationCycleNumber];
+}
+else {
+DAT_UnitsState.units[uVar11].animationFrame =
+(int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field215_0x404c[DAT_UnitsState.units[uVar11].animationCycleNumber];
+}
+if ((DAT_UnitsState.units[uVar11].animationFrame == 7) &&
+(DAT_UnitsState.units[uVar11].animationCycleNumberHasJustIncremented != FALSE)) {
+Audio::SFX::SFXState::playSFXAtLocation
+(&DAT_SFXState,(int)DAT_UnitsState.units[uVar11].x,
+(int)DAT_UnitsState.units[uVar11].y,FX_CHOP);
+uVar11 = DAT_CurrentUnitSlotID;
+}
+iVar14 = DAT_UnitsState.units[uVar11].animationFrame;
+if (0 < iVar14) {
+DAT_UnitsState.units[uVar11].gfxNumber =
+DAT_UnitsState.units[uVar11].facingDirectionMapOrientationCorrected + 0x359 + iVar14 * 8;
+return uVar11 * 0x490;
+}
+DAT_UnitsState.units[uVar11].animationFrame = 1;
+DAT_UnitsState.units[uVar11].animationCycleNumber = 0;
+DAT_UnitsState.units[uVar11].gfxNumber =
+DAT_UnitsState.units[uVar11].facingDirectionMapOrientationCorrected + 0x3b1;
+BVar8 = Map::LandscapeState::isTreeAdult
+(&DAT_LandscapeState,iVar15,DAT_UnitsState.units[uVar11].woodcutterTreeUID);
+uVar11 = DAT_CurrentUnitSlotID;
+if (BVar8 == FALSE) {
+BVar8 = DAT_CurrentUnitSlotID * 0x490;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_DETERMINE_NEXT_STATEUnk;
+return BVar8;
+}
+BVar8 = DAT_CurrentUnitSlotID * 0x490;
+puVar3 = &DAT_UnitsState.units[DAT_CurrentUnitSlotID].field_0x4c;
+*(int *)puVar3 = *(int *)puVar3 + 1;
+if (*(int *)&DAT_UnitsState.units[uVar11].field_0x4c < 4) {
+return BVar8;
+}
+Map::LandscapeState::advanceTreeDecayState
+(&DAT_LandscapeState,iVar15,DAT_UnitsState.units[uVar11].woodcutterTreeUID);
+iVar14 = Map::Units::UnitsState::setWorkplaceBuildingEntryAsTarget
+(&DAT_UnitsState,DAT_CurrentUnitSlotID,1);
+if (iVar14 == 0) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].logicalState = ULS_REMOVE;
+return FALSE;
+}
+BVar8 = Map::Units::UnitsState::setDestinationForUnit
+(&DAT_UnitsState,DAT_CurrentUnitSlotID,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetX_2,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetY_2,0);
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_RELOAD_WEAPONUnk;
+return BVar8;
+}
+if (UVar5 == US_RELOAD_WEAPONUnk) {
+IncrementAndOptionalUpdateAVValueRelated(uVar11,FALSE);
+BVar9 = Map::Units::UnitsState::hasUnitReachedDestination(&DAT_UnitsState,uVar11);
+BVar8 = FALSE;
+if (BVar9 != FALSE) {
+DAT_UnitsState.units[uVar11].animationCycleNumber = 10;
+DAT_UnitsState.units[uVar11].state.generic = US_DETERMINE_NEXT_STATEUnk;
+iVar14 = (int)DAT_UnitsState.units[uVar11].workplaceBuildingID_1;
+Map::Buildings::BuildingsState::addResourceToStockpile
+(&DAT_BuildingsState,iVar14,DAT_BuildingsState.buildings[iVar14].uid,RT_LOGS,1,3,1);
+Audio::SFX::SFXState::playSFXAtLocation
+(&DAT_SFXState,(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].x,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].y,FX_DROP_LOG);
+BVar8 = extraout_EAX_00;
+uVar11 = DAT_CurrentUnitSlotID;
+}
+DAT_UnitsState.units[uVar11].animationSheetFrameOffset = 0x101;
+if (DAT_UnitsState.units[uVar11].movementRunUpTime != 0) {
+DAT_UnitsState.units[uVar11].animationSheetFrameOffset = 0x181;
+}
+DAT_UnitsState.units[uVar11].field_0x30_animRelated = 0x10;
+return BVar8;
+}
+if (UVar5 == US_AIM_WEAPONUnk) {
+IncrementAndOptionalUpdateAVValueRelated(uVar11,FALSE);
+iVar14 = Map::Buildings::BuildingsState::updateBuildingSignpostCounter
+(&DAT_BuildingsState,(int)DAT_UnitsState.units[uVar11].workplaceBuildingID_1,
+1);
+if (iVar14 == 0) {
+return FALSE;
+}
+iVar14 = (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingID_1;
+Map::Buildings::BuildingsState::addResourceToStockpile
+(&DAT_BuildingsState,iVar14,DAT_BuildingsState.buildings[iVar14].uid,RT_WOOD,1,3,1);
+BVar8 = DAT_CurrentUnitSlotID * 0x490;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_FIRE_WEAPONUnk;
+return BVar8;
+}
+if (UVar5 == US_FIRE_WEAPONUnk) {
+IncrementAndOptionalUpdateAVValueRelated(uVar11,FALSE);
+psVar4 = &DAT_UnitsState.units[uVar11].updateTickTracker;
+*psVar4 = *psVar4 + 1;
+if (DAT_UnitsState.units[uVar11].updateTickTracker < 0x30) {
+BVar8 = Map::Buildings::BuildingsState::updateBuildingSignpostCounter
+(&DAT_BuildingsState,(int)DAT_UnitsState.units[uVar11].workplaceBuildingID_1
+,3);
+return BVar8;
+}
+iVar16 = (int)DAT_UnitsState.units[uVar11].workplaceBuildingID_1;
+iVar14 = DAT_BuildingsState.buildings[iVar16].uid;
+iVar15 = Map::Buildings::BuildingsState::getBuildingResourceAmountByUid
+(&DAT_BuildingsState,iVar16,iVar14,RT_LOGS);
+if (iVar15 < 1) {
+Map::Buildings::BuildingsState::addResourceToStockpile
+(&DAT_BuildingsState,iVar16,iVar14,RT_WOOD,-3,0,1);
+Map::Buildings::BuildingsState::updateBuildingSignpostCounter
+(&DAT_BuildingsState,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingID_1,0);
+Map::Units::UnitsState::resetUnitMovementState(&DAT_UnitsState,DAT_CurrentUnitSlotID);
+uVar11 = DAT_CurrentUnitSlotID;
+BVar8 = DAT_CurrentUnitSlotID * 0x490;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].updateTickTracker = 0;
+DAT_UnitsState.units[uVar11].state.generic = US_LOOK_AROUNDUnk;
+return BVar8;
+}
+Map::Buildings::BuildingsState::addResourceToStockpile
+(&DAT_BuildingsState,iVar16,iVar14,RT_LOGS,-1,3,1);
+Map::Buildings::BuildingsState::updateBuildingSignpostCounter
+(&DAT_BuildingsState,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingID_1,2);
+uVar11 = DAT_CurrentUnitSlotID;
+BVar8 = DAT_CurrentUnitSlotID * 0x490;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].updateTickTracker = 0;
+DAT_UnitsState.units[uVar11].state.generic = US_AIM_WEAPONUnk;
+return BVar8;
+}
+if (UVar5 == US_LOOK_AROUNDUnk) {
+DAT_UnitsState.units[uVar11].animationSheetFrameOffset = 0x201;
+DAT_UnitsState.units[uVar11].field_0x30_animRelated = 0x10;
+DAT_UnitsState.units[uVar11].field134_0x2ac = 1;
+psVar4 = &DAT_UnitsState.units[uVar11].updateTickTracker;
+*psVar4 = *psVar4 + 1;
+uVar12 = DAT_UnitsState.units[uVar11].updateTickTracker;
+if ((short)uVar12 < 0x15) {
+return (uint)uVar12;
+}
+DAT_UnitsState.units[uVar11].updateTickTracker = 0;
+iVar14 = Map::Buildings::BuildingsState::getBuildingThatCanStoreThisResource
+(&DAT_BuildingsState,RT_WOOD,1,(int)DAT_UnitsState.units[uVar11].owner);
+if ((iVar14 == 0) &&
+(DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner ==
+DAT_GameSynchronyState.currentPlayerSlotID)) {
+PlayStockpileIsFullWarning();
+}
+iVar15 = Map::Buildings::BuildingsState::buildingIsAccessible(&DAT_BuildingsState,iVar14,1);
+if (iVar15 == 0) {
+return FALSE;
+}
+BVar8 = Map::Units::UnitsState::setDestinationForUnit
+(&DAT_UnitsState,DAT_CurrentUnitSlotID,
+(int)DAT_BuildingsState.buildings[iVar14].buildingEntryX,
+(int)DAT_BuildingsState.buildings[iVar14].buildingEntryY,0);
+uVar11 = DAT_CurrentUnitSlotID;
+if (BVar8 == FALSE) {
+return FALSE;
+}
+iVar15 = DAT_BuildingsState.buildings[iVar14].uid;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetID_OR_targetBuildingID = (short)iVar14;
+DAT_UnitsState.units[uVar11].targetUID = iVar15;
+DAT_UnitsState.units[uVar11].state.generic = US_STAND_UPUnk;
+BVar8 = ComputeGoodsProduced(uVar11,0xc,TRUE);
+DAT_UnitsState.units[uVar11].resourceToDeposit = (short)BVar8;
+return BVar8;
+}
+if (UVar5 == US_STAND_UPUnk) {
+IncrementAndOptionalUpdateAVValueRelated(uVar11,FALSE);
+DAT_UnitsState.units[uVar11].animationSheetFrameOffset = 0x201;
+if (DAT_UnitsState.units[uVar11].movementRunUpTime != 0) {
+DAT_UnitsState.units[uVar11].animationSheetFrameOffset = 0x281;
+}
+DAT_UnitsState.units[uVar11].field_0x30_animRelated = 0x10;
+psVar4 = &DAT_UnitsState.units[uVar11].updateTickTracker;
+*psVar4 = *psVar4 + 1;
+uVar12 = DAT_UnitsState.units[uVar11].updateTickTracker;
+if ((short)uVar12 < 5) {
+return (uint)uVar12;
+}
+BVar8 = Map::Units::UnitsState::hasUnitReachedDestination(&DAT_UnitsState,uVar11);
+if (BVar8 == FALSE) {
+return FALSE;
+}
+DAT_UnitsState.units[uVar11].updateTickTracker = 0;
+iVar14 = Map::Buildings::BuildingsState::canBuildingStoreTheAmount
+(&DAT_BuildingsState,
+(int)DAT_UnitsState.units[uVar11].targetID_OR_targetBuildingID,RT_WOOD,0x30)
+;
+if (iVar14 == 0) {
+iVar14 = Map::Buildings::BuildingsState::getBuildingThatCanStoreThisResource
+(&DAT_BuildingsState,RT_WOOD,1,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner);
+iVar15 = Map::Buildings::BuildingsState::buildingIsAccessible(&DAT_BuildingsState,iVar14,1);
+uVar11 = DAT_CurrentUnitSlotID;
+if (iVar15 == 0) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].resourceToDeposit = 0;
+BVar8 = FALSE;
+}
+else {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetID_OR_targetBuildingID = (short)iVar14;
+DAT_UnitsState.units[uVar11].targetUID = DAT_BuildingsState.buildings[iVar14].uid;
+BVar8 = Map::Units::UnitsState::setDestinationForUnit
+(&DAT_UnitsState,uVar11,
+(int)DAT_BuildingsState.buildings[iVar14].buildingEntryX,
+(int)DAT_BuildingsState.buildings[iVar14].buildingEntryY,0);
+uVar11 = DAT_CurrentUnitSlotID;
+}
+}
+else {
+Map::Buildings::BuildingsState::addResourceToStockpile
+(&DAT_BuildingsState,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetID_OR_targetBuildingID,
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetUID,RT_WOOD,1,0x30,1);
+uVar11 = DAT_CurrentUnitSlotID;
+piVar2 = DAT_GameSynchronyState.finalResults.finalWoodProduced +
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner;
+*piVar2 = *piVar2 + 1;
+psVar4 = &DAT_UnitsState.units[uVar11].resourceToDeposit;
+*psVar4 = *psVar4 + -1;
+Audio::SFX::SFXState::playSFXAtLocation
+(&DAT_SFXState,(int)DAT_UnitsState.units[uVar11].x,
+(int)DAT_UnitsState.units[uVar11].y,FX_STOCK_WOOD);
+BVar8 = extraout_EAX_01;
+uVar11 = DAT_CurrentUnitSlotID;
+}
+if (0 < DAT_UnitsState.units[uVar11].resourceToDeposit) {
+return BVar8;
+}
+IncrementAndOptionalUpdateAVValueRelated(uVar11,TRUE);
+iVar14 = Map::Units::UnitsState::setWorkplaceBuildingEntryAsTarget(&DAT_UnitsState,uVar11,1);
+uVar11 = DAT_CurrentUnitSlotID;
+if (iVar14 == 0) {
+BVar8 = DAT_CurrentUnitSlotID * 0x490;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].logicalState = ULS_REMOVE;
+return BVar8;
+}
+BVar8 = DAT_CurrentUnitSlotID * 0x490;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_STAND_UPUnk|US_IDLEUnk;
+DAT_UnitsState.units[uVar11].destinationNeeded = DNE_DESTINATION_NEEDED;
+DAT_UnitsState.units[uVar11].animationSheetFrameOffset = 1;
+return BVar8;
+}
+if (UVar5 == (US_STAND_UPUnk|US_IDLEUnk)) {
+DAT_UnitsState.units[uVar11].animationSheetFrameOffset = 1;
+DAT_UnitsState.units[uVar11].field_0x30_animRelated = 0x10;
+IncrementAndOptionalUpdateAVValueRelated(uVar11,FALSE);
+if (DAT_UnitsState.units[uVar11].destinationNeeded != DNE_DESTINATION_HAS_BEEN_SET) {
+BVar8 = ConsiderTakingABreakUnk(uVar11);
+if (BVar8 != FALSE) {
+return BVar8;
+}
+BVar8 = Map::Units::UnitsState::setDestinationForUnit
+(&DAT_UnitsState,uVar11,(int)DAT_UnitsState.units[uVar11].targetX_2,
+(int)DAT_UnitsState.units[uVar11].targetY_2,0);
+uVar11 = DAT_CurrentUnitSlotID;
+if (BVar8 == FALSE) {
+BVar8 = DAT_CurrentUnitSlotID * 0x490;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_DISAPPEAR;
+DAT_UnitsState.units[uVar11].updateTickTracker = 0;
+return BVar8;
+}
+iVar16 = DAT_CurrentUnitSlotID * 0x490;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].destinationNeeded = DNE_DESTINATION_HAS_BEEN_SET;
+}
+BVar8 = Map::Units::UnitsState::hasUnitReachedDestination(&DAT_UnitsState,uVar11);
+if (BVar8 == FALSE) {
+return FALSE;
+}
+uVar12 = (ushort)(byte)DAT_GameCore.mapTimeInTicks;
+*(undefined4 *)((int)DAT_UnitsState.units[0].manningEngineerRef + iVar16 + -100) = 10;
+*(ushort *)((int)DAT_UnitsState.units[0].manningEngineerRef + iVar16 + 0x6c) = (uVar12 & 1) + 2;
+*(undefined2 *)((int)DAT_UnitsState.units[0].manningEngineerRef + iVar16 + -0x54) = 10;
+return 10;
+}
+if (UVar5 == (US_DEATH_02|US_STAND_UPUnk|US_IDLEUnk)) {
+DAT_UnitsState.units[uVar11].animationSheetFrameOffset = 1;
+DAT_UnitsState.units[uVar11].field_0x30_animRelated = 0x10;
+BVar8 = SetRestingForUnit(uVar11);
+return BVar8;
+}
+if (UVar5 != 10) {
+if (UVar5 == 0x6c) {
+DAT_UnitsState.units[uVar11].stateBasedSpeed = 0;
+DAT_UnitsState.units[uVar11].field_0x30_animRelated = 0;
+DAT_UnitsState.units[uVar11].animationSheetFrameOffset = 1;
+return BVar8;
+}
+if (UVar5 == US_DEATH_01) {
+DAT_UnitsState.units[uVar11].facingDirection = 0;
+DAT_UnitsState.units[uVar11].animationSpeed = 2;
+DAT_UnitsState.units[uVar11].field_0x30_animRelated = 0;
+BVar8 = (BOOLEnum)
+(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+ANIM_Worker_Shared1[DAT_UnitsState.units[uVar11].animationCycleNumber];
+DAT_UnitsState.units[uVar11].animationFrame = BVar8;
+if ((int)BVar8 < 1) {
+DAT_UnitsState.units[uVar11].gfxNumber = 0x3f0;
+DAT_UnitsState.units[uVar11].state.generic = US_DISAPPEAR;
+DAT_UnitHasBecomeIdle = 1;
+return BVar8;
+}
+BVar8 = BVar8 + 0x3d8;
+bVar17 = DAT_UnitHasBecomeIdle == 0;
+DAT_UnitsState.units[uVar11].gfxNumber = BVar8;
+if (bVar17) {
+return BVar8;
+}
+DAT_UnitsState.units[uVar11].state.generic = US_DISAPPEAR;
+return BVar8;
+}
+uVar18 = Map::Units::UnitsState::checkIfCitizenUnitIsAliveBasedOnState(uVar11);
+sVar13 = (short)((uint6)uVar18 >> 0x20);
+if ((int)uVar18 == 0) {
+if (sVar13 != 0x6a) {
+if (sVar13 != 0x6e) {
+DAT_UnitsState.units[uVar11].state.generic = US_DETERMINE_NEXT_STATEUnk;
+BVar8 = Map::Units::UnitsState::makeUnitStopWalkingByClearingPathProgressState(uVar11);
+return BVar8;
+}
+pbVar1 = &DAT_UnitsState.units[uVar11].disappearFadeAlphaCountdown;
+*pbVar1 = *pbVar1 + 1;
+if (' ' < (char)DAT_UnitsState.units[uVar11].disappearFadeAlphaCountdown) {
+DAT_UnitsState.units[uVar11].disappearFadeAlphaCountdown = 0x20;
+}
+psVar4 = &DAT_UnitsState.units[uVar11].updateTickTracker;
+*psVar4 = *psVar4 + 1;
+uVar12 = DAT_UnitsState.units[uVar11].updateTickTracker;
+BVar8 = (BOOLEnum)uVar12;
+if (0x20 < (short)uVar12) {
+psVar4 = &DAT_BuildingsState.buildings[iVar14].unknownTickRelatedValue;
+*psVar4 = *psVar4 + 10;
+BVar8 = iVar14 * 0x32c + 0xf98810;
+DAT_UnitsState.units[uVar11].logicalState = ULS_REMOVE;
+if (DAT_UnitsState.units[uVar11].killedFlagUnk == 0) {
+BVar8 = Game::GameStateStructures::setLastEncounteredTroopUnit
+(&DAT_GameState,(int)DAT_UnitsState.units[uVar11].owner,uVar11);
+uVar11 = DAT_CurrentUnitSlotID;
+}
+}
+DAT_BuildingsState.buildings[DAT_UnitsState.units[uVar11].workplaceBuildingID_1].
+idleTimerUnk = 4000;
+return BVar8;
+}
+DAT_UnitsState.units[uVar11].animationSpeed = 3;
+DAT_UnitsState.units[uVar11].field_0x30_animRelated = 0;
+BVar8 = (BOOLEnum)
+(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.field216_0x4070
+[DAT_UnitsState.units[uVar11].animationCycleNumber];
+DAT_UnitsState.units[uVar11].animationFrame = BVar8;
+if ((int)BVar8 < 1) {
+DAT_UnitsState.units[uVar11].gfxNumber =
+DAT_UnitsState.units[uVar11].facingDirectionMapOrientationCorrected + 0x361;
+DAT_UnitHasBecomeIdle = 1;
+}
+else {
+BVar8 = DAT_UnitsState.units[uVar11].facingDirectionMapOrientationCorrected + 0x359 +
+BVar8 * 8;
+DAT_UnitsState.units[uVar11].gfxNumber = BVar8;
+}
+if (((DAT_UnitsState.units[uVar11].attackedUnitID != 0) &&
+(DAT_UnitsState.units[uVar11].animationCycleNumberHasJustIncremented != FALSE)) &&
+(DAT_UnitsState.units[uVar11].animationCycleNumber == 5)) {
+Audio::SFX::SFXState::playSFXAtLocation
+(&DAT_SFXState,(int)DAT_UnitsState.units[uVar11].x,
+(int)DAT_UnitsState.units[uVar11].y,FX_SWISH);
+BVar8 = extraout_EAX_02;
+uVar11 = DAT_CurrentUnitSlotID;
+}
+if (DAT_UnitHasBecomeIdle == 0) {
+return BVar8;
+}
+DAT_UnitsState.units[uVar11].animationCycleNumber = 0;
+Map::Units::UnitsState::resumeMovementIfNoAttackTarget(&DAT_UnitsState,uVar11);
+return extraout_EAX_03;
+}
+DAT_UnitsState.units[uVar11].facingDirection = 0;
+DAT_UnitsState.units[uVar11].animationSpeed = 2;
+DAT_UnitsState.units[uVar11].field_0x30_animRelated = 0;
+BVar8 = (BOOLEnum)
+(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+ANIM_Worker_Shared1[DAT_UnitsState.units[uVar11].animationCycleNumber];
+DAT_UnitsState.units[uVar11].animationFrame = BVar8;
+if ((int)BVar8 < 1) {
+DAT_UnitsState.units[uVar11].gfxNumber = 0x408;
+DAT_UnitsState.units[uVar11].state.generic = US_DISAPPEAR;
+DAT_UnitHasBecomeIdle = 1;
+return BVar8;
+}
+BVar8 = BVar8 + 0x3f0;
+bVar17 = DAT_UnitHasBecomeIdle == 0;
+DAT_UnitsState.units[uVar11].gfxNumber = BVar8;
+if (bVar17) {
+return BVar8;
+}
+DAT_UnitsState.units[uVar11].state.generic = US_DISAPPEAR;
+return BVar8;
+}
+/* -- Freetime at good things -- */
+DAT_UnitsState.units[uVar11].animationSpeed = 2;
+DAT_UnitsState.units[uVar11].field_0x30_animRelated = 0;
+DAT_UnitsState.units[uVar11].field42_0x58 = 1;
+DAT_UnitsState.units[uVar11].field134_0x2ac = 1;
+sVar13 = DAT_UnitsState.units[uVar11].substate;
+if (sVar13 == 0) {
+iVar14 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field206_0x3d70[DAT_UnitsState.units[uVar11].animationCycleNumber];
+}
+else if (sVar13 == 1) {
+iVar14 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field207_0x3da4[DAT_UnitsState.units[uVar11].animationCycleNumber];
+}
+else if (sVar13 == 2) {
+iVar14 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field208_0x3e20[DAT_UnitsState.units[uVar11].animationCycleNumber];
+}
+else if (sVar13 == 3) {
+iVar14 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field209_0x3e54[DAT_UnitsState.units[uVar11].animationCycleNumber];
+}
+else if (sVar13 == 4) {
+iVar14 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field210_0x3e84[DAT_UnitsState.units[uVar11].animationCycleNumber];
+}
+else if (sVar13 == 5) {
+iVar14 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field211_0x3f04[DAT_UnitsState.units[uVar11].animationCycleNumber];
+}
+else {
+if (sVar13 != 6) goto LAB_0054d5cd;
+iVar14 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field212_0x3f5c[DAT_UnitsState.units[uVar11].animationCycleNumber];
+}
+DAT_UnitsState.units[uVar11].animationFrame = iVar14;
+LAB_0054d5cd:
+iVar15 = DAT_UnitHasBecomeIdle;
+iVar14 = DAT_UnitsState.units[uVar11].animationFrame;
+if (iVar14 < 1) {
+iVar15 = 1;
+DAT_UnitsState.units[uVar11].gfxNumber = 0x3d8;
+DAT_UnitHasBecomeIdle = 1;
+}
+else {
+DAT_UnitsState.units[uVar11].gfxNumber = iVar14 + 0x3c0;
+}
+BVar8 = SetStateToFreetimeWalking(uVar11,iVar15,7);
+if ((BVar8 == FALSE) && (iVar15 != 0)) {
+psVar4 = &DAT_UnitsState.units[uVar11].substate;
+*psVar4 = *psVar4 + 1;
+uVar12 = DAT_UnitsState.units[uVar11].substate;
+if (6 < (short)uVar12) {
+DAT_UnitsState.units[uVar11].substate = 0;
+}
+DAT_UnitsState.units[uVar11].animationCycleNumber = 0;
+DAT_UnitsState.units[uVar11].state.generic = US_DETERMINE_NEXT_STATEUnk;
+return (uint)uVar12;
+}
+return BVar8;
+}
+--- NAMEN NUR IM PAKETCODE ---
+DestinationNeededEnum, Frames_Shared_UnitClimbingUp, MACRO_CALL_MEMBER, US_MELEE_ATTACK, UnitState, UpdateWorker_ConsiderTakingABreakUnk, bVar14, buildingID, field131_0x2ac, field246_0x2d4, field39_0x58, iVar11, iVar12, manningEngineerUIDRef, psVar3, sVar4, uVar10, uVar13, unitTypeSpecificRestingState, woodCutterChopsCount
+--- KOMMENTARE IM PAKETCODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0054C710
+/*
+--- ERKLAERUNG ---
+{"adr": "0x0054c710", "name": "UpdateWoodcutter", "p1": {"bereich": "Wirtschaft", "zweck": "Taktfunktion des Holzfällers: je nach units[cur].state.generic Baum suchen, hinlaufen, Hiebe ausführen, Baumverfall auslösen, Stamm (RT_LOGS) zum Posten bringen, dort in RT_WOOD umwandeln und zum Lager tragen; dazu Tod-, Pausen- und Freizeitzustände."}, "p2": {"ein": "-, die Einheit kommt aus DAT_CurrentUnitSlotID", "aus": "BOOLEnum bzw. unbestimmter Wert (viele Zweige geben Zwischenwerte zurück, meist FALSE); Wirkung steckt in den Schreibzugriffen", "liest": ["units[cur].state.generic", "units[cur].workplaceBuildingID_1", "units[cur].workplaceBuildingTilePosition (hier Baum-Index in landscape.trees)", "units[cur].woodcutterTreeUID", "units[cur].field_0x4c (Hiebzähler)", "units[cur].updateTickTracker", "units[cur].animationCycleNumber", "units[cur].animationCycleNumberHasJustIncremented", "units[cur].unitOrderWhenOnSameTile", "units[cur].isDisappearingUnk/disappearFadeAlphaCountdown/goToRallyPoint", "units[cur].destinationNeeded/targetX_2/targetY_2", "units[cur].movementRunUpTime/attackedUnitID/killedFlagUnk/substate", "units[cur].x/y/owner", "landscape.trees[].uid/stage/xPosition/yPosition", "Posten-Bestand RT_LOGS (getBuildingResourceAmountByUid)", "gameSynchronyState.currentPlayerSlotID", "DAT_UnitHasBecomeIdle", "DAT_GameCore.mapTimeInTicks (nur unterstes Bit)"], "schreibt": ["units[cur].field171_0x300 (immer 10, noch vor jeder Prüfung)", "units[cur].state.generic", "units[cur].workplaceBuildingTilePosition (Baum-Index)", "units[cur].woodcutterTreeUID", "units[cur].field_0x4c (0 oder +1)", "units[cur].animationCycleNumber/animationFrame/animationSpeed/gfxNumber/animationSheetFrameOffset/field_0x30_animRelated/facingDirection", "units[cur].updateTickTracker", "units[cur].resourceToDeposit", "units[cur].targetID_OR_targetBuildingID/targetUID", "units[cur].destinationNeeded", "units[cur].logicalState (ULS_REMOVE)", "units[cur].disappearFadeAlphaCountdown/isDisappearingUnk/goToRallyPoint", "units[cur].substate/field134_0x2ac/field42_0x58/stateBasedSpeed", "weitere Einheitenfelder per manningEngineerRef-Offset (siehe offen)", "buildings[wp].field273_0x2d4 (= totalSizeOfPathPlan)", "buildings[wp].unknownTickRelatedValue (+10) und idleTimerUnk (= 4000)", "Posten-Bestand RT_LOGS (+1, -1) und RT_WOOD (+1, -3)", "Lagerbestand RT_WOOD (+1)", "finalResults.finalWoodProduced[owner]", "Baumzustand (Schaden, Verfallsstufe)", "DAT_UnitHasBecomeIdle", "DAT_DirectionAlgorithmState.orientation"], "ruft": ["getBuildingResourceAmountByUid", "commitUnitLocation", "findTree", "findBestAdjacentClimbTileToTarget", "findNeighbourTileThatCanServeAsClimbPointClosestToXY", "setDestinationForUnit", "hasUnitReachedDestination", "makeUnitStopWalkingByClearingPathProgressState", "isTreeAliveAndMatchingUID", "isTreeAdult", "damageTreeAndTriggerDeathIfDepleted", "advanceTreeDecayState", "setWorkplaceBuildingEntryAsTarget", "addResourceToStockpile", "updateBuildingSignpostCounter", "getBuildingThatCanStoreThisResource", "buildingIsAccessible", "PlayStockpileIsFullWarning", "ComputeGoodsProduced", "canBuildingStoreTheAmount", "resetUnitMovementState", "calculateOrientation", "IncrementAndOptionalUpdateAVValueRelated", "ConsiderTakingABreakUnk", "SetRestingForUnit", "SetStateToFreetimeWalking", "checkIfCitizenUnitIsAliveBasedOnState", "resumeMovementIfNoAttackTarget", "setLastEncounteredTroopUnit", "playSFXAtLocation"], "regeln": ["Suchzustand (US_DETERMINE_NEXT_STATE): setzt zuerst gfxNumber=0x3d8; bei isDisappearingUnk!=0 wird der Ausblendzähler (Byte) um 1 gesenkt und erst bei negativem Wert zurückgesetzt; bei goToRallyPoint!=0 wird der Marker gelöscht, Zustand = STAND_UP|IDLE, destinationNeeded=2", "Danach animationCycleNumber+1; erst ab Wert 10 geht es weiter (vorher FALSE). Hat der Posten mindestens 3 Stämme (RT_LOGS > 2), wird die Position festgeschrieben (commitUnitLocation) und direkt in den Verarbeitungszustand US_FIRE_WEAPON mit updateTickTracker=0 gewechselt", "Sonst findTree(owner,x,y): Ergebnis 0 -> Zustand 10 (Freizeit), FALSE. Sonst wird die Baum-Nummer in workplaceBuildingTilePosition und trees[].uid in woodcutterTreeUID gespeichert und findBestAdjacentClimbTileToTarget gerufen", "Steht die Einheit schon auf climbX/climbY: Zustand US_IDLE und Laufweg löschen. Sonst setDestinationForUnit; FALSE -> Zustand 10; TRUE -> Zustand US_IDLE und buildings[wp].field273_0x2d4 = totalSizeOfPathPlan", "US_IDLE: bei Ankunft animationCycleNumber=0. Ist unitOrderWhenOnSameTile==0: Baum lebt und UID passt -> Zustand 2, field_0x4c=0; sonst Baum erwachsen (isTreeAdult) -> Zustand 3, field_0x4c=0; sonst zurück in die Suche. Ist unitOrderWhenOnSameTile!=0: Nachbarfeld als Kletterpunkt suchen und dorthin laufen, bei Fehlschlag werden per manningEngineerRef-Offset Felder mit 9 und 1 beschrieben. Am Ende (auch ohne Ankunft) animationSheetFrameOffset=1 und field_0x30_animRelated=0x10", "Zustand 2 (Schlaganimation): Richtung per calculateOrientation zum Baum, 0xf wird zu 4, dann +2 (über 7 wird -6); animationFrame aus Tabelle field213_0x3ff4[animationCycleNumber]; bei Frame 0xc und frisch erhöhtem Zähler Geräusch FX_CHOP. Erst wenn der Frame unter 1 fällt (Animationsende): Frame=1, Zähler=0 und Baum prüfen", "Zustand 2 am Animationsende: Baum lebt und UID passt -> damageTreeAndTriggerDeathIfDepleted(Schaden -1); Rückgabe 0 -> FALSE und Zustand 2 bleibt; sonst Fallgeräusch (stage < 2 FX_LILTREE_FALL, sonst FX_TREE_FALL) und Zustand 3 mit field_0x4c=0. Lebt der Baum nicht mehr: erwachsen -> Zustand 3 (ohne Geräusch), sonst Suche", "Zustand 3 (Hiebe): Richtung wie oben ohne +2; Frame aus field214_0x4020 (field_0x4c==0) sonst field215_0x404c; bei Frame 7 und frisch erhöhtem Zähler FX_CHOP. Frame > 0: nur gfxNumber setzen. Am Animationsende: Frame=1, Zähler=0; Baum nicht erwachsen -> Suche; sonst field_0x4c+1", "Zustand 3 ab field_0x4c >= 4: advanceTreeDecayState, setWorkplaceBuildingEntryAsTarget(unit,1); Rückgabe 0 -> ULS_REMOVE; sonst setDestinationForUnit(targetX_2,targetY_2) und Zustand US_RELOAD_WEAPON", "US_RELOAD_WEAPON (Stamm tragen): bei Ankunft animationCycleNumber=10, Zustand Suche, Posten-RT_LOGS +1 (addResourceToStockpile, Parameter 3 und 1 ungedeutet), Geräusch FX_DROP_LOG. In jedem Fall animationSheetFrameOffset=0x101 (0x181 bei movementRunUpTime!=0) und field_0x30_animRelated=0x10", "Verarbeitung: US_FIRE_WEAPON zählt updateTickTracker; unter 0x30 gibt es nur updateBuildingSignpostCounter(wp,3) zurück. Ab 48 Takten: RT_LOGS < 1 -> Posten-RT_WOOD -3, Signpost 0, resetUnitMovementState, Tracker 0, Zustand US_LOOK_AROUND; sonst RT_LOGS -1, Signpost 2, Tracker 0, Zustand US_AIM_WEAPON", "US_AIM_WEAPON: nur wenn updateBuildingSignpostCounter(wp,1) ungleich 0 liefert, wird Posten-RT_WOOD +1 gebucht und Zustand US_FIRE_WEAPON gesetzt, sonst FALSE", "US_LOOK_AROUND (Lagersuche): zählt updateTickTracker, erst ab 21 (0x15) geht es weiter, Tracker=0. getBuildingThatCanStoreThisResource(RT_WOOD,1,owner); Ergebnis 0 und owner == currentPlayerSlotID -> PlayStockpileIsFullWarning. buildingIsAccessible (wird auch bei Ergebnis 0 gerufen) 0 oder setDestinationForUnit FALSE -> Zustand bleibt, nächster Versuch nach 21 Takten. Sonst Ziel+UID speichern, Zustand US_STAND_UP, resourceToDeposit = ComputeGoodsProduced(unit,12,TRUE)", "US_STAND_UP (Einlagern): erst ab Tracker >= 5 und bei Ankunft (Tracker dann 0). canBuildingStoreTheAmount(Ziel,RT_WOOD,0x30) ungleich 0 -> RT_WOOD +1 im Lager (Parameter 0x30,1), finalWoodProduced[owner]+1, resourceToDeposit-1, FX_STOCK_WOOD. Gleich 0 -> anderes Lager suchen; nicht erreichbar -> resourceToDeposit=0 (Verbleib des Rests im Code nicht belegt), erreichbar -> neues Ziel anlaufen", "Ist resourceToDeposit danach <= 0: setWorkplaceBuildingEntryAsTarget(unit,1); 0 -> ULS_REMOVE, sonst Zustand STAND_UP|IDLE mit destinationNeeded=DNE_DESTINATION_NEEDED. In STAND_UP|IDLE: bei nicht gesetztem Ziel ConsiderTakingABreakUnk (Rückgabe ungleich 0 beendet den Takt), dann Ziel targetX_2/Y_2; scheitert das -> US_DISAPPEAR. Bei Ankunft werden per manningEngineerRef-Offset drei Felder mit 10, (mapTimeInTicks&1)+2 und 10 beschrieben"], "offen": ["Zahlenwerte der Zustände und Namen (US_..._Unk sind Vermutungen des OpenSHC-Teams, passen nicht zur Tätigkeit)", "Die Schreibzugriffe über manningEngineerRef + Offset (-0x64, -0x54, +0x60, +0x6c) sind im Export unbenannt; -0x54 ist vermutlich state.generic (Wert 10 = Freizeit, 9 bei Fehlschlag), die übrigen Felder ungeklärt", "Bedeutung der Parameter 3/1 und 0x30/1 sowie 0/1 bei addResourceToStockpile (Wert -3 bei RT_WOOD mit Parameter 0) und der dritte Parameter 0x30 von canBuildingStoreTheAmount (Menge oder Grenze) nicht belegbar", "Rückgabewert von updateBuildingSignpostCounter und warum der Posten RT_WOOD um 3 senkt, ist aus dem Code nicht ablesbar", "Wert 12 in ComputeGoodsProduced: Bedeutung (Warenart oder Faktor) ungesichert", "Sterbe-/Verletzt-Zweige hängen an checkIfCitizenUnitIsAliveBasedOnState (Rückgabe 0 mit Zusatzwert 0x6a oder 0x6e); die Zustandsnamen dazu sind nur aus dem Export erschlossen"]}, "p3": {"erklaerung": "Zustandsmaschine des Holzfällers: Baum suchen und hinlaufen, im Schlagzustand den Baum schädigen, dann Hiebe zählen (ab 4 Verfall des Baums), Stamm zum Posten tragen (Posten-RT_LOGS +1). Der Posten verarbeitet je 48 Takte einen Stamm (LOGS -1) und bucht RT_WOOD +1 (wenn der Signpost-Zähler mitspielt). Sind keine Stämme mehr da, sucht der Holzfäller nach 21 Takten ein Lager für RT_WOOD (ohne Lager Warnung für den lokalen Spieler, Wiederholung alle 21 Takte), trägt ComputeGoodsProduced(...,12) Stück dorthin und lagert je Stück ein. Dazu Zweige für Tod, Ausblenden, Pause und Freizeit.", "gehirn": "Holzproduktion eines Spielers lässt sich an finalResults.finalWoodProduced[spieler] ablesen (zählt jedes eingelagerte Stück). Ist kein Lager für RT_WOOD erreichbar, stockt der Holzfäller in der Lagersuche; vor dem Ausbau an Holzfällern also Lagerplatz prüfen.", "beleg": "code", "live": "Holzfäller liefert ins Lager -> finalResults.finalWoodProduced[spieler] und Lager-RT_WOOD vorher/nachher -> beide steigen um je 1 pro eingelagertem Stück", "live_art": "wirtschaft"}}
+
+### 0x004b2ae0 WindowMsgProcessingFunc
+--- CODE (Ghidra-Export, vollstaendig) ---
+/* WARNING: Enum "GeneralWindowsMessage": Some values do not have unique names */
+/* WARNING: Enum "DPSEND_EnumInt": Some values do not have unique names */
+/* WARNING: Enum "DPERRInt": Some values do not have unique names */
+/* WARNING: Enum "MappersEnum": Some values do not have unique names */
+/* WARNING: Enum "UnsortedBinkFlagInt": Some values do not have unique names */
+/* This is the WindowProc
+LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam)
+https://docs.microsoft.com/en-us/previous-versions/windows/desktop/legacy/ms633573(v=vs.85)
+It handles input and is in theory the main communication point with the OS. SHC however also
+gathers input data using other C functions. - TheRedDaemon
+decompilerscript: committed: 2025-01-30 21:57:43.216000 */
+LRESULT _HoldStrong::Global::WindowMsgProcessingFunc
+(HWND windowHandle,GeneralWindowsMessage message,WindowsVirtualKey wParam,
+LPARAM lParam)
+{
+char cVar1;
+ushort uVar2;
+ushort uVar3;
+int iVar4;
+XYPairShort tile;
+short sVar5;
+uint uVar6;
+int iVar7;
+BOOLEnum BVar8;
+int iVar9;
+char *pcVar10;
+LRESULT LVar11;
+char *pcVar12;
+uint uVar13;
+int iVar14;
+HBINK *ppFVar15;
+int *piVar16;
+short yMousePos;
+MouseClickInteraction clickType;
+HWND _hwnd;
+PAINTSTRUCT _paintstruct;
+iVar7 = DAT_GameSynchronyState.currentPlayerSlotID;
+uVar6 = MSVC_SecurityCookie ^ (uint)&_hwnd;
+_hwnd = windowHandle;
+if (WM_KEYDOWN < message) {
+/* param_4 >> 0x10 == y */
+sVar5 = (short)lParam;
+yMousePos = (short)((uint)lParam >> 0x10);
+if (message < WM_LBUTTONDOWN) {
+if (message == WM_MOUSEMOVE) {
+Input::MouseState::updateMousePositionAndClicks(&DAT_MouseState,sVar5,yMousePos,MCI_MOVE);
+goto switchD_004b4d0c_doDefWindowProcA;
+}
+switch(message) {
+case WM_KEYUP:
+/* WM_KEYUP */
+switch(wParam) {
+case VK_LEFT:
+/* VK_LEFT */
+DAT_ScrollingHandler.leftKeyDown_0x1c = FALSE;
+break;
+case VK_UP:
+/* VK_UP */
+DAT_ScrollingHandler.upKeyDown_0x24 = FALSE;
+break;
+case VK_RIGHT:
+/* VK_RIGHT */
+DAT_ScrollingHandler.rightKeyDown_0x18 = FALSE;
+break;
+case VK_DOWN:
+/* VK_DOWN */
+DAT_ModifierKeyState.downArrow = 0;
+DAT_ScrollingHandler.downKeyDown_0x20 = FALSE;
+}
+break;
+case WM_CHAR:
+/* **** Note that keydown events are translated in char events if not swalloed
+****
+WM_CHAR */
+Text::UserTextHandler::handleCharacterCode(&DAT_UserTextHandlerState,(byte)wParam);
+Text::UserTextHandler::handleCharacterIntoInputBuffer(&DAT_UserTextHandlerState,wParam);
+break;
+case WM_SYSKEYDOWN:
+/* WM_SYSKEYDOWN (ALT + ?) */
+DAT_ModifierKeyState.keyDownUnk = 1;
+switch(wParam) {
+case VK_ALT:
+/* VK_MENU (ALT key) */
+LVar11 = HoldStrong_lib::__security_check_cookie(uVar6 ^ (uint)&_hwnd);
+return LVar11;
+case VK_ZERO:
+case VK_ONE:
+case VK_TWO:
+case VK_THREE:
+case VK_FOUR:
+case VK_FIVE:
+case VK_SIX:
+case VK_SEVEN:
+case VK_EIGHT:
+case VK_NINE:
+goto switchD_004b482b_caseD_30;
+case VK_C:
+/* c was pressed */
+if ((DAT_GameCore.cheatModeFlag != FALSE) &&
+(BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore), BVar8 == FALSE)) {
+DAT_GameCore.unlockAllHistoricalCampaigns = 1;
+}
+break;
+case VK_D:
+/* key: D */
+if ((DAT_GameCore.currentMenuViewType == MVT_MAP_EDITOR_LANDSCAPING) ||
+((DAT_GameCore.currentMenuViewType == MVT_BUILD_MENU &&
+(DAT_GameCore.gameMode_2 == GM_EDITOR)))) {
+DAT_ViewportRenderState.DAT_MapEditorDisplayLayer =
+DAT_ViewportRenderState.DAT_MapEditorDisplayLayer + 1;
+if (2 < (int)DAT_ViewportRenderState.DAT_MapEditorDisplayLayer) {
+DAT_ViewportRenderState.DAT_MapEditorDisplayLayer = 0;
+}
+CheckDisplayElementByIDAndSetForUnlimitedDisplay
+(DEID_CONNECT_AND_PATH_LINKAGE_INFO_TEXT,
+DAT_ViewportRenderState.DAT_MapEditorDisplayLayer);
+}
+break;
+case VK_E:
+/* key E */
+if (((DAT_GameCore.currentMenuViewType == MVT_MAP_EDITOR_PROPERTIES) ||
+(DAT_GameCore.currentMenuViewType == MVT_MAP_EDITOR_LANDSCAPING)) ||
+((DAT_GameCore.currentMenuViewType == MVT_BUILD_MENU &&
+(DAT_GameCore.gameMode_2 == GM_EDITOR)))) {
+Map::Units::UnitsState::killAllUnownedUnits(&DAT_UnitsState);
+}
+break;
+case VK_H:
+/* H */
+if (DAT_GameCore.gameMode_2 == GM_EDITOR) {
+DAT_GameCore.isTimeHalted = (BOOLEnum)(DAT_GameCore.isTimeHalted2 == 0);
+DAT_GameCore.isTimeHalted2 = DAT_GameCore.isTimeHalted;
+}
+break;
+case VK_K:
+/* K */
+if ((DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) &&
+(DAT_GameCore.cheatModeFlag != FALSE)) {
+DAT_GameCore.solitaryAllBuildingsAreFree =
+(BOOLEnum)(DAT_GameCore.solitaryAllBuildingsAreFree == FALSE);
+}
+break;
+case VK_Q:
+/* Q */
+BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore);
+if (BVar8 != FALSE) {
+UI::Rendering::WindowAndDirectDraw::takeScreenshot
+(&DAT_WindowAndDirectDraw,
+DAT_ShortcutDefinedData.DAT_ScreenshotFilenameVariant);
+DAT_ShortcutDefinedData.DAT_ScreenshotFilenameVariant =
+DAT_ShortcutDefinedData.DAT_ScreenshotFilenameVariant + 1;
+}
+break;
+case VK_R:
+/* R */
+DAT_GameCore.altRToggleMinimapHideWildlife =
+DAT_GameCore.altRToggleMinimapHideWildlife == 0;
+break;
+case VK_T:
+if ((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) &&
+(DAT_GameSynchronyState.currentGameMode != GM_SKIRMISH_SINGLE_PLAYER)) {
+UI::Rendering::TogglePlayerPingDisplayElementUnk(DEID_PLAYER_PING_Unk_19,1);
+}
+break;
+case VK_U:
+/* U */
+if (((DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) &&
+(DAT_GameCore.currentMenuViewType == MVT_BUILDING_AND_STATUS_MENU)) &&
+(DAT_BuildingsState.buildings[DAT_BuildingsState.menuSelectedBuildingID].buildingType
+== BT_DUNGEON)) {
+DAT_GameCore.solitaryAltUDungeon = TRUE;
+}
+break;
+case VK_V:
+/* V */
+if (DAT_GameCore.gameMode_2 == GM_EDITOR) {
+iVar9 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].lordID
+;
+if (iVar9 != 0) {
+iVar4 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].
+lordUID;
+iVar14 = DAT_UnitsState.units[iVar9].uid;
+DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].lordID = 0;
+DAT_GameState.playerDataArray[iVar7].lordUID = 0;
+if (iVar4 == iVar14) {
+DAT_UnitsState.units[iVar9].logicalState = ULS_REMOVE;
+}
+}
+DAT_GameState.playerDataArray[iVar7].lordKilledByPlayerID = 0;
+}
+break;
+case VK_X:
+/* X */
+if ((DAT_GameSynchronyState.currentGameMode != GM_MULTIPLAYER) &&
+(DAT_GameCore.cheatModeFlag != FALSE)) {
+DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].popularity =
+10000;
+piVar16 = DAT_GameState.playerDataArray[iVar7].currentResources + 0xf;
+*piVar16 = *piVar16 + 1000;
+}
+break;
+case VK_NUMPAD0:
+case VK_NUMPAD1:
+case VK_NUMPAD2:
+case VK_NUMPAD3:
+case VK_NUMPAD4:
+case VK_NUMPAD5:
+case VK_NUMPAD6:
+case VK_NUMPAD7:
+case VK_NUMPAD8:
+case VK_NUMPAD9:
+wParam = wParam - VK_ZERO;
+switchD_004b482b_caseD_30:
+/* 0 - 9 */
+/* ? basically, pressing a number above the letters on keyboard or on the numpad
+*/
+BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore);
+if (BVar8 == FALSE) break;
+goto LAB_004b4af5;
+case VK_F10:
+goto switchD_004b2d9a_caseD_72;
+case VK_F11:
+case VK_F12:
+goto switchD_004b482b_caseD_7a;
+case VK_OEM_COMMA:
+/* COMMA */
+if (DAT_GameCore.currentMenuViewType == MVT_MAP_EDITOR_PROPERTIES) {
+if (DAT_MenuModalComposition1.activeModalDialogID == MMT_EDITOR_MAP_TYPE_QUICK_CHANGE) {
+UI::MenuModalComposition::activateModalDialog
+(&DAT_MenuModalComposition1,MMT_NONE,FALSE);
+}
+else if (DAT_MenuModalComposition1.activeModalDialogID == MMT_NONE) {
+UI::MenuModalComposition::activateModalDialog
+(&DAT_MenuModalComposition1,MMT_EDITOR_MAP_TYPE_QUICK_CHANGE,FALSE);
+}
+}
+break;
+case VK_OEM3:
+case VK_OEM7:
+/* ~ or single quote ` */
+if (DAT_GameCore.currentMenuViewType == MVT_EDIT_SCENARIO) {
+DAT_GameState.mapAndTime.editScenarioExtraOptions =
+DAT_GameState.mapAndTime.editScenarioExtraOptions ^ 1;
+}
+}
+}
+goto switchD_004b4d0c_doDefWindowProcA;
+}
+switch(message) {
+case WM_LBUTTONDOWN:
+Input::MouseState::updateMousePositionAndClicks(&DAT_MouseState,sVar5,yMousePos,MCI_LEFTDOWN);
+break;
+case WM_LBUTTONUP:
+clickType = MCI_LEFTUP;
+goto LAB_004b4d15;
+case WM_RBUTTONDOWN:
+Input::MouseState::updateMousePositionAndClicks(&DAT_MouseState,sVar5,yMousePos,MCI_RIGHTDOWN)
+;
+break;
+case WM_RBUTTONUP:
+clickType = MCI_RIGHTUP;
+goto LAB_004b4d15;
+case WM_MBUTTONDOWN:
+Input::MouseState::updateMousePositionAndClicks(&DAT_MouseState,sVar5,yMousePos,MCI_MIDDOWN);
+break;
+case WM_MBUTTONUP:
+clickType = MCI_MIDUP;
+LAB_004b4d15:
+Input::MouseState::updateMousePositionAndClicks(&DAT_MouseState,sVar5,yMousePos,clickType);
+break;
+case WM_MOUSEWHEEL:
+Input::MouseState::updateMouseWheelStatus(&DAT_MouseState,(int)(short)(wParam >> 0x10));
+}
+goto switchD_004b4d0c_doDefWindowProcA;
+}
+if (message != WM_KEYDOWN) {
+switch(message) {
+case WM_CREATE:
+case WM_MOVE:
+if (DAT_WindowAndDirectDraw.runGameAsExclusiveFullscreen != FALSE) break;
+DAT_WindowAndDirectDraw.windowMoveEventBlitCountdown = 10;
+goto LAB_004b2b45;
+case WM_DESTROY:
+DAT_WindowAndDirectDraw.postWindowCloseMessage = 3;
+DAT_WindowAndDirectDraw.windowHandle = (HWND)0x0;
+PostQuitMessage(0);
+break;
+case WM_SIZE:
+if (DAT_WindowAndDirectDraw.runGameAsExclusiveFullscreen != FALSE) {
+iVar7 = GetSystemMetrics(1);
+iVar9 = GetSystemMetrics(0);
+SetRect(&DAT_WindowAndDirectDraw.clientOnScreenCoords,0,0,iVar9,iVar7);
+break;
+}
+LAB_004b2b45:
+UI::Rendering::WindowAndDirectDraw::reinitWindow(&DAT_WindowAndDirectDraw);
+/* The following three calls fill the RECT structure with coords that describe
+the client in screen coordinates.  */
+GetClientRect(windowHandle,&DAT_WindowAndDirectDraw.clientOnScreenCoords);
+ClientToScreen(windowHandle,(LPPOINT)&DAT_WindowAndDirectDraw.clientOnScreenCoords);
+ClientToScreen(windowHandle,(LPPOINT)&DAT_WindowAndDirectDraw.clientOnScreenCoords.right);
+break;
+case WM_SETFOCUS:
+Audio::MSS::SoundSystem::resumeAudioSample(&DAT_SoundSystemState);
+ppFVar15 = DAT_BinkControlState.binkObjPtrArray;
+do {
+if (*ppFVar15 != (HBINK)0x0) {
+BinkPause(*ppFVar15,0);
+}
+ppFVar15 = ppFVar15 + 1;
+} while ((int)ppFVar15 < 0x2157570);
+break;
+case WM_KILLFOCUS:
+Audio::MSS::SoundSystem::pauseAudioSample(&DAT_SoundSystemState);
+ppFVar15 = DAT_BinkControlState.binkObjPtrArray;
+do {
+if (*ppFVar15 != (HBINK)0x0) {
+BinkPause(*ppFVar15,1);
+}
+ppFVar15 = ppFVar15 + 1;
+} while ((int)ppFVar15 < 0x2157570);
+break;
+case WM_PAINT:
+BeginPaint(windowHandle,&_paintstruct);
+EndPaint(windowHandle,&_paintstruct);
+BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore);
+if (BVar8 == FALSE) {
+DAT_WindowAndDirectDraw.unk_resetViewportRelated = 2;
+UI::Rendering::WindowAndDirectDraw::renderBltAndFlip(&DAT_WindowAndDirectDraw,1);
+}
+goto LAB_004b2cfd;
+case WM_CLOSE:
+case WM_QUIT:
+DAT_WindowAndDirectDraw.postWindowCloseMessage = 3;
+break;
+case WM_ACTIVATEAPP:
+sVar5 = (short)wParam;
+if (sVar5 == 1) {
+DAT_WindowAndDirectDraw.gameFocused = TRUE;
+}
+else if (sVar5 == 2) {
+DAT_WindowAndDirectDraw.gameFocused = TRUE;
+}
+else if (sVar5 == 0) {
+/* app is being deactivated */
+DAT_WindowAndDirectDraw.gameFocused = FALSE;
+DAT_WindowAndDirectDraw.isNotProcessingInputEvents = TRUE;
+Audio::MSS::SoundSystem::endSpeechSoundStreams(&DAT_SoundSystemState);
+}
+if ((DAT_WindowAndDirectDraw.isNotProcessingInputEvents != FALSE) &&
+(DAT_WindowAndDirectDraw.gameFocused != FALSE)) {
+/* restore everything */
+BVar8 = UI::Rendering::WindowAndDirectDraw::restoreDXSurfaces(&DAT_WindowAndDirectDraw);
+if (BVar8 != FALSE) {
+/* Restoring DirectX succeeded */
+UI::Rendering::WindowAndDirectDraw::reinitWindow(&DAT_WindowAndDirectDraw);
+}
+Input::MouseState::resetMouseState2(&DAT_MouseState);
+Input::MouseState::storeXYAndResetMouseState(&DAT_MouseState);
+}
+DAT_WindowAndDirectDraw.unk_resetViewportRelated = 1;
+break;
+case WM_DISPLAYCHANGE:
+DAT_WindowAndDirectDraw.screenHorizontalResolutionInPixels = lParam & 0xffff;
+DAT_WindowAndDirectDraw.screenVerticalResolutionInPixels = (uint)lParam >> 0x10;
+DAT_WindowAndDirectDraw.depthBitsPerPixel = wParam;
+}
+goto switchD_004b4d0c_doDefWindowProcA;
+}
+/* cheat mode activation check */
+/* assuming WM_KEYDOWN */
+DAT_ModifierKeyState.keyDownUnk = 1;
+if ((((DAT_GameCore.currentMenuViewType == MVT_MAIN_MENU) && (DAT_ModifierKeyState.ctrl != 0)) &&
+(DAT_GameCore.cheatModeFlag == FALSE)) &&
+(wParam == (byte)DAT_ShortcutDefinedData.cheatCode[DAT_CheatCodeStringTrackerIndex])) {
+iVar9 = DAT_CheatCodeStringTrackerIndex + 1;
+iVar7 = DAT_CheatCodeStringTrackerIndex + 1;
+DAT_CheatCodeStringTrackerIndex = iVar9;
+if (DAT_ShortcutDefinedData.cheatCode[iVar7] == '\0') {
+DAT_GameCore.cheatModeFlag = TRUE;
+}
+}
+else {
+DAT_CheatCodeStringTrackerIndex = 0;
+}
+switch(wParam) {
+case VK_BACKSPACE:
+/* VK_BACK (Backspace) */
+Text::UserTextHandler::handleBackspace(&DAT_UserTextHandlerState);
+Text::UserTextHandler::handleCharacterIntoInputBuffer(&DAT_UserTextHandlerState,0xf8);
+break;
+case VK_TAB:
+/* VK_TAB */
+if ((lParam & 0x40000000U) == 0) {
+Game::GameCore::hideOrUnhideUI(&DAT_GameCore);
+}
+break;
+case VK_ENTER:
+/* VK_RETURN */
+Text::UserTextHandler::handleReturnKey(&DAT_UserTextHandlerState);
+Text::UserTextHandler::handleCharacterIntoInputBuffer(&DAT_UserTextHandlerState,0xf1);
+if ((((DAT_GameCore.gameMode_2 == GM_SKIRMISH_AND_MULTIPLAYER) &&
+(DAT_MenuModalComposition1.activeModalDialogID == MMT_CHAT)) &&
+(DAT_GameSynchronyState.currentGameMode != GM_SKIRMISH_SINGLE_PLAYER)) ||
+(DAT_GameCore.currentMenuViewType == MVT_LOBBY_MENU)) {
+if (DAT_UserTextHandlerState.textArrayIndex == 4) {
+pcVar10 = Text::UserTextHandler::getCurrentText(&DAT_UserTextHandlerState);
+pcVar12 = pcVar10;
+do {
+cVar1 = *pcVar12;
+pcVar12 = pcVar12 + 1;
+} while (cVar1 != '\0');
+iVar7 = 0;
+if (0 < (int)pcVar12 - (int)(pcVar10 + 1)) {
+do {
+if (pcVar10[iVar7] != ' ') {
+DAT_GameSynchronyState.DAT_ChatTauntOrMessage = 0;
+Synchrony::GameSynchronyState::queueCommand(&DAT_GameSynchronyState,GCT_TAUNT_OR_CHAT)
+;
+Text::UserTextHandler::clearTextAndCursor(&DAT_UserTextHandlerState);
+if (DAT_GameCore.currentMenuViewType != MVT_LOBBY_MENU) {
+UI::MenuModalComposition::activateModalDialog
+(&DAT_MenuModalComposition1,MMT_NONE,FALSE);
+}
+break;
+}
+iVar7 = iVar7 + 1;
+} while (iVar7 < (int)pcVar12 - (int)(pcVar10 + 1));
+}
+}
+}
+else if (((DAT_GameCore.gameMode_2 == GM_SKIRMISH_AND_MULTIPLAYER) &&
+(DAT_MenuModalComposition1.activeModalDialogID == MMT_NONE)) &&
+(BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore), BVar8 != FALSE)) {
+if (DAT_GameSynchronyState.currentGameMode == GM_SKIRMISH_SINGLE_PLAYER) {
+UI::MenuModalComposition::activateModalDialog(&DAT_MenuModalComposition1,MMT_ALLIES,FALSE);
+}
+else {
+UI::MenuModalComposition::activateModalDialog(&DAT_MenuModalComposition1,MMT_CHAT,FALSE);
+DAT_UserTextHandlerState.allowUserTextInput = 0;
+Text::UserTextHandler::resetToTextIndex(&DAT_UserTextHandlerState,4);
+Text::UserTextHandler::clearTextAndCursor(&DAT_UserTextHandlerState);
+}
+}
+else if (DAT_MenuModalComposition1.activeModalDialogID == MMT_IDENTITY_OPTIONS) {
+UI::MenuItemActionHandler_IdentityOptions_Confirm(0x11);
+}
+break;
+case VK_ESCAPE:
+/* ESC */
+if ((lParam & 0x40000000U) != 0) break;
+if ((DAT_GameCore.currentMenuViewType == MVT_UNKNOWN_26_CAMPAIGN_RELATEDUnk) ||
+(DAT_GameCore.currentMenuViewType == MVT_INTRO_VIDEO)) {
+Game::GameCore::switchToMenuView(&DAT_GameCore,MVT_GAME_START_ENTER_NAME,0);
+goto LAB_004b38a3;
+}
+if (DAT_MenuModalComposition1.activeModalDialogID == MMT_QUIT_DIALOG) {
+if (DAT_MenuTextInputState.DAT_MenuOptionsActionParameter == 0x2f) goto LAB_004b38a3;
+}
+else {
+if (DAT_MenuModalComposition1.activeModalDialogID == MMT_ONLINE_VOTE_QUIT_GAME) {
+DAT_GameSynchronyState.DAT_GameCommandParam0 = 1;
+/* Escape ally switching */
+Synchrony::GameSynchronyState::queueCommand(&DAT_GameSynchronyState,GCT_SEND_QUIT_GAME_VOTE)
+;
+goto LAB_004b33a8;
+}
+if (DAT_MenuModalComposition1.activeModalDialogID == MMT_NEW_EVENT_CONDITION) {
+UI::MenuItemActionHandler_NewEventCondition_Main(0x25);
+LVar11 = HoldStrong_lib::__security_check_cookie(uVar6 ^ (uint)&_hwnd);
+return LVar11;
+}
+if ((DAT_MenuModalComposition1.activeModalDialogID == MMT_CHAT) ||
+(DAT_MenuModalComposition1.activeModalDialogID == MMT_SKIRMISH_CONNECTION_OPTIONS))
+goto LAB_004b33a8;
+}
+if (DAT_MenuTextInputState.currentModalDialog != MMT_NO_MENU) {
+if (DAT_MenuModalComposition1.activeModalDialogID == MMT_QUIT_DIALOG) {
+if (DAT_MenuTextInputState.DAT_MenuOptionsActionParameter == 2000) {
+DAT_GameSynchronyState.DAT_GameCommandParam0 = 1;
+Synchrony::GameSynchronyState::queueCommand
+(&DAT_GameSynchronyState,GCT_START_OR_STOP_SEND_MAP_FILEUnk);
+}
+}
+else if (DAT_MenuModalComposition1.activeModalDialogID == MMT_IDENTITY_OPTIONS) {
+UI::MenuItemActionHandler_IdentityOptions_Confirm(0x11);
+LVar11 = HoldStrong_lib::__security_check_cookie(uVar6 ^ (uint)&_hwnd);
+return LVar11;
+}
+UI::MenuTextInputState::popModalDialog(&DAT_MenuTextInputState);
+LVar11 = HoldStrong_lib::__security_check_cookie(uVar6 ^ (uint)&_hwnd);
+return LVar11;
+}
+if (DAT_GameCore.currentMenuViewType == MVT_UNUSED_HELP_TEXT_EDITOR) {
+Text::TextEditorState::openUnusedHelpTextEditorDialog(&DAT_TextEditorState,-1);
+LVar11 = HoldStrong_lib::__security_check_cookie(uVar6 ^ (uint)&_hwnd);
+return LVar11;
+}
+if (DAT_GameCore.currentMenuViewType == MVT_CREDITS) {
+Text::TextEditorState::closeHelpDialogAndReturnToMenu(&DAT_TextEditorState);
+}
+else {
+if ((DAT_TextEditorState.helpDialogVariant != 0) &&
+(DAT_GameCore.currentMenuViewType != MVT_SCENARIO_DESCRIPTION)) {
+Text::TextEditorState::closeHelpDialogAndReturnToMenu(&DAT_TextEditorState);
+LVar11 = HoldStrong_lib::__security_check_cookie(uVar6 ^ (uint)&_hwnd);
+return LVar11;
+}
+if (DAT_GameCore.currentMenuViewType == MVT_SELECT_CRUSADE) goto LAB_004b34ae;
+if (DAT_GameCore.currentMenuViewType == MVT_MAP_EDITOR_LANDSCAPING) {
+UI::MenuModalComposition::activateModalDialog(&DAT_MenuModalComposition1,MMT_NONE,FALSE);
+LAB_004b3517:
+Game::GameCore::switchToMenuView(&DAT_GameCore,MVT_MAP_EDITOR_PROPERTIES,0);
+LVar11 = HoldStrong_lib::__security_check_cookie(uVar6 ^ (uint)&_hwnd);
+return LVar11;
+}
+BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore);
+if (BVar8 != FALSE) {
+if (DAT_GameCore.gameMode_2 != GM_EDITOR) {
+if (DAT_GameCore.gameMode_2 == GM_SIEGE_THAT) {
+Game::GameCore::switchToMenuView(&DAT_GameCore,MVT_UNUSED_CREATE_SIEGE,0);
+LVar11 = HoldStrong_lib::__security_check_cookie(uVar6 ^ (uint)&_hwnd);
+return LVar11;
+}
+if (DAT_GameCore.specialMultiplayerState != 0) {
+Synchrony::GameSynchronyState::disconnectDPlay(&DAT_GameSynchronyState);
+DAT_WindowAndDirectDraw.postWindowCloseMessage = 1;
+LVar11 = HoldStrong_lib::__security_check_cookie(uVar6 ^ (uint)&_hwnd);
+return LVar11;
+}
+if (((DAT_GameCore.menuSwitchDelay == -1) ||
+(DAT_GameCore.menuViewToSwitchTo == MVT_BUILD_MENU)) ||
+(DAT_GameCore.menuViewToSwitchTo == MVT_BUILDING_AND_STATUS_MENU)) {
+UI::MenuTextInputState::activateModalDialogAndClearText
+(&DAT_MenuTextInputState,MMT_PAUSE_MENU);
+LVar11 = HoldStrong_lib::__security_check_cookie(uVar6 ^ (uint)&_hwnd);
+return LVar11;
+}
+goto LAB_004b38a3;
+}
+goto LAB_004b3517;
+}
+if ((DAT_GameCore.currentMenuViewType == MVT_MP_CONNECTION) ||
+(DAT_GameCore.currentMenuViewType == MVT_LOBBY_MENU)) {
+UI::MenuModalComposition::activateModalDialog(&DAT_MenuModalComposition1,MMT_NONE,FALSE);
+Synchrony::GameSynchronyState::disconnectDPlay(&DAT_GameSynchronyState);
+Game::GameCore::switchToMenuView(&DAT_GameCore,MVT_MAIN_MENU,0);
+LVar11 = HoldStrong_lib::__security_check_cookie(uVar6 ^ (uint)&_hwnd);
+return LVar11;
+}
+if (DAT_GameCore.currentMenuViewType != MVT_SINGLEPLAYER_MAP_CHOICE) {
+if (DAT_GameCore.currentMenuViewType == MVT_GAME_START_ENTER_NAME) goto LAB_004b38a3;
+if (((DAT_GameCore.currentMenuViewType != MVT_HISTORIC_CAMPAIGN_SELECT) &&
+(DAT_GameCore.currentMenuViewType != MVT_UNUSED_ECONOMIC_GAMETYPE_SELECT)) &&
+(DAT_GameCore.currentMenuViewType != MVT_CUSTOM_SCENARIOS)) {
+if (DAT_GameCore.currentMenuViewType ==
+(MVT_UNUSED_HELP_TEXT_EDITOR|MVT_UNUSED_OLD_TITLE_MENU)) {
+if (DAT_MenuModalComposition1.activeModalDialogID == MMT_NONE) {
+Game::GameCore::switchToMenuView(&DAT_GameCore,MVT_INTRO_LOGOS,0);
+LVar11 = HoldStrong_lib::__security_check_cookie(uVar6 ^ (uint)&_hwnd);
+return LVar11;
+}
+UI::MenuModalComposition::activateModalDialog(&DAT_MenuModalComposition1,MMT_NONE,FALSE)
+;
+LVar11 = HoldStrong_lib::__security_check_cookie(uVar6 ^ (uint)&_hwnd);
+return LVar11;
+}
+if (DAT_GameCore.currentMenuViewType == 0x18) {
+UI::MenuModalComposition::activateModalDialog(&DAT_MenuModalComposition1,MMT_NONE,FALSE)
+;
+Game::GameCore::switchToMenuView
+(&DAT_GameCore,MVT_UNUSED_HELP_TEXT_EDITOR|MVT_UNUSED_OLD_TITLE_MENU,0);
+LVar11 = HoldStrong_lib::__security_check_cookie(uVar6 ^ (uint)&_hwnd);
+return LVar11;
+}
+if (DAT_GameCore.currentMenuViewType == MVT_MAP_EDITOR_PROPERTIES) {
+LAB_004b33a8:
+UI::MenuModalComposition::activateModalDialog(&DAT_MenuModalComposition1,MMT_NONE,FALSE)
+;
+LVar11 = HoldStrong_lib::__security_check_cookie(uVar6 ^ (uint)&_hwnd);
+return LVar11;
+}
+if ((DAT_GameCore.currentMenuViewType != MVT_HISTORIC_MISSION_SELECT) &&
+(DAT_GameCore.currentMenuViewType != MVT_UNUSED_ECONOMIC_MISSION_SELECTUnk)) {
+if (DAT_GameCore.currentMenuViewType == MVT_NEW_MAP_MAPTYPE) {
+UI::MenuModalComposition::activateModalDialog
+(&DAT_MenuModalComposition1,MMT_NONE,FALSE);
+Game::GameCore::switchToMenuView(&DAT_GameCore,MVT_CUSTOM_SCENARIOS,0);
+LVar11 = HoldStrong_lib::__security_check_cookie(uVar6 ^ (uint)&_hwnd);
+return LVar11;
+}
+if (DAT_GameCore.currentMenuViewType == MVT_NEW_MAP_MAPSIZE) {
+UI::MenuModalComposition::activateModalDialog
+(&DAT_MenuModalComposition1,MMT_NONE,FALSE);
+Game::GameCore::switchToMenuView(&DAT_GameCore,MVT_NEW_MAP_MAPTYPE,0);
+LVar11 = HoldStrong_lib::__security_check_cookie(uVar6 ^ (uint)&_hwnd);
+return LVar11;
+}
+if (DAT_GameCore.currentMenuViewType == MVT_UNUSED_CHOOSE_AVAILABLE_KEEPS) {
+UI::MenuModalComposition::activateModalDialog
+(&DAT_MenuModalComposition1,MMT_NONE,FALSE);
+LAB_004b3756:
+Game::GameCore::switchToMenuView(&DAT_GameCore,MVT_NEW_MAP_MAPSIZE,0);
+LVar11 = HoldStrong_lib::__security_check_cookie(uVar6 ^ (uint)&_hwnd);
+return LVar11;
+}
+if ((((((DAT_GameCore.currentMenuViewType != MVT_UNUSED_SOME_MISSION_STARTUnk) &&
+(DAT_GameCore.currentMenuViewType != MVT_UNKNOWN_26_CAMPAIGN_RELATEDUnk)) &&
+(DAT_GameCore.currentMenuViewType != MVT_UNKNOWN_27_CAMPAIGNUnk)) &&
+((DAT_GameCore.currentMenuViewType != MVT_SCENARIO_DESCRIPTION &&
+(DAT_GameCore.currentMenuViewType != MVT_MISSION_FINISHED_TRANSITION)))) &&
+(DAT_GameCore.currentMenuViewType != MVT_GAME_LOSTUnk)) &&
+(DAT_GameCore.currentMenuViewType != MVT_EDIT_SCENARIO)) {
+if (DAT_GameCore.currentMenuViewType == MVT_HISTORIC_CAMPAIGN_INTRO) {
+Game::GameCore::switchToMenuView(&DAT_GameCore,MVT_HISTORIC_MISSION_PICTURE,0);
+Audio::MSS::SoundSystem::endSpeechStreamsAndResetLoopFlags(&DAT_SoundSystemState);
+LVar11 = HoldStrong_lib::__security_check_cookie(uVar6 ^ (uint)&_hwnd);
+return LVar11;
+}
+if ((DAT_GameCore.currentMenuViewType == MVT_HISTORIC_MISSION_PICTURE) ||
+(DAT_GameCore.currentMenuViewType == MVT_HISTORIC_MISSION_INTRO)) {
+Game::GameCore::switchToMenuView(&DAT_GameCore,MVT_SCENARIO_DESCRIPTION,0);
+Audio::MSS::SoundSystem::endSpeechStreamsAndResetLoopFlags(&DAT_SoundSystemState);
+LVar11 = HoldStrong_lib::__security_check_cookie(uVar6 ^ (uint)&_hwnd);
+return LVar11;
+}
+if (DAT_GameCore.currentMenuViewType == MVT_UNUSED_CHOOSE_GAME_TYPE)
+goto LAB_004b3756;
+if (DAT_GameCore.currentMenuViewType == MVT_MAIN_MENU) {
+UI::MenuTextInputState::activateModalDialogAndClearText
+(&DAT_MenuTextInputState,MMT_MAIN_MENU_OPTIONS);
+LVar11 = HoldStrong_lib::__security_check_cookie(uVar6 ^ (uint)&_hwnd);
+return LVar11;
+}
+}
+LAB_004b38a3:
+LVar11 = HoldStrong_lib::__security_check_cookie(uVar6 ^ (uint)&_hwnd);
+return LVar11;
+}
+}
+}
+}
+UI::MenuModalComposition::activateModalDialog(&DAT_MenuModalComposition1,MMT_NONE,FALSE);
+LAB_004b34ae:
+Game::GameCore::switchToMenuView(&DAT_GameCore,MVT_MAIN_MENU,0);
+LVar11 = HoldStrong_lib::__security_check_cookie(uVar6 ^ (uint)&_hwnd);
+return LVar11;
+case VK_SPACE:
+/* VK_SPACE */
+if ((lParam & 0x40000000U) == 0) {
+if (DAT_GameCore.gameMode_2 == GM_CRUSADER_TUTORIAL) {
+iVar7 = Input::GetCurrentTutorialStep();
+if (0x1c < iVar7) {
+Map::TileMapState::toggleFlatView
+(&DAT_TileMapState,DAT_TileMapState.flatViewToggleValue1 ^ 1);
+}
+}
+else {
+BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore);
+if ((BVar8 != FALSE) && (DAT_MenuModalComposition1.activeModalDialogID == MMT_NONE)) {
+Map::TileMapState::toggleFlatView
+(&DAT_TileMapState,DAT_TileMapState.flatViewToggleValue1 ^ 1);
+}
+}
+}
+break;
+case VK_PAGE_UP:
+/* VK_PRIOR (Page Up) */
+Text::UserTextHandler::handleCharacterIntoInputBuffer(&DAT_UserTextHandlerState,0xfa);
+break;
+case VK_PAGE_DOWN:
+/* VK_NEXT (Page Down) */
+Text::UserTextHandler::handleCharacterIntoInputBuffer(&DAT_UserTextHandlerState,0xfb);
+break;
+case VK_END:
+/* VK_END */
+Text::UserTextHandler::moveCursorToEnd(&DAT_UserTextHandlerState);
+Text::UserTextHandler::handleCharacterIntoInputBuffer(&DAT_UserTextHandlerState,0xf7);
+break;
+case VK_HOME:
+/* VK_HOME */
+Text::UserTextHandler::resetCursorToStart(&DAT_UserTextHandlerState);
+Text::UserTextHandler::handleCharacterIntoInputBuffer(&DAT_UserTextHandlerState,0xf6);
+break;
+case VK_LEFT:
+/* VK_LEFT */
+Text::UserTextHandler::handleLeftKey(&DAT_UserTextHandlerState);
+BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore);
+if ((((BVar8 == FALSE) || (DAT_MenuModalComposition1.activeModalDialogID != MMT_NONE)) ||
+(DAT_ModifierKeyState.ctrl == 0)) || (DAT_MouseState.rightClickState != FALSE)) {
+if ((DAT_GameCore.gameMode_2 != GM_SKIRMISH_AND_MULTIPLAYER) ||
+(DAT_MenuModalComposition1.activeModalDialogID != MMT_CHAT)) {
+DAT_ScrollingHandler.leftKeyDown_0x1c = TRUE;
+}
+Text::UserTextHandler::handleCharacterIntoInputBuffer(&DAT_UserTextHandlerState,0xf2);
+}
+else {
+uVar13 = DAT_TileMapState.mapOrientation + 2U & 0x80000007;
+if ((int)uVar13 < 0) {
+uVar13 = (uVar13 - 1 | 0xfffffff8) + 1;
+}
+Map::TileMapState::setMapRotation(&DAT_TileMapState,uVar13);
+Text::UserTextHandler::handleCharacterIntoInputBuffer(&DAT_UserTextHandlerState,0xf2);
+}
+break;
+case VK_UP:
+/* VK_UP */
+BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore);
+if (((BVar8 != FALSE) && (DAT_MenuModalComposition1.activeModalDialogID == MMT_NONE)) &&
+((DAT_ModifierKeyState.ctrl != 0 && (DAT_MouseState.rightClickState == FALSE)))) {
+/* zoom */
+Rendering::ViewportRenderState::resetupViewport
+(&DAT_ViewportRenderState,
+(uint)(DAT_ViewportRenderState.viewportState.isZoomedOutUnk == 0));
+DAT_WindowAndDirectDraw.unk_resetViewportRelated = 2;
+DAT_UIDragDropDefinedData.DAT_MenuView_TriggerInitial = TRUE;
+}
+if ((DAT_GameCore.gameMode_2 != GM_SKIRMISH_AND_MULTIPLAYER) ||
+(DAT_MenuModalComposition1.activeModalDialogID != MMT_CHAT)) {
+DAT_ScrollingHandler.upKeyDown_0x24 = TRUE;
+}
+Text::UserTextHandler::handleCharacterIntoInputBuffer(&DAT_UserTextHandlerState,0xf4);
+break;
+case VK_RIGHT:
+/* VK_RIGHT */
+Text::UserTextHandler::handleRightKey(&DAT_UserTextHandlerState);
+BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore);
+if ((((BVar8 == FALSE) || (DAT_MenuModalComposition1.activeModalDialogID != MMT_NONE)) ||
+(DAT_ModifierKeyState.ctrl == 0)) || (DAT_MouseState.rightClickState != FALSE)) {
+if ((DAT_GameCore.gameMode_2 != GM_SKIRMISH_AND_MULTIPLAYER) ||
+(DAT_MenuModalComposition1.activeModalDialogID != MMT_CHAT)) {
+DAT_ScrollingHandler.rightKeyDown_0x18 = TRUE;
+}
+Text::UserTextHandler::handleCharacterIntoInputBuffer(&DAT_UserTextHandlerState,0xf3);
+}
+else {
+uVar13 = DAT_TileMapState.mapOrientation + 6U & 0x80000007;
+if ((int)uVar13 < 0) {
+uVar13 = (uVar13 - 1 | 0xfffffff8) + 1;
+}
+Map::TileMapState::setMapRotation(&DAT_TileMapState,uVar13);
+Text::UserTextHandler::handleCharacterIntoInputBuffer(&DAT_UserTextHandlerState,0xf3);
+}
+break;
+case VK_DOWN:
+/* VK_DOWN */
+BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore);
+if (((BVar8 == FALSE) || (DAT_MenuModalComposition1.activeModalDialogID != MMT_NONE)) ||
+((DAT_ModifierKeyState.ctrl == 0 || (DAT_MouseState.rightClickState != FALSE)))) {
+if ((DAT_GameCore.gameMode_2 != GM_SKIRMISH_AND_MULTIPLAYER) ||
+(DAT_MenuModalComposition1.activeModalDialogID != MMT_CHAT)) {
+DAT_ScrollingHandler.downKeyDown_0x20 = TRUE;
+}
+Text::UserTextHandler::handleCharacterIntoInputBuffer(&DAT_UserTextHandlerState,0xf5);
+}
+else {
+Map::TileMapState::triggerLoweredView(&DAT_TileMapState,3);
+DAT_ModifierKeyState.downArrow = 1;
+Text::UserTextHandler::handleCharacterIntoInputBuffer(&DAT_UserTextHandlerState,0xf5);
+}
+break;
+case VK_INSERT:
+/* VK_INSERT */
+DAT_InsertKeyState.insert = DAT_InsertKeyState.insert ^ 1;
+break;
+case VK_DELETE_KEY:
+/* VK_DELETE */
+Text::UserTextHandler::handleDeleteKey(&DAT_UserTextHandlerState);
+Text::UserTextHandler::handleCharacterIntoInputBuffer(&DAT_UserTextHandlerState,0xf9);
+break;
+case VK_ZERO:
+case VK_ONE:
+case VK_TWO:
+case VK_THREE:
+case VK_FOUR:
+case VK_FIVE:
+case VK_SIX:
+case VK_SEVEN:
+case VK_EIGHT:
+case VK_NINE:
+goto switchD_004b2d9a_caseD_30;
+case VK_A:
+/* A */
+if ((((lParam & 0x40000000U) != 0) ||
+(BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore), BVar8 == FALSE)) ||
+(DAT_MenuModalComposition1.activeModalDialogID != MMT_NONE)) break;
+if (DAT_ModifierKeyState.shift != 0) {
+if (DAT_GameCore.viewportFocusBeforeArmoryHotkey != -1) {
+Rendering::ViewportRenderState::focusOnTile
+(&DAT_ViewportRenderState,DAT_GameCore.viewportFocusBeforeArmoryHotkey);
+if (DAT_GameCore.currentMenuViewType == MVT_BUILDING_AND_STATUS_MENU) {
+Game::GameCore::switchToMenuView(&DAT_GameCore,MVT_BUILD_MENU,0);
+}
+DAT_GameCore.viewportFocusBeforeArmoryHotkey = -1;
+}
+break;
+}
+if (DAT_ModifierKeyState.ctrl != 0) {
+iVar7 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].armory.id;
+if (iVar7 != 0) {
+UI::Rendering::AlphaAndButtonSurface::openBuildingStatusMenuForBuildingID
+(&AlphaAndButtonSurfaceObj,iVar7);
+}
+break;
+}
+iVar7 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].armory.id;
+if (iVar7 == 0) break;
+DAT_GameCore.viewportFocusBeforeArmoryHotkey = Rendering::ViewportBasedTileNumber();
+goto LAB_004b3b12;
+case VK_B:
+/* B */
+if ((((lParam & 0x40000000U) != 0) ||
+(BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore), BVar8 == FALSE)) ||
+(DAT_MenuModalComposition1.activeModalDialogID != MMT_NONE)) break;
+if (DAT_ModifierKeyState.shift != 0) {
+if (DAT_GameCore.viewportFocusBeforeBarracksHotkey != -1) {
+Rendering::ViewportRenderState::focusOnTile
+(&DAT_ViewportRenderState,DAT_GameCore.viewportFocusBeforeBarracksHotkey);
+if (DAT_GameCore.currentMenuViewType == MVT_BUILDING_AND_STATUS_MENU) {
+Game::GameCore::switchToMenuView(&DAT_GameCore,MVT_BUILD_MENU,0);
+}
+DAT_GameCore.viewportFocusBeforeBarracksHotkey = -1;
+}
+break;
+}
+if (DAT_ModifierKeyState.ctrl != 0) {
+iVar7 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].barracks.id;
+if (iVar7 != 0) {
+UI::Rendering::AlphaAndButtonSurface::openBuildingStatusMenuForBuildingID
+(&AlphaAndButtonSurfaceObj,iVar7);
+}
+break;
+}
+iVar7 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].barracks.id;
+if (iVar7 == 0) break;
+DAT_GameCore.viewportFocusBeforeBarracksHotkey = Rendering::ViewportBasedTileNumber();
+goto LAB_004b3b12;
+case VK_C:
+/* C */
+BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore);
+if (((BVar8 != FALSE) && (DAT_MenuModalComposition1.activeModalDialogID == MMT_NONE)) &&
+(DAT_MouseState.rightClickState == FALSE)) {
+uVar13 = DAT_TileMapState.mapOrientation + 6U & 0x80000007;
+if ((int)uVar13 < 0) {
+uVar13 = (uVar13 - 1 | 0xfffffff8) + 1;
+}
+Map::TileMapState::setMapRotation(&DAT_TileMapState,uVar13);
+}
+break;
+case VK_E:
+/* E */
+if (((DAT_MenuModalComposition1.activeModalDialogID == MMT_NONE) &&
+(DAT_GameCore.currentMenuViewType == MVT_BUILD_MENU)) &&
+((DAT_GameCore.activeMenuTab.tabType == BASMTT_SIEGETENT_BATTERINGRAM ||
+(DAT_GameCore.activeMenuTab.tabType == BASMTT_SIEGETENT_SHIELD)))) {
+Map::Units::TribesState::queueUnitStance
+(&DAT_TribesState,DAT_TribesState.DAT_CurrentTribeID,2);
+}
+break;
+case VK_G:
+/* G */
+if ((((lParam & 0x40000000U) != 0) ||
+(BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore), BVar8 == FALSE)) ||
+(DAT_MenuModalComposition1.activeModalDialogID != MMT_NONE)) break;
+if (DAT_ModifierKeyState.shift != 0) {
+if (DAT_GameCore.viewportFocusBeforeGranaryHotkey != -1) {
+Rendering::ViewportRenderState::focusOnTile
+(&DAT_ViewportRenderState,DAT_GameCore.viewportFocusBeforeGranaryHotkey);
+if (DAT_GameCore.currentMenuViewType == MVT_BUILDING_AND_STATUS_MENU) {
+Game::GameCore::switchToMenuView(&DAT_GameCore,MVT_BUILD_MENU,0);
+}
+DAT_GameCore.viewportFocusBeforeGranaryHotkey = -1;
+}
+break;
+}
+if (DAT_ModifierKeyState.ctrl != 0) {
+iVar7 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].granary.id;
+if (iVar7 != 0) {
+UI::Rendering::AlphaAndButtonSurface::openBuildingStatusMenuForBuildingID
+(&AlphaAndButtonSurfaceObj,iVar7);
+}
+break;
+}
+iVar7 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].granary.id;
+if (iVar7 == 0) break;
+DAT_GameCore.viewportFocusBeforeGranaryHotkey = Rendering::ViewportBasedTileNumber();
+goto LAB_004b3a17;
+case VK_H:
+/* H */
+if ((((lParam & 0x40000000U) != 0) ||
+(BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore), BVar8 == FALSE)) ||
+(DAT_MenuModalComposition1.activeModalDialogID != MMT_NONE)) break;
+if (DAT_ModifierKeyState.shift != 0) {
+if (DAT_GameCore.viewportFocusBeforeKeepHotkey != -1) {
+Rendering::ViewportRenderState::focusOnTile
+(&DAT_ViewportRenderState,DAT_GameCore.viewportFocusBeforeKeepHotkey);
+if (DAT_GameCore.currentMenuViewType == MVT_BUILDING_AND_STATUS_MENU) {
+Game::GameCore::switchToMenuView(&DAT_GameCore,MVT_BUILD_MENU,0);
+}
+DAT_GameCore.viewportFocusBeforeKeepHotkey = -1;
+}
+break;
+}
+if (DAT_ModifierKeyState.ctrl != 0) {
+iVar7 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].keep.id;
+if (iVar7 != 0) {
+UI::Rendering::AlphaAndButtonSurface::openBuildingStatusMenuForBuildingID
+(&AlphaAndButtonSurfaceObj,iVar7);
+}
+break;
+}
+iVar7 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].keep.id;
+if (iVar7 == 0) break;
+DAT_GameCore.viewportFocusBeforeKeepHotkey = Rendering::ViewportBasedTileNumber();
+goto LAB_004b3a17;
+case VK_I:
+/* I */
+if ((((lParam & 0x40000000U) != 0) ||
+(BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore), BVar8 == FALSE)) ||
+(DAT_MenuModalComposition1.activeModalDialogID != MMT_NONE)) break;
+if (DAT_ModifierKeyState.shift != 0) {
+if (DAT_GameCore.viewportFocusBeforeEngineersGuildHotkey != -1) {
+Rendering::ViewportRenderState::focusOnTile
+(&DAT_ViewportRenderState,DAT_GameCore.viewportFocusBeforeEngineersGuildHotkey);
+if (DAT_GameCore.currentMenuViewType == MVT_BUILDING_AND_STATUS_MENU) {
+Game::GameCore::switchToMenuView(&DAT_GameCore,MVT_BUILD_MENU,0);
+}
+DAT_GameCore.viewportFocusBeforeEngineersGuildHotkey = -1;
+}
+break;
+}
+if (DAT_ModifierKeyState.ctrl != 0) {
+iVar7 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].
+engineersGuild.id;
+if (iVar7 != 0) {
+UI::Rendering::AlphaAndButtonSurface::openBuildingStatusMenuForBuildingID
+(&AlphaAndButtonSurfaceObj,iVar7);
+}
+break;
+}
+iVar7 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].engineersGuild
+.id;
+if (iVar7 == 0) break;
+DAT_GameCore.viewportFocusBeforeEngineersGuildHotkey = Rendering::ViewportBasedTileNumber();
+goto LAB_004b3a17;
+case VK_L:
+/* L */
+if ((((lParam & 0x40000000U) == 0) &&
+(BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore), BVar8 != FALSE)) &&
+(DAT_MenuModalComposition1.activeModalDialogID == MMT_NONE)) {
+if (DAT_ModifierKeyState.shift == 0) {
+iVar7 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].lordID;
+if (((iVar7 != 0) && (DAT_UnitsState.units[iVar7].unitType == UT_LORD)) &&
+((DAT_UnitsState.units[iVar7].owner == DAT_GameSynchronyState.currentPlayerSlotID &&
+(DAT_UnitsState.units[iVar7].logicalState == ULS_NORMAL)))) {
+Rendering::ViewportRenderState::focusOnTile
+(&DAT_ViewportRenderState,DAT_UnitsState.units[iVar7].tile);
+}
+}
+else {
+iVar7 = 0;
+do {
+iVar9 = DAT_ShortcutDefinedData.DAT_CyclingLordID;
+DAT_ShortcutDefinedData.DAT_CyclingLordID = DAT_ShortcutDefinedData.DAT_CyclingLordID + 1;
+if (DAT_ShortcutDefinedData.DAT_CyclingLordID == 9) {
+DAT_ShortcutDefinedData.DAT_CyclingLordID = 1;
+}
+iVar9 = Map::Units::UnitsState::getAliveLordForPlayer(&DAT_UnitsState,iVar9);
+if (iVar9 != 0) {
+Rendering::ViewportRenderState::focusOnTile
+(&DAT_ViewportRenderState,DAT_UnitsState.units[iVar9].tile);
+break;
+}
+iVar7 = iVar7 + 1;
+} while (iVar7 < 8);
+}
+}
+break;
+case VK_M:
+/* M */
+if ((((lParam & 0x40000000U) != 0) ||
+(BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore), BVar8 == FALSE)) ||
+(DAT_MenuModalComposition1.activeModalDialogID != MMT_NONE)) break;
+if (DAT_ModifierKeyState.shift != 0) {
+if (DAT_GameCore.viewportFocusBeforeMarketHotkey != -1) {
+Rendering::ViewportRenderState::focusOnTile
+(&DAT_ViewportRenderState,DAT_GameCore.viewportFocusBeforeMarketHotkey);
+if (DAT_GameCore.currentMenuViewType == MVT_BUILDING_AND_STATUS_MENU) {
+Game::GameCore::switchToMenuView(&DAT_GameCore,MVT_BUILD_MENU,0);
+}
+DAT_GameCore.viewportFocusBeforeMarketHotkey = -1;
+}
+break;
+}
+if (DAT_ModifierKeyState.ctrl != 0) {
+iVar7 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].marketplace.
+id;
+if (iVar7 != 0) {
+UI::Rendering::AlphaAndButtonSurface::openBuildingStatusMenuForBuildingID
+(&AlphaAndButtonSurfaceObj,iVar7);
+}
+break;
+}
+iVar7 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].marketplace.id
+;
+if (iVar7 == 0) break;
+DAT_GameCore.viewportFocusBeforeMarketHotkey = Rendering::ViewportBasedTileNumber();
+goto LAB_004b3b12;
+case VK_N:
+/* N */
+if ((((lParam & 0x40000000U) != 0) ||
+(BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore), BVar8 == FALSE)) ||
+(DAT_MenuModalComposition1.activeModalDialogID != MMT_NONE)) break;
+if (DAT_ModifierKeyState.shift != 0) {
+if (DAT_GameCore.viewportFocusBeforeMercenaryHotkey != -1) {
+Rendering::ViewportRenderState::focusOnTile
+(&DAT_ViewportRenderState,DAT_GameCore.viewportFocusBeforeMercenaryHotkey);
+if (DAT_GameCore.currentMenuViewType == MVT_BUILDING_AND_STATUS_MENU) {
+Game::GameCore::switchToMenuView(&DAT_GameCore,MVT_BUILD_MENU,0);
+}
+DAT_GameCore.viewportFocusBeforeMercenaryHotkey = -1;
+}
+break;
+}
+if (DAT_ModifierKeyState.ctrl != 0) {
+iVar7 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].
+mercenaryPost.id;
+if (iVar7 != 0) {
+UI::Rendering::AlphaAndButtonSurface::openBuildingStatusMenuForBuildingID
+(&AlphaAndButtonSurfaceObj,iVar7);
+}
+break;
+}
+iVar7 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].mercenaryPost.
+id;
+if (iVar7 == 0) break;
+DAT_GameCore.viewportFocusBeforeMercenaryHotkey = Rendering::ViewportBasedTileNumber();
+LAB_004b3b12:
+/* b press */
+uVar2 = DAT_BuildingsState.buildings[iVar7].y;
+uVar3 = DAT_BuildingsState.buildings[iVar7].x;
+LAB_004b3a35:
+Rendering::ViewportRenderState::focusOnCoordinate
+(&DAT_ViewportRenderState,(short)uVar3 + 2,(short)uVar2 + 2);
+UI::Rendering::AlphaAndButtonSurface::openBuildingStatusMenuForBuildingID
+(&AlphaAndButtonSurfaceObj,iVar7);
+break;
+case VK_P:
+/* P */
+BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore);
+if ((((BVar8 != FALSE) && (DAT_MenuModalComposition1.activeModalDialogID == MMT_NONE)) &&
+(DAT_GameCore.gameMode_2 != GM_EDITOR)) &&
+((DAT_GameCore.gameMode_2 != GM_SIEGE_THAT &&
+(DAT_GameSynchronyState.currentGameMode != GM_MULTIPLAYER)))) {
+DAT_GameCore.gamePausedLogical = DAT_GameCore.gamePausedLogical ^ 1;
+if (DAT_GameCore.gamePausedLogical == 0) {
+if (DAT_GameCore.genieVoiceActive != FALSE) {
+/* "Game running" */
+Audio::SFX::SFXState::playWAVSFX(&DAT_SFXState,"game_running.wav");
+}
+}
+else {
+CheckDisplayElementByIDAndSetForUnlimitedDisplay(DEID_GAME_PAUSED_TEXT,1);
+DAT_TileMapState.currentMapperCommand = M_MAPPER_NULL;
+if (DAT_GameCore.genieVoiceActive != FALSE) {
+/* "Game paused" */
+Audio::SFX::SFXState::playWAVSFX(&DAT_SFXState,"game_paused.wav");
+}
+}
+}
+break;
+case VK_Q:
+/* Q */
+if (((DAT_MenuModalComposition1.activeModalDialogID == MMT_NONE) &&
+(DAT_GameCore.currentMenuViewType == MVT_BUILD_MENU)) &&
+((DAT_GameCore.activeMenuTab.tabType == BASMTT_SIEGETENT_BATTERINGRAM ||
+(DAT_GameCore.activeMenuTab.tabType == BASMTT_SIEGETENT_SHIELD)))) {
+Map::Units::TribesState::queueUnitStance
+(&DAT_TribesState,DAT_TribesState.DAT_CurrentTribeID,0);
+}
+break;
+case VK_S:
+/* S */
+if ((((lParam & 0x40000000U) == 0) &&
+(BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore), BVar8 != FALSE)) &&
+(DAT_MenuModalComposition1.activeModalDialogID == MMT_NONE)) {
+iVar7 = DAT_GameState.mapAndTime.signpostIDs[DAT_00df5538];
+if (iVar7 != 0) {
+Rendering::ViewportRenderState::focusOnCoordinate
+(&DAT_ViewportRenderState,(short)DAT_BuildingsState.buildings[iVar7].x + 1,
+(short)DAT_BuildingsState.buildings[iVar7].y + 1);
+}
+DAT_00df5538 = DAT_00df5538 + 1;
+if (7 < DAT_00df5538) {
+DAT_00df5538 = 0;
+}
+iVar9 = 1;
+iVar7 = DAT_GameState.mapAndTime.signpostIDs[DAT_00df5538];
+while (iVar7 == 0) {
+DAT_00df5538 = DAT_00df5538 + 1;
+if (7 < DAT_00df5538) {
+DAT_00df5538 = 0;
+}
+iVar9 = iVar9 + 1;
+if (7 < iVar9) break;
+iVar7 = DAT_GameState.mapAndTime.signpostIDs[DAT_00df5538];
+}
+}
+break;
+case VK_T:
+/* T */
+if ((((lParam & 0x40000000U) != 0) ||
+(BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore), BVar8 == FALSE)) ||
+(DAT_MenuModalComposition1.activeModalDialogID != MMT_NONE)) break;
+if (DAT_ModifierKeyState.shift != 0) {
+if (DAT_GameCore.field168_0x2364 != -1) {
+Rendering::ViewportRenderState::focusOnTile
+(&DAT_ViewportRenderState,DAT_GameCore.field168_0x2364);
+if (DAT_GameCore.currentMenuViewType == MVT_BUILDING_AND_STATUS_MENU) {
+Game::GameCore::switchToMenuView(&DAT_GameCore,MVT_BUILD_MENU,0);
+}
+DAT_GameCore.field168_0x2364 = -1;
+}
+break;
+}
+if (DAT_ModifierKeyState.ctrl != 0) {
+iVar7 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].
+tunnelersGuild.id;
+if (iVar7 != 0) {
+UI::Rendering::AlphaAndButtonSurface::openBuildingStatusMenuForBuildingID
+(&AlphaAndButtonSurfaceObj,iVar7);
+}
+break;
+}
+iVar7 = DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].tunnelersGuild
+.id;
+if (iVar7 == 0) break;
+DAT_GameCore.field168_0x2364 = Rendering::ViewportBasedTileNumber();
+LAB_004b3a17:
+uVar2 = DAT_BuildingsState.buildings[iVar7].y;
+uVar3 = DAT_BuildingsState.buildings[iVar7].x;
+goto LAB_004b3a35;
+case VK_V:
+/* V */
+BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore);
+if (((BVar8 != FALSE) && (DAT_MenuModalComposition1.activeModalDialogID == MMT_NONE)) &&
+(DAT_MouseState.rightClickState == FALSE)) {
+Map::TileMapState::triggerLoweredView(&DAT_TileMapState,3);
+DAT_ModifierKeyState.v = 1;
+}
+break;
+case VK_W:
+/* W */
+if (((DAT_MenuModalComposition1.activeModalDialogID == MMT_NONE) &&
+(DAT_GameCore.currentMenuViewType == MVT_BUILD_MENU)) &&
+((DAT_GameCore.activeMenuTab.tabType == BASMTT_SIEGETENT_BATTERINGRAM ||
+(DAT_GameCore.activeMenuTab.tabType == BASMTT_SIEGETENT_SHIELD)))) {
+Map::Units::TribesState::queueUnitStance
+(&DAT_TribesState,DAT_TribesState.DAT_CurrentTribeID,1);
+}
+break;
+case VK_X:
+/* X */
+BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore);
+if (((BVar8 != FALSE) && (DAT_MenuModalComposition1.activeModalDialogID == MMT_NONE)) &&
+(DAT_MouseState.rightClickState == FALSE)) {
+uVar13 = DAT_TileMapState.mapOrientation + 2U & 0x80000007;
+if ((int)uVar13 < 0) {
+uVar13 = (uVar13 - 1 | 0xfffffff8) + 1;
+}
+Map::TileMapState::setMapRotation(&DAT_TileMapState,uVar13);
+}
+break;
+case VK_Z:
+/* Z */
+if (((((lParam & 0x40000000U) != 0) ||
+(BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore), BVar8 == FALSE)) ||
+(DAT_MenuModalComposition1.activeModalDialogID != MMT_NONE)) ||
+(DAT_MouseState.rightClickState != FALSE)) break;
+if (DAT_ViewportRenderState.viewportState.isZoomedOutUnk == 0) {
+Rendering::ViewportRenderState::resetupViewport(&DAT_ViewportRenderState,1);
+}
+else {
+Rendering::ViewportRenderState::resetupViewport(&DAT_ViewportRenderState,0);
+}
+LAB_004b2cfd:
+DAT_WindowAndDirectDraw.unk_resetViewportRelated = 2;
+DAT_UIDragDropDefinedData.DAT_MenuView_TriggerInitial = TRUE;
+break;
+case VK_NUMPAD0:
+case VK_NUMPAD1:
+case VK_NUMPAD2:
+case VK_NUMPAD3:
+case VK_NUMPAD4:
+case VK_NUMPAD5:
+case VK_NUMPAD6:
+case VK_NUMPAD7:
+case VK_NUMPAD8:
+case VK_NUMPAD9:
+/* numpad numbers */
+wParam = wParam - VK_ZERO;
+switchD_004b2d9a_caseD_30:
+/* 0-9 */
+if ((((lParam & 0x40000000U) == 0) &&
+(DAT_MenuModalComposition1.activeModalDialogID == MMT_NONE)) &&
+(BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore),
+iVar7 = DAT_TribesState.DAT_CurrentTribeID, BVar8 != FALSE)) {
+if (DAT_ModifierKeyState.ctrl == 0) {
+if (DAT_GameCore.currentMenuViewType == MVT_BUILDING_AND_STATUS_MENU) {
+if (DAT_GameCore.activeMenuTab.tabType == BASMTT_BARRACKS_OR_MPMENU_MODEM) {
+switch(wParam) {
+case VK_ONE:
+UI::MenuItemActionHandler_General_ToolbarButtonPressed(M_MAPPER_PLACE_ASSEMBLY_POINT1)
+;
+break;
+case VK_TWO:
+UI::MenuItemActionHandler_General_ToolbarButtonPressed(M_MAPPER_PLACE_ASSEMBLY_POINT3)
+;
+break;
+case VK_THREE:
+UI::MenuItemActionHandler_General_ToolbarButtonPressed(M_MAPPER_PLACE_ASSEMBLY_POINT4)
+;
+break;
+case VK_FOUR:
+UI::MenuItemActionHandler_General_ToolbarButtonPressed(M_MAPPER_PLACE_ASSEMBLY_POINT2)
+;
+break;
+case VK_FIVE:
+UI::MenuItemActionHandler_General_ToolbarButtonPressed(M_MAPPER_PLACE_ASSEMBLY_POINT5)
+;
+break;
+case VK_SIX:
+UI::MenuItemActionHandler_General_ToolbarButtonPressed(M_MAPPER_PLACE_ASSEMBLY_POINT6)
+;
+break;
+case VK_SEVEN:
+UI::MenuItemActionHandler_General_ToolbarButtonPressed(M_MAPPER_PLACE_ASSEMBLY_POINT7)
+;
+}
+break;
+}
+if (DAT_GameCore.activeMenuTab.tabType == BASMTT_MERCENARYPOST) {
+switch(wParam) {
+case VK_ONE:
+UI::MenuItemActionHandler_General_ToolbarButtonPressed
+(M_MAPPER_PLACE_ASSEMBLY_POINTM1);
+break;
+case VK_TWO:
+UI::MenuItemActionHandler_General_ToolbarButtonPressed
+(M_MAPPER_PLACE_ASSEMBLY_POINTM3);
+break;
+case VK_THREE:
+UI::MenuItemActionHandler_General_ToolbarButtonPressed
+(M_MAPPER_PLACE_ASSEMBLY_POINTM5);
+break;
+case VK_FOUR:
+UI::MenuItemActionHandler_General_ToolbarButtonPressed
+(M_MAPPER_PLACE_ASSEMBLY_POINTM4);
+break;
+case VK_FIVE:
+UI::MenuItemActionHandler_General_ToolbarButtonPressed
+(M_MAPPER_PLACE_ASSEMBLY_POINTM2);
+break;
+case VK_SIX:
+UI::MenuItemActionHandler_General_ToolbarButtonPressed
+(M_MAPPER_PLACE_ASSEMBLY_POINTM7);
+break;
+case VK_SEVEN:
+UI::MenuItemActionHandler_General_ToolbarButtonPressed
+(M_MAPPER_PLACE_ASSEMBLY_POINTM6);
+}
+break;
+}
+if (DAT_GameCore.activeMenuTab.tabType == BASMTT_ENGINEERSGUILD) {
+if (wParam - VK_ONE < 2) {
+UI::MenuItemActionHandler_General_ToolbarButtonPressed(wParam + 0x13e);
+}
+break;
+}
+if (DAT_GameCore.activeMenuTab.tabType == BASMTT_TUNNELERSGUILD) {
+if (wParam == VK_ONE) {
+UI::MenuItemActionHandler_General_ToolbarButtonPressed
+(M_MAPPER_PLACE_ASSEMBLY_POINTT1);
+}
+break;
+}
+if (DAT_GameCore.activeMenuTab.tabType == BASMTT_CATHEDRAL) {
+if (wParam == VK_ONE) {
+UI::MenuItemActionHandler_General_ToolbarButtonPressed
+(M_MAPPER_PLACE_ASSEMBLY_POINTK1);
+}
+break;
+}
+}
+iVar7 = wParam - VK_ZERO;
+BVar8 = Map::Units::UnitsState::isUnitShortcutAvailable(&DAT_UnitsState,iVar7);
+if (BVar8 == FALSE) {
+Map::Units::UnitsState::queueStopCommand(&DAT_UnitsState);
+Map::Units::UnitsState::makeSelectionBasedOnShortcut(&DAT_UnitsState,iVar7);
+if (0 < DAT_UnitsState.totalUnitsInSelection) {
+if (DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType != BASMTT_SIEGETENT_BATTERINGRAM) {
+DAT_GameCore.tabTypeSiegeSubset = DAT_GameCore.buildmenuMenuTabToSwitchTo.buildMenuTab
+;
+}
+DAT_GameCore.buildmenuMenuTabToSwitchTo.tabType = BASMTT_SIEGETENT_BATTERINGRAM;
+Game::GameCore::switchToMenuView(&DAT_GameCore,MVT_BUILD_MENU,0);
+DAT_TileMapState.shiftRelated0or3 = 1;
+DAT_UnitsState.field5_0x14 = TRUE;
+DAT_UnitsState.unitControlsRelated = 1;
+DAT_UnitsState.hasEngineerSelected = FALSE;
+DAT_UIDragDropDefinedData.DAT_MenuView_TriggerInitial = TRUE;
+}
+}
+else {
+iVar9 = *(int *)((int)&DAT_GameState + iVar7 * 20000);
+iVar14 = 0;
+if (iVar9 == -1) {
+piVar16 = (int *)((int)&DAT_GameState + iVar7 * 20000);
+do {
+iVar14 = iVar14 + 1;
+piVar16 = piVar16 + 2;
+if (0x9c3 < iVar14) break;
+iVar9 = *piVar16;
+} while (iVar9 == -1);
+}
+if (0 < iVar9) {
+Rendering::ViewportRenderState::focusOnCoordinate
+(&DAT_ViewportRenderState,(int)DAT_UnitsState.units[iVar9].x,
+(int)DAT_UnitsState.units[iVar9].y);
+}
+}
+}
+else if (DAT_ModifierKeyState.alt == 0) {
+if (((DAT_TribesState.DAT_CurrentTribeID != 0) && (DAT_TileMapState.shiftRelated0or3 == 1))
+&& (DAT_TribesState.DAT_CurrentTribeID != 0)) {
+Game::GameStateStructures::clearTribeHotKey(&DAT_GameState,wParam - VK_ZERO);
+Game::GameStateStructures::assignSelectionToKey(&DAT_GameState,wParam - VK_ZERO,iVar7);
+}
+}
+else {
+LAB_004b4af5:
+/* basically we pressed a number on the keypad or above the letters */
+if (DAT_ModifierKeyState.ctrl == 0) {
+tile = DAT_GameState.playerDataArray[8].engineersAssemblyPoints
+[wParam - VK_EXTRA_MOUSE_BUTTON2];
+if (-1 < (int)tile) {
+Rendering::ViewportRenderState::focusOnTile(&DAT_ViewportRenderState,(int)tile);
+}
+}
+else {
+iVar7 = 8;
+if (DAT_TileMapState.mapOrientation != 0) {
+if (DAT_TileMapState.mapOrientation == 6) {
+iVar7 = 0x13a18;
+}
+else if (DAT_TileMapState.mapOrientation == 4) {
+iVar7 = 0x27428;
+}
+else if (DAT_TileMapState.mapOrientation == 2) {
+iVar7 = 0x3ae38;
+}
+}
+DAT_GameState.playerDataArray[8].engineersAssemblyPoints[wParam - VK_EXTRA_MOUSE_BUTTON2]
+= *(XYPairShort *)
+(DAT_ViewportRenderState.screenPointToTileNumber +
+((int)(DAT_ViewportRenderState.viewportState.viewportX +
+(DAT_ViewportRenderState.viewportState.viewportX >> 0x1f & 0x1fU)) >> 5) +
+((int)DAT_ViewportRenderState.viewportState.mbr_0xb0 / 2 +
+((int)(DAT_ViewportRenderState.viewportState.viewportY +
+(DAT_ViewportRenderState.viewportState.viewportY >> 0x1f & 0xfU)) >> 4)) *
+0x191 + DAT_ViewportRenderState.viewportState.mbr_0xac + iVar7 + -8);
+}
+}
+}
+break;
+case VK_ADD:
+/* VK_ADD */
+if ((((lParam & 0x40000000U) != 0) ||
+(BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore), BVar8 == FALSE)) ||
+(((DAT_MenuModalComposition1.activeModalDialogID != MMT_NONE ||
+((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY &&
+(DAT_GameSynchronyState.currentGameMode != GM_SKIRMISH_SINGLE_PLAYER)))) ||
+(0x59 < (int)DAT_GameCore.gameSpeedLevel)))) break;
+DAT_GameCore.gameSpeedLevel = DAT_GameCore.gameSpeedLevel + 5;
+if (0x5a < (int)DAT_GameCore.gameSpeedLevel) {
+DAT_GameCore.gameSpeedLevel = 0x5a;
+}
+goto LAB_004b4768;
+case VK_SUBTRACT:
+/* VK_SUBTRACT */
+if ((((lParam & 0x40000000U) != 0) ||
+(BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore), BVar8 == FALSE)) ||
+((DAT_MenuModalComposition1.activeModalDialogID != MMT_NONE ||
+(((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY &&
+(DAT_GameSynchronyState.currentGameMode != GM_SKIRMISH_SINGLE_PLAYER)) ||
+((int)DAT_GameCore.gameSpeedLevel < 0xb)))))) break;
+DAT_GameCore.gameSpeedLevel = DAT_GameCore.gameSpeedLevel - 5;
+if ((int)DAT_GameCore.gameSpeedLevel < 0x14) {
+DAT_GameCore.gameSpeedLevel = 0x14;
+}
+LAB_004b4768:
+ActivateGameSpeedAndResourceLackDisplayElementUnk(DEID_GAME_SPEED_TEXT,1,5000);
+break;
+case VK_F1:
+/* VK_F1 */
+if (DAT_ModifierKeyState.shift != 0) {
+if (((((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) ||
+(DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].
+playerDeathRelated == 0)) && (DAT_GameCore.gameMode_2 != GM_EDITOR)) &&
+(((((DAT_GameCore.gameMode_2 != GM_SIEGE_THAT &&
+(DAT_MenuTextInputState.currentModalDialog == MMT_NO_MENU)) &&
+((DAT_GameCore.currentMenuViewType == MVT_BUILD_MENU ||
+(DAT_GameCore.currentMenuViewType == MVT_BUILDING_AND_STATUS_MENU)))) &&
+((DAT_GameSynchronyState.currentGameMode == GM_SOLITARY ||
+(DAT_GameSynchronyState.isHost != FALSE)))) && (DAT_GameCore.field27_0x6c == 0)))) &&
+(DAT_GameCore.gameMode_2 != GM_CRUSADER_TUTORIAL)) {
+UI::MenuTextInputState::loadOrSaveGame(&DAT_MenuTextInputState,10);
+}
+break;
+}
+case VK_F3:
+case VK_F4:
+case VK_F5:
+case VK_F6:
+case VK_F7:
+case VK_F8:
+case VK_F9:
+case VK_F10:
+switchD_004b2d9a_caseD_72:
+/* F1-F10 without F2 */
+DAT_ModifierKeyState.keyDownUnk = 1;
+if ((DAT_GameCore.gameMode_2 == GM_SKIRMISH_AND_MULTIPLAYER) &&
+(BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore), BVar8 != FALSE)) {
+DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[1] = 1;
+DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[2] = 1;
+DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[3] = 1;
+DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[4] = 1;
+DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[5] = 1;
+DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[6] = 1;
+DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[7] = 1;
+DAT_GameSynchronyState.DAT_ChatMessageReceiverArray[8] = 1;
+if (DAT_ModifierKeyState.ctrl != 0) {
+wParam = wParam + (VK_BACKSPACE|VK_RIGHT_MOUSE_BUTTON);
+}
+DAT_GameSynchronyState.DAT_ChatTauntOrMessage = wParam - VK_DIVIDE;
+Synchrony::GameSynchronyState::queueCommand(&DAT_GameSynchronyState,GCT_TAUNT_OR_CHAT);
+if ((DAT_GameSynchronyState.currentGameMode == GM_SKIRMISH_SINGLE_PLAYER) &&
+(DAT_GameSynchronyState.DAT_ChatTauntOrMessage != 6)) {
+AI::AICState::setTriggerForAITauntResponse(&DAT_AICState);
+}
+}
+else if (((wParam < VK_F2) &&
+(((DAT_GameCore.gameMode_2 == GM_BUILDERUnk &&
+(DAT_MapPropertiesState.SEC_U3_MapType2_1 == MT_JUST_BUILD)) &&
+(BVar8 = Game::GameCore::getAreWeInAInGameMenu(&DAT_GameCore), BVar8 != FALSE)))) &&
+(DAT_ModifierKeyState.shift == 0)) {
+Map::MapPropertiesState::openEventTriggerMenu(&DAT_MapPropertiesState,wParam - VK_F1);
+break;
+}
+switchD_004b482b_caseD_7a:
+/* F11 or F12 */
+wParam = VK_SPACE;
+break;
+case VK_F2:
+/* VK_F2 */
+if (DAT_ModifierKeyState.shift != 0) {
+if ((((DAT_GameSynchronyState.currentGameMode != GM_SOLITARY) ||
+(DAT_GameState.playerDataArray[DAT_GameSynchronyState.currentPlayerSlotID].
+playerDeathRelated == 0)) &&
+((DAT_GameCore.gameMode_2 != GM_EDITOR &&
+((DAT_GameCore.gameMode_2 != GM_SIEGE_THAT &&
+(DAT_MenuTextInputState.currentModalDialog == MMT_NO_MENU)))))) &&
+((DAT_GameCore.currentMenuViewType == MVT_BUILD_MENU ||
+(DAT_GameCore.currentMenuViewType == MVT_BUILDING_AND_STATUS_MENU)))) {
+if (DAT_GameSynchronyState.currentGameMode == GM_SOLITARY) {
+if ((DAT_GameCore.field27_0x6c == 0) && (DAT_GameCore.gameMode_2 != GM_CRUSADER_TUTORIAL))
+{
+UI::MenuTextInputState::loadOrSaveGame(&DAT_MenuTextInputState,9);
+}
+}
+else if (DAT_GameSynchronyState.currentGameMode == GM_SKIRMISH_SINGLE_PLAYER) {
+UI::MenuTextInputState::loadOrSaveGame(&DAT_MenuTextInputState,9);
+}
+}
+break;
+}
+goto switchD_004b2d9a_caseD_72;
+}
+switchD_004b4d0c_doDefWindowProcA:
+DefWindowProcA(_hwnd,message,wParam,lParam);
+LVar11 = HoldStrong_lib::__security_check_cookie(uVar6 ^ (uint)&_hwnd);
+return LVar11;
+}
+--- NAMEN NUR IM PAKETCODE ---
+BVar2, CyclingLordID, FakeBink, HWND__, LVar1, MACRO_CALL, MenuViewType, MenuView_TriggerInitial, SM_CXSCREEN, SM_CYSCREEN, ScreenshotFilenameVariant, TextArrayIndexType, __stdcall, _activation, _addKeyIngameMenu, _akeyIngameMenuCheck, _altNumInGameMenuCheck, _armoryCtrl, _barracksCtrl, _buildingID, _buildingX, _buildingY, _cheatCharIndex, _cheatInGameMenuCheck1, _clickType, _cookie, _currentPlayerSlotID, _currentSelectionID, _enterIngameMenuCheck, _escInIngameMenu, _fkeyIngameMenuCheck, _hBinkPtr, _leftKeyIngameMenuCheck, _lordID, _lordUID, _newIndex, _newMapRotation, _pCurrentText, _pCurrentText2, _pGold, _paintInGameMenuCheck, _playerLordUID, _restore, _screenOffset, _screenshotInGameMenuCheck, _spaceIngameMenuCheck, _subtractKeyIngameMenu, _tauntInGameMenuCheck, _textIndex, _tile, _tutorialStep, _xMousePos, _xScreenSize, _yMousePos, _yScreenSize, field161_0x2364, field24_0x6c, iVar11, iVar3, pSVar7, queueEscapeCommand, switchD_004b482b_caseD_79, tagPOINT, uVar10
+--- KOMMENTARE IM PAKETCODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004B2AE0
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+--- ERKLAERUNG ---
+{"adr": "0x004b2ae0", "name": "WindowMsgProcessingFunc", "p1": {"bereich": "Spielablauf", "zweck": "Fensterprozedur (WndProc) des Spielfensters: nimmt Maus-, Tastatur-, Fokus-, Größen- und Schließnachrichten entgegen und löst daraus Spielaktionen aus."}, "p2": {"ein": "windowHandle; message (Windows-Nachricht); wParam (je nach Nachricht Taste, Aktivierungsflag, Rad-Wert im oberen Wort oder Farbtiefe); lParam (je nach Nachricht Tastenzustand mit Bit 30 = Taste wird gehalten, Mausposition x unteres / y oberes Wort oder Bildschirmauflösung)", "aus": "LRESULT: 1 bei Alt allein (WM_SYSKEYDOWN, VK_ALT); 0 in allen Esc-Zweigen außer bei gehaltener Taste; sonst das Ergebnis von DefWindowProcA, dessen wParam vorher geändert sein kann", "liest": ["message, wParam, lParam (Bit 30 = Taste wird gehalten)", "DAT_ModifierKeyState.ctrl/shift/alt", "DAT_MouseState.rightClickState", "DAT_GameCore: currentMenuViewType, gameMode_2, activeMenuTab.tabType, cheatModeFlag, gameSpeedLevel, gamePausedLogical, genieVoiceActive, specialMultiplayerState, menuSwitchDelay, menuViewToSwitchTo, field24_0x6c, isTimeHalted2, solitaryAllBuildingsAreFree, altRToggleMinimapHideWildlife, viewportFocusBefore*Hotkey, field161_0x2364", "DAT_MenuModalComposition1.activeModalDialogID; DAT_MenuTextInputState.currentModalDialog / DAT_MenuOptionsActionParameter; DAT_TextEditorState.helpDialogVariant; DAT_UserTextHandlerState.textArrayIndex", "DAT_GameSynchronyState.currentGameMode/currentPlayerSlotID/isHost", "DAT_GameState.playerDataArray[Slot]: armory/barracks/granary/keep/engineersGuild/marketplace/mercenaryPost/tunnelersGuild .id, lordID, lordUID, playerDeathRelated", "DAT_GameState.mapAndTime.signpostIDs[8]", "DAT_GameState (hotkeyTribes, roh als DAT_GameState + Ziffer*20000 gelesen)", "DAT_GameState.playerDataArray[8].engineersAssemblyPoints[Taste - 6]", "DAT_UnitsState.units[] (unitType, owner, logicalState, tile, x, y, uid), totalUnitsInSelection", "DAT_BuildingsState.buildings[] (x, y, buildingType), menuSelectedBuildingID", "DAT_TileMapState.mapOrientation/flatViewToggleValue1/shiftRelated0or3", "DAT_ViewportRenderState (viewportState.isZoomedOutUnk/viewportX/viewportY, screenPointToTileNumber)", "DAT_ShortcutDefinedData.cheatCode/CyclingLordID/ScreenshotFilenameVariant", "DAT_CheatCodeStringTrackerIndex, DAT_TribesState.DAT_CurrentTribeID, DAT_00df5538", "DAT_WindowAndDirectDraw.runGameAsExclusiveFullscreen/gameFocused/isNotProcessingInputEvents", "DAT_BinkControlState.binkObjPtrArray", "DAT_MapPropertiesState.SEC_U3_MapType2_1", "GetCurrentTutorialStep()"], "schreibt": ["DAT_ScrollingHandler.leftKeyDown_0x1c/upKeyDown_0x24/rightKeyDown_0x18/downKeyDown_0x20", "DAT_ModifierKeyState.keyDownUnk, .downArrow, .v", "DAT_InsertKeyState.insert", "DAT_CheatCodeStringTrackerIndex", "DAT_GameCore: cheatModeFlag, gameSpeedLevel, gamePausedLogical, unlockAllHistoricalCampaigns, solitaryAllBuildingsAreFree, solitaryAltUDungeon, altRToggleMinimapHideWildlife, isTimeHalted/isTimeHalted2 (Editor), viewportFocusBefore*Hotkey, field161_0x2364, buildmenuMenuTabToSwitchTo, tabTypeSiegeSubset", "DAT_TileMapState.currentMapperCommand, shiftRelated0or3; über setMapRotation nur DAT_FutureMapOrientation (nicht mapOrientation selbst)", "DAT_UnitsState.field5_0x14/unitControlsRelated/hasEngineerSelected", "DAT_ViewportRenderState.DAT_MapEditorDisplayLayer; Ansicht über resetupViewport", "DAT_WindowAndDirectDraw: unk_resetViewportRelated, windowMoveEventBlitCountdown, postWindowCloseMessage, windowHandle, clientOnScreenCoords, gameFocused, isNotProcessingInputEvents, screenHorizontal/VerticalResolutionInPixels, depthBitsPerPixel", "DAT_UIDragDropDefinedData.MenuView_TriggerInitial", "DAT_GameSynchronyState.DAT_ChatTauntOrMessage, DAT_ChatMessageReceiverArray[1..8], DAT_GameCommandParam0", "DAT_ShortcutDefinedData.CyclingLordID/ScreenshotFilenameVariant", "DAT_00df5538", "DAT_GameState.playerDataArray[8].engineersAssemblyPoints[Taste - 6] (Alt+Strg+Ziffer)", "Cheat Alt+X: playerDataArray[Slot].popularity und currentResources[15]", "Editor: playerDataArray[Slot].lordID/lordUID/lordKilledByPlayerID, units[].logicalState, mapAndTime.editScenarioExtraOptions"], "ruft": ["updateMousePositionAndClicks", "updateMouseWheelStatus", "getAreWeInAInGameMenu", "handleCharacterCode", "handleCharacterIntoInputBuffer", "handleBackspace", "handleReturnKey", "handleLeftKey", "handleRightKey", "handleDeleteKey", "moveCursorToEnd", "resetCursorToStart", "hideOrUnhideUI", "getCurrentText", "clearTextAndCursor", "resetToTextIndex", "queueCommand (GCT_TAUNT_OR_CHAT, GCT_SEND_QUIT_GAME_VOTE, GCT_START_OR_STOP_SEND_MAP_FILEUnk)", "queueUnitStance", "queueEscapeCommand", "activateModalDialog", "activateModalDialogAndClearText", "popModalDialog", "switchToMenuView", "closeHelpDialogAndReturnToMenu", "openUnusedHelpTextEditorDialog", "endSpeechStreamsAndResetLoopFlags", "disconnectDPlay", "MenuItemActionHandler_NewEventCondition_Main", "MenuItemActionHandler_IdentityOptions_Confirm", "MenuItemActionHandler_General_ToolbarButtonPressed", "focusOnTile", "focusOnCoordinate", "ViewportBasedTileNumber", "openBuildingStatusMenuForBuildingID", "getAliveLordForPlayer", "isUnitShortcutAvailable", "makeSelectionBasedOnShortcut", "clearTribeHotKey", "assignSelectionToKey", "setMapRotation", "resetupViewport", "triggerLoweredView", "toggleFlatView", "GetCurrentTutorialStep", "loadOrSaveGame", "setTriggerForAITauntResponse", "openEventTriggerMenu", "ActivateGameSpeedAndResourceLackDisplayElementUnk", "CheckDisplayElementByIDAndSetForUnlimitedDisplay", "TogglePlayerPingDisplayElementUnk", "killAllUnownedUnits", "takeScreenshot", "playWAVSFX", "reinitWindow", "restoreDXSurfaces", "resetMouseState2", "storeXYAndResetMouseState", "renderBltAndFlip", "resumeAudioSample", "pauseAudioSample", "endSpeechSoundStreams", "BinkPause", "BeginPaint", "EndPaint", "GetClientRect", "ClientToScreen", "GetSystemMetrics", "SetRect", "PostQuitMessage", "DefWindowProcA"], "regeln": ["Begriffe und Verteilung: getAreWeInAInGameMenu() ist laut Ghidra-Export genau dann TRUE, wenn currentMenuViewType MVT_BUILD_MENU, MVT_BUILDING_AND_STATUS_MENU oder MVT_MAP_EDITOR_LANDSCAPING ist (hier „Spielansicht“ genannt; der Name täuscht, es geht nicht um ein Menü). „Frischer Druck“ heißt Bit 30 von lParam = 0. Verteilung nach message: zwischen WM_KEYDOWN und WM_LBUTTONDOWN werden WM_MOUSEMOVE, WM_KEYUP, WM_CHAR und WM_SYSKEYDOWN behandelt; ab WM_LBUTTONDOWN Maustasten und Mausrad; WM_KEYDOWN ist die Tastenlogik (zuerst DAT_ModifierKeyState.keyDownUnk = 1 und die Cheat-Folge); alle übrigen Nachrichten sind Fensterereignisse. Fast alle Pfade enden in DefWindowProcA, wobei wParam vorher geändert sein kann (Ziffernblock-Ziffern werden zu 0x30-0x39, die F-Tasten F1 bis F12 meist zu VK_SPACE). createWindow verweist per Datenverweis auf die Funktion (vermutlich als Fensterprozedur der Fensterklasse)", "Maus und Fenster: x = unteres, y = oberes Wort von lParam (für alle Nachrichten über WM_KEYDOWN berechnet). WM_MOUSEMOVE → updateMousePositionAndClicks(x, y, MCI_MOVE); Maustasten links/rechts/Mitte runter und hoch → MCI_LEFTDOWN, MCI_LEFTUP, MCI_RIGHTDOWN, MCI_RIGHTUP, MCI_MIDDOWN, MCI_MIDUP; WM_MOUSEWHEEL → updateMouseWheelStatus(vorzeichenbehaftetes oberes Wort von wParam). WM_CREATE und WM_MOVE (nicht bei runGameAsExclusiveFullscreen): windowMoveEventBlitCountdown = 10, dann wie WM_SIZE im Fenstermodus reinitWindow() und clientOnScreenCoords neu aus GetClientRect/ClientToScreen; WM_SIZE im Vollbild: clientOnScreenCoords = (0, 0, Bildschirmbreite, Bildschirmhöhe); WM_DESTROY: postWindowCloseMessage = 3, windowHandle = 0, PostQuitMessage(0); WM_CLOSE und WM_QUIT: postWindowCloseMessage = 3; WM_DISPLAYCHANGE: Auflösung aus lParam (unteres Wort Breite, oberes Höhe) und Farbtiefe aus wParam übernehmen; WM_SETFOCUS / WM_KILLFOCUS: resumeAudioSample() / pauseAudioSample() und alle vorhandenen Bink-Videos fortsetzen / anhalten (BinkPause 0 / 1); WM_ACTIVATEAPP: Wert 1 oder 2 → gameFocused = TRUE, Wert 0 → gameFocused = FALSE, isNotProcessingInputEvents = TRUE, endSpeechSoundStreams(); sind danach beide Merker wahr: restoreDXSurfaces() (bei Erfolg reinitWindow()), resetMouseState2(), storeXYAndResetMouseState(); immer unk_resetViewportRelated = 1; WM_PAINT: BeginPaint/EndPaint, außerhalb der Spielansichten renderBltAndFlip(1), immer unk_resetViewportRelated = 2 und MenuView_TriggerInitial = TRUE", "Cheat-Folge (bei jedem WM_KEYDOWN, nach keyDownUnk = 1): nur in der Ansicht MVT_MAIN_MENU bei gedrückter Strg-Taste und noch ausgeschaltetem cheatModeFlag: passt wParam zum Zeichen DAT_ShortcutDefinedData.cheatCode[DAT_CheatCodeStringTrackerIndex], wird der Index um 1 erhöht, und ist das folgende Zeichen das Endzeichen der Zeichenkette, wird cheatModeFlag = TRUE; in jedem anderen Fall (andere Taste, Bedingung nicht erfüllt, Cheat schon an) wird der Index auf 0 gesetzt. Die Alt-Cheats (Alt+X, Alt+K, Alt+C) brauchen cheatModeFlag, Details unten", "Esc, Teil 1 (nicht bei gehaltener Taste, Rückgabe immer 0; bei gehaltener Taste geht es zu DefWindowProcA): Ansicht MVT_UNKNOWN_26_CAMPAIGN_RELATEDUnk oder MVT_INTRO_VIDEO → switchToMenuView(MVT_GAME_START_ENTER_NAME). Offenes Fenster: MMT_QUIT_DIALOG mit DAT_MenuOptionsActionParameter 0x2f → nichts; MMT_ONLINE_VOTE_QUIT_GAME → DAT_GameCommandParam0 = 1, GCT_SEND_QUIT_GAME_VOTE, Fenster schließen; MMT_NEW_EVENT_CONDITION → MenuItemActionHandler_NewEventCondition_Main(0x25); MMT_CHAT und MMT_SKIRMISH_CONNECTION_OPTIONS → Fenster schließen; jedes andere offene Fenster (DAT_MenuTextInputState.currentModalDialog != MMT_NO_MENU) → popModalDialog(), wobei MMT_QUIT_DIALOG mit Parameter 2000 vorher GCT_START_OR_STOP_SEND_MAP_FILEUnk (Param0 = 1) sendet und MMT_IDENTITY_OPTIONS stattdessen nur MenuItemActionHandler_IdentityOptions_Confirm(0x11) ruft", "Esc, Teil 2 (kein Fenster offen), je nach Ansicht: MVT_UNUSED_HELP_TEXT_EDITOR → openUnusedHelpTextEditorDialog(-1); Hilfefenster offen (helpDialogVariant != 0, Ansicht nicht MVT_SCENARIO_DESCRIPTION) → closeHelpDialogAndReturnToMenu(); MVT_MAP_EDITOR_LANDSCAPING sowie Spielansicht im Editor → MVT_MAP_EDITOR_PROPERTIES; Spielansicht bei GM_SIEGE_THAT → MVT_UNUSED_CREATE_SIEGE; Spielansicht mit specialMultiplayerState != 0 → disconnectDPlay() und postWindowCloseMessage = 1; sonst in der Spielansicht Pausemenü MMT_PAUSE_MENU, aber nur wenn menuSwitchDelay == -1 oder menuViewToSwitchTo das Baumenü oder Gebäudemenü ist (sonst nichts); MVT_MP_CONNECTION und MVT_LOBBY_MENU → disconnectDPlay() und Hauptmenü; MVT_MAIN_MENU → Fenster MMT_MAIN_MENU_OPTIONS; MVT_CREDITS, MVT_SELECT_CRUSADE, Einzelspieler-Kartenwahl, Kampagnen-, Missions- und Szenarioauswahl → Hauptmenü; weitere Menüansichten gehen einen Schritt zurück (z. B. MVT_NEW_MAP_MAPSIZE → MVT_NEW_MAP_MAPTYPE → MVT_CUSTOM_SCENARIOS); in den übrigen Ansichten (u. a. MVT_GAME_START_ENTER_NAME, MVT_SCENARIO_DESCRIPTION, MVT_EDIT_SCENARIO) geschieht nichts", "Texttasten und Enter: Backspace → handleBackspace(), Enter → handleReturnKey(), Ende → moveCursorToEnd(), Pos1 → resetCursorToStart(), Links → handleLeftKey(), Rechts → handleRightKey(), Entf → handleDeleteKey(); danach jeweils handleCharacterIntoInputBuffer mit Steuercode (Enter 0xf1, Links 0xf2, Rechts 0xf3, Hoch 0xf4, Runter 0xf5, Pos1 0xf6, Ende 0xf7, Backspace 0xf8, Entf 0xf9, Bild hoch 0xfa, Bild runter 0xfb); WM_CHAR → handleCharacterCode((byte)wParam) und handleCharacterIntoInputBuffer(wParam); Einfg schaltet DAT_InsertKeyState.insert um; Tab (nur frischer Druck) → hideOrUnhideUI(). Enter zusätzlich: bei gameMode_2 == GM_SKIRMISH_AND_MULTIPLAYER mit offenem MMT_CHAT (nicht im Einzelgefecht) oder in MVT_LOBBY_MENU und textArrayIndex == 4: enthält der Text ein Zeichen ungleich Leerzeichen, wird DAT_ChatTauntOrMessage = 0 gesetzt, GCT_TAUNT_OR_CHAT gesendet, der Text geleert und (außer in der Lobby) das Fenster geschlossen; sonst bei GM_SKIRMISH_AND_MULTIPLAYER ohne Fenster in der Spielansicht im Einzelgefecht das Fenster MMT_ALLIES, sonst das Chatfenster MMT_CHAT öffnen (Texteingabe-Index 4, Text leeren); sonst bei MMT_IDENTITY_OPTIONS MenuItemActionHandler_IdentityOptions_Confirm(0x11)", "Pfeile, Drehung, Zoom, Flachansicht: Links/Hoch/Rechts/Runter setzen leftKeyDown_0x1c/upKeyDown_0x24/rightKeyDown_0x18/downKeyDown_0x20 = TRUE (nicht bei gameMode_2 == GM_SKIRMISH_AND_MULTIPLAYER mit offenem Chatfenster), beim Loslassen (WM_KEYUP) = FALSE (Runter setzt dabei auch DAT_ModifierKeyState.downArrow = 0). Mit Strg, in der Spielansicht, ohne Fenster und ohne gedrückte rechte Maustaste: Strg+Links dreht statt zu scrollen setMapRotation((mapOrientation + 2) mod 8); Strg+Rechts dreht um (mapOrientation + 6) mod 8 statt zu scrollen; Strg+Runter ruft statt zu scrollen triggerLoweredView(3) und setzt downArrow = 1; Strg+Hoch schaltet zusätzlich zum Scrollen den Zoom um (resetupViewport(1) wenn isZoomedOutUnk == 0, sonst resetupViewport(0); dazu unk_resetViewportRelated = 2, MenuView_TriggerInitial = TRUE). Einzeltasten in der Spielansicht ohne Fenster und ohne rechte Maustaste, ohne Sperre bei gehaltener Taste: X dreht wie Strg+Links (+2), C wie Strg+Rechts (+6), V ruft triggerLoweredView(3) und setzt DAT_ModifierKeyState.v = 1; Z (nur frischer Druck) schaltet den Zoom um wie Strg+Hoch. Gültige Drehwerte sind laut Offset-Tabelle vermutlich 0, 2, 4, 6; setMapRotation schreibt laut Ghidra-Export nur DAT_FutureMapOrientation. Leertaste (nur frischer Druck): im Tutorial (GM_CRUSADER_TUTORIAL) bei Tutorialschritt über 0x1c, sonst in der Spielansicht ohne Fenster → toggleFlatView(flatViewToggleValue1 XOR 1)", "Sprungtasten (nur frischer Druck, Spielansicht, kein Fenster): A Waffenkammer (armory), B Kaserne (barracks), G Kornspeicher (granary), H Burg (keep), I Ingenieurgilde (engineersGuild), M Markt (marketplace), N Söldnerlager (mercenaryPost), T Tunnelgräbergilde (tunnelersGuild) des eigenen Slots. Prüfreihenfolge: Umschalt zuerst: ist die gemerkte Ansicht (viewportFocusBefore…Hotkey, bei T field161_0x2364) != -1, focusOnTile dorthin, im Gebäudemenü zurück ins Baumenü und Merker = -1 (die Gebäude-ID wird dabei nicht geprüft); sonst Strg: nur openBuildingStatusMenuForBuildingID, wenn die ID != 0; sonst, wenn die ID != 0: aktuelle Ansicht merken (ViewportBasedTileNumber(), überschreibt den Merker bei jedem Druck), focusOnCoordinate(x + 2, y + 2) des Gebäudes und sein Menü öffnen; ID 0 → nichts. L: ohne Umschalt focusOnTile auf den eigenen Lord (lordID != 0, UT_LORD, owner == eigener Slot, ULS_NORMAL), mit Umschalt bis zu 8 Versuche reihum (CyclingLordID, springt von 9 auf 1) mit getAliveLordForPlayer und focusOnTile auf den ersten lebenden Lord. S: focusOnCoordinate(x + 1, y + 1) auf den Wegweiser signpostIDs[DAT_00df5538] (wenn != 0), danach Index + 1 (7 → 0) und leere Plätze überspringen (bis zu 7 weitere Schritte)", "Zeitsteuerung: P (ohne Sperre bei gehaltener Taste) nur in der Spielansicht ohne Fenster, mit gameMode_2 weder GM_EDITOR noch GM_SIEGE_THAT und currentGameMode != GM_MULTIPLAYER: gamePausedLogical per XOR 1 umschalten; beim Fortsetzen Ton game_running.wav, beim Pausieren Anzeige DEID_GAME_PAUSED_TEXT (Parameter 1), DAT_TileMapState.currentMapperCommand = M_MAPPER_NULL und Ton game_paused.wav (Töne nur bei genieVoiceActive != FALSE). Ziffernblock + und - (VK_ADD / VK_SUBTRACT): nur bei frischem Druck, in der Spielansicht, ohne Fenster und nur bei currentGameMode GM_SOLITARY oder GM_SKIRMISH_SINGLE_PLAYER. +: nichts, wenn gameSpeedLevel über 90 liegt, sonst +5 mit Deckel 90 (0x5a). -: nichts, wenn gameSpeedLevel unter 11 liegt, sonst -5 mit Boden 20 (0x14), also werden Werte 11 bis 25 zu 20. Danach ActivateGameSpeedAndResourceLackDisplayElementUnk(DEID_GAME_SPEED_TEXT, 1, 5000), auch wenn der Wert am Deckel oder Boden unverändert bleibt", "Ziffern 0-9 (Zahlenreihe und Ziffernblock gleich), nur bei frischem Druck, ohne Fenster, in der Spielansicht. Ohne Strg, im Gebäudemenü (MVT_BUILDING_AND_STATUS_MENU), je Reiter ein Sammelpunkt über MenuItemActionHandler_General_ToolbarButtonPressed (andere Ziffern tun in diesen Reitern nichts): BASMTT_BARRACKS_OR_MPMENU_MODEM 1-7 → M_MAPPER_PLACE_ASSEMBLY_POINT 1,3,4,2,5,6,7; BASMTT_MERCENARYPOST 1-7 → POINTM 1,3,5,4,2,7,6; BASMTT_ENGINEERSGUILD 1-2 → Knopf Taste + 0x13e (0x16f / 0x170); BASMTT_TUNNELERSGUILD 1 → POINTT1; BASMTT_CATHEDRAL 1 → POINTK1. In allen anderen Menüs und Reitern: ist isUnitShortcutAvailable(Ziffer) FALSE, folgen queueEscapeCommand() und makeSelectionBasedOnShortcut(Ziffer); bei mindestens einer gewählten Einheit wechselt die Ansicht ins Baumenü auf den Reiter BASMTT_SIEGETENT_BATTERINGRAM (war der Reiter vorher ein anderer, wird er in tabTypeSiegeSubset gemerkt) mit shiftRelated0or3 = 1, unitControlsRelated = 1, hasEngineerSelected = FALSE; ist die Funktion TRUE, springt die Ansicht (focusOnCoordinate) zum ersten Eintrag != -1 der Tastenliste hotkeyTribes[Ziffer] (Suche in 8-Byte-Schritten über die 2500 Plätze 0 bis 2499), wenn dessen Einheiten-ID > 0. Laut isUnitShortcutAvailable ist das Ergebnis außerhalb des Baumenü-Reiters mit BASMTT_SIEGETENT_BATTERINGRAM oder BASMTT_SIEGETENT_SHIELD immer FALSE, im Reiter nur TRUE, wenn die Auswahl genau der Tastenliste entspricht. Mit Strg und ohne Alt-Flag: nur wenn DAT_CurrentTribeID != 0 und shiftRelated0or3 == 1: clearTribeHotKey(Ziffer), dann assignSelectionToKey(Ziffer, DAT_CurrentTribeID). Mit Strg und Alt-Flag: wie Alt+Strg+Ziffer unten", "Q, W, E (keine Prüfung auf gehaltene Taste): nur wenn kein Fenster offen ist, die Ansicht das Baumenü (MVT_BUILD_MENU) ist und der aktive Reiter BASMTT_SIEGETENT_BATTERINGRAM oder BASMTT_SIEGETENT_SHIELD ist (der Name täuscht vermutlich: derselbe Reiter wird beim Anwählen einer Truppengruppe per Ziffer geöffnet): queueUnitStance(DAT_CurrentTribeID, 0) bei Q, (…, 1) bei W, (…, 2) bei E. Laut queueUnitStance ist das der Befehl GCT_UNIT_STANCE mit Param0 = Gruppe und Param1 = 0/1/2 (vermutlich Stand, Defensiv, Aggressiv)", "F-Tasten (F1, F2 prüfen zuerst Umschalt): Umschalt+F1 → loadOrSaveGame(10), nur wenn (currentGameMode != GM_SOLITARY oder playerDeathRelated == 0), gameMode_2 weder GM_EDITOR, GM_SIEGE_THAT noch GM_CRUSADER_TUTORIAL, currentModalDialog == MMT_NO_MENU, Ansicht Baumenü oder Gebäudemenü, (currentGameMode == GM_SOLITARY oder isHost) und field24_0x6c == 0. Umschalt+F2 → loadOrSaveGame(9) bei denselben Grundbedingungen (Tod, Editor, GM_SIEGE_THAT, Fenster, Ansicht), aber nur in GM_SOLITARY (zusätzlich field24_0x6c == 0 und nicht Tutorial) oder GM_SKIRMISH_SINGLE_PLAYER. Laut loadOrSaveGame wählt der Parameter 9 das Fenster MMT_LOAD_MAP und jeder andere Wert (hier 10) das Fenster MMT_SAVE_MAP. F1 und F2 ohne Umschalt sowie F3 bis F10 (dort wird Umschalt nicht geprüft; F10 kommt als WM_SYSKEYDOWN, mit Strg gilt dasselbe): keyDownUnk = 1; bei gameMode_2 == GM_SKIRMISH_AND_MULTIPLAYER in der Spielansicht (ohne Prüfung auf Fenster oder gehaltene Taste): DAT_ChatMessageReceiverArray[1..8] = 1, Taunt-Nummer = Taste - 0x6F (F1 = 1 ... F10 = 10), mit Strg plus 10, DAT_ChatTauntOrMessage = Nummer, queueCommand(GCT_TAUNT_OR_CHAT), im Einzelgefecht (currentGameMode == GM_SKIRMISH_SINGLE_PLAYER) bei Nummer ungleich 6 zusätzlich setTriggerForAITauntResponse(); sonst bei F1, gameMode_2 == GM_BUILDERUnk, MT_JUST_BUILD, Spielansicht und ohne Umschalt: openEventTriggerMenu(0). Danach (außer im letzten Fall) wird wParam nur für DefWindowProcA auf VK_SPACE gesetzt; F11 und F12 tun nur das. toggleFlatView wird dabei nicht aufgerufen", "Alt-Kombinationen (WM_SYSKEYDOWN, setzt zuerst keyDownUnk = 1; Alt allein gibt 1 zurück): Alt+C: unlockAllHistoricalCampaigns = 1, nur mit cheatModeFlag und außerhalb der Spielansichten; Alt+D: im Editor (MVT_MAP_EDITOR_LANDSCAPING oder Baumenü bei GM_EDITOR) DAT_MapEditorDisplayLayer reihum 0, 1, 2 und Anzeige DEID_CONNECT_AND_PATH_LINKAGE_INFO_TEXT mit diesem Wert; Alt+E: im Editor (MVT_MAP_EDITOR_PROPERTIES, MVT_MAP_EDITOR_LANDSCAPING oder Baumenü bei GM_EDITOR) killAllUnownedUnits(); Alt+H: nur bei GM_EDITOR isTimeHalted umschalten (isTimeHalted2 wird angeglichen); Alt+K: nur mit cheatModeFlag und currentGameMode == GM_SOLITARY solitaryAllBuildingsAreFree umschalten; Alt+Q: in der Spielansicht takeScreenshot(ScreenshotFilenameVariant), Variante + 1; Alt+R: altRToggleMinimapHideWildlife umschalten (ohne Bedingung); Alt+T: nur wenn currentGameMode weder GM_SOLITARY noch GM_SKIRMISH_SINGLE_PLAYER ist: TogglePlayerPingDisplayElementUnk(DEID_PLAYER_PING_Unk_19, 1); Alt+U: GM_SOLITARY, Gebäudemenü und gewähltes Gebäude BT_DUNGEON → solitaryAltUDungeon = TRUE; Alt+V: nur GM_EDITOR: Lord des eigenen Slots entfernen (lordID und lordUID = 0, Einheit auf ULS_REMOVE, wenn die uid übereinstimmt) und lordKilledByPlayerID = 0; Alt+X: nur mit cheatModeFlag und currentGameMode != GM_MULTIPLAYER: popularity = 10000 (laut Typ-Kommentar in Hundertsteln) und currentResources[15] += 1000 (15 ist laut Typ ResourceType RT_GOLD); Alt+Komma: in MVT_MAP_EDITOR_PROPERTIES Fenster MMT_EDITOR_MAP_TYPE_QUICK_CHANGE öffnen oder schließen; Alt+VK_OEM3 / VK_OEM7 (Kommentar im Code: Tilde bzw. Hochkomma): in MVT_EDIT_SCENARIO editScenarioExtraOptions Bit 0 umschalten", "Ansichts-Merker mit Alt+Ziffer (WM_SYSKEYDOWN, nur Spielansicht, ohne Prüfung auf Fenster oder gehaltene Taste; Ziffernblock gleich): ohne Strg focusOnTile auf playerDataArray[8].engineersAssemblyPoints[Taste - 6], wenn der Wert >= 0 ist; mit Strg diesen Platz mit der Kachelnummer der aktuellen Ansichtsposition überschreiben (dieselbe Rechnung wie ViewportBasedTileNumber(), mit dem Tabellenversatz je mapOrientation 0 → 8, 6 → 0x13a18, 4 → 0x27428, 2 → 0x3ae38)"], "offen": ["Felder mit Unk/field: DAT_ModifierKeyState.keyDownUnk, DAT_GameCore.field24_0x6c (sperrt Umschalt+F1 und in GM_SOLITARY Umschalt+F2, wenn != 0), field161_0x2364 (vermutlich Merker der T-Sprungtaste), DAT_00df5538 (vermutlich Wegweiser-Index für S), playerDeathRelated (vermutlich Spieler ausgeschieden), isZoomedOutUnk (vermutlich herausgezoomt), shiftRelated0or3", "Alt+Ziffer: der Index Taste - 6 (42 bis 51) liegt hinter dem nur 2 Einträge großen Feld engineersAssemblyPoints, nämlich 88 bis 124 Byte hinter dem Ende von playerDataArray[8] (PlayerData ist 14836 Byte lang); vermutlich ein ungenannter Speicherplatz für Ansichts-Merker, im Code nicht benannt", "Was triggerLoweredView(3) bei V und Strg+Runter genau bewirkt (laut Ghidra-Export refreshCertainTileMap und Anzeigefelder bestimmter Figuren)", "Ob die Reiter BASMTT_SIEGETENT_BATTERINGRAM / _SHIELD hier wirklich die Truppenbefehls-Leiste sind (aus der Ziffern-Auswahl und hideOrUnhideUI geschlossen, vermutlich)", "Wo DAT_ModifierKeyState.ctrl/shift/alt gesetzt werden, ist in dieser Funktion nicht zu sehen", "Warum die F-Tasten wParam = VK_SPACE setzen: wirkt nur auf DefWindowProcA, ein Umschalten der Flachansicht geschieht hier nicht", "Bei P, Q, W, E, X, C, V, den F-Tasten und Alt+Ziffer wird Bit 30 von lParam nicht geprüft: eine gehaltene Taste löst die Aktion bei jeder Wiederholung erneut aus (so im Code, Absicht unklar)"]}, "p3": {"erklaerung": "Das ist die Fensterprozedur des Spielfensters: Hier laufen Maus, Tastatur und Fensterereignisse zusammen und werden zu Spielaktionen (Pause P, Spieltempo + und -, Sprung zu Gebäuden, Truppengruppen 0-9, Kartendrehung, Esc-Menü, Taunts, Cheats). Das Spieltempo ändert sich nur in den Einzelspieler-Modi, um 5 pro Druck, begrenzt auf 20 bis 90.", "gehirn": "Nur wichtig, falls der Lenker Tastendrücke an das Spielfenster schickt: dann gelten diese Bedingungen (Spielansicht nötig, kein Fenster offen, gehaltene Taste zählt bei den meisten Tasten nicht). Pause P geht nicht im Mehrspieler (GM_MULTIPLAYER), Tempo + und - nur in GM_SOLITARY und GM_SKIRMISH_SINGLE_PLAYER im Bereich 20 bis 90. Ein direktes Setzen von gameSpeedLevel ist aus dieser Funktion nicht ersichtlich. Werte sind Grundwerte (UCP kann abweichen).", "beleg": "code", "live": "Taste + auf dem Ziffernblock im Einzelgefecht drücken, bei gameSpeedLevel 20 → DAT_GameCore.gameSpeedLevel vorher/nachher → 25; bei 90 bleibt es 90; Taste - bei 20 bleibt 20", "live_art": "sonstiges"}}
+
+### 0x0054e6c0 UpdateTunneler
+--- CODE (Ghidra-Export, vollstaendig) ---
+/* WARNING: Enum "MappersEnum": Some values do not have unique names */
+/* WARNING: Enum "DPSEND_EnumInt": Some values do not have unique names */
+/* WARNING: Enum "DPERRInt": Some values do not have unique names */
+/* decompilerscript: committed: 2025-01-30 21:57:43.216000 */
+void _HoldStrong::Global::UpdateTunneler(void)
+{
+int *piVar1;
+byte *pbVar2;
+undefined4 *puVar3;
+short *psVar4;
+char *pcVar5;
+byte bVar6;
+UnitStateShort UVar7;
+short sVar8;
+short sVar9;
+ushort uVar10;
+uint uVar11;
+int iVar12;
+BOOLEnum BVar13;
+int extraout_EAX;
+uint uVar14;
+int iVar15;
+uint uVar16;
+bool bVar17;
+undefined6 uVar18;
+uVar14 = DAT_CurrentUnitSlotID;
+iVar15 = (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner;
+piVar1 = &DAT_GameState.playerDataArray[iVar15].armySize;
+*piVar1 = *piVar1 + 1;
+piVar1 = &DAT_GameState.playerDataArray[iVar15].currentTunnelers;
+*piVar1 = *piVar1 + 1;
+DAT_UnitsState.units[uVar14].calculatedOwnerPlayerIndex = iVar15;
+if (DAT_UnitsState.units[uVar14].isSelectable_OR_matchTime == 0) {
+DAT_UnitsState.units[uVar14].isSelectable_OR_matchTime = (short)DAT_GameCore.mapTimeInTicks;
+}
+Map::Units::TribesState::addUnitToNewTribe(&DAT_TribesState,uVar14);
+uVar14 = DAT_CurrentUnitSlotID;
+UVar7 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic;
+if (UVar7 == US_DETERMINE_NEXT_STATEUnk) {
+if (DAT_UnitsState.units[DAT_CurrentUnitSlotID].isDisappearingUnk != 0) {
+pbVar2 = &DAT_UnitsState.units[DAT_CurrentUnitSlotID].disappearFadeAlphaCountdown;
+*pbVar2 = *pbVar2 - 1;
+if (-1 < (char)*pbVar2) {
+return;
+}
+DAT_UnitsState.units[uVar14].disappearFadeAlphaCountdown = 0;
+DAT_UnitsState.units[uVar14].isDisappearingUnk = 0;
+return;
+}
+if (DAT_UnitsState.units[DAT_CurrentUnitSlotID].goToRallyPoint != 0) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].goToRallyPoint = 0;
+DAT_UnitsState.units[uVar14].state.generic = 0x69;
+iVar12 = Map::Buildings::BuildingsState::findFreeTunnelerAssemblyTile
+(&DAT_BuildingsState,iVar15,uVar14);
+if (iVar12 != 0) {
+Map::Units::UnitsState::setDestinationForUnit
+(&DAT_UnitsState,DAT_CurrentUnitSlotID,DAT_BuildingsState.DAT_TempXOffset,
+DAT_BuildingsState.DAT_TempYOffset,0);
+}
+puVar3 = &DAT_GameState.playerDataArray[iVar15].someCount29;
+*puVar3 = *puVar3 + 1;
+return;
+}
+sVar8 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].closestEnemyMicroDistance;
+if (400 < sVar8) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_AIM_WEAPONUnk;
+return;
+}
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = (0x60 < sVar8) + US_AIM_WEAPONUnk;
+return;
+}
+if (UVar7 == US_IDLEUnk) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationSheetFrameOffset = 1;
+DAT_UnitsState.units[uVar14].field_0x30_animRelated = 0x10;
+DAT_UnitsState.units[uVar14].unknownTestAgainst0_2 = 1;
+return;
+}
+if (UVar7 == 0x69) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationSheetFrameOffset = 1;
+DAT_UnitsState.units[uVar14].field_0x30_animRelated = 0x10;
+DAT_UnitsState.units[uVar14].calculatedMovementSpeed =
+DAT_UnitsState.units[uVar14].movementSpeed;
+BVar13 = Map::Units::UnitsState::hasUnitReachedDestination(&DAT_UnitsState,uVar14);
+if (BVar13 != FALSE) {
+iVar12 = Map::Buildings::BuildingsState::findFreeTunnelerAssemblyTile
+(&DAT_BuildingsState,iVar15,DAT_CurrentUnitSlotID);
+if (iVar12 != 0) {
+Map::Units::UnitsState::setDestinationForUnit
+(&DAT_UnitsState,DAT_CurrentUnitSlotID,DAT_BuildingsState.DAT_TempXOffset,
+DAT_BuildingsState.DAT_TempYOffset,0);
+puVar3 = &DAT_GameState.playerDataArray[iVar15].someCount29;
+*puVar3 = *puVar3 + 1;
+return;
+}
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].facingDirection = 4;
+}
+puVar3 = &DAT_GameState.playerDataArray[iVar15].someCount29;
+*puVar3 = *puVar3 + 1;
+return;
+}
+if (UVar7 != US_MOVE_TO_DESTINATION) {
+if (UVar7 == US_APPEAR) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].stateBasedSpeed = 0;
+DAT_UnitsState.units[uVar14].field_0x30_animRelated = 0x10;
+sVar8 = DAT_UnitsState.units[uVar14].moveInstructionSpeedDelayTracker;
+DAT_UnitsState.units[uVar14].animationSheetFrameOffset = 1;
+if ((sVar8 == 0) || (DAT_UnitsState.units[uVar14].moveInstructionSpeedDelayTracker < 0x47)) {
+DAT_UnitsState.units[uVar14].stateBasedSpeed = 0;
+}
+else {
+DAT_UnitsState.units[uVar14].stateBasedSpeed = -1;
+DAT_UnitsState.units[uVar14].field_0x30_animRelated = 0;
+}
+BVar13 = Map::Units::UnitsState::hasUnitReachedDestination(&DAT_UnitsState,uVar14);
+if (BVar13 == FALSE) {
+return;
+}
+iVar15 = DAT_UnitsState.units[uVar14].
+targetedUnitUIDUnk_OR_someAppearTileUnk_OR_buildingUID_OR_pitchDitchUID_OR_entityUID;
+Map::Units::UnitsState::setPositionOfUnit
+(&DAT_UnitsState,DAT_CurrentUnitSlotID,
+iVar15 - DAT_ViewportRenderState.translationMatrix
+[DAT_ViewportRenderState.tileTranslationMatrix_YComponent[iVar15]].
+addXgetTile,
+(int)DAT_ViewportRenderState.tileTranslationMatrix_YComponent[iVar15],
+(uint)DAT_TileMapState.HeightLayer[iVar15]);
+Map::Units::UnitsState::setDestinationForUnit
+(&DAT_UnitsState,DAT_CurrentUnitSlotID,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].plannedDestinationX,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].plannedDestinationY,0);
+uVar14 = DAT_CurrentUnitSlotID;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_MOVE_TO_DESTINATION;
+DAT_UnitsState.units[uVar14].fadeType = 1;
+DAT_UnitsState.units[uVar14].fadeCounter = 0;
+return;
+}
+if (UVar7 == US_LOOK_AROUNDUnk) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].unknownTestAgainst0_2 = 0;
+DAT_UnitsState.units[uVar14].stateBasedSpeed = 0;
+DAT_UnitsState.units[uVar14].field_0x30_animRelated = 0x10;
+if (DAT_UnitsState.units[uVar14].movementRunUpTime == 0) {
+DAT_UnitsState.units[uVar14].animationSheetFrameOffset = 0x81;
+DAT_UnitsState.units[uVar14].stateBasedSpeed = 1;
+}
+else {
+DAT_UnitsState.units[uVar14].animationSheetFrameOffset = 1;
+DAT_UnitsState.units[uVar14].stateBasedSpeed = 0;
+}
+BVar13 = Map::Units::UnitsState::hasUnitReachedDestination(&DAT_UnitsState,uVar14);
+if (BVar13 == FALSE) {
+return;
+}
+DAT_UnitsState.units[uVar14].stateBasedSpeed = 0;
+DAT_UnitsState.units[uVar14].animationCycleNumber = 0;
+DAT_UnitsState.units[uVar14].state.generic = US_STAND_UPUnk;
+sVar8 = DAT_UnitsState.units[uVar14].workplaceBuildingID_1;
+Map::Navigation::DirectionAlgorithmState::calculatePreferredRelativeOrientation
+(&DAT_DirectionAlgorithmState,
+(int)DAT_BuildingsState.buildings[sVar8].buildingEntryX,
+(int)DAT_BuildingsState.buildings[sVar8].buildingEntryY,
+(short)DAT_BuildingsState.buildings[sVar8].x + 1,
+(short)DAT_BuildingsState.buildings[sVar8].y + 1);
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].facingDirection =
+(short)DAT_DirectionAlgorithmState.orientation;
+return;
+}
+if (UVar7 == US_STAND_UPUnk) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationSpeed = 5;
+DAT_UnitsState.units[uVar14].field_0x30_animRelated = 0;
+iVar15 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field232_0x44a4[DAT_UnitsState.units[uVar14].animationCycleNumber];
+DAT_UnitsState.units[uVar14].animationFrame = iVar15;
+if ((iVar15 == 10) &&
+(DAT_UnitsState.units[uVar14].animationCycleNumberHasJustIncremented != FALSE)) {
+Audio::SFX::SFXState::playSFXAtLocation
+(&DAT_SFXState,(int)DAT_UnitsState.units[uVar14].x,
+(int)DAT_UnitsState.units[uVar14].y,FX_DIG1);
+}
+uVar14 = DAT_CurrentUnitSlotID;
+iVar15 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationFrame;
+iVar12 = (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].
+facingDirectionMapOrientationCorrected;
+if (iVar15 < 1) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].gfxNumber = iVar12 + 0x101;
+DAT_UnitHasBecomeIdle = 1;
+}
+else {
+bVar17 = DAT_UnitHasBecomeIdle == 0;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].gfxNumber = iVar12 + 0xf9 + iVar15 * 8;
+if (bVar17) {
+return;
+}
+}
+DAT_UnitsState.units[uVar14].animationCycleNumber = 0;
+DAT_UnitsState.units[uVar14].state.generic = US_JESTER_ROAM_TO;
+DAT_UnitsState.units[uVar14].disappearFadeAlphaCountdown = 0;
+DAT_UnitsState.units[uVar14].engineerManningSiegeStateRef_checkType = 1;
+DAT_UnitsState.units[uVar14].cachedState = US_STAND_UPUnk|US_IDLEUnk;
+DAT_UnitsState.units[uVar14].updateTickTracker = 0;
+iVar15 = (int)DAT_UnitsState.units[uVar14].workplaceBuildingID_1;
+uVar10 = DAT_BuildingsState.buildings[iVar15].y;
+DAT_UnitsState.units[uVar14].attackAtTileX = DAT_BuildingsState.buildings[iVar15].x;
+DAT_UnitsState.units[uVar14].attackAtTileY = uVar10;
+DAT_TileMapState.showNoRubbleWhenDestroyingBuilding = 1;
+Map::Buildings::BuildingsState::destroyBuilding(&DAT_BuildingsState,iVar15);
+uVar14 = DAT_CurrentUnitSlotID;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingID_1 = 0;
+DAT_UnitsState.units[uVar14].targetUID = 0;
+return;
+}
+if (UVar7 == (US_STAND_UPUnk|US_IDLEUnk)) {
+/* Prepare tunnel */
+BVar13 = Map::Units::UnitsState::findTunnelTarget
+(&DAT_UnitsState,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingID_1,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].siegeTargetPlayerID);
+if (BVar13 == FALSE) {
+return;
+}
+sVar8 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingID_1;
+Map::Units::UnitsState::setPositionOfUnit
+(&DAT_UnitsState,DAT_CurrentUnitSlotID,
+(int)DAT_BuildingsState.buildings[sVar8].someX,
+(int)DAT_BuildingsState.buildings[sVar8].someY,4);
+BVar13 = Map::Units::UnitsState::setDestinationForUnit
+(&DAT_UnitsState,DAT_CurrentUnitSlotID,DAT_PathFindingState.ALG_TargetX,
+DAT_PathFindingState.ALG_TargetY,2);
+uVar14 = DAT_CurrentUnitSlotID;
+if (BVar13 != FALSE) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].moveRelatedFlag = 1;
+DAT_UnitsState.units[uVar14].tunnelerFinishedDigging = 1;
+return;
+}
+LAB_0054efeb:
+DAT_TileMapState.showNoRubbleWhenDestroyingBuilding = 1;
+Map::Buildings::BuildingsState::destroyBuilding
+(&DAT_BuildingsState,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingID_1);
+uVar14 = DAT_CurrentUnitSlotID;
+DAT_PathFindingState.toggleUpdateSeparateAreaTileMap = 1;
+DAT_TileMapState.field204_0x554a30 = 1;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationCycleNumber = 0;
+DAT_UnitsState.units[uVar14].logicalState = ULS_REMOVE;
+return;
+}
+if (UVar7 == 3) {
+/* Dig tunnel */
+if (DAT_UnitsState.units[DAT_CurrentUnitSlotID].tunnelerFinishedDigging == 1) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].logicalState = ULS_REMOVE;
+DAT_TileMapState.showNoRubbleWhenDestroyingBuilding = 1;
+Map::Buildings::BuildingsState::destroyBuilding
+(&DAT_BuildingsState,(int)DAT_UnitsState.units[uVar14].workplaceBuildingID_1);
+return;
+}
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].movementSpeed = 5;
+DAT_UnitsState.units[uVar14].animationSheetFrameOffset = 1;
+DAT_UnitsState.units[uVar14].field_0x30_animRelated = 0x10;
+psVar4 = &DAT_UnitsState.units[uVar14].tunnelerFrame;
+*psVar4 = *psVar4 + 1;
+sVar8 = DAT_UnitsState.units[uVar14].tunnelerFrame;
+if (DAT_UnitsState.units[uVar14].currentIndexInPathPlan != 0) {
+if (((sVar8 == 6) || (sVar8 == 0xc)) || (sVar8 == 0x12)) {
+Map::TileMapState::increaseHeightForTunnelSingleTile
+(&DAT_TileMapState,DAT_UnitsState.units[uVar14].tile,
+(int)DAT_UnitsState.units[uVar14].x,(int)DAT_UnitsState.units[uVar14].y,1);
+}
+else if (0x17 < sVar8) {
+DAT_UnitsState.units[uVar14].tunnelerFrame = 0;
+Map::TileMapState::increaseHeightForTunnelWithBrush
+(&DAT_TileMapState,DAT_UnitsState.units[uVar14].tile,
+(int)DAT_UnitsState.units[uVar14].x,(int)DAT_UnitsState.units[uVar14].y,1);
+}
+}
+BVar13 = Map::Units::UnitsState::hasUnitReachedDestination
+(&DAT_UnitsState,DAT_CurrentUnitSlotID);
+uVar14 = DAT_CurrentUnitSlotID;
+if (BVar13 == FALSE) {
+return;
+}
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationCycleNumber = 0;
+DAT_UnitsState.units[uVar14].tunnelerFrame = 0;
+DAT_UnitsState.units[uVar14].state.generic = US_RELOAD_WEAPONUnk;
+return;
+}
+if (UVar7 == US_RELOAD_WEAPONUnk) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationSheetFrameOffset = 1;
+DAT_UnitsState.units[uVar14].field_0x30_animRelated = 0x10;
+psVar4 = &DAT_UnitsState.units[uVar14].tunnelerFrame;
+*psVar4 = *psVar4 + 1;
+sVar8 = DAT_UnitsState.units[uVar14].tunnelerFrame;
+if (sVar8 < 0x3c) {
+return;
+}
+if (sVar8 < 0x41) {
+/* damage is 10 */
+Map::TileMapState::processEntityDamageToBuildingCollateralThunk
+(&DAT_TileMapState,DAT_UnitsState.units[uVar14].tile,
+(int)DAT_UnitsState.units[uVar14].x,(int)DAT_UnitsState.units[uVar14].y,10,
+(int)DAT_UnitsState.units[uVar14].owner,0);
+/* damage is 10 again */
+Map::TileMapState::processDamageToBuildingThunk
+(&DAT_TileMapState,DAT_UnitsState.units[DAT_CurrentUnitSlotID].tile,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].x,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].y,10,0,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner,FALSE);
+Audio::SFX::SFXState::playSFXAtLocation
+(&DAT_SFXState,(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].x,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].y,FX_WALLDROP);
+return;
+}
+iVar15 = DAT_UnitsState.units[uVar14].tile;
+if (DAT_TileMapState.BuildingLayer[iVar15] == 0) {
+Map::TileMapState::resetTileToDefaultState
+(&DAT_TileMapState,iVar15,(int)DAT_UnitsState.units[uVar14].x,
+(int)DAT_UnitsState.units[uVar14].y);
+}
+else {
+Map::Buildings::BuildingsState::destroyBuilding
+(&DAT_BuildingsState,(int)(short)DAT_TileMapState.BuildingLayer[iVar15]);
+}
+Map::Units::UnitsState::applyTunnelDamageAlongPathPlan(&DAT_UnitsState,DAT_CurrentUnitSlotID);
+goto LAB_0054efeb;
+}
+if (UVar7 != US_AIM_WEAPONUnk) {
+if (UVar7 == US_FIRE_WEAPONUnk) {
+uVar11 = DAT_CurrentUnitSlotID & 1;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationSpeed = 5;
+DAT_UnitsState.units[uVar14].field_0x30_animRelated = 0;
+DAT_UnitsState.units[uVar14].field134_0x2ac = 10;
+if (uVar11 == 0) {
+DAT_UnitsState.units[uVar14].animationFrame =
+(int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field229_0x441c[DAT_UnitsState.units[uVar14].animationCycleNumber];
+}
+else {
+DAT_UnitsState.units[uVar14].animationFrame =
+(int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field230_0x4444[DAT_UnitsState.units[uVar14].animationCycleNumber];
+}
+iVar15 = DAT_UnitsState.units[uVar14].animationFrame;
+if (iVar15 < 1) {
+DAT_UnitsState.units[uVar14].gfxNumber = 0x181;
+DAT_UnitHasBecomeIdle = 1;
+}
+else {
+bVar17 = DAT_UnitHasBecomeIdle == 0;
+DAT_UnitsState.units[uVar14].gfxNumber = iVar15 + 0x180;
+if (bVar17) {
+return;
+}
+}
+DAT_UnitsState.units[uVar14].animationCycleNumber = 0;
+DAT_UnitsState.units[uVar14].state.generic = US_DETERMINE_NEXT_STATEUnk;
+if (DAT_TribesState.tribes[DAT_UnitsState.units[uVar14].tribeID].tribeBehaviorType !=
+STBT_0x400) {
+return;
+}
+DAT_UnitsState.units[uVar14].state.generic = US_DISAPPEAR;
+return;
+}
+if (UVar7 == 0x6c) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].stateBasedSpeed = 0;
+DAT_UnitsState.units[uVar14].field_0x30_animRelated = 0;
+DAT_UnitsState.units[uVar14].animationSheetFrameOffset = 1;
+return;
+}
+if (UVar7 == US_MELEE_ATTACK_WALL) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationSpeed = 3;
+DAT_UnitsState.units[uVar14].field_0x30_animRelated = 0;
+Map::Units::UnitsState::setUnitFacingDirectionForTargetXandY
+(&DAT_UnitsState,uVar14,(int)DAT_UnitsState.units[uVar14].attackAtTileX,
+(int)DAT_UnitsState.units[uVar14].attackAtTileY);
+uVar14 = DAT_CurrentUnitSlotID;
+iVar15 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field231_0x447c
+[DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationCycleNumber];
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationFrame = iVar15;
+iVar12 = (int)DAT_UnitsState.units[uVar14].facingDirectionMapOrientationCorrected;
+if (iVar15 < 1) {
+DAT_UnitsState.units[uVar14].gfxNumber = iVar12 + 0x1e9;
+DAT_UnitHasBecomeIdle = 1;
+}
+else {
+bVar17 = DAT_UnitHasBecomeIdle == 0;
+DAT_UnitsState.units[uVar14].gfxNumber = iVar12 + 0x1e1 + iVar15 * 8;
+if (bVar17) {
+return;
+}
+}
+pcVar5 = &DAT_UnitsState.units[uVar14].nextAttackHurtsWall;
+*pcVar5 = *pcVar5 + '\x01';
+if ('\x01' < DAT_UnitsState.units[uVar14].nextAttackHurtsWall) {
+DAT_UnitsState.units[uVar14].nextAttackHurtsWall = '\0';
+}
+uVar11 = DAT_UnitsState.units[uVar14].targetedBuildingTile;
+uVar16 = DAT_TileMapState.LogicLayer[uVar11] & 0x100;
+if (uVar16 == 0) {
+iVar15 = (int)(short)DAT_TileMapState.BuildingLayer[uVar11];
+if (iVar15 < 1) {
+DAT_UnitsState.units[uVar14].state.generic = US_DETERMINE_NEXT_STATEUnk;
+return;
+}
+iVar12 = (-(uint)(DAT_BuildingDefinedData.DAT_IsGateOrTowerArray
+[(short)DAT_BuildingsState.buildings[iVar15].buildingType] != FALSE) &
+0xfffffff0) + 0x14;
+}
+else {
+iVar15 = 0;
+iVar12 = 6;
+}
+Map::TileMapState::processDamageToBuildingThunk
+(&DAT_TileMapState,uVar11,(int)DAT_UnitsState.units[uVar14].attackAtTileX,
+(int)DAT_UnitsState.units[uVar14].attackAtTileY,iVar12,
+(int)DAT_UnitsState.units[uVar14].nextAttackHurtsWall,
+(int)DAT_UnitsState.units[uVar14].owner,TRUE);
+if (extraout_EAX == 0) {
+iVar12 = (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner;
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[iVar12] == -1) {
+if (uVar16 == 0) {
+if (((DAT_BuildingDefinedData.DAT_IsGateOrTowerArray
+[(short)DAT_BuildingsState.buildings[iVar15].buildingType] != FALSE) &&
+(*(int *)((int)DAT_TroopValueState.attackInfo.scaleValuesArray +
+iVar12 * 0x177bc + -0x1c) + 10 <
+(int)(uint)*(byte *)(*(int *)((int)DAT_TroopValueState.attackInfo.hackValuesArray
++ iVar12 * 0x177bc + -0x10) * 0x13a10 + 0x1ee2998 +
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].
+targetedBuildingTile))) &&
+(iVar15 = Map::Units::TribesState::moveUnitToBehaviorTarget
+(&DAT_TribesState,DAT_CurrentUnitSlotID,
+(int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].
+unknownDigMoatOrWallAttackFlag1015),
+uVar14 = DAT_CurrentUnitSlotID, iVar15 == 0)) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic =
+US_DETERMINE_NEXT_STATEUnk;
+DAT_UnitsState.units[uVar14].animationCycleNumber = 0;
+return;
+}
+}
+else if ((*(int *)((int)DAT_TroopValueState.attackInfo.scaleValuesArray +
+iVar12 * 0x177bc + -0x1c) + 0xf <
+(int)(uint)*(byte *)(*(int *)((int)DAT_TroopValueState.attackInfo.
+hackValuesArray + iVar12 * 0x177bc + -0x10)
+* 0x13a10 + 0x1ee2998 +
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].
+targetedBuildingTile)) &&
+(iVar15 = Map::Units::UnitsState::setDestinationNearTargetedBuilding
+(&DAT_UnitsState,DAT_CurrentUnitSlotID,1), iVar15 != 0)) {
+return;
+}
+}
+}
+else {
+if ((uVar16 != 0) &&
+(iVar15 = Map::Units::UnitsState::setDestinationNearTargetedBuilding
+(&DAT_UnitsState,DAT_CurrentUnitSlotID,1), iVar15 != 0)) {
+return;
+}
+uVar14 = DAT_CurrentUnitSlotID;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetedBuildingTile = 0;
+iVar15 = Map::Units::TribesState::moveUnitToBehaviorTarget
+(&DAT_TribesState,uVar14,
+(int)DAT_UnitsState.units[uVar14].unknownDigMoatOrWallAttackFlag1015);
+uVar14 = DAT_CurrentUnitSlotID;
+if (iVar15 == 0) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_DETERMINE_NEXT_STATEUnk;
+DAT_UnitsState.units[uVar14].animationCycleNumber = 0;
+return;
+}
+}
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationCycleNumber = 0;
+return;
+}
+if (UVar7 == US_MELEE_ATTACK) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationSpeed = 3;
+DAT_UnitsState.units[uVar14].field_0x30_animRelated = 0;
+iVar15 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field231_0x447c[DAT_UnitsState.units[uVar14].animationCycleNumber];
+DAT_UnitsState.units[uVar14].animationFrame = iVar15;
+if (iVar15 < 1) {
+DAT_UnitsState.units[uVar14].gfxNumber =
+DAT_UnitsState.units[uVar14].facingDirectionMapOrientationCorrected + 0x1e9;
+DAT_UnitHasBecomeIdle = 1;
+}
+else {
+bVar17 = DAT_UnitHasBecomeIdle == 0;
+DAT_UnitsState.units[uVar14].gfxNumber =
+DAT_UnitsState.units[uVar14].facingDirectionMapOrientationCorrected + 0x1e1 +
+iVar15 * 8;
+if (bVar17) {
+return;
+}
+}
+uVar11 = DAT_CurrentUnitSlotID;
+DAT_UnitsState.units[uVar14].animationCycleNumber = 0;
+Map::Units::UnitsState::resumeMovementIfNoAttackTarget(&DAT_UnitsState,uVar11);
+return;
+}
+if (UVar7 == US_JESTER_ROAM_TO) {
+pbVar2 = &DAT_UnitsState.units[DAT_CurrentUnitSlotID].disappearFadeAlphaCountdown;
+*pbVar2 = *pbVar2 + DAT_UnitsState.units[DAT_CurrentUnitSlotID].
+engineerManningSiegeStateRef_checkType;
+if ((char)*pbVar2 < '\0') {
+DAT_UnitsState.units[uVar14].disappearFadeAlphaCountdown = 0;
+}
+else if ('\x1f' < (char)DAT_UnitsState.units[uVar14].disappearFadeAlphaCountdown) {
+DAT_UnitsState.units[uVar14].disappearFadeAlphaCountdown = 0x1f;
+}
+if (DAT_UnitsState.units[uVar14].disappearFadeAlphaCountdown == 1) {
+Map::TileMapState::placeBuilding
+(&DAT_TileMapState,iVar15,(int)DAT_UnitsState.units[uVar14].attackAtTileX,
+(int)DAT_UnitsState.units[uVar14].attackAtTileY,M_MAPPER_TUNNEL,3,0xf);
+iVar12 = DAT_TileMapState.placedBuildingID;
+uVar14 = DAT_CurrentUnitSlotID;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingID_1 =
+(short)DAT_TileMapState.placedBuildingID;
+iVar15 = DAT_BuildingsState.buildings[iVar12].uid;
+DAT_BuildingsState.buildings[iVar12].unitRefID = (short)uVar14;
+DAT_UnitsState.units[uVar14].workplaceBuildingUID = iVar15;
+DAT_BuildingsState.buildings[iVar12].unitRefUID = DAT_UnitsState.units[uVar14].uid;
+DAT_BuildingsState.buildings[iVar12].tunnelerCounter = 0;
+}
+psVar4 = &DAT_UnitsState.units[uVar14].updateTickTracker;
+*psVar4 = *psVar4 + 1;
+if (DAT_UnitsState.units[uVar14].updateTickTracker < 0x21) {
+return;
+}
+DAT_UnitsState.units[uVar14].updateTickTracker = 0;
+DAT_UnitsState.units[uVar14].disappearFadeAlphaCountdown = 0;
+DAT_UnitsState.units[uVar14].state =
+(UnitStateUnion)DAT_UnitsState.units[uVar14].cachedState;
+if ((char)DAT_UnitsState.units[uVar14].engineerManningSiegeStateRef_checkType < '\x01') {
+return;
+}
+Map::Units::UnitsState::commitUnitLocation(&DAT_UnitsState,DAT_CurrentUnitSlotID);
+return;
+}
+if (UVar7 == US_DEATH_01) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].facingDirection = 0;
+DAT_UnitsState.units[uVar14].animationSpeed = 2;
+DAT_UnitsState.units[uVar14].field_0x30_animRelated = 0;
+iVar15 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+ANIM_Worker_Shared1[DAT_UnitsState.units[uVar14].animationCycleNumber];
+DAT_UnitsState.units[uVar14].animationFrame = iVar15;
+if (iVar15 < 1) {
+DAT_UnitsState.units[uVar14].gfxNumber = 0x1b8;
+DAT_UnitsState.units[uVar14].state.generic = US_DISAPPEAR;
+DAT_UnitHasBecomeIdle = 1;
+return;
+}
+iVar15 = iVar15 + 0x1a0;
+}
+else if (UVar7 == US_DEATH_03) {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].facingDirection = 0;
+DAT_UnitsState.units[uVar14].animationSpeed = 2;
+DAT_UnitsState.units[uVar14].field_0x30_animRelated = 0;
+iVar15 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+ANIM_Worker_Shared1[DAT_UnitsState.units[uVar14].animationCycleNumber];
+DAT_UnitsState.units[uVar14].animationFrame = iVar15;
+if (iVar15 < 1) {
+DAT_UnitsState.units[uVar14].gfxNumber = 0x1d0;
+DAT_UnitsState.units[uVar14].state.generic = US_DISAPPEAR;
+DAT_UnitHasBecomeIdle = 1;
+return;
+}
+iVar15 = iVar15 + 0x1b8;
+}
+else {
+uVar18 = Map::Units::UnitsState::checkIfCitizenUnitIsAliveBasedOnState
+(DAT_CurrentUnitSlotID);
+if ((int)uVar18 == 0) {
+if ((short)((uint6)uVar18 >> 0x20) != 0x6e) {
+return;
+}
+pbVar2 = &DAT_UnitsState.units[uVar14].disappearFadeAlphaCountdown;
+*pbVar2 = *pbVar2 + 1;
+if (' ' < (char)DAT_UnitsState.units[uVar14].disappearFadeAlphaCountdown) {
+DAT_UnitsState.units[uVar14].disappearFadeAlphaCountdown = 0x20;
+}
+psVar4 = &DAT_UnitsState.units[uVar14].updateTickTracker;
+*psVar4 = *psVar4 + 1;
+if (DAT_UnitsState.units[uVar14].updateTickTracker < 0x21) {
+return;
+}
+iVar12 = (int)DAT_UnitsState.units[uVar14].workplaceBuildingID_1;
+if ((iVar12 != 0) &&
+(DAT_BuildingsState.buildings[iVar12].uid == DAT_UnitsState.units[uVar14].targetUID)) {
+DAT_BuildingsState.buildings[iVar12].logicalState = BLS_REMOVE;
+}
+DAT_UnitsState.units[uVar14].logicalState = ULS_REMOVE;
+if (DAT_UnitsState.units[uVar14].killedFlagUnk != 0) {
+return;
+}
+Game::GameStateStructures::processUnitLossStatistic
+(&DAT_GameState,iVar15,DAT_CurrentUnitSlotID);
+if (iVar15 == DAT_GameSynchronyState.currentPlayerSlotID) {
+piVar1 = DAT_GameState.mapAndTime.emenyHitArray +
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].lastEncounteredEnemyPlayerID + -9;
+*piVar1 = *piVar1 + 1;
+return;
+}
+if (DAT_UnitsState.units[DAT_CurrentUnitSlotID].lastEncounteredEnemyPlayerID !=
+DAT_GameSynchronyState.currentPlayerSlotID) {
+return;
+}
+piVar1 = DAT_GameState.mapAndTime.emenyHitArray + iVar15;
+*piVar1 = *piVar1 + 1;
+return;
+}
+DAT_UnitsState.units[uVar14].facingDirection = 0;
+DAT_UnitsState.units[uVar14].animationSpeed = 2;
+DAT_UnitsState.units[uVar14].field_0x30_animRelated = 0;
+iVar15 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+ANIM_Worker_Shared1[DAT_UnitsState.units[uVar14].animationCycleNumber];
+DAT_UnitsState.units[uVar14].animationFrame = iVar15;
+if (iVar15 < 1) {
+DAT_UnitsState.units[uVar14].gfxNumber = 0x1e8;
+DAT_UnitsState.units[uVar14].state.generic = US_DISAPPEAR;
+DAT_UnitHasBecomeIdle = 1;
+return;
+}
+iVar15 = iVar15 + 0x1d0;
+}
+bVar17 = DAT_UnitHasBecomeIdle == 0;
+DAT_UnitsState.units[uVar14].gfxNumber = iVar15;
+if (bVar17) {
+return;
+}
+DAT_UnitsState.units[uVar14].state.generic = US_DISAPPEAR;
+return;
+}
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationSpeed = 5;
+DAT_UnitsState.units[uVar14].field_0x30_animRelated = 0;
+DAT_UnitsState.units[uVar14].field134_0x2ac = 10;
+sVar8 = DAT_UnitsState.units[uVar14].substate;
+if (sVar8 == 0) {
+bVar6 = DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.field225_0x42c4
+[DAT_UnitsState.units[uVar14].animationCycleNumber];
+}
+else {
+if (sVar8 == 1) {
+DAT_UnitsState.units[uVar14].animationFrame =
+(int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field226_0x4314[DAT_UnitsState.units[uVar14].animationCycleNumber];
+goto LAB_0054f0c7;
+}
+if (sVar8 == 2) {
+DAT_UnitsState.units[uVar14].animationFrame =
+(int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+field227_0x4364[DAT_UnitsState.units[uVar14].animationCycleNumber];
+goto LAB_0054f0c7;
+}
+bVar6 = DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.field228_0x43b4
+[DAT_UnitsState.units[uVar14].animationCycleNumber];
+}
+DAT_UnitsState.units[uVar14].animationFrame = (int)(char)bVar6;
+LAB_0054f0c7:
+iVar15 = DAT_UnitsState.units[uVar14].animationFrame;
+if (iVar15 < 1) {
+DAT_UnitsState.units[uVar14].gfxNumber = 0x191;
+DAT_UnitHasBecomeIdle = 1;
+}
+else {
+bVar17 = DAT_UnitHasBecomeIdle == 0;
+DAT_UnitsState.units[uVar14].gfxNumber = iVar15 + 400;
+if (bVar17) {
+return;
+}
+}
+DAT_UnitsState.units[uVar14].substate = (byte)SEC_RNG.currentNumber2 & 3;
+DAT_UnitsState.units[uVar14].animationCycleNumber = 0;
+DAT_UnitsState.units[uVar14].state.generic = US_DETERMINE_NEXT_STATEUnk;
+if (DAT_TribesState.tribes[DAT_UnitsState.units[uVar14].tribeID].tribeBehaviorType != STBT_0x400
+) {
+return;
+}
+DAT_UnitsState.units[uVar14].state.generic = US_DISAPPEAR;
+return;
+}
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].unknownTestAgainst0_2 = 0;
+DAT_UnitsState.units[uVar14].stateBasedSpeed = 0;
+DAT_UnitsState.units[uVar14].field_0x30_animRelated = 0x10;
+if (DAT_UnitsState.units[uVar14].moveInstructionSpeedDelayTracker == 0) {
+if (DAT_UnitsState.units[uVar14].movementRunUpTime != 0) {
+DAT_UnitsState.units[uVar14].animationSheetFrameOffset = 1;
+DAT_UnitsState.units[uVar14].stateBasedSpeed = 0;
+goto LAB_0054e935;
+}
+bVar17 = DAT_UnitsState.units[uVar14].isMatchingSpeed;
+DAT_UnitsState.units[uVar14].animationSheetFrameOffset = 1;
+if (bVar17 == false) {
+DAT_UnitsState.units[uVar14].stateBasedSpeed = 1;
+goto LAB_0054e935;
+}
+}
+else {
+DAT_UnitsState.units[uVar14].animationSheetFrameOffset = 1;
+if (0x46 < DAT_UnitsState.units[uVar14].moveInstructionSpeedDelayTracker) {
+DAT_UnitsState.units[uVar14].stateBasedSpeed = -1;
+DAT_UnitsState.units[uVar14].field_0x30_animRelated = 0;
+goto LAB_0054e935;
+}
+}
+DAT_UnitsState.units[uVar14].stateBasedSpeed = 0;
+LAB_0054e935:
+BVar13 = Map::Units::UnitsState::hasUnitReachedDestination(&DAT_UnitsState,uVar14);
+uVar11 = DAT_CurrentUnitSlotID;
+if (BVar13 == FALSE) {
+return;
+}
+DAT_UnitsState.units[uVar14].stateBasedSpeed = 0;
+DAT_UnitsState.units[uVar14].animationCycleNumber = 0;
+DAT_UnitsState.units[uVar14].state.generic = US_DETERMINE_NEXT_STATEUnk;
+sVar8 = DAT_UnitsState.units[uVar14].tribeID;
+iVar15 = Map::Units::UnitsState::handleUnitMovementWhenTargetingBuildings(&DAT_UnitsState,uVar11);
+uVar14 = DAT_CurrentUnitSlotID;
+if (0 < iVar15) {
+if (DAT_UnitsState.units[DAT_CurrentUnitSlotID].unknownDigMoatOrWallAttackFlag1015 == 0x3f7) {
+iVar15 = Map::TileMapState::returnOwnedMoatAtTile
+(&DAT_TileMapState,
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetedBuildingTile);
+uVar14 = DAT_CurrentUnitSlotID;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].digTileTarget = iVar15;
+if (iVar15 != 0) {
+DAT_UnitsState.units[uVar14].state.generic = US_DIG;
+sVar9 = DAT_ViewportRenderState.tileTranslationMatrix_YComponent
+[DAT_UnitsState.units[uVar14].targetedBuildingTile];
+DAT_UnitsState.units[uVar14].digTileY__OR__countLifeCycleEngineersSentToManSiegeEngine =
+sVar9;
+DAT_UnitsState.units[uVar14].
+digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300 =
+(short)DAT_UnitsState.units[uVar14].targetedBuildingTile -
+(short)DAT_ViewportRenderState.translationMatrix[sVar9].addXgetTile;
+}
+}
+else {
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_MELEE_ATTACK_WALL;
+}
+}
+if (DAT_TribesState.tribes[sVar8].tribeBehaviorType != STBT_0x400) {
+return;
+}
+DAT_UnitsState.units[uVar14].state.generic = US_DISAPPEAR;
+return;
+}
+--- NAMEN NUR IM PAKETCODE ---
+Frames_Shared_UnitClimbingUp, IsGateOrTowerArray, UnitState, _isValidLocation, _playerID, _tunnelerFrame, _unitID, _workplaceBuildingTypeID, _workplaceBuildingTypeID_8, bVar15, field131_0x2ac
+--- KOMMENTARE IM PAKETCODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0054E6C0
+/*
+/*
+/*
+/*
+--- ERKLAERUNG ---
+{"adr": "0x0054e6c0", "name": "UpdateTunneler", "p1": {"bereich": "Einheiten", "zweck": "Taktfunktion des Tunnelgräbers: steuert pro Tick seinen gesamten Ablauf von Sammelpunkt über Erscheinen und Graben bis zum Einsturz unter dem Ziel, dazu Nahkampf gegen Mauern, Bildfolgen und Verschwinden."}, "p2": {"ein": "keine; arbeitet auf DAT_CurrentUnitSlotID (die Einheit, die gerade dran ist)", "aus": "keine", "liest": ["units[].owner/tribeID/state.generic/substate/tile/x/y/uid/targetUID/killedFlagUnk/lastEncounteredEnemyPlayerID", "units[].workplaceBuildingID_1/siegeTargetPlayerID/targetedBuildingTile/attackAtTileX/Y/unknownDigMoatOrWallAttackFlag1015/plannedDestinationX/Y", "units[].closestEnemyMicroDistance/goToRallyPoint/isDisappearingUnk/disappearFadeAlphaCountdown/cachedState/engineerManningSiegeStateRef_checkType/updateTickTracker", "units[].tunnelerFrame/tunnelerFinishedDigging/currentIndexInPathPlan/nextAttackHurtsWall/movementSpeed/moveInstructionSpeedDelayTracker/movementRunUpTime/isMatchingSpeed", "units[].animationCycleNumber/animationCycleNumberHasJustIncremented/facingDirectionMapOrientationCorrected, DAT_UnitHasBecomeIdle", "DAT_UnitPropertiesDefinedData.Frames_Shared_UnitClimbingUp (Bildfolgen field225..232, ANIM_Worker_Shared1)", "buildings[].x/y/someX/someY/buildingEntryX/buildingEntryY/uid/buildingType, DAT_BuildingsState.DAT_TempXOffset/DAT_TempYOffset", "DAT_TileMapState.BuildingLayer/LogicLayer/HeightLayer/placedBuildingID, DAT_BuildingDefinedData.IsGateOrTowerArray", "tribes[].tribeBehaviorType, DAT_GameSynchronyState.currentPlayerFullIDArray/currentPlayerSlotID, DAT_PathFindingState.ALG_TargetX/Y", "DAT_GameCore.mapTimeInTicks, SEC_RNG.currentNumber2, DAT_DirectionAlgorithmState.orientation, DAT_TroopValueState.attackInfo (rohe Zeiger, nur KI-Zweig)"], "schreibt": ["playerDataArray[owner].armySize +1, currentTunnelers +1 (jeder Tick), someCount29 +1 (Zustände 0 und 0x69)", "units[].state.generic, logicalState (ULS_REMOVE), calculatedOwnerPlayerIndex, isSelectable_OR_matchTime, goToRallyPoint=0", "units[].isDisappearingUnk, disappearFadeAlphaCountdown, cachedState=9, engineerManningSiegeStateRef_checkType=1, updateTickTracker", "units[].tunnelerFrame, tunnelerFinishedDigging=1, moveRelatedFlag=1, movementSpeed=5 (nur im Graben), calculatedMovementSpeed", "units[].animationFrame/gfxNumber/animationSpeed/animationSheetFrameOffset/field_0x30_animRelated/field131_0x2ac/animationCycleNumber/substate/facingDirection/stateBasedSpeed/unknownTestAgainst0_2/fadeType/fadeCounter", "units[].workplaceBuildingID_1/workplaceBuildingUID/targetUID/attackAtTileX/Y/targetedBuildingTile=0/digTileTarget/digTile-Felder/nextAttackHurtsWall", "neues Tunnelgebäude (placeBuilding M_MAPPER_TUNNEL): buildings[].unitRefID/unitRefUID/tunnelerCounter=0; buildings[].logicalState=BLS_REMOVE (beim Verschwinden)", "Globales: DAT_UnitHasBecomeIdle=1, showNoRubbleWhenDestroyingBuilding=1, toggleUpdateSeparateAreaTileMap=1, field204_0x554a30=1, emenyHitArray[...] +1", "Kachelhöhen (increaseHeightForTunnel*), Kachel-/Gebäudeschaden (Einsturz, Nahkampf an Mauern)"], "ruft": ["addUnitToNewTribe", "findFreeTunnelerAssemblyTile", "setDestinationForUnit", "hasUnitReachedDestination", "findTunnelTarget", "setPositionOfUnit", "calculatePreferredRelativeOrientation", "placeBuilding (M_MAPPER_TUNNEL)", "destroyBuilding", "commitUnitLocation", "increaseHeightForTunnelSingleTile", "increaseHeightForTunnelWithBrush", "processEntityDamageToBuildingCollateralThunk", "processDamageToBuildingThunk", "applyTunnelDamageAlongPathPlan", "resetTileToDefaultState", "handleUnitMovementWhenTargetingBuildings", "returnOwnedMoatAtTile", "setUnitFacingDirectionForTargetXandY", "setDestinationNearTargetedBuilding", "moveUnitToBehaviorTarget", "resumeMovementIfNoAttackTarget", "checkIfCitizenUnitIsAliveBasedOnState", "processUnitLossStatistic", "playSFXAtLocation"], "regeln": ["Jeder Aufruf, in jedem Zustand (auch beim Sterben): armySize und currentTunnelers des Besitzers (units[].owner) je +1 (vermutlich Neuzählung je Tick), calculatedOwnerPlayerIndex = owner, isSelectable_OR_matchTime = (short)mapTimeInTicks falls 0, addUnitToNewTribe(Einheit); danach Verzweigung nach units[].state.generic. Zustandsnummern aus dem Assembly: 0 DETERMINE_NEXT_STATE, 1 IDLE, 3 Graben, 4 RELOAD_WEAPON, 5 AIM_WEAPON, 6 FIRE_WEAPON, 7 LOOK_AROUND, 8 STAND_UP, 9 STAND_UP|IDLE, 0x65 MOVE_TO_DESTINATION, 0x6a MELEE_ATTACK, 0x6b MELEE_ATTACK_WALL, 0x6d JESTER_ROAM_TO, 0x6e DISAPPEAR, 0x6f DEATH_01, 0x71 DEATH_03, 0x7a APPEAR, 0x7d DIG (die Namen sind Ghidra-Kommentare, also Vermutungen)", "Zustand 0 (DETERMINE_NEXT_STATE), drei Fälle der Reihe nach: (a) isDisappearingUnk != 0: disappearFadeAlphaCountdown sinkt je Tick um 1; erst wenn er (als char) unter 0 fällt, werden Zähler und Flag auf 0 gesetzt; sonst passiert nichts weiter. (b) goToRallyPoint != 0: Flag auf 0, Zustand 0x69, findFreeTunnelerAssemblyTile(Besitzer, Einheit); bei Treffer setDestinationForUnit(Einheit, DAT_TempXOffset, DAT_TempYOffset, 0); someCount29 des Besitzers +1. (c) sonst nach closestEnemyMicroDistance (16 Bit mit Vorzeichen): über 400 oder höchstens 0x60 (96) gibt Zustand 5, 97 bis 400 gibt Zustand 6", "Zustand 0x69 (Sammelplatz, Name unbekannt): animationSheetFrameOffset = 1, field_0x30_animRelated = 0x10, calculatedMovementSpeed = movementSpeed. Nur wenn hasUnitReachedDestination: erneut findFreeTunnelerAssemblyTile; bei Treffer setDestinationForUnit(DAT_TempXOffset, DAT_TempYOffset, 0), ohne Treffer facingDirection = 4. In jedem Tick dieses Zustands someCount29 des Besitzers +1; der Zustand wird in dieser Funktion nie verlassen", "Zustand 0x65 (MOVE_TO_DESTINATION): unknownTestAgainst0_2 = 0, field_0x30_animRelated = 0x10, animationSheetFrameOffset = 1. stateBasedSpeed: bei moveInstructionSpeedDelayTracker == 0 gibt movementRunUpTime != 0 den Wert 0, sonst isMatchingSpeed == false den Wert 1, sonst 0; bei Tracker != 0 gibt Tracker > 0x46 den Wert -1 (dazu field_0x30_animRelated = 0), sonst 0. Bei Ankunft (hasUnitReachedDestination): stateBasedSpeed = 0, animationCycleNumber = 0, Zustand 0, dann handleUnitMovementWhenTargetingBuildings: Ergebnis > 0 mit unknownDigMoatOrWallAttackFlag1015 == 0x3f7 setzt digTileTarget = returnOwnedMoatAtTile(targetedBuildingTile) und bei Wert != 0 Zustand 0x7d (US_DIG, hat in dieser Funktion keinen eigenen Zweig) samt Kachel-X/Y in den digTile-Feldern; Ergebnis > 0 mit anderem Flag gibt Zustand 0x6b; Ergebnis <= 0 lässt Zustand 0. Zuletzt, unabhängig davon: tribeBehaviorType des Stamms == STBT_0x400 gibt Zustand 0x6e", "Zustand 0x7a (APPEAR): stateBasedSpeed wie in 0x65 (Tracker == 0 oder <= 0x46 gibt 0, sonst -1 mit field_0x30_animRelated = 0). Bei Ankunft: setPositionOfUnit auf die Kachel aus dem Mehrfachfeld targetedUnitUIDUnk_OR_someAppearTileUnk_... (hier als Kachelindex gelesen) mit Höhe aus HeightLayer, setDestinationForUnit(plannedDestinationX, plannedDestinationY, 0), Zustand 0x65, fadeType = 1, fadeCounter = 0. Zustand 7 (LOOK_AROUND): movementRunUpTime == 0 gibt animationSheetFrameOffset 0x81 und stateBasedSpeed 1, sonst 1 und 0; bei Ankunft Zustand 8, animationCycleNumber = 0, stateBasedSpeed = 0 und facingDirection aus calculatePreferredRelativeOrientation(buildingEntryX/Y, x + 1, y + 1) des Gebäudes workplaceBuildingID_1", "Zustand 8 (STAND_UP): animationSpeed = 5, field_0x30_animRelated = 0; Bildfolge aus Frames_Shared_UnitClimbingUp.field232_0x44a4; Ton FX_DIG1 (0x9e) nur bei Bild 10 UND animationCycleNumberHasJustIncremented != 0. Am Ende der Folge (Bild < 1 oder DAT_UnitHasBecomeIdle): animationCycleNumber = 0, Zustand 0x6d, disappearFadeAlphaCountdown = 0, engineerManningSiegeStateRef_checkType = 1, cachedState = 9, updateTickTracker = 0, attackAtTileX/Y = x/y des Gebäudes workplaceBuildingID_1; dieses Gebäude wird mit showNoRubbleWhenDestroyingBuilding = 1 zerstört, danach workplaceBuildingID_1 = 0 und targetUID = 0", "Zustand 0x6d (JESTER_ROAM_TO): disappearFadeAlphaCountdown += engineerManningSiegeStateRef_checkType, begrenzt auf 0 bis 0x1f. Im Tick, in dem er genau 1 ist (also im ersten): placeBuilding(Besitzer, attackAtTileX, attackAtTileY, M_MAPPER_TUNNEL (0x39), 3, 0xf); das neue Gebäude (placedBuildingID) wird workplaceBuildingID_1 mit workplaceBuildingUID, bekommt unitRefID/unitRefUID der Einheit und tunnelerCounter = 0. updateTickTracker +1; ab Wert > 0x20 (33. Tick): Tracker und Zähler 0, Zustand = cachedState (9), und bei engineerManningSiegeStateRef_checkType >= 1 zusätzlich commitUnitLocation(Einheit)", "Zustand 9 ('Prepare tunnel'): findTunnelTarget(workplaceBuildingID_1, siegeTargetPlayerID); FALSE: die Einheit wartet, sonst passiert nichts. TRUE: setPositionOfUnit(Einheit, someX und someY des Gebäudes, 4) und setDestinationForUnit(Einheit, ALG_TargetX, ALG_TargetY, 2); der letzte Parameter heißt dort reusePathingInfo, 2 heißt: vorhandenen Pfad übernehmen. Gelingt es: moveRelatedFlag = 1, tunnelerFinishedDigging = 1, Zustand bleibt 9. Misslingt es, Abbau: showNoRubbleWhenDestroyingBuilding = 1, destroyBuilding(workplaceBuildingID_1), toggleUpdateSeparateAreaTileMap = 1, field204_0x554a30 = 1, animationCycleNumber = 0, logicalState = ULS_REMOVE", "Zustand 3 (Graben, 'Dig tunnel'): tunnelerFinishedDigging == 1: logicalState = ULS_REMOVE, showNoRubbleWhenDestroyingBuilding = 1, destroyBuilding(workplaceBuildingID_1), Ende des Ticks. Sonst: movementSpeed = 5, animationSheetFrameOffset = 1, field_0x30_animRelated = 0x10, tunnelerFrame +1 (erst erhöhen, dann prüfen). Nur wenn currentIndexInPathPlan != 0: Frame 6, 12 oder 18 gibt increaseHeightForTunnelSingleTile(tile, x, y, 1); sonst Frame >= 24 (Quelltext 0x17 < Frame, Assembly CMP 0x18 / JL) setzt tunnelerFrame = 0 und ruft increaseHeightForTunnelWithBrush(tile, x, y, 1). Bei hasUnitReachedDestination: animationCycleNumber = 0, tunnelerFrame = 0, Zustand 4", "Zustand 4 (RELOAD_WEAPON, hier der Einsturz): animationSheetFrameOffset = 1, field_0x30_animRelated = 0x10, tunnelerFrame +1. Frame < 60 (0x3c): nichts. Frame 60 bis 64 (< 0x41): je Tick processEntityDamageToBuildingCollateralThunk(tile, x, y, 10, owner, 0), processDamageToBuildingThunk(tile, x, y, 10, 0, owner, FALSE) und Ton FX_WALLDROP (0xa0). Ab Frame 65: BuildingLayer[tile] == 0 gibt resetTileToDefaultState(tile, x, y), sonst destroyBuilding(BuildingLayer[tile]); danach applyTunnelDamageAlongPathPlan(Einheit) und derselbe Abbau wie bei Misserfolg in Zustand 9 (Tunnelgebäude zerstört, Einheit ULS_REMOVE)", "Zustand 5 (AIM_WEAPON): animationSpeed = 5, field_0x30_animRelated = 0, field131_0x2ac = 10; Bildfolge nach substate 0/1/2/sonst aus field225_0x42c4/226_0x4314/227_0x4364/228_0x43b4; gfxNumber = Bild + 400 (Bild < 1: 0x191 und DAT_UnitHasBecomeIdle = 1); am Ende der Folge substate = (Zufallsbyte SEC_RNG.currentNumber2) & 3, animationCycleNumber = 0, Zustand 0. Zustand 6 (FIRE_WEAPON): gleiche Kopfwerte, Bildfolge field229_0x441c bei gerader, field230_0x4444 bei ungerader Einheitennummer, gfxNumber = Bild + 0x180 (Bild < 1: 0x181); am Ende animationCycleNumber = 0, Zustand 0. Danach in beiden: tribeBehaviorType == STBT_0x400 gibt Zustand 0x6e", "Zustand 0x6b (MELEE_ATTACK_WALL): animationSpeed = 3, field_0x30_animRelated = 0, setUnitFacingDirectionForTargetXandY(attackAtTileX, attackAtTileY), Bildfolge field231_0x447c; erst am Ende der Folge geht es weiter: nextAttackHurtsWall +1 und bei Wert > 1 zurück auf 0 (wechselt 1, 0, 1, ...). Ziel ist targetedBuildingTile. Schaden: LogicLayer-Bit 0x100 gesetzt gibt 6; sonst Gebäude BuildingLayer[Kachel]: keins (<= 0) gibt Zustand 0 und Ende, Tor oder Turm (IsGateOrTowerArray) gibt 4, anderes Gebäude 20. Aufruf processDamageToBuildingThunk(Kachel, attackAtTileX, attackAtTileY, Schaden, nextAttackHurtsWall, owner, TRUE)", "Nach dem Schlag in Zustand 0x6b, Rückgabe der Schadensfunktion != 0: (1) nur bei Bit 0x100: setDestinationNearTargetedBuilding(Einheit, 1), Ergebnis != 0 beendet den Tick; (2) targetedBuildingTile = 0 und moveUnitToBehaviorTarget(Einheit, unknownDigMoatOrWallAttackFlag1015), Ergebnis 0 gibt Zustand 0; (3) animationCycleNumber = 0. Rückgabe == 0: nur wenn currentPlayerFullIDArray[owner] == -1 (vermutlich KI-Spieler) gibt es Zusatzprüfungen: ohne Bit 0x100 bei Tor oder Turm und Tabellenbyte > Feld + 10 (rohe attackInfo-Zeiger) moveUnitToBehaviorTarget, Ergebnis 0 gibt Zustand 0; mit Bit 0x100 bei Tabellenbyte > Feld + 0xf setDestinationNearTargetedBuilding(Einheit, 1), Ergebnis != 0 beendet den Tick; in allen übrigen Fällen animationCycleNumber = 0", "Zustand 0x6a (MELEE_ATTACK): animationSpeed = 3, field_0x30_animRelated = 0, Bildfolge field231_0x447c (gfxNumber = Blickrichtung + 0x1e1 + Bild * 8, Bild < 1: + 0x1e9); am Ende animationCycleNumber = 0 und resumeMovementIfNoAttackTarget(Einheit). Zustand 1 (IDLE): animationSheetFrameOffset = 1, field_0x30_animRelated = 0x10, unknownTestAgainst0_2 = 1. Zustand 0x6c: stateBasedSpeed = 0, field_0x30_animRelated = 0, animationSheetFrameOffset = 1", "Sterben und Verschwinden: Zustand 0x6f (DEATH_01) gfxNumber = Bild + 0x1a0 (Bild < 1: 0x1b8), 0x71 (DEATH_03) Bild + 0x1b8 (Bild < 1: 0x1d0), die übrigen (0x70, 0x72 bis 0x74; checkIfCitizenUnitIsAliveBasedOnState liefert 1 für 0x6f bis 0x74, trotz des Namens) Bild + 0x1d0 (Bild < 1: 0x1e8); jeweils facingDirection = 0, animationSpeed = 2, field_0x30_animRelated = 0, Bildfolge ANIM_Worker_Shared1; nach der Folge (Bild < 1 oder DAT_UnitHasBecomeIdle) Zustand 0x6e. Zustand 0x6e (DISAPPEAR): disappearFadeAlphaCountdown +1 (höchstens 0x20), updateTickTracker +1 (beim Eintritt nicht zurückgesetzt); erst bei Tracker > 0x20: Gebäude workplaceBuildingID_1 bekommt logicalState BLS_REMOVE, wenn seine uid == targetUID; Einheit logicalState ULS_REMOVE; ist killedFlagUnk == 0: processUnitLossStatistic(Besitzer, Einheit) und emenyHitArray: Besitzer == currentPlayerSlotID gibt emenyHitArray[lastEncounteredEnemyPlayerID - 9] +1, sonst nur bei lastEncounteredEnemyPlayerID == currentPlayerSlotID emenyHitArray[Besitzer] +1. Alle anderen Zustände (z. B. 0x7d) tun in dieser Funktion nichts"], "offen": ["Wie die Einheit von Zustand 9 in Zustand 3 (Graben) kommt, steht nicht in dieser Funktion; vermutlich setzt UpdateTunnel (Gebäude-Takt, 0x00417fd0) state = 3 und tunnelerFinishedDigging = 2, sobald die Öffnungsanimation des Tunnelgebäudes endet; findTunnelTarget liefert nach einem Treffer FALSE (setzt tunnelerCounter -1), daher wartet die Einheit in Zustand 9 (beides laut Export, nicht in diesem Paket)", "Feldname tunnelerFinishedDigging täuscht: setDestinationForUnit schreibt 2 (neuer Pfad) bzw. 0, mehrere Todesfunktionen schreiben 1; hasUnitReachedDestination liefert nur bei Wert 0 TRUE (und climbDataID == 0 oder Ziel erreicht). Hier: Zustand 9 setzt 1, in Zustand 3 führt 1 zum Abbau", "Bedeutung von someCount29, Zustand 0x69, 0x6c, STBT_0x400, moveRelatedFlag, field_0x30_animRelated, unknownTestAgainst0_2 und des Mehrfachfelds targetedUnitUIDUnk_OR_someAppearTileUnk_...", "KI-Zweig bei Zustand 0x6b: Byte aus einer Tabelle (Index aus attackInfo-Feld * 0x13a10 + 0x1ee2998 + Kachel) wird mit einem anderen attackInfo-Feld + 10 bzw. + 15 verglichen; Bedeutung unklar; currentPlayerFullIDArray[owner] == -1 vermutlich 'KI-Spieler'", "Rückgabewert von processDamageToBuildingThunk und Wirkung von nextAttackHurtsWall (wechselt 1, 0, 1, ...): im Export von processDamageToBuilding setzt der 5. Parameter bei Wandkacheln den Schaden auf 0, vermutlich wirkt also nur jeder zweite Schlag auf Mauerkacheln", "Schaden 10 + 10 (Einsturz) und 20/4/6 (Nahkampf) sind Grundwerte, UCP kann sie ändern; ob beide Einsturz-Aufrufe dasselbe Gebäude treffen (die Collateral-Variante), ist offen", "Die Zustandsnamen sind nur Vermutungen (Ghidra-Kommentare), belegt sind die Zahlen aus dem Assembly"]}, "p3": {"erklaerung": "Das ist der Takt des Tunnelgräbers: Er läuft zum Sammelplatz, steigt aus dem Boden, gräbt sich als Tunnel zum Ziel und löst dort einen Einsturz aus, der fünf Ticks lang Gebäudeschaden macht. Danach verschwinden Einheit und Tunnelgebäude.", "gehirn": "Ablesbar an units[].state.generic (9 = Tunnel wird vorbereitet, 3 = gräbt, 4 = Einsturz läuft) und tunnelerFrame. Ab Ankunft am Ziel (Zustand 4) dauert es 65 Ticks bis zum Einsturz; Schaden fällt nur in den Ticks 60 bis 64 (Grundwert je 10 + 10). Wird die Einheit in Zustand 3 mit tunnelerFinishedDigging == 1 angetroffen, verschwinden Einheit und Tunnel ohne Schaden.", "beleg": "code", "live": "Tunnelgräber in Zustand 3 und 4 beobachten → units[].tunnelerFrame je Tick, Kachelhöhe und Trefferpunkte des Gebäudes an der Einsturzkachel → in Zustand 3 zählt der Frame 1 bis 24 und springt bei 24 auf 0 (Höhe steigt bei 6, 12, 18 und 24); in Zustand 4 Schaden nur bei Frame 60 bis 64, logicalState ULS_REMOVE bei Frame 65", "live_art": "kampf"}}

@@ -1,0 +1,484 @@
+
+/* WARNING: Enum "DPSEND_EnumInt": Some values do not have unique names */
+/* WARNING: Enum "DPERRInt": Some values do not have unique names */
+/* decompilerscript: committed: 2025-01-30 21:57:43.216000 */
+
+void _HoldStrong::Global::UpdateQuarryWorker(void)
+
+{
+  byte *pbVar1;
+  int *piVar2;
+  short *psVar3;
+  byte bVar4;
+  short sVar5;
+  short sVar6;
+  UnitStateShort UVar7;
+  int iVar8;
+  BOOLEnum BVar9;
+  uint uVar10;
+  int iVar11;
+  int iVar12;
+  uint uVar13;
+  bool bVar14;
+  undefined6 uVar15;
+  
+  uVar10 = DAT_CurrentUnitSlotID;
+  sVar5 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].workplaceBuildingID_1;
+  iVar11 = (int)sVar5;
+  sVar6 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner;
+  iVar12 = (int)DAT_BuildingsState.buildings[iVar11].oxTetherRelatedUnitID;
+  DAT_UnitsState.units[DAT_CurrentUnitSlotID].movementSpeed = 1;
+  DAT_UnitsState.units[uVar10].field171_0x300 = 7;
+  uVar13 = DAT_CurrentUnitSlotID;
+  UVar7 = DAT_UnitsState.units[uVar10].state.generic;
+  if (UVar7 == US_DETERMINE_NEXT_STATEUnk) {
+    DAT_UnitsState.units[uVar10].animationSheetFrameOffset = 1;
+    DAT_UnitsState.units[uVar10].field_0x30_animRelated = 0x10;
+    if (DAT_UnitsState.units[uVar10].isDisappearingUnk == 0) {
+      if (DAT_UnitsState.units[uVar10].goToRallyPoint == 0) {
+        return;
+      }
+      DAT_UnitsState.units[uVar10].goToRallyPoint = 0;
+      DAT_UnitsState.units[uVar10].state.generic = US_RELOAD_WEAPONUnk;
+      DAT_UnitsState.units[uVar10].destinationNeeded = 2;
+      return;
+    }
+    pbVar1 = &DAT_UnitsState.units[uVar10].disappearFadeAlphaCountdown;
+    *pbVar1 = *pbVar1 - 1;
+    if (-1 < (char)*pbVar1) {
+      return;
+    }
+    DAT_UnitsState.units[uVar10].disappearFadeAlphaCountdown = 0;
+    DAT_UnitsState.units[uVar10].isDisappearingUnk = 0;
+    return;
+  }
+  if (UVar7 == US_IDLEUnk) {
+    DAT_UnitsState.units[uVar10].animationSheetFrameOffset = 1;
+    DAT_UnitsState.units[uVar10].field_0x30_animRelated = 0x10;
+    DAT_UnitsState.units[uVar10].field134_0x2ac = 1;
+    piVar2 = &DAT_UnitsState.units[uVar10].animationCycleNumber;
+    *piVar2 = *piVar2 + 1;
+    if (DAT_UnitsState.units[uVar10].animationCycleNumber < 0x14) {
+      return;
+    }
+    if (DAT_BuildingsState.buildings[iVar11].resourceStone < 8) {
+      iVar11 = Map::Buildings::BuildingsState::findQuarryPileThatIsCloseAndHasMostStone
+                         (&DAT_BuildingsState,(int)sVar6,(int)DAT_UnitsState.units[uVar10].x,
+                          (int)DAT_UnitsState.units[uVar10].y,DAT_CurrentUnitSlotID);
+      iVar12 = Map::Buildings::BuildingsState::buildingIsAccessible(&DAT_BuildingsState,iVar11,1);
+      uVar10 = DAT_CurrentUnitSlotID;
+      if (iVar12 != 0) {
+        DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetID_OR_targetBuildingID = (short)iVar11;
+        DAT_UnitsState.units[uVar10].targetUID = DAT_BuildingsState.buildings[iVar11].uid;
+        Map::Units::UnitsState::setDestinationForUnit
+                  (&DAT_UnitsState,uVar10,(int)DAT_BuildingsState.buildings[iVar11].buildingEntryX,
+                   (int)DAT_BuildingsState.buildings[iVar11].buildingEntryY,0);
+        uVar10 = DAT_CurrentUnitSlotID;
+        DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_MOVE_TO_DESTINATION;
+        DAT_UnitsState.units[uVar10].resourceToDeposit = 0;
+      }
+      DAT_UnitsState.units[uVar10].animationCycleNumber = 0;
+      return;
+    }
+    iVar11 = Map::Buildings::BuildingsState::getBuildingThatCanStoreThisResource
+                       (&DAT_BuildingsState,RT_STONE,1,(int)DAT_UnitsState.units[uVar10].owner);
+    iVar8 = Map::Buildings::BuildingsState::buildingIsAccessible(&DAT_BuildingsState,iVar11,1);
+    uVar10 = DAT_CurrentUnitSlotID;
+    if (iVar8 != 0) {
+      DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetID_OR_targetBuildingID = (short)iVar11;
+      DAT_UnitsState.units[uVar10].targetUID = DAT_BuildingsState.buildings[iVar11].uid;
+      BVar9 = Map::Units::UnitsState::setDestinationForUnit
+                        (&DAT_UnitsState,uVar10,
+                         (int)DAT_BuildingsState.buildings[iVar11].buildingEntryX,
+                         (int)DAT_BuildingsState.buildings[iVar11].buildingEntryY,0);
+      uVar10 = DAT_CurrentUnitSlotID;
+      if (BVar9 != FALSE) {
+        Map::Units::UnitsState::tracePathFromLadderExitSetDestination
+                  (&DAT_UnitsState,DAT_CurrentUnitSlotID);
+        DAT_UnitsState.units[uVar10].state.generic = 3;
+        DAT_BuildingsState.buildings[DAT_UnitsState.units[uVar10].workplaceBuildingID_1].
+        resourceStone = 0;
+        iVar11 = ComputeGoodsProduced(iVar12,8,TRUE);
+        DAT_UnitsState.units[iVar12].resourceToDeposit = (short)iVar11;
+      }
+    }
+    DAT_UnitsState.units[uVar10].animationCycleNumber = 0;
+    return;
+  }
+  if (UVar7 != US_LOOK_AROUNDUnk) {
+    if (UVar7 != 2) {
+      if (UVar7 == 3) {
+        IncrementAndOptionalUpdateAVValueRelated(DAT_CurrentUnitSlotID,FALSE);
+        DAT_UnitsState.units[uVar10].animationSheetFrameOffset = 1;
+        bVar14 = DAT_GameSynchronyState.currentGameMode != GM_SOLITARY;
+        DAT_UnitsState.units[uVar10].field_0x30_animRelated = 0x10;
+        DAT_UnitsState.units[uVar10].movementSpeed = 3;
+        if (bVar14) {
+          DAT_UnitsState.units[uVar10].movementSpeed = 1;
+        }
+        BVar9 = Map::Units::UnitsState::hasUnitReachedDestination(&DAT_UnitsState,uVar13);
+        if (BVar9 == FALSE) {
+          return;
+        }
+        IncrementAndOptionalUpdateAVValueRelated(uVar13,TRUE);
+        DAT_UnitsState.units[uVar10].stateBasedSpeed = 0;
+        DAT_UnitsState.units[uVar10].animationCycleNumber = 0;
+        DAT_UnitsState.units[uVar10].resourceToDeposit = 0;
+        DAT_UnitsState.units[uVar10].state.generic = US_RELOAD_WEAPONUnk;
+        DAT_UnitsState.units[uVar10].destinationNeeded = DNE_DESTINATION_NEEDED;
+        return;
+      }
+      if (UVar7 == US_FIRE_WEAPONUnk) {
+        DAT_UnitsState.units[uVar10].animationSheetFrameOffset = 0x81;
+        DAT_UnitsState.units[uVar10].field_0x30_animRelated = 0x10;
+        DAT_UnitsState.units[uVar10].field134_0x2ac = 1;
+        piVar2 = &DAT_UnitsState.units[uVar10].animationCycleNumber;
+        *piVar2 = *piVar2 + 1;
+        if (DAT_UnitsState.units[uVar10].animationCycleNumber < 5) {
+          return;
+        }
+        sVar5 = DAT_UnitsState.units[iVar12].resourceToDeposit;
+        if (sVar5 < 0) {
+          return;
+        }
+        DAT_UnitsState.units[iVar12].resourceToDeposit = sVar5 + -1;
+        DAT_UnitsState.units[uVar10].resourceToDeposit = 1;
+        iVar11 = Map::Buildings::BuildingsState::getBuildingThatCanStoreThisResource
+                           (&DAT_BuildingsState,RT_STONE,1,(int)DAT_UnitsState.units[uVar10].owner);
+        iVar12 = Map::Buildings::BuildingsState::buildingIsAccessible(&DAT_BuildingsState,iVar11,1);
+        uVar10 = DAT_CurrentUnitSlotID;
+        if (iVar12 != 0) {
+          DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetID_OR_targetBuildingID = (short)iVar11;
+          DAT_UnitsState.units[uVar10].targetUID = DAT_BuildingsState.buildings[iVar11].uid;
+          Map::Units::UnitsState::setDestinationForUnit
+                    (&DAT_UnitsState,uVar10,(int)DAT_BuildingsState.buildings[iVar11].buildingEntryX
+                     ,(int)DAT_BuildingsState.buildings[iVar11].buildingEntryY,0);
+          uVar10 = DAT_CurrentUnitSlotID;
+          DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = 0x66;
+        }
+        DAT_UnitsState.units[uVar10].animationCycleNumber = 0;
+        return;
+      }
+      if (UVar7 == US_RELOAD_WEAPONUnk) {
+        DAT_UnitsState.units[uVar10].animationSheetFrameOffset = 1;
+        DAT_UnitsState.units[uVar10].field_0x30_animRelated = 0x10;
+        bVar14 = DAT_GameSynchronyState.currentGameMode != GM_SOLITARY;
+        DAT_UnitsState.units[uVar10].movementSpeed =
+             (ushort)(7 < DAT_UnitsState.units[uVar10].currentIndexInPathPlan) * 2 + 1;
+        if (bVar14) {
+          DAT_UnitsState.units[uVar10].movementSpeed = 1;
+        }
+        uVar13 = DAT_CurrentUnitSlotID;
+        IncrementAndOptionalUpdateAVValueRelated(DAT_CurrentUnitSlotID,FALSE);
+        if (DAT_UnitsState.units[uVar10].destinationNeeded != DNE_DESTINATION_HAS_BEEN_SET) {
+          BVar9 = ConsiderTakingABreakUnk(uVar13);
+          if (BVar9 != FALSE) {
+            return;
+          }
+          BVar9 = Map::Units::UnitsState::setDestinationForUnit
+                            (&DAT_UnitsState,uVar13,(int)DAT_UnitsState.units[uVar10].targetX_2,
+                             (int)DAT_UnitsState.units[uVar10].targetY_2,0);
+          uVar13 = DAT_CurrentUnitSlotID;
+          if (BVar9 == FALSE) {
+            DAT_UnitsState.units[DAT_CurrentUnitSlotID].state =
+                 (UnitStateUnion)DAT_UnitsState.units[DAT_CurrentUnitSlotID].field171_0x300;
+            return;
+          }
+          DAT_UnitsState.units[DAT_CurrentUnitSlotID].destinationNeeded =
+               DNE_DESTINATION_HAS_BEEN_SET;
+          uVar10 = uVar13;
+        }
+        BVar9 = Map::Units::UnitsState::hasUnitReachedDestination(&DAT_UnitsState,uVar13);
+        if (BVar9 == FALSE) {
+          return;
+        }
+        DAT_UnitsState.units[uVar10].animationCycleNumber = 0;
+        DAT_UnitsState.units[uVar10].state.generic = US_IDLEUnk;
+        return;
+      }
+      if (UVar7 == US_MOVE_TO_DESTINATION) {
+        IncrementAndOptionalUpdateAVValueRelated(DAT_CurrentUnitSlotID,FALSE);
+        if (DAT_UnitsState.units[uVar10].resourceToDeposit == 0) {
+          DAT_UnitsState.units[uVar10].animationSheetFrameOffset = 1;
+        }
+        else {
+          bVar14 = DAT_GameSynchronyState.currentGameMode != GM_SOLITARY;
+          DAT_UnitsState.units[uVar10].animationSheetFrameOffset = 0x81;
+          DAT_UnitsState.units[uVar10].movementSpeed = 3;
+          if (bVar14) {
+            DAT_UnitsState.units[uVar10].movementSpeed = 1;
+          }
+        }
+        DAT_UnitsState.units[uVar10].field_0x30_animRelated = 0x10;
+        BVar9 = Map::Units::UnitsState::hasUnitReachedDestination(&DAT_UnitsState,uVar13);
+        if (BVar9 == FALSE) {
+          return;
+        }
+        DAT_UnitsState.units[uVar10].stateBasedSpeed = 0;
+        DAT_UnitsState.units[uVar10].animationCycleNumber = 0;
+        if (DAT_UnitsState.units[uVar10].resourceToDeposit == 0) {
+          DAT_UnitsState.units[uVar10].state.generic = 2;
+          return;
+        }
+        piVar2 = &DAT_BuildingsState.buildings[iVar11].resourceStone;
+        *piVar2 = *piVar2 + 1;
+        DAT_UnitsState.units[uVar10].state.generic = US_IDLEUnk;
+        return;
+      }
+      if (UVar7 == 0x66) {
+        if (DAT_UnitsState.units[uVar10].resourceToDeposit == 0) {
+          DAT_UnitsState.units[uVar10].animationSheetFrameOffset = 1;
+        }
+        else {
+          bVar14 = DAT_GameSynchronyState.currentGameMode != GM_SOLITARY;
+          DAT_UnitsState.units[uVar10].animationSheetFrameOffset = 0x81;
+          DAT_UnitsState.units[uVar10].movementSpeed = 3;
+          if (bVar14) {
+            DAT_UnitsState.units[uVar10].movementSpeed = 1;
+          }
+        }
+        uVar13 = DAT_CurrentUnitSlotID;
+        DAT_UnitsState.units[uVar10].field_0x30_animRelated = 0x10;
+        BVar9 = Map::Units::UnitsState::hasUnitReachedDestination(&DAT_UnitsState,uVar13);
+        if (BVar9 == FALSE) {
+          return;
+        }
+        DAT_UnitsState.units[uVar10].stateBasedSpeed = 0;
+        DAT_UnitsState.units[uVar10].animationCycleNumber = 0;
+        if (DAT_UnitsState.units[uVar10].resourceToDeposit == 0) {
+          DAT_UnitsState.units[uVar10].state.generic = US_FIRE_WEAPONUnk;
+          return;
+        }
+        iVar11 = Map::Buildings::BuildingsState::canBuildingStoreTheAmount
+                           (&DAT_BuildingsState,
+                            (int)DAT_UnitsState.units[uVar10].targetID_OR_targetBuildingID,RT_STONE,
+                            0x30);
+        if (iVar11 == 0) {
+          iVar11 = Map::Buildings::BuildingsState::getBuildingThatCanStoreThisResource
+                             (&DAT_BuildingsState,RT_STONE,1,
+                              (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner);
+          iVar12 = Map::Buildings::BuildingsState::buildingIsAccessible
+                             (&DAT_BuildingsState,iVar11,1);
+          uVar10 = DAT_CurrentUnitSlotID;
+          if (iVar12 != 0) {
+            DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetID_OR_targetBuildingID = (short)iVar11
+            ;
+            DAT_UnitsState.units[uVar10].targetUID = DAT_BuildingsState.buildings[iVar11].uid;
+            BVar9 = Map::Units::UnitsState::setDestinationForUnit
+                              (&DAT_UnitsState,uVar10,
+                               (int)DAT_BuildingsState.buildings[iVar11].buildingEntryX,
+                               (int)DAT_BuildingsState.buildings[iVar11].buildingEntryY,0);
+            if (BVar9 != FALSE) {
+              return;
+            }
+          }
+          uVar10 = DAT_CurrentUnitSlotID;
+          DAT_UnitsState.units[DAT_CurrentUnitSlotID].resourceToDeposit = 0;
+          DAT_UnitsState.units[uVar10].state.generic = 3;
+          return;
+        }
+        Map::Buildings::BuildingsState::addResourceToStockpile
+                  (&DAT_BuildingsState,
+                   (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetID_OR_targetBuildingID,
+                   DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetUID,RT_STONE,1,0x30,1);
+        uVar10 = DAT_CurrentUnitSlotID;
+        DAT_UnitsState.units[DAT_CurrentUnitSlotID].resourceToDeposit = 0;
+        Audio::SFX::SFXState::playSFXAtLocation
+                  (&DAT_SFXState,(int)DAT_UnitsState.units[uVar10].x,
+                   (int)DAT_UnitsState.units[uVar10].y,FX_DROP_PLANK);
+        DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = 3;
+        return;
+      }
+      if (UVar7 == (US_DEATH_02|US_STAND_UPUnk|US_IDLEUnk)) {
+        DAT_UnitsState.units[uVar10].animationSheetFrameOffset = 1;
+        uVar13 = DAT_CurrentUnitSlotID;
+        DAT_UnitsState.units[uVar10].field_0x30_animRelated = 0x10;
+        SetRestingForUnit(uVar13);
+        return;
+      }
+      if (UVar7 == 0x6c) {
+        DAT_UnitsState.units[uVar10].stateBasedSpeed = 0;
+        DAT_UnitsState.units[uVar10].field_0x30_animRelated = 0;
+        DAT_UnitsState.units[uVar10].animationSheetFrameOffset = 1;
+        return;
+      }
+      if (UVar7 == US_MELEE_ATTACK) {
+        DAT_UnitsState.units[uVar10].animationSpeed = 3;
+        DAT_UnitsState.units[uVar10].field_0x30_animRelated = 0;
+        iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+                            field220_0x41bc[DAT_UnitsState.units[uVar10].animationCycleNumber];
+        DAT_UnitsState.units[uVar10].animationFrame = iVar11;
+        if (iVar11 < 1) {
+          DAT_UnitsState.units[uVar10].gfxNumber =
+               DAT_UnitsState.units[uVar10].facingDirectionMapOrientationCorrected + 0x131;
+          DAT_UnitHasBecomeIdle = 1;
+        }
+        else {
+          bVar14 = DAT_UnitHasBecomeIdle == 0;
+          DAT_UnitsState.units[uVar10].gfxNumber =
+               DAT_UnitsState.units[uVar10].facingDirectionMapOrientationCorrected + 0x129 +
+               iVar11 * 8;
+          if (bVar14) {
+            return;
+          }
+        }
+        uVar13 = DAT_CurrentUnitSlotID;
+        DAT_UnitsState.units[uVar10].animationCycleNumber = 0;
+        Map::Units::UnitsState::resumeMovementIfNoAttackTarget(&DAT_UnitsState,uVar13);
+        return;
+      }
+      if (UVar7 == US_DEATH_01) {
+        DAT_UnitsState.units[uVar10].facingDirection = 0;
+        DAT_UnitsState.units[uVar10].animationSpeed = 3;
+        DAT_UnitsState.units[uVar10].field_0x30_animRelated = 0;
+        iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+                            field248_0x4ab0[DAT_UnitsState.units[uVar10].animationCycleNumber];
+        DAT_UnitsState.units[uVar10].animationFrame = iVar11;
+        if (iVar11 < 1) {
+          DAT_UnitsState.units[uVar10].gfxNumber = 0x118;
+          DAT_UnitsState.units[uVar10].state.generic = US_DISAPPEAR;
+          DAT_UnitHasBecomeIdle = 1;
+          return;
+        }
+        bVar14 = DAT_UnitHasBecomeIdle == 0;
+        DAT_UnitsState.units[uVar10].gfxNumber = iVar11 + 0x100;
+        if (bVar14) {
+          return;
+        }
+        DAT_UnitsState.units[uVar10].state.generic = US_DISAPPEAR;
+        return;
+      }
+      uVar15 = Map::Units::UnitsState::checkIfCitizenUnitIsAliveBasedOnState(DAT_CurrentUnitSlotID);
+      if ((int)uVar15 == 0) {
+        if ((short)((uint6)uVar15 >> 0x20) != 0x6e) {
+          return;
+        }
+        pbVar1 = &DAT_UnitsState.units[uVar10].disappearFadeAlphaCountdown;
+        *pbVar1 = *pbVar1 + 1;
+        if (' ' < (char)DAT_UnitsState.units[uVar10].disappearFadeAlphaCountdown) {
+          DAT_UnitsState.units[uVar10].disappearFadeAlphaCountdown = 0x20;
+        }
+        psVar3 = &DAT_UnitsState.units[uVar10].updateTickTracker;
+        *psVar3 = *psVar3 + 1;
+        if ((0x20 < DAT_UnitsState.units[uVar10].updateTickTracker) &&
+           (DAT_UnitsState.units[uVar10].logicalState = ULS_REMOVE,
+           DAT_UnitsState.units[uVar10].killedFlagUnk == 0)) {
+          Game::GameStateStructures::setLastEncounteredTroopUnit
+                    (&DAT_GameState,(int)DAT_UnitsState.units[uVar10].owner,uVar13);
+          uVar13 = DAT_CurrentUnitSlotID;
+        }
+        DAT_BuildingsState.buildings[DAT_UnitsState.units[uVar13].workplaceBuildingID_1].
+        idleTimerUnk = 4000;
+        return;
+      }
+      DAT_UnitsState.units[uVar10].facingDirection = 0;
+      DAT_UnitsState.units[uVar10].animationSpeed = 3;
+      DAT_UnitsState.units[uVar10].field_0x30_animRelated = 0;
+      iVar11 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+                          field248_0x4ab0[DAT_UnitsState.units[uVar10].animationCycleNumber];
+      DAT_UnitsState.units[uVar10].animationFrame = iVar11;
+      if (0 < iVar11) {
+        bVar14 = DAT_UnitHasBecomeIdle == 0;
+        DAT_UnitsState.units[uVar10].gfxNumber = iVar11 + 0x118;
+        if (bVar14) {
+          return;
+        }
+        DAT_UnitsState.units[uVar10].state.generic = US_DISAPPEAR;
+        return;
+      }
+      DAT_UnitsState.units[uVar10].gfxNumber = 0x130;
+      DAT_UnitsState.units[uVar10].state.generic = US_DISAPPEAR;
+      DAT_UnitHasBecomeIdle = 1;
+      return;
+    }
+    DAT_UnitsState.units[uVar10].animationSheetFrameOffset = 1;
+    DAT_UnitsState.units[uVar10].field_0x30_animRelated = 0x10;
+    DAT_UnitsState.units[uVar10].field134_0x2ac = 1;
+    if (DAT_BuildingsState.buildings[DAT_UnitsState.units[uVar10].targetID_OR_targetBuildingID].uid
+        == DAT_UnitsState.units[uVar10].targetUID) {
+      piVar2 = &DAT_UnitsState.units[uVar10].animationCycleNumber;
+      *piVar2 = *piVar2 + 1;
+      if (DAT_UnitsState.units[uVar10].animationCycleNumber < 0x14) {
+        return;
+      }
+      iVar12 = Map::Buildings::BuildingsState::getBuildingResourceAmountByUid
+                         (&DAT_BuildingsState,
+                          (int)DAT_UnitsState.units[uVar10].targetID_OR_targetBuildingID,
+                          DAT_UnitsState.units[uVar10].targetUID,RT_STONE);
+      if (0 < iVar12) {
+        DAT_UnitsState.units[uVar10].animationCycleNumber = 0;
+        iVar12 = Map::Buildings::BuildingsState::buildingIsAccessible(&DAT_BuildingsState,iVar11,1);
+        if (iVar12 != 0) {
+          Map::Buildings::BuildingsState::addResourceToStockpile
+                    (&DAT_BuildingsState,
+                     (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetID_OR_targetBuildingID,
+                     DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetUID,RT_STONE,-1,0x30,1);
+          uVar10 = DAT_CurrentUnitSlotID;
+          iVar12 = DAT_BuildingsState.buildings[iVar11].uid;
+          DAT_UnitsState.units[DAT_CurrentUnitSlotID].targetID_OR_targetBuildingID = sVar5;
+          DAT_UnitsState.units[uVar10].targetUID = iVar12;
+          BVar9 = Map::Units::UnitsState::setDestinationForUnit
+                            (&DAT_UnitsState,uVar10,
+                             (int)DAT_BuildingsState.buildings[iVar11].buildingEntryX,
+                             (int)DAT_BuildingsState.buildings[iVar11].buildingEntryY,0);
+          uVar10 = DAT_CurrentUnitSlotID;
+          if (BVar9 != FALSE) {
+            DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_MOVE_TO_DESTINATION;
+            DAT_UnitsState.units[uVar10].resourceToDeposit = 1;
+            bVar4 = DAT_UnitsState.units[uVar10].field317_0x410;
+            if ('\0' < (char)bVar4) {
+              DAT_UnitsState.units[uVar10].field317_0x410 = bVar4 - 1;
+            }
+          }
+        }
+      }
+      uVar10 = DAT_CurrentUnitSlotID;
+      if (DAT_UnitsState.units[DAT_CurrentUnitSlotID].resourceToDeposit != 0) {
+        return;
+      }
+      DAT_UnitsState.units[DAT_CurrentUnitSlotID].animationCycleNumber = 0;
+      DAT_UnitsState.units[uVar10].field317_0x410 = 8;
+      DAT_UnitsState.units[uVar10].state.generic = US_IDLEUnk;
+      return;
+    }
+    DAT_UnitsState.units[uVar10].stateBasedSpeed = 0;
+    DAT_UnitsState.units[uVar10].animationCycleNumber = 0;
+    DAT_UnitsState.units[uVar10].resourceToDeposit = 0;
+    goto LAB_005510bc;
+  }
+  DAT_UnitsState.units[uVar10].animationSpeed = 2;
+  DAT_UnitsState.units[uVar10].field_0x30_animRelated = 0;
+  DAT_UnitsState.units[uVar10].field42_0x58 = 1;
+  DAT_UnitsState.units[uVar10].field134_0x2ac = 1;
+  iVar12 = (int)(char)DAT_UnitPropertiesDefinedData.ANIM_Frames_Shared_UnitClimbingUp.
+                      field249_0x4ad4[DAT_UnitsState.units[uVar10].animationCycleNumber];
+  DAT_UnitsState.units[uVar10].animationFrame = iVar12;
+  iVar11 = DAT_UnitHasBecomeIdle;
+  if (iVar12 < 1) {
+    iVar11 = 1;
+    DAT_UnitsState.units[uVar10].gfxNumber = 0x18;
+    DAT_UnitHasBecomeIdle = 1;
+LAB_00551069:
+    DAT_UnitsState.units[uVar10].animationCycleNumber = 0;
+  }
+  else {
+    bVar14 = DAT_UnitHasBecomeIdle != 0;
+    DAT_UnitsState.units[uVar10].gfxNumber = iVar12;
+    if (bVar14) goto LAB_00551069;
+  }
+  iVar12 = SetStateToFreetimeWalking(DAT_CurrentUnitSlotID,iVar11,7);
+  if ((iVar12 != 0) || (iVar11 == 0)) {
+    return;
+  }
+  psVar3 = &DAT_UnitsState.units[uVar10].substate;
+  *psVar3 = *psVar3 + 1;
+  if (6 < DAT_UnitsState.units[uVar10].substate) {
+    DAT_UnitsState.units[uVar10].substate = 0;
+  }
+  DAT_UnitsState.units[uVar10].animationCycleNumber = 0;
+LAB_005510bc:
+  DAT_UnitsState.units[uVar10].state.generic = US_RELOAD_WEAPONUnk;
+  DAT_UnitsState.units[uVar10].destinationNeeded = DNE_DESTINATION_NEEDED;
+  return;
+}
+

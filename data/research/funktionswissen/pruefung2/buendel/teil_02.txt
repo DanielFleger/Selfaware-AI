@@ -1,0 +1,926 @@
+### 0x004d3ae0 aiRecruitUnits
+--- CODE (Ghidra-Export, vollstaendig) ---
+/* WARNING: Enum "MappersEnum": Some values do not have unique names */
+/* decompilerscript: committed: 2025-01-30 21:57:43.216000 */
+void __thiscall _HoldStrong::AI::AICState::aiRecruitUnits(AICState *this,int playerID)
+{
+int iVar1;
+int *piVar2;
+AITypeInt AVar3;
+int iVar4;
+AIRecruitUnitChoiceInt AVar5;
+bool bVar6;
+bool bVar7;
+int playerID_00;
+int iVar8;
+int iVar9;
+AICState *extraout_ECX;
+AICState *pAVar10;
+UnitType unitType;
+AICState *_pAICState;
+int local_8;
+playerID_00 = playerID;
+AVar3 = DAT_GameState.playerDataArray[playerID].aiType;
+unitType = 0;
+pAVar10 = &DAT_AICState;
+_pAICState = &DAT_AICState;
+if (AVar3 != AIT_NULL) {
+bVar6 = false;
+bVar7 = false;
+iVar1 = AVar3 + ~AIT_NULL;
+if (((DAT_GameCore.gameMode_2 == GM_SKIRMISH_AND_MULTIPLAYER) &&
+(DAT_GameCore.isSkirmishTrail == TRUE)) && (DAT_GameCore.currentTrailType == TT_EXTREME)) {
+bVar6 = true;
+}
+iVar8 = iVar1 * 0xa9;
+iVar9 = *(int *)((int)&DAT_AICState +
+(DAT_GameState.playerDataArray[playerID].aiStrengthFeeling + iVar8) * 4 + 0x164)
+;
+iVar4 = -(uint)(iVar9 != 0);
+local_8 = iVar4 + 2;
+if (bVar6) {
+local_8 = iVar4 + 3;
+}
+iVar4 = DAT_GameState.playerDataArray[playerID].aiNervousActionsTracker;
+if (iVar4 < 1) {
+piVar2 = &DAT_GameState.playerDataArray[playerID].aiRecruitIntervalTracker;
+*piVar2 = *piVar2 + 1;
+if (DAT_GameState.playerDataArray[playerID].aiRecruitIntervalTracker < iVar9) {
+return;
+}
+}
+else {
+local_8 = 4;
+}
+iVar9 = DAT_GameState.playerDataArray[playerID].idlePeasantsCount;
+DAT_GameState.playerDataArray[playerID].aiRecruitIntervalTracker = 0;
+if ((0 < iVar9) && (DAT_GameState.playerDataArray[playerID].canStartSpending != 0)) {
+AVar5 = DAT_GameState.playerDataArray[playerID].aiRecruitUnitChoiceState;
+if (AVar5 == AIRUC_DEFENSIVE) {
+iVar9 = *(int *)((int)&DAT_AICState + iVar1 * 0x2a4 + 0x170);
+if (bVar6) {
+iVar9 = (iVar9 * 4) / 3;
+}
+pAVar10 = &DAT_AICState;
+if (0 < iVar4) {
+iVar9 = iVar9 * 4;
+}
+if (iVar9 <= DAT_GameState.playerDataArray[playerID].totalDefensiveTroopsUnk) {
+return;
+}
+}
+else if (AVar5 == AIRUC_RAIDING) {
+iVar9 = getCurrentDesiredAttackRaidUnitCount(iVar1,playerID);
+pAVar10 = extraout_ECX;
+if (iVar9 <= DAT_GameState.playerDataArray[playerID].totalRaidingTroopsUnk) {
+return;
+}
+}
+else if ((AVar5 == AIRUC_ATTACKING) &&
+(DAT_GameState.playerDataArray[playerID].aiPlayerState != 0)) {
+return;
+}
+/* DefDiggingUnitMax */
+/* DefDiggingUnitMax */
+if (((*(int *)((int)pAVar10 + iVar1 * 0x2a4 + 0x15c) != 0) &&
+(iVar9 = Map::TileMapState::countUnfinishedMoatTilesForPlayer(&DAT_TileMapState,playerID),
+iVar9 != 0)) &&
+((iVar9 = (int)DAT_GameState.playerDataArray[playerID].aiTribeIDs[10], iVar9 == 0 ||
+((DAT_GameState.playerDataArray[playerID].aiTribeUIDs[10] !=
+DAT_TribesState.tribes[iVar9].uid ||
+((int)DAT_TribesState.tribes[iVar9].size < *(int *)((int)pAVar10 + iVar1 * 0x2a4 + 0x15c)
+)))))) {
+bVar7 = true;
+}
+playerID = 0;
+if (0 < local_8) {
+do {
+if (bVar7) {
+if (((byte)SEC_RNG.currentNumber2 & 1) != 0) {
+bVar7 = false;
+goto LAB_004d3cc1;
+}
+if (DAT_GameState.playerDataArray[playerID_00].barracks.id == 0) {
+if (DAT_GameState.playerDataArray[playerID_00].mercenaryPost.id == 0) {
+return;
+}
+/* DefDiggingUnit */
+unitType = *(UnitType *)((int)pAVar10 + iVar1 * 0x2a4 + 0x160);
+}
+else {
+/* DefDiggingUnit */
+unitType = *(UnitType *)((int)pAVar10 + iVar1 * 0x2a4 + 0x160);
+}
+}
+else {
+LAB_004d3cc1:
+AVar5 = DAT_GameState.playerDataArray[playerID_00].aiRecruitUnitChoiceState;
+if (AVar5 == AIRUC_DEFENSIVE) {
+if (7 < DAT_GameState.playerDataArray[playerID_00].aiDefUnitChoiceIndex) {
+DAT_GameState.playerDataArray[playerID_00].aiDefUnitChoiceIndex = 0;
+}
+/* DefUnit 1 up to 8 */
+if (*(int *)((int)&DAT_AICState +
+(DAT_GameState.playerDataArray[playerID_00].aiDefUnitChoiceIndex + iVar8)
+* 4 + 0x184) == 0) {
+DAT_GameState.playerDataArray[playerID_00].aiDefUnitChoiceIndex = 0;
+}
+iVar9 = DAT_GameState.playerDataArray[playerID_00].aiDefUnitChoiceIndex;
+/* DefUnit 1 up to 8 */
+unitType = *(UnitType *)((int)&DAT_AICState + (iVar8 + iVar9) * 4 + 0x184);
+DAT_GameState.playerDataArray[playerID_00].aiDefUnitChoiceIndex = iVar9 + 1;
+}
+else if (AVar5 == AIRUC_RAIDING) {
+if (7 < DAT_GameState.playerDataArray[playerID_00].aiRaidUnitChoiceIndex) {
+DAT_GameState.playerDataArray[playerID_00].aiRaidUnitChoiceIndex = 0;
+}
+if (*(int *)((int)&DAT_AICState +
+(DAT_GameState.playerDataArray[playerID_00].aiRaidUnitChoiceIndex + iVar8)
+* 4 + 0x1ac) == 0) {
+DAT_GameState.playerDataArray[playerID_00].aiRaidUnitChoiceIndex = 0;
+}
+iVar9 = DAT_GameState.playerDataArray[playerID_00].aiRaidUnitChoiceIndex;
+unitType = *(UnitType *)((int)&DAT_AICState + (iVar8 + iVar9) * 4 + 0x1ac);
+DAT_GameState.playerDataArray[playerID_00].aiRaidUnitChoiceIndex = iVar9 + 1;
+}
+else if (AVar5 == AIRUC_ATTACKING) {
+_pAICState = (AICState *)
+randomlySelectAttackUnitTypeToRecruit(&DAT_AICState,playerID_00);
+unitType = getUnitTypeForUnitBehaviourType
+(&DAT_AICState,playerID_00,(AIUnitBehaviourType)_pAICState);
+}
+}
+if (unitType == 0) {
+return;
+}
+if (unitType == UT_E_ENGINEER) {
+iVar9 = DAT_GameState.playerDataArray[playerID_00].engineersGuild.id;
+}
+else if (unitType == UT_E_LADDER) {
+iVar9 = DAT_GameState.playerDataArray[playerID_00].engineersGuild.id;
+}
+else if (unitType == UT_TUNNELER) {
+iVar9 = DAT_GameState.playerDataArray[playerID_00].tunnelersGuild.id;
+}
+else if (unitType == UT_E_MONK) {
+iVar9 = Map::Buildings::BuildingsState::findFirstBuildingIDForPlayerAndType
+(&DAT_BuildingsState,playerID_00,BT_CATHEDRAL);
+}
+else if ((int)unitType < 0x46) {
+iVar9 = DAT_GameState.playerDataArray[playerID_00].barracks.id;
+}
+else {
+iVar9 = DAT_GameState.playerDataArray[playerID_00].mercenaryPost.id;
+}
+if (iVar9 == 0) {
+return;
+}
+if ((((unitType == UT_E_ENGINEER) || (unitType == UT_E_LADDER)) ||
+(unitType == UT_TUNNELER)) || ((unitType == UT_E_MONK || (0x45 < (int)unitType)))) {
+iVar9 = Map::Units::UnitsState::nonEuroRecruit
+(&DAT_UnitsState,unitType,iVar9,playerID_00,0);
+}
+else {
+iVar9 = Map::Units::UnitsState::euroRecruit
+(&DAT_UnitsState,unitType,iVar9,playerID_00,0);
+}
+if (iVar9 == 0) {
+/* tradeAmountEquipment */
+iVar1 = *(int *)((int)pAVar10 + iVar1 * 0x2a4 + 0x9c);
+if (iVar1 < 1) {
+return;
+}
+if (DAT_UnitsState.DAT_EuroUnitAcquisitionFailReason != 2) {
+return;
+}
+if (DAT_GameState.playerDataArray[playerID_00].aiNervousActionsTracker < 1) {
+DAT_GameState.playerDataArray[playerID_00].resourcesToAcquireArray
+[DAT_UnitsState.DAT_EuroUnitRequiredResource] = iVar1;
+return;
+}
+DAT_GameState.playerDataArray[playerID_00].resourcesToAcquireArray
+[DAT_UnitsState.DAT_EuroUnitRequiredResource] = 5;
+return;
+}
+if (bVar7) {
+/* digging units? */
+aiAddUnitToMoatDiggerTribe(&DAT_AICState,iVar9);
+}
+else {
+AVar5 = DAT_GameState.playerDataArray[playerID_00].aiRecruitUnitChoiceState;
+/* 0 = defensive, 1 = raid, 2 = army */
+if (AVar5 == AIRUC_DEFENSIVE) {
+if (DAT_GameState.playerDataArray[playerID_00].totalDefensiveTroopsUnk <
+*(int *)((int)pAVar10 + iVar1 * 0x2a4 + 0x180)) {
+assignUnitToATribe(&DAT_AICState,iVar9);
+}
+else {
+addUnitToSmallestPatrolTribe(&DAT_AICState,iVar9);
+}
+}
+else if (AVar5 == AIRUC_RAIDING) {
+aiAssignUnitToDefensiveTribe(&DAT_AICState,iVar9);
+}
+else if (AVar5 == AIRUC_ATTACKING) {
+addUnitToItsTribe(&DAT_AICState,iVar9,(int)_pAICState);
+}
+}
+playerID = playerID + 1;
+if (local_8 <= playerID) {
+return;
+}
+} while( true );
+}
+}
+}
+return;
+}
+--- NAMEN NUR IM PAKETCODE ---
+AVar2, _aiType, _aicRecruitInterval, _buildingID, _defTotal, _nervousActionTracker, _playerID2, _recruitDefDiggingUnit, _tribeID_defDiggingUnitMax, _unitChoiceIndex, _unitID, _unitType, _unitTypeChoice, bVar3, euroUnitAcquisitionFailReason, euroUnitRequiredResource, iVar5, iVar6, piVar1, undefined4
+--- KOMMENTARE IM PAKETCODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004D3AE0
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+/*
+--- ERKLAERUNG ---
+{"adr": "0x004d3ae0", "name": "aiRecruitUnits", "p1": {"bereich": "KI", "zweck": "Wirbt im Takt des Rekrutierintervalls bis zu vier Einheiten für die KI an (Art nach Rekrutierungsart) und teilt sie einer Gruppe zu."}, "p2": {"ein": "playerID", "aus": "-", "liest": ["playerDataArray[sp].aiType/aiStrengthFeeling/aiRecruitUnitChoiceState/aiNervousActionsTracker/aiRecruitIntervalTracker/idlePeasantsCount/canStartSpending/aiPlayerState/totalDefensiveTroopsUnk/totalRaidingTroopsUnk/aiDefUnitChoiceIndex/aiRaidUnitChoiceIndex", "aiTribeIDs[10], aiTribeUIDs[10], tribes[].uid/size", "engineersGuild.id, tunnelersGuild.id, barracks.id, mercenaryPost.id", "GameCore.gameMode_2/isSkirmishTrail/currentTrailType", "SEC_RNG.currentNumber2", "KI-Einstellungen (aiType-1)*0x2a4: Rekrutierintervall (+0x164 + 4*aiStrengthFeeling), DefTotal (+0x170), tradeAmountEquipment (+0x9c), DefDiggingUnitMax (+0x15c), DefDiggingUnit (+0x160), Wert +0x180, DefUnit 1-8 (ab +0x184), RaidUnit 1-8 (ab +0x1ac)", "UnitsState.euroUnitAcquisitionFailReason/euroUnitRequiredResource"], "schreibt": ["aiRecruitIntervalTracker", "aiDefUnitChoiceIndex", "aiRaidUnitChoiceIndex", "resourcesToAcquireArray[euroUnitRequiredResource]"], "ruft": ["getCurrentDesiredAttackRaidUnitCount", "countUnfinishedMoatTilesForPlayer", "randomlySelectAttackUnitTypeToRecruit", "getUnitTypeForUnitBehaviourType", "findFirstBuildingIDForPlayerAndType", "euroRecruit", "nonEuroRecruit", "aiAddUnitToMoatDiggerTribe", "assignUnitToATribe", "addUnitToSmallestPatrolTribe", "aiAssignUnitToDefensiveTribe", "addUnitToItsTribe"], "regeln": ["Nur für KI (aiType != AIT_NULL). Gefechtspfad-Merkmal G = gameMode_2 == GM_SKIRMISH_AND_MULTIPLAYER UND isSkirmishTrail == TRUE UND currentTrailType == TT_EXTREME (nicht jedes Gefecht). Aufruf durch updateAIBehaviour bei dayTicks == playerID (alle 50 Ticks je KI), nur bei totalNoRushTicks == 0, nicht in GM_SOLITARY und nicht für KI mit getötetem Lord.", "Höchstzahl N der Durchgänge: Intervall I = KI-Wert bei (aiType-1)*0x2a4 + 4*aiStrengthFeeling + 0x164 (je Stärkegefühl ein Eintrag). I != 0: N = 1; I == 0: N = 2; mit G je +1; nervös (aiNervousActionsTracker > 0): immer N = 4. N ist nur eine Obergrenze: jedes return in der Schleife beendet die ganze Funktion.", "Takt: nicht nervös: aiRecruitIntervalTracker += 1, bei Tracker < I Ende; nervös: kein Warten. Danach wird der Tracker auf 0 gesetzt, noch bevor idlePeasantsCount und canStartSpending geprüft werden, also auch ohne Anwerbung. Weiter nur mit idlePeasantsCount > 0 und canStartSpending != 0.", "Vorabprüfung nach aiRecruitUnitChoiceState: DEFENSIVE: DefTotal (+0x170); mit G (DefTotal*4)/3 ganzzahlig, danach bei nervös zusätzlich *4 auf den schon angepassten Wert; Ende bei totalDefensiveTroopsUnk >= DefTotal. RAIDING: Ende bei totalRaidingTroopsUnk >= getCurrentDesiredAttackRaidUnitCount (currentAttackRaidParameter + RaidUnitsBase, mit G mal 4/3). ATTACKING: Ende bei aiPlayerState != 0. Andere Werte: keine Prüfung.", "Grabeneinheit-Merker D = true, wenn DefDiggingUnitMax (+0x15c) != 0 UND countUnfinishedMoatTilesForPlayer != 0 UND (aiTribeIDs[10] == 0 ODER aiTribeUIDs[10] != tribes[..].uid ODER tribes[..].size < DefDiggingUnitMax).", "Schleife mit einem Anwerbeversuch je Durchgang. Bei D: Zufallsbit SEC_RNG.currentNumber2 & 1 (wird hier nicht weitergeschaltet): Bit = 1 setzt D für den Rest des Aufrufs auf false (danach nur noch normale Wahl); Bit = 0: ohne Kaserne UND ohne Söldnerposten Abbruch der ganzen Funktion, sonst Typ = DefDiggingUnit (+0x160).", "Normale Wahl: DEFENSIVE: aiDefUnitChoiceIndex > 7 wird 0; ist der Eintrag DefUnit (+0x184 + 4*Index) gleich 0, wird der Index 0; Typ = Eintrag, Index += 1 (reihum durch bis zu 8 Einträge, 0 beendet die Liste). RAIDING ebenso mit aiRaidUnitChoiceIndex und Basis +0x1ac. ATTACKING: Typ = getUnitTypeForUnitBehaviourType(randomlySelectAttackUnitTypeToRecruit). Anderer Zustand: der Typ bleibt vom vorigen Durchgang (zu Beginn 0). Typ 0 beendet die Funktion.", "Anwerbegebäude: Typ 0x1e (UT_E_ENGINEER) und 0x1d (UT_E_LADDER) = engineersGuild.id; Typ 5 (UT_TUNNELER) = tunnelersGuild.id; Typ 0x25 (UT_E_MONK) = erste Kathedrale (BT_CATHEDRAL, 0x26) über findFirstBuildingIDForPlayerAndType; Typ < 0x46 = barracks.id; Typ >= 0x46 = mercenaryPost.id. Gebäude-ID 0 beendet die Funktion.", "nonEuroRecruit(Typ, Gebäude, playerID, 0) für Typ 0x1e, 0x1d, 5, 0x25 und alle Typen >= 0x46, sonst euroRecruit.", "Anwerbung gescheitert (ID 0): die Funktion endet; vorher, wenn tradeAmountEquipment (+0x9c) > 0 und euroUnitAcquisitionFailReason == 2: resourcesToAcquireArray[euroUnitRequiredResource] = tradeAmountEquipment, bei nervös stattdessen 5.", "Zuteilung nach Erfolg: bei D aiAddUnitToMoatDiggerTribe (Gruppe 10, Haltung defensiv); sonst DEFENSIVE: totalDefensiveTroopsUnk < Wert bei +0x180 dann assignUnitToATribe, sonst addUnitToSmallestPatrolTribe; RAIDING: aiAssignUnitToDefensiveTribe; ATTACKING: addUnitToItsTribe(Einheit, Verhaltenstyp). Dann nächster Durchgang bis N."], "offen": ["Bedeutung des Werts bei +0x180 (Grenze für die Zuteilung von Verteidigern), Name unbekannt", "Der Name aiAssignUnitToDefensiveTribe täuscht vermutlich bei RAIDING (die Funktion setzt aiUnitBehaviourType = 2 und sucht mit getDefensiveTribeForUnit eine Gruppe)", "Bedeutung von aiPlayerState != 0 (vermutlich: KI ist in einer Angriffswelle)", "Ob nonEuroRecruit euroUnitAcquisitionFailReason setzt, ist hier nicht sichtbar; nach einem Fehlschlag von nonEuroRecruit kann dort ein alter Wert stehen", "Der zweite Parameter von addUnitToItsTribe ist bei ATTACKING ein Verhaltenstyp (Ghidra zeigt ihn als _pAICState)"]}, "p3": {"erklaerung": "Die KI wirbt im Takt ihres Rekrutierintervalls einige Einheiten an, wenn freie Bauern da sind und sie ausgeben darf. Welche Einheit entsteht, hängt von ihrer Rekrutierungsart und den Listen der KI-Persönlichkeit ab. Fehlt eine Ware, merkt sie sich den Bedarf in resourcesToAcquireArray.", "gehirn": "Fehlende Ware lässt sich aus euroUnitAcquisitionFailReason == 2 und resourcesToAcquireArray der KI ablesen (Betrag tradeAmountEquipment, nervös 5). Intervall, Listen und Grenzen kommen aus den KI-Einstellungen (vermutlich per AIC-Datei oder UCP änderbar, im Code nicht belegt). Eine nervöse KI wirbt ohne Wartezeit bis zu 4 Einheiten je Aufruf an, und ihr Verteidigungssoll DefTotal wird vervierfacht.", "beleg": "code", "live": "KI (nicht nervös) wirbt an, Ware fehlt (euroUnitAcquisitionFailReason = 2) → resourcesToAcquireArray[euroUnitRequiredResource] der KI → Wert = tradeAmountEquipment (KI-Wert +0x9c), nervös 5; aiRecruitIntervalTracker springt nach dem Takt auf 0", "live_art": "anwerben"}}
+
+### 0x004bc1c0 spawnAttackWaveForPlayer
+--- CODE (Ghidra-Export, vollstaendig) ---
+/* WARNING: Enum "MappersEnum": Some values do not have unique names */
+/* Allocates a new attack wave slot (inv_count, wrapping at 50), maps unit type codes
+(param_2/param_4) to internal unit type enums and group sizes, scales quantity (param_3/param_5)
+by difficulty (50/100/140/200%), then distributes units across map edge signpost positions via
+TribesState::FUN_00522f70. Handles both primary and secondary unit types. Siege engines and
+special units (catapult, trebuchet, tower, etc.) are scored separately rather than spawned
+directly.
+renamed by: Claude Sonnet 4.6 */
+void __thiscall
+_HoldStrong::Map::MapPropertiesState::spawnAttackWaveForPlayer
+(MapPropertiesState *this,int param_1,int param_2,int param_3,int param_4,int param_5,
+int param_6)
+{
+byte (*pabVar1) [10];
+byte *pbVar2;
+int iVar3;
+int iVar4;
+int iVar5;
+char cVar6;
+int iVar7;
+int iVar8;
+UnitType UVar9;
+int local_10;
+int local_c;
+int local_8;
+iVar3 = DAT_GameState.mapAndTime.signpostsMapEdgeDataCounter;
+DAT_TroopValueState.attackInfo.inv_count = DAT_TroopValueState.attackInfo.inv_count + 1;
+local_c = 0;
+if (0x31 < DAT_TroopValueState.attackInfo.inv_count) {
+DAT_TroopValueState.attackInfo.inv_count = 1;
+}
+Units::TroopValueState::initializeAttackWaveSlot
+(&DAT_TroopValueState,DAT_TroopValueState.attackInfo.inv_count,0);
+local_8 = 0;
+DAT_TroopValueState.attackInfo.attackWavePlayerIDArray[DAT_TroopValueState.attackInfo.inv_count] =
+(byte)param_1;
+iVar7 = param_1;
+iVar8 = param_1;
+UVar9 = param_1;
+do {
+iVar4 = param_2;
+iVar5 = param_3;
+if ((local_8 != 0) && (iVar4 = param_4, iVar5 = param_5, param_4 < 1)) {
+return;
+}
+switch(iVar4) {
+case 5:
+iVar8 = 2;
+UVar9 = UT_TUNNELER;
+break;
+default:
+goto switchD_004bc254_caseD_6;
+case 0x16:
+iVar8 = 3;
+UVar9 = UT_E_ARCHER;
+break;
+case 0x17:
+iVar8 = 7;
+UVar9 = UT_E_XBOW;
+break;
+case 0x18:
+iVar8 = 5;
+UVar9 = UT_E_SPEAR;
+break;
+case 0x19:
+iVar8 = 6;
+UVar9 = UT_E_PIKE;
+break;
+case 0x1a:
+iVar8 = 9;
+UVar9 = UT_E_MACE;
+break;
+case 0x1b:
+iVar8 = 8;
+UVar9 = UT_E_SWORD;
+break;
+case 0x1c:
+iVar8 = 10;
+UVar9 = UT_E_KNIGHT;
+iVar7 = 10;
+goto switchD_004bc254_caseD_6;
+case 0x1d:
+iVar8 = 4;
+UVar9 = UT_E_LADDER;
+break;
+case 0x1e:
+iVar8 = 0xb;
+UVar9 = UT_E_ENGINEER;
+break;
+case 0x25:
+iVar8 = 0xc;
+UVar9 = UT_E_MONK;
+break;
+case 0x27:
+iVar8 = 0x16;
+UVar9 = UT_S_CATAPULT;
+break;
+case 0x28:
+iVar8 = 0x17;
+UVar9 = UT_S_TREBUCHET;
+break;
+case 0x3a:
+iVar8 = 0x14;
+UVar9 = UT_S_TOWER;
+break;
+case 0x3b:
+iVar8 = 0x13;
+UVar9 = UT_S_BATTERINGRAM;
+break;
+case 0x3c:
+iVar8 = 0x15;
+UVar9 = UT_S_SHIELD;
+break;
+case 0x46:
+iVar8 = 0x19;
+UVar9 = UT_A_ARCHER;
+break;
+case 0x47:
+iVar8 = 0x1a;
+UVar9 = UT_A_SLAVE;
+iVar7 = 0x14;
+goto switchD_004bc254_caseD_6;
+case 0x48:
+iVar8 = 0x1b;
+UVar9 = UT_A_SLINGER;
+iVar7 = 0x14;
+goto switchD_004bc254_caseD_6;
+case 0x49:
+iVar8 = 0x1c;
+UVar9 = UT_A_ASSASSIN;
+iVar7 = 2;
+goto switchD_004bc254_caseD_6;
+case 0x4a:
+iVar8 = 0x1d;
+UVar9 = UT_A_HARCHER;
+break;
+case 0x4b:
+iVar8 = 0x1e;
+UVar9 = UT_A_SWORDSMAN;
+iVar7 = 8;
+goto switchD_004bc254_caseD_6;
+case 0x4c:
+iVar8 = 0x1f;
+UVar9 = UT_A_FIRETHROWER;
+iVar7 = 4;
+goto switchD_004bc254_caseD_6;
+case 0x4d:
+iVar8 = 0x18;
+UVar9 = UT_S_FBALLISTA;
+}
+iVar7 = 10;
+switchD_004bc254_caseD_6:
+iVar4 = 100;
+if (DAT_GameState.mapAndTime.difficulty == 0) {
+iVar4 = 0x32;
+}
+else if (DAT_GameState.mapAndTime.difficulty == 2) {
+iVar4 = 0x8c;
+}
+else if (DAT_GameState.mapAndTime.difficulty == 3) {
+iVar4 = 200;
+}
+iVar4 = (iVar4 * iVar5) / 100;
+cVar6 = (char)iVar4;
+if (iVar8 == 0x16) {
+pabVar1 = DAT_TroopValueState.attackInfo.someSinglePlayerScore +
+DAT_TroopValueState.attackInfo.inv_count;
+(*pabVar1)[0] = (*pabVar1)[0] + cVar6;
+}
+else if (iVar8 == 0x17) {
+pbVar2 = DAT_TroopValueState.attackInfo.someSinglePlayerScore
+[DAT_TroopValueState.attackInfo.inv_count] + 1;
+*pbVar2 = *pbVar2 + cVar6;
+}
+else if (iVar8 == 0x13) {
+pbVar2 = DAT_TroopValueState.attackInfo.someSinglePlayerScore
+[DAT_TroopValueState.attackInfo.inv_count] + 2;
+*pbVar2 = *pbVar2 + cVar6;
+}
+else if (iVar8 == 0x14) {
+pbVar2 = DAT_TroopValueState.attackInfo.someSinglePlayerScore
+[DAT_TroopValueState.attackInfo.inv_count] + 3;
+*pbVar2 = *pbVar2 + cVar6;
+}
+else if (iVar8 == 0x15) {
+pbVar2 = DAT_TroopValueState.attackInfo.someSinglePlayerScore
+[DAT_TroopValueState.attackInfo.inv_count] + 4;
+*pbVar2 = *pbVar2 + cVar6;
+}
+else if (iVar8 == 0x18) {
+pbVar2 = DAT_TroopValueState.attackInfo.someSinglePlayerScore
+[DAT_TroopValueState.attackInfo.inv_count] + 8;
+*pbVar2 = *pbVar2 + cVar6;
+}
+else {
+local_10 = iVar4 / (iVar4 / iVar7 + 1);
+while (0 < iVar4) {
+if (iVar4 < local_10) {
+local_10 = iVar4;
+}
+iVar5 = (&DAT_TroopValueState.attackInfo.unknownSignpostRelatedArray)
+[DAT_TroopValueState.attackInfo.inv_count];
+Units::TribesState::spawnUnitsForAITribe
+(&DAT_TribesState,iVar8,
+DAT_GameState.mapAndTime.signpostsMapEdge[iVar5][local_c].x,
+DAT_GameState.mapAndTime.signpostsMapEdge[iVar5][local_c].y,param_1,UVar9,
+local_10,param_6);
+iVar4 = iVar4 - local_10;
+local_c = local_c + 1;
+if (iVar3 <= local_c) {
+local_c = 0;
+}
+}
+}
+local_8 = local_8 + 1;
+if (1 < local_8) {
+return;
+}
+} while( true );
+}
+--- NAMEN NUR IM PAKETCODE ---
+-
+--- KOMMENTARE IM PAKETCODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004BC1C0
+--- ERKLAERUNG ---
+{"adr": "0x004bc1c0", "name": "spawnAttackWaveForPlayer", "p1": {"bereich": "Karte", "zweck": "Legt den nächsten KI-Wellenplatz an und erzeugt daraus eine Angriffswelle aus bis zu zwei Einheitenarten an den Kartenrand-Wegweisern."}, "p2": {"ein": "param_1 = Spieler (Besitzer der Welle); param_2 = Einheitenart 1 (Code), param_3 = Menge 1; param_4 = Einheitenart 2 (zweiter Durchlauf nur bei param_4 >= 1), param_5 = Menge 2; param_6 = Wert, den spawnUnitsForAITribe als calculatedOwnerPlayerIndex der erzeugten Einheiten setzt", "aus": "-", "liest": ["DAT_GameState.mapAndTime.difficulty", "DAT_GameState.mapAndTime.signpostsMapEdgeDataCounter", "DAT_GameState.mapAndTime.signpostsMapEdge[Zeile][Spalte].x/.y", "attackInfo.unknownSignpostRelatedArray[inv_count] (Wegweiser-Zeile, von initializeAttackWaveSlot gesetzt)", "attackInfo.inv_count"], "schreibt": ["attackInfo.inv_count", "attackInfo.attackWavePlayerIDArray[inv_count]", "attackInfo.someSinglePlayerScore[inv_count][0,1,2,3,4,8] (Byte-Zähler)", "über initializeAttackWaveSlot: Wellenplatz inv_count (u. a. someSinglePlayerScore[inv_count] 10 Byte auf 0, unknownSignpostRelatedArray[inv_count])", "über spawnUnitsForAITribe: neue Einheiten mit calculatedOwnerPlayerIndex und KI-Trupp-Zuordnung"], "ruft": ["initializeAttackWaveSlot", "spawnUnitsForAITribe"], "regeln": ["Wellenplatz: attackInfo.inv_count wird um 1 erhöht und springt bei 0x31 < inv_count (über 49) auf 1; es ist ein Ring 1 bis 49, und inv_count ist der Index des zuletzt angelegten Platzes, keine Gesamtzahl der Wellen (ab der 50. Welle werden alte Plätze überschrieben). Danach initializeAttackWaveSlot(inv_count, 0) (laut Funktion: u. a. attackWaveTicker[inv_count] und value3Array01[inv_count] auf 0, die 10 Byte someSinglePlayerScore[inv_count] auf 0, Wegweiser-Zeile unknownSignpostRelatedArray[inv_count] = pickRandomAccessibleSignpostEntry() bei Parameter 0) und attackWavePlayerIDArray[inv_count] = (byte)param_1", "Zwei Durchläufe: erst (param_2, param_3), dann (param_4, param_5); der zweite nur, wenn param_4 >= 1 (param_2 wird nicht geprüft)", "Arten (param_2 / param_4 → Typ): 5 UT_TUNNELER; 0x16 UT_E_ARCHER, 0x17 UT_E_XBOW, 0x18 UT_E_SPEAR, 0x19 UT_E_PIKE, 0x1a UT_E_MACE, 0x1b UT_E_SWORD, 0x1c UT_E_KNIGHT, 0x1d UT_E_LADDER, 0x1e UT_E_ENGINEER, 0x25 UT_E_MONK; 0x46 UT_A_ARCHER, 0x47 UT_A_SLAVE, 0x48 UT_A_SLINGER, 0x49 UT_A_ASSASSIN, 0x4a UT_A_HARCHER, 0x4b UT_A_SWORDSMAN, 0x4c UT_A_FIRETHROWER; Belagerung: 0x27 UT_S_CATAPULT, 0x28 UT_S_TREBUCHET, 0x3a UT_S_TOWER, 0x3b UT_S_BATTERINGRAM, 0x3c UT_S_SHIELD, 0x4d UT_S_FBALLISTA", "Menge: Prozentsatz nach mapAndTime.difficulty: 0 → 50, 2 → 140 (0x8c), 3 → 200, jeder andere Wert (auch 1) → 100; Ergebnis m = (Prozent * Menge) / 100 ganzzahlig (zur Null hin gerundet), z. B. Menge 5 bei Stufe 0 → 2, bei Stufe 2 → 7", "Belagerungsgeräte werden hier nicht erzeugt: m wird als Byte ((char)-Umwandlung, Überlauf modulo 256) auf someSinglePlayerScore[inv_count] an Stelle 0 (UT_S_CATAPULT), 1 (UT_S_TREBUCHET), 2 (UT_S_BATTERINGRAM), 3 (UT_S_TOWER), 4 (UT_S_SHIELD) bzw. 8 (UT_S_FBALLISTA) addiert; die Stellen 5, 6, 7, 9 bleiben hier unberührt", "Alle anderen Arten werden in Gruppen erzeugt: Gruppengröße g = m / (m / G + 1) (ganzzahlig, G = Grundgröße); jede Gruppe hat höchstens g Einheiten, die letzte nimmt den Rest; m <= 0 erzeugt nichts. Grundgröße G: 10 bei UT_TUNNELER, allen UT_E_* (UT_E_KNIGHT ausdrücklich 10), UT_A_ARCHER und UT_A_HARCHER; 20 bei UT_A_SLAVE und UT_A_SLINGER; 2 bei UT_A_ASSASSIN; 8 bei UT_A_SWORDSMAN; 4 bei UT_A_FIRETHROWER", "Ort: pro Gruppe ein Aufruf spawnUnitsForAITribe(Kategorie iVar8, x, y, param_1, Typ, g, param_6) mit (x, y) = signpostsMapEdge[Zeile][Spalte]; Zeile = unknownSignpostRelatedArray[inv_count] (je Welle fest), Spalte läuft ab 0 reihum bis signpostsMapEdgeDataCounter - 1 und beginnt dann wieder bei 0; die Spalte wird nur einmal je Aufruf der Funktion auf 0 gesetzt, also zwischen erstem und zweitem Durchlauf nicht zurückgesetzt", "Laut spawnUnitsForAITribe: g Einheiten der Art entstehen auf derselben Kachel (x*8, y*8), nur wenn (x > 0 oder y > 0) und g > 0; param_6 wird calculatedOwnerPlayerIndex jeder erzeugten Einheit; jede Einheit wird dem KI-Trupp zugeordnet (AICState::addUnitToItsTribe) mit Verhalten 0x11 bei UT_E_ARCHER, UT_E_XBOW, UT_A_ARCHER, UT_A_SLINGER, UT_A_HARCHER, UT_A_FIRETHROWER, sonst 0x14; die Kategorie iVar8 wird dort nicht ausgewertet", "Aufrufer laut Ghidra-Verweisen: nur updateMilitaryCampaignMissionState (3 Stellen; laut Kommentar im Export die geskripteten Militär-Kampagnenmissionen 16 bis 20), jeweils mit Spieler 2 und param_6 = 3 oder 2, z. B. (2, 0x18, 5, 0x4b, 10, 3), (2, 0x48, 0x32, 0x47, 0x14, 3), (2, 0x46, 8, 0x48, 0x16, 2)"], "offen": ["Art außerhalb der Tabelle (Zweig default, auch param_2 = 0): iVar8, iVar7 und UVar9 behalten den Wert des vorigen Durchlaufs, im ersten Durchlauf den Anfangswert param_1 (den Spieler); Folgen (Typ = Spielernummer, Division durch 0 bei param_1 = 0) ungeprüft, die Aufrufer übergeben nur Tabellenwerte", "Wer die Byte-Zähler someSinglePlayerScore später auswertet und ob die Belagerungsgeräte daraus entstehen, ist in diesem Paket nicht sichtbar", "Bedeutung von param_6 über calculatedOwnerPlayerIndex hinaus (die Aufrufer übergeben 3 oder 2)", "Die Zuordnung Typcode → Einheit ist nur aus den UT_-Namen im Code abgeleitet", "Bedeutung der Schwierigkeitsstufen 0 bis 3 (nur die Prozentwerte sind sicher)"]}, "p3": {"erklaerung": "So entsteht eine Angriffswelle der KI: Die Mengen werden nach Schwierigkeit skaliert (50/100/140/200 %) und in Gruppen auf die Kartenrand-Wegweiser verteilt. Belagerungsgeräte werden hier nur in Zählern vermerkt.", "gehirn": "Für Gefechte vermutlich ohne Bedeutung: laut Ghidra-Verweisen ruft nur updateMilitaryCampaignMissionState (geskriptete Kampagnenmissionen) diese Funktion. Die Stärke der Wellen skaliert dort mit der Schwierigkeit (50/100/140/200 %). attackInfo.inv_count ist der Index des zuletzt angelegten Wellenplatzes (Ring 1 bis 49), keine Gesamtzahl der Wellen.", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0048acb0 CommandSwitchTeams
+--- CODE (Ghidra-Export, vollstaendig) ---
+/* WARNING: Enum "DPSEND_EnumInt": Some values do not have unique names */
+/* WARNING: Enum "DPERRInt": Some values do not have unique names */
+/* decompilerscript: committed: 2025-01-30 21:57:43.216000 */
+void _HoldStrong::Commands::CommandSwitchTeams(void)
+{
+char cVar1;
+bool bVar2;
+int iVar3;
+DWORD DVar4;
+char *pcVar5;
+int iVar6;
+int iVar7;
+GameSynchronyState *this;
+char *pcVar8;
+byte bVar9;
+short local_28 [2];
+int aiStack_24 [9];
+DAT_GameSynchronyState.DAT_CommandSize = 3;
+if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_SCHEDULE_AND_SEND) {
+Synchrony::GameSynchronyState::serializeOrDeserializeCommandParameter
+(&DAT_GameSynchronyState,&DAT_GameSynchronyState.DAT_GameCommandParam0,2,
+GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,GCPRW_SERIALIZE_INTO_PARAM_1);
+Synchrony::GameSynchronyState::serializeOrDeserializeCommandParameter
+(&DAT_GameSynchronyState,&DAT_GameSynchronyState.DAT_GameCommandParam1,1,
+GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,GCPRW_SERIALIZE_INTO_PARAM_1);
+return;
+}
+bVar2 = false;
+if (DAT_GameSynchronyState.DAT_CommandActionPlan == GCS_EXECUTE) {
+Synchrony::GameSynchronyState::serializeOrDeserializeCommandParameter
+(&DAT_GameSynchronyState,local_28,2,GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+GCPRW_DESERIALIZE_FROM_PARAM1);
+DAT_GameSynchronyState.DAT_GameCommandParam0 = (int)local_28[0];
+Synchrony::GameSynchronyState::serializeOrDeserializeCommandParameter
+(&DAT_GameSynchronyState,local_28,1,GCPL_DYNAMIC_COMMAND_DATA_ADDRESS,
+GCPRW_DESERIALIZE_FROM_PARAM1);
+iVar6 = DAT_GameSynchronyState.DAT_GameCommandParam0;
+DAT_GameSynchronyState.DAT_GameCommandParam1 = (int)(char)local_28[0];
+if (DAT_GameSynchronyState.DAT_GameCommandParam1 == 0) {
+if (DAT_GameSynchronyState.DAT_GameCommandParam0 == DAT_GameSynchronyState.currentPlayerSlotID
+) {
+aiStack_24[1] = 0;
+aiStack_24[2] = 0;
+aiStack_24[3] = 0;
+aiStack_24[4] = 0;
+aiStack_24[5] = 0;
+aiStack_24[6] = 0;
+aiStack_24[7] = 0;
+aiStack_24[8] = 0;
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[1] != -1) {
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[1]] =
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[1]] + 1;
+}
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[2] != -1) {
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[2]] =
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[2]] + 1;
+}
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[3] != -1) {
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[3]] =
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[3]] + 1;
+}
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[4] != -1) {
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[4]] =
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[4]] + 1;
+}
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[5] != -1) {
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[5]] =
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[5]] + 1;
+}
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[6] != -1) {
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[6]] =
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[6]] + 1;
+}
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[7] != -1) {
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[7]] =
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[7]] + 1;
+}
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[8] != -1) {
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[8]] =
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[8]] + 1;
+}
+bVar9 = aiStack_24[1] != 0;
+if (aiStack_24[2] != 0) {
+bVar9 = bVar9 + 1;
+}
+if (aiStack_24[3] != 0) {
+bVar9 = bVar9 + 1;
+}
+if (aiStack_24[4] != 0) {
+bVar9 = bVar9 + 1;
+}
+if (aiStack_24[5] != 0) {
+bVar9 = bVar9 + 1;
+}
+if (aiStack_24[6] != 0) {
+bVar9 = bVar9 + 1;
+}
+if (aiStack_24[7] != 0) {
+bVar9 = bVar9 + 1;
+}
+if (aiStack_24[8] != 0) {
+bVar9 = bVar9 + 1;
+}
+if ((2 < bVar9) || (aiStack_24[DAT_GameSynchronyState.protocolInvokerPlayerID] != 1)) {
+DVar4 = timeGetTime();
+DAT_GameSynchronyState.unknownPlayerInfoArray_01
+[DAT_GameSynchronyState.protocolInvokerPlayerID] = DVar4;
+/* "Wishes to become an ally"
+added by script: "wishes to become an ally." */
+pcVar5 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MULTIPLAYER_CONNECTION,0x25);
+pcVar8 = DAT_GameSynchronyState.receivedChatMessage;
+do {
+cVar1 = *pcVar5;
+*pcVar8 = cVar1;
+pcVar5 = pcVar5 + 1;
+pcVar8 = pcVar8 + 1;
+} while (cVar1 != '\0');
+Synchrony::GameSynchronyState::addChatMessageToDisplayList
+(&DAT_GameSynchronyState,DAT_GameSynchronyState.protocolInvokerPlayerID,0);
+return;
+}
+}
+}
+else {
+if (DAT_GameSynchronyState.DAT_GameCommandParam1 == 2) {
+aiStack_24[1] = 0;
+aiStack_24[2] = 0;
+aiStack_24[3] = 0;
+aiStack_24[4] = 0;
+aiStack_24[5] = 0;
+aiStack_24[6] = 0;
+aiStack_24[7] = 0;
+aiStack_24[8] = 0;
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[1] != -1) {
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[1]] = 1;
+}
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[2] != -1) {
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[2]] = 1;
+}
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[3] != -1) {
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[3]] = 1;
+}
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[4] != -1) {
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[4]] = 1;
+}
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[5] != -1) {
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[5]] = 1;
+}
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[6] != -1) {
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[6]] = 1;
+}
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[7] != -1) {
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[7]] = 1;
+}
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[8] != -1) {
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[8]] = 1;
+}
+iVar6 = 1;
+do {
+if (aiStack_24[iVar6] == 0) {
+DAT_GameState.mapAndTime.playerTeams[DAT_GameSynchronyState.protocolInvokerPlayerID] =
+iVar6;
+break;
+}
+iVar6 = iVar6 + 1;
+} while (iVar6 < 9);
+/* "has cancelled the alliance"
+added by script: "has cancelled the alliance" */
+pcVar5 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MULTIPLAYER_CONNECTION,0x27);
+pcVar8 = DAT_GameSynchronyState.receivedChatMessage;
+do {
+cVar1 = *pcVar5;
+*pcVar8 = cVar1;
+pcVar5 = pcVar5 + 1;
+pcVar8 = pcVar8 + 1;
+} while (cVar1 != '\0');
+Synchrony::GameSynchronyState::addChatMessageToDisplayList
+(&DAT_GameSynchronyState,DAT_GameSynchronyState.protocolInvokerPlayerID,0);
+return;
+}
+if (DAT_GameSynchronyState.DAT_GameCommandParam1 == 1) {
+aiStack_24[1] = 0;
+aiStack_24[2] = 0;
+aiStack_24[3] = 0;
+aiStack_24[4] = 0;
+aiStack_24[5] = 0;
+aiStack_24[6] = 0;
+aiStack_24[7] = 0;
+aiStack_24[8] = 0;
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[1] != -1) {
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[1]] =
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[1]] + 1;
+}
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[2] != -1) {
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[2]] =
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[2]] + 1;
+}
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[3] != -1) {
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[3]] =
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[3]] + 1;
+}
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[4] != -1) {
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[4]] =
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[4]] + 1;
+}
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[5] != -1) {
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[5]] =
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[5]] + 1;
+}
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[6] != -1) {
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[6]] =
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[6]] + 1;
+}
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[7] != -1) {
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[7]] =
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[7]] + 1;
+}
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[8] != -1) {
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[8]] =
+aiStack_24[DAT_GameState.mapAndTime.playerTeams[8]] + 1;
+}
+bVar9 = aiStack_24[1] != 0;
+if (aiStack_24[2] != 0) {
+bVar9 = bVar9 + 1;
+}
+if (aiStack_24[3] != 0) {
+bVar9 = bVar9 + 1;
+}
+if (aiStack_24[4] != 0) {
+bVar9 = bVar9 + 1;
+}
+if (aiStack_24[5] != 0) {
+bVar9 = bVar9 + 1;
+}
+if (aiStack_24[6] != 0) {
+bVar9 = bVar9 + 1;
+}
+if (aiStack_24[7] != 0) {
+bVar9 = bVar9 + 1;
+}
+if (aiStack_24[8] != 0) {
+bVar9 = bVar9 + 1;
+}
+if ((2 < bVar9) || (aiStack_24[DAT_GameSynchronyState.DAT_GameCommandParam0] != 1)) {
+bVar2 = true;
+}
+iVar7 = Synchrony::GameSynchronyState::countPlayersInSameTeam
+(&DAT_GameSynchronyState,DAT_GameSynchronyState.DAT_GameCommandParam0);
+iVar3 = DAT_GameSynchronyState.protocolInvokerPlayerID;
+if (((iVar7 < 2) &&
+(iVar7 = Synchrony::GameSynchronyState::countPlayersInSameTeam
+(this,DAT_GameSynchronyState.protocolInvokerPlayerID), iVar7 < 2)) &&
+(bVar2)) {
+DAT_GameState.mapAndTime.playerTeams[iVar6] = DAT_GameState.mapAndTime.playerTeams[iVar3];
+/* "has joined with"
+added by script: "has joined with" */
+pcVar5 = Text::TextManager::getTextStringInGroupAtOffset
+(&DAT_TextManagerObject,TEXT_MULTIPLAYER_CONNECTION,0x26);
+pcVar8 = DAT_GameSynchronyState.receivedChatMessage;
+do {
+cVar1 = *pcVar5;
+*pcVar8 = cVar1;
+pcVar5 = pcVar5 + 1;
+pcVar8 = pcVar8 + 1;
+} while (cVar1 != '\0');
+Synchrony::GameSynchronyState::addChatMessageToDisplayList
+(&DAT_GameSynchronyState,DAT_GameSynchronyState.DAT_GameCommandParam0,
+DAT_GameSynchronyState.protocolInvokerPlayerID);
+}
+}
+}
+}
+return;
+}
+--- NAMEN NUR IM PAKETCODE ---
+-
+--- KOMMENTARE IM PAKETCODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0048ACB0
+/*
+/*
+/*
+--- ERKLAERUNG ---
+{"adr": "0x0048acb0", "name": "CommandSwitchTeams", "p1": {"bereich": "Befehle/Takt", "zweck": "Befehl für Bündnisse im Mehrspieler: Anfrage an einen Mitspieler (Art 0), Zusammenschluss zu einem Team (Art 1) und Bündnis verlassen (Art 2); verändert die Teamnummern in mapAndTime.playerTeams."}, "p2": {"ein": "Befehlsdaten: Param0 = Spielerplatz (2 Byte, mit Vorzeichen), Param1 = Art (1 Byte, mit Vorzeichen; 0, 1 oder 2)", "aus": "-", "liest": ["DAT_CommandActionPlan", "currentPlayerFullIDArray[1..8]", "mapAndTime.playerTeams[1..8]", "protocolInvokerPlayerID", "currentPlayerSlotID"], "schreibt": ["DAT_CommandSize = 3", "DAT_GameCommandParam0/1 (beim Ausführen, vor allen Prüfungen)", "mapAndTime.playerTeams[Absender] (Art 2)", "mapAndTime.playerTeams[Param0] (Art 1)", "unknownPlayerInfoArray_01[Absender] = timeGetTime() (Art 0)", "receivedChatMessage"], "ruft": ["serializeOrDeserializeCommandParameter", "countPlayersInSameTeam", "getTextStringInGroupAtOffset", "addChatMessageToDisplayList", "timeGetTime"], "regeln": ["Befehlsgröße 3 Byte (Param0 2 Byte, Param1 1 Byte). DAT_CommandActionPlan = 1 (GCS_SCHEDULE_AND_SEND): verpackt nur Param0 und Param1. = 0 (GCS_EXECUTE): liest beide (mit Vorzeichen) und wertet Param1 aus. Jede andere Art als 0, 1 oder 2 hat keine Wirkung", "Hilfszählung: Für jede Teamnummer t (1-8) wird gezählt, wie viele Plätze 1..8 mit currentPlayerFullIDArray != -1 (vermutlich nur Menschen, KI-Plätze zählen nicht) in diesem Team stehen (playerTeams == t). 'Belegte Teams' = Zahl der Nummern t mit Zähler ungleich 0. Art 2 markiert die Nummern nur (1 statt Zähler)", "Art 0 (Anfrage) wirkt nur auf dem Rechner, auf dem Param0 gleich currentPlayerSlotID ist; alle anderen tun nichts. Dort: Gibt es mehr als 2 belegte Teams oder ist der Zähler an der Stelle der PLATZNUMMER des Absenders (protocolInvokerPlayerID) ungleich 1, wird unknownPlayerInfoArray_01[Absender] = timeGetTime() gesetzt und der Chat-Text 0x25 ('wishes to become an ally') mit dem Absender angezeigt", "Der Zähler wird mit der Platznummer indiziert (Art 0: Absender, Art 1: Param0), nicht mit der Teamnummer dieses Spielers; verglichen wird also die Besetzung des Teams mit der Nummer des Platzes. Das ist nur gleichwertig, solange Teamnummer = Platznummer gilt", "Art 1 (Zusammenschluss): Nur wenn countPlayersInSameTeam(Param0) < 2 und countPlayersInSameTeam(Absender) < 2 (beide haben keinen Mitspieler im eigenen Team) und zusätzlich mehr als 2 belegte Teams ODER Zähler[Platznummer von Param0] ungleich 1. Dann playerTeams[Param0] = playerTeams[Absender] und Chat-Text 0x26 ('has joined with') mit Param0 und Absender", "Art 2 (Bündnis verlassen), auf allen Rechnern und ohne Prüfung von Param0: Der Absender bekommt die kleinste Teamnummer 1-8, in der kein Mensch steht (seine alte Nummer zählt als belegt); gibt es keine, bleibt sein Team unverändert. Chat-Text 0x27 ('has cancelled the alliance') mit dem Absender", "Durch Art 1 entsteht höchstens ein Zweierteam (beide mussten vorher allein sein); über Teams aus anderen Wegen (z. B. aus der Lobby) sagt diese Funktion nichts"], "offen": ["Bedeutung von Param0 bei Art 0 (vermutlich der angefragte Platz) und bei Art 1 (vermutlich der Platz, der sich anschließt); nur aus dem Verhalten geschlossen", "Ob Teamnummer = Platznummer vor dem ersten Wechsel immer gilt (dann wären die Zählerabfragen anfangs gleichwertig); ungeprüft", "Warum bei Art 0 nichts angezeigt wird, wenn es genau 2 belegte Teams gibt und das Team mit der Platznummer des Absenders genau einen Menschen hat"]}, "p3": {"erklaerung": "Im Mehrspieler können sich Spieler zu Teams zusammenschließen: erst eine Anfrage (Chat-Meldung beim Angefragten), dann der Zusammenschluss (nur wenn beide vorher allein sind, so entstehen Zweierteams), und mit Art 2 verlässt man das Team wieder. Die Zählprüfung nimmt dabei die Platznummer als Teamnummer.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}
+
+### 0x0047db10 initializeDirectPlayAndCreateOrJoinSession
+--- CODE (Ghidra-Export, vollstaendig) ---
+/* WARNING: Enum "DPSEND_EnumInt": Some values do not have unique names */
+/* WARNING: Enum "DPERRInt": Some values do not have unique names */
+/* Note that join == TRUE expects the direct play interface to already live
+decompilerscript: committed: 2025-01-30 21:57:43.216000 */
+int __thiscall
+_HoldStrong::Synchrony::GameSynchronyState::initializeDirectPlayAndCreateOrJoinSession
+(GameSynchronyState *this,BOOLEnum join)
+{
+IDirectPlay4A **ppIVar1;
+uint uVar2;
+int iVar3;
+HGLOBAL pvVar4;
+HRESULT HVar5;
+IDirectPlay4A **_dplay4;
+SIZE_T local_58;
+DPSESSIONDESC2 _session;
+ppIVar1 = DAT_GameSynchronyState.DPLAYX_4A;
+uVar2 = MSVC_SecurityCookie ^ (uint)&_dplay4;
+_dplay4 = (IDirectPlay4A **)0x0;
+local_58 = 0;
+if (DAT_GameSynchronyState.DPLAYX_LOBBY == (IDirectPlayLobby3 **)0x0) {
+iVar3 = HoldStrong_lib::__security_check_cookie(uVar2 ^ (uint)&_dplay4);
+return iVar3;
+}
+if (join == FALSE) {
+if (DAT_GameSynchronyState.DPLAYX_Connection != (LPCVOID)0x0) {
+pvVar4 = GlobalHandle(DAT_GameSynchronyState.DPLAYX_Connection);
+GlobalUnlock(pvVar4);
+pvVar4 = GlobalHandle(DAT_GameSynchronyState.DPLAYX_Connection);
+GlobalFree(pvVar4);
+DAT_GameSynchronyState.DPLAYX_Connection = (LPCVOID)0x0;
+}
+iVar3 = createCompoundAddressBasedOnSelectedProvider
+(&DAT_GameSynchronyState,(LPVOID *)&DAT_GameSynchronyState.DPLAYX_Connection,
+&local_58);
+ppIVar1 = DAT_GameSynchronyState.DPLAYX_4A;
+if (iVar3 < 0)
+goto
+_HoldStrong_Synchrony_GameSynchronyState_initializeDirectPlayAndCreateOrJoinSession_LAB_return;
+if (DAT_GameSynchronyState.DPLAYX_4A != (IDirectPlay4A **)0x0) {
+(*(*DAT_GameSynchronyState.DPLAYX_4A)->Close)(DAT_GameSynchronyState.DPLAYX_4A);
+(*(*DAT_GameSynchronyState.DPLAYX_4A)->Release)(DAT_GameSynchronyState.DPLAYX_4A);
+DAT_GameSynchronyState.DPLAYX_4A = (IDirectPlay4A **)0x0;
+}
+HVar5 = CoCreateInstance((IID *)&GUID_CLSID_DirectPlay,(LPUNKNOWN)0x0,1,
+(IID *)&GUID_IID_IDirectPlay4,&_dplay4);
+ppIVar1 = DAT_GameSynchronyState.DPLAYX_4A;
+if (HVar5 < 0)
+goto
+_HoldStrong_Synchrony_GameSynchronyState_initializeDirectPlayAndCreateOrJoinSession_LAB_return;
+HVar5 = (*(*_dplay4)->InitializeConnection)(_dplay4,DAT_GameSynchronyState.DPLAYX_Connection,0);
+if (HVar5 < 0)
+goto
+_HoldStrong_Synchrony_GameSynchronyState_initializeDirectPlayAndCreateOrJoinSession_LAB_release;
+if (DAT_GameSynchronyState.isHost == FALSE) {
+DPLAY_CurrentSessionGUID.Data1 = DAT_005ac12c;
+DPLAY_CurrentSessionGUID.Data2 = (ushort)DAT_005ac130;
+DPLAY_CurrentSessionGUID.Data3 = DAT_005ac130._2_2_;
+DPLAY_InterfacePointer = _dplay4;
+DPLAY_CurrentSessionGUID.Data4[0] = (uchar)DAT_005ac134;
+DPLAY_CurrentSessionGUID.Data4[1] = DAT_005ac134._1_1_;
+DPLAY_CurrentSessionGUID.Data4[2] = DAT_005ac134._2_1_;
+DPLAY_CurrentSessionGUID.Data4[3] = DAT_005ac134._3_1_;
+DPLAY_CurrentSessionGUID.Data4[4] = (uchar)DAT_005ac138;
+DPLAY_CurrentSessionGUID.Data4[5] = DAT_005ac138._1_1_;
+DPLAY_CurrentSessionGUID.Data4[6] = DAT_005ac138._2_1_;
+DPLAY_CurrentSessionGUID.Data4[7] = DAT_005ac138._3_1_;
+ppIVar1 = _dplay4;
+goto
+_HoldStrong_Synchrony_GameSynchronyState_initializeDirectPlayAndCreateOrJoinSession_LAB_return
+;
+}
+OS::_memset(&_session,0,0x50);
+_session.guidApplication.Data1 = GUID_UNKNOWN._0_4_;
+_session.guidApplication.Data4[4] = GUID_UNKNOWN._12_1_;
+_session.guidApplication.Data4[5] = GUID_UNKNOWN._13_1_;
+_session.guidApplication.Data4[6] = GUID_UNKNOWN._14_1_;
+_session.guidApplication.Data4[7] = GUID_UNKNOWN._15_1_;
+_session.dwSize = 0x50;
+_session.dwFlags =
+DPSESSION_OPTIMIZELATENCY|DPSESSION_DIRECTPLAYPROTOCOL|DPSESSION_KEEPALIVE|
+DPSESSION_MIGRATEHOST;
+_session.guidApplication.Data2 = GUID_UNKNOWN._4_2_;
+_session.guidApplication.Data3 = GUID_UNKNOWN._6_2_;
+_session.guidApplication.Data4[0] = GUID_UNKNOWN._8_1_;
+_session.guidApplication.Data4[1] = GUID_UNKNOWN._9_1_;
+_session.guidApplication.Data4[2] = GUID_UNKNOWN._10_1_;
+_session.guidApplication.Data4[3] = GUID_UNKNOWN._11_1_;
+_session.dwMaxPlayers = 8;
+setDPlaySessionNameValue(&DAT_GameSynchronyState);
+_session.lpszSessionName = DAT_GameSynchronyState.DPLAYX_SessionName;
+iVar3 = (*(*_dplay4)->Open)(_dplay4,&_session,OFE_CREATE);
+}
+else {
+_dplay4 = DAT_GameSynchronyState.DPLAYX_4A;
+OS::_memset(&_session,0,0x50);
+_session.guidApplication.Data1 = GUID_UNKNOWN._0_4_;
+_session.guidApplication.Data2 = GUID_UNKNOWN._4_2_;
+_session.guidApplication.Data3 = GUID_UNKNOWN._6_2_;
+_session.guidApplication.Data4[4] = GUID_UNKNOWN._12_1_;
+_session.guidApplication.Data4[5] = GUID_UNKNOWN._13_1_;
+_session.guidApplication.Data4[6] = GUID_UNKNOWN._14_1_;
+_session.guidApplication.Data4[7] = GUID_UNKNOWN._15_1_;
+_session.guidInstance.Data1 = DPLAY_CurrentSessionGUID.Data1;
+_session.guidApplication.Data4[0] = GUID_UNKNOWN._8_1_;
+_session.guidApplication.Data4[1] = GUID_UNKNOWN._9_1_;
+_session.guidApplication.Data4[2] = GUID_UNKNOWN._10_1_;
+_session.guidApplication.Data4[3] = GUID_UNKNOWN._11_1_;
+_session.guidInstance.Data4[0] = DPLAY_CurrentSessionGUID.Data4[0];
+_session.guidInstance.Data4[1] = DPLAY_CurrentSessionGUID.Data4[1];
+_session.guidInstance.Data4[2] = DPLAY_CurrentSessionGUID.Data4[2];
+_session.guidInstance.Data4[3] = DPLAY_CurrentSessionGUID.Data4[3];
+_session.guidInstance.Data4[4] = DPLAY_CurrentSessionGUID.Data4[4];
+_session.guidInstance.Data4[5] = DPLAY_CurrentSessionGUID.Data4[5];
+_session.guidInstance.Data4[6] = DPLAY_CurrentSessionGUID.Data4[6];
+_session.guidInstance.Data4[7] = DPLAY_CurrentSessionGUID.Data4[7];
+_session.dwSize = 0x50;
+_session.guidInstance.Data2 = DPLAY_CurrentSessionGUID.Data2;
+_session.guidInstance.Data3 = DPLAY_CurrentSessionGUID.Data3;
+iVar3 = (*(*ppIVar1)->Open)(ppIVar1,&_session,OFE_JOIN);
+}
+if (iVar3 < 0) {
+/* Close? */
+(*(*_dplay4)->Close)(_dplay4);
+_HoldStrong_Synchrony_GameSynchronyState_initializeDirectPlayAndCreateOrJoinSession_LAB_release:
+(*(*_dplay4)->Release)(_dplay4);
+DAT_GameSynchronyState.DPLAYX_4A = (IDirectPlay4A **)0x0;
+iVar3 = HoldStrong_lib::__security_check_cookie(_session.dwUser4 ^ (uint)&stack0xffffffa0);
+return iVar3;
+}
+DAT_GameSynchronyState.DPLAY_PlayerNameStructure.dwFlags = 0;
+DAT_GameSynchronyState.DPLAY_PlayerNameStructure.lpszLongName = (LPWSTR)0x0;
+DAT_GameSynchronyState.DPLAY_PlayerNameStructure.dwSize = 0x10;
+DAT_GameSynchronyState.DPLAY_PlayerNameStructure.lpszShortName =
+DAT_GameSynchronyState.DPLAY_PlayerShortName;
+HVar5 = (*(*_dplay4)->CreatePlayer)
+(_dplay4,0x191de0c,(DPNAME *)0x191ddf0,(HANDLE)0x0,(LPVOID)0x0,0,0);
+ppIVar1 = _dplay4;
+if (HVar5 != 0) {
+iVar3 = HoldStrong_lib::__security_check_cookie(uVar2 ^ (uint)&_dplay4);
+return iVar3;
+}
+_HoldStrong_Synchrony_GameSynchronyState_initializeDirectPlayAndCreateOrJoinSession_LAB_return:
+DAT_GameSynchronyState.DPLAYX_4A = ppIVar1;
+iVar3 = HoldStrong_lib::__security_check_cookie(uVar2 ^ (uint)&_dplay4);
+return iVar3;
+}
+--- NAMEN NUR IM PAKETCODE ---
+DPERR_ABORTED, DPERR_DP_OK, DPERR_INVALIDOBJECT, LAB_close_and_release_if_err, LAB_release, LAB_return, MACRO_CALL, _cpStatus, _dpStatus, _lobbyStatus, _setStatus, _status, builtin_memcpy, pvVar3, size_t, unaff_EDI
+--- KOMMENTARE IM PAKETCODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0047DB10
+/*
+--- ERKLAERUNG ---
+{"adr": "0x0047db10", "name": "initializeDirectPlayAndCreateOrJoinSession", "p1": {"bereich": "Befehle/Takt", "zweck": "Startet DirectPlay und legt eine Mehrspieler-Sitzung an (Host) oder tritt einer bestehenden bei (join)."}, "p2": {"ein": "join (FALSE = Verbindung neu aufbauen und als Host eine Sitzung anlegen; TRUE = dem vorhandenen DirectPlay-Objekt DPLAYX_4A die Sitzung DPLAY_CurrentSessionGUID beitreten lassen)", "aus": "0 bei Erfolg, sonst ein Fehlercode (DPERR_INVALIDOBJECT, DPERR_ABORTED oder der Fehlerwert der aufgerufenen DirectPlay-/COM-Funktion)", "liest": ["DPLAYX_LOBBY", "DPLAYX_Connection", "DPLAYX_4A", "isHost", "DPLAY_CurrentSessionGUID", "DPLAYX_SessionName", "DPLAY_PlayerShortName"], "schreibt": ["DPLAYX_Connection (freigegeben, neu gesetzt)", "DPLAYX_4A", "DPLAY_PlayerNameStructure", "DPLAY_CurrentSessionGUID (nur join=FALSE ohne Host: auf 0)", "DPLAY_InterfacePointer (nur join=FALSE ohne Host)"], "ruft": ["createCompoundAddressBasedOnSelectedProvider", "CoCreateInstance", "InitializeConnection", "Open", "Close", "Release", "CreatePlayer", "setDPlaySessionNameValue", "GlobalHandle", "GlobalUnlock", "GlobalFree"], "regeln": ["Ohne DPLAYX_LOBBY: sofort DPERR_INVALIDOBJECT", "join = FALSE: eine vorhandene DPLAYX_Connection wird entsperrt, freigegeben und auf 0 gesetzt; dann neue Adresse über createCompoundAddressBasedOnSelectedProvider; Rückgabe unter 0 beendet die Funktion mit diesem Wert", "Danach wird ein vorhandenes DPLAYX_4A geschlossen (Close), freigegeben (Release) und auf 0 gesetzt; neues Objekt per CoCreateInstance (Rückgabe unter 0 beendet mit diesem Wert); InitializeConnection mit der Adresse; Fehler: Objekt freigeben (ohne Close), DPLAYX_4A = 0, Fehlercode zurück", "join = FALSE und isHost != FALSE: Sitzung anlegen (Open, OFE_CREATE) mit Flags OPTIMIZELATENCY, DIRECTPLAYPROTOCOL, KEEPALIVE, MIGRATEHOST, dwMaxPlayers = 8, Sitzungsname aus setDPlaySessionNameValue (DPLAYX_SessionName) und fester Anwendungs-GUID 0x1d5e2f48-e8c0-49e5-…", "join = FALSE und isHost == FALSE: keine Sitzung, kein Spieler; DPLAY_CurrentSessionGUID wird auf 0 gesetzt, DPLAY_InterfacePointer und DPLAYX_4A bekommen das neue Objekt, Rückgabe 0", "join = TRUE: benutzt das vorhandene DPLAYX_4A (ohne Prüfung auf 0) und tritt per Open mit OFE_JOIN bei, mit derselben Anwendungs-GUID und der Sitzungskennung DPLAY_CurrentSessionGUID, alle anderen Felder 0", "Schlägt Open fehl (Wert unter 0; Host-Anlegen oder Beitritt): Close, Release, DPLAYX_4A = 0, Fehlercode zurück", "Gelingt Open: Namensstruktur füllen (dwSize 0x10, dwFlags 0, langer Name 0, kurzer Name = DPLAY_PlayerShortName) und CreatePlayer aufrufen; das gilt für Host-Anlegen und Beitritt, nicht für den Fall ohne Host", "CreatePlayer ungleich DPERR_DP_OK: Rückgabe DPERR_ABORTED; die Sitzung wird nicht geschlossen, das Objekt nicht freigegeben und DPLAYX_4A nicht neu gesetzt (beim Anlegen bleibt es 0)", "Sonst DPLAYX_4A = das Objekt und Rückgabe 0"], "offen": ["Ghidra zeigt Open, Close und CreatePlayer teils über eine Hilfsvariable unaff_EDI statt über _dplay4 bzw. DPLAYX_4A; gemeint ist vermutlich das jeweils aktuelle DirectPlay-Objekt (Kommentar im Code: „Close?“)", "CreatePlayer bekommt feste Adressen 0x191de0c (vermutlich Ziel der Spieler-ID) und 0x191ddf0 (vermutlich die Namensstruktur DPLAY_PlayerNameStructure); Ghidra benennt sie nicht", "Die letzten 4 Byte der Anwendungs-GUID sind im Ghidra-Text nicht lesbar", "Wann das Spiel join = TRUE statt FALSE verwendet, steht nicht in dieser Funktion"]}, "p3": {"erklaerung": "Netzwerk-Grundlage: Das alte DirectPlay wird gestartet; der Gastgeber legt eine Sitzung für höchstens 8 Spieler an, ein Beitretender tritt der gemerkten Sitzung bei, und in beiden Fällen wird ein Spieler angemeldet.", "gehirn": "-", "beleg": "code", "live": "-", "live_art": "-"}}

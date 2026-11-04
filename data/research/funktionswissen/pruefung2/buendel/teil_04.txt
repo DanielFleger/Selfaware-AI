@@ -1,0 +1,820 @@
+### 0x0053c300 UpdateShield
+--- CODE (Ghidra-Export, vollstaendig) ---
+/* WARNING: Enum "DPSEND_EnumInt": Some values do not have unique names */
+/* WARNING: Enum "DPERRInt": Some values do not have unique names */
+/* decompilerscript: committed: 2025-01-30 21:57:43.216000 */
+void _HoldStrong::Global::UpdateShield(void)
+{
+byte *pbVar1;
+int *piVar2;
+short sVar3;
+UnitStateShort UVar4;
+short sVar5;
+short sVar6;
+int iVar7;
+BOOLEnum BVar8;
+uint uVar9;
+uint uVar10;
+int iVar11;
+short *psVar12;
+UnitsState *this;
+UnitsState *this_00;
+uint uVar13;
+uint uVar14;
+uint unitID;
+int extraout_EDX;
+int *piVar15;
+int iVar16;
+int *local_50;
+int local_4c;
+uint local_48 [18];
+uVar10 = DAT_CurrentUnitSlotID;
+sVar3 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].tribeID;
+iVar16 = (int)DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner;
+piVar15 = &DAT_GameState.playerDataArray[iVar16].armySize;
+*piVar15 = *piVar15 + 1;
+piVar15 = &DAT_GameState.playerDataArray[iVar16].currentSiegeWeaponCount;
+*piVar15 = *piVar15 + 1;
+DAT_UnitsState.units[uVar10].isSelectable_OR_matchTime = 1;
+DAT_UnitsState.units[uVar10].calculatedOwnerPlayerIndex = iVar16;
+UVar4 = DAT_UnitsState.units[uVar10].state.generic;
+local_4c = 0;
+if (UVar4 == US_DETERMINE_NEXT_STATEUnk) {
+DAT_UnitsState.units[uVar10].substate = -1;
+DAT_UnitsState.units[uVar10].stateBasedSpeed = 0;
+DAT_UnitsState.units[uVar10].gfxNumber =
+DAT_UnitsState.units[uVar10].facingDirectionMapOrientationCorrected + 9;
+DAT_UnitsState.units[uVar10].state.generic =
+-(ushort)(DAT_UnitsState.units[uVar10].
+digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300 != 1) &
+US_FIRE_WEAPONUnk;
+return;
+}
+if (UVar4 == US_FIRE_WEAPONUnk) {
+DAT_UnitsState.units[uVar10].field42_0x58 = 0;
+DAT_UnitsState.units[uVar10].field_0x30_animRelated = 0;
+DAT_UnitsState.units[uVar10].gfxNumber =
+DAT_UnitsState.units[uVar10].facingDirectionMapOrientationCorrected + 1;
+DAT_UnitsState.units[uVar10].animationCycleNumber = 0;
+if ((DAT_GameSynchronyState.currentPlayerFullIDArray[DAT_UnitsState.units[uVar10].owner] == -1)
+&& (DAT_UnitsState.units[uVar10].
+digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300 == 1)) {
+local_50 = &DAT_UnitsState.units[uVar10].manningEngineerUIDRef;
+iVar16 = 0;
+psVar12 = DAT_UnitsState.units[uVar10].manningEngineerRef;
+do {
+iVar7 = (int)*psVar12;
+if (((*local_50 != DAT_UnitsState.units[iVar7].uid) ||
+(BVar8 = Map::Units::UnitsState::hasUnitReachedDestination(&DAT_UnitsState,iVar7),
+BVar8 == FALSE)) ||
+(uVar9 = (((int)DAT_UnitsState.units[iVar7].buildingHeight -
+(int)DAT_UnitsState.units[uVar10].buildingHeight) -
+(int)DAT_UnitsState.units[uVar10].terrainOrClimbHeight) +
+(int)DAT_UnitsState.units[iVar7].terrainOrClimbHeight,
+uVar13 = (int)uVar9 >> 0x1f, 0x10 < (int)((uVar9 ^ uVar13) - uVar13))) break;
+sVar3 = DAT_UnitsState.units[iVar7].microXPosition;
+sVar5 = DAT_UnitsState.units[uVar10].microXPosition;
+if (sVar5 < sVar3) {
+iVar11 = (int)sVar3 - (int)sVar5;
+}
+else {
+iVar11 = (int)sVar5 - (int)sVar3;
+}
+sVar3 = DAT_UnitsState.units[iVar7].microYPosition;
+sVar5 = DAT_UnitsState.units[uVar10].microYPosition;
+if (sVar5 < sVar3) {
+iVar7 = (int)sVar3 - (int)sVar5;
+}
+else {
+iVar7 = (int)sVar5 - (int)sVar3;
+}
+if (iVar7 < iVar11) {
+iVar7 = iVar11;
+}
+if (iVar7 < 0x1e) {
+local_4c = local_4c + 1;
+}
+local_50 = local_50 + 1;
+iVar16 = iVar16 + 1;
+psVar12 = psVar12 + 1;
+} while (iVar16 < 1);
+if (local_4c == 1) {
+sVar3 = DAT_UnitsState.units[DAT_CurrentUnitSlotID].manningEngineerRef[0];
+DAT_UnitsState.units[sVar3].animationCycleNumber = 0;
+DAT_UnitsState.units[sVar3].state.generic = US_JESTER_ROAM_TO;
+DAT_UnitsState.units[sVar3].disappearFadeAlphaCountdown = 0;
+DAT_UnitsState.units[sVar3].engineerManningSiegeStateRef_checkType = 2;
+DAT_UnitsState.units[sVar3].cachedState = US_AIM_WEAPONUnk;
+DAT_UnitsState.units[sVar3].updateTickTracker = 0;
+DAT_UnitsState.units[uVar10].state.generic = US_DETERMINE_NEXT_STATEUnk;
+}
+}
+if ((((DAT_UnitsState.units[uVar10].fixedRng ^ DAT_GameState.mapAndTime.totalGameTicksUnk ^
+0xfffffff8) & 0xf) == 0) &&
+(DAT_UnitsState.units[uVar10].state.generic == US_FIRE_WEAPONUnk)) {
+local_48[0] = 0;
+local_48[1] = 0;
+local_48[2] = 0;
+local_48[3] = 0;
+local_48[4] = 0;
+local_48[5] = 0;
+local_48[6] = 0;
+local_48[7] = 0;
+local_48[8] = 0;
+uVar9 = 1;
+if (1 < (int)DAT_UnitsState.maxUnitCount) {
+psVar12 = &DAT_UnitsState.units[1].dying;
+do {
+if (((psVar12[-0x10a] == ULS_NORMAL) && (*psVar12 == 0)) &&
+((psVar12[-0x109] == UT_E_ENGINEER &&
+(((psVar12[0x7e] == UIT_MAN_SIEGE_EQUIPMENT &&
+((int)psVar12[0x7f] == DAT_CurrentUnitSlotID)) &&
+(uVar13 = (((int)psVar12[-0xf3] - (int)DAT_UnitsState.units[uVar10].buildingHeight) -
+(int)DAT_UnitsState.units[uVar10].terrainOrClimbHeight) +
+(int)psVar12[-0xf2], uVar14 = (int)uVar13 >> 0x1f,
+(int)((uVar13 ^ uVar14) - uVar14) < 0x11)))))) {
+sVar3 = psVar12[-0xf5];
+sVar5 = DAT_UnitsState.units[uVar10].microXPosition;
+sVar6 = sVar3;
+if (sVar5 < sVar3) {
+sVar6 = sVar5;
+sVar5 = sVar3;
+}
+sVar3 = DAT_UnitsState.units[uVar10].microYPosition;
+iVar16 = (int)psVar12[-0xf4];
+if (sVar3 < psVar12[-0xf4]) {
+iVar7 = iVar16;
+iVar16 = (int)sVar3;
+}
+else {
+iVar7 = (int)sVar3;
+}
+iVar11 = iVar7 - iVar16;
+if (iVar7 - iVar16 < (int)sVar5 - (int)sVar6) {
+iVar11 = (int)sVar5 - (int)sVar6;
+}
+if (iVar11 < 0x1e) {
+iVar16 = (int)psVar12[-0x105];
+uVar13 = local_48[iVar16];
+if ((int)uVar13 < 1) {
+local_48[iVar16 + uVar13 + 9] = uVar9;
+local_48[iVar16] = uVar13 + 1;
+}
+}
+}
+uVar9 = uVar9 + 1;
+psVar12 = psVar12 + 0x248;
+} while ((int)uVar9 < (int)DAT_UnitsState.maxUnitCount);
+}
+iVar16 = (int)DAT_UnitsState.units[uVar10].owner;
+if (local_48[iVar16] != 1) {
+iVar16 = 1;
+while (local_48[iVar16] != 1) {
+iVar16 = iVar16 + 1;
+if (8 < iVar16) {
+return;
+}
+}
+Map::Units::UnitsState::deselectUnit(DAT_CurrentUnitSlotID);
+Map::Units::UnitsState::clearOrDeselectUnitFromSelection
+(this,(int)DAT_UnitsState.units[uVar10].owner,unitID,0);
+uVar10 = DAT_CurrentUnitSlotID;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].owner = (short)iVar16;
+if (DAT_UnitsState.units[uVar10].calculatedOwnerPlayerIndex != 0) {
+DAT_UnitsState.units[uVar10].calculatedOwnerPlayerIndex = iVar16;
+}
+if (DAT_UnitsState.units[uVar10].displayColorPlayerID != 0) {
+DAT_UnitsState.units[uVar10].displayColorPlayerID = (short)iVar16;
+}
+uVar10 = Map::Units::TribesState::createTribe
+(&DAT_TribesState,(int)DAT_UnitsState.units[uVar9].owner,0);
+Map::Units::TribesState::addUnitToTribe(&DAT_TribesState,uVar10,DAT_CurrentUnitSlotID);
+}
+uVar9 = DAT_CurrentUnitSlotID;
+uVar10 = local_48[iVar16 + 9];
+DAT_UnitsState.units[uVar10].animationCycleNumber = 0;
+DAT_UnitsState.units[uVar10].state.generic = US_JESTER_ROAM_TO;
+DAT_UnitsState.units[uVar10].disappearFadeAlphaCountdown = 0;
+DAT_UnitsState.units[uVar10].engineerManningSiegeStateRef_checkType = 2;
+DAT_UnitsState.units[uVar10].cachedState = US_AIM_WEAPONUnk;
+DAT_UnitsState.units[uVar10].updateTickTracker = 0;
+DAT_UnitsState.units[uVar10].targetingType = UIT_NO_INSTRUCTION_OR_MOVEUnk;
+DAT_UnitsState.units[uVar9].manningEngineerRef[0] = (short)uVar10;
+DAT_UnitsState.units[uVar9].manningEngineerUIDRef = DAT_UnitsState.units[uVar10].uid;
+Map::Units::UnitsState::deselectUnit(uVar10);
+Map::Units::UnitsState::clearOrDeselectUnitFromSelection
+(this_00,(int)*(short *)(DAT_UnitsState.units[0].pathPlanStart +
+extraout_EDX + -0x68),uVar10,0);
+uVar10 = DAT_CurrentUnitSlotID;
+DAT_UnitsState.units[DAT_CurrentUnitSlotID].state.generic = US_DETERMINE_NEXT_STATEUnk;
+DAT_UnitsState.units[uVar10].
+digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300 = 1;
+return;
+}
+}
+else if ((UVar4 == US_MOVE_TO_DESTINATION) || (UVar4 == US_IDLEUnk)) {
+DAT_UnitsState.units[uVar10].field_0x30_animRelated = 0x10;
+DAT_UnitsState.units[uVar10].animationSheetFrameOffset = 9;
+sVar5 = DAT_UnitsState.units[uVar10].moveInstructionSpeedDelayTracker;
+if (sVar5 == 0) {
+DAT_UnitsState.units[uVar10].animationSheetFrameOffset = 9;
+DAT_UnitsState.units[uVar10].stateBasedSpeed = 1;
+}
+else if (sVar5 < 0x47) {
+DAT_UnitsState.units[uVar10].stateBasedSpeed = 0;
+}
+else {
+DAT_UnitsState.units[uVar10].stateBasedSpeed = -1;
+DAT_UnitsState.units[uVar10].field_0x30_animRelated = 0;
+}
+BVar8 = Map::Units::UnitsState::hasUnitReachedDestination(&DAT_UnitsState,DAT_CurrentUnitSlotID)
+;
+if (BVar8 != FALSE) {
+DAT_UnitsState.units[uVar10].stateBasedSpeed = 0;
+DAT_UnitsState.units[uVar10].animationCycleNumber = 0;
+DAT_UnitsState.units[uVar10].state.generic = US_DETERMINE_NEXT_STATEUnk;
+DAT_UnitsState.units[uVar10].field265_0x3bc = 0;
+if (DAT_GameSynchronyState.currentPlayerFullIDArray[DAT_UnitsState.units[uVar10].owner] == -1)
+{
+DAT_UnitsState.units[uVar10].facingDirection = DAT_TribesState.tribes[sVar3].orientation;
+}
+}
+}
+else {
+if (UVar4 == 0x6c) {
+DAT_UnitsState.units[uVar10].stateBasedSpeed = 0;
+DAT_UnitsState.units[uVar10].field_0x30_animRelated = 0;
+DAT_UnitsState.units[uVar10].animationSheetFrameOffset = 1;
+return;
+}
+if (((UVar4 == US_DEATH_01) || (UVar4 == US_DEATH_03)) || (UVar4 == US_STONE_DEATH_01)) {
+DAT_UnitsState.units[uVar10].animationSpeed = 10000;
+DAT_UnitsState.units[uVar10].field_0x30_animRelated = 0;
+DAT_UnitsState.units[uVar10].gfxNumber = 0x89;
+if ((DAT_UnitsState.units[uVar10].animationCycleNumberHasJustIncremented != FALSE) &&
+(DAT_UnitsState.units[uVar10].animationCycleNumber == 1)) {
+Audio::SFX::SFXState::playSFXAtLocation
+(&DAT_SFXState,(int)DAT_UnitsState.units[uVar10].x,
+(int)DAT_UnitsState.units[uVar10].y,FX_DEATH_SHIELD);
+uVar10 = DAT_CurrentUnitSlotID;
+}
+if (((DAT_UnitsState.units[uVar10].animationCycleNumber == 0) &&
+(DAT_UnitsState.units[uVar10].killedFlagUnk == 0)) &&
+(iVar7 = 0,
+0 < DAT_UnitsState.units[uVar10].
+digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300)) {
+piVar15 = &DAT_UnitsState.units[uVar10].manningEngineerUIDRef;
+psVar12 = DAT_UnitsState.units[uVar10].manningEngineerRef;
+do {
+if (DAT_UnitsState.units[*psVar12].uid == *piVar15) {
+DAT_UnitsState.units[*psVar12].logicalState = ULS_REMOVE;
+if (iVar16 == DAT_GameSynchronyState.currentPlayerSlotID) {
+piVar2 = DAT_GameState.mapAndTime.emenyHitArray +
+DAT_UnitsState.units[uVar10].lastEncounteredEnemyPlayerID + -9;
+*piVar2 = *piVar2 + 1;
+}
+else if (DAT_UnitsState.units[uVar10].lastEncounteredEnemyPlayerID ==
+DAT_GameSynchronyState.currentPlayerSlotID) {
+piVar2 = DAT_GameState.mapAndTime.emenyHitArray + iVar16;
+*piVar2 = *piVar2 + 1;
+}
+}
+iVar7 = iVar7 + 1;
+psVar12 = psVar12 + 1;
+piVar15 = piVar15 + 1;
+} while (iVar7 < DAT_UnitsState.units[uVar10].
+digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300);
+}
+piVar15 = &DAT_UnitsState.units[uVar10].animationCycleNumber;
+*piVar15 = *piVar15 + 1;
+if (200 < DAT_UnitsState.units[uVar10].animationCycleNumber) {
+DAT_UnitsState.units[uVar10].logicalState = ULS_REMOVE;
+return;
+}
+}
+else if ((UVar4 == US_DISAPPEAR) || (UVar4 == US_JESTER_ROAM_TO)) {
+pbVar1 = &DAT_UnitsState.units[uVar10].disappearFadeAlphaCountdown;
+*pbVar1 = *pbVar1 + 1;
+if (' ' < (char)DAT_UnitsState.units[uVar10].disappearFadeAlphaCountdown) {
+DAT_UnitsState.units[uVar10].disappearFadeAlphaCountdown = 0x20;
+}
+psVar12 = &DAT_UnitsState.units[uVar10].updateTickTracker;
+*psVar12 = *psVar12 + 1;
+if ((0x20 < DAT_UnitsState.units[uVar10].updateTickTracker) &&
+(DAT_UnitsState.units[uVar10].logicalState = ULS_REMOVE,
+DAT_UnitsState.units[uVar10].killedFlagUnk == 0)) {
+if (DAT_UnitsState.units[uVar10].
+digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300 == 1) {
+Game::GameStateStructures::processUnitLossStatistic
+(&DAT_GameState,iVar16,DAT_CurrentUnitSlotID);
+uVar10 = DAT_CurrentUnitSlotID;
+}
+if (iVar16 == DAT_GameSynchronyState.currentPlayerSlotID) {
+piVar15 = DAT_GameState.mapAndTime.emenyHitArray +
+DAT_UnitsState.units[uVar10].lastEncounteredEnemyPlayerID + -9;
+*piVar15 = *piVar15 + 1;
+return;
+}
+if (DAT_UnitsState.units[uVar10].lastEncounteredEnemyPlayerID ==
+DAT_GameSynchronyState.currentPlayerSlotID) {
+piVar15 = DAT_GameState.mapAndTime.emenyHitArray + iVar16;
+*piVar15 = *piVar15 + 1;
+return;
+}
+}
+}
+}
+return;
+}
+--- NAMEN NUR IM PAKETCODE ---
+_pUnits1, _pUnits2, _pUnits3, field248_0x3bc, field39_0x58, iVar12, pbVar2, piVar1, psVar15, targetedUnitID__OR__engineerMannedSiegeEngineRef, uVar11, unitType
+--- KOMMENTARE IM PAKETCODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x0053C300
+--- ERKLAERUNG ---
+{"adr": "0x0053c300", "name": "UpdateShield", "p1": {"bereich": "Einheiten", "zweck": "Taktet pro Spielschritt ein Schild (UT_S_SHIELD, Belagerungsgerät): zählt es für den Besitzer mit, sucht und verbucht einen bemannenden Ingenieur, steuert Bewegungs- und Todeszustände und räumt es am Ende ab."}, "p2": {"ein": "- (die Einheit kommt aus DAT_CurrentUnitSlotID)", "aus": "-", "liest": ["units[cur].tribeID, owner, state.generic, digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300 (Zähler, im Code nur als 1, != 1 und > 0 geprüft), manningEngineerRef[0], manningEngineerUIDRef[0], fixedRng, facingDirectionMapOrientationCorrected", "units[cur].microXPosition, microYPosition, buildingHeight, terrainOrClimbHeight, moveInstructionSpeedDelayTracker, animationCycleNumber, animationCycleNumberHasJustIncremented, killedFlagUnk, lastEncounteredEnemyPlayerID, disappearFadeAlphaCountdown, updateTickTracker, calculatedOwnerPlayerIndex, displayColorPlayerID, x, y", "alle Einheitenplätze 1 bis maxUnitCount-1: logicalState, dying, unitType, targetingType, targetedUnitID__OR__engineerMannedSiegeEngineRef, owner, microXPosition, microYPosition, buildingHeight, terrainOrClimbHeight", "Ingenieur manningEngineerRef[0]: uid, Höhen, Mikroposition", "DAT_GameSynchronyState.currentPlayerFullIDArray[owner], currentPlayerSlotID", "DAT_GameState.mapAndTime.totalGameTicksUnk", "DAT_TribesState.tribes[tribeID].orientation"], "schreibt": ["playerDataArray[owner].armySize und currentSiegeWeaponCount (je +1 bei jedem Aufruf)", "units[cur]: isSelectable_OR_matchTime = 1, calculatedOwnerPlayerIndex, state.generic, substate, stateBasedSpeed, gfxNumber, field42_0x58, field_0x30_animRelated, animationCycleNumber, animationSheetFrameOffset, animationSpeed, facingDirection, field265_0x3bc, disappearFadeAlphaCountdown, updateTickTracker, logicalState (ULS_REMOVE)", "units[cur]: owner, displayColorPlayerID, digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300 (= 1), manningEngineerRef[0], manningEngineerUIDRef[0] (bei Übernahme)", "Ingenieur-Einheit: animationCycleNumber, state.generic (0x6d), disappearFadeAlphaCountdown, engineerManningSiegeStateRef_checkType (2), cachedState (5), updateTickTracker, targetingType (3), logicalState (ULS_REMOVE beim Tod des Schilds)", "mapAndTime.emenyHitArray (Zähler)", "TribesState (neuer Trupp beim Besitzerwechsel)"], "ruft": ["hasUnitReachedDestination", "deselectUnit", "clearOrDeselectUnitFromSelection", "createTribe", "addUnitToTribe", "playSFXAtLocation (FX_DEATH_SHIELD, 0xab)", "processUnitLossStatistic"], "regeln": ["Bei jedem Aufruf, vor allen Zuständen: playerDataArray[owner].armySize += 1 und currentSiegeWeaponCount += 1 (es gibt keine Grenze im Code); isSelectable_OR_matchTime = 1; calculatedOwnerPlayerIndex = owner. Danach nach state.generic: 0; 6 (US_FIRE_WEAPONUnk); 0x65 oder 1; 0x6c; 0x6f, 0x71, 0x72; 0x6e oder 0x6d; jeder andere Zustand tut nichts weiter.", "Zustand 0 (US_DETERMINE_NEXT_STATEUnk): substate = -1, stateBasedSpeed = 0, gfxNumber = facingDirectionMapOrientationCorrected + 9. state.generic wird 6, wenn der Zähler (digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300) != 1 ist, sonst 0. Mit Bemannung (Zähler 1) bleibt das Schild also in Zustand 0 und wiederholt das jeden Aufruf; ohne Bemannung geht es in Zustand 6.", "Zustand 6, jeder Aufruf zuerst: field42_0x58 = 0, field_0x30_animRelated = 0, gfxNumber = facingDirectionMapOrientationCorrected + 1, animationCycleNumber = 0.", "Zustand 6, Prüfung des vorhandenen Ingenieurs, nur wenn DAT_GameSynchronyState.currentPlayerFullIDArray[owner] == -1 und der Zähler == 1 ist: geprüft wird nur manningEngineerRef[0] (die Schleife läuft einmal). Der Ingenieur zählt, wenn seine uid mit manningEngineerUIDRef[0] übereinstimmt, hasUnitReachedDestination(Ingenieur) wahr ist, |(buildingHeight + terrainOrClimbHeight des Ingenieurs) - (dasselbe des Schilds)| <= 16 ist und die größere der beiden Mikro-Achsendifferenzen < 30 ist. Zählt er genau einmal: Ingenieur animationCycleNumber = 0, state.generic = 0x6d (US_JESTER_ROAM_TO), disappearFadeAlphaCountdown = 0, engineerManningSiegeStateRef_checkType = 2, cachedState = 5 (US_AIM_WEAPONUnk), updateTickTracker = 0 (der Ingenieur wird also ausgeblendet, nicht freigegeben); Schild state.generic = 0. Sonst ändert sich nichts.", "Zustand 6, Suche nach einem Ingenieur nur, wenn ((fixedRng XOR totalGameTicksUnk XOR 0xfffffff8) & 0xf) == 0 ist, also (fixedRng XOR totalGameTicksUnk) & 0xf == 8 (nicht 7), das heißt einmal in 16 Spielschritten, je Schild versetzt, und das Schild noch in Zustand 6 ist.", "Suchschleife über die Einheitenplätze 1 bis maxUnitCount-1: ein Platz passt, wenn logicalState == ULS_NORMAL (2), dying == 0, unitType == UT_E_ENGINEER (30), targetingType == UIT_MAN_SIEGE_EQUIPMENT (16), targetedUnitID__OR__engineerMannedSiegeEngineRef == dieses Schild, |(terrainOrClimbHeight + buildingHeight des Ingenieurs) - (dasselbe des Schilds)| <= 16 (im Code < 0x11) und die größere der beiden Mikro-Achsendifferenzen < 30 (0x1e) ist. Je Besitzer (0 bis 8) wird nur der erste passende Ingenieur in Platzreihenfolge gemerkt (mindestens einer genügt; mehr werden nicht gezählt).", "Entscheidung: Hat der Besitzer des Schilds einen passenden Ingenieur, übernimmt dieser. Sonst erhält der erste Spieler 1 bis 8 (aufsteigend) mit passendem Ingenieur das Schild, ohne Team- oder Feindprüfung; gibt es keinen, endet der Aufruf ohne Änderung. Besitzerwechsel: deselectUnit(Schild), clearOrDeselectUnitFromSelection(alter Besitzer, Schild, 0), owner = neuer Spieler, calculatedOwnerPlayerIndex und displayColorPlayerID nur dann auch auf den neuen Spieler, wenn sie vorher != 0 waren, dann createTribe und addUnitToTribe(neuer Trupp, Schild).", "Bemannung (beim Besitzer wie beim Wechsel): Ingenieur animationCycleNumber = 0, state.generic = 0x6d, disappearFadeAlphaCountdown = 0, engineerManningSiegeStateRef_checkType = 2, cachedState = 5, updateTickTracker = 0, targetingType = 3 (UIT_NO_INSTRUCTION_OR_MOVEUnk); Schild manningEngineerRef[0] = Ingenieur, manningEngineerUIDRef[0] = dessen uid; deselectUnit(Ingenieur) und clearOrDeselectUnitFromSelection(Besitzer des Ingenieurs, Ingenieur, 0); Schild state.generic = 0 und Zähler = 1.", "Bewegung, Zustände 0x65 (US_MOVE_TO_DESTINATION) und 1: field_0x30_animRelated = 0x10, animationSheetFrameOffset = 9; moveInstructionSpeedDelayTracker (vorzeichenbehaftet) 0 → stateBasedSpeed 1; 1 bis 70 und alle negativen Werte → 0; ab 71 (0x47) → -1 und field_0x30_animRelated = 0. Ist hasUnitReachedDestination wahr: stateBasedSpeed = 0, animationCycleNumber = 0, state.generic = 0, field265_0x3bc = 0 und, nur wenn currentPlayerFullIDArray[owner] == -1, facingDirection = tribes[tribeID].orientation. Der Zweig prüft keinen Ingenieur.", "Zustand 0x6c (ohne Namen): stateBasedSpeed = 0, field_0x30_animRelated = 0, animationSheetFrameOffset = 1, sonst nichts.", "Tod, Zustände 0x6f, 0x71, 0x72 (US_DEATH_01, US_DEATH_03, US_STONE_DEATH_01): animationSpeed = 10000, field_0x30_animRelated = 0, gfxNumber = 0x89. Ton FX_DEATH_SHIELD nur, wenn animationCycleNumberHasJustIncremented != 0 und animationCycleNumber == 1. Nur wenn animationCycleNumber == 0, killedFlagUnk == 0 und der Zähler > 0 ist, wird jeder Ingenieur manningEngineerRef[i] (i < Zähler), dessen uid mit manningEngineerUIDRef[i] übereinstimmt, auf logicalState = ULS_REMOVE gesetzt.", "Tod, Statistik je entfernten Ingenieur: ist owner == currentPlayerSlotID, emenyHitArray[lastEncounteredEnemyPlayerID - 9] += 1; sonst, wenn lastEncounteredEnemyPlayerID == currentPlayerSlotID, emenyHitArray[owner] += 1. Danach in jedem Aufruf animationCycleNumber += 1; ab Wert 201 (> 200) logicalState = ULS_REMOVE.", "Zustände 0x6e (US_DISAPPEAR) und 0x6d (US_JESTER_ROAM_TO) des Schilds: disappearFadeAlphaCountdown += 1 (höchstens 0x20), updateTickTracker += 1; ab updateTickTracker > 0x20 (bei Start 0 also im 33. Aufruf) logicalState = ULS_REMOVE. Ist dann killedFlagUnk == 0: bei Zähler == 1 processUnitLossStatistic(owner, Schild), danach dieselben emenyHitArray-Zähler wie beim Tod."], "offen": ["Bedeutung von currentPlayerFullIDArray[owner] == -1 (vermutlich ein Spieler ohne Netzwerkkennung, etwa KI oder lokal); 'lokal gesteuert' ist nur Deutung. Der Zustand 0x6c, field42_0x58 und field265_0x3bc sind ungeklärt.", "createTribe bekommt im Maschinencode den Besitzer von units[EBP], wobei EBP der Schleifenzähler der Ingenieursuche ist (nach der Schleife = maxUnitCount, also ein Platz hinter der durchsuchten Liste), nicht den neuen Besitzer. Das ist kein Dekompilierfehler; welcher Besitzer dort steht, ist ungeprüft.", "Der Zähler digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300 wird im Code nur auf 1 gesetzt und als 1, != 1 und > 0 gelesen; ob er sonst größere Werte annimmt, ist nicht sichtbar. Die Schleifen zur Ingenieur-Prüfung laufen nur über Platz 0.", "Bedeutung der beiden Hälften von emenyHitArray (Index -9 bis -1 und 0 bis 8; vermutlich Treffer- oder Verlust-Zähler je Gegner) ist ungeprüft."]}, "p3": {"erklaerung": "Das Schild (Belagerungsgerät) wird von einem Ingenieur bemannt: Ohne Besatzung sucht es alle 16 Spielschritte einen Ingenieur in der Nähe, der den Bemannungsbefehl auf dieses Schild hat. Der Ingenieur verschwindet im Schild, danach kann es gehen. Hat nur ein anderer Spieler einen solchen Ingenieur, wechselt das Schild den Besitzer.", "gehirn": "Schilde zählen in armySize und currentSiegeWeaponCount des Besitzers mit. Diese Funktion bemannt das Schild, sobald ein Ingenieur den Befehl UIT_MAN_SIEGE_EQUIPMENT (16) mit dem Schild als Ziel hat, höchstens 16 Höhenunterschied und unter 30 Mikropunkten Abstand (größere Achse) zum Schild; geprüft wird nur alle 16 Spielschritte. Hat der Besitzer keinen solchen Ingenieur, geht das Schild an den niedrigsten Spieler 1 bis 8 mit passendem Ingenieur (kein Feind- oder Teamtest im Code). Wie der Befehl vergeben wird, steht nicht in dieser Funktion.", "beleg": "code", "live": "Ingenieur mit dem Befehl 'bemannen' (16) zu einem unbesetzten Schild schicken → units[schild].state.generic und units[schild].digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300 lesen → Zähler 0 → 1 und state 6 → 0 spätestens 16 Spielschritte nach Ankunft des Ingenieurs (unter 30 Mikropunkte), Ingenieur danach state 0x6d", "live_art": "kampf"}}
+
+### 0x004ca0c0 setAICParameters_14
+--- CODE (Ghidra-Export, vollstaendig) ---
+/* decompilerscript: committed: 2025-01-30 21:57:43.216000 */
+void __thiscall _HoldStrong::AI::AICState::setAICParameters_14(AICState *this,int param_1)
+{
+DAT_AICState.aics[param_1].minimumBread = -1;
+DAT_AICState.aics[param_1].minimumWheat = -1;
+DAT_AICState.aics[param_1].minimumHop = 2;
+DAT_AICState.aics[param_1].tradeAmountEquipment = 2;
+DAT_AICState.aics[param_1].defWallPatrolGroups = 2;
+DAT_AICState.aics[param_1].unknown004 = 1;
+DAT_AICState.aics[param_1].unknown005 = 1;
+DAT_AICState.aics[param_1].aiRequestDelay = 0x28;
+DAT_AICState.aics[param_1].minimumGoodsRequiredAfterTrade = 0x28;
+DAT_AICState.aics[param_1].doubleRationsFoodThreshold = 0x28;
+DAT_AICState.aics[param_1].defSiegeEngineGoldThreshold = 200;
+DAT_AICState.aics[param_1].unknown072 = 200;
+DAT_AICState.aics[param_1].flagType = 0xd;
+DAT_AICState.aics[param_1].unknown002 = 0;
+DAT_AICState.aics[param_1].unknown001 = 0;
+DAT_AICState.aics[param_1].unknown003 = 0;
+DAT_AICState.aics[param_1].criticalPopularity = 4000;
+DAT_AICState.aics[param_1].lowestPopularity = 6000;
+DAT_AICState.aics[param_1].highestPopularity = 9000;
+DAT_AICState.aics[param_1].taxesMin = 3;
+DAT_AICState.aics[param_1].taxesMax = 0xb;
+DAT_AICState.aics[param_1].farm1 = 0x20;
+DAT_AICState.aics[param_1].farm2 = 0x1f;
+DAT_AICState.aics[param_1].farm3 = 0x21;
+DAT_AICState.aics[param_1].populationPerFarm = 4;
+DAT_AICState.aics[param_1].unknown011 = 10;
+DAT_AICState.aics[param_1].maxFood = 300;
+DAT_AICState.aics[param_1].minimumApples = 0x14;
+DAT_AICState.aics[param_1].minimumCheese = 0x14;
+DAT_AICState.aics[param_1].tradeAmountFood = 10;
+DAT_AICState.aics[param_1].maxWood = 0x32;
+DAT_AICState.aics[param_1].maxStone = 0x32;
+DAT_AICState.aics[param_1].maxResourceOther = 10;
+DAT_AICState.aics[param_1].maxEquipment = 10;
+DAT_AICState.aics[param_1].maxBeer = 10;
+DAT_AICState.aics[param_1].maxResourceVariance = 5;
+DAT_AICState.aics[param_1].recruitGoldThreshold = 200;
+DAT_AICState.aics[param_1].populationPerWoodcutter = 7;
+DAT_AICState.aics[param_1].populationPerQuarry = 10;
+DAT_AICState.aics[param_1].populationPerIronmine = 0xc;
+DAT_AICState.aics[param_1].populationPerPitchrig = 0xf;
+DAT_AICState.aics[param_1].maxQuarries = 3;
+DAT_AICState.aics[param_1].maxIronmines = 6;
+DAT_AICState.aics[param_1].maxWoodcutters = 10;
+DAT_AICState.aics[param_1].maxPitchrigs = 4;
+DAT_AICState.aics[param_1].maxFarms = 10;
+DAT_AICState.aics[param_1].buildInterval = 3;
+DAT_AICState.aics[param_1].resourceRebuildDelay = 8;
+DAT_AICState.aics[param_1].blacksmithSetting = 0x15;
+DAT_AICState.aics[param_1].fletcherSetting = 0x12;
+DAT_AICState.aics[param_1].poleturnerSetting = 0x14;
+DAT_AICState.aics[param_1].sellResource05 = 9;
+DAT_AICState.aics[param_1].sellResource07 = 0x10;
+DAT_AICState.aics[param_1].sellResource08 = 0x11;
+DAT_AICState.aics[param_1].sellResource10 = 0x13;
+DAT_AICState.aics[param_1].sellResource11 = 0x14;
+DAT_AICState.aics[param_1].sellResource13 = 0x16;
+DAT_AICState.aics[param_1].sellResource15 = 0x18;
+DAT_AICState.aics[param_1].defWallPatrolRallyTime = 8;
+DAT_AICState.aics[param_1].defSiegeEngineBuildDelay = 4;
+DAT_AICState.aics[param_1].unknown073 = 0x1e;
+DAT_AICState.aics[param_1].recruitProbDefWeak = 100;
+DAT_AICState.aics[param_1].recruitProbDefDefault = 0x32;
+DAT_AICState.aics[param_1].recruitProbDefStrong = 0x1e;
+DAT_AICState.aics[param_1].recruitProbRaidDefault = 0x1e;
+DAT_AICState.aics[param_1].RecruitInterval = 4;
+DAT_AICState.aics[param_1].RecruitIntervalStrong = 4;
+DAT_AICState.aics[param_1].DefDiggingUnitMax = 4;
+DAT_AICState.aics[param_1].RaidUnitsRandom = 4;
+DAT_AICState.aics[param_1].RaidRetargetDelay = 4;
+DAT_AICState.aics[param_1].recruitProbAttackDefault = 0x14;
+DAT_AICState.aics[param_1].recruitProbAttackStrong = 0x14;
+DAT_AICState.aics[param_1].recruitProbRaidStrong = 0x32;
+DAT_AICState.aics[param_1].SortieUnitRangedMin = 10;
+DAT_AICState.aics[param_1].SortieUnitMeleeMin = 10;
+DAT_AICState.aics[param_1].DefTotal = 0x32;
+DAT_AICState.aics[param_1].RaidUnitsBase = 10;
+DAT_AICState.aics[param_1].recruitProbRaidWeak = 0;
+DAT_AICState.aics[param_1].recruitProbAttackWeak = 0;
+DAT_AICState.aics[param_1].RecruitIntervalWeak = 1;
+DAT_AICState.aics[param_1].SortieUnitRanged = 0x17;
+DAT_AICState.aics[param_1].DefWalls = 0x28;
+DAT_AICState.aics[param_1].OuterPatrolGroupsCount = 1;
+DAT_AICState.aics[param_1].OuterPatrolGroupsMove = 1;
+DAT_AICState.aics[param_1].OuterPatrolRallyDelay = 5;
+DAT_AICState.aics[param_1].DefUnit1 = 0x17;
+DAT_AICState.aics[param_1].DefUnit2 = 0x17;
+DAT_AICState.aics[param_1].DefUnit3 = 0x17;
+DAT_AICState.aics[param_1].DefUnit4 = 0x4c;
+DAT_AICState.aics[param_1].DefUnit5 = 0x49;
+DAT_AICState.aics[param_1].HarassingSiegeEnginesMax = 5;
+DAT_AICState.aics[param_1].HarassingSiegeEngine1 = 0xbe;
+DAT_AICState.aics[param_1].HarassingSiegeEngine2 = 0x166;
+DAT_AICState.aics[param_1].SortieUnitMelee = 0x1a;
+DAT_AICState.aics[param_1].DefDiggingUnit = 0x1a;
+DAT_AICState.aics[param_1].RaidUnit1 = 0x1a;
+DAT_AICState.aics[param_1].AttForceBase = 0x32;
+DAT_AICState.aics[param_1].AttForceRandom = 0x14;
+DAT_AICState.aics[param_1].AttForceSupportAllyThreshold = 0x32;
+DAT_AICState.aics[param_1].AttForceRallyPercentage = 0x50;
+DAT_AICState.aics[param_1].AttMovingTribesThreshold = 100;
+DAT_AICState.aics[param_1].AttAssaultDelay = 5;
+DAT_AICState.aics[param_1].AttUnitPatrolRecommandDelay = 8;
+DAT_AICState.aics[param_1].AttCoordinationPreference = 0x32;
+DAT_AICState.aics[param_1].CowThrowInterval = 6;
+DAT_AICState.aics[param_1].SiegeEngine1 = 0x27;
+DAT_AICState.aics[param_1].SiegeEngine2 = 0x27;
+DAT_AICState.aics[param_1].SiegeEngine3 = 0x4d;
+DAT_AICState.aics[param_1].SiegeEngine4 = 0x4d;
+DAT_AICState.aics[param_1].SiegeEngine5 = 0x4d;
+DAT_AICState.aics[param_1].AttMaxEngineers = 10;
+DAT_AICState.aics[param_1].AttDiggingUnit = 0x47;
+DAT_AICState.aics[param_1].AttDiggingUnitMax = 0x50;
+DAT_AICState.aics[param_1].AttMaxAssassins = 10;
+DAT_AICState.aics[param_1].AttUnit2 = 0x1a;
+DAT_AICState.aics[param_1].AttUnit2Max = 10;
+DAT_AICState.aics[param_1].AttMaxLaddermen = 0;
+DAT_AICState.aics[param_1].AttMaxTunnelers = 0;
+DAT_AICState.aics[param_1].AttUnitPatrol = 0x4c;
+DAT_AICState.aics[param_1].AttUnitPatrolMax = 0;
+DAT_AICState.aics[param_1].AttUnitPatrolGroupsCount = 0;
+DAT_AICState.aics[param_1].AttUnitBackup = 0x17;
+DAT_AICState.aics[param_1].AttUnitBackupMax = 0x32;
+DAT_AICState.aics[param_1].AttUnitBackupGroupsCount = 1;
+DAT_AICState.aics[param_1].AttUnitEngageMax = 0;
+DAT_AICState.aics[param_1].AttUnitEngage = 0;
+DAT_AICState.aics[param_1].AttUnitSiegeDef = 0x1a;
+DAT_AICState.aics[param_1].AttUnitSiegeDefMax = 6;
+DAT_AICState.aics[param_1].AttUnitSiegeDefGroupsCount = 1;
+DAT_AICState.aics[param_1].AttUnitMain1 = 0x1a;
+DAT_AICState.aics[param_1].AttUnitMain2 = 0x1a;
+DAT_AICState.aics[param_1].AttMaxDefault = 200;
+DAT_AICState.aics[param_1].AttMainGroupsCount = 3;
+DAT_AICState.aics[param_1].TargetChoice = AITC_CLOSEST;
+return;
+}
+--- NAMEN NUR IM PAKETCODE ---
+aicIndex
+--- KOMMENTARE IM PAKETCODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x004CA0C0
+--- ERKLAERUNG ---
+{"adr": "0x004ca0c0", "name": "setAICParameters_14", "p1": {"bereich": "KI", "zweck": "Setzt die festen Grundwerte des KI-Parametersatzes aics[14] (Satz Nr. 14, vermutlich der Satz von AIT_SHERIFF)."}, "p2": {"ein": "aicIndex (Platz im Feld aics, 20 Blöcke; setInitialAIC übergibt hier 14)", "aus": "nichts", "liest": [], "schreibt": ["aics[aicIndex]: 134 Felder der Struktur AICSpecification (vollständige Liste in regeln)"], "ruft": [], "regeln": ["Alle 134 Zuweisungen gehen unbedingt (ohne Verzweigung, ohne Prüfung von aicIndex) auf aics[aicIndex] (Struktur AICSpecification, 0x2a4 = 676 Byte; aics hat 20 Blöcke); es sind 134 verschiedene Felder, keines wird doppelt gesetzt. Einziger bekannter Aufrufer ist setInitialAIC (0x004d18b0) mit aicIndex 14, direkt nach wipeAICMemory (setzt alle 20 Blöcke auf 0)", "Kopfwerte (Felder unknown… ungesichert): flagType 13, unknown001 0, unknown002 0, unknown003 0, unknown004 1, unknown005 1, unknown011 10, unknown072 200, unknown073 30", "Beliebtheit und Steuern: criticalPopularity 4000, lowestPopularity 6000, highestPopularity 9000, taxesMin 3, taxesMax 11", "Farmen, Nahrung und Handel: farm1..3 = 32/31/33, populationPerFarm 4, maxFarms 10, maxFood 300, minimumApples 20, minimumCheese 20, minimumBread -1, minimumWheat -1, minimumHop 2, tradeAmountFood 10, tradeAmountEquipment 2, aiRequestDelay 40, minimumGoodsRequiredAfterTrade 40, doubleRationsFoodThreshold 40", "Lagergrenzen und Anwerbe-Gold: maxWood 50, maxStone 50, maxResourceOther 10, maxEquipment 10, maxBeer 10, maxResourceVariance 5, recruitGoldThreshold 200", "Bauten und Werkstätten: populationPerWoodcutter 7, populationPerQuarry 10, populationPerIronmine 12, populationPerPitchrig 15, maxQuarries 3, maxIronmines 6, maxWoodcutters 10, maxPitchrigs 4, buildInterval 3, resourceRebuildDelay 8, blacksmithSetting 21, fletcherSetting 18, poleturnerSetting 20", "Verkauf: sellResource05/07/08/10/11/13/15 = 9/16/17/19/20/22/24", "Anwerbung: recruitProbDefWeak/Default/Strong = 100/50/30, recruitProbRaidWeak/Default/Strong = 0/30/50, recruitProbAttackWeak/Default/Strong = 0/20/20, RecruitIntervalWeak/RecruitInterval/RecruitIntervalStrong = 1/4/4", "Verteidigung, Patrouillen und Ausfall: defWallPatrolRallyTime 8, defWallPatrolGroups 2, defSiegeEngineGoldThreshold 200, defSiegeEngineBuildDelay 4, DefWalls 40, DefTotal 50, DefDiggingUnitMax 4, DefDiggingUnit 26, OuterPatrolGroupsCount 1, OuterPatrolGroupsMove 1, OuterPatrolRallyDelay 5, DefUnit1..5 = 23/23/23/76/73, SortieUnitRangedMin 10, SortieUnitRanged 23, SortieUnitMeleeMin 10, SortieUnitMelee 26", "Raubzug und Belagerungs-Störer: RaidUnitsBase 10, RaidUnitsRandom 4, RaidUnit1 26, HarassingSiegeEnginesMax 5, HarassingSiegeEngine1..2 = 190/358, RaidRetargetDelay 4", "Angriffswelle: AttForceBase 50, AttForceRandom 20, AttForceSupportAllyThreshold 50, AttForceRallyPercentage 80, AttMovingTribesThreshold 100, AttAssaultDelay 5, AttUnitPatrolRecommandDelay 8, AttCoordinationPreference 50, CowThrowInterval 6", "Angriffseinheiten und Belagerung: SiegeEngine1..5 = 39/39/77/77/77, AttMaxEngineers 10, AttDiggingUnit 71, AttDiggingUnitMax 80, AttUnit2 26, AttUnit2Max 10, AttMaxAssassins 10, AttMaxLaddermen 0, AttMaxTunnelers 0, AttUnitPatrol 76, AttUnitPatrolMax 0, AttUnitPatrolGroupsCount 0, AttUnitBackup 23, AttUnitBackupMax 50, AttUnitBackupGroupsCount 1, AttUnitEngage 0, AttUnitEngageMax 0, AttUnitSiegeDef 26, AttUnitSiegeDefMax 6, AttUnitSiegeDefGroupsCount 1, AttUnitMain1..2 = 26/26, AttMaxDefault 200, AttMainGroupsCount 3, TargetChoice AITC_CLOSEST", "Nicht gesetzt (Wert bleibt, wie er ist; über setInitialAIC also 0): farm4..8, sellResource01/02/03/04/06/09/12/14, DefUnit6..8, RaidUnit2..8, HarassingSiegeEngine3..8, SiegeEngine6..8, Unknown142, AttUnitMain3..4"], "offen": ["Zuordnung zum KI-Herrn nur erschlossen: setInitialAIC ruft diese Funktion mit aicIndex 14 auf, renderDebugDataAiInfo, recruitHarrassingSiegeEngines und updateAIStrengthState lesen aics[aiType - 1], und der Ghidra-Enum AIType nennt den Wert 15 AIT_SHERIFF; der Satz gehört daher vermutlich zu AIT_SHERIFF.", "Weak/Default/Strong bei recruitProb… und RecruitInterval… gehören vermutlich zum Stärkegefühl aiStrengthFeeling (AIST_WEAK, AIST_DEFAULT, AIST_STRONG), das updateAIStrengthState (0x004d3320) aus Gold, Bevölkerung, Nahrung und Truppen bestimmt.", "Zahlenbedeutung nur über die Ghidra-Enums gelesen und im Code dieser Funktion nicht belegt (vermutlich): Einheitentypen (UnitType) in den …Unit-, Sortie-, Raid- und SiegeEngine-Feldern: 23 UT_E_XBOW, 26 UT_E_MACE, 39 UT_S_CATAPULT, 71 UT_A_SLAVE, 73 UT_A_ASSASSIN, 76 UT_A_FIRETHROWER, 77 UT_S_FBALLISTA; farmN = BuildingType der N-ten Farm: 31 BT_HOPFARM, 32 BT_APPLEFARM, 33 BT_DAIRYFARM; sellResourceNN sowie blacksmith-/fletcher-/poleturnerSetting = ResourceType: 9 RT_WHEAT, 16 RT_FLOUR, 17 RT_BOW, 18 RT_CROSSBOW, 19 RT_SPEAR, 20 RT_PIKE, 21 RT_MACE, 22 RT_SWORD, 24 RT_IRONARMOR; HarassingSiegeEngineN = MappersEnum (recruitHarrassingSiegeEngines gibt den Wert an placeBuilding): 190 M_MAPPER_CATAPULT, 358 M_MAPPER_ARAB_BALLISTA", "Nicht im Code stehen: Einheit und Skala der Zahlen (Beliebtheit, Takte, Verzögerungen, Wahrscheinlichkeiten), die Rolle von AttForceRandom, die Wirkung von TargetChoice und was 'Digging' in DefDiggingUnit und AttDiggingUnit meint (Tunnelgräber sind mit AttMaxTunnelers getrennt); die Felder unknown001..005, unknown011, unknown072 und unknown073 sind ungesichert.", "AttUnitPatrol 76 ist gesetzt, AttUnitPatrolMax und AttUnitPatrolGroupsCount sind 0; AttDiggingUnit 71 hat AttDiggingUnitMax 80 (71 ist Typ, 80 Höchstzahl).", "Ob UCP oder AIC-Dateien diesen Satz später ändern, zeigt dieser Code nicht."]}, "p3": {"erklaerung": "Setzt die festen Grundwerte des KI-Satzes aics[14]: großer Nahrungsvorrat (maxFood 300), aiRequestDelay 40, Wellenstärke AttForceBase 50 plus AttForceRandom 20, Maschinen SiegeEngine1..5 = 39/39/77/77/77 bei AttMaxEngineers 10, AttMaxAssassins 10, CowThrowInterval 6, Verteidigung DefWalls 40 und DefTotal 50, TargetChoice AITC_CLOSEST. AttMaxLaddermen und AttMaxTunnelers sind 0.", "gehirn": "Wellenziel = AttForceBase 50 plus currentWaveRandomAttackingStrength (Zuschlag vermutlich 0 bis AttForceRandom 20), mit fünf Maschinenplätzen (vermutlich zwei Katapulte und drei Feuerballisten), bis zu 10 Ingenieuren und AttMaxAssassins 10; keine Leiterträger und Tunnelgräber (AttMaxLaddermen 0, AttMaxTunnelers 0). Raubzug-Maschinen bis HarassingSiegeEnginesMax 5 (190, 358). CowThrowInterval 6 ist in den Sätzen 10 bis 16 der einzige Wert unter 10000; seine Wirkung steht nicht in diesem Code. Grundwerte; UCP oder AIC-Dateien können sie ändern.", "beleg": "nachgebaut", "live": "Spiel mit KI läuft → Speicher von aics[14] (DAT_AICState 0x023FC8E8 + 14 × 0x2A4 = 0x023FEDE0) lesen: +0x1F4 AttForceBase, +0x234 CowThrowInterval, +0x250 AttMaxAssassins → 50, 6, 10 (andere Werte = UCP oder eine AIC-Datei hat den Satz geändert)", "live_art": "tabelle"}}
+
+### 0x00423cd0 UpdateGateHouseSmall
+--- CODE (Ghidra-Export, vollstaendig) ---
+/* WARNING: Enum "MappersEnum": Some values do not have unique names */
+/* decompilerscript: committed: 2025-01-30 21:57:43.216000 */
+void _HoldStrong::Global::UpdateGateHouseSmall(void)
+{
+byte bVar1;
+int iVar2;
+uint uVar3;
+int iVar4;
+uint uVar5;
+uint uVar6;
+uint uVar7;
+int local_14;
+int local_10 [4];
+Game::GameStateStructures::addBuildingInRegistry(&DAT_GameState,DAT_CurrentBuildingID);
+local_14 = (int)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].buildingVariation;
+Map::Buildings::BuildingsState::updateGateDrawBridgeOpenCloseLogic(&DAT_BuildingsState);
+iVar2 = DAT_CurrentBuildingID;
+DAT_BuildingsState.buildings[DAT_CurrentBuildingID].someX =
+DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x + 3;
+DAT_BuildingsState.buildings[iVar2].someY = DAT_BuildingsState.buildings[iVar2].y + 2;
+if ((DAT_TileMapState.mapOrientation == 2) || (DAT_TileMapState.mapOrientation == 6)) {
+local_14 = local_14 + 1;
+}
+if (0x51 < local_14) {
+local_14 = 0x50;
+}
+DAT_BuildingsState.buildings[iVar2].renderAnimation = 0;
+DAT_BuildingsState.buildings[iVar2].displayOwnerFlag = 1;
+DAT_BuildingsState.buildings[iVar2].field20_0x38 = 0;
+DAT_BuildingsState.buildings[iVar2].field21_0x3c = 0;
+DAT_BuildingsState.buildings[iVar2].field22_0x40 = 0;
+DAT_BuildingsState.buildings[iVar2].field23_0x44 = 0;
+if (local_14 == 0x50) {
+DAT_BuildingsState.buildings[iVar2].field22_0x40 = 0xb;
+}
+else {
+DAT_BuildingsState.buildings[iVar2].field23_0x44 = 0xc;
+}
+DAT_BuildingsState.buildings[iVar2].field33_0x6c = 0;
+DAT_BuildingsState.buildings[iVar2].field34_0x70 = 0;
+DAT_BuildingsState.buildings[iVar2].field35_0x74 = 0;
+DAT_BuildingsState.buildings[iVar2].field36_0x78 = 0;
+DAT_BuildingsState.buildings[iVar2].field37_0x7c = 0;
+DAT_BuildingsState.buildings[iVar2].ownerFlagFrame = 0;
+DAT_BuildingsState.buildings[iVar2].field39_0x84 = 0;
+local_10[1] = 0;
+DAT_BuildingsState.buildings[iVar2].field40_0x88 = 0;
+local_10[0] = 0;
+local_10[2] = 0;
+local_10[3] = 0;
+iVar4 = 5 - (DAT_BuildingsState.buildings[iVar2].currentHealth * 5) /
+(int)DAT_BuildingsState.buildings[iVar2].maxHealth;
+if (iVar4 < 5) {
+if (iVar4 == 0) goto LAB_00423e8d;
+}
+else {
+iVar4 = 4;
+}
+if (0 < iVar4) {
+uVar6 = DAT_BuildingsState.buildings[iVar2].fireRelatedRNG1;
+uVar3 = (int)uVar6 >> 8;
+do {
+uVar7 = uVar6 & 0xf;
+uVar5 = uVar3 & 3;
+uVar6 = uVar6 + 1;
+uVar3 = uVar3 + 1;
+iVar4 = iVar4 + -1;
+local_10[uVar5] = uVar7 + 1;
+} while (iVar4 != 0);
+}
+if (local_14 == 0x50) {
+DAT_BuildingsState.buildings[iVar2].field33_0x6c = local_10[0];
+DAT_BuildingsState.buildings[iVar2].field34_0x70 = local_10[1];
+DAT_BuildingsState.buildings[iVar2].field35_0x74 = local_10[2];
+DAT_BuildingsState.buildings[iVar2].field36_0x78 = local_10[3];
+}
+else {
+DAT_BuildingsState.buildings[iVar2].field37_0x7c = local_10[0];
+DAT_BuildingsState.buildings[iVar2].ownerFlagFrame = local_10[1];
+DAT_BuildingsState.buildings[iVar2].field39_0x84 = local_10[2];
+DAT_BuildingsState.buildings[iVar2].field40_0x88 = local_10[3];
+}
+LAB_00423e8d:
+DAT_BuildingsState.buildings[iVar2].field29_0x5c = 0;
+DAT_BuildingsState.buildings[iVar2].shouldRenderRoof = 0;
+DAT_BuildingsState.buildings[iVar2].animationIncrement = 1;
+DAT_BuildingsState.buildings[iVar2].renderAnimation = 1;
+bVar1 = DAT_BuildingsState.buildings[iVar2].pathLinkageRelated2;
+if (bVar1 == 0) {
+if (DAT_BuildingsState.buildings[iVar2].gateState == 10) {
+DAT_BuildingsState.buildings[iVar2].pathLinkageRelated2 = 1;
+DAT_BuildingsState.buildings[iVar2].gateState = 0xc;
+DAT_BuildingsState.buildings[iVar2].animationIndex = 0;
+return;
+}
+}
+else {
+if (bVar1 == 2) {
+if (DAT_BuildingsState.buildings[iVar2].gateState == 0xb) {
+DAT_BuildingsState.buildings[iVar2].pathLinkageRelated2 = 3;
+DAT_BuildingsState.buildings[iVar2].gateState = 0xc;
+DAT_BuildingsState.buildings[iVar2].animationIndex = 0;
+}
+if (local_14 != 0x50) {
+DAT_BuildingsState.buildings[iVar2].shouldRenderRoof = 6;
+return;
+}
+DAT_BuildingsState.buildings[iVar2].field29_0x5c = 0xc;
+return;
+}
+if (bVar1 == 1) {
+if (DAT_BuildingsState.buildings[iVar2].animationActive != 0) {
+if (DAT_BuildingsState.buildings[iVar2].animationIndex == 1) {
+Audio::SFX::SFXState::playSFXAtLocation
+(&DAT_SFXState,(int)(short)DAT_BuildingsState.buildings[iVar2].x,
+(int)(short)DAT_BuildingsState.buildings[iVar2].y,FX_PC_DROP);
+}
+if (DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex == 0x14) {
+Audio::SFX::SFXState::playSFXAtLocation
+(&DAT_SFXState,(int)(short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].x
+,(int)(short)DAT_BuildingsState.buildings[DAT_CurrentBuildingID].y,FX_PC_SLAM);
+}
+}
+iVar2 = DAT_CurrentBuildingID;
+bVar1 = DAT_BuildingDefinedData.field142_0x6b44
+[DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+if ('\0' < (char)bVar1) {
+if (local_14 != 0x50) {
+DAT_BuildingsState.buildings[DAT_CurrentBuildingID].shouldRenderRoof = (int)(char)bVar1;
+return;
+}
+DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field29_0x5c = (char)bVar1 + 6;
+return;
+}
+DAT_BuildingsState.buildings[DAT_CurrentBuildingID].pathLinkageRelated2 = 2;
+Map::Navigation::PathFindingState::updatePathLinkageTileMapRelatedToGates(iVar2);
+if (local_14 != 0x50) {
+DAT_BuildingsState.buildings[DAT_CurrentBuildingID].shouldRenderRoof = 6;
+return;
+}
+DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field29_0x5c = 0xc;
+return;
+}
+if (bVar1 == 3) {
+if ((DAT_BuildingsState.buildings[iVar2].animationActive != 0) &&
+(DAT_BuildingsState.buildings[iVar2].animationIndex == 1)) {
+Audio::SFX::SFXState::playSFXAtLocation
+(&DAT_SFXState,(int)(short)DAT_BuildingsState.buildings[iVar2].x,
+(int)(short)DAT_BuildingsState.buildings[iVar2].y,FX_PC_LIFT);
+}
+iVar2 = DAT_CurrentBuildingID;
+bVar1 = DAT_BuildingDefinedData.field141_0x6b28
+[DAT_BuildingsState.buildings[DAT_CurrentBuildingID].animationIndex];
+if ((char)bVar1 < '\x01') {
+DAT_BuildingsState.buildings[DAT_CurrentBuildingID].pathLinkageRelated2 = 0;
+Map::Navigation::PathFindingState::updatePathLinkageTileMapRelatedToGates(iVar2);
+return;
+}
+if (local_14 == 0x50) {
+DAT_BuildingsState.buildings[DAT_CurrentBuildingID].field29_0x5c = (char)bVar1 + 6;
+return;
+}
+DAT_BuildingsState.buildings[DAT_CurrentBuildingID].shouldRenderRoof = (int)(char)bVar1;
+}
+}
+return;
+}
+--- NAMEN NUR IM PAKETCODE ---
+-
+--- KOMMENTARE IM PAKETCODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x00423CD0
+--- ERKLAERUNG ---
+{"adr": "0x00423cd0", "name": "UpdateGateHouseSmall", "p1": {"bereich": "Gebaeude", "zweck": "Takt-Aktualisierung eines kleinen Torhauses: setzt Bild- und Schadensfelder und schaltet den Torablauf (pathLinkageRelated2 mit den Zuständen 0 bis 3) samt Tönen und Wegeverknüpfung weiter."}, "p2": {"ein": "- (nutzt DAT_CurrentBuildingID)", "aus": "-", "liest": ["buildings[cur].buildingVariation/x/y/currentHealth/maxHealth/fireRelatedRNG1/gateState/pathLinkageRelated2/animationIndex/animationActive", "DAT_TileMapState.mapOrientation", "DAT_BuildingDefinedData.field142_0x6b44[animationIndex] (Byte, vorzeichenbehaftet gelesen)", "DAT_BuildingDefinedData.field141_0x6b28[animationIndex] (Byte, vorzeichenbehaftet gelesen)"], "schreibt": ["buildings[cur].someX = x+3, someY = y+2", "displayOwnerFlag = 1, renderAnimation = 1, animationIncrement = 1", "field20_0x38, field21_0x3c, field22_0x40, field23_0x44", "field33_0x6c bis field36_0x78 (Variante 0x50) bzw. field37_0x7c, ownerFlagFrame, field39_0x84, field40_0x88 (sonst)", "field29_0x5c, shouldRenderRoof", "pathLinkageRelated2, gateState, animationIndex (nur bei Zustandswechsel)"], "ruft": ["addBuildingInRegistry", "updateGateDrawBridgeOpenCloseLogic", "playSFXAtLocation (FX_PC_DROP, FX_PC_SLAM, FX_PC_LIFT)", "updatePathLinkageTileMapRelatedToGates"], "regeln": ["Ablauf je Aufruf: addBuildingInRegistry(cur); buildingVariation wird gelesen; dann updateGateDrawBridgeOpenCloseLogic(); someX = x+3, someY = y+2.", "Variante v: bei mapOrientation 2 oder 6 wird v um 1 erhöht; ist v danach >= 0x52, wird v = 0x50 (0x51 bleibt 0x51, 0x50 ist also nicht der Höchstwert). Danach zählt nur v == 0x50 gegen v != 0x50 (auch 0x51).", "Grundbild bei jedem Aufruf: renderAnimation = 0, displayOwnerFlag = 1, field20_0x38 = field21_0x3c = field22_0x40 = field23_0x44 = 0; dann bei v == 0x50 field22_0x40 = 0xb, sonst field23_0x44 = 0xc; field33_0x6c, field34_0x70, field35_0x74, field36_0x78, field37_0x7c, ownerFlagFrame, field39_0x84, field40_0x88 = 0.", "Schadensstufe s = 5 - (currentHealth*5)/maxHealth (ganzzahlig; maxHealth = 0 würde durch 0 teilen). Bei s >= 5 gilt s = 4; bei s <= 0 (Lebenspunkte ab 100 %) gibt es keine Schadensbilder. Schwellen: unter 40 % der Lebenspunkte s = 4, 40 bis unter 60 % s = 3, 60 bis unter 80 % s = 2, 80 bis unter 100 % s = 1.", "Für k = 0 bis s-1 erhält Platz ((fireRelatedRNG1 >> 8) + k) & 3 den Wert ((fireRelatedRNG1 + k) & 0xf) + 1 (also 1 bis 16). Der Wert zählt je Schritt um 1 hoch und ist nicht für alle Plätze gleich. Weil s höchstens 4 ist, werden genau s verschiedene Plätze gefüllt, die übrigen bleiben 0.", "Die 4 Plätze (0 bis 3) gehen bei v == 0x50 nach field33_0x6c, field34_0x70, field35_0x74, field36_0x78, sonst nach field37_0x7c, ownerFlagFrame, field39_0x84, field40_0x88; die jeweils andere Vierergruppe bleibt 0.", "Danach immer: field29_0x5c = 0, shouldRenderRoof = 0, animationIncrement = 1, renderAnimation = 1.", "pathLinkageRelated2 == 0: nur wenn gateState == 10 wird pathLinkageRelated2 = 1, gateState = 0xc, animationIndex = 0; sonst passiert nichts weiter.", "pathLinkageRelated2 == 1: Töne nur wenn animationActive != 0: FX_PC_DROP bei animationIndex == 1, FX_PC_SLAM bei animationIndex == 0x14 (Ort = x/y des Gebäudes). Dann w = field142_0x6b44[animationIndex] als vorzeichenbehaftetes Byte; bei w > 0 bleibt der Zustand 1, und es gilt v != 0x50: shouldRenderRoof = w, v == 0x50: field29_0x5c = w + 6.", "pathLinkageRelated2 == 1 und w <= 0 (auch negativ): pathLinkageRelated2 = 2 und updatePathLinkageTileMapRelatedToGates(Gebäude-ID); dann v != 0x50: shouldRenderRoof = 6, sonst field29_0x5c = 0xc.", "pathLinkageRelated2 == 2: wenn gateState == 0xb, wird pathLinkageRelated2 = 3, gateState = 0xc, animationIndex = 0. Danach in jedem Fall (auch im selben Aufruf nach dem Wechsel): v != 0x50: shouldRenderRoof = 6, sonst field29_0x5c = 0xc.", "pathLinkageRelated2 == 3: Ton FX_PC_LIFT bei animationIndex == 1, nur wenn animationActive != 0. w = field141_0x6b28[animationIndex] (vorzeichenbehaftet). w <= 0: pathLinkageRelated2 = 0 und updatePathLinkageTileMapRelatedToGates(Gebäude-ID), die Bildwerte bleiben 0. w > 0: v == 0x50: field29_0x5c = w + 6, sonst shouldRenderRoof = w.", "pathLinkageRelated2 >= 4: nur das Grundbild (Regeln 1 bis 7). animationIndex wird in dieser Funktion nur auf 0 gesetzt, nie hochgezählt."], "offen": ["Die Zuordnung der Zustände zu offen/zu ist nicht belegt. Die Töne FX_PC_DROP/FX_PC_SLAM in Zustand 1 und FX_PC_LIFT in Zustand 3 deuten vermutlich auf ein Fallgitter, das in Zustand 1 fällt und in Zustand 3 hochgeht; die bisherige Beschriftung 0 = zu, 1 = öffnet passt dazu eher nicht.", "Wer animationIndex hochzählt und gateState auf 10 bzw. 0xb setzt (vermutlich updateGateDrawBridgeOpenCloseLogic oder die Animationsroutine) und was gateState 10, 0xb und 0xc bedeuten.", "Die Byte-Tabellen field141_0x6b28 und field142_0x6b44 sind vermutlich Bildnummern je Animationsschritt (bei Variante 0x50 um 6 verschoben); Länge ungeprüft (Adressabstand 0x1c spricht vermutlich für 28 Einträge bei field141), Zugriff ohne Grenzprüfung.", "Feldnamen field20..field40, field29_0x5c, shouldRenderRoof und ownerFlagFrame sind Ghidra-Vermutungen; ownerFlagFrame wird hier mit einem Schadens-Platzwert gefüllt, der Name täuscht vermutlich.", "Breite von fireRelatedRNG1 unbekannt: ist es ein Byte, ergibt (RNG >> 8) immer 0 und der erste Platz ist k & 3.", "Die Variante wird vor updateGateDrawBridgeOpenCloseLogic() gelesen; ob dieser Aufruf sie ändert, ist offen."]}, "p3": {"erklaerung": "Läuft jeden Spieltakt für ein kleines Torhaus: setzt die Bild- und Schadensanzeige (je nach Lebenspunkten und Gebäudevariante) und schaltet die Torbewegung in vier Zuständen weiter, mit Tönen. Am Ende der Bewegung (Übergang 1 nach 2 und 3 nach 0) wird die Wegeverknüpfung des Tores aktualisiert.", "gehirn": "Vermutlich bestimmt die Wegeverknüpfung, die nur bei den Übergängen 1 nach 2 und 3 nach 0 neu gesetzt wird, ob das Tor durchlässig ist. Welcher Zustand (0 oder 2) durchlässig ist, ist ungeklärt; bis zur Messung nicht nutzen.", "beleg": "code", "live": "Kleines Torhaus öffnen und wieder schließen lassen → pathLinkageRelated2, gateState und animationIndex jeden Takt lesen → Folge 0→1→2 bei einem Befehl und 2→3→0 beim anderen, gateState 10 bzw. 0xb dann 0xc; notieren, in welchem Zustand (0 oder 2) Einheiten durchs Tor kommen", "live_art": "sonstiges"}}
+
+### 0x005076a0 placeBarracks
+--- CODE (Ghidra-Export, vollstaendig) ---
+/* WARNING: Enum "MappersEnum": Some values do not have unique names */
+/* WARNING: Enum "DPSEND_EnumInt": Some values do not have unique names */
+/* WARNING: Enum "DPERRInt": Some values do not have unique names */
+/* decompilerscript: committed: 2025-01-30 21:57:43.216000 */
+void __thiscall
+_HoldStrong::Map::TileMapState::placeBarracks
+(TileMapState *this,int playerID,uint xPosition,int *yPosition_param,
+undefined4 buildingType,uint buildingSize,int buildingOrientation,undefined4 param_7)
+{
+int *piVar1;
+int iVar2;
+int iVar3;
+int iVar4;
+TileMapState *this_00;
+TileMapState *this_01;
+TileMapState *this_02;
+TileMapState *this_03;
+TileMapState *this_04;
+uint uVar5;
+int iVar6;
+uint uVar7;
+int iVar8;
+int local_c;
+piVar1 = yPosition_param;
+iVar8 = DAT_GameCore.uniqueGameObjectTracker;
+iVar6 = 0;
+if (buildingOrientation == 0xf) {
+local_c = 0;
+}
+else {
+local_c = buildingOrientation / 2;
+}
+iVar2 = Buildings::BuildingsState::setupBuildingData
+(&DAT_BuildingsState,playerID,xPosition,(uint)yPosition_param,param_7,
+(int)(short)buildingType,buildingSize,playerID,0xf);
+iVar3 = (int)(short)(ushort)iVar2;
+DAT_TileMapState.placedBuildingID = iVar3;
+DAT_BuildingsState.buildings[iVar3].uidWhenPlaced = iVar8;
+yPosition_param = &DAT_BuildingsState.buildings[iVar3].tileRef1;
+do {
+getBuildingSizeIndexMappingData(iVar6,buildingSize);
+iVar4 = DAT_ViewportRenderState.translationMatrix[DAT_TileMapState.buildingY + (int)piVar1].
+addXgetTile + DAT_TileMapState.buildingX + xPosition;
+*yPosition_param = iVar4;
+DAT_TileMapState.HeightLayer[iVar4] = (byte)param_7;
+DAT_TileMapState.LogicLayer[iVar4] = DAT_TileMapState.LogicLayer[iVar4] | 0x400;
+DAT_TileMapState.BuildingLayer[iVar4] = (ushort)iVar2;
+iVar6 = iVar6 + 1;
+yPosition_param = yPosition_param + 1;
+DAT_TileMapState.BuildingWasLayer[iVar4] = (uchar)buildingType;
+DAT_TileMapState.ChangedLayer[iVar4] = 2;
+} while (iVar6 < DAT_TileMapState.constructionTileCount);
+setMiscDisplayLayer(iVar3);
+updatePathLinkagesForBuilding(this_00,iVar3);
+uVar7 = (int)piVar1 + DAT_TerrainDefinedData.BuildingPartsOffsets[local_c][0].y;
+uVar5 = xPosition + DAT_TerrainDefinedData.BuildingPartsOffsets[local_c][0].x;
+iVar6 = Buildings::BuildingsState::setupBuildingData
+(&DAT_BuildingsState,playerID,uVar5,uVar7,param_7,BT_PARADEGROUND3,5,playerID,
+0xf);
+iVar2 = (int)(short)(ushort)iVar6;
+DAT_BuildingsState.buildings[iVar2].uidWhenPlaced = iVar8;
+DAT_BuildingsState.buildings[iVar2].quarryStockpileID =
+(undefined2)DAT_TileMapState.placedBuildingID;
+buildingSize = 0;
+do {
+getBuildingSizeIndexMappingData(buildingSize,DAT_BuildingsState.buildings[iVar2].widthOrHeight);
+iVar3 = DAT_ViewportRenderState.translationMatrix[DAT_TileMapState.buildingY + uVar7].
+addXgetTile + DAT_TileMapState.buildingX + uVar5;
+resetTileAndClearMoat(&DAT_TileMapState,iVar3);
+DAT_TileMapState.HeightLayer[iVar3] = (byte)param_7;
+if ((DAT_TileMapState.buildingX == 2) && (DAT_TileMapState.buildingY == 2)) {
+DAT_TileMapState.LogicLayer[iVar3] = DAT_TileMapState.LogicLayer[iVar3] | 0x400;
+}
+DAT_TileMapState.BuildingLayer[iVar3] = (ushort)iVar6;
+buildingSize = buildingSize + 1;
+DAT_TileMapState.BuildingWasLayer[iVar3] = (uchar)buildingType;
+DAT_TileMapState.ChangedLayer[iVar3] = 2;
+} while ((int)buildingSize < DAT_TileMapState.constructionTileCount);
+setMiscDisplayLayer(iVar2);
+updatePathLinkagesForBuilding(this_01,iVar2);
+Navigation::PathFindingState::updateWalkAndPathLayer(&DAT_PathFindingState,8,uVar5,uVar7);
+uVar7 = DAT_TerrainDefinedData.BuildingPartsOffsets[local_c][1].y + (int)piVar1;
+uVar5 = DAT_TerrainDefinedData.BuildingPartsOffsets[local_c][1].x + xPosition;
+iVar6 = Buildings::BuildingsState::setupBuildingData
+(&DAT_BuildingsState,playerID,uVar5,uVar7,param_7,BT_PARADEGROUND4,5,playerID,
+0xf);
+iVar2 = (int)(short)(ushort)iVar6;
+DAT_BuildingsState.buildings[iVar2].uidWhenPlaced = iVar8;
+DAT_BuildingsState.buildings[iVar2].quarryStockpileID =
+(undefined2)DAT_TileMapState.placedBuildingID;
+buildingSize = 0;
+do {
+getBuildingSizeIndexMappingData(buildingSize,DAT_BuildingsState.buildings[iVar2].widthOrHeight);
+iVar3 = DAT_ViewportRenderState.translationMatrix[DAT_TileMapState.buildingY + uVar7].
+addXgetTile + DAT_TileMapState.buildingX + uVar5;
+resetTileAndClearMoat(&DAT_TileMapState,iVar3);
+DAT_TileMapState.HeightLayer[iVar3] = (byte)param_7;
+if ((DAT_TileMapState.buildingX == 2) && (DAT_TileMapState.buildingY == 2)) {
+DAT_TileMapState.LogicLayer[iVar3] = DAT_TileMapState.LogicLayer[iVar3] | 0x400;
+}
+DAT_TileMapState.BuildingLayer[iVar3] = (ushort)iVar6;
+buildingSize = buildingSize + 1;
+DAT_TileMapState.BuildingWasLayer[iVar3] = (uchar)buildingType;
+DAT_TileMapState.ChangedLayer[iVar3] = 2;
+} while ((int)buildingSize < DAT_TileMapState.constructionTileCount);
+setMiscDisplayLayer(iVar2);
+updatePathLinkagesForBuilding(this_02,iVar2);
+Navigation::PathFindingState::updateWalkAndPathLayer(&DAT_PathFindingState,8,uVar5,uVar7);
+uVar7 = DAT_TerrainDefinedData.BuildingPartsOffsets[local_c][2].y + (int)piVar1;
+uVar5 = DAT_TerrainDefinedData.BuildingPartsOffsets[local_c][2].x + xPosition;
+iVar6 = Buildings::BuildingsState::setupBuildingData
+(&DAT_BuildingsState,playerID,uVar5,uVar7,param_7,BT_PARADEGROUND2,5,playerID,
+0xf);
+iVar2 = (int)(short)(ushort)iVar6;
+DAT_BuildingsState.buildings[iVar2].uidWhenPlaced = iVar8;
+DAT_BuildingsState.buildings[iVar2].quarryStockpileID =
+(undefined2)DAT_TileMapState.placedBuildingID;
+buildingSize = 0;
+do {
+getBuildingSizeIndexMappingData(buildingSize,DAT_BuildingsState.buildings[iVar2].widthOrHeight);
+iVar8 = DAT_ViewportRenderState.translationMatrix[DAT_TileMapState.buildingY + uVar7].
+addXgetTile + DAT_TileMapState.buildingX + uVar5;
+resetTileAndClearMoat(this_03,iVar8);
+DAT_TileMapState.HeightLayer[iVar8] = (byte)param_7;
+if ((DAT_TileMapState.buildingX == 2) && (DAT_TileMapState.buildingY == 2)) {
+DAT_TileMapState.LogicLayer[iVar8] = DAT_TileMapState.LogicLayer[iVar8] | 0x400;
+}
+DAT_TileMapState.BuildingLayer[iVar8] = (ushort)iVar6;
+DAT_TileMapState.BuildingWasLayer[iVar8] = (uchar)buildingType;
+buildingSize = buildingSize + 1;
+DAT_TileMapState.ChangedLayer[iVar8] = 2;
+} while ((int)buildingSize < DAT_TileMapState.constructionTileCount);
+setMiscDisplayLayer(iVar2);
+updatePathLinkagesForBuilding(this_04,iVar2);
+Navigation::PathFindingState::updateWalkAndPathLayer(&DAT_PathFindingState,8,uVar5,uVar7);
+if ((short)buildingType == 8) {
+Buildings::BuildingsState::setupMercenaryPostCampgroundPositions(&DAT_BuildingsState,playerID);
+}
+else {
+Buildings::BuildingsState::setupBarracksCampgroundPositions(&DAT_BuildingsState,playerID);
+}
+if (((playerID == DAT_GameSynchronyState.currentPlayerSlotID) &&
+(DAT_GameState.playerDataArray[playerID].availablePeasantsAtFire <
+(int)DAT_BuildingsState.buildings[iVar2].buildingTypeBasedEmployeeCount)) &&
+((DAT_GameState.playerDataArray[playerID].populationCap <=
+DAT_GameState.playerDataArray[playerID].currentPopulation ||
+(DAT_GameState.playerDataArray[playerID].popularity < 5000)))) {
+UI::BottomLeftTextDisplayState::setBottomLeftTextDisplayText
+(&DAT_BottomLeftTextDisplayState,1,0x4d,1,(TextMessageBLLookupStructUnion)0x0,100,6000
+);
+}
+return;
+}
+--- NAMEN NUR IM PAKETCODE ---
+BuildingType, _buildingID, iVar5, iVar7, uVar4, uVar6
+--- KOMMENTARE IM PAKETCODE ---
+// FUNCTION: STRONGHOLDCRUSADER 0x005076A0
+--- ERKLAERUNG ---
+{"adr": "0x005076a0", "name": "placeBarracks", "p1": {"bereich": "Karte", "zweck": "Legt eine Kaserne oder einen Söldnerposten an: das Hauptgebäude und drei Exerzierplatz-Teile (je 5x5 Felder), trägt sie in die Kartenebenen ein, berechnet die Aufstellplätze (CampgroundPositions) neu und löst unter Bedingungen die Meldung 0x4d aus."}, "p2": {"ein": "playerID; xPosition; yPosition_param (Zeile y; der Ghidra-Typ int* täuscht, es ist ein Zahlenwert); buildingType (BuildingType: BT_MERCENARYPOST 8 oder BT_BARRACKS 9, so übergibt es placeBuilding); buildingSize (Kantenlänge des Hauptgebäudes); buildingOrientation (0xf = keine, sonst Zahl, die nur die Zeile der Teile-Versätze wählt); param_7 (Höhe: placeBuilding übergibt (Maximum - Minimum) / 2 + Minimum der HeightLayer-Werte unter dem Hauptgebäude)", "aus": "nichts (void)", "liest": ["uniqueGameObjectTracker (vor dem Anlegen)", "constructionTileCount / buildingX / buildingY (von getBuildingSizeIndexMappingData)", "translationMatrix[].addXgetTile", "DAT_TerrainDefinedData.BuildingPartsOffsets[Ausrichtung/2][0..2] (x, y)", "buildings[Teil].widthOrHeight", "currentPlayerSlotID", "playerDataArray[playerID].availablePeasantsAtFire / populationCap / currentPopulation / popularity", "buildings[letzter Teil].buildingTypeBasedEmployeeCount"], "schreibt": ["placedBuildingID (ID des Hauptgebäudes)", "buildings[Hauptgebäude und Teile].uidWhenPlaced", "buildings[Hauptgebäude].tileRef1[i] (Feldliste, nur beim Hauptgebäude)", "buildings[Teil].quarryStockpileID", "HeightLayer", "LogicLayer (Bit 0x400)", "BuildingLayer", "BuildingWasLayer", "ChangedLayer = 2", "constructionTileCount / buildingX / buildingY / buildingRotationRelatedValue (über getBuildingSizeIndexMappingData)", "indirekt: neue buildings[]-Einträge und uid-Zähler (setupBuildingData), Wand-, Graben- und Schadendaten der Teilfelder (resetTileAndClearMoat), Pfad- und Aufstellplatz-Daten der aufgerufenen Hilfsfunktionen"], "ruft": ["setupBuildingData", "getBuildingSizeIndexMappingData", "setMiscDisplayLayer", "updatePathLinkagesForBuilding", "resetTileAndClearMoat", "updateWalkAndPathLayer", "setupMercenaryPostCampgroundPositions", "setupBarracksCampgroundPositions", "setBottomLeftTextDisplayText"], "regeln": ["Vorab: uniqueGameObjectTracker wird vor dem Anlegen gemerkt; setupBuildingData vergibt danach genau diesen Wert als uid des Hauptgebäudes, uidWhenPlaced ist also bei allen vier Gebäuden (Hauptgebäude und drei Teile) die uid des Hauptgebäudes. Ausrichtungszeile n = 0 bei buildingOrientation == 0xf, sonst buildingOrientation / 2 (ganzzahlig)", "Hauptgebäude: setupBuildingData(playerID, x, y, Höhe, buildingType, buildingSize, playerID, 0xf); der letzte Parameter heißt in der Signatur variationIndex und wird zu buildingVariation. Die Rückgabe (16 Bit mit Vorzeichen) wird placedBuildingID; ein Wert 0 (ungültige Position oder kein freier Gebäudeplatz) wird nicht geprüft", "Felder des Hauptgebäudes, i = 0 bis constructionTileCount - 1 (buildingSize mal buildingSize, mindestens ein Durchlauf): tileRef1[i] = Feld; HeightLayer = (byte)Höhe; LogicLayer |= 0x400 (L_BUILDING) auf ALLEN Feldern; BuildingLayer = ID; BuildingWasLayer = (byte)buildingType; ChangedLayer = 2. Es gibt kein resetTileAndClearMoat; danach setMiscDisplayLayer und updatePathLinkagesForBuilding, aber kein updateWalkAndPathLayer", "Drei Teile in dieser Reihenfolge: BT_PARADEGROUND3 (57), BT_PARADEGROUND4 (58), BT_PARADEGROUND2 (56). Jeder wird mit setupBuildingData(playerID, x + Offset.x, y + Offset.y, Höhe, Teiltyp, 5, playerID, 0xf) angelegt, wobei Offset = BuildingPartsOffsets[n][k] mit k = 0, 1, 2 (Tabelle ab 0xb49090, 4 Zeilen zu je 3 x/y-Paaren, 24 Byte je Zeile). Jeder Teil bekommt die uidWhenPlaced des Hauptgebäudes und quarryStockpileID = placedBuildingID (16 Bit)", "Felder eines Teils (5x5 = 25, Größe aus buildings[Teil].widthOrHeight): je Feld zuerst resetTileAndClearMoat(Feld), dann HeightLayer = (byte)Höhe; LogicLayer |= 0x400 nur dort, wo buildingX == 2 und buildingY == 2 ist (Mittelfeld des Blocks); BuildingLayer = ID des Teils; BuildingWasLayer = (byte)buildingType der Kaserne (8 oder 9, nicht der Teiltyp); ChangedLayer = 2. Danach je Teil setMiscDisplayLayer, updatePathLinkagesForBuilding und updateWalkAndPathLayer(8, Teil-x, Teil-y) (nur die Ecke des Teils, nicht jedes Feld). Das Hauptgebäude bekommt kein updateWalkAndPathLayer", "resetTileAndClearMoat laut Ghidra-Ausgabe: löscht die LogicLayer-Bits 0x8, 0x100, 0x200, 0x800, 0x10000 und 0x400000, setzt HeightLayer auf DefaultHeightLayer und DamageLayer auf 0, setzt bei Feldern mit L_TREE (0x1000) und Baumart 5 bis 14 oder 16 bis 19 den Baum auf state = 3, löscht Grabendaten samt den Bits 0x40004000 (L_MOAT, L_MOAT_DUG_OR_PLANNED) und löscht MiscDisplayLayer-Bits 0x3c0", "Danach: buildingType == 8 ruft setupMercenaryPostCampgroundPositions(playerID), sonst setupBarracksCampgroundPositions(playerID). Die Ghidra-Signatur der zweiten nennt den Parameter buildingID, übergeben wird aber playerID", "Meldung: setBottomLeftTextDisplayText(1, 0x4d, 1, 0, 100, 6000) nur wenn playerID == currentPlayerSlotID UND availablePeasantsAtFire kleiner (streng) als buildings[letzter Teil].buildingTypeBasedEmployeeCount ist UND (populationCap <= currentPopulation ODER popularity < 5000). Geprüft wird der zuletzt angelegte Teil (BT_PARADEGROUND2), nicht die Kaserne. Der Ghidra-Kommentar im identischen Aufruf von placeQuarry nennt die Meldung 'Not enough workers available to run this building' (OpenSHC-Vermutung)", "Aufrufer (laut Ghidra-Ausgabe): placeBuilding, für BT_MERCENARYPOST und BT_BARRACKS, mit der Höhe (Maximum - Minimum) / 2 + Minimum der HeightLayer-Werte der Hauptfläche"], "offen": ["buildingTypeBasedEmployeeCount von BT_PARADEGROUND2 kommt aus der Tabelle DAT_EmployeeCountPerBuildingType und steht nicht im Code; ist er 0, erscheint die Meldung nie. Ob der Test am letzten Teil statt an der Kaserne Absicht ist, bleibt offen", "quarryStockpileID ist ein Ghidra-Name: hier hält das Feld bei den Teilen die ID der Kaserne", "Der Inhalt von BuildingPartsOffsets (Versätze der Teile je Ausrichtung) steht nicht im Code", "Welche Werte buildingOrientation außer 0xf annimmt (n = Wert / 2 wählt eine von 4 Tabellenzeilen); im Code nicht belegt"]}, "p3": {"erklaerung": "Legt eine Kaserne oder einen Söldnerposten an: das Hauptgebäude und drei Exerzierplatz-Teile (je 5x5 Felder, an festen Versätzen je Ausrichtung). Die Teile merken sich die Kaserne in quarryStockpileID; danach werden die Aufstellplätze der Truppen neu berechnet.", "gehirn": "Beim Platzieren einer Kaserne die Fläche der drei Exerzierplatz-Teile mitdenken: je 5x5 Felder an den Versätzen aus BuildingPartsOffsets (je Ausrichtung/2 drei x/y-Paare). Die Tabelle einmal aus dem Speicher lesen.", "beleg": "code", "live": "Tabelle BuildingPartsOffsets (Adresse 0xb49090, 4 Zeilen zu je 3 x/y-Paaren, jede Zahl 4 Byte) lesen → Versätze der Teile 57, 58, 56 je Ausrichtung/2 → vermutlich Beträge 0 oder 5 (der Vorschau-Code legt die Zusatzblöcke bei (+5, 0), (0, +5), (+5, +5) an)", "live_art": "tabelle"}}
