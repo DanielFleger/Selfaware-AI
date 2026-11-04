@@ -220,6 +220,10 @@ def test_startpause_steht_nur_im_befehl_wenn_sie_gewuenscht_ist():
     k = K()
     lk.gefecht_starten(k, "Karte", lk.FRIEDEN_NORMAL, ruhe=lambda _: None, startpause=1)
     assert next(c for c in k.log if c.get("eigenesGefecht"))["startpause"] == 1
+    assert "teams" not in next(c for c in k.log if c.get("eigenesGefecht"))  # ohne Angabe jeder gegen jeden
+    k = K()
+    lk.gefecht_starten(k, "Karte", lk.FRIEDEN_NORMAL, ruhe=lambda _: None, teams=[1, 1, 2, 2])
+    assert next(c for c in k.log if c.get("eigenesGefecht"))["teams"] == [1, 1, 2, 2]
     k = K()
     lk.gefecht_starten(k, "Karte", lk.FRIEDEN_NORMAL, ruhe=lambda _: None)
     assert "startpause" not in next(c for c in k.log if c.get("eigenesGefecht"))

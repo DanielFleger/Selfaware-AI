@@ -114,8 +114,9 @@ class SpeicherK(lf.Speicher):
 
 
 class LaufK(lf.Lauf):
-    def __init__(self, *a, karte="", speichern=None, laden=None, frieden=FRIEDEN_NORMAL, fenster=FENSTER_NORMAL, ende_takte=None, frist_ende=FRIST_ENDE, **kw):
+    def __init__(self, *a, karte="", speichern=None, laden=None, frieden=FRIEDEN_NORMAL, fenster=FENSTER_NORMAL, ende_takte=None, frist_ende=FRIST_ENDE, teams=None, **kw):
         super().__init__(*a, **kw)
+        self.teams = teams
         self.karte, self.speichern, self.laden = karte, speichern, laden
         self.frieden_stufe, self.fenster, self.ende_takte = frieden, fenster, ende_takte
         self.weich = self.uhr() + frist_ende
@@ -127,7 +128,7 @@ class LaufK(lf.Lauf):
         self.puls = (self.s.takt(), self.uhr())
 
 
-def gefecht_starten(k, karte, frieden, warte=60, ruhe=time.sleep, startpause=None):
+def gefecht_starten(k, karte, frieden, warte=60, ruhe=time.sleep, startpause=None, teams=None):
     if k.peek(lf.ANSICHT)[0] != lf.HAUPTMENUE:
         k.befehl({"menue": lf.HAUPTMENUE}, 1.5)
         lf.warte_auf(lambda: k.peek(lf.ANSICHT)[0] == lf.HAUPTMENUE, 10, "Hauptmenue (Ansicht 41)", ruhe=ruhe)
@@ -135,6 +136,8 @@ def gefecht_starten(k, karte, frieden, warte=60, ruhe=time.sleep, startpause=Non
     start = {"eigenesGefecht": True, "karte": karte, "kis": list(KIS), "friedenszeit": frieden, "gegner": 0, "trotzdem": True}
     if startpause is not None:
         start["startpause"] = startpause  # das Spiel haelt bei diesem Takt an, so sieht die Aufzeichnung den Anfang
+    if teams:
+        start["teams"] = list(teams)  # gleiche Zahl heisst verbuendet (Modul: eigenesGefecht)
     k.befehl(start, 5.0)
     lf.warte_auf(lambda: k.peek(lf.ANSICHT)[0] == lf.IN_PARTIE, warte, "Partie laeuft (Ansicht 14)", ruhe=ruhe)
 
@@ -222,7 +225,7 @@ def abschnitt_sichern(l):
 
 def laden_und_fenster(l, name, t, fenster):
     """Aus einer frisch gestarteten Partie, beide Male derselbe Weg. Im Hauptmenue blieb das Laden nach dem Kampf im Ladefenster haengen, erst eine laufende Partie liess es weiter (Lauf K 02.11.)."""
-    gefecht_starten(l.k, l.karte, l.frieden_stufe, ruhe=l.ruhe, startpause=1)
+    gefecht_starten(l.k, l.karte, l.frieden_stufe, ruhe=l.ruhe, startpause=1, teams=l.teams)
     t2 = l.laden(name)
     if t2 != t:
         raise Abbruch(f"Geladen auf Takt {t2} statt {t}")
@@ -271,7 +274,7 @@ def schluss(aus):
     return {"gueltig": bool(gut), "lords_start": d.get("start", {}).get("lords"), "lords_ende": d.get("bis_zum_ende", {}).get("lords"), "ende": d.get("bis_zum_ende", {}).get("grund"), "t": g.get("t")}
 
 
-def los(n, karte, ziel=None, laeuft_schon=True, frieden=FRIEDEN_NORMAL, fenster=FENSTER_NORMAL, ende_takte=None, frist=FRIST, frist_ende=FRIST_ENDE, name="lauf_k"):
+def los(n, karte, ziel=None, laeuft_schon=True, frieden=FRIEDEN_NORMAL, fenster=FENSTER_NORMAL, ende_takte=None, frist=FRIST, frist_ende=FRIST_ENDE, name="lauf_k", teams=None):
     lf.pruefe_laufinstanz(n)
     karte_pruefen(n, karte)
     os.environ["SHC_INSTANZ"] = str(n)
@@ -323,8 +326,8 @@ def los(n, karte, ziel=None, laeuft_schon=True, frieden=FRIEDEN_NORMAL, fenster=
         rek = lf.Rekorder(n, ziel, f"{name[5:] if name.startswith('lauf_') else name}_{stempel}", quelle, standard_bereiche(karte_felder))
         rek.basis = basis
         rek.stop_datei, rek.aus_datei, rek.felder_datei = basis + ".stop", basis + ".aussetzen", basis + ".felder.json"
-        gefecht_starten(k, karte, frieden, startpause=1)
-        schreib({"schritt": "gefecht", "karte": karte, "kis": KIS, "friedenszeit": frieden})
+        gefecht_starten(k, karte, frieden, startpause=1, teams=teams)
+        schreib({"schritt": "gefecht", "karte": karte, "kis": KIS, "friedenszeit": frieden, "teams": teams})
         steht, t = lf.anhalten_und_pruefen(k, s)
         if not steht:
             raise Abbruch(f"Der Takt steht am Start nicht (Takt {t})")
@@ -334,7 +337,7 @@ def los(n, karte, ziel=None, laeuft_schon=True, frieden=FRIEDEN_NORMAL, fenster=
         k.befehl({"pause": False}, lf.KANAL)
 
         l = LaufK(k, s, {}, rek, schreib, frist=frist, stop=lambda: os.path.exists(stop), karte=karte, speichern=speichern_mod.speichere, laden=lambda st: laden_mod.lade_stand(st, mit_bild=False),
-                  frieden=frieden, fenster=fenster, ende_takte=ende_takte, frist_ende=frist_ende)
+                  frieden=frieden, fenster=fenster, ende_takte=ende_takte, frist_ende=frist_ende, teams=teams)
         aus = lf.programm(l, ABSCHNITTE)
         ergebnis = schluss(aus)
         schreib({"schritt": "schluss", **ergebnis, "funde": l.funde})
@@ -368,14 +371,16 @@ def main(argv=None):
     p.add_argument("--instanz", type=int, required=True)
     p.add_argument("--karte", required=True)
     p.add_argument("--daniel-ja", action="store_true", help="Lauf nur nach Daniels Ja")
+    p.add_argument("--teams", help="Mannschaft je KI, z. B. 1,1,2,2,3,3,4,4. Gleiche Zahl heisst verbuendet")
     a = p.parse_args(argv)
     lf.pruefe_laufinstanz(a.instanz)
+    teams = [int(x) for x in a.teams.split(",")] if a.teams else None
     if a.was == "probe":
         e, _ = los(a.instanz, a.karte, fenster=FENSTER_PROBE, ende_takte=ENDE_PROBE, frist=180, frist_ende=150, name="probe_k")
     else:
         if not a.daniel_ja:
             raise Fehler("Lauf K startet nur mit --daniel-ja")
-        e, _ = los(a.instanz, a.karte)
+        e, _ = los(a.instanz, a.karte, teams=teams, name="buendnis_k" if teams else "lauf_k")
     print("gueltig:", e.get("gueltig") if e else None)
     return 0
 

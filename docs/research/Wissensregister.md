@@ -429,4 +429,4 @@ Tick 4.731-7.737, Aufloesung 14,5 Ticks (`daten/lage_ablauf_fein_20261006_224521
 | S41 | Hunde kommen ab Truppenwert 16 (Export 25): 3 Speertraeger nein, 4 ja, Taeter Art 67 Besitzer 0. Mauerluecke ist begehbar. Lager nimmt im Nahkampf keinen Schaden | getestet | `punkte_rechnung14.txt`, `punkte_rechnung15.txt` |
 | S42 | Befehle: 34 Steuer, 102 Sammelpunkt, 68 Turm reparieren, 41 Mauerstueck weg, 29 Gebaeude weg. Mauer mit S Stein baut 2S+1 Felder | getestet | Lauf F P160, P166, P172, P198, P200, P205 |
 | S43 | Zelte der KI: Katapult 319, Trebuchet 639, Ramme 644 (Art 83), Schild 121, Feuerballiste 312. Aus dem Zelt 20 Munition | getestet | Lauf F P086, P123 bis P128, P216, `punkte_rechnung_k.txt` |
-| S44 | SamurAI darf per Befehl mehr als 5 Mann auf einen Wachturm schicken, die Grenze 5 gilt nur beim Mausklick | Daniel | Entscheidung 04.11.2026, P338 |
+| S44 | SamurAI darf alles, was ein Mensch auch kann, auch Einheiten auf einen Punkt packen. Dazu per Befehl mehr als 5 Mann auf einen Wachturm, die Grenze 5 gilt nur beim Mausklick | Daniel | Entscheidung 04.11.2026, P338 |
