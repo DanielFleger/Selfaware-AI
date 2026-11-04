@@ -47,6 +47,13 @@ Sieg damit beweist nichts.
   Das im Speicher gespeicherte Ziel einer feindlichen Einheit, ihren naechsten Schusstakt oder ihr Nahkampfziel zu LESEN
   ist verboten (`shootTargetedUnit`, `sre_naechster_schuss_takte`, `attackedUnitID` - die Pruefung sucht danach).
 - **Schusstakt aus dem Animationsbild (Daniel 04.11.2026 21:39, ja):** Zustand und Animationsbild eines Schuetzen sind auf dem Schirm sichtbar. Daraus plus der gemessenen Phasentabelle den Schusstakt genau auszurechnen ist erlaubt (schnelles Rechnen). Den gespeicherten Wert `sre_naechster_schuss_takte` oder das gespeicherte Ziel zu lesen bleibt verboten.
+- **Entschieden von Daniel am 04.11.2026 22:01 (Krari kann noch widersprechen):**
+  - Stand des Zufalls auslesen ist Cheat; die Streuung als Wahrscheinlichkeit nutzen koennte fair sein.
+  - Grenzen, die nur die Maus prueft: je Fall Daniel oder Krari fragen, nicht selbst entscheiden.
+  - Waren und Gold (Befehl 113) nur an Verbuendete; an Nicht-Verbuendete gibt es die Option fuer Menschen nicht.
+  - Fremde Vorraete nur schaetzen, nicht lesen. Hineinsehen in fremde Waffenkammer oder Kornspeicher geht fuer Menschen laut Daniel ziemlich sicher nicht.
+  - Burgplan des KI-Gegners aus der Datei lesen ist unfair; aus beobachteten Partien lernen ist fair.
+  - Keine Befehle in der Pause: Im Mehrspieler gibt es keine Pause, und gegen eine KI kann ein Mensch darin nichts tun.
 - **Wissen sammeln und Allwissen als Schalter (Daniel 04.11.2026 21:18):** Verborgenes (Gegnerwirtschaft, Absicht der Gegner-KI, gespeicherte Ziele) wird weiter erforscht und festgehalten - "solange wir wissen, dass es moeglich ist. Es erlauben ist ein anderer Schalter." Der Schalter steht im Spielweg fest auf Menschen-Wissen; wer ihn umlegen darf, entscheidet Daniel. Diese Regel hier gilt fuer den fairen Spielweg.
 - **Testgefechte und Messwerkzeuge** (Sandkasten, `shc.py`, Startwaren angleichen, Messlaeufe): duerfen setzen und toeten,
   aber **nur im eigenen Testaufbau, nie in einer Partie, die als echtes Ergebnis zaehlt**.

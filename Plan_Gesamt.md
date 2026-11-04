@@ -24,27 +24,15 @@ Einzelheiten stehen in `Plan_Takt_Kern.md` und `Plan_Gehirn_Sichtbar.md`. Daniel
 
 Offen: Reicht je ein Sieg oder braucht es eine Serie?
 
-## Fair oder Cheat: zu entscheiden (Daniel 04.11.: "sollten wir jetzt mal machen")
+## Fair oder Cheat
 
-Entschieden stehen in `FAIRNESS.md`: schnell steuern ja, Spiel verändern nein, verborgenes Gegnerwissen nein, Schusstakt aus dem Bild ja, stapeln ja,
-mehr als 5 auf den Turm per Befehl ja. Offen, je mit Vorschlag:
-
-| # | Frage | Vorschlag |
-|---|---|---|
-| F1 | Stand des Zufalls auslesen (wo der Stein landet) | Cheat. Die Streuung als Wahrscheinlichkeit nutzen ist fair |
-| F2 | Grenzen, die nur die Maus prüft, sonst | Je Fall fragen, Vorgabe: nein, wenn ein Mensch sie nicht umgehen kann |
-| F3 | Waren oder Gold an Nicht-Verbündete (Befehl 113) | Cheat, an Verbündete fair, sobald das Menü gemessen ist |
-| F4 | Fremde Vorräte, soweit das Spiel sie einem Menschen zeigt | Fair nur, was ein Mensch im Spiel wirklich aufrufen kann; messen |
-| F5 | Burgplan des KI-Gegners aus der AIV-Datei lesen | Cheat. Aus beobachteten Partien lernen ist fair |
-| F6 | Befehle in der Pause | Fair, wo ein Mensch das auch kann; im Mehrspieler gibt es sie nicht |
-
-Krari soll mit entscheiden: Bisher hat nur Daniel die Regel festgelegt.
+F1 bis F6 hat Daniel am 04.11. 22:01 entschieden, Wortlaut in `FAIRNESS.md`. Krari gibt seine Sicht über `SamurAI_Entscheidungen.html` zurück; was er anders sieht, klären die beiden.
 
 ## Reihenfolge (die nächsten Punkte)
 
 | # | Punkt | Ziel aus dem Brainstorming | Messung | Größe | Braucht |
 |---|---|---|---|---|---|
-| 1 | Fair oder Cheat entscheiden (F1 bis F6), Krari einbeziehen | Guard Rails | Eingetragen in `FAIRNESS.md` | klein | - |
+| 1 | Krari antwortet über `SamurAI_Entscheidungen.html` | Guard Rails | Ausgefüllte Datei zurück, Abweichungen geklärt | klein | - |
 | 2 | Feldliste "das sieht ein Mensch" | Guard Rails; "Eye defines the variables" | Daniel und Krari lesen sie gegen | klein | - |
 | 3 | Werteabgleich mit `spielwerte_gemessen.json` | Spiel verstehen | Abweichungen je Wert, z. B. Reichweite 44 gegen 40 | klein | - |
 | 4 | Befehlsweg auf Papier | Bekannte Lücken: Kampfgehirn je Einheit | Die drei roten Fragen beantwortet | klein | - |
@@ -77,7 +65,7 @@ Krari soll mit entscheiden: Bisher hat nur Daniel die Regel festgelegt.
 ## Offen
 
 - **Langfrist-Ziel** ist im Brainstorming leer.
-- Fair oder Cheat: F1 bis F6 oben.
+- Antwort von Krari auf das Blatt.
 
 ## Regel beim Planen
 
