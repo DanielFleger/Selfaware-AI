@@ -24,7 +24,7 @@ verbündete Einheiten bleiben roh (`parteien.freunde_von`, wie der Sichtfilter).
 |---|---|---|
 | Lage, Leben, Art, Besitzer, Blick | gelesen | gelesen (sichtbar) |
 | Zustand (Tätigkeit) | gelesen | gelesen (sichtbar) |
-| Schussphase `sre_naechster_schuss_takte` | gespeichert/abgeleitet | aus Zustand + Animationsbild + Phasentabelle. **Grenzfall, Frage an Daniel** |
+| Schussphase `sre_naechster_schuss_takte` | gespeichert/abgeleitet | aus Zustand + Animationsbild + Phasentabelle (Daniel 04.11. 21:39: erlaubt, das Bild ist sichtbar; Genauigkeit über Mensch ist schnelles Rechnen) |
 | Schussziel `shootTargetedUnit` | gelesen | Zielwahl-Regel P14 auf sichtbare Lagen (die hat der Simulator schon), Blick als Prüfung |
 | Nahkampfziel `attackedUnitID` | gelesen | nur, wenn Zustand 106 und das Ziel wirklich Leben verliert (Regel wie `waechter.sichtfilter`), sonst Regel AU18 |
 | Wegplan, Laufziel `sre_wegpunkte`, `destination` | gelesen | aus der beobachteten Bewegung (letzte Lagen, Richtung), geradeaus weiter |

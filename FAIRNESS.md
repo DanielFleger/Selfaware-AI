@@ -46,6 +46,7 @@ Sieg damit beweist nichts.
   und Reichweite waehlt) ist Spielmechanik und darf zur Vorhersage genutzt werden - angewendet auf sichtbare Positionen.
   Das im Speicher gespeicherte Ziel einer feindlichen Einheit, ihren naechsten Schusstakt oder ihr Nahkampfziel zu LESEN
   ist verboten (`shootTargetedUnit`, `sre_naechster_schuss_takte`, `attackedUnitID` - die Pruefung sucht danach).
+- **Schusstakt aus dem Animationsbild (Daniel 04.11.2026 21:39, ja):** Zustand und Animationsbild eines Schuetzen sind auf dem Schirm sichtbar. Daraus plus der gemessenen Phasentabelle den Schusstakt genau auszurechnen ist erlaubt (schnelles Rechnen). Den gespeicherten Wert `sre_naechster_schuss_takte` oder das gespeicherte Ziel zu lesen bleibt verboten.
 - **Wissen sammeln und Allwissen als Schalter (Daniel 04.11.2026 21:18):** Verborgenes (Gegnerwirtschaft, Absicht der Gegner-KI, gespeicherte Ziele) wird weiter erforscht und festgehalten - "solange wir wissen, dass es moeglich ist. Es erlauben ist ein anderer Schalter." Der Schalter steht im Spielweg fest auf Menschen-Wissen; wer ihn umlegen darf, entscheidet Daniel. Diese Regel hier gilt fuer den fairen Spielweg.
 - **Testgefechte und Messwerkzeuge** (Sandkasten, `shc.py`, Startwaren angleichen, Messlaeufe): duerfen setzen und toeten,
   aber **nur im eigenen Testaufbau, nie in einer Partie, die als echtes Ergebnis zaehlt**.
