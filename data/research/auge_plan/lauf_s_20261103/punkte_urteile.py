@@ -51,7 +51,7 @@ U = {
     "P335": (B, "2 von 2: Zustand 3 ab Takt 136."),
     "P336": (B, "Werkzeug: Zahl passt."),
     "P337": (W, "Mit zu wenig Ingenieuren bleibt das Feld 0, in 5 Gerätearten mit 1 Mann zu wenig. Der Ingenieur wartet 2 Felder daneben."),
-    "P338": (W, "Die Grenze 5 gilt nur beim Mausklick (`MenuItemActionHandler`, sie sperrt dort den Befehl). Mit dem Befehl selbst: 8 von 8 auf dem Wachturm, Takt 541 bis 614 (sonder17). Für SamurAI ist das eine Frage der Fairness, nicht der Technik."),
+    "P338": (W, "Die Grenze 5 gilt nur beim Mausklick (`MenuItemActionHandler`, sie sperrt dort den Befehl). Mit dem Befehl selbst: 8 von 8 auf dem Wachturm, Takt 541 bis 614 (sonder17). Daniel hat am 04.11. entschieden: SamurAI darf das."),
     "P339": (W, "Beim Angriffsbefehl bleibt huntedBy 0 (19 von 19 Zielen, reichweite). Bei Zielen, die der Hund selbst wählt, geht es von 0 auf 1."),
     "P340": (B, "16 Brennende in 4 Szenen: Besitzer 0 und dying 1 in allen Rahmen."),
     "P341": (B, "Takt 39: Zähler 1, Schild von Zustand 6 auf 0, Ingenieur 109 (0x6D)."),

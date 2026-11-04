@@ -6,11 +6,11 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 
 | Urteil | Punkte |
 |---|---|
-| bestaetigt | 103 |
+| bestaetigt | 111 |
 | widerlegt | 11 |
-| gemessen | 73 |
+| gemessen | 75 |
 | gesehen | 11 |
-| Lage fehlte | 42 |
+| Lage fehlte | 32 |
 | offen | 1 |
 
 ## Widerlegt (11)
@@ -29,7 +29,7 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P228 | `UpdateHopsFarmer` | Hopfenbauer trägt im Einzelspiel bis 6, nicht 1. |
 | P241 | `UpdateSlinger` | countSlingers2 zählt keine Schleuderer: Es steigt seit Takt 16.541 je Takt um 1 auf 32.261, ohne einen einzigen Schleuderer zu Beginn. Der Name ist falsch. |
 
-## Bestätigt (103)
+## Bestätigt (111)
 
 | Punkt | Funktion | Beleg |
 |---|---|---|
@@ -37,9 +37,12 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P018 | `getPreviousGoodsFilteringUnallowed` | 20 Einträge vor -1. |
 | P019 | `getBatchBuyPrice` | Tabelle gelesen. Kauf aller Waren kostete -3.420 Gold, Verkauf brachte +1.610: beides stimmt auf das Gold mit der Tabelle (Verkauf: Preis je 5 Stück). |
 | P020 | `initPopularityAndRecruitableDefaults` | euroRecruitable und mercRecruitable alle 1, someCount44 = storedPopularityPercent = 9000. |
+| P021 | `initializeGameStateAfterMapLoad` | Lauf K: 25 von 25 Preisen gleich dem Burgenbau aus Lauf F, also nicht aus der Karte. Es sind die Liga-Preise. |
 | P023 | `importTradingCosts` | Kopie gleich der Preistabelle. Die Werte sind die der Liga, nicht die Grundwerte. |
 | P039 | `setAICParameters_15` | aics[15]: 10, 4000, 1, gleich dem Grundwert. |
 | P040 | `setAICParameters_16` | aics[16]: 50, 12, 37, gleich dem Grundwert. |
+| P052 | `recomputeAIAvailableGridTiles` | Lauf K: Alle 8 KI: Zähler 11 bis 24, Cooldown 0. Der Zweig ohne Eisen in Reichweite kam nicht vor. |
+| P053 | `applyAIV` | Lauf K: Nur Status 0 und 1. 1.634 von 1.634 Bau-Schritten liegen im 100x100-Feld ab dem Versatz. Bei den 593 Wand-Schritten ist `location` keine Kachel, sondern der Anfang in `locationsArray`; davon je Spieler 9 Felder geprüft, alle im Feld. |
 | P056 | `setMapSize` | 400, 300, 200, 160, 100, -1: absteigend mit Ende -1. |
 | P058 | `getBuildingSizeForCommandBuildingType` | Die Sprungtabelle ab 0x4fa5e8 ist im Speicher gleich wie in der Programmdatei, UCP3 ändert hier nichts. `punkte_rechnung5.txt`. |
 | P061 | `placeBarracks` | Beträge 0 oder 5. |
@@ -106,7 +109,12 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P173 | `determineGameTicksToPerform` | 39,9 Takte je Sekunde im vollen Dorf. |
 | P176 | `updatePathLinkageTileMapRelatedToGates` | Tor schließt: Außenfeld oben verliert Bit 0x10, unten Bit 1. Tor öffnet: Beide kommen wieder (sonder10, Takt 100 und 1.253). |
 | P178 | `isTileInRangeOfKeepRange` | Platzkarte in der Probe: Käfig und Wachturm außerhalb des Burgbereichs zeigen Zeichen i, das ist Grund 18 = 0x12 (`probe_befehle_gefecht.txt`). |
+| P181 | `aiUpdateTaxesAndRations` | Lauf K: Unter der kritischen Beliebtheit steht die Steuer im Wochentakt auf 2: 1.056 von 1.058 Lesungen (Spieler 6 und 8, die einzigen unter ihrer Grenze). Die 2 anderen zeigen 3 bei Spieler 8, nicht einzeln nachgesehen. |
+| P184 | `addBuildingToTargetableBuildings` | Lauf K: Schritt +1 (52 von 60 Wechseln), Höchstwert 100. Dazu -1 (8 Wechsel): `getTargetableBuildingForPlayerID` zieht ab. |
+| P186 | `sellExcessGoods` | Lauf K: Stichprobe: Spieler 3 verkauft Ware 13 bei 56 auf 50, Grenze 52 mit Spielraum. In 54 Fällen fiel eine Ware über ihrer Grenze im Verkaufstakt; je Aufruf wird nur eine Ware verkauft, die übrigen gezählten Fälle sind Verbrauch im selben Takt. |
+| P189 | `aiBuyAndSellGoods` | Lauf K: `willBuy` wechselt nur im Tagestakt des Spielers: 764 von 768, sonst 0 von 38.065. Die 4 ohne Wechsel sind nicht einzeln nachgesehen. |
 | P190 | `updateAIBehaviour` | Tag 50, Woche 200, Monat 800 Takte. |
+| P194 | `countMoatsOwnedByEachPlayer` | Lauf K: `moatsOwned` gleich eigener Zählung der Grabenfelder in `moats[]`: 448 von 448 Monatstakten. |
 | P195 | `countUnfinishedMoatTilesForPlayer` | Der Graben wurde fertig: stage 2, fillProgress 4. |
 | P196 | `advanceMoatDigProgress` | fillProgress 0 bis 4, dann stage 2. |
 | P200 | `placeWalls` | 3 Stein, 15 Felder verlangt: 7 Felder gebaut, also 2S+1 (sonder19_g). |
@@ -137,7 +145,7 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P239 | `UpdateMinerIronFetcher` | Eisen +1 je Stück (15 Mal). Der Träger trägt 2 und 3. |
 | P240 | `UpdatePriest` | Höchstwert 8000. |
 
-## Gemessen (73)
+## Gemessen (75)
 
 | Punkt | Funktion | Beleg |
 |---|---|---|
@@ -183,6 +191,7 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P049 | `buyRequiredGoods` | Einmal gelesen, Werte in punkte.json. |
 | P050 | `updateTribeLocations` | Einmal gelesen, Werte in punkte.json. |
 | P051 | `convertAIVBuildingTypeToCommandBuildingType` | Einmal gelesen, Werte in punkte.json. |
+| P054 | `recomputeHeatmaps` | Lauf K: Eisen in 62 Zellen, Summe 595; Felsbrocken in 147 Zellen, Summe 1.729; Öl 0. Mit den Vorkommen der Karte nicht verglichen. |
 | P055 | `setTreeStageRelatedValues` | Einmal gelesen, Werte in punkte.json. |
 | P057 | `getBuildingSizeIndexMappingData` | Im ersten gelesenen Rahmen (Takt 1342) nur Nullen. Wann das Spiel sie füllt, ist offen. |
 | P060 | `useEraserBrush` | Einmal gelesen, Werte in punkte.json. |
@@ -213,6 +222,7 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P160 | `QueueChangeTaxes` | Spielbefehl 34 setzt taxesSetting: 2 auf 7, Takt 205 (sonder19_g). Die beiden Felder der Erwartung gehören zum Schieber, der nicht benutzt wurde, sie blieben 0. |
 | P167 | `ClickDestroyBuilding` | Befehl 29 mit Param1 50: Rückgabe genau die Hälfte, siehe P130. |
 | P175 | `updateSeparateAreaTileMap` | Zähler läuft 1 bis 50. |
+| P188 | `aiRecruitUnits` | Lauf K: 12 von 47 neuen Warenwünschen im Wert +0x9c der KI, 15 weitere gehören zum Holz. Die anderen stammen aus anderen Wegen; `euroUnitAcquisitionFailReason` ist nicht mitgelesen, die Lage ist daher nicht eindeutig. |
 | P198 | `destroyWall` | Spielbefehl 41 (Feldnummer, 100): Das Mauerstück ist bei Takt 225 weg (sonder19_g). Der Stein ist nicht zu sehen, der Bestand wird aus dem Lager neu gerechnet. |
 
 ## Gesehen, nicht nachgerechnet (11)
@@ -231,15 +241,11 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P234 | `UpdatePoleTurner` | Piken steigen je Stück um 1. Das Holz je Durchgang ist von anderen Verbrauchern nicht getrennt. |
 | P238 | `UpdateEngineer` | Feld ändert sich, nicht nachgerechnet. |
 
-## Lage fehlte (42)
+## Lage fehlte (32)
 
 | Punkt | Funktion | Beleg |
 |---|---|---|
 | P001 | `isSameTeam` | Kein Bündnis im Burgenbau. Lauf K. |
-| P021 | `initializeGameStateAfterMapLoad` | Gefechtspreise, kein Gefecht. Lauf K. |
-| P052 | `recomputeAIAvailableGridTiles` | Keine KI. Lauf K. |
-| P053 | `applyAIV` | Keine KI mit Burgvorlage. Lauf K. |
-| P054 | `recomputeHeatmaps` | Zellen im Burgenbau leer. Lauf K. |
 | P059 | `updateMacroLayerRelated` | Kein Sumpffeld auf den gefahrenen Karten: Lauf F 0, Lauf K 0 Felder mit Bit 0x20000000. |
 | P092 | `getPriceForDisbandedUnitType` | Geld zurück gibt es laut Code nur in Siege That (`disbandUnit`), das kommt in unseren Partien nicht vor. |
 | P100 | `updateRepairCostAndReturnIfDamaged` | Kein Gebäude beschädigt, die Felder gehören zur Anzeige. |
@@ -259,19 +265,13 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P177 | `algTunnelerFindTarget` | Kein Tunnel. Lauf S. |
 | P179 | `WindowMsgProcessingFunc` | Keine Taste gedrückt, das Tempo kam über das Modul. |
 | P180 | `isMapperAvailable` | Karte mit Wild. |
-| P181 | `aiUpdateTaxesAndRations` | Keine KI. Das Werkzeug fand die 2 im eigenen Feld. Lauf K. |
 | P182 | `aiShouldBuildWoodcutter` | Keine KI. Lauf K. |
 | P183 | `planToBuyWhenLowOnResourceAndSnoozeBuildings` | Keine KI. Lauf K. |
-| P184 | `addBuildingToTargetableBuildings` | Feld blieb im Burgenbau 0. Lauf K. |
 | P185 | `shareGoldAmongTeamMembers` | Kein Verbündeter. Lauf K. |
-| P186 | `sellExcessGoods` | Keine KI. Lauf K. |
 | P187 | `requestGoods` | Kein Verbündeter. Lauf K. |
-| P188 | `aiRecruitUnits` | Keine KI. Lauf K. |
-| P189 | `aiBuyAndSellGoods` | Keine KI. Lauf K. |
 | P191 | `aiDecideOnNewBuildings` | Keine KI. Lauf K. |
 | P192 | `validateWallPlacementAtTile` | Kein Feindgebäude. Lauf K. |
 | P193 | `isBuildingPlacementAllowedAtTile` | Nicht versucht, Grenze 200 gelesen. |
-| P194 | `countMoatsOwnedByEachPlayer` | moatsOwned blieb trotz Graben 0: Nur updateAIBehaviour ruft die Zählung. Lauf K. |
 | P199 | `validateWallBuildPath` | Kein Feindgebäude. Lauf K. |
 | P201 | `checkBuildingCanBePlacedHere` | Nicht im Gefecht versucht. Lauf K. |
 | P209 | `placeBuilding` | Holz reichte. |

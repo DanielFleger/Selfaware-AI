@@ -1,9 +1,9 @@
 {
 "lauf": "Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance",
 "zaehlung": {
-"Lage fehlte": 42,
-"gemessen": 73,
-"bestaetigt": 103,
+"Lage fehlte": 32,
+"gemessen": 75,
+"bestaetigt": 111,
 "gesehen": 11,
 "widerlegt": 11,
 "offen": 1
@@ -172,8 +172,8 @@
 {
 "nr": "P021",
 "funktion": "initializeGameStateAfterMapLoad",
-"urteil": "Lage fehlte",
-"grund": "Gefechtspreise, kein Gefecht. Lauf K.",
+"urteil": "bestaetigt",
+"grund": "Lauf K: 25 von 25 Preisen gleich dem Burgenbau aus Lauf F, also nicht aus der Karte. Es sind die Liga-Preise.",
 "lauf_f_werkzeug": "gemessen",
 "spielart": true
 },
@@ -420,24 +420,24 @@
 {
 "nr": "P052",
 "funktion": "recomputeAIAvailableGridTiles",
-"urteil": "Lage fehlte",
-"grund": "Keine KI. Lauf K.",
+"urteil": "bestaetigt",
+"grund": "Lauf K: Alle 8 KI: Zähler 11 bis 24, Cooldown 0. Der Zweig ohne Eisen in Reichweite kam nicht vor.",
 "lauf_f_werkzeug": "gemessen",
 "spielart": false
 },
 {
 "nr": "P053",
 "funktion": "applyAIV",
-"urteil": "Lage fehlte",
-"grund": "Keine KI mit Burgvorlage. Lauf K.",
+"urteil": "bestaetigt",
+"grund": "Lauf K: Nur Status 0 und 1. 1.634 von 1.634 Bau-Schritten liegen im 100x100-Feld ab dem Versatz. Bei den 593 Wand-Schritten ist `location` keine Kachel, sondern der Anfang in `locationsArray`; davon je Spieler 9 Felder geprüft, alle im Feld.",
 "lauf_f_werkzeug": "gemessen",
 "spielart": false
 },
 {
 "nr": "P054",
 "funktion": "recomputeHeatmaps",
-"urteil": "Lage fehlte",
-"grund": "Zellen im Burgenbau leer. Lauf K.",
+"urteil": "gemessen",
+"grund": "Lauf K: Eisen in 62 Zellen, Summe 595; Felsbrocken in 147 Zellen, Summe 1.729; Öl 0. Mit den Vorkommen der Karte nicht verglichen.",
 "lauf_f_werkzeug": "gemessen",
 "spielart": true
 },
@@ -1452,8 +1452,8 @@
 {
 "nr": "P181",
 "funktion": "aiUpdateTaxesAndRations",
-"urteil": "Lage fehlte",
-"grund": "Keine KI. Das Werkzeug fand die 2 im eigenen Feld. Lauf K.",
+"urteil": "bestaetigt",
+"grund": "Lauf K: Unter der kritischen Beliebtheit steht die Steuer im Wochentakt auf 2: 1.056 von 1.058 Lesungen (Spieler 6 und 8, die einzigen unter ihrer Grenze). Die 2 anderen zeigen 3 bei Spieler 8, nicht einzeln nachgesehen.",
 "lauf_f_werkzeug": "zahl passt",
 "spielart": false
 },
@@ -1476,8 +1476,8 @@
 {
 "nr": "P184",
 "funktion": "addBuildingToTargetableBuildings",
-"urteil": "Lage fehlte",
-"grund": "Feld blieb im Burgenbau 0. Lauf K.",
+"urteil": "bestaetigt",
+"grund": "Lauf K: Schritt +1 (52 von 60 Wechseln), Höchstwert 100. Dazu -1 (8 Wechsel): `getTargetableBuildingForPlayerID` zieht ab.",
 "lauf_f_werkzeug": "nicht gesehen",
 "spielart": true
 },
@@ -1492,8 +1492,8 @@
 {
 "nr": "P186",
 "funktion": "sellExcessGoods",
-"urteil": "Lage fehlte",
-"grund": "Keine KI. Lauf K.",
+"urteil": "bestaetigt",
+"grund": "Lauf K: Stichprobe: Spieler 3 verkauft Ware 13 bei 56 auf 50, Grenze 52 mit Spielraum. In 54 Fällen fiel eine Ware über ihrer Grenze im Verkaufstakt; je Aufruf wird nur eine Ware verkauft, die übrigen gezählten Fälle sind Verbrauch im selben Takt.",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
@@ -1508,16 +1508,16 @@
 {
 "nr": "P188",
 "funktion": "aiRecruitUnits",
-"urteil": "Lage fehlte",
-"grund": "Keine KI. Lauf K.",
+"urteil": "gemessen",
+"grund": "Lauf K: 12 von 47 neuen Warenwünschen im Wert +0x9c der KI, 15 weitere gehören zum Holz. Die anderen stammen aus anderen Wegen; `euroUnitAcquisitionFailReason` ist nicht mitgelesen, die Lage ist daher nicht eindeutig.",
 "lauf_f_werkzeug": "nicht gesehen",
 "spielart": true
 },
 {
 "nr": "P189",
 "funktion": "aiBuyAndSellGoods",
-"urteil": "Lage fehlte",
-"grund": "Keine KI. Lauf K.",
+"urteil": "bestaetigt",
+"grund": "Lauf K: `willBuy` wechselt nur im Tagestakt des Spielers: 764 von 768, sonst 0 von 38.065. Die 4 ohne Wechsel sind nicht einzeln nachgesehen.",
 "lauf_f_werkzeug": "nicht gesehen",
 "spielart": false
 },
@@ -1556,8 +1556,8 @@
 {
 "nr": "P194",
 "funktion": "countMoatsOwnedByEachPlayer",
-"urteil": "Lage fehlte",
-"grund": "moatsOwned blieb trotz Graben 0: Nur updateAIBehaviour ruft die Zählung. Lauf K.",
+"urteil": "bestaetigt",
+"grund": "Lauf K: `moatsOwned` gleich eigener Zählung der Grabenfelder in `moats[]`: 448 von 448 Monatstakten.",
 "lauf_f_werkzeug": "nicht gesehen",
 "spielart": false
 },
