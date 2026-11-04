@@ -950,6 +950,32 @@ def test_vierter_nachlauf_treppe_mit_stufen(tmp_path):
     assert (r["x"] + 34, r["y"] + 4) in laeufe  # im Ring
 
 
+def test_fuenfter_nachlauf_befehl_erst_nach_dem_bau(tmp_path):
+    g = Spiel(tmp_path)
+    e = ls.SZENEN["sonder14"](lauf_von(g))
+    assert e["kein_platz"] == [] and e["nicht_gesetzt"] == []
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    b = [c for c in g.log if isinstance(c, dict)]
+    gb = {x["posten"]: x for x in plan["gebaeude"]}
+    ort = {k["posten"]: k for k in plan["karte"]}
+    laeufe = [tuple(c["angriff"]["lauf"]) for c in b if "lauf" in c.get("angriff", {})]
+    assert (ort["nur_mauer"]["x"] + 9, ort["nur_mauer"]["y"] + 2) in laeufe  # auf der Mauer
+    assert (gb["turm_eck"]["x"], gb["turm_eck"]["y"]) in laeufe  # Eckfeld
+    assert (gb["turm_mitte"]["x"] + 1, gb["turm_mitte"]["y"] + 1) in laeufe  # Mitte
+    # der Befehl kommt erst nach dem Bau: beim Start kein Laufbefehl, die Stufe liegt hinter der Flaechenkarte
+    for n, f, _, _ in ls.sonder14(lauf_von(Spiel(tmp_path))):
+        if n in ("nur_mauer", "turm_eck", "turm_mitte", "turm4_weg"):
+            *_, jetzt, stufen = f(100, 100)
+            assert jetzt() == [] and stufen[0][0] == ls.LAUF_NACH_BAU >= 100
+    t = [x for x in plan["einheiten"] if x.get("posten") == "trupp_ohne_flaeche" and x["rolle"] == "trupp"]
+    turm = gb["trupp_ohne_flaeche"]
+    assert (t[0]["x"], t[0]["y"]) == (turm["x"] + 1, turm["y"] + 1)  # die erste Einheit in der Turmmitte
+    k = next(x for x in plan["einheiten"] if x.get("posten") == "trupp_ohne_flaeche" and x["rolle"] == "feind")
+    assert max(abs(t[1]["x"] - k["x"]), abs(t[1]["y"] - k["y"])) <= 1  # der zweite kaempft
+    an = next(c for c in b if c.get("angriff", {}).get("lauf") and t[1]["nr"] in c["angriff"]["einheiten"])
+    assert an["angriff"]["einheiten"][0] == t[0]["nr"] and len(an["angriff"]["einheiten"]) == 6
+
+
 def test_abgelehnte_mauer_wird_wiederholt_und_bleibt_sichtbar(tmp_path):
     g = Spiel(tmp_path, linien_abgelehnt=3)
     plan = json.load(open(ls.SZENEN["sonder13"](lauf_von(g))["pfad"] + ".plan.json", encoding="utf-8"))
