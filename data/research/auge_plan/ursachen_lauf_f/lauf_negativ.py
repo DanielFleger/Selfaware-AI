@@ -191,6 +191,8 @@ FAELLE = [
     ("S17: Grosser Turm auf die Ecke", S, "lauf=[x + 15, y + 3])]), (LAUF_NACH_BAU + 1500", "lauf=[x + 13, y + 1])]), (LAUF_NACH_BAU + 1500"),
     ("S17: Kaempfer weit weg", S, "am_feind = _e(\"trupp\", 27, x + 1, y + 2)", "am_feind = _e(\"trupp\", 27, x + 1, y + 1)"),
     ("S17: Erster nicht auf der Ecke", S, "erster = _e(\"trupp\", 27, x + 20, y + 2)", "erster = _e(\"trupp\", 27, x + 21, y + 3)"),
+    ("S18: Zu viel Stein", S, "KNAPP_STEIN = 2", "KNAPP_STEIN = 200"),
+    ("S18: Falscher Zweig", S, "[{\"player\": 1, \"ware\": {\"typ\": 4, \"menge\": KNAPP_STEIN}}] + ([{\"player\": 1, \"spielbefehl\": {\"nr\": 86, \"werte\": [trupp, 1]}}]", "[{\"player\": 1, \"ware\": {\"typ\": 4, \"menge\": KNAPP_STEIN}}] + ([{\"player\": 1, \"spielbefehl\": {\"nr\": 86, \"werte\": [trupp, 0]}}]"),
     ("S15: Nachbarfeld ueberschrieben", S, "\"wert\": (alt & 0xFFFF0000) | (wert & 0xFFFF)}", "\"wert\": wert & 0xFFFF}"),
     ("S15: Falscher Auftrag", S, "AUFTRAG_ASSASSINE, AUFTRAG_TAKT, AUFTRAG_TOD = 12, 200, 1200", "AUFTRAG_ASSASSINE, AUFTRAG_TAKT, AUFTRAG_TOD = 11, 200, 1200"),
     ("S15: Korb ohne Vergleich", S, "[(KORB_TAKT, lambda: korb_setzen(1)), (KORB_TAKT + 60,", "[(KORB_TAKT + 60,"),

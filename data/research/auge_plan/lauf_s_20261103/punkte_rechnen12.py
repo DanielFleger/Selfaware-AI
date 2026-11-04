@@ -125,6 +125,22 @@ def munition():
     print("   Stein Spieler 1 (Takt, Menge):", st[:30])
 
 
+def knapp():
+    p = pl.neueste("sonder18_g")
+    if not p:
+        print("sonder18_g fehlt")
+        return
+    p, plan, wer, gb, S = laden("sonder18_g")
+    kopf("sonder18_g", p, plan)
+    k = next(e for e in wer["knapp"] if e["typ"] == 39)
+    v = []
+    for t, u in pl.stand(p, "DAT_UnitsState", {**U, "m": "units[].stoneAmmunition"}):
+        w = int(u["m"][k["nr"]])
+        if not v or v[-1][1] != w:
+            v.append((t - S, w))
+    print("P309 knapp (Takt, Munition):", v[:14])
+
+
 def pech():
     p, plan, wer, gb, S = laden("sonder11_g")
     kopf("sonder11_g", p, plan)
@@ -188,7 +204,7 @@ def rush():
 
 
 if __name__ == "__main__":
-    for f in (angst, loeschen, munition, pech, schalter, rush):
+    for f in (angst, loeschen, munition, knapp, pech, schalter, rush):
         try:
             f()
         except Exception as e:

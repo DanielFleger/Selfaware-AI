@@ -1023,6 +1023,19 @@ def test_gesetzte_schalter_assassinen_und_feuerkorb(tmp_path):
     assert all(b[i - 1].get("ware", {}).get("typ") == 15 for i in ik)  # Gold kurz davor
 
 
+def test_knapper_stein_vor_dem_auffuellen(tmp_path):
+    g, l = lauf_im_gefecht(tmp_path)
+    e = ls.SZENEN["sonder18_g"](l)
+    assert e["kein_platz"] == []
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    b = [c for c in g.log if isinstance(c, dict)]
+    k = next(x for x in plan["einheiten"] if x["typ"] == 39)
+    bef = next(c for c in b if c.get("spielbefehl", {}).get("nr") == 86)
+    assert bef["spielbefehl"]["werte"] == [1000 + k["nr"], 1]
+    w = b[b.index(bef) - 1]
+    assert w["ware"] == {"typ": 4, "menge": 2}
+
+
 def test_poke_zwei_byte_laesst_den_nachbarn():
     class L:
         class k:

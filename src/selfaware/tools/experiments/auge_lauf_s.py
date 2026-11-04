@@ -1195,6 +1195,7 @@ VERLUSTE = 0xb98460  # DAT_UnitValueLossesPerEnemyPlayer (UpdateUnitLossData, Ma
 AUFTRAG_ASSASSINE, AUFTRAG_TAKT, AUFTRAG_TOD = 12, 200, 1200  # updateUnits: case 0xc zaehlt totalAssassinTroops
 KORB_GOLD, KORB_TAKT, ET_BRAZIER, GM_SIEGE_THAT, GM_GEFECHT_2 = 2000, 300, 14, 6, 3  # Typen: EntityType, GameMode2. Gefecht misst 3 (Protokoll spielart)
 RUSH_LAUF, RUSH_SETZEN, RUSH_TAKTE, RUSH_NACH, GM_MEHRSPIELER, GM_EINZEL = 50, 100, 1000, 800, 1, 99  # Takte: Der Weg dauert rund 12 Takte je Feld, 12 Felder also rund 150: Die Einheit kommt an, wenn der Schutz schon gilt
+KNAPP_STEIN = 2  # weniger, als zum Auffuellen noetig: Das Katapult hat bei Takt 1000 noch 5 bis 6 von 10
 LAUF_NACH_BAU = 300  # Takte: Die Flaechenkarte rechnet das Spiel alle 50 Takte neu (updateSeparateAreaTileMap), ein Vielfaches davon ist sicher
 MAUER_VERSUCHE, GEBAEUDE_VERSUCHE = 5, 2  # Wie oft ein abgelehnter Bau neu geschickt wird. Ein Tier geht in 40 Takten weiter, ein Felsen nie
 
@@ -1505,6 +1506,22 @@ def sonder15_g(l):
     return (("assassinen", assassinen, 8, 4), ("korb", korb, 8, 3))
 
 
+def sonder18_g(l):
+    """P309: Was kostet das Auffuellen? Im Bestand ist es nicht zu sehen: Das Spiel rechnet ihn aus dem Lager neu, gesetzte Ware gilt nur bis dahin (sonder10_g). Darum knapp setzen: Mit 2 Stein gibt es laut Speicher 2 Schuss (SelectionReplenishAmmo, UCP3), laut Export waeren es 4."""
+    s = l.s
+
+    def knapp(x, y):
+        k = dict(_e("geraet", 39, x + 4, y + 2), mann=2, soll=2)
+        la = _ing(x, y + 1, 2)
+        z = _e("ziel", 25, x + 28, y + 2, 2)
+
+        def auffuellen():
+            trupp = {e["nr"]: e["trupp"] for e in s.einheiten_alle()}.get(k["nr"], 0)
+            return [{"player": 1, "ware": {"typ": 4, "menge": KNAPP_STEIN}}] + ([{"player": 1, "spielbefehl": {"nr": 86, "werte": [trupp, 1]}}] if trupp else [])
+        return [], [k] + la + [z], [], lambda: [_angriff(la, art=16, a=k["nr"], b=k["uid"])], [(SONDER_BEMANNEN, lambda: [_angriff([k], ziel=z["nr"])]), (MUNITION_TRUPP, auffuellen)]
+    return (("knapp", knapp, 36, 6),)
+
+
 def sonder16_g(l):
     """P331, zuletzt und allein, weil currentGameMode den ganzen Lauf betrifft: Der Rush-Schutz gilt laut Code nicht im Einzelspieler-Gefecht (shouldUnitsEngageInMelee). Also Spielart Mehrspieler setzen. Bleibt das Spiel stehen, ist auch das eine Messung."""
     s = l.s
@@ -1788,6 +1805,7 @@ SZENEN = {
     "sonder17": lambda l: szene_sonder(l, "sonder17", sonder17(l), rand=15),
     "sonder15_g": lambda l: szene_sonder(l, "sonder15_g", sonder15_g(l), rand=15, raeumen=True),
     "sonder16_g": lambda l: szene_sonder(l, "sonder16_g", sonder16_g(l), rand=15, raeumen=True),
+    "sonder18_g": lambda l: szene_sonder(l, "sonder18_g", sonder18_g(l), rand=15, raeumen=True),
     "sonder11_g": lambda l: szene_sonder(l, "sonder11_g", sonder11_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),
     "sonder8_g": lambda l: szene_sonder(l, "sonder8_g", sonder8_g(l), rand=15, raeumen=True),
     "sonder9_g": lambda l: szene_sonder(l, "sonder9_g", sonder9_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),
