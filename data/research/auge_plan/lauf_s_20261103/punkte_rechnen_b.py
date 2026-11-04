@@ -26,6 +26,26 @@ def stapel():
     print("Einzeln befohlen, ein Zielfeld, sonder17 am Ende:", collections.Counter(letzt).most_common())
 
 
+def punkt():
+    p = pl.neueste("sonder23")
+    if not p:
+        print("sonder23 fehlt")
+        return
+    plan = pl.plan_von(p)
+    S = plan["von"]
+    print("sonder23 Takte", plan["bis"] - S, "Ziel", {k["posten"]: (k["x"] + 4, k["y"] + 8) for k in plan["karte"]})
+    for n in ("punkt_einzeln", "punkt_trupp"):
+        wer = [e for e in plan["einheiten"] if e.get("posten") == n]
+        hoch, wann, letzt = 0, None, None
+        for t, u in pl.stand(p, "DAT_UnitsState", {"mx": "units[].microXPosition", "my": "units[].microYPosition"}):
+            c = collections.Counter((int(u["mx"][e["nr"]]) // 8, int(u["my"][e["nr"]]) // 8) for e in wer)
+            m = c.most_common(1)[0][1]
+            if m > hoch:
+                hoch, wann = m, t - S
+            letzt = c
+        print("  ", n, "hoechstens auf einem Feld", hoch, "bei Takt", wann, "am Ende:", letzt.most_common())
+
+
 def buendnis():
     f = sorted(glob.glob(os.path.join(pl.L, "buendnis_k_*.auge")), key=os.path.getsize)
     if not f:
@@ -80,7 +100,7 @@ def buendnis():
 
 
 if __name__ == "__main__":
-    for f in (stapel, buendnis):
+    for f in (stapel, punkt, buendnis):
         try:
             f()
         except Exception as e:

@@ -1102,6 +1102,21 @@ def test_holztor_als_ziel(tmp_path):
     assert s["setzeGebaeude"]["mapper"] == 103 and s["setzeGebaeude"]["spieler"] == 2
 
 
+def test_einheiten_auf_einen_punkt(tmp_path):
+    g = Spiel(tmp_path)
+    e = ls.SZENEN["sonder23"](lauf_von(g))
+    plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
+    b = [c for c in g.log if isinstance(c, dict) and "lauf" in c.get("angriff", {})]
+    ort = {k["posten"]: k for k in plan["karte"]}
+    assert len(b) == 9  # 8 einzeln, 1 Trupp
+    einzeln = [c for c in b if len(c["angriff"]["einheiten"]) == 1]
+    trupp = [c for c in b if len(c["angriff"]["einheiten"]) == 8]
+    o = ort["punkt_einzeln"]
+    assert len(einzeln) == 8 and {tuple(c["angriff"]["lauf"]) for c in einzeln} == {(o["x"] + 4, o["y"] + 8)}
+    o = ort["punkt_trupp"]
+    assert len(trupp) == 1 and tuple(trupp[0]["angriff"]["lauf"]) == (o["x"] + 4, o["y"] + 8)
+
+
 def test_poke_zwei_byte_laesst_den_nachbarn():
     class L:
         class k:

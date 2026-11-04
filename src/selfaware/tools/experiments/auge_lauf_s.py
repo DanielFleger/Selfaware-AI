@@ -1641,6 +1641,18 @@ def sonder22(l):
     return (("holztor", holztor, 14, 6),)
 
 
+def sonder23(l):
+    """Einheiten auf einen Punkt packen (Daniel 04.11.: darf SamurAI). Offener Boden, 8 Speertraeger auf dasselbe Feld, einmal jeder mit eigenem Befehl, einmal als ein Trupp. Auf dem Wachturm landeten in sonder17 hoechstens 3 auf einem Feld."""
+    def punkt_einzeln(x, y):
+        wer = [_e("packer", 24, x + i, y) for i in range(8)]
+        return [], wer, [], lambda: [_angriff([w], lauf=[x + 4, y + 8]) for w in wer], None
+
+    def punkt_trupp(x, y):
+        wer = [_e("packer", 24, x + i, y) for i in range(8)]
+        return [], wer, [], lambda: [_angriff(wer, lauf=[x + 4, y + 8])], None
+    return (("punkt_einzeln", punkt_einzeln, 10, 10), ("punkt_trupp", punkt_trupp, 10, 10))
+
+
 def sonder11_g(l):
     """P314: Wie sonder9_g, aber die Gegner gehen genau auf ein Feld des brennenden Pechs (Lauf 00:40: bis 1 Feld daneben, counter blieb 0)."""
     s = l.s
@@ -1912,6 +1924,7 @@ SZENEN = {
     "sonder17": lambda l: szene_sonder(l, "sonder17", sonder17(l), rand=15),
     "sonder19": lambda l: szene_sonder(l, "sonder19", sonder19(l), rand=15),
     "sonder21": lambda l: szene_sonder(l, "sonder21", sonder21(l), rand=15),
+    "sonder23": lambda l: szene_sonder(l, "sonder23", sonder23(l), rand=15),
     "sonder22": lambda l: szene_sonder(l, "sonder22", sonder22(l), rand=15),
     "sonder20_g": lambda l: szene_sonder(l, "sonder20_g", sonder20_g(l), frei_maske=burgbereich(l), rand=12, raeumen=True),
     "sonder19_g": lambda l: szene_sonder(l, "sonder19_g", sonder19_g(l), frei_maske=burgbereich(l), rand=10, raeumen=True),
