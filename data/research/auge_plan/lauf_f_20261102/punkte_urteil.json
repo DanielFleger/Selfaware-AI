@@ -1,9 +1,9 @@
 {
 "lauf": "Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance",
 "zaehlung": {
-"Lage fehlte": 32,
+"bestaetigt": 113,
 "gemessen": 75,
-"bestaetigt": 111,
+"Lage fehlte": 30,
 "gesehen": 11,
 "widerlegt": 11,
 "offen": 1
@@ -12,8 +12,8 @@
 {
 "nr": "P001",
 "funktion": "isSameTeam",
-"urteil": "Lage fehlte",
-"grund": "Kein Bündnis im Burgenbau. Lauf K.",
+"urteil": "bestaetigt",
+"grund": "Gesetzt im Messlauf, 4 Paare: playerTeams 1, 1, 2, 2, 3, 3, 4, 4, das Spiel zeigt Teamwappen. Der Startbefehl `teams` allein wirkte auf diesem Weg nicht. Das Spiel endete mit gameOver 1 bei Takt 161.812, beide Lords von Team 1 lebten noch. `punkte_rechnung_b.txt`.",
 "lauf_f_werkzeug": "nicht zuordenbar",
 "spielart": false
 },
@@ -1484,8 +1484,8 @@
 {
 "nr": "P185",
 "funktion": "shareGoldAmongTeamMembers",
-"urteil": "Lage fehlte",
-"grund": "Kein Verbündeter. Lauf K.",
+"urteil": "bestaetigt",
+"grund": "Gold geht genau von Partner zu Partner: Spieler 4 an 3: 332 und 272, Spieler 2 an 1: 60. Laut Code ruft es die KI ab 2.500 Gold (`updateAIStrengthState`).",
 "lauf_f_werkzeug": "gesehen",
 "spielart": false
 },
@@ -1501,7 +1501,7 @@
 "nr": "P187",
 "funktion": "requestGoods",
 "urteil": "Lage fehlte",
-"grund": "Kein Verbündeter. Lauf K.",
+"grund": "Zwischen KI und KI gab es im Lauf mit Bündnis keine Bitte. Die Erwartung braucht einen menschlichen Verbündeten.",
 "lauf_f_werkzeug": "nicht gesehen",
 "spielart": false
 },

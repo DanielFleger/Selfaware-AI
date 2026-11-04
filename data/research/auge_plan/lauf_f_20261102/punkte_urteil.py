@@ -19,7 +19,7 @@ LAUF = "Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance"
 
 B_, W_, G_, L_, S_, O_ = "bestaetigt", "widerlegt", "gemessen", "Lage fehlte", "gesehen", "offen"
 U = {
-    "P001": (L_, "Kein Bündnis im Burgenbau. Lauf K."),
+    "P001": (B_, "Gesetzt im Messlauf, 4 Paare: playerTeams 1, 1, 2, 2, 3, 3, 4, 4, das Spiel zeigt Teamwappen. Der Startbefehl `teams` allein wirkte auf diesem Weg nicht. Das Spiel endete mit gameOver 1 bei Takt 161.812, beide Lords von Team 1 lebten noch. `punkte_rechnung_b.txt`."),
     "P007": (G_, "Tabelle gelesen; Vergleich mit der KI braucht Lauf K."),
     "P014": (B_, "armySize fällt mitten im Takt auf 0 und steht danach wieder auf 18, 384 Wechsel."),
     "P016": (G_, "Alle 25 Waren handelbar. Mit dem Marktfenster nicht verglichen."),
@@ -160,9 +160,9 @@ U = {
     "P182": (L_, "Keine KI. Lauf K."),
     "P183": (L_, "Keine KI. Lauf K."),
     "P184": (B_, "Lauf K: Schritt +1 (52 von 60 Wechseln), Höchstwert 100. Dazu -1 (8 Wechsel): `getTargetableBuildingForPlayerID` zieht ab."),
-    "P185": (L_, "Kein Verbündeter. Lauf K."),
+    "P185": (B_, "Gold geht genau von Partner zu Partner: Spieler 4 an 3: 332 und 272, Spieler 2 an 1: 60. Laut Code ruft es die KI ab 2.500 Gold (`updateAIStrengthState`)."),
     "P186": (B_, "Lauf K: Stichprobe: Spieler 3 verkauft Ware 13 bei 56 auf 50, Grenze 52 mit Spielraum. In 54 Fällen fiel eine Ware über ihrer Grenze im Verkaufstakt; je Aufruf wird nur eine Ware verkauft, die übrigen gezählten Fälle sind Verbrauch im selben Takt."),
-    "P187": (L_, "Kein Verbündeter. Lauf K."),
+    "P187": (L_, "Zwischen KI und KI gab es im Lauf mit Bündnis keine Bitte. Die Erwartung braucht einen menschlichen Verbündeten."),
     "P188": (G_, "Lauf K: 12 von 47 neuen Warenwünschen im Wert +0x9c der KI, 15 weitere gehören zum Holz. Die anderen stammen aus anderen Wegen; `euroUnitAcquisitionFailReason` ist nicht mitgelesen, die Lage ist daher nicht eindeutig."),
     "P189": (B_, "Lauf K: `willBuy` wechselt nur im Tagestakt des Spielers: 764 von 768, sonst 0 von 38.065. Die 4 ohne Wechsel sind nicht einzeln nachgesehen."),
     "P190": (B_, "Tag 50, Woche 200, Monat 800 Takte."),

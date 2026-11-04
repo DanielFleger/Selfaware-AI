@@ -443,6 +443,16 @@ Beleg: `punkte_rechnung17.txt`.
 - **Holztor:** Mapper 103 mit Größe 3 setzte das Spiel nicht (sonder22). Art und Größe passen also noch nicht, als Ziel ist es nicht geprüft.
 - **Schüsse ohne Verlust:** Sie landen, aber es gibt keinen Verlust: Pfeil 17 von 331, Feuer 14 von 75, Bolzen 3 von 69, Schleuderstein 1 von 232. Das Ziel war in keinem Fall weg. Die Ursache ist nicht geklärt.
 
+## Einheiten auf einen Punkt und Bündnis, 04.11. 19:15 bis 19:34
+
+Belege: `sonder23`, `punkte_rechnung_b.txt`. Daniel hat entschieden: SamurAI darf alles, was ein Mensch auch kann, also auch Einheiten auf einen Punkt packen, und per Befehl mehr als 5 Mann auf einen Wachturm schicken.
+
+**Packen, offener Boden, 8 Speerträger auf ein Feld:** Jeder mit eigenem Befehl: Alle 8 stehen ab Takt 135 auf einem Feld. Das hält bis Takt 376, ab dann gehen sie auseinander, bei Takt 677 steht jeder auf einem eigenen Feld. Ob ein neuer Befehl den Stapel hält, ist nicht gefahren. Als ein Trupp: Sie verteilen sich auf Zielfelder um den Punkt, nur im Laufen standen kurz bis zu 4 auf einem Feld.
+
+**Bündnis, 8 KI in 4 Paaren, Green Haven:** Der Startbefehl `teams` wirkte auf diesem Weg nicht (Lauf 19:18). Im angehaltenen Spiel gesetzt hielten die Teams, das Spiel zeigte Teamwappen. Gold geht genau von Partner zu Partner: 332, 272 und 60. Das Spiel endete bei Takt 161.812 mit gameOver 1, beide Lords von Team 1 lebten. Warum der Abstand zum letzten gefallenen Lord (Takt 155.202) so groß ist, ist nicht geklärt. Mein Werkzeug kennt als Ende nur den letzten Lord und meldete deshalb „kein neuer Takt“, das ist eine Lücke im Werkzeug. Warenbitten gab es zwischen KI und KI nicht.
+
+**Lauf F steht damit bei 113 bestätigt, 11 widerlegt, 75 gemessen, 11 gesehen, 30 Lage fehlt, 1 offen.**
+
 ## Noch offen
 
 Warum rund 5 Prozent der Schüsse ohne Verlust landen. Warum der erste Rahmen im Gefecht alt ist. Holztor als Ziel. Feuerkorb: Befehl 69 wirkte nicht (P312). Lauf-K-Stand (Szene 8b im Plan) ist nicht gefahren, die KI-Punkte kamen aus der Aufzeichnung von Lauf K. Lauf F: 42 Lagen fehlen, 11 Punkte sind nur gesehen, 1 ist offen. Liste in `Punkte_Lauf_F.md`.

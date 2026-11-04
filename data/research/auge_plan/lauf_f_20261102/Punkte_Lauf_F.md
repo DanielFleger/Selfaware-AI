@@ -6,11 +6,11 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 
 | Urteil | Punkte |
 |---|---|
-| bestaetigt | 111 |
+| bestaetigt | 113 |
 | widerlegt | 11 |
 | gemessen | 75 |
 | gesehen | 11 |
-| Lage fehlte | 32 |
+| Lage fehlte | 30 |
 | offen | 1 |
 
 ## Widerlegt (11)
@@ -29,10 +29,11 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P228 | `UpdateHopsFarmer` | Hopfenbauer trägt im Einzelspiel bis 6, nicht 1. |
 | P241 | `UpdateSlinger` | countSlingers2 zählt keine Schleuderer: Es steigt seit Takt 16.541 je Takt um 1 auf 32.261, ohne einen einzigen Schleuderer zu Beginn. Der Name ist falsch. |
 
-## Bestätigt (111)
+## Bestätigt (113)
 
 | Punkt | Funktion | Beleg |
 |---|---|---|
+| P001 | `isSameTeam` | Gesetzt im Messlauf, 4 Paare: playerTeams 1, 1, 2, 2, 3, 3, 4, 4, das Spiel zeigt Teamwappen. Der Startbefehl `teams` allein wirkte auf diesem Weg nicht. Das Spiel endete mit gameOver 1 bei Takt 161.812, beide Lords von Team 1 lebten noch. `punkte_rechnung_b.txt`. |
 | P014 | `resetCountsAndStatistics` | armySize fällt mitten im Takt auf 0 und steht danach wieder auf 18, 384 Wechsel. |
 | P018 | `getPreviousGoodsFilteringUnallowed` | 20 Einträge vor -1. |
 | P019 | `getBatchBuyPrice` | Tabelle gelesen. Kauf aller Waren kostete -3.420 Gold, Verkauf brachte +1.610: beides stimmt auf das Gold mit der Tabelle (Verkauf: Preis je 5 Stück). |
@@ -111,6 +112,7 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P178 | `isTileInRangeOfKeepRange` | Platzkarte in der Probe: Käfig und Wachturm außerhalb des Burgbereichs zeigen Zeichen i, das ist Grund 18 = 0x12 (`probe_befehle_gefecht.txt`). |
 | P181 | `aiUpdateTaxesAndRations` | Lauf K: Unter der kritischen Beliebtheit steht die Steuer im Wochentakt auf 2: 1.056 von 1.058 Lesungen (Spieler 6 und 8, die einzigen unter ihrer Grenze). Die 2 anderen zeigen 3 bei Spieler 8, nicht einzeln nachgesehen. |
 | P184 | `addBuildingToTargetableBuildings` | Lauf K: Schritt +1 (52 von 60 Wechseln), Höchstwert 100. Dazu -1 (8 Wechsel): `getTargetableBuildingForPlayerID` zieht ab. |
+| P185 | `shareGoldAmongTeamMembers` | Gold geht genau von Partner zu Partner: Spieler 4 an 3: 332 und 272, Spieler 2 an 1: 60. Laut Code ruft es die KI ab 2.500 Gold (`updateAIStrengthState`). |
 | P186 | `sellExcessGoods` | Lauf K: Stichprobe: Spieler 3 verkauft Ware 13 bei 56 auf 50, Grenze 52 mit Spielraum. In 54 Fällen fiel eine Ware über ihrer Grenze im Verkaufstakt; je Aufruf wird nur eine Ware verkauft, die übrigen gezählten Fälle sind Verbrauch im selben Takt. |
 | P189 | `aiBuyAndSellGoods` | Lauf K: `willBuy` wechselt nur im Tagestakt des Spielers: 764 von 768, sonst 0 von 38.065. Die 4 ohne Wechsel sind nicht einzeln nachgesehen. |
 | P190 | `updateAIBehaviour` | Tag 50, Woche 200, Monat 800 Takte. |
@@ -241,11 +243,10 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P234 | `UpdatePoleTurner` | Piken steigen je Stück um 1. Das Holz je Durchgang ist von anderen Verbrauchern nicht getrennt. |
 | P238 | `UpdateEngineer` | Feld ändert sich, nicht nachgerechnet. |
 
-## Lage fehlte (32)
+## Lage fehlte (30)
 
 | Punkt | Funktion | Beleg |
 |---|---|---|
-| P001 | `isSameTeam` | Kein Bündnis im Burgenbau. Lauf K. |
 | P059 | `updateMacroLayerRelated` | Kein Sumpffeld auf den gefahrenen Karten: Lauf F 0, Lauf K 0 Felder mit Bit 0x20000000. |
 | P092 | `getPriceForDisbandedUnitType` | Geld zurück gibt es laut Code nur in Siege That (`disbandUnit`), das kommt in unseren Partien nicht vor. |
 | P100 | `updateRepairCostAndReturnIfDamaged` | Kein Gebäude beschädigt, die Felder gehören zur Anzeige. |
@@ -267,8 +268,7 @@ Lauf F 02.11.2026 21:42, Instanz 2, Burgenbau, Liga-Balance. Geschrieben von SRE
 | P180 | `isMapperAvailable` | Karte mit Wild. |
 | P182 | `aiShouldBuildWoodcutter` | Keine KI. Lauf K. |
 | P183 | `planToBuyWhenLowOnResourceAndSnoozeBuildings` | Keine KI. Lauf K. |
-| P185 | `shareGoldAmongTeamMembers` | Kein Verbündeter. Lauf K. |
-| P187 | `requestGoods` | Kein Verbündeter. Lauf K. |
+| P187 | `requestGoods` | Zwischen KI und KI gab es im Lauf mit Bündnis keine Bitte. Die Erwartung braucht einen menschlichen Verbündeten. |
 | P191 | `aiDecideOnNewBuildings` | Keine KI. Lauf K. |
 | P192 | `validateWallPlacementAtTile` | Kein Feindgebäude. Lauf K. |
 | P193 | `isBuildingPlacementAllowedAtTile` | Nicht versucht, Grenze 200 gelesen. |
