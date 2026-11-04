@@ -108,6 +108,40 @@ zaehlt "getroffen/verfehlt", ohne zu befehlen. Das ist die Vergleichsgruppe.
 
 **Rueckweg:** Der Schalter zur Laufzeit (Einheit -2, wie R1 -1); Kern 23 bleibt im Paket.
 
+**Stand 04.11.:** Frage-Agent ROT (28.10. 02:50): Flucht ohne Vorrang, zwei Befehlsschlangen, Schleife Haken/Fortsetzen. Nicht gebaut, Frage an Daniel offen (ein Befehlsweg). Berichtigung: Die Annahme 'nur ein Gruppenbefehl je Takt' ist nicht belegt (L203), Messbitte bei SRE; davon haengt ab, ob Warteschlange und Buendelung noetig sind.
+
+## Uebergabe der Assassinen an den Kern (Daniel 28.10. 02:12 "ja", Schritt 3)
+
+**Ziel:** Assassinen bekommen ihre Ziele weiter vom Lenker (Gehirn, ~100 Takte). Ausfuehren und Ausweichen macht der Kern, und
+zwar jeden Takt. Danach setzen sie ihren Auftrag selbst fort.
+
+1. **Lenker** (`erstes_spiel.py`, an der Stelle, wo die Assassinen-Befehle gesendet werden): Schalter `KERN_ASSASSINEN`
+   (Rueckweg False).
+   - Ist ein Kern ab Version 27 geladen (Abfrage `{"kern": {"status": true}}` beim Start), uebergibt der Lenker jede neue
+     Assassine (`uebernehmen`; der Kern prueft UID und Besitzer).
+   - Ihre Befehle gehen dann als Kern-Auftraege raus:
+     - `angriff gebaeude` -> Kern Art 9;
+     - `angriff ziel` -> Art 4;
+     - `angriff lauf` und `halten` (mit Ort) -> Art 17 Laufen. Das Festhalten von logik.lua entfaellt fuer sie, der Kern laesst
+       sie dort stehen.
+   - `halten los` entfaellt. Einheiten anderer Steuerungen bleiben auf dem alten Weg.
+2. **Kern 27, Fortsetzen:** Das Buch merkt sich je Einheit den letzten Auftrag des Lenkers. Nach einem Reflex (R1/R3) stellt der
+   Kern diesen Auftrag wieder in die Schlange, sobald die Einheit am Ausweichpunkt steht oder R_FORTSETZEN = 40 Takte vorbei sind
+   und keine neue Bedrohung wartet. So wird ein Gebaeudeabriss nach dem Haken weitergemacht, ohne auf die naechste Lenker-Runde
+   zu warten.
+3. **Der Lenker merkt den Reflex** nur an der Lage (die Einheit steht anders). Seine eigenen Fluchtregeln (Rueckzug,
+   Hit&Run, Deckung) bleiben und gehen als Kern-Auftraege raus.
+4. **Pruefung (vorher festgelegt):** Testgefecht mit Assassinen gegen ein feindliches Gebaeude, Armbrueste daneben (KI aus).
+   Zwei frische Gefechte: Uebergabe an und aus.
+   - Soll: Mit Uebergabe ist das Gebaeude mit weniger Leben-Verlust zerstoert oder es gibt weniger Tote.
+   - Soll: Jede Assassine setzt nach dem Reflex ihren Angriff fort (Protokoll "FORTSETZEN"), und das Gebaeude faellt.
+   - Widerlegt, wenn die Assassinen nach dem Haken stehen bleiben oder das Gebaeude spaeter oder gar nicht faellt.
+   - Alte Pruefungen gruen (funde 58, risiko_lernen, zielboerse, marsch, feldzug), Fairness GRUEN.
+5. **Danach in Daniels App:** Kern 27 wird zur Standard-Fassung (`samurai_kern.dll` im Laufzeit-Paket, Sicherung), und
+   `erstes_spiel.py` kommt in die App-Kopie (Sicherung `.vor-B287-20261028`).
+
+**Rueckweg:** `KERN_ASSASSINEN = False`. Die alte samurai_kern.dll (Fassung 19) liegt in der Sicherung des Zips.
+
 ## Was „jeden Takt entscheiden“ technisch heißt
 
 Python kann keinen Takt treffen: Eine Runde braucht heute rund 0,7 s, ein Takt bei Tempo 40 etwa 25 ms. Entschieden werden
