@@ -1000,7 +1000,7 @@ def sonder6_g(l):
 
 
 MAUER_ARTEN = (24, 25, 26, 27, 28, 71, 73, 75)  # Speer, Pike, Keule, Schwert, Ritter, Sklave, Assassine, arabisches Schwert: P353 bis P357, P366 bis P368
-STEIN_START = 200  # Stueck: Das Lager nimmt 1 je 4 Takte aus startResources (UpdateStockpile); ware blieb in den Aufzeichnungen bei 0 (punkte_rechnung2.txt)
+STEIN_MENGE, STEIN_TAKTE = 200, (1700, 1760, 1820)  # ware haelt nicht lange (2000 auf 0 bei Takt 100), startResources wurde nicht abgeholt (punkte_rechnung7.txt). Darum kurz vor dem Bedarf: Der 10. Schuss fiel bei Takt 1709
 NACH_FUELLEN, OEL_HALTUNG, OEL_FEIND = 800, 500, 600  # Takte: Das Oel war bei 350 da (Lauf 21:35)
 LORD_SELBST = 6000  # Takte: Niemand hilft nach, 8 Ritter schlagen, bis der Lord faellt
 
@@ -1116,8 +1116,8 @@ def sonder8_g(l):
 
     def nachladen(x, y):
         """P308: Ein Katapult schiesst seine 10 Steine, dann soll es selbst nachladen. P309: Ein zweites bekommt den Befehl zum Auffuellen (Spielbefehl 86)."""
-        adr, schritt = s.feld("DAT_GameState", "playerDataArray[].startResources[]")
-        stein = [{"player": 1, "poke": adr + schritt + 4 * 4, "wert": STEIN_START}]
+        def stein():
+            return [{"player": 1, "ware": {"typ": 4, "menge": STEIN_MENGE}}]
         a, b = dict(_e("geraet", 39, x + 4, y + 2), mann=2, soll=2), dict(_e("geraet", 39, x + 4, y + 10), mann=2, soll=2)
         la, lb = _ing(x, y + 1, 2), _ing(x, y + 9, 2)
         ziel = _e("ziel", 25, x + 28, y + 2, 2)
@@ -1128,29 +1128,28 @@ def sonder8_g(l):
         def auffuellen():
             trupp = {e["nr"]: e["trupp"] for e in s.einheiten_alle()}.get(b["nr"], 0)
             return [{"player": 1, "spielbefehl": {"nr": 86, "werte": [trupp, 0]}}] if trupp else []
-        return [], [a, b] + la + lb + [ziel], stein, lambda: [_angriff(la, art=16, a=a["nr"], b=a["uid"]), _angriff(lb, art=16, a=b["nr"], b=b["uid"])], [(SONDER_BEMANNEN, schiessen), (NACH_FUELLEN, auffuellen)]
+        return [], [a, b] + la + lb + [ziel], [], lambda: [_angriff(la, art=16, a=a["nr"], b=a["uid"]), _angriff(lb, art=16, a=b["nr"], b=b["uid"])], [(SONDER_BEMANNEN, schiessen), (NACH_FUELLEN, lambda: stein() + auffuellen())] + [(t, stein) for t in STEIN_TAKTE]
 
     def oel(wert):
         """P323: Ingenieur mit Oel, ein Feind kommt nahe. Code: Nur die Haltung stehen wirft nicht (ifNecessaryThrowOilAutomatically)."""
         def f(x, y):
             g = [_g(28, x + 6, y + 1, spieler=1)]
             adr, schritt = s.feld("DAT_BuildingsState", "buildings[].resourcePitch")
-            ing = _e("oel", 30, x + 2, y + 3)
+            leute = [_e("oel", 30, x + 2, y + 3 + i) for i in range(2)]  # einer bedient die Schmelze, einer traegt: Allein hatte keiner Oel (Lauf 00:40)
             feind = _e("feind", 24, x + 22, y + 3, 2)
 
             def jetzt():
-                return {e["nr"]: e for e in s.einheiten_alle()}.get(ing["nr"], {})
+                return {e["nr"]: e for e in s.einheiten_alle()}.get(leute[0]["nr"], {})
 
             def holen():
-                return [{"poke": adr + schritt * g[0]["nr"], "wert": 20}, _angriff([ing], art=15, a=g[0]["nr"], b=g[0]["uid"])] if "nr" in g[0] else []
+                return [{"poke": adr + schritt * g[0]["nr"], "wert": 20}, _angriff(leute, art=15, a=g[0]["nr"], b=g[0]["uid"])] if "nr" in g[0] else []
 
             def haltung():
                 return [{"player": 1, "spielbefehl": {"nr": 70, "werte": [jetzt().get("trupp", 0), wert]}}] if jetzt().get("trupp") else []
 
             def kommen():
-                e = jetzt()
-                return [_angriff([feind], 2, lauf=[e["x"] + 4, e["y"]])] if e else []
-            return g, [ing, feind], [], holen, [(OEL_HALTUNG, haltung), (OEL_FEIND, kommen)]
+                return [_angriff([feind], 2, lauf=[x + 11, y + 3])]  # 5 Felder von der Schmelze, unter den 10 Feldern des Codes
+            return g, leute + [feind], [], holen, [(OEL_HALTUNG, haltung), (OEL_FEIND, kommen)]
         return f
 
     def grenze(x, y):

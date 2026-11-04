@@ -791,9 +791,12 @@ def test_nachlauf_gefecht_stein_oel_und_grenze(tmp_path):
     assert e["kein_platz"] == [] and g.geraeumt[0] >= ls.STARTTRUPPEN_TAKT
     plan = json.load(open(e["pfad"] + ".plan.json", encoding="utf-8"))
     b = [c for c in g.log if isinstance(c, dict)]
-    st = next(c for c in b if c.get("wert") == ls.STEIN_START)
-    assert st["poke"] == 7000 + 100 + 16  # Ware 4 von Spieler 1
-    assert any(c.get("spielbefehl", {}).get("nr") == 86 and c["spielbefehl"]["werte"][0] for c in b)
+    ware = [c for c in b if c.get("ware", {}).get("menge") == ls.STEIN_MENGE]
+    assert len(ware) == 1 + len(ls.STEIN_TAKTE) and all(c["ware"]["typ"] == 4 and c["player"] == 1 for c in ware)  # Stein, kurz vor dem Bedarf
+    befehl = next(c for c in b if c.get("spielbefehl", {}).get("nr") == 86)
+    assert befehl["spielbefehl"]["werte"][0] and b.index(ware[0]) < b.index(befehl)
+    assert sum(1 for x in plan["einheiten"] if x.get("posten") == "oel_stehen" and x["rolle"] == "oel") == 2  # einer bedient, einer traegt
+    assert sum(1 for c in b if c.get("wert") == 20 and "poke" in c) == 3  # Pech in jede Schmelze
     haltung = [c["spielbefehl"]["werte"][1] for c in b if c.get("spielbefehl", {}).get("nr") == 70]
     assert sorted(haltung) == [0, 1, 2]
     gr = {x["rolle"]: x for x in plan["einheiten"] if x.get("posten") == "grenze"}
