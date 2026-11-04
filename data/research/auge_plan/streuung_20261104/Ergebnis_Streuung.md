@@ -2,7 +2,7 @@
 
 B-142, 04.11.2026. Auftrag Daniel: „Das spiel wirkt teilweise zufällig wo projektile bzw. feuer geht … wäre das eine goldgrube“, dann „Ja, entziffern“.
 
-**Ergebnis:** Der Zufall ist eine feste Tabelle aus 20.000 Zahlen, die das Spiel der Reihe nach verbraucht. Zielpunkt, Flug, Einschlag und Opfer folgen aus ihr und aus dem Spielstand. Der Nachbau sagt 1.977 geprüfte Schussenden ohne Abweichung voraus, auf Takt, Mikrofeld und Opfer.
+**Ergebnis:** Der Zufall ist eine feste Tabelle aus 20.000 Zahlen, die das Spiel der Reihe nach verbraucht. Zielpunkt, Flug, Einschlag und Opfer folgen aus ihr und aus dem Spielstand. Der Nachbau sagt 2.724 geprüfte Schussenden ohne Abweichung voraus, auf Takt, Mikrofeld und Opfer.
 
 8 Mikro sind 1 Feld. Alle Zahlen gelten für Instanz 2 mit aktiver Liga (`liga_ai.json`, SHA-256 beginnt 205bf2841888).
 
@@ -12,16 +12,17 @@ B-142, 04.11.2026. Auftrag Daniel: „Das spiel wirkt teilweise zufällig wo pro
 |---|---|---|---|
 | Zielfunktionen direkt im Spiel gerufen, Zufallszahl vorgegeben | 83.840 Aufrufe, 11 Schützenarten, 8 Blickrichtungen | 0 Abweichungen | `streuung_rufen.txt` |
 | Gegenprobe dazu: Modell bekommt die falsche Zufallszahl | 8.384 Aufrufe | 4.311 weichen ab, der Test schlägt also an | `streuung_gegenprobe.txt` |
-| Tempo und Winkel beim Abschuss | 3.050 Schüsse aus Lauf S | alle gleich | `flug_pruefung.txt` |
-| Flug Takt für Takt, Ort und Höhe | 47.859 Takte | 47.858 gleich. Der eine Rest und 5 weitere Flüge hängen an Rahmen 7809319 der Szene streuung, der noch den Takt davor zeigt: ein Fehler der Aufnahme, nicht des Spiels | `flug_pruefung.txt` |
-| Ende des Flugs: Takt, Mikrofeld, Opfer verliert Leben | 1.977 Flüge | 0 falsch | `flug_pruefung.txt` |
-| Zielpunkt gegen die Zufallszahlen des Takts | 2.434 Schüsse | 2.433 passen. Der eine Rest ist ein Brandpfeil auf Pech (Zielart 34), der ohne Streuung fliegt (Code) | `ziel_pruefung.txt` |
+| Trefferfenster und Teamregel direkt gerufen | 150 Aufrufe, 10 Zielarten | 0 Abweichungen | `fenster_rufen.txt` |
+| Tempo und Winkel beim Abschuss | 3.784 Schüsse aus Lauf S | alle gleich | `flug_pruefung.txt` |
+| Flug Takt für Takt, Ort und Höhe, auch nach dem Abprall | 80.770 Takte | 80.768 gleich. Die 2 Reste und 9 weitere Stellen hängen an Rahmen, die noch den Takt davor zeigen, vor allem 7809319 der Szene streuung: ein Fehler der Aufnahme, nicht des Spiels | `flug_pruefung.txt` |
+| Ende des Flugs: Takt, Mikrofeld, Opfer verliert Leben | 2.724 Flüge | 0 falsch | `flug_pruefung.txt` |
+| Zielpunkt gegen die Zufallszahlen des Takts | 3.170 Schüsse | alle passen, 2 davon sind Brandpfeile auf Pech ohne Streuung | `ziel_pruefung.txt` |
 | Feuerschaden je Takt | 10.232 und 1.017 Einheit-Takte auf Feuerfeldern | 1 Takt ohne Verlust, nicht weiter untersucht | `feuer_pruefung.txt`, `feuer_pruefung_streuung.txt` |
-| Tests mit 13 eingebauten Fehlern | 57 Tests gegen echte Spielwerte | 13 von 13 rot | `tests/test_streuung.py`, `lauf_negativ.py St:` |
+| Tests mit 19 eingebauten Fehlern | 91 Tests gegen echte Spielwerte | 19 von 19 rot | `tests/test_streuung.py`, `lauf_negativ.py St:` |
 
-**Nicht geprüft:** 734 Flüge aus Aufnahmen ohne jeden Takt, 315 Flüge, die bei Aufnahmeende noch flogen, 24 Flüge mit Abpraller (Richtung nicht nachgebaut, siehe unten). Die Szenen liegen auf einer fast ebenen Karte, Hügel und Bäume kommen nur als Einzelfälle vor.
+**Nicht geprüft:** 739 Flüge aus Aufnahmen ohne jeden Takt, 321 Flüge, die bei Aufnahmeende noch flogen. Die Szenen liegen auf einer fast ebenen Karte, Hügel kommen nur als Einzelfälle vor.
 
-Eine eigene Szene `streuung` (jeder Takt, 497 Schüsse, `lauf_s_20261104_215808_streuung.auge`, bleibt lokal) schloss die Lücke bei den Belagerungsgeräten und den Schüssen auf den Boden.
+Eigene Szenen mit jedem Takt schlossen die Lücken (Aufnahmen bleiben lokal): `streuung` (497 Schüsse: Geräte, Boden), `streuung2` (569: Freunde, große Ziele, Mauerecke, Bäume), `streuung3` (145: Schützen auf Mauer und Turm, Korb, Schuss nach oben), `streuung4_g` (9, im Gefecht: Pech).
 
 ## 1. Worauf gezielt wird
 
@@ -36,7 +37,11 @@ Eine eigene Szene `streuung` (jeder Takt, 497 Schüsse, `lauf_s_20261104_215808_
 |---|---|---|---|---|---|---|
 | Chance auf Streuung | 0 % | 3 % | 10 % | 20 % | 50 % | 75 % |
 
-Streut er, gilt: 2 von 8 Fällen seitlich und längs bis Stufe / 8 Mikro, 4 von 8 Höhe um 20 und mehr daneben, 2 von 8 Höhe um 40 und mehr zu hoch.
+Streut er, gilt: 2 von 8 Fällen seitlich und längs bis Stufe / 8 Mikro, 4 von 8 Höhe um 20 und mehr daneben, 2 von 8 Höhe um 40 und mehr zu hoch. Im echten Flug gemessen: Pikeniere oben auf einer Mauer, 94 Höhe über dem Schützen: Modell 47 %, gemessen 41 % von 70 Schüssen (`oben_pruefung.txt`).
+
+**Nach oben macht ein Schuss nur ein Drittel Schaden:** Pfeil gegen den Pikenier 333 statt 1.000, Stein 250. Das gilt, wenn das Ziel mehr als 30 über dem Abschuss liegt (Code: Ballista die Hälfte, Ingenieur mit Öl ein Zwanzigstel).
+
+**Oben stehen:** Auf der Mauer zählt die Höhe als Gelände (`terrainOrClimbHeight` 98, `buildingHeight` 4, Abschuss auf 132), auf dem Turm als Gebäude (8 und 180, Abschuss auf 218). Die Streu-Stufe vergleicht nur die Geländehöhe: Ein Schütze auf dem Turm zählt dort wie am Boden. Vom Turm und von der Mauer auf den Boden flog jeder Schuss genau (22 und 30 Schüsse).
 
 **Sicht verdeckt:** Hat der Schütze keine freie Linie, nimmt `acquireShootTarget` die Stelle des Gegners als Ziel (Zielnummer -2) und schießt mit Bodenweg und hoher Bahn. Er trifft also nur noch zufällig. **Mangonel und Ballista zielen immer so**, sie treffen, wo der Gegner beim Zielen stand.
 
@@ -84,10 +89,14 @@ Geschosse fliegen eine echte Wurfbahn, ohne Zufall:
 
 **Ein Schuss hat kein festes Opfer.** Bei jedem Mikroschritt prüft das Spiel alle Einheiten auf dem Feld, auf dem das Geschoss gerade ist. Getroffen wird die erste in der Liste des Felds, wenn sie:
 
-- nicht der Schütze ist, nicht stirbt und nicht zum eigenen Team gehört (Tiere zählen als Gegner),
-- und die Geschosshöhe zwischen ihrem Boden und Boden + 42 liegt. Als Ziel haben Trebuchet und Belagerungsturm 80, Schild 90, Katapult 50, Ramme 40, Mangonel 70 (Code, in den Aufnahmen trafen nur die 42 zu).
+- nicht der Schütze ist und nicht stirbt (Tiere zählen als Gegner),
+- und die Geschosshöhe zwischen ihrem Boden und Boden + 42 liegt. Als Ziel haben Trebuchet und Belagerungsturm 80, Schild 90, Katapult 50, Ramme 40, Mangonel 70 (direkt gerufen, alle bestätigt).
 
-Gemessen: 1.321 Treffer am anvisierten Ziel, 47 an einem anderen Feind, 4 an Tieren. 77 Flüge gingen durch einen Freund im Trefferfenster und flogen weiter. Die Einheit bewegt sich im Takt vor dem Geschoss; wer im selben Takt schon von einem anderen Geschoss getötet wurde, fängt nichts mehr.
+**Eigene Leute:** Pfeil, Bolzen, Stein und Ballista fliegen durch. Katapult und Trebuchet treffen sie, außer Schild, Belagerungsturm und Ramme. Das Mangonel trifft sie nur beim menschlichen Spieler. Gemessen: 7 Treffer an eigenen Leuten, 140 Flüge durch einen Freund, dazu 70 Direktaufrufe.
+
+**Große Geräte werden schon vom diagonalen Nachbarfeld getroffen:** Katapult, Trebuchet (dort Fenster 40), Mangonel, Belagerungsturm, Ramme, Schild, Ballista. Die Feuerballiste nicht (Tabelle im Speicher). 17 solche Treffer im Flug, an Ramme und Schild, die anderen Arten nur als Tabelle und im Direktaufruf.
+
+Gemessen: 1.691 Treffer am anvisierten Ziel, 68 an einem anderen Feind, 7 an eigenen Leuten, 4 an Tieren. Die Einheit bewegt sich im Takt vor dem Geschoss; wer im selben Takt schon von einem anderen Geschoss getötet wurde, fängt nichts mehr.
 
 **Darum wirkt es zufällig:** Pfeile treffen, was im Weg steht, und fliegen über alles andere hinweg. Wo das ist, steht fest (`gefahr_tabelle.txt`, ebener Boden):
 
@@ -104,7 +113,7 @@ Feuer der Feuerwerfer trifft niemanden direkt, es zündet beim Aufkommen.
 ## 4. Mauern und Gebäude
 
 - In der ersten Hälfte des Flugs kommt ein Pfeil weder am Boden noch an einer Mauer auf (Code; Einheiten trifft er auch dort).
-- Trifft er ein Mauerfeld, prallt er ab: Tempo durch 8, neue Richtung. 24 solche Flüge, alle ohne Treffer danach (`flug_pruefung.txt`). Unter Tempo 80 zählen Einheiten für ein Geschoss nicht mehr (Code).
+- Trifft er ein Mauerfeld, prallt er ab: Tempo durch 8, Winkel wie die Flugrichtung im Moment (höchstens 80 nach unten). Gespiegelt wird die Achse, die im Feld näher am Rand liegt, in der Ecke entscheiden die Nachbarfelder. Danach zählt er keine Einheiten mehr, weil unter Tempo 80 keine geprüft werden, und fällt an der Mauer herunter. 68 solche Flüge aus 7 Richtungen, 7.560 Takte danach gleich.
 - An einem Gebäude endet der Flug dort, gemessen auf Takt und Ort bei 15 Flügen.
 - Auf Türmen steigt die Aufschlaghöhe bei der Hälfte der Geschosse um 20 (Code, nicht gemessen).
 
@@ -127,7 +136,9 @@ Im ersten Takt eines neuen Feuers kommt der volle Wert dazu: 75 oder 112 (75 + 3
 
 - **Die offenen Feuerschüsse sind erklärt** (82 Schüsse, Szene Beschuss): 56 Felder brannten schon, darum kam der Verlust vor der Landung. 22 neu entzündet, Verlust im selben Takt. Bei 2 war das Ziel schon tot. Bei 2 landete das Feuer durch den Versatz auf dem Nachbarfeld, das Zielfeld brannte 60 Takte nicht.
 - **Gebäude:** Ein Feuer auf einem brennbaren Bau zündet ihn an. Hütten: 200 Leben, alle 20 Takte minus 4, also rund 1.000 Takte Brand (gemessen an 3 Hütten: 968, 983, 1.001). Nachbarhütten fingen 7 und 285 Takte später Feuer. Ein neuer Bau brennt nicht, solange sein Abkühlzähler läuft (Code; in der Szene 279 Takte Rest).
-- **Bäume:** Ein Feuer auf einem Baum entzündet Felder im Umkreis (Code, in der Szene nicht vorgekommen).
+- **Bäume:** Ein Feuer auf einem Baumfeld zündet den Baum an. Kleine Bäume (Art 6, 9, 17) verschwinden einfach. Ein großer Baum (Art 1 bis 4, ab Wachstumsstufe 3) brennt: Im selben Takt entstehen bis zu 8 neue Feuer rundum, Stufe 2 und voller Schaden (gemessen 6), und von dort geht es ein Feld weiter. So wandert ein Waldbrand. Gemessen an 2 großen und 5 kleinen Bäumen (`reste_pruefung.txt`).
+- **Feuerkorb und Brandpfeile:** Befehl 69 setzt den Korb auf die hohe Mauer. Ein Schütze auf der Mauer unter 4 Feldern davon schießt Brandpfeile. Sie machen denselben Schaden wie normale (1.000 und 1.500, 29 Treffer) und zündeten die Hütte nicht an (2 Treffer, kein Brand).
+- **Pech:** Mit Korb daneben zündet Anweisung 34 den Graben im Gefecht an. Der Brandpfeil fliegt ohne Streuung genau aufs Feld, ein Schuss reicht. Es entstehen Feuer der Stufe 3 mit vollem Schaden, 31 Feuer in dieser Probe. Eine Einheit auf dem Graben verlor 75 je Takt, 610 Takte lang, bis die Aufnahme endete (`pech_pruefung.txt`). Ohne Korb fliegen nur normale Pfeile (Lauf S, 03.11.). Im Editor hat der Graben keinen Besitzer, dort ging es nicht.
 
 ## 6. Der Zufall
 
@@ -144,17 +155,22 @@ Das Spiel hat zwei Zeiger auf **dieselbe** Tabelle. Der Spielstrom (`nextRandomN
 - Feuer weicht man aus, indem man das Feld wechselt: Der Verlust hängt am Feld, nicht an der Flamme.
 - Katapulte zielen im Mittel 4 Felder zu weit, also davor anlegen.
 - Mangonel: Sieben Steine wandern, die Salve streut stark.
+- Nach oben schießen lohnt kaum: ein Drittel Schaden und Streuung. Wer oben steht, trifft genau und mit vollem Schaden.
+- Eigene Leute nicht ins Ziel von Katapult und Trebuchet stellen. Schild, Turm und Ramme dürfen dort stehen.
+- Brandpfeile bringen keinen Schaden mehr. Der Korb lohnt nur für Pech.
+- Ein Feuer zwischen großen Bäumen breitet sich viel weiter aus als auf freiem Feld.
 
 **Daniels Schalter, nicht von mir entschieden:** Den Stand des Zufallszeigers auslesen und damit den nächsten Einschlag vorhersagen wäre verborgenes Wissen. Das Wissen steht hier im Register, der faire Spielweg nutzt es nicht, bis Daniel anders entscheidet.
 
 ## Noch offen
 
-- Richtung beim Abprall ist nicht nachgebaut. Das Spiel zeigt: danach kein Treffer.
-- Treffer auf Nachbarfeldern bei großen Geräten: im Code gelesen (Feld 0x90 der Einheit), nicht nachgebaut, in den Aufnahmen nicht aufgefallen.
-- Katapult und Trebuchet treffen laut Code auch Freunde, außer Schild, Turm, Ramme. Die Szene stellte Freunde daneben, es kam kein Fall.
-- Schütze auf einem Turm: Verglichen wird mit dem Boden unter ihm (Feld `terrainOrClimbHeight`). Was dort beim Turm drinsteht, ist nicht gemessen.
-- Brandpfeile vom Feuerkorb: nur im Code gelesen.
+- Abprall an Turm und Burg: nur 1 Flug (Ballista am Bergfried), alle anderen an der Mauer.
+- Nachbarfeld bei den Arten 9, 50 und 51: Sie tragen dasselbe Merkmal, kamen nicht vor.
+- Schütze auf dem Turm gegen ein Ziel auf der Mauer: gerechnet, nicht geflogen.
+- Aufschlaghöhe plus 20 auf Türmen bei der Hälfte der Geschosse: Code, kein eigener Fall.
+- Brandpfeil gegen eine Hütte: nur 2 Treffer, das ist wenig.
+- Instanz 2 lief nach dem zweiten Direkttest der Trefferfenster im Gefecht nicht mehr. Der Ton „Wir werden angegriffen“ aus fremdem Faden ist eine Vermutung, nicht belegt. Der erste Durchgang im Editor lief sauber, beide Ergebnisse sind gleich.
 
 ## Dateien
 
-Alle unter `data/research/auge_plan/streuung_20261104/`: `flug_modell.py`, `streuung_modell.py` (die Regeln als Rechnung), `flug_pruefen.py`, `ziel_pruefen.py`, `feuer_pruefen.py`, `brand_pruefen.py`, `streuung_rufen.py`, `verteilung.py`, `gefahr_tabelle.py`, je mit Ausgabe `.txt`. Festwerte für die Tests: `streuung_beispiele.json`, `flug_beispiele.json`. Szene: `streuung` in `auge_lauf_s.py`.
+Alle unter `data/research/auge_plan/streuung_20261104/`: `flug_modell.py`, `streuung_modell.py` (die Regeln als Rechnung), `flug_pruefen.py`, `ziel_pruefen.py`, `feuer_pruefen.py`, `brand_pruefen.py`, `streuung_rufen.py`, `fenster_rufen.py`, `reste_pruefen.py`, `oben_pruefen.py`, `pech_pruefen.py`, `verteilung.py`, `gefahr_tabelle.py`, je mit Ausgabe `.txt`. Festwerte für die Tests: `streuung_beispiele.json`, `flug_beispiele.json`, `fenster_beispiele.json`. Szenen: `streuung`, `streuung2`, `streuung3`, `streuung4_g` in `auge_lauf_s.py`.

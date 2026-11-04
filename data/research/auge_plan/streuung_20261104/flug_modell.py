@@ -130,11 +130,11 @@ def gebaeude_hoehe(art):
     return GEBAEUDE_HOEHE.get(int(art), 0)
 
 
-def bahn(x, y, h0, zx, zy, vc, vs, b, takte=400):
-    """Erzeugt je Takt die Liste der Schritte: (takt_nummer, [(mx, my, h), ...], h_ende). Ohne Einschlag, das entscheidet der Aufrufer."""
+def bahn2(x, y, h0, zx, zy, vc, vs, b, takte=400, t0=None):
+    """Je Takt: Nummer, Schritte (mx, my, h, Schrittzahl), Hoehe am Ende, Zeit des Takts. t0: Zeit im ersten Takt; beim Abschuss der Zeitschritt, nach einem Abprall 0."""
     st = strecke(x, y, zx, zy)
     err = st[5]
-    t = np.float32(b)
+    t = np.float32(b if t0 is None else t0)
     wg = 0
     hd = 0
     for n in range(1, takte + 1):
@@ -152,4 +152,107 @@ def bahn(x, y, h0, zx, zy, vc, vs, b, takte=400):
             schritte.append((x, y, h0 + h_t, wg))
         hd = h_ziel
         t = np.float32(t + np.float32(b))
-        yield n, schritte, h0 + h_ziel
+        yield n, schritte, h0 + h_ziel, tt
+
+
+def bahn(x, y, h0, zx, zy, vc, vs, b, takte=400):
+    """Wie bahn2, ohne die Zeit."""
+    for n, schritte, h_e, _ in bahn2(x, y, h0, zx, zy, vc, vs, b, takte):
+        yield n, schritte, h_e
+
+
+def drehung(vc, vs, b, t, w0):
+    """graphicRotationUnk: Steigung zwischen diesem und dem vorigen Zeitschritt. moveProjectileEntity 004084a0."""
+    if vs == 0:
+        return w0
+    x = lambda u: vs * u - G_HALB * u * u  # noqa: E731
+    return _ftol(math.atan(3.0 * (x(t) - x(t - b)) / (vc * b)) * 180.0 / PI)
+
+
+def bildnummer(w):
+    """angleToRotationFrameIndex 00402bd0: Unter 3 fliegt das Geschoss steil nach unten."""
+    if w < 6:
+        return 0 if w < -0x31 else 1 if w < -0x22 else 2 if w < -0x10 else 3 if w < -4 else 4
+    return 5 if w < 0x15 else 6 if w < 0x24 else 7 if w < 0x33 else 8 if w < 0x5b else 4
+
+
+def wand_bits(fx, fy, ist_wand):
+    """setBitFlagBasedOnWallTowerGatehouseOrKeep 004ff870: Welche der 8 Nachbarn sind Mauer, Turm oder Burg."""
+    f = 0
+    for dx, dy, bit in ((1, 0, 0x20), (-1, 0, 2), (-1, -1, 1), (1, -1, 0x40), (0, -1, 0x80), (-1, 1, 4), (1, 1, 0x10), (0, 1, 8)):
+        if ist_wand(fx + dx, fy + dy):
+            f |= bit
+    return f
+
+
+def abprall_ziel(orient, mx, my, sx, sy, bits):
+    """handleProjectileWallBounce 00403ff0: Wohin das Geschoss nach dem Abprall fliegt. sx, sy: Abschussort. Gespiegelt wird die Achse, die im Feld naeher am Rand liegt; in der Ecke entscheiden die Nachbarn."""
+    u4, u7 = mx & 7, my & 7
+    if orient in (0x3c, 0x40, 0x44, 0x48):
+        return sx, sy
+    if orient in (0x3d, 0x3e, 0x3f):
+        u7 = 7 - u7
+        if u4 == u7:
+            b = bits & 10
+            if b == 10:
+                return sx, sy
+            if orient == 0x3f:
+                u4, u7 = (100, u7) if b in (0, 2) else (u4, 100)
+            else:
+                u4, u7 = (u4, 100) if b in (0, 8) else (100, u7)
+    elif orient in (0x41, 0x42, 0x43):
+        if u4 == u7:
+            b = bits & 0x82
+            if b == 0x82:
+                return sx, sy
+            if orient == 0x43:
+                u4, u7 = (100, u7) if b in (0, 0x80) else (u4, 100)
+            else:
+                u4, u7 = (u4, 100) if b in (0, 2) else (100, u7)
+    elif orient in (0x45, 0x46, 0x47):
+        u4 = 7 - u4
+        if u4 == u7:
+            b = bits & 0xa0
+            if b == 0xa0:
+                return sx, sy
+            if orient == 0x47:
+                u4, u7 = (100, u7) if b in (0, 0x20) else (u4, 100)
+            else:
+                u4, u7 = (u4, 100) if b in (0, 0x80) else (100, u7)
+    elif orient in (0x49, 0x4a, 0x4b):
+        u4, u7 = 7 - u4, 7 - u7
+        if u4 == u7:
+            b = bits & 0x28
+            if b == 0x28:
+                return sx, sy
+            if orient == 0x49:
+                u4, u7 = (100, u7) if b in (0, 0x20) else (u4, 100)
+            else:
+                u4, u7 = (u4, 100) if b in (0, 8) else (100, u7)
+    else:
+        return 0, 0
+    if u4 <= u7:
+        return sx, my * 2 - sy
+    return mx * 2 - sx, sy
+
+
+def nach_abprall(w_jetzt, v):
+    """Tempo, Winkel, vCos, vSin nach dem Abprall: Tempo durch 8, Winkel wie die Flugrichtung im Moment, hoechstens 80 nach unten."""
+    w = max(w_jetzt, -0x50)
+    v8 = _ab8(v)
+    r = w * PI / 180.0
+    return v8, w, float(np.float32(v8 * math.cos(r))), float(np.float32(v8 * math.sin(r)))
+
+
+def _ab8(v):
+    return int(v / 8)
+
+
+def freund_verschont(art, typ, mensch):
+    """processEntityDamageToUnit: Wen ein Geschoss des eigenen Teams nicht trifft. Pfeil, Bolzen, Stein und Ballista keinen Freund; Schild, Turm und Ramme kein Stein; das Mangonel eines Nicht-Menschen keinen Freund."""
+    return art in (1, 7, 33, 20) or typ in (UT_SCHILD, UT_TURM, UT_RAMME) or (art == 4 and not mensch)
+
+
+def fenster_nachbar(typ):
+    """Fenster bei einem Treffer vom Nachbarfeld: nur das Trebuchet ist dort niedriger (40 statt 80)."""
+    return 40 if typ == UT_TREBUCHET else fenster(typ)

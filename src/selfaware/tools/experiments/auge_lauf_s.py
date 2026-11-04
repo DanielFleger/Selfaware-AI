@@ -79,6 +79,8 @@ GERAETE_WEITE = {39: 57, 40: 68, 41: 54, 61: 68, 77: 39}  # Felder, Tabelle 0x5B
 GRENZE_GERAETE_WEITE = 1000  # 3 Schuss Trebuchet (296 Takte)
 PUNKT_FAELLE = (("feld", 10), ("feld", 100), ("feld", 500), ("tor", 100), ("tor", 500), ("turm", 100), ("luecke", 100), ("luecke", 500))  # Liste V6
 PUNKT_WEG, GRENZE_PUNKT = 30, 3000  # Felder bis zum Ziel; 30 Felder zu 12 Takten, mal 8 fuer den Stau bei 500
+BIT_BAUM = 0x1000  # LogicLayer: Baum auf dem Feld (AFireSpreadFunction, lightUpTree)
+GRENZE_PECH = 700  # Takte nach dem Befehl: Der Schuetze schiesst alle 129 Takte, der Graben brennt rund 230 Takte
 GRENZE_STREUUNG = 1500  # Takte nach dem Einsteigen: Das Katapult wirft alle 200 bis 300 Takte, so kommen je Geraet mindestens 5 Schuesse
 GRENZE_SONDER, SONDER_ABSTAND = 3000, 30  # Takte; Abstand der Posten, Feuerwerfer reicht 11, Schuetzen haben ihr Ziel per Befehl
 STARTTRUPPEN_TAKT = 410  # Gefecht: 6 Bogenschuetzen kamen bei Takt 202, 8 Speertraeger bei 403, je Spieler an der Burg (Lauf 22:41). Wer vorher raeumt, hat sie danach im Feld
@@ -1727,6 +1729,199 @@ def streuung(l):
             ("menge", menge, 24, 8), ("sicht", sicht, 18, 10), ("feuer", feuer, 20, 12), ("wand", wand, 18, 10))
 
 
+def baum_stelle(l, abstand=7):
+    """Eine Baumgruppe und ein freies Feld im Abstand: Wo kann ein Feuerwerfer auf Baeume schiessen? Rueckgabe: Baum x, y und Schuetze x, y, oder None."""
+    s = l.s
+    frei, _, _ = s.raster()
+    lo = np.frombuffer(s.q.lies(s.karte.adresse("DAT_TileMapState", "LogicLayer")[0], lf.KACHELN * 4), dtype="<u4")
+    zeilen = np.frombuffer(s.q.lies(lf.ZEILEN, 400 * 12), dtype="<i4").reshape(400, 3)[:, 2]
+    maske = np.frombuffer(s.q.lies(lf.KARTENMASKE, 400 * 400), dtype="u1").reshape(400, 400) != 0
+    kachel = np.clip(zeilen[:, None] + np.arange(400), 0, lf.KACHELN - 1)
+    baum = ((lo[kachel] & BIT_BAUM) != 0) & maske
+    beste = None
+    for y, x in zip(*np.nonzero(baum)):
+        if not (abstand + 2 < x < 397 - abstand and abstand + 2 < y < 397 - abstand):
+            continue
+        dichte = int(baum[y - 2:y + 3, x - 2:x + 3].sum())
+        if beste is not None and dichte <= beste[0]:
+            continue
+        for dx, dy in ((-abstand, 0), (abstand, 0), (0, -abstand), (0, abstand)):
+            if frei[y + dy - 1:y + dy + 2, x + dx - 1:x + dx + 2].all():
+                beste = (dichte, int(x), int(y), int(x + dx), int(y + dy))
+                break
+    return beste[1:] if beste else None
+
+
+def streuung2(l):
+    """Die Reste der Streuung, jeder Takt aufgezeichnet: Geraete werfen zwischen eigene Leute, Pfeile auf grosse Geraete (Treffer vom Nachbarfeld), Schuetzen auf der Mauer mit Feuerkorb (Brandpfeile, Pech), Abprall an einer Mauerecke aus fuenf Richtungen, Feuer in Baeume. Ausgewertet mit data/research/auge_plan/streuung_20261104/."""
+    s = l.s
+
+    def freunde_von(arten, sp):
+        def f(x, y):
+            alle, leute, nach = [], [], []
+            for i, t in enumerate(arten):
+                zy = y + 3 + i * 10
+                g = dict(_e("geraet", t, x + 4, zy, sp), mann=BESATZUNG[t], soll=BESATZUNG[t])
+                m = [_e("ingenieur", 30, x + j % 2, zy - 1 + j // 2, sp) for j in range(BESATZUNG[t])]
+                ax = x + (15 if t == 41 else 22)
+                freund = [_e("freund", 24, ax + dx, zy + dy, sp) for dx in (-3, -1, 1, 3) for dy in (-2, 0, 2)]
+                geraete = [_e("freund_geraet", a, ax + 5, zy + dy, sp) for a, dy in ((60, -3), (59, 2))]
+                alle += [g] + m + freund + geraete
+                leute.append((m, g))
+                nach.append((g, ax, zy))
+            return [], alle, [], lambda: [_angriff(m, sp, art=16, a=g["nr"], b=g["uid"]) for m, g in leute], lambda: [_angriff([g], sp, art=5, a=a, b=b) for g, a, b in nach]
+        return f
+
+    def grosse_ziele(x, y):
+        alle, nach = [], []
+        for i, t in enumerate((39, 40, 41, 61, 77, 59, 58, 60)):
+            z = _e("ziel", t, x + 12, y + 2 + i * 6, 2)
+            sch = [_e("schuetze", 22, x + 1, y + 1 + i * 6 + j * 2) for j in range(2)]
+            alle += [z] + sch
+            nach += [(a, z) for a in sch]
+        return [], alle, [], lambda: [_angriff([a], ziel=z["nr"]) for a, z in nach], None
+
+    def mauer_korb(x, y):
+        mauer = [{"player": 1, "ware": {"typ": 4, "menge": 400}}, {"player": 1, "spielbefehl": {"nr": 25, "werte": [x + 3, y + 3, x + 9, y + 3, 25, 13]}}, {"player": 1, "spielbefehl": {"nr": 25, "werte": [x + 2, y + 3, x + 2, y + 3, 27, 13]}}]
+        graben = [{"player": 1, "baue": {"mapper": 99, "x": x + 12 + i, "y": y + 15, "groesse": 1, "richtung": 15}} for i in range(5)]
+        wer = [_e("schuetze", 22, x, y + 2 + i) for i in range(4)]
+        ziele = [_e("ziel", 59, x + 16, y + 3, 2), _e("ziel", 59, x + 30, y + 3, 2)]
+        huette = _g(1, x + 14, y + 8)
+        opfer = _e("opfer", 25, x + 14, y + 15, 2)
+
+        def korb():
+            return [{"player": 1, "spielbefehl": {"nr": 69, "werte": [1, (x + a) * 8, (y + 3) * 8, 8, 14, 1]}} for a in (5, 7)]
+
+        def schiessen():
+            bef = [_angriff([wer[0]], ziel=ziele[0]["nr"]), _angriff([wer[1]], ziel=ziele[1]["nr"])]
+            if "nr" in huette:
+                bef.append(_angriff([wer[2]], gebaeude=huette["nr"]))
+            return bef
+
+        def anzuenden():
+            nah = [d for d in s.pech_liste(1) if abs(d["y"] - (y + 15)) <= 1 and x + 10 <= d["x"] <= x + 18]
+            return [_angriff([wer[3]], art=34, a=nah[len(nah) // 2]["nr"], b=nah[len(nah) // 2]["uid"])] if nah else []
+        return [huette], wer + ziele + [opfer], mauer + graben, lambda: [_angriff(wer, lauf=[x + 6, y + 3])], [(150, korb), (SONDER_BEMANNEN, schiessen), (SONDER_BEMANNEN + 60, anzuenden)]
+
+    def wand_ecke(x, y):
+        davor = [{"player": 2, "ware": {"typ": 4, "menge": 400}}, {"player": 2, "spielbefehl": {"nr": 25, "werte": [x + 8, y + 8, x + 8, y + 16, 25, 9]}}, {"player": 2, "spielbefehl": {"nr": 25, "werte": [x + 8, y + 8, x + 16, y + 8, 25, 9]}}]
+        ziel = _e("ziel", 59, x + 12, y + 12, 2)
+        sch = [_e("schuetze", 22, a, b) for a, b in ((x + 1, y + 12), (x + 12, y + 1), (x + 2, y + 2), (x + 1, y + 9), (x + 9, y + 1))]
+        return [], sch + [ziel], davor, lambda: [_angriff([e], ziel=ziel["nr"]) for e in sch], None
+
+    def baeume(x, y):
+        st = baum_stelle(l)
+        if st is None:
+            return [], [], [], lambda: [], None
+        bx, by, sx, sy = st
+        ft = [_e("taeter", 76, sx, sy), _e("taeter", 76, sx, sy + 1)]
+        return [], ft, [], lambda: [_angriff([e], art=5, a=bx, b=by) for e in ft], None
+    return (("freunde_spieler1", freunde_von((39, 40, 41), 1), 32, 32), ("freunde_spieler2", freunde_von((41,), 2), 32, 12), ("grosse_ziele", grosse_ziele, 18, 50), ("mauer_korb", mauer_korb, 34, 20), ("wand_ecke", wand_ecke, 20, 20), ("baeume", baeume, 1, 1))
+
+
+def streuung3(l):
+    """Schuetzen oben: direkt auf die Mauer und den Turm gesetzt (eine einzelne Treppe ergab keinen Weg, Lauf 22:48), Feuerkorb daneben, Brandpfeile auf Einheit, Huette und Pech. Dazu Gegner oben auf einer Mauer: Streuung nach oben im echten Flug."""
+    s = l.s
+
+    def setze(sp, typ, x, y):
+        return {"setzeEinheit": {"spieler": sp, "typ": typ, "x": x - 1, "y": y - 1, "anzahl": 1}}
+
+    def oben(sp, typ, felder):
+        """Die direkt gesetzten Einheiten wiederfinden, je Feld die erste. Ein Feld ohne Einheit bleibt None: Das steht dann im Ergebnis, statt die Szene abzubrechen."""
+        frei_ = [e for e in s.einheiten_alle() if e["besitzer"] == sp and e["typ"] == typ]
+        aus = []
+        for f in felder:
+            nah = sorted((e for e in frei_ if max(abs(e["x"] - f[0]), abs(e["y"] - f[1])) <= 2), key=lambda e: max(abs(e["x"] - f[0]), abs(e["y"] - f[1])))
+            aus.append(nah[0] if nah else None)
+            if nah:
+                frei_.remove(nah[0])
+        return aus
+
+    def mauer_korb(x, y):
+        mauer = [{"player": 1, "ware": {"typ": 4, "menge": 400}}, {"player": 1, "spielbefehl": {"nr": 25, "werte": [x + 3, y + 3, x + 22, y + 3, 25, 13]}}]
+        graben = [{"player": 1, "baue": {"mapper": 99, "x": x + 12 + i, "y": y + 15, "groesse": 1, "richtung": 15}} for i in range(5)]
+        ziele = [_e("ziel", 59, x + 16, y + 9, 2), _e("ziel", 59, x + 30, y + 9, 2)]
+        huette = _g(1, x + 4, y + 9)
+        opfer = _e("opfer", 25, x + 14, y + 15, 2)
+        felder = [(x + 5, y + 3), (x + 6, y + 3), (x + 7, y + 3), (x + 8, y + 3), (x + 20, y + 3)]
+
+        def korb():
+            return [{"player": 1, "spielbefehl": {"nr": 69, "werte": [1, (x + 6) * 8, (y + 3) * 8, 8, 14, 1]}}]
+
+        def schuetzen():
+            return [setze(1, 22, a, b) for a, b in felder]
+
+        def schiessen():
+            w = oben(1, 22, felder)
+            bef = []
+            if w[0]:
+                bef.append(_angriff([w[0]], ziel=ziele[0]["nr"]))
+            if w[1]:
+                bef.append(_angriff([w[1]], ziel=ziele[1]["nr"]))
+            if w[2] and "nr" in huette:
+                bef.append(_angriff([w[2]], gebaeude=huette["nr"]))
+            nah = [d for d in s.pech_liste(1) if abs(d["y"] - (y + 15)) <= 1 and x + 10 <= d["x"] <= x + 18]
+            if w[3] and nah:
+                bef.append(_angriff([w[3]], art=34, a=nah[len(nah) // 2]["nr"], b=nah[len(nah) // 2]["uid"]))
+            if w[4]:
+                bef.append(_angriff([w[4]], ziel=ziele[0]["nr"]))  # Vergleich: auf der Mauer, aber weit vom Korb
+            return bef
+        return [huette], ziele + [opfer], mauer + graben, lambda: [], [(20, korb), (40, schuetzen), (120, schiessen)]
+
+    def turm(x, y):
+        t_ = _g(76, x + 4, y + 4, spieler=1)
+        ziele = [_e("ziel", 59, x + 16, y + 5, 2), _e("ziel", 59, x + 34, y + 5, 2)]
+        felder = [(x + 5, y + 5), (x + 6, y + 6)]
+
+        def schuetzen():
+            return [setze(1, 22, a, b) for a, b in felder]
+
+        def schiessen():
+            return [_angriff([w], ziel=z["nr"]) for w, z in zip(oben(1, 22, felder), ziele) if w]
+        return [t_], ziele, [], lambda: [], [(40, schuetzen), (120, schiessen)]
+
+    def nach_oben(x, y):
+        mauer = [{"player": 2, "ware": {"typ": 4, "menge": 400}}, {"player": 2, "spielbefehl": {"nr": 25, "werte": [x + 12, y + 2, x + 20, y + 2, 25, 13]}}]
+        sch = [_e("schuetze", t_, x + 1, y + 1 + i) for i, t_ in enumerate((22, 22, 23, 70, 72))]
+        felder = [(x + 13 + 2 * i, y + 2) for i in range(4)]
+
+        def gegner():
+            return [setze(2, 25, a, b) for a, b in felder]
+
+        def schiessen():
+            feinde = [e for e in oben(2, 25, felder) if e]
+            return [_angriff([w], ziel=feinde[i % len(feinde)]["nr"]) for i, w in enumerate(sch)] if feinde else []
+        return [], sch, mauer, lambda: [], [(40, gegner), (120, schiessen)]
+    return (("mauer_korb", mauer_korb, 38, 18), ("turm", turm, 40, 12), ("nach_oben", nach_oben, 24, 8))
+
+
+def streuung4(l):
+    """Zuendet der Brandpfeil das Pech an? Bogenschuetzen auf der Mauer neben dem Feuerkorb bekommen Anweisung 34 auf den Graben. Ohne Korb fliegen nur normale Pfeile (Lauf 21:50). Im Editor hat der Graben keinen Besitzer, darum im Gefecht. Das Protokoll nennt, welche Graeben das Spiel kennt."""
+    s = l.s
+
+    def pech(x, y):
+        mauer = [{"player": 1, "spielbefehl": {"nr": 25, "werte": [x + 3, y + 3, x + 12, y + 3, 25, 13]}}]
+        graben = [{"player": 1, "baue": {"mapper": 99, "x": x + 6 + i, "y": y + 10, "groesse": 1, "richtung": 15}} for i in range(5)]
+        opfer = [_e("opfer", 25, x + 8, y + 10, 2)]
+        felder = [(x + 5, y + 3), (x + 7, y + 3)]
+
+        def korb():
+            return [{"player": 1, "spielbefehl": {"nr": 69, "werte": [1, (x + 6) * 8, (y + 3) * 8, 8, 14, 1]}}]
+
+        def schuetzen():
+            return [{"setzeEinheit": {"spieler": 1, "typ": 22, "x": a - 1, "y": b - 1, "anzahl": 1}} for a, b in felder]
+
+        def anzuenden():
+            liste = s.pech_liste(1)
+            print(json.dumps({"schritt": "pech_liste", "graeben": liste[:12]}), flush=True)
+            oben = [e for e in s.einheiten_alle() if e["besitzer"] == 1 and e["typ"] == 22 and abs(e["y"] - (y + 3)) <= 2 and abs(e["x"] - (x + 6)) <= 4]
+            bef = [_angriff([e], art=34, a=liste[len(liste) // 2]["nr"], b=liste[len(liste) // 2]["uid"]) for e in oben] if liste else []
+            print(json.dumps({"schritt": "pech_befehle", "befehle": bef}), flush=True)
+            return bef
+        return [], opfer, mauer + graben, lambda: [], [(20, korb), (40, schuetzen), (300, anzuenden)]
+    return (("pech", pech, 20, 14),)
+
+
 def sonder24_g(l):
     """Lagen aus Lauf F und S, die noch fehlen: Belagerungszelt mit 4 und 2 Ingenieuren (P126), Oel werfen auf Befehl (P238), Schmelze holt Pech aus dem Lager (P111), Mauerkosten im echten Befehl (P119), Stapel halten, Holztor als Ziel."""
     s = l.s
@@ -2073,6 +2268,10 @@ SZENEN = {
     "sonder21": lambda l: szene_sonder(l, "sonder21", sonder21(l), rand=15),
     "sonder23": lambda l: szene_sonder(l, "sonder23", sonder23(l), rand=15),
     "streuung": lambda l: szene_sonder(l, "streuung", streuung(l), rand=12, tempo=lf.TEMPO_JEDER_TAKT, grenze=GRENZE_STREUUNG),
+    "streuung2": lambda l: szene_sonder(l, "streuung2", streuung2(l), rand=12, tempo=lf.TEMPO_JEDER_TAKT, grenze=GRENZE_STREUUNG),
+    "streuung3": lambda l: szene_sonder(l, "streuung3", streuung3(l), rand=12, tempo=lf.TEMPO_JEDER_TAKT, grenze=GRENZE_STREUUNG),
+    "streuung4": lambda l: szene_sonder(l, "streuung4", streuung4(l), rand=12, tempo=lf.TEMPO_JEDER_TAKT, grenze=GRENZE_PECH),
+    "streuung4_g": lambda l: szene_sonder(l, "streuung4_g", streuung4(l), frei_maske=burgbereich(l), rand=10, raeumen=True, tempo=lf.TEMPO_JEDER_TAKT, grenze=GRENZE_PECH),
     "rufen_g": lambda l: __import__("selfaware.tools.experiments.auge_rufen", fromlist=["szene"]).szene(l),
     "rufen2_g": lambda l: __import__("selfaware.tools.experiments.auge_rufen", fromlist=["szene2"]).szene2(l),
     "rufen3_g": lambda l: __import__("selfaware.tools.experiments.auge_rufen", fromlist=["szene3"]).szene3(l),

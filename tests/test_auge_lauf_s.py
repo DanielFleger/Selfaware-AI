@@ -1695,3 +1695,11 @@ def test_wechselprobe_ohne_abzug_bestaetigt_und_nennt_ihre_grenze():
 def test_wechselprobe_mit_zu_wenig_phasen_ist_nicht_gemessen():
     e = aw.a4_wechselprobe({1000: {"ohne": [825.0], "mit": [], "sekunden": 1.2}})
     assert e.status == aw.NICHT_GESEHEN
+
+def test_streuung_szenen_stehen_bereit():
+    import inspect
+    for n in ("streuung", "streuung2", "streuung3", "streuung4", "streuung4_g"):
+        assert n in ls.SZENEN, n
+    p = inspect.signature(ls.szene_sonder).parameters
+    assert p["tempo"].default == 100 and p["grenze"].default == ls.GRENZE_SONDER  # die alten Sonderszenen bleiben, wie sie waren
+    assert ls.GRENZE_STREUUNG < ls.GRENZE_SONDER and ls.GRENZE_PECH < ls.GRENZE_STREUUNG

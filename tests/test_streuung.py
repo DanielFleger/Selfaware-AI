@@ -56,6 +56,40 @@ def test_flug_jeder_takt_wie_aufgezeichnet(f):
         assert [letzt[0], letzt[1], h_e, letzt[2]] == soll, (n, f["art"])
 
 
+@pytest.mark.parametrize("b", FLUG["abprall"], ids=lambda b: "Richtung%d_%d" % (b["ori"], b["a"]))
+def test_abprall_wie_aufgezeichnet(b):
+    tx, ty = fm.abprall_ziel(b["ori"], b["a"], b["c"], b["sx"], b["sy"], b["bits"])
+    v, w, vc, vs = fm.nach_abprall(fm.drehung(b["vc"], b["vs"], b["b"], b["tt"], b["w0"]), b["v_alt"])
+    assert (v, w) == (b["v"], b["w"])
+    letzt = (b["a"], b["c"], 0)
+    for soll, (n, schr, h_e, tt) in zip(b["reihe"], fm.bahn2(b["a"], b["c"], b["h"], tx, ty, vc, vs, b["b"], t0=0.0)):
+        if schr:
+            letzt = (schr[-1][0], schr[-1][1], schr[-1][3])
+        assert [letzt[0], letzt[1], h_e, letzt[2]] == soll, n
+
+
+def test_abprall_mehrere_richtungen():
+    assert len({b["ori"] for b in FLUG["abprall"]}) >= 5
+
+
+FENSTER = json.load(open(os.path.join(HIER, "fenster_beispiele.json"), encoding="utf-8"))
+
+
+def test_trefferfenster_wie_im_spiel():
+    fremd = [b for b in FENSTER if not b["team"]]
+    assert len(fremd) >= 80
+    for b in fremd:
+        f = fm.fenster(b["typ"]) if b["abstand"] == 0 else fm.fenster_nachbar(b["typ"])
+        assert b["ist"] == int(8 <= b["h"] <= 8 + f), b
+
+
+def test_teamregel_wie_im_spiel():
+    eigen = [b for b in FENSTER if b["team"]]
+    assert len(eigen) >= 70 and {b["art"] for b in eigen} >= {1, 7, 33, 2, 3, 4, 20}
+    for b in eigen:
+        assert b["ist"] == int(not fm.freund_verschont(b["art"], b["typ"], True)), b
+
+
 def test_tabellen_wie_im_spiel():
     assert sm.FEUER_VERSATZ == [tuple(x) for x in FLUG["versatz"]]
     for art, (kurve, wert, b) in fm.TABELLE.items():

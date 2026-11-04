@@ -110,7 +110,11 @@ def pruefe(pfad, k):
             bx, by, bz = vorig.get((sch, t), (int(q0["sx"][sch]), int(q0["sy"][sch]), int(q0["sz"][sch])))
             auf_boden = int(q0["tgt"][sch]) == BODEN
             zusaetze = (0,) if typ in (39, 40, 41) else (0, 26, 30)
-            for bl in (int(q1["blick"][sch]), int(q0["blick"][sch])):
+            if int(q0["tgt"][sch]) == 34 and (z["zx"], z["zy"]) == (bx, by):
+                treffer = True  # Anweisung 34, Pech anzuenden: kein prepareProjectileTarget, genau auf das Feld (UpdateCrusaderArcher)
+                zusatz = z["zz"] - bz
+                erg[(z["art"], typ, "Brandpfeil auf Pech ohne Streuung")] += 1
+            for bl in (int(q1["blick"][sch]), int(q0["blick"][sch])) if not treffer else ():
                 for i in plaetze(t, zeiger):
                     sx, sy, sz, _ = sm.ziel_vorbereiten_boden(typ, auf_boden, int(q0["mxx"][sch]), int(q0["myy"][sch]), bl, bx, by, bz, int(q0["ht"][sch]), int(q0["rng"][sch]), tab, i)
                     if (sx, sy) == (z["zx"], z["zy"]) and z["zz"] - sz in zusaetze:

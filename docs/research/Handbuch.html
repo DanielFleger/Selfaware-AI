@@ -534,16 +534,21 @@ td.z { text-align: right; white-space: nowrap; }
   </ul>
   <div class="merk"><b>Learning 03.11.:</b> Der Spielcode im Export beschreibt die Datei, im Speicher sind 309 Stellen in 158 Funktionen anders. Wer eine Formel aus dem Export nimmt, prüft zuerst <code>code_aenderungen.csv</code>.</div>
   <h3 id="streuung">Streuung: Wohin Geschosse und Feuer gehen <span class="status gemessen">gemessen</span></h3>
-  <p>Stand 04.11.2026. Der Nachbau sagt 1.977 von 1.977 geprüften Schussenden richtig voraus, auf Takt, Mikrofeld und Opfer. Die Zielfunktionen, direkt gerufen: 83.840 Aufrufe, keine Abweichung. Belege: <code>data/research/auge_plan/streuung_20261104/Ergebnis_Streuung.md</code>.</p>
+  <p>Stand 04.11.2026. Der Nachbau sagt 2.724 von 2.724 geprüften Schussenden richtig voraus, auf Takt, Mikrofeld und Opfer. Die Zielfunktionen, direkt gerufen: 83.840 Aufrufe, keine Abweichung. Belege: <code>data/research/auge_plan/streuung_20261104/Ergebnis_Streuung.md</code>.</p>
   <table>
     <tr><th>Frage</th><th>Antwort</th></tr>
     <tr><td>Schuss auf eine Einheit</td><td>Zielt auf die Feldmitte, bei laufendem Ziel mit Vorhalt. <b>Keine Streuung auf gleicher Höhe oder nach unten.</b> Nach oben Chance Höhenunterschied / 300 (ab 75 Höhe 1,5-fach): 30 Höhe 10 %, 100 Höhe 50 %.</td></tr>
-    <tr><td>Wer getroffen wird</td><td>Kein festes Opfer. Der Erste auf dem Weg, wenn das Geschoss dort unter Boden + 42 fliegt. Gemessen: 1.321 Treffer am Ziel, 47 an anderen Feinden, 4 an Tieren. Freunde lassen Geschosse durch: 77 Flüge gingen durch einen Freund und flogen weiter.</td></tr>
+    <tr><td>Wer getroffen wird</td><td>Kein festes Opfer. Der Erste auf dem Weg, wenn das Geschoss dort unter Boden + 42 fliegt. Gemessen: 1.691 Treffer am Ziel, 68 an anderen Feinden, 7 an eigenen Leuten, 4 an Tieren. Große Geräte werden schon vom diagonalen Nachbarfeld getroffen (17 Treffer).</td></tr>
+    <tr><td>Eigene Leute</td><td>Pfeil, Bolzen, Stein und Ballista fliegen durch. Katapult und Trebuchet treffen sie, außer Schild, Belagerungsturm und Ramme. Das Mangonel nur beim menschlichen Spieler.</td></tr>
     <tr><td>Wo man sicher steht</td><td>Unter der Bahn. Pfeil auf 10 Felder: Feld 2 bis 8 zu hoch. Auf 20 Felder: Feld 1 bis 19. Bis 8 Felder trifft er auf dem ganzen Weg.</td></tr>
     <tr><td>Sicht verdeckt</td><td>Schießt auf die Stelle des Gegners, mit Streuung und hoher Bahn. Mangonel und Ballista zielen immer so.</td></tr>
     <tr><td>Schuss auf den Boden, Geräte</td><td>Längs, quer in Mikro: Bogen, Armbrust, Schleuder, Feuer ±48, ±40. Katapult -96 bis 31 (im Mittel 4 Felder zu weit), ±48. Trebuchet 3 von 4 ohne Längsfehler, sonst ±48, quer ±48. Mangonel ±112, ±64, 7 Steine, jeder vom Punkt des vorigen. Ballista -24 bis 7, ±20.</td></tr>
-    <tr><td>Flug</td><td>Ohne Zufall: Strecke = Tempo × cos(Winkel) × t / 4, Höhe = 2 × (Tempo × sin(Winkel) × t - 4,906 × t²). 47.858 von 47.859 Takten gleich, der Rest ist ein Aufnahmefehler.</td></tr>
-    <tr><td>Mauer</td><td>Pfeil prallt ab, Tempo durch 8, trifft danach niemanden mehr (24 Flüge).</td></tr>
+    <tr><td>Flug</td><td>Ohne Zufall: Strecke = Tempo × cos(Winkel) × t / 4, Höhe = 2 × (Tempo × sin(Winkel) × t - 4,906 × t²). 80.768 von 80.770 Takten gleich, die 2 Reste sind Aufnahmefehler.</td></tr>
+    <tr><td>Mauer</td><td>Pfeil prallt ab: Tempo durch 8, gespiegelt an der Achse, die im Feld näher am Rand liegt. Danach trifft er niemanden mehr. 68 Flüge aus 7 Richtungen, 7.560 Takte danach gleich.</td></tr>
+    <tr><td>Nach oben</td><td>Nur ein Drittel Schaden: Pfeil gegen Pikenier 333 statt 1.000. Dazu die Streuung: 94 Höhe, Modell 47 %, gemessen 41 % von 70.</td></tr>
+    <tr><td>Von oben</td><td>Vom Turm und von der Mauer auf den Boden: genau und voller Schaden. Mauer zählt als Gelände (Abschuss 132), Turm als Gebäude (Abschuss 218).</td></tr>
+    <tr><td>Feuerkorb</td><td>Brandpfeile machen denselben Schaden wie normale und zündeten die Hütte nicht an (2 Treffer). Pech zündet einer mit Korb daneben: ein Schuss, keine Streuung, danach 75 je Takt auf dem Graben.</td></tr>
+    <tr><td>Bäume</td><td>Kleine Bäume verschwinden. Ein großer brennt und zündet im selben Takt die Felder rundum an: So wandert ein Waldbrand.</td></tr>
     <tr><td>Feuer landet</td><td>Ein Feuer am Landepunkt plus Versatz aus 64 Einträgen, höchstens 8 Mikro. Von der Feldmitte bleiben 31 von 64 auf dem Feld. Brennt es dort schon, entsteht keines.</td></tr>
     <tr><td>Feuer breitet sich aus</td><td>Stufe 2 zündet die 4 Nachbarfelder, meist 6 bis 15 Takte später, das Kind hat Stufe 1 und breitet sich nicht weiter aus.</td></tr>
     <tr><td>Feuerschaden</td><td>Jede Einheit auf dem Feuerfeld, jeden Takt, ohne Zufall: 37 aus einer Flamme, 75 aus einem Gebäudebrand. Feuerwerfer 5. Im ersten Takt eines Feuers 75 oder 112.</td></tr>
