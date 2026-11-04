@@ -433,6 +433,17 @@ Im Gefecht. Der Lord geht am Anfang von selbst auf die Burg, Ritter finden dorth
 - **Tunnel zu früh aufgegeben:** „Auslöser nicht gefunden“ stand kurz im Ergebnis. Der Eingang ist ein Bauwerk, das stand im Code, ich hatte nur beim Gräber gesucht.
 - **Zwei Prüffälle griffen ins Leere:** Nach dem Kopieren zweier Zeilen fanden die Sabotagen ihre Stelle nicht mehr eindeutig. Das Werkzeug meldete es, ich sah es erst nach dem Sichern. Die Zeilen sind jetzt je eine Hilfsfunktion.
 
+## Kleine Reste, 04.11. 18:25
+
+Beleg: `punkte_rechnung17.txt`.
+
+- **Kuh:** Anweisung 22 wirft je Befehl eine Kuh. Zähler 5 auf 4 bei Takt 665, im selben Takt fällt die Anweisung auf 3 zurück (sonder2_g). Darum flog nur eine.
+- **Eingestürzter Gang:** Die 35 Felder unter Bodenhöhe haben Fläche 1 und keine Sperr-Bits, laut Karte also begehbar. Belaufen habe ich sie nicht.
+- **Spielbefehl 74:** heißt in der Befehlstabelle `ReleaseDogs`, Hunde loslassen.
+- **Holztor:** Mapper 103 mit Größe 3 setzte das Spiel nicht (sonder22). Art und Größe passen also noch nicht, als Ziel ist es nicht geprüft.
+- **Schüsse ohne Verlust:** Sie landen, aber es gibt keinen Verlust: Pfeil 17 von 331, Feuer 14 von 75, Bolzen 3 von 69, Schleuderstein 1 von 232. Das Ziel war in keinem Fall weg. Die Ursache ist nicht geklärt.
+
 ## Noch offen
 
-Ob man durch den eingestürzten Gang laufen kann, warum nur eine Kuh flog, Holztor als Ziel im Nahkampf. Rund 5 Prozent Schüsse ohne Verlust am stehenden Ziel. Warum der erste Rahmen im Gefecht alt ist. Lauf-K-Stand (Szene 8b im Plan) ist nicht gefahren. Feuerkorb: Befehl 69 wirkte nicht (P312). Lauf F: Lagen wie Bündnis und Heer am Limit fehlen, Liste in `Punkte_Lauf_F.md`.
+Warum rund 5 Prozent der Schüsse ohne Verlust landen. Warum der erste Rahmen im Gefecht alt ist. Holztor als Ziel. Feuerkorb: Befehl 69 wirkte nicht (P312). Lauf-K-Stand (Szene 8b im Plan) ist nicht gefahren, die KI-Punkte kamen aus der Aufzeichnung von Lauf K. Lauf F: 42 Lagen fehlen, 11 Punkte sind nur gesehen, 1 ist offen. Liste in `Punkte_Lauf_F.md`.
+
