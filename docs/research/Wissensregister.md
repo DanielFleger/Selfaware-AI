@@ -437,3 +437,8 @@ Tick 4.731-7.737, Aufloesung 14,5 Ticks (`daten/lage_ablauf_fein_20261006_224521
 | S49 | Mauer am Feind: Einheit Feld unter 5, Weg unter 15. Gebaeude nur angrenzend, Weg unter 7 nur bei eigentumsfaehigen Arten wie Lager | getestet | `rufen_20261104_201941.json`, `rufen_20261104_202401.json` |
 | S50 | KI: Holz kaufen ab Zaehler 3 statt 37, Bitte um Ware nur an Menschen im Team, Bau-Ziel +2 ueber 16.000 Gold | getestet | `rufen_20261104_203818.json`, `rufen_bitte_20261104.json` |
 | S51 | Leitertraeger 20 Gold, Pike 1 Holz, Bogen 2 Holz, Kinder 75, Tempotasten bis 1.100 | getestet | `rufen_*.json`, `punkte_rechnung20.txt` |
+| S52 | Tempo ueber rund 825 Takte je Sekunde wird nicht schneller (830: 824, 1.000: 825, 2.000: 824) | Daniel, getestet | `rufen_tempo_20261104.json` |
+| S53 | Spielbefehl 113 Unterart 2 verschiebt Gold und Waren zwischen zwei Spielern, auch ohne Team. KI von selbst nur Gold, Warenbitte nur an Menschen | getestet | `rufen_korb_waren_20261104.json`, `rufen_bitte_20261104.json` |
+| S54 | Feuerkorb: erlaubt auf Bergfried, Tuermen, Torhaeusern, Mauern des Besitzers, kaum auf Zinnen | Daniel, getestet | `rufen_korb_felder_20261104.json`, `rufen_korb_gebaeude_20261104.json` |
+| S55 | Holztor gibt es im SHC nicht, nur Reste aus Stronghold 1. Waldsterben nur als Ton | Daniel | `rufen_mapper_20261104.txt` |
+| S56 | Geschosse und Feuerausbreitung ziehen aus dem Spielstrom, Feuerschaden an Einheiten aus dem ersten Strom | abgelesen | Export, Ergebnis Lauf S |

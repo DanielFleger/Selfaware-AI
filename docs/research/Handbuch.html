@@ -576,9 +576,12 @@ td.z { text-align: right; white-space: nowrap; }
     <tr><td>KI und Holz</td><td>3 Hütten: Wert ab 31, 6 Hütten: ab 91. Holz kaufen ab Zähler 3 (Export sagt 37).</td></tr>
     <tr><td>KI Bau-Ziel</td><td>Gold über 16.000: +2, bis 16.000: +1, je rund 50 Takte. Bis 5.000: +1 rund alle 100 Takte.</td></tr>
     <tr><td>KI bittet um Ware</td><td>Nur an einen menschlichen Partner im selben Team. Holz und Stein ja, Hopfen und Bier nein.</td></tr>
-    <tr><td>Tempotasten</td><td>Unter 90: 5er-Schritte, bis unter 200: 10er, ab 200: 100er. Bei 10 und darunter tut Minus nichts.</td></tr>
+    <tr><td>Tempotasten</td><td>Unter 90: 5er-Schritte, bis unter 200: 10er, ab 200: 100er. Bei 10 und darunter tut Minus nichts. Über rund 825 Takte je Sekunde wird es nicht schneller (Tempo 830: 824, 1.000: 825, 2.000: 824).</td></tr>
     <tr><td>Schüsse ohne Verlust</td><td>37 von 795: 17 Ziel schon tot, 3 traf einen anderen, 3 Ziel lief weg, 10 Feuer wirkt erst 6 bis 13 Takte später, 4 Feuer offen.</td></tr>
-    <tr><td>Stapel halten</td><td>Wiederholter Befehl alle 50 Takte: 8 Mann bleiben auf einem Feld. Nach dem letzten Befehl rund 200 Takte, dann gehen sie auseinander.</td></tr>
+    <tr><td>Feuerkorb</td><td>Die Oberfläche erlaubt ihn auf Bergfried, Türmen, Torhäusern und Mauern des eigenen Spielers, kaum auf Zinnen. Befehl 69 setzte ihn auf Torhaus und hoher Mauer.</td></tr>
+    <tr><td>Waren schicken</td><td>Spielbefehl 113 Unterart 2 verschiebt Gold und Waren zwischen zwei Spielern. Die KI schickt von selbst nur Gold an den Partner.</td></tr>
+    <tr><td>Zufall</td><td>Geschosse und Feuerausbreitung ziehen aus dem Spielstrom, der läuft festgelegt mit. Feuerschaden an Einheiten zieht aus dem ersten Strom, der hängt an der echten Zeit.</td></tr>
+    <tr><td>Stapel halten</td><td>Wiederholter Befehl alle 50 Takte: 8 Mann bleiben auf einem Feld. Ohne neuen Befehl zerfällt der Stapel nach 275 bis 375 Takten, jeder allein nach 677 bis 938.</td></tr>
     <tr><td>Bündnis</td><td>Teams halten, wenn sie in <code>playerTeams</code> stehen. Gold geht genau von Partner zu Partner (332, 272, 60), die KI ruft das laut Code ab 2.500 Gold. Am Ende lebten nur noch Lords eines Teams, dann gameOver.</td></tr>
     <tr><td>Mauerlücke</td><td>Ist ein Stück gefallen, führt ein neuer Laufbefehl hindurch. Der Befehl davor bleibt wirkungslos.</td></tr>
     <tr><td>Lager</td><td>Nimmt im Nahkampf keinen Schaden: 3 Schwertkämpfer, 3.000 Takte, 500 von 500 Leben.</td></tr>

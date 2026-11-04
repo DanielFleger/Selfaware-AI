@@ -478,12 +478,36 @@ Viele offene Punkte sind Prüfungen der Oberfläche: Sie laufen nur, wenn ein Me
 | Essen sperren | Kein Spielbefehl, ein Knopf: Der Zähler der Art geht auf 0, die Ware bleibt in der Kammer |
 | Graben-Zähler | -1 einmal je 200 Takte |
 | Tempotasten | Unter 90: 5er-Schritte. 90 bis unter 200: 10er. Ab 200: 100er. Bei 10 und darunter tut Minus nichts. Export sagte 20 bis 90 |
-| Stapel | Wiederholter Befehl alle 50 Takte: 8 Mann stehen von rund Takt 200 bis 1.200 auf einem Feld, nach dem letzten Befehl (Takt 1.000) gehen sie auseinander |
+| Stapel | Wiederholter Befehl alle 50 Takte: 8 Mann stehen von Takt 138 bis 1.275 auf einem Feld, der letzte Befehl kam bei Takt 1.000. Jeder allein ab Takt 1.938 |
 | Holztor | Mapper 103 und 140 bis 143: Die Prüfung sagt ja, es entsteht kein Gebäude. Als Ziel nicht gefahren |
 
 **Lauf F steht damit bei 151 bestätigt, 15 widerlegt, 75 gemessen, 0 gesehen, 0 Lage fehlt, 0 offen.**
 
+## Daniels Angaben geprüft, 04.11. 21:00
+
+| Angabe | Geprüft |
+|---|---|
+| Tempo: mit UCP bis 1.000, mehr als rund 830 wird nicht genommen | Stimmt. Tempo 100: 100 Takte je Sekunde, 500: 500, 830: 824, 1.000: 825, 2.000: 824 (KI-Gefecht, je 4 Sekunden, `rufen_tempo_20261104.json`). Normal 10 bis 90: Im Export gehen die Tasten von 20 bis 90, Minus von 25 auf 20, bei 20 bleibt es. Das Menü ist nicht geprüft |
+| Der Stapel entwirrt sich nach rund 1.000 Takten | Fast. Ohne neuen Befehl hält er 275 bis 375 Takte, dann zerfällt er, jeder allein nach 677 bis 938 Takten. Wiederholter Befehl hält ihn, gemessen bis Takt 1.275 |
+| Können sich KI etwas schicken? | Von selbst nur Gold an den Partner. Die Warenbitte geht nur an einen Partner mit Kennung, also einen Menschen. Spielbefehl 113 Unterart 2 verschiebt Gold und Waren zwischen zwei Spielern: 100 Gold und 5 Holz kamen an, auch ohne gleiches Team (`rufen_korb_waren_20261104.json`). Das Menü heißt `AlliesSendGoods`, ein Mensch kommt so nur an Verbündete, das ist nicht gemessen |
+| Projektile und Feuer haben Zufall | Stimmt. Im Code: `spawnProjectileEntity`, `prepareProjectileTarget` (`setRandomShootLocation`), die Feuerausbreitung, `processFireDamageToUnit`. Geschosse und Ausbreitung ziehen aus dem Spielstrom, der läuft festgelegt mit (Lauf K). Der Feuerschaden an Einheiten zieht aus dem ersten Strom, der hängt an der echten Zeit. Ob die 4 Feuerschüsse daher kommen, ist nicht nachgerechnet |
+| Feuerkorb nur auf Bergfried, Türmen, Torhäusern, Mauern, keine Zinnen | Stimmt mit der Prüfung der Oberfläche (`getHeightAtTileIncludingOwnersBuildings`). Alle Gebäude durchgegangen: Art 41, 46, 74, 76, 77, 78 haben Felder mit Ja, alle anderen Arten keines. Mauer 3.089 Felder ja, 488 nein. Zinne 169 ja, 683 nein. Nur der Besitzer, nie ein anderer. Befehl 69 siehe P312 |
+| Holztor gibt es im SHC nicht | Passt. `placeBuilding` kennt keinen Fall dafür, in 17 Versuchen mit Größe und Drehung entstand keines (`rufen_mapper_20261104.txt`). Geprüft auf freiem Boden. Stufe Daniel |
+| Waldsterben nur als Ton | Die Suche nach blight, treeDeath, forestDeath, treeDisease, woodDisease, deadTree im Code traf nur einen Satz aus einer Mission. Der Ton ist nicht geprüft. Stufe Daniel |
+
+## Rest der Checkliste P372 bis P376
+
+Mein Bericht von 20:45 sagte, die Checkliste sei durch. Das stimmte nicht ganz: Diese 5 Punkte hatten in keiner Liste eine Zeile. Stand jetzt 373 von 376 mit Urteil.
+
+| Punkt | Funktion | Urteil | Beleg |
+|---|---|---|---|
+| P372 | `teamToBitFlagsUnk` | bestätigt | Direkt: jeder allein 0b11111011, Spieler 3 und 4 zusammen 0b11110011 |
+| P375 | `getCastleBuildRangeForMapSize` | bestätigt | 45, 50, 60, 70, siehe P201 |
+| P374 | `renderWallDragPreview` | Lage fehlte | Braucht Ziehen mit der Maus. Die Formel aus P119 ergibt 5 Stein für 10 Felder, gelesen ist es nicht |
+| P373 | `commitBuildingAvailability` | Lage fehlte | Braucht eine Karte mit gesperrtem Gebäude |
+| P376 | `updateTribeBehaviorBasedOnBehaviorType` | Lage fehlte | Nur in der Einzelspieler-Mission, die kommt in unseren Partien nicht vor |
+
 ## Noch offen
 
-Warum 4 von 82 Feuerschüssen 60 Takte keinen Verlust zeigen. Warum der erste Rahmen im Gefecht alt ist. Holztor als Ziel: Auf freiem Boden entsteht es nicht (`rufen_mapper_20261104.txt`), an einer Mauer ist es nicht geprüft. Feuerkorb: Befehl 69 und 97 ohne Korb (P312). Warum das Spiel beim Direktaufruf von `aiDecideOnNewBuildings` abstürzt. Die -1 aus P119 und das kurze 0 in P140. Lauf-K-Stand (Szene 8b im Plan) ist nicht gefahren, die KI-Punkte kamen aus der Aufzeichnung von Lauf K. Lauf F: siehe `Punkte_Lauf_F.md`.
+Warum 4 von 82 Feuerschüssen 60 Takte keinen Verlust zeigen. Warum der erste Rahmen im Gefecht alt ist. Feuerkorb: Warum Befehl 69 auf Bergfried, Turm und niedriger Mauer in der Kurzprobe keinen Korb setzte, und was er in Siege That kostet (P312). Warum das Spiel beim Direktaufruf von `aiDecideOnNewBuildings` abstürzt. Die -1 aus P119 und das kurze 0 in P140. Lauf-K-Stand (Szene 8b im Plan) ist nicht gefahren, die KI-Punkte kamen aus der Aufzeichnung von Lauf K. Lauf F: siehe `Punkte_Lauf_F.md`.
 

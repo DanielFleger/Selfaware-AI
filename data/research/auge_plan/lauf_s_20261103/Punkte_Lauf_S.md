@@ -8,16 +8,15 @@
 |---|---|
 | widerlegt | 16 |
 | bestätigt | 52 |
-| teils | 2 |
+| teils | 3 |
 | gemessen | 4 |
-| Lage fehlte | 1 |
+| Lage fehlte | 0 |
 | offen | 0 |
 
 ## Was die Lauf-S-Lagen noch brauchen
 
 | Versuch | Punkte |
 |---|---|
-| Feuerkorb: Befehl 69 wirkte nicht, Siege That kommt in unseren Partien nicht vor | P312 |
 
 ## Widerlegt (16)
 
@@ -97,10 +96,11 @@
 | P370 | `updateUnits` | totalAssassinTroops zählt nur Einheiten mit aiUnitBehaviourType 12, in Lauf K hatten alle Assassinen 1 und der Zähler blieb 0. Gesetzt in sonder15_g: 2 Assassinen: beide Zähler 0 auf 2 bei Takt 210, nach ihrem Tod bei Takt 1.386 wieder 0. |
 | P371 | `UpdateHorseArcher` | Schießt auch im Laufen: Schüsse bei Takt 120, 218, 320, alle 92 bis 102 Takte. Im Stand alle 77 bis 79 (sonder8). |
 
-## Teils (2)
+## Teils (3)
 
 | Punkt | Funktion | Beleg |
 |---|---|---|
+| P312 | `CommandSpawnEntity` | Befehl 69 setzt den Korb nur erhöht: Auf Torhaus Art 46 (Höhe 98) und Mauer mit Zinne (Höhe 106) entstand er, auf Boden, niedriger Mauer (Höhe 8), Treppe (Höhe 40), Bergfried und Turm in der Kurzprobe nicht, warum, ist offen. Gold im Modus Siege That nicht gemessen: Die Probe traf ein Feld ohne Korb. `rufen_korb_felder_20261104.json`, `rufen_korb_gebaeude_20261104.json`. |
 | P329 | `updateTribeCombatStanceBehavior` | Zähler +1 je Takt, field93 läuft ab 51 bis 59 und fällt auf 0. Der Abstand zur Leit-Einheit ist nicht gemessen. |
 | P358 | `UpdateMonk` | Lauf K: 301 Mönche mit Arbeitsplatz Kathedrale im Zustand 0x69, 2.715 Rahmen. Der Zielwechsel alle 40 Takte ist nur im Code gelesen (Spielzeit plus Platz teilbar durch 40, und nur, wenn ein Feld frei ist), mein gelesenes Feld zeigte ihn nicht. |
 
@@ -113,11 +113,10 @@
 | P311 | `ClickGiveUnitsInstruction` | Param0 Gruppe, Param1 Anweisung, Param2 und 3 das Ziel (Nummer und uid, x und y oder Feldnummer), Param4 0. In allen Läufen so benutzt, auch Zuschütten wirkte mit 0, das Menü sendet dort 1000. |
 | P352 | `UpdateCrossbowman` | Im Marsch kein Schuss, bei beiden Armbrustschützen. Am Ziel je 6 Schüsse, alle 228 Takte, auch mit Haltung stehen (sonder8). |
 
-## Lage fehlte (1)
+## Lage fehlte (0)
 
 | Punkt | Funktion | Beleg |
 |---|---|---|
-| P312 | `CommandSpawnEntity` | Spielbefehl 69 abgesetzt (Log), in Spielart 3 und mit gesetzter Spielart 6: Es entstand kein Korb, Gold blieb gleich (sonder15_g). Auch im KI-Gefecht entstand mit Befehl 69 (Spielart 3 und 6) und Befehl 97 kein neuer Korb (`rufen_korb_20261104.json`). Warum, ist ungeklärt. Siege That kommt in unseren Partien nicht vor. |
 
 ## Offen (0)
 

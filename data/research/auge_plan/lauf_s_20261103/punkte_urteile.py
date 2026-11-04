@@ -25,7 +25,7 @@ U = {
     "P309": (W, "Nicht Stein -10 und Munition auf 20. Spielbefehl 86 hat zwei Werte: Wert 1 füllt den Trupp auf, und zwar bis 10: 6 auf 10 (sonder10_g). Mit 2 Stein gibt es +2, also 1 Stein je Schuss: 6 auf 8 (sonder18_g), laut Export wären es +4. Das ist UCP3 (`code_abgleich.txt`). Wert 0 ist der Zweig von P308. Berichtigt: Der ungeklärte Versuch aus dem ersten Nachlauf schickte den Trupp mit Wert 0, also in den falschen Zweig."),
     "P310": (B, "Unser Laufbefehl ist genau dieser Befehl: Spielbefehl 17 (Modul), Parameter Gruppe, x, y, Schalter, Tempo laut Code. Er wirkte in allen Läufen. Ein echter Mausklick ist nicht gefahren."),
     "P311": (G, "Param0 Gruppe, Param1 Anweisung, Param2 und 3 das Ziel (Nummer und uid, x und y oder Feldnummer), Param4 0. In allen Läufen so benutzt, auch Zuschütten wirkte mit 0, das Menü sendet dort 1000."),
-    "P312": (L, "Spielbefehl 69 abgesetzt (Log), in Spielart 3 und mit gesetzter Spielart 6: Es entstand kein Korb, Gold blieb gleich (sonder15_g). Auch im KI-Gefecht entstand mit Befehl 69 (Spielart 3 und 6) und Befehl 97 kein neuer Korb (`rufen_korb_20261104.json`). Warum, ist ungeklärt. Siege That kommt in unseren Partien nicht vor."),
+    "P312": (T, "Befehl 69 setzt den Korb nur erhöht: Auf Torhaus Art 46 (Höhe 98) und Mauer mit Zinne (Höhe 106) entstand er, auf Boden, niedriger Mauer (Höhe 8), Treppe (Höhe 40), Bergfried und Turm in der Kurzprobe nicht, warum, ist offen. Gold im Modus Siege That nicht gemessen: Die Probe traf ein Feld ohne Korb. `rufen_korb_felder_20261104.json`, `rufen_korb_gebaeude_20261104.json`."),
     "P313": (B, "3 von 3 Läufen, davon einer mit echtem Töter: Feld des Gegners wird 1, gameOver 1, playerIsAlive[1] = 1 und [2] = 0, rund 305 Takte nach dem Sterben des Lords."),
     "P314": (B, "5 von 5 Gegnern auf einem Feld des brennenden Pechs: counter 1 und field312 1 im Takt des Betretens (Takt 547 bis 581). counter fällt 15 bis 20 Takte später wieder auf 0, field312 bleibt 1 (sonder11_g)."),
     "P315": (B, "(Wert, Anzahl) = (12, 3) bei 3 Speerträgern, (32, 8) bei 8, (16, 4) bei 4 lebenden. Wert 4 je Speerträger."),
@@ -87,7 +87,7 @@ U = {
     "P371": (B, "Schießt auch im Laufen: Schüsse bei Takt 120, 218, 320, alle 92 bis 102 Takte. Im Stand alle 77 bis 79 (sonder8)."),
 }
 WORTE = (W, B, T, G, L, O)
-FEHLT_TEXT = [("Feuerkorb: Befehl 69 wirkte nicht, Siege That kommt in unseren Partien nicht vor", "P312")]
+FEHLT_TEXT = []
 
 
 def schreiben():
