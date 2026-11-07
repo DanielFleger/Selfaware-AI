@@ -4189,14 +4189,20 @@
    "nr": "B-155",
    "titel": "P3: Rechenwerte gegen die Messung abgleichen (z. B. Pfeil-Reichweite 44 gegen gemessene 40)",
    "bereich": "Auge",
-   "status": "offen",
+   "status": "gebaut",
    "seit": "2026-11-08 00:07",
    "herkunft": "Entscheidungsblatt SamurAI_Entscheidungen.html (04.11.), Reihenfolge P1-P10; Daniel 08.11.: Backlog aufraeumen, dann P1 und P2",
-   "gebaut": null,
-   "commits": [],
-   "wo": [],
+   "gebaut": "2026-11-08 00:29",
+   "commits": [
+    "c638b8a"
+   ],
+   "wo": [
+    "data/research/auge_plan/p3_abgleich.md",
+    "src/selfaware/services/spielwerte.py",
+    "tests/test_spielwerte.py"
+   ],
    "belege": [],
-   "notiz": "",
+   "notiz": "Abgleich ohne Spiel fertig: 13 Werte, 6 weichen ab (Reichweite 44 statt 40 und Schach- statt Luftlinie, Lauftempo je Befehl, Assassine 16 statt 14,6, Nahkampf pauschal 60, Lord-Leben). Vorschlag: eine Quelle services/spielwerte.py; Umbau wartet auf Daniels Ja | Umgebaut: eine Quelle services/spielwerte.py, 6 Module umgestellt, Gefecht zieht beide Seiten gleichzeitig; 11 Tests gruen, Pruefskripte alt/neu gleich. Offen: Luftlinie schraeg und Ritter-Tempo im naechsten Messlauf pruefen",
    "verlauf": [
     {
      "zeit": "2026-11-08 00:07",
@@ -4205,6 +4211,14 @@
     {
      "zeit": "2026-11-08 00:07",
      "was": "Rang - -> 1"
+    },
+    {
+     "zeit": "2026-11-08 00:12",
+     "was": "offen -> in Arbeit: Abgleich ohne Spiel fertig: 13 Werte, 6 weichen ab (Reichweite 44 statt 40 und Schach- statt Luftlinie, Lauftempo je Befehl, Assassine 16 statt 14,6, Nahkampf pauschal 60, Lord-Leben). Vorschlag: eine Quelle services/spielwerte.py; Umbau wartet auf Daniels Ja"
+    },
+    {
+     "zeit": "2026-11-08 00:29",
+     "was": "in Arbeit -> gebaut (Commit c638b8a): Umgebaut: eine Quelle services/spielwerte.py, 6 Module umgestellt, Gefecht zieht beide Seiten gleichzeitig; 11 Tests gruen, Pruefskripte alt/neu gleich. Offen: Luftlinie schraeg und Ritter-Tempo im naechsten Messlauf pruefen"
     }
    ],
    "rang": 1
