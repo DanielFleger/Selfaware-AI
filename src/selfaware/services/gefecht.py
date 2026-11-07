@@ -24,19 +24,21 @@ import json
 import math
 import os
 
+import selfaware.services.spielwerte as spielwerte
+
 HIER = os.path.dirname(os.path.abspath(__file__))
 D = os.path.join(_workspace.DATA)
-FERN_REICH = {22: 44, 23: 44, 70: 44, 74: 44, 72: 17, 76: 11}
+FERN_REICH = dict(spielwerte.ERFASSEN_FERN)   # 08.11. (P3): gemessen 40/40/40/40/18/11, Luftlinie (vorher 44/17/11 Schach)
 SCHRITT = 10              # Takte je Simulationsschritt
-TEMPO = 15.0              # Takte je Feld (L68: 16 fuer die meisten, Assassine 14,6 - L80)
+TEMPO = spielwerte.TEMPO_ERSATZ["trupp"]   # nur Ersatz; simuliere nimmt das Tempo je Art (P3, S8)
 BIS = 1500                # laengstens so viele Takte rechnen
 BEHALTEN = 0.4            # Anteil unseres eingesetzten Lebens, der nach dem Sieg mindestens bleiben muss (Stellgroesse)
 LORD = 55
-LORD_LEBEN = 150000       # 1018o: "Lord 26 mit 149750 Leben" (voll; Mitschrift LORD EINDEUTIG)
+LORD_LEBEN = spielwerte.LORD_LEBEN_NACH_LADEN   # nur Ersatz: im laufenden Spiel je KI 75.000-180.000 (K1), Leben aus dem Lagebild nehmen
 LORD_PROBEN = 5           # Lord-Werte aus Partien erst ab so vielen Proben (lord_messen.py)
-# Lauftempo, Takte je Feld (L80, Median aus 11 Mitschriften, 17.10.); fehlt eine Art, ist ihr Tempo unbekannt (None)
-TEMPO_ART = {22: 11.5, 71: 12.0, 70: 12.2, 24: 13.5, 73: 14.6, 72: 15.0, 55: 19.0, 75: 19.5, 23: 21.0, 76: 21.5,
-             25: 24.0}
+# Lauftempo im Trupp- oder Angriffsbefehl, Takte je Schachfeld (08.11., P3: gemessen in Lauf S, S8; vorher L80 aus
+# Mitschriften, 6 von 11 Arten ueber 10 % daneben); fehlt eine Art, ist ihr Tempo unbekannt (None)
+TEMPO_ART = spielwerte.tempo_tabelle("trupp")
 
 _TABELLE = None
 
@@ -149,18 +151,29 @@ def simuliere(wir, sie, schaden=None, bis=BIS, rest_aus=None):
         if not lebend[0] or not lebend[1]:
             break
         treffer = [{}, {}]
+        # 08.11. (P3): beide Seiten ziehen gleichzeitig - Abstaende vom Stand zu Beginn des Schritts, Bewegung danach.
+        # Vorher lief Seite 0 zuerst, und Seite 1 sah schon die neuen Orte: wer zuerst zuschlug, hing an der Reihenfolge.
+        ort = {id(e): (e["x"], e["y"]) for s in lebend for e in s}
+        zug = []
         for i in (0, 1):
             gegner = lebend[1 - i]
             for e in lebend[i]:
-                z = min(gegner, key=lambda g: max(abs(g["x"] - e["x"]), abs(g["y"] - e["y"])))
-                d = max(abs(z["x"] - e["x"]), abs(z["y"] - e["y"]))
-                reich = FERN_REICH.get(e["typ"], 1)
-                if d <= reich:
+                ex, ey = ort[id(e)]
+                z = min(gegner, key=lambda g: max(abs(ort[id(g)][0] - ex), abs(ort[id(g)][1] - ey)))
+                dx, dy = ort[id(z)][0] - ex, ort[id(z)][1] - ey
+                d = max(abs(dx), abs(dy))
+                reich = FERN_REICH.get(e["typ"])
+                # 08.11. (P3): Schuetzen nach Luftlinie (acquireShootTarget), Nahkampf auf Beruehrung (<= 1 Schachfeld)
+                if (reich is not None and dx * dx + dy * dy <= reich * reich) or (reich is None and d <= 1):
                     treffer[1 - i][id(z)] = treffer[1 - i].get(id(z), 0.0) + dps(e["typ"], z["typ"], schaden, fern, d) * SCHRITT
                 elif not e.get("steht"):
-                    schritt = min(d - reich, SCHRITT / TEMPO)
-                    e["x"] += (z["x"] - e["x"]) / d * schritt
-                    e["y"] += (z["y"] - e["y"]) / d * schritt
+                    # Anteil des Wegs: so viele Schachfelder, wie die Art in SCHRITT Takten schafft, hoechstens bis in Reichweite
+                    noetig = (1 - reich / math.hypot(dx, dy)) if reich is not None else (d - 1) / d
+                    anteil = min(noetig, SCHRITT / spielwerte.takte_je_feld(e["typ"], "angriff") / d)
+                    zug.append((e, dx * anteil, dy * anteil))
+        for e, mx, my in zug:
+            e["x"] += mx
+            e["y"] += my
         for i in (0, 1):
             for e in lebend[i]:
                 e["leben"] -= treffer[i].get(id(e), 0.0)

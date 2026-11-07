@@ -19,12 +19,14 @@ Ablauf je Runde (schritt):
 Anwerben/Kaufen macht erstes_spiel.ruestung_kaufen (Ziel N lebende Streitkolben, nur Gold ueber der Ruecklage).
 """
 
+import selfaware.services.spielwerte as spielwerte
+
 STREITKOLBEN = 26
 # 19.10. (Daniel, 1019f: 26 arab. Schwertkaempfer und 25 arab. Bogen standen am Bergfried, kein Streitkolben - "nur zum
 # Verteidigen ist das Overkill ... danach besser verteilen um auch zu raiden"; "beim naechsten Run sollen beide Nomaden
 # sterben"): das Heer sind alle eigenen Truppen dieser Arten, ausser der Heimwache (setzt erstes_spiel)
 HEER = {24, 25, 26, 27, 28, 75, 22, 23, 70}
-FERN_REICH = {22: 44, 23: 44, 70: 44}
+FERN_REICH = {t: spielwerte.ERFASSEN[t] for t in (22, 23, 70)}   # 08.11. (P3): gemessen 40, Luftlinie (vorher 44)
 LORD = 55
 FERN = {22, 23, 70, 72, 74, 76}
 TRUPPE = {22, 23, 24, 25, 26, 27, 28, 37, 55, 70, 71, 72, 73, 74, 75, 76}
@@ -268,7 +270,7 @@ class Feldzug:
         sie = [dict(typ=e["typ"], leben=e["leben"], x=e["x"], y=e["y"], steht=True) for e in L.values()
                if e["besitzer"] not in (0, self.sp) and e["typ"] in TRUPPE and (
                    schach((e["x"], e["y"]), lp) <= self.LORD_UMKREIS
-                   or (e["typ"] in gefecht.FERN_REICH and schach((e["x"], e["y"]), lp) <= gefecht.FERN_REICH[e["typ"]]))]
+                   or (e["typ"] in gefecht.FERN_REICH and spielwerte.in_reichweite((e["x"], e["y"]), lp, e["typ"])))]
         wir = [dict(typ=L[n]["typ"], leben=L[n]["leben"], x=L[n]["x"], y=L[n]["y"]) for n in da]
         try:
             return gefecht.bewerte(wir, sie)

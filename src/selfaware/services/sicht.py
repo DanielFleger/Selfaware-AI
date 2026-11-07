@@ -21,14 +21,16 @@ import json
 import math
 import os
 
+import selfaware.services.spielwerte as spielwerte
+
 HIER = os.path.dirname(os.path.abspath(__file__))
 
 WAEHLBAR = {5, 22, 23, 24, 25, 26, 27, 28, 29, 30, 37, 39, 40, 41, 55, 58, 59, 60, 61,
             70, 71, 72, 73, 74, 75, 76, 77}
-# 17.10. Editor (L81): Schleuder traf bis 15 (18 nicht), Feuerwerfer bis 10 (12 nicht) - die vorsichtige Seite der Grenze
-# 19.10. (Partie 1018p, treffer_genau.py: Armbrust 43 loeste bei 42 Feldern aus, der Bolzen toetete Assassine 245): Bogen-
-# und Armbrust-Arten 44 statt 40 - im Spiel (Gelaendehoehe) weiter als im flachen Editor (39)
-REICHWEITE = {22: 44, 23: 44, 70: 44, 74: 44, 72: 17, 76: 11}
+# 08.11. (P3, B-155): Erfassen-Reichweite aus der Messung (S9: Bogen-Arten 40, Schleuder 18, Feuerwerfer 11), Luftlinie wie
+# acquireShootTarget. Vorher 44/17/11: die 44 aus 1018p (Bolzen aus 42 Feldern) ist kein Erfassen, sondern Weiterschiessen
+# auf ein fliehendes Ziel - das steckt jetzt in spielwerte.gefahr (und im ENTDECKT_RAND der Assassinen).
+REICHWEITE = dict(spielwerte.ERFASSEN_FERN)
 NAHKAMPF = {24, 25, 26, 27, 28, 37, 55, 71, 73, 75}
 TIERE = {44, 45, 46, 47, 48, 49, 51, 52, 62, 67, 68, 69}
 SICHT = 160                      # Feinmass (acquireShootTarget 0x0054B0D0)

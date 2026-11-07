@@ -22,6 +22,7 @@ from selfaware.micro.tasks.waechter import sicherster_ort
 from selfaware.services.bedrohung import fingerabdruck, bedarf as lage_bedarf, lagen_laden
 import selfaware.services.schussfeld as schussfeld
 import selfaware.services.sicht as sicht
+import selfaware.services.spielwerte as spielwerte
 import selfaware.execution.lordschutz as lordschutz
 import json as _json
 import os as _os
@@ -34,7 +35,7 @@ try:
 except (OSError, ValueError):
     ARBEIT = {}
 ARBEIT_SONST = sorted(ARBEIT.values())[len(ARBEIT) // 2] if ARBEIT else 200
-TEMPO = 14.6               # Takte je Feld, Assassine (L80, gemessen 17.10.)
+TEMPO = spielwerte.takte_je_feld(73, "direkt")   # Takte je Feld, Assassine: 16 (P3 08.11., S8; vorher 14,6 aus L80)
 # 17.10.: Lebensverlust des Ziels je Assassine und Takt im Nahkampf (data/research/nahkampf_raten.json, gemessen), sonst 230
 try:
     NAHKAMPF_RATE = {int(k): v for k, v in _json.load(open(_os.path.join(_workspace.DATA, 'nahkampf_raten.json')))["leben_je_takt"].items()}
@@ -1084,7 +1085,8 @@ class Einzeln:
         return n in self.lordtrupp["mitglieder"] and self.lordtrupp["phase"] in ("angriff", "sammeln")
 
     def _drohende(self, ort, nrs, L):
-        """19.10.: die Schuetzen aus nrs (Einheitennummern), die ort jetzt erreichen: Reichweite + ENTDECKT_RAND, Linie frei."""
+        """19.10.: die Schuetzen aus nrs (Einheitennummern), die ort jetzt erreichen: gefaehrlicher Umkreis (spielwerte.gefahr:
+        Reichweite + Weg waehrend des Zielens, mindestens ENTDECKT_RAND), Linie frei."""
         s = self._sicht
         aus = []
         for k in nrs:
@@ -1092,7 +1094,7 @@ class Einzeln:
             if not e or e["besitzer"] in (0, self.sp) or e["typ"] not in sicht.REICHWEITE:
                 continue
             p = (e["x"], e["y"])
-            r = sicht.REICHWEITE[e["typ"]] + self.ENTDECKT_RAND
+            r = spielwerte.gefahr(e["typ"])
             if (p[0] - ort[0]) ** 2 + (p[1] - ort[1]) ** 2 > r * r:
                 continue
             unter = s.gebaeude.get(p)
@@ -1314,7 +1316,7 @@ class Einzeln:
             p = (e["x"], e["y"])
             if e["typ"] in sicht.NAHKAMPF and (k in trupp["mitglieder"] or any(schach(p, q) <= self.GEGEN_UMKREIS for q in orte_t)):
                 sie.append(dict(typ=e["typ"], leben=e["leben"], x=e["x"], y=e["y"]))
-            elif e["typ"] in sicht.REICHWEITE and any(schach(p, q) <= sicht.REICHWEITE[e["typ"]] for q in orte_t):
+            elif e["typ"] in sicht.REICHWEITE and any(spielwerte.in_reichweite(p, q, e["typ"]) for q in orte_t):
                 sie.append(dict(typ=e["typ"], leben=e["leben"], x=e["x"], y=e["y"], steht=True))
         wir = [dict(typ=ASSASSINE, leben=L[m]["leben"], x=L[m]["x"], y=L[m]["y"]) for m in wir_nr]
         try:
@@ -1341,7 +1343,7 @@ class Einzeln:
             if e["besitzer"] in (0, self.sp):
                 continue
             q = (e["x"], e["y"])
-            if e["typ"] in sicht.REICHWEITE and schach(q, p) <= sicht.REICHWEITE[e["typ"]]:
+            if e["typ"] in sicht.REICHWEITE and spielwerte.in_reichweite(q, p, e["typ"]):
                 sie.append(dict(typ=e["typ"], leben=e["leben"], x=e["x"], y=e["y"], steht=True))
                 schuetzen += 1
             elif e["typ"] in sicht.NAHKAMPF and schach(q, p) <= self.GEGEN_UMKREIS:
@@ -1687,10 +1689,13 @@ class Einzeln:
         ort = (L[n]["x"], L[n]["y"])
         nrs = self._nahe_schuetzen(ort, L)
         auf_ihn = set(self._drohende(ort, nrs, L))
-        nah = sum(1 for e in L.values() if e["besitzer"] not in (0, self.sp) and e["typ"] in sicht.NAHKAMPF
-                  and schach(ort, (e["x"], e["y"])) <= 2)
-        nah += sum(1 for e in L.values() if e["besitzer"] == 0 and e["typ"] == self.LOEWE and schach(ort, (e["x"], e["y"])) <= 2)
-        dps = self._feuer_von(ort, nrs, L) + nah * self.NAH_SCHADEN
+        # 08.11. (P3): Nahkampfschaden je Angreifer-Art (S3: je Takt ein Treffer in Hoehe des Tabellenwerts) statt pauschal
+        # NAH_SCHADEN; der bleibt Ersatz fuer ungemessene Arten und fuer Loewen
+        nah = sum(spielwerte.nahkampf_je_takt(e["typ"], L[n]["typ"], self.NAH_SCHADEN) for e in L.values()
+                  if e["besitzer"] not in (0, self.sp) and e["typ"] in sicht.NAHKAMPF and schach(ort, (e["x"], e["y"])) <= 2)
+        nah += self.NAH_SCHADEN * sum(1 for e in L.values() if e["besitzer"] == 0 and e["typ"] == self.LOEWE
+                                      and schach(ort, (e["x"], e["y"])) <= 2)
+        dps = self._feuer_von(ort, nrs, L) + nah
         rest = L[n]["leben"] / max(dps, 1.0)
         kand = []
         for gn, g in G.items():

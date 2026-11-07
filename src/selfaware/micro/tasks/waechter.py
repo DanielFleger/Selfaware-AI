@@ -16,6 +16,7 @@ import math, os
 from selfaware.game.ucp.laden import befehl
 from selfaware.game.ucp.befehl import ABZUG
 import selfaware.services.gefecht as gefecht
+import selfaware.services.spielwerte as spielwerte
 
 LAGEBILD = os.path.join(ABZUG, "lagebild.txt")
 NAHKAMPF = {24, 25, 26, 27, 28, 37, 55, 71, 73, 75}
@@ -331,7 +332,7 @@ class Waechter:
                     gruppe.add(n); offen.append(n)
         mitte = (L[self.ziel]["x"], L[self.ziel]["y"])
         helfer = {n for n, e in feind.items() if n not in gruppe and e["typ"] in gefecht.FERN_REICH
-                  and schach((e["x"], e["y"]), mitte) <= gefecht.FERN_REICH[e["typ"]]}
+                  and spielwerte.in_reichweite((e["x"], e["y"]), mitte, e["typ"])}
         # die Feinde kaempfen dort, wo sie sind (sie zerstoeren unsere Gebaeude, laufen uns nicht entgegen) - unsere muessen hin
         # (Pruefung 5: mit Entgegenlaufen traf sich der Sklave 130 Felder weit draussen auf halbem Weg mit uns)
         sie = [dict(typ=L[n]["typ"], leben=L[n]["leben"], x=L[n]["x"], y=L[n]["y"], steht=True) for n in gruppe | helfer]

@@ -2,9 +2,10 @@
 """Schussfeld und sicherer Weg (SAI 12.10., Daniel 01:03: "den besten und sichersten Weg finden, der trotzdem der kuerzeste
 ist"; 01:08: "genau wissen, wo alle gegnerischen Einheiten hinschiessen koennen, und den toten Winkel ausnutzen").
 
-1. Gefahr: jede feindliche Fernkampfeinheit deckt ihre Reichweite ab (REICHWEITE, abgelesen aus ascension_ai.json "ranges",
-   12.10.). Gezaehlt wird in Schachfeldern - das deckt mehr ab als ein Kreis, ist also die vorsichtige Seite, solange die
-   Zaehlweise des Spiels nicht gemessen ist (offen). Gefahr eines Feldes = Zahl der Schuetzen, die es erreichen.
+1. Gefahr: jede feindliche Fernkampfeinheit deckt ihren gefaehrlichen Umkreis ab (REICHWEITE = spielwerte.gefahr:
+   gemessene Reichweite plus Weg einer fliehenden Einheit waehrend des Zielens, P3 08.11.). Gezaehlt wird nach Luftlinie
+   wie im Spiel (acquireShootTarget: dx^2 + dy^2 <= R^2; vorher Schachfelder als vorsichtige Seite).
+   Gefahr eines Feldes = Zahl der Schuetzen, die es erreichen.
    OFFEN (Frage-Agent 01:19): Assassinen sind getarnt - ob die Gefahr erst mit der Entdeckung beginnt, ist ungemessen.
 2. Weg: Dijkstra auf einem groben Gitter (ZELLE x ZELLE Felder) ueber begehbares Gelaende (Kartenzeichen "Gs." wie
    pruefe_begehbar). Schrittkosten = Laenge * (1 + GEWICHT * Gefahr). Bei grossem GEWICHT ist das der kuerzeste Weg unter
@@ -12,8 +13,11 @@ ist"; 01:08: "genau wissen, wo alle gegnerischen Einheiten hinschiessen koennen,
 3. Wegpunkte: Zellmitten dort, wo der Weg die Richtung wechselt, hoechstens alle MAX_ABSTAND Felder einer.
 Gegenprobe: src/selfaware/tools/checks/schussfeld_pruefen.py."""
 import heapq
+import math
 
-REICHWEITE = {22: 44, 23: 44, 70: 44, 74: 44, 72: 17, 76: 11}   # 17.10. Editor (L81): Schleuder 17, Feuerwerfer 11   # Bogen, Armbrust, arab. Bogen, Pferdebogen, Schleuder, Feuerwerfer
+import selfaware.services.spielwerte as spielwerte
+
+REICHWEITE = {t: spielwerte.gefahr(t) for t in spielwerte.ERFASSEN_FERN}   # 08.11. (P3): Bogen-Arten 44, Armbrust 48,6, Schleuder 22, Feuerwerfer 15
 # 17.10.: der Schadenssatz nach Abstand zum naechsten Feind (SCHADEN_SATZ, L73) ist ersetzt durch sicht.py - sichtbar nur bei
 # waehlbarem Feind <= 160 Feinmass, Beschuss je Schuetze mit freier/versperrter Linie (L75-L79, Plan_Entdeckung.md).
 ZELLE = 4
@@ -33,8 +37,12 @@ def schuetzen(L, sp):
             if e["besitzer"] not in (0, sp) and e["typ"] in REICHWEITE]
 
 
+def luftlinie2(a, b):
+    return (a[0] - b[0]) ** 2 + (a[1] - b[1]) ** 2
+
+
 def gefahr_am(ort, schuetzen_liste):
-    return sum(1 for p, r in schuetzen_liste if schach(ort, p) <= r)
+    return sum(1 for p, r in schuetzen_liste if luftlinie2(ort, p) <= r * r)
 
 
 class Gitter:
@@ -56,11 +64,12 @@ class Gitter:
                     self.frei[cy][cx] = gut * 2 > alle
         self.gefahr = [[0] * self.n for _ in range(self.n)]
         for (px, py), r in schuetzen_liste:
-            c0x, c1x = max(0, (px - r) // zelle), min(self.n - 1, (px + r) // zelle)
-            c0y, c1y = max(0, (py - r) // zelle), min(self.n - 1, (py + r) // zelle)
+            ri = int(math.ceil(r))
+            c0x, c1x = max(0, (px - ri) // zelle), min(self.n - 1, (px + ri) // zelle)
+            c0y, c1y = max(0, (py - ri) // zelle), min(self.n - 1, (py + ri) // zelle)
             for cy in range(c0y, c1y + 1):
                 for cx in range(c0x, c1x + 1):
-                    if schach(self.mitte((cx, cy)), (px, py)) <= r:
+                    if luftlinie2(self.mitte((cx, cy)), (px, py)) <= r * r:
                         self.gefahr[cy][cx] += 1
         # 17.10.: erwarteter Lebensverlust je Takt je Zelle aus sicht.Lage (sichtbar? x Schuetzen mit freier Linie)
         self.satz = sicht.zellsatz(zelle, self.n) if sicht is not None else None

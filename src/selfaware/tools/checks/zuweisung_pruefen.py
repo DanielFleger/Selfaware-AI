@@ -1,8 +1,9 @@
 # -*- coding: utf-8 -*-
 """Pruefung ohne Spiel fuer uebersicht.py (Makro), zuweisung.py (Mikro) und die Jagd-Sperre im Waechter (19.10. 18:30).
 Vorher festgelegt:
-  1. einholbar: arab. Schwert gegen laufende Assassine NEIN; Bogen JA; Speer (13,5) JA; arab. Schwert gegen stehende
-     Assassine JA; Streitkolben (Tempo ungemessen) gegen laufende Assassine NEIN
+  1. einholbar: arab. Schwert gegen laufende Assassine NEIN; Bogen JA; Speer (12) JA; arab. Schwert gegen stehende
+     Assassine JA; Streitkolben gegen laufende Assassine JA (08.11., P3: gemessen 12 Takte je Feld im Trupp gegen 16 der
+     Assassine, S8; vorher ungemessen und deshalb NEIN)
   2. kleinste_gruppe: 40 arab. Schwert + 3 Bogen gegen 1 laufende Assassine -> nur Bogen, hoechstens 3
   3. kleinste_gruppe: 40 arab. Schwert gegen 1 stehende Assassine -> 1 oder 2, nicht 40
   4. Uebersicht: Einheit 5 Felder gelaufen -> laeuft; stehende -> steht; 10 dicht + 1 weit = 2 Verbaende des Gegners;
@@ -48,7 +49,7 @@ def main():
 
     r1 = (ZW.einholbar(75, 73, False), ZW.einholbar(22, 73, False), ZW.einholbar(24, 73, False), ZW.einholbar(75, 73, True),
           ZW.einholbar(26, 73, False))
-    pruefe(1, "einholbar (Schwert, Bogen, Speer, Schwert/steht, Streitkolben): %s" % (r1,), r1 == (False, True, True, True, False))
+    pruefe(1, "einholbar (Schwert, Bogen, Speer, Schwert/steht, Streitkolben): %s" % (r1,), r1 == (False, True, True, True, True))
 
     eig = [dict(nr=100 + i, typ=75, leben=28000, x=100 + i % 5, y=100 + i // 5) for i in range(40)]
     eig += [dict(nr=200 + i, typ=22, leben=10000, x=110, y=100 + i) for i in range(3)]
