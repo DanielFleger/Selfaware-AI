@@ -5,6 +5,7 @@ Aufruf: python -m selfaware.tools.analysis.auge_ergebnis data/research/auge_plan
         python -m selfaware.tools.analysis.auge_ergebnis data/research/auge_plan/laeufe/lauf_k_<stempel> --lauf K --lauf-f data/research/auge_plan/laeufe/lauf_f_<stempel> --prozesse 8
 Was der Lauf wirklich gesehen hat, steht im Bericht <basis>_Ergebnis.md, die Belege in <basis>.ergebnis.json und <basis>.punkte.json. Fertige Proben von Lauf K liegen in <basis>.proben.
 """
+
 import argparse
 import concurrent.futures
 import json
@@ -31,7 +32,9 @@ def auswerten(basis, gueltig=None):
 
     karte = Feldkarte.laden(feldliste=FELDLISTE)
     haupt = aw.Aufzeichnung(basis + ".auge") if os.path.exists(basis + ".auge") else None
-    jahr = aw.Aufzeichnung(basis + "_jahr40.auge") if os.path.exists(basis + "_jahr40.auge") else None
+    jahr = (
+        aw.Aufzeichnung(basis + "_jahr40.auge") if os.path.exists(basis + "_jahr40.auge") else None
+    )
     prot = protokoll_lesen(basis)
     aus = []
 
@@ -45,16 +48,25 @@ def auswerten(basis, gueltig=None):
     if haupt:
         aus += [aw.a3_takttreue(haupt), aw.a4_lesedauer(haupt)]
         if jahr:
-            aus.append(aw.a9_befehle(haupt))  # die eigenen Befehle laufen im Hauptteil, im Jahr auf Tempo 40 kommt keiner
+            aus.append(
+                aw.a9_befehle(haupt)
+            )  # die eigenen Befehle laufen im Hauptteil, im Jahr auf Tempo 40 kommt keiner
     fein = jahr or haupt
     if jahr:
         aus += [aw.a3_takttreue(jahr), aw.a4_lesedauer(jahr)]
-    treppe = next((z["daten"] for z in prot if z.get("abschnitt") == "treppe" and "daten" in z), None)
+    treppe = next(
+        (z["daten"] for z in prot if z.get("abschnitt") == "treppe" and "daten" in z), None
+    )
     if treppe:
         aus.append(aw.a4_tempotreppe(treppe.get("zeilen") or []))
     if fein:
-        aus += [aw.a7_zufall(fein), aw.a8_buchfuehrung(fein, karte), aw.a9_befehle(fein), aw.a10_lebenslauf(fein, aw.echte_listen(karte), aw.echte_grenzen(karte)),
-                aw.a12_fluechtig(fein, aw.echte_merker(karte))]
+        aus += [
+            aw.a7_zufall(fein),
+            aw.a8_buchfuehrung(fein, karte),
+            aw.a9_befehle(fein),
+            aw.a10_lebenslauf(fein, aw.echte_listen(karte), aw.echte_grenzen(karte)),
+            aw.a12_fluechtig(fein, aw.echte_merker(karte)),
+        ]
     if haupt:
         aus.append(aw.a13_spielart({"F": haupt}))
 
@@ -68,7 +80,13 @@ def auswerten(basis, gueltig=None):
         auge_punkte.schreiben(punkte, basis + ".punkte.json")
 
     with open(basis + ".ergebnis.json", "w", encoding="utf-8") as f:
-        json.dump({"gueltig": gueltig, "proben": [e.__dict__ for e in aus]}, f, ensure_ascii=False, indent=0, default=str)
+        json.dump(
+            {"gueltig": gueltig, "proben": [e.__dict__ for e in aus]},
+            f,
+            ensure_ascii=False,
+            indent=0,
+            default=str,
+        )
 
     funde = [z for z in prot if z.get("wirkung") and not z.get("ok")]
     abbruch = next((z["grund"] for z in prot if z.get("schritt") == "abbruch"), None)
@@ -76,16 +94,32 @@ def auswerten(basis, gueltig=None):
     if abbruch:
         z += [f"**Abgebrochen:** {abbruch}", ""]
     elif gueltig and gueltig.get("gueltig"):
-        z += ["**Der Lauf ist gültig:** Er konnte die Frage beantworten. Widerlegte Punkte sind Funde, kein Scheitern.", ""]
+        z += [
+            "**Der Lauf ist gültig:** Er konnte die Frage beantworten. Widerlegte Punkte sind Funde, kein Scheitern.",
+            "",
+        ]
     elif gueltig is not None:
-        z += [f"**Der Lauf ist nicht gültig:** {json.dumps({k: v for k, v in gueltig.items() if k != 'funde'}, ensure_ascii=False, default=str)}", ""]
+        z += [
+            f"**Der Lauf ist nicht gültig:** {json.dumps({k: v for k, v in gueltig.items() if k != 'funde'}, ensure_ascii=False, default=str)}",
+            "",
+        ]
     z += ["## Gesamtproben", "", aw.bericht(aus)]
-    z += ["## Abschnitte", "", "| Abschnitt | Takte | Sekunden | Takte je Sekunde |", "|---|---|---|---|"]
+    z += [
+        "## Abschnitte",
+        "",
+        "| Abschnitt | Takte | Sekunden | Takte je Sekunde |",
+        "|---|---|---|---|",
+    ]
     for e in prot:
         if "takt_bis" in e:
-            z.append(f"| {e['abschnitt']} | {e['takt_bis'] - e['takt_von']} | {e['sekunden']} | {e['takte_je_s']} |")
+            z.append(
+                f"| {e['abschnitt']} | {e['takt_bis'] - e['takt_von']} | {e['sekunden']} | {e['takte_je_s']} |"
+            )
     z += ["", "## Schaltungen ohne Wirkung", ""]
-    z += [f"- {x['wirkung']}: {json.dumps({k: v for k, v in x.items() if k not in ('wirkung', 'ok')}, ensure_ascii=False, default=str)}" for x in funde] or ["keine"]
+    z += [
+        f"- {x['wirkung']}: {json.dumps({k: v for k, v in x.items() if k not in ('wirkung', 'ok')}, ensure_ascii=False, default=str)}"
+        for x in funde
+    ] or ["keine"]
     if punkte:
         z += ["", "## Einzelpunkte", "", auge_punkte.bericht(punkte)]
     pfad = basis + "_Ergebnis.md"
@@ -94,19 +128,52 @@ def auswerten(basis, gueltig=None):
     return pfad
 
 
-ENDUNGEN_K = {"haupt": ".auge", "t1": "_t1.auge", "danach": "_danach.auge", "t2": "_t2.auge", "t3": "_t3.auge", "t4": "_t4.auge", "t5": "_t5.auge", "t6": "_t6.auge", "t7": "_t7.auge", "t8": "_t8.auge", "t9": "_t9.auge"}
+ENDUNGEN_K = {
+    "haupt": ".auge",
+    "t1": "_t1.auge",
+    "danach": "_danach.auge",
+    "t2": "_t2.auge",
+    "t3": "_t3.auge",
+    "t4": "_t4.auge",
+    "t5": "_t5.auge",
+    "t6": "_t6.auge",
+    "t7": "_t7.auge",
+    "t8": "_t8.auge",
+    "t9": "_t9.auge",
+}
 
 
 def aufgaben_k(da, prot):
     """Die Proben von Lauf K in der Reihenfolge des Berichts: (Art, Zusatz, Argumente). da: die vorhandenen Aufzeichnungen.
     haupt Friedenszeit, t1 jeder Takt, danach Kampf, t2 und t3 zweimal geladen, t4 und t5 mit gleichem Zaehler, t6 bis t9 dasselbe im Kampf (a6_festgelegt.py)."""
     aus = [("A1", k, (k,)) for k in da] + [("A3", k, (k,)) for k in da]
-    t = next((z["daten"]["t"] for z in prot if z.get("abschnitt") == "sichern" and "daten" in z), None)
-    takte = next((z["daten"]["t1"]["bis"] - z["daten"]["t1"]["von"] for z in prot if z.get("abschnitt") == "sichern" and "daten" in z), 0)
+    t = next(
+        (z["daten"]["t"] for z in prot if z.get("abschnitt") == "sichern" and "daten" in z), None
+    )
+    takte = next(
+        (
+            z["daten"]["t1"]["bis"] - z["daten"]["t1"]["von"]
+            for z in prot
+            if z.get("abschnitt") == "sichern" and "daten" in z
+        ),
+        0,
+    )
     if t is not None and {"t1", "t2", "t3"} <= set(da):
-        aus += [("A5", "gespeichert gegen geladen", ("t1", t, "t2", t)), ("A5", "zweimal geladen", ("t2", t, "t3", t)),
-                ("gleich", "ohne Laden gegen geladen, ein Takt versetzt", ("t1", t + 1, "t2", t, takte - 1)), ("gleich", "zweimal geladen", ("t2", t, "t3", t, takte))]
-        for a, b, zu in (("t4", "t5", "zweimal geladen, Zaehler gleich gesetzt"), ("t6", "t7", "im Kampf, Zaehler gleich gesetzt"), ("t8", "t9", "im Kampf, Zaehler und Geschosszeiger gleich gesetzt")):
+        aus += [
+            ("A5", "gespeichert gegen geladen", ("t1", t, "t2", t)),
+            ("A5", "zweimal geladen", ("t2", t, "t3", t)),
+            (
+                "gleich",
+                "ohne Laden gegen geladen, ein Takt versetzt",
+                ("t1", t + 1, "t2", t, takte - 1),
+            ),
+            ("gleich", "zweimal geladen", ("t2", t, "t3", t, takte)),
+        ]
+        for a, b, zu in (
+            ("t4", "t5", "zweimal geladen, Zaehler gleich gesetzt"),
+            ("t6", "t7", "im Kampf, Zaehler gleich gesetzt"),
+            ("t8", "t9", "im Kampf, Zaehler und Geschosszeiger gleich gesetzt"),
+        ):
             if {a, b} <= set(da):
                 aus.append(("gleich", zu, (a, None, b, None, takte)))
     fein = "t1" if "t1" in da else ("haupt" if "haupt" in da else None)
@@ -132,11 +199,18 @@ def _rechne_k(basis, lauf_f, art, zu, arg):
 
     if art == "Punkte":
         checkliste = os.path.join(workspace.DATA, "auge_plan", "Checkliste_Auge.md")
-        return auge_punkte.auswerten(checkliste, [auf(k) for k in ("haupt", "t1", "danach") if os.path.exists(basis + ENDUNGEN_K[k])], karte, lauf=zu)
+        return auge_punkte.auswerten(
+            checkliste,
+            [auf(k) for k in ("haupt", "t1", "danach") if os.path.exists(basis + ENDUNGEN_K[k])],
+            karte,
+            lauf=zu,
+        )
     if art == "gleich":
         k1, t1, k2, t2, takte = arg
         a1, a2 = auf(k1), auf(k2)
-        t1 = next(a1.rahmen()).takt if t1 is None else t1  # die Fenster aus a6_festgelegt.py beginnen beide am geladenen Takt
+        t1 = (
+            next(a1.rahmen()).takt if t1 is None else t1
+        )  # die Fenster aus a6_festgelegt.py beginnen beide am geladenen Takt
         t2 = next(a2.rahmen()).takt if t2 is None else t2
         e = aw.spielstand_gleich(a1, t1, a2, t2, takte, karte)
     elif art == "A1":
@@ -169,7 +243,11 @@ def _rechne_k(basis, lauf_f, art, zu, arg):
 def probe_k(basis, lauf_f, aufgabe, ordner=None):
     """Eine Probe, auch in einem eigenen Prozess. Fertige Proben liegen in ordner: Eine abgebrochene Auswertung rechnet sie nicht noch einmal."""
     art, zu, arg = aufgabe
-    pfad = os.path.join(ordner, re.sub(r"[^A-Za-z0-9]+", "_", f"{art} {zu}").strip("_") + ".pkl") if ordner else None
+    pfad = (
+        os.path.join(ordner, re.sub(r"[^A-Za-z0-9]+", "_", f"{art} {zu}").strip("_") + ".pkl")
+        if ordner
+        else None
+    )
     if pfad and os.path.exists(pfad):
         with open(pfad, "rb") as f:
             return pickle.load(f)
@@ -179,7 +257,9 @@ def probe_k(basis, lauf_f, aufgabe, ordner=None):
         with open(pfad + ".neu", "wb") as f:
             pickle.dump(e, f)
         os.replace(pfad + ".neu", pfad)
-    print(f"{art} {zu}: {getattr(e, 'status', 'fertig')} nach {time.time() - start:.0f} s", flush=True)
+    print(
+        f"{art} {zu}: {getattr(e, 'status', 'fertig')} nach {time.time() - start:.0f} s", flush=True
+    )
     return e
 
 
@@ -211,19 +291,43 @@ def auswerten_k(basis, lauf_f=None, prozesse=1):
     a2.nr = f"{a2.nr} nur Lauf K"
     aus.insert(len(da), a2)
     auge_punkte.schreiben(punkte, basis + ".punkte.json")
-    auge_punkte.schreiben({"punkte": [p for p in spielart["punkte"] if p["spielart"]], "zaehlung": {}}, basis + ".spielart.json")
+    auge_punkte.schreiben(
+        {"punkte": [p for p in spielart["punkte"] if p["spielart"]], "zaehlung": {}},
+        basis + ".spielart.json",
+    )
 
     with open(basis + ".ergebnis.json", "w", encoding="utf-8") as f:
-        json.dump({"gueltig": gueltig, "proben": [e.__dict__ for e in aus]}, f, ensure_ascii=False, indent=0, default=str)
+        json.dump(
+            {"gueltig": gueltig, "proben": [e.__dict__ for e in aus]},
+            f,
+            ensure_ascii=False,
+            indent=0,
+            default=str,
+        )
     funde = [z for z in prot if z.get("wirkung") and not z.get("ok")]
     abbruch = next((z["grund"] for z in prot if z.get("schritt") == "abbruch"), None)
     z = ["# Ergebnis Lauf K", "", f"Basis: `{os.path.basename(basis)}`", ""]
     if abbruch:
         z += [f"**Abgebrochen:** {abbruch}", ""]
-    z += ["## Gesamtproben", "", aw.bericht(aus), "## Abschnitte", "", "| Abschnitt | Takte | Sekunden | Takte je Sekunde |", "|---|---|---|---|"]
-    z += [f"| {e['abschnitt']} | {e['takt_bis'] - e['takt_von']} | {e['sekunden']} | {e['takte_je_s']} |" for e in prot if "takt_bis" in e]
+    z += [
+        "## Gesamtproben",
+        "",
+        aw.bericht(aus),
+        "## Abschnitte",
+        "",
+        "| Abschnitt | Takte | Sekunden | Takte je Sekunde |",
+        "|---|---|---|---|",
+    ]
+    z += [
+        f"| {e['abschnitt']} | {e['takt_bis'] - e['takt_von']} | {e['sekunden']} | {e['takte_je_s']} |"
+        for e in prot
+        if "takt_bis" in e
+    ]
     z += ["", "## Schaltungen ohne Wirkung", ""]
-    z += [f"- {x['wirkung']}: {json.dumps({k: v for k, v in x.items() if k not in ('wirkung', 'ok')}, ensure_ascii=False, default=str)}" for x in funde] or ["keine"]
+    z += [
+        f"- {x['wirkung']}: {json.dumps({k: v for k, v in x.items() if k not in ('wirkung', 'ok')}, ensure_ascii=False, default=str)}"
+        for x in funde
+    ] or ["keine"]
     z += ["", "## Einzelpunkte", "", auge_punkte.bericht(punkte)]
     pfad = basis + "_Ergebnis.md"
     with open(pfad, "w", encoding="utf-8") as f:
@@ -236,7 +340,12 @@ def main(argv=None):
     p.add_argument("basis")
     p.add_argument("--lauf", default="F", choices=["F", "K"])
     p.add_argument("--lauf-f", help="Basis eines gueltigen Lauf F, fuer den Vergleich der Spielart")
-    p.add_argument("--prozesse", type=int, default=1, help="Lauf K: Proben gleichzeitig; abgebrochene Auswertungen gehen weiter, wo sie standen")
+    p.add_argument(
+        "--prozesse",
+        type=int,
+        default=1,
+        help="Lauf K: Proben gleichzeitig; abgebrochene Auswertungen gehen weiter, wo sie standen",
+    )
     a = p.parse_args(argv)
     print(auswerten_k(a.basis, a.lauf_f, a.prozesse) if a.lauf == "K" else auswerten(a.basis))
 

@@ -4,20 +4,34 @@
 Die Feldliste data/research/auge_plan/zustand_felder.csv sagt, was das Spiel im Takt laut Code schreibt.
 Der Aenderungsmelder ordnet damit jedes geaenderte Byte ein: bekannt, Technik (Darstellung, Ton, Menue) oder Luecke.
 """
+
 import bisect
 import csv
 import json
 import os
 import re
 
-EXPORT = r"C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference"
+# Ghidra-Export der Codex-Pipeline; liegt nur auf dem Mess-PC. SELFAWARE_GHIDRA_EXPORT setzt einen anderen Ort (B-167).
+EXPORT = os.environ.get(
+    "SELFAWARE_GHIDRA_EXPORT",
+    r"C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge\exports\reference",
+)
+
+
+def export_da(export=EXPORT):
+    """Liegt der Ghidra-Export (types.json, symbols.json) vor? Ohne ihn laesst sich keine Feldkarte bauen."""
+    return all(os.path.isfile(os.path.join(export, n)) for n in ("types.json", "symbols.json"))
+
+
 FELDLISTE = os.path.join("data", "research", "auge_plan", "zustand_felder.csv")
 DATEN_ANFANG, DATEN_ENDE = 0x005B6000, 0x0242923F
 ZEILE = re.compile(r"^\s*(\d+)\s+(.+?)\s+(\d+)\s+(\S+)\s+\"")
 ARRAY = re.compile(r"^(.+?)\[(\d+)\]")
 ALIAS = {"DAT_GameState": "GameStateStructures", "SEC_RNG": "RNG"}
 # Bereiche ohne Spielzustand; sie werden getrennt gezaehlt, nicht verschwiegen
-TECHNIK = re.compile(r"Render|Viewport|Sound|SFX|Bink|Video|Menu|Text|Texture|Mouse|Input|Button|Bitmap|Blend|Font|Gfx|Graphic|Window|DirectDraw|DirectPlay|DirectSound|TIME_|Chat|DPLAY|Lobby|TickRate|GameLoop|GL_Counter|Millisec|Scrolling|Minimap|LowLevelMemory|Speech|Framerate|GmFileID|WasInteracting")  # gemessen in Lauf F: laufen mit der Uhr oder der Ansicht, kein Spielzustand
+TECHNIK = re.compile(
+    r"Render|Viewport|Sound|SFX|Bink|Video|Menu|Text|Texture|Mouse|Input|Button|Bitmap|Blend|Font|Gfx|Graphic|Window|DirectDraw|DirectPlay|DirectSound|TIME_|Chat|DPLAY|Lobby|TickRate|GameLoop|GL_Counter|Millisec|Scrolling|Minimap|LowLevelMemory|Speech|Framerate|GmFileID|WasInteracting"
+)  # gemessen in Lauf F: laufen mit der Uhr oder der Ansicht, kein Spielzustand
 
 
 def typen_lesen(ty):
@@ -60,7 +74,11 @@ class Feldkarte:
         typen = typen_lesen(ty)
         labels, strukturen = {}, []
         for s in sy:
-            if s["kind"] == "Label" and s["source"] == "USER_DEFINED" and re.fullmatch(r"[0-9a-f]{8}", s["address"]):
+            if (
+                s["kind"] == "Label"
+                and s["source"] == "USER_DEFINED"
+                and re.fullmatch(r"[0-9a-f]{8}", s["address"])
+            ):
                 a = int(s["address"], 16)
                 if DATEN_ANFANG <= a <= DATEN_ENDE:
                     labels.setdefault(a, s["name"])
@@ -86,7 +104,11 @@ class Feldkarte:
                     m = ARRAY.match(tt)
                     if m:
                         el = m.group(1).strip()
-                        eg = self.typen[el]["laenge"] if el in self.typen else (gr // int(m.group(2)) or 1)
+                        eg = (
+                            self.typen[el]["laenge"]
+                            if el in self.typen
+                            else (gr // int(m.group(2)) or 1)
+                        )
                         i = (off - o) // eg
                         basis += o + i * eg
                         off = (off - o) % eg
@@ -164,7 +186,11 @@ class Feldkarte:
                     m = ARRAY.match(tt)
                     if m:
                         el = m.group(1).strip()
-                        eg = self.typen[el]["laenge"] if el in self.typen else (gr // int(m.group(2)) or 1)
+                        eg = (
+                            self.typen[el]["laenge"]
+                            if el in self.typen
+                            else (gr // int(m.group(2)) or 1)
+                        )
                         if not schritt:
                             schritt, anzahl = eg, int(m.group(2))
                         groesse, typ = eg, el
@@ -178,6 +204,7 @@ class Feldkarte:
 
 if __name__ == "__main__":
     import sys
+
     karte = Feldkarte.laden(feldliste=FELDLISTE)
     print(len(karte.strukturen), "Strukturen,", len(karte.bekannte), "bekannte Felder")
     for a in sys.argv[1:]:

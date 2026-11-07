@@ -6,6 +6,7 @@
 
 Ergebnis: <aufzeichnung>.regeln.json, je Paar und Richtung. Die Tabellen kommen aus dem Datenblock derselben Aufzeichnung, damit UCP zaehlt.
 """
+
 import argparse
 import collections
 import json
@@ -15,18 +16,51 @@ import sys
 import numpy as np
 
 PLAETZE = 2500
-FEUER_SONST, FEUER = 37.5, {55: 12.5, 76: 5.0}  # je Flamme und Takt, gemessen Lauf S 03.11. (Szene Beschuss)
-FELDER = {"da": ("logicalState", "<i2"), "typ": ("unitType", "<i2"), "leben": ("health", "<i4"), "schlaegt": ("attackedUnitID", "<i2"), "mx": ("microXPosition", "<i2"), "my": ("microYPosition", "<i2"), "besitzer": ("owner", "<i2"), "mann": ("digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300", "<i2"), "ziel_art": ("targetingType", "<i2"), "zustand": ("", "<i2")}
-ZUSTAND_ABSTAND = 0x2C0 - 0x8C  # state.generic, die Feldkarte kennt den Typ dieser Vereinigung nicht
+FEUER_SONST, FEUER = (
+    37.5,
+    {55: 12.5, 76: 5.0},
+)  # je Flamme und Takt, gemessen Lauf S 03.11. (Szene Beschuss)
+FELDER = {
+    "da": ("logicalState", "<i2"),
+    "typ": ("unitType", "<i2"),
+    "leben": ("health", "<i4"),
+    "schlaegt": ("attackedUnitID", "<i2"),
+    "mx": ("microXPosition", "<i2"),
+    "my": ("microYPosition", "<i2"),
+    "besitzer": ("owner", "<i2"),
+    "mann": ("digTileX__OR__countCurrentlyManningEnginers__OR__forCowsRandomBelow300", "<i2"),
+    "ziel_art": ("targetingType", "<i2"),
+    "zustand": ("", "<i2"),
+}
+ZUSTAND_ABSTAND = (
+    0x2C0 - 0x8C
+)  # state.generic, die Feldkarte kennt den Typ dieser Vereinigung nicht
 BITS_FELD = 0x40004100  # L_MOAT, geplant, Mauer (L126)
-STEIN = {39: (40, 15), 40: (120, 30), 41: (5, 0)}  # Schaden je Stein am Gebaeude (direkt, je Nebenfeld): processEntityHitBuildingOrUnit Zeile 480 bis 488 mit den Werten, die UCP dort einsetzt (0x407CD5, 0x407CE5, 0x407A96; ohne UCP 60, 20 und 10). Mangonel ohne Nebenfelder
+STEIN = {
+    39: (40, 15),
+    40: (120, 30),
+    41: (5, 0),
+}  # Schaden je Stein am Gebaeude (direkt, je Nebenfeld): processEntityHitBuildingOrUnit Zeile 480 bis 488 mit den Werten, die UCP dort einsetzt (0x407CD5, 0x407CE5, 0x407A96; ohne UCP 60, 20 und 10). Mangonel ohne Nebenfelder
 
 
 def tabellen_aus(block, basis, karte):
     def t(feld, n=80):
-        return np.frombuffer(block, dtype="<i4", offset=karte.adresse("DAT_UnitPropertiesDefinedData", feld)[0] - basis, count=n).copy()
+        return np.frombuffer(
+            block,
+            dtype="<i4",
+            offset=karte.adresse("DAT_UnitPropertiesDefinedData", feld)[0] - basis,
+            count=n,
+        ).copy()
 
-    return {"nah": t("DAT_MELEE_DAMAGE", 6400).reshape(80, 80), "pfeil": t("DAT_ARROW_DAMAGE"), "bolzen": t("DAT_BOLT_DAMAGE"), "stein": t("DAT_STONE_DAMAGE"), "schlaegt": t("DAT_UNIT_CAN_MELEE"), "tempo": t("DAT_UNIT_MOVEMENT_SPEED_ARRAY"), "leben": t("DAT_BASE_HP")}
+    return {
+        "nah": t("DAT_MELEE_DAMAGE", 6400).reshape(80, 80),
+        "pfeil": t("DAT_ARROW_DAMAGE"),
+        "bolzen": t("DAT_BOLT_DAMAGE"),
+        "stein": t("DAT_STONE_DAMAGE"),
+        "schlaegt": t("DAT_UNIT_CAN_MELEE"),
+        "tempo": t("DAT_UNIT_MOVEMENT_SPEED_ARRAY"),
+        "leben": t("DAT_BASE_HP"),
+    }
 
 
 def reihen_lesen(pfad, karte):
@@ -37,7 +71,11 @@ def reihen_lesen(pfad, karte):
     iu, id_ = auf.namen.index("DAT_UnitsState"), auf.namen.index("datenblock")
     bu, bd = auf.bereiche[iu][1], auf.bereiche[id_][1]
     schritt = karte.adresse("DAT_UnitsState", "units[].logicalState")[2]
-    o = {k: karte.adresse("DAT_UnitsState", "units[]." + f)[0] - bu for k, (f, _) in FELDER.items() if f}
+    o = {
+        k: karte.adresse("DAT_UnitsState", "units[]." + f)[0] - bu
+        for k, (f, _) in FELDER.items()
+        if f
+    }
     o["zustand"] = o["da"] + ZUSTAND_ABSTAND
     tabellen, reihen = None, []
     for r, p, _ in auf.staende():
@@ -46,12 +84,51 @@ def reihen_lesen(pfad, karte):
         if r.bereich != iu or not r.rein:
             continue
         a = bytes(p)
-        reihen.append((r.takt, {k: np.ndarray(shape=(PLAETZE,), dtype=FELDER[k][1], buffer=a, offset=o[k], strides=(schritt,)).copy() for k in FELDER}))
+        reihen.append(
+            (
+                r.takt,
+                {
+                    k: np.ndarray(
+                        shape=(PLAETZE,),
+                        dtype=FELDER[k][1],
+                        buffer=a,
+                        offset=o[k],
+                        strides=(schritt,),
+                    ).copy()
+                    for k in FELDER
+                },
+            )
+        )
     return reihen, tabellen
 
 
-GESCHOSSE = {9: "brand", 22: "giftwolke", 1: "pfeil", 2: "katapult", 3: "trebuchet", 4: "mangonel", 7: "bolzen", 20: "ballista", 23: "kuh", 33: "schleuder", 34: "feuer", 36: "feuer_frei", 37: "feuerballiste"}  # EntityType, Ghidra-Typen
-G_FELDER = {"da": "logicalState", "art": "entityType", "ziel": "unitID", "schuetze": "unitID_OR_seaGullID", "besitzer": "owner", "uid": "uid", "zx": "targetX", "zy": "targetY", "mx": "microX", "my": "microY"}
+GESCHOSSE = {
+    9: "brand",
+    22: "giftwolke",
+    1: "pfeil",
+    2: "katapult",
+    3: "trebuchet",
+    4: "mangonel",
+    7: "bolzen",
+    20: "ballista",
+    23: "kuh",
+    33: "schleuder",
+    34: "feuer",
+    36: "feuer_frei",
+    37: "feuerballiste",
+}  # EntityType, Ghidra-Typen
+G_FELDER = {
+    "da": "logicalState",
+    "art": "entityType",
+    "ziel": "unitID",
+    "schuetze": "unitID_OR_seaGullID",
+    "besitzer": "owner",
+    "uid": "uid",
+    "zx": "targetX",
+    "zy": "targetY",
+    "mx": "microX",
+    "my": "microY",
+}
 
 
 def geschosse_lesen(pfad, karte):
@@ -69,18 +146,38 @@ def geschosse_lesen(pfad, karte):
         if r.bereich != ie or not r.rein:
             continue
         a = bytes(p)
-        sp = {k: np.ndarray(shape=(v[3],), dtype={2: "<i2", 4: "<i4"}[v[1]], buffer=a, offset=v[0] - be, strides=(v[2],)) for k, v in ad.items()}
+        sp = {
+            k: np.ndarray(
+                shape=(v[3],),
+                dtype={2: "<i2", 4: "<i4"}[v[1]],
+                buffer=a,
+                offset=v[0] - be,
+                strides=(v[2],),
+            )
+            for k, v in ad.items()
+        }
         for i in np.nonzero(np.isin(sp["art"], arten) & (sp["da"] != 0))[0]:
             sch = (int(i), int(sp["uid"][i]))
             g = aus.get(sch)
             if g is None:
-                g = aus[sch] = {"art": GESCHOSSE[int(sp["art"][i])], "besitzer": int(sp["besitzer"][i]), "schuetze": int(sp["schuetze"][i]), "ziel": int(sp["ziel"][i]), "von": r.takt, "bis": None, "start": (int(sp["mx"][i]), int(sp["my"][i])), "punkt": (int(sp["zx"][i]), int(sp["zy"][i]))}
+                g = aus[sch] = {
+                    "art": GESCHOSSE[int(sp["art"][i])],
+                    "besitzer": int(sp["besitzer"][i]),
+                    "schuetze": int(sp["schuetze"][i]),
+                    "ziel": int(sp["ziel"][i]),
+                    "von": r.takt,
+                    "bis": None,
+                    "start": (int(sp["mx"][i]), int(sp["my"][i])),
+                    "punkt": (int(sp["zx"][i]), int(sp["zy"][i])),
+                }
             g["zuletzt"] = r.takt
             if sp["da"][i] != 2 and g["bis"] is None:
                 g["bis"] = r.takt
         letzter = r.takt
     for g in aus.values():
-        if g["bis"] is None and g["zuletzt"] < letzter:  # zwischen zwei Rahmen gelandet, auf Tempo 200 fehlen viele Takte
+        if (
+            g["bis"] is None and g["zuletzt"] < letzter
+        ):  # zwischen zwei Rahmen gelandet, auf Tempo 200 fehlen viele Takte
             g["bis"] = g["zuletzt"]
     return list(aus.values())
 
@@ -89,7 +186,17 @@ def geschosse_werten(geschosse, reihen):
     """Je Art: Wie viele flogen, wie viele trafen, wie schnell. Getroffen heisst: Das Ziel hatte rund um den Einschlag weniger Leben als davor. Fremde Treffer in diesen Rahmen zaehlen mit, das ist die Grenze dieser Zahl."""
     takte = [t for t, _ in reihen]
     stand = dict(reihen)
-    zeilen = collections.defaultdict(lambda: {"flogen": 0, "gelandet": 0, "traf": 0, "verfehlt": 0, "ziel_weg": 0, "mikro_je_takt": [], "abstand": []})
+    zeilen = collections.defaultdict(
+        lambda: {
+            "flogen": 0,
+            "gelandet": 0,
+            "traf": 0,
+            "verfehlt": 0,
+            "ziel_weg": 0,
+            "mikro_je_takt": [],
+            "abstand": [],
+        }
+    )
     for g in geschosse:
         z = zeilen[g["art"]]
         z["flogen"] += 1
@@ -103,7 +210,10 @@ def geschosse_werten(geschosse, reihen):
         i = np.searchsorted(takte, g["bis"])
         if i == 0 or i >= len(takte) or g["ziel"] <= 0:
             continue
-        vor, nach = stand[takte[max(0, i - 3)]], stand[takte[min(len(takte) - 1, i + 1)]]  # der Verlust kam bis zu 2 Takte vor dem Ende des Flugs (Szene Beschuss)
+        vor, nach = (
+            stand[takte[max(0, i - 3)]],
+            stand[takte[min(len(takte) - 1, i + 1)]],
+        )  # der Verlust kam bis zu 2 Takte vor dem Ende des Flugs (Szene Beschuss)
         if not nach["da"][g["ziel"]] or nach["typ"][g["ziel"]] != vor["typ"][g["ziel"]]:
             z["ziel_weg"] += 1
         elif nach["leben"][g["ziel"]] < vor["leben"][g["ziel"]]:
@@ -113,7 +223,11 @@ def geschosse_werten(geschosse, reihen):
     aus = {}
     for art, z in sorted(zeilen.items()):
         tempo, ab = z.pop("mikro_je_takt"), z.pop("abstand")
-        aus[art] = {**z, "mikro_je_takt": round(float(np.median(tempo)), 2) if tempo else None, "abstand_hoechstens": max(ab) if ab else None}
+        aus[art] = {
+            **z,
+            "mikro_je_takt": round(float(np.median(tempo)), 2) if tempo else None,
+            "abstand_hoechstens": max(ab) if ab else None,
+        }
     return aus
 
 
@@ -153,13 +267,31 @@ def gebaeude_lesen(pfad, karte):
     auf = Aufzeichnung(pfad)
     ib = auf.namen.index("DAT_BuildingsState")
     bb = auf.bereiche[ib][1]
-    ad = {k: karte.adresse("DAT_BuildingsState", "buildings[]." + f) for k, f in (("leben", "currentHealth"), ("hoechst", "maxHealth"), ("da", "logicalState"), ("tor", "gateState"))}
+    ad = {
+        k: karte.adresse("DAT_BuildingsState", "buildings[]." + f)
+        for k, f in (
+            ("leben", "currentHealth"),
+            ("hoechst", "maxHealth"),
+            ("da", "logicalState"),
+            ("tor", "gateState"),
+        )
+    }
     aus = []
     for r, p, _ in auf.staende():
         if r.bereich != ib or not r.rein:
             continue
         a = bytes(p)
-        aus.append((r.takt, {k: np.ndarray(shape=(v[3],), dtype="<i2", buffer=a, offset=v[0] - bb, strides=(v[2],)).copy() for k, v in ad.items()}))
+        aus.append(
+            (
+                r.takt,
+                {
+                    k: np.ndarray(
+                        shape=(v[3],), dtype="<i2", buffer=a, offset=v[0] - bb, strides=(v[2],)
+                    ).copy()
+                    for k, v in ad.items()
+                },
+            )
+        )
     return aus
 
 
@@ -187,7 +319,14 @@ def _gebaeude_verlauf(reihen_g, nr):
             weg = t
             break
         vor = lz
-    return {"leben": start, "hoechst": int(reihen_g[0][1]["hoechst"][nr]) if reihen_g else None, "verluste": verluste, "erster_verlust": erster, "weg": weg, "takte_zwischen": dict(abst.most_common(4))}
+    return {
+        "leben": start,
+        "hoechst": int(reihen_g[0][1]["hoechst"][nr]) if reihen_g else None,
+        "verluste": verluste,
+        "erster_verlust": erster,
+        "weg": weg,
+        "takte_zwischen": dict(abst.most_common(4)),
+    }
 
 
 def besatzung_werten(reihen, geschosse, einheiten):
@@ -213,7 +352,21 @@ def besatzung_werten(reihen, geschosse, einheiten):
         takt = collections.Counter(b - a for a, b in zip(schuesse, schuesse[1:]))
         handelt = len(schuesse) > 0 if e["art"] == "schiessen" else felder >= 2
         soll = e["mann"] >= e["soll"]
-        zeile = {"typ": e["typ"], "art": e["art"], "soll_mann": e["soll"], "mann": e["mann"], "besetzt": besetzt, "schuesse": len(schuesse), "schusstakt": takt.most_common(1)[0][0] if takt else None, "felder": round(felder, 1), "takte_je_feld": round((letzter - erster) / felder, 2) if erster is not None and letzter > erster and felder >= 2 else None, "handelt": handelt, "urteil": "bestaetigt" if handelt == soll else "weicht ab"}
+        zeile = {
+            "typ": e["typ"],
+            "art": e["art"],
+            "soll_mann": e["soll"],
+            "mann": e["mann"],
+            "besetzt": besetzt,
+            "schuesse": len(schuesse),
+            "schusstakt": takt.most_common(1)[0][0] if takt else None,
+            "felder": round(felder, 1),
+            "takte_je_feld": round((letzter - erster) / felder, 2)
+            if erster is not None and letzter > erster and felder >= 2
+            else None,
+            "handelt": handelt,
+            "urteil": "bestaetigt" if handelt == soll else "weicht ab",
+        }
         if e["fall"] in ziele:
             lz = [int(s["leben"][ziele[e["fall"]]["nr"]]) for _, s in reihen]
             zeile["ziel_verlor"] = lz[0] - lz[-1] if lz else None
@@ -237,8 +390,20 @@ def belagerung_werten(reihen_g, geschosse, einheiten, gebaeude):
         elif wert is None or not v["verluste"]:
             urteil = "gemessen"
         else:
-            urteil = "bestaetigt" if all(_stein_passt(d, *wert) for d in v["verluste"]) else "weicht ab"
-        aus.append({"geraet": g["typ"], "ziel": z["name"], "laufzeit": z.get("laufzeit"), "steine": steine, **{k: v[k] for k in ("leben", "hoechst", "erster_verlust", "weg")}, "verluste": dict(collections.Counter(v["verluste"])), "urteil": urteil})
+            urteil = (
+                "bestaetigt" if all(_stein_passt(d, *wert) for d in v["verluste"]) else "weicht ab"
+            )
+        aus.append(
+            {
+                "geraet": g["typ"],
+                "ziel": z["name"],
+                "laufzeit": z.get("laufzeit"),
+                "steine": steine,
+                **{k: v[k] for k in ("leben", "hoechst", "erster_verlust", "weg")},
+                "verluste": dict(collections.Counter(v["verluste"])),
+                "urteil": urteil,
+            }
+        )
     return aus
 
 
@@ -251,7 +416,21 @@ def gebaeude_nah_werten(reihen_g, reihen, einheiten, gebaeude):
             continue
         e = wer[z["fall"]]
         v = _gebaeude_verlauf(reihen_g, z["nr"])
-        aus.append({"wer": e["typ"], "ziel": z["name"], **{k: v[k] for k in ("leben", "hoechst", "erster_verlust", "weg", "takte_zwischen")}, "verluste": dict(collections.Counter(v["verluste"])), "urteil": "falsches Gebaeude" if z.get("laufzeit") != z.get("typ") else "schlaegt" if v["verluste"] else "kein Treffer"})
+        aus.append(
+            {
+                "wer": e["typ"],
+                "ziel": z["name"],
+                **{
+                    k: v[k] for k in ("leben", "hoechst", "erster_verlust", "weg", "takte_zwischen")
+                },
+                "verluste": dict(collections.Counter(v["verluste"])),
+                "urteil": "falsches Gebaeude"
+                if z.get("laufzeit") != z.get("typ")
+                else "schlaegt"
+                if v["verluste"]
+                else "kein Treffer",
+            }
+        )
     return aus
 
 
@@ -268,10 +447,22 @@ def treffer_lesen(reihen, wer, opfer):
     aus, vor = [], None
     for t, s in reihen:
         lo, lw = int(s["leben"][opfer["nr"]]), int(s["leben"][wer["nr"]])
-        if s["typ"][opfer["nr"]] != opfer["typ"] or s["typ"][wer["nr"]] != wer["typ"] or not s["da"][opfer["nr"]] or not s["da"][wer["nr"]]:
+        if (
+            s["typ"][opfer["nr"]] != opfer["typ"]
+            or s["typ"][wer["nr"]] != wer["typ"]
+            or not s["da"][opfer["nr"]]
+            or not s["da"][wer["nr"]]
+        ):
             break
         if vor is not None and lo < vor:
-            aus.append({"takt": t, "betrag": vor - lo, "partner": int(s["schlaegt"][wer["nr"]]) == opfer["nr"], "rest": lo <= 0})  # der letzte Treffer nimmt nur, was noch da ist
+            aus.append(
+                {
+                    "takt": t,
+                    "betrag": vor - lo,
+                    "partner": int(s["schlaegt"][wer["nr"]]) == opfer["nr"],
+                    "rest": lo <= 0,
+                }
+            )  # der letzte Treffer nimmt nur, was noch da ist
         vor = lo
         if lo <= 0 or lw <= 0:
             break
@@ -291,11 +482,15 @@ def nahkampf_werten(reihen, einheiten, tab, erster_rahmen_alt=False):
             soll = int(tab["nah"][w["typ"], o["typ"]])
             kann = bool(tab["schlaegt"][w["typ"]])
             geschoss = {int(tab[n][o["typ"]]) for n in ("pfeil", "bolzen", "stein")}
-            doppelt = bool(erster_rahmen_alt and tr and tr[0]["takt"] - t0 == 2 and tr[0]["betrag"] == 2 * soll)
+            doppelt = bool(
+                erster_rahmen_alt and tr and tr[0]["takt"] - t0 == 2 and tr[0]["betrag"] == 2 * soll
+            )
             if doppelt:
                 tr[0] = dict(tr[0], betrag=soll)
             ganz = [x for x in tr if not x["rest"]]
-            fremd = [x for x in ganz if x["betrag"] - soll in geschoss]  # im selben Takt traf noch ein Geschoss von anderswo, wie in Lauf K
+            fremd = [
+                x for x in ganz if x["betrag"] - soll in geschoss
+            ]  # im selben Takt traf noch ein Geschoss von anderswo, wie in Lauf K
             werte = collections.Counter(x["betrag"] for x in ganz if x not in fremd)
             abst = collections.Counter(b["takt"] - a["takt"] for a, b in zip(tr, tr[1:]))
             if not tr:
@@ -306,7 +501,21 @@ def nahkampf_werten(reihen, einheiten, tab, erster_rahmen_alt=False):
                 urteil = "Treffer ohne Nahkampf"
             else:
                 urteil = "weicht ab"
-            aus.append({"paar": i, "schlaeger": w["typ"], "opfer": o["typ"], "soll": soll, "treffer": len(tr), "werte": dict(werte), "abstaende": dict(abst), "erster": tr[0]["takt"] - t0 if tr else None, "fremde_geschosse": len(fremd), "erster_doppelt": doppelt, "urteil": urteil})
+            aus.append(
+                {
+                    "paar": i,
+                    "schlaeger": w["typ"],
+                    "opfer": o["typ"],
+                    "soll": soll,
+                    "treffer": len(tr),
+                    "werte": dict(werte),
+                    "abstaende": dict(abst),
+                    "erster": tr[0]["takt"] - t0 if tr else None,
+                    "fremde_geschosse": len(fremd),
+                    "erster_doppelt": doppelt,
+                    "urteil": urteil,
+                }
+            )
     return aus
 
 
@@ -317,7 +526,18 @@ def beschuss_werten(reihen, einheiten, tab):
     for e in einheiten:
         if e.get("rolle") == "kontrolle":
             continue
-        z = aus.setdefault(e["typ"], {"ziel": e["typ"], "pfeil": int(tab["pfeil"][e["typ"]]), "bolzen": int(tab["bolzen"][e["typ"]]), "stein": int(tab["stein"][e["typ"]]), "gesehen": collections.Counter(), "feuer": 0, "ungeklaert": collections.Counter()})
+        z = aus.setdefault(
+            e["typ"],
+            {
+                "ziel": e["typ"],
+                "pfeil": int(tab["pfeil"][e["typ"]]),
+                "bolzen": int(tab["bolzen"][e["typ"]]),
+                "stein": int(tab["stein"][e["typ"]]),
+                "gesehen": collections.Counter(),
+                "feuer": 0,
+                "ungeklaert": collections.Counter(),
+            },
+        )
         arten = {"pfeil": z["pfeil"], "bolzen": z["bolzen"], "stein": z["stein"]}
         vor = None
         for _, s in reihen:
@@ -345,7 +565,15 @@ def beschuss_werten(reihen, einheiten, tab):
     zeilen = []
     for typ, z in sorted(aus.items()):
         fehlt = [n for n in ("pfeil", "bolzen", "stein") if not z["gesehen"][n]]
-        zeilen.append({**z, "gesehen": dict(z["gesehen"]), "ungeklaert": dict(z["ungeklaert"]), "nicht_gesehen": fehlt, "urteil": "weicht ab" if z["ungeklaert"] else "bestaetigt"})
+        zeilen.append(
+            {
+                **z,
+                "gesehen": dict(z["gesehen"]),
+                "ungeklaert": dict(z["ungeklaert"]),
+                "nicht_gesehen": fehlt,
+                "urteil": "weicht ab" if z["ungeklaert"] else "bestaetigt",
+            }
+        )
     return zeilen
 
 
@@ -373,7 +601,17 @@ def laufen_werten(reihen, einheiten, felder):
             if (x, y) == tuple(e["ziel"]):
                 am_ziel = t
                 break
-        aus.append({"typ": e["typ"], "lage": e["rolle"], "erster_schritt": erster, "am_ziel": am_ziel, "takte_je_feld": round((am_ziel - erster) / (felder - 1), 2) if erster is not None and am_ziel is not None else None})
+        aus.append(
+            {
+                "typ": e["typ"],
+                "lage": e["rolle"],
+                "erster_schritt": erster,
+                "am_ziel": am_ziel,
+                "takte_je_feld": round((am_ziel - erster) / (felder - 1), 2)
+                if erster is not None and am_ziel is not None
+                else None,
+            }
+        )
     return aus
 
 
@@ -384,15 +622,25 @@ def masse_werten(reihen, tab, seiten=(1, 2)):
     for t, s in reihen:
         da = s["da"] != 0
         da[0] = False  # Platz 0 ist ein Merkplatz (Lauf K), er zaehlte hier als Einheit
-        verlauf.append((int(t), *[int((da & (s["besitzer"] == p)).sum()) for p in seiten], int(da.sum())))
+        verlauf.append(
+            (int(t), *[int((da & (s["besitzer"] == p)).sum()) for p in seiten], int(da.sum()))
+        )
         if vor is not None:
             fall.update(_summen_pruefen(vor[1], s, tab, t - vor[0]))
         vor = (t, s)
     if not verlauf:
         return {"rahmen": 0}
     gefallen = next((v[0] for v in verlauf if v[1] + v[2] < verlauf[0][1] + verlauf[0][2]), None)
-    return {"rahmen": len(verlauf), "start": verlauf[0][1:], "ende": verlauf[-1][1:], "takte": verlauf[-1][0] - verlauf[0][0], "erster_tod_nach": gefallen - verlauf[0][0] if gefallen is not None else None,
-            "plaetze_hoechstens": max(v[3] for v in verlauf), "summe": dict(fall), "verlauf": verlauf[::max(1, len(verlauf) // 40)]}
+    return {
+        "rahmen": len(verlauf),
+        "start": verlauf[0][1:],
+        "ende": verlauf[-1][1:],
+        "takte": verlauf[-1][0] - verlauf[0][0],
+        "erster_tod_nach": gefallen - verlauf[0][0] if gefallen is not None else None,
+        "plaetze_hoechstens": max(v[3] for v in verlauf),
+        "summe": dict(fall),
+        "verlauf": verlauf[:: max(1, len(verlauf) // 40)],
+    }
 
 
 def _summen_pruefen(a, b, tab, dt):
@@ -405,11 +653,24 @@ def _summen_pruefen(a, b, tab, dt):
         return {}
     summe = np.zeros(PLAETZE, dtype=np.int64)
     np.add.at(summe, ziel, tab["nah"][a["typ"][fest], a["typ"][ziel]])
-    alle_a, alle_b, nur_fest = (np.bincount(x, minlength=PLAETZE) for x in (a["schlaegt"][np.maximum(a["schlaegt"], 0) > 0], b["schlaegt"][np.maximum(b["schlaegt"], 0) > 0], ziel))
-    pruef = np.nonzero((summe > 0) & gleich & (alle_a == nur_fest) & (alle_b == nur_fest) & (b["leben"] > 0))[0]
+    alle_a, alle_b, nur_fest = (
+        np.bincount(x, minlength=PLAETZE)
+        for x in (
+            a["schlaegt"][np.maximum(a["schlaegt"], 0) > 0],
+            b["schlaegt"][np.maximum(b["schlaegt"], 0) > 0],
+            ziel,
+        )
+    )
+    pruef = np.nonzero(
+        (summe > 0) & gleich & (alle_a == nur_fest) & (alle_b == nur_fest) & (b["leben"] > 0)
+    )[0]
     verlust = a["leben"][pruef] - b["leben"][pruef]
     soll = summe[pruef] * dt
-    return {"gleich": int((verlust == soll).sum()), "weniger": int((verlust < soll).sum()), "mehr": int((verlust > soll).sum())}
+    return {
+        "gleich": int((verlust == soll).sum()),
+        "weniger": int((verlust < soll).sum()),
+        "mehr": int((verlust > soll).sum()),
+    }
 
 
 def reichweite_werten(reihen, einheiten, tab):
@@ -424,7 +685,11 @@ def reichweite_werten(reihen, einheiten, tab):
         treffer = []
         ziel_ort = None
         for t, s in reihen:
-            if s["typ"][e["nr"]] != e["typ"] or not s["da"][e["nr"]] or s["typ"][z["nr"]] != z["typ"]:
+            if (
+                s["typ"][e["nr"]] != e["typ"]
+                or not s["da"][e["nr"]]
+                or s["typ"][z["nr"]] != z["typ"]
+            ):
                 break
             ort = (int(s["mx"][e["nr"]]), int(s["my"][e["nr"]]))
             ziel_ort = ziel_ort or (int(s["mx"][z["nr"]]), int(s["my"][z["nr"]]))
@@ -441,9 +706,25 @@ def reichweite_werten(reihen, einheiten, tab):
         ab = _abstand(*halt_ort, *ziel_ort) if ziel_ort and halt_ort else None
         gelaufen = (_abstand(*start, *ziel_ort) - ab) / 8 if ab is not None else 0
         schuss = collections.Counter(b[0] - a[0] for a, b in zip(treffer, treffer[1:]))
-        aus.append({"typ": e["typ"], "erster_schritt": erster, "halt": letzter, "felder_gelaufen": round(gelaufen, 1), "takte_je_feld": round((letzter - erster) / gelaufen, 2) if erster is not None and gelaufen >= 5 and letzter > erster else None,
-                    "tempo_soll": 8 * (int(tab["tempo"][e["typ"]]) + 1), "abstand_mikro": ab, "abstand_felder": round(ab / 8, 1) if ab is not None else None, "treffer": len(treffer), "erster_treffer": treffer[0][0] if treffer else None,
-                    "werte": dict(collections.Counter(w for _, w in treffer)), "abstaende": dict(schuss.most_common(5)), "urteil": "trifft" if treffer else "kein Treffer"})
+        aus.append(
+            {
+                "typ": e["typ"],
+                "erster_schritt": erster,
+                "halt": letzter,
+                "felder_gelaufen": round(gelaufen, 1),
+                "takte_je_feld": round((letzter - erster) / gelaufen, 2)
+                if erster is not None and gelaufen >= 5 and letzter > erster
+                else None,
+                "tempo_soll": 8 * (int(tab["tempo"][e["typ"]]) + 1),
+                "abstand_mikro": ab,
+                "abstand_felder": round(ab / 8, 1) if ab is not None else None,
+                "treffer": len(treffer),
+                "erster_treffer": treffer[0][0] if treffer else None,
+                "werte": dict(collections.Counter(w for _, w in treffer)),
+                "abstaende": dict(schuss.most_common(5)),
+                "urteil": "trifft" if treffer else "kein Treffer",
+            }
+        )
     return aus
 
 
@@ -456,8 +737,24 @@ def schussweite_werten(geschosse, einheiten):
             continue
         z = ziele[e["paar"]]
         g = [x for x in geschosse if x["schuetze"] == e["nr"]]
-        auf = [x for x in g if x["ziel"] == z["nr"] or ("x" in z and _abstand(*x["punkt"], z["x"] * 8 + 4, z["y"] * 8 + 4) <= 24)]  # Katapult und Trebuchet zielen auf das Feld, nicht auf die Einheit
-        aus.append({"typ": e["typ"], "abstand": e["abstand"], "auf_ziel": len(auf), "andere": len(g) - len(auf), "abstand_mikro": max((_abstand(*x["start"], *x["punkt"]) for x in auf), default=None), "urteil": "schiesst" if auf else "kein Treffer"})
+        auf = [
+            x
+            for x in g
+            if x["ziel"] == z["nr"]
+            or ("x" in z and _abstand(*x["punkt"], z["x"] * 8 + 4, z["y"] * 8 + 4) <= 24)
+        ]  # Katapult und Trebuchet zielen auf das Feld, nicht auf die Einheit
+        aus.append(
+            {
+                "typ": e["typ"],
+                "abstand": e["abstand"],
+                "auf_ziel": len(auf),
+                "andere": len(g) - len(auf),
+                "abstand_mikro": max(
+                    (_abstand(*x["start"], *x["punkt"]) for x in auf), default=None
+                ),
+                "urteil": "schiesst" if auf else "kein Treffer",
+            }
+        )
     return aus
 
 
@@ -467,7 +764,11 @@ def schussweite_grenzen(zeilen):
     for typ in sorted({z["typ"] for z in zeilen}):
         mit = [z["abstand"] for z in zeilen if z["typ"] == typ and z["auf_ziel"]]
         ohne = [z["abstand"] for z in zeilen if z["typ"] == typ and not z["auf_ziel"]]
-        aus[typ] = {"weitester_schuss": max(mit, default=None), "naechster_ohne": min(ohne, default=None), "eindeutig": not mit or not ohne or max(mit) < min(ohne)}
+        aus[typ] = {
+            "weitester_schuss": max(mit, default=None),
+            "naechster_ohne": min(ohne, default=None),
+            "eindeutig": not mit or not ohne or max(mit) < min(ohne),
+        }
     return aus
 
 
@@ -479,7 +780,14 @@ def laufziel_werten(geschosse, reihen, einheiten):
     for nr, e in schuetzen.items():
         g = [x for x in geschosse if x["schuetze"] == nr and x["ziel"] == partner[e["paar"]]]
         w = geschosse_werten(g, reihen)
-        aus.append({"typ": e["typ"], "alle_geschosse": sum(1 for x in geschosse if x["schuetze"] == nr), **_vorhalt(g, reihen, partner[e["paar"]]), **{k: v for k, v in w.items()}})
+        aus.append(
+            {
+                "typ": e["typ"],
+                "alle_geschosse": sum(1 for x in geschosse if x["schuetze"] == nr),
+                **_vorhalt(g, reihen, partner[e["paar"]]),
+                **{k: v for k, v in w.items()},
+            }
+        )
     return aus
 
 
@@ -494,7 +802,10 @@ def _vorhalt(geschosse, reihen, ziel):
         for t, liste in ((g["von"], abschuss), (g["bis"], einschlag)):
             s = stand[takte[min(int(np.searchsorted(takte, t)), len(takte) - 1)]]
             liste.append(_abstand(*g["punkt"], int(s["mx"][ziel]), int(s["my"][ziel])))
-    return {"punkt_zum_laeufer_abschuss": int(np.median(abschuss)) if abschuss else None, "punkt_zum_laeufer_einschlag": int(np.median(einschlag)) if einschlag else None}
+    return {
+        "punkt_zum_laeufer_abschuss": int(np.median(abschuss)) if abschuss else None,
+        "punkt_zum_laeufer_einschlag": int(np.median(einschlag)) if einschlag else None,
+    }
 
 
 def punkt_werten(reihen, posten):
@@ -522,7 +833,25 @@ def punkt_werten(reihen, posten):
                     (mauer_durch if abs(int(yy) - mitte) <= 1 else mauer_um).add(int(i))
         da_sind = ankunft[ankunft >= 0]
         q = [int(np.percentile(da_sind, w)) for w in (10, 50, 90)] if len(da_sind) else None
-        aus.append({"art": p["art"], "anzahl": p["anzahl"], "im_block": len(nr), "angekommen": int(len(da_sind)), "takte_10_50_90": q, "letzter": int(da_sind.max()) if len(da_sind) else None, "dichtestes_feld": dicht, **({"durch_luecke": len(mauer_durch), "anderswo_an_mauerlinie": len(mauer_um - mauer_durch)} if "mauer" in p else {})})
+        aus.append(
+            {
+                "art": p["art"],
+                "anzahl": p["anzahl"],
+                "im_block": len(nr),
+                "angekommen": int(len(da_sind)),
+                "takte_10_50_90": q,
+                "letzter": int(da_sind.max()) if len(da_sind) else None,
+                "dichtestes_feld": dicht,
+                **(
+                    {
+                        "durch_luecke": len(mauer_durch),
+                        "anderswo_an_mauerlinie": len(mauer_um - mauer_durch),
+                    }
+                    if "mauer" in p
+                    else {}
+                ),
+            }
+        )
     return aus
 
 
@@ -532,18 +861,33 @@ def _neue_einheiten(reihen, k, plan_nummern, rand=15):
     t0 = reihen[0][0] if reihen else 0
     for t, s in reihen[::20]:
         x, y = s["mx"] // 8, s["my"] // 8
-        m = (s["da"] != 0) & (x >= k["x"] - rand) & (x < k["x"] + k["breite"] + rand) & (y >= k["y"] - rand) & (y < k["y"] + k["hoehe"] + rand)
+        m = (
+            (s["da"] != 0)
+            & (x >= k["x"] - rand)
+            & (x < k["x"] + k["breite"] + rand)
+            & (y >= k["y"] - rand)
+            & (y < k["y"] + k["hoehe"] + rand)
+        )
         m[0] = False
-        c = collections.Counter((int(s["typ"][i]), int(s["besitzer"][i])) for i in np.nonzero(m)[0] if int(i) not in plan_nummern and s["typ"][i] != 44)
+        c = collections.Counter(
+            (int(s["typ"][i]), int(s["besitzer"][i]))
+            for i in np.nonzero(m)[0]
+            if int(i) not in plan_nummern and s["typ"][i] != 44
+        )
         for w, n in c.items():
-            z = aus.setdefault(f"{w[0]}/{w[1]}", {"erster": t - t0, "letzter": t - t0, "hoechstens": 0})
+            z = aus.setdefault(
+                f"{w[0]}/{w[1]}", {"erster": t - t0, "letzter": t - t0, "hoechstens": 0}
+            )
             z["letzter"], z["hoechstens"] = t - t0, max(z["hoechstens"], n)
     return aus
 
 
 def _fremde_treffer(reihen, geschosse, im_posten, im_plan):
     """Wer nicht im Plan steht und eine Einheit des Postens schlaegt (Rahmen je Art/Besitzer) oder beschiesst (Geschosse je Art). Die Starttruppen trafen die Opfer der Hunde, und ich schrieb es den Hunden zu (Lauf 21:41). Das soll man hier sehen, bevor man einem Posten etwas zuschreibt."""
-    ziele, plan_nr = np.array(sorted(im_posten), dtype=np.int32), np.array(sorted(im_plan), dtype=np.int32)
+    ziele, plan_nr = (
+        np.array(sorted(im_posten), dtype=np.int32),
+        np.array(sorted(im_plan), dtype=np.int32),
+    )
     schlaeger = collections.Counter()
     for _, s in reihen:
         m = (s["da"] != 0) & np.isin(s["schlaegt"], ziele)
@@ -551,7 +895,16 @@ def _fremde_treffer(reihen, geschosse, im_posten, im_plan):
         m[0] = False  # Platz 0 ist die Kopie der gerade laufenden Einheit
         for i in np.nonzero(m)[0]:
             schlaeger[f"{int(s['typ'][i])}/{int(s['besitzer'][i])}"] += 1
-    return {"schlaeger": dict(schlaeger), "geschosse": dict(collections.Counter(x["art"] for x in geschosse if x["schuetze"] not in im_plan and x["ziel"] in im_posten))}
+    return {
+        "schlaeger": dict(schlaeger),
+        "geschosse": dict(
+            collections.Counter(
+                x["art"]
+                for x in geschosse
+                if x["schuetze"] not in im_plan and x["ziel"] in im_posten
+            )
+        ),
+    }
 
 
 def sonder_werten(reihen, reihen_g, geschosse, plan, felder=None):
@@ -559,12 +912,31 @@ def sonder_werten(reihen, reihen_g, geschosse, plan, felder=None):
     aus = []
     for k in plan["karte"]:
         n = k["posten"]
-        im_gebiet = [x for x in geschosse if k["x"] - 10 <= x["start"][0] // 8 < k["x"] + k["breite"] + 10 and k["y"] - 10 <= x["start"][1] // 8 < k["y"] + k["hoehe"] + 10]
-        zeile = {"posten": n, "einheiten": [], "gebaeude": [], "geschosse": dict(collections.Counter(x["art"] for x in im_gebiet)), "neu": _neue_einheiten(reihen, k, {e.get("nr") for e in plan["einheiten"]})}
+        im_gebiet = [
+            x
+            for x in geschosse
+            if k["x"] - 10 <= x["start"][0] // 8 < k["x"] + k["breite"] + 10
+            and k["y"] - 10 <= x["start"][1] // 8 < k["y"] + k["hoehe"] + 10
+        ]
+        zeile = {
+            "posten": n,
+            "einheiten": [],
+            "gebaeude": [],
+            "geschosse": dict(collections.Counter(x["art"] for x in im_gebiet)),
+            "neu": _neue_einheiten(reihen, k, {e.get("nr") for e in plan["einheiten"]}),
+        }
         im_plan = {e["nr"] for e in plan["einheiten"] if "nr" in e}
-        zeile["fremd"] = _fremde_treffer(reihen, geschosse, {e["nr"] for e in plan["einheiten"] if "nr" in e and e.get("posten") == n}, im_plan)
+        zeile["fremd"] = _fremde_treffer(
+            reihen,
+            geschosse,
+            {e["nr"] for e in plan["einheiten"] if "nr" in e and e.get("posten") == n},
+            im_plan,
+        )
         if felder and k.get("felder"):
-            zeile["felder"] = {f"{x},{y}": [(t - reihen[0][0], hex(w)) for t, w in felder[z][:5]] for x, y, z in k["felder"]}
+            zeile["felder"] = {
+                f"{x},{y}": [(t - reihen[0][0], hex(w)) for t, w in felder[z][:5]]
+                for x, y, z in k["felder"]
+            }
         for e in plan["einheiten"]:
             if e.get("posten") != n or "nr" not in e:
                 continue
@@ -577,12 +949,27 @@ def sonder_werten(reihen, reihen_g, geschosse, plan, felder=None):
                 z = (int(s["zustand"][e["nr"]]), int(s["ziel_art"][e["nr"]]))
                 if not wechsel or wechsel[-1][1:] != z:
                     wechsel.append((t - reihen[0][0], *z))
-                w = (int(s["mx"][e["nr"]]) // 8, int(s["my"][e["nr"]]) // 8, int(s["leben"][e["nr"]]))
+                w = (
+                    int(s["mx"][e["nr"]]) // 8,
+                    int(s["my"][e["nr"]]) // 8,
+                    int(s["leben"][e["nr"]]),
+                )
                 a = a or w
                 if erster is None and b is not None and w[2] < b[2]:
                     erster = t - reihen[0][0]
                 b = w
-            zeile["einheiten"].append({"rolle": e["rolle"], "typ": e["typ"], "von": a[:2] if a else None, "nach": b[:2] if b else None, "leben": (a[2], b[2]) if a and b else None, "erster_verlust": erster, "weg": weg - reihen[0][0] if weg is not None else None, "zustaende": wechsel[:6]})
+            zeile["einheiten"].append(
+                {
+                    "rolle": e["rolle"],
+                    "typ": e["typ"],
+                    "von": a[:2] if a else None,
+                    "nach": b[:2] if b else None,
+                    "leben": (a[2], b[2]) if a and b else None,
+                    "erster_verlust": erster,
+                    "weg": weg - reihen[0][0] if weg is not None else None,
+                    "zustaende": wechsel[:6],
+                }
+            )
         for g in plan["gebaeude"]:
             if g.get("posten") == n and "nr" in g:
                 v = _gebaeude_verlauf(reihen_g, g["nr"])
@@ -590,7 +977,19 @@ def sonder_werten(reihen, reihen_g, geschosse, plan, felder=None):
                 for t, s in reihen_g:
                     if not tor or tor[-1][1] != int(s["tor"][g["nr"]]):
                         tor.append((t - reihen[0][0], int(s["tor"][g["nr"]])))
-                zeile["gebaeude"].append({"name": g["name"], "tor": tor[:8], "leben": v["leben"], "hoechst": v["hoechst"], "verluste": dict(collections.Counter(v["verluste"]).most_common(4)), "erster_verlust": v["erster_verlust"] - reihen[0][0] if v["erster_verlust"] is not None else None, "weg": v["weg"] - reihen[0][0] if v["weg"] is not None else None})
+                zeile["gebaeude"].append(
+                    {
+                        "name": g["name"],
+                        "tor": tor[:8],
+                        "leben": v["leben"],
+                        "hoechst": v["hoechst"],
+                        "verluste": dict(collections.Counter(v["verluste"]).most_common(4)),
+                        "erster_verlust": v["erster_verlust"] - reihen[0][0]
+                        if v["erster_verlust"] is not None
+                        else None,
+                        "weg": v["weg"] - reihen[0][0] if v["weg"] is not None else None,
+                    }
+                )
         aus.append(zeile)
     return aus
 
@@ -603,11 +1002,23 @@ def haltung_werten(reihen, einheiten):
             continue
         erste = None
         for t, s in reihen:
-            if (int(s["mx"][e["nr"]]) // 8, int(s["my"][e["nr"]]) // 8) != (e["x"], e["y"]) or s["schlaegt"][e["nr"]] != 0:
+            if (int(s["mx"][e["nr"]]) // 8, int(s["my"][e["nr"]]) // 8) != (e["x"], e["y"]) or s[
+                "schlaegt"
+            ][e["nr"]] != 0:
                 erste = t
                 break
         soll = {2: 25, 1: 5, 0: 0}[e["wert"]] >= e["abstand"]
-        aus.append({"typ": e["typ"], "haltung": e["haltung"], "abstand": e["abstand"], "soll": soll, "reagiert": erste is not None, "nach_takten": erste - reihen[0][0] if erste is not None else None, "urteil": "bestaetigt" if soll == (erste is not None) else "weicht ab"})
+        aus.append(
+            {
+                "typ": e["typ"],
+                "haltung": e["haltung"],
+                "abstand": e["abstand"],
+                "soll": soll,
+                "reagiert": erste is not None,
+                "nach_takten": erste - reihen[0][0] if erste is not None else None,
+                "urteil": "bestaetigt" if soll == (erste is not None) else "weicht ab",
+            }
+        )
     return aus
 
 
@@ -619,16 +1030,30 @@ def kontrolle_werten(reihen, einheiten):
             continue
         leben = {int(s["leben"][e["nr"]]) for _, s in reihen}
         orte = {(int(s["mx"][e["nr"]]) // 8, int(s["my"][e["nr"]]) // 8) for _, s in reihen}
-        aus.append({"typ": e["typ"], "leben": sorted(leben), "orte": sorted(orte), "ungestoert": len(leben) == 1 and len(orte) == 1})
+        aus.append(
+            {
+                "typ": e["typ"],
+                "leben": sorted(leben),
+                "orte": sorted(orte),
+                "ungestoert": len(leben) == 1 and len(orte) == 1,
+            }
+        )
     return aus
 
 
 def vergleichen(a, b):
     """Editor gegen Gefecht, Zeile fuer Zeile, nur was in beiden vorkommt. Gleich heisst: dieselben Schadenswerte und dasselbe Urteil, beim Laufen hoechstens 1 Takt je Feld Unterschied."""
+
     def schluessel(z):
         return tuple(z.get(k) for k in ("schlaeger", "opfer", "ziel", "typ", "lage"))
+
     zb = {schluessel(z): z for z in b["zeilen"]}
-    aus = {"gleich": 0, "anders": [], "nur_erste": 0, "nur_zweite": len(set(zb) - {schluessel(z) for z in a["zeilen"]})}
+    aus = {
+        "gleich": 0,
+        "anders": [],
+        "nur_erste": 0,
+        "nur_zweite": len(set(zb) - {schluessel(z) for z in a["zeilen"]}),
+    }
     for z in a["zeilen"]:
         g = zb.get(schluessel(z))
         if g is None:
@@ -642,10 +1067,22 @@ def vergleichen(a, b):
 
 def _gleich(x, y):
     if "takte_je_feld" in x:
-        return x["takte_je_feld"] is not None and y["takte_je_feld"] is not None and abs(x["takte_je_feld"] - y["takte_je_feld"]) <= 1
+        return (
+            x["takte_je_feld"] is not None
+            and y["takte_je_feld"] is not None
+            and abs(x["takte_je_feld"] - y["takte_je_feld"]) <= 1
+        )
     if "soll" in x:
-        return x["soll"] == y["soll"] and x["urteil"] == y["urteil"] and set(x["werte"]) == set(y["werte"])
-    return x["urteil"] == y["urteil"] and (x["pfeil"], x["bolzen"], x["stein"]) == (y["pfeil"], y["bolzen"], y["stein"])
+        return (
+            x["soll"] == y["soll"]
+            and x["urteil"] == y["urteil"]
+            and set(x["werte"]) == set(y["werte"])
+        )
+    return x["urteil"] == y["urteil"] and (x["pfeil"], x["bolzen"], x["stein"]) == (
+        y["pfeil"],
+        y["bolzen"],
+        y["stein"],
+    )
 
 
 def bericht(szene, zeilen, kontrollen):
@@ -658,12 +1095,40 @@ def bericht(szene, zeilen, kontrollen):
         abst = collections.Counter()
         for r in zeilen:
             abst.update({int(k): v for k, v in r.get("abstaende", {}).items()})
-        text.append(f"Erster Treffer nach Takten: kleinster {min(erste)}, Median {sorted(erste)[len(erste) // 2]}, groesster {max(erste)}. Abstaende zwischen Treffern: {abst.most_common(6)}. Fremde Geschosse: {sum(r.get('fremde_geschosse', 0) for r in zeilen)}")
+        text.append(
+            f"Erster Treffer nach Takten: kleinster {min(erste)}, Median {sorted(erste)[len(erste) // 2]}, groesster {max(erste)}. Abstaende zwischen Treffern: {abst.most_common(6)}. Fremde Geschosse: {sum(r.get('fremde_geschosse', 0) for r in zeilen)}"
+        )
     if kontrollen:
-        text.append("Kontrolle: " + ("ungestoert" if all(k["ungestoert"] for k in kontrollen) else f"GESTOERT {kontrollen}"))
+        text.append(
+            "Kontrolle: "
+            + (
+                "ungestoert"
+                if all(k["ungestoert"] for k in kontrollen)
+                else f"GESTOERT {kontrollen}"
+            )
+        )
     for r in zeilen:
-        if r.get("urteil") in ("weicht ab", "kein Treffer", "Treffer ohne Nahkampf") or szene.startswith(("reichweite", "schussweite", "laufziel", "haltung", "besatzung", "belagerung", "gebaeude_nah", "geraete_weite", "punkt", "sonder")):
-            text.append("  " + json.dumps({k: v for k, v in r.items() if k != "paar"}, ensure_ascii=False))
+        if r.get("urteil") in (
+            "weicht ab",
+            "kein Treffer",
+            "Treffer ohne Nahkampf",
+        ) or szene.startswith(
+            (
+                "reichweite",
+                "schussweite",
+                "laufziel",
+                "haltung",
+                "besatzung",
+                "belagerung",
+                "gebaeude_nah",
+                "geraete_weite",
+                "punkt",
+                "sonder",
+            )
+        ):
+            text.append(
+                "  " + json.dumps({k: v for k, v in r.items() if k != "paar"}, ensure_ascii=False)
+            )
     return "\n".join(text)
 
 
@@ -685,56 +1150,135 @@ def main(argv=None):
     art = re.sub(r"\d+$", "", plan["szene"].removesuffix("_g").removesuffix("_pfeil"))
     if art in ("last", "lord") or art.startswith("schlacht"):
         m = masse_werten(reihen, tab)
-        json.dump({"szene": plan["szene"], "von": plan["von"], "bis": plan["bis"], **m}, open(a.aufzeichnung + ".regeln.json", "w", encoding="utf-8"), ensure_ascii=False)
+        json.dump(
+            {"szene": plan["szene"], "von": plan["von"], "bis": plan["bis"], **m},
+            open(a.aufzeichnung + ".regeln.json", "w", encoding="utf-8"),
+            ensure_ascii=False,
+        )
         print(plan["szene"], {k: v for k, v in m.items() if k != "verlauf"})
         return 0
     if art == "nahkampf":
-        zeilen = nahkampf_werten(reihen, plan["einheiten"], tab, erster_rahmen_alt=plan["szene"].endswith("_g"))
-        print("Erster Treffer doppelt, weil der erste Rahmen den alten Stand zeigt:", sum(z["erster_doppelt"] for z in zeilen))
+        zeilen = nahkampf_werten(
+            reihen, plan["einheiten"], tab, erster_rahmen_alt=plan["szene"].endswith("_g")
+        )
+        print(
+            "Erster Treffer doppelt, weil der erste Rahmen den alten Stand zeigt:",
+            sum(z["erster_doppelt"] for z in zeilen),
+        )
     elif art == "beschuss":
         zeilen = beschuss_werten(reihen, plan["einheiten"], tab)
-        g = geschosse_werten(geschosse_lesen(a.aufzeichnung, Feldkarte.laden(feldliste=FELDLISTE)), reihen)
-        json.dump(g, open(a.aufzeichnung + ".geschosse.json", "w", encoding="utf-8"), ensure_ascii=False)
+        g = geschosse_werten(
+            geschosse_lesen(a.aufzeichnung, Feldkarte.laden(feldliste=FELDLISTE)), reihen
+        )
+        json.dump(
+            g, open(a.aufzeichnung + ".geschosse.json", "w", encoding="utf-8"), ensure_ascii=False
+        )
         print("Geschosse:", g)
     elif art == "reichweite":
         zeilen = reichweite_werten(reihen, plan["einheiten"], tab)
-        g = geschosse_werten(geschosse_lesen(a.aufzeichnung, Feldkarte.laden(feldliste=FELDLISTE)), reihen)
-        json.dump(g, open(a.aufzeichnung + ".geschosse.json", "w", encoding="utf-8"), ensure_ascii=False)
+        g = geschosse_werten(
+            geschosse_lesen(a.aufzeichnung, Feldkarte.laden(feldliste=FELDLISTE)), reihen
+        )
+        json.dump(
+            g, open(a.aufzeichnung + ".geschosse.json", "w", encoding="utf-8"), ensure_ascii=False
+        )
         print("Geschosse:", g)
     elif art == "besatzung":
-        zeilen = besatzung_werten(reihen, geschosse_lesen(a.aufzeichnung, Feldkarte.laden(feldliste=FELDLISTE)), plan["einheiten"])
+        zeilen = besatzung_werten(
+            reihen,
+            geschosse_lesen(a.aufzeichnung, Feldkarte.laden(feldliste=FELDLISTE)),
+            plan["einheiten"],
+        )
         print("Bemannt:", plan.get("bemannt"), "nach", plan.get("bemannt_nach"), "Takten")
     elif art == "belagerung":
         k_ = Feldkarte.laden(feldliste=FELDLISTE)
-        zeilen = belagerung_werten(gebaeude_lesen(a.aufzeichnung, k_), geschosse_lesen(a.aufzeichnung, k_), plan["einheiten"], plan["gebaeude"])
-        print("Bemannt:", plan.get("bemannt"), "nach", plan.get("bemannt_nach"), "Takten; nicht gesetzt:", plan.get("nicht_gesetzt"), "; nicht gefahren:", plan.get("nicht_gefahren"))
+        zeilen = belagerung_werten(
+            gebaeude_lesen(a.aufzeichnung, k_),
+            geschosse_lesen(a.aufzeichnung, k_),
+            plan["einheiten"],
+            plan["gebaeude"],
+        )
+        print(
+            "Bemannt:",
+            plan.get("bemannt"),
+            "nach",
+            plan.get("bemannt_nach"),
+            "Takten; nicht gesetzt:",
+            plan.get("nicht_gesetzt"),
+            "; nicht gefahren:",
+            plan.get("nicht_gefahren"),
+        )
     elif art == "gebaeude_nah":
         k_ = Feldkarte.laden(feldliste=FELDLISTE)
-        zeilen = gebaeude_nah_werten(gebaeude_lesen(a.aufzeichnung, k_), reihen, plan["einheiten"], plan["gebaeude"])
+        zeilen = gebaeude_nah_werten(
+            gebaeude_lesen(a.aufzeichnung, k_), reihen, plan["einheiten"], plan["gebaeude"]
+        )
         print("Nicht gesetzt:", plan.get("nicht_gesetzt"))
     elif art == "geraete_weite":
-        zeilen = schussweite_werten(geschosse_lesen(a.aufzeichnung, Feldkarte.laden(feldliste=FELDLISTE)), plan["einheiten"])
-        print("Bemannt:", plan.get("bemannt"), "nach", plan.get("bemannt_nach"), "; Grenzen je Geraet:", schussweite_grenzen(zeilen), "; kein Platz:", plan.get("nicht_gefahren"))
+        zeilen = schussweite_werten(
+            geschosse_lesen(a.aufzeichnung, Feldkarte.laden(feldliste=FELDLISTE)), plan["einheiten"]
+        )
+        print(
+            "Bemannt:",
+            plan.get("bemannt"),
+            "nach",
+            plan.get("bemannt_nach"),
+            "; Grenzen je Geraet:",
+            schussweite_grenzen(zeilen),
+            "; kein Platz:",
+            plan.get("nicht_gefahren"),
+        )
     elif art == "punkt":
         zeilen = punkt_werten(reihen, plan["posten"])
         print("Nicht gesetzt:", plan.get("nicht_gesetzt"), "Mauerfelder:", plan.get("mauer_felder"))
     elif art == "sonder":
         k_ = Feldkarte.laden(feldliste=FELDLISTE)
         kacheln = [z for p_ in plan["karte"] for _, _, z in p_.get("felder", [])]
-        zeilen = sonder_werten(reihen, gebaeude_lesen(a.aufzeichnung, k_), geschosse_lesen(a.aufzeichnung, k_), plan, logik_verlauf(a.aufzeichnung, k_, kacheln) if kacheln else None)
-        print("Nicht gesetzt:", plan.get("nicht_gesetzt"), "kein Platz:", plan.get("kein_platz"), "Grabenfelder am Ende:", plan.get("graben_felder_am_ende"))
+        zeilen = sonder_werten(
+            reihen,
+            gebaeude_lesen(a.aufzeichnung, k_),
+            geschosse_lesen(a.aufzeichnung, k_),
+            plan,
+            logik_verlauf(a.aufzeichnung, k_, kacheln) if kacheln else None,
+        )
+        print(
+            "Nicht gesetzt:",
+            plan.get("nicht_gesetzt"),
+            "kein Platz:",
+            plan.get("kein_platz"),
+            "Grabenfelder am Ende:",
+            plan.get("graben_felder_am_ende"),
+        )
     elif art == "schussweite":
-        zeilen = schussweite_werten(geschosse_lesen(a.aufzeichnung, Feldkarte.laden(feldliste=FELDLISTE)), plan["einheiten"])
+        zeilen = schussweite_werten(
+            geschosse_lesen(a.aufzeichnung, Feldkarte.laden(feldliste=FELDLISTE)), plan["einheiten"]
+        )
         print("Grenzen je Art:", schussweite_grenzen(zeilen))
     elif art == "laufziel":
-        zeilen = laufziel_werten(geschosse_lesen(a.aufzeichnung, Feldkarte.laden(feldliste=FELDLISTE)), reihen, plan["einheiten"])
+        zeilen = laufziel_werten(
+            geschosse_lesen(a.aufzeichnung, Feldkarte.laden(feldliste=FELDLISTE)),
+            reihen,
+            plan["einheiten"],
+        )
     elif art == "haltung":
         zeilen = haltung_werten(reihen, plan["einheiten"])
     else:
         from selfaware.tools.experiments.auge_lauf_s import FELDER_LAUF
+
         zeilen = laufen_werten(reihen, plan["einheiten"], FELDER_LAUF)
     kontrollen = kontrolle_werten(reihen, plan["einheiten"])
-    json.dump({"szene": plan["szene"], "rahmen": len(reihen), "von": plan["von"], "bis": plan["bis"], "zeilen": zeilen, "kontrollen": kontrollen}, open(a.aufzeichnung + ".regeln.json", "w", encoding="utf-8"), ensure_ascii=False)
+    json.dump(
+        {
+            "szene": plan["szene"],
+            "rahmen": len(reihen),
+            "von": plan["von"],
+            "bis": plan["bis"],
+            "zeilen": zeilen,
+            "kontrollen": kontrollen,
+        },
+        open(a.aufzeichnung + ".regeln.json", "w", encoding="utf-8"),
+        ensure_ascii=False,
+    )
     print(f"{len(reihen)} Rahmen in {plan['bis'] - plan['von']} Takten")
     print(bericht(plan["szene"], zeilen, kontrollen))
     return 0

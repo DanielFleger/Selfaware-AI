@@ -1,4 +1,5 @@
 """B-142: Aufzeichnung und Auswerter an einem kuenstlichen Spiel, ohne echtes Spiel. Jede Probe auch mit eingebautem Fehler."""
+
 from __future__ import annotations
 
 import ctypes
@@ -13,20 +14,76 @@ pytest.importorskip("numpy")
 
 from selfaware.tools.analysis import auge_auswertung as aw
 from selfaware.tools.analysis.auge_feldkarte import EXPORT, FELDLISTE, Feldkarte
-from selfaware.tools.experiments.auge_aufzeichnung import AENDERUNG, Aufzeichner, Bereich, FeldWache, ProzessQuelle, Streng, aenderungen, pruefe_instanz, standard_bereiche
+from selfaware.tools.experiments.auge_aufzeichnung import (
+    AENDERUNG,
+    Aufzeichner,
+    Bereich,
+    FeldWache,
+    ProzessQuelle,
+    Streng,
+    aenderungen,
+    pruefe_instanz,
+    standard_bereiche,
+)
 
 TAKT, U, Z, RNG, FREI, TON = 0x1000, 0x2000, 0x3000, 0x4000, 0x20000, 0x21000
 TYPEN = {
-    "Einheit": {"laenge": 16, "felder": [(0, "int", 4, "uid"), (4, "int", 4, "leben"), (8, "short", 2, "x"), (10, "short[3]", 6, "rest")]},
-    "Einheiten": {"laenge": 4 + 16 * 4, "felder": [(0, "int", 4, "anzahl"), (4, "Einheit[4]", 64, "units")]},
+    "Einheit": {
+        "laenge": 16,
+        "felder": [
+            (0, "int", 4, "uid"),
+            (4, "int", 4, "leben"),
+            (8, "short", 2, "x"),
+            (10, "short[3]", 6, "rest"),
+        ],
+    },
+    "Einheiten": {
+        "laenge": 4 + 16 * 4,
+        "felder": [(0, "int", 4, "anzahl"), (4, "Einheit[4]", 64, "units")],
+    },
     "Zeit": {"laenge": 8, "felder": [(0, "int", 4, "takt"), (4, "int", 4, "month")]},
-    "RNG": {"laenge": 40016, "felder": [(0, "short", 2, "currentNumber1"), (2, "short", 2, "currentNumber2"), (4, "int", 4, "seed"), (8, "short[20000]", 40000, "randomNumbers"), (40008, "int", 4, "index2"), (40012, "int", 4, "index1")]},
+    "RNG": {
+        "laenge": 40016,
+        "felder": [
+            (0, "short", 2, "currentNumber1"),
+            (2, "short", 2, "currentNumber2"),
+            (4, "int", 4, "seed"),
+            (8, "short[20000]", 40000, "randomNumbers"),
+            (40008, "int", 4, "index2"),
+            (40012, "int", 4, "index1"),
+        ],
+    },
     "Frei": {"laenge": 8, "felder": [(0, "int", 4, "ungelistet"), (4, "int", 4, "gelistet")]},
     "Ton": {"laenge": 4, "felder": [(0, "int", 4, "lautstaerke")]},
 }
-STRUKTUREN = [(TAKT, TAKT + 8, "DAT_Zeit", "Zeit"), (U, U + 68, "DAT_Einheiten", "Einheiten"), (RNG, RNG + 40016, "SEC_RNG", "RNG"), (FREI, FREI + 8, "DAT_Frei", "Frei"), (TON, TON + 4, "DAT_SoundSystemState", "Ton")]
-BEKANNT = [("DAT_Zeit", "takt"), ("DAT_Zeit", "month"), ("DAT_Einheiten", "units[].leben"), ("DAT_Einheiten", "units[].uid"), ("DAT_Einheiten", "units[].x"), ("SEC_RNG", "index2"), ("SEC_RNG", "index1"), ("SEC_RNG", "currentNumber1"), ("SEC_RNG", "currentNumber2"), ("DAT_Frei", "gelistet"), ("DAT_Einheiten", "anzahl"), ("DAT_Zeit", "nie_geaendert")]
-BEREICHE = [Bereich("zeit", TAKT, 8), Bereich("einheiten", U, 68), Bereich("rng", RNG, 40016), Bereich("frei", FREI, 8), Bereich("ton", TON, 4)]
+STRUKTUREN = [
+    (TAKT, TAKT + 8, "DAT_Zeit", "Zeit"),
+    (U, U + 68, "DAT_Einheiten", "Einheiten"),
+    (RNG, RNG + 40016, "SEC_RNG", "RNG"),
+    (FREI, FREI + 8, "DAT_Frei", "Frei"),
+    (TON, TON + 4, "DAT_SoundSystemState", "Ton"),
+]
+BEKANNT = [
+    ("DAT_Zeit", "takt"),
+    ("DAT_Zeit", "month"),
+    ("DAT_Einheiten", "units[].leben"),
+    ("DAT_Einheiten", "units[].uid"),
+    ("DAT_Einheiten", "units[].x"),
+    ("SEC_RNG", "index2"),
+    ("SEC_RNG", "index1"),
+    ("SEC_RNG", "currentNumber1"),
+    ("SEC_RNG", "currentNumber2"),
+    ("DAT_Frei", "gelistet"),
+    ("DAT_Einheiten", "anzahl"),
+    ("DAT_Zeit", "nie_geaendert"),
+]
+BEREICHE = [
+    Bereich("zeit", TAKT, 8),
+    Bereich("einheiten", U, 68),
+    Bereich("rng", RNG, 40016),
+    Bereich("frei", FREI, 8),
+    Bereich("ton", TON, 4),
+]
 
 
 def karte():
@@ -51,7 +108,7 @@ class Spiel:
             self.waehrend_lesen()
         for a, p in self.m.items():
             if a <= adresse < a + len(p):
-                return bytes(p[adresse - a:adresse - a + laenge])
+                return bytes(p[adresse - a : adresse - a + laenge])
         raise OSError(adresse)
 
     def takt_setzen(self, t):
@@ -101,6 +158,7 @@ def test_wiedergabe_entspricht_genau_dem_speicher(tmp_path):
 
 def test_packfehler_kommt_beim_schliessen_an(tmp_path, monkeypatch):
     import selfaware.tools.experiments.auge_aufzeichnung as az
+
     monkeypatch.setattr(az.zlib, "compress", lambda *a: (_ for _ in ()).throw(ValueError("kaputt")))
     auf = Aufzeichner(Spiel(), BEREICHE, tmp_path / "f.auge", {}, takt_adresse=TAKT)
     auf.schritt()
@@ -125,6 +183,7 @@ def test_a1_gut_und_mit_unbekanntem_byte(tmp_path):
 
     def stoer(s, i):
         struct.pack_into("<i", s.m[FREI], 0, i + 1)
+
     schlecht = aw.a1_aenderungsmelder(aufzeichnen(tmp_path / "s.auge", stoerung=stoer), k)
     assert schlecht.status == aw.WIDERLEGT
     assert schlecht.daten["luecken"][0]["feld"] == "ungelistet"
@@ -133,6 +192,7 @@ def test_a1_gut_und_mit_unbekanntem_byte(tmp_path):
 def test_a1_zaehlt_technik_getrennt_und_nicht_als_luecke(tmp_path):
     def stoer(s, i):
         struct.pack_into("<i", s.m[TON], 0, i + 1)
+
     e = aw.a1_aenderungsmelder(aufzeichnen(tmp_path / "t.auge", stoerung=stoer), karte())
     assert e.status == aw.BESTAETIGT and e.daten["technik"] == 1
 
@@ -142,7 +202,9 @@ def test_felder_der_teile_nennt_jedes_feld_je_stueck_einmal():
 
     ids = np.array([0, 0, 1, 1, 2, 2, 2, 3], dtype=np.int32)
     nummern, stuecke, anfang, laengen = aw.felder_der_teile(ids, [(1, 2), (6, 1), (3, 1), (2, 1)])
-    assert nummern.tolist() == [0, 1, 2, 1, 1], "Stueck 1 beruehrt zwei Felder, die letzten beiden Stuecke dasselbe Feld und zaehlen beide"
+    assert nummern.tolist() == [0, 1, 2, 1, 1], (
+        "Stueck 1 beruehrt zwei Felder, die letzten beiden Stuecke dasselbe Feld und zaehlen beide"
+    )
     assert stuecke.tolist() == [0, 0, 1, 2, 3]
     assert anfang.tolist() == [1, 6, 3, 2] and laengen.tolist() == [2, 1, 1, 1]
 
@@ -151,9 +213,12 @@ def test_a1_zaehlt_wie_oft_und_ab_wann(tmp_path):
     def stoer(s, i):
         if i >= 3:
             struct.pack_into("<i", s.m[FREI], 0, i + 1)
+
     e = aw.a1_aenderungsmelder(aufzeichnen(tmp_path / "z.auge", stoerung=stoer), karte())
     z = next(x for x in e.daten["luecken"] if x["feld"] == "ungelistet")
-    assert z["aenderungen"] >= 2 and z["erster_takt"] > 0, "Die Luecke beginnt erst spaeter und wird je Rahmen gezaehlt"
+    assert z["aenderungen"] >= 2 and z["erster_takt"] > 0, (
+        "Die Luecke beginnt erst spaeter und wird je Rahmen gezaehlt"
+    )
 
 
 def test_a2_nennt_nie_geaenderte_felder(tmp_path):
@@ -171,6 +236,7 @@ def test_a3_gut_fehlender_takt_und_gemischter_rahmen(tmp_path):
         if i == 10:
             s.weiter()
             s.weiter()
+
     e = aw.a3_takttreue(aufzeichnen(tmp_path / "f.auge", stoerung=spring))
     assert e.status == aw.WIDERLEGT and e.daten["fehlende_takte"] == 2
 
@@ -188,9 +254,15 @@ def test_a3_gut_fehlender_takt_und_gemischter_rahmen(tmp_path):
 def test_a3_auf_hohem_tempo_ist_ausgelassen_nur_gemessen(tmp_path):
     def spring(s, i):
         s.weiter()
+
     e = aw.a3_takttreue(aufzeichnen(tmp_path / "h.auge", stoerung=spring, kopf={"tempo": 1000}))
     assert e.status == aw.GEMESSEN and e.daten["fehlende_takte"] > 0
-    assert aw.a3_takttreue(aufzeichnen(tmp_path / "n.auge", stoerung=spring, kopf={"tempo": 40})).status == aw.WIDERLEGT
+    assert (
+        aw.a3_takttreue(
+            aufzeichnen(tmp_path / "n.auge", stoerung=spring, kopf={"tempo": 40})
+        ).status
+        == aw.WIDERLEGT
+    )
 
 
 def test_a3_erkennt_abgeschnittene_und_verfaelschte_datei(tmp_path):
@@ -209,7 +281,14 @@ def test_a3_erkennt_abgeschnittene_und_verfaelschte_datei(tmp_path):
 def test_a4_vergleicht_mit_tempo_ohne_lesen(tmp_path):
     uhr = iter(float(i) for i in range(100000))
     spiel = Spiel()
-    auf = Aufzeichner(spiel, BEREICHE, tmp_path / "a.auge", {"tempo_ohne_lesen": 1000.0}, takt_adresse=TAKT, uhr=lambda: next(uhr))
+    auf = Aufzeichner(
+        spiel,
+        BEREICHE,
+        tmp_path / "a.auge",
+        {"tempo_ohne_lesen": 1000.0},
+        takt_adresse=TAKT,
+        uhr=lambda: next(uhr),
+    )
     for _ in range(10):
         auf.schritt()
         spiel.weiter()
@@ -225,8 +304,16 @@ def test_a4_pause_im_lauf_zaehlt_nicht_als_bremsen(tmp_path):
     def uhr():
         jetzt[0] += 0.001
         return jetzt[0]
+
     spiel = Spiel()
-    auf = Aufzeichner(spiel, [Bereich("zeit", TAKT, 8)], tmp_path / "p.auge", {"tempo_ohne_lesen": 100.0}, takt_adresse=TAKT, uhr=uhr)
+    auf = Aufzeichner(
+        spiel,
+        [Bereich("zeit", TAKT, 8)],
+        tmp_path / "p.auge",
+        {"tempo_ohne_lesen": 100.0},
+        takt_adresse=TAKT,
+        uhr=uhr,
+    )
     for i in range(20):
         auf.schritt()
         spiel.weiter()
@@ -237,11 +324,21 @@ def test_a4_pause_im_lauf_zaehlt_nicht_als_bremsen(tmp_path):
 
 
 def treppe(tempo, o1, mit, o2, gelesen=100, gesamt=100):
-    return {"tempo": tempo, "sekunden": 20, "ohne_1": o1, "mit": mit, "ohne_2": o2, "gelesen": gelesen, "gesamt": gesamt}
+    return {
+        "tempo": tempo,
+        "sekunden": 20,
+        "ohne_1": o1,
+        "mit": mit,
+        "ohne_2": o2,
+        "gelesen": gelesen,
+        "gesamt": gesamt,
+    }
 
 
 def test_a4_tempotreppe_ohne_abzug_mit_kleinem_rauschen():
-    e = aw.a4_tempotreppe([treppe(40, 40.0, 40.0, 40.0), treppe(1000, 600.0, 598.0, 595.0, 50, 12000)])
+    e = aw.a4_tempotreppe(
+        [treppe(40, 40.0, 40.0, 40.0), treppe(1000, 600.0, 598.0, 595.0, 50, 12000)]
+    )
     assert e.status == aw.BESTAETIGT
     assert "1000" in e.text.split("ausgelassen auf")[1]
 
@@ -269,13 +366,19 @@ def test_a5_und_a6_gleich_und_mit_einem_falschen_byte(tmp_path):
     def stoer(s, i):
         if i == 12:
             struct.pack_into("<i", s.m[U], 4 + 16 + 4, 7)
+
     c = aufzeichnen(tmp_path / "c.auge", stoerung=stoer)
     e = aw.a6_gleicher_verlauf(a, 5, c, 5, 20, k)
     assert e.status == aw.WIDERLEGT
     assert e.daten["felder"] == [["DAT_Einheiten", "units[].leben"]]
-    assert e.daten["takt"] == 14 - 5  # erster Rahmen mit dem Fehler: nach Durchgang 12 steht der Takt auf 14
+    assert (
+        e.daten["takt"] == 14 - 5
+    )  # erster Rahmen mit dem Fehler: nach Durchgang 12 steht der Takt auf 14
     e5 = aw.a5_laden_gleich_sichern(a, 20, c, 20, k)
-    assert e5.status == aw.WIDERLEGT and e5.daten["abweichend"][0][:2] == ["DAT_Einheiten", "units[].leben"]
+    assert e5.status == aw.WIDERLEGT and e5.daten["abweichend"][0][:2] == [
+        "DAT_Einheiten",
+        "units[].leben",
+    ]
 
 
 def test_a5_a6_keine_fehlalarme_durch_selten_gelesene_bereiche(tmp_path):
@@ -292,7 +395,14 @@ def test_a5_a6_keine_fehlalarme_durch_selten_gelesene_bereiche(tmp_path):
 
 def test_voll_bei_liest_alle_bereiche_im_takt_des_speicherns(tmp_path):
     spiel = Spiel()
-    auf = Aufzeichner(spiel, [Bereich("zeit", TAKT, 8), Bereich("selten", U, 68, 100)], tmp_path / "v.auge", {}, takt_adresse=TAKT, voll_bei=[5])
+    auf = Aufzeichner(
+        spiel,
+        [Bereich("zeit", TAKT, 8), Bereich("selten", U, 68, 100)],
+        tmp_path / "v.auge",
+        {},
+        takt_adresse=TAKT,
+        voll_bei=[5],
+    )
     for _ in range(8):
         auf.schritt()
         spiel.weiter()
@@ -303,27 +413,48 @@ def test_voll_bei_liest_alle_bereiche_im_takt_des_speicherns(tmp_path):
 
 
 def test_a7_gut_und_mit_falscher_zufallszahl(tmp_path):
-    a = aufzeichnen(tmp_path / "a.auge", bereiche=[Bereich("zeit", TAKT, 8), Bereich("SEC_RNG", RNG, 40016)])
+    a = aufzeichnen(
+        tmp_path / "a.auge", bereiche=[Bereich("zeit", TAKT, 8), Bereich("SEC_RNG", RNG, 40016)]
+    )
     e = aw.a7_zufall(a)
     assert e.status == aw.BESTAETIGT and e.daten["gezogen"] > 0
 
     def stoer(s, i):
         if i == 7:
             struct.pack_into("<h", s.m[RNG], 2, -999)
-    b = aufzeichnen(tmp_path / "b.auge", stoerung=stoer, bereiche=[Bereich("zeit", TAKT, 8), Bereich("SEC_RNG", RNG, 40016)])
+
+    b = aufzeichnen(
+        tmp_path / "b.auge",
+        stoerung=stoer,
+        bereiche=[Bereich("zeit", TAKT, 8), Bereich("SEC_RNG", RNG, 40016)],
+    )
     assert aw.a7_zufall(b).status == aw.WIDERLEGT
 
 
 def test_a7_ohne_bereich_ist_nicht_gesehen(tmp_path):
-    assert aw.a7_zufall(aufzeichnen(tmp_path / "a.auge", takte=2, bereiche=[Bereich("zeit", TAKT, 8)])).status == aw.NICHT_GESEHEN
+    assert (
+        aw.a7_zufall(
+            aufzeichnen(tmp_path / "a.auge", takte=2, bereiche=[Bereich("zeit", TAKT, 8)])
+        ).status
+        == aw.NICHT_GESEHEN
+    )
 
 
 def test_a9_zaehlt_plaetze_und_vergleicht_mit_gesendeten(tmp_path):
     def stoer(s, i):
         if i == 4:
             struct.pack_into("<i", s.m[FREI], 4, 1)
-    a = aufzeichnen(tmp_path / "a.auge", stoerung=stoer, bereiche=[Bereich("zeit", TAKT, 8), Bereich("befehle", FREI, 8)])
-    wann = [r.takt for r, _, t in a.staende() if a.namen[r.bereich] == "befehle" and r.art == AENDERUNG and t][0]
+
+    a = aufzeichnen(
+        tmp_path / "a.auge",
+        stoerung=stoer,
+        bereiche=[Bereich("zeit", TAKT, 8), Bereich("befehle", FREI, 8)],
+    )
+    wann = [
+        r.takt
+        for r, _, t in a.staende()
+        if a.namen[r.bereich] == "befehle" and r.art == AENDERUNG and t
+    ][0]
     gut = aw.a9_befehle(a, {wann: 1}, groesse=4)
     assert gut.status == aw.BESTAETIGT
     assert aw.a9_befehle(a, {wann: 2}, groesse=4).status == aw.WIDERLEGT
@@ -334,11 +465,14 @@ def test_a9_zaehlt_plaetze_und_vergleicht_mit_gesendeten(tmp_path):
 def test_a10_uid_doppelt_und_grenze_verletzt(tmp_path):
     listen = [("Einheiten", U + 4, 16, 4, 0)]
     grenzen = [("Monat", TAKT + 4, "<i", 0, 11)]
-    assert aw.a10_lebenslauf(aufzeichnen(tmp_path / "a.auge"), listen, grenzen).status == aw.BESTAETIGT
+    assert (
+        aw.a10_lebenslauf(aufzeichnen(tmp_path / "a.auge"), listen, grenzen).status == aw.BESTAETIGT
+    )
 
     def doppelt(s, i):
         if i == 3:
             struct.pack_into("<i", s.m[U], 4 + 32, 100)
+
     e = aw.a10_lebenslauf(aufzeichnen(tmp_path / "b.auge", stoerung=doppelt), listen, grenzen)
     assert e.status == aw.WIDERLEGT and "uid 100" in e.daten["verstoesse"][0][3]
 
@@ -346,6 +480,7 @@ def test_a10_uid_doppelt_und_grenze_verletzt(tmp_path):
         def weiter(self):
             super().weiter()
             struct.pack_into("<i", self.m[TAKT], 4, 12)
+
     e = aw.a10_lebenslauf(aufzeichnen(tmp_path / "c.auge", spiel=Monat12()), listen, grenzen)
     assert e.status == aw.WIDERLEGT and e.daten["verstoesse"][0][1] == "Monat"
 
@@ -358,7 +493,11 @@ def test_a12_zaehlt_wechsel(tmp_path):
 def test_a13_vermutung_bestaetigt_und_widerlegt(tmp_path):
     def rec(n, sp):
         return aufzeichnen(tmp_path / f"{n}.auge", takte=1, kopf={"spielart": sp})
-    f, s = rec("f", {"currentGameMode": 0, "gameMode_2": 2}), rec("s", {"currentGameMode": 0, "gameMode_2": 2})
+
+    f, s = (
+        rec("f", {"currentGameMode": 0, "gameMode_2": 2}),
+        rec("s", {"currentGameMode": 0, "gameMode_2": 2}),
+    )
     k = rec("k", {"currentGameMode": 99, "gameMode_2": 3})
     assert aw.a13_spielart({"F": f, "K": k, "S": s}).status == aw.BESTAETIGT
     assert aw.a13_spielart({"F": f, "K": f, "S": s}).status == aw.WIDERLEGT
@@ -384,7 +523,10 @@ def test_feldkarte_pfad_und_sprung_ueber_ganze_felder():
     k = karte()
     assert k.ziel(U + 4 + 16 + 4) == ("DAT_Einheiten", "units[].leben")
     assert k.felder_einer_aenderung(U + 4 + 4, 4) == [("DAT_Einheiten", "units[].leben")]
-    assert k.felder_einer_aenderung(U + 4 + 8, 4)[:2] == [("DAT_Einheiten", "units[].x"), ("DAT_Einheiten", "units[].rest[]")]
+    assert k.felder_einer_aenderung(U + 4 + 8, 4)[:2] == [
+        ("DAT_Einheiten", "units[].x"),
+        ("DAT_Einheiten", "units[].rest[]"),
+    ]
     assert k.adresse("DAT_Einheiten", "units[].leben") == (U + 8, 4, 16, 4)
     assert k.klasse("DAT_Frei", "ungelistet") == "luecke"
     assert k.klasse("DAT_SoundSystemState", "lautstaerke") == "technik"
@@ -392,7 +534,9 @@ def test_feldkarte_pfad_und_sprung_ueber_ganze_felder():
 
 def test_instanz_5_wird_abgelehnt():
     with pytest.raises(PermissionError):
-        pruefe_instanz(r"C:\Games\Stronghold Crusader Extreme Instanz5\Stronghold_Crusader_Extreme.exe")
+        pruefe_instanz(
+            r"C:\Games\Stronghold Crusader Extreme Instanz5\Stronghold_Crusader_Extreme.exe"
+        )
     pruefe_instanz(r"C:\Games\Stronghold Crusader Extreme Instanz2\Stronghold_Crusader_Extreme.exe")
 
 
@@ -408,6 +552,7 @@ def test_prozessquelle_liest_den_eigenen_prozess():
 @pytest.mark.skipif(sys.platform != "win32", reason="Windows-Speicherzugriff")
 def test_pid_der_instanz_findet_einen_laufenden_prozess_am_ordner():
     from selfaware.tools.experiments.auge_aufzeichnung import pid_der_instanz, prozesspfade
+
     assert any(p.lower() == sys.executable.lower() for p in prozesspfade())
     assert pid_der_instanz(1, stamm=os.path.dirname(sys.executable)) is not None
     assert pid_der_instanz(1, stamm=r"C:\gibt\es\nicht") is None
@@ -429,7 +574,10 @@ def test_echte_feldkarte_kennt_die_belegten_adressen():
     assert {"DAT_UnitsState", "SEC_RNG", "befehle", "datenblock"} <= {b.name for b in bereiche}
     assert aw.echte_listen(k)[0][2:] == (1168, 2500, 1) and aw.echte_grenzen(k)[0][0] == "Monat"
     basis = aw.SPIELERDATEN + aw.SPIELER_SCHRITT
-    assert [k.ziel(basis + f)[1] for f in aw.FELD_STEUER] == ["playerDataArray[].taxBribeMonthlyAccumulator", "playerDataArray[].taxIncomeMonthlyAccumulator"]
+    assert [k.ziel(basis + f)[1] for f in aw.FELD_STEUER] == [
+        "playerDataArray[].taxBribeMonthlyAccumulator",
+        "playerDataArray[].taxIncomeMonthlyAccumulator",
+    ]
     assert k.klasse("DAT_DirectionAlgorithmState", "gibt_es_nicht") == "luecke"
 
 
@@ -476,7 +624,14 @@ def test_streng_endet_bei_gemischtem_bereich_der_jeden_takt_gelesen_wird(tmp_pat
 
 def test_gemischter_seltener_bereich_ist_kein_abbruch_und_zaehlt_getrennt(tmp_path):
     spiel = Spiel()
-    auf = Aufzeichner(spiel, [Bereich("einheiten", U, 68, 2)], tmp_path / "g.auge", {}, takt_adresse=TAKT, streng=True)
+    auf = Aufzeichner(
+        spiel,
+        [Bereich("einheiten", U, 68, 2)],
+        tmp_path / "g.auge",
+        {},
+        takt_adresse=TAKT,
+        streng=True,
+    )
     auf.schritt()
     spiel.weiter()
     auf.schritt()  # dieser Takt ist fuer den seltenen Bereich nicht dran
@@ -519,6 +674,7 @@ def test_feldwache_meldet_neue_felder_und_das_ende_der_neuigkeiten(tmp_path):
     datei = str(tmp_path / "felder.json")
     w = FeldWache(k, BEREICHE, datei, alle=10)
     import numpy as np
+
     w.merke(0, np.array([4, 5]), 8)  # DAT_Zeit.month ist gelistet
     w.pruefe(100)
     w.pruefe(110)
@@ -528,7 +684,9 @@ def test_feldwache_meldet_neue_felder_und_das_ende_der_neuigkeiten(tmp_path):
     w.pruefe(120)
     b = json.load(open(datei))
     assert b["felder"] == 1 and b["letzter_neuer_takt"] == 110 and b["takt"] == 120
-    w.merke(3, np.array([0]), 8)  # DAT_Frei.ungelistet steht nicht in der Feldliste: zaehlt nicht als neues Feld der Liste
+    w.merke(
+        3, np.array([0]), 8
+    )  # DAT_Frei.ungelistet steht nicht in der Feldliste: zaehlt nicht als neues Feld der Liste
     w.pruefe(130)
     assert json.load(open(datei))["felder"] == 1
 
@@ -537,7 +695,14 @@ def test_aufzeichnung_mit_feldwache_schreibt_ihren_stand(tmp_path):
     k = karte()
     spiel = Spiel()
     datei = str(tmp_path / "f.json")
-    auf = Aufzeichner(spiel, BEREICHE, tmp_path / "a.auge", {}, takt_adresse=TAKT, felder=FeldWache(k, BEREICHE, datei, alle=5))
+    auf = Aufzeichner(
+        spiel,
+        BEREICHE,
+        tmp_path / "a.auge",
+        {},
+        takt_adresse=TAKT,
+        felder=FeldWache(k, BEREICHE, datei, alle=5),
+    )
     for _ in range(30):
         auf.schritt()
         spiel.weiter()
@@ -547,7 +712,9 @@ def test_aufzeichnung_mit_feldwache_schreibt_ihren_stand(tmp_path):
 
 
 def test_a4_tempotreppe_stufe_mit_zu_wenig_takten_ist_nicht_gemessen():
-    z = treppe(1, 0.9, 0.0, 0.0)  # so sah Stufe 1 im Lauf 18:54 aus: 1 Takt, und es hiess "bestaetigt"
+    z = treppe(
+        1, 0.9, 0.0, 0.0
+    )  # so sah Stufe 1 im Lauf 18:54 aus: 1 Takt, und es hiess "bestaetigt"
     z.update(soll=20, gezaehlt=1, ohne_1=1.0, mit=1.0, ohne_2=1.0)
     e = aw.a4_tempotreppe([z])
     assert e.status == aw.NICHT_GESEHEN and "[1]" in e.text
@@ -559,6 +726,7 @@ def test_a10_sieht_doppelte_uid_auch_wenn_nur_ein_platz_sich_aendert(tmp_path):
     def doppelt(s, i):
         if i == 5:
             struct.pack_into("<i", s.m[U], 4 + 16 * 2, 100)
+
     a = aufzeichnen(tmp_path / "d.auge", stoerung=doppelt)
     e = aw.a10_lebenslauf(a, [("Einheiten", U + 4, 16, 4, 0)])
     assert e.status == aw.WIDERLEGT and "uid 100" in e.text
@@ -569,6 +737,7 @@ def test_a10_kopie_auf_dem_merkplatz_ist_kein_verstoss_doppelte_echte_plaetze_sc
         if i == 3:
             struct.pack_into("<i", s.m[U], 4, 777)
             struct.pack_into("<i", s.m[U], 4 + 32, 777)
+
     a = aufzeichnen(tmp_path / "k.auge", stoerung=kopie)
     assert aw.a10_lebenslauf(a, [("Einheiten", U + 4, 16, 4, 1)]).status == aw.BESTAETIGT
     assert aw.a10_lebenslauf(a, [("Einheiten", U + 4, 16, 4, 0)]).status == aw.WIDERLEGT
@@ -577,6 +746,7 @@ def test_a10_kopie_auf_dem_merkplatz_ist_kein_verstoss_doppelte_echte_plaetze_sc
         if i == 3:
             struct.pack_into("<i", s.m[U], 4 + 16, 777)
             struct.pack_into("<i", s.m[U], 4 + 32, 777)
+
     b = aufzeichnen(tmp_path / "d2.auge", stoerung=doppelt)
     assert aw.a10_lebenslauf(b, [("Einheiten", U + 4, 16, 4, 1)]).status == aw.WIDERLEGT
 
@@ -600,14 +770,28 @@ def a8_lauf(tmp_path, stoerung):
         def lies(self, a, n):
             for b, p in self.m.items():
                 if b <= a < b + len(p):
-                    return bytes(p[a - b:a - b + n])
+                    return bytes(p[a - b : a - b + n])
             raise OSError(a)
 
         def setze(self, adr, w):
             struct.pack_into("<i", self.m[gs], adr - gs, w)
+
     s = S()
     bereiche = [Bereich("DAT_GameState", gs, laenge), Bereich("befehle", 0x5000, 32)]
-    k = Feldkarte({"G": {"laenge": laenge, "felder": [(start - gs, "int[25]", 100, "startResources"), (best - gs, "int[25]", 100, "currentResources")]}}, [(gs, gs + laenge, "DAT_GameState", "G")], {}, [])
+    k = Feldkarte(
+        {
+            "G": {
+                "laenge": laenge,
+                "felder": [
+                    (start - gs, "int[25]", 100, "startResources"),
+                    (best - gs, "int[25]", 100, "currentResources"),
+                ],
+            }
+        },
+        [(gs, gs + laenge, "DAT_GameState", "G")],
+        {},
+        [],
+    )
     auf = Aufzeichner(s, bereiche, tmp_path / "a8.auge", {"tempo": 40}, takt_adresse=TAKT)
     for i in range(60):
         auf.schritt()
@@ -629,15 +813,19 @@ def test_a8_startwaren_und_befehl_sind_ursachen(tmp_path):
             s.m[0x5000][0] = 1
         if i == 31:
             s.setze(best + 15 * 4, 500)
+
     e = a8_lauf(tmp_path, st)
     assert e.status == aw.BESTAETIGT, e.daten
-    assert e.daten["je_ware"]["Stein"] == {"Startwaren": 1} and e.daten["je_ware"]["Gold"] == {"Befehl": 1}
+    assert e.daten["je_ware"]["Stein"] == {"Startwaren": 1} and e.daten["je_ware"]["Gold"] == {
+        "Befehl": 1
+    }
 
 
 def test_a8_aenderung_ohne_ursache_ist_widerlegt(tmp_path):
     def st(s, i, best, start):
         if i == 20:
             s.setze(best + 4 * 4, 9)
+
     e = a8_lauf(tmp_path, st)
     assert e.status == aw.WIDERLEGT and e.daten["ohne_ursache"][0][1] == "Stein"
 
@@ -651,6 +839,7 @@ def test_a8_gold_mit_dem_sammelfeld_im_selben_takt_ist_steuer(tmp_path):
         if i == 20:
             s.setze(sammel, 0)  # Monatswechsel: Sammelfeld leer, ein Zehntel aufs Gold
             s.setze(best + 15 * 4, 16)
+
     e = a8_lauf(tmp_path, st)
     assert e.status == aw.BESTAETIGT and e.daten["je_ware"]["Gold"] == {"Steuer": 1}, e.daten
     assert "Stueck fuer Stueck" in e.text
@@ -660,6 +849,7 @@ def test_a8_gold_ohne_sammelfeld_ist_ohne_ursache(tmp_path):
     def st(s, i, best, start):
         if i == 20:
             s.setze(best + 15 * 4, 16)
+
     assert a8_lauf(tmp_path, st).status == aw.WIDERLEGT
 
 
@@ -673,7 +863,12 @@ def test_a9_zaehlt_nebeneinanderliegende_plaetze_einzeln(tmp_path):
     def stoer(s, i):
         if i == 4:
             struct.pack_into("<ii", s.m[FREI], 0, 1, 1)
-    a = aufzeichnen(tmp_path / "a.auge", stoerung=stoer, bereiche=[Bereich("zeit", TAKT, 8), Bereich("befehle", FREI, 8)])
+
+    a = aufzeichnen(
+        tmp_path / "a.auge",
+        stoerung=stoer,
+        bereiche=[Bereich("zeit", TAKT, 8), Bereich("befehle", FREI, 8)],
+    )
     assert aw.a9_befehle(a, groesse=4).daten["plaetze"] == 2
 
 
@@ -710,7 +905,7 @@ def test_einzelpunkte_lesen_urteilen_und_lauf_k_bleibt_draussen(tmp_path):
     assert pp[0].start and not pp[1].start and pp[2].spielart and pp[1].erwartet == "45"
     e = ap.auswerten(d, [aufzeichnen(tmp_path / "a.auge", takte=40)], karte())
     u = {x["nr"]: x["urteil"] for x in e["punkte"]}
-    assert u["P002"] == "zahl passt"   # leben laeuft durch 50 - t % 40, 45 kommt vor
+    assert u["P002"] == "zahl passt"  # leben laeuft durch 50 - t % 40, 45 kommt vor
     assert u["P003"] == "nicht zuordenbar"
     assert u["P004"] == "zahl weicht ab"
     assert u["P001"] in ("gemessen", "nicht zuordenbar")
@@ -744,23 +939,36 @@ def test_spielstand_gleich_achtet_nur_auf_die_maske(tmp_path, monkeypatch):
 
     def aufnahme(name, staende):
         q = Quelle(bytearray(4))
-        a = aa.Aufzeichner(q, [aa.Bereich("x", 0x1000, 4, 1)], str(tmp_path / name), takt_adresse=0x2000)
+        a = aa.Aufzeichner(
+            q, [aa.Bereich("x", 0x1000, 4, 1)], str(tmp_path / name), takt_adresse=0x2000
+        )
         for i, s in enumerate(staende):
             q.t, q.stand = i + 1, s
             a.schritt()
         a.schliessen()
         return aw.Aufzeichnung(str(tmp_path / name))
 
-    monkeypatch.setattr(aw, "spielmasken", lambda karte, auf: {"x": np.array([True, True, False, False])})
+    monkeypatch.setattr(
+        aw, "spielmasken", lambda karte, auf: {"x": np.array([True, True, False, False])}
+    )
 
     class Karte:
         def felder_einer_aenderung(self, adr, l):
             return [("g", f"feld{adr - 0x1000}")]
 
     a = aufnahme("a.auge", [bytes((1, 0, 0, 0)), bytes((2, 0, 0, 0))])
-    assert aw.spielstand_gleich(a, 1, aufnahme("b.auge", [bytes((1, 0, 7, 0)), bytes((2, 0, 9, 9))]), 1, 1, Karte()).status == aw.BESTAETIGT, "Ausserhalb der Maske zaehlt nicht"
-    e = aw.spielstand_gleich(a, 1, aufnahme("c.auge", [bytes((1, 0, 0, 0)), bytes((3, 0, 0, 0))]), 1, 1, Karte())
-    assert e.status == aw.WIDERLEGT and e.daten["erster"] == 1 and e.daten["felder"][0][0] == "g feld0"
+    assert (
+        aw.spielstand_gleich(
+            a, 1, aufnahme("b.auge", [bytes((1, 0, 7, 0)), bytes((2, 0, 9, 9))]), 1, 1, Karte()
+        ).status
+        == aw.BESTAETIGT
+    ), "Ausserhalb der Maske zaehlt nicht"
+    e = aw.spielstand_gleich(
+        a, 1, aufnahme("c.auge", [bytes((1, 0, 0, 0)), bytes((3, 0, 0, 0))]), 1, 1, Karte()
+    )
+    assert (
+        e.status == aw.WIDERLEGT and e.daten["erster"] == 1 and e.daten["felder"][0][0] == "g feld0"
+    )
 
 
 def test_spielstand_gleich_ueberspringt_gemischte_takte(tmp_path, monkeypatch):
@@ -776,39 +984,65 @@ def test_spielstand_gleich_ueberspringt_gemischte_takte(tmp_path, monkeypatch):
         namen = ["x"]
         bereiche = [("x", 0x1000, 4, 1)]
 
-    monkeypatch.setattr(aw, "spielmasken", lambda karte, auf: {"x": np.array([True, True, True, True])})
-    folge = {"a": [(Rahmen(1, True), bytes(4)), (Rahmen(2, False), bytes((1, 0, 0, 0)))], "b": [(Rahmen(1, True), bytes(4)), (Rahmen(2, True), bytes((2, 0, 0, 0)))]}
+    monkeypatch.setattr(
+        aw, "spielmasken", lambda karte, auf: {"x": np.array([True, True, True, True])}
+    )
+    folge = {
+        "a": [(Rahmen(1, True), bytes(4)), (Rahmen(2, False), bytes((1, 0, 0, 0)))],
+        "b": [(Rahmen(1, True), bytes(4)), (Rahmen(2, True), bytes((2, 0, 0, 0)))],
+    }
     a, b = Auf(), Auf()
     a.name, b.name = "a", "b"
     monkeypatch.setattr(aw, "_je_takt", lambda auf, von, bis: iter(folge[auf.name]))
     e = aw.spielstand_gleich(a, 1, b, 1, 2, None)
-    assert e.status == aw.BESTAETIGT and e.daten["gemischt"] == 1, "Ein gemischter Takt sagt nichts ueber das Spiel"
+    assert e.status == aw.BESTAETIGT and e.daten["gemischt"] == 1, (
+        "Ein gemischter Takt sagt nichts ueber das Spiel"
+    )
 
 
 def test_zeilen_nullt_die_merkfelder():
-    import numpy as np
 
     from selfaware.tools.analysis import auge_auswertung as aw
 
     roh = bytes(range(16))
     z = aw._zeilen(roh, 0, 0, 8, 2, 8, ((4, 4),))
-    assert z.shape == (2, 2) and z[:, 1].tolist() == [0, 0] and z[0, 0] == int.from_bytes(bytes(range(4)), "little")
+    assert (
+        z.shape == (2, 2)
+        and z[:, 1].tolist() == [0, 0]
+        and z[0, 0] == int.from_bytes(bytes(range(4)), "little")
+    )
 
 
 def test_a11_rechnet_die_teilsummen_nach(tmp_path, monkeypatch):
-    import numpy as np
 
     from selfaware.tools.analysis import auge_auswertung as aw
     from selfaware.tools.experiments import auge_aufzeichnung as aa
 
-    FELDER = {("DAT_GameSynchronyState", "HASH_HashTotal"): (0x100, 4, 4, 9), ("DAT_GameSynchronyState", "HASH_Units"): (0x200, 4, 4, 1), ("DAT_GameSynchronyState", "HASH_Buildings"): (0x300, 4, 4, 1), ("DAT_GameSynchronyState", "HASH_Trees"): (0x400, 4, 4, 1), ("DAT_GameSynchronyState", "HASH_Tribes"): (0x500, 4, 4, 1), ("DAT_GameSynchronyState", "HASH_PlayerDatas"): (0x600, 4, 4, 1),
-              ("DAT_UnitsState", "units[].animationTicker"): (0x1010, 4, 0x480, 1), ("DAT_BuildingsState", "buildings[].animationIndex"): (0x3010, 2, 0x340, 1), ("DAT_LandscapeState", "trees[].state"): (0x5000, 4, 0x58, 1), ("DAT_TribesState", "tribes[].owner"): (0x6000, 4, 0x330, 1), ("DAT_GameState", "playerDataArray[].someAiCountdown3"): (0xB84C, 4, 0x39F4, 1)}
+    FELDER = {
+        ("DAT_GameSynchronyState", "HASH_HashTotal"): (0x100, 4, 4, 9),
+        ("DAT_GameSynchronyState", "HASH_Units"): (0x200, 4, 4, 1),
+        ("DAT_GameSynchronyState", "HASH_Buildings"): (0x300, 4, 4, 1),
+        ("DAT_GameSynchronyState", "HASH_Trees"): (0x400, 4, 4, 1),
+        ("DAT_GameSynchronyState", "HASH_Tribes"): (0x500, 4, 4, 1),
+        ("DAT_GameSynchronyState", "HASH_PlayerDatas"): (0x600, 4, 4, 1),
+        ("DAT_UnitsState", "units[].animationTicker"): (0x1010, 4, 0x480, 1),
+        ("DAT_BuildingsState", "buildings[].animationIndex"): (0x3010, 2, 0x340, 1),
+        ("DAT_LandscapeState", "trees[].state"): (0x5000, 4, 0x58, 1),
+        ("DAT_TribesState", "tribes[].owner"): (0x6000, 4, 0x330, 1),
+        ("DAT_GameState", "playerDataArray[].someAiCountdown3"): (0xB84C, 4, 0x39F4, 1),
+    }
 
     class Karte:
         def adresse(self, g, f):
             return FELDER[(g, f)]
 
-    groessen = {"DAT_UnitsState": (0x1000, 0x500), "DAT_BuildingsState": (0x3000, 0x400), "DAT_LandscapeState": (0x5000, 0x58), "DAT_TribesState": (0x6000, 0x330), "DAT_GameState": (0x8000, 0x39F4)}
+    groessen = {
+        "DAT_UnitsState": (0x1000, 0x500),
+        "DAT_BuildingsState": (0x3000, 0x400),
+        "DAT_LandscapeState": (0x5000, 0x58),
+        "DAT_TribesState": (0x6000, 0x330),
+        "DAT_GameState": (0x8000, 0x39F4),
+    }
     stand = {n: bytearray((i * 7 + 3) % 251 for i in range(g)) for n, (b, g) in groessen.items()}
 
     def hash_von(n, adr, laenge, nullen=(), plus=0):
@@ -819,17 +1053,42 @@ def test_a11_rechnet_die_teilsummen_nach(tmp_path, monkeypatch):
         return struct.unpack_from("<I", stand[n], adr - groessen[n][0])[0]
 
     u = 0x1010
-    einheiten = hash_von("DAT_UnitsState", u + 0x4C, 0x404, ((0x3DC - 0x4C, 8),), sum(i32("DAT_UnitsState", u + o) for o in (-4, 0, 4)))
+    einheiten = hash_von(
+        "DAT_UnitsState",
+        u + 0x4C,
+        0x404,
+        ((0x3DC - 0x4C, 8),),
+        sum(i32("DAT_UnitsState", u + o) for o in (-4, 0, 4)),
+    )
     g = 0x3010
     kurz = struct.unpack_from("<h", stand["DAT_BuildingsState"], g - 0x3000)[0]
-    gebaeude = hash_von("DAT_BuildingsState", g + 0xB0, 0x25C, ((0x2DC - 0xB0, 2),), kurz + sum(struct.unpack_from("<i", stand["DAT_BuildingsState"], g - 0x3000 + o)[0] for o in (0x34, 0x30, 0x2C, 0x28, -0x10)))
-    baeume, gruppen = hash_von("DAT_LandscapeState", 0x5000, 0x58), hash_von("DAT_TribesState", 0x6000, 0x330)
+    gebaeude = hash_von(
+        "DAT_BuildingsState",
+        g + 0xB0,
+        0x25C,
+        ((0x2DC - 0xB0, 2),),
+        kurz
+        + sum(
+            struct.unpack_from("<i", stand["DAT_BuildingsState"], g - 0x3000 + o)[0]
+            for o in (0x34, 0x30, 0x2C, 0x28, -0x10)
+        ),
+    )
+    baeume, gruppen = (
+        hash_von("DAT_LandscapeState", 0x5000, 0x58),
+        hash_von("DAT_TribesState", 0x6000, 0x330),
+    )
     spieler = hash_von("DAT_GameState", 0x8000, 0x399C, ((0x384C, 16), (0x384C + 0x12C, 4)))
 
     def block(falsch=0):
         d = bytearray(0x700)
         struct.pack_into("<9i", d, 0x100, 5, 0, 0, 0, 0, 0, 0, 0, 0)
-        for a, w in ((0x200, einheiten + falsch), (0x300, gebaeude), (0x400, baeume), (0x500, gruppen), (0x600, spieler)):
+        for a, w in (
+            (0x200, einheiten + falsch),
+            (0x300, gebaeude),
+            (0x400, baeume),
+            (0x500, gruppen),
+            (0x600, spieler),
+        ):
             struct.pack_into("<I", d, a, w & 0xFFFFFFFF)
         return bytes(d)
 
@@ -848,7 +1107,9 @@ def test_a11_rechnet_die_teilsummen_nach(tmp_path, monkeypatch):
             raise AssertionError(hex(adr))
 
     def aufnahme(name, d):
-        be = [aa.Bereich("datenblock", 0, 0x700, 1)] + [aa.Bereich(n, b, gr, 1) for n, (b, gr) in groessen.items()]
+        be = [aa.Bereich("datenblock", 0, 0x700, 1)] + [
+            aa.Bereich(n, b, gr, 1) for n, (b, gr) in groessen.items()
+        ]
         a = aa.Aufzeichner(Quelle(d), be, str(tmp_path / name), takt_adresse=0x20000)
         a.schritt()
         a.schliessen()
@@ -856,7 +1117,11 @@ def test_a11_rechnet_die_teilsummen_nach(tmp_path, monkeypatch):
 
     assert aw.a11_pruefsummen(aufnahme("gut.auge", block()), Karte()).status == aw.BESTAETIGT
     e = aw.a11_pruefsummen(aufnahme("falsch.auge", block(1)), Karte())
-    assert e.status == aw.WIDERLEGT and e.daten["teile"]["Einheiten"]["gleich"] == 0 and e.daten["teile"]["Baeume"]["gleich"] == 1
+    assert (
+        e.status == aw.WIDERLEGT
+        and e.daten["teile"]["Einheiten"]["gleich"] == 0
+        and e.daten["teile"]["Baeume"]["gleich"] == 1
+    )
 
 
 def test_auswertung_k_kennt_alle_fenster_und_geht_nach_abbruch_weiter(tmp_path, monkeypatch):
@@ -866,12 +1131,16 @@ def test_auswertung_k_kennt_alle_fenster_und_geht_nach_abbruch_weiter(tmp_path, 
     da = ["haupt", "t1", "danach", "t2", "t3", "t4", "t5", "t6", "t7", "t8", "t9"]
     aufg = ae.aufgaben_k(da, prot)
     gleich = [a[2] for a in aufg if a[0] == "gleich"]
-    assert ("t1", 101, "t2", 100, 1999) in gleich, "Das Laden rechnet einen Schritt: t1 einen Takt spaeter"
+    assert ("t1", 101, "t2", 100, 1999) in gleich, (
+        "Das Laden rechnet einen Schritt: t1 einen Takt spaeter"
+    )
     assert [g[0] for g in gleich] == ["t1", "t2", "t4", "t6", "t8"]
     assert {a[1] for a in aufg if a[0] == "A1"} == set(da)
     assert [a[1] for a in aufg if a[0] == "Punkte"] == ["K", "F"]
     ohne = ae.aufgaben_k(["haupt", "t1", "danach"], prot)
-    assert not [a for a in ohne if a[0] in ("A5", "gleich")], "Ohne Ladefenster gibt es nichts zu vergleichen"
+    assert not [a for a in ohne if a[0] in ("A5", "gleich")], (
+        "Ohne Ladefenster gibt es nichts zu vergleichen"
+    )
 
     laeufe = []
 
@@ -883,7 +1152,9 @@ def test_auswertung_k_kennt_alle_fenster_und_geht_nach_abbruch_weiter(tmp_path, 
     a = ae.probe_k("b", None, ("A1", "t1", ("t1",)), str(tmp_path))
     b = ae.probe_k("b", None, ("A1", "t1", ("t1",)), str(tmp_path))
     c = ae.probe_k("b", None, ("A1", "t2", ("t2",)), str(tmp_path))
-    assert a.text == b.text == c.text == "x" and laeufe == [("A1", "t1"), ("A1", "t2")], "Fertige Proben werden nicht neu gerechnet, andere schon"
+    assert a.text == b.text == c.text == "x" and laeufe == [("A1", "t1"), ("A1", "t2")], (
+        "Fertige Proben werden nicht neu gerechnet, andere schon"
+    )
     ae.probe_k("b", None, ("A1", "t1", ("t1",)))
     assert len(laeufe) == 3, "Ohne Ordner kein Merken"
 
@@ -905,9 +1176,17 @@ def test_warten_nach_dem_hochzaehlen(tmp_path):
         def __call__(self):
             Uhr.jetzt += 0.001
             return Uhr.jetzt
+
     uhr = Uhr()
     q = Quelle()
-    a = aa.Aufzeichner(q, [aa.Bereich("x", 0x1000, 8, 1)], str(tmp_path / "a.auge"), takt_adresse=0x2000, uhr=uhr, warte_ms=5)
+    a = aa.Aufzeichner(
+        q,
+        [aa.Bereich("x", 0x1000, 8, 1)],
+        str(tmp_path / "a.auge"),
+        takt_adresse=0x2000,
+        uhr=uhr,
+        warte_ms=5,
+    )
     t0 = uhr.jetzt
     a.schritt()
     a.schliessen()
@@ -930,7 +1209,9 @@ def test_einzelpunkt_feld_ohne_aenderung_ist_nicht_gesehen():
     b = [{"aenderungen": 0, "werte": [3], "mehr_werte": False}]
     assert ap.urteil(p, b)[0] == "nicht gesehen"
     b = [{"aenderungen": 2, "werte": list(range(40)), "mehr_werte": True}]
-    assert ap.urteil(ap.Punkt("P9", "f", "0x1", False, erwartet="77"), b)[0] == "gesehen", "bei abgeschnittener Werteliste darf keine Abweichung gemeldet werden"
+    assert ap.urteil(ap.Punkt("P9", "f", "0x1", False, erwartet="77"), b)[0] == "gesehen", (
+        "bei abgeschnittener Werteliste darf keine Abweichung gemeldet werden"
+    )
 
 
 def test_belege_lesen_jedes_stueck_an_seiner_stelle(tmp_path):
@@ -943,7 +1224,9 @@ def test_belege_lesen_jedes_stueck_an_seiner_stelle(tmp_path):
     b = ap.Belege([("DAT_Einheiten", "units[].x", U + 4 + 8, 2, 16, 4, 1)], karte())
     b.lies(aufzeichnen(tmp_path / "b.auge", stoerung=stoer))
     d = b.daten[("DAT_Einheiten", "units[].x")]
-    assert any(w >= 2000 for w in d["werte"]) and any(1000 <= w < 2000 for w in d["werte"]), "Zwei Stuecke im selben Rahmen, zwei Einheiten"
+    assert any(w >= 2000 for w in d["werte"]) and any(1000 <= w < 2000 for w in d["werte"]), (
+        "Zwei Stuecke im selben Rahmen, zwei Einheiten"
+    )
     assert d["aenderungen"] >= 2 * 25
 
 
@@ -951,6 +1234,9 @@ def test_einzelpunkt_zahl_im_ruhenden_feld_zaehlt_mit():
     from selfaware.tools.analysis import auge_punkte as ap
 
     # P142 in der Probe: aleRate steht auf 36, es aendert sich nur die mitgenommene Warenliste. Das ist keine Abweichung
-    b = [{"aenderungen": 0, "werte": [36], "mehr_werte": False}, {"aenderungen": 5, "werte": [1, 2], "mehr_werte": False}]
+    b = [
+        {"aenderungen": 0, "werte": [36], "mehr_werte": False},
+        {"aenderungen": 5, "werte": [1, 2], "mehr_werte": False},
+    ]
     assert ap.urteil(ap.Punkt("P9", "f", "0x1", False, erwartet="36"), b)[0] == "zahl passt"
     assert ap.urteil(ap.Punkt("P9", "f", "0x1", False, erwartet="37"), b)[0] == "zahl weicht ab"

@@ -1,4 +1,5 @@
 """B-142: Lauf F ohne Spiel: Menueweg, Einspielen der logik.lua, Programm und Abbruch an einem kuenstlichen Kanal."""
+
 from __future__ import annotations
 
 import collections
@@ -12,12 +13,30 @@ import pytest
 
 from selfaware.tools.experiments import auge_lauf_f as lf
 
+INSTANZ2 = os.path.isdir(
+    r"C:\Program Files (x86)\Steam\steamapps\common\Stronghold Crusader Extreme Instanz2"
+)
+braucht_instanz2 = pytest.mark.skipif(
+    not INSTANZ2, reason="Spielinstanz 2 fehlt (nur auf dem Mess-PC)"
+)
+
 
 class Kanal:
     """Antwortet wie das Spiel: Knopf 3 oeffnet die Kartenwahl, der Start-Knopf die Partie."""
 
-    def __init__(self, karten=("Antioch", lf.KARTE, "Tyre"), ansicht=lf.HAUPTMENUE, start_geht=True, knopf3_geht=True):
-        self.karten, self.ansicht, self.start_geht, self.knopf3_geht = list(karten), ansicht, start_geht, knopf3_geht
+    def __init__(
+        self,
+        karten=("Antioch", lf.KARTE, "Tyre"),
+        ansicht=lf.HAUPTMENUE,
+        start_geht=True,
+        knopf3_geht=True,
+    ):
+        self.karten, self.ansicht, self.start_geht, self.knopf3_geht = (
+            list(karten),
+            ansicht,
+            start_geht,
+            knopf3_geht,
+        )
         self.log, self.speicher = [], {}
 
     def peek(self, adr, n=1):
@@ -29,7 +48,7 @@ class Kanal:
             return list(range(n))
         nr = (adr - lf.NAMEN) // lf.NAMENSLAENGE
         roh = self.karten[nr].encode("latin-1") + b"\0" * (4 * n)
-        return [int.from_bytes(roh[i * 4:i * 4 + 4], "little") for i in range(n)]
+        return [int.from_bytes(roh[i * 4 : i * 4 + 4], "little") for i in range(n)]
 
     def befehl(self, cmd, warte=0.8, bis=None):
         self.log.append(cmd)
@@ -44,7 +63,11 @@ class Kanal:
         for c in cmds:
             if "poke" in c:
                 self.speicher[c["poke"]] = c["wert"]
-            if c.get("knopf") == "SingleplayerMapChoice_ButtonsAndHands" and c["nr"] == lf.KNOPF_START and self.start_geht:
+            if (
+                c.get("knopf") == "SingleplayerMapChoice_ButtonsAndHands"
+                and c["nr"] == lf.KNOPF_START
+                and self.start_geht
+            ):
                 self.ansicht = lf.IN_PARTIE
         return []
 
@@ -63,14 +86,16 @@ def test_warte_auf_modul_haelt_fehlende_antworten_aus_und_gibt_sonst_auf():
             if self.n > 0:
                 raise lf.Fehler("keine Antwort")
             return [41]
+
     lf.warte_auf_modul(Spaet(3), 60, ruhe=ohne_warten)
     zeit = [0.0]
 
     def uhr():
         zeit[0] += 1.0
         return zeit[0]
+
     with pytest.raises(lf.Fehler, match="Modul antwortet"):
-        lf.warte_auf_modul(Spaet(10 ** 6), 5, ruhe=ohne_warten, uhr=uhr)
+        lf.warte_auf_modul(Spaet(10**6), 5, ruhe=ohne_warten, uhr=uhr)
 
 
 def test_burgenbau_waehlt_die_richtige_karte_und_startet():
@@ -105,7 +130,9 @@ def test_burgenbau_wartet_auf_den_menuewechsel():
             self.log.append(cmd)
             if cmd.get("menue") == lf.HAUPTMENUE:
                 self.rest = 3  # die Quittung kommt vor dem Wechsel
-            if cmd.get("hauptmenue") == 3 and self.ansicht == lf.HAUPTMENUE:  # der Knopf gehoert zum Hauptmenue, sonst tut er nichts
+            if (
+                cmd.get("hauptmenue") == 3 and self.ansicht == lf.HAUPTMENUE
+            ):  # der Knopf gehoert zum Hauptmenue, sonst tut er nichts
                 self.ansicht = lf.KARTENWAHL
             return []
 
@@ -115,6 +142,7 @@ def test_burgenbau_wartet_auf_den_menuewechsel():
                 if not self.rest:
                     self.ansicht = lf.HAUPTMENUE
             return super().peek(adr, n)
+
     k = Spaet(ansicht=lf.IN_PARTIE)
     assert lf.burgenbau_starten(k, ruhe=ohne_warten)["eintrag"] == 1
 
@@ -132,6 +160,7 @@ def test_warte_auf_gibt_nach_der_frist_einen_fehler():
     def uhr():
         zeit[0] += 1.0
         return zeit[0]
+
     with pytest.raises(lf.Fehler, match="nicht erreicht"):
         lf.warte_auf(lambda: False, 5, "nie", uhr=uhr, ruhe=ohne_warten)
     assert lf.warte_auf(lambda: True, 5, "gleich", uhr=uhr, ruhe=ohne_warten) is None
@@ -141,7 +170,9 @@ def lua(tmp_path, ende="\r\n", anker=True):
     p = tmp_path / "quelle.lua"
     zeile = f"      {lf.ANKER}{ende}" if anker else ""
     bau = f"    {lf.BAU_ALT}{ende}    log(INFO, {lf.BAU_LOG_ALT}{ende}      0){ende}"
-    p.write_bytes(f"local HANDLER = {{{ende}{zeile}      Ende = 1,{ende}}}{ende}{bau}".encode("latin-1"))
+    p.write_bytes(
+        f"local HANDLER = {{{ende}{zeile}      Ende = 1,{ende}}}{ende}{bau}".encode("latin-1")
+    )
     return str(p)
 
 
@@ -182,8 +213,14 @@ def test_modul_eintragen_aendert_nur_die_ladelisten(tmp_path, nl):
     assert open(s, "rb").read() == CONFIG.replace("\n", nl).encode()
     neu = yaml.safe_load(p.read_bytes())
     assert neu["config-sparse"]["modules"] == {"villagestudio": {"config": {}}}
-    assert neu["config-sparse"]["load-order"][-1] == {"extension": "villagestudio", "version": "0.1.0"}
-    assert neu["config-full"]["load-order"][-1] == {"extension": "villagestudio", "version": "0.1.0"}
+    assert neu["config-sparse"]["load-order"][-1] == {
+        "extension": "villagestudio",
+        "version": "0.1.0",
+    }
+    assert neu["config-full"]["load-order"][-1] == {
+        "extension": "villagestudio",
+        "version": "0.1.0",
+    }
     assert len(neu["config-full"]["load-order"]) == 3 and neu["active"] is True
     assert lf.modul_eintragen(str(p), "T2") is None
 
@@ -239,7 +276,27 @@ def test_lauf_ohne_ja_startet_nicht():
 
 
 # --- Das ganze Programm gegen ein kuenstliches Spiel: Erfolg und jeder Abbruchgrund ---
-ARTEN = {t: {"mapper": 200 + t, "b": b, "name": f"Art{t}"} for t, b in ((41, 7), (19, 4), (1, 4), (10, 5), (11, 4), (9, 5), (8, 5), (24, 5), (25, 5), (38, 9), (12, 4), (33, 9), (62, 2), (67, 1), (5, 4), (20, 6))}
+ARTEN = {
+    t: {"mapper": 200 + t, "b": b, "name": f"Art{t}"}
+    for t, b in (
+        (41, 7),
+        (19, 4),
+        (1, 4),
+        (10, 5),
+        (11, 4),
+        (9, 5),
+        (8, 5),
+        (24, 5),
+        (25, 5),
+        (38, 9),
+        (12, 4),
+        (33, 9),
+        (62, 2),
+        (67, 1),
+        (5, 4),
+        (20, 6),
+    )
+}
 ARTEN[45] = {"mapper": 147, "b": 7, "name": "Grosses Torhaus"}
 ARTEN[46] = {"mapper": 145, "b": 5, "name": "Kleines Torhaus"}
 ARTEN[lf.PECHGRABEN] = {"mapper": 99, "b": 1, "name": "Pechgraben"}
@@ -274,7 +331,7 @@ class KunstSpiel:
 
     def ruhe(self, d):
         self.jetzt += d
-        if self.pausiert or self.f.get("stillstand_bei", 10 ** 9) <= self.t:
+        if self.pausiert or self.f.get("stillstand_bei", 10**9) <= self.t:
             return
         rate = min(self.tempo, 825)
         if self.aus and self.tempo >= 1000:
@@ -299,11 +356,20 @@ class KunstSpiel:
                 self.monat, self.jahr = 0, self.jahr + 1
         if self.t % 4 == 0 and self.gebaeude_von(lf.BURG) and not self.f.get("waren_haengen"):
             lager = next((w for w in (2, 3, 4, 6, 7, 9, 14, 16) if self.start[w] > 0), None)
-            for w in [lager] + [w for w in list(range(10, 14)) + list(range(17, 25)) if self.start[w] > 0]:
-                if w is not None and not (w >= 17 and sum(self.best[17:25]) >= lf.WAFFENLAGER_FASST):
+            for w in [lager] + [
+                w for w in list(range(10, 14)) + list(range(17, 25)) if self.start[w] > 0
+            ]:
+                if w is not None and not (
+                    w >= 17 and sum(self.best[17:25]) >= lf.WAFFENLAGER_FASST
+                ):
                     self.start[w] -= 1
                     self.best[w] += 1
-        if self.gebaeude_von(lf.BURG) and self.pop < self.deckel and self.t - self.letzter_bewohner >= 250 and not self.f.get("kein_bewohner"):
+        if (
+            self.gebaeude_von(lf.BURG)
+            and self.pop < self.deckel
+            and self.t - self.letzter_bewohner >= 250
+            and not self.f.get("kein_bewohner")
+        ):
             self.letzter_bewohner = self.t
             self.pop += 1
             self.feuer += 1
@@ -356,7 +422,11 @@ class KunstSpiel:
             if n == lf.BEFEHL_RATION:
                 self.ration = w[0]
             if n == lf.BEFEHL_HANDEL:
-                if w[0] == 0 and w[1] >= 17 and sum(self.best[17:25]) + lf.LOS > lf.WAFFENLAGER_FASST:
+                if (
+                    w[0] == 0
+                    and w[1] >= 17
+                    and sum(self.best[17:25]) + lf.LOS > lf.WAFFENLAGER_FASST
+                ):
                     self.fail = 10  # storageMarketFailState: Lager voll, nichts passiert
                 elif w[0] == 1 and self.best[w[1]] < lf.LOS:
                     self.fail = 11
@@ -382,12 +452,25 @@ class KunstSpiel:
         if typ == lf.PECHGRABEN:
             self.pech += 1
             return
-        if self.f.get("zweiter_bau_scheitert") and typ in (*lf.ZUSATZ, lf.KASERNE) and self.gebaeude_von(typ):
+        if (
+            self.f.get("zweiter_bau_scheitert")
+            and typ in (*lf.ZUSATZ, lf.KASERNE)
+            and self.gebaeude_von(typ)
+        ):
             return
         if typ == lf.KASERNE:
             for n in [n for n, g in self.geb.items() if g["typ"] == typ]:
                 del self.geb[n]
-        self.geb[self.nr] = {"nr": self.nr, "typ": typ, "x": b["x"], "y": b["y"], "v": b["richtung"], "offen": 1 if typ in (19, 12, 33, 5, 20) else 0, "uid": 7000 + self.nr, "tor": 0}
+        self.geb[self.nr] = {
+            "nr": self.nr,
+            "typ": typ,
+            "x": b["x"],
+            "y": b["y"],
+            "v": b["richtung"],
+            "offen": 1 if typ in (19, 12, 33, 5, 20) else 0,
+            "uid": 7000 + self.nr,
+            "tor": 0,
+        }
         self.nr += 1
         if typ == lf.KORN and not self.f.get("anzeige_bleibt"):
             self.anzeige = 0
@@ -400,11 +483,17 @@ class KunstSpiel:
         typ = self._typ(mapper)
         if typ == lf.PECHGRUBE or self.f.get("keine_stelle") == typ:
             return ["6" * (x1 - x0 + 1)] * (y1 - y0 + 1)
-        return ["".join("+" if not any(g["x"] == x and g["y"] == y for g in self.geb.values()) else "l" for x in range(x0, x1 + 1)) for y in range(y0, y1 + 1)]
+        return [
+            "".join(
+                "+" if not any(g["x"] == x and g["y"] == y for g in self.geb.values()) else "l"
+                for x in range(x0, x1 + 1)
+            )
+            for y in range(y0, y1 + 1)
+        ]
 
     # Speicher
     def takt(self):
-        if self.f.get("spiel_weg_bei", 10 ** 9) <= self.t:
+        if self.f.get("spiel_weg_bei", 10**9) <= self.t:
             raise OSError("Prozess weg")
         return self.t
 
@@ -419,8 +508,17 @@ class KunstSpiel:
             self.zucken = not getattr(self, "zucken", False)
             if self.zucken:
                 return 0  # mitten in der Neuberechnung
-        return {"popularity": self.bel, "populationCap": self.deckel, "availablePeasantsAtFire": self.feuer, "storageMarketFailState": self.fail, "armySize": self.armee, "totalFood": sum(self.best[10:14]) if not self.f.get("kein_essen") else 0,
-                "currentPopulation": self.pop, "taxesSetting": self.steuer, "rationsSetting": self.ration}[name]
+        return {
+            "popularity": self.bel,
+            "populationCap": self.deckel,
+            "availablePeasantsAtFire": self.feuer,
+            "storageMarketFailState": self.fail,
+            "armySize": self.armee,
+            "totalFood": sum(self.best[10:14]) if not self.f.get("kein_essen") else 0,
+            "currentPopulation": self.pop,
+            "taxesSetting": self.steuer,
+            "rationsSetting": self.ration,
+        }[name]
 
     def waren(self, sp=1):
         return list(self.best)
@@ -453,22 +551,40 @@ class KunstSpiel:
         return self.bits.get((x, y), 0)
 
     def felder_mit_bit(self, bit):
-        return [] if bit == lf.BODEN[lf.PECHGRUBE] else [(280, 259)] if bit == lf.BODEN[5] else [(70, 194)]
+        return (
+            []
+            if bit == lf.BODEN[lf.PECHGRUBE]
+            else [(280, 259)]
+            if bit == lf.BODEN[5]
+            else [(70, 194)]
+        )
 
     def einheiten(self, sp=1):
         return collections.Counter(self.einh)
 
     # Rekorder
     def fehler(self):
-        return "beendet mit 3: Takt fehlt" if self.f.get("rekorder_tot_bei", 10 ** 9) <= self.t else None
+        return (
+            "beendet mit 3: Takt fehlt" if self.f.get("rekorder_tot_bei", 10**9) <= self.t else None
+        )
 
     def aussetzen(self, an):
         self.aus = an
-        if not an and self.bremse and self.f.get("bremse_nur_einmal") and self.protokoll and any(e.get("bremsprobe") for e in self.protokoll):
+        if (
+            not an
+            and self.bremse
+            and self.f.get("bremse_nur_einmal")
+            and self.protokoll
+            and any(e.get("bremsprobe") for e in self.protokoll)
+        ):
             self.bremse = 0
 
     def felder(self):
-        return {"takt": self.t, "felder": 5, "letzter_neuer_takt": self.t if self.t < self.neue_felder_bis else 0}
+        return {
+            "takt": self.t,
+            "felder": 5,
+            "letzter_neuer_takt": self.t if self.t < self.neue_felder_bis else 0,
+        }
 
     def starten(self, name, tempo, streng=False, felder=False):
         self.gestartet.append((name, tempo, streng))
@@ -484,11 +600,18 @@ class KunstSpiel:
         while self.t < a + takte:
             wach()
             self.ruhe(0.005)
-        return {"takte_je_s": (self.t - a) / (self.jetzt - t0), "gelesen": self.t - a, "takte": self.t - a, "sekunden": self.jetzt - t0}
+        return {
+            "takte_je_s": (self.t - a) / (self.jetzt - t0),
+            "gelesen": self.t - a,
+            "takte": self.t - a,
+            "sekunden": self.jetzt - t0,
+        }
 
 
 def lauf_von(g, frist=lf.FRIST, stop=lambda: False):
-    return lf.Lauf(g, g, ARTEN, g, g.protokoll.append, frist=frist, uhr=g.uhr, ruhe=g.ruhe, stop=stop)
+    return lf.Lauf(
+        g, g, ARTEN, g, g.protokoll.append, frist=frist, uhr=g.uhr, ruhe=g.ruhe, stop=stop
+    )
 
 
 def ganzer_lauf(**fehler):
@@ -502,7 +625,12 @@ def ganzer_lauf(**fehler):
 def test_ganzer_lauf_ohne_fehler_ist_gueltig_und_haelt_das_spiel_nie_an():
     g, l, e = ganzer_lauf()
     assert e["gueltig"], e
-    assert e["arten_fehlen"] == [] and e["offene_arbeitsplaetze"] == 0 and e["jahreswechsel"] >= 1 and e["treppe"] == "bestaetigt"
+    assert (
+        e["arten_fehlen"] == []
+        and e["offene_arbeitsplaetze"] == 0
+        and e["jahreswechsel"] >= 1
+        and e["treppe"] == "bestaetigt"
+    )
     assert l.funde == [], l.funde
     flach = [c for x in g.log for c in (x if isinstance(x, list) else [x])]
     assert not any(c.get("pause") is True or "tickpause" in c for c in flach)
@@ -516,7 +644,12 @@ def test_ganzer_lauf_ohne_fehler_ist_gueltig_und_haelt_das_spiel_nie_an():
 
 def test_alle_bauten_haben_den_wert_des_mausklicks():
     g, _, _ = ganzer_lauf()
-    werte = {c["baue"]["mapper"]: c["baue"]["richtung"] for x in g.log for c in (x if isinstance(x, list) else [x]) if "baue" in c}
+    werte = {
+        c["baue"]["mapper"]: c["baue"]["richtung"]
+        for x in g.log
+        for c in (x if isinstance(x, list) else [x])
+        if "baue" in c
+    }
     assert werte[147] == 0x50 and werte[145] == 0x50
     assert all(v == 15 for m, v in werte.items() if m not in (147, 145))
     assert g.bits, "Mauer und Graben gesetzt"
@@ -527,22 +660,25 @@ def test_pechgrube_ohne_boden_ist_kein_abbruch_und_steht_in_der_liste():
     assert l.keine_stelle == [lf.PECHGRUBE] and e["gueltig"]
 
 
-@pytest.mark.parametrize("fehler, text", [
-    ({"gold_kommt_nicht": True}, "Gold kam nicht an"),
-    ({"huette_ohne_platz": True}, "Wohnplaetze"),
-    ({"anzeige_bleibt": True}, "Anzeige 20 bleibt"),
-    ({"woche_steht": True}, "Kalender zaehlt nicht"),
-    ({"waren_haengen": True}, "Waren kommen"),
-    ({"bau_scheitert": lf.KORN}, "kein Gebaeude"),
-    ({"bau_scheitert": 12}, "kein Gebaeude"),
-    ({"keine_stelle": 12}, "keine vom Spiel erlaubte Stelle"),
-    ({"kein_bewohner": True}, "kein neuer Bewohner"),
-    ({"beliebtheit_faellt": True}, "Beliebtheit"),
-    ({"stillstand_bei": 3000}, "kein neuer Takt"),
-    ({"spiel_weg_bei": 3000}, "Spiel laeuft nicht mehr"),
-    ({"rekorder_tot_bei": 3000}, "Aufzeichnung"),
-    ({"bremse": 1}, "bremst"),
-])
+@pytest.mark.parametrize(
+    "fehler, text",
+    [
+        ({"gold_kommt_nicht": True}, "Gold kam nicht an"),
+        ({"huette_ohne_platz": True}, "Wohnplaetze"),
+        ({"anzeige_bleibt": True}, "Anzeige 20 bleibt"),
+        ({"woche_steht": True}, "Kalender zaehlt nicht"),
+        ({"waren_haengen": True}, "Waren kommen"),
+        ({"bau_scheitert": lf.KORN}, "kein Gebaeude"),
+        ({"bau_scheitert": 12}, "kein Gebaeude"),
+        ({"keine_stelle": 12}, "keine vom Spiel erlaubte Stelle"),
+        ({"kein_bewohner": True}, "kein neuer Bewohner"),
+        ({"beliebtheit_faellt": True}, "Beliebtheit"),
+        ({"stillstand_bei": 3000}, "kein neuer Takt"),
+        ({"spiel_weg_bei": 3000}, "Spiel laeuft nicht mehr"),
+        ({"rekorder_tot_bei": 3000}, "Aufzeichnung"),
+        ({"bremse": 1}, "bremst"),
+    ],
+)
 def test_jeder_abbruchgrund_beendet_den_lauf_mit_seinem_namen(fehler, text):
     g = KunstSpiel(**fehler)
     with pytest.raises(lf.Abbruch, match=text):
@@ -557,10 +693,14 @@ def test_bewohner_wache_nur_solange_arbeit_offen_ist_und_nur_bis_zum_ende_der_ba
     l = lauf_von(g)
     l.lage_pruefen(g.t)
     l.bewohner_wache = False
-    l.lage_pruefen(g.t + lf.KEIN_BEWOHNER + 1)  # Steuertest und Anwerben aendern die Lage: kein Abbruch
+    l.lage_pruefen(
+        g.t + lf.KEIN_BEWOHNER + 1
+    )  # Steuertest und Anwerben aendern die Lage: kein Abbruch
     l.bewohner_wache = True
     offen[0] = 0
-    l.lage_pruefen(g.t + 2 * lf.KEIN_BEWOHNER + 2)  # alle Plaetze besetzt: Zuzug ist nicht mehr noetig
+    l.lage_pruefen(
+        g.t + 2 * lf.KEIN_BEWOHNER + 2
+    )  # alle Plaetze besetzt: Zuzug ist nicht mehr noetig
     offen[0] = 3
     with pytest.raises(lf.Abbruch, match="kein neuer Bewohner"):
         l.lage_pruefen(g.t + 3 * lf.KEIN_BEWOHNER + 3)
@@ -581,6 +721,7 @@ def test_gold_darf_kurz_brauchen():
         if "gold" in cmd:
             g.warte.append((g.t + 10, {"_gold": cmd["gold"]}))
         return []
+
     g.befehl = spaet
     baue = g._baue
 
@@ -589,6 +730,7 @@ def test_gold_darf_kurz_brauchen():
             g.best[15] = b["_gold"]
         else:
             baue(b)
+
     g._baue = _baue
     lf.abschnitt_grundstock(l)
     assert g.best[15] >= lf.GOLD - 1000
@@ -596,7 +738,9 @@ def test_gold_darf_kurz_brauchen():
 
 def test_die_geplanten_waren_passen_in_ihre_lager():
     assert sum(lf.WAFFEN_WAREN.values()) <= lf.WAFFENLAGER_FASST
-    assert sum(lf.ESSEN.values()) + 20 <= 250  # der Kornspeicher fasst 250, die Karte bringt 20 Aepfel
+    assert (
+        sum(lf.ESSEN.values()) + 20 <= 250
+    )  # der Kornspeicher fasst 250, die Karte bringt 20 Aepfel
 
 
 def test_zu_viele_waffen_haengen_und_beenden_den_lauf(monkeypatch):
@@ -615,10 +759,16 @@ def test_handel_testet_jede_ware_und_laesst_waffen_und_platz_zum_anwerben():
     assert l.funde == [], l.funde
     kaufen = next(e for e in g.protokoll if e.get("wirkung") == "kaufen")
     verkaufen = next(e for e in g.protokoll if e.get("wirkung") == "verkaufen")
-    assert kaufen["ohne_zuwachs"] == [] and verkaufen["ohne_abgang"] == [], "jede Ware einmal gehandelt"
+    assert kaufen["ohne_zuwachs"] == [] and verkaufen["ohne_abgang"] == [], (
+        "jede Ware einmal gehandelt"
+    )
     voll = next(e for e in g.protokoll if e.get("messung"))
-    assert voll["speer"][0] == voll["speer"][1] and voll["fail_state"] == 10, "der Kauf beim vollen Lager wird abgelehnt"
-    assert g.best[17:25] == [lf.WAFFEN_WAREN[w] for w in range(17, 25)], "Waffen wie vorher, Platz fuer die Schmieden"
+    assert voll["speer"][0] == voll["speer"][1] and voll["fail_state"] == 10, (
+        "der Kauf beim vollen Lager wird abgelehnt"
+    )
+    assert g.best[17:25] == [lf.WAFFEN_WAREN[w] for w in range(17, 25)], (
+        "Waffen wie vorher, Platz fuer die Schmieden"
+    )
 
 
 def test_handel_laesst_auch_bei_fast_vollem_waffenlager_die_geplanten_speere():
@@ -626,7 +776,9 @@ def test_handel_laesst_auch_bei_fast_vollem_waffenlager_die_geplanten_speere():
     l = lauf_von(g)
     for w in lf.HANDELSWAREN:
         g.best[w] = lf.WAFFEN_WAREN.get(w, 50)
-    g.best[17] += lf.LOS  # die Bogner haben schon abgeliefert: Fuer die Speere ist nur noch ein Los frei
+    g.best[17] += (
+        lf.LOS
+    )  # die Bogner haben schon abgeliefert: Fuer die Speere ist nur noch ein Los frei
     lf._handel(l)
     assert g.best[lf.SPEER] == lf.WAFFEN_WAREN[lf.SPEER]
 
@@ -645,7 +797,9 @@ def test_zusatzbau_und_zweite_kaserne_sind_keine_grundlage():
     g, l, e = ganzer_lauf(zweiter_bau_scheitert=True)
     was = {f["was"] for f in l.funde}
     assert e["gueltig"], e
-    assert {f"Zusatzbau Art {t}" for t in lf.ZUSATZ} <= was and "zweite Kaserne ersetzt die erste" in was, was
+    assert {
+        f"Zusatzbau Art {t}" for t in lf.ZUSATZ
+    } <= was and "zweite Kaserne ersetzt die erste" in was, was
 
 
 def test_frist_und_handstopp_beenden_den_lauf():
@@ -708,7 +862,7 @@ def test_warenketten_enden_am_gemessenen_ende_und_spaetestens_nach_zwei_jahren()
     l = lauf_von(g)
     d = lf.abschnitt_ketten(l)
     assert d["gemessenes_ende"] and lf.JAHR <= d["takte"] < lf.JAHR + 3 * lf.BREMS_TAKTE + 100
-    g = KunstSpiel(neue_felder_bis=10 ** 9)
+    g = KunstSpiel(neue_felder_bis=10**9)
     d = lf.abschnitt_ketten(lauf_von(g))
     assert not d["gemessenes_ende"] and d["takte"] >= 2 * lf.JAHR
 
@@ -730,6 +884,7 @@ def test_treppe_bricht_ab_wenn_das_tempo_nicht_wirkt():
                 self.tempo = 200  # das Spiel bleibt auf 200, wie im Lauf 18:16
                 return
             super()._cmd(c)
+
     with pytest.raises(lf.Abbruch, match="wirkt nicht"):
         lf.abschnitt_treppe(lauf_von(Falsch()))
 
@@ -756,12 +911,14 @@ def test_anhalten_prueft_ob_der_takt_wirklich_steht():
 
         def befehl(self, c, warte=0.8, bis=None):
             self.log.append(c)
+
     class Stur:
         n = 0
 
         def takt(self):
             Stur.n += 1
             return Stur.n
+
     k = Kanal2()
     assert lf.anhalten_und_pruefen(k, Stur(), ruhe=ohne_warten)[0] is False
     assert len(k.log) == 3
@@ -769,11 +926,21 @@ def test_anhalten_prueft_ob_der_takt_wirklich_steht():
     class Steht:
         def takt(self):
             return 5
+
     assert lf.anhalten_und_pruefen(Kanal2(), Steht(), ruhe=ohne_warten) == (True, 5)
 
 
 # --- los ohne Spiel: Reihenfolge von Start und Ende, vor allem Anhalten und Sperre ---
-def los_ohne_spiel(monkeypatch, tmp_path, programm=lambda l: None, steht=True, sicherung=None, log=("", ""), beenden=None, menueweg=None):
+def los_ohne_spiel(
+    monkeypatch,
+    tmp_path,
+    programm=lambda l: None,
+    steht=True,
+    sicherung=None,
+    log=("", ""),
+    beenden=None,
+    menueweg=None,
+):
     from selfaware.tools.analysis import auge_ergebnis, auge_feldkarte
     from selfaware.tools.experiments import auge_aufzeichnung as aa
 
@@ -828,17 +995,34 @@ def los_ohne_spiel(monkeypatch, tmp_path, programm=lambda l: None, steht=True, s
         ablauf.append("burgenbau")
         return menueweg(k) if menueweg else {}
 
-    for name, wert in (("pruefen", lambda n, laeuft_schon=False: []), ("sperre_holen", lambda was: ablauf.append("sperre_holen")), ("sperre_freigeben", lambda: ablauf.append("sperre_frei")),
-                       ("ordner", lambda n: str(spiel)), ("logik_einspielen", einspielen), ("modul_eintragen", lambda *a: None), ("EchterKanal", Kanal2), ("warte_auf_modul", lambda k: None),
-                       ("Speicher", Sp), ("Rekorder", Rek), ("burgenbau_starten", menue), ("tempo_setzen", lambda k, s: ablauf.append(f"tempo {s}")), ("Lauf", lambda *a, **kw: "lauf"),
-                       ("programm", lambda l: (ablauf.append("programm"), programm(l))), ("schluss", lambda l, st: {"gueltig": True}),
-                       ("anhalten_und_pruefen", lambda k, s: (ablauf.append("anhalten"), (steht, 1))[1])):
+    for name, wert in (
+        ("pruefen", lambda n, laeuft_schon=False: []),
+        ("sperre_holen", lambda was: ablauf.append("sperre_holen")),
+        ("sperre_freigeben", lambda: ablauf.append("sperre_frei")),
+        ("ordner", lambda n: str(spiel)),
+        ("logik_einspielen", einspielen),
+        ("modul_eintragen", lambda *a: None),
+        ("EchterKanal", Kanal2),
+        ("warte_auf_modul", lambda k: None),
+        ("Speicher", Sp),
+        ("Rekorder", Rek),
+        ("burgenbau_starten", menue),
+        ("tempo_setzen", lambda k, s: ablauf.append(f"tempo {s}")),
+        ("Lauf", lambda *a, **kw: "lauf"),
+        ("programm", lambda l: (ablauf.append("programm"), programm(l))),
+        ("schluss", lambda l, st: {"gueltig": True}),
+        ("anhalten_und_pruefen", lambda k, s: (ablauf.append("anhalten"), (steht, 1))[1]),
+    ):
         monkeypatch.setattr(lf, name, wert)
     monkeypatch.setattr(aa, "ProzessQuelle", lambda pid: None)
     monkeypatch.setattr(aa, "pid_der_instanz", lambda n: 1)
     monkeypatch.setattr(aa, "standard_bereiche", lambda karte: [])
-    monkeypatch.setattr(auge_feldkarte.Feldkarte, "laden", staticmethod(lambda feldliste=None: None))
-    monkeypatch.setattr(auge_ergebnis, "auswerten", lambda basis, e: ablauf.append(("auswertung", e)) or "bericht")
+    monkeypatch.setattr(
+        auge_feldkarte.Feldkarte, "laden", staticmethod(lambda feldliste=None: None)
+    )
+    monkeypatch.setattr(
+        auge_ergebnis, "auswerten", lambda basis, e: ablauf.append(("auswertung", e)) or "bericht"
+    )
     return ablauf
 
 
@@ -847,16 +1031,33 @@ def protokoll_von(ziel):
         return [json.loads(z) for z in f]
 
 
-def test_los_reihenfolge_schalter_vor_dem_start_anhalten_vor_der_aufzeichnung_sperre_danach(monkeypatch, tmp_path):
+@braucht_instanz2
+def test_los_reihenfolge_schalter_vor_dem_start_anhalten_vor_der_aufzeichnung_sperre_danach(
+    monkeypatch, tmp_path
+):
     ablauf = los_ohne_spiel(monkeypatch, tmp_path)
     assert lf.los(2, ziel=str(tmp_path), laeuft_schon=True) == {"gueltig": True}
-    assert ablauf == ["sperre_holen", "logik", {"tickpause": "aus"}, {"ladepause": "aus"}, "burgenbau", f"tempo {lf.TEMPO_LAUF}", "aufzeichnung", "programm",
-                      "anhalten", "aufzeichnung_beendet", "sperre_frei", ("auswertung", {"gueltig": True})]
+    assert ablauf == [
+        "sperre_holen",
+        "logik",
+        {"tickpause": "aus"},
+        {"ladepause": "aus"},
+        "burgenbau",
+        f"tempo {lf.TEMPO_LAUF}",
+        "aufzeichnung",
+        "programm",
+        "anhalten",
+        "aufzeichnung_beendet",
+        "sperre_frei",
+        ("auswertung", {"gueltig": True}),
+    ]
 
 
+@braucht_instanz2
 def test_los_abbruch_haelt_an_gibt_frei_und_wertet_aus(monkeypatch, tmp_path):
     def kaputt(l):
         raise lf.Abbruch("Kalender zaehlt nicht")
+
     ablauf = los_ohne_spiel(monkeypatch, tmp_path, programm=kaputt)
     e = lf.los(2, ziel=str(tmp_path), laeuft_schon=True)
     assert e == {"gueltig": False, "abbruch": "Kalender zaehlt nicht"}
@@ -864,6 +1065,7 @@ def test_los_abbruch_haelt_an_gibt_frei_und_wertet_aus(monkeypatch, tmp_path):
     assert any(z.get("schritt") == "abbruch" for z in protokoll_von(str(tmp_path)))
 
 
+@braucht_instanz2
 def test_los_takt_steht_nicht_die_sperre_bleibt(monkeypatch, tmp_path):
     ablauf = los_ohne_spiel(monkeypatch, tmp_path, steht=False)
     lf.los(2, ziel=str(tmp_path), laeuft_schon=True)
@@ -871,6 +1073,7 @@ def test_los_takt_steht_nicht_die_sperre_bleibt(monkeypatch, tmp_path):
     assert any(z.get("schritt") == "sperre_bleibt" for z in protokoll_von(str(tmp_path)))
 
 
+@braucht_instanz2
 def test_los_aufzeichnung_laesst_sich_nicht_beenden_das_spiel_steht_trotzdem(monkeypatch, tmp_path):
     ablauf = los_ohne_spiel(monkeypatch, tmp_path, beenden=OSError("weg"))
     with pytest.raises(OSError):
@@ -879,16 +1082,23 @@ def test_los_aufzeichnung_laesst_sich_nicht_beenden_das_spiel_steht_trotzdem(mon
     assert "sperre_frei" not in ablauf
 
 
-def test_los_menueweg_scheitert_das_spiel_wird_angehalten_und_die_sperre_frei(monkeypatch, tmp_path):
+@braucht_instanz2
+def test_los_menueweg_scheitert_das_spiel_wird_angehalten_und_die_sperre_frei(
+    monkeypatch, tmp_path
+):
     def nein(k):
         raise lf.Fehler("Hauptmenue nicht erreicht")
+
     ablauf = los_ohne_spiel(monkeypatch, tmp_path, menueweg=nein)
     with pytest.raises(lf.Fehler, match="Hauptmenue"):
         lf.los(2, ziel=str(tmp_path), laeuft_schon=True)
     assert ablauf[-3:] == ["anhalten", "aufzeichnung_beendet", "sperre_frei"]
 
 
-def test_los_wartet_aufs_nachladen_nur_mit_neuer_logik_und_nur_auf_eine_neue_zeile(monkeypatch, tmp_path):
+@braucht_instanz2
+def test_los_wartet_aufs_nachladen_nur_mit_neuer_logik_und_nur_auf_eine_neue_zeile(
+    monkeypatch, tmp_path
+):
     zeile = "logik.lua neu geladen\n"
     a = tmp_path / "a"
     a.mkdir()
@@ -900,8 +1110,14 @@ def test_los_wartet_aufs_nachladen_nur_mit_neuer_logik_und_nur_auf_eine_neue_zei
     zaehler = itertools.count()
     b = tmp_path / "b"
     b.mkdir()
-    ablauf = los_ohne_spiel(monkeypatch, b, sicherung="alt.lua", log=(zeile, ""))  # die Zeile stammt von frueher, das Modul hat nicht nachgeladen
-    monkeypatch.setattr(lf, "warte_auf", lambda f, s, was, **kw: echt(f, s, was, uhr=lambda: next(zaehler), ruhe=ohne_warten))
+    ablauf = los_ohne_spiel(
+        monkeypatch, b, sicherung="alt.lua", log=(zeile, "")
+    )  # die Zeile stammt von frueher, das Modul hat nicht nachgeladen
+    monkeypatch.setattr(
+        lf,
+        "warte_auf",
+        lambda f, s, was, **kw: echt(f, s, was, uhr=lambda: next(zaehler), ruhe=ohne_warten),
+    )
     with pytest.raises(lf.Fehler, match="nachgeladen"):
         lf.los(2, ziel=str(b), laeuft_schon=True)
     assert "programm" not in ablauf
@@ -940,7 +1156,7 @@ class RohSpeicher:
     def lies(self, adr, n):
         for a, b in self.m.items():
             if a <= adr and adr + n <= a + len(b):
-                return bytes(b[adr - a:adr - a + n])
+                return bytes(b[adr - a : adr - a + n])
         raise OSError(adr)
 
 
@@ -948,7 +1164,15 @@ def test_speicher_liest_gebaeude_einheiten_anzeige_und_karte_an_den_richtigen_st
     q = RohSpeicher()
     g = q.block(lf.GEBAEUDE, lf.G_SCHRITT * lf.G_ANZAHL)
     b = 3 * lf.G_SCHRITT
-    for o, w in ((lf.G_ZUSTAND, 2), (lf.G_TYP, 19), (lf.G_BESITZER, 1), (lf.G_X, 205), (lf.G_Y, 181), (lf.G_BILDWERT, 15), (lf.G_OFFEN, 2)):
+    for o, w in (
+        (lf.G_ZUSTAND, 2),
+        (lf.G_TYP, 19),
+        (lf.G_BESITZER, 1),
+        (lf.G_X, 205),
+        (lf.G_Y, 181),
+        (lf.G_BILDWERT, 15),
+        (lf.G_OFFEN, 2),
+    ):
         struct.pack_into("<h", g, b + o, w)
     struct.pack_into("<i", g, b + lf.G_UID, 99)
     g[b + lf.G_TOR] = 11
@@ -956,7 +1180,9 @@ def test_speicher_liest_gebaeude_einheiten_anzeige_und_karte_an_den_richtigen_st
         struct.pack_into("<h", g, nr * lf.G_SCHRITT + lf.G_ZUSTAND, z)
         struct.pack_into("<h", g, nr * lf.G_SCHRITT + lf.G_BESITZER, sp)
     s = lf.Speicher(q)
-    assert s.gebaeude() == [{"nr": 3, "typ": 19, "x": 205, "y": 181, "v": 15, "offen": 2, "uid": 99, "tor": 11}]
+    assert s.gebaeude() == [
+        {"nr": 3, "typ": 19, "x": 205, "y": 181, "v": 15, "offen": 2, "uid": 99, "tor": 11}
+    ]
     assert [e["nr"] for e in s.gebaeude(sp=None)] == [3, 5]
     struct.pack_into("<I", q.block(lf.ANZEIGEN, 4), 0, 0x9000)
     d = q.block(0x9000, 0x60)
@@ -983,6 +1209,7 @@ def test_speicher_liest_gebaeude_einheiten_anzeige_und_karte_an_den_richtigen_st
 
 def test_feste_adressen_passen_zum_export():
     from selfaware.tools.analysis.auge_feldkarte import EXPORT, Feldkarte
+
     if not os.path.exists(os.path.join(EXPORT, "types.json")):
         pytest.skip("Export fehlt")
     assert lf.adressen_gegen_karte(Feldkarte.laden()) == []

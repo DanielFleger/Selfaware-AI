@@ -19,6 +19,7 @@ Die Laufinstanz bekommt die logik.lua von Instanz 4 (nur gelesen): Sie lief mit 
 Instanz 5 nutzt seit 24.10. ein anderes Modul (selfaware-runtime, mit Uebernahme-Logik) und wird nie angefasst.
 Die Ladeliste der Laufinstanz enthaelt das Modul seit der Startreparatur vom 24.10. nicht mehr; "los" traegt es wieder ein.
 """
+
 import argparse
 import collections
 import json
@@ -38,8 +39,16 @@ QUELL_INSTANZ = 4
 SPERRE_NAME = "SRE_auge"
 HAUPTMENUE, KARTENWAHL, IN_PARTIE = 41, 35, 14
 ANSICHT, TICK, PAUSE, GAMEOVER = 0x01FE7D1C, 0x0117CADC, 0x01FEA054, 0x0117D500
-GESAMT, SCROLL, MARKIERT = 0x01A24A68, 0x01A24A64, 0x01A24A6C  # DAT_MapSelection... in GameSynchronyState
-LISTE, NAMEN, NAMENSLAENGE = 0x01126E28, 0x11BFCF8, 0x3E9      # Eintrag n = Zeile + Scrollstand (wie im Ladedialog)
+GESAMT, SCROLL, MARKIERT = (
+    0x01A24A68,
+    0x01A24A64,
+    0x01A24A6C,
+)  # DAT_MapSelection... in GameSynchronyState
+LISTE, NAMEN, NAMENSLAENGE = (
+    0x01126E28,
+    0x11BFCF8,
+    0x3E9,
+)  # Eintrag n = Zeile + Scrollstand (wie im Ladedialog)
 KNOPF_START = 0x41
 ANKER = "CustomScenarios_Main = 0x00440770,"
 NEU = "SingleplayerMapChoice_ButtonsAndHands = 0x0042D640,"
@@ -53,8 +62,8 @@ BAU_NEU = (
 )
 GEFECHT_ANKER = "    starteGefecht(0)                                  -- 0 = Burgen selbst waehlen"
 GEFECHT_NEU = (
-    "    -- B-142 Lauf K: { \"kis\": [8 KI-Nummern], \"friedenszeit\": Stufe }: kein Mensch, jeder gegen jeden",
-    "    if type(cmd.kis) == \"table\" then",
+    '    -- B-142 Lauf K: { "kis": [8 KI-Nummern], "friedenszeit": Stufe }: kein Mensch, jeder gegen jeden',
+    '    if type(cmd.kis) == "table" then',
     "      core.writeInteger(fullID + 4, 0xFFFFFFFF)",
     "      for slot = 1, 8 do",
     "        core.writeInteger(aiArr + slot * 4, tonumber(cmd.kis[slot]) or 0)",
@@ -64,19 +73,19 @@ GEFECHT_NEU = (
     "      for i = 0, 7 do core.writeByte(posArr + i, i) end  -- feste Plaetze, damit der Lauf wiederholbar ist. Eingetragen wird Spieler minus 1 (GetPlayerPosition 0x0042AC60), wer fehlt, bekommt keine Burg",
     "      core.writeInteger(0x01A275DC, 0)                  -- currentPlayerSlotID: niemand, sonst zeigt der Tod dieses Lords den Endbildschirm",
     "      core.writeInteger(0x01A26A2C, tonumber(cmd.friedenszeit) or 0)  -- skirmishNoRushSetting",
-    "      log(INFO, \"GEFECHT: Lauf K, KI \" .. table.concat(cmd.kis, \",\"))",
+    '      log(INFO, "GEFECHT: Lauf K, KI " .. table.concat(cmd.kis, ","))',
     "    end",
 )
 BAU_LOG_ALT = "tostring(b.richtung or 0),"
 BAU_LOG_NEU = "tostring(drehung),"
 TOETE_ANKER = "  if cmd.toeteAlle ~= nil then"
 TOETE_NEU = (
-    "    -- B-142 Lauf S, aus B-149: { \"toeteAlle\": {\"spieler\": 2, \"ohneLord\": true, \"typen\": [22, 23]} }: wie killUnits 0x00530390, aber der Lord (Typ 55) bleibt, sonst ist das Gefecht vorbei",
-    "    if type(cmd.toeteAlle) == \"table\" then",
+    '    -- B-142 Lauf S, aus B-149: { "toeteAlle": {"spieler": 2, "ohneLord": true, "typen": [22, 23]} }: wie killUnits 0x00530390, aber der Lord (Typ 55) bleibt, sonst ist das Gefecht vorbei',
+    '    if type(cmd.toeteAlle) == "table" then',
     "      local t = cmd.toeteAlle",
     "      local sp, n, lords = tonumber(t.spieler) or -1, 0, 0",
     "      local nurTyp = nil",
-    "      if type(t.typen) == \"table\" then",
+    '      if type(t.typen) == "table" then',
     "        nurTyp = {}",
     "        for _, ty in ipairs(t.typen) do nurTyp[tonumber(ty)] = true end",
     "      end",
@@ -97,29 +106,53 @@ TOETE_NEU = (
     "          end",
     "        end",
     "      end",
-    "      log(INFO, string.format(\"TOETE ALLE: Spieler %d, %d Einheiten, Lord verschont: %d\", sp, n, lords))",
+    '      log(INFO, string.format("TOETE ALLE: Spieler %d, %d Einheiten, Lord verschont: %d", sp, n, lords))',
     "      return true",
     "    end",
 )
 ART_ANKER = "    local ok1 = befehlAbsetzen(16, { gruppe })"
 ART_NEU = "    if a.art then art, zielNr, zielUid = tonumber(a.art), tonumber(a.a) or 0, tonumber(a.b) or 0 end  -- B-142 Lauf S: jede Anweisung (UnitInstructionType), a und b wie in Spielbefehl 36"
-TEMPO_LAUF, TEMPO_JEDER_TAKT = 1000, 40  # 40: hoechste Stufe, auf der jeder Takt gelesen wird (gemessen 201 von 201; auf 100 fehlen 2 von 498)
-STUFEN = (1, 10, 40, 100, 200, 500, 1000)  # Daniel 02.11.2026: auf Tempo 1 bis 1000 kein Abzug vom normalen Tempo
-TREPPE_TAKTE = {1: 20, 10: 100}  # sonst 1.000: Ablesefehler 4 Takte = 0,4 %. Auf Stufe 1 und 10 kann das Lesen nicht bremsen (Lesen 3 ms je Takt), dort genuegt grob
+TEMPO_LAUF, TEMPO_JEDER_TAKT = (
+    1000,
+    40,
+)  # 40: hoechste Stufe, auf der jeder Takt gelesen wird (gemessen 201 von 201; auf 100 fehlen 2 von 498)
+STUFEN = (
+    1,
+    10,
+    40,
+    100,
+    200,
+    500,
+    1000,
+)  # Daniel 02.11.2026: auf Tempo 1 bis 1000 kein Abzug vom normalen Tempo
+TREPPE_TAKTE = {
+    1: 20,
+    10: 100,
+}  # sonst 1.000: Ablesefehler 4 Takte = 0,4 %. Auf Stufe 1 und 10 kann das Lesen nicht bremsen (Lesen 3 ms je Takt), dort genuegt grob
 BREMS_TAKTE = 1000
-WOCHE, JAHR = 200, 9600  # Woche gemessen (3 Wochen in 600 Takten), 4 Wochen je Monat und 12 Monate laut updateDateAndTime
+WOCHE, JAHR = (
+    200,
+    9600,
+)  # Woche gemessen (3 Wochen in 600 Takten), 4 Wochen je Monat und 12 Monate laut updateDateAndTime
 ABLESEN = 22  # zwei Bilder zu je 11 Takten: so grob sieht das Programm den Takt auf Stufe 1000
 BAU_GRENZE = 20  # gemessen 2 bis 6 Takte vom Befehl bis zum Eintrag
-TAKTE_JE_STUECK = 4  # UpdateStockpile, UpdateGranary, UpdateArmory: nur wenn mapTimeInTicks durch 4 teilbar ist
+TAKTE_JE_STUECK = (
+    4  # UpdateStockpile, UpdateGranary, UpdateArmory: nur wenn mapTimeInTicks durch 4 teilbar ist
+)
 TAKTE_JE_BEWOHNER = 250  # gemessen bei Beliebtheit 87,75
 KEIN_BEWOHNER = 4 * TAKTE_JE_BEWOHNER
 FEUER_HOECHSTENS = 23  # darueber kommen keine neuen Leute (Wissensstand 13v)
 BELIEBTHEIT_UNTEN = 5000  # 100 Punkte = 1 angezeigter Punkt; unter 50 gehen die Leute
 FRIST = 600  # Rechnung: Tempo 1000 rund 60 s, Jahr auf Tempo 40 240 s, Treppe 220 s, dazu Start und Kanal
-STILLSTAND = 1.0  # rund 10 x die laengste gemessene Luecke (0,098 s); auf langsamen Stufen 10 Takt-Abstaende
+STILLSTAND = (
+    1.0  # rund 10 x die laengste gemessene Luecke (0,098 s); auf langsamen Stufen 10 Takt-Abstaende
+)
 POLL = 0.005
 KANAL = 0.5  # Hoechstwartezeit auf die Quittung des Moduls
-ALTE_SCHALTER = ({"tickpause": "aus"}, {"ladepause": "aus"})  # nichts Scharfes aus frueheren Proben darf den Lauf anhalten
+ALTE_SCHALTER = (
+    {"tickpause": "aus"},
+    {"ladepause": "aus"},
+)  # nichts Scharfes aus frueheren Proben darf den Lauf anhalten
 PLATTE_MINDESTENS = 5e9  # der letzte Lauf schrieb 625 MB; das Jahr auf Tempo 40 liest jeden Takt
 WERKSTAETTEN = {12, 13, 14, 15, 16, 17, 18}  # rechnen ihren Bildwert selbst aus (Update...Workshop)
 
@@ -149,10 +182,12 @@ def logik_text(quelle):
 
 
 def _mit_toete(roh):
-    if TOETE_NEU[1] in roh or roh.count(TOETE_ANKER) != 1:  # ohne den Anker bleibt nur das Gefecht in Lauf S aus
+    if (
+        TOETE_NEU[1] in roh or roh.count(TOETE_ANKER) != 1
+    ):  # ohne den Anker bleibt nur das Gefecht in Lauf S aus
         return roh
     i = roh.index(TOETE_ANKER) + len(TOETE_ANKER)
-    ende = "\r\n" if "\r\n" in roh[i:i + 2] else "\n"
+    ende = "\r\n" if "\r\n" in roh[i : i + 2] else "\n"
     return roh[:i] + ende + ende.join(TOETE_NEU) + roh[i:]
 
 
@@ -160,15 +195,17 @@ def _mit_art(roh):
     if ART_NEU in roh or roh.count(ART_ANKER) != 1:
         return roh
     i = roh.index(ART_ANKER)
-    ende = "\r\n" if "\r\n" in roh[i:i + 200] else "\n"
+    ende = "\r\n" if "\r\n" in roh[i : i + 200] else "\n"
     return roh[:i] + ART_NEU + ende + roh[i:]
 
 
 def _mit_gefecht(roh):
-    if GEFECHT_NEU[1] in roh or roh.count(GEFECHT_ANKER) != 1:  # ohne den Anker bleibt nur Lauf K aus, Lauf F braucht den Block nicht
+    if (
+        GEFECHT_NEU[1] in roh or roh.count(GEFECHT_ANKER) != 1
+    ):  # ohne den Anker bleibt nur Lauf K aus, Lauf F braucht den Block nicht
         return roh
     i = roh.index(GEFECHT_ANKER)
-    ende = "\r\n" if "\r\n" in roh[i:i + 200] else "\n"
+    ende = "\r\n" if "\r\n" in roh[i : i + 200] else "\n"
     return roh[:i] + ende.join(GEFECHT_NEU) + ende + roh[i:]
 
 
@@ -176,23 +213,27 @@ def _mit_bildwert(roh, quelle):
     if BAU_NEU[3] in roh:
         return roh
     if roh.count(BAU_ALT) != 1 or roh.count(BAU_LOG_ALT) != 1:
-        raise Fehler(f"{quelle}: Stelle fuer den Bildwert nicht eindeutig ({roh.count(BAU_ALT)}, {roh.count(BAU_LOG_ALT)} Treffer)")
+        raise Fehler(
+            f"{quelle}: Stelle fuer den Bildwert nicht eindeutig ({roh.count(BAU_ALT)}, {roh.count(BAU_LOG_ALT)} Treffer)"
+        )
     i = roh.index(BAU_ALT)
     anfang = roh.rfind("\n", 0, i) + 1
-    ende = "\r\n" if "\r\n" in roh[i:i + 200] else "\n"
+    ende = "\r\n" if "\r\n" in roh[i : i + 200] else "\n"
     block = ende.join(roh[anfang:i] + z for z in BAU_NEU)
-    return roh[:anfang] + block + roh[i + len(BAU_ALT):].replace(BAU_LOG_ALT, BAU_LOG_NEU, 1)
+    return roh[:anfang] + block + roh[i + len(BAU_ALT) :].replace(BAU_LOG_ALT, BAU_LOG_NEU, 1)
 
 
 def _mit_knopf(roh, quelle):
     if roh.count(NEU):
         return roh
     if roh.count(ANKER) != 1:
-        raise Fehler(f"{quelle}: Stelle fuer den neuen Knopf nicht eindeutig ({roh.count(ANKER)} Treffer)")
+        raise Fehler(
+            f"{quelle}: Stelle fuer den neuen Knopf nicht eindeutig ({roh.count(ANKER)} Treffer)"
+        )
     i = roh.index(ANKER)
     anfang = roh.rfind("\n", 0, i) + 1
-    ende = "\r\n" if "\r\n" in roh[i:i + 200] else "\n"
-    return roh[:i + len(ANKER)] + ende + roh[anfang:i] + NEU + roh[i + len(ANKER):]
+    ende = "\r\n" if "\r\n" in roh[i : i + 200] else "\n"
+    return roh[: i + len(ANKER)] + ende + roh[anfang:i] + NEU + roh[i + len(ANKER) :]
 
 
 def logik_einspielen(ziel, quelle, stempel=None):
@@ -231,13 +272,17 @@ def modul_eintragen(pfad, stempel=None):
     roh = open(pfad, "rb").read().decode("utf-8")
     alt = yaml.safe_load(roh)
     drin = lambda d, teil: any(e.get("extension") == "villagestudio" for e in d[teil]["load-order"])
-    if drin(alt, "config-sparse") and drin(alt, "config-full") and "villagestudio" in (alt["config-sparse"].get("modules") or {}):
+    if (
+        drin(alt, "config-sparse")
+        and drin(alt, "config-full")
+        and "villagestudio" in (alt["config-sparse"].get("modules") or {})
+    ):
         return None
     nl = "\r\n" if "\r\n" in roh else "\n"
     eintrag = f"  - extension: villagestudio{nl}    version: 0.1.0{nl}"
     t = roh
     leer = f"  modules: {{}}{nl}"
-    if leer not in t[:t.index("config-full:")]:
+    if leer not in t[: t.index("config-full:")]:
         raise Fehler(f"{pfad}: config-sparse.modules ist nicht leer, von Hand ansehen")
     t = t.replace(leer, f"  modules:{nl}    villagestudio:{nl}      config: {{}}{nl}", 1)
     t = t.replace(f"config-full:{nl}", eintrag + f"config-full:{nl}", 1)
@@ -246,8 +291,12 @@ def modul_eintragen(pfad, stempel=None):
     if not (drin(neu, "config-sparse") and drin(neu, "config-full")):
         raise Fehler(f"{pfad}: Eintrag ist nicht in beiden Ladelisten angekommen")
     for teil in ("config-sparse", "config-full"):
-        neu[teil]["load-order"] = [e for e in neu[teil]["load-order"] if e.get("extension") != "villagestudio"]
-    neu["config-sparse"]["modules"] = {k: v for k, v in neu["config-sparse"]["modules"].items() if k != "villagestudio"} or {}
+        neu[teil]["load-order"] = [
+            e for e in neu[teil]["load-order"] if e.get("extension") != "villagestudio"
+        ]
+    neu["config-sparse"]["modules"] = {
+        k: v for k, v in neu["config-sparse"]["modules"].items() if k != "villagestudio"
+    } or {}
     if neu != alt:
         raise Fehler(f"{pfad}: Das Eintragen haette noch etwas anderes geaendert")
     sicherung = f"{pfad}.vor_auge_{stempel or time.strftime('%Y%m%d_%H%M%S')}"
@@ -273,12 +322,14 @@ def name_von(k, nummer):
 
 def warte_auf_modul(k, sekunden=120, ruhe=time.sleep, uhr=time.time):
     """Das Modul meldet "aktiv", bevor das Spiel im Menue ist und Befehle liest (Lauf F 02.11.2026 18:12, gemessen)."""
+
     def antwortet():
         try:
             k.peek(ANSICHT)
             return True
         except Exception:  # noqa: BLE001  jede Kanalstoerung heisst hier nur: noch nicht
             return False
+
     warte_auf(antwortet, sekunden, "Modul antwortet auf Befehle", schlaf=2.0, ruhe=ruhe, uhr=uhr)
 
 
@@ -286,9 +337,13 @@ def burgenbau_starten(k, karte=KARTE, warte=60, ruhe=time.sleep):
     """Hauptmenue -> Burgenbau -> Karte markieren -> Start; jeder Schritt wird an der Menueansicht geprueft."""
     if k.peek(ANSICHT)[0] != HAUPTMENUE:
         k.befehl({"menue": HAUPTMENUE}, 1.5)
-        warte_auf(lambda: k.peek(ANSICHT)[0] == HAUPTMENUE, 10, "Hauptmenue (Ansicht 41)", ruhe=ruhe)  # die Quittung kommt vor dem Wechsel
+        warte_auf(
+            lambda: k.peek(ANSICHT)[0] == HAUPTMENUE, 10, "Hauptmenue (Ansicht 41)", ruhe=ruhe
+        )  # die Quittung kommt vor dem Wechsel
     k.befehl({"hauptmenue": 3}, 1.5)
-    warte_auf(lambda: k.peek(ANSICHT)[0] == KARTENWAHL, 10, "Kartenwahl Burgenbau (Ansicht 35)", ruhe=ruhe)
+    warte_auf(
+        lambda: k.peek(ANSICHT)[0] == KARTENWAHL, 10, "Kartenwahl Burgenbau (Ansicht 35)", ruhe=ruhe
+    )
     anzahl = k.peek(GESAMT)[0]
     if not 0 < anzahl <= 500:
         raise Fehler(f"Kartenliste unplausibel: {anzahl} Eintraege")
@@ -297,27 +352,64 @@ def burgenbau_starten(k, karte=KARTE, warte=60, ruhe=time.sleep):
         raise Fehler(f"'{karte}' steht nicht in der Kartenliste ({anzahl} Eintraege)")
     n = namen.index(karte)
     scroll = max(0, n - 12)
-    k.liste([{"poke": SCROLL, "wert": scroll}, {"poke": MARKIERT, "wert": n - scroll},
-             {"knopf": "SingleplayerMapChoice_ButtonsAndHands", "nr": KNOPF_START}], 4.0)
-    warte_auf(lambda: k.peek(ANSICHT)[0] == IN_PARTIE, warte, "Partie laeuft (Ansicht 14)", ruhe=ruhe)
+    k.liste(
+        [
+            {"poke": SCROLL, "wert": scroll},
+            {"poke": MARKIERT, "wert": n - scroll},
+            {"knopf": "SingleplayerMapChoice_ButtonsAndHands", "nr": KNOPF_START},
+        ],
+        4.0,
+    )
+    warte_auf(
+        lambda: k.peek(ANSICHT)[0] == IN_PARTIE, warte, "Partie laeuft (Ansicht 14)", ruhe=ruhe
+    )
     k.befehl({"eigenerPlatz": 1}, 0.8)
     return {"karte": karte, "eintrag": n, "von": anzahl}
 
 
 # --- Lesen: direkt aus dem Spielspeicher. Kostet das Spiel nichts, schreibt nichts ins Log. ---
 SPIELER, SPIELER_SCHRITT = 0x0115BDF8, 0x39F4
-FELD = {"popularity": 0x60, "populationCap": 0x74, "availablePeasantsAtFire": 0x88, "storageMarketFailState": 0x2C, "armySize": 0x53C, "totalFood": 0x209C,
-        "currentPopulation": 0x2180, "taxesSetting": 0x2188, "rationsSetting": 0x218C}
+FELD = {
+    "popularity": 0x60,
+    "populationCap": 0x74,
+    "availablePeasantsAtFire": 0x88,
+    "storageMarketFailState": 0x2C,
+    "armySize": 0x53C,
+    "totalFood": 0x209C,
+    "currentPopulation": 0x2180,
+    "taxesSetting": 0x2188,
+    "rationsSetting": 0x218C,
+}
 FELD_START, FELD_BESTAND = 0x46C, 0x4D0
 GEBAEUDE, G_SCHRITT, G_ANZAHL = 0xF98520, 0x32C, 2000
-G_ZUSTAND, G_TYP, G_BESITZER, G_UID, G_X, G_Y, G_BILDWERT, G_OFFEN, G_TOR = 0xE4, 0xE6, 0xEA, 0xEC, 0x102, 0x104, 0x116, 0x1B0, 0x2B7
+G_ZUSTAND, G_TYP, G_BESITZER, G_UID, G_X, G_Y, G_BILDWERT, G_OFFEN, G_TOR = (
+    0xE4,
+    0xE6,
+    0xEA,
+    0xEC,
+    0x102,
+    0x104,
+    0x116,
+    0x1B0,
+    0x2B7,
+)
 ARBEITER_TABELLE = 0x005B8B58  # DAT_EmployeeCountPerBuildingType, 4 Bytes je Typ
 JAHR_ADR, MONAT_ADR, WOCHE_ADR, HAT_BURG_KORN = 0x0117CAB8, 0x0117CAB4, 0x0117CAB0, 0x0117C790
-ANZEIGEN, ANZEIGE_BURG_KORN = 0x00DF42B4, 20  # DAT_PointerToDisplayElementStackTop; updateDateAndTime fragt Nummer 0x14
+ANZEIGEN, ANZEIGE_BURG_KORN = (
+    0x00DF42B4,
+    20,
+)  # DAT_PointerToDisplayElementStackTop; updateDateAndTime fragt Nummer 0x14
 SCHLAF = 0x0115DF8C  # + Spieler * Schritt + Typ, ProcessBuildingSleepUpdate
 PECHGRAEBEN, PG_SCHRITT, PG_ANZAHL, PG_BESITZER = 0x01FD228C, 20, 4000, 8
 KARTENMASKE, ZEILEN, LOGIK, KACHELN = 0x021AEC98, 0x023372F8, 0x01BF8368, 81000
-EINHEITEN_ANZAHL, EINHEITEN, E_SCHRITT, E_DA, E_TYP, E_BESITZER = 0x01387F38, 0x0138854C, 1168, 0x8C, 0x8E, 0x96
+EINHEITEN_ANZAHL, EINHEITEN, E_SCHRITT, E_DA, E_TYP, E_BESITZER = (
+    0x01387F38,
+    0x0138854C,
+    1168,
+    0x8C,
+    0x8E,
+    0x96,
+)
 BIT_MAUER, BIT_GRABEN = 0x100, 0x40000000
 
 
@@ -341,10 +433,14 @@ class Speicher:
         return self.i32(SPIELER + sp * SPIELER_SCHRITT + FELD[name])
 
     def waren(self, sp=1):
-        return list(struct.unpack("<25i", self.q.lies(SPIELER + sp * SPIELER_SCHRITT + FELD_BESTAND, 100)))
+        return list(
+            struct.unpack("<25i", self.q.lies(SPIELER + sp * SPIELER_SCHRITT + FELD_BESTAND, 100))
+        )
 
     def startwaren(self, sp=1):
-        return list(struct.unpack("<25i", self.q.lies(SPIELER + sp * SPIELER_SCHRITT + FELD_START, 100)))
+        return list(
+            struct.unpack("<25i", self.q.lies(SPIELER + sp * SPIELER_SCHRITT + FELD_START, 100))
+        )
 
     def start_adresse(self, ware, sp=1):
         return SPIELER + sp * SPIELER_SCHRITT + FELD_START + ware * 4
@@ -368,8 +464,18 @@ class Speicher:
             z = h(b + G_ZUSTAND)
             if z in (0, 3) or (sp is not None and h(b + G_BESITZER) != sp):  # 0 leer, 3 abgerissen
                 continue
-            aus.append({"nr": i, "typ": h(b + G_TYP), "x": h(b + G_X), "y": h(b + G_Y), "v": h(b + G_BILDWERT), "offen": h(b + G_OFFEN),
-                        "uid": struct.unpack_from("<i", roh, b + G_UID)[0], "tor": roh[b + G_TOR]})
+            aus.append(
+                {
+                    "nr": i,
+                    "typ": h(b + G_TYP),
+                    "x": h(b + G_X),
+                    "y": h(b + G_Y),
+                    "v": h(b + G_BILDWERT),
+                    "offen": h(b + G_OFFEN),
+                    "uid": struct.unpack_from("<i", roh, b + G_UID)[0],
+                    "tor": roh[b + G_TOR],
+                }
+            )
         return aus
 
     def arbeiter_je_typ(self, typ):
@@ -377,7 +483,11 @@ class Speicher:
 
     def pechgraeben(self, sp=1):
         roh = self.q.lies(PECHGRAEBEN, PG_SCHRITT * PG_ANZAHL)
-        return sum(1 for i in range(1, PG_ANZAHL) if struct.unpack_from("<h", roh, i * PG_SCHRITT + PG_BESITZER)[0] == sp)
+        return sum(
+            1
+            for i in range(1, PG_ANZAHL)
+            if struct.unpack_from("<h", roh, i * PG_SCHRITT + PG_BESITZER)[0] == sp
+        )
 
     def schlaeft(self, typ, sp=1):
         return self.q.lies(SCHLAF + sp * SPIELER_SCHRITT + typ, 1)[0]
@@ -387,12 +497,20 @@ class Speicher:
         return struct.unpack("<I", self.q.lies(LOGIK + (b + x) * 4, 4))[0]
 
     def felder_mit_bit(self, bit):
-        maske, zeilen, logik = self.q.lies(KARTENMASKE, 400 * 400), self.q.lies(ZEILEN, 400 * 12), self.q.lies(LOGIK, 4 * KACHELN)
+        maske, zeilen, logik = (
+            self.q.lies(KARTENMASKE, 400 * 400),
+            self.q.lies(ZEILEN, 400 * 12),
+            self.q.lies(LOGIK, 4 * KACHELN),
+        )
         aus = []
         for y in range(400):
             b = struct.unpack_from("<i", zeilen, y * 12 + 8)[0]
             for x in range(400):
-                if maske[y * 400 + x] and 0 <= b + x < KACHELN and struct.unpack_from("<I", logik, (b + x) * 4)[0] & bit:
+                if (
+                    maske[y * 400 + x]
+                    and 0 <= b + x < KACHELN
+                    and struct.unpack_from("<I", logik, (b + x) * 4)[0] & bit
+                ):
                     aus.append((x, y))
         return aus
 
@@ -409,26 +527,79 @@ class Speicher:
 
 
 # --- Der Lauf ---
-BURG, KORN, HUETTE, LAGER, WAFFEN, KASERNE, PECHGRUBE, PECHGRABEN, FALLGRUBE = 41, 19, 1, 10, 11, 9, 6, 68, 67
-ANKER_BURG = (212, 188)  # dort stand die Burg im letzten Lauf, mitten an der Oase; die Spielpruefung entscheidet
+BURG, KORN, HUETTE, LAGER, WAFFEN, KASERNE, PECHGRUBE, PECHGRABEN, FALLGRUBE = (
+    41,
+    19,
+    1,
+    10,
+    11,
+    9,
+    6,
+    68,
+    67,
+)
+ANKER_BURG = (
+    212,
+    188,
+)  # dort stand die Burg im letzten Lauf, mitten an der Oase; die Spielpruefung entscheidet
 BODEN = {5: 0x80000, 20: 0x20000, PECHGRUBE: 0x80000000}  # Eisen, Fels, Pech (BFRE_NOT_OIL_MARSH)
 HUETTEN = 6  # Arbeitsplaetze 34 + rund 24 am Feuer (Wissensstand 13v) = 58 = Burg 10 + 6 x 8
 LAGER_BEFEHLE = 3  # je Befehl 4 Felder (gemessen); Holz braucht 4, die 7 anderen Waren je 1, Rest fuer die Warenketten
 GOLD = 100000
-LAGERWAREN = {2: 96, 3: 16, 4: 48, 6: 48, 7: 16, 9: 32, 14: 16, 16: 32}  # je ein volles Feld laut StorageLimitResourceTypeArray; Holz mehr, die Bauten kosten Holz
+LAGERWAREN = {
+    2: 96,
+    3: 16,
+    4: 48,
+    6: 48,
+    7: 16,
+    9: 32,
+    14: 16,
+    16: 32,
+}  # je ein volles Feld laut StorageLimitResourceTypeArray; Holz mehr, die Bauten kosten Holz
 ESSEN = {10: 60, 11: 60, 12: 60, 13: 40}  # der Kornspeicher fasst 250, die Karte bringt 20 Aepfel
-WAFFENLAGER_FASST, LOS = 50, 5  # getArmoryIDIfSpaceLeft: 50 ueber alle Waffen zusammen (Lauf 21:30: 7+7+6x6, der Rest hing); Handel je 5 Stueck
-WAFFEN_WAREN = {w: 5 for w in range(17, 25)}  # Anwerben braucht je Art hoechstens 3 (Eisenruestung), der Rest bleibt frei fuer Handel und Schmieden
+WAFFENLAGER_FASST, LOS = (
+    50,
+    5,
+)  # getArmoryIDIfSpaceLeft: 50 ueber alle Waffen zusammen (Lauf 21:30: 7+7+6x6, der Rest hing); Handel je 5 Stueck
+WAFFEN_WAREN = {
+    w: 5 for w in range(17, 25)
+}  # Anwerben braucht je Art hoechstens 3 (Eisenruestung), der Rest bleibt frei fuer Handel und Schmieden
 ESSEN_UNTEN, ESSEN_NACH = 100, 100
-ZUSATZ = (33, 33, 12, 62)  # zwei Milchhoefe mehr (dairyFarmVariationMod4), zweiter Bogenmacher, Galgen zum Abreissen
+ZUSATZ = (
+    33,
+    33,
+    12,
+    62,
+)  # zwei Milchhoefe mehr (dairyFarmVariationMod4), zweiter Bogenmacher, Galgen zum Abreissen
 ZUSATZ_PECHGRAEBEN = 3
-ABREISSEN = (12, 62)  # die Zusatz-Kopien; die erste Kopie jeder Art bleibt fuer die Warenketten stehen
-ANWERBEN = {9: [22, 23, 24, 25, 26, 27, 28], 8: [70, 71, 72, 73, 74, 75, 76], 24: [29, 30], 25: [5], 38: [37]}
+ABREISSEN = (
+    12,
+    62,
+)  # die Zusatz-Kopien; die erste Kopie jeder Art bleibt fuer die Warenketten stehen
+ANWERBEN = {
+    9: [22, 23, 24, 25, 26, 27, 28],
+    8: [70, 71, 72, 73, 74, 75, 76],
+    24: [29, 30],
+    25: [5],
+    38: [37],
+}
 HANDELSWAREN = [w for w in range(2, 25) if w != 15]
 SPEER = 19
 STEUERSTUFEN, RATIONEN = range(12), range(5)
-TOR_ZU, TOR_AUF, TOR_FERTIG = 10, 11, 12  # GateOpenOrClose; UpdateGateHouse macht aus beiden nach dem Umschalten 12 (Lauf F: 11 dann 12)
-BEFEHL_MAUER, BEFEHL_GRABEN, BEFEHL_STEUER, BEFEHL_RATION, BEFEHL_HANDEL, BEFEHL_SCHLAF, BEFEHL_TOR = 25, 21, 34, 35, 38, 43, 45
+TOR_ZU, TOR_AUF, TOR_FERTIG = (
+    10,
+    11,
+    12,
+)  # GateOpenOrClose; UpdateGateHouse macht aus beiden nach dem Umschalten 12 (Lauf F: 11 dann 12)
+(
+    BEFEHL_MAUER,
+    BEFEHL_GRABEN,
+    BEFEHL_STEUER,
+    BEFEHL_RATION,
+    BEFEHL_HANDEL,
+    BEFEHL_SCHLAF,
+    BEFEHL_TOR,
+) = 25, 21, 34, 35, 38, 43, 45
 
 
 def naechste(zeilen, x0, y0, anker, ausser=()):
@@ -445,7 +616,12 @@ def naechste(zeilen, x0, y0, anker, ausser=()):
 
 def spirale(mitte, schritt, n):
     """Stellen im Gitter um die Mitte, innen zuerst: Die Bauten stehen auseinander, Arbeiter kommen hin und man sieht jedes."""
-    orte = [(mitte[0] + i * schritt, mitte[1] + j * schritt) for i in range(-9, 10) for j in range(-9, 10) if (i, j) != (0, 0)]
+    orte = [
+        (mitte[0] + i * schritt, mitte[1] + j * schritt)
+        for i in range(-9, 10)
+        for j in range(-9, 10)
+        if (i, j) != (0, 0)
+    ]
     orte = [p for p in orte if 8 <= p[0] <= 391 and 8 <= p[1] <= 391]
     orte.sort(key=lambda p: (max(abs(p[0] - mitte[0]), abs(p[1] - mitte[1])), p))
     return orte[:n]
@@ -455,13 +631,24 @@ def freier_streifen(zeilen, x0, y0, breite, hoehe):
     """Linke obere Ecke eines ganz freien Rechtecks, sonst None."""
     for j in range(len(zeilen) - hoehe + 1):
         for i in range(len(zeilen[j]) - breite + 1):
-            if all(zeilen[j + k][i:i + breite] == "+" * breite for k in range(hoehe)):
+            if all(zeilen[j + k][i : i + breite] == "+" * breite for k in range(hoehe)):
                 return x0 + i, y0 + j
     return None
 
 
 class Lauf:
-    def __init__(self, k, s, arten, rek, schreib, frist=FRIST, uhr=time.perf_counter, ruhe=time.sleep, stop=lambda: False):
+    def __init__(
+        self,
+        k,
+        s,
+        arten,
+        rek,
+        schreib,
+        frist=FRIST,
+        uhr=time.perf_counter,
+        ruhe=time.sleep,
+        stop=lambda: False,
+    ):
         self.k, self.s, self.arten, self.rek, self.schreib = k, s, arten, rek, schreib
         self.uhr, self.ruhe, self.stop, self.frist = uhr, ruhe, stop, frist
         self.ende = uhr() + frist
@@ -498,25 +685,47 @@ class Lauf:
         if t != self.puls[0]:
             self.puls = (t, jetzt)
         elif jetzt - self.puls[1] > self.stillstand_grenze():
-            raise Abbruch(f"seit {jetzt - self.puls[1]:.1f} s kein neuer Takt (Takt {t}, Tempo {self.tempo})")
+            raise Abbruch(
+                f"seit {jetzt - self.puls[1]:.1f} s kein neuer Takt (Takt {t}, Tempo {self.tempo})"
+            )
         if self.lage_an and t >= self.naechste_lage:
             self.naechste_lage = t + 50
             self.lage_pruefen(t)
 
     def lage_pruefen(self, t):
         s = self.s
-        bel, pop, deckel, feuer = s.spieler("popularity"), s.spieler("currentPopulation"), s.spieler("populationCap"), s.spieler("availablePeasantsAtFire")
+        bel, pop, deckel, feuer = (
+            s.spieler("popularity"),
+            s.spieler("currentPopulation"),
+            s.spieler("populationCap"),
+            s.spieler("availablePeasantsAtFire"),
+        )
         frei = self.beliebtheit_frei or t < self.frei_bis
         if not frei and bel < BELIEBTHEIT_UNTEN:
-            raise Abbruch(f"Beliebtheit {bel / 100:.2f} unter 50 (Takt {t}, Essen {s.spieler('totalFood')}, Steuer {s.spieler('taxesSetting')})")
+            raise Abbruch(
+                f"Beliebtheit {bel / 100:.2f} unter 50 (Takt {t}, Essen {s.spieler('totalFood')}, Steuer {s.spieler('taxesSetting')})"
+            )
         if s.spieler("totalFood") < ESSEN_UNTEN and t >= self.naechstes_essen:
             self.naechstes_essen = t + 800
-            self.startwaren_geben({13: ESSEN_NACH}, "Essen nachgeliefert, es ist hier nicht die Pruefgroesse")
+            self.startwaren_geben(
+                {13: ESSEN_NACH}, "Essen nachgeliefert, es ist hier nicht die Pruefgroesse"
+            )
         # Neue Leute braucht der Lauf nur fuer offene Arbeitsplaetze, und die Rate 1 je 250 Takte ist nur bis zum Steuertest gemessen
-        if not self.bewohner_wache or self.bewohner is None or pop > self.bewohner[0] or frei or pop >= deckel or bel < BELIEBTHEIT_UNTEN or feuer > FEUER_HOECHSTENS or offene_plaetze(self) == 0:
+        if (
+            not self.bewohner_wache
+            or self.bewohner is None
+            or pop > self.bewohner[0]
+            or frei
+            or pop >= deckel
+            or bel < BELIEBTHEIT_UNTEN
+            or feuer > FEUER_HOECHSTENS
+            or offene_plaetze(self) == 0
+        ):
             self.bewohner = (pop, t)
         elif t - self.bewohner[1] > KEIN_BEWOHNER:
-            raise Abbruch(f"seit {t - self.bewohner[1]} Takten kein neuer Bewohner (Leute {pop} von {deckel}, Feuer {feuer}, Beliebtheit {bel / 100:.2f})")
+            raise Abbruch(
+                f"seit {t - self.bewohner[1]} Takten kein neuer Bewohner (Leute {pop} von {deckel}, Feuer {feuer}, Beliebtheit {bel / 100:.2f})"
+            )
 
     def warte_takte(self, n, bed=None):
         """Laeuft n Takte oder bis bed() wahr ist. Rueckgabe: bed wahr geworden (ohne bed: True)."""
@@ -550,8 +759,17 @@ class Lauf:
 
     def startwaren_geben(self, mengen, grund):
         jetzt = self.s.startwaren()
-        self.k.liste([{"poke": self.s.start_adresse(w), "wert": jetzt[w] + m} for w, m in mengen.items()], KANAL)
-        self.schreib({"eingang": {str(w): m for w, m in mengen.items()}, "takt": self.s.takt(), "grund": grund})
+        self.k.liste(
+            [{"poke": self.s.start_adresse(w), "wert": jetzt[w] + m} for w, m in mengen.items()],
+            KANAL,
+        )
+        self.schreib(
+            {
+                "eingang": {str(w): m for w, m in mengen.items()},
+                "takt": self.s.takt(),
+                "grund": grund,
+            }
+        )
 
     def warte_eingebucht(self, mengen):
         """UpdateStockpile bucht 1 Stueck je 4 Takte ins Lager, Kornspeicher und Waffenlager je Art 1 Stueck je 4 Takte."""
@@ -560,7 +778,9 @@ class Lauf:
         grenze = TAKTE_JE_STUECK * rest + 20
         ok = self.warte_takte(grenze, lambda: not any(self.s.startwaren()[w] for w in mengen))
         if not ok:
-            raise Abbruch(f"Waren kommen nach {grenze} Takten nicht an, offen: {[(w, self.s.startwaren()[w]) for w in mengen if self.s.startwaren()[w]]}; Bestand {self.s.waren()}")
+            raise Abbruch(
+                f"Waren kommen nach {grenze} Takten nicht an, offen: {[(w, self.s.startwaren()[w]) for w in mengen if self.s.startwaren()[w]]}; Bestand {self.s.waren()}"
+            )
         return grenze
 
     # Bauen
@@ -575,11 +795,20 @@ class Lauf:
 
     def stelle_fuer(self, typ, anker=None, ausser=()):
         g = self.arten[typ]
-        anker_liste = self.boden_anker(typ) if typ in BODEN else [anker or next(self.anker, self.mitte)]
+        anker_liste = (
+            self.boden_anker(typ) if typ in BODEN else [anker or next(self.anker, self.mitte)]
+        )
         for a in anker_liste:
             for r in (12, 40, 80):
-                x0, y0, x1, y1 = max(0, a[0] - r), max(0, a[1] - r), min(399, a[0] + r), min(399, a[1] + r)
-                st = naechste(self.k.platzkarte(g["mapper"], g["b"], x0, y0, x1, y1), x0, y0, a, ausser)
+                x0, y0, x1, y1 = (
+                    max(0, a[0] - r),
+                    max(0, a[1] - r),
+                    min(399, a[0] + r),
+                    min(399, a[1] + r),
+                )
+                st = naechste(
+                    self.k.platzkarte(g["mapper"], g["b"], x0, y0, x1, y1), x0, y0, a, ausser
+                )
                 if st:
                     return st
         return None
@@ -600,12 +829,24 @@ class Lauf:
             versucht.append(st)
             vorher = {e["nr"] for e in self.s.gebaeude()}
             pech = self.s.pechgraeben() if typ == PECHGRABEN else 0
-            self.k.befehl({"baue": {"mapper": g["mapper"], "x": st[0], "y": st[1], "groesse": g["b"], "richtung": soll}}, KANAL)
+            self.k.befehl(
+                {
+                    "baue": {
+                        "mapper": g["mapper"],
+                        "x": st[0],
+                        "y": st[1],
+                        "groesse": g["b"],
+                        "richtung": soll,
+                    }
+                },
+                KANAL,
+            )
             neu = []
 
             def da():
                 neu[:] = [e for e in self.s.gebaeude() if e["nr"] not in vorher and e["typ"] == typ]
                 return bool(neu) or (typ == PECHGRABEN and self.s.pechgraeben() > pech)
+
             if self.warte_takte(BAU_GRENZE, da):
                 for e in neu:
                     self.gebaut[typ].append(e["nr"])
@@ -617,7 +858,9 @@ class Lauf:
             return None
         if not pflicht:
             return None
-        raise Abbruch(f"Art {typ} ({g.get('name')}): an den erlaubten Stellen {versucht} steht nach je {BAU_GRENZE} Takten kein Gebaeude")
+        raise Abbruch(
+            f"Art {typ} ({g.get('name')}): an den erlaubten Stellen {versucht} steht nach je {BAU_GRENZE} Takten kein Gebaeude"
+        )
 
 
 def abschnitt_grundstock(l):
@@ -647,9 +890,17 @@ def abschnitt_grundstock(l):
     grenze = l.warte_eingebucht(mengen)
     # updateBuildings rechnet den Deckel in jedem Takt neu auf: Mitten darin steht er kurz auf 0 (Lauf 21:30 Takt 3244)
     if not l.warte_takte(ABLESEN, lambda: s.spieler("populationCap") >= 10 + HUETTEN * 8):
-        raise Abbruch(f"Wohnplaetze {s.spieler('populationCap')}, erwartet mindestens {10 + HUETTEN * 8}")
+        raise Abbruch(
+            f"Wohnplaetze {s.spieler('populationCap')}, erwartet mindestens {10 + HUETTEN * 8}"
+        )
     l.lage_an = True
-    return {"burg": l.mitte, "kalender": s.kalender(), "deckel": s.spieler("populationCap"), "eingebucht_grenze": grenze, "waren": s.waren()}
+    return {
+        "burg": l.mitte,
+        "kalender": s.kalender(),
+        "deckel": s.spieler("populationCap"),
+        "eingebucht_grenze": grenze,
+        "waren": s.waren(),
+    }
 
 
 def abschnitt_bauen(l):
@@ -662,11 +913,18 @@ def abschnitt_bauen(l):
             l.wirkung(f"Zusatzbau Art {typ}", False)
     jetzt = s.waren()
     start = s.startwaren()
-    nach = {w: m - jetzt[w] - start[w] for w, m in LAGERWAREN.items() if m - jetzt[w] - start[w] > 0}
+    nach = {
+        w: m - jetzt[w] - start[w] for w, m in LAGERWAREN.items() if m - jetzt[w] - start[w] > 0
+    }
     if nach:
         l.startwaren_geben(nach, "nachgefuellt: Die Bauten haben Waren gekostet")
         l.warte_eingebucht(nach)
-    return {"arten": sum(1 for t in l.arten if l.gebaut[t]), "keine_stelle": l.keine_stelle, "pechgraeben": s.pechgraeben(), "nachgefuellt": nach}
+    return {
+        "arten": sum(1 for t in l.arten if l.gebaut[t]),
+        "keine_stelle": l.keine_stelle,
+        "pechgraeben": s.pechgraeben(),
+        "nachgefuellt": nach,
+    }
 
 
 def offene_plaetze(l):
@@ -679,36 +937,69 @@ def abschnitt_bauern(l):
     voll = l.warte_takte(grenze, lambda: offene_plaetze(l) == 0)
     l.bewohner_wache = False  # ob am Ende alle Plaetze besetzt sind, sagt die Schlusspruefung
     bremsprobe(l, "nach den Bauern")
-    return {"arbeitsplaetze": gesamt, "grenze": grenze, "voll": voll, "offen": offene_plaetze(l), "leute": l.s.spieler("currentPopulation"), "beliebtheit": l.s.spieler("popularity")}
+    return {
+        "arbeitsplaetze": gesamt,
+        "grenze": grenze,
+        "voll": voll,
+        "offen": offene_plaetze(l),
+        "leute": l.s.spieler("currentPopulation"),
+        "beliebtheit": l.s.spieler("popularity"),
+    }
 
 
 def _handel(l):
     s = l.s
     # Erst verkaufen: Das Waffenlager fasst 50, jedes Waffen-Los muss beim Kaufen noch hineinpassen
     vor = s.waren()
-    l.k.liste([{"spielbefehl": {"nr": BEFEHL_HANDEL, "werte": [1, w]}} for w in HANDELSWAREN], KANAL)
+    l.k.liste(
+        [{"spielbefehl": {"nr": BEFEHL_HANDEL, "werte": [1, w]}} for w in HANDELSWAREN], KANAL
+    )
     l.warte_takte(10)
     nach = s.waren()
-    l.wirkung("verkaufen", nach[15] > vor[15], gold=[vor[15], nach[15]], ohne_abgang=[w for w in HANDELSWAREN if nach[w] >= vor[w]])
+    l.wirkung(
+        "verkaufen",
+        nach[15] > vor[15],
+        gold=[vor[15], nach[15]],
+        ohne_abgang=[w for w in HANDELSWAREN if nach[w] >= vor[w]],
+    )
     vor = nach
-    l.k.liste([{"spielbefehl": {"nr": BEFEHL_HANDEL, "werte": [0, w]}} for w in HANDELSWAREN], KANAL)
+    l.k.liste(
+        [{"spielbefehl": {"nr": BEFEHL_HANDEL, "werte": [0, w]}} for w in HANDELSWAREN], KANAL
+    )
     l.warte_takte(10)
     nach = s.waren()
     fehlt = [w for w in HANDELSWAREN if nach[w] <= vor[w]]
-    l.wirkung("kaufen", nach[15] < vor[15] and len(fehlt) < len(HANDELSWAREN), gold=[vor[15], nach[15]], ohne_zuwachs=fehlt)
+    l.wirkung(
+        "kaufen",
+        nach[15] < vor[15] and len(fehlt) < len(HANDELSWAREN),
+        gold=[vor[15], nach[15]],
+        ohne_zuwachs=fehlt,
+    )
     # Kauf bei vollem Waffenlager: Das Spiel lehnt ab und nennt den Grund (storageMarketFailState 10)
     lose = (WAFFENLAGER_FASST - sum(WAFFEN_WAREN.values())) // LOS
-    l.k.liste([{"spielbefehl": {"nr": BEFEHL_HANDEL, "werte": [0, SPEER]}} for _ in range(lose)], KANAL)
+    l.k.liste(
+        [{"spielbefehl": {"nr": BEFEHL_HANDEL, "werte": [0, SPEER]}} for _ in range(lose)], KANAL
+    )
     l.warte_takte(10)
     vor = s.waren()
     l.k.liste([{"spielbefehl": {"nr": BEFEHL_HANDEL, "werte": [0, SPEER]}}], KANAL)
     l.warte_takte(10)
     nach = s.waren()
-    l.schreib({"messung": "Kauf bei vollem Waffenlager", "speer": [vor[SPEER], nach[SPEER]], "gold": [vor[15], nach[15]], "fail_state": s.spieler("storageMarketFailState")})
+    l.schreib(
+        {
+            "messung": "Kauf bei vollem Waffenlager",
+            "speer": [vor[SPEER], nach[SPEER]],
+            "gold": [vor[15], nach[15]],
+            "fail_state": s.spieler("storageMarketFailState"),
+        }
+    )
     # wieder Platz schaffen: Die Waffenschmieden sollen abliefern koennen, und fuers Anwerben bleibt die geplante Menge
     zurueck = (s.waren()[SPEER] - WAFFEN_WAREN[SPEER]) // LOS
     if zurueck > 0:
-        l.k.liste([{"spielbefehl": {"nr": BEFEHL_HANDEL, "werte": [1, SPEER]}} for _ in range(zurueck)], KANAL)
+        l.k.liste(
+            [{"spielbefehl": {"nr": BEFEHL_HANDEL, "werte": [1, SPEER]}} for _ in range(zurueck)],
+            KANAL,
+        )
         l.warte_takte(10)
 
 
@@ -722,18 +1013,35 @@ def _steuern_rationen(l):
         l.warte_takte(WOCHE)
         roh.append(s.spieler("taxesSetting"))
     l.k.befehl({"spielbefehl": {"nr": BEFEHL_STEUER, "werte": [alt_steuer]}}, KANAL)
-    l.wirkung("Steuern", len(set(roh)) == len(STEUERSTUFEN), rohwerte=roh, beliebtheit=s.spieler("popularity"))
+    l.wirkung(
+        "Steuern",
+        len(set(roh)) == len(STEUERSTUFEN),
+        rohwerte=roh,
+        beliebtheit=s.spieler("popularity"),
+    )
     roh = []
     for st in RATIONEN:
         l.k.befehl({"spielbefehl": {"nr": BEFEHL_RATION, "werte": [st]}}, KANAL)
         l.warte_takte(WOCHE)
         roh.append(s.spieler("rationsSetting"))
     l.k.befehl({"spielbefehl": {"nr": BEFEHL_RATION, "werte": [alt_ration]}}, KANAL)
-    l.wirkung("Rationen", len(set(roh)) == len(RATIONEN), rohwerte=roh, beliebtheit=s.spieler("popularity"))
+    l.wirkung(
+        "Rationen",
+        len(set(roh)) == len(RATIONEN),
+        rohwerte=roh,
+        beliebtheit=s.spieler("popularity"),
+    )
     l.warte_takte(ABLESEN)
-    l.wirkung("Einstellungen zurueck", s.spieler("taxesSetting") == alt_steuer and s.spieler("rationsSetting") == alt_ration, steuer=s.spieler("taxesSetting"), ration=s.spieler("rationsSetting"))
+    l.wirkung(
+        "Einstellungen zurueck",
+        s.spieler("taxesSetting") == alt_steuer and s.spieler("rationsSetting") == alt_ration,
+        steuer=s.spieler("taxesSetting"),
+        ration=s.spieler("rationsSetting"),
+    )
     l.beliebtheit_frei = False
-    l.frei_bis = s.takt() + 10 * WOCHE  # die Beliebtheit steigt wochenweise zurueck, erst danach gilt die Untergrenze wieder
+    l.frei_bis = (
+        s.takt() + 10 * WOCHE
+    )  # die Beliebtheit steigt wochenweise zurueck, erst danach gilt die Untergrenze wieder
 
 
 def _mauer_graben(l):
@@ -741,7 +1049,9 @@ def _mauer_graben(l):
     a = (l.mitte[0] + 40, l.mitte[1] + 40)
     for r in (20, 40, 60):
         x0, y0, x1, y1 = max(0, a[0] - r), max(0, a[1] - r), min(399, a[0] + r), min(399, a[1] + r)
-        st = freier_streifen(l.k.platzkarte(l.arten[FALLGRUBE]["mapper"], 1, x0, y0, x1, y1), x0, y0, 13, 9)  # 1 Feld gross: "erlaubt" heisst hier frei
+        st = freier_streifen(
+            l.k.platzkarte(l.arten[FALLGRUBE]["mapper"], 1, x0, y0, x1, y1), x0, y0, 13, 9
+        )  # 1 Feld gross: "erlaubt" heisst hier frei
         if st:
             break
     else:
@@ -749,7 +1059,9 @@ def _mauer_graben(l):
         return
     x, y = st
     l.k.befehl({"spielbefehl": {"nr": BEFEHL_MAUER, "werte": [x, y, x + 12, y, 25, 13]}}, KANAL)
-    l.k.befehl({"spielbefehl": {"nr": BEFEHL_MAUER, "werte": [x, y + 3, x + 12, y + 3, 46, 13]}}, KANAL)
+    l.k.befehl(
+        {"spielbefehl": {"nr": BEFEHL_MAUER, "werte": [x, y + 3, x + 12, y + 3, 46, 13]}}, KANAL
+    )
     l.k.befehl({"spielbefehl": {"nr": BEFEHL_GRABEN, "werte": [x, y + 8, 0, 0x40000000, 2]}}, KANAL)
     l.warte_takte(20)
     l.wirkung("Mauer", s.logik(x, y) & BIT_MAUER, ort=[x, y], stein=s.waren()[4])
@@ -779,7 +1091,13 @@ def _schlafen(l):
     an = l.s.schlaeft(typ)
     l.k.befehl({"spielbefehl": {"nr": BEFEHL_SCHLAF, "werte": [typ]}}, KANAL)
     l.warte_takte(10)
-    l.wirkung("Arbeit ruhen lassen", an != vor and l.s.schlaeft(typ) == vor, vor=vor, an=an, zurueck=l.s.schlaeft(typ))
+    l.wirkung(
+        "Arbeit ruhen lassen",
+        an != vor and l.s.schlaeft(typ) == vor,
+        vor=vor,
+        an=an,
+        zurueck=l.s.schlaeft(typ),
+    )
 
 
 def _abreissen(l):
@@ -794,19 +1112,34 @@ def _abreissen(l):
         weg = l.warte_takte(100, lambda: nr not in {e["nr"] for e in s.gebaeude()})
         l.gebaut[typ].remove(nr)
         nach = s.waren()
-        l.wirkung(f"Abreissen Art {typ}", weg, nr=nr, zurueck={w: nach[w] - vor[w] for w in (2, 4, 6, 7, 15) if nach[w] != vor[w]})
+        l.wirkung(
+            f"Abreissen Art {typ}",
+            weg,
+            nr=nr,
+            zurueck={w: nach[w] - vor[w] for w in (2, 4, 6, 7, 15) if nach[w] != vor[w]},
+        )
 
 
 def _anwerben(l):
     s = l.s
     auftraege = [(e, g) for g, es in ANWERBEN.items() for e in es if l.gebaut[g]]
-    l.warte_takte(len(auftraege) * TAKTE_JE_BEWOHNER, lambda: s.spieler("availablePeasantsAtFire") >= len(auftraege))
+    l.warte_takte(
+        len(auftraege) * TAKTE_JE_BEWOHNER,
+        lambda: s.spieler("availablePeasantsAtFire") >= len(auftraege),
+    )
     vor = s.einheiten()
     l.k.liste([{"werbe": {"typ": e, "gebaeude": l.gebaut[g][0]}} for e, g in auftraege], KANAL)
     l.warte_takte(60)  # die Verwandlung dauert rund 33 Takte (UpdatePeasant)
     nach = s.einheiten()
     fehlt = [e for e, _ in auftraege if nach[e] <= vor[e]]
-    l.wirkung("Anwerben", not fehlt, versucht=len(auftraege), ohne_einheit=fehlt, feuer=s.spieler("availablePeasantsAtFire"), heer=s.spieler("armySize"))
+    l.wirkung(
+        "Anwerben",
+        not fehlt,
+        versucht=len(auftraege),
+        ohne_einheit=fehlt,
+        feuer=s.spieler("availablePeasantsAtFire"),
+        heer=s.spieler("armySize"),
+    )
 
 
 def _zweite_kaserne(l):
@@ -814,13 +1147,27 @@ def _zweite_kaserne(l):
     e = l.setze(KASERNE, pflicht=False)
     l.warte_takte(20)
     da = {g["nr"] for g in l.s.gebaeude()}
-    l.wirkung("zweite Kaserne ersetzt die erste", e and e["nr"] in da and alt not in da, alt=alt, neu=e and e["nr"])
+    l.wirkung(
+        "zweite Kaserne ersetzt die erste",
+        e and e["nr"] in da and alt not in da,
+        alt=alt,
+        neu=e and e["nr"],
+    )
     if alt in l.gebaut[KASERNE] and alt not in da:
         l.gebaut[KASERNE].remove(alt)
 
 
 def abschnitt_schalten(l):
-    for schritt in (_handel, _steuern_rationen, _mauer_graben, _tore, _schlafen, _abreissen, _anwerben, _zweite_kaserne):
+    for schritt in (
+        _handel,
+        _steuern_rationen,
+        _mauer_graben,
+        _tore,
+        _schlafen,
+        _abreissen,
+        _anwerben,
+        _zweite_kaserne,
+    ):
         schritt(l)
     return {"funde": len(l.funde)}
 
@@ -833,10 +1180,19 @@ def abschnitt_ketten(l):
     def fertig():
         t, st = s.takt(), l.rek.felder()
         return t - a >= JAHR and st is not None and t - (st.get("letzter_neuer_takt") or a) >= JAHR
+
     gemessen = l.warte_takte(2 * JAHR, fertig)
     st = l.rek.felder() or {}
     bremsprobe(l, "nach den Warenketten")
-    return {"takte": s.takt() - a, "gemessenes_ende": gemessen, "felder": st.get("felder"), "letzter_neuer_takt": st.get("letzter_neuer_takt"), "jahreswechsel": s.kalender()[0] - jahr0, "offen": offene_plaetze(l), "waren": s.waren()}
+    return {
+        "takte": s.takt() - a,
+        "gemessenes_ende": gemessen,
+        "felder": st.get("felder"),
+        "letzter_neuer_takt": st.get("letzter_neuer_takt"),
+        "jahreswechsel": s.kalender()[0] - jahr0,
+        "offen": offene_plaetze(l),
+        "waren": s.waren(),
+    }
 
 
 def bremsprobe(l, wann):
@@ -851,9 +1207,31 @@ def bremsprobe(l, wann):
         l.rek.aussetzen(True)
         o2 = l.messe(BREMS_TAKTE)
         l.rek.aussetzen(False)
-        e = a4_tempotreppe([{"tempo": l.tempo, "soll": BREMS_TAKTE, "gezaehlt": min(o1["takte"], m["takte"], o2["takte"]), "sekunden": min(o1["sekunden"], m["sekunden"], o2["sekunden"]),
-                             "ohne_1": o1["rate"], "mit": m["rate"], "ohne_2": o2["rate"], "gelesen": 0, "gesamt": 0}])
-        l.schreib({"bremsprobe": wann, "versuch": versuch, "ohne_1": round(o1["rate"], 1), "mit": round(m["rate"], 1), "ohne_2": round(o2["rate"], 1), "ergebnis": e.status})
+        e = a4_tempotreppe(
+            [
+                {
+                    "tempo": l.tempo,
+                    "soll": BREMS_TAKTE,
+                    "gezaehlt": min(o1["takte"], m["takte"], o2["takte"]),
+                    "sekunden": min(o1["sekunden"], m["sekunden"], o2["sekunden"]),
+                    "ohne_1": o1["rate"],
+                    "mit": m["rate"],
+                    "ohne_2": o2["rate"],
+                    "gelesen": 0,
+                    "gesamt": 0,
+                }
+            ]
+        )
+        l.schreib(
+            {
+                "bremsprobe": wann,
+                "versuch": versuch,
+                "ohne_1": round(o1["rate"], 1),
+                "mit": round(m["rate"], 1),
+                "ohne_2": round(o2["rate"], 1),
+                "ergebnis": e.status,
+            }
+        )
         if e.status != WIDERLEGT:
             return
     raise Abbruch(f"Das Lesen bremst {wann}: {e.text}")
@@ -887,17 +1265,42 @@ def abschnitt_treppe(l):
             raise Abbruch(f"Tempo {stufe} wirkt nicht: {o1['rate']:.1f} Takte je Sekunde")
         r = l.rek.lese_runde(soll, stufe, l.wach)
         o2 = l.messe(soll)
-        z = {"tempo": stufe, "soll": soll, "gezaehlt": min(o1["takte"], r["takte"], o2["takte"]), "sekunden": min(o1["sekunden"], r["sekunden"], o2["sekunden"]),
-             "ohne_1": o1["rate"], "mit": r["takte_je_s"], "ohne_2": o2["rate"], "gelesen": r["gelesen"], "gesamt": r["takte"]}
+        z = {
+            "tempo": stufe,
+            "soll": soll,
+            "gezaehlt": min(o1["takte"], r["takte"], o2["takte"]),
+            "sekunden": min(o1["sekunden"], r["sekunden"], o2["sekunden"]),
+            "ohne_1": o1["rate"],
+            "mit": r["takte_je_s"],
+            "ohne_2": o2["rate"],
+            "gelesen": r["gelesen"],
+            "gesamt": r["takte"],
+        }
         zeilen.append(z)
-        l.schreib({"tempostufe": stufe, "ohne_1": round(o1["rate"], 1), "mit": round(r["takte_je_s"], 1), "ohne_2": round(o2["rate"], 1), "gelesen": r["gelesen"], "takte": r["takte"]})
+        l.schreib(
+            {
+                "tempostufe": stufe,
+                "ohne_1": round(o1["rate"], 1),
+                "mit": round(r["takte_je_s"], 1),
+                "ohne_2": round(o2["rate"], 1),
+                "gelesen": r["gelesen"],
+                "takte": r["takte"],
+            }
+        )
     e = a4_tempotreppe(zeilen)
     l.ergebnis["treppe"] = e
     return {"ergebnis": e.status, "text": e.text, "zeilen": e.daten.get("zeilen")}
 
 
-ABSCHNITTE = (("grundstock", abschnitt_grundstock), ("bauen", abschnitt_bauen), ("bauern", abschnitt_bauern), ("schalten", abschnitt_schalten),
-              ("ketten", abschnitt_ketten), ("jahr_tempo40", abschnitt_jahr40), ("treppe", abschnitt_treppe))
+ABSCHNITTE = (
+    ("grundstock", abschnitt_grundstock),
+    ("bauen", abschnitt_bauen),
+    ("bauern", abschnitt_bauern),
+    ("schalten", abschnitt_schalten),
+    ("ketten", abschnitt_ketten),
+    ("jahr_tempo40", abschnitt_jahr40),
+    ("treppe", abschnitt_treppe),
+)
 
 
 def programm(l, abschnitte=ABSCHNITTE):
@@ -911,7 +1314,14 @@ def programm(l, abschnitte=ABSCHNITTE):
         except OSError as e:  # jedes Lesen kann der Fehler sein, der das Ende des Spiels zeigt
             raise Abbruch(f"Spiel laeuft nicht mehr: {e}") from e
         t1, d = l.s.takt(), l.uhr() - s0
-        eintrag = {"abschnitt": name, "takt_von": t0, "takt_bis": t1, "sekunden": round(d, 1), "takte_je_s": round((t1 - t0) / d, 1) if d > 0 else None, "daten": daten}
+        eintrag = {
+            "abschnitt": name,
+            "takt_von": t0,
+            "takt_bis": t1,
+            "sekunden": round(d, 1),
+            "takte_je_s": round((t1 - t0) / d, 1) if d > 0 else None,
+            "daten": daten,
+        }
         l.schreib(eintrag)
         aus.append(eintrag)
     return aus
@@ -923,13 +1333,31 @@ def schluss(l, kalender_start):
 
     s = l.s
     stehen = {e["typ"] for e in s.gebaeude()}
-    fehlen = [t for t in l.arten if t not in stehen and t != PECHGRUBE and not (t == PECHGRABEN and s.pechgraeben())]
+    fehlen = [
+        t
+        for t in l.arten
+        if t not in stehen and t != PECHGRUBE and not (t == PECHGRABEN and s.pechgraeben())
+    ]
     stand = l.ergebnis.get("jahr40") or {}
     treppe = l.ergebnis.get("treppe")
-    pruefung = {"arten_fehlen": fehlen, "offene_arbeitsplaetze": offene_plaetze(l), "jahreswechsel": s.kalender()[0] - kalender_start[0],
-                "tempo40_fehlend": stand.get("fehlend"), "tempo40_gemischt": stand.get("gemischt"), "treppe": treppe.status if treppe else None, "funde": l.funde}
-    pruefung["gueltig"] = (not fehlen and pruefung["offene_arbeitsplaetze"] == 0 and pruefung["jahreswechsel"] >= 1 and stand.get("fehlend") == 0 and stand.get("gemischt") == 0
-                           and treppe is not None and treppe.status == BESTAETIGT)
+    pruefung = {
+        "arten_fehlen": fehlen,
+        "offene_arbeitsplaetze": offene_plaetze(l),
+        "jahreswechsel": s.kalender()[0] - kalender_start[0],
+        "tempo40_fehlend": stand.get("fehlend"),
+        "tempo40_gemischt": stand.get("gemischt"),
+        "treppe": treppe.status if treppe else None,
+        "funde": l.funde,
+    }
+    pruefung["gueltig"] = (
+        not fehlen
+        and pruefung["offene_arbeitsplaetze"] == 0
+        and pruefung["jahreswechsel"] >= 1
+        and stand.get("fehlend") == 0
+        and stand.get("gemischt") == 0
+        and treppe is not None
+        and treppe.status == BESTAETIGT
+    )
     return pruefung
 
 
@@ -942,6 +1370,7 @@ def tempo_setzen(k, s):
 def pruefen(n, quell=QUELL_INSTANZ, laeuft_schon=False):
     """Trockenprobe: liest nur. Jede Zeile (Name, ok, Aussage)."""
     from selfaware.tools.experiments.auge_aufzeichnung import pid_der_instanz, prozesspfade
+
     aus = []
 
     def pruef(name, ok, text=""):
@@ -951,35 +1380,77 @@ def pruefen(n, quell=QUELL_INSTANZ, laeuft_schon=False):
     o = ordner(n)
     pruef("Ordner und Programm da", os.path.exists(os.path.join(o, "Stronghold Crusader.exe")), o)
     pruef("Karte da", os.path.exists(os.path.join(o, "maps", KARTE + ".map")), KARTE + ".map")
-    pruef("Modul da", os.path.exists(os.path.join(o, "ucp", "modules", "villagestudio-0.1.0", "init.lua")))
+    pruef(
+        "Modul da",
+        os.path.exists(os.path.join(o, "ucp", "modules", "villagestudio-0.1.0", "init.lua")),
+    )
     log = os.path.join(o, "ucp3.log")
     # keine Bedingung: Der Lauf traegt das Modul selbst ein; ob es laeuft, zeigt erst seine Antwort im Spiel
-    aktiv = os.path.exists(log) and "villagestudio aktiv" in open(log, encoding="utf-8", errors="replace").read()
-    pruef("Stand des letzten Starts bekannt", True, ("Modul war aktiv" if aktiv else "Modul war nicht aktiv") + (time.strftime(", %d.%m. %H:%M", time.localtime(os.path.getmtime(log))) if os.path.exists(log) else ""))
+    aktiv = (
+        os.path.exists(log)
+        and "villagestudio aktiv" in open(log, encoding="utf-8", errors="replace").read()
+    )
+    pruef(
+        "Stand des letzten Starts bekannt",
+        True,
+        ("Modul war aktiv" if aktiv else "Modul war nicht aktiv")
+        + (
+            time.strftime(", %d.%m. %H:%M", time.localtime(os.path.getmtime(log)))
+            if os.path.exists(log)
+            else ""
+        ),
+    )
     if laeuft_schon:
         pruef("Instanz laeuft schon, wie angegeben", pid_der_instanz(n) is not None)
     else:
         pruef("Instanz laeuft gerade nicht", pid_der_instanz(n) is None)
     pfade = prozesspfade()
-    pruef("UCP3-GUI ist zu", not any("ucp3-gui" in p.lower() or "ucp3 gui" in p.lower() for p in pfade))
+    pruef(
+        "UCP3-GUI ist zu",
+        not any("ucp3-gui" in p.lower() or "ucp3 gui" in p.lower() for p in pfade),
+    )
     q = os.path.join(ordner(quell), "ucp", "villagestudio", "logik.lua")
     try:
         t = logik_text(q)
-        pruef("logik.lua laesst sich ergaenzen", t.count(NEU) == 1 and t.count(ANKER) == 1 and BAU_NEU[3] in t, f"Quelle Instanz {quell}, {len(t)} Zeichen")
+        pruef(
+            "logik.lua laesst sich ergaenzen",
+            t.count(NEU) == 1 and t.count(ANKER) == 1 and BAU_NEU[3] in t,
+            f"Quelle Instanz {quell}, {len(t)} Zeichen",
+        )
         f = lua_fehler(t)
         pruef("logik.lua hat keinen Syntaxfehler", not f or f.startswith("nicht geprueft"), f or "")
     except (OSError, Fehler) as e:
         pruef("logik.lua laesst sich ergaenzen", False, str(e))
-    s = subprocess.run([sys.executable, sperre_pfad(), "nachsehen"], capture_output=True, text=True, encoding="utf-8", errors="replace",
-                       env=dict(os.environ, SHC_INSTANZ=str(n)), timeout=30)
-    pruef("Sperre frei", "FREI" in s.stdout, s.stdout.strip().splitlines()[-1] if s.stdout.strip() else s.stderr[:100])
+    s = subprocess.run(
+        [sys.executable, sperre_pfad(), "nachsehen"],
+        capture_output=True,
+        text=True,
+        encoding="utf-8",
+        errors="replace",
+        env=dict(os.environ, SHC_INSTANZ=str(n)),
+        timeout=30,
+    )
+    pruef(
+        "Sperre frei",
+        "FREI" in s.stdout,
+        s.stdout.strip().splitlines()[-1] if s.stdout.strip() else s.stderr[:100],
+    )
     from selfaware.tools.analysis.auge_feldkarte import FELDLISTE, Feldkarte
     from selfaware.tools.experiments.auge_aufzeichnung import standard_bereiche
+
     karte = Feldkarte.laden(feldliste=FELDLISTE)
     bereiche = standard_bereiche(karte)
-    pruef("Bereiche aus dem Export", len(bereiche) >= 10, f"{len(bereiche)} Bereiche, jeden Takt {sum(b.laenge for b in bereiche if b.alle == 1) / 1e6:.1f} MB")
+    pruef(
+        "Bereiche aus dem Export",
+        len(bereiche) >= 10,
+        f"{len(bereiche)} Bereiche, jeden Takt {sum(b.laenge for b in bereiche if b.alle == 1) / 1e6:.1f} MB",
+    )
     falsch = adressen_gegen_karte(karte)
-    pruef("Feste Adressen passen zum Export", not falsch, str(falsch) if falsch else "Spieler, Gebaeude, Kalender")
+    pruef(
+        "Feste Adressen passen zum Export",
+        not falsch,
+        str(falsch) if falsch else "Spieler, Gebaeude, Kalender",
+    )
     frei = shutil.disk_usage(os.path.dirname(os.path.abspath(__file__))).free
     pruef("Plattenplatz reicht", frei > PLATTE_MINDESTENS, f"{frei / 1e9:.0f} GB frei")
     return aus
@@ -989,17 +1460,35 @@ def adressen_gegen_karte(karte):
     """Die festen Adressen des Programms gegen die Feldnamen des Exports. Rueckgabe: was nicht passt."""
     falsch = []
     basis = SPIELER + SPIELER_SCHRITT
-    soll = {**{f"playerDataArray[].{n}": o for n, o in FELD.items()}, "playerDataArray[].startResources[]": FELD_START, "playerDataArray[].currentResources[]": FELD_BESTAND}
+    soll = {
+        **{f"playerDataArray[].{n}": o for n, o in FELD.items()},
+        "playerDataArray[].startResources[]": FELD_START,
+        "playerDataArray[].currentResources[]": FELD_BESTAND,
+    }
     for f, o in soll.items():
         ist = karte.ziel(basis + o)[1]
         if ist != f:
             falsch.append((f, ist))
-    gsoll = {"buildingType": G_TYP, "owner": G_BESITZER, "uid": G_UID, "x": G_X, "y": G_Y, "buildingVariation": G_BILDWERT, "currentlyNeededEmployeeCount": G_OFFEN, "gateState": G_TOR}
+    gsoll = {
+        "buildingType": G_TYP,
+        "owner": G_BESITZER,
+        "uid": G_UID,
+        "x": G_X,
+        "y": G_Y,
+        "buildingVariation": G_BILDWERT,
+        "currentlyNeededEmployeeCount": G_OFFEN,
+        "gateState": G_TOR,
+    }
     for f, o in gsoll.items():
         ist = karte.ziel(GEBAEUDE + G_SCHRITT + o)[1]
         if ist != f"buildings[].{f}":
             falsch.append((f, ist))
-    for f, a in (("mapAndTime.year", JAHR_ADR), ("mapAndTime.month", MONAT_ADR), ("mapAndTime.week", WOCHE_ADR), ("mapAndTime.singlePlayerHasKeepAndGranary", HAT_BURG_KORN)):
+    for f, a in (
+        ("mapAndTime.year", JAHR_ADR),
+        ("mapAndTime.month", MONAT_ADR),
+        ("mapAndTime.week", WOCHE_ADR),
+        ("mapAndTime.singlePlayerHasKeepAndGranary", HAT_BURG_KORN),
+    ):
         if karte.ziel(a)[1] != f:
             falsch.append((f, karte.ziel(a)[1]))
     if karte.adresse("DAT_TileMapState", "pitchDitches")[0] != PECHGRAEBEN:
@@ -1009,23 +1498,36 @@ def adressen_gegen_karte(karte):
 
 def sperre_pfad():
     from selfaware import workspace
+
     return os.path.join(workspace.VILLAGE_STUDIO, "werkzeug", "sperre.py")
 
 
 def sperre_holen(was):
-    r = subprocess.run([sys.executable, sperre_pfad(), "holen", SPERRE_NAME, was], capture_output=True, text=True, env=dict(os.environ), timeout=30)
+    r = subprocess.run(
+        [sys.executable, sperre_pfad(), "holen", SPERRE_NAME, was],
+        capture_output=True,
+        text=True,
+        env=dict(os.environ),
+        timeout=30,
+    )
     if r.returncode != 0:
         raise Fehler(f"Sperre nicht bekommen: {r.stdout} {r.stderr}")
 
 
 def sperre_freigeben():
-    subprocess.run([sys.executable, sperre_pfad(), "freigeben", SPERRE_NAME], capture_output=True, env=dict(os.environ), timeout=30)
+    subprocess.run(
+        [sys.executable, sperre_pfad(), "freigeben", SPERRE_NAME],
+        capture_output=True,
+        env=dict(os.environ),
+        timeout=30,
+    )
 
 
 class EchterKanal:
     def __init__(self):
         from selfaware.game.ucp import laden
         from selfaware.game.ucp.befehl import ABZUG, neue_id, sende
+
         self._laden, self._neue_id, self._sende, self._abzug = laden, neue_id, sende, ABZUG
 
     def befehl(self, cmd, warte=0.8, bis=None):
@@ -1034,17 +1536,37 @@ class EchterKanal:
     def peek(self, adr, n=1):
         # verpackt: unverpackte Lesebefehle kommen in Menues nicht an (gemessen 21.10.)
         kennung = "PEEK 0x%08X" % adr
-        for z in self._sende({"befehle": [{"player": 1, "id": self._neue_id(), "peek": adr, "worte": n}]}, 3.0, bis=kennung):
+        for z in self._sende(
+            {"befehle": [{"player": 1, "id": self._neue_id(), "peek": adr, "worte": n}]},
+            3.0,
+            bis=kennung,
+        ):
             if kennung in z:
                 return [int(x, 16) & 0xFFFFFFFF for x in z.split(": ", 2)[-1].split()]
         raise Fehler(f"keine Antwort auf {kennung}")
 
     def liste(self, cmds, warte=1.0):
-        return self._sende({"befehle": [{"player": 1, **c, "id": self._neue_id()} for c in cmds]}, warte)  # 03.11.: dict(c, player=1) ueberschrieb den Spieler, alle Befehle fuer Spieler 2 liefen als Spieler 1
+        return self._sende(
+            {"befehle": [{"player": 1, **c, "id": self._neue_id()} for c in cmds]}, warte
+        )  # 03.11.: dict(c, player=1) ueberschrieb den Spieler, alle Befehle fuer Spieler 2 liefen als Spieler 1
 
     def platzkarte(self, mapper, groesse, x0, y0, x1, y1, sp=1):
         """Spielpruefung je Stelle des Fensters: "+" erlaubt. Der Haken wartet auf die Fertig-Zeile im Log, nicht auf eine feste Zeit."""
-        z = self.befehl({"platzkarte": {"spieler": sp, "mapper": mapper, "groesse": groesse, "x0": x0, "y0": y0, "x1": x1, "y1": y1}}, 3.0, bis="PLATZKARTE Mapper")
+        z = self.befehl(
+            {
+                "platzkarte": {
+                    "spieler": sp,
+                    "mapper": mapper,
+                    "groesse": groesse,
+                    "x0": x0,
+                    "y0": y0,
+                    "x1": x1,
+                    "y1": y1,
+                }
+            },
+            3.0,
+            bis="PLATZKARTE Mapper",
+        )
         if not any("PLATZKARTE Mapper" in x for x in z):
             raise Abbruch(f"Spielpruefung antwortet nicht (Mapper {mapper})")
         with open(os.path.join(self._abzug, "platzkarte.txt"), encoding="latin-1") as f:
@@ -1055,9 +1577,19 @@ class Rekorder:
     """Die Aufzeichnung laeuft als eigener Prozess: Das Lesen soll nicht auf das Programm des Laufs warten."""
 
     def __init__(self, n, ordner_aus, stempel, quelle, bereiche):
-        self.n, self.ordner, self.stempel, self.quelle, self.bereiche = n, ordner_aus, stempel, quelle, bereiche
+        self.n, self.ordner, self.stempel, self.quelle, self.bereiche = (
+            n,
+            ordner_aus,
+            stempel,
+            quelle,
+            bereiche,
+        )
         self.basis = os.path.join(ordner_aus, f"lauf_f_{stempel}")
-        self.stop_datei, self.aus_datei, self.felder_datei = self.basis + ".stop", self.basis + ".aussetzen", self.basis + ".felder.json"
+        self.stop_datei, self.aus_datei, self.felder_datei = (
+            self.basis + ".stop",
+            self.basis + ".aussetzen",
+            self.basis + ".felder.json",
+        )
         self.p, self.pfad = None, None
         self.lauf = "F"
 
@@ -1066,8 +1598,25 @@ class Rekorder:
         for d in (self.stop_datei, self.aus_datei):
             if os.path.exists(d):
                 os.remove(d)
-        cmd = [sys.executable, "-m", "selfaware.tools.experiments.auge_aufzeichnung", "--instanz", str(self.n), "--ausgabe", self.pfad, "--lauf", self.lauf, "--stop-datei", self.stop_datei,
-               "--aussetzen-datei", self.aus_datei, "--tempo-wert", str(tempo), "--tempo-takte", str(tempo if messen else 0)]  # im angehaltenen Spiel laeuft kein Takt zum Messen
+        cmd = [
+            sys.executable,
+            "-m",
+            "selfaware.tools.experiments.auge_aufzeichnung",
+            "--instanz",
+            str(self.n),
+            "--ausgabe",
+            self.pfad,
+            "--lauf",
+            self.lauf,
+            "--stop-datei",
+            self.stop_datei,
+            "--aussetzen-datei",
+            self.aus_datei,
+            "--tempo-wert",
+            str(tempo),
+            "--tempo-takte",
+            str(tempo if messen else 0),
+        ]  # im angehaltenen Spiel laeuft kein Takt zum Messen
         if streng:
             cmd.append("--streng")
         if warte_ms:
@@ -1077,7 +1626,11 @@ class Rekorder:
         self.p = subprocess.Popen(cmd, env=dict(os.environ))
 
     def laeuft(self):
-        return self.pfad is not None and os.path.exists(self.pfad) and os.path.getsize(self.pfad) > 1000
+        return (
+            self.pfad is not None
+            and os.path.exists(self.pfad)
+            and os.path.getsize(self.pfad) > 1000
+        )
 
     def stand(self):
         try:
@@ -1124,20 +1677,32 @@ class Rekorder:
         from selfaware.tools.experiments.auge_aufzeichnung import Aufzeichner
 
         sys.setswitchinterval(0.0005)
-        auf = Aufzeichner(self.quelle, self.bereiche, f"{self.basis}_treppe_tempo{stufe}.auge", {"lauf": "Treppe", "tempo": stufe})
+        auf = Aufzeichner(
+            self.quelle,
+            self.bereiche,
+            f"{self.basis}_treppe_tempo{stufe}.auge",
+            {"lauf": "Treppe", "tempo": stufe},
+        )
         a, t0 = auf.takt(), time.perf_counter()
 
         def stop():
             wach()
             return False
+
         n = auf.lauf(bis_takt=a + takte, pause=0.0002, stop=stop)
         e, t1 = auf.takt(), time.perf_counter()
         auf.schliessen()
-        return {"takte_je_s": (e - a) / (t1 - t0), "gelesen": n, "takte": e - a, "sekunden": t1 - t0}
+        return {
+            "takte_je_s": (e - a) / (t1 - t0),
+            "gelesen": n,
+            "takte": e - a,
+            "sekunden": t1 - t0,
+        }
 
 
 def stop_datei(ziel=None):
     from selfaware import workspace
+
     return os.path.join(ziel or os.path.join(workspace.DATA, "auge_plan", "laeufe"), "STOP_LAUF_F")
 
 
@@ -1182,25 +1747,43 @@ def los(n, ziel=None, laeuft_schon=False, frist=FRIST):
         q = os.path.join(ordner(QUELL_INSTANZ), "ucp", "villagestudio", "logik.lua")
         log = os.path.join(ordner(n), "ucp3.log")
         log_vorher = os.path.getsize(log) if os.path.exists(log) else 0
-        sicherung = logik_einspielen(os.path.join(ordner(n), "ucp", "villagestudio", "logik.lua"), q, stempel)
+        sicherung = logik_einspielen(
+            os.path.join(ordner(n), "ucp", "villagestudio", "logik.lua"), q, stempel
+        )
         schreib({"schritt": "logik", "sicherung": sicherung})
-        schreib({"schritt": "ladeliste", "sicherung": modul_eintragen(os.path.join(ordner(n), "ucp-config.yml"), stempel)})
+        schreib(
+            {
+                "schritt": "ladeliste",
+                "sicherung": modul_eintragen(os.path.join(ordner(n), "ucp-config.yml"), stempel),
+            }
+        )
         if not laeuft_schon:
             ps = os.path.join(workspace.ROOT, "tools", "windows", "spiel_starten.ps1")
-            a = subprocess.run(["powershell", "-ExecutionPolicy", "Bypass", "-File", ps, "-Instanz", str(n)], capture_output=True, text=True, timeout=120)
+            a = subprocess.run(
+                ["powershell", "-ExecutionPolicy", "Bypass", "-File", ps, "-Instanz", str(n)],
+                capture_output=True,
+                text=True,
+                timeout=120,
+            )
             schreib({"schritt": "start", "ausgabe": a.stdout.strip()[-200:]})
             if a.returncode != 0:
                 raise Fehler(f"Spielstart: {a.stdout} {a.stderr}")
         from selfaware.game.ucp import bauen
-        from selfaware.tools.experiments.auge_aufzeichnung import ProzessQuelle, pid_der_instanz, standard_bereiche
+        from selfaware.tools.experiments.auge_aufzeichnung import (
+            ProzessQuelle,
+            pid_der_instanz,
+            standard_bereiche,
+        )
 
         k = EchterKanal()
         warte_auf_modul(k)
         if laeuft_schon and sicherung:
+
             def nachgeladen():
                 with open(log, encoding="utf-8", errors="replace") as f:
                     f.seek(log_vorher)
                     return "logik.lua neu geladen" in f.read()
+
             warte_auf(nachgeladen, 20, "Modul hat die logik.lua nachgeladen")
         for rest in ALTE_SCHALTER:
             k.befehl(rest, KANAL)
@@ -1214,7 +1797,14 @@ def los(n, ziel=None, laeuft_schon=False, frist=FRIST):
         warte_auf(rek.laeuft, 60, "Aufzeichnung laeuft")
         kalender_start = s.kalender()
         l = Lauf(k, s, bauen.NACH_TYP, rek, schreib, frist=frist, stop=lambda: os.path.exists(stop))
-        schreib({"schritt": "spielart", "takt": s.takt(), "kalender": kalender_start, "startwaren": s.startwaren()})
+        schreib(
+            {
+                "schritt": "spielart",
+                "takt": s.takt(),
+                "kalender": kalender_start,
+                "startwaren": s.startwaren(),
+            }
+        )
         programm(l)
         ergebnis = schluss(l, kalender_start)
         schreib({"schritt": "schluss", **ergebnis})
@@ -1237,10 +1827,20 @@ def los(n, ziel=None, laeuft_schon=False, frist=FRIST):
         if steht:
             sperre_freigeben()
         else:
-            schreib({"schritt": "sperre_bleibt", "grund": "Der Takt steht nicht, die Sperre bleibt, bis das geklaert ist"})
+            schreib(
+                {
+                    "schritt": "sperre_bleibt",
+                    "grund": "Der Takt steht nicht, die Sperre bleibt, bis das geklaert ist",
+                }
+            )
     from selfaware.tools.analysis import auge_ergebnis
 
-    schreib({"schritt": "auswertung", "bericht": auge_ergebnis.auswerten(os.path.join(ziel, f"lauf_f_{stempel}"), ergebnis)})
+    schreib(
+        {
+            "schritt": "auswertung",
+            "bericht": auge_ergebnis.auswerten(os.path.join(ziel, f"lauf_f_{stempel}"), ergebnis),
+        }
+    )
     return ergebnis
 
 
@@ -1250,7 +1850,18 @@ def stoppen(n, ziel=None):
     from selfaware.tools.experiments.auge_aufzeichnung import ProzessQuelle, pid_der_instanz
 
     open(stop_datei(ziel), "w").close()
-    frei = lambda: "FREI" in subprocess.run([sys.executable, sperre_pfad(), "nachsehen"], capture_output=True, text=True, encoding="utf-8", errors="replace", env=dict(os.environ), timeout=30).stdout  # noqa: E731
+    frei = lambda: (
+        "FREI"
+        in subprocess.run(
+            [sys.executable, sperre_pfad(), "nachsehen"],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
+            env=dict(os.environ),
+            timeout=30,
+        ).stdout
+    )  # noqa: E731
     warte_auf(frei, 180, "der Lauf hat die Sperre freigegeben", schlaf=1.0)
     s = Speicher(ProzessQuelle(pid_der_instanz(n)))
     a = s.takt()
@@ -1271,15 +1882,33 @@ def trocken(n, mit_probe=0):
     steht = True
     try:
         k, s = EchterKanal(), Speicher(ProzessQuelle(pid_der_instanz(n)))
-        aus = {"takt": s.takt(), "pause": s.pause(), "kalender": s.kalender(), "anzeige": s.anzeige_burg_korn(), "beliebtheit": s.spieler("popularity"), "leute": s.spieler("currentPopulation"),
-               "deckel": s.spieler("populationCap"), "feuer": s.spieler("availablePeasantsAtFire"), "essen": s.spieler("totalFood"), "steuer": s.spieler("taxesSetting"), "ration": s.spieler("rationsSetting"),
-               "waren": s.waren(), "startwaren": s.startwaren(), "pechgraeben": s.pechgraeben(), "einheiten": sum(s.einheiten().values())}
+        aus = {
+            "takt": s.takt(),
+            "pause": s.pause(),
+            "kalender": s.kalender(),
+            "anzeige": s.anzeige_burg_korn(),
+            "beliebtheit": s.spieler("popularity"),
+            "leute": s.spieler("currentPopulation"),
+            "deckel": s.spieler("populationCap"),
+            "feuer": s.spieler("availablePeasantsAtFire"),
+            "essen": s.spieler("totalFood"),
+            "steuer": s.spieler("taxesSetting"),
+            "ration": s.spieler("rationsSetting"),
+            "waren": s.waren(),
+            "startwaren": s.startwaren(),
+            "pechgraeben": s.pechgraeben(),
+            "einheiten": sum(s.einheiten().values()),
+        }
         if s.pause() != 1:
             raise Fehler("Das Spiel laeuft. Trockenlauf nur im angehaltenen Spiel")
         for rest in ALTE_SCHALTER:
             k.befehl(rest, KANAL)
         g = s.gebaeude()
-        aus.update(gebaeude=len(g), offene_plaetze=sum(e["offen"] for e in g), arbeitsplaetze=sum(s.arbeiter_je_typ(e["typ"]) for e in g))
+        aus.update(
+            gebaeude=len(g),
+            offene_plaetze=sum(e["offen"] for e in g),
+            arbeitsplaetze=sum(s.arbeiter_je_typ(e["typ"]) for e in g),
+        )
         l = Lauf(k, s, bauen.NACH_TYP, _KeinRekorder(), lambda e: None, frist=600)
         burg = [e for e in g if e["typ"] == BURG]
         l.mitte = (burg[0]["x"], burg[0]["y"]) if burg else ANKER_BURG
@@ -1289,14 +1918,38 @@ def trocken(n, mit_probe=0):
         for typ in sorted(bauen.NACH_TYP):
             st = l.stelle_fuer(typ)
             (plan.__setitem__(typ, st) if st else ohne.append(typ))
-        aus.update(bauplan=len(plan), bauplan_sekunden=round(time.perf_counter() - t0, 1), ohne_stelle=ohne, beispiele={t: plan[t] for t in list(plan)[:6]})
-        aus["mauer_streifen"] = freier_streifen(k.platzkarte(bauen.NACH_TYP[FALLGRUBE]["mapper"], 1, l.mitte[0], l.mitte[1], l.mitte[0] + 80, l.mitte[1] + 80), l.mitte[0], l.mitte[1], 13, 9)
+        aus.update(
+            bauplan=len(plan),
+            bauplan_sekunden=round(time.perf_counter() - t0, 1),
+            ohne_stelle=ohne,
+            beispiele={t: plan[t] for t in list(plan)[:6]},
+        )
+        aus["mauer_streifen"] = freier_streifen(
+            k.platzkarte(
+                bauen.NACH_TYP[FALLGRUBE]["mapper"],
+                1,
+                l.mitte[0],
+                l.mitte[1],
+                l.mitte[0] + 80,
+                l.mitte[1] + 80,
+            ),
+            l.mitte[0],
+            l.mitte[1],
+            13,
+            9,
+        )
         if mit_probe:
             from selfaware.tools.analysis.auge_feldkarte import FELDLISTE, Feldkarte
             from selfaware.tools.experiments.auge_aufzeichnung import standard_bereiche
 
             stempel = "trocken_" + time.strftime("%Y%m%d_%H%M%S")
-            rek = Rekorder(n, os.path.join(workspace.DATA, "auge_plan", "laeufe"), stempel, ProzessQuelle(pid_der_instanz(n)), standard_bereiche(Feldkarte.laden(feldliste=FELDLISTE)))
+            rek = Rekorder(
+                n,
+                os.path.join(workspace.DATA, "auge_plan", "laeufe"),
+                stempel,
+                ProzessQuelle(pid_der_instanz(n)),
+                standard_bereiche(Feldkarte.laden(feldliste=FELDLISTE)),
+            )
             steht = False
             a, grund = s.takt(), "nicht gestartet"
             try:
@@ -1304,14 +1957,24 @@ def trocken(n, mit_probe=0):
                 rek.starten(None, TEMPO_JEDER_TAKT, streng=True)
                 warte_auf(rek.laeuft, 60, "Aufzeichnung laeuft")
                 a = s.takt()
-                ende = time.perf_counter() + 2 * mit_probe / TEMPO_JEDER_TAKT + 30  # Schutz gegen Haengen: doppelte Soll-Dauer
+                ende = (
+                    time.perf_counter() + 2 * mit_probe / TEMPO_JEDER_TAKT + 30
+                )  # Schutz gegen Haengen: doppelte Soll-Dauer
                 while s.takt() < a + mit_probe and not rek.fehler() and time.perf_counter() < ende:
                     time.sleep(0.05)
                 grund = rek.fehler() or (None if s.takt() >= a + mit_probe else "Frist um")
             finally:
                 steht, t = anhalten_und_pruefen(k, s)
                 stand = rek.beenden()
-            aus["probe"] = {"takte": mit_probe, "von": a, "bis": t, "stand": stand, "fehler": grund, "steht": steht, "datei": rek.pfad}
+            aus["probe"] = {
+                "takte": mit_probe,
+                "von": a,
+                "bis": t,
+                "stand": stand,
+                "fehler": grund,
+                "steht": steht,
+                "datei": rek.pfad,
+            }
         return aus
     finally:
         if steht:
@@ -1327,10 +1990,19 @@ def main(argv=None):
     p = argparse.ArgumentParser(description=__doc__)
     p.add_argument("was", choices=["pruefen", "trocken", "los", "stop"])
     p.add_argument("--instanz", type=int, required=True)
-    p.add_argument("--frist", type=int, default=FRIST, help="Sekunden fuer das Programm, Schutz gegen Haengen")
+    p.add_argument(
+        "--frist", type=int, default=FRIST, help="Sekunden fuer das Programm, Schutz gegen Haengen"
+    )
     p.add_argument("--daniel-ja", action="store_true", help="Lauf nur nach Daniels Ja")
-    p.add_argument("--laeuft-schon", action="store_true", help="Die Instanz laeuft schon, nicht neu starten")
-    p.add_argument("--probe", type=int, default=0, help="trocken: so viele Takte strenge Aufzeichnung auf Tempo 40")
+    p.add_argument(
+        "--laeuft-schon", action="store_true", help="Die Instanz laeuft schon, nicht neu starten"
+    )
+    p.add_argument(
+        "--probe",
+        type=int,
+        default=0,
+        help="trocken: so viele Takte strenge Aufzeichnung auf Tempo 40",
+    )
     a = p.parse_args(argv)
     pruefe_laufinstanz(a.instanz)
     if a.was == "pruefen":

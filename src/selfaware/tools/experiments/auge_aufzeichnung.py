@@ -7,6 +7,7 @@ Gezaehlt wird in Takten (Daniel 02.11.2026). Echte Zeit nur dort, wo sie die Mes
 Aufruf (nur nach Daniels Ja, nur in einer freien Instanz):
   python -m selfaware.tools.experiments.auge_aufzeichnung --pid 1234 --ausgabe lauf_f.auge --takte 5000 --lauf F
 """
+
 import argparse
 import ctypes
 import json
@@ -21,7 +22,9 @@ from ctypes import wintypes
 from dataclasses import dataclass
 
 KENNUNG = b"AUGE1\n"
-RAHMEN = struct.Struct("<BBHIIddII")  # Art, Bereich, Merker, Takt vorher, Takt nachher, Zeit, Dauer, Rohlaenge, Laenge
+RAHMEN = struct.Struct(
+    "<BBHIIddII"
+)  # Art, Bereich, Merker, Takt vorher, Takt nachher, Zeit, Dauer, Rohlaenge, Laenge
 VOLL, AENDERUNG = 0, 1
 REIN = 1
 TAKT_ADRESSE = 0x0117CADC  # mapAndTime.totalGameTicksUnk
@@ -44,8 +47,16 @@ class ProzessQuelle:
     def __init__(self, pid, erlaube_pfad=None):
         self._k = ctypes.WinDLL("kernel32", use_last_error=True)
         self._k.OpenProcess.restype = wintypes.HANDLE
-        self._k.ReadProcessMemory.argtypes = [wintypes.HANDLE, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_size_t, ctypes.POINTER(ctypes.c_size_t)]
-        self._griff = self._k.OpenProcess(0x0010 | 0x1000, False, pid)  # VM_READ | QUERY_LIMITED_INFORMATION
+        self._k.ReadProcessMemory.argtypes = [
+            wintypes.HANDLE,
+            ctypes.c_void_p,
+            ctypes.c_void_p,
+            ctypes.c_size_t,
+            ctypes.POINTER(ctypes.c_size_t),
+        ]
+        self._griff = self._k.OpenProcess(
+            0x0010 | 0x1000, False, pid
+        )  # VM_READ | QUERY_LIMITED_INFORMATION
         if not self._griff:
             raise OSError(f"Prozess {pid} nicht lesbar: {ctypes.get_last_error()}")
         self.pfad = self._bild()
@@ -54,7 +65,12 @@ class ProzessQuelle:
     def _bild(self):
         puffer = ctypes.create_unicode_buffer(1024)
         n = wintypes.DWORD(1024)
-        self._k.QueryFullProcessImageNameW.argtypes = [wintypes.HANDLE, wintypes.DWORD, wintypes.LPWSTR, ctypes.POINTER(wintypes.DWORD)]
+        self._k.QueryFullProcessImageNameW.argtypes = [
+            wintypes.HANDLE,
+            wintypes.DWORD,
+            wintypes.LPWSTR,
+            ctypes.POINTER(wintypes.DWORD),
+        ]
         if not self._k.QueryFullProcessImageNameW(self._griff, 0, puffer, ctypes.byref(n)):
             raise OSError(f"Programmpfad nicht lesbar: {ctypes.get_last_error()}")
         return puffer.value
@@ -62,7 +78,12 @@ class ProzessQuelle:
     def lies(self, adresse, laenge):
         puffer = ctypes.create_string_buffer(laenge)
         gelesen = ctypes.c_size_t(0)
-        if not self._k.ReadProcessMemory(self._griff, ctypes.c_void_p(adresse), puffer, laenge, ctypes.byref(gelesen)) or gelesen.value != laenge:
+        if (
+            not self._k.ReadProcessMemory(
+                self._griff, ctypes.c_void_p(adresse), puffer, laenge, ctypes.byref(gelesen)
+            )
+            or gelesen.value != laenge
+        ):
             raise OSError(f"Lesen {adresse:#x}+{laenge} fehlgeschlagen: {ctypes.get_last_error()}")
         return puffer.raw
 
@@ -81,9 +102,14 @@ def _prozesse():
     if not psapi.EnumProcesses(ids, ctypes.sizeof(ids), ctypes.byref(n)):
         raise OSError("EnumProcesses fehlgeschlagen")
     aus = []
-    k.QueryFullProcessImageNameW.argtypes = [wintypes.HANDLE, wintypes.DWORD, wintypes.LPWSTR, ctypes.POINTER(wintypes.DWORD)]
+    k.QueryFullProcessImageNameW.argtypes = [
+        wintypes.HANDLE,
+        wintypes.DWORD,
+        wintypes.LPWSTR,
+        ctypes.POINTER(wintypes.DWORD),
+    ]
     k.CloseHandle.argtypes = [wintypes.HANDLE]
-    for pid in ids[:n.value // 4]:
+    for pid in ids[: n.value // 4]:
         h = k.OpenProcess(0x1000, False, pid)
         if not h:
             continue
@@ -95,7 +121,9 @@ def _prozesse():
     return aus
 
 
-def pid_der_instanz(n, stamm=r"C:\Program Files (x86)\Steam\steamapps\common\Stronghold Crusader Extreme"):
+def pid_der_instanz(
+    n, stamm=r"C:\Program Files (x86)\Steam\steamapps\common\Stronghold Crusader Extreme"
+):
     """Prozess der Spielinstanz n, erkannt am Programmordner; None, wenn sie nicht laeuft."""
     ziel = (stamm if n == 1 else f"{stamm} Instanz{n}").lower()
     for pid, pfad in _prozesse():
@@ -182,7 +210,14 @@ class FeldWache:
         self.schreibe(takt, neu)
 
     def schreibe(self, takt, neu=0):
-        roh = json.dumps({"takt": takt, "felder": len(self.gesehen), "neu": neu, "letzter_neuer_takt": self.letzter_neuer})
+        roh = json.dumps(
+            {
+                "takt": takt,
+                "felder": len(self.gesehen),
+                "neu": neu,
+                "letzter_neuer_takt": self.letzter_neuer,
+            }
+        )
         try:
             with open(self.datei + ".neu", "w", encoding="utf-8") as f:
                 f.write(roh)
@@ -192,12 +227,29 @@ class FeldWache:
 
 
 class Aufzeichner:
-    def __init__(self, quelle, bereiche, datei, kopf=None, takt_adresse=TAKT_ADRESSE, uhr=time.perf_counter, voll_bei=(), streng=False, felder=None, warte_ms=0):
+    def __init__(
+        self,
+        quelle,
+        bereiche,
+        datei,
+        kopf=None,
+        takt_adresse=TAKT_ADRESSE,
+        uhr=time.perf_counter,
+        voll_bei=(),
+        streng=False,
+        felder=None,
+        warte_ms=0,
+    ):
         """voll_bei: Takte, in denen alle Bereiche gelesen werden, z. B. der Takt des Speicherns fuer Probe A5.
         streng: jeder Takt muss ankommen, sonst Streng. felder: FeldWache, sie laeuft im Packfaden.
         warte_ms: so lange nach dem Hochzaehlen warten: Der Zaehler steigt am Anfang des Takts, ohne Warten zeigt das Lesen einen halb gerechneten Stand (Probe K 02.11.)."""
         self.warte_ms = warte_ms
-        self.quelle, self.bereiche, self.takt_adresse, self.uhr = quelle, list(bereiche), takt_adresse, uhr
+        self.quelle, self.bereiche, self.takt_adresse, self.uhr = (
+            quelle,
+            list(bereiche),
+            takt_adresse,
+            uhr,
+        )
         self.voll_bei = set(voll_bei)
         self.streng, self.felder = streng, felder
         self.fehlend = self.gemischt = self.gemischt_selten = self.schlange_voll = 0
@@ -279,10 +331,24 @@ class Aufzeichner:
                 merke = None
                 if self.felder is not None:
                     merke = lambda stellen, i=i, l=len(roh): self.felder.merke(i, stellen, l)  # noqa: E731
-                art, nutz = (VOLL, roh) if alt is None else (AENDERUNG, aenderungen(alt, roh, merke))
+                art, nutz = (
+                    (VOLL, roh) if alt is None else (AENDERUNG, aenderungen(alt, roh, merke))
+                )
                 self._stand[i] = roh
                 z = zlib.compress(nutz, 1)
-                self._f.write(RAHMEN.pack(art, i, REIN if vor == nach else 0, vor, nach, start, dauer, len(nutz), len(z)))
+                self._f.write(
+                    RAHMEN.pack(
+                        art,
+                        i,
+                        REIN if vor == nach else 0,
+                        vor,
+                        nach,
+                        start,
+                        dauer,
+                        len(nutz),
+                        len(z),
+                    )
+                )
                 self._f.write(z)
                 self._f.write(struct.pack("<I", zlib.crc32(z)))
                 n += 1
@@ -300,7 +366,9 @@ class Aufzeichner:
         n = 0
         while (takte is None or n < takte) and not (stop and stop()):
             if aussetzen and aussetzen():
-                self.letzter = None  # die ausgesetzten Takte fehlen nicht, sie wurden bewusst nicht gelesen
+                self.letzter = (
+                    None  # die ausgesetzten Takte fehlen nicht, sie wurden bewusst nicht gelesen
+                )
                 time.sleep(pause)
                 continue
             if self.schritt():
@@ -336,9 +404,22 @@ def standard_bereiche(karte, datenblock_alle=250, karte_alle=25):
     from selfaware.tools.analysis.auge_feldkarte import DATEN_ANFANG, DATEN_ENDE
 
     aus = []
-    for name, alle in (("DAT_UnitsState", 1), ("DAT_EntityState", 1), ("DAT_BuildingsState", 1), ("DAT_TribesState", 1), ("DAT_GameState", 1),
-                       ("SEC_RNG", 1), ("DAT_GameCore", 1), ("DAT_LandscapeState", 1), ("DAT_WildlifeState", 1), ("DAT_TroopValueState", 1),
-                       ("DAT_AIVState", 25), ("DAT_MapPropertiesState", 25), ("DAT_PathFindingState", 25), ("DAT_TileMapState", karte_alle)):
+    for name, alle in (
+        ("DAT_UnitsState", 1),
+        ("DAT_EntityState", 1),
+        ("DAT_BuildingsState", 1),
+        ("DAT_TribesState", 1),
+        ("DAT_GameState", 1),
+        ("SEC_RNG", 1),
+        ("DAT_GameCore", 1),
+        ("DAT_LandscapeState", 1),
+        ("DAT_WildlifeState", 1),
+        ("DAT_TroopValueState", 1),
+        ("DAT_AIVState", 25),
+        ("DAT_MapPropertiesState", 25),
+        ("DAT_PathFindingState", 25),
+        ("DAT_TileMapState", karte_alle),
+    ):
         g = karte.struktur(name)
         aus.append(Bereich(name, g[0], g[1] - g[0], alle))
     adr, gr, schritt, anzahl = karte.adresse("DAT_GameSynchronyState", "DAT_GameCommandArray")
@@ -349,7 +430,10 @@ def standard_bereiche(karte, datenblock_alle=250, karte_alle=25):
 
 def spielart_lesen(quelle, karte):
     aus = {}
-    for name, g, p in (("currentGameMode", "DAT_GameSynchronyState", "currentGameMode"), ("gameMode_2", "DAT_GameCore", "gameMode_2")):
+    for name, g, p in (
+        ("currentGameMode", "DAT_GameSynchronyState", "currentGameMode"),
+        ("gameMode_2", "DAT_GameCore", "gameMode_2"),
+    ):
         adr, gr, _, _ = karte.adresse(g, p)
         aus[name] = struct.unpack("<i", quelle.lies(adr, 4))[0]
     return aus
@@ -368,10 +452,28 @@ def main(argv=None):
     p.add_argument("--takte", type=int)
     p.add_argument("--datenblock-alle", type=int, default=250)
     p.add_argument("--karte-alle", type=int, default=25)
-    p.add_argument("--tempo-takte", type=int, default=1000, help="Vergleichswert: so viele Takte ohne Lesen messen, 0 = nicht messen")
-    p.add_argument("--voll-bei", type=int, nargs="*", default=[], help="Takte, in denen alle Bereiche gelesen werden (Takt des Speicherns)")
-    p.add_argument("--streng", action="store_true", help="jeder Takt muss ankommen, sonst Ende mit Rueckgabe 3")
-    p.add_argument("--warte-ms", type=float, default=0, help="so lange nach dem Hochzaehlen warten, bis der Takt fertig gerechnet ist")
+    p.add_argument(
+        "--tempo-takte",
+        type=int,
+        default=1000,
+        help="Vergleichswert: so viele Takte ohne Lesen messen, 0 = nicht messen",
+    )
+    p.add_argument(
+        "--voll-bei",
+        type=int,
+        nargs="*",
+        default=[],
+        help="Takte, in denen alle Bereiche gelesen werden (Takt des Speicherns)",
+    )
+    p.add_argument(
+        "--streng", action="store_true", help="jeder Takt muss ankommen, sonst Ende mit Rueckgabe 3"
+    )
+    p.add_argument(
+        "--warte-ms",
+        type=float,
+        default=0,
+        help="so lange nach dem Hochzaehlen warten, bis der Takt fertig gerechnet ist",
+    )
     p.add_argument("--aussetzen-datei", help="solange diese Datei da ist, wird nichts gelesen")
     p.add_argument("--felder-datei", help="hierhin schreibt die Feld-Wache ihren Stand")
     p.add_argument("--felder-alle", type=int, default=800, help="Abstand der Feld-Wache in Takten")
@@ -382,15 +484,34 @@ def main(argv=None):
     sys.setswitchinterval(0.0005)  # der Packfaden darf das Lesen nicht aufhalten
     quelle = ProzessQuelle(pid)
     karte = Feldkarte.laden(feldliste=FELDLISTE)
-    kopf = {"tempo": a.tempo_wert, "lauf": a.lauf, "programm": quelle.pfad, "spielart": spielart_lesen(quelle, karte), "tempo_ohne_lesen": tempo_ohne_lesen(quelle, a.tempo_takte) if a.tempo_takte else None}
+    kopf = {
+        "tempo": a.tempo_wert,
+        "lauf": a.lauf,
+        "programm": quelle.pfad,
+        "spielart": spielart_lesen(quelle, karte),
+        "tempo_ohne_lesen": tempo_ohne_lesen(quelle, a.tempo_takte) if a.tempo_takte else None,
+    }
     bereiche = standard_bereiche(karte, a.datenblock_alle, a.karte_alle)
     felder = FeldWache(karte, bereiche, a.felder_datei, a.felder_alle) if a.felder_datei else None
-    auf = Aufzeichner(quelle, bereiche, a.ausgabe, kopf, voll_bei=a.voll_bei, streng=a.streng, felder=felder, warte_ms=a.warte_ms)
+    auf = Aufzeichner(
+        quelle,
+        bereiche,
+        a.ausgabe,
+        kopf,
+        voll_bei=a.voll_bei,
+        streng=a.streng,
+        felder=felder,
+        warte_ms=a.warte_ms,
+    )
     stand = {"gelesen": 0, "grund": None}
     code = 0
     try:
-        stand["gelesen"] = auf.lauf(takte=a.takte, pause=0.0 if a.streng else 0.0002, stop=(lambda: os.path.exists(a.stop_datei)) if a.stop_datei else None,
-                                    aussetzen=(lambda: os.path.exists(a.aussetzen_datei)) if a.aussetzen_datei else None)
+        stand["gelesen"] = auf.lauf(
+            takte=a.takte,
+            pause=0.0 if a.streng else 0.0002,
+            stop=(lambda: os.path.exists(a.stop_datei)) if a.stop_datei else None,
+            aussetzen=(lambda: os.path.exists(a.aussetzen_datei)) if a.aussetzen_datei else None,
+        )
     except Streng as e:
         stand["grund"], code = str(e), 3
     finally:
@@ -398,7 +519,13 @@ def main(argv=None):
             auf.schliessen()
         except Streng as e:
             stand["grund"], code = str(e), 3
-        stand.update(fehlend=auf.fehlend, gemischt=auf.gemischt, gemischt_selten=auf.gemischt_selten, schlange_voll=auf.schlange_voll, letzter_takt=auf.letzter)
+        stand.update(
+            fehlend=auf.fehlend,
+            gemischt=auf.gemischt,
+            gemischt_selten=auf.gemischt_selten,
+            schlange_voll=auf.schlange_voll,
+            letzter_takt=auf.letzter,
+        )
         if felder is not None:
             stand["felder"] = len(felder.gesehen)
         with open(a.ausgabe + ".stand", "w", encoding="utf-8") as f:

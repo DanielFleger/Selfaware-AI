@@ -10,9 +10,15 @@ drei Drehungen zieht das Spiel fremde Bilder. Eigene Werte haben nur Tore und Zu
 
 NORMAL = 15
 EIGENER_WERT = {
-    105: 0,                                       # Zugbruecke: Beim Klick rechnet checkDrawbridgePlacement die Richtung aus dem Torhaus, ohne Torhaus bleibt 0
-    140: 0, 141: 2, 142: 4, 143: 6,               # M_MAPPER_GATE_WOOD1A bis 1D
-    144: 0x51, 145: 0x50, 146: 0x51, 147: 0x50,   # M_MAPPER_GATE_STONE1A, 1B, 2A, 2B
+    105: 0,  # Zugbruecke: Beim Klick rechnet checkDrawbridgePlacement die Richtung aus dem Torhaus, ohne Torhaus bleibt 0
+    140: 0,
+    141: 2,
+    142: 4,
+    143: 6,  # M_MAPPER_GATE_WOOD1A bis 1D
+    144: 0x51,
+    145: 0x50,
+    146: 0x51,
+    147: 0x50,  # M_MAPPER_GATE_STONE1A, 1B, 2A, 2B
 }
 
 

@@ -7,12 +7,15 @@ mit festen Eingaben auf, im angehaltenen Spiel. Das geht in Bruchteilen einer Se
 
 Grenze: SamurAI darf das nie benutzen (Fairness). Es verlaesst den Messlauf nicht, und Instanz 5 lehnt das Werkzeug ab.
 """
+
 import ctypes
 import ctypes.wintypes as w
 import struct
 
 ERLAUBT = "Instanz2"
-RECHTE = 0x0002 | 0x0008 | 0x0010 | 0x0020 | 0x0400  # CREATE_THREAD, VM_OPERATION, VM_READ, VM_WRITE, QUERY_INFORMATION
+RECHTE = (
+    0x0002 | 0x0008 | 0x0010 | 0x0020 | 0x0400
+)  # CREATE_THREAD, VM_OPERATION, VM_READ, VM_WRITE, QUERY_INFORMATION
 MEM_NEU, MEM_WEG, AUSFUEHRBAR = 0x3000, 0x8000, 0x40
 GRENZE_MS = 5000
 
@@ -22,10 +25,30 @@ k32.OpenProcess.argtypes = (w.DWORD, w.BOOL, w.DWORD)
 k32.VirtualAllocEx.restype = ctypes.c_void_p
 k32.VirtualAllocEx.argtypes = (w.HANDLE, ctypes.c_void_p, ctypes.c_size_t, w.DWORD, w.DWORD)
 k32.VirtualFreeEx.argtypes = (w.HANDLE, ctypes.c_void_p, ctypes.c_size_t, w.DWORD)
-k32.WriteProcessMemory.argtypes = (w.HANDLE, ctypes.c_void_p, ctypes.c_char_p, ctypes.c_size_t, ctypes.POINTER(ctypes.c_size_t))
-k32.ReadProcessMemory.argtypes = (w.HANDLE, ctypes.c_void_p, ctypes.c_void_p, ctypes.c_size_t, ctypes.POINTER(ctypes.c_size_t))
+k32.WriteProcessMemory.argtypes = (
+    w.HANDLE,
+    ctypes.c_void_p,
+    ctypes.c_char_p,
+    ctypes.c_size_t,
+    ctypes.POINTER(ctypes.c_size_t),
+)
+k32.ReadProcessMemory.argtypes = (
+    w.HANDLE,
+    ctypes.c_void_p,
+    ctypes.c_void_p,
+    ctypes.c_size_t,
+    ctypes.POINTER(ctypes.c_size_t),
+)
 k32.CreateRemoteThread.restype = w.HANDLE
-k32.CreateRemoteThread.argtypes = (w.HANDLE, ctypes.c_void_p, ctypes.c_size_t, ctypes.c_void_p, ctypes.c_void_p, w.DWORD, ctypes.c_void_p)
+k32.CreateRemoteThread.argtypes = (
+    w.HANDLE,
+    ctypes.c_void_p,
+    ctypes.c_size_t,
+    ctypes.c_void_p,
+    ctypes.c_void_p,
+    w.DWORD,
+    ctypes.c_void_p,
+)
 k32.WaitForSingleObject.argtypes = (w.HANDLE, w.DWORD)
 k32.GetExitCodeThread.argtypes = (w.HANDLE, ctypes.POINTER(w.DWORD))
 k32.CloseHandle.argtypes = (w.HANDLE,)
@@ -34,15 +57,15 @@ k32.QueryFullProcessImageNameW.argtypes = (w.HANDLE, w.DWORD, w.LPWSTR, ctypes.P
 
 def ablauf(ziel, werte, this, ergebnis):
     """Maschinencode (32 Bit): Stapel merken, Werte schieben, this nach ECX, aufrufen, EAX ablegen, Stapel zurueck. So ist egal, wer die Werte vom Stapel raeumt."""
-    b = bytearray(b"\x55\x89\xE5")  # push ebp; mov ebp, esp
+    b = bytearray(b"\x55\x89\xe5")  # push ebp; mov ebp, esp
     for v in reversed(werte):
         b += b"\x68" + struct.pack("<I", v & 0xFFFFFFFF)  # push wert
     if this is not None:
-        b += b"\xB9" + struct.pack("<I", this)  # mov ecx, this
-    b += b"\xB8" + struct.pack("<I", ziel)  # mov eax, ziel
-    b += b"\xFF\xD0"  # call eax
-    b += b"\xA3" + struct.pack("<I", ergebnis)  # mov [ergebnis], eax
-    b += b"\x89\xEC\x5D\x31\xC0\xC2\x04\x00"  # mov esp, ebp; pop ebp; xor eax, eax; ret 4
+        b += b"\xb9" + struct.pack("<I", this)  # mov ecx, this
+    b += b"\xb8" + struct.pack("<I", ziel)  # mov eax, ziel
+    b += b"\xff\xd0"  # call eax
+    b += b"\xa3" + struct.pack("<I", ergebnis)  # mov [ergebnis], eax
+    b += b"\x89\xec\x5d\x31\xc0\xc2\x04\x00"  # mov esp, ebp; pop ebp; xor eax, eax; ret 4
     return bytes(b)
 
 
@@ -79,7 +102,7 @@ class Rufer:
 
     def rufe(self, ziel, *werte, this=None):
         erg = self.speicher + 0x800
-        self.schreibe(erg, b"\xEF\xBE\xAD\xDE")
+        self.schreibe(erg, b"\xef\xbe\xad\xde")
         self.schreibe(self.speicher, ablauf(ziel, werte, this, erg))
         t = k32.CreateRemoteThread(self.h, None, 0, self.speicher, None, 0, None)
         if not t:

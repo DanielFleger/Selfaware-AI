@@ -10,6 +10,7 @@ Ausgenommen: Werkstaetten rechnen ihren Wert selbst aus (Update...Workshop, alle
 Aufruf: SHC_INSTANZ=2 python -m selfaware.tools.experiments.anzeige_reparieren "<Stand>" ["<neuer Name>"]
 Instanz 5 lehnt das Werkzeug ab. Die Sperre der Instanz muss man vorher selbst holen.
 """
+
 import collections
 import os
 import struct
@@ -32,7 +33,9 @@ def gebaeude_lesen(roh):
     aus = []
     for i in range(1, len(roh) // SCHRITT):
         b = i * SCHRITT
-        z, t, s, v = (struct.unpack_from("<h", roh, b + o)[0] for o in (ZUSTAND, TYP, BESITZER, BILDWERT))
+        z, t, s, v = (
+            struct.unpack_from("<h", roh, b + o)[0] for o in (ZUSTAND, TYP, BESITZER, BILDWERT)
+        )
         if z:
             aus.append({"nr": i, "typ": t, "sp": s, "v": v})
     return aus
@@ -45,7 +48,7 @@ def falsche(liste):
 def neues_wort(alt):
     """Der Wert belegt 2 Bytes, poke schreibt 4: Das Nachbarfeld im oberen Teil bleibt, wie es ist."""
     neu = (alt & 0xFFFF0000) | NORMAL
-    return neu - 2 ** 32 if neu >= 2 ** 31 else neu
+    return neu - 2**32 if neu >= 2**31 else neu
 
 
 def adresse(nr):

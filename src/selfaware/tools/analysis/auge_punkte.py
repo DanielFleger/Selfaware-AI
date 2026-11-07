@@ -11,23 +11,57 @@ den Beleg zum Punkt. Ein Urteil faellt es nur, wo es sich rechnen laesst:
   nicht zuordenbar  im Text ist kein Feld zu erkennen
 "bestaetigt" heisst nur: Die Zahl kam vor. Die Lage kann eine andere gewesen sein, darum ist auch das ein Vorschlag, den jemand gegenliest.
 """
+
 import collections
 import dataclasses
 import json
 import re
 import struct
 
-from selfaware.tools.analysis.auge_auswertung import GROSSER_BEREICH, VOLL, Bytekarte, felder_der_teile
+from selfaware.tools.analysis.auge_auswertung import (
+    GROSSER_BEREICH,
+    VOLL,
+    Bytekarte,
+    felder_der_teile,
+)
 from selfaware.tools.analysis.auge_feldkarte import ARRAY
 
 ABSCHNITTE = {"### Lauf F, Start": True, "### Lauf F: Burgenbau": False}
 ZEILE = re.compile(r"- \[ \] (P\d+) `([^`]+)` \((0x[0-9a-fA-F]+)\): (.*)")
-FELDTEIL = re.compile(r"\*\*Lage:\*\* (.*?)(?: · \*\*Messen:\*\* (.*?))?(?: · \*\*Erwartet:\*\* (.*))?$")
+FELDTEIL = re.compile(
+    r"\*\*Lage:\*\* (.*?)(?: · \*\*Messen:\*\* (.*?))?(?: · \*\*Erwartet:\*\* (.*))?$"
+)
 SPIELART = " **[Spielart]**"
-TOKEN = re.compile(r"[A-Za-z_][A-Za-z0-9_]*(?:\[[^\]]*\])?(?:\.[A-Za-z_][A-Za-z0-9_]*(?:\[[^\]]*\])?)*")
-BEHAELTER = {"buildings": "buildings[]", "playerDataArray": "playerDataArray[]", "units": "units[]", "tribes": "tribes[]", "mapAndTime": "mapAndTime", "moats": "moats[]", "pitchDitches": "pitchDitches[]", "finalResults": "finalResults"}
-ZU_ALLGEMEIN = {"state", "count", "resources", "uid", "x", "y", "id", "type", "health", "owner", "stage"}
-WARENWOERTER = re.compile(r"\b(Gold|Holz|Stein|Eisen|Pech|Bestand|Bestände|Warenbestand|Steinbestand|Pechbestand|Holzbestand|Eisenbestand|Waffenbestand|Weizen|Mehl|Brot|Hopfen|Bier|Ale)\w*", re.I)
+TOKEN = re.compile(
+    r"[A-Za-z_][A-Za-z0-9_]*(?:\[[^\]]*\])?(?:\.[A-Za-z_][A-Za-z0-9_]*(?:\[[^\]]*\])?)*"
+)
+BEHAELTER = {
+    "buildings": "buildings[]",
+    "playerDataArray": "playerDataArray[]",
+    "units": "units[]",
+    "tribes": "tribes[]",
+    "mapAndTime": "mapAndTime",
+    "moats": "moats[]",
+    "pitchDitches": "pitchDitches[]",
+    "finalResults": "finalResults",
+}
+ZU_ALLGEMEIN = {
+    "state",
+    "count",
+    "resources",
+    "uid",
+    "x",
+    "y",
+    "id",
+    "type",
+    "health",
+    "owner",
+    "stage",
+}
+WARENWOERTER = re.compile(
+    r"\b(Gold|Holz|Stein|Eisen|Pech|Bestand|Bestände|Warenbestand|Steinbestand|Pechbestand|Holzbestand|Eisenbestand|Waffenbestand|Weizen|Mehl|Brot|Hopfen|Bier|Ale)\w*",
+    re.I,
+)
 GRENZE_WERTE = 40
 
 
@@ -64,7 +98,7 @@ def punkte_lesen(pfad, lauf="F"):
         rest = m.group(4)
         spielart = rest.endswith(SPIELART)
         if spielart:
-            rest = rest[:-len(SPIELART)]
+            rest = rest[: -len(SPIELART)]
         p = Punkt(m.group(1), m.group(2), m.group(3), start, spielart=spielart)
         f = FELDTEIL.match(rest)
         if f:
@@ -84,7 +118,9 @@ def feldindex(karte):
             m = ARRAY.match(tt)
             if m:
                 el = m.group(1).strip()
-                eg = karte.typen[el]["laenge"] if el in karte.typen else (gr // int(m.group(2)) or 1)
+                eg = (
+                    karte.typen[el]["laenge"] if el in karte.typen else (gr // int(m.group(2)) or 1)
+                )
                 s, a = (schritt, anzahl) if schritt else (eg, int(m.group(2)))
                 p = f"{pfad}.{na}[]".lstrip(".")
                 index[na].append((g, p, adr + o, eg, s, a, int(m.group(2))))
@@ -117,7 +153,9 @@ def felder_des_punkts(p, index):
             continue
         if len(teile) > 1:
             behaelter = BEHAELTER.get(teile[0])
-            auswahl = [f for f in treffer if behaelter and behaelter in f[1]] or [f for f in treffer if teile[0] in f[0] or teile[0] in f[1]]
+            auswahl = [f for f in treffer if behaelter and behaelter in f[1]] or [
+                f for f in treffer if teile[0] in f[0] or teile[0] in f[1]
+            ]
         else:
             if blatt in ZU_ALLGEMEIN or len(blatt) < 5 or len(treffer) > 4:
                 continue
@@ -146,7 +184,21 @@ class Belege:
     def __init__(self, felder, karte):
         self.felder = {(f[0], f[1]): f for f in felder}
         self.karte = karte
-        self.daten = {k: {"global": k[0], "feld": k[1], "aenderungen": 0, "werte": [], "mehr_werte": False, "min": None, "max": None, "erster_takt": None, "letzter_takt": None, "anfang": None} for k in self.felder}
+        self.daten = {
+            k: {
+                "global": k[0],
+                "feld": k[1],
+                "aenderungen": 0,
+                "werte": [],
+                "mehr_werte": False,
+                "min": None,
+                "max": None,
+                "erster_takt": None,
+                "letzter_takt": None,
+                "anfang": None,
+            }
+            for k in self.felder
+        }
         self._bytes = Bytekarte(karte)
         self._gewuenscht = {}
         self._liste = list(self.felder)
@@ -182,7 +234,11 @@ class Belege:
             else:
                 a, b = adr_vergleich
                 i0, i1 = max(0, (a - adr) // schritt), min(anzahl - 1, (b - 1 - adr) // schritt)
-                indizes = [1] if "playerDataArray" in pfad and i0 <= 1 <= i1 else ([] if "playerDataArray" in pfad else range(i0, i1 + 1))
+                indizes = (
+                    [1]
+                    if "playerDataArray" in pfad and i0 <= 1 <= i1
+                    else ([] if "playerDataArray" in pfad else range(i0, i1 + 1))
+                )
         else:
             indizes = [0]
         for i in indizes:
@@ -198,7 +254,11 @@ class Belege:
         w = self._gewuenscht.get(basis)
         if w is None:
             ids = self._bytes.bereich(basis, laenge)
-            uebersetzung = np.fromiter((self._nummer.get(k, -1) for k in self._bytes.felder), dtype=np.int32, count=len(self._bytes.felder))
+            uebersetzung = np.fromiter(
+                (self._nummer.get(k, -1) for k in self._bytes.felder),
+                dtype=np.int32,
+                count=len(self._bytes.felder),
+            )
             w = self._gewuenscht[basis] = uebersetzung[ids]
         return w
 
@@ -212,7 +272,11 @@ class Belege:
                     if basis <= f[2] < basis + laenge and self.daten[k]["anfang"] is None:
                         vorher = len(self.daten[k]["werte"])
                         self._element(k, f, None, basis, p, r, False)
-                        self.daten[k]["anfang"] = self.daten[k]["werte"][:8] if len(self.daten[k]["werte"]) > vorher else None
+                        self.daten[k]["anfang"] = (
+                            self.daten[k]["werte"][:8]
+                            if len(self.daten[k]["werte"]) > vorher
+                            else None
+                        )
                 continue
             if not teile:
                 continue
@@ -220,14 +284,24 @@ class Belege:
                 for o, l in teile:
                     for fg, fp in self.karte.felder_einer_aenderung(basis + o, l):
                         if (fg, fp) in self.felder and not (name == "datenblock" and fg in haupt):
-                            self._element((fg, fp), self.felder[(fg, fp)], (basis + o, basis + o + l), basis, p, r, True)
+                            self._element(
+                                (fg, fp),
+                                self.felder[(fg, fp)],
+                                (basis + o, basis + o + l),
+                                basis,
+                                p,
+                                r,
+                                True,
+                            )
                 continue
             nummern, stuecke, anfang, laengen = felder_der_teile(self._wunsch(basis, laenge), teile)
             gewuenscht = nummern >= 0
             for n, s in zip(nummern[gewuenscht].tolist(), stuecke[gewuenscht].tolist()):
                 k = self._liste[n]
                 o = int(anfang[s])
-                self._element(k, self.felder[k], (basis + o, basis + o + int(laengen[s])), basis, p, r, True)
+                self._element(
+                    k, self.felder[k], (basis + o, basis + o + int(laengen[s])), basis, p, r, True
+                )
 
 
 def urteil(p, belege):
@@ -236,7 +310,9 @@ def urteil(p, belege):
     if not belege:
         return "nicht zuordenbar", "im Text ist kein Feld der Feldkarte zu erkennen"
     if p.start:
-        return "gemessen", "einmal abgelesen" if any(b["werte"] for b in belege) else "kein Wert gelesen"
+        return "gemessen", "einmal abgelesen" if any(
+            b["werte"] for b in belege
+        ) else "kein Wert gelesen"
     geaendert = [b for b in belege if b["aenderungen"]]
     if not geaendert:
         return "nicht gesehen", "keines der genannten Felder aendert sich in diesem Lauf"
@@ -244,9 +320,15 @@ def urteil(p, belege):
     if m:
         zahl = int(m.group(1))
         if any(zahl in b["werte"] for b in belege):
-            return "zahl passt", f"{zahl} kommt in einem der Felder vor, die Lage des Punkts ist ungeprueft"
+            return (
+                "zahl passt",
+                f"{zahl} kommt in einem der Felder vor, die Lage des Punkts ist ungeprueft",
+            )
         if not any(b["mehr_werte"] for b in belege):
-            return "zahl weicht ab", f"{zahl} kommt in den gesehenen Werten nicht vor, die Lage des Punkts ist ungeprueft"
+            return (
+                "zahl weicht ab",
+                f"{zahl} kommt in den gesehenen Werten nicht vor, die Lage des Punkts ist ungeprueft",
+            )
     return "gesehen", "Feld aendert sich, Urteil muss jemand lesen"
 
 
@@ -266,7 +348,20 @@ def auswerten(checkliste, aufzeichnungen, karte, lauf="F"):
     for p in punkte:
         b = [bel.daten[(f[0], f[1])] for f in je_punkt[p.nr]]
         u, g = urteil(p, b)
-        aus.append({"nr": p.nr, "funktion": p.funktion, "start": p.start, "lage": p.lage or p.schaerfen, "messen": p.messen, "erwartet": p.erwartet, "spielart": p.spielart, "urteil": u, "grund": g, "belege": b})
+        aus.append(
+            {
+                "nr": p.nr,
+                "funktion": p.funktion,
+                "start": p.start,
+                "lage": p.lage or p.schaerfen,
+                "messen": p.messen,
+                "erwartet": p.erwartet,
+                "spielart": p.spielart,
+                "urteil": u,
+                "grund": g,
+                "belege": b,
+            }
+        )
     return {"punkte": aus, "zaehlung": dict(collections.Counter(a["urteil"] for a in aus))}
 
 
@@ -274,10 +369,19 @@ def bericht(ergebnis):
     z = ["| Urteil | Punkte |", "|---|---|"]
     for u, n in sorted(ergebnis["zaehlung"].items()):
         z.append(f"| {u} | {n} |")
-    for titel, u in (("Zahl weicht ab (von Hand lesen)", "zahl weicht ab"), ("Nicht gesehen", "nicht gesehen"), ("Nicht zuordenbar", "nicht zuordenbar")):
+    for titel, u in (
+        ("Zahl weicht ab (von Hand lesen)", "zahl weicht ab"),
+        ("Nicht gesehen", "nicht gesehen"),
+        ("Nicht zuordenbar", "nicht zuordenbar"),
+    ):
         liste = [a for a in ergebnis["punkte"] if a["urteil"] == u]
         if liste:
-            z += ["", f"**{titel}:** " + ", ".join(f"{a['nr']} {a['funktion']}" for a in liste[:60]) + (" ..." if len(liste) > 60 else "")]
+            z += [
+                "",
+                f"**{titel}:** "
+                + ", ".join(f"{a['nr']} {a['funktion']}" for a in liste[:60])
+                + (" ..." if len(liste) > 60 else ""),
+            ]
     return "\n".join(z) + "\n"
 
 

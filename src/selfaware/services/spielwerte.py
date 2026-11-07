@@ -28,9 +28,7 @@ import os
 
 from selfaware import workspace as _workspace
 
-QUELLE = os.path.join(
-    _workspace.DATA, "auge_plan", "lauf_s_20261103", "spielwerte_gemessen.json"
-)
+QUELLE = os.path.join(_workspace.DATA, "auge_plan", "lauf_s_20261103", "spielwerte_gemessen.json")
 
 # Bogen, Armbrust, arab. Bogen, Pferdebogen, Schleuder, Feuerwerfer
 FERNKAMPF = (22, 23, 70, 74, 72, 76)

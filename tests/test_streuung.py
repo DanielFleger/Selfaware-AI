@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 """Die Geschoss- und Feuer-Regeln gegen echte Spielwerte: direkt gerufene Zielfunktionen (streuung_beispiele.json) und aufgezeichnete Fluege (flug_beispiele.json). Kein Spiel noetig."""
+
 import json
 import os
 import sys
@@ -25,13 +26,27 @@ def test_es_gibt_genug_beispiele_jeder_art():
 
 def test_erste_stufe_wie_im_spiel():
     for b in BSP["boden"]:
-        assert sm.ziel_boden(b["typ"], bool(b["auf_boden"]), b["sx"], b["sy"], b["blick"], b["tx"], b["ty"], b["tz"], b["r"]) == tuple(b["ist"]), b
+        assert sm.ziel_boden(
+            b["typ"],
+            bool(b["auf_boden"]),
+            b["sx"],
+            b["sy"],
+            b["blick"],
+            b["tx"],
+            b["ty"],
+            b["tz"],
+            b["r"],
+        ) == tuple(b["ist"]), b
 
 
 def test_schuss_auf_einheit_wie_im_spiel():
     for b in BSP["einheit"]:
-        x, y, z = sm.zielpunkt_einheit(b["ex"], b["ey"], b["ez"], b["lauf"] == 2, b["blick"], b["abst"], b["ts"], b["tl"])
-        sx, sy, sz, zieht = sm.streuung_einheit(x, y, z, b["typ"], b["eigen"], b["r"], b["rng_e"], b["rng_z"])
+        x, y, z = sm.zielpunkt_einheit(
+            b["ex"], b["ey"], b["ez"], b["lauf"] == 2, b["blick"], b["abst"], b["ts"], b["tl"]
+        )
+        sx, sy, sz, zieht = sm.streuung_einheit(
+            x, y, z, b["typ"], b["eigen"], b["r"], b["rng_e"], b["rng_z"]
+        )
         assert (sx, sy, sz) == tuple(b["ist"]), b
         assert int(zieht) == b["zog"], b
 
@@ -39,7 +54,20 @@ def test_schuss_auf_einheit_wie_im_spiel():
 def test_bodenweg_zieht_zwei_zahlen_wie_im_spiel():
     zwei = 0
     for b in BSP["bodenweg"]:
-        x, y, z, zog = sm.ziel_vorbereiten_boden(b["typ"], bool(b["auf_boden"]), b["sx"], b["sy"], b["blick"], b["tx"], b["ty"], b["tz"], b["eigen"], b["rng_e"], [b["r1"], b["r2"]], 0)
+        x, y, z, zog = sm.ziel_vorbereiten_boden(
+            b["typ"],
+            bool(b["auf_boden"]),
+            b["sx"],
+            b["sy"],
+            b["blick"],
+            b["tx"],
+            b["ty"],
+            b["tz"],
+            b["eigen"],
+            b["rng_e"],
+            [b["r1"], b["r2"]],
+            0,
+        )
         assert (x, y, z) == tuple(b["ist"]), b
         assert zog == b["zog"], b
         zwei += zog == 2
@@ -50,7 +78,9 @@ def test_bodenweg_zieht_zwei_zahlen_wie_im_spiel():
 def test_flug_jeder_takt_wie_aufgezeichnet(f):
     assert fm.anfang(f["art"], f["gesamt"], f["zz"] - f["h0"], f["v"]) == (f["v"], f["w"])
     letzt = (f["mx"], f["my"], 0)
-    for soll, (n, schr, h_e) in zip(f["reihe"], fm.bahn(f["mx"], f["my"], f["h0"], f["zx"], f["zy"], f["vc"], f["vs"], f["b"])):
+    for soll, (n, schr, h_e) in zip(
+        f["reihe"], fm.bahn(f["mx"], f["my"], f["h0"], f["zx"], f["zy"], f["vc"], f["vs"], f["b"])
+    ):
         if schr:
             letzt = (schr[-1][0], schr[-1][1], schr[-1][3])
         assert [letzt[0], letzt[1], h_e, letzt[2]] == soll, (n, f["art"])
@@ -59,10 +89,14 @@ def test_flug_jeder_takt_wie_aufgezeichnet(f):
 @pytest.mark.parametrize("b", FLUG["abprall"], ids=lambda b: "Richtung%d_%d" % (b["ori"], b["a"]))
 def test_abprall_wie_aufgezeichnet(b):
     tx, ty = fm.abprall_ziel(b["ori"], b["a"], b["c"], b["sx"], b["sy"], b["bits"])
-    v, w, vc, vs = fm.nach_abprall(fm.drehung(b["vc"], b["vs"], b["b"], b["tt"], b["w0"]), b["v_alt"])
+    v, w, vc, vs = fm.nach_abprall(
+        fm.drehung(b["vc"], b["vs"], b["b"], b["tt"], b["w0"]), b["v_alt"]
+    )
     assert (v, w) == (b["v"], b["w"])
     letzt = (b["a"], b["c"], 0)
-    for soll, (n, schr, h_e, tt) in zip(b["reihe"], fm.bahn2(b["a"], b["c"], b["h"], tx, ty, vc, vs, b["b"], t0=0.0)):
+    for soll, (n, schr, h_e, tt) in zip(
+        b["reihe"], fm.bahn2(b["a"], b["c"], b["h"], tx, ty, vc, vs, b["b"], t0=0.0)
+    ):
         if schr:
             letzt = (schr[-1][0], schr[-1][1], schr[-1][3])
         assert [letzt[0], letzt[1], h_e, letzt[2]] == soll, n
@@ -105,7 +139,11 @@ def test_feuer_liegt_im_versatz_der_flamme():
 def test_fenster_und_feuerschaden_aus_dem_code():
     assert fm.fenster(24) == 42 and fm.fenster(fm.UT_SCHILD) == 90 and fm.fenster(fm.UT_RAMME) == 40
     assert sm.feuerschaden(24, True) == 37 and sm.feuerschaden(24, False) == 75
-    assert sm.feuerschaden(76, True) == 5 and sm.feuerschaden(55, False) == 25 and sm.feuerschaden(53, True) == 0
+    assert (
+        sm.feuerschaden(76, True) == 5
+        and sm.feuerschaden(55, False) == 25
+        and sm.feuerschaden(53, True) == 0
+    )
 
 
 def test_bogenschuetze_streut_auf_gleicher_hoehe_nicht():
