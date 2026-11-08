@@ -53,8 +53,8 @@ Probe `brand_g`: 4 Bahnen, je 4 Sklaven, 60 Felder zu 4 Holzfällerhütten (BT_W
 
 | | gerade | Zickzack |
 |---|---|---|
-| Treffer je Sklave bis zur Ankunft | 6,00 | 2,62 |
-| wären vor der Ankunft tot | 8 von 8 | 5 von 8 |
+| Treffer je Sklave bis zur Ankunft | 6,50 | 3,12 |
+| wären vor der Ankunft tot | 8 von 8 | 6 von 8 |
 | Sklaven ganz ohne Treffer | 0 von 8 | 1 von 8 |
 | Pfeile, die jemanden treffen | 94 % von 144 | 76 % von 144 |
 | Ankunft im Median, Takte nach dem Start | 753 | 741 |
@@ -62,7 +62,7 @@ Probe `brand_g`: 4 Bahnen, je 4 Sklaven, 60 Felder zu 4 Holzfällerhütten (BT_W
 | Schritte mit neuer Richtung | 1 % | 92 % |
 | angezündete Hütten | 8 von 8 | 8 von 8 |
 
-Tot heißt: mindestens drei Treffer. Ein Pfeil nimmt einem Sklaven 7.000 Leben (61 von 69 Treffern in der Aufnahme, die anderen 8 waren zwei Pfeile im selben Takt), er hat auf Instanz 2 15.000 Leben. Im Lauf davor (Kern 22) waren es 6,12 gegen 2,38 Treffer und 8 von 8 gegen 3 von 8 Tote. Dessen Protokoll ist überschrieben, die Aufnahme liegt lokal.
+Tot heißt: mindestens drei Treffer. Ein Pfeil nimmt einem Sklaven 7.000 Leben (in 61 Takten genau einer, in 8 Takten zwei auf einmal), er hat auf Instanz 2 15.000 Leben. Im Lauf davor (Kern 22) waren es nach der ersten Zählung, die zwei Pfeile im selben Takt als einen rechnete, 6,12 gegen 2,38 Treffer und 8 von 8 gegen 3 von 8 Tote. Dessen Protokoll ist überschrieben, die Aufnahme liegt lokal.
 
 Die Wirkung ist kleiner als die 4,5 % der Bahnen oben, weil die Schützen seitlich stehen. Das entspricht dem Fall „Zickzack quer“ aus B-173 (bei 12 Feldern 33 % statt 58 %).
 

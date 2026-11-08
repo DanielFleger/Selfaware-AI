@@ -25,6 +25,7 @@ from selfaware.tools.analysis.auge_feldkarte import FELDLISTE, Feldkarte  # noqa
 ART = 1
 AM_ZIEL = 4
 PFEIL = 5000  # Leben: So viel nimmt nur ein Pfeil (7.000), Nahkampf und Feuer nehmen 20 bis 150 je Takt
+EIN_PFEIL = 7000  # Leben je Pfeil, gemessen in dieser Aufnahme (haeufigster Wert, Ausgabe unten)
 
 
 def schach(a, b):
@@ -60,7 +61,8 @@ def main():
                 l = int(q["leben"][i])
                 if t_an is None:
                     if leben is not None and leben - l >= PFEIL:
-                        h += 1
+                        # 14.000 sind zwei Pfeile im selben Takt: Ein Takt allein zaehlt sonst nur einen (Fund 09.11. in der ersten Auswertung)
+                        h += (leben - l + EIN_PFEIL // 2) // EIN_PFEIL
                         schaden[leben - l] += 1
                         if t_erst is None:
                             t_erst = t
