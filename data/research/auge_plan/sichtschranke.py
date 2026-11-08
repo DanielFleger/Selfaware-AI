@@ -11,12 +11,16 @@ Marken:  erlaubt   - ein Spieler sieht es oder kennt es als Spielregel
          unbekannt - Ghidra-Platzhaltername ohne Bedeutung: im fairen Spiel ungenutzt, bis benannt (fremd: verboten)
 "eigen" gilt für Felder der eigenen Einheiten, Gebäude, Trupps und Spielerdaten, "fremd" für die aller anderen Spieler.
 Globale Felder haben in beiden Spalten dieselbe Marke. Die Regeln greifen in der Reihenfolge der Liste, die erste gewinnt.
+Vor den Mustern stehen die Einzelkorrekturen aus der Feldliste (B-168, Daniel 08.11.2026): Muster treffen auch Namen, die sie
+nicht meinen ("ally" in "Rally"), und erkennen nicht jeden Platzhalternamen.
 """
 
 import collections
 import csv
 import os
 import re
+
+from feldliste_gehirn import E_, G_, M_, P_, Q_, T_, zuordnung, zusatz
 
 HIER = os.path.dirname(os.path.abspath(__file__))
 
@@ -158,6 +162,79 @@ AUFFANG = {
 }
 
 
+B168 = "(B-168)"
+F4 = f"F4 fremde Wirtschaft nur schaetzen {B168}"
+R4 = f"R4 innerer Zaehler: eigen erlaubt (F8), fremd nicht sichtbar {B168}"
+R3 = f"R3 Ziel oder Weg: eigen bekannt, fremd verborgen {B168}"
+INNEN = f"eigene Daten erlaubt (F8), fremdes Innenleben nicht sichtbar {B168}"
+ZIEL = f"sichtbar: Ort, Sterben, Bild {B168}"
+TECHNIK = f"Laufzeiger und Bild der Engine {B168}"
+
+
+def _e(text):
+    return [E_ + n for n in text.split()]
+
+
+def _p(text):
+    return [P_ + n for n in text.split()]
+
+
+# (eigen, fremd, Regel, Felder). Geht vor den Mustern. Name in der Liste, der nicht existiert: Abbruch in main().
+EINZELN_ROH = [
+    # Muster passte zufaellig, fremd war erlaubt
+    ("erlaubt", "schaetzen", F4, _p("marketGold granaryIsAlmostFilledUp")),
+    ("erlaubt", "verboten", f"aus Sichtbarem selbst rechnen, fremd nicht lesen {B168}", _p("closestEnemyDistanceToTheLord")),
+    ("erlaubt", "verboten", R4, _p("keepEnclosementRelatedCountdown")),
+    ("technik", "technik", TECHNIK, _p("rallySearchOffset")),
+    # Innere Zaehler und gemerkte Zustaende: an der Animation nicht sichtbar (F9 meint: kaempft, laeuft, laedt nach)
+    ("erlaubt", "verboten", R4, _e("banked idle blessedAmount horseArcherShootCheckInterval horseArcherShootingVariation")),
+    ("erlaubt", "verboten", f"gemerkter oder kommender Zustand: fremd nicht sichtbar (R3) {B168}",
+     _e("cachedState state_2 state_3 unitType_3 unitTypeToChangeInto")),
+    ("erlaubt", "verboten", f"Auswahl eines anderen Spielers ist nicht sichtbar {B168}", _e("isSelected")),
+    ("erlaubt", "verboten", f"R3 Sammelpunkte: eigen bekannt, fremd verborgen {B168}",
+     _p("""barracksAssemblyPoints[].x barracksAssemblyPoints[].y cathedralAssemblyPointX cathedralAssemblyPointY
+        engineersAssemblyPoints[].x engineersAssemblyPoints[].y tunnelersGuildAssemblyPointX tunnelersGuildAssemblyPointY""")),
+    # Nur wegen des Namens "unbekannt"; die Bedeutung zeigen Name und schreibende Funktionen
+    ("erlaubt", "verboten", R3, _e("""targetID_OR_targetBuildingID targetedUnitID__OR__engineerMannedSiegeEngineRef
+        targetedUnitUIDUnk_OR_someAppearTileUnk_OR_buildingUID_OR_pitchDitchUID_OR_entityUID nextTileUnk destinationX_2Unk destinationY_2Unk
+        digTileY__OR__countLifeCycleEngineersSentToManSiegeEngine lastEncounteredEnemyUnitIDUnk movementType_OR_targetUnitID""")),
+    ("erlaubt", "verboten", R4, _e("assassinsMicroDistanceToEnemyUnk idleCounterUnk friendlyFireCounterUnk unitSpeedMatchingRelatedUnk")
+     + [G_ + "idleTimerUnk"]),
+    ("erlaubt", "verboten", INNEN, _e("horseOriginStableIDUnk horseOriginStablesBuildingIndexUnk isSelectable_OR_matchTime")),
+    ("erlaubt", "erlaubt", ZIEL, _e("killedFlagUnk isDisappearingUnk currentTilePosition_2Unk gmIDUnk imageIDUnk spriteHeightUnk spriteWidthUnk")
+     + [G_ + n for n in ("terrainHeightUnk", "playerColorUnk", "surfaceAreaUnk")] + ["trees[].animationFrameUnk", "trees[].animationFrame2Unk"]
+     + _p("ladyIDUnk jesterIDUnk")),
+    ("erlaubt", "erlaubt", f"Spielregel je Art {B168}", _e("someUnitStat2_meleeDamageUnk enemyNoticeFrequencyUnk moveableUnk")),
+    ("erlaubt", "erlaubt", f"Zeit und Friedenszeit {B168}", [M_ + "totalGameTicksUnk", M_ + "noRushTicksLeftUnk"]),
+    ("erlaubt", "erlaubt", f"sichtbar: Geschoss, Flug {B168}", [Q_ + "velocityUnk", Q_ + "speedUnk"]),
+    ("erlaubt", "erlaubt", f"Statistik: das Spiel zaehlt hier nur den eigenen Platz (processUnitLossStatistic) {B168}", """DAT_CurrentPlayerUnitLosses DAT_UnitValueLossesPerEnemyPlayer
+        DAT_UnitValueLossesPerEnemyPlayer[] DAT_DestroyedBuildingsCountHistory DAT_DestroyedBuildingsCountHistory[]""".split()),
+    ("erlaubt", "verboten", f"F10 fremde Trupps nicht wissbar {B168}",
+     [T_ + n for n in "percentageAttackingUnk percentageDyingUnk percentageMovingUnk percentageShootingUnk isRallyingUnk size2Unk".split()]),
+    ("erlaubt", "schaetzen", F4, _p("""blessedPeopleCountUnk unblessedPeopleCountUnk averagePopulationGrowthUnk populationRelatedCrowdingCountUnk
+        priestCountUnk nonInteractiveCitizenCountUnk ownsCathedralUnk ownsChurchUnk fearFactorProductivityUnk""")),
+    ("erlaubt", "verboten", f"Buendnisanfragen: eigene bekannt, fremde verborgen {B168}",
+     _p("requestStateUnk requestedAttackTargetUnk requestedGoodsArray1Unk[] requestedGoodsArray2Unk[] playerID_askerUnk")),
+    ("technik", "technik", TECHNIK, _p("childTargetIDUnk rallySearchOffsetsUnk[]") + ["pathLinkageKeepWasUpdatedUnk", "DAT_CounterFoodWarningInterval"]
+     + [Q_ + n for n in "hasDoneEffectUnk colorUnk graphicRotationUnk someCounter_OR_hitGround unitID_OR_seaGullID".split()]),
+]
+EINZELN = {n: (e, f, t) for e, f, t, namen in EINZELN_ROH for n in namen}
+assert len(EINZELN) == sum(len(z[3]) for z in EINZELN_ROH), "Feld doppelt in den Einzelkorrekturen"
+# Marke folgt aus dem Bedarf der Feldliste; dieselben Texte wie die Muster, damit gleiche Faelle gleich heissen
+NACH_BEDARF = {
+    "ki": ("verboten", "verboten", "R3/F5 Innenleben der Gegner-KI", "ja"),
+    "zufall": ("verboten", "verboten", "F1 Zufallsstand", "ja"),
+    "unklar": ("unbekannt", "verboten", "Bedeutung unbekannt (Ghidra-Platzhalter)", "unbekannt"),
+}
+LISTE, NACHGEHOLT = zuordnung(), zusatz()
+
+
+def korrigiere(bereich, feld, e, fr, text, sicher):
+    if feld in EINZELN:
+        return (*EINZELN[feld], "ja")
+    return NACH_BEDARF.get(LISTE.get((bereich, feld)) or NACHGEHOLT.get(feld), (e, fr, text, sicher))
+
+
 def marke(bereich, feld, unklar):
     for rb, rf, e, fr, text, sicher in R:
         if not (rb.search(bereich) and rf.search(feld)):
@@ -172,14 +249,20 @@ def marke(bereich, feld, unklar):
 
 def main():
     zeilen = list(csv.DictReader(open(os.path.join(HIER, "zustand_felder.csv"), encoding="utf-8"), delimiter=";"))
-    aus = []
+    aus, korrigiert, vorhanden = [], [], set()
     for z in zeilen:
         feld = z["feld"] or z["global"]
         unklar = z["name_unklar"]
         if re.search(r"(^|[.\]])(\+0x[0-9a-f]+|field\d+_0x[0-9a-f]+|_\d+_\d+_|[0-9a-f]{8})(\[\])?$", feld):
             unklar = "ja"  # reine Versatz- oder Adressnamen zählen ebenfalls als Platzhalter
-        e, fr, text, sicher = marke(z["bereich"], feld, unklar)
+        roh = marke(z["bereich"], feld, unklar)
+        e, fr, text, sicher = korrigiere(z["bereich"], feld, *roh)
+        if (e, fr) != roh[:2]:
+            korrigiert.append({"feld": feld, "muster": f"{roh[0]} / {roh[1]}", "jetzt": f"{e} / {fr}", "regel": text})
+        vorhanden.add(feld)
         aus.append({"bereich": z["bereich"], "feld": feld, "eigen": e, "fremd": fr, "regel": text, "sicher": sicher})
+    fehlt = set(EINZELN) - vorhanden
+    assert not fehlt, f"Einzelkorrektur ohne Feld: {sorted(fehlt)}"
     with open(os.path.join(HIER, "sichtschranke.csv"), "w", encoding="utf-8", newline="") as f:
         w = csv.DictWriter(f, fieldnames=list(aus[0]), delimiter=";")
         w.writeheader()
@@ -211,6 +294,13 @@ def main():
             bsp = [x for x in liste if x["bereich"] == b and x["regel"] == t]
             f.write(f"| {b} | {t} | {n} | {bsp[0]['eigen']} | {bsp[0]['fremd']} | "
                     + ", ".join(sorted({x['feld'] for x in bsp})[:6]).replace("|", "/") + " |\n")
+        f.write(f"\n## Korrekturen nach der Feldliste (B-168, Daniel 08.11.2026)\n\n{len(korrigiert)} Felder, bei denen die Muster allein "
+                "eine andere Marke ergeben. Marke als eigen / fremd.\n\n| Regel | Muster sagten | jetzt | Felder | Beispiele |\n|---|---|---|---|---|\n")
+        gr = collections.defaultdict(list)
+        for x in korrigiert:
+            gr[(x["regel"], x["muster"], x["jetzt"])].append(x["feld"])
+        for (t, m, j), namen in sorted(gr.items(), key=lambda kv: -len(kv[1])):
+            f.write(f"| {t} | {m} | {j} | {len(namen)} | " + ", ".join(f"`{n}`" for n in sorted(namen)[:5]) + " |\n")
     print(len(aus), "Felder; eigen", dict(zaehle("eigen")), "; fremd", dict(zaehle("fremd")), "; unbekannt", len(unb), "; Zweifel", len(zw),
           "in", len(gruppen), "Gruppen")
 

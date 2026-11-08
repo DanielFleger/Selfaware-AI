@@ -66,7 +66,7 @@ Jedes Feld des Spielzustands bekommt genau eine Marke:
   - Innenleben der Gegner-KI (Angriffspläne, Wellenzustand, AIV/AIC) und Szenario-Auslöser (F12).
 - **nur Test:** Schreiben in den Speicher (R2).
 
-Umgesetzt ist das in `data/research/auge_plan/sichtschranke.py`, das Ergebnis steht in `sichtschranke.csv` und `sichtschranke_zweifel.md`. Felder mit Ghidra-Platzhalternamen bleiben im fairen Spiel ungenutzt, bis ihre Bedeutung geklärt ist.
+Umgesetzt ist das in `data/research/auge_plan/sichtschranke.py`, das Ergebnis steht in `sichtschranke.csv` und `sichtschranke_zweifel.md`. Felder mit Ghidra-Platzhalternamen bleiben im fairen Spiel ungenutzt, bis ihre Bedeutung geklärt ist. Die Muster allein waren zu grob: Einzelkorrekturen nach der Feldliste (B-168) gehen vor und stehen Feld für Feld in `sichtschranke_zweifel.md`.
 
 ## Noch offen
 
