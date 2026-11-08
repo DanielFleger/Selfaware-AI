@@ -80,6 +80,7 @@ class Feldzug:
         self.weg, self.weg_i, self.weg_ziel = [], 0, None
         self.verteidiger = set()    # 19.10.: Streitkolben, die der Waechter gerade zur Abwehr einsetzt - der Feldzug laesst sie
         self.heimwache = set()      # 19.10.: bleiben zu Hause (Waechter) - gehoeren nicht zum Heer
+        self.ausgeliehen = set()    # B-172: gerade im Vorstoss der Schuetzen - gehoeren nicht zum Heer
         self._rechnung = (-99, False, "")
         self.endspurt = False       # 19.10. (endspurt.py): Wirtschaft verloren - angreifen, sobald die Haelfte da ist
         self._stau = (None, 0)      # 19.10.: (bester Abstand der Spitze zum Lord, seit Tick)
@@ -260,7 +261,8 @@ class Feldzug:
     def einheiten(self, L):
         """19.10.: das Heer des Feldzugs - alle eigenen Truppen der Arten HEER ausser der Heimwache; der Waechter laesst sie in
         Ruhe (1018y: sein "Stapeln" holte sie heim), ausser als Reserve beim Sammeln."""
-        return {n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] in HEER and n not in self.heimwache}
+        return {n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] in HEER and n not in self.heimwache
+                and n not in self.ausgeliehen}
 
     def _lohnt(self, L, da, lord):
         """19.10.: (lohnt, Text) - unsere am Sammelpunkt gegen den Lord, feindliche Truppen bis LORD_UMKREIS Felder und

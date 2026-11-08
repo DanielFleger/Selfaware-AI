@@ -992,6 +992,8 @@ NAHRUNG_AUSBAU = "nein"  # Lernkreis: fehlt Nahrung fuer doppelte Rationen, eine
 KAUSAL_HORIZONT = 16000  # 12.10.: Kausalmodell rechnet Ertraege bis jetzt + so viele Ticks (Schalter kausal_horizont)
 HEER_ANTEIL = 0.0        # B-132: Anteil jedes Gold-Zuwachses fuer die Heereskasse (Schalter heer_anteil, 0 = aus)
 DECKUNG_SOLL = 0         # B-129: so viele Schleuderer decken die Brand-Sklaven (Schalter deckung_soll, 0 = aus)
+VORSTOSS = False         # B-172: frueher Vorstoss der Schuetzen (vorstoss.py), Schalter vorstoss=ja
+VORSTOSS_BIS = 15000     # B-172: bis zu diesem Takt, danach sind die Schuetzen wieder frei (Schalter vorstoss_bis)
 KAUSAL_SPAREN = True     # B-122: Kausalmodell spart fuer seinen besten Betrieb (Schalter kausal_sparen=nein = altes Verhalten)
 OFFENES_ENDE = False     # B-123: ziel_tick=offen (Partie gegen einen Menschen) - Kausalmodell rechnet mitlaufend
 KAUSAL_RUNDEN = 3        # 19.10.: der Kausal-Planer entscheidet nur jede so vielte Runde (Rechenzeit, Bauen vertraegt 1 s)
@@ -2230,6 +2232,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     # der Ruecklage auf streitkolben lebende Kaempfer aufgefuellt, Angriff ueber feldzug.py; Assassinen ohne Lord-Angriff
     feldzug = bier = None
     brand = reiter = None
+    vorstoss = None                    # B-172: frueher Vorstoss der Schuetzen, Schalter vorstoss=ja
     if RAIDS:
         # 19.10. (Daniel 16:57 "Sklaven am Anfang richtig OP ... wenn Feuer erkannt werden kann"): Feuer = fireDuration im
         # Gebaeudedatensatz (gemessen raid_messen.py: Sklave zuendet, das Gebaeude brennt allein ab)
@@ -2240,6 +2243,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         # die Sklaven; Knopf deckung_soll (0 = aus)
         RA.DECKUNG_SOLL = DECKUNG_SOLL
         deckung = RA.Deckung(SP, BERGFRIED)
+        if VORSTOSS:
+            from selfaware.micro.tasks.vorstoss import Vorstoss
+            vorstoss = Vorstoss(SP, BERGFRIED, bis=VORSTOSS_BIS)
     if weg == "feldzug" and streitkolben:
         from selfaware.micro.tasks.feldzug import Feldzug
         feldzug = Feldzug(SP, BERGFRIED, LORD_SCHUTZ_BIS, n=streitkolben)
@@ -2477,7 +2483,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 # eine kleine Heimwache bleibt am Bergfried (zuerst Schuetzen, dann Nahkaempfer, die naechsten am Bergfried, nur
                 # wer hoechstens 40 Felder weg ist), alle anderen Truppen sind das Heer des Feldzugs
                 import selfaware.micro.tasks.feldzug as FZ
-                heer_alle = {n: e for n, e in L.items() if e["besitzer"] == SP and e["typ"] in FZ.HEER}
+                heer_alle = {n: e for n, e in L.items() if e["besitzer"] == SP and e["typ"] in FZ.HEER
+                             and (vorstoss is None or n not in vorstoss.mitglieder)}
                 hw = {n for n in feldzug.heimwache if n in heer_alle}
                 nah_heim = lambda n: max(abs(heer_alle[n]["x"] - BERGFRIED[0]), abs(heer_alle[n]["y"] - BERGFRIED[1]))
                 for arten, soll in ((FZ.FERN_REICH, HEIM_FERN), (None, HEIM_NAH)):
@@ -2486,10 +2493,14 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                                    and nah_heim(n) <= 40), key=nah_heim)
                     hw |= set(frei[:max(0, soll - len(drin))])
                 feldzug.heimwache = hw
+            if feldzug is not None and vorstoss is not None:
+                feldzug.ausgeliehen = set(vorstoss.mitglieder)
             reserve_w = feldzug.einheiten(L) if feldzug is not None and feldzug.phase == "sammeln" else set()
             ausgenommen_w = set(trupp.mitglieder if trupp else ()) | ((feldzug.einheiten(L) - reserve_w) if feldzug is not None else set())
             if brand is not None:          # 19.10.: Raid-Sklaven und -Reiter gehoeren nicht dem Waechter und graben nicht
                 ausgenommen_w |= brand.einheiten(L) | reiter.einheiten(L)
+            if vorstoss is not None:       # B-172: im Vorstoss gehoeren sie nicht dem Waechter; beim Alarm gibt der Vorstoss sie frei
+                ausgenommen_w |= vorstoss.mitglieder
             ausgenommen_w |= graben.graeber if graben is not None and not graben.fertig else set()   # 19.10.: Graeber graben
             ereignis = w.schritt(L, gebs, ausgenommen=ausgenommen_w, reserve=reserve_w) if w is not None else []
             if feldzug is not None and w is not None:
@@ -3300,7 +3311,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     if brand is not None:
                         # 19.10. Raids: steuern jede Runde; werben nur aus Gold ueber der Ruecklage, nicht im Endspurt
                         try:
-                            brand.schutz = deckung.orte(L)
+                            if vorstoss is not None:
+                                ereignis += vorstoss.schritt(st["t"], L, G, befehl)
+                            brand.schutz = deckung.orte(L) + (vorstoss.orte(L) if vorstoss is not None else [])
                             ereignis += deckung.schritt(L, G, befehl, brand)
                             ereignis += brand.schritt(L, G, befehl)
                             ereignis += reiter.schritt(L, G, befehl)
@@ -3434,6 +3447,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     schreib(serie.bericht())
     if brand is not None:
         schreib("RAIDS: %s; %s; %s" % (brand.bericht(), reiter.bericht(), deckung.bericht()))
+        if vorstoss is not None:
+            schreib(vorstoss.bericht())
     if GZ is not None:
         schreib(GZ.bericht())
     st, L, G = runde_lesen()
@@ -3665,6 +3680,9 @@ def main():
     global STEIN_FRUEH, DECKUNG_SOLL, HEER_ANTEIL
     HEER_ANTEIL = float(arg.get("heer_anteil", HEER_ANTEIL))
     DECKUNG_SOLL = int(arg.get("deckung_soll", DECKUNG_SOLL))
+    global VORSTOSS, VORSTOSS_BIS
+    VORSTOSS = arg.get("vorstoss", "nein") == "ja"
+    VORSTOSS_BIS = int(arg.get("vorstoss_bis", VORSTOSS_BIS))
     STEIN_FRUEH = int(arg.get("steinbrueche_frueh", STEIN_FRUEH))
     KAUSAL_SPAREN = arg.get("kausal_sparen", "ja") == "ja"
     OFFENES_ENDE = arg.get("ziel_tick") == "offen"
