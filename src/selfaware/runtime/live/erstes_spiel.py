@@ -994,21 +994,25 @@ HEER_ANTEIL = 0.0        # B-132: Anteil jedes Gold-Zuwachses fuer die Heereskas
 DECKUNG_SOLL = 0         # B-129: so viele Schleuderer decken die Brand-Sklaven (Schalter deckung_soll, 0 = aus)
 VORSTOSS = False         # B-172: frueher Vorstoss der Schuetzen (vorstoss.py), Schalter vorstoss=ja
 VORSTOSS_BIS = 15000     # B-172: bis zu diesem Takt, danach sind die Schuetzen wieder frei (Schalter vorstoss_bis)
-ZICKZACK = False         # B-174: Vorstoss laeuft im Zickzack ueber den Rust-Kern (Schalter zickzack=ja, braucht vorstoss=ja)
+ZICKZACK = False         # B-174, B-175: Vorstoss und Brandtrupp laufen im Zickzack ueber den Rust-Kern (Schalter zickzack=ja)
 _zickzack_gemeldet = False
 
 
-def zickzack_kern(vorstoss, ereignis):
-    """B-174: Holt den Kern fuer den Zickzack. Sein gemeinsamer Speicher entsteht erst im laufenden Spiel, darum je Runde ein Versuch;
-    solange er nicht bereit ist, laeuft der Vorstoss gerade wie ohne Schalter."""
+def zickzack_kern(teile, ereignis):
+    """B-174, B-175: Holt den Kern fuer den Zickzack, je Teil (Vorstoss, Brandtrupp) einen eigenen Auftraggeber. Sein gemeinsamer
+    Speicher entsteht erst im laufenden Spiel, darum je Runde ein Versuch; solange er nicht bereit ist, laeuft alles gerade wie ohne Schalter."""
     global _zickzack_gemeldet
     from selfaware.execution import kernweg as KW
     from selfaware.game.ucp.befehl import SPIEL
-    vorstoss.kern = KW.oeffnen(SPIEL, auftraggeber=KW.VORSTOSS)
-    if vorstoss.kern is not None:
-        ereignis.append("ZICKZACK: Kern bereit, der Vorstoss laeuft im Zickzack")
+    bereit = False
+    for teil, auftraggeber in teile:
+        if teil is not None:
+            teil.kern = KW.oeffnen(SPIEL, auftraggeber=auftraggeber)
+            bereit = teil.kern is not None
+    if bereit:
+        ereignis.append("ZICKZACK: Kern bereit")
     elif not _zickzack_gemeldet:
-        ereignis.append("ZICKZACK: Kern noch nicht bereit, der Vorstoss laeuft solange gerade")
+        ereignis.append("ZICKZACK: Kern noch nicht bereit, solange gerade")
     _zickzack_gemeldet = True
 KAUSAL_SPAREN = True     # B-122: Kausalmodell spart fuer seinen besten Betrieb (Schalter kausal_sparen=nein = altes Verhalten)
 OFFENES_ENDE = False     # B-123: ziel_tick=offen (Partie gegen einen Menschen) - Kausalmodell rechnet mitlaufend
@@ -3327,9 +3331,11 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     if brand is not None:
                         # 19.10. Raids: steuern jede Runde; werben nur aus Gold ueber der Ruecklage, nicht im Endspurt
                         try:
+                            if ZICKZACK and brand.kern is None:
+                                from selfaware.execution import kernweg as KW
+                                zickzack_kern([(vorstoss, KW.VORSTOSS), (brand, KW.BRANDTRUPP)], ereignis)
                             if vorstoss is not None:
-                                if ZICKZACK and vorstoss.kern is None:
-                                    zickzack_kern(vorstoss, ereignis)
+                                vorstoss.plaetze_setzen(brand.im_zickzack)
                                 ereignis += vorstoss.schritt(st["t"], L, G, befehl)
                             brand.schutz = deckung.orte(L) + (vorstoss.orte(L) if vorstoss is not None else [])
                             ereignis += deckung.schritt(L, G, befehl, brand)

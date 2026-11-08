@@ -197,6 +197,25 @@ def test_plaetze_bleiben_solange_die_gruppe_gleich_ist():
     assert sum(len(e[0]) for e in v._aufstellung(list(range(4)), (200, 100))) == 4
 
 
+def test_der_brandtrupp_nimmt_dem_vorstoss_plaetze_weg():
+    v, _ = _plaetze(8)
+    v.plaetze_setzen(5)
+    assert v.plaetze == 3 and len(v._aufstellung(list(range(8)), (200, 100))) == 3
+    v.plaetze_setzen(8)
+    assert v.plaetze == 0 and v._aufstellung(list(range(8)), (200, 100)) == []
+    v.plaetze_setzen(20)
+    assert v.plaetze == 0
+
+
+def test_ohne_freien_platz_laeuft_der_vorstoss_gerade_ueber_das_modul():
+    k = Kern()
+    v = V.Vorstoss(1, HEIM, kern=k)
+    v.plaetze_setzen(8)
+    L = _L(_e(1, 22, 100, 100), _e(2, 3, 200, 100))
+    _, b, _ = _lauf(L, v=v)
+    assert k.zick == [] and k.frei == [[1]] and b[0]["lauf"][0] == 100 + V.SCHRITT
+
+
 def test_abziehen_laeuft_im_zickzack():
     k = Kern()
     fern = [_e(2, 23, 132, 100 + i) for i in range(4)]

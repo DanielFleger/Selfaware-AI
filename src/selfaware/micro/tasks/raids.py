@@ -24,7 +24,11 @@ gibt es dort keinen, zum naechsten ungeschuetzten Arbeiter irgendwo reiten (19.1
 Berittene - die sollten im besten Fall immer beim Gegner raiden und in Bewegung sein").
 Werbung nur aus Gold ueber der Ruecklage und nur, solange mindestens FEUER_MIN Bauern am Feuer stehen.
 STARTWERTE (nicht gemessen, je Partie mitgeschrieben): SKLAVEN_SOLL, REITER_SOLL, WERT.
-Pruefung ohne Spiel: src/selfaware/tools/checks/raids_pruefen.py."""
+Pruefung ohne Spiel: src/selfaware/tools/checks/raids_pruefen.py.
+
+Schalter zickzack=ja (B-175, aus ist der Standard): Sklaven laufen im Zickzack auf ihr Gebaeude zu, jeder ein eigener Trupp beim Rust-Kern
+(B-174, data/research/auge_plan/zickzack_20261108/Ergebnis_Zickzack.md). Ab ZICK_NAH Feldern kommt der normale Angriffsbefehl: Ein Ziel ist
+nur dann eins, wenn bis GEFAHR_FERN kein Schuetze steht, das letzte Stueck liegt also ausserhalb des Feuers."""
 
 SKLAVE, PFERDEBOGEN = 71, 74
 SCHLEUDER = 72                                   # B-129: Deckung fuer die Sklaven (Daniel 22:40: 25 Schleuderer)
@@ -42,6 +46,11 @@ GRUBE_R = 3
 FLUCHT_R = 8
 JAGD_R = 20
 NEU_ALLE = 5                                     # Runden zwischen zwei Befehlen an dieselbe Einheit
+ZICK_MAX = 8                                     # so viele Einzelbefehle je Feld kamen im Lauf zickzack2_g alle rechtzeitig (B-174, vorstoss.TRUPPS)
+ZICK_HALT = 5                                    # Felder vor dem Gebaeude endet der Zickzack: bis 4 Felder gilt der Sklave als am Gebaeude (Abfrage in schritt), dazu 1
+ZICK_RUNDE = 6                                   # Felder, die ein Sklave in einer Runde laeuft: 63 Takte Median (lage_20261108_155525_i1) / 12 Takte je Feld, aufgerundet
+ZICK_NAH = ZICK_HALT + ZICK_RUNDE                # ab hier der Angriffsbefehl, damit der Sklave nicht bis zur naechsten Runde am Halt wartet
+ZICK_TRUPP = 1000                                # Trupp beim Kern = ZICK_TRUPP + Sklave; die Plaetze des Vorstosses haben die Nummern 1 bis 8
 FERN = {22, 23, 70, 72, 74, 76}
 NAH = {24, 25, 26, 27, 28, 55, 73, 75}
 TUERME = {74, 75, 76, 77, 78}                    # Gebaeudetypen Wach-/Verteidigungs-/Geschuetz-/eckiger/runder Turm
@@ -92,9 +101,12 @@ def gefaehrlich(ort, L, G, sp, schutz=()):
 
 
 class Brandtrupp:
-    def __init__(self, sp, feuer):
-        """feuer(nr) -> fireDuration des Gebaeudes nr (0 = brennt nicht)."""
+    def __init__(self, sp, feuer, kern=None):
+        """feuer(nr) -> fireDuration des Gebaeudes nr (0 = brennt nicht). kern = None ohne Zickzack, sonst der Kernweg (B-175)."""
         self.sp, self.feuer = sp, feuer
+        self.kern = kern
+        self.zick = set()           # Sklaven, die gerade der Kern im Zickzack fuehrt
+        self.halt = {}              # Sklave -> (Gebaeude, Punkt, an dem sein Zickzack endet)
         self.ziel = {}              # Sklave -> Gebaeude
         self.befohlen = {}          # Sklave -> Runde
         self.brennt = set()         # Gebaeude, die wir brennen sahen
@@ -120,9 +132,13 @@ class Brandtrupp:
         self.runde += 1
         aus = []
         meine = self.einheiten(L)
+        if self.kern is not None:
+            self.kern.aufraeumen(meine)
+        self.zick &= meine
         for s in list(self.ziel):
             if s not in meine or self.ziel[s] not in G:
                 self.ziel.pop(s, None)
+                self._nicht_im_zickzack(s, meine)
         # brennt ein Ziel, zieht der Sklave weiter (gemessen: es brennt allein ab). Gelesen wird nur, wenn der Sklave hoechstens
         # 4 Felder davor steht - jede Abfrage ist ein Weg durch den Kanal
         for s, nr in list(self.ziel.items()):
@@ -132,11 +148,12 @@ class Brandtrupp:
                     self.brennt.add(nr)
                     self.angezuendet += 1
                     self.ziel.pop(s)
+                    self._nicht_im_zickzack(s, meine)
                     aus.append("BRANDTRUPP: Sklave %d hat Gebaeude %d (Typ %d) angezuendet (Feuer %d) - weiter" % (
                         s, nr, G[nr]["typ"], f))
         belegt = set(self.ziel.values())
         for s in sorted(meine):
-            if s in self.ziel and self.runde - self.befohlen.get(s, -99) < NEU_ALLE:
+            if s in self.ziel and s not in self.zick and self.runde - self.befohlen.get(s, -99) < NEU_ALLE:
                 continue
             e = L[s]
             if s not in self.ziel:
@@ -148,13 +165,56 @@ class Brandtrupp:
                 g = G[z[0]]
                 aus.append("BRANDTRUPP: Sklave %d -> Gebaeude %d (Typ %d) bei (%d, %d), %d Felder" % (
                     s, z[0], g["typ"], g["x"], g["y"], schach((e["x"], e["y"]), (g["x"], g["y"]))))
-            if self.befohlen.get(s, -99) < self.runde - NEU_ALLE or e.get("zustand") in (0, 1):
-                befehl({"angriff": {"einheiten": [s], "gebaeude": self.ziel[s]}}, 1.0, bis="ANGRIFF")
-                self.befohlen[s] = self.runde
+            if s in self.zick or self.befohlen.get(s, -99) < self.runde - NEU_ALLE or e.get("zustand") in (0, 1):
+                if not self._im_zickzack(s, e, self.ziel[s], G):
+                    self._angreifen(s, self.ziel[s], befehl)
+                    self.befohlen[s] = self.runde
         return aus
 
+    @property
+    def im_zickzack(self):
+        return len(self.zick)
+
+    def _angreifen(self, s, nr, befehl):
+        """Mit Kern geht auch der Angriff ueber den Kern: So fuehrt nur eine Stelle den Sklaven, und zwei Gruppenbefehle im selben Takt
+        koennen nicht verschmelzen (S57). Nur was der Ring nicht nimmt, geht ans Modul."""
+        b = {"angriff": {"einheiten": [s], "gebaeude": nr}}
+        for r in self.kern.senden([b]) if self.kern is not None else [b]:
+            befehl(r, 1.0, bis="ANGRIFF")
+
+    def _nicht_im_zickzack(self, s, meine):
+        """Der Sklave hat kein Ziel mehr: Der Kern laesst ihn los, sonst liefe er zu einem Gebaeude, das schon brennt."""
+        if s in self.zick and s in meine:
+            self.kern.freigeben([s])
+        self.zick.discard(s)
+        self.halt.pop(s, None)
+
+    def _im_zickzack(self, s, e, nr, G):
+        """True, wenn der Kern den Lauf dieses Sklaven im Zickzack fuehrt; sonst kommt der Angriffsbefehl, der den Zickzack im Kern beendet.
+        Je Runde wird nur nachgesehen, ob der Sklave schon nah genug ist; geschickt wird beim neuen Ziel und danach alle NEU_ALLE Runden."""
+        if self.kern is None:
+            return False
+        ort, ziel = (e["x"], e["y"]), (G[nr]["x"], G[nr]["y"])
+        d = schach(ort, ziel)
+        if d > ZICK_NAH and (s in self.zick or len(self.zick) < ZICK_MAX):
+            alt = self.halt.get(s)
+            neu = alt is None or alt[0] != nr
+            if neu:
+                alt = (nr, (ziel[0] + (ort[0] - ziel[0]) * ZICK_HALT // d, ziel[1] + (ort[1] - ziel[1]) * ZICK_HALT // d))
+                self.halt[s] = alt
+            if not neu and s in self.zick and self.runde - self.befohlen.get(s, -99) < NEU_ALLE:
+                return True
+            if self.kern.zickzack([s], alt[1], ZICK_TRUPP + s):
+                self.zick.add(s)
+                self.befohlen[s] = self.runde
+                return True
+        self.zick.discard(s)
+        self.halt.pop(s, None)
+        return False
+
     def bericht(self):
-        return "Brandtrupp: %d Gebaeude angezuendet" % self.angezuendet
+        kern = "; " + self.kern.bericht() if self.kern is not None else ""
+        return "Brandtrupp: %d Gebaeude angezuendet%s" % (self.angezuendet, kern)
 
 
 class Reiterjagd:

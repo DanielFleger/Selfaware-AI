@@ -54,6 +54,10 @@ def test_zickzack_bei_vollem_ring_meldet_nein():
     assert k.stand["ring voll"] == 1
 
 
+def test_jeder_teil_hat_seinen_auftraggeber():
+    assert len({KW.ASSASSINEN, KW.VORSTOSS, KW.BRANDTRUPP}) == 3
+
+
 def test_zickzack_art_gleich_im_kern():
     text = (KERN / "zickzack.rs").read_text(encoding="utf-8")
     assert int(re.search(r"pub const ZICKZACK: i32 = (\d+);", text).group(1)) == KL.ZICKZACK

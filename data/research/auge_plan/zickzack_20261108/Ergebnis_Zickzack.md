@@ -1,6 +1,6 @@
 # Zickzack für ganze Gruppen, im Kern gebaut und im Gefecht geprüft (B-174)
 
-Stand 08.11.2026. Läufe auf Instanz 2 im Gefecht (zwei Menschen-Plätze, keine KI, Tempo 20, freies Feld), Kern Version 22, jeder Takt aufgezeichnet.
+Stand 09.11.2026. Läufe auf Instanz 2 im Gefecht (zwei Menschen-Plätze, keine KI, Tempo 20, freies Feld), Kern Version 22 und ab dem letzten Brandtrupp-Lauf 23, jeder Takt aufgezeichnet.
 
 ## Ergebnis
 
@@ -45,6 +45,35 @@ Das Spiel stellt eine Gruppe auf jedes zweite Feld (gelesen in `giveTribeMoveIns
 
 Beim dichten Lauf 2 fiel die Wirkung weiter (62 % Richtungswechsel statt 94 %): Neben dem einen Gruppenbefehl standen 8 Einzelbefehle derselben Runde in der Schlange. Der Befehl wartete in 18 % der Fälle länger als die 6 Takte, nach denen die Einheit die Feldmitte erreicht und das Ziel liest, im ersten Lauf in 6 % (`zickzack_warteschlange.txt`). Die 8 Einzelbefehle selbst warteten nie länger.
 
+## Der Brandtrupp (B-175)
+
+Auch die Sklaven im Brandtrupp laufen jetzt im Zickzack (derselbe Schalter `zickzack=ja`): jeder einzeln bis 11 Felder vor sein Gebäude, danach kommt der normale Angriffsbefehl. Höchstens 8 Sklaven gleichzeitig, die übrigen laufen wie bisher. Solange der Kern bereit ist, geht jeder Befehl an die Sklaven über ihn.
+
+Probe `brand_g`: 4 Bahnen, je 4 Sklaven, 60 Felder zu 4 Holzfällerhütten (BT_WOODCUTTERSHUT), 8 Bogenschützen stehen seitlich am Weg und schießen von selbst, die echte Klasse `Brandtrupp` führt in Runden von 63 Takten. Die Sklaven haben sehr viel Leben, damit alle ankommen und jeder Treffer zählt.
+
+| | gerade | Zickzack |
+|---|---|---|
+| Treffer je Sklave bis zur Ankunft | 6,00 | 2,62 |
+| wären vor der Ankunft tot | 8 von 8 | 5 von 8 |
+| Sklaven ganz ohne Treffer | 0 von 8 | 1 von 8 |
+| Pfeile, die jemanden treffen | 94 % von 144 | 76 % von 144 |
+| Ankunft im Median, Takte nach dem Start | 753 | 741 |
+| Felder je 1.000 Takte | 72,8 | 74,5 |
+| Schritte mit neuer Richtung | 1 % | 92 % |
+| angezündete Hütten | 8 von 8 | 8 von 8 |
+
+Tot heißt: mindestens drei Treffer. Ein Pfeil nimmt einem Sklaven 7.000 Leben (61 von 69 Treffern in der Aufnahme, die anderen 8 waren zwei Pfeile im selben Takt), er hat auf Instanz 2 15.000 Leben. Im Lauf davor (Kern 22) waren es 6,12 gegen 2,38 Treffer und 8 von 8 gegen 3 von 8 Tote. Dessen Protokoll ist überschrieben, die Aufnahme liegt lokal.
+
+Die Wirkung ist kleiner als die 4,5 % der Bahnen oben, weil die Schützen seitlich stehen. Das entspricht dem Fall „Zickzack quer“ aus B-173 (bei 12 Feldern 33 % statt 58 %).
+
+Vor dem Lauf gesetzt, von mir und ohne Vorgabe: widerlegt, wenn die Sklaven im Zickzack nicht seltener getroffen werden oder weniger Hütten brennen. Beides trat nicht ein.
+
+Bis der Lauf zählte, brauchte es drei Versuche, und jeder Mangel war einer meines Aufbaus oder des Kerns:
+
+1. Lauf 23:54: Das ältere Spielmodul auf Instanz 2 kennt `samurai_sendetakt` nicht. Sendeten Modul und Kern im selben Takt, verschmolzen die Befehle (S57), und Zickzack-Sklaven bekamen das Ziel einer Nachbarbahn. Dazu blieb je ein Sklave im Nahkampf an den Schützen hängen, die Hütte lag zu nah an ihrer Reihe. Jetzt gehen alle Befehle über den Kern, und die Schützen stehen weiter weg. Das Modul auf dem Laptop (`bridge/snapshots/logik_stand_20261108.lua`) wartet auf den Kern, im Lauf hier fehlt das.
+2. Lauf 00:01: 4 Trupps standen je 41 Takte. Zwei Sklaven wollten im selben Takt auf dasselbe Feld, der Kern schickte das als einen Gruppenbefehl, und das Spiel gab dem zweiten einen anderen Platz. Kern 23 vergibt einen Wegpunkt je Takt nur einmal.
+3. Lauf 00:07: gewertet, kein Trupp festgelaufen.
+
 ## Was gebaut ist
 
 - **Kern** `crates/samurai-kern/src/zickzack.rs`, Version 22: Der Kern führt jeden Trupp Feld für Feld. Er schickt den nächsten Wegpunkt, sobald die Einheit, die ihn als Platz hat, sein Feld betritt und niemand mehr als ein Feld von seinem Platz entfernt ist. Nach 40 Takten ohne Fortschritt setzt der Trupp von seiner Mitte neu an.
@@ -70,7 +99,10 @@ Zwei Läufe der Probe zählen nicht und sind benannt: Der erste fand keinen Plat
 ## Grenzen
 
 - Nur Sklaven gegen Bogenschützen, Ziel auf einer Achse, freies Feld, eine Bahn je Muster, zwei Läufe. Nicht gemessen: Armbrust, Schleuder, Steine, Feuer, Türme, Ziele schräg zur Achse, unebenes Gelände.
-- Schützen im Vorstoß bleiben bei 38 Feldern stehen und schießen. Beim Vorrücken laufen sie deshalb selten unter Beschuss, der Nutzen liegt dort beim Abziehen. Am meisten dürfte es Truppen bringen, die wirklich durchs Feuer laufen (Sklaven im Brandtrupp, Nahkämpfer). Die führt der Kern noch nicht im Zickzack.
+- Schützen im Vorstoß bleiben bei 38 Feldern stehen und schießen. Beim Vorrücken laufen sie deshalb selten unter Beschuss, der Nutzen liegt dort beim Abziehen.
+- Nahkämpfer laufen noch nicht im Zickzack, die Sklaven im Brandtrupp schon.
+- Brandtrupp: je Muster 8 Sklaven in einem gewerteten Lauf, ein Lauf davor mit dem älteren Kern. Die Sklaven laufen mit viel Leben weiter; im Spiel sterben sie beim dritten Treffer, und die Schützen wählen ein neues Ziel. Sklaven über 8 hinaus laufen gerade, die Auswahl ist die Reihenfolge ihrer Nummern, nicht ihre Gefahr.
+- Der Kern meldet den Angriffsbefehl der Sklaven als „wirkt nicht“, obwohl die Hütten brennen. Sein Prüffeld passt bei ihnen vermutlich nicht, das ist nicht untersucht.
 - Keine ganze Partie mit `erstes_spiel`: Die Probe stellt die Lage, die Runde des Lenkers ist fest 63 Takte (Median gemessen).
 - Mehr als 8 Einheiten sind nicht gemessen. Wer sich einen Platz teilt, läuft dicht.
 - Die breite Aufstellung braucht Platz: bei 8 Einheiten 15 Felder quer. Hindernisse sind nicht getestet.
@@ -78,4 +110,4 @@ Zwei Läufe der Probe zählen nicht und sind benannt: Der erste fand keinen Plat
 
 ## Dateien
 
-Alle unter `data/research/auge_plan/zickzack_20261108/`: `zickzack_auswerten.py`, `zickzack_g_ergebnis.txt`, `zickzack2_g_ergebnis.txt` (Bewegung, Pfeile, jeder Takt), `zickzack_abstand.py`, `zickzack_abstand.txt`, `zickzack2_g_abstand.txt` (Nachbarn, Gefahrenkarte), `zickzack_warteschlange.py` und `.txt`, `vorstoss_auswerten.py`, `vorstoss_g_ergebnis.txt`, `lauf_zickzack_g.log`, `lauf_zickzack2_g.log`, `lauf_vorstoss_g.log`. Die Szenen heißen `zickzack_g`, `zickzack2_g` und `vorstoss_g` in `src/selfaware/tools/experiments/auge_lauf_s.py`.
+Alle unter `data/research/auge_plan/zickzack_20261108/`: `zickzack_auswerten.py`, `zickzack_g_ergebnis.txt`, `zickzack2_g_ergebnis.txt` (Bewegung, Pfeile, jeder Takt), `zickzack_abstand.py`, `zickzack_abstand.txt`, `zickzack2_g_abstand.txt` (Nachbarn, Gefahrenkarte), `zickzack_warteschlange.py` und `.txt`, `vorstoss_auswerten.py`, `vorstoss_g_ergebnis.txt`, `brand_auswerten.py`, `brand_g_ergebnis.txt`, `lauf_zickzack_g.log`, `lauf_zickzack2_g.log`, `lauf_vorstoss_g.log`, `lauf_brand_g.log`. Die Szenen heißen `zickzack_g`, `zickzack2_g`, `vorstoss_g` und `brand_g` in `src/selfaware/tools/experiments/auge_lauf_s.py`.

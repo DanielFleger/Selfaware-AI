@@ -11,7 +11,7 @@
 //!
 //! Reine Logik, offline geprueft. Was das Spiel zeigt, kommt ueber `Stand` herein.
 
-use std::collections::{BTreeMap, BTreeSet};
+use std::collections::{BTreeMap, BTreeSet, HashSet};
 
 use crate::haende::WIRK_TAKTE;
 
@@ -176,6 +176,9 @@ impl Schwarm {
     pub fn takt(&mut self, tick: i32, sieh: impl Fn(i32) -> Option<Stand>, frei: impl Fn(i32, i32) -> bool) -> Vec<Schritt> {
         let mut aus = Vec::new();
         let mut weg = Vec::new();
+        // Zwei Trupps mit demselben Wegpunkt im selben Takt verschmoelzen im Auftragsbuch zu einem Gruppenbefehl, und das Spiel
+        // gibt dem zweiten einen anderen Platz: Sein Wegpunkt wird nie betreten, er steht bis zum Waechter (Lauf brand_g 09.11.).
+        let mut vergeben: HashSet<Punkt> = HashSet::new();
         for (&nr, t) in self.trupps.iter_mut() {
             let stand: Vec<(i32, Stand)> = t.einheiten.iter().filter_map(|&e| sieh(e).map(|s| (e, s))).collect();
             if stand.is_empty() {
@@ -214,8 +217,9 @@ impl Schwarm {
                 weg.push(nr);
                 continue;
             }
-            match naechster_punkt(t.anker, t.ziel, von, t.seite, &frei) {
+            match naechster_punkt(t.anker, t.ziel, von, t.seite, &|x, y| frei(x, y) && !vergeben.contains(&(x, y))) {
                 Some((p, seite)) => {
+                    vergeben.insert(p);
                     t.punkt = Some(p);
                     if seite != 0 {
                         t.seite = seite;
@@ -408,6 +412,19 @@ mod tests {
         assert!(s.takt(112, w.sieh(), alles_frei).is_empty());
         assert!(s.leer());
         assert_eq!(s.fertig, 1);
+    }
+
+    #[test]
+    fn zwei_trupps_bekommen_im_selben_takt_nie_denselben_wegpunkt() {
+        let w = Welt::neu(&[(1, (50, 50), (0, 0)), (2, (50, 52), (0, 0))]);
+        let mut s = Schwarm::neu();
+        s.annehmen(1, 1, (60, 50), 2);
+        s.annehmen(2, 2, (60, 47), 2);
+        let a = s.takt(100, w.sieh(), alles_frei);
+        assert_eq!(a.len(), 2);
+        assert_eq!(a[0].punkt, (51, 51));
+        assert_ne!(a[0].punkt, a[1].punkt, "sonst wird daraus ein gemeinsamer Gruppenbefehl");
+        assert_eq!(a[1].punkt, (51, 53), "die andere Seite");
     }
 
     #[test]

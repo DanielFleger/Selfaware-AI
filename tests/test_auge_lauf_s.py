@@ -2898,6 +2898,63 @@ def test_vorstoss_g_fuehrt_die_echte_klasse_ueber_den_kern(tmp_path, monkeypatch
     assert len(aus) == 1 and any("rueckt vor" in x.get("ereignis", "") for x in aus[0]["verlauf"])
 
 
+def test_brand_g_fuehrt_die_zickzack_bahnen_ueber_den_kern(tmp_path, monkeypatch, capsys):
+    from selfaware.execution import kernweg as KW
+
+    class Kern:
+        def __init__(self):
+            self.zick, self.frei, self.gerade = [], [], []
+
+        def zickzack(self, e, z, trupp=1):
+            self.zick.append((list(e), tuple(z), trupp))
+            return True
+
+        def senden(self, liste):
+            self.gerade += liste
+            return []
+
+        def freigeben(self, e):
+            self.frei.append(list(e))
+
+        def aufraeumen(self, lebend):
+            pass
+
+        def bericht(self):
+            return "kern"
+
+    kerne = []
+
+    def oeffnen(*a, **k):
+        kerne.append(Kern())
+        return kerne[-1]
+
+    monkeypatch.setattr(KW, "oeffnen", oeffnen)
+    monkeypatch.setattr(ls, "BRAND_TAKTE", 150)
+    monkeypatch.setattr(ls, "starttruppen_abwarten", lambda l: None)
+    monkeypatch.setattr(ls, "abraeumen", lambda *a, **k: 0)
+    g = Spiel(tmp_path)
+    e = ls.SZENEN["brand_g"](lauf_von(g))
+    assert e["kein_platz"] == []
+    log = [c for c in g.log if isinstance(c, dict)]
+    assert not [c for c in log if c.get("angriff", {}).get("gebaeude")]  # nie ueber das Modul
+    assert len([b for k in kerne for b in k.gerade]) == 2 * ls.BRAND_SKLAVEN
+    # zwei Bahnen im Zickzack ueber den Kern, jeder Sklave ein eigener Trupp
+    zick = [z for k in kerne for z in k.zick]
+    assert len(zick) == 2 * ls.BRAND_SKLAVEN and len({z[2] for z in zick}) == 2 * ls.BRAND_SKLAVEN
+    assert not [c for c in log if c.get("angriff", {}).get("lauf")]
+    aus = [
+        json.loads(z)
+        for z in capsys.readouterr().out.splitlines()
+        if z.startswith('{"schritt": "brand_probe"')
+    ]
+    assert len(aus) == 1 and sorted(b["muster"] for b in aus[0]["bahnen"]) == [
+        "gerade",
+        "gerade",
+        "zickzack",
+        "zickzack",
+    ]
+
+
 def test_zickzack_g_bricht_ab_ohne_kern(tmp_path, monkeypatch):
     from selfaware.execution import kernweg as KW
 
@@ -2958,6 +3015,7 @@ def test_streuung_szenen_stehen_bereit():
         "zickzack_g",
         "zickzack2_g",
         "vorstoss_g",
+        "brand_g",
     ):
         assert n in ls.SZENEN, n
     p = inspect.signature(ls.szene_sonder).parameters

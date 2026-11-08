@@ -102,6 +102,9 @@ class Vorstoss:
         # None = ohne Zickzack, sonst der Kernweg (zickzack, freigeben, aufraeumen)
         self.kern = kern
         self.platz = {}  # Einheit -> Platz in der breiten Aufstellung
+        self.plaetze = (
+            TRUPPS  # so viele Plaetze darf der Vorstoss gerade belegen (der Brandtrupp geht vor)
+        )
         self.lage = {}
         self.mitglieder = set()
         self.runde = 0
@@ -146,9 +149,8 @@ class Vorstoss:
         """True, wenn der Kern diesen Lauf im Zickzack fuehrt. Sonst fuehrt das Modul, und der Kern gibt die Einheiten vorher her."""
         if self.kern is None:
             return False
-        if art in IM_ZICKZACK and all(
-            [self.kern.zickzack(e, z, t) for e, z, t in self._aufstellung(nummern, auftrag["lauf"])]
-        ):
+        plan = self._aufstellung(nummern, auftrag["lauf"]) if art in IM_ZICKZACK else []
+        if plan and all([self.kern.zickzack(e, z, t) for e, z, t in plan]):
             return True
         self._frei(nummern)
         return False
@@ -160,8 +162,10 @@ class Vorstoss:
         dx, dy = ziel[0] - mitte[0], ziel[1] - mitte[1]
         x_haupt = abs(dx) >= abs(dy)
         vor = (1 if dx >= 0 else -1) if x_haupt else (1 if dy >= 0 else -1)
-        n = min(len(nummern), TRUPPS)
-        if set(self.platz) != set(nummern):
+        n = min(len(nummern), self.plaetze)
+        if n == 0:
+            return []
+        if set(self.platz) != set(nummern) or len(set(self.platz.values())) != n:
             quer = "y" if x_haupt else "x"
             geordnet = sorted(nummern, key=lambda k: (self.lage[k][quer], k))
             self.platz = {k: i * n // len(geordnet) for i, k in enumerate(geordnet)}
@@ -317,6 +321,11 @@ class Vorstoss:
         if self._sende("vor", stelle, befehl, meine, {"lauf": [stelle[0], stelle[1]]}):
             aus.append("VORSTOSS: rueckt vor %s -> %s, Ziel %s" % (mitte, stelle, ziel))
         return aus
+
+    def plaetze_setzen(self, belegt):
+        """Der Lenker sagt je Runde, wie viele Einzelbefehle je Feld der Brandtrupp braucht. Der geht vor: Seine Sklaven laufen wirklich
+        durchs Feuer, die Schuetzen bleiben in Schussweite stehen."""
+        self.plaetze = max(0, TRUPPS - belegt)
 
     def bericht(self):
         kern = "; " + self.kern.bericht() if self.kern is not None else ""

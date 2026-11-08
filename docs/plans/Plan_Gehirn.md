@@ -168,10 +168,11 @@ Gefahr ist, was nach dem Ausweichen noch trifft. Gemessen am 08.11. (Schritt 4, 
 - Das Spiel zielt auf die Feldmitte plus Vorhalt in Blickrichtung, bei einer vom Spieler befohlenen Einheit doppelt so weit wie bei einer gehenden. Wer nach dem Schuss die Richtung wechselt, steht woanders.
 - Zickzack kostet fast keine Strecke (94 bis 97 %), weil ein schräges Feld genauso lang dauert wie ein gerades.
 - **Entscheidung (Daniel 08.11.2026): der Wert, der am besten ausweicht, also Richtungswechsel je Feld.** Schneller geht nicht: Eine Einheit liest ein neues Ziel erst in der Feldmitte.
-- **Eingebaut (B-174):** Der Rust-Kern führt den Zickzack je Feld, Schalter `zickzack=ja` (wirkt mit `vorstoss=ja` beim Vorrücken und Abziehen, aus ist der Standard).
+- **Eingebaut (B-174, B-175):** Der Rust-Kern führt den Zickzack je Feld, Schalter `zickzack=ja`, aus ist der Standard. Er wirkt beim Vorstoß (`vorstoss=ja`) beim Vorrücken und Abziehen und beim Brandtrupp auf dem Weg zum Gebäude.
 - **Ganze Gruppen, gemessen im Gefecht** (`data/research/auge_plan/zickzack_20261108/Ergebnis_Zickzack.md`, 8 Sklaven, 8 Bogenschützen, Treffer ab 12 Feldern je möglichem Schusstakt): gerade 87 %, Zickzack dicht 38 bis 61 %, Zickzack breit 4,5 %, bei gleicher Strecke. Breit heißt: bis zu 8 Plätze in 2 Reihen, 5 Felder Abstand, je Platz ein eigener Befehl. Dicht fängt der Nachbar den verfehlten Pfeil: Quer zur Schussrichtung liegen 2 bis 3 Felder neben dem Ziel die gefährlichen Stellen (bis 23 %), ab 5 Feldern sind es unter 2 %.
 - Der Preis ist ein Befehl je Platz und Feld. 8 Einzelbefehle je Feld kamen alle rechtzeitig, ein neunter daneben in 18 % statt 6 % der Fälle zu spät.
-- Noch nicht im Zickzack: Truppen, die wirklich durchs Feuer laufen (Sklaven im Brandtrupp, Nahkämpfer). Schützen im Vorstoß bleiben bei 38 Feldern stehen, beim Vorrücken trifft sie der Zickzack selten unter Beschuss.
+- **Brandtrupp, gemessen im Gefecht:** 8 Sklaven je Muster an 8 Bogenschützen vorbei, die seitlich stehen: bis zur Ankunft 6,0 Treffer je Sklave gerade, 2,6 im Zickzack, tot wären 8 von 8 gegen 5 von 8, gleich schnell. Schützen von der Seite sind der schlechtere Fall für den Zickzack.
+- Noch nicht im Zickzack: Nahkämpfer. Schützen im Vorstoß bleiben bei 38 Feldern stehen, beim Vorrücken trifft sie der Zickzack selten unter Beschuss.
 - Der Preis ist ein Befehl je Gruppe und Feld. Bei 12 Takten je Feld reicht der eine Gruppenbefehl je Takt (S57) für höchstens 12 Gruppen.
 - Nicht gemessen: andere Schützen und Läufer, Steine und Feuer, Wechsel erst beim gesehenen Schuss.
 - Den Abschuss sehen wir am Animationsbild (R4), fliegende Pfeile liefert der Kern jetzt jeden Takt.

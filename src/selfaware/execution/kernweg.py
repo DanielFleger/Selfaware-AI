@@ -12,6 +12,7 @@ from selfaware.game import kern_leitung as KL
 
 ASSASSINEN = 1
 VORSTOSS = 2
+BRANDTRUPP = 3
 # Eine Flucht, die nach so vielen Takten nicht abgesetzt ist, ist ueberholt: die naechste Lenker-Runde entscheidet neu.
 # Vorlaeufiger Wert, nicht gemessen (Messung M3 im Plan).
 FLUCHT_FRIST = 60

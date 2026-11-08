@@ -4217,6 +4217,21 @@ AUSWEICH_LEBEN = (
     10_000_000  # Der Laeufer soll die ganze Zeit leben: Sonst endet die Messung beim ersten Toten
 )
 ZICK_GRUPPE = 8  # Laeufer und Schuetzen je Bahn: Daniels Partie vom 19.10. hatte 6 Bogenschuetzen, der Vorstoss zuletzt 5; mit 8 reicht die Aufstellung bis zum zweiten Ring des Spiels
+BRAND_SKLAVEN = 4  # je Bahn: Zwei Bahnen im Zickzack mit je 4 sind die 8 Einzelbefehle je Feld, die rechtzeitig ankamen
+BRAND_SCHUETZEN = 8  # je Bahn, rund 30 Pfeile: 129 Takte Schussfolge, rund 480 Takte in Reichweite
+BRAND_SCHUETZEN_AB = 28  # Felder vom Start bis zu den Schuetzen; vor den Huetten liegen dann mehr als GEFAHR_FERN (20), die Huetten gelten als Ziel
+# Felder seitlich der Mitte: entdecken bis 20 Felder (L81); im Lauf 23:54 stand die aeusserste Huette 2 Felder von der Schuetzenreihe, dort blieb je ein Sklave im Nahkampf haengen. Jetzt liegen 7 Felder dazwischen
+BRAND_SCHUETZEN_QUER = 11
+BRAND_WEG = 60  # Felder vom Start bis zu den Huetten
+# Felder quer zur Mitte: 4 Huetten von 3 Feldern Breite, jede mit eigenem Sklaven
+BRAND_HUETTEN_QUER = (-5, -2, 1, 4)
+BRAND_QUER = 12  # Felder von der Mitte der Bahn zum Rand: 11 fuer die Schuetzen, 1 Rand; 4 Bahnen von 25 Feldern Hoehe passen auf die Karte, von 27 nicht (gemessen am laufenden Spiel)
+BRAND_LAENGE = 70  # Felder: Weg und Huetten; 4 Bahnen dieser Groesse passen auf die Karte (gemessen am laufenden Spiel)
+BRAND_TAKTE = 1400  # 60 Felder zu 12 Takten, 165 Takte bis eine Huette brennt (raid_messung), Rest fuer Runden und den langsameren Anfang
+BRAND_FEUER, BRAND_GEBAEUDE_SCHRITT = (
+    0xF98520 + 0x14 + 702,
+    0x32C,
+)  # fireDuration je Gebaeude, wie im Lenker
 VORSTOSS_RUNDE = 63  # Takte je Runde des Lenkers: Median aus lage_20261108_155525_i1 bei Tempo 200
 VORSTOSS_TAKTE = (
     1500  # 24 Runden: reicht fuer Vorruecken, Schiessen und Abziehen und wieder Vorruecken
@@ -4655,6 +4670,147 @@ def vorstoss_probe(l):
         return [], list(eigene), [], lambda: [], [(1, steuern)]
 
     return (("vorstoss", posten, VORSTOSS_LAENGE, 2 * VORSTOSS_QUER + 1),)
+
+
+def brand_probe(l):
+    """B-175: Kommen Sklaven im Zickzack besser durchs Feuer? Vier gleiche Bahnen im Gefecht, zwei gerade, zwei im Zickzack. Je 4 Sklaven laufen 60 Felder zu 4 feindlichen Holzfaellerhuetten, unterwegs an 8 Bogenschuetzen vorbei, die von selbst schiessen. Die echte Klasse Brandtrupp fuehrt sie in Runden von VORSTOSS_RUNDE Takten. Damit die Messung nicht beim ersten Toten endet, haben die Sklaven AUSWEICH_LEBEN."""
+    from selfaware.micro.tasks import raids as ra
+
+    s, k = l.s, l.k
+    bahnen = []
+
+    def steuern():
+        from selfaware.execution import kernweg as KW
+        from selfaware.game.ucp.befehl import SPIEL
+
+        def weg_holen():
+            return KW.oeffnen(SPIEL, auftraggeber=KW.BRANDTRUPP)
+
+        k.liste([{"kern": "laden"}], lf.KANAL)
+        weg = None
+        for _ in range(ZICK_KERN_WARTEN):
+            l.warte_takte(1)
+            weg = weg_holen()
+            if weg is not None:
+                break
+        if weg is None:
+            raise Abbruch(f"Kern nach {ZICK_KERN_WARTEN} Takten nicht bereit")
+
+        def feuer(nr):
+            return int(k.peek(BRAND_FEUER + nr * BRAND_GEBAEUDE_SCHRITT)[0]) & 0xFFFF
+
+        gerade = weg_holen()
+
+        def befehl(b, _warte, bis=None):
+            # auch die geraden Bahnen ueber den Kern: Das Modul auf Instanz 2 kennt samurai_sendetakt nicht, Befehle im selben Takt verschmelzen (Lauf 23:54)
+            gerade.senden([b])
+
+        for b in bahnen:
+            b["trupp"] = ra.Brandtrupp(
+                1, feuer, kern=weg_holen() if b["muster"] == "zickzack" else None
+            )
+            b["G"] = {
+                h["nr"]: {"typ": h["typ"], "x": h["x"], "y": h["y"], "besitzer": h["spieler"]}
+                for h in b["huetten"]
+                if "nr" in h
+            }
+        von = s.takt()
+        ende = von + BRAND_TAKTE
+        verlauf = []
+        while s.takt() < ende:
+            l.warte_takte(VORSTOSS_RUNDE)
+            t = s.takt()
+            lage = {e["nr"]: e for e in s.einheiten_alle()}
+            for b in bahnen:
+                nummern = [e["nr"] for e in b["sklaven"] + b["schuetzen"]]
+                hier = {n: lage[n] for n in nummern if n in lage}
+                for z in b["trupp"].schritt(hier, b["G"], befehl):
+                    verlauf.append({"takt": t, "bahn": b["name"], "ereignis": z})
+        for b in bahnen:
+            if b["trupp"].kern is not None:
+                b["trupp"].kern.freigeben(sorted(b["trupp"].zick))
+        print(
+            json.dumps(
+                {
+                    "schritt": "brand_probe",
+                    "von": von,
+                    "bis": s.takt(),
+                    "verlauf": verlauf,
+                    "bahnen": [
+                        {
+                            "name": b["name"],
+                            "muster": b["muster"],
+                            "sklaven": [e["nr"] for e in b["sklaven"]],
+                            "schuetzen": [e["nr"] for e in b["schuetzen"]],
+                            "huetten": [
+                                {"nr": h.get("nr"), "x": h["x"], "y": h["y"]} for h in b["huetten"]
+                            ],
+                            "bericht": b["trupp"].bericht(),
+                        }
+                        for b in bahnen
+                    ],
+                }
+            ),
+            flush=True,
+        )
+        return []
+
+    def bahn(name, muster):
+        def f(x, y):
+            x0, cy = x + 1, y + BRAND_QUER + 1
+            sklaven = [
+                _e("sklave", AUSWEICH_ART, x0, cy - BRAND_SKLAVEN // 2 + j)
+                for j in range(BRAND_SKLAVEN)
+            ]
+            schuetzen = [
+                _e(
+                    "schuetze",
+                    22,
+                    x0 + BRAND_SCHUETZEN_AB + (j // 2) * 2,
+                    cy + (-BRAND_SCHUETZEN_QUER if j % 2 == 0 else BRAND_SCHUETZEN_QUER),
+                    2,
+                )
+                for j in range(BRAND_SCHUETZEN)
+            ]
+            huetten = [_g(3, x0 + BRAND_WEG, cy + q) for q in BRAND_HUETTEN_QUER]
+            bahnen.append(
+                {
+                    "name": name,
+                    "muster": muster,
+                    "sklaven": sklaven,
+                    "schuetzen": schuetzen,
+                    "huetten": huetten,
+                }
+            )
+
+            def leben():
+                return [
+                    {
+                        "poke": lf.EINHEITEN + e["nr"] * lf.E_SCHRITT + E_LEBEN,
+                        "wert": AUSWEICH_LEBEN,
+                    }
+                    for e in sklaven
+                ]
+
+            return (
+                huetten,
+                sklaven + schuetzen,
+                [],
+                leben,
+                [(1, steuern)] if len(bahnen) == 1 else None,
+            )
+
+        return f
+
+    return tuple(
+        (n, bahn(n, m), BRAND_LAENGE, 2 * BRAND_QUER + 1)
+        for n, m in (
+            ("gerade 1", "gerade"),
+            ("zickzack 1", "zickzack"),
+            ("gerade 2", "gerade"),
+            ("zickzack 2", "zickzack"),
+        )
+    )
 
 
 def sonder24_g(l):
@@ -5440,6 +5596,15 @@ SZENEN = {
     ),
     "ausweichen": lambda l: szene_sonder(
         l, "ausweichen", ausweichen(l), rand=6, tempo=TEMPO_AUSWEICHEN, grenze=AUSWEICH_NACHLAUF
+    ),
+    "brand_g": lambda l: szene_sonder(
+        l,
+        "brand_g",
+        brand_probe(l),
+        rand=6,
+        raeumen=True,
+        tempo=TEMPO_AUSWEICHEN,
+        grenze=AUSWEICH_NACHLAUF,
     ),
     "vorstoss_g": lambda l: szene_sonder(
         l,
