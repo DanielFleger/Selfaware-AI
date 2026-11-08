@@ -292,23 +292,32 @@ NACHGEHOLT = {
         monkTribeIDUnk monkTribeUIDUnk noBeerCounterUnk totalDefensiveTroopsUnk totalRaidingTroopsUnk hasMarketUnk""")],
 }
 
-# Was der Kern heute liest (welt.rs, leitung.rs); Versatz -> Name aus OpenSHC Unit.hpp / Building.hpp (Gebaeude: Versatz - 0x14).
+# Was der Kern liest (welt.rs, leitung.rs; Kern 21, Aufbau 5, B-169); Versatz -> Name aus OpenSHC Unit.hpp / Building.hpp (Gebaeude: Versatz - 0x14).
+NEU_EINHEIT = w("""animationFrame animationCycleNumber targetUID nextTileUnk climbingState terrainOrClimbHeight buildingHeight
+    shootTargetMicroX shootTargetMicroY shootTargetZ currentIndexInPathPlan totalSizeOfPathPlan closestEnemyMicroDistance
+    plannedDestinationX plannedDestinationY shootTargetedUnit calculatedMovementSpeed destinationNeeded substate killedFlagUnk""")
+SONST_NEU = [Q_ + n for n in w("entityType fireIntensity height logicalState microX microY orientation owner tile travelledDistance vCos vSin xPosition yPosition")]
+SONST_NEU += [T_ + n for n in w("targetBuildingID targetBuildingUID targetX targetY tribeState")]
+SONST_NEU += [P_ + "closestEnemyDistanceToTheLord"]
 KERN_EINHEIT = w("""unitType logicalState dying owner microXPosition microYPosition health state targetingType
     targetedUnitID__OR__engineerMannedSiegeEngineRef targetedUnitUIDUnk_OR_someAppearTileUnk_OR_buildingUID_OR_pitchDitchUID_OR_entityUID
     targetID_OR_targetBuildingID target targetX targetY destinationXPosition destinationYPosition ifSelectedThenPlayerID
     selectionRelatedFlag tribeID tribeUID resourceToDeposit workplaceBuildingID_1 attackedUnitID attackedBy targetedBuildingTile
-    attackAtTileX attackAtTileY""")
+    attackAtTileX attackAtTileY""") + NEU_EINHEIT
 KERN_GEBAEUDE = w("""logicalState buildingType owner x y currentHealth uid currentNumberOfResource currentLimitOfResource
-    currentStoredResourceType quarryStockpileID widthOrHeight fireDuration""")
-KERN_SONST = [P_ + "currentResources[]", "LogicLayer[]", "PathConnectionLayer[]", Q_ + "entityType", Q_ + "logicalState", Q_ + "tile"]
+    currentStoredResourceType quarryStockpileID widthOrHeight fireDuration gateState""")
+KERN_SONST = [P_ + "currentResources[]", "LogicLayer[]", "PathConnectionLayer[]", *SONST_NEU]
 # Was davon im gemeinsamen Speicher bei Python ankommt (kern_leitung.EINHEIT_FELDER, GEBAEUDE_FELDER, Vorrat)
 PY_EINHEIT = w("""health owner unitType microXPosition microYPosition state destinationXPosition destinationYPosition tribeID targetingType
-    targetedUnitID__OR__engineerMannedSiegeEngineRef targetID_OR_targetBuildingID attackedUnitID""")
-PY_GEBAEUDE = w("buildingType owner x y currentHealth fireDuration")
-PY_SONST = [P_ + "currentResources[]"]
+    targetedUnitID__OR__engineerMannedSiegeEngineRef targetID_OR_targetBuildingID attackedUnitID
+    targetedUnitUIDUnk_OR_someAppearTileUnk_OR_buildingUID_OR_pitchDitchUID_OR_entityUID targetedBuildingTile target targetX targetY
+    attackedBy attackAtTileX attackAtTileY""") + NEU_EINHEIT
+PY_GEBAEUDE = w("buildingType owner x y currentHealth fireDuration gateState")
+PY_SONST = [P_ + "currentResources[]", *SONST_NEU]
 
 # Kommt nicht als eigener Wert an, steckt aber in dem, was ankommt: x/y = Feinposition / 8, tile folgt daraus, Tote filtert der Kern
 # weg (nur Lebende stehen in der Tabelle), der Taktzaehler steht im Kopf.
+STAND_ANKUNFT = "Kern 21, Aufbau 5, B-169; im Spiel noch nicht gelaufen"
 STECKT_DRIN = {E_ + n for n in w("x y tile destinationTilePosition dying logicalState")} | {G_ + "logicalState", M_ + "totalGameTicksUnk"}
 
 
@@ -370,6 +379,15 @@ def python_sieht(feld):
     if feld.startswith(G_) and feld[len(G_):] in PY_GEBAEUDE:
         return "ja"
     return "nein"
+
+
+def ankunft(feld, bedarf):
+    """Kommt ein Takt-Feld jeden Takt bei Python an? (Stand des Codes, siehe STAND_ANKUNFT)"""
+    if python_sieht(feld) == "ja":
+        return "direkt"
+    if feld in STECKT_DRIN:
+        return "steckt_drin"
+    return "fehlt" if bedarf == "takt" else ""
 
 
 def art_name_unklar(feld):
@@ -436,7 +454,7 @@ def main():
         aus.append({"bereich": s["bereich"], "feld": name, "bezug": bezug(name), "eigen": s["eigen"], "fremd": s["fremd"], "bedarf": bedarf,
                     "quelle": quelle, "kern_liest": kern_liest(name), "python_sieht": python_sieht(name),
                     "nie_geaendert_F_K": "ja" if ng else "nein", "schreiber": f["schreiber"], "beispiel": f["beispiel"],
-                    "zweiter_weg": erwartung(f, ng)})
+                    "zweiter_weg": erwartung(f, ng), "ankunft": ankunft(name, bedarf)})
     fehlt = set(liste) - benutzt
     assert not fehlt, f"in der Liste, aber nicht vorhanden: {sorted(fehlt)[:30]}"
     fehlt = set(nach) - zusatz_benutzt
@@ -479,7 +497,7 @@ def bericht(aus):
     z.append("| **alle** | " + " | ".join(str(sum(zahl[(b, k)] for b in BEZUEGE)) for k in BEDARFE) + f" | {len(aus)} |")
     z += ["", "- **takt:** jeden Takt nötig. **selten:** bei Änderung oder alle paar Takte. **einmal:** beim Entstehen oder zum Partiestart.",
           "- **entbehrlich:** nur Bild, Hilfswert der Engine oder ableitbar. **ki, zufall:** fürs Gehirn gesperrt. **unklar:** ungenutzt, bis geklärt.",
-          "", "## Was heute jeden Takt ankommt", "",
+          "", f"## Was jeden Takt ankommt ({STAND_ANKUNFT})", "",
           "| Bezug | takt-Felder | liest der Kern | kommt bei Python an | steckt drin | fehlt |", "|---|---|---|---|---|---|"]
     fehlend = {}
     for b in BEZUEGE:
@@ -496,9 +514,10 @@ def bericht(aus):
     sel = [x for x in aus if x["bedarf"] in ("selten", "einmal")]
     z += ["", f"Von den {len(sel)} Feldern für selten und einmal liest der Kern {sum(x['kern_liest'] == 'ja' for x in sel)}, "
           f"bei Python kommen {sum(x['python_sieht'] == 'ja' for x in sel)} an.", "", "### Fehlende takt-Felder", ""]
-    z += [f"- **{b}** ({len(v)}): {kurz(v)}" for b, v in fehlend.items() if v]
-    z += ["", "Ob ein Feld auch für fremde Einheiten gelesen werden darf, steht in der Spalte `fremd`. Durchgesetzt wird das im Code noch nicht: "
-          "Der Kern gibt auch fremde Laufziele an Python weiter, die Sperre kommt mit dem Gehirn (B-152).", "",
+    z += [f"- **{b}** ({len(v)}): {kurz(v)}" for b, v in fehlend.items() if v] or ["Keine."]
+    z += ["", "Ob ein Feld auch für fremde Einheiten gelesen werden darf, steht in der Spalte `fremd`. Die neuen Felder schwärzt der Kern für Fremde. "
+          "Noch ungefiltert an Python gehen die sieben alten Felder Laufziel x und y, Gruppe, Zielart, Zieleinheit, Zielgebäude und Nahziel; "
+          "die Sperre dafür kommt mit dem Gehirn (B-152).", "",
           "## Sichtschranke", "",
           "Die Spalten `eigen` und `fremd` kommen aus `sichtschranke.csv`. Was nach dieser Liste dort korrigiert wurde, "
           "steht Feld für Feld in `sichtschranke_zweifel.md`.", ""]

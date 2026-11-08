@@ -4,19 +4,26 @@ Der Kern (crates/samurai-kern/src/leitung.rs) schreibt in jedem neuen Spieltakt 
 benannte Speicherabbildung und legt ihren Namen in ucp/villagestudio/kern_leitung.txt ab. Ein Folgezaehler (ungerade =
 wird gerade geschrieben) sorgt dafuer, dass nur ein vollstaendiges Bild genommen wird.
 S4b: Python legt Auftraege in einen Ring im selben Speicher; der Kern arbeitet sie im naechsten Takt ab und schreibt je
-Eintrag ein Ergebnis, spaeter auch den Fortgang (ERGEBNIS_NAMEN). P5 (Aufbau 4): Eintraege tragen Vorrang, Frist und Auftraggeber.
+Eintrag ein Ergebnis, spaeter auch den Fortgang (ERGEBNIS_NAMEN). P5: Eintraege tragen Vorrang, Frist und Auftraggeber.
+B-169 (Aufbau 5): alles, was das Gehirn jeden Takt braucht (data/research/auge_plan/feldliste_gehirn.csv), dazu eigene Trupps
+und alle Geschosse. Was die Sichtschranke nur fuer eigene Einheiten erlaubt (NUR_EIGEN), schwaerzt schon der Kern; hier fehlt
+der Schluessel bei Fremden ganz, damit niemand eine 0 fuer einen echten Wert haelt.
 """
 
 import mmap
 import os
 import struct
-from dataclasses import dataclass
+from dataclasses import dataclass, field
+from operator import itemgetter
 
 KENNUNG = int.from_bytes(b"SAMK", "little")
-AUFBAU = 4
-KOPF, EINHEIT, GEBAEUDE = 64, 32, 16
-MAX_EINHEITEN, MAX_GEBAEUDE = 2500, 2000
-VORRAT_START = KOPF + MAX_EINHEITEN * EINHEIT + MAX_GEBAEUDE * GEBAEUDE
+AUFBAU = 5
+KOPF, EINHEIT, GEBAEUDE, TRUPP, GESCHOSS = 64, 108, 20, 16, 40
+MAX_EINHEITEN, MAX_GEBAEUDE, MAX_TRUPPS, MAX_GESCHOSSE = 2500, 2000, 1250, 3000
+GEBAEUDE_START = KOPF + MAX_EINHEITEN * EINHEIT
+TRUPP_START = GEBAEUDE_START + MAX_GEBAEUDE * GEBAEUDE
+GESCHOSS_START = TRUPP_START + MAX_TRUPPS * TRUPP
+VORRAT_START = GESCHOSS_START + MAX_GESCHOSSE * GESCHOSS
 SPIELER, WAREN = 9, 25
 RING_START = VORRAT_START + SPIELER * WAREN * 4
 WARE_NAMEN = {
@@ -64,9 +71,44 @@ ERGEBNIS_NAMEN = {
     ERG_EINHEIT_WEG: "Einheit weg",
     ERG_WIRKT_NICHT: "wirkt nicht",
 }
-KOPF_FORMAT = "<IIIiIiIIIIII"
-EINHEIT_FORMAT = "<ii12h"
-GEBAEUDE_FORMAT = "<i6h"
+KOPF_FORMAT = "<IIIiIiIIIIIIiII"
+EINHEIT_FORMAT = "<ii12h7i23h2x"
+GEBAEUDE_FORMAT = "<i7h2x"
+TRUPP_FORMAT = "<ii4h"
+GESCHOSS_FORMAT = "<i10hiiff"
+# Neue Felder (B-169) -> Feld des Spiels (units[].*)
+EINHEIT_SPIELFELD = {
+    "bild": "animationFrame",
+    "bildzyklus": "animationCycleNumber",
+    "schussziel_uid": "targetUID",
+    "naechstesfeld": "nextTileUnk",
+    "kletterstand": "climbingState",
+    "zieluid": "targetedUnitUIDUnk_OR_someAppearTileUnk_OR_buildingUID_OR_pitchDitchUID_OR_entityUID",
+    "mauerfeld": "targetedBuildingTile",
+    "feinx": "microXPosition",
+    "feiny": "microYPosition",
+    "gelaendehoehe": "terrainOrClimbHeight",
+    "gebaeudehoehe": "buildingHeight",
+    "schussx": "shootTargetMicroX",
+    "schussy": "shootTargetMicroY",
+    "schussz": "shootTargetZ",
+    "wegindex": "currentIndexInPathPlan",
+    "weglaenge": "totalSizeOfPathPlan",
+    "feindabstand": "closestEnemyMicroDistance",
+    "planx": "plannedDestinationX",
+    "plany": "plannedDestinationY",
+    "ziel": "target",
+    "zielx": "targetX",
+    "ziely": "targetY",
+    "schusseinheit": "shootTargetedUnit",
+    "tempo": "calculatedMovementSpeed",
+    "wegbedarf": "destinationNeeded",
+    "teilzustand": "substate",
+    "nahangreifer": "attackedBy",
+    "mauerx": "attackAtTileX",
+    "mauery": "attackAtTileY",
+    "getoetet": "killedFlagUnk",
+}
 EINHEIT_FELDER = (
     "nr",
     "leben",
@@ -82,7 +124,37 @@ EINHEIT_FELDER = (
     "zieleinheit",
     "zielgebaeude",
     "nahziel",
+    *EINHEIT_SPIELFELD,
 )
+# Sichtschranke: nur fuer eigene Einheiten (FAIRNESS R3, R4); Gegenprobe gegen die Liste in tests/test_kern_leitung.py
+NUR_EIGEN = frozenset(
+    {
+        "schussziel_uid",
+        "naechstesfeld",
+        "zieluid",
+        "mauerfeld",
+        "schussx",
+        "schussy",
+        "schussz",
+        "wegindex",
+        "weglaenge",
+        "feindabstand",
+        "planx",
+        "plany",
+        "ziel",
+        "zielx",
+        "ziely",
+        "schusseinheit",
+        "tempo",
+        "wegbedarf",
+        "nahangreifer",
+        "mauerx",
+        "mauery",
+    }
+)
+EINHEIT_BESITZER = EINHEIT_FELDER.index("besitzer")
+EINHEIT_FREMD = tuple(n for n in EINHEIT_FELDER if n not in NUR_EIGEN)
+_FREMDE_WERTE = itemgetter(*(i for i, n in enumerate(EINHEIT_FELDER) if n not in NUR_EIGEN))
 GEBAEUDE_FELDER = (
     "nr",
     "typ",
@@ -91,7 +163,26 @@ GEBAEUDE_FELDER = (
     "y",
     "leben",
     "feuer",
+    "tor",
 )  # feuer ab Kern 18 (B-150), vorher 0
+TRUPP_FELDER = ("nr", "zielgebaeude_uid", "zustand", "zielx", "ziely", "zielgebaeude")
+GESCHOSS_FELDER = (
+    "nr",
+    "typ",
+    "zustand",
+    "besitzer",
+    "feinx",
+    "feiny",
+    "hoehe",
+    "x",
+    "y",
+    "weg",
+    "feuer",
+    "feld",
+    "richtung",
+    "vcos",
+    "vsin",
+)
 
 
 class FalscherAufbau(RuntimeError):
@@ -110,12 +201,25 @@ class Weltbild:
     gebaeude: dict
     vorrat: dict
     beschuss: int = 0
+    trupps: dict = field(default_factory=dict)  # nur eigene (FAIRNESS F10)
+    geschosse: dict = field(default_factory=dict)
+    lord_feindabstand: int = 0  # eigener Lord
+
+
+def _tabelle(format_, felder, puffer, start, schritt, anzahl):
+    aus = {}
+    for i in range(anzahl):
+        werte = struct.unpack_from(format_, puffer, start + i * schritt)
+        d = dict(zip(felder, werte, strict=True))
+        aus[d["nr"]] = d
+    return aus
 
 
 def entpacken(puffer):
-    """Bytes im Aufbau 4 -> Weltbild (vorrat: {spieler: {ware: menge}} fuer Spieler 1-8)."""
+    """Bytes im Aufbau 5 -> Weltbild (vorrat: {spieler: {ware: menge}} fuer Spieler 1-8)."""
     kopf = struct.unpack_from(KOPF_FORMAT, puffer, 0)
-    kennung, aufbau, _folge, tick, epoche, ich, ne, ng, geplant, ausgehoben, kern, beschuss = kopf
+    kennung, aufbau, _folge, tick, epoche, ich, ne, ng = kopf[:8]
+    geplant, ausgehoben, kern, beschuss, lord_feindabstand, nt, nq = kopf[8:]
     if kennung != KENNUNG or aufbau != AUFBAU:
         raise FalscherAufbau(
             f"Kennung {kennung:#x} / Aufbau {aufbau}, erwartet {KENNUNG:#x} / {AUFBAU}"
@@ -123,20 +227,36 @@ def entpacken(puffer):
     einheiten = {}
     for i in range(min(ne, MAX_EINHEITEN)):
         werte = struct.unpack_from(EINHEIT_FORMAT, puffer, KOPF + i * EINHEIT)
-        e = dict(zip(EINHEIT_FELDER, werte, strict=True))
+        if werte[EINHEIT_BESITZER] == ich:
+            e = dict(zip(EINHEIT_FELDER, werte, strict=True))
+        else:
+            e = dict(zip(EINHEIT_FREMD, _FREMDE_WERTE(werte), strict=True))
         einheiten[e["nr"]] = e
-    start = KOPF + MAX_EINHEITEN * EINHEIT
-    gebaeude = {}
-    for i in range(min(ng, MAX_GEBAEUDE)):
-        werte = struct.unpack_from(GEBAEUDE_FORMAT, puffer, start + i * GEBAEUDE)
-        g = dict(zip(GEBAEUDE_FELDER, werte, strict=True))
-        gebaeude[g["nr"]] = g
+    gebaeude = _tabelle(
+        GEBAEUDE_FORMAT, GEBAEUDE_FELDER, puffer, GEBAEUDE_START, GEBAEUDE, min(ng, MAX_GEBAEUDE)
+    )
+    trupps = _tabelle(TRUPP_FORMAT, TRUPP_FELDER, puffer, TRUPP_START, TRUPP, min(nt, MAX_TRUPPS))
+    geschosse = _tabelle(
+        GESCHOSS_FORMAT, GESCHOSS_FELDER, puffer, GESCHOSS_START, GESCHOSS, min(nq, MAX_GESCHOSSE)
+    )
     vorrat = {}
     for sp in range(1, SPIELER):
         werte = struct.unpack_from(f"<{WAREN}i", puffer, VORRAT_START + sp * WAREN * 4)
         vorrat[sp] = {name: werte[w] for w, name in WARE_NAMEN.items()}
     return Weltbild(
-        tick, epoche, ich, kern, geplant, ausgehoben, einheiten, gebaeude, vorrat, beschuss
+        tick,
+        epoche,
+        ich,
+        kern,
+        geplant,
+        ausgehoben,
+        einheiten,
+        gebaeude,
+        vorrat,
+        beschuss,
+        trupps,
+        geschosse,
+        lord_feindabstand,
     )
 
 

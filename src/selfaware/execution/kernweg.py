@@ -118,7 +118,7 @@ class Kernweg:
 
 
 def oeffnen(spiel_ordner, auftraggeber=ASSASSINEN):
-    """Kernweg zum laufenden Spiel oder None, wenn der Kern (Fassung mit Aufbau 4) nicht bereit ist. Eine Namensdatei
+    """Kernweg zum laufenden Spiel oder None, wenn der Kern (passender Aufbau) nicht bereit ist. Eine Namensdatei
     ohne laufendes Spiel ergaebe einen leeren Speicher; das erkennt lesen() am ungueltigen Kopf."""
     try:
         leitung = KL.Leitung(spiel_ordner)

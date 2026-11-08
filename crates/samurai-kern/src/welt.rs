@@ -24,6 +24,14 @@ pub const FELDER: usize = 80_400;
 /// Graben (L126): geplant = 0x4000 (L_MOAT_DUG_OR_PLANNED), ausgehoben = 0x40000000 (L_MOAT)
 pub const GRABEN_GEPLANT: u32 = 0x4000;
 pub const GRABEN: u32 = 0x4000_0000;
+/// DAT_TribesState 0x01667F78: tribes[] ab +0x28, je 0x334 Byte, Plaetze 1 bis 1.249; frei = tribeState 0 (wie haende.rs)
+const TRUPPS: usize = 0x0166_7F78 + 0x28;
+const TRUPP_SCHRITT: usize = 0x334;
+const TRUPP_LETZTER: usize = 1249;
+/// DAT_EntityState 0x02350300: +4 maxEntityCount, entityArray ab +0x14 je 0xE8 Byte. Versatz unten = Feld in Entity.hpp + 0x14; frei = logicalState 0
+const GESCHOSSE: usize = 0x0235_0300;
+const GESCHOSS_SCHRITT: usize = 0xE8;
+const GESCHOSS_LETZTER: i32 = 2999;
 
 unsafe fn i16_bei(a: usize) -> i16 {
     unsafe { std::ptr::read_volatile(a as *const i16) }
@@ -31,6 +39,14 @@ unsafe fn i16_bei(a: usize) -> i16 {
 
 unsafe fn i32_bei(a: usize) -> i32 {
     unsafe { std::ptr::read_volatile(a as *const i32) }
+}
+
+unsafe fn u8_bei(a: usize) -> u8 {
+    unsafe { std::ptr::read_volatile(a as *const u8) }
+}
+
+unsafe fn f32_bei(a: usize) -> f32 {
+    unsafe { std::ptr::read_volatile(a as *const f32) }
 }
 
 #[derive(Clone, Copy, Default)]
@@ -66,6 +82,77 @@ pub struct Einheit {
     pub mauery: i16,
     /// S3: wie logik.lua - fremde Einheit vom Startpunkt aus erreichbar 1/0, eigene -1; -9 = nicht berechnet
     pub erreichbar: i32,
+    // B-169, Feldliste fuers Gehirn: was das Gehirn jeden Takt braucht (data/research/auge_plan/feldliste_gehirn.csv)
+    /// Schuss und Schlag loesen an Bild und Zyklus aus (animationFrame, animationCycleNumber)
+    pub bild: i32,
+    pub bildzyklus: i32,
+    /// UID des Schussziels (targetUID); die Einheit dazu steht in schusseinheit
+    pub schussziel_uid: i32,
+    pub naechstesfeld: i32,
+    pub kletterstand: i32,
+    /// Position in Achtelfeldern (microX/YPosition); x und y sind dieselbe Position in ganzen Feldern
+    pub feinx: i16,
+    pub feiny: i16,
+    pub gelaendehoehe: i16,
+    pub gebaeudehoehe: i16,
+    pub schussx: i16,
+    pub schussy: i16,
+    pub schussz: i16,
+    pub wegindex: i16,
+    pub weglaenge: i16,
+    /// Abstand zum naechsten Feind in Achtelfeldern, vom Spiel selbst je Takt gerechnet (closestEnemyMicroDistance)
+    pub feindabstand: i16,
+    pub planx: i16,
+    pub plany: i16,
+    pub schusseinheit: i16,
+    pub tempo: i16,
+    /// destinationNeeded: wartet die Einheit auf einen Weg?
+    pub wegbedarf: i16,
+    pub teilzustand: i16,
+    pub getoetet: i16,
+}
+
+/// Sichtschranke (docs/FAIRNESS.md R3, R4): Felder der Feldliste, die nur fuer eigene Einheiten erlaubt sind, fuer Fremde auf 0.
+/// Gilt nur fuer die neuen Felder (B-169) und nur fuer das, was an Python geht; der Kern selbst rechnet weiter mit dem Vollbild.
+pub fn fuer_fremde(e: &Einheit) -> Einheit {
+    Einheit {
+        ziel: 0, zielx: 0, ziely: 0, zieluid: 0, mauerfeld: 0, mauerx: 0, mauery: 0, nahangreifer: 0, schussziel_uid: 0,
+        naechstesfeld: 0, schussx: 0, schussy: 0, schussz: 0, wegindex: 0, weglaenge: 0, feindabstand: 0, planx: 0, plany: 0,
+        schusseinheit: 0, tempo: 0, wegbedarf: 0,
+        ..*e
+    }
+}
+
+/// B-169: eigene Gruppe (Python bekommt nur die eigenen: FAIRNESS F10)
+#[derive(Clone, Copy, Default)]
+pub struct Trupp {
+    pub nr: i32,
+    pub besitzer: i32,
+    pub zustand: i16,
+    pub zielx: i16,
+    pub ziely: i16,
+    pub zielgebaeude: i16,
+    pub zielgebaeude_uid: i32,
+}
+
+/// B-169: alles, was als Objekt auf der Karte fliegt oder brennt (Pfeile, Steine, Feuer, Staub ...; Art in typ)
+#[derive(Clone, Copy, Default)]
+pub struct Geschoss {
+    pub nr: i32,
+    pub typ: i16,
+    pub zustand: i16,
+    pub besitzer: i16,
+    pub feinx: i16,
+    pub feiny: i16,
+    pub hoehe: i16,
+    pub x: i16,
+    pub y: i16,
+    pub weg: i16,
+    pub feuer: i16,
+    pub feld: i32,
+    pub richtung: i32,
+    pub vcos: f32,
+    pub vsin: f32,
 }
 
 #[derive(Clone, Copy, Default)]
@@ -86,6 +173,8 @@ pub struct Gebaeude {
     pub erreichbar: i32,
     /// B-150 Feuer-Auge: fireDuration (Gebaeude +0x14+702 = +0x2D2), > 0 = brennt (L177)
     pub feuer: i16,
+    /// B-169: gateState (ein Byte, Gebaeude +0x14+0x2A3)
+    pub tor: i16,
 }
 
 /// Was die Grabenwache in einem Takt gesehen hat
@@ -105,6 +194,8 @@ pub struct GrabenAenderung {
 pub struct Welt {
     pub einheiten: Vec<Einheit>,
     pub gebaeude: Vec<Gebaeude>,
+    pub trupps: Vec<Trupp>,
+    pub geschosse: Vec<Geschoss>,
     pub einheiten_max: i32,
     /// je Feld: Bit 0 geplant, Bit 1 ausgehoben (Stand des letzten Takts); leer = noch keine Aufnahme in dieser Epoche
     graben: Vec<u8>,
@@ -115,8 +206,8 @@ pub struct Welt {
 
 impl Welt {
     pub const fn neu() -> Self {
-        Welt { einheiten: Vec::new(), gebaeude: Vec::new(), einheiten_max: 0, graben: Vec::new(), roh: Vec::new(),
-               roh_neu: Vec::new() }
+        Welt { einheiten: Vec::new(), gebaeude: Vec::new(), trupps: Vec::new(), geschosse: Vec::new(), einheiten_max: 0,
+               graben: Vec::new(), roh: Vec::new(), roh_neu: Vec::new() }
     }
 
     /// Neue Epoche (Laden, neue Partie): die Grabenwache nimmt im naechsten Takt neu auf, ohne Alarm.
@@ -128,6 +219,8 @@ impl Welt {
     pub fn lesen(&mut self) {
         self.einheiten.clear();
         self.gebaeude.clear();
+        self.trupps.clear();
+        self.geschosse.clear();
         unsafe {
             self.einheiten_max = i32_bei(UNITS_STATE);
             for i in 1..=self.einheiten_max.clamp(0, UNIT_LETZTER) {
@@ -165,6 +258,28 @@ impl Welt {
                     mauerx: i16_bei(u + 0x3E8),
                     mauery: i16_bei(u + 0x3EA),
                     erreichbar: -9,
+                    bild: i32_bei(u + 0x48),
+                    bildzyklus: i32_bei(u + 0x2B0),
+                    schussziel_uid: i32_bei(u + 0xA0),
+                    naechstesfeld: i32_bei(u + 0xE4),
+                    kletterstand: i32_bei(u + 0x364),
+                    feinx: i16_bei(u + 0xB6),
+                    feiny: i16_bei(u + 0xB8),
+                    gelaendehoehe: i16_bei(u + 0xBA),
+                    gebaeudehoehe: i16_bei(u + 0xBC),
+                    schussx: i16_bei(u + 0xBE),
+                    schussy: i16_bei(u + 0xC0),
+                    schussz: i16_bei(u + 0xC2),
+                    wegindex: i16_bei(u + 0xFA),
+                    weglaenge: i16_bei(u + 0xFC),
+                    feindabstand: i16_bei(u + 0x2A6),
+                    planx: i16_bei(u + 0x2DC),
+                    plany: i16_bei(u + 0x2DE),
+                    schusseinheit: i16_bei(u + 0x344),
+                    tempo: i16_bei(u + 0x34A),
+                    wegbedarf: i16_bei(u + 0x374),
+                    teilzustand: i16_bei(u + 0x380),
+                    getoetet: i16_bei(u + 0x3F0),
                 });
             }
             let anz = i32_bei(GEBAEUDE + 8);
@@ -189,6 +304,50 @@ impl Welt {
                         groesse: i32_bei(b + 0x10C),
                         erreichbar: -9,
                         feuer: i16_bei(b + 0x2D2),
+                        tor: u8_bei(b + 0x2B7) as i16,
+                    });
+                }
+            }
+            for i in 1..=TRUPP_LETZTER {
+                let t = TRUPPS + i * TRUPP_SCHRITT;
+                let zustand = i16_bei(t + 0x18);
+                if zustand == 0 {
+                    continue;
+                }
+                self.trupps.push(Trupp {
+                    nr: i as i32,
+                    besitzer: i32_bei(t + 4),
+                    zustand,
+                    zielx: i16_bei(t + 0x20E),
+                    ziely: i16_bei(t + 0x210),
+                    zielgebaeude: i16_bei(t + 0x2D0),
+                    zielgebaeude_uid: i32_bei(t + 0x2D4),
+                });
+            }
+            let anz = i32_bei(GESCHOSSE + 4);
+            if (1..=GESCHOSS_LETZTER + 1).contains(&anz) {
+                for i in 1..=anz.min(GESCHOSS_LETZTER) as usize {
+                    let q = GESCHOSSE + i * GESCHOSS_SCHRITT;
+                    let zustand = i16_bei(q + 0x3C);
+                    if zustand == 0 {
+                        continue;
+                    }
+                    self.geschosse.push(Geschoss {
+                        nr: i as i32,
+                        typ: i16_bei(q + 0x3E),
+                        zustand,
+                        besitzer: i16_bei(q + 0x40),
+                        feinx: i16_bei(q + 0x4C),
+                        feiny: i16_bei(q + 0x4E),
+                        hoehe: i16_bei(q + 0x50),
+                        x: i16_bei(q + 0x58),
+                        y: i16_bei(q + 0x5A),
+                        weg: i16_bei(q + 0x98),
+                        feuer: i16_bei(q + 0xEC),
+                        feld: i32_bei(q + 0x60),
+                        richtung: i32_bei(q + 0x9C),
+                        vcos: f32_bei(q + 0x90),
+                        vsin: f32_bei(q + 0x94),
                     });
                 }
             }
@@ -409,6 +568,27 @@ pub fn feld_xy_aus(zeilen: &[(i32, i32)], feld: usize) -> Option<(i32, i32)> {
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn fuer_fremde_loescht_nur_was_die_sichtschranke_verbietet() {
+        let e = Einheit {
+            nr: 7, besitzer: 2, x: 100, y: 101, leben: 900, zustand: 6, laufx: 50, gruppe: 3,
+            bild: 6, bildzyklus: 2, kletterstand: 1, feinx: 803, feiny: 811, gelaendehoehe: 40, gebaeudehoehe: 9, teilzustand: 1, getoetet: 1,
+            ziel: 11, zielx: 12, ziely: 13, zieluid: 14, mauerfeld: 15, mauerx: 16, mauery: 17, nahangreifer: 18, schussziel_uid: 19,
+            naechstesfeld: 20, schussx: 21, schussy: 22, schussz: 23, wegindex: 24, weglaenge: 25, feindabstand: 26, planx: 27, plany: 28,
+            schusseinheit: 29, tempo: 30, wegbedarf: 31,
+            ..Default::default()
+        };
+        let f = fuer_fremde(&e);
+        // sichtbar: bleibt
+        assert_eq!((f.bild, f.bildzyklus, f.kletterstand, f.feinx, f.feiny), (6, 2, 1, 803, 811));
+        assert_eq!((f.gelaendehoehe, f.gebaeudehoehe, f.teilzustand, f.getoetet), (40, 9, 1, 1));
+        assert_eq!((f.nr, f.besitzer, f.x, f.y, f.leben, f.zustand), (7, 2, 100, 101, 900, 6));
+        // Ziele, Wege, innere Zaehler: weg
+        assert_eq!((f.ziel, f.zielx, f.ziely, f.zieluid, f.mauerfeld, f.mauerx, f.mauery, f.nahangreifer), (0, 0, 0, 0, 0, 0, 0, 0));
+        assert_eq!((f.schussziel_uid, f.naechstesfeld, f.schussx, f.schussy, f.schussz), (0, 0, 0, 0, 0));
+        assert_eq!((f.wegindex, f.weglaenge, f.feindabstand, f.planx, f.plany, f.schusseinheit, f.tempo, f.wegbedarf), (0, 0, 0, 0, 0, 0, 0, 0));
+    }
 
     #[test]
     fn graben_bits_trennen_geplant_und_ausgehoben() {
