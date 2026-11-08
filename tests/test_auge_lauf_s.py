@@ -2719,6 +2719,58 @@ def test_im_gefecht_bekommt_jeder_versuch_wieder_stein(tmp_path):
         )
 
 
+def test_ausweichen_punkte_gerade_oder_diagonal():
+    for muster in ls.AUSWEICH_MUSTER:
+        p = ls.ausweich_punkte(muster, 100, 100)
+        assert len(p) >= 2
+        for a, b in zip(p, p[1:]):
+            dx, dy = abs(a[0] - b[0]), abs(a[1] - b[1])
+            assert dx == 0 or dy == 0 or dx == dy, (muster, a, b)
+    p = ls.ausweich_punkte("zick zu 1", 100, 100)
+    assert p[:4] == [
+        (103, 100),
+        (102, 101),
+        (101, 100),
+        (100, 101),
+    ]  # immer ein Feld naeher, abwechselnd rechts und links der Linie
+    assert ls.ausweich_punkte("zick quer 2", 100, 100)[:3] == [(100, 105), (102, 103), (100, 101)]
+    assert (
+        ls.ausweich_zyklus([1, 2, 3, 4]) == [1, 2, 3, 4, 3, 2]
+        and ls.ausweich_zyklus([1, 2]) == [1, 2]
+        and ls.ausweich_zyklus([1]) == [1]
+    )
+
+
+def test_ausweichen_schickt_den_naechsten_wegpunkt(tmp_path, monkeypatch, capsys):
+    monkeypatch.setattr(ls, "AUSWEICH_TAKTE", 30)
+    g = Spiel(tmp_path)
+    e = ls.SZENEN["ausweichen"](lauf_von(g))
+    assert e["kein_platz"] == []
+    log = [c for c in g.log if isinstance(c, dict)]
+    direkt = [c for c in log if "einheit_ziel" in c]
+    echt = [c for c in log if c.get("angriff", {}).get("lauf")]
+    ziele = [c for c in log if c.get("angriff", {}).get("ziel")]
+    assert len(ziele) == 1 + 7 * 3 + 4 and all(
+        c["player"] == 2 and len(c["angriff"]["einheiten"]) == 4 for c in ziele
+    )  # je Bahn die Schuetzen auf ihren Laeufer
+    assert len(direkt) >= 7 * 3 and len(echt) >= 4  # die stehende Bahn bekommt keinen
+    aus = [
+        json.loads(z)
+        for z in capsys.readouterr().out.splitlines()
+        if z.startswith('{"schritt": "ausweichen_bahnen"')
+    ]
+    assert len(aus) == 1 and len(aus[0]["bahnen"]) == 1 + 7 * 3 + 4
+
+
+def test_ausweichen2_alles_ueber_den_befehl_eines_spielers(tmp_path, monkeypatch):
+    monkeypatch.setattr(ls, "AUSWEICH_TAKTE", 30)
+    g = Spiel(tmp_path)
+    assert ls.SZENEN["ausweichen2"](lauf_von(g))["kein_platz"] == []
+    log = [c for c in g.log if isinstance(c, dict)]
+    assert not [c for c in log if "einheit_ziel" in c]
+    assert len([c for c in log if c.get("angriff", {}).get("lauf")]) >= 7 * 3
+
+
 def test_kontrollort_auch_ohne_einheiten():
     frei = np.zeros((400, 400), dtype=bool)
     frei[100, 150] = True
@@ -2759,7 +2811,15 @@ def test_kachel_lehnt_felder_ausserhalb_ab():
 def test_streuung_szenen_stehen_bereit():
     import inspect
 
-    for n in ("streuung", "streuung2", "streuung3", "streuung4", "streuung4_g", "korb_g"):
+    for n in (
+        "streuung",
+        "streuung2",
+        "streuung3",
+        "streuung4",
+        "streuung4_g",
+        "korb_g",
+        "ausweichen",
+    ):
         assert n in ls.SZENEN, n
     p = inspect.signature(ls.szene_sonder).parameters
     assert (

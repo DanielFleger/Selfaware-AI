@@ -4204,6 +4204,184 @@ def korb_g(l):
     return (("tuerme1", tuerme1, 30, 12), ("tuerme2", tuerme2, 42, 12), ("mauern", mauern, 23, 9))
 
 
+TEMPO_AUSWEICHEN = 20  # Takte je Sekunde: Je Takt liest das Werkzeug alle Laeufer und schickt Befehle, das braucht bis 25 ms. Bei Tempo 40 bliebe dafuer genau ein Takt
+AUSWEICH_TAKTE = 1600  # Ein Bogenschuetze schiesst alle 90 Takte (Median, beschuss 03.11.), also rund 70 Schuss je Bahn mit 4 Schuetzen
+AUSWEICH_NACHLAUF = 60  # Takte: Der laengste Pfeil fliegt rund 30 Takte (ausweichen_rechnen.py)
+AUSWEICH_SCHUETZEN = 4
+AUSWEICH_ART = 71  # Sklave: Plan_Gehirn Schritt 3 nennt Sklaven und Assassinen zuerst, die Assassine ist auf Abstand unsichtbar und wird nicht beschossen
+AUSWEICH_QUER, AUSWEICH_LAENGS = (
+    5,
+    3,
+)  # Felder um die Mitte: quer aendert der Abstand kaum, laengs nur um 3
+AUSWEICH_LEBEN = (
+    10_000_000  # Der Laeufer soll die ganze Zeit leben: Sonst endet die Messung beim ersten Toten
+)
+AUSWEICH_NACHSCHICKEN = 250  # Takte ohne Ankunft, dann der Befehl noch einmal: Das laengste Stueck sind 10 Felder, 160 Takte
+AUSWEICH_ABSTAENDE = (
+    8,
+    12,
+    16,
+)  # Die Rechnung zeigt den Unterschied ab 10 Feldern, 8 ist die Gegenprobe darunter, 16 liegt unter der Reichweite von 20
+AUSWEICH_MUSTER = (
+    "quer",
+    "schraeg",
+    "laengs",
+    "zick quer 2",
+    "zick quer 1",
+    "zick zu 2",
+    "zick zu 1",
+)
+AUSWEICH_ECHT = (
+    ("zick quer 1", 12),
+    ("zick quer 1", 16),
+    ("zick zu 1", 12),
+    ("zick zu 1", 16),
+)  # Dieselben Muster ueber den Befehl, den auch ein Mensch hat: Warteschlange des Moduls, je Befehl eine neue Gruppe. Vier Bahnen, mehr schafft die Schlange nicht sicher
+
+
+def ausweich_punkte(muster, cx, cy):
+    """Die Wegpunkte einer Bahn. Der Schuetze steht westlich, die Schusslinie laeuft entlang x. Jedes Stueck ist gerade oder genau diagonal."""
+    q, a = AUSWEICH_QUER, AUSWEICH_LAENGS
+    if muster == "stand":
+        return [(cx, cy)]
+    if muster == "quer":
+        return [(cx, cy + q), (cx, cy - q)]
+    if muster == "schraeg":
+        return [(cx - a, cy + a), (cx + a, cy - a)]
+    if muster == "laengs":
+        return [(cx + a, cy), (cx - a, cy)]
+    _, lage, k = muster.split()
+    k = int(k)
+    if lage == "quer":
+        return [(cx + (k if i % 2 else 0), cy + q - i * k) for i in range(2 * q // k + 1)]
+    return [(cx + a - i * k, cy + (k if i % 2 else 0)) for i in range(2 * a // k + 1)]
+
+
+def ausweich_zyklus(punkte):
+    """Hin und zurueck ueber die Wegpunkte, die Enden nur einmal."""
+    return punkte + punkte[-2:0:-1]
+
+
+def ausweichen(l, alle_echt=False):
+    """Plan_Gehirn Schritt 4 (B-173): Senkt Zickzack die Treffer? Je Bahn 4 Bogenschuetzen (Spieler 2) auf einen Sklaven (Spieler 1), der auf festem Muster pendelt. Die meisten Bahnen bekommen das Ziel direkt (einheit_ziel), so bremst keine Befehlsschlange die Messung. Vier Bahnen laufen ueber den Befehl eines Menschen, als Gegenprobe des Weges. Vergleich gegen ausweichen_rechnen.py, ausgewertet mit ausweichen_auswerten.py."""
+    s, k = l.s, l.k
+    bahnen = []
+
+    def befehl(b, ziel):
+        if b["echt"]:
+            return _angriff([b["laeufer"]], lauf=list(ziel))
+        return {"einheit_ziel": {"nr": b["laeufer"]["nr"], "x": ziel[0], "y": ziel[1]}}
+
+    def steuern():
+        """Laeuft waehrend der ganzen Messung. Der naechste Wegpunkt kommt, sobald der Laeufer das Feld betritt: Das Spiel liest ein neues Ziel erst in der Feldmitte (Wissensstand 13h), bis dahin sind es noch 8 Takte."""
+        k.liste([_angriff(b["schuetzen"], 2, ziel=b["laeufer"]["nr"]) for b in bahnen], lf.KANAL)
+        von = s.takt()
+        ende = von + AUSWEICH_TAKTE
+        while s.takt() < ende:
+            l.warte_takte(1)
+            t = s.takt()
+            lage = {e["nr"]: e for e in s.einheiten_alle()}
+            neu = []
+            for b in bahnen:
+                e = lage.get(b["laeufer"]["nr"])
+                if e is None or len(b["punkte"]) < 2:
+                    continue
+                if (e["x"], e["y"]) == b["punkte"][b["i"]]:
+                    b["i"] = (b["i"] + 1) % len(b["punkte"])
+                elif not b["befehle"]:
+                    pass  # der erste Befehl
+                elif t - b["befehle"][-1] > AUSWEICH_NACHSCHICKEN:
+                    b["nachgeschickt"] += 1
+                else:
+                    continue
+                neu.append(befehl(b, b["punkte"][b["i"]]))
+                b["befehle"].append(t)
+            if neu:
+                k.liste(neu, lf.KANAL)
+        print(
+            json.dumps(
+                {
+                    "schritt": "ausweichen_bahnen",
+                    "von": von,
+                    "bis": s.takt(),
+                    "bahnen": [
+                        {
+                            n: b[n]
+                            for n in (
+                                "muster",
+                                "abstand",
+                                "echt",
+                                "punkte",
+                                "befehle",
+                                "nachgeschickt",
+                            )
+                        }
+                        | {
+                            "laeufer": b["laeufer"]["nr"],
+                            "schuetzen": [e["nr"] for e in b["schuetzen"]],
+                        }
+                        for b in bahnen
+                    ],
+                }
+            ),
+            flush=True,
+        )
+        return []
+
+    def bahn(muster, d, echt):
+        def f(x, y):
+            x0, cy = x + 1, y + AUSWEICH_QUER + 1
+            punkte = ausweich_zyklus(ausweich_punkte(muster, x0 + d, cy))
+            schuetzen = [_e("schuetze", 22, x0, cy - 2 + j, 2) for j in range(AUSWEICH_SCHUETZEN)]
+            laeufer = _e("laeufer", AUSWEICH_ART, *punkte[0])
+            bahnen.append(
+                {
+                    "muster": muster,
+                    "abstand": d,
+                    "echt": echt,
+                    "punkte": punkte,
+                    "i": 1 % len(punkte),
+                    "laeufer": laeufer,
+                    "schuetzen": schuetzen,
+                    "befehle": [],
+                    "nachgeschickt": 0,
+                }
+            )
+
+            def leben():
+                return [
+                    {
+                        "poke": lf.EINHEITEN + laeufer["nr"] * lf.E_SCHRITT + E_LEBEN,
+                        "wert": AUSWEICH_LEBEN,
+                    }
+                ]
+
+            return (
+                [],
+                schuetzen + [laeufer],
+                [],
+                leben,
+                [(1, steuern)] if len(bahnen) == 1 else None,
+            )
+
+        return f
+
+    if alle_echt:  # Lauf 08.11. 21:51: Der direkte Befehl laesst den Sklaven gehen (16 Takte je Feld, stateBasedSpeed 0), der Befehl eines Spielers rennen (12, stateBasedSpeed 1), und das Spiel haelt dann doppelt so weit vor
+        faelle = [("stand", 12, True)] + [
+            (m, d, True) for m in AUSWEICH_MUSTER for d in AUSWEICH_ABSTAENDE
+        ]
+    else:
+        faelle = (
+            [("stand", 12, False)]
+            + [(m, d, False) for m in AUSWEICH_MUSTER for d in AUSWEICH_ABSTAENDE]
+            + [(m, d, True) for m, d in AUSWEICH_ECHT]
+        )
+    return tuple(
+        (f"{m} {d}" + (" echt" if e else ""), bahn(m, d, e), d + 7, 2 * AUSWEICH_QUER + 3)
+        for m, d, e in faelle
+    )
+
+
 def sonder24_g(l):
     """Lagen aus Lauf F und S, die noch fehlen: Belagerungszelt mit 4 und 2 Ingenieuren (P126), Oel werfen auf Befehl (P238), Schmelze holt Pech aus dem Lager (P111), Mauerkosten im echten Befehl (P119), Stapel halten, Holztor als Ziel."""
     s = l.s
@@ -4976,6 +5154,17 @@ SZENEN = {
     ),
     "streuung4": lambda l: szene_sonder(
         l, "streuung4", streuung4(l), rand=12, tempo=lf.TEMPO_JEDER_TAKT, grenze=GRENZE_PECH
+    ),
+    "ausweichen2": lambda l: szene_sonder(
+        l,
+        "ausweichen2",
+        ausweichen(l, True),
+        rand=6,
+        tempo=TEMPO_AUSWEICHEN,
+        grenze=AUSWEICH_NACHLAUF,
+    ),
+    "ausweichen": lambda l: szene_sonder(
+        l, "ausweichen", ausweichen(l), rand=6, tempo=TEMPO_AUSWEICHEN, grenze=AUSWEICH_NACHLAUF
     ),
     "korb_g": lambda l: szene_sonder(
         l,

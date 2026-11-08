@@ -155,11 +155,20 @@ Rollen sind das Ergebnis, so steht es schon im Plan Einheitenlenker:
 
 ### 6.3 Ausweichen
 
-Gefahr ist, was nach dem Ausweichen noch trifft.
+Gefahr ist, was nach dem Ausweichen noch trifft. Gemessen am 08.11. (Schritt 4, B-173, `data/research/auge_plan/ausweichen_20261108/Ergebnis_Ausweichen.md`): Sklave mit dem Befehl eines Spielers, Bogenschützen, Anteil der Pfeile, die treffen, wenn jeder Takt ein Schuss sein könnte:
 
-- Ein Pfeil braucht 1,4 Takte je Feld, die meisten Einheiten 12 bis 16. Ab etwa 9 bis 12 Feldern Abstand kommen sie rechtzeitig vom Zielfeld (gerechnet).
-- Laut Code zielt das Spiel bei laufenden Einheiten vermutlich voraus in Blickrichtung. Wer nach dem Schuss die Richtung wechselt, steht dann woanders: Zickzack müsste wirken.
-- Schräg dauert ein Feld genauso lang wie gerade (gemessen), das sind 41 % mehr Strecke.
+| Laufweg | 8 Felder | 12 Felder | 16 Felder | Felder je 1.000 Takte |
+|---|---|---|---|---|
+| gerade auf den Schützen zu und zurück | 92 % | 86 % | 78 % | 81 |
+| gerade quer | 89 % | 58 % | 35 % | 83 |
+| Zickzack quer, Wechsel je Feld | 55 % | 33 % | 16 % | 79 |
+| Zickzack auf den Schützen zu, Wechsel je 2 Felder | 51 % | 20 % | 6 % | 80 |
+| Zickzack auf den Schützen zu, Wechsel je Feld | 25 % | 2 % | 1 % | 78 |
+
+- Das Spiel zielt auf die Feldmitte plus Vorhalt in Blickrichtung, bei einer vom Spieler befohlenen Einheit doppelt so weit wie bei einer gehenden. Wer nach dem Schuss die Richtung wechselt, steht woanders.
+- Zickzack kostet fast keine Strecke (94 bis 97 %), weil ein schräges Feld genauso lang dauert wie ein gerades.
+- Der Preis ist ein Befehl je Gruppe und Feld. Bei 12 Takten je Feld reicht der eine Gruppenbefehl je Takt (S57) für höchstens 12 Gruppen.
+- Nicht gemessen: andere Schützen und Läufer, Steine und Feuer, Wechsel erst beim gesehenen Schuss.
 - Den Abschuss sehen wir am Animationsbild (R4), fliegende Pfeile liefert der Kern jetzt jeden Takt.
 
 ### 6.4 Die Grenzen
@@ -207,7 +216,7 @@ Jeder Schritt hat eine Probe, die scheitern kann.
 | 1 | Wirkung je Einheit aus den Aufzeichnungen messen, für uns und die KI-Gegner (erledigt, siehe Abschnitt 2) | Ausgangswert steht, an zwei Partien von Hand nachgerechnet: tote eigene Assassinen laut Werkzeug gegen Todesakten 21 zu 21 in beiden Partien |
 | 2 | Partien gegen voll ausgebaute, ständig raidende Gegner | Der Einbruch lässt sich wiederholen und ist in Zahlen beschrieben |
 | 3 | Laufende Rollen und kleinster Einsatz, zuerst Sklaven und Assassinen, hinter einem Schalter | Gleiche Partien mit und ohne: mehr Wirkung je Einheit, weniger Einheiten gebunden |
-| 4 | Messlauf Ausweichen im Editor: gerade, schräg, Zickzack je Abstand | Zickzack muss Treffer spürbar senken, sonst fliegt es raus |
+| 4 | Messlauf Ausweichen im Editor: gerade, schräg, Zickzack je Abstand (erledigt, siehe Abschnitt 6.3) | Zickzack muss Treffer spürbar senken, sonst fliegt es raus: bestanden, ab 12 Feldern 19 bis 84 Punkte weniger bei 94 bis 97 % der Strecke |
 | 5 | Schübe, Knubbeln und kritische Stellen | Schlägt frontales Stürmen in gleichen Gefechten |
 | 6 | Sperre im Code und fehlende Felder | Fremdes kommt nicht an, Probe wie am 08.11. |
 | 7 | Gewichtung: Produktion und Einsatz als Regler, Wirtschaftsketten beider Seiten | Vorhersage des eigenen Bestands weicht um höchstens 20 % ab, frei gewordene Mittel fließen wirklich in Skalierung |
@@ -218,11 +227,10 @@ Parallel: Skalierung (Krari). Vorschlag: Das ersetzt P6 und P8 der bisherigen Re
 
 ## 11. Was belegt ist und was nicht
 
-**Belegt:** Die Zahlen aus Abschnitt 2. Schaden, Lauftempo und Reichweite sind gemessen (S1, S5, S9, L80, L109). Pfeilflug 5,75 Achtelfelder je Takt, gerade und schräg gleich schnell (Lauf S). Ein Gruppenbefehl je Takt (S57). Die Ketten von Holzfäller, Ochse und Bauernzuteilung stehen im Spielcode, die Raten sind gemessen (L71). Die neuen Felder kommen richtig an (Lauf 08.11.).
+**Belegt:** Die Zahlen aus Abschnitt 2. Schaden, Lauftempo und Reichweite sind gemessen (S1, S5, S9, L80, L109). Pfeilflug 5,75 Achtelfelder je Takt, gerade und schräg gleich schnell (Lauf S). Ein Gruppenbefehl je Takt (S57). Ausweichen gegen Bogenschützen (Schritt 4, Abschnitt 6.3). Die Ketten von Holzfäller, Ochse und Bauernzuteilung stehen im Spielcode, die Raten sind gemessen (L71). Die neuen Felder kommen richtig an (Lauf 08.11.).
 
 **Annahme:**
 - Dass bessere Nutzung wirklich Mittel für die Skalierung freimacht, ist die Grundthese und noch unbewiesen. Schritt 1 und 3 prüfen sie.
-- Ausweichen ist gerechnet und aus dem Code gelesen. Im Register steht noch „fester Punkt", der Code zeigt Vorhalt. Erst Schritt 4 entscheidet.
 - Mauern sind in den Aufzeichnungen nicht erfasst, nur Türme, Tore und Fallen. „Keine Burganlagen" gilt für diese.
 - Die Takte je Ebene sind Vorschläge.
 
