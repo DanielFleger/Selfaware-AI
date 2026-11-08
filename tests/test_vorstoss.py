@@ -104,3 +104,33 @@ def test_gleicher_befehl_wird_nicht_jede_runde_wiederholt():
     assert len(b.liste) == 1
     v.schritt(600, L, {}, b)
     assert len(b.liste) == 2
+
+
+def test_zieht_aus_dem_schussfeld_einer_ueberzahl_ab():
+    fern = [_e(2, 23, 132, 100 + i) for i in range(4)]
+    _, b, aus = _lauf(_L(_e(1, 22, 100, 100), _e(1, 22, 100, 101), _e(1, 22, 100, 102), *fern))
+    assert b[0]["lauf"][0] < 100 and "Schussfeld" in aus[0]
+
+
+def test_steht_nicht_gegen_vereinzelte_schuetzen_auf():
+    fern = _e(2, 23, 132, 100)
+    _, b, _ = _lauf(_L(*[_e(1, 22, 100, 100 + i) for i in range(5)], fern))
+    assert b[0]["ziel"] == 6
+
+
+def test_arbeiter_ohne_deckung_geht_vor_dem_gedeckten():
+    gedeckt = _e(2, 3, 170, 100)
+    fern = [_e(2, 23, 175, 100 + i) for i in range(3)]
+    frei = _e(2, 3, 100, 200)
+    L = _L(_e(1, 22, 100, 100), gedeckt, *fern, frei)
+    _, b, aus = _lauf(L)
+    assert b[0]["lauf"][1] > 100 and b[0]["lauf"][0] == 100 and "Ziel (100, 200)" in aus[0]
+
+
+def test_ziel_ohne_schaden_wird_aufgegeben():
+    L = _L(_e(1, 22, 100, 100), _e(2, 24, 130, 100, leben=500), _e(2, 24, 131, 100, leben=500))
+    v = V.Vorstoss(1, HEIM)
+    b = Befehle()
+    for t in range(V.STUR_RUNDEN + 3):
+        v.schritt(500 + t, L, {}, b)
+    assert {x["ziel"] for x in b.liste} == {2, 3}
