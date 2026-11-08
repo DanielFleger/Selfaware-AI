@@ -4216,6 +4216,26 @@ AUSWEICH_QUER, AUSWEICH_LAENGS = (
 AUSWEICH_LEBEN = (
     10_000_000  # Der Laeufer soll die ganze Zeit leben: Sonst endet die Messung beim ersten Toten
 )
+ZICK_GRUPPE = 8  # Laeufer und Schuetzen je Bahn: Daniels Partie vom 19.10. hatte 6 Bogenschuetzen, der Vorstoss zuletzt 5; mit 8 reicht die Aufstellung bis zum zweiten Ring des Spiels
+VORSTOSS_RUNDE = 63  # Takte je Runde des Lenkers: Median aus lage_20261108_155525_i1 bei Tempo 200
+VORSTOSS_TAKTE = (
+    1500  # 24 Runden: reicht fuer Vorruecken, Schiessen und Abziehen und wieder Vorruecken
+)
+VORSTOSS_EINZELNER = (
+    400  # Takte bis zum einzelnen Schuetzen: 30 Felder Vorruecken im Zickzack davor
+)
+VORSTOSS_UEBERZAHL = 850  # Takte bis zur Ueberzahl: Der einzelne Schuetze ist bis dahin tot oder aufgegeben (STUR_RUNDEN)
+VORSTOSS_QUER = 15  # Felder von der Mitte zum Rand: Aufstellung 8, Zickzack 1, Rest fuer die acht gesetzten Schuetzen
+VORSTOSS_LAENGE = 100  # Felder: Laufweg bis zum Abziehen rund 40, davor 40 Felder bis zur Ueberzahl, dazu die Aufstellung; 110 passt nicht auf die Karte (kein_platz am 08.11.)
+ZICK_BREIT = 5  # Felder Abstand der breiten Aufstellung: Gefahrenkarte in zickzack_abstand.txt, quer ab 5 Feldern unter 2 %, bei 2 und 3 Feldern bis 23 %
+ZICK_QUER_BREIT = 11  # Felder von der Mitte der breiten Bahn zum Rand: 8 fuer die aeusserste Spalte, 3 fuer ihren Zickzack und den Rand
+ZICK_FERN, ZICK_NAH = (
+    22,
+    8,
+)  # Abstand zu den Schuetzen: 8 bis 16 ist der in B-173 gemessene Bereich, 22 gibt davor einen Anlauf
+ZICK_DA = 2  # Felder Abstand der Gruppenmitte zum Ziel, ab dem die Gruppe wendet: So weit reicht die Aufstellung von 8 Einheiten
+ZICK_BLICK = 3  # Takte zwischen zwei Blicken auf die Wendepunkte; der Zickzack selbst laeuft im Kern, Python nennt nur die Strecke
+ZICK_KERN_WARTEN = 40  # Takte Wartezeit, bis der Kern geladen ist und sein gemeinsamer Speicher steht (Waechter, er steht nach einem Takt)
 AUSWEICH_NACHSCHICKEN = 250  # Takte ohne Ankunft, dann der Befehl noch einmal: Das laengste Stueck sind 10 Felder, 160 Takte
 AUSWEICH_ABSTAENDE = (
     8,
@@ -4380,6 +4400,261 @@ def ausweichen(l, alle_echt=False):
         (f"{m} {d}" + (" echt" if e else ""), bahn(m, d, e), d + 7, 2 * AUSWEICH_QUER + 3)
         for m, d, e in faelle
     )
+
+
+def zickzack_gruppe(l, muster=("gerade", "zickzack")):
+    """B-174: Laeuft der Zickzack des Kerns fuer eine ganze Gruppe, und senkt er dort die Treffer? Zwei gleiche Bahnen im Gefecht: je 8 Sklaven (Spieler 1) pendeln zwischen ZICK_FERN und ZICK_NAH Feldern vor 8 Bogenschuetzen (Spieler 2), jeder Schuetze zielt auf einen eigenen Laeufer. Eine Gruppe laeuft mit einem geraden Gruppenbefehl je Strecke, die andere im Zickzack. Beide Befehle gehen ueber den Kern. Gegenueber B-173 aendert sich nur: Gruppe statt Einzelner, Kern statt Python, Gefecht statt Editor."""
+    s, k = l.s, l.k
+    bahnen = []
+
+    def steuern():
+        from selfaware.execution import kernweg as KW
+        from selfaware.game.ucp.befehl import SPIEL
+
+        k.liste([{"kern": "laden"}], lf.KANAL)
+        weg = None
+        for _ in range(ZICK_KERN_WARTEN):
+            l.warte_takte(1)
+            weg = KW.oeffnen(SPIEL, auftraggeber=KW.VORSTOSS)
+            if weg is not None:
+                break
+        if weg is None:
+            raise Abbruch(f"Kern nach {ZICK_KERN_WARTEN} Takten nicht bereit")
+
+        def senden(b):
+            ziel = b["ziele"][b["i"]]
+            nummern = [e["nr"] for e in b["laeufer"]]
+            b["befehle"].append(s.takt())
+            if (
+                b["muster"] == "breit"
+            ):  # jede Einheit ist ihr eigener Trupp und haelt so ihren Platz
+                return all(
+                    [
+                        weg.zickzack([nr], (ziel[0] + p[0], ziel[1] + p[1]), b["trupp"] * 100 + j)
+                        for j, (nr, p) in enumerate(zip(nummern, b["plaetze"]))
+                    ]
+                )
+            if b["muster"] == "zickzack":
+                return weg.zickzack(nummern, ziel, b["trupp"])
+            return not weg.senden([{"angriff": {"einheiten": nummern, "lauf": list(ziel)}}])
+
+        k.liste(
+            [
+                _angriff([sch], 2, ziel=e["nr"])
+                for b in bahnen
+                for sch, e in zip(b["schuetzen"], b["laeufer"])
+            ],
+            lf.KANAL,
+        )
+        for b in bahnen:
+            b["angekommen"] = senden(b)
+        von = s.takt()
+        ende = von + AUSWEICH_TAKTE
+        while s.takt() < ende:
+            l.warte_takte(ZICK_BLICK)
+            lage = {e["nr"]: e for e in s.einheiten_alle()}
+            for b in bahnen:
+                da = [
+                    (lage[e["nr"]], p)
+                    for e, p in zip(b["laeufer"], b["plaetze"])
+                    if e["nr"] in lage
+                ]
+                if not da:
+                    continue
+                mitte = (
+                    sorted(e["x"] - p[0] for e, p in da)[len(da) // 2],
+                    sorted(e["y"] - p[1] for e, p in da)[len(da) // 2],
+                )
+                ziel = b["ziele"][b["i"]]
+                if max(abs(mitte[0] - ziel[0]), abs(mitte[1] - ziel[1])) <= ZICK_DA:
+                    b["i"] = (b["i"] + 1) % len(b["ziele"])
+                    b["wendepunkte"].append(s.takt())
+                    senden(b)
+                elif s.takt() - b["befehle"][-1] > AUSWEICH_NACHSCHICKEN:
+                    b["nachgeschickt"] += 1
+                    senden(b)
+        for b in bahnen:
+            weg.freigeben([e["nr"] for e in b["laeufer"]])
+        print(
+            json.dumps(
+                {
+                    "schritt": "zickzack_bahnen",
+                    "von": von,
+                    "bis": s.takt(),
+                    "kern": weg.bericht(),
+                    "bahnen": [
+                        {
+                            "muster": b["muster"],
+                            "ziele": b["ziele"],
+                            "plaetze": b["plaetze"],
+                            "befehle": b["befehle"],
+                            "wendepunkte": b["wendepunkte"],
+                            "nachgeschickt": b["nachgeschickt"],
+                            "angekommen": b["angekommen"],
+                            "laeufer": [e["nr"] for e in b["laeufer"]],
+                            "schuetzen": [e["nr"] for e in b["schuetzen"]],
+                        }
+                        for b in bahnen
+                    ],
+                }
+            ),
+            flush=True,
+        )
+        return []
+
+    def bahn(art, quer):
+        def f(x, y):
+            x0, cy = x + 1, y + quer + 1
+            schuetzen = [
+                _e("schuetze", 22, x0, cy - ZICK_GRUPPE // 2 + j, 2) for j in range(ZICK_GRUPPE)
+            ]
+            if (
+                art == "breit"
+            ):  # 2 Reihen, 4 Spalten: zickzack_abstand.txt, 5 Felder sind die kleinste gerechnete Luecke ohne Gefahr
+                plaetze = [
+                    ((j // 4) * ZICK_BREIT, (j % 4) * ZICK_BREIT - 3 * ZICK_BREIT // 2)
+                    for j in range(ZICK_GRUPPE)
+                ]
+                start = [(x0 + ZICK_FERN + a, cy + b) for a, b in plaetze]
+            else:
+                plaetze = [(0, 0)] * ZICK_GRUPPE
+                start = [(x0 + ZICK_FERN + j % 3 - 1, cy + j // 3 - 1) for j in range(ZICK_GRUPPE)]
+            laeufer = [_e("laeufer", AUSWEICH_ART, a, b) for a, b in start]
+            bahnen.append(
+                {
+                    "muster": art,
+                    "plaetze": plaetze,
+                    "ziele": [(x0 + ZICK_NAH, cy), (x0 + ZICK_FERN, cy)],
+                    "i": 0,
+                    "trupp": len(bahnen) + 1,
+                    "laeufer": laeufer,
+                    "schuetzen": schuetzen,
+                    "befehle": [],
+                    "wendepunkte": [],
+                    "nachgeschickt": 0,
+                }
+            )
+
+            def leben():
+                return [
+                    {
+                        "poke": lf.EINHEITEN + e["nr"] * lf.E_SCHRITT + E_LEBEN,
+                        "wert": AUSWEICH_LEBEN,
+                    }
+                    for e in laeufer
+                ]
+
+            return (
+                [],
+                schuetzen + laeufer,
+                [],
+                leben,
+                [(1, steuern)] if len(bahnen) == 1 else None,
+            )
+
+        return f
+
+    return tuple(
+        (
+            m,
+            bahn(m, ZICK_QUER_BREIT if m == "breit" else AUSWEICH_QUER),
+            ZICK_FERN + 7 + (ZICK_BREIT if m == "breit" else 0),
+            2 * (ZICK_QUER_BREIT if m == "breit" else AUSWEICH_QUER) + 3,
+        )
+        for m in muster
+    )
+
+
+def vorstoss_probe(l):
+    """B-174: Die echte Klasse Vorstoss mit Kern im Gefecht: Fuehrt der Kern die Schuetzen im Zickzack, gibt er sie zum Schiessen her und nimmt sie danach wieder? 6 Bogenschuetzen ruecken auf ein gedachtes Gebaeude zu, die Runde dauert VORSTOSS_RUNDE Takte. Nach VORSTOSS_EINZELNER Takten steht ein einzelner Schuetze in Schussweite (schiessen), nach VORSTOSS_UEBERZAHL Takten acht Schuetzen knapp in Reichweite (abziehen). Treffer werden hier nicht gemessen."""
+    from selfaware.micro.tasks import vorstoss as vs
+
+    s, k = l.s, l.k
+    eigene = []
+    ort = {}
+
+    def steuern():
+        from selfaware.execution import kernweg as KW
+        from selfaware.game.ucp.befehl import SPIEL
+
+        k.liste([{"kern": "laden"}], lf.KANAL)
+        weg = None
+        for _ in range(ZICK_KERN_WARTEN):
+            l.warte_takte(1)
+            weg = KW.oeffnen(SPIEL, auftraggeber=KW.VORSTOSS)
+            if weg is not None:
+                break
+        if weg is None:
+            raise Abbruch(f"Kern nach {ZICK_KERN_WARTEN} Takten nicht bereit")
+        vorher = {e["nr"] for e in s.einheiten_alle()} - {e["nr"] for e in eigene}
+        heim = next(
+            ((e["x"], e["y"]) for e in s.einheiten_alle() if e["typ"] == 55 and e["besitzer"] == 1),
+            (0, 0),  # nur fuer den Burg-Alarm, und die Burg ist hier GEFECHT_ABSTAND weit weg
+        )
+        v = vs.Vorstoss(1, heim, bis=10**9, kern=weg)
+        gebaeude = {0: {"typ": 1, "besitzer": 2, "x": ort["ziel"][0], "y": ort["ziel"][1]}}
+
+        def befehl(b, _warte, bis=None):
+            k.liste([{"player": 1, **b}], lf.KANAL)
+
+        von = s.takt()
+        ende = von + VORSTOSS_TAKTE
+        verlauf = []
+        gesetzt = set()
+        while s.takt() < ende:
+            l.warte_takte(VORSTOSS_RUNDE)
+            t = s.takt()
+            lage = {e["nr"]: e for e in s.einheiten_alle() if e["nr"] not in vorher}
+            for nach, name, anzahl, weite in (
+                (VORSTOSS_EINZELNER, "einzeln", 1, 25),
+                (VORSTOSS_UEBERZAHL, "ueberzahl", 8, 40),
+            ):
+                meine = [e for e in lage.values() if e["besitzer"] == 1]
+                if t - von >= nach and name not in gesetzt and meine:
+                    gesetzt.add(name)
+                    mx = sorted(e["x"] for e in meine)[len(meine) // 2]
+                    my = sorted(e["y"] for e in meine)[len(meine) // 2]
+                    k.liste(
+                        [
+                            {
+                                "setzeEinheit": {
+                                    "spieler": 2,
+                                    "typ": 22,
+                                    "x": mx + weite - 1,
+                                    "y": my + j - anzahl // 2 - 1,
+                                    "anzahl": 1,
+                                }
+                            }
+                            for j in range(anzahl)
+                        ],
+                        lf.KANAL,
+                    )
+                    verlauf.append({"takt": t, "gesetzt": name, "mitte": [mx, my]})
+            for z in v.schritt(t, lage, gebaeude, befehl):
+                verlauf.append({"takt": t, "ereignis": z})
+        weg.freigeben(sorted(v.mitglieder))
+        print(
+            json.dumps(
+                {
+                    "schritt": "vorstoss_probe",
+                    "von": von,
+                    "bis": s.takt(),
+                    "eigene": [e["nr"] for e in eigene],
+                    "verlauf": verlauf,
+                    "bericht": v.bericht(),
+                }
+            ),
+            flush=True,
+        )
+        return []
+
+    def posten(x, y):
+        x0, cy = x + 2, y + VORSTOSS_QUER
+        eigene.extend(_e("schuetze", 22, x0 + j % 2, cy + j // 2 - 1) for j in range(6))
+        ort["ziel"] = (x0 + 140, cy)
+        return [], list(eigene), [], lambda: [], [(1, steuern)]
+
+    return (("vorstoss", posten, VORSTOSS_LAENGE, 2 * VORSTOSS_QUER + 1),)
 
 
 def sonder24_g(l):
@@ -5165,6 +5440,31 @@ SZENEN = {
     ),
     "ausweichen": lambda l: szene_sonder(
         l, "ausweichen", ausweichen(l), rand=6, tempo=TEMPO_AUSWEICHEN, grenze=AUSWEICH_NACHLAUF
+    ),
+    "vorstoss_g": lambda l: szene_sonder(
+        l,
+        "vorstoss_g",
+        vorstoss_probe(l),
+        rand=6,
+        raeumen=True,  # Die Start-Bogenschuetzen kommen erst bei Takt 202 und 403 und wuerden sonst zur Gruppe zaehlen (Lauf 08.11. 23:28)
+        tempo=TEMPO_AUSWEICHEN,
+        grenze=AUSWEICH_NACHLAUF,
+    ),
+    "zickzack2_g": lambda l: szene_sonder(
+        l,
+        "zickzack2_g",
+        zickzack_gruppe(l, ("gerade", "zickzack", "breit")),
+        rand=6,
+        tempo=TEMPO_AUSWEICHEN,
+        grenze=AUSWEICH_NACHLAUF,
+    ),
+    "zickzack_g": lambda l: szene_sonder(
+        l,
+        "zickzack_g",
+        zickzack_gruppe(l),
+        rand=6,
+        tempo=TEMPO_AUSWEICHEN,
+        grenze=AUSWEICH_NACHLAUF,
     ),
     "korb_g": lambda l: szene_sonder(
         l,

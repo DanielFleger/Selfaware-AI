@@ -994,6 +994,22 @@ HEER_ANTEIL = 0.0        # B-132: Anteil jedes Gold-Zuwachses fuer die Heereskas
 DECKUNG_SOLL = 0         # B-129: so viele Schleuderer decken die Brand-Sklaven (Schalter deckung_soll, 0 = aus)
 VORSTOSS = False         # B-172: frueher Vorstoss der Schuetzen (vorstoss.py), Schalter vorstoss=ja
 VORSTOSS_BIS = 15000     # B-172: bis zu diesem Takt, danach sind die Schuetzen wieder frei (Schalter vorstoss_bis)
+ZICKZACK = False         # B-174: Vorstoss laeuft im Zickzack ueber den Rust-Kern (Schalter zickzack=ja, braucht vorstoss=ja)
+_zickzack_gemeldet = False
+
+
+def zickzack_kern(vorstoss, ereignis):
+    """B-174: Holt den Kern fuer den Zickzack. Sein gemeinsamer Speicher entsteht erst im laufenden Spiel, darum je Runde ein Versuch;
+    solange er nicht bereit ist, laeuft der Vorstoss gerade wie ohne Schalter."""
+    global _zickzack_gemeldet
+    from selfaware.execution import kernweg as KW
+    from selfaware.game.ucp.befehl import SPIEL
+    vorstoss.kern = KW.oeffnen(SPIEL, auftraggeber=KW.VORSTOSS)
+    if vorstoss.kern is not None:
+        ereignis.append("ZICKZACK: Kern bereit, der Vorstoss laeuft im Zickzack")
+    elif not _zickzack_gemeldet:
+        ereignis.append("ZICKZACK: Kern noch nicht bereit, der Vorstoss laeuft solange gerade")
+    _zickzack_gemeldet = True
 KAUSAL_SPAREN = True     # B-122: Kausalmodell spart fuer seinen besten Betrieb (Schalter kausal_sparen=nein = altes Verhalten)
 OFFENES_ENDE = False     # B-123: ziel_tick=offen (Partie gegen einen Menschen) - Kausalmodell rechnet mitlaufend
 KAUSAL_RUNDEN = 3        # 19.10.: der Kausal-Planer entscheidet nur jede so vielte Runde (Rechenzeit, Bauen vertraegt 1 s)
@@ -3312,6 +3328,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         # 19.10. Raids: steuern jede Runde; werben nur aus Gold ueber der Ruecklage, nicht im Endspurt
                         try:
                             if vorstoss is not None:
+                                if ZICKZACK and vorstoss.kern is None:
+                                    zickzack_kern(vorstoss, ereignis)
                                 ereignis += vorstoss.schritt(st["t"], L, G, befehl)
                             brand.schutz = deckung.orte(L) + (vorstoss.orte(L) if vorstoss is not None else [])
                             ereignis += deckung.schritt(L, G, befehl, brand)
@@ -3680,8 +3698,9 @@ def main():
     global STEIN_FRUEH, DECKUNG_SOLL, HEER_ANTEIL
     HEER_ANTEIL = float(arg.get("heer_anteil", HEER_ANTEIL))
     DECKUNG_SOLL = int(arg.get("deckung_soll", DECKUNG_SOLL))
-    global VORSTOSS, VORSTOSS_BIS
+    global VORSTOSS, VORSTOSS_BIS, ZICKZACK
     VORSTOSS = arg.get("vorstoss", "nein") == "ja"
+    ZICKZACK = arg.get("zickzack", "nein") == "ja"
     VORSTOSS_BIS = int(arg.get("vorstoss_bis", VORSTOSS_BIS))
     STEIN_FRUEH = int(arg.get("steinbrueche_frueh", STEIN_FRUEH))
     KAUSAL_SPAREN = arg.get("kausal_sparen", "ja") == "ja"

@@ -21,6 +21,12 @@ Je Runde, in dieser Reihenfolge:
   VORRUECKEN  sonst bis zu SCHRITT Felder auf eine Schussstellung vor dem naechsten Arbeiter, die ausserhalb jeder Ueberzahl
            liegt; gibt es keinen, vor das naechste Gebaeude.
 Alle Grenzen sind Startwerte (Plan_Gehirn 5.6), keine Messwerte. Schalter vorstoss=ja, aus ist der Standard.
+
+Schalter zickzack=ja (B-174, aus ist der Standard): Vorruecken und Abziehen fuehrt der Rust-Kern im Zickzack, damit Pfeile
+daneben gehen. Dicht aufgestellt faengt der Nachbar den verfehlten Pfeil, darum laeuft die Gruppe breit: bis zu TRUPPS Plaetze
+mit LUECKE Feldern Abstand, jeder Platz sein eigener Trupp beim Kern (gemessen im Gefecht, data/research/auge_plan/
+zickzack_20261108/Ergebnis_Zickzack.md: ab 12 Feldern 87 % Treffer gerade, 38 bis 61 % im Zickzack dicht, 4,5 % im Zickzack
+breit). Jeden anderen Befehl gibt der Vorstoss vorher frei, damit nie zwei Stellen dieselbe Einheit fuehren.
 """
 
 import collections
@@ -48,6 +54,11 @@ STUR_RUNDEN = 6
 STUR_SPERRE = 30
 NEU_ALLE = 4  # Runden zwischen zwei gleichen Befehlen: jeder neue Befehl startet die Wegsuche neu
 KARTE = 399
+# Laeufe unter Pfeilen, die der Kern im Zickzack fuehrt. Weichen vor Nahkaempfern bleibt gerade: Dort geht es um jedes Feld.
+IM_ZICKZACK = {"vor", "abziehen"}
+LUECKE = 5  # Gefahrenkarte zickzack_abstand.txt: quer zur Schussrichtung bei 2 und 3 Feldern bis 23 %, ab 5 Feldern unter 2 %
+TRUPPS = 8  # Einzelbefehle je Feld, die im Lauf zickzack2_g alle rechtzeitig kamen; ein neunter daneben kam in 18 % statt 6 % der Faelle zu spaet
+SPALTEN = 4  # 8 Plaetze in 2 Reihen, so gemessen
 
 
 def schach(a, b):
@@ -86,8 +97,12 @@ def _grob(p):
 
 
 class Vorstoss:
-    def __init__(self, sp, heim, bis=15000):
+    def __init__(self, sp, heim, bis=15000, kern=None):
         self.sp, self.heim, self.bis = sp, tuple(heim), bis
+        # None = ohne Zickzack, sonst der Kernweg (zickzack, freigeben, aufraeumen)
+        self.kern = kern
+        self.platz = {}  # Einheit -> Platz in der breiten Aufstellung
+        self.lage = {}
         self.mitglieder = set()
         self.runde = 0
         self.letzter = {}  # Art des Befehls -> (Inhalt, Runde)
@@ -121,10 +136,54 @@ class Vorstoss:
         alt = self.letzter.get(art)
         if alt is not None and alt[0] == inhalt and self.runde - alt[1] < NEU_ALLE:
             return False
-        befehl({"angriff": dict(einheiten=sorted(nummern), **auftrag)}, 1.0, bis="ANGRIFF")
+        if not self._im_zickzack(art, nummern, auftrag):
+            befehl({"angriff": dict(einheiten=sorted(nummern), **auftrag)}, 1.0, bis="ANGRIFF")
         self.letzter[art] = (inhalt, self.runde)
         self.befehle[art] += 1
         return True
+
+    def _im_zickzack(self, art, nummern, auftrag):
+        """True, wenn der Kern diesen Lauf im Zickzack fuehrt. Sonst fuehrt das Modul, und der Kern gibt die Einheiten vorher her."""
+        if self.kern is None:
+            return False
+        if art in IM_ZICKZACK and all(
+            [self.kern.zickzack(e, z, t) for e, z, t in self._aufstellung(nummern, auftrag["lauf"])]
+        ):
+            return True
+        self._frei(nummern)
+        return False
+
+    def _aufstellung(self, nummern, ziel):
+        """(Einheiten, Ziel, Trupp) je Platz: nebeneinander quer zum Weg, hintereinander in Reihen, mit LUECKE Feldern Abstand. Die Plaetze
+        bleiben, solange die Gruppe dieselbe ist: Der Kern merkt sich je Trupp den Ort, eine Einheit im falschen Trupp liefe quer durch die Gruppe."""
+        mitte = _mitte(self.lage, nummern)
+        dx, dy = ziel[0] - mitte[0], ziel[1] - mitte[1]
+        x_haupt = abs(dx) >= abs(dy)
+        vor = (1 if dx >= 0 else -1) if x_haupt else (1 if dy >= 0 else -1)
+        n = min(len(nummern), TRUPPS)
+        if set(self.platz) != set(nummern):
+            quer = "y" if x_haupt else "x"
+            geordnet = sorted(nummern, key=lambda k: (self.lage[k][quer], k))
+            self.platz = {k: i * n // len(geordnet) for i, k in enumerate(geordnet)}
+        reihen = (n + SPALTEN - 1) // SPALTEN
+        spalten = (n + reihen - 1) // reihen
+        aus = []
+        for p in range(n):
+            q = (2 * (p // reihen) - (spalten - 1)) * LUECKE // 2
+            h = -(p % reihen) * LUECKE * vor
+            x, y = (ziel[0] + h, ziel[1] + q) if x_haupt else (ziel[0] + q, ziel[1] + h)
+            aus.append(
+                (
+                    sorted(k for k, v in self.platz.items() if v == p),
+                    (max(0, min(KARTE, x)), max(0, min(KARTE, y))),
+                    p + 1,
+                )
+            )
+        return aus
+
+    def _frei(self, nummern):
+        if self.kern is not None and nummern:
+            self.kern.freigeben(sorted(nummern))
 
     def _schussfeld(self, stelle, L, G, eigene):
         """Ort der naechsten Gefahr, wenn an dieser Stelle eine Ueberzahl an Schuetzen oder ein Turm hinreicht, sonst None."""
@@ -188,6 +247,7 @@ class Vorstoss:
 
     def schritt(self, t, L, G, befehl):
         self.runde += 1
+        self.lage = L
         aus = []
         if t >= self.bis:
             if self.mitglieder:
@@ -195,6 +255,7 @@ class Vorstoss:
                     "VORSTOSS: Ende bei Takt %d, %d Schuetzen wieder frei"
                     % (t, len(self.mitglieder))
                 )
+                self._frei(self.mitglieder)
                 self.mitglieder = set()
             return aus
         meine = self._meine(L)
@@ -204,12 +265,15 @@ class Vorstoss:
                     "VORSTOSS: Feinde an der Burg, %d Schuetzen gehen an die Abwehr" % len(meine)
                 )
             self.alarm_an = True
+            self._frei(self.mitglieder)
             self.mitglieder = set()
             return aus
         if self.alarm_an:
             aus.append("VORSTOSS: Burg ruhig, Schuetzen wieder im Vorstoss")
         self.alarm_an = False
         self.mitglieder = meine
+        if self.kern is not None:
+            self.kern.aufraeumen(meine)
         if not meine:
             return aus
         mitte = _mitte(L, meine)
@@ -255,4 +319,5 @@ class Vorstoss:
         return aus
 
     def bericht(self):
-        return "Vorstoss: Befehle %s" % dict(self.befehle)
+        kern = "; " + self.kern.bericht() if self.kern is not None else ""
+        return "Vorstoss: Befehle %s%s" % (dict(self.befehle), kern)

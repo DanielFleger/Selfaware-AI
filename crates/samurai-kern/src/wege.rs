@@ -7,6 +7,9 @@ const ZEILEN: usize = 0x0233_72F8;
 /// PathConnectionLayer = TileMapState +0x363ED0 (abgelesen findFreeSpaceNextToEnemyDefensiveStructureInSameAreaWithinDistance
 /// 0x004A80CA, 228 Stellen im Spielcode). Bis Version 15 stand hier 0x01DF_6FD8 = 128 Felder daneben (L174).
 const WEGNETZ: usize = 0x01DF_70D8;
+/// Abgelesen giveTribeMoveInstruction 0x005263A0: gueltige Felder und LogicLayer
+const KARTE: usize = 0x021A_EC98;
+const LOGIK: usize = 0x01BF_8368;
 /// calculateCanPlayerUnitsNavigateToAreaFromArea, thiscall auf PathFindingState
 const KANN_HIN: usize = 0x004A_5320;
 const PFS: usize = 0x012B_B8C8;
@@ -32,6 +35,21 @@ pub fn gebiet(x: i32, y: i32) -> i32 {
     }
     let a = (WEGNETZ as i64 + feld_lua(x, y) * 2) as usize;
     unsafe { std::ptr::read_volatile(a as *const i16) as i32 }
+}
+
+/// Nimmt das Spiel (x, y) als Laufziel an? Dieselben drei Pruefungen wie giveTribeMoveInstruction: gueltiges Feld (Byte je x/y),
+/// keins der Bits 0x30 im LogicLayer (dword je Feld), Gebiet groesser 0.
+pub fn laufziel_ok(x: i32, y: i32) -> bool {
+    if !(0..400).contains(&x) || !(0..400).contains(&y) {
+        return false;
+    }
+    unsafe {
+        if std::ptr::read_volatile((KARTE + y as usize * 400 + x as usize) as *const u8) == 0 {
+            return false;
+        }
+        let logik = std::ptr::read_volatile((LOGIK as i64 + feld_lua(x, y) * 4) as usize as *const u8);
+        logik & 0x30 == 0 && gebiet(x, y) > 0
+    }
 }
 
 /// Kann Spieler `spieler` von Gebiet `von` nach Gebiet `nach` laufen? (Abfrage des Spiels, keine Nebenwirkung)

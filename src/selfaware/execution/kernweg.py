@@ -11,6 +11,7 @@ import collections
 from selfaware.game import kern_leitung as KL
 
 ASSASSINEN = 1
+VORSTOSS = 2
 # Eine Flucht, die nach so vielen Takten nicht abgesetzt ist, ist ueberholt: die naechste Lenker-Runde entscheidet neu.
 # Vorlaeufiger Wert, nicht gemessen (Messung M3 im Plan).
 FLUCHT_FRIST = 60
@@ -68,6 +69,27 @@ class Kernweg:
         for nr in einheiten:
             ring = self.leitung.auftrag(art, nr, a, b, vorrang, frist, self.auftraggeber)
             self.offen[ring] = art
+
+    def zickzack(self, einheiten, ziel, trupp=1):
+        """B-174: Die Einheiten laufen als ein Trupp im Zickzack nach ziel; ein neues Ziel geht ohne Bruch weiter. False, wenn
+        der Ring voll ist: Dann bleibt der Befehl beim Modul."""
+        try:
+            self._uebergeben(einheiten)
+            for nr in einheiten:
+                self.leitung.auftrag(
+                    KL.ZICKZACK, nr, int(ziel[0]), int(ziel[1]), trupp, 0, self.auftraggeber
+                )
+        except RuntimeError:
+            self.stand["ring voll"] += 1
+            return False
+        return True
+
+    def freigeben(self, einheiten):
+        """Gibt die Einheiten zurueck, bevor das Modul sie fuehrt: Ihr Zickzack endet, nie fuehren zwei Stellen dieselbe Einheit."""
+        try:
+            self._freigeben(einheiten)
+        except RuntimeError:
+            self.stand["ring voll"] += 1
 
     def senden(self, liste):
         """Legt alle uebersetzbaren Befehle in den Ring und gibt zurueck, was ans Modul gehen muss. Ist der Ring voll

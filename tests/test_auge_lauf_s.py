@@ -2771,6 +2771,142 @@ def test_ausweichen2_alles_ueber_den_befehl_eines_spielers(tmp_path, monkeypatch
     assert len([c for c in log if c.get("angriff", {}).get("lauf")]) >= 7 * 3
 
 
+def test_zickzack_g_fuehrt_zwei_gruppen_ueber_den_kern(tmp_path, monkeypatch, capsys):
+    from selfaware.execution import kernweg as KW
+
+    class Kern:
+        def __init__(self):
+            self.zick, self.gerade, self.frei = [], [], []
+
+        def zickzack(self, e, z, trupp=1):
+            self.zick.append((list(e), tuple(z), trupp))
+            return True
+
+        def senden(self, liste):
+            self.gerade += liste
+            return []
+
+        def freigeben(self, e):
+            self.frei.append(list(e))
+
+        def bericht(self):
+            return "kern"
+
+    kern = Kern()
+    monkeypatch.setattr(KW, "oeffnen", lambda *a, **k: kern)
+    monkeypatch.setattr(ls, "AUSWEICH_TAKTE", 30)
+    g = Spiel(tmp_path)
+    e = ls.SZENEN["zickzack_g"](lauf_von(g))
+    assert e["kein_platz"] == []
+    log = [c for c in g.log if isinstance(c, dict)]
+    assert {"kern": "laden"} in log
+    ziele = [c for c in log if c.get("angriff", {}).get("ziel")]
+    assert len(ziele) == 2 * ls.ZICK_GRUPPE and all(
+        c["player"] == 2 and len(c["angriff"]["einheiten"]) == 1 for c in ziele
+    )
+    assert len(kern.zick) == 1 and len(kern.zick[0][0]) == ls.ZICK_GRUPPE
+    assert len(kern.gerade) == 1 and len(kern.gerade[0]["angriff"]["einheiten"]) == ls.ZICK_GRUPPE
+    assert not [c for c in log if c.get("angriff", {}).get("lauf")]  # kein Lauf am Kern vorbei
+    assert len(kern.frei) == 2
+    aus = [
+        json.loads(z)
+        for z in capsys.readouterr().out.splitlines()
+        if z.startswith('{"schritt": "zickzack_bahnen"')
+    ]
+    assert len(aus) == 1 and [b["muster"] for b in aus[0]["bahnen"]] == ["gerade", "zickzack"]
+
+
+def test_zickzack2_g_stellt_die_breite_bahn_einzeln_und_mit_luecken_auf(
+    tmp_path, monkeypatch, capsys
+):
+    from selfaware.execution import kernweg as KW
+
+    class Kern:
+        def __init__(self):
+            self.zick = []
+
+        def zickzack(self, e, z, trupp=1):
+            self.zick.append((list(e), tuple(z), trupp))
+            return True
+
+        def senden(self, liste):
+            return []
+
+        def freigeben(self, e):
+            pass
+
+        def bericht(self):
+            return "kern"
+
+    kern = Kern()
+    monkeypatch.setattr(KW, "oeffnen", lambda *a, **k: kern)
+    monkeypatch.setattr(ls, "AUSWEICH_TAKTE", 30)
+    e = ls.SZENEN["zickzack2_g"](lauf_von(Spiel(tmp_path)))
+    assert e["kein_platz"] == []
+    einzeln = [z for z in kern.zick if len(z[0]) == 1]
+    assert len(einzeln) == ls.ZICK_GRUPPE and len({z[2] for z in einzeln}) == ls.ZICK_GRUPPE
+    ziele = sorted(z[1] for z in einzeln)
+    assert (
+        min(
+            max(abs(a[0] - b[0]), abs(a[1] - b[1]))
+            for i, a in enumerate(ziele)
+            for b in ziele[i + 1 :]
+        )
+        >= ls.ZICK_BREIT
+    )
+
+
+def test_vorstoss_g_fuehrt_die_echte_klasse_ueber_den_kern(tmp_path, monkeypatch, capsys):
+    from selfaware.execution import kernweg as KW
+
+    class Kern:
+        def __init__(self):
+            self.zick, self.frei, self.auf = [], [], []
+
+        def zickzack(self, e, z, trupp=1):
+            self.zick.append((list(e), tuple(z), trupp))
+            return True
+
+        def freigeben(self, e):
+            self.frei.append(list(e))
+
+        def aufraeumen(self, lebend):
+            self.auf.append(set(lebend))
+
+        def bericht(self):
+            return "kern"
+
+    kern = Kern()
+    monkeypatch.setattr(KW, "oeffnen", lambda *a, **k: kern)
+    monkeypatch.setattr(ls, "VORSTOSS_TAKTE", 200)
+    monkeypatch.setattr(ls, "VORSTOSS_EINZELNER", 10**6)
+    monkeypatch.setattr(ls, "VORSTOSS_UEBERZAHL", 10**6)
+    # Die Attrappe toetet nach toeteAlle auch spaeter gesetzte Einheiten; das Spiel nur die, die schon stehen
+    geraeumt = []
+    monkeypatch.setattr(ls, "starttruppen_abwarten", lambda l: geraeumt.append(1))
+    monkeypatch.setattr(ls, "abraeumen", lambda *a, **k: 0)
+    g = Spiel(tmp_path)
+    e = ls.SZENEN["vorstoss_g"](lauf_von(g))
+    assert e["kein_platz"] == []
+    assert geraeumt == [1]  # Lauf 23:28: Start-Bogenschuetzen zaehlten sonst zur Gruppe
+    assert len(kern.zick) >= 6 and {z[2] for z in kern.zick} == set(range(1, 7))
+    aus = [
+        json.loads(z)
+        for z in capsys.readouterr().out.splitlines()
+        if z.startswith('{"schritt": "vorstoss_probe"')
+    ]
+    assert len(aus) == 1 and any("rueckt vor" in x.get("ereignis", "") for x in aus[0]["verlauf"])
+
+
+def test_zickzack_g_bricht_ab_ohne_kern(tmp_path, monkeypatch):
+    from selfaware.execution import kernweg as KW
+
+    monkeypatch.setattr(KW, "oeffnen", lambda *a, **k: None)
+    monkeypatch.setattr(ls, "AUSWEICH_TAKTE", 30)
+    with pytest.raises(ls.Abbruch, match="Kern"):
+        ls.SZENEN["zickzack_g"](lauf_von(Spiel(tmp_path)))
+
+
 def test_kontrollort_auch_ohne_einheiten():
     frei = np.zeros((400, 400), dtype=bool)
     frei[100, 150] = True
@@ -2819,6 +2955,9 @@ def test_streuung_szenen_stehen_bereit():
         "streuung4_g",
         "korb_g",
         "ausweichen",
+        "zickzack_g",
+        "zickzack2_g",
+        "vorstoss_g",
     ):
         assert n in ls.SZENEN, n
     p = inspect.signature(ls.szene_sonder).parameters

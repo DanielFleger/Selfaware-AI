@@ -29,6 +29,24 @@ def _lauf(L, G=None, t=500, v=None):
     return v, b.liste, aus
 
 
+class Kern:
+    def __init__(self, geht=True):
+        self.zick, self.frei, self.auf, self.geht = [], [], [], geht
+
+    def zickzack(self, einheiten, ziel, trupp=1):
+        self.zick.append((einheiten, tuple(ziel), trupp))
+        return self.geht
+
+    def freigeben(self, einheiten):
+        self.frei.append(list(einheiten))
+
+    def aufraeumen(self, lebend):
+        self.auf.append(set(lebend))
+
+    def bericht(self):
+        return "kern"
+
+
 def test_rueckt_auf_den_naechsten_arbeiter_vor():
     L = _L(_e(1, 22, 100, 100), _e(1, 22, 100, 101), _e(2, 3, 200, 100))
     v, b, _ = _lauf(L)
@@ -125,6 +143,97 @@ def test_arbeiter_ohne_deckung_geht_vor_dem_gedeckten():
     L = _L(_e(1, 22, 100, 100), gedeckt, *fern, frei)
     _, b, aus = _lauf(L)
     assert b[0]["lauf"][1] > 100 and b[0]["lauf"][0] == 100 and "Ziel (100, 200)" in aus[0]
+
+
+def test_zickzack_fuehrt_der_kern_und_das_modul_bekommt_nichts():
+    k = Kern()
+    L = _L(_e(1, 22, 100, 100), _e(1, 22, 100, 101), _e(2, 3, 200, 100))
+    v, b, aus = _lauf(L, v=V.Vorstoss(1, HEIM, kern=k))
+    assert b == [] and k.frei == [] and k.auf == [{1, 2}]
+    x = 100 + V.SCHRITT
+    assert k.zick == [
+        ([1], (x, 97), 1),
+        ([2], (x, 102), 2),
+    ]  # quer zum Weg, LUECKE Felder auseinander
+    assert "rueckt vor" in aus[0] and "kern" in v.bericht()
+
+
+def _plaetze(anzahl, ziel=(200, 100), start=(100, 100)):
+    v = V.Vorstoss(1, HEIM)
+    v.lage = {i: _e(1, 22, start[0], start[1] + i) for i in range(anzahl)}
+    return v, v._aufstellung(list(range(anzahl)), ziel)
+
+
+def test_breite_aufstellung_haelt_ueberall_die_luecke():
+    for n in (1, 2, 3, 4, 5, 8):
+        for ziel in ((200, 100), (0, 100), (100, 300), (100, 0)):
+            _, p = _plaetze(n, ziel)
+            assert len(p) == n and sorted(e[0][0] for e in p) == list(range(n))
+            orte = [e[1] for e in p]
+            for i, a in enumerate(orte):
+                for b in orte[i + 1 :]:
+                    assert V.schach(a, b) >= V.LUECKE - 1, (n, ziel, orte)
+
+
+def test_breite_aufstellung_steht_quer_zum_weg_mit_reihen_dahinter():
+    _, p = _plaetze(8, (200, 100))
+    assert sorted({e[1][1] for e in p}) == [92, 97, 102, 107]  # vier Spalten quer zum Weg
+    assert sorted({e[1][0] for e in p}) == [195, 200]  # die zweite Reihe dahinter, nicht davor
+    _, p = _plaetze(8, (100, 0))
+    assert sorted({e[1][1] for e in p}) == [0, 5]
+
+
+def test_mehr_als_acht_teilen_sich_die_plaetze():
+    _, p = _plaetze(12)
+    assert len(p) == V.TRUPPS and sum(len(e[0]) for e in p) == 12 and all(e[0] for e in p)
+
+
+def test_plaetze_bleiben_solange_die_gruppe_gleich_ist():
+    v, p = _plaetze(5)
+    for i in v.lage:
+        v.lage[i]["y"] = 200 - v.lage[i]["y"]  # die Reihenfolge quer zum Weg dreht sich um
+    assert [e[0] for e in v._aufstellung(list(range(5)), (200, 100))] == [e[0] for e in p]
+    del v.lage[4]
+    assert sum(len(e[0]) for e in v._aufstellung(list(range(4)), (200, 100))) == 4
+
+
+def test_abziehen_laeuft_im_zickzack():
+    k = Kern()
+    fern = [_e(2, 23, 132, 100 + i) for i in range(4)]
+    L = _L(_e(1, 22, 100, 100), _e(1, 22, 100, 101), _e(1, 22, 100, 102), *fern)
+    _, b, aus = _lauf(L, v=V.Vorstoss(1, HEIM, kern=k))
+    assert b == [] and k.zick[0][1][0] < 100 and "Schussfeld" in aus[0]
+
+
+def test_schiessen_und_weichen_gibt_der_kern_vorher_her():
+    k = Kern()
+    _, b, _ = _lauf(_L(_e(1, 22, 100, 100), _e(2, 3, 110, 100)), v=V.Vorstoss(1, HEIM, kern=k))
+    assert k.zick == [] and k.frei == [[1]] and b == [{"einheiten": [1], "ziel": 2}]
+    k = Kern()
+    _, b, _ = _lauf(_L(_e(1, 22, 100, 100), _e(2, 26, 105, 100)), v=V.Vorstoss(1, HEIM, kern=k))
+    assert k.zick == [] and k.frei == [[1]] and b[0]["lauf"][0] < 100
+
+
+def test_voller_ring_laesst_das_modul_gerade_laufen():
+    k = Kern(geht=False)
+    L = _L(_e(1, 22, 100, 100), _e(2, 3, 200, 100))
+    _, b, _ = _lauf(L, v=V.Vorstoss(1, HEIM, kern=k))
+    assert len(k.zick) == 1 and k.frei == [[1]] and b[0]["lauf"][0] == 100 + V.SCHRITT
+
+
+def test_alarm_und_ende_geben_die_einheiten_beim_kern_frei():
+    k = Kern()
+    v = V.Vorstoss(1, HEIM, bis=1000, kern=k)
+    b = Befehle()
+    v.schritt(500, _L(_e(1, 22, 150, 150), _e(2, 3, 300, 150)), {}, b)
+    feinde = [_e(2, 24, 110, 100 + i) for i in range(V.ALARM_N)]
+    v.schritt(600, _L(_e(1, 22, 150, 150), *feinde), {}, b)
+    assert k.frei == [[1]] and v.mitglieder == set()
+    k = Kern()
+    v = V.Vorstoss(1, HEIM, bis=1000, kern=k)
+    v.schritt(500, _L(_e(1, 22, 100, 100), _e(2, 3, 300, 100)), {}, b)
+    v.schritt(1000, _L(_e(1, 22, 100, 100), _e(2, 3, 300, 100)), {}, b)
+    assert k.frei == [[1]]
 
 
 def test_ziel_ohne_schaden_wird_aufgegeben():
