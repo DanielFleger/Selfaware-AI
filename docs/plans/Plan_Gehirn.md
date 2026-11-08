@@ -167,6 +167,7 @@ Gefahr ist, was nach dem Ausweichen noch trifft. Gemessen am 08.11. (Schritt 4, 
 
 - Das Spiel zielt auf die Feldmitte plus Vorhalt in Blickrichtung, bei einer vom Spieler befohlenen Einheit doppelt so weit wie bei einer gehenden. Wer nach dem Schuss die Richtung wechselt, steht woanders.
 - Zickzack kostet fast keine Strecke (94 bis 97 %), weil ein schräges Feld genauso lang dauert wie ein gerades.
+- **Entscheidung (Daniel 08.11.2026): der Wert, der am besten ausweicht, also Richtungswechsel je Feld.** Schneller geht nicht: Eine Einheit liest ein neues Ziel erst in der Feldmitte. Eingebaut ist das noch nicht.
 - Der Preis ist ein Befehl je Gruppe und Feld. Bei 12 Takten je Feld reicht der eine Gruppenbefehl je Takt (S57) für höchstens 12 Gruppen.
 - Nicht gemessen: andere Schützen und Läufer, Steine und Feuer, Wechsel erst beim gesehenen Schuss.
 - Den Abschuss sehen wir am Animationsbild (R4), fliegende Pfeile liefert der Kern jetzt jeden Takt.
