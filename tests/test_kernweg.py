@@ -96,7 +96,7 @@ def test_fortgang_zaehlt_nur_endgueltige_ergebnisse():
     }
     ring.zu_alt = {n[5]}
     stand = w.fortgang()
-    assert stand == {"wirkt": 1, "verfallen": 1, "nicht mehr lesbar": 1}
+    assert stand == {"wirkt/laufen": 1, "verfallen/laufen": 1, "nicht mehr lesbar": 1}
     assert sorted(w.offen) == [n[0], n[3], n[4]]
 
 

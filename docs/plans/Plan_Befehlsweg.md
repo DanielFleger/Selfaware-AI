@@ -125,7 +125,7 @@
 
 ## 7. Stand von P5 (B-157)
 
-**Gebaut, nur ohne Spiel geprüft** (Kern-Fassung 20, Aufbau 4 des gemeinsamen Speichers):
+**Gebaut** (Kern-Fassung 20, Aufbau 4 des gemeinsamen Speichers):
 
 | Teil | Wo |
 |---|---|
@@ -143,7 +143,7 @@ Keine Befehle in der Pause (F6): Der Kern arbeitet Ring und Hände nur in einem 
 - **Nur eigene Einheiten (E8):** Der Kern prüft das nicht, er sendet als Besitzer der Einheit. Heute kommen alle Nummern aus der Mitgliederliste der Assassinen. Vor P8 (weitere Auftraggeber) muss diese Prüfung dazu. Der Verweis auf R3 in E8 war falsch: R3 regelt verborgenes Gegnerwissen, eine Regel zu fremden Einheiten steht noch nicht in `docs/FAIRNESS.md`.
 - **`FLUCHT_FRIST` = 60 Takte** ist ein vorläufiger Wert. Ihn soll M3 prüfen.
 
-**Änderung an `logik.lua` (noch nicht eingespielt und nie ausgeführt).** Sie verhindert, dass Kern und Modul im selben Takt einen Gruppenbefehl absetzen (B3). `kern.takt` läuft in `everyTick` zuerst, der Wert ist also aktuell. Grundlage ist `bridge/snapshots/logik_stand_20261021.lua`:
+**Änderung an `logik.lua` (seit 08.11.2026 im Spielordner, Stand-Kopie `bridge/snapshots/logik_stand_20261108.lua`).** Sie verhindert, dass Kern und Modul im selben Takt einen Gruppenbefehl absetzen (B3). `kern.takt` läuft in `everyTick` zuerst, der Wert ist also aktuell. Grundlage ist `bridge/snapshots/logik_stand_20261021.lua`:
 
 ```lua
 -- in kernLaden, nach dem Block mit k.auftrag:
@@ -154,8 +154,17 @@ if as then k.sendetakt = core.exposeCode(as, 0, 0) end
 if kern ~= nil and kern.sendetakt ~= nil and kern.sendetakt() == t then return end   -- S57
 ```
 
-**Voraussetzungen für den ersten Lauf mit `kernweg=ja`:**
-1. Die 32-Bit-DLL der Fassung 20 baut nur die GitHub-Prüfung, also erst nach dem Hochladen.
-2. Im Spielordner liegt eine `logik.lua` vom 18.10. Sie ist älter als die Stand-Kopie und weicht ab. Erst muss die Fassung vom 21.10. mit der Änderung oben dorthin.
-3. DLL 20 und Python mit Aufbau 4 gehören zusammen. Passen sie nicht, meldet der Lenker „Kern nicht bereit“ und die Partie läuft über das Modul weiter.
-4. Im selben Lauf lassen sich M3 und M4 messen. Das Protokoll zeigt je Runde die Zeile `KERNWEG:` mit den Zahlen für abgesetzt, wirkt, verfallen und Fehler.
+**Erste Läufe im Spiel (08.11.2026, Laptop, `kernweg=ja`).** Karte und Gegner („The Killing Plains“, 2 Nomaden) spielen für diese Messung keine Rolle.
+
+- Lauf a, Tempo 40: bei Takt 6.700 von Hand beendet.
+- Lauf b, Tempo 200: bis Takt 40.000. Der Kern hat alle 40.000 Takte gesehen und 1.462 Gruppenbefehle abgesetzt, ohne Fehler oder Verweigerung. 7 Aufträge fielen weg, weil die Einheit schon tot war.
+
+| Art (letzte Meldung von Lauf b) | wirkt | wirkt nicht |
+|---|---|---|
+| Laufen | 1.173 | 0 |
+| Angriff auf Einheit | 68 | 0 |
+| Angriff auf Gebäude | 0 | 116 |
+
+- „Wirkt nicht“ bei Gebäuden ist vermutlich ein Fehler der Prüfung: Die Einheit stand einen Takt später in der richtigen Gruppe, das Feld für das Zielgebäude war in der Stichprobe bei allen Assassinen 0. Nachgeprüft ist das nicht. Wichtig wird es erst, wenn ein Gehirn darauf baut.
+- Tempo 825 ist noch nicht gefahren.
+- Belege: `data/research/kernweg_1108b_1_i1_konsole.txt`, `data/research/kernweg_1108b_samurai_kern.log`.

@@ -15,6 +15,7 @@ ASSASSINEN = 1
 # Vorlaeufiger Wert, nicht gemessen (Messung M3 im Plan).
 FLUCHT_FRIST = 60
 UNTERWEGS = {KL.OFFEN, KL.ERG_ANGENOMMEN, KL.ERG_ABGESETZT, KL.ERG_GEPARKT}
+ART_NAMEN = {KL.LAUF: "laufen", KL.ANGRIFF_EINHEIT: "einheit", KL.ANGRIFF_GEBAEUDE: "gebaeude"}
 
 
 def uebersetze(befehl):
@@ -66,7 +67,7 @@ class Kernweg:
         self._uebergeben(einheiten)
         for nr in einheiten:
             ring = self.leitung.auftrag(art, nr, a, b, vorrang, frist, self.auftraggeber)
-            self.offen[ring] = nr
+            self.offen[ring] = art
 
     def senden(self, liste):
         """Legt alle uebersetzbaren Befehle in den Ring und gibt zurueck, was ans Modul gehen muss. Ist der Ring voll
@@ -106,8 +107,8 @@ class Kernweg:
             e = self.leitung.ergebnis(ring)
             if e is None or e in UNTERWEGS:
                 continue
-            self.stand[KL.ERGEBNIS_NAMEN.get(e, str(e))] += 1
-            del self.offen[ring]
+            name = KL.ERGEBNIS_NAMEN.get(e, str(e))
+            self.stand[f"{name}/{ART_NAMEN[self.offen.pop(ring)]}"] += 1
         return self.stand
 
     def bericht(self):
