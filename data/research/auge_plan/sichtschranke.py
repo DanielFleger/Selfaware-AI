@@ -64,7 +64,9 @@ R = [
      r"displayColor|facing|animation|Animation|dying|logicalState|draw|gfx|graphic|healthbar|banked|climb|Climb|horse|"
      r"blessed|firstNameIndex|fade|Fade|disappear|isSelect)", "erlaubt", "erlaubt", "sichtbar: Ort, Art, Leben, Bild", "ja"),
     (r"^DAT_UnitsState$", r"state|State", "erlaubt", "erlaubt", "Zustand: an der Animation sichtbar (Daniel 08.11.)", "ja"),
-    (r"^DAT_UnitsState$", r".", "zweifel", "verboten", "unklares Einheitenfeld", "zweifel"),
+    (r"^DAT_UnitsState$", r"(^|[.\]])(maxUnitCount|totalUnitsInSelection|unitCountOfSelection|nextUnitOnTheSameTile|unitOrderWhenOnSameTile|occupancyOrFlag|unusedUnitIDArrayIndex|unusedUnitIDArray|selectionRelatedFlag|ifSelectedThenPlayerID|SA|av|leftover)(\[\])*$", "technik", "technik", "Laufzeiger und Auswahl der Engine", "ja"),
+    (r"^DAT_UnitsState$", r"(^|[.\]])(uid|maxHealth|maxHealthRatingLord|seated|vanish|spriteID|imageID2|someDrawYOffset|tunnelerFrame|terrainOrClimbHeight|buildingHeight|negativeHeight|unitCanClimb|cannotClimb|working|idle|previousTilePosition|orientationRelatedPositionX|orientationRelatedPositionY)(\[\])*$", "erlaubt", "erlaubt", "sichtbar oder Spielregel je Art", "ja"),
+    (r"^DAT_UnitsState$", r".", "erlaubt", "verboten", "eigene Daten erlaubt (F8); fremdes Innenleben nicht sichtbar", "ja"),
     (r"^DAT_GameState$", r"^units\[\]", "technik", "technik", "Einheitenverweise", "ja"),
     # --- Gebäude
     (r"^DAT_BuildingsState$", r"resource|Resource|stored|Stored|flagons|appleCount", "erlaubt", "schaetzen",
@@ -79,14 +81,17 @@ R = [
      r"gate|\w*Gate|drawBridge|drawbridge|animation|\w*Animation|gfx|\w*Visual|\w*EmployeeCount|campfire|hasUnitsOntop|hovel|"
      r"containsSiege|growCounter|buildMonth|\w*Height|height)", "erlaubt", "erlaubt", "sichtbar: Art, Ort, Leben, Brand, Bau, Tor",
      "ja"),
-    (r"^DAT_BuildingsState$", r".", "zweifel", "verboten", "unklares Gebäudefeld", "zweifel"),
+    (r"^DAT_BuildingsState$", r"(^|[.\]])(maxBuildingsCount|isFirstTickInLoop|structCount)(\[\])*$", "technik", "technik", "Laufzeiger der Engine", "ja"),
+    (r"^DAT_BuildingsState$", r"(^|[.\]])(uid|uidWhenPlaced|logicalState|orientation|xPosition|yPosition|noRubble|shouldRenderRoof|sleeping|spriteID|spriteID2|spriteSheetID|visuallyActiveSpriteID|statueCommemoratingPlayerID|wheatGrowStateRelated|numberOfPopulationProvided|numberOfAnimals)(\[\])*$", "erlaubt", "erlaubt", "sichtbar oder Spielregel je Gebaeudeart", "ja"),
+    (r"^DAT_BuildingsState$", r".", "erlaubt", "verboten", "eigene Daten erlaubt (F8); fremdes Innenleben nicht sichtbar", "ja"),
     # --- Trupps
     (r"^DAT_TribesState$", r"target|Target|rally|Rally|support|Support|selectionTarget|attack|siege|behavior|Behavior|"
      r"tribeState|stance|Stance|ALG_", "erlaubt", "verboten", "R3 Trupp-Ziele und Haltung: eigene bekannt, fremde verborgen",
      "ja"),
     (r"^DAT_TribesState$", r"owner|size|unitType|tribeType|orientation|facing|Speed|speed|unitsHealth", "erlaubt", "verboten",
      "fremde Trupps: nicht wissbar, nur aus gemeinsamer Bewegung erahnen (Daniel 08.11.)", "ja"),
-    (r"^DAT_TribesState$", r".", "zweifel", "verboten", "unklares Truppfeld", "zweifel"),
+    (r"^DAT_TribesState$", r"(^|[.\]])(DAT_CurrentTribeID|highestID|fcn_mtribe|someIndex|someUpdateUpperLimit|tribeCopiedToSlot0|unitSelectionBitMasked)(\[\])*$", "technik", "technik", "Laufzeiger und Auswahl der Engine", "ja"),
+    (r"^DAT_TribesState$", r".", "erlaubt", "verboten", "eigene Trupps erlaubt; fremde Trupps nicht wissbar (F10)", "ja"),
     # --- Geschosse und Effekte
     (r"^DAT_EntityState$", r"target|Target", "verboten", "verboten",
      "F1/R3 Zielpunkt aus dem Zufall; aus der sichtbaren Flugbahn schätzen ist erlaubt", "ja"),
@@ -96,7 +101,9 @@ R = [
      r"owner|fire\w*|imageID|graphic\w*|orientation|tile|travelled\w*|vCos|vSin|logicalState|origin\w*|starting\w*|_elapsed\w*)$",
      "erlaubt", "erlaubt",
      "sichtbar: Geschoss, Feuer, Flug", "ja"),
-    (r"^DAT_EntityState$", r".", "zweifel", "zweifel", "unklares Geschossfeld", "zweifel"),
+    (r"^DAT_EntityState$", r"(^|[.\]])(uid)(\[\])*$", "erlaubt", "erlaubt", "Kennung eines sichtbaren Objekts", "ja"),
+    (r"^DAT_EntityState$", r"(^|[.\]])(unitID|unitUID|uidRef|unitID_healer)(\[\])*$", "erlaubt", "verboten", "Verweis auf die Einheit: eigene bekannt, fremde verborgen (R3)", "ja"),
+    (r"^DAT_EntityState$", r".", "technik", "technik", "Bild- und Rechenhilfen der Effekte, Moewen", "ja"),
     # --- Spielerdaten
     (r"^GameState\.playerDataArray$", r"alive|Alive|team|Team|ally|Ally|color|Color|keep|Keep|lord|Lord|name|Name|"
      r"barracks|Barracks|armory|granary|stockpile|market|church|cathedral|Guild|mercenaryPost|engineers",
@@ -107,7 +114,9 @@ R = [
      r"gameOver|playerIsAlive|deerCount|cathedral", "erlaubt", "erlaubt", "Spielregeln, Zeit, Preise", "ja"),
     (r"^GameState\.mapAndTime$", r"counterForUpdating|countUpTo|newOrganisms|Copy|copy|editScenario|migrate", "technik",
      "technik", "Laufzeiger/Kopien", "ja"),
-    (r"^GameState\.mapAndTime$", r".", "zweifel", "zweifel", "unklares Karten-/Zeitfeld", "zweifel"),
+    (r"^GameState\.mapAndTime$", r"(^|[.\]])(noCowThrowing|noDogs|playerGroupArray|playerTeams|startGoods|startingPopularity|startingTroops|strongWalls2|totalNoRushTicks|week|weekChanged|weekTicks|skirmishFogOfWar|singlePlayerHasKeepAndGranary|rawDeerCount|playerPopulationStatistics)(\[\])*$", "erlaubt", "erlaubt", "Spieleinstellung, Zeit, oeffentliche Statistik", "ja"),
+    (r"^GameState\.mapAndTime$", r"(^|[.\]])(playerBuildingInfoIndex|playerEnemenyUnitUIDShortList|playerEnemyBuildingIDs|playerEnemyBuildingUID|archers|x|y|somePlayerID)(\[\])*$", "verboten", "verboten", "R3 Angriffsplanung der KI", "ja"),
+    (r"^GameState\.mapAndTime$", r".", "technik", "technik", "Spawnpunkte, Wegweiser, Haendler, Laufzeiger", "ja"),
     # --- Kartenebenen
     (r"^DAT_TileMapState$", r"Gfx|GFX|Alpha|Luminesence|Pillar|MiscDisplay|ShowHi|Changed|Floating|Sprite|flatView|"
      r"FutureMapOrientation|forceUpdate|Display|display", "technik", "technik", "Darstellung", "ja"),
@@ -116,7 +125,10 @@ R = [
      "eigene Bauplatzprüfung (die Oberfläche zeigt rot/grün)", "ja"),
     (r"^DAT_TileMapState$", r"Layer|Moat|moat|height|Height|direction", "erlaubt", "erlaubt",
      "sichtbare Karte; Begehbarkeit aus Sichtbarem ableitbar (Daniel 08.11.: ja)", "ja"),
-    (r"^DAT_TileMapState$", r".", "zweifel", "zweifel", "unklares Kartenfeld", "zweifel"),
+    (r"^DAT_TileMapState$", r"pitchDitches\[\]|(^|[.\]])(mapOrientation|mapSize|maxPitchDitchCount|rockOrientation)$", "erlaubt", "erlaubt", "sichtbar: Pechgraeben, Kartengroesse, Drehung", "ja"),
+    (r"^DAT_TileMapState$", r"unitDeathHeatMap", "verboten", "verboten", "R3 KI-Karte", "ja"),
+    (r"^DAT_TileMapState$", r"(^|[.\]])(illegalBuild|placementWarning|wallPlacementCost|placedBuildingID)$", "erlaubt", "technik", "eigene Bauplatzpruefung", "ja"),
+    (r"^DAT_TileMapState$", r".", "technik", "technik", "Laufzeiger und Zwischenspeicher der Karte", "ja"),
     # --- Landschaft, Wild, Mauern, Karte, Lobby
     (r"^DAT_LandscapeState$", r"wind", "technik", "technik", "Wind: nur Bildfolge für Flaggen und Bäume, feste Tabelle (updateWind)", "ja"),
     (r"^DAT_LandscapeState$", r".", "erlaubt", "erlaubt", "sichtbar: Bäume, Felsen", "ja"),
@@ -126,7 +138,8 @@ R = [
      "Szenario-Auslöser: im Gefecht leer, in Szenarien verborgen (Daniel 08.11.: für Partien egal)", "ja"),
     (r"^DAT_MapPropertiesState$", r".", "erlaubt", "erlaubt", "Karteneigenschaften", "ja"),
     (r"^SEC_SkirmishLobbySetupStructure$", r".", "erlaubt", "erlaubt", "Lobby-Einstellungen sind bekannt", "ja"),
-    (r"^DAT_GameState$", r".", "zweifel", "zweifel", "unklares Spielzustandsfeld", "zweifel"),
+    (r"^DAT_GameState$", r"partialWoodCounter|timeTaxesOrRationsChange|releaseDogsFlag", "erlaubt", "schaetzen", "eigene Daten; fremde nur schaetzen (F4)", "ja"),
+    (r"^DAT_GameState$", r".", "technik", "technik", "Laufzeiger, Schnellgruppen, Aufstellplaetze der Engine", "ja"),
     (r"^(DAT_SoundSystemState|DAT_ViewportRenderState|DAT_ResourceManager|DAT_BlendingDefinedData|DAT_MenuHandlerState"
      r"|DAT_MinimapViewState|DAT_MouseState|DAT_UIDragDropDefinedData|DAT_WindowAndDirectDraw|DAT_Button\w*"
      r"|DAT_MissionDefinedData|BOOL_\w*)$", r".", "technik", "technik", "Oberfläche, Ton, Dateien", "ja"),
@@ -136,11 +149,20 @@ R = [
 R = [(re.compile(b), re.compile(f), e, fr, t, s) for b, f, e, fr, t, s in R]
 
 
+# Auffangregeln fuer benannte Felder: Platzhalternamen bleiben "unbekannt", nicht "technik"
+AUFFANG = {
+    "Bild- und Rechenhilfen der Effekte, Moewen",
+    "Spawnpunkte, Wegweiser, Haendler, Laufzeiger",
+    "Laufzeiger und Zwischenspeicher der Karte",
+    "Laufzeiger, Schnellgruppen, Aufstellplaetze der Engine",
+}
+
+
 def marke(bereich, feld, unklar):
     for rb, rf, e, fr, text, sicher in R:
         if not (rb.search(bereich) and rf.search(feld)):
             continue
-        if unklar == "ja" and not ({e, fr} <= {"technik", "verboten"}):
+        if unklar == "ja" and (not ({e, fr} <= {"technik", "verboten"}) or text in AUFFANG):
             # Ghidra-Platzhaltername: Bedeutung unbekannt, also auch nicht erlaubt. Im fairen Spiel bleibt das Feld
             # ungenutzt, bis es benannt ist; dann greift die passende Regel. Keine Frage an Daniel/Krari.
             return "unbekannt", "verboten", "Bedeutung unbekannt (Ghidra-Platzhalter)", "unbekannt"
