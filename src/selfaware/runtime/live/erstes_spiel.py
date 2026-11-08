@@ -948,6 +948,28 @@ BIER = False             # 19.10. (Daniel: Bierbeliebtheit - Hopfen, Brauerei, S
 STUFEN = []              # streitkolben=50,100: gestufte Ziele in EINEM Lauf (Daniel 11.10. 14:28)
 ZWISCHENZIEL = False     # solange ein spaeteres Ziel folgt: im Endspiel nie abreissen
 ZUSCHAU_TEMPO = 0        # ab dem ersten Lord-Angriff dieses Spieltempo (0 = bleibt; Daniel 11.10. 15:46 "ich will zuschauen")
+KERNWEG = False          # 08.11. (P5, B-157): kernweg=ja - Assassinen-Befehle ueber den Rust-Kern statt ueber logik.lua (noch nicht im Spiel erprobt)
+_kernweg = None          # geoeffneter Kernweg; False = Kern nicht bereit, bleibt beim Modul
+_kernweg_runde = 0
+
+
+def kernweg_senden(liste, assassinen, ereignis):
+    """Legt die Assassinen-Befehle dieser Runde in den Auftragsring des Kerns und gibt zurueck, was ans Modul gehen muss.
+    Ohne bereiten Kern (Fassung mit Aufbau 4) bleibt alles beim Modul - einmal gemeldet, die Partie laeuft normal weiter."""
+    global _kernweg, _kernweg_runde
+    from selfaware.execution import kernweg as KW
+    from selfaware.game.ucp.befehl import SPIEL
+    if _kernweg is None:
+        _kernweg = KW.oeffnen(SPIEL) or False
+        ereignis.append("KERNWEG: " + ("Kern bereit, Assassinen-Befehle gehen ueber den Auftragsring" if _kernweg else "Kern nicht bereit, Befehle bleiben beim Modul"))
+    if not _kernweg:
+        return liste
+    _kernweg.aufraeumen(assassinen)
+    rest = _kernweg.senden(liste)
+    _kernweg_runde += 1
+    if _kernweg_runde % 50 == 0:
+        ereignis.append(_kernweg.bericht())
+    return rest
 GEGNER_ERWARTET = ""     # KI-Ordnername (z.B. Nomade): Gegner beim Start gegen dessen character.json pruefen
 ANGRIFF_AB = 0           # ab so vielen Streitkolbenkaempfern alle auf den feindlichen Lord (0 = nie; Nomade 11.10.)
 LORD_SCHUTZ_BIS = 9600   # Daniel 11.10. 16:41: der gegnerische Lord nimmt im ersten Spieljahr keinen Schaden
@@ -3011,6 +3033,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 erg = trupp.schritt(L, G, sichere_orte=[tuple(plan["lager_mitte"]), BERGFRIED], tick=st.get("t"))
                 if isinstance(erg, tuple):          # Einzeln: Befehle der Runde gesammelt in EINEM Aufruf
                     erg, liste = erg
+                    if liste and KERNWEG:           # 08.11. (P5, B-157): kernweg=ja - Einheitenbefehle ueber den Kern
+                        liste = kernweg_senden(liste, [n for n, e in L.items() if e["besitzer"] == SP and e["typ"] == 73], ereignis)
                     if liste:
                         sende({"befehle": [dict(b, player=1, id=neue_id()) for b in liste]}, 1.0,
                               bis="ANGRIFF" if any("angriff" in b for b in liste) else "HALTEN")
@@ -3598,8 +3622,9 @@ def main():
     global HAUSHALT_RAND, WACHSTUM_BODEN, GUTE_DINGE, RATIONEN, REGEL50, NAHRUNG_AUSBAU, STOPP_TOTE, PRODUKTION, PRODUKTION_FENSTER, BIER
     global STUFEN, ZWISCHENZIEL, STUFE2_BELIEBT, ANGRIFF_AB, LIGA_GEFECHT, GEGNER_ERWARTET
     GEGNER_ERWARTET = arg.get("gegner_erwartet", "")
-    global ZUSCHAU_TEMPO
+    global ZUSCHAU_TEMPO, KERNWEG
     ZUSCHAU_TEMPO = int(arg.get("zuschau_tempo", 0))
+    KERNWEG = arg.get("kernweg", "nein") == "ja"
     global NOTWERBUNG, KORNRING, GRUBEN
     KORNRING = arg.get("kornring", "ja") == "ja"
     GRUBEN = arg.get("gruben", "ja") == "ja"

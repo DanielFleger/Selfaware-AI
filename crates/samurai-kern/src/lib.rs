@@ -26,11 +26,11 @@ use std::sync::Mutex;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::time::Instant;
 
-use haende::{Annahme, Auftrag, Buch};
+use haende::{Anspruch, Auftrag, Blick, Buch};
 use waechter::{Ereignis, Waechter};
 use welt::Welt;
 
-pub const VERSION: u32 = 19;
+pub const VERSION: u32 = 20;
 
 /// DAT_UnitsState 0x01387F38: +0 maxUnitCount; Einheiten-Array ab +0x614 = 0x0138854C, je Einheit 1.168 Byte, 2.500 Plaetze
 const UNITS_STATE: usize = 0x0138_7F38;
@@ -91,6 +91,8 @@ struct Zustand {
     feuer: Option<feuer::Wache>,
     letzte_zeile: i32,
     letzter_takt: Option<Instant>,
+    /// P5: Takt des letzten Gruppenbefehls vom Kern (logik.lua darf in diesem Takt keinen eigenen absetzen)
+    sendetakt: i32,
     m: Messung,
 }
 
@@ -104,6 +106,7 @@ static ZUSTAND: Mutex<Zustand> = Mutex::new(Zustand {
     feuer: None,
     letzte_zeile: -1,
     letzter_takt: None,
+    sendetakt: -1,
     m: Messung::neu(),
 });
 
@@ -163,33 +166,66 @@ fn geschuetzt(was: &str, f: impl FnOnce() -> i32) -> i32 {
     }
 }
 
+/// P5: Fortgang von Auftraegen in die Ergebnisfelder des Rings schreiben.
+fn melden(leitung: &Option<Option<leitung::Leitung>>, liste: &[(u32, i32)]) {
+    if let Some(Some(l)) = leitung {
+        for &(ring, ergebnis) in liste {
+            l.ergebnis_melden(ring, ergebnis);
+        }
+    }
+}
+
 /// S2: ein Gruppenbefehl je neuem Takt - erst wenn der letzte in seiner Gruppe steht (oder WARTEN_TAKTE vorbei sind).
+/// P5: Welcher Auftrag drankommt, entscheidet das Buch nach Vorrang und Frist; der Fortgang geht in den Auftragsring.
 fn haende_takt(z: &mut Zustand, tick: i32) {
     let buch = z.buch.get_or_insert_with(Buch::default);
+    let welt = &z.welt;
+    let mut meldung = buch.wirkung_pruefen(tick, |nr| {
+        welt.einheiten.iter().find(|e| e.nr == nr).map(|e| Blick {
+            gruppe: e.gruppe as i32,
+            zieleinheit: e.zieleinheit as i32,
+            zielgebaeude: e.zielgebaeude as i32,
+        })
+    });
+    meldung.extend(buch.verfallen.drain(..).map(|r| (r, haende::ERG_VERFALLEN)));
+    melden(&z.leitung, &meldung);
     if let Some((g, e, t)) = &buch.warten {
         if !haende::in_gruppe(*g, e) && tick - *t < haende::WARTEN_TAKTE {
             return;
         }
         buch.warten = None;
     }
-    let Some((a, einheiten)) = buch.naechster() else { return };
+    let Some(abgabe) = buch.naechster_mit(tick) else { return };
+    let (a, einheiten) = (abgabe.auftrag, abgabe.einheiten.clone());
+    let alle_mit = |ergebnis: i32| abgabe.ringe.iter().map(|&(_, r)| (r, ergebnis)).collect::<Vec<_>>();
     if !haende::absender_aktiv() {
         schreibe(&format!("haende tick {}: VERWEIGERT - Absender-Umbau von logik.lua fehlt, Befehle gingen an den Menschen \
                            ({} Einheiten, Auftrag {:?})", tick, einheiten.len(), a));
+        melden(&z.leitung, &alle_mit(haende::ERG_FEHLER));
         return;
     }
     let platz = einheiten.iter().find_map(|nr| z.welt.einheiten.iter().find(|e| e.nr == *nr).map(|e| e.besitzer as i32));
     let Some(platz) = platz else {
         schreibe(&format!("haende tick {}: keine der {} Einheiten lebt - Auftrag {:?} verworfen", tick, einheiten.len(), a));
+        melden(&z.leitung, &alle_mit(haende::ERG_EINHEIT_WEG));
         return;
     };
     match haende::absetzen(a, &einheiten, platz) {
         Ok((gruppe, gewaehlt)) => {
-            schreibe(&format!("haende tick {}: Gruppe {}, {} von {} Einheiten von Spieler {}, Auftrag {:?} - abgesetzt",
-                              tick, gruppe, gewaehlt.len(), einheiten.len(), platz, a));
+            schreibe(&format!("haende tick {}: Gruppe {}, {} von {} Einheiten von Spieler {}, Auftrag {:?}, Vorrang {} - abgesetzt",
+                              tick, gruppe, gewaehlt.len(), einheiten.len(), platz, a, abgabe.vorrang));
             buch.abgesetzt(a, &gewaehlt, gruppe, tick);
+            buch.wirkung_beobachten(&abgabe, &gewaehlt, gruppe, tick);
+            let stand: Vec<_> = abgabe.ringe.iter()
+                .map(|&(nr, r)| (r, if gewaehlt.contains(&nr) { haende::ERG_ABGESETZT } else { haende::ERG_EINHEIT_WEG }))
+                .collect();
+            melden(&z.leitung, &stand);
+            z.sendetakt = tick;
         }
-        Err(e) => schreibe(&format!("haende tick {}: Auftrag {:?} fuer {} Einheiten - FEHLER {}", tick, a, einheiten.len(), e)),
+        Err(e) => {
+            schreibe(&format!("haende tick {}: Auftrag {:?} fuer {} Einheiten - FEHLER {}", tick, a, einheiten.len(), e));
+            melden(&z.leitung, &alle_mit(haende::ERG_FEHLER));
+        }
     }
 }
 
@@ -224,7 +260,9 @@ fn grabenreflex(z: &mut Zustand, tick: i32, neu: &[(i32, i32)]) {
         }
     }
     for (nr, p) in neue {
-        buch.auftrag(nr, Auftrag { art: haende::LAUF, a: p.0, b: p.1 }, true);
+        // eilig, aber keine Leihe: das alte Ziel liegt am Graben, dorthin soll die Einheit nicht zurueck
+        let eilig = Anspruch { vorrang: haende::VORRANG_FLUCHT, ..Anspruch::default() };
+        buch.auftrag_mit(nr, Auftrag { art: haende::LAUF, a: p.0, b: p.1 }, true, eilig, tick);
     }
 }
 
@@ -288,7 +326,8 @@ fn feuer_takt(z: &mut Zustand, tick: i32) {
     }
 }
 
-/// S4b: Auftraege aus dem Ring - Art 1 uebernehmen, 2 freigeben, 17/4/9 Auftrag (wie samurai_auftrag). Ergebnis je Eintrag.
+/// S4b: Auftraege aus dem Ring - Art 1 uebernehmen (a = Auftraggeber), 2 freigeben, 17/4/9 Auftrag mit Vorrang und Frist.
+/// Ergebnis je Eintrag; P5: spaeter schreibt der Kern dort auch abgesetzt, wirkt, verfallen hinein.
 fn ring_abarbeiten(z: &mut Zustand, tick: i32) {
     let Some(Some(l)) = &z.leitung else { return };
     let liste = l.auftraege();
@@ -297,11 +336,10 @@ fn ring_abarbeiten(z: &mut Zustand, tick: i32) {
     }
     let buch = z.buch.get_or_insert_with(Buch::default);
     let mut zahl = [0usize; 4];
-    for &(i, art, nr, a, b) in &liste {
+    for &(i, art, nr, a, b, vorrang, frist, auftraggeber) in &liste {
         let ergebnis = match art {
             1 => {
-                buch.uebernehmen(nr);
-                1
+                if buch.uebernehmen_fuer(nr, a) { 1 } else { haende::ERG_FREMD }
             }
             2 => {
                 buch.freigeben(nr);
@@ -309,15 +347,11 @@ fn ring_abarbeiten(z: &mut Zustand, tick: i32) {
             }
             _ => {
                 let untaetig = z.welt.einheiten.iter().find(|e| e.nr == nr).is_none_or(|e| matches!(e.zustand, 0 | 1));
-                match buch.auftrag(nr, Auftrag { art, a, b }, untaetig) {
-                    Annahme::Angenommen => 1,
-                    Annahme::Doppelt => 0,
-                    Annahme::NichtUebernommen => -4,
-                    Annahme::UnbekannteArt => -5,
-                }
+                let anspruch = Anspruch { vorrang, frist, auftraggeber, ring: Some(i) };
+                buch.auftrag_mit(nr, Auftrag { art, a, b }, untaetig, anspruch, tick).ergebnis()
             }
         };
-        zahl[match ergebnis { 1 => 0, 0 => 1, -4 => 2, _ => 3 }] += 1;
+        zahl[match ergebnis { 1 | 4 => 0, 0 => 1, -4 => 2, _ => 3 }] += 1;
         l.quittieren(i, ergebnis);
     }
     schreibe(&format!("ring tick {}: {} Eintraege - angenommen {}, doppelt {}, nicht uebergeben {}, abgelehnt {}", tick,
@@ -488,13 +522,15 @@ pub extern "C" fn samurai_auftrag(art: i32, nr: i32, a: i32, b: i32) -> i32 {
     geschuetzt("samurai_auftrag", || {
         let mut z = zustand();
         let untaetig = z.welt.einheiten.iter().find(|e| e.nr == nr).is_none_or(|e| matches!(e.zustand, 0 | 1));
-        match z.buch.get_or_insert_with(Buch::default).auftrag(nr, Auftrag { art, a, b }, untaetig) {
-            Annahme::Angenommen => 1,
-            Annahme::Doppelt => 0,
-            Annahme::NichtUebernommen => -4,
-            Annahme::UnbekannteArt => -5,
-        }
+        z.buch.get_or_insert_with(Buch::default).auftrag(nr, Auftrag { art, a, b }, untaetig).ergebnis()
     })
+}
+
+/// P5: Takt des letzten Gruppenbefehls vom Kern (-1 = noch keiner). logik.lua fragt das, bevor es selbst einen absetzt -
+/// zwei Gruppenbefehle im selben Takt verschmelzen zu einer Gruppe (Wissensregister S57).
+#[unsafe(no_mangle)]
+pub extern "C" fn samurai_sendetakt() -> i32 {
+    geschuetzt("samurai_sendetakt", || zustand().sendetakt)
 }
 
 /// Gegenprobe zum Fehlerfang: mit TESTFEHLER loest der Kern absichtlich einen Fehler aus; danach liefert jeder Aufruf -2.

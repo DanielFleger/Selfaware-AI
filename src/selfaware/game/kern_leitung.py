@@ -3,8 +3,8 @@
 Der Kern (crates/samurai-kern/src/leitung.rs) schreibt in jedem neuen Spieltakt Kopf, Einheiten und Gebaeude in eine
 benannte Speicherabbildung und legt ihren Namen in ucp/villagestudio/kern_leitung.txt ab. Ein Folgezaehler (ungerade =
 wird gerade geschrieben) sorgt dafuer, dass nur ein vollstaendiges Bild genommen wird.
-S4b (Aufbau 2): Python legt Auftraege in einen Ring im selben Speicher; der Kern arbeitet sie im naechsten Takt ab und
-schreibt je Eintrag ein Ergebnis (1 angenommen, 0 doppelt, -4 nicht uebergeben, -5 unbekannte Art).
+S4b: Python legt Auftraege in einen Ring im selben Speicher; der Kern arbeitet sie im naechsten Takt ab und schreibt je
+Eintrag ein Ergebnis, spaeter auch den Fortgang (ERGEBNIS_NAMEN). P5 (Aufbau 4): Eintraege tragen Vorrang, Frist und Auftraggeber.
 """
 
 import mmap
@@ -13,7 +13,7 @@ import struct
 from dataclasses import dataclass
 
 KENNUNG = int.from_bytes(b"SAMK", "little")
-AUFBAU = 3
+AUFBAU = 4
 KOPF, EINHEIT, GEBAEUDE = 64, 32, 16
 MAX_EINHEITEN, MAX_GEBAEUDE = 2500, 2000
 VORRAT_START = KOPF + MAX_EINHEITEN * EINHEIT + MAX_GEBAEUDE * GEBAEUDE
@@ -42,10 +42,28 @@ WARE_NAMEN = {
     23: "leder",
     24: "ruestung",
 }
-RING_KOPF, RING_N, RING_EINTRAG = 16, 256, 20
+RING_KOPF, RING_N, RING_EINTRAG = 16, 256, 32
 GROESSE = RING_START + RING_KOPF + RING_N * RING_EINTRAG
 OFFEN = -(2**31)
 UEBERNEHMEN, FREIGEBEN, LAUF, ANGRIFF_EINHEIT, ANGRIFF_GEBAEUDE = 1, 2, 17, 4, 9
+VORRANG_REFLEX, VORRANG_FLUCHT, VORRANG_ANGRIFF, VORRANG_LAUFEN, VORRANG_ROUTINE = 1, 2, 3, 4, 5
+ERG_DOPPELT, ERG_ANGENOMMEN, ERG_ABGESETZT, ERG_WIRKT, ERG_GEPARKT = 0, 1, 2, 3, 4
+ERG_NICHT_UEBERNOMMEN, ERG_UNBEKANNT, ERG_FREMD = -4, -5, -6
+ERG_VERFALLEN, ERG_FEHLER, ERG_EINHEIT_WEG, ERG_WIRKT_NICHT = -8, -9, -10, -11
+ERGEBNIS_NAMEN = {
+    ERG_DOPPELT: "doppelt",
+    ERG_ANGENOMMEN: "angenommen",
+    ERG_ABGESETZT: "abgesetzt",
+    ERG_WIRKT: "wirkt",
+    ERG_GEPARKT: "geparkt",
+    ERG_NICHT_UEBERNOMMEN: "nicht uebergeben",
+    ERG_UNBEKANNT: "unbekannte Art",
+    ERG_FREMD: "fremde Einheit",
+    ERG_VERFALLEN: "verfallen",
+    ERG_FEHLER: "Fehler beim Absetzen",
+    ERG_EINHEIT_WEG: "Einheit weg",
+    ERG_WIRKT_NICHT: "wirkt nicht",
+}
 KOPF_FORMAT = "<IIIiIiIIIIII"
 EINHEIT_FORMAT = "<ii12h"
 GEBAEUDE_FORMAT = "<i6h"
@@ -95,7 +113,7 @@ class Weltbild:
 
 
 def entpacken(puffer):
-    """Bytes im Aufbau 3 -> Weltbild (vorrat: {spieler: {ware: menge}} fuer Spieler 1-8)."""
+    """Bytes im Aufbau 4 -> Weltbild (vorrat: {spieler: {ware: menge}} fuer Spieler 1-8)."""
     kopf = struct.unpack_from(KOPF_FORMAT, puffer, 0)
     kennung, aufbau, _folge, tick, epoche, ich, ne, ng, geplant, ausgehoben, kern, beschuss = kopf
     if kennung != KENNUNG or aufbau != AUFBAU:
@@ -148,17 +166,29 @@ class Leitung:
                 return entpacken(kopie)
         return None
 
-    def auftrag(self, art, nr, a=0, b=0):
+    def takt(self):
+        """Spieltakt des Kerns; gegen ihn laufen die Fristen im Auftragsring."""
+        return struct.unpack_from("<i", self.speicher, 12)[0]
+
+    def auftrag(self, art, nr, a=0, b=0, vorrang=0, frist=0, auftraggeber=0):
         """Legt einen Auftrag in den Ring (Art UEBERNEHMEN/FREIGEBEN/LAUF/ANGRIFF_*); gibt seine Ring-Nummer zurueck.
-        Ein Schreiber je Spiel: nur ein Python-Prozess darf Auftraege legen."""
+        vorrang 0 = nach Art, frist 0 = ohne Frist (sonst Spieltakt), auftraggeber 0 = keiner benannt; bei UEBERNEHMEN steht
+        der Auftraggeber in a. Ein Schreiber je Spiel: nur ein Python-Prozess darf Auftraege legen."""
         schreib = struct.unpack_from("<I", self.speicher, RING_START)[0]
         lese = struct.unpack_from("<I", self.speicher, RING_START + 4)[0]
         if (schreib - lese) % 2**32 >= RING_N:
             raise RuntimeError("Auftragsring voll - der Kern arbeitet nicht (Spiel angehalten?)")
         o = RING_START + RING_KOPF + (schreib % RING_N) * RING_EINTRAG
-        struct.pack_into("<iiiii", self.speicher, o, art, nr, a, b, OFFEN)
+        struct.pack_into(
+            "<8i", self.speicher, o, art, nr, a, b, OFFEN, vorrang, frist, auftraggeber
+        )
         struct.pack_into("<I", self.speicher, RING_START, (schreib + 1) % 2**32)
         return schreib
+
+    def lesbar(self, nummer):
+        """Steht auf dem Platz dieses Auftrags noch er selbst? Der Ring ueberschreibt alte Eintraege."""
+        schreib = struct.unpack_from("<I", self.speicher, RING_START)[0]
+        return (schreib - nummer) % 2**32 <= RING_N
 
     def ergebnis(self, nummer):
         """Ergebnis eines Auftrags oder None, solange der Kern ihn noch nicht abgearbeitet hat."""

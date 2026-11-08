@@ -1,6 +1,6 @@
 # Plan: Befehlsweg (P4, B-156)
 
-**Stand:** 08.11.2026, nur auf Papier. Geändert ist nichts.
+**Stand:** 08.11.2026. Die Abschnitte 1 bis 6 sind der Plan aus P4. Was davon gebaut ist und was noch fehlt, steht in Abschnitt 7.
 
 **Grundlage:**
 - Wissensregister S8, S19, S39, S52, S57,
@@ -122,3 +122,40 @@
 | M3 | Wie viele Takte vergehen, bis eine neue Gruppe steht (Verteilung)? | Durchsatz, Reflex-Fenster (E5) |
 | M4 | Verhält sich der Weg des Kerns (`haende.rs`) wie der des Moduls? | S57 ist nur über das Modul gemessen |
 | M5 | Stimmt S19 (Befehle zweier Spieler im selben Takt) im Spiel? | E9 |
+
+## 7. Stand von P5 (B-157)
+
+**Gebaut, nur ohne Spiel geprüft** (Kern-Fassung 20, Aufbau 4 des gemeinsamen Speichers):
+
+| Teil | Wo |
+|---|---|
+| Vorrang mit Fristen (E3), Besitzliste mit Leihe (E2), Bündeln (E4), Warten auf die Gruppe (E5), Rückmeldung (E7) | `crates/samurai-kern/src/haende.rs` |
+| Auftragsring mit Vorrang, Frist und Auftraggeber; Fortgang im Ergebnisfeld; Abfrage `samurai_sendetakt` | `crates/samurai-kern/src/leitung.rs`, `lib.rs`, `src/selfaware/game/kern_leitung.py` |
+| Assassinen-Befehle in Ring-Aufträge übersetzen, Schalter `kernweg=ja` (Standard: aus) | `src/selfaware/execution/kernweg.py`, `src/selfaware/runtime/live/erstes_spiel.py` |
+
+Keine Befehle in der Pause (F6): Der Kern arbeitet Ring und Hände nur in einem neuen Spieltakt ab, in der Pause also nicht.
+
+**Noch nicht gebaut:**
+- **E1 nur für die Assassinen:** „halten“ kann der Kern nicht und bleibt beim Modul. Der Kern gibt die betroffene Einheit vorher frei. Alle anderen Auftraggeber senden weiter über das Modul.
+- **E6** (vorhandene Gruppen wiederverwenden) wartet auf M1.
+- **E9** (Takte reihum an mehrere Spieler) ist nicht gebaut.
+- **Reflex-Code:** liegt in keinem Zweig. In den Kern eingebaut ist nur die Vorrangklasse dafür.
+- **Nur eigene Einheiten (E8):** Der Kern prüft das nicht, er sendet als Besitzer der Einheit. Heute kommen alle Nummern aus der Mitgliederliste der Assassinen. Vor P8 (weitere Auftraggeber) muss diese Prüfung dazu. Der Verweis auf R3 in E8 war falsch: R3 regelt verborgenes Gegnerwissen, eine Regel zu fremden Einheiten steht noch nicht in `docs/FAIRNESS.md`.
+- **`FLUCHT_FRIST` = 60 Takte** ist ein vorläufiger Wert. Ihn soll M3 prüfen.
+
+**Änderung an `logik.lua` (noch nicht eingespielt und nie ausgeführt).** Sie verhindert, dass Kern und Modul im selben Takt einen Gruppenbefehl absetzen (B3). `kern.takt` läuft in `everyTick` zuerst, der Wert ist also aktuell. Grundlage ist `bridge/snapshots/logik_stand_20261021.lua`:
+
+```lua
+-- in kernLaden, nach dem Block mit k.auftrag:
+local as = adresse("samurai_sendetakt")   -- ab Kern 20 (P5, B-157)
+if as then k.sendetakt = core.exposeCode(as, 0, 0) end
+
+-- in angriffSchlangeTick, direkt nach "local t = tick()":
+if kern ~= nil and kern.sendetakt ~= nil and kern.sendetakt() == t then return end   -- S57
+```
+
+**Voraussetzungen für den ersten Lauf mit `kernweg=ja`:**
+1. Die 32-Bit-DLL der Fassung 20 baut nur die GitHub-Prüfung, also erst nach dem Hochladen.
+2. Im Spielordner liegt eine `logik.lua` vom 18.10. Sie ist älter als die Stand-Kopie und weicht ab. Erst muss die Fassung vom 21.10. mit der Änderung oben dorthin.
+3. DLL 20 und Python mit Aufbau 4 gehören zusammen. Passen sie nicht, meldet der Lenker „Kern nicht bereit“ und die Partie läuft über das Modul weiter.
+4. Im selben Lauf lassen sich M3 und M4 messen. Das Protokoll zeigt je Runde die Zeile `KERNWEG:` mit den Zahlen für abgesetzt, wirkt, verfallen und Fehler.

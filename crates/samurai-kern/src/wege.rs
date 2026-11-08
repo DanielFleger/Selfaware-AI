@@ -13,7 +13,11 @@ const PFS: usize = 0x012B_B8C8;
 /// Startpunkt der Spalte "erreichbar" im Lagebild von logik.lua (lagebildVon wird nie gesetzt -> immer dieser Punkt)
 pub const VON_LAGEBILD: (i32, i32) = (165, 111);
 
+// thiscall gibt es nur auf 32 Bit (das Spiel); auf dem Testrechner wird nie gerufen, nur uebersetzt (B-157)
+#[cfg(target_arch = "x86")]
 type KannHin = unsafe extern "thiscall" fn(this: usize, spieler: i32, von: i32, nach: i32, null: i32) -> i32;
+#[cfg(not(target_arch = "x86"))]
+type KannHin = unsafe extern "C" fn(this: usize, spieler: i32, von: i32, nach: i32, null: i32) -> i32;
 
 /// Feldnummer genau wie logik.lua: addXgetTile(y) + x, ohne Pruefung der Zeilenbreite (fuer den 1:1-Vergleich).
 pub fn feld_lua(x: i32, y: i32) -> i64 {
