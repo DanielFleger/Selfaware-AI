@@ -234,6 +234,7 @@ def test_modul_eintragen_mit_vollen_modulen_bricht_ab_statt_zu_raten(tmp_path):
 
 
 def test_modul_eintragen_nie_in_instanz_5():
+    pytest.importorskip("yaml")  # PyYAML kommt nur mit dem Extra "legacy" (B-167)
     with pytest.raises(lf.Fehler):
         lf.modul_eintragen(lf.ordner(5) + r"\ucp-config.yml")
 

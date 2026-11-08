@@ -1,10 +1,19 @@
 from __future__ import annotations
 
+import importlib.util
+import sys
 from dataclasses import replace
 
 import pytest
 
 from selfaware.domain import Command, Entity, EntityRef, Intent, Resources, Session, Snapshot
+
+# B-167: Diese Testdateien brauchen, was es in der Pruefung auf GitHub nicht gibt - ohne es werden sie nicht gesammelt.
+collect_ignore = []
+if importlib.util.find_spec("numpy") is None:  # numpy kommt nur mit dem Extra "legacy"
+    collect_ignore += ["test_auge_lauf_s.py", "test_streuung.py"]
+if sys.platform != "win32":  # spielcode_rufen laedt Windows-Bibliotheken (ctypes.WinDLL)
+    collect_ignore += ["test_spielcode_rufen.py"]
 
 
 @pytest.fixture

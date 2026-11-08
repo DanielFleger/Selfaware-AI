@@ -1,11 +1,17 @@
 """P3 (B-155): Spielwerte aus der Messung und die umgestellten Module (offline, ohne Spiel)."""
 
 import math
+import os
+
+import pytest
 
 import selfaware.services.gefecht as gefecht
 import selfaware.services.schussfeld as schussfeld
-import selfaware.services.sicht as sicht
 import selfaware.services.spielwerte as sw
+from selfaware import workspace
+
+# sicht.py liest beim Laden VillageStudio/lib/gebaeude.json - das Nachbar-Repo fehlt in der Pruefung auf GitHub
+GEBAEUDE_DA = os.path.isfile(os.path.join(workspace.VILLAGE_STUDIO, "lib", "gebaeude.json"))
 
 
 def test_erfassen_wie_gemessen():
@@ -54,7 +60,10 @@ def test_ersatz_ohne_messdatei():
     assert "Ersatz" in w["quelle"]
 
 
+@pytest.mark.skipif(not GEBAEUDE_DA, reason="VillageStudio fehlt (sicht.py braucht gebaeude.json)")
 def test_module_nutzen_dieselbe_quelle():
+    import selfaware.services.sicht as sicht
+
     assert sicht.REICHWEITE == gefecht.FERN_REICH == sw.ERFASSEN_FERN
     assert schussfeld.REICHWEITE == {t: sw.gefahr(t) for t in sw.ERFASSEN_FERN}
     assert gefecht.TEMPO_ART[73] == sw.takte_je_feld(73, "trupp")
