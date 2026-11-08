@@ -31,6 +31,23 @@ Gegen einen voll ausgebauten Gegner, der ständig raidet, fehlen Aufzeichnungen.
 
 Skalierung (Burg, Wirtschaft, Verteidigungsanlagen) ist Kraris Gebiet, siehe Abschnitt 7. Das Gehirn liefert ihr die Mittel.
 
+### Ausgangswert: Wirkung je Einheit (Schritt 1)
+
+Gemessen mit `tools/analysis/wirkung_je_einheit.py`, Ergebnis in `data/research/wirkung_je_einheit.json`. Je 1.000 Takte einer eingesetzten Einheit:
+
+| | Partien | Soldaten getötet je eigenem toten Soldaten | Soldaten und Arbeiter getötet | Gebäude zerstört | eigene Soldaten tot |
+|---|---|---|---|---|---|
+| SamurAI gegen KI | 60 | 0,80 | 0,068 | 0,088 | 0,037 |
+| KI gegen SamurAI | 60 | 0,88 | 0,026 | 0,005 | 0,026 |
+| Daniel gegen SamurAI | 1 | 4,2 | 0,175 | 0,049 | 0,027 |
+| SamurAI gegen Daniel | 1 | 0,16 | 0,042 | 0,034 | 0,244 |
+
+- Wir sind 2,6-mal tödlicher als die KI und zerstören 18-mal so viele Gebäude je Einheit, verlieren aber mehr Soldaten als wir töten.
+- Die Assassinen stellen 43 % der eingesetzten Zeit, 86 % der Wirkung und 73 % unserer toten Soldaten.
+- Speerträger und Bogenschützen stellen 28 % der Zeit und 2 % der Wirkung. Ob sie durch ihre Anwesenheit schützen, misst das nicht.
+
+Grenzen: Die Gebäude sind nur nach Nähe zugeordnet. Getötete Arbeiter sind eine Untergrenze: In der Partie gegen Daniel sind 33 belegt, weitere 280 verschwanden unverletzt, durch Massenbeschuss, verlorene Hütten oder Abwanderung. Gegen Daniel gibt es nur eine Partie mit einem alten Stand.
+
 ## 3. Unsere Stärke
 
 | | KI im Spiel | Guter Mensch | SamurAI |
@@ -187,7 +204,7 @@ Jeder Schritt hat eine Probe, die scheitern kann.
 
 | Schritt | Was | Probe |
 |---|---|---|
-| 1 | Wirkung je Einheit aus den Aufzeichnungen messen, für uns und die KI-Gegner | Ausgangswert steht, an zwei Partien von Hand nachgerechnet |
+| 1 | Wirkung je Einheit aus den Aufzeichnungen messen, für uns und die KI-Gegner (erledigt, siehe Abschnitt 2) | Ausgangswert steht, an zwei Partien von Hand nachgerechnet: tote eigene Assassinen laut Werkzeug gegen Todesakten 21 zu 21 in beiden Partien |
 | 2 | Partien gegen voll ausgebaute, ständig raidende Gegner | Der Einbruch lässt sich wiederholen und ist in Zahlen beschrieben |
 | 3 | Laufende Rollen und kleinster Einsatz, zuerst Sklaven und Assassinen, hinter einem Schalter | Gleiche Partien mit und ohne: mehr Wirkung je Einheit, weniger Einheiten gebunden |
 | 4 | Messlauf Ausweichen im Editor: gerade, schräg, Zickzack je Abstand | Zickzack muss Treffer spürbar senken, sonst fliegt es raus |
