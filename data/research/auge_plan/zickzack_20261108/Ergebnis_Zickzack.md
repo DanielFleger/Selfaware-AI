@@ -74,6 +74,31 @@ Bis der Lauf zählte, brauchte es drei Versuche, und jeder Mangel war einer mein
 2. Lauf 00:01: 4 Trupps standen je 41 Takte. Zwei Sklaven wollten im selben Takt auf dasselbe Feld, der Kern schickte das als einen Gruppenbefehl, und das Spiel gab dem zweiten einen anderen Platz. Kern 23 vergibt einen Wegpunkt je Takt nur einmal.
 3. Lauf 00:07: gewertet, kein Trupp festgelaufen.
 
+## Ganze Partie
+
+Zwei vollständige Partien auf Instanz 2 mit dem echten Lenker: The Killing Plains, 2 KI-Gegner (KI-Nummer 7), Tempo 200, bis Takt 40.000, Einstellungen wie der Vorstoß-Lauf vom Laptop (`kernweg=ja vorstoss=ja`). Geändert ist nur `zickzack=ja` gegen `zickzack=nein`.
+
+| | Zickzack an | Zickzack aus |
+|---|---|---|
+| Ende | Takt 40.182 | Takt 40.243 |
+| vom Brandtrupp angezündete Gebäude | 19 | 13 |
+| vom Angriff zerstörte Gebäude | 45 | 37 |
+| eigene Verluste beim Angriff | 31 | 24 |
+| von der Reiterjagd getötete Arbeiter | 10 | 21 |
+| Sklaven (Typ 71): gesehen, tot | 47, 45 | 44, 42 |
+| Schützen (Typ 22, 23, 70): gesehen, tot | 14, 5 | 14, 5 |
+
+Das ist **eine Partie je Einstellung**, nur eine erste Richtung. Der Verlauf läuft früh auseinander, darum lässt sich daraus nicht ablesen, ob der Zickzack die Partie verbessert. Belegt ist, dass alles zusammen läuft:
+
+- Das Spiel hielt Tempo 200, ein Takt dauerte im Mittel 5,0 Millisekunden.
+- Keine Fehlermeldung im Kern, kein Programmabbruch im Lenker.
+- Der Kern setzte 8.826 Wegpunkte. 95 Mal kam ein Trupp am Ziel an.
+- 163 Mal lief ein Trupp fest (1,8 % der Wegpunkte, je bis zu 40 Takte Stillstand). Die Ursache in der Partie ist nicht untersucht.
+
+Offen und von Daniel angesprochen (09.11.): Die Sklaven laufen den ganzen Weg im Zickzack, auch wo niemand schießt. Das war meine Vereinfachung. Es bringt dort nichts und kostet Befehle.
+
+Umgebung: Instanz 2 mit dem Liga-Modul (`Mod-KI-Team-Liga 2.0.2`), `logik.lua` = `bridge/snapshots/logik_stand_20261108.lua` (sha256 533d78d156642eec), Kern 23. Die KI-Lords haben dort volle Stärke (150.000 Leben), auf dem Laptop waren sie als Nomade auf 20 % geschwächt. Der erste Startversuch brach deshalb an der Gegnerprüfung ab, danach lief die Partie ohne `gegner_erwartet`. Mit dem Laptop sind die Zahlen also nicht vergleichbar.
+
 ## Was gebaut ist
 
 - **Kern** `crates/samurai-kern/src/zickzack.rs`, Version 22: Der Kern führt jeden Trupp Feld für Feld. Er schickt den nächsten Wegpunkt, sobald die Einheit, die ihn als Platz hat, sein Feld betritt und niemand mehr als ein Feld von seinem Platz entfernt ist. Nach 40 Takten ohne Fortschritt setzt der Trupp von seiner Mitte neu an.
@@ -103,11 +128,11 @@ Zwei Läufe der Probe zählen nicht und sind benannt: Der erste fand keinen Plat
 - Nahkämpfer laufen noch nicht im Zickzack, die Sklaven im Brandtrupp schon.
 - Brandtrupp: je Muster 8 Sklaven in einem gewerteten Lauf, ein Lauf davor mit dem älteren Kern. Die Sklaven laufen mit viel Leben weiter; im Spiel sterben sie beim dritten Treffer, und die Schützen wählen ein neues Ziel. Sklaven über 8 hinaus laufen gerade, die Auswahl ist die Reihenfolge ihrer Nummern, nicht ihre Gefahr.
 - Der Kern meldet den Angriffsbefehl der Sklaven als „wirkt nicht“, obwohl die Hütten brennen. Sein Prüffeld passt bei ihnen vermutlich nicht, das ist nicht untersucht.
-- Keine ganze Partie mit `erstes_spiel`: Die Probe stellt die Lage, die Runde des Lenkers ist fest 63 Takte (Median gemessen).
+- Die Probe `vorstoss_g` stellt die Lage, die Runde des Lenkers ist dort fest 63 Takte (Median gemessen). Ganze Partien siehe oben.
 - Mehr als 8 Einheiten sind nicht gemessen. Wer sich einen Platz teilt, läuft dicht.
 - Die breite Aufstellung braucht Platz: bei 8 Einheiten 15 Felder quer. Hindernisse sind nicht getestet.
 - Die Kern-DLL liegt nur auf Instanz 2 (mit `--target i686-pc-windows-gnu` gebaut, auf diesem PC gibt es kein MSVC). Instanz 5 und Daniels App haben den alten Kern.
 
 ## Dateien
 
-Alle unter `data/research/auge_plan/zickzack_20261108/`: `zickzack_auswerten.py`, `zickzack_g_ergebnis.txt`, `zickzack2_g_ergebnis.txt` (Bewegung, Pfeile, jeder Takt), `zickzack_abstand.py`, `zickzack_abstand.txt`, `zickzack2_g_abstand.txt` (Nachbarn, Gefahrenkarte), `zickzack_warteschlange.py` und `.txt`, `vorstoss_auswerten.py`, `vorstoss_g_ergebnis.txt`, `brand_auswerten.py`, `brand_g_ergebnis.txt`, `lauf_zickzack_g.log`, `lauf_zickzack2_g.log`, `lauf_vorstoss_g.log`, `lauf_brand_g.log`. Die Szenen heißen `zickzack_g`, `zickzack2_g`, `vorstoss_g` und `brand_g` in `src/selfaware/tools/experiments/auge_lauf_s.py`.
+Alle unter `data/research/auge_plan/zickzack_20261108/`: `zickzack_auswerten.py`, `zickzack_g_ergebnis.txt`, `zickzack2_g_ergebnis.txt` (Bewegung, Pfeile, jeder Takt), `zickzack_abstand.py`, `zickzack_abstand.txt`, `zickzack2_g_abstand.txt` (Nachbarn, Gefahrenkarte), `zickzack_warteschlange.py` und `.txt`, `vorstoss_auswerten.py`, `vorstoss_g_ergebnis.txt`, `brand_auswerten.py`, `brand_g_ergebnis.txt`, `lauf_zickzack_g.log`, `lauf_zickzack2_g.log`, `lauf_vorstoss_g.log`, `lauf_brand_g.log`, `partie_vergleich.py`, `partie_vergleich.txt`. Mitschriften der Partien: `data/research/zickzack_20261109_001758_an_i2_konsole.txt` und `..._002159_aus_i2_konsole.txt`. Die Szenen heißen `zickzack_g`, `zickzack2_g`, `vorstoss_g` und `brand_g` in `src/selfaware/tools/experiments/auge_lauf_s.py`.
