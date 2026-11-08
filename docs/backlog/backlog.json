@@ -4423,7 +4423,8 @@
    "herkunft": "Entscheidungsblatt SamurAI_Entscheidungen.html (04.11.), Reihenfolge P1-P10; Daniel 08.11.: Backlog aufraeumen, dann P1 und P2",
    "gebaut": "2026-11-08 00:07",
    "commits": [
-    "b062eb3"
+    "b062eb3",
+    "79d4196"
    ],
    "wo": [
     "data/research/auge_plan/sichtschranke.py",
@@ -4431,7 +4432,7 @@
     "data/research/auge_plan/sichtschranke_zweifel.md"
    ],
    "belege": [],
-   "notiz": "2.296 sicher, 983 Bedeutung unbekannt (im fairen Spiel ungenutzt), 285 Feinarbeit (benannt, Regel fehlt), 0 Grundsatzfragen offen",
+   "notiz": "2.296 sicher, 983 Bedeutung unbekannt (im fairen Spiel ungenutzt), 285 Feinarbeit (benannt, Regel fehlt), 0 Grundsatzfragen offen | Feinarbeit abgeschlossen: 3.564 Felder, 2.581 sicher, 983 Bedeutung unbekannt, 0 Feinarbeit, 0 Fragen",
    "verlauf": [
     {
      "zeit": "2026-11-08 00:07",
@@ -4440,6 +4441,14 @@
     {
      "zeit": "2026-11-08 00:07",
      "was": "offen -> gebaut (Commit b062eb3): 2.296 sicher, 983 Bedeutung unbekannt (im fairen Spiel ungenutzt), 285 Feinarbeit (benannt, Regel fehlt), 0 Grundsatzfragen offen"
+    },
+    {
+     "zeit": "2026-11-08 10:45",
+     "was": "gebaut -> gebaut: Feinarbeit abgeschlossen: 3.564 Felder, 2.581 sicher, 983 Bedeutung unbekannt, 0 Feinarbeit, 0 Fragen"
+    },
+    {
+     "zeit": "2026-11-08 10:53",
+     "was": "gebaut -> gebaut (Commit 79d4196)"
     }
    ]
   },
@@ -4479,7 +4488,7 @@
      "was": "in Arbeit -> gebaut (Commit c638b8a): Umgebaut: eine Quelle services/spielwerte.py, 6 Module umgestellt, Gefecht zieht beide Seiten gleichzeitig; 11 Tests gruen, Pruefskripte alt/neu gleich. Offen: Luftlinie schraeg und Ritter-Tempo im naechsten Messlauf pruefen"
     }
    ],
-   "rang": 1
+   "rang": 2
   },
   {
    "nr": "B-156",
@@ -4515,20 +4524,31 @@
      "was": "in Arbeit -> gebaut (Commit d6879a7): Plan eingecheckt und von Daniel freigegeben (08.11.); Umsetzung in P5 (B-157)"
     }
    ],
-   "rang": 2
+   "rang": 3
   },
   {
    "nr": "B-157",
    "titel": "P5: Befehlsweg bauen, Assassinen zuerst: Einheiten an den Kern abgeben",
    "bereich": "Kampf",
-   "status": "offen",
+   "status": "in_arbeit",
    "seit": "2026-11-08 00:07",
    "herkunft": "Entscheidungsblatt SamurAI_Entscheidungen.html (04.11.), Reihenfolge P1-P10; Daniel 08.11.: Backlog aufraeumen, dann P1 und P2",
    "gebaut": null,
-   "commits": [],
-   "wo": [],
+   "commits": [
+    "e0c320d"
+   ],
+   "wo": [
+    "crates/samurai-kern/src/haende.rs",
+    "crates/samurai-kern/src/leitung.rs",
+    "crates/samurai-kern/src/lib.rs",
+    "src/selfaware/game/kern_leitung.py",
+    "src/selfaware/execution/kernweg.py",
+    "src/selfaware/runtime/live/erstes_spiel.py",
+    "tests/test_kernweg.py",
+    "docs/plans/Plan_Befehlsweg.md"
+   ],
    "belege": [],
-   "notiz": "",
+   "notiz": "Ohne Spiel fertig: Vorrang, Fristen, Besitz mit Leihe, Rueckmeldung im Kern (Fassung 20, Aufbau 4), Schalter kernweg=ja (aus). Offen: 32-Bit-DLL erst nach Push, logik.lua-Aenderung einspielen (Plan Abschnitt 7), Lauf im Spiel",
    "verlauf": [
     {
      "zeit": "2026-11-08 00:07",
@@ -4537,9 +4557,21 @@
     {
      "zeit": "2026-11-08 00:07",
      "was": "Rang - -> 3"
+    },
+    {
+     "zeit": "2026-11-08 10:45",
+     "was": "offen -> in Arbeit: Ohne Spiel fertig: Vorrang, Fristen, Besitz mit Leihe, Rueckmeldung im Kern (Fassung 20, Aufbau 4), Schalter kernweg=ja (aus). Offen: 32-Bit-DLL erst nach Push, logik.lua-Aenderung einspielen (Plan Abschnitt 7), Lauf im Spiel"
+    },
+    {
+     "zeit": "2026-11-08 10:45",
+     "was": "Rang 3 -> 1"
+    },
+    {
+     "zeit": "2026-11-08 10:53",
+     "was": "in Arbeit -> in Arbeit (Commit e0c320d)"
     }
    ],
-   "rang": 3
+   "rang": 1
   },
   {
    "nr": "B-158",
