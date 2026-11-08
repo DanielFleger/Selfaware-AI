@@ -216,7 +216,7 @@ Jeder Schritt hat eine Probe, die scheitern kann.
 | 1 | Wirkung je Einheit aus den Aufzeichnungen messen, für uns und die KI-Gegner (erledigt, siehe Abschnitt 2) | Ausgangswert steht, an zwei Partien von Hand nachgerechnet: tote eigene Assassinen laut Werkzeug gegen Todesakten 21 zu 21 in beiden Partien |
 | 2 | Partien gegen voll ausgebaute, ständig raidende Gegner | Der Einbruch lässt sich wiederholen und ist in Zahlen beschrieben |
 | 3 | Laufende Rollen und kleinster Einsatz, zuerst Sklaven und Assassinen, hinter einem Schalter | Gleiche Partien mit und ohne: mehr Wirkung je Einheit, weniger Einheiten gebunden |
-| 4 | Messlauf Ausweichen im Editor: gerade, schräg, Zickzack je Abstand (erledigt, siehe Abschnitt 6.3) | Zickzack muss Treffer spürbar senken, sonst fliegt es raus: bestanden, ab 12 Feldern 19 bis 84 Punkte weniger bei 94 bis 97 % der Strecke |
+| 4 | Messlauf Ausweichen im Editor: gerade, schräg, Zickzack je Abstand (erledigt, siehe Abschnitt 6.3) | Zickzack muss Treffer spürbar senken, sonst fliegt es raus. Gemessen: ab 12 Feldern 19 bis 84 Punkte weniger bei 94 bis 97 % der Strecke |
 | 5 | Schübe, Knubbeln und kritische Stellen | Schlägt frontales Stürmen in gleichen Gefechten |
 | 6 | Sperre im Code und fehlende Felder | Fremdes kommt nicht an, Probe wie am 08.11. |
 | 7 | Gewichtung: Produktion und Einsatz als Regler, Wirtschaftsketten beider Seiten | Vorhersage des eigenen Bestands weicht um höchstens 20 % ab, frei gewordene Mittel fließen wirklich in Skalierung |

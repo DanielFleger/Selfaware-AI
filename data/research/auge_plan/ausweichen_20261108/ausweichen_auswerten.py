@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """Szene ausweichen (B-173, Plan_Gehirn Schritt 4): Wie oft trifft ein Pfeil je Laufmuster und Abstand, gegen die Vorausrechnung?
 
-Vor dem Lauf festgelegt, was widerlegt:
+Vor dem Lauf von mir gesetzt, ohne Messung und ohne Vorgabe dahinter (der Plan sagt nur spuerbar):
   Zickzack fliegt raus, wenn es ab 12 Feldern Abstand die Trefferquote gegenueber dem geraden Lauf gleichen Abstands nicht um mindestens 15 Prozentpunkte senkt
   oder wenn der Laeufer dabei weniger als drei Viertel der Felder des geraden Laufs schafft.
   Die Rechnung gilt als widerlegt, wenn eine Bahn mit mindestens 30 Schuessen um mehr als 25 Prozentpunkte daneben liegt.
@@ -107,7 +107,7 @@ def main():
         if n[0] in ("laengs", "zick zu 2", "zick zu 1") and c["schuss"]:
             aus.append("  %-11s D=%2d%s %-4s %3d Schuss, %3.0f %%" % (n[0], n[1], " echt" if n[2] else "", n[3], c["schuss"], 100 * c["treffer"] / c["schuss"]))
     aus.append("")
-    aus.append("Vor dem Lauf festgelegte Probe: Zickzack gegen geraden Lauf, gleicher Abstand (Punkte Unterschied, negativ heisst weniger Treffer):")
+    aus.append("Zickzack gegen geraden Lauf, gleicher Abstand (Punkte Unterschied, negativ heisst weniger Treffer):")
     for gerade, zick in (("quer", "zick quer 2"), ("quer", "zick quer 1"), ("laengs", "zick zu 2"), ("laengs", "zick zu 1")):
         for d in (12, 16):
             ist_echt = szene != "ausweichen"

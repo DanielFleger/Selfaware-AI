@@ -4,7 +4,7 @@ Stand 08.11.2026. Zwei Läufe im Editor auf Instanz 2, jeder Takt aufgezeichnet,
 
 ## Ergebnis
 
-**Ja, Zickzack bleibt drin.** Ein Sklave (A_SLAVE, 71), der über den Befehl eines Spielers im Zickzack auf Bogenschützen (E_ARCHER, 22) zuläuft und jedes Feld die Richtung wechselt, wird ab 12 Feldern Abstand fast nicht mehr getroffen. Er schafft dabei 94 bis 97 % der Felder eines geraden Laufs.
+**Zickzack senkt die Treffer stark, mein Vorschlag: Es bleibt drin.** Ein Sklave (A_SLAVE, 71), der über den Befehl eines Spielers im Zickzack auf Bogenschützen (E_ARCHER, 22) zuläuft und jedes Feld die Richtung wechselt, wird ab 12 Feldern Abstand fast nicht mehr getroffen. Er schafft dabei 94 bis 97 % der Felder eines geraden Laufs.
 
 Anteil der Pfeile, die treffen, wenn jeder Takt ein Schuss sein könnte (Lauf 2, alles über den Befehl eines Spielers, 5.640 gerechnete Schüsse je Zelle):
 
@@ -19,7 +19,7 @@ Anteil der Pfeile, die treffen, wenn jeder Takt ein Schuss sein könnte (Lauf 2,
 | Zickzack auf den Schützen zu, alle 2 Felder | 51 % | 20 % | 6 % | 80 |
 | Zickzack auf den Schützen zu, je Feld | 25 % | 2 % | 1 % | 78 |
 
-Die Probe, vorher festgelegt (mindestens 15 Punkte weniger als gerade ab 12 Feldern, mindestens drei Viertel der Felder): bestanden. Quer minus 24 und minus 19 Punkte, auf den Schützen zu minus 84 und minus 77 Punkte, Strecke 94 bis 97 %.
+Unterschied zum geraden Lauf ab 12 Feldern: quer minus 24 und minus 19 Punkte, auf den Schützen zu minus 84 und minus 77 Punkte, Strecke 94 bis 97 %. Der Plan verlangt nur „spürbar“. Die Schwellen 15 Punkte und drei Viertel der Strecke habe ich vor dem Lauf selbst gesetzt, ohne Messung und ohne Vorgabe dahinter. Sie sind keine Anforderung, ob das spürbar genug ist, entscheidet Daniel.
 
 An den wirklich abgefeuerten Pfeilen (je Zelle nur 44 Schuss, siehe unten) ist es dasselbe Bild, mit einer Ausnahme: Zickzack quer je Feld bei 16 Feldern liegt nur 2 Punkte unter dem geraden Lauf (16 gegen 18 %). Gerechnet über alle Takte sind es 19 Punkte.
 
@@ -46,7 +46,7 @@ Je Gruppe ein Befehl je Feld. Das Spiel liest ein neues Ziel in der Feldmitte (W
 
 **Warum nicht einfach die 44 Schüsse:** Die Schützen schießen alle 129 Takte und alle vier gleichzeitig. Bei 12 Takten je Feld sind das nur 4 verschiedene Lagen im Feld. Die wirklichen Quoten hängen darum an der Lage und sind keine 44 unabhängigen Proben. Deshalb die Rechnung über jeden Takt, mit der echten Spur des Läufers.
 
-**Die Vorausrechnung vor dem Lauf war zu grob:** Sie lag für Lauf 1 um bis zu 57 Punkte daneben. Sie nahm einen Schützen an, der mitgeht, und alle Lagen gleich oft. Die vorher gesetzte Grenze von 25 Punkten hat sie gerissen, sie ist damit als Rechnung widerlegt. Die Richtung stimmte.
+**Die Vorausrechnung vor dem Lauf war zu grob:** Sie lag für Lauf 1 um bis zu 57 Punkte daneben. Sie nahm einen Schützen an, der mitgeht, und alle Lagen gleich oft. Die Grenze von 25 Punkten habe ich ebenfalls selbst gesetzt, bei 57 Punkten Abstand ändert das nichts: Als Vorhersage taugte sie nicht. Die Richtung stimmte.
 
 **Der erste Lauf maß überwiegend den falschen Weg.** 22 von 26 Bahnen bekamen den Direktbefehl (`einheit_ziel`). Damit geht der Sklave nur (16 Takte je Feld, `stateBasedSpeed` 0), der Vorhalt ist halb so groß. Dass Direkt- und Truppenbefehl verschieden schnell sind, stand seit Lauf S fest, ich hatte es beim Bau nicht beachtet. Lauf 2 ist darum komplett über den Truppenbefehl gefahren, nur dessen Zahlen gelten oben. Lauf 1 steht in `ausweichen_alle_takte.txt`.
 
