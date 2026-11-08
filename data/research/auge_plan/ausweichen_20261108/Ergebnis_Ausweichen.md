@@ -19,7 +19,7 @@ Anteil der Pfeile, die treffen, wenn jeder Takt ein Schuss sein könnte (Lauf 2,
 | Zickzack auf den Schützen zu, alle 2 Felder | 51 % | 20 % | 6 % | 80 |
 | Zickzack auf den Schützen zu, je Feld | 25 % | 2 % | 1 % | 78 |
 
-Die Probe, vorher festgelegt (mindestens 15 Punkte weniger als gerade ab 12 Feldern, mindestens drei Viertel der Felder): bestanden. Quer minus 25 und minus 19 Punkte, auf den Schützen zu minus 84 und minus 77 Punkte, Strecke 94 bis 97 %.
+Die Probe, vorher festgelegt (mindestens 15 Punkte weniger als gerade ab 12 Feldern, mindestens drei Viertel der Felder): bestanden. Quer minus 24 und minus 19 Punkte, auf den Schützen zu minus 84 und minus 77 Punkte, Strecke 94 bis 97 %.
 
 An den wirklich abgefeuerten Pfeilen (je Zelle nur 44 Schuss, siehe unten) ist es dasselbe Bild, mit einer Ausnahme: Zickzack quer je Feld bei 16 Feldern liegt nur 2 Punkte unter dem geraden Lauf (16 gegen 18 %). Gerechnet über alle Takte sind es 19 Punkte.
 
