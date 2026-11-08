@@ -19,7 +19,7 @@ Erzeugt von `feldliste_gehirn.py`, ohne Spielstart. Ganze Liste: `feldliste_gehi
 - **takt:** jeden Takt nötig. **selten:** bei Änderung oder alle paar Takte. **einmal:** beim Entstehen oder zum Partiestart.
 - **entbehrlich:** nur Bild, Hilfswert der Engine oder ableitbar. **ki, zufall:** fürs Gehirn gesperrt. **unklar:** ungenutzt, bis geklärt.
 
-## Was jeden Takt ankommt (Kern 21, Aufbau 5, B-169; im Spiel noch nicht gelaufen)
+## Was jeden Takt ankommt (Kern 21, Aufbau 5, B-169; im Spiel bei Tempo 200 geprueft, siehe kern_felder_1108c_200.json)
 
 | Bezug | takt-Felder | liest der Kern | kommt bei Python an | steckt drin | fehlt |
 |---|---|---|---|---|---|

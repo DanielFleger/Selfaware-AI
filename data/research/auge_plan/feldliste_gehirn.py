@@ -317,7 +317,7 @@ PY_SONST = [P_ + "currentResources[]", *SONST_NEU]
 
 # Kommt nicht als eigener Wert an, steckt aber in dem, was ankommt: x/y = Feinposition / 8, tile folgt daraus, Tote filtert der Kern
 # weg (nur Lebende stehen in der Tabelle), der Taktzaehler steht im Kopf.
-STAND_ANKUNFT = "Kern 21, Aufbau 5, B-169; im Spiel noch nicht gelaufen"
+STAND_ANKUNFT = "Kern 21, Aufbau 5, B-169; im Spiel bei Tempo 200 geprueft, siehe kern_felder_1108c_200.json"
 STECKT_DRIN = {E_ + n for n in w("x y tile destinationTilePosition dying logicalState")} | {G_ + "logicalState", M_ + "totalGameTicksUnk"}
 
 
