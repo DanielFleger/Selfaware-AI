@@ -21,6 +21,7 @@ from selfaware import workspace as _workspace
 import json, math, os, re, sys, time
 
 from selfaware.baukasten import aufstellung as AF
+from selfaware.baukasten import raid as RB
 from selfaware.baukasten.bestellung import Bestellung
 from selfaware.game.ucp.laden import lade_stand, befehl, peek
 from selfaware.game.ucp.steuerkarte import laufe, tick, spielzustand
@@ -1000,6 +1001,8 @@ VORSTOSS_BIS = 15000     # B-172: bis zu diesem Takt, danach sind die Schuetzen 
 BESTELLUNG = Bestellung()
 # B-176: welche Klasse je Modul laeuft (Aufstellung, "versionen"). Die import-Zeilen der heutigen Klassen bleiben stehen: Die Code-Kennung folgt ihnen.
 STECK = AF.Steckplaetze()
+RAID_REIHENFOLGE = RB.REIHENFOLGE   # B-179: Schalter raid_reihenfolge, gilt fuer die Bestellung mit Kasse
+OHNE_ANGRIFF = False                # B-179: Schalter ohne_angriff=ja, Raid und Bierkette laufen ohne Feldzug
 SKLAVEN_SOLL = REITER_SOLL = None   # B-176 Scaling: Schalter sklaven_soll, reiter_soll; ohne Schalter die Startwerte in raids.py
 AUSWEICHEN = False         # B-174, B-178: Vorstoss und Brandtrupp weichen unter Beschuss ueber den Rust-Kern aus (Schalter ausweichen=ja)
 _zickzack_gemeldet = False
@@ -2167,7 +2170,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             ausbau.messer.verkauft("holz")
             return "verkauft", "Gold bremst das Anwerben"
         ort, text = ausbau.holzfaeller_statt_verkauf(st, L, G)
-        if ort is None and streitkolben:          # 23:21: auch in der v5-Bauweise keine Huette als Holz-Abfluss
+        if ort is None and (streitkolben or OHNE_ANGRIFF):          # 23:21: auch in der v5-Bauweise keine Huette als Holz-Abfluss
             # v15 (Daniel 22:29: "10 Haeuser helfen nur bedingt"; v14 baute 11 Huetten fuer 15 Leute, Platz 98): keine Huette
             # als Holz-Abfluss - Huetten nur als Puffer (Platz - Leute < 6). Holz bleibt fuer B (Seasoning vor der ersten
             # Holzlieferung), ein volles 20er-Los wird verkauft, wenn das Holz ueber der Ruecklage liegt.
@@ -2176,7 +2179,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 ausbau.messer.verkauft("holz")
                 return "verkauft", "kein Holzfaeller-Platz (%s), Los ueber der Ruecklage" % text
             return None, text
-        if ort is None and streitkolben:
+        if ort is None and (streitkolben or OHNE_ANGRIFF):
             # v11: "kein erreichbarer Holzfaeller-Platz" -> das alte Lager wurde nie leer, der Umzug blieb bis 11.520 haengen.
             # Dann Huetten (Wohnplatz-Puffer, Daniel 21:55), sonst verkaufen - nie liegen lassen.
             if st.get("holz", 0) >= 5:
@@ -2260,14 +2263,14 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     # nach dem anderen"): weg=feldzug - kein Bilanz-Endspiel (die Wirtschaft bleibt), Ruestung laufend aus dem Gold ueber
     # der Ruecklage auf streitkolben lebende Kaempfer aufgefuellt, Angriff ueber feldzug.py; Assassinen ohne Lord-Angriff
     feldzug = bier = None
-    brand = reiter = None
+    brand = reiter = deckung = raid_e = None
     vorstoss = None                    # B-172: frueher Vorstoss der Schuetzen, Schalter vorstoss=ja
+    raid_b = STECK.klasse("raidbestellung")(RAID_REIHENFOLGE)     # B-179: die eine Stelle, die entscheidet, was an Raid-Einheiten gekauft wird
+    schreib("RAID-BESTELLUNG %s, Reihenfolge %s, ohne Angriff %s" % (type(raid_b).__name__, ",".join(RAID_REIHENFOLGE), OHNE_ANGRIFF))
     if RAIDS:
         # 19.10. (Daniel 16:57 "Sklaven am Anfang richtig OP ... wenn Feuer erkannt werden kann"): Feuer = fireDuration im
         # Gebaeudedatensatz (gemessen raid_messen.py: Sklave zuendet, das Gebaeude brennt allein ab)
         import selfaware.micro.tasks.raids as RA
-        brand = STECK.klasse("brandtrupp")(SP, lambda nr: peek(0xF98520 + nr * 0x32C + 0x14 + 702)[0] & 0xFFFF)
-        reiter = STECK.klasse("reiterjagd")(SP)
         # B-129 (Daniel 19.10. 23:32 "Bogenschuetzen vor, mit Sklaven abgefackelt, nie lockergelassen"): Schleuderer decken
         # die Sklaven; Knopf deckung_soll (0 = aus)
         RA.DECKUNG_SOLL = DECKUNG_SOLL
@@ -2275,10 +2278,11 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             RA.SKLAVEN_SOLL = SKLAVEN_SOLL
         if REITER_SOLL is not None:
             RA.REITER_SOLL = REITER_SOLL
-        deckung = STECK.klasse("deckung")(SP, BERGFRIED)
         if VORSTOSS:
-            from selfaware.micro.tasks.vorstoss import Vorstoss
-            vorstoss = STECK.klasse("vorstoss")(SP, BERGFRIED, bis=VORSTOSS_BIS)
+            from selfaware.micro.tasks.vorstoss import Vorstoss     # die Zeile bleibt fuer die Code-Kennung, gebaut wird in RaidEinsatz
+        raid_e = STECK.klasse("raideinsatz")(SP, BERGFRIED, lambda nr: peek(0xF98520 + nr * 0x32C + 0x14 + 702)[0] & 0xFFFF, STECK,
+                                             VORSTOSS_BIS if VORSTOSS else None)
+        brand, reiter, deckung, vorstoss = raid_e.brand, raid_e.reiter, raid_e.deckung, raid_e.vorstoss
     if weg == "feldzug" and streitkolben:
         from selfaware.micro.tasks.feldzug import Feldzug
         feldzug = STECK.klasse("feldzug")(SP, BERGFRIED, LORD_SCHUTZ_BIS, n=streitkolben)
@@ -2294,6 +2298,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 wp = []
             return list(wp) if wp else [ziel]
         feldzug.wegplaner = feldzug_weg
+    raid_laeuft = raid_e is not None and (feldzug is not None or OHNE_ANGRIFF)     # B-179: ohne Schalter nur mit Feldzug, so war es bisher
+    if feldzug is not None or OHNE_ANGRIFF:
         # 19.10. (Daniel: "warum wird keine Waffenproduktion gebaut? Wenn die Streitis es nicht schaffen, muesste teuer
         # nachgebaut werden - longterm denken"): produktion=ja - eigene Kette (Minen, Schmieden, Kuhhoefe, Gerber), Groesse
         # aus PRODUKTION_FENSTER (30 Kaempfer in so vielen Ticks); bis sie steht, nur bei grossem Ueberschuss Markt-Kauf
@@ -2301,7 +2307,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         # Spielmitte belegt der Planer alle mit Apfelplantagen): Kuhhof- und Hopfenplaetze gleich zu Beginn vom Spiel holen
         # und fuer andere Bauten sperren (ausbau.sperr, 1 Feld Rand)
         reserve = []
-        if PRODUKTION:
+        if PRODUKTION and feldzug is not None:
             prod = Produktion(streitkolben, kaempfer_marken, plan.get("lager"), PRODUKTION_FENSTER + 5000)
             reserve += [(33, q) for q in prod.hof_orte[:prod.hoefe]]
             schreib("PRODUKTION fuer den Feldzug: %d Minen, %d Schmieden, %d Gerber, %d Hoefe (Plaetze %d, vom Spiel geprueft)" % (
@@ -3044,9 +3050,10 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     ort, text = ausbau.holzfaeller_statt_verkauf(st, L, G)
                     if ort:
                         ereignis.append("Holzfaeller statt Holzverkauf bei %s (Holz %d; %s)" % (ort, st["holz"], text))
+            posten = [n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 8]
+            assassine_erlaubt, ziel_a = False, assassinen
             if trupp is not None:
                 # Soeldnerlager (120 Gold) einmal bauen, dann Assassinen (Typ 73) anwerben bis zur Zahl; Mitglieder = alle eigenen 73er
-                posten = [n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 8]
                 # 19.10.: Zahl der LEBENDEN (ASSASSINEN_EXTRA); mehr, solange jede ein Ziel hat und es weitere Raid-Plaetze gibt
                 a_stand["lebend"] = sum(1 for e in L.values() if e["besitzer"] == SP and e["typ"] == 73)
                 ueber_a = getattr(trupp, "ohne_ziel_zuletzt", None) == 0 and (getattr(trupp, "_raid_plaetze", 0) or 0) > len(trupp.ziel) \
@@ -3056,18 +3063,13 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     # nicht am Lagerplatz (9i: Markt/Soeldnerlager belegten ihn - 14 Holzfaeller warteten Tick 4500-9035)
                     soeldner = baue_schnell(8, BERGFRIED[0], BERGFRIED[1], 25)
                     ereignis.append("Soeldnerlager gesetzt %s (Gold %d)" % (soeldner, st["gold"]))
-                elif BESTELLUNG.darf("raid") and posten and not hunger_r and st["gold"] >= 70 + wirt.ruecklage(G)["gold"] and st["feuer"] >= 1 \
-                        and (assassinen < 0 or a_stand["lebend"] < ziel_a) and st["t"] - a_stand["zuletzt"] >= WERB_ABSTAND \
+                elif posten and (assassinen < 0 or a_stand["lebend"] < ziel_a) and st["t"] - a_stand["zuletzt"] >= WERB_ABSTAND \
                         and (getattr(trupp, "ohne_ziel_zuletzt", None) or 0) < A_OHNE_ZIEL_MAX \
                         and not ausbau.braucht_gold \
                         and not loewen_am_posten(L, G, posten[0]) \
                         and not wirt.a_offen(G):   # Daniel 23:09: Farmen nicht vergessen - erst die fehlenden A-Plantagen (45 Gold)   # erst rollen (Daniel 18:51/19:05)
-                    befehl({"werbe": {"typ": 73, "gebaeude": posten[0]}}, 1.0, bis="WERBE")
-                    geworben += 1
-                    a_stand["zuletzt"] = st["t"]
-                    if geworben == 1 or geworben % 5 == 0:     # der erste zaehlt einzeln (gewinn_5: Zeitpunkt fehlte)
-                        ereignis.append("%d Assassinen angeworben (Gold jetzt %d, %d leben, Soll %d%s)" % (
-                            geworben, st["gold"], a_stand["lebend"] + 1, ziel_a, " mit Raid-Ueberschuss" if ziel_a > assassinen else ""))
+                    assassine_erlaubt = True
+            if trupp is not None:
                 if posten and runde % 50 == 0:     # ganz_1: in 28.700 Ticks nur 1 Assassine - welche Bedingung bremst?
                     ereignis.append("ANWERBEN-BREMSE: Gold %d (braucht %d), Feuer %d, Planer braucht Gold %s, A-Farmen offen %d" % (
                         st["gold"], 70 + wirt.ruecklage(G)["gold"], st["feuer"], bool(ausbau.braucht_gold), len(wirt.a_offen(G))))
@@ -3341,35 +3343,6 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                             if fruehpruefung["heer_zaehler"] % 10 < n_h or fruehpruefung["heer_zaehler"] <= 2:
                                 ereignis.append("HEER-WERBUNG: %d Soeldner fuers Heer angeworben (zusammen %d, Heer jetzt %d), Gold %d" % (
                                     n_h, fruehpruefung["heer_zaehler"], heer_n + n_h, st["gold"]))
-                    if brand is not None:
-                        # 19.10. Raids: steuern jede Runde; werben nur aus Gold ueber der Ruecklage, nicht im Endspurt
-                        try:
-                            if AUSWEICHEN and brand.kern is None:
-                                from selfaware.execution import kernweg as KW
-                                ausweichen_kern([(vorstoss, KW.VORSTOSS), (brand, KW.BRANDTRUPP)], ereignis)
-                            if vorstoss is not None:
-                                vorstoss.plaetze_setzen(brand.im_ausweichen)
-                                ereignis += vorstoss.schritt(st["t"], L, G, befehl)
-                            brand.schutz = deckung.orte(L) + (vorstoss.orte(L) if vorstoss is not None else [])
-                            ereignis += deckung.schritt(L, G, befehl, brand)
-                            ereignis += brand.schritt(L, G, befehl)
-                            ereignis += reiter.schritt(L, G, befehl)
-                            if posten_h is not None and not es_an and not hunger_r and runde % 2 == 1 and BESTELLUNG.darf("raid"):
-                                import selfaware.game.ucp.bauen as BA_r
-                                for typ_r, n_r in RA.werbung(st["gold"] - wirt.ruecklage(G, ohne_heer=HEER_ANTEIL > 0)["gold"], st.get("feuer", 0),
-                                                             len(brand.einheiten(L)), len(reiter.einheiten(L)), len(deckung.einheiten(L))):
-                                    for _ in range(n_r):
-                                        BA_r.werbe(typ_r, posten_h)
-                                    if HEER_ANTEIL > 0:
-                                        wirt.heer_ausgabe(n_r * {RA.SKLAVE: RA.SKLAVE_GOLD, RA.SCHLEUDER: RA.SCHLEUDER_GOLD}.get(typ_r, RA.PFERD_GOLD))
-                                    ereignis.append("RAID-WERBUNG: %d %s" % (n_r, {RA.SKLAVE: "Sklaven", RA.SCHLEUDER: "Schleuderer (Deckung)"}.get(typ_r, "Pferdebogen")))
-                        except Exception as ex_r:
-                            ereignis.append("RAIDS FEHLER %r - Partie laeuft weiter" % (ex_r,))
-                    if bier is not None and not es_an and runde % 5 == 0:     # Endspurt: keine neuen Betriebe
-                        try:
-                            ereignis += bier.schritt(st, G, wirt.ruecklage(G))
-                        except Exception as ex_z:
-                            ereignis.append("BIER FEHLER %r - Partie laeuft weiter" % (ex_z,))   # 19.10. (1019i): nie den Lauf beenden
                 else:
                     ereignis += bilanz_schritt(st, L, G, ausbau, streitkolben, endspiel, runde, kaempfer_marken)
                 if feldzug is None and not endspiel["fertig"] and weg != "bilanz":     # weg=bilanz: nur Wirtschaft + Bilanz-Endspiel (v5)
@@ -3421,6 +3394,45 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     schreib("NAECHSTES ZIEL %d Streitkolbenkaempfer ab Tick %d (Endspiel neu, Wirtschaft laeuft weiter)" % (
                         streitkolben, st["t"]))
                 tz = uhr("ruestung", tz)
+            # B-179: Raid und Bierkette stehen nicht mehr im Angriffszweig. Mit Feldzug laufen sie wie bisher, ohne ihn nur mit ohne_angriff=ja.
+            if raid_laeuft:
+                try:
+                    if AUSWEICHEN and brand.kern is None:
+                        from selfaware.execution import kernweg as KW
+                        ausweichen_kern([(vorstoss, KW.VORSTOSS), (brand, KW.BRANDTRUPP)], ereignis)
+                    ereignis += raid_e.schritt(st["t"], L, G, befehl)
+                except Exception as ex_r:
+                    ereignis.append("RAIDS FEHLER %r - Partie laeuft weiter" % (ex_r,))
+            # B-179: Alle Raid-Werbungen an einer Stelle. Was gekauft wird, entscheidet die Bestellung (Steckplatz raidbestellung), hier wird nur ausgefuehrt.
+            if BESTELLUNG.darf("raid") and posten and not hunger_r:
+                try:
+                    import selfaware.game.ucp.bauen as BA_r
+                    for typ_r, n_r in raid_b.schritt(RB.Lage(
+                            runde=runde, gold=st["gold"], ruecklage=wirt.ruecklage(G)["gold"],
+                            ruecklage_soeldner=wirt.ruecklage(G, ohne_heer=HEER_ANTEIL > 0)["gold"], feuer=st.get("feuer", 0),
+                            endspurt=es is not None and es.aktiv, soeldner_erlaubt=raid_laeuft, assassine_erlaubt=assassine_erlaubt,
+                            sklaven=len(brand.einheiten(L)) if brand is not None else 0, reiter=len(reiter.einheiten(L)) if reiter is not None else 0,
+                            schleuderer=len(deckung.einheiten(L)) if deckung is not None else 0)):
+                        if typ_r == RB.ASSASSINE:
+                            befehl({"werbe": {"typ": RB.ASSASSINE, "gebaeude": posten[0]}}, 1.0, bis="WERBE")
+                            geworben += 1
+                            a_stand["zuletzt"] = st["t"]
+                            if geworben == 1 or geworben % 5 == 0:     # der erste zaehlt einzeln (gewinn_5: Zeitpunkt fehlte)
+                                ereignis.append("%d Assassinen angeworben (Gold jetzt %d, %d leben, Soll %d%s)" % (
+                                    geworben, st["gold"], a_stand["lebend"] + 1, ziel_a, " mit Raid-Ueberschuss" if ziel_a > assassinen else ""))
+                            continue
+                        for _ in range(n_r):
+                            BA_r.werbe(typ_r, posten[0])
+                        if HEER_ANTEIL > 0:
+                            wirt.heer_ausgabe(n_r * {RA.SKLAVE: RA.SKLAVE_GOLD, RA.SCHLEUDER: RA.SCHLEUDER_GOLD}.get(typ_r, RA.PFERD_GOLD))
+                        ereignis.append("RAID-WERBUNG: %d %s" % (n_r, {RA.SKLAVE: "Sklaven", RA.SCHLEUDER: "Schleuderer (Deckung)"}.get(typ_r, "Pferdebogen")))
+                except Exception as ex_r:
+                    ereignis.append("RAIDS FEHLER %r - Partie laeuft weiter" % (ex_r,))
+            if bier is not None and not (es is not None and es.aktiv) and runde % 5 == 0:     # Endspurt: keine neuen Betriebe
+                try:
+                    ereignis += bier.schritt(st, G, wirt.ruecklage(G))
+                except Exception as ex_z:
+                    ereignis.append("BIER FEHLER %r - Partie laeuft weiter" % (ex_z,))   # 19.10. (1019i): nie den Lauf beenden
             # Feindlicher Lord: jede Runde mit Lebensverlust mitschreiben - wer steht bei ihm? (9i/9j: Sieg ohne Befehl auf ihn)
             for n, e in L.items():
                 if e["typ"] == 55 and e["besitzer"] not in (0, SP):
@@ -3724,8 +3736,12 @@ def main():
     global SKLAVEN_SOLL, REITER_SOLL
     SKLAVEN_SOLL = int(arg["sklaven_soll"]) if "sklaven_soll" in arg else None
     REITER_SOLL = int(arg["reiter_soll"]) if "reiter_soll" in arg else None
-    global VORSTOSS, VORSTOSS_BIS, AUSWEICHEN, BESTELLUNG
+    global VORSTOSS, VORSTOSS_BIS, AUSWEICHEN, BESTELLUNG, RAID_REIHENFOLGE, OHNE_ANGRIFF
     BESTELLUNG = Bestellung(arg.get("bestellung", "alle"))
+    RAID_REIHENFOLGE = RB.reihenfolge_lesen(arg.get("raid_reihenfolge", ",".join(RB.REIHENFOLGE)))
+    OHNE_ANGRIFF = arg.get("ohne_angriff", "nein") == "ja"
+    if OHNE_ANGRIFF and (STUFEN or BESTELLUNG.darf("angriff")):
+        raise SystemExit("ohne_angriff=ja braucht streitkolben=0 und eine Bestellung ohne angriff")
     schreib("BESTELLUNG: %s" % BESTELLUNG)
     VORSTOSS = arg.get("vorstoss", "nein") == "ja"
     AUSWEICHEN = arg.get("ausweichen", "nein") == "ja"

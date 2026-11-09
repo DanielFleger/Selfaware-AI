@@ -130,8 +130,8 @@ KARTE = {
     "bestellung_raid": (
         _m(
             "Raid-Werbung",
-            "micro/tasks/raids.py:werbung baukasten/bestellung.py",
-            "bestellung raids",
+            "baukasten/raid.py:RaidBestellung micro/tasks/raids.py:werbung baukasten/bestellung.py",
+            "bestellung raids raid_reihenfolge",
         ),
         _m("Assassinen werben", _l("phase1 phase2 loewen_am_posten")),
     ),
@@ -149,6 +149,7 @@ KARTE = {
     ),
     "bestellung_verteidigung": (_m("Notwerbung", _l("phase2"), "notwerbung"),),
     "einsatz_raid": (
+        _m("Raid-Einsatz", "baukasten/raid.py:RaidEinsatz", "ohne_angriff"),
         _m("Brandtrupp", "micro/tasks/raids.py:Brandtrupp"),
         _m("Reiterjagd", "micro/tasks/raids.py:Reiterjagd"),
         _m("Deckung", "micro/tasks/raids.py:Deckung"),
@@ -319,7 +320,8 @@ def stand(modul):
     if datei == LENKER:
         return "im Lenker"
     if name in _klassen_mit_schritt(datei):
-        return "steckbar" if f'STECK.klasse("{name.lower()}")' in _text(LENKER) else "nicht benutzt"
+        quelle = _text(LENKER) + _text("baukasten/raid.py")
+        return "steckbar" if f'.klasse("{name.lower()}")' in quelle else "nicht benutzt"
     return "eigene Datei"
 
 

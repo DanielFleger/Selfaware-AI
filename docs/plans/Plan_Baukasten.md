@@ -25,7 +25,7 @@ Offene Einordnung für Daniel: Assassinen zählen zu Raid, weil der Lenker sie s
 1. **Bestellung** (B-177, Code fertig): Ein Tor für alle 9 Rekrutierstellen, `bestellung=raid` schaltet Angriff und Verteidigung ab.
 2. **Ausweichen** (B-178, Code fertig): Zickzack heißt Ausweichen, ist ein Werkzeug für jeden Einsatz und läuft nur, wenn auf die Einheit geschossen wird.
 3. **Aufstellung, Modulkarte, Steckplätze, Vergleich** (B-176, Code fertig).
-4. **Raid aus dem Angriffszweig lösen:** Steuerung und Werbung der Raids stehen heute in `phase2` unter `if streitkolben:` und `if feldzug is not None:`. Deshalb muss auch `raid_frueh` `streitkolben=30` setzen. Mit `streitkolben=0` fielen Raids und Bierkette still aus. Danach Bestellung und Einsatz als ein Modul.
+4. **Raid als eigenes Modul** (B-179, Code fertig): `baukasten/raid.py` enthält `RaidBestellung` (was gekauft wird) und `RaidEinsatz` (was die Einheiten tun). Beide sind Steckplätze. Steuerung, Werbung und Bierkette stehen nicht mehr im Angriffszweig. Drei Aufstellungen trennen die Wirkung: `raid_frueh` (Reihenfolge wie bisher), `raid_kasse` (dazu eine Kasse: Sklaven, Schleuderer, Berittene, Assassinen), `raid_ohne_angriff` (dazu kein Feldzug und kein Streitkolben-Ziel, Schalter `ohne_angriff=ja`).
 5. Danach Apfel, Brot, Bier, Waffen, dann Angriff und Verteidigung, je Modul ein eigener Schritt mit Partie.
 6. `assassinen.py` in Raid und Angriff teilen.
 
@@ -46,11 +46,19 @@ Vor jedem Umzug steht hier je Modul, was es heute tut, und der Test dafür. Stan
 | Die Code-Kennung sieht alle Dateien | die import-Zeilen bleiben stehen | Test gegen `kennung.python_dateien()` |
 | Die Mitschrift nennt den Startbefehl | ohne Aufstellung wie eingegeben, mit Aufstellung jeder Schalter | Test `startzeile` |
 | Der Vorstoß stellt breit auf | dieselben Felder | Test mit festen Werten, `tests/test_vorstoss.py` |
+| Raid steuert Vorstoß, Deckung, Brandtrupp, Reiter in dieser Reihenfolge | gleiche Reihenfolge in `RaidEinsatz` | Test mit Attrappen |
+| Ein Fehler im Raid oder in der Bierkette beendet die Partie nie | `try` bleibt, jetzt auch um die Assassinen-Werbung | Test über den Syntaxbaum |
+| Ohne Schalter läuft der Raid nur mit Feldzug | `raid_laeuft` | Test auf die Zeile |
+| Assassine zuerst, Söldner nur in ungeraden Runden und nicht im Endspurt, jeder mit dem Gold vom Rundenanfang | `RaidBestellung` ist genau das, und `raid_frueh` nutzt sie | `tests/test_raid.py` |
+| Assassine braucht Posten, Abstand, Ziele, Gold, Bauern, freien Planer, keine Löwen, keine offenen Höfe, keinen Hunger | Bedingungen stehen weiter im Lenker, das Ergebnis geht als `assassine_erlaubt` in die Bestellung | Bedingung bleibt |
+| Wächter lassen Raid-Einheiten in Ruhe, Feldzug leiht Vorstoß-Schützen, Bericht am Ende | die Namen `brand`, `reiter`, `deckung`, `vorstoss` bleiben im Lenker | Zuweisung aus `raid_e` |
+| Bierkette alle 5 Runden, nicht im Endspurt | gleiche Bedingung, außerhalb des Zweigs | Test über den Syntaxbaum |
+| Im Feldzug greifen Assassinen den Lord nicht an | gilt auch mit `ohne_angriff=ja` | steht im selben Block |
 
-Absichtlich weggefallen ist in diesen Schritten nichts.
+Absichtlich weggefallen ist in diesen Schritten nichts. Eine Kleinigkeit ändert sich auch ohne Aufstellung: Die Assassine wird jetzt nach der Steuerung derselben Runde bestellt, nicht davor.
 
 ## Offen
 
-- Erste Partie mit `raid_frueh` am 09.11.: nur Raid-Einheiten geworben, siehe `data/research/raid_frueh_20261109/Ergebnis_Raid_frueh.md`. Sie zeigt zwei Aufgaben für Schritt 4: eine gemeinsame Raid-Kasse, weil Assassine und Reiter dasselbe Gold ausgeben, und Sollzahlen, die mit dem Gold mitwachsen.
+- Erste Partie mit `raid_frueh` am 09.11.: nur Raid-Einheiten geworben, siehe `data/research/raid_frueh_20261109/Ergebnis_Raid_frueh.md`. Sie zeigte zwei Aufgaben: die gemeinsame Raid-Kasse (B-179, gebaut, im Spiel noch nicht geprüft) und Sollzahlen, die mit dem Gold mitwachsen (B-180, offen).
 - Sollzahlen der Raids: Sklaven 5, Berittene 3 sind Startwerte, kein Messwert. Die Regler sind da, die Zahlen fehlen.
 - Tiefe der Trennung: Schritt 3 macht 15 Klassen austauschbar. Was noch im Lenker steht, zeigt die Modulkarte, und jeder Umzug braucht eine eigene Probe.

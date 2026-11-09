@@ -2,9 +2,9 @@
 
 Erzeugt mit `python -m selfaware.baukasten.karte --schreiben`, nicht von Hand ändern. Quelle: `src/selfaware/baukasten/karte.py`. Plan: [Plan_Baukasten.md](Plan_Baukasten.md).
 
-Gemessen: Der Lenker `runtime/live/erstes_spiel.py` hat 3823 Zeilen, `phase2` davon 1463. Er kennt 95 Schalter. 17 Klassen haben einen eigenen `schritt`, mit 15 verschiedenen Aufrufen.
+Gemessen: Der Lenker `runtime/live/erstes_spiel.py` hat 3839 Zeilen, `phase2` davon 1472. Er kennt 97 Schalter. 19 Klassen haben einen eigenen `schritt`, mit 16 verschiedenen Aufrufen.
 
-Bausteine je Stand: Kern 1, eigene Datei 29, im Lenker 14, nicht benutzt 2, steckbar 15. Eine Stelle mit zwei Rollen zählt einmal.
+Bausteine je Stand: Kern 1, eigene Datei 29, im Lenker 14, nicht benutzt 2, steckbar 17. Eine Stelle mit zwei Rollen zählt einmal.
 
 | Stand | Bedeutung |
 |---|---|
@@ -71,7 +71,7 @@ Bausteine je Stand: Kern 1, eigene Datei 29, im Lenker 14, nicht benutzt 2, stec
 
 | Modul | Stand | Stelle | Schalter |
 |---|---|---|---|
-| Raid-Werbung | eigene Datei | `micro/tasks/raids.py:werbung`, `baukasten/bestellung.py` | `bestellung`, `raids` |
+| Raid-Werbung | steckbar | `baukasten/raid.py:RaidBestellung`, `micro/tasks/raids.py:werbung`, `baukasten/bestellung.py` | `bestellung`, `raids`, `raid_reihenfolge` |
 | Assassinen werben | im Lenker | `Lenker phase1`, `Lenker phase2`, `Lenker loewen_am_posten` |  |
 
 ## Bestellung Angriff
@@ -93,6 +93,7 @@ Bausteine je Stand: Kern 1, eigene Datei 29, im Lenker 14, nicht benutzt 2, stec
 
 | Modul | Stand | Stelle | Schalter |
 |---|---|---|---|
+| Raid-Einsatz | steckbar | `baukasten/raid.py:RaidEinsatz` | `ohne_angriff` |
 | Brandtrupp | steckbar | `micro/tasks/raids.py:Brandtrupp` |  |
 | Reiterjagd | steckbar | `micro/tasks/raids.py:Reiterjagd` |  |
 | Deckung | steckbar | `micro/tasks/raids.py:Deckung` |  |

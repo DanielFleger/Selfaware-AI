@@ -180,6 +180,8 @@ HEUTIGE_KLASSEN = {
     "kornring": ("selfaware.macro.kornring", "Kornring"),
     "graben": ("selfaware.macro.kornring", "Graben"),
     "fallenwache": ("selfaware.micro.tasks.fallenwache", "Fallenwache"),
+    "raidbestellung": ("selfaware.baukasten.raid", "RaidBestellung"),
+    "raideinsatz": ("selfaware.baukasten.raid", "RaidEinsatz"),
 }
 
 
@@ -188,7 +190,7 @@ def test_ohne_aufstellung_baut_der_lenker_die_klassen_von_heute():
     s = AF.Steckplaetze()
     for name, (modul, klasse) in HEUTIGE_KLASSEN.items():
         assert s.standard[name] == f"{modul}:{klasse}"
-    assert len(s.standard) == 17  # dazu Ausbau und Angriffstrupp, die der Lenker nie baut
+    assert len(s.standard) == 19  # dazu Ausbau und Angriffstrupp, die der Lenker nie baut
     assert s.klasse("brandtrupp").__name__ == "Brandtrupp"
 
 
@@ -205,13 +207,16 @@ def test_jede_heutige_klasse_laesst_sich_laden():
 
 def test_lenker_holt_jede_steckklasse_ueber_den_steckplatz():
     namen = {klasse for _, klasse in HEUTIGE_KLASSEN.values()}
+    raid = (K.PAKET / "baukasten/raid.py").read_text(encoding="utf-8")
     direkt = [
         (k.lineno, getattr(k.func, "attr", getattr(k.func, "id", "")))
-        for k in ast.walk(ast.parse(LENKER))
+        for quelle in (LENKER, raid)
+        for k in ast.walk(ast.parse(quelle))
         if isinstance(k, ast.Call) and getattr(k.func, "attr", getattr(k.func, "id", "")) in namen
     ]
     assert direkt == []
-    assert sorted(re.findall(r'STECK\.klasse\("(\w+)"\)', LENKER)) == sorted(HEUTIGE_KLASSEN)
+    gefunden = re.findall(r'(?i)steck\.klasse\("(\w+)"\)', LENKER + raid)
+    assert sorted(gefunden) == sorted(HEUTIGE_KLASSEN)
 
 
 def test_code_kennung_sieht_weiter_alle_module():
@@ -380,7 +385,7 @@ def test_lage_zahlen_trennen_starttruppen_raid_und_andere(tmp_path):
             bild(900, "1 1 22", "2 1 71", "4 1 74", "5 1 26") + "\n"
         )  # neu: Reiter, Streitkolben
         f.write(bild(1000, "1 1 22", "4 1 74", "5 1 26") + "\n")  # Sklave tot
-    assert lage_zahlen(pfad) == {"raid": (1, 1), "andere": (1, 0)}
+    assert lage_zahlen(pfad) == {"raid": (1, 1), "reiter": (1, 0), "andere": (1, 0)}
 
 
 def test_aufstellung_setzt_ihre_schalter_und_die_befehlszeile_geht_vor():
@@ -438,10 +443,8 @@ def test_jede_rekrutierstelle_steht_hinter_dem_tor():
     """Eine neue Stelle ohne Tor wuerde bestellung=raid still aushebeln: Darum sind Stellen und Tore gezaehlt."""
     zeilen = LENKER.splitlines()
     stellen = _stellen()
-    assert len(stellen) == 10, [
-        i + 1 for i, _ in stellen
-    ]  # RA.werbung und BA_r.werbe sind dieselbe Stelle
-    assert LENKER.count("BESTELLUNG.darf(") == 9
+    assert len(stellen) == 9, [i + 1 for i, _ in stellen]
+    assert LENKER.count("BESTELLUNG.darf(") == 9  # davon einer als Pruefung beim Start
     for i, z in stellen:
         davor = "\n".join(zeilen[max(0, i - 50) : i + 1])
         assert "BESTELLUNG.darf(" in davor, (i + 1, z.strip())
@@ -449,6 +452,6 @@ def test_jede_rekrutierstelle_steht_hinter_dem_tor():
 
 def test_arten_der_tore():
     gezaehlt = re.findall(r'BESTELLUNG\.darf\("(\w+)"\)', LENKER)
-    assert gezaehlt.count("raid") == 3
-    assert gezaehlt.count("angriff") == 5
+    assert gezaehlt.count("raid") == 2
+    assert gezaehlt.count("angriff") == 6
     assert gezaehlt.count("verteidigung") == 1

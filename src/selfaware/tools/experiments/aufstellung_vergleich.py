@@ -21,6 +21,7 @@ FORSCHUNG = os.path.join(workspace.ROOT, "data", "research")
 # wie SOLDATEN in auge_lauf_s.py, getrennt in Raid-Einheiten und alle anderen, ohne Lord
 GRUPPEN = {
     "raid": {71, 72, 73, 74},
+    "reiter": {74},
     "andere": {5, 22, 23, 24, 25, 26, 27, 28, 29, 30, 37, 70, 75, 76},
 }
 
@@ -73,6 +74,9 @@ def kennzahlen(text):
         "arbeiter": such(r"Reiterjagd: (\d+) Arbeiter"),
         "zerstoert": such(r"Angriff: zerstoert (\d+) Gebaeude"),
         "verluste": such(r"eigene Verluste (\d+)"),
+        "reiter_bestellt": sum(
+            int(n) for n in re.findall(r"RAID-WERBUNG: (\d+) Pferdebogen", text)
+        ),
     }
 
 
@@ -104,12 +108,12 @@ def partie(name, instanz, stempel):
 
 def tabelle(ergebnisse):
     aus = [
-        "Aufstellung: Rueckgabe | Ende | angezuendet | zerstoert | Verluste | Arbeiter | Raid neu/tot | andere Soldaten neu/tot"
+        "Aufstellung: Rueckgabe | Ende | angezuendet | zerstoert | Verluste | Arbeiter | Raid neu/tot | Reiter bestellt/neu | andere Soldaten neu/tot"
     ]
     for name, z in ergebnisse:
         e = z.get("einheiten") or dict.fromkeys(GRUPPEN, ("-", "-"))
         aus.append(
-            "  %-18s %s | %s | %s | %s | %s | %s | %s/%s | %s/%s"
+            "  %-18s %s | %s | %s | %s | %s | %s | %s/%s | %s/%s | %s/%s"
             % (
                 name,
                 z["code"],
@@ -119,6 +123,8 @@ def tabelle(ergebnisse):
                 z["verluste"],
                 z["arbeiter"],
                 *e["raid"],
+                z["reiter_bestellt"],
+                e["reiter"][0],
                 *e["andere"],
             )
         )
