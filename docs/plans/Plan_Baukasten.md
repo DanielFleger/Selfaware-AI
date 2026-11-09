@@ -51,6 +51,6 @@ Absichtlich weggefallen ist in diesen Schritten nichts.
 
 ## Offen
 
-- `raid_frueh` ist noch nicht im Spiel gelaufen.
+- Erste Partie mit `raid_frueh` am 09.11.: nur Raid-Einheiten geworben, siehe `data/research/raid_frueh_20261109/Ergebnis_Raid_frueh.md`. Sie zeigt zwei Aufgaben für Schritt 4: eine gemeinsame Raid-Kasse, weil Assassine und Reiter dasselbe Gold ausgeben, und Sollzahlen, die mit dem Gold mitwachsen.
 - Sollzahlen der Raids: Sklaven 5, Berittene 3 sind Startwerte, kein Messwert. Die Regler sind da, die Zahlen fehlen.
 - Tiefe der Trennung: Schritt 3 macht 15 Klassen austauschbar. Was noch im Lenker steht, zeigt die Modulkarte, und jeder Umzug braucht eine eigene Probe.

@@ -173,7 +173,7 @@ Gefahr ist, was nach dem Ausweichen noch trifft. Gemessen am 08.11. (Schritt 4, 
 - Der Preis ist ein Befehl je Platz und Feld. 8 Einzelbefehle je Feld kamen alle rechtzeitig, ein neunter daneben in 18 % statt 6 % der Fälle zu spät.
 - **Brandtrupp, gemessen im Gefecht:** 8 Sklaven je Muster an 8 Bogenschützen vorbei, die seitlich stehen: bis zur Ankunft 6,5 Treffer je Sklave gerade, 3,1 im Zickzack, tot wären 8 von 8 gegen 6 von 8, gleich schnell. Schützen von der Seite sind der schlechtere Fall für den Zickzack.
 - **Ganze Partie (09.11.):** Zickzack lief im echten Lenker bei Tempo 200 bis Takt 40.182 ohne Fehler (5,0 ms je Takt, 8.826 Wegpunkte, 1,8 % festgelaufen). Eine Partie je Einstellung sagt nichts über besser oder schlechter.
-- Offen: Die Sklaven laufen den ganzen Weg im Zickzack, auch ohne Beschuss. Vorschlag ist, nur in Schussweite zu wechseln.
+- **Seit 09.11. nur unter Beschuss** (B-178, Schalter `ausweichen=ja`, Daniel: „Nur in Schussweite wenn auf sie geschossen wird“): In der Partie mit nur Raids 535 statt 8.826 Wegpunkte, an 12 von 63 Messstellen aktiv. Ob jeder einzelne Fall Beschuss war, ist nicht einzeln gemessen (`data/research/raid_frueh_20261109/Ergebnis_Raid_frueh.md`).
 - Noch nicht im Zickzack: Nahkämpfer. Schützen im Vorstoß bleiben bei 38 Feldern stehen, beim Vorrücken trifft sie der Zickzack selten unter Beschuss.
 - Der Preis ist ein Befehl je Gruppe und Feld. Bei 12 Takten je Feld reicht der eine Gruppenbefehl je Takt (S57) für höchstens 12 Gruppen.
 - Nicht gemessen: andere Schützen und Läufer, Steine und Feuer, Wechsel erst beim gesehenen Schuss.
