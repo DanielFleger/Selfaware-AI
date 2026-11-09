@@ -2,47 +2,30 @@
 
 Auftrag Daniel 09.11.2026: Alles, was Gehirn und Hände können, den Spielteilen zuordnen und als Steckmodule bauen, so dass mehrere Versionen gegeneinander antreten können. Zuerst das Early Game mit Raids, alles andere hintenan.
 
-## Stand (gemessen 09.11.)
+## Stand
 
-`src/selfaware/runtime/live/erstes_spiel.py` hat 3.801 Zeilen und rund 90 Schalter, die Funktion `phase2` allein 1.460 Zeilen. 14 Teile sind schon Klassen mit `schritt`, der Rest steht als Fließtext in `phase2`. Einheiten werden an 9 Stellen rekrutiert, keine davon kennt die Art der Bestellung.
+Die Zuordnung und die Messwerte stehen in [Modulkarte.md](Modulkarte.md). Die Datei wird aus dem Code erzeugt, ein Test sperrt, dass sie veraltet, etwas auslässt oder etwas nennt, das es nicht gibt.
 
-## Die Zuordnung
+Der wichtigste Befund: Viele Teile sind schon eigene Klassen, aber fast jede wird anders aufgerufen, und vieles steht noch als Fließtext in `phase2`. Eine neue Version desselben Moduls lässt sich trotzdem tauschen, weil sie denselben Aufruf hat wie ihre Vorgängerin. Ein Modul durch ein ganz anderes zu ersetzen, geht erst mit einem gemeinsamen Aufruf.
 
-| Spielteil | Was es heute gibt | Stelle | Zustand |
-|---|---|---|---|
-| **Apfelwirtschaft** | Plantagen, Nahrungswahl, Packen und Mischen der Höfe | `macro/nahrungswahl.py`, `farmen_mischen.py`, `farmen_packen.py`, `ertragsplaner.py`, Teile von `wirtschaft.py` | eigene Dateien, aber nach Lage verstreut |
-| **Brotwirtschaft** | Weizen, Mühle, Bäcker | `macro/brotbau.py`, `nahrungsmodell.py` | Klasse |
-| **Bierwirtschaft** | Hopfen, Brauerei, Schenke | `macro/bierkette.py` | Klasse |
-| **Waffenwirtschaft** | Eisen, Pech, Schmiede, Gerber | `Produktion`, `LederKette`, `ruestung_kaufen`, `waffenlager_*` in `erstes_spiel.py` | im Lenker |
-| Grundwirtschaft | Holz, Stein, Häuser, Lager, Markt, Beliebtheit | `macro/wirtschaft.py`, `aufbau_planer.py`, `eroeffnung.py`, `haushalt.py`, `kornring.py` (Schutz), Funktionen im Lenker | gemischt |
-| **Bestellung Raid** | Sklaven (A_SLAVE 71), Berittene Bogenschützen (A_HARCHER 74), Schleuderer (A_SLINGER 72), Assassinen (A_ASSASSIN 73) | `raids.werbung`, Lenker Zeile 432 und 3052 | Stellen verstreut |
-| **Bestellung Angriff** | Streitkolbenkämpfer (E_MACEMAN 26), Heer aus Schwertkämpfern und Bogenschützen (75, 70) | `ruestung_kaufen`, `anwerbewelle`, Schub, Heer-Werbung im Lenker | im Lenker |
-| **Bestellung Verteidigung** | Notwerbung | Lenker Zeile 2529 | im Lenker |
-| Einsatz Raid | Brandtrupp, Reiterjagd, Deckung, Vorstoß, Assassinen beim Raiden | `micro/tasks/raids.py`, `vorstoss.py`, `assassinen.py` | Klassen |
-| Einsatz Angriff | Feldzug, Lord-Anlauf der Assassinen | `feldzug.py`, `assassinen.py` | Klassen, `assassinen.py` hat 2.880 Zeilen und mischt Raid und Angriff |
-| Einsatz Verteidigung | Wächter, Lordwache, Fallenwache, Kornring, Burggraben | `waechter.py`, `lordwache.py`, `fallenwache.py`, `kornring.py` | Klassen |
-| **Werkzeugkasten** (für alle Einsätze) | Ausweichen, breite Aufstellung, Stapeln | Kern `ausweichen.rs`, `Vorstoss._aufstellung`, `assassinen.py` | teils fest in einem Einsatz verbaut |
-| **Scaling** | Sollzahlen, Heereskasse, Ziel der Produktion, Bevölkerungsziel | über alle Dateien als Schalter und Konstanten | nicht vorhanden als eigenes Teil |
-| **Acceleration** | Eröffnung, Reihenfolge des Aufbaus, Kausal-Entscheider | `eroeffnung.py`, `aufbau_planer.py`, `learning/kausal.py` | nicht vorhanden als eigenes Teil |
-| Hände | Befehlsweg, Auftragsbuch, Kern | `execution/kernweg.py`, `auftragsbuch.py`, Kern `haende.rs`, `leitung.rs` | sauber getrennt |
-| Augen | Lagebild, Weltbild des Kerns | `runde_lesen`, Kern `welt.rs`, `beschuss.rs`, `feuer.rs` | sauber getrennt |
-
-Offene Einordnung für Daniel: Assassinen zählen hier zu Raid, weil der Lenker sie schon „Raid zuerst“ nennt und Plan_Gehirn sie unter frühen Raids führt.
+Offene Einordnung für Daniel: Assassinen zählen zu Raid, weil der Lenker sie schon „Raid zuerst“ nennt und Plan_Gehirn sie unter frühen Raids führt.
 
 ## Wie die Module aussehen
 
 - Paket `selfaware.baukasten`.
-- **Modulkarte:** Jedes Modul steht mit Spielteil, Name, Version, Schaltern und Tests in einer Tabelle. Beziehung in beiden Richtungen: Das Modul nennt seinen Spielteil, der Spielteil listet seine Module.
-- **Aufstellung:** Eine Datei legt fest, welche Module in welcher Version mit welchen Reglern laufen (`aufstellung=raid_frueh`). Sie ersetzt die lange Schalterliste und steht in der Mitschrift jeder Partie.
-- **Scaling und Acceleration** sind Regler je Modul in der Aufstellung, keine verstreuten Konstanten.
-- **Versionen gegeneinander:** Zwei Aufstellungen fahren nacheinander dieselbe Partie, das Werkzeug legt die Kennzahlen nebeneinander. Zusätzlich lässt `eins_gegen_eins` zwei Aufstellungen gegeneinander spielen.
+- **Modulkarte** (`karte.py`): Jedes Modul steht mit Spielteil, Name, Stelle im Code und Schaltern in einer Tabelle. Beziehung in beiden Richtungen: `module_von(teil)` und `teil_von(modul)`. Ihr Stand wird aus dem Quelltext gelesen.
+- **Aufstellung** (`configs/aufstellungen/<name>.json`, Start mit `aufstellung=<name>`): nennt Schalter und Versionen. Mit `basis` baut sie auf einer anderen auf und muss jede Änderung unter `gruende` begründen, sonst startet sie nicht. Die Befehlszeile gilt vor der Datei. Die Mitschrift nennt jeden Schalter.
+- **Steckplätze** (`aufstellung.Steckplaetze`): Der Lenker holt seine Klassen über `STECK.klasse("name")`. Ohne Eintrag läuft die Klasse von heute. Eine neue Version ist eine eigene Klasse, am einfachsten erbt sie von der alten, und steht in der Aufstellung unter `versionen`. Vor dem Start wird geprüft, ob sie alles anbietet, was die alte kann.
+- **Formationen** (`formation.py`): reine Rechnung, von jedem Einsatz nutzbar. Heute nutzt sie der Vorstoß.
+- **Scaling und Acceleration** sind Regler in der Aufstellung, siehe die beiden Abschnitte der Modulkarte. Neu für die Raids: `sklaven_soll`, `reiter_soll`.
+- **Versionen gegeneinander:** `python -m selfaware.tools.experiments.aufstellung_vergleich --instanz 2 raid_frueh vorstoss_laptop` fährt die Aufstellungen nacheinander und stellt die Kennzahlen nebeneinander. Zusätzlich lässt `eins_gegen_eins` zwei Lenker gegeneinander spielen.
 
 ## Reihenfolge
 
-1. **Bestellung:** Ein Tor für alle 9 Rekrutierstellen, `bestellung=raid` schaltet Angriff und Verteidigung ab.
-2. **Ausweichen:** Zickzack heißt Ausweichen, ist ein Werkzeug für jeden Einsatz und läuft nur, wenn auf die Einheit geschossen wird.
-3. **Aufstellung und Modulkarte:** Schalter in Aufstellungen bündeln, Partien damit starten, zwei Aufstellungen vergleichen.
-4. **Raid als erstes echtes Modul:** Bestellung und Einsatz aus dem Lenker ziehen.
+1. **Bestellung** (B-177, Code fertig): Ein Tor für alle 9 Rekrutierstellen, `bestellung=raid` schaltet Angriff und Verteidigung ab.
+2. **Ausweichen** (B-178, Code fertig): Zickzack heißt Ausweichen, ist ein Werkzeug für jeden Einsatz und läuft nur, wenn auf die Einheit geschossen wird.
+3. **Aufstellung, Modulkarte, Steckplätze, Vergleich** (B-176, Code fertig).
+4. **Raid aus dem Angriffszweig lösen:** Steuerung und Werbung der Raids stehen heute in `phase2` unter `if streitkolben:` und `if feldzug is not None:`. Deshalb muss auch `raid_frueh` `streitkolben=30` setzen. Mit `streitkolben=0` fielen die Raids still aus, und die Partie endete sofort mit „ZIEL 0 erreicht“. Danach Bestellung und Einsatz als ein Modul.
 5. Danach Apfel, Brot, Bier, Waffen, dann Angriff und Verteidigung, je Modul ein eigener Schritt mit Partie.
 6. `assassinen.py` in Raid und Angriff teilen.
 
@@ -58,11 +41,16 @@ Vor jedem Umzug steht hier je Modul, was es heute tut, und der Test dafür. Stan
 | Assassinen brauchen Posten, Gold, Bauern, Abstand | unverändert | Bedingung bleibt |
 | Mit Kern geht jeder Sklaven-Befehl über den Kern | bleibt | `tests/test_brandtrupp.py` |
 | Ausweichen endet beim Angriffsbefehl und bei Freigabe | bleibt | Kern-Tests, `tests/test_brandtrupp.py` |
-| Alte Schalter wie `produktion=ja` | gelten weiter, die Aufstellung setzt nur dieselben Schalter | Test: Aufstellung ergibt genau die Schalterliste |
+| Die lange Befehlszeile des Laptop-Laufs | steckt vollständig in `vorstoss_laptop` | Test gegen die Mitschrift des Laufs |
+| Der Lenker baut 15 Klassen selbst | ohne Aufstellung genau diese 15 | Test mit festen Namen; Test über den Syntaxbaum: kein direkter Bau mehr |
+| Die Code-Kennung sieht alle Dateien | die import-Zeilen bleiben stehen | Test gegen `kennung.python_dateien()` |
+| Die Mitschrift nennt den Startbefehl | ohne Aufstellung wie eingegeben, mit Aufstellung jeder Schalter | Test `startzeile` |
+| Der Vorstoß stellt breit auf | dieselben Felder | Test mit festen Werten, `tests/test_vorstoss.py` |
 
-Absichtlich wegfallen soll in diesen Schritten nichts.
+Absichtlich weggefallen ist in diesen Schritten nichts.
 
 ## Offen
 
-- Sollzahlen der Raids: Sklaven 5, Berittene 3 sind Startwerte, kein Messwert. Sie werden zum Scaling-Regler.
-- Tiefe der Trennung: Schritt 3 bündelt nur Schalter. Echte Steckmodule entstehen ab Schritt 4 Stück für Stück, weil `phase2` je Umzug eine eigene Probe braucht.
+- `raid_frueh` ist noch nicht im Spiel gelaufen.
+- Sollzahlen der Raids: Sklaven 5, Berittene 3 sind Startwerte, kein Messwert. Die Regler sind da, die Zahlen fehlen.
+- Tiefe der Trennung: Schritt 3 macht 15 Klassen austauschbar. Was noch im Lenker steht, zeigt die Modulkarte, und jeder Umzug braucht eine eigene Probe.

@@ -20,6 +20,7 @@ Stop von aussen: Datei var/legacy/STOP anlegen.
 from selfaware import workspace as _workspace
 import json, math, os, re, sys, time
 
+from selfaware.baukasten import aufstellung as AF
 from selfaware.baukasten.bestellung import Bestellung
 from selfaware.game.ucp.laden import lade_stand, befehl, peek
 from selfaware.game.ucp.steuerkarte import laufe, tick, spielzustand
@@ -997,7 +998,10 @@ VORSTOSS = False         # B-172: frueher Vorstoss der Schuetzen (vorstoss.py), 
 VORSTOSS_BIS = 15000     # B-172: bis zu diesem Takt, danach sind die Schuetzen wieder frei (Schalter vorstoss_bis)
 # B-177: Welche Arten von Einheiten duerfen rekrutiert werden? bestellung=raid laesst Angriff und Verteidigung nicht werben
 BESTELLUNG = Bestellung()
-AUSWEICHEN = False         # B-174, B-175: Vorstoss und Brandtrupp laufen im Zickzack ueber den Rust-Kern (Schalter zickzack=ja)
+# B-176: welche Klasse je Modul laeuft (Aufstellung, "versionen"). Die import-Zeilen der heutigen Klassen bleiben stehen: Die Code-Kennung folgt ihnen.
+STECK = AF.Steckplaetze()
+SKLAVEN_SOLL = REITER_SOLL = None   # B-176 Scaling: Schalter sklaven_soll, reiter_soll; ohne Schalter die Startwerte in raids.py
+AUSWEICHEN = False         # B-174, B-178: Vorstoss und Brandtrupp weichen unter Beschuss ueber den Rust-Kern aus (Schalter ausweichen=ja)
 _zickzack_gemeldet = False
 
 
@@ -2070,8 +2074,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     befehl({"halten": False}, 1.0, bis="HALTEN")
     import selfaware.game.ucp.befehl as befehlskanal
     befehlskanal.STRENG = True     # ab hier bricht jeder Modulfehler den Lauf laut ab
-    w = Waechter(SP, posten=plan["lager_mitte"]) if mit_waechter else None
-    trupp = Einzeln(SP, pruefe_begehbar=pruefe_begehbar, wegtest=wegtest) if assassinen else None
+    w = STECK.klasse("waechter")(SP, posten=plan["lager_mitte"]) if mit_waechter else None
+    trupp = STECK.klasse("einzeln")(SP, pruefe_begehbar=pruefe_begehbar, wegtest=wegtest) if assassinen else None
     if trupp is not None and STOPP_TOTE == 0:
         trupp.RESERVE_PARKEN = False     # 19.10.: ohne Todesgrenze nehmen verletzte Assassinen sichere Ziele (assassinen.py)
     if trupp is not None:
@@ -2081,7 +2085,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         trupp.angriff_aus = True
     if trupp is not None:   # S1 (Plan_Lord.md): was tut der Angriff auf den Lord, Runde fuer Runde
         trupp.wellen_protokoll = os.path.join(D, "angriff_live_%s%s.jsonl" % (time.strftime("%Y%m%d_%H%M%S"), LAUF_ENDUNG))
-    wirt = Wirtschaft(plan, SP, baue_schnell, [nr for nr, _, _ in gebaeude_von(SP, 10)])
+    wirt = STECK.klasse("wirtschaft")(plan, SP, baue_schnell, [nr for nr, _, _ in gebaeude_von(SP, 10)])
     if not V14:
         # 12.10. 01:49 (Daniel 01:46 "hier gibt es keinen Grund, das Vorratslager nicht umzuplatzieren"; 1012i: Umzug erst bei
         # 3.801-4.605, Holz verkauft, Holzfaeller standen): FRUEHER Umzug in einem Schritt - raeumen ab sofort (das Startholz
@@ -2125,7 +2129,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         # der Partievergleich laeuft mit; bricht unsere Wirtschaft ein, geht alles auf den Lord (endspurt.py)
         from selfaware.strategy.endspurt import Endspurt
         es = Endspurt(SP, lernlog)
-    ausbau = Ertragsplaner(plan, SP, baue_schnell, wirt, s32(peek(PD + 0x2188)[0]), ende=ZIEL_TICK, protokoll=lernlog, wegtest=wegtest)   # lernt im Spiel (Daniel 19:44)
+    ausbau = STECK.klasse("ertragsplaner")(plan, SP, baue_schnell, wirt, s32(peek(PD + 0x2188)[0]), ende=ZIEL_TICK, protokoll=lernlog, wegtest=wegtest)   # lernt im Spiel (Daniel 19:44)
 
     def gold_bremst(st, G):
         """Es sollen Assassinen her, aber das Gold reicht nicht fuer den naechsten (70 + B-Ruecklage) - oder Gold ist selbst
@@ -2262,18 +2266,22 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         # 19.10. (Daniel 16:57 "Sklaven am Anfang richtig OP ... wenn Feuer erkannt werden kann"): Feuer = fireDuration im
         # Gebaeudedatensatz (gemessen raid_messen.py: Sklave zuendet, das Gebaeude brennt allein ab)
         import selfaware.micro.tasks.raids as RA
-        brand = RA.Brandtrupp(SP, lambda nr: peek(0xF98520 + nr * 0x32C + 0x14 + 702)[0] & 0xFFFF)
-        reiter = RA.Reiterjagd(SP)
+        brand = STECK.klasse("brandtrupp")(SP, lambda nr: peek(0xF98520 + nr * 0x32C + 0x14 + 702)[0] & 0xFFFF)
+        reiter = STECK.klasse("reiterjagd")(SP)
         # B-129 (Daniel 19.10. 23:32 "Bogenschuetzen vor, mit Sklaven abgefackelt, nie lockergelassen"): Schleuderer decken
         # die Sklaven; Knopf deckung_soll (0 = aus)
         RA.DECKUNG_SOLL = DECKUNG_SOLL
-        deckung = RA.Deckung(SP, BERGFRIED)
+        if SKLAVEN_SOLL is not None:
+            RA.SKLAVEN_SOLL = SKLAVEN_SOLL
+        if REITER_SOLL is not None:
+            RA.REITER_SOLL = REITER_SOLL
+        deckung = STECK.klasse("deckung")(SP, BERGFRIED)
         if VORSTOSS:
             from selfaware.micro.tasks.vorstoss import Vorstoss
-            vorstoss = Vorstoss(SP, BERGFRIED, bis=VORSTOSS_BIS)
+            vorstoss = STECK.klasse("vorstoss")(SP, BERGFRIED, bis=VORSTOSS_BIS)
     if weg == "feldzug" and streitkolben:
         from selfaware.micro.tasks.feldzug import Feldzug
-        feldzug = Feldzug(SP, BERGFRIED, LORD_SCHUTZ_BIS, n=streitkolben)
+        feldzug = STECK.klasse("feldzug")(SP, BERGFRIED, LORD_SCHUTZ_BIS, n=streitkolben)
 
         def feldzug_weg(L_, G_, start, ziel):
             """19.10.: Weg mit dem geringsten Beschuss (schussfeld wie bei den Assassinen), letzter Punkt = ziel."""
@@ -2311,7 +2319,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 sperr = [s for s in (getattr(ausbau, "sperr", None) or []) if not (typ == 31 and s in hopfen_sperr)]
                 return [q for q in plaetze_live(typ, kern, r)
                         if not any(q[0] <= s[2] and q[0] + b - 1 >= s[0] and q[1] <= s[3] and q[1] + b - 1 >= s[1] for s in sperr)]
-            bier = Bierkette(SP, lambda typ, x, y, r: baue_schnell(typ, x, y, r, zweck="Bierkette"), bier_plaetze, preis)
+            bier = STECK.klasse("bierkette")(SP, lambda typ, x, y, r: baue_schnell(typ, x, y, r, zweck="Bierkette"), bier_plaetze, preis)
             belegt = [q for _t, q in reserve]
             hopfen = [q for q in plaetze_live(31, BERGFRIED, 80)
                       if all(abs(q[0] - o[0]) >= 10 or abs(q[1] - o[1]) >= 10 for o in belegt)][:bier.RESERVE]
@@ -2340,9 +2348,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     # Lagerteil leer, wird ein Lagerteil angebaut - die Wirtschaft zaehlte nur Holz als unterwegs. Proben:
     # src/selfaware/tools/checks/stillstand_trocken.py (11 Faelle) und stillstand_live.py (22:51 bestanden: Anbau nach 325 Ticks Stillstand)
     import selfaware.macro.brotbau as BB
-    brot_bau = BB.BrotBau(plan.get("brot"), SP, wirt.lager_ort, plan["kornspeicher"],
+    brot_bau = STECK.klasse("brotbau")(plan.get("brot"), SP, wirt.lager_ort, plan["kornspeicher"],
                           lambda typ, x, y, r: baue_schnell(typ, x, y, r, zweck="Brot"), kosten_spiel) if plan.get("brot") else None
-    jagd_bau = BB.JagdBau(plan.get("jaeger"), SP, lambda typ, x, y, r: baue_schnell(typ, x, y, r, zweck="Jagd"),
+    jagd_bau = STECK.klasse("jagdbau")(plan.get("jaeger"), SP, lambda typ, x, y, r: baue_schnell(typ, x, y, r, zweck="Jagd"),
                           kosten_spiel) if plan.get("jaeger") else None
     if jagd_bau is not None:
         # nur EIN Weg zum Jaeger: plant die Nahrungswahl Jaeger, baut der Ertragsplaner/Kausal keine eigenen (Daniel 23:20)
@@ -2587,13 +2595,13 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 if eig_k:
                     import selfaware.macro.kornring as KR
                     feind_k = next(((e["x"], e["y"]) for e in L.values() if e["typ"] == 55 and e["besitzer"] not in (0, SP)), None)
-                    korn = KR.Kornring(min(eig_k, key=lambda q: abs(q[0] - plan["kornspeicher"][0]) + abs(q[1] - plan["kornspeicher"][1])),
+                    korn = STECK.klasse("kornring")(min(eig_k, key=lambda q: abs(q[0] - plan["kornspeicher"][0]) + abs(q[1] - plan["kornspeicher"][1])),
                                        lies_mauer, setze_mauer, setze_grube=setze_grube if GRUBEN else None, feind=feind_k,
                                        # 19.10. (Daniel 16:50): Behelfsgruben auf den Seiten weichen der Mauer, sobald Stein da ist
                                        abreisse=lambda nr: befehl({"abreissen": {"nr": nr}}, 0.8, bis="ABREISSEN"))
                     box_k = KR.kasten(*korn.ort)
                     if GRABEN:
-                        graben = KR.Graben(korn.ort, feind_k, lies_logik, plane_graben, schicke_graeber)
+                        graben = STECK.klasse("graben")(korn.ort, feind_k, lies_logik, plane_graben, schicke_graeber)
                         korn.tor = list(graben.tor)
                         box_k = graben.kasten()          # Speicher bis einschliesslich Grabenring frei halten
                     RESERVIERT.append((box_k, korn.ort))
@@ -2609,7 +2617,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 if fallen is None:
                     import selfaware.micro.tasks.fallenwache as FW
                     FW.GROESSE.update({t_: g_["b"] for t_, g_ in NACH_TYP.items()})
-                    fallen = FW.Fallenwache(SP, setze_grube)
+                    fallen = STECK.klasse("fallenwache")(SP, setze_grube)
                 ereignis += fallen.schritt(st["t"], L, G, st.get("holz", 0))
             if speicher_nachbauen(G, BUCH.offen if BUCH is not None else [], st["t"],
                                   fruehpruefung.get("speicher_nachbau", -10 ** 6)):
@@ -3522,8 +3530,10 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
 
 def main():
     global EINS_GEGEN_EINS, ANHAENGEN, ANGLEICH_TICK      # 19.10. (1v1) - vor jeder Verwendung in main
-    global MENSCH, MENSCH_GEGNER, UEBERNEHMEN
+    global MENSCH, MENSCH_GEGNER, UEBERNEHMEN, STECK
     arg = dict(a.split("=", 1) for a in sys.argv[1:])
+    arg, aufstellung_daten = AF.anwenden(arg)     # B-176: Name einer Aufstellung statt langer Schalterliste
+    STECK = AF.Steckplaetze((aufstellung_daten or {}).get("versionen"))     # passt eine Version nicht, faellt es hier auf, vor dem Start
     MENSCH = arg.get("mensch", "nein") == "ja"
     UEBERNEHMEN = arg.get("uebernehmen", "nein") == "ja"
     MENSCH_GEGNER = arg.get("mensch_gegner", "nein") == "ja" or UEBERNEHMEN
@@ -3541,7 +3551,9 @@ def main():
     schreib(kennung.zeile())
     # Daniel 17.10.: der Laptop musste den Startbefehl von 1017a-g raten (Karte, Gegner, Schalter) - jede Partie nennt ihn
     import subprocess
-    schreib("START-BEFEHL Instanz %d: %s" % (INSTANZ, subprocess.list2cmdline(["uv", "run", "python", "-m", "selfaware.runtime.live.erstes_spiel"] + sys.argv[1:])))
+    schreib("START-BEFEHL Instanz %d: %s" % (INSTANZ, subprocess.list2cmdline(["uv", "run", "python", "-m", "selfaware.runtime.live.erstes_spiel"] + AF.startzeile(sys.argv[1:], arg, aufstellung_daten))))
+    if aufstellung_daten:
+        schreib("AUFSTELLUNG %s, Version %s: %s Module: %s" % (aufstellung_daten["name"], aufstellung_daten.get("version"), aufstellung_daten.get("beschreibung"), STECK))
     # Plan je Startstand (Daniel 05.10. 18:55: erst schauen, wo der Bergfried steht) - karten_holen.py + eroeffnung.py start=...
     # Karte frei waehlbar (Daniel 11.10. 23:05 "ja beides"): eine unbekannte Karte wird einmal in einem EIGENEN Gefecht
     # vermessen (karten_holen.vermessen), der Eroeffnungsplan je Karte gerechnet (eroeffnung.plane) - die Partie selbst
@@ -3709,6 +3721,9 @@ def main():
     global STEIN_FRUEH, DECKUNG_SOLL, HEER_ANTEIL
     HEER_ANTEIL = float(arg.get("heer_anteil", HEER_ANTEIL))
     DECKUNG_SOLL = int(arg.get("deckung_soll", DECKUNG_SOLL))
+    global SKLAVEN_SOLL, REITER_SOLL
+    SKLAVEN_SOLL = int(arg["sklaven_soll"]) if "sklaven_soll" in arg else None
+    REITER_SOLL = int(arg["reiter_soll"]) if "reiter_soll" in arg else None
     global VORSTOSS, VORSTOSS_BIS, AUSWEICHEN, BESTELLUNG
     BESTELLUNG = Bestellung(arg.get("bestellung", "alle"))
     schreib("BESTELLUNG: %s" % BESTELLUNG)

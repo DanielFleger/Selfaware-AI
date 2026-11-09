@@ -31,6 +31,7 @@ breit). Jeden anderen Befehl gibt der Vorstoss vorher frei, damit nie zwei Stell
 
 import collections
 
+from selfaware.baukasten import formation
 from selfaware.baukasten.ausweichen import Schussfeld
 
 SCHUETZEN = {22, 23, 70}
@@ -165,31 +166,21 @@ class Vorstoss:
         """(Einheiten, Ziel, Trupp) je Platz: nebeneinander quer zum Weg, hintereinander in Reihen, mit LUECKE Feldern Abstand. Die Plaetze
         bleiben, solange die Gruppe dieselbe ist: Der Kern merkt sich je Trupp den Ort, eine Einheit im falschen Trupp liefe quer durch die Gruppe."""
         mitte = _mitte(self.lage, nummern)
-        dx, dy = ziel[0] - mitte[0], ziel[1] - mitte[1]
-        x_haupt = abs(dx) >= abs(dy)
-        vor = (1 if dx >= 0 else -1) if x_haupt else (1 if dy >= 0 else -1)
         n = min(len(nummern), self.plaetze)
         if n == 0:
             return []
         if set(self.platz) != set(nummern) or len(set(self.platz.values())) != n:
-            quer = "y" if x_haupt else "x"
+            quer = formation.querachse(mitte, ziel)
             geordnet = sorted(nummern, key=lambda k: (self.lage[k][quer], k))
             self.platz = {k: i * n // len(geordnet) for i, k in enumerate(geordnet)}
-        reihen = (n + SPALTEN - 1) // SPALTEN
-        spalten = (n + reihen - 1) // reihen
-        aus = []
-        for p in range(n):
-            q = (2 * (p // reihen) - (spalten - 1)) * LUECKE // 2
-            h = -(p % reihen) * LUECKE * vor
-            x, y = (ziel[0] + h, ziel[1] + q) if x_haupt else (ziel[0] + q, ziel[1] + h)
-            aus.append(
-                (
-                    sorted(k for k, v in self.platz.items() if v == p),
-                    (max(0, min(KARTE, x)), max(0, min(KARTE, y))),
-                    p + 1,
-                )
+        return [
+            (
+                sorted(k for k, v in self.platz.items() if v == p),
+                (max(0, min(KARTE, x)), max(0, min(KARTE, y))),
+                p + 1,
             )
-        return aus
+            for p, (x, y) in enumerate(formation.breit(mitte, ziel, n, LUECKE, SPALTEN))
+        ]
 
     def _frei(self, nummern):
         if self.kern is not None and nummern:

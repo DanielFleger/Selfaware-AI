@@ -22,6 +22,8 @@ connector fix is implied by moving a file.
 | `src/selfaware/telemetry/` | `lageprotokoll`, `partie_vergleich`, `ablaufanalyse`, `gold_bilanz`, transitive code fingerprint |
 | `src/selfaware/tools/{setup,analysis,checks,experiments,planning}/` | Existing command-line utilities; live probes and measurement setups are separate from analysis |
 | `src/selfaware/{domain,coordination,runtime,game}/` | Immutable contracts, deterministic allocator, engine lifecycle/loop, replay adapter |
+| `src/selfaware/baukasten/` | Module map, line-ups, plug slots, recruiting gate and shared tools such as dodging and formations; plan in `docs/plans/Plan_Baukasten.md` |
+| `configs/aufstellungen/` | Versioned line-ups: `aufstellung=<name>` sets the switches and module versions of a match |
 | `crates/samurai-kern/` | Existing B-115 Rust DLL, C ABI exports and explicit 32-bit Windows build |
 | `tools/windows/` | PowerShell window/process helpers |
 | `tools/research/` | AIV decoder client and Ghidra extraction script |

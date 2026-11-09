@@ -16,3 +16,10 @@ state; every process controlling the same game must use the same directory.
 
 TOML diagnostic settings do not retarget the existing sender. See the
 [repository map](../docs/ORGANIZATION.md) for launches and state migration.
+
+## Line-ups (`aufstellungen/`)
+
+A line-up names the switches and module versions of a match: `python -m selfaware.runtime.live.erstes_spiel aufstellung=raid_frueh`.
+Command-line switches win over the file. With `basis`, a line-up builds on another one and must give a reason in `gruende` for each change.
+A new module version goes under `versionen`, for example `"brandtrupp": "selfaware.paket.modul:Klasse"`, and is checked before the match starts.
+See `docs/plans/Plan_Baukasten.md` and `docs/plans/Modulkarte.md`.
