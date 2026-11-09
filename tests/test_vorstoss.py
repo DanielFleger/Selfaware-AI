@@ -31,10 +31,10 @@ def _lauf(L, G=None, t=500, v=None):
 
 class Kern:
     def __init__(self, geht=True):
-        self.zick, self.frei, self.auf, self.geht = [], [], [], geht
+        self.ausweichend, self.frei, self.auf, self.geht = [], [], [], geht
 
-    def zickzack(self, einheiten, ziel, trupp=1):
-        self.zick.append((einheiten, tuple(ziel), trupp))
+    def ausweichen(self, einheiten, ziel, trupp=1):
+        self.ausweichend.append((einheiten, tuple(ziel), trupp))
         return self.geht
 
     def freigeben(self, einheiten):
@@ -145,13 +145,24 @@ def test_arbeiter_ohne_deckung_geht_vor_dem_gedeckten():
     assert b[0]["lauf"][1] > 100 and b[0]["lauf"][0] == 100 and "Ziel (100, 200)" in aus[0]
 
 
+def test_ohne_beschuss_rueckt_der_vorstoss_gerade_vor():
+    k = Kern()
+    L = _L(_e(1, 22, 100, 100), _e(2, 3, 200, 100))
+    _, b, _ = _lauf(L, v=V.Vorstoss(1, HEIM, kern=k))
+    assert k.ausweichend == [] and k.frei == [[1]] and b[0]["lauf"][0] == 100 + V.SCHRITT
+
+
 def test_zickzack_fuehrt_der_kern_und_das_modul_bekommt_nichts():
     k = Kern()
     L = _L(_e(1, 22, 100, 100), _e(1, 22, 100, 101), _e(2, 3, 200, 100))
-    v, b, aus = _lauf(L, v=V.Vorstoss(1, HEIM, kern=k))
+    for n in L:
+        L[n]["leben"] = 10000
+    v0 = V.Vorstoss(1, HEIM, kern=k)
+    v0.schuss.leben = {1: 12000, 2: 12000}  # beide haben gerade Leben verloren
+    v, b, aus = _lauf(L, v=v0)
     assert b == [] and k.frei == [] and k.auf == [{1, 2}]
     x = 100 + V.SCHRITT
-    assert k.zick == [
+    assert k.ausweichend == [
         ([1], (x, 97), 1),
         ([2], (x, 102), 2),
     ]  # quer zum Weg, LUECKE Felder auseinander
@@ -210,10 +221,11 @@ def test_der_brandtrupp_nimmt_dem_vorstoss_plaetze_weg():
 def test_ohne_freien_platz_laeuft_der_vorstoss_gerade_ueber_das_modul():
     k = Kern()
     v = V.Vorstoss(1, HEIM, kern=k)
+    v.schuss.leben = {1: 12000}
     v.plaetze_setzen(8)
     L = _L(_e(1, 22, 100, 100), _e(2, 3, 200, 100))
     _, b, _ = _lauf(L, v=v)
-    assert k.zick == [] and k.frei == [[1]] and b[0]["lauf"][0] == 100 + V.SCHRITT
+    assert k.ausweichend == [] and k.frei == [[1]] and b[0]["lauf"][0] == 100 + V.SCHRITT
 
 
 def test_abziehen_laeuft_im_zickzack():
@@ -221,23 +233,25 @@ def test_abziehen_laeuft_im_zickzack():
     fern = [_e(2, 23, 132, 100 + i) for i in range(4)]
     L = _L(_e(1, 22, 100, 100), _e(1, 22, 100, 101), _e(1, 22, 100, 102), *fern)
     _, b, aus = _lauf(L, v=V.Vorstoss(1, HEIM, kern=k))
-    assert b == [] and k.zick[0][1][0] < 100 and "Schussfeld" in aus[0]
+    assert b == [] and k.ausweichend[0][1][0] < 100 and "Schussfeld" in aus[0]
 
 
 def test_schiessen_und_weichen_gibt_der_kern_vorher_her():
     k = Kern()
     _, b, _ = _lauf(_L(_e(1, 22, 100, 100), _e(2, 3, 110, 100)), v=V.Vorstoss(1, HEIM, kern=k))
-    assert k.zick == [] and k.frei == [[1]] and b == [{"einheiten": [1], "ziel": 2}]
+    assert k.ausweichend == [] and k.frei == [[1]] and b == [{"einheiten": [1], "ziel": 2}]
     k = Kern()
     _, b, _ = _lauf(_L(_e(1, 22, 100, 100), _e(2, 26, 105, 100)), v=V.Vorstoss(1, HEIM, kern=k))
-    assert k.zick == [] and k.frei == [[1]] and b[0]["lauf"][0] < 100
+    assert k.ausweichend == [] and k.frei == [[1]] and b[0]["lauf"][0] < 100
 
 
 def test_voller_ring_laesst_das_modul_gerade_laufen():
     k = Kern(geht=False)
     L = _L(_e(1, 22, 100, 100), _e(2, 3, 200, 100))
-    _, b, _ = _lauf(L, v=V.Vorstoss(1, HEIM, kern=k))
-    assert len(k.zick) == 1 and k.frei == [[1]] and b[0]["lauf"][0] == 100 + V.SCHRITT
+    v0 = V.Vorstoss(1, HEIM, kern=k)
+    v0.schuss.leben = {1: 12000}
+    _, b, _ = _lauf(L, v=v0)
+    assert len(k.ausweichend) == 1 and k.frei == [[1]] and b[0]["lauf"][0] == 100 + V.SCHRITT
 
 
 def test_alarm_und_ende_geben_die_einheiten_beim_kern_frei():
@@ -247,12 +261,12 @@ def test_alarm_und_ende_geben_die_einheiten_beim_kern_frei():
     v.schritt(500, _L(_e(1, 22, 150, 150), _e(2, 3, 300, 150)), {}, b)
     feinde = [_e(2, 24, 110, 100 + i) for i in range(V.ALARM_N)]
     v.schritt(600, _L(_e(1, 22, 150, 150), *feinde), {}, b)
-    assert k.frei == [[1]] and v.mitglieder == set()
+    assert k.frei[-1] == [1] and v.mitglieder == set()
     k = Kern()
     v = V.Vorstoss(1, HEIM, bis=1000, kern=k)
     v.schritt(500, _L(_e(1, 22, 100, 100), _e(2, 3, 300, 100)), {}, b)
     v.schritt(1000, _L(_e(1, 22, 100, 100), _e(2, 3, 300, 100)), {}, b)
-    assert k.frei == [[1]]
+    assert k.frei[-1] == [1] and v.mitglieder == set()
 
 
 def test_ziel_ohne_schaden_wird_aufgegeben():

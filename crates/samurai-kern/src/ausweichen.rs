@@ -16,7 +16,7 @@ use std::collections::{BTreeMap, BTreeSet, HashSet};
 use crate::haende::WIRK_TAKTE;
 
 /// Auftragsring: Einheit `nr` gehoert zum Trupp mit der Nummer im Feld "vorrang" und laeuft im Zickzack nach (a, b)
-pub const ZICKZACK: i32 = 30;
+pub const AUSWEICHEN: i32 = 30;
 /// Waechter gegen Festlaufen, kein Messwert: Kommt der Trupp so lange nicht zum naechsten Wegpunkt, setzt er von seiner Mitte
 /// neu an. Dieselbe Frist wie fuer die Wirkung eines Befehls, das sind drei Felder bei 12 Takten je Feld.
 pub const FEST_TAKTE: i32 = WIRK_TAKTE;

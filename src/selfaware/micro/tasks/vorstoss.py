@@ -22,14 +22,16 @@ Je Runde, in dieser Reihenfolge:
            liegt; gibt es keinen, vor das naechste Gebaeude.
 Alle Grenzen sind Startwerte (Plan_Gehirn 5.6), keine Messwerte. Schalter vorstoss=ja, aus ist der Standard.
 
-Schalter zickzack=ja (B-174, aus ist der Standard): Vorruecken und Abziehen fuehrt der Rust-Kern im Zickzack, damit Pfeile
-daneben gehen. Dicht aufgestellt faengt der Nachbar den verfehlten Pfeil, darum laeuft die Gruppe breit: bis zu TRUPPS Plaetze
+Schalter ausweichen=ja (B-174, B-178, aus ist der Standard): Unter Beschuss fuehrt der Rust-Kern Vorruecken und Abziehen im Zickzack,
+damit Pfeile daneben gehen. Dicht aufgestellt faengt der Nachbar den verfehlten Pfeil, darum laeuft die Gruppe breit: bis zu TRUPPS Plaetze
 mit LUECKE Feldern Abstand, jeder Platz sein eigener Trupp beim Kern (gemessen im Gefecht, data/research/auge_plan/
 zickzack_20261108/Ergebnis_Zickzack.md: ab 12 Feldern 87 % Treffer gerade, 38 bis 61 % im Zickzack dicht, 4,5 % im Zickzack
 breit). Jeden anderen Befehl gibt der Vorstoss vorher frei, damit nie zwei Stellen dieselbe Einheit fuehren.
 """
 
 import collections
+
+from selfaware.baukasten.ausweichen import Schussfeld
 
 SCHUETZEN = {22, 23, 70}
 # ohne Sklaven: die verfolgen, tun Schuetzen aber kaum etwas
@@ -55,7 +57,7 @@ STUR_SPERRE = 30
 NEU_ALLE = 4  # Runden zwischen zwei gleichen Befehlen: jeder neue Befehl startet die Wegsuche neu
 KARTE = 399
 # Laeufe unter Pfeilen, die der Kern im Zickzack fuehrt. Weichen vor Nahkaempfern bleibt gerade: Dort geht es um jedes Feld.
-IM_ZICKZACK = {"vor", "abziehen"}
+AUSWEICHEN_BEI = {"vor", "abziehen"}
 LUECKE = 5  # Gefahrenkarte zickzack_abstand.txt: quer zur Schussrichtung bei 2 und 3 Feldern bis 23 %, ab 5 Feldern unter 2 %
 TRUPPS = 8  # Einzelbefehle je Feld, die im Lauf zickzack2_g alle rechtzeitig kamen; ein neunter daneben kam in 18 % statt 6 % der Faelle zu spaet
 SPALTEN = 4  # 8 Plaetze in 2 Reihen, so gemessen
@@ -106,6 +108,7 @@ class Vorstoss:
             TRUPPS  # so viele Plaetze darf der Vorstoss gerade belegen (der Brandtrupp geht vor)
         )
         self.lage = {}
+        self.schuss = Schussfeld(sp)  # B-178: Vorruecken nur unter Beschuss im Zickzack
         self.mitglieder = set()
         self.runde = 0
         self.letzter = {}  # Art des Befehls -> (Inhalt, Runde)
@@ -139,18 +142,21 @@ class Vorstoss:
         alt = self.letzter.get(art)
         if alt is not None and alt[0] == inhalt and self.runde - alt[1] < NEU_ALLE:
             return False
-        if not self._im_zickzack(art, nummern, auftrag):
+        if not self._im_ausweichen(art, nummern, auftrag):
             befehl({"angriff": dict(einheiten=sorted(nummern), **auftrag)}, 1.0, bis="ANGRIFF")
         self.letzter[art] = (inhalt, self.runde)
         self.befehle[art] += 1
         return True
 
-    def _im_zickzack(self, art, nummern, auftrag):
+    def _im_ausweichen(self, art, nummern, auftrag):
         """True, wenn der Kern diesen Lauf im Zickzack fuehrt. Sonst fuehrt das Modul, und der Kern gibt die Einheiten vorher her."""
         if self.kern is None:
             return False
-        plan = self._aufstellung(nummern, auftrag["lauf"]) if art in IM_ZICKZACK else []
-        if plan and all([self.kern.zickzack(e, z, t) for e, z, t in plan]):
+        feuer = art == "abziehen" or any(self.schuss.unter_feuer(n, self.lage[n]) for n in nummern)
+        plan = (
+            self._aufstellung(nummern, auftrag["lauf"]) if art in AUSWEICHEN_BEI and feuer else []
+        )
+        if plan and all([self.kern.ausweichen(e, z, t) for e, z, t in plan]):
             return True
         self._frei(nummern)
         return False
@@ -252,6 +258,7 @@ class Vorstoss:
     def schritt(self, t, L, G, befehl):
         self.runde += 1
         self.lage = L
+        self.schuss.neue_runde(L, G)
         aus = []
         if t >= self.bis:
             if self.mitglieder:

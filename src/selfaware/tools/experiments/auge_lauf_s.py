@@ -4445,12 +4445,12 @@ def zickzack_gruppe(l, muster=("gerade", "zickzack")):
             ):  # jede Einheit ist ihr eigener Trupp und haelt so ihren Platz
                 return all(
                     [
-                        weg.zickzack([nr], (ziel[0] + p[0], ziel[1] + p[1]), b["trupp"] * 100 + j)
+                        weg.ausweichen([nr], (ziel[0] + p[0], ziel[1] + p[1]), b["trupp"] * 100 + j)
                         for j, (nr, p) in enumerate(zip(nummern, b["plaetze"]))
                     ]
                 )
             if b["muster"] == "zickzack":
-                return weg.zickzack(nummern, ziel, b["trupp"])
+                return weg.ausweichen(nummern, ziel, b["trupp"])
             return not weg.senden([{"angriff": {"einheiten": nummern, "lauf": list(ziel)}}])
 
         k.liste(
@@ -4728,7 +4728,7 @@ def brand_probe(l):
                     verlauf.append({"takt": t, "bahn": b["name"], "ereignis": z})
         for b in bahnen:
             if b["trupp"].kern is not None:
-                b["trupp"].kern.freigeben(sorted(b["trupp"].zick))
+                b["trupp"].kern.freigeben(sorted(b["trupp"].ausweichend))
         print(
             json.dumps(
                 {

@@ -10,7 +10,7 @@
 //! S4a: Leitung - Weltbild jeden neuen Takt in einen benannten gemeinsamen Speicher fuer Python (leitung.rs).
 //! S4b: Auftragsring - Python schreibt Auftraege in denselben Speicher, der Kern arbeitet sie im naechsten Takt ab.
 //! Beschusswache: eigene Kaempfer, die stehen und Leben verlieren, werden im Takt gemeldet (beschuss.rs) - Auge, kein Verhalten.
-//! Zickzack (B-174): Trupps wechseln je Feld die Richtung und weichen so Pfeilen aus (zickzack.rs), Auftrag kommt ueber den Ring.
+//! Zickzack (B-174): Trupps wechseln je Feld die Richtung und weichen so Pfeilen aus (ausweichen.rs), Auftrag kommt ueber den Ring.
 
 mod beschuss;
 mod feuer;
@@ -19,7 +19,7 @@ mod leitung;
 mod waechter;
 mod wege;
 mod welt;
-mod zickzack;
+mod ausweichen;
 
 use std::fs::OpenOptions;
 use std::io::Write;
@@ -32,7 +32,7 @@ use haende::{Anspruch, Auftrag, Blick, Buch};
 use waechter::{Ereignis, Waechter};
 use welt::Welt;
 
-pub const VERSION: u32 = 23;
+pub const VERSION: u32 = 24;
 
 /// DAT_UnitsState 0x01387F38: +0 maxUnitCount; Einheiten-Array ab +0x614 = 0x0138854C, je Einheit 1.168 Byte, 2.500 Plaetze
 const UNITS_STATE: usize = 0x0138_7F38;
@@ -96,7 +96,7 @@ struct Zustand {
     /// P5: Takt des letzten Gruppenbefehls vom Kern (logik.lua darf in diesem Takt keinen eigenen absetzen)
     sendetakt: i32,
     /// B-174: Trupps im Zickzack
-    zickzack: zickzack::Schwarm,
+    ausweichen: ausweichen::Schwarm,
     m: Messung,
 }
 
@@ -111,7 +111,7 @@ static ZUSTAND: Mutex<Zustand> = Mutex::new(Zustand {
     letzte_zeile: -1,
     letzter_takt: None,
     sendetakt: -1,
-    zickzack: zickzack::Schwarm::neu(),
+    ausweichen: ausweichen::Schwarm::neu(),
     m: Messung::neu(),
 });
 
@@ -217,7 +217,7 @@ fn haende_takt(z: &mut Zustand, tick: i32) {
     };
     match haende::absetzen(a, &einheiten, platz) {
         Ok((gruppe, gewaehlt)) => {
-            if !(a.art == haende::LAUF && z.zickzack.ist_wegpunkt((a.a, a.b))) {
+            if !(a.art == haende::LAUF && z.ausweichen.ist_wegpunkt((a.a, a.b))) {
                 schreibe(&format!("haende tick {}: Gruppe {}, {} von {} Einheiten von Spieler {}, Auftrag {:?}, Vorrang {} - abgesetzt",
                                   tick, gruppe, gewaehlt.len(), einheiten.len(), platz, a, abgabe.vorrang));
             }
@@ -350,19 +350,19 @@ fn ring_abarbeiten(z: &mut Zustand, tick: i32) {
             }
             2 => {
                 buch.freigeben(nr);
-                z.zickzack.entfernen(nr);
+                z.ausweichen.entfernen(nr);
                 1
             }
-            zickzack::ZICKZACK => match buch.eigene.get(&nr) {
+            ausweichen::AUSWEICHEN => match buch.eigene.get(&nr) {
                 None => haende::ERG_NICHT_UEBERNOMMEN,
                 Some(&besitzer) if besitzer != 0 && auftraggeber != 0 && besitzer != auftraggeber => haende::ERG_FREMD,
                 Some(_) => {
-                    z.zickzack.annehmen(vorrang, nr, (a, b), auftraggeber);
+                    z.ausweichen.annehmen(vorrang, nr, (a, b), auftraggeber);
                     haende::ERG_ANGENOMMEN
                 }
             },
             _ => {
-                z.zickzack.entfernen(nr);
+                z.ausweichen.entfernen(nr);
                 let untaetig = z.welt.einheiten.iter().find(|e| e.nr == nr).is_none_or(|e| matches!(e.zustand, 0 | 1));
                 let anspruch = Anspruch { vorrang, frist, auftraggeber, ring: Some(i) };
                 buch.auftrag_mit(nr, Auftrag { art, a, b }, untaetig, anspruch, tick).ergebnis()
@@ -377,15 +377,15 @@ fn ring_abarbeiten(z: &mut Zustand, tick: i32) {
 
 /// B-174: Trupps, die ihren naechsten Wegpunkt brauchen, bekommen ihn als eiligen Laufauftrag: Das Spiel liest ihn erst in der
 /// Feldmitte, ein Befehl, der zu spaet kommt, kostet den Wechsel auf diesem Feld.
-fn zickzack_takt(z: &mut Zustand, tick: i32) {
-    if z.zickzack.leer() {
+fn ausweichen_takt(z: &mut Zustand, tick: i32) {
+    if z.ausweichen.leer() {
         return;
     }
     let buch = z.buch.get_or_insert_with(Buch::default);
     let welt = &z.welt;
-    let schritte = z.zickzack.takt(tick,
+    let schritte = z.ausweichen.takt(tick,
         |nr| welt.einheiten.iter().find(|e| e.nr == nr)
-            .map(|e| zickzack::Stand { x: e.x, y: e.y, planx: e.planx as i32, plany: e.plany as i32 }),
+            .map(|e| ausweichen::Stand { x: e.x, y: e.y, planx: e.planx as i32, plany: e.plany as i32 }),
         wege::laufziel_ok);
     for s in schritte {
         let eilig = Anspruch { vorrang: haende::VORRANG_FLUCHT, auftraggeber: s.auftraggeber, ..Anspruch::default() };
@@ -448,7 +448,7 @@ fn takt(tick: i32, spieler: i32) -> i32 {
             beschuss_takt(&mut z, tick);
             feuer_takt(&mut z, tick);
             ring_abarbeiten(&mut z, tick);
-            zickzack_takt(&mut z, tick);
+            ausweichen_takt(&mut z, tick);
             haende_takt(&mut z, tick);
             leitung_schreiben(&mut z, tick);
         }
@@ -459,7 +459,7 @@ fn takt(tick: i32, spieler: i32) -> i32 {
             z.letzter_takt = Some(start);
             z.letzte_zeile = -1;
             z.welt.epoche();
-            z.zickzack.leeren();
+            z.ausweichen.leeren();
             if let Some(w) = z.beschuss.as_mut() {
                 w.leeren();
             }
@@ -488,9 +488,9 @@ fn takt(tick: i32, spieler: i32) -> i32 {
             m.kern_ns_max as f64 / 1000.0, m.takte, je_takt(m.takt_ns) / 1000.0, je_takt(m.welt_ns), je_takt(m.karte_ns),
             z.welt.einheiten.len(), z.welt.gebaeude.len(), z.welt.einheiten_max,
             z.buch.as_ref().map_or(0, |b| b.eigene.len()), z.buch.as_ref().map_or(0, |b| b.offen_zahl())));
-        if z.zickzack.befehle > 0 || !z.zickzack.leer() {
-            schreibe(&format!("zickzack tick {}: {} Trupps, Wegpunkte {}, am Ziel {}, festgelaufen {}", tick, z.zickzack.zahl(),
-                              z.zickzack.befehle, z.zickzack.fertig, z.zickzack.fest));
+        if z.ausweichen.befehle > 0 || !z.ausweichen.leer() {
+            schreibe(&format!("ausweichen tick {}: {} Trupps, Wegpunkte {}, am Ziel {}, festgelaufen {}", tick, z.ausweichen.zahl(),
+                              z.ausweichen.befehle, z.ausweichen.fertig, z.ausweichen.fest));
         }
         z.m = Messung::neu();
     }

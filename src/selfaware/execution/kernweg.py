@@ -71,14 +71,14 @@ class Kernweg:
             ring = self.leitung.auftrag(art, nr, a, b, vorrang, frist, self.auftraggeber)
             self.offen[ring] = art
 
-    def zickzack(self, einheiten, ziel, trupp=1):
+    def ausweichen(self, einheiten, ziel, trupp=1):
         """B-174: Die Einheiten laufen als ein Trupp im Zickzack nach ziel; ein neues Ziel geht ohne Bruch weiter. False, wenn
         der Ring voll ist: Dann bleibt der Befehl beim Modul."""
         try:
             self._uebergeben(einheiten)
             for nr in einheiten:
                 self.leitung.auftrag(
-                    KL.ZICKZACK, nr, int(ziel[0]), int(ziel[1]), trupp, 0, self.auftraggeber
+                    KL.AUSWEICHEN, nr, int(ziel[0]), int(ziel[1]), trupp, 0, self.auftraggeber
                 )
         except RuntimeError:
             self.stand["ring voll"] += 1

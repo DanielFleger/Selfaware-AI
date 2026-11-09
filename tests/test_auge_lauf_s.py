@@ -2776,10 +2776,10 @@ def test_zickzack_g_fuehrt_zwei_gruppen_ueber_den_kern(tmp_path, monkeypatch, ca
 
     class Kern:
         def __init__(self):
-            self.zick, self.gerade, self.frei = [], [], []
+            self.ausweichend, self.gerade, self.frei = [], [], []
 
-        def zickzack(self, e, z, trupp=1):
-            self.zick.append((list(e), tuple(z), trupp))
+        def ausweichen(self, e, z, trupp=1):
+            self.ausweichend.append((list(e), tuple(z), trupp))
             return True
 
         def senden(self, liste):
@@ -2804,7 +2804,7 @@ def test_zickzack_g_fuehrt_zwei_gruppen_ueber_den_kern(tmp_path, monkeypatch, ca
     assert len(ziele) == 2 * ls.ZICK_GRUPPE and all(
         c["player"] == 2 and len(c["angriff"]["einheiten"]) == 1 for c in ziele
     )
-    assert len(kern.zick) == 1 and len(kern.zick[0][0]) == ls.ZICK_GRUPPE
+    assert len(kern.ausweichend) == 1 and len(kern.ausweichend[0][0]) == ls.ZICK_GRUPPE
     assert len(kern.gerade) == 1 and len(kern.gerade[0]["angriff"]["einheiten"]) == ls.ZICK_GRUPPE
     assert not [c for c in log if c.get("angriff", {}).get("lauf")]  # kein Lauf am Kern vorbei
     assert len(kern.frei) == 2
@@ -2823,10 +2823,10 @@ def test_zickzack2_g_stellt_die_breite_bahn_einzeln_und_mit_luecken_auf(
 
     class Kern:
         def __init__(self):
-            self.zick = []
+            self.ausweichend = []
 
-        def zickzack(self, e, z, trupp=1):
-            self.zick.append((list(e), tuple(z), trupp))
+        def ausweichen(self, e, z, trupp=1):
+            self.ausweichend.append((list(e), tuple(z), trupp))
             return True
 
         def senden(self, liste):
@@ -2843,7 +2843,7 @@ def test_zickzack2_g_stellt_die_breite_bahn_einzeln_und_mit_luecken_auf(
     monkeypatch.setattr(ls, "AUSWEICH_TAKTE", 30)
     e = ls.SZENEN["zickzack2_g"](lauf_von(Spiel(tmp_path)))
     assert e["kein_platz"] == []
-    einzeln = [z for z in kern.zick if len(z[0]) == 1]
+    einzeln = [z for z in kern.ausweichend if len(z[0]) == 1]
     assert len(einzeln) == ls.ZICK_GRUPPE and len({z[2] for z in einzeln}) == ls.ZICK_GRUPPE
     ziele = sorted(z[1] for z in einzeln)
     assert (
@@ -2861,10 +2861,10 @@ def test_vorstoss_g_fuehrt_die_echte_klasse_ueber_den_kern(tmp_path, monkeypatch
 
     class Kern:
         def __init__(self):
-            self.zick, self.frei, self.auf = [], [], []
+            self.ausweichend, self.frei, self.auf = [], [], []
 
-        def zickzack(self, e, z, trupp=1):
-            self.zick.append((list(e), tuple(z), trupp))
+        def ausweichen(self, e, z, trupp=1):
+            self.ausweichend.append((list(e), tuple(z), trupp))
             return True
 
         def freigeben(self, e):
@@ -2879,6 +2879,11 @@ def test_vorstoss_g_fuehrt_die_echte_klasse_ueber_den_kern(tmp_path, monkeypatch
     kern = Kern()
     monkeypatch.setattr(KW, "oeffnen", lambda *a, **k: kern)
     monkeypatch.setattr(ls, "VORSTOSS_TAKTE", 200)
+    from selfaware.baukasten.ausweichen import Schussfeld
+
+    monkeypatch.setattr(
+        Schussfeld, "unter_feuer", lambda self, nr, e: True
+    )  # die Attrappe hat keine Feinde
     monkeypatch.setattr(ls, "VORSTOSS_EINZELNER", 10**6)
     monkeypatch.setattr(ls, "VORSTOSS_UEBERZAHL", 10**6)
     # Die Attrappe toetet nach toeteAlle auch spaeter gesetzte Einheiten; das Spiel nur die, die schon stehen
@@ -2889,7 +2894,7 @@ def test_vorstoss_g_fuehrt_die_echte_klasse_ueber_den_kern(tmp_path, monkeypatch
     e = ls.SZENEN["vorstoss_g"](lauf_von(g))
     assert e["kein_platz"] == []
     assert geraeumt == [1]  # Lauf 23:28: Start-Bogenschuetzen zaehlten sonst zur Gruppe
-    assert len(kern.zick) >= 6 and {z[2] for z in kern.zick} == set(range(1, 7))
+    assert len(kern.ausweichend) >= 6 and {z[2] for z in kern.ausweichend} == set(range(1, 7))
     aus = [
         json.loads(z)
         for z in capsys.readouterr().out.splitlines()
@@ -2903,10 +2908,10 @@ def test_brand_g_fuehrt_die_zickzack_bahnen_ueber_den_kern(tmp_path, monkeypatch
 
     class Kern:
         def __init__(self):
-            self.zick, self.frei, self.gerade = [], [], []
+            self.ausweichend, self.frei, self.gerade = [], [], []
 
-        def zickzack(self, e, z, trupp=1):
-            self.zick.append((list(e), tuple(z), trupp))
+        def ausweichen(self, e, z, trupp=1):
+            self.ausweichend.append((list(e), tuple(z), trupp))
             return True
 
         def senden(self, liste):
@@ -2930,6 +2935,11 @@ def test_brand_g_fuehrt_die_zickzack_bahnen_ueber_den_kern(tmp_path, monkeypatch
 
     monkeypatch.setattr(KW, "oeffnen", oeffnen)
     monkeypatch.setattr(ls, "BRAND_TAKTE", 150)
+    from selfaware.baukasten.ausweichen import Schussfeld
+
+    monkeypatch.setattr(
+        Schussfeld, "unter_feuer", lambda self, nr, e: True
+    )  # die Attrappe hat keine Feinde
     monkeypatch.setattr(ls, "starttruppen_abwarten", lambda l: None)
     monkeypatch.setattr(ls, "abraeumen", lambda *a, **k: 0)
     g = Spiel(tmp_path)
@@ -2939,7 +2949,7 @@ def test_brand_g_fuehrt_die_zickzack_bahnen_ueber_den_kern(tmp_path, monkeypatch
     assert not [c for c in log if c.get("angriff", {}).get("gebaeude")]  # nie ueber das Modul
     assert len([b for k in kerne for b in k.gerade]) == 2 * ls.BRAND_SKLAVEN
     # zwei Bahnen im Zickzack ueber den Kern, jeder Sklave ein eigener Trupp
-    zick = [z for k in kerne for z in k.zick]
+    zick = [z for k in kerne for z in k.ausweichend]
     assert len(zick) == 2 * ls.BRAND_SKLAVEN and len({z[2] for z in zick}) == 2 * ls.BRAND_SKLAVEN
     assert not [c for c in log if c.get("angriff", {}).get("lauf")]
     aus = [

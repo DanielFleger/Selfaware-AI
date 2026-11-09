@@ -34,23 +34,23 @@ class FalscherRing:
 def test_zickzack_uebergibt_zuerst_und_nennt_den_trupp():
     ring = FalscherRing()
     k = KW.Kernweg(ring, auftraggeber=KW.VORSTOSS)
-    assert k.zickzack([5, 6], (50, 60), trupp=3)
+    assert k.ausweichen([5, 6], (50, 60), trupp=3)
     assert ring.liste == [
         (KL.UEBERNEHMEN, 5, KW.VORSTOSS, 0, 0, 0, 0),
         (KL.UEBERNEHMEN, 6, KW.VORSTOSS, 0, 0, 0, 0),
-        (KL.ZICKZACK, 5, 50, 60, 3, 0, KW.VORSTOSS),
-        (KL.ZICKZACK, 6, 50, 60, 3, 0, KW.VORSTOSS),
+        (KL.AUSWEICHEN, 5, 50, 60, 3, 0, KW.VORSTOSS),
+        (KL.AUSWEICHEN, 6, 50, 60, 3, 0, KW.VORSTOSS),
     ]
-    assert k.zickzack([5, 6], (51, 60), trupp=3)
+    assert k.ausweichen([5, 6], (51, 60), trupp=3)
     assert ring.liste[4:] == [
-        (KL.ZICKZACK, 5, 51, 60, 3, 0, KW.VORSTOSS),
-        (KL.ZICKZACK, 6, 51, 60, 3, 0, KW.VORSTOSS),
+        (KL.AUSWEICHEN, 5, 51, 60, 3, 0, KW.VORSTOSS),
+        (KL.AUSWEICHEN, 6, 51, 60, 3, 0, KW.VORSTOSS),
     ]
 
 
 def test_zickzack_bei_vollem_ring_meldet_nein():
     k = KW.Kernweg(FalscherRing(platz=0), auftraggeber=KW.VORSTOSS)
-    assert k.zickzack([5], (50, 60)) is False
+    assert k.ausweichen([5], (50, 60)) is False
     assert k.stand["ring voll"] == 1
 
 
@@ -59,8 +59,8 @@ def test_jeder_teil_hat_seinen_auftraggeber():
 
 
 def test_zickzack_art_gleich_im_kern():
-    text = (KERN / "zickzack.rs").read_text(encoding="utf-8")
-    assert int(re.search(r"pub const ZICKZACK: i32 = (\d+);", text).group(1)) == KL.ZICKZACK
+    text = (KERN / "ausweichen.rs").read_text(encoding="utf-8")
+    assert int(re.search(r"pub const AUSWEICHEN: i32 = (\d+);", text).group(1)) == KL.AUSWEICHEN
 
 
 def test_uebersetzung_der_befehlsarten():

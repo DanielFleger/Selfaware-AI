@@ -20,6 +20,7 @@ Stop von aussen: Datei var/legacy/STOP anlegen.
 from selfaware import workspace as _workspace
 import json, math, os, re, sys, time
 
+from selfaware.baukasten.bestellung import Bestellung
 from selfaware.game.ucp.laden import lade_stand, befehl, peek
 from selfaware.game.ucp.steuerkarte import laufe, tick, spielzustand
 from selfaware.game.ucp.bauen import NACH_TYP, gebaeude_von, vorrat, baue_irgendwo
@@ -427,7 +428,7 @@ def phase1(plan, tempo, mit_posten=True):
         warte_bis(lambda: gebaeude_von(SP, 8), "Soeldnerposten", 20)
     geworben = 0
     nr_posten = [n for n, _, _ in gebaeude_von(SP, 8)]
-    while nr_posten and vorrat(SP)["gold"] >= 70 and s32(peek(PD + 136)[0]) >= 1:
+    while BESTELLUNG.darf("raid") and nr_posten and vorrat(SP)["gold"] >= 70 and s32(peek(PD + 136)[0]) >= 1:
         vorher = vorrat(SP)["gold"]
         befehl({"werbe": {"typ": 73, "gebaeude": nr_posten[0]}}, 1.0, bis="WERBE")
         geworben += 1
@@ -994,11 +995,13 @@ HEER_ANTEIL = 0.0        # B-132: Anteil jedes Gold-Zuwachses fuer die Heereskas
 DECKUNG_SOLL = 0         # B-129: so viele Schleuderer decken die Brand-Sklaven (Schalter deckung_soll, 0 = aus)
 VORSTOSS = False         # B-172: frueher Vorstoss der Schuetzen (vorstoss.py), Schalter vorstoss=ja
 VORSTOSS_BIS = 15000     # B-172: bis zu diesem Takt, danach sind die Schuetzen wieder frei (Schalter vorstoss_bis)
-ZICKZACK = False         # B-174, B-175: Vorstoss und Brandtrupp laufen im Zickzack ueber den Rust-Kern (Schalter zickzack=ja)
+# B-177: Welche Arten von Einheiten duerfen rekrutiert werden? bestellung=raid laesst Angriff und Verteidigung nicht werben
+BESTELLUNG = Bestellung()
+AUSWEICHEN = False         # B-174, B-175: Vorstoss und Brandtrupp laufen im Zickzack ueber den Rust-Kern (Schalter zickzack=ja)
 _zickzack_gemeldet = False
 
 
-def zickzack_kern(teile, ereignis):
+def ausweichen_kern(teile, ereignis):
     """B-174, B-175: Holt den Kern fuer den Zickzack, je Teil (Vorstoss, Brandtrupp) einen eigenen Auftraggeber. Sein gemeinsamer
     Speicher entsteht erst im laufenden Spiel, darum je Runde ein Versuch; solange er nicht bereit ist, laeuft alles gerade wie ohne Schalter."""
     global _zickzack_gemeldet
@@ -1010,9 +1013,9 @@ def zickzack_kern(teile, ereignis):
             teil.kern = KW.oeffnen(SPIEL, auftraggeber=auftraggeber)
             bereit = teil.kern is not None
     if bereit:
-        ereignis.append("ZICKZACK: Kern bereit")
+        ereignis.append("AUSWEICHEN: Kern bereit")
     elif not _zickzack_gemeldet:
-        ereignis.append("ZICKZACK: Kern noch nicht bereit, solange gerade")
+        ereignis.append("AUSWEICHEN: Kern noch nicht bereit, solange gerade")
     _zickzack_gemeldet = True
 KAUSAL_SPAREN = True     # B-122: Kausalmodell spart fuer seinen besten Betrieb (Schalter kausal_sparen=nein = altes Verhalten)
 OFFENES_ENDE = False     # B-123: ziel_tick=offen (Partie gegen einen Menschen) - Kausalmodell rechnet mitlaufend
@@ -1262,6 +1265,8 @@ def ruestung_kaufen(st, G, wirt, ausbau, ziel, marken):
     Leder in 5er-Losen am Markt kaufen, sobald das Gold ueber der Ruecklage reicht, und anwerben (20 Gold, Bauer am Feuer).
     Keine eigenen Werkstaetten - das ist v3."""
     aus = []
+    if not BESTELLUNG.darf("angriff"):
+        return aus
     eig = {n: g for n, g in G.items() if g["besitzer"] == SP}
     waf = [n for n, g in eig.items() if g["typ"] == 11]
     kas = [n for n, g in eig.items() if g["typ"] == 9]
@@ -1363,7 +1368,7 @@ def abwanderer_zuerst(L):
 
 def anwerbewelle(st, L, marken, aus, kaserne, hoechstens):
     """Bis zu fuenf sichere, einzeln vom Spiel verarbeitete Befehle als eine bestaetigte Welle senden."""
-    if hoechstens <= 0 or not werbung_freigegeben(st, marken, aus):
+    if hoechstens <= 0 or not BESTELLUNG.darf("angriff") or not werbung_freigegeben(st, marken, aus):
         return 0
     if abwanderer_zuerst(L):
         aus.append("ANWERBEN wartet: mindestens ein Bauer wandert gerade ab (Zustand 110)")
@@ -2526,7 +2531,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             if feldzug is not None and w is not None:
                 feldzug.verteidiger = {n for n in w.auftrag if n in reserve_w}
             tz = uhr("waechter", tz)
-            if NOTWERBUNG and st.get("t", 0) > 0 and not hunger_r:     # 19.10.: bei Hunger geht das Gold in Nahrung
+            if NOTWERBUNG and BESTELLUNG.darf("verteidigung") and st.get("t", 0) > 0 and not hunger_r:     # 19.10.: bei Hunger geht das Gold in Nahrung
                 # 12.10. (Daniel 11.10. 23:40 "du siehst doch, dass du angegriffen wirst und nicht ausbildest"; 23:45 "arabische
                 # Einheiten"): Soeldnerposten frueh bauen; stehen Gegnertruppen in unserem Gebiet, sofort nachwerben - je Gegner
                 # eine Einheit, abwechselnd Schwertkaempfer (75) und Bogenschuetzen (70), bis Gold oder Bauern am Feuer fehlen.
@@ -2825,7 +2830,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         werben_s = min(v_s.get("keule", 0), v_s.get("leder", 0), st.get("feuer", 0), v_s.get("gold", 0) // KAEMPFER_GOLD)
                         if abwanderer_zuerst(L):
                             werben_s = 0                     # Bauer wandert gerade ab (Zustand 110) - eine Runde warten
-                        if kas_s and werben_s > 0:
+                        if kas_s and werben_s > 0 and BESTELLUNG.darf("angriff"):
                             befehl({"werbe": {"typ": 26, "gebaeude": kas_s[0]}}, 1.0, bis="WERBE")
                             kasse["schub_n"] = kasse.get("schub_n", 0) + 1
                             ereignis.append("SCHUB %d. Streitkolbenkaempfer angeworben (Beliebtheit %.1f, Wartende %d)" % (
@@ -3043,7 +3048,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     # nicht am Lagerplatz (9i: Markt/Soeldnerlager belegten ihn - 14 Holzfaeller warteten Tick 4500-9035)
                     soeldner = baue_schnell(8, BERGFRIED[0], BERGFRIED[1], 25)
                     ereignis.append("Soeldnerlager gesetzt %s (Gold %d)" % (soeldner, st["gold"]))
-                elif posten and not hunger_r and st["gold"] >= 70 + wirt.ruecklage(G)["gold"] and st["feuer"] >= 1 \
+                elif BESTELLUNG.darf("raid") and posten and not hunger_r and st["gold"] >= 70 + wirt.ruecklage(G)["gold"] and st["feuer"] >= 1 \
                         and (assassinen < 0 or a_stand["lebend"] < ziel_a) and st["t"] - a_stand["zuletzt"] >= WERB_ABSTAND \
                         and (getattr(trupp, "ohne_ziel_zuletzt", None) or 0) < A_OHNE_ZIEL_MAX \
                         and not ausbau.braucht_gold \
@@ -3297,7 +3302,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     # Schwertkaempfer (Editor-Duelle: 28.000 Leben, ~180 je Takt), jeder vierte ein arab. Bogen; hoechstens 2 je
                     # Runde und bis HEER_MAX im Heer
                     posten_h = next((n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 8), None)
-                    if posten_h is not None and es_an:
+                    if posten_h is not None and es_an and BESTELLUNG.darf("angriff"):
                         # 19.10. Endspurt (Daniel: "all mein Gold in Schwertkaempfer"): alles Gold, so viele wie Bauern am Feuer
                         import selfaware.game.ucp.bauen as BA_h
                         nahrung_h = sum(st.get(k_, 0) for k_ in NAHRUNG_PREIS)
@@ -3307,7 +3312,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         if n_h:
                             ereignis.append("ENDSPURT-WERBUNG: %d arab. Schwertkaempfer (Gold %d, Feuer %d, Heer jetzt %d)" % (
                                 n_h, st["gold"], st.get("feuer", 0), len(feldzug.einheiten(L)) + n_h))
-                    elif posten_h is not None and runde % 2 == 0:
+                    elif posten_h is not None and runde % 2 == 0 and BESTELLUNG.darf("angriff"):
                         import selfaware.game.ucp.bauen as BA_h
                         if HEER_ANTEIL > 0:      # B-132: die Heereskasse zahlt (ohne Rand - sie ist der Rand)
                             frei_h = min(getattr(wirt, "heer_kasse", 0.0), st["gold"] - wirt.ruecklage(G, ohne_heer=True)["gold"])
@@ -3331,17 +3336,17 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     if brand is not None:
                         # 19.10. Raids: steuern jede Runde; werben nur aus Gold ueber der Ruecklage, nicht im Endspurt
                         try:
-                            if ZICKZACK and brand.kern is None:
+                            if AUSWEICHEN and brand.kern is None:
                                 from selfaware.execution import kernweg as KW
-                                zickzack_kern([(vorstoss, KW.VORSTOSS), (brand, KW.BRANDTRUPP)], ereignis)
+                                ausweichen_kern([(vorstoss, KW.VORSTOSS), (brand, KW.BRANDTRUPP)], ereignis)
                             if vorstoss is not None:
-                                vorstoss.plaetze_setzen(brand.im_zickzack)
+                                vorstoss.plaetze_setzen(brand.im_ausweichen)
                                 ereignis += vorstoss.schritt(st["t"], L, G, befehl)
                             brand.schutz = deckung.orte(L) + (vorstoss.orte(L) if vorstoss is not None else [])
                             ereignis += deckung.schritt(L, G, befehl, brand)
                             ereignis += brand.schritt(L, G, befehl)
                             ereignis += reiter.schritt(L, G, befehl)
-                            if posten_h is not None and not es_an and not hunger_r and runde % 2 == 1:
+                            if posten_h is not None and not es_an and not hunger_r and runde % 2 == 1 and BESTELLUNG.darf("raid"):
                                 import selfaware.game.ucp.bauen as BA_r
                                 for typ_r, n_r in RA.werbung(st["gold"] - wirt.ruecklage(G, ohne_heer=HEER_ANTEIL > 0)["gold"], st.get("feuer", 0),
                                                              len(brand.einheiten(L)), len(reiter.einheiten(L)), len(deckung.einheiten(L))):
@@ -3704,9 +3709,11 @@ def main():
     global STEIN_FRUEH, DECKUNG_SOLL, HEER_ANTEIL
     HEER_ANTEIL = float(arg.get("heer_anteil", HEER_ANTEIL))
     DECKUNG_SOLL = int(arg.get("deckung_soll", DECKUNG_SOLL))
-    global VORSTOSS, VORSTOSS_BIS, ZICKZACK
+    global VORSTOSS, VORSTOSS_BIS, AUSWEICHEN, BESTELLUNG
+    BESTELLUNG = Bestellung(arg.get("bestellung", "alle"))
+    schreib("BESTELLUNG: %s" % BESTELLUNG)
     VORSTOSS = arg.get("vorstoss", "nein") == "ja"
-    ZICKZACK = arg.get("zickzack", "nein") == "ja"
+    AUSWEICHEN = arg.get("ausweichen", "nein") == "ja"
     VORSTOSS_BIS = int(arg.get("vorstoss_bis", VORSTOSS_BIS))
     STEIN_FRUEH = int(arg.get("steinbrueche_frueh", STEIN_FRUEH))
     KAUSAL_SPAREN = arg.get("kausal_sparen", "ja") == "ja"
