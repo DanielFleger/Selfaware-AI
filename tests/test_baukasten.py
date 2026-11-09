@@ -303,7 +303,7 @@ def test_raid_frueh_aendert_nur_die_begruendeten_schalter():
 
 def test_raid_frueh_bleibt_im_zweig_der_raids():
     """Steuerung und Werbung der Raids stehen im Lenker unter "if streitkolben:" und "if feldzug is not None:". streitkolben=0 oder ein anderer
-    weg schalten sie still ab, und bei feldzug None endet die Partie sofort mit "ZIEL 0 erreicht". Faellt weg, sobald der Raid aus dem Angriffszweig geloest ist."""
+    weg schalten sie still ab. Der Test faellt weg, sobald der Raid aus dem Angriffszweig geloest ist."""
     s = AF.laden("raid_frueh")["schalter"]
     assert int(s["streitkolben"]) > 0 and s["weg"] == "feldzug" and s.get("raids", "ja") == "ja"
     assert (

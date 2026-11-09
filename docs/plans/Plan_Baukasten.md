@@ -25,7 +25,7 @@ Offene Einordnung für Daniel: Assassinen zählen zu Raid, weil der Lenker sie s
 1. **Bestellung** (B-177, Code fertig): Ein Tor für alle 9 Rekrutierstellen, `bestellung=raid` schaltet Angriff und Verteidigung ab.
 2. **Ausweichen** (B-178, Code fertig): Zickzack heißt Ausweichen, ist ein Werkzeug für jeden Einsatz und läuft nur, wenn auf die Einheit geschossen wird.
 3. **Aufstellung, Modulkarte, Steckplätze, Vergleich** (B-176, Code fertig).
-4. **Raid aus dem Angriffszweig lösen:** Steuerung und Werbung der Raids stehen heute in `phase2` unter `if streitkolben:` und `if feldzug is not None:`. Deshalb muss auch `raid_frueh` `streitkolben=30` setzen. Mit `streitkolben=0` fielen die Raids still aus, und die Partie endete sofort mit „ZIEL 0 erreicht“. Danach Bestellung und Einsatz als ein Modul.
+4. **Raid aus dem Angriffszweig lösen:** Steuerung und Werbung der Raids stehen heute in `phase2` unter `if streitkolben:` und `if feldzug is not None:`. Deshalb muss auch `raid_frueh` `streitkolben=30` setzen. Mit `streitkolben=0` fielen Raids und Bierkette still aus. Danach Bestellung und Einsatz als ein Modul.
 5. Danach Apfel, Brot, Bier, Waffen, dann Angriff und Verteidigung, je Modul ein eigener Schritt mit Partie.
 6. `assassinen.py` in Raid und Angriff teilen.
 
