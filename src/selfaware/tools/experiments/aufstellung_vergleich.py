@@ -87,13 +87,22 @@ def kennzahlen(text):
     }
 
 
-def partie(name, instanz, stempel):
-    konsole = os.path.join(FORSCHUNG, f"aufstellung_{stempel}_{name}_i{instanz}_konsole.txt")
+def partie(name, instanz, stempel, schalter=()):
+    zusatz = "".join("_" + "".join(c for c in s if c.isalnum()) for s in schalter)
+    konsole = os.path.join(
+        FORSCHUNG, f"aufstellung_{stempel}_{name}{zusatz}_i{instanz}_konsole.txt"
+    )
     umgebung = dict(os.environ, SHC_INSTANZ=str(instanz), PYTHONIOENCODING="utf-8")
     vorher = time.time()
     with open(konsole, "w", encoding="utf-8") as f:
         code = subprocess.call(
-            [sys.executable, "-m", "selfaware.runtime.live.erstes_spiel", f"aufstellung={name}"],
+            [
+                sys.executable,
+                "-m",
+                "selfaware.runtime.live.erstes_spiel",
+                f"aufstellung={name}",
+                *schalter,
+            ],
             stdout=f,
             stderr=subprocess.STDOUT,
             env=umgebung,
@@ -143,6 +152,12 @@ def main():
     p.add_argument("aufstellungen", nargs="+")
     p.add_argument("--instanz", type=int, required=True)
     p.add_argument("--partien", type=int, default=1)
+    p.add_argument(
+        "--schalter",
+        nargs="*",
+        default=[],
+        help="zusaetzliche Schalter fuer jede Partie, z. B. gegner_ki=8",
+    )
     a = p.parse_args()
     if a.instanz in (4, 5):
         sys.exit("Instanz 4 gehoert SAI, Instanz 5 ist Daniels Spiel")
@@ -151,7 +166,7 @@ def main():
         for name in a.aufstellungen:
             stempel = time.strftime("%Y%m%d_%H%M%S")
             print(f"Partie {i + 1}, Aufstellung {name}", flush=True)
-            ergebnisse.append((name, partie(name, a.instanz, stempel)))
+            ergebnisse.append((name, partie(name, a.instanz, stempel, a.schalter)))
             print(tabelle(ergebnisse[-1:]), flush=True)
             print(
                 "  neu je Art:",

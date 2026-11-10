@@ -39,7 +39,10 @@ def laden(name, ordner=ORDNER, _weg=()):
     basis = laden(daten["basis"], ordner, (*_weg, name))
     return {
         **daten,
-        "schalter": {**basis["schalter"], **daten["schalter"]},
+        # null nimmt einen Schalter der Basis heraus (B-182: die Platzliste einer Karte gilt nicht fuer eine andere)
+        "schalter": {
+            k: v for k, v in {**basis["schalter"], **daten["schalter"]}.items() if v is not None
+        },
         "versionen": {**basis.get("versionen", {}), **daten.get("versionen", {})},
     }
 

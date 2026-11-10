@@ -300,6 +300,20 @@ def test_aenderung_ohne_grund_faellt_auf(tmp_path, felder):
         AF.laden("b", tmp_path)
 
 
+def test_null_nimmt_einen_schalter_der_basis_heraus(tmp_path):
+    _schreibe(tmp_path, "a", schalter={"x": "1", "plaetze": "0,1,7"})
+    _schreibe(
+        tmp_path, "b", basis="a", schalter={"plaetze": None}, gruende={"plaetze": "andere Karte"}
+    )
+    assert AF.laden("b", tmp_path)["schalter"] == {"x": "1"}
+
+
+def test_liga_aufstellungen_haben_die_karte_und_keine_platzliste():
+    for name in ("raid_ohne_angriff_gn", "raid_wirkung_gn"):
+        s = AF.laden(name)["schalter"]
+        assert s["karte"] == "Liga_Grumpy Neighbors" and "plaetze" not in s
+
+
 def test_erben_im_kreis_faellt_auf(tmp_path):
     _schreibe(tmp_path, "a", basis="b", schalter={}, gruende={})
     _schreibe(tmp_path, "b", basis="a", schalter={}, gruende={})

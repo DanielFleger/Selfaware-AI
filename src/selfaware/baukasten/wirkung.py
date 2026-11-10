@@ -198,11 +198,20 @@ class Wissen:
         return wert, weg
 
 
-def kaufen(wissen, kasse, feuer, preise, start, ziele_, bleibt=None, hoechstens=None):
+def kaufen(
+    wissen, kasse, feuer, preise, start, ziele_, bleibt=None, hoechstens=None, zielarten=None
+):
     """([(Typ, Anzahl)], Begruendung). Immer die Art mit dem meisten Wert je Gold, bis Gold, Leute am Feuer oder Ziele ausgehen.
     preise: {Typ: Gold} der Arten, die jetzt gekauft und auch gesteuert werden koennen. bleibt: so viele Leute bleiben je Art am Feuer."""
     bleibt, hoechstens = bleibt or {}, hoechstens or {}
-    kand = {typ: wissen.kandidaten(typ, ziele_) for typ in preise}
+    zielarten = zielarten or {}
+    # B-182: einer Art wird nur zugetraut, was ihr Modul angreift ("g" Gebaeude, "e" Einheiten)
+    kand = {
+        typ: wissen.kandidaten(
+            typ, [z for z in ziele_ if z.schluessel[0] in zielarten.get(typ, "ge")]
+        )
+        for typ in preise
+    }
     rest = {z.schluessel: 1.0 for z in ziele_}
     gekauft, erwartet = collections.Counter(), collections.defaultdict(float)
     while True:

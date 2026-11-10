@@ -120,6 +120,15 @@ def test_was_abgedeckt_ist_zaehlt_fuer_die_naechste_nicht_mehr():
     )  # mehrere Sklaven, weil jeder einzelne oft faellt, aber nicht ohne Ende
 
 
+def test_sklaven_wird_nur_zugetraut_was_der_brandtrupp_tut():
+    """Reihe 1 (10.11.): Ohne diese Grenze kaufte die Rechnung nur Sklaven, auch gegen Arbeiter, die der Brandtrupp nie jagt."""
+    L = {200 + i: einheit(40 + i, 0, 3) for i in range(6)}
+    k, _ = WK.kaufen(
+        wissen(), 300, 20, {SKLAVE: 5, 74: 75}, (0, 0), WK.ziele(L, {}, 1), zielarten=RB.ZIELARTEN
+    )
+    assert dict(k).get(SKLAVE, 0) == 0 and dict(k)[74] >= 1
+
+
 def test_kasse_leute_und_hoechstzahl_begrenzen():
     L, G = huetten(n_bogen=3)
     z = WK.ziele(L, G, 1)

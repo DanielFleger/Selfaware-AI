@@ -18,6 +18,9 @@ from selfaware.micro.tasks import raids as RA
 ASSASSINE, ASSASSINE_GOLD = 73, 70  # SOELDNER_GOLD in erstes_spiel.py
 # Daniel 09.11.: erst Sklaven, dann Berittene, dann Assassinen. Die Schleuderer stehen wie in raids.werbung vor den Reitern, mit deckung_soll 0 sind sie aus.
 REIHENFOLGE = ("sklaven", "schleuderer", "reiter", "assassinen")
+# B-182: Was das Modul einer Art angreift - g Gebaeude, e Einheiten. In Reihe 1 (10.11.) traute die Rechnung Sklaven Arbeiter zu, die der
+# Brandtrupp nie jagt, und kaufte darum nur Sklaven. Nahkaempfer des Nahkampf-Raids und Assassinen greifen beides an.
+ZIELARTEN = {RA.SKLAVE: "g", RA.PFERDEBOGEN: "e", RA.SCHLEUDER: "e", 70: "e", ASSASSINE: "ge"}
 EINHEITEN = {
     "sklaven": (RA.SKLAVE, RA.SKLAVE_GOLD),
     "schleuderer": (RA.SCHLEUDER, RA.SCHLEUDER_GOLD),
@@ -153,6 +156,7 @@ class RaidBestellungNachWirkung(RaidBestellung):
             ziele,
             bleibt,
             {ASSASSINE: 1},
+            ZIELARTEN,
         )
         return kaeufe
 
