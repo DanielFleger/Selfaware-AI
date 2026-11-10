@@ -1,0 +1,36 @@
+GOLD-BILANZ Partie 20261110_123639, Lenker Spieler 1, Instanz 2, 234 Lagezeilen bis Tick 40550
+Balance liga_ai.json - passt zu den Baukosten aus dem Spiel
+
+1. GOLD DES LENKERS (Start 0)
+   Einnahmen 9309 in 68 Schritten, Groessen [(15, 8), (30, 6), (5, 4), (10, 3), (45, 2), (35, 2)]
+   davon ueber einen Monatswechsel (Steuer): 24 Schritte, 3504 Gold
+   Ausgaben -9203 in 67 Schritten, Groessen [(-70, 7), (-60, 6), (-15, 5), (-10, 4), (-120, 4), (-220, 3), (-445, 3), (-30, 2)]
+   Steuer-Aenderungen in der Mitschrift: 7 [('2', '3'), ('3', '4'), ('4', '3'), ('3', '2'), ('2', '1'), ('1', '2'), ('2', '3')]; Stufe 0-2 bringen laut Balance ['1.50', '0.50', '0.00'] Gold je Kopf
+   Gold-Stand: Anteil der Zeilen mit 0 Gold 3 %, hoechstens 510
+
+2. BELIEBTHEIT DES LENKERS - Wochenspruenge in Hundertsteln (L34: Steuer + Rationen + Vielfalt): [(-25, 31), (25, 21), (-75, 15), (50, 4), (150, 4), (125, 4), (-50, 1), (100, 1)]
+   Steuer-Beliebtheit laut Balance je Stufe 0-11: [225, 125, 25, -25, -75, -125, -200, -275, -375, -500, -750, -1000]; Gold je Kopf und Monat: ['1.50', '0.50', '0.00', '0.25', '0.50', '0.70', '1.00', '1.30', '1.65', '2.00', '2.75', '4.00']
+   GERECHNET brutto (dieselben Leute, ohne Beliebtheitsfolgen): Stufe 4 2167, Stufe 6 4335 Gold ueber die Partie
+
+3. ERZEUGUNG DES LENKERS (ertrag_live zug, ganze Partie): {'eisen': 122, 'stein': 433, 'apfel': 839, 'fleisch': 74, 'holz': 2876}; verkauft: {'holz': 2220, 'fleisch': 5, 'apfel': 695, 'stein': 175, 'eisen': 105, 'hopfen': 30}
+   Holz je besetzter Holzfaellerhuette und 1.000 Ticks: 4.2 (Wissensregister L3: 5,3 bei 55-75 Feldern Weg)
+   LAGER beider Spieler (Lagerplatz + Kornspeicher, Summe Vorrat je Ware):
+     Tick  3984 | Sp1: apfel 7, holz 5 | Sp2: brot 57, holz 15, hopfen 2
+     Tick  7908 | Sp1: apfel 18, holz 55, stein 3 | Sp2: brot 54, holz 34, hopfen 2, stein 21
+     Tick 12046 | Sp1: apfel 9, holz 53 | Sp2: holz 6, hopfen 7, kaese 65, stein 10
+     Tick 16070 | Sp1: apfel 28, eisen 2, holz 28, stein 9 | Sp2: 14 1, eisen 2, holz 16, hopfen 5, kaese 50, stein 19
+     Tick 19969 | Sp1: apfel 21, eisen 4, holz 82, stein 99 | Sp2: 14 4, apfel 45, eisen 4, holz 17, hopfen 2, stein 73
+     Tick 23924 | Sp1: apfel 27, eisen 5, holz 38, stein 93 | Sp2: 14 7, apfel 43, eisen 6, holz 11, hopfen 6, stein 84
+     Tick 27933 | Sp1: apfel 35, eisen 15, holz 42, hopfen 2, stein 137 | Sp2: 14 7, eisen 8, holz 3, hopfen 6, kaese 60, stein 80
+     Tick 31932 | Sp1: 14 5, apfel 32, eisen 13, holz 89, hopfen 8, stein 177 | Sp2: 14 5, eisen 8, holz 21, hopfen 7, kaese 60, stein 58
+     Tick 36172 | Sp1: 14 5, apfel 31, eisen 17, holz 102, hopfen 5, stein 199 | Sp2: 14 2, apfel 49, eisen 6, holz 21, hopfen 4, stein 54
+     Tick 39952 | Sp1: 14 9, apfel 31, eisen 17, holz 48, hopfen 3, stein 180 | Sp2: 14 2, apfel 58, eisen 6, holz 48, hopfen 7, stein 55
+
+4. NEU ANGEWORBENE KAMPFEINHEITEN (Slot + Typ neu, Startbestand nicht gezaehlt) x Anwerbegold:
+   Spieler 1: 199 Einheiten, 8400 Gold: 97 Sklave (10 Balance), 62 Pferdebogen (75 Balance), 30 Assassine (70 Balance), 8 arab.Bogen (60 Balance), 2 arab.Schwert (100 Balance)
+      Gold je 4.000 Ticks: 0-4000: 30, 4000-8000: 130, 8000-12000: 320, 12000-16000: 515, 16000-20000: 740, 20000-24000: 795, 24000-28000: 1145, 28000-32000: 1285, 32000-36000: 1630, 36000-40000: 1810
+   Spieler 2: 73 Einheiten, 790 Gold: 43 Speer (10 Balance), 27 Bogen (10 Balance), 3 Armbrust (30 Balance)
+      Gold je 4.000 Ticks: 12000-16000: 40, 16000-20000: 90, 20000-24000: 60, 24000-28000: 170, 28000-32000: 130, 32000-36000: 120, 36000-40000: 170, 40000-44000: 10
+5. NEUE GEBAEUDE je Spieler (nach der ersten Lagezeile):
+   Spieler 1: 20 Fallgrube, 20 Ochsenkarren, 15 Huette, 13 Eisenmine, 12 Lagerplatz, 9 Hopfenfarm, 5 Apfelplantage, 5 Steinbruch, 5 21, 4 Holzfaellerhuette, 3 Brauerei, 2 Wirtshaus, 1 Jaegerhuette
+   Spieler 2: 36 Holzfaellerhuette, 20 Ochsenkarren, 18 Apfelplantage, 8 Huette, 8 Steinbruch, 8 21, 7 Milchviehhof, 5 Verteidigungsturm, 4 Hopfenfarm, 3 Brunnen, 3 Eisenmine, 3 Kleines Torhaus (Durchfahrt O-W), 3 Gerberei, 3 Wirtshaus, 2 Bogenmacher, 2 Brauerei, 2 Waffenlager, 2 Lanzenmacher, 1 Marktplatz, 1 Runder Turm, 1 Kaserne, 1 57, 1 58, 1 56, 1 Zugbruecke
