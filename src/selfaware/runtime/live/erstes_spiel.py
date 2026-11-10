@@ -2118,7 +2118,14 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     lernlog = os.path.join(D, "ertrag_live_%s%s.jsonl" % (time.strftime("%Y%m%d_%H%M%S"), LAUF_ENDUNG))   # je Instanz: Serien laufen parallel
     # Daniel 22:39: jede Runde die ganze Lage (jede Einheit, jedes Gebaeude der Karte) - abfragbar mit lageprotokoll.py
     from selfaware.telemetry.lageprotokoll import Lageprotokoll
-    lage = Lageprotokoll(os.path.join(D, "lage_%s%s.jsonl.gz" % (time.strftime("%Y%m%d_%H%M%S"), LAUF_ENDUNG)))
+    try:      # B-182 (Daniel 10.11. 23:07): Schuss- und Gebaeudeziel der eigenen Einheiten aus dem Kern mitschreiben (S113, S114)
+        from selfaware.game.kern_leitung import Leitung
+        from selfaware.game.ucp.befehl import SPIEL as _SPIEL_ORDNER
+        _kern_lage = Leitung(_SPIEL_ORDNER)
+    except Exception as ex_k:
+        _kern_lage = None
+        schreib("Lageprotokoll ohne Kern (keine Tabelle eigen): %r" % (ex_k,))
+    lage = Lageprotokoll(os.path.join(D, "lage_%s%s.jsonl.gz" % (time.strftime("%Y%m%d_%H%M%S"), LAUF_ENDUNG)), kern=_kern_lage)
     schreib("Lageprotokoll (jede Runde komplett): %s" % lage.pfad)
     if NEUBAU_SICHER:
         import selfaware.services.gefahrenzone as gefahrenzone

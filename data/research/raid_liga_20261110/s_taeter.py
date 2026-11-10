@@ -26,6 +26,11 @@ laeuft (Ort aendert sich oder Laufziel != Ort), steht_mit_auftrag (zielart != 0)
 (<= 40 Felder vom eigenen Lord beim ersten Schnappschuss), beim_feind (<= 50 Felder von einem gegnerischen Lord), dazwischen.
 Die Grenzen (3, 8, 1, 5, 12, 40, 50 Felder) sind selbst gesetzt, nicht gemessen; die Reichweiten kommen aus services/spielwerte.py.
 
+Ab 10.11. 23:07 (Tabelle "eigen" im Lageprotokoll, S114) gilt fuer jede eigene Einheit, die dort steht:
+  schuss       nur, wenn ihr Schussziel aus dem Kern (schusseinheit) das Opfer ist - schuss_frei entfaellt fuer sie
+  Gebaeude     nah_gebaeude_kern, wenn ihr angegriffenes Gebaeude (mauerx/mauery) hoechstens 3 Felder vom Gebaeudeort liegt
+Ohne Tabelle (aeltere Protokolle) bleibt es bei den Naeherungen oben; die Klasse in der Ausgabe sagt, welche galt.
+
 Aufruf: python s_taeter.py <lage.jsonl.gz> [<konsole.txt>]   (eigener Spieler 1; mit Mitschrift auch die Behauptungen der Module)
 """
 import collections
@@ -37,6 +42,7 @@ import sys
 import selfaware.micro.tasks.raids as RA
 import selfaware.services.spielwerte as SW
 from selfaware.baukasten.einheiten import ARTEN
+from selfaware.telemetry.lageprotokoll import eigen_lesen
 
 ICH = 1
 KAMPF = set(ARTEN) | {71, 72, 73, 74, 75}
@@ -64,8 +70,10 @@ def ort(e):
     return (e["x"], e["y"])
 
 
-def kandidaten(opfer_nr, o, E, brennt):
-    """Taeterklasse und Liste der Taeter (Nummer, Besitzer, Art) fuer einen Verlust der Einheit o (Stand k-1)."""
+def kandidaten(opfer_nr, o, E, brennt, eig=None):
+    """Taeterklasse und Liste der Taeter (Nummer, Besitzer, Art) fuer einen Verlust der Einheit o (Stand k-1).
+    eig: Tabelle "eigen" ({Nummer als Text: Felder}) - mit ihr zaehlt bei eigenen Schuetzen nur das Schussziel aus dem Kern."""
+    eig = eig or {}
     p, besitzer = ort(o), o["besitzer"]
     nah, schuss, neben, frei, fremd = [], [], [], [], []
     for n, e in E.items():
@@ -74,8 +82,12 @@ def kandidaten(opfer_nr, o, E, brennt):
         q, art = ort(e), e["typ"]
         r = SW.erfassen(art)
         if e["besitzer"] == ICH:
+            ke = eig.get(n)
             if str(e.get("nahziel")) == opfer_nr and schach(p, q) <= 3:
                 nah.append(n)
+            elif ke is not None and r is not None:
+                if str(ke["schusseinheit"]) == opfer_nr and SW.luftlinie2(p, q) <= (r + 8) ** 2:
+                    schuss.append(n)
             elif r is not None and e["zielart"] == 4 and str(e["zieleinheit"]) == opfer_nr and SW.luftlinie2(p, q) <= (r + 8) ** 2:
                 schuss.append(n)
             elif r is None and art in KAMPF and schach(p, q) <= 1:
@@ -118,7 +130,7 @@ def auswerten(pfad):
     zerstoert = collections.Counter()    # letzte Ursache -> Anzahl
     zeit = collections.Counter()         # (art, zustand, ortsklasse) -> Takte
     je_einheit = collections.defaultdict(lambda: collections.Counter())  # nr -> (zustand) -> Takte (eigene Kampf-Einheiten)
-    vE = vG = None
+    vE = vG = vd = None
     vt = None
     heim = feinde = None
     letzte_geb_ursache = {}
@@ -142,6 +154,7 @@ def auswerten(pfad):
         if vE is not None and heim is not None:
             dt = t - vt
             brennt_v = [ort(g) for g in vG.values() if g.get("feuer", 0) > 0]
+            veig = {str(k): v for k, v in eigen_lesen(vd).items()}
             taeter_jetzt = collections.Counter()
             # 1. Gegnerische Einheiten: Verlust und Tod
             for n, o in vE.items():
@@ -158,7 +171,7 @@ def auswerten(pfad):
                     tote_n += 1
                 if verlust <= 0:
                     continue
-                klasse, wer = kandidaten(n, o, vE, brennt_v)
+                klasse, wer = kandidaten(n, o, vE, brennt_v, veig)
                 gruppe = gruppe_von(o["typ"])
                 if wer:
                     for w in wer:
@@ -194,9 +207,16 @@ def auswerten(pfad):
                         brennt_g = g.get("feuer", 0) > 0 or h.get("feuer", 0) > 0
                         # 10.11. 22:50: zielgebaeude ist im Lageprotokoll bei eigenen Einheiten immer 0 (gemessen an
                         # lage_20261110_104030), darum die Naehe: eigene Nahkampf-Einheit hoechstens 4 Felder am Gebaeudeort
+                        kern_wer = [w for w, ke in veig.items() if (ke["mauerx"], ke["mauery"]) != (0, 0)
+                                    and schach((ke["mauerx"], ke["mauery"]), p) <= 3 and w in vE and schach(ort(vE[w]), p) <= 8]
                         wer = [] if brennt_g else [w for w, e in vE.items() if e["besitzer"] == ICH and e["typ"] in KAMPF
                                                    and SW.erfassen(e["typ"]) is None and schach(ort(e), p) <= 4]
-                        if wer:
+                        if kern_wer and not brennt_g:
+                            for w in kern_wer:
+                                geb_schaden[("nah_gebaeude_kern", vE[w]["typ"])] += verlust / len(kern_wer)
+                                taeter_jetzt[w] += 1
+                            letzte_geb_ursache[n] = "nah_gebaeude_kern"
+                        elif wer and not veig:
                             for w in wer:
                                 geb_schaden[("nah_gebaeude", vE[w]["typ"])] += verlust / len(wer)
                                 taeter_jetzt[w] += 1
@@ -236,7 +256,7 @@ def auswerten(pfad):
                 wo = "zuhause" if schach(q, heim) <= 40 else ("beim_feind" if any(schach(q, x) <= 50 for x in feinde) else "dazwischen")
                 zeit[(e["typ"], zustand, wo)] += dt
                 je_einheit[(n, e["typ"])][zustand] += dt
-        vE, vG, vt = E, G, t
+        vE, vG, vt, vd = E, G, t, d
     return {"schaden": schaden, "tote": tote, "braende": braende, "geb_schaden": geb_schaden, "zerstoert": zerstoert, "zeit": zeit,
             "ende": vt, "heim": heim, "feinde": feinde, "wieder_da": wieder_da, "verschwunden_n": tote_n}
 

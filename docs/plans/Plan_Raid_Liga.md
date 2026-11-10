@@ -76,7 +76,7 @@ Daniel (22:51): „‚Das Lageprotokoll liefert bei unseren Einheiten nie ein Ge
 
 Plan, noch nicht begonnen (wartet auf Daniels Ja):
 1. Im Sandkasten auf Instanz 2 je Befehlsart (Gebäude angreifen, Einheit angreifen, schießen) eine eigene Einheit beauftragen und ablesen, welches Spielfeld sich ändert. Erhofft: ein Feld mit Gebäudenummer oder uid und eines mit dem Schussziel. Widerlegt, wenn sich bei keinem Befehl ein Feld mit der Zielnummer ändert.
-2. Das Lageprotokoll schreibt diese Felder für eigene Einheiten (Fairness: nur eigene), `s_taeter.py` ordnet danach zu statt über die Nähe.
+2. Das Lageprotokoll schreibt diese Felder für eigene Einheiten (Fairness: nur eigene), `s_taeter.py` ordnet danach zu statt über die Nähe. **Gebaut 10.11. 23:20** (Daniels Ja 23:07): `Lageprotokoll(kern=Leitung)` schreibt jede Runde die Tabelle `eigen` (nur eigene Einheiten: Zielnummer, Schussziel, Gebäudeort, Nahkampfziel, Kern-Takt); `s_taeter.py` zählt bei Einheiten in der Tabelle nur das Schussziel aus dem Kern und für Gebäude nur `mauerx`/`mauery`. Geprüft: `tests/test_lageprotokoll_eigen.py` (Gegenprobe: ohne Filter auf eigene Einheiten rot), `raid_liga_20261110/s_taeter_pruefen.py` (Gegenprobe: ohne Tabelle beim Schuss rot) und einmal gegen den Kern des angehaltenen Versuchsgefechts (Takt 1.681: 28 eigene Einheiten, Sklave und Schwertkämpfer mit Gebäude (243, 133), Reiter mit Schussziel 305). In einer echten Partie noch nicht gelaufen.
 3. Neue Partien mit einer Fehlerwache: Sie hält die Partie beim ersten Fehler an (eigene Einheit mit Auftrag steht länger als eine selbst gesetzte Grenze, Erfolgszeile ohne belegten Täter, Sklaven ohne Auftrag zu Hause). Danach wird behoben und neu gestartet, nicht geladen.
 
 ## Stand

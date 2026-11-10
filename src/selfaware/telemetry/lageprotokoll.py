@@ -6,6 +6,8 @@ Jede Runde wird der KOMPLETTE Abzug des Spiels gespeichert - abzug/lagebild.txt 
 alle Besitzer, auch Tiere) und abzug/gebaeude.txt (jedes Gebaeude) - unveraendert, mit Spaltenkopf, dazu die Statuszeile.
 Eine Zeile je Runde, gzip (mehrere Glieder, jede Runde angehaengt): data/research/lage_<stempel>_i<instanz>.jsonl.gz.
 Nichts wird beim Schreiben gefiltert oder umgerechnet - was das Spiel abgab, liegt so in der Datei.
+Ab 10.11.2026 23:07 (B-182) dazu die Tabelle "eigen" aus dem Kern: nur eigene Einheiten, mit Zielnummer, Schussziel
+(schusseinheit) und Ort des angegriffenen Gebaeudes (mauerx/mauery), die der Abzug nicht fuehrt (S113, S114).
 
 Abfragen (Antwort auf "wo stand X bei Tick T"):
   uv run python -m selfaware.telemetry.lageprotokoll <datei> stand  tick=T [typ=3] [besitzer=1] [nr=5] [bereich=x0,y0,x1,y1] [gebaeude=ja]
@@ -20,17 +22,52 @@ import sys
 
 HIER = os.path.dirname(os.path.abspath(__file__))
 
+# B-182 (Daniel 10.11. 23:07 "Ja, Protokoll"): Der Abzug des Spiels fuehrt bei eigenen Einheiten kein Gebaeudeziel (zielgebaeude
+# immer 0, S113) und kein Schussziel. Der Sandkasten vom 10.11. 23:03 (S114) fand sie im Kern: Gebaeudeangriff -> mauerx/mauery
+# (Ort des Gebaeudes), Einheitenangriff -> schusseinheit/zieleinheit (Zielnummer), zieluid/schussziel_uid (deren uid).
+EIGEN_FELDER = ("nr", "typ", "x", "y", "zielart", "zieleinheit", "zieluid", "schusseinheit", "schussziel_uid",
+                "mauerx", "mauery", "planx", "plany", "nahziel")
+
+
+def eigen_tabelle(welt):
+    """Tabelle der eigenen Einheiten mit Schuss- und Angriffsziel aus dem Kern (erste Zeile: Kern-Takt und eigener Spieler).
+    Nur Einheiten mit besitzer == welt.ich: Die Zielfelder fremder Einheiten liest der Kern gar nicht (FAIRNESS R3, R4)."""
+    zeilen = ["kern_tick %d ich %d" % (welt.tick, welt.ich), " ".join(EIGEN_FELDER)]
+    for nr in sorted(welt.einheiten):
+        e = welt.einheiten[nr]
+        if e.get("besitzer") != welt.ich:
+            continue
+        zeilen.append(" ".join(str(int(e.get(k) or 0)) for k in EIGEN_FELDER))
+    return "\n".join(zeilen) + "\n"
+
+
+def eigen_lesen(zeile):
+    """{nr: {feld: wert}} aus der Tabelle "eigen" einer Protokollzeile, leer ohne Tabelle (Protokolle vor dem 10.11. 23:07)."""
+    roh = zeile.get("eigen")
+    if not roh:
+        return {}
+    return {d["nr"]: d for d in _tabelle(roh, 1)}
 
 
 class Lageprotokoll:
-    def __init__(self, pfad):
+    def __init__(self, pfad, kern=None):
+        """kern: Leser des laufenden Spiels (kern_leitung.Leitung) oder None - dann wie vor dem 10.11. ohne Tabelle "eigen"."""
         self.pfad = pfad
         self.runden = 0
+        self.kern = kern
+        self.kern_fehler = None
 
     def schreibe(self, st):
         """Nach runde_lesen() aufrufen: die Abzugsdateien sind dann die dieser Runde."""
         from selfaware.micro.tasks.waechter import LAGEBILD, GEBAEUDEDATEI
         zeile = {"t": st.get("t"), "st": st, "einheiten": open(LAGEBILD).read(), "gebaeude": open(GEBAEUDEDATEI).read()}
+        if self.kern is not None:
+            try:
+                zeile["eigen"] = eigen_tabelle(self.kern.lesen())
+            except Exception as ex:      # Kern weg oder anderer Aufbau: die Runde wird trotzdem geschrieben, der Grund einmal
+                if self.kern_fehler is None:
+                    self.kern_fehler = repr(ex)[:200]
+                    zeile["eigen_fehler"] = self.kern_fehler
         with gzip.open(self.pfad, "at", encoding="utf-8") as f:
             f.write(json.dumps(zeile, ensure_ascii=False) + "\n")
         self.runden += 1
