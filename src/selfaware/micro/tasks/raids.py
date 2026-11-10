@@ -237,13 +237,11 @@ class Reiterjagd:
 
     def schritt(self, L, G, befehl):
         self.runde += 1
-        aus = []
-        self._abschuesse(L)
+        aus = self._abschuesse(L)
         meine = self.einheiten(L)
         sicher = [k for k in L if self.moeglich(k, L, G)]     # einmal je Runde: haengt nicht vom Reiter ab
-        # B-182 Reihe 7: 59 bis 81 % der neuen Jagden galten einem Arbeiter, den schon ein anderer Reiter jagte. Jeder Reiter nimmt zuerst
-        # einen Arbeiter, den kein anderer jagt, auch weiter weg; erst wenn es keinen mehr gibt, hilft er bei einem gejagten.
-        gejagt = {v[1]: r for r, v in self.befohlen.items() if v[0] == "jagd" and r in meine}
+        # B-182 Reihe 8: Jeden Reiter auf einen eigenen Arbeiter zu schicken senkte das Gedraenge (14 statt 72 und 81 % geteilte Jagden), aber
+        # nicht die Abschuesse je 1.000 Reiter-Takte (0,15 und 0,27 statt 0,20 und 0,52) - zurueckgenommen, mehrere duerfen denselben jagen.
         for r in sorted(meine):
             e = L[r]
             o = (e["x"], e["y"])
@@ -259,19 +257,14 @@ class Reiterjagd:
                     befehl({"angriff": {"einheiten": [r], "lauf": [ziel[0], ziel[1]]}}, 1.0, bis="ANGRIFF")
                     self.befohlen[r] = ("flucht", ziel, self.runde)
                     aus.append("REITERJAGD: Reiter %d weicht Typ %d in %d Feldern aus -> %s" % (r, f["typ"], nah[0], ziel))
-                gejagt = {a: r2 for a, r2 in gejagt.items() if r2 != r}
                 continue
             if not sicher:
                 continue
             entfernt = [(schach(o, (L[k]["x"], L[k]["y"])), k) for k in sicher]
-            wahl = [(d, k) for d, k in entfernt if gejagt.get(k, r) == r] or entfernt
-            in_reichweite = [(-ARBEITER[L[k]["typ"]], d, k) for d, k in wahl if d <= JAGD_R]
+            in_reichweite = [(-ARBEITER[L[k]["typ"]], d, k) for d, k in entfernt if d <= JAGD_R]
             # 17:41: nichts in Reichweite -> der naechste ungeschuetzte Arbeiter irgendwo (der Angriffsbefehl reitet hin)
-            k = min(in_reichweite)[2] if in_reichweite else min(wahl)[1]
+            k = min(in_reichweite)[2] if in_reichweite else min(entfernt)[1]
             alt = self.befohlen.get(r)
-            if alt is not None and alt[0] == "jagd" and gejagt.get(alt[1]) == r:
-                del gejagt[alt[1]]
-            gejagt[k] = r
             if alt is None or alt[:2] != ("jagd", k) or self.runde - alt[2] >= NEU_ALLE:
                 befehl({"angriff": {"einheiten": [r], "ziel": k}}, 1.0, bis="ANGRIFF")
                 self.befohlen[r] = ("jagd", k, self.runde)
@@ -289,11 +282,15 @@ class Reiterjagd:
         return not gefaehrlich((a["x"], a["y"]), L, G, self.sp)
 
     def _abschuesse(self, L):
-        """Ein gejagtes Ziel, das nicht mehr lebt, zaehlt genau einmal; der Reiter ist danach frei."""
+        """Ein gejagtes Ziel, das nicht mehr lebt, zaehlt genau einmal; der Reiter ist danach frei. B-182: Jeder Erfolg kommt in die Mitschrift,
+        die Eichung misst daran die Takte von der Jagd bis zum Erfolg."""
+        aus = []
         for r, v in list(self.befohlen.items()):
             if v[0] == "jagd" and (v[1] not in L or L[v[1]].get("leben", 1) <= 0 or L[v[1]]["besitzer"] in (0, self.sp)):
                 self.getoetet += 1
                 self.befohlen.pop(r)
+                aus.append("REITERJAGD: Reiter %d hat Arbeiter %d erledigt" % (r, v[1]))
+        return aus
 
     def bericht(self):
         return "Reiterjagd: %d Arbeiter getoetet" % self.getoetet

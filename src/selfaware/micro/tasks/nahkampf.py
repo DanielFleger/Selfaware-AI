@@ -107,6 +107,11 @@ class NahkampfRaid:
                         self.zerstoert += 1
                     else:
                         self.getoetet += 1
+                    # B-182: jeder Erfolg in die Mitschrift, die Eichung misst daran die Takte vom Ziel bis zum Erfolg
+                    aus.append(
+                        "NAHKAMPF-RAID: %d (Typ %d) hat %s %d erledigt"
+                        % (n, e["typ"], "Gebaeude" if alt[0] == "g" else "Arbeiter", alt[1])
+                    )
                 self.ziel.pop(n, None)
                 self.weg.pop(n, None)
                 alt = None
@@ -116,7 +121,7 @@ class NahkampfRaid:
                 if z is None:
                     continue
                 aus.append(
-                    "NAHKAMPF-RAID: %d (Typ %d) -> %s %d (Typ %d) bei %s, %d Wegpunkte"
+                    "NAHKAMPF-RAID: %d (Typ %d) -> %s %d (Typ %d) bei %s, %d Wegpunkte, %d Felder"
                     % (
                         n,
                         e["typ"],
@@ -125,6 +130,7 @@ class NahkampfRaid:
                         z.typ,
                         z.ort,
                         len(self.weg[n]),
+                        WK.schach(ort, z.ort),
                     )
                 )
             weg = self.weg.get(n, [])

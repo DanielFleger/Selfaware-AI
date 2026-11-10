@@ -277,22 +277,30 @@ def _jagden(L):
     return sorted((b["angriff"]["einheiten"][0], b["angriff"]["ziel"]) for b in gesendet)
 
 
-def test_reiterjagd_verteilt_die_reiter_auf_verschiedene_arbeiter():
-    """B-182 Reihe 7: 59 bis 81 % der neuen Jagden galten einem Arbeiter, den schon ein anderer Reiter jagte."""
+def test_reiterjagd_jagt_den_wertvollsten_in_reichweite_auch_zu_zweit():
+    """B-182 Reihe 8: Verteilen senkte das Gedraenge, aber nicht die Abschuesse - darum duerfen mehrere Reiter denselben Arbeiter jagen.
+    In Reichweite zaehlt der Wert, sonst der naechste ungedeckte irgendwo."""
     reiter = {1: einheit(0, 0, 74, besitzer=1), 2: einheit(1, 0, 74, besitzer=1)}
     assert _jagden({**reiter, 200: einheit(10, 0, 1), 201: einheit(12, 0, 3)}) == [
         (1, 200),
-        (2, 201),
-    ]
-    assert _jagden({**reiter, 200: einheit(10, 0, 1)}) == [
-        (1, 200),
         (2, 200),
-    ]  # nur einer: beide helfen
-    # ein freier Arbeiter weiter weg geht vor dem Gedraenge
-    assert _jagden({**reiter, 200: einheit(10, 0, 1), 202: einheit(60, 0, 3)}) == [
-        (1, 200),
+    ]
+    assert _jagden({**reiter, 202: einheit(60, 0, 3), 203: einheit(90, 0, 1)}) == [
+        (1, 202),
         (2, 202),
     ]
+
+
+def test_reiterjagd_schreibt_jeden_erfolg_in_die_mitschrift():
+    """B-182: Die Eichung paart die Zeile "jagt Arbeiter" mit dieser Erfolgszeile und misst die Takte dazwischen."""
+    r = _einsatz().reiter
+    L = {1: einheit(0, 0, 74, besitzer=1), 200: einheit(10, 0, 1)}
+    r.schritt(L, {}, lambda *a, **k: None)
+    del L[200]
+    assert r.schritt(L, {}, lambda *a, **k: None) == [
+        "REITERJAGD: Reiter 1 hat Arbeiter 200 erledigt"
+    ]
+    assert r.getoetet == 1
 
 
 def test_aufstellung_raid_wirkung_steckt_die_neue_bestellung():
@@ -362,8 +370,11 @@ def test_nahkampf_raid_zaehlt_und_nimmt_das_naechste_ziel():
     r.schritt(L, G, bf)
     erstes = r.ziel[2]
     del G[erstes[1]]
-    r.schritt(L, G, bf)
+    aus = r.schritt(L, G, bf)
     assert r.zerstoert == 1 and r.ziel[2] != erstes
+    assert (
+        "NAHKAMPF-RAID: 2 (Typ 75) hat Gebaeude %d erledigt" % erstes[1] in aus
+    )  # B-182: Erfolgszeile fuer die Eichung
     assert "1 Gebaeude zerstoert" in r.bericht()
 
 
