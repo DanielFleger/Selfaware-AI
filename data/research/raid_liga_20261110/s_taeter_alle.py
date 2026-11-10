@@ -16,6 +16,8 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import s_taeter as T  # noqa: E402
 
+import selfaware.baukasten.einheiten as EH  # noqa: E402
+
 F = "data/research"
 MUSTER = sys.argv[1] if len(sys.argv) > 1 else "20261110"
 WIRKT = ("nah", "schuss", "neben", "schuss_frei")
@@ -40,6 +42,7 @@ def main():
     ungueltig = set(open(f"{F}/raid_liga_20261110/ungueltige_partien.txt", encoding="utf-8").read().split())
     summe_tote, summe_braende, summe_zeit = collections.Counter(), collections.Counter(), collections.Counter()
     summe_gold, summe_stueck, behauptet = collections.Counter(), collections.Counter(), collections.Counter()
+    summe_bestellt, summe_bestellt_gold = collections.Counter(), collections.Counter()
     summe_gruppen, summe_unbelegt, summe_geb, summe_zerst = collections.Counter(), collections.Counter(), collections.Counter(), collections.Counter()
     n_gueltig = 0
     print("Stempel         | Aufstellung (Gegner) | Ende | Tote je Taeter | Braende Sklave/Ausbreitung/unbelegt | behauptet Reiter/Brand | Notiz")
@@ -78,9 +81,15 @@ def main():
         summe_braende.update(r["braende"])
         summe_zeit.update(r["zeit"])
         behauptet.update(b)
-        for art, (stueck, _pkt, gold) in kauf.items():
+        # 10.11. 23:45 (Daniel): Gold = wirklich erschienene Einheiten x Spielpreis (einheiten.py, gemessen), nicht die Summe der
+        # Bestellungen aus den Kaufzeilen - die zaehlten auch abgelehnte und gescheiterte Werbungen mit
+        for art, stueck in r["neu_je_art"].items():
+            preis = EH.ARTEN[art].gold if art in EH.ARTEN else None
             summe_stueck[art] += stueck
-            summe_gold[art] += gold
+            summe_gold[art] += stueck * preis if preis else 0
+        for art, (stueck, _pkt, gold) in kauf.items():
+            summe_bestellt[art] += stueck
+            summe_bestellt_gold[art] += gold
     print("\nSUMME ueber %d gueltige Partien (ohne Kern-Vorfall und ohne KI 5)" % n_gueltig)
     print("Tote gegnerische Einheiten je Taeter: " + ", ".join("%s %.1f" % (T.ARTNAME.get(a, a), v) for a, v in summe_tote.most_common()))
     print("Opfer je Taeter und Gruppe: " + ", ".join("%s->%s %.0f" % (T.ARTNAME.get(k[0], k[0]), k[1], v)
@@ -90,12 +99,12 @@ def main():
     print("Gegnerische Gebaeude verschwunden, nach letzter Ursache: " + ", ".join("%s %d" % kv for kv in summe_zerst.most_common()))
     print("Braende: " + ", ".join("%s %d" % (k[0], v) for k, v in summe_braende.most_common()))
     print("Behauptet von den Modulen: " + ", ".join("%s %d" % kv for kv in behauptet.items()))
-    print("\nGOLD nach Wirkung und Ertrag je Art (Stueck, Gold, belegte Tote, Tote je 100 Gold):")
-    for art in sorted(set(summe_gold) | {a for a in summe_tote if isinstance(a, int)}):
+    print("\nGOLD je Soeldnerart: erschienen x Spielpreis (einheiten.py), dazu die Bestellungen laut Kaufzeilen zum Vergleich")
+    for art in sorted(set(summe_gold) | set(summe_bestellt) | {a for a in summe_tote if isinstance(a, int)}):
         g = summe_gold.get(art, 0.0)
-        print("  %-28s %5d Stueck %7.0f Gold %7.1f Tote %s" % (
-            T.ARTNAME.get(art, art), summe_stueck.get(art, 0), g, summe_tote.get(art, 0.0),
-            ("%.2f" % (100 * summe_tote.get(art, 0.0) / g)) if g else "-"))
+        print("  %-28s erschienen %5d, Gold %7.0f | bestellt %5d, Gold %7.0f | belegte Tote %7.1f" % (
+            T.ARTNAME.get(art, art), summe_stueck.get(art, 0), g, summe_bestellt.get(art, 0), summe_bestellt_gold.get(art, 0.0),
+            summe_tote.get(art, 0.0)))   # 10.11. 23:50 (Daniel): keine Kennzahl "Tote je 100 Gold" mehr
     print("\nEINSATZZEIT je Art (Anteil der Einheiten-Takte):")
     for art in ARTEN_BERICHT:
         ges = sum(v for (a, _z, _w), v in summe_zeit.items() if a == art)

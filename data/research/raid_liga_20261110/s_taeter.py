@@ -134,6 +134,7 @@ def auswerten(pfad):
     vt = None
     heim = feinde = None
     letzte_geb_ursache = {}
+    neu_je_art = collections.Counter()   # eigene Kaempfer, die nach dem ersten Stand neu erscheinen (Nummer neu oder mit neuer Art)
     verschwunden, wieder_da, tote_n = {}, collections.Counter(), 0   # Gegenprobe: taucht ein "Toter" mit gleicher Nummer, Art und Besitzer wieder auf?
     for zeile in gzip.open(pfad, "rt", encoding="utf-8"):
         d = json.loads(zeile)
@@ -151,6 +152,11 @@ def auswerten(pfad):
                 wieder_da["bis 500 Takte" if t - v[0] <= 500 else "spaeter"] += 1
             if v:
                 verschwunden.pop(n)
+        if vE is not None:
+            for n, e in E.items():
+                v = vE.get(n)
+                if e["besitzer"] == ICH and e["typ"] in KAMPF and (v is None or v["typ"] != e["typ"] or v["besitzer"] != ICH):
+                    neu_je_art[e["typ"]] += 1
         if vE is not None and heim is not None:
             dt = t - vt
             brennt_v = [ort(g) for g in vG.values() if g.get("feuer", 0) > 0]
@@ -258,7 +264,8 @@ def auswerten(pfad):
                 je_einheit[(n, e["typ"])][zustand] += dt
         vE, vG, vt, vd = E, G, t, d
     return {"schaden": schaden, "tote": tote, "braende": braende, "geb_schaden": geb_schaden, "zerstoert": zerstoert, "zeit": zeit,
-            "ende": vt, "heim": heim, "feinde": feinde, "wieder_da": wieder_da, "verschwunden_n": tote_n}
+            "ende": vt, "heim": heim, "feinde": feinde, "wieder_da": wieder_da, "verschwunden_n": tote_n,
+            "neu_je_art": neu_je_art}
 
 
 def kaeufe(konsole):
