@@ -1,0 +1,156 @@
+diff --git a/docs/plans/Modulkarte.md b/docs/plans/Modulkarte.md
+index 52bb468..a5fb4e2 100644
+--- a/docs/plans/Modulkarte.md
++++ b/docs/plans/Modulkarte.md
+@@ -2,7 +2,7 @@
+ 
+ Erzeugt mit `python -m selfaware.baukasten.karte --schreiben`, nicht von Hand ändern. Quelle: `src/selfaware/baukasten/karte.py`. Plan: [Plan_Baukasten.md](Plan_Baukasten.md).
+ 
+-Gemessen: Der Lenker `runtime/live/erstes_spiel.py` hat 3857 Zeilen, `phase2` davon 1488. Er kennt 97 Schalter. 20 Klassen haben einen eigenen `schritt`, mit 16 verschiedenen Aufrufen.
++Gemessen: Der Lenker `runtime/live/erstes_spiel.py` hat 3858 Zeilen, `phase2` davon 1489. Er kennt 97 Schalter. 20 Klassen haben einen eigenen `schritt`, mit 16 verschiedenen Aufrufen.
+ 
+ Bausteine je Stand: Kern 1, eigene Datei 30, im Lenker 14, nicht benutzt 2, steckbar 18. Eine Stelle mit zwei Rollen zählt einmal.
+ 
+diff --git a/src/selfaware/baukasten/raid.py b/src/selfaware/baukasten/raid.py
+index c32f3c0..c354cac 100644
+--- a/src/selfaware/baukasten/raid.py
++++ b/src/selfaware/baukasten/raid.py
+@@ -61,6 +61,7 @@ class Lage:
+     steuerbar: frozenset = frozenset()  # Arten, die ein Einsatz-Modul gerade fuehren kann
+     belegt: frozenset = frozenset()  # Ziele, die schon eine eigene Einheit hat
+     greift_an: object = None  # B-182: (Art, Ziel, L, G) -> bool vom Raid-Einsatz; ohne ihn entscheidet die Rechnung allein
++    vorhanden: tuple = ()  # B-182: (Art, Ort) der eigenen Einheiten, die ein Raid-Modul schon fuehrt
+ 
+ 
+ class RaidBestellung:
+@@ -159,6 +160,7 @@ class RaidBestellungNachWirkung(RaidBestellung):
+             {ASSASSINE: 1},
+             ZIELARTEN,
+             erlaubt=None if b.greift_an is None else (lambda t, z: b.greift_an(t, z, b.L, b.G)),
++            vorhanden=b.vorhanden,
+         )
+         return kaeufe
+ 
+@@ -187,6 +189,21 @@ class RaidEinsatz:
+             return True
+         return art == modul[1] and nr in modul[2] and modul[0].moeglich(nr, L, G)
+ 
++    def vorhanden(self, L):
++        """B-182: (Art, Ort) jeder lebenden eigenen Einheit, die ein Raid-Modul gerade fuehrt. Der Kauf rechnet erst ihre Arbeit, dann den Rest."""
++        nummern = (
++            set(self.brand.einheiten(L))
++            | set(self.reiter.einheiten(L))
++            | set(self.deckung.einheiten(L))
++            | set(getattr(self.nahkampf, "mitglieder", ()))
++            | (set(self.vorstoss.mitglieder) if self.vorstoss is not None else set())
++        )
++        return tuple(
++            (L[n]["typ"], (L[n]["x"], L[n]["y"]))
++            for n in sorted(nummern)
++            if n in L and L[n].get("leben", 1) > 0
++        )
++
+     def schritt(self, t, L, G, befehl):
+         aus = []
+         if self.vorstoss is not None:
+diff --git a/src/selfaware/baukasten/wirkung.py b/src/selfaware/baukasten/wirkung.py
+index 4c417d1..60a8961 100644
+--- a/src/selfaware/baukasten/wirkung.py
++++ b/src/selfaware/baukasten/wirkung.py
+@@ -209,16 +209,19 @@ def kaufen(
+     hoechstens=None,
+     zielarten=None,
+     erlaubt=None,
++    vorhanden=None,
+ ):
+     """([(Typ, Anzahl)], Begruendung). Immer die Art mit dem meisten Wert je Gold, bis Gold, Leute am Feuer oder Ziele ausgehen.
+     preise: {Typ: Gold} der Arten, die jetzt gekauft und auch gesteuert werden koennen. bleibt: so viele Leute bleiben je Art am Feuer.
+-    erlaubt(Typ, Ziel) -> bool: ob das Modul dieser Art das Ziel ueberhaupt angreift (raid.RaidEinsatz.greift_an)."""
++    erlaubt(Typ, Ziel) -> bool: ob das Modul dieser Art das Ziel ueberhaupt angreift (raid.RaidEinsatz.greift_an).
++    vorhanden: [(Typ, Ort)] eigener Einheiten, die ein Modul schon fuehrt (raid.RaidEinsatz.vorhanden)."""
+     bleibt, hoechstens = bleibt or {}, hoechstens or {}
+     zielarten = zielarten or {}
++
+     # B-182: einer Art wird nur zugetraut, was ihr Modul angreift: die Zielart ("g" Gebaeude, "e" Einheiten) und, Reihe 5, die Ziele, die
+     # das Modul nicht meidet
+-    kand = {
+-        typ: wissen.kandidaten(
++    def _kand(typ):
++        return wissen.kandidaten(
+             typ,
+             [
+                 z
+@@ -227,9 +230,16 @@ def kaufen(
+                 and (erlaubt is None or erlaubt(typ, z))
+             ],
+         )
+-        for typ in preise
+-    }
++
++    kand = {typ: _kand(typ) for typ in preise}
+     rest = {z.schluessel: 1.0 for z in ziele_}
++    # B-182 Eichung: Was eigene Einheiten im Feld schon erledigen, zaehlt fuer keinen Kauf. Ohne das zaehlte jede Runde dieselben Ziele neu
++    # (Reihen 1 bis 5: fuer die Sklaven je Partie 676 bis 12.935 Punkte erwartet, 17 bis 156 erreicht)
++    for typ, ort in vorhanden or ():
++        if typ not in kand:
++            kand[typ] = _kand(typ)
++        for z, anteil in wissen.tour(typ, ort, kand[typ], rest)[1]:
++            rest[z.schluessel] *= 1.0 - anteil
+     gekauft, erwartet = collections.Counter(), collections.defaultdict(float)
+     while True:
+         best = None
+diff --git a/src/selfaware/runtime/live/erstes_spiel.py b/src/selfaware/runtime/live/erstes_spiel.py
+index 62faa50..9c8897e 100644
+--- a/src/selfaware/runtime/live/erstes_spiel.py
++++ b/src/selfaware/runtime/live/erstes_spiel.py
+@@ -3427,7 +3427,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
+                             sklaven=len(brand.einheiten(L)) if brand is not None else 0, reiter=len(reiter.einheiten(L)) if reiter is not None else 0,
+                             schleuderer=len(deckung.einheiten(L)) if deckung is not None else 0,
+                             L=L, G=G, sp=SP, start=(G[posten[0]]["x"], G[posten[0]]["y"]), steuerbar=frozenset(steuerbar_r), belegt=frozenset(belegt_r),
+-                            greift_an=raid_e.greift_an if raid_e is not None else None)):
++                            greift_an=raid_e.greift_an if raid_e is not None else None,
++                            vorhanden=raid_e.vorhanden(L) if raid_e is not None else ())):
+                         if typ_r == RB.ASSASSINE:
+                             befehl({"werbe": {"typ": RB.ASSASSINE, "gebaeude": posten[0]}}, 1.0, bis="WERBE")
+                             geworben += 1
+diff --git a/tests/test_wirkung.py b/tests/test_wirkung.py
+index 801198c..8c76e59 100644
+--- a/tests/test_wirkung.py
++++ b/tests/test_wirkung.py
+@@ -271,6 +271,36 @@ def test_bogenschuetzen_kauft_der_lenker_nur_solange_der_vorstoss_fuehrt():
+     )
+ 
+ 
++def test_was_eigene_einheiten_im_feld_erledigen_zaehlt_fuer_keinen_kauf():
++    """B-182 Eichung: Die Rechnung zaehlte jede Runde dieselben Ziele neu, als gaebe es die schon gekauften Einheiten nicht."""
++    L, G = huetten()
++    z = WK.ziele(L, G, 1)
++    assert WK.kaufen(wissen(), 300, 20, {SKLAVE: 5}, (0, 0), z)[0] == [(SKLAVE, 1)]
++    assert (
++        WK.kaufen(wissen(), 300, 20, {SKLAVE: 5}, (0, 0), z, vorhanden=[(SKLAVE, (49, 0))])[0] == []
++    )
++    # ein Reiter im Feld deckt keine Gebaeude ab: dort kauft er weiter den Sklaven
++    k, _ = WK.kaufen(
++        wissen(), 300, 20, {SKLAVE: 5}, (0, 0), z, zielarten=RB.ZIELARTEN, vorhanden=[(74, (49, 0))]
++    )
++    assert k == [(SKLAVE, 1)]
++
++
++def test_einsatz_meldet_was_seine_module_fuehren_und_der_lenker_gibt_es_weiter():
++    e = _einsatz()
++    L = {
++        1: einheit(5, 6, SKLAVE, besitzer=1),
++        2: einheit(7, 8, 74, besitzer=1),
++        3: einheit(9, 9, SKLAVE),
++        4: einheit(1, 1, 22, besitzer=1),
++    }
++    assert e.vorhanden(L) == (
++        (SKLAVE, (5, 6)),
++        (74, (7, 8)),
++    )  # fremde und nicht gefuehrte Einheiten fehlen
++    assert "vorhanden=raid_e.vorhanden(L) if raid_e is not None else ()" in LENKER
++
++
+ def test_aufstellung_raid_wirkung_steckt_die_neue_bestellung():
+     d = AF.laden("raid_wirkung")
+     assert AF.Steckplaetze(d["versionen"]).klasse("raidbestellung") is RB.RaidBestellungNachWirkung

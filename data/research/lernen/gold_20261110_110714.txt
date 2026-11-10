@@ -1,0 +1,36 @@
+GOLD-BILANZ Partie 20261110_110714, Lenker Spieler 1, Instanz 2, 321 Lagezeilen bis Tick 40153
+Balance liga_ai.json - passt zu den Baukosten aus dem Spiel
+
+1. GOLD DES LENKERS (Start 0)
+   Einnahmen 7918 in 80 Schritten, Groessen [(15, 9), (30, 7), (25, 7), (40, 4), (5, 3), (10, 3)]
+   davon ueber einen Monatswechsel (Steuer): 22 Schritte, 2499 Gold
+   Ausgaben -7435 in 94 Schritten, Groessen [(-120, 17), (-10, 13), (-20, 10), (-40, 8), (-30, 5), (-15, 4), (-75, 2), (-80, 2)]
+   Steuer-Aenderungen in der Mitschrift: 9 [('2', '3'), ('3', '4'), ('4', '3'), ('3', '2'), ('2', '1'), ('1', '2'), ('2', '3'), ('3', '2')]; Stufe 0-2 bringen laut Balance ['1.50', '0.50', '0.00'] Gold je Kopf
+   Gold-Stand: Anteil der Zeilen mit 0 Gold 5 %, hoechstens 666
+
+2. BELIEBTHEIT DES LENKERS - Wochenspruenge in Hundertsteln (L34: Steuer + Rationen + Vielfalt): [(-25, 49), (25, 38), (-75, 17), (50, 10), (125, 8), (-225, 3), (-50, 3), (100, 1)]
+   Steuer-Beliebtheit laut Balance je Stufe 0-11: [225, 125, 25, -25, -75, -125, -200, -275, -375, -500, -750, -1000]; Gold je Kopf und Monat: ['1.50', '0.50', '0.00', '0.25', '0.50', '0.70', '1.00', '1.30', '1.65', '2.00', '2.75', '4.00']
+   GERECHNET brutto (dieselben Leute, ohne Beliebtheitsfolgen): Stufe 4 2895, Stufe 6 5791 Gold ueber die Partie
+
+3. ERZEUGUNG DES LENKERS (ertrag_live zug, ganze Partie): {'eisen': 219, 'stein': 692, 'apfel': 695, 'fleisch': 107, 'holz': 3430}; verkauft: {'holz': 1800, 'fleisch': 50, 'apfel': 370, 'stein': 295, 'eisen': 155, 'hopfen': 80}
+   Holz je besetzter Holzfaellerhuette und 1.000 Ticks: 2.7 (Wissensregister L3: 5,3 bei 55-75 Feldern Weg)
+   LAGER beider Spieler (Lagerplatz + Kornspeicher, Summe Vorrat je Ware):
+     Tick  4049 | Sp1: apfel 6, holz 2 | Sp2: brot 53, holz 2, hopfen 2
+     Tick  7979 | Sp1: apfel 9, holz 79, stein 12 | Sp2: brot 53, holz 9, hopfen 2, stein 21
+     Tick 11994 | Sp1: apfel 11, holz 28, stein 4 | Sp2: apfel 51, holz 8, hopfen 1, stein 7
+     Tick 16022 | Sp1: apfel 23, holz 10, stein 17 | Sp2: 14 1, eisen 2, holz 4, kaese 54, stein 46
+     Tick 19978 | Sp1: apfel 33, holz 74 | Sp2: 14 3, eisen 4, holz 6, hopfen 1, kaese 55, stein 70
+     Tick 24017 | Sp1: eisen 3, holz 33, hopfen 8, stein 24 | Sp2: 14 4, eisen 8, holz 1, hopfen 4, kaese 60, stein 73
+     Tick 28134 | Sp1: apfel 11, eisen 5, holz 54, hopfen 8, stein 39 | Sp2: 14 4, apfel 36, eisen 8, holz 15, hopfen 5, stein 91
+     Tick 32037 | Sp1: apfel 33, eisen 31, holz 50, hopfen 4, stein 101 | Sp2: 14 2, apfel 29, eisen 6, hopfen 6, stein 86
+     Tick 36007 | Sp1: apfel 23, eisen 56, holz 69, hopfen 6, stein 125 | Sp2: 14 5, eisen 8, holz 2, hopfen 3, kaese 28, stein 70
+     Tick 39940 | Sp1: apfel 23, eisen 64, holz 77, hopfen 22, stein 145 | Sp2: 14 6, apfel 8, eisen 6, holz 8, hopfen 4, stein 45
+
+4. NEU ANGEWORBENE KAMPFEINHEITEN (Slot + Typ neu, Startbestand nicht gezaehlt) x Anwerbegold:
+   Spieler 1: 164 Einheiten, 6125 Gold: 107 Sklave (10 Balance), 34 arab.Schwert (100 Balance), 11 Pferdebogen (75 Balance), 11 Assassine (70 Balance), 1 arab.Bogen (60 Balance)
+      Gold je 4.000 Ticks: 4000-8000: 50, 8000-12000: 215, 12000-16000: 270, 16000-20000: 290, 20000-24000: 555, 24000-28000: 1205, 28000-32000: 975, 32000-36000: 965, 36000-40000: 1600
+   Spieler 2: 50 Einheiten, 500 Gold: 42 Speer (10 Balance), 8 Bogen (10 Balance)
+      Gold je 4.000 Ticks: 12000-16000: 10, 16000-20000: 50, 20000-24000: 40, 24000-28000: 50, 28000-32000: 140, 32000-36000: 100, 36000-40000: 100, 40000-44000: 10
+5. NEUE GEBAEUDE je Spieler (nach der ersten Lagezeile):
+   Spieler 1: 42 Eisenmine, 25 Huette, 24 Holzfaellerhuette, 22 Fallgrube, 22 Hopfenfarm, 20 Ochsenkarren, 16 Lagerplatz, 8 Apfelplantage, 8 Jaegerhuette, 7 Steinbruch, 7 21
+   Spieler 2: 26 Holzfaellerhuette, 14 Apfelplantage, 13 Ochsenkarren, 12 Eisenmine, 9 Huette, 5 Milchviehhof, 4 Steinbruch, 4 21, 3 Hopfenfarm, 3 Brunnen, 3 Verteidigungsturm, 2 Brauerei, 2 Lanzenmacher, 2 Gerberei, 2 Kleines Torhaus (Durchfahrt O-W), 2 Wirtshaus, 1 Marktplatz, 1 Runder Turm, 1 Waffenlager, 1 Kaserne, 1 57, 1 58, 1 56, 1 Bogenmacher, 1 Zugbruecke
