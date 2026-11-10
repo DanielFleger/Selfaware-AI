@@ -1,0 +1,126 @@
+{
+ "partie": "20261110_121645",
+ "erfasst": "2026-11-10 12:18",
+ "lenker_spieler": 1,
+ "gegner": null,
+ "anmerkung": null,
+ "letzter_tick": 10116,
+ "konsole": "data\\research\\aufstellung_20261110_121645_raid_wirkung_dd_gegnerki3_i2_konsole.txt",
+ "lage": "data\\research\\lage_20261110_121652_i2.jsonl.gz",
+ "truppen": [
+  {
+   "t": 672,
+   "je_spieler": {
+    "1": {
+     "E_ARCHER": 5,
+     "E_SPEAR": 7
+    },
+    "2": {
+     "E_XBOW": 6,
+     "E_MACE": 10
+    }
+   }
+  },
+  {
+   "t": 3034,
+   "je_spieler": {
+    "1": {
+     "E_ARCHER": 5,
+     "E_SPEAR": 7
+    },
+    "2": {
+     "E_XBOW": 6,
+     "E_MACE": 10
+    }
+   }
+  },
+  {
+   "t": 6052,
+   "je_spieler": {
+    "1": {
+     "E_ARCHER": 5,
+     "E_SPEAR": 7,
+     "A_SLAVE": 5
+    },
+    "2": {
+     "E_XBOW": 6,
+     "E_MACE": 10
+    }
+   }
+  },
+  {
+   "t": 9039,
+   "je_spieler": {
+    "1": {
+     "E_ARCHER": 5,
+     "E_SPEAR": 7,
+     "A_SLAVE": 4
+    },
+    "2": {
+     "E_XBOW": 5,
+     "E_MACE": 5
+    }
+   }
+  }
+ ],
+ "lenker": {
+  "start_befehl": "START-BEFEHL Instanz 2: uv run python -m selfaware.runtime.live.erstes_spiel leere_ki=nein experiment=ja regel50=nein minuten=15 tempo=200 bis_tick=40000 ziel_tick=40000 streitkolben=0 weg=feldzug produktion=nein bier=ja abriss=nein assassinen=20 aufloesen=ende b_versatz=600 bevoelkerung_ziel=90 einzelkauf=nein entscheider=kausal gegner=1 gegner_ki=3 gute_dinge=0 haushalt_rand=650 holz_kaufen=ja holz_spam=20 holzfaeller_je_baum=4 holzfaeller_max=30 holzfaeller_vorab=4 huetten_voraus=nein je_arbeiter=ja joch_nach_stein=ja \"karte=Liga_Dwarven Dream\" kasse=nein kasse_grenze=0 kasse_stufe=11 nahrung_ausbau=nein notwerbung=ja penner=20 rationen=doppelt schub=nein stein_max=nein stein_parallel=ja steinbruch_zuerst=nein steuer_ende=nein steuer_runter=90 umzug=frueh v14=nein vollbeschaeftigung=ja wachstum_boden=9500 waechter=ja stopp_tote=0 kernweg=ja vorstoss=ja bestellung=raid ausweichen=ja endspurt=nein ohne_angriff=ja aufstellung=raid_wirkung_dd",
+  "ereignisse": {
+   "ANWERBEN-BREMSE": 3,
+   "WERBE": 3,
+   "FELDZUG": 0,
+   "RAID": 16,
+   "STILLSTAND": 5,
+   "HUNGER": 0,
+   "PLANER wartet": 3,
+   "Seasoning": 11,
+   "LORDWACHE": 0,
+   "ENDSPURT": 1,
+   "Reiter": 1
+  },
+  "anwerbungen": 1,
+  "gold_bei_bremse": [
+   {
+    "t": 3872,
+    "gold": 35,
+    "braucht": 85
+   },
+   {
+    "t": 6091,
+    "gold": 0,
+    "braucht": 70
+   },
+   {
+    "t": 9245,
+    "gold": 0,
+    "braucht": 70
+   }
+  ],
+  "letzte_stand": "STAND Tick 10134 | Feuer 0, Leute 56/0 |  | offen - | bestellt 17, bestaetigt 15, gescheitert 2, abgelehnt 29"
+ },
+ "vergleich": {
+  "zeilen": [
+   "VERGLEICH Spieler [1, 2], Tick 672 bis 9958 - bei 10116 fehlte ein Bergfried (Fenster 1000 Ticks, gleitend ueber 3; Statuszeile fuer [1], Ertrag fuer keinen)",
+   "NACHTEIL Spieler 1 gegenueber Spieler 2: hinten ab Tick 3000 - je Kennzahl ab Tick (Spieler 1 zu 2 dort -> am Ende): Gebaeude 3000 (39 zu 39 -> 49 zu 61)",
+   "EINBRUCH Spieler 1 ab Tick 3000: am staerksten brach die Wirtschaft ein: Gebaeude - Mittel der 3000 Ticks davor 36 zu 25, danach 40 zu 44 (Spieler 1 zu 2)",
+   "KETTE Spieler 1 (alle Einbrueche nach Zeit, Staerke in Klammern): 3000 Gebaeude 36 zu 25 -> 40 zu 44 (0.6)",
+   "NACHTEIL Spieler 2 gegenueber Spieler 1: hinten ab Tick 7000 - je Kennzahl ab Tick (Spieler 2 zu 1 dort -> am Ende): Truppen 7000 (16 zu 17 -> 13 zu 18)",
+   "EINBRUCH Spieler 2 ab Tick 7000: Truppen - Mittel der 3000 Ticks davor 16 zu 13, danach 14 zu 17 (Spieler 2 zu 1)",
+   "KETTE Spieler 2 (alle Einbrueche nach Zeit, Staerke in Klammern): 7000 Truppen 16 zu 13 -> 14 zu 17 (0.5)"
+  ],
+  "datei": "data\\research\\lernen\\partievergleich_20261110_121645.json"
+ },
+ "gold": {
+  "zeilen": [
+   "Einnahmen 190 in 9 Schritten, Groessen [(15, 4), (5, 3), (20, 1), (95, 1)]",
+   "davon ueber einen Monatswechsel (Steuer): 1 Schritte, 15 Gold",
+   "Ausgaben -175 in 10 Schritten, Groessen [(-20, 4), (-10, 4), (-15, 1), (-40, 1)]",
+   "Holz je besetzter Holzfaellerhuette und 1.000 Ticks: 2.4 (Wissensregister L3: 5,3 bei 55-75 Feldern Weg)",
+   "Spieler 1: 11 Einheiten, 110 Gold: 11 Sklave (10 Balance)",
+   "Spieler 1: 23 Fallgrube, 8 Lagerplatz, 7 Huette, 3 Apfelplantage, 2 Eisenmine, 1 Getreidefarm, 1 Muehle, 1 Ochsenkarren",
+   "Spieler 2: 13 Holzfaellerhuette, 9 Ochsenkarren, 4 Apfelplantage, 4 Huette, 4 Lagerplatz, 3 Steinbruch, 3 21, 2 Hopfenfarm, 2 Eisenmine, 2 Milchviehhof, 2 Kleines Torhaus (Durchfahrt O-W), 1 Marktplatz, 1 Waffenlager, 1 Pechgraeber, 1 Verteidigungsturm, 1 Bogenmacher"
+  ],
+  "datei": "data/research/lernen/gold_20261110_121645.txt",
+  "fehler": null
+ }
+}
