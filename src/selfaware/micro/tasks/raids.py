@@ -17,7 +17,7 @@ GEMESSEN 19.10. (src/selfaware/tools/experiments/raid_messen.py, Spielstand "Wal
 
 BRANDTRUPP (Sklaven): jeder Sklave nimmt das wertvollste ungefaehrliche feindliche Gebaeude (Wert je Weg), das noch nicht
 brennt und das kein anderer Sklave hat; brennt es, zieht er sofort weiter. Gefaehrlich = feindlicher Schuetze oder Turm
-bis GEFAHR_FERN Felder, feindlicher Nahkaempfer/Assassine bis GEFAHR_NAH, feindliche Fallgrube bis GRUBE_R.
+bis GEFAHR_FERN Felder, feindlicher Nahkaempfer/Assassine bis GEFAHR_NAH. Feindliche Fallgruben nicht: im Spiel verborgen (F12).
 REITERJAGD (Pferdebogen): Nahkaempfer/Assassine naeher als FLUCHT_R -> 12 Felder weg von ihm; sonst den naechsten
 ungeschuetzten Arbeiter bis JAGD_R angreifen (Holzfaeller zuerst - 1018j: liefernde Holzfaeller entschieden die Partie);
 gibt es dort keinen, zum naechsten ungeschuetzten Arbeiter irgendwo reiten (19.10. 17:41, Daniel: "hier stehen bei Orange
@@ -97,8 +97,8 @@ def gefaehrlich(ort, L, G, sp, schutz=()):
             continue
         if g["typ"] in TUERME and schach(ort, (g["x"], g["y"])) <= GEFAHR_FERN:
             return "Turm in %d" % schach(ort, (g["x"], g["y"]))
-        if g["typ"] == GRUBE and schach(ort, (g["x"], g["y"])) <= GRUBE_R:
-            return "Fallgrube in %d" % schach(ort, (g["x"], g["y"]))
+        # 11.11. (Daniel 00:10 "das einzige was verborgen ist sind holfallen und wo das pech ist", FAIRNESS F12): gegnerische
+        # Fallgruben sind im Spiel verborgen - die Pruefung las sie aus der Gebaeudetabelle (Verstoss gegen R3), jetzt nicht mehr
     return None
 
 

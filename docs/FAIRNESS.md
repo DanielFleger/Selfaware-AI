@@ -40,6 +40,7 @@ Das gilt für jede Partie, die zählt. In Testgefechten und Messläufen sind Aus
 | F9 | Zustand fremder Einheiten (kämpft, läuft, lädt nach) | **Erlaubt**, weil man ihn an der Animation sieht. | Daniel 08.11. |
 | F10 | Welche fremden Einheiten einen Trupp bilden | **Verboten.** Man kann es nicht wirklich wissen. Aus gemeinsamer Bewegung erahnen ist erlaubt. | Daniel 08.11. |
 | F11 | Weg- und Begehbarkeits-Ebenen der Engine | **Erlaubt.** Sie lassen sich aus der sichtbaren Karte ableiten. | Daniel 08.11. |
+| F12 | Gegnerische Holzfallen (Fallgruben, Typ 67) und Pech | **Verboten.** Im Spiel verborgen: „das einzige was verborgen ist sind holfallen und wo das pech ist“. Alles andere auf der Karte ist sichtbar: Türme, Gebäude, Einheiten und Arbeiter mit ihrer aktuellen Position, Gelände. | Daniel 11.11. |
 | F12 | Szenario-Ereignisse der Karte | Für Partien egal, im Gefecht gibt es keine. In Szenarien sind sie verborgene Auslöser und deshalb **verboten**. | Daniel 08.11. |
 
 Der „Wind“ im Spielzustand ist keine Spielmechanik. Er schaltet nach einer festen Tabelle die Bildfolge von Flaggen und Bäumen weiter (`updateWind`, `UpdateFlag3Entity`; gelesen aus dem Code, nicht im Spiel geprüft). Für Entscheidungen ist er bedeutungslos.

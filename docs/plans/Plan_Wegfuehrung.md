@@ -93,3 +93,4 @@ Zielwahl der Module, Kauf nach Wirkung, Eichung, Obergrenze.
 |---|---|---|
 | 11.11. 00:06 | Plan geschrieben, Frage-Agent beauftragt | Ampel gelb, drei Fragen beantwortet (Nachtrag 00:07) |
 | 11.11. 00:07 | Daniels Anforderungen eingearbeitet (Definition, Neu rechnen jede Runde, alles Sichtbare) | Frage offen: Fallgruben sichtbar? |
+| 11.11. 00:12 | Daniel 00:10: „das einzige was verborgen ist sind holfallen und wo das pech ist“ - als FAIRNESS F12 eingetragen; `raids.gefaehrlich` las gegnerische Fallgruben (Verstoß gegen R3), herausgenommen, Test mit Gegenprobe | erledigt |
