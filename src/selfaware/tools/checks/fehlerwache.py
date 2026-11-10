@@ -174,6 +174,15 @@ class Wache:
         return {"gruppe": [(n, self.art[n]) for n in self.gruppe], "hoechst": self.hoechst, "zustaende": self.zustaende}
 
 
+def lies(le, warte=0.2):
+    """Kernstand; Leitung.lesen() gibt None, wenn sie keinen ruhigen Stand bekommt (Lauf 3, 23:43: beim Partieende) - dann neu."""
+    while True:
+        w = le.lesen()
+        if w is not None:
+            return w
+        time.sleep(warte)
+
+
 def anspruechen_aus(text):
     """[(Modul, eigene Nummer, Opfer)] aus neuen Zeilen der Mitschrift."""
     return [("Reiterjagd" if m.group(1).startswith("REITER") else "Nahkampf-Raid", int(m.group(2)), int(m.group(3)))
@@ -271,11 +280,11 @@ def main():
     if not os.path.isdir(forschung):
         sys.exit("FEHLERWACHE: Ordner fuer Mitschrift und Bericht fehlt: %s" % forschung)
     start = time.time()
-    t0 = le.lesen().tick
+    t0 = lies(le).tick
     print("FEHLERWACHE: warte auf eine neue Partie (Kern steht bei Takt %d)" % t0, flush=True)
     zurueck = t0 == 0
     while True:            # neue Partie: der Takt springt unter den Anfangswert zurueck und laeuft dann wieder
-        w = le.lesen()
+        w = lies(le)
         zurueck = zurueck or w.tick < t0
         if zurueck and w.tick > 0:
             break
@@ -289,7 +298,7 @@ def main():
     print("FEHLERWACHE: Partie laeuft (Takt %d) - Grenze %d, beobachtet die ersten %d Kaempfer, still %d, untaetig %d, Beleg %d"
           % (w.tick, a.grenze, a.beobachten, a.still, a.untaetig, a.beleg), flush=True)
     while time.time() - start < a.minuten * 60:
-        w = le.lesen()
+        w = lies(le)
         if w.tick == letzter_tick:
             if time.time() - gleich_seit > 60:
                 print("FEHLERWACHE: Takt steht seit 60 s bei %d - Partie vorbei, kein Fehler" % w.tick, flush=True)

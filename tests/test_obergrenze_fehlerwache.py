@@ -200,3 +200,16 @@ def test_uhr_beginnt_neu_wenn_das_ziel_wechselt():
         assert wa.schritt(welt(t, LORD, fern, einheit(20, 1, 22, 100, 100, zielart=4, zieleinheit=60, schusseinheit=60))) == []
     f = wa.schritt(welt(1410, LORD, fern, einheit(20, 1, 22, 100, 100, zielart=4, zieleinheit=60, schusseinheit=60)))
     assert [x["art"] for x in f] == ["F2 steht"]
+
+
+def test_lies_wartet_auf_einen_ruhigen_kernstand():
+    """Lauf 3 (10.11. 23:43): Beim Partieende gab Leitung.lesen() None, die Wache stuerzte ab."""
+    from selfaware.tools.checks.fehlerwache import lies
+
+    staende = iter([None, None, welt(5)])
+
+    class Le:
+        def lesen(self):
+            return next(staende)
+
+    assert lies(Le(), warte=0).tick == 5
