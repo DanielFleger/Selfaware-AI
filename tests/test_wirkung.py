@@ -190,6 +190,75 @@ def test_bestellung_nach_wirkung_wartet_auf_ungerade_runden_und_beachtet_vergebe
     assert b.schritt(_lage(soeldner_erlaubt=False)) == []
 
 
+def _einsatz():
+    """Raid-Einsatz mit den Modulen der Aufstellung raid_wirkung, ohne Spiel."""
+    return RB.RaidEinsatz(
+        1, (0, 0), lambda nr: 0, AF.Steckplaetze(AF.laden("raid_wirkung")["versionen"])
+    )
+
+
+def test_kauf_traut_sklaven_nur_zu_was_der_brandtrupp_angreift():
+    """B-182 Reihe 5 (BierKoenig, 10.11.): Der Brandtrupp konnte meist 0 bis 1 von 21 bis 30 Gebaeuden angreifen, die Rechnung legte 71 %
+    ihres Werts auf die anderen und kaufte 224 Sklaven fuer 2 Braende. Jetzt fragt der Kauf den Einsatz."""
+    L, G = huetten(n_bogen=3)
+    e, b = _einsatz(), _bestellung()
+    z = {x.schluessel: x for x in WK.ziele(L, G, 1)}
+    assert not e.greift_an(SKLAVE, z[("g", 1)], L, G) and e.brand._ziele(L, G, (0, 0), set()) == []
+    assert dict(b.schritt(_lage(L=L, G=G))).get(SKLAVE, 0) > 0  # ohne die Frage: wie in Reihe 5
+    k = dict(b.schritt(_lage(L=L, G=G, greift_an=e.greift_an)))
+    assert (
+        k.get(SKLAVE, 0) == 0 and k[SCHWERT] >= 1
+    )  # gedeckt: schwere Einheit, die der Nahkampf-Raid auch fuehrt
+    L, G = huetten()
+    assert b.schritt(_lage(L=L, G=G, greift_an=e.greift_an)) == [
+        (SKLAVE, 1)
+    ]  # ungedeckt: Sklave wie bisher
+    e.brand.brennt.add(1)
+    assert [x.schluessel for x in WK.ziele(L, G, 1) if e.greift_an(SKLAVE, x, L, G)] == [
+        ("g", 2)
+    ]  # brennt schon
+
+
+def test_kauf_traut_reitern_nur_zu_was_die_reiterjagd_jagt():
+    L = {
+        200: einheit(40, 0, 3),
+        201: einheit(80, 0, 3),
+        300: einheit(41, 2, BOGEN),
+    }  # 200 gedeckt, 201 frei
+    e = _einsatz()
+    z = {x.schluessel: x for x in WK.ziele(L, {}, 1)}
+    assert not e.greift_an(74, z[("e", 200)], L, {}) and e.greift_an(74, z[("e", 201)], L, {})
+    assert not e.greift_an(SKLAVE, z[("e", 201)], L, {})  # Sklaven jagen keine Arbeiter
+    assert e.greift_an(
+        SCHWERT, z[("e", 200)], L, {}
+    )  # Nahkampf-Raid: entscheidet dieselbe Rechnung
+
+
+def test_reiterjagd_jagt_nur_ungedeckte_arbeiter_auch_ausser_reichweite():
+    """Die Reiterjagd nimmt dieselbe Pruefung wie der Kauf (raids.Reiterjagd.moeglich): in Reichweite der wertvollste freie Arbeiter, sonst
+    der naechste freie irgendwo; gedeckte nie."""
+    L = {
+        1: einheit(30, 0, 74, besitzer=1),
+        200: einheit(20, 0, 3),  # Holzfaeller, frei: der Bogen steht 26 Felder weg
+        201: einheit(45, 0, 1),  # Bauer, mehr wert, aber der Bogen steht daneben
+        300: einheit(46, 2, BOGEN),
+    }
+    r, gesendet = _einsatz().reiter, []
+    r.schritt(L, {}, lambda b, *a, **k: gesendet.append(b))
+    assert gesendet == [
+        {"angriff": {"einheiten": [1], "ziel": 200}}
+    ]  # Bauer 201 ist mehr wert, aber gedeckt
+    L = {
+        1: einheit(0, 0, 74, besitzer=1),
+        202: einheit(60, 0, 3),
+        203: einheit(90, 0, 3),
+        301: einheit(92, 0, BOGEN),
+    }
+    r, gesendet = _einsatz().reiter, []
+    r.schritt(L, {}, lambda b, *a, **k: gesendet.append(b))
+    assert gesendet == [{"angriff": {"einheiten": [1], "ziel": 202}}]
+
+
 def test_aufstellung_raid_wirkung_steckt_die_neue_bestellung():
     d = AF.laden("raid_wirkung")
     assert AF.Steckplaetze(d["versionen"]).klasse("raidbestellung") is RB.RaidBestellungNachWirkung
@@ -284,6 +353,7 @@ def test_nahkampf_raid_kennt_nur_nahkampf_ohne_eigenes_modul():
         "raid_e.nahkampf.bestellt(typ_r, n_r)",
         "| raid_e.nahkampf.mitglieder",
         "raid_e.nahkampf.bericht()",
+        "greift_an=raid_e.greift_an if raid_e is not None else None",
     ],
 )
 def test_lenker_meldet_bestellungen_schuetzt_mitglieder_und_berichtet(zeile):

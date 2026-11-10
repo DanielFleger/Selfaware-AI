@@ -120,15 +120,17 @@ class Brandtrupp:
     def einheiten(self, L):
         return {n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] == SKLAVE and e.get("leben", 1) > 0}
 
+    def moeglich(self, n, L, G):
+        """True, wenn der Brandtrupp das Gebaeude n anzuenden wuerde. B-182: Der Kauf nach Wirkung fragt dieselbe Stelle - Reihe 5 (BierKoenig)
+        traute die Rechnung den Sklaven gedeckte Gebaeude zu, die der Brandtrupp nie angreift: 224 Sklaven, 2 Gebaeude angezuendet."""
+        g = G[n]
+        if g.get("besitzer") in (0, self.sp) or g["typ"] not in WERT or n in self.brennt:
+            return False
+        return not gefaehrlich((g["x"], g["y"]), L, G, self.sp, self.schutz)
+
     def _ziele(self, L, G, ort, belegt):
-        kand = []
-        for n, g in G.items():
-            if g.get("besitzer") in (0, self.sp) or g["typ"] not in WERT or n in belegt or n in self.brennt:
-                continue
-            p = (g["x"], g["y"])
-            if gefaehrlich(p, L, G, self.sp, self.schutz):
-                continue
-            kand.append((WERT[g["typ"]] / float(max(schach(ort, p), 1)), n))
+        kand = [(WERT[G[n]["typ"]] / float(max(schach(ort, (G[n]["x"], G[n]["y"])), 1)), n)
+                for n in G if n not in belegt and self.moeglich(n, L, G)]
         return [n for _, n in sorted(kand, reverse=True)]
 
     def schritt(self, L, G, befehl):
@@ -253,20 +255,11 @@ class Reiterjagd:
                     self.befohlen[r] = ("flucht", ziel, self.runde)
                     aus.append("REITERJAGD: Reiter %d weicht Typ %d in %d Feldern aus -> %s" % (r, f["typ"], nah[0], ziel))
                 continue
-            kand = []
-            for k, a in L.items():
-                if a["besitzer"] in (0, self.sp) or a["typ"] not in ARBEITER or a.get("leben", 1) <= 0:
-                    continue
-                p = (a["x"], a["y"])
-                d = schach(o, p)
-                if d > JAGD_R or gefaehrlich(p, L, G, self.sp):
-                    continue
-                kand.append((-ARBEITER[a["typ"]], d, k))
+            kand = [(-ARBEITER[a["typ"]], schach(o, (a["x"], a["y"])), k) for k, a in L.items()
+                    if schach(o, (a["x"], a["y"])) <= JAGD_R and self.moeglich(k, L, G)]
             if not kand:
                 # 17:41: nichts in Reichweite -> der naechste ungeschuetzte Arbeiter irgendwo (der Angriffsbefehl reitet hin)
-                kand = [(0, schach(o, (a["x"], a["y"])), k) for k, a in L.items()
-                        if a["besitzer"] not in (0, self.sp) and a["typ"] in ARBEITER and a.get("leben", 1) > 0
-                        and not gefaehrlich((a["x"], a["y"]), L, G, self.sp)]
+                kand = [(0, schach(o, (L[k]["x"], L[k]["y"])), k) for k in L if self.moeglich(k, L, G)]
             if not kand:
                 continue
             k = min(kand)[2]
@@ -278,6 +271,14 @@ class Reiterjagd:
                     aus.append("REITERJAGD: Reiter %d jagt Arbeiter %d (Typ %d) in %d Feldern" % (
                         r, k, L[k]["typ"], schach(o, (L[k]["x"], L[k]["y"]))))
         return aus
+
+    def moeglich(self, k, L, G):
+        """True, wenn die Reiterjagd den Arbeiter k jagen wuerde (ohne Reichweite: ist keiner in JAGD_R, reitet sie zum naechsten). B-182: Der
+        Kauf nach Wirkung fragt dieselbe Stelle."""
+        a = L[k]
+        if a["besitzer"] in (0, self.sp) or a["typ"] not in ARBEITER or a.get("leben", 1) <= 0:
+            return False
+        return not gefaehrlich((a["x"], a["y"]), L, G, self.sp)
 
     def _abschuesse(self, L):
         """Ein gejagtes Ziel, das nicht mehr lebt, zaehlt genau einmal; der Reiter ist danach frei."""

@@ -60,6 +60,7 @@ class Lage:
     start: tuple | None = None  # Soeldnerposten, dort entstehen die Einheiten
     steuerbar: frozenset = frozenset()  # Arten, die ein Einsatz-Modul gerade fuehren kann
     belegt: frozenset = frozenset()  # Ziele, die schon eine eigene Einheit hat
+    greift_an: object = None  # B-182: (Art, Ziel, L, G) -> bool vom Raid-Einsatz; ohne ihn entscheidet die Rechnung allein
 
 
 class RaidBestellung:
@@ -157,6 +158,7 @@ class RaidBestellungNachWirkung(RaidBestellung):
             bleibt,
             {ASSASSINE: 1},
             ZIELARTEN,
+            erlaubt=None if b.greift_an is None else (lambda t, z: b.greift_an(t, z, b.L, b.G)),
         )
         return kaeufe
 
@@ -175,6 +177,15 @@ class RaidEinsatz:
             if vorstoss_bis is None
             else steck.klasse("vorstoss")(sp, bergfried, bis=vorstoss_bis)
         )
+
+    def greift_an(self, typ, z, L, G):
+        """B-182: Wuerde das Modul dieser Art das Ziel angreifen? Brandtrupp und Reiterjagd meiden, was raids.gefaehrlich meldet; der Kauf
+        nach Wirkung fragt hier, statt es selbst zu raten. Der Nahkampf-Raid waehlt mit derselben Rechnung wie der Kauf, darum True."""
+        art, nr = z.schluessel
+        modul = {RA.SKLAVE: (self.brand, "g", G), RA.PFERDEBOGEN: (self.reiter, "e", L)}.get(typ)
+        if modul is None or not hasattr(modul[0], "moeglich"):
+            return True
+        return art == modul[1] and nr in modul[2] and modul[0].moeglich(nr, L, G)
 
     def schritt(self, t, L, G, befehl):
         aus = []

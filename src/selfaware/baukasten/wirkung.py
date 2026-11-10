@@ -199,16 +199,33 @@ class Wissen:
 
 
 def kaufen(
-    wissen, kasse, feuer, preise, start, ziele_, bleibt=None, hoechstens=None, zielarten=None
+    wissen,
+    kasse,
+    feuer,
+    preise,
+    start,
+    ziele_,
+    bleibt=None,
+    hoechstens=None,
+    zielarten=None,
+    erlaubt=None,
 ):
     """([(Typ, Anzahl)], Begruendung). Immer die Art mit dem meisten Wert je Gold, bis Gold, Leute am Feuer oder Ziele ausgehen.
-    preise: {Typ: Gold} der Arten, die jetzt gekauft und auch gesteuert werden koennen. bleibt: so viele Leute bleiben je Art am Feuer."""
+    preise: {Typ: Gold} der Arten, die jetzt gekauft und auch gesteuert werden koennen. bleibt: so viele Leute bleiben je Art am Feuer.
+    erlaubt(Typ, Ziel) -> bool: ob das Modul dieser Art das Ziel ueberhaupt angreift (raid.RaidEinsatz.greift_an)."""
     bleibt, hoechstens = bleibt or {}, hoechstens or {}
     zielarten = zielarten or {}
-    # B-182: einer Art wird nur zugetraut, was ihr Modul angreift ("g" Gebaeude, "e" Einheiten)
+    # B-182: einer Art wird nur zugetraut, was ihr Modul angreift: die Zielart ("g" Gebaeude, "e" Einheiten) und, Reihe 5, die Ziele, die
+    # das Modul nicht meidet
     kand = {
         typ: wissen.kandidaten(
-            typ, [z for z in ziele_ if z.schluessel[0] in zielarten.get(typ, "ge")]
+            typ,
+            [
+                z
+                for z in ziele_
+                if z.schluessel[0] in zielarten.get(typ, "ge")
+                and (erlaubt is None or erlaubt(typ, z))
+            ],
         )
         for typ in preise
     }
