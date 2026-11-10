@@ -60,6 +60,14 @@ def test_schiesst_auf_feind_in_reichweite_und_nennt_soldaten_vor_arbeitern():
     assert b == [{"einheiten": [1], "ziel": 3}]
 
 
+def test_waehlt_schussziele_nach_luftlinie_nicht_nach_schach():
+    """B-182 (Fehlerwache 10.11. 23:28): Im Schachmass 38 Felder, nach Luftlinie 40,9 - ausser Reichweite, also vorruecken."""
+    _, b, _ = _lauf(_L(_e(1, 22, 100, 100), _e(1, 22, 100, 101), _e(2, 3, 138, 115)))
+    assert "ziel" not in b[0] and "lauf" in b[0]
+    _, b, _ = _lauf(_L(_e(1, 22, 100, 100), _e(2, 3, 130, 110)))  # Luftlinie 31,6
+    assert b == [{"einheiten": [1], "ziel": 2}]
+
+
 def test_weicht_nahkaempfern_aus_und_laeuft_von_ihnen_weg():
     L = _L(_e(1, 22, 100, 100), _e(2, 26, 105, 100))
     _, b, aus = _lauf(L)

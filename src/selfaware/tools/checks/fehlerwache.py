@@ -19,6 +19,7 @@ STILL, UNTAETIG und BELEG sind selbst gesetzt, nicht gemessen. Reichweiten aus s
 
 Aufruf: python -m selfaware.tools.checks.fehlerwache --instanz 2 [--grenze 20] [--beobachten 20] [--still 600]
         [--untaetig 2000] [--beleg 600] [--minuten 30]
+        python -m selfaware.tools.checks.fehlerwache nachspielen <lage.jsonl.gz> [<konsole.txt>]   (gespeicherte Partie, ohne Spiel)
 Rueckgabe: 0 = Partie ohne Fehler zu Ende, 2 = Fehler gefunden und angehalten, 1 = keine Partie gesehen.
 """
 import argparse
@@ -149,7 +150,48 @@ def anspruechen_aus(text):
             for m in ANSPRUCH.finditer(text)]
 
 
+def welt_aus_lage(zeile):
+    """Weltbild-Ersatz aus einer Zeile des Lageprotokolls: alle Einheiten aus dem Abzug, eigene mit den Kernfeldern der
+    Tabelle "eigen" (Schussziel, Gebaeudeort). Fuer das Nachspielen einer Partie mit derselben Wache."""
+    from types import SimpleNamespace
+
+    from selfaware.telemetry.lageprotokoll import _tabelle, eigen_lesen
+    einheiten = {d["nr"]: d for d in _tabelle(zeile["einheiten"], 1)}
+    for nr, k in eigen_lesen(zeile).items():
+        if nr in einheiten:
+            einheiten[nr].update({f: k[f] for f in ("schusseinheit", "zieleinheit", "zielart", "mauerx", "mauery", "nahziel")})
+    return SimpleNamespace(tick=zeile["t"], ich=1, einheiten=einheiten)
+
+
+def nachspielen(lage, konsole=None, **grenzen):
+    """Spielt ein Lageprotokoll durch die Wache und gibt den ersten Fehler (oder None) und die Wache zurueck."""
+    import gzip
+    anspruch = []
+    if konsole:
+        for z in open(konsole, encoding="utf-8", errors="replace"):
+            m = re.match(r"\s*(\d+) \|", z)
+            if m:
+                anspruch += [(int(m.group(1)), a) for a in anspruechen_aus(z)]
+    wache = Wache(1, **grenzen)
+    with gzip.open(lage, "rt", encoding="utf-8") as f:
+        for zeile in f:
+            r = json.loads(zeile)
+            w = welt_aus_lage(r)
+            jetzt = [a for t_, a in anspruch if t_ <= w.tick]
+            anspruch = [(t_, a) for t_, a in anspruch if t_ > w.tick]
+            fehler = wache.schritt(w, jetzt)
+            if fehler:
+                return fehler, wache
+    return None, wache
+
+
 def main():
+    if len(sys.argv) > 2 and sys.argv[1] == "nachspielen":
+        fehler, wache = nachspielen(sys.argv[2], sys.argv[3] if len(sys.argv) > 3 else None)
+        for f_ in fehler or []:
+            print("FEHLER %s bei Takt %d: %s" % (f_["art"], f_["takt"], f_["text"]))
+        print("erster Fehler:", fehler[0]["art"] if fehler else "keiner", "| beobachtet", len(wache.gruppe), "| hoechstens", wache.hoechst)
+        return 2 if fehler else 0
     p = argparse.ArgumentParser()
     p.add_argument("--instanz", type=int, required=True)
     p.add_argument("--grenze", type=int, default=20)
@@ -215,15 +257,27 @@ def main():
             print("FEHLERWACHE Takt %d: %d Kaempfer (hoechstens %d), beobachtet %d, Zustaende %s" % (
                 w.tick, len(kaempfer(w, 1)), wache.hoechst, len(wache.gruppe), z), flush=True)
         if fehler:
-            open(os.path.join(workspace.STATE, "STOP"), "w").close()
-            befehl({"pause": True}, 0.5)
+            # 10.11. 23:28 (Lauf 1): Das Pausieren scheiterte an "KANAL BELEGT" (der Lenker hielt den Befehlskanal) und der
+            # Fehler ging mit dem Absturz verloren. Darum zuerst Bericht und Ausgabe, dann STOP, dann pausieren mit Wiederholung.
             stempel = time.strftime("%Y%m%d_%H%M%S")
             pfad = os.path.join(forschung, "fehlerwache_%s_i%d.json" % (stempel, a.instanz))
             json.dump({"fehler": fehler, "takt": w.tick, "konsole": konsole and os.path.basename(konsole), **wache.bericht()},
                       open(pfad, "w", encoding="utf-8"), ensure_ascii=False, indent=1, default=list)
             for f_ in fehler:
                 print("FEHLERWACHE FEHLER %s bei Takt %d: %s" % (f_["art"], f_["takt"], f_["text"]), flush=True)
-            print("FEHLERWACHE: Spiel angehalten, Lenker ueber STOP beendet, Bericht %s" % pfad, flush=True)
+            open(os.path.join(workspace.STATE, "STOP"), "w").close()
+            angehalten = False
+            for _ in range(40):            # der Lenker gibt den Kanal frei, sobald er die STOP-Datei sieht
+                try:
+                    befehl({"pause": True}, 0.5)
+                    angehalten = True
+                    break
+                except RuntimeError as ex:
+                    if "KANAL BELEGT" not in str(ex):
+                        raise
+                    time.sleep(0.5)
+            print("FEHLERWACHE: %s, Lenker ueber STOP beendet, Bericht %s" % (
+                "Spiel angehalten" if angehalten else "Spiel NICHT angehalten (Kanal 20 s belegt)", pfad), flush=True)
             return 2
         time.sleep(0.2)
     print("FEHLERWACHE: Zeitgrenze erreicht, kein Fehler", flush=True)

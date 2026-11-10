@@ -30,6 +30,7 @@ breit). Jeden anderen Befehl gibt der Vorstoss vorher frei, damit nie zwei Stell
 """
 
 import collections
+import math
 
 from selfaware.baukasten import formation
 from selfaware.baukasten.ausweichen import Schussfeld
@@ -92,6 +93,11 @@ def _weg_von(von, feind, weite):
     x = max(0, min(KARTE, von[0] + weite * dx // n))
     y = max(0, min(KARTE, von[1] + weite * dy // n))
     return (x, y)
+
+
+def _luft(a, b):
+    """Luftlinie in Feldern - so misst das Spiel die Schussweite (acquireShootTarget, S9)."""
+    return math.hypot(a[0] - b[0], a[1] - b[1])
 
 
 def _grob(p):
@@ -301,10 +307,12 @@ class Vorstoss:
             if self._sende("abziehen", _grob(ziel), befehl, meine, {"lauf": [ziel[0], ziel[1]]}):
                 aus.append("VORSTOSS: zieht aus dem Schussfeld bei %s ab -> %s" % (gefahr, ziel))
             return aus
+        # B-182 (Fehlerwache 10.11. 23:28): Schiessen prueft Luftlinie (S9, services/spielwerte), nicht Schach. Arbeiter 307 lag im
+        # Schachmass 38 Felder weg, nach Luftlinie 40,9: die Schuetzen standen mit ihm als Ziel und trafen nie (Leben blieb 2.500)
         kand = sorted(
-            (0 if e["typ"] not in ARBEITER else 1, schach(ort(e), mitte), n)
+            (0 if e["typ"] not in ARBEITER else 1, _luft(ort(e), mitte), n)
             for n, e in self._feinde(L, NAHKAMPF | FERN_FEIND | {SKLAVE} | ARBEITER)
-            if schach(ort(e), mitte) <= SCHUSS
+            if _luft(ort(e), mitte) <= SCHUSS
         )
         for _, d, k in kand:
             if self._ist_stur(k, L[k]):

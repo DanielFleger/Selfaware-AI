@@ -1,0 +1,88 @@
+{
+ "partie": "20261110_232740",
+ "erfasst": "2026-11-10 23:33",
+ "lenker_spieler": 1,
+ "gegner": null,
+ "anmerkung": null,
+ "letzter_tick": 4508,
+ "konsole": "data\\research\\aufstellung_20261110_232740_raid_wirkung_pp_gegnerki2_tempo200_einheitenmax20_i2_konsole.txt",
+ "lage": "data\\research\\lage_20261110_232747_i2.jsonl.gz",
+ "truppen": [
+  {
+   "t": 668,
+   "je_spieler": {
+    "1": {
+     "E_ARCHER": 5,
+     "E_SPEAR": 7
+    },
+    "2": {
+     "E_XBOW": 5,
+     "E_PIKE": 2,
+     "A_SLINGER": 5
+    }
+   }
+  },
+  {
+   "t": 3066,
+   "je_spieler": {
+    "1": {
+     "E_ARCHER": 5,
+     "E_SPEAR": 7
+    },
+    "2": {
+     "E_XBOW": 5,
+     "E_PIKE": 2,
+     "A_SLINGER": 5,
+     "A_FIRETHROWER": 3
+    }
+   }
+  }
+ ],
+ "lenker": {
+  "start_befehl": "START-BEFEHL Instanz 2: uv run python -m selfaware.runtime.live.erstes_spiel leere_ki=nein experiment=ja regel50=nein minuten=15 tempo=200 bis_tick=40000 ziel_tick=40000 streitkolben=0 weg=feldzug produktion=nein bier=ja abriss=nein assassinen=20 aufloesen=ende b_versatz=600 bevoelkerung_ziel=90 einzelkauf=nein entscheider=kausal gegner=1 gegner_ki=2 gute_dinge=0 haushalt_rand=650 holz_kaufen=ja holz_spam=20 holzfaeller_je_baum=4 holzfaeller_max=30 holzfaeller_vorab=4 huetten_voraus=nein je_arbeiter=ja joch_nach_stein=ja \"karte=Liga_Paradise Plains\" kasse=nein kasse_grenze=0 kasse_stufe=11 nahrung_ausbau=nein notwerbung=ja penner=20 rationen=doppelt schub=nein stein_max=nein stein_parallel=ja steinbruch_zuerst=nein steuer_ende=nein steuer_runter=90 umzug=frueh v14=nein vollbeschaeftigung=ja wachstum_boden=9500 waechter=ja stopp_tote=0 kernweg=ja vorstoss=ja bestellung=raid ausweichen=ja endspurt=nein ohne_angriff=ja aufstellung=raid_wirkung_pp einheiten_max=20",
+  "ereignisse": {
+   "ANWERBEN-BREMSE": 1,
+   "WERBE": 1,
+   "FELDZUG": 0,
+   "RAID": 4,
+   "STILLSTAND": 0,
+   "HUNGER": 0,
+   "PLANER wartet": 2,
+   "Seasoning": 10,
+   "LORDWACHE": 0,
+   "ENDSPURT": 1,
+   "Reiter": 1
+  },
+  "anwerbungen": 1,
+  "gold_bei_bremse": [
+   {
+    "t": 4175,
+    "gold": 39,
+    "braucht": 115
+   }
+  ],
+  "letzte_stand": "STAND Tick 4605 | Feuer 13, Leute 41/42 | Huette 4, Holzfaellerhuette 14 (Arbeiter 14/14), Ochsenkarren 1 (Arbeiter 1/1), Soeldnerposten 1, Lagerplatz 4, Kornspeicher 1, Steinbruch 1 (Arbeiter 3/3), 21 1, Marktplatz 1, Apfelplantage 7 (Arbeiter 7/7), Bergfried 1, 55 1, 56 1, 57 1, 58 1, Fallgrube 12, 71 1, 72 1, 73 1 | offen - | bestellt 7, bestaetigt 6, gescheitert 1, abgelehnt 16"
+ },
+ "vergleich": {
+  "zeilen": [
+   "VERGLEICH Spieler [1, 2], Tick 668 bis 4508 (Fenster 1000 Ticks, gleitend ueber 3; Statuszeile fuer [1], Ertrag fuer keinen)",
+   "NACHTEIL Spieler 2 gegenueber Spieler 1: hinten ab Tick 0 - je Kennzahl ab Tick (Spieler 2 zu 1 dort -> am Ende): Gebaeude 0 (16 zu 38 -> 38 zu 41)",
+   "NACHTEIL Spieler 1 gegenueber Spieler 2: hinten ab Tick 1000 - je Kennzahl ab Tick (Spieler 1 zu 2 dort -> am Ende): Truppen 1000 (12 zu 14 -> 12 zu 15)"
+  ],
+  "datei": "data\\research\\lernen\\partievergleich_20261110_232740.json"
+ },
+ "gold": {
+  "zeilen": [
+   "Einnahmen 135 in 8 Schritten, Groessen [(15, 4), (30, 2), (10, 1), (5, 1)]",
+   "davon ueber einen Monatswechsel (Steuer): 1 Schritte, 10 Gold",
+   "Ausgaben -121 in 6 Schritten, Groessen [(-15, 4), (-6, 1), (-55, 1)]",
+   "Holz je besetzter Holzfaellerhuette und 1.000 Ticks: 0.4 (Wissensregister L3: 5,3 bei 55-75 Feldern Weg)",
+   "Spieler 1: 1 Einheiten, 10 Gold: 1 Sklave (10 Balance)",
+   "Spieler 2: 3 Einheiten, 375 Gold: 3 Feuerwerfer (125 Balance)",
+   "Spieler 1: 12 Fallgrube, 4 Lagerplatz, 3 Huette, 2 Apfelplantage",
+   "Spieler 2: 12 Lagerplatz, 2 Huette, 2 Holzfaellerhuette, 2 Getreidefarm, 2 Steinbruch, 2 21, 2 Ochsenkarren"
+  ],
+  "datei": "data/research/lernen/gold_20261110_232740.txt",
+  "fehler": null
+ }
+}

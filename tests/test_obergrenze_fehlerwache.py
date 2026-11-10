@@ -121,3 +121,27 @@ def test_beobachtet_die_ersten_zwanzig():
     wa = Wache(grenze=30, beobachten=20)
     wa.schritt(w)
     assert wa.gruppe == list(range(10, 30))
+
+
+def test_nachspielen_findet_den_fehler_im_lageprotokoll(tmp_path):
+    """Nachspiel-Modus (10.11. 23:40): dieselbe Wache ueber gespeicherte Staende; eigene Kernfelder aus der Tabelle eigen."""
+    import gzip
+    import json
+
+    from selfaware.tools.checks.fehlerwache import nachspielen
+
+    kopf = "nr besitzer typ x y leben zielart zieleinheit laufx laufy nahziel"
+    eigen_kopf = "nr typ x y zielart zieleinheit zieluid schusseinheit schussziel_uid mauerx mauery planx plany nahziel"
+    zeilen = []
+    for t in (100, 800):
+        e = ["1 1 55 100 100 150000 0 0 100 100 0", "50 2 3 255 100 2500 0 0 255 100 0",
+             "20 1 74 100 102 15000 4 50 100 102 0"]
+        k = ["20 74 100 102 4 50 0 50 0 0 0 0 0 0"]
+        zeilen.append({"t": t, "st": {}, "einheiten": "tick %d\n%s\n%s\n" % (t, kopf, "\n".join(e)), "gebaeude": "nr\n",
+                       "eigen": "kern_tick %d ich 1\n%s\n%s\n" % (t, eigen_kopf, "\n".join(k))})
+    p = tmp_path / "lage.jsonl.gz"
+    with gzip.open(p, "wt", encoding="utf-8") as f:
+        for z in zeilen:
+            f.write(json.dumps(z) + "\n")
+    fehler, wache = nachspielen(str(p), still=600)
+    assert [x["art"] for x in fehler] == ["F2 steht"] and wache.gruppe == [20]
