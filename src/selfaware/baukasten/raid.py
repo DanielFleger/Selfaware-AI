@@ -6,10 +6,13 @@ Beide sind Steckplaetze (raideinsatz, raidbestellung), eine Aufstellung kann als
 RaidBestellung kauft wie vor B-179: erst die Assassine, dann die Soeldner, beide mit dem Gold vom Rundenanfang. In der Partie raid_frueh vom 09.11. kamen so
 von 13 bestellten Berittenen Bogenschuetzen nur 3 an (data/research/raid_frueh_20261109/Ergebnis_Raid_frueh.md).
 RaidBestellungMitKasse gibt das Gold einer Runde nur einmal aus und kauft in einer festen Reihenfolge: Was fehlt, geht vor, auch wenn das Gold erst spaeter reicht.
+RaidBestellungNachWirkung hat keine feste Reihenfolge: Gekauft wird, was gegen die sichtbaren Ziele am meisten Wirkung je Gold hat (B-181).
 """
 
 import dataclasses
 
+from selfaware.baukasten import einheiten as EH
+from selfaware.baukasten import wirkung as WK
 from selfaware.micro.tasks import raids as RA
 
 ASSASSINE, ASSASSINE_GOLD = 73, 70  # SOELDNER_GOLD in erstes_spiel.py
@@ -48,6 +51,12 @@ class Lage:
     sklaven: int
     reiter: int
     schleuderer: int
+    L: dict | None = None  # Lagebild und Gebaeude: nur die Bestellung nach Wirkung braucht sie
+    G: dict | None = None
+    sp: int = 1
+    start: tuple | None = None  # Soeldnerposten, dort entstehen die Einheiten
+    steuerbar: frozenset = frozenset()  # Arten, die ein Einsatz-Modul gerade fuehren kann
+    belegt: frozenset = frozenset()  # Ziele, die schon eine eigene Einheit hat
 
 
 class RaidBestellung:
@@ -104,13 +113,59 @@ class RaidBestellungMitKasse(RaidBestellung):
         return kaeufe
 
 
-class RaidEinsatz:
-    """Eine Runde Steuerung, Reihenfolge wie bisher: Vorstoss, Deckung, Brandtrupp, Reiterjagd. Der Brandtrupp meidet, was Deckung und Vorstoss abdecken."""
+class RaidBestellungNachWirkung(RaidBestellung):
+    """Kauf nach Wirkung (B-181, Daniel 10.11.: keine feste Reihenfolge). In jeder ungeraden Runde die Art mit dem meisten Wert je Gold gegen
+    die sichtbaren Ziele (baukasten/wirkung.py), bis Kasse, Leute am Feuer oder offene Ziele ausgehen. In Frage kommen nur Arten, die ein Modul
+    auch fuehren kann, die am Soeldnerposten nur Gold kosten und die raiden duerfen; der Lord nie. Ziele, die schon jemand hat, zaehlen nicht."""
 
-    def __init__(self, sp, bergfried, feuer, steck, vorstoss_bis=None):
+    def __init__(self, reihenfolge=REIHENFOLGE):
+        super().__init__(reihenfolge)
+        self.begruendung = []
+        self._wissen = None
+
+    @property
+    def wissen(self):
+        if self._wissen is None:
+            self._wissen = WK.Wissen()
+        return self._wissen
+
+    def schritt(self, b):
+        self.begruendung = []
+        if b.L is None or b.G is None or b.start is None or b.endspurt or b.runde % 2 == 0:
+            return []
+        self.wissen.lernen(b.L, b.sp)
+        preise = {}
+        for typ in sorted(b.steuerbar):
+            if not (EH.kaufbar_am_posten(typ) and EH.darf(typ, "raid")):
+                continue
+            if (typ == ASSASSINE and b.assassine_erlaubt) or (
+                typ != ASSASSINE and b.soeldner_erlaubt
+            ):
+                preise[typ] = EH.ARTEN[typ].gold
+        ziele = [z for z in WK.ziele(b.L, b.G, b.sp) if z.schluessel not in b.belegt]
+        bleibt = {t: 0 if t == ASSASSINE else RA.FEUER_MIN for t in preise}
+        kaeufe, self.begruendung = WK.kaufen(
+            self.wissen,
+            b.gold - b.ruecklage,
+            b.feuer,
+            preise,
+            b.start,
+            ziele,
+            bleibt,
+            {ASSASSINE: 1},
+        )
+        return kaeufe
+
+
+class RaidEinsatz:
+    """Eine Runde Steuerung, Reihenfolge wie bisher: Vorstoss, Deckung, Brandtrupp, Reiterjagd, dazu der Nahkampf-Raid (B-181). Der Brandtrupp
+    meidet, was Deckung und Vorstoss abdecken. Der Nahkampf-Raid fuehrt nur Einheiten, die fuer den Raid bestellt wurden."""
+
+    def __init__(self, sp, bergfried, feuer, steck, vorstoss_bis=None, gelaende=None):
         self.brand = steck.klasse("brandtrupp")(sp, feuer)
         self.reiter = steck.klasse("reiterjagd")(sp)
         self.deckung = steck.klasse("deckung")(sp, bergfried)
+        self.nahkampf = steck.klasse("nahkampfraid")(sp, gelaende)
         self.vorstoss = (
             None
             if vorstoss_bis is None
@@ -128,4 +183,5 @@ class RaidEinsatz:
         aus += self.deckung.schritt(L, G, befehl, self.brand)
         aus += self.brand.schritt(L, G, befehl)
         aus += self.reiter.schritt(L, G, befehl)
+        aus += self.nahkampf.schritt(L, G, befehl)
         return aus

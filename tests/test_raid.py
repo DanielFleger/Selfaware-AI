@@ -171,26 +171,39 @@ class Steck:
 def test_einsatz_steuert_in_der_reihenfolge_von_bisher():
     log = []
     s = Steck(log)
-    e = RB.RaidEinsatz(1, (9, 9), "feuer", s, vorstoss_bis=15000)
-    assert e.schritt(100, {}, {}, "befehl") == ["vorstoss", "deckung", "brandtrupp", "reiterjagd"]
+    e = RB.RaidEinsatz(1, (9, 9), "feuer", s, vorstoss_bis=15000, gelaende=["Gs."])
+    assert e.schritt(100, {}, {}, "befehl") == [
+        "vorstoss",
+        "deckung",
+        "brandtrupp",
+        "reiterjagd",
+        "nahkampfraid",
+    ]
     assert [x[:2] for x in log] == [
         ("vorstoss", "plaetze"),
         ("vorstoss", "schritt"),
         ("deckung", "schritt"),
         ("brandtrupp", "schritt"),
         ("reiterjagd", "schritt"),
+        ("nahkampfraid", "schritt"),
     ]
     assert log[0][2] == {"x"} and e.brand.schutz == ["deckung", "vorstoss"]
     assert s.gebaut["brandtrupp"] == ((1, "feuer"), {}) and s.gebaut["vorstoss"] == (
         (1, (9, 9)),
         {"bis": 15000},
     )
+    assert s.gebaut["nahkampfraid"] == ((1, ["Gs."]), {})
 
 
 def test_einsatz_ohne_vorstoss():
     e = RB.RaidEinsatz(1, (9, 9), "feuer", Steck([]))
     assert e.vorstoss is None
-    assert e.schritt(100, {}, {}, "befehl") == ["deckung", "brandtrupp", "reiterjagd"]
+    assert e.schritt(100, {}, {}, "befehl") == [
+        "deckung",
+        "brandtrupp",
+        "reiterjagd",
+        "nahkampfraid",
+    ]
     assert e.brand.schutz == ["deckung"]
 
 

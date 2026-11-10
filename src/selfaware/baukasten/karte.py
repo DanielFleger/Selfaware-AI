@@ -134,6 +134,10 @@ KARTE = {
             "bestellung raids raid_reihenfolge",
         ),
         _m("Assassinen werben", _l("phase1 phase2 loewen_am_posten")),
+        _m(
+            "Kauf nach Wirkung",
+            "baukasten/wirkung.py:kaufen baukasten/wirkung.py:Wissen baukasten/einheiten.py",
+        ),
     ),
     "bestellung_angriff": (
         _m(
@@ -150,6 +154,7 @@ KARTE = {
     "bestellung_verteidigung": (_m("Notwerbung", _l("phase2"), "notwerbung"),),
     "einsatz_raid": (
         _m("Raid-Einsatz", "baukasten/raid.py:RaidEinsatz", "ohne_angriff"),
+        _m("Nahkampf-Raid", "micro/tasks/nahkampf.py:NahkampfRaid"),
         _m("Brandtrupp", "micro/tasks/raids.py:Brandtrupp"),
         _m("Reiterjagd", "micro/tasks/raids.py:Reiterjagd"),
         _m("Deckung", "micro/tasks/raids.py:Deckung"),

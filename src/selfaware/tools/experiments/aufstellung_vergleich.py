@@ -6,6 +6,7 @@ Ausgabe: je Partie die Mitschrift data/research/aufstellung_<stempel>_<name>_i<n
 """
 
 import argparse
+import collections
 import glob
 import gzip
 import json
@@ -46,6 +47,7 @@ def lage_zahlen(pfad):
     """
     neu = dict.fromkeys(GRUPPEN, 0)
     tot = dict.fromkeys(GRUPPEN, 0)
+    je_art = collections.Counter()
     vor = None
     with gzip.open(pfad, "rt", encoding="utf-8") as f:
         for z in f:
@@ -54,11 +56,16 @@ def lage_zahlen(pfad):
                 continue
             jetzt = _eigene(d["einheiten"])
             if vor is not None:
+                je_art.update(
+                    t
+                    for n, t in jetzt.items()
+                    if vor.get(n) != t and t in GRUPPEN["raid"] | GRUPPEN["andere"]
+                )
                 for g, arten in GRUPPEN.items():
                     neu[g] += sum(1 for n, t in jetzt.items() if t in arten and vor.get(n) != t)
                     tot[g] += sum(1 for n, t in vor.items() if t in arten and jetzt.get(n) != t)
             vor = jetzt
-    return {g: (neu[g], tot[g]) for g in GRUPPEN}
+    return {**{g: (neu[g], tot[g]) for g in GRUPPEN}, "je_art": dict(sorted(je_art.items()))}
 
 
 def kennzahlen(text):
@@ -146,6 +153,11 @@ def main():
             print(f"Partie {i + 1}, Aufstellung {name}", flush=True)
             ergebnisse.append((name, partie(name, a.instanz, stempel)))
             print(tabelle(ergebnisse[-1:]), flush=True)
+            print(
+                "  neu je Art:",
+                (ergebnisse[-1][1].get("einheiten") or {}).get("je_art"),
+                flush=True,
+            )
     print(tabelle(ergebnisse))
 
 

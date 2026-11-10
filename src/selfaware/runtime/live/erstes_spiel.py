@@ -21,7 +21,9 @@ from selfaware import workspace as _workspace
 import json, math, os, re, sys, time
 
 from selfaware.baukasten import aufstellung as AF
+from selfaware.baukasten import einheiten as EH
 from selfaware.baukasten import raid as RB
+from selfaware.micro.tasks import nahkampf as NK
 from selfaware.baukasten.bestellung import Bestellung
 from selfaware.game.ucp.laden import lade_stand, befehl, peek
 from selfaware.game.ucp.steuerkarte import laufe, tick, spielzustand
@@ -2281,7 +2283,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         if VORSTOSS:
             from selfaware.micro.tasks.vorstoss import Vorstoss     # die Zeile bleibt fuer die Code-Kennung, gebaut wird in RaidEinsatz
         raid_e = STECK.klasse("raideinsatz")(SP, BERGFRIED, lambda nr: peek(0xF98520 + nr * 0x32C + 0x14 + 702)[0] & 0xFFFF, STECK,
-                                             VORSTOSS_BIS if VORSTOSS else None)
+                                             VORSTOSS_BIS if VORSTOSS else None, list(_KARTE) or None)
         brand, reiter, deckung, vorstoss = raid_e.brand, raid_e.reiter, raid_e.deckung, raid_e.vorstoss
     if weg == "feldzug" and streitkolben:
         from selfaware.micro.tasks.feldzug import Feldzug
@@ -2534,10 +2536,12 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 feldzug.heimwache = hw
             if feldzug is not None and vorstoss is not None:
                 feldzug.ausgeliehen = set(vorstoss.mitglieder)
+            if feldzug is not None and raid_e is not None and raid_e.nahkampf.mitglieder:     # B-181: Raid-Nahkaempfer gehoeren nicht dem Feldzug
+                feldzug.ausgeliehen = set(getattr(feldzug, "ausgeliehen", None) or ()) | raid_e.nahkampf.mitglieder
             reserve_w = feldzug.einheiten(L) if feldzug is not None and feldzug.phase == "sammeln" else set()
             ausgenommen_w = set(trupp.mitglieder if trupp else ()) | ((feldzug.einheiten(L) - reserve_w) if feldzug is not None else set())
             if brand is not None:          # 19.10.: Raid-Sklaven und -Reiter gehoeren nicht dem Waechter und graben nicht
-                ausgenommen_w |= brand.einheiten(L) | reiter.einheiten(L)
+                ausgenommen_w |= brand.einheiten(L) | reiter.einheiten(L) | raid_e.nahkampf.mitglieder
             if vorstoss is not None:       # B-172: im Vorstoss gehoeren sie nicht dem Waechter; beim Alarm gibt der Vorstoss sie frei
                 ausgenommen_w |= vorstoss.mitglieder
             ausgenommen_w |= graben.graeber if graben is not None and not graben.fertig else set()   # 19.10.: Graeber graben
@@ -3407,12 +3411,22 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             if BESTELLUNG.darf("raid") and posten and not hunger_r:
                 try:
                     import selfaware.game.ucp.bauen as BA_r
+                    # B-181: was ein Modul fuehren kann und welche Ziele schon vergeben sind - nur die Bestellung nach Wirkung nutzt es
+                    steuerbar_r, belegt_r = set(), set()
+                    if raid_e is not None:
+                        steuerbar_r |= {RA.SKLAVE, RA.PFERDEBOGEN} | set(NK.KANN) | ({RA.SCHLEUDER} if RA.DECKUNG_SOLL > 0 else set())
+                        steuerbar_r |= {70} if vorstoss is not None else set()     # arabische Bogenschuetzen fuehrt der Vorstoss (vorstoss.SCHUETZEN)
+                        belegt_r |= {("g", nr) for nr in brand.ziel.values()} | set(raid_e.nahkampf.ziel.values())
+                        belegt_r |= {("e", v[1]) for v in reiter.befohlen.values() if v[0] == "jagd"}
+                    if trupp is not None:
+                        steuerbar_r.add(RB.ASSASSINE)
                     for typ_r, n_r in raid_b.schritt(RB.Lage(
                             runde=runde, gold=st["gold"], ruecklage=wirt.ruecklage(G)["gold"],
                             ruecklage_soeldner=wirt.ruecklage(G, ohne_heer=HEER_ANTEIL > 0)["gold"], feuer=st.get("feuer", 0),
                             endspurt=es is not None and es.aktiv, soeldner_erlaubt=raid_laeuft, assassine_erlaubt=assassine_erlaubt,
                             sklaven=len(brand.einheiten(L)) if brand is not None else 0, reiter=len(reiter.einheiten(L)) if reiter is not None else 0,
-                            schleuderer=len(deckung.einheiten(L)) if deckung is not None else 0)):
+                            schleuderer=len(deckung.einheiten(L)) if deckung is not None else 0,
+                            L=L, G=G, sp=SP, start=(G[posten[0]]["x"], G[posten[0]]["y"]), steuerbar=frozenset(steuerbar_r), belegt=frozenset(belegt_r))):
                         if typ_r == RB.ASSASSINE:
                             befehl({"werbe": {"typ": RB.ASSASSINE, "gebaeude": posten[0]}}, 1.0, bis="WERBE")
                             geworben += 1
@@ -3424,8 +3438,11 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         for _ in range(n_r):
                             BA_r.werbe(typ_r, posten[0])
                         if HEER_ANTEIL > 0:
-                            wirt.heer_ausgabe(n_r * {RA.SKLAVE: RA.SKLAVE_GOLD, RA.SCHLEUDER: RA.SCHLEUDER_GOLD}.get(typ_r, RA.PFERD_GOLD))
-                        ereignis.append("RAID-WERBUNG: %d %s" % (n_r, {RA.SKLAVE: "Sklaven", RA.SCHLEUDER: "Schleuderer (Deckung)"}.get(typ_r, "Pferdebogen")))
+                            wirt.heer_ausgabe(n_r * EH.ARTEN[typ_r].gold)
+                        if raid_e is not None:
+                            raid_e.nahkampf.bestellt(typ_r, n_r)     # B-181: die bestellten Nahkaempfer fuehrt der Nahkampf-Raid
+                        ereignis.append("RAID-WERBUNG: %d %s" % (n_r, {RA.SKLAVE: "Sklaven", RA.SCHLEUDER: "Schleuderer (Deckung)", RA.PFERDEBOGEN: "Pferdebogen"}.get(typ_r, EH.name(typ_r))))
+                    ereignis += getattr(raid_b, "begruendung", [])
                 except Exception as ex_r:
                     ereignis.append("RAIDS FEHLER %r - Partie laeuft weiter" % (ex_r,))
             if bier is not None and not (es is not None and es.aktiv) and runde % 5 == 0:     # Endspurt: keine neuen Betriebe
@@ -3495,7 +3512,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         schreib("1v1: Spiel bleibt fuer den anderen Lenker laufen (%s: %s)" % (ende_art, ende_text))
     schreib(serie.bericht())
     if brand is not None:
-        schreib("RAIDS: %s; %s; %s" % (brand.bericht(), reiter.bericht(), deckung.bericht()))
+        schreib("RAIDS: %s; %s; %s; %s" % (brand.bericht(), reiter.bericht(), deckung.bericht(), raid_e.nahkampf.bericht()))
         if vorstoss is not None:
             schreib(vorstoss.bericht())
     if GZ is not None:

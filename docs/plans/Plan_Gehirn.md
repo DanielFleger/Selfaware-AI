@@ -130,6 +130,8 @@ Jedes knappe Gut (Gold, Holz, Waffen, Bauern, freie Einheiten, Befehle) zählt s
 
 Jede Entscheidung wird mit ihrer Erwartung protokolliert und nachgemessen.
 
+**Erster Stand (10.11., B-181):** Der Kauf der Raid-Einheiten rechnet so, Stufe 1 mit Daniels Startwerten (`baukasten/wirkung.py`, Zeile `WIRKUNG-KAUF` in der Mitschrift mit der Erwartung).
+
 **Härtung:** Eine Liga aus möglichst verschiedenen Gegnern (alle KIs, eigene ältere Fassungen, verschiedene Strategien gegeneinander, Karten, Plätze, Gold). Der Durchsatz begrenzt das: Bei Tempo 200 dauern 40.000 Takte rund 3,4 Minuten. Bei Tempo 825 wären es 48 Sekunden, das ist aber noch nicht gefahren.
 
 ## 6. Einsatz der Einheiten

@@ -182,6 +182,7 @@ HEUTIGE_KLASSEN = {
     "fallenwache": ("selfaware.micro.tasks.fallenwache", "Fallenwache"),
     "raidbestellung": ("selfaware.baukasten.raid", "RaidBestellung"),
     "raideinsatz": ("selfaware.baukasten.raid", "RaidEinsatz"),
+    "nahkampfraid": ("selfaware.micro.tasks.nahkampf", "NahkampfRaid"),
 }
 
 
@@ -190,7 +191,7 @@ def test_ohne_aufstellung_baut_der_lenker_die_klassen_von_heute():
     s = AF.Steckplaetze()
     for name, (modul, klasse) in HEUTIGE_KLASSEN.items():
         assert s.standard[name] == f"{modul}:{klasse}"
-    assert len(s.standard) == 19  # dazu Ausbau und Angriffstrupp, die der Lenker nie baut
+    assert len(s.standard) == 20  # dazu Ausbau und Angriffstrupp, die der Lenker nie baut
     assert s.klasse("brandtrupp").__name__ == "Brandtrupp"
 
 
@@ -385,7 +386,12 @@ def test_lage_zahlen_trennen_starttruppen_raid_und_andere(tmp_path):
             bild(900, "1 1 22", "2 1 71", "4 1 74", "5 1 26") + "\n"
         )  # neu: Reiter, Streitkolben
         f.write(bild(1000, "1 1 22", "4 1 74", "5 1 26") + "\n")  # Sklave tot
-    assert lage_zahlen(pfad) == {"raid": (1, 1), "reiter": (1, 0), "andere": (1, 0)}
+    assert lage_zahlen(pfad) == {
+        "raid": (1, 1),
+        "reiter": (1, 0),
+        "andere": (1, 0),
+        "je_art": {26: 1, 74: 1},
+    }
 
 
 def test_aufstellung_setzt_ihre_schalter_und_die_befehlszeile_geht_vor():
