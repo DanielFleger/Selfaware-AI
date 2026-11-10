@@ -145,3 +145,58 @@ def test_nachspielen_findet_den_fehler_im_lageprotokoll(tmp_path):
             f.write(json.dumps(z) + "\n")
     fehler, wache = nachspielen(str(p), still=600)
     assert [x["art"] for x in fehler] == ["F2 steht"] and wache.gruppe == [20]
+
+
+def test_melden_schreibt_bericht_vor_dem_anhalten_und_wartet_auf_den_kanal(tmp_path):
+    """Lauf 1 und 2 (10.11. 23:28, 23:35): Die Wache stuerzte beim Melden ab - erst am belegten Kanal, dann am falschen Ordner."""
+    import json
+
+    from selfaware.tools.checks.fehlerwache import melden
+
+    versuche = []
+
+    def befehl(cmd, warte):
+        versuche.append(cmd)
+        if len(versuche) < 3:
+            raise RuntimeError("KANAL BELEGT: ein Lauf (Prozess 1) benutzt den Befehlskanal")
+        return ["PAUSE"]
+
+    stop = tmp_path / "STOP"
+    fehler = [{"art": "F2 steht", "takt": 4517, "text": "Ziel 307 in 41 Feldern"}]
+    pfad, angehalten = melden(fehler, Wache(), 4517, None, str(tmp_path), 2, befehl, str(stop), versuche=5, warte=0)
+    assert angehalten and len(versuche) == 3 and stop.exists()
+    assert json.load(open(pfad, encoding="utf-8"))["fehler"][0]["art"] == "F2 steht"
+
+
+def test_datenordner_der_wache_ist_data_research():
+    """Lauf 2: workspace.DATA ist schon data/research - die Wache darf kein zweites research anhaengen."""
+    import os
+
+    from selfaware import workspace
+
+    assert os.path.basename(workspace.DATA) == "research" and os.path.isdir(workspace.DATA)
+
+
+def test_wiedervergebene_nummer_ist_kein_ziel_mehr():
+    """Lauf 2 nachgespielt (10.11. 23:40): Arbeiter 322 starb, das Spiel gab die Nummer einem Bauern 78 Felder weiter; das
+    Zielfeld der Bogenschuetzen trug noch 322 - die Wache darf das nicht als Ziel ausser Reichweite werten."""
+    wa = Wache(still=600)
+    nah = einheit(322, 2, 3, 130, 100)  # 30 Felder, wird beschossen
+    for t in (100, 200):
+        wa.schritt(welt(t, LORD, nah, einheit(20, 1, 22, 100, 100, zielart=4, zieleinheit=322, schusseinheit=322)))
+    wa.schritt(welt(300, LORD, einheit(20, 1, 22, 100, 100, zielart=4, zieleinheit=322, schusseinheit=322)))  # tot
+    neu = einheit(322, 2, 1, 178, 100)  # dieselbe Nummer, eine andere Einheit
+    for t in (400, 1000, 1400):
+        assert wa.schritt(welt(t, LORD, neu, einheit(20, 1, 22, 100, 100, zielart=4, zieleinheit=322, schusseinheit=322))) == []
+
+
+def test_uhr_beginnt_neu_wenn_das_ziel_wechselt():
+    """Lauf 2 nachgespielt (10.11. 23:45): 700 Takte ohne Ziel, dann ein neues Ziel - kein F2, bevor es 600 Takte steht."""
+    wa = Wache(still=600)
+    for t in (100, 500, 800):
+        assert wa.schritt(welt(t, LORD, einheit(20, 1, 22, 100, 100))) == []
+    fern = einheit(60, 2, 11, 141, 100)  # 41 Felder: knapp ausser Reichweite
+    for t in (810, 1000, 1400):
+        assert wa.schritt(welt(t, LORD, fern, einheit(20, 1, 22, 100, 100, zielart=4, zieleinheit=60, schusseinheit=60))) == []
+    f = wa.schritt(welt(1410, LORD, fern, einheit(20, 1, 22, 100, 100, zielart=4, zieleinheit=60, schusseinheit=60)))
+    assert [x["art"] for x in f] == ["F2 steht"]

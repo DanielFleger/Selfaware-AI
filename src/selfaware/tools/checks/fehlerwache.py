@@ -60,12 +60,37 @@ class Wache:
         self.heim = None
         self.hoechst = 0
         self.zustaende = {}       # Nummer -> {zustand: Takte} fuer den Bericht
+        self.ident = {}           # Nummer -> (Art, Besitzer, Takt des ersten Sehens) - das Spiel vergibt Nummern Toter neu
+        self.ziel_ident = {}      # (eigene Nummer, Ziel) -> Kennung des Ziels, als es zum ersten Mal Ziel war
+
+    def _kennungen(self, welt):
+        """Neue oder wiedervergebene Nummern bekommen eine neue Kennung; fehlende verlieren sie."""
+        for n in [n for n in self.ident if n not in welt.einheiten]:
+            del self.ident[n]
+        for n, e in welt.einheiten.items():
+            k = self.ident.get(n)
+            if k is None or k[:2] != (e.get("typ"), e.get("besitzer")):
+                self.ident[n] = (e.get("typ"), e.get("besitzer"), welt.tick)
+
+    def _lebendes_ziel(self, n, ziel):
+        """True, solange die Nummer ziel dieselbe Einheit traegt wie beim ersten Sehen als Ziel von n."""
+        k = self.ident.get(ziel)
+        if k is None:
+            return False
+        alt = self.ziel_ident.setdefault((n, ziel), k)
+        return alt == k
 
     def _zustand(self, e, welt):
         """(Angriffsziel vorhanden, kaempft, Beschreibung des Ziels)."""
         p = ort(e)
         r = SW.erfassen(e["typ"])
-        feind = lambda n: welt.einheiten.get(n) if n and welt.einheiten.get(n, {}).get("besitzer") not in (None, 0, self.sp) else None  # noqa: E731
+        me = e["nr"]
+
+        def feind(n):
+            z = welt.einheiten.get(n) if n else None
+            if z is None or z.get("besitzer") in (None, 0, self.sp) or not self._lebendes_ziel(me, n):
+                return None
+            return z
         nah = feind(e.get("nahziel"))
         if nah is not None and schach(p, ort(nah)) <= NAH_FELDER:
             return True, True, "Nahkampf mit %d" % e["nahziel"]
@@ -88,6 +113,7 @@ class Wache:
         """Ein Stand des Kerns (welt) und neue Erfolgsmeldungen [(Modul, eigene Nummer, Opfer)] -> Liste der Fehler (leer = gut)."""
         t = welt.tick
         fehler = []
+        self._kennungen(welt)
         lords = [e for e in welt.einheiten.values() if e.get("besitzer") == self.sp and e.get("typ") == LORD]
         if self.heim is None and lords:
             self.heim = ort(lords[0])
@@ -114,9 +140,13 @@ class Wache:
             hat_ziel, kaempft, was = self._zustand(e, welt)
             lauf = (e.get("laufx", 0), e.get("laufy", 0))
             unterwegs = lauf not in ((0, 0), p)
+            # 10.11. 23:45 (Lauf 2 nachgespielt): Die Uhr beginnt neu, wenn sich das Ziel aendert oder keins da ist - sonst zaehlte
+            # die Zeit ohne Ziel mit, und ein frisch gegebenes, gueltiges Ziel loeste sofort F2 aus
+            ziel_key = ((e.get("schusseinheit") or (e.get("zieleinheit") if e.get("zielart") == 4 else 0),
+                         e.get("mauerx", 0), e.get("mauery", 0)) if hat_ziel else None)
             alt = self.letzt.get(n)
-            if alt is None or alt[0] != p or kaempft or unterwegs:
-                self.letzt[n] = (p, t)
+            if alt is None or alt[0] != p or kaempft or unterwegs or alt[2] != ziel_key:
+                self.letzt[n] = (p, t, ziel_key)
             elif hat_ziel and t - alt[1] >= self.still:
                 fehler.append({"art": "F2 steht", "takt": t, "einheit": n, "typ": e["typ"], "ort": p,
                                "text": "%s seit %d Takten ohne Weg und ohne Kampf" % (was, t - alt[1])})
@@ -148,6 +178,32 @@ def anspruechen_aus(text):
     """[(Modul, eigene Nummer, Opfer)] aus neuen Zeilen der Mitschrift."""
     return [("Reiterjagd" if m.group(1).startswith("REITER") else "Nahkampf-Raid", int(m.group(2)), int(m.group(3)))
             for m in ANSPRUCH.finditer(text)]
+
+
+def melden(fehler, wache, tick, konsole, ordner, instanz, befehl, stop_pfad, versuche=40, warte=0.5):
+    """Beim ersten Fehler: Bericht schreiben und ausgeben, STOP-Datei fuer den Lenker, dann das Spiel anhalten.
+    10.11. 23:28 (Lauf 1): Das Anhalten scheiterte an "KANAL BELEGT", solange der Lenker den Befehlskanal hielt, und der Fehler
+    ging mit dem Absturz verloren - darum steht der Bericht zuerst, und das Anhalten wird wiederholt. Gibt (Pfad, angehalten)."""
+    pfad = os.path.join(ordner, "fehlerwache_%s_i%d.json" % (time.strftime("%Y%m%d_%H%M%S"), instanz))
+    with open(pfad, "w", encoding="utf-8") as f:
+        json.dump({"fehler": fehler, "takt": tick, "konsole": konsole and os.path.basename(konsole), **wache.bericht()},
+                  f, ensure_ascii=False, indent=1, default=list)
+    for f_ in fehler:
+        print("FEHLERWACHE FEHLER %s bei Takt %d: %s" % (f_["art"], f_["takt"], f_["text"]), flush=True)
+    open(stop_pfad, "w").close()
+    angehalten = False
+    for _ in range(versuche):            # der Lenker gibt den Kanal frei, sobald er die STOP-Datei sieht
+        try:
+            befehl({"pause": True}, 0.5)
+            angehalten = True
+            break
+        except RuntimeError as ex:
+            if "KANAL BELEGT" not in str(ex):
+                raise
+            time.sleep(warte)
+    print("FEHLERWACHE: %s, Lenker ueber STOP beendet, Bericht %s" % (
+        "Spiel angehalten" if angehalten else "Spiel NICHT angehalten (Kanal belegt)", pfad), flush=True)
+    return pfad, angehalten
 
 
 def welt_aus_lage(zeile):
@@ -209,7 +265,11 @@ def main():
     from selfaware.game.ucp.befehl import SPIEL
     from selfaware.game.ucp.laden import befehl
     le = Leitung(SPIEL)
-    forschung = os.path.join(workspace.DATA, "research")
+    # 10.11. 23:35 (Lauf 2): workspace.DATA ist schon data/research - mit "research" dazu fand die Wache weder die Mitschrift
+    # noch ihren Berichtsordner und stuerzte beim ersten Fehler ab. Der Ordner wird jetzt beim Start geprueft.
+    forschung = workspace.DATA
+    if not os.path.isdir(forschung):
+        sys.exit("FEHLERWACHE: Ordner fuer Mitschrift und Bericht fehlt: %s" % forschung)
     start = time.time()
     t0 = le.lesen().tick
     print("FEHLERWACHE: warte auf eine neue Partie (Kern steht bei Takt %d)" % t0, flush=True)
@@ -257,27 +317,7 @@ def main():
             print("FEHLERWACHE Takt %d: %d Kaempfer (hoechstens %d), beobachtet %d, Zustaende %s" % (
                 w.tick, len(kaempfer(w, 1)), wache.hoechst, len(wache.gruppe), z), flush=True)
         if fehler:
-            # 10.11. 23:28 (Lauf 1): Das Pausieren scheiterte an "KANAL BELEGT" (der Lenker hielt den Befehlskanal) und der
-            # Fehler ging mit dem Absturz verloren. Darum zuerst Bericht und Ausgabe, dann STOP, dann pausieren mit Wiederholung.
-            stempel = time.strftime("%Y%m%d_%H%M%S")
-            pfad = os.path.join(forschung, "fehlerwache_%s_i%d.json" % (stempel, a.instanz))
-            json.dump({"fehler": fehler, "takt": w.tick, "konsole": konsole and os.path.basename(konsole), **wache.bericht()},
-                      open(pfad, "w", encoding="utf-8"), ensure_ascii=False, indent=1, default=list)
-            for f_ in fehler:
-                print("FEHLERWACHE FEHLER %s bei Takt %d: %s" % (f_["art"], f_["takt"], f_["text"]), flush=True)
-            open(os.path.join(workspace.STATE, "STOP"), "w").close()
-            angehalten = False
-            for _ in range(40):            # der Lenker gibt den Kanal frei, sobald er die STOP-Datei sieht
-                try:
-                    befehl({"pause": True}, 0.5)
-                    angehalten = True
-                    break
-                except RuntimeError as ex:
-                    if "KANAL BELEGT" not in str(ex):
-                        raise
-                    time.sleep(0.5)
-            print("FEHLERWACHE: %s, Lenker ueber STOP beendet, Bericht %s" % (
-                "Spiel angehalten" if angehalten else "Spiel NICHT angehalten (Kanal 20 s belegt)", pfad), flush=True)
+            melden(fehler, wache, w.tick, konsole, forschung, a.instanz, befehl, os.path.join(workspace.STATE, "STOP"))
             return 2
         time.sleep(0.2)
     print("FEHLERWACHE: Zeitgrenze erreicht, kein Fehler", flush=True)
