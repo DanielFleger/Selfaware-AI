@@ -89,7 +89,8 @@ def main():
     G4[50] = geb(67, 2, 132, 100)
     bt4 = R.Brandtrupp(1, lambda nr: 0)
     bt4.schritt(L0((100, 100)), G4, Befehle())
-    pruefe(4, "Grube am Waffenlager: Ziel %s" % bt4.ziel, bt4.ziel.get(10) == 2)
+    # 11.11. (Daniel 00:10, FAIRNESS F12): gegnerische Fallgruben sind verborgen - die Grube darf das Ziel nicht verschieben
+    pruefe(4, "verborgene Grube am Waffenlager aendert nichts: Ziel %s" % bt4.ziel, bt4.ziel.get(10) == 1)
 
     rj = R.Reiterjagd(1)
     L5 = {20: einheit(74, 1, 100, 100), 700: einheit(3, 2, 115, 100)}
@@ -135,7 +136,8 @@ def main():
     mit = b_mit._ziele(L11, G11, (100, 100), set())
     G11g = {7: geb(11, 2, 130, 100), 8: geb(67, 2, 131, 101)}
     grube = b_mit._ziele(L11, G11g, (100, 100), set())
-    pruefe(11, "Deckung: ohne %s, mit Schleuderer %s, mit Fallgrube %s" % (ohne, mit, grube), ohne == [] and mit == [7] and grube == [])
+    # 11.11. (FAIRNESS F12): die gegnerische Fallgrube ist verborgen und aendert nichts - wie mit Schleuderer allein
+    pruefe(11, "Deckung: ohne %s, mit Schleuderer %s, mit verborgener Fallgrube %s" % (ohne, mit, grube), ohne == [] and mit == [7] and grube == [7])
     # 12. (B-129) Deckung: ein Schleuderer, feindlicher Speer 8 Felder weg und Holzfaeller 6 Felder weg -> Angriff auf den Speer
     #     (Kaempfer vor Arbeiter); nichts in Reichweite -> Laufbefehl zur Front (Ziel des Sklaven)
     d = R.Deckung(1, (50, 50))
