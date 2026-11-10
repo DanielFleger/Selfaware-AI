@@ -1,0 +1,28 @@
+GOLD-BILANZ Partie 20261110_214643, Lenker Spieler 1, Instanz 2, 160 Lagezeilen bis Tick 11854
+Balance liga_ai.json - passt zu den Baukosten aus dem Spiel
+
+1. GOLD DES LENKERS (Start 45)
+   Einnahmen 405 in 14 Schritten, Groessen [(15, 5), (5, 4), (10, 1), (95, 1), (55, 1), (100, 1)]
+   davon ueber einen Monatswechsel (Steuer): 2 Schritte, 20 Gold
+   Ausgaben -295 in 13 Schritten, Groessen [(-10, 7), (-25, 1), (-15, 1), (-20, 1), (-5, 1), (-100, 1), (-60, 1)]
+   Steuer-Aenderungen in der Mitschrift: 0 (Stufe blieb beim Startwert); Stufe 0-2 bringen laut Balance ['1.50', '0.50', '0.00'] Gold je Kopf
+   Gold-Stand: Anteil der Zeilen mit 0 Gold 4 %, hoechstens 155
+
+2. BELIEBTHEIT DES LENKERS - Wochenspruenge in Hundertsteln (L34: Steuer + Rationen + Vielfalt): [(25, 5), (50, 1)]
+   Steuer-Beliebtheit laut Balance je Stufe 0-11: [225, 125, 25, -25, -75, -125, -200, -275, -375, -500, -750, -1000]; Gold je Kopf und Monat: ['1.50', '0.50', '0.00', '0.25', '0.50', '0.70', '1.00', '1.30', '1.65', '2.00', '2.75', '4.00']
+   GERECHNET brutto (dieselben Leute, ohne Beliebtheitsfolgen): Stufe 4 275, Stufe 6 551 Gold ueber die Partie
+
+3. ERZEUGUNG DES LENKERS (ertrag_live zug, ganze Partie): {'eisen': 0, 'stein': 13, 'apfel': 88, 'fleisch': 0, 'holz': 410}; verkauft: {'holz': 300, 'fleisch': 5, 'apfel': 30, 'mehl': 10, 'weizen': 10}
+   Holz je besetzter Holzfaellerhuette und 1.000 Ticks: 3.5 (Wissensregister L3: 5,3 bei 55-75 Feldern Weg)
+   LAGER beider Spieler (Lagerplatz + Kornspeicher, Summe Vorrat je Ware):
+     Tick  4008 | Sp1: fleisch 10 | Sp2: fleisch 31, holz 10
+     Tick  7992 | Sp1: apfel 9, holz 14, weizen 2 | Sp2: fleisch 60, holz 122
+
+4. NEU ANGEWORBENE KAMPFEINHEITEN (Slot + Typ neu, Startbestand nicht gezaehlt) x Anwerbegold:
+   Spieler 1: 27 Einheiten, 270 Gold: 27 Sklave (10 Balance)
+      Gold je 4.000 Ticks: 4000-8000: 60, 8000-12000: 210
+   Spieler 2: 9 Einheiten, 630 Gold: 9 Assassine (70 Balance)
+      Gold je 4.000 Ticks: 0-4000: 630
+5. NEUE GEBAEUDE je Spieler (nach der ersten Lagezeile):
+   Spieler 1: 23 Fallgrube, 8 Huette, 8 Lagerplatz, 6 Ochsenkarren, 3 Apfelplantage, 2 Eisenmine, 2 Steinbruch, 2 21, 1 Getreidefarm, 1 Muehle, 1 Baeckerei
+   Spieler 2: 16 Apfelplantage, 12 Holzfaellerhuette, 5 Brunnen, 4 Huette, 3 Ochsenkarren, 3 Bogenmacher, 1 Steinbruch, 1 21, 1 Marktplatz, 1 Waffenlager, 1 Jaegerhuette, 1 Kaserne, 1 57, 1 58, 1 56

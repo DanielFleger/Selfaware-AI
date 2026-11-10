@@ -52,6 +52,20 @@ Auftrag Daniel 10.11.2026 09:25: selbstständig an den Raid-Modulen weiterarbeit
 - **Berichtigt** (Kern 25, `crates/samurai-kern/src/lib.rs`): Bei jeder neuen Partie leert der Kern sein Buch und verwirft alte Ringaufträge. Er setzt nie einen Befehl für Einheiten eines anderen Platzes als unseren ab („VERWEIGERT“, Ergebnis „fremde Einheit“). Test `tests/test_kern_fairness.py`, Prüfwerkzeug `kern_fremde_befehle.py` (Rückgabe 1 bei fremden Befehlen). Auf Instanz 2 eingesetzt um 13:15 (v24 gesichert als `samurai_kern.dll.v24-20261110`).
 - **Ungültig**: alle Partien ab 121316, also Reihe 13 gegen den Kult, die Reihen 14, 15 und 16. Ihre Mitschriften bleiben liegen, aber kein Ergebnis aus ihnen zählt: weder die zwei „Siege“ noch die frühen Niederlagen, noch „mit Wirkung fällt der Lord früher“ (S106) oder der Test „Einheiten im Feld mitrechnen“ (Reihe 16). Gültig bleiben die Reihen 1 bis 12 und Reihe 13 gegen Rotkäppchen. Auch vorher können einzelne alte Aufträge eigene Einheiten der nächsten Partie bewegt haben. Fremde Befehle zeigt das Protokoll dort keine (Teile vor 12:13 ohne Spieler 2).
 
+## Daniels Punkte vom Abend (10.11. 21:43 bis 21:52, beim Zuschauen) und Plan
+
+Reihenfolge nach Daniel: zuerst Hopfen und Schenke, dann Abwehr. Keine Partie ohne Daniels Okay, keine Reihe am Stück ohne Ansage.
+
+1. Zu viele Hopfenfarmen (Partie 214050: 15, alle vom Ertrags-Planer `[kausal]`, ohne Deckel). 2. Schenke zu früh: erst bauen, wenn das erste Bier im Lager ist. 3. Bauer (KI 5) ist eine Attrappe (nur ummauerter Bergfried): raus aus allen Tests, auch Reihe 12 zählt gegen ihn nicht. 4. Feindliche Schleuderer nicht beschossen: Die Abwehr rechnete „7 eigene gegen 14: Niederlage“ und verzichtete, die Reichweite der Bogenschützen zählt nicht. 5. Feindliche Sklaven brannten oben Ochsenjoche und Steinbrüche ab: abfangen nach Vorhersage ihres Wegs. 6. Unsere Sklaven töten erst Kühe, statt außen herum zu gehen (nicht untersucht). 7. Es werden weiter Sklaven geworben, obwohl genug Raid-Einheiten da sind. „Einheiten im Feld“ ist im Code und hat es nicht verhindert, prüfen. 8. Assassinen stehen vor einer Mauer, statt sich zu sammeln und sie einzureißen (Angriff ist aus, erst fragen). 9. Live eingreifen über den Befehlskanal, mit eigenen Einheiten, möglich. 10. Partien nie ohne Erlaubnis hintereinander.
+
+**Plan Hopfen und Schenke (Bierkette, `macro/bierkette.py`)**, gebaut erst nach Daniels Okay:
+- Die Bierkette baut als einzige Hopfenfarmen, Brauereien und Schenken. Der Ertrags-Planer nimmt diese drei nicht mehr (heute baute er 15 Hopfenfarmen).
+- Hopfenfarmen insgesamt mindestens 1, höchstens 3 (Daniel 21:52). Eine weitere nur, wenn eine Brauerei auf Hopfen wartet: Hopfen im Lager 0, obwohl eine Brauerei steht.
+- Brauerei, sobald Hopfen im Lager liegt, höchstens so viele wie Hopfenfarmen.
+- Schenke erst, wenn Bier im Lager liegt (Daniel). Eine weitere, wenn sich Bier im Lager sammelt und die Einwohner es tragen (eine je 30, Daniels Wert vom 19.10.).
+- Schwellen für „sammelt sich“ sind Startwerte, sie werden in der ersten Partie gemessen und im Lagebild (`hopfen`, `bier`) belegt.
+- Prüfen: Tests ohne Spiel, dann eine einzelne Partie in normalem Tempo zum Zuschauen, nur nach Okay.
+
 ## Stand
 
 | Zeit | Schritt | Ergebnis |
