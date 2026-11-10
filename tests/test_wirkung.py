@@ -271,6 +271,30 @@ def test_bogenschuetzen_kauft_der_lenker_nur_solange_der_vorstoss_fuehrt():
     )
 
 
+def _jagden(L):
+    r, gesendet = _einsatz().reiter, []
+    r.schritt(L, {}, lambda b, *a, **k: gesendet.append(b))
+    return sorted((b["angriff"]["einheiten"][0], b["angriff"]["ziel"]) for b in gesendet)
+
+
+def test_reiterjagd_verteilt_die_reiter_auf_verschiedene_arbeiter():
+    """B-182 Reihe 7: 59 bis 81 % der neuen Jagden galten einem Arbeiter, den schon ein anderer Reiter jagte."""
+    reiter = {1: einheit(0, 0, 74, besitzer=1), 2: einheit(1, 0, 74, besitzer=1)}
+    assert _jagden({**reiter, 200: einheit(10, 0, 1), 201: einheit(12, 0, 3)}) == [
+        (1, 200),
+        (2, 201),
+    ]
+    assert _jagden({**reiter, 200: einheit(10, 0, 1)}) == [
+        (1, 200),
+        (2, 200),
+    ]  # nur einer: beide helfen
+    # ein freier Arbeiter weiter weg geht vor dem Gedraenge
+    assert _jagden({**reiter, 200: einheit(10, 0, 1), 202: einheit(60, 0, 3)}) == [
+        (1, 200),
+        (2, 202),
+    ]
+
+
 def test_aufstellung_raid_wirkung_steckt_die_neue_bestellung():
     d = AF.laden("raid_wirkung")
     assert AF.Steckplaetze(d["versionen"]).klasse("raidbestellung") is RB.RaidBestellungNachWirkung

@@ -239,7 +239,12 @@ class Reiterjagd:
         self.runde += 1
         aus = []
         self._abschuesse(L)
-        for r in sorted(self.einheiten(L)):
+        meine = self.einheiten(L)
+        sicher = [k for k in L if self.moeglich(k, L, G)]     # einmal je Runde: haengt nicht vom Reiter ab
+        # B-182 Reihe 7: 59 bis 81 % der neuen Jagden galten einem Arbeiter, den schon ein anderer Reiter jagte. Jeder Reiter nimmt zuerst
+        # einen Arbeiter, den kein anderer jagt, auch weiter weg; erst wenn es keinen mehr gibt, hilft er bei einem gejagten.
+        gejagt = {v[1]: r for r, v in self.befohlen.items() if v[0] == "jagd" and r in meine}
+        for r in sorted(meine):
             e = L[r]
             o = (e["x"], e["y"])
             # Flucht vor Nahkaempfern/Assassinen
@@ -254,16 +259,19 @@ class Reiterjagd:
                     befehl({"angriff": {"einheiten": [r], "lauf": [ziel[0], ziel[1]]}}, 1.0, bis="ANGRIFF")
                     self.befohlen[r] = ("flucht", ziel, self.runde)
                     aus.append("REITERJAGD: Reiter %d weicht Typ %d in %d Feldern aus -> %s" % (r, f["typ"], nah[0], ziel))
+                gejagt = {a: r2 for a, r2 in gejagt.items() if r2 != r}
                 continue
-            kand = [(-ARBEITER[a["typ"]], schach(o, (a["x"], a["y"])), k) for k, a in L.items()
-                    if schach(o, (a["x"], a["y"])) <= JAGD_R and self.moeglich(k, L, G)]
-            if not kand:
-                # 17:41: nichts in Reichweite -> der naechste ungeschuetzte Arbeiter irgendwo (der Angriffsbefehl reitet hin)
-                kand = [(0, schach(o, (L[k]["x"], L[k]["y"])), k) for k in L if self.moeglich(k, L, G)]
-            if not kand:
+            if not sicher:
                 continue
-            k = min(kand)[2]
+            entfernt = [(schach(o, (L[k]["x"], L[k]["y"])), k) for k in sicher]
+            wahl = [(d, k) for d, k in entfernt if gejagt.get(k, r) == r] or entfernt
+            in_reichweite = [(-ARBEITER[L[k]["typ"]], d, k) for d, k in wahl if d <= JAGD_R]
+            # 17:41: nichts in Reichweite -> der naechste ungeschuetzte Arbeiter irgendwo (der Angriffsbefehl reitet hin)
+            k = min(in_reichweite)[2] if in_reichweite else min(wahl)[1]
             alt = self.befohlen.get(r)
+            if alt is not None and alt[0] == "jagd" and gejagt.get(alt[1]) == r:
+                del gejagt[alt[1]]
+            gejagt[k] = r
             if alt is None or alt[:2] != ("jagd", k) or self.runde - alt[2] >= NEU_ALLE:
                 befehl({"angriff": {"einheiten": [r], "ziel": k}}, 1.0, bis="ANGRIFF")
                 self.befohlen[r] = ("jagd", k, self.runde)
