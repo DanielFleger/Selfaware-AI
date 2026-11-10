@@ -66,6 +66,19 @@ Reihenfolge nach Daniel: zuerst Hopfen und Schenke, dann Abwehr. Keine Partie oh
 - Schwellen für „sammelt sich“ sind Startwerte, sie werden in der ersten Partie gemessen und im Lagebild (`hopfen`, `bier`) belegt.
 - Prüfen: Tests ohne Spiel, dann eine einzelne Partie in normalem Tempo zum Zuschauen, nur nach Okay.
 
+## Täter belegt und Einsatzzeit (Daniel 10.11. 22:35 bis 22:52)
+
+Auftrag (22:35): „dann belege wer wirklich trifft und was und wie viel und erkläre warum einheiten nicht effektiv genugtzt werden heißt nicht die ganze zeit eigentlich maximal gewinnbringend eingesetzt werdenk“. Dazu (22:49): „mir eigentlich egal wie viele oder wenige einheiten die ki ausbildet, solange sie alle erklären kann und sie maximal effekti wirken (heißt in vielen fällen maximal viel schaden anrichten)“.
+
+Ergebnis (S111 bis S113, `data/research/raid_liga_20261110/taeter_alle_20261110.txt`): Die meisten Toten machen die Bogenschützen der Starttruppe zu Hause. Gekauft nach Wirkung bringen Arabische Bogenschützen, Assassinen und Sklaven je rund 1,1 bis 1,2 Tote je 100 Gold, Berittene 0,43, Arabische Schwertkämpfer 0,16. Die Berittenen verließen in keiner Partie den Burgbereich, die Sklaven standen 65 % ihrer Zeit ohne Auftrag zu Hause. Die Erfolgszeile der Reiterjagd ist wertlos (590 behauptet), die des Brandtrupps stimmt (426 behauptet, 424 belegt).
+
+Daniel (22:51): „‚Das Lageprotokoll liefert bei unseren Einheiten nie ein Gebäudeziel,‘ das ist doch schon ein aussagekrätiftiger satz 😃 Dan nsollte das erstmal gemacht werndo der nicht? … ich würde auch wirklich neue spiele auswerten aber eben nur soweit bis ein fehler auftritt dann speicher vlt neuladen und fixen“ und „wobei dann würde ich lieber neu starten“.
+
+Plan, noch nicht begonnen (wartet auf Daniels Ja):
+1. Im Sandkasten auf Instanz 2 je Befehlsart (Gebäude angreifen, Einheit angreifen, schießen) eine eigene Einheit beauftragen und ablesen, welches Spielfeld sich ändert. Erhofft: ein Feld mit Gebäudenummer oder uid und eines mit dem Schussziel. Widerlegt, wenn sich bei keinem Befehl ein Feld mit der Zielnummer ändert.
+2. Das Lageprotokoll schreibt diese Felder für eigene Einheiten (Fairness: nur eigene), `s_taeter.py` ordnet danach zu statt über die Nähe.
+3. Neue Partien mit einer Fehlerwache: Sie hält die Partie beim ersten Fehler an (eigene Einheit mit Auftrag steht länger als eine selbst gesetzte Grenze, Erfolgszeile ohne belegten Täter, Sklaven ohne Auftrag zu Hause). Danach wird behoben und neu gestartet, nicht geladen.
+
 ## Stand
 
 | Zeit | Schritt | Ergebnis |
