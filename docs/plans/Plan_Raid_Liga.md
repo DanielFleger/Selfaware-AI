@@ -81,6 +81,8 @@ Plan, noch nicht begonnen (wartet auf Daniels Ja):
 
 ## Stand
 
+**Vermerk 10.11.2026 23:55 (Daniel):** Punkte, Reiter-Abschuesse und Raten der Reihen 1 bis 15 stammen aus den Erfolgszeilen der Module; die der Reiterjagd zaehlten fremde Tode (S110). Sie gelten nicht, die Wissenseintraege dazu (S96 bis S100, S102, S104 bis S107) sind zurueckgezogen.
+
 | Zeit | Schritt | Ergebnis |
 |---|---|---|
 | 10.11. 09:23 | Reihe 1: The Killing Plains, Gardist (KI 7): `raid_frueh`, `raid_ohne_angriff`, `raid_wirkung` | Je Aufstellung: angezündet 20 / 20 / 42, Gold am Ende 5.054 / 6.392 / 2.698, tote Assassinen 29 / 27 / 12, Arbeiter von Reitern getötet 18 / 48 / 0. Der Kauf nach Wirkung kaufte nur Sklaven (363 angekommen) und Assassinen (27): Die Rechnung traute Sklaven auch Arbeiter zu, die der Brandtrupp nie jagt. Behoben: Jede Art bekommt nur die Ziele ihres Moduls (`raid.ZIELARTEN`). Je eine Partie, nur eine erste Richtung. |
