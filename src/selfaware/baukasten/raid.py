@@ -179,6 +179,7 @@ class RaidEinsatz:
 
         self.weg = Wegfuehrung(sp, gelaende)
         self.brand.weg = self.weg
+        self.reiter.weg = self.weg
         self.vorstoss = (
             None
             if vorstoss_bis is None
@@ -212,6 +213,7 @@ class RaidEinsatz:
     def schritt(self, t, L, G, befehl):
         aus = []
         if self.vorstoss is not None:
+            self.vorstoss.weg = self.weg
             self.vorstoss.plaetze_setzen(self.brand.im_ausweichen)
             aus += self.vorstoss.schritt(t, L, G, befehl)
         self.brand.schutz = self.deckung.orte(L) + (

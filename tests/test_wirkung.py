@@ -236,6 +236,15 @@ def test_kauf_traut_reitern_nur_zu_was_die_reiterjagd_jagt():
     )  # Nahkampf-Raid: entscheidet dieselbe Rechnung
 
 
+def _jagd(L):
+    """Eine Runde Reiterjagd samt Wegfuehrung des Raid-Einsatzes: (Ziel je Reiter, gesendete Befehle)."""
+    e, gesendet = _einsatz(), []
+    e.reiter.schritt(L, {}, lambda b, *a, **k: gesendet.append(b))
+    assert gesendet == []  # B-182: die Reiterjagd waehlt nur das Ziel, Weg und Befehl kommen von der Wegfuehrung
+    e.weg.schritt(L, {}, lambda b, *a, **k: gesendet.append(b))
+    return {n: a.ziel for n, a in e.weg.auftraege.items()}, gesendet
+
+
 def test_reiterjagd_jagt_nur_ungedeckte_arbeiter_auch_ausser_reichweite():
     """Die Reiterjagd nimmt dieselbe Pruefung wie der Kauf (raids.Reiterjagd.moeglich): in Reichweite der wertvollste freie Arbeiter, sonst
     der naechste freie irgendwo; gedeckte nie."""
@@ -245,9 +254,8 @@ def test_reiterjagd_jagt_nur_ungedeckte_arbeiter_auch_ausser_reichweite():
         201: einheit(45, 0, 1),  # Bauer, mehr wert, aber der Bogen steht daneben
         300: einheit(46, 2, BOGEN),
     }
-    r, gesendet = _einsatz().reiter, []
-    r.schritt(L, {}, lambda b, *a, **k: gesendet.append(b))
-    assert gesendet == [
+    ziele, gesendet = _jagd(L)
+    assert ziele == {1: 200} and gesendet == [
         {"angriff": {"einheiten": [1], "ziel": 200}}
     ]  # Bauer 201 ist mehr wert, aber gedeckt
     L = {
@@ -256,9 +264,8 @@ def test_reiterjagd_jagt_nur_ungedeckte_arbeiter_auch_ausser_reichweite():
         203: einheit(90, 0, 3),
         301: einheit(92, 0, BOGEN),
     }
-    r, gesendet = _einsatz().reiter, []
-    r.schritt(L, {}, lambda b, *a, **k: gesendet.append(b))
-    assert gesendet == [{"angriff": {"einheiten": [1], "ziel": 202}}]
+    ziele, gesendet = _jagd(L)
+    assert ziele == {1: 202} and "lauf" in gesendet[0]["angriff"]  # 60 Felder: die Wegfuehrung reitet hin (S114)
 
 
 def test_bogenschuetzen_kauft_der_lenker_nur_solange_der_vorstoss_fuehrt():
@@ -274,9 +281,7 @@ def test_bogenschuetzen_kauft_der_lenker_nur_solange_der_vorstoss_fuehrt():
 
 
 def _jagden(L):
-    r, gesendet = _einsatz().reiter, []
-    r.schritt(L, {}, lambda b, *a, **k: gesendet.append(b))
-    return sorted((b["angriff"]["einheiten"][0], b["angriff"]["ziel"]) for b in gesendet)
+    return sorted(_jagd(L)[0].items())
 
 
 def test_reiterjagd_jagt_den_wertvollsten_in_reichweite_auch_zu_zweit():
@@ -295,9 +300,11 @@ def test_reiterjagd_jagt_den_wertvollsten_in_reichweite_auch_zu_zweit():
 
 def test_reiterjagd_schreibt_jeden_erfolg_in_die_mitschrift():
     """B-182: Die Eichung paart die Zeile "jagt Arbeiter" mit dieser Erfolgszeile und misst die Takte dazwischen."""
-    r = _einsatz().reiter
+    e = _einsatz()
+    r = e.reiter
     L = {1: einheit(0, 0, 74, besitzer=1), 200: einheit(10, 0, 1)}
     r.schritt(L, {}, lambda *a, **k: None)
+    e.weg.schritt(L, {}, lambda *a, **k: None)  # S110: erst der Angriff in Reichweite macht es zu unserem Abschuss
     del L[200]
     assert r.schritt(L, {}, lambda *a, **k: None) == [
         "REITERJAGD: Reiter 1 hat Arbeiter 200 erledigt"

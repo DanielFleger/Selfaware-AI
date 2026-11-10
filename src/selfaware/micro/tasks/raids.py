@@ -252,6 +252,9 @@ class Reiterjagd:
         self.getoetet = 0
         self.ziele_vorher = {}
         self.runde = 0
+        self.weg = None             # B-182: gemeinsame Wegfuehrung, setzt der Raid-Einsatz
+        self.gesperrt = {}          # (Reiter, Arbeiter) -> Runde: so lange jagt dieser Reiter ihn nach "gefahr"/"kein_weg" nicht
+        self.greift = {}            # Reiter -> Arbeiter, den er zuletzt in Reichweite angriff (Status "greift_an" der Wegfuehrung)
 
     def einheiten(self, L):
         return {n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] == PFERDEBOGEN and e.get("leben", 1) > 0}
@@ -275,17 +278,31 @@ class Reiterjagd:
                 n = max(abs(dx), abs(dy), 1)
                 ziel = (o[0] + 12 * dx // n, o[1] + 12 * dy // n)
                 if self.befohlen.get(r, (None,))[0] != "flucht" or self.runde - self.befohlen[r][2] >= NEU_ALLE:
+                    if self.weg is not None:
+                        self.weg.loslassen(r)
                     befehl({"angriff": {"einheiten": [r], "lauf": [ziel[0], ziel[1]]}}, 1.0, bis="ANGRIFF")
                     self.befohlen[r] = ("flucht", ziel, self.runde)
                     aus.append("REITERJAGD: Reiter %d weicht Typ %d in %d Feldern aus -> %s" % (r, f["typ"], nah[0], ziel))
                 continue
-            if not sicher:
+            # B-182: die Sperre gilt je Reiter - die Gefahr am Standplatz rechnet die Wegfuehrung von seiner Seite aus
+            frei = [k for k in sicher if self.gesperrt.get((r, k), -1) <= self.runde]
+            if not frei:
                 continue
-            entfernt = [(schach(o, (L[k]["x"], L[k]["y"])), k) for k in sicher]
+            entfernt = [(schach(o, (L[k]["x"], L[k]["y"])), k) for k in frei]
             in_reichweite = [(-ARBEITER[L[k]["typ"]], d, k) for d, k in entfernt if d <= JAGD_R]
             # 17:41: nichts in Reichweite -> der naechste ungeschuetzte Arbeiter irgendwo (der Angriffsbefehl reitet hin)
             k = min(in_reichweite)[2] if in_reichweite else min(entfernt)[1]
             alt = self.befohlen.get(r)
+            if self.weg is not None:
+                # B-182 (Plan_Wegfuehrung.md, S110/S114): ein Angriffsbefehl auf ein fernes Ziel reitet nicht los - die Wegfuehrung
+                # fuehrt den Reiter bis in Reichweite und rechnet den Weg jede Runde neu
+                self.weg.fuehre(r, "einheit", k, "reiterjagd")
+                if alt is None or alt[:2] != ("jagd", k):
+                    self.befohlen[r] = ("jagd", k, self.runde)
+                    self.greift.pop(r, None)
+                    aus.append("REITERJAGD: Reiter %d jagt Arbeiter %d (Typ %d) in %d Feldern" % (
+                        r, k, L[k]["typ"], schach(o, (L[k]["x"], L[k]["y"]))))
+                continue
             if alt is None or alt[:2] != ("jagd", k) or self.runde - alt[2] >= NEU_ALLE:
                 befehl({"angriff": {"einheiten": [r], "ziel": k}}, 1.0, bis="ANGRIFF")
                 self.befohlen[r] = ("jagd", k, self.runde)
@@ -304,12 +321,31 @@ class Reiterjagd:
 
     def _abschuesse(self, L):
         """Ein gejagtes Ziel, das nicht mehr lebt, zaehlt genau einmal; der Reiter ist danach frei. B-182: Jeder Erfolg kommt in die Mitschrift,
-        die Eichung misst daran die Takte von der Jagd bis zum Erfolg."""
+        die Eichung misst daran die Takte von der Jagd bis zum Erfolg. Mit Wegfuehrung zaehlt er nur, wenn dieser Reiter das Opfer in
+        Reichweite angriff (S110); meldet sie "gefahr" oder "kein_weg", gibt der Reiter das Ziel ab und nimmt einen anderen Arbeiter."""
         aus = []
         for r, v in list(self.befohlen.items()):
-            if v[0] == "jagd" and (v[1] not in L or L[v[1]].get("leben", 1) <= 0 or L[v[1]]["besitzer"] in (0, self.sp)):
-                self.getoetet += 1
+            if v[0] != "jagd":
+                continue
+            st = self.weg.status(r) if self.weg is not None else None
+            if st == "greift_an":
+                self.greift[r] = v[1]
+            elif st in ("gefahr", "kein_weg"):
+                self.gesperrt[(r, v[1])] = self.runde + SPERRE_RUNDEN
                 self.befohlen.pop(r)
+                self.weg.loslassen(r)
+                aus.append("REITERJAGD: Reiter %d gibt Arbeiter %d auf (%s)" % (r, v[1], st))
+                continue
+            # "ziel_weg": die Wegfuehrung sieht unter der Nummer eine andere Einheit (Art, Besitzer) - das alte Ziel ist tot
+            if st == "ziel_weg" or v[1] not in L or L[v[1]].get("leben", 1) <= 0 or L[v[1]]["besitzer"] in (0, self.sp):
+                self.befohlen.pop(r)
+                if self.weg is not None:
+                    self.weg.loslassen(r)
+                    if self.greift.pop(r, None) != v[1]:
+                        # B-182 (S110): nie in Reichweite angegriffen - nicht unser Abschuss, nur vermerken
+                        aus.append("REITERJAGD: Arbeiter %d ist weg, Reiter %d war nicht in Reichweite - kein eigener Abschuss" % (v[1], r))
+                        continue
+                self.getoetet += 1
                 aus.append("REITERJAGD: Reiter %d hat Arbeiter %d erledigt" % (r, v[1]))
         return aus
 

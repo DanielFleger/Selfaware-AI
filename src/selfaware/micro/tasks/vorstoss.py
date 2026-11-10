@@ -34,6 +34,7 @@ import math
 
 from selfaware.baukasten import formation
 from selfaware.baukasten.ausweichen import Schussfeld
+from selfaware.micro.tasks.raids import SPERRE_RUNDEN
 
 SCHUETZEN = {22, 23, 70}
 # ohne Sklaven: die verfolgen, tun Schuetzen aber kaum etwas
@@ -123,6 +124,9 @@ class Vorstoss:
         self.befehle = collections.Counter()
         self.ziel_leben = {}  # Ziel -> (Leben, Runde des letzten Schadens)
         self.stur = {}  # Ziel -> tabu bis zu dieser Runde
+        self.weg = None  # B-182: gemeinsame Wegfuehrung (micro/wegfuehrung.py), setzt der Raid-Einsatz
+        self.gefuehrt = None  # Ziel, zu dem die Wegfuehrung die Schuetzen gerade fuehrt
+        self.gesperrt = {}  # Ziel -> Runde: die Wegfuehrung fand fuer keinen Schuetzen Angriff oder Weg
 
     def orte(self, L):
         return [ort(L[n]) for n in self.mitglieder if n in L]
@@ -145,7 +149,25 @@ class Vorstoss:
         feinde = self._feinde(L, NAHKAMPF | FERN_FEIND | {SKLAVE})
         return sum(1 for _, e in feinde if schach(ort(e), self.heim) <= ALARM_R) >= ALARM_N
 
+    def _loslassen(self, nummern):
+        """B-182: ein Fuehrer je Einheit - bevor der Vorstoss selbst befiehlt oder die Schuetzen abgibt, laesst die Wegfuehrung sie los."""
+        if self.weg is not None:
+            for n in nummern:
+                self.weg.loslassen(n)
+        self.gefuehrt = None
+
+    def _aufgeben(self, aus):
+        """B-182: Meldet die Wegfuehrung fuer jeden gefuehrten Schuetzen "gefahr" oder "kein_weg", sperrt der Vorstoss das Ziel."""
+        if self.weg is None or self.gefuehrt is None:
+            return
+        st = {self.weg.status(n) for n in self.mitglieder if self.weg.fuehrt(n)}
+        if st and st <= {"gefahr", "kein_weg"}:
+            self.gesperrt[self.gefuehrt] = self.runde + SPERRE_RUNDEN
+            aus.append("VORSTOSS: gibt Ziel %d auf (%s)" % (self.gefuehrt, "/".join(sorted(st))))
+            self._loslassen(self.mitglieder)
+
     def _sende(self, art, inhalt, befehl, nummern, auftrag):
+        self._loslassen(nummern)  # B-182: Vorruecken und Ausweichen fuehrt der Vorstoss selbst
         alt = self.letzter.get(art)
         if alt is not None and alt[0] == inhalt and self.runde - alt[1] < NEU_ALLE:
             return False
@@ -268,6 +290,7 @@ class Vorstoss:
                     "VORSTOSS: Ende bei Takt %d, %d Schuetzen wieder frei"
                     % (t, len(self.mitglieder))
                 )
+                self._loslassen(self.mitglieder)
                 self._frei(self.mitglieder)
                 self.mitglieder = set()
             return aus
@@ -278,6 +301,7 @@ class Vorstoss:
                     "VORSTOSS: Feinde an der Burg, %d Schuetzen gehen an die Abwehr" % len(meine)
                 )
             self.alarm_an = True
+            self._loslassen(self.mitglieder | meine)
             self._frei(self.mitglieder)
             self.mitglieder = set()
             return aus
@@ -314,9 +338,22 @@ class Vorstoss:
             for n, e in self._feinde(L, NAHKAMPF | FERN_FEIND | {SKLAVE} | ARBEITER)
             if _luft(ort(e), mitte) <= SCHUSS
         )
+        self._aufgeben(aus)
         for _, d, k in kand:
-            if self._ist_stur(k, L[k]):
+            if self._ist_stur(k, L[k]) or self.gesperrt.get(k, -1) > self.runde:
                 continue
+            if self.weg is not None:
+                # B-182 (Plan_Wegfuehrung.md): jeden Schuetzen fuehrt die Wegfuehrung bis in seine eigene Reichweite, jede Runde neu
+                self._frei(meine)  # der Zickzack des Kerns gibt sie vorher her - nie zwei Fuehrer
+                for art in ("vor", "weichen", "abziehen"):
+                    self.letzter.pop(art, None)  # der naechste eigene Lauf geht danach sofort hinaus, nicht erst nach NEU_ALLE
+                for n in sorted(meine):
+                    self.weg.fuehre(n, "einheit", k, "vorstoss")
+                if self.gefuehrt != k:
+                    self.gefuehrt = k
+                    self.befehle["schuss"] += 1
+                    aus.append("VORSTOSS: %d Schuetzen schiessen auf Typ %d in %d Feldern" % (len(meine), L[k]["typ"], d))
+                return aus
             if self._sende("schuss", k, befehl, meine, {"ziel": k}):
                 aus.append(
                     "VORSTOSS: %d Schuetzen schiessen auf Typ %d in %d Feldern"

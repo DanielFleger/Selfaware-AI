@@ -14,8 +14,10 @@ Jede Runde, gegen die aktuelle Lage:
     waehlt ein anderes Ziel.
   - Weg: sicherer Weg (Dijkstra, Gefahr teuer). Neu geplant wird, sobald auf dem restlichen Weg mehr Gefahr liegt als beim Planen, das
     Ziel weitergezogen ist oder NEU_PLANEN Runden vergangen sind.
-  - Befehl: in Reichweite der Angriff, sonst ein Laufbefehl zum naechsten Wegpunkt; hoechstens BUDGET Einzelbefehle je Runde (S82), ein
-    Befehl geht nur bei Aenderung oder nach NEU_ALLE Runden noch einmal hinaus.
+  - Befehl: in Reichweite der Angriff, sonst ein Laufbefehl zum naechsten Wegpunkt; hoechstens BUDGET Befehle je Runde (S82), ein
+    Befehl geht nur bei Aenderung oder nach NEU_ALLE Runden noch einmal hinaus. Gleiche Befehle mehrerer Einheiten (selbes Ziel, selber
+    Wegpunkt) gehen als EIN Befehl hinaus, wie der Vorstoss sie immer schickte - ob er so schnell ankommt wie ein Einzelbefehl, ist
+    ungemessen.
 Startwerte, nicht gemessen: FERN_ANGRIFF, FERN_STAND, NEU_PLANEN, ZIEL_WANDERT (Plan_Wegfuehrung.md, Sandkasten misst sie).
 """
 import math
@@ -73,7 +75,8 @@ class Wegfuehrung:
     def fuehre(self, nr, art, ziel, zweck=""):
         """art: "einheit" (ziel = Nummer), "gebaeude" (ziel = Nummer) oder "ort" (ziel = (x, y))."""
         alt = self.auftraege.get(nr)
-        if alt is None or (alt.art, alt.ziel) != (art, ziel):
+        # "ziel_weg": die Nummer traegt inzwischen eine andere Einheit - fuehrt das Modul sie trotzdem, gilt die neue
+        if alt is None or (alt.art, alt.ziel) != (art, ziel) or alt.status == "ziel_weg":
             self.auftraege[nr] = Auftrag(art, ziel, zweck)
 
     def loslassen(self, nr):
@@ -184,16 +187,23 @@ class Wegfuehrung:
             ziel_p = a.weg[0] if a.weg else stand
             a.status = "unterwegs"
             befehle.append((SF.gefahr_am(ort, gefahr), nr, {"angriff": {"einheiten": [nr], "lauf": [int(ziel_p[0]), int(ziel_p[1])]}}))
-        # Budget: dringende zuerst (Einheit selbst in Gefahr), dann nach Nummer; nur Aenderungen oder nach NEU_ALLE Runden
-        gesendet = 0
+        # Budget: dringende zuerst (Einheit selbst in Gefahr), dann nach Nummer; nur Aenderungen oder nach NEU_ALLE Runden. Gleiche
+        # Befehle (selbes Ziel, selber Wegpunkt) gehen als EIN Befehl fuer alle diese Einheiten hinaus
+        gruppen = {}
         for _g, nr, b in sorted(befehle, key=lambda x: (-x[0], x[1])):
             alt = self.befohlen.get(nr)
             if alt is not None and alt[0] == b and self.runde - alt[1] < NEU_ALLE:
                 continue
+            inhalt = tuple(sorted((k, tuple(v) if isinstance(v, list) else v) for k, v in b["angriff"].items() if k != "einheiten"))
+            gruppen.setdefault(inhalt, []).append((nr, b))
+        gesendet = 0
+        for liste in gruppen.values():
             if gesendet >= BUDGET:
-                self.auftraege[nr].status = "wartet"
+                for nr, _b in liste:
+                    self.auftraege[nr].status = "wartet"
                 continue
-            befehl(b, 1.0, bis="ANGRIFF")
-            self.befohlen[nr] = (b, self.runde)
+            befehl({"angriff": dict(liste[0][1]["angriff"], einheiten=sorted(nr for nr, _b in liste))}, 1.0, bis="ANGRIFF")
+            for nr, b in liste:
+                self.befohlen[nr] = (b, self.runde)
             gesendet += 1
         return {nr: a.status for nr, a in self.auftraege.items()}
