@@ -1,5 +1,8 @@
 # -*- coding: utf-8 -*-
-"""Je Zuweisung: wie lange von der Zuweisung bis zum Erfolg, und wie viele Zuweisungen enden mit Erfolg? (B-182 Eichung)
+"""ABGELOEST 10.11. 11:30 durch selfaware.baukasten.eichung: Dieses Skript liest je Zeile erst alle Zuweisungen, dann die Erfolge, und verliert so
+die meisten Erfolge (die Module schreiben den Erfolg vor die neue Zuweisung). Bleibt nur als Beleg fuer die falschen Zahlen von 11:05 liegen.
+
+Je Zuweisung: wie lange von der Zuweisung bis zum Erfolg, und wie viele Zuweisungen enden mit Erfolg? (B-182 Eichung)
 Paart in der Mitschrift die Zuweisungszeile eines Moduls mit seiner Erfolgszeile fuer dieselbe Einheit und dasselbe Ziel.
 Brandtrupp schreibt beides seit B-129, Reiterjagd und Nahkampf-Raid die Erfolge seit B-182. Ohne Erfolgszeilen: nur Zuweisungen.
 Aufruf: python s_erfolge.py <konsole> [...]"""
