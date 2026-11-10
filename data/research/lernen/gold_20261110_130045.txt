@@ -1,0 +1,36 @@
+GOLD-BILANZ Partie 20261110_130045, Lenker Spieler 1, Instanz 2, 329 Lagezeilen bis Tick 40063
+Balance liga_ai.json - passt zu den Baukosten aus dem Spiel
+
+1. GOLD DES LENKERS (Start 45)
+   Einnahmen 5084 in 59 Schritten, Groessen [(25, 10), (5, 6), (15, 4), (30, 3), (145, 2), (26, 2)]
+   davon ueber einen Monatswechsel (Steuer): 15 Schritte, 1049 Gold
+   Ausgaben -5085 in 63 Schritten, Groessen [(-70, 9), (-120, 9), (-10, 7), (-20, 3), (-60, 2), (-35, 2), (-5, 2), (-45, 2)]
+   Steuer-Aenderungen in der Mitschrift: 5 [('2', '3'), ('3', '4'), ('4', '3'), ('3', '2'), ('2', '3')]; Stufe 0-2 bringen laut Balance ['1.50', '0.50', '0.00'] Gold je Kopf
+   Gold-Stand: Anteil der Zeilen mit 0 Gold 5 %, hoechstens 483
+
+2. BELIEBTHEIT DES LENKERS - Wochenspruenge in Hundertsteln (L34: Steuer + Rationen + Vielfalt): [(25, 41), (-25, 27), (-50, 15), (50, 14), (-75, 6), (-225, 5), (100, 3), (75, 1)]
+   Steuer-Beliebtheit laut Balance je Stufe 0-11: [225, 125, 25, -25, -75, -125, -200, -275, -375, -500, -750, -1000]; Gold je Kopf und Monat: ['1.50', '0.50', '0.00', '0.25', '0.50', '0.70', '1.00', '1.30', '1.65', '2.00', '2.75', '4.00']
+   GERECHNET brutto (dieselben Leute, ohne Beliebtheitsfolgen): Stufe 4 1678, Stufe 6 3357 Gold ueber die Partie
+
+3. ERZEUGUNG DES LENKERS (ertrag_live zug, ganze Partie): {'eisen': 112, 'stein': 438, 'apfel': 428, 'fleisch': 0, 'holz': 1790}; verkauft: {'holz': 1020, 'fleisch': 5, 'apfel': 160, 'mehl': 30, 'weizen': 20, 'brot': 75, 'stein': 220, 'eisen': 80, 'hopfen': 35}
+   Holz je besetzter Holzfaellerhuette und 1.000 Ticks: 3.4 (Wissensregister L3: 5,3 bei 55-75 Feldern Weg)
+   LAGER beider Spieler (Lagerplatz + Kornspeicher, Summe Vorrat je Ware):
+     Tick  3993 | Sp1: fleisch 10 | Sp2: brot 48, holz 12, hopfen 2
+     Tick  8009 | Sp1: apfel 11, holz 15, weizen 1 | Sp2: brot 41, holz 40, hopfen 2
+     Tick 11850 | Sp1: 16 1, apfel 8, holz 30, stein 10 | Sp2: holz 9, hopfen 2, kaese 33, stein 4
+     Tick 15948 | Sp1: 16 1, apfel 4, holz 28, stein 10 | Sp2: holz 14, hopfen 1, kaese 30
+     Tick 19986 | Sp1: 16 1, brot 7, eisen 2, holz 7, stein 5 | Sp2: 14 2, eisen 4, holz 31, kaese 14, stein 9
+     Tick 24039 | Sp1: 14 1, 16 2, brot 15, eisen 1, holz 9, hopfen 1, stein 26 | Sp2: 14 2, eisen 8, holz 1, kaese 6, stein 6
+     Tick 28023 | Sp1: 14 3, brot 47, eisen 5, holz 42, hopfen 4, stein 59 | Sp2: 14 1, eisen 8, holz 7, stein 8
+     Tick 32013 | Sp1: 14 4, 16 1, brot 16, eisen 4, holz 55, stein 71 | Sp2: eisen 3, holz 11, kaese 6, stein 15
+     Tick 35922 | Sp1: 14 6, 16 1, apfel 8, eisen 15, holz 30, hopfen 1, stein 99 | Sp2: eisen 2, holz 26, stein 9
+     Tick 40063 | Sp1: 14 7, 16 1, apfel 13, eisen 36, holz 44, hopfen 4, stein 122 | Sp2: 14 3, eisen 2, holz 17, hopfen 2, stein 9
+
+4. NEU ANGEWORBENE KAMPFEINHEITEN (Slot + Typ neu, Startbestand nicht gezaehlt) x Anwerbegold:
+   Spieler 1: 103 Einheiten, 3875 Gold: 57 Sklave (10 Balance), 23 Assassine (70 Balance), 21 Pferdebogen (75 Balance), 2 arab.Bogen (60 Balance)
+      Gold je 4.000 Ticks: 0-4000: 10, 4000-8000: 50, 8000-12000: 310, 12000-16000: 130, 16000-20000: 190, 20000-24000: 405, 24000-28000: 575, 28000-32000: 780, 32000-36000: 1020, 36000-40000: 240, 40000-44000: 165
+   Spieler 2: 23 Einheiten, 510 Gold: 20 Schleuder (15 Balance), 3 Assassine (70 Balance)
+      Gold je 4.000 Ticks: 28000-32000: 15, 32000-36000: 150, 36000-40000: 345
+5. NEUE GEBAEUDE je Spieler (nach der ersten Lagezeile):
+   Spieler 1: 23 Fallgrube, 18 Ochsenkarren, 18 Eisenmine, 16 Huette, 12 Lagerplatz, 12 Jaegerhuette, 9 Hopfenfarm, 6 Steinbruch, 6 21, 4 Baeckerei, 3 Apfelplantage, 1 Getreidefarm, 1 Muehle, 1 Brauerei, 1 Wirtshaus
+   Spieler 2: 40 Holzfaellerhuette, 16 Ochsenkarren, 13 Apfelplantage, 7 Huette, 6 Hopfenfarm, 6 Milchviehhof, 6 Kleines Torhaus (Durchfahrt O-W), 5 Eisenmine, 4 Steinbruch, 4 21, 4 Lagerplatz, 4 Verteidigungsturm, 4 Brunnen, 4 Schmiede, 3 Pechgraeber, 3 Brauerei, 2 57, 2 58, 2 56, 2 54, 2 Geschuetzturm, 1 Marktplatz, 1 Waffenlager, 1 Wirtshaus, 1 Kaserne, 1 Ingenieursgilde, 1 53, 1 Tunnelgraebergilde, 1 59, 1 Soeldnerposten, 1 Gerberei

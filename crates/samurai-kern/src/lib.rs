@@ -32,7 +32,7 @@ use haende::{Anspruch, Auftrag, Blick, Buch};
 use waechter::{Ereignis, Waechter};
 use welt::Welt;
 
-pub const VERSION: u32 = 24;
+pub const VERSION: u32 = 25;
 
 /// DAT_UnitsState 0x01387F38: +0 maxUnitCount; Einheiten-Array ab +0x614 = 0x0138854C, je Einheit 1.168 Byte, 2.500 Plaetze
 const UNITS_STATE: usize = 0x0138_7F38;
@@ -215,6 +215,17 @@ fn haende_takt(z: &mut Zustand, tick: i32) {
         melden(&z.leitung, &alle_mit(haende::ERG_EINHEIT_WEG));
         return;
     };
+    // B-182 (10.11.2026, Fairness): Der Kern fuehrt nur Einheiten des eigenen Platzes. Ohne diese Sperre nahm er den Platz vom heutigen
+    // Besitzer der Einheit - nach einem Partiewechsel trugen alte Nummern gegnerische Einheiten, und der Kern befahl sie (Reihen 13 bis 16).
+    let ich = unsafe { i32_bei(SLOT_ICH) };
+    if platz != ich {
+        schreibe(&format!("haende tick {}: VERWEIGERT - {} Einheiten von Spieler {}, wir sind Spieler {} (nie fremde Einheiten fuehren),                            Auftrag {:?} verworfen", tick, einheiten.len(), platz, ich, a));
+        for nr in &einheiten {
+            buch.freigeben(*nr);
+        }
+        melden(&z.leitung, &alle_mit(haende::ERG_FREMD));
+        return;
+    }
     match haende::absetzen(a, &einheiten, platz) {
         Ok((gruppe, gewaehlt)) => {
             if !(a.art == haende::LAUF && z.ausweichen.ist_wegpunkt((a.a, a.b))) {
@@ -460,6 +471,21 @@ fn takt(tick: i32, spieler: i32) -> i32 {
             z.letzte_zeile = -1;
             z.welt.epoche();
             z.ausweichen.leeren();
+            // B-182 (10.11.2026, Fairness): Buch und Ring gehoeren zur Partie. Ohne Leeren setzte der Kern nach einem Partiewechsel alte
+            // Auftraege an die Einheiten ab, die die alten Nummern jetzt tragen - auch an gegnerische.
+            if let Some(b) = z.buch.take() {
+                schreibe(&format!("haende epoche {}: Buch geleert - {} uebernommene Einheiten, {} offene Auftraege verworfen",
+                                  z.waechter.epoche, b.eigene.len(), b.offen_zahl()));
+            }
+            if let Some(Some(l)) = &z.leitung {
+                let alt = l.auftraege();
+                for &(i, _, _, _, _, _, _, _) in &alt {
+                    l.quittieren(i, haende::ERG_VERFALLEN);
+                }
+                if !alt.is_empty() {
+                    schreibe(&format!("ring epoche {}: {} Auftraege aus der alten Partie verworfen", z.waechter.epoche, alt.len()));
+                }
+            }
             if let Some(w) = z.beschuss.as_mut() {
                 w.leeren();
             }
