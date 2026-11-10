@@ -259,6 +259,18 @@ def test_reiterjagd_jagt_nur_ungedeckte_arbeiter_auch_ausser_reichweite():
     assert gesendet == [{"angriff": {"einheiten": [1], "ziel": 202}}]
 
 
+def test_bogenschuetzen_kauft_der_lenker_nur_solange_der_vorstoss_fuehrt():
+    """B-182 Reihe 6: 42 von 46 Kaufzeilen fuer Arabische Bogenschuetzen kamen nach dem Ende des Vorstosses (Takt 15.000)."""
+    from selfaware.micro.tasks import vorstoss as VS
+
+    v = VS.Vorstoss(1, (0, 0), bis=15000)
+    assert v.fuehrt(14999) and not v.fuehrt(15000)
+    assert (
+        'steuerbar_r |= {70} if vorstoss is not None and vorstoss.fuehrt(st["t"]) else set()'
+        in LENKER
+    )
+
+
 def test_aufstellung_raid_wirkung_steckt_die_neue_bestellung():
     d = AF.laden("raid_wirkung")
     assert AF.Steckplaetze(d["versionen"]).klasse("raidbestellung") is RB.RaidBestellungNachWirkung

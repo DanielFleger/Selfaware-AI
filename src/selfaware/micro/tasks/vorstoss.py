@@ -246,6 +246,11 @@ class Vorstoss:
             return True
         return False
 
+    def fuehrt(self, t):
+        """True, solange der Vorstoss Schuetzen fuehrt; ab bis gibt schritt sie frei. B-182 Reihe 6: Der Kauf nach Wirkung kaufte Arabische
+        Bogenschuetzen (Typ 70) nur fuer den Vorstoss, gegen den BierKoenig aber 42 von 46 Kaufzeilen nach Takt 15.000 - fuer niemanden."""
+        return t < self.bis
+
     def schritt(self, t, L, G, befehl):
         self.runde += 1
         self.lage = L

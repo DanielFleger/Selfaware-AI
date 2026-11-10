@@ -3415,7 +3415,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     steuerbar_r, belegt_r = set(), set()
                     if raid_e is not None:
                         steuerbar_r |= {RA.SKLAVE, RA.PFERDEBOGEN} | set(NK.KANN) | ({RA.SCHLEUDER} if RA.DECKUNG_SOLL > 0 else set())
-                        steuerbar_r |= {70} if vorstoss is not None else set()     # arabische Bogenschuetzen fuehrt der Vorstoss (vorstoss.SCHUETZEN)
+                        steuerbar_r |= {70} if vorstoss is not None and vorstoss.fuehrt(st["t"]) else set()     # arabische Bogenschuetzen fuehrt der Vorstoss (vorstoss.SCHUETZEN), B-182: nur bis zu seinem Ende
                         belegt_r |= {("g", nr) for nr in brand.ziel.values()} | set(raid_e.nahkampf.ziel.values())
                         belegt_r |= {("e", v[1]) for v in reiter.befohlen.values() if v[0] == "jagd"}
                     if trupp is not None:
