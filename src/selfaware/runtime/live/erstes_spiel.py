@@ -434,7 +434,10 @@ def phase1(plan, tempo, mit_posten=True):
     nr_posten = [n for n, _, _ in gebaeude_von(SP, 8)]
     while BESTELLUNG.darf("raid") and nr_posten and vorrat(SP)["gold"] >= 70 and s32(peek(PD + 136)[0]) >= 1:
         vorher = vorrat(SP)["gold"]
-        befehl({"werbe": {"typ": 73, "gebaeude": nr_posten[0]}}, 1.0, bis="WERBE")
+        antwort = befehl({"werbe": {"typ": 73, "gebaeude": nr_posten[0]}}, 1.0, bis="WERBE")
+        if any("OBERGRENZE" in z for z in antwort):    # B-182: Grenze erreicht - kein Gold wird abgebucht, also nicht warten
+            schreib(antwort[-1])
+            break
         geworben += 1
         warte_bis(lambda: vorrat(SP)["gold"] < vorher, "Gold fuer den Assassinen abgebucht", 10)
     v0 = vorrat(SP)
@@ -3522,6 +3525,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     else:
         schreib("1v1: Spiel bleibt fuer den anderen Lenker laufen (%s: %s)" % (ende_art, ende_text))
     schreib(serie.bericht())
+    from selfaware.game.ucp import laden as _laden_og
+    if _laden_og.OBERGRENZE is not None:
+        schreib("OBERGRENZE am Ende: %s" % _laden_og.OBERGRENZE.stand())
     if brand is not None:
         schreib("RAIDS: %s; %s; %s; %s" % (brand.bericht(), reiter.bericht(), deckung.bericht(), raid_e.nahkampf.bericht()))
         if vorstoss is not None:
@@ -3721,6 +3727,19 @@ def main():
     global ZUSCHAU_TEMPO, KERNWEG
     ZUSCHAU_TEMPO = int(arg.get("zuschau_tempo", 0))
     KERNWEG = arg.get("kernweg", "nein") == "ja"
+    # B-182 (Daniel 10.11. 23:16 "unsere ki soll maximal 20 einheiten haben insgesamt"): einheiten_max=N - hoechstens N eigene
+    # Kaempfer (ohne Lord), gezaehlt aus dem Kern; jeder Werbebefehl darueber geht nicht ans Spiel (game/ucp/laden.befehl)
+    if int(arg.get("einheiten_max", 0)) > 0:
+        from selfaware.baukasten.obergrenze import Obergrenze
+        from selfaware.game.kern_leitung import Leitung
+        from selfaware.game.ucp import laden as _laden_og
+        from selfaware.game.ucp.befehl import SPIEL as _SPIEL_OG
+        try:
+            _kern_og = Leitung(_SPIEL_OG)
+        except Exception as ex_og:
+            raise SystemExit("einheiten_max braucht den Kern, er ist nicht bereit: %r" % (ex_og,))
+        _laden_og.OBERGRENZE = Obergrenze(int(arg["einheiten_max"]), _kern_og, SP)
+        schreib("OBERGRENZE: hoechstens %d eigene Kaempfer (ohne Lord), gezaehlt aus dem Kern" % _laden_og.OBERGRENZE.grenze)
     global NOTWERBUNG, KORNRING, GRUBEN
     KORNRING = arg.get("kornring", "ja") == "ja"
     GRUBEN = arg.get("gruben", "ja") == "ja"

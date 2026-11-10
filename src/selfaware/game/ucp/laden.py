@@ -33,9 +33,16 @@ TICK, PAUSE, ANSICHT = 0x0117CADC, 0x01FEA054, 0x01FE7D1C
 HAUPTMENUE = 41
 BILDER = os.path.join(_workspace.DATA, 'bilder')
 
+# B-182 (Daniel 10.11. 23:16): Obergrenze fuer eigene Kaempfer (baukasten/obergrenze.py) oder None. Jeder Werbebefehl des
+# Lenkers kommt hier vorbei; ueber der Grenze geht er nicht ans Spiel.
+OBERGRENZE = None
+
+
 def befehl(cmd, warte=0.8, bis=None):
     """Ein Befehl, in eine Liste verpackt - so kommt er auch im Hauptmenue an.
     bis = Text der Antwortzeile: dann nur so lange warten, bis sie da ist (hoechstens warte s)."""
+    if OBERGRENZE is not None and isinstance(cmd.get("werbe"), dict) and not OBERGRENZE.erlaubt(cmd["werbe"].get("typ")):
+        return ["OBERGRENZE: Werbung Typ %s abgelehnt (%s)" % (cmd["werbe"].get("typ"), OBERGRENZE.stand())]
     c = dict(cmd)
     c.setdefault("player", 1)
     c["id"] = neue_id()

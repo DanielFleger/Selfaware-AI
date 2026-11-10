@@ -138,6 +138,8 @@ KARTE = {
             "Kauf nach Wirkung",
             "baukasten/wirkung.py:kaufen baukasten/wirkung.py:Wissen baukasten/einheiten.py baukasten/eichung.py",
         ),
+        # B-182 (Daniel 10.11. 23:16): gilt fuer jede Werbung des Lenkers, sitzt in game/ucp/laden.befehl
+        _m("Obergrenze Kaempfer", "baukasten/obergrenze.py:Obergrenze", "einheiten_max"),
     ),
     "bestellung_angriff": (
         _m(
