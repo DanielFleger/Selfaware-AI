@@ -73,7 +73,7 @@ Bausteine je Stand: Kern 1, eigene Datei 30, im Lenker 14, nicht benutzt 2, stec
 |---|---|---|---|
 | Raid-Werbung | steckbar | `baukasten/raid.py:RaidBestellung`, `micro/tasks/raids.py:werbung`, `baukasten/bestellung.py` | `bestellung`, `raids`, `raid_reihenfolge` |
 | Assassinen werben | im Lenker | `Lenker phase1`, `Lenker phase2`, `Lenker loewen_am_posten` |  |
-| Kauf nach Wirkung | eigene Datei | `baukasten/wirkung.py:kaufen`, `baukasten/wirkung.py:Wissen`, `baukasten/einheiten.py` |  |
+| Kauf nach Wirkung | eigene Datei | `baukasten/wirkung.py:kaufen`, `baukasten/wirkung.py:Wissen`, `baukasten/einheiten.py`, `baukasten/eichung.py` |  |
 
 ## Bestellung Angriff
 

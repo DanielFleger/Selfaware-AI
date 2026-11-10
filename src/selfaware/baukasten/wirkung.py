@@ -11,6 +11,8 @@ Wissen, das hineinfliesst (jede Zahl nennt ihre Herkunft):
 - Gebaeude: Leben und Rate der Assassinen aus Partien (data/research/angriff_raten.json). Andere Nahkaempfer: Ersatz nach ihrer Staerke
   gegen Speertraeger im Verhaeltnis zur Assassine. Sklaven zuenden an (raids.py, gemessen 19.10.: brennt nach 165 Takten von allein ab).
 - Reichweite und Lauftempo: services/spielwerte (Lauf S).
+- B-182: Erfolgsanteil je Zuweisung und Takte am Ziel je Art und Zielart, gemessen in Partien (baukasten/eichung.py,
+  data/research/raid_eichung.json). Wo genug Daten sind, ersetzen sie die Ersatzwerte; mehr Erfolg als gemessen traut die Rechnung keiner Art zu.
 - Wert der Ziele: Daniels Startwerte (raids.WERT, raids.ARBEITER). Plan_Gehirn 5.6, Stufe 1: von Hand gesetzte Regler, spaeter gelernt.
 Nur Sichtbares (FAIRNESS R3): Art und Ort von Gebaeuden und Einheiten, kein fremdes Leben, kein fremdes Ziel.
 """
@@ -22,6 +24,7 @@ import os
 
 import selfaware.services.spielwerte as SW
 from selfaware import workspace
+from selfaware.baukasten import eichung as EI
 from selfaware.baukasten import einheiten as EH
 from selfaware.micro.tasks import raids as RA
 
@@ -90,8 +93,9 @@ def ziele(L, G, sp):
 class Wissen:
     """Was wir je Art wissen, mit Herkunft. lernen() nimmt das volle Leben der eigenen Einheiten aus dem Lagebild."""
 
-    def __init__(self, tabelle=None, gebaeude=None):
+    def __init__(self, tabelle=None, gebaeude=None, eichung=None):
         self._am_ziel = {}
+        self.eichung = EI.laden() if eichung is None else eichung
         if tabelle is None:
             from selfaware.services import gefecht
 
@@ -149,13 +153,16 @@ class Wissen:
         takte = self.gebaeude_takte(typ, z.typ)[0] if z.schluessel[0] == "g" else ARBEITER_TAKTE
         if takte is None:
             return None, 0.0
+        # B-182: gemessen in Partien - Takte am Ziel statt Ersatz, und nie mehr Erfolg als der gemessene Anteil je Zuweisung
+        anteil, gemessen = self.eichung.get((typ, z.schluessel[0]), (None, None))
+        if gemessen is not None:
+            takte = gemessen
         fern = EH.ARTEN[typ].kampf == "fern"
         rein = sum(self.dps(s, typ, fern=True)[0] for s in z.schuetzen)
         if not fern:
             rein += sum(self.dps(m, typ)[0] for m in z.nah)
-        if rein <= 0:
-            return takte, 1.0
-        return takte, min(1.0, self.leben(typ)[0] / rein / takte)
+        erfolg = 1.0 if rein <= 0 else min(1.0, self.leben(typ)[0] / rein / max(takte, 1.0))
+        return takte, erfolg if anteil is None else min(erfolg, anteil)
 
     def wert_je_takt(self, typ, ort, z, tempo=None):
         takte, erfolg = self.am_ziel(typ, z)

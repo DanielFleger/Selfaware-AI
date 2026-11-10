@@ -136,7 +136,7 @@ KARTE = {
         _m("Assassinen werben", _l("phase1 phase2 loewen_am_posten")),
         _m(
             "Kauf nach Wirkung",
-            "baukasten/wirkung.py:kaufen baukasten/wirkung.py:Wissen baukasten/einheiten.py",
+            "baukasten/wirkung.py:kaufen baukasten/wirkung.py:Wissen baukasten/einheiten.py baukasten/eichung.py",
         ),
     ),
     "bestellung_angriff": (

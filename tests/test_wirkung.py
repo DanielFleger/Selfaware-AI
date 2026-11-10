@@ -25,7 +25,9 @@ GEB = {1: {"rate": 0.4, "leben_max": 100}, 3: {"rate": 0.0, "leben_max": 60}}
 
 
 def wissen():
-    return WK.Wissen(tabelle=TAB, gebaeude=GEB)
+    return WK.Wissen(
+        tabelle=TAB, gebaeude=GEB, eichung={}
+    )  # ohne Eichung: Tests haengen nicht an Partiedaten
 
 
 def geb(x, y, typ=1, besitzer=2):
@@ -301,6 +303,23 @@ def test_reiterjagd_schreibt_jeden_erfolg_in_die_mitschrift():
         "REITERJAGD: Reiter 1 hat Arbeiter 200 erledigt"
     ]
     assert r.getoetet == 1
+
+
+def test_gemessene_erfolgsanteile_und_takte_ersetzen_die_ersatzwerte():
+    """B-182 Eichung: Die Rechnung traute Sklaven sicheren Erfolg nach 165 Takten zu; gemessen in den Reihen 6 bis 9: 18 % der Zuweisungen, 550 Takte am Ziel."""
+    L, G = huetten()
+    z = WK.ziele(L, G, 1)[0]
+    geeicht = WK.Wissen(tabelle=TAB, gebaeude=GEB, eichung={(SKLAVE, "g"): (0.05, 600.0)})
+    assert geeicht.am_ziel(SKLAVE, z) == (600.0, 0.05) and wissen().am_ziel(SKLAVE, z) == (
+        WK.FEUER_TAKTE,
+        1.0,
+    )
+    nur_takte = WK.Wissen(tabelle=TAB, gebaeude=GEB, eichung={(SKLAVE, "g"): (None, 600.0)})
+    assert nur_takte.am_ziel(SKLAVE, z) == (600.0, 1.0)
+    # ungedeckte Huetten: ungeeicht der Sklave, geeicht die schwere Einheit, deren Rechnung keine Messung kennt
+    preise, ziele = {SKLAVE: 5, SCHWERT: 100}, WK.ziele(L, G, 1)
+    assert WK.kaufen(wissen(), 300, 20, preise, (0, 0), ziele)[0][0][0] == SKLAVE
+    assert WK.kaufen(geeicht, 300, 20, preise, (0, 0), ziele)[0] == [(SCHWERT, 1)]
 
 
 def test_aufstellung_raid_wirkung_steckt_die_neue_bestellung():
