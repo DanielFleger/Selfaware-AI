@@ -2673,7 +2673,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     # Ketten (kausal.py, Wissensregister L71/L72); Ablage am Lager
                     abgabe_k = {3: lager_m, 32: speicher_m, 7: speicher_m, 31: lager_m, 5: lager_m, 20: lager_m}
                     kand_k = []
-                    for typ_a in (3, 32, 7, 31, 5, 20):
+                    # 10.11. (Daniel 21:43: "zu viele Hopfenfarmen" - 15 vom Kausal-Planer, der Hopfen mit 18 Gold je Stueck als Ware rechnet): mit bier=ja
+                    # baut Hopfen nur die Bierkette, nach Bedarf
+                    for typ_a in (3, 32, 7, 5, 20) + (() if BIER else (31,)):
                         if typ_a in getattr(ausbau, "ohne", ()):
                             continue
                         b_a = ausbau.groesse.get(typ_a, 3) // 2
