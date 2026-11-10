@@ -1,19 +1,22 @@
 # -*- coding: utf-8 -*-
-"""Ohne Spiel: Kauf nach Wirkung je Runde ungeeicht gegen geeicht (raid_eichung.json), beide mit der Frage an den Einsatz. Je Runde ein Schnappschuss
+"""Ohne Spiel: Kauf nach Wirkung je Runde mit zwei Eichungen (ohne Angabe: ungeeicht gegen raid_eichung.json; mit --alt <json>: diese gegen raid_eichung.json), beide mit der Frage an den Einsatz. Je Runde ein Schnappschuss
 (Ruecklage 0, keine vergebenen Ziele, Arabische Bogenschuetzen nur bis Takt 15.000 wie im Lenker). Aufruf: python s_replay_eichung.py <lage> [jede n-te Runde]"""
 import collections
 import sys
 
 from selfaware.baukasten import aufstellung as AF
+from selfaware.baukasten import eichung as EI
 from selfaware.baukasten import raid as RB
 from selfaware.baukasten import wirkung as WK
 from selfaware.micro.tasks import nahkampf as NK
 from selfaware.micro.tasks import raids as RA
 from selfaware.telemetry import lageprotokoll as LP
 
-p, jede = sys.argv[1], int(sys.argv[2]) if len(sys.argv) > 2 else 40
+ALT = sys.argv[sys.argv.index("--alt") + 1] if "--alt" in sys.argv else None
+args = [a for a in sys.argv[1:] if a not in ("--alt", ALT)]
+p, jede = args[0], int(args[1]) if len(args) > 1 else 40
 varianten = {"ungeeicht": RB.RaidBestellungNachWirkung(), "geeicht": RB.RaidBestellungNachWirkung()}
-varianten["ungeeicht"]._wissen = WK.Wissen(eichung={})
+varianten["ungeeicht"]._wissen = WK.Wissen(eichung=EI.laden(ALT) if ALT else {})
 varianten["geeicht"]._wissen = WK.Wissen()
 summe = {k: collections.Counter() for k in varianten}
 for i, (t, st, E, B) in enumerate(LP.runden(p)):

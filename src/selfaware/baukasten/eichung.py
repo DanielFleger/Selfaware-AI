@@ -2,8 +2,11 @@
 
 Die Raid-Module schreiben jede Zuweisung und jeden Erfolg in die Mitschrift: Brandtrupp (Sklaven an Gebaeuden, seit B-129), Reiterjagd und
 Nahkampf-Raid (Arbeiter und Gebaeude, Erfolgszeilen seit B-182). Diese Datei paart beides je Einheit und Ziel und misst je Art und Zielart:
-- Erfolgsanteil: Erfolge je Zuweisung, mit einer gedachten Zuweisung mit und einer ohne Erfolg dazu (wenige Daten ergeben so nie 0 oder 100 %).
-- Takte am Ziel: Median von (Takte von der Zuweisung bis zum Erfolg) minus (Weg beim Zuweisen mal Takte je Feld der Art).
+- Versuch: von der ersten Zuweisung einer Einheit bis zu ihrem Erfolg; ein Zielwechsel dazwischen setzt den Versuch fort (Reihe 10: 41 Reiter,
+  511 Zuweisungen bei 68 Erfolgen - die Reiterjagd waehlt jede Runde neu, der Erfolg je Zuweisung mass vor allem das Umschwenken).
+  Ohne Erfolg endet ein Versuch, wenn die Einheit nicht mehr vorkommt (tot) oder die Mitschrift endet.
+- Erfolgsanteil: Erfolge je Versuch, mit einem gedachten Versuch mit und einem ohne Erfolg dazu (wenige Daten ergeben so nie 0 oder 100 %).
+- Takte am Ziel: Median von (Takte vom Beginn des Versuchs bis zum Erfolg) minus (Weg beim Beginn mal Takte je Feld der Art).
 Gemessen an den Reihen 6 bis 9 (10.11.): Sklaven hatten in 18 % der 557 Zuweisungen Erfolg, nach 550 Takten am Ziel (Median); die Rechnung
 nahm sicheren Erfolg nach 165 Takten an. wirkung.Wissen nimmt diese Werte statt der Ersatzwerte, sobald genug Daten da sind.
 Nur Sichtbares (FAIRNESS R3): Die Mitschrift enthaelt nur, was der Lenker selbst gesehen und befohlen hat.
@@ -68,16 +71,23 @@ MUSTER = (
 
 # Muster, die dieselbe Erfolgszeile teilen (der Nahkampf-Raid meldet Gebaeude und Arbeiter mit demselben Satz)
 MODUL = (0, 1, 2, 2)
+# Module, deren Zuweisungszeile schon vor ihrer Erfolgszeile (B-182) so aussah: nur die Reiterjagd. Der Brandtrupp schreibt Erfolge seit B-129,
+# der Nahkampf-Raid schreibt seine Zuweisung seit B-182 mit der Entfernung - eine alte Zeile passt gar nicht auf das Muster.
+OHNE_ERFOLGSZEILE_UNKLAR = {1}
 
 
-def aus_zeilen(zeilen):
-    """{(Art, Zielart): {"zuweisungen": n, "dauer": [Takte], "weg": [Felder]}} aus den Zeilen einer Mitschrift. Ein Modul ohne eine einzige
-    Erfolgszeile in dieser Mitschrift zaehlt hier nicht: Vor B-182 schrieben Reiterjagd und Nahkampf-Raid keine, ihre Zuweisungen waeren
-    sonst lauter Fehlschlaege. (Eine echte Partie ganz ohne Erfolg dieses Moduls faellt dadurch auch heraus.)"""
+def aus_zeilen(zeilen, offen_am_ende=None):
+    """{(Art, Zielart): {"zuweisungen": n, "dauer": [Takte], "weg": [Felder]}} aus den Zeilen einer Mitschrift. Die Reiterjagd zaehlt in einer
+    Mitschrift ohne eine einzige Erfolgszeile nicht: Vor B-182 schrieb sie keine, ihre Versuche waeren sonst lauter Fehlschlaege. (Eine echte
+    Partie ganz ohne Abschuss faellt dadurch auch heraus; fuer Brandtrupp und Nahkampf-Raid gilt das nicht, 11:50 berichtigt - Reihe 11 mit
+    34 Schwertkaempfern ohne einen Erfolg fiel sonst heraus.)
+    offen_am_ende: Liste, in die je Versuch ohne Ende (Art, Zielart, Takte seit Beginn bis zur letzten Zeile) kommt - aus_mitschriften
+    zaehlt die juengsten davon nicht, weil das Partieende sie abschnitt."""
     aus = collections.defaultdict(lambda: {"zuweisungen": 0, "dauer": [], "weg": []})
     zuweisungen = collections.Counter()
     mit_erfolg = set()
     offen = {}
+    t = 0
     for zeile in zeilen:
         m = _TAKT.match(zeile)
         if not m:
@@ -98,17 +108,26 @@ def aus_zeilen(zeilen):
             art, typ = MUSTER[i][2], MUSTER[i][3]
             if not ist_erfolg:
                 t_art = typ if typ is not None else int(x.group("t"))
-                offen[(MODUL[i], x.group("n"))] = (i, x.group("z"), t, int(x.group("d")), t_art)
-                zuweisungen[(MODUL[i], t_art, art)] += 1
+                alt = offen.get((MODUL[i], x.group("n")))
+                if alt is None:  # neuer Versuch
+                    offen[(MODUL[i], x.group("n"))] = (i, x.group("z"), t, int(x.group("d")), t_art)
+                    zuweisungen[(MODUL[i], t_art, art)] += 1
+                else:  # Zielwechsel: derselbe Versuch, Beginn und Weg bleiben, das Ziel (und die Zielart) wechselt
+                    offen[(MODUL[i], x.group("n"))] = (i, x.group("z"), alt[2], alt[3], alt[4])
                 continue
             mit_erfolg.add(MODUL[i])
             o = offen.pop((MODUL[i], x.group("n")), None)
             if o is not None and o[0] == i and o[1] == x.group("z"):
                 aus[(o[4], art)]["dauer"].append(t - o[2])
                 aus[(o[4], art)]["weg"].append(o[3])
+    zaehlt = {m for m in set(MODUL) if m in mit_erfolg or m not in OHNE_ERFOLGSZEILE_UNKLAR}
     for (modul, t_art, art), n in zuweisungen.items():
-        if modul in mit_erfolg:
+        if modul in zaehlt:
             aus[(t_art, art)]["zuweisungen"] += n
+    if offen_am_ende is not None:
+        offen_am_ende += [
+            (o[4], MUSTER[o[0]][2], t - o[2]) for (modul, _), o in offen.items() if modul in zaehlt
+        ]
     return dict(aus)
 
 
@@ -122,6 +141,7 @@ def zusammenfassen(roh, partien):
         arten.setdefault(str(typ), {})[art] = {
             "zuweisungen": n,
             "erfolge": erfolge,
+            "abgeschnitten": w.get("abgeschnitten", 0),
             "anteil": round((erfolge + 1) / (n + 2), 4),
             "takte_bis_erfolg": statistics.median(w["dauer"]) if w["dauer"] else None,
             "weg_felder": statistics.median(w["weg"]) if w["weg"] else None,
@@ -139,13 +159,24 @@ def zusammenfassen(roh, partien):
 
 
 def aus_mitschriften(pfade):
-    roh = collections.defaultdict(lambda: {"zuweisungen": 0, "dauer": [], "weg": []})
+    """Zusammen ueber alle Mitschriften. Ein Versuch, der bei Partieende noch lief und juenger ist als der Median der Takte bis zum Erfolg
+    seiner Art und Zielart, zaehlt nicht (11:55 eingefuehrt: Reihe 11 kaufte Schwertkaempfer ab Takt 20.000 bis 26.000, sie liefen 60 bis 90
+    Felder, die Partie endete bei Takt 40.000 - ohne das Ende waeren das keine Fehlschlaege)."""
+    roh = collections.defaultdict(
+        lambda: {"zuweisungen": 0, "dauer": [], "weg": [], "abgeschnitten": 0}
+    )
+    offen = []
     for p in pfade:
         with open(p, encoding="utf-8", errors="replace") as f:
-            for k, w in aus_zeilen(f).items():
+            for k, w in aus_zeilen(f, offen).items():
                 roh[k]["zuweisungen"] += w["zuweisungen"]
                 roh[k]["dauer"] += w["dauer"]
                 roh[k]["weg"] += w["weg"]
+    for t_art, art, alter in offen:
+        w = roh[(t_art, art)]
+        if w["dauer"] and alter < statistics.median(w["dauer"]):
+            w["zuweisungen"] -= 1
+            w["abgeschnitten"] += 1
     return zusammenfassen(dict(roh), pfade)
 
 
@@ -180,8 +211,16 @@ def main(argv=None):
     for typ, je in d["arten"].items():
         for art, w in je.items():
             print(
-                "Art %s, Ziel %s: %d Zuweisungen, %d Erfolge, Anteil %.3f, Takte am Ziel %s"
-                % (typ, art, w["zuweisungen"], w["erfolge"], w["anteil"], w["takte_am_ziel"])
+                "Art %s, Ziel %s: %d Versuche, %d Erfolge, %d am Partieende abgeschnitten, Anteil %.3f, Takte am Ziel %s"
+                % (
+                    typ,
+                    art,
+                    w["zuweisungen"],
+                    w["erfolge"],
+                    w["abgeschnitten"],
+                    w["anteil"],
+                    w["takte_am_ziel"],
+                )
             )
     if schreiben:
         with open(EICHUNG, "w", encoding="utf-8") as f:
