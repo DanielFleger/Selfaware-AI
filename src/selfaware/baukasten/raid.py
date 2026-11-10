@@ -174,6 +174,11 @@ class RaidEinsatz:
         self.reiter = steck.klasse("reiterjagd")(sp)
         self.deckung = steck.klasse("deckung")(sp, bergfried)
         self.nahkampf = steck.klasse("nahkampfraid")(sp, gelaende)
+        # B-182 (Daniel 11.11. 00:04): eine gemeinsame Wegfuehrung je Partie - jede Einheit hat genau einen Fuehrer
+        from selfaware.micro.wegfuehrung import Wegfuehrung
+
+        self.weg = Wegfuehrung(sp, gelaende)
+        self.brand.weg = self.weg
         self.vorstoss = (
             None
             if vorstoss_bis is None
@@ -216,4 +221,5 @@ class RaidEinsatz:
         aus += self.brand.schritt(L, G, befehl)
         aus += self.reiter.schritt(L, G, befehl)
         aus += self.nahkampf.schritt(L, G, befehl)
+        self.weg.schritt(L, G, befehl)       # einmal je Runde, nachdem die Module ihre Ziele gesetzt haben
         return aus

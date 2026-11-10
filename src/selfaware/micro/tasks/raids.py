@@ -57,6 +57,7 @@ FERN = {22, 23, 70, 72, 74, 76}
 NAH = {24, 25, 26, 27, 28, 55, 73, 75}
 TUERME = {74, 75, 76, 77, 78}                    # Gebaeudetypen Wach-/Verteidigungs-/Geschuetz-/eckiger/runder Turm
 GRUBE = 67
+SPERRE_RUNDEN = 10   # Startwert: so lange waehlt der Brandtrupp ein aufgegebenes Gebaeude nicht neu (Wegfuehrung)
 # Wert je Gebaeudeart (Startwerte): Waffenlager fast immer hoeher (Daniel 17:13), Soeldnerposten (dort entstehen die
 # Assassinen), Kornspeicher (Nahrung, Beliebtheit), dann die Holzfaeller (1018j), Plantagen, Rest
 # 19.10. 17:41 (Daniel, Bilder 1018n: Feuer im Huettenhof am Bergfried, mehrere Huetten brennen nebeneinander - "das ist
@@ -116,6 +117,8 @@ class Brandtrupp:
         self.angezuendet = 0
         self.runde = 0
         self.schutz = []            # B-129: Orte der Deckungs-Schuetzen, setzt der Lenker je Runde
+        self.weg = None             # B-182: gemeinsame Wegfuehrung (micro/wegfuehrung.py), setzt der Raid-Einsatz
+        self.gesperrt = {}          # Gebaeude -> Runde, bis zu der es nach "gefahr"/"kein_weg" nicht wieder gewaehlt wird
 
     def einheiten(self, L):
         return {n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] == SKLAVE and e.get("leben", 1) > 0}
@@ -125,6 +128,8 @@ class Brandtrupp:
         traute die Rechnung den Sklaven gedeckte Gebaeude zu, die der Brandtrupp nie angreift: 224 Sklaven, 2 Gebaeude angezuendet."""
         g = G[n]
         if g.get("besitzer") in (0, self.sp) or g["typ"] not in WERT or n in self.brennt:
+            return False
+        if self.gesperrt.get(n, -1) > self.runde:
             return False
         return not gefaehrlich((g["x"], g["y"]), L, G, self.sp, self.schutz)
 
@@ -155,13 +160,25 @@ class Brandtrupp:
                     self.angezuendet += 1
                     self.ziel.pop(s)
                     self._nicht_im_ausweichen(s, meine)
+                    if self.weg is not None:
+                        self.weg.loslassen(s)
                     aus.append("BRANDTRUPP: Sklave %d hat Gebaeude %d (Typ %d) angezuendet (Feuer %d) - weiter" % (
                         s, nr, G[nr]["typ"], f))
+        if self.weg is not None:
+            # B-182: was die Wegfuehrung in der Vorrunde meldete - Gefahr am Ziel, kein Weg, Ziel weg: ein anderes Gebaeude
+            for s, nr in list(self.ziel.items()):
+                st = self.weg.status(s)
+                if st in ("gefahr", "kein_weg", "ziel_weg"):
+                    self.gesperrt[nr] = self.runde + SPERRE_RUNDEN
+                    self.ziel.pop(s)
+                    self.weg.loslassen(s)
+                    aus.append("BRANDTRUPP: Sklave %d gibt Gebaeude %d auf (%s)" % (s, nr, st))
         belegt = set(self.ziel.values())
         for s in sorted(meine):
             e = L[s]
-            feuer = self.kern is not None and self.schuss.unter_feuer(s, e)
-            if s in self.ziel and s not in self.ausweichend and not feuer and self.runde - self.befohlen.get(s, -99) < NEU_ALLE:
+            mit_weg = self.weg is not None
+            feuer = not mit_weg and self.kern is not None and self.schuss.unter_feuer(s, e)
+            if not mit_weg and s in self.ziel and s not in self.ausweichend and not feuer and self.runde - self.befohlen.get(s, -99) < NEU_ALLE:
                 continue
             if s not in self.ziel:
                 z = self._ziele(L, G, (e["x"], e["y"]), belegt)
@@ -172,6 +189,10 @@ class Brandtrupp:
                 g = G[z[0]]
                 aus.append("BRANDTRUPP: Sklave %d -> Gebaeude %d (Typ %d) bei (%d, %d), %d Felder" % (
                     s, z[0], g["typ"], g["x"], g["y"], schach((e["x"], e["y"]), (g["x"], g["y"]))))
+            if mit_weg:
+                # B-182 (Plan_Wegfuehrung.md): den Weg fuehrt die Wegfuehrung, jede Runde neu gegen die aktuelle Lage
+                self.weg.fuehre(s, "gebaeude", self.ziel[s], "brandtrupp")
+                continue
             if s in self.ausweichend or feuer or self.befohlen.get(s, -99) < self.runde - NEU_ALLE or e.get("zustand") in (0, 1):
                 if not self._im_ausweichen(s, e, self.ziel[s], G, feuer):
                     self._angreifen(s, self.ziel[s], befehl)

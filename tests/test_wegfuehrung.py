@@ -99,3 +99,25 @@ def test_nahkaempfer_darf_an_einen_soldaten_heran():
     w.fuehre(1, "einheit", 50)
     st, b = _runde(w, {1: _e(1, 75, 100, 100), 50: _e(2, 24, 200, 100)})  # Speertraeger: seine eigene Naehe zaehlt nicht
     assert st[1] == "unterwegs" and "lauf" in b[0]
+
+
+def test_brandtrupp_gibt_den_weg_ab_und_wechselt_bei_gefahr_das_ziel():
+    """Plan_Wegfuehrung.md: der Brandtrupp waehlt das Ziel, die Wegfuehrung den Weg; meldet sie Gefahr, nimmt er ein anderes."""
+    from selfaware.micro.tasks import raids as RA
+
+    bt = RA.Brandtrupp(1, lambda nr: 0)
+    w = W.Wegfuehrung(1)
+    bt.weg = w
+    L = {1: _e(1, 71, 100, 100)}
+    G = {7: _e(2, 3, 200, 100), 8: _e(2, 3, 100, 200)}
+    b = Befehle()
+    bt.schritt(L, G, b)
+    assert b.liste == [] and w.fuehrt(1)  # der Brandtrupp selbst befiehlt nichts mehr
+    erstes = bt.ziel[1]
+    st, b = _runde(w, L, G)
+    assert st[1] == "unterwegs" and "lauf" in b[0]
+    L2 = {**L, 60: _e(2, 22, G[erstes]["x"] + 5, G[erstes]["y"])}  # ein Bogenschuetze stellt sich ans Ziel
+    st, _ = _runde(w, L2, G)
+    assert st[1] == "gefahr"
+    bt.schritt(L2, G, Befehle())
+    assert bt.ziel.get(1) not in (None, erstes) and w.fuehrt(1)
