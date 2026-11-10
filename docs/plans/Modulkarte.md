@@ -4,7 +4,7 @@ Erzeugt mit `python -m selfaware.baukasten.karte --schreiben`, nicht von Hand ä
 
 Gemessen: Der Lenker `runtime/live/erstes_spiel.py` hat 3886 Zeilen, `phase2` davon 1501. Er kennt 98 Schalter. 20 Klassen haben einen eigenen `schritt`, mit 16 verschiedenen Aufrufen.
 
-Bausteine je Stand: Kern 1, eigene Datei 31, im Lenker 14, nicht benutzt 2, steckbar 18. Eine Stelle mit zwei Rollen zählt einmal.
+Bausteine je Stand: Kern 1, eigene Datei 32, im Lenker 14, nicht benutzt 2, steckbar 18. Eine Stelle mit zwei Rollen zählt einmal.
 
 | Stand | Bedeutung |
 |---|---|
@@ -130,6 +130,7 @@ Bausteine je Stand: Kern 1, eigene Datei 31, im Lenker 14, nicht benutzt 2, stec
 | Breite Aufstellung | eigene Datei | `baukasten/formation.py:breit` |  |
 | Stapeln | eigene Datei | `micro/tasks/assassinen.py:_stapel_rechnung` |  |
 | Zuweisung | eigene Datei | `micro/zuweisung.py` |  |
+| Wegfuehrung | eigene Datei | `micro/wegfuehrung.py` |  |
 
 ## Scaling
 

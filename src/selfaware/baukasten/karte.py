@@ -185,6 +185,8 @@ KARTE = {
         _m("Breite Aufstellung", "baukasten/formation.py:breit"),
         _m("Stapeln", "micro/tasks/assassinen.py:_stapel_rechnung"),
         _m("Zuweisung", "micro/zuweisung.py"),
+        # B-182 (Daniel 11.11. 00:04): ein Weg fuer alle Einheiten, die ein Modul zu einem Ziel schickt (Plan_Wegfuehrung.md)
+        _m("Wegfuehrung", "micro/wegfuehrung.py"),
     ),
     "scaling": (
         _m(
