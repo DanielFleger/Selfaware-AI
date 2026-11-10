@@ -61,6 +61,7 @@ class Lage:
     steuerbar: frozenset = frozenset()  # Arten, die ein Einsatz-Modul gerade fuehren kann
     belegt: frozenset = frozenset()  # Ziele, die schon eine eigene Einheit hat
     greift_an: object = None  # B-182: (Art, Ziel, L, G) -> bool vom Raid-Einsatz; ohne ihn entscheidet die Rechnung allein
+    vorhanden: tuple = ()  # B-182: (Art, Ort) der eigenen Einheiten, die ein Raid-Modul schon fuehrt
 
 
 class RaidBestellung:
@@ -159,6 +160,7 @@ class RaidBestellungNachWirkung(RaidBestellung):
             {ASSASSINE: 1},
             ZIELARTEN,
             erlaubt=None if b.greift_an is None else (lambda t, z: b.greift_an(t, z, b.L, b.G)),
+            vorhanden=b.vorhanden,
         )
         return kaeufe
 
@@ -186,6 +188,21 @@ class RaidEinsatz:
         if modul is None or not hasattr(modul[0], "moeglich"):
             return True
         return art == modul[1] and nr in modul[2] and modul[0].moeglich(nr, L, G)
+
+    def vorhanden(self, L):
+        """B-182: (Art, Ort) jeder lebenden eigenen Einheit, die ein Raid-Modul gerade fuehrt. Der Kauf rechnet erst ihre Arbeit, dann den Rest."""
+        nummern = (
+            set(self.brand.einheiten(L))
+            | set(self.reiter.einheiten(L))
+            | set(self.deckung.einheiten(L))
+            | set(getattr(self.nahkampf, "mitglieder", ()))
+            | (set(self.vorstoss.mitglieder) if self.vorstoss is not None else set())
+        )
+        return tuple(
+            (L[n]["typ"], (L[n]["x"], L[n]["y"]))
+            for n in sorted(nummern)
+            if n in L and L[n].get("leben", 1) > 0
+        )
 
     def schritt(self, t, L, G, befehl):
         aus = []

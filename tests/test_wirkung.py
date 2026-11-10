@@ -322,6 +322,36 @@ def test_gemessene_erfolgsanteile_und_takte_ersetzen_die_ersatzwerte():
     assert WK.kaufen(geeicht, 300, 20, preise, (0, 0), ziele)[0] == [(SCHWERT, 1)]
 
 
+def test_was_eigene_einheiten_im_feld_erledigen_zaehlt_fuer_keinen_kauf():
+    """B-182 Eichung: Die Rechnung zaehlte jede Runde dieselben Ziele neu, als gaebe es die schon gekauften Einheiten nicht."""
+    L, G = huetten()
+    z = WK.ziele(L, G, 1)
+    assert WK.kaufen(wissen(), 300, 20, {SKLAVE: 5}, (0, 0), z)[0] == [(SKLAVE, 1)]
+    assert (
+        WK.kaufen(wissen(), 300, 20, {SKLAVE: 5}, (0, 0), z, vorhanden=[(SKLAVE, (49, 0))])[0] == []
+    )
+    # ein Reiter im Feld deckt keine Gebaeude ab: dort kauft er weiter den Sklaven
+    k, _ = WK.kaufen(
+        wissen(), 300, 20, {SKLAVE: 5}, (0, 0), z, zielarten=RB.ZIELARTEN, vorhanden=[(74, (49, 0))]
+    )
+    assert k == [(SKLAVE, 1)]
+
+
+def test_einsatz_meldet_was_seine_module_fuehren_und_der_lenker_gibt_es_weiter():
+    e = _einsatz()
+    L = {
+        1: einheit(5, 6, SKLAVE, besitzer=1),
+        2: einheit(7, 8, 74, besitzer=1),
+        3: einheit(9, 9, SKLAVE),
+        4: einheit(1, 1, 22, besitzer=1),
+    }
+    assert e.vorhanden(L) == (
+        (SKLAVE, (5, 6)),
+        (74, (7, 8)),
+    )  # fremde und nicht gefuehrte Einheiten fehlen
+    assert "vorhanden=raid_e.vorhanden(L) if raid_e is not None else ()" in LENKER
+
+
 def test_aufstellung_raid_wirkung_steckt_die_neue_bestellung():
     d = AF.laden("raid_wirkung")
     assert AF.Steckplaetze(d["versionen"]).klasse("raidbestellung") is RB.RaidBestellungNachWirkung

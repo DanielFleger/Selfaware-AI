@@ -216,16 +216,19 @@ def kaufen(
     hoechstens=None,
     zielarten=None,
     erlaubt=None,
+    vorhanden=None,
 ):
     """([(Typ, Anzahl)], Begruendung). Immer die Art mit dem meisten Wert je Gold, bis Gold, Leute am Feuer oder Ziele ausgehen.
     preise: {Typ: Gold} der Arten, die jetzt gekauft und auch gesteuert werden koennen. bleibt: so viele Leute bleiben je Art am Feuer.
-    erlaubt(Typ, Ziel) -> bool: ob das Modul dieser Art das Ziel ueberhaupt angreift (raid.RaidEinsatz.greift_an)."""
+    erlaubt(Typ, Ziel) -> bool: ob das Modul dieser Art das Ziel ueberhaupt angreift (raid.RaidEinsatz.greift_an).
+    vorhanden: [(Typ, Ort)] eigener Einheiten, die ein Modul schon fuehrt (raid.RaidEinsatz.vorhanden)."""
     bleibt, hoechstens = bleibt or {}, hoechstens or {}
     zielarten = zielarten or {}
+
     # B-182: einer Art wird nur zugetraut, was ihr Modul angreift: die Zielart ("g" Gebaeude, "e" Einheiten) und, Reihe 5, die Ziele, die
     # das Modul nicht meidet
-    kand = {
-        typ: wissen.kandidaten(
+    def _kand(typ):
+        return wissen.kandidaten(
             typ,
             [
                 z
@@ -234,9 +237,16 @@ def kaufen(
                 and (erlaubt is None or erlaubt(typ, z))
             ],
         )
-        for typ in preise
-    }
+
+    kand = {typ: _kand(typ) for typ in preise}
     rest = {z.schluessel: 1.0 for z in ziele_}
+    # B-182 Eichung: Was eigene Einheiten im Feld schon erledigen, zaehlt fuer keinen Kauf. Ohne das zaehlte jede Runde dieselben Ziele neu
+    # (Reihen 1 bis 5: fuer die Sklaven je Partie 676 bis 12.935 Punkte erwartet, 17 bis 156 erreicht)
+    for typ, ort in vorhanden or ():
+        if typ not in kand:
+            kand[typ] = _kand(typ)
+        for z, anteil in wissen.tour(typ, ort, kand[typ], rest)[1]:
+            rest[z.schluessel] *= 1.0 - anteil
     gekauft, erwartet = collections.Counter(), collections.defaultdict(float)
     while True:
         best = None
