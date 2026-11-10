@@ -1,0 +1,36 @@
+GOLD-BILANZ Partie 20261110_095834, Lenker Spieler 1, Instanz 2, 377 Lagezeilen bis Tick 40079
+Balance liga_ai.json - passt zu den Baukosten aus dem Spiel
+
+1. GOLD DES LENKERS (Start 0)
+   Einnahmen 7639 in 79 Schritten, Groessen [(25, 11), (5, 9), (15, 6), (30, 5), (10, 4), (20, 3)]
+   davon ueber einen Monatswechsel (Steuer): 17 Schritte, 1773 Gold
+   Ausgaben -7318 in 80 Schritten, Groessen [(-120, 17), (-20, 9), (-30, 8), (-40, 7), (-15, 3), (-10, 3), (-50, 3), (-35, 2)]
+   Steuer-Aenderungen in der Mitschrift: 11 [('2', '1'), ('1', '2'), ('2', '3'), ('3', '4'), ('4', '3'), ('3', '2'), ('2', '1'), ('1', '2')]; Stufe 0-2 bringen laut Balance ['1.50', '0.50', '0.00'] Gold je Kopf
+   Gold-Stand: Anteil der Zeilen mit 0 Gold 11 %, hoechstens 474
+
+2. BELIEBTHEIT DES LENKERS - Wochenspruenge in Hundertsteln (L34: Steuer + Rationen + Vielfalt): [(25, 65), (-25, 38), (125, 14), (-75, 7), (50, 6), (-225, 5), (-275, 3), (-150, 2)]
+   Steuer-Beliebtheit laut Balance je Stufe 0-11: [225, 125, 25, -25, -75, -125, -200, -275, -375, -500, -750, -1000]; Gold je Kopf und Monat: ['1.50', '0.50', '0.00', '0.25', '0.50', '0.70', '1.00', '1.30', '1.65', '2.00', '2.75', '4.00']
+   GERECHNET brutto (dieselben Leute, ohne Beliebtheitsfolgen): Stufe 4 2704, Stufe 6 5409 Gold ueber die Partie
+
+3. ERZEUGUNG DES LENKERS (ertrag_live zug, ganze Partie): {'eisen': 199, 'stein': 632, 'apfel': 662, 'fleisch': 18, 'holz': 3531}; verkauft: {'holz': 2120, 'fleisch': 10, 'apfel': 255, 'stein': 280, 'eisen': 155, 'hopfen': 40}
+   Holz je besetzter Holzfaellerhuette und 1.000 Ticks: 3.0 (Wissensregister L3: 5,3 bei 55-75 Feldern Weg)
+   LAGER beider Spieler (Lagerplatz + Kornspeicher, Summe Vorrat je Ware):
+     Tick  3969 | Sp1: apfel 6, holz 14 | Sp2: brot 62, holz 7
+     Tick  7994 | Sp1: holz 88, stein 12 | Sp2: brot 63, holz 21, stein 12
+     Tick 11972 | Sp1: apfel 9, holz 10 | Sp2: brot 58, holz 19, stein 4
+     Tick 16016 | Sp1: apfel 8, holz 23, stein 16 | Sp2: eisen 2, holz 23, kaese 69, stein 5
+     Tick 19988 | Sp1: apfel 16, holz 31, stein 19 | Sp2: eisen 6, holz 4, hopfen 5, kaese 72, stein 63
+     Tick 23951 | Sp1: apfel 19, holz 45, stein 13 | Sp2: 14 3, eisen 10, holz 31, hopfen 7, kaese 71, stein 67
+     Tick 28031 | Sp1: apfel 4, eisen 9, holz 56, hopfen 2, stein 69 | Sp2: 14 4, eisen 5, holz 21, hopfen 7, kaese 70, stein 70
+     Tick 32063 | Sp1: 14 1, apfel 18, eisen 21, holz 83, hopfen 7, stein 148 | Sp2: 14 4, eisen 4, holz 29, hopfen 10, kaese 65
+     Tick 36076 | Sp1: 14 3, apfel 22, eisen 39, holz 90, hopfen 7, stein 149 | Sp2: 14 3, eisen 6, holz 22, hopfen 8, kaese 46, stein 20
+     Tick 40079 | Sp1: 14 4, apfel 33, eisen 48, holz 142, hopfen 3, stein 154 | Sp2: 14 5, eisen 4, holz 7, hopfen 8, kaese 40, stein 45
+
+4. NEU ANGEWORBENE KAMPFEINHEITEN (Slot + Typ neu, Startbestand nicht gezaehlt) x Anwerbegold:
+   Spieler 1: 257 Einheiten, 6440 Gold: 197 Sklave (10 Balance), 31 arab.Bogen (60 Balance), 19 arab.Schwert (100 Balance), 8 Assassine (70 Balance), 2 Pferdebogen (75 Balance)
+      Gold je 4.000 Ticks: 4000-8000: 20, 8000-12000: 40, 12000-16000: 170, 16000-20000: 390, 20000-24000: 690, 24000-28000: 580, 28000-32000: 1450, 32000-36000: 990, 36000-40000: 1990, 40000-44000: 120
+   Spieler 2: 44 Einheiten, 640 Gold: 24 Bogen (10 Balance), 20 Keule (20 Balance)
+      Gold je 4.000 Ticks: 24000-28000: 140, 28000-32000: 230, 32000-36000: 200, 36000-40000: 60, 40000-44000: 10
+5. NEUE GEBAEUDE je Spieler (nach der ersten Lagezeile):
+   Spieler 1: 33 Eisenmine, 29 Ochsenkarren, 24 Huette, 23 Fallgrube, 22 Holzfaellerhuette, 16 Lagerplatz, 9 Steinbruch, 9 21, 9 Hopfenfarm, 8 Apfelplantage, 5 Jaegerhuette, 1 Brauerei, 1 Wirtshaus
+   Spieler 2: 38 Holzfaellerhuette, 11 Huette, 11 Apfelplantage, 10 Ochsenkarren, 9 Milchviehhof, 8 Eisenmine, 6 Schmiede, 4 Kleines Torhaus (Durchfahrt O-W), 3 Steinbruch, 3 21, 3 Hopfenfarm, 3 Brunnen, 3 Brauerei, 3 Gerberei, 3 Wirtshaus, 3 Geschuetzturm, 2 Jaegerhuette, 2 Eckiger Turm, 2 Bogenmacher, 1 Marktplatz, 1 Waffenlager, 1 Kaserne, 1 57, 1 58, 1 56, 1 Ingenieursgilde, 1 53

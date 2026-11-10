@@ -1,0 +1,36 @@
+GOLD-BILANZ Partie 20261110_095507, Lenker Spieler 1, Instanz 2, 332 Lagezeilen bis Tick 40078
+Balance liga_ai.json - passt zu den Baukosten aus dem Spiel
+
+1. GOLD DES LENKERS (Start 0)
+   Einnahmen 7476 in 82 Schritten, Groessen [(15, 11), (5, 7), (20, 4), (30, 4), (25, 3), (165, 3)]
+   davon ueber einen Monatswechsel (Steuer): 27 Schritte, 2275 Gold
+   Ausgaben -3971 in 77 Schritten, Groessen [(-10, 16), (-70, 14), (-120, 10), (-30, 7), (-40, 4), (-80, 4), (-20, 3), (-5, 3)]
+   Steuer-Aenderungen in der Mitschrift: 10 [('2', '3'), ('3', '4'), ('4', '3'), ('3', '2'), ('2', '1'), ('1', '2'), ('2', '3'), ('3', '4')]; Stufe 0-2 bringen laut Balance ['1.50', '0.50', '0.00'] Gold je Kopf
+   Gold-Stand: Anteil der Zeilen mit 0 Gold 9 %, hoechstens 3505
+
+2. BELIEBTHEIT DES LENKERS - Wochenspruenge in Hundertsteln (L34: Steuer + Rationen + Vielfalt): [(-25, 35), (25, 33), (-75, 22), (50, 15), (100, 9), (125, 7), (-50, 4), (75, 3)]
+   Steuer-Beliebtheit laut Balance je Stufe 0-11: [225, 125, 25, -25, -75, -125, -200, -275, -375, -500, -750, -1000]; Gold je Kopf und Monat: ['1.50', '0.50', '0.00', '0.25', '0.50', '0.70', '1.00', '1.30', '1.65', '2.00', '2.75', '4.00']
+   GERECHNET brutto (dieselben Leute, ohne Beliebtheitsfolgen): Stufe 4 2825, Stufe 6 5650 Gold ueber die Partie
+
+3. ERZEUGUNG DES LENKERS (ertrag_live zug, ganze Partie): {'eisen': 178, 'stein': 602, 'apfel': 639, 'fleisch': 298, 'holz': 3353}; verkauft: {'holz': 1700, 'fleisch': 145, 'apfel': 325, 'stein': 230, 'eisen': 135, 'hopfen': 85}
+   Holz je besetzter Holzfaellerhuette und 1.000 Ticks: 2.5 (Wissensregister L3: 5,3 bei 55-75 Feldern Weg)
+   LAGER beider Spieler (Lagerplatz + Kornspeicher, Summe Vorrat je Ware):
+     Tick  3937 | Sp1: fleisch 5, holz 8 | Sp2: brot 59, holz 7
+     Tick  7882 | Sp1: apfel 1, holz 35 | Sp2: brot 54, holz 9
+     Tick 11977 | Sp1: apfel 7, holz 33, stein 6 | Sp2: brot 47, holz 22, stein 33
+     Tick 15985 | Sp1: apfel 8, eisen 2, holz 16, stein 9 | Sp2: kaese 49, stein 16
+     Tick 19979 | Sp1: apfel 22, eisen 1, holz 4, stein 9 | Sp2: eisen 5, hopfen 5, kaese 63, stein 15
+     Tick 23968 | Sp1: apfel 14, eisen 6, holz 64, hopfen 6, stein 38 | Sp2: 14 1, eisen 6, holz 3, hopfen 7, kaese 71, stein 67
+     Tick 28074 | Sp1: 14 2, apfel 44, eisen 7, holz 70, hopfen 6, stein 73 | Sp2: 14 5, eisen 8, holz 10, hopfen 3, kaese 63, stein 70
+     Tick 31981 | Sp1: 14 3, apfel 45, eisen 18, holz 59, hopfen 2, stein 100 | Sp2: 14 8, apfel 33, holz 41
+     Tick 35922 | Sp1: 14 6, apfel 24, eisen 27, holz 118, hopfen 14, stein 174 | Sp2: 14 9, kaese 44
+     Tick 40078 | Sp1: 14 5, eisen 45, fleisch 53, holz 91, hopfen 18, stein 156 | Sp2: 14 9, eisen 2, holz 7, kaese 40, stein 12
+
+4. NEU ANGEWORBENE KAMPFEINHEITEN (Slot + Typ neu, Startbestand nicht gezaehlt) x Anwerbegold:
+   Spieler 1: 92 Einheiten, 3035 Gold: 57 Sklave (10 Balance), 32 Assassine (70 Balance), 3 Pferdebogen (75 Balance)
+      Gold je 4.000 Ticks: 4000-8000: 40, 8000-12000: 140, 12000-16000: 160, 16000-20000: 495, 20000-24000: 610, 24000-28000: 670, 28000-32000: 230, 32000-36000: 30, 36000-40000: 650, 40000-44000: 10
+   Spieler 2: 35 Einheiten, 450 Gold: 25 Bogen (10 Balance), 10 Keule (20 Balance)
+      Gold je 4.000 Ticks: 16000-20000: 10, 20000-24000: 20, 24000-28000: 60, 28000-32000: 290, 32000-36000: 50, 36000-40000: 20
+5. NEUE GEBAEUDE je Spieler (nach der ersten Lagezeile):
+   Spieler 1: 36 Eisenmine, 27 Huette, 26 Ochsenkarren, 26 Holzfaellerhuette, 24 Hopfenfarm, 24 Jaegerhuette, 23 Fallgrube, 16 Lagerplatz, 8 Steinbruch, 8 21, 8 Apfelplantage, 2 Brauerei, 2 Wirtshaus
+   Spieler 2: 60 Holzfaellerhuette, 12 Eisenmine, 11 Apfelplantage, 11 Ochsenkarren, 8 Milchviehhof, 8 Huette, 4 Schmiede, 3 Steinbruch, 3 21, 3 Hopfenfarm, 3 Brauerei, 2 Jaegerhuette, 2 Brunnen, 2 Kleines Torhaus (Durchfahrt O-W), 2 Eckiger Turm, 2 Wirtshaus, 2 Gerberei, 1 Marktplatz, 1 Waffenlager, 1 Kaserne, 1 57, 1 58, 1 56, 1 Bogenmacher, 1 Geschuetzturm
