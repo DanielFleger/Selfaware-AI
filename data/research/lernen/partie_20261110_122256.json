@@ -1,0 +1,111 @@
+{
+ "partie": "20261110_122256",
+ "erfasst": "2026-11-10 12:31",
+ "lenker_spieler": 1,
+ "gegner": null,
+ "anmerkung": null,
+ "letzter_tick": 11778,
+ "konsole": "data\\research\\aufstellung_20261110_122256_raid_wirkung_bf_gegnerki8_i2_konsole.txt",
+ "lage": "data\\research\\lage_20261110_122303_i2.jsonl.gz",
+ "truppen": [
+  {
+   "t": 664,
+   "je_spieler": {
+    "2": {
+     "E_ARCHER": 23
+    },
+    "1": {
+     "E_ARCHER": 5,
+     "E_SPEAR": 7
+    }
+   }
+  },
+  {
+   "t": 3084,
+   "je_spieler": {
+    "2": {
+     "E_ARCHER": 23
+    },
+    "1": {
+     "E_ARCHER": 5,
+     "E_SPEAR": 7
+    }
+   }
+  },
+  {
+   "t": 6051,
+   "je_spieler": {
+    "2": {
+     "E_ARCHER": 23
+    },
+    "1": {
+     "E_ARCHER": 5,
+     "E_SPEAR": 7,
+     "A_SLAVE": 1
+    }
+   }
+  },
+  {
+   "t": 9182,
+   "je_spieler": {
+    "1": {
+     "A_SLAVE": 7,
+     "E_ARCHER": 5,
+     "E_SPEAR": 4,
+     "A_ARCHER": 1
+    },
+    "2": {
+     "E_ARCHER": 23
+    }
+   }
+  }
+ ],
+ "lenker": {
+  "start_befehl": "START-BEFEHL Instanz 2: uv run python -m selfaware.runtime.live.erstes_spiel leere_ki=nein experiment=ja regel50=nein minuten=15 tempo=200 bis_tick=40000 ziel_tick=40000 streitkolben=0 weg=feldzug produktion=nein bier=ja abriss=nein assassinen=20 aufloesen=ende b_versatz=600 bevoelkerung_ziel=90 einzelkauf=nein entscheider=kausal gegner=1 gegner_ki=8 gute_dinge=0 haushalt_rand=650 holz_kaufen=ja holz_spam=20 holzfaeller_je_baum=4 holzfaeller_max=30 holzfaeller_vorab=4 huetten_voraus=nein je_arbeiter=ja joch_nach_stein=ja \"karte=Liga_Branching Fortunes\" kasse=nein kasse_grenze=0 kasse_stufe=11 nahrung_ausbau=nein notwerbung=ja penner=20 rationen=doppelt schub=nein stein_max=nein stein_parallel=ja steinbruch_zuerst=nein steuer_ende=nein steuer_runter=90 umzug=frueh v14=nein vollbeschaeftigung=ja wachstum_boden=9500 waechter=ja stopp_tote=0 kernweg=ja vorstoss=ja bestellung=raid ausweichen=ja endspurt=nein ohne_angriff=ja aufstellung=raid_wirkung_bf",
+  "ereignisse": {
+   "ANWERBEN-BREMSE": 1,
+   "WERBE": 1,
+   "FELDZUG": 0,
+   "RAID": 13,
+   "STILLSTAND": 6,
+   "HUNGER": 0,
+   "PLANER wartet": 2,
+   "Seasoning": 13,
+   "LORDWACHE": 0,
+   "ENDSPURT": 1,
+   "Reiter": 1
+  },
+  "anwerbungen": 2,
+  "gold_bei_bremse": [
+   {
+    "t": 5442,
+    "gold": 40,
+    "braucht": 130
+   }
+  ],
+  "letzte_stand": "STAND Tick 11798 | Feuer 0, Leute 74/0 | Holzfaellerhuette 1 (Arbeiter 0/1) | offen - | bestellt 37, bestaetigt 31, gescheitert 6, abgelehnt 51"
+ },
+ "vergleich": {
+  "zeilen": [
+   "VERGLEICH Spieler [1, 2], Tick 664 bis 11567 - bei 11778 fehlte ein Bergfried (Fenster 1000 Ticks, gleitend ueber 3; Statuszeile fuer [1], Ertrag fuer keinen)",
+   "NACHTEIL Spieler 1 gegenueber Spieler 2: hinten ab Tick 0 - je Kennzahl ab Tick (Spieler 1 zu 2 dort -> am Ende): Truppen 0 (12 zu 23 -> 22 zu 23)",
+   "NACHTEIL Spieler 2 gegenueber Spieler 1: hinten ab Tick 0 - je Kennzahl ab Tick (Spieler 2 zu 1 dort -> am Ende): Gebaeude 0 (23 zu 36 -> 62 zu 72); liefernde Betriebe 5000 (11 zu 12 -> 11 zu 16)",
+   "EINBRUCH Spieler 2 ab Tick 5000: am staerksten brach die Wirtschaft ein: liefernde Betriebe - Mittel der 3000 Ticks davor 4.1 zu 3.7, danach 12 zu 14 (Spieler 2 zu 1)",
+   "KETTE Spieler 2 (alle Einbrueche nach Zeit, Staerke in Klammern): 5000 liefernde Betriebe 4.1 zu 3.7 -> 12 zu 14 (0.5)"
+  ],
+  "datei": "data\\research\\lernen\\partievergleich_20261110_122256.json"
+ },
+ "gold": {
+  "zeilen": [
+   "Einnahmen 762 in 21 Schritten, Groessen [(15, 5), (45, 5), (30, 2), (5, 2), (20, 2), (10, 1)]",
+   "davon ueber einen Monatswechsel (Steuer): 6 Schritte, 217 Gold",
+   "Ausgaben -770 in 15 Schritten, Groessen [(-80, 3), (-10, 2), (-60, 2), (-70, 2), (-15, 1), (-25, 1), (-30, 1), (-90, 1)]",
+   "Holz je besetzter Holzfaellerhuette und 1.000 Ticks: 3.5 (Wissensregister L3: 5,3 bei 55-75 Feldern Weg)",
+   "Spieler 1: 19 Einheiten, 340 Gold: 16 Sklave (10 Balance), 3 arab.Bogen (60 Balance)",
+   "Spieler 1: 18 Fallgrube, 9 Huette, 9 Holzfaellerhuette, 8 Lagerplatz, 4 Apfelplantage, 4 Jaegerhuette, 3 Ochsenkarren, 3 Eisenmine, 1 Steinbruch, 1 21",
+   "Spieler 2: 12 Holzfaellerhuette, 9 Ochsenkarren, 5 Huette, 5 Apfelplantage, 4 Milchviehhof, 3 Steinbruch, 3 21, 2 Jaegerhuette, 2 Eisenmine, 2 Bogenmacher, 1 Marktplatz, 1 Waffenlager, 1 Hopfenfarm"
+  ],
+  "datei": "data/research/lernen/gold_20261110_122256.txt",
+  "fehler": null
+ }
+}

@@ -1,0 +1,36 @@
+GOLD-BILANZ Partie 20261110_122735, Lenker Spieler 1, Instanz 2, 228 Lagezeilen bis Tick 40366
+Balance liga_ai.json - passt zu den Baukosten aus dem Spiel
+
+1. GOLD DES LENKERS (Start 15)
+   Einnahmen 8626 in 64 Schritten, Groessen [(15, 6), (30, 4), (45, 4), (40, 4), (35, 3), (20, 3)]
+   davon ueber einen Monatswechsel (Steuer): 23 Schritte, 4312 Gold
+   Ausgaben -8461 in 50 Schritten, Groessen [(-60, 8), (-70, 7), (-120, 5), (-15, 4), (-10, 3), (-145, 2), (-220, 2), (-295, 2)]
+   Steuer-Aenderungen in der Mitschrift: 6 [('2', '3'), ('3', '4'), ('4', '3'), ('3', '2'), ('2', '3'), ('3', '4')]; Stufe 0-2 bringen laut Balance ['1.50', '0.50', '0.00'] Gold je Kopf
+   Gold-Stand: Anteil der Zeilen mit 0 Gold 0 %, hoechstens 697
+
+2. BELIEBTHEIT DES LENKERS - Wochenspruenge in Hundertsteln (L34: Steuer + Rationen + Vielfalt): [(-50, 16), (50, 14), (-25, 10), (-75, 5), (-100, 4), (100, 3), (25, 1), (125, 1)]
+   Steuer-Beliebtheit laut Balance je Stufe 0-11: [225, 125, 25, -25, -75, -125, -200, -275, -375, -500, -750, -1000]; Gold je Kopf und Monat: ['1.50', '0.50', '0.00', '0.25', '0.50', '0.70', '1.00', '1.30', '1.65', '2.00', '2.75', '4.00']
+   GERECHNET brutto (dieselben Leute, ohne Beliebtheitsfolgen): Stufe 4 2306, Stufe 6 4612 Gold ueber die Partie
+
+3. ERZEUGUNG DES LENKERS (ertrag_live zug, ganze Partie): {'eisen': 138, 'stein': 464, 'apfel': 746, 'fleisch': 391, 'holz': 3322}; verkauft: {'holz': 2340, 'fleisch': 175, 'apfel': 590, 'stein': 160, 'eisen': 90, 'hopfen': 70}
+   Holz je besetzter Holzfaellerhuette und 1.000 Ticks: 3.1 (Wissensregister L3: 5,3 bei 55-75 Feldern Weg)
+   LAGER beider Spieler (Lagerplatz + Kornspeicher, Summe Vorrat je Ware):
+     Tick  4006 | Sp1: apfel 10, holz 2 | Sp2: brot 41
+     Tick  8116 | Sp1: apfel 6, holz 72, stein 5 | Sp2: 16 3, brot 21, holz 18, weizen 3
+     Tick 11951 | Sp1: fleisch 53, holz 40, stein 2 | Sp2: 16 10, weizen 1
+     Tick 16066 | Sp1: eisen 2, fleisch 27, holz 16, stein 9 | Sp2: 16 7, fleisch 40, holz 1, stein 25, weizen 3
+     Tick 20027 | Sp1: eisen 5, fleisch 26, holz 54, hopfen 1, stein 8 | Sp2: 16 9, fleisch 39, holz 4, weizen 1
+     Tick 24062 | Sp1: 14 1, eisen 3, fleisch 23, holz 67, hopfen 4, stein 47 | Sp2: 16 9, brot 63, eisen 2, holz 3, stein 10, weizen 1
+     Tick 27983 | Sp1: 14 4, apfel 14, eisen 13, holz 64, hopfen 9, stein 136 | Sp2: 16 4, brot 108, eisen 8, weizen 1
+     Tick 32040 | Sp1: 14 9, eisen 36, fleisch 33, holz 93, hopfen 11, stein 208 | Sp2: brot 89, eisen 8, holz 35, stein 1, weizen 1
+     Tick 36190 | Sp1: 14 17, apfel 11, eisen 45, holz 54, hopfen 1, stein 170 | Sp2: 16 1, brot 73, eisen 4, holz 38, stein 1, weizen 1
+     Tick 39774 | Sp1: 14 21, apfel 25, eisen 48, holz 126, hopfen 16, stein 214 | Sp2: 16 6, brot 98, eisen 1, holz 34, stein 1, weizen 2
+
+4. NEU ANGEWORBENE KAMPFEINHEITEN (Slot + Typ neu, Startbestand nicht gezaehlt) x Anwerbegold:
+   Spieler 1: 146 Einheiten, 8485 Gold: 51 Pferdebogen (75 Balance), 44 Sklave (10 Balance), 24 arab.Schwert (100 Balance), 20 Assassine (70 Balance), 7 arab.Bogen (60 Balance)
+      Gold je 4.000 Ticks: 8000-12000: 270, 12000-16000: 290, 16000-20000: 715, 20000-24000: 905, 24000-28000: 1235, 28000-32000: 1340, 32000-36000: 2295, 36000-40000: 1140, 40000-44000: 295
+   Spieler 2: 46 Einheiten, 1890 Gold: 20 arab.Bogen (60 Balance), 19 Bogen (10 Balance), 5 Schwert (60 Balance), 2 arab.Schwert (100 Balance)
+      Gold je 4.000 Ticks: 0-4000: 180, 16000-20000: 30, 20000-24000: 70, 24000-28000: 320, 28000-32000: 690, 32000-36000: 200, 36000-40000: 320, 40000-44000: 80
+5. NEUE GEBAEUDE je Spieler (nach der ersten Lagezeile):
+   Spieler 1: 20 Hopfenfarm, 18 Fallgrube, 18 Ochsenkarren, 17 Huette, 17 Holzfaellerhuette, 15 Eisenmine, 12 Lagerplatz, 6 Steinbruch, 6 21, 4 Apfelplantage, 4 Jaegerhuette, 4 Brauerei
+   Spieler 2: 25 Holzfaellerhuette, 14 Baeckerei, 10 Huette, 10 Ochsenkarren, 8 Brunnen, 8 Eisenmine, 7 Getreidefarm, 4 Steinbruch, 4 21, 4 Jaegerhuette, 4 Lagerplatz, 4 Lanzenmacher, 3 Kleines Torhaus (Durchfahrt O-W), 2 Muehle, 2 57, 2 58, 2 56, 2 Geschuetzturm, 2 Kapelle, 2 Ruestungsschmied, 1 Kaserne, 1 Wachturm, 1 Ingenieursgilde, 1 53, 1 Soeldnerposten, 1 Schmiede, 1 Bogenmacher, 1 Waffenlager
