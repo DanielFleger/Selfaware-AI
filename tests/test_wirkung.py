@@ -220,6 +220,18 @@ def test_nahkampf_raid_nimmt_nur_bestellte_einheiten():
     assert bf.liste == [{"angriff": {"einheiten": [2], "gebaeude": 1}}]
 
 
+def test_nahkampf_raid_nimmt_den_bauern_der_zum_soldaten_wird():
+    """Reihe 2b (10.11.): Im Spiel behaelt der angeworbene Bauer seine Nummer, nur die Art wechselt."""
+    r, bf = _raid(), Befehle()
+    L, G = huetten()
+    L[565] = einheit(0, 0, 1, besitzer=1)
+    r.schritt(L, G, bf)
+    r.bestellt(SCHWERT, 1)
+    L[565] = einheit(0, 0, SCHWERT, besitzer=1, leben=28000)
+    r.schritt(L, G, bf)
+    assert r.mitglieder == {565}
+
+
 def test_nahkampf_raid_laeuft_den_sicheren_weg_und_greift_dann_an(monkeypatch):
     monkeypatch.setattr(
         schussfeld, "sicherer_weg", lambda gel, L, sp, a, b: ([(20, 10), b], 0, 1, None)

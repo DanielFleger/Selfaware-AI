@@ -25,7 +25,7 @@ class NahkampfRaid:
         self.sp, self.gelaende = sp, gelaende
         self.wissen = wissen if wissen is not None else WK.Wissen()
         self.erwartet = collections.Counter()  # bestellte, noch nicht angekommene Einheiten je Art
-        self.bekannt = None  # eigene Einheiten, die schon da waren; None bis zur ersten Runde
+        self.bekannt = None  # eigene Einheit -> Art, wie zuletzt gesehen; None bis zur ersten Runde
         self.mitglieder = set()
         self.ziel = {}  # Einheit -> Schluessel des Ziels
         self.weg = {}  # Einheit -> offene Wegpunkte
@@ -43,14 +43,15 @@ class NahkampfRaid:
             n: e for n, e in L.items() if e.get("besitzer") == self.sp and e.get("leben", 1) > 0
         }
         if self.bekannt is None:
-            self.bekannt = set(eigene)
+            self.bekannt = {n: e["typ"] for n, e in eigene.items()}
             return
-        for n in sorted(set(eigene) - self.bekannt):
+        # Reihe 2b (10.11.): Angeworben wird aus einem Bauern, die Nummer bleibt, nur die Art wechselt (Bauer 565 wurde Typ 75)
+        for n in sorted(eigene):
             typ = eigene[n]["typ"]
-            if typ in KANN and self.erwartet[typ] > 0:
+            if typ in KANN and self.bekannt.get(n) != typ and self.erwartet[typ] > 0:
                 self.erwartet[typ] -= 1
                 self.mitglieder.add(n)
-        self.bekannt |= set(eigene)
+        self.bekannt = {n: e["typ"] for n, e in eigene.items()}
         self.mitglieder &= {n for n, e in eigene.items() if e["typ"] in KANN}
 
     def _senden(self, n, b, befehl):
