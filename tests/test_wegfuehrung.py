@@ -165,7 +165,7 @@ def test_vorstoss_gibt_schuetzen_an_die_wegfuehrung_und_holt_sie_zum_vorruecken_
     assert b.liste == [] and w.fuehrt(1) and w.fuehrt(2)  # kein eigener Schussbefehl, die Wegfuehrung fuehrt beide
     b = Befehle()
     v.schritt(600, {1: _e(1, 22, 100, 100), 2: _e(1, 22, 100, 101), 4: _e(2, 3, 260, 100)}, {}, b)  # Ziel weg: vorruecken
-    assert b.liste and "lauf" in b.liste[0] and not w.fuehrt(1) and not w.fuehrt(2)
+    assert b.liste == [] and w.auftraege[1].art == "ort" and w.auftraege[2].art == "ort"  # Vorruecken fuehrt die Wegfuehrung
 
 
 class _WegAttrappe:
@@ -269,7 +269,7 @@ def test_vorstoss_laesst_bei_alarm_und_am_ende_los():
 
 
 def test_vorstoss_rueckt_nach_dem_schiessen_sofort_wieder_vor():
-    """Nach der Wegfuehrung geht der naechste eigene Lauf sofort hinaus, auch wenn er dem letzten gleicht (sonst erst nach NEU_ALLE)."""
+    """Nach dem Schuss fuehrt die Wegfuehrung die Schuetzen gleich wieder zur Stelle des Vorrueckens."""
     from selfaware.micro.tasks import vorstoss as V
 
     v = V.Vorstoss(1, (100, 100))
@@ -278,12 +278,12 @@ def test_vorstoss_rueckt_nach_dem_schiessen_sofort_wieder_vor():
     fern = {1: _e(1, 22, 100, 100), 2: _e(1, 22, 100, 101), 4: _e(2, 3, 260, 100)}
     b1 = Befehle()
     v.schritt(500, fern, {}, b1)
-    assert b1.liste and "lauf" in b1.liste[0]
+    assert b1.liste == [] and w.auftraege[1].art == "ort"
+    stelle = tuple(w.auftraege[1].ziel)
     v.schritt(510, {**fern, 3: _e(2, 3, 130, 110)}, {}, Befehle())
-    assert w.fuehrt(1)
-    b3 = Befehle()
-    v.schritt(520, fern, {}, b3)
-    assert b3.liste == b1.liste and not w.fuehrt(1)
+    assert w.auftraege[1].art == "einheit"
+    v.schritt(520, fern, {}, Befehle())
+    assert w.auftraege[1].art == "ort" and tuple(w.auftraege[1].ziel) == stelle
 
 
 def test_vorstoss_gibt_ein_ziel_ohne_angriff_und_weg_auf():
@@ -388,3 +388,21 @@ def test_waechter_gibt_angriff_und_stapeln_an_die_wegfuehrung(monkeypatch):
     assert w.gefuehrt.get(62) == "ort"  # Stapeln auf das Feld der Fernkaempfer ueber die Wegfuehrung
     w.schritt(ruhig, gebaeude, ausgenommen={62})
     assert not w.weg.fuehrt(62)  # gehoert jetzt einem anderen Modul
+
+
+def test_vorstoss_wartet_wenn_die_wegfuehrung_die_stelle_nicht_sicher_findet():
+    from selfaware.micro.tasks import raids as RA
+    from selfaware.micro.tasks import vorstoss as V
+
+    v = V.Vorstoss(1, (100, 100))
+    w = _WegAttrappe()
+    v.weg = w
+    fern = {1: _e(1, 22, 100, 100), 2: _e(1, 22, 100, 101), 4: _e(2, 3, 260, 100)}
+    v.schritt(500, fern, {}, Befehle())
+    assert w.auftraege[1][0] == "ort"
+    w.st = {1: "gefahr", 2: "kein_weg"}
+    aus = v.schritt(510, fern, {}, Befehle())
+    assert any("Vorruecken nicht sicher" in z for z in aus) and not w.auftraege
+    for i in range(RA.SPERRE_RUNDEN - 1):
+        v.schritt(520 + i, fern, {}, Befehle())
+        assert not w.auftraege

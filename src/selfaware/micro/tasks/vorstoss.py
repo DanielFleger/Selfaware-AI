@@ -127,6 +127,8 @@ class Vorstoss:
         self.weg = None  # B-182: gemeinsame Wegfuehrung (micro/wegfuehrung.py), setzt der Raid-Einsatz
         self.gefuehrt = None  # Ziel, zu dem die Wegfuehrung die Schuetzen gerade fuehrt
         self.gesperrt = {}  # Ziel -> Runde: die Wegfuehrung fand fuer keinen Schuetzen Angriff oder Weg
+        self.vor_ort = None  # Stelle, zu der die Wegfuehrung die Schuetzen beim Vorruecken fuehrt
+        self.vor_bis = -1  # bis zu dieser Runde kein Vorruecken (die Wegfuehrung fand die Stelle nicht sicher)
 
     def orte(self, L):
         return [ort(L[n]) for n in self.mitglieder if n in L]
@@ -155,6 +157,7 @@ class Vorstoss:
             for n in nummern:
                 self.weg.loslassen(n)
         self.gefuehrt = None
+        self.vor_ort = None
 
     def _aufgeben(self, aus):
         """B-182: Meldet die Wegfuehrung fuer jeden gefuehrten Schuetzen "gefahr" oder "kein_weg", sperrt der Vorstoss das Ziel."""
@@ -351,6 +354,7 @@ class Vorstoss:
                     self.letzter.pop(art, None)  # der naechste eigene Lauf geht danach sofort hinaus, nicht erst nach NEU_ALLE
                 for n in sorted(meine):
                     self.weg.fuehre(n, "einheit", k, "vorstoss")
+                self.vor_ort = None
                 if self.gefuehrt != k:
                     self.gefuehrt = k
                     self.befehle["schuss"] += 1
@@ -367,6 +371,27 @@ class Vorstoss:
             return aus
         stelle = _schritt_auf(mitte, stand, SCHRITT)
         if not self._sicher(stelle, L, G, len(meine)):
+            return aus
+        if self.weg is not None:
+            # B-182 (Daniel 11.11. 20:30 auf die Frage "Als Naechstes Waechter und Vorstoss-Vorruecken umziehen?": "ja gerne"): das Vorruecken
+            # fuehrt die Wegfuehrung - jeder Schuetze auf sicherem Weg (Schusslinie) zur Stelle. Meldet sie fuer alle "gefahr" oder
+            # "kein_weg", ist die Stelle nach ihrer Regel nicht sicher: SPERRE_RUNDEN Runden kein Vorruecken
+            st = {self.weg.status(n) for n in meine if self.weg.fuehrt(n)}
+            if self.vor_ort is not None and st and st <= {"gefahr", "kein_weg"}:
+                self.vor_bis = self.runde + SPERRE_RUNDEN
+                self._loslassen(meine)
+                aus.append("VORSTOSS: Vorruecken nicht sicher (%s), wartet %d Runden" % ("/".join(sorted(st)), SPERRE_RUNDEN))
+                return aus
+            if self.vor_bis > self.runde:
+                return aus
+            self._frei(meine)
+            self.gefuehrt = None
+            if self.vor_ort is None or _grob(self.vor_ort) != _grob(stelle):
+                self.vor_ort = stelle
+                self.befehle["vor"] += 1
+                aus.append("VORSTOSS: rueckt vor %s -> %s, Ziel %s" % (mitte, stelle, ziel))
+            for n in sorted(meine):
+                self.weg.fuehre(n, "ort", self.vor_ort, "vorstoss")
             return aus
         if self._sende("vor", stelle, befehl, meine, {"lauf": [stelle[0], stelle[1]]}):
             aus.append("VORSTOSS: rueckt vor %s -> %s, Ziel %s" % (mitte, stelle, ziel))

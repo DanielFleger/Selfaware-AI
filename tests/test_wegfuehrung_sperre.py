@@ -47,7 +47,8 @@ ALT = {
     # Deckung der Schleuderer (A_SLINGER 72) im Raid-Einsatz - noch nicht umgezogen
     ("micro/tasks/raids.py", "Deckung.schritt", "ziel"): 1,
     ("micro/tasks/raids.py", "Deckung.schritt", "lauf"): 1,
-    # Vorstoss: Vorruecken in Formation, Zickzack des Kerns (Plan: das Ausweichen ruft spaeter die Wegfuehrung selbst)
+    # Vorstoss: Vorruecken - alter Weg ohne Wegfuehrung (im Spiel fuehrt sie es seit 11.11. 22:05); Zickzack des Kerns
+    # (Plan: das Ausweichen ruft spaeter die Wegfuehrung selbst)
     ("micro/tasks/vorstoss.py", "Vorstoss.schritt", "sende:vor"): 1,
     ("micro/tasks/vorstoss.py", "Vorstoss._im_ausweichen", "zickzack"): 1,
     # Waechter: Stapel an einem Punkt, Angriff auf den Eindringling - alter Weg ohne Wegfuehrung; im Spiel gibt der Lenker sie
