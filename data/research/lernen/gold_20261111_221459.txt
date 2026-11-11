@@ -1,0 +1,27 @@
+GOLD-BILANZ Partie 20261111_221459, Lenker Spieler 1, Instanz 2, 54 Lagezeilen bis Tick 6177
+Balance liga_ai.json - passt zu den Baukosten aus dem Spiel
+
+1. GOLD DES LENKERS (Start 0)
+   Einnahmen 180 in 8 Schritten, Groessen [(15, 3), (45, 2), (10, 1), (5, 1), (30, 1)]
+   davon ueber einen Monatswechsel (Steuer): 1 Schritte, 10 Gold
+   Ausgaben -157 in 6 Schritten, Groessen [(-15, 3), (-7, 1), (-45, 1), (-60, 1)]
+   Steuer-Aenderungen in der Mitschrift: 0 (Stufe blieb beim Startwert); Stufe 0-2 bringen laut Balance ['1.50', '0.50', '0.00'] Gold je Kopf
+   Gold-Stand: Anteil der Zeilen mit 0 Gold 2 %, hoechstens 98
+
+2. BELIEBTHEIT DES LENKERS - Wochenspruenge in Hundertsteln (L34: Steuer + Rationen + Vielfalt): [(25, 5), (50, 1)]
+   Steuer-Beliebtheit laut Balance je Stufe 0-11: [225, 125, 25, -25, -75, -125, -200, -275, -375, -500, -750, -1000]; Gold je Kopf und Monat: ['1.50', '0.50', '0.00', '0.25', '0.50', '0.70', '1.00', '1.30', '1.65', '2.00', '2.75', '4.00']
+   GERECHNET brutto (dieselben Leute, ohne Beliebtheitsfolgen): Stufe 4 132, Stufe 6 265 Gold ueber die Partie
+
+3. ERZEUGUNG DES LENKERS (ertrag_live zug, ganze Partie): {'eisen': 0, 'stein': 0, 'apfel': 79, 'fleisch': 0, 'holz': 60}; verkauft: {'holz': 80, 'fleisch': 5, 'apfel': 55}
+   Holz je besetzter Holzfaellerhuette und 1.000 Ticks: 1.0 (Wissensregister L3: 5,3 bei 55-75 Feldern Weg)
+   LAGER beider Spieler (Lagerplatz + Kornspeicher, Summe Vorrat je Ware):
+     Tick  3995 | Sp1: apfel 8, holz 5 | Sp2: brot 45, holz 4
+
+4. NEU ANGEWORBENE KAMPFEINHEITEN (Slot + Typ neu, Startbestand nicht gezaehlt) x Anwerbegold:
+   Spieler 1: 3 Einheiten, 30 Gold: 3 Sklave (10 Balance)
+      Gold je 4.000 Ticks: 0-4000: 30
+   Spieler 2: 3 Einheiten, 375 Gold: 3 Feuerwerfer (125 Balance)
+      Gold je 4.000 Ticks: 0-4000: 375
+5. NEUE GEBAEUDE je Spieler (nach der ersten Lagezeile):
+   Spieler 1: 19 Fallgrube, 6 Huette, 5 Apfelplantage, 4 Lagerplatz, 1 Ochsenkarren
+   Spieler 2: 12 Lagerplatz, 4 Holzfaellerhuette, 2 Huette, 2 Getreidefarm, 2 Steinbruch, 2 21, 1 Milchviehhof, 1 Ochsenkarren
