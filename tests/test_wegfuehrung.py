@@ -1,5 +1,7 @@
 """B-182 Wegfuehrung fuer alle Einheiten (Plan_Wegfuehrung.md), ohne Spiel."""
 
+import pytest
+
 from selfaware.micro import wegfuehrung as W
 
 
@@ -338,3 +340,51 @@ def test_wegegitter_rechnet_mit_derselben_regel():
     g = W.Gefahr({60: _e(2, 22, 200, 100)}, {5: _e(2, 8, 182, 98)}, 1).gitter(None)
     assert g.schaden_je_tick(g.zelle_von((170, 100))) == 0  # Linie durch das Haus
     assert g.schaden_je_tick(g.zelle_von((170, 120))) == 1  # 37 Felder, freie Linie
+
+
+def _waechter_lage():
+    """Angelehnt an tools/checks/waechter_pruefen.py, Fall 1 - statt drei Assassinen (dort verzichtet die Abwehr nach der
+    Gefechtsrechnung) ein feindlicher Sklave an unserem Gebaeude: zwei Waechter greifen an, drei Schuetzen weichen."""
+    def e(typ, sp, x, y, **k):
+        d = {"typ": typ, "besitzer": sp, "x": x, "y": y, "leben": 10000, "zustand": 1, "laufx": x, "laufy": y, "nahziel": 0,
+             "nahangreifer": 0, "zieleinheit": 0}
+        d.update(k)
+        return d
+
+    L = {45: e(70, 1, 139, 168, zustand=106, nahziel=156), 189: e(70, 1, 140, 168, nahangreifer=1),
+         60: e(24, 1, 155, 158), 61: e(24, 1, 156, 158), 62: e(75, 1, 156, 159),
+         156: e(71, 2, 148, 163)}
+    return L, [(150, 160), (145, 215), (150, 200)]
+
+
+def test_waechter_gibt_angriff_und_stapeln_an_die_wegfuehrung(monkeypatch):
+    """Daniel 11.11. 21:48 auf die Frage "Sollen die Waechter ueber die Wegfuehrung laufen und unter Beschuss angreifen duerfen?":
+    "Ja, freigeben"."""
+    try:
+        import selfaware.micro.tasks.waechter as WA
+    except RuntimeError as ex:  # ohne Spiel-Instanz (SHC_INSTANZ=99) laesst sich der Waechter nicht laden
+        pytest.skip(str(ex))
+
+    gesendet = []
+    monkeypatch.setattr(WA, "befehl", lambda b, *a, **k: gesendet.append(b) or [])
+    L, gebaeude = _waechter_lage()
+    alt = WA.Waechter(1)
+    alt.besetzt = True
+    alt.schritt(L, gebaeude)
+    assert any(b.get("angriff", {}).get("ziel") == 156 for b in gesendet)  # ohne Wegfuehrung wie bisher
+    gesendet.clear()
+    w = WA.Waechter(1)
+    w.besetzt = True
+    w.weg = W.Wegfuehrung(1, trotz_gefahr=("waechter",))
+    w.schritt(L, gebaeude)
+    angreifer = [n for n, z in w.auftrag.items() if z == 156]
+    assert w.ziel == 156 and angreifer and not any("ziel" in b.get("angriff", {}) for b in gesendet)
+    assert all(w.weg.fuehrt(n) and w.gefuehrt[n] == "einheit" for n in angreifer)
+    st = w.weg.schritt(L, {}, lambda *a, **k: None)
+    assert all(st[n] in ("unterwegs", "greift_an") for n in angreifer)  # mit Freigabe auch unter Beschuss
+    ruhig = {n: e for n, e in L.items() if e["besitzer"] == 1}
+    w.schritt(ruhig, gebaeude)
+    assert not any(w.gefuehrt.get(n) == "einheit" for n in angreifer)  # ohne Bedrohung endet der Angriff
+    assert w.gefuehrt.get(62) == "ort"  # Stapeln auf das Feld der Fernkaempfer ueber die Wegfuehrung
+    w.schritt(ruhig, gebaeude, ausgenommen={62})
+    assert not w.weg.fuehrt(62)  # gehoert jetzt einem anderen Modul

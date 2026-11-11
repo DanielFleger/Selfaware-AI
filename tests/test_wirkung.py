@@ -541,7 +541,8 @@ def test_nahkampf_raid_ziel_eines_toten_teilnehmers_ist_wieder_frei():
 def test_nahkampf_raid_greift_in_gefahr_nur_mit_freigabe_an():
     """Plan_Wegfuehrung.md: am Ziel in Gefahr greift nur an, wessen Zweck Daniel freigibt (raid.TROTZ_GEFAHR)."""
     # Daniel 11.11. 19:40 auf die Frage "Darf der Nahkampf-Raid Ziele unter Beschuss angreifen?": "Gerne freigeben"
-    assert RB.TROTZ_GEFAHR == ("nahkampfraid",)
+    # Daniel 11.11. 21:48 auf die Frage "Sollen die Waechter ueber die Wegfuehrung laufen und unter Beschuss angreifen duerfen?": "Ja, freigeben"
+    assert RB.TROTZ_GEFAHR == ("nahkampfraid", "waechter")
     for frei, erwartet in (((), "gefahr"), (("nahkampfraid",), "unterwegs")):
         r, bf = _raid_mit_weg(trotz_gefahr=frei), Befehle()
         L, G = huetten(n_bogen=1)  # ein Bogenschuetze deckt beide Huetten
@@ -585,10 +586,10 @@ def test_nahkaempfer_am_ziel_zaehlen_nur_fuer_nahkaempfer():
 
 
 def test_freigabe_gilt_nur_fuer_den_nahkampf_raid():
-    """Grundgesetz P1.37: Daniels "Gerne freigeben" antwortete auf die Frage nach dem Nahkampf-Raid - Brandtrupp, Reiterjagd und
-    Vorstoss bleiben ohne Freigabe."""
+    """Grundgesetz P1.37: Daniels Freigaben antworteten auf die Fragen nach dem Nahkampf-Raid und den Waechtern - Brandtrupp,
+    Reiterjagd und Vorstoss bleiben ohne Freigabe."""
     e = _einsatz()
-    assert e.weg.trotz_gefahr == {"nahkampfraid"}
+    assert e.weg.trotz_gefahr == {"nahkampfraid", "waechter"}
     L = {
         1: einheit(0, 0, SCHWERT, besitzer=1, leben=28000),
         2: einheit(0, 2, SKLAVE, besitzer=1),
@@ -598,3 +599,17 @@ def test_freigabe_gilt_nur_fuer_den_nahkampf_raid():
     e.weg.fuehre(1, "gebaeude", 1, "nahkampfraid")
     e.weg.fuehre(2, "gebaeude", 1, "brandtrupp")
     assert e.weg.schritt(L, G, lambda *a, **k: None) == {1: "unterwegs", 2: "gefahr"}
+
+
+def test_raid_einsatz_rechnet_die_wegfuehrung_nur_selbst_wenn_sie_ihm_gehoert():
+    e = _einsatz()
+    e.schritt(0, {}, {}, lambda *a, **k: None)
+    assert e.weg.runde == 1
+    e.weg_selbst = False  # der Lenker rechnet die gemeinsame Wegfuehrung einmal je Runde
+    e.schritt(1, {}, {}, lambda *a, **k: None)
+    assert e.weg.runde == 1
+
+
+@pytest.mark.parametrize("zeile", ["w.weg = wegf", "raid_e.weg_selbst = False", "wegf.schritt(L, G, befehl)"])
+def test_lenker_teilt_eine_wegfuehrung_mit_dem_waechter(zeile):
+    assert zeile in LENKER

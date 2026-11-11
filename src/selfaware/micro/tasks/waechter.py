@@ -99,11 +99,28 @@ class Waechter:
         self.ziel, self.lauert = None, False
         self.verzicht = None         # 19.10.: Ziel, gegen das die Gefechtsbewertung zuletzt "lohnt nicht" ergab
         self.zurueck = None          # 19.10.: (Ziel, Schuetzen), die zuletzt aus dem Nahkampf herausgehalten wurden
+        # B-182 (Daniel 11.11. 21:48 auf die Frage "Sollen die Waechter ueber die Wegfuehrung laufen und unter Beschuss angreifen duerfen?":
+        # "Ja, freigeben"): Angriff und Stapeln fuehrt die gemeinsame Wegfuehrung (setzt der Lenker), jede Runde neu
+        self.weg = None
+        self.gefuehrt = {}           # unsere Einheit -> "einheit" (Angriff) oder "ort" (Stapel), solange die Wegfuehrung sie fuehrt
+
+    def _loslassen(self, nummern):
+        """Ein Fuehrer je Einheit: vor jedem eigenen Befehl laesst die Wegfuehrung diese Einheiten los."""
+        if self.weg is not None:
+            for n in nummern:
+                self.weg.loslassen(n)
+                self.gefuehrt.pop(n, None)
+
+    def _fuehre(self, nummern, art, ziel):
+        for n in nummern:
+            self.weg.fuehre(n, art, ziel, "waechter")
+            self.gefuehrt[n] = art
 
     def stellung(self, L):
         """Zu Spielbeginn: alle Truppen (ohne Lord) an den Posten mitten in der Wirtschaft."""
         eig = [n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] in TRUPPE and e["typ"] != LORD and e["typ"] != 73]
         if eig and self.posten:
+            self._loslassen(eig)
             befehl({"halten": {"nr": eig, "x": self.posten[0], "y": self.posten[1]}}, 1.0, bis="HALTEN")
             self.besetzt = True
             return "Stellung: %d Truppen zum Posten %s" % (len(eig), tuple(self.posten))
@@ -143,6 +160,8 @@ class Waechter:
         # Angriffslenker sie aufnahm (Partie 9c: "Abwehr gebuendelt: alle 16 (22,24,55,73)")
         eigene = {n: e for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] in TRUPPE and e["typ"] != 73
                   and n not in ausgenommen and n not in reserve}
+        # B-182: wer tot ist oder jetzt einem anderen Modul gehoert, faellt aus der Wegfuehrung des Waechters
+        self._loslassen([n for n in list(self.gefuehrt) if n not in eigene and n not in reserve])
         # Lord
         lord = [n for n, e in eigene.items() if e["typ"] == LORD]
         if lord:
@@ -154,6 +173,7 @@ class Waechter:
             # NICHT mehr vor einem Heer, nur noch bei wenig Leben (sein Tod verliert die Partie); LORD_FLUCHT ist Stellgroesse
             if anteil < LORD_FLUCHT and not self.lord_zurueck:
                 ort = sicherster_ort(L, gebaeude + [BERGFRIED_EINGANG], self.sp)
+                self._loslassen([ln])
                 befehl({"halten": {"nr": [ln], "x": ort[0], "y": ort[1]}}, 1.0, bis="HALTEN")
                 self.lord_zurueck = True; self.auftrag.pop(ln, None)
                 ereignis.append("Lord in Sicherheit nach %s (Leben %.0f %%, Feinde nahe %d)" % (tuple(ort), 100 * anteil, anzahl))
@@ -177,6 +197,8 @@ class Waechter:
         fern = [e for e in eigene.values() if e["typ"] in FERNKAMPF]
         if not feinde:
             self.ziel = None
+            # B-182: ohne Bedrohung endet jeder Angriff der Wegfuehrung; das Stapeln ("ort") laeuft weiter
+            self._loslassen([n for n, art in list(self.gefuehrt.items()) if art == "einheit" or n in reserve])
             for n in reserve:                    # 19.10.: Reserve (Feldzug beim Sammeln) wieder frei fuer den Feldzug
                 self.auftrag.pop(n, None)
             # Stapeln (Daniel 00:38 "Bogenschuetzen und Schwertkaempfer auf ein Feld, damit diese sie schuetzen"):
@@ -190,7 +212,10 @@ class Waechter:
                 self.stapel_pause = getattr(self, "stapel_pause", 0) - 1
                 if weg and self.stapel_pause <= 0:
                     self.stapel_pause = 5               # hoechstens alle 5 Waechter-Runden ein Stapel-Befehl
-                    befehl({"angriff": {"einheiten": weg, "lauf": [mx, my]}}, 1.0, bis="ANGRIFF")
+                    if self.weg is not None:
+                        self._fuehre(weg, "ort", (mx, my))     # B-182: sicherer Weg zum Feld der Fernkaempfer
+                    else:
+                        befehl({"angriff": {"einheiten": weg, "lauf": [mx, my]}}, 1.0, bis="ANGRIFF")
                     for n in weg:
                         self.auftrag.pop(n, None)
                     ereignis.append("Stapeln: %d Nahkaempfer auf das Feld der Fernkaempfer (%d,%d)" % (len(weg), mx, my))
@@ -254,6 +279,7 @@ class Waechter:
                 dx, dy = lx - ort[0], ly - ort[1]
                 s = float(max(abs(dx), abs(dy)) or 1)
                 hinter = (int(lx + 4 * dx / s), int(ly + 4 * dy / s))
+                self._loslassen(vorne)
                 # Wegfuehrung frei: Abwehr am eigenen Lord - Schuetzen hinter den Lord
                 befehl({"angriff": {"einheiten": vorne, "lauf": [hinter[0], hinter[1]]}}, 1.0, bis="ANGRIFF")
                 for n in vorne:
@@ -278,6 +304,7 @@ class Waechter:
                 for n in verfuegbar:
                     self.auftrag.pop(n, None)
                 if eigen_v:
+                    self._loslassen(eigen_v)
                     befehl({"halten": {"los": eigen_v}}, 1.0, bis="HALTEN")
                     # Wegfuehrung frei: Abwehr am eigenen Lord - sammeln am Bergfried, der Angriff lohnt nicht
                     befehl({"angriff": {"einheiten": eigen_v, "lauf": [sammel[0], sammel[1]]}}, 1.0, bis="ANGRIFF")
@@ -292,6 +319,7 @@ class Waechter:
             gruppe_orte = [(L[k]["x"], L[k]["y"]) for k in getattr(self, "_gruppe", ()) if k in L]
             bedroht = [n for n in raus if any(schach((eigene[n]["x"], eigene[n]["y"]), q) <= 12 for q in gruppe_orte)]
             if bedroht:
+                self._loslassen(bedroht)
                 # Wegfuehrung frei: Flucht - Schuetzen weichen vor der Gruppe zum Bergfried
                 befehl({"angriff": {"einheiten": bedroht, "lauf": [BERGFRIED_EINGANG[0], BERGFRIED_EINGANG[1]]}}, 1.0, bis="ANGRIFF")
                 for n in bedroht:
@@ -305,7 +333,12 @@ class Waechter:
         neu = [n for n in verfuegbar if self.auftrag.get(n) != self.ziel]
         if neu:
             befehl({"halten": {"los": verfuegbar}}, 1.0, bis="HALTEN")
-            befehl({"angriff": {"einheiten": verfuegbar, "ziel": self.ziel}}, 1.0, bis="ANGRIFF")
+            if self.weg is not None:
+                # B-182: die Wegfuehrung fuehrt sie um Schuetzen herum zum Eindringling und greift auch unter Beschuss an
+                # (Freigabe "waechter" in baukasten/raid.TROTZ_GEFAHR); ob sich der Kampf lohnt, hat _bewerten schon entschieden
+                self._fuehre(verfuegbar, "einheit", self.ziel)
+            else:
+                befehl({"angriff": {"einheiten": verfuegbar, "ziel": self.ziel}}, 1.0, bis="ANGRIFF")
             for n in verfuegbar:
                 self.auftrag[n] = self.ziel
             self.lauert = False

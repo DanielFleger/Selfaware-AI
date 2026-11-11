@@ -50,7 +50,8 @@ ALT = {
     # Vorstoss: Vorruecken in Formation, Zickzack des Kerns (Plan: das Ausweichen ruft spaeter die Wegfuehrung selbst)
     ("micro/tasks/vorstoss.py", "Vorstoss.schritt", "sende:vor"): 1,
     ("micro/tasks/vorstoss.py", "Vorstoss._im_ausweichen", "zickzack"): 1,
-    # Waechter: Stapel an einem Punkt, Angriff auf den Eindringling
+    # Waechter: Stapel an einem Punkt, Angriff auf den Eindringling - alter Weg ohne Wegfuehrung; im Spiel gibt der Lenker sie
+    # dem Waechter seit 11.11. 21:55 (Daniel 21:48: "Ja, freigeben")
     ("micro/tasks/waechter.py", "Waechter.schritt", "lauf"): 1,
     ("micro/tasks/waechter.py", "Waechter.schritt", "ziel"): 1,
     # Lenker: Streitkolben-Angriff auf den feindlichen Lord (ANGRIFF_AB)

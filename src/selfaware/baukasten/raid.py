@@ -19,10 +19,11 @@ ASSASSINE, ASSASSINE_GOLD = 73, 70  # SOELDNER_GOLD in erstes_spiel.py
 # Daniel 09.11.: erst Sklaven, dann Berittene, dann Assassinen. Die Schleuderer stehen wie in raids.werbung vor den Reitern, mit deckung_soll 0 sind sie aus.
 REIHENFOLGE = ("sklaven", "schleuderer", "reiter", "assassinen")
 # B-182 (Plan_Wegfuehrung.md): Zwecke, die am Ziel auch in Gefahr angreifen duerfen - nur auf Daniels Freigabe.
+# Daniel 11.11. 21:48 auf die Frage "Sollen die Waechter ueber die Wegfuehrung laufen und unter Beschuss angreifen duerfen?": "Ja, freigeben" - dazu "waechter".
 # Daniel 11.11. 19:40 auf die Frage "Darf der Nahkampf-Raid Ziele unter Beschuss angreifen?": "Gerne freigeben" - nur der
 # Nahkampf-Raid (Grundgesetz P1.37). Sein Standplatz ist das Ziel selbst (793 von 803 seiner Ziele vom 10.11. lagen in Gefahr,
 # S115), seine Zielwahl nach Wirkung zieht den Beschuss am Ziel ab; den Weg dorthin fuehrt die Wegfuehrung weiter um Gefahr herum.
-TROTZ_GEFAHR = ("nahkampfraid",)
+TROTZ_GEFAHR = ("nahkampfraid", "waechter")
 # B-182: Was das Modul einer Art angreift - g Gebaeude, e Einheiten. In Reihe 1 (10.11.) traute die Rechnung Sklaven Arbeiter zu, die der
 # Brandtrupp nie jagt, und kaufte darum nur Sklaven. Nahkaempfer des Nahkampf-Raids und Assassinen greifen beides an.
 ZIELARTEN = {RA.SKLAVE: "g", RA.PFERDEBOGEN: "e", RA.SCHLEUDER: "e", 70: "e", ASSASSINE: "ge"}
@@ -183,6 +184,7 @@ class RaidEinsatz:
         from selfaware.micro.wegfuehrung import Wegfuehrung
 
         self.weg = Wegfuehrung(sp, gelaende, trotz_gefahr=TROTZ_GEFAHR)
+        self.weg_selbst = True     # False: der Lenker rechnet die gemeinsame Wegfuehrung einmal je Runde (auch fuer den Waechter)
         self.brand.weg = self.weg
         self.reiter.weg = self.weg
         self.nahkampf.weg = self.weg
@@ -229,5 +231,6 @@ class RaidEinsatz:
         aus += self.brand.schritt(L, G, befehl)
         aus += self.reiter.schritt(L, G, befehl)
         aus += self.nahkampf.schritt(L, G, befehl)
-        self.weg.schritt(L, G, befehl)       # einmal je Runde, nachdem die Module ihre Ziele gesetzt haben
+        if self.weg_selbst:
+            self.weg.schritt(L, G, befehl)   # einmal je Runde, nachdem die Module ihre Ziele gesetzt haben
         return aus

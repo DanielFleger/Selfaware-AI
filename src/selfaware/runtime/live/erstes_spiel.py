@@ -2296,6 +2296,17 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         raid_e = STECK.klasse("raideinsatz")(SP, BERGFRIED, lambda nr: peek(0xF98520 + nr * 0x32C + 0x14 + 702)[0] & 0xFFFF, STECK,
                                              VORSTOSS_BIS if VORSTOSS else None, list(_KARTE) or None)
         brand, reiter, deckung, vorstoss = raid_e.brand, raid_e.reiter, raid_e.deckung, raid_e.vorstoss
+    # B-182 (Daniel 11.11. 21:48 auf die Frage "Sollen die Waechter ueber die Wegfuehrung laufen und unter Beschuss angreifen duerfen?":
+    # "Ja, freigeben"): eine Wegfuehrung je Partie fuer Raid und Waechter; der Lenker rechnet sie einmal je Runde am Rundenende
+    wegf = raid_e.weg if raid_e is not None else None
+    if wegf is None and w is not None:
+        from selfaware.baukasten import raid as RB_w
+        from selfaware.micro.wegfuehrung import Wegfuehrung
+        wegf = Wegfuehrung(SP, list(_KARTE) or None, trotz_gefahr=RB_w.TROTZ_GEFAHR)
+    if raid_e is not None:
+        raid_e.weg_selbst = False
+    if w is not None:
+        w.weg = wegf
     if weg == "feldzug" and streitkolben:
         from selfaware.micro.tasks.feldzug import Feldzug
         feldzug = STECK.klasse("feldzug")(SP, BERGFRIED, LORD_SCHUTZ_BIS, n=streitkolben)
@@ -3483,6 +3494,11 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 ereignis += wirt.schritt(st, L, G)
                 ereignis += ausbau.schritt(st, L, G, runde)    # im Endspurt nur Nahrung (ausbau.ohne, endspurt.NICHT_NAHRUNG)
             tz = uhr("wirtschaft", tz)
+            if wegf is not None:              # B-182: einmal je Runde, nachdem Waechter und Raid ihre Ziele gesetzt haben
+                try:
+                    wegf.schritt(L, G, befehl)
+                except Exception as ex_wf:
+                    ereignis.append("WEGFUEHRUNG FEHLER %r - Partie laeuft weiter" % (ex_wf,))
             bedarf = sum(ARBEITER_JE[t] * st.get("G%d" % t, 0) for t in ARBEITER_JE)
             puffer = streitkolben and not endspiel["fertig"] and ENTSCHEIDER != "kausal" and wohnraum_fehlt(st, G)[0]   # Huetten vorab, aber nur mit Arbeit (23:21)
             if st["holz"] >= 5 + wirt.ruecklage(G)["holz"] and ((bedarf > st["platz"] and st["feuer"] < 2) or puffer or (trupp is not None and st["feuer"] == 0 and st["platz"] - st["leute"] <= 2)):
