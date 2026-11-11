@@ -78,6 +78,37 @@ einen Lauf- oder Angriffsbefehl zu einem Ziel.
    Erfolg = Standplatz erreicht, Schussziel gesetzt, Leben des Ziels sinkt. Die Abstände (Reichweite minus 2 und minus 4) sind
    Startwerte und werden dort gemessen. „Steht und schießt nicht“ fängt die Wache mit F2.
 
+## Nachtrag 11.11. 20:45: Gefahr mit Schusslinie und Tarnung (Vorschlag, wartet auf Daniel)
+
+Daniel 11.11. 20:30 auf meine Erklärung, der tote Winkel seien die Lücken zwischen den Reichweiten und die Tarnung rechne der Code
+nicht ein: „tarnung ist doch DAS ding von Assassinen“; „toter winkel hat JEDE einheit, wie wurde denn sonst bisher die
+Gefahrenberechnung gemacht? wurde es einfach so behandelt als gäbe es kein Terrain/Gebäude?“
+
+**Befund (nachgesehen 20:40):**
+- Meine Aussage war falsch: Die Assassinen rechnen seit 17.10. mit Tarnung und Schusslinie (`services/sicht.py`, über
+  `schussfeld.Gitter(..., sicht=...)`): Ein Schütze nimmt eine Assassine nur, wenn sie höchstens ~20 Felder von einem wählbaren
+  Feind steht (L75, abgelesen in acquireShootTarget), und nur mit freier Linie - ein nicht flaches Gebäude dazwischen sperrt, wer
+  auf Turm, Torhaus oder Bergfried steht, schießt frei (L79). Gemessen 17.10.: 1,352 Leben je Takt bei freier Linie, 0,070 bei
+  versperrter.
+- Die Wegführung (Sklaven, Reiter, Bogenschützen, Nahkampf-Raid) rechnet dagegen nur Kreise um jeden Schützen, dazu Kreise um
+  Türme und Nahkämpfer. Gelände zählt nur für die Begehbarkeit; Gebäude, Höhe und Tarnung zählen nicht. Genauso grob: die Zielwahl
+  von Brandtrupp und Reiterjagd (`raids.gefaehrlich`, Quadrat), der Vorstoß (`_schussfeld`, Quadrat) und die Deckung in der
+  Wirkungsrechnung (`spielwerte.in_gefahr`, Kreis). Auch S115 (99 % der Ziele in Gefahr) ist mit Kreisen gezählt.
+- Mauern fehlen überall, auch in `sicht.py` (S63: ein Pfeil, der an eine Mauer fliegt, trifft nicht mehr). Die Karte, mit der wir
+  rechnen, ist die Rohstoffkarte vom Partiebeginn - darin stehen noch keine Mauern.
+
+**Bau (Vorschlag):**
+1. Die Wegführung rechnet je Runde eine `sicht.Lage`. Gefahr an einem Ort = gegnerische Schützen in Reichweite
+   (`spielwerte.gefahr`) mit freier Linie (`Lage.linie_frei`, erhöhte Schützen immer frei); für Assassinen nur, wenn sie sichtbar
+   wären (`Lage.sichtbar` mit Rand). Nahkämpfer wie bisher.
+2. Türme zählen nicht mehr selbst, sondern die Schützen darauf (erhöht, freie Linie). Zu prüfen: Belagerungsgeräte auf Türmen
+   (Ballista 68 Felder, S9) stehen bisher in keiner Gefahrenliste.
+3. Gitter: Gefahr je Zelle nach derselben Regel, nur Zellen in Reichweite eines Schützen.
+4. Tests mit Gegenprobe: Gebäude zwischen Schütze und Ziel - keine Gefahr; erhöhter Schütze - Gefahr; Assassine außer Sicht - keine
+   Gefahr. Danach S115 mit derselben Regel neu zählen.
+5. Später, eigener Schritt: dieselbe Regel für `raids.gefaehrlich`, den Vorstoß und die Wirkungsrechnung; Mauern über die Höhe der
+   Mauerkacheln im laufenden Spiel (erst messen).
+
 ## Nicht dazu
 
 Zielwahl der Module, Kauf nach Wirkung, Eichung, Obergrenze.
