@@ -118,6 +118,7 @@ class Brandtrupp:
         self.runde = 0
         self.schutz = []            # B-129: Orte der Deckungs-Schuetzen, setzt der Lenker je Runde
         self.weg = None             # B-182: gemeinsame Wegfuehrung (micro/wegfuehrung.py), setzt der Raid-Einsatz
+        self._bild = None           # (Runde, Gefahr der Wegfuehrung) - je Runde einmal gerechnet
         self.gesperrt = {}          # Gebaeude -> Runde, bis zu der es nach "gefahr"/"kein_weg" nicht wieder gewaehlt wird
 
     def einheiten(self, L):
@@ -131,7 +132,20 @@ class Brandtrupp:
             return False
         if self.gesperrt.get(n, -1) > self.runde:
             return False
-        return not gefaehrlich((g["x"], g["y"]), L, G, self.sp, self.schutz)
+        if gefaehrlich((g["x"], g["y"]), L, G, self.sp, self.schutz):
+            return False
+        # B-182 (Partie 11.11. 22:05, Fehlerwache F3): dieselbe Regel wie die Wegfuehrung - die alte zaehlt Schuetzen nur bis
+        # GEFAHR_FERN (20 Felder), die Wegfuehrung bis zur Reichweite (bis 44). Sonst waehlt der Brandtrupp Gebaeude, die sie
+        # ablehnt, und die Sklaven pendeln zwischen gesperrten Zielen zu Hause
+        return self.weg is None or not self._gefahr_am(n, L, G)
+
+    def _gefahr_am(self, n, L, G):
+        from selfaware.micro import wegfuehrung as WF
+        schl = (self.runde, id(L), id(G))
+        if self._bild is None or self._bild[0] != schl:
+            self._bild = (schl, WF.Gefahr(L, G, self.sp))
+        g = G[n]
+        return self._bild[1].an((g["x"], g["y"]), SKLAVE, ausser_gebaeude=n)
 
     def _ziele(self, L, G, ort, belegt):
         kand = [(WERT[G[n]["typ"]] / float(max(schach(ort, (G[n]["x"], G[n]["y"])), 1)), n)

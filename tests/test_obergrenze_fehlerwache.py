@@ -213,3 +213,24 @@ def test_lies_wartet_auf_einen_ruhigen_kernstand():
             return next(staende)
 
     assert lies(Le(), warte=0).tick == 5
+
+
+def test_wache_wartet_auf_einen_leeren_kern_statt_abzustuerzen():
+    """11.11. 22:02: frisch gestartete Instanz - der Kern hatte noch nichts geschrieben (Kennung 0x0 / Aufbau 0), die Wache
+    brach ab. Jetzt wartet sie, und der erste Stand gilt schon als die neue Partie."""
+    from selfaware.game.kern_leitung import FalscherAufbau
+    from selfaware.tools.checks import fehlerwache as FW
+
+    class Leitung:
+        def __init__(self):
+            self.n = 0
+
+        def lesen(self):
+            self.n += 1
+            if self.n <= 2:
+                raise FalscherAufbau("Kennung 0x0 / Aufbau 0")
+            return type("Welt", (), {"tick": 120})()
+
+    le = Leitung()
+    assert FW._kern_leer(le) is True
+    assert FW.lies(le, warte=0).tick == 120 and le.n == 3

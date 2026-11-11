@@ -174,10 +174,25 @@ class Wache:
         return {"gruppe": [(n, self.art[n]) for n in self.gruppe], "hoechst": self.hoechst, "zustaende": self.zustaende}
 
 
+def _kern_leer(le):
+    """True, wenn der Kern noch nichts geschrieben hat - frisch gestartete Instanz (11.11. 22:02: Kennung 0x0 / Aufbau 0)."""
+    from selfaware.game.kern_leitung import FalscherAufbau
+    try:
+        le.lesen()
+        return False
+    except FalscherAufbau:
+        return True
+
+
 def lies(le, warte=0.2):
-    """Kernstand; Leitung.lesen() gibt None, wenn sie keinen ruhigen Stand bekommt (Lauf 3, 23:43: beim Partieende) - dann neu."""
+    """Kernstand; Leitung.lesen() gibt None, wenn sie keinen ruhigen Stand bekommt (Lauf 3, 23:43: beim Partieende) - dann neu.
+    11.11. 22:02: Hat der Kern noch nichts geschrieben (FalscherAufbau, frisch gestartete Instanz), wird ebenso gewartet."""
+    from selfaware.game.kern_leitung import FalscherAufbau
     while True:
-        w = le.lesen()
+        try:
+            w = le.lesen()
+        except FalscherAufbau:
+            w = None
         if w is not None:
             return w
         time.sleep(warte)
@@ -280,9 +295,10 @@ def main():
     if not os.path.isdir(forschung):
         sys.exit("FEHLERWACHE: Ordner fuer Mitschrift und Bericht fehlt: %s" % forschung)
     start = time.time()
+    leer = _kern_leer(le)  # frisch gestartete Instanz: der erste Stand, den der Kern schreibt, ist schon die neue Partie
     t0 = lies(le).tick
-    print("FEHLERWACHE: warte auf eine neue Partie (Kern steht bei Takt %d)" % t0, flush=True)
-    zurueck = t0 == 0
+    print("FEHLERWACHE: warte auf eine neue Partie (Kern steht bei Takt %d%s)" % (t0, ", vorher leer" if leer else ""), flush=True)
+    zurueck = t0 == 0 or leer
     while True:            # neue Partie: der Takt springt unter den Anfangswert zurueck und laeuft dann wieder
         w = lies(le)
         zurueck = zurueck or w.tick < t0

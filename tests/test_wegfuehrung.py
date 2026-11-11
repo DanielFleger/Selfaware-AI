@@ -406,3 +406,22 @@ def test_vorstoss_wartet_wenn_die_wegfuehrung_die_stelle_nicht_sicher_findet():
     for i in range(RA.SPERRE_RUNDEN - 1):
         v.schritt(520 + i, fern, {}, Befehle())
         assert not w.auftraege
+
+
+def test_brandtrupp_waehlt_nur_gebaeude_die_die_wegfuehrung_annimmt():
+    """Partie 11.11. 22:05 (Fehlerwache F3): der Brandtrupp hielt ein Gebaeude mit einem Bogenschuetzen in 20 bis 44 Feldern fuer
+    sicher (alte Regel bis 20), die Wegfuehrung lehnte es ab - die Sklaven pendelten zwischen gesperrten Zielen und standen zu Hause."""
+    from selfaware.micro.tasks import raids as RA
+
+    L = {1: _e(1, 71, 100, 100), 60: _e(2, 22, 230, 100)}  # Bogenschuetze 30 Felder vor Gebaeude 7
+    G = {7: _e(2, 3, 200, 100), 8: _e(2, 3, 100, 200)}
+    ohne = RA.Brandtrupp(1, lambda nr: 0)
+    assert ohne.moeglich(7, L, G)  # alte Regel allein: sicher
+    bt = RA.Brandtrupp(1, lambda nr: 0)
+    w = W.Wegfuehrung(1)
+    bt.weg = w
+    assert not bt.moeglich(7, L, G) and bt.moeglich(8, L, G)
+    bt.schritt(L, G, Befehle())
+    assert bt.ziel[1] == 8
+    st, _ = _runde(w, L, G)
+    assert st[1] == "unterwegs"
