@@ -1,6 +1,5 @@
 """B-182 Wegfuehrung fuer alle Einheiten (Plan_Wegfuehrung.md), ohne Spiel."""
 
-import selfaware.services.schussfeld as SF
 from selfaware.micro import wegfuehrung as W
 
 
@@ -40,7 +39,7 @@ def test_neue_gefahr_im_weg_wird_umgangen():
     L2 = {**L, 60: _e(2, 22, 150, 100), 61: _e(2, 22, 150, 104)}  # zwei Bogenschuetzen mitten auf dem Weg
     _, b2 = _runde(w, L2)
     assert b2 and b2[0]["lauf"] != b1[0]["lauf"]
-    assert SF.gefahr_am(tuple(b2[0]["lauf"]), W.gefahren(L2, {}, 1)) == 0
+    assert W.Gefahr(L2, {}, 1).an(tuple(b2[0]["lauf"]), 22) == 0
 
 
 def test_ziel_in_gefahr_kein_befehl():
@@ -83,8 +82,9 @@ def test_wiedervergebene_nummer_ist_kein_ziel():
     assert st[1] == "ziel_weg" and b == []
 
 
-def test_verborgene_fallgrube_ist_keine_gefahr_ein_turm_schon():
-    """FAIRNESS F12: Holzfallen und Pech des Gegners sind verborgen; Tuerme sind sichtbar."""
+def test_verborgene_fallgrube_ist_keine_gefahr_ein_schuetze_auf_dem_turm_schon():
+    """FAIRNESS F12: Holzfallen und Pech des Gegners sind verborgen. Ein Turm schiesst nicht selbst, die Schuetzen darauf schon
+    (Plan_Wegfuehrung.md Nachtrag 11.11. 20:45; Daniel 21:32 auf die Frage, erst die Gefahrenrechnung umzubauen: "Ja, erst Gefahr")."""
     w = W.Wegfuehrung(1)
     w.fuehre(1, "gebaeude", 7)
     st, _ = _runde(w, {1: _e(1, 71, 100, 100)}, {7: _e(2, 3, 200, 100), 8: _e(2, 67, 201, 100)})
@@ -92,6 +92,11 @@ def test_verborgene_fallgrube_ist_keine_gefahr_ein_turm_schon():
     w2 = W.Wegfuehrung(1)
     w2.fuehre(1, "gebaeude", 7)
     st, _ = _runde(w2, {1: _e(1, 71, 100, 100)}, {7: _e(2, 3, 200, 100), 9: _e(2, 77, 210, 100)})
+    assert st[1] == "unterwegs"  # leerer Turm
+    w3 = W.Wegfuehrung(1)
+    w3.fuehre(1, "gebaeude", 7)
+    L3 = {1: _e(1, 71, 100, 100), 60: _e(2, 22, 212, 102)}  # Bogenschuetze auf dem Turm (Grundflaeche 6 x 6 ab 210, 100)
+    st, _ = _runde(w3, L3, {7: _e(2, 3, 200, 100), 9: _e(2, 77, 210, 100)})
     assert st[1] == "gefahr"
 
 
@@ -292,3 +297,44 @@ def test_vorstoss_gibt_ein_ziel_ohne_angriff_und_weg_auf():
     aus = v.schritt(510, L, {}, Befehle())
     assert any("gibt Ziel %d auf" % erstes in z for z in aus)
     assert w.auftraege[1][1] != erstes and w.auftraege[2][1] != erstes
+
+
+def test_gebaeude_zwischen_schuetze_und_ort_sperrt_die_linie():
+    """L79, der tote Winkel hinter Gebaeuden (Daniel 11.11. 20:30: "toter winkel hat JEDE einheit")."""
+    L = {60: _e(2, 22, 200, 100)}
+    assert W.Gefahr(L, {}, 1).an((170, 100), 22) == 1
+    assert W.Gefahr(L, {5: _e(2, 3, 185, 99)}, 1).an((170, 100), 22) == 0  # Holzfaellerhuette (3 x 3) auf der Linie
+    assert W.Gefahr(L, {5: _e(2, 32, 181, 95)}, 1).an((170, 100), 22) == 1  # flaches Feld sperrt nicht
+    assert W.Gefahr(L, {5: _e(2, 67, 185, 100)}, 1).an((170, 100), 22) == 1  # Fallgrube: flach und verborgen (F12)
+
+
+def test_schuetze_auf_dem_turm_schiesst_ueber_gebaeude():
+    L = {60: _e(2, 22, 201, 101)}  # steht auf dem Turm (Typ 77, 6 x 6 ab 200, 100)
+    assert W.Gefahr(L, {9: _e(2, 77, 200, 100), 5: _e(2, 3, 185, 99)}, 1).an((170, 100), 22) == 1
+
+
+def test_assassine_ausser_sicht_ist_nicht_in_gefahr():
+    """L75: Schuetzen nehmen eine Assassine nur, wenn sie hoechstens ~20 Felder (160 Feinmass, mit Planungsrand 208) von einem
+    waehlbaren Feind steht."""
+    b = W.Gefahr({60: _e(2, 22, 200, 100)}, {}, 1)
+    assert b.an((165, 100), 22) == 1 and b.an((165, 100), W.ASSASSINE) == 0  # 35 Felder: in Reichweite, aber ungesehen
+    assert b.an((182, 100), W.ASSASSINE) == 1  # 18 Felder: sichtbar
+
+
+def test_fernkaempfer_findet_den_standplatz_hinter_einem_gebaeude():
+    """Gegen einen Bogenschuetzen am Ziel liegt jeder Standplatz in 36 Feldern in seiner Reichweite - ausser hinter einem Gebaeude."""
+    L = {1: _e(1, 22, 100, 100), 50: _e(2, 3, 250, 100), 60: _e(2, 22, 251, 100)}
+    w = W.Wegfuehrung(1)
+    w.fuehre(1, "einheit", 50)
+    st, _ = _runde(w, L)
+    assert st[1] == "gefahr"
+    w2 = W.Wegfuehrung(1)
+    w2.fuehre(1, "einheit", 50)
+    st, b = _runde(w2, L, {5: _e(2, 8, 222, 98)})  # Haus (5 x 5) zwischen Standplatz (214, 100) und Bogenschuetze
+    assert st[1] == "unterwegs" and "lauf" in b[0]
+
+
+def test_wegegitter_rechnet_mit_derselben_regel():
+    g = W.Gefahr({60: _e(2, 22, 200, 100)}, {5: _e(2, 8, 182, 98)}, 1).gitter(None)
+    assert g.schaden_je_tick(g.zelle_von((170, 100))) == 0  # Linie durch das Haus
+    assert g.schaden_je_tick(g.zelle_von((170, 120))) == 1  # 37 Felder, freie Linie

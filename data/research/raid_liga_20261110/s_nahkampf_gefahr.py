@@ -2,11 +2,13 @@
 """B-182 Wegfuehrung (11.11.): Wie viele Ziele des Nahkampf-Raids lagen bei der Zuweisung in Gefahr nach der Regel der Wegfuehrung?
 
 Regel (micro/wegfuehrung.py): Der Standplatz eines Nahkaempfers ist das Ziel selbst. Gefahr = ein sichtbarer gegnerischer Schuetze
-(Reichweite wie schussfeld.REICHWEITE), Nahkaempfer (raids.GEFAHR_NAH) oder Turm erreicht ihn (wegfuehrung.gefahren); bei einem
+(Reichweite wie schussfeld.REICHWEITE), Nahkaempfer (raids.GEFAHR_NAH) oder Turm erreicht ihn - als Kreis; bei einem
 Arbeiter zaehlt nur, was nicht auf seinem eigenen Feld steht. Je Zuweisung (Mitschrift: "NAHKAMPF-RAID: n (Typ t) -> ... bei (x, y)")
 die erste Lage-Runde ab ihrem Takt. Partien wie s_taeter_alle.py: ohne ungueltige_partien.txt und ohne die Attrappe KI 5.
 "Erledigt" sind die Erfolgszeilen des Moduls - behauptet, nicht belegt (S111).
 Aufruf (im Arbeitsordner): python data/research/raid_liga_20261110/s_nahkampf_gefahr.py [<Stempel-Anfang, z. B. 20261110>]
+Seit 11.11. 21:50 rechnet die Wegfuehrung mit Schusslinie und Tarnung; dieses Skript zaehlt weiter nach der Kreis-Regel (S115),
+die neue Regel zaehlt s_nahkampf_gefahr_linie.py (S116).
 """
 import collections
 import math
@@ -19,7 +21,6 @@ import s_taeter_alle as TA  # noqa: E402
 
 import selfaware.services.schussfeld as SF  # noqa: E402
 from selfaware.baukasten import wirkung as WK  # noqa: E402
-from selfaware.micro import wegfuehrung as W  # noqa: E402
 from selfaware.micro.tasks import raids as RA  # noqa: E402
 from selfaware.telemetry import lageprotokoll as LP  # noqa: E402
 
@@ -55,9 +56,6 @@ def quellen(L, G, zielort, arbeiter):
     for name, liste in (("Turm", tuerme), ("Schuetze", schuetzen), ("Nahkaempfer", nah)):
         if SF.gefahr_am(zielort, weg_vom_ziel(liste)):
             aus.add(name)
-    # Gegenprobe: dieselbe Antwort wie die Wegfuehrung selbst
-    gesamt = SF.gefahr_am(zielort, weg_vom_ziel(W.gefahren(L, G, SP))) > 0
-    assert gesamt == bool(aus), (zielort, aus)
     return aus
 
 

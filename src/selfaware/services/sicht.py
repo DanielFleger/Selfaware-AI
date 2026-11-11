@@ -36,7 +36,8 @@ TIERE = {44, 45, 46, 47, 48, 49, 51, 52, 62, 67, 68, 69}
 SICHT = 160                      # Feinmass (acquireShootTarget 0x0054B0D0)
 RATE_FREI, RATE_ZU = 1.352, 0.070
 HALTUNG_RADIUS = {0: 0, 1: 5, 2: 25}     # Felder (stanceBasedRange 0x28 / 200 Feinmass)
-FLACH = {10, 30, 31, 32, 33}             # Lagerplatz, Felder (vermutet flach)
+FLACH = {10, 30, 31, 32, 33, 67}         # Lagerplatz, Felder (vermutet flach); 67 Fallgrube: ein Loch sperrt keinen Pfeil, und
+#                                         feindliche Gruben sind verborgen (FAIRNESS F12) - nachgetragen 11.11. 21:45
 ERHOEHT = {41, 45, 46, 74, 75, 76, 77, 78}
 # Zielwahl der Schuetzen (acquireShootTarget 0x0054B0D0, L78): jeder Schuetze schiesst auf EIN Ziel, das mit dem kleinsten
 # Wert; ein noch von niemandem beschossenes Ziel nimmt er, wenn sein Wert unter dem 1,5-fachen des besten liegt (Feuer
