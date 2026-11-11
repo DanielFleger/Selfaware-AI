@@ -18,6 +18,9 @@ from selfaware.micro.tasks import raids as RA
 ASSASSINE, ASSASSINE_GOLD = 73, 70  # SOELDNER_GOLD in erstes_spiel.py
 # Daniel 09.11.: erst Sklaven, dann Berittene, dann Assassinen. Die Schleuderer stehen wie in raids.werbung vor den Reitern, mit deckung_soll 0 sind sie aus.
 REIHENFOLGE = ("sklaven", "schleuderer", "reiter", "assassinen")
+# B-182 (Plan_Wegfuehrung.md): Zwecke, die am Ziel auch in Gefahr angreifen duerfen - nur auf Daniels Freigabe. Offen seit 11.11. 00:55:
+# "nahkampfraid" (sein Standplatz ist das Ziel selbst; 99 % seiner Ziele vom 10.11. lagen in Gefahr, s_nahkampf_gefahr.py)
+TROTZ_GEFAHR = ()
 # B-182: Was das Modul einer Art angreift - g Gebaeude, e Einheiten. In Reihe 1 (10.11.) traute die Rechnung Sklaven Arbeiter zu, die der
 # Brandtrupp nie jagt, und kaufte darum nur Sklaven. Nahkaempfer des Nahkampf-Raids und Assassinen greifen beides an.
 ZIELARTEN = {RA.SKLAVE: "g", RA.PFERDEBOGEN: "e", RA.SCHLEUDER: "e", 70: "e", ASSASSINE: "ge"}
@@ -177,9 +180,10 @@ class RaidEinsatz:
         # B-182 (Daniel 11.11. 00:04): eine gemeinsame Wegfuehrung je Partie - jede Einheit hat genau einen Fuehrer
         from selfaware.micro.wegfuehrung import Wegfuehrung
 
-        self.weg = Wegfuehrung(sp, gelaende)
+        self.weg = Wegfuehrung(sp, gelaende, trotz_gefahr=TROTZ_GEFAHR)
         self.brand.weg = self.weg
         self.reiter.weg = self.weg
+        self.nahkampf.weg = self.weg
         self.vorstoss = (
             None
             if vorstoss_bis is None

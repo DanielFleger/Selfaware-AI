@@ -445,6 +445,108 @@ def test_nahkampf_raid_schickt_denselben_befehl_nicht_jede_runde():
     assert len(bf.liste) == 1
 
 
+def _raid_mit_weg(trotz_gefahr=()):
+    from selfaware.micro import wegfuehrung as W
+
+    r = _raid()
+    r.weg = W.Wegfuehrung(1, trotz_gefahr=trotz_gefahr)
+    return r
+
+
+def _mit_schwert(r, bf, L, G, n=2, x=0, y=0):
+    r.schritt(L, G, bf)
+    L[n] = einheit(x, y, SCHWERT, besitzer=1, leben=28000)
+    r.bestellt(SCHWERT, 1)
+    return r.schritt(L, G, bf)
+
+
+def test_nahkampf_raid_gibt_den_weg_an_die_wegfuehrung(monkeypatch):
+    """B-182 (Daniel 11.11.: "Ja, Nahkampf-Raid"): das Modul waehlt das Ziel nach Wirkung, Weg und Befehle kommen von der Wegfuehrung."""
+    monkeypatch.setattr(RB, "TROTZ_GEFAHR", ("nahkampfraid",))  # der Raid-Einsatz reicht die Freigabe an die Wegfuehrung weiter
+    e = _einsatz()
+    assert e.nahkampf.weg is e.weg and e.weg.trotz_gefahr == {"nahkampfraid"}
+    r, bf = _raid_mit_weg(), Befehle()
+    L, G = huetten()
+    aus = _mit_schwert(r, bf, L, G)
+    assert bf.liste == [] and r.weg.fuehrt(2)  # kein eigener Befehl mehr
+    assert any("Weg ueber die Wegfuehrung" in z for z in aus)
+    assert r.weg.schritt(L, G, bf)[2] == "unterwegs" and "lauf" in bf.liste[-1]["angriff"]
+    L[2] = einheit(49, 1, SCHWERT, besitzer=1, leben=28000)
+    assert r.weg.schritt(L, G, bf)[2] == "greift_an"
+    assert bf.liste[-1] == {"angriff": {"einheiten": [2], "gebaeude": r.ziel[2][1]}}
+
+
+def test_nahkampf_raid_nimmt_bei_gefahr_ein_anderes_ziel_die_sperre_gilt_je_einheit():
+    from selfaware.micro.tasks import raids as RA
+
+    r, bf = _raid_mit_weg(), Befehle()
+    L, G = huetten()
+    _mit_schwert(r, bf, L, G)
+    erstes = r.ziel[2]
+    L[300] = einheit(G[erstes[1]]["x"], 5, BOGEN)  # ein Bogenschuetze stellt sich ans erste Ziel
+    assert r.weg.schritt(L, G, bf)[2] == "gefahr"
+    aus = r.schritt(L, G, bf)
+    assert r.ziel[2] != erstes and ("NAHKAMPF-RAID: 2 (Typ 75) gibt Gebaeude %d auf (gefahr)" % erstes[1]) in aus
+    assert r.gesperrt == {(2, erstes): r.runde + RA.SPERRE_RUNDEN}
+    L[3] = einheit(0, 1, SCHWERT, besitzer=1, leben=28000)  # ein zweiter Schwertkaempfer darf das erste Ziel noch waehlen
+    r.bestellt(SCHWERT, 1)
+    r.schritt(L, G, bf)
+    assert r.ziel[3] == erstes
+
+
+def test_nahkampf_raid_zaehlt_nur_was_er_am_ziel_angriff():
+    r, bf = _raid_mit_weg(), Befehle()
+    L, G = huetten()
+    _mit_schwert(r, bf, L, G)
+    erstes = r.ziel[2]
+    del G[erstes[1]]  # das Gebaeude faellt, bevor die Einheit dort war
+    aus = r.schritt(L, G, bf)
+    assert r.zerstoert == 0 and any("2 war nicht am Ziel - kein eigener Erfolg" in z for z in aus)
+    zweites = r.ziel[2]
+    L[2] = einheit(G[zweites[1]]["x"] - 1, 0, SCHWERT, besitzer=1, leben=28000)
+    assert r.weg.schritt(L, G, bf)[2] == "greift_an"
+    r.schritt(L, G, bf)
+    del G[zweites[1]]
+    aus = r.schritt(L, G, bf)
+    assert r.zerstoert == 1 and ("NAHKAMPF-RAID: 2 (Typ 75) hat Gebaeude %d erledigt" % zweites[1]) in aus
+
+
+def test_nahkampf_raid_wiedervergebene_gebaeudenummer_ist_ein_erfolg_nach_angriff():
+    r, bf = _raid_mit_weg(), Befehle()
+    L, G = huetten()
+    _mit_schwert(r, bf, L, G)
+    nr = r.ziel[2][1]
+    L[2] = einheit(G[nr]["x"] - 1, 0, SCHWERT, besitzer=1, leben=28000)
+    assert r.weg.schritt(L, G, bf)[2] == "greift_an"
+    r.schritt(L, G, bf)
+    G[nr] = geb(G[nr]["x"], 0, typ=3)  # die Nummer traegt jetzt ein anderes Gebaeude: das alte ist gefallen
+    assert r.weg.schritt(L, G, bf)[2] == "ziel_weg"
+    aus = r.schritt(L, G, bf)
+    assert r.zerstoert == 1 and ("NAHKAMPF-RAID: 2 (Typ 75) hat Gebaeude %d erledigt" % nr) in aus
+
+
+def test_nahkampf_raid_ziel_eines_toten_teilnehmers_ist_wieder_frei():
+    """Vorher blieb es belegt: fuer die anderen Teilnehmer und fuer den Kauf (Lenker belegt_r)."""
+    for r in (_raid(), _raid_mit_weg()):
+        bf = Befehle()
+        L, G = huetten()
+        _mit_schwert(r, bf, L, G)
+        assert 2 in r.ziel
+        del L[2]
+        r.schritt(L, G, bf)
+        assert r.ziel == {} and (r.weg is None or not r.weg.fuehrt(2))
+
+
+def test_nahkampf_raid_greift_in_gefahr_nur_mit_freigabe_an():
+    """Plan_Wegfuehrung.md: am Ziel in Gefahr greift nur an, wessen Zweck Daniel freigibt (raid.TROTZ_GEFAHR, offen 11.11.)."""
+    assert RB.TROTZ_GEFAHR == ()  # bis Daniel entscheidet
+    for frei, erwartet in (((), "gefahr"), (("nahkampfraid",), "unterwegs")):
+        r, bf = _raid_mit_weg(trotz_gefahr=frei), Befehle()
+        L, G = huetten(n_bogen=1)  # ein Bogenschuetze deckt beide Huetten
+        _mit_schwert(r, bf, L, G)
+        assert r.weg.schritt(L, G, bf)[2] == erwartet
+
+
 def test_nahkampf_raid_kennt_nur_nahkampf_ohne_eigenes_modul():
     assert SKLAVE not in NK.KANN and ASSASSINE not in NK.KANN and LORD not in NK.KANN
     assert all(EH.ARTEN[t].kampf == "nah" and EH.darf(t, "raid") for t in NK.KANN)
