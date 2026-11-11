@@ -18,6 +18,7 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 import s_taeter_alle as TA  # noqa: E402
 
 import selfaware.services.schussfeld as SF  # noqa: E402
+from selfaware.baukasten import wirkung as WK  # noqa: E402
 from selfaware.micro import wegfuehrung as W  # noqa: E402
 from selfaware.micro.tasks import raids as RA  # noqa: E402
 from selfaware.telemetry import lageprotokoll as LP  # noqa: E402
@@ -64,6 +65,8 @@ def main():
     ungueltig = set(open(f"{TA.F}/raid_liga_20261110/ungueltige_partien.txt", encoding="utf-8").read().split())
     summe = collections.Counter()
     besitzer = set()
+    wissen = WK.Wissen()
+    freie = []  # je Zuweisung: Zahl der Ziele, an denen diese Art etwas ausrichtet (Wirkung > 0) und die frei von Gefahr waren
     abstand = []  # Luftlinie zum naechsten gegnerischen Schuetzen, je Zuweisung mit Ziel in Gefahr
     print("Stempel         | Gegner        | Zuweisungen Gebaeude/Arbeiter | davon in Gefahr | erledigt (behauptet): in Gefahr / frei")
     for s, k, lage in TA.paare():
@@ -85,6 +88,7 @@ def main():
             besitzer |= {e["besitzer"] for e in E} | {b["besitzer"] for b in B}
             while i < len(zuw) and zuw[i][0] <= t:
                 _t0, n, _typ, art, z, ort = zuw[i]
+                wissen.lernen(L, SP)
                 q = quellen(L, G, ort, art == "Arbeiter")
                 je[(art, "zuweisungen")] += 1
                 je[(art, "gefahr")] += bool(q)
@@ -94,6 +98,9 @@ def main():
                 d = [math.hypot(e["x"] - ort[0], e["y"] - ort[1]) for e in E if e["besitzer"] not in (0, SP) and e["typ"] in SF.REICHWEITE]
                 if q and d:
                     abstand.append(min(d))
+                # B: gab es daneben freie Ziele? (Wirkung > 0 fuer diese Art, Regel wie oben)
+                freie.append(sum(1 for zz in WK.ziele(L, G, SP)
+                                 if wissen.am_ziel(_typ, zz)[1] > 0 and not quellen(L, G, zz.ort, zz.schluessel[0] == "e")))
                 i += 1
         gegner = re.search(r"(gegnerki\d+|_gn_i2|_pp_|_bf_|_bb_)", name)
         print("%s | %-13s | %4d / %4d | %4d / %4d | %d / %d" % (
@@ -108,6 +115,10 @@ def main():
         a = sorted(abstand)
         print("Ziel in Gefahr: naechster gegnerischer Schuetze Median %.1f Felder Luftlinie, Viertel %.1f / %.1f, n = %d" % (
             a[len(a) // 2], a[len(a) // 4], a[3 * len(a) // 4], len(a)))
+    if freie:
+        f = sorted(freie)
+        print("Freie Ziele mit Wirkung > 0 je Zuweisung: Median %d, Viertel %d / %d; Zuweisungen mit mindestens einem freien Ziel %d von %d" % (
+            f[len(f) // 2], f[len(f) // 4], f[3 * len(f) // 4], sum(1 for x in f if x), len(f)))
     for art in ("Gebaeude", "Arbeiter"):
         z, g = summe[(art, "zuweisungen")], summe[(art, "gefahr")]
         if z:
