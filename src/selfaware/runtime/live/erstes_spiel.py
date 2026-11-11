@@ -3453,6 +3453,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                             schleuderer=len(deckung.einheiten(L)) if deckung is not None else 0,
                             L=L, G=G, sp=SP, start=(G[posten[0]]["x"], G[posten[0]]["y"]), steuerbar=frozenset(steuerbar_r), belegt=frozenset(belegt_r),
                             greift_an=raid_e.greift_an if raid_e is not None else None,
+                            sklaven_platz=raid_e.sklaven_platz if raid_e is not None else None,
                             vorhanden=raid_e.vorhanden(L) if raid_e is not None else ())):
                         if typ_r == RB.ASSASSINE:
                             befehl({"werbe": {"typ": RB.ASSASSINE, "gebaeude": posten[0]}}, 1.0, bis="WERBE")

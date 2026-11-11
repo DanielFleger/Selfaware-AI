@@ -613,3 +613,26 @@ def test_raid_einsatz_rechnet_die_wegfuehrung_nur_selbst_wenn_sie_ihm_gehoert():
 @pytest.mark.parametrize("zeile", ["w.weg = wegf", "raid_e.weg_selbst = False", "wegf.schritt(L, G, befehl)"])
 def test_lenker_teilt_eine_wegfuehrung_mit_dem_waechter(zeile):
     assert zeile in LENKER
+
+
+def test_kauf_bestellt_erst_fuer_ein_ziel_dann_mehr():
+    """Daniel 11.11. 22:31 auf die Frage, ob der Kauf hoechstens so viele Sklaven bestellen soll, wie es freie Ziele gibt:
+    "erstmal ein ziel dann skalieren" (Partie 22:14: drei Sklaven bestellt, der dritte bekam nie ein Gebaeude)."""
+    e = _einsatz()
+    L, G = huetten()  # zwei freie Huetten, kein Schuetze
+    assert e.sklaven_platz(L, G) == 2
+    L[5] = einheit(0, 0, SKLAVE, besitzer=1)  # ein eigener Sklave ohne Ziel
+    assert e.sklaven_platz(L, G) == 1
+    assert "sklaven_platz=raid_e.sklaven_platz if raid_e is not None else None" in LENKER
+
+
+def test_kauf_kappt_sklaven_auf_die_freien_ziele(monkeypatch):
+    monkeypatch.setattr(WK, "kaufen", lambda *a, **k: ([(SKLAVE, 3), (SCHWERT, 1)], []))
+    bestellung = RB.RaidBestellungNachWirkung()
+    bestellung._wissen = wissen()
+    L, G = huetten()
+    b = RB.Lage(runde=1, gold=500, ruecklage=0, ruecklage_soeldner=0, feuer=0, endspurt=False, soeldner_erlaubt=True,
+                assassine_erlaubt=False, sklaven=0, reiter=0, schleuderer=0, L=L, G=G, start=(0, 0),
+                steuerbar=frozenset({SKLAVE, SCHWERT}), sklaven_platz=lambda L, G: 1)
+    assert bestellung.schritt(b) == [(SKLAVE, 1), (SCHWERT, 1)]
+    assert any("erst ein Ziel, dann skalieren" in z for z in bestellung.begruendung)

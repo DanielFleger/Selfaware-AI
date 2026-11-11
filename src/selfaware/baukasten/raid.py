@@ -68,6 +68,9 @@ class Lage:
     belegt: frozenset = frozenset()  # Ziele, die schon eine eigene Einheit hat
     greift_an: object = None  # B-182: (Art, Ziel, L, G) -> bool vom Raid-Einsatz; ohne ihn entscheidet die Rechnung allein
     vorhanden: tuple = ()  # B-182: (Art, Ort) der eigenen Einheiten, die ein Raid-Modul schon fuehrt
+    # B-182 (Daniel 11.11. 22:31 auf die Frage, ob der Kauf hoechstens so viele Sklaven bestellen soll, wie es freie Ziele gibt:
+    # "erstmal ein ziel dann skalieren"): (L, G) -> freie Ziele fuer neue Sklaven
+    sklaven_platz: object = None
 
 
 class RaidBestellung:
@@ -168,6 +171,17 @@ class RaidBestellungNachWirkung(RaidBestellung):
             erlaubt=None if b.greift_an is None else (lambda t, z: b.greift_an(t, z, b.L, b.G)),
             vorhanden=b.vorhanden,
         )
+        if b.sklaven_platz is not None:
+            # B-182 (Partie 11.11. 22:14, Fehlerwache F3): drei Sklaven bestellt, der dritte bekam nie ein Gebaeude
+            platz = b.sklaven_platz(b.L, b.G)
+            neu = []
+            for typ, n in kaeufe:
+                if typ == RA.SKLAVE and n > platz:
+                    self.begruendung.append("Sklaven %d statt %d: nur %d freie Ziele (erst ein Ziel, dann skalieren)" % (platz, n, platz))
+                    n = platz
+                if n > 0:
+                    neu.append((typ, n))
+            kaeufe = neu
         return kaeufe
 
 
@@ -193,6 +207,14 @@ class RaidEinsatz:
             if vorstoss_bis is None
             else steck.klasse("vorstoss")(sp, bergfried, bis=vorstoss_bis)
         )
+
+    def sklaven_platz(self, L, G):
+        """B-182 (Daniel 11.11. 22:31 auf die Frage, ob der Kauf hoechstens so viele Sklaven bestellen soll, wie es freie Ziele gibt: "erstmal ein ziel dann skalieren"): Gebaeude, die der Brandtrupp jetzt
+        angreifen wuerde und die noch kein Sklave hat, minus eigene Sklaven ohne Ziel."""
+        belegt = set(self.brand.ziel.values())
+        frei = sum(1 for n in G if n not in belegt and self.brand.moeglich(n, L, G))
+        ohne = sum(1 for s in self.brand.einheiten(L) if s not in self.brand.ziel)
+        return max(0, frei - ohne)
 
     def greift_an(self, typ, z, L, G):
         """B-182: Wuerde das Modul dieser Art das Ziel angreifen? Brandtrupp und Reiterjagd meiden, was raids.gefaehrlich meldet; der Kauf
