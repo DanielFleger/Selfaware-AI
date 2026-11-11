@@ -425,3 +425,17 @@ def test_brandtrupp_waehlt_nur_gebaeude_die_die_wegfuehrung_annimmt():
     assert bt.ziel[1] == 8
     st, _ = _runde(w, L, G)
     assert st[1] == "unterwegs"
+
+
+def test_steckt_eine_einheit_fest_gilt_der_wegpunkt_als_nicht_erreichbar():
+    """Partie 11.11. 22:10 (Fehlerwache F3): derselbe Wegpunkt 2.000 Takte lang, der Sklave ruehrte sich nicht."""
+    w = W.Wegfuehrung(1)
+    w.fuehre(1, "gebaeude", 7)
+    L, G = {1: _e(1, 71, 100, 100)}, {7: _e(2, 3, 260, 100)}
+    _, b = _runde(w, L, G)
+    erster = b[0]["lauf"]
+    for _ in range(W.STECKT_RUNDEN):
+        st, _b = _runde(w, L, G)  # die Einheit bleibt, wo sie ist
+    assert st[1] == "steckt" and not w._frei[erster[1] // 4][erster[0] // 4]
+    _, b = _runde(w, L, G)
+    assert b and b[0]["lauf"] != erster  # neu geplant, um die gesperrte Zelle herum

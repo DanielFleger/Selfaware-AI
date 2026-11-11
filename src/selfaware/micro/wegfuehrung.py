@@ -41,6 +41,7 @@ NEU_PLANEN = 10        # Startwert: spaetestens nach so vielen Runden neu planen
 ZIEL_WANDERT = 8       # Startwert: Felder, ab denen ein gewandertes Ziel neu geplant wird
 RICHTUNGEN = 16        # Standplaetze auf dem Kreis um das Ziel
 ASSASSINE = 73         # getarnt: Schuetzen nehmen sie nur, wenn sie sichtbar ist (L75)
+STECKT_RUNDEN = 3      # Startwert: so viele Runden auf demselben Feld trotz Laufbefehl - der Wegpunkt gilt als nicht erreichbar
 
 
 def _luft(a, b):
@@ -129,6 +130,8 @@ class Auftrag:
         self.zellen = []         # geplante Zellen (fuer die Gefahrenpruefung je Runde)
         self.plan_gefahr = []    # Gefahr je Zelle beim Planen
         self.geplant = (None, -10 ** 6)   # (Standplatz, Runde)
+        self.letzter = None      # (Ort, Wegpunkt) der Vorrunde - fuer die Erkennung "steckt fest"
+        self.steht = 0           # Runden auf demselben Feld mit demselben Wegpunkt
         self.status = "neu"
 
 
@@ -260,6 +263,18 @@ class Wegfuehrung:
             while len(a.weg) > 1 and SF.schach(ort, a.weg[0]) <= AM_WEGPUNKT:
                 a.weg.pop(0)
             ziel_p = a.weg[0] if a.weg else stand
+            # B-182 (Partie 11.11. 22:10, Fehlerwache F3): Sklave 392 bekam 2.000 Takte lang denselben Wegpunkt (142, 234), das Spiel
+            # nahm den Befehl an, der Sklave ruehrte sich nicht - der Punkt war fuer ihn nicht erreichbar (die Karte ist vom
+            # Partiebeginn). Steht die Einheit STECKT_RUNDEN Runden mit demselben Wegpunkt auf demselben Feld, gilt dessen Zelle
+            # fuer die Partie als nicht begehbar, und der Weg wird neu geplant.
+            a.steht = a.steht + 1 if a.letzter == (ort, tuple(ziel_p)) and SF.schach(ort, ziel_p) > AM_WEGPUNKT else 0
+            a.letzter = (ort, tuple(ziel_p))
+            if a.steht >= STECKT_RUNDEN:
+                cx, cy = g.zelle_von(ziel_p)
+                g.frei[cy][cx] = False
+                a.geplant, a.steht, a.letzter = (None, -10 ** 6), 0, None
+                a.status = "steckt"
+                continue
             a.status = "unterwegs"
             befehle.append((bild.an(ort, typ), nr, {"angriff": {"einheiten": [nr], "lauf": [int(ziel_p[0]), int(ziel_p[1])]}}))
         # Budget: dringende zuerst (Einheit selbst in Gefahr), dann nach Nummer; nur Aenderungen oder nach NEU_ALLE Runden. Gleiche
