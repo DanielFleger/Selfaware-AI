@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 """B-182 Wegfuehrung fuer alle Einheiten (Plan: docs/plans/Plan_Wegfuehrung.md).
 
-Daniel 11.11.2026: "Ja, so bauen"; "er sollte immer adjustieren sollte im lauf eine gefahr in den weg kommen ... es sollte nicht
-einfach nur mit einem befehl im stich gelassen werden"; Gefahr ist alles Sichtbare - Einheiten, Arbeiter, Tuerme, Gelaende -, nicht
-die verborgenen Holzfallen und das Pech (FAIRNESS F12).
+Daniel 11.11.2026 auf den Vorschlag einer gemeinsamen Wegfuehrung fuer jede Einheit, die wir bewegen: "Ja, so bauen"; dazu "er sollte
+immer adjustieren sollte im lauf eine gefahr in den weg kommen ... es sollte nicht einfach nur mit einem befehl im stich gelassen
+werden"; Gefahr ist alles Sichtbare - Einheiten, Arbeiter, Tuerme, Gelaende -, nicht die verborgenen Holzfallen und das Pech
+(FAIRNESS F12).
 
 Die Module sagen, WAS sie wollen (fuehre: eine Einheit, ein Gebaeude oder einen Ort), die Wegfuehrung, WIE die Einheit hinkommt.
 Jede Runde, gegen die aktuelle Lage:
@@ -65,7 +66,8 @@ class Auftrag:
 
 class Wegfuehrung:
     def __init__(self, sp, gelaende=None, trotz_gefahr=()):
-        """trotz_gefahr: Zwecke, die auch in Gefahr angreifen duerfen - nur auf Daniels Freigabe (bis jetzt keiner)."""
+        """trotz_gefahr: Zwecke, die auch in Gefahr angreifen duerfen - nur auf Daniels Freigabe (seit 11.11. 19:40 der
+        Nahkampf-Raid, baukasten/raid.TROTZ_GEFAHR)."""
         self.sp, self.gelaende, self.trotz_gefahr = sp, gelaende, frozenset(trotz_gefahr)
         self.auftraege = {}
         self.befohlen = {}       # Einheit -> (Befehl, Runde)

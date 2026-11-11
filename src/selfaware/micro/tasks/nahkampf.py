@@ -7,9 +7,11 @@ NahkampfRaid fuehrt jede Einheit einzeln: Ziel nach Wirkung (baukasten/wirkung.p
 der wenigsten Gefahr (services/schussfeld.sicherer_weg, wie die Assassinen), am Ende der Angriff. Faellt das Ziel weg oder wird es zu
 gefaehrlich, kommt das naechste. Es gehoeren nur Einheiten dazu, die fuer den Raid bestellt wurden; Starttruppen bleiben bei den Waechtern.
 
-B-182 (Plan_Wegfuehrung.md, Daniel 11.11. 00:48 "Ja, Nahkampf-Raid"): Mit der gemeinsamen Wegfuehrung (self.weg, setzt der Raid-Einsatz)
-waehlt das Modul nur noch das Ziel; Weg und Befehle kommen jede Runde neu von der Wegfuehrung. Meldet sie "gefahr" oder "kein_weg", nimmt
-diese Einheit fuer raids.SPERRE_RUNDEN ein anderes Ziel; ein Erfolg zaehlt nur, wenn sie das Ziel am Ziel angriff ("greift_an").
+B-182 (Plan_Wegfuehrung.md; Daniel 11.11. 00:48 auf die Frage, ob als Naechstes der Nahkampf-Raid umzieht: "Ja, Nahkampf-Raid"):
+Mit der gemeinsamen Wegfuehrung (self.weg, setzt der Raid-Einsatz) waehlt das Modul nur noch das Ziel; Weg und Befehle kommen jede
+Runde neu von der Wegfuehrung. Meldet sie "gefahr" oder "kein_weg", nimmt diese Einheit fuer raids.SPERRE_RUNDEN ein anderes Ziel;
+ein Erfolg zaehlt nur, wenn sie das Ziel am Ziel angriff ("greift_an"). Am Ziel greift sie auch unter Beschuss an: Daniel 11.11.
+19:40 auf die Frage "Darf der Nahkampf-Raid Ziele unter Beschuss angreifen?": "Gerne freigeben" (baukasten/raid.TROTZ_GEFAHR).
 """
 
 import collections

@@ -461,7 +461,8 @@ def _mit_schwert(r, bf, L, G, n=2, x=0, y=0):
 
 
 def test_nahkampf_raid_gibt_den_weg_an_die_wegfuehrung(monkeypatch):
-    """B-182 (Daniel 11.11.: "Ja, Nahkampf-Raid"): das Modul waehlt das Ziel nach Wirkung, Weg und Befehle kommen von der Wegfuehrung."""
+    """B-182 (Daniel 11.11. 00:48 auf die Frage, ob als Naechstes der Nahkampf-Raid umzieht: "Ja, Nahkampf-Raid"): das Modul waehlt
+    das Ziel nach Wirkung, Weg und Befehle kommen von der Wegfuehrung."""
     monkeypatch.setattr(RB, "TROTZ_GEFAHR", ("nahkampfraid",))  # der Raid-Einsatz reicht die Freigabe an die Wegfuehrung weiter
     e = _einsatz()
     assert e.nahkampf.weg is e.weg and e.weg.trotz_gefahr == {"nahkampfraid"}
@@ -538,8 +539,9 @@ def test_nahkampf_raid_ziel_eines_toten_teilnehmers_ist_wieder_frei():
 
 
 def test_nahkampf_raid_greift_in_gefahr_nur_mit_freigabe_an():
-    """Plan_Wegfuehrung.md: am Ziel in Gefahr greift nur an, wessen Zweck Daniel freigibt (raid.TROTZ_GEFAHR, offen 11.11.)."""
-    assert RB.TROTZ_GEFAHR == ()  # bis Daniel entscheidet
+    """Plan_Wegfuehrung.md: am Ziel in Gefahr greift nur an, wessen Zweck Daniel freigibt (raid.TROTZ_GEFAHR)."""
+    # Daniel 11.11. 19:40 auf die Frage "Darf der Nahkampf-Raid Ziele unter Beschuss angreifen?": "Gerne freigeben"
+    assert RB.TROTZ_GEFAHR == ("nahkampfraid",)
     for frei, erwartet in (((), "gefahr"), (("nahkampfraid",), "unterwegs")):
         r, bf = _raid_mit_weg(trotz_gefahr=frei), Befehle()
         L, G = huetten(n_bogen=1)  # ein Bogenschuetze deckt beide Huetten
@@ -580,3 +582,19 @@ def test_nahkaempfer_am_ziel_zaehlen_nur_fuer_nahkaempfer():
     L = {300 + i: einheit(51, 1, 24) for i in range(5)}
     z = WK.ziele(L, G, 1)[0]
     assert z.nah == (24,) * 5 and w.am_ziel(SKLAVE, z)[1] < 1.0
+
+
+def test_freigabe_gilt_nur_fuer_den_nahkampf_raid():
+    """Grundgesetz P1.37: Daniels "Gerne freigeben" antwortete auf die Frage nach dem Nahkampf-Raid - Brandtrupp, Reiterjagd und
+    Vorstoss bleiben ohne Freigabe."""
+    e = _einsatz()
+    assert e.weg.trotz_gefahr == {"nahkampfraid"}
+    L = {
+        1: einheit(0, 0, SCHWERT, besitzer=1, leben=28000),
+        2: einheit(0, 2, SKLAVE, besitzer=1),
+        100: einheit(51, 3, BOGEN),  # deckt das Gebaeude
+    }
+    G = {1: geb(50, 0)}
+    e.weg.fuehre(1, "gebaeude", 1, "nahkampfraid")
+    e.weg.fuehre(2, "gebaeude", 1, "brandtrupp")
+    assert e.weg.schritt(L, G, lambda *a, **k: None) == {1: "unterwegs", 2: "gefahr"}
