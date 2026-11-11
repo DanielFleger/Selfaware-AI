@@ -280,6 +280,7 @@ class Reiterjagd:
                 if self.befohlen.get(r, (None,))[0] != "flucht" or self.runde - self.befohlen[r][2] >= NEU_ALLE:
                     if self.weg is not None:
                         self.weg.loslassen(r)
+                    # Wegfuehrung frei: Flucht - weg vom Nahkaempfer, sofort und geradeaus
                     befehl({"angriff": {"einheiten": [r], "lauf": [ziel[0], ziel[1]]}}, 1.0, bis="ANGRIFF")
                     self.befohlen[r] = ("flucht", ziel, self.runde)
                     aus.append("REITERJAGD: Reiter %d weicht Typ %d in %d Feldern aus -> %s" % (r, f["typ"], nah[0], ziel))

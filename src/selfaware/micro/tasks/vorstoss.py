@@ -320,6 +320,7 @@ class Vorstoss:
         )
         if nah is not None and nah[0] < RUECK_R:
             ziel = _weg_von(mitte, nah[1], RUECK_WEITE)
+            # Wegfuehrung frei: Flucht - weg vom Nahkaempfer an der Gruppe
             if self._sende("weichen", _grob(ziel), befehl, meine, {"lauf": [ziel[0], ziel[1]]}):
                 aus.append(
                     "VORSTOSS: weicht Typ %d in %d Feldern aus -> %s" % (nah[2], nah[0], ziel)
@@ -328,6 +329,7 @@ class Vorstoss:
         gefahr = self._schussfeld(mitte, L, G, len(meine))
         if gefahr is not None:
             ziel = _weg_von(mitte, gefahr, RUECK_WEITE)
+            # Wegfuehrung frei: Flucht - aus dem Schussfeld einer Uebermacht oder eines Turms
             if self._sende("abziehen", _grob(ziel), befehl, meine, {"lauf": [ziel[0], ziel[1]]}):
                 aus.append("VORSTOSS: zieht aus dem Schussfeld bei %s ab -> %s" % (gefahr, ziel))
             return aus

@@ -681,6 +681,7 @@ def plane_graben(x, y, flag2):
 def schicke_graeber(einheiten, ziel):
     """19.10.: angriff mit "graben" (logik.lua: Befehl 36 Art 6 UIT_DIG_MOAT) - die Graeber arbeiten danach alle geplanten
     Grabenfelder des Spielers ab."""
+    # Wegfuehrung frei: Graben
     befehl({"angriff": {"einheiten": list(einheiten), "graben": list(ziel)}}, 1.0, bis="ANGRIFF")
 
 def setze_mauer(x1, y1, x2, y2, n):
@@ -3312,6 +3313,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                             wahl_l, reicht_l, wtext_l = LW_m.abwehr(L, SP, feinde_l, heer_l, vorrang=feldzug.heimwache)
                             feldzug_ruht = bool(set(wahl_l) & fz_l)
                             if wahl_l and runde - fruehpruefung.get("lordwache_befehl", -99) >= 5:
+                                # Wegfuehrung frei: Abwehr am eigenen Lord - Lordwache gegen den naechsten Angreifer
                                 befehl({"angriff": {"einheiten": sorted(wahl_l), "ziel": feinde_l[0]}}, 1.0, bis="ANGRIFF")
                                 fruehpruefung["lordwache_befehl"] = runde
                                 ereignis.append("LORDWACHE: %s - %s: %d von %d greifen Feind %d an%s" % (

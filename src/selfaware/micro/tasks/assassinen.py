@@ -2833,6 +2833,7 @@ class Einzeln:
         befehle += [{"halten": {"nr": ns, "x": o[0], "y": o[1]}} for o, ns in halten.items()]
         # 19.10. (1018u: der Fluchtbefehl fuer 207 lief ~100 Ticks spaeter - hinter 5-15 Routinebefehlen in der Schlange des
         # Moduls): Flucht mit Vorrang, logik.lua stellt sie vorn an
+        # Wegfuehrung frei: Flucht - mit Vorrang, logik.lua stellt sie vorn an
         befehle += [{"angriff": {"einheiten": ns, "lauf": [o[0], o[1]], "vorrang": True}} for o, ns in flieh.items()]   # 4a: echter Laufbefehl
         if stapel_befehl:
             befehle.append(stapel_befehl)

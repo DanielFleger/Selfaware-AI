@@ -254,6 +254,7 @@ class Waechter:
                 dx, dy = lx - ort[0], ly - ort[1]
                 s = float(max(abs(dx), abs(dy)) or 1)
                 hinter = (int(lx + 4 * dx / s), int(ly + 4 * dy / s))
+                # Wegfuehrung frei: Abwehr am eigenen Lord - Schuetzen hinter den Lord
                 befehl({"angriff": {"einheiten": vorne, "lauf": [hinter[0], hinter[1]]}}, 1.0, bis="ANGRIFF")
                 for n in vorne:
                     self.auftrag.pop(n, None)
@@ -278,6 +279,7 @@ class Waechter:
                     self.auftrag.pop(n, None)
                 if eigen_v:
                     befehl({"halten": {"los": eigen_v}}, 1.0, bis="HALTEN")
+                    # Wegfuehrung frei: Abwehr am eigenen Lord - sammeln am Bergfried, der Angriff lohnt nicht
                     befehl({"angriff": {"einheiten": eigen_v, "lauf": [sammel[0], sammel[1]]}}, 1.0, bis="ANGRIFF")
                 ereignis.append("ABWEHR VERZICHTET gegen Feind %d Typ %d bei (%d,%d): %s - %d sammeln am Bergfried %s" % (
                     self.ziel, fe["typ"], fe["x"], fe["y"], text, len(eigen_v), tuple(sammel)))
@@ -290,6 +292,7 @@ class Waechter:
             gruppe_orte = [(L[k]["x"], L[k]["y"]) for k in getattr(self, "_gruppe", ()) if k in L]
             bedroht = [n for n in raus if any(schach((eigene[n]["x"], eigene[n]["y"]), q) <= 12 for q in gruppe_orte)]
             if bedroht:
+                # Wegfuehrung frei: Flucht - Schuetzen weichen vor der Gruppe zum Bergfried
                 befehl({"angriff": {"einheiten": bedroht, "lauf": [BERGFRIED_EINGANG[0], BERGFRIED_EINGANG[1]]}}, 1.0, bis="ANGRIFF")
                 for n in bedroht:
                     self.auftrag.pop(n, None)
