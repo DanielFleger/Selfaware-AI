@@ -2,7 +2,7 @@
 
 Erzeugt mit `python -m selfaware.baukasten.karte --schreiben`, nicht von Hand ändern. Quelle: `src/selfaware/baukasten/karte.py`. Plan: [Plan_Baukasten.md](Plan_Baukasten.md).
 
-Gemessen: Der Lenker `runtime/live/erstes_spiel.py` hat 3886 Zeilen, `phase2` davon 1501. Er kennt 98 Schalter. 20 Klassen haben einen eigenen `schritt`, mit 16 verschiedenen Aufrufen.
+Gemessen: Der Lenker `runtime/live/erstes_spiel.py` hat 3888 Zeilen, `phase2` davon 1502. Er kennt 98 Schalter. 20 Klassen haben einen eigenen `schritt`, mit 16 verschiedenen Aufrufen.
 
 Bausteine je Stand: Kern 1, eigene Datei 32, im Lenker 14, nicht benutzt 2, steckbar 18. Eine Stelle mit zwei Rollen zählt einmal.
 
