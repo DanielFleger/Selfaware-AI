@@ -124,11 +124,15 @@ class Vorstoss:
         self.befehle = collections.Counter()
         self.ziel_leben = {}  # Ziel -> (Leben, Runde des letzten Schadens)
         self.stur = {}  # Ziel -> tabu bis zu dieser Runde
-        self.weg = None  # B-182: gemeinsame Wegfuehrung (micro/wegfuehrung.py), setzt der Raid-Einsatz
+        self.weg = (
+            None  # B-182: gemeinsame Wegfuehrung (micro/wegfuehrung.py), setzt der Raid-Einsatz
+        )
         self.gefuehrt = None  # Ziel, zu dem die Wegfuehrung die Schuetzen gerade fuehrt
         self.gesperrt = {}  # Ziel -> Runde: die Wegfuehrung fand fuer keinen Schuetzen Angriff oder Weg
         self.vor_ort = None  # Stelle, zu der die Wegfuehrung die Schuetzen beim Vorruecken fuehrt
-        self.vor_bis = -1  # bis zu dieser Runde kein Vorruecken (die Wegfuehrung fand die Stelle nicht sicher)
+        self.vor_bis = (
+            -1
+        )  # bis zu dieser Runde kein Vorruecken (die Wegfuehrung fand die Stelle nicht sicher)
 
     def orte(self, L):
         return [ort(L[n]) for n in self.mitglieder if n in L]
@@ -351,14 +355,19 @@ class Vorstoss:
                 # B-182 (Plan_Wegfuehrung.md): jeden Schuetzen fuehrt die Wegfuehrung bis in seine eigene Reichweite, jede Runde neu
                 self._frei(meine)  # der Zickzack des Kerns gibt sie vorher her - nie zwei Fuehrer
                 for art in ("vor", "weichen", "abziehen"):
-                    self.letzter.pop(art, None)  # der naechste eigene Lauf geht danach sofort hinaus, nicht erst nach NEU_ALLE
+                    self.letzter.pop(
+                        art, None
+                    )  # der naechste eigene Lauf geht danach sofort hinaus, nicht erst nach NEU_ALLE
                 for n in sorted(meine):
                     self.weg.fuehre(n, "einheit", k, "vorstoss")
                 self.vor_ort = None
                 if self.gefuehrt != k:
                     self.gefuehrt = k
                     self.befehle["schuss"] += 1
-                    aus.append("VORSTOSS: %d Schuetzen schiessen auf Typ %d in %d Feldern" % (len(meine), L[k]["typ"], d))
+                    aus.append(
+                        "VORSTOSS: %d Schuetzen schiessen auf Typ %d in %d Feldern"
+                        % (len(meine), L[k]["typ"], d)
+                    )
                 return aus
             if self._sende("schuss", k, befehl, meine, {"ziel": k}):
                 aus.append(
@@ -380,7 +389,10 @@ class Vorstoss:
             if self.vor_ort is not None and st and st <= {"gefahr", "kein_weg"}:
                 self.vor_bis = self.runde + SPERRE_RUNDEN
                 self._loslassen(meine)
-                aus.append("VORSTOSS: Vorruecken nicht sicher (%s), wartet %d Runden" % ("/".join(sorted(st)), SPERRE_RUNDEN))
+                aus.append(
+                    "VORSTOSS: Vorruecken nicht sicher (%s), wartet %d Runden"
+                    % ("/".join(sorted(st)), SPERRE_RUNDEN)
+                )
                 return aus
             if self.vor_bis > self.runde:
                 return aus

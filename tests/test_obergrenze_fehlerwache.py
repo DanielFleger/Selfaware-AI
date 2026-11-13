@@ -9,8 +9,22 @@ from selfaware.tools.checks.fehlerwache import Wache, anspruechen_aus
 
 
 def einheit(nr, besitzer, typ, x, y, **f):
-    d = {"nr": nr, "besitzer": besitzer, "typ": typ, "x": x, "y": y, "leben": 10000, "zielart": 0, "zieleinheit": 0,
-         "schusseinheit": 0, "nahziel": 0, "mauerx": 0, "mauery": 0, "laufx": 0, "laufy": 0}
+    d = {
+        "nr": nr,
+        "besitzer": besitzer,
+        "typ": typ,
+        "x": x,
+        "y": y,
+        "leben": 10000,
+        "zielart": 0,
+        "zieleinheit": 0,
+        "schusseinheit": 0,
+        "nahziel": 0,
+        "mauerx": 0,
+        "mauery": 0,
+        "laufx": 0,
+        "laufy": 0,
+    }
     d.update(f)
     return d
 
@@ -32,15 +46,25 @@ LORD = einheit(1, 1, 55, 100, 100, leben=150000)
 
 # ---- Obergrenze ---------------------------------------------------------------------------------------------------
 def test_zaehlt_nur_eigene_kaempfer_ohne_lord():
-    w = welt(10, LORD, einheit(2, 1, 22, 101, 100), einheit(3, 1, 3, 102, 100), einheit(4, 2, 22, 200, 200))
-    assert kaempfer(w, 1) == [2]  # Lord, Arbeiter (Typ 3) und der fremde Bogenschuetze zaehlen nicht
+    w = welt(
+        10,
+        LORD,
+        einheit(2, 1, 22, 101, 100),
+        einheit(3, 1, 3, 102, 100),
+        einheit(4, 2, 22, 200, 200),
+    )
+    assert kaempfer(w, 1) == [
+        2
+    ]  # Lord, Arbeiter (Typ 3) und der fremde Bogenschuetze zaehlen nicht
 
 
 def test_grenze_haelt_auch_bei_zwei_werbungen_im_selben_takt():
     k = Kern(welt(10, LORD, einheit(2, 1, 22, 101, 100)))
     og = Obergrenze(2, k)
     assert og.erlaubt(74) is True  # 1 Kaempfer -> der zweite darf
-    assert og.erlaubt(74) is False  # der Kern zeigt ihn noch nicht, er zaehlt trotzdem als unterwegs
+    assert (
+        og.erlaubt(74) is False
+    )  # der Kern zeigt ihn noch nicht, er zaehlt trotzdem als unterwegs
     k.w = welt(12, LORD, einheit(2, 1, 22, 101, 100), einheit(5, 1, 74, 102, 100))
     assert og.erlaubt(71) is False  # jetzt steht er im Kern: 2 von 2
     k.w = welt(14, LORD, einheit(5, 1, 74, 102, 100))  # einer ist gestorben
@@ -83,13 +107,40 @@ def test_f2_reiter_mit_fernem_ziel_steht_nahes_ziel_nicht():
     fern = einheit(50, 2, 3, 255, 100)  # 155 Felder
     wa = Wache(still=600)
     for t in (100, 400, 699):
-        assert wa.schritt(welt(t, LORD, fern, einheit(20, 1, 74, 100, 102, zielart=4, zieleinheit=50, schusseinheit=50))) == []
-    f = wa.schritt(welt(700, LORD, fern, einheit(20, 1, 74, 100, 102, zielart=4, zieleinheit=50, schusseinheit=50)))
+        assert (
+            wa.schritt(
+                welt(
+                    t,
+                    LORD,
+                    fern,
+                    einheit(20, 1, 74, 100, 102, zielart=4, zieleinheit=50, schusseinheit=50),
+                )
+            )
+            == []
+        )
+    f = wa.schritt(
+        welt(
+            700,
+            LORD,
+            fern,
+            einheit(20, 1, 74, 100, 102, zielart=4, zieleinheit=50, schusseinheit=50),
+        )
+    )
     assert [x["art"] for x in f] == ["F2 steht"] and f[0]["einheit"] == 20
     nah = einheit(51, 2, 3, 130, 102)  # 30 Felder: er schiesst
     wb = Wache(still=600)
     for t in (100, 700, 1300):
-        assert wb.schritt(welt(t, LORD, nah, einheit(20, 1, 74, 100, 102, zielart=4, zieleinheit=51, schusseinheit=51))) == []
+        assert (
+            wb.schritt(
+                welt(
+                    t,
+                    LORD,
+                    nah,
+                    einheit(20, 1, 74, 100, 102, zielart=4, zieleinheit=51, schusseinheit=51),
+                )
+            )
+            == []
+        )
 
 
 def test_f3_soeldner_untaetig_zu_hause_nicht_wenn_er_laeuft():
@@ -111,9 +162,22 @@ def test_f4_erfolg_nur_mit_beleg():
     assert anspruechen_aus(text) == [("Reiterjagd", 20, 50), ("Nahkampf-Raid", 21, 52)]
     wa = Wache(beleg=600)
     opfer = einheit(50, 2, 3, 120, 100)
-    wa.schritt(welt(2500, LORD, opfer, einheit(20, 1, 74, 100, 100, schusseinheit=50), einheit(21, 1, 75, 100, 101)))
-    f = wa.schritt(welt(2600, LORD, einheit(20, 1, 74, 100, 100), einheit(21, 1, 75, 100, 101)), anspruechen_aus(text))
-    assert [(x["art"], x["einheit"]) for x in f] == [("F4 ohne Taeter", 21)]  # Reiter 20 hatte 50 als Schussziel, 21 nie
+    wa.schritt(
+        welt(
+            2500,
+            LORD,
+            opfer,
+            einheit(20, 1, 74, 100, 100, schusseinheit=50),
+            einheit(21, 1, 75, 100, 101),
+        )
+    )
+    f = wa.schritt(
+        welt(2600, LORD, einheit(20, 1, 74, 100, 100), einheit(21, 1, 75, 100, 101)),
+        anspruechen_aus(text),
+    )
+    assert [(x["art"], x["einheit"]) for x in f] == [
+        ("F4 ohne Taeter", 21)
+    ]  # Reiter 20 hatte 50 als Schussziel, 21 nie
 
 
 def test_beobachtet_die_ersten_zwanzig():
@@ -134,11 +198,21 @@ def test_nachspielen_findet_den_fehler_im_lageprotokoll(tmp_path):
     eigen_kopf = "nr typ x y zielart zieleinheit zieluid schusseinheit schussziel_uid mauerx mauery planx plany nahziel"
     zeilen = []
     for t in (100, 800):
-        e = ["1 1 55 100 100 150000 0 0 100 100 0", "50 2 3 255 100 2500 0 0 255 100 0",
-             "20 1 74 100 102 15000 4 50 100 102 0"]
+        e = [
+            "1 1 55 100 100 150000 0 0 100 100 0",
+            "50 2 3 255 100 2500 0 0 255 100 0",
+            "20 1 74 100 102 15000 4 50 100 102 0",
+        ]
         k = ["20 74 100 102 4 50 0 50 0 0 0 0 0 0"]
-        zeilen.append({"t": t, "st": {}, "einheiten": "tick %d\n%s\n%s\n" % (t, kopf, "\n".join(e)), "gebaeude": "nr\n",
-                       "eigen": "kern_tick %d ich 1\n%s\n%s\n" % (t, eigen_kopf, "\n".join(k))})
+        zeilen.append(
+            {
+                "t": t,
+                "st": {},
+                "einheiten": "tick %d\n%s\n%s\n" % (t, kopf, "\n".join(e)),
+                "gebaeude": "nr\n",
+                "eigen": "kern_tick %d ich 1\n%s\n%s\n" % (t, eigen_kopf, "\n".join(k)),
+            }
+        )
     p = tmp_path / "lage.jsonl.gz"
     with gzip.open(p, "wt", encoding="utf-8") as f:
         for z in zeilen:
@@ -163,7 +237,9 @@ def test_melden_schreibt_bericht_vor_dem_anhalten_und_wartet_auf_den_kanal(tmp_p
 
     stop = tmp_path / "STOP"
     fehler = [{"art": "F2 steht", "takt": 4517, "text": "Ziel 307 in 41 Feldern"}]
-    pfad, angehalten = melden(fehler, Wache(), 4517, None, str(tmp_path), 2, befehl, str(stop), versuche=5, warte=0)
+    pfad, angehalten = melden(
+        fehler, Wache(), 4517, None, str(tmp_path), 2, befehl, str(stop), versuche=5, warte=0
+    )
     assert angehalten and len(versuche) == 3 and stop.exists()
     assert json.load(open(pfad, encoding="utf-8"))["fehler"][0]["art"] == "F2 steht"
 
@@ -183,11 +259,30 @@ def test_wiedervergebene_nummer_ist_kein_ziel_mehr():
     wa = Wache(still=600)
     nah = einheit(322, 2, 3, 130, 100)  # 30 Felder, wird beschossen
     for t in (100, 200):
-        wa.schritt(welt(t, LORD, nah, einheit(20, 1, 22, 100, 100, zielart=4, zieleinheit=322, schusseinheit=322)))
-    wa.schritt(welt(300, LORD, einheit(20, 1, 22, 100, 100, zielart=4, zieleinheit=322, schusseinheit=322)))  # tot
+        wa.schritt(
+            welt(
+                t,
+                LORD,
+                nah,
+                einheit(20, 1, 22, 100, 100, zielart=4, zieleinheit=322, schusseinheit=322),
+            )
+        )
+    wa.schritt(
+        welt(300, LORD, einheit(20, 1, 22, 100, 100, zielart=4, zieleinheit=322, schusseinheit=322))
+    )  # tot
     neu = einheit(322, 2, 1, 178, 100)  # dieselbe Nummer, eine andere Einheit
     for t in (400, 1000, 1400):
-        assert wa.schritt(welt(t, LORD, neu, einheit(20, 1, 22, 100, 100, zielart=4, zieleinheit=322, schusseinheit=322))) == []
+        assert (
+            wa.schritt(
+                welt(
+                    t,
+                    LORD,
+                    neu,
+                    einheit(20, 1, 22, 100, 100, zielart=4, zieleinheit=322, schusseinheit=322),
+                )
+            )
+            == []
+        )
 
 
 def test_uhr_beginnt_neu_wenn_das_ziel_wechselt():
@@ -197,8 +292,25 @@ def test_uhr_beginnt_neu_wenn_das_ziel_wechselt():
         assert wa.schritt(welt(t, LORD, einheit(20, 1, 22, 100, 100))) == []
     fern = einheit(60, 2, 11, 141, 100)  # 41 Felder: knapp ausser Reichweite
     for t in (810, 1000, 1400):
-        assert wa.schritt(welt(t, LORD, fern, einheit(20, 1, 22, 100, 100, zielart=4, zieleinheit=60, schusseinheit=60))) == []
-    f = wa.schritt(welt(1410, LORD, fern, einheit(20, 1, 22, 100, 100, zielart=4, zieleinheit=60, schusseinheit=60)))
+        assert (
+            wa.schritt(
+                welt(
+                    t,
+                    LORD,
+                    fern,
+                    einheit(20, 1, 22, 100, 100, zielart=4, zieleinheit=60, schusseinheit=60),
+                )
+            )
+            == []
+        )
+    f = wa.schritt(
+        welt(
+            1410,
+            LORD,
+            fern,
+            einheit(20, 1, 22, 100, 100, zielart=4, zieleinheit=60, schusseinheit=60),
+        )
+    )
     assert [x["art"] for x in f] == ["F2 steht"]
 
 

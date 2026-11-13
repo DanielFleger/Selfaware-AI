@@ -240,7 +240,9 @@ def _jagd(L):
     """Eine Runde Reiterjagd samt Wegfuehrung des Raid-Einsatzes: (Ziel je Reiter, gesendete Befehle)."""
     e, gesendet = _einsatz(), []
     e.reiter.schritt(L, {}, lambda b, *a, **k: gesendet.append(b))
-    assert gesendet == []  # B-182: die Reiterjagd waehlt nur das Ziel, Weg und Befehl kommen von der Wegfuehrung
+    assert (
+        gesendet == []
+    )  # B-182: die Reiterjagd waehlt nur das Ziel, Weg und Befehl kommen von der Wegfuehrung
     e.weg.schritt(L, {}, lambda b, *a, **k: gesendet.append(b))
     return {n: a.ziel for n, a in e.weg.auftraege.items()}, gesendet
 
@@ -265,7 +267,9 @@ def test_reiterjagd_jagt_nur_ungedeckte_arbeiter_auch_ausser_reichweite():
         301: einheit(92, 0, BOGEN),
     }
     ziele, gesendet = _jagd(L)
-    assert ziele == {1: 202} and "lauf" in gesendet[0]["angriff"]  # 60 Felder: die Wegfuehrung reitet hin (S114)
+    assert (
+        ziele == {1: 202} and "lauf" in gesendet[0]["angriff"]
+    )  # 60 Felder: die Wegfuehrung reitet hin (S114)
 
 
 def test_bogenschuetzen_kauft_der_lenker_nur_solange_der_vorstoss_fuehrt():
@@ -304,7 +308,9 @@ def test_reiterjagd_schreibt_jeden_erfolg_in_die_mitschrift():
     r = e.reiter
     L = {1: einheit(0, 0, 74, besitzer=1), 200: einheit(10, 0, 1)}
     r.schritt(L, {}, lambda *a, **k: None)
-    e.weg.schritt(L, {}, lambda *a, **k: None)  # S110: erst der Angriff in Reichweite macht es zu unserem Abschuss
+    e.weg.schritt(
+        L, {}, lambda *a, **k: None
+    )  # S110: erst der Angriff in Reichweite macht es zu unserem Abschuss
     del L[200]
     assert r.schritt(L, {}, lambda *a, **k: None) == [
         "REITERJAGD: Reiter 1 hat Arbeiter 200 erledigt"
@@ -463,7 +469,9 @@ def _mit_schwert(r, bf, L, G, n=2, x=0, y=0):
 def test_nahkampf_raid_gibt_den_weg_an_die_wegfuehrung(monkeypatch):
     """B-182 (Daniel 11.11. 00:48 auf die Frage, ob als Naechstes der Nahkampf-Raid umzieht: "Ja, Nahkampf-Raid"): das Modul waehlt
     das Ziel nach Wirkung, Weg und Befehle kommen von der Wegfuehrung."""
-    monkeypatch.setattr(RB, "TROTZ_GEFAHR", ("nahkampfraid",))  # der Raid-Einsatz reicht die Freigabe an die Wegfuehrung weiter
+    monkeypatch.setattr(
+        RB, "TROTZ_GEFAHR", ("nahkampfraid",)
+    )  # der Raid-Einsatz reicht die Freigabe an die Wegfuehrung weiter
     e = _einsatz()
     assert e.nahkampf.weg is e.weg and e.weg.trotz_gefahr == {"nahkampfraid"}
     r, bf = _raid_mit_weg(), Befehle()
@@ -487,9 +495,14 @@ def test_nahkampf_raid_nimmt_bei_gefahr_ein_anderes_ziel_die_sperre_gilt_je_einh
     L[300] = einheit(G[erstes[1]]["x"], 5, BOGEN)  # ein Bogenschuetze stellt sich ans erste Ziel
     assert r.weg.schritt(L, G, bf)[2] == "gefahr"
     aus = r.schritt(L, G, bf)
-    assert r.ziel[2] != erstes and ("NAHKAMPF-RAID: 2 (Typ 75) gibt Gebaeude %d auf (gefahr)" % erstes[1]) in aus
+    assert (
+        r.ziel[2] != erstes
+        and ("NAHKAMPF-RAID: 2 (Typ 75) gibt Gebaeude %d auf (gefahr)" % erstes[1]) in aus
+    )
     assert r.gesperrt == {(2, erstes): r.runde + RA.SPERRE_RUNDEN}
-    L[3] = einheit(0, 1, SCHWERT, besitzer=1, leben=28000)  # ein zweiter Schwertkaempfer darf das erste Ziel noch waehlen
+    L[3] = einheit(
+        0, 1, SCHWERT, besitzer=1, leben=28000
+    )  # ein zweiter Schwertkaempfer darf das erste Ziel noch waehlen
     r.bestellt(SCHWERT, 1)
     r.schritt(L, G, bf)
     assert r.ziel[3] == erstes
@@ -509,7 +522,10 @@ def test_nahkampf_raid_zaehlt_nur_was_er_am_ziel_angriff():
     r.schritt(L, G, bf)
     del G[zweites[1]]
     aus = r.schritt(L, G, bf)
-    assert r.zerstoert == 1 and ("NAHKAMPF-RAID: 2 (Typ 75) hat Gebaeude %d erledigt" % zweites[1]) in aus
+    assert (
+        r.zerstoert == 1
+        and ("NAHKAMPF-RAID: 2 (Typ 75) hat Gebaeude %d erledigt" % zweites[1]) in aus
+    )
 
 
 def test_nahkampf_raid_wiedervergebene_gebaeudenummer_ist_ein_erfolg_nach_angriff():
@@ -520,7 +536,9 @@ def test_nahkampf_raid_wiedervergebene_gebaeudenummer_ist_ein_erfolg_nach_angrif
     L[2] = einheit(G[nr]["x"] - 1, 0, SCHWERT, besitzer=1, leben=28000)
     assert r.weg.schritt(L, G, bf)[2] == "greift_an"
     r.schritt(L, G, bf)
-    G[nr] = geb(G[nr]["x"], 0, typ=3)  # die Nummer traegt jetzt ein anderes Gebaeude: das alte ist gefallen
+    G[nr] = geb(
+        G[nr]["x"], 0, typ=3
+    )  # die Nummer traegt jetzt ein anderes Gebaeude: das alte ist gefallen
     assert r.weg.schritt(L, G, bf)[2] == "ziel_weg"
     aus = r.schritt(L, G, bf)
     assert r.zerstoert == 1 and ("NAHKAMPF-RAID: 2 (Typ 75) hat Gebaeude %d erledigt" % nr) in aus
@@ -610,7 +628,9 @@ def test_raid_einsatz_rechnet_die_wegfuehrung_nur_selbst_wenn_sie_ihm_gehoert():
     assert e.weg.runde == 1
 
 
-@pytest.mark.parametrize("zeile", ["w.weg = wegf", "raid_e.weg_selbst = False", "wegf.schritt(L, G, befehl)"])
+@pytest.mark.parametrize(
+    "zeile", ["w.weg = wegf", "raid_e.weg_selbst = False", "wegf.schritt(L, G, befehl)"]
+)
 def test_lenker_teilt_eine_wegfuehrung_mit_dem_waechter(zeile):
     assert zeile in LENKER
 
@@ -631,8 +651,23 @@ def test_kauf_kappt_sklaven_auf_die_freien_ziele(monkeypatch):
     bestellung = RB.RaidBestellungNachWirkung()
     bestellung._wissen = wissen()
     L, G = huetten()
-    b = RB.Lage(runde=1, gold=500, ruecklage=0, ruecklage_soeldner=0, feuer=0, endspurt=False, soeldner_erlaubt=True,
-                assassine_erlaubt=False, sklaven=0, reiter=0, schleuderer=0, L=L, G=G, start=(0, 0),
-                steuerbar=frozenset({SKLAVE, SCHWERT}), sklaven_platz=lambda L, G: 1)
+    b = RB.Lage(
+        runde=1,
+        gold=500,
+        ruecklage=0,
+        ruecklage_soeldner=0,
+        feuer=0,
+        endspurt=False,
+        soeldner_erlaubt=True,
+        assassine_erlaubt=False,
+        sklaven=0,
+        reiter=0,
+        schleuderer=0,
+        L=L,
+        G=G,
+        start=(0, 0),
+        steuerbar=frozenset({SKLAVE, SCHWERT}),
+        sklaven_platz=lambda L, G: 1,
+    )
     assert bestellung.schritt(b) == [(SKLAVE, 1), (SCHWERT, 1)]
     assert any("erst ein Ziel, dann skalieren" in z for z in bestellung.begruendung)

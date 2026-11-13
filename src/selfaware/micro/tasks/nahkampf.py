@@ -40,7 +40,9 @@ class NahkampfRaid:
         self.ziel = {}  # Einheit -> Schluessel des Ziels
         self.wegpunkte = {}  # Einheit -> offene Wegpunkte (nur ohne Wegfuehrung)
         self.befohlen = {}  # Einheit -> (Befehl, Runde) (nur ohne Wegfuehrung)
-        self.weg = None  # B-182: gemeinsame Wegfuehrung (micro/wegfuehrung.py), setzt der Raid-Einsatz
+        self.weg = (
+            None  # B-182: gemeinsame Wegfuehrung (micro/wegfuehrung.py), setzt der Raid-Einsatz
+        )
         self.gesperrt = {}  # (Einheit, Ziel) -> Runde: nach "gefahr"/"kein_weg" waehlt diese Einheit das Ziel so lange nicht
         self.greift = {}  # Einheit -> Ziel, das sie zuletzt am Ziel angriff (Status "greift_an" der Wegfuehrung)
         self.runde = 0
@@ -79,7 +81,8 @@ class NahkampfRaid:
             (
                 (self.wissen.wert_je_takt(e["typ"], ort, z)[0], z)
                 for z in ziele.values()
-                if z.schluessel not in belegt and self.gesperrt.get((n, z.schluessel), -1) <= self.runde
+                if z.schluessel not in belegt
+                and self.gesperrt.get((n, z.schluessel), -1) <= self.runde
             ),
             default=(0.0, None),
             key=lambda x: x[0],
@@ -100,7 +103,9 @@ class NahkampfRaid:
         """Griff diese Einheit ihr Ziel zuletzt am Ziel an? Mit Wegfuehrung deren Status, sonst der letzte eigene Befehl."""
         if self.weg is not None:
             return self.greift.get(n) == alt
-        return n in self.befohlen and bool(self.befohlen[n][0].get("angriff", {}).keys() & {"gebaeude", "ziel"})
+        return n in self.befohlen and bool(
+            self.befohlen[n][0].get("angriff", {}).keys() & {"gebaeude", "ziel"}
+        )
 
     def _freigeben(self, n):
         self.ziel.pop(n, None)
@@ -130,7 +135,10 @@ class NahkampfRaid:
             elif st in ("gefahr", "kein_weg"):
                 # B-182 (Plan_Wegfuehrung.md): kein sicherer Standplatz oder kein Weg - diese Einheit nimmt ein anderes Ziel
                 self.gesperrt[(n, alt)] = self.runde + RA.SPERRE_RUNDEN
-                aus.append("NAHKAMPF-RAID: %d (Typ %d) gibt %s %d auf (%s)" % (n, e["typ"], _name(alt), alt[1], st))
+                aus.append(
+                    "NAHKAMPF-RAID: %d (Typ %d) gibt %s %d auf (%s)"
+                    % (n, e["typ"], _name(alt), alt[1], st)
+                )
                 self._freigeben(n)
                 alt = None
             # "ziel_weg": die Wegfuehrung sieht unter der Nummer etwas anderes (Art, Besitzer) - das alte Ziel ist weg
@@ -142,9 +150,15 @@ class NahkampfRaid:
                     else:
                         self.getoetet += 1
                     # B-182: jeder Erfolg in die Mitschrift, die Eichung misst daran die Takte vom Ziel bis zum Erfolg
-                    aus.append("NAHKAMPF-RAID: %d (Typ %d) hat %s %d erledigt" % (n, e["typ"], _name(alt), alt[1]))
+                    aus.append(
+                        "NAHKAMPF-RAID: %d (Typ %d) hat %s %d erledigt"
+                        % (n, e["typ"], _name(alt), alt[1])
+                    )
                 elif weg_ist and self.weg is not None:
-                    aus.append("NAHKAMPF-RAID: %s %d ist weg, %d war nicht am Ziel - kein eigener Erfolg" % (_name(alt), alt[1], n))
+                    aus.append(
+                        "NAHKAMPF-RAID: %s %d ist weg, %d war nicht am Ziel - kein eigener Erfolg"
+                        % (_name(alt), alt[1], n)
+                    )
                 self._freigeben(n)
                 alt = None
             if alt is None:

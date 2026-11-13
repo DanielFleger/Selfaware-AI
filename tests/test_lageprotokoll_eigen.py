@@ -10,10 +10,40 @@ from selfaware.telemetry import lageprotokoll as LP
 
 EIGENE = {
     # Werte wie im Sandkasten vom 10.11. 23:03: Reiter auf Arbeiter 305, Sklave auf das Gebaeude bei (243, 132)
-    7: {"nr": 7, "besitzer": 1, "typ": 74, "x": 155, "y": 281, "zielart": 4, "zieleinheit": 305, "zieluid": 23928,
-        "schusseinheit": 305, "schussziel_uid": 23928, "mauerx": 0, "mauery": 0, "planx": 0, "plany": 0, "nahziel": 0},
-    8: {"nr": 8, "besitzer": 1, "typ": 71, "x": 150, "y": 280, "zielart": 0, "zieleinheit": 0, "zieluid": 0,
-        "schusseinheit": 0, "schussziel_uid": 0, "mauerx": 243, "mauery": 133, "planx": 243, "plany": 134, "nahziel": 0},
+    7: {
+        "nr": 7,
+        "besitzer": 1,
+        "typ": 74,
+        "x": 155,
+        "y": 281,
+        "zielart": 4,
+        "zieleinheit": 305,
+        "zieluid": 23928,
+        "schusseinheit": 305,
+        "schussziel_uid": 23928,
+        "mauerx": 0,
+        "mauery": 0,
+        "planx": 0,
+        "plany": 0,
+        "nahziel": 0,
+    },
+    8: {
+        "nr": 8,
+        "besitzer": 1,
+        "typ": 71,
+        "x": 150,
+        "y": 280,
+        "zielart": 0,
+        "zieleinheit": 0,
+        "zieluid": 0,
+        "schusseinheit": 0,
+        "schussziel_uid": 0,
+        "mauerx": 243,
+        "mauery": 133,
+        "planx": 243,
+        "plany": 134,
+        "nahziel": 0,
+    },
 }
 # fremd: der Kern liefert ohnehin nur die freien Felder (EINHEIT_FREMD), keine Zielfelder
 FREMD = {9: {"nr": 9, "besitzer": 2, "typ": 1, "x": 251, "y": 126, "leben": 2500}}
@@ -32,7 +62,9 @@ class Kern:
 
 def _abzug(tmp_path, monkeypatch):
     lb, gb = tmp_path / "lagebild.txt", tmp_path / "gebaeude.txt"
-    lb.write_text("tick 500\nnr besitzer typ x y\n7 1 74 155 281\n9 2 1 251 126\n", encoding="utf-8")
+    lb.write_text(
+        "tick 500\nnr besitzer typ x y\n7 1 74 155 281\n9 2 1 251 126\n", encoding="utf-8"
+    )
     gb.write_text("nr besitzer typ x y\n", encoding="utf-8")
     # Der echte Waechter braucht eine Spielinstanz (ohne Spiel: SHC_INSTANZ=99) - er liefert hier nur die zwei Dateipfade
     wa = ModuleType("selfaware.micro.tasks.waechter")

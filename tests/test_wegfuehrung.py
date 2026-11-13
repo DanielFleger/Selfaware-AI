@@ -28,7 +28,9 @@ def test_fernkaempfer_laeuft_bis_in_reichweite_und_greift_dann_an():
     w.fuehre(1, "einheit", 50)
     st, b = _runde(w, {1: _e(1, 22, 100, 100), 50: _e(2, 3, 250, 100)})
     assert st[1] == "unterwegs" and "lauf" in b[0] and b[0]["lauf"][0] > 100
-    st, b = _runde(w, {1: _e(1, 22, 212, 100), 50: _e(2, 3, 250, 100)})  # 38 Felder: Reichweite 40 minus 2
+    st, b = _runde(
+        w, {1: _e(1, 22, 212, 100), 50: _e(2, 3, 250, 100)}
+    )  # 38 Felder: Reichweite 40 minus 2
     assert st[1] == "greift_an" and b == [{"einheiten": [1], "ziel": 50}]
 
 
@@ -38,7 +40,11 @@ def test_neue_gefahr_im_weg_wird_umgangen():
     w.fuehre(1, "einheit", 50)
     L = {1: _e(1, 22, 100, 100), 50: _e(2, 3, 300, 100)}
     _, b1 = _runde(w, L)
-    L2 = {**L, 60: _e(2, 22, 150, 100), 61: _e(2, 22, 150, 104)}  # zwei Bogenschuetzen mitten auf dem Weg
+    L2 = {
+        **L,
+        60: _e(2, 22, 150, 100),
+        61: _e(2, 22, 150, 104),
+    }  # zwei Bogenschuetzen mitten auf dem Weg
     _, b2 = _runde(w, L2)
     assert b2 and b2[0]["lauf"] != b1[0]["lauf"]
     assert W.Gefahr(L2, {}, 1).an(tuple(b2[0]["lauf"]), 22) == 0
@@ -54,11 +60,15 @@ def test_ziel_in_gefahr_kein_befehl():
 def test_fernkaempfer_haelt_abstand_zu_kuerzerer_reichweite_nicht_zu_gleicher():
     w = W.Wegfuehrung(1)
     w.fuehre(1, "einheit", 50)
-    st, _ = _runde(w, {1: _e(1, 22, 100, 100), 50: _e(2, 72, 250, 100)})  # Schleuderer 22: Standplatz 36 ist sicher
+    st, _ = _runde(
+        w, {1: _e(1, 22, 100, 100), 50: _e(2, 72, 250, 100)}
+    )  # Schleuderer 22: Standplatz 36 ist sicher
     assert st[1] == "unterwegs"
     w2 = W.Wegfuehrung(1)
     w2.fuehre(1, "einheit", 51)
-    st, b = _runde(w2, {1: _e(1, 22, 100, 100), 51: _e(2, 22, 250, 100)})  # Bogenschuetze 44: jeder Standplatz in seiner Reichweite
+    st, b = _runde(
+        w2, {1: _e(1, 22, 100, 100), 51: _e(2, 22, 250, 100)}
+    )  # Bogenschuetze 44: jeder Standplatz in seiner Reichweite
     assert st[1] == "gefahr" and b == []
 
 
@@ -80,7 +90,9 @@ def test_wiedervergebene_nummer_ist_kein_ziel():
     w = W.Wegfuehrung(1)
     w.fuehre(1, "einheit", 50)
     _runde(w, {1: _e(1, 22, 100, 100), 50: _e(2, 3, 250, 100)})
-    st, b = _runde(w, {1: _e(1, 22, 100, 100), 50: _e(2, 1, 260, 100)})  # Nummer 50 traegt jetzt einen Bauern
+    st, b = _runde(
+        w, {1: _e(1, 22, 100, 100), 50: _e(2, 1, 260, 100)}
+    )  # Nummer 50 traegt jetzt einen Bauern
     assert st[1] == "ziel_weg" and b == []
 
 
@@ -97,7 +109,10 @@ def test_verborgene_fallgrube_ist_keine_gefahr_ein_schuetze_auf_dem_turm_schon()
     assert st[1] == "unterwegs"  # leerer Turm
     w3 = W.Wegfuehrung(1)
     w3.fuehre(1, "gebaeude", 7)
-    L3 = {1: _e(1, 71, 100, 100), 60: _e(2, 22, 212, 102)}  # Bogenschuetze auf dem Turm (Grundflaeche 6 x 6 ab 210, 100)
+    L3 = {
+        1: _e(1, 71, 100, 100),
+        60: _e(2, 22, 212, 102),
+    }  # Bogenschuetze auf dem Turm (Grundflaeche 6 x 6 ab 210, 100)
     st, _ = _runde(w3, L3, {7: _e(2, 3, 200, 100), 9: _e(2, 77, 210, 100)})
     assert st[1] == "gefahr"
 
@@ -105,7 +120,9 @@ def test_verborgene_fallgrube_ist_keine_gefahr_ein_schuetze_auf_dem_turm_schon()
 def test_nahkaempfer_darf_an_einen_soldaten_heran():
     w = W.Wegfuehrung(1)
     w.fuehre(1, "einheit", 50)
-    st, b = _runde(w, {1: _e(1, 75, 100, 100), 50: _e(2, 24, 200, 100)})  # Speertraeger: seine eigene Naehe zaehlt nicht
+    st, b = _runde(
+        w, {1: _e(1, 75, 100, 100), 50: _e(2, 24, 200, 100)}
+    )  # Speertraeger: seine eigene Naehe zaehlt nicht
     assert st[1] == "unterwegs" and "lauf" in b[0]
 
 
@@ -124,7 +141,10 @@ def test_brandtrupp_gibt_den_weg_ab_und_wechselt_bei_gefahr_das_ziel():
     erstes = bt.ziel[1]
     st, b = _runde(w, L, G)
     assert st[1] == "unterwegs" and "lauf" in b[0]
-    L2 = {**L, 60: _e(2, 22, G[erstes]["x"] + 5, G[erstes]["y"])}  # ein Bogenschuetze stellt sich ans Ziel
+    L2 = {
+        **L,
+        60: _e(2, 22, G[erstes]["x"] + 5, G[erstes]["y"]),
+    }  # ein Bogenschuetze stellt sich ans Ziel
     st, _ = _runde(w, L2, G)
     assert st[1] == "gefahr"
     bt.schritt(L2, G, Befehle())
@@ -162,10 +182,16 @@ def test_vorstoss_gibt_schuetzen_an_die_wegfuehrung_und_holt_sie_zum_vorruecken_
     v.weg = w
     b = Befehle()
     v.schritt(500, {1: _e(1, 22, 100, 100), 2: _e(1, 22, 100, 101), 3: _e(2, 3, 130, 110)}, {}, b)
-    assert b.liste == [] and w.fuehrt(1) and w.fuehrt(2)  # kein eigener Schussbefehl, die Wegfuehrung fuehrt beide
+    assert (
+        b.liste == [] and w.fuehrt(1) and w.fuehrt(2)
+    )  # kein eigener Schussbefehl, die Wegfuehrung fuehrt beide
     b = Befehle()
-    v.schritt(600, {1: _e(1, 22, 100, 100), 2: _e(1, 22, 100, 101), 4: _e(2, 3, 260, 100)}, {}, b)  # Ziel weg: vorruecken
-    assert b.liste == [] and w.auftraege[1].art == "ort" and w.auftraege[2].art == "ort"  # Vorruecken fuehrt die Wegfuehrung
+    v.schritt(
+        600, {1: _e(1, 22, 100, 100), 2: _e(1, 22, 100, 101), 4: _e(2, 3, 260, 100)}, {}, b
+    )  # Ziel weg: vorruecken
+    assert (
+        b.liste == [] and w.auftraege[1].art == "ort" and w.auftraege[2].art == "ort"
+    )  # Vorruecken fuehrt die Wegfuehrung
 
 
 class _WegAttrappe:
@@ -192,7 +218,9 @@ def test_gleiche_befehle_gehen_als_einer_hinaus():
     w = W.Wegfuehrung(1)
     w.fuehre(1, "einheit", 50)
     w.fuehre(2, "einheit", 50)
-    st, b = _runde(w, {1: _e(1, 22, 212, 100), 2: _e(1, 22, 213, 103), 50: _e(2, 3, 250, 100)})  # Luftlinie 38 und 37,1
+    st, b = _runde(
+        w, {1: _e(1, 22, 212, 100), 2: _e(1, 22, 213, 103), 50: _e(2, 3, 250, 100)}
+    )  # Luftlinie 38 und 37,1
     assert st == {1: "greift_an", 2: "greift_an"} and b == [{"einheiten": [1, 2], "ziel": 50}]
 
 
@@ -214,7 +242,12 @@ def test_reiter_gibt_bei_gefahr_ab_und_nimmt_einen_anderen_die_sperre_gilt_nur_f
     rj = RA.Reiterjagd(1)
     w = _WegAttrappe()
     rj.weg = w
-    L = {1: _e(1, 74, 100, 100), 2: _e(1, 74, 150, 60), 50: _e(2, 3, 150, 100), 51: _e(2, 3, 100, 180)}
+    L = {
+        1: _e(1, 74, 100, 100),
+        2: _e(1, 74, 150, 60),
+        50: _e(2, 3, 150, 100),
+        51: _e(2, 3, 100, 180),
+    }
     rj.schritt(L, {}, Befehle())
     assert w.auftraege == {1: ("einheit", 50), 2: ("einheit", 50)}
     w.st[1] = "gefahr"
@@ -238,12 +271,17 @@ def test_reiterjagd_wiedervergebene_nummer_ist_abschuss_nach_schuss_und_neues_zi
     st, _ = _runde(w, L)
     assert st[1] == "greift_an"
     rj.schritt(L, {}, Befehle())  # liest "greift_an"
-    L2 = {1: _e(1, 74, 215, 100), 50: _e(2, 13, 250, 100)}  # Nummer 50 traegt jetzt einen anderen Arbeiter
+    L2 = {
+        1: _e(1, 74, 215, 100),
+        50: _e(2, 13, 250, 100),
+    }  # Nummer 50 traegt jetzt einen anderen Arbeiter
     st, _ = _runde(w, L2)
     assert st[1] == "ziel_weg"
     aus = rj.schritt(L2, {}, Befehle())
     assert rj.getoetet == 1 and any("hat Arbeiter 50 erledigt" in z for z in aus)
-    st, b = _runde(w, L2)  # der neue Arbeiter unter Nummer 50 wird gejagt, nicht als "ziel_weg" stehen gelassen
+    st, b = _runde(
+        w, L2
+    )  # der neue Arbeiter unter Nummer 50 wird gejagt, nicht als "ziel_weg" stehen gelassen
     assert st[1] == "greift_an" and b == [{"einheiten": [1], "ziel": 50}]
 
 
@@ -292,7 +330,12 @@ def test_vorstoss_gibt_ein_ziel_ohne_angriff_und_weg_auf():
     v = V.Vorstoss(1, (100, 100))
     w = _WegAttrappe()
     v.weg = w
-    L = {1: _e(1, 22, 100, 100), 2: _e(1, 22, 100, 101), 3: _e(2, 3, 130, 110), 5: _e(2, 3, 128, 80)}
+    L = {
+        1: _e(1, 22, 100, 100),
+        2: _e(1, 22, 100, 101),
+        3: _e(2, 3, 130, 110),
+        5: _e(2, 3, 128, 80),
+    }
     v.schritt(500, L, {}, Befehle())
     erstes = w.auftraege[1][1]
     w.st = {1: "gefahr", 2: "kein_weg"}
@@ -305,9 +348,15 @@ def test_gebaeude_zwischen_schuetze_und_ort_sperrt_die_linie():
     """L79, der tote Winkel hinter Gebaeuden (Daniel 11.11. 20:30: "toter winkel hat JEDE einheit")."""
     L = {60: _e(2, 22, 200, 100)}
     assert W.Gefahr(L, {}, 1).an((170, 100), 22) == 1
-    assert W.Gefahr(L, {5: _e(2, 3, 185, 99)}, 1).an((170, 100), 22) == 0  # Holzfaellerhuette (3 x 3) auf der Linie
-    assert W.Gefahr(L, {5: _e(2, 32, 181, 95)}, 1).an((170, 100), 22) == 1  # flaches Feld sperrt nicht
-    assert W.Gefahr(L, {5: _e(2, 67, 185, 100)}, 1).an((170, 100), 22) == 1  # Fallgrube: flach und verborgen (F12)
+    assert (
+        W.Gefahr(L, {5: _e(2, 3, 185, 99)}, 1).an((170, 100), 22) == 0
+    )  # Holzfaellerhuette (3 x 3) auf der Linie
+    assert (
+        W.Gefahr(L, {5: _e(2, 32, 181, 95)}, 1).an((170, 100), 22) == 1
+    )  # flaches Feld sperrt nicht
+    assert (
+        W.Gefahr(L, {5: _e(2, 67, 185, 100)}, 1).an((170, 100), 22) == 1
+    )  # Fallgrube: flach und verborgen (F12)
 
 
 def test_schuetze_auf_dem_turm_schiesst_ueber_gebaeude():
@@ -319,7 +368,9 @@ def test_assassine_ausser_sicht_ist_nicht_in_gefahr():
     """L75: Schuetzen nehmen eine Assassine nur, wenn sie hoechstens ~20 Felder (160 Feinmass, mit Planungsrand 208) von einem
     waehlbaren Feind steht."""
     b = W.Gefahr({60: _e(2, 22, 200, 100)}, {}, 1)
-    assert b.an((165, 100), 22) == 1 and b.an((165, 100), W.ASSASSINE) == 0  # 35 Felder: in Reichweite, aber ungesehen
+    assert (
+        b.an((165, 100), 22) == 1 and b.an((165, 100), W.ASSASSINE) == 0
+    )  # 35 Felder: in Reichweite, aber ungesehen
     assert b.an((182, 100), W.ASSASSINE) == 1  # 18 Felder: sichtbar
 
 
@@ -332,7 +383,9 @@ def test_fernkaempfer_findet_den_standplatz_hinter_einem_gebaeude():
     assert st[1] == "gefahr"
     w2 = W.Wegfuehrung(1)
     w2.fuehre(1, "einheit", 50)
-    st, b = _runde(w2, L, {5: _e(2, 8, 222, 98)})  # Haus (5 x 5) zwischen Standplatz (214, 100) und Bogenschuetze
+    st, b = _runde(
+        w2, L, {5: _e(2, 8, 222, 98)}
+    )  # Haus (5 x 5) zwischen Standplatz (214, 100) und Bogenschuetze
     assert st[1] == "unterwegs" and "lauf" in b[0]
 
 
@@ -345,15 +398,32 @@ def test_wegegitter_rechnet_mit_derselben_regel():
 def _waechter_lage():
     """Angelehnt an tools/checks/waechter_pruefen.py, Fall 1 - statt drei Assassinen (dort verzichtet die Abwehr nach der
     Gefechtsrechnung) ein feindlicher Sklave an unserem Gebaeude: zwei Waechter greifen an, drei Schuetzen weichen."""
+
     def e(typ, sp, x, y, **k):
-        d = {"typ": typ, "besitzer": sp, "x": x, "y": y, "leben": 10000, "zustand": 1, "laufx": x, "laufy": y, "nahziel": 0,
-             "nahangreifer": 0, "zieleinheit": 0}
+        d = {
+            "typ": typ,
+            "besitzer": sp,
+            "x": x,
+            "y": y,
+            "leben": 10000,
+            "zustand": 1,
+            "laufx": x,
+            "laufy": y,
+            "nahziel": 0,
+            "nahangreifer": 0,
+            "zieleinheit": 0,
+        }
         d.update(k)
         return d
 
-    L = {45: e(70, 1, 139, 168, zustand=106, nahziel=156), 189: e(70, 1, 140, 168, nahangreifer=1),
-         60: e(24, 1, 155, 158), 61: e(24, 1, 156, 158), 62: e(75, 1, 156, 159),
-         156: e(71, 2, 148, 163)}
+    L = {
+        45: e(70, 1, 139, 168, zustand=106, nahziel=156),
+        189: e(70, 1, 140, 168, nahangreifer=1),
+        60: e(24, 1, 155, 158),
+        61: e(24, 1, 156, 158),
+        62: e(75, 1, 156, 159),
+        156: e(71, 2, 148, 163),
+    }
     return L, [(150, 160), (145, 215), (150, 200)]
 
 
@@ -362,7 +432,9 @@ def test_waechter_gibt_angriff_und_stapeln_an_die_wegfuehrung(monkeypatch):
     "Ja, freigeben"."""
     try:
         import selfaware.micro.tasks.waechter as WA
-    except RuntimeError as ex:  # ohne Spiel-Instanz (SHC_INSTANZ=99) laesst sich der Waechter nicht laden
+    except (
+        RuntimeError
+    ) as ex:  # ohne Spiel-Instanz (SHC_INSTANZ=99) laesst sich der Waechter nicht laden
         pytest.skip(str(ex))
 
     gesendet = []
@@ -371,7 +443,9 @@ def test_waechter_gibt_angriff_und_stapeln_an_die_wegfuehrung(monkeypatch):
     alt = WA.Waechter(1)
     alt.besetzt = True
     alt.schritt(L, gebaeude)
-    assert any(b.get("angriff", {}).get("ziel") == 156 for b in gesendet)  # ohne Wegfuehrung wie bisher
+    assert any(
+        b.get("angriff", {}).get("ziel") == 156 for b in gesendet
+    )  # ohne Wegfuehrung wie bisher
     gesendet.clear()
     w = WA.Waechter(1)
     w.besetzt = True
@@ -381,11 +455,17 @@ def test_waechter_gibt_angriff_und_stapeln_an_die_wegfuehrung(monkeypatch):
     assert w.ziel == 156 and angreifer and not any("ziel" in b.get("angriff", {}) for b in gesendet)
     assert all(w.weg.fuehrt(n) and w.gefuehrt[n] == "einheit" for n in angreifer)
     st = w.weg.schritt(L, {}, lambda *a, **k: None)
-    assert all(st[n] in ("unterwegs", "greift_an") for n in angreifer)  # mit Freigabe auch unter Beschuss
+    assert all(
+        st[n] in ("unterwegs", "greift_an") for n in angreifer
+    )  # mit Freigabe auch unter Beschuss
     ruhig = {n: e for n, e in L.items() if e["besitzer"] == 1}
     w.schritt(ruhig, gebaeude)
-    assert not any(w.gefuehrt.get(n) == "einheit" for n in angreifer)  # ohne Bedrohung endet der Angriff
-    assert w.gefuehrt.get(62) == "ort"  # Stapeln auf das Feld der Fernkaempfer ueber die Wegfuehrung
+    assert not any(
+        w.gefuehrt.get(n) == "einheit" for n in angreifer
+    )  # ohne Bedrohung endet der Angriff
+    assert (
+        w.gefuehrt.get(62) == "ort"
+    )  # Stapeln auf das Feld der Fernkaempfer ueber die Wegfuehrung
     w.schritt(ruhig, gebaeude, ausgenommen={62})
     assert not w.weg.fuehrt(62)  # gehoert jetzt einem anderen Modul
 

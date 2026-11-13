@@ -58,7 +58,9 @@ ALT = {
     # Lenker: Streitkolben-Angriff auf den feindlichen Lord (ANGRIFF_AB)
     ("runtime/live/erstes_spiel.py", "phase2", "ziel"): 1,
 }
-HOECHSTENS = 28  # Summe von ALT am 11.11.2026 19:50 - nur senken (Plan: "darf nur sinken, bis sie 0 ist")
+HOECHSTENS = (
+    28  # Summe von ALT am 11.11.2026 19:50 - nur senken (Plan: "darf nur sinken, bis sie 0 ist")
+)
 
 ERLAUBT = {
     ("micro/tasks/assassinen.py", "Einzeln.schritt", "lauf+vorrang", "Flucht"): 1,
@@ -94,7 +96,13 @@ def stellen(quelle, rel):
                 if isinstance(v, ast.Dict):
                     schl = [kk.value for kk in v.keys if isinstance(kk, ast.Constant)]
                     if "einheiten" in schl:
-                        aus.append((name, "+".join(sorted(a for a in schl if a in ARTEN)) or "?", node.lineno))
+                        aus.append(
+                            (
+                                name,
+                                "+".join(sorted(a for a in schl if a in ARTEN)) or "?",
+                                node.lineno,
+                            )
+                        )
                 elif (
                     isinstance(v, ast.Call)
                     and isinstance(v.func, ast.Name)
@@ -108,7 +116,12 @@ def stellen(quelle, rel):
         def visit_Call(self, node):
             name = ".".join(pfad) or "<modul>"
             f = node.func
-            if isinstance(f, ast.Attribute) and f.attr == "ausweichen" and isinstance(f.value, ast.Attribute) and f.value.attr == "kern":
+            if (
+                isinstance(f, ast.Attribute)
+                and f.attr == "ausweichen"
+                and isinstance(f.value, ast.Attribute)
+                and f.value.attr == "kern"
+            ):
                 aus.append((name, "zickzack", node.lineno))
             if (
                 verteiler
@@ -150,7 +163,10 @@ def bestand(wurzel=WURZEL):
                 continue
             g = next((x for x in GRUENDE if grund.startswith(x)), None)
             if g is None:
-                fehler.append("%s:%d %s: Grund '%s' steht nicht im Plan (%s)" % (rel, nr, name, grund, ", ".join(GRUENDE)))
+                fehler.append(
+                    "%s:%d %s: Grund '%s' steht nicht im Plan (%s)"
+                    % (rel, nr, name, grund, ", ".join(GRUENDE))
+                )
             else:
                 erlaubt[(rel, name, art, g)] += 1
     return alt, erlaubt, fehler
@@ -165,7 +181,10 @@ def _unterschied(soll, ist):
 def test_jede_befehlsstelle_ist_erlaubt_oder_steht_in_der_altliste():
     alt, _erlaubt, _fehler = bestand()
     neu, weg = _unterschied(ALT, alt)
-    assert not neu, "Neue Befehlsstelle ausserhalb der Wegfuehrung - ueber micro/wegfuehrung.py fuehren oder mit Grund markieren: %s" % neu
+    assert not neu, (
+        "Neue Befehlsstelle ausserhalb der Wegfuehrung - ueber micro/wegfuehrung.py fuehren oder mit Grund markieren: %s"
+        % neu
+    )
     assert not weg, "Weniger alte Stellen als in ALT - gut: ALT und HOECHSTENS kuerzen: %s" % weg
 
 
@@ -173,7 +192,10 @@ def test_erlaubte_stellen_tragen_einen_grund_aus_dem_plan():
     _alt, erlaubt, fehler = bestand()
     assert not fehler, fehler
     neu, weg = _unterschied(ERLAUBT, erlaubt)
-    assert not neu and not weg, "Erlaubte Stellen weichen von ERLAUBT ab: neu %s, weg %s" % (neu, weg)
+    assert not neu and not weg, "Erlaubte Stellen weichen von ERLAUBT ab: neu %s, weg %s" % (
+        neu,
+        weg,
+    )
 
 
 def test_die_altliste_wird_nur_kuerzer():
@@ -182,7 +204,7 @@ def test_die_altliste_wird_nur_kuerzer():
 
 def test_der_sperrtest_erkennt_was_er_zaehlen_soll():
     """Gegenprobe am Sammler selbst - sonst waere ein gruener Lauf auch ein leerer."""
-    quelle = '''
+    quelle = """
 class K:
     def a(self, befehl):
         befehl({"angriff": {"einheiten": [1], "lauf": [2, 3]}}, 1.0)
@@ -199,11 +221,20 @@ class K:
 
     def e(self, auftrag):
         return {"angriff": dict(einheiten=[1], **auftrag)}
-'''
+"""
     st = stellen(quelle, "probe.py")
-    assert [(n, a) for n, a, _ in st] == [("K.a", "lauf"), ("K.b", "lauf+vorrang"), ("K.d", "zickzack"), ("K.e", "dynamisch")]
+    assert [(n, a) for n, a, _ in st] == [
+        ("K.a", "lauf"),
+        ("K.b", "lauf+vorrang"),
+        ("K.d", "zickzack"),
+        ("K.e", "dynamisch"),
+    ]
     zeilen = quelle.splitlines()
     assert [marke(zeilen, nr) for _, _, nr in st] == [None, "Flucht - Probe", None, None]
-    v = 'class Vorstoss:\n    def _sende(self, art, auftrag):\n        return {"angriff": dict(einheiten=[1], **auftrag)}\n' \
+    v = (
+        'class Vorstoss:\n    def _sende(self, art, auftrag):\n        return {"angriff": dict(einheiten=[1], **auftrag)}\n'
         '    def schritt(self):\n        self._sende("vor", {"lauf": [1, 2]})\n'
-    assert [(n, a) for n, a, _ in stellen(v, "micro/tasks/vorstoss.py")] == [("Vorstoss.schritt", "sende:vor")]
+    )
+    assert [(n, a) for n, a, _ in stellen(v, "micro/tasks/vorstoss.py")] == [
+        ("Vorstoss.schritt", "sende:vor")
+    ]

@@ -177,7 +177,10 @@ class RaidBestellungNachWirkung(RaidBestellung):
             neu = []
             for typ, n in kaeufe:
                 if typ == RA.SKLAVE and n > platz:
-                    self.begruendung.append("Sklaven %d statt %d: nur %d freie Ziele (erst ein Ziel, dann skalieren)" % (platz, n, platz))
+                    self.begruendung.append(
+                        "Sklaven %d statt %d: nur %d freie Ziele (erst ein Ziel, dann skalieren)"
+                        % (platz, n, platz)
+                    )
                     n = platz
                 if n > 0:
                     neu.append((typ, n))
@@ -198,7 +201,7 @@ class RaidEinsatz:
         from selfaware.micro.wegfuehrung import Wegfuehrung
 
         self.weg = Wegfuehrung(sp, gelaende, trotz_gefahr=TROTZ_GEFAHR)
-        self.weg_selbst = True     # False: der Lenker rechnet die gemeinsame Wegfuehrung einmal je Runde (auch fuer den Waechter)
+        self.weg_selbst = True  # False: der Lenker rechnet die gemeinsame Wegfuehrung einmal je Runde (auch fuer den Waechter)
         self.brand.weg = self.weg
         self.reiter.weg = self.weg
         self.nahkampf.weg = self.weg
@@ -254,5 +257,7 @@ class RaidEinsatz:
         aus += self.reiter.schritt(L, G, befehl)
         aus += self.nahkampf.schritt(L, G, befehl)
         if self.weg_selbst:
-            self.weg.schritt(L, G, befehl)   # einmal je Runde, nachdem die Module ihre Ziele gesetzt haben
+            self.weg.schritt(
+                L, G, befehl
+            )  # einmal je Runde, nachdem die Module ihre Ziele gesetzt haben
         return aus

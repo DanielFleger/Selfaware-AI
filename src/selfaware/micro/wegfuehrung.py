@@ -24,6 +24,7 @@ Jede Runde, gegen die aktuelle Lage:
     ungemessen.
 Startwerte, nicht gemessen: FERN_ANGRIFF, FERN_STAND, NEU_PLANEN, ZIEL_WANDERT (Plan_Wegfuehrung.md, Sandkasten misst sie).
 """
+
 import functools
 import math
 
@@ -31,17 +32,17 @@ import selfaware.services.schussfeld as SF
 import selfaware.services.sicht as SI
 import selfaware.services.spielwerte as SW
 
-NAH_AM_ZIEL = 4        # Felder (Schach): Nahkampf und Gebaeude gelten als am Ziel (wie Brandtrupp und Nahkampf-Raid)
-FERN_ANGRIFF = 2       # Startwert: Fernkaempfer greifen an, wenn die Luftlinie hoechstens Reichweite minus FERN_ANGRIFF ist
-FERN_STAND = 4         # Startwert: Standplatz in Reichweite minus FERN_STAND vor dem Ziel
-AM_WEGPUNKT = 3        # Felder: dann gilt der naechste Wegpunkt (wie Nahkampf-Raid)
-BUDGET = 8             # Einzelbefehle je Runde (S82: 8 kamen alle rechtzeitig)
-NEU_ALLE = 6           # gleicher Befehl hoechstens alle NEU_ALLE Runden noch einmal
-NEU_PLANEN = 10        # Startwert: spaetestens nach so vielen Runden neu planen
-ZIEL_WANDERT = 8       # Startwert: Felder, ab denen ein gewandertes Ziel neu geplant wird
-RICHTUNGEN = 16        # Standplaetze auf dem Kreis um das Ziel
-ASSASSINE = 73         # getarnt: Schuetzen nehmen sie nur, wenn sie sichtbar ist (L75)
-STECKT_RUNDEN = 3      # Startwert: so viele Runden auf demselben Feld trotz Laufbefehl - der Wegpunkt gilt als nicht erreichbar
+NAH_AM_ZIEL = 4  # Felder (Schach): Nahkampf und Gebaeude gelten als am Ziel (wie Brandtrupp und Nahkampf-Raid)
+FERN_ANGRIFF = 2  # Startwert: Fernkaempfer greifen an, wenn die Luftlinie hoechstens Reichweite minus FERN_ANGRIFF ist
+FERN_STAND = 4  # Startwert: Standplatz in Reichweite minus FERN_STAND vor dem Ziel
+AM_WEGPUNKT = 3  # Felder: dann gilt der naechste Wegpunkt (wie Nahkampf-Raid)
+BUDGET = 8  # Einzelbefehle je Runde (S82: 8 kamen alle rechtzeitig)
+NEU_ALLE = 6  # gleicher Befehl hoechstens alle NEU_ALLE Runden noch einmal
+NEU_PLANEN = 10  # Startwert: spaetestens nach so vielen Runden neu planen
+ZIEL_WANDERT = 8  # Startwert: Felder, ab denen ein gewandertes Ziel neu geplant wird
+RICHTUNGEN = 16  # Standplaetze auf dem Kreis um das Ziel
+ASSASSINE = 73  # getarnt: Schuetzen nehmen sie nur, wenn sie sichtbar ist (L75)
+STECKT_RUNDEN = 3  # Startwert: so viele Runden auf demselben Feld trotz Laufbefehl - der Wegpunkt gilt als nicht erreichbar
 
 
 def _luft(a, b):
@@ -61,14 +62,18 @@ class Gefahr:
     def __init__(self, L, G, sp):
         # hier importiert, damit raids die Wegfuehrung selbst nutzen kann
         from selfaware.micro.tasks import raids as RA
+
         self.lage = _Sicht(L, G or {}, sp)
-        self.schuetzen = []      # (Ort, Reichweite, erhoeht, Nr des Gebaeudes unter ihm)
+        self.schuetzen = []  # (Ort, Reichweite, erhoeht, Nr des Gebaeudes unter ihm)
         for i, (ort, _r, erhoeht, steht, _art) in enumerate(self.lage.schuetzen):
             r = SF.REICHWEITE.get((L.get(self.lage.schuetzen_nr[i]) or {}).get("typ"))
             if r:
                 self.schuetzen.append((ort, r, erhoeht, steht))
-        self.nah = [(e["x"], e["y"]) for e in L.values()
-                    if e.get("besitzer") not in (0, sp) and e.get("typ") in RA.NAH and e.get("leben", 1) > 0]
+        self.nah = [
+            (e["x"], e["y"])
+            for e in L.values()
+            if e.get("besitzer") not in (0, sp) and e.get("typ") in RA.NAH and e.get("leben", 1) > 0
+        ]
         self.nah_r = RA.GEFAHR_NAH
         self._linie, self._sicht = {}, {}
 
@@ -112,7 +117,9 @@ class Gefahr:
         """Wegegitter mit Gefahr je Zelle (Zellmitte) nach derselben Regel - gerechnet nur fuer Zellen in Reichweite einer Gefahr."""
         g = SF.Gitter(gelaende, [], frei=frei)
         zellen = set()
-        for (px, py), r in [(s, r) for s, r, _e, _st in self.schuetzen] + [(q, self.nah_r) for q in self.nah]:
+        for (px, py), r in [(s, r) for s, r, _e, _st in self.schuetzen] + [
+            (q, self.nah_r) for q in self.nah
+        ]:
             ri = int(math.ceil(r))
             for cy in range(max(0, (py - ri) // g.z), min(g.n - 1, (py + ri) // g.z) + 1):
                 for cx in range(max(0, (px - ri) // g.z), min(g.n - 1, (px + ri) // g.z) + 1):
@@ -125,13 +132,13 @@ class Gefahr:
 class Auftrag:
     def __init__(self, art, ziel, zweck):
         self.art, self.ziel, self.zweck = art, ziel, zweck
-        self.kennung = None      # (Art, Besitzer) des Ziels beim ersten Sehen - das Spiel vergibt Nummern Toter neu
-        self.weg = []            # offene Wegpunkte
-        self.zellen = []         # geplante Zellen (fuer die Gefahrenpruefung je Runde)
-        self.plan_gefahr = []    # Gefahr je Zelle beim Planen
-        self.geplant = (None, -10 ** 6)   # (Standplatz, Runde)
-        self.letzter = None      # (Ort, Wegpunkt) der Vorrunde - fuer die Erkennung "steckt fest"
-        self.steht = 0           # Runden auf demselben Feld mit demselben Wegpunkt
+        self.kennung = None  # (Art, Besitzer) des Ziels beim ersten Sehen - das Spiel vergibt Nummern Toter neu
+        self.weg = []  # offene Wegpunkte
+        self.zellen = []  # geplante Zellen (fuer die Gefahrenpruefung je Runde)
+        self.plan_gefahr = []  # Gefahr je Zelle beim Planen
+        self.geplant = (None, -(10**6))  # (Standplatz, Runde)
+        self.letzter = None  # (Ort, Wegpunkt) der Vorrunde - fuer die Erkennung "steckt fest"
+        self.steht = 0  # Runden auf demselben Feld mit demselben Wegpunkt
         self.status = "neu"
 
 
@@ -141,9 +148,9 @@ class Wegfuehrung:
         Nahkampf-Raid, baukasten/raid.TROTZ_GEFAHR)."""
         self.sp, self.gelaende, self.trotz_gefahr = sp, gelaende, frozenset(trotz_gefahr)
         self.auftraege = {}
-        self.befohlen = {}       # Einheit -> (Befehl, Runde)
+        self.befohlen = {}  # Einheit -> (Befehl, Runde)
         self.runde = 0
-        self._frei = None        # Begehbarkeit des Gelaendes, einmal berechnet
+        self._frei = None  # Begehbarkeit des Gelaendes, einmal berechnet
 
     def fuehre(self, nr, art, ziel, zweck=""):
         """art: "einheit" (ziel = Nummer), "gebaeude" (ziel = Nummer) oder "ort" (ziel = (x, y))."""
@@ -180,7 +187,7 @@ class Wegfuehrung:
         if a.kennung is None:
             a.kennung = kennung
         elif a.kennung != kennung:
-            return None          # die Nummer traegt eine andere Einheit: das alte Ziel ist tot
+            return None  # die Nummer traegt eine andere Einheit: das alte Ziel ist tot
         return (z["x"], z["y"])
 
     def _standplatz(self, ort, zielort, r, gefahr_an):
@@ -193,7 +200,10 @@ class Wegfuehrung:
         best = None
         for i in range(RICHTUNGEN):
             w = w0 + (i // 2 + 1) * (2 * math.pi / RICHTUNGEN) * (1 if i % 2 else -1) if i else w0
-            p = (int(round(zielort[0] + rad * math.cos(w))), int(round(zielort[1] + rad * math.sin(w))))
+            p = (
+                int(round(zielort[0] + rad * math.cos(w))),
+                int(round(zielort[1] + rad * math.sin(w))),
+            )
             k = (gefahr_an(p), _luft(ort, p), p)
             if best is None or k < best:
                 best = k
@@ -204,7 +214,7 @@ class Wegfuehrung:
         kein_weg, wartet, weg)."""
         self.runde += 1
         bild = Gefahr(L, G, self.sp)
-        gitter = {}              # je Runde ein Gitter fuer Getarnte (Assassinen) und eines fuer alle anderen
+        gitter = {}  # je Runde ein Gitter fuer Getarnte (Assassinen) und eines fuer alle anderen
         befehle = []
         for nr, a in list(self.auftraege.items()):
             e = L.get(nr)
@@ -220,11 +230,15 @@ class Wegfuehrung:
             typ = e["typ"]
             r = SW.erfassen(typ) if a.art == "einheit" else None
             # in Reichweite: angreifen
-            if a.art != "ort" and ((r is not None and _luft(ort, zielort) <= r - FERN_ANGRIFF)
-                                   or (r is None and SF.schach(ort, zielort) <= NAH_AM_ZIEL)):
+            if a.art != "ort" and (
+                (r is not None and _luft(ort, zielort) <= r - FERN_ANGRIFF)
+                or (r is None and SF.schach(ort, zielort) <= NAH_AM_ZIEL)
+            ):
                 a.status = "greift_an"
                 schluessel = "ziel" if a.art == "einheit" else "gebaeude"
-                befehle.append((bild.an(ort, typ), nr, {"angriff": {"einheiten": [nr], schluessel: a.ziel}}))
+                befehle.append(
+                    (bild.an(ort, typ), nr, {"angriff": {"einheiten": [nr], schluessel: a.ziel}})
+                )
                 continue
             if a.art == "ort" and SF.schach(ort, zielort) <= AM_WEGPUNKT:
                 a.status = "am_ziel"
@@ -232,10 +246,17 @@ class Wegfuehrung:
             # Nahkaempfer muessen an ihr Ziel heran - seine eigene Gefahr zaehlt fuer sie nicht, ein Gebaeude als Ziel sperrt keine
             # Linie zu sich selbst. Fernkaempfer halten Abstand: gegen einen Schleuderer (22) geht der Standplatz in 36 Feldern, gegen
             # einen Bogenschuetzen (44) nur, wo ein Gebaeude seine Linie sperrt
-            gefahr_an = functools.partial(bild.an, typ=typ, ausser_ort=zielort if (a.art == "einheit" and r is None) else None,
-                                          ausser_gebaeude=a.ziel if a.art == "gebaeude" else None)
-            stand, gefahr_stand = (self._standplatz(ort, zielort, r, gefahr_an) if a.art != "ort"
-                                   else (zielort, gefahr_an(zielort)))
+            gefahr_an = functools.partial(
+                bild.an,
+                typ=typ,
+                ausser_ort=zielort if (a.art == "einheit" and r is None) else None,
+                ausser_gebaeude=a.ziel if a.art == "gebaeude" else None,
+            )
+            stand, gefahr_stand = (
+                self._standplatz(ort, zielort, r, gefahr_an)
+                if a.art != "ort"
+                else (zielort, gefahr_an(zielort))
+            )
             if gefahr_stand and a.zweck not in self.trotz_gefahr:
                 a.status = "gefahr"
                 continue
@@ -249,9 +270,16 @@ class Wegfuehrung:
             if a.zellen:
                 hier = g.zelle_von(ort)
                 i = min(range(len(a.zellen)), key=lambda k: SF.schach(a.zellen[k], hier))
-                neue_gefahr = sum(g.schaden_je_tick(c) for c in a.zellen[i:]) > sum(a.plan_gefahr[i:])
-            if (alt_stand is None or SF.schach(alt_stand, stand) > ZIEL_WANDERT or neue_gefahr
-                    or self.runde - alt_runde >= NEU_PLANEN or not a.weg):
+                neue_gefahr = sum(g.schaden_je_tick(c) for c in a.zellen[i:]) > sum(
+                    a.plan_gefahr[i:]
+                )
+            if (
+                alt_stand is None
+                or SF.schach(alt_stand, stand) > ZIEL_WANDERT
+                or neue_gefahr
+                or self.runde - alt_runde >= NEU_PLANEN
+                or not a.weg
+            ):
                 zellen = g.weg(ort, stand)
                 if zellen is None:
                     a.status = "kein_weg"
@@ -267,16 +295,26 @@ class Wegfuehrung:
             # nahm den Befehl an, der Sklave ruehrte sich nicht - der Punkt war fuer ihn nicht erreichbar (die Karte ist vom
             # Partiebeginn). Steht die Einheit STECKT_RUNDEN Runden mit demselben Wegpunkt auf demselben Feld, gilt dessen Zelle
             # fuer die Partie als nicht begehbar, und der Weg wird neu geplant.
-            a.steht = a.steht + 1 if a.letzter == (ort, tuple(ziel_p)) and SF.schach(ort, ziel_p) > AM_WEGPUNKT else 0
+            a.steht = (
+                a.steht + 1
+                if a.letzter == (ort, tuple(ziel_p)) and SF.schach(ort, ziel_p) > AM_WEGPUNKT
+                else 0
+            )
             a.letzter = (ort, tuple(ziel_p))
             if a.steht >= STECKT_RUNDEN:
                 cx, cy = g.zelle_von(ziel_p)
                 g.frei[cy][cx] = False
-                a.geplant, a.steht, a.letzter = (None, -10 ** 6), 0, None
+                a.geplant, a.steht, a.letzter = (None, -(10**6)), 0, None
                 a.status = "steckt"
                 continue
             a.status = "unterwegs"
-            befehle.append((bild.an(ort, typ), nr, {"angriff": {"einheiten": [nr], "lauf": [int(ziel_p[0]), int(ziel_p[1])]}}))
+            befehle.append(
+                (
+                    bild.an(ort, typ),
+                    nr,
+                    {"angriff": {"einheiten": [nr], "lauf": [int(ziel_p[0]), int(ziel_p[1])]}},
+                )
+            )
         # Budget: dringende zuerst (Einheit selbst in Gefahr), dann nach Nummer; nur Aenderungen oder nach NEU_ALLE Runden. Gleiche
         # Befehle (selbes Ziel, selber Wegpunkt) gehen als EIN Befehl fuer alle diese Einheiten hinaus
         gruppen = {}
@@ -284,7 +322,13 @@ class Wegfuehrung:
             alt = self.befohlen.get(nr)
             if alt is not None and alt[0] == b and self.runde - alt[1] < NEU_ALLE:
                 continue
-            inhalt = tuple(sorted((k, tuple(v) if isinstance(v, list) else v) for k, v in b["angriff"].items() if k != "einheiten"))
+            inhalt = tuple(
+                sorted(
+                    (k, tuple(v) if isinstance(v, list) else v)
+                    for k, v in b["angriff"].items()
+                    if k != "einheiten"
+                )
+            )
             gruppen.setdefault(inhalt, []).append((nr, b))
         gesendet = 0
         for liste in gruppen.values():
@@ -292,7 +336,11 @@ class Wegfuehrung:
                 for nr, _b in liste:
                     self.auftraege[nr].status = "wartet"
                 continue
-            befehl({"angriff": dict(liste[0][1]["angriff"], einheiten=sorted(nr for nr, _b in liste))}, 1.0, bis="ANGRIFF")
+            befehl(
+                {"angriff": dict(liste[0][1]["angriff"], einheiten=sorted(nr for nr, _b in liste))},
+                1.0,
+                bis="ANGRIFF",
+            )
             for nr, b in liste:
                 self.befohlen[nr] = (b, self.runde)
             gesendet += 1
