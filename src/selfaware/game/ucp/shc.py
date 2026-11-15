@@ -748,6 +748,52 @@ def partie(karte, kis, teams="", plaetze="", art="1", gold="3", aufstellung="lob
     )
 
 
+def _lebt(pid):
+    r = subprocess.run(
+        ["tasklist", "/FI", "PID eq %d" % pid, "/NH"],
+        capture_output=True,
+        text=True,
+        encoding="cp850",
+        errors="replace",
+    )
+    return str(pid) in (r.stdout or "")
+
+
+def _starte_lenker(sp, stempel, aufstellung):
+    """Lenker ueber WMI starten: ein Kind dieses Prozesses endet mit dem Befehl, der es gestartet hat (gemessen 22:09, Lenker stand ab
+    Takt 9092 still; Loesen aus der Umgebung verweigert Windows). Gibt die Prozessnummer der cmd-Huelle (taskkill /T trifft den Lenker mit)."""
+    aus = os.path.join(workspace.DATA, "partie_%s_lenker_sp%d.txt" % (stempel, sp))
+    huelle = os.path.join(workspace.DATA, "partie_%s_lenker_sp%d.cmd" % (stempel, sp))
+    with open(huelle, "w", encoding="ascii") as f:
+        zeilen = [
+            "@echo off",
+            "set SHC_INSTANZ=%s" % os.environ.get("SHC_INSTANZ", "team-liga"),
+            "set SHC_SPIELER=%d" % sp,
+            "set SHC_PARTNER=ja",
+            "set PYTHONPATH=%s" % os.path.join(workspace.ROOT, "src"),
+            '"%s" -u -m selfaware.runtime.live.erstes_spiel aufstellung=%s > "%s" 2>&1'
+            % (sys.executable, aufstellung, aus),
+        ]
+        f.write("".join(z + chr(13) + chr(10) for z in zeilen))
+    befehl = (
+        "(Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine='cmd /c \"%s\"'; "
+        "CurrentDirectory='%s'}).ProcessId" % (huelle, workspace.ROOT)
+    )
+    r = subprocess.run(
+        ["powershell", "-NoProfile", "-Command", befehl],
+        capture_output=True,
+        text=True,
+        encoding="cp850",
+        errors="replace",
+    )
+    try:
+        return int(r.stdout.strip().splitlines()[-1])
+    except (ValueError, IndexError):
+        raise Fehler(
+            "Lenker fuer Spieler %d nicht gestartet: %s" % (sp, (r.stderr or r.stdout)[-200:])
+        ) from None
+
+
 def lenker_stoppen():
     """Lenker einer frueheren Partie (PIDs in partie_laufend.json) beenden und nachsehen, dass sie weg sind. Gibt ihre Zahl."""
     import json
@@ -803,37 +849,8 @@ def losspielen(pruef_takt="410"):
     B.belege()
     stempel = time.strftime("%Y%m%d_%H%M%S")
     senden([{"tickpause": {"bei": int(pruef_takt)}}], 2.0)
-    prozesse = []
-    for sp in lauf["samurai"]:
-        env = dict(
-            os.environ,
-            SHC_SPIELER=str(sp),
-            SHC_PARTNER="ja",
-            PYTHONPATH=os.path.join(workspace.ROOT, "src"),
-        )
-        aus = open(
-            os.path.join(workspace.DATA, "partie_%s_lenker_sp%d.txt" % (stempel, sp)),
-            "w",
-            encoding="utf-8",
-        )
-        prozesse.append(
-            subprocess.Popen(
-                [
-                    sys.executable,
-                    "-u",
-                    "-m",
-                    "selfaware.runtime.live.erstes_spiel",
-                    "aufstellung=%s" % lauf["aufstellung"],
-                ],
-                cwd=workspace.ROOT,
-                env=env,
-                stdout=aus,
-                stderr=subprocess.STDOUT,
-                creationflags=getattr(subprocess, "DETACHED_PROCESS", 0)
-                | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0),
-            )
-        )
-    lauf["lenker_pids"] = [p.pid for p in prozesse]
+    prozesse = [_starte_lenker(sp, stempel, lauf["aufstellung"]) for sp in lauf["samurai"]]
+    lauf["lenker_pids"] = list(prozesse)
     with open(_laufend_datei(), "w", encoding="utf-8") as f:
         json.dump(lauf, f, ensure_ascii=False)
     # Erst laufen lassen, wenn JEDER Lenker die KI seines Platzes aus hat (Daniel 21:49 "es muss sofort samurai uebernehmen";
@@ -852,12 +869,11 @@ def losspielen(pruef_takt="410"):
                 m = None
             if m:
                 uebernommen[sp] = int(m.group(1))
-        if any(p.poll() is not None for p in prozesse):
+        if not all(_lebt(p) for p in prozesse):
             break
         time.sleep(0.1)
     if len(uebernommen) < len(prozesse):
-        for p in prozesse:
-            p.terminate()
+        lenker_stoppen()
         raise Fehler(
             "Lenker haben nicht uebernommen (gemeldet %s) - Spiel bleibt angehalten, Lenker gestoppt"
             % uebernommen
@@ -866,17 +882,16 @@ def losspielen(pruef_takt="410"):
     ende = time.time() + 180
     z = zustand()
     while not (z.get("tick", 0) >= int(pruef_takt) and z.get("pause") == 1) and time.time() < ende:
-        if any(p.poll() is not None for p in prozesse):
+        if not all(_lebt(p) for p in prozesse):
             break
         time.sleep(0.5)
         z = zustand()
     zaehl = einheiten_zaehlen()
     ist = {sp: {t: zaehl.get((sp, t), 0) for t in STARTTRUPPEN_SOLL} for sp in lauf["samurai"]}
     falsch = {sp: v for sp, v in ist.items() if v != STARTTRUPPEN_SOLL}
-    tot = [sp for sp, p in zip(lauf["samurai"], prozesse, strict=True) if p.poll() is not None]
+    tot = [sp for sp, p in zip(lauf["samurai"], prozesse, strict=True) if not _lebt(p)]
     if falsch or tot or z.get("tick", 0) < int(pruef_takt):
-        for p in prozesse:
-            p.terminate()
+        lenker_stoppen()
         raise Fehler(
             "ANGEHALTEN bei Takt %s: Starttruppen je SamurAI %s (soll %s), Lenker beendet %s - Lenker gestoppt"
             % (z.get("tick"), ist, STARTTRUPPEN_SOLL, tot)
