@@ -2563,7 +2563,8 @@ class Einzeln:
                 for k in list(lt["mitglieder"]):
                     self._vergessen(k)
                 lt.update(mitglieder=set(), phase=None, pause_bis=self.jetzt + self.BEREIT_PAUSE)
-            if lt["phase"] == "bereit" and self.jetzt - lt.get("seit_tick", self.jetzt) > self.BEREIT_MAX:
+            if lt["phase"] == "bereit" and self.jetzt - lt.get("seit_tick", self.jetzt) > self.BEREIT_MAX \
+                    and len(lt.get("bereit", ())) < n_bedarf:      # genug beisammen: dann greift unten der Stapel an statt abzubrechen
                 ereignis.append("LORD-BEREITSTELLUNG ABGEBROCHEN: nach %d Ticks erst %d von %d bereit - alle raiden" % (
                     self.jetzt - lt["seit_tick"], len(lt.get("bereit", ())), n_bedarf))
                 # #358 (Probe 15.11.2026 23:29: zweimal 0 von 6/8 bereit nach ~3.100 Takten, Wege 22-214 Felder zu EINEM verdeckten Platz;
@@ -2700,10 +2701,17 @@ class Einzeln:
                         lt["ort_bef"][k] = pos(k)
                         lord_lauf.setdefault(weg[0], []).append(k)
                 lt["bereit"] = bereit
-                if len(bereit) >= n_bedarf and lord_machbar(len(bereit), le["leben"], self._sicht.feuer_gesamt(lp) / len(bereit),
-                                                            leben=self._anlauf_leben(self._anlauf_von(L, lp), lp, len(bereit)))[0]:
-                    # Daniel 23:10: alle greifen an - wer noch anlaeuft, laeuft direkt zum Lord (vorher raidete er weiter, nur die Bereiten gingen)
-                    alle = sorted(lt["mitglieder"])
+                # Daniel 16.11.2026 00:10 ("die assassinen troepfeln wieder rein ohne stacking"): es greift NUR der Stapel an - wer am Platz
+                # steht -, und erst wenn alle angekommen sind oder BEREIT_MAX um ist und genug beisammen stehen. Vorher (meine Aenderung 23:10)
+                # liefen auch die noch Anlaufenden los und kamen einzeln an
+                alle_da = len(bereit) >= len(lt["mitglieder"])
+                zeit_um = self.jetzt - lt.get("seit_tick", self.jetzt) > self.BEREIT_MAX
+                if len(bereit) >= n_bedarf and (alle_da or zeit_um) and lord_machbar(
+                        len(bereit), le["leben"], self._sicht.feuer_gesamt(lp) / len(bereit),
+                        leben=self._anlauf_leben(self._anlauf_von(L, lp), lp, len(bereit)))[0]:
+                    alle = sorted(bereit)
+                    for k in lt["mitglieder"] - bereit:
+                        self._vergessen(k)            # nicht im Stapel: raidet weiter, laeuft nicht einzeln hinterher
                     lt.update(mitglieder=set(alle), phase="angriff", seit=self.runde, angriff_tick=self.jetzt)
                     for k in alle:
                         if schach(pos(k), lp) > self.ANLAUF_NAH:

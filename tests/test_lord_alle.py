@@ -62,15 +62,39 @@ def test_alle_gehen_in_die_lord_gruppe_nicht_nur_der_bedarf():
     assert len(a.lordtrupp["mitglieder"]) == 12, [z for z in ev if "LORD" in z]
 
 
-def test_beim_start_greifen_alle_an_auch_wer_noch_anlaeuft():
+def test_nur_der_stapel_greift_an_wenn_alle_da_sind():
+    """Daniel 16.11.2026 00:10: "die assassinen troepfeln wieder rein ohne stacking". 8 von 12 am Platz: noch kein Angriff; alle 12 da:
+    alle 12 zugleich. Laeuft die Zeit ab, greift nur der Stapel an - wer nicht dasteht, raidet weiter statt einzeln hinterherzulaufen."""
     a, L = _szene(12)
     _schritt(a, L, 20000)
     plaetze = dict(a.lordtrupp["platz"])
-    for k in sorted(plaetze)[:8]:  # 8 von 12 stehen am Platz, 4 laufen noch
+
+    def hin(ks):
+        for k in ks:
+            L[k].update(x=plaetze[k][0], y=plaetze[k][1], laufx=plaetze[k][0], laufy=plaetze[k][1])
+
+    hin(sorted(plaetze)[:8])
+    _schritt(a, L, 20200)
+    assert a.lordtrupp["phase"] == "bereit", "8 von 12 da: warten, nicht einzeln losschicken"
+    hin(sorted(plaetze)[8:])
+    ev = _schritt(a, L, 20400)
+    assert a.lordtrupp["phase"] == "angriff" and a.angriffe[-1]["groesse"] == 12, [
+        z for z in ev if "LORD" in z
+    ]
+
+
+def test_zeit_um_greift_nur_der_stapel_an():
+    a, L = _szene(12)
+    _schritt(a, L, 20000)
+    plaetze = dict(a.lordtrupp["platz"])
+    for k in sorted(plaetze)[:8]:
         L[k].update(x=plaetze[k][0], y=plaetze[k][1], laufx=plaetze[k][0], laufy=plaetze[k][1])
-    ev = _schritt(a, L, 20200)
-    assert a.lordtrupp["phase"] == "angriff", [z for z in ev if "LORD" in z]
-    assert len(a.lordtrupp["mitglieder"]) == 12 and a.angriffe[-1]["groesse"] == 12
+    _schritt(a, L, 20200)
+    ev = _schritt(a, L, 20000 + a.BEREIT_MAX + 10)
+    assert a.lordtrupp["phase"] == "angriff" and a.angriffe[-1]["groesse"] == 8, [
+        z for z in ev if "LORD" in z
+    ]
+    assert not any("ABGEBROCHEN" in z for z in ev)
 
 
 def test_gemessener_bedarf_aus_dem_letzten_angriff():

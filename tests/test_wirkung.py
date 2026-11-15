@@ -1014,3 +1014,22 @@ def test_zwei_nahkaempfer_greifen_dasselbe_gebaeude_an():
     aus = r.schritt(L, G, bf)
     assert r.ziel.get(2) == r.ziel.get(3) == ("g", 1), aus
     assert sum("dazu (schon besetzt" in z for z in aus) == 1, aus
+
+
+def test_kein_wechsel_nur_weil_der_weg_zum_jetzigen_ziel_in_dieser_runde_fehlt():
+    """Daniel 16.11.2026 00:09: "ein speertraeger lief ewig in eine richtung nur um dann zurueckzugehen fuer ein anderes gebaeude".
+    Probe 4: ein Teil der 39 Wechsel kam "statt kein Weg" - der Weg zum jetzigen Ziel fehlte in einer Runde. Dann bleibt das Ziel."""
+    r, bf = _raid_mit_weg(), Befehle()
+    L, G = {}, {1: geb(100, 300)}
+    _mit_schwert(r, bf, L, G, x=100, y=100)
+    assert r.ziel[2] == ("g", 1)
+    G[5] = geb(160, 100)
+    alt = r.weg.weglaenge
+
+    def ohne_weg_zu_1(raster, von):
+        f = alt(raster, von)
+        return lambda o: None if tuple(o) == (100, 300) else f(o)
+
+    r.weg.weglaenge = ohne_weg_zu_1
+    aus = r.schritt(L, G, bf)
+    assert r.ziel[2] == ("g", 1) and not any("wechselt" in z for z in aus), aus

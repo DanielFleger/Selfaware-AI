@@ -324,7 +324,10 @@ class NahkampfRaid:
                     if w[2].schluessel != alt
                 ]
                 best = max(andere, default=None, key=lambda w: w[0])
-                if best is not None and best[0] > 0 and (jetzt is None or best[0] > jetzt[0]):
+                # Daniel 16.11.2026 00:09 ("ein speertraeger lief ewig in eine richtung nur um dann zurueckzugehen fuer ein anderes gebaeude"):
+                # Probe 4 - 39 Wechsel, ein Teil "statt kein Weg" (Weg zum jetzigen Ziel in DIESER Runde nicht gefunden). Ohne Weg in dieser
+                # Runde bleibt das Ziel; ein dauerhaft unerreichbares Ziel gibt die Wegfuehrung mit "kein_weg" ab (B-182 oben)
+                if best is not None and best[0] > 0 and jetzt is not None and best[0] > jetzt[0]:
                     aus.append(
                         "NAHKAMPF-RAID: %d (Typ %d) wechselt von %s %d zu %s %d (Typ %d) bei %s - %.4f statt %s Wert je Takt "
                         "(mit %.1f Takten fuer den Wechsel), %d statt %s Felder auf dem sicheren Weg"
