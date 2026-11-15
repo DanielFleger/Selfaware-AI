@@ -4,26 +4,45 @@ diese faehigkeiten geben nicht nur assassinen?"): Spielwerte aus der Balance-Dat
 rebalancer, ucp-config.yml balance_config_file_selector; Instanz 2: Mod-KI-Team-Liga-2.0.2/.../liga_ai.json). Hier der
 Gebaeudeschaden je Einheitenart (buildingDamage, abgelesen 15.11.2026 01:31: Speertraeger 10, Assassine 75, arab. Schwertkaempfer 100).
 Ohne lesbare Datei: {} - die Wertrechnung rechnet dann wie bisher."""
+
 import glob
 import json
 import os
 
 # Namen der Einheiten in der Balance-Datei -> Art im Spiel (micro/unit_log.NAMES)
-ARTEN = {"Tunneler": 5, "European archer": 22, "European crossbowman": 23, "European spearman": 24, "European pikeman": 25,
-         "European maceman": 26, "European swordsman": 27, "European knight": 28, "Lord": 55, "Arabian archer": 70,
-         "Arabian slave": 71, "Arabian slinger": 72, "Arabian assassin": 73, "Arabian horse archer": 74, "Arabian swordsman": 75,
-         "Arabian firethrower": 76}
+ARTEN = {
+    "Tunneler": 5,
+    "European archer": 22,
+    "European crossbowman": 23,
+    "European spearman": 24,
+    "European pikeman": 25,
+    "European maceman": 26,
+    "European swordsman": 27,
+    "European knight": 28,
+    "Lord": 55,
+    "Arabian archer": 70,
+    "Arabian slave": 71,
+    "Arabian slinger": 72,
+    "Arabian assassin": 73,
+    "Arabian horse archer": 74,
+    "Arabian swordsman": 75,
+    "Arabian firethrower": 76,
+}
 
 
 def datei(spiel_ordner):
     """Pfad der Balance-Datei, die ucp-config.yml dem rebalancer gibt, oder None."""
     try:
-        zeilen = open(os.path.join(spiel_ordner, "ucp-config.yml"), encoding="utf-8", errors="replace").read().splitlines()
+        zeilen = (
+            open(os.path.join(spiel_ordner, "ucp-config.yml"), encoding="utf-8", errors="replace")
+            .read()
+            .splitlines()
+        )
     except OSError:
         return None
     for i, z in enumerate(zeilen):
         if "balance_config_file_selector" in z:
-            for w in zeilen[i + 1:i + 6]:
+            for w in zeilen[i + 1 : i + 6]:
                 if w.strip().startswith("value:"):
                     muster = w.split("value:", 1)[1].strip().strip("'\"")
                     treffer = sorted(glob.glob(os.path.join(spiel_ordner, muster)))

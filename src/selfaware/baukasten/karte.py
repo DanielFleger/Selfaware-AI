@@ -104,10 +104,17 @@ KARTE = {
         ),
         _m("Alter Ausbau", "macro/wirtschaft.py:Ausbau"),
         _m("Ertragsplaner", "macro/ertragsplaner.py:Ertragsplaner"),
-        _m("Ochsenjoch am Steinhaufen (S168)", "macro/joch.py runtime/live/erstes_spiel.py:baue_joch"),
+        _m(
+            "Ochsenjoch am Steinhaufen (S168)",
+            "macro/joch.py runtime/live/erstes_spiel.py:baue_joch",
+        ),
         _m("Startsperre: Gefecht nur mit Daniels Aufstellung (S169)", "execution/startsperre.py"),
-        _m("Alle Stein- und Eisenvorkommen nach Laufzeit (S170)", "macro/rohstoffe.py runtime/live/erstes_spiel.py:rohstoffe_bauen "
-           "runtime/live/erstes_spiel.py:rohstoffe_arbeiter", "rohstoffe"),
+        _m(
+            "Alle Stein- und Eisenvorkommen nach Laufzeit (S170)",
+            "macro/rohstoffe.py runtime/live/erstes_spiel.py:rohstoffe_bauen "
+            "runtime/live/erstes_spiel.py:rohstoffe_arbeiter",
+            "rohstoffe",
+        ),
         _m("Aufbauplan", "macro/aufbau_planer.py", "v14"),
         _m(
             "Haushalt",
@@ -165,7 +172,11 @@ KARTE = {
         _m("Reiterjagd", "micro/tasks/raids.py:Reiterjagd"),
         _m("Deckung", "micro/tasks/raids.py:Deckung"),
         _m("Vorstoss", "micro/tasks/vorstoss.py:Vorstoss", "vorstoss vorstoss_bis"),
-        _m("Assassinen einzeln", "micro/tasks/assassinen.py:Einzeln", "assassinen lord_sofort heer_ueberschuss"),
+        _m(
+            "Assassinen einzeln",
+            "micro/tasks/assassinen.py:Einzeln",
+            "assassinen lord_sofort heer_ueberschuss",
+        ),
     ),
     "einsatz_angriff": (
         _m("Feldzug", "micro/tasks/feldzug.py:Feldzug", "weg angriff_ab"),
@@ -218,7 +229,15 @@ KARTE = {
         _m(
             "Befehlsweg",
             "execution/kernweg.py game/kern_port.py kern/haende.rs kern/leitung.rs kern/wege.rs kern/lib.rs "
-            + _l("kernweg_senden") + " " + _l("raid_kern") + " " + _l("steuer_zeile") + " " + _l("erster_angriff") + " " + _l("erster_angriff_uebergeben"),
+            + _l("kernweg_senden")
+            + " "
+            + _l("raid_kern")
+            + " "
+            + _l("steuer_zeile")
+            + " "
+            + _l("erster_angriff")
+            + " "
+            + _l("erster_angriff_uebergeben"),
             "kernweg raid_kern schnelle_steuerung",
         ),
         _m("Auftragsbuch", "execution/auftragsbuch.py execution/ledger.py"),

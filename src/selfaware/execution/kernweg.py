@@ -14,12 +14,17 @@ from selfaware.game import kern_leitung as KL
 ASSASSINEN = 1
 VORSTOSS = 2
 BRANDTRUPP = 3
-RAID = 4   # S155: der Nahkampf-Raid (Wegfuehrung KERN_ZWECKE)
+RAID = 4  # S155: der Nahkampf-Raid (Wegfuehrung KERN_ZWECKE)
 # Eine Flucht, die nach so vielen Takten nicht abgesetzt ist, ist ueberholt: die naechste Lenker-Runde entscheidet neu.
 # Vorlaeufiger Wert, nicht gemessen (Messung M3 im Plan).
 FLUCHT_FRIST = 60
 UNTERWEGS = {KL.OFFEN, KL.ERG_ANGENOMMEN, KL.ERG_ABGESETZT, KL.ERG_GEPARKT}
-ART_NAMEN = {KL.LAUF: "laufen", KL.LAUF_DURCHSETZEN: "laufen_durch", KL.ANGRIFF_EINHEIT: "einheit", KL.ANGRIFF_GEBAEUDE: "gebaeude"}
+ART_NAMEN = {
+    KL.LAUF: "laufen",
+    KL.LAUF_DURCHSETZEN: "laufen_durch",
+    KL.ANGRIFF_EINHEIT: "einheit",
+    KL.ANGRIFF_GEBAEUDE: "gebaeude",
+}
 
 
 def uebersetze(befehl):
@@ -55,8 +60,8 @@ class Kernweg:
         self.uebergeben = set()
         self.offen = {}
         self.stand = collections.Counter()
-        self.erlaubt = {}           # S155: Einheit -> Gegner, gegen den der Kampf gewollt ist (zuletzt an den Kern gegeben)
-        self.version = None         # S159: Kern-Version beim Oeffnen (oeffnen setzt sie)
+        self.erlaubt = {}  # S155: Einheit -> Gegner, gegen den der Kampf gewollt ist (zuletzt an den Kern gegeben)
+        self.version = None  # S159: Kern-Version beim Oeffnen (oeffnen setzt sie)
         # B-182 Kettenpruefung je Befehl (micro/chain_audit.ChainAudit): sieht jeden Ringauftrag und sein Ergebnis; setzt der Lenker
         self.beobachter = None
 
@@ -143,7 +148,8 @@ class Kernweg:
         (der Kern arbeitet nicht), geht der Befehl ebenfalls ans Modul."""
         tick = self.leitung.takt()
         rest = []
-        liste, meld = kampfschutz.liste(liste)      # B-182 S118: nicht noch einmal an eine Einheit, die schon kaempft
+        # B-182 S118: nicht noch einmal an eine Einheit, die schon kaempft
+        liste, meld = kampfschutz.liste(liste)
         for m in meld:
             print(m, flush=True)
         for befehl in liste:

@@ -16,6 +16,7 @@ bound); sections longer than MAX_GAP ticks and under MIN_EXPECTED fields are lef
 Call (PYTHONPATH=src): python -m selfaware.tools.analysis.lauf_stoerungen gelaende=data/research/gelaende_LigaParadisePlains.txt
        data/research/lage_20261112_210347_i2.jsonl.gz [...]
 """
+
 import collections
 import gzip
 import json
@@ -24,8 +25,8 @@ import sys
 from selfaware.services import laufmodell as LM
 
 WALKING = 101
-MAX_GAP = 200        # ticks between two rounds at most
-MIN_EXPECTED = 4     # fields expected at least
+MAX_GAP = 200  # ticks between two rounds at most
+MIN_EXPECTED = 4  # fields expected at least
 WORKERS = set(range(1, 22)) | set(range(31, 37))
 
 
@@ -42,7 +43,7 @@ def table(text):
     return out
 
 
-line_fields = LM.gerade      # one place: services/laufmodell.py
+line_fields = LM.gerade  # one place: services/laufmodell.py
 
 
 def expected_fields(typ, a, goal, ticks, tile):
@@ -60,7 +61,11 @@ def near(units, pos, me, sp=1):
         if n == me or max(abs(u["x"] - pos[0]), abs(u["y"] - pos[1])) > 1:
             continue
         own, work = u["besitzer"] == sp, u["typ"] in WORKERS
-        c["neutral" if not u["besitzer"] else ("own_" if own else "enemy_") + ("workers" if work else "fighters")] += 1
+        c[
+            "neutral"
+            if not u["besitzer"]
+            else ("own_" if own else "enemy_") + ("workers" if work else "fighters")
+        ] += 1
     return c
 
 
@@ -72,8 +77,14 @@ def sections(rounds, tile, sp=1):
             continue
         for n, a in u1.items():
             b = u2.get(n)
-            if (b is None or a["besitzer"] != sp or a["typ"] not in LM.TYPES or a.get("zustand") != WALKING
-                    or b["typ"] != a["typ"] or not a.get("laufx")):
+            if (
+                b is None
+                or a["besitzer"] != sp
+                or a["typ"] not in LM.TYPES
+                or a.get("zustand") != WALKING
+                or b["typ"] != a["typ"]
+                or not a.get("laufx")
+            ):
                 continue
             goal = (a["laufx"], a["laufy"])
             p1, p2 = (a["x"], a["y"]), (b["x"], b["y"])
@@ -83,7 +94,15 @@ def sections(rounds, tile, sp=1):
             walked = max(abs(p2[0] - p1[0]), abs(p2[1] - p1[1]))
             share = walked / exp
             verdict = "on_time" if share >= 0.8 else ("slow" if share >= 0.5 else "disrupted")
-            out.append((a["typ"], exp, walked, verdict, near(u2, p2, n, sp) if verdict == "disrupted" else collections.Counter()))
+            out.append(
+                (
+                    a["typ"],
+                    exp,
+                    walked,
+                    verdict,
+                    near(u2, p2, n, sp) if verdict == "disrupted" else collections.Counter(),
+                )
+            )
     return out
 
 
@@ -99,28 +118,49 @@ def read_rounds(path):
 
 def main():
     from selfaware.tools.experiments.gelaende_erheben import tile_function
+
     arg = dict(a.split("=", 1) for a in sys.argv[1:] if "=" in a)
     files = [a for a in sys.argv[1:] if "=" not in a]
     tile = tile_function(arg["gelaende"])
 
-    total, by_type, who = collections.Counter(), collections.defaultdict(collections.Counter), collections.Counter()
+    total, by_type, who = (
+        collections.Counter(),
+        collections.defaultdict(collections.Counter),
+        collections.Counter(),
+    )
     for p in files:
         s = sections(read_rounds(p), tile)
         c = collections.Counter(v for _t, _e, _w, v, _n in s)
-        print("%s: %d sections - on time %d, slow %d, disrupted %d" % (p, len(s), c["on_time"], c["slow"], c["disrupted"]), flush=True)
+        print(
+            "%s: %d sections - on time %d, slow %d, disrupted %d"
+            % (p, len(s), c["on_time"], c["slow"], c["disrupted"]),
+            flush=True,
+        )
         for typ, _e, _w, v, n in s:
             total[v] += 1
             by_type[typ][v] += 1
-            who.update(set(n))          # sections, not units (13.11. 22:05: units were counted first)
+            who.update(set(n))  # sections, not units (13.11. 22:05: units were counted first)
             if v == "disrupted" and not n:
                 who["nobody_within_1"] += 1
     n = sum(total.values())
-    print("ALL: %d sections - on time %d (%.0f %%), slow %d (%.0f %%), disrupted %d (%.0f %%)" % (
-        n, total["on_time"], 100.0 * total["on_time"] / max(n, 1), total["slow"], 100.0 * total["slow"] / max(n, 1),
-        total["disrupted"], 100.0 * total["disrupted"] / max(n, 1)))
+    print(
+        "ALL: %d sections - on time %d (%.0f %%), slow %d (%.0f %%), disrupted %d (%.0f %%)"
+        % (
+            n,
+            total["on_time"],
+            100.0 * total["on_time"] / max(n, 1),
+            total["slow"],
+            100.0 * total["slow"] / max(n, 1),
+            total["disrupted"],
+            100.0 * total["disrupted"] / max(n, 1),
+        )
+    )
     for typ, c in sorted(by_type.items(), key=lambda kv: -sum(kv[1].values())):
         m = sum(c.values())
-        print("  type %d: %d sections, disrupted %.0f %%, slow %.0f %%" % (typ, m, 100.0 * c["disrupted"] / m, 100.0 * c["slow"] / m))
+        print(
+            "  type %d: %d sections, disrupted %.0f %%, slow %.0f %%"
+            % (typ, m, 100.0 * c["disrupted"] / m, 100.0 * c["slow"] / m)
+        )
     print("disrupted sections with ... within 1 field of the stop point:", dict(who.most_common()))
 
 

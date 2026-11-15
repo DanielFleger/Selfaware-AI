@@ -1,5 +1,6 @@
 """B-196 (15.11.2026): Wache und Ablaufanalyse schrieben in Messdateien, die beim Umzug eingefroren wurden (docs/relocations.json,
 content_changed = false). Beide schreiben jetzt in eigene Dateien; dieser Test haelt fest, dass sie die alten nicht mehr anfassen."""
+
 import json
 import pathlib
 
@@ -9,7 +10,9 @@ from selfaware.telemetry import ablaufanalyse as A
 
 
 def _eingefroren():
-    umzug = json.loads((pathlib.Path(workspace.ROOT) / "docs" / "relocations.json").read_text(encoding="utf-8"))
+    umzug = json.loads(
+        (pathlib.Path(workspace.ROOT) / "docs" / "relocations.json").read_text(encoding="utf-8")
+    )
     return {e["new"] for e in umzug["files"] if not e["content_changed"]}
 
 
@@ -29,9 +32,24 @@ def test_wache_schreibt_nicht_in_die_alte_datei(monkeypatch, tmp_path):
 
 def test_ablaufanalyse_schreibt_nicht_in_die_alte_datei(monkeypatch, tmp_path):
     monkeypatch.setattr(A._workspace, "DATA", str(tmp_path))
-    erg = {"quelle": "probe", "von": 0, "bis": 100, "aufloesung_ticks": 1, "zustaende": {}, "gehen": {}, "ablieferungen": {},
-           "vorrat": {"stein": {"zugang_je_1000": 5, "zugaenge": 2}}, "waren_je_1000": {}, "besetzung_mittel": {}}
+    erg = {
+        "quelle": "probe",
+        "von": 0,
+        "bis": 100,
+        "aufloesung_ticks": 1,
+        "zustaende": {},
+        "gehen": {},
+        "ablieferungen": {},
+        "vorrat": {"stein": {"zugang_je_1000": 5, "zugaenge": 2}},
+        "waren_je_1000": {},
+        "besetzung_mittel": {},
+    }
     pfad = A.wissen_anhaengen(erg)
     assert pathlib.Path(pfad).name == A.WISSEN_DATEI
     assert not (tmp_path / "wissen_ablauf.jsonl").exists()
-    assert json.loads((tmp_path / A.WISSEN_DATEI).read_text(encoding="utf-8").splitlines()[0])["groesse"] == "Zugang stein"
+    assert (
+        json.loads((tmp_path / A.WISSEN_DATEI).read_text(encoding="utf-8").splitlines()[0])[
+            "groesse"
+        ]
+        == "Zugang stein"
+    )

@@ -16,9 +16,11 @@ out. The Lenker gives the units and buildings of each round with stand(L, G).
 
 KAMPF_EINHEIT = 106
 KAMPF_GEBAEUDE = 107
-AM_GEBAEUDE = 2       # fields from the footprint (chain_audit.BUILDING_REACH: the attacker stands next to it)
+AM_GEBAEUDE = (
+    2  # fields from the footprint (chain_audit.BUILDING_REACH: the attacker stands next to it)
+)
 _L, _G = {}, {}
-gesperrt = 0          # orders taken out since the start, for the round summary
+gesperrt = 0  # orders taken out since the start, for the round summary
 # Hooks called with (building target?, target, units held back) for each order - those units do what it asks already. The chain
 # audit (micro/chain_audit.from_guard) takes it as their order: otherwise it kept the unit's older order (game 16 of 14.11.2026,
 # S142: a walk order, while the melee raid wants the fight it holds back here). Data only, no order: nothing goes to the game
@@ -34,6 +36,7 @@ def stand(L, G=None):
 def kaempft_gebaeude(nr, gb):
     """Melee attack on building gb: state 107 and standing next to its footprint (corner x, y, edge sicht.GROESSE)."""
     import selfaware.services.sicht as sicht
+
     e, g = _L.get(nr), _G.get(gb)
     if e is None or g is None or e.get("zustand") != KAMPF_GEBAEUDE:
         return False
@@ -45,7 +48,11 @@ def kaempft_gebaeude(nr, gb):
 
 def kaempft(nr, ziel):
     e = _L.get(nr)
-    return e is not None and e.get("zustand") == KAMPF_EINHEIT and ziel in (e.get("zieleinheit"), e.get("nahziel"))
+    return (
+        e is not None
+        and e.get("zustand") == KAMPF_EINHEIT
+        and ziel in (e.get("zieleinheit"), e.get("nahziel"))
+    )
 
 
 def _eins(c):
@@ -55,7 +62,9 @@ def _eins(c):
         return c, None
     gebaeude = "ziel" not in a
     ziel = a["gebaeude"] if gebaeude else a["ziel"]
-    raus = [n for n in a["einheiten"] if (kaempft_gebaeude(n, ziel) if gebaeude else kaempft(n, ziel))]
+    raus = [
+        n for n in a["einheiten"] if (kaempft_gebaeude(n, ziel) if gebaeude else kaempft(n, ziel))
+    ]
     if not raus:
         return c, None
     global gesperrt
@@ -63,11 +72,18 @@ def _eins(c):
     for hook in ERFUELLT:
         try:
             hook(gebaeude, ziel, list(raus))
-        except Exception:      # a hook never stops the order way (like befehl.BEOBACHTER)
+        except Exception:  # a hook never stops the order way (like befehl.BEOBACHTER)
             pass
     rest = [n for n in a["einheiten"] if n not in raus]
-    meld = "KAMPFSCHUTZ: %s kaempf%s schon gegen %s%s - derselbe Angriff nicht noch einmal (S118, S122)" % (
-        ",".join(str(n) for n in raus), "t" if len(raus) == 1 else "en", "B" if gebaeude else "U", ziel)
+    meld = (
+        "KAMPFSCHUTZ: %s kaempf%s schon gegen %s%s - derselbe Angriff nicht noch einmal (S118, S122)"
+        % (
+            ",".join(str(n) for n in raus),
+            "t" if len(raus) == 1 else "en",
+            "B" if gebaeude else "U",
+            ziel,
+        )
+    )
     if not rest:
         return None, meld
     return dict(c, angriff=dict(a, einheiten=rest)), meld

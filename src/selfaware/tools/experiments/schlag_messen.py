@@ -19,6 +19,7 @@ Call (PYTHONPATH=src, SHC_INSTANZ=2):
   python -m selfaware.tools.experiments.schlag_messen gebaeude typen=73,75 mapper=56 groesse=6 [ticks=900] [treffer=5] [tempo=20]
   python -m selfaware.tools.experiments.schlag_messen einheit typen=73,75 ziel=24 [abstand=2] [nachsenden=20] [ticks=900] [treffer=5]
 """
+
 import json
 import os
 import sys
@@ -27,16 +28,34 @@ import time
 from selfaware import workspace as _workspace
 from selfaware.micro.unit_log import type_name
 
-CENTRE = (200, 200)     # inside the map diamond for every map size
-GRID = 16               # fields between two trial spots
-FREE = 10               # no building within this many fields of a spot
-NEXT_TO = 2             # the target stands this many fields east of the attacker
-ATTACK = (106, 107)     # core state: melee attack on a unit / a building (measured in game 20)
-RANGED = (4, 5, 6)      # core state of a shooter: aim animation, shot, reload (measured 2026-11-12 23:22, archers vs a hut)
+CENTRE = (200, 200)  # inside the map diamond for every map size
+GRID = 16  # fields between two trial spots
+FREE = 10  # no building within this many fields of a spot
+NEXT_TO = 2  # the target stands this many fields east of the attacker
+ATTACK = (106, 107)  # core state: melee attack on a unit / a building (measured in game 20)
+RANGED = (
+    4,
+    5,
+    6,
+)  # core state of a shooter: aim animation, shot, reload (measured 2026-11-12 23:22, archers vs a hut)
 STARTS = ATTACK + (4,)  # the attack has started
-NO_ATTACK_TICKS = 300   # no attack state this long after the order: this type does not attack this target
-NO_HIT_TICKS = 600      # attack state, but the target loses no life this long: no damage
-FIELDS = ("t", "state", "substate", "frame", "cycle", "x", "y", "life", "target_life", "target_fire", "target_state")
+NO_ATTACK_TICKS = (
+    300  # no attack state this long after the order: this type does not attack this target
+)
+NO_HIT_TICKS = 600  # attack state, but the target loses no life this long: no damage
+FIELDS = (
+    "t",
+    "state",
+    "substate",
+    "frame",
+    "cycle",
+    "x",
+    "y",
+    "life",
+    "target_life",
+    "target_fire",
+    "target_state",
+)
 T, STATE, SUB, FRAME, CYCLE, X, Y, LIFE, T_LIFE, T_FIRE, T_STATE = range(len(FIELDS))
 
 
@@ -47,25 +66,33 @@ def exclusive(path=None):
     """One measurement at a time on the instance: every trial starts with "kill all units", a second run kills the units of the
     first (2026-11-12 23:24: two runs at once, the trials ended "attacker_gone"). The lock is a file held open with an
     exclusive OS lock - it goes away with the process, also when the process is killed."""
-    path = path or os.path.join(_workspace.DATA, ".messung_instanz%s.lock" % os.environ.get("SHC_INSTANZ", "?"))
+    path = path or os.path.join(
+        _workspace.DATA, ".messung_instanz%s.lock" % os.environ.get("SHC_INSTANZ", "?")
+    )
     f = open(path, "a+")
     try:
         if os.name == "nt":
             import msvcrt
+
             f.seek(0)
             msvcrt.locking(f.fileno(), msvcrt.LK_NBLCK, 1)
         else:
             import fcntl
+
             fcntl.flock(f, fcntl.LOCK_EX | fcntl.LOCK_NB)
     except OSError:
         f.close()
-        raise SystemExit("ERROR: another measurement runs on instance %s (lock %s)" % (os.environ.get("SHC_INSTANZ"), path)) from None
+        raise SystemExit(
+            "ERROR: another measurement runs on instance %s (lock %s)"
+            % (os.environ.get("SHC_INSTANZ"), path)
+        ) from None
     _LOCK.append(f)
     return path
 
 
 def _channel():
     import selfaware.game.ucp.befehl as K
+
     return K
 
 
@@ -75,12 +102,20 @@ def send(orders, until=None, wait=4.0):
 
 def clear():
     """All units of players 1 and 2 except the lords (in a skirmish the lords must live; in the editor there are none)."""
-    send([{"toeteAlle": {"spieler": 1, "ohneLord": True}}, {"toeteAlle": {"spieler": 2, "ohneLord": True}}], until="TOETE ALLE")
+    send(
+        [
+            {"toeteAlle": {"spieler": 1, "ohneLord": True}},
+            {"toeteAlle": {"spieler": 2, "ohneLord": True}},
+        ],
+        until="TOETE ALLE",
+    )
     time.sleep(2.0)
 
 
 def place_unit(player, typ, x, y):
-    for s in send([{"setzeEinheit": {"spieler": player, "typ": typ, "x": x, "y": y}}], until="SETZE EINHEIT"):
+    for s in send(
+        [{"setzeEinheit": {"spieler": player, "typ": typ, "x": x, "y": y}}], until="SETZE EINHEIT"
+    ):
         if "SETZE EINHEIT" in s and "Nummern" in s:
             try:
                 return int(s.rsplit("Nummern", 1)[1].strip().split(",")[0])
@@ -99,7 +134,9 @@ def free_spot(buildings, used):
     """buildings: {nr: {"x", "y", ...}} of the world now; used: spots of this run (changed). -> the first spot without a building
     within FREE fields."""
     for p in spots():
-        if p in used or any(max(abs(g["x"] - p[0]), abs(g["y"] - p[1])) <= FREE for g in buildings.values()):
+        if p in used or any(
+            max(abs(g["x"] - p[0]), abs(g["y"] - p[1])) <= FREE for g in buildings.values()
+        ):
             continue
         used.add(p)
         return p
@@ -118,24 +155,44 @@ def _world(le):
 def place_building(le, player, mapper, size, x, y):
     """-> number of the new building of the player, or None (the game placed nothing)."""
     before = set(_world(le).gebaeude)
-    send([{"setzeGebaeude": {"spieler": player, "x": x, "y": y, "mapper": mapper, "groesse": size}}], until="SETZE GEBAEUDE")
+    send(
+        [{"setzeGebaeude": {"spieler": player, "x": x, "y": y, "mapper": mapper, "groesse": size}}],
+        until="SETZE GEBAEUDE",
+    )
     time.sleep(0.5)
-    new = [(max(abs(g["x"] - x), abs(g["y"] - y)), n) for n, g in _world(le).gebaeude.items()
-           if n not in before and g.get("besitzer") == player]
+    new = [
+        (max(abs(g["x"] - x), abs(g["y"] - y)), n)
+        for n, g in _world(le).gebaeude.items()
+        if n not in before and g.get("besitzer") == player
+    ]
     return min(new)[1] if new else None
 
 
 def row(w, a, target, on_building):
     e = w.einheiten.get(a) or {}
     z = (w.gebaeude.get(target) if on_building else w.einheiten.get(target)) or {}
-    return [w.tick, e.get("zustand"), e.get("teilzustand"), e.get("bild"), e.get("bildzyklus"), e.get("x"), e.get("y"),
-            e.get("leben"), z.get("leben"), z.get("feuer"), z.get("zustand")]
+    return [
+        w.tick,
+        e.get("zustand"),
+        e.get("teilzustand"),
+        e.get("bild"),
+        e.get("bildzyklus"),
+        e.get("x"),
+        e.get("y"),
+        e.get("leben"),
+        z.get("leben"),
+        z.get("feuer"),
+        z.get("zustand"),
+    ]
 
 
 def hits(rows):
     """Every life loss of the target: (index of the row after the loss, damage)."""
-    return [(i + 1, a[T_LIFE] - b[T_LIFE]) for i, (a, b) in enumerate(zip(rows, rows[1:], strict=False))
-            if a[T_LIFE] is not None and b[T_LIFE] is not None and b[T_LIFE] < a[T_LIFE]]
+    return [
+        (i + 1, a[T_LIFE] - b[T_LIFE])
+        for i, (a, b) in enumerate(zip(rows, rows[1:], strict=False))
+        if a[T_LIFE] is not None and b[T_LIFE] is not None and b[T_LIFE] < a[T_LIFE]
+    ]
 
 
 def stop_reason(rows, ticks, hits_wanted):
@@ -168,43 +225,78 @@ def summarize(rows, reason=None, resend=None):
             states.append([r[T] - t0, r[STATE]])
             prev = r[STATE]
     attack = next((r[T] for r in rows if r[STATE] in STARTS), None)
-    ref = attack if attack is not None else t0   # without an attack state the losses count from the order
+    ref = (
+        attack if attack is not None else t0
+    )  # without an attack state the losses count from the order
     loss = []
     for i, d in hits(rows):
         a, b = rows[i - 1], rows[i]
-        loss.append({"after_attack": b[T] - ref, "damage": d, "frames": [a[FRAME], b[FRAME]],
-                     "burning": bool(a[T_FIRE] or b[T_FIRE])})
+        loss.append(
+            {
+                "after_attack": b[T] - ref,
+                "damage": d,
+                "frames": [a[FRAME], b[FRAME]],
+                "burning": bool(a[T_FIRE] or b[T_FIRE]),
+            }
+        )
     swings = [h for h in loss if not h["burning"]]
     first_end = None if not swings or attack is None else attack + swings[0]["after_attack"]
     frames, prev = [], object()
     for r in rows:
-        if attack is not None and r[T] >= attack and r[STATE] in STARTS + RANGED and (first_end is None or r[T] <= first_end):
+        if (
+            attack is not None
+            and r[T] >= attack
+            and r[STATE] in STARTS + RANGED
+            and (first_end is None or r[T] <= first_end)
+        ):
             if r[FRAME] != prev:
                 frames.append([r[T] - attack, r[FRAME]])
                 prev = r[FRAME]
     fire = next((r[T] for r in rows if r[T_FIRE]), None)
     life = [r[LIFE] for r in rows if r[LIFE] is not None]
-    return {"order_to_attack": None if attack is None else attack - t0,
-            "first_hit": swings[0]["after_attack"] if swings else None,
-            "between_hits": [b["after_attack"] - a["after_attack"] for a, b in zip(swings, swings[1:], strict=False)],
-            "damage": [h["damage"] for h in swings],
-            "fire_losses": [[h["after_attack"], h["damage"]] for h in loss if h["burning"]],
-            "fire_from": None if fire is None else fire - ref, "losses_from": "attack" if attack is not None else "order",
-            "first_swing_frames": frames, "states": states, "target_life": rows[0][T_LIFE],
-            "attacker_loss": None if not life else life[0] - life[-1],
-            "skipped_ticks": sum(b[T] - a[T] - 1 for a, b in zip(rows, rows[1:], strict=False)), "end": reason,
-            "resend_gap": None if resend is None else _gap_after(rows, resend)}
+    return {
+        "order_to_attack": None if attack is None else attack - t0,
+        "first_hit": swings[0]["after_attack"] if swings else None,
+        "between_hits": [
+            b["after_attack"] - a["after_attack"] for a, b in zip(swings, swings[1:], strict=False)
+        ],
+        "damage": [h["damage"] for h in swings],
+        "fire_losses": [[h["after_attack"], h["damage"]] for h in loss if h["burning"]],
+        "fire_from": None if fire is None else fire - ref,
+        "losses_from": "attack" if attack is not None else "order",
+        "first_swing_frames": frames,
+        "states": states,
+        "target_life": rows[0][T_LIFE],
+        "attacker_loss": None if not life else life[0] - life[-1],
+        "skipped_ticks": sum(b[T] - a[T] - 1 for a, b in zip(rows, rows[1:], strict=False)),
+        "end": reason,
+        "resend_gap": None if resend is None else _gap_after(rows, resend),
+    }
 
 
 def _gap_after(rows, t):
     """Ticks from tick t to the first life loss of the target after it, and the longest gap between two losses before t."""
     after = [rows[i][T] for i, _d in hits(rows) if rows[i][T] > t]
     before = [rows[i][T] for i, _d in hits(rows) if rows[i][T] <= t]
-    return {"to_next_loss": after[0] - t if after else None,
-            "longest_before": max((b - a for a, b in zip(before, before[1:], strict=False)), default=None)}
+    return {
+        "to_next_loss": after[0] - t if after else None,
+        "longest_before": max(
+            (b - a for a, b in zip(before, before[1:], strict=False)), default=None
+        ),
+    }
 
 
-def trial(le, a_typ, target, spot, ticks=900, hits_wanted=5, distance=NEXT_TO, resend_after=None, resend_delay=0):
+def trial(
+    le,
+    a_typ,
+    target,
+    spot,
+    ticks=900,
+    hits_wanted=5,
+    distance=NEXT_TO,
+    resend_after=None,
+    resend_delay=0,
+):
     """target: ("gebaeude", mapper, size) or ("einheit", typ); distance: fields east of the attacker for a unit target (two units
     two fields apart fight before the order - measured 2026-11-12 23:31; shooters need the target out of melee reach).
     resend_after: after so many life losses the same order goes out once more (23:31: a second order to a fighting swordsman
@@ -217,16 +309,27 @@ def trial(le, a_typ, target, spot, ticks=900, hits_wanted=5, distance=NEXT_TO, r
     else:
         z = place_unit(2, target[1], spot[0] + distance, spot[1])
         order = {"angriff": {"einheiten": [a], "ziel": z}}
-    out = {"attacker": a_typ, "target": list(target), "spot": list(spot), "nr": a, "target_nr": z, "fields": FIELDS}
+    out = {
+        "attacker": a_typ,
+        "target": list(target),
+        "spot": list(spot),
+        "nr": a,
+        "target_nr": z,
+        "fields": FIELDS,
+    }
     if a is None or z is None:
         out.update(result={"end": "not_placed"}, rows=[])
         return out
     time.sleep(0.3)
     e = _world(le).einheiten.get(a) or {}
     if max(abs((e.get("x") or -99) - spot[0]), abs((e.get("y") or -99) - spot[1])) > 3:
-        out.update(result={"end": "wrong_spot", "at": [e.get("x"), e.get("y")]}, rows=[])  # outside the map diamond?
+        out.update(
+            result={"end": "wrong_spot", "at": [e.get("x"), e.get("y")]}, rows=[]
+        )  # outside the map diamond?
         return out
-    send([order], until="ANGRIFF")  # the channel looks every 20 ms: the first row is at most a tick after the order
+    send(
+        [order], until="ANGRIFF"
+    )  # the channel looks every 20 ms: the first row is at most a tick after the order
     rows, reason = [row(_world(le), a, z, target[0] == "gebaeude")], None
     last = rows[0][T]
     while reason is None:
@@ -238,10 +341,14 @@ def trial(le, a_typ, target, spot, ticks=900, hits_wanted=5, distance=NEXT_TO, r
         rows.append(row(w, a, z, target[0] == "gebaeude"))
         reason = stop_reason(rows, ticks, hits_wanted)
         h = hits(rows)
-        if resend_after and out.get("resend") is None and len(h) >= resend_after and (
-                w.tick - rows[h[resend_after - 1][0]][T] >= resend_delay):     # mid-swing: resend_delay ticks after that hit
+        if (
+            resend_after
+            and out.get("resend") is None
+            and len(h) >= resend_after
+            and (w.tick - rows[h[resend_after - 1][0]][T] >= resend_delay)
+        ):  # mid-swing: resend_delay ticks after that hit
             out["resend"] = w.tick
-            send([order], wait=0.0)       # no wait for the answer: the rows go on
+            send([order], wait=0.0)  # no wait for the answer: the rows go on
     out.update(result=summarize(rows, reason, out.get("resend")), rows=rows)
     return out
 
@@ -260,6 +367,7 @@ def life_of(le, classes, used):
 def main():
     import selfaware.game.kern_leitung as KL
     from selfaware.game.ucp.befehl import SPIEL
+
     what = sys.argv[1]
     arg = dict(a.split("=", 1) for a in sys.argv[2:])
     exclusive()
@@ -270,20 +378,43 @@ def main():
     if what == "leben":
         classes = [tuple(int(v) for v in p.split(":")) for p in arg["mapper"].split(",")]
         for mapper, size, typ, life, fire in life_of(le, classes, used):
-            print("mapper %d size %d: building type %s, life %s, fire %s" % (mapper, size, typ, life, fire), flush=True)
+            print(
+                "mapper %d size %d: building type %s, life %s, fire %s"
+                % (mapper, size, typ, life, fire),
+                flush=True,
+            )
         return
     types = [int(x) for x in arg["typen"].split(",")]
-    target = ("gebaeude", int(arg["mapper"]), int(arg.get("groesse", 3))) if what == "gebaeude" else ("einheit", int(arg["ziel"]))
+    target = (
+        ("gebaeude", int(arg["mapper"]), int(arg.get("groesse", 3)))
+        if what == "gebaeude"
+        else ("einheit", int(arg["ziel"]))
+    )
     path = os.path.join(_workspace.DATA, "schlag_messung_%s.jsonl" % time.strftime("%Y%m%d_%H%M%S"))
     for typ in types:
-        r = trial(le, typ, target, free_spot(_world(le).gebaeude, used), int(arg.get("ticks", 900)), int(arg.get("treffer", 5)),
-                  int(arg.get("abstand", NEXT_TO)), int(arg["nachsenden"]) if "nachsenden" in arg else None,
-                  int(arg.get("nachsenden_takte", 0)))
+        r = trial(
+            le,
+            typ,
+            target,
+            free_spot(_world(le).gebaeude, used),
+            int(arg.get("ticks", 900)),
+            int(arg.get("treffer", 5)),
+            int(arg.get("abstand", NEXT_TO)),
+            int(arg["nachsenden"]) if "nachsenden" in arg else None,
+            int(arg.get("nachsenden_takte", 0)),
+        )
         with open(path, "a", encoding="utf-8") as f:
             f.write(json.dumps(r) + "\n")
         s = r["result"]
-        print("%s vs %s: %s" % (type_name(typ), target, json.dumps({k: v for k, v in s.items() if k != "first_swing_frames"})),
-              flush=True)
+        print(
+            "%s vs %s: %s"
+            % (
+                type_name(typ),
+                target,
+                json.dumps({k: v for k, v in s.items() if k != "first_swing_frames"}),
+            ),
+            flush=True,
+        )
     print("file:", path)
 
 

@@ -12,9 +12,9 @@ Abgeleitet, nicht gemessen: gebaut wird mit Drehwert 15 wie per Mausklick, place
 Kartenviertel die Lage in Feldern nicht (Daniel 11:33: das Bild dreht sich je nach Viertel)."""
 
 HAUFEN_VERSATZ = (7, 2)
-HAUFEN_B = 3   # Flaeche des Steinhaufens in Feldern: "~3x3" (erstes_spiel.GROESSE_IST) - nicht genau gemessen
-ABSTAND = 1    # freie Felder zwischen Haufen und Joch (Daniel: "mit einem Abstand"), das kleinste Mass, das "nicht beruehren" heisst
-JOCH_B = 2     # Ochsenjoch 2x2 (NACH_TYP[4]["b"])
+HAUFEN_B = 3  # Flaeche des Steinhaufens in Feldern: "~3x3" (erstes_spiel.GROESSE_IST) - nicht genau gemessen
+ABSTAND = 1  # freie Felder zwischen Haufen und Joch (Daniel: "mit einem Abstand"), das kleinste Mass, das "nicht beruehren" heisst
+JOCH_B = 2  # Ochsenjoch 2x2 (NACH_TYP[4]["b"])
 
 
 def haufen(bruch):
@@ -34,4 +34,7 @@ def sperre(h):
 
 def frei(ort, sperren, b=JOCH_B):
     """Ueberdeckt ein Bau der Seitenlaenge b an der Ecke ort keine der Sperrflaechen?"""
-    return all(ort[0] + b <= o[0] or o[0] + b2 <= ort[0] or ort[1] + b <= o[1] or o[1] + b2 <= ort[1] for o, b2 in sperren)
+    return all(
+        ort[0] + b <= o[0] or o[0] + b2 <= ort[0] or ort[1] + b <= o[1] or o[1] + b2 <= ort[1]
+        for o, b2 in sperren
+    )

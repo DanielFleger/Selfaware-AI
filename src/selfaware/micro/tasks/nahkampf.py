@@ -50,7 +50,9 @@ class NahkampfRaid:
         self.ziel = {}  # Einheit -> Schluessel des Ziels
         self.wegpunkte = {}  # Einheit -> offene Wegpunkte (nur ohne Wegfuehrung)
         self.befohlen = {}  # Einheit -> (Befehl, Runde) (nur ohne Wegfuehrung)
-        self.weg = None  # B-182: gemeinsame Wegfuehrung (micro/wegfuehrung.py), setzt der Raid-Einsatz
+        self.weg = (
+            None  # B-182: gemeinsame Wegfuehrung (micro/wegfuehrung.py), setzt der Raid-Einsatz
+        )
         self.gesperrt = {}  # (Einheit, Ziel) -> Runde: nach "gefahr"/"kein_weg" waehlt diese Einheit das Ziel so lange nicht
         self.greift = {}  # Einheit -> Ziel, das sie zuletzt am Ziel angriff (Status "greift_an" der Wegfuehrung)
         self.runde = 0
@@ -129,8 +131,13 @@ class NahkampfRaid:
 
     def _waehlen(self, n, e, ziele, belegt, L, G=None, laenge=None):
         ort = (e["x"], e["y"])
-        best = max(self._werte(n, e, ziele, belegt, laenge if laenge is not None else self._laenge(e, L, G, {})),
-                   default=(0.0, None, None, None), key=lambda x: x[0])
+        best = max(
+            self._werte(
+                n, e, ziele, belegt, laenge if laenge is not None else self._laenge(e, L, G, {})
+            ),
+            default=(0.0, None, None, None),
+            key=lambda x: x[0],
+        )
         if best[2] is None or best[0] <= 0:
             return None
         z = best[2]
@@ -149,7 +156,9 @@ class NahkampfRaid:
             # B-182 (Partie 12.11. 00:05, Fehlerwache F4): nur ein Angriff der letzten raids.ABSCHUSS_RUNDEN Runden zaehlt
             g = self.greift.get(n)
             return g is not None and g[0] == alt and self.runde - g[1] <= RA.ABSCHUSS_RUNDEN
-        return n in self.befohlen and bool(self.befohlen[n][0].get("angriff", {}).keys() & {"gebaeude", "ziel"})
+        return n in self.befohlen and bool(
+            self.befohlen[n][0].get("angriff", {}).keys() & {"gebaeude", "ziel"}
+        )
 
     def _freigeben(self, n):
         self.ziel.pop(n, None)
@@ -175,7 +184,12 @@ class NahkampfRaid:
         if e.get("zustand") != kampfschutz.KAMPF_EINHEIT:
             return None
         g = L.get(e.get("nahziel") or 0)
-        if g is None or g.get("besitzer") in (0, sp) or g.get("leben", 1) <= 0 or g.get("typ") not in RA.NAH:
+        if (
+            g is None
+            or g.get("besitzer") in (0, sp)
+            or g.get("leben", 1) <= 0
+            or g.get("typ") not in RA.NAH
+        ):
             return None
         return e["nahziel"]
 
@@ -196,7 +210,9 @@ class NahkampfRaid:
         if deckt:
             nah.remove(gtyp)
         takte_w, erfolg_w = self.wissen.rechnen_mit(typ, z, leben=e.get("leben"))
-        takte_k, erfolg_k = self.wissen.rechnen_mit(typ, z, leben=e.get("leben", 0) - dps_er * t_tot, nah=nah)
+        takte_k, erfolg_k = self.wissen.rechnen_mit(
+            typ, z, leben=e.get("leben", 0) - dps_er * t_tot, nah=nah
+        )
         if takte_w is None:
             return 0.0, 0.0, {}
         weg_takte = felder * tempo
@@ -216,7 +232,7 @@ class NahkampfRaid:
         self.wissen.lernen(L, self.sp)
         ziele = {z.schluessel: z for z in WK.ziele(L, G, self.sp)}
         aus = []
-        raster = {}      # S150: ein Gitter je Runde (und je Klasse) fuer alle Einheiten des Raids
+        raster = {}  # S150: ein Gitter je Runde (und je Klasse) fuer alle Einheiten des Raids
         for n in sorted(self.mitglieder):
             e = L[n]
             ort = (e["x"], e["y"])
@@ -229,7 +245,10 @@ class NahkampfRaid:
                 if alt != ("e", self.lord):
                     self._freigeben(n)
                     self.ziel[n] = ("e", self.lord)
-                    aus.append("NAHKAMPF-RAID: %d (Typ %d) geht mit auf den Lord %d" % (n, e["typ"], self.lord))
+                    aus.append(
+                        "NAHKAMPF-RAID: %d (Typ %d) geht mit auf den Lord %d"
+                        % (n, e["typ"], self.lord)
+                    )
                 self.weg.fuehre(n, "einheit", self.lord, "nahkampfraid")
                 self.absicht[n] = (Action.ATTACK_UNIT, unit(self.lord), "lord_push", {})
                 continue
@@ -243,7 +262,10 @@ class NahkampfRaid:
             # sonst geht in dieser Runde ein neuer Laufbefehl hinaus (die Wegfuehrung vergisst den alten und schickt ihn noch einmal)
             kampf = self._bekaempft(e, ziele)
             if kampf is not None and kampf == alt:
-                self.greift[n] = (alt, self.runde)     # sie greift ihr Ziel an: der Taeter steht in den Daten (nahziel)
+                self.greift[n] = (
+                    alt,
+                    self.runde,
+                )  # sie greift ihr Ziel an: der Taeter steht in den Daten (nahziel)
             durchspammen = kampf is not None and kampf != alt
             kampf = kampf if kampf == alt else None
             st = self.weg.status(n) if self.weg is not None and alt is not None else None
@@ -252,60 +274,117 @@ class NahkampfRaid:
             elif st in ("gefahr", "kein_weg"):
                 # B-182 (Plan_Wegfuehrung.md): kein sicherer Standplatz oder kein Weg - diese Einheit nimmt ein anderes Ziel
                 self.gesperrt[(n, alt)] = self.runde + RA.SPERRE_RUNDEN
-                aus.append("NAHKAMPF-RAID: %d (Typ %d) gibt %s %d auf (%s)" % (n, e["typ"], _name(alt), alt[1], st))
+                aus.append(
+                    "NAHKAMPF-RAID: %d (Typ %d) gibt %s %d auf (%s)"
+                    % (n, e["typ"], _name(alt), alt[1], st)
+                )
                 self._freigeben(n)
                 alt = None
             # "ziel_weg": die Wegfuehrung sieht unter der Nummer etwas anderes (Art, Besitzer) - das alte Ziel ist weg
             weg_ist = alt is not None and (alt not in ziele or st == "ziel_weg")
             # ein Arbeiter, gegen den sie schon kaempft, bleibt ihr Ziel, auch wenn die Rechnung dort keinen Erfolg erwartet
-            if alt is not None and (weg_ist or (alt != kampf and not self.wissen.am_ziel(e["typ"], ziele[alt])[1])):
+            if alt is not None and (
+                weg_ist or (alt != kampf and not self.wissen.am_ziel(e["typ"], ziele[alt])[1])
+            ):
                 if weg_ist and self._am_ziel_gewesen(n, alt):
                     if alt[0] == "g":
                         self.zerstoert += 1
                     else:
                         self.getoetet += 1
                     # B-182: jeder Erfolg in die Mitschrift, die Eichung misst daran die Takte vom Ziel bis zum Erfolg
-                    aus.append("NAHKAMPF-RAID: %d (Typ %d) hat %s %d erledigt" % (n, e["typ"], _name(alt), alt[1]))
+                    aus.append(
+                        "NAHKAMPF-RAID: %d (Typ %d) hat %s %d erledigt"
+                        % (n, e["typ"], _name(alt), alt[1])
+                    )
                 elif weg_ist and self.weg is not None:
-                    aus.append("NAHKAMPF-RAID: %s %d ist weg, %d war nicht am Ziel - kein eigener Erfolg" % (_name(alt), alt[1], n))
+                    aus.append(
+                        "NAHKAMPF-RAID: %s %d ist weg, %d war nicht am Ziel - kein eigener Erfolg"
+                        % (_name(alt), alt[1], n)
+                    )
                 self._freigeben(n)
                 alt = None
             laenge = self._laenge(e, L, G, raster) if self.weg is not None else None
             if alt is not None and kampf is None and laenge is not None:
                 # S150: jede Runde das Ziel mit dem hoechsten Wert je Takt von hier aus, ueber den sicheren Weg - ein neues Ziel auf dem
                 # Weg oder dahinter gewinnt, wenn es mehr Wert je Takt bringt (keine Huerde: Daniel 23:32 "kein komischer wert bitte")
-                werte = self._werte(n, e, ziele, {v for m, v in self.ziel.items() if m != n}, laenge)
+                werte = self._werte(
+                    n, e, ziele, {v for m, v in self.ziel.items() if m != n}, laenge
+                )
                 jetzt = next((w for w in werte if w[2].schluessel == alt), None)
                 # ein anderes Ziel zaehlt mit der Zeit, die der Wechsel kostet (WECHSEL_TAKTE, gemessen)
-                andere = [(self._nach_wechsel(w[0], w[3]),) + w[1:] for w in werte if w[2].schluessel != alt]
+                andere = [
+                    (self._nach_wechsel(w[0], w[3]),) + w[1:]
+                    for w in werte
+                    if w[2].schluessel != alt
+                ]
                 best = max(andere, default=None, key=lambda w: w[0])
                 if best is not None and best[0] > 0 and (jetzt is None or best[0] > jetzt[0]):
-                    aus.append("NAHKAMPF-RAID: %d (Typ %d) wechselt von %s %d zu %s %d (Typ %d) bei %s - %.4f statt %s Wert je Takt "
-                               "(mit %.1f Takten fuer den Wechsel), %d statt %s Felder auf dem sicheren Weg" % (
-                                   n, e["typ"], _name(alt), alt[1], _name(best[2].schluessel), best[2].schluessel[1], best[2].typ,
-                                   best[2].ort, best[0], "%.4f" % jetzt[0] if jetzt else "kein Weg", WECHSEL_TAKTE, best[1],
-                                   jetzt[1] if jetzt else "-"))
+                    aus.append(
+                        "NAHKAMPF-RAID: %d (Typ %d) wechselt von %s %d zu %s %d (Typ %d) bei %s - %.4f statt %s Wert je Takt "
+                        "(mit %.1f Takten fuer den Wechsel), %d statt %s Felder auf dem sicheren Weg"
+                        % (
+                            n,
+                            e["typ"],
+                            _name(alt),
+                            alt[1],
+                            _name(best[2].schluessel),
+                            best[2].schluessel[1],
+                            best[2].typ,
+                            best[2].ort,
+                            best[0],
+                            "%.4f" % jetzt[0] if jetzt else "kein Weg",
+                            WECHSEL_TAKTE,
+                            best[1],
+                            jetzt[1] if jetzt else "-",
+                        )
+                    )
                     self._freigeben(n)
                     self.ziel[n], self.wegpunkte[n] = best[2].schluessel, []
                     alt, grund = best[2].schluessel, "better_value_on_path"
             gegner = self._soldat_gegner(e, L, self.sp) if kampf is None else None
             if gegner is not None and alt is not None and alt in ziele and self.weg is not None:
-                w, k, info = self._zurueckschlagen(e, L[gegner], ziele[alt], laenge(ziele[alt].ort) if laenge else None)
+                w, k, info = self._zurueckschlagen(
+                    e, L[gegner], ziele[alt], laenge(ziele[alt].ort) if laenge else None
+                )
                 if self.wehrt.get(n) != (gegner, k > w):
                     self.wehrt[n] = (gegner, k > w)
-                    aus.append("NAHKAMPF-RAID: %d (Typ %d) kaempft gegen Soldat %d (Typ %d): %s - weiter zu %s %d %.4f, zurueckschlagen "
-                               "%.4f Wert je Takt (%s Takte bis er faellt, deckt das Ziel: %s, Schaden aus %s)" % (
-                                   n, e["typ"], gegner, L[gegner]["typ"], "schlaegt zurueck" if k > w else "geht weiter", _name(alt),
-                                   alt[1], w, k, info.get("t_tot"), "ja" if info.get("deckt") else "nein", info.get("dps")))
+                    aus.append(
+                        "NAHKAMPF-RAID: %d (Typ %d) kaempft gegen Soldat %d (Typ %d): %s - weiter zu %s %d %.4f, zurueckschlagen "
+                        "%.4f Wert je Takt (%s Takte bis er faellt, deckt das Ziel: %s, Schaden aus %s)"
+                        % (
+                            n,
+                            e["typ"],
+                            gegner,
+                            L[gegner]["typ"],
+                            "schlaegt zurueck" if k > w else "geht weiter",
+                            _name(alt),
+                            alt[1],
+                            w,
+                            k,
+                            info.get("t_tot"),
+                            "ja" if info.get("deckt") else "nein",
+                            info.get("dps"),
+                        )
+                    )
                 if k > w:
-                    self.absicht[n] = (Action.ATTACK_UNIT, unit(gegner), "defender_worth_it", {"typ": L[gegner]["typ"]})
+                    self.absicht[n] = (
+                        Action.ATTACK_UNIT,
+                        unit(gegner),
+                        "defender_worth_it",
+                        {"typ": L[gegner]["typ"]},
+                    )
                     self.weg.fuehre(n, "einheit", gegner, "nahkampfraid")
                     continue
             if alt is None:
                 belegt = set(self.ziel.values())
                 z = self._waehlen(n, e, ziele, belegt, L, G, laenge)
                 if z is None:
-                    self.absicht[n] = (Action.WAIT_SAFE_TARGET, None, "no_target_with_value", {"targets": len(ziele)})
+                    self.absicht[n] = (
+                        Action.WAIT_SAFE_TARGET,
+                        None,
+                        "no_target_with_value",
+                        {"targets": len(ziele)},
+                    )
                     continue
                 grund = "best_value_per_tick"
                 aus.append(
@@ -318,26 +397,40 @@ class NahkampfRaid:
                         z.typ,
                         z.ort,
                         len(self.wegpunkte[n]),
-                        ("%s auf dem sicheren Weg, %d Luftlinie" % (laenge(z.ort), WK.schach(ort, z.ort))) if laenge is not None
+                        (
+                            "%s auf dem sicheren Weg, %d Luftlinie"
+                            % (laenge(z.ort), WK.schach(ort, z.ort))
+                        )
+                        if laenge is not None
                         else WK.schach(ort, z.ort),
                         ", Weg ueber die Wegfuehrung" if self.weg is not None else "",
                     )
                 )
             art, nr = self.ziel[n]
             z_n = ziele.get(self.ziel[n])
-            self.absicht[n] = (Action.ATTACK_BUILDING if art == "g" else Action.ATTACK_UNIT, building(nr) if art == "g" else unit(nr),
-                               grund, {"typ": z_n.typ} if z_n is not None else {})
+            self.absicht[n] = (
+                Action.ATTACK_BUILDING if art == "g" else Action.ATTACK_UNIT,
+                building(nr) if art == "g" else unit(nr),
+                grund,
+                {"typ": z_n.typ} if z_n is not None else {},
+            )
             if self.weg is not None:
                 # B-182: Weg und Befehle jede Runde neu von der Wegfuehrung - unterwegs um neue Gefahr herum, am Ziel der Angriff
                 if durchspammen and self.ziel.get(n) != self._bekaempft(e, ziele):
                     if self.weg.kern_fuehrt(n):
                         # S155: der Kern wiederholt ihren Laufbefehl jeden Takt, solange sie gegen einen anderen als ihr Ziel kaempft
-                        aus.append("NAHKAMPF-RAID: %d (Typ %d) kaempft gegen Arbeiter %d - der Kern wiederholt den Laufbefehl zu %s %d" % (
-                            n, e["typ"], self._bekaempft(e, ziele)[1], _name(self.ziel[n]), nr))
+                        aus.append(
+                            "NAHKAMPF-RAID: %d (Typ %d) kaempft gegen Arbeiter %d - der Kern wiederholt den Laufbefehl zu %s %d"
+                            % (n, e["typ"], self._bekaempft(e, ziele)[1], _name(self.ziel[n]), nr)
+                        )
                     else:
-                        self.weg.loslassen(n)       # S154 ohne Kern: der Laufbefehl geht in dieser Runde wieder hinaus
-                        aus.append("NAHKAMPF-RAID: %d (Typ %d) haengt im Kampf gegen Arbeiter %d fest - Laufbefehl neu zu %s %d" % (
-                            n, e["typ"], self._bekaempft(e, ziele)[1], _name(self.ziel[n]), nr))
+                        self.weg.loslassen(
+                            n
+                        )  # S154 ohne Kern: der Laufbefehl geht in dieser Runde wieder hinaus
+                        aus.append(
+                            "NAHKAMPF-RAID: %d (Typ %d) haengt im Kampf gegen Arbeiter %d fest - Laufbefehl neu zu %s %d"
+                            % (n, e["typ"], self._bekaempft(e, ziele)[1], _name(self.ziel[n]), nr)
+                        )
                 self.weg.fuehre(n, "gebaeude" if art == "g" else "einheit", nr, "nahkampfraid")
                 continue
             weg = self.wegpunkte.get(n, [])

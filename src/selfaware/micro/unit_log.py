@@ -32,14 +32,41 @@ class Action:
 ACTIONS = frozenset(v for k, v in vars(Action).items() if k.isupper())
 
 # Wegfuehrung status (micro/wegfuehrung.py) -> movement phase: what the unit physically does
-PHASES = {"neu": "new", "unterwegs": "walking", "greift_an": "attacking", "am_ziel": "at_point", "gefahr": "danger_at_stand",
-          "kein_weg": "no_path", "direkt": "game_path", "steckt": "stuck", "wartet": "command_budget", "ziel_weg": "target_gone"}
+PHASES = {
+    "neu": "new",
+    "unterwegs": "walking",
+    "greift_an": "attacking",
+    "am_ziel": "at_point",
+    "gefahr": "danger_at_stand",
+    "kein_weg": "no_path",
+    "direkt": "game_path",
+    "steckt": "stuck",
+    "wartet": "command_budget",
+    "ziel_weg": "target_gone",
+}
 
 # Code names of the game's unit types (UT_ without the prefix, as in the game data); Daniel: names with code and number.
 # Type 23 stays a number.
-NAMES = {5: "TUNNELER", 22: "E_ARCHER", 24: "E_SPEAR", 25: "E_PIKE", 26: "E_MACE", 27: "E_SWORD", 28: "E_KNIGHT", 29: "E_LADDER",
-         30: "E_ENGINEER", 37: "E_MONK", 55: "LORD", 70: "A_ARCHER", 71: "A_SLAVE", 72: "A_SLINGER", 73: "A_ASSASSIN",
-         74: "A_HARCHER", 75: "A_SWORDSMAN", 76: "A_FIRETHROWER"}
+NAMES = {
+    5: "TUNNELER",
+    22: "E_ARCHER",
+    24: "E_SPEAR",
+    25: "E_PIKE",
+    26: "E_MACE",
+    27: "E_SWORD",
+    28: "E_KNIGHT",
+    29: "E_LADDER",
+    30: "E_ENGINEER",
+    37: "E_MONK",
+    55: "LORD",
+    70: "A_ARCHER",
+    71: "A_SLAVE",
+    72: "A_SLINGER",
+    73: "A_ASSASSIN",
+    74: "A_HARCHER",
+    75: "A_SWORDSMAN",
+    76: "A_FIRETHROWER",
+}
 
 
 def type_name(typ):
@@ -67,6 +94,7 @@ def _expect(action, typ, e, target, L, G):
     measured tables the chain check checks. target: "U<n>", "B<n>", "(x,y)" or None."""
     import selfaware.services.sicht as sicht
     from selfaware.micro import chain_audit  # here: chain_audit imports this module
+
     goal, kind = None, None
     t = str(target or "")
     if t.startswith("U") and t[1:].isdigit():
@@ -89,14 +117,17 @@ def _expect(action, typ, e, target, L, G):
 class UnitLog:
     def __init__(self, sp):
         self.sp = sp
-        self.reports = {}      # unit -> (owner, action, target, reason, params) of the running round, from the modules
-        self.paths = {}        # unit -> (owner, phase, target, waypoint) of the running round, from the Wegfuehrung
-        self.last = {}         # unit -> (owner, action, target, reason, phase, params, type) of the round closed last
+        self.reports = {}  # unit -> (owner, action, target, reason, params) of the running round, from the modules
+        self.paths = {}  # unit -> (owner, phase, target, waypoint) of the running round, from the Wegfuehrung
+        self.last = {}  # unit -> (owner, action, target, reason, phase, params, type) of the round closed last
         self.tick = None
 
     def report(self, unit, owner, action, target=None, reason="", **params):
         if action not in ACTIONS:
-            raise ValueError("unknown action %r - add it to docs/plans/Plan_Unit_Status_Log.md and Action first" % (action,))
+            raise ValueError(
+                "unknown action %r - add it to docs/plans/Plan_Unit_Status_Log.md and Action first"
+                % (action,)
+            )
         self.reports[unit] = (owner, action, target, reason, tuple(sorted(params.items())))
 
     def report_many(self, owner, intents):
@@ -122,7 +153,9 @@ class UnitLog:
         else:
             owner, action, target, reason, params = r
             if action == Action.MOVE_TO_STAGING and phase == "at_point":
-                action = Action.WAIT_STAGING      # arrived: the module's "go there" is now "wait there" (Partie 12.11. 20:34)
+                action = (
+                    Action.WAIT_STAGING
+                )  # arrived: the module's "go there" is now "wait there" (Partie 12.11. 20:34)
         if p is not None:
             extra = []
             if p[3] is not None:
@@ -142,16 +175,40 @@ class UnitLog:
             if e is not None and e.get("besitzer") == self.sp and e.get("leben", 1) > 0:
                 now[n] = self._entry(n, e.get("typ"))
         for n, e in L.items():
-            if e.get("besitzer") == self.sp and e.get("typ") in KAEMPFER and e.get("leben", 1) > 0 and n not in now:
-                now[n] = ("nobody", Action.NO_ORDER, None, "no_module_reported", "-", (), e.get("typ"))
+            if (
+                e.get("besitzer") == self.sp
+                and e.get("typ") in KAEMPFER
+                and e.get("leben", 1) > 0
+                and n not in now
+            ):
+                now[n] = (
+                    "nobody",
+                    Action.NO_ORDER,
+                    None,
+                    "no_module_reported",
+                    "-",
+                    (),
+                    e.get("typ"),
+                )
         lines = []
         for n in sorted(now):
             r = now[n]
             if self.last.get(n, (None,) * 5)[:5] != r[:5]:
-                lines.append("UNIT t=%s %d (%s) %s %s%s%s path=%s%s expect=%s" % (
-                    tick, n, type_name(r[6]), r[0], r[1], "" if r[2] is None else " target=%s" % (r[2],),
-                    " reason=%s" % r[3] if r[3] else "", r[4], "".join(" %s=%s" % (k, _text(v)) for k, v in r[5]),
-                    _expect(r[1], r[6], L.get(n), r[2], L, G)))
+                lines.append(
+                    "UNIT t=%s %d (%s) %s %s%s%s path=%s%s expect=%s"
+                    % (
+                        tick,
+                        n,
+                        type_name(r[6]),
+                        r[0],
+                        r[1],
+                        "" if r[2] is None else " target=%s" % (r[2],),
+                        " reason=%s" % r[3] if r[3] else "",
+                        r[4],
+                        "".join(" %s=%s" % (k, _text(v)) for k, v in r[5]),
+                        _expect(r[1], r[6], L.get(n), r[2], L, G),
+                    )
+                )
         for n in sorted(set(self.last) - set(now)):
             lines.append("UNIT t=%s %d (%s) gone" % (tick, n, type_name(self.last[n][6])))
         self.last, self.reports, self.paths = now, {}, {}
@@ -167,12 +224,25 @@ class UnitLog:
         rows = ["tick %s" % self.tick, "unit type owner action target reason path params"]
         for n in sorted(self.last):
             o, a, t, why, phase, params, typ = self.last[n]
-            rows.append("%d %s %s %s %s %s %s %s" % (n, typ, o, a, "-" if t is None else t, why or "-", phase,
-                                                     ";".join("%s=%s" % (k, _text(v)) for k, v in params) or "-"))
+            rows.append(
+                "%d %s %s %s %s %s %s %s"
+                % (
+                    n,
+                    typ,
+                    o,
+                    a,
+                    "-" if t is None else t,
+                    why or "-",
+                    phase,
+                    ";".join("%s=%s" % (k, _text(v)) for k, v in params) or "-",
+                )
+            )
         return "\n".join(rows) + "\n"
 
 
-def collect_round(log, tick, L, G, waechter=None, graben=None, assassins=None, raid=None, wegf=None):
+def collect_round(
+    log, tick, L, G, waechter=None, graben=None, assassins=None, raid=None, wegf=None
+):
     """End of a Lenker round: collects the intents of all modules (a later report wins: Waechter, Graben, Assassinen, raid modules),
     the movement phases of the Wegfuehrung, closes the round. Returns the console lines: the UNIT change lines and, if own fighters
     had no order, one UNIT_NO_ORDER line. Modules without a log (older plug-in versions) are skipped - their units show as
@@ -192,8 +262,16 @@ def collect_round(log, tick, L, G, waechter=None, graben=None, assassins=None, r
     lines = log.close_round(tick, L, G)
     missing = log.no_order()
     if missing:
-        lines.append("UNIT_NO_ORDER t=%s %d: %s" % (tick, len(missing), ", ".join(
-            "%d (%s) %s" % (n, type_name(log.last[n][6]), log.last[n][0]) for n in missing)))
+        lines.append(
+            "UNIT_NO_ORDER t=%s %d: %s"
+            % (
+                tick,
+                len(missing),
+                ", ".join(
+                    "%d (%s) %s" % (n, type_name(log.last[n][6]), log.last[n][0]) for n in missing
+                ),
+            )
+        )
     return lines
 
 
@@ -208,6 +286,13 @@ def read_table(text):
         w = r.split(" ")
         if len(w) < 8:
             continue
-        rows[int(w[0])] = {"type": w[1], "owner": w[2], "action": w[3], "target": w[4], "reason": w[5], "path": w[6],
-                           "params": dict(kv.split("=", 1) for kv in w[7].split(";") if "=" in kv)}
+        rows[int(w[0])] = {
+            "type": w[1],
+            "owner": w[2],
+            "action": w[3],
+            "target": w[4],
+            "reason": w[5],
+            "path": w[6],
+            "params": dict(kv.split("=", 1) for kv in w[7].split(";") if "=" in kv),
+        }
     return (int(tick) if tick not in (None, "None") else None), rows

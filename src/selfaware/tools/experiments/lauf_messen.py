@@ -19,6 +19,7 @@ Call (PYTHONPATH=src, SHC_INSTANZ=2):
   python -m selfaware.tools.experiments.lauf_messen linie gelaende=data/research/gelaende_LigaParadisePlains.txt
          karte="Liga_Paradise Plains" typen=73,24 [klassen=0x20000000,0x200000,none]     (a fresh skirmish on the map)
 """
+
 import collections
 import json
 import os
@@ -31,16 +32,37 @@ from selfaware.micro.unit_log import type_name
 from selfaware.tools.experiments import schlag_messen as S
 
 WALKING = 101
-FIELDS = ("t", "state", "x", "y", "fine_x", "fine_y", "speed", "height", "path_index", "path_length")
+FIELDS = (
+    "t",
+    "state",
+    "x",
+    "y",
+    "fine_x",
+    "fine_y",
+    "speed",
+    "height",
+    "path_index",
+    "path_length",
+)
 T, STATE, X, Y, FX, FY, SPEED, HEIGHT, P_INDEX, P_LEN = range(len(FIELDS))
-NO_WALK_TICKS = 200      # no walking state this long after the order: the order did not work
-ARRIVED_IDLE = 20        # standing this long at the end point: arrived
+NO_WALK_TICKS = 200  # no walking state this long after the order: the order did not work
+ARRIVED_IDLE = 20  # standing this long at the end point: arrived
 
 
 def row(w, a):
     e = w.einheiten.get(a) or {}
-    return [w.tick, e.get("zustand"), e.get("x"), e.get("y"), e.get("feinx"), e.get("feiny"), e.get("tempo"),
-            e.get("gelaendehoehe"), e.get("wegindex"), e.get("weglaenge")]
+    return [
+        w.tick,
+        e.get("zustand"),
+        e.get("x"),
+        e.get("y"),
+        e.get("feinx"),
+        e.get("feiny"),
+        e.get("tempo"),
+        e.get("gelaendehoehe"),
+        e.get("wegindex"),
+        e.get("weglaenge"),
+    ]
 
 
 def summarize(rows, goal, reason=None, terrain=None):
@@ -50,21 +72,35 @@ def summarize(rows, goal, reason=None, terrain=None):
     t0 = rows[0][T]
     start = (rows[0][X], rows[0][Y])
     walk = next((r[T] for r in rows if r[STATE] == WALKING), None)
-    changes = [r for a, r in zip(rows, rows[1:], strict=False) if (r[X], r[Y]) != (a[X], a[Y]) and r[X] is not None]
+    changes = [
+        r
+        for a, r in zip(rows, rows[1:], strict=False)
+        if (r[X], r[Y]) != (a[X], a[Y]) and r[X] is not None
+    ]
     per_field = [b[T] - a[T] for a, b in zip(changes, changes[1:], strict=False)]
     arrival = next((r[T] for r in rows if (r[X], r[Y]) == goal), None)
     speeds = collections.Counter(r[SPEED] for r in rows if r[STATE] == WALKING)
     common = speeds.most_common(1)[0][0] if speeds else None
-    out = {"order_to_walk": None if walk is None else walk - t0, "arrival": None if arrival is None else arrival - t0,
-           "fields": max(abs(goal[0] - start[0]), abs(goal[1] - start[1])) if None not in start else None,
-           "ticks_per_field": statistics.median(per_field) if per_field else None, "per_field": per_field,
-           "speed_values": {str(k): v for k, v in sorted(speeds.items(), key=lambda kv: str(kv[0]))},
-           "formula": None if common is None else 8 * (common + 1),
-           "heights": sorted({r[HEIGHT] for r in rows if r[HEIGHT] is not None}),
-           "field_ticks": [[r[T] - t0, r[X], r[Y]] for r in changes], "end": reason}
+    out = {
+        "order_to_walk": None if walk is None else walk - t0,
+        "arrival": None if arrival is None else arrival - t0,
+        "fields": max(abs(goal[0] - start[0]), abs(goal[1] - start[1]))
+        if None not in start
+        else None,
+        "ticks_per_field": statistics.median(per_field) if per_field else None,
+        "per_field": per_field,
+        "speed_values": {str(k): v for k, v in sorted(speeds.items(), key=lambda kv: str(kv[0]))},
+        "formula": None if common is None else 8 * (common + 1),
+        "heights": sorted({r[HEIGHT] for r in rows if r[HEIGHT] is not None}),
+        "field_ticks": [[r[T] - t0, r[X], r[Y]] for r in changes],
+        "end": reason,
+    }
     if terrain is not None:
-        per_class, per_step, speed_class = collections.defaultdict(list), collections.defaultdict(list), collections.defaultdict(
-            collections.Counter)
+        per_class, per_step, speed_class = (
+            collections.defaultdict(list),
+            collections.defaultdict(list),
+            collections.defaultdict(collections.Counter),
+        )
         for a, b in zip(changes, changes[1:], strict=False):
             here, nxt = terrain.get((a[X], a[Y])), terrain.get((b[X], b[Y]))
             if here is None:
@@ -78,11 +114,13 @@ def summarize(rows, goal, reason=None, terrain=None):
                 speed_class[here[0]][r[SPEED]] += 1
         out["per_class"] = dict(per_class)
         out["per_step"] = {str(k): v for k, v in sorted(per_step.items())}
-        out["speed_per_class"] = {c: {str(k): n for k, n in v.items()} for c, v in speed_class.items()}
+        out["speed_per_class"] = {
+            c: {str(k): n for k, n in v.items()} for c, v in speed_class.items()
+        }
     return out
 
 
-CLEAN = 30   # a LogicLayer value on fewer walkable fields of a map is "rare" - mixed values, up to 585 fields a map (23:55)
+CLEAN = 30  # a LogicLayer value on fewer walkable fields of a map is "rare" - mixed values, up to 585 fields a map (23:55)
 
 
 def terrain_of(path, by="speed"):
@@ -90,15 +128,24 @@ def terrain_of(path, by="speed"):
     (PathConnectionLayer, the area with the most fields). by="speed": the two speed
     bits of the code (Wissensregister P11); by="value": the whole LogicLayer value, values on fewer than CLEAN fields "rare"."""
     from selfaware.tools.experiments.gelaende_erheben import in_diamond, read_dump, speed_class
+
     x0, y0, rows = read_dump(path)
-    count = collections.Counter(c[3] for row in rows for c in row if c[0]) if by == "value" else None
+    count = (
+        collections.Counter(c[3] for row in rows for c in row if c[0]) if by == "value" else None
+    )
     out = {}
-    areas = collections.Counter(c[2] for j, row in enumerate(rows) for i, c in enumerate(row)
-                                if c[0] and in_diamond(x0 + i, y0 + j))
+    areas = collections.Counter(
+        c[2]
+        for j, row in enumerate(rows)
+        for i, c in enumerate(row)
+        if c[0] and in_diamond(x0 + i, y0 + j)
+    )
     main = areas.most_common(1)[0][0] if areas else None
     for j, row in enumerate(rows):
         for i, (link, _g, area, logic, height, _t) in enumerate(row):
-            if not link or area != main or not in_diamond(x0 + i, y0 + j):   # only the map's own fields of the main area
+            if (
+                not link or area != main or not in_diamond(x0 + i, y0 + j)
+            ):  # only the map's own fields of the main area
                 continue
             if by == "value":
                 name = ("%#x" % logic) if count[logic] >= CLEAN else "rare"
@@ -108,7 +155,7 @@ def terrain_of(path, by="speed"):
     return out
 
 
-EAST = 4       # PathLinkageLayer bit: the step to x+1 is allowed (services/wegkarte.py)
+EAST = 4  # PathLinkageLayer bit: the step to x+1 is allowed (services/wegkarte.py)
 
 
 def _walkable_east(cells):
@@ -153,8 +200,9 @@ def best_lines(terrain, cls, length=20, n=3, keep_away=()):
     found.sort(key=lambda f: -f[0])
     out = []
     for f in found:
-        if all(max(abs(f[1][0] - g[1][0]), abs(f[1][1] - g[1][1])) > 2 * length for g in out) and all(
-                max(abs(f[1][0] - k[0]), abs(f[1][1] - k[1])) > 40 for k in keep_away):
+        if all(
+            max(abs(f[1][0] - g[1][0]), abs(f[1][1] - g[1][1])) > 2 * length for g in out
+        ) and all(max(abs(f[1][0] - k[0]), abs(f[1][1] - k[1])) > 40 for k in keep_away):
             out.append(f)
         if len(out) >= n:
             break
@@ -164,7 +212,9 @@ def best_lines(terrain, cls, length=20, n=3, keep_away=()):
 def line_trial(le, typ, start, goal, ticks, terrain):
     """On a real map (a paused skirmish): place an own unit at start, walk it to goal, then remove all own units of this type
     (toeteAlle with typen - our lord stays)."""
-    a = S.place_unit(1, typ, start[0] - 1, start[1] - 1)     # the game puts a placed unit one field further (x/y +1)
+    a = S.place_unit(
+        1, typ, start[0] - 1, start[1] - 1
+    )  # the game puts a placed unit one field further (x/y +1)
     out = {"unit": typ, "start": list(start), "goal": list(goal), "nr": a, "fields": FIELDS}
     if a is None:
         out.update(result={"end": "not_placed"}, rows=[])
@@ -192,8 +242,11 @@ def stop_reason(rows, goal, ticks):
         return "unit_gone"
     if last[T] - t0 >= NO_WALK_TICKS and not any(r[STATE] == WALKING for r in rows):
         return "no_walk"
-    if (last[X], last[Y]) == goal and len(rows) > ARRIVED_IDLE and all(
-            r[STATE] != WALKING and (r[X], r[Y]) == goal for r in rows[-ARRIVED_IDLE:]):
+    if (
+        (last[X], last[Y]) == goal
+        and len(rows) > ARRIVED_IDLE
+        and all(r[STATE] != WALKING and (r[X], r[Y]) == goal for r in rows[-ARRIVED_IDLE:])
+    ):
         return "arrived"
     if last[T] - t0 >= ticks:
         return "time"
@@ -209,7 +262,11 @@ def free_line(buildings, start, goal, used):
         end = (p[0] + dx, p[1] + dy)
         steps = max(abs(dx), abs(dy))
         line = [(p[0] + dx * i // steps, p[1] + dy * i // steps) for i in range(steps + 1)]
-        if any(max(abs(g["x"] - q[0]), abs(g["y"] - q[1])) <= S.FREE // 2 for g in buildings.values() for q in line + [end]):
+        if any(
+            max(abs(g["x"] - q[0]), abs(g["y"] - q[1])) <= S.FREE // 2
+            for g in buildings.values()
+            for q in line + [end]
+        ):
             continue
         used.add(p)
         return p
@@ -245,9 +302,13 @@ def trial(le, typ, offset, spot, ticks):
 def steepest_line(terrain, length=20, keep_away=()):
     """The east-west line of walkable fields with the largest height range, at least 40 fields from every point in keep_away."""
     best = None
-    for (x, y) in terrain:
+    for x, y in terrain:
         cells = [terrain.get((x + i, y)) for i in range(length)]
-        if None in cells or not _walkable_east(cells) or any(max(abs(x - k[0]), abs(y - k[1])) <= 40 for k in keep_away):
+        if (
+            None in cells
+            or not _walkable_east(cells)
+            or any(max(abs(x - k[0]), abs(y - k[1])) <= 40 for k in keep_away)
+        ):
             continue
         rng = max(c[1] for c in cells) - min(c[1] for c in cells)
         if best is None or rng > best[0]:
@@ -261,6 +322,7 @@ def main_lines(arg):
     import selfaware.game.kern_leitung as KL
     from selfaware.game.ucp.befehl import SPIEL
     from selfaware.tools.experiments.karten_holen import gefecht_frisch
+
     terrain = terrain_of(arg["gelaende"])
     gefecht_frisch(arg["karte"], ki=2)
     le = KL.Leitung(SPIEL)
@@ -286,9 +348,20 @@ def main_lines(arg):
                 f.write(json.dumps(r) + "\n")
             s = r["result"]
             med = {c: statistics.median(v) for c, v in (s.get("per_class") or {}).items() if v}
-            print("%s on %s line %s->%s: ticks per field by class %s, n %s, speed values by class %s, end %s" % (
-                type_name(typ), cls, start, goal, med, {c: len(v) for c, v in (s.get("per_class") or {}).items()},
-                s.get("speed_per_class"), s.get("end")), flush=True)
+            print(
+                "%s on %s line %s->%s: ticks per field by class %s, n %s, speed values by class %s, end %s"
+                % (
+                    type_name(typ),
+                    cls,
+                    start,
+                    goal,
+                    med,
+                    {c: len(v) for c, v in (s.get("per_class") or {}).items()},
+                    s.get("speed_per_class"),
+                    s.get("end"),
+                ),
+                flush=True,
+            )
     S.send([{"pause": True}], wait=1.0)
     print("file:", path)
 
@@ -299,6 +372,7 @@ def model_check(jsonl, dump):
     (type, line class, measured, model min/max error, flat error)."""
     from selfaware.services import laufmodell as LM
     from selfaware.tools.experiments.gelaende_erheben import read_dump, read_macro_file
+
     x0, y0, rows = read_dump(dump)
     macro = read_macro_file(dump[:-4] + "_macro.txt")
 
@@ -328,8 +402,17 @@ def model_check(jsonl, dump):
                 errs.append((sim[-1] - sim[0]) - measured)
             h0 = tile(*fields[0])[2]
             flat = LM.walk(r["unit"], fields, lambda x, y, h=h0: (0x8000, 1, h), 0, 0)
-            out.append((r["unit"], r.get("line", {}).get("class"), measured, min(errs), max(errs), (flat[-1] - flat[0]) - measured,
-                        blocked))
+            out.append(
+                (
+                    r["unit"],
+                    r.get("line", {}).get("class"),
+                    measured,
+                    min(errs),
+                    max(errs),
+                    (flat[-1] - flat[0]) - measured,
+                    blocked,
+                )
+            )
     return out
 
 
@@ -337,6 +420,7 @@ def blocked_fields(rows, typ):
     """Fields on which the unit stayed more than twice as long as the game's own speed value allows (one move every speed + run +
     1 ticks, (run + 1) of 8 micro steps) plus one update (8 moves) - blocked or crowded, not terrain. -> [(x, y, ticks, allowed)]"""
     from selfaware.services import laufmodell as LM
+
     _base, run = LM.TYPES[typ]
     out, start, speeds = [], None, []
     for a, b in zip(rows, rows[1:], strict=False):
@@ -350,18 +434,35 @@ def blocked_fields(rows, typ):
             if b[T] - start > allowed:
                 out.append((a[X], a[Y], b[T] - start, round(allowed)))
             start, speeds = b[T], []
-    return out[1:] if out and out[0][2] and rows and (out[0][0], out[0][1]) == (rows[0][X], rows[0][Y]) else out
+    return (
+        out[1:]
+        if out and out[0][2] and rows and (out[0][0], out[0][1]) == (rows[0][X], rows[0][Y])
+        else out
+    )
 
 
 def main():
     import selfaware.game.kern_leitung as KL
     from selfaware.game.ucp.befehl import SPIEL
+
     if sys.argv[1:2] == ["modell"]:
         arg = dict(a.split("=", 1) for a in sys.argv[2:])
         for typ, cls, measured, lo, hi, flat, blocked in model_check(arg["lauf"], arg["gelaende"]):
-            print("%-22s %-11s measured %4d ticks | model %+4d .. %+4d (%+.0f %% .. %+.0f %%) | flat ground %+4d (%+.0f %%)%s" % (
-                type_name(typ), cls, measured, lo, hi, 100.0 * lo / measured, 100.0 * hi / measured, flat, 100.0 * flat / measured,
-                " | BLOCKED %s" % blocked if blocked else ""))
+            print(
+                "%-22s %-11s measured %4d ticks | model %+4d .. %+4d (%+.0f %% .. %+.0f %%) | flat ground %+4d (%+.0f %%)%s"
+                % (
+                    type_name(typ),
+                    cls,
+                    measured,
+                    lo,
+                    hi,
+                    100.0 * lo / measured,
+                    100.0 * hi / measured,
+                    flat,
+                    100.0 * flat / measured,
+                    " | BLOCKED %s" % blocked if blocked else "",
+                )
+            )
         return
     if sys.argv[1:2] == ["linie"]:
         S.exclusive()
@@ -376,12 +477,25 @@ def main():
     used = set()
     path = os.path.join(_workspace.DATA, "lauf_messung_%s.jsonl" % time.strftime("%Y%m%d_%H%M%S"))
     for typ in [int(x) for x in arg["typen"].split(",")]:
-        r = trial(le, typ, offset, free_line(S._world(le).gebaeude, None, offset, used), int(arg.get("ticks", 3000)))
+        r = trial(
+            le,
+            typ,
+            offset,
+            free_line(S._world(le).gebaeude, None, offset, used),
+            int(arg.get("ticks", 3000)),
+        )
         with open(path, "a", encoding="utf-8") as f:
             f.write(json.dumps(r) + "\n")
         s = r["result"]
-        print("%s %s: %s" % (type_name(typ), offset, json.dumps({k: v for k, v in s.items() if k not in ("field_ticks", "per_field")})),
-              flush=True)
+        print(
+            "%s %s: %s"
+            % (
+                type_name(typ),
+                offset,
+                json.dumps({k: v for k, v in s.items() if k not in ("field_ticks", "per_field")}),
+            ),
+            flush=True,
+        )
     print("file:", path)
 
 

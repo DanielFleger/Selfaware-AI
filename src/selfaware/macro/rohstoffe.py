@@ -12,25 +12,35 @@ neben 62 Stein- und 45 Eisenvorkommen ab 4 Feldern 462 und 544 Grueppchen mit 1-
 Laufzeit: Felder auf dem Laufweg ueber die Weg-Ebene des Spiels (um Wasser, Felsen und Gebaeude herum, nicht Luftlinie) vom naechsten
 eigenen Lagerfeld bis neben den Bau, mal TAKTE_JE_FELD. Gemessen (Wissensregister G1): Arbeiter laufen 24 Takte je Feld, gerade wie
 schraeg gleich schnell - darum zaehlt ein Schraegschritt wie ein gerader."""
+
 from collections import deque
 
 from selfaware.services import schussfeld as SF
 
-GROESSE = {20: 6, 5: 4}                # Seitenlaenge des Baus (NACH_TYP)
-TAKTE_JE_FELD = 24                     # Wissensregister G1 (getestet 06.10.2026)
+GROESSE = {20: 6, 5: 4}  # Seitenlaenge des Baus (NACH_TYP)
+TAKTE_JE_FELD = 24  # Wissensregister G1 (getestet 06.10.2026)
 
 
 def lagerfelder(G, sp):
     """Felder der eigenen Lagerplaetze (Typ 10, 3x3 je Teil) - dort kommt Stein und Eisen an."""
-    return [(g["x"] + dx, g["y"] + dy) for g in G.values() if g.get("besitzer") == sp and g.get("typ") == 10
-            for dx in range(3) for dy in range(3)]
+    return [
+        (g["x"] + dx, g["y"] + dy)
+        for g in G.values()
+        if g.get("besitzer") == sp and g.get("typ") == 10
+        for dx in range(3)
+        for dy in range(3)
+    ]
 
 
 def _ring(ecke, b):
     """Felder rund um den Grundriss (Ecke oben links, Seitenlaenge b) - dort steht der Arbeiter, der ein- und auslaedt."""
     x0, y0 = ecke
-    return [(x, y) for x in range(x0 - 1, x0 + b + 1) for y in range(y0 - 1, y0 + b + 1)
-            if not (x0 <= x < x0 + b and y0 <= y < y0 + b)]
+    return [
+        (x, y)
+        for x in range(x0 - 1, x0 + b + 1)
+        for y in range(y0 - 1, y0 + b + 1)
+        if not (x0 <= x < x0 + b and y0 <= y < y0 + b)
+    ]
 
 
 def abstaende(gelaende, quellen):
@@ -38,8 +48,14 @@ def abstaende(gelaende, quellen):
     (services/wegkarte.als_gelaende: Zeile y, Spalte x, "." = das Spiel erlaubt dort einen Schritt; vor dem ersten Lesen die
     Startkarte mit "G"/"s"/"." - begehbar ist, was in schussfeld.BEGEHBAR steht). Schraeg zaehlt 1 (G1).
     S170-Fix (Partie 34, 15.11.2026 12:35: TypeError - die Wegfuehrung haelt die Zeichenkarte, nicht die Feldtabelle)."""
+
     def frei(p):
-        return 0 <= p[1] < len(gelaende) and 0 <= p[0] < len(gelaende[p[1]]) and gelaende[p[1]][p[0]] in SF.BEGEHBAR
+        return (
+            0 <= p[1] < len(gelaende)
+            and 0 <= p[0] < len(gelaende[p[1]])
+            and gelaende[p[1]][p[0]] in SF.BEGEHBAR
+        )
+
     q = deque(p for p in quellen if frei(p))
     d = {p: 0 for p in q}
     while q:
@@ -63,7 +79,7 @@ class Rohstoffpflicht:
 
     def __init__(self, plaetze):
         self.plaetze = {art: set(p) for art, p in plaetze.items()}
-        self.liste = []                     # [(Takte, Art, Ecke)] nach Laufzeit
+        self.liste = []  # [(Takte, Art, Ecke)] nach Laufzeit
         self.unerreichbar = 0
         self._schluessel = None
         self._d = None

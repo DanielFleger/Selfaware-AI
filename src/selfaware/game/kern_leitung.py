@@ -17,7 +17,7 @@ from dataclasses import dataclass, field
 from operator import itemgetter
 
 KENNUNG = int.from_bytes(b"SAMK", "little")
-AUFBAU = 8      # 8 (14.11.2026, S148): Gebiet des Wegnetzes je Einheit, Datensatz 120 -> 124; 7 (S143): field320_0x413; 6 (S139)
+AUFBAU = 8  # 8 (14.11.2026, S148): Gebiet des Wegnetzes je Einheit, Datensatz 120 -> 124; 7 (S143): field320_0x413; 6 (S139)
 KOPF, EINHEIT, GEBAEUDE, TRUPP, GESCHOSS = 64, 124, 20, 16, 40
 MAX_EINHEITEN, MAX_GEBAEUDE, MAX_TRUPPS, MAX_GESCHOSSE = 2500, 2000, 1250, 3000
 GEBAEUDE_START = KOPF + MAX_EINHEITEN * EINHEIT
@@ -57,11 +57,13 @@ AUSWEICHEN = 30  # B-174, B-178: a, b = Ziel, im Feld vorrang die Nummer des Tru
 # S155 (Kern 30, Daniel 15.11.2026 00:20 "Ja, Kern bauen"): ein Laufauftrag, den der Kern durchsetzt - kaempft die Einheit gegen einen
 # anderen als den erlaubten Gegner (Zustand 106), legt er ihn jeden Takt neu in die Schlange; GEGNER_ERLAUBT: a = dieser Gegner, 0 = keiner
 LAUF_DURCHSETZEN, GEGNER_ERLAUBT = 18, 19
-DURCHSETZEN_AB = 30  # erste Kern-Version, die beide Arten kennt - ein aelterer lehnt sie als unbekannt ab
+DURCHSETZEN_AB = (
+    30  # erste Kern-Version, die beide Arten kennt - ein aelterer lehnt sie als unbekannt ab
+)
 # S159 (Kern 32): an einen Laufauftrag haengt der Lenker die weiteren Wegpunkte (a, b = Ort) und zuletzt den Angriff (a = Ziel); der Kern
 # gibt den naechsten Schritt im Takt, in dem die Einheit am jetzigen Wegpunkt ankommt
 WEGPUNKT, DANACH_EINHEIT, DANACH_GEBAEUDE = 20, 21, 22
-KETTE_AB = 32       # erste Kern-Version mit Wegpunktkette
+KETTE_AB = 32  # erste Kern-Version mit Wegpunktkette
 VORRANG_REFLEX, VORRANG_FLUCHT, VORRANG_ANGRIFF, VORRANG_LAUFEN, VORRANG_ROUTINE = 1, 2, 3, 4, 5
 ERG_DOPPELT, ERG_ANGENOMMEN, ERG_ABGESETZT, ERG_WIRKT, ERG_GEPARKT = 0, 1, 2, 3, 4
 ERG_NICHT_UEBERNOMMEN, ERG_UNBEKANNT, ERG_FREMD = -4, -5, -6
@@ -313,7 +315,7 @@ class Leitung:
             with open(self.pfad, encoding="utf-8") as f:
                 name, groesse = f.read().split()[:2]
         except (OSError, ValueError):
-            return False            # der Kern schreibt sie gerade
+            return False  # der Kern schreibt sie gerade
         if name == self.name or int(groesse) != GROESSE:
             return False
         self._verbinden(name)

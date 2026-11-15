@@ -16,6 +16,7 @@ Freigabe (data/research/partie_freigabe.json), von der Sitzung nach Daniels Antw
   {"zeit": "15.11.2026 11:50", "daniel": "<sein Wortlaut>", "weg": "menue" | "befehl",
    "aufstellung": {"karte": ..., "gold_spieler": ..., "gold_ki": ..., "spieler": [...], "teams": ..., "positionen": ...},
    "verbraucht": false}"""
+
 import json
 import os
 
@@ -25,7 +26,10 @@ FREIGABE = os.path.join(_workspace.DATA, "partie_freigabe.json")
 WISSEN = "VillageStudio/doku/Partie-starten.md"
 
 
-START_KNOPF = ("LobbyMenu_LobbyscreenStartButtonClick", 4)    # S171: Startknopf der Lobby (Ghidra: case 4 "start game")
+START_KNOPF = (
+    "LobbyMenu_LobbyscreenStartButtonClick",
+    4,
+)  # S171: Startknopf der Lobby (Ghidra: case 4 "start game")
 
 
 def _weg(c):
@@ -59,11 +63,19 @@ def filtern(paket, pfad=None):
         return paket, []
     f = lesen(pfad)
     if not f or not f.get("daniel") or f.get("verbraucht"):
-        return None, ["STARTSPERRE: kein Gefecht ohne Daniels Aufstellung - erst fragen (%s), dann die Freigabe schreiben (%s)" % (
-            WISSEN, pfad or FREIGABE)]
+        return None, [
+            "STARTSPERRE: kein Gefecht ohne Daniels Aufstellung - erst fragen (%s), dann die Freigabe schreiben (%s)"
+            % (WISSEN, pfad or FREIGABE)
+        ]
     if f.get("weg") != weg:
-        return None, ["STARTSPERRE: Start per %s, Daniels Freigabe gilt fuer weg=%r (%s)" % (weg, f.get("weg"), WISSEN)]
+        return None, [
+            "STARTSPERRE: Start per %s, Daniels Freigabe gilt fuer weg=%r (%s)"
+            % (weg, f.get("weg"), WISSEN)
+        ]
     f["verbraucht"] = True
     with open(pfad or FREIGABE, "w", encoding="utf-8") as d:
         json.dump(f, d, ensure_ascii=False, indent=1)
-    return paket, ["STARTSPERRE: Start per %s mit Daniels Freigabe vom %s (jetzt verbraucht)" % (weg, f.get("zeit"))]
+    return paket, [
+        "STARTSPERRE: Start per %s mit Daniels Freigabe vom %s (jetzt verbraucht)"
+        % (weg, f.get("zeit"))
+    ]

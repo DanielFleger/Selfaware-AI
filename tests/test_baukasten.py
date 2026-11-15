@@ -320,7 +320,9 @@ def test_raid_aufstellungen_fuehren_den_vorstoss_bis_zum_ende():
     import glob
     import os
 
-    namen = sorted(os.path.basename(p)[:-5] for p in glob.glob(os.path.join(AF.ORDNER, "raid_wirkung*.json")))
+    namen = sorted(
+        os.path.basename(p)[:-5] for p in glob.glob(os.path.join(AF.ORDNER, "raid_wirkung*.json"))
+    )
     assert "raid_wirkung_pp" in namen
     for name in namen:
         s = AF.laden(name)["schalter"]

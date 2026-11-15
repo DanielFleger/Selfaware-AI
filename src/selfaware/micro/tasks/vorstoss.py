@@ -67,7 +67,9 @@ ANGRIFF_WEIT = 60  # so weit von der Gruppe nimmt der Vorstoss ueberreichte Schu
 # (1-2 Armbrustschuetzen am Standplatz), der Vorstoss probierte sie der Reihe nach und gab sie auf; fuer 29 bis 35 von 34 bis 40
 # feindlichen Einheiten fand die Wegfuehrung aber einen sicheren Standplatz. Startwert, nicht gemessen:
 FERNZIEL_MAX = 120  # so weit sucht der Vorstoss ein Ziel, das er sicher beschiessen kann
-SCHUETZE_PRUEF = 70  # fuer diese Art fragt er die Wegfuehrung (erfassen: 22, 23 und 70 je 40 Felder)
+SCHUETZE_PRUEF = (
+    70  # fuer diese Art fragt er die Wegfuehrung (erfassen: 22, 23 und 70 je 40 Felder)
+)
 # B-182 (Partie 11.11. 23:40, Fehlerwache F3): Startwerte, nicht gemessen - so weit vom Treffpunkt gilt ein Schuetze als
 # Nachzuegler; so weit darf der Treffpunkt wandern, bevor er neu gilt
 SAMMELN_AB = 15
@@ -141,11 +143,15 @@ class Vorstoss:
         self.befehle = collections.Counter()
         self.ziel_leben = {}  # Ziel -> (Leben, Runde des letzten Schadens)
         self.stur = {}  # Ziel -> tabu bis zu dieser Runde
-        self.weg = None  # B-182: gemeinsame Wegfuehrung (micro/wegfuehrung.py), setzt der Raid-Einsatz
+        self.weg = (
+            None  # B-182: gemeinsame Wegfuehrung (micro/wegfuehrung.py), setzt der Raid-Einsatz
+        )
         self.gefuehrt = None  # Ziel, zu dem die Wegfuehrung die Schuetzen gerade fuehrt
         self.gesperrt = {}  # Ziel -> Runde: die Wegfuehrung fand fuer keinen Schuetzen Angriff oder Weg
         self.vor_ort = None  # Stelle, zu der die Wegfuehrung die Schuetzen beim Vorruecken fuehrt
-        self.vor_bis = -1  # bis zu dieser Runde kein Vorruecken (die Wegfuehrung fand die Stelle nicht sicher)
+        self.vor_bis = (
+            -1
+        )  # bis zu dieser Runde kein Vorruecken (die Wegfuehrung fand die Stelle nicht sicher)
         self._treff = None  # B-182: Treffpunkt der Nachzuegler
         self._nachzuegler = set()
         self.absicht = {}  # B-182 Logbuch je Einheit: Schuetze -> (Aktion, Ziel, Grund, Werte) dieser Runde
@@ -256,7 +262,12 @@ class Vorstoss:
         weit = sorted(n for n in meine if schach(ort(L[n]), treff) > SAMMELN_AB)
         for n in weit:
             self.weg.fuehre(n, "ort", treff, "vorstoss")
-            self.absicht[n] = (Action.GATHER, point(treff), "straggler", {"dist": schach(ort(L[n]), treff)})
+            self.absicht[n] = (
+                Action.GATHER,
+                point(treff),
+                "straggler",
+                {"dist": schach(ort(L[n]), treff)},
+            )
         if set(weit) - self._nachzuegler:
             aus.append("VORSTOSS: holt %d Nachzuegler zur Gruppe bei %s" % (len(weit), treff))
         self._nachzuegler = set(weit)
@@ -310,7 +321,9 @@ class Vorstoss:
     def _sicher_zu_beschiessen(self, k, L, G, mitte):
         """B-182: Faende die Wegfuehrung einen Standplatz in Reichweite von k, an dem niemand trifft (oder Freigabe)? Ohne Wegfuehrung
         wie bisher: ja."""
-        return self.weg is None or self.weg.schuss_moeglich(SCHUETZE_PRUEF, mitte, ort(L[k]), L, G, "vorstoss")
+        return self.weg is None or self.weg.schuss_moeglich(
+            SCHUETZE_PRUEF, mitte, ort(L[k]), L, G, "vorstoss"
+        )
 
     def _fernziel(self, L, G, mitte):
         """B-182: der naechste Feind bis FERNZIEL_MAX, den die Gruppe sicher beschiessen kann - (Nummer, Abstand) oder None."""
@@ -364,7 +377,13 @@ class Vorstoss:
         self.absicht = {}
         if t >= self.bis:
             if self.mitglieder:
-                self._melde(self.mitglieder, Action.HOLD_POST, None, "advance_ended_back_to_guard", until=self.bis)
+                self._melde(
+                    self.mitglieder,
+                    Action.HOLD_POST,
+                    None,
+                    "advance_ended_back_to_guard",
+                    until=self.bis,
+                )
                 aus.append(
                     "VORSTOSS: Ende bei Takt %d, %d Schuetzen wieder frei"
                     % (t, len(self.mitglieder))
@@ -410,7 +429,9 @@ class Vorstoss:
         gefahr = self._schussfeld(mitte, L, G, len(meine))
         if gefahr is not None:
             ziel = _weg_von(mitte, gefahr, RUECK_WEITE)
-            self._melde(meine, Action.RETREAT, point(ziel), "outnumbered_or_tower", at=point(gefahr))
+            self._melde(
+                meine, Action.RETREAT, point(ziel), "outnumbered_or_tower", at=point(gefahr)
+            )
             # Wegfuehrung frei: Flucht - aus dem Schussfeld einer Uebermacht oder eines Turms
             if self._sende("abziehen", _grob(ziel), befehl, meine, {"lauf": [ziel[0], ziel[1]]}):
                 aus.append("VORSTOSS: zieht aus dem Schussfeld bei %s ab -> %s" % (gefahr, ziel))
@@ -421,13 +442,17 @@ class Vorstoss:
             (0 if e["typ"] not in ARBEITER else 1, _luft(ort(e), mitte), n)
             for n, e in self._feinde(L, NAHKAMPF | FERN_FEIND | {SKLAVE} | ARBEITER)
             if _luft(ort(e), mitte) <= SCHUSS
-            or (e["typ"] in FERN_FEIND and REICHWEITE.get(e["typ"], GEFAHR_SCHUSS) <= UEBERREICHT
-                and _luft(ort(e), mitte) <= ANGRIFF_WEIT)
+            or (
+                e["typ"] in FERN_FEIND
+                and REICHWEITE.get(e["typ"], GEFAHR_SCHUSS) <= UEBERREICHT
+                and _luft(ort(e), mitte) <= ANGRIFF_WEIT
+            )
         )
         self._aufgeben(aus)
         fern = None
         if self.weg is not None and not any(
-            not (self._ist_stur(k, L[k]) or self.gesperrt.get(k, -1) > self.runde) and self._sicher_zu_beschiessen(k, L, G, mitte)
+            not (self._ist_stur(k, L[k]) or self.gesperrt.get(k, -1) > self.runde)
+            and self._sicher_zu_beschiessen(k, L, G, mitte)
             for _, _d, k in kand
         ):
             fern = self._fernziel(L, G, mitte)
@@ -438,21 +463,36 @@ class Vorstoss:
                 continue
             if self.weg is not None and not self._sicher_zu_beschiessen(k, L, G, mitte):
                 continue  # B-182: gedeckt - nicht erst probieren und aufgeben
-            self._melde(meine, Action.ATTACK_UNIT, unit(k), "far_safe_target" if fern is not None else "safe_target_in_range",
-                        typ=L[k]["typ"], dist=int(d))
+            self._melde(
+                meine,
+                Action.ATTACK_UNIT,
+                unit(k),
+                "far_safe_target" if fern is not None else "safe_target_in_range",
+                typ=L[k]["typ"],
+                dist=int(d),
+            )
             if self.weg is not None:
                 # B-182 (Plan_Wegfuehrung.md): jeden Schuetzen fuehrt die Wegfuehrung bis in seine eigene Reichweite, jede Runde neu
                 self._frei(meine)  # der Zickzack des Kerns gibt sie vorher her - nie zwei Fuehrer
                 for art in ("vor", "weichen", "abziehen"):
-                    self.letzter.pop(art, None)  # der naechste eigene Lauf geht danach sofort hinaus, nicht erst nach NEU_ALLE
+                    self.letzter.pop(
+                        art, None
+                    )  # der naechste eigene Lauf geht danach sofort hinaus, nicht erst nach NEU_ALLE
                 for n in sorted(meine):
                     self.weg.fuehre(n, "einheit", k, "vorstoss")
                 self.vor_ort = None
                 if self.gefuehrt != k:
                     self.gefuehrt = k
                     self.befehle["schuss"] += 1
-                    aus.append("VORSTOSS: %d Schuetzen %s Typ %d in %d Feldern" % (
-                        len(meine), "ziehen zu" if fern is not None else "schiessen auf", L[k]["typ"], d))
+                    aus.append(
+                        "VORSTOSS: %d Schuetzen %s Typ %d in %d Feldern"
+                        % (
+                            len(meine),
+                            "ziehen zu" if fern is not None else "schiessen auf",
+                            L[k]["typ"],
+                            d,
+                        )
+                    )
                 return aus
             if self._sende("schuss", k, befehl, meine, {"ziel": k}):
                 aus.append(
@@ -466,13 +506,19 @@ class Vorstoss:
             self._loslassen(meine)
         stand, ziel = self._stellung(L, G, mitte, len(meine))
         if stand is None or schach(mitte, stand) == 0:
-            self._melde(meine, Action.WAIT_STAGING, point(mitte),
-                        "no_safe_firing_position" if stand is None else "at_firing_position_no_target")
+            self._melde(
+                meine,
+                Action.WAIT_STAGING,
+                point(mitte),
+                "no_safe_firing_position" if stand is None else "at_firing_position_no_target",
+            )
             self._sammeln(L, meine, mitte, aus)
             return aus
         stelle = _schritt_auf(mitte, stand, SCHRITT)
         if not self._sicher(stelle, L, G, len(meine)):
-            self._melde(meine, Action.WAIT_STAGING, point(mitte), "advance_unsafe", to=point(stelle))
+            self._melde(
+                meine, Action.WAIT_STAGING, point(mitte), "advance_unsafe", to=point(stelle)
+            )
             self._sammeln(L, meine, mitte, aus)
             return aus
         if self.weg is not None:
@@ -483,12 +529,27 @@ class Vorstoss:
             if self.vor_ort is not None and st and st <= {"gefahr", "kein_weg"}:
                 self.vor_bis = self.runde + SPERRE_RUNDEN
                 self._loslassen(meine)
-                aus.append("VORSTOSS: Vorruecken nicht sicher (%s), wartet %d Runden" % ("/".join(sorted(st)), SPERRE_RUNDEN))
-                self._melde(meine, Action.WAIT_STAGING, point(mitte), "advance_refused_by_path", to=point(stelle))
+                aus.append(
+                    "VORSTOSS: Vorruecken nicht sicher (%s), wartet %d Runden"
+                    % ("/".join(sorted(st)), SPERRE_RUNDEN)
+                )
+                self._melde(
+                    meine,
+                    Action.WAIT_STAGING,
+                    point(mitte),
+                    "advance_refused_by_path",
+                    to=point(stelle),
+                )
                 self._sammeln(L, meine, mitte, aus)
                 return aus
             if self.vor_bis > self.runde:
-                self._melde(meine, Action.WAIT_STAGING, point(mitte), "advance_paused", rounds_left=self.vor_bis - self.runde)
+                self._melde(
+                    meine,
+                    Action.WAIT_STAGING,
+                    point(mitte),
+                    "advance_paused",
+                    rounds_left=self.vor_bis - self.runde,
+                )
                 self._sammeln(L, meine, mitte, aus)
                 return aus
             self._frei(meine)
@@ -499,9 +560,21 @@ class Vorstoss:
                 aus.append("VORSTOSS: rueckt vor %s -> %s, Ziel %s" % (mitte, stelle, ziel))
             for n in sorted(meine):
                 self.weg.fuehre(n, "ort", self.vor_ort, "vorstoss")
-            self._melde(meine, Action.MOVE_TO_STAGING, point(self.vor_ort), "advance_toward_target", toward=point(ziel))
+            self._melde(
+                meine,
+                Action.MOVE_TO_STAGING,
+                point(self.vor_ort),
+                "advance_toward_target",
+                toward=point(ziel),
+            )
             return aus
-        self._melde(meine, Action.MOVE_TO_STAGING, point(stelle), "advance_toward_target", toward=point(ziel))
+        self._melde(
+            meine,
+            Action.MOVE_TO_STAGING,
+            point(stelle),
+            "advance_toward_target",
+            toward=point(ziel),
+        )
         if self._sende("vor", stelle, befehl, meine, {"lauf": [stelle[0], stelle[1]]}):
             aus.append("VORSTOSS: rueckt vor %s -> %s, Ziel %s" % (mitte, stelle, ziel))
         return aus

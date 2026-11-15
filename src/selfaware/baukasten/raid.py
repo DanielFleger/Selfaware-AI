@@ -24,12 +24,14 @@ REIHENFOLGE = ("sklaven", "schleuderer", "reiter", "assassinen")
 # Nahkampf-Raid (Grundgesetz P1.37). Sein Standplatz ist das Ziel selbst (793 von 803 seiner Ziele vom 10.11. lagen in Gefahr,
 # S115), seine Zielwahl nach Wirkung zieht den Beschuss am Ziel ab; den Weg dorthin fuehrt die Wegfuehrung weiter um Gefahr herum.
 TROTZ_GEFAHR = ("nahkampfraid", "waechter")
-# B-182 (Partie 11.11. 22:37, Daniel 22:41: "warum kam erst so spät ein sklave? ich hätte als effektive ki 
+# B-182 (Partie 11.11. 22:37, Daniel 22:41: "warum kam erst so spät ein sklave? ich hätte als effektive ki
 # so schnell wie möglich raid sklaven rausgespuckt und schonmal nach vorne geschickt und dann geraided"): von Takt 2922 bis 3774 lagen 53 Gold da, alles zurueckgelegt fuer
 # 4 offene B-Plantagen (4 x 15), der erste Sklave kam bei Takt 3902. Lebt kein Raid-Sklave, darf der erste die Ruecklage angreifen.
 # Startwert, nicht gemessen: so viele Runden nach diesem Kauf nicht noch einmal (der Sklave braucht bis zum Erscheinen ~120 Takte)
 ERSTER_PAUSE = 6
-VORSTOSS_SCHUETZE = 70  # Arabischer Bogenschuetze: kaufbar nur fuer den Vorstoss (vorstoss.SCHUETZEN)
+VORSTOSS_SCHUETZE = (
+    70  # Arabischer Bogenschuetze: kaufbar nur fuer den Vorstoss (vorstoss.SCHUETZEN)
+)
 # B-182: Was das Modul einer Art angreift - g Gebaeude, e Einheiten. In Reihe 1 (10.11.) traute die Rechnung Sklaven Arbeiter zu, die der
 # Brandtrupp nie jagt, und kaufte darum nur Sklaven. Nahkaempfer des Nahkampf-Raids und Assassinen greifen beides an.
 ZIELARTEN = {RA.SKLAVE: "g", RA.PFERDEBOGEN: "e", RA.SCHLEUDER: "e", 70: "e", ASSASSINE: "ge"}
@@ -205,7 +207,8 @@ class RaidBestellungNachWirkung(RaidBestellung):
                 kaeufe = kaeufe + erster
                 self._erster = b.runde
                 self.begruendung.append(
-                    "erster Raid-Sklave vor der Ruecklage (Gold %d, Ruecklage %d)" % (b.gold, b.ruecklage)
+                    "erster Raid-Sklave vor der Ruecklage (Gold %d, Ruecklage %d)"
+                    % (b.gold, b.ruecklage)
                 )
         if b.sklaven_platz is not None:
             # B-182 (Partie 11.11. 22:14, Fehlerwache F3): drei Sklaven bestellt, der dritte bekam nie ein Gebaeude
@@ -213,7 +216,10 @@ class RaidBestellungNachWirkung(RaidBestellung):
             neu = []
             for typ, n in kaeufe:
                 if typ == RA.SKLAVE and n > platz:
-                    self.begruendung.append("Sklaven %d statt %d: nur %d freie Ziele (erst ein Ziel, dann skalieren)" % (platz, n, platz))
+                    self.begruendung.append(
+                        "Sklaven %d statt %d: nur %d freie Ziele (erst ein Ziel, dann skalieren)"
+                        % (platz, n, platz)
+                    )
                     n = platz
                 if n > 0:
                     neu.append((typ, n))
@@ -234,7 +240,7 @@ class RaidEinsatz:
         from selfaware.micro.wegfuehrung import Wegfuehrung
 
         self.weg = Wegfuehrung(sp, gelaende, trotz_gefahr=TROTZ_GEFAHR)
-        self.weg_selbst = True     # False: der Lenker rechnet die gemeinsame Wegfuehrung einmal je Runde (auch fuer den Waechter)
+        self.weg_selbst = True  # False: der Lenker rechnet die gemeinsame Wegfuehrung einmal je Runde (auch fuer den Waechter)
         self.brand.weg = self.weg
         self.reiter.weg = self.weg
         self.nahkampf.weg = self.weg
@@ -260,8 +266,13 @@ class RaidEinsatz:
             # B-182 (Partie 11.11. 23:53): die Arabischen Bogenschuetzen fuehrt der Vorstoss ueber die Wegfuehrung - sie schiessen nur,
             # wo sie einen sicheren Standplatz in Reichweite findet
             e = L.get(nr)
-            return art == "e" and e is not None and self.weg.schuss_moeglich(
-                typ, self.vorstoss.heim, (e["x"], e["y"]), L, G, "vorstoss")
+            return (
+                art == "e"
+                and e is not None
+                and self.weg.schuss_moeglich(
+                    typ, self.vorstoss.heim, (e["x"], e["y"]), L, G, "vorstoss"
+                )
+            )
         modul = {RA.SKLAVE: (self.brand, "g", G), RA.PFERDEBOGEN: (self.reiter, "e", L)}.get(typ)
         if modul is None or not hasattr(modul[0], "moeglich"):
             return True
@@ -286,8 +297,13 @@ class RaidEinsatz:
         """B-182 Logbuch je Einheit: {Modul: {Einheit: (Aktion, Ziel, Grund, Werte)}} der letzten Runde, in der Reihenfolge der Module.
         Ein Modul ohne Logbuch (alte Steckversion) fehlt - seine Einheiten zeigt das Logbuch dann ohne Meldung."""
         aus = {}
-        for name, modul in (("vorstoss", self.vorstoss), ("deckung", self.deckung), ("brandtrupp", self.brand),
-                            ("reiterjagd", self.reiter), ("nahkampfraid", self.nahkampf)):
+        for name, modul in (
+            ("vorstoss", self.vorstoss),
+            ("deckung", self.deckung),
+            ("brandtrupp", self.brand),
+            ("reiterjagd", self.reiter),
+            ("nahkampfraid", self.nahkampf),
+        ):
             ab = getattr(modul, "absicht", None) if modul is not None else None
             if ab is not None:
                 aus[name] = ab
@@ -307,5 +323,7 @@ class RaidEinsatz:
         aus += self.reiter.schritt(L, G, befehl)
         aus += self.nahkampf.schritt(L, G, befehl)
         if self.weg_selbst:
-            self.weg.schritt(L, G, befehl)   # einmal je Runde, nachdem die Module ihre Ziele gesetzt haben
+            self.weg.schritt(
+                L, G, befehl
+            )  # einmal je Runde, nachdem die Module ihre Ziele gesetzt haben
         return aus

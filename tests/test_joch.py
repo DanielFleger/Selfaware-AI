@@ -1,4 +1,5 @@
 """S168 (Daniel 15.11.2026 11:29): Ochsenjoche an den Steinhaufen des Bruchs, mit einem freien Feld dazwischen - ohne Spiel."""
+
 import pathlib
 import re
 
@@ -14,14 +15,14 @@ def test_haufen_liegt_bei_bruch_plus_7_2():
 
 
 def test_joch_beruehrt_den_haufen_nie_auch_nicht_ueber_eck():
-    h = (78, 245)                       # Haufen 78..80 x 245..247
+    h = (78, 245)  # Haufen 78..80 x 245..247
     s = JO.sperre(h)
-    assert not JO.frei((78, 243), s)    # Partie 33: dieses Joch stand direkt ueber dem Haufen
-    assert not JO.frei((76, 243), s)    # ueber Eck
-    assert not JO.frei((81, 246), s)    # rechts daneben
-    assert JO.frei((78, 242), s)        # eine freie Reihe (244) dazwischen
-    assert JO.frei((82, 246), s)        # eine freie Spalte (81) dazwischen
-    assert JO.frei((78, 249), s)        # unten, eine freie Reihe (248)
+    assert not JO.frei((78, 243), s)  # Partie 33: dieses Joch stand direkt ueber dem Haufen
+    assert not JO.frei((76, 243), s)  # ueber Eck
+    assert not JO.frei((81, 246), s)  # rechts daneben
+    assert JO.frei((78, 242), s)  # eine freie Reihe (244) dazwischen
+    assert JO.frei((82, 246), s)  # eine freie Spalte (81) dazwischen
+    assert JO.frei((78, 249), s)  # unten, eine freie Reihe (248)
 
 
 def test_baue_schnell_nimmt_den_ersten_platz_ausserhalb_der_sperre(monkeypatch):

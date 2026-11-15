@@ -205,20 +205,28 @@ def test_ergebnisse_und_vorrang_wie_im_kern():
 def test_s155_laufbefehl_zum_durchsetzen_und_erlaubter_gegner():
     """S155 (Daniel 15.11.2026 00:20 "Ja, Kern bauen"): ein Raid-Laufbefehl geht als Art 18 in den Ring, das Ziel der Einheit als
     erlaubter Gegner (Art 19) - nur bei einer Aenderung; nach dem Freigeben vergisst der Kern beides."""
-    assert KW.uebersetze({"angriff": {"einheiten": [5], "lauf": [50, 60], "durchsetzen": True}})[1] == KL.LAUF_DURCHSETZEN
+    assert (
+        KW.uebersetze({"angriff": {"einheiten": [5], "lauf": [50, 60], "durchsetzen": True}})[1]
+        == KL.LAUF_DURCHSETZEN
+    )
     assert KW.uebersetze({"angriff": {"einheiten": [5], "lauf": [50, 60]}})[1] == KL.LAUF
     ring = FalscherRing()
     k = KW.Kernweg(ring, auftraggeber=KW.RAID)
     assert k.erlauben(5, 365) and k.erlauben(5, 365)
-    assert ring.liste == [(KL.UEBERNEHMEN, 5, KW.RAID, 0, 0, 0, 0), (KL.GEGNER_ERLAUBT, 5, 365, 0, 0, 0, KW.RAID)]
+    assert ring.liste == [
+        (KL.UEBERNEHMEN, 5, KW.RAID, 0, 0, 0, 0),
+        (KL.GEGNER_ERLAUBT, 5, 365, 0, 0, 0, KW.RAID),
+    ]
     assert k.senden([{"angriff": {"einheiten": [5], "lauf": [50, 60], "durchsetzen": True}}]) == []
     assert ring.liste[2] == (KL.LAUF_DURCHSETZEN, 5, 50, 60, KL.VORRANG_LAUFEN, 0, KW.RAID)
     ring.ergebnisse[2] = KL.ERG_WIRKT
     assert k.fortgang()["wirkt/laufen_durch"] == 1
     k.freigeben([5])
     assert ring.liste[3] == (KL.FREIGEBEN, 5, 0, 0, 0, 0, 0)
-    assert k.erlauben(5, 365) and ring.liste[4:] == [(KL.UEBERNEHMEN, 5, KW.RAID, 0, 0, 0, 0),
-                                                     (KL.GEGNER_ERLAUBT, 5, 365, 0, 0, 0, KW.RAID)]
+    assert k.erlauben(5, 365) and ring.liste[4:] == [
+        (KL.UEBERNEHMEN, 5, KW.RAID, 0, 0, 0, 0),
+        (KL.GEGNER_ERLAUBT, 5, 365, 0, 0, 0, KW.RAID),
+    ]
     assert len({KW.ASSASSINEN, KW.VORSTOSS, KW.BRANDTRUPP, KW.RAID}) == 4
 
 
@@ -231,6 +239,7 @@ def test_s155_arten_und_version_wie_im_kern():
     assert "haende::GEGNER_ERLAUBT => buch.erlauben(nr, a)," in lib
     # S156: am Laufziel setzt der Kern nichts durch - dieselbe Grenze, ab der die Wegfuehrung den naechsten Wegpunkt gibt
     from selfaware.micro import wegfuehrung as W
+
     assert f"pub const AM_LAUFZIEL: i32 = {W.AM_WEGPUNKT};" in haende
 
 
@@ -242,9 +251,20 @@ def test_s159_kette_haengt_wegpunkte_und_den_angriff_an():
     k.version = KL.KETTE_AB
     assert k.kann_ketten
     assert k.kette(5, [(120, 100), (130, 104)], ("gebaeude", 77))
-    assert ring.liste == [(KL.WEGPUNKT, 5, 120, 100, 0, 0, KW.RAID), (KL.WEGPUNKT, 5, 130, 104, 0, 0, KW.RAID),
-                          (KL.DANACH_GEBAEUDE, 5, 77, 0, 0, 0, KW.RAID)]
-    assert k.kette(6, [], ("einheit", 365)) and ring.liste[-1] == (KL.DANACH_EINHEIT, 6, 365, 0, 0, 0, KW.RAID)
+    assert ring.liste == [
+        (KL.WEGPUNKT, 5, 120, 100, 0, 0, KW.RAID),
+        (KL.WEGPUNKT, 5, 130, 104, 0, 0, KW.RAID),
+        (KL.DANACH_GEBAEUDE, 5, 77, 0, 0, 0, KW.RAID),
+    ]
+    assert k.kette(6, [], ("einheit", 365)) and ring.liste[-1] == (
+        KL.DANACH_EINHEIT,
+        6,
+        365,
+        0,
+        0,
+        0,
+        KW.RAID,
+    )
     assert not KW.Kernweg(FalscherRing(platz=0), auftraggeber=KW.RAID).kette(5, [(1, 2)])
     haende = (KERN / "haende.rs").read_text(encoding="utf-8")
     for name in ("WEGPUNKT", "DANACH_EINHEIT", "DANACH_GEBAEUDE"):

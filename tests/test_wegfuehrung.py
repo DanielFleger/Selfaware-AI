@@ -28,7 +28,9 @@ def test_fernkaempfer_laeuft_bis_in_reichweite_und_greift_dann_an():
     w.fuehre(1, "einheit", 50)
     st, b = _runde(w, {1: _e(1, 22, 100, 100), 50: _e(2, 3, 250, 100)})
     assert st[1] == "unterwegs" and "lauf" in b[0] and b[0]["lauf"][0] > 100
-    st, b = _runde(w, {1: _e(1, 22, 212, 100), 50: _e(2, 3, 250, 100)})  # 38 Felder: Reichweite 40 minus 2
+    st, b = _runde(
+        w, {1: _e(1, 22, 212, 100), 50: _e(2, 3, 250, 100)}
+    )  # 38 Felder: Reichweite 40 minus 2
     assert st[1] == "greift_an" and b == [{"einheiten": [1], "ziel": 50}]
 
 
@@ -38,7 +40,11 @@ def test_neue_gefahr_im_weg_wird_umgangen():
     w.fuehre(1, "einheit", 50)
     L = {1: _e(1, 22, 100, 100), 50: _e(2, 3, 300, 100)}
     _, b1 = _runde(w, L)
-    L2 = {**L, 60: _e(2, 22, 150, 100), 61: _e(2, 22, 150, 104)}  # zwei Bogenschuetzen mitten auf dem Weg
+    L2 = {
+        **L,
+        60: _e(2, 22, 150, 100),
+        61: _e(2, 22, 150, 104),
+    }  # zwei Bogenschuetzen mitten auf dem Weg
     _, b2 = _runde(w, L2)
     assert b2 and b2[0]["lauf"] != b1[0]["lauf"]
     assert W.Gefahr(L2, {}, 1).an(tuple(b2[0]["lauf"]), 22) == 0
@@ -54,11 +60,15 @@ def test_ziel_in_gefahr_kein_befehl():
 def test_fernkaempfer_haelt_abstand_zu_kuerzerer_reichweite_nicht_zu_gleicher():
     w = W.Wegfuehrung(1)
     w.fuehre(1, "einheit", 50)
-    st, _ = _runde(w, {1: _e(1, 22, 100, 100), 50: _e(2, 72, 250, 100)})  # Schleuderer 22: Standplatz 36 ist sicher
+    st, _ = _runde(
+        w, {1: _e(1, 22, 100, 100), 50: _e(2, 72, 250, 100)}
+    )  # Schleuderer 22: Standplatz 36 ist sicher
     assert st[1] == "unterwegs"
     w2 = W.Wegfuehrung(1)
     w2.fuehre(1, "einheit", 51)
-    st, b = _runde(w2, {1: _e(1, 22, 100, 100), 51: _e(2, 22, 250, 100)})  # Bogenschuetze 44: jeder Standplatz in seiner Reichweite
+    st, b = _runde(
+        w2, {1: _e(1, 22, 100, 100), 51: _e(2, 22, 250, 100)}
+    )  # Bogenschuetze 44: jeder Standplatz in seiner Reichweite
     assert st[1] == "gefahr" and b == []
 
 
@@ -81,7 +91,9 @@ def test_wiedervergebene_nummer_ist_kein_ziel():
     w = W.Wegfuehrung(1)
     w.fuehre(1, "einheit", 50)
     _runde(w, {1: _e(1, 22, 100, 100), 50: _e(2, 3, 250, 100)})
-    st, b = _runde(w, {1: _e(1, 22, 100, 100), 50: _e(2, 1, 260, 100)})  # Nummer 50 traegt jetzt einen Bauern
+    st, b = _runde(
+        w, {1: _e(1, 22, 100, 100), 50: _e(2, 1, 260, 100)}
+    )  # Nummer 50 traegt jetzt einen Bauern
     assert st[1] == "ziel_weg" and b == []
 
 
@@ -98,7 +110,10 @@ def test_verborgene_fallgrube_ist_keine_gefahr_ein_schuetze_auf_dem_turm_schon()
     assert st[1] == "unterwegs"  # leerer Turm
     w3 = W.Wegfuehrung(1)
     w3.fuehre(1, "gebaeude", 7)
-    L3 = {1: _e(1, 71, 100, 100), 60: _e(2, 22, 212, 102)}  # Bogenschuetze auf dem Turm (Grundflaeche 6 x 6 ab 210, 100)
+    L3 = {
+        1: _e(1, 71, 100, 100),
+        60: _e(2, 22, 212, 102),
+    }  # Bogenschuetze auf dem Turm (Grundflaeche 6 x 6 ab 210, 100)
     st, _ = _runde(w3, L3, {7: _e(2, 3, 200, 100), 9: _e(2, 77, 210, 100)})
     assert st[1] == "gefahr"
 
@@ -106,7 +121,9 @@ def test_verborgene_fallgrube_ist_keine_gefahr_ein_schuetze_auf_dem_turm_schon()
 def test_nahkaempfer_darf_an_einen_soldaten_heran():
     w = W.Wegfuehrung(1)
     w.fuehre(1, "einheit", 50)
-    st, b = _runde(w, {1: _e(1, 75, 100, 100), 50: _e(2, 24, 200, 100)})  # Speertraeger: seine eigene Naehe zaehlt nicht
+    st, b = _runde(
+        w, {1: _e(1, 75, 100, 100), 50: _e(2, 24, 200, 100)}
+    )  # Speertraeger: seine eigene Naehe zaehlt nicht
     assert st[1] == "unterwegs" and "lauf" in b[0]
 
 
@@ -125,7 +142,10 @@ def test_brandtrupp_gibt_den_weg_ab_und_wechselt_bei_gefahr_das_ziel():
     erstes = bt.ziel[1]
     st, b = _runde(w, L, G)
     assert st[1] == "unterwegs" and "lauf" in b[0]
-    L2 = {**L, 60: _e(2, 22, G[erstes]["x"] + 5, G[erstes]["y"])}  # ein Bogenschuetze stellt sich ans Ziel
+    L2 = {
+        **L,
+        60: _e(2, 22, G[erstes]["x"] + 5, G[erstes]["y"]),
+    }  # ein Bogenschuetze stellt sich ans Ziel
     st, _ = _runde(w, L2, G)
     assert st[1] == "gefahr"
     bt.schritt(L2, G, Befehle())
@@ -140,15 +160,23 @@ def test_brandtrupp_ohne_freies_ziel_wartet_sicher_vorne():
     bt = RA.Brandtrupp(1, lambda nr: 0)
     w = W.Wegfuehrung(1)
     bt.weg = w
-    L = {1: _e(1, 71, 100, 100), 60: _e(2, 22, 200, 60)}  # ein Bogenschuetze (44 Felder) deckt das einzige Ziel, freie Linie
+    L = {
+        1: _e(1, 71, 100, 100),
+        60: _e(2, 22, 200, 60),
+    }  # ein Bogenschuetze (44 Felder) deckt das einzige Ziel, freie Linie
     G = {7: _e(2, 3, 200, 100)}
     aus = bt.schritt(L, G, Befehle())
     assert 1 not in bt.ziel and w.fuehrt(1) and any("wartet vorne" in z for z in aus)
-    assert bt.warten[1] == (180, 100) and W.Gefahr(L, G, 1).an(bt.warten[1], 71) == 0  # so nah wie sicher moeglich
+    assert (
+        bt.warten[1] == (180, 100) and W.Gefahr(L, G, 1).an(bt.warten[1], 71) == 0
+    )  # so nah wie sicher moeglich
     assert W.Gefahr(L, G, 1).an((184, 100), 71) == 1  # einen Schritt naeher waere er in Schussweite
     st, b = _runde(w, L, G)
     assert st[1] == "unterwegs" and "lauf" in b[0]
-    assert bt.schritt(L, G, Befehle()) == [] and bt.warten[1] == (180, 100)  # der Platz bleibt, solange er sicher ist
+    assert bt.schritt(L, G, Befehle()) == [] and bt.warten[1] == (
+        180,
+        100,
+    )  # der Platz bleibt, solange er sicher ist
     del L[60]  # der Schuetze ist weg: jetzt greift er an
     bt.schritt(L, G, Befehle())
     assert bt.ziel.get(1) == 7 and 1 not in bt.warten
@@ -190,7 +218,10 @@ def test_reiterjagd_zaehlt_nur_einen_frischen_angriff_als_abschuss():
     st, _b = _runde(w, L)
     assert st[1] == "greift_an"
     rj.schritt(L, {}, Befehle())  # merkt sich den Angriff
-    weit = {1: _e(1, 74, 100, 100), 50: _e(2, 3, 250, 100)}  # das Opfer ist entwischt, der Reiter jagt es von weit her
+    weit = {
+        1: _e(1, 74, 100, 100),
+        50: _e(2, 3, 250, 100),
+    }  # das Opfer ist entwischt, der Reiter jagt es von weit her
     for _ in range(RA.ABSCHUSS_RUNDEN + 1):
         _runde(w, weit)
         rj.schritt(weit, {}, Befehle())
@@ -206,10 +237,16 @@ def test_vorstoss_gibt_schuetzen_an_die_wegfuehrung_und_holt_sie_zum_vorruecken_
     v.weg = w
     b = Befehle()
     v.schritt(500, {1: _e(1, 22, 100, 100), 2: _e(1, 22, 100, 101), 3: _e(2, 3, 130, 110)}, {}, b)
-    assert b.liste == [] and w.fuehrt(1) and w.fuehrt(2)  # kein eigener Schussbefehl, die Wegfuehrung fuehrt beide
+    assert (
+        b.liste == [] and w.fuehrt(1) and w.fuehrt(2)
+    )  # kein eigener Schussbefehl, die Wegfuehrung fuehrt beide
     b = Befehle()
-    v.schritt(600, {1: _e(1, 22, 100, 100), 2: _e(1, 22, 100, 101), 4: _e(2, 3, 260, 100)}, {}, b)  # Ziel weg: vorruecken
-    assert b.liste == [] and w.auftraege[1].art == "ort" and w.auftraege[2].art == "ort"  # Vorruecken fuehrt die Wegfuehrung
+    v.schritt(
+        600, {1: _e(1, 22, 100, 100), 2: _e(1, 22, 100, 101), 4: _e(2, 3, 260, 100)}, {}, b
+    )  # Ziel weg: vorruecken
+    assert (
+        b.liste == [] and w.auftraege[1].art == "ort" and w.auftraege[2].art == "ort"
+    )  # Vorruecken fuehrt die Wegfuehrung
 
 
 class _WegAttrappe:
@@ -239,7 +276,9 @@ def test_gleiche_befehle_gehen_als_einer_hinaus():
     w = W.Wegfuehrung(1)
     w.fuehre(1, "einheit", 50)
     w.fuehre(2, "einheit", 50)
-    st, b = _runde(w, {1: _e(1, 22, 212, 100), 2: _e(1, 22, 213, 103), 50: _e(2, 3, 250, 100)})  # Luftlinie 38 und 37,1
+    st, b = _runde(
+        w, {1: _e(1, 22, 212, 100), 2: _e(1, 22, 213, 103), 50: _e(2, 3, 250, 100)}
+    )  # Luftlinie 38 und 37,1
     assert st == {1: "greift_an", 2: "greift_an"} and b == [{"einheiten": [1, 2], "ziel": 50}]
 
 
@@ -261,7 +300,12 @@ def test_reiter_gibt_bei_gefahr_ab_und_nimmt_einen_anderen_die_sperre_gilt_nur_f
     rj = RA.Reiterjagd(1)
     w = _WegAttrappe()
     rj.weg = w
-    L = {1: _e(1, 74, 100, 100), 2: _e(1, 74, 150, 60), 50: _e(2, 3, 150, 100), 51: _e(2, 3, 100, 180)}
+    L = {
+        1: _e(1, 74, 100, 100),
+        2: _e(1, 74, 150, 60),
+        50: _e(2, 3, 150, 100),
+        51: _e(2, 3, 100, 180),
+    }
     rj.schritt(L, {}, Befehle())
     assert w.auftraege == {1: ("einheit", 50), 2: ("einheit", 50)}
     w.st[1] = "gefahr"
@@ -285,12 +329,17 @@ def test_reiterjagd_wiedervergebene_nummer_ist_abschuss_nach_schuss_und_neues_zi
     st, _ = _runde(w, L)
     assert st[1] == "greift_an"
     rj.schritt(L, {}, Befehle())  # liest "greift_an"
-    L2 = {1: _e(1, 74, 215, 100), 50: _e(2, 13, 250, 100)}  # Nummer 50 traegt jetzt einen anderen Arbeiter
+    L2 = {
+        1: _e(1, 74, 215, 100),
+        50: _e(2, 13, 250, 100),
+    }  # Nummer 50 traegt jetzt einen anderen Arbeiter
     st, _ = _runde(w, L2)
     assert st[1] == "ziel_weg"
     aus = rj.schritt(L2, {}, Befehle())
     assert rj.getoetet == 1 and any("hat Arbeiter 50 erledigt" in z for z in aus)
-    st, b = _runde(w, L2)  # der neue Arbeiter unter Nummer 50 wird gejagt, nicht als "ziel_weg" stehen gelassen
+    st, b = _runde(
+        w, L2
+    )  # der neue Arbeiter unter Nummer 50 wird gejagt, nicht als "ziel_weg" stehen gelassen
     assert st[1] == "greift_an" and b == [{"einheiten": [1], "ziel": 50}]
 
 
@@ -303,20 +352,28 @@ def test_vorstoss_holt_nachzuegler_zur_gruppe_wenn_er_nicht_vorruecken_kann():
     v.weg = w
     L = {n: _e(1, 22, 199 + n % 3, 185) for n in range(1, 7)}
     L[7] = _e(1, 70, 185, 238)  # der Nachzuegler
-    L[50] = _e(2, 3, 201, 60)  # ein Arbeiter weit vorn - jede Stellung davor liegt im Schussfeld des Turms
+    L[50] = _e(
+        2, 3, 201, 60
+    )  # ein Arbeiter weit vorn - jede Stellung davor liegt im Schussfeld des Turms
     G = {90: _e(2, 74, 201, 133)}  # feindlicher Turm, 48 Felder vor der Gruppe
     aus = v.schritt(1000, L, G, Befehle())
     assert w.fuehrt(7) and w.auftraege[7].art == "ort" and not any(w.fuehrt(n) for n in range(1, 7))
     assert any("Nachzuegler" in z for z in aus)
     treff = w.auftraege[7].ziel
-    assert max(abs(treff[0] - 200), abs(treff[1] - 185)) <= 2  # zu den sechs vorn, nicht in die Mitte zwischen allen
-    assert v.schritt(1001, L, G, Befehle()) == [] and w.auftraege[7].ziel == treff  # kein neuer Treffpunkt je Runde
+    assert (
+        max(abs(treff[0] - 200), abs(treff[1] - 185)) <= 2
+    )  # zu den sechs vorn, nicht in die Mitte zwischen allen
+    assert (
+        v.schritt(1001, L, G, Befehle()) == [] and w.auftraege[7].ziel == treff
+    )  # kein neuer Treffpunkt je Runde
     for n in range(1, 7):
         L[n] = _e(1, 22, L[n]["x"], 182)  # die Gruppe rueckt 3 Felder: der Treffpunkt bleibt
     v.schritt(1002, L, G, Befehle())
     assert w.auftraege[7].ziel == treff
     for n in range(1, 7):
-        L[n] = _e(1, 22, L[n]["x"], 195)  # 10 Felder zurueck (ausser Reichweite des Turms): neuer Treffpunkt
+        L[n] = _e(
+            1, 22, L[n]["x"], 195
+        )  # 10 Felder zurueck (ausser Reichweite des Turms): neuer Treffpunkt
     v.schritt(1003, L, G, Befehle())
     assert w.auftraege[7].ziel != treff and w.auftraege[7].ziel[1] == 195
 
@@ -330,19 +387,33 @@ def test_vorstoss_flieht_nicht_vor_schleuderern_und_beschiesst_sie_von_weitem():
     w = W.Wegfuehrung(1)
     v.weg = w
     L = {n: _e(1, 22, 100 + n, 100) for n in range(1, 5)}
-    schleuder = {50 + i: _e(2, 72, 140, 98 + 2 * i) for i in range(5)}  # 35-40 Felder vor der Gruppe
-    assert v._schussfeld((102, 100), {**L, **schleuder}, {}, 4) is None  # Schleuderer treffen nur 22 Felder weit
+    schleuder = {
+        50 + i: _e(2, 72, 140, 98 + 2 * i) for i in range(5)
+    }  # 35-40 Felder vor der Gruppe
+    assert (
+        v._schussfeld((102, 100), {**L, **schleuder}, {}, 4) is None
+    )  # Schleuderer treffen nur 22 Felder weit
     bogen = {50 + i: _e(2, 22, 140, 98 + 2 * i) for i in range(5)}
-    assert v._schussfeld((102, 100), {**L, **bogen}, {}, 4) is not None  # Bogenschuetzen (44) bleiben eine Gefahr
-    weit = {50 + i: _e(2, 72, 150, 98 + 2 * i) for i in range(5)}  # 48 Felder: ausser unserer Schussweite (38)
+    assert (
+        v._schussfeld((102, 100), {**L, **bogen}, {}, 4) is not None
+    )  # Bogenschuetzen (44) bleiben eine Gefahr
+    weit = {
+        50 + i: _e(2, 72, 150, 98 + 2 * i) for i in range(5)
+    }  # 48 Felder: ausser unserer Schussweite (38)
     aus = v.schritt(1000, {**L, **weit}, {}, Befehle())
-    assert any("schiessen auf Typ 72" in z for z in aus) and all(w.fuehrt(n) and w.auftraege[n].art == "einheit" for n in L)
+    assert any("schiessen auf Typ 72" in z for z in aus) and all(
+        w.fuehrt(n) and w.auftraege[n].art == "einheit" for n in L
+    )
     st, b = _runde(w, {**L, **weit}, {})
-    assert all(st[n] == "unterwegs" for n in L) and b  # die Wegfuehrung stellt sie in eigener, nicht in ihrer Reichweite auf
+    assert (
+        all(st[n] == "unterwegs" for n in L) and b
+    )  # die Wegfuehrung stellt sie in eigener, nicht in ihrer Reichweite auf
     weit_bogen = {50 + i: _e(2, 22, 150, 98 + 2 * i) for i in range(5)}
     v2 = VS.Vorstoss(1, (100, 300), bis=40000)
     v2.weg = W.Wegfuehrung(1)
-    assert not any("schiessen" in z for z in v2.schritt(1000, {**L, **weit_bogen}, {}, Befehle()))  # Bogen ueberreichen wir nicht
+    assert not any(
+        "schiessen" in z for z in v2.schritt(1000, {**L, **weit_bogen}, {}, Befehle())
+    )  # Bogen ueberreichen wir nicht
 
 
 def test_vorstoss_ueberspringt_gedeckte_ziele_und_zieht_zu_einem_sicheren():
@@ -351,39 +422,62 @@ def test_vorstoss_ueberspringt_gedeckte_ziele_und_zieht_zu_einem_sicheren():
     from selfaware.micro.tasks import vorstoss as VS
 
     L = {n: _e(1, 22, 100 + n, 100) for n in range(1, 5)}
-    L[50] = _e(2, 3, 130, 100)  # Arbeiter in 30 Feldern, gedeckt von einem Armbrustschuetzen daneben
+    L[50] = _e(
+        2, 3, 130, 100
+    )  # Arbeiter in 30 Feldern, gedeckt von einem Armbrustschuetzen daneben
     L[60] = _e(2, 23, 133, 100)
     L[51] = _e(2, 3, 200, 100)  # Arbeiter in 100 Feldern, ungedeckt
     v = VS.Vorstoss(1, (100, 300), bis=40000)
     w = W.Wegfuehrung(1)
     v.weg = w
     aus = v.schritt(1000, L, {}, Befehle())
-    assert all(w.auftraege[n].ziel == 51 for n in range(1, 5)) and any("ziehen zu Typ 3" in z for z in aus)
+    assert all(w.auftraege[n].ziel == 51 for n in range(1, 5)) and any(
+        "ziehen zu Typ 3" in z for z in aus
+    )
     L[52] = _e(2, 3, 100, 130)  # ein ungedeckter Arbeiter in 30 Feldern: der nahe geht vor
     v2 = VS.Vorstoss(1, (100, 300), bis=40000)
     w2 = W.Wegfuehrung(1)
     v2.weg = w2
     aus = v2.schritt(1000, L, {}, Befehle())
-    assert all(w2.auftraege[n].ziel == 52 for n in range(1, 5)) and any("schiessen auf Typ 3" in z for z in aus)
+    assert all(w2.auftraege[n].ziel == 52 for n in range(1, 5)) and any(
+        "schiessen auf Typ 3" in z for z in aus
+    )
 
 
 def test_sicherer_standplatz_haengt_nicht_davon_ab_woher_man_fragt():
     """Partie 11.11. 23:53: aus der Gruppenmitte sah die Frage einen sicheren Punkt, den kein Schuetze von seinem Platz aus pruefte - der
     Vorstoss waehlte das Ziel, die Wegfuehrung meldete fuer alle "gefahr"."""
     w = W.Wegfuehrung(1)
-    schuetzen = [(244, 196), (196, 244), (158, 214), (214, 157), (168, 168), (232, 232), (160, 190), (230, 172)]
+    schuetzen = [
+        (244, 196),
+        (196, 244),
+        (158, 214),
+        (214, 157),
+        (168, 168),
+        (232, 232),
+        (160, 190),
+        (230, 172),
+    ]
     antworten = []
     for k in range(1, len(schuetzen) + 1):
         L = {50: _e(2, 3, 200, 200), **{60 + i: _e(2, 23, *s) for i, s in enumerate(schuetzen[:k])}}
-        seiten = {w.schuss_moeglich(70, von, (200, 200), L, {}) for von in ((100, 100), (300, 110), (210, 320), (80, 260), (320, 250))}
+        seiten = {
+            w.schuss_moeglich(70, von, (200, 200), L, {})
+            for von in ((100, 100), (300, 110), (210, 320), (80, 260), (320, 250))
+        }
         assert len(seiten) == 1, (k, seiten)
         antworten.append(seiten.pop())
-    assert antworten[0] and not antworten[-1]  # ein Armbrustschuetze laesst Platz, acht rundum keinen
+    assert (
+        antworten[0] and not antworten[-1]
+    )  # ein Armbrustschuetze laesst Platz, acht rundum keinen
     # fuenf Armbrustschuetzen in 60 Feldern (62, 120, 180, 240, 298 Grad) lassen nur einen schmalen Streifen im Osten frei - die
     # alte, nach der fragenden Einheit gedrehte Pruefung sah ihn aus 0 Grad und nicht aus 11, 20 oder 260 Grad
     ring = [(228, 253), (170, 252), (140, 200), (170, 148), (228, 147)]
     L = {50: _e(2, 3, 200, 200), **{60 + i: _e(2, 23, *s) for i, s in enumerate(ring)}}
-    seiten = {w.schuss_moeglich(70, von, (200, 200), L, {}) for von in ((350, 200), (347, 229), (341, 251), (174, 52))}
+    seiten = {
+        w.schuss_moeglich(70, von, (200, 200), L, {})
+        for von in ((350, 200), (347, 229), (341, 251), (174, 52))
+    }
     assert seiten == {True}
 
 
@@ -395,10 +489,14 @@ def test_standplatz_liegt_begehbar_und_in_schussweite():
     def zu(x, y):
         d = math.hypot(x - 200, y - 200)
         return (31 <= d <= 38.9) if x >= 200 else (35 <= d <= 41)
+
     karte = ["".join("#" if zu(x, y) else "." for x in range(400)) for y in range(400)]
     w = W.Wegfuehrung(1, karte)
     stand, gefahr = w._standplatz((400, 200), (200, 200), 40, lambda p: 0)
-    assert karte[stand[1]][stand[0]] == "." and math.hypot(stand[0] - 200, stand[1] - 200) <= 40 - W.FERN_ANGRIFF
+    assert (
+        karte[stand[1]][stand[0]] == "."
+        and math.hypot(stand[0] - 200, stand[1] - 200) <= 40 - W.FERN_ANGRIFF
+    )
     assert stand[0] < 200 and gefahr == 0  # im Osten gaebe es nur Punkte ausser Schussweite
 
 
@@ -447,7 +545,12 @@ def test_vorstoss_gibt_ein_ziel_ohne_angriff_und_weg_auf():
     v = V.Vorstoss(1, (100, 100))
     w = _WegAttrappe()
     v.weg = w
-    L = {1: _e(1, 22, 100, 100), 2: _e(1, 22, 100, 101), 3: _e(2, 3, 130, 110), 5: _e(2, 3, 128, 80)}
+    L = {
+        1: _e(1, 22, 100, 100),
+        2: _e(1, 22, 100, 101),
+        3: _e(2, 3, 130, 110),
+        5: _e(2, 3, 128, 80),
+    }
     v.schritt(500, L, {}, Befehle())
     erstes = w.auftraege[1][1]
     w.st = {1: "gefahr", 2: "kein_weg"}
@@ -460,9 +563,15 @@ def test_gebaeude_zwischen_schuetze_und_ort_sperrt_die_linie():
     """L79, der tote Winkel hinter Gebaeuden (Daniel 11.11. 20:30: "toter winkel hat JEDE einheit")."""
     L = {60: _e(2, 22, 200, 100)}
     assert W.Gefahr(L, {}, 1).an((170, 100), 22) == 1
-    assert W.Gefahr(L, {5: _e(2, 3, 185, 99)}, 1).an((170, 100), 22) == 0  # Holzfaellerhuette (3 x 3) auf der Linie
-    assert W.Gefahr(L, {5: _e(2, 32, 181, 95)}, 1).an((170, 100), 22) == 1  # flaches Feld sperrt nicht
-    assert W.Gefahr(L, {5: _e(2, 67, 185, 100)}, 1).an((170, 100), 22) == 1  # Fallgrube: flach und verborgen (F12)
+    assert (
+        W.Gefahr(L, {5: _e(2, 3, 185, 99)}, 1).an((170, 100), 22) == 0
+    )  # Holzfaellerhuette (3 x 3) auf der Linie
+    assert (
+        W.Gefahr(L, {5: _e(2, 32, 181, 95)}, 1).an((170, 100), 22) == 1
+    )  # flaches Feld sperrt nicht
+    assert (
+        W.Gefahr(L, {5: _e(2, 67, 185, 100)}, 1).an((170, 100), 22) == 1
+    )  # Fallgrube: flach und verborgen (F12)
 
 
 def test_schuetze_auf_dem_turm_schiesst_ueber_gebaeude():
@@ -474,7 +583,9 @@ def test_assassine_ausser_sicht_ist_nicht_in_gefahr():
     """L75: Schuetzen nehmen eine Assassine nur, wenn sie hoechstens ~20 Felder (160 Feinmass, mit Planungsrand 208) von einem
     waehlbaren Feind steht."""
     b = W.Gefahr({60: _e(2, 22, 200, 100)}, {}, 1)
-    assert b.an((165, 100), 22) == 1 and b.an((165, 100), W.ASSASSINE) == 0  # 35 Felder: in Reichweite, aber ungesehen
+    assert (
+        b.an((165, 100), 22) == 1 and b.an((165, 100), W.ASSASSINE) == 0
+    )  # 35 Felder: in Reichweite, aber ungesehen
     assert b.an((182, 100), W.ASSASSINE) == 1  # 18 Felder: sichtbar
 
 
@@ -487,7 +598,9 @@ def test_fernkaempfer_findet_den_standplatz_hinter_einem_gebaeude():
     assert st[1] == "gefahr"
     w2 = W.Wegfuehrung(1)
     w2.fuehre(1, "einheit", 50)
-    st, b = _runde(w2, L, {5: _e(2, 8, 222, 98)})  # Haus (5 x 5) zwischen Standplatz (214, 100) und Bogenschuetze
+    st, b = _runde(
+        w2, L, {5: _e(2, 8, 222, 98)}
+    )  # Haus (5 x 5) zwischen Standplatz (214, 100) und Bogenschuetze
     assert st[1] == "unterwegs" and "lauf" in b[0]
 
 
@@ -500,15 +613,32 @@ def test_wegegitter_rechnet_mit_derselben_regel():
 def _waechter_lage():
     """Angelehnt an tools/checks/waechter_pruefen.py, Fall 1 - statt drei Assassinen (dort verzichtet die Abwehr nach der
     Gefechtsrechnung) ein feindlicher Sklave an unserem Gebaeude: zwei Waechter greifen an, drei Schuetzen weichen."""
+
     def e(typ, sp, x, y, **k):
-        d = {"typ": typ, "besitzer": sp, "x": x, "y": y, "leben": 10000, "zustand": 1, "laufx": x, "laufy": y, "nahziel": 0,
-             "nahangreifer": 0, "zieleinheit": 0}
+        d = {
+            "typ": typ,
+            "besitzer": sp,
+            "x": x,
+            "y": y,
+            "leben": 10000,
+            "zustand": 1,
+            "laufx": x,
+            "laufy": y,
+            "nahziel": 0,
+            "nahangreifer": 0,
+            "zieleinheit": 0,
+        }
         d.update(k)
         return d
 
-    L = {45: e(70, 1, 139, 168, zustand=106, nahziel=156), 189: e(70, 1, 140, 168, nahangreifer=1),
-         60: e(24, 1, 155, 158), 61: e(24, 1, 156, 158), 62: e(75, 1, 156, 159),
-         156: e(71, 2, 148, 163)}
+    L = {
+        45: e(70, 1, 139, 168, zustand=106, nahziel=156),
+        189: e(70, 1, 140, 168, nahangreifer=1),
+        60: e(24, 1, 155, 158),
+        61: e(24, 1, 156, 158),
+        62: e(75, 1, 156, 159),
+        156: e(71, 2, 148, 163),
+    }
     return L, [(150, 160), (145, 215), (150, 200)]
 
 
@@ -517,7 +647,9 @@ def test_waechter_gibt_den_angriff_an_die_wegfuehrung(monkeypatch):
     "Ja, freigeben"."""
     try:
         import selfaware.micro.tasks.waechter as WA
-    except RuntimeError as ex:  # ohne Spiel-Instanz (SHC_INSTANZ=99) laesst sich der Waechter nicht laden
+    except (
+        RuntimeError
+    ) as ex:  # ohne Spiel-Instanz (SHC_INSTANZ=99) laesst sich der Waechter nicht laden
         pytest.skip(str(ex))
 
     gesendet = []
@@ -526,7 +658,9 @@ def test_waechter_gibt_den_angriff_an_die_wegfuehrung(monkeypatch):
     alt = WA.Waechter(1)
     alt.besetzt = True
     alt.schritt(L, gebaeude)
-    assert any(b.get("angriff", {}).get("ziel") == 156 for b in gesendet)  # ohne Wegfuehrung wie bisher
+    assert any(
+        b.get("angriff", {}).get("ziel") == 156 for b in gesendet
+    )  # ohne Wegfuehrung wie bisher
     gesendet.clear()
     w = WA.Waechter(1)
     w.besetzt = True
@@ -536,10 +670,14 @@ def test_waechter_gibt_den_angriff_an_die_wegfuehrung(monkeypatch):
     assert w.ziel == 156 and angreifer and not any("ziel" in b.get("angriff", {}) for b in gesendet)
     assert all(w.weg.fuehrt(n) and w.gefuehrt[n] == "einheit" for n in angreifer)
     st = w.weg.schritt(L, {}, lambda *a, **k: None)
-    assert all(st[n] in ("unterwegs", "greift_an") for n in angreifer)  # mit Freigabe auch unter Beschuss
+    assert all(
+        st[n] in ("unterwegs", "greift_an") for n in angreifer
+    )  # mit Freigabe auch unter Beschuss
     ruhig = {n: e for n, e in L.items() if e["besitzer"] == 1}
     w.schritt(ruhig, gebaeude)
-    assert not any(w.gefuehrt.get(n) == "einheit" for n in angreifer)  # ohne Bedrohung endet der Angriff
+    assert not any(
+        w.gefuehrt.get(n) == "einheit" for n in angreifer
+    )  # ohne Bedrohung endet der Angriff
     assert not w.gefuehrt  # 13.11.2026 23:02: kein Stapeln mehr - ohne Bedrohung fuehrt die Wegfuehrung niemanden fuer den Waechter
 
 
@@ -549,25 +687,52 @@ def test_ohne_bedrohung_schickt_der_waechter_die_nahkaempfer_nirgends_hin(monkey
     333-335 stehen bei (151,281) - der Waechter gibt ohne Bedrohung keinen Laufbefehl."""
     try:
         import selfaware.micro.tasks.waechter as WA
-    except RuntimeError as ex:  # ohne Spiel-Instanz (SHC_INSTANZ=99) laesst sich der Waechter nicht laden
+    except (
+        RuntimeError
+    ) as ex:  # ohne Spiel-Instanz (SHC_INSTANZ=99) laesst sich der Waechter nicht laden
         pytest.skip(str(ex))
 
     def e(typ, x, y, **k):
-        d = {"typ": typ, "besitzer": 1, "x": x, "y": y, "leben": 10000, "zustand": 1, "laufx": x, "laufy": y, "nahziel": 0,
-             "nahangreifer": 0, "zieleinheit": 0}
+        d = {
+            "typ": typ,
+            "besitzer": 1,
+            "x": x,
+            "y": y,
+            "leben": 10000,
+            "zustand": 1,
+            "laufx": x,
+            "laufy": y,
+            "nahziel": 0,
+            "nahangreifer": 0,
+            "zieleinheit": 0,
+        }
         d.update(k)
         return d
 
-    L = {308: e(22, 205, 185, zustand=101), 309: e(22, 205, 185, zustand=101), 310: e(22, 207, 183, zustand=101),
-         311: e(22, 206, 186, zustand=101), 312: e(22, 207, 185, zustand=101),
-         330: e(24, 192, 236, zustand=124), 331: e(24, 186, 238, zustand=124), 332: e(24, 191, 233, zustand=124),
-         336: e(24, 192, 235, zustand=124), 333: e(24, 152, 281), 334: e(24, 149, 280), 335: e(24, 151, 282)}
+    L = {
+        308: e(22, 205, 185, zustand=101),
+        309: e(22, 205, 185, zustand=101),
+        310: e(22, 207, 183, zustand=101),
+        311: e(22, 206, 186, zustand=101),
+        312: e(22, 207, 185, zustand=101),
+        330: e(24, 192, 236, zustand=124),
+        331: e(24, 186, 238, zustand=124),
+        332: e(24, 191, 233, zustand=124),
+        336: e(24, 192, 235, zustand=124),
+        333: e(24, 152, 281),
+        334: e(24, 149, 280),
+        335: e(24, 151, 282),
+    }
     gesendet = []
     monkeypatch.setattr(WA, "befehl", lambda b, *a, **k: gesendet.append(b) or [])
-    for eigene_schuetzen in ((), (308, 309, 310, 311, 312)):          # mit und ohne Schuetzen beim Waechter
+    for eigene_schuetzen in ((), (308, 309, 310, 311, 312)):  # mit und ohne Schuetzen beim Waechter
         w = WA.Waechter(1)
         w.besetzt = True
-        w.schritt(L, [(188, 236)], ausgenommen={330, 331, 332, 336} | ({308, 309, 310, 311, 312} - set(eigene_schuetzen)))
+        w.schritt(
+            L,
+            [(188, 236)],
+            ausgenommen={330, 331, 332, 336} | ({308, 309, 310, 311, 312} - set(eigene_schuetzen)),
+        )
         assert not any("lauf" in b.get("angriff", {}) for b in gesendet)
         assert all(w.absicht[n][2] == "no_threat_stays" for n in (333, 334, 335))
 
@@ -577,19 +742,32 @@ def test_der_posten_befehl_der_ersten_runde_laesst_die_schuetzen_des_vorstosses_
     Takt (674) aufnahm; vorstoss.mitglieder war vor seiner ersten Runde leer. anspruch() nennt sie schon vorher."""
     try:
         import selfaware.micro.tasks.waechter as WA
-    except RuntimeError as ex:  # ohne Spiel-Instanz (SHC_INSTANZ=99) laesst sich der Waechter nicht laden
+    except (
+        RuntimeError
+    ) as ex:  # ohne Spiel-Instanz (SHC_INSTANZ=99) laesst sich der Waechter nicht laden
         pytest.skip(str(ex))
     from selfaware.micro.tasks import vorstoss as V
 
     def e(typ, x, y):
-        return {"typ": typ, "besitzer": 1, "x": x, "y": y, "leben": 10000, "zustand": 1, "laufx": x, "laufy": y, "nahziel": 0,
-                "nahangreifer": 0, "zieleinheit": 0}
+        return {
+            "typ": typ,
+            "besitzer": 1,
+            "x": x,
+            "y": y,
+            "leben": 10000,
+            "zustand": 1,
+            "laufx": x,
+            "laufy": y,
+            "nahziel": 0,
+            "nahangreifer": 0,
+            "zieleinheit": 0,
+        }
 
     L = {n: e(22, 151, 280) for n in range(308, 313)}
     L.update({n: e(24, 144, 281) for n in range(330, 337)})
     v = V.Vorstoss(1, (230, 287), bis=40000)
     assert v.mitglieder == set() and v.anspruch(672, L) == set(range(308, 313))
-    assert v.anspruch(40000, L) == set()                          # nach dem Vorstoss gehoeren sie wieder dem Waechter
+    assert v.anspruch(40000, L) == set()  # nach dem Vorstoss gehoeren sie wieder dem Waechter
     gesendet = []
     monkeypatch.setattr(WA, "befehl", lambda b, *a, **k: gesendet.append(b) or [])
     w = WA.Waechter(1, posten=(147, 235))
@@ -616,8 +794,6 @@ def test_vorstoss_wartet_wenn_die_wegfuehrung_die_stelle_nicht_sicher_findet():
         assert not w.auftraege
 
 
-
-
 def test_brandtrupp_waehlt_nur_gebaeude_die_die_wegfuehrung_annimmt():
     """Partie 11.11. 22:05 (Fehlerwache F3): der Brandtrupp hielt ein Gebaeude mit einem Bogenschuetzen in 20 bis 44 Feldern fuer
     sicher (alte Regel bis 20), die Wegfuehrung lehnte es ab - die Sklaven pendelten zwischen gesperrten Zielen und standen zu Hause."""
@@ -637,8 +813,6 @@ def test_brandtrupp_waehlt_nur_gebaeude_die_die_wegfuehrung_annimmt():
     assert st[1] == "unterwegs"
 
 
-
-
 def test_steckt_eine_einheit_fest_gilt_der_wegpunkt_als_nicht_erreichbar():
     """Partie 11.11. 22:10 (Fehlerwache F3): derselbe Wegpunkt 2.000 Takte lang, der Sklave ruehrte sich nicht."""
     w = W.Wegfuehrung(1)
@@ -648,13 +822,18 @@ def test_steckt_eine_einheit_fest_gilt_der_wegpunkt_als_nicht_erreichbar():
     assert "lauf" in b[0]  # zuerst der sichere Weg ueber Wegpunkte
     for _ in range(W.STECKT_RUNDEN):
         st, _b = _runde(w, L, G)  # die Einheit bleibt, wo sie ist
-    assert st[1] == "steckt" and all(all(z) for z in w._frei)  # keine Zelle gesperrt (22:34: das mauerte Wege zu)
+    assert st[1] == "steckt" and all(
+        all(z) for z in w._frei
+    )  # keine Zelle gesperrt (22:34: das mauerte Wege zu)
     st, b = _runde(w, L, G)
-    assert st[1] == "direkt" and b == [{"einheiten": [1], "gebaeude": 7}]  # die Wegsuche des Spiels uebernimmt
+    assert st[1] == "direkt" and b == [
+        {"einheiten": [1], "gebaeude": 7}
+    ]  # die Wegsuche des Spiels uebernimmt
 
 
 # --- B-182 (Partie 11.11. 22:37, Daniel 22:41: "warum wird denn der soeldnerposten als unbegehbar gegolten? macht doch keinen
 # sinn offensichtlich sammeln die sich dort ja") - Begehbarkeit aus der Weg-Ebene des Spiels, Wegsuche des Spiels nur kurz
+
 
 def _weg_ebene(gesperrt=(), felder=None):
     """Weg-Ebene wie services/wegkarte.lesen: ueberall Schritte erlaubt, ausser auf gesperrt; felder ueberschreibt einzelne."""
@@ -678,29 +857,45 @@ def _soeldnerposten():
 
 def test_soeldnerposten_hof_ist_mit_der_weg_ebene_begehbar():
     from selfaware.services import wegkarte as WK
+
     k = _soeldnerposten()
-    start = ["".join("B" if 153 <= x <= 162 and 284 <= y <= 293 else "." for x in range(400)) for y in range(400)]
+    start = [
+        "".join("B" if 153 <= x <= 162 and 284 <= y <= 293 else "." for x in range(400))
+        for y in range(400)
+    ]
     alt = W.Wegfuehrung(1, start)  # die Startkarte: jedes Gebaeudefeld ist "B"
     alt.fuehre(1, "gebaeude", 7)
     L, G = {1: _e(1, 71, 158, 288)}, {7: _e(2, 1, 275, 86)}
     st, b = _runde(alt, L, G)
-    assert st[1] == "direkt" and b == [{"einheiten": [1], "gebaeude": 7}]  # kein Weg im Gitter: das Spiel fuehrt
+    assert st[1] == "direkt" and b == [
+        {"einheiten": [1], "gebaeude": 7}
+    ]  # kein Weg im Gitter: das Spiel fuehrt
     w = W.Wegfuehrung(1, WK.als_gelaende(k))
     w.fuehre(1, "gebaeude", 7)
     st, b = _runde(w, L, G)
-    assert st[1] == "unterwegs" and "lauf" in b[0]  # mit der Weg-Ebene: eigener, sicherer Weg vom Hof aus
+    assert (
+        st[1] == "unterwegs" and "lauf" in b[0]
+    )  # mit der Weg-Ebene: eigener, sicherer Weg vom Hof aus
 
 
 def test_weg_ebene_verraet_keine_fallgruben_und_kein_pech():
     """FAIRNESS F12: Fallgruben (67) und Pech sieht kein Spieler - ihre Felder gelten als freier Boden."""
     from selfaware.services import wegkarte as WK
-    k = _weg_ebene(felder={(5, 5): (0, 30, 0, 0x400, 0, 67), (6, 5): (0, 0, 0, 0x80000000, 0, 0), (7, 5): (0, 31, 0, 0x400, 0, 1)})
+
+    k = _weg_ebene(
+        felder={
+            (5, 5): (0, 30, 0, 0x400, 0, 67),
+            (6, 5): (0, 0, 0, 0x80000000, 0, 0),
+            (7, 5): (0, 31, 0, 0x400, 0, 1),
+        }
+    )
     zeile = WK.als_gelaende(k)[5]
     assert zeile[5] == "." and zeile[6] == "." and zeile[7] == "#" and zeile[4] == "."
 
 
 def test_karte_holen_nimmt_nur_die_passende_antwort(monkeypatch):
     from selfaware.services import wegkarte as WK
+
     k = _weg_ebene()
     k["tick"] = 500
     monkeypatch.setattr(WK, "lesen", lambda pfad=None: k)
@@ -708,16 +903,33 @@ def test_karte_holen_nimmt_nur_die_passende_antwort(monkeypatch):
 
     def antwort(text):
         return lambda b, warte, bis=None: gesendet.append(b) or [text]
+
     assert WK.karte_holen(antwort("anderes")) is None  # keine Antwort: die alte Karte gilt weiter
-    assert WK.karte_holen(antwort("[villagestudio]: WEGKARTE Tick 499 (0,0)-(399,399): 160000 Felder")) is None  # alte Datei
-    karte = WK.karte_holen(antwort("[villagestudio]: WEGKARTE Tick 500 (0,0)-(399,399): 160000 Felder, 160000 mit Weg"))
-    assert len(karte) == 400 and set(karte[0]) == {"."} and gesendet[-1] == {"wegkarte": {"x0": 0, "y0": 0, "x1": 399, "y1": 399}}
+    assert (
+        WK.karte_holen(antwort("[villagestudio]: WEGKARTE Tick 499 (0,0)-(399,399): 160000 Felder"))
+        is None
+    )  # alte Datei
+    karte = WK.karte_holen(
+        antwort("[villagestudio]: WEGKARTE Tick 500 (0,0)-(399,399): 160000 Felder, 160000 mit Weg")
+    )
+    assert (
+        len(karte) == 400
+        and set(karte[0]) == {"."}
+        and gesendet[-1] == {"wegkarte": {"x0": 0, "y0": 0, "x1": 399, "y1": 399}}
+    )
 
 
 def _eingemauert():
     """Unsere Karte: um (100, 100) ein geschlossener Ring - das Gitter kennt keinen Weg hinaus."""
-    return ["".join("#" if 88 <= x <= 112 and 88 <= y <= 112 and not (92 <= x <= 108 and 92 <= y <= 108) else "."
-                    for x in range(400)) for y in range(400)]
+    return [
+        "".join(
+            "#"
+            if 88 <= x <= 112 and 88 <= y <= 112 and not (92 <= x <= 108 and 92 <= y <= 108)
+            else "."
+            for x in range(400)
+        )
+        for y in range(400)
+    ]
 
 
 def test_ohne_weg_im_gitter_fuehrt_das_spiel_sofort_und_nur_bis_die_einheit_heraus_ist():
@@ -727,7 +939,9 @@ def test_ohne_weg_im_gitter_fuehrt_das_spiel_sofort_und_nur_bis_die_einheit_hera
     w.fuehre(1, "gebaeude", 7)
     G = {7: _e(2, 3, 300, 100)}
     st, b = _runde(w, {1: _e(1, 71, 100, 100)}, G)
-    assert st[1] == "direkt" and b == [{"einheiten": [1], "gebaeude": 7}]  # sofort, nicht "kein_weg"
+    assert st[1] == "direkt" and b == [
+        {"einheiten": [1], "gebaeude": 7}
+    ]  # sofort, nicht "kein_weg"
     st, b = _runde(w, {1: _e(1, 71, 100 + W.DIREKT_BIS, 100)}, G)
     assert st[1] == "direkt"  # noch nicht weit genug
     st, b = _runde(w, {1: _e(1, 71, 101 + W.DIREKT_BIS, 100)}, G)
@@ -759,21 +973,46 @@ def test_neue_karte_holt_die_einheit_in_die_wegfuehrung_zurueck():
 def test_laufpunkte_auf_gebaeudefeldern_ruecken_aufs_naechste_freie_feld():
     """Partie 11.11. 23:12 (Fehlerwache F2): die Vorrueck-Stelle (168, 234) lag auf einem Apfelhof - das Spiel nahm den Laufbefehl
     an, keiner der drei Schuetzen ging los."""
-    karte = ["".join("#" if 166 <= x <= 168 and 232 <= y <= 234 else "." for x in range(400)) for y in range(400)]
+    karte = [
+        "".join("#" if 166 <= x <= 168 and 232 <= y <= 234 else "." for x in range(400))
+        for y in range(400)
+    ]
     w = W.Wegfuehrung(1, karte)
     w.fuehre(1, "ort", (168, 234))
     st, b = _runde(w, {1: _e(1, 70, 150, 234)})
-    assert st[1] == "unterwegs" and b[0]["lauf"] == [168, 235]  # das naechste begehbare Feld neben dem Hof (gleich nah: kleineres x)
+    assert st[1] == "unterwegs" and b[0]["lauf"] == [
+        168,
+        235,
+    ]  # das naechste begehbare Feld neben dem Hof (gleich nah: kleineres x)
     st, b = _runde(w, {1: _e(1, 70, 169, 235)})
     assert st[1] == "am_ziel" and b == []
-    gross = W.Wegfuehrung(1, ["".join("#" if 164 <= x <= 172 and 230 <= y <= 238 else "." for x in range(400)) for y in range(400)])
-    gross.fuehre(1, "ort", (168, 234))  # mitten in einem 9 x 9 Gebaeude: das naechste freie Feld liegt 5 weit
+    gross = W.Wegfuehrung(
+        1,
+        [
+            "".join("#" if 164 <= x <= 172 and 230 <= y <= 238 else "." for x in range(400))
+            for y in range(400)
+        ],
+    )
+    gross.fuehre(
+        1, "ort", (168, 234)
+    )  # mitten in einem 9 x 9 Gebaeude: das naechste freie Feld liegt 5 weit
     st, b = _runde(gross, {1: _e(1, 70, 163, 234)})
-    assert st[1] == "am_ziel" and b == []  # angekommen ist, wer am freien Feld steht, nicht erst am unerreichbaren Punkt
-    g = W.Wegfuehrung(1, ["".join("#" if 200 <= x <= 203 and 100 <= y <= 103 else "." for x in range(400)) for y in range(400)])
+    assert (
+        st[1] == "am_ziel" and b == []
+    )  # angekommen ist, wer am freien Feld steht, nicht erst am unerreichbaren Punkt
+    g = W.Wegfuehrung(
+        1,
+        [
+            "".join("#" if 200 <= x <= 203 and 100 <= y <= 103 else "." for x in range(400))
+            for y in range(400)
+        ],
+    )
     g.fuehre(1, "gebaeude", 7)
     st, b = _runde(g, {1: _e(1, 71, 180, 101)}, {7: _e(2, 3, 201, 101)})
-    assert st[1] == "unterwegs" and b[0]["lauf"] == [199, 101]  # der letzte Wegpunkt vor dem Gebaeude, nicht das Gebaeudefeld
+    assert st[1] == "unterwegs" and b[0]["lauf"] == [
+        199,
+        101,
+    ]  # der letzte Wegpunkt vor dem Gebaeude, nicht das Gebaeudefeld
 
 
 def test_gerade_freie_linie_braucht_keinen_zwischenhalt():
@@ -781,7 +1020,9 @@ def test_gerade_freie_linie_braucht_keinen_zwischenhalt():
     w = W.Wegfuehrung(1)
     w.fuehre(1, "gebaeude", 7)
     st, b = _runde(w, {1: _e(1, 71, 100, 100)}, {7: _e(2, 3, 300, 100)})
-    assert st[1] == "unterwegs" and b == [{"einheiten": [1], "lauf": [300, 100]}]  # 200 Felder frei: gleich bis zum Ziel
+    assert st[1] == "unterwegs" and b == [
+        {"einheiten": [1], "lauf": [300, 100]}
+    ]  # 200 Felder frei: gleich bis zum Ziel
 
 
 def test_um_gefahr_herum_ohne_halt_an_wegpunkten():
@@ -804,7 +1045,10 @@ def test_um_gefahr_herum_ohne_halt_an_wegpunkten():
         rest = max(abs(ziel[0] - ort[0]), abs(ziel[1] - ort[1]))
         if rest < 5 and ziel != (300, 100):
             halte += 1  # sie kommt vor Rundenende an und steht bis zum naechsten Befehl
-        ort = (ort[0] + max(-5, min(5, ziel[0] - ort[0])), ort[1] + max(-5, min(5, ziel[1] - ort[1])))
+        ort = (
+            ort[0] + max(-5, min(5, ziel[0] - ort[0])),
+            ort[1] + max(-5, min(5, ziel[1] - ort[1])),
+        )
         naechste = min(naechste, math.hypot(ort[0] - 200, ort[1] - 130))
     assert st[1] == "greift_an" and halte == 0 and naechste > 40 and befehle <= 6
 
@@ -814,7 +1058,10 @@ def test_wegpunkt_wahl_vorlauf_nur_ohne_gefahr_und_gerade_linie_nur_frei():
     Mauer. Partie 11.11. 23:25: 71-80 Takte je Runde - eine Einheit mit 5 Feldern je Runde kaeme mitten in der Runde an."""
     import selfaware.services.schussfeld as SF
 
-    karte = ["".join("#" if 196 <= x <= 203 and y <= 150 else "." for x in range(400)) for y in range(400)]
+    karte = [
+        "".join("#" if 196 <= x <= 203 and y <= 150 else "." for x in range(400))
+        for y in range(400)
+    ]
     w = W.Wegfuehrung(1, karte)
     ecke, dahinter = (198, 154), (222, 154)
 
@@ -826,11 +1073,17 @@ def test_wegpunkt_wahl_vorlauf_nur_ohne_gefahr_und_gerade_linie_nur_frei():
         a.weg = [ecke, dahinter, (300, 154)]
         w._naechster(a, g, ort, weit)
         return a.weg[0]
-    assert wahl((190, 146), 5) == dahinter  # 8 vor der Ecke, 5 Felder je Runde: der naechste geht schon hinaus
+
+    assert (
+        wahl((190, 146), 5) == dahinter
+    )  # 8 vor der Ecke, 5 Felder je Runde: der naechste geht schon hinaus
     assert wahl((190, 146), 0) == ecke  # sie stand: noch kein Vorlauf
     zelle = SF.Gitter(karte, []).gerade((190, 146), dahinter)[3]
     assert wahl((190, 146), 5, [zelle]) == ecke  # auf der Abkuerzung liegt Gefahr: erst um die Ecke
-    assert wahl((150, 154), 0) == (300, 154)  # unterhalb der Mauer ist die Linie bis zum Ziel frei: kein Wegpunkt noetig
+    assert wahl((150, 154), 0) == (
+        300,
+        154,
+    )  # unterhalb der Mauer ist die Linie bis zum Ziel frei: kein Wegpunkt noetig
 
 
 def test_gleicher_befehl_geht_nur_an_eine_stehende_einheit_noch_einmal():
@@ -850,10 +1103,16 @@ def test_gleicher_befehl_geht_nur_an_eine_stehende_einheit_noch_einmal():
 
 def test_lenker_liest_die_weg_ebene_fuer_die_wegfuehrung():
     import pathlib
-    lenker = (pathlib.Path(__file__).resolve().parents[1] / "src/selfaware/runtime/live/erstes_spiel.py").read_text(encoding="utf-8")
+
+    lenker = (
+        pathlib.Path(__file__).resolve().parents[1] / "src/selfaware/runtime/live/erstes_spiel.py"
+    ).read_text(encoding="utf-8")
     # S146: alle WEGKARTE_RUNDEN Runden und sobald ein Gebaeude dazukommt - die Regel steht in services/wegkarte.neu_lesen
-    for zeile in ("W_karte.neu_lesen(runde, wegf_karte_runde, G, wegf_karte_geb, WEGKARTE_RUNDEN)",
-                  'neue_karte, wk_art = W_karte.karte_holen(befehl), "ganz"', "wegf.karte(neue_karte)"):
+    for zeile in (
+        "W_karte.neu_lesen(runde, wegf_karte_runde, G, wegf_karte_geb, WEGKARTE_RUNDEN)",
+        'neue_karte, wk_art = W_karte.karte_holen(befehl), "ganz"',
+        "wegf.karte(neue_karte)",
+    ):
         assert zeile in lenker
 
 
@@ -880,7 +1139,9 @@ def test_vorstoss_ohne_ziel_nimmt_das_alte_angriffsziel_zurueck():
     w = W.Wegfuehrung(1)
     v.weg = w
     L = {1: _e(1, 22, 100, 100), 2: _e(1, 22, 100, 101), 3: _e(2, 3, 160, 100)}
-    G = {90: _e(2, 74, 170, 100)}  # Turm: 70 Felder von der Gruppe, 40 von jeder Stellung vor dem Arbeiter
+    G = {
+        90: _e(2, 74, 170, 100)
+    }  # Turm: 70 Felder von der Gruppe, 40 von jeder Stellung vor dem Arbeiter
     v.schritt(500, L, G, Befehle())
     assert w.auftraege[1].art == "einheit" and w.auftraege[1].ziel == 3
     v.stur[3] = v.runde + 50  # nimmt keinen Schaden: tabu
@@ -894,14 +1155,19 @@ def test_weglaenge_ist_der_weg_der_wegfuehrung_nicht_die_luftlinie():
     Wegfuehrung plant."""
     import selfaware.services.schussfeld as SF
 
-    karte = ["".join("#" if 40 <= x <= 160 and 70 <= y <= 75 else "." for x in range(400)) for y in range(400)]
+    karte = [
+        "".join("#" if 40 <= x <= 160 and 70 <= y <= 75 else "." for x in range(400))
+        for y in range(400)
+    ]
     g = SF.Gitter(karte, [])
     laenge = W.Wegfuehrung.weglaenge(g, (100, 100))
-    assert laenge((100, 140)) == 40                                  # frei: 10 Zellen
-    assert laenge((100, 60)) > 2 * SF.schach((100, 100), (100, 60))  # hinter der Mauer: um ihr Ende herum
+    assert laenge((100, 140)) == 40  # frei: 10 Zellen
+    assert laenge((100, 60)) > 2 * SF.schach(
+        (100, 100), (100, 60)
+    )  # hinter der Mauer: um ihr Ende herum
     for ziel in ((100, 60), (300, 300), (20, 20)):
         assert laenge(ziel) == (len(g.weg((100, 100), ziel)) - 1) * g.z
-    assert laenge((101, 101)) == 1                                   # in der Startzelle die Schachdistanz
+    assert laenge((101, 101)) == 1  # in der Startzelle die Schachdistanz
 
 
 class _KernAttrappe:
@@ -951,11 +1217,16 @@ def test_s155_raid_befehle_gehen_ueber_den_kern_das_ziel_ist_der_erlaubte_gegner
 def test_s155_was_der_kern_nicht_nimmt_geht_ohne_durchsetzen_ans_modul():
     w = W.Wegfuehrung(1)
     k = _KernAttrappe()
-    k.senden = lambda liste: liste          # Ring voll: alles zurueck
+    k.senden = lambda liste: liste  # Ring voll: alles zurueck
     w.kern = k
     w.fuehre(1, "gebaeude", 7, "nahkampfraid")
     _st, modul = _runde(w, {1: _e(1, 24, 100, 100)}, {7: _e(2, 3, 200, 100)})
-    assert k.erlaubt == {1: 0} and len(modul) == 1 and "lauf" in modul[0] and "durchsetzen" not in modul[0]
+    assert (
+        k.erlaubt == {1: 0}
+        and len(modul) == 1
+        and "lauf" in modul[0]
+        and "durchsetzen" not in modul[0]
+    )
 
 
 class _KettenKern(_KernAttrappe):
@@ -974,7 +1245,10 @@ def test_s159_der_kern_bekommt_den_rest_des_wegs_und_den_angriff_und_der_lenker_
     """S159 (Daniel 15.11.2026 01:10 "sofort reagieren"): mit dem Laufbefehl zum ersten Wegpunkt bekommt der Kern die weiteren Wegpunkte
     und den Angriff am Ende. Hat der Kern die Einheit schon weitergeschickt (ihr Laufziel im Spiel ist ein spaeterer Wegpunkt), schickt
     der Lenker sie nicht zurueck und nicht noch einmal dorthin."""
-    karte = ["".join("#" if 150 <= x <= 250 and 60 <= y <= 140 else "." for x in range(400)) for y in range(400)]   # ein Block im Weg
+    karte = [
+        "".join("#" if 150 <= x <= 250 and 60 <= y <= 140 else "." for x in range(400))
+        for y in range(400)
+    ]  # ein Block im Weg
     w = W.Wegfuehrung(1, karte)
     k = _KettenKern()
     w.kern = k
@@ -985,7 +1259,7 @@ def test_s159_der_kern_bekommt_den_rest_des_wegs_und_den_angriff_und_der_lenker_
     nr, punkte, danach = k.ketten[0]
     erster = tuple(k.gesendet[0]["angriff"]["lauf"])
     assert nr == 1 and danach == ("einheit", 50) and len(punkte) >= 1 and erster not in punkte
-    assert punkte == [(262, 142), (300, 100)]          # nur die Ecken, keine Zwischenpunkte alle 24 Felder
+    assert punkte == [(262, 142), (300, 100)]  # nur die Ecken, keine Zwischenpunkte alle 24 Felder
     # der Kern hat sie zum zweiten Wegpunkt geschickt: kein neuer Befehl in dieser Runde
     L[1] = dict(_e(1, 24, erster[0], erster[1]), laufx=punkte[0][0], laufy=punkte[0][1])
     _st, _m = _runde(w, L)

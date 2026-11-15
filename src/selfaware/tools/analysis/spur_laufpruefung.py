@@ -12,6 +12,7 @@ of its own; on a winding path that is too few fields (replay of game 13: two ala
 
 Call (PYTHONPATH=src): python -m selfaware.tools.analysis.spur_laufpruefung <konsole> <lage> <einheit> [gelaende=<survey .txt>]
 """
+
 import gzip
 import json
 import os
@@ -39,7 +40,11 @@ def befehle(konsole, einheit):
         if not m or einheit not in [int(n) for n in m.group(4).replace(" ", "").split(",") if n]:
             continue
         ziel = json.loads(m.group(3))
-        paket = {"angriff": dict(ziel, einheiten=[einheit])} if m.group(2) == "angriff" else {"halten": dict(ziel, nr=[einheit])}
+        paket = (
+            {"angriff": dict(ziel, einheiten=[einheit])}
+            if m.group(2) == "angriff"
+            else {"halten": dict(ziel, nr=[einheit])}
+        )
         aus.append((int(m.group(1)), paket))
     return aus, gelaende
 
@@ -47,7 +52,13 @@ def befehle(konsole, einheit):
 def _tabelle(text):
     zeilen = [z.split() for z in text.split("\n") if z.strip()]
     kopf = next(i for i, z in enumerate(zeilen) if z and z[0] == "nr")
-    return {int(z[0]): {k: int(v) for k, v in zip(zeilen[kopf], z) if v.lstrip("-").isdigit()} for z in zeilen[kopf + 1:] if z}
+    return {
+        int(z[0]): {
+            k: int(v) for k, v in zip(zeilen[kopf], z, strict=False) if v.lstrip("-").isdigit()
+        }
+        for z in zeilen[kopf + 1 :]
+        if z
+    }
 
 
 def runden(lage):
@@ -55,7 +66,9 @@ def runden(lage):
     aus = []
     for zeile in gzip.open(lage, "rt", encoding="utf-8"):
         r = json.loads(zeile)
-        aus.append((r["t"], _tabelle(r["einheiten"]), _tabelle(r.get("gebaeude", "nr")), eigen_lesen(r)))
+        aus.append(
+            (r["t"], _tabelle(r["einheiten"]), _tabelle(r.get("gebaeude", "nr")), eigen_lesen(r))
+        )
     return aus
 
 
@@ -64,11 +77,13 @@ def nachspielen(konsole, lage, einheit, gelaende=None):
     orders, genannt = befehle(konsole, einheit)
     gelaende = gelaende or (genannt and os.path.join(_workspace.DATA, genannt))
     if not gelaende or not os.path.exists(gelaende):
-        raise SystemExit("Geländekarte fehlt (%s) - ohne sie prüft die Kette nur das Tempo je Runde" % gelaende)
+        raise SystemExit(
+            "Geländekarte fehlt (%s) - ohne sie prüft die Kette nur das Tempo je Runde" % gelaende
+        )
     k = CA.ChainAudit(1, tile=tile_function(gelaende))
     folge = runden(lage)
     aus, schritte, pfad, letzte = [], 0, 0, None
-    for tick, paket in orders:                     # carried out before the first round of the protocol
+    for tick, paket in orders:  # carried out before the first round of the protocol
         if folge and tick <= folge[0][0]:
             k.tick = tick
             k.from_module(paket)
@@ -84,16 +99,24 @@ def nachspielen(konsole, lage, einheit, gelaende=None):
             v = LM.TYPES[typ][0] if typ in LM.TYPES else 1
             k.tick = t
             kern = eigen.get(einheit, {})
-            if "wegindex" not in kern:      # older protocol: the fields walked as index, one path per order
-                kern = dict(kern, wegindex=schritte, weglaenge=10 ** 6 + pfad, tempo=v)
+            if (
+                "wegindex" not in kern
+            ):  # older protocol: the fields walked as index, one path per order
+                kern = dict(kern, wegindex=schritte, weglaenge=10**6 + pfad, tempo=v)
             zeilen = k.check(t, L, G, {einheit: kern})
             o = k.orders.get(einheit)
             if o is not None and typ in LM.TYPES:
                 p25 = CA.STREUUNG.get(typ)
-                limit = max(CA.SLOW_FIELDS * LM.flat_ticks_per_field(typ), o.walk_need * (1.0 / p25 - 1.0) if p25 else 0.0)
+                limit = max(
+                    CA.SLOW_FIELDS * LM.flat_ticks_per_field(typ),
+                    o.walk_need * (1.0 / p25 - 1.0) if p25 else 0.0,
+                )
                 aus.append((t, pos, e.get("zustand"), o.walk_lag, o.walk_need, limit, zeilen))
         nachste = folge[i + 1][0] if i + 1 < len(folge) else float("inf")
-        for tick, paket in orders:                 # sent in this round, after the check: carried out before the next one
+        for (
+            tick,
+            paket,
+        ) in orders:  # sent in this round, after the check: carried out before the next one
             if t < tick <= nachste:
                 k.tick = t
                 k.from_module(paket)
@@ -110,11 +133,23 @@ def main(argv=None):
     zeilen = nachspielen(frei[0], frei[1], int(frei[2]), arg.get("gelaende"))
     schlimmst = max(zeilen, key=lambda z: z[3] - z[5], default=None)
     for t, pos, zustand, lag, need, limit, chain in zeilen:
-        print("Takt %5d %-10s Zustand %3s  Rueckstand %4.0f  Modell %5.0f  Grenze %4.0f%s" % (
-            t, "(%d,%d)" % pos, zustand, lag, need, limit, "  " + chain[0][:160] if chain else ""))
+        print(
+            "Takt %5d %-10s Zustand %3s  Rueckstand %4.0f  Modell %5.0f  Grenze %4.0f%s"
+            % (
+                t,
+                "(%d,%d)" % pos,
+                zustand,
+                lag,
+                need,
+                limit,
+                "  " + chain[0][:160] if chain else "",
+            )
+        )
     if schlimmst:
-        print("Groesster Rueckstand gegen die Grenze: %.0f bei Grenze %.0f, Takt %d; Alarme: %d" % (
-            schlimmst[3], schlimmst[5], schlimmst[0], sum(1 for z in zeilen if z[6])))
+        print(
+            "Groesster Rueckstand gegen die Grenze: %.0f bei Grenze %.0f, Takt %d; Alarme: %d"
+            % (schlimmst[3], schlimmst[5], schlimmst[0], sum(1 for z in zeilen if z[6]))
+        )
 
 
 if __name__ == "__main__":

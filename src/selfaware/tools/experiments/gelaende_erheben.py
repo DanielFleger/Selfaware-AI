@@ -19,6 +19,7 @@ here with peek, row by row, into data/research/gelaende_<short>_macro.txt.
 Call (PYTHONPATH=src, SHC_INSTANZ=2):  python -m selfaware.tools.experiments.gelaende_erheben "Liga_Paradise Plains" [...]
        python -m selfaware.tools.experiments.gelaende_erheben auswerten data/research/gelaende_PP.txt     (only the summary)
 """
+
 import collections
 import io
 import json
@@ -29,7 +30,7 @@ import sys
 from selfaware import workspace as _workspace
 
 SPEED_BITS = (0x200000, 0x20000000)
-RUN_MIN = 8          # fields: a test line is at least this long
+RUN_MIN = 8  # fields: a test line is at least this long
 
 
 def read_dump(path):
@@ -42,7 +43,9 @@ def read_dump(path):
             row = []
             for cell in line.split():
                 link, geb, area, logic, height, typ = cell.split(":")
-                row.append((int(link, 16), int(geb), int(area), int(logic, 16), int(height), int(typ)))
+                row.append(
+                    (int(link, 16), int(geb), int(area), int(logic, 16), int(height), int(typ))
+                )
             rows.append(row)
     return int(kv["x0"]), int(kv["y0"]), rows
 
@@ -65,9 +68,14 @@ def speed_class(logic):
 
 
 def summarize(x0, y0, rows):
-    bits, classes, steps, heights = collections.Counter(), collections.Counter(), collections.Counter(), collections.Counter()
+    bits, classes, steps, heights = (
+        collections.Counter(),
+        collections.Counter(),
+        collections.Counter(),
+        collections.Counter(),
+    )
     walkable = 0
-    runs = collections.defaultdict(list)          # speed class -> [(length, x, y, height min, height max)]
+    runs = collections.defaultdict(list)  # speed class -> [(length, x, y, height min, height max)]
     for j, row in enumerate(rows):
         run = None
         for i, (link, _geb, _area, logic, height, _typ) in enumerate(row):
@@ -97,22 +105,36 @@ def summarize(x0, y0, rows):
     for cls, lst in runs.items():
         flat = sorted((r for r in lst if r[4] - r[3] <= 2), reverse=True)[:5]
         steep = sorted(lst, key=lambda r: (r[4] - r[3], r[0]), reverse=True)[:5]
-        best["+".join("%#x" % b for b in cls) or "none"] = {"flat": flat, "steepest": steep, "runs": len(lst)}
-    return {"walkable": walkable,
-            "bits": {"%#x" % b: n for b, n in sorted(bits.items())},
-            "speed_classes": {"+".join("%#x" % b for b in c) or "none": n for c, n in classes.most_common()},
-            "height_steps": dict(sorted(steps.items())),
-            "heights": {"min": min(heights) if heights else None, "max": max(heights) if heights else None},
-            "test_lines": best}
+        best["+".join("%#x" % b for b in cls) or "none"] = {
+            "flat": flat,
+            "steepest": steep,
+            "runs": len(lst),
+        }
+    return {
+        "walkable": walkable,
+        "bits": {"%#x" % b: n for b, n in sorted(bits.items())},
+        "speed_classes": {
+            "+".join("%#x" % b for b in c) or "none": n for c, n in classes.most_common()
+        },
+        "height_steps": dict(sorted(steps.items())),
+        "heights": {
+            "min": min(heights) if heights else None,
+            "max": max(heights) if heights else None,
+        },
+        "test_lines": best,
+    }
 
 
-MACRO_LAYER = 0x01DCFCB8      # TileMapState.MacroLayer, 2 bytes a tile (address from calculateUnitMovementSpeed, 0052f899)
-TILE_ROWS = 0x023372F8        # translationMatrix: row y -> first tile index at +8 (as the module's wegkarte)
+MACRO_LAYER = 0x01DCFCB8  # TileMapState.MacroLayer, 2 bytes a tile (address from calculateUnitMovementSpeed, 0052f899)
+TILE_ROWS = (
+    0x023372F8  # translationMatrix: row y -> first tile index at +8 (as the module's wegkarte)
+)
 
 
 def read_macro(path, size=400):
     """MacroLayer & 0x3f of every field, one text line per row (values as hex), via peek."""
     from selfaware.game.ucp.laden import peek
+
     with io.open(path, "w", encoding="utf-8") as f:
         for y in range(size):
             base = peek(TILE_ROWS + y * 12 + 8)[0]
@@ -120,8 +142,17 @@ def read_macro(path, size=400):
             start = a & ~3
             words = peek(start, size // 2 + 2)
             raw = b"".join(w.to_bytes(4, "little") for w in words)
-            f.write(" ".join("%x" % (int.from_bytes(raw[a - start + 2 * i:a - start + 2 * i + 2], "little") & 0x3f)
-                             for i in range(size)) + "\n")
+            f.write(
+                " ".join(
+                    "%x"
+                    % (
+                        int.from_bytes(raw[a - start + 2 * i : a - start + 2 * i + 2], "little")
+                        & 0x3F
+                    )
+                    for i in range(size)
+                )
+                + "\n"
+            )
     return path
 
 
@@ -141,12 +172,15 @@ def tile_function(path):
             return 0x8000, 1, 8
         c = rows[y - y0][x - x0]
         return c[3], macro[y][x], c[4]
+
     return tile
 
 
 def survey_file(karte):
     """The survey of a map ("Liga_Paradise Plains" -> data/research/gelaende_LigaParadisePlains.txt) or None."""
-    path = os.path.join(_workspace.DATA, "gelaende_%s.txt" % "".join(ch for ch in str(karte) if ch.isalnum()))
+    path = os.path.join(
+        _workspace.DATA, "gelaende_%s.txt" % "".join(ch for ch in str(karte) if ch.isalnum())
+    )
     return path if os.path.exists(path) and os.path.exists(path[:-4] + "_macro.txt") else None
 
 
@@ -154,6 +188,7 @@ def survey(karte, short):
     from selfaware.game.ucp.befehl import ABZUG
     from selfaware.game.ucp.laden import befehl
     from selfaware.tools.experiments.karten_holen import gefecht_frisch
+
     gefecht_frisch(karte, ki=2)
     befehl({"wegkarte": {"x0": 0, "y0": 0, "x1": 399, "y1": 399}}, 90.0, bis="WEGKARTE")
     dst = os.path.join(_workspace.DATA, "gelaende_%s.txt" % short)
@@ -170,6 +205,7 @@ def water(logic, macro):
 def main():
     from selfaware.tools.experiments.karten_holen import kurz_von
     from selfaware.tools.experiments.schlag_messen import exclusive
+
     args = sys.argv[1:]
     if args and args[0] == "auswerten":
         paths = args[1:]
@@ -181,8 +217,11 @@ def main():
         out = os.path.splitext(p)[0] + ".json"
         with io.open(out, "w", encoding="utf-8") as f:
             json.dump(s, f, indent=1)
-        print("%s: walkable %d, speed classes %s, height steps %s -> %s" % (
-            os.path.basename(p), s["walkable"], s["speed_classes"], s["height_steps"], out), flush=True)
+        print(
+            "%s: walkable %d, speed classes %s, height steps %s -> %s"
+            % (os.path.basename(p), s["walkable"], s["speed_classes"], s["height_steps"], out),
+            flush=True,
+        )
 
 
 if __name__ == "__main__":

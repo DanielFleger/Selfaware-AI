@@ -10,19 +10,23 @@ Ein Geworbener steht erst einige Takte spaeter in der Kerntabelle. Bis dahin zae
 Werbungen kurz hintereinander die Grenze nicht gemeinsam ueberschreiten. Erscheint er nicht (kein Gold, kein Bauer), verfaellt
 er nach UNTERWEGS_TAKTE Takten.
 """
+
 import collections
 
 from selfaware.baukasten.einheiten import ARTEN
 
 LORD = 55
 KAEMPFER = frozenset(t for t in ARTEN if t != LORD)
-UNTERWEGS_TAKTE = 50      # selbst gesetzt: so lange zaehlt eine Werbung, die der Kern noch nicht zeigt
+UNTERWEGS_TAKTE = 50  # selbst gesetzt: so lange zaehlt eine Werbung, die der Kern noch nicht zeigt
 
 
 def kaempfer(welt, sp):
     """Nummern der lebenden eigenen Kaempfer im Weltbild des Kerns (ohne Lord)."""
-    return sorted(n for n, e in welt.einheiten.items()
-                  if e.get("besitzer") == sp and e.get("typ") in KAEMPFER and e.get("leben", 1) > 0)
+    return sorted(
+        n
+        for n, e in welt.einheiten.items()
+        if e.get("besitzer") == sp and e.get("typ") in KAEMPFER and e.get("leben", 1) > 0
+    )
 
 
 class Obergrenze:
@@ -31,10 +35,10 @@ class Obergrenze:
         self.grenze, self.kern, self.sp = int(grenze), kern, sp
         self.erlaubt_n = 0
         self.abgelehnt = collections.Counter()
-        self.kern_fehler = 0           # B-182 (Partie 12.11. 19:25): so oft war der Kern nicht lesbar - dann gilt die Grenze als erreicht
-        self.hoechst = 0               # die meisten Kaempfer, die der Kern je zeigte
-        self._unterwegs = []           # Kern-Takte der Werbungen, die der Kern noch nicht zeigt
-        self._basis = None             # Kaempferzahl bei der ersten noch offenen Werbung
+        self.kern_fehler = 0  # B-182 (Partie 12.11. 19:25): so oft war der Kern nicht lesbar - dann gilt die Grenze als erreicht
+        self.hoechst = 0  # die meisten Kaempfer, die der Kern je zeigte
+        self._unterwegs = []  # Kern-Takte der Werbungen, die der Kern noch nicht zeigt
+        self._basis = None  # Kaempferzahl bei der ersten noch offenen Werbung
 
     def zahl(self):
         """Kaempfer laut Kern plus Werbungen, die er noch nicht zeigt. Liest der Kern nicht, gilt die Grenze als erreicht."""
@@ -75,5 +79,10 @@ class Obergrenze:
 
     def stand(self):
         return "Grenze %d, erlaubt %d, abgelehnt %d %s, hoechstens %d gesehen%s" % (
-            self.grenze, self.erlaubt_n, sum(self.abgelehnt.values()), dict(self.abgelehnt), self.hoechst,
-            ", KERN NICHT LESBAR %d-mal" % self.kern_fehler if self.kern_fehler else "")
+            self.grenze,
+            self.erlaubt_n,
+            sum(self.abgelehnt.values()),
+            dict(self.abgelehnt),
+            self.hoechst,
+            ", KERN NICHT LESBAR %d-mal" % self.kern_fehler if self.kern_fehler else "",
+        )

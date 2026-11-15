@@ -16,6 +16,7 @@ Call (PYTHONPATH=src): python -m selfaware.tools.analysis.durchsetzen_auswerten 
        [lage=<lage_*.jsonl.gz>]
 Writes data/research/durchsetzen_<stamp of the recording>.json.
 """
+
 import collections
 import gzip
 import json
@@ -26,9 +27,13 @@ import sys
 from selfaware import workspace as _workspace
 from selfaware.tools.analysis import befehle_greifen as BG
 
-NAH = BG.NAH      # fields: the walk target counts as reached (the same reach as for "the order took")
-BEGINN = re.compile(r"durchsetzen tick (\d+): Einheit (\d+) kaempft gegen (-?\d+) - Laufauftrag \((\d+),(\d+)\) ab jetzt jeden Takt neu")
-ENDE = re.compile(r"durchsetzen tick (\d+): Einheit (\d+) kaempft nicht mehr gegen einen anderen - nach (\d+) Takten, Laufauftrag (\d+) mal neu")
+NAH = BG.NAH  # fields: the walk target counts as reached (the same reach as for "the order took")
+BEGINN = re.compile(
+    r"durchsetzen tick (\d+): Einheit (\d+) kaempft gegen (-?\d+) - Laufauftrag \((\d+),(\d+)\) ab jetzt jeden Takt neu"
+)
+ENDE = re.compile(
+    r"durchsetzen tick (\d+): Einheit (\d+) kaempft nicht mehr gegen einen anderen - nach (\d+) Takten, Laufauftrag (\d+) mal neu"
+)
 WALKING = BG.WALKING
 
 
@@ -46,7 +51,9 @@ def ereignisse(log):
             aus = []
         vor = t
         if art == "beginn":
-            aus.append((t, art, int(m.group(2)), int(m.group(3)), (int(m.group(4)), int(m.group(5)))))
+            aus.append(
+                (t, art, int(m.group(2)), int(m.group(3)), (int(m.group(4)), int(m.group(5))))
+            )
         else:
             aus.append((t, art, int(m.group(2)), int(m.group(3)), int(m.group(4))))
     return aus
@@ -57,7 +64,15 @@ def episoden(ev):
     offen, aus = {}, []
     for e in ev:
         if e[1] == "beginn":
-            offen[e[2]] = {"einheit": e[2], "beginn": e[0], "gegner": e[3], "ziel": list(e[4]), "ende": None, "takte": None, "mal": None}
+            offen[e[2]] = {
+                "einheit": e[2],
+                "beginn": e[0],
+                "gegner": e[3],
+                "ziel": list(e[4]),
+                "ende": None,
+                "takte": None,
+                "mal": None,
+            }
             aus.append(offen[e[2]])
         elif e[2] in offen:
             p = offen.pop(e[2])
@@ -76,7 +91,11 @@ def lage_lesen(pfad):
                 continue
             kopf = zeilen[1].split()
             i_nr, i_b, i_t = kopf.index("nr"), kopf.index("besitzer"), kopf.index("typ")
-            aus[r["t"]] = {int(w[i_nr]): (int(w[i_b]), int(w[i_t])) for w in (s.split() for s in zeilen[2:]) if len(w) == len(kopf)}
+            aus[r["t"]] = {
+                int(w[i_nr]): (int(w[i_b]), int(w[i_t]))
+                for w in (s.split() for s in zeilen[2:])
+                if len(w) == len(kopf)
+            }
     return aus
 
 
@@ -106,8 +125,15 @@ def auswerten(eps, stand, lage=None):
         kette = None
         for p in liste:
             if kette is None or kette["ziel"] != p["ziel"]:
-                kette = {"einheit": n, "typ": p["typ"], "ziel": p["ziel"], "beginn": p["beginn"], "kaempfe": 0, "befehle": 0,
-                         "abstand_beginn": p["abstand_beginn"]}
+                kette = {
+                    "einheit": n,
+                    "typ": p["typ"],
+                    "ziel": p["ziel"],
+                    "beginn": p["beginn"],
+                    "kaempfe": 0,
+                    "befehle": 0,
+                    "abstand_beginn": p["abstand_beginn"],
+                }
                 ketten.append(kette)
             kette["kaempfe"] += 1
             kette["befehle"] += p["mal"] or 0
@@ -119,7 +145,7 @@ def auswerten(eps, stand, lage=None):
         for t in ticks:
             row = stand[k["einheit"]][t]
             if [row[8], row[9]] != k["ziel"] and t > (k["ende"] or k["beginn"]):
-                break                                   # a new walk target: the chain is over
+                break  # a new walk target: the chain is over
             if _abstand(row, k["ziel"]) <= NAH:
                 k["erreicht"] = t
                 break
@@ -133,27 +159,68 @@ def main(argv=None):
     arg = dict(a.split("=", 1) for a in argv if "=" in a)
     if len(frei) != 2:
         raise SystemExit(__doc__)
-    eps, ketten = auswerten(episoden(ereignisse(frei[0])), BG.stand_lesen(frei[1]), lage_lesen(arg["lage"]) if "lage" in arg else None)
+    eps, ketten = auswerten(
+        episoden(ereignisse(frei[0])),
+        BG.stand_lesen(frei[1]),
+        lage_lesen(arg["lage"]) if "lage" in arg else None,
+    )
     fertig = [p for p in eps if p["ende"] is not None]
-    print("Kaempfe gegen einen anderen als das Ziel: %d (%d Einheiten), beendet %d, offen %d" % (
-        len(eps), len({p["einheit"] for p in eps}), len(fertig), len(eps) - len(fertig)))
+    print(
+        "Kaempfe gegen einen anderen als das Ziel: %d (%d Einheiten), beendet %d, offen %d"
+        % (len(eps), len({p["einheit"] for p in eps}), len(fertig), len(eps) - len(fertig))
+    )
     print("  Takte bis zum Ende:", sorted(collections.Counter(p["takte"] for p in fertig).items()))
-    print("  neue Laufbefehle bis zum Ende:", sorted(collections.Counter(p["mal"] for p in fertig).items()))
-    print("  Zustand direkt danach:", collections.Counter(p.get("zustand_danach") for p in fertig).most_common())
+    print(
+        "  neue Laufbefehle bis zum Ende:",
+        sorted(collections.Counter(p["mal"] for p in fertig).items()),
+    )
+    print(
+        "  Zustand direkt danach:",
+        collections.Counter(p.get("zustand_danach") for p in fertig).most_common(),
+    )
     print("  Art der Einheit:", collections.Counter(p["typ"] for p in eps).most_common())
     if any("gegner_art" in p for p in eps):
-        print("  Gegner (Besitzer, Art):", collections.Counter(tuple(p["gegner_art"]) if p.get("gegner_art") else None
-                                                            for p in eps).most_common(8))
-    print("Ketten (eine Einheit, dasselbe Laufziel): %d, Laufziel erreicht %d" % (len(ketten), sum(1 for k in ketten if k["erreicht"])))
+        print(
+            "  Gegner (Besitzer, Art):",
+            collections.Counter(
+                tuple(p["gegner_art"]) if p.get("gegner_art") else None for p in eps
+            ).most_common(8),
+        )
+    print(
+        "Ketten (eine Einheit, dasselbe Laufziel): %d, Laufziel erreicht %d"
+        % (len(ketten), sum(1 for k in ketten if k["erreicht"]))
+    )
     for k in sorted(ketten, key=lambda k: -k["kaempfe"])[:12]:
-        print("  Einheit %d (Typ %s) -> %s: %d Kaempfe, %d Laufbefehle, Abstand %s -> %s, erreicht %s" % (
-            k["einheit"], k["typ"], tuple(k["ziel"]), k["kaempfe"], k["befehle"], k["abstand_beginn"], k["abstand_ende"],
-            "Takt %d" % k["erreicht"] if k["erreicht"] else "nein"))
+        print(
+            "  Einheit %d (Typ %s) -> %s: %d Kaempfe, %d Laufbefehle, Abstand %s -> %s, erreicht %s"
+            % (
+                k["einheit"],
+                k["typ"],
+                tuple(k["ziel"]),
+                k["kaempfe"],
+                k["befehle"],
+                k["abstand_beginn"],
+                k["abstand_ende"],
+                "Takt %d" % k["erreicht"] if k["erreicht"] else "nein",
+            )
+        )
     stempel = re.search(r"(\d{8}_\d{6})", os.path.basename(frei[1]))
-    pfad = os.path.join(_workspace.DATA, "durchsetzen_%s.json" % (stempel.group(1) if stempel else "ohne_stempel"))
+    pfad = os.path.join(
+        _workspace.DATA, "durchsetzen_%s.json" % (stempel.group(1) if stempel else "ohne_stempel")
+    )
     with open(pfad, "w", encoding="utf-8") as f:
-        json.dump({"kern_log": frei[0], "mitschrift": frei[1], "lage": arg.get("lage"), "nah": NAH, "episoden": eps, "ketten": ketten},
-                  f, indent=1)
+        json.dump(
+            {
+                "kern_log": frei[0],
+                "mitschrift": frei[1],
+                "lage": arg.get("lage"),
+                "nah": NAH,
+                "episoden": eps,
+                "ketten": ketten,
+            },
+            f,
+            indent=1,
+        )
     print("->", pfad)
 
 

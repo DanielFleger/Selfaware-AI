@@ -112,7 +112,7 @@ def test_neue_felder_kommen_an():
     assert (e["bild"], e["feinx"], e["feindabstand"], e["schusseinheit"]) == (6, 1307, 120, 91)
     # S139: die Filterfelder des Marschbefehls am Ende des Datensatzes
     assert (e["logikzustand"], e["laufmerker"], e["sammelmerker"], e["beweglich"]) == (1, 0, 1, 1)
-    assert e["gebiet"] == 3                       # S148: Gebiet des Wegnetzes am Feld, am Ende des Datensatzes
+    assert e["gebiet"] == 3  # S148: Gebiet des Wegnetzes am Feld, am Ende des Datensatzes
 
 
 def test_fremde_einheit_hat_keine_verbotenen_schluessel():
@@ -183,7 +183,9 @@ def test_groessen_passen_zu_den_formaten():
         assert struct.calcsize(format_) == groesse
 
 
-@pytest.mark.skipif(__import__("os").name != "nt", reason="benannter gemeinsamer Speicher nur unter Windows")
+@pytest.mark.skipif(
+    __import__("os").name != "nt", reason="benannter gemeinsamer Speicher nur unter Windows"
+)
 def test_leitung_verbindet_neu_wenn_der_kern_einen_neuen_namen_schreibt(tmp_path):
     """Partie 12.11. 19:25: kern_leitung.txt nannte noch den Speicher des alten Spielprozesses; wer las, bekam einen leeren Speicher
     und las die ganze Partie nur Nullen. Schreibt der Kern den neuen Namen, verbindet die Leitung sich neu."""

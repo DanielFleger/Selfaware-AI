@@ -102,7 +102,16 @@ def ziele(L, G, sp):
             if e["typ"] in UNANGREIFBAR_BEI_ARBEIT and e.get("zustand") == 1:
                 continue
             p = (e["x"], e["y"])
-            aus.append(Ziel(("e", n), e["typ"], p, float(RA.ARBEITER[e["typ"]]), *deckung(p), leben=float(e.get("leben", 0))))
+            aus.append(
+                Ziel(
+                    ("e", n),
+                    e["typ"],
+                    p,
+                    float(RA.ARBEITER[e["typ"]]),
+                    *deckung(p),
+                    leben=float(e.get("leben", 0)),
+                )
+            )
     return aus
 
 
@@ -164,8 +173,13 @@ class Wissen:
 
             arbeit = AS.ARBEIT.get(gtyp)
             herkunft = "Arbeit der Assassine %s x Gebaeudeschaden %g/%g (Balance)" % (
-                "gemessen" if arbeit is not None else "geschaetzt (Median aller Arten)", schaden[ASSASSINE], schaden[typ])
-            return (arbeit if arbeit is not None else AS.ARBEIT_SONST) * schaden[ASSASSINE] / schaden[typ], herkunft
+                "gemessen" if arbeit is not None else "geschaetzt (Median aller Arten)",
+                schaden[ASSASSINE],
+                schaden[typ],
+            )
+            return (arbeit if arbeit is not None else AS.ARBEIT_SONST) * schaden[
+                ASSASSINE
+            ] / schaden[typ], herkunft
         g = self.gebaeude.get(gtyp)
         if not g or not g.get("rate"):
             return None, "keine gemessene Rate fuer diese Gebaeudeart"
@@ -197,7 +211,7 @@ class Wissen:
         if gemessen is not None:
             takte = gemessen
         if z.schluessel[0] == "e" and (typ, z.typ) in ARBEITER_SCHADEN and z.leben > 0:
-            takte = z.leben / ARBEITER_SCHADEN[(typ, z.typ)]      # S154: gemessen statt Ersatz
+            takte = z.leben / ARBEITER_SCHADEN[(typ, z.typ)]  # S154: gemessen statt Ersatz
         fern = EH.ARTEN[typ].kampf == "fern"
         rein = sum(self.dps(s, typ, fern=True)[0] for s in z.schuetzen)
         if not fern:
@@ -212,7 +226,9 @@ class Wissen:
         takte, erfolg = self.am_ziel(typ, z)
         if not erfolg:
             return 0.0, None
-        dauer = (schach(ort, z.ort) if felder is None else felder) * (tempo or SW.takte_je_feld(typ, "trupp")) + takte
+        dauer = (schach(ort, z.ort) if felder is None else felder) * (
+            tempo or SW.takte_je_feld(typ, "trupp")
+        ) + takte
         return z.wert * erfolg / max(dauer, 1.0), dauer
 
     def kandidaten(self, typ, ziele_):

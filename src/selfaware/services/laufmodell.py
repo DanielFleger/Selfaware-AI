@@ -18,13 +18,25 @@ editor (data/research/lauf_messung_20261112_234314.jsonl / _234635.jsonl): 12 ti
 """
 
 # type -> (movement speed value on flat ground, run) - measured ticks per field 12 / 16 / 24 / 32
-TYPES = {24: (1, 1), 26: (1, 1), 71: (1, 1), 22: (1, 1), 70: (1, 1), 72: (1, 1),
-         28: (1, 2), 74: (1, 2),     # mounted: field ticks 8, 12, 12 - 10.6 a field (the median 12 hid it, 00:50)
-         73: (1, 0),
-         75: (2, 0), 25: (2, 0), 37: (2, 0), 76: (2, 0), 23: (2, 0),
-         27: (3, 0)}
-UPDATE = 8           # moves between two speed updates of a unit (every 4 on building tiles - not modelled)
-STEPS = 8            # micro steps per field
+TYPES = {
+    24: (1, 1),
+    26: (1, 1),
+    71: (1, 1),
+    22: (1, 1),
+    70: (1, 1),
+    72: (1, 1),
+    28: (1, 2),
+    74: (1, 2),  # mounted: field ticks 8, 12, 12 - 10.6 a field (the median 12 hid it, 00:50)
+    73: (1, 0),
+    75: (2, 0),
+    25: (2, 0),
+    37: (2, 0),
+    76: (2, 0),
+    23: (2, 0),
+    27: (3, 0),
+}
+UPDATE = 8  # moves between two speed updates of a unit (every 4 on building tiles - not modelled)
+STEPS = 8  # micro steps per field
 
 
 def gerade(a, b):
@@ -89,7 +101,9 @@ class Unit:
                     self.climb -= 2
                 else:
                     self.climb -= 1
-                    s = self.speed       # down 1-3: the code does not reset the speed value here (0052f9a3)
+                    s = (
+                        self.speed
+                    )  # down 1-3: the code does not reset the speed value here (0052f9a3)
         if not water:
             if logic & 0x200000:
                 if self.wet < 16:
@@ -117,7 +131,7 @@ class Walker:
         self.unit.update(*tile(*start))
         self.fields = [tuple(start)]
         self.t, self.micro, self.i, self.moves = start_tick, STEPS // 2, 0, phase
-        self.times = []          # tick at which each next field is reached
+        self.times = []  # tick at which each next field is reached
 
     def add(self, fields):
         self.fields += [tuple(f) for f in fields]

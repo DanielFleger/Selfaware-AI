@@ -10,8 +10,14 @@ def _rows(spec):
 
 def test_ticks_per_field_and_the_formula_of_the_game():
     """One field every 16 ticks at speed value 1 - the code says 8 x (speed value + 1) (Wissensregister P13)."""
-    spec = [(0, 1, 100, 100, 1), (2, 101, 100, 100, 1), (10, 101, 101, 100, 1), (26, 101, 102, 100, 1), (42, 101, 103, 100, 1),
-            (58, 1, 104, 100, 1)]
+    spec = [
+        (0, 1, 100, 100, 1),
+        (2, 101, 100, 100, 1),
+        (10, 101, 101, 100, 1),
+        (26, 101, 102, 100, 1),
+        (42, 101, 103, 100, 1),
+        (58, 1, 104, 100, 1),
+    ]
     s = M.summarize(_rows(spec), (104, 100))
     assert s["order_to_walk"] == 2 and s["arrival"] == 58 and s["fields"] == 4
     assert s["per_field"] == [16, 16, 16] and s["ticks_per_field"] == 16 and s["formula"] == 16
@@ -22,7 +28,10 @@ def test_the_walk_stops_when_it_arrived_or_never_started():
     goal = (104, 100)
     r = _rows([(0, 1, 100, 100, 1)] + [(t, 1, 100, 100, 1) for t in range(1, M.NO_WALK_TICKS + 1)])
     assert M.stop_reason(r, goal, 3000) == "no_walk"
-    r = _rows([(0, 1, 100, 100, 1), (1, 101, 101, 100, 1)] + [(t, 1, 104, 100, 1) for t in range(2, 2 + M.ARRIVED_IDLE)])
+    r = _rows(
+        [(0, 1, 100, 100, 1), (1, 101, 101, 100, 1)]
+        + [(t, 1, 104, 100, 1) for t in range(2, 2 + M.ARRIVED_IDLE)]
+    )
     assert M.stop_reason(r, goal, 3000) == "arrived"
     r[-1][M.STATE] = 101  # still walking on the goal field: not yet
     assert M.stop_reason(r, goal, 3000) is None
@@ -41,12 +50,30 @@ def test_a_walking_line_keeps_away_from_buildings():
 
 def test_every_field_goes_to_its_terrain_class_and_height_step():
     """A walk over plain ground, then two fields with the speed bit 0x20000000, then up a step of 4."""
-    spec = [(0, 1, 100, 100, 1), (1, 101, 100, 100, 1), (8, 101, 101, 100, 1), (20, 101, 102, 100, 1), (40, 101, 103, 100, 3),
-            (60, 101, 104, 100, 3), (76, 101, 105, 100, 1), (90, 1, 106, 100, 1)]
-    terrain = {(100, 100): ("none", 8), (101, 100): ("none", 8), (102, 100): ("none", 8), (103, 100): ("0x20000000", 8),
-               (104, 100): ("0x20000000", 8), (105, 100): ("none", 12), (106, 100): ("none", 12)}
+    spec = [
+        (0, 1, 100, 100, 1),
+        (1, 101, 100, 100, 1),
+        (8, 101, 101, 100, 1),
+        (20, 101, 102, 100, 1),
+        (40, 101, 103, 100, 3),
+        (60, 101, 104, 100, 3),
+        (76, 101, 105, 100, 1),
+        (90, 1, 106, 100, 1),
+    ]
+    terrain = {
+        (100, 100): ("none", 8),
+        (101, 100): ("none", 8),
+        (102, 100): ("none", 8),
+        (103, 100): ("0x20000000", 8),
+        (104, 100): ("0x20000000", 8),
+        (105, 100): ("none", 12),
+        (106, 100): ("none", 12),
+    }
     s = M.summarize(_rows(spec), (106, 100), "arrived", terrain)
-    assert s["per_class"] == {"none": [12, 20, 14], "0x20000000": [20, 16]}   # the first change (start inside the field) is left out
+    assert s["per_class"] == {
+        "none": [12, 20, 14],
+        "0x20000000": [20, 16],
+    }  # the first change (start inside the field) is left out
     assert s["per_step"] == {"0": [12, 20, 20, 14], "4": [16]}
     assert s["speed_per_class"]["0x20000000"] == {"3": 2}
 
