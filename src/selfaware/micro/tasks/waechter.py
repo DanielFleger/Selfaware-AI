@@ -14,6 +14,7 @@ Gemessen 22:46: 8 Speertraeger gegen 2 Angreifer - beide tot, keiner von uns ver
 """
 import math, os
 from selfaware.game.ucp.laden import befehl
+from selfaware.baukasten.zielvergabe import brennt  # noqa: F401 - Daniel 23:31, eine Stelle (zielvergabe)
 from selfaware.game.ucp.befehl import ABZUG
 import selfaware.services.gefecht as gefecht
 import selfaware.services.spielwerte as spielwerte
@@ -49,12 +50,6 @@ def lies_gebaeude():
                             # wenn ein Gebaeude erwartbar stirbt" - siehe brennt()
                             "feuer": int(w[12]) if len(w) >= 13 else 0}
     return G
-
-def brennt(g):
-    """Daniel 15.11.2026 23:31 ("es brennt und sie verbrennen auch, das ist aber erwartbar, bitte sofort ein neues Gebaeude auswaehlen"):
-    ein brennendes Gebaeude faellt - kein Ziel mehr, wer es angreift, nimmt sofort ein anderes. Die EINE Stelle fuer alle Module."""
-    return (g.get("feuer") or 0) > 0
-
 
 def lagebild_befehl():
     """B-344: der Lagebild-Befehl mit Erreichbarkeit vom EIGENEN Bergfried-Eingang und fuer den EIGENEN Spieler (vorher fester Punkt

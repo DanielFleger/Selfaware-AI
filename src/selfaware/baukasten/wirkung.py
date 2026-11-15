@@ -93,7 +93,7 @@ def ziele(L, G, sp):
     from selfaware.micro.tasks import assassinen as AS
 
     aus = []
-    from selfaware.micro.tasks.waechter import brennt
+    from selfaware.baukasten.zielvergabe import brennt
 
     for n, g in G.items():
         # Daniel 15.11.2026 23:31: ein brennendes Gebaeude faellt - kein Ziel fuer den Nahkampf-Raid (sonst verbrennen sie mit)

@@ -28,3 +28,10 @@ def waehle(kandidaten, frei, wahl):
     besetzt = [k for k in kandidaten if not frei(k)]
     ziel = wahl(besetzt) if besetzt else None
     return ziel, ziel is not None
+
+
+def brennt(g):
+    """Daniel 15.11.2026 23:31 ("es brennt und sie verbrennen auch, das ist aber erwartbar, bitte sofort ein neues Gebaeude auswaehlen"):
+    ein brennendes Gebaeude (fireDuration > 0, Spalte feuer der Gebaeudeliste; B-150 L177: faellt erst auf 0, wenn es weg ist) ist kein
+    Ziel mehr - wer es angreift, nimmt sofort ein anderes. Die EINE Stelle fuer alle Module."""
+    return (g.get("feuer") or 0) > 0

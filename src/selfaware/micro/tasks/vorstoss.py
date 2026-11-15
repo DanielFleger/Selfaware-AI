@@ -286,9 +286,49 @@ class Vorstoss:
             for _, e in self._feinde(L, FERN_FEIND)
             if _luft(ort(e), stelle) <= REICHWEITE.get(e["typ"], GEFAHR_SCHUSS)
         ]
-        if len(nah) > UEBERMACHT * eigene:
+        # Daniel 15.11.2026 23:28 ("auch bogenschuetzen von uns gegen ihre - wenn wir gegen sie gewinnen koennen dann lieber engagen, dann
+        # haben andere nahkaempfer wieder mehr platz zum raiden. natuerlich nur bei erwartetem gewinn"): eine Ueberzahl ist nur Gefahr,
+        # wenn die Gefechtsrechnung keinen Sieg erwartet (vorher reichte UEBERMACHT x eigene Schuetzen fuer den Rueckzug)
+        if len(nah) > UEBERMACHT * eigene and not self._gewinnt(stelle, L):
             return min(nah, key=lambda p: schach(p, stelle))
         return None
+
+    def _gewinnt(self, stelle, L):
+        """Gefechtsrechnung (services/gefecht.py): unsere Schuetzen an stelle gegen alle feindlichen Schuetzen, die stelle in ihrer
+        Reichweite haben (aktiv, nicht geschaetzt), und alle feindlichen Nahkaempfer bis GEFAHR_NAH. True bei Sieg mit mindestens
+        gefecht.BEHALTEN unseres Lebens."""
+        import selfaware.services.gefecht as gefecht
+
+        wir = [
+            dict(typ=L[n]["typ"], leben=L[n].get("leben", 1), x=stelle[0], y=stelle[1])
+            for n in sorted(self.mitglieder)
+            if n in L
+        ]
+        if not wir:
+            return False
+        sie = []
+        for _, e in self._feinde(L, FERN_FEIND | NAHKAMPF):
+            q = ort(e)
+            if e["typ"] in FERN_FEIND and _luft(q, stelle) <= REICHWEITE.get(
+                e["typ"], GEFAHR_SCHUSS
+            ):
+                sie.append(dict(typ=e["typ"], leben=e.get("leben", 1), x=q[0], y=q[1], steht=True))
+            elif e["typ"] in NAHKAMPF and schach(q, stelle) <= GEFAHR_NAH:
+                sie.append(dict(typ=e["typ"], leben=e.get("leben", 1), x=q[0], y=q[1]))
+        if not sie:
+            return True
+        try:
+            r_wir, _r_sie, _t, sieg = gefecht.simuliere(wir, sie)
+        except Exception:  # ohne Rechnung kein Gefecht - wie bisher zurueck
+            return False
+        return bool(sieg) and r_wir >= gefecht.BEHALTEN * sum(w["leben"] for w in wir)
+
+    def _darf_beschiessen(self, k, L, G, mitte):
+        """Ein Ziel, das die Wegfuehrung sicher beschiessen kann - oder ein feindlicher Schuetze, gegen den die Gefechtsrechnung an unserem
+        Ort einen Sieg erwartet (Daniel 23:28; Schuetze gegen Schuetze hat nie einen Platz, an dem niemand zurueckschiesst)."""
+        return self._sicher_zu_beschiessen(k, L, G, mitte) or (
+            L[k]["typ"] in FERN_FEIND and self._gewinnt(mitte, L)
+        )
 
     def _weitester_sicherer(self, mitte, stand, L, G, eigene):
         """Daniel 15.11.2026 23:29 ("die bogenschuetzen laufen nicht direkt vor sondern warten und stocken"): Probe 23:29 - je Runde nur
@@ -469,7 +509,7 @@ class Vorstoss:
         fern = None
         if self.weg is not None and not any(
             not (self._ist_stur(k, L[k]) or self.gesperrt.get(k, -1) > self.runde)
-            and self._sicher_zu_beschiessen(k, L, G, mitte)
+            and self._darf_beschiessen(k, L, G, mitte)
             for _, _d, k in kand
         ):
             fern = self._fernziel(L, G, mitte)
@@ -481,8 +521,8 @@ class Vorstoss:
         for _, d, k in kand:
             if self._ist_stur(k, L[k]) or self.gesperrt.get(k, -1) > self.runde:
                 continue
-            if self.weg is not None and not self._sicher_zu_beschiessen(k, L, G, mitte):
-                continue  # B-182: gedeckt - nicht erst probieren und aufgeben
+            if self.weg is not None and not self._darf_beschiessen(k, L, G, mitte):
+                continue  # B-182: gedeckt - nicht erst probieren und aufgeben (ausser Sieg erwartet, Daniel 23:28)
             self._melde(
                 meine,
                 Action.ATTACK_UNIT,

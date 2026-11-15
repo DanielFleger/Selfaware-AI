@@ -425,7 +425,10 @@ def test_vorstoss_ueberspringt_gedeckte_ziele_und_zieht_zu_einem_sicheren():
     L[50] = _e(
         2, 3, 130, 100
     )  # Arbeiter in 30 Feldern, gedeckt von einem Armbrustschuetzen daneben
+    # Daniel 15.11.2026 23:28: gedeckt heisst jetzt - die Gefechtsrechnung erwartet keinen Sieg (4 Bogen gegen 2 Armbrueste: kein
+    # Sieg, gemessen mit Vorstoss._gewinnt; 2 sind noch keine Ueberzahl fuer den Rueckzug). Gegen EINEN griffe der Vorstoss jetzt an.
     L[60] = _e(2, 23, 133, 100)
+    L[61] = _e(2, 23, 133, 101)
     L[51] = _e(2, 3, 200, 100)  # Arbeiter in 100 Feldern, ungedeckt
     v = VS.Vorstoss(1, (100, 300), bis=40000)
     w = W.Wegfuehrung(1)
@@ -442,6 +445,24 @@ def test_vorstoss_ueberspringt_gedeckte_ziele_und_zieht_zu_einem_sicheren():
     assert all(w2.auftraege[n].ziel == 52 for n in range(1, 5)) and any(
         "schiessen auf Typ 3" in z for z in aus
     )
+
+
+def test_vorstoss_greift_einen_schuetzen_an_wenn_er_gewinnt():
+    """Daniel 15.11.2026 23:28: "auch bogenschuetzen von uns gegen ihre - wenn wir gegen sie gewinnen koennen dann lieber engagen ...
+    natuerlich nur bei erwartetem gewinn". 4 eigene Bogenschuetzen gegen EINEN Armbrustschuetzen in 33 Feldern: Sieg erwartet - er ist das
+    Ziel, statt zum fernen ungedeckten Arbeiter zu ziehen."""
+    from selfaware.micro.tasks import vorstoss as VS
+
+    L = {n: _e(1, 22, 100 + n, 100) for n in range(1, 5)}
+    L[50] = _e(2, 3, 130, 100)
+    L[60] = _e(2, 23, 133, 100)
+    L[51] = _e(2, 3, 200, 100)
+    v = VS.Vorstoss(1, (100, 300), bis=40000)
+    w = W.Wegfuehrung(1)
+    v.weg = w
+    aus = v.schritt(1000, L, {}, Befehle())
+    assert v._gewinnt((102, 100), L)
+    assert all(w.auftraege[n].ziel in (50, 60) for n in range(1, 5)), aus
 
 
 def test_sicherer_standplatz_haengt_nicht_davon_ab_woher_man_fragt():

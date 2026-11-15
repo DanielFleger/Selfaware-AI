@@ -24,6 +24,7 @@ import selfaware.services.schussfeld as schussfeld
 import selfaware.services.sicht as sicht
 import selfaware.services.spielwerte as spielwerte
 import selfaware.execution.lordschutz as lordschutz
+import selfaware.services.gefecht as _gefecht
 from selfaware.baukasten import zielvergabe as ZV
 import json as _json
 import os as _os
@@ -485,7 +486,8 @@ class Einzeln:
     # Feldern durchrechnen (gefecht.py, Editor-Duelle) - nur bei Sieg mit mindestens GEGEN_BEHALTEN Rest
     # 19.10. (1019j, 300: mit 9.050 Leben 1 gegen 2 geflohen und eingeholt, 127 9 und 321 14 Felder daneben - zu dritt
     # gegen die zwei ein Sieg): unsere Assassinen bis GEGEN_EIGEN Felder rechnen mit UND greifen gemeinsam an
-    GEGEN_UMKREIS, GEGEN_EIGEN, GEGEN_BEHALTEN = 20, 15, 0.4
+    GEGEN_UMKREIS, GEGEN_EIGEN = 20, 15
+    GEGEN_BEHALTEN = _gefecht.BEHALTEN   # eine Stelle (services/gefecht.py), auch fuer den Vorstoss
     # 19.10. (1019j, Daniel: "schlechte Trades - Assassine gegen 3 Assassinen des Gegners"; tode_1019j.md: alle 5 Nahkampf-
     # Tode gegen feindliche Assassinen-Trupps. 307, 300, 127 gingen einzeln nacheinander gegen einen Trupp aus 3, der 1.200
     # Takte lang auf die Gebaeude zumarschierte, die sie abrissen; 300 und 334 liefen auf Warte- und Fluchtwegen mitten durch

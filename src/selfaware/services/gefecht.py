@@ -32,6 +32,9 @@ FERN_REICH = dict(spielwerte.ERFASSEN_FERN)   # 08.11. (P3): gemessen 40/40/40/4
 SCHRITT = 10              # Takte je Simulationsschritt
 TEMPO = spielwerte.TEMPO_ERSATZ["trupp"]   # nur Ersatz; simuliere nimmt das Tempo je Art (P3, S8)
 BIS = 1500                # laengstens so viele Takte rechnen
+# Ein Gefecht lohnt nur mit mindestens so viel eigenem Leben danach (Assassinen seit 19.10., Vorstoss seit 15.11.2026 23:58) -
+# die EINE Stelle fuer alle Module (vorher assassinen.Einzeln.GEGEN_BEHALTEN)
+BEHALTEN = 0.4
 BEHALTEN = 0.4            # Anteil unseres eingesetzten Lebens, der nach dem Sieg mindestens bleiben muss (Stellgroesse)
 LORD = 55
 LORD_LEBEN = spielwerte.LORD_LEBEN_NACH_LADEN   # nur Ersatz: im laufenden Spiel je KI 75.000-180.000 (K1), Leben aus dem Lagebild nehmen

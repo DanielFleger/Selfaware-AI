@@ -327,3 +327,16 @@ def test_b186_behaelt_sein_ziel_statt_zu_springen():
     L[2 if erstes == 3 else 3].update(x=110)  # das andere kommt naeher
     v.schritt(700, L, {}, Befehle())
     assert v.gefuehrt == erstes and v.weg.auftraege[1] == ("einheit", erstes)
+
+
+def test_ueberzahl_ist_nur_gefahr_ohne_erwarteten_sieg():
+    """Daniel 15.11.2026 23:28: zurueck nur, wenn wir nicht gewinnen. 10 eigene gegen 6 feindliche Bogenschuetzen (Ueberzahl-Regel 6 > 5):
+    Sieg erwartet - kein Rueckzug. 2 eigene gegen 6: kein Sieg - zurueck wie bisher."""
+    fern = [_e(2, 22, 130, 100 + i) for i in range(6)]
+    v = V.Vorstoss(1, HEIM)
+    v.mitglieder = set(range(1, 11))
+    L = _L(*[_e(1, 22, 100, 95 + i) for i in range(10)], *fern)
+    assert v._schussfeld((100, 100), L, {}, 10) is None
+    v.mitglieder = {1, 2}
+    L2 = _L(_e(1, 22, 100, 100), _e(1, 22, 100, 101), *fern)
+    assert v._schussfeld((100, 100), L2, {}, 2) is not None
