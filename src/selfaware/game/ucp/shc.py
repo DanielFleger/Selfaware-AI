@@ -29,6 +29,9 @@ Aufruf:  uv run selfaware run shc <befehl> [schluessel=wert ...]     (Instanz ue
   editor [groesse=4]           Sandbox: leere Karte im Landschaftseditor, Zeit laeuft, keine KI
   setze spieler= typ= x= y= [anzahl=1]     Einheiten setzen (nur Test: Spiel veraendern, FAIRNESS R2)
   spielende [n=5]              letzte Meldungen des Spielende-Melders
+  partie karte=... kis=... [teams= plaetze= art= gold=] [aufstellung=lobby_wie_partie34]
+                               aufstellen + mit Daniels Freigabe starten, haelt bei Takt 1 (ohne Freigabe: Lobby bleibt)
+  losspielen [pruef_takt=410]  nach Daniels Ja: Lenker je SamurAI-Platz, bis Takt 410, Starttruppen zaehlen, weiter oder halt
 Als Baustein: from selfaware.game.ucp import shc; shc.zustand()
 """
 
@@ -392,7 +395,6 @@ def aufstellen(karte, kis, teams="", plaetze="", art="1", gold="3", _wieder=Fals
             {"knopf": "LobbyMenu_MapSelectTable", "nr": zeile},
             {"knopf": "LobbyMenu_SkirmishTypeAndBalance", "nr": int(art)},
             {"knopf": "LobbyMenu_SkirmishTypeAndBalance", "nr": 9 + int(gold)},
-            {"peek": SCHILDER, "worte": 16},
             {"peek": SPIELART, "worte": 1},
             {"peek": VORTEIL, "worte": 1},
         ]
@@ -407,7 +409,15 @@ def aufstellen(karte, kis, teams="", plaetze="", art="1", gold="3", _wieder=Fals
             neu=True
         )  # gemerkte Liste veraltet (neue Karten) - neu lesen und noch einmal aufstellen
         return aufstellen(karte, kis, teams, plaetze, art, gold, _wieder=True)
-    platz = sum(1 for i in range(8) if a[SCHILDER][2 * i] != 0xFFFFFFFF)
+    # Schilder erst lesen, wenn die neue Karte steht - im selben Aufruf wie die Kartenwahl stehen noch die alten (gemessen 21:50:
+    # "0 Plaetze" auf Battle Brother's Strife)
+    ende = time.time() + 3.0
+    while True:
+        sch = lesen([(SCHILDER, 16)])[SCHILDER]
+        platz = sum(1 for i in range(8) if sch[2 * i] != 0xFFFFFFFF)
+        if platz or time.time() > ende:
+            break
+        time.sleep(0.05)
     if len(ki) > platz:
         raise Fehler("Karte '%s' hat %d Plaetze, verlangt sind %d KIs" % (namen[n], platz, len(ki)))
     if (a[SPIELART][0], a[VORTEIL][0]) != (int(art), int(gold)):
@@ -648,6 +658,157 @@ def zustand_text():
     return "%s | %s" % (z["text"], z)
 
 
+SAMURAI_KI = 16  # SamurAI sitzt auf dem Abt-Platz (aiSwapper abbot -> SamurAI)
+STARTTRUPPEN_SOLL = {
+    22: 5,
+    24: 7,
+}  # Typ: Anzahl je SamurAI (B-189, gemessen 15.11. 20:51: 5 Bogen + 7 Speer)
+
+
+def _laufend_datei():
+    return os.path.join(workspace.DATA, "partie_laufend.json")
+
+
+def freigabe_offen():
+    """Daniels Freigabe (data/research/partie_freigabe.json) liegt vor und ist nicht verbraucht? (startsperre.py verbraucht sie)."""
+    import json
+
+    try:
+        with open(os.path.join(workspace.DATA, "partie_freigabe.json"), encoding="utf-8") as f:
+            d = json.load(f)
+    except (OSError, ValueError):
+        return None
+    return d if d.get("daniel") and not d.get("verbraucht") else None
+
+
+def samurai_spieler(kis):
+    """Spielernummern (1-basiert, Reihenfolge der KIs = Spieler 1, 2, ...) der SamurAI-Plaetze."""
+    return [
+        i + 1
+        for i, k in enumerate(int(x) for x in str(kis).split(",") if x.strip())
+        if k == SAMURAI_KI
+    ]
+
+
+def partie(karte, kis, teams="", plaetze="", art="1", gold="3", aufstellung="lobby_wie_partie34"):
+    """Ganzer Weg bis Takt 1: aufstellen, mit Daniels Freigabe starten, bei Takt 1 halten. Ohne Freigabe bleibt die Lobby stehen.
+    Danach (nach Daniels Ja): shc losspielen."""
+    import json
+
+    t0 = time.time()
+    text = aufstellen(karte, kis, teams, plaetze, art, gold)
+    sp = samurai_spieler(kis)
+    if not freigabe_offen():
+        return (
+            "%s | KEINE offene Freigabe in data/research/partie_freigabe.json - Daniel fragen, dann: shc starten"
+            % text
+        )
+    s = starten()
+    with open(_laufend_datei(), "w", encoding="utf-8") as f:
+        json.dump(
+            {
+                "karte": karte,
+                "kis": kis,
+                "teams": teams,
+                "samurai": sp,
+                "aufstellung": aufstellung,
+                "zeit": time.strftime("%Y-%m-%d %H:%M:%S"),
+            },
+            f,
+            ensure_ascii=False,
+        )
+    warnung = (
+        " | ACHTUNG: %d SamurAI - der Lenker kennt noch keine Verbuendeten (Modulzuordnung Teil 6)"
+        % len(sp)
+        if len(sp) > 1
+        else ""
+    )
+    return (
+        "%s | %s in %.1f s | SamurAI auf Spieler %s%s | weiter nach Daniels Ja: shc losspielen"
+        % (text, s, time.time() - t0, sp, warnung)
+    )
+
+
+def einheiten_zaehlen():
+    """{(besitzer, typ): anzahl} aller lebenden Einheiten (logik.lua einheitenroh)."""
+    zaehl = {}
+    for zeile in senden([{"einheitenroh": 2500, "player": 1}], 8.0):
+        m = re.search(r"\]\s*zustand=(-?\d+) typ=(\d+) owner=(\d+)", zeile)
+        if m:
+            k = (int(m.group(3)), int(m.group(2)))
+            zaehl[k] = zaehl.get(k, 0) + 1
+    return zaehl
+
+
+def losspielen(pruef_takt="410"):
+    """Nach Daniels Ja: je SamurAI-Platz einen Lenker starten (Aufstellung aus partie), bis pruef_takt laufen lassen, die Starttruppen
+    je SamurAI zaehlen; stimmen sie, weiterspielen - sonst anhalten und die Lenker beenden (Daniel 15.11. 20:23: vor dem Spiel messen)."""
+    import json
+
+    with open(_laufend_datei(), encoding="utf-8") as f:
+        lauf = json.load(f)
+    B = _kanal()
+    B.PARTNER = True  # Lenker und Werkzeug teilen sich den Kanal (je Befehl gesperrt)
+    B.belege()
+    stempel = time.strftime("%Y%m%d_%H%M%S")
+    senden([{"tickpause": {"bei": int(pruef_takt)}}], 2.0)
+    prozesse = []
+    for sp in lauf["samurai"]:
+        env = dict(
+            os.environ,
+            SHC_SPIELER=str(sp),
+            SHC_PARTNER="ja",
+            PYTHONPATH=os.path.join(workspace.ROOT, "src"),
+        )
+        aus = open(
+            os.path.join(workspace.DATA, "partie_%s_lenker_sp%d.txt" % (stempel, sp)),
+            "w",
+            encoding="utf-8",
+        )
+        prozesse.append(
+            subprocess.Popen(
+                [
+                    sys.executable,
+                    "-u",
+                    "-m",
+                    "selfaware.runtime.live.erstes_spiel",
+                    "aufstellung=%s" % lauf["aufstellung"],
+                ],
+                cwd=workspace.ROOT,
+                env=env,
+                stdout=aus,
+                stderr=subprocess.STDOUT,
+                creationflags=getattr(subprocess, "DETACHED_PROCESS", 0)
+                | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0),
+            )
+        )
+    time.sleep(3.0)  # die Lenker melden sich am Kanal an, bevor das Spiel laeuft
+    senden([{"pause": False}], 2.0)
+    ende = time.time() + 180
+    z = zustand()
+    while not (z.get("tick", 0) >= int(pruef_takt) and z.get("pause") == 1) and time.time() < ende:
+        if any(p.poll() is not None for p in prozesse):
+            break
+        time.sleep(0.5)
+        z = zustand()
+    zaehl = einheiten_zaehlen()
+    ist = {sp: {t: zaehl.get((sp, t), 0) for t in STARTTRUPPEN_SOLL} for sp in lauf["samurai"]}
+    falsch = {sp: v for sp, v in ist.items() if v != STARTTRUPPEN_SOLL}
+    tot = [sp for sp, p in zip(lauf["samurai"], prozesse, strict=True) if p.poll() is not None]
+    if falsch or tot or z.get("tick", 0) < int(pruef_takt):
+        for p in prozesse:
+            p.terminate()
+        raise Fehler(
+            "ANGEHALTEN bei Takt %s: Starttruppen je SamurAI %s (soll %s), Lenker beendet %s - Lenker gestoppt"
+            % (z.get("tick"), ist, STARTTRUPPEN_SOLL, tot)
+        )
+    senden([{"pause": False}], 2.0)
+    return (
+        "Partie laeuft ab Takt %d: Starttruppen stimmen %s, Lenker fuer Spieler %s (Mitschrift data/research/partie_%s_lenker_sp*.txt)"
+        % (z["tick"], ist, lauf["samurai"], stempel)
+    )
+
+
 BEFEHLE = {
     "zustand": zustand_text,
     "start": start,
@@ -660,6 +821,8 @@ BEFEHLE = {
     "editor": editor,
     "setze": setze,
     "spielende": spielende,
+    "partie": partie,
+    "losspielen": losspielen,
 }
 
 

@@ -68,3 +68,28 @@ def test_kein_skript_gefecht_im_werkzeug():
     quelle = open(shc.__file__, encoding="utf-8").read()
     assert "eigenesGefecht" not in quelle.replace("Skript-Gefecht", "")
     assert "gefecht" not in shc.BEFEHLE
+
+
+def test_samurai_plaetze_aus_der_ki_liste():
+    assert shc.samurai_spieler("8,16,16") == [
+        2,
+        3,
+    ]  # Partie 36: Kriegsfuerst Spieler 1, SamurAI 2 und 3
+    assert shc.samurai_spieler("16,7") == [1]
+    assert shc.samurai_spieler("7,8") == []
+
+
+def test_partie_startet_nie_ohne_freigabe(monkeypatch):
+    """Ohne offene Freigabe bleibt die Lobby stehen - starten wird nicht gerufen (Daniel 15.11.: nie ohne seine Aufstellung)."""
+    gerufen = []
+    monkeypatch.setattr(shc, "aufstellen", lambda *a, **k: "Lobby steht")
+    monkeypatch.setattr(shc, "freigabe_offen", lambda: None)
+    monkeypatch.setattr(shc, "starten", lambda: gerufen.append(1))
+    assert "KEINE offene Freigabe" in shc.partie("Cyclades", "8,16,16") and not gerufen
+
+
+def test_lenker_aufstellung_uebernimmt_den_platz():
+    from selfaware.baukasten import aufstellung
+
+    arg, daten = aufstellung.anwenden({"aufstellung": "lobby_wie_partie34"})
+    assert arg["uebernehmen"] == "ja" and daten["name"] == "lobby_wie_partie34"
