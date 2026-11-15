@@ -20,6 +20,9 @@ class Befehle:
 
 
 HEIM = (100, 100)
+# Daniel 15.11.2026 23:29 ("die bogenschuetzen laufen nicht direkt vor sondern warten und stocken"): ohne Gefahr in EINEM Befehl bis zur
+# Schussstellung STAND Felder vor dem Arbeiter bei x=200 - nicht mehr nur SCHRITT (12) Felder je Runde
+VOR_X = 200 - V.STAND
 
 
 def _lauf(L, G=None, t=500, v=None):
@@ -50,7 +53,7 @@ class Kern:
 def test_rueckt_auf_den_naechsten_arbeiter_vor():
     L = _L(_e(1, 22, 100, 100), _e(1, 22, 100, 101), _e(2, 3, 200, 100))
     v, b, _ = _lauf(L)
-    assert b[0]["lauf"][0] == 100 + V.SCHRITT and sorted(b[0]["einheiten"]) == [1, 2]
+    assert b[0]["lauf"][0] == VOR_X and sorted(b[0]["einheiten"]) == [1, 2]
     assert v.mitglieder == {1, 2}
 
 
@@ -157,7 +160,7 @@ def test_ohne_beschuss_rueckt_der_vorstoss_gerade_vor():
     k = Kern()
     L = _L(_e(1, 22, 100, 100), _e(2, 3, 200, 100))
     _, b, _ = _lauf(L, v=V.Vorstoss(1, HEIM, kern=k))
-    assert k.ausweichend == [] and k.frei == [[1]] and b[0]["lauf"][0] == 100 + V.SCHRITT
+    assert k.ausweichend == [] and k.frei == [[1]] and b[0]["lauf"][0] == VOR_X
 
 
 def test_zickzack_fuehrt_der_kern_und_das_modul_bekommt_nichts():
@@ -169,7 +172,7 @@ def test_zickzack_fuehrt_der_kern_und_das_modul_bekommt_nichts():
     v0.schuss.leben = {1: 12000, 2: 12000}  # beide haben gerade Leben verloren
     v, b, aus = _lauf(L, v=v0)
     assert b == [] and k.frei == [] and k.auf == [{1, 2}]
-    x = 100 + V.SCHRITT
+    x = VOR_X
     assert k.ausweichend == [
         ([1], (x, 97), 1),
         ([2], (x, 102), 2),
@@ -233,7 +236,7 @@ def test_ohne_freien_platz_laeuft_der_vorstoss_gerade_ueber_das_modul():
     v.plaetze_setzen(8)
     L = _L(_e(1, 22, 100, 100), _e(2, 3, 200, 100))
     _, b, _ = _lauf(L, v=v)
-    assert k.ausweichend == [] and k.frei == [[1]] and b[0]["lauf"][0] == 100 + V.SCHRITT
+    assert k.ausweichend == [] and k.frei == [[1]] and b[0]["lauf"][0] == VOR_X
 
 
 def test_abziehen_laeuft_im_zickzack():
@@ -259,7 +262,7 @@ def test_voller_ring_laesst_das_modul_gerade_laufen():
     v0 = V.Vorstoss(1, HEIM, kern=k)
     v0.schuss.leben = {1: 12000}
     _, b, _ = _lauf(L, v=v0)
-    assert len(k.ausweichend) == 1 and k.frei == [[1]] and b[0]["lauf"][0] == 100 + V.SCHRITT
+    assert len(k.ausweichend) == 1 and k.frei == [[1]] and b[0]["lauf"][0] == VOR_X
 
 
 def test_alarm_und_ende_geben_die_einheiten_beim_kern_frei():
@@ -284,3 +287,43 @@ def test_ziel_ohne_schaden_wird_aufgegeben():
     for t in range(V.STUR_RUNDEN + 3):
         v.schritt(500 + t, L, {}, b)
     assert {x["ziel"] for x in b.liste} == {2, 3}
+
+
+def test_rueckt_bis_vor_die_gefahr_vor_nicht_nur_einen_schritt():
+    """Turm bei (190, 140): ab x=146 in Reichweite (GEFAHR_SCHUSS 44) - die Gruppe laeuft bis 136 (letzter sichere Zwischenpunkt)."""
+    L = _L(_e(1, 22, 100, 100), _e(2, 3, 300, 100))
+    G = {9: {"typ": 75, "x": 190, "y": 140, "besitzer": 2}}
+    _, b, _ = _lauf(L, G)
+    assert b[0]["lauf"][0] == 100 + 3 * V.SCHRITT, b
+
+
+def test_b186_behaelt_sein_ziel_statt_zu_springen():
+    """B-186 #81 (Daniel 13:06 "warum springen die bogenschuetzen noch so hin und her"): naeher gekommenes zweites Ziel - das alte bleibt."""
+
+    class Weg:
+        def __init__(self):
+            self.auftraege = {}
+
+        def fuehre(self, nr, art, ziel, zweck=""):
+            self.auftraege[nr] = (art, ziel)
+
+        def loslassen(self, nr):
+            self.auftraege.pop(nr, None)
+
+        def fuehrt(self, nr):
+            return nr in self.auftraege
+
+        def status(self, nr):
+            return None
+
+        def schuss_moeglich(self, typ, von, ziel_ort, L, G, zweck=""):
+            return True
+
+    v = V.Vorstoss(1, HEIM)
+    v.weg = Weg()
+    L = _L(_e(1, 22, 100, 100), _e(2, 3, 130, 100), _e(2, 3, 136, 100))
+    v.schritt(500, L, {}, Befehle())
+    erstes = v.gefuehrt
+    L[2 if erstes == 3 else 3].update(x=110)  # das andere kommt naeher
+    v.schritt(700, L, {}, Befehle())
+    assert v.gefuehrt == erstes and v.weg.auftraege[1] == ("einheit", erstes)

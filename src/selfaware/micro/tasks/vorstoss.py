@@ -290,6 +290,23 @@ class Vorstoss:
             return min(nah, key=lambda p: schach(p, stelle))
         return None
 
+    def _weitester_sicherer(self, mitte, stand, L, G, eigene):
+        """Daniel 15.11.2026 23:29 ("die bogenschuetzen laufen nicht direkt vor sondern warten und stocken"): Probe 23:29 - je Runde nur
+        SCHRITT (12) Felder vor, dann Stillstand bis zur naechsten Runde, die Stellung ~170 Felder weg. Jetzt der weiteste Punkt Richtung
+        Stellung, bis zu dem jeder Zwischenpunkt (alle SCHRITT Felder) nach derselben Regel sicher ist; der erste unsichere beendet den
+        Weg. Ist schon der erste unsicher, bleibt es der erste (der Aufrufer meldet dann advance_unsafe wie bisher)."""
+        d = schach(mitte, stand)
+        erster = _schritt_auf(mitte, stand, SCHRITT)
+        if not self._sicher(erster, L, G, eigene):
+            return erster
+        bis = erster
+        for w in range(2 * SCHRITT, d + SCHRITT, SCHRITT):
+            p = _schritt_auf(mitte, stand, w)
+            if not self._sicher(p, L, G, eigene):
+                break
+            bis = p
+        return bis
+
     def _sicher(self, stelle, L, G, eigene):
         if self._schussfeld(stelle, L, G, eigene) is not None:
             return False
@@ -458,6 +475,9 @@ class Vorstoss:
             fern = self._fernziel(L, G, mitte)
             if fern is not None:
                 kand = [(0, fern[1], fern[0])]
+        # B-186 #81 (Daniel 15.11.2026 13:06 "warum springen die bogenschuetzen noch so hin und her"; 23:29 "warten und stocken"): das
+        # Ziel der Vorrunde zuerst - die Gruppe behaelt es, solange es geht, statt jede Runde das naechste zu nehmen
+        kand = sorted(kand, key=lambda x: x[2] != self.gefuehrt)
         for _, d, k in kand:
             if self._ist_stur(k, L[k]) or self.gesperrt.get(k, -1) > self.runde:
                 continue
@@ -514,7 +534,7 @@ class Vorstoss:
             )
             self._sammeln(L, meine, mitte, aus)
             return aus
-        stelle = _schritt_auf(mitte, stand, SCHRITT)
+        stelle = self._weitester_sicherer(mitte, stand, L, G, len(meine))
         if not self._sicher(stelle, L, G, len(meine)):
             self._melde(
                 meine, Action.WAIT_STAGING, point(mitte), "advance_unsafe", to=point(stelle)
