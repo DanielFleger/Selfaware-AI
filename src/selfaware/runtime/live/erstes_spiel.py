@@ -3896,7 +3896,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         BUCH.abgleich(G, L, st)
         schreib(BUCH.stand(G, st))
     try:
-        # Daniel 22:44: "ALLES festhalten" - jeder Lauf wird vermessen und sein Wissen an data/research/wissen_ablauf.jsonl gehaengt
+        # Daniel 22:44: "ALLES festhalten" - jeder Lauf wird vermessen und sein Wissen an data/research/wissen_ablauf_ab_20261115.jsonl gehaengt (B-196)
         import selfaware.telemetry.ablaufanalyse as AA
         erg, _ = AA.analyse(lage.pfad, SP)
         schreib(AA.text(erg))

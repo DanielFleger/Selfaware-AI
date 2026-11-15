@@ -20,6 +20,9 @@ import time
 
 HIER = os.path.dirname(os.path.abspath(__file__))
 D = os.path.join(_workspace.DATA)
+# B-196 (15.11.2026): samurai_wache.log ist eine beim Umzug uebernommene Messdatei und muss unveraendert bleiben
+# (tests/test_architecture.py prueft ihre Pruefsumme). Die Wache schreibt darum in eine eigene Datei.
+PROTOKOLL = "samurai_wache_ab_20261115.log"
 # S172 (Daniel 15.11.2026 12:27: "ich habe gesagt SamurAI, das hat sogar schon eine Beschreibung und ein Profilbild"): SamurAIs eigenes
 # KI-Paket (assets/ai/SamurAI, Plugin Selfaware-AI) sitzt per UCP-aiSwapper auf dem Abt-Platz = KI 16 - nicht mehr die Ratte (19.10.)
 SAMURAI_KI = 16              # KI-Nummer in currentAIArray (1 Ratte, 2 Schlange, ..., 16 Abt = SamurAI)
@@ -159,7 +162,7 @@ def lernen_starten(log, sp, karte=None):
 def schreib(text):
     zeile = time.strftime("%H:%M:%S ") + text
     print(zeile, flush=True)
-    with open(os.path.join(D, "samurai_wache.log"), "a", encoding="utf-8") as f:
+    with open(os.path.join(D, PROTOKOLL), "a", encoding="utf-8") as f:
         f.write(zeile + "\n")
 
 

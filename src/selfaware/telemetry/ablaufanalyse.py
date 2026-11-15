@@ -14,7 +14,7 @@ Liest ein Lageprotokoll (lageprotokoll.py: jede Runde der komplette Abzug) und v
   7. Besetzung: Arbeiter je Gebaeudeart im Mittel - damit Ertrag je Arbeiter.
 Aufloesung = mittlerer Abstand zwischen zwei Runden; kuerzere Zustaende koennen fehlen - steht bei jedem Ergebnis dabei.
 
-Ausgabe: data/research/ablauf_<name>.json (alles) + Text; mit wissen=ja wird jede Messung als Zeile an data/research/wissen_ablauf.jsonl
+Ausgabe: data/research/ablauf_<name>.json (alles) + Text; mit wissen=ja wird jede Messung als Zeile an data/research/wissen_ablauf_ab_20261115.jsonl (B-196; die alte Datei bleibt eingefroren)
 angehaengt (Quelle, Groesse, Wert, Anzahl, Aufloesung) - das Wissen waechst mit jedem Lauf.
 Aufruf: uv run python -m selfaware.telemetry.ablaufanalyse <lage...jsonl.gz> [besitzer=1] [wissen=ja]
 """
@@ -189,8 +189,13 @@ def text(erg):
     return "\n".join(z)
 
 
+# B-196 (15.11.2026): wissen_ablauf.jsonl ist eine beim Umzug uebernommene Messdatei und muss unveraendert bleiben
+# (tests/test_architecture.py prueft ihre Pruefsumme). Neue Messungen kommen darum in eine eigene Datei.
+WISSEN_DATEI = "wissen_ablauf_ab_20261115.jsonl"
+
+
 def wissen_anhaengen(erg):
-    pfad = os.path.join(_workspace.DATA, 'wissen_ablauf.jsonl')
+    pfad = os.path.join(_workspace.DATA, WISSEN_DATEI)
     with open(pfad, "a", encoding="utf-8") as f:
         def zeile(groesse, wert, n=None, einheit=""):
             f.write(json.dumps({"quelle": erg["quelle"], "ticks": [erg["von"], erg["bis"]], "aufloesung": erg["aufloesung_ticks"],
