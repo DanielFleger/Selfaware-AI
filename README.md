@@ -8,7 +8,7 @@ with separate packages for game access, live orchestration, macro, micro,
 strategy, learning and telemetry. Start with the [repository map](docs/ORGANIZATION.md),
 [agent handoff](docs/HANDOFF.md), [architecture](docs/ARCHITECTURE.md), and
 [engineering acceptance details](docs/BACKLOG.md). Task status is maintained in
-[the authoritative backlog](docs/backlog/backlog.json).
+[the GitHub issues](https://github.com/DanielFleger/Selfaware-AI/issues).
 
 The [strategy design](docs/plans/STRATEGY_DESIGN.md) develops the next behavior
 ideas: sustained aggression, layered defense, phased castles, technology

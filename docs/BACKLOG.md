@@ -1,7 +1,7 @@
 # Engineering acceptance details
 
-The authoritative task/status list is [backlog/backlog.json](backlog/backlog.json),
-with its generated [Backlog.html](backlog/Backlog.html). This document supplies
+The authoritative task/status list is the
+[GitHub issues](https://github.com/DanielFleger/Selfaware-AI/issues) (since 15.11.2026). This document supplies
 engineering acceptance details for those points; it is not a second status list.
 
 | Acceptance section | Authoritative points |

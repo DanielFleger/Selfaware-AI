@@ -31,7 +31,7 @@ connector fix is implied by moving a file.
 | `assets/ai/SamurAI/` | Current AI metadata, portraits, dialogue and AIV assets |
 | `data/research/` | Original observations, model inputs, map plans, console logs and measurements |
 | `research/native/` | Existing C decompilation outputs and Java research captures |
-| `docs/backlog/` | Authoritative live task JSON and generated HTML; Python commands in `selfaware.tools.planning.backlog` |
+| `docs/backlog/` | Category tree for the backlog labels; the backlog itself is the GitHub issues, commands in `selfaware.tools.planning.backlog` |
 | `docs/research/`, `docs/plans/`, `docs/history/` | Preserved knowledge, proposals and historical handoff; see their indexes |
 | `tests/` | Offline framework, relocation, import, launch and selected current-policy regression checks |
 

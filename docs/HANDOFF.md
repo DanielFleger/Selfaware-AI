@@ -17,9 +17,10 @@ path and original content hash.
 - `data/research/`, `docs/research/`, `docs/plans/`, `research/native/`,
   `bridge/snapshots/`, `assets/ai/`: evidence, knowledge, plans and assets.
 
-The current task/status source is [backlog/backlog.json](backlog/backlog.json);
-read its focus with `uv run selfaware run backlog fokus`. The engineering
-acceptance details in `BACKLOG.md` link back to those point IDs.
+The current task/status source is the [GitHub issues](https://github.com/DanielFleger/Selfaware-AI/issues)
+(since 15.11.2026; titles keep the old B-number); read the focus with
+`uv run selfaware run backlog fokus`. The engineering acceptance details in
+`BACKLOG.md` link back to those point IDs.
 
 The framework does not yet drive the real game. A green CI run proves the
 offline contracts, relocation integrity, selected existing checks and Python syntax; it does not prove live matches or

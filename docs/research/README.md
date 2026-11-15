@@ -11,7 +11,7 @@ status are in [ORGANIZATION.md](../ORGANIZATION.md) and [HANDOFF.md](../HANDOFF.
 - [Wissensregister.md](Wissensregister.md): original match/research evidence register.
 - [Meilensteine.md](Meilensteine.md): original investigation milestones.
 - [Backlog.md](Backlog.md): historical gameplay/research backlog; the active task source is
-  [../backlog/backlog.json](../backlog/backlog.json), with engineering acceptance
+  [the GitHub issues](https://github.com/DanielFleger/Selfaware-AI/issues), with engineering acceptance
   details in [../BACKLOG.md](../BACKLOG.md).
 - [Spielkarte.md](Spielkarte.md): latest upstream native command/player research.
 - [Audit_Sharky.html](Audit_Sharky.html): upstream Sharky comparison.

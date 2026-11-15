@@ -85,6 +85,9 @@ def test_relocation_manifest_preserves_research_and_removes_old_paths():
     for entry in manifest["files"]:
         old, new = ROOT / entry["old"], ROOT / entry["new"]
         assert not old.exists(), old
+        if entry.get("entfernt"):  # bewusst entfernt (Grund im Eintrag) - darf nirgends mehr liegen
+            assert not new.exists(), new
+            continue
         assert new.is_file(), new
         assert entry["new"] not in destinations
         destinations.add(entry["new"])

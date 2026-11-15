@@ -28,8 +28,11 @@ versions, postconditions and match evidence separately from policy improvement.
 
 ## Authoritative work tracking
 
-Follow the backlog/focus rules in `CLAUDE.md`. `docs/backlog/backlog.json` is the
-one task/status list; `docs/backlog/Backlog.html` is its generated view. Use
-`uv run selfaware run backlog fokus` before work/reporting, register or select
-the user-authorized point, and include its B-number in commits. Never delete
-points. `docs/BACKLOG.md` contains linked engineering acceptance details.
+Follow the backlog/focus rules in `CLAUDE.md`. The GitHub issues of this
+repository are the one task/status list (since 15.11.2026; the former
+`docs/backlog/backlog.json` was migrated there, titles keep the old B-number).
+Use `uv run selfaware run backlog fokus` before work/reporting, work only on
+the highest-impact issues (label "Impact: hoch", set only with Daniel's yes),
+register or select the user-authorized issue,
+and include `#n` (or the old B-number) in commits. Close, never delete.
+`docs/BACKLOG.md` contains linked engineering acceptance details.
