@@ -91,6 +91,12 @@ impl Leitung {
         unsafe { std::ptr::write_unaligned(self.basis.add(versatz) as *mut T, wert) }
     }
 
+    /// B-184 (15.11.2026): Plaetze, die SamurAI fuehrt, als Bitmaske (Bit p = Platz p) im Ringkopf bei RING_START+8. Python
+    /// schreibt sie (kern_leitung.eigene_plaetze_setzen); 0 = nicht gesetzt.
+    pub fn eigene_plaetze(&self) -> u32 {
+        self.zaehler(8).load(Ordering::Acquire)
+    }
+
     fn zaehler(&self, versatz: usize) -> &AtomicU32 {
         unsafe { &*(self.basis.add(RING_START + versatz) as *const AtomicU32) }
     }

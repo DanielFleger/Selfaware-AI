@@ -197,14 +197,17 @@ class Kernweg:
         return f"KERNWEG: {len(self.uebergeben)} Einheiten, {len(self.offen)} unterwegs; {teile or 'noch nichts'}"
 
 
-def oeffnen(spiel_ordner, auftraggeber=ASSASSINEN, mindestens=0):
+def oeffnen(spiel_ordner, auftraggeber=ASSASSINEN, mindestens=0, plaetze=()):
     """Kernweg zum laufenden Spiel oder None, wenn der Kern (passender Aufbau, Version ab mindestens) nicht bereit ist. Eine Namensdatei
-    ohne laufendes Spiel ergaebe einen leeren Speicher; das erkennt lesen() am ungueltigen Kopf."""
+    ohne laufendes Spiel ergaebe einen leeren Speicher; das erkennt lesen() am ungueltigen Kopf.
+    plaetze (B-184): die Plaetze, die SamurAI fuehrt - der Kern fuehrt nur deren Einheiten; leer = wie frueher der Platz des Menschen."""
     try:
         leitung = KL.Leitung(spiel_ordner)
         w = leitung.lesen()
         if not w or w.kern < mindestens:
             return None
+        if plaetze:
+            leitung.eigene_plaetze_setzen(plaetze)
         k = Kernweg(leitung, auftraggeber)
         k.version = w.kern
         return k

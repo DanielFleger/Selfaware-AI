@@ -243,9 +243,11 @@ fn haende_takt(z: &mut Zustand, tick: i32) {
     };
     // B-182 (10.11.2026, Fairness): Der Kern fuehrt nur Einheiten des eigenen Platzes. Ohne diese Sperre nahm er den Platz vom heutigen
     // Besitzer der Einheit - nach einem Partiewechsel trugen alte Nummern gegnerische Einheiten, und der Kern befahl sie (Reihen 13 bis 16).
-    let ich = unsafe { i32_bei(SLOT_ICH) };
-    if platz != ich {
-        schreibe(&format!("haende tick {}: VERWEIGERT - {} Einheiten von Spieler {}, wir sind Spieler {} (nie fremde Einheiten fuehren),                            Auftrag {:?} verworfen", tick, einheiten.len(), platz, ich, a));
+    // B-184 (15.11.2026): "eigen" sind die Plaetze, die SamurAI uebernommen hat - nicht der Platz des Menschen am Rechner.
+    // Partie 34 (Mensch 1, SamurAI 2): 65.473 Befehle an SamurAIs Einheiten verweigert, keiner ausgefuehrt.
+    let maske = eigene_plaetze(&z.leitung);
+    if !darf_fuehren(platz, maske) {
+        schreibe(&format!("haende tick {}: VERWEIGERT - {} Einheiten von Spieler {}, wir sind Spieler {:?} (nie fremde Einheiten fuehren),                            Auftrag {:?} verworfen", tick, einheiten.len(), platz, plaetze_liste(maske), a));
         for nr in &einheiten {
             buch.freigeben(*nr);
         }
@@ -311,9 +313,33 @@ fn grabenreflex(z: &mut Zustand, tick: i32, neu: &[(i32, i32)]) {
     }
 }
 
+/// B-184 (15.11.2026): Plaetze, die SamurAI fuehrt (Bit p = Platz p). Der Lenker schreibt sie in den gemeinsamen Speicher;
+/// fehlen sie, gilt wie vor B-184 der Platz des Menschen (currentPlayerSlotID) - dort sass SamurAI vor der Lobby-Uebernahme.
+fn eigene_plaetze(leitung: &Option<Option<leitung::Leitung>>) -> u32 {
+    let maske = match leitung {
+        Some(Some(l)) => l.eigene_plaetze(),
+        _ => 0,
+    };
+    if maske != 0 { maske } else { 1u32 << unsafe { i32_bei(SLOT_ICH) }.clamp(0, 31) }
+}
+
+/// Der niedrigste eigene Platz - fuer die Wachen und die Schwaerzung, die genau einen Platz brauchen.
+fn eigener_platz(leitung: &Option<Option<leitung::Leitung>>) -> i32 {
+    eigene_plaetze(leitung).trailing_zeros() as i32
+}
+
+/// B-182 + B-184: Einheiten eines Platzes fuehren nur, wenn der Platz SamurAI gehoert.
+pub fn darf_fuehren(platz: i32, maske: u32) -> bool {
+    (0..32).contains(&platz) && maske & (1u32 << platz) != 0
+}
+
+fn plaetze_liste(maske: u32) -> Vec<i32> {
+    (0..32).filter(|p| maske & (1u32 << p) != 0).collect()
+}
+
 /// Beschusswache: eigene Kaempfer ("ich"), die stehen und Leben verlieren - Beginn und Ende je Einheit ins Protokoll.
 fn beschuss_takt(z: &mut Zustand, tick: i32) {
-    let ich = unsafe { i32_bei(SLOT_ICH) };
+    let ich = eigener_platz(&z.leitung);
     let welt = &z.welt;
     let w = z.beschuss.get_or_insert_with(beschuss::Wache::default);
     let eigene = welt.einheiten.iter()
@@ -338,7 +364,7 @@ fn beschuss_takt(z: &mut Zustand, tick: i32) {
 
 /// B-150 Feuer-Auge: brennende Gebaeude (Beginn/Ende) und eigene Kaempfer im Feuer ins Protokoll (feuer.rs, L177).
 fn feuer_takt(z: &mut Zustand, tick: i32) {
-    let ich = unsafe { i32_bei(SLOT_ICH) };
+    let ich = eigener_platz(&z.leitung);
     let welt = &z.welt;
     let w = z.feuer.get_or_insert_with(feuer::Wache::default);
     let haeuser: Vec<(i32, i32, i32, i16)> =
@@ -446,8 +472,8 @@ fn leitung_schreiben(z: &mut Zustand, tick: i32) {
             |l| format!("gemeinsamer Speicher {} ({} Byte), Name in {}", l.name, leitung::GROESSE, leitung::NAME_DATEI))));
         z.leitung = Some(l);
     }
+    let ich = eigener_platz(&z.leitung);
     if let Some(Some(l)) = &z.leitung {
-        let ich = unsafe { i32_bei(SLOT_ICH) };
         let beschuss = z.beschuss.as_ref().map_or(0, |w| w.betroffen() as u32);
         l.schreiben(&z.welt, tick, z.waechter.epoche, ich, z.graben_zahl.0, z.graben_zahl.1, VERSION, beschuss);
     }
@@ -588,7 +614,7 @@ pub extern "C" fn samurai_welt_schreiben(tick: i32) -> i32 {
     geschuetzt("samurai_welt_schreiben", || {
         let mut z = zustand();
         z.welt.lesen();
-        let ich = unsafe { i32_bei(SLOT_ICH) };
+        let ich = eigener_platz(&z.leitung);
         z.welt.erreichbar_berechnen(ich);
         match z.welt.schreiben(tick, WELT_EINHEITEN, WELT_GEBAEUDE) {
             Ok(()) => z.welt.einheiten.len() as i32,
@@ -658,5 +684,27 @@ mod tests {
         assert!(KAPUTT.load(Ordering::Relaxed));
         assert_eq!(samurai_test_fehler(7), AUS);
         assert_eq!(samurai_einheiten(1), AUS);
+    }
+}
+
+#[cfg(test)]
+mod platz_tests {
+    use super::{darf_fuehren, plaetze_liste};
+
+    #[test]
+    fn samurai_auf_platz_2_fuehrt_eigene_und_nie_fremde_einheiten() {
+        // B-184: Mensch auf 1, SamurAI auf 2 - die Maske kommt vom Lenker.
+        let maske = 1u32 << 2;
+        assert!(darf_fuehren(2, maske));
+        assert!(!darf_fuehren(1, maske), "die Einheiten des Menschen bleiben gesperrt (B-182)");
+        assert!(!darf_fuehren(3, maske));
+        assert!(!darf_fuehren(-1, maske) && !darf_fuehren(40, maske));
+    }
+
+    #[test]
+    fn zwei_samurais_im_zwei_gegen_zwei() {
+        let maske = (1u32 << 2) | (1u32 << 4);
+        assert!(darf_fuehren(2, maske) && darf_fuehren(4, maske) && !darf_fuehren(3, maske));
+        assert_eq!(plaetze_liste(maske), vec![2, 4]);
     }
 }

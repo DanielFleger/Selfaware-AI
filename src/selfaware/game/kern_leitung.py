@@ -50,6 +50,8 @@ WARE_NAMEN = {
     24: "ruestung",
 }
 RING_KOPF, RING_N, RING_EINTRAG = 16, 256, 32
+# B-184 (15.11.2026): Ringkopf +8 = Plaetze, die SamurAI fuehrt, als Bitmaske (Bit p = Platz p); der Kern fuehrt nur deren Einheiten
+EIGENE_PLAETZE = RING_START + 8
 GROESSE = RING_START + RING_KOPF + RING_N * RING_EINTRAG
 OFFEN = -(2**31)
 UEBERNEHMEN, FREIGEBEN, LAUF, ANGRIFF_EINHEIT, ANGRIFF_GEBAEUDE = 1, 2, 17, 4, 9
@@ -347,6 +349,24 @@ class Leitung:
     def takt(self):
         """Spieltakt des Kerns; gegen ihn laufen die Fristen im Auftragsring."""
         return struct.unpack_from("<i", self.speicher, 12)[0]
+
+    def eigene_plaetze_setzen(self, plaetze):
+        """B-184 (15.11.2026): sagt dem Kern, welche Plaetze SamurAI fuehrt. Ohne das nimmt er den Platz des Menschen am Rechner
+        und verweigert in einer Lobby-Partie (Mensch 1, SamurAI 2) jeden Befehl an SamurAIs Einheiten (Partie 34: 65.473-mal)."""
+        maske = 0
+        for p in plaetze:
+            if not 1 <= int(p) <= 8:
+                raise ValueError("Platz %r liegt nicht in 1..8" % (p,))
+            maske |= 1 << int(p)
+        if not maske:
+            raise ValueError("keine Plaetze angegeben")
+        struct.pack_into("<I", self.speicher, EIGENE_PLAETZE, maske)
+        return maske
+
+    def eigene_plaetze(self):
+        """Die gesetzten Plaetze (leer = nicht gesetzt, der Kern nimmt dann den Platz des Menschen)."""
+        maske = struct.unpack_from("<I", self.speicher, EIGENE_PLAETZE)[0]
+        return [p for p in range(1, 9) if maske & (1 << p)]
 
     def auftrag(self, art, nr, a=0, b=0, vorrang=0, frist=0, auftraggeber=0):
         """Legt einen Auftrag in den Ring (Art UEBERNEHMEN/FREIGEBEN/LAUF/ANGRIFF_*); gibt seine Ring-Nummer zurueck.

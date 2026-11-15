@@ -1114,7 +1114,7 @@ def kernweg_senden(liste, assassinen, ereignis):
     from selfaware.execution import kernweg as KW
     from selfaware.game.ucp.befehl import SPIEL
     if _kernweg is None:
-        _kernweg = KW.oeffnen(SPIEL) or False
+        _kernweg = KW.oeffnen(SPIEL, plaetze=(SP,)) or False  # B-184: SamurAIs Platz, nicht der des Menschen
         if _kernweg and KETTE is not None:
             _kernweg.beobachter = KETTE
         ereignis.append("KERNWEG: " + ("Kern bereit, Assassinen-Befehle gehen ueber den Auftragsring" if _kernweg else "Kern nicht bereit, Befehle bleiben beim Modul"))
@@ -1209,7 +1209,7 @@ def raid_kern(wegf, runde, ereignis):
         return
     from selfaware.execution import kernweg as KW
     from selfaware.game.ucp.befehl import SPIEL
-    k = KW.oeffnen(SPIEL, auftraggeber=KW.RAID, mindestens=KL_r.DURCHSETZEN_AB)
+    k = KW.oeffnen(SPIEL, auftraggeber=KW.RAID, mindestens=KL_r.DURCHSETZEN_AB, plaetze=(SP,))
     if k is not None:
         k.beobachter = KETTE
         wegf.kern = k
@@ -1228,7 +1228,7 @@ def ausweichen_kern(teile, ereignis):
     bereit = False
     for teil, auftraggeber in teile:
         if teil is not None:
-            teil.kern = KW.oeffnen(SPIEL, auftraggeber=auftraggeber)
+            teil.kern = KW.oeffnen(SPIEL, auftraggeber=auftraggeber, plaetze=(SP,))
             bereit = teil.kern is not None
     if bereit:
         ereignis.append("AUSWEICHEN: Kern bereit")
