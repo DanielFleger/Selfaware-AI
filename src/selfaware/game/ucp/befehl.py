@@ -10,28 +10,28 @@ Aufruf:    uv run python -m selfaware.game.ucp.befehl '<json>' [wartesekunden]
 Beispiel:  uv run python -m selfaware.game.ucp.befehl '{"player": 1, "tempo": 90}' 3
 Als Baustein:  from befehl import sende; zeilen = sende({"zeit": True})
 
-Zwei Spielinstanzen (05.10.2026): SHC_INSTANZ=2 waehlt die Spielkopie
-"<Instanz 1> Instanz2" - mit eigener befehl.json, eigenem ucp3.log, eigener
-Kanalsperre (.lauf2) und eigenem Nummernzaehler (.letzte_id2). Ohne Angabe gilt
-Instanz 1, alles wie bisher. Dieselbe Ordner-Regel steht in
-VillageStudio/werkzeug/instanz.py (spiel.py prueft, dass beide gleich sind). Andere Werkzeuge nehmen
-SPIEL und ABZUG von hier, nie einen eigenen Pfad - sonst liest ein Lauf auf
-Instanz 2 still die Lagebilder von Instanz 1.
+Spielinstanzen (05.10.2026, seit 15.11.2026 mit Namen): SHC_INSTANZ waehlt die Instanz nach Name oder Nummer aus EINER Liste,
+VillageStudio/lib/instanzen.json (gelesen von game/ucp/instanzen.py) - "team-liga" (Nummer 2, SamurAI spielen und testen) mit
+eigener befehl.json, eigenem ucp3.log, eigener Kanalsperre (.lauf2) und eigenem Nummernzaehler (.letzte_id2), "steam" (Nummer 1,
+Steams Ordner). Ohne Angabe gilt "vorgabe" aus der Liste (team-liga, B-197). Andere Werkzeuge nehmen SPIEL und ABZUG von hier,
+nie einen eigenen Pfad - sonst liest ein Lauf still die Lagebilder einer anderen Instanz.
 """
 
 from selfaware import workspace as _workspace
 import io, json, os, re, sys, time
 
-_ROH = os.environ.get("SHC_INSTANZ", "").strip() or "1"
-if not _ROH.isdigit() or int(_ROH) < 1:
-    raise RuntimeError("SHC_INSTANZ=%r ist keine Instanznummer (1, 2, ...)" % _ROH)
-INSTANZ = int(_ROH)
-_STAMM = r"C:\Program Files (x86)\Steam\steamapps\common\Stronghold Crusader Extreme"
+from selfaware.game.ucp import instanzen as _instanzen
+
 # B-192 (15.11.2026): SHC_SPIELORDNER ersetzt den Spielordner - nur fuer Tests auf Rechnern ohne Spiel (CI auf GitHub, siehe
 # tests/conftest.py); der echte Ablauf setzt es nie, dort bricht ein fehlender Ordner weiter sofort ab.
-SPIEL  = os.environ.get("SHC_SPIELORDNER") or (_STAMM if INSTANZ == 1 else "%s Instanz%d" % (_STAMM, INSTANZ))
+if os.environ.get("SHC_SPIELORDNER"):
+    _ROH = os.environ.get("SHC_INSTANZ", "").strip()
+    INSTANZ, INSTANZ_NAME, SPIEL = (int(_ROH) if _ROH.isdigit() else 2), "ersatz", os.environ["SHC_SPIELORDNER"]
+else:
+    _E = _instanzen.eintrag()                      # Name oder Nummer aus SHC_INSTANZ, sonst "vorgabe"; Archiv bricht ab
+    INSTANZ, INSTANZ_NAME, SPIEL = int(_E["nummer"]), _E["name"], _instanzen.spielordner(_E)
 if not os.path.isdir(SPIEL):
-    raise RuntimeError("Instanz %d gibt es nicht: %s" % (INSTANZ, SPIEL))
+    raise RuntimeError("Instanz %s (%d) gibt es nicht: %s" % (INSTANZ_NAME, INSTANZ, SPIEL))
 _ENDUNG = "" if INSTANZ == 1 else str(INSTANZ)
 BEFEHL = os.path.join(SPIEL, "ucp", "villagestudio", "befehl.json")
 LOG    = os.path.join(SPIEL, "ucp3.log")

@@ -161,7 +161,7 @@ Bausteine je Stand: Kern 1, eigene Datei 40, im Lenker 14, nicht benutzt 2, stec
 | Lord-Sperre | eigene Datei | `execution/lordschutz.py` |  |
 | Kampfschutz | eigene Datei | `execution/kampfschutz.py` |  |
 | Rollen je Einheit | eigene Datei | `micro/rollen.py` |  |
-| Spielbefehle | eigene Datei | `game/ucp/befehl.py`, `game/ucp/bauen.py`, `game/ucp/drehwert.py` |  |
+| Spielbefehle | eigene Datei | `game/ucp/befehl.py`, `game/ucp/instanzen.py`, `game/ucp/bauen.py`, `game/ucp/drehwert.py` |  |
 
 ## Augen
 

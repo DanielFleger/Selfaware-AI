@@ -245,7 +245,10 @@ KARTE = {
         # B-182 S118 (Daniel 13.11.: "Ja, abstellen"): kein zweiter gleicher Angriff an eine Einheit, die schon kaempft
         _m("Kampfschutz", "execution/kampfschutz.py"),
         _m("Rollen je Einheit", "micro/rollen.py"),
-        _m("Spielbefehle", "game/ucp/befehl.py game/ucp/bauen.py game/ucp/drehwert.py"),
+        _m(
+            "Spielbefehle",
+            "game/ucp/befehl.py game/ucp/instanzen.py game/ucp/bauen.py game/ucp/drehwert.py",
+        ),
     ),
     "augen": (
         _m(

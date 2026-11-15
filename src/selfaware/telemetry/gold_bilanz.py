@@ -10,6 +10,7 @@ Instanz 4 spielt Ascension, nicht Liga (Wissensregister L54).
 Aufruf: uv run python -m selfaware.telemetry.gold_bilanz <konsole.txt> <lage.jsonl.gz>"""
 
 from selfaware import workspace as _workspace
+from selfaware.game.ucp import instanzen as _instanzen
 import ast
 import glob
 import gzip
@@ -22,7 +23,6 @@ from collections import Counter
 HIER = os.path.dirname(os.path.abspath(__file__))
 D = os.path.join(_workspace.DATA)
 AUS = os.path.join(D, "lernen")
-STAMM = r"C:\Program Files (x86)\Steam\steamapps\common\Stronghold Crusader Extreme"
 MONAT = 800                                   # Wissensregister B27
 WAREN = {2: "holz", 4: "stein", 6: "eisen", 13: "apfel", 10: "brot", 11: "kaese", 12: "fleisch", 9: "weizen", 3: "hopfen"}
 LIGA_NAME = {22: "European archer", 23: "European crossbowman", 24: "European spearman", 25: "European pikeman",
@@ -39,7 +39,7 @@ GEB_BALANCE = {32: "Apple farm", 5: "Iron mine", 31: "Hop farm", 20: "Quarry", 3
 
 
 def balance_datei(instanz):
-    spiel = STAMM if instanz == 1 else "%s Instanz%d" % (STAMM, instanz)
+    spiel = _instanzen.spielordner(instanz)      # B-192: Ordner aus VillageStudio/lib/instanzen.json
     cfg = open(os.path.join(spiel, "ucp-config.yml"), encoding="utf-8", errors="replace").read()
     m = re.search(r"balance_config_file_selector:\s*\n\s*contents:\s*\n\s*value:\s*(\S+)", cfg)
     if not m:

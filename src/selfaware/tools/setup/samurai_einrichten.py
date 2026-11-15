@@ -48,9 +48,11 @@ BLOCK = """{anfang}
 """.format(anfang=ANFANG, ende=ENDE)
 
 
-def instanz_ordner(n):
-    basis = r"C:\Program Files (x86)\Steam\steamapps\common\Stronghold Crusader Extreme"
-    return basis if n == 1 else "%s Instanz%d" % (basis, n)
+def instanz_ordner(n=None):
+    """B-192: Ordner aus VillageStudio/lib/instanzen.json (Name oder Nummer; ohne Angabe die Vorgabe team-liga)."""
+    from selfaware.game.ucp import instanzen
+
+    return instanzen.spielordner(n)
 
 
 def gegenlesen(text):
@@ -90,7 +92,7 @@ def rat_name(y):
 def main():
     arg = dict(a.split("=", 1) for a in sys.argv[1:] if "=" in a)
     aus = "--aus" in sys.argv
-    ordner = arg.get("ordner") or instanz_ordner(int(arg.get("instanz", 4)))      # ordner=: Probe an einer Kopie
+    ordner = arg.get("ordner") or instanz_ordner(arg.get("instanz"))      # ordner=: Probe an einer Kopie
     cfg = os.path.join(ordner, "ucp-config.yml")
     # 20:03 (Probe an einer Kopie): Zeilenenden unveraendert lassen - der Textmodus unter Windows haette beim Schreiben jedes
     # LF der ganzen Datei in CRLF umgewandelt (Rueckweg war nicht mehr byte-gleich)

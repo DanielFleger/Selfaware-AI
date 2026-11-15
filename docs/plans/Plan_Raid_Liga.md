@@ -35,7 +35,7 @@ Auftrag Daniel 10.11.2026 09:25: selbstständig an den Raid-Modulen weiterarbeit
 
 ## Grenzen
 
-- Nur Instanz 2. Instanz 4 (SAI) und 5 (Daniel) bleiben unberührt.
+- Nur die Team-Liga-Instanz (`SHC_INSTANZ=team-liga`, bis 15.11.2026 Instanz 2). Die früheren Instanzen 4 (SAI) und 5 (Daniel) liegen seit 15.11.2026 im Archiv auf D: (B-192).
 - Fairness (`docs/FAIRNESS.md`): nur Sichtbares, nichts am Spiel verändern.
 - Keine Umbauten an Angriff, Verteidigung oder Wirtschaft.
 - Je Partie bis Takt 40.000, Tempo 200.
