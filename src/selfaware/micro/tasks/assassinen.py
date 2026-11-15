@@ -714,6 +714,18 @@ class Einzeln:
                     and all(schach(q, p) > SCHUSSWEITE for _, p, _ in fern)]
         return min(fallback, key=lambda q: schach(q, lord)) if fallback else None
 
+    def _lord_schaden_je_assassine(self):
+        """Lord-Leben, die ein Angreifer in den beendeten Lord-Angriffen DIESER Partie im Mittel abzog (Summe Schaden / Summe Angreifer).
+        None ohne beendeten Angriff oder ohne Schaden."""
+        fertig = [a for a in self.angriffe if a.get("fertig") and a.get("groesse", 0) > 0]
+        schaden = sum(max(0, a["lord_vorher"] - a["lord_nachher"]) for a in fertig)
+        return schaden / float(sum(a["groesse"] for a in fertig)) if fertig and schaden > 0 else None
+
+    def _lord_bedarf_gemessen(self, leben):
+        """Daniel 15.11.2026 23:10: so viele Angreifer, wie der Lord nach den Messungen dieser Partie braucht - None ohne Messung."""
+        je = self._lord_schaden_je_assassine()
+        return int(math.ceil(leben / je)) if je else None
+
     def _lord_bedarf(self, L, G, ereignis):
         """Bedarf fuer den Lord-Angriff in dieser Lage: (Zahl, Art, Gruppenleben). Meldet jede Aenderung einmal."""
         fa = fingerabdruck(L, G, self.sp)
@@ -2388,6 +2400,7 @@ class Einzeln:
             if lt["phase"] in ("bereit", "angriff") and lt.get("lord") not in {k for k, _ in lords}:
                 if lt["phase"] == "angriff" and self.angriffe:
                     self.angriffe[-1]["lord_nachher"] = 0
+                    self.angriffe[-1]["fertig"] = True
                 ereignis.append("LORD %s weg (tot?) - Lord-Trupp aufgeloest, %d raiden wieder" % (lt.get("lord"), len(lt["mitglieder"])))
                 for k in list(lt["mitglieder"]):
                     self._vergessen(k)
@@ -2411,10 +2424,22 @@ class Einzeln:
                         ereignis.append("LORD-BEDARF gerechnet: %d (statt %d %s) - Lord %d Leben, Feuer am Lord %.1f je Takt" % (
                             n_r, n_bedarf, bedarf_art, le["leben"], f_ges))
                     n_bedarf, bedarf_art, gruppe_leben = n_r, "gerechnet", None
+                # Daniel 15.11.2026 23:10 ("immer noch nicht angegriffen obwohl es locker reicht fuer den kill"): Partie 23:05 - gerechnet 9,
+                # die 9 nahmen dem Lord 70.000 von 165.000 Leben und fielen alle. Hat diese Partie schon einen Lord-Angriff gemessen, gilt
+                # der gemessene Bedarf, wenn er hoeher ist
+                n_mess = self._lord_bedarf_gemessen(le["leben"])
+                if n_mess is not None and n_mess > n_bedarf:
+                    if (n_mess, "gemessen") != getattr(self, "_bedarf_rech", None):
+                        self._bedarf_rech = (n_mess, "gemessen")
+                        ereignis.append("LORD-BEDARF gemessen: %d (Rechnung %d) - Lord %d Leben, je Assassine in dieser Partie %d" % (
+                            n_mess, n_bedarf, le["leben"], self._lord_schaden_je_assassine()))
+                    n_bedarf, bedarf_art, gruppe_leben = n_mess, "gemessen", None
             # 17.10. Laptop (1017h): Bereitstellung statt gestaffeltem Anlauf - die Gruppe zaehlt ganz (unterwegs + bereit)
             if lt["phase"] == "angriff" and len(lt["mitglieder"]) < self.LORD_REST:
                 ereignis.append("GEMEINSAMER LORD-ANGRIFF vorbei: noch %d leben, Lord-Leben %d - wieder raiden bis %d" % (
                     len(lt["mitglieder"]), le["leben"], n_bedarf))
+                if self.angriffe:
+                    self.angriffe[-1]["fertig"] = True
                 for n in list(lt["mitglieder"]):
                     self._vergessen(n)
                 lt.update(mitglieder=set(), phase=None, sammelpunkt=None, pause_bis=self.jetzt + self.BEREIT_PAUSE)
@@ -2473,10 +2498,12 @@ class Einzeln:
                         ln, le["leben"], self.LORD_WACHE_R, len(self.mitglieder)))
                 plaetze = self._bereit_plaetze(lp)
                 if plaetze:
-                    # zuerst, wer kein Raid-Ziel hat, dann die naechsten am Lord (1017d: nie die weitesten)
-                    gruppe = sorted((k for k in self.mitglieder if k not in self.flucht),
-                                    key=lambda k: (k in self.ziel or k in self.jagd, schach(pos(k), lp), -L[k]["leben"], k))[
-                        :len(self.mitglieder) if eindeutig else n_bedarf]
+                    # Daniel 15.11.2026 23:10 ("es reicht locker fuer den kill ... je frueher der kill kommt desto besser") und 19.10. ("wir gehen
+                    # alle gleichzeitig mit aller Macht auf den Lord"): ALLE gehen in die Gruppe, nicht nur der Bedarf - die Rechnung lag in
+                    # Partie 23:05 um mehr als das Doppelte zu niedrig. Ausgenommen: auf der Flucht oder unter RESERVE_LEBEN (ein Treffer toetet)
+                    gruppe = sorted((k for k in self.mitglieder if k not in self.flucht
+                                     and not (self.RESERVE_PARKEN and L[k]["leben"] < self.RESERVE_LEBEN)),
+                                    key=lambda k: (k in self.ziel or k in self.jagd, schach(pos(k), lp), -L[k]["leben"], k))
                     lt.update(mitglieder=set(gruppe), warte=set(), lord=ln, phase="bereit", seit=self.runde, seit_tick=self.jetzt,
                               sammelpunkt=None, platz={}, weg={}, neu={}, befohlen={}, bereit=set(), plaetze=plaetze, raus=set())
                     for k in gruppe:
@@ -2493,7 +2520,8 @@ class Einzeln:
                 frei_k = sorted((k for k in self.mitglieder if k not in lt["mitglieder"] and k not in lt.get("raus", ())
                                  and k not in self.flucht),
                                 key=lambda k: (k in self.ziel or k in self.jagd, schach(pos(k), lp), -L[k]["leben"], k))
-                while frei_k and len(lt["mitglieder"]) < n_bedarf:
+                frei_k = [k for k in frei_k if not (self.RESERVE_PARKEN and L[k]["leben"] < self.RESERVE_LEBEN)]
+                while frei_k:     # Daniel 23:10: alle - neue Anwerbungen gehoeren sofort dazu (vorher nur bis zum Bedarf)
                     k = frei_k.pop(0)
                     self._vergessen(k); self.stapel["mitglieder"].discard(k); self.flucht.pop(k, None)
                     lt["mitglieder"].add(k)
@@ -2544,9 +2572,8 @@ class Einzeln:
                 lt["bereit"] = bereit
                 if len(bereit) >= n_bedarf and lord_machbar(len(bereit), le["leben"], self._sicht.feuer_gesamt(lp) / len(bereit),
                                                             leben=self._anlauf_leben(self._anlauf_von(L, lp), lp, len(bereit)))[0]:
-                    alle = sorted(bereit)
-                    for k in lt["mitglieder"] - bereit:
-                        self._vergessen(k)            # wer noch unterwegs ist, raidet weiter
+                    # Daniel 23:10: alle greifen an - wer noch anlaeuft, laeuft direkt zum Lord (vorher raidete er weiter, nur die Bereiten gingen)
+                    alle = sorted(lt["mitglieder"])
                     lt.update(mitglieder=set(alle), phase="angriff", seit=self.runde, angriff_tick=self.jetzt)
                     for k in alle:
                         if schach(pos(k), lp) > self.ANLAUF_NAH:
