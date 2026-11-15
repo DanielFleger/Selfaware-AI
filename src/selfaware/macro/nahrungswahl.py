@@ -130,9 +130,17 @@ def brotketten(frei, b, lager, speicher):
 RING_RAND = 2      # 19.10.: plus Burggraben (kornring.Graben) auf Abstand 2 - Ring UND Grabenring bleiben frei
 
 
-def speicherplatz(kurz, punkt, belegt):
-    """Gueltiger Kornspeicher-Platz (Platzkarte des Spiels) naechst `punkt`, ohne Plantagen-/Farmflaeche - mit RING_RAND
-    Feldern Abstand fuer den Mauerring."""
+def apfel_laufweg(s, aepfel):
+    """B-187 (Daniel 15.11.2026 13:08: "der kornspeicher sollte dort stehen wo er maximal niedrige laufwege fuer die
+    apfelplantagen verursacht"): Summe der Wege vom Kornspeicher (4x4, Mitte s+2) zu ALLEN Apfelplantagen (10x10, Mitte q+5),
+    in Feldern nach Schachmass - Hindernisse sind nicht gerechnet."""
+    return sum(schach((s[0] + 2, s[1] + 2), (q[0] + GROESSE_APFEL // 2, q[1] + GROESSE_APFEL // 2)) for q in aepfel)
+
+
+def speicherplatz(kurz, punkt, belegt, aepfel=()):
+    """Gueltiger Kornspeicher-Platz (Platzkarte des Spiels) ohne Plantagen-/Farmflaeche - mit RING_RAND Feldern Abstand fuer
+    den Mauerring. Mit `aepfel`: der Platz mit der kleinsten Laufweg-Summe zu allen Plantagen (B-187), bei Gleichstand naechst
+    `punkt`; ohne: naechst `punkt`."""
     from selfaware.macro.farmen_mischen import lies_karte
     speicher = lies_karte(os.path.join(D, "start_%s_platz_speicher.txt" % kurz))
     r = RING_RAND
@@ -140,7 +148,9 @@ def speicherplatz(kurz, punkt, belegt):
     gr = lambda q: q[2] if len(q) > 2 else GROESSE_APFEL
     frei = [s for s in speicher if all(s[0] + 4 + r <= q[0] or q[0] + gr(q) + r <= s[0] or s[1] + 4 + r <= q[1]
                                        or q[1] + gr(q) + r <= s[1] for q in belegt)]
-    return tuple(min(frei, key=lambda s: schach((s[0] + 2, s[1] + 2), punkt))) if frei else tuple(punkt)
+    nah = lambda s: schach((s[0] + 2, s[1] + 2), punkt)
+    wahl = (lambda s: (apfel_laufweg(s, aepfel), nah(s))) if aepfel else nah
+    return tuple(min(frei, key=wahl)) if frei else tuple(punkt)
 
 
 def waehle(kurz, plan, bev_ziel=90, ration="doppelt", horizont=16000):
@@ -247,7 +257,15 @@ def waehle(kurz, plan, bev_ziel=90, ration="doppelt", horizont=16000):
     belegt += [(p[0], p[1], NACH_TYP[3]["b"]) for p in plan.get("holzfaeller", [])] +               [(p[0], p[1], NACH_TYP[1]["b"]) for p in plan.get("huetten", [])]
     if plan.get("lager"):
         belegt.append((plan["lager"][0], plan["lager"][1], 6))
-    ks = list(speicherplatz(kurz, beste["_speicher"], belegt))
+    # B-187: am Apfel-Ort zaehlt der Laufweg zu ALLEN Plantagen (frueher: Mitte der fruehen Gruppe, Partie 34 (104,216));
+    # am Lager-Ort bleibt er am Lager, weil dort Brot und Jaeger mit dem Lagerabstand gerechnet sind
+    am_apfel = beste["speicher_ort"] == "aepfel" and aepfel
+    ks = list(speicherplatz(kurz, beste["_speicher"], belegt, aepfel if am_apfel else ()))
+    if aepfel:
+        alt = speicherplatz(kurz, beste["_speicher"], belegt)
+        grund["kornspeicher_laufweg_aepfel"] = dict(regel="kleinste Summe zu allen Plantagen" if am_apfel else "am Lager",
+                                                    summe=apfel_laufweg(ks, aepfel), frueher=apfel_laufweg(alt, aepfel),
+                                                    frueher_platz=list(alt), plantagen=len(aepfel))
     grund["kornspeicher_zum_bergfried"] = schach(tuple(ks), K)
     grund["kornspeicher_zum_lager"] = schach(tuple(ks), lager)
     return {"aepfel": aepfel, "kornspeicher": ks, "brot": brot, "jaeger": jaeger, "ration_frueh": ration_frueh,
