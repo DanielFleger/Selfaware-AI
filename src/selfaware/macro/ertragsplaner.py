@@ -139,6 +139,19 @@ def gold_wert(kosten):
 
 
 MAX_LAGERTEILE = 8                 # 2 Lagerplaetze zu je 4 Teilen (Daniel 06.10. 21:11)
+
+
+def lager_anbauen(st, teile, grenze=None, lager_stopp=False):
+    """Welche Waren (Holz, Stein, Eisen) ein Lagerteil fast voll haben, wenn der Planer jetzt anbauen soll - sonst [].
+    Frueher hoechstens 2 Lagerplaetze = 8 Teile (Daniel 06.10. 21:11: "du brauchst nur 3 Plaetze - Holz, Stein, Eisen - wenn du
+    optimal platzierst und verkaufst; bei zwei bist du selbst bei doppelten Plaetzen auf der sicheren Seite"). Seit Daniel
+    15.11.2026 22:29 ("nie mehr als 4 Vorratslager") gibt der Lenker die Grenze vor (grenze, in Teilen) - dieselbe wie Wirtschaft
+    und Stillstand-Waechter; ohne Lenker bleibt MAX_LAGERTEILE."""
+    belegt = sum(-(-st.get(w, 0) // JE_TEIL) for w in ("holz", "stein", "eisen", "pech", "hopfen", "weizen", "mehl"))
+    voll = [w for w in ("holz", "stein", "eisen") if st.get(w, 0) % JE_TEIL >= JE_TEIL - 8]
+    if voll and belegt >= teile and teile < (grenze or MAX_LAGERTEILE) and not lager_stopp:
+        return voll
+    return []
 MAX_AMORT = 6000                   # ohne Partieende nichts mit laengerer Amortisation (v3, 21:20)
 STEUER_MIN = 0                     # Bestechung erlaubt (Liga Stufe 0: +225 Beliebtheit, 1,50 Gold je Kopf)
 
@@ -676,11 +689,8 @@ class Ertragsplaner:
         # Lager: eine Ware nahe am Teil-Deckel (48 je Teil) -> anbauen (kostet nichts)
         teile = sum(1 for g in eigen if g["typ"] == 10)
         if teile and not [n for n in self.wirt.alt if n in G]:
-            belegt = sum(-(-st.get(w, 0) // JE_TEIL) for w in ("holz", "stein", "eisen", "pech", "hopfen", "weizen", "mehl"))
-            voll = [w for w in ("holz", "stein", "eisen") if st.get(w, 0) % JE_TEIL >= JE_TEIL - 8]
-            # hoechstens 2 Lagerplaetze = 8 Teile (Daniel 21:11: "du brauchst nur 3 Plaetze - Holz, Stein, Eisen - wenn du
-            # optimal platzierst und verkaufst; bei zwei bist du selbst bei doppelten Plaetzen auf der sicheren Seite")
-            if voll and belegt >= teile and teile < MAX_LAGERTEILE and not getattr(self, "lager_stopp", False):
+            voll = lager_anbauen(st, teile, getattr(self.wirt, "lager_max_teile", None), getattr(self, "lager_stopp", False))
+            if voll:
                 l = self.ziele(G)[5][0]
                 ev.append("PLANER Lager anbauen (%s fast voll, %d Teile) -> %s" % (voll, teile, self.baue(10, l[0], l[1], 10)))
         ev += self.ochsen_nach_stau(st, L, G, holz)

@@ -375,7 +375,9 @@ def anhaengen():
     START_FERTIG = True
     return tick()
 
-LAGER_TEILE_MAX = 4  # Daniel 15.11.2026 22:29: nie mehr als 4 Vorratslager - Ueberschuss wird Gold fuer Einheiten
+LAGER_MAX = 4  # Daniel 15.11.2026 22:29: "nie mehr als 4 Vorratslager" - Ueberschuss wird Gold fuer Einheiten
+TEILE_JE_LAGER = 4  # gemessen 15.11. (Partie 22:22): jedes 'BAU BESTAETIGT Lagerplatz' brachte 4 Teile Typ 10, 4->8->12->16
+LAGER_TEILE_MAX = LAGER_MAX * TEILE_JE_LAGER  # gezaehlt wird in Teilen (Gebaeudeliste), Daniel zaehlt Vorratslager
 UEBERNOMMEN_BEI = None  # Takt, bei dem die KI unseres Lobby-Platzes aus ging
 
 
@@ -926,9 +928,12 @@ def nahrung_auf_kante(bestand, puffer, hoechstens=12):
 WAREN_NR = {"holz": 2, "stein": 4, "eisen": 6, "pech": 7, "apfel": 13, "brot": 10, "kaese": 11, "fleisch": 12, "weizen": 9, "hopfen": 3, "mehl": 16}
 
 VERKAUF_JE_SENDUNG = 15   # Lose je Befehlsliste: so grosse Buendel liefen schon (Mitschriften bis 13 Lose je Ware); mehr geht in weitere Listen
+# Nur hier ist der Bedarf gerechnet (Stein: offene Bauten + Kornring, Eisen: Produktion). Hopfen, Weizen, Mehl, Pech haben Reserve 0, obwohl
+# Brauerei, Muehle und Baeckerei sie brauchen - ihr Bedarf ist nicht gemessen, darum gehen sie weiter einzeln (ein Los je Runde)
+BEDARF_GERECHNET = ("stein", "eisen")
 
 
-def verkaufslose(menge, reserve, los, hart):
+def verkaufslose(menge, reserve, los, hart, buendeln=True):
     """Wie viele Lose dieser Ware jetzt an den Markt gehen.
 
     Daniel 15.11.2026 22:29: "Es soll nur so viel gelagert werden wie fuer die geplante naechste Wirtschaft gebraucht
@@ -940,7 +945,7 @@ def verkaufslose(menge, reserve, los, hart):
         return max(1, int(math.ceil((menge - reserve) / float(los)))) if menge > reserve else 0
     if menge <= reserve + 4:
         return 0
-    return max(1, (menge - reserve) // los)
+    return max(1, (menge - reserve) // los) if buendeln else 1
 
 
 def verkaufen(st, stein_reserve=None, messer=None, holz_verkaufen=False, eisen_reserve=0, nahrung_puffer_h=None,
@@ -964,7 +969,7 @@ def verkaufen(st, stein_reserve=None, messer=None, holz_verkaufen=False, eisen_r
         hart = ware in obergrenzen
         if hart:
             reserve = min(reserve, obergrenzen[ware])
-        k = verkaufslose(st.get(ware, 0), reserve, losgroesse[ware], hart)
+        k = verkaufslose(st.get(ware, 0), reserve, losgroesse[ware], hart, buendeln=ware in BEDARF_GERECHNET)
         if k:
             auftraege += [{"player": 1, "id": neue_id(),
                            "spielbefehl": {"nr": 38, "werte": [1, WAREN_NR[ware]]}} for _ in range(k)]

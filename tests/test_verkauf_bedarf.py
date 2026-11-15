@@ -41,6 +41,16 @@ def test_verkaufen_schickt_den_ganzen_ueberschuss_in_buendeln(monkeypatch):
     assert "stein x77" in text and "eisen x13" in text
 
 
+def test_waren_ohne_gerechneten_bedarf_gehen_einzeln(monkeypatch):
+    """Hopfen, Weizen, Mehl, Pech: Reserve 0, Bedarf der Ketten nicht gemessen - weiter ein Los je Runde, nicht alles auf einmal."""
+    gesendet = []
+    monkeypatch.setattr(ES, "sende", lambda b, *a, **k: gesendet.append(b) or [])
+    monkeypatch.setattr(ES, "nahrung_auf_kante", lambda *a, **k: {})
+    ES.verkaufen({"hopfen": 50, "weizen": 30, "mehl": 12, "pech": 9, "leute": 100}, stein_reserve=0)
+    lose = [c["spielbefehl"]["werte"][1] for b in gesendet for c in b["befehle"]]
+    assert sorted(lose) == sorted(ES.WAREN_NR[w] for w in ("hopfen", "weizen", "mehl", "pech"))
+
+
 class _Lage:
     """Ein Holzfaeller (Typ 3) mit Holz in der Hand steht im Wartezustand 7 am selben Fleck."""
 
@@ -65,16 +75,16 @@ def _waechter(max_teile, gebaut):
     )
 
 
-def test_waechter_baut_kein_fuenftes_lagerteil():
-    lage, gebaut = _Lage(4), []
+def test_waechter_baut_kein_fuenftes_vorratslager():
+    lage, gebaut = _Lage(ES.LAGER_TEILE_MAX), []
     w = _waechter(ES.LAGER_TEILE_MAX, gebaut)
     w.schritt(0, lage.L, lage.G)
     ev = w.schritt(STW.HANDELN_AB, lage.L, lage.G)
-    assert not gebaut and "hoechstens 4 Teilen" in " ".join(ev)
+    assert not gebaut and "hoechstens 16 Teilen" in " ".join(ev)
 
 
 def test_waechter_baut_unter_der_grenze_weiter_an():
-    lage, gebaut = _Lage(3), []
+    lage, gebaut = _Lage(ES.LAGER_TEILE_MAX - 1), []
     w = _waechter(ES.LAGER_TEILE_MAX, gebaut)
     w.schritt(0, lage.L, lage.G)
     w.schritt(STW.HANDELN_AB, lage.L, lage.G)
@@ -83,8 +93,27 @@ def test_waechter_baut_unter_der_grenze_weiter_an():
 
 def test_lenker_setzt_die_grenze_fuer_jede_partie():
     quelle = open(ES.__file__, encoding="utf-8").read()
-    assert ES.LAGER_TEILE_MAX == 4
+    assert ES.LAGER_MAX == 4 and ES.LAGER_TEILE_MAX == 16, (
+        "4 Vorratslager zu je 4 Teilen (gemessen)"
+    )
     assert (
         "wirt.lager_max_teile = LAGER_TEILE_MAX" in quelle and "max_teile=LAGER_TEILE_MAX" in quelle
     )
     assert "elif voll and runde % 3 == 0:" not in quelle, "Verkauf wieder nur jede dritte Runde"
+
+
+def test_planer_baut_nicht_ueber_die_grenze_des_lenkers():
+    from selfaware.macro import ertragsplaner as EP
+
+    st = {
+        "holz": 46,
+        "stein": 20,
+        "eisen": 20,
+    }  # Holz fast voll im Teil (46 von 48), 3 Teile belegt
+    assert EP.lager_anbauen(st, 3) == ["holz"], "ohne Lenker-Grenze: wie bisher"
+    assert EP.lager_anbauen(st, 3, grenze=ES.LAGER_TEILE_MAX) == ["holz"]
+    voll16 = {"holz": 16 * 48 - 2}
+    assert EP.lager_anbauen(voll16, 16, grenze=ES.LAGER_TEILE_MAX) == [], (
+        "16 Teile = 4 Vorratslager: kein fuenftes"
+    )
+    assert EP.lager_anbauen(voll16, 15, grenze=ES.LAGER_TEILE_MAX) == ["holz"]
