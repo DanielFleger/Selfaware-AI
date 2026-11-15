@@ -12610,6 +12610,31 @@
      "was": "offen -> offen: Liste auch im Repo: docs/backlog/abgleich_alt_20261104.json (Gruppen C1/C2)"
     }
    ]
+  },
+  {
+   "nr": "B-442",
+   "titel": "Auswerte-Skripte der Auge-Laeufe finden ihre Eingaben nicht mehr (laeufe/ liegt im Datenordner)",
+   "bereich": "Struktur",
+   "kategorie": "Struktur",
+   "unterkategorie": "Ordnung",
+   "status": "offen",
+   "seit": "2026-11-15 19:04",
+   "herkunft": "SAI 15.11.2026 19:03, B-192 Schritt 6 (Selbstpruefung)",
+   "gebaut": null,
+   "commits": [],
+   "wo": [
+    "data/research/auge_plan"
+   ],
+   "belege": [
+    "git grep -l -E '[\"'\\'']laeufe[\"'\\'']|auge_plan/laeufe' -- data/research/auge_plan: 42 Skripte; Laeufe jetzt in ../Selfaware-AI-daten/data/research/auge_plan/laeufe (data/research/datenordner.json)"
+   ],
+   "notiz": "Skripte lesen HIER/../laeufe oder 'data/research/auge_plan/laeufe'. Sie sind Belege frueherer Messungen und wurden nicht still umgeschrieben. Weg: beim naechsten Nachrechnen workspace.AUGE_LAEUFE einsetzen, oder alle auf einmal mit Daniels Ja.",
+   "verlauf": [
+    {
+     "zeit": "2026-11-15 19:04",
+     "was": "angelegt (offen)"
+    }
+   ]
   }
  ]
 }
