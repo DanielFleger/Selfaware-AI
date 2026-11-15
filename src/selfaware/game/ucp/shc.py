@@ -696,6 +696,9 @@ def partie(karte, kis, teams="", plaetze="", art="1", gold="3", aufstellung="lob
     import json
 
     t0 = time.time()
+    alte = (
+        lenker_stoppen()
+    )  # Konsistenz (Daniel 21:50): jeder Start beginnt ohne Lenker einer frueheren Partie
     text = aufstellen(karte, kis, teams, plaetze, art, gold)
     sp = samurai_spieler(kis)
     if not freigabe_offen():
@@ -723,10 +726,50 @@ def partie(karte, kis, teams="", plaetze="", art="1", gold="3", aufstellung="lob
         if len(sp) > 1
         else ""
     )
-    return (
-        "%s | %s in %.1f s | SamurAI auf Spieler %s%s | weiter nach Daniels Ja: shc losspielen"
-        % (text, s, time.time() - t0, sp, warnung)
+    # Daniel 15.11. 21:49 "das spiel auch wirklich starten ... es muss sofort samurai uebernehmen": kein Halt mehr bei Takt 1 -
+    # die Freigabe gilt fuer den Start, losspielen laeuft gleich weiter (Lenker uebernehmen, dann laeuft das Spiel)
+    los = losspielen()
+    return "%s | %s | %s in %.1f s | SamurAI auf Spieler %s%s%s" % (
+        text,
+        s,
+        los,
+        time.time() - t0,
+        sp,
+        warnung,
+        " | %d alte Lenker beendet" % alte if alte else "",
     )
+
+
+def lenker_stoppen():
+    """Lenker einer frueheren Partie (PIDs in partie_laufend.json) beenden und nachsehen, dass sie weg sind. Gibt ihre Zahl."""
+    import json
+
+    try:
+        with open(_laufend_datei(), encoding="utf-8") as f:
+            pids = json.load(f).get("lenker_pids", [])
+    except (OSError, ValueError):
+        return 0
+    weg = 0
+    for pid in pids:
+        r = subprocess.run(
+            ["taskkill", "/PID", str(pid), "/T", "/F"],
+            capture_output=True,
+            text=True,
+            encoding="cp850",
+            errors="replace",
+        )
+        weg += r.returncode == 0
+    for pid in pids:
+        r = subprocess.run(
+            ["tasklist", "/FI", "PID eq %d" % pid, "/NH"],
+            capture_output=True,
+            text=True,
+            encoding="cp850",
+            errors="replace",
+        )
+        if str(pid) in r.stdout:
+            raise Fehler("Lenker %d laeuft nach dem Beenden noch" % pid)
+    return weg
 
 
 def einheiten_zaehlen():
@@ -782,7 +825,35 @@ def losspielen(pruef_takt="410"):
                 | getattr(subprocess, "CREATE_NEW_PROCESS_GROUP", 0),
             )
         )
-    time.sleep(3.0)  # die Lenker melden sich am Kanal an, bevor das Spiel laeuft
+    lauf["lenker_pids"] = [p.pid for p in prozesse]
+    with open(_laufend_datei(), "w", encoding="utf-8") as f:
+        json.dump(lauf, f, ensure_ascii=False)
+    # Erst laufen lassen, wenn JEDER Lenker die KI seines Platzes aus hat (Daniel 21:49 "es muss sofort samurai uebernehmen";
+    # vorher lief die eingebaute KI bis Takt 438)
+    uebernommen = {}
+    frist = time.time() + 60
+    while len(uebernommen) < len(prozesse) and time.time() < frist:
+        for sp in lauf["samurai"]:
+            pfad = os.path.join(workspace.DATA, "partie_%s_lenker_sp%d.txt" % (stempel, sp))
+            try:
+                with open(pfad, encoding="utf-8", errors="replace") as f:
+                    m = re.search(
+                        r"UEBERNEHMEN: KI von Spieler %d bei Tick (\d+) aus" % sp, f.read()
+                    )
+            except OSError:
+                m = None
+            if m:
+                uebernommen[sp] = int(m.group(1))
+        if any(p.poll() is not None for p in prozesse):
+            break
+        time.sleep(0.1)
+    if len(uebernommen) < len(prozesse):
+        for p in prozesse:
+            p.terminate()
+        raise Fehler(
+            "Lenker haben nicht uebernommen (gemeldet %s) - Spiel bleibt angehalten, Lenker gestoppt"
+            % uebernommen
+        )
     senden([{"pause": False}], 2.0)
     ende = time.time() + 180
     z = zustand()
@@ -804,8 +875,8 @@ def losspielen(pruef_takt="410"):
         )
     senden([{"pause": False}], 2.0)
     return (
-        "Partie laeuft ab Takt %d: Starttruppen stimmen %s, Lenker fuer Spieler %s (Mitschrift data/research/partie_%s_lenker_sp*.txt)"
-        % (z["tick"], ist, lauf["samurai"], stempel)
+        "SamurAI uebernahm bei Takt %s; Partie laeuft ab Takt %d: Starttruppen stimmen %s, Lenker fuer Spieler %s (Mitschrift data/research/partie_%s_lenker_sp*.txt)"
+        % (uebernommen, z["tick"], ist, lauf["samurai"], stempel)
     )
 
 
@@ -837,6 +908,9 @@ def main(argv=None):
         print("FEHLER: Angaben als schluessel=wert, z. B. karte=Cyclades", flush=True)
         return 1
     B = _kanal()
+    # Immer als Partner (je Befehl gesperrt): ein shc-Aufruf neben einem laufenden Lenker darf ihm den Kanal nicht wegnehmen -
+    # gemessen 15.11. 21:50: 'shc zustand' belegte den Kanal, der Lenker brach mit KANAL BELEGT ab, SamurAI stand still
+    B.PARTNER = True
     B.belege()
     try:
         print("OK:", BEFEHLE[argv[0]](**args), flush=True)

@@ -375,17 +375,24 @@ def anhaengen():
     START_FERTIG = True
     return tick()
 
+UEBERNOMMEN_BEI = None  # Takt, bei dem die KI unseres Lobby-Platzes aus ging
+
+
 def uebernehmen_start():
     """19.10. 20:05 (Daniel: "wenn ich die KI in der Lobby haette und selbst das Spiel starten kann"; Platzhalter Ratte):
     das Gefecht hat der Mensch gestartet - die eingebaute KI unseres Platzes aus (dieselben drei Stellen wie ki_aus im 1v1:
     currentAIArray, PlayerData.aiType, Mensch-Eintrag), ohne Pause, dann spielt der Lenker diesen Platz."""
+    global UEBERNOMMEN_BEI
+    if UEBERNOMMEN_BEI is not None:  # schon beim Start uebernommen (Daniel 15.11.2026 21:49 "es muss sofort samurai uebernehmen")
+        return UEBERNOMMEN_BEI
     # 20:22: Mensch-Eintrag ZUERST (gemessen: KI-Feld zuerst auf 0 beendet die Partie nach 3 Takten - samurai_wache.ki_aus)
     for adr, wert in ((0x0191DE10 + SP * 4, 1), (0x0115BDF8 + SP * 0x39F4 + 0x2300, 0), (0x0191DE7C + SP * 4, 0)):
         befehl({"poke": adr, "wert": wert}, 1.0, bis="POKE")
-    schreib("UEBERNEHMEN: KI von Spieler %d bei Tick %d aus - SamurAI spielt" % (SP, tick()))
+    UEBERNOMMEN_BEI = tick()
+    schreib("UEBERNEHMEN: KI von Spieler %d bei Tick %d aus - SamurAI spielt" % (SP, UEBERNOMMEN_BEI))
     global START_FERTIG
     START_FERTIG = True
-    return tick()
+    return UEBERNOMMEN_BEI
 
 def freier_platz(typ, mitte, r, frei_von=()):
     """Erster freier Bauplatz laut Platzsuche des Spiels, der keines der Rechtecke in frei_von [(Ort, Groesse)]
@@ -3995,6 +4002,9 @@ def main():
             schreib("1v1: vermesse den Platz von Spieler %d live -> start_%s.json" % (SP, kurz))
             KH.vermessen_live(kurz, SP)
     if UEBERNEHMEN:
+        # Daniel 15.11.2026 21:49 "es muss sofort samurai uebernehmen": die KI unseres Platzes SOFORT aus - vorher erst nach Lord-Suche
+        # und Vermessung (Partie 15.11. 21:50: bei Takt 438). shc losspielen laesst das Spiel erst nach dieser Meldung laufen.
+        uebernehmen_start()
         # 19.10. 20:05: Karte und Platz kommen aus der Lobby des Menschen - Kurzname aus dem Ort unseres Lords, den Platz in
         # der laufenden Partie vermessen (wie Spieler 2 im 1v1; die KI-Burg steht anders als die eines Menschen, L-Fund 19.10.)
         # 20:35 (Lobby-Test: Umschaltung bei Tick 38, der Lord von Spieler 2 stand erst spaeter - er kommt mit dem Bergfried):
