@@ -1,0 +1,952 @@
+{
+ "_quelle": "Nummern aus sourcehold/tool/convert/aiv/info.py (BUILDING_TYPE_AIV_FILES_KV), gegengeprueft an den gemessenen Grundflaechen aller 18 AIV-Dateien auf diesem Rechner.",
+ "_stand": "2026-09-05",
+ "gebaeude": {
+  "1": {
+   "name": "Kartenrand",
+   "kurz": "Rand",
+   "gruppe": "sonstiges",
+   "b": 0,
+   "h": 0,
+   "hinweis": "kein Gebaeude: Ring um die ganze 100x100-Karte, 396 Felder je Dorf"
+  },
+  "2": {
+   "name": "Bauflaeche",
+   "kurz": "Flaeche",
+   "gruppe": "sonstiges",
+   "b": 0,
+   "h": 0,
+   "hinweis": "kein Gebaeude, sondern der freigeraeumte Platz um die Bauten: Pennerhof am Bergfried, Trainingslager an Kaserne und Soeldnerposten, Versammlungsplatz an den Gilden. Steht Feld fuer Feld in der AIV. Es ist keine Bodentextur, sondern je Nachbargebaeude ein eigenes Gebaeudebild aus tile_buildings1 - belegt 06.09.2026 aus dem Programm, siehe lib/webbilder.js (VORPLAETZE) und den Wissensstand."
+  },
+  "10": {
+   "name": "Steinmauer",
+   "kurz": "Mauer",
+   "gruppe": "mauer",
+   "b": 1,
+   "h": 1,
+   "mapper": 25,
+   "mapperName": "M_MAPPER_WALL"
+  },
+  "11": {
+   "name": "Niedrige Mauer",
+   "kurz": "Mauer nied.",
+   "gruppe": "mauer",
+   "b": 1,
+   "h": 1,
+   "mapper": 46,
+   "mapperName": "M_MAPPER_WOODWALL"
+  },
+  "12": {
+   "name": "Zinnenmauer hoch",
+   "kurz": "Zinnen",
+   "gruppe": "mauer",
+   "b": 1,
+   "h": 1,
+   "mapper": 26,
+   "mapperName": "M_MAPPER_CRENAL"
+  },
+  "13": {
+   "name": "Zinnenmauer niedrig",
+   "kurz": "Zinnen nied.",
+   "gruppe": "mauer",
+   "b": 1,
+   "h": 1,
+   "mapper": 35,
+   "mapperName": "M_MAPPER_CRENAL2"
+  },
+  "14": {
+   "name": "Treppe 1",
+   "kurz": "Treppe",
+   "gruppe": "mauer",
+   "b": 1,
+   "h": 1,
+   "mapper": 181,
+   "mapperName": "M_MAPPER_STAIR1"
+  },
+  "15": {
+   "name": "Treppe 2",
+   "kurz": "Treppe",
+   "gruppe": "mauer",
+   "b": 1,
+   "h": 1,
+   "mapper": 182,
+   "mapperName": "M_MAPPER_STAIR2"
+  },
+  "16": {
+   "name": "Treppe 3",
+   "kurz": "Treppe",
+   "gruppe": "mauer",
+   "b": 1,
+   "h": 1,
+   "mapper": 183,
+   "mapperName": "M_MAPPER_STAIR3"
+  },
+  "17": {
+   "name": "Treppe 4",
+   "kurz": "Treppe",
+   "gruppe": "mauer",
+   "b": 1,
+   "h": 1,
+   "mapper": 184,
+   "mapperName": "M_MAPPER_STAIR4"
+  },
+  "18": {
+   "name": "Treppe 5",
+   "kurz": "Treppe",
+   "gruppe": "mauer",
+   "b": 1,
+   "h": 1,
+   "mapper": 185,
+   "mapperName": "M_MAPPER_STAIR5"
+  },
+  "19": {
+   "name": "Treppe 6",
+   "kurz": "Treppe",
+   "gruppe": "mauer",
+   "b": 1,
+   "h": 1,
+   "mapper": 186,
+   "mapperName": "M_MAPPER_STAIR6"
+  },
+  "20": {
+   "name": "Wassergraben a",
+   "kurz": "Graben",
+   "gruppe": "graben",
+   "b": 1,
+   "h": 1,
+   "mapper": 106,
+   "mapperName": "M_MAPPER_MOAT",
+   "hinweis": "Bodentextur noch nicht zugeordnet - in den Gebaeude-Dateien ist sie nicht, gesucht wird in den Gelaende-Dateien."
+  },
+  "21": {
+   "name": "Wassergraben b",
+   "kurz": "Graben",
+   "gruppe": "graben",
+   "b": 1,
+   "h": 1,
+   "mapper": 106,
+   "mapperName": "M_MAPPER_MOAT",
+   "hinweis": "Bodentextur noch nicht zugeordnet - in den Gebaeude-Dateien ist sie nicht, gesucht wird in den Gelaende-Dateien."
+  },
+  "22": {
+   "name": "Wassergraben c",
+   "kurz": "Graben",
+   "gruppe": "graben",
+   "b": 1,
+   "h": 1,
+   "mapper": 106,
+   "mapperName": "M_MAPPER_MOAT",
+   "hinweis": "Bodentextur noch nicht zugeordnet - in den Gebaeude-Dateien ist sie nicht, gesucht wird in den Gelaende-Dateien."
+  },
+  "23": {
+   "name": "Wassergraben d",
+   "kurz": "Graben",
+   "gruppe": "graben",
+   "b": 1,
+   "h": 1,
+   "mapper": 106,
+   "mapperName": "M_MAPPER_MOAT",
+   "hinweis": "Bodentextur noch nicht zugeordnet - in den Gebaeude-Dateien ist sie nicht, gesucht wird in den Gelaende-Dateien."
+  },
+  "24": {
+   "name": "Pechgraben",
+   "kurz": "Pech",
+   "gruppe": "graben",
+   "b": 1,
+   "h": 1,
+   "mapper": 99,
+   "mapperName": "M_MAPPER_PITCH_DITCH",
+   "laufzeit": 68,
+   "laufzeitName": "BT_PITCHDITCH"
+  },
+  "25": {
+   "name": "unbenutzt",
+   "kurz": "unbenutzt",
+   "gruppe": "sonstiges",
+   "b": 1,
+   "h": 1
+  },
+  "30": {
+   "name": "Wachturm",
+   "kurz": "Turm 1",
+   "gruppe": "turm",
+   "b": 3,
+   "h": 3,
+   "mapper": 110,
+   "mapperName": "M_MAPPER_TOWER1",
+   "laufzeit": 74,
+   "laufzeitName": "BT_TOWER1"
+  },
+  "31": {
+   "name": "Verteidigungsturm",
+   "kurz": "Turm 2",
+   "gruppe": "turm",
+   "b": 4,
+   "h": 4,
+   "mapper": 111,
+   "mapperName": "M_MAPPER_TOWER2",
+   "laufzeit": 75,
+   "laufzeitName": "BT_TOWER2"
+  },
+  "32": {
+   "name": "Geschuetzturm",
+   "kurz": "Turm 3",
+   "gruppe": "turm",
+   "b": 5,
+   "h": 5,
+   "mapper": 112,
+   "mapperName": "M_MAPPER_TOWER3",
+   "laufzeit": 76,
+   "laufzeitName": "BT_TOWER3"
+  },
+  "33": {
+   "name": "Eckiger Turm",
+   "kurz": "Turm 4",
+   "gruppe": "turm",
+   "b": 6,
+   "h": 6,
+   "mapper": 113,
+   "mapperName": "M_MAPPER_TOWER4",
+   "laufzeit": 77,
+   "laufzeitName": "BT_TOWER4"
+  },
+  "34": {
+   "name": "Runder Turm",
+   "kurz": "Turm 5",
+   "gruppe": "turm",
+   "b": 6,
+   "h": 6,
+   "mapper": 114,
+   "mapperName": "M_MAPPER_TOWER5",
+   "laufzeit": 78,
+   "laufzeitName": "BT_TOWER5"
+  },
+  "35": {
+   "name": "Oelbrennerei",
+   "kurz": "Oel",
+   "gruppe": "waffen",
+   "b": 4,
+   "h": 4,
+   "mapper": 180,
+   "mapperName": "M_MAPPER_OIL_SMELTER",
+   "laufzeit": 28,
+   "laufzeitName": "BT_OILSMELTER"
+  },
+  "36": {
+   "name": "Hundezwinger",
+   "kurz": "Hunde",
+   "gruppe": "angst",
+   "b": 3,
+   "h": 3,
+   "mapper": 312,
+   "mapperName": "M_MAPPER_DOG_CAGE",
+   "laufzeit": 99,
+   "laufzeitName": "BT_DOGCAGE"
+  },
+  "37": {
+   "name": "Fallgrube",
+   "kurz": "Fallgrube",
+   "gruppe": "graben",
+   "b": 1,
+   "h": 1,
+   "mapper": 98,
+   "mapperName": "M_MAPPER_KILLING_PIT",
+   "laufzeit": 67,
+   "laufzeitName": "BT_KILLINGPIT"
+  },
+  "38": {
+   "name": "Bergfried",
+   "kurz": "Bergfried",
+   "gruppe": "burg",
+   "b": 7,
+   "h": 7,
+   "mapper": 61,
+   "mapperName": "M_MAPPER_KEEP2",
+   "laufzeit": 41,
+   "laufzeitName": "BT_STONEKEEP"
+  },
+  "39": {
+   "name": "Soeldnerposten",
+   "kurz": "Soeldner",
+   "gruppe": "militaer",
+   "b": 5,
+   "h": 5,
+   "mapper": 86,
+   "mapperName": "M_MAPPER_BARRACKS_EURO",
+   "laufzeit": 8,
+   "laufzeitName": "BT_MERCENARYPOST"
+  },
+  "40": {
+   "name": "Kleines Torhaus (Durchfahrt N-S)",
+   "kurz": "Tor klein",
+   "gruppe": "burg",
+   "b": 5,
+   "h": 5,
+   "mapper": 144,
+   "mapperName": "M_MAPPER_GATE_STONE1A",
+   "laufzeit": 46,
+   "laufzeitName": "BT_GATEHOUSESMALL"
+  },
+  "41": {
+   "name": "Kleines Torhaus (Durchfahrt O-W)",
+   "kurz": "Tor klein",
+   "gruppe": "burg",
+   "b": 5,
+   "h": 5,
+   "mapper": 145,
+   "mapperName": "M_MAPPER_GATE_STONE1B",
+   "laufzeit": 46,
+   "laufzeitName": "BT_GATEHOUSESMALL"
+  },
+  "42": {
+   "name": "Grosses Torhaus (Durchfahrt N-S)",
+   "kurz": "Tor gross",
+   "gruppe": "burg",
+   "b": 7,
+   "h": 7,
+   "mapper": 146,
+   "mapperName": "M_MAPPER_GATE_STONE2A",
+   "laufzeit": 45,
+   "laufzeitName": "BT_GATEHOUSELARGE"
+  },
+  "43": {
+   "name": "Grosses Torhaus (Durchfahrt O-W)",
+   "kurz": "Tor gross",
+   "gruppe": "burg",
+   "b": 7,
+   "h": 7,
+   "mapper": 147,
+   "mapperName": "M_MAPPER_GATE_STONE2B",
+   "laufzeit": 45,
+   "laufzeitName": "BT_GATEHOUSELARGE"
+  },
+  "44": {
+   "name": "Zugbruecke",
+   "kurz": "Bruecke",
+   "gruppe": "burg",
+   "b": 5,
+   "h": 5,
+   "mapper": 105,
+   "mapperName": "M_MAPPER_DRAWBRIDGE",
+   "laufzeit": 49,
+   "laufzeitName": "BT_DRAWBRIDGE"
+  },
+  "50": {
+   "name": "Lanzenmacher",
+   "kurz": "Lanzen",
+   "gruppe": "waffen",
+   "b": 4,
+   "h": 4,
+   "mapper": 82,
+   "mapperName": "M_MAPPER_POLETURNER",
+   "laufzeit": 14,
+   "laufzeitName": "BT_POLETURNER",
+   "hinweis": "Hiess hier bisher 'Stangendreher' - das war die woertliche Uebersetzung von 'Poleturner' und kennt im Spiel niemand. Daniel nennt ihn Pikenier- oder Lanzenmacher (05.09.2026)."
+  },
+  "51": {
+   "name": "Bogenmacher",
+   "kurz": "Bogen",
+   "gruppe": "waffen",
+   "b": 4,
+   "h": 4,
+   "mapper": 50,
+   "mapperName": "M_MAPPER_FLETCHER",
+   "laufzeit": 12,
+   "laufzeitName": "BT_FLETCHER"
+  },
+  "52": {
+   "name": "Schmiede",
+   "kurz": "Schmiede",
+   "gruppe": "waffen",
+   "b": 4,
+   "h": 4,
+   "mapper": 83,
+   "mapperName": "M_MAPPER_BLACKSMITH",
+   "laufzeit": 13,
+   "laufzeitName": "BT_BLACKSMITH"
+  },
+  "53": {
+   "name": "Gerberei",
+   "kurz": "Gerber",
+   "gruppe": "waffen",
+   "b": 4,
+   "h": 4,
+   "mapper": 85,
+   "mapperName": "M_MAPPER_TANNER",
+   "laufzeit": 16,
+   "laufzeitName": "BT_TANNER"
+  },
+  "54": {
+   "name": "Ruestungsschmied",
+   "kurz": "Ruestung",
+   "gruppe": "waffen",
+   "b": 4,
+   "h": 4,
+   "mapper": 84,
+   "mapperName": "M_MAPPER_ARMOURER",
+   "laufzeit": 15,
+   "laufzeitName": "BT_ARMOURER"
+  },
+  "55": {
+   "name": "Kaserne",
+   "kurz": "Kaserne",
+   "gruppe": "militaer",
+   "b": 5,
+   "h": 5,
+   "mapper": 87,
+   "mapperName": "M_MAPPER_BARRACKS_ARAB",
+   "laufzeit": 9,
+   "laufzeitName": "BT_BARRACKS"
+  },
+  "56": {
+   "name": "Waffenlager",
+   "kurz": "Waffenlager",
+   "gruppe": "militaer",
+   "b": 4,
+   "h": 4,
+   "mapper": 81,
+   "mapperName": "M_MAPPER_ARMOURY",
+   "laufzeit": 11,
+   "laufzeitName": "BT_ARMORY"
+  },
+  "57": {
+   "name": "Ingenieursgilde",
+   "kurz": "Ingenieure",
+   "gruppe": "militaer",
+   "b": 5,
+   "h": 5,
+   "mapper": 88,
+   "mapperName": "M_MAPPER_ENGINEERS_GUILD",
+   "laufzeit": 24,
+   "laufzeitName": "BT_ENGINEERSGUILD"
+  },
+  "58": {
+   "name": "Tunnelgraebergilde",
+   "kurz": "Tunnel",
+   "gruppe": "militaer",
+   "b": 5,
+   "h": 5,
+   "mapper": 89,
+   "mapperName": "M_MAPPER_TUNNELERS_GUILD",
+   "laufzeit": 25,
+   "laufzeitName": "BT_TUNNELERSGUILD"
+  },
+  "59": {
+   "name": "Stall",
+   "kurz": "Stall",
+   "gruppe": "militaer",
+   "b": 6,
+   "h": 6,
+   "mapper": 65,
+   "mapperName": "M_MAPPER_STABLES",
+   "laufzeit": 35,
+   "laufzeitName": "BT_STABLES"
+  },
+  "60": {
+   "name": "Lagerplatz",
+   "kurz": "Lager",
+   "gruppe": "wirtschaft",
+   "b": 5,
+   "h": 5,
+   "mapper": 52,
+   "mapperName": "M_MAPPER_STORES",
+   "laufzeit": 10,
+   "laufzeitName": "BT_STOCKPILE"
+  },
+  "61": {
+   "name": "Holzfaellerhuette",
+   "kurz": "Holz",
+   "gruppe": "wirtschaft",
+   "b": 3,
+   "h": 3,
+   "mapper": 51,
+   "mapperName": "M_MAPPER_WOODSMAN",
+   "laufzeit": 3,
+   "laufzeitName": "BT_WOODCUTTERSHUT"
+  },
+  "62": {
+   "name": "Steinbruch",
+   "kurz": "Stein",
+   "gruppe": "wirtschaft",
+   "b": 6,
+   "h": 6,
+   "mapper": 56,
+   "mapperName": "M_MAPPER_QUARRY",
+   "laufzeit": 20,
+   "laufzeitName": "BT_QUARRY"
+  },
+  "63": {
+   "name": "Ochsenkarren",
+   "kurz": "Ochsen",
+   "gruppe": "wirtschaft",
+   "b": 2,
+   "h": 2,
+   "mapper": 55,
+   "mapperName": "M_MAPPER_OXENBASE",
+   "laufzeit": 4,
+   "laufzeitName": "BT_OXTETHER"
+  },
+  "64": {
+   "name": "Eisenmine",
+   "kurz": "Eisen",
+   "gruppe": "wirtschaft",
+   "b": 4,
+   "h": 4,
+   "mapper": 90,
+   "mapperName": "M_MAPPER_IRON_MINE",
+   "laufzeit": 5,
+   "laufzeitName": "BT_IRONMINE"
+  },
+  "65": {
+   "name": "Pechgraeber",
+   "kurz": "Pechrig",
+   "gruppe": "wirtschaft",
+   "b": 4,
+   "h": 4,
+   "mapper": 91,
+   "mapperName": "M_MAPPER_PITCH_WORKINGS",
+   "laufzeit": 6,
+   "laufzeitName": "BT_PITCHRIG"
+  },
+  "66": {
+   "name": "Marktplatz",
+   "kurz": "Markt",
+   "gruppe": "wirtschaft",
+   "b": 5,
+   "h": 5,
+   "mapper": 77,
+   "mapperName": "M_MAPPER_TRADEPOST",
+   "laufzeit": 26,
+   "laufzeitName": "BT_MARKETPLACE"
+  },
+  "70": {
+   "name": "Kornspeicher",
+   "kurz": "Speicher",
+   "gruppe": "nahrung",
+   "b": 4,
+   "h": 4,
+   "mapper": 80,
+   "mapperName": "M_MAPPER_GRANARY",
+   "laufzeit": 19,
+   "laufzeitName": "BT_GRANARY"
+  },
+  "71": {
+   "name": "Apfelplantage",
+   "kurz": "Aepfel",
+   "gruppe": "nahrung",
+   "b": 10,
+   "h": 10,
+   "mapper": 72,
+   "mapperName": "M_MAPPER_APPLEFARM",
+   "laufzeit": 32,
+   "laufzeitName": "BT_APPLEFARM"
+  },
+  "72": {
+   "name": "Milchviehhof",
+   "kurz": "Kuehe",
+   "gruppe": "nahrung",
+   "b": 10,
+   "h": 10,
+   "mapper": 73,
+   "mapperName": "M_MAPPER_CATTLEFARM",
+   "laufzeit": 33,
+   "laufzeitName": "BT_DAIRYFARM"
+  },
+  "73": {
+   "name": "Getreidefarm",
+   "kurz": "Getreide",
+   "gruppe": "nahrung",
+   "b": 9,
+   "h": 9,
+   "mapper": 70,
+   "mapperName": "M_MAPPER_WHEATFARM",
+   "laufzeit": 30,
+   "laufzeitName": "BT_WHEATFARM"
+  },
+  "74": {
+   "name": "Jaegerhuette",
+   "kurz": "Jaeger",
+   "gruppe": "nahrung",
+   "b": 3,
+   "h": 3,
+   "mapper": 78,
+   "mapperName": "M_MAPPER_HUNTER",
+   "laufzeit": 7,
+   "laufzeitName": "BT_HUNTERSHUT"
+  },
+  "75": {
+   "name": "Hopfenfarm",
+   "kurz": "Hopfen",
+   "gruppe": "nahrung",
+   "b": 9,
+   "h": 9,
+   "mapper": 71,
+   "mapperName": "M_MAPPER_HOPSFARM",
+   "laufzeit": 31,
+   "laufzeitName": "BT_HOPFARM"
+  },
+  "76": {
+   "name": "Muehle",
+   "kurz": "Muehle",
+   "gruppe": "nahrung",
+   "b": 3,
+   "h": 3,
+   "mapper": 74,
+   "mapperName": "M_MAPPER_MILL",
+   "laufzeit": 34,
+   "laufzeitName": "BT_MILL"
+  },
+  "77": {
+   "name": "Baeckerei",
+   "kurz": "Baecker",
+   "gruppe": "nahrung",
+   "b": 4,
+   "h": 4,
+   "mapper": 75,
+   "mapperName": "M_MAPPER_BAKER",
+   "laufzeit": 17,
+   "laufzeitName": "BT_BAKERY"
+  },
+  "78": {
+   "name": "Brauerei",
+   "kurz": "Brauer",
+   "gruppe": "nahrung",
+   "b": 4,
+   "h": 4,
+   "mapper": 76,
+   "mapperName": "M_MAPPER_BREWER",
+   "laufzeit": 18,
+   "laufzeitName": "BT_BREWERY"
+  },
+  "79": {
+   "name": "Wirtshaus",
+   "kurz": "Wirtshaus",
+   "gruppe": "nahrung",
+   "b": 5,
+   "h": 5,
+   "mapper": 92,
+   "mapperName": "M_MAPPER_INN",
+   "laufzeit": 22,
+   "laufzeitName": "BT_INN"
+  },
+  "80": {
+   "name": "Huette",
+   "kurz": "Huette",
+   "gruppe": "wohnen",
+   "b": 4,
+   "h": 4,
+   "mapper": 54,
+   "mapperName": "M_MAPPER_HOVEL",
+   "laufzeit": 1,
+   "laufzeitName": "BT_HOVEL"
+  },
+  "81": {
+   "name": "Kapelle",
+   "kurz": "Kapelle",
+   "gruppe": "religion",
+   "b": 6,
+   "h": 6,
+   "mapper": 95,
+   "mapperName": "M_MAPPER_CHURCH1",
+   "laufzeit": 36,
+   "laufzeitName": "BT_CHAPEL"
+  },
+  "82": {
+   "name": "Kirche",
+   "kurz": "Kirche",
+   "gruppe": "religion",
+   "b": 9,
+   "h": 9,
+   "mapper": 96,
+   "mapperName": "M_MAPPER_CHURCH2",
+   "laufzeit": 37,
+   "laufzeitName": "BT_CHURCH"
+  },
+  "83": {
+   "name": "Kathedrale",
+   "kurz": "Kathedrale",
+   "gruppe": "religion",
+   "b": 13,
+   "h": 13,
+   "mapper": 97,
+   "mapperName": "M_MAPPER_CHURCH3",
+   "laufzeit": 38,
+   "laufzeitName": "BT_CATHEDRAL"
+  },
+  "84": {
+   "name": "Apotheke",
+   "kurz": "Apotheke",
+   "gruppe": "wohnen",
+   "b": 6,
+   "h": 6,
+   "mapper": 93,
+   "mapperName": "M_MAPPER_HEALER",
+   "laufzeit": 23,
+   "laufzeitName": "BT_APOTHECARY"
+  },
+  "85": {
+   "name": "Brunnen",
+   "kurz": "Brunnen",
+   "gruppe": "wohnen",
+   "b": 3,
+   "h": 3,
+   "mapper": 330,
+   "mapperName": "M_MAPPER_WELL",
+   "laufzeit": 27,
+   "laufzeitName": "BT_WELL"
+  },
+  "86": {
+   "name": "Wasserfass",
+   "kurz": "Wasser",
+   "gruppe": "wohnen",
+   "b": 4,
+   "h": 4,
+   "mapper": 342,
+   "mapperName": "M_MAPPER_WATERPOT",
+   "laufzeit": 70,
+   "laufzeitName": "BT_WATERPOT"
+  },
+  "90": {
+   "name": "Maibaum",
+   "kurz": "Maibaum",
+   "gruppe": "freude",
+   "b": 3,
+   "h": 3,
+   "mapper": 175,
+   "mapperName": "M_MAPPER_MAYPOLE",
+   "laufzeit": 65,
+   "laufzeitName": "BT_MAYPOLE"
+  },
+  "91": {
+   "name": "Tanzbaer",
+   "kurz": "Baer",
+   "gruppe": "freude",
+   "b": 5,
+   "h": 5,
+   "mapper": 324,
+   "mapperName": "M_MAPPER_DANCING_BEAR",
+   "laufzeit": 103,
+   "laufzeitName": "BT_DANCINGBEAR"
+  },
+  "92": {
+   "name": "Statue",
+   "kurz": "Statue",
+   "gruppe": "freude",
+   "b": 2,
+   "h": 2,
+   "mapper": 313,
+   "mapperName": "M_MAPPER_STATUE1",
+   "laufzeit": 100,
+   "laufzeitName": "BT_STATUE"
+  },
+  "93": {
+   "name": "Schrein",
+   "kurz": "Schrein",
+   "gruppe": "freude",
+   "b": 2,
+   "h": 2,
+   "mapper": 318,
+   "mapperName": "M_MAPPER_SHRINE1",
+   "laufzeit": 101,
+   "laufzeitName": "BT_SHRINE"
+  },
+  "94": {
+   "name": "Stadtgarten",
+   "kurz": "Garten gr.",
+   "gruppe": "freude",
+   "b": 4,
+   "h": 4,
+   "mapper": 169,
+   "mapperName": "M_MAPPER_GARDEN10",
+   "laufzeit": 66,
+   "laufzeitName": "BT_GARDEN"
+  },
+  "95": {
+   "name": "Garten",
+   "kurz": "Garten",
+   "gruppe": "freude",
+   "b": 3,
+   "h": 3,
+   "mapper": 166,
+   "mapperName": "M_MAPPER_GARDEN7",
+   "laufzeit": 66,
+   "laufzeitName": "BT_GARDEN"
+  },
+  "96": {
+   "name": "Teich",
+   "kurz": "Teich",
+   "gruppe": "freude",
+   "b": 3,
+   "h": 3,
+   "mapper": 325,
+   "mapperName": "M_MAPPER_POND1",
+   "laufzeit": 104,
+   "laufzeitName": "BT_POND"
+  },
+  "97": {
+   "name": "Grosser Teich",
+   "kurz": "Teich gr.",
+   "gruppe": "freude",
+   "b": 5,
+   "h": 5,
+   "mapper": 327,
+   "mapperName": "M_MAPPER_POND3_LARGE1",
+   "laufzeit": 104,
+   "laufzeitName": "BT_POND"
+  },
+  "100": {
+   "name": "Galgen",
+   "kurz": "Galgen",
+   "gruppe": "angst",
+   "b": 2,
+   "h": 2,
+   "mapper": 176,
+   "mapperName": "M_MAPPER_GALLOWS",
+   "laufzeit": 62,
+   "laufzeitName": "BT_GALLOWS"
+  },
+  "101": {
+   "name": "Jauchegrube",
+   "kurz": "Jauche",
+   "gruppe": "angst",
+   "b": 5,
+   "h": 5,
+   "mapper": 301,
+   "mapperName": "M_MAPPER_CESS_PIT1",
+   "laufzeit": 91,
+   "laufzeitName": "BT_CESSPIT"
+  },
+  "102": {
+   "name": "Pranger",
+   "kurz": "Pranger",
+   "gruppe": "angst",
+   "b": 3,
+   "h": 3,
+   "mapper": 177,
+   "mapperName": "M_MAPPER_STOCKS",
+   "laufzeit": 63,
+   "laufzeitName": "BT_STOCKS"
+  },
+  "103": {
+   "name": "Scheiterhaufen",
+   "kurz": "Scheiterh.",
+   "gruppe": "angst",
+   "b": 3,
+   "h": 3,
+   "mapper": 305,
+   "mapperName": "M_MAPPER_BURNING_STAKE",
+   "laufzeit": 92,
+   "laufzeitName": "BT_BURNINGSTAKE"
+  },
+  "104": {
+   "name": "Verlies",
+   "kurz": "Verlies",
+   "gruppe": "angst",
+   "b": 5,
+   "h": 5,
+   "mapper": 307,
+   "mapperName": "M_MAPPER_DUNGEON",
+   "laufzeit": 94,
+   "laufzeitName": "BT_DUNGEON"
+  },
+  "105": {
+   "name": "Streckbank",
+   "kurz": "Streckbank",
+   "gruppe": "angst",
+   "b": 3,
+   "h": 3,
+   "mapper": 308,
+   "mapperName": "M_MAPPER_RACK_STRETCHING",
+   "laufzeit": 95,
+   "laufzeitName": "BT_STRETCHINGRACK"
+  },
+  "106": {
+   "name": "Haengekaefig",
+   "kurz": "Kaefig",
+   "gruppe": "angst",
+   "b": 2,
+   "h": 2,
+   "mapper": 306,
+   "mapperName": "M_MAPPER_GIBBET",
+   "laufzeit": 93,
+   "laufzeitName": "BT_GIBBET"
+  },
+  "107": {
+   "name": "Richtblock",
+   "kurz": "Richtblock",
+   "gruppe": "angst",
+   "b": 3,
+   "h": 3,
+   "mapper": 310,
+   "mapperName": "M_MAPPER_CHOPPING_BLOCK",
+   "laufzeit": 97,
+   "laufzeitName": "BT_CHOPPINGBLOCK"
+  },
+  "108": {
+   "name": "Tauchstuhl",
+   "kurz": "Tauchstuhl",
+   "gruppe": "angst",
+   "b": 5,
+   "h": 5,
+   "mapper": 311,
+   "mapperName": "M_MAPPER_DUNKING_STOOL",
+   "laufzeit": 98,
+   "laufzeitName": "BT_DUNKINGSTOOL"
+  }
+ },
+ "gruppen": {
+  "burg": {
+   "name": "Burg",
+   "farbe": "#c9b083"
+  },
+  "mauer": {
+   "name": "Mauern",
+   "farbe": "#9aa2ad"
+  },
+  "turm": {
+   "name": "Tuerme",
+   "farbe": "#6f7d8c"
+  },
+  "graben": {
+   "name": "Graeben",
+   "farbe": "#4b7fa8"
+  },
+  "militaer": {
+   "name": "Militaer",
+   "farbe": "#b4452f"
+  },
+  "waffen": {
+   "name": "Waffen",
+   "farbe": "#d0713c"
+  },
+  "wirtschaft": {
+   "name": "Wirtschaft",
+   "farbe": "#8b6f3e"
+  },
+  "nahrung": {
+   "name": "Nahrung",
+   "farbe": "#6f9c3d"
+  },
+  "wohnen": {
+   "name": "Wohnen",
+   "farbe": "#c9a227"
+  },
+  "religion": {
+   "name": "Religion",
+   "farbe": "#8f6bb5"
+  },
+  "freude": {
+   "name": "Freude",
+   "farbe": "#3fa8a0"
+  },
+  "angst": {
+   "name": "Angst",
+   "farbe": "#7a2f4a"
+  },
+  "sonstiges": {
+   "name": "Sonstiges",
+   "farbe": "#5a5a5a"
+  }
+ },
+ "_quelle_nummern": "mapper: Datentabelle der exe ab 0x00B46218 (AIV 30-108) plus der Schalter in convertAIVBuildingTypeToCommandBuildingType (AIV 10-24). laufzeit: Enum BuildingType aus der Ghidra-Referenz OpenSHC-ref, zugeordnet ueber die Bedeutung."
+}

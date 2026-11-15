@@ -34,6 +34,9 @@ target-version = "py311"
 line-length = 100
 # Relocated historical sources retain their formatting; new modules are checked.
 extend-exclude = [
+    # B-192 (15.11.2026): aus dem alten Stand (archiv/alt-main-20261104) unveraendert uebernommen; Aufraeumen ist ein eigener Punkt
+    "plugin",
+    "research/engine_knowledge",
     "src/selfaware/execution/auftragsbuch.py",
     "src/selfaware/execution/lordschutz.py",
     "src/selfaware/game/ucp/aufbau.py",

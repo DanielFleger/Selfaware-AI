@@ -1,0 +1,148 @@
+Engine-Wissensbasis — 23.10.2026 — B-211
+
+Arbeitsstand, keine Behauptung vollstaendigen Spielverstaendnisses.
+Der lokale Arbeitsordner ist C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge.
+Das Spiel wurde frisch ueber den nativen Menuekanal gestartet, stummgeschaltet und bei Tick 8 pausiert.
+Es gab keine Maus-/Tastatureingaben, keine geladenen Spielstaende und keinen Strategie- oder Siegtest.
+
+Nachgewiesen:
+  4.581 interne Funktionen maschinell erfasst und disassembliert;
+  4.580 davon dekompiliert, Fehler bei 004d76a0 separat erfasst;
+  184 externe Funktionsdeklarationen separat, nicht als dekompilierte Implementierungen gezaehlt;
+  7.564 Kommentare erhalten, 1.881 vorhandene Instruktionen ohne Funktionszuordnung separat;
+  1.747 indirekte Kontrollfluss-Instruktionen (NICHT gleich 1.747 unaufgeloeste Aufrufe);
+  alle 4.581 Koerper bytegleich mit der untersuchten EXE auf Platte;
+  im frischen laufenden Spiel 157 Koerper abweichend, 4.424 unveraendert.
+  Zwei Funktionen eng semantisch untersucht, eine Regel mit Gegenproben bestaetigt.
+
+EK-001: Koordinatenmaske, kein Wegfindungsbeweis. Rust-Modul gegen exakt gepruefte
+54 Originalbytes in einem isolierten 32-Bit-Prozess verglichen: 160.070 Vergleiche,
+null Abweichungen, Rechteck- und Achsenvertauschungs-Gegenprobe. Maske und Code stammen
+aus der frischen Partie. Kein Aufruf dieser Funktion im Spiel durch diesen Test.
+EK-002: Navigation schreibt globale Hilfsfelder. Der Kommentar 'keine Nebenwirkung'
+im vorhandenen Rust-Kern ist in dieser Allgemeinheit durch den statischen Code widerlegt.
+Keine Aenderung am laufenden Kern; Wirkung und Konkurrenzverhalten bleiben offen.
+
+REA 6.7.0 aus npm lokal getestet, Ghidra 12.1.2: x86-PE, Assembler, Pseudocode und
+Querverweise funktionieren. REA meldet begrenzte Aufruferabdeckung. Sein Neuimport hat
+die vorhandenen OpenSHC-Namen nicht; deshalb bleibt die annotierte Projektkopie die Hauptquelle.
+FilmCraft ist fuer diese Pipeline weder Abhaengigkeit noch Vollstaendigkeitsbeleg.
+
+Start fuer die Fortsetzung (PowerShell, in diesem Arbeitsordner):
+  .\verify.ps1
+  python pipeline.py query calculateCanPlayerUnitsNavigateToAreaFromArea
+  python pipeline.py rule EK-002
+  python pipeline.py query climb
+  python pipeline.py export 0
+  python pipeline.py index
+  python -m unittest discover -s . -p test_pipeline.py -v
+
+exports/reference/ enthaelt Rohbelege; knowledge.sqlite enthaelt functions, refs,
+search (Volltext) und rules. Gezielte SQL-Abfragen sind lokal moeglich.
+rules.json nennt Eingaben, Ausgaben, Version, Seiteneffekte, Grenzen, Gegenbeispiele,
+Tests, Entscheidungsbezug und Belegdateien. Geaenderte Belegpruefsummen machen Regeln stale.
+remaining.json ordnet die offenen sechs taktischen Problemfaelle und die Programmrestluecken.
+evidence/coverage.json trennt die vier Belegstufen. Fehlstellen sind keine 'Abdeckung'.
+evidence/inventory.json inventarisiert Dateien, liest aber nicht alle Dokumente semantisch.
+
+Originale bleiben erhalten. projects/OpenSHC-ref ist die Arbeitskopie, der Export
+laeuft mit -readOnly -noanalysis. Annotationen sind mit ApplyKnowledgeAnnotations.java
+getestet; der Test verwirft Aenderungen. Fuer eine bewusste Anwendung nur in der Kopie
+-readOnly weglassen, annotations.json zuvor pruefen. Bestehender Name, Kommentar,
+Datei- und Funktionshash muessen passen. Import neuer Typen ist noch nicht implementiert;
+vorhandene Typen bleiben in der Projektkopie und im Typenexport erhalten.
+
+Wichtige verbleibende Grenzen:
+  - Noch keine Originalvergleiche fuer Assassinenumweg, Reiterreichweite, Hoehenpendeln,
+    Gebaeudedurchbruch, Umweg nach Sieg oder Bauplatz-Wiederholung in diesem Auftrag.
+  - Noch keine Integration der Mechanikregeln in den aktiven Entscheider.
+  - Geaenderte Ghidra-Projektinhalte invalidieren konservativ den Gesamtexport.
+    Selektive Invalidierung entlang des Abhaengigkeitsgraphen ist noch offen.
+  - Bibliothekscode/Code-Daten-Grenzen und indirekte Ziele nicht vollstaendig klassifiziert.
+  - Gesamte Rohdaten, kommerzielle EXE und Projektkopie bleiben lokal.
+  - Die pausierte Beobachtung ist keine abgeschlossene Trainingspartie; keinen Sieg,
+    Verlust oder Strategiegewinn daraus ableiten.
+
+Bei Wiederverwendung aus der versionierten Werkzeugkopie vorher setzen:
+  $env:SHC_KNOWLEDGE_ROOT='C:\Users\danie\Documents\ChatGPT\Village Studio\work\engine-knowledge'
+
+Abnahme erster Durchlauf: echte binaere Quelle -> kopiertes Ghidra -> durchsuchbarer
+Index -> enger statischer Beleg -> frische Spielbeobachtung -> isolierter Originalvergleich.
+Gesamtauftrag und Sitzung 2 bleiben B-211 in_arbeit.
+
+--- Nachtrag SRE 24.10.2026 21:30 (Sitzung Reverse Engineering, B-211) ---
+Laufwegbeweis Weg-Ebene ERBRACHT, ohne Spielstart: laufweg_beweis.py prueft 59.857 echte
+Ein-Feld-Schritte (21 Messungen 06.-12.10., Orte alle 2 Takte) gegen das Byte des Startfelds.
+Echte Bit-Zuordnung 1,95 % Verstoesse, jede der 15 falschen 6,5-24 % (Negativlauf).
+846 der 1.169 Verstoesse = Ein-/Austritt ins eigene Arbeitsgebaeude (W30), 323 gerade Schritte
+an einem Byte-00-Bodenfeld (vermutet: Baum/Fels, spaeter frei; Wegkarte ist ein Takt).
+Wissensregister W29-W33, Beleg daten/laufweg_beweis_20261024_211808.json.
+OFFEN (braucht Spiel): Gebiets-Ebene 0x01DF70D8 und Wegabfrage 0x004A5320 gegen Einheiten,
+die ein Torhaus/eine Treppe nehmen - alte Wegkarten haben die Gebiets-Spalte von der falschen
+Adresse (W33). Naechster Schritt: Aufnahme (wegkarte + einheitwacht alle 2 Takte) in einer
+Partie mit Torhaus-Durchgang, dann denselben Pruefer um Gebietswechsel erweitern.
+22:10 SRE: W34/W35 - Wegabfrage vergleicht PathConnectionLayer-Nummern (0x01DF70D8), Gebiete = Flutfuellung ueber
+die Weg-Bits (updateSeparateAreaTileMap). Fuer den Gebietswechsel-Beweis braucht die Torhaus-Aufnahme zusaetzlich
+PathFindingState roh (speicher.lies(0x012BB8C8, 107428)) - bei SAI angefordert (Daniel 21:44 freigegeben).
+Pruefplan danach: (1) Gebiet aus dem npz gegen eigene Flutfuellung ueber link nachzaehlen (W35);
+(2) jeder Schritt zwischen zwei Gebietsnummern != 0 muss einen climbData-Eintrag haben, der beide verbindet,
+und query(from, to) != 0 liefern (navigation_rule.rs-Nachbau in Python oder die Rust-Regel direkt).
+22:30 SRE: Torhaus-Aufnahme (SAI, f097701) ausgewertet - torhaus_pruefen.py, W35 berichtigt, W36-W39.
+Kernfund: ein Torhaus verbindet NIE zwei Gebiete (vor der Flutfuellung werden alle Tore geschlossen, 0x00419960);
+innen/aussen sind getrennte Gebiete, nur der Kletter-Eintrag verbindet sie in der Wegabfrage. Gebietsnummern
+wechseln bei jeder Neuberechnung (W38). OFFEN W39: PathFindingState roh + Logik-Ebene fuer P4 und die Saat-Maske.
+22:45 SRE: Laufwegbeweis Teil 2 ERBRACHT (W39/W40): 6 Kletter-Eintraege aus PathFindingState roh (SAI, e0f7db8),
+alle 12 echten Uebergaenge (8x Torhaus, 4x Turm) mit Eintrag, nachgebaute Wegabfrage in beide Richtungen != 0;
+Negativlauf 299/300 Paare 0, 9999 -> 0. W36 berichtigt: keine Treppe, 16 Kurzkontakte am Mauereck (2-4 Takte).
+OFFEN: Saat-Maske (Logik-Ebene) fuer eine exakte Nachbildung der Gebiete (W35, 181 statt 74 Stuecke); fremde Tore
+(Mannschaftstabelle 0x0117D548, "Gebaeude offen" +0x2c6); Leitern (Typ 1) und permitClimb; Mauerbruch/Belagerungsturm.
+Fuer die SamurAI-Lenker nutzbar ab jetzt: Gebiet gleich -> Weg ohne Abfrage; Gebiet 0 -> kein Weg; Torhaus trennt
+immer (innen/aussen), Gebietsnummern nie ueber eine Neuberechnung (200 Takte) merken.
+
+--- SRE 25.10.2026 08:50 - B-242 Spielwerte (Auftrag Daniel ueber SAI) ---
+werkzeug/spielwerte.py liest die Stammtabellen (Einheiten 80 Arten, Nahkampf 80x80, Geschosse, Preise, Gebaeude, Markt,
+Zuzug, Lord-Leben je KI) aus Datei ODER laufendem Spiel; --vergleich zeigt Patches. Register P1-P12.
+Gegenproben: Lord 150.000 ja; Streitkolben->Lord 75 (gemessen ~70) ja; Pfeil 54 ja; Assassine 60 statt 70 (Daniel) -
+live pruefen; Marktpreise Datei != S2 gemessen (Keule 290 vs 300, Leder 125 vs 160, Eisen 225 vs 270) - live pruefen.
+NAECHSTE SCHRITTE: sobald ein Spiel laeuft: python werkzeug/spielwerte.py --vergleich (klaert Assassine + Markt).
+Dann A6 Takte je Feld (Stufe -> Takte, moveUnit lesen), A3 Tiere (Update*-Funktionen), B8 EntityState (Geschosse im
+Flug: 0x02350300, Struktur Entity), C9 Zustandsuebergaenge (Update*-Funktionen je Art, PTR_UpdateUnitFunctions 0x00B4DF60).
+09:10 SRE: P13-P18 - Takte je Feld = 8 x (Stufe + 1) (L1 stuetzt), Zielwahl der Schuetzen (Punktzahl je Klasse),
+Feind-Wahrnehmung alle 64/128/256 Takte + Assassinen-Kandidat (<= 20 Felder), Geschosse lesbar (EntityState
+0x02350300, 3000 x 232 Byte), Tiere/Nachspawn (Ochse 100 Takte, Rehe nur Einzelspieler). Offen P12.
+09:25 SRE: P19 Namen aus cr.tex (Gruppe 88 = UT-Reihenfolge, Gruppe 2 = Waren) in spielwerte.py; P20 Zustandsautomat grob;
+P3: kein Hoehenvorteil im Nahkampf. Offen P12 (A4 Ingenieurbau-Takte, Kuh-Takt, C9 Dauern, Live-Vergleich).
+09:30 SRE: LIVE-Vergleich (SAI, 7e8cfbf) ausgewertet - P21/P22: 18 Tabellen weichen ab, UCP3 ueberschreibt an denselben
+Adressen; Daniels Gegenproben (Assassine 70, Streitkolben 70, Marktpreise S2) stimmen alle mit LIVE. Datei-Stand in
+P2-P9 ist nur Grundlinie. SamurAI: spielwerte.py beim Partiestart live lesen, nie Werte fest einbauen.
+10:05 SRE: P23-P26 - Nahkampf = Schaden je TAKT (gemessen 70 = Tabelle), Schussrhythmus je Art aus Animationstabellen
+(Bogen 129, Armbrust 228, arab. Bogen 90, Schleuderer 57, Feuerwerfer 143 Takte je Schuss; spielwerte.py "schuss"),
+Gebaeudeschaden je Schlag je Art (Code), Mauer = Hoehenabbau mit Nachbar-Faktor, Kuh 32 Takte. Offen: Pferdebogen und
+Belagerungsgeraete (andere Zustandsnamen), Ingenieur-Bauzeit, Schlagtakt gegen Gebaeude.
+10:20 SRE: Belagerungszyklen (Katapult 84, Tribok 183, Mangonel 90, Balliste 78, Feuerballiste 66 Takte) und Steinschaden
+10+10 ergaenzt (P24/P25, spielwerte.py SCHUSS). Offen: Pferdebogen-Zyklus, Ingenieur-Bauzeit (UpdateEngineer 59k Zeichen,
+Zelt-Gebaeude hat keine Update-Funktion), Schlagtakt gegen Gebaeude.
+10:45 SRE: Schlagtakt gegen Gebaeude je Art (Zustand 107, Bilder x (Speed+1)) in spielwerte.py gebaeude_schaden.takt_je_schlag
+und Register P25. Alle abgeleiteten Tabellen jetzt im SAI-Format (takt.*, bewegung.*, gebaeude_schaden.*, belagerung.*,
+anwerben.*, sicht.*, zustand.*, nachspawn.*). Daniel 09:58: in Berichten Spielnamen aus cr.tex + Codename/Nummer, keine
+eigenen Eindeutschungen. Offen: Berittener Bogenschuetze (A_HARCHER 74) Schusstakt (schiesst nicht ueber Zustaende 4/5/6),
+Ingenieur-Bauzeit, Feuer-Regeln, Produktionsketten-Takte aus dem Code.
+10:30 SRE: P27 Feuer (Brennbarkeit je Art, Zuendung Sklave sicher alle 2 Hiebe, Ausbreitung ueber Nachbarfelder, keine
+Brenndauer-Grenze), P28 Bauzeit Belagerung (Schwellen 320/640/1280/640/120/320 je Baumeister). Berichtigt: Burgherr hackt
+(57 Takte, 70/6/10). Berittener Bogenschuetze 78 Takte je Pfeil. SAI hat alles; Reihenfolge-Wuensche von SAI abgearbeitet.
+Offen: Bedienerzahl je Geraet (Code), Mangonel/Balliste-Turmbau, Produktionsketten-Takte aus dem Code.
+10:50 SRE: Meuchelmoerder-Sicht praezisiert (P15, sicht.assassine): Aufdecker sind nur Einheiten mit isSelectable-Flag
+(Nahkaempfer, Berittene Bogenschuetzen, Baumeister, Burgherr, Geraete) - Fussschuetzen decken nicht auf; 160 Mikroschritte,
+Pythagoras-Naeherung, alle 128 Takte erneuert. SAI prueft gegen Lauf 222651 nach Art des naechsten Feindes.
+11:00 SRE: Feuer genau gelesen (P27 neu): Zuendung deterministisch nach dem ERSTEN Hack-Durchlauf (93 Takte, nicht 186);
+Abklingzeit Neubau 400 (Mensch) / 2000 Takte (KI im Gefecht), nach Loeschen 2000 - das ist der sichtbare "Zufall";
+Flammen je Feld 0-119 Takte verzoegert; Ueberspringen 4 Versuche je Feuer, <= 2 Felder, Staerke-1, eigene nie; kein Wind.
+SAI misst parallel im Sandkasten (Sklave an Holzfaellerhuette).
+
+--- SRE 25.10. 15:50 - Das Auge (B-251), Zwischenstand ---
+werkzeug/auge.py: Schnappschuss in 3 ms, alle Bloecke; Register AU1-AU10. Gemessen: Geschosse (Schuetze/Ziel/Abschuss-Takt/
+Flugbahn/Landung), Wegplan-Richtungen, Takt-Treue. Offen: Restdauer der Phase im Auge rechnen (Tabellen aus spielwerte),
+KI-Felder gegen Verhalten messen (Trupp-Absicht), Fallgruben-Feld, Gebaeude-Eingaenge, Stein-Flugbahn (Kurventyp 1/2),
+Punkt-fuer-Punkt-Abnahme mit SAI.
+Pruefung: python werkzeug/engine_knowledge/auge_pruefen.py (Sandkasten Instanz 5, 12 s, 4 Bogenschuetzen gegen 3 Speere).
+Grosse Rohaufnahmen daten/auge_pruefung_*.jsonl (120-260 MB) bleiben lokal, nicht im Repo.

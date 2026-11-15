@@ -1,0 +1,163 @@
+# -*- coding: utf-8 -*-
+"""B-252 / B-251 AU3: Stein-Flugbahn messen. Katapult (S_CATAPULT 39) + 2 Baumeister (E_ENGINEER 30) setzen, bemannen
+({"angriff": {"einheiten": [...], "bemannen": nr}} - logik.lua 25.10., SAI), Gebaeude angreifen, Protokoll, dann je Stein
+die Vorhersage sre_bahn (Landetakt, Landefeld, Hoehen) gegen die echten Werte halten.
+Totschlagtest: Landetakt daneben > 3 Takte oder Landefeld > 1 Feld bei der Mehrheit der Steine = Stein-Formel falsch.
+"""
+import json
+import os
+import sys
+import time
+
+HIER = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.dirname(HIER))
+sys.path.insert(0, HIER)
+import auge  # noqa: E402
+import shc  # noqa: E402
+import speicher  # noqa: E402
+from laden import befehl  # noqa: E402
+from auge_pruefen import freie_reihe  # noqa: E402
+
+DATEN = os.path.join(os.path.dirname(os.path.dirname(HIER)), "daten")
+
+
+def takt_vor(n=5):
+    befehl({"pause": False, "tempo": 40}, 0.2)
+    time.sleep(n / 100.0 + 0.2)
+    befehl({"pause": True}, 0.2)
+
+
+def main():
+    dauer = float(sys.argv[1]) if len(sys.argv) > 1 else 20.0
+    z = shc.zustand()
+    print("Zustand:", z["text"])
+    if z.get("gameover") or not z.get("pause"):
+        print("FEHLER: nicht bespielbar/angehalten", z)
+        return 1
+    s = auge.Schnappschuss()
+    ziel = sorted(s.gebaeude_liste((2,)), key=lambda g: (g["buildingType"] != 11, g["id"]))[0]
+    print("Zielgebaeude", ziel["id"], "Typ", ziel["buildingType"], "bei", ziel["feld"], "Leben", ziel["currentHealth"])
+    # setzeEinheit stellt die Einheit ein Feld weiter (x+1, y+1, gemessen 17.10.); updateUnits 0x00579300 raeumt Einheiten
+    # auf Feldern ohne Wegnetz-Gebiet still ab (Lauf 155856: Katapult nach ~1000 Takten weg) - deshalb BEIDE Reihen pruefen
+    import speicher
+    k = speicher.wegkarte()
+    reihe = None
+    for versuch in range(40):
+        r = freie_reihe((ziel["feld"][0], ziel["feld"][1] + 12 + versuch), 6, suchweite=25)
+        if r and (k["gebiet"][r[1]:r[1] + 6, r[2] + 1] > 0).all() and (k["gebaeude"][r[1]:r[1] + 6, r[2] + 1] == 0).all():
+            reihe = r
+            break
+    print("freie Reihe (beide Zeilen)", reihe)
+    _, x0, y = reihe
+    print(shc.setze("1", "39", str(x0), str(y), "1"))
+    print(shc.setze("1", "30", str(x0 + 2), str(y), "2"))
+    takt_vor(5)
+    s = auge.Schnappschuss()
+    for u in s.einheiten_liste((1,)):
+        if u["unitType"] in (39, 30):
+            fx, fy = u["feld"]
+            print("  Einheit", u["id"], "Art", u["unitType"], "steht auf", (fx, fy), "Gebiet", int(k["gebiet"][fx, fy]), "Gebaeude", int(k["gebaeude"][fx, fy]))
+    kat = [u for u in s.einheiten_liste((1,)) if u["unitType"] == 39]
+    bau = [u for u in s.einheiten_liste((1,)) if u["unitType"] == 30]
+    print("Katapult", [(u["id"], u["feld"]) for u in kat], "Baumeister", [(u["id"], u["feld"]) for u in bau])
+    if not kat or len(bau) < 2:
+        print("FEHLER: Einheiten fehlen")
+        return 1
+    k = kat[0]["id"]
+    print("bemannen:", befehl({"angriff": {"einheiten": [u["id"] for u in bau], "bemannen": k}}, 1.0))
+    befehl({"pause": False, "tempo": 40}, 0.2)
+    time.sleep(4.0)
+    befehl({"pause": True}, 0.2)
+    import struct
+    import speicher
+    raw = speicher.lies(auge.UNITS + k * auge.UNIT_GROESSE, auge.UNIT_GROESSE)
+    print("Katapult nach 400 Takten: countManning", struct.unpack_from("<h", raw, 948)[0], "manningEngineerRef",
+          struct.unpack_from("<4h", raw, 788), "animationSpeed", struct.unpack_from("<i", raw, 68)[0])
+    print("angriff:", befehl({"angriff": {"einheiten": [k], "gebaeude": ziel["id"]}}, 1.0))
+    befehl({"pause": False, "tempo": 40}, 0.2)
+    # Luft-Stopp (Daniel 19:36): Logik-Ebene je Takt in einem Fenster um das Katapult mitlesen (ganze Ebene je Takt = 800 MB)
+    import numpy as np
+    pfad, p, logik = aufnahme_mit_logik(dauer, (kat[0]["feld"][0], kat[0]["feld"][1]))
+    np.savez_compressed(pfad.replace(".npz", "_logik.npz"), takte=np.array(sorted(logik)), fenster=np.stack([logik[t] for t in sorted(logik)]),
+                        x0=FENSTER_X0, y0=FENSTER_Y0, groesse=FENSTER)
+    befehl({"pause": True}, 0.2)
+    print("Protokoll", len(p.takte), "Takte", min(p.takte), "..", max(p.takte), "->", pfad)
+    return auswerten(pfad, k)
+
+
+FENSTER = 64
+FENSTER_X0 = FENSTER_Y0 = 0
+
+
+def aufnahme_mit_logik(dauer, mitte):
+    """Wie auge.protokollieren ueber den Taktring, dazu je Bild die Logik-Ebene (4 Byte je Feld) im Fenster um `mitte`;
+    jedem Takt des Bilds wird dasselbe Fenster zugeordnet (das Bit 0x10000000 wechselt nur, wenn eine Einheit das Feld wechselt)."""
+    global FENSTER_X0, FENSTER_Y0
+    import numpy as np
+    fn = auge.feldnummern()
+    FENSTER_X0, FENSTER_Y0 = max(0, mitte[0] - FENSTER // 2), max(0, mitte[1] - FENSTER // 2 - 16)
+    xs = np.arange(FENSTER_X0, FENSTER_X0 + FENSTER)
+    ys = np.arange(FENSTER_Y0, FENSTER_Y0 + FENSTER)
+    ks = fn[np.ix_(xs, ys)]                      # [x, y] -> Feldnummer
+    ring = auge.Taktring()
+    p = auge.Protokoll(None)
+    logik = {}
+    ende = time.time() + dauer
+    while time.time() < ende:
+        neue = ring.neue(None)
+        if neue:
+            voll = np.frombuffer(speicher.lies(speicher.LOGIK, 80400 * 4), dtype="<u4")
+            fenster = np.where(ks >= 0, voll[np.clip(ks, 0, 80399)], 0).astype(np.uint32)
+            for s in neue:
+                p.aufnehmen(s)
+                logik[s.takt] = fenster
+        time.sleep(0.002)
+    pfad = os.path.join(DATEN, "auge_protokoll_%s.npz" % time.strftime("%Y%m%d_%H%M%S"))
+    p.schreiben(pfad)
+    return pfad, p, logik
+
+
+def auswerten(pfad, k=None):
+    L = auge.Protokoll.laden(pfad)
+    steine = {}
+    for sn in L:
+        for g in sn.geschosse():
+            if g["entityType"] in (2, 3, 4):
+                steine.setdefault(g["uid"], []).append((sn.takt, g))
+    print("Steine gesehen", len(steine))
+    erg = []
+    for uid, r in steine.items():
+        t0, g0 = r[0]
+        bahn = g0.get("sre_bahn") or []
+        land = bahn[-1] if bahn else None
+        liegt = next(((t, x) for t, x in r if x["sre_zustand"] == "liegt"), None)
+        letzt = r[-1]
+        abw = []
+        for t, x in r[1:]:
+            b = next((b for b in bahn if b[0] == t - t0), None)
+            if b and x["sre_zustand"] == "fliegt":
+                abw.append((t - t0, x["jetzt_mikro"][2] - b[3], x["jetzt_mikro"][0] - b[1], x["jetzt_mikro"][1] - b[2]))
+        e = {"uid": uid, "art": g0["sre_art"], "erst_takt": t0, "trav0": g0["travelledDistance"], "velocityUnk": g0["velocityUnk"],
+             "startingAngle": g0["startingAngle"], "vCos": g0["vCos"], "vSin": g0["vSin"], "dt": g0["sre_mikroschritte_je_takt"],
+             "start": g0["start"], "ziel_feld": g0["ziel_feld"], "gesamt": g0["field58_0x8c"],
+             "landung_vorher": [t0 + land[0], land[4], land[5], land[6]] if land else None,
+             "liegt_echt": [liegt[0], liegt[1]["jetzt_feld"][0], liegt[1]["jetzt_feld"][1], liegt[1]["jetzt_mikro"][2]] if liegt else None,
+             "letzt": [letzt[0], letzt[1]["sre_zustand"], letzt[1]["jetzt_feld"], letzt[1]["jetzt_mikro"][2], letzt[1]["logicalState"]],
+             "abweichung_takte": ((t0 + land[0]) - liegt[0]) if (land and liegt) else None,
+             # Steine verschwinden beim Einschlag (Mauer/Gebaeude/Einheit) statt zu liegen: letzte Sichtung + 1 = Einschlag-Takt
+             "einschlag_echt_takt": (letzt[0] + 1) if liegt is None else liegt[0],
+             "einschlag_abweichung_takte": ((t0 + land[0]) - ((letzt[0] + 1) if liegt is None else liegt[0])) if land else None,
+             "einschlag_feld_abstand": (max(abs(land[4] - letzt[1]["jetzt_feld"][0]), abs(land[5] - letzt[1]["jetzt_feld"][1])) if land else None),
+             "abw_k_dh_dx_dy": abw[:3] + abw[-3:]}
+        erg.append(e)
+        print(json.dumps(e, ensure_ascii=False))
+    aus = pfad.replace(".npz", "_steine.json")
+    json.dump({"protokoll": os.path.basename(pfad), "katapult": k, "steine": erg}, open(aus, "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    print("->", aus)
+    return 0
+
+
+if __name__ == "__main__":
+    if len(sys.argv) > 2 and sys.argv[1] == "--nur_auswerten":
+        sys.exit(auswerten(sys.argv[2]))
+    sys.exit(main())

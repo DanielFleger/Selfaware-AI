@@ -1,0 +1,258 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>SamurAI Entscheidungen</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<style>
+  :root{--bg:#E6E6E6;--ink:#1A1A1A;--muted:#555;--gruen:#2e9e5b;--gelb:#e8b000;--rot:#d13b3b;--font:"Barlow","Source Sans Pro","Arial",sans-serif}
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;font-family:var(--font);color:var(--ink);background:var(--bg);font-size:15px;line-height:1.55}
+  .hero{background:#000;color:#FFF;padding:22px 40px}
+  .hero .eye{font-size:10px;font-weight:700;color:rgba(255,255,255,.55);text-transform:uppercase;letter-spacing:3px;margin-bottom:6px}
+  .hero h1{font-size:32px;font-weight:700;margin:0;letter-spacing:-.5px}
+  .hero p{font-size:14px;font-weight:300;opacity:.85;max-width:820px;margin:12px 0 0}
+  .timestamps{font-size:12px;color:rgba(255,255,255,.65);margin-top:8px}
+  .tags{margin-top:8px}.tag{display:inline-block;border:1px solid rgba(255,255,255,.5);font-size:11px;padding:1px 7px;margin-right:5px}
+  .container{max-width:940px;margin:0 auto;padding:24px 30px 130px}
+  h2.teil{font-size:21px;margin:30px 0 4px}
+  p.teilhilfe{margin:0 0 14px;color:var(--muted);font-size:14px}
+  .panel{background:#FFF;border:1px solid #000;padding:18px 20px;margin-bottom:20px}
+  .panel h3{font-size:17px;font-weight:700;margin:0 0 6px;letter-spacing:-.2px}
+  .panel p{margin:0 0 10px}
+  .nr{display:inline-block;background:#000;color:#fff;font-size:11px;font-weight:700;padding:2px 7px;margin-right:8px;vertical-align:2px}
+  .rat{background:#f4f4f4;border-left:4px solid #000;padding:8px 12px;font-size:14px;margin:10px 0 0!important}
+  .ampel{display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-top:14px;padding-top:12px;border-top:1px dashed #bbb}
+  .ampel .lbl{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1px;color:#666;margin-right:4px}
+  .amp{border:2px solid #000;background:#FFF;color:#000;font-family:inherit;font-size:13px;font-weight:600;padding:6px 14px;cursor:pointer}
+  .amp[data-w="gruen"].an{background:var(--gruen);border-color:var(--gruen);color:#fff}
+  .amp[data-w="gelb"].an{background:var(--gelb);border-color:var(--gelb);color:#000}
+  .amp[data-w="rot"].an{background:var(--rot);border-color:var(--rot);color:#fff}
+  .notiz{width:100%;margin-top:9px;padding:8px 10px;border:1px solid #888;font-family:inherit;font-size:14px;resize:vertical;min-height:52px;background:#fff;color:#000}
+  .leiste{position:fixed;left:0;right:0;bottom:0;background:#000;color:#fff;padding:10px 18px;display:flex;gap:10px;align-items:center;flex-wrap:wrap;justify-content:center;z-index:5}
+  .leiste button{font-family:inherit;font-size:14px;font-weight:700;padding:8px 14px;border:2px solid #fff;background:#fff;color:#000;cursor:pointer}
+  .leiste button.zweit{background:#000;color:#fff}
+  .leiste label{font-size:13px}.leiste input{font-family:inherit;font-size:14px;padding:6px 8px;width:120px;border:0}
+  #meldung{font-size:13px;min-width:120px}
+  @media(max-width:600px){.hero{padding:18px 16px}.hero h1{font-size:25px}.container{padding:16px 16px 190px}}
+</style>
+</head>
+<body>
+<div class="hero">
+  <div class="eye">Krari und Daniel · Selfaware AI</div>
+  <h1>SamurAI: Was gilt, was kommt?</h1>
+  <div class="timestamps">Erstellt: 04.11.2026 · Grundlage: euer Brainstorming vom 25.10. und der Stand vom 04.11.</div>
+  <div class="tags"><span class="tag">Ziele</span><span class="tag">Fairness</span><span class="tag">Reihenfolge</span></div>
+  <p>Daniel will das mit dir zusammen entscheiden. Klick je Punkt eine Farbe an und schreib dazu, was dir auffällt. Unten dann „Ausgefüllte Datei speichern“ und die Datei an Daniel schicken.</p>
+</div>
+<div class="container">
+
+<h2 class="teil">1. Woran messen wir Erfolg?</h2>
+<p class="teilhilfe">Grün = passt. Gelb = reden wir drüber. Rot = so nicht.</p>
+
+<div class="panel" data-punkt="Z1"><h3><span class="nr">Z1</span>Laufender Maßstab</h3>
+<p>2v2 gegen Gardist und Kriegsfürst. Die alten Werte (45.690, dann 34.774 Takte bis zum Sieg) stammen von vor der Fairness-Regel. Ob sie fair erreicht wurden, ist nicht geprüft, darum werden sie neu gemessen.</p>
+<p class="rat"><b>Vorschlag:</b> So lassen und neu messen.</p></div>
+
+<div class="panel" data-punkt="Z2"><h3><span class="nr">Z2</span>„Gut genug“ (Daniels Latte)</h3>
+<p>SamurAI gewinnt 1v2 gegen jedes Team der Team-Liga, unter Team-Liga-Voraussetzungen, und gegen dich in jedem Szenario, das du dir ausdenkst, solange sie gleich viel Gold hat.</p>
+<p class="rat"><b>Vorschlag:</b> So übernehmen. Bist du mit deiner Rolle als Prüfstein einverstanden?</p></div>
+
+<div class="panel" data-punkt="Z3"><h3><span class="nr">Z3</span>„Perfekt“ (deine Latte, wie Daniel sie weitergab)</h3>
+<p>1v7 gegen 7 aggressive Wölfe, alle mit 40.000 Gold, 5 Minuten Friedenszeit, auf dem grünen Punkt. Zeigt Mikro, Taktik, Strategie, Verteidigung und Angriff.</p>
+<p class="rat"><b>Vorschlag:</b> Bitte genau prüfen: Ist der grüne Punkt die Karte „Green Haven“? Was heißt „aggressiv“ bei den Wölfen genau, eine Einstellung oder ihre Art?</p></div>
+
+<div class="panel" data-punkt="Z4"><h3><span class="nr">Z4</span>Ein Sieg oder eine Serie?</h3>
+<p>Reicht je Gegner ein Sieg, oder braucht es mehrere?</p>
+<p class="rat"><b>Vorschlag:</b> Beste aus drei, damit Zufall nicht entscheidet. Daniel hat das noch nicht entschieden.</p></div>
+
+<div class="panel" data-punkt="Z5"><h3><span class="nr">Z5</span>Handicaps für später</h3>
+<p>Ist sie irgendwann zu gut: bestimmte Einheiten sperren, weniger Gold, keine Starteinheiten.</p>
+<p class="rat"><b>Vorschlag:</b> Erst einmal nur merken.</p></div>
+
+<div class="panel" data-punkt="Z6"><h3><span class="nr">Z6</span>Langfrist-Ziel</h3>
+<p>Im Brainstorming steht unter „Longterm“ nichts. Was soll am Ende stehen?</p>
+<p class="rat"><b>Vorschlag:</b> Schreib einfach unten hinein, was dir dazu einfällt. Ein Vorschlag von mir wäre geraten.</p></div>
+
+<h2 class="teil">2. Was ist schon festgelegt? (Fairness)</h2>
+<p class="teilhilfe">Das hat bisher nur Daniel entschieden. Du spielst am Ende dagegen, also sag, wenn du es anders siehst. Rot heißt: darüber müssen wir reden.</p>
+
+<div class="panel" data-punkt="R1"><h3><span class="nr">R1</span>Schnell steuern ist erlaubt</h3>
+<p>Jeden Takt, jede Einheit einzeln, beliebig viele Befehle, solange ein Spieler dieselbe Aktion auch auslösen kann. Je Takt kommt allerdings nur ein Befehl an (gemessen).</p>
+<p class="rat"><b>Vorschlag:</b> Bleibt so, Daniels Grundsatz.</p></div>
+
+<div class="panel" data-punkt="R2"><h3><span class="nr">R2</span>Das Spiel verändern ist verboten</h3>
+<p>Keine Werte in den Speicher schreiben, kein Gold oder Waren gutschreiben, keine Preise ändern, keine Einheiten setzen oder töten. In Testgefechten und Messläufen ist das erlaubt, nie in einer Partie, die zählt.</p>
+<p class="rat"><b>Vorschlag:</b> Bleibt so.</p></div>
+
+<div class="panel" data-punkt="R3"><h3><span class="nr">R3</span>Verborgenes Gegnerwissen ist verboten</h3>
+<p>Nicht lesen: Laufziele und gespeicherte Ziele fremder Einheiten, fremde Lager, Regeln der Gegner-KI aus Code oder Dateien. Erlaubt: alles Sichtbare und Spielregeln, die man durch Spielen lernen kann.</p>
+<p class="rat"><b>Vorschlag:</b> Bleibt so. Es gibt einen Ausnahmefall: Das Angriffsziel gilt, sobald der Angriff sichtbar ist und die Einheit Leben verliert.</p></div>
+
+<div class="panel" data-punkt="R4"><h3><span class="nr">R4</span>Schusstakt aus dem Animationsbild ist erlaubt</h3>
+<p>Das Bild des Schützen ist sichtbar. Daraus plus gemessener Tabelle darf sie den Schuss genau ausrechnen, also genauer, als ein Mensch schätzt. Den gespeicherten Wert zu lesen bleibt verboten.</p>
+<p class="rat"><b>Vorschlag:</b> Bleibt so, das ist schnelles Rechnen.</p></div>
+
+<div class="panel" data-punkt="R5"><h3><span class="nr">R5</span>Stapeln und mehr als 5 Mann auf den Turm sind erlaubt</h3>
+<p>Einheiten auf einen Punkt packen darf ein Mensch auch. Per Befehl mehr als 5 Mann auf einen Wachturm ist ausdrücklich erlaubt, obwohl die Grenze beim Mausklick greift.</p>
+<p class="rat"><b>Vorschlag:</b> Bleibt so.</p></div>
+
+<div class="panel" data-punkt="R6"><h3><span class="nr">R6</span>Allwissen ist ein eigener Schalter</h3>
+<p>Verborgenes wird weiter erforscht, und später kann daraus eine „perfekte KI“ werden. Im fairen Spiel steht der Schalter fest auf Menschen-Wissen.</p>
+<p class="rat"><b>Vorschlag:</b> Bleibt so. Willst du die Allwissen-Fassung später als eigene Stufe?</p></div>
+
+<h2 class="teil">3. Was Daniel gerade entschieden hat (Fairness)</h2>
+<p class="teilhilfe">Sein Stand vom 04.11. Grün = einverstanden. Gelb oder Rot = du siehst es anders, schreib warum.</p>
+
+<div class="panel" data-punkt="F1"><h3><span class="nr">F1</span>Den Zufallsstand auslesen</h3>
+<p>Also wissen, wo der Stein landet. Machbar wäre es wohl: Geschosse ziehen aus einem Zufallsstrom, der festgelegt mitläuft.</p>
+<p class="rat"><b>Daniel:</b> Den Zufallsstand auslesen ist Cheat. Die Streuung als Wahrscheinlichkeit zu nutzen könnte fair sein.</p></div>
+
+<div class="panel" data-punkt="F2"><h3><span class="nr">F2</span>Grenzen, die nur die Maus prüft</h3>
+<p>Manches prüft nur die Oberfläche, nicht der Befehl. Ein Beispiel außer dem Turm ist der Leiterträger: Er kostet 20 Gold, die Oberfläche prüft nur auf 4.</p>
+<p class="rat"><b>Daniel:</b> Je Fall dich oder ihn fragen, nicht selbst entscheiden.</p></div>
+
+<div class="panel" data-punkt="F3"><h3><span class="nr">F3</span>Gold und Waren schicken (Befehl 113)</h3>
+<p>Der Befehl verschiebt Gold und Waren zwischen Spielern, gemessen auch ohne Team.</p>
+<p class="rat"><b>Daniel:</b> An Verbündete fair. An Nicht-Verbündete gibt es die Option für einen Menschen nicht, also nicht erlaubt.</p></div>
+
+<div class="panel" data-punkt="F4"><h3><span class="nr">F4</span>Fremde Vorräte</h3>
+<p>Was darf sie von den Vorräten des Gegners wissen?</p>
+<p class="rat"><b>Daniel:</b> Ein Mensch kann sie abschätzen. In fremde Waffenkammer oder Kornspeicher hineinsehen kann man ziemlich sicher nicht. Also nur schätzen, nicht lesen. Weißt du es sicher?</p></div>
+
+<div class="panel" data-punkt="F5"><h3><span class="nr">F5</span>Burgplan des KI-Gegners aus der Datei</h3>
+<p>Darf sie die AIV-Datei lesen, um zu wissen, wie die Burg des Gegners aussehen wird?</p>
+<p class="rat"><b>Daniel:</b> Unfair. Aus beobachteten Partien lernen ist fair.</p></div>
+
+<div class="panel" data-punkt="F6"><h3><span class="nr">F6</span>Befehle in der Pause</h3>
+<p>Darf sie in der Pause Befehle geben?</p>
+<p class="rat"><b>Daniel:</b> Nein. Im Mehrspieler gibt es keine Pause, und gegen eine KI kann man in der Pause nichts machen, also darf die KI das auch nicht.</p></div>
+
+<h2 class="teil">4. Reihenfolge der nächsten Schritte</h2>
+<p class="teilhilfe">Grün = richtig an dieser Stelle. Gelb = später oder früher. Rot = nicht machen.</p>
+
+<div class="panel" data-punkt="P1"><h3><span class="nr">P1</span>Fair oder Cheat entscheiden</h3><p>Teil 2 und 3 dieses Blatts, danach steht es in FAIRNESS.md.</p><p class="rat"><b>Vorschlag:</b> Zuerst, das ist kaum Aufwand.</p></div>
+<div class="panel" data-punkt="P2"><h3><span class="nr">P2</span>Feldliste „das sieht ein Mensch“</h3><p>Eine Liste aller Felder, die die faire KI lesen darf. Sie ist zugleich der Wortschatz für eure spätere eigene Sprache und den Chat.</p><p class="rat"><b>Vorschlag:</b> Direkt danach. Ihr beide lest sie gegen.</p></div>
+<div class="panel" data-punkt="P3"><h3><span class="nr">P3</span>Werte abgleichen</h3><p>Unsere Rechenwerte gegen die neue Messung, zum Beispiel Pfeil-Reichweite 44 gegen gemessene 40.</p><p class="rat"><b>Vorschlag:</b> Jetzt, kleiner Schritt.</p></div>
+<div class="panel" data-punkt="P4"><h3><span class="nr">P4</span>Befehlsweg auf Papier</h3><p>Weil je Takt nur ein Befehl ankommt, braucht es eine Reihenfolge: Reflex vor Flucht vor Angriff vor Laufen. Heute senden zwei Stellen, ohne sich abzustimmen.</p><p class="rat"><b>Vorschlag:</b> Jetzt, damit die Einheiten jeden Takt entscheiden können.</p></div>
+<div class="panel" data-punkt="P5"><h3><span class="nr">P5</span>Befehlsweg bauen, Assassinen zuerst</h3><p>Sie geben ihre Einheiten an den Kern. Im Test wich der Reflex gut aus: 1–3 % Treffer statt 9–10 %, 0 statt 8 Tote. Das waren nur Speerträger und je ein Lauf.</p><p class="rat"><b>Vorschlag:</b> Der erste große Bauschritt.</p></div>
+<div class="panel" data-punkt="P6"><h3><span class="nr">P6</span>Gehirn fair machen</h3><p>Die Vorhersage trifft auf Prüfläufen 90–98 %, liest dafür aber verborgene Ziele und Wege. Sie soll nur noch Sichtbares bekommen. Die Quote wird dadurch fallen.</p><p class="rat"><b>Vorschlag:</b> Nach der Feldliste.</p></div>
+<div class="panel" data-punkt="P7"><h3><span class="nr">P7</span>Fairer Ausgangswert</h3><p>Partien nach Z1, neu gemessen.</p><p class="rat"><b>Vorschlag:</b> Sobald P5 steht.</p></div>
+<div class="panel" data-punkt="P8"><h3><span class="nr">P8</span>Weitere Einheitenarten</h3><p>Bogen und Nahkampf bekommen eigene Steuerung, danach wird der neue Einkauf wieder eingeschaltet.</p><p class="rat"><b>Vorschlag:</b> Nach P5 und P6.</p></div>
+<div class="panel" data-punkt="P9"><h3><span class="nr">P9</span>Testmatrix</h3><p>Verschiedene KIs, Gold, Karten, Plätze, Versionen, Teams und Mods (Team-Liga, Ascension).</p><p class="rat"><b>Vorschlag:</b> Nach P7. Welche Kombination ist dir am wichtigsten?</p></div>
+<div class="panel" data-punkt="P10"><h3><span class="nr">P10</span>Makro-Strategien vergleichen</h3><p>Wirtschaft, Heer, Raid, Verteidigung und Langzeitplanung gegeneinander messen.</p><p class="rat"><b>Vorschlag:</b> Über die Testmatrix, also zuletzt.</p></div>
+
+<h2 class="teil">5. Später und wer macht was</h2>
+<p class="teilhilfe">Aus deinem und Daniels Brainstorming. Grün = behalten, Rot = streichen.</p>
+
+<div class="panel" data-punkt="S1"><h3><span class="nr">S1</span>Teamspiel und Kombi-Angriffe</h3><p>Den Mitspieler mitdenken.</p><p class="rat"><b>Vorschlag:</b> Nach P8.</p></div>
+<div class="panel" data-punkt="S2"><h3><span class="nr">S2</span>Zufall nutzen (wohin die Steine gehen)</h3><p>Regeln und Streuung nutzen ist fair, siehe F1.</p><p class="rat"><b>Vorschlag:</b> Behalten, im Rahmen von F1.</p></div>
+<div class="panel" data-punkt="S3"><h3><span class="nr">S3</span>Rückwärtskompatibilität</h3><p>Der Kern nutzt feste Adressen, das hat Gynt am 24.10. angemerkt. Mit UCP3 weichen 814 Befehle vom Export ab.</p><p class="rat"><b>Vorschlag:</b> Später, aber nicht vergessen.</p></div>
+<div class="panel" data-punkt="S4"><h3><span class="nr">S4</span>AIV/AIC dynamisch, eigene Sprache, Chat per LLM</h3><p>Verhalten über eine eigene Sprache beschreiben, Persönlichkeit per Chat einstellen.</p><p class="rat"><b>Vorschlag:</b> Behalten, baut auf der Feldliste auf.</p></div>
+<div class="panel" data-punkt="S5"><h3><span class="nr">S5</span>SHC-API und Module im Team</h3><p>Eine Schnittstelle, an die andere andocken können.</p><p class="rat"><b>Vorschlag:</b> Erst Gynt fragen, bevor eine eigene entsteht.</p></div>
+<div class="panel" data-punkt="S6"><h3><span class="nr">S6</span>OpenSHC-Beitrag</h3><p>Wissen holen und geben. Die Frage an Gynt steht im Discord-Post.</p><p class="rat"><b>Vorschlag:</b> Auf seine Antwort warten.</p></div>
+<div class="panel" data-punkt="S7"><h3><span class="nr">S7</span>Ghidra-Assembly nach C#, Interface Mapping</h3><p>Das stand bei den kurzfristigen Zielen. Wer macht das, und braucht SamurAI es?</p><p class="rat"><b>Vorschlag:</b> Du sagst, wie du es dir denkst, ich kann es nicht einordnen.</p></div>
+<div class="panel" data-punkt="S8"><h3><span class="nr">S8</span>Was fehlt dir hier komplett?</h3><p>Alles, was in diesem Blatt nicht vorkommt.</p><p class="rat"><b>Vorschlag:</b> Einfach hineinschreiben.</p></div>
+
+</div>
+
+<div class="leiste">
+  <label>Von: <input id="von" placeholder="Krari"></label>
+  <span id="fortschritt"></span>
+  <button id="speichern" type="button">Ausgefüllte Datei speichern</button>
+  <button id="kopieren" class="zweit" type="button">Als Text kopieren</button>
+  <span id="meldung" role="status"></span>
+</div>
+
+<script id="stand-daten" type="application/json">{}</script>
+<script>
+(function(){
+  var SPEICHER = "samurai_entscheidungen_v1";
+  var WORT = {gruen:"Grün", gelb:"Gelb", rot:"Rot"};
+  var im = {}, lok = {};
+  try { im = JSON.parse(document.getElementById("stand-daten").textContent) || {}; } catch(e) {}
+  try { lok = JSON.parse(localStorage.getItem(SPEICHER) || "{}") || {}; } catch(e) {}
+  var stand = ((lok._zeit || 0) > (im._zeit || 0)) ? lok : im;
+  var panels = Array.prototype.slice.call(document.querySelectorAll(".panel"));
+
+  function sichern(){
+    stand._zeit = Date.now();
+    try { localStorage.setItem(SPEICHER, JSON.stringify(stand)); } catch(e) {}
+    zeichnen();
+  }
+  function zeichnen(){
+    var n = 0;
+    panels.forEach(function(p){
+      var id = p.dataset.punkt;
+      if (stand[id]) n++;
+      p.querySelectorAll(".amp").forEach(function(b){ b.classList.toggle("an", stand[id] === b.dataset.w); });
+    });
+    document.getElementById("fortschritt").textContent = n + " von " + panels.length + " beurteilt";
+  }
+  panels.forEach(function(p){
+    var id = p.dataset.punkt;
+    var zeile = document.createElement("div");
+    zeile.className = "ampel";
+    zeile.innerHTML = '<span class="lbl">Ampel</span>';
+    ["gruen","gelb","rot"].forEach(function(w){
+      var b = document.createElement("button");
+      b.className = "amp"; b.dataset.w = w; b.type = "button"; b.textContent = WORT[w];
+      b.onclick = function(){ if (stand[id] === w) delete stand[id]; else stand[id] = w; sichern(); };
+      zeile.appendChild(b);
+    });
+    p.appendChild(zeile);
+    var t = document.createElement("textarea");
+    t.className = "notiz"; t.placeholder = "Dein Senf zu diesem Punkt";
+    t.value = stand[id + "-notiz"] || "";
+    t.oninput = function(){ if (t.value) stand[id + "-notiz"] = t.value; else delete stand[id + "-notiz"]; sichern(); };
+    p.appendChild(t);
+  });
+  var von = document.getElementById("von");
+  von.value = stand._von || "";
+  von.oninput = function(){ stand._von = von.value; sichern(); };
+
+  function dateiInhalt(){
+    var kopie = document.documentElement.cloneNode(true);
+    kopie.querySelectorAll(".ampel,.notiz").forEach(function(x){ x.remove(); });
+    kopie.querySelector("#stand-daten").textContent = JSON.stringify(stand).replace(/</g, "\\u003c");
+    kopie.querySelector("#fortschritt").textContent = "";
+    kopie.querySelector("#meldung").textContent = "";
+    return "<!doctype html>\n" + kopie.outerHTML;
+  }
+  function textInhalt(){
+    var aus = "SamurAI Entscheidungen, ausgefüllt von " + (stand._von || "(kein Name)") + "\n\n";
+    panels.forEach(function(p){
+      var id = p.dataset.punkt, w = stand[id], n = stand[id + "-notiz"];
+      if (!w && !n) return;
+      aus += id + " " + p.querySelector("h3").textContent.replace(id, "").trim() + ": " + (w ? WORT[w] : "keine Farbe") + "\n";
+      if (n) aus += "  " + n + "\n";
+    });
+    return aus;
+  }
+  function melde(t){ document.getElementById("meldung").textContent = t; }
+  document.getElementById("speichern").onclick = function(){
+    if (!stand._zeit) stand._zeit = Date.now();
+    var name = "SamurAI_Entscheidungen_" + ((stand._von || "ausgefuellt").replace(/[^A-Za-z0-9_-]/g, "") || "ausgefuellt") + ".html";
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([dateiInhalt()], {type: "text/html;charset=utf-8"}));
+    a.download = name;
+    document.body.appendChild(a); a.click(); a.remove();
+    melde("Gespeichert als " + name + ". Die Datei an Daniel schicken.");
+  };
+  document.getElementById("kopieren").onclick = function(){
+    var t = textInhalt();
+    function ausweich(){
+      var f = document.createElement("textarea");
+      f.value = t; document.body.appendChild(f); f.select();
+      var ok = false; try { ok = document.execCommand("copy"); } catch(e) {}
+      f.remove(); melde(ok ? "Kopiert." : "Kopieren ging nicht, bitte die Datei speichern.");
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(t).then(function(){ melde("Kopiert."); }, ausweich);
+    else ausweich();
+  };
+  window.__blatt = {dateiInhalt: dateiInhalt, textInhalt: textInhalt};
+  zeichnen();
+})();
+</script>
+</body>
+</html>
