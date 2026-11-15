@@ -874,8 +874,9 @@ def lies_haltung(gruppen):
 def runde_lesen():
     """EIN Aufruf fuer die ganze Runde (04.10.: einzelne Abfragen kosteten ~20 s = 800 Ticks je Runde):
     Modulbefehle status + lagebild in einer Liste. Gibt (status, einheiten, gebaeude)."""
+    import selfaware.micro.tasks.waechter as _waechter    # B-344: Lagebild mit eigenem Bergfried-Eingang und Spieler (eine Stelle)
     z = " ".join(sende({"befehle": [{"player": 1, "id": neue_id(), "status": SP},
-                                    {"player": 1, "id": neue_id(), "lagebild": True}]}, 1.5, bis="LAGEBILD Tick"))
+                                    dict(_waechter.lagebild_befehl(), player=1, id=neue_id())]}, 1.5, bis="LAGEBILD Tick"))
     m = re.search(r"STATUS (.*?)(?:\[(?:villagestudio|selfaware-runtime)\]|$)", z)   # S172: beide Modulnamen
     st = {k: int(v) for k, v in re.findall(r"(\w+)=(-?\d+)", m.group(1))} if m else {}
     L = lies_lagebild(neu_holen=False)

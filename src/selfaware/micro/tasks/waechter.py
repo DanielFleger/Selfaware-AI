@@ -44,17 +44,32 @@ def lies_gebaeude():
                             "vorrat": int(w[8]) if len(w) >= 11 else None, "grenze": int(w[9]) if len(w) >= 11 else None,
                             "verbund": int(w[10]) if len(w) >= 11 else None,
                             # Warenart des Lagerteils (+0x18C, 2 Holz, 4 Stein, 6 Eisen ...); seit 06.10. 20:45
-                            "ware": int(w[11]) if len(w) >= 12 else None}
+                            "ware": int(w[11]) if len(w) >= 12 else None,
+                            # fireDuration > 0 = brennt, faellt bald (B-150 L177); Daniel 15.11.2026 23:31 "sofort ein neues Gebaeude auswaehlen,
+                            # wenn ein Gebaeude erwartbar stirbt" - siehe brennt()
+                            "feuer": int(w[12]) if len(w) >= 13 else 0}
     return G
+
+def brennt(g):
+    """Daniel 15.11.2026 23:31 ("es brennt und sie verbrennen auch, das ist aber erwartbar, bitte sofort ein neues Gebaeude auswaehlen"):
+    ein brennendes Gebaeude faellt - kein Ziel mehr, wer es angreift, nimmt sofort ein anderes. Die EINE Stelle fuer alle Module."""
+    return (g.get("feuer") or 0) > 0
+
+
+def lagebild_befehl():
+    """B-344: der Lagebild-Befehl mit Erreichbarkeit vom EIGENEN Bergfried-Eingang und fuer den EIGENEN Spieler (vorher fester Punkt
+    (165,111) und der Platz am Rechner -> in Lobby-Partien alles 0). Die EINE Stelle fuer jeden Lagebild-Aufruf - Probe 15.11.2026 23:29:
+    der Lenker (runde_lesen) fragte ohne von/fuer, alle 42-57 feindlichen Gebaeude kamen als nicht erreichbar, Assassinen warteten."""
+    from selfaware.game.ucp import befehl as _kanal
+    cmd = {"lagebild": True}
+    if BERGFRIED_EINGANG:
+        cmd.update(von=[int(BERGFRIED_EINGANG[0]), int(BERGFRIED_EINGANG[1])], fuer=_kanal.SPIELER)
+    return cmd
+
 
 def lies_lagebild(neu_holen=True):
     if neu_holen:
-        # B-344: Erreichbarkeit vom EIGENEN Bergfried-Eingang und fuer den EIGENEN Spieler rechnen lassen (vorher fester Punkt -> alles 0)
-        from selfaware.game.ucp import befehl as _kanal
-        cmd = {"lagebild": True}
-        if BERGFRIED_EINGANG:
-            cmd.update(von=[int(BERGFRIED_EINGANG[0]), int(BERGFRIED_EINGANG[1])], fuer=_kanal.SPIELER)
-        befehl(cmd, 0.8)
+        befehl(lagebild_befehl(), 0.8)
     L = {}
     for z in open(LAGEBILD).read().split("\n")[2:]:
         w = z.split()

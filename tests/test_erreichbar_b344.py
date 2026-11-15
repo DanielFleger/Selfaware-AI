@@ -28,3 +28,27 @@ def test_spielmodul_nimmt_startpunkt_und_spieler_vom_befehl():
     assert "for r = 1, 4 do" in block, (
         "Eingangsfeld liegt oft in keinem Gebiet - Nachbarn bis 4 Felder"
     )
+
+
+def test_lenker_runde_fragt_mit_eingang_und_spieler(monkeypatch):
+    """Probe 15.11.2026 23:29: runde_lesen fragte das Lagebild OHNE von/fuer - alle 42-57 Feindgebaeude kamen als nicht erreichbar, die
+    Assassinen meldeten 'keins erreichbar' (bis 36), nur 6 Zielwahlen in der Partie. Jetzt dieselbe Stelle wie der Waechter."""
+    from selfaware.runtime.live import erstes_spiel as ES
+
+    gesendet = []
+
+    class Halt(Exception):
+        pass
+
+    def sende(b, *a, **k):
+        gesendet.append(b)
+        raise Halt
+
+    monkeypatch.setattr(ES, "sende", sende)
+    monkeypatch.setattr(W, "BERGFRIED_EINGANG", (174, 112))
+    try:
+        ES.runde_lesen()
+    except Halt:
+        pass
+    bild = [c for c in gesendet[0]["befehle"] if c.get("lagebild")]
+    assert bild and bild[0]["von"] == [174, 112] and "fuer" in bild[0]
