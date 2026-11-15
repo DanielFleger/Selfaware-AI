@@ -170,7 +170,8 @@ def test_brandtrupp_reports_its_target_and_why_a_slave_waits():
     L2 = {
         1: _e(1, 71, 100, 100),
         60: _e(2, 22, 200, 60),
-    }  # a bowman covers the only target (as in test_wegfuehrung)
+        61: _e(2, 22, 200, 140),
+    }  # #360: two bowmen, north and south - one alone does not cover the woodcutter, behind it the slave is in its cover
     bt2.schritt(L2, G, Befehle())
     assert bt2.absicht[1] == (Action.WAIT_STAGING, "(180,100)", "no_free_target", {"danger": 1})
 

@@ -144,8 +144,9 @@ def test_brandtrupp_gibt_den_weg_ab_und_wechselt_bei_gefahr_das_ziel():
     assert st[1] == "unterwegs" and "lauf" in b[0]
     L2 = {
         **L,
-        60: _e(2, 22, G[erstes]["x"] + 5, G[erstes]["y"]),
-    }  # ein Bogenschuetze stellt sich ans Ziel
+        60: _e(2, 22, G[erstes]["x"] + 5, G[erstes]["y"] + 1),
+        61: _e(2, 22, G[erstes]["x"] - 3, G[erstes]["y"] + 1),
+    }  # zwei Bogenschuetzen stellen sich ans Ziel, beidseits auf Hoehe der Mitte (#360: einer allein laesst die Seite dahinter frei)
     st, _ = _runde(w, L2, G)
     assert st[1] == "gefahr"
     bt.schritt(L2, G, Befehle())
@@ -163,21 +164,24 @@ def test_brandtrupp_ohne_freies_ziel_wartet_sicher_vorne():
     L = {
         1: _e(1, 71, 100, 100),
         60: _e(2, 22, 200, 60),
-    }  # ein Bogenschuetze (44 Felder) deckt das einzige Ziel, freie Linie
+        61: _e(2, 22, 200, 140),
+    }  # zwei Bogenschuetzen (44 Felder), noerdlich und suedlich, decken das einzige Ziel - #360: einer allein laesst die Rueckseite frei
     G = {7: _e(2, 3, 200, 100)}
     aus = bt.schritt(L, G, Befehle())
     assert 1 not in bt.ziel and w.fuehrt(1) and any("wartet vorne" in z for z in aus)
     assert (
         bt.warten[1] == (180, 100) and W.Gefahr(L, G, 1).an(bt.warten[1], 71) == 0
     )  # so nah wie sicher moeglich
-    assert W.Gefahr(L, G, 1).an((184, 100), 71) == 1  # einen Schritt naeher waere er in Schussweite
+    assert W.Gefahr(L, G, 1).an((184, 100), 71) >= 1  # einen Schritt naeher waere er in Schussweite
     st, b = _runde(w, L, G)
     assert st[1] == "unterwegs" and "lauf" in b[0]
     assert bt.schritt(L, G, Befehle()) == [] and bt.warten[1] == (
         180,
         100,
     )  # der Platz bleibt, solange er sicher ist
-    del L[60]  # der Schuetze ist weg: jetzt greift er an
+    del L[
+        60
+    ]  # der noerdliche Schuetze ist weg: jetzt greift er an, von der Nordseite - das Gebaeude deckt ihn vor dem suedlichen (#360)
     bt.schritt(L, G, Befehle())
     assert bt.ziel.get(1) == 7 and 1 not in bt.warten
 
@@ -821,7 +825,8 @@ def test_brandtrupp_waehlt_nur_gebaeude_die_die_wegfuehrung_annimmt():
     sicher (alte Regel bis 20), die Wegfuehrung lehnte es ab - die Sklaven pendelten zwischen gesperrten Zielen und standen zu Hause."""
     from selfaware.micro.tasks import raids as RA
 
-    L = {1: _e(1, 71, 100, 100), 60: _e(2, 22, 230, 100)}  # Bogenschuetze 30 Felder vor Gebaeude 7
+    # Bogenschuetzen 30 Felder oestlich und westlich von Gebaeude 7 (#360: einer allein laesst die Seite hinter dem Gebaeude frei)
+    L = {1: _e(1, 71, 100, 100), 60: _e(2, 22, 230, 100), 61: _e(2, 22, 172, 100)}
     G = {7: _e(2, 3, 200, 100), 8: _e(2, 3, 100, 200)}
     ohne = RA.Brandtrupp(1, lambda nr: 0)
     assert ohne.moeglich(7, L, G)  # alte Regel allein: sicher

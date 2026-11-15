@@ -156,12 +156,17 @@ class Brandtrupp:
             return "burning"
         if self.gesperrt.get(n, -1) > self.runde:
             return "blocked"
-        if gefaehrlich((g["x"], g["y"]), L, G, self.sp, self.schutz):
-            return "danger"
+        if self.weg is None:
+            return "danger" if gefaehrlich((g["x"], g["y"]), L, G, self.sp, self.schutz) else None
         # B-182 (Partie 11.11. 22:05, Fehlerwache F3): dieselbe Regel wie die Wegfuehrung - die alte zaehlt Schuetzen nur bis
         # GEFAHR_FERN (20 Felder), die Wegfuehrung bis zur Reichweite (bis 44). Sonst waehlt der Brandtrupp Gebaeude, die sie
-        # ablehnt, und die Sklaven pendeln zwischen gesperrten Zielen zu Hause
-        if self.weg is not None and self._gefahr_am(n, L, G):
+        # ablehnt, und die Sklaven pendeln zwischen gesperrten Zielen zu Hause.
+        # #360 (Daniel 16.11.2026 00:22 "sklaven stehen einfach rum ... anstatt sich aufzusplitten hinterum zu gehen und einzeln auf
+        # gebaeude zu gehen in einer art dass sie sich hinter den gebaeuden dodgen vor schuetzen"; Probe 5: 13 Mal stellte sich ein Sklave
+        # zu einem schon besetzten Gebaeude, 5 Sklaven warteten von Takt 7.430 bis 10.653 vorne, je 17-20 Gebaeude "danger"): nur noch die
+        # Regel der Wegfuehrung, und zwar am Deckungsplatz hinter dem Gebaeude. Die alte Regel (gefaehrlich: jeder Schuetze bis 20
+        # Felder ohne Deckung, jeder Turm bis 20) gilt nur noch ohne Wegfuehrung
+        if self._gefahr_am(n, L, G):
             return "danger"
         return None
 
@@ -173,8 +178,23 @@ class Brandtrupp:
         return self._bild[1]
 
     def _gefahr_am(self, n, L, G):
+        """#360: die Gefahr am Deckungsplatz direkt am Gebaeude (wegfuehrung.Gefahr.deckung, dieselbe Stelle, an die die Wegfuehrung den
+        Sklaven fuehrt); ohne bekannte Grundflaeche wie bisher am Ankerfeld ohne Deckung durch das Gebaeude selbst."""
         g = G[n]
-        return self._gefahr_bild(L, G).an((g["x"], g["y"]), SKLAVE, ausser_gebaeude=n)
+        bild = self._gefahr_bild(L, G)
+        d = bild.deckung(n, g, SKLAVE, self.weg.begehbar)
+        if d is None:
+            return bild.an((g["x"], g["y"]), SKLAVE, ausser_gebaeude=n)
+        return d[0]
+
+    def _am_gebaeude(self, ort, nr, L, G):
+        """Der Sklave steht am Gebaeude: 4 Felder vor dem Ankerfeld wie bisher, oder (#360) auf einem Feld direkt daneben - hinter einem
+        grossen Gebaeude ist das Ankerfeld weiter weg."""
+        g = G[nr]
+        if schach(ort, (g["x"], g["y"])) <= 4:
+            return True
+        ring = self._gefahr_bild(L, G).ring(nr, g) if self.weg is not None else None
+        return bool(ring) and tuple(ort) in ring
 
     def _sammelplatz(self, L, G, ort):
         """B-182: das Feld ohne Gefahr (Regel der Wegfuehrung), das einem feindlichen Zielgebaeude am naechsten liegt - gesucht von den
@@ -254,7 +274,7 @@ class Brandtrupp:
         # brennt ein Ziel, zieht der Sklave weiter (gemessen: es brennt allein ab). Gelesen wird nur, wenn der Sklave hoechstens
         # 4 Felder davor steht - jede Abfrage ist ein Weg durch den Kanal
         for s, nr in list(self.ziel.items()):
-            if schach((L[s]["x"], L[s]["y"]), (G[nr]["x"], G[nr]["y"])) <= 4:
+            if self._am_gebaeude((L[s]["x"], L[s]["y"]), nr, L, G):
                 f = self.feuer(nr)
                 if f > 0:
                     self.brennt.add(nr)

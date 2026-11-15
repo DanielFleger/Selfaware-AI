@@ -209,6 +209,8 @@ def test_kauf_traut_sklaven_nur_zu_was_der_brandtrupp_angreift():
     """B-182 Reihe 5 (BierKoenig, 10.11.): Der Brandtrupp konnte meist 0 bis 1 von 21 bis 30 Gebaeuden angreifen, die Rechnung legte 71 %
     ihres Werts auf die anderen und kaufte 224 Sklaven fuer 2 Braende. Jetzt fragt der Kauf den Einsatz."""
     L, G = huetten(n_bogen=3)
+    # #360: hinter einem Haus steht der Sklave gedeckt - "gedeckt" heisst hier Schuetzen auf jeder Seite
+    L.update({110: einheit(46, 1, BOGEN), 111: einheit(60, 1, BOGEN), 112: einheit(52, 8, BOGEN)})
     e, b = _einsatz(), _bestellung()
     z = {x.schluessel: x for x in WK.ziele(L, G, 1)}
     assert not e.greift_an(SKLAVE, z[("g", 1)], L, G) and e.brand._ziele(L, G, (0, 0), set()) == []

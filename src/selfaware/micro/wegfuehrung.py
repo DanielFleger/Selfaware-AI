@@ -69,6 +69,16 @@ FREI_SUCHE = (
 # vor dem alten ist. Startwerte, nicht gemessen:
 VORLAUF_RUNDEN = 2
 VORLAUF_MAX = 16  # Felder
+# #360 (Daniel 16.11.2026 00:22: Sklaven sollen "hinterum gehen und einzeln auf gebaeude gehen in einer art dass sie sich hinter den
+# gebaeuden dodgen vor schuetzen"): wer ein Gebaeude angreift, steht auf dem Feld direkt daneben, an dem am wenigsten Gefahr ankommt -
+# das Gebaeude selbst sperrt die Linie (gemessen: an einem Gebaeude endet der Pfeilflug, 15 Fluege, streuung_20261104/Ergebnis_Streuung.md
+# Abschnitt 4; flache Gebaeude wie Felder sperren nicht, sicht.FLACH). Vorher stand der Angreifer am Ankerfeld des Gebaeudes, und das
+# Gebaeude zaehlte nicht als Deckung. Zunaechst nur fuer diese Zwecke (Nahkampf-Raid und andere erst auf Daniels Wort):
+DECKUNG_ZWECKE = frozenset({"brandtrupp"})
+DECKUNG_RING = (
+    1  # Startwert, nicht gemessen: so viele Felder ausserhalb der Grundflaeche steht der Angreifer
+)
+DECKUNG_AM = 1  # Felder (Schach) vom Deckungsplatz, ab denen der Angriffsbefehl kommt
 
 
 def _luft(a, b):
@@ -102,6 +112,7 @@ class Gefahr:
         ]
         self.nah_r = RA.GEFAHR_NAH
         self._linie, self._sicht = {}, {}
+        self._ringe, self._deck = {}, {}  # #360: je Runde einmal je Gebaeude
 
     def _frei(self, s, steht, ziel, ausser):
         """Linie frei: kein nicht flaches Gebaeude zwischen s und ziel, ausser dem unter dem Schuetzen und dem Ziel selbst (L79)."""
@@ -138,6 +149,46 @@ class Gefahr:
             if erhoeht or self._frei(s, steht, p, ausser_gebaeude):
                 n += 1
         return n
+
+    def ring(self, n, g):
+        """#360: die Felder DECKUNG_RING ausserhalb der Grundflaeche des Gebaeudes n (sicht.GROESSE); None ohne bekannte Groesse."""
+        ring = self._ringe.get(n)
+        if ring is None:
+            b = SI.GROESSE.get(g.get("typ"))
+            if not b:
+                return None
+            x0, y0 = g["x"] - DECKUNG_RING, g["y"] - DECKUNG_RING
+            x1, y1 = g["x"] + b - 1 + DECKUNG_RING, g["y"] + b - 1 + DECKUNG_RING
+            ring = [(x, y) for x in range(x0, x1 + 1) for y in (y0, y1)]
+            ring += [(x, y) for x in (x0, x1) for y in range(y0 + 1, y1)]
+            ring = self._ringe[n] = frozenset(ring)
+        return ring
+
+    def deckung(self, n, g, typ=None, begehbar=None, von=None):
+        """#360 (Daniel 16.11.2026 00:22 "hinter den gebaeuden dodgen vor schuetzen"): der Platz direkt am Gebaeude n, an dem am wenigsten
+        Gefahr ankommt - das Gebaeude selbst sperrt dabei die Linie (an ohne ausser_gebaeude). -> (Gefahr, Platz, Ring); bei Gleichstand
+        der naechste zu von. None ohne bekannte Grundflaeche oder ohne begehbares Feld daneben (dann gilt das Ankerfeld wie bisher).
+        begehbar: Feld -> bool (Wegfuehrung.begehbar); der Merker gilt je Runde und Art."""
+        ring = self.ring(n, g)
+        if ring is None:
+            return None
+        gef = self._deck.get((n, typ))
+        if gef is None:
+            # nie ausserhalb der Karte und nie auf einem anderen nicht flachen Gebaeude (Test test_wirkung 16.11.: ohne Karte lag der Platz
+            # erst auf y = -1, dann im Nachbarhaus)
+            geb = self.lage.gebaeude
+            gef = self._deck[(n, typ)] = {
+                p: self.an(p, typ)
+                for p in ring
+                if p[0] >= 0
+                and p[1] >= 0
+                and (geb.get(p) is None or geb[p][1] in SI.FLACH)
+                and (begehbar is None or begehbar(p))
+            }
+        if not gef:
+            return None
+        p = min(gef, key=lambda q: (gef[q], _luft(von, q) if von is not None else 0, q))
+        return gef[p], p, ring
 
     def gitter(self, gelaende, frei=None, typ=None):
         """Wegegitter mit Gefahr je Zelle (Zellmitte) nach derselben Regel - gerechnet nur fuer Zellen in Reichweite einer Gefahr."""
@@ -240,22 +291,22 @@ class Wegfuehrung:
             if a.direkt:
                 a.direkt, a.weg, a.steht, a.letzter = False, [], 0, None
 
+    def begehbar(self, q):
+        """Das Feld q ist nach der Karte begehbar (ohne Karte: ja). Die EINE Stelle dafuer (#360: auch der Deckungsplatz am Gebaeude)."""
+        gel = self.gelaende
+        if not gel:
+            return True
+        x, y = int(q[0]), int(q[1])
+        return 0 <= y < len(gel) and 0 <= x < len(gel[y]) and gel[y][x] in SF.BEGEHBAR
+
     def _begehbar_nah(self, p):
         """Das naechste Feld, das die Karte begehbar nennt (Ring um Ring bis FREI_SUCHE); ohne Karte oder ohne freies Feld p selbst.
         B-182 (Partie 11.11. 23:12, Fehlerwache F2): die Vorrueck-Stelle (168, 234) lag auf einem eigenen Apfelhof - das Spiel nahm
         den Laufbefehl an, und keiner der drei Schuetzen ging los. Auf ein Gebaeudefeld kann niemand laufen."""
         x, y = int(p[0]), int(p[1])
-        gel = self.gelaende
-        if not gel:
+        if not self.gelaende:
             return (x, y)
-
-        def frei(q):
-            return (
-                0 <= q[1] < len(gel)
-                and 0 <= q[0] < len(gel[q[1]])
-                and gel[q[1]][q[0]] in SF.BEGEHBAR
-            )
-
+        frei = self.begehbar
         if frei((x, y)):
             return (x, y)
         for d in range(1, FREI_SUCHE + 1):
@@ -473,11 +524,24 @@ class Wegfuehrung:
                 )  # B-182: ein Ort, den es zu Fuss nicht gibt, rueckt aufs naechste freie Feld
             typ = e["typ"]
             r = SW.erfassen(typ) if a.art == "einheit" else None
+            # #360: Deckungsplatz am Gebaeude - der Angriff kommt erst dort (oder an einem anderen Feld daneben, an dem nichts ankommt),
+            # nicht schon auf der Seite der Schuetzen, sobald die Einheit 4 Felder vor dem Ankerfeld ist
+            deck = (
+                bild.deckung(a.ziel, G[a.ziel], typ, self.begehbar, von=ort)
+                if a.art == "gebaeude" and a.zweck in DECKUNG_ZWECKE
+                else None
+            )
+            if deck is not None:
+                am_ziel = SF.schach(ort, deck[1]) <= DECKUNG_AM or (
+                    ort in deck[2] and not bild.an(ort, typ)
+                )
+            else:
+                am_ziel = a.art != "ort" and (
+                    (r is not None and _luft(ort, zielort) <= r - FERN_ANGRIFF)
+                    or (r is None and SF.schach(ort, zielort) <= NAH_AM_ZIEL)
+                )
             # in Reichweite: angreifen
-            if a.art != "ort" and (
-                (r is not None and _luft(ort, zielort) <= r - FERN_ANGRIFF)
-                or (r is None and SF.schach(ort, zielort) <= NAH_AM_ZIEL)
-            ):
+            if am_ziel:
                 a.status = "greift_an"
                 schluessel = "ziel" if a.art == "einheit" else "gebaeude"
                 befehle.append(
@@ -496,11 +560,14 @@ class Wegfuehrung:
                 ausser_ort=zielort if (a.art == "einheit" and r is None) else None,
                 ausser_gebaeude=a.ziel if a.art == "gebaeude" else None,
             )
-            stand, gefahr_stand = (
-                self._standplatz(ort, zielort, r, gefahr_an)
-                if a.art != "ort"
-                else (zielort, gefahr_an(zielort))
-            )
+            if deck is not None:
+                gefahr_stand, stand = deck[0], deck[1]
+            else:
+                stand, gefahr_stand = (
+                    self._standplatz(ort, zielort, r, gefahr_an)
+                    if a.art != "ort"
+                    else (zielort, gefahr_an(zielort))
+                )
             if r is not None:
                 stand = self._begehbar_nah(
                     stand
