@@ -2,7 +2,9 @@ name: Offline framework
 
 on:
   push:
-    branches: [main, feature/organization]
+    # B-192/B-196 (15.11.2026): jeder gepushte Zweig wird geprueft - funktionswissen lief nie durch die CI,
+    # darum fiel ein roter Test dort nicht auf
+    branches: ['**']
   pull_request:
 
 permissions:
