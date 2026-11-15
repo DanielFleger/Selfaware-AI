@@ -18,7 +18,9 @@ Aufruf:  uv run selfaware run shc <befehl> [schluessel=wert ...]     (Instanz ue
   start                        Spiel starten (falls es nicht laeuft) und sofort ins Hauptmenue
   menue                        laufende oder beendete Partie -> Hauptmenue, angehalten
   karten [teil=...]            Kartenliste der Lobby (englische Namen, z. B. Kykladen = Cyclades)
-  aufstellen karte=Cyclades kis=8,16,16 [teams=0,1,1] [plaetze=oben_rechts,unten,unten]
+  aufstellen karte=Cyclades kis=8,16,16 [teams=0,1,1] [plaetze=oben_rechts,unten,unten] [art=1] [gold=3]
+                               art = Spielart 1 Normal, 2 (mittel), 3 Deathmatch; gold = Regler 1 (menschlicher Vorteil)
+                               bis 5 (Computervorteil), 3 ausgeglichen. Gemessen 15.11. 21:38: 20 verschiedene in je 2,8-3,6 s
                                Lobby aufstellen: KIs in dieser Reihenfolge = Spieler 1, 2, 3 ...; teams gleiche Zahl = verbuendet
                                (0 = allein); plaetze je Spieler ein Wort (oben, unten, links, rechts, oben_rechts, ...) oder s1..s8
   starten                      Start-Knopf mit Daniels Freigabe, haelt bei Takt 1
@@ -52,6 +54,10 @@ BELEGUNG, SCHILDER, RAND = (
     0x1FE9A5C,
     0xF98358,
 )  # Schild -> Listenzeile (0xF6 leer); x,y je Schild; Rand
+SPIELART, VORTEIL = (
+    0x01A245A4,
+    0x01A24A4C,
+)  # GameSynchronyState 0x0191D768 +0x106E3C / +0x1072E4: 1 Normal .. 3 Deathmatch; Regler 1..5
 TEAMS = 0x01A275B5  # Team-Byte je Spieler (Index = Spielernummer)
 MAUS_X, MAUS_Y = 0xF2C9C0, 0xF2C9C4
 TREFFER_DX, TREFFER_DY = 583, 19  # Trefferpunkt = Schild + Rand + (583, 19)
@@ -183,8 +189,12 @@ def team_klicks(teams):
     klicks = []
     for t in sorted({t for t in teams if t > 0}):
         mit = [i + 1 for i, x in enumerate(teams) if x == t]
-        for j in mit[1:]:
-            klicks += [mit[0], j]
+        if len(mit) >= 2:
+            klicks += [mit[0], mit[1]]  # beide ohne Team -> sie bekommen eine neue Teamnummer
+        for j in mit[2:]:
+            # der Neue zuerst, dann ein Mitglied, das schon ein Team hat (andersherum zog der Klick Spieler mit[0] in ein
+            # NEUES Team - gemessen 15.11. 21:36, Lauf 7 und 17 von lobby20: soll 1,2,2,2, Team-Bytes 0,0,1,1)
+            klicks += [j, mit[0]]
     return klicks
 
 
@@ -275,32 +285,67 @@ def menue():
     vorher = zustand()
     if not vorher.get("antwortet"):
         raise Fehler(vorher["text"])
+    z = vorher
     if vorher["ansicht"] != HAUPTMENUE:
-        senden([{"menue": HAUPTMENUE}], 3.0)
-        warte_ansicht(HAUPTMENUE)
-    senden([{"pause": True}], 2.0)
-    z = zustand()
+        # Anhalten und Wechsel in EINEM Aufruf (gemessen 21:31: im Menue kostet jeder Aufruf 0,33 s, in der Partie 0,04 s)
+        senden([{"pause": True}, {"menue": HAUPTMENUE}], 3.0)
+        z = warte_ansicht(HAUPTMENUE)
     if z["pause"] != 1:
-        raise Fehler("Spiel laesst sich nicht anhalten: %s" % z)
+        senden([{"pause": True}], 2.0)
+        z = zustand()
+        if z["pause"] != 1:
+            raise Fehler("Spiel laesst sich nicht anhalten: %s" % z)
     return "Ansicht %d -> Hauptmenue, angehalten" % vorher["ansicht"]
 
 
-def kartenliste():
+def _kartenliste_datei():
+    return os.path.join(_kanal().SPIEL, "ucp", "villagestudio", "samurai_kartenliste.json")
+
+
+def kartenliste(neu=False):
+    """Namen der Lobby-Karten (Eintrag n). Einmal je Spielordner gemerkt - sie aendern sich nur mit neuen Karten; aufstellen prueft
+    die gewaehlte Zeile im selben Aufruf nach (Namensnummer) und liest bei Abweichung neu."""
+    import json
+
+    pfad = _kartenliste_datei()
+    if not neu:
+        try:
+            with open(pfad, encoding="utf-8") as f:
+                d = json.load(f)
+            return d["namen"], d["k"]
+        except (OSError, ValueError, KeyError):
+            pass
     k = lesen([(KARTEN_INDEX, 200)])[KARTEN_INDEX]
     n = next((i for i, v in enumerate(k) if v == 0 and i > 0), len(k))
     stellen = [(KARTEN_NAME + kk * NAME_LAENGE, 10) for kk in k[:n]]
     namen = lesen(stellen, 6.0)
-    return [text_von(namen[a]) for a, _ in stellen]
+    erg = [text_von(namen[a]) for a, _ in stellen], k[:n]
+    try:
+        with open(pfad, "w", encoding="utf-8") as f:
+            json.dump({"namen": erg[0], "k": erg[1]}, f, ensure_ascii=False)
+    except OSError:
+        pass
+    return erg
 
 
 def karten(teil=""):
-    namen = kartenliste()
+    namen = kartenliste(neu=True)[0]
     zeigen = [(i, nm) for i, nm in enumerate(namen) if teil.lower() in nm.lower()]
     return "%d Karten%s: %s" % (
         len(zeigen),
         " mit '%s'" % teil if teil else "",
         "; ".join("%d %s" % x for x in zeigen),
     )
+
+
+def lesen_nach(befehle, warte=3.0):
+    """Befehle und peeks in EINEM Aufruf; gibt die gelesenen Stellen {adresse: [worte]} (vorzeichenlos)."""
+    aus = {}
+    for zeile in senden(befehle, warte):
+        m = re.search(r"PEEK 0x([0-9A-F]{8}): ([0-9A-F ]+)", zeile)
+        if m:
+            aus[int(m.group(1), 16)] = [int(w, 16) & 0xFFFFFFFF for w in m.group(2).split()]
+    return aus
 
 
 def lobby():
@@ -320,7 +365,7 @@ def lobby():
     }
 
 
-def aufstellen(karte, kis, teams="", plaetze=""):
+def aufstellen(karte, kis, teams="", plaetze="", art="1", gold="3", _wieder=False):
     """Lobby wie ein Mensch aufstellen: Hauptmenue -> Eigenes Gefecht, Karte, KIs, Teams, Schilder. Startet NICHT (das macht
     starten mit Daniels Freigabe). Prueft am Ende Karte, Belegung und Teams aus dem Speicher."""
     ki = [int(x) for x in str(kis).split(",") if x.strip()]
@@ -337,11 +382,41 @@ def aufstellen(karte, kis, teams="", plaetze=""):
     warte_ansicht(
         lambda a: a != HAUPTMENUE
     )  # Lobby (Ansicht 20, gemessen 21:29)  # eigener Aufruf, sonst zu frueh (gemessen 15.11.)
-    n, roll, zeile = karten_eintrag(kartenliste(), karte)
-    befehle = [
-        {"knopf": "LobbyMenu_MapSelectScrollbar", "nr": 0, "art": 3, "wert": roll},
-        {"knopf": "LobbyMenu_MapSelectTable", "nr": zeile},
-    ]
+    namen, kliste = kartenliste()
+    n, roll, zeile = karten_eintrag(namen, karte)
+    # Aufruf 1: Karte, Spielart, Gold-Regler; im selben Aufruf die gemerkte Liste und die Platzzahl der Karte pruefen
+    a = lesen_nach(
+        [
+            {"peek": KARTEN_INDEX + 4 * n, "worte": 1},
+            {"knopf": "LobbyMenu_MapSelectScrollbar", "nr": 0, "art": 3, "wert": roll},
+            {"knopf": "LobbyMenu_MapSelectTable", "nr": zeile},
+            {"knopf": "LobbyMenu_SkirmishTypeAndBalance", "nr": int(art)},
+            {"knopf": "LobbyMenu_SkirmishTypeAndBalance", "nr": 9 + int(gold)},
+            {"peek": SCHILDER, "worte": 16},
+            {"peek": SPIELART, "worte": 1},
+            {"peek": VORTEIL, "worte": 1},
+        ]
+    )
+    if a.get(KARTEN_INDEX + 4 * n, [None])[0] != kliste[n]:
+        if _wieder:
+            raise Fehler(
+                "Kartenliste passt nicht: Eintrag %d hat Nummer %s statt %s"
+                % (n, a.get(KARTEN_INDEX + 4 * n), kliste[n])
+            )
+        kartenliste(
+            neu=True
+        )  # gemerkte Liste veraltet (neue Karten) - neu lesen und noch einmal aufstellen
+        return aufstellen(karte, kis, teams, plaetze, art, gold, _wieder=True)
+    platz = sum(1 for i in range(8) if a[SCHILDER][2 * i] != 0xFFFFFFFF)
+    if len(ki) > platz:
+        raise Fehler("Karte '%s' hat %d Plaetze, verlangt sind %d KIs" % (namen[n], platz, len(ki)))
+    if (a[SPIELART][0], a[VORTEIL][0]) != (int(art), int(gold)):
+        raise Fehler(
+            "Spielart/Gold stehen nicht: soll %s/%s, ist %s/%s"
+            % (art, gold, a[SPIELART][0], a[VORTEIL][0])
+        )
+    # Aufruf 2: KIs und Runder Tisch
+    befehle = []
     for k in ki:
         befehle += [
             {"knopf": "LobbyMenu_PlayerListAndNpcButtons", "nr": -101},
@@ -390,10 +465,12 @@ def aufstellen(karte, kis, teams="", plaetze=""):
         if falsch:
             raise Fehler("Schilder stehen nicht wie verlangt (Spieler: soll, ist): %s" % falsch)
     return (
-        "Lobby steht in %.0f s: Karte '%s', KIs %s, Teams %s, Schilder %s (Zuege %s) - Start nur mit Daniels Freigabe: shc starten"
+        "Lobby steht in %.1f s: Karte '%s', Spielart %s, Gold-Regler %s, KIs %s, Teams %s, Schilder %s (Zuege %s) - Start nur mit Daniels Freigabe: shc starten"
         % (
             time.time() - t0,
-            kartenliste()[n],
+            namen[n],
+            art,
+            gold,
             ki,
             lb["teams"][1 : 1 + len(ki)],
             lb["belegung"],

@@ -53,7 +53,8 @@ def test_trefferpunkt_wie_gemessen():
 def test_runder_tisch_klicks():
     assert shc.team_klicks([0, 1, 1]) == [2, 3]  # gemessen 20:45: Team-Bytes danach 00 01 01
     assert shc.team_klicks([1, 1, 2, 2]) == [1, 2, 3, 4]
-    assert shc.team_klicks([1, 1, 1]) == [1, 2, 1, 3]
+    assert shc.team_klicks([1, 1, 1]) == [1, 2, 3, 1]  # der Neue zuerst (gemessen 21:36)
+    assert shc.team_klicks([1, 2, 2, 2]) == [2, 3, 4, 2]
     assert shc.team_klicks([0, 0]) == []
 
 
