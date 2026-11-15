@@ -12,7 +12,8 @@ KERN = (pathlib.Path(__file__).resolve().parents[1] / "crates/samurai-kern/src/l
 
 def test_kern_verweigert_fremde_einheiten_und_leert_das_buch_bei_neuer_partie():
     absetzen = KERN.index("match haende::absetzen(a, &einheiten, platz)")
-    sperre = KERN.rindex("if platz != ich {", 0, absetzen)
+    # B-184 (15.11.2026): eigen = SamurAIs Plaetze (darf_fuehren), nicht mehr der Platz des Menschen
+    sperre = KERN.rindex("if !darf_fuehren(platz, maske) {", 0, absetzen)
     assert absetzen - sperre < 1200 and "ERG_FREMD" in KERN[sperre:absetzen]
     epoche = KERN.index("Ereignis::Epoche { von, nach } => {")
     assert (
