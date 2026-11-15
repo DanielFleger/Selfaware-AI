@@ -1061,6 +1061,12 @@ class Einzeln:
             ort = (L[n]["x"], L[n]["y"])
             while r["punkte"] and schach(ort, r["punkte"][0]) <= self._vorlauf():
                 r["punkte"].pop(0)
+            # #359 (Daniel 16.11.2026 00:09 "laufen eine strecke, stoppen dann wieder ohne beim ziel zu sein"): der Kern fuehrt den Weg als
+            # Kette weiter (erstes_spiel.kernweg_senden) - zeigt das Laufziel schon auf einen spaeteren Wegpunkt, gelten die davor als erledigt
+            lauf_z = (L[n].get("laufx", -99), L[n].get("laufy", -99))
+            spaeter = next((i for i, q in enumerate(r["punkte"][1:], 1) if schach(lauf_z, q) <= self.WEGPUNKT_NAH), None)
+            if spaeter is not None:
+                del r["punkte"][:spaeter]
             if not r["punkte"]:
                 self.route.pop(n, None)
                 angriffe.append((n, r["gebaeude"]))
