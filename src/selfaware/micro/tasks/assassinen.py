@@ -379,7 +379,9 @@ class Einzeln:
     # Ziel nur bis STAPEL_WEG Felder von der Stapelmitte, mindestens STAPEL_BURG von jedem feindlichen Lord, und nur, wenn die
     # Gefechtsrechnung (Stapel gegen alle Schuetzen, die das Ziel erreichen, und alle Nahkaempfer bis GEGEN_UMKREIS) einen Sieg
     # mit GEGEN_BEHALTEN ergibt; jede Runde neu gerechnet. Nach einem Abbruch STAPEL_PAUSE Takte kein neuer Stapel
-    STAPEL_WEG, STAPEL_BURG, STAPEL_PAUSE = 40, SCHUSSWEITE + 5, 600
+    STAPEL_WEG, STAPEL_BURG, STAPEL_PAUSE = 40, SCHUSSWEITE + 5, 600   # WEG/BURG seit 15.11.2026 23:28 keine Sperre mehr (Rechnung entscheidet)
+    STAPEL_RECHNEN = 5     # so viele Fernkaempfer (einsamste/naechste zuerst) rechnet der Stapel je Runde - nur Rechenzeit, kein Spielwert
+    WEG_PROBE = 8          # alle so viele Felder ein Punkt des Weges fuer den Beschuss unterwegs (eine Sicht-Zelle, sicht.py)
     # Lord-Trupp (Daniel 05.10. 00:52): nebenher immer wieder pruefen; freie Raid-Assassinen gebuendelt auf den Lord -
     # meist reichen 10, steht er allein sogar 5, bei Bogenschuetzen mehr, je nach Feindmenge noch viel mehr.
     # STARTWERTE aus dieser Regel: 5 allein, sonst 10 + 2 je Fernkaempfer + 1 je Nahkaempfer im Umkreis LORD_UMKREIS.
@@ -1429,20 +1431,32 @@ class Einzeln:
         self._tr_merk = (schluessel, erg)
         return erg
 
-    def _stapel_rechnung(self, mitglieder, f, L):
+    def _stapel_rechnung(self, mitglieder, f, L, von=None):
         """19.10. (1019k): (lohnt, Text) - der Stapel gegen alle feindlichen Schuetzen, die den Ort des Ziels f erreichen (sie
-        stehen), und alle feindlichen Nahkaempfer bis GEGEN_UMKREIS um ihn; lohnt = Sieg mit mindestens GEGEN_BEHALTEN Rest."""
+        stehen), und alle feindlichen Nahkaempfer bis GEGEN_UMKREIS um ihn; lohnt = Sieg mit mindestens GEGEN_BEHALTEN Rest.
+        von (Daniel 15.11.2026 23:28): Mitte des Stapels - dann zaehlen auch die Schuetzen, die einen Punkt des Weges von dort zum Ziel
+        (alle WEG_PROBE Felder) in Reichweite und mit freier Schusslinie haben: der Beschuss, der auf dem Weg wirklich dazukommt."""
         import selfaware.services.gefecht as gefecht
         if f not in L:
             return False, "Ziel weg"
         p = (L[f]["x"], L[f]["y"])
+        weg = [p]
+        if von is not None:
+            n_w = max(1, int(schach(von, p) // self.WEG_PROBE))   # von ist die Mitte des Stapels (Kommazahl)
+            weg = [(int(von[0] + (p[0] - von[0]) * i / n_w), int(von[1] + (p[1] - von[1]) * i / n_w)) for i in range(n_w + 1)]
+
+        def trifft(q, e):
+            for w in weg:
+                if spielwerte.in_reichweite(q, w, e["typ"]) and (self._sicht is None or w == p or self._sicht.linie_frei(q, None, w)):
+                    return True
+            return False
         wir = [dict(typ=ASSASSINE, leben=L[m]["leben"], x=L[m]["x"], y=L[m]["y"]) for m in mitglieder if m in L]
         sie, schuetzen = [], 0
         for k, e in L.items():
             if e["besitzer"] in (0, self.sp):
                 continue
             q = (e["x"], e["y"])
-            if e["typ"] in sicht.REICHWEITE and spielwerte.in_reichweite(q, p, e["typ"]):
+            if e["typ"] in sicht.REICHWEITE and trifft(q, e):
                 sie.append(dict(typ=e["typ"], leben=e["leben"], x=e["x"], y=e["y"], steht=True))
                 schuetzen += 1
             elif e["typ"] in sicht.NAHKAMPF and schach(q, p) <= self.GEGEN_UMKREIS:
@@ -2937,17 +2951,16 @@ class Einzeln:
                 # die Gefechtsrechnung gewinnt (die drei einsamsten/naechsten werden gerechnet)
                 mx = sum(L[n]["x"] for n in stp["mitglieder"]) / len(stp["mitglieder"])
                 my = sum(L[n]["y"] for n in stp["mitglieder"]) / len(stp["mitglieder"])
-                erreichbar = []
-                for f in fern:
-                    if L[f[0]].get("erreichbar", -1) != 1 or schach((mx, my), f[1]) > self.STAPEL_WEG \
-                            or any(schach(f[1], b) < self.STAPEL_BURG for b in self._feindburg):
-                        continue
-                    um = self._anzahl(f[1], fern, 10) - 1
-                    if len(stp["mitglieder"]) >= 2 * um + 4:
-                        erreichbar.append((um, schach((mx, my), f[1]), f))
-                wahl, text_s = None, "kein Schuetze bis %d Felder, ausserhalb %d Feldern um ihre Lords" % (self.STAPEL_WEG, self.STAPEL_BURG)
-                for um, d, f_ in sorted(erreichbar)[:3]:
-                    lohnt_s, text_s = self._stapel_rechnung(stp["mitglieder"], f_[0], L)
+                # Daniel 15.11.2026 23:28 ("wenn sie die ueberhand haben, heisst beim erwarteten beschuss von anderen die auf dem weg noch
+                # dazukommen und auf sie schiessen aktiv (nicht nur geschaetzt) dann sollen sie auch die bogenschuetzen absnacken ... natuerlich
+                # nur bei erwartetem gewinn"): keine festen Sperren mehr (vorher hoechstens STAPEL_WEG Felder, nie naeher als STAPEL_BURG am
+                # Lord, Stapel >= 2 x Nachbarn + 4 - Probe 23:05: 11 Versuche, kein Schuetze kam in Frage). Es entscheidet die Gefechtsrechnung
+                # mit allen Schuetzen, die das Ziel ODER den Weg dorthin wirklich treffen koennen (Reichweite und freie Schusslinie)
+                erreichbar = [(self._anzahl(f[1], fern, 10) - 1, schach((mx, my), f[1]), f) for f in fern
+                              if L[f[0]].get("erreichbar", -1) == 1]
+                wahl, text_s = None, "kein erreichbarer Fernkaempfer"
+                for um, d, f_ in sorted(erreichbar)[:self.STAPEL_RECHNEN]:
+                    lohnt_s, text_s = self._stapel_rechnung(stp["mitglieder"], f_[0], L, von=(mx, my))
                     if lohnt_s:
                         wahl = (um, d, f_)
                         break
