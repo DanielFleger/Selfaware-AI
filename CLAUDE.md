@@ -9,7 +9,8 @@ Lageprotokoll (unter 50 MB) und geaenderte Umgebung committen und pushen.
 Einzelheiten: README.md, Abschnitt "Pflicht nach jeder Partie" (Daniel 17.10.2026).
 
 Backlog (Daniel 19.10.2026: nichts vergessen, wissen was gebaut ist und wo es steht): EINE Liste, `docs/backlog/backlog.json`,
-Ansicht `docs/backlog/Backlog.html`. Neue Arbeit zuerst als Punkt anlegen (`uv run selfaware run backlog neu ...`), jeder Commit nennt
+Ansicht `docs/backlog/Backlog.html`. Neue Arbeit zuerst als Punkt anlegen (`uv run selfaware run backlog neu --kategorie ... --unter ... ...`, Kategorien in
+`docs/backlog/kategorien.json`: Spielstart/Bedienung, Kampf, Wirtschaft, Struktur, KI-Denken; Daniel 15.11.2026), jeder Commit nennt
 seinen Punkt (B-Nummer) in der Nachricht, danach Stand setzen (`stand B-n gebaut --commit ...`) und `uv run selfaware run backlog bauen`.
 Nie loeschen, nur den Stand aendern. "Commits ohne Punkt" in Backlog.html muss 0 sein.
 Reihenfolge (Daniel 19.10. 22:02): das Wichtigste - das, woran gerade gearbeitet wird - steht oben (`uv run selfaware run backlog rang B-n 1`,

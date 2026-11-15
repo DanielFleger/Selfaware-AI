@@ -10,9 +10,15 @@ Zeit in den Verlauf des Punkts. Die Ansicht docs/backlog/Backlog.html wird darau
   - "Ohne Punkt": Commits ab 19.10.2026, deren Nachricht keinen Punkt (B-Nummer) nennt - damit nichts verloren geht
 Die alte Backlog.md (Abhakliste bis 11.10.) ist mit "import_alt" vollstaendig uebernommen (B-1 bis B-58).
 
+Kategorien (B-192, Daniel 15.11.2026 14:01/14:18): jeder Punkt hat genau eine Kategorie und Unterkategorie aus
+docs/backlog/kategorien.json (Spielstart/Bedienung, Kampf, Wirtschaft, Struktur, KI-Denken). "neu" lehnt Unbekanntes ab.
+Erledigtes (gebaut, verworfen) bleibt stehen, zaehlt aber nicht mit (Daniel 14:24). Das alte Backlog des Zweigs vor dem Umzug
+(150 Punkte, die hier fehlten) ist mit "einordnen docs/backlog/einordnung_20261115.json" uebernommen: neue Nummern ab B-290,
+die alte Nummer steht im Feld "alte_nr" - so heisst keine Nummer zwei Dinge.
+
 Aufruf (aus Selfaware-AI):
-  uv run selfaware run backlog neu --titel "..." --bereich Kampf --herkunft "Daniel 19.10. 21:52 ..." [--status offen]
-                                 [--wo datei1,datei2] [--belege L142,L143] [--notiz "..."]
+  uv run selfaware run backlog neu --titel "..." --kategorie Kampf --unter "Angriff und Raids" --herkunft "Daniel 19.10. 21:52 ..."
+                                 [--status offen] [--wo datei1,datei2] [--belege L142,L143] [--notiz "..."]
   uv run selfaware run backlog stand B-61 gebaut [--commit abc1234] [--wo ...] [--belege ...] [--notiz "..."]
   uv run selfaware run backlog zuordnen B-61 abc1234,def5678   (Commit ohne B-Nummer einem Punkt zuordnen)
   uv run selfaware run backlog rang B-114 1     (Rang 1 = ganz oben; Daniel 22:02: das Wichtigste, was ich jetzt mache, oben)
@@ -35,6 +41,7 @@ HIER = os.path.dirname(os.path.abspath(__file__))
 WURZEL = _workspace.ROOT
 QUELLE = os.path.join(WURZEL, "docs", "backlog", "backlog.json")
 ANSICHT = os.path.join(WURZEL, "docs", "backlog", "Backlog.html")
+BAUM_DATEI = os.path.join(WURZEL, "docs", "backlog", "kategorien.json")
 VILLAGE = _workspace.VILLAGE_STUDIO
 STAENDE = ("in_arbeit", "offen", "gebaut", "zurueckgestellt", "verworfen")
 STAND_TEXT = {"in_arbeit": "in Arbeit", "offen": "offen", "gebaut": "gebaut", "zurueckgestellt": "zurückgestellt",
@@ -70,16 +77,98 @@ def finde(b, nr):
     raise SystemExit("Punkt %s gibt es nicht" % nr)
 
 
+def baum():
+    """Kategorienbaum aus docs/backlog/kategorien.json: [(Kategorie, [Unterkategorien])] in fester Reihenfolge."""
+    d = json.load(open(BAUM_DATEI, encoding="utf-8"))
+    return [(k["name"], [u["name"] for u in k["unter"]]) for k in d["kategorien"]], set(d["zaehlen_nicht"])
+
+
+def pruefe_kategorie(kategorie, unter):
+    b, _ = baum()
+    erlaubt = dict(b)
+    if kategorie not in erlaubt:
+        raise SystemExit("Kategorie %r unbekannt - %s" % (kategorie, ", ".join(erlaubt)))
+    if unter not in erlaubt[kategorie]:
+        raise SystemExit("Unterkategorie %r gibt es in %s nicht - %s" % (unter, kategorie, ", ".join(erlaubt[kategorie])))
+
+
+def naechste_nummer(b, ab=1):
+    return max([int(p["nr"][2:]) for p in b["punkte"]] + [ab - 1]) + 1
+
+
 def neu(b, titel, bereich, herkunft, status="offen", wo=(), belege=(), notiz="", seit=None, gebaut=None, commits=(),
-        quelle=None):
+        quelle=None, kategorie=None, unter=None):
+    """Neuer Punkt. kategorie/unter sind Pflicht (B-192); nur der alte Import aus Backlog.md (import_alt) laeuft ohne."""
     if status not in STAENDE:
         raise SystemExit("Stand %r unbekannt - %s" % (status, ", ".join(STAENDE)))
-    nr = "B-%d" % (max([int(p["nr"][2:]) for p in b["punkte"]] or [0]) + 1)
-    p = {"nr": nr, "titel": titel, "bereich": bereich, "status": status, "seit": seit or jetzt(), "herkunft": herkunft,
+    if quelle != "Backlog.md":
+        pruefe_kategorie(kategorie, unter)
+    nr = "B-%d" % naechste_nummer(b)
+    p = {"nr": nr, "titel": titel, "bereich": bereich or kategorie, "kategorie": kategorie, "unterkategorie": unter,
+         "status": status, "seit": seit or jetzt(), "herkunft": herkunft,
          "gebaut": gebaut, "commits": list(commits), "wo": list(wo), "belege": list(belege), "notiz": notiz,
          "verlauf": [{"zeit": jetzt(), "was": "angelegt (%s)" % STAND_TEXT[status] + (" - aus %s" % quelle if quelle else "")}]}
     b["punkte"].append(p)
     return p
+
+
+def _norm(t):
+    return re.sub(r"\W+", "", t.lower())
+
+
+def einordnen(b, datei):
+    """B-192: Einordnung aus einer Datei uebernehmen (docs/backlog/einordnung_20261115.json). Heutige Punkte bekommen Kategorie und
+    Unterkategorie; alte Punkte aus dem Stand vor dem Umzug (git show <commit>:backlog.json) kommen mit neuen Nummern ab "nummern_ab"
+    dazu, die alte Nummer bleibt in "alte_nr", Pfade unter "wo" werden ueber docs/relocations.json uebersetzt. Laeuft nur einmal."""
+    e = json.load(open(datei, encoding="utf-8"))
+    quelle = "%s:%s" % (e["alt_quelle"]["commit"][:7], e["alt_quelle"]["datei"])
+    if any(p.get("quelle") == quelle for p in b["punkte"]):
+        raise SystemExit("Die Einordnung aus %s ist schon uebernommen" % quelle)
+    roh = subprocess.run(["git", "-C", WURZEL, "show", "%s:%s" % (e["alt_quelle"]["commit"], e["alt_quelle"]["datei"])],
+                         capture_output=True)
+    if roh.returncode != 0:
+        raise SystemExit("Altes Backlog nicht lesbar: %s" % roh.stderr.decode("utf-8", "replace")[:200])
+    alt = {p["nr"]: p for p in json.loads(roh.stdout.decode("utf-8"))["punkte"]}
+    umzug = {x["old"]: x["new"] for x in json.load(open(os.path.join(WURZEL, "docs", "relocations.json"), encoding="utf-8"))["files"]}
+    hier = {p["nr"]: p for p in b["punkte"]}
+    nummer = naechste_nummer(b, e["nummern_ab"])
+    neue_nr = {}
+    gesetzt = uebernommen = 0
+    for z in e["punkte"]:
+        pruefe_kategorie(z["kategorie"], z["unterkategorie"])
+        if z["herkunft"] == "neu":
+            p = hier.get(z["nr"])
+            if p is None or _norm(p["titel"]) != _norm(z["titel"]):
+                raise SystemExit("%s passt nicht zur Einordnung (Titel anders oder Punkt fehlt)" % z["nr"])
+            p["kategorie"], p["unterkategorie"] = z["kategorie"], z["unterkategorie"]
+            p["verlauf"].append({"zeit": jetzt(), "was": "eingeordnet: %s / %s (B-192)" % (z["kategorie"], z["unterkategorie"])})
+            gesetzt += 1
+            continue
+        a = alt[z["nr"]]
+        if _norm(a["titel"]) != _norm(z["titel"]):
+            raise SystemExit("alter Punkt %s passt nicht zur Einordnung" % z["nr"])
+        nr = "B-%d" % nummer
+        nummer += 1
+        neue_nr["alt:" + z["nr"]] = nr
+        p = dict(a)
+        p.update({"nr": nr, "alte_nr": z["nr"], "quelle": quelle, "kategorie": z["kategorie"], "unterkategorie": z["unterkategorie"],
+                  "wo": [umzug.get(w, w) for w in a.get("wo", [])], "commits": list(a.get("commits", [])),
+                  "belege": list(a.get("belege", [])), "notiz": a.get("notiz", ""), "verlauf": list(a.get("verlauf", []))})
+        p["verlauf"].append({"zeit": jetzt(), "was": "uebernommen aus dem alten Backlog (%s, dort %s), eingeordnet: %s / %s (B-192)"
+                             % (quelle, z["nr"], z["kategorie"], z["unterkategorie"])})
+        b["punkte"].append(p)
+        uebernommen += 1
+    alle = {p["nr"]: p for p in b["punkte"]}
+    for s in e.get("siehe", []):
+        x, y = [neue_nr.get(k, k.split(":", 1)[1]) for k in (s["a"], s["b"])]
+        for von, nach in ((x, y), (y, x)):
+            alle[von].setdefault("siehe", [])
+            if nach not in alle[von]["siehe"]:
+                alle[von]["siehe"].append(nach)
+    ohne = [p["nr"] for p in b["punkte"] if not p.get("kategorie")]
+    if ohne:
+        raise SystemExit("Ohne Kategorie: %s" % ", ".join(ohne))
+    return gesetzt, uebernommen
 
 
 def stand(b, nr, status, commit=None, wo=(), belege=(), notiz=""):
@@ -187,8 +276,8 @@ def bauen(b):
     ohne = [(n, h, d, s) for (n, h, d, s) in log if d[:10] >= AB_ZUORDNUNG and n == "Selfaware-AI"
             and not re.search(r"\bB-\d+", s) and h not in bekannte]
     fehlt_wo = []
-    karten = []
-    for p in sorted(punkte, key=ordnung):
+
+    def karte(p):
         wo_html = []
         for w in p["wo"]:
             da = os.path.exists(os.path.join(WURZEL, w)) or os.path.exists(w)
@@ -196,30 +285,56 @@ def bauen(b):
                 fehlt_wo.append((p["nr"], w))
             wo_html.append('<code class="%s">%s</code>' % ("da" if da else "fehlt", e(w)))
         verlauf = "".join("<li>%s - %s</li>" % (e(v["zeit"]), e(v["was"])) for v in p["verlauf"])
-        karten.append(
-            '<div class="punkt %s" data-id="%s" data-stand="%s" data-bereich="%s">'
+        return (
+            '<div class="punkt %s" data-id="%s" data-stand="%s" data-kategorie="%s">'
             '<h2><span class="nr">%s</span>%s %s <span class="stand %s">%s</span></h2>'
-            '<div class="meta"><b>Bereich:</b> %s · <b>seit:</b> %s · <b>wer/warum:</b> %s</div>'
-            '%s%s%s%s%s'
+            '<div class="meta"><b>Kategorie:</b> %s / %s%s · <b>seit:</b> %s · <b>wer/warum:</b> %s</div>'
+            '%s%s%s%s%s%s'
             '<details><summary>Verlauf (%d)</summary><ul>%s</ul></details>'
             '<div class="zeile"><select class="ampel"><option>offen</option><option>gruen</option><option>gelb</option>'
             '<option>rot</option></select><textarea placeholder="Notiz"></textarea></div></div>' % (
-                p["status"], e(p["nr"]), p["status"], e(p["bereich"]), e(p["nr"]),
+                p["status"], e(p["nr"]), p["status"], e(p.get("kategorie")), e(p["nr"]),
                 (' <span class="rang">Rang %d</span>' % p["rang"]) if p.get("rang") and p["status"] in ("offen", "in_arbeit") else "",
                 e(p["titel"]), p["status"],
-                STAND_TEXT[p["status"]], e(p["bereich"]), e(p["seit"]), e(p["herkunft"]),
+                STAND_TEXT[p["status"]], e(p.get("kategorie")), e(p.get("unterkategorie")),
+                (" · <b>alte Nummer:</b> %s" % e(p["alte_nr"])) if p.get("alte_nr") else "", e(p["seit"]), e(p["herkunft"]),
+                ('<div><b>siehe:</b> %s</div>' % e(", ".join(p["siehe"]))) if p.get("siehe") else "",
                 ('<div><b>gebaut:</b> %s</div>' % e(p["gebaut"])) if p.get("gebaut") else "",
                 ('<div><b>Commits:</b> %s</div>' % ", ".join("<code>%s</code>" % e(c) for c in p["commits"])) if p["commits"] else "",
                 ('<div><b>wo:</b> %s</div>' % " ".join(wo_html)) if wo_html else "",
                 ('<div><b>Belege:</b> %s</div>' % e(", ".join(p["belege"]))) if p["belege"] else "",
                 ('<div class="notiz">%s</div>' % e(p["notiz"])) if p["notiz"] else "",
                 len(p["verlauf"]), verlauf))
+
+    # B-192: nach Kategorie und Unterkategorie; Erledigtes (gebaut, verworfen) zaehlt nicht mit und steht eingeklappt darunter
+    baum_liste, zaehlen_nicht = baum()
+    bekannt = {(k, u) for k, us in baum_liste for u in us}
+    rest = [p for p in punkte if (p.get("kategorie"), p.get("unterkategorie")) not in bekannt]
+    if rest:
+        baum_liste = baum_liste + [("(ohne Kategorie)", ["(ohne Unterkategorie)"])]
+    karten = []
+    for kat, unters in baum_liste:
+        in_kat = rest if kat == "(ohne Kategorie)" else [p for p in punkte if p.get("kategorie") == kat]
+        offen_kat = [p for p in in_kat if p["status"] not in zaehlen_nicht]
+        teile = []
+        for u in unters:
+            in_u = in_kat if kat == "(ohne Kategorie)" else [p for p in in_kat if p.get("unterkategorie") == u]
+            if not in_u:
+                continue
+            offen_u = sorted((p for p in in_u if p["status"] not in zaehlen_nicht), key=ordnung)
+            fertig_u = sorted((p for p in in_u if p["status"] in zaehlen_nicht), key=ordnung)
+            teile.append('<h3>%s <span class="leise">– %d offen</span></h3>%s%s' % (
+                e(u), len(offen_u), "".join(karte(p) for p in offen_u),
+                ('<details class="erledigt"><summary>Erledigt (%d, zählt nicht mit)</summary>%s</details>'
+                 % (len(fertig_u), "".join(karte(p) for p in fertig_u))) if fertig_u else ""))
+        karten.append('<section class="kat"><h2 class="katname">%s <span class="leise">– %d offen</span></h2>%s</section>'
+                      % (e(kat), len(offen_kat), "".join(teile)))
     arbeit, weiter = fokus(b)
     jetzt_html = ("<b>Jetzt dran:</b> " + "; ".join("%s %s" % (e(p["nr"]), e(p["titel"])) for p in arbeit)
                   if arbeit else "<b>Jetzt dran:</b> nichts in Arbeit") + \
         ("<br><b>Danach:</b> " + " → ".join("%s %s" % (e(p["nr"]), e(p["titel"][:60])) for p in weiter) if weiter else "")
     zaehl = {s: sum(1 for p in punkte if p["status"] == s) for s in STAENDE}
-    bereiche = sorted({p["bereich"] for p in punkte})
+    bereiche = [k for k, _ in baum_liste]
     tage = {}
     for n, h, d, s in log:
         tage.setdefault(d[:10], []).append((n, h, d[11:], s))
@@ -229,8 +344,9 @@ def bauen(b):
     ohne_html = "".join("<li><code>%s</code> %s %s</li>" % (e(h), e(d), e(s)) for n, h, d, s in ohne) or "<li>keine</li>"
     fehlt_html = "".join("<li>%s: <code>%s</code></li>" % (e(n), e(w)) for n, w in fehlt_wo) or "<li>keine</li>"
     seite = VORLAGE.format(
-        erzeugt=time.strftime("%d.%m.%Y, %H:%M"), anzahl=len(punkte),
-        zaehlung=" · ".join("%s %d" % (STAND_TEXT[s], zaehl[s]) for s in STAENDE),
+        erzeugt=time.strftime("%d.%m.%Y, %H:%M"), anzahl=sum(1 for p in punkte if p["status"] not in zaehlen_nicht),
+        zaehlung="erledigt und nicht mitgezählt: %d · " % sum(1 for p in punkte if p["status"] in zaehlen_nicht)
+        + " · ".join("%s %d" % (STAND_TEXT[s], zaehl[s]) for s in STAENDE),
         bereiche="".join('<option>%s</option>' % e(x) for x in bereiche), karten="".join(karten),
         chronik=chronik, commits=len(log), ohne=ohne_html, jetzt=jetzt_html, n_ohne=len(ohne), fehlt=fehlt_html, n_fehlt=len(fehlt_wo),
         ab=AB_ZUORDNUNG)
@@ -264,18 +380,20 @@ VORLAGE = """<!doctype html>
   button {{ font:inherit; padding:6px 12px; border-radius:6px; border:1px solid var(--akzent); background:var(--karte); color:var(--text); cursor:pointer; }}
   .kasten {{ background:var(--karte); border:1px solid var(--rand); border-radius:10px; padding:10px 14px; margin:14px 0; }}
   details summary {{ cursor:pointer; }}
+  .kat {{ margin:22px 0; }} .katname {{ font-size:1.3em; margin:0 0 4px; border-bottom:2px solid var(--rand); padding-bottom:4px; }}
+  .kat h3 {{ font-size:1.05em; margin:14px 0 4px; }} details.erledigt > summary {{ color:var(--leise); margin:4px 0 8px; }}
   .kasten.jetzt {{ border-left:6px solid var(--blau); }} .rang {{ font-size:.75em; padding:1px 8px; border-radius:8px; background:var(--blau); color:#fff; margin-left:6px; font-weight:400; }}
 </style>
 </head>
 <body>
 <main>
 <h1>Backlog SamurAI</h1>
-<div class="timestamps">Erstellt: 19.10.2026, 22:05 · zuletzt erzeugt {erzeugt} aus <code>docs/backlog/backlog.json</code> mit <code>uv run selfaware run backlog bauen</code> · {anzahl} Punkte: {zaehlung}</div>
-<p class="leise">Nichts wird gelöscht, nur der Stand ändert sich, jede Änderung steht mit Zeit im Verlauf. „wo“ wird bei jedem Erzeugen nachgesehen: ✓ heißt, die Datei ist da, durchgestrichen heißt, sie fehlt.</p>
+<div class="timestamps">Erstellt: 19.10.2026, 22:05 · zuletzt erzeugt {erzeugt} aus <code>docs/backlog/backlog.json</code> mit <code>uv run selfaware run backlog bauen</code> · {anzahl} offene Punkte ({zaehlung})</div>
+<p class="leise">Geordnet nach Kategorie und Unterkategorie (<code>docs/backlog/kategorien.json</code>). Erledigtes (gebaut, verworfen) zählt nicht mit und steht eingeklappt unter seiner Unterkategorie. Nichts wird gelöscht, nur der Stand ändert sich, jede Änderung steht mit Zeit im Verlauf. „wo“ wird bei jedem Erzeugen nachgesehen: ✓ heißt, die Datei ist da, durchgestrichen heißt, sie fehlt.</p>
 <div class="knoepfe">
   <input id="suche" placeholder="Suchen…" oninput="filtern()">
   <select id="stand" onchange="filtern()"><option value="">alle Stände</option><option value="in_arbeit">in Arbeit</option><option value="offen">offen</option><option value="gebaut">gebaut</option><option value="zurueckgestellt">zurückgestellt</option><option value="verworfen">verworfen</option></select>
-  <select id="bereich" onchange="filtern()"><option value="">alle Bereiche</option>{bereiche}</select>
+  <select id="kategorie" onchange="filtern()"><option value="">alle Kategorien</option>{bereiche}</select>
   <button onclick="kopieren()">Kopieren</button><button onclick="herunterladen()">Herunterladen</button>
 </div>
 <div class="kasten jetzt">{jetzt}</div>
@@ -287,10 +405,13 @@ VORLAGE = """<!doctype html>
 </main>
 <script>
 function filtern() {{
-  const q = document.getElementById('suche').value.toLowerCase(), s = document.getElementById('stand').value, b = document.getElementById('bereich').value;
+  const q = document.getElementById('suche').value.toLowerCase(), s = document.getElementById('stand').value, b = document.getElementById('kategorie').value;
   document.querySelectorAll('.punkt').forEach(p => {{
-    const ok = (!q || p.textContent.toLowerCase().includes(q)) && (!s || p.dataset.stand === s) && (!b || p.dataset.bereich === b);
+    const ok = (!q || p.textContent.toLowerCase().includes(q)) && (!s || p.dataset.stand === s) && (!b || p.dataset.kategorie === b);
     p.style.display = ok ? '' : 'none';
+  }});
+  document.querySelectorAll('section.kat').forEach(k => {{
+    k.style.display = [...k.querySelectorAll('.punkt')].some(p => p.style.display !== 'none') ? '' : 'none';
   }});
 }}
 function zustand() {{
@@ -317,7 +438,9 @@ def main():
     ap = argparse.ArgumentParser(description="Backlog SamurAI")
     sub = ap.add_subparsers(dest="was", required=True)
     n = sub.add_parser("neu")
-    n.add_argument("--titel", required=True); n.add_argument("--bereich", required=True); n.add_argument("--herkunft", required=True)
+    n.add_argument("--titel", required=True); n.add_argument("--herkunft", required=True)
+    n.add_argument("--kategorie", required=True); n.add_argument("--unter", required=True)
+    n.add_argument("--bereich", help="frueheres Feld, nur noch zur Erinnerung; massgeblich sind Kategorie und Unterkategorie")
     n.add_argument("--status", default="offen"); n.add_argument("--wo", default=""); n.add_argument("--belege", default="")
     n.add_argument("--notiz", default=""); n.add_argument("--seit"); n.add_argument("--gebaut"); n.add_argument("--commits", default="")
     s = sub.add_parser("stand")
@@ -329,11 +452,12 @@ def main():
     l = sub.add_parser("liste"); l.add_argument("status", nargs="?")
     sub.add_parser("bauen")
     sub.add_parser("import_alt")
+    ein = sub.add_parser("einordnen"); ein.add_argument("datei")
     a = ap.parse_args()
     b = lade()
     if a.was == "neu":
         p = neu(b, a.titel, a.bereich, a.herkunft, a.status, liste(a.wo), liste(a.belege), a.notiz, a.seit, a.gebaut,
-                liste(a.commits))
+                liste(a.commits), kategorie=a.kategorie, unter=a.unter)
         speichere(b)
         print("%s angelegt: %s [%s]" % (p["nr"], p["titel"], STAND_TEXT[p["status"]]))
     elif a.was == "stand":
@@ -356,7 +480,13 @@ def main():
     elif a.was == "liste":
         for p in b["punkte"]:
             if not a.status or p["status"] == a.status:
-                print("%-6s %-15s %-14s %s" % (p["nr"], STAND_TEXT[p["status"]], p["bereich"][:14], p["titel"][:90]))
+                print("%-6s %-15s %-22s %s" % (p["nr"], STAND_TEXT[p["status"]],
+                                               ("%s/%s" % (p.get("kategorie") or "-", p.get("unterkategorie") or "-"))[:22], p["titel"][:90]))
+    elif a.was == "einordnen":
+        gesetzt, uebernommen = einordnen(b, a.datei)
+        speichere(b)
+        print("eingeordnet: %d Punkte, aus dem alten Backlog uebernommen: %d (ab %s)" % (
+            gesetzt, uebernommen, min((p["nr"] for p in b["punkte"] if p.get("alte_nr")), key=lambda n: int(n[2:]), default="-")))
     elif a.was == "import_alt":
         k = import_alt(b)
         speichere(b)
