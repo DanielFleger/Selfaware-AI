@@ -1703,7 +1703,7 @@ class Rekorder:
 def stop_datei(ziel=None):
     from selfaware import workspace
 
-    return os.path.join(ziel or os.path.join(workspace.DATA, "auge_plan", "laeufe"), "STOP_LAUF_F")
+    return os.path.join(ziel or workspace.AUGE_LAEUFE, "STOP_LAUF_F")
 
 
 def anhalten_und_pruefen(k, s, ruhe=time.sleep):
@@ -1724,7 +1724,7 @@ def los(n, ziel=None, laeuft_schon=False, frist=FRIST):
     from selfaware import workspace
     from selfaware.tools.analysis.auge_feldkarte import FELDLISTE, Feldkarte
 
-    ziel = ziel or os.path.join(workspace.DATA, "auge_plan", "laeufe")
+    ziel = ziel or workspace.AUGE_LAEUFE
     os.makedirs(ziel, exist_ok=True)
     stempel = time.strftime("%Y%m%d_%H%M%S")
     prot = os.path.join(ziel, f"lauf_f_{stempel}.protokoll.jsonl")
@@ -1945,7 +1945,7 @@ def trocken(n, mit_probe=0):
             stempel = "trocken_" + time.strftime("%Y%m%d_%H%M%S")
             rek = Rekorder(
                 n,
-                os.path.join(workspace.DATA, "auge_plan", "laeufe"),
+                workspace.AUGE_LAEUFE,
                 stempel,
                 ProzessQuelle(pid_der_instanz(n)),
                 standard_bereiche(Feldkarte.laden(feldliste=FELDLISTE)),

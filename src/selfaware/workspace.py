@@ -37,6 +37,12 @@ VILLAGE_STUDIO = os.path.abspath(
     os.environ.get("SELFAWARE_VILLAGE_STUDIO_PATH", os.path.join(ROOT, "..", "VillageStudio"))
 )
 AI_ASSETS = os.path.join(ROOT, "assets", "ai")
+# B-192 Schritt 6 (Daniel 15.11.2026): grosse Aufzeichnungen liegen neben dem Repo, nicht in git. Im Repo steht nur ihr
+# Verzeichnis data/research/datenordner.json (selfaware.tools.checks.datenordner); darin dieselben Unterpfade wie im Repo.
+DATEN = os.path.abspath(
+    os.environ.get("SELFAWARE_DATEN_PATH", os.path.join(ROOT, "..", "Selfaware-AI-daten"))
+)
+AUGE_LAEUFE = os.path.join(DATEN, "data", "research", "auge_plan", "laeufe")
 
 
 def module_file(name: str) -> str:

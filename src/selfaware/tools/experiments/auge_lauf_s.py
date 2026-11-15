@@ -5978,7 +5978,7 @@ def los(n, szenen, ziel=None):
         standard_bereiche,
     )
 
-    ziel = ziel or os.path.join(workspace.DATA, "auge_plan", "laeufe")
+    ziel = ziel or workspace.AUGE_LAEUFE
     os.makedirs(ziel, exist_ok=True)
     stempel = time.strftime("%Y%m%d_%H%M%S")
     basis = os.path.join(ziel, f"lauf_s_{stempel}")

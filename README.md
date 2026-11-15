@@ -68,7 +68,12 @@ echten Partie, spaetestens vor dem Eintrag im `docs/research/Wissensregister.md`
    `data/research/start_<karte>*.json`/`.txt`, `data/research/eroeffnung_plan_<karte>.json`,
    `data/research/baeume_*`, `data/research/rohstoffe_*`, Saat-Dateien.
 3. **Das Lageprotokoll** `data/research/lage_<stempel>_i<n>.jsonl.gz`, wenn es kleiner
-   als 50 MB ist; sonst im Register vermerken, auf welchem Rechner es liegt.
+   als 50 MB ist. Alles Groessere (Lageprotokolle, Kern-Protokolle, Auge-Laeufe) kommt in den
+   Datenordner neben dem Repo (`../Selfaware-AI-daten`, B-192 Schritt 6, 15.11.2026):
+   `python -m selfaware.tools.checks.datenordner auslagern` zeigt, was hinueber gehoert,
+   `... auslagern --tun` verschiebt es und traegt Pfad, Groesse und Pruefsumme in
+   `data/research/datenordner.json` ein (das gehoert dann in den Commit), `... pruefen` muss
+   gruen sein. Die Auge-Werkzeuge schreiben ihre Laeufe gleich dorthin.
 4. **Die Umgebung, wenn sie anders ist als zuletzt notiert:** Karte, Gegner-KI
    und deren Plugin-Fassung, Instanz, geaenderte `ucp-config.yml`-Stellen und
    die Pruefsumme der `ucp/villagestudio/logik.lua`. Aendert sich die
