@@ -314,6 +314,24 @@ class Graben:
         self.zuletzt = -10 ** 9
         self.offen_vorher = None                 # fehlende Planfelder beim letzten Planen (bebaute bleiben bebaut)
         self.wiederholt = 0                      # wie oft hintereinander mit gleich vielen fehlenden Feldern geplant
+        self.ziel_feld = None                    # B-182 Logbuch: Feld, zu dem die Graeber zuletzt geschickt wurden
+        self.entlassen = set()                   # B-182 Logbuch: Graeber des fertigen Grabens, einmal als entlassen gemeldet
+        # B-182 (Logbuch, Partie 12.11. 20:34, Takt 1.139): die Speertraeger 331-334 meldete der Graben schon als Graeber, die
+        # gemeinsame Wegfuehrung fuehrte sie noch zum Stapelplatz des Waechters (path_target). Ein Fuehrer je Einheit: wer graebt,
+        # den laesst die Wegfuehrung los, bevor der Grabbefehl hinausgeht (setzt der Lenker)
+        self.weg = None
+
+    def absichten(self, L):
+        """B-182 Logbuch je Einheit: die Graeber graben, bis der Graben fertig ist - (Aktion, Ziel, Grund, Werte) je Graeber."""
+        from selfaware.micro import unit_log as UL
+        if self.fertig:
+            # in der Runde, in der der Graben fertig wird, hatte der Waechter sie noch ausgenommen - einmal melden, dann gehoeren sie ihm
+            aus = {n: (UL.Action.HOLD_POST, None, "moat_finished_back_to_guard", {}) for n in sorted(self.entlassen) if n in L}
+            self.entlassen = set()
+            return aus
+        ziel = UL.point(self.ziel_feld) if self.ziel_feld is not None else None
+        werte = {"dug": "%d/%d" % (self.stand.get("gegraben", 0), len(self.soll))}
+        return {n: (UL.Action.DIG, ziel, "moat_unfinished", werte) for n in sorted(self.graeber) if n in L}
 
     def kasten(self):
         """Flaeche fuer andere Bauten tabu: Speicher bis einschliesslich Grabenring."""
@@ -332,6 +350,7 @@ class Graben:
         self.stand = {"geplant": len(geplant), "gegraben": len(gegraben), "offen": len(offen)}
         if len(gegraben) == len(self.soll):
             self.fertig = True
+            self.entlassen = set(self.graeber)
             self.graeber = set()
             ev.append("GRABEN um %s fertig: %d Felder ausgehoben, Eingang %s" % (self.ort, len(gegraben), self.tor))
             return ev
@@ -351,10 +370,14 @@ class Graben:
             noch = [nr for nr in self.graeber if nr in L and L[nr].get("leben", 1) > 0]
             neu = graeber_waehlen(L, sp, self.ort, set(ausgenommen) | set(noch), GRAEBER_ZAHL - len(noch))
             self.graeber = set(noch) | set(neu)
+            if self.weg is not None:
+                for nr in self.graeber:
+                    self.weg.loslassen(nr)
             if self.graeber:
                 ziel = min(geplant, key=lambda k: abs(k[0] - self.ort[0]) + abs(k[1] - self.ort[1]))
                 self.schicke(sorted(self.graeber), ziel)
                 self.geschickt_tick = t
+                self.ziel_feld = ziel
                 ev.append("GRABEN %d Graeber %s nach %s (geplant %d, ausgehoben %d von %d)" % (
                     len(self.graeber), sorted(self.graeber), ziel, len(geplant), len(gegraben), len(self.soll)))
         return ev

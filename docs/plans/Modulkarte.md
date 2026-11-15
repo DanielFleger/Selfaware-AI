@@ -2,9 +2,9 @@
 
 Erzeugt mit `python -m selfaware.baukasten.karte --schreiben`, nicht von Hand ändern. Quelle: `src/selfaware/baukasten/karte.py`. Plan: [Plan_Baukasten.md](Plan_Baukasten.md).
 
-Gemessen: Der Lenker `runtime/live/erstes_spiel.py` hat 3905 Zeilen, `phase2` davon 1519. Er kennt 98 Schalter. 20 Klassen haben einen eigenen `schritt`, mit 16 verschiedenen Aufrufen.
+Gemessen: Der Lenker `runtime/live/erstes_spiel.py` hat 4241 Zeilen, `phase2` davon 1645. Er kennt 103 Schalter. 20 Klassen haben einen eigenen `schritt`, mit 16 verschiedenen Aufrufen.
 
-Bausteine je Stand: Kern 1, eigene Datei 32, im Lenker 14, nicht benutzt 2, steckbar 18. Eine Stelle mit zwei Rollen zählt einmal.
+Bausteine je Stand: Kern 1, eigene Datei 40, im Lenker 14, nicht benutzt 2, steckbar 18. Eine Stelle mit zwei Rollen zählt einmal.
 
 | Stand | Bedeutung |
 |---|---|
@@ -60,6 +60,9 @@ Bausteine je Stand: Kern 1, eigene Datei 32, im Lenker 14, nicht benutzt 2, stec
 | Wirtschaft | steckbar | `macro/wirtschaft.py:Wirtschaft` | `je_arbeiter`, `vollbeschaeftigung`, `lager_max` |
 | Alter Ausbau | nicht benutzt | `macro/wirtschaft.py:Ausbau` |  |
 | Ertragsplaner | steckbar | `macro/ertragsplaner.py:Ertragsplaner` |  |
+| Ochsenjoch am Steinhaufen (S168) | eigene Datei | `macro/joch.py`, `Lenker baue_joch` |  |
+| Startsperre: Gefecht nur mit Daniels Aufstellung (S169) | eigene Datei | `execution/startsperre.py` |  |
+| Alle Stein- und Eisenvorkommen nach Laufzeit (S170) | eigene Datei | `macro/rohstoffe.py`, `Lenker rohstoffe_bauen`, `Lenker rohstoffe_arbeiter` | `rohstoffe` |
 | Aufbauplan | eigene Datei | `macro/aufbau_planer.py` | `v14` |
 | Haushalt | eigene Datei | `macro/haushalt.py` | `haushalt_rand`, `steuer_runter`, `steuer_ende`, `stufe2_beliebt`, `gute_dinge` |
 | Lagerplatz | eigene Datei | `macro/standort.py` | `umzug` |
@@ -101,7 +104,7 @@ Bausteine je Stand: Kern 1, eigene Datei 32, im Lenker 14, nicht benutzt 2, stec
 | Reiterjagd | steckbar | `micro/tasks/raids.py:Reiterjagd` |  |
 | Deckung | steckbar | `micro/tasks/raids.py:Deckung` |  |
 | Vorstoss | steckbar | `micro/tasks/vorstoss.py:Vorstoss` | `vorstoss`, `vorstoss_bis` |
-| Assassinen einzeln | steckbar | `micro/tasks/assassinen.py:Einzeln` | `assassinen` |
+| Assassinen einzeln | steckbar | `micro/tasks/assassinen.py:Einzeln` | `assassinen`, `lord_sofort`, `heer_ueberschuss` |
 
 ## Einsatz Angriff
 
@@ -131,6 +134,9 @@ Bausteine je Stand: Kern 1, eigene Datei 32, im Lenker 14, nicht benutzt 2, stec
 | Stapeln | eigene Datei | `micro/tasks/assassinen.py:_stapel_rechnung` |  |
 | Zuweisung | eigene Datei | `micro/zuweisung.py` |  |
 | Wegfuehrung | eigene Datei | `micro/wegfuehrung.py` |  |
+| Logbuch je Einheit | eigene Datei | `micro/unit_log.py` |  |
+| Kettenpruefung je Befehl | eigene Datei | `micro/chain_audit.py` |  |
+| Laufmodell je Art und Gelaende | eigene Datei | `services/laufmodell.py` |  |
 
 ## Scaling
 
@@ -150,9 +156,11 @@ Bausteine je Stand: Kern 1, eigene Datei 32, im Lenker 14, nicht benutzt 2, stec
 
 | Modul | Stand | Stelle | Schalter |
 |---|---|---|---|
-| Befehlsweg | eigene Datei | `execution/kernweg.py`, `game/kern_port.py`, `kern/haende.rs`, `kern/leitung.rs`, `kern/wege.rs`, `kern/lib.rs`, `Lenker kernweg_senden` | `kernweg` |
+| Befehlsweg | eigene Datei | `execution/kernweg.py`, `game/kern_port.py`, `kern/haende.rs`, `kern/leitung.rs`, `kern/wege.rs`, `kern/lib.rs`, `Lenker kernweg_senden`, `Lenker raid_kern`, `Lenker steuer_zeile`, `Lenker erster_angriff`, `Lenker erster_angriff_uebergeben` | `kernweg`, `raid_kern`, `schnelle_steuerung` |
 | Auftragsbuch | eigene Datei | `execution/auftragsbuch.py`, `execution/ledger.py` |  |
 | Lord-Sperre | eigene Datei | `execution/lordschutz.py` |  |
+| Kampfschutz | eigene Datei | `execution/kampfschutz.py` |  |
+| Rollen je Einheit | eigene Datei | `micro/rollen.py` |  |
 | Spielbefehle | eigene Datei | `game/ucp/befehl.py`, `game/ucp/bauen.py`, `game/ucp/drehwert.py` |  |
 
 ## Augen
@@ -161,7 +169,7 @@ Bausteine je Stand: Kern 1, eigene Datei 32, im Lenker 14, nicht benutzt 2, stec
 |---|---|---|---|
 | Lagebild | im Lenker | `Lenker lords`, `Lenker lage`, `Lenker betriebe`, `Lenker karte_laden`, `Lenker pruefe_begehbar`, `Lenker wegtest`, `Lenker lies_mauer`, `Lenker lies_logik`, `Lenker lies_haltung`, `Lenker runde_lesen`, `Lenker eigene_gebaeude`, `Lenker steht_bei` |  |
 | Weltbild des Kerns | Kern | `kern/welt.rs`, `kern/beschuss.rs`, `kern/feuer.rs`, `kern/waechter.rs`, `game/kern_leitung.py` |  |
-| Dienste | eigene Datei | `services/bedrohung.py`, `services/gefahrenzone.py`, `services/gefecht.py`, `services/schussfeld.py`, `services/sicht.py`, `services/spielwerte.py`, `services/uebersicht.py`, `services/wegkarte.py` |  |
+| Dienste | eigene Datei | `services/bedrohung.py`, `services/gefahrenzone.py`, `services/gefecht.py`, `services/schussfeld.py`, `services/sicht.py`, `services/spielwerte.py`, `services/uebersicht.py`, `services/wegkarte.py`, `services/balance.py` |  |
 | Spiel lesen | eigene Datei | `game/ucp/aufbau.py`, `game/ucp/steuerkarte.py` |  |
 
 ## Lernen

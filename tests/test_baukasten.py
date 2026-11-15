@@ -217,7 +217,8 @@ def test_lenker_holt_jede_steckklasse_ueber_den_steckplatz():
     ]
     assert direkt == []
     gefunden = re.findall(r'(?i)steck\.klasse\("(\w+)"\)', LENKER + raid)
-    assert sorted(gefunden) == sorted(HEUTIGE_KLASSEN)
+    # S167: dieselbe Klasse darf an zwei Stellen geholt werden (nahkampfraid im Raid und im ersten Angriff der Starttruppe)
+    assert sorted(set(gefunden)) == sorted(HEUTIGE_KLASSEN)
 
 
 def test_code_kennung_sieht_weiter_alle_module():
@@ -312,6 +313,18 @@ def test_liga_aufstellungen_haben_die_karte_und_keine_platzliste():
     for name in ("raid_ohne_angriff_gn", "raid_wirkung_gn"):
         s = AF.laden(name)["schalter"]
         assert s["karte"] == "Liga_Grumpy Neighbors" and "plaetze" not in s
+
+
+def test_raid_aufstellungen_fuehren_den_vorstoss_bis_zum_ende():
+    """Partie 11.11. 23:25 (Fehlerwache F3): der Vorstoss endete bei Takt 15000, seine Schuetzen standen danach zu Hause."""
+    import glob
+    import os
+
+    namen = sorted(os.path.basename(p)[:-5] for p in glob.glob(os.path.join(AF.ORDNER, "raid_wirkung*.json")))
+    assert "raid_wirkung_pp" in namen
+    for name in namen:
+        s = AF.laden(name)["schalter"]
+        assert int(s["vorstoss_bis"]) >= int(s["bis_tick"]), name
 
 
 def test_erben_im_kreis_faellt_auf(tmp_path):
@@ -463,8 +476,9 @@ def test_jede_rekrutierstelle_steht_hinter_dem_tor():
     """Eine neue Stelle ohne Tor wuerde bestellung=raid still aushebeln: Darum sind Stellen und Tore gezaehlt."""
     zeilen = LENKER.splitlines()
     stellen = _stellen()
-    assert len(stellen) == 9, [i + 1 for i, _ in stellen]
-    assert LENKER.count("BESTELLUNG.darf(") == 9  # davon einer als Pruefung beim Start
+    # S165 (15.11.2026): + Heer aus dem Ueberschuss (Tor "raid")
+    assert len(stellen) == 10, [i + 1 for i, _ in stellen]
+    assert LENKER.count("BESTELLUNG.darf(") == 10  # davon einer als Pruefung beim Start
     for i, z in stellen:
         davor = "\n".join(zeilen[max(0, i - 50) : i + 1])
         assert "BESTELLUNG.darf(" in davor, (i + 1, z.strip())
@@ -472,6 +486,6 @@ def test_jede_rekrutierstelle_steht_hinter_dem_tor():
 
 def test_arten_der_tore():
     gezaehlt = re.findall(r'BESTELLUNG\.darf\("(\w+)"\)', LENKER)
-    assert gezaehlt.count("raid") == 2
+    assert gezaehlt.count("raid") == 3
     assert gezaehlt.count("angriff") == 6
     assert gezaehlt.count("verteidigung") == 1

@@ -26,8 +26,8 @@ GEB = {1: {"rate": 0.4, "leben_max": 100}, 3: {"rate": 0.0, "leben_max": 60}}
 
 def wissen():
     return WK.Wissen(
-        tabelle=TAB, gebaeude=GEB, eichung={}
-    )  # ohne Eichung: Tests haengen nicht an Partiedaten
+        tabelle=TAB, gebaeude=GEB, eichung={}, gebaeudeschaden={}
+    )  # ohne Eichung und ohne Balance der Instanz: Tests haengen nicht an Partiedaten
 
 
 def geb(x, y, typ=1, besitzer=2):
@@ -51,6 +51,12 @@ def test_katalog_kennt_alle_achtzehn_arten_und_den_lord():
         for x in re.findall(r"\d+", re.search(r"SOLDATEN = \((.*?)\)", quelle, re.S).group(1))
     }
     assert set(EH.ARTEN) == soldaten and len(soldaten) == 19
+
+
+def test_nur_der_lord_hat_weniger_als_alle_drei_rollen():
+    """Daniel 13.11.2026 23:13: "Ja lass diese komischen grenzen raus" (Leitertraeger, Ingenieur, Tunnelgraeber)."""
+    assert {t for t, a in EH.ARTEN.items() if a.rollen != EH.ALLE} == {LORD}
+    assert all(EH.darf(t, r) for t in (5, 29, 30) for r in EH.ROLLEN)
 
 
 def test_der_lord_verteidigt_nur_und_ist_nie_kaufbar():
@@ -236,6 +242,17 @@ def test_kauf_traut_reitern_nur_zu_was_die_reiterjagd_jagt():
     )  # Nahkampf-Raid: entscheidet dieselbe Rechnung
 
 
+def test_kauf_traut_vorstoss_schuetzen_nur_ziele_mit_sicherem_standplatz_zu(monkeypatch):
+    """Partie 11.11. 23:53: 4 Arabische Bogenschuetzen gekauft (240 Gold), der Vorstoss stand mit 9 Schuetzen still - an jeder Stellung
+    reichten 1-2 feindliche Armbrustschuetzen hin."""
+    e = RB.RaidEinsatz(1, (0, 0), lambda nr: 0, AF.Steckplaetze(AF.laden("raid_wirkung")["versionen"]), vorstoss_bis=40000)
+    L = {200: einheit(100, 100, 3), 201: einheit(300, 100, 3), 300: einheit(302, 100, 23)}  # 201 deckt ein Armbrustschuetze
+    z = {x.schluessel: x for x in WK.ziele(L, {}, 1)}
+    assert e.greift_an(70, z[("e", 200)], L, {}) and not e.greift_an(70, z[("e", 201)], L, {})
+    monkeypatch.setattr(e.weg, "trotz_gefahr", frozenset({"vorstoss"}))  # mit Freigabe darf er auch dorthin
+    assert e.greift_an(70, z[("e", 201)], L, {})
+
+
 def _jagd(L):
     """Eine Runde Reiterjagd samt Wegfuehrung des Raid-Einsatzes: (Ziel je Reiter, gesendete Befehle)."""
     e, gesendet = _einsatz(), []
@@ -362,7 +379,8 @@ def test_einsatz_meldet_was_seine_module_fuehren_und_der_lenker_gibt_es_weiter()
 def test_aufstellung_raid_wirkung_steckt_die_neue_bestellung():
     d = AF.laden("raid_wirkung")
     assert AF.Steckplaetze(d["versionen"]).klasse("raidbestellung") is RB.RaidBestellungNachWirkung
-    assert d["schalter"] == AF.laden("raid_ohne_angriff")["schalter"]
+    # dazu, Partie 11.11. 23:25 (Fehlerwache F3): der Vorstoss fuehrt seine Schuetzen bis zum Ende der Partie
+    assert d["schalter"] == {**AF.laden("raid_ohne_angriff")["schalter"], "vorstoss_bis": "40000"}
 
 
 class Befehle:
@@ -495,6 +513,90 @@ def test_nahkampf_raid_nimmt_bei_gefahr_ein_anderes_ziel_die_sperre_gilt_je_einh
     assert r.ziel[3] == erstes
 
 
+def test_steinmetz_bei_der_arbeit_ist_kein_ziel_und_der_holzfaeller_braucht_die_gemessene_zeit():
+    """S153/S154: ein Steinmetz (7) in Zustand 1 laesst sich nicht angreifen; ein Holzfaeller mit 10000 Leben braucht einen Speertraeger
+    10000 / 25 = 400 Takte (gemessen), nicht die Ersatz-50."""
+    L = {7: dict(einheit(10, 10, 7), zustand=1), 8: dict(einheit(12, 10, 7), zustand=2), 9: dict(einheit(14, 10, 3, leben=10000), zustand=1)}
+    zs = {z.schluessel: z for z in WK.ziele(L, {}, 1)}
+    assert ("e", 7) not in zs and ("e", 8) in zs and ("e", 9) in zs
+    assert wissen().am_ziel(24, zs[("e", 9)])[0] == 400.0
+    assert wissen().am_ziel(73, zs[("e", 9)])[0] == WK.ARBEITER_TAKTE      # ungemessenes Paar: weiter der Ersatz
+
+
+def test_wert_je_takt_rechnet_mit_dem_sicheren_weg():
+    """S150: mit felder die Laenge des sicheren Wegs statt der Luftlinie."""
+    import selfaware.services.spielwerte as SW
+
+    w = wissen()
+    z = WK.ziele({}, {1: geb(50, 0)}, 1)[0]
+    luft = w.wert_je_takt(SCHWERT, (0, 0), z)
+    weg = w.wert_je_takt(SCHWERT, (0, 0), z, felder=150)
+    assert weg[1] - luft[1] == (150 - 50) * SW.takte_je_feld(SCHWERT, "trupp") and weg[0] < luft[0]
+
+
+def test_nahkampf_raid_waehlt_nach_dem_sicheren_weg_nicht_nach_luftlinie():
+    """S150 (Daniel 23:29): Gebaeude 1 liegt 40 Felder Luftlinie entfernt hinter einer Mauer, Gebaeude 2 52 Felder ohne Hindernis -
+    nach der Luftlinie waere es 1, ueber den Weg ist es 2."""
+    from selfaware.micro import wegfuehrung as W
+
+    karte = ["".join("#" if 40 <= x <= 160 and 70 <= y <= 75 else "." for x in range(400)) for y in range(400)]
+    r, bf = _raid(), Befehle()
+    r.weg = W.Wegfuehrung(1, karte)
+    L, G = {}, {1: geb(100, 60), 2: geb(100, 152)}
+    aus = _mit_schwert(r, bf, L, G, x=100, y=100)
+    assert r.ziel[2] == ("g", 2)
+    assert any("Gebaeude 2" in z and "auf dem sicheren Weg, 52 Luftlinie" in z for z in aus), aus
+
+
+def test_nahkampf_raid_wechselt_unterwegs_zu_einem_ziel_das_mehr_wert_je_takt_bringt():
+    """S150 (Daniel 23:29 "ein neues besseres ziel auswaehlen das auf dem weg ist oder leicht dahinter"): ein neues Gebaeude auf dem
+    Weg bringt mehr Wert je Takt - der Soldat wechselt, ohne Huerde (Daniel 23:32 "kein komischer wert bitte")."""
+    r, bf = _raid_mit_weg(), Befehle()
+    L, G = {}, {1: geb(100, 300)}
+    _mit_schwert(r, bf, L, G, x=100, y=100)
+    assert r.ziel[2] == ("g", 1)
+    G[5] = geb(100, 130)
+    aus = r.schritt(L, G, bf)
+    assert r.ziel[2] == ("g", 5) and any("wechselt von Gebaeude 1 zu Gebaeude 5" in z for z in aus), aus
+    aus = r.schritt(L, G, bf)
+    assert r.ziel[2] == ("g", 5) and not any("wechselt" in z for z in aus)
+
+
+def test_nahkampf_raid_schlaegt_einen_verteidiger_des_ziels_zurueck_sonst_geht_er_weiter():
+    """S150 (Daniel 23:34 "Ja, mit einbauen"): ein gegnerischer Speertraeger kaempft gegen den Raid-Soldaten. Deckt er das Ziel, bringt
+    sein Tod dort mehr Erfolg - zurueckschlagen rechnet sich; steht er weit vor dem Ziel, kostet der Kampf nur Zeit - weitergehen
+    (gemessen: ein Soldat folgte 1 von 18 Mal)."""
+    from selfaware.micro import wegfuehrung as W
+
+    # ein starker Verteidiger: das Ziel wird unsicher (S161: mit dem Gebaeudewert der Assassinen-Tabelle, Huette 60 statt 12, lohnt das
+    # Weitergehen mehr - der Verteidiger im Beispiel schlaegt darum haerter zu als vorher 200)
+    tab = ({**TAB[0], 24: {75: 400.0}}, {**TAB[1], 24: 1000}, TAB[2])
+    r = NK.NahkampfRaid(1, None, wissen=WK.Wissen(tabelle=tab, gebaeude=GEB, eichung={}))
+    r.weg = W.Wegfuehrung(1, trotz_gefahr=("nahkampfraid",))
+    bf = Befehle()
+    L, G = {}, {1: geb(100, 140)}
+    _mit_schwert(r, bf, L, G, x=100, y=100)
+    L[40] = einheit(100, 134, 24)
+    L[2] = dict(einheit(100, 133, SCHWERT, besitzer=1, leben=28000), zustand=106, nahziel=40)
+    aus = r.schritt(L, G, bf)
+    assert any("kaempft gegen Soldat 40 (Typ 24): schlaegt zurueck" in z and "deckt das Ziel: ja" in z for z in aus), aus
+    assert r.ziel[2] == ("g", 1) and r.weg.auftraege[2].ziel == 40 and r.absicht[2][2] == "defender_worth_it"
+    L[40] = einheit(100, 110, 24)
+    L[2] = dict(einheit(100, 109, SCHWERT, besitzer=1, leben=28000), zustand=106, nahziel=40)
+    aus = r.schritt(L, G, bf)
+    assert any("kaempft gegen Soldat 40 (Typ 24): geht weiter" in z and "deckt das Ziel: nein" in z for z in aus), aus
+    assert r.weg.auftraege[2].ziel == 1
+
+
+def test_ein_wechsel_kostet_die_gemessenen_takte():
+    """S151 (Daniel 23:48 "Ja, einbauen"): ein neues Ziel zaehlt mit den Takten, die ein neuer Laufbefehl eine laufende Einheit kostet
+    (gemessen 15,9 statt 9,5 Takte je Feld). Beispiel mit runden Zahlen: das jetzige Ziel bringt 0,0100 je Takt; ein neues mit
+    0,0101 bei 1000 Takten lohnt den Wechsel noch (0,01004), eines mit 0,01005 nicht mehr (0,00999)."""
+    assert NK.WECHSEL_TAKTE == 15.9 - 9.5
+    assert NK.NahkampfRaid._nach_wechsel(0.0101, 1000) > 0.0100 > NK.NahkampfRaid._nach_wechsel(0.01005, 1000)
+    assert NK.NahkampfRaid._nach_wechsel(0.0, None) == 0.0
+
+
 def test_nahkampf_raid_zaehlt_nur_was_er_am_ziel_angriff():
     r, bf = _raid_mit_weg(), Befehle()
     L, G = huetten()
@@ -510,6 +612,26 @@ def test_nahkampf_raid_zaehlt_nur_was_er_am_ziel_angriff():
     del G[zweites[1]]
     aus = r.schritt(L, G, bf)
     assert r.zerstoert == 1 and ("NAHKAMPF-RAID: 2 (Typ 75) hat Gebaeude %d erledigt" % zweites[1]) in aus
+
+
+def test_nahkampf_raid_zaehlt_nur_einen_frischen_angriff():
+    """Partie 12.11. 00:05 (Fehlerwache F4, bei der Reiterjagd): ein Angriff, der lange zurueckliegt, ist kein Beleg fuer den Erfolg."""
+    from selfaware.micro.tasks import raids as RA
+
+    r, bf = _raid_mit_weg(), Befehle()
+    L, G = huetten()
+    _mit_schwert(r, bf, L, G)
+    nr = r.ziel[2][1]
+    L[2] = einheit(G[nr]["x"] - 1, 0, SCHWERT, besitzer=1, leben=28000)
+    assert r.weg.schritt(L, G, bf)[2] == "greift_an"
+    r.schritt(L, G, bf)
+    L[2] = einheit(G[nr]["x"] - 60, 0, SCHWERT, besitzer=1, leben=28000)  # abgedraengt, er laeuft zurueck
+    for _ in range(RA.ABSCHUSS_RUNDEN + 1):
+        r.weg.schritt(L, G, bf)
+        r.schritt(L, G, bf)
+    del G[nr]  # jetzt faellt das Gebaeude - durch wen auch immer
+    aus = r.schritt(L, G, bf)
+    assert r.zerstoert == 0 and any("kein eigener Erfolg" in z for z in aus)
 
 
 def test_nahkampf_raid_wiedervergebene_gebaeudenummer_ist_ein_erfolg_nach_angriff():
@@ -615,6 +737,8 @@ def test_lenker_teilt_eine_wegfuehrung_mit_dem_waechter(zeile):
     assert zeile in LENKER
 
 
+
+
 def test_kauf_bestellt_erst_fuer_ein_ziel_dann_mehr():
     """Daniel 11.11. 22:31 auf die Frage, ob der Kauf hoechstens so viele Sklaven bestellen soll, wie es freie Ziele gibt:
     "erstmal ein ziel dann skalieren" (Partie 22:14: drei Sklaven bestellt, der dritte bekam nie ein Gebaeude)."""
@@ -624,6 +748,24 @@ def test_kauf_bestellt_erst_fuer_ein_ziel_dann_mehr():
     L[5] = einheit(0, 0, SKLAVE, besitzer=1)  # ein eigener Sklave ohne Ziel
     assert e.sklaven_platz(L, G) == 1
     assert "sklaven_platz=raid_e.sklaven_platz if raid_e is not None else None" in LENKER
+
+
+
+
+def test_erster_raid_sklave_kommt_vor_der_ruecklage_der_wirtschaft():
+    """Partie 11.11. 22:37 (Daniel 22:41: "so schnell wie möglich raid sklaven rausgespuckt"): 53 Gold lagen 850 Takte da, alles
+    zurueckgelegt fuer die B-Plantagen - der erste Sklave kam erst bei Takt 3902."""
+    from selfaware.micro.tasks import raids as RA
+
+    b = _bestellung()
+    assert b.schritt(_lage(gold=20, ruecklage=20)) == [(SKLAVE, 1)]  # ohne Raid-Sklaven: einer trotz Ruecklage
+    assert any("vor der Ruecklage" in z for z in b.begruendung)
+    assert b.schritt(_lage(runde=3, gold=20, ruecklage=20)) == []  # nicht gleich noch einer, solange er erscheint
+    assert b.schritt(_lage(runde=1 + RB.ERSTER_PAUSE, gold=20, ruecklage=20)) == [(SKLAVE, 1)]
+    c = _bestellung()
+    assert c.schritt(_lage(gold=20, ruecklage=20, sklaven=1)) == []  # lebt einer, gilt die Ruecklage wieder
+    assert c.schritt(_lage(gold=20, ruecklage=20, feuer=RA.FEUER_MIN)) == []  # die Bauern am Feuer bleiben
+    assert c.schritt(_lage(gold=4, ruecklage=0)) == []  # ohne 5 Gold kein Sklave
 
 
 def test_kauf_kappt_sklaven_auf_die_freien_ziele(monkeypatch):
@@ -636,3 +778,123 @@ def test_kauf_kappt_sklaven_auf_die_freien_ziele(monkeypatch):
                 steuerbar=frozenset({SKLAVE, SCHWERT}), sklaven_platz=lambda L, G: 1)
     assert bestellung.schritt(b) == [(SKLAVE, 1), (SCHWERT, 1)]
     assert any("erst ein Ziel, dann skalieren" in z for z in bestellung.begruendung)
+
+
+@pytest.mark.parametrize("mit_kern", [True, False])
+def test_s155_im_kampf_gegen_einen_arbeiter_wiederholt_der_kern_den_laufbefehl(monkeypatch, mit_kern):
+    """S155 (Daniel 15.11.2026 00:20 "Ja, Kern bauen"): ein Raid-Soldat kaempft gegen einen Holzfaeller, der nicht sein Ziel ist. Fuehrt der
+    Kern ihn, wiederholt der Kern den Laufbefehl - der Raid laesst nichts los; ohne Kern geht der Laufbefehl in dieser Runde neu hinaus (S154).
+    Beispiel: ein Holzfaeller ohne Wert, damit er sicher nicht Ziel wird."""
+    monkeypatch.setitem(WK.RA.ARBEITER, 3, 0.0)
+    r, bf = _raid_mit_weg(), Befehle()
+    L, G = {}, {1: geb(100, 300)}
+    _mit_schwert(r, bf, L, G, x=100, y=100)
+    assert r.ziel[2] == ("g", 1)
+    if mit_kern:
+        r.weg.kern = object()
+    vorher = r.weg.auftraege[2]
+    L[40] = einheit(100, 134, 3)
+    L[2] = dict(einheit(100, 133, SCHWERT, besitzer=1, leben=28000), zustand=106, nahziel=40)
+    aus = r.schritt(L, G, bf)
+    assert r.ziel[2] == ("g", 1)
+    if mit_kern:
+        assert any("kaempft gegen Arbeiter 40 - der Kern wiederholt den Laufbefehl zu Gebaeude 1" in z for z in aus), aus
+        assert r.weg.auftraege[2] is vorher
+    else:
+        assert any("haengt im Kampf gegen Arbeiter 40 fest - Laufbefehl neu zu Gebaeude 1" in z for z in aus), aus
+        assert r.weg.auftraege[2] is not vorher
+
+
+def test_s161_gebaeude_haben_die_werte_und_zeiten_der_assassinen():
+    """S161 (Daniel 15.11.2026 01:32 "kannst du bitte allen auch diese faehigkeiten geben nicht nur assassinen"): Gebaeude gelten mit
+    Daniels Rangfolge der Assassinen, und jede Gebaeudeart hat eine Zeit - die Arbeit der Assassine, umgerechnet mit dem
+    Gebaeudeschaden der Balance (Beispiel mit den Werten der Liga-Balance: Assassine 75, Schwertkaempfer 100, Speertraeger 10)."""
+    from selfaware.micro.tasks import assassinen as AS
+
+    z = {zz.schluessel: zz for zz in WK.ziele({}, {1: geb(100, 100, typ=9), 2: geb(120, 100, typ=3)}, 1)}
+    assert z[("g", 1)].wert == AS.WERT[9] == 800 and z[("g", 2)].wert == AS.WERT[3]
+    w = WK.Wissen(tabelle=TAB, gebaeude=GEB, eichung={}, gebaeudeschaden={73: 75.0, 75: 100.0, 24: 10.0})
+    arbeit = AS.ARBEIT.get(9, AS.ARBEIT_SONST)
+    assert w.gebaeude_takte(SCHWERT, 9)[0] == arbeit * 75 / 100
+    assert w.gebaeude_takte(24, 9)[0] == arbeit * 75 / 10
+    unbekannt = next(t for t in AS.WERT if t not in AS.ARBEIT)
+    assert w.gebaeude_takte(SCHWERT, unbekannt)[0] == AS.ARBEIT_SONST * 75 / 100
+    assert "geschaetzt" in w.gebaeude_takte(SCHWERT, unbekannt)[1]
+    # ohne Balance wie bisher
+    assert WK.Wissen(tabelle=TAB, gebaeude=GEB, eichung={}, gebaeudeschaden={}).gebaeude_takte(SCHWERT, 9) == wissen().gebaeude_takte(SCHWERT, 9)
+
+
+def test_s161_einen_arbeiter_nimmt_der_raid_nur_mit_wenn_er_direkt_daneben_steht():
+    """S161: wie die Assassinen (Daniel 19.10.: "nie gesagt aktiv jagen - mitnehmen, wenn er will") - ein Arbeiter weiter als
+    ARBEITER_MIT Felder ist kein Ziel, das Gebaeude in 20 Feldern gewinnt; steht er direkt daneben, nimmt der Soldat ihn mit."""
+    w = WK.Wissen(tabelle=TAB, gebaeude=GEB, eichung={}, gebaeudeschaden={73: 75.0, 75: 100.0})
+    r, bf = NK.NahkampfRaid(1, None, wissen=w), Befehle()
+    L, G = {50: einheit(100, 104, 3)}, {1: geb(100, 120, typ=9)}
+    _mit_schwert(r, bf, L, G, x=100, y=100)
+    assert NK.ARBEITER_MIT == 2 and r.ziel[2] == ("g", 1)
+    # direkt daneben und nur ein billiges Gebaeude weit weg (Weizenfarm 30, 60 Felder): mitnehmen. Gegen die Kaserne (800) in 20 Feldern
+    # gewinnt die Kaserne auch gegen einen Arbeiter direkt nebenan (Daniels Rangfolge: Kaserne immer bevorzugen)
+    r2, bf2 = NK.NahkampfRaid(1, None, wissen=w), Befehle()
+    L2, G2 = {50: einheit(100, 101, 3)}, {1: geb(100, 160, typ=30)}
+    _mit_schwert(r2, bf2, L2, G2, x=100, y=100)
+    assert r2.ziel[2] == ("e", 50)
+    # 5 Felder entfernt ist er nicht "direkt am Weg": dann das billige Gebaeude, nicht der Arbeiter
+    r4, bf4 = NK.NahkampfRaid(1, None, wissen=w), Befehle()
+    L4, G4 = {50: einheit(100, 105, 3)}, {1: geb(100, 160, typ=30)}
+    _mit_schwert(r4, bf4, L4, G4, x=100, y=100)
+    assert r4.ziel[2] == ("g", 1)
+    r3, bf3 = NK.NahkampfRaid(1, None, wissen=w), Befehle()
+    L3, G3 = {50: einheit(100, 101, 3)}, {1: geb(100, 120, typ=9)}
+    _mit_schwert(r3, bf3, L3, G3, x=100, y=100)
+    assert r3.ziel[2] == ("g", 1)
+
+
+def test_s161_balance_liest_den_gebaeudeschaden_der_aktiven_datei(tmp_path):
+    from selfaware.services import balance as BAL
+
+    d = tmp_path / "ucp" / "plugins" / "Mod-KI-Team-Liga-2.0.2" / "resources" / "balance"
+    d.mkdir(parents=True)
+    (d / "liga_ai.json").write_text('{"units": {"European spearman": {"buildingDamage": 10}, "Arabian assassin": {"buildingDamage": 75},'
+                                    ' "Arabian slave": {"health": 15000}}}', encoding="utf-8")
+    (tmp_path / "ucp-config.yml").write_text("    rebalancer:\n      config:\n        balance_config_file_selector:\n          contents:\n"
+                                             "            value: ucp/plugins/Mod-KI-Team-Liga-*/resources/balance/liga_ai.json\n",
+                                             encoding="utf-8")
+    assert BAL.gebaeudeschaden(str(tmp_path)) == {24: 10.0, 73: 75.0}
+    assert BAL.gebaeudeschaden(str(tmp_path / "fehlt")) == {}
+
+
+def test_s161_jede_gebaeudeart_der_alten_raid_tabelle_bleibt_ein_ziel():
+    """S161 (Daniel 15.11.2026 01:50: zwei Hopfenfarmen nie angegriffen): mit der Assassinen-Tabelle darf keine Art herausfallen, die der
+    Raid vorher angriff (Hopfenfarm 31 fehlte)."""
+    from selfaware.micro.tasks import assassinen as AS
+    from selfaware.micro.tasks import raids as RA
+
+    assert set(RA.WERT) <= set(AS.WERT)
+    assert AS.WERT[31] == AS.WERT[32]
+
+
+def test_s162_greifen_die_assassinen_den_lord_an_gehen_alle_raid_nahkaempfer_mit():
+    """S162 (Daniel 15.11.2026 01:50 "ich will den gegnerischen lord so schnell und erbarmungslos wie moeglich killen"): setzt der Lenker
+    den Lord (die Assassinen greifen ihn an), wird er das Ziel jedes Raid-Nahkaempfers, auch mitten in einem Raid; ohne Lord wie bisher."""
+    r, bf = _raid_mit_weg(trotz_gefahr=("nahkampfraid",)), Befehle()
+    L, G = {99: einheit(200, 200, 55)}, {1: geb(100, 130)}
+    _mit_schwert(r, bf, L, G, x=100, y=100)
+    assert r.ziel[2] == ("g", 1)
+    r.lord = 99
+    aus = r.schritt(L, G, bf)
+    assert r.ziel[2] == ("e", 99) and r.weg.auftraege[2].ziel == 99 and r.absicht[2][2] == "lord_push"
+    assert any("geht mit auf den Lord 99" in z for z in aus), aus
+    r.lord = None
+    r.schritt(L, G, bf)
+    assert r.ziel[2] != ("e", 99) or r.absicht[2][2] != "lord_push"
+
+
+def test_s164_unzerstoerbare_gebaeude_sind_nie_ziel():
+    """S164 (Daniel 15.11.2026 01:58: Lager und Steinablage am Steinbruch sind unzerstoerbar - nie ein Angriffsziel)."""
+    from selfaware.micro.tasks import assassinen as AS
+    from selfaware.micro.tasks import raids as RA
+
+    assert set(AS.UNZERSTOERBAR) == {10, 21}
+    assert not set(AS.UNZERSTOERBAR) & (set(AS.WERT) | set(RA.WERT))
+    z = WK.ziele({}, {1: geb(100, 100, typ=10), 2: geb(110, 100, typ=21), 3: geb(120, 100, typ=31)}, 1)
+    assert [x.schluessel for x in z] == [("g", 3)]

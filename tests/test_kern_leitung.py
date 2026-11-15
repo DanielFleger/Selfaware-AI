@@ -45,6 +45,11 @@ def _puffer(aufbau=KL.AUFBAU, nt=0, nq=0, lord=0, ne=2):
         feindabstand=120,
         schusseinheit=91,
         getoetet=0,
+        logikzustand=1,
+        laufmerker=0,
+        sammelmerker=1,
+        beweglich=1,
+        gebiet=3,
     )
     _einheit(
         b,
@@ -105,6 +110,9 @@ def test_aufbau_wird_vollstaendig_gelesen():
 def test_neue_felder_kommen_an():
     e = KL.entpacken(bytes(_puffer())).einheiten[85]
     assert (e["bild"], e["feinx"], e["feindabstand"], e["schusseinheit"]) == (6, 1307, 120, 91)
+    # S139: die Filterfelder des Marschbefehls am Ende des Datensatzes
+    assert (e["logikzustand"], e["laufmerker"], e["sammelmerker"], e["beweglich"]) == (1, 0, 1, 1)
+    assert e["gebiet"] == 3                       # S148: Gebiet des Wegnetzes am Feld, am Ende des Datensatzes
 
 
 def test_fremde_einheit_hat_keine_verbotenen_schluessel():
@@ -175,6 +183,29 @@ def test_groessen_passen_zu_den_formaten():
         assert struct.calcsize(format_) == groesse
 
 
+@pytest.mark.skipif(__import__("os").name != "nt", reason="benannter gemeinsamer Speicher nur unter Windows")
+def test_leitung_verbindet_neu_wenn_der_kern_einen_neuen_namen_schreibt(tmp_path):
+    """Partie 12.11. 19:25: kern_leitung.txt nannte noch den Speicher des alten Spielprozesses; wer las, bekam einen leeren Speicher
+    und las die ganze Partie nur Nullen. Schreibt der Kern den neuen Namen, verbindet die Leitung sich neu."""
+    import mmap
+    import uuid
+
+    d = tmp_path / "ucp" / "villagestudio"
+    d.mkdir(parents=True)
+    link = d / "kern_leitung.txt"
+    alt, neu = "Test_alt_%s" % uuid.uuid4().hex, "Test_neu_%s" % uuid.uuid4().hex
+    link.write_text("%s\n%d\n" % (alt, KL.GROESSE), encoding="utf-8")
+    le = KL.Leitung(str(tmp_path))
+    with pytest.raises(KL.FalscherAufbau):
+        le.lesen()  # leerer Speicher unter dem alten Namen, die Datei nennt noch keinen anderen
+    speicher = mmap.mmap(-1, KL.GROESSE, tagname=neu, access=mmap.ACCESS_WRITE)
+    speicher[:] = bytes(_puffer())
+    link.write_text("%s\n%d\n" % (neu, KL.GROESSE), encoding="utf-8")
+    w = le.lesen()
+    assert le.name == neu and w.tick == 40471 and 85 in w.einheiten
+    speicher.close()
+
+
 def test_konstanten_gleich_wie_im_kern():
     for name, wert in (
         ("AUFBAU: u32", KL.AUFBAU),
@@ -229,3 +260,8 @@ def test_sichtschranke_passt_zu_den_feldern_der_leitung():
         z = marken[f"units[].{spiel}"]
         assert z["eigen"] == "erlaubt", spiel
         assert (z["fremd"] == "erlaubt") == (name not in KL.NUR_EIGEN), spiel
+    # S148: aus einer Kartenebene am Feld der Einheit gelesen - es gilt deren Zeile
+    for name, ebene in KL.EINHEIT_ABGELEITET.items():
+        z = marken[ebene]
+        assert z["eigen"] == "erlaubt", ebene
+        assert (z["fremd"] == "erlaubt") == (name not in KL.NUR_EIGEN), ebene

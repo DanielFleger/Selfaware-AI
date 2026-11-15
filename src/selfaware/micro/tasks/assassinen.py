@@ -80,7 +80,13 @@ WERT = {
     # 19.10. (Daniel: "auf dem Weg nimmt ein Assassine kein Markt mit, den ich als Mensch sofort mitgesnackt haette - die KI ist
     # ohne Markt komplett gelaehmt"): Markt hoechster Wert (vorher 20, unter der Apfelplantage) - der Zielwechsel unterwegs
     # (WECHSEL 1,5 x Wert je Weg) nimmt ihn dann mit; ab TEUER zwei Plaetze. 19.10.: 300 (siehe Soeldnerposten)
-    26: 300}
+    26: 300,
+    # S161 (Daniel 15.11.2026 01:50, Bild: "zwei Hopfenfarmen, die nie angegriffen wurden"): seit alle Raid-Einheiten diese Tabelle nutzen,
+    # fehlte die Hopfenfarm 31, die raids.WERT hatte (dort gleich viel wie die Apfelplantage 32 -> 70; uebertragen, nicht gemessen)
+    31: 70}
+# S164 (Daniel 15.11.2026 01:58: "das Lager ist ausdruecklich unzerstoerbar, genau wie die Steinablage beim Steinbruch - nie ein
+# Angriffsziel"): Lagerplatz 10 (stand in raids.WERT, darum schlugen auch Sklaven darauf ein) und Steinhaufen 21 sind nie Ziel
+UNZERSTOERBAR = {10: "Lagerplatz", 21: "Steinhaufen am Steinbruch"}
 # Liga-Balance (liga_ai.json ranges): alle Bogen/Armbrust 40 Felder - eine Zahl fuer "in Schussweite" (Daniel 23:18: Schuetzen-
 # Gefahr auf 40; live_6: Assassine starb bei Tick 8.527, naechster Bogenschuetze 26 Felder weg, gezaehlt wurde nur bis 16)
 SCHUSSWEITE = 40
@@ -118,6 +124,11 @@ def weg_sicher(von, nach, fe):
 def naechster_sicherer(L, orte, von, fe, sp=1):
     gut = [o for o in orte if not gefaehrdet(o, fe, 4)]
     return min(gut, key=lambda o: schach(o, von)) if gut else sicherster_ort(L, orte, sp)
+
+# B-182 Logbuch je Einheit: Gruende der Zielwahl ohne Ziel, englisch wie das Logbuch (docs/plans/Plan_Unit_Status_Log.md)
+OHNE_GRUND_LOG = {"keins erreichbar": "no_reachable_target", "alle voll": "all_targets_taken",
+                  "alle gefaehrlich": "all_targets_dangerous"}
+
 
 class Trupp:
     def __init__(self, nr):
@@ -494,6 +505,9 @@ class Einzeln:
     # Arbeiter"): nur echte Arbeiter (Typen aus ablaufanalyse.EINHEIT) - Bauer, Holzfaeller, Jaeger, Steinmetz, Steinbruch-
     # arbeiter, Steinochse, Pechmann, Hofbauern, Apfelbauer, Milchbauer, Schmied, Gerber, Bergmann; NICHT 62-64 (Hausbewohner)
     ARBEITER_TYPEN = {1, 3, 6, 7, 8, 9, 10, 11, 12, 13, 14, 19, 21, 31}
+    # B-182 (Partie 12.11. 22:44, Daniel 22:46: "der Assassine hatte das Ziel, hat aber dann nicht den Steinbruch weiterangegriffen"):
+    # 418 liess Arbeiter 327 "(dauert zu lange)" und nahm ihn gleich wieder mit - 495 Takte ohne Schaden. Startwert, nicht gemessen:
+    ARBEITER_SPERRE = 1000    # so viele Takte nimmt derselbe Assassine einen losgelassenen Arbeiter nicht wieder mit
     ARBEITER_MIT = 2          # 19.10. (Daniel: "nie gesagt aktiv jagen - mitnehmen, wenn er will; zu viel Traffic -> auf ein Minimum"): nur direkt am Weg
     ARBEITER_FREI = 30        # 19.10. (1018v): ... nur, wenn kein waehlbarer Feind naeher als so viele Felder steht
     ARBEITER_SCHWACH = 25     # 19.10. (Daniel): Gewicht schlagender Arbeiter fuer Geschwaechte - ein Holzfaeller (0,08) wiegt dann 2 > die Assassine selbst
@@ -556,6 +570,11 @@ class Einzeln:
         self._steht = {}                     # 17.10.: n -> (Feld, seit Tick) - Stillstand ohne Spielziel
         self._route_sperre = {}              # 18.10.: (n, Gebaeude) -> bis Tick (Route war gefaehrlich)
         self._gegenschlag = set()            # 19.10.: greifen diese Runde gemeinsam an (GEGEN-ASSASSINE, GEGENSCHLAG)
+        self._arb_sperre = {}                # B-182: (Assassine, Arbeiter) -> bis Takt: nicht wieder mitnehmen
+        # B-182 Logbuch je Einheit (Partie 12.11. 20:45, UNIT_NO_ORDER bei Takt 17.203 und 35.371): bekam ein Assassine in der
+        # Zielwahl kein Ziel und steht er schon sicher nah an der Front, bleibt er stehen - ohne Befehl, die Entscheidung stand
+        # nirgends, das Logbuch zeigte "ohne Auftrag". Assassine -> Grund dieser Runde (englisch wie das Logbuch)
+        self.ohne_grund = {}
 
     def aufnehmen(self, nummern):
         self.mitglieder |= set(n for n in nummern if n not in self.bilanz["verluste"])
@@ -1794,7 +1813,43 @@ class Einzeln:
             return "Stapel"
         if n in self.warte:
             return "wartet bei %s" % (self.warte[n],)
+        if n in self.ohne_grund:
+            return "bleibt sicher stehen (%s)" % self.ohne_grund[n]
         return "ohne Auftrag"
+
+    def absichten(self, L, G):
+        """B-182 Logbuch je Einheit (docs/plans/Plan_Unit_Status_Log.md): je eigener lebender Assassine (Aktion, Ziel, Grund, Werte) aus
+        dem Zustand des Moduls - dieselben Faelle in derselben Reihenfolge wie _taetigkeit. "ohne Auftrag" meldet das Modul als NO_ORDER."""
+        from selfaware.micro import unit_log as UL
+        A, lt, aus = UL.Action, self.lordtrupp, {}
+        for n in sorted(self.mitglieder):
+            e = L.get(n)
+            if e is None or e.get("besitzer") != self.sp or e.get("leben", 1) <= 0:
+                continue
+            if n in self.flucht:
+                aus[n] = (A.FLEE, None, "melee_superiority", {})
+            elif n in lt["mitglieder"]:
+                if lt["phase"] == "angriff" and lt.get("lord") is not None:
+                    aus[n] = (A.ATTACK_UNIT, UL.unit(lt["lord"]), "lord_attack", {})
+                elif lt["phase"] == "sammeln" and lt.get("sammelpunkt"):
+                    aus[n] = (A.GATHER, UL.point(lt["sammelpunkt"]), "lord_attack_gather", {})
+                else:
+                    aus[n] = (A.WAIT_STAGING, None, "lord_troop_%s" % lt["phase"], {})
+            elif n in self.jagd:
+                aus[n] = (A.ATTACK_UNIT, UL.unit(self.jagd[n]), "hunt", {"typ": L.get(self.jagd[n], {}).get("typ")})
+            elif n in self.ziel:
+                gn = self.ziel[n]
+                aus[n] = (A.ATTACK_BUILDING, UL.building(gn), "raid_building_route" if n in self.route else "raid_building",
+                          {"typ": G[gn]["typ"] if gn in G else self.ziel_typ.get(gn, "?")})
+            elif n in self.stapel["mitglieder"]:
+                aus[n] = (A.WAIT_STAGING, None, "stack", {"stack_target": self.stapel["ziel"]})
+            elif n in self.warte:
+                aus[n] = (A.WAIT_STAGING, UL.point(self.warte[n]), "wait_safe_place", {})
+            elif n in self.ohne_grund:          # kein Ziel und schon sicher nah an der Front: bleibt, wo er steht
+                aus[n] = (A.WAIT_STAGING, UL.point((e["x"], e["y"])), self.ohne_grund[n], {})
+            else:
+                aus[n] = (A.NO_ORDER, None, "module_has_no_task", {})
+        return aus
 
     def _treffer_lage(self, n, L):
         """19.10.: wer ihn hier treffen konnte - Spaeher (naechster waehlbarer Feind; <= 160 Feinmass = sichtbar, L75),
@@ -2022,6 +2077,7 @@ class Einzeln:
                 # heisst kurz - zu lang oder er laeuft weg -> lassen, das Ziel kommt in der Zielwahl wieder
                 del self.jagd[n]
                 self._arb_seit.pop(n, None)
+                self._arb_sperre[(n, f)] = self.jetzt + self.ARBEITER_SPERRE
                 ereignis.append("ARBEITER %d laesst Arbeiter %d (laeuft weg oder dauert zu lange)" % (n, f))
                 continue
             if f not in L or L[f]["besitzer"] in (0, self.sp):
@@ -2095,7 +2151,7 @@ class Einzeln:
             ort = (L[n]["x"], L[n]["y"])
             schwach_n = L[n]["leben"] < self.EIN_TREFFER
             mit = [b_ for b_ in arbeiter_b if schach(ort, b_[1]) <= self.ARBEITER_MIT and b_[0] not in jaeger
-                   and not (schwach_n and b_[0] in schlagend)]
+                   and not (schwach_n and b_[0] in schlagend) and self._arb_sperre.get((n, b_[0]), -1) < self.jetzt]
             if mit:
                 ziel_a = min(mit, key=lambda b_: schach(ort, b_[1]))
                 self.ziel.pop(n, None); self.route.pop(n, None); self.warte.pop(n, None)
@@ -2643,6 +2699,7 @@ class Einzeln:
                         n, gn, b_k[0], wert(ort, b_k) / max(wert(ort, jetzt), 1e-9)))
         gruende = {"keins erreichbar": 0, "alle voll": 0, "alle gefaehrlich": 0}
         ohne = 0
+        self.ohne_grund = {}
         # 19.10. (1019a, 86: mit 50 Leben 7.600 Ticks weiter geraidet, jeder Treffer toedlich, zuletzt einen Sklaven
         # angegriffen; Einheiten heilen nie): unter RESERVE_LEBEN kein Auftrag mehr - daheim warten, das schont die Todesgrenze
         heim = getattr(self, "_heim", [])
@@ -2734,7 +2791,9 @@ class Einzeln:
                     "gemessen" if typ in ARBEIT else "geschaetzt", ARBEIT.get(typ, ARBEIT_SONST)))
                 continue
             ohne += 1
-            gruende["keins erreichbar" if not erreichbar else "alle voll" if not frei else "alle gefaehrlich"] += 1
+            g_ohne = "keins erreichbar" if not erreichbar else "alle voll" if not frei else "alle gefaehrlich"
+            gruende[g_ohne] += 1
+            self.ohne_grund[n] = OHNE_GRUND_LOG[g_ohne]
             # 17.10.: warten nur dort, wo ihn kein waehlbarer Feind sieht und kein Trupp ihm nachlaeuft (sicht.sicher) - statt
             # 40 Felder von jedem Schuetzen; so warten sie nah am Feind und sind schnell wieder am naechsten Ziel
             if not self._sicher(ort):

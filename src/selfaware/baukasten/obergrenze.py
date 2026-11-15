@@ -31,6 +31,7 @@ class Obergrenze:
         self.grenze, self.kern, self.sp = int(grenze), kern, sp
         self.erlaubt_n = 0
         self.abgelehnt = collections.Counter()
+        self.kern_fehler = 0           # B-182 (Partie 12.11. 19:25): so oft war der Kern nicht lesbar - dann gilt die Grenze als erreicht
         self.hoechst = 0               # die meisten Kaempfer, die der Kern je zeigte
         self._unterwegs = []           # Kern-Takte der Werbungen, die der Kern noch nicht zeigt
         self._basis = None             # Kaempferzahl bei der ersten noch offenen Werbung
@@ -40,6 +41,11 @@ class Obergrenze:
         try:
             w = self.kern.lesen()
         except Exception:
+            w = None
+        if w is None:
+            # B-182 (Partie 12.11. 20:53, Takt 26.793): lesen() gibt None, wenn der Kern in allen Versuchen gerade schrieb -
+            # kaempfer(None) warf, die Raid-Werbung der Runde fiel aus ("RAIDS FEHLER ... 'einheiten'"). Wie nicht lesbar zaehlen
+            self.kern_fehler += 1
             return self.grenze
         n = len(kaempfer(w, self.sp))
         self.hoechst = max(self.hoechst, n)
@@ -68,5 +74,6 @@ class Obergrenze:
         return True
 
     def stand(self):
-        return "Grenze %d, erlaubt %d, abgelehnt %d %s, hoechstens %d gesehen" % (
-            self.grenze, self.erlaubt_n, sum(self.abgelehnt.values()), dict(self.abgelehnt), self.hoechst)
+        return "Grenze %d, erlaubt %d, abgelehnt %d %s, hoechstens %d gesehen%s" % (
+            self.grenze, self.erlaubt_n, sum(self.abgelehnt.values()), dict(self.abgelehnt), self.hoechst,
+            ", KERN NICHT LESBAR %d-mal" % self.kern_fehler if self.kern_fehler else "")

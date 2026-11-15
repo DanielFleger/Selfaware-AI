@@ -3,8 +3,10 @@
 # vorne"). Ursache: VillageStudio werkzeug/start_hinten.ps1 hebt bis zu 40 s nach dem Start immer wieder alle anderen Fenster
 # ueber das Spiel (fuer Testlaeufe im Hintergrund gebaut). Gemessen 20:18: danach 0 Aenderungen der Fensterreihenfolge in 10 s.
 # Dieses Skript startet nur: kein Schieben, kein Fokus-Zurueckgeben. Das Spiel kommt nach vorn wie bei einem normalen Start.
-# Aufruf: powershell -ExecutionPolicy Bypass -File tools\windows\spiel_starten.ps1 -Instanz 4
-param([int]$Instanz = 4)
+# Mit -Rechts (Daniel 12.11.2026 20:26: "Ausserdem waere es wohl passender, wenn du das Spiel am rechten Bildschirm startest"):
+# danach EINMAL Lage und Groesse auf den rechten Bildschirm (fenster_rechts.ps1) - ohne Reihenfolge oder Fokus zu aendern.
+# Aufruf: powershell -ExecutionPolicy Bypass -File tools\windows\spiel_starten.ps1 -Instanz 4 [-Rechts]
+param([int]$Instanz = 4, [switch]$Rechts)
 . "$PSScriptRoot\workspace.ps1"
 . (Join-Path $SelfawareVillageStudio "werkzeug\instanz.ps1")
 $ordner = Get-InstanzOrdner $Instanz
@@ -20,6 +22,12 @@ while ((Get-Date) -lt $ende) {
         Write-Output "villagestudio aktiv"
         # 20:56 AUS: spielen_vorne.ps1 (Spiel "immer im Vordergrund") wird nicht mehr aufgerufen - Daniel: "es liegt an einem
         # Skript, das du gemacht hast, bitte ausschalten". Das Spiel startet wie bei einem normalen Start.
+        if ($Rechts) {
+            $fenster_ende = (Get-Date).AddSeconds(30)
+            while ((Get-Date) -lt $fenster_ende -and [Int64](Get-InstanzFenster $Instanz) -eq 0) { Start-Sleep -Milliseconds 500 }
+            & (Join-Path $PSScriptRoot "fenster_rechts.ps1") -Instanz $Instanz
+            exit $LASTEXITCODE
+        }
         exit 0
     }
     Start-Sleep -Milliseconds 500

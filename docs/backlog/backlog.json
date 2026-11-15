@@ -5347,6 +5347,215 @@
      "was": "angelegt (in Arbeit)"
     }
    ]
+  },
+  {
+   "nr": "B-183",
+   "titel": "Gewichtung je Einheitenart fuer Raid, Verteidigung und Angriff (spaeter)",
+   "bereich": "Kampf",
+   "status": "offen",
+   "seit": "2026-11-13 23:14",
+   "herkunft": "Daniel 13.11.2026 23:13: 'Natuerlich kann man gewichtungen pro einheit beruecksichtigen aber ganz ehrlich dafuer sind wir eh noch zu frueh das muessen wir spaeter machen um moeglichst effektive einheiten zum raiden/verteiditen und angreiffen zu nutzen'",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [],
+   "notiz": "",
+   "verlauf": [
+    {
+     "zeit": "2026-11-13 23:14",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-184",
+   "titel": "Assassinen und Reiter laufen in der Lobby-Partie (SamurAI = Spieler 2) nicht los",
+   "bereich": "Kampf",
+   "status": "offen",
+   "seit": "2026-11-15 13:12",
+   "herkunft": "Daniel 15.11.2026 13:06 'die assassinen greiffen nicht an'; 13:09 'warum werden berittene bogenschuetzen rekrutiert aber nicht eingesetzt'; 13:09 'fixt du nicht einfach den kern zuerst'",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [],
+   "notiz": "Partie 34 (Instanz 2, selfaware-runtime): Lord-Bereitstellung 'raus (laeuft nicht los)' fuer jeden Assassinen; Reiterjagd gab 3 Reitern je 1 Befehl (Arbeiter 179, 100 Felder), danach standen sie. Kern setzt mit Besitzer als Absender ab (haende.rs absetzen), Ursache nicht gemessen. Belege data/research/partie34e_samurai_konsole.txt, ucp/villagestudio/samurai_kern.log",
+   "verlauf": [
+    {
+     "zeit": "2026-11-15 13:12",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-185",
+   "titel": "Lord-Bereitstellung haelt Assassinen bis 3000 Takte fest, auch wenn keiner loslaeuft",
+   "bereich": "Kampf",
+   "status": "offen",
+   "seit": "2026-11-15 13:12",
+   "herkunft": "Daniel 15.11.2026 13:06 'die assassinen greiffen nicht an'",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [],
+   "notiz": "Partie 34: 'LORD-BEREITSTELLUNG: 0/6 bereit, 0 in der Gruppe (seit 1085 Ticks)' - Abbruch erst nach BEREIT_MAX 3000 (assassinen.py ~2450)",
+   "verlauf": [
+    {
+     "zeit": "2026-11-15 13:12",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-186",
+   "titel": "Vorstoss-Schuetzen springen jede Runde zu einem neuen Ziel",
+   "bereich": "Kampf",
+   "status": "offen",
+   "seit": "2026-11-15 13:12",
+   "herkunft": "Daniel 15.11.2026 13:06 'waurm springen die bogenschuetzen noch so hin und her'",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [],
+   "notiz": "Partie 34: 122 Zeilen 'VORSTOSS: 6 Schuetzen schiessen auf Typ 3/9/7 in 27-35 Feldern' - Ziel behalten, bis es weg ist",
+   "verlauf": [
+    {
+     "zeit": "2026-11-15 13:12",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-187",
+   "titel": "Kornspeicher nicht am kleinsten Laufweg der Apfelplantagen",
+   "bereich": "Wirtschaft",
+   "status": "offen",
+   "seit": "2026-11-15 13:12",
+   "herkunft": "Daniel 15.11.2026 13:08 'der kornspeicher sollte dort stehen wo er maximal niedrige laufwege fuer die apfelplantagen verursacht'",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [],
+   "notiz": "Partie 34 Bild; Eroeffnungsplan setzt Kornspeicher 'an den Aepfeln' (104,216) - Laufweg-Summe zu allen Plantagen minimieren",
+   "verlauf": [
+    {
+     "zeit": "2026-11-15 13:12",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-188",
+   "titel": "Ochsenjoche je Steinbruch nach Laufweg (statt nur einem) - im Spiel pruefen",
+   "bereich": "Wirtschaft",
+   "status": "offen",
+   "seit": "2026-11-15 13:12",
+   "herkunft": "Daniel 15.11.2026 13:08 'warum sind es dann nur ein joch pro steinbruch ohne grund'",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [],
+   "notiz": "Code S173 (rohstoffe_bauen: kausal.ochsen_fuer(Laufweg)), Test + Negativlauf, NICHT im Spiel geprueft, nicht committet",
+   "verlauf": [
+    {
+     "zeit": "2026-11-15 13:12",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-189",
+   "titel": "Starteinheiten uneinheitlich ueber Instanzen und Startwege",
+   "bereich": "Spielstart",
+   "status": "offen",
+   "seit": "2026-11-15 13:12",
+   "herkunft": "Daniel 15.11.2026 13:06 'Haben wir uns nicht auf bogenschuetzen und speertraeger geeinigt?'; 13:11 'die starteinheiten sind nicht einheitlich'",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [],
+   "notiz": "Instanz 2 jetzt 5 Bogen + 7 Speer (ucp-config selfaware-runtime.startTroops, ungeprueft); Instanz 5 Runtime-Vorgabe 4 Assassinen + 6 arab. Bogen; Skript-Partien Menschenplatz 5 + 7 - eine Quelle festlegen",
+   "verlauf": [
+    {
+     "zeit": "2026-11-15 13:12",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-190",
+   "titel": "Wache erkennt die Uebernahme des Runtime-Moduls nicht - SamurAI startet in Menue-Partien nicht von selbst",
+   "bereich": "Spielstart",
+   "status": "offen",
+   "seit": "2026-11-15 13:12",
+   "herkunft": "Daniel 15.11.2026 11:33 'natuerlich muss die selfaware ai auch selbstaendig laufen ohne deine hilfe'",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [],
+   "notiz": "samurai_wache.py sucht KI 16 in currentAIArray; selfaware-runtime schaltet den Platz schon vor Takt 0 ab (ucp/villagestudio/uebernahme.json). In Partie 34 Lenker von Hand gestartet",
+   "verlauf": [
+    {
+     "zeit": "2026-11-15 13:12",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-191",
+   "titel": "Spielstart als ein Werkzeug: Spiel starten -> Menue -> Lobby zusammenstellen -> Start; Speichern/Laden einbinden",
+   "bereich": "Spielstart",
+   "status": "offen",
+   "seit": "2026-11-15 13:12",
+   "herkunft": "Daniel 15.11.2026 13:10 'gleiches auch bei langen befehlen wie Spiel starten -> Menue -> Spiel zusammenstellen -> Spiel speichern/laden wird noch gar nicht genutzt'",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [],
+   "notiz": "Menueweg gemessen in VillageStudio/doku/Partie-starten.md Abschnitt 3; heute Schritt fuer Schritt per Hand (menue_schritt.py im Arbeitsordner)",
+   "verlauf": [
+    {
+     "zeit": "2026-11-15 13:12",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-192",
+   "titel": "Struktur aufraeumen: Instanzen, Spielversionen, Module und Kopien verstreut",
+   "bereich": "Struktur",
+   "status": "offen",
+   "seit": "2026-11-15 13:12",
+   "herkunft": "Daniel 15.11.2026 13:10 'vergessene punkte, unauffindbare versionen sind alles strukturelle probleme'; 13:11 'Ausserdem fliegen instanzen und spielversionen hier rum ... Aufraeumen ist ein must have jetzt'",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [],
+   "notiz": "Instanz 1-5 mit verschiedenen Modulen (villagestudio, selfaware-runtime, selfaware-bridge), Plugin Selfaware-AI 0.1.0/0.2.0, logik-Snapshots, App-Kopien (Desktop/Work/sai-live, AppData/Local/Selfaware AI), Repos Selfaware-AI / -fw / -kern / -auge",
+   "verlauf": [
+    {
+     "zeit": "2026-11-15 13:12",
+     "was": "angelegt (offen)"
+    }
+   ]
+  },
+  {
+   "nr": "B-193",
+   "titel": "Arbeitsstand S155-S173 ungesichert (nicht committet)",
+   "bereich": "Struktur",
+   "status": "offen",
+   "seit": "2026-11-15 13:12",
+   "herkunft": "Daniel 15.11.2026 13:11 'dann packen wir alles an was mit struktur und ordnung auf github und auf dem pc zu tun hat'",
+   "gebaut": null,
+   "commits": [],
+   "wo": [],
+   "belege": [],
+   "notiz": "Selfaware-AI-fw Zweig funktionswissen: viele geaenderte Dateien seit 11.11. ohne Commit; Commit/Push nur auf Daniels Ja",
+   "verlauf": [
+    {
+     "zeit": "2026-11-15 13:12",
+     "was": "angelegt (offen)"
+    }
+   ]
   }
  ]
 }

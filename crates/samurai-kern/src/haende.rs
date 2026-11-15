@@ -6,6 +6,26 @@
 use std::collections::{BTreeMap, HashMap};
 
 pub const LAUF: i32 = 17;
+/// S155 (Daniel 15.11.2026 00:20 "Ja, Kern bauen"; 00:04 "sie braucht noch weitere laufbefehle um durchzuspammen"): ein Laufauftrag,
+/// den der Kern durchsetzt - kaempft die Einheit (Zustand 106/107), legt er ihn jeden Takt neu in die Schlange, bis sie wieder laeuft
+pub const LAUF_DURCHSETZEN: i32 = 18;
+/// S155: der Gegner, gegen den der Kampf gewollt ist (a = Einheit, 0 = keiner) - zum Beispiel der Arbeiter, den der Raid als Ziel hat.
+/// Gegen ihn setzt der Kern den Laufauftrag nicht durch.
+pub const GEGNER_ERLAUBT: i32 = 19;
+/// S156 (Partie 25, 15.11.2026 00:43: 858 von 982 durchgesetzten Kaempfen lagen hoechstens 3 Felder vom Laufziel - dort gibt es nichts
+/// durchzusetzen, die Einheit blieb 660-mal einfach stehen): so nah am Laufziel setzt der Kern nichts durch - wie wegfuehrung.AM_WEGPUNKT,
+/// ab dem die Wegfuehrung den naechsten Wegpunkt oder den Angriff gibt
+pub const AM_LAUFZIEL: i32 = 3;
+/// S159 (Daniel 15.11.2026 01:10 "er sollte doch sofort reagieren koennen", 01:13 "einbauen und schauen obs klappt"): die
+/// Wegpunktkette einer Einheit. Nach einem Laufauftrag (17/18) haengt der Lenker die weiteren Wegpunkte an (WEGPUNKT, a b = Ort) und
+/// zuletzt den Angriff (DANACH_EINHEIT / DANACH_GEBAEUDE, a = Ziel). Der Kern gibt den naechsten Schritt im Takt, in dem die Einheit
+/// hoechstens AM_LAUFZIEL Felder vor dem jetzigen Wegpunkt steht - statt bis zur naechsten Lenker-Runde (Partie 26/27: Median
+/// 169,5 / 236,5 Takte). Ein neuer Laufauftrag beginnt eine neue Kette, ein Angriffsauftrag beendet sie.
+pub const WEGPUNKT: i32 = 20;
+pub const DANACH_EINHEIT: i32 = 21;
+pub const DANACH_GEBAEUDE: i32 = 22;
+/// Zustand einer Einheit im Kampf gegen eine Einheit (chain_audit ATTACK_STATES)
+pub const KAMPF_EINHEIT: i32 = 106;
 pub const ANGRIFF_EINHEIT: i32 = 4;
 pub const ANGRIFF_GEBAEUDE: i32 = 9;
 /// So lange wartet der naechste Gruppenbefehl hoechstens, bis die Einheiten des letzten in ihrer Gruppe stehen
@@ -129,6 +149,9 @@ pub struct Blick {
     pub gruppe: i32,
     pub zieleinheit: i32,
     pub zielgebaeude: i32,
+    /// S123 (13.11.2026): beim Gebaeudeangriff traegt das Spiel das Ziel im Gruppenblock ein (Trupp +0x2D0); das Feld der
+    /// Einheit (+0x336) blieb in 3 von 3 Versuchen 0 - ohne dieses Feld hiess jeder Gebaeudeangriff "wirkt nicht".
+    pub gruppenziel: i32,
 }
 
 struct Wirkung {
@@ -152,6 +175,43 @@ pub struct Buch {
     pub verfallen: Vec<u32>,
     /// (Gruppe, Einheiten, Takt) des zuletzt abgesetzten Gruppenbefehls
     pub warten: Option<(i32, Vec<i32>, i32)>,
+    /// S155: Einheit -> Laufauftrag, den der Kern durchsetzt (LAUF_DURCHSETZEN)
+    durchsetzen: BTreeMap<i32, Auftrag>,
+    /// S155: so oft hat der Kern einen Laufauftrag wegen eines Kampfes neu in die Schlange gelegt
+    pub durchgesetzt: u64,
+    /// S155: Einheit -> Gegner, gegen den der Kampf gewollt ist (GEGNER_ERLAUBT)
+    erlaubt: BTreeMap<i32, i32>,
+    /// S155: Einheit -> (Takt, seit dem sie gegen einen anderen kaempft, so oft kam ihr Laufauftrag seither neu)
+    im_kampf: BTreeMap<i32, (i32, u32)>,
+    /// S159: Einheit -> ihre Wegpunktkette
+    ketten: BTreeMap<i32, Kette>,
+    /// S159: so oft gab der Kern den naechsten Schritt einer Kette
+    pub kette_schritte: u64,
+}
+
+/// S159: der jetzige Wegpunkt einer Einheit, ob er durchgesetzt wird, und was danach kommt
+struct Kette {
+    jetzt: (i32, i32),
+    durch: bool,
+    rest: std::collections::VecDeque<Auftrag>,
+}
+
+/// S159: ein Schritt, den der Kern in einer Kette gab - fuer das Protokoll
+#[derive(Debug, PartialEq)]
+pub struct Weiter {
+    pub nr: i32,
+    pub von: (i32, i32),
+    pub nach: Auftrag,
+    pub rest: usize,
+}
+
+/// S155: was durchsetzen_pruefen in einem Takt sah - fuer das Protokoll
+#[derive(Debug, PartialEq)]
+pub enum Durchsetzen {
+    /// die Einheit kaempft gegen einen anderen als den erlaubten Gegner: ihr Laufauftrag liegt ab jetzt jeden Takt wieder in der Schlange
+    Beginn { nr: i32, gegner: i32, auftrag: Auftrag },
+    /// sie kaempft nicht mehr gegen einen anderen - nach so vielen Takten, ihr Laufauftrag kam so oft neu in die Schlange
+    Ende { nr: i32, takte: i32, mal: u32 },
 }
 
 impl Buch {
@@ -171,6 +231,9 @@ impl Buch {
     pub fn freigeben(&mut self, nr: i32) {
         self.eigene.remove(&nr);
         self.letzter.remove(&nr);
+        self.durchsetzen.remove(&nr);
+        self.erlaubt.remove(&nr);
+        self.ketten.remove(&nr);
         self.wirkung.retain(|w| w.nr != nr);
         if let Some((_, an)) = self.aus_offen_nehmen(nr) {
             self.verfallen.extend(an.ring);
@@ -208,6 +271,8 @@ impl Buch {
     /// Nimmt einen Auftrag an. Ein neuer Auftrag ersetzt den offenen derselben Einheit; ein Reflex leiht sich die Einheit,
     /// waehrend der Leihe wartet jeder andere Auftrag und kommt danach an die Reihe.
     pub fn auftrag_mit(&mut self, nr: i32, a: Auftrag, untaetig: bool, an: Anspruch, tick: i32) -> Annahme {
+        let durch = a.art == LAUF_DURCHSETZEN;
+        let a = if durch { Auftrag { art: LAUF, ..a } } else { a };
         if ![LAUF, ANGRIFF_EINHEIT, ANGRIFF_GEBAEUDE].contains(&a.art) {
             return Annahme::UnbekannteArt;
         }
@@ -220,6 +285,19 @@ impl Buch {
         }
         if an.frist != 0 && an.frist < tick {
             return Annahme::Verfallen;
+        }
+        if durch {
+            self.durchsetzen.insert(nr, a);
+        } else if !reflex {
+            self.durchsetzen.remove(&nr);
+        }
+        if !reflex {
+            // S159: ein Laufauftrag beginnt eine neue Kette (auch wenn er doppelt ist - die Wegpunkte danach kommen neu), ein Angriff endet sie
+            if a.art == LAUF {
+                self.ketten.insert(nr, Kette { jetzt: (a.a, a.b), durch, rest: Default::default() });
+            } else {
+                self.ketten.remove(&nr);
+            }
         }
         if self.letzter.get(&nr) == Some(&a) && !untaetig {
             return Annahme::Doppelt;
@@ -314,7 +392,7 @@ impl Buch {
                 Some(b) => {
                     let ziel = match w.auftrag.art {
                         ANGRIFF_EINHEIT => b.zieleinheit == w.auftrag.a,
-                        ANGRIFF_GEBAEUDE => b.zielgebaeude == w.auftrag.a,
+                        ANGRIFF_GEBAEUDE => b.zielgebaeude == w.auftrag.a || b.gruppenziel == w.auftrag.a,
                         _ => true,
                     };
                     if b.gruppe == w.gruppe && ziel {
@@ -342,6 +420,121 @@ impl Buch {
             .collect();
         v.sort();
         v
+    }
+
+    /// S159: haengt an die Kette der Einheit einen Wegpunkt oder den Angriff am Ende. Ergebnis fuer den Ring; ohne Kette (kein Laufauftrag
+    /// vorher) verfaellt der Eintrag.
+    pub fn anhaengen(&mut self, nr: i32, art: i32, a: i32, b: i32) -> i32 {
+        let auftrag = match art {
+            WEGPUNKT => Auftrag { art: LAUF, a, b },
+            DANACH_EINHEIT => Auftrag { art: ANGRIFF_EINHEIT, a, b: 0 },
+            DANACH_GEBAEUDE => Auftrag { art: ANGRIFF_GEBAEUDE, a, b: 0 },
+            _ => return ERG_UNBEKANNT,
+        };
+        if !self.eigene.contains_key(&nr) {
+            return ERG_NICHT_UEBERNOMMEN;
+        }
+        match self.ketten.get_mut(&nr) {
+            Some(k) => {
+                k.rest.push_back(auftrag);
+                ERG_ANGENOMMEN
+            }
+            None => ERG_VERFALLEN,
+        }
+    }
+
+    /// S159: Steht eine Einheit hoechstens AM_LAUFZIEL Felder vor ihrem jetzigen Wegpunkt und hat ihre Kette einen naechsten Schritt, kommt er
+    /// in diesem Takt in die Schlange (ein Laufauftrag bleibt durchgesetzt, wenn der erste es war). ort(nr): Feld der Einheit, None wenn weg.
+    pub fn ketten_weiter(&mut self, ort: impl Fn(i32) -> Option<(i32, i32)>) -> Vec<Weiter> {
+        let mut aus = Vec::new();
+        let nummern: Vec<i32> = self.ketten.keys().copied().collect();
+        for nr in nummern {
+            if !self.eigene.contains_key(&nr) || self.leihe.contains_key(&nr) {
+                continue;
+            }
+            let Some(p) = ort(nr) else { continue };
+            let Some(k) = self.ketten.get_mut(&nr) else { continue };
+            if (p.0 - k.jetzt.0).abs().max((p.1 - k.jetzt.1).abs()) > AM_LAUFZIEL {
+                continue;
+            }
+            let Some(naechster) = k.rest.pop_front() else { continue };
+            let (von, rest, durch) = (k.jetzt, k.rest.len(), k.durch);
+            if naechster.art == LAUF {
+                k.jetzt = (naechster.a, naechster.b);
+                if durch {
+                    self.durchsetzen.insert(nr, naechster);
+                }
+            } else {
+                self.ketten.remove(&nr);
+                self.durchsetzen.remove(&nr);
+            }
+            if let Some((_, alt)) = self.aus_offen_nehmen(nr) {
+                self.verfallen.extend(alt.ring);
+            }
+            self.einreihen(nr, naechster, Anspruch::default());
+            self.kette_schritte += 1;
+            aus.push(Weiter { nr, von, nach: naechster, rest });
+        }
+        aus
+    }
+
+    /// S155: GEGNER_ERLAUBT - gegen diesen Gegner (0 = keiner) setzt der Kern den Laufauftrag der Einheit nicht durch. Ergebnis fuer den Ring.
+    pub fn erlauben(&mut self, nr: i32, gegner: i32) -> i32 {
+        if !self.eigene.contains_key(&nr) {
+            return ERG_NICHT_UEBERNOMMEN;
+        }
+        if gegner == 0 {
+            self.erlaubt.remove(&nr);
+        } else {
+            self.erlaubt.insert(nr, gegner);
+        }
+        ERG_ANGENOMMEN
+    }
+
+    /// S155: Einheiten mit einem durchzusetzenden Laufauftrag, die gerade gegen einen anderen als den erlaubten Gegner kaempfen, bekommen
+    /// ihn neu in die Schlange - ausser er liegt dort schon oder ein Reflex hat die Einheit geliehen, oder sie steht hoechstens AM_LAUFZIEL
+    /// Felder vom Laufziel (S156). gegner(nr): Some(([nahziel, zieleinheit], (x, y))) im Kampf gegen eine Einheit (Zustand KAMPF_EINHEIT),
+    /// sonst None.
+    pub fn durchsetzen_pruefen(&mut self, tick: i32, gegner: impl Fn(i32) -> Option<([i32; 2], (i32, i32))>) -> Vec<Durchsetzen> {
+        let mut aus = Vec::new();
+        let liste: Vec<(i32, Auftrag)> = self.durchsetzen.iter().map(|(n, a)| (*n, *a)).collect();
+        for (nr, a) in liste {
+            let erlaubt = self.erlaubt.get(&nr).copied();
+            // der Gegner im Nahkampf (nahziel), sonst das Ziel der Einheit (zieleinheit) - wie nahkampf._bekaempft
+            let fremd = self.eigene.contains_key(&nr)
+                .then(|| gegner(nr))
+                .flatten()
+                .filter(|(_, (x, y))| (x - a.a).abs().max((y - a.b).abs()) > AM_LAUFZIEL)
+                .map(|(g, _)| if g[0] != 0 { g[0] } else { g[1] })
+                .filter(|g| erlaubt.is_none_or(|e| e != *g));
+            let Some(g) = fremd else {
+                if let Some((seit, mal)) = self.im_kampf.remove(&nr) {
+                    aus.push(Durchsetzen::Ende { nr, takte: tick - seit, mal });
+                }
+                continue;
+            };
+            if !self.im_kampf.contains_key(&nr) {
+                self.im_kampf.insert(nr, (tick, 0));
+                aus.push(Durchsetzen::Beginn { nr, gegner: g, auftrag: a });
+            }
+            let wartet = self.offen.values().any(|o| o.einheiten.contains_key(&nr)) || self.leihe.contains_key(&nr);
+            if wartet {
+                continue;
+            }
+            self.einreihen(nr, a, Anspruch::default());
+            self.durchgesetzt += 1;
+            if let Some(k) = self.im_kampf.get_mut(&nr) {
+                k.1 += 1;
+            }
+        }
+        // ein gewoehnlicher Auftrag (Angriff, Freigabe) beendete das Durchsetzen
+        let vorbei: Vec<i32> = self.im_kampf.keys().filter(|nr| !self.durchsetzen.contains_key(nr)).copied().collect();
+        for nr in vorbei {
+            if let Some((seit, mal)) = self.im_kampf.remove(&nr) {
+                aus.push(Durchsetzen::Ende { nr, takte: tick - seit, mal });
+            }
+        }
+        aus
     }
 
     pub fn offen_zahl(&self) -> usize {
@@ -495,6 +688,126 @@ unsafe fn absetzen_innen(a: Auftrag, einheiten: &[i32], platz: i32, alte_auswahl
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn s155_ein_durchzusetzender_laufauftrag_kommt_bei_kampf_jeden_takt_neu_in_die_schlange() {
+        let mut b = Buch::default();
+        b.uebernehmen(5);
+        let a = Auftrag { art: LAUF_DURCHSETZEN, a: 230, b: 70 };
+        assert_eq!(b.auftrag_mit(5, a, true, Anspruch::default(), 0), Annahme::Angenommen);
+        let x = b.naechster().unwrap();
+        assert_eq!(x.0, Auftrag { art: LAUF, a: 230, b: 70 });
+        b.abgesetzt(x.0, &x.1, 1, 1);
+        let laeuft = |_| None;
+        let kaempft = |_| Some(([365, 0], (100, 100)));
+        assert_eq!(b.durchsetzen_pruefen(2, laeuft), vec![]); // sie laeuft: nichts
+        let lauf = Auftrag { art: LAUF, a: 230, b: 70 };
+        assert_eq!(b.durchsetzen_pruefen(3, kaempft), vec![Durchsetzen::Beginn { nr: 5, gegner: 365, auftrag: lauf }]);
+        assert_eq!(b.durchsetzen_pruefen(4, kaempft), vec![]); // liegt schon in der Schlange
+        assert_eq!(b.naechster().unwrap().0, lauf);
+        assert_eq!(b.durchsetzen_pruefen(5, kaempft), vec![]); // naechster Takt: wieder hinein
+        assert_eq!(b.naechster().unwrap().0, lauf);
+        assert_eq!(b.durchsetzen_pruefen(6, laeuft), vec![Durchsetzen::Ende { nr: 5, takte: 3, mal: 2 }]);
+        assert_eq!(b.durchgesetzt, 2);
+        // ein gewoehnlicher Auftrag beendet das Durchsetzen
+        assert_eq!(b.durchsetzen_pruefen(7, kaempft).len(), 1);
+        b.auftrag_mit(5, Auftrag { art: ANGRIFF_EINHEIT, a: 365, b: 0 }, true, Anspruch::default(), 8);
+        b.naechster();
+        assert_eq!(b.durchsetzen_pruefen(8, kaempft), vec![Durchsetzen::Ende { nr: 5, takte: 1, mal: 1 }]);
+        assert_eq!(b.durchsetzen_pruefen(9, kaempft), vec![]);
+        assert_eq!(b.durchgesetzt, 3);
+    }
+
+    #[test]
+    fn s155_gegen_den_erlaubten_gegner_setzt_der_kern_nichts_durch() {
+        let mut b = Buch::default();
+        assert_eq!(b.erlauben(5, 365), ERG_NICHT_UEBERNOMMEN);
+        b.uebernehmen(5);
+        assert_eq!(b.erlauben(5, 365), ERG_ANGENOMMEN);
+        b.auftrag_mit(5, Auftrag { art: LAUF_DURCHSETZEN, a: 230, b: 70 }, true, Anspruch::default(), 0);
+        let x = b.naechster().unwrap();
+        b.abgesetzt(x.0, &x.1, 1, 1);
+        // sie kaempft gegen ihr Ziel (im Feld nahziel oder zieleinheit): kein neuer Laufbefehl
+        assert_eq!(b.durchsetzen_pruefen(2, |_| Some(([365, 0], (100, 100)))), vec![]);
+        assert_eq!(b.durchsetzen_pruefen(3, |_| Some(([0, 365], (100, 100)))), vec![]);
+        assert!(b.naechster().is_none());
+        // gegen einen anderen: durchsetzen
+        assert_eq!(b.durchsetzen_pruefen(4, |_| Some(([400, 365], (100, 100)))).len(), 1);
+        assert!(b.naechster().is_some());
+        // ohne erlaubten Gegner zaehlt jeder Kampf
+        assert_eq!(b.erlauben(5, 0), ERG_ANGENOMMEN);
+        assert_eq!(b.durchsetzen_pruefen(5, |_| Some(([365, 0], (100, 100)))), vec![]); // laeuft seit Takt 4 weiter
+        assert!(b.naechster().is_some());
+        // freigeben vergisst alles
+        b.freigeben(5);
+        assert_eq!(b.durchsetzen_pruefen(6, |_| Some(([400, 0], (100, 100)))), vec![Durchsetzen::Ende { nr: 5, takte: 2, mal: 2 }]);
+    }
+
+    #[test]
+    fn s159_der_kern_gibt_den_naechsten_wegpunkt_und_am_ende_den_angriff() {
+        let mut b = Buch::default();
+        assert_eq!(b.anhaengen(5, WEGPUNKT, 120, 100), ERG_NICHT_UEBERNOMMEN);
+        b.uebernehmen(5);
+        assert_eq!(b.anhaengen(5, WEGPUNKT, 120, 100), ERG_VERFALLEN); // ohne Laufauftrag keine Kette
+        b.auftrag_mit(5, Auftrag { art: LAUF_DURCHSETZEN, a: 110, b: 100 }, true, Anspruch::default(), 0);
+        assert_eq!(b.anhaengen(5, WEGPUNKT, 120, 100), ERG_ANGENOMMEN);
+        assert_eq!(b.anhaengen(5, DANACH_GEBAEUDE, 77, 0), ERG_ANGENOMMEN);
+        assert_eq!(b.anhaengen(5, 99, 0, 0), ERG_UNBEKANNT);
+        let x = b.naechster().unwrap();
+        b.abgesetzt(x.0, &x.1, 1, 1);
+        // unterwegs, 4 Felder vor dem Wegpunkt: nichts
+        assert_eq!(b.ketten_weiter(|_| Some((106, 100))), vec![]);
+        // 3 Felder davor: der naechste Wegpunkt, weiter durchgesetzt
+        let lauf2 = Auftrag { art: LAUF, a: 120, b: 100 };
+        assert_eq!(b.ketten_weiter(|_| Some((107, 100))), vec![Weiter { nr: 5, von: (110, 100), nach: lauf2, rest: 1 }]);
+        assert_eq!(b.naechster().unwrap().0, lauf2);
+        assert_eq!(b.durchsetzen_pruefen(3, |_| Some(([400, 0], (100, 100)))).len(), 1); // der neue Wegpunkt wird durchgesetzt
+        b.naechster();
+        // am zweiten Wegpunkt: der Angriff, das Durchsetzen endet
+        let angriff = Auftrag { art: ANGRIFF_GEBAEUDE, a: 77, b: 0 };
+        assert_eq!(b.ketten_weiter(|_| Some((119, 101))), vec![Weiter { nr: 5, von: (120, 100), nach: angriff, rest: 0 }]);
+        assert_eq!(b.naechster().unwrap().0, angriff);
+        assert!(b.ketten_weiter(|_| Some((119, 101))).is_empty());
+        assert!(b.durchsetzen_pruefen(4, |_| Some(([400, 0], (130, 100)))).iter().all(|d| matches!(d, Durchsetzen::Ende { .. })));
+        assert_eq!(b.kette_schritte, 2);
+    }
+
+    #[test]
+    fn s159_ein_neuer_laufauftrag_beginnt_eine_neue_kette_ein_angriff_beendet_sie() {
+        let mut b = Buch::default();
+        b.uebernehmen(5);
+        b.auftrag_mit(5, Auftrag { art: LAUF, a: 110, b: 100 }, true, Anspruch::default(), 0);
+        b.anhaengen(5, WEGPUNKT, 120, 100);
+        b.auftrag_mit(5, Auftrag { art: LAUF, a: 110, b: 100 }, false, Anspruch::default(), 1); // doppelt - die Kette beginnt trotzdem neu
+        assert_eq!(b.ketten_weiter(|_| Some((110, 100))), vec![]);
+        b.anhaengen(5, WEGPUNKT, 130, 100);
+        b.auftrag_mit(5, Auftrag { art: ANGRIFF_EINHEIT, a: 365, b: 0 }, true, Anspruch::default(), 2);
+        assert_eq!(b.anhaengen(5, WEGPUNKT, 140, 100), ERG_VERFALLEN);
+        assert!(b.ketten_weiter(|_| Some((110, 100))).is_empty());
+        // freigeben vergisst die Kette
+        b.auftrag_mit(5, Auftrag { art: LAUF, a: 110, b: 100 }, true, Anspruch::default(), 3);
+        b.anhaengen(5, WEGPUNKT, 120, 100);
+        b.freigeben(5);
+        b.uebernehmen(5);
+        assert!(b.ketten_weiter(|_| Some((110, 100))).is_empty());
+    }
+
+    #[test]
+    fn s156_am_laufziel_setzt_der_kern_nichts_durch() {
+        let mut b = Buch::default();
+        b.uebernehmen(5);
+        b.auftrag_mit(5, Auftrag { art: LAUF_DURCHSETZEN, a: 230, b: 70 }, true, Anspruch::default(), 0);
+        let x = b.naechster().unwrap();
+        b.abgesetzt(x.0, &x.1, 1, 1);
+        // 3 Felder vom Laufziel: angekommen, nichts durchzusetzen
+        assert_eq!(b.durchsetzen_pruefen(2, |_| Some(([400, 0], (233, 67)))), vec![]);
+        assert!(b.naechster().is_none());
+        // 4 Felder: noch unterwegs
+        assert_eq!(b.durchsetzen_pruefen(3, |_| Some(([400, 0], (234, 70)))).len(), 1);
+        assert!(b.naechster().is_some());
+        // erreicht sie das Laufziel im Kampf, endet das Durchsetzen
+        assert_eq!(b.durchsetzen_pruefen(4, |_| Some(([400, 0], (230, 70)))), vec![Durchsetzen::Ende { nr: 5, takte: 1, mal: 1 }]);
+    }
 
     const L1: Auftrag = Auftrag { art: LAUF, a: 100, b: 200 };
     const L2: Auftrag = Auftrag { art: LAUF, a: 110, b: 200 };
@@ -669,8 +982,8 @@ mod tests {
         let a = Auftrag { art: ANGRIFF_EINHEIT, a: 77, b: 0 };
         b.wirkung_beobachten(&abgabe(vec![(1, 11), (2, 12), (3, 13)], a), &[1, 2, 3], 9, 100);
         let sieh = |nr| match nr {
-            1 => Some(Blick { gruppe: 9, zieleinheit: 77, zielgebaeude: 0 }),
-            2 => Some(Blick { gruppe: 9, zieleinheit: 5, zielgebaeude: 0 }),
+            1 => Some(Blick { gruppe: 9, zieleinheit: 77, zielgebaeude: 0, gruppenziel: 0 }),
+            2 => Some(Blick { gruppe: 9, zieleinheit: 5, zielgebaeude: 0, gruppenziel: 0 }),
             _ => None,
         };
         assert_eq!(b.wirkung_pruefen(101, sieh), [(11, ERG_WIRKT), (13, ERG_EINHEIT_WEG)]);
@@ -682,8 +995,22 @@ mod tests {
     fn wirkung_nur_fuer_ausgewaehlte_einheiten() {
         let mut b = Buch::default();
         b.wirkung_beobachten(&abgabe(vec![(1, 11), (2, 12)], L1), &[2], 9, 100);
-        let sieh = |_| Some(Blick { gruppe: 9, zieleinheit: 0, zielgebaeude: 0 });
+        let sieh = |_| Some(Blick { gruppe: 9, zieleinheit: 0, zielgebaeude: 0, gruppenziel: 0 });
         assert_eq!(b.wirkung_pruefen(101, sieh), [(12, ERG_WIRKT)]);
+    }
+
+    #[test]
+    fn gebaeudeangriff_wirkt_ueber_das_ziel_der_gruppe() {
+        // S123: Assassine im Kampf gegen Huette 50 - Feld der Einheit 0, Gruppenblock 50
+        let mut b = Buch::default();
+        let a = Auftrag { art: ANGRIFF_GEBAEUDE, a: 50, b: 0 };
+        b.wirkung_beobachten(&abgabe(vec![(1, 11), (2, 12)], a), &[1, 2], 29, 100);
+        let sieh = |nr| match nr {
+            1 => Some(Blick { gruppe: 29, zieleinheit: 0, zielgebaeude: 0, gruppenziel: 50 }),
+            _ => Some(Blick { gruppe: 29, zieleinheit: 0, zielgebaeude: 0, gruppenziel: 49 }),
+        };
+        assert_eq!(b.wirkung_pruefen(105, sieh), [(11, ERG_WIRKT)]);
+        assert_eq!(b.wirkung_pruefen(141, sieh), [(12, ERG_WIRKT_NICHT)]);
     }
 
     #[test]

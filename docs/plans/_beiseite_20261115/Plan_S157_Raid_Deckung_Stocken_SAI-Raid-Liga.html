@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Raid: Deckung, Stocken, Ziele</title>
+<style>
+  :root { --bg:#f7f6f2; --karte:#fff; --text:#1d1d1b; --leise:#5f5e58; --linie:#dedcd3; --akzent:#2c5d8a; --gruen:#2e7d4f; --gelb:#b8860b; --rot:#b23a2e; }
+  @media (prefers-color-scheme: dark) { :root { --bg:#1b1b1a; --karte:#252523; --text:#ecebe6; --leise:#a9a79f; --linie:#3a3936; --akzent:#7fb0dd; --gruen:#6fc08f; --gelb:#e0b44c; --rot:#e57a6e; } }
+  body { margin:0; background:var(--bg); color:var(--text); font:16px/1.55 system-ui, "Segoe UI", sans-serif; }
+  main { max-width:900px; margin:0 auto; padding:24px 16px 60px; }
+  h1 { font-size:1.6rem; margin:0 0 4px; }
+  .timestamps, .kennung { color:var(--leise); font-size:.9rem; }
+  .tags { margin:8px 0 18px; } .tag { display:inline-block; border:1px solid var(--linie); border-radius:12px; padding:1px 10px; margin-right:6px; font-size:.82rem; color:var(--leise); }
+  .kurz { background:var(--karte); border-left:4px solid var(--akzent); padding:12px 16px; border-radius:6px; margin-bottom:22px; }
+  section.punkt { background:var(--karte); border:1px solid var(--linie); border-radius:8px; padding:14px 16px; margin:14px 0; }
+  section.punkt h2 { font-size:1.15rem; margin:0 0 8px; }
+  .gemessen { font-size:.86rem; color:var(--leise); border-top:1px dashed var(--linie); margin-top:8px; padding-top:6px; }
+  .vorschlag { margin:8px 0 0; }
+  .nutzen { font-size:.86rem; color:var(--leise); }
+  table { border-collapse:collapse; width:100%; font-size:.92rem; } td, th { border-bottom:1px solid var(--linie); padding:5px 6px; text-align:left; vertical-align:top; }
+  .steuer { display:flex; gap:10px; flex-wrap:wrap; align-items:flex-start; margin-top:10px; }
+  select, textarea { font:inherit; background:var(--bg); color:var(--text); border:1px solid var(--linie); border-radius:6px; padding:4px 6px; }
+  textarea { flex:1; min-width:220px; min-height:2.4em; resize:vertical; }
+  .ampel-gruen { border-color:var(--gruen); } .ampel-gelb { border-color:var(--gelb); } .ampel-rot { border-color:var(--rot); }
+  button { font:inherit; border:1px solid var(--akzent); color:var(--akzent); background:transparent; border-radius:6px; padding:4px 12px; cursor:pointer; }
+  button:hover { background:var(--akzent); color:var(--karte); }
+  code { font-size:.88em; overflow-wrap:anywhere; }
+</style>
+</head>
+<body>
+<main>
+<h1>Raid: Deckung, Stocken, Ziele</h1>
+<div class="timestamps">Erstellt: 15.11.2026 01:05 · Grundlage: Partie 26 (Instanz 2, Kern 31, Start 00:53)</div>
+<div class="kennung">Sitzung SAI - Raid-Liga · Auftrag S157 · Daniels Fragen 15.11.2026 00:58 und 01:01</div>
+<div class="tags"><span class="tag tag-samurai">SamurAI</span><span class="tag tag-raid">Raid</span><span class="tag tag-plan">Vorschlag</span></div>
+
+<div class="kurz"><b>Kurz:</b> Die KI kennt Deckung nur beim Wegeplanen. Bei der Wahl des Ziels und dort, wo eine Einheit stehen bleibt, rechnet sie ohne Deckung, und Beschuss auf dem Weg zählt sie gar nicht. Dazu kommt: Der Lenker entscheidet nur etwa alle 170 Takte. Dazwischen stehen die Einheiten an ihrem Wegpunkt. Speerträger richten an Gebäuden laut Spielwert wenig aus und nehmen deshalb Arbeiter.<br><b>Empfehlung:</b> zuerst Vorschlag A (Gefahr mit Schusslinie und auf dem ganzen Weg in die Zielwahl), dann B (der Kern führt die Wegpunkte selbst weiter).</div>
+
+<section class="punkt" id="p1">
+<h2>1 · Erkennt die KI, dass Einheiten hinter einem Gebäude sicher sind?</h2>
+<p><b>Teilweise.</b> Die Wegführung rechnet mit Deckung: Ein Gebäude zwischen einem Schützen am Boden und der Einheit sperrt die Schusslinie (Regel L79, gemessen). Ein Weg, der hinter Gebäuden entlangführt, ist für sie billiger. Drei Stellen kennen Deckung aber nicht:</p>
+<ul>
+<li><b>Zielwahl:</b> Sie zählt Schützen am Ziel nur nach Reichweite (<code>spielwerte.in_gefahr</code>), ohne Schusslinie. Ein Ziel hinter einem Gebäude gilt so als genauso gefährlich wie eines auf freiem Feld.</li>
+<li><b>Haltepunkte:</b> Ein Wegpunkt wird nicht danach gewählt, ob die Einheit dort gedeckt steht. Zwischen zwei Lenker-Runden steht sie aber genau dort.</li>
+<li><b>Erst in Deckung, dann zum nächsten Ziel:</b> Dieses Verhalten gibt es nicht.</li>
+</ul>
+<div class="gemessen">Gemessen: Code <code>micro/wegfuehrung.py</code> Gefahr._frei / an (Schusslinie), <code>baukasten/wirkung.py</code> deckung() → <code>services/spielwerte.py</code> in_gefahr (nur Abstand). Speerträger und Schwertkämpfer standen in Partie 26 29 % ihrer Takte (Zustand 0/1/2; Takt-Mitschrift <code>soldaten_mitschrift_20261115_005316_i2.jsonl</code>).</div>
+<div class="steuer"><select class="ampel" data-id="p1"><option value="">Ampel</option><option value="gruen">grün</option><option value="gelb">gelb</option><option value="rot">rot</option></select><textarea data-id="p1" placeholder="Notiz zu Punkt 1"></textarea></div>
+</section>
+
+<section class="punkt" id="p2">
+<h2>2 · Warum greifen Speerträger keine Gebäude an?</h2>
+<p><b>Weil sie dort wenig ausrichten.</b> Die aktive Balance von Instanz 2 (<code>liga_ai.json</code>, Feld <code>buildingDamage</code>) gibt dem Speerträger 10, der Assassine 75 und dem arabischen Schwertkämpfer 100. Ein Speerträger braucht an einem Gebäude also 7,5-mal so lange wie eine Assassine. Ein Holzfäller fällt durch einen Speerträger gemessen nach 400 Takten. Die Wertrechnung nimmt deshalb immer den Arbeiter: In Partie 26 bekamen Speerträger 428-mal ein Arbeiterziel und keinmal ein Gebäude. Schwertkämpfer bekamen 57-mal ein Gebäude und 205-mal einen Arbeiter.</p>
+<p class="vorschlag"><b>Vorschlag E:</b> Die Zeit am Gebäude aus dem Spielwert <code>buildingDamage</code> rechnen, statt sie von der Assassine hochzurechnen. Heute rechnet die Ersatzrechnung den Speerträger mit dem Faktor 0,21, laut Spielwert ist es 0,13. Speerträger würden dadurch noch seltener Gebäude wählen.</p>
+<p><b>Frage an dich:</b> Sollen Speerträger trotzdem Gebäude angreifen, und wenn ja, wann? Meine Empfehlung: nein. Speerträger jagen Arbeiter, Gebäude übernehmen Schwertkämpfer und Assassinen.</p>
+<div class="gemessen">Gemessen: <code>grep UNIT-Zeilen</code> in <code>aufstellung_20261115_005313_raid_wirkung_pp_i2_konsole.txt</code>; Werte abgelesen aus <code>ucp/plugins/Mod-KI-Team-Liga-2.0.2/resources/balance/liga_ai.json</code>, die laut <code>ucp-config.yml</code> (rebalancer) geladen ist; Ersatzrechnung <code>wirkung.Wissen.gebaeude_takte</code>.</div>
+<div class="steuer"><select class="ampel" data-id="p2"><option value="">Ampel</option><option value="gruen">grün</option><option value="gelb">gelb</option><option value="rot">rot</option></select><textarea data-id="p2" placeholder="Notiz zu Punkt 2"></textarea></div>
+</section>
+
+<section class="punkt" id="p3">
+<h2>3 · Warum laufen Schwertkämpfer und Sklaven in Fernkämpfer?</h2>
+<p><b>Weil die Zielwahl nur die Schützen am Ziel zählt, nicht die auf dem Weg.</b> In Partie 26 starben 17 eigene Nahkämpfer und Sklaven, 13 davon laut Werkzeug unter Beschuss. Oft standen dabei 11 bis 14 Armbrust- und Bogenschützen in Reichweite. Beispiel: Schwertkämpfer 492 starb unterwegs bei (278, 134) mit 11 Schützen in Reichweite. Den Nahkampf-Raid hast du am 11.11. für Ziele unter Beschuss freigegeben; „unter Beschuss“ meinte dabei das Ziel. Den Weg führt die Wegführung zwar um Gefahr herum. Wenn es keinen anderen Weg gibt, geht sie aber mitten hindurch, und das sieht die Zielwahl nicht.</p>
+<p class="vorschlag"><b>Vorschlag A:</b> Die Zielwahl rechnet den Schaden auf dem ganzen sicheren Weg ein, also Gefahr je Wegzelle mal Takte je Feld, mit derselben Schusslinien-Regel wie die Wegführung. Am Ziel zählt ebenfalls die Schusslinie. Ein Ziel, auf dessen Weg die Einheit voraussichtlich stirbt, bekommt keinen Wert. Was ein Ziel wert ist, bleibt wie bisher: Gebäudewert, Gefahr, Zeit.</p>
+<p class="nutzen">Nutzen: hoch (13 von 17 Toten unter Beschuss). Aufwand: mittel; Wegegitter und Gefahr je Zelle gibt es schon.</p>
+<div class="gemessen">Gemessen: <code>tode_erklaeren … typen=24,75,71</code> → <code>data/research/tode_raid_20261115_005313.md</code>; die Zahl unter Beschuss stammt aus den Ursachenregeln des Werkzeugs, die aus Assassinen-Messungen kommen. Für Nahkämpfer sind sie nicht geprüft. Beispiel 492: NAHKAMPF-RAID- und UNIT-Zeilen in der Konsole.</div>
+<div class="steuer"><select class="ampel" data-id="p3"><option value="">Ampel</option><option value="gruen">grün</option><option value="gelb">gelb</option><option value="rot">rot</option></select><textarea data-id="p3" placeholder="Notiz zu Punkt 3"></textarea></div>
+</section>
+
+<section class="punkt" id="p4">
+<h2>4 · Warum stocken die Einheiten, vor allem am Anfang?</h2>
+<p><b>Weil der Lenker zu selten entscheidet.</b> Eine Lenker-Runde dauert etwa 0,84 s. Bei Tempo 200 läuft das Spiel in dieser Zeit im Mittel 170 Takte weiter (Median 169,5 über 209 Runden), das sind etwa 18 Felder Laufweg. Die erste Runde kam erst bei Takt 664, die zweite bei 1.120. Bis dahin hatte keine Einheit einen Befehl. Wer einen Wegpunkt erreicht, steht bis zur nächsten Runde. Fast 60 % der Rundenzeit verbrauchen zwei Teile der Buchführung, nicht der Raid.</p>
+<table>
+<tr><th>Teil der Lenker-Runde</th><th>Zeit nach 200 Runden</th></tr>
+<tr><td>Abgleich des Auftragsbuchs (<code>buch_abgleich</code>)</td><td>63,6 s</td></tr>
+<tr><td>Auftragsbuch</td><td>32,3 s</td></tr>
+<tr><td>Haus- und Lagerzeile</td><td>24,2 s</td></tr>
+<tr><td>Lesen</td><td>12,2 s</td></tr>
+<tr><td>Wegkarte</td><td>9,6 s</td></tr>
+<tr><td>Assassinen, Bauen, Wirtschaft, Wächter</td><td>zusammen 20,5 s</td></tr>
+</table>
+<p class="vorschlag"><b>Vorschlag B:</b> Der Lenker gibt dem Kern die ganze Wegpunktkette. Der Kern gibt in jedem Takt den nächsten Wegpunkt, sobald die Einheit den jetzigen erreicht hat (3 Felder, dieselbe Grenze wie heute). Dann wartet keine Einheit mehr auf die nächste Runde. Nutzen: hoch. Aufwand: mittel bis hoch (eine neue Auftragsart im Kern).</p>
+<p class="vorschlag"><b>Vorschlag C:</b> Messen, warum die zwei Buchführungs-Teile zusammen 0,48 s je Runde brauchen, und sie schneller machen oder seltener rechnen. Außerdem messen, was vor der ersten Runde bei Takt 664 passiert. Beides ist nicht gemessen; der Aufwand ist erst danach bekannt.</p>
+<p class="vorschlag"><b>Vorschlag D (nach B):</b> Ein Haltepunkt wird dort gewählt, wo kein Bodenschütze eine freie Linie hat; erst dann geht es zum nächsten Ziel. Das braucht B, weil der Sprung aus der Deckung im richtigen Takt kommen muss.</p>
+<div class="gemessen">Gemessen: Rundenzeilen <code>^ *Takt |</code> der Konsole (209 Runden, Median 169,5 Takte), Zeile „ZEITEN nach 200 Runden“ derselben Konsole, START-BEFEHL tempo=200.</div>
+<div class="steuer"><select class="ampel" data-id="p4"><option value="">Ampel</option><option value="gruen">grün</option><option value="gelb">gelb</option><option value="rot">rot</option></select><textarea data-id="p4" placeholder="Notiz zu Punkt 4"></textarea></div>
+</section>
+
+<section class="punkt" id="p5">
+<h2>Nebenbei: Sklaven gegen Holzfäller</h2>
+<p>Sklave 379 starb nach 301 Zeilen Kampf gegen einen Holzfäller. Sklaven führt der Brandtrupp, und dessen Befehle laufen noch nicht über den Kern; das Durchsetzen hilft ihnen deshalb nicht. <b>Vorschlag F:</b> Auch die Laufbefehle des Brandtrupps über den Kern schicken. Nutzen: mittel. Aufwand: klein, es ist ein Eintrag in <code>wegfuehrung.KERN_ZWECKE</code> plus Test.</p>
+<div class="steuer"><select class="ampel" data-id="p5"><option value="">Ampel</option><option value="gruen">grün</option><option value="gelb">gelb</option><option value="rot">rot</option></select><textarea data-id="p5" placeholder="Notiz zu Sklaven"></textarea></div>
+</section>
+
+<p><b>Reihenfolge, wie ich sie vorschlage:</b> A (weniger Tote) → F (klein) → B (kein Warten am Wegpunkt) → C (schnellere Runde) → D (Deckung beim Halten); E nach deiner Antwort zu Punkt 2. Je Vorschlag eine Partie, damit klar bleibt, was wirkte.</p>
+<div class="steuer"><button id="kopieren">Notizen kopieren</button><button id="laden">Notizen herunterladen</button></div>
+</main>
+<script>
+(function () {
+  var SCHLUESSEL = "plan_s157_notizen";
+  var stand = {};
+  try { stand = JSON.parse(localStorage.getItem(SCHLUESSEL) || "{}"); } catch (e) { stand = {}; }
+  function sichern() { try { localStorage.setItem(SCHLUESSEL, JSON.stringify(stand)); } catch (e) {} }
+  function farbe(sel) { sel.className = "ampel" + (sel.value ? " ampel-" + sel.value : ""); }
+  document.querySelectorAll("select.ampel").forEach(function (s) {
+    var id = s.dataset.id; s.value = (stand[id] || {}).ampel || ""; farbe(s);
+    s.addEventListener("change", function () { stand[id] = stand[id] || {}; stand[id].ampel = s.value; farbe(s); sichern(); });
+  });
+  document.querySelectorAll("textarea").forEach(function (t) {
+    var id = t.dataset.id; t.value = (stand[id] || {}).notiz || "";
+    t.addEventListener("input", function () { stand[id] = stand[id] || {}; stand[id].notiz = t.value; sichern(); });
+  });
+  function text() {
+    return Array.prototype.map.call(document.querySelectorAll("section.punkt"), function (s) {
+      var e = stand[s.id] || {};
+      return s.querySelector("h2").textContent + "\nAmpel: " + (e.ampel || "-") + "\nNotiz: " + (e.notiz || "-");
+    }).join("\n\n");
+  }
+  document.getElementById("kopieren").addEventListener("click", function () {
+    try { navigator.clipboard.writeText(text()); } catch (e) {}
+  });
+  document.getElementById("laden").addEventListener("click", function () {
+    var a = document.createElement("a");
+    a.href = URL.createObjectURL(new Blob([text()], { type: "text/plain" }));
+    a.download = "Plan_S157_Notizen.txt"; a.click();
+  });
+})();
+</script>
+</body>
+</html>

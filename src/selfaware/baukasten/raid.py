@@ -24,6 +24,12 @@ REIHENFOLGE = ("sklaven", "schleuderer", "reiter", "assassinen")
 # Nahkampf-Raid (Grundgesetz P1.37). Sein Standplatz ist das Ziel selbst (793 von 803 seiner Ziele vom 10.11. lagen in Gefahr,
 # S115), seine Zielwahl nach Wirkung zieht den Beschuss am Ziel ab; den Weg dorthin fuehrt die Wegfuehrung weiter um Gefahr herum.
 TROTZ_GEFAHR = ("nahkampfraid", "waechter")
+# B-182 (Partie 11.11. 22:37, Daniel 22:41: "warum kam erst so spät ein sklave? ich hätte als effektive ki 
+# so schnell wie möglich raid sklaven rausgespuckt und schonmal nach vorne geschickt und dann geraided"): von Takt 2922 bis 3774 lagen 53 Gold da, alles zurueckgelegt fuer
+# 4 offene B-Plantagen (4 x 15), der erste Sklave kam bei Takt 3902. Lebt kein Raid-Sklave, darf der erste die Ruecklage angreifen.
+# Startwert, nicht gemessen: so viele Runden nach diesem Kauf nicht noch einmal (der Sklave braucht bis zum Erscheinen ~120 Takte)
+ERSTER_PAUSE = 6
+VORSTOSS_SCHUETZE = 70  # Arabischer Bogenschuetze: kaufbar nur fuer den Vorstoss (vorstoss.SCHUETZEN)
 # B-182: Was das Modul einer Art angreift - g Gebaeude, e Einheiten. In Reihe 1 (10.11.) traute die Rechnung Sklaven Arbeiter zu, die der
 # Brandtrupp nie jagt, und kaufte darum nur Sklaven. Nahkaempfer des Nahkampf-Raids und Assassinen greifen beides an.
 ZIELARTEN = {RA.SKLAVE: "g", RA.PFERDEBOGEN: "e", RA.SCHLEUDER: "e", 70: "e", ASSASSINE: "ge"}
@@ -136,6 +142,7 @@ class RaidBestellungNachWirkung(RaidBestellung):
         super().__init__(reihenfolge)
         self.begruendung = []
         self._wissen = None
+        self._erster = -(10**6)  # Runde des letzten Kaufs "erster Raid-Sklave vor der Ruecklage"
 
     @property
     def wissen(self):
@@ -158,6 +165,7 @@ class RaidBestellungNachWirkung(RaidBestellung):
                 preise[typ] = EH.ARTEN[typ].gold
         ziele = [z for z in WK.ziele(b.L, b.G, b.sp) if z.schluessel not in b.belegt]
         bleibt = {t: 0 if t == ASSASSINE else RA.FEUER_MIN for t in preise}
+        erlaubt = None if b.greift_an is None else (lambda t, z: b.greift_an(t, z, b.L, b.G))
         kaeufe, self.begruendung = WK.kaufen(
             self.wissen,
             b.gold - b.ruecklage,
@@ -168,9 +176,37 @@ class RaidBestellungNachWirkung(RaidBestellung):
             bleibt,
             {ASSASSINE: 1},
             ZIELARTEN,
-            erlaubt=None if b.greift_an is None else (lambda t, z: b.greift_an(t, z, b.L, b.G)),
+            erlaubt=erlaubt,
             vorhanden=b.vorhanden,
         )
+        if (
+            b.sklaven == 0
+            and RA.SKLAVE in preise
+            and not any(t == RA.SKLAVE for t, _n in kaeufe)
+            and b.runde - self._erster >= ERSTER_PAUSE
+        ):
+            # dieselbe Rechnung (Wirkung, Ziele, Bauern am Feuer), nur ohne Ruecklage und hoechstens ein Sklave
+            ausgegeben = sum(preise[t] * n for t, n in kaeufe)
+            leute = sum(n for _t, n in kaeufe)
+            erster, _grund = WK.kaufen(
+                self.wissen,
+                b.gold - ausgegeben,
+                b.feuer - leute,
+                {RA.SKLAVE: preise[RA.SKLAVE]},
+                b.start,
+                ziele,
+                {RA.SKLAVE: RA.FEUER_MIN},
+                {RA.SKLAVE: 1},
+                ZIELARTEN,
+                erlaubt=erlaubt,
+                vorhanden=b.vorhanden,
+            )
+            if erster:
+                kaeufe = kaeufe + erster
+                self._erster = b.runde
+                self.begruendung.append(
+                    "erster Raid-Sklave vor der Ruecklage (Gold %d, Ruecklage %d)" % (b.gold, b.ruecklage)
+                )
         if b.sklaven_platz is not None:
             # B-182 (Partie 11.11. 22:14, Fehlerwache F3): drei Sklaven bestellt, der dritte bekam nie ein Gebaeude
             platz = b.sklaven_platz(b.L, b.G)
@@ -220,6 +256,12 @@ class RaidEinsatz:
         """B-182: Wuerde das Modul dieser Art das Ziel angreifen? Brandtrupp und Reiterjagd meiden, was raids.gefaehrlich meldet; der Kauf
         nach Wirkung fragt hier, statt es selbst zu raten. Der Nahkampf-Raid waehlt mit derselben Rechnung wie der Kauf, darum True."""
         art, nr = z.schluessel
+        if typ == VORSTOSS_SCHUETZE and self.vorstoss is not None:
+            # B-182 (Partie 11.11. 23:53): die Arabischen Bogenschuetzen fuehrt der Vorstoss ueber die Wegfuehrung - sie schiessen nur,
+            # wo sie einen sicheren Standplatz in Reichweite findet
+            e = L.get(nr)
+            return art == "e" and e is not None and self.weg.schuss_moeglich(
+                typ, self.vorstoss.heim, (e["x"], e["y"]), L, G, "vorstoss")
         modul = {RA.SKLAVE: (self.brand, "g", G), RA.PFERDEBOGEN: (self.reiter, "e", L)}.get(typ)
         if modul is None or not hasattr(modul[0], "moeglich"):
             return True
@@ -239,6 +281,17 @@ class RaidEinsatz:
             for n in sorted(nummern)
             if n in L and L[n].get("leben", 1) > 0
         )
+
+    def absichten(self):
+        """B-182 Logbuch je Einheit: {Modul: {Einheit: (Aktion, Ziel, Grund, Werte)}} der letzten Runde, in der Reihenfolge der Module.
+        Ein Modul ohne Logbuch (alte Steckversion) fehlt - seine Einheiten zeigt das Logbuch dann ohne Meldung."""
+        aus = {}
+        for name, modul in (("vorstoss", self.vorstoss), ("deckung", self.deckung), ("brandtrupp", self.brand),
+                            ("reiterjagd", self.reiter), ("nahkampfraid", self.nahkampf)):
+            ab = getattr(modul, "absicht", None) if modul is not None else None
+            if ab is not None:
+                aus[name] = ab
+        return aus
 
     def schritt(self, t, L, G, befehl):
         aus = []

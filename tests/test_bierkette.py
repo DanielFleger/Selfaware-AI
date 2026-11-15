@@ -60,4 +60,5 @@ def test_kausal_planer_baut_mit_bier_keinen_hopfen():
     lenker = (
         pathlib.Path(__file__).resolve().parents[1] / "src/selfaware/runtime/live/erstes_spiel.py"
     ).read_text(encoding="utf-8")
-    assert "for typ_a in (3, 32, 7, 5, 20) + (() if BIER else (31,)):" in lenker
+    # S170: Steinbrueche und Minen nur ohne Rohstoffpflicht; Hopfen weiter nur ohne Bier
+    assert "for typ_a in (3, 32, 7) + (() if ROHSTOFFE_ALLE else (5, 20)) + (() if BIER else (31,)):   # S170" in lenker

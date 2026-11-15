@@ -104,6 +104,10 @@ KARTE = {
         ),
         _m("Alter Ausbau", "macro/wirtschaft.py:Ausbau"),
         _m("Ertragsplaner", "macro/ertragsplaner.py:Ertragsplaner"),
+        _m("Ochsenjoch am Steinhaufen (S168)", "macro/joch.py runtime/live/erstes_spiel.py:baue_joch"),
+        _m("Startsperre: Gefecht nur mit Daniels Aufstellung (S169)", "execution/startsperre.py"),
+        _m("Alle Stein- und Eisenvorkommen nach Laufzeit (S170)", "macro/rohstoffe.py runtime/live/erstes_spiel.py:rohstoffe_bauen "
+           "runtime/live/erstes_spiel.py:rohstoffe_arbeiter", "rohstoffe"),
         _m("Aufbauplan", "macro/aufbau_planer.py", "v14"),
         _m(
             "Haushalt",
@@ -161,7 +165,7 @@ KARTE = {
         _m("Reiterjagd", "micro/tasks/raids.py:Reiterjagd"),
         _m("Deckung", "micro/tasks/raids.py:Deckung"),
         _m("Vorstoss", "micro/tasks/vorstoss.py:Vorstoss", "vorstoss vorstoss_bis"),
-        _m("Assassinen einzeln", "micro/tasks/assassinen.py:Einzeln", "assassinen"),
+        _m("Assassinen einzeln", "micro/tasks/assassinen.py:Einzeln", "assassinen lord_sofort heer_ueberschuss"),
     ),
     "einsatz_angriff": (
         _m("Feldzug", "micro/tasks/feldzug.py:Feldzug", "weg angriff_ab"),
@@ -187,6 +191,12 @@ KARTE = {
         _m("Zuweisung", "micro/zuweisung.py"),
         # B-182 (Daniel 11.11. 00:04): ein Weg fuer alle Einheiten, die ein Modul zu einem Ziel schickt (Plan_Wegfuehrung.md)
         _m("Wegfuehrung", "micro/wegfuehrung.py"),
+        # B-182 (Daniel 12.11. 19:50: "Gedanken der Einheit ... zu jeder Einheit/Zeit"): Absicht und Grund jeder Einheit je Runde
+        _m("Logbuch je Einheit", "micro/unit_log.py"),
+        # B-182 (Daniel 12.11. 22:34: "Wegberechnung -> Kern bekommt Befehle -> Ausfuehrung -> Aktion im Spiel"): jeder Befehl bis ins Lagebild
+        _m("Kettenpruefung je Befehl", "micro/chain_audit.py"),
+        # B-182 (Daniel 12.11. 23:00: "Laufgeschwindigkeit je Einheit je Terrain"): Regel des Spiels, gemessen nachgeprueft
+        _m("Laufmodell je Art und Gelaende", "services/laufmodell.py"),
     ),
     "scaling": (
         _m(
@@ -208,11 +218,14 @@ KARTE = {
         _m(
             "Befehlsweg",
             "execution/kernweg.py game/kern_port.py kern/haende.rs kern/leitung.rs kern/wege.rs kern/lib.rs "
-            + _l("kernweg_senden"),
-            "kernweg",
+            + _l("kernweg_senden") + " " + _l("raid_kern") + " " + _l("steuer_zeile") + " " + _l("erster_angriff") + " " + _l("erster_angriff_uebergeben"),
+            "kernweg raid_kern schnelle_steuerung",
         ),
         _m("Auftragsbuch", "execution/auftragsbuch.py execution/ledger.py"),
         _m("Lord-Sperre", "execution/lordschutz.py"),
+        # B-182 S118 (Daniel 13.11.: "Ja, abstellen"): kein zweiter gleicher Angriff an eine Einheit, die schon kaempft
+        _m("Kampfschutz", "execution/kampfschutz.py"),
+        _m("Rollen je Einheit", "micro/rollen.py"),
         _m("Spielbefehle", "game/ucp/befehl.py game/ucp/bauen.py game/ucp/drehwert.py"),
     ),
     "augen": (
@@ -229,7 +242,7 @@ KARTE = {
         _m(
             "Dienste",
             "services/bedrohung.py services/gefahrenzone.py services/gefecht.py services/schussfeld.py services/sicht.py "
-            "services/spielwerte.py services/uebersicht.py services/wegkarte.py",
+            "services/spielwerte.py services/uebersicht.py services/wegkarte.py services/balance.py",
         ),
         _m("Spiel lesen", "game/ucp/aufbau.py game/ucp/steuerkarte.py"),
     ),

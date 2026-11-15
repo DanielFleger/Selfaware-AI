@@ -51,22 +51,22 @@ ALT = {
     # (Plan: das Ausweichen ruft spaeter die Wegfuehrung selbst)
     ("micro/tasks/vorstoss.py", "Vorstoss.schritt", "sende:vor"): 1,
     ("micro/tasks/vorstoss.py", "Vorstoss._im_ausweichen", "zickzack"): 1,
-    # Waechter: Stapel an einem Punkt, Angriff auf den Eindringling - alter Weg ohne Wegfuehrung; im Spiel gibt der Lenker sie
-    # dem Waechter seit 11.11. 21:55 (Daniel 21:48: "Ja, freigeben")
-    ("micro/tasks/waechter.py", "Waechter.schritt", "lauf"): 1,
-    ("micro/tasks/waechter.py", "Waechter.schritt", "ziel"): 1,
+    # Waechter: Angriff auf den Eindringling - alter Weg ohne Wegfuehrung; im Spiel gibt der Lenker sie dem Waechter seit 11.11.
+    # 21:55 (Daniel 21:48: "Ja, freigeben"). Seit dem Logbuch je Einheit (B-182, 12.11.) steht der Rumpf in Waechter._schritt.
+    # Der Laufbefehl des Stapelns ist seit 13.11.2026 23:02 weg (Daniel: "diese regel ueberall entfernen")
+    ("micro/tasks/waechter.py", "Waechter._schritt", "ziel"): 1,
     # Lenker: Streitkolben-Angriff auf den feindlichen Lord (ANGRIFF_AB)
     ("runtime/live/erstes_spiel.py", "phase2", "ziel"): 1,
 }
-HOECHSTENS = 28  # Summe von ALT am 11.11.2026 19:50 - nur senken (Plan: "darf nur sinken, bis sie 0 ist")
+HOECHSTENS = 27  # Summe von ALT am 13.11.2026 23:05 (28 am 11.11. 19:50) - nur senken (Plan: "darf nur sinken, bis sie 0 ist")
 
 ERLAUBT = {
     ("micro/tasks/assassinen.py", "Einzeln.schritt", "lauf+vorrang", "Flucht"): 1,
     ("micro/tasks/raids.py", "Reiterjagd.schritt", "lauf", "Flucht"): 1,
     ("micro/tasks/vorstoss.py", "Vorstoss.schritt", "sende:weichen", "Flucht"): 1,
     ("micro/tasks/vorstoss.py", "Vorstoss.schritt", "sende:abziehen", "Flucht"): 1,
-    ("micro/tasks/waechter.py", "Waechter.schritt", "lauf", "Abwehr am eigenen Lord"): 2,
-    ("micro/tasks/waechter.py", "Waechter.schritt", "lauf", "Flucht"): 1,
+    ("micro/tasks/waechter.py", "Waechter._schritt", "lauf", "Abwehr am eigenen Lord"): 2,
+    ("micro/tasks/waechter.py", "Waechter._schritt", "lauf", "Flucht"): 1,
     ("runtime/live/erstes_spiel.py", "schicke_graeber", "graben", "Graben"): 1,
     ("runtime/live/erstes_spiel.py", "phase2", "ziel", "Abwehr am eigenen Lord"): 1,
 }

@@ -21,9 +21,11 @@ from selfaware import workspace as _workspace
 import json, math, os, re, sys, time
 
 from selfaware.baukasten import aufstellung as AF
+from selfaware.macro import joch as JO     # S168: Platz der Ochsenjoche
 from selfaware.baukasten import einheiten as EH
 from selfaware.baukasten import raid as RB
 from selfaware.micro.tasks import nahkampf as NK
+from selfaware.execution import kampfschutz  # B-182 S118
 from selfaware.baukasten.bestellung import Bestellung
 from selfaware.game.ucp.laden import lade_stand, befehl, peek
 from selfaware.game.ucp.steuerkarte import laufe, tick, spielzustand
@@ -204,6 +206,67 @@ def gefecht_starten(tempo):
     return t_lords
 
 
+_ERSTER = {"nk": None, "wf": None, "zeit": 0.0}     # S167: Nahkampf-Rechnung und Wegfuehrung der Eroeffnung, bis der Raid sie uebernimmt
+
+
+def erster_angriff(wann):
+    """S166/S167 (Daniel 15.11.2026 02:09 "start ab takt 1, besseres raiden direkt angreifen"). S166 lief einmal bei Takt 149 - da gab
+    es noch keinen eigenen Nahkaempfer: die Starttruppe kommt bei Takt 202 und 403 (Partie 32: "0 Nahkaempfer"; Lagebild Takt 673 und
+    1120: die 7 Speertraeger 330-336 stehen am Bergfried, erst ab Takt 1357 unterwegs). Jetzt nach jedem Schritt der Eroeffnung: jeder
+    eigene Nahkaempfer kommt dazu und bekommt sein Ziel aus derselben Rechnung wie der Raid (NahkampfRaid: Wert je Takt ueber den sicheren
+    Weg, nie Lager oder Steinhaufen), Befehle ueber Wegfuehrung und Kern (Wegpunktkette: kein Halt an den Ecken). Der Raid uebernimmt
+    Ziele und Kern in Phase 2 (erster_angriff_uebergeben), damit niemand das Ziel wechselt, nur weil der Raid neu rechnet."""
+    if not RAIDS:          # dieselbe Bedingung wie fuer den Raid in Phase 2
+        return
+    from selfaware.baukasten import raid as RB_s
+    from selfaware.micro.tasks import nahkampf as NK_s
+    from selfaware.micro.wegfuehrung import Wegfuehrung
+
+    t0 = time.time()
+    try:
+        _st, L, G = runde_lesen()
+    except Exception as ex:
+        schreib("ERSTER ANGRIFF %s: kein Lagebild (%r) - der Raid uebernimmt in seiner ersten Runde" % (wann, ex))
+        return
+    if _ERSTER["nk"] is None:
+        wf = Wegfuehrung(SP, list(_KARTE) or None, trotz_gefahr=RB_s.TROTZ_GEFAHR)
+        nk = STECK.klasse("nahkampfraid")(SP, list(_KARTE) or None)
+        nk.weg, nk.bekannt = wf, {}
+        _ERSTER.update(nk=nk, wf=wf)
+    nk, wf = _ERSTER["nk"], _ERSTER["wf"]
+    if wf.kern is None:
+        raid_kern(wf, 1, [])
+    neu = sorted({n for n, e in L.items() if e.get("besitzer") == SP and e["typ"] in NK_s.KANN and e.get("leben", 1) > 0} - nk.mitglieder)
+    nk.mitglieder |= set(neu)
+    if not nk.mitglieder:
+        schreib("ERSTER ANGRIFF %s bei Takt %s: noch kein eigener Nahkaempfer (die Starttruppe kommt spaeter)" % (wann, tick()))
+        return
+    try:
+        nk.schritt(L, G, befehl)
+        wf.schritt(L, G, befehl)
+    except Exception as ex:
+        schreib("ERSTER ANGRIFF %s FEHLER %r - der Raid uebernimmt in seiner ersten Runde" % (wann, ex))
+        return
+    _ERSTER["zeit"] += time.time() - t0
+    if neu:
+        schreib("ERSTER ANGRIFF %s bei Takt %s: %d neue Nahkaempfer %s, Ziele %s, Kern %s (%.2f s)" % (
+            wann, tick(), len(neu), neu, {n: nk.ziel.get(n) for n in neu}, "ja" if wf.kern is not None else "nein", time.time() - t0))
+
+
+def erster_angriff_uebergeben(raid_e, wegf):
+    """S167: Phase 2 beginnt - der Raid uebernimmt die Ziele der Eroeffnung und ihren Kern (derselbe Auftraggeber, dieselbe Buchfuehrung)."""
+    nk = _ERSTER["nk"]
+    if nk is None or raid_e is None:
+        return
+    for n, z in nk.ziel.items():
+        raid_e.nahkampf.ziel.setdefault(n, z)
+    if wegf is not None and wegf.kern is None and _ERSTER["wf"].kern is not None:
+        wegf.kern = _ERSTER["wf"].kern
+        wegf.kern.beobachter = KETTE
+    schreib("ERSTER ANGRIFF uebergeben: %d Ziele an den Raid, Kern %s, Rechenzeit der Eroeffnung %.2f s" % (
+        len(nk.ziel), "ja" if wegf is not None and wegf.kern is not None else "nein", _ERSTER["zeit"]))
+
+
 def ki_aus():
     """19.10. (1v1): sobald das Gefecht steht (startpause 1), die KI aller Gegner-Plaetze aus - gemessen: currentAIArray[sp] = 0
     und Mensch-Eintrag 1 -> der Platz baut nichts mehr, die Partie laeuft weiter; PlayerData.aiType = 0 dazu."""
@@ -352,6 +415,7 @@ def phase1(plan, tempo, mit_posten=True):
             break
         try:
             gefecht_starten(tempo)
+            erster_angriff("beim Start")
             break
         except SystemExit as e:
             if versuch == 5 or not any(s in str(e) for s in ("beide Lords", "STARTPLATZ FALSCH")):
@@ -403,12 +467,15 @@ def phase1(plan, tempo, mit_posten=True):
     schreib("ERSTE BAUBEFEHLE bei Tick %d: %d von %d Holz-Bauten stehen bei Tick %d (Kornspeicher, Markt, Holzfaeller, "
             "Steinbruch, Ochsenjoch, Huetten); nicht gebaut: %s" % (t_bau, len(g1), len(holz_bauten), tick(),
             [(NACH_TYP[t]["name"], x, y) for t, x, y in f1] or "keine"))
+    erster_angriff("nach den ersten Baubefehlen")       # S167: die erste Welle der Starttruppe (Takt 202) ist da
     if MARKT is None or any(t == 26 for t, _, _ in f1):   # Markt-Platz belegt (z. B. Einheit drauf) oder keiner: Platz suchen
         schreib("Markt am festen Platz nicht moeglich - gesucht: %s" % (baue_schnell(26, BERGFRIED[0], BERGFRIED[1], 25),))
     rest = [r for r in f1 if r[0] != 26]
     # live_3: sofort beim ersten Essen verkauft - es kommt nach und nach an, verkauft wurde 1 Los Kaese (30 Gold), dann
     # Abbruch "Gold aus dem Verkauf". Jetzt: warten, bis alle 4 Sorten da sind; reicht das Gold nicht, nochmal verkaufen.
-    t_essen = warte_bis(lambda: all(vorrat(SP).get(k, 0) > 0 for k in NAHRUNG_PREIS), "alle 4 Sorten Start-Nahrung")
+    # S172 (Partie 34, 15.11.2026: ZEIT UM nach 90 s): auf einem KI-Platz aus der Lobby (uebernehmen=ja) gibt es keine vier Sorten
+    # Startnahrung (gemessen: Holz 127, Gold 85, Weizen 2) - dort nimmt die Eroeffnung, was auf dem Platz liegt, und wartet nicht
+    t_essen = tick() if UEBERNEHMEN else warte_bis(lambda: all(vorrat(SP).get(k, 0) > 0 for k in NAHRUNG_PREIS), "alle 4 Sorten Start-Nahrung")
     lose = {}
     for versuch in range(3):
         vk = vorrat(SP)
@@ -429,7 +496,7 @@ def phase1(plan, tempo, mit_posten=True):
     schreib("SEASONING FRUEH: %d von %d A-Plantagen mit dem Posten bei Tick %d, Gold jetzt %d" % (
         sum(1 for r in gp if r[0] == 32), len(A), tick(), vorrat(SP)["gold"]))
     if mit_posten:
-        warte_bis(lambda: gebaeude_von(SP, 8), "Soeldnerposten", 20)
+        warte_bis(lambda: gebaeude_von(SP, 8), "Soeldnerposten", 20, pflicht=not UEBERNEHMEN)   # S172: KI-Platz - ohne Posten weiter
     geworben = 0
     nr_posten = [n for n, _, _ in gebaeude_von(SP, 8)]
     while BESTELLUNG.darf("raid") and nr_posten and vorrat(SP)["gold"] >= 70 and s32(peek(PD + 136)[0]) >= 1:
@@ -444,6 +511,7 @@ def phase1(plan, tempo, mit_posten=True):
     schreib("RAID ZUERST: Nahrung da bei Tick %d, %s verkauft (Lose zu 5); Soeldnerposten %s; %d Assassinen angeworben "
             "(freie Leute am Feuer jetzt %d) -> Gold %d, Nahrung uebrig %s, Tick %d" % (t_essen, lose, posten, geworben,
             s32(peek(PD + 136)[0]), v0["gold"], {k: v0.get(k, 0) for k in NAHRUNG_PREIS if v0.get(k, 0)}, tick()))
+    erster_angriff("nach dem Werben")                   # S167: die zweite Welle (Takt 403)
     # Apfelplantagen (Gold) und was beim ersten Befehl nicht ging - einmal nachholen; den Rest setzen Planer/Wirtschaft
     if V14:
         # erst die A-Plantagen (Seasoning), dann Steinbrueche/Joche, dann der Rest - in der Reihenfolge von holz_bauten
@@ -462,6 +530,7 @@ def phase1(plan, tempo, mit_posten=True):
         tick(), len(g2), len(nach), [(NACH_TYP[t]["name"], x, y) for t, x, y in f2] or "keine", v1["holz"], v1["gold"]))
     schreib("Apfelplantagen A %d, B %d spaeter %s; altes Lager bleibt mit %s" % (
         len(A), len(B), B, {k: v1[k] for k in LAGERWAREN if v1.get(k)}))
+    erster_angriff("am Ende der Eroeffnung")
 
 def lage():
     v = vorrat(SP)
@@ -498,7 +567,7 @@ def preis(typ, ware):
     Liga-Preise im Lenker liessen Bauten an Holzmangel scheitern (Lauf nomade_1011g)."""
     return kosten_spiel(typ).get(ware, 0)
 
-GROESSE_IST = {10: 6, 20: 6, 21: 3, 4: 2}     # tatsaechliche Flaeche: Lagerplatz = 4 Teile 3x3 (L6), Steinhaufen ~3x3
+GROESSE_IST = {10: 6, 20: 6, 21: JO.HAUFEN_B, 4: 2}     # tatsaechliche Flaeche: Lagerplatz = 4 Teile 3x3 (L6), Steinhaufen ~3x3
 
 def platz_sauber(typ, frei, eigen=None):
     """Daniel 23:34: (1) "der Ochsenjoch-Arbeiter ist vom Vorratslager geblockt ... ein Abstand von eins wuerde helfen";
@@ -560,7 +629,7 @@ def speicher_nachbauen(G, offen, t, zuletzt, sp=None, abstand=200):
         return False
     return t - zuletzt > abstand
 
-def baue_schnell(typ, x, y, r, mapper=None, zweck="", mit_grund=False):
+def baue_schnell(typ, x, y, r, mapper=None, zweck="", mit_grund=False, frei_von=()):
     """Im laufenden Spiel: Platz suchen und bauen OHNE zu blockieren (04.10.: das alte Bauwerkzeug wartete fest und
     auf einen genauen Tick - bei Tempo 1000 hing die Schleife ~20.000 Ticks, der Waechter kam nie dran).
     Ob es steht, prueft das Auftragsbuch in den naechsten Runden (Gebaeudeliste). Daniel 22:08: "wie kann es sein, dass
@@ -581,9 +650,12 @@ def baue_schnell(typ, x, y, r, mapper=None, zweck="", mit_grund=False):
         if fehlt:
             BUCH.ablehnen(typ, (x, y), "fehlt " + ", ".join(fehlt))
             return rueckgabe(None, "rohstoff")
+    # S168: mit Sperrflaechen (frei_von, z. B. der Ring um den Steinhaufen) mehr Plaetze holen - die naechsten liegen oft darin
     z = " ".join(befehl({"platzsuche": {"spieler": SP, "mapper": g["mapper"], "groesse": g["b"], "x": x, "y": y, "r": r,
-                                        "max": 12 if BUCH is not None else 1}}, 1.0, bis="PLATZSUCHE"))
+                                        "max": 40 if frei_von else 12 if BUCH is not None else 1}}, 1.0, bis="PLATZSUCHE"))
     frei = [tuple(map(int, p)) for p in re.findall(r"\((\d+),(\d+)\)", z.split("geprueft:")[-1])]
+    if frei_von:
+        frei = [p for p in frei if JO.frei(p, frei_von, g["b"])]
     platz_frei = bool(frei)
     # 19.10. (1018x/y: kein einziger Kuhhof - auf 10x10 laeuft fast immer gerade jemand, platz_sauber meldete "schutz"):
     # Felder (Weizen 30, Hopfen 31, Apfel 32, Kuhhof 33) sind begehbar (sicht.FLACH) - niemand wird eingesperrt, die
@@ -604,6 +676,74 @@ def baue_schnell(typ, x, y, r, mapper=None, zweck="", mit_grund=False):
         BUCH.vormerken(typ, frei[0], zweck)
     return rueckgabe(frei[0], "gebaut")
 
+def rohstoffe_bauen(st, G, wegf):
+    """S170: je Wirtschaftsrunde hoechstens ein Steinbruch oder eine Eisenmine - an der Stelle mit dem kuerzesten Laufweg in Zeit zum
+    Lager (macro/rohstoffe.py), aus allen Stellen, die die platzkarte des Spiels fuer die ganze Karte nennt. Wartet, solange Bauern am
+    Feuer oder Holz fehlen (Wirtschaft zuerst, nie ein leerer Betrieb); fehlt einer Mine nur Stein, kommt der naechste Steinbruch
+    dran. Lehnt das Spiel eine Stelle ab (inzwischen belegt), holt die naechste Runde eine frische platzkarte."""
+    global _RP
+    from selfaware.macro import rohstoffe as RO
+    from selfaware.macro import standort as SO
+    if wegf is None or not getattr(wegf, "gelaende", None):
+        return []
+    ev = []
+    if _RP is None or not _RP.offen():
+        t0 = time.time()
+        rand = (len(_KARTE[0]) - 1, len(_KARTE) - 1) if _KARTE else (399, 399)
+        _RP = RO.Rohstoffpflicht({typ: SO.platzkarte(NACH_TYP[typ]["mapper"], NACH_TYP[typ]["b"], 0, 0, rand[0], rand[1], sp=SP)
+                                  for typ in RO.GROESSE})
+        ev.append("ROHSTOFFE platzkarte des Spiels: %d Steinbruch-, %d Minenstellen (%.2f s)" % (
+            len(_RP.plaetze[20]), len(_RP.plaetze[5]), time.time() - t0))
+    t0 = time.time()
+    if _RP.ordnen(wegf.gelaende, RO.lagerfelder(G, SP)):
+        ev.append("ROHSTOFFE geordnet: %d Stellen erreichbar, %d nicht; naechste %s (%.2f s)" % (
+            len(_RP.liste), _RP.unerreichbar, ["%s %s %d Takte" % (NACH_TYP[a]["name"], e, t) for t, a, e in _RP.liste[:3]],
+            time.time() - t0))
+    for rang, (takte, typ, ecke) in enumerate(_RP.offen(), 1):
+        if st.get("feuer", 0) < ARBEITER_JE[typ]:
+            break                                           # Arbeiter zuerst - nie einen leeren Betrieb
+        kost = kosten_spiel(typ)
+        fehlt = [w for w in ("holz", "stein", "gold") if kost.get(w, 0) > st.get(w, 0)]
+        if fehlt == ["stein"] and typ == 5:
+            continue                                        # der Mine fehlt nur Stein: der naechste Steinbruch zuerst
+        if fehlt:
+            break
+        o, grund = baue_schnell(typ, ecke[0], ecke[1], 0, zweck="Rohstoffpflicht", mit_grund=True)
+        if o is None:
+            if grund == "schutz":
+                continue                                    # gerade Laufspur/Reservierung dort - die naechste Stelle
+            ev.append("ROHSTOFFE %s bei %s (Rang %d, %d Takte Laufweg): %s" % (NACH_TYP[typ]["name"], ecke, rang, takte, grund))
+            if grund == "platz":
+                _RP = None                                  # die platzkarte ist veraltet - naechste Runde eine frische
+            break
+        _RP.gebaut(typ, o)
+        # S173 (Daniel 15.11.2026 13:08 "warum sind es nur ein Joch pro Steinbruch ohne Grund"): so viele Joche, wie der Weg verlangt -
+        # dieselbe Rechnung wie das Kausalmodell vorher (learning/kausal.ochsen_fuer, L71), aber mit dem Laufweg in Feldern
+        joch = None
+        if typ == 20:
+            import selfaware.learning.kausal as KM_r
+            joch = [baue_joch(o, zweck="Rohstoffpflicht Joch") for _ in range(KM_r.ochsen_fuer(takte // RO.TAKTE_JE_FELD))]
+        ev.append("ROHSTOFFE %s bei %s (Rang %d, %d Takte Laufweg)%s" % (
+            NACH_TYP[typ]["name"], o, rang, takte, ", Joch %s" % (joch,) if typ == 20 else ""))
+        break
+    return ev
+
+
+def rohstoffe_arbeiter():
+    """S170: Bauern, die das Heer am Feuer stehen laesst - die Arbeiter des naechsten offenen Vorkommens (Wirtschaft zuerst)."""
+    if not ROHSTOFFE_ALLE or _RP is None:
+        return 0
+    offen = _RP.offen()
+    return ARBEITER_JE[offen[0][1]] if offen else 0
+
+
+def baue_joch(bruch=None, zweck="Joch", r=8, haufen=None):
+    """S168: Ochsenjoch am Steinhaufen des Bruchs (Ecke bruch) oder am Haufen (Ecke haufen), mit JO.ABSTAND freien Feldern
+    dazwischen - die eine Stelle fuer jeden Jochbau im laufenden Spiel (macro/joch.py)."""
+    h = haufen if haufen is not None else JO.haufen(bruch)
+    m = JO.mitte(h)
+    return baue_schnell(4, m[0], m[1], r, zweck=zweck, frei_von=JO.sperre(h))
+
 def baue_haus():
     return baue_schnell(1, BERGFRIED[0] - 7, BERGFRIED[1] - 2, 20)    # nahe am Bergfried (frueher fest 158,109 = 165-7, 111-2)
 
@@ -620,6 +760,10 @@ EIGENE_ARTEN = (3, 19, 32, 20, 4, 1, 10, 30, 31, 33, 5)
 
 ROHSTOFFE = os.path.join(ABZUG, "rohstoffe.txt")
 _KARTE = []
+# B-182 (Partie 11.11. 22:37): Startwert, nicht gemessen - alle so vielen Runden liest der Lenker die Weg-Ebene des Spiels fuer die
+# Wegfuehrung neu (gemessen 22:47: 0,2 s je Lesen; eine Runde sind etwa 45 Takte); seit 14.11.2026 (S146) dazu, sobald ein Gebaeude
+# dazukommt (services/wegkarte.neu_lesen)
+WEGKARTE_RUNDEN = 20
 
 def karte_laden():
     """Rohstoffkarte (Modulbefehl rohstoffkarte, einmal je Partie bei stehendem Spiel) fuer die Begehbarkeit."""
@@ -722,7 +866,7 @@ def runde_lesen():
     Modulbefehle status + lagebild in einer Liste. Gibt (status, einheiten, gebaeude)."""
     z = " ".join(sende({"befehle": [{"player": 1, "id": neue_id(), "status": SP},
                                     {"player": 1, "id": neue_id(), "lagebild": True}]}, 1.5, bis="LAGEBILD Tick"))
-    m = re.search(r"STATUS (.*?)(?:\[villagestudio\]|$)", z)
+    m = re.search(r"STATUS (.*?)(?:\[(?:villagestudio|selfaware-runtime)\]|$)", z)   # S172: beide Modulnamen
     st = {k: int(v) for k, v in re.findall(r"(\w+)=(-?\d+)", m.group(1))} if m else {}
     L = lies_lagebild(neu_holen=False)
     import selfaware.execution.lordschutz as lordschutz                    # Stand fuer die Lord-Sperre in befehl.sende (Tick, Lord-Nummern)
@@ -959,6 +1103,7 @@ ZWISCHENZIEL = False     # solange ein spaeteres Ziel folgt: im Endspiel nie abr
 ZUSCHAU_TEMPO = 0        # ab dem ersten Lord-Angriff dieses Spieltempo (0 = bleibt; Daniel 11.10. 15:46 "ich will zuschauen")
 KERNWEG = False          # 08.11. (P5, B-157): kernweg=ja - Assassinen-Befehle ueber den Rust-Kern statt ueber logik.lua (noch nicht im Spiel erprobt)
 _kernweg = None          # geoeffneter Kernweg; False = Kern nicht bereit, bleibt beim Modul
+KETTE = None             # B-182 Kettenpruefung je Befehl (micro/chain_audit.ChainAudit), setzt phase2
 _kernweg_runde = 0
 
 
@@ -970,6 +1115,8 @@ def kernweg_senden(liste, assassinen, ereignis):
     from selfaware.game.ucp.befehl import SPIEL
     if _kernweg is None:
         _kernweg = KW.oeffnen(SPIEL) or False
+        if _kernweg and KETTE is not None:
+            _kernweg.beobachter = KETTE
         ereignis.append("KERNWEG: " + ("Kern bereit, Assassinen-Befehle gehen ueber den Auftragsring" if _kernweg else "Kern nicht bereit, Befehle bleiben beim Modul"))
     if not _kernweg:
         return liste
@@ -1012,6 +1159,64 @@ OHNE_ANGRIFF = False                # B-179: Schalter ohne_angriff=ja, Raid und 
 SKLAVEN_SOLL = REITER_SOLL = None   # B-176 Scaling: Schalter sklaven_soll, reiter_soll; ohne Schalter die Startwerte in raids.py
 AUSWEICHEN = False         # B-174, B-178: Vorstoss und Brandtrupp weichen unter Beschuss ueber den Rust-Kern aus (Schalter ausweichen=ja)
 _zickzack_gemeldet = False
+
+
+# S158 (Daniel 15.11.2026 01:13 "warum nicht einfach einbauen und schauen obs klappt"; 01:10 "er sollte doch sofort reagieren
+# koennen"): jede Lenker-Schleife steuert die Einheiten (Waechter, Assassinen, Raid, Wegfuehrung, Kern); die Wirtschaft rechnet nur,
+# wenn seit ihrem letzten Lauf WIRTSCHAFT_TAKTE vergangen sind - so oft wie bisher (Partie 26: Median 169,5 Takte zwischen zwei
+# Lenker-Runden, gerundet). Mit Streitkolben (Feldzug, Heer) greifen Wirtschaft und Heer ineinander - dort bleibt jede Runde voll.
+# Schalter schnelle_steuerung=nein: jede Schleife rechnet alles wie bisher
+SCHNELLE_STEUERUNG = True
+WIRTSCHAFT_TAKTE = 170
+# S162 (Daniel 15.11.2026 01:50 "ich will den gegnerischen lord so schnell und erbarmungslos wie moeglich killen", auf die Frage, wann der
+# Schlussangriff beginnt): die Assassinen greifen den Lord an, sobald ihre Rechnung reicht (LORD_SPAETESTENS 0) - auch mit Feldzug oder
+# ohne_angriff, wo ihr Lord-Angriff bisher aus war (lord_aus); fehlen dafuer Assassinen, wird trotz wartender nachgeworben; die Raid-
+# Nahkaempfer gehen mit. Die Lord-Sperre bis lordschutz.BIS bleibt. Schalter lord_sofort=nein = wie bisher
+LORD_SOFORT = True
+# S165 (Daniel 15.11.2026 02:04 "bau ein, dass der lenker das gold selbst ins heer steckt"; Partie 29: 5.437 Gold lagen brach bei 14-16
+# Kaempfern, 70 Jaegerhuetten): Gold ueber Ruecklage + HEER_GOLD_RAND wird je Wirtschaftsrunde zu Assassinen - so viele, wie Bauern am
+# Feuer stehen. Schalter heer_ueberschuss=nein = wie bisher
+HEER_UEBERSCHUSS = True
+# S170 (Daniel 15.11.2026 11:29/11:44: "alle sichtbaren Ressourcen nutzen, also alle Steinbrueche und Eisenminen" - "immer erst die, wo
+# der Laufweg am wenigsten Zeit braucht ... dann die weiter weg bis zur ganzen Karte", "bewusst keine Anzahl"): EIN Entscheider fuer
+# Steinbrueche und Eisenminen (macro/rohstoffe.py); Kausalmodell, Planer und Steinpflicht bauen sie dann nicht mehr. rohstoffe=nein = wie bisher
+ROHSTOFFE_ALLE = True
+_RP = None                 # S170: Rohstoffpflicht der Partie
+RAID_KERN = True           # S155 (Daniel 15.11.2026 00:20 "Ja, Kern bauen"): Raid-Befehle ueber den Kern; raid_kern=nein = nur ueber das Modul
+_raid_kern_gemeldet = False
+
+
+def steuer_zeile(takte, letzte=100):
+    """S158: wie oft die Einheiten Befehle bekommen - Takte zwischen zwei Steuerschleifen (Median der letzten `letzte`)."""
+    t = takte[-letzte - 1:]
+    d = sorted(b - a for a, b in zip(t, t[1:]) if b >= a)
+    if not d:
+        return "STEUERUNG: noch keine zwei Schleifen"
+    return "STEUERUNG: %d Schleifen, Takte zwischen zwei Schleifen (letzte %d): Median %s, groesster %d" % (
+        len(takte), len(d), d[len(d) // 2] if len(d) % 2 else (d[len(d) // 2 - 1] + d[len(d) // 2]) / 2, d[-1])
+
+
+def raid_kern(wegf, runde, ereignis):
+    """S155: Holt den Kern fuer die Befehle des Nahkampf-Raids (wegfuehrung.KERN_ZWECKE). Sein Speicher entsteht erst im laufenden Spiel, darum
+    je Runde ein Versuch, bis er bereit ist; ein Kern unter Version KL.DURCHSETZEN_AB kennt das Durchsetzen nicht - dann bleibt alles beim Modul."""
+    global _raid_kern_gemeldet
+    if not RAID_KERN or wegf is None:
+        return
+    from selfaware.game import kern_leitung as KL_r
+    if wegf.kern is not None:
+        if runde % 50 == 0:
+            ereignis.append("RAIDKERN: " + wegf.kern.bericht())
+        return
+    from selfaware.execution import kernweg as KW
+    from selfaware.game.ucp.befehl import SPIEL
+    k = KW.oeffnen(SPIEL, auftraggeber=KW.RAID, mindestens=KL_r.DURCHSETZEN_AB)
+    if k is not None:
+        k.beobachter = KETTE
+        wegf.kern = k
+        ereignis.append("RAIDKERN: Kern bereit - die Befehle des Nahkampf-Raids gehen ueber den Auftragsring, Laufbefehle wiederholt er im Kampf")
+    elif not _raid_kern_gemeldet:
+        ereignis.append("RAIDKERN: Kern nicht bereit oder aelter als Version %d - die Raid-Befehle gehen ans Modul" % KL_r.DURCHSETZEN_AB)
+        _raid_kern_gemeldet = True
 
 
 def ausweichen_kern(teile, ereignis):
@@ -1184,13 +1389,13 @@ def v14_steinpflicht(st, G, wirt, mehr_stein=True):
         for q in E4_BRUECHE:
             auftraege += [(20, q, 0, False)]
             if steht_bei(G, 20, q):
-                auftraege += [(4, (q[0] + 7, q[1] + 2), 6, False)]    # Joch neben den Steinhaufen (der liegt bei x+7, y+2)
-    for typ, ort, r, schon_gezaehlt in auftraege:
+                auftraege += [(4, JO.mitte(JO.haufen(q)), 6, False, JO.sperre(JO.haufen(q)))]    # S168: am Haufen, mit Abstand
+    for typ, ort, r, schon_gezaehlt, *sperre_a in auftraege:
         if (not schon_gezaehlt and steht_bei(G, typ, ort, 1 if r == 0 else r)) or BUCH.offen_bei(typ, ort, 2 if r == 0 else r):
             continue
         k = kosten_spiel(typ)["holz"]
         if holz >= k:
-            o = baue_schnell(typ, ort[0], ort[1], r, zweck="Steinpflicht")
+            o = baue_schnell(typ, ort[0], ort[1], r, zweck="Steinpflicht", frei_von=sperre_a[0] if sperre_a else ())
             ev.append("PFLICHT %s bei %s gesendet: %s (Holz %d)" % (NACH_TYP[typ]["name"], ort, o, holz))
             if o:
                 holz -= k
@@ -1223,7 +1428,7 @@ def stein_pflicht(st, G, wirt, plan, anzahl):
             continue
         k = kosten_spiel(4)["holz"]
         if holz >= k:
-            o = baue_schnell(4, g["x"] + 3, g["y"] - 4, 8, zweck="Steinpflicht Joch")
+            o = baue_joch((g["x"], g["y"]), zweck="Steinpflicht Joch")      # S168
             ev.append("STEINPFLICHT Joch am Steinbruch Nr %s gesendet: %s (Holz %d)" % (n, o, holz))
             holz -= k if o else 0
         else:
@@ -2131,6 +2336,25 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         schreib("Lageprotokoll ohne Kern (keine Tabelle eigen): %r" % (ex_k,))
     lage = Lageprotokoll(os.path.join(D, "lage_%s%s.jsonl.gz" % (time.strftime("%Y%m%d_%H%M%S"), LAUF_ENDUNG)), kern=_kern_lage)
     schreib("Lageprotokoll (jede Runde komplett): %s" % lage.pfad)
+    # B-182 Logbuch je Einheit (docs/plans/Plan_Unit_Status_Log.md; Daniel 12.11. 19:50: "Gedanken der Einheit ... oder Anweisungen des
+    # Kriegsfuehrers zu jeder Einheit/Zeit", "Ohne Auftrag ist fuer mich das Schlimmste"): je Runde Absicht und Grund jeder eigenen
+    # Einheit, Aenderungen als UNIT-Zeile in die Mitschrift, die ganze Tabelle ins Lageprotokoll (Schluessel "intents")
+    from selfaware.micro.unit_log import UnitLog, collect_round
+    ulog = UnitLog(SP)
+    # B-182 Kettenpruefung je Befehl (Daniel 12.11. 22:34: "Wegberechnung -> Kern bekommt Befehle -> Ausfuehrung -> Aktion im
+    # Spiel"): jeder Einheitenbefehl, der hinausgeht (Modulkanal und Kernring), wird bis ins Lagebild verfolgt
+    global KETTE
+    from selfaware.micro.chain_audit import ChainAudit
+    import selfaware.game.ucp.befehl as kanal_kette
+    # Daniel 13.11.2026 23:35 "Ja, umbauen": die Laufpruefung rechnet das Gelaende der gelaufenen Felder (Vermessung der Karte), sonst
+    # wie bisher mit dem Tempowert je Runde - welcher Weg gilt, steht in der Mitschrift
+    from selfaware.tools.experiments.gelaende_erheben import survey_file, tile_function
+    vermessung = survey_file(plan.get("karte"))
+    KETTE = ChainAudit(SP, tile=tile_function(vermessung) if vermessung else None)
+    schreib("KETTE Laufpruefung: %s" % ("Gelaende aus %s" % os.path.basename(vermessung) if vermessung else
+                                        "keine Vermessung fuer %s - Tempowert je Runde" % plan.get("karte")))
+    kanal_kette.BEOBACHTER[:] = [KETTE.from_module]
+    kampfschutz.ERFUELLT[:] = [KETTE.from_guard]   # S142: was der Kampfschutz zurueckhaelt, tut die Einheit schon
     if NEUBAU_SICHER:
         import selfaware.services.gefahrenzone as gefahrenzone
         GZ = gefahrenzone.Gefahrenzonen(SP)
@@ -2145,7 +2369,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         # der Partievergleich laeuft mit; bricht unsere Wirtschaft ein, geht alles auf den Lord (endspurt.py)
         from selfaware.strategy.endspurt import Endspurt
         es = Endspurt(SP, lernlog)
-    ausbau = STECK.klasse("ertragsplaner")(plan, SP, baue_schnell, wirt, s32(peek(PD + 0x2188)[0]), ende=ZIEL_TICK, protokoll=lernlog, wegtest=wegtest)   # lernt im Spiel (Daniel 19:44)
+    ausbau = STECK.klasse("ertragsplaner")(plan, SP, baue_schnell, wirt, s32(peek(PD + 0x2188)[0]), ende=ZIEL_TICK, protokoll=lernlog, wegtest=wegtest)
+    ausbau.rohstoffe_extern = ROHSTOFFE_ALLE          # S170   # lernt im Spiel (Daniel 19:44)
 
     def gold_bremst(st, G):
         """Es sollen Assassinen her, aber das Gold reicht nicht fuer den naechsten (70 + B-Ruecklage) - oder Gold ist selbst
@@ -2264,6 +2489,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     ende, letzter_tick, stand, runde, t0 = time.time() + 60 * minuten, None, 0, 0, time.time()
     schreib("Tick | Holz Stein Eisen | Aepfel Brot | Beliebt | Leute/Platz (Feuer) | Holzf. Apfelb. | Ereignis")
     zeiten, diese_runde, feindlord = {}, {}, {}
+    wirtschaft_tick, steuer_takte = None, []        # S158: Takt des letzten Wirtschaftslaufs, Takt jeder Steuerschleife
     stopp_grund = None
     def uhr(name, t0):
         zeiten[name] = zeiten.get(name, 0.0) + time.time() - t0
@@ -2305,6 +2531,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         wegf = Wegfuehrung(SP, list(_KARTE) or None, trotz_gefahr=RB_w.TROTZ_GEFAHR)
     if raid_e is not None:
         raid_e.weg_selbst = False
+    erster_angriff_uebergeben(raid_e, wegf)            # S167
+    wegf_karte_runde = None           # B-182: Runde der letzten Weg-Ebene fuer die Wegfuehrung
+    wegf_karte_geb = None             # S146: {Gebaeude: Art} beim letzten Lesen - kommt eines dazu, wird neu gelesen
     if w is not None:
         w.weg = wegf
     if weg == "feldzug" and streitkolben:
@@ -2362,6 +2591,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             schreib("RESERVE fuer Hoefe/Hopfen (fuer Aepfel gesperrt): %s" % [(NACH_TYP[t_]["name"], q) for t_, q in reserve])
         if trupp is not None:
             trupp.lord_aus = True
+    if trupp is not None and LORD_SOFORT:           # S162
+        trupp.lord_aus, trupp.LORD_SPAETESTENS = False, 0
     if prod:
         BEV_ZIEL = max(BEV_ZIEL, prod.bevoelkerung_ziel)
         schreib("PRODUKTION skaliert auf Ziel %d: Minen %d, Schmieden %d, Gerber %d, Hoefe %d, Holzfaeller %d, Bevoelkerung %d" % (
@@ -2399,11 +2630,27 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             tz = time.time()
             befehlskanal.belege()
             st, L, G = runde_lesen()
+            # S158: volle Runde (mit Wirtschaft) oder nur Steuerung der Einheiten
+            t_v = (st or {}).get("t", 0)
+            voll = (not SCHNELLE_STEUERUNG or bool(streitkolben) or wirtschaft_tick is None
+                    or t_v - wirtschaft_tick >= WIRTSCHAFT_TAKTE or t_v < wirtschaft_tick)
+            steuer_takte.append(t_v)
             hunger_r = False
-            if st and HEER_ANTEIL > 0 and wirt is not None:
+            if voll and st and HEER_ANTEIL > 0 and wirt is not None:
                 wirt.heer_einnahme(st.get("gold", 0), HEER_ANTEIL)     # B-132 Heereskasse
             if st:
                 roh_l = lage.schreibe(st)
+                kampfschutz.stand(L, G)   # B-182 S118/S122: wer gerade gegen welches Ziel kaempft, fuer den Befehlsweg
+                try:      # B-182 Kettenpruefung: offene Befehle gegen das Lagebild und den Kernstand dieser Runde
+                    KETTE.tick = st.get("t", 0)
+                    eigen_k = ({n: e for n, e in lage.welt.einheiten.items() if e.get("besitzer") == SP}
+                               if lage.welt is not None else {})
+                    for z_k in KETTE.check(st.get("t", 0), L, G, eigen_k):
+                        print(z_k, flush=True)
+                    if voll and runde % 100 == 0:
+                        print(KETTE.summary(), flush=True)
+                except Exception as ex_k:
+                    print("KETTE FEHLER %r - Partie laeuft weiter" % (ex_k,), flush=True)
                 # 19.10. 18:25 MAKRO (uebersicht.py, Daniel 18:07 "was habe ich, was haben die Gegner, wer davon was und wo"):
                 # Verbaende + Bewegung je Einheit; alle ZEILE_RUNDEN Runden eine LAGE-Zeile in die Mitschrift
                 if UB is not None and L:
@@ -2426,13 +2673,13 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 # 3.000 Ticks ohne Essen, Beliebtheit 88,75 -> 48,25): HUNGER schon am Puffer, so viele Lose wie das Gold hergibt
                 # (hoechstens HUNGER_LOSE je Runde), und solange Hunger herrscht, wirbt niemand an (Assassinen, Notwerbung, Raids)
                 hunger_r = nahrung_n <= nahrung_puffer(st.get("leute", 0)) and st.get("beliebt", 10000) < HUNGER_BELIEBT
-                lose_h = min(st.get("gold", 0) // APFEL_LOS_GOLD, HUNGER_LOSE) if hunger_r else 0
+                lose_h = min(st.get("gold", 0) // APFEL_LOS_GOLD, HUNGER_LOSE) if hunger_r and voll else 0
                 for _ in range(lose_h):
                     befehl({"spielbefehl": {"nr": 38, "werte": [0, WAREN_NR["apfel"]]}}, 1.0, bis="SPIELBEFEHL")
                 if lose_h:
                     schreib("HUNGER-NOTKAUF bei Tick %s: %d x 5 Aepfel (Nahrung %d, Beliebtheit %.2f, Gold %d) - Werbung ruht" % (
                         st.get("t"), lose_h, nahrung_n, st.get("beliebt", 0) / 100.0, st.get("gold", 0)))
-                if es is not None and roh_l:
+                if voll and es is not None and roh_l:
                     try:
                         es.runde(st.get("t"), st, *roh_l)
                     except Exception as ex_e:            # ein Fehler im Endspurt beendet nie die Partie
@@ -2468,7 +2715,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             if gold_ziel and st.get("gold", 0) >= gold_ziel:
                 schreib("GOLD-ZIEL %d erreicht bei Tick %d" % (gold_ziel, st.get("t", 0)))
                 break
-            runde += 1
+            if voll:
+                runde += 1
+                wirtschaft_tick = t_v
             if not st:
                 continue
             if st.get("over") == 0 and st.get("ansicht") not in (14, 16):
@@ -2530,7 +2779,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 schreib("REGELBRUCH bei Tick %d: Beliebtheit %.2f unter 50 - Lauf abgebrochen" % (st["t"], st["beliebt"] / 100.0))
                 ende_grund = ("regelbruch", "Beliebtheit %.2f unter 50" % (st["beliebt"] / 100.0))
                 break
-            ausbau.beobachte(st, L, G)        # Buchfuehrung des Planers: Zugang je Ware seit der letzten Runde
+            if voll:
+                ausbau.beobachte(st, L, G)    # Buchfuehrung des Planers: Zugang je Ware seit der letzten Runde
             eig = [g for g in G.values() if g["besitzer"] == SP]
             gebs = [(g["x"] + NACH_TYP.get(g["typ"], {"b": 2})["b"] // 2, g["y"] + NACH_TYP.get(g["typ"], {"b": 2})["b"] // 2)
                     for g in eig if g["typ"] in EIGENE_ARTEN]
@@ -2565,13 +2815,30 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             if brand is not None:          # 19.10.: Raid-Sklaven und -Reiter gehoeren nicht dem Waechter und graben nicht
                 ausgenommen_w |= brand.einheiten(L) | reiter.einheiten(L) | raid_e.nahkampf.mitglieder
             if vorstoss is not None:       # B-172: im Vorstoss gehoeren sie nicht dem Waechter; beim Alarm gibt der Vorstoss sie frei
-                ausgenommen_w |= vorstoss.mitglieder
+                ausgenommen_w |= vorstoss.anspruch(st["t"], L)   # 13.11. Partie 6: auch die, die er in dieser Runde erst aufnimmt
             ausgenommen_w |= graben.graeber if graben is not None and not graben.fertig else set()   # 19.10.: Graeber graben
+            rollen_text = None
+            if raid_e is not None and w is not None:
+                # Daniel 13.11.2026 23:07 "Was macht der gegner und wird verteidigung, raid oder angriff gebraucht? Und dann wird bestimt
+                # was pro einheit passiert", 23:14 "Ja, bauen": Rolle je Einheit jede Runde neu (micro/rollen.py). Kandidaten sind alle,
+                # die der Nahkampf-Raid fuehren kann und die kein anderes Modul fuehrt - auch die Starttruppen
+                import selfaware.micro.rollen as RO
+                import selfaware.micro.tasks.nahkampf as NKR
+                nk = raid_e.nahkampf
+                eigen_alle = {n for n, e in L.items() if e["besitzer"] == SP and e.get("leben", 1) > 0}
+                kand = {n for n in eigen_alle if L[n]["typ"] in NKR.KANN} - (ausgenommen_w - nk.mitglieder) - reserve_w
+                rollen, rollen_text = RO.verteilen(L, gebs, SP, kand, geschuetzt=eigen_alle, raid=True)
+                raid_neu = {n for n, r in rollen.items() if r == RO.RAID}
+                nk.zuteilen(raid_neu, set(rollen) - raid_neu)
+                ausgenommen_w = (ausgenommen_w - (set(rollen) - raid_neu)) | raid_neu
             ereignis = w.schritt(L, gebs, ausgenommen=ausgenommen_w, reserve=reserve_w) if w is not None else []
+            if rollen_text and rollen_text != getattr(raid_e, "rollen_text", None):    # eine Zeile je Aenderung
+                ereignis.append("ROLLEN: " + rollen_text)
+                raid_e.rollen_text = rollen_text
             if feldzug is not None and w is not None:
                 feldzug.verteidiger = {n for n in w.auftrag if n in reserve_w}
             tz = uhr("waechter", tz)
-            if NOTWERBUNG and BESTELLUNG.darf("verteidigung") and st.get("t", 0) > 0 and not hunger_r:     # 19.10.: bei Hunger geht das Gold in Nahrung
+            if voll and NOTWERBUNG and BESTELLUNG.darf("verteidigung") and st.get("t", 0) > 0 and not hunger_r:     # 19.10.: bei Hunger geht das Gold in Nahrung
                 # 12.10. (Daniel 11.10. 23:40 "du siehst doch, dass du angegriffen wirst und nicht ausbildest"; 23:45 "arabische
                 # Einheiten"): Soeldnerposten frueh bauen; stehen Gegnertruppen in unserem Gebiet, sofort nachwerben - je Gegner
                 # eine Einheit, abwechselnd Schwertkaempfer (75) und Bogenschuetzen (70), bis Gold oder Bauern am Feuer fehlen.
@@ -2619,10 +2886,11 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     if n_n:
                         ereignis.append("NOTWERBUNG %d Einheiten gegen %d Gegner an unseren Gebaeuden (%s), Gold danach %d - %s" % (
                             n_n, len(feinde_n), ",".join(sorted({str(e["typ"]) for e in feinde_n})), gold_n, text_n))
-            ereignis += still_w.schritt(st["t"], L, G, lager_stopp=getattr(wirt, "lager_stopp", False))
+            if voll:
+                ereignis += still_w.schritt(st["t"], L, G, lager_stopp=getattr(wirt, "lager_stopp", False))
             # 18.10. (Daniel: "bau den Kornspeicher ein bis auf die Ecken" wie der Nomade): Ring aus hoher Steinmauer um den
             # ersten eigenen Kornspeicher; Flaeche (Speicher, Ring, Ecken) bleibt fuer andere Bauten frei
-            if KORNRING and korn is None:
+            if voll and KORNRING and korn is None:
                 eig_k = [(g["x"], g["y"]) for g in G.values() if g["besitzer"] == SP and g["typ"] == 19]
                 if eig_k:
                     import selfaware.macro.kornring as KR
@@ -2634,24 +2902,25 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     box_k = KR.kasten(*korn.ort)
                     if GRABEN:
                         graben = STECK.klasse("graben")(korn.ort, feind_k, lies_logik, plane_graben, schicke_graeber)
+                        graben.weg = wegf      # B-182: wer graebt, den laesst die Wegfuehrung los (ein Fuehrer je Einheit)
                         korn.tor = list(graben.tor)
                         box_k = graben.kasten()          # Speicher bis einschliesslich Grabenring frei halten
                     RESERVIERT.append((box_k, korn.ort))
                     ausbau.sperr = ausbau.sperr + [box_k]
                     ereignis.append("KORNRING um den Kornspeicher %s angelegt, Flaeche %s frei gehalten%s" % (
                         korn.ort, box_k, ("; Burggraben %d Felder, Eingang %s" % (len(graben.soll), graben.tor)) if graben else ""))
-            if korn is not None:
+            if voll and korn is not None:
                 ereignis += korn.schritt(st["t"], st.get("stein", 0), holz=st.get("holz", 0),
                                          gruben={(g["x"], g["y"]): n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 67})
             if graben is not None:
                 ereignis += graben.schritt(st["t"], L, SP, ausgenommen=ausgenommen_w | reserve_w)
-            if FALLEN:
+            if voll and FALLEN:
                 if fallen is None:
                     import selfaware.micro.tasks.fallenwache as FW
                     FW.GROESSE.update({t_: g_["b"] for t_, g_ in NACH_TYP.items()})
                     fallen = STECK.klasse("fallenwache")(SP, setze_grube)
                 ereignis += fallen.schritt(st["t"], L, G, st.get("holz", 0))
-            if speicher_nachbauen(G, BUCH.offen if BUCH is not None else [], st["t"],
+            if voll and speicher_nachbauen(G, BUCH.offen if BUCH is not None else [], st["t"],
                                   fruehpruefung.get("speicher_nachbau", -10 ** 6)):
                 fruehpruefung["speicher_nachbau"] = st["t"]
                 ort_k = None
@@ -2662,16 +2931,16 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     ereignis.append("KORNSPEICHER fehlt - Nachbau am Planplatz %s: %s" % (tuple(plan["kornspeicher"]), baue_schnell(
                         19, plan["kornspeicher"][0], plan["kornspeicher"][1], 12, zweck="Kornspeicher nachbauen")))
             rueck = {}
-            if jagd_bau is not None:
+            if voll and jagd_bau is not None:
                 ereignis += jagd_bau.schritt(st["t"], st, L, G)
                 rueck = jagd_bau.bedarf(st["t"], G, L)
-            if brot_bau is not None:
+            if voll and brot_bau is not None:
                 ereignis += brot_bau.schritt(st["t"], st, G)
                 b_r = brot_bau.bedarf(st["t"], G)
                 rueck = {w: rueck.get(w, 0) + b_r.get(w, 0) for w in ("holz", "gold")}
-            if jagd_bau is not None or brot_bau is not None:
+            if voll and (jagd_bau is not None or brot_bau is not None):
                 wirt.brot = rueck                             # Ruecklage: Planer/Huetten/Holzfaeller halten das Holz frei
-            if BUCH is not None:
+            if voll and BUCH is not None:
                 ereignis += BUCH.abgleich(G, L, st)            # jeder Bau bestaetigt oder gescheitert, jede Belegung
                 while BUCH.unerreichbar:                        # v18: laut Spiel unerreichbar -> abreissen, Platz sperren
                     n_u, typ_u, ort_u = BUCH.unerreichbar.pop()
@@ -2680,6 +2949,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     ausbau.unerreichbar.add(tuple(ort_u))       # auch der Wegtest-Speicher: nie wieder als erreichbar anbieten
                     ausbau.erreichbar_ok.discard(tuple(ort_u))
                 tz = uhr("buch_abgleich", tz)
+                if ROHSTOFFE_ALLE and not endspiel["fertig"]:              # S170: alle Stein- und Eisenvorkommen, das naechste zuerst
+                    ereignis += rohstoffe_bauen(st, G, wegf)
+                    tz = uhr("rohstoffe", tz)
                 # 19.10. (1019e/f: Auftragsbuch-Abschnitt 0,26 s je Runde auf Green Haven gegen 0,04 auf The Killing Plains - auf
                 # der fruchtbaren Karte pruefte der Kausal-Planer jede Runde viel mehr Bauplaetze): nur jede KAUSAL_RUNDEN-te Runde
                 if ENTSCHEIDER == "kausal" and not endspiel["fertig"] and runde % KAUSAL_RUNDEN == 0:
@@ -2697,7 +2969,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     kand_k = []
                     # 10.11. (Daniel 21:43: "zu viele Hopfenfarmen" - 15 vom Kausal-Planer, der Hopfen mit 18 Gold je Stueck als Ware rechnet): mit bier=ja
                     # baut Hopfen nur die Bierkette, nach Bedarf
-                    for typ_a in (3, 32, 7, 5, 20) + (() if BIER else (31,)):
+                    for typ_a in (3, 32, 7) + (() if ROHSTOFFE_ALLE else (5, 20)) + (() if BIER else (31,)):   # S170
                         if typ_a in getattr(ausbau, "ohne", ()):
                             continue
                         b_a = ausbau.groesse.get(typ_a, 3) // 2
@@ -2730,7 +3002,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                                 ausbau.fehlschlag[(typ_k, ort_k)] = ausbau.fehlschlag.get((typ_k, ort_k), 0) + 1
                             elif typ_k == 20:          # die Ochsen des Pakets gleich mitbauen
                                 d_k = max(abs(ort_k[0] - lager_m[0]), abs(ort_k[1] - lager_m[1]))
-                                ochsen_k = [baue_schnell(4, ort_k[0], ort_k[1], 10, zweck="kausal Ochse") for _ in range(KM.ochsen_fuer(d_k))]
+                                # S168: am Haufen des gesetzten Bruchs (o_k), mit Abstand - nicht mehr links am Bruch
+                                ochsen_k = [baue_joch(o_k, zweck="kausal Ochse", r=10) for _ in range(KM.ochsen_fuer(d_k))]
                                 text_k += " + %d Ochsen %s" % (len(ochsen_k), ochsen_k)
                         ereignis.append("KAUSAL %s bei %s: %s -> %s" % (NACH_TYP[typ_k]["name"], ort_k, text_k, o_k))
                     # Holz aus dem Modell (Daniel 23:48 "mach das direkt aus dem Modell, sofort"): hat keine Handlung mit Holz mehr
@@ -2747,7 +3020,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                                        and max(abs(g2["x"] - o_h[0]), abs(g2["y"] - o_h[1])) <= 12)
                         if ochsen_h < KM.MODELL[20]["ochsen_max"] and not BUCH.offen_bei(4, o_h, 12) and st["holz"] >= ausbau.kosten_von(4).get("holz", 0):
                             ereignis.append("OCHSE NACHGERUESTET am Steinhaufen %s (Vorrat %s, %d Ochsen): %s" % (
-                                o_h, g_h.get("vorrat"), ochsen_h, baue_schnell(4, o_h[0], o_h[1], 10, zweck="Ochse nachruesten")))
+                                o_h, g_h.get("vorrat"), ochsen_h, baue_joch(haufen=o_h, zweck="Ochse nachruesten", r=10)))
                             break
                     fruehpruefung["holz_ueberfluessig"] = not bedarf_holz
                     ausbau.endphase = not bedarf_holz
@@ -3025,9 +3298,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         hf_jetzt += 1
                 # E4 (Daniel 23:03: "wenn die ersten 20 Holzfaeller Holz geladen haben, direkt Steinbrueche, so viele wie geht")
                 stein_frei = STEIN_PARALLEL or not spam_offen
-                if not V14 and STEIN_FRUEH and plan.get("stein") and not endspiel["fertig"]:
+                if not V14 and STEIN_FRUEH and plan.get("stein") and not endspiel["fertig"] and not ROHSTOFFE_ALLE:    # S170
                     ereignis += stein_pflicht(st, G, wirt, plan, STEIN_FRUEH)
-                if V14 and not endspiel["fertig"] and stein_frei:
+                if V14 and not endspiel["fertig"] and stein_frei and not ROHSTOFFE_ALLE:    # S170
                     # Die zwei Lager-Brueche sind immer Pflicht. Nur die drei zusaetzlichen Brueche am zweiten Feld warten
                     # auf die erste Holzlieferung; vorher blockierte STEIN_MAX versehentlich sogar den fehlenden Pflichtbruch.
                     ereignis += v14_steinpflicht(st, G, wirt, "holz_geliefert" in fruehpruefung)
@@ -3047,9 +3320,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 tz = uhr("auftragsbuch", tz)
             # Markt und Verkauf gehoeren zur Wirtschaft, nicht zu den Assassinen (gold10k_1: mit assassinen=0 wurde 60.000
             # Ticks lang nichts verkauft - der Block stand im Assassinen-Teil; Gold am Ende 1.013, nur aus Steuern)
-            if not [n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 26] and runde % 20 == 2:
+            if voll and not [n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 26] and runde % 20 == 2:
                 ereignis.append("Markt gesetzt %s" % (baue_schnell(26, BERGFRIED[0], BERGFRIED[1], 25),))
-            elif runde % 3 == 0:
+            elif voll and runde % 3 == 0:
                 bremst = gold_bremst(st, G)
                 # 12 Stein fuer die Kaserne nicht verkaufen, solange sie fehlt (v2 Tick 5.246: "verkauft: stein" und "Kaserne
                 # gesetzt" in derselben Runde - danach reichte der Stein nicht mehr)
@@ -3087,18 +3360,23 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 ueber_a = getattr(trupp, "ohne_ziel_zuletzt", None) == 0 and (getattr(trupp, "_raid_plaetze", 0) or 0) > len(trupp.ziel) \
                     and st["gold"] >= 70 + wirt.ruecklage(G)["gold"] + HEER_GOLD_RAND
                 ziel_a = assassinen + (ASSASSINEN_EXTRA if ueber_a and assassinen > 0 else 0)
-                if not posten and (soeldner is None or runde % 10 == 0) and not ausbau.braucht_gold:
+                # S162: fehlen fuer den Lord-Angriff Assassinen (Lord-Bedarf aus der Rechnung der Assassinen), wird nachgeworben, auch
+                # wenn gerade welche ohne Ziel warten - sie warten ja auf genau diesen Angriff
+                lord_n = (getattr(trupp, "bedarf_zuletzt", None) or (0,))[0] if LORD_SOFORT else 0
+                lord_fehlt = lord_n > a_stand["lebend"]
+                ziel_a = max(ziel_a, lord_n)
+                if voll and not posten and (soeldner is None or runde % 10 == 0) and not ausbau.braucht_gold:
                     # nicht am Lagerplatz (9i: Markt/Soeldnerlager belegten ihn - 14 Holzfaeller warteten Tick 4500-9035)
                     soeldner = baue_schnell(8, BERGFRIED[0], BERGFRIED[1], 25)
                     ereignis.append("Soeldnerlager gesetzt %s (Gold %d)" % (soeldner, st["gold"]))
                 elif posten and (assassinen < 0 or a_stand["lebend"] < ziel_a) and st["t"] - a_stand["zuletzt"] >= WERB_ABSTAND \
-                        and (getattr(trupp, "ohne_ziel_zuletzt", None) or 0) < A_OHNE_ZIEL_MAX \
+                        and ((getattr(trupp, "ohne_ziel_zuletzt", None) or 0) < A_OHNE_ZIEL_MAX or lord_fehlt) \
                         and not ausbau.braucht_gold \
                         and not loewen_am_posten(L, G, posten[0]) \
                         and not wirt.a_offen(G):   # Daniel 23:09: Farmen nicht vergessen - erst die fehlenden A-Plantagen (45 Gold)   # erst rollen (Daniel 18:51/19:05)
                     assassine_erlaubt = True
             if trupp is not None:
-                if posten and runde % 50 == 0:     # ganz_1: in 28.700 Ticks nur 1 Assassine - welche Bedingung bremst?
+                if voll and posten and runde % 50 == 0:     # ganz_1: in 28.700 Ticks nur 1 Assassine - welche Bedingung bremst?
                     ereignis.append("ANWERBEN-BREMSE: Gold %d (braucht %d), Feuer %d, Planer braucht Gold %s, A-Farmen offen %d" % (
                         st["gold"], 70 + wirt.ruecklage(G)["gold"], st["feuer"], bool(ausbau.braucht_gold), len(wirt.a_offen(G))))
                 tz = uhr("bauen_werben_verkauf", tz)
@@ -3429,11 +3707,14 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     if AUSWEICHEN and brand.kern is None:
                         from selfaware.execution import kernweg as KW
                         ausweichen_kern([(vorstoss, KW.VORSTOSS), (brand, KW.BRANDTRUPP)], ereignis)
+                    # S162: greifen die Assassinen den Lord an, gehen die Raid-Nahkaempfer mit
+                    lt_r = getattr(trupp, "lordtrupp", None) or {}
+                    raid_e.nahkampf.lord = lt_r.get("lord") if LORD_SOFORT and lt_r.get("phase") == "angriff" else None
                     ereignis += raid_e.schritt(st["t"], L, G, befehl)
                 except Exception as ex_r:
                     ereignis.append("RAIDS FEHLER %r - Partie laeuft weiter" % (ex_r,))
             # B-179: Alle Raid-Werbungen an einer Stelle. Was gekauft wird, entscheidet die Bestellung (Steckplatz raidbestellung), hier wird nur ausgefuehrt.
-            if BESTELLUNG.darf("raid") and posten and not hunger_r:
+            if voll and BESTELLUNG.darf("raid") and posten and not hunger_r:
                 try:
                     import selfaware.game.ucp.bauen as BA_r
                     # B-181: was ein Modul fuehren kann und welche Ziele schon vergeben sind - nur die Bestellung nach Wirkung nutzt es
@@ -3473,7 +3754,16 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     ereignis += getattr(raid_b, "begruendung", [])
                 except Exception as ex_r:
                     ereignis.append("RAIDS FEHLER %r - Partie laeuft weiter" % (ex_r,))
-            if bier is not None and not (es is not None and es.aktiv) and runde % 5 == 0:     # Endspurt: keine neuen Betriebe
+            if voll and HEER_UEBERSCHUSS and BESTELLUNG.darf("raid") and trupp is not None and posten and not hunger_r:     # S165
+                frei_h = st.get("gold", 0) - wirt.ruecklage(G)["gold"] - HEER_GOLD_RAND
+                n_h = min(max(frei_h, 0) // EH.ARTEN[RB.ASSASSINE].gold, max(st.get("feuer", 0) - rohstoffe_arbeiter(), 0))   # S170
+                for _ in range(n_h):
+                    befehl({"werbe": {"typ": RB.ASSASSINE, "gebaeude": posten[0]}}, 1.0, bis="WERBE")
+                if n_h:
+                    a_stand["zuletzt"] = st["t"]
+                    ereignis.append("HEER AUS DEM UEBERSCHUSS: %d Assassinen (Gold %d, Ruecklage %d + Rand %d, Bauern am Feuer %d)" % (
+                        n_h, st.get("gold", 0), wirt.ruecklage(G)["gold"], HEER_GOLD_RAND, st.get("feuer", 0)))
+            if voll and bier is not None and not (es is not None and es.aktiv) and runde % 5 == 0:     # Endspurt: keine neuen Betriebe
                 try:
                     ereignis += bier.schritt(st, G, wirt.ruecklage(G))
                 except Exception as ex_z:
@@ -3491,27 +3781,68 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                             n, alt, e["leben"], e["x"], e["y"], bei or "keine"))
                     feindlord[n] = e["leben"]
             tz = time.time()
-            if not (streitkolben and endspiel["fertig"]):    # nach dem Endspiel ruht die Wirtschaft (v6: baute A-Plantagen nach)
+            if voll and not (streitkolben and endspiel["fertig"]):    # nach dem Endspiel ruht die Wirtschaft (v6: baute A-Plantagen nach)
                 ereignis += wirt.schritt(st, L, G)
                 ereignis += ausbau.schritt(st, L, G, runde)    # im Endspurt nur Nahrung (ausbau.ohne, endspurt.NICHT_NAHRUNG)
             tz = uhr("wirtschaft", tz)
+            import selfaware.services.wegkarte as W_karte
+            # B-182 S146 (Daniel 14.11.2026 23:03 "ja probieren wir es so, sollte es zu sehr laggen müssen wir das vlt schlauer
+            # gestalten"): neu gelesen auch, sobald ein Gebaeude dazukommt - Partie 18 legte einen Wegpunkt in einen Hof, den die Karte
+            # nicht kannte; jedes Lesen steht in der Mitschrift, seine Zeit in ZEITEN als "wegkarte"
+            wk_grund = W_karte.neu_lesen(runde, wegf_karte_runde, G, wegf_karte_geb, WEGKARTE_RUNDEN) if wegf is not None else None
+            if wk_grund:
+                # B-182 (Partie 11.11. 22:37, Daniel 22:41: "warum wird denn der soeldnerposten als unbegehbar gegolten? macht doch keinen sinn offensichtlich sammeln die sich dort ja"):
+                # begehbar ist, was die Weg-Ebene des Spiels erlaubt. S147 (Daniel 23:10 "Ja, beide bauen"): bei neuen Gebaeuden nur
+                # die Ausschnitte um sie (W_karte.AUSSCHNITT_BIS), sonst die ganze Karte
+                rechtecke = (W_karte.rechtecke_fuer(G, wegf_karte_geb) if wk_grund.startswith("neue Gebaeude") and wegf.gelaende
+                             else None)
+                wegf_karte_runde, wegf_karte_geb = runde, {n: g.get("typ") for n, g in G.items()}
+                t_wk = time.time()
+                try:
+                    if rechtecke is None:
+                        neue_karte, wk_art = W_karte.karte_holen(befehl), "ganz"
+                    else:
+                        neue_karte, wk_art = wegf.gelaende, "Ausschnitte %d" % len(rechtecke)
+                        for r_wk in rechtecke:
+                            k_wk = W_karte.ausschnitt_holen(*r_wk, befehl_fn=befehl)
+                            if k_wk is None:
+                                neue_karte = None
+                                break
+                            neue_karte = W_karte.flicken(neue_karte, k_wk)
+                    if neue_karte is None:
+                        ereignis.append("WEGKARTE keine Antwort - die Wegfuehrung rechnet mit der alten Karte")
+                    else:
+                        wegf.karte(neue_karte)
+                        ereignis.append("WEGKARTE gelesen Runde %d Takt %s (%s, %s), %.2f s" % (
+                            runde, st.get("t"), wk_grund, wk_art, time.time() - t_wk))
+                except Exception as ex_wk:
+                    ereignis.append("WEGKARTE FEHLER %r - die Wegfuehrung rechnet mit der alten Karte" % (ex_wk,))
+                tz = uhr("wegkarte", tz)
             if wegf is not None:              # B-182: einmal je Runde, nachdem Waechter und Raid ihre Ziele gesetzt haben
                 try:
+                    raid_kern(wegf, runde, ereignis)
                     wegf.schritt(L, G, befehl)
                 except Exception as ex_wf:
                     ereignis.append("WEGFUEHRUNG FEHLER %r - Partie laeuft weiter" % (ex_wf,))
+            try:      # B-182 Logbuch je Einheit: Absicht jedes Moduls, Laufphase der Wegfuehrung, wer ohne Auftrag ist
+                for z_ul in collect_round(ulog, st["t"], L, G, w, graben, trupp, raid_e if raid_laeuft else None, wegf):
+                    print(z_ul, flush=True)
+                lage.intents = ulog.table()
+            except Exception as ex_ul:
+                ereignis.append("LOGBUCH FEHLER %r - Partie laeuft weiter" % (ex_ul,))
             bedarf = sum(ARBEITER_JE[t] * st.get("G%d" % t, 0) for t in ARBEITER_JE)
             puffer = streitkolben and not endspiel["fertig"] and ENTSCHEIDER != "kausal" and wohnraum_fehlt(st, G)[0]   # Huetten vorab, aber nur mit Arbeit (23:21)
-            if st["holz"] >= 5 + wirt.ruecklage(G)["holz"] and ((bedarf > st["platz"] and st["feuer"] < 2) or puffer or (trupp is not None and st["feuer"] == 0 and st["platz"] - st["leute"] <= 2)):
+            if voll and st["holz"] >= 5 + wirt.ruecklage(G)["holz"] and ((bedarf > st["platz"] and st["feuer"] < 2) or puffer or (trupp is not None and st["feuer"] == 0 and st["platz"] - st["leute"] <= 2)):
                 ereignis.append("Huette %s (Bedarf %d, Platz %d, Leute %d, Feuer %d)" % (baue_haus(), bedarf, st["platz"], st["leute"], st["feuer"]))
             zeile = "%5d | %3d %3d %3d | %3d %3d | %6.2f | %d/%d (%d) | %d %d | %s" % (
                 st["t"], st["holz"], st["stein"], st["eisen"], st["apfel"], st["brot"], st["beliebt"] / 100.0, st["leute"],
                 st["platz"], st["feuer"], st.get("T3", 0), st.get("T13", 0), "; ".join(ereignis) or "-")
             tz = uhr("haus_lager_zeile", tz)
-            if ereignis or runde % 10 == 1:
+            if ereignis or (voll and runde % 10 == 1):
                 schreib(zeile)
-            if runde % 10 == 0:
+            if voll and runde % 10 == 0:
                 schreib("ZEITEN nach %d Runden: %s" % (runde, ", ".join("%s %.2f s" % kv for kv in sorted(zeiten.items(), key=lambda kv: -kv[1]))))
+                schreib(steuer_zeile(steuer_takte))
             if stopp_grund:
                 schreib(stopp_grund); break
             serie.gut()                   # 18.10.: diese Runde lief vollstaendig durch
@@ -3743,9 +4074,14 @@ def main():
     global HAUSHALT_RAND, WACHSTUM_BODEN, GUTE_DINGE, RATIONEN, REGEL50, NAHRUNG_AUSBAU, STOPP_TOTE, PRODUKTION, PRODUKTION_FENSTER, BIER
     global STUFEN, ZWISCHENZIEL, STUFE2_BELIEBT, ANGRIFF_AB, LIGA_GEFECHT, GEGNER_ERWARTET
     GEGNER_ERWARTET = arg.get("gegner_erwartet", "")
-    global ZUSCHAU_TEMPO, KERNWEG
+    global ZUSCHAU_TEMPO, KERNWEG, RAID_KERN, SCHNELLE_STEUERUNG, LORD_SOFORT, HEER_UEBERSCHUSS, ROHSTOFFE_ALLE
+    SCHNELLE_STEUERUNG = arg.get("schnelle_steuerung", "ja") == "ja"
     ZUSCHAU_TEMPO = int(arg.get("zuschau_tempo", 0))
     KERNWEG = arg.get("kernweg", "nein") == "ja"
+    RAID_KERN = arg.get("raid_kern", "ja") == "ja"
+    LORD_SOFORT = arg.get("lord_sofort", "ja") == "ja"
+    ROHSTOFFE_ALLE = arg.get("rohstoffe", "ja") == "ja"
+    HEER_UEBERSCHUSS = arg.get("heer_ueberschuss", "ja") == "ja"
     # B-182 (Daniel 10.11. 23:16 "unsere ki soll maximal 20 einheiten haben insgesamt"): einheiten_max=N - hoechstens N eigene
     # Kaempfer (ohne Lord), gezaehlt aus dem Kern; jeder Werbebefehl darueber geht nicht ans Spiel (game/ucp/laden.befehl)
     if int(arg.get("einheiten_max", 0)) > 0:

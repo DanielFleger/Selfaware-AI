@@ -42,9 +42,12 @@ ARTEN = {
         ),
         Art(27, "Schwertkaempfer", "kaserne", None, ("schwert", "metallruestung"), ALLE, "nah"),
         Art(28, "Ritter", "kaserne", None, ("schwert", "metallruestung", "pferd"), ALLE, "nah"),
-        Art(29, "Leitertraeger", "gilde", None, (), frozenset({"angriff"}), "geraet"),
-        Art(30, "Ingenieur", "gilde", None, (), frozenset({"angriff", "verteidigung"}), "geraet"),
-        Art(5, "Tunnelgraeber", "gilde", None, (), frozenset({"angriff"}), "geraet"),
+        # 13.11.2026 23:13 Daniel: "Ja lass diese komischen grenzen raus" - die Grenzen der drei Geraete-Arten (10.11., ohne Grund
+        # und Messung) sind weg; jede Einheit kann mit ihrem Koerper aufhalten. Gewichtung je Art kommt spaeter (Daniel: "dafuer
+        # sind wir eh noch zu frueh").
+        Art(29, "Leitertraeger", "gilde", None, (), ALLE, "geraet"),
+        Art(30, "Ingenieur", "gilde", None, (), ALLE, "geraet"),
+        Art(5, "Tunnelgraeber", "gilde", None, (), ALLE, "geraet"),
         Art(37, "Moench", "kathedrale", None, (), ALLE, "nah"),
         Art(70, "Arabischer Bogenschuetze", "soeldnerposten", 60, (), ALLE, "fern"),
         Art(71, "Sklave", "soeldnerposten", 5, (), ALLE, "nah"),

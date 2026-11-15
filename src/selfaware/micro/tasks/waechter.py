@@ -17,15 +17,15 @@ from selfaware.game.ucp.laden import befehl
 from selfaware.game.ucp.befehl import ABZUG
 import selfaware.services.gefecht as gefecht
 import selfaware.services.spielwerte as spielwerte
+from selfaware.micro.unit_log import Action, point, unit
 
 LAGEBILD = os.path.join(ABZUG, "lagebild.txt")
-NAHKAMPF = {24, 25, 26, 27, 28, 37, 55, 71, 73, 75}
-FERNKAMPF = {22, 23, 70, 72, 74, 76}
-TRUPPE = NAHKAMPF | FERNKAMPF
+from selfaware.micro import rollen as RO
+from selfaware.micro.rollen import FERNKAMPF, NAHKAMPF, TRUPPE  # noqa: F401 - eine Stelle (13.11.2026)
 LORD = 55
 LORD_SELBST = 15         # 12.10.: der Lord kaempft nur, wenn Feinde so nah an IHM sind
 LORD_FLUCHT = 0.35       # 12.10.: Lord weicht erst unter diesem Lebensanteil (Stellgroesse; vorher 0,5 oder sobald ein Heer kam)
-ANGREIFER_R = 40         # 19.10.: Angreifer unserer Einheiten zaehlen nur bis hierhin von unseren Gebaeuden (nicht draussen)
+ANGREIFER_R = RO.ANGREIFER_R   # 19.10.: Angreifer unserer Einheiten zaehlen nur bis hierhin (Wert lebt in micro/rollen.py)
 GRUPPE_R = 10            # 19.10.: feindliche Einheiten so nah beieinander (Kette) = eine Gruppe fuer die Gefechtsbewertung
 WERTUNG_RUNDEN = 3       # 19.10.: Gefechtsbewertung neu je so viele Waechter-Runden (oder bei neuem Ziel)
 BERGFRIED_EINGANG = (165, 111)
@@ -100,9 +100,15 @@ class Waechter:
         self.verzicht = None         # 19.10.: Ziel, gegen das die Gefechtsbewertung zuletzt "lohnt nicht" ergab
         self.zurueck = None          # 19.10.: (Ziel, Schuetzen), die zuletzt aus dem Nahkampf herausgehalten wurden
         # B-182 (Daniel 11.11. 21:48 auf die Frage "Sollen die Waechter ueber die Wegfuehrung laufen und unter Beschuss angreifen duerfen?":
-        # "Ja, freigeben"): Angriff und Stapeln fuehrt die gemeinsame Wegfuehrung (setzt der Lenker), jede Runde neu
+        # "Ja, freigeben"): den Angriff fuehrt die gemeinsame Wegfuehrung (setzt der Lenker), jede Runde neu
         self.weg = None
-        self.gefuehrt = {}           # unsere Einheit -> "einheit" (Angriff) oder "ort" (Stapel), solange die Wegfuehrung sie fuehrt
+        self.gefuehrt = {}           # unsere Einheit -> "einheit" (Angriff), solange die Wegfuehrung sie fuehrt
+        # B-182 Logbuch je Einheit (docs/plans/Plan_Unit_Status_Log.md): der letzte Befehl je Einheit mit Grund - er gilt, bis sich die
+        # Lage aendert; wer keinen hat, steht mit dem Grund der Runde (_grund_runde)
+        self.stand_je = {}
+        self.absicht = {}            # Einheit -> (Aktion, Ziel, Grund, Werte) dieser Runde
+        self._bereich = set()        # die Einheiten, die der Waechter diese Runde fuehrt
+        self._grund_runde = "no_threat_stays"
 
     def _loslassen(self, nummern):
         """Ein Fuehrer je Einheit: vor jedem eigenen Befehl laesst die Wegfuehrung diese Einheiten los."""
@@ -116,23 +122,40 @@ class Waechter:
             self.weg.fuehre(n, art, ziel, "waechter")
             self.gefuehrt[n] = art
 
-    def stellung(self, L):
-        """Zu Spielbeginn: alle Truppen (ohne Lord) an den Posten mitten in der Wirtschaft."""
-        eig = [n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] in TRUPPE and e["typ"] != LORD and e["typ"] != 73]
+    def _merke(self, nummern, aktion, ziel, grund, **werte):
+        for n in nummern:
+            self.stand_je[n] = (aktion, ziel, grund, werte)
+
+    def stellung(self, L, ausgenommen=()):
+        """Zu Spielbeginn: alle Truppen (ohne Lord) an den Posten mitten in der Wirtschaft - ausser denen, die ein anderes Modul
+        fuehrt (13.11.2026 Partie 4: der Posten-Befehl ging auch an die Bogenschuetzen des Vorstosses, der sie im selben Takt 672
+        an seinem Sammelpunkt warten liess - Bogenschuetze 310 lief nie zum Posten, die Kettenpruefung hielt die Partie an)."""
+        eig = [n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] in TRUPPE and e["typ"] != LORD and e["typ"] != 73
+               and n not in ausgenommen]
         if eig and self.posten:
             self._loslassen(eig)
             befehl({"halten": {"nr": eig, "x": self.posten[0], "y": self.posten[1]}}, 1.0, bis="HALTEN")
+            self._merke(eig, Action.HOLD_POST, point(self.posten), "start_post")
             self.besetzt = True
             return "Stellung: %d Truppen zum Posten %s" % (len(eig), tuple(self.posten))
         return None
 
     def schritt(self, L, gebaeude, ausgenommen=(), reserve=()):
+        """Eine Waechter-Runde (_schritt), danach das Logbuch (B-182): jede Einheit des Waechters mit ihrem letzten Befehl und Grund."""
+        self._bereich, self._grund_runde = set(), "no_threat_stays"
+        ereignis = self._schritt(L, gebaeude, ausgenommen, reserve)
+        self.stand_je = {n: v for n, v in self.stand_je.items() if n in self._bereich and n in L}
+        self.absicht = {n: self.stand_je.get(n) or (Action.HOLD_POST, None, self._grund_runde, {})
+                        for n in sorted(self._bereich) if n in L}
+        return ereignis
+
+    def _schritt(self, L, gebaeude, ausgenommen=(), reserve=()):
         """gebaeude: Liste (x, y) unserer Gebaeude; ausgenommen: Einheiten, die der Waechter nicht anfasst
         (z. B. der Angriffstrupp). Gibt Liste von Ereignis-Texten."""
         ereignis = []
         self._schritte = getattr(self, "_schritte", 0) + 1     # 19.10.: Uhr fuer gesperrte Ziele (keine Jagd)
         if not self.besetzt:
-            t = self.stellung(L)
+            t = self.stellung(L, ausgenommen)
             if t:
                 ereignis.append(t)
         # Bilanz: wer ist seit der letzten Runde verschwunden?
@@ -146,20 +169,13 @@ class Waechter:
         for n, e in L.items():
             if e["typ"] in TRUPPE and e["besitzer"] not in (0,) and n not in ausgenommen and e["typ"] != 73:
                 self.bekannt[n] = (e["besitzer"], e["typ"])
-        feinde = {}
-        for n, e in L.items():
-            if e["besitzer"] in (0, self.sp) or e["typ"] not in TRUPPE:
-                continue
-            ort, ziel = (e["x"], e["y"]), (e["laufx"], e["laufy"])
-            nah_ort = min((schach(ort, g) for g in gebaeude), default=999)
-            nah_ziel = min((schach(ziel, g) for g in gebaeude), default=999) if ziel != (0, 0) and ziel[0] > 0 else 999
-            if nah_ziel <= 6 or nah_ort <= 8:
-                feinde[n] = (min(nah_ort, nah_ziel), e)
+        feinde = RO.an_gebaeuden(L, gebaeude, self.sp)       # 13.11.2026: die Regel lebt in micro/rollen.py (eine Stelle)
         self.bilanz["bedrohungen"] |= set(feinde)
         # Assassinen (73) nie zur Abwehr - wie in stellung(); sonst griff der Waechter frisch Angeworbene ab, bevor der
         # Angriffslenker sie aufnahm (Partie 9c: "Abwehr gebuendelt: alle 16 (22,24,55,73)")
         eigene = {n: e for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] in TRUPPE and e["typ"] != 73
                   and n not in ausgenommen and n not in reserve}
+        self._bereich = set(eigene)
         # B-182: wer tot ist oder jetzt einem anderen Modul gehoert, faellt aus der Wegfuehrung des Waechters
         self._loslassen([n for n in list(self.gefuehrt) if n not in eigene and n not in reserve])
         # Lord
@@ -176,10 +192,12 @@ class Waechter:
                 self._loslassen([ln])
                 befehl({"halten": {"nr": [ln], "x": ort[0], "y": ort[1]}}, 1.0, bis="HALTEN")
                 self.lord_zurueck = True; self.auftrag.pop(ln, None)
+                self._merke([ln], Action.RETREAT, point(ort), "lord_low_health", share=int(100 * anteil))
                 ereignis.append("Lord in Sicherheit nach %s (Leben %.0f %%, Feinde nahe %d)" % (tuple(ort), 100 * anteil, anzahl))
             elif self.lord_zurueck and anteil > LORD_FLUCHT + 0.15:
                 befehl({"halten": {"los": [ln]}}, 1.0, bis="HALTEN")
                 self.lord_zurueck = False
+                self._merke([ln], Action.HOLD_POST, None, "lord_recovered")
         # 12.10. (Daniel 00:38 "die arabischen Schwertkaempfer reagieren nicht sofort auf die Assassinen, sonst haetten
         # sie die eigenen Bogenschuetzen verteidigt"): wer gerade eine unserer Einheiten angreift (nahangreifer), ist
         # sofort Ziel - auch ausserhalb des Gefahrenkreises, jede Runde neu geprueft
@@ -189,42 +207,29 @@ class Waechter:
         # (Nahkampf) oder zieleinheit (Schuss) eine unserer Einheiten in unserem Gebiet ist (Truppen des Waechters,
         # Arbeiter, Bauern - nicht Assassinen oder Feldzug draussen) und die hoechstens ANGREIFER_R Felder von uns stehen
         geschuetzt = set(eigene) | {n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] not in TRUPPE}
-        angreifer = {n for n, e in L.items() if e["besitzer"] not in (0, self.sp) and e["typ"] in TRUPPE
-                     and (e.get("nahziel") in geschuetzt or e.get("zieleinheit") in geschuetzt)
-                     and min((schach((e["x"], e["y"]), g) for g in gebaeude), default=0) <= ANGREIFER_R}
+        angreifer = RO.angreifer(L, gebaeude, self.sp, geschuetzt)
         for n in angreifer:
             feinde.setdefault(n, (0, L[n]))
         fern = [e for e in eigene.values() if e["typ"] in FERNKAMPF]
         if not feinde:
             self.ziel = None
-            # B-182: ohne Bedrohung endet jeder Angriff der Wegfuehrung; das Stapeln ("ort") laeuft weiter
-            self._loslassen([n for n, art in list(self.gefuehrt.items()) if art == "einheit" or n in reserve])
+            # B-182: ohne Bedrohung endet jede Fuehrung der Wegfuehrung
+            self._loslassen([n for n, art in list(self.gefuehrt.items()) if art in ("einheit", "ort") or n in reserve])
+            # B-182 Logbuch: ohne Bedrohung gelten nur Startposten und Rueckzug des Lords - wer gekaempft hat, bleibt stehen
+            self.stand_je = {n: v for n, v in self.stand_je.items()
+                             if v[2] in ("start_post", "lord_low_health", "lord_recovered")}
             for n in reserve:                    # 19.10.: Reserve (Feldzug beim Sammeln) wieder frei fuer den Feldzug
                 self.auftrag.pop(n, None)
-            # Stapeln (Daniel 00:38 "Bogenschuetzen und Schwertkaempfer auf ein Feld, damit diese sie schuetzen"):
-            # ohne Gegner stehen die Nahkaempfer auf dem Feld der Fernkaempfer
-            if fern:
-                mx = int(sum(e["x"] for e in fern) / len(fern)); my = int(sum(e["y"] for e in fern) / len(fern))
-                # 12.10. 01:46 (Daniel: "warum sammeln sich jetzt wieder Assassinen in einem Klump?"): Assassinen steuert nur
-                # assassinen.py - der Waechter stapelt sie nicht mit
-                weg = [n for n, e in eigene.items() if e["typ"] in NAHKAMPF and e["typ"] not in (LORD, 73)
-                       and schach((e["x"], e["y"]), (mx, my)) > 2]
-                self.stapel_pause = getattr(self, "stapel_pause", 0) - 1
-                if weg and self.stapel_pause <= 0:
-                    self.stapel_pause = 5               # hoechstens alle 5 Waechter-Runden ein Stapel-Befehl
-                    if self.weg is not None:
-                        self._fuehre(weg, "ort", (mx, my))     # B-182: sicherer Weg zum Feld der Fernkaempfer
-                    else:
-                        befehl({"angriff": {"einheiten": weg, "lauf": [mx, my]}}, 1.0, bis="ANGRIFF")
-                    for n in weg:
-                        self.auftrag.pop(n, None)
-                    ereignis.append("Stapeln: %d Nahkaempfer auf das Feld der Fernkaempfer (%d,%d)" % (len(weg), mx, my))
+            # 13.11.2026 23:02 entfernt - das "Stapeln" der Nahkaempfer auf das Feld der Fernkaempfer (seit 12.10., dazu am 13.11.
+            # das Mitziehen im Vorstoss). Daniel: "diese regel ueberall entfernen ... Das ist nie eine regel gewesen vielleicht habe
+            # ich es mal gesagt ... so etwas muss erstmal begruendet sein und getestet". Es gelten die Kampfregeln.
             return ereignis
         # 19.10. (Daniel, Bild 1019b: Feinde zerstoerten unsere Felder, unsere Truppen standen daneben): bei einer Bedrohung
         # zaehlt die Reserve mit (Streitkolben des Feldzugs, solange er sammelt) - ob sie kaempft, entscheidet die Bewertung
         eigene = dict(eigene)
         eigene.update({n: L[n] for n in reserve if n in L and L[n]["besitzer"] == self.sp})
         self._reserve = set(reserve)
+        self._grund_runde = "threat_not_engaged"
         # 12.10. 01:46 (Daniel: "warum hast du den Lord vorgeschickt?"): der Lord faengt nicht im Feld ab - nur wenn Feinde
         # hoechstens LORD_SELBST Felder neben IHM stehen (er schuetzt sich und die Schuetzen bei ihm). Sein Tod verliert die Partie.
         lord_feind_nah = lambda e: any(schach((e["x"], e["y"]), (f[1]["x"], f[1]["y"])) <= LORD_SELBST for f in feinde.values())
@@ -232,6 +237,7 @@ class Waechter:
                       if not (e["typ"] == LORD and (self.lord_zurueck or (self.lord_max and e["leben"] < LORD_FLUCHT * self.lord_max)
                                                     or not lord_feind_nah(e)))]
         if not verfuegbar:
+            self._grund_runde = "threat_no_unit_available"
             return ereignis
         gruppe = (sum(eigene[n]["x"] for n in verfuegbar) / len(verfuegbar), sum(eigene[n]["y"] for n in verfuegbar) / len(verfuegbar))
         if angreifer and self.ziel not in angreifer:
@@ -244,6 +250,7 @@ class Waechter:
             # gerade keiner einholt (gesperrt fuer 3 Waechter-Runden)
             frei = [n for n in feinde if n not in self._gesperrt_jetzt()]
             if not frei:
+                self._grund_runde = "threats_locked_no_hunt"
                 return ereignis
             self.ziel = min(frei, key=lambda n: feinde[n][0])
             # 19.10. 18:35 (Plan Einheitenlenker Schritt 2; Daniel 18:03 "welche Einheit gilt es als ehesten zu toeten, um den
@@ -262,8 +269,14 @@ class Waechter:
         nah_ort = min((schach(ort, g) for g in gebaeude), default=999)
         if self.ziel not in angreifer and nah_ort > 25 and schach(ort, gruppe) > 12:
             # Angreifer noch weit weg: gebuendelt an seinem Laufziel abfangen (Daniel 22:43: frueh wissen, wo er angreift)
+            self._grund_runde = "waits_for_far_intruder"
             if not self.lauert and fe["laufx"] > 0:
+                # B-182 (Logbuch, Partie 12.11. 21:03, Takt 17.487): ohne Loslassen hielt die Wegfuehrung die Speertraeger am
+                # Stapelplatz (151, 280) fest, das Abfangen bei (188, 241) fand nie statt (path_target) - ein Fuehrer je Einheit
+                self._loslassen(verfuegbar)
                 befehl({"halten": {"nr": verfuegbar, "x": fe["laufx"], "y": fe["laufy"]}}, 1.0, bis="HALTEN")
+                self._merke(verfuegbar, Action.DEFEND, point((fe["laufx"], fe["laufy"])), "intercept_at_enemy_destination",
+                            enemy=unit(self.ziel))
                 self.lauert = True
                 ereignis.append("Abfangen: %d Verteidiger zum Laufziel (%d,%d) von Feind %d (noch %d Felder von uns)" % (
                     len(verfuegbar), fe["laufx"], fe["laufy"], self.ziel, nah_ort))
@@ -282,6 +295,7 @@ class Waechter:
                 self._loslassen(vorne)
                 # Wegfuehrung frei: Abwehr am eigenen Lord - Schuetzen hinter den Lord
                 befehl({"angriff": {"einheiten": vorne, "lauf": [hinter[0], hinter[1]]}}, 1.0, bis="ANGRIFF")
+                self._merke(vorne, Action.MOVE_TO_STAGING, point(hinter), "behind_lord", lord_dist=d_lord)
                 for n in vorne:
                     self.auftrag.pop(n, None)
                 ereignis.append("Schild: %d Fernkaempfer hinter den Lord nach %s (Lord %d Felder vom Ziel)" % (len(vorne), hinter, d_lord))
@@ -291,11 +305,13 @@ class Waechter:
         # angreifen, wenn die Gruppe faellt und genug von uns bleibt; sonst Schuetzen zu den Nahkaempfern an den Bergfried
         lohnt, text, einsatz = self._bewerten(L, eigene, verfuegbar)
         if not lohnt and "keine Jagd" in text:
+            self._grund_runde = "cannot_catch_target"
             if self.verzicht != self.ziel:
                 self.verzicht = self.ziel
                 ereignis.append("KEINE JAGD auf Feind %d Typ %d bei (%d,%d): %s" % (self.ziel, fe["typ"], fe["x"], fe["y"], text))
             return ereignis
         if not lohnt:
+            self._grund_runde = "fight_not_worth"
             if self.verzicht != self.ziel:
                 self.verzicht = self.ziel
                 sammel = BERGFRIED_EINGANG
@@ -308,6 +324,7 @@ class Waechter:
                     befehl({"halten": {"los": eigen_v}}, 1.0, bis="HALTEN")
                     # Wegfuehrung frei: Abwehr am eigenen Lord - sammeln am Bergfried, der Angriff lohnt nicht
                     befehl({"angriff": {"einheiten": eigen_v, "lauf": [sammel[0], sammel[1]]}}, 1.0, bis="ANGRIFF")
+                    self._merke(eigen_v, Action.RETREAT, point(sammel), "fight_not_worth", enemy=unit(self.ziel))
                 ereignis.append("ABWEHR VERZICHTET gegen Feind %d Typ %d bei (%d,%d): %s - %d sammeln am Bergfried %s" % (
                     self.ziel, fe["typ"], fe["x"], fe["y"], text, len(eigen_v), tuple(sammel)))
             return ereignis
@@ -322,11 +339,14 @@ class Waechter:
                 self._loslassen(bedroht)
                 # Wegfuehrung frei: Flucht - Schuetzen weichen vor der Gruppe zum Bergfried
                 befehl({"angriff": {"einheiten": bedroht, "lauf": [BERGFRIED_EINGANG[0], BERGFRIED_EINGANG[1]]}}, 1.0, bis="ANGRIFF")
+                self._merke(bedroht, Action.FLEE, point(BERGFRIED_EINGANG), "melee_takes_over")
                 for n in bedroht:
                     self.auftrag.pop(n, None)
                 ereignis.append("Schuetzen raus: %d weichen zum Bergfried, die Nahkaempfer uebernehmen" % len(bedroht))
             self.zurueck = (self.ziel, tuple(sorted(raus)))
         verfuegbar = list(einsatz)
+        self._bereich |= set(verfuegbar)
+        self._merke(verfuegbar, Action.DEFEND, unit(self.ziel), "intruder", typ=fe["typ"])
         for n in reserve:                        # 19.10.: nicht gebrauchte Reserve zurueck zum Feldzug
             if n not in einsatz:
                 self.auftrag.pop(n, None)

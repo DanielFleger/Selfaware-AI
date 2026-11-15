@@ -110,6 +110,28 @@ pub struct Einheit {
     pub wegbedarf: i16,
     pub teilzustand: i16,
     pub getoetet: i16,
+    // S139/S140 (Daniel 14.11.2026 20:56 "Ja, mitschreiben"): was giveTribeMoveInstruction je Einheit prueft, bevor es ihr ein Ziel
+    // gibt (struct Unit aus OpenSHC, data/research/funktionswissen/unit_struktur_openshc_20261114.txt); dying (+672) ist schon
+    // Bedingung der Liste
+    /// logicalState (+140)
+    pub logikzustand: i16,
+    /// moveRelatedFlag (+148): == 1 -> kein neues Ziel
+    pub laufmerker: i16,
+    /// goToRallyPoint (+176)
+    pub sammelgang: i16,
+    /// usingTeleport (+670)
+    pub teleport: i16,
+    /// rallyRelatedFlag (+1068): != 0 -> kein neues Ziel
+    pub sammelmerker: i16,
+    /// moveableUnk (+1094): == 0 -> kein neues Ziel
+    pub beweglich: i16,
+    /// field320_0x413 (+1043, ein Byte): Bedingung des Marschbefehls, Bedeutung unbekannt (einziger Schreiber laut Ghidra:
+    /// UpdateAssassin) - nur eigene Einheiten (S143, Daniel 14.11.2026 22:48 "Ja, mitschreiben")
+    pub merker413: i16,
+    /// S148 (Daniel 14.11.2026 23:19 "Ja, mitschreiben"): Gebiet des Wegnetzes (PathConnectionLayer) am Feld der Einheit
+    /// (Feinposition / 8), wie logik.lua ZUGPRUEFUNG es liest; das Spiel baut die Ebene hoechstens alle 200 Takte neu.
+    /// Kartendaten, die jeder sieht (Sichtschranke: eigen und fremd erlaubt)
+    pub gebiet: i16,
 }
 
 /// Sichtschranke (docs/FAIRNESS.md R3, R4): Felder der Feldliste, die nur fuer eigene Einheiten erlaubt sind, fuer Fremde auf 0.
@@ -119,6 +141,7 @@ pub fn fuer_fremde(e: &Einheit) -> Einheit {
         ziel: 0, zielx: 0, ziely: 0, zieluid: 0, mauerfeld: 0, mauerx: 0, mauery: 0, nahangreifer: 0, schussziel_uid: 0,
         naechstesfeld: 0, schussx: 0, schussy: 0, schussz: 0, wegindex: 0, weglaenge: 0, feindabstand: 0, planx: 0, plany: 0,
         schusseinheit: 0, tempo: 0, wegbedarf: 0,
+        laufmerker: 0, sammelgang: 0, teleport: 0, sammelmerker: 0, merker413: 0,   // logicalState, moveableUnk: auch fuer Fremde erlaubt
         ..*e
     }
 }
@@ -280,6 +303,14 @@ impl Welt {
                     wegbedarf: i16_bei(u + 0x374),
                     teilzustand: i16_bei(u + 0x380),
                     getoetet: i16_bei(u + 0x3F0),
+                    logikzustand: i16_bei(u + 140),
+                    laufmerker: i16_bei(u + 148),
+                    sammelgang: i16_bei(u + 176),
+                    teleport: i16_bei(u + 670),
+                    sammelmerker: i16_bei(u + 1068),
+                    beweglich: i16_bei(u + 1094),
+                    merker413: u8_bei(u + 1043) as i16,
+                    gebiet: crate::wege::gebiet(i16_bei(u + 0xB6) as i32 / 8, i16_bei(u + 0xB8) as i32 / 8) as i16,
                 });
             }
             let anz = i32_bei(GEBAEUDE + 8);
@@ -577,9 +608,13 @@ mod tests {
             ziel: 11, zielx: 12, ziely: 13, zieluid: 14, mauerfeld: 15, mauerx: 16, mauery: 17, nahangreifer: 18, schussziel_uid: 19,
             naechstesfeld: 20, schussx: 21, schussy: 22, schussz: 23, wegindex: 24, weglaenge: 25, feindabstand: 26, planx: 27, plany: 28,
             schusseinheit: 29, tempo: 30, wegbedarf: 31,
+            logikzustand: 32, laufmerker: 33, sammelgang: 34, teleport: 35, sammelmerker: 37, beweglich: 38, merker413: 39, gebiet: 40,
             ..Default::default()
         };
         let f = fuer_fremde(&e);
+        // S139: Filterfelder des Marschbefehls - Zustand und Beweglichkeit sichtbar, Lauf- und Sammelmerker, Teleport nur eigene
+        assert_eq!((f.logikzustand, f.beweglich, f.gebiet), (32, 38, 40));   // S148: das Gebiet sieht jeder
+        assert_eq!((f.laufmerker, f.sammelgang, f.teleport, f.sammelmerker, f.merker413), (0, 0, 0, 0, 0));
         // sichtbar: bleibt
         assert_eq!((f.bild, f.bildzyklus, f.kletterstand, f.feinx, f.feiny), (6, 2, 1, 803, 811));
         assert_eq!((f.gelaendehoehe, f.gebaeudehoehe, f.teilzustand, f.getoetet), (40, 9, 1, 1));

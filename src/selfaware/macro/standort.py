@@ -36,8 +36,8 @@ D = os.path.join(_workspace.DATA)
 SP = 1
 
 
-def platzkarte(mapper, groesse, x0, y0, x1, y1):
-    befehl({"platzkarte": {"spieler": SP, "mapper": mapper, "groesse": groesse, "x0": x0, "y0": y0, "x1": x1, "y1": y1}},
+def platzkarte(mapper, groesse, x0, y0, x1, y1, sp=SP):
+    befehl({"platzkarte": {"spieler": sp, "mapper": mapper, "groesse": groesse, "x0": x0, "y0": y0, "x1": x1, "y1": y1}},
            120.0, bis="PLATZKARTE")
     zeilen = open(os.path.join(kanal.ABZUG, "platzkarte.txt"), encoding="utf-8").read().splitlines()
     return {(x0 + i, y0 + j) for j, z in enumerate(zeilen[1:]) for i, c in enumerate(z) if c == "+"}

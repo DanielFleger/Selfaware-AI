@@ -17,8 +17,8 @@ from dataclasses import dataclass, field
 from operator import itemgetter
 
 KENNUNG = int.from_bytes(b"SAMK", "little")
-AUFBAU = 5
-KOPF, EINHEIT, GEBAEUDE, TRUPP, GESCHOSS = 64, 108, 20, 16, 40
+AUFBAU = 8      # 8 (14.11.2026, S148): Gebiet des Wegnetzes je Einheit, Datensatz 120 -> 124; 7 (S143): field320_0x413; 6 (S139)
+KOPF, EINHEIT, GEBAEUDE, TRUPP, GESCHOSS = 64, 124, 20, 16, 40
 MAX_EINHEITEN, MAX_GEBAEUDE, MAX_TRUPPS, MAX_GESCHOSSE = 2500, 2000, 1250, 3000
 GEBAEUDE_START = KOPF + MAX_EINHEITEN * EINHEIT
 TRUPP_START = GEBAEUDE_START + MAX_GEBAEUDE * GEBAEUDE
@@ -54,6 +54,14 @@ GROESSE = RING_START + RING_KOPF + RING_N * RING_EINTRAG
 OFFEN = -(2**31)
 UEBERNEHMEN, FREIGEBEN, LAUF, ANGRIFF_EINHEIT, ANGRIFF_GEBAEUDE = 1, 2, 17, 4, 9
 AUSWEICHEN = 30  # B-174, B-178: a, b = Ziel, im Feld vorrang die Nummer des Trupps
+# S155 (Kern 30, Daniel 15.11.2026 00:20 "Ja, Kern bauen"): ein Laufauftrag, den der Kern durchsetzt - kaempft die Einheit gegen einen
+# anderen als den erlaubten Gegner (Zustand 106), legt er ihn jeden Takt neu in die Schlange; GEGNER_ERLAUBT: a = dieser Gegner, 0 = keiner
+LAUF_DURCHSETZEN, GEGNER_ERLAUBT = 18, 19
+DURCHSETZEN_AB = 30  # erste Kern-Version, die beide Arten kennt - ein aelterer lehnt sie als unbekannt ab
+# S159 (Kern 32): an einen Laufauftrag haengt der Lenker die weiteren Wegpunkte (a, b = Ort) und zuletzt den Angriff (a = Ziel); der Kern
+# gibt den naechsten Schritt im Takt, in dem die Einheit am jetzigen Wegpunkt ankommt
+WEGPUNKT, DANACH_EINHEIT, DANACH_GEBAEUDE = 20, 21, 22
+KETTE_AB = 32       # erste Kern-Version mit Wegpunktkette
 VORRANG_REFLEX, VORRANG_FLUCHT, VORRANG_ANGRIFF, VORRANG_LAUFEN, VORRANG_ROUTINE = 1, 2, 3, 4, 5
 ERG_DOPPELT, ERG_ANGENOMMEN, ERG_ABGESETZT, ERG_WIRKT, ERG_GEPARKT = 0, 1, 2, 3, 4
 ERG_NICHT_UEBERNOMMEN, ERG_UNBEKANNT, ERG_FREMD = -4, -5, -6
@@ -73,7 +81,7 @@ ERGEBNIS_NAMEN = {
     ERG_WIRKT_NICHT: "wirkt nicht",
 }
 KOPF_FORMAT = "<IIIiIiIIIIIIiII"
-EINHEIT_FORMAT = "<ii12h7i23h2x"
+EINHEIT_FORMAT = "<ii12h7i31h2x"
 GEBAEUDE_FORMAT = "<i7h2x"
 TRUPP_FORMAT = "<ii4h"
 GESCHOSS_FORMAT = "<i10hiiff"
@@ -109,7 +117,20 @@ EINHEIT_SPIELFELD = {
     "mauerx": "attackAtTileX",
     "mauery": "attackAtTileY",
     "getoetet": "killedFlagUnk",
+    # S139 (Daniel 14.11.2026 20:56 "Ja, mitschreiben"): was giveTribeMoveInstruction je Einheit prueft, bevor es ihr ein Ziel gibt
+    # (struct Unit, OpenSHC) - ein Laufbefehl, der nicht greift, zeigt damit seinen Grund
+    "logikzustand": "logicalState",
+    "laufmerker": "moveRelatedFlag",
+    "sammelgang": "goToRallyPoint",
+    "teleport": "usingTeleport",
+    "sammelmerker": "rallyRelatedFlag",
+    "beweglich": "moveableUnk",
+    # S143 (Daniel 14.11.2026 22:48 "Ja, mitschreiben"): die letzte Bedingung des Marschbefehls, Bedeutung unbekannt - nur eigene
+    "merker413": "field320_0x413",
 }
+# S148 (Daniel 14.11.2026 23:19 "Ja, mitschreiben"): Felder, die der Kern aus einer Kartenebene am Feld der Einheit liest -> Feld der
+# Feldliste. gebiet: PathConnectionLayer an Feinposition / 8, wie logik.lua ZUGPRUEFUNG (Kartendaten, die jeder sieht)
+EINHEIT_ABGELEITET = {"gebiet": "PathConnectionLayer[]"}
 EINHEIT_FELDER = (
     "nr",
     "leben",
@@ -126,6 +147,7 @@ EINHEIT_FELDER = (
     "zielgebaeude",
     "nahziel",
     *EINHEIT_SPIELFELD,
+    *EINHEIT_ABGELEITET,
 )
 # Sichtschranke: nur fuer eigene Einheiten (FAIRNESS R3, R4); Gegenprobe gegen die Liste in tests/test_kern_leitung.py
 NUR_EIGEN = frozenset(
@@ -151,6 +173,11 @@ NUR_EIGEN = frozenset(
         "nahangreifer",
         "mauerx",
         "mauery",
+        "laufmerker",
+        "sammelgang",
+        "teleport",
+        "sammelmerker",
+        "merker413",
     }
 )
 EINHEIT_BESITZER = EINHEIT_FELDER.index("besitzer")
@@ -217,7 +244,7 @@ def _tabelle(format_, felder, puffer, start, schritt, anzahl):
 
 
 def entpacken(puffer):
-    """Bytes im Aufbau 5 -> Weltbild (vorrat: {spieler: {ware: menge}} fuer Spieler 1-8)."""
+    """Bytes im Aufbau 6 -> Weltbild (vorrat: {spieler: {ware: menge}} fuer Spieler 1-8)."""
     kopf = struct.unpack_from(KOPF_FORMAT, puffer, 0)
     kennung, aufbau, _folge, tick, epoche, ich, ne, ng = kopf[:8]
     geplant, ausgehoben, kern, beschuss, lord_feindabstand, nt, nq = kopf[8:]
@@ -265,19 +292,47 @@ class Leitung:
     """Leser fuer den gemeinsamen Speicher eines laufenden Spiels (Spielordner der Instanz)."""
 
     def __init__(self, spiel_ordner):
-        pfad = os.path.join(spiel_ordner, "ucp", "villagestudio", "kern_leitung.txt")
-        with open(pfad, encoding="utf-8") as f:
+        self.pfad = os.path.join(spiel_ordner, "ucp", "villagestudio", "kern_leitung.txt")
+        self.name = None
+        with open(self.pfad, encoding="utf-8") as f:
             name, groesse = f.read().split()[:2]
         if int(groesse) != GROESSE:
             raise FalscherAufbau(f"Groesse {groesse}, erwartet {GROESSE}")
+        self._verbinden(name)
+
+    def _verbinden(self, name):
         self.name = name
         self.speicher = mmap.mmap(-1, GROESSE, tagname=name, access=mmap.ACCESS_WRITE)
+
+    def neu_verbinden(self):
+        """B-182 (Partie 12.11. 19:25): kern_leitung.txt nennt den Speicher des laufenden Spiels. Nach einem frischen Start schreibt der
+        Kern sie erst mit der ersten Partie neu (19:25:42); Wache und Lenker hatten sie kurz davor gelesen, bekamen den Namen des alten
+        Spielprozesses, und Windows legte unter ihm einen neuen, leeren Speicher an - sie lasen die ganze Partie nur Nullen, die
+        Obergrenze lehnte alle 1.877 Werbungen ab. True, wenn die Datei einen anderen Namen nennt und neu verbunden wurde."""
+        try:
+            with open(self.pfad, encoding="utf-8") as f:
+                name, groesse = f.read().split()[:2]
+        except (OSError, ValueError):
+            return False            # der Kern schreibt sie gerade
+        if name == self.name or int(groesse) != GROESSE:
+            return False
+        self._verbinden(name)
+        return True
 
     def folge(self):
         return struct.unpack_from("<I", self.speicher, 8)[0]
 
     def lesen(self, versuche=50):
-        """Ein vollstaendiges Weltbild oder None, wenn der Kern in allen Versuchen gerade schrieb."""
+        """Ein vollstaendiges Weltbild oder None, wenn der Kern in allen Versuchen gerade schrieb. Passt der Kopf nicht (leerer Speicher
+        unter einem alten Namen), verbindet sie sich neu, wenn kern_leitung.txt inzwischen einen anderen Namen nennt."""
+        try:
+            return self._lesen(versuche)
+        except FalscherAufbau:
+            if not self.neu_verbinden():
+                raise
+            return self._lesen(versuche)
+
+    def _lesen(self, versuche):
         for _ in range(versuche):
             vorher = self.folge()
             if vorher & 1:

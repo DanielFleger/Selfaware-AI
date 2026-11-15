@@ -5,7 +5,12 @@ from types import SimpleNamespace
 import pytest
 
 from selfaware.baukasten.obergrenze import UNTERWEGS_TAKTE, Obergrenze, kaempfer
-from selfaware.tools.checks.fehlerwache import Wache, anspruechen_aus
+from selfaware.tools.checks.fehlerwache import (
+    Wache,
+    absichten_aus,
+    anspruechen_aus,
+    anspruechen_mit_takt,
+)
 
 
 def einheit(nr, besitzer, typ, x, y, **f):
@@ -73,6 +78,16 @@ def test_laden_befehl_schickt_ueber_der_grenze_nichts_ans_spiel(monkeypatch):
 
 
 # ---- Fehlerwache --------------------------------------------------------------------------------------------------
+def test_obergrenze_sagt_wenn_sie_den_kern_nicht_lesen_kann():
+    """Partie 12.11. 19:25: der Kern war nicht lesbar, die Obergrenze lehnte still alle 1.877 Werbungen ab."""
+
+    class Kaputt:
+        def lesen(self):
+            raise RuntimeError("leerer Speicher")
+    o = Obergrenze(20, Kaputt())
+    assert not o.erlaubt(71) and "KERN NICHT LESBAR" in o.stand()
+
+
 def test_f1_mehr_kaempfer_als_erlaubt():
     w = welt(100, LORD, *[einheit(10 + i, 1, 24, 100, 101) for i in range(3)])
     assert [f["art"] for f in Wache(grenze=2).schritt(w)] == ["F1 Obergrenze"]
@@ -90,6 +105,44 @@ def test_f2_reiter_mit_fernem_ziel_steht_nahes_ziel_nicht():
     wb = Wache(still=600)
     for t in (100, 700, 1300):
         assert wb.schritt(welt(t, LORD, nah, einheit(20, 1, 74, 100, 102, zielart=4, zieleinheit=51, schusseinheit=51))) == []
+
+
+def test_f2_altes_grabefeld_beim_halten_ist_kein_angriff():
+    """Partie 11.11. 23:04: nach dem Graben hielten die Speertraeger 333/334 (Zielart 3) mit dem letzten Grabefeld (193, 234) im
+    Speicher - F2 meldete einen Gebaeudeangriff ohne Weg, den es nicht gab. Graebt oder greift er (Zielart 6), zaehlt es weiter."""
+    w = Wache()
+    haelt = einheit(20, 1, 24, 192, 240, zielart=3, mauerx=193, mauery=234)
+    graebt = einheit(21, 1, 24, 150, 150, zielart=6, mauerx=160, mauery=150)
+    f = []
+    for t in (100, 400, 800):
+        f = w.schritt(welt(t, LORD, haelt, graebt))
+    assert [(x["art"], x["einheit"]) for x in f] == [("F2 steht", 21)]
+
+
+def test_f2_altes_gebaeudefeld_beim_gewollten_warten_ist_kein_angriff():
+    """Logbuch je Einheit, Partie 12.11. 20:34: Assassine 474 wartete laut Logbuch an einem sicheren Platz (wait_safe_place), der
+    Kern hielt die Kachel seines frueheren Gebaeudeangriffs (201, 43) bei Zielart 0 - F2 hielt bei Takt 29.678 die Partie an.
+    Ohne Meldung oder ohne Grund zaehlt es wie bisher; endet das Warten, beginnt die Uhr neu."""
+    wartet = einheit(474, 1, 73, 239, 88, zielart=0, mauerx=201, mauery=43)
+    w = Wache(still=600)
+    w.absichten(absichten_aus("UNIT t=28190 474 (A_ASSASSIN 73) assassinen WAIT_STAGING target=(239,88) "
+                              "reason=wait_safe_place path=-\n"))
+    for t in (29068, 29400, 29678):
+        assert w.schritt(welt(t, LORD, wartet)) == []
+    w.absichten(absichten_aus("UNIT t=29700 474 (A_ASSASSIN 73) assassinen ATTACK_BUILDING target=B20 reason=raid_building path=-\n"))
+    assert w.schritt(welt(29800, LORD, wartet)) == []  # die Uhr laeuft erst seit dem Ende des Wartens
+    assert [x["art"] for x in w.schritt(welt(30300, LORD, wartet))] == ["F2 steht"]
+    ohne = Wache(still=600)  # ohne Logbuch wie bisher
+    f = []
+    for t in (29068, 29400, 29678):
+        f = ohne.schritt(welt(t, LORD, wartet))
+    assert [(x["art"], x["einheit"]) for x in f] == [("F2 steht", 474)]
+    grundlos = Wache()
+    grundlos.absichten(absichten_aus("UNIT t=1 474 (A_ASSASSIN 73) assassinen WAIT_STAGING path=-\n"
+                                     "UNIT t=1 475 (A_SLAVE 71) brandtrupp WAIT_STAGING target=(1,2) reason=no_module_reason path=at_point\n"))
+    assert not grundlos.will_stehen(474) and not grundlos.will_stehen(475)
+    grundlos.absichten(absichten_aus("UNIT_NO_ORDER t=2 1: 476 (E_SPEAR 24) nobody\nUNIT t=3 474 (A_ASSASSIN 73) gone\n"))
+    assert 474 not in grundlos.absicht and 476 not in grundlos.absicht
 
 
 def test_f3_soeldner_untaetig_zu_hause_nicht_wenn_er_laeuft():
@@ -114,6 +167,39 @@ def test_f4_erfolg_nur_mit_beleg():
     wa.schritt(welt(2500, LORD, opfer, einheit(20, 1, 74, 100, 100, schusseinheit=50), einheit(21, 1, 75, 100, 101)))
     f = wa.schritt(welt(2600, LORD, einheit(20, 1, 74, 100, 100), einheit(21, 1, 75, 100, 101)), anspruechen_aus(text))
     assert [(x["art"], x["einheit"]) for x in f] == [("F4 ohne Taeter", 21)]  # Reiter 20 hatte 50 als Schussziel, 21 nie
+
+
+def test_f4_spaet_gelesene_meldung_zaehlt_ab_ihrem_takt():
+    """Partie 11.11. 23:19: Meldung bei Takt 14417, gelesen bei 15066 - die Wache rechnete ab 15066 und meldete F4."""
+    text = "14417 | x | REITERJAGD: Reiter 20 hat Arbeiter 50 erledigt\n15000 | x | REITERJAGD: Reiter 20 hat Arbeiter 51 erledigt\n"
+    assert anspruechen_mit_takt(text) == [("Reiterjagd", 20, 50, 14417), ("Reiterjagd", 20, 51, 15000)]
+    wa = Wache(beleg=600)
+    wa.schritt(welt(14410, LORD, einheit(50, 2, 3, 120, 100), einheit(51, 2, 3, 130, 100),
+                    einheit(20, 1, 74, 100, 100, schusseinheit=50)))
+    f = wa.schritt(welt(15066, LORD, einheit(20, 1, 74, 100, 100)), anspruechen_mit_takt(text))
+    assert [(x["art"], x["opfer"], x["takt"]) for x in f] == [("F4 ohne Taeter", 51, 15000)]  # 50 hatte er, 51 nie
+
+
+def test_f4_beleg_aus_dem_lageprotokoll(tmp_path):
+    """Partie 12.11. 00:12: die Live-Wache verpasste den Schuss von Reiter 488 auf Arbeiter 10, das Lageprotokoll zeigte ihn."""
+    import gzip
+    import json
+
+    from selfaware.tools.checks.fehlerwache import beleg_im_lageprotokoll
+
+    kopf = "nr besitzer typ x y leben zielart zieleinheit laufx laufy nahziel"
+    eigen_kopf = "nr typ x y zielart zieleinheit zieluid schusseinheit schussziel_uid mauerx mauery planx plany nahziel"
+    p = tmp_path / "lage.jsonl.gz"
+    for t, schuss in ((20173, 341), (20257, 10)):
+        z = {"t": t, "st": {}, "einheiten": "tick %d\n%s\n20 1 74 307 187 15000 4 %d 307 187 0\n" % (t, kopf, schuss),
+             "gebaeude": "nr\n", "eigen": "kern_tick %d ich 1\n%s\n20 74 307 187 4 %d 0 %d 0 0 0 0 0 0\n" % (t, eigen_kopf, schuss, schuss)}
+        with gzip.open(p, "at", encoding="utf-8") as f:  # so haengt der Lenker je Runde an
+            f.write(json.dumps(z) + "\n")
+    with open(p, "ab") as f:
+        f.write(b"\x1f\x8b\x08")  # die naechste Runde wird gerade geschrieben
+    assert beleg_im_lageprotokoll(str(p), 20, 10, 20257, 600)
+    assert not beleg_im_lageprotokoll(str(p), 20, 11, 20257, 600)  # auf 11 schoss er nie
+    assert not beleg_im_lageprotokoll(str(p), 20, 10, 21000, 600)  # zu lange her
 
 
 def test_beobachtet_die_ersten_zwanzig():
@@ -145,6 +231,15 @@ def test_nachspielen_findet_den_fehler_im_lageprotokoll(tmp_path):
             f.write(json.dumps(z) + "\n")
     fehler, wache = nachspielen(str(p), still=600)
     assert [x["art"] for x in fehler] == ["F2 steht"] and wache.gruppe == [20]
+    # B-182: mit dem Logbuch in den Zeilen (Tabelle "intents") wartet der Reiter gewollt - kein Fehler
+    for z in zeilen:
+        z["intents"] = ("tick %d\nunit type owner action target reason path params\n"
+                        "20 74 reiterjagd WAIT_SAFE_TARGET - no_safe_worker - -\n" % (z["t"] - 45))
+    with gzip.open(p, "wt", encoding="utf-8") as f:
+        for z in zeilen:
+            f.write(json.dumps(z) + "\n")
+    fehler, wache = nachspielen(str(p), still=600)
+    assert fehler is None and wache.absicht[20][2] == "WAIT_SAFE_TARGET"
 
 
 def test_melden_schreibt_bericht_vor_dem_anhalten_und_wartet_auf_den_kanal(tmp_path):
@@ -234,3 +329,14 @@ def test_wache_wartet_auf_einen_leeren_kern_statt_abzustuerzen():
     le = Leitung()
     assert FW._kern_leer(le) is True
     assert FW.lies(le, warte=0).tick == 120 and le.n == 3
+
+
+def test_obergrenze_ohne_ruhigen_kernstand_wirft_nicht():
+    """Partie 12.11. 20:53, Takt 26.793: lesen() gab None (der Kern schrieb in allen Versuchen), kaempfer(None) warf und die
+    Raid-Werbung der Runde fiel aus ("RAIDS FEHLER ... 'einheiten'"). Jetzt gilt die Grenze als erreicht, gezaehlt wird es."""
+
+    class Schreibt:
+        def lesen(self):
+            return None
+    o = Obergrenze(20, Schreibt())
+    assert not o.erlaubt(71) and "KERN NICHT LESBAR 1-mal" in o.stand()

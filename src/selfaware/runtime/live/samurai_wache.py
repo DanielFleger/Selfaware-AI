@@ -20,7 +20,9 @@ import time
 
 HIER = os.path.dirname(os.path.abspath(__file__))
 D = os.path.join(_workspace.DATA)
-RATTE = 1                    # KI-Nummer der Ratte in currentAIArray (1 Ratte, 2 Schlange, 3 Schwein, 4 Wolf ...)
+# S172 (Daniel 15.11.2026 12:27: "ich habe gesagt SamurAI, das hat sogar schon eine Beschreibung und ein Profilbild"): SamurAIs eigenes
+# KI-Paket (assets/ai/SamurAI, Plugin Selfaware-AI) sitzt per UCP-aiSwapper auf dem Abt-Platz = KI 16 - nicht mehr die Ratte (19.10.)
+SAMURAI_KI = 16              # KI-Nummer in currentAIArray (1 Ratte, 2 Schlange, ..., 16 Abt = SamurAI)
 ANSICHT, GAMEOVER = 0x01FE7D1C, 0x0117D500
 AI_ARRAY, AI_TYP, MENSCH = 0x0191DE7C, 0x0115BDF8 + 0x2300, 0x0191DE10
 PD_SCHRITT = 0x39F4
@@ -31,13 +33,16 @@ SCHNELL_S = 0.25             # vor der Partie: so oft nachsehen, ob ein Gefecht 
 STOP = os.path.join(_workspace.STATE, 'STOP_SAMURAI')
 # 20:31: regel50=nein - gegen einen Menschen hoert SamurAI bei Beliebtheit unter 50 NICHT auf (Testlauf 20:28: Regelbruch bei
 # Tick 4.607, die Beliebtheit 48,25 hatte noch die Ratte vor der Uebernahme verursacht; Daniel: "hoert die KI auf nach ein paar Ticks")
-LENKER_ARGS = ("leere_ki=nein experiment=ja regel50=nein minuten=600 tempo=40 bis_tick=900000 ziel_tick=offen streitkolben=30 "
-               "weg=feldzug produktion=ja bier=ja abriss=nein assassinen=20 aufloesen=ende b_versatz=600 bevoelkerung_ziel=90 "
+# S172: dieselben Einstellungen wie die Raid-Aufstellung (raid_wirkung_pp, Partie 33) - Raid, erster Angriff, alle Rohstoffe; das Tempo
+# setzt der Mensch im Spiel (uebernehmen=ja aendert es nie)
+LENKER_ARGS = ("leere_ki=nein experiment=ja regel50=nein minuten=600 tempo=100 bis_tick=900000 ziel_tick=offen streitkolben=0 "
+               "weg=feldzug produktion=nein bier=ja abriss=nein assassinen=20 aufloesen=ende b_versatz=600 bevoelkerung_ziel=90 "
                "einzelkauf=nein entscheider=kausal gegner=1 gute_dinge=0 haushalt_rand=650 holz_kaufen=ja holz_spam=20 "
                "holzfaeller_je_baum=4 holzfaeller_max=30 holzfaeller_vorab=4 huetten_voraus=nein je_arbeiter=ja "
                "joch_nach_stein=ja kasse=nein kasse_grenze=0 kasse_stufe=11 nahrung_ausbau=nein notwerbung=ja penner=20 "
                "rationen=doppelt schub=nein stein_max=nein stein_parallel=ja steinbruch_zuerst=nein steuer_ende=nein "
                "steuer_runter=90 umzug=frueh v14=nein vollbeschaeftigung=ja wachstum_boden=9500 waechter=ja stopp_tote=0 "
+               "kernweg=ja vorstoss=ja bestellung=raid ausweichen=ja endspurt=nein ohne_angriff=ja vorstoss_bis=900000 "
                "uebernehmen=ja").split()
 
 
@@ -63,10 +68,18 @@ def entscheide(ansicht, gameover, ai, lenker_laeuft, partie_bedient):
         return ("warten", None)
     if lenker_laeuft or partie_bedient:
         return ("warten", None)
-    ratten = sorted(sp for sp, k in ai.items() if k == RATTE)
+    ratten = sorted(sp for sp, k in ai.items() if k == SAMURAI_KI)
     if ratten:
         return ("starten", ratten[0])
     return ("warten", None)
+
+
+def lenker_umgebung(sp):
+    """S172 (Partie 34, 15.11.2026 12:49: fuenfmal "No module named 'selfaware'" - der Lenker startet mit cwd=HIER, ein relativer
+    PYTHONPATH=src zeigte ins Leere): das Paket immer mit festem Pfad mitgeben, egal von wo die Wache gestartet wurde."""
+    src = os.path.abspath(os.path.join(HIER, "..", "..", ".."))
+    pfade = [src] + [x for x in os.environ.get("PYTHONPATH", "").split(os.pathsep) if x and os.path.abspath(x) != src]
+    return dict(os.environ, SHC_SPIELER=str(sp), SHC_PARTNER="ja", PYTHONPATH=os.pathsep.join(pfade))
 
 
 def spiel_ueber_taskleiste():
@@ -207,7 +220,7 @@ def main():
             if im_spiel(ansicht, gameover) and sp_aktiv and neustarts < NEUSTARTS_MAX:
                 neustarts += 1
                 log = os.path.join(D, "samurai_%s_sp%d_konsole.txt" % (time.strftime("%Y%m%d_%H%M%S"), sp_aktiv))
-                umgebung = dict(os.environ, SHC_SPIELER=str(sp_aktiv), SHC_PARTNER="ja")
+                umgebung = lenker_umgebung(sp_aktiv)
                 lenker = subprocess.Popen([sys.executable, '-u', '-m', 'selfaware.runtime.live.erstes_spiel'] + LENKER_ARGS,
                                           cwd=HIER, env=umgebung, stdout=open(log, "w", encoding="utf-8"), stderr=subprocess.STDOUT)
                 laeuft = True
@@ -231,7 +244,7 @@ def main():
             befehl({"pause": False}, 0.5)
             schreib("Umschaltung bei Tick %s (Spiel waehrenddessen angehalten)" % t_vor)
             log = os.path.join(D, "samurai_%s_sp%d_konsole.txt" % (time.strftime("%Y%m%d_%H%M%S"), sp))
-            umgebung = dict(os.environ, SHC_SPIELER=str(sp), SHC_PARTNER="ja")
+            umgebung = lenker_umgebung(sp)
             lenker = subprocess.Popen([sys.executable, '-u', '-m', 'selfaware.runtime.live.erstes_spiel'] + LENKER_ARGS,
                                       cwd=HIER, env=umgebung, stdout=open(log, "w", encoding="utf-8"), stderr=subprocess.STDOUT)
             bedient, sp_aktiv, neustarts = True, sp, 0
@@ -246,7 +259,7 @@ def main():
                 schreib("LERNEN fehlgeschlagen: %r" % (ex_l,))
         elif tat == "neue_partie_frei":
             bedient, sp_aktiv = False, None
-        elif tat == "warten" and im_spiel(ansicht, gameover) and not bedient and not laeuft and RATTE not in (ai or {}).values():
+        elif tat == "warten" and im_spiel(ansicht, gameover) and not bedient and not laeuft and SAMURAI_KI not in (ai or {}).values():
             # Partie ohne Ratte: die Tick-Pause wieder aufheben (sonst stuende Daniels Spiel bei Tick 1)
             from selfaware.game.ucp.steuerkarte import tick as tick_w
             if (tick_w() or 0) <= 2:

@@ -1,6 +1,6 @@
 //! Leitung (B-145 S4a, docs/plans/Plan_Kern.md "Bauplan S4a"): der Kern legt sein Weltbild in jedem neuen Takt in einen
 //! benannten gemeinsamen Speicher; Python liest ihn ohne Dateikanal (selfaware.game.kern_leitung).
-//! Aufbau Fassung 5 (B-169): Kopf 64 Byte, Einheiten zu 108 Byte (bis 2.500), Gebaeude zu 20 Byte (bis 2.000), eigene Trupps zu 16 Byte (bis 1.250),
+//! Aufbau Fassung 6 (S139, 14.11.2026; Fassung 5 B-169): Kopf 64 Byte, Einheiten zu 120 Byte (bis 2.500), Gebaeude zu 20 Byte (bis 2.000), eigene Trupps zu 16 Byte (bis 1.250),
 //! Geschosse zu 40 Byte (bis 3.000), Vorraete (9 Spieler x 25 Waren als i32, Ware wie im Spiel: 2 Holz ... 15 Gold ... 24 Ruestung), dann der Auftragsring
 //! (S4b): Ringkopf 16 Byte (+0 Schreibzaehler von Python, +4 Lesezaehler des Kerns), 256 Eintraege zu 32 Byte (Art, Einheit, a, b, Ergebnis vom Kern, Vorrang,
 //! Frist, Auftraggeber; P5, B-157). Little endian. Folgezaehler im Kopf: ungerade = Weltbild wird gerade geschrieben.
@@ -10,10 +10,10 @@ use std::sync::atomic::{AtomicU32, Ordering, fence};
 
 use crate::welt::{Welt, fuer_fremde};
 
-pub const AUFBAU: u32 = 5;
+pub const AUFBAU: u32 = 8;
 pub const KENNUNG: u32 = u32::from_le_bytes(*b"SAMK");
 pub const KOPF: usize = 64;
-pub const EINHEIT: usize = 108;
+pub const EINHEIT: usize = 124;
 pub const GEBAEUDE: usize = 20;
 pub const TRUPP: usize = 16;
 pub const GESCHOSS: usize = 40;
@@ -29,7 +29,7 @@ pub const SPIELER: usize = 9;
 pub const WAREN: usize = 25;
 pub const RING_START: usize = VORRAT_START + SPIELER * WAREN * 4;
 // Was je Datensatz geschrieben wird, muss in den Datensatz passen (2 Byte Fuellung bei Einheit und Gebaeude)
-const _: () = assert!(EINHEIT == 32 + 7 * 4 + 23 * 2 + 2 && GEBAEUDE == 4 + 7 * 2 + 2 && TRUPP == 2 * 4 + 4 * 2 && GESCHOSS == 4 + 10 * 2 + 2 * 4 + 2 * 4);
+const _: () = assert!(EINHEIT == 32 + 7 * 4 + 31 * 2 + 2 && GEBAEUDE == 4 + 7 * 2 + 2 && TRUPP == 2 * 4 + 4 * 2 && GESCHOSS == 4 + 10 * 2 + 2 * 4 + 2 * 4);
 /// Spielerdaten 0x0115BDF8 + Spieler * 0x39F4, Waren ab +0x4D0 (wie logik.lua ware())
 const SPIELERDATEN: usize = 0x0115_BDF8;
 const SD_SCHRITT: usize = 0x39F4;
@@ -111,6 +111,15 @@ impl Leitung {
         }).collect()
     }
 
+    /// S160: Steht der Lesezaehler vor dem Schreibzaehler, setzt er ihn auf den Schreibzaehler und gibt (Schreib, alter Lese) zurueck.
+    pub fn ring_heilen(&self) -> Option<(u32, u32)> {
+        let w = self.zaehler(0).load(Ordering::Acquire);
+        let r = self.zaehler(4).load(Ordering::Acquire);
+        let neu = lese_heilen(w, r)?;
+        self.zaehler(4).store(neu, Ordering::Release);
+        Some((w, r))
+    }
+
     /// S4b: Ergebnis in den Eintrag schreiben und den Lesezaehler dahinter setzen.
     pub fn quittieren(&self, i: u32, ergebnis: i32) {
         let o = RING_START + RING_KOPF + (i as usize % RING_N) * RING_EINTRAG;
@@ -171,10 +180,12 @@ impl Leitung {
                 }
                 for (k, w) in [e.feinx, e.feiny, e.gelaendehoehe, e.gebaeudehoehe, e.schussx, e.schussy, e.schussz, e.wegindex, e.weglaenge,
                                e.feindabstand, e.planx, e.plany, e.ziel, e.zielx, e.ziely, e.schusseinheit, e.tempo, e.wegbedarf,
-                               e.teilzustand, e.nahangreifer, e.mauerx, e.mauery, e.getoetet].iter().enumerate() {
+                               e.teilzustand, e.nahangreifer, e.mauerx, e.mauery, e.getoetet,
+                               e.logikzustand, e.laufmerker, e.sammelgang, e.teleport, e.sammelmerker, e.beweglich, e.merker413, e.gebiet].iter().enumerate() {
                     self.setze::<i16>(o + 60 + 2 * k, *w);
                 }
             }
+            // S139/S143: 7 Werte je Einheit sind die Filterfelder des Marschbefehls (fuer Fremde nach fuer_fremde), S148 dahinter das Gebiet
             for sp in 0..SPIELER {
                 for w in 0..WAREN {
                     let v = std::ptr::read_volatile((SPIELERDATEN + sp * SD_SCHRITT + SD_WAREN + w * 4) as *const i32);
@@ -215,5 +226,28 @@ impl Leitung {
         }
         fence(Ordering::Release);
         f.fetch_add(1, Ordering::AcqRel);
+    }
+}
+
+/// S160 (Partie 26 ab Takt 36.547, gemessen 15.11.2026 01:35: Lesezaehler 21.461.675, Schreibzaehler 4.268): Python schreibt hoechstens
+/// RING_N Eintraege voraus - liegt der Lesezaehler vor dem Schreibzaehler, ist der Ring kaputt. Der Kern las dann jeden Takt 256 alte
+/// Eintraege neu (alte Befehle in Dauerschleife), Python fand ihn voll und schickte alles am Kern vorbei. Gibt den neuen Lesezaehler
+/// (= Schreibzaehler) zurueck, sonst None. Woher der Sprung kam, ist nicht gefunden.
+pub fn lese_heilen(w: u32, r: u32) -> Option<u32> {
+    (w.wrapping_sub(r) > RING_N as u32).then_some(w)
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn s160_ein_lesezaehler_vor_dem_schreibzaehler_wird_geheilt() {
+        assert_eq!(lese_heilen(4268, 21_461_675), Some(4268));       // der Fall aus Partie 26
+        assert_eq!(lese_heilen(100, 101), Some(100));
+        assert_eq!(lese_heilen(100, 100), None);                     // leer
+        assert_eq!(lese_heilen(356, 100), None);                     // genau voll
+        assert_eq!(lese_heilen(357, 100), Some(357));                // mehr als RING_N voraus: kaputt
+        assert_eq!(lese_heilen(5, u32::MAX - 10), None);             // Ueberlauf der Zaehler, 16 Eintraege offen
     }
 }

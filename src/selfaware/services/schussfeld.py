@@ -146,6 +146,41 @@ class Gitter:
             c = vor[c]
         return pfad[::-1]
 
+    def laengen(self, start, gewicht=GEWICHT):
+        """B-182 S150 (Daniel 14.11.2026 23:29 "Niemals nach luftlinie warum auch? Es geht hier um die Wegfindung"): dieselbe Suche
+        nach dem guenstigsten Weg wie weg(), aber ueber das ganze Gitter - je Zelle die Zahl der Zellenschritte dieses Wegs ({Zelle:
+        Schritte}). Gesperrte Zellen fehlen; als Ziel gilt eine gesperrte Zelle wie in weg() als erreichbar, wenn ein Nachbar es ist."""
+        s = self.zelle_von(start)
+        dist, schritte = {s: 0.0}, {s: 0}
+        q = [(0.0, s)]
+        ziele = {}
+        while q:
+            d, c = heapq.heappop(q)
+            if d > dist.get(c, 1e18):
+                continue
+            for dx in (-1, 0, 1):
+                for dy in (-1, 0, 1):
+                    if not dx and not dy:
+                        continue
+                    nx, ny = c[0] + dx, c[1] + dy
+                    if not (0 <= nx < self.n and 0 <= ny < self.n):
+                        continue
+                    if dx and dy and not (self.frei[c[1]][nx] or self.frei[ny][c[0]]):
+                        continue
+                    if not self.frei[ny][nx]:
+                        # wie weg(): die Zielzelle selbst darf gesperrt sein - dorthin endet der Weg
+                        if (nx, ny) not in ziele or ziele[(nx, ny)] > schritte[c] + 1:
+                            ziele[(nx, ny)] = schritte[c] + 1
+                        continue
+                    kosten = (1.001 if dx and dy else 1.0) * (1 + gewicht * self.schaden_je_tick((nx, ny)))
+                    nd = d + kosten
+                    if nd < dist.get((nx, ny), 1e18):
+                        dist[(nx, ny)], schritte[(nx, ny)] = nd, schritte[c] + 1
+                        heapq.heappush(q, (nd, (nx, ny)))
+        for c, k in ziele.items():
+            schritte.setdefault(c, k)
+        return schritte
+
     def belastung(self, zellen):
         """Summe der Gefahr entlang eines Zellenwegs (wie viele Zellen x Schuetzen)."""
         return sum(self.schaden_je_tick(c) for c in zellen)

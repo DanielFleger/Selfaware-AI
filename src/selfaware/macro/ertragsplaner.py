@@ -44,6 +44,7 @@ WIDERLEGUNG, vorher festgelegt (05.10. 19:55, gilt weiter):
 """
 
 from selfaware import workspace as _workspace
+from selfaware.macro import joch as JO     # S168
 import json, os, time
 from selfaware.game.ucp.laden import befehl, peek
 
@@ -692,6 +693,9 @@ class Ertragsplaner:
         if getattr(self, "kausal", False):
             # Entscheider = kausal (23:28): Holzfaeller, Apfel, Jaeger baut nur das Kausalmodell - EIN Entscheider je Sache
             kand = [k for k in kand if k["typ"] not in (3, 32, 7)]
+        if getattr(self, "rohstoffe_extern", False):
+            # S170: Steinbrueche und Eisenminen baut nur die Rohstoffpflicht (erstes_spiel.rohstoffe_bauen) - EIN Entscheider je Sache
+            kand = [k for k in kand if k["typ"] not in (20, 5)]
         # Stein-Reserve: Bedarf der naechsten Eisenmine, solange sich eine Mine noch lohnt
         self.stein_reserve = self.kosten[5]["stein"] if any(k["typ"] == 5 for k in kand) else 0
         if (runde - 1) % (5 * self.PLANEN) == 0:
@@ -739,7 +743,8 @@ class Ertragsplaner:
         if ort is None:
             self.fehlschlag[(wahl["typ"], wahl["ort"])] = self.fehlschlag.get((wahl["typ"], wahl["ort"]), 0) + 1
         elif wahl["typ"] == 20:
-            self.baue(4, ort[0] + 3, ort[1] - 4, 8)                # Ochsenjoch direkt dazu
+            h_s = JO.haufen(ort)                                    # S168: Ochsenjoch am Haufen, mit Abstand
+            self.baue(4, JO.mitte(h_s)[0], JO.mitte(h_s)[1], 8, frei_von=JO.sperre(h_s))
         if ort:
             self.gesetzt[NAME[wahl["typ"]]] = self.gesetzt.get(NAME[wahl["typ"]], 0) + 1
         ev.append("PLANER %s bei %s (Weg %d, %.1f Gold/1000, Anlauf %d, Amortisation %.0f, Gewinn bis Ende %s)%s -> %s" % (
@@ -818,7 +823,13 @@ class Ertragsplaner:
             n = min(gruppe, key=lambda q: sum(1 for j in js if schach(
                 (G[j]["x"], G[j]["y"]), (brueche[q]["x"], brueche[q]["y"])) <= 15))
             g = brueche[n]
-            ort = self.baue(4, g["x"] + 3, g["y"] - 4, 8)
+            # S165 (Daniel 15.11.2026 01:55, Bild: "Ochsenjoche nicht direkt neben der Steinablagestelle, dabei waere genug Platz"): das Joch
+            # so nah wie moeglich an den Steinhaufen des Bruchs (verbund), dort holen die Ochsen den Stein - ohne Haufen wie bisher am Bruch
+            h_j = G.get(g.get("verbund") or -1)
+            # S168 (Daniel 11:29 "mit einem Abstand"): am Haufen, ein freies Feld dazwischen; ohne gesehenen Haufen an der gemessenen Stelle
+            ecke_j = (h_j["x"], h_j["y"]) if h_j else JO.haufen((g["x"], g["y"]))
+            mitte_j = JO.mitte(ecke_j)
+            ort = self.baue(4, mitte_j[0], mitte_j[1], 8, frei_von=JO.sperre(ecke_j))
             if ort:
                 self.joch_bestellt[gruppe] = len(js) + 1
                 self.joch_bestell_tick[gruppe] = t

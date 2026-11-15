@@ -482,6 +482,37 @@ td.z { text-align: right; white-space: nowrap; }
     <li><b>Deckung</b> (<code>editor_messen.py deckung</code>): Huette, Kornspeicher, Kaserne, Wachturm, Bergfried auf der Linie sperren; Lagerplatz sperrt nicht (L84).</li>
   </ul>
   <p>Werkzeuge: <code>editor_messen.py abstand</code> (stillstehend, Treffer je Abstand) und <code>editor_messen.py kette</code> (Modulbefehl <code>tickProtokoll</code>: je Takt state +704, animationCycleNumber +688, animationFrame +72, attackedUnitID +830, targetUnitID +838, targetingType +924, lookForEnemy +940, health +968 aus <code>daten/struktur_Unit.txt</code>).</p>
+  <h3 id="testen-editor-angriffskette">Angriffskette je Art, Editor 12.11.2026 <span class="status gemessen">gemessen</span></h3>
+  <p>Instanz 2, Tempo 40, jeder Takt aus dem Kern gelesen; Werkzeug <code>src/selfaware/tools/experiments/schlag_messen.py</code> (jeder Versuch auf einer eigenen freien Stelle, Sperre gegen zwei Laeufe gleichzeitig). Rohdaten <code>data/research/schlag_messung_20261112_*.jsonl</code>; Ziel Gebaeude = Huette (Mapper 54, 200 Leben), Ziel Einheit = E_SPEAR 24 aus 8 Feldern bzw. stehende Assassine.</p>
+  <table>
+    <tr><th>Art</th><th>gegen Gebaeude: Takte je Schlag / Schaden je Schlag</th><th>gegen E_SPEAR: Schaden je Takt</th><th>zweiter Befehl im Kampf: Takte ohne Schaden</th></tr>
+    <tr><td>A_ASSASSIN 73</td><td>93 / 75</td><td>120</td><td>4</td></tr>
+    <tr><td>A_SWORDSMAN 75</td><td>96 / 100</td><td>125</td><td>8</td></tr>
+    <tr><td>E_SPEAR 24</td><td>48 / 10</td><td>25</td><td>4</td></tr>
+    <tr><td>E_PIKE 25</td><td>28 / 40</td><td>30</td><td>8</td></tr>
+    <tr><td>E_MACE 26</td><td>48 / 80</td><td>70</td><td>4</td></tr>
+    <tr><td>E_SWORD 27</td><td>60 / 100</td><td>150</td><td>12</td></tr>
+    <tr><td>E_KNIGHT 28</td><td>72 / 100</td><td>150</td><td>4</td></tr>
+    <tr><td>E_MONK 37</td><td>24 / 20</td><td>50</td><td>8</td></tr>
+    <tr><td>A_SLAVE 71</td><td>Brand 370-372 Takte nach Angriffsbeginn (4 Versuche), dann 4 Leben je 20 Takte</td><td>10</td><td>4</td></tr>
+  </table>
+  <ul>
+    <li><b>Nahkampf gegen Gebaeude:</b> Angriffszustand 107 1-2 Takte nach dem Befehl; der Schlag trifft, wenn das Animationsbild auf 0 zurueckspringt (Assassine 24 -> 0); danach ein Treffer je Schlag. Das Bild stand nie laenger als 12 Takte still.</li>
+    <li><b>Nahkampf gegen Einheiten schlaegt nicht, er schadet in jedem Takt</b> - ab der Beruehrung, beide Seiten; der Kern zeigt Zustand 106 erst 3-11 Takte nach dem ersten Verlust.</li>
+    <li><b>Ein zweiter gleicher Angriffsbefehl an eine kaempfende Nahkampf-Einheit kostet 4 / 8 / 12 Takte ohne Schaden</b> (9 von 9 Arten, je ein Versuch: sie laeuft wieder los, Zustand 101 bei +3). Schuetzen stoert er nicht.</li>
+    <li><b>Schuetzen gegen Gebaeude sind nutzlos:</b> 1 Schaden je Treffer, die meisten Schuesse ohne Verlust. Feuerwerfer zuendet nach 493 Takten (1 Versuch). Der Kern zeigt den Gebaeudeangriff eines Schuetzen in <code>zielgebaeude</code>, den eines Nahkaempfers im Angriffsfeld (mauerx, mauery).</li>
+    <li><b>Schuetzen gegen eine stehende Assassine, 12 Felder</b> (je Art ein Versuch, 5-6 Schuesse): alle trafen; Takt je Schuss Bogen 129, Armbrust 228, arab. Bogen 90, Schleuder 56 (900 je Treffer, am 17.10. noch 400), Pferdebogen 78; erster Verlust 122 / 176 / 80 / 74 / 72 Takte nach Zielbeginn. Aus 30 Feldern: Bogen und Armbrust 0 von 4 Treffern, arab. Bogen und Pferdebogen trafen (+27 bis +29 Takte Flug).</li>
+    <li>Ein Gebaeude steht im Kern mit der <b>Ecke</b> seiner Grundflaeche auf x, y. Ein zweiter Kornspeicher oder Lagerplatz eines Spielers muss am ersten liegen (sonst setzt das Spiel nichts, obwohl das Modul ok meldet).</li>
+  </ul>
+  <p>Daraus gebaut: Kettenpruefung (<code>chain_audit.ATTACK</code>) mit Frist je Art und Ziel fuer Glied 3 (Angriff beginnt), 4 (Bild laeuft) und 5 (Schaden) sowie die Meldung „RESEND WHILE FIGHTING“; Plan <code>docs/plans/Plan_Unit_Status_Log.md</code>, Abschnitt 8.</p>
+  <h3 id="testen-laufzeit-gelaende">Laufzeit je Art und Gelaende, 12./13.11.2026 <span class="status gemessen">gemessen</span></h3>
+  <ul>
+    <li><b>Flacher Boden</b> (Editor, gerade wie schraeg gleich): 12 Takte je Feld Speer, Streitkolben, Sklave, Bogen, arab. Bogen, Schleuder; Ritter und Pferdebogen 10,6 (Feldtakte 8/12/12); 16 Assassine; 24 arab. Schwert, Pike, Moench, Feuerwerfer, T23; 32 Schwert. Der Wegzaehler <code>wegindex</code> zaehlt genau ein Feld je Feld.</li>
+    <li><b>Die Regel kommt aus dem Spiel</b> (calculateUnitMovementSpeed 0x0052F7E0, aus der OpenSHC-Referenz entschluesselt): Wasser = LogicLayer-Bit 0x20000000, <b>ausser die MacroLayer sagt dort 1</b>; im Wasser +3, dann +4, dann +6 auf den Tempowert, nach dem Verlassen klingt +3 nach; Schlamm (Bit 0x200000) +2; Steigung +1 bis +5. Darum bremste dieselbe Bodenklasse auf der einen Linie, auf der anderen nicht.</li>
+    <li><b>Modell</b> <code>src/selfaware/services/laufmodell.py</code>: das Spiel rechnet den Tempowert jede 8. Bewegung neu (nicht jeden 8. Takt). Auf Paradise Plains (60 Laeufe, alle 15 Arten, 9 davon blockiert und ausgenommen): Fusstruppen auf der Wasserlinie auf den Takt genau, Schlamm -6 bis +7 %, Hang -14 bis +10 %; Berittene je nach Zug-Phase bis ±28 %; ein reines Flachland-Modell lag bis 49 % daneben.</li>
+    <li><b>Erhebung der sechs Liga-Karten</b> (<code>gelaende_erheben.py</code>, nur Felder der Kartenraute): echtes Wasser je Karte 0 (Battle Brother's Strife, ganz flach) bis 572 (Green Trench), Paradise Plains 433; Schlamm bis 649 (Dwarven Dream). Falle: ausserhalb der Raute liefern die Ebenen Daten anderer Felder - nie mitzaehlen.</li>
+    <li><b>Kettenpruefung Glied 2</b>: haengt eine Einheit 4 Felder hinter dem Tempo, das ihr das Spiel selbst gibt, meldet sie „WALK BEHIND THE GAME'S SPEED“ mit den Einheiten im Umkreis von 1 Feld; Gelaende zaehlt das Spiel schon mit.</li>
+  </ul>
 </section>
 
 <section id="architektur">

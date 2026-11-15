@@ -31,6 +31,14 @@ from selfaware.micro.tasks import raids as RA
 HORIZONT = 5000  # Plan_Gehirn 5.3: Zeitraum "mittel"
 FEUER_TAKTE = 165  # raids.py, gemessen 19.10.: so lange bis das Gebaeude des Sklaven brennt, danach brennt es allein ab
 ARBEITER_TAKTE = 50  # Ersatz: Arbeiter fallen schnell (Assassine rund 250 Schaden je Takt, angriff_raten.json), es zaehlt vor allem der Weg
+# S154 (Daniel 15.11.2026 00:07 STOP: Speertraeger kaempften gegen Holzfaeller und starben): Schaden je Takt eines eigenen Kaempfers gegen
+# einen Arbeiter, gemessen in den Lageprotokollen der Partien 16-24 (Runden mit genau einem eigenen Angreifer im Kampfzustand 106, Median):
+# Speertraeger 24 gegen Holzfaeller 3: 25 (9 Runden), Sklave 71 gegen Holzfaeller 3: 10 (8 Runden) - Takte am Ziel = Leben des Arbeiters / Schaden
+ARBEITER_SCHADEN = {(24, 3): 25.0, (71, 3): 10.0}
+# S153: gegnerische Steinmetze (7) bei der Arbeit (Zustand 1) verloren in 170.596 Runden 1-mal Leben; Bogenschuetzen (S126) und Speertraeger
+# (Partie 23) richteten nichts aus - so ein Arbeiter ist kein Ziel
+UNANGREIFBAR_BEI_ARBEIT = {7}
+ASSASSINE = 73
 LEBEN_ERSATZ = 10000  # Ersatz, wenn weder Lagebild noch Duell die Art kennen
 DPS_ERSATZ = 20.0  # wie gefecht.dps ohne jede Messung
 REST = 0.05  # darunter gilt die gedachte Einheit als verloren
@@ -59,6 +67,7 @@ class Ziel:
     wert: float
     schuetzen: tuple  # Arten der feindlichen Schuetzen, die den Ort erreichen
     nah: tuple  # Arten der feindlichen Nahkaempfer bis raids.GEFAHR_NAH
+    leben: float = 0.0  # S154: Leben eines Arbeiters (fuer die gemessene Zeit, bis er faellt)
 
 
 def ziele(L, G, sp):
@@ -78,23 +87,36 @@ def ziele(L, G, sp):
             tuple(sorted(t for t, q in nah if schach(p, q) <= RA.GEFAHR_NAH)),
         )
 
+    # S161 (Daniel 15.11.2026 01:32 "kannst du bitte allen auch diese faehigkeiten geben nicht nur assassinen"): Gebaeude mit den Werten
+    # der Assassinen - Daniels Rangfolge (Kaserne und Waffenkammer 800, Markt und Soeldnerposten 300, Holzfaeller 60 ...). Vorher galt
+    # hier raids.WERT (Holzfaeller-Huette 5, Kaserne 11) - ein Holzfaeller (Arbeiter, 10) war doppelt so viel wert wie seine Huette
+    from selfaware.micro.tasks import assassinen as AS
+
     aus = []
     for n, g in G.items():
-        if g.get("besitzer") not in (0, sp) and g["typ"] in RA.WERT:
+        if g.get("besitzer") not in (0, sp) and g["typ"] in AS.WERT:
             p = (g["x"], g["y"])
-            aus.append(Ziel(("g", n), g["typ"], p, float(RA.WERT[g["typ"]]), *deckung(p)))
+            aus.append(Ziel(("g", n), g["typ"], p, float(AS.WERT[g["typ"]]), *deckung(p)))
     for n, e in L.items():
         if e.get("besitzer") not in (0, sp) and e["typ"] in RA.ARBEITER and e.get("leben", 1) > 0:
+            if e["typ"] in UNANGREIFBAR_BEI_ARBEIT and e.get("zustand") == 1:
+                continue
             p = (e["x"], e["y"])
-            aus.append(Ziel(("e", n), e["typ"], p, float(RA.ARBEITER[e["typ"]]), *deckung(p)))
+            aus.append(Ziel(("e", n), e["typ"], p, float(RA.ARBEITER[e["typ"]]), *deckung(p), leben=float(e.get("leben", 0))))
     return aus
 
 
 class Wissen:
     """Was wir je Art wissen, mit Herkunft. lernen() nimmt das volle Leben der eigenen Einheiten aus dem Lagebild."""
 
-    def __init__(self, tabelle=None, gebaeude=None, eichung=None):
+    def __init__(self, tabelle=None, gebaeude=None, eichung=None, gebaeudeschaden=None):
         self._am_ziel = {}
+        # S161: Gebaeudeschaden je Art aus der aktiven Balance der Instanz ({} = unbekannt, dann wie bisher)
+        if gebaeudeschaden is None:
+            from selfaware.services import balance as BAL
+
+            gebaeudeschaden = BAL.gebaeudeschaden()
+        self.gebaeudeschaden = gebaeudeschaden
         self.eichung = EI.laden() if eichung is None else eichung
         if tabelle is None:
             from selfaware.services import gefecht
@@ -133,6 +155,17 @@ class Wissen:
         art = EH.ARTEN.get(typ)
         if art is None or art.kampf != "nah" or not EH.darf(typ, "raid"):
             return None, "greift keine Gebaeude an"
+        # S161: wie die Assassinen - ihre gemessene Arbeit je Gebaeudeart (Median aus 11 Mitschriften, data/research/gebaeude_arbeit.json;
+        # unbekannte Arten der Median aller), umgerechnet mit dem Gebaeudeschaden der aktiven Balance (Assassine 75, arab.
+        # Schwertkaempfer 100, Speertraeger 10 - abgelesen 15.11.2026). So hat jede Gebaeudeart eine Zeit, nicht nur die zehn mit Rate
+        schaden = self.gebaeudeschaden
+        if schaden.get(typ) and schaden.get(ASSASSINE):
+            from selfaware.micro.tasks import assassinen as AS
+
+            arbeit = AS.ARBEIT.get(gtyp)
+            herkunft = "Arbeit der Assassine %s x Gebaeudeschaden %g/%g (Balance)" % (
+                "gemessen" if arbeit is not None else "geschaetzt (Median aller Arten)", schaden[ASSASSINE], schaden[typ])
+            return (arbeit if arbeit is not None else AS.ARBEIT_SONST) * schaden[ASSASSINE] / schaden[typ], herkunft
         g = self.gebaeude.get(gtyp)
         if not g or not g.get("rate"):
             return None, "keine gemessene Rate fuer diese Gebaeudeart"
@@ -150,6 +183,12 @@ class Wissen:
         return self._am_ziel[k]
 
     def _rechnen(self, typ, z):
+        return self.rechnen_mit(typ, z)
+
+    def rechnen_mit(self, typ, z, leben=None, nah=None):
+        """(Takte am Ziel, Erfolg) wie am_ziel, aber mit dem Leben, das die Einheit dort noch hat, und den Nahkaempfern, die das Ziel
+        dann noch decken (S150: ein Raid-Soldat, der unterwegs einen Verteidiger des Ziels toetet, kommt mit weniger Leben, aber
+        gegen einen Verteidiger weniger an). Ohne Angaben: volles Leben der Art und z.nah."""
         takte = self.gebaeude_takte(typ, z.typ)[0] if z.schluessel[0] == "g" else ARBEITER_TAKTE
         if takte is None:
             return None, 0.0
@@ -157,18 +196,23 @@ class Wissen:
         anteil, gemessen = self.eichung.get((typ, z.schluessel[0]), (None, None))
         if gemessen is not None:
             takte = gemessen
+        if z.schluessel[0] == "e" and (typ, z.typ) in ARBEITER_SCHADEN and z.leben > 0:
+            takte = z.leben / ARBEITER_SCHADEN[(typ, z.typ)]      # S154: gemessen statt Ersatz
         fern = EH.ARTEN[typ].kampf == "fern"
         rein = sum(self.dps(s, typ, fern=True)[0] for s in z.schuetzen)
         if not fern:
-            rein += sum(self.dps(m, typ)[0] for m in z.nah)
-        erfolg = 1.0 if rein <= 0 else min(1.0, self.leben(typ)[0] / rein / max(takte, 1.0))
+            rein += sum(self.dps(m, typ)[0] for m in (z.nah if nah is None else nah))
+        leben = self.leben(typ)[0] if leben is None else leben
+        erfolg = 1.0 if rein <= 0 else min(1.0, max(leben, 0.0) / rein / max(takte, 1.0))
         return takte, erfolg if anteil is None else min(erfolg, anteil)
 
-    def wert_je_takt(self, typ, ort, z, tempo=None):
+    def wert_je_takt(self, typ, ort, z, tempo=None, felder=None):
+        """(Wert je Takt, Takte). felder: Laenge des sicheren Wegs (S150, Daniel 14.11.2026 23:29 "Niemals nach luftlinie") - ohne sie
+        die Schachdistanz (Aufrufer ohne Wegfuehrung)."""
         takte, erfolg = self.am_ziel(typ, z)
         if not erfolg:
             return 0.0, None
-        dauer = schach(ort, z.ort) * (tempo or SW.takte_je_feld(typ, "trupp")) + takte
+        dauer = (schach(ort, z.ort) if felder is None else felder) * (tempo or SW.takte_je_feld(typ, "trupp")) + takte
         return z.wert * erfolg / max(dauer, 1.0), dauer
 
     def kandidaten(self, typ, ziele_):

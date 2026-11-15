@@ -1,5 +1,9 @@
 # Arbeitsregel fuer dieses Repo
 
+**VOR JEDEM SPIELSTART (Daniel 15.11.2026):** erst Daniel fragen - Karte, Gegner, Teams, Positionen, Gold. Fragebogen und Weg:
+`../VillageStudio/doku/Partie-starten.md`. Nie per Skript starten; die Startsperre in `befehl.sende` verwirft `eigenesGefecht`
+ohne `data/research/partie_freigabe.json` mit Daniels Wortlaut.
+
 Nach jeder echten Partie: Mitschrift (mit START-BEFEHL-Zeile), neu angelegte Karten-/Plan-Dateien,
 Lageprotokoll (unter 50 MB) und geaenderte Umgebung committen und pushen.
 Einzelheiten: README.md, Abschnitt "Pflicht nach jeder Partie" (Daniel 17.10.2026).

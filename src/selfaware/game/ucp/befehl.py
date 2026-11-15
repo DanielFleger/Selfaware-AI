@@ -33,6 +33,9 @@ if not os.path.isdir(SPIEL):
 _ENDUNG = "" if INSTANZ == 1 else str(INSTANZ)
 BEFEHL = os.path.join(SPIEL, "ucp", "villagestudio", "befehl.json")
 LOG    = os.path.join(SPIEL, "ucp3.log")
+# S172 (15.11.2026): das Modul, das die Befehlsdatei liest, heisst je Instanz villagestudio oder selfaware-runtime (Instanz 5, seit
+# Partie 34 auch Instanz 2) - seine Antwortzeilen tragen den Modulnamen; beide zaehlen
+MODUL_NAMEN = ("villagestudio", "selfaware-runtime")
 # 19.10.2026 (1v1, Selfaware gegen sich selbst): SHC_SPIELER waehlt den Spieler dieses Prozesses - jeder Befehl traegt dann
 # "player" = SPIELER (das Modul stellt den Platz je Befehl um, logik.lua 19.10.), Abzuege (Lagebild, Gebaeude, Karten)
 # kommen in einen eigenen Ordner abzug_sp<N>. SHC_PARTNER=ja: zwei Lenker teilen sich den Kanal - statt der Sperre fuer
@@ -42,6 +45,9 @@ if not _SP.isdigit() or not 1 <= int(_SP) <= 8:
     raise RuntimeError("SHC_SPIELER=%r ist keine Spielernummer (1-8)" % _SP)
 SPIELER = int(_SP)
 PARTNER = os.environ.get("SHC_PARTNER", "").strip().lower() in ("ja", "1", "true")
+# B-182 Kettenpruefung je Befehl (micro/chain_audit.py): Funktionen, die jeden Befehl sehen, der wirklich hinausgeht (nach der
+# Lord-Sperre). Ein Fehler eines Beobachters haelt nie einen Befehl auf
+BEOBACHTER = []
 ABZUG  = os.path.join(SPIEL, "ucp", "villagestudio", "abzug" if SPIELER == 1 else "abzug_sp%d" % SPIELER)
 if SPIELER != 1:
     os.makedirs(ABZUG, exist_ok=True)      # das Modul legt keine Ordner an
@@ -168,6 +174,25 @@ def sende(befehl, warte=3.0, bis=None):
         print(m, flush=True)
     if befehl is None:
         return meld
+    # B-182 (Daniel 13.11.: "Ja, abstellen", S118): kein zweiter gleicher Angriff an eine Einheit, die schon gegen das Ziel kaempft
+    import selfaware.execution.kampfschutz as kampfschutz
+    befehl, meld_k = kampfschutz.filtern(befehl)
+    for m in meld_k:
+        print(m, flush=True)
+    if befehl is None:
+        return meld + meld_k
+    # S169 (Daniel 15.11.2026 11:44 "mach daraus keine Disziplin"): ein Gefecht per Befehl nur mit Daniels abgelegter Aufstellung
+    import selfaware.execution.startsperre as startsperre
+    befehl, meld_s = startsperre.filtern(befehl)
+    for m in meld_s:
+        print(m, flush=True)
+    if befehl is None:
+        return meld + meld_k + meld_s
+    for beobachter in BEOBACHTER:
+        try:
+            beobachter(befehl)
+        except Exception:
+            pass
     befehl = _als_spieler(dict(befehl))
     befehl["id"] = neue_id()
     if PARTNER:
@@ -198,8 +223,38 @@ def sende(befehl, warte=3.0, bis=None):
         if PARTNER:
             _entsperren()
     zeilen = [z.split("| ", 1)[-1].strip() for z in neu.splitlines()
-              if "villagestudio" in z and "ZUSTAND" not in z]
+              if any(m in z for m in MODUL_NAMEN) and "ZUSTAND" not in z]
+    for z in einheiten_zeilen(befehl, zeilen):
+        print(z, flush=True)
     return pruefe(zeilen) if STRENG else zeilen
+
+
+AUSGEFUEHRT = re.compile(r"(ANGRIFF|HALTEN) Tick (\d+): (\d+) Einheiten")
+
+
+def einheiten_zeilen(befehl, zeilen):
+    """Je Befehl an Einheiten eine Zeile mit ihren Nummern (Daniel 14.11.2026 00:12 "Ja, Nummern" - das Protokoll des Spielmoduls nennt
+    nur die Zahl der Einheiten; Partie 5 und 12: ein Befehl an eine laufende Einheit griff nicht, S136). Die Takte der Ausfuehrung
+    stehen in den Antwortzeilen des Moduls ("ANGRIFF Tick N: k Einheiten"), in derselben Reihenfolge wie die Befehle."""
+    cmds = befehl.get("befehle") if isinstance(befehl, dict) and "befehle" in befehl else [befehl]
+    takte = {"ANGRIFF": [], "HALTEN": []}
+    for z in zeilen:
+        m = AUSGEFUEHRT.search(z)
+        if m:
+            takte[m.group(1)].append((m.group(2), m.group(3)))
+    aus = []
+    for c in cmds or ():
+        if not isinstance(c, dict):
+            continue
+        for art, schluessel in (("angriff", "einheiten"), ("halten", "nr")):
+            inhalt = c.get(art)
+            if not isinstance(inhalt, dict) or not inhalt.get(schluessel):
+                continue
+            ziel = {k: v for k, v in inhalt.items() if k != schluessel}
+            t = takte[art.upper()].pop(0) if takte[art.upper()] else ("?", "?")
+            aus.append("BEFEHL Tick %s %s %s an %s Einheiten: %s" % (t[0], art, json.dumps(ziel, separators=(",", ":")), t[1],
+                                                                        sorted(inhalt[schluessel])))
+    return aus
 
 
 if __name__ == "__main__":

@@ -11,7 +11,8 @@ Quellen je Tod (nichts geschaetzt, was in den Daten steht):
 Ursache nach Regeln (Reihenfolge = Vorrang): Lord-Angriff, Loewe, Nahkampf, Feuerwerfer, Beschuss (sichtbar), unklar.
 Was besser waere: je Ursache die Regel aus den Editor-Messungen (L81-L84) bzw. den Funden.
 
-Aufruf: uv run python -m selfaware.tools.analysis.tode_erklaeren <konsole.txt> <lage.jsonl.gz> [ausgabe.md]
+Aufruf: uv run python -m selfaware.tools.analysis.tode_erklaeren <konsole.txt> <lage.jsonl.gz> [ausgabe.md] [typen=24,75]
+(S156: typen = eigene Einheitenarten, Standard 73)
 """
 import collections
 import io
@@ -100,7 +101,8 @@ SPAEHER = {22: "Bogen", 23: "Armbrust", 24: "Speer", 25: "Pike", 26: "Streitkolb
            74: "Pferdebogen", 75: "arab. Schwert", 76: "Feuerwerfer", 5: "Ingenieur"}
 
 
-def auswerten(konsole, lage):
+def auswerten(konsole, lage, typen=(73,)):
+    """S156 (15.11.2026): typen - die eigenen Einheitenarten, deren Tode erklaert werden (Standard die Assassine)."""
     mel = meldungen(konsole)
     verlauf = collections.defaultdict(list)       # nr -> [(t, ort, leben, zustand, lauf)] des jetzigen Lebens
     akte = {}                                     # nr -> erste Verletzung dieses Lebens
@@ -112,12 +114,12 @@ def auswerten(konsole, lage):
         if vorher:
             tv, Lv, Gv = vorher
             for n, d in Lv.items():
-                if d["besitzer"] == 1 and d["typ"] == 73:
+                if d["besitzer"] == 1 and d["typ"] in typen:
                     neu = L.get(n)
-                    if neu is None or neu["besitzer"] != 1 or neu["typ"] != 73:
+                    if neu is None or neu["besitzer"] != 1 or neu["typ"] != d["typ"]:
                         tode.append((tv, t, n, d, Lv, Gv, list(verlauf.pop(n, [])), akte.pop(n, None)))
         for n, d in L.items():
-            if d["besitzer"] == 1 and d["typ"] == 73:
+            if d["besitzer"] == 1 and d["typ"] in typen:
                 v = verlauf[n]
                 if v and d["leben"] < v[-1][2] and n not in akte and vorher:
                     # erster Treffer dieses Lebens: Lage davor (wo er stand, als geschossen wurde) und danach
@@ -127,7 +129,7 @@ def auswerten(konsole, lage):
                     text_n, w_n = lage_am((d["x"], d["y"]), n, L, Gd)
                     akte[n] = {"t": t, "tv": tv, "ort_v": o_v, "ort": (d["x"], d["y"]), "leben": (v[-1][2], d["leben"]),
                                "zustand": d["zustand"], "text_v": text_v, "text_n": text_n, "w_v": w_v, "w_n": w_n}
-                elif v and d["leben"] >= 12500 and n in akte:
+                elif v and d["leben"] >= max(x[2] for x in v) and n in akte:
                     del akte[n]                   # wieder voll geheilt
                 v.append((t, (d["x"], d["y"]), d["leben"], d["zustand"], (d["laufx"], d["laufy"])))
         vorher = (t, L, Gd)
@@ -152,7 +154,8 @@ def auswerten(konsole, lage):
             v = [x for x in leben_v if x[0] >= ak["tv"]]
         else:
             v = leben_v[-2:]
-        leben_vorher = v[0][2] if v else 12500
+        voll = max((x[2] for x in leben_v), default=d["leben"])    # volles Leben dieser Einheit (Assassine 12500)
+        leben_vorher = v[0][2] if v else voll
         dauer = (tv - v[0][0]) if len(v) > 1 else 0
         rate = (leben_vorher - d["leben"]) / dauer if dauer else 0
         eig = [x for x in mel.get(n, []) if start <= x[0] <= t]
@@ -226,28 +229,31 @@ def auswerten(konsole, lage):
         if risiko and risiko[0] >= 10:
             zusatz.append("Zielwahl nahm %d %% Todesrisiko in Kauf (Leben %d) - auch fuer unbeobachtete Ziele eine Risikogrenze "
                           "auf dem WEG (fehlte)" % risiko)
-        if risiko and risiko[1] < 0.3 * 12500:
+        if risiko and risiko[1] < 0.3 * voll:
             zusatz.append("mit nur %d Leben weiter raiden - wer schwach ist, nur Ziele ohne jedes Wegrisiko oder zurueckziehen "
                           "(Regel SCHWACH wurde nicht angewendet)" % risiko[1])
         if modell == 0 and (fern or nah):
             zusatz.append("das Modell sah am Todesort 0 Beschuss - Gefahr nicht erkannt")
         if zusatz:
             besser = besser + " Zusaetzlich: " + "; ".join(zusatz) + "."
-        berichte.append({"nr": n, "modell": modell, "tick": tv, "ort": ort, "taetig": taetig, "leben_vorher": leben_vorher, "dauer": dauer,
+        berichte.append({"nr": n, "typ": d["typ"], "modell": modell, "tick": tv, "ort": ort, "taetig": taetig, "leben_vorher": leben_vorher, "dauer": dauer,
                          "rate": rate, "ursache": ursache, "besser": besser, "lenker": letzte, "sicht": sicht,
                          "fern": len(fern), "nah": nah[:3], "erst": erst, "reaktion": reaktion, "besser_erst": besser_erst})
     return berichte
 
 
 def main():
-    konsole, lage = sys.argv[1], sys.argv[2]
-    aus = sys.argv[3] if len(sys.argv) > 3 else None
-    b = auswerten(konsole, lage)
-    zeilen = ["# Tote Assassinen - %s" % os.path.basename(konsole), "",
+    frei = [a for a in sys.argv[1:] if not a.startswith("typen=")]
+    typen = next((tuple(int(t) for t in a.split("=", 1)[1].split(",")) for a in sys.argv[1:] if a.startswith("typen=")), (73,))
+    konsole, lage = frei[0], frei[1]
+    aus = frei[2] if len(frei) > 2 else None
+    b = auswerten(konsole, lage, typen)
+    name = lambda n: NAHKAMPF.get(n) or FERN.get(n, ("Typ %d" % n,))[0]
+    zeilen = ["# Tote %s - %s" % (", ".join(name(t) for t in typen), os.path.basename(konsole)), "",
               "%d Tote. Ursachen: %s" % (len(b), ", ".join("%s %d" % kv for kv in collections.Counter(
                   x["ursache"].split(" ")[0].split(":")[0] for x in b).most_common())), ""]
     for x in b:
-        zeilen.append("## Assassine %d - Tick %d bei %s" % (x["nr"], x["tick"], x["ort"]))
+        zeilen.append("## %s %d - Tick %d bei %s" % (name(x["typ"]), x["nr"], x["tick"], x["ort"]))
         zeilen.append("- **Tat zuletzt:** %s; Leben %d -> tot in %d Takten (%.0f je Takt)" % (x["taetig"], x["leben_vorher"], x["dauer"], x["rate"]))
         if x["erst"]:
             zeilen.append("- **Erster Treffer:** %s" % x["erst"])

@@ -22,6 +22,7 @@
 """
 
 from selfaware import workspace as _workspace
+from selfaware.macro import joch as JO     # S168
 import math
 import os
 from selfaware.game.ucp.laden import befehl, peek
@@ -393,8 +394,8 @@ class Ausbau:
     def _naechster(self, punkte, zu):
         return min(punkte, key=lambda p: schach(p, zu)) if punkte else None
 
-    def _bau(self, typ, x, y, r, was, ev):
-        ort = self.baue(typ, x, y, r)
+    def _bau(self, typ, x, y, r, was, ev, **k):
+        ort = self.baue(typ, x, y, r, **k)
         ev.append("AUSBAU %s %s" % (was, ort))
         if ort:
             self.bilanz[was] = self.bilanz.get(was, 0) + 1
@@ -465,7 +466,8 @@ class Ausbau:
                 holz -= 25
         elif zahl(4) < q and holz >= 5:
             bruch = [(g["x"], g["y"]) for g in eigen if g["typ"] == 20]
-            self._bau(4, bruch[-1][0] + 3, bruch[-1][1] + 3, 8, "Ochsenjoch", ev)
+            h_w = JO.haufen(bruch[-1])                             # S168: am Haufen, mit Abstand
+            self._bau(4, JO.mitte(h_w)[0], JO.mitte(h_w)[1], 8, "Ochsenjoch", ev, frei_von=JO.sperre(h_w))
             holz -= 5
         elif zahl(5) < self.EISENMINEN and holz >= 20 and stein >= 6 and self.eisen:
             c = self._naechster(self.eisen, self.K)

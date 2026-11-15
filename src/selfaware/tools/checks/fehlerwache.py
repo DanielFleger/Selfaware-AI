@@ -10,7 +10,10 @@ Beobachtet werden die ersten BEOBACHTEN eigenen Kaempfer (ohne Lord), in der Rei
 Obergrenze zaehlt alle eigenen Kaempfer.
   F1 Obergrenze   mehr als GRENZE eigene Kaempfer leben
   F2 steht        eine beobachtete Einheit hat ein Angriffsziel (Schussziel, Angriffsziel oder Gebaeude), bewegt sich nicht,
-                  hat kein Laufziel und kaempft nicht (Ziel ausser Reichweite) - STILL Takte lang
+                  hat kein Laufziel und kaempft nicht (Ziel ausser Reichweite) - STILL Takte lang; nicht, solange das Logbuch
+                  je Einheit (UNIT-Zeilen) fuer sie Warten oder Halten mit Grund meldet
+  F5 Kette       die Kettenpruefung je Befehl meldet einen Bruch (CHAIN-Zeile: im Spiel nicht zu sehen, kein Fortschritt,
+                  kein Schaden am Ziel)
   F3 untaetig     ein beobachteter Soeldner (Typ 70 bis 76) steht zu Hause ohne Angriffsziel und kaempft nicht - UNTAETIG Takte
   F4 ohne Taeter  ein Modul meldet einen getoeteten Arbeiter ("REITERJAGD: Reiter R hat Arbeiter A erledigt",
                   "NAHKAMPF-RAID: R (Typ T) hat Arbeiter A erledigt"), aber R hatte A in den letzten BELEG Takten weder als
@@ -37,7 +40,26 @@ SOELDNER = frozenset(range(70, 77))
 HEIM_FELDER = 40        # selbst gesetzt: so nah am eigenen Lord gilt eine Einheit als zu Hause
 NAH_FELDER = 3          # Nahkampf: Ziel hoechstens so weit (Schach)
 GEBAEUDE_FELDER = 4     # Gebaeudeangriff: am Gebaeude, wenn hoechstens so weit vom Gebaeudeort (Schach)
+# Gemessen 11.11. 23:06 (Lagebilder 22:04-23:04): Zielart 3 ist "Position halten" - alle 12 Starttruppen haben sie ab dem
+# Halten-Befehl der Stellung (Takt 666). Nach dem Graben fallen die Graeber darauf zurueck, und das Spiel laesst das letzte
+# Grabefeld in attackAtTile stehen (Partie 6: Speertraeger 333/334 mit (193, 234), 606 Takte - F2 meldete einen Angriff, den es
+# nicht gab). Wer haelt, hat keinen Gebaeudeangriff.
+HALTEN = 3
+# B-182 Logbuch je Einheit (Partie 12.11. 20:34, F2 bei Takt 29.678): Assassine 474 wartete laut Logbuch seit Takt 28.190 an einem
+# sicheren Platz (WAIT_STAGING wait_safe_place), der Kern hielt noch die Kachel seines frueheren Gebaeudeangriffs (201, 43) - die
+# Wache nahm sie als Ziel. Am Kern ist die alte Kachel nicht zu erkennen: echte Gebaeudeangriffe haben ebenso oft Zielart 0
+# (gemessen in derselben Partie: Sklaven am Ziel 29 Runden, Assassinen 261 Runden). Fehlerkatalog STALE_TARGET
+# (docs/plans/Plan_Unit_Status_Log.md): meldet das Modul Warten oder Halten mit Grund, ist das Stehen gewollt - kein F2, und die
+# Uhr fuer F2 beginnt erst, wenn die Absicht endet.
+STEHEN = frozenset(("WAIT_STAGING", "HOLD_POST", "WAIT_SAFE_TARGET"))
+OHNE_GRUND = frozenset(("", "-", "no_module_reason", "no_module_reported"))
+# B-182 Kettenpruefung (micro/chain_audit.py; Daniel 12.11. 22:34 "uns faellt sofort auf wenn sie bricht", 22:46 "warum wird das
+# Spiel hier nicht angehalten?"): jede CHAIN-Zeile der Mitschrift ist ein Bruch der Kette Befehl -> Spiel -> Aktion -> Schaden
+KETTE_ZEILE = re.compile(r"^CHAIN t=(\d+) (\d+) \(([^)]*)\) (.*)$", re.M)
+UNIT_ZEILE = re.compile(r"^UNIT t=(\d+) (\d+) \([^)]*\) (\S+)(?: (\S+))?(.*)$", re.M)
 ANSPRUCH = re.compile(r"(REITERJAGD: Reiter|NAHKAMPF-RAID:) (\d+) (?:\(Typ \d+\) )?hat Arbeiter (\d+) erledigt")
+LAGE = re.compile(r"Lageprotokoll \(jede Runde komplett\): (.+\.jsonl\.gz)")
+BELEG_NACH = 100        # selbst gesetzt: so viele Takte nach der Meldung zaehlt eine Runde des Lageprotokolls noch als Beleg
 
 
 def schach(a, b):
@@ -62,6 +84,20 @@ class Wache:
         self.zustaende = {}       # Nummer -> {zustand: Takte} fuer den Bericht
         self.ident = {}           # Nummer -> (Art, Besitzer, Takt des ersten Sehens) - das Spiel vergibt Nummern Toter neu
         self.ziel_ident = {}      # (eigene Nummer, Ziel) -> Kennung des Ziels, als es zum ersten Mal Ziel war
+        self.absicht = {}         # Nummer -> (Takt, Modul, Aktion, Grund): die letzte Meldung des Logbuchs je Einheit
+
+    def absichten(self, liste):
+        """Neue Meldungen des Logbuchs [(Takt, Einheit, Modul, Aktion, Grund)] (absichten_aus); Aktion None: Einheit weg."""
+        for takt, n, modul, aktion, grund in liste:
+            if aktion is None:
+                self.absicht.pop(n, None)
+            else:
+                self.absicht[n] = (takt, modul, aktion, grund)
+
+    def will_stehen(self, n):
+        """True, wenn das Logbuch fuer n zuletzt Warten oder Halten mit Grund meldete."""
+        a = self.absicht.get(n)
+        return a is not None and a[2] in STEHEN and a[3] not in OHNE_GRUND
 
     def _kennungen(self, welt):
         """Neue oder wiedervergebene Nummern bekommen eine neue Kennung; fehlende verlieren sie."""
@@ -104,7 +140,7 @@ class Wache:
                 return True, True, "am Ziel %d" % n
             return True, False, "Ziel %d in %d Feldern" % (n, d)
         mauer = (e.get("mauerx", 0), e.get("mauery", 0))
-        if mauer != (0, 0):
+        if mauer != (0, 0) and e.get("zielart") != HALTEN:
             d = schach(p, mauer)
             return True, d <= GEBAEUDE_FELDER, "Gebaeude bei %s in %d Feldern" % (mauer, d)
         return False, False, "ohne Angriffsziel"
@@ -145,7 +181,7 @@ class Wache:
             ziel_key = ((e.get("schusseinheit") or (e.get("zieleinheit") if e.get("zielart") == 4 else 0),
                          e.get("mauerx", 0), e.get("mauery", 0)) if hat_ziel else None)
             alt = self.letzt.get(n)
-            if alt is None or alt[0] != p or kaempft or unterwegs or alt[2] != ziel_key:
+            if alt is None or alt[0] != p or kaempft or unterwegs or alt[2] != ziel_key or self.will_stehen(n):
                 self.letzt[n] = (p, t, ziel_key)
             elif hat_ziel and t - alt[1] >= self.still:
                 fehler.append({"art": "F2 steht", "takt": t, "einheit": n, "typ": e["typ"], "ort": p,
@@ -162,12 +198,16 @@ class Wache:
                                    "text": "Soeldner seit %d Takten zu Hause ohne Angriffsziel" % (t - seit)})
             else:
                 self.leer_seit.pop(n, None)
-        for modul, wer, opfer in anspruechen:
+        for a in anspruechen:
+            # 11.11. 23:20 (Partie 8): die Meldung stand bei Takt 14417 in der Mitschrift, die Wache las sie erst bei 15066 und
+            # rechnete ab ihrem eigenen Takt - Fehlalarm. Eine Meldung bringt ihren Takt mit (anspruechen_mit_takt).
+            modul, wer, opfer = a[:3]
+            takt = a[3] if len(a) > 3 else t
             zuletzt = self.ziele.get((wer, opfer))
-            if zuletzt is None or t - zuletzt > self.beleg:
-                fehler.append({"art": "F4 ohne Taeter", "takt": t, "einheit": wer, "opfer": opfer,
+            if zuletzt is None or takt - zuletzt > self.beleg:
+                fehler.append({"art": "F4 ohne Taeter", "takt": takt, "einheit": wer, "opfer": opfer,
                                "text": "%s meldet Arbeiter %d erledigt, Einheit %d hatte ihn %s nicht als Ziel" % (
-                                   modul, opfer, wer, "nie" if zuletzt is None else "seit %d Takten" % (t - zuletzt))})
+                                   modul, opfer, wer, "nie" if zuletzt is None else "seit %d Takten" % (takt - zuletzt))})
         return fehler
 
     def bericht(self):
@@ -202,6 +242,35 @@ def anspruechen_aus(text):
     """[(Modul, eigene Nummer, Opfer)] aus neuen Zeilen der Mitschrift."""
     return [("Reiterjagd" if m.group(1).startswith("REITER") else "Nahkampf-Raid", int(m.group(2)), int(m.group(3)))
             for m in ANSPRUCH.finditer(text)]
+
+
+def anspruechen_mit_takt(text):
+    """[(Modul, eigene Nummer, Opfer, Takt der Zeile)] aus ganzen Zeilen der Mitschrift ("  2600 | ...")."""
+    aus = []
+    for z in text.splitlines():
+        m = re.match(r"\s*(\d+) \|", z)
+        if m:
+            aus += [a + (int(m.group(1)),) for a in anspruechen_aus(z)]
+    return aus
+
+
+def absichten_aus(text):
+    """B-182: [(Takt, Einheit, Modul, Aktion, Grund)] aus den UNIT-Zeilen des Logbuchs (micro/unit_log.py). Dort stehen nur
+    Aenderungen - die letzte Zeile je Einheit ist ihre aktuelle Absicht; "gone" kommt als Aktion None."""
+    aus = []
+    for m in UNIT_ZEILE.finditer(text):
+        if m.group(3) == "gone":
+            aus.append((int(m.group(1)), int(m.group(2)), None, None, None))
+            continue
+        g = re.search(r" reason=(\S+)", m.group(5) or "")
+        aus.append((int(m.group(1)), int(m.group(2)), m.group(3), m.group(4), g.group(1) if g else ""))
+    return aus
+
+
+def kettenbrueche_aus(text):
+    """F5: [Fehler] aus den CHAIN-Zeilen der Mitschrift (die Uebersicht "CHAIN summary" zaehlt nicht)."""
+    return [{"art": "F5 Kette", "takt": int(m.group(1)), "einheit": int(m.group(2)), "text": "%s: %s" % (m.group(3), m.group(4))}
+            for m in KETTE_ZEILE.finditer(text)]
 
 
 def melden(fehler, wache, tick, konsole, ordner, instanz, befehl, stop_pfad, versuche=40, warte=0.5):
@@ -243,6 +312,29 @@ def welt_aus_lage(zeile):
     return SimpleNamespace(tick=zeile["t"], ich=1, einheiten=einheiten)
 
 
+def beleg_im_lageprotokoll(lage, wer, opfer, takt, beleg):
+    """B-182 (Partie 12.11. 00:12, Fehlerwache F4): Hatte Einheit wer das Opfer in einer Runde des Lageprotokolls zwischen takt - beleg und
+    takt + BELEG_NACH als Schuss-, Nahkampf- oder Angriffsziel? Die Live-Wache verpasste den Schuss von Reiter 488 auf Arbeiter 10, das
+    Lageprotokoll zeigte ihn (Runde 20.257). Der Lenker haengt je Runde an - die letzte Runde kann halb geschrieben sein."""
+    import gzip
+    try:
+        with gzip.open(lage, "rt", encoding="utf-8") as f:
+            for zeile in f:
+                try:
+                    r = json.loads(zeile)
+                except ValueError:
+                    break
+                if not takt - beleg <= r.get("t", -1) <= takt + BELEG_NACH:
+                    continue
+                e = welt_aus_lage(r).einheiten.get(wer)
+                if e is not None and opfer in (e.get("schusseinheit"), e.get("nahziel"),
+                                               e.get("zieleinheit") if e.get("zielart") == 4 else None):
+                    return True
+    except (OSError, EOFError):
+        pass
+    return False
+
+
 def nachspielen(lage, konsole=None, **grenzen):
     """Spielt ein Lageprotokoll durch die Wache und gibt den ersten Fehler (oder None) und die Wache zurueck."""
     import gzip
@@ -252,11 +344,15 @@ def nachspielen(lage, konsole=None, **grenzen):
             m = re.match(r"\s*(\d+) \|", z)
             if m:
                 anspruch += [(int(m.group(1)), a) for a in anspruechen_aus(z)]
+    from selfaware.telemetry.lageprotokoll import intents_lesen
     wache = Wache(1, **grenzen)
     with gzip.open(lage, "rt", encoding="utf-8") as f:
         for zeile in f:
             r = json.loads(zeile)
             w = welt_aus_lage(r)
+            takt_i, zeilen_i = intents_lesen(r)     # B-182: das Logbuch der Vorrunde steht in dieser Zeile
+            if takt_i is not None:
+                wache.absicht = {n: (takt_i, d["owner"], d["action"], d["reason"]) for n, d in zeilen_i.items()}
             jetzt = [a for t_, a in anspruch if t_ <= w.tick]
             anspruch = [(t_, a) for t_, a in anspruch if t_ > w.tick]
             fehler = wache.schritt(w, jetzt)
@@ -309,7 +405,7 @@ def main():
             return 1
         time.sleep(0.3)
     wache = Wache(1, a.grenze, a.beobachten, a.still, a.untaetig, a.beleg)
-    konsole, gelesen = None, 0
+    konsole, gelesen, lage = None, 0, None
     naechster_bericht, letzter_tick, gleich_seit = 2000, -1, time.time()
     print("FEHLERWACHE: Partie laeuft (Takt %d) - Grenze %d, beobachtet die ersten %d Kaempfer, still %d, untaetig %d, Beleg %d"
           % (w.tick, a.grenze, a.beobachten, a.still, a.untaetig, a.beleg), flush=True)
@@ -330,9 +426,18 @@ def main():
             with open(konsole, "rb") as f:
                 f.seek(gelesen)
                 roh = f.read()
-            gelesen += len(roh)
-            text = roh.decode("utf-8", "replace")
-        fehler = wache.schritt(w, anspruechen_aus(text))
+            ganz = roh.rfind(b"\n") + 1   # nur ganze Zeilen - der Rest kommt beim naechsten Lesen
+            gelesen += ganz
+            text = roh[:ganz].decode("utf-8", "replace")
+            m = LAGE.search(text) if lage is None else None
+            if m:
+                lage = m.group(1).strip()
+        wache.absichten(absichten_aus(text))      # B-182: was jede Einheit laut Logbuch gerade will
+        fehler = wache.schritt(w, anspruechen_mit_takt(text)) + kettenbrueche_aus(text)
+        if fehler and lage:
+            # B-182 (12.11. 00:12): ohne eigenen Beleg zaehlt erst das Lageprotokoll des Lenkers, bevor F4 gilt
+            fehler = [f_ for f_ in fehler if not (f_["art"] == "F4 ohne Taeter"
+                                                  and beleg_im_lageprotokoll(lage, f_["einheit"], f_["opfer"], f_["takt"], a.beleg))]
         if w.tick >= naechster_bericht:
             naechster_bericht = w.tick + 2000
             z = {}

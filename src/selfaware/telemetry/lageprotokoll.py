@@ -25,8 +25,12 @@ HIER = os.path.dirname(os.path.abspath(__file__))
 # B-182 (Daniel 10.11. 23:07 "Ja, Protokoll"): Der Abzug des Spiels fuehrt bei eigenen Einheiten kein Gebaeudeziel (zielgebaeude
 # immer 0, S113) und kein Schussziel. Der Sandkasten vom 10.11. 23:03 (S114) fand sie im Kern: Gebaeudeangriff -> mauerx/mauery
 # (Ort des Gebaeudes), Einheitenangriff -> schusseinheit/zieleinheit (Zielnummer), zieluid/schussziel_uid (deren uid).
+# 14.11.2026 (S138): dazu Wegindex, Weglaenge und Tempo aus dem Kern - die Laufpruefung der Kette rechnet mit ihnen; ohne sie
+# zaehlte das Nachspielen einer Partie (tools/analysis/spur_laufpruefung.py) auf verwinkelten Wegen zu wenige Felder.
+# S139: dazu die Filterfelder des Marschbefehls (kern_leitung, Aufbau 6); S143: field320_0x413 (Aufbau 7); S148: das Gebiet des Wegnetzes am Feld (Aufbau 8).
 EIGEN_FELDER = ("nr", "typ", "x", "y", "zielart", "zieleinheit", "zieluid", "schusseinheit", "schussziel_uid",
-                "mauerx", "mauery", "planx", "plany", "nahziel")
+                "mauerx", "mauery", "planx", "plany", "nahziel", "wegindex", "weglaenge", "tempo",
+                "logikzustand", "laufmerker", "sammelgang", "teleport", "sammelmerker", "beweglich", "merker413", "gebiet")
 
 
 def eigen_tabelle(welt):
@@ -56,6 +60,10 @@ class Lageprotokoll:
         self.runden = 0
         self.kern = kern
         self.kern_fehler = None
+        # B-182 Logbuch je Einheit: Tabelle der Vorrunde (micro/unit_log.UnitLog.table), setzt der Lenker am Rundenende - sie steht in
+        # der NAECHSTEN Zeile unter "intents", ihre erste Zeile nennt den Takt, zu dem sie gehoert
+        self.intents = None
+        self.welt = None          # B-182 Kettenpruefung: der Kernstand dieser Runde (fuer Angriffskachel und Schussziel)
 
     def schreibe(self, st):
         """Nach runde_lesen() aufrufen: die Abzugsdateien sind dann die dieser Runde."""
@@ -63,15 +71,25 @@ class Lageprotokoll:
         zeile = {"t": st.get("t"), "st": st, "einheiten": open(LAGEBILD).read(), "gebaeude": open(GEBAEUDEDATEI).read()}
         if self.kern is not None:
             try:
-                zeile["eigen"] = eigen_tabelle(self.kern.lesen())
+                self.welt = self.kern.lesen()
+                zeile["eigen"] = eigen_tabelle(self.welt)
             except Exception as ex:      # Kern weg oder anderer Aufbau: die Runde wird trotzdem geschrieben, der Grund einmal
                 if self.kern_fehler is None:
                     self.kern_fehler = repr(ex)[:200]
                     zeile["eigen_fehler"] = self.kern_fehler
+        if self.intents:
+            zeile["intents"], self.intents = self.intents, None
         with gzip.open(self.pfad, "at", encoding="utf-8") as f:
             f.write(json.dumps(zeile, ensure_ascii=False) + "\n")
         self.runden += 1
         return zeile["einheiten"], zeile["gebaeude"]      # 19.10.: fuer den Endspurt (endspurt.py), ohne zweites Lesen
+
+
+def intents_lesen(zeile):
+    """B-182 Logbuch je Einheit: (Takt, {nr: {type, owner, action, target, reason, path, params}}) aus der Tabelle "intents" einer
+    Protokollzeile - der Takt ist der der Vorrunde, zu der sie gehoert; (None, {}) ohne Tabelle (Protokolle vor dem 12.11.)."""
+    from selfaware.micro.unit_log import read_table
+    return read_table(zeile.get("intents"))
 
 
 # ---- lesen --------------------------------------------------------------------------------------------------------

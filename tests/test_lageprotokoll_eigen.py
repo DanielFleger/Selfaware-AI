@@ -11,7 +11,8 @@ from selfaware.telemetry import lageprotokoll as LP
 EIGENE = {
     # Werte wie im Sandkasten vom 10.11. 23:03: Reiter auf Arbeiter 305, Sklave auf das Gebaeude bei (243, 132)
     7: {"nr": 7, "besitzer": 1, "typ": 74, "x": 155, "y": 281, "zielart": 4, "zieleinheit": 305, "zieluid": 23928,
-        "schusseinheit": 305, "schussziel_uid": 23928, "mauerx": 0, "mauery": 0, "planx": 0, "plany": 0, "nahziel": 0},
+        "schusseinheit": 305, "schussziel_uid": 23928, "mauerx": 0, "mauery": 0, "planx": 0, "plany": 0, "nahziel": 0,
+        "wegindex": 12, "weglaenge": 111, "tempo": 4, "sammelmerker": 1, "beweglich": 1},
     8: {"nr": 8, "besitzer": 1, "typ": 71, "x": 150, "y": 280, "zielart": 0, "zieleinheit": 0, "zieluid": 0,
         "schusseinheit": 0, "schussziel_uid": 0, "mauerx": 243, "mauery": 133, "planx": 243, "plany": 134, "nahziel": 0},
 }
@@ -54,6 +55,8 @@ def test_eigen_nur_eigene_einheiten_mit_schuss_und_gebaeudeziel(tmp_path, monkey
     assert sorted(e) == [7, 8]  # die fremde Einheit 9 steht nicht darin
     assert (e[7]["schusseinheit"], e[7]["schussziel_uid"], e[7]["zieleinheit"]) == (305, 23928, 305)
     assert (e[8]["mauerx"], e[8]["mauery"]) == (243, 133)
+    assert (e[7]["wegindex"], e[7]["weglaenge"], e[7]["tempo"]) == (12, 111, 4)    # S138: fuer das Nachspielen der Laufpruefung
+    assert (e[7]["sammelmerker"], e[7]["beweglich"], e[8]["sammelmerker"]) == (1, 1, 0)   # S139: Filterfelder des Marschbefehls
     assert z["eigen"].startswith("kern_tick 500 ich 1")
     assert z["einheiten"].count("\n") == 4  # der Abzug selbst bleibt unveraendert
 

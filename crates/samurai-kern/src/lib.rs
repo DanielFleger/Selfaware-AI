@@ -32,7 +32,7 @@ use haende::{Anspruch, Auftrag, Blick, Buch};
 use waechter::{Ereignis, Waechter};
 use welt::Welt;
 
-pub const VERSION: u32 = 25;
+pub const VERSION: u32 = 33;   // 33 (15.11.2026, S160): kaputter Auftragsring (Lese vor Schreib) wird geheilt; 32 (15.11.2026, S159): Wegpunktkette mit Angriff am Ende (Art 20-22); 31 (15.11.2026, S156): am Laufziel (AM_LAUFZIEL) nichts durchsetzen; 30 (15.11.2026, S155): Laufauftrag durchsetzen (Art 18) ausser gegen den erlaubten Gegner (Art 19); 29 (14.11.2026, S148): Gebiet des Wegnetzes je Einheit (Aufbau 8); 28 (14.11.2026, S143): field320_0x413 je eigener Einheit (Aufbau 7); 27 (14.11.2026, S139): Filterfelder des Marschbefehls je eigener Einheit (Aufbau 6); 26 (13.11.2026, S123): Gebaeudeangriff wirkt ueber das Ziel der Gruppe
 
 /// DAT_UnitsState 0x01387F38: +0 maxUnitCount; Einheiten-Array ab +0x614 = 0x0138854C, je Einheit 1.168 Byte, 2.500 Plaetze
 const UNITS_STATE: usize = 0x0138_7F38;
@@ -190,10 +190,36 @@ fn haende_takt(z: &mut Zustand, tick: i32) {
             gruppe: e.gruppe as i32,
             zieleinheit: e.zieleinheit as i32,
             zielgebaeude: e.zielgebaeude as i32,
+            gruppenziel: welt.trupps.iter().find(|t| t.nr == e.gruppe as i32).map_or(0, |t| t.zielgebaeude as i32),
         })
     });
     meldung.extend(buch.verfallen.drain(..).map(|r| (r, haende::ERG_VERFALLEN)));
     melden(&z.leitung, &meldung);
+    // S159: wer an seinem Wegpunkt ankommt, bekommt in diesem Takt den naechsten Schritt seiner Kette
+    for w in buch.ketten_weiter(|nr| welt.einheiten.iter().find(|e| e.nr == nr).map(|e| (e.x, e.y))) {
+        let nach = match w.nach.art {
+            haende::LAUF => format!("Lauf ({},{})", w.nach.a, w.nach.b),
+            haende::ANGRIFF_EINHEIT => format!("Angriff Einheit {}", w.nach.a),
+            _ => format!("Angriff Gebaeude {}", w.nach.a),
+        };
+        schreibe(&format!("wegkette tick {}: Einheit {} am Wegpunkt ({},{}) - weiter: {}, danach noch {}", tick, w.nr, w.von.0, w.von.1,
+                          nach, w.rest));
+    }
+    // S155: wer einen durchzusetzenden Laufauftrag hat und gegen einen anderen als den erlaubten Gegner kaempft, bekommt ihn in
+    // diesem Takt neu in die Schlange
+    let gegner = |nr: i32| welt.einheiten.iter().find(|e| e.nr == nr)
+        .filter(|e| e.zustand as i32 == haende::KAMPF_EINHEIT)
+        .map(|e| ([e.nahziel as i32, e.zieleinheit as i32], (e.x, e.y)));
+    for m in buch.durchsetzen_pruefen(tick, gegner) {
+        schreibe(&match m {
+            haende::Durchsetzen::Beginn { nr, gegner, auftrag } => format!(
+                "durchsetzen tick {}: Einheit {} kaempft gegen {} - Laufauftrag ({},{}) ab jetzt jeden Takt neu", tick, nr, gegner,
+                auftrag.a, auftrag.b),
+            haende::Durchsetzen::Ende { nr, takte, mal } => format!(
+                "durchsetzen tick {}: Einheit {} kaempft nicht mehr gegen einen anderen - nach {} Takten, Laufauftrag {} mal neu",
+                tick, nr, takte, mal),
+        });
+    }
     if let Some((g, e, t)) = &buch.warten {
         if !haende::in_gruppe(*g, e) && tick - *t < haende::WARTEN_TAKTE {
             return;
@@ -229,8 +255,9 @@ fn haende_takt(z: &mut Zustand, tick: i32) {
     match haende::absetzen(a, &einheiten, platz) {
         Ok((gruppe, gewaehlt)) => {
             if !(a.art == haende::LAUF && z.ausweichen.ist_wegpunkt((a.a, a.b))) {
-                schreibe(&format!("haende tick {}: Gruppe {}, {} von {} Einheiten von Spieler {}, Auftrag {:?}, Vorrang {} - abgesetzt",
-                                  tick, gruppe, gewaehlt.len(), einheiten.len(), platz, a, abgabe.vorrang));
+                // S155: mit den Einheiten - die Auswertung (tools/analysis/befehle_greifen.py kern=) prueft je Einheit, ob er griff
+                schreibe(&format!("haende tick {}: Gruppe {}, {} von {} Einheiten von Spieler {}, Auftrag {:?}, Vorrang {} - abgesetzt, \
+                                   Einheiten {:?}", tick, gruppe, gewaehlt.len(), einheiten.len(), platz, a, abgabe.vorrang, gewaehlt));
             }
             buch.abgesetzt(a, &gewaehlt, gruppe, tick);
             buch.wirkung_beobachten(&abgabe, &gewaehlt, gruppe, tick);
@@ -348,6 +375,9 @@ fn feuer_takt(z: &mut Zustand, tick: i32) {
 /// Ergebnis je Eintrag; P5: spaeter schreibt der Kern dort auch abgesetzt, wirkt, verfallen hinein.
 fn ring_abarbeiten(z: &mut Zustand, tick: i32) {
     let Some(Some(l)) = &z.leitung else { return };
+    if let Some((w, r)) = l.ring_heilen() {
+        schreibe(&format!("ring tick {}: LESEZAEHLER {} VOR SCHREIBZAEHLER {} - alte Auftraege kamen jeden Takt neu, Python fand den Ring                            voll; Lesezaehler auf {} gesetzt (S160)", tick, r, w, w));
+    }
     let liste = l.auftraege();
     if liste.is_empty() {
         return;
@@ -364,6 +394,8 @@ fn ring_abarbeiten(z: &mut Zustand, tick: i32) {
                 z.ausweichen.entfernen(nr);
                 1
             }
+            haende::GEGNER_ERLAUBT => buch.erlauben(nr, a),
+            haende::WEGPUNKT | haende::DANACH_EINHEIT | haende::DANACH_GEBAEUDE => buch.anhaengen(nr, art, a, b),
             ausweichen::AUSWEICHEN => match buch.eigene.get(&nr) {
                 None => haende::ERG_NICHT_UEBERNOMMEN,
                 Some(&besitzer) if besitzer != 0 && auftraggeber != 0 && besitzer != auftraggeber => haende::ERG_FREMD,

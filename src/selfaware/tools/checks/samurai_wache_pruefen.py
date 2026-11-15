@@ -11,7 +11,9 @@
   9. Gefecht vorbei (gameOver 1), Lenker laeuft -> beenden
  10. Gebaeude angeklickt (Ansicht 16), Lenker laeuft -> warten (nicht beenden)
  11. Ansicht 16, Ratte, nicht bedient -> starten
-Gegenprobe: uv run selfaware run samurai_wache_pruefen alt  (RATTE = Schlange) -> 2, 3 und 8 rot."""
+Gegenprobe: uv run selfaware run samurai_wache_pruefen alt  (SAMURAI_KI = Schlange) -> 3 rot (S172: 2 und 8 nehmen
+SAMURAI_KI selbst und bleiben gruen; die feste Nummer 16 prueft tests/test_samurai_wache_platz.py).
+S172: "Ratte" heisst hier SamurAIs Platz (KI 16, eigenes Paket auf dem Abt-Platz)."""
 import os
 import sys
 
@@ -19,7 +21,7 @@ import sys
 import selfaware.runtime.live.samurai_wache as W
 
 if len(sys.argv) > 1 and sys.argv[1] == "alt":
-    W.RATTE = 2
+    W.SAMURAI_KI = 2
 # 19.10. 22:40 Gegenprobe zu 10/11: alte Regel "im Spiel = nur Ansicht 14" -> 10 und 11 muessen rot werden
 if len(sys.argv) > 1 and sys.argv[1] == "nur14":
     W.IM_SPIEL = (14,)
@@ -33,7 +35,7 @@ def main():
         print("%-4s %d %s: %s (soll %s)" % ("OK" if ist == soll else "ROT", nr, text, ist, soll), flush=True)
 
     keine = {sp: 0 for sp in range(1, 9)}
-    ratte2 = {**keine, 2: 1}
+    ratte2 = {**keine, 2: W.SAMURAI_KI}
     pruefe(1, "Hauptmenue", W.entscheide(41, 0, keine, False, False), ("warten", None))
     pruefe(2, "Ratte auf 2", W.entscheide(14, 0, ratte2, False, False), ("starten", 2))
     pruefe(3, "keine Ratte", W.entscheide(14, 0, {**keine, 2: 2, 3: 4}, False, False), ("warten", None))
@@ -41,7 +43,7 @@ def main():
     pruefe(5, "Gefecht verlassen", W.entscheide(41, 0, ratte2, True, True), ("beenden", None))
     pruefe(6, "abgestuerzt, Partie laeuft", W.entscheide(14, 0, ratte2, False, True), ("warten", None))
     pruefe(7, "zurueck im Menue", W.entscheide(41, 0, keine, False, True), ("neue_partie_frei", None))
-    pruefe(8, "Ratten auf 3 und 5", W.entscheide(14, 0, {**keine, 3: 1, 5: 1}, False, False), ("starten", 3))
+    pruefe(8, "Ratten auf 3 und 5", W.entscheide(14, 0, {**keine, 3: W.SAMURAI_KI, 5: W.SAMURAI_KI}, False, False), ("starten", 3))
     pruefe(9, "Gefecht vorbei", W.entscheide(14, 1, ratte2, True, True), ("beenden", None))
     # 19.10. 22:40 (Daniel 22:33 "das Spiel haengt"): Ansicht 16 = ein Gebaeude angeklickt (Markt, Soeldnerposten) - im Spiel
     pruefe(10, "Gebaeude angeklickt (Ansicht 16), Lenker laeuft", W.entscheide(16, 0, ratte2, True, True), ("warten", None))
