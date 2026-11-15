@@ -80,6 +80,11 @@ NEU_ALLE = 4  # Runden zwischen zwei gleichen Befehlen: jeder neue Befehl starte
 KARTE = 399
 # Laeufe unter Pfeilen, die der Kern im Zickzack fuehrt. Weichen vor Nahkaempfern bleibt gerade: Dort geht es um jedes Feld.
 AUSWEICHEN_BEI = {"vor", "abziehen"}
+# #361 (Daniel 16.11.2026 00:27): die Gruppe zieht auch zu einem Ziel, das ein Feind deckt, wenn die Gefechtsrechnung am Platz vor dem
+# Ziel einen Sieg erwartet - mit Beschuss auf dem geraden Weg dorthin (Daniel 15.11.2026 23:28 "beim erwarteten beschuss von anderen die
+# auf dem weg noch dazukommen"). Startwerte, nicht gemessen:
+WEG_PROBE = 8  # Felder zwischen zwei Prueforten auf dem Weg (wie assassinen.WEG_PROBE)
+STAND_VOR = 4  # so viele Felder innerhalb der eigenen Schussweite steht die Gruppe vor dem Ziel (wie wegfuehrung.FERN_STAND)
 LUECKE = 5  # Gefahrenkarte zickzack_abstand.txt: quer zur Schussrichtung bei 2 und 3 Feldern bis 23 %, ab 5 Feldern unter 2 %
 TRUPPS = 8  # Einzelbefehle je Feld, die im Lauf zickzack2_g alle rechtzeitig kamen; ein neunter daneben kam in 18 % statt 6 % der Faelle zu spaet
 SPALTEN = 4  # 8 Plaetze in 2 Reihen, so gemessen
@@ -293,14 +298,32 @@ class Vorstoss:
             return min(nah, key=lambda p: schach(p, stelle))
         return None
 
-    def _gewinnt(self, stelle, L):
+    def _gewinnt(self, stelle, L, von=None):
         """Gefechtsrechnung (services/gefecht.py): unsere Schuetzen an stelle gegen alle feindlichen Schuetzen, die stelle in ihrer
         Reichweite haben (aktiv, nicht geschaetzt), und alle feindlichen Nahkaempfer bis GEFAHR_NAH. True bei Sieg mit mindestens
-        gefecht.BEHALTEN unseres Lebens."""
+        gefecht.BEHALTEN unseres Lebens. von (#361): dazu jeder feindliche Schuetze, der den geraden Weg von dort nach stelle trifft (alle
+        WEG_PROBE Felder geprueft). Je Runde gemerkt."""
+        merk = getattr(self, "_gewinnt_merk", None)
+        if merk is None or merk[0] != (self.runde, id(L)):
+            merk = self._gewinnt_merk = ((self.runde, id(L)), {})
+        schl = (tuple(stelle), tuple(von) if von is not None else None)
+        if schl not in merk[1]:
+            merk[1][schl] = self._gewinnt_rechnen(stelle, L, von)
+        return merk[1][schl]
+
+    def _gewinnt_rechnen(self, stelle, L, von):
         import selfaware.services.gefecht as gefecht
 
+        proben = [stelle]
+        if von is not None and schach(von, stelle) > WEG_PROBE:
+            proben += [
+                _schritt_auf(von, stelle, w) for w in range(0, schach(von, stelle), WEG_PROBE)
+            ]
+        # #361: mit von startet die Gruppe in der Rechnung dort und laeuft hin - so schiessen die Schuetzen am Weg wirklich mit (an stelle
+        # gesetzt waeren sie ausser Reichweite und zaehlten nicht; wie assassinen._stapel_rechnung, wo der Stapel am eigenen Ort startet)
+        start = von if von is not None else stelle
         wir = [
-            dict(typ=L[n]["typ"], leben=L[n].get("leben", 1), x=stelle[0], y=stelle[1])
+            dict(typ=L[n]["typ"], leben=L[n].get("leben", 1), x=start[0], y=start[1])
             for n in sorted(self.mitglieder)
             if n in L
         ]
@@ -309,8 +332,8 @@ class Vorstoss:
         sie = []
         for _, e in self._feinde(L, FERN_FEIND | NAHKAMPF):
             q = ort(e)
-            if e["typ"] in FERN_FEIND and _luft(q, stelle) <= REICHWEITE.get(
-                e["typ"], GEFAHR_SCHUSS
+            if e["typ"] in FERN_FEIND and any(
+                _luft(q, p) <= REICHWEITE.get(e["typ"], GEFAHR_SCHUSS) for p in proben
             ):
                 sie.append(dict(typ=e["typ"], leben=e.get("leben", 1), x=q[0], y=q[1], steht=True))
             elif e["typ"] in NAHKAMPF and schach(q, stelle) <= GEFAHR_NAH:
@@ -323,12 +346,20 @@ class Vorstoss:
             return False
         return bool(sieg) and r_wir >= gefecht.BEHALTEN * sum(w["leben"] for w in wir)
 
+    def _darf(self, k, L, G, mitte):
+        """ "sicher" (die Wegfuehrung findet einen Platz, an dem niemand trifft), "sieg" (die Gruppe gewinnt am Platz vor dem Ziel, Beschuss
+        auf dem Weg mitgerechnet) oder None. Daniel 15.11.2026 23:28: Schuetze gegen Schuetze bei erwartetem Sieg; #361 (16.11. 00:27
+        "das androhen ist schon meist genug ... die bogenschuetzen koennten extrem gut wirtschaft stoeren"): jedes Ziel, auch ein
+        gedeckter Arbeiter - vorher nur feindliche Schuetzen und gerechnet an der Gruppenmitte statt vor dem Ziel."""
+        if self._sicher_zu_beschiessen(k, L, G, mitte):
+            return "sicher"
+        if self.weg is None:
+            return None
+        stand = _schritt_auf(ort(L[k]), mitte, max(1, SCHUSS - STAND_VOR))
+        return "sieg" if self._gewinnt(stand, L, von=mitte) else None
+
     def _darf_beschiessen(self, k, L, G, mitte):
-        """Ein Ziel, das die Wegfuehrung sicher beschiessen kann - oder ein feindlicher Schuetze, gegen den die Gefechtsrechnung an unserem
-        Ort einen Sieg erwartet (Daniel 23:28; Schuetze gegen Schuetze hat nie einen Platz, an dem niemand zurueckschiesst)."""
-        return self._sicher_zu_beschiessen(k, L, G, mitte) or (
-            L[k]["typ"] in FERN_FEIND and self._gewinnt(mitte, L)
-        )
+        return self._darf(k, L, G, mitte) is not None
 
     def _weitester_sicherer(self, mitte, stand, L, G, eigene):
         """Daniel 15.11.2026 23:29 ("die bogenschuetzen laufen nicht direkt vor sondern warten und stocken"): Probe 23:29 - je Runde nur
@@ -396,7 +427,7 @@ class Vorstoss:
         for d, k in kand:
             if self.stur.get(k, 0) > self.runde or self.gesperrt.get(k, -1) > self.runde:
                 continue
-            if self._sicher_zu_beschiessen(k, L, G, mitte):
+            if self._darf_beschiessen(k, L, G, mitte):  # #361: auch bei erwartetem Sieg
                 return k, d
         return None
 
@@ -523,7 +554,8 @@ class Vorstoss:
         for _, d, k in kand:
             if self._ist_stur(k, L[k]) or self.gesperrt.get(k, -1) > self.runde:
                 continue
-            if self.weg is not None and not self._darf_beschiessen(k, L, G, mitte):
+            darf = self._darf(k, L, G, mitte) if self.weg is not None else "sicher"
+            if darf is None:
                 continue  # B-182: gedeckt - nicht erst probieren und aufgeben (ausser Sieg erwartet, Daniel 23:28)
             self._melde(
                 meine,
@@ -541,7 +573,8 @@ class Vorstoss:
                         art, None
                     )  # der naechste eigene Lauf geht danach sofort hinaus, nicht erst nach NEU_ALLE
                 for n in sorted(meine):
-                    self.weg.fuehre(n, "einheit", k, "vorstoss")
+                    # #361: gewinnt die Gruppe, haelt die Gefahr am Platz des Einzelnen ihn nicht auf - alle gehen zusammen
+                    self.weg.fuehre(n, "einheit", k, "vorstoss", trotz=darf == "sieg")
                 self.vor_ort = None
                 if self.gefuehrt != k:
                     self.gefuehrt = k
@@ -618,7 +651,10 @@ class Vorstoss:
                 self.befehle["vor"] += 1
                 aus.append("VORSTOSS: rueckt vor %s -> %s, Ziel %s" % (mitte, stelle, ziel))
             for n in sorted(meine):
-                self.weg.fuehre(n, "ort", self.vor_ort, "vorstoss")
+                # #361 (Daniel 16.11.2026 00:21 "splitten sich dann auf und kommen somit erst viel spaeter an"): ob die Stelle sicher ist,
+                # hat die Gruppenregel (_sicher an jedem Zwischenpunkt, mit Gefechtsrechnung) entschieden - die Wegfuehrung haelt keinen
+                # Einzelnen mehr an, weil ihn dort ein Feind treffen koennte
+                self.weg.fuehre(n, "ort", self.vor_ort, "vorstoss", trotz=True)
             self._melde(
                 meine,
                 Action.MOVE_TO_STAGING,

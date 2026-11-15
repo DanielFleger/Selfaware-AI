@@ -259,7 +259,7 @@ class _WegAttrappe:
     def __init__(self):
         self.auftraege, self.st = {}, {}
 
-    def fuehre(self, nr, art, ziel, zweck=""):
+    def fuehre(self, nr, art, ziel, zweck="", trotz=False):
         self.auftraege[nr] = (art, ziel)
 
     def loslassen(self, nr):

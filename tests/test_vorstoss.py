@@ -304,7 +304,7 @@ def test_b186_behaelt_sein_ziel_statt_zu_springen():
         def __init__(self):
             self.auftraege = {}
 
-        def fuehre(self, nr, art, ziel, zweck=""):
+        def fuehre(self, nr, art, ziel, zweck="", trotz=False):
             self.auftraege[nr] = (art, ziel)
 
         def loslassen(self, nr):

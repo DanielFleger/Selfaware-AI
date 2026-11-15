@@ -225,6 +225,8 @@ class Auftrag:
         )
         self.art_eigen = None  # Art der gefuehrten Einheit beim ersten Schritt - das Spiel vergibt Nummern Toter neu
         self.status = "neu"
+        # #361: das Modul hat fuer die GRUPPE entschieden, dass sie dort gewinnt - Gefahr am Standplatz haelt diese Einheit nicht auf
+        self.trotz = False
 
 
 class Wegfuehrung:
@@ -260,12 +262,16 @@ class Wegfuehrung:
 
         return laenge
 
-    def fuehre(self, nr, art, ziel, zweck=""):
-        """art: "einheit" (ziel = Nummer), "gebaeude" (ziel = Nummer) oder "ort" (ziel = (x, y))."""
+    def fuehre(self, nr, art, ziel, zweck="", trotz=False):
+        """art: "einheit" (ziel = Nummer), "gebaeude" (ziel = Nummer) oder "ort" (ziel = (x, y)). trotz (#361, Daniel 16.11.2026 00:27
+        "jo alleine sterbe ich - aber gemeinsam koennten sie gewinnen ... dann versuch ichs erst gar nicht"): das Modul hat fuer die ganze
+        Gruppe gerechnet, dass sie dort gewinnt - Gefahr am Standplatz dieser einen Einheit ist dann kein Grund, keinen Befehl zu geben.
+        Weg und Standplatz bleiben die sichersten."""
         alt = self.auftraege.get(nr)
         # "ziel_weg": die Nummer traegt inzwischen eine andere Einheit - fuehrt das Modul sie trotzdem, gilt die neue
         if alt is None or (alt.art, alt.ziel) != (art, ziel) or alt.status == "ziel_weg":
             self.auftraege[nr] = Auftrag(art, ziel, zweck)
+        self.auftraege[nr].trotz = bool(trotz)
 
     def schuss_moeglich(self, typ, von, ziel_ort, L, G, zweck=""):
         """B-182 (Partie 11.11. 23:53): Faende die Wegfuehrung fuer einen Fernkaempfer dieser Art einen Standplatz in Reichweite von
@@ -573,7 +579,7 @@ class Wegfuehrung:
                     stand
                 )  # B-182: der Standplatz eines Fernkaempfers muss begehbar sein
                 gefahr_stand = gefahr_an(stand)
-            if gefahr_stand and a.zweck not in self.trotz_gefahr:
+            if gefahr_stand and a.zweck not in self.trotz_gefahr and not a.trotz:
                 a.status = "gefahr"
                 continue
             # B-182 (Partie 11.11. 22:37): die Wegsuche des Spiels kennt keine Gefahr - Sklave 404 lief mit ihr geradeaus bis zu einem
