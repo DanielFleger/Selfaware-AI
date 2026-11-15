@@ -90,3 +90,14 @@ def test_nahkampf_raid_zielt_nicht_auf_brennende():
 
     z = {x.schluessel for x in WK.ziele({}, {33: _geb(33, 265, feuer=9), 34: _geb(34, 275)}, 1)}
     assert ("g", 34) in z and ("g", 33) not in z
+
+
+def test_sklave_laeuft_nicht_weiter_auf_ein_brennendes_gebaeude():
+    from selfaware.micro.tasks import raids as RA
+
+    t = RA.Brandtrupp(1, lambda nr: 0)
+    sklave = {"typ": RA.SKLAVE, "x": 100, "y": 100, "besitzer": 1, "leben": 6000}
+    t.schritt({1: sklave}, {33: _geb(33, 150), 34: _geb(34, 160)}, lambda *a, **k: None)
+    assert t.ziel[1] == 33
+    t.schritt({1: sklave}, {33: _geb(33, 150, feuer=20), 34: _geb(34, 160)}, lambda *a, **k: None)
+    assert t.ziel[1] == 34, "33 brennt: sofort 34"

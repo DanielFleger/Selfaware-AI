@@ -34,6 +34,7 @@ import collections
 
 from selfaware.baukasten.ausweichen import Schussfeld
 from selfaware.baukasten import zielvergabe as ZV
+from selfaware.micro.tasks.waechter import brennt
 from selfaware.micro.unit_log import Action, building, point, unit
 
 SKLAVE, PFERDEBOGEN = 71, 74
@@ -244,6 +245,13 @@ class Brandtrupp:
             if s not in meine or self.ziel[s] not in G:
                 self.ziel.pop(s, None)
                 self._nicht_im_ausweichen(s, meine)
+            elif self.ziel[s] in self.brennt or brennt(G[self.ziel[s]]):
+                # Daniel 15.11.2026 23:31 ("es brennt und sie verbrennen auch ... bitte sofort ein neues Gebaeude auswaehlen"): wer auf ein
+                # schon brennendes Gebaeude zulaeuft (dazu), nimmt in dieser Runde ein anderes
+                self.brennt.add(self.ziel.pop(s))
+                self._nicht_im_ausweichen(s, meine)
+                if self.weg is not None:
+                    self.weg.loslassen(s)
         # brennt ein Ziel, zieht der Sklave weiter (gemessen: es brennt allein ab). Gelesen wird nur, wenn der Sklave hoechstens
         # 4 Felder davor steht - jede Abfrage ist ein Weg durch den Kanal
         for s, nr in list(self.ziel.items()):
