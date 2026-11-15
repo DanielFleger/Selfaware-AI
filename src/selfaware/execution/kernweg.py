@@ -65,6 +65,7 @@ class Kernweg:
         # B-182 Kettenpruefung je Befehl (micro/chain_audit.ChainAudit): sieht jeden Ringauftrag und sein Ergebnis; setzt der Lenker
         self.beobachter = None
         self.plaetze = ()  # B-184: Spieler-Plaetze dieses Lenkers (oeffnen setzt sie)
+        self.folge_gesendet = {}  # #359: Einheit -> (Gebaeude, Folgeziel, Art), zuletzt an den Kern gegeben
 
     def _uebergeben(self, einheiten):
         if self.plaetze:
@@ -81,11 +82,15 @@ class Kernweg:
                 self.leitung.auftrag(KL.FREIGEBEN, nr)
                 self.uebergeben.discard(nr)
                 self.erlaubt.pop(nr, None)
+                self.folge_gesendet.pop(nr, None)
 
     def _einreihen(self, einheiten, art, a, b, vorrang, tick):
         frist = tick + FLUCHT_FRIST if vorrang == KL.VORRANG_FLUCHT else 0
         self._uebergeben(einheiten)
         for nr in einheiten:
+            self.folge_gesendet.pop(
+                nr, None
+            )  # #359: ein neuer Auftrag kann das Folgeziel im Kern loeschen - danach neu geben
             ring = self.leitung.auftrag(art, nr, a, b, vorrang, frist, self.auftraggeber)
             self.offen[ring] = art
             if self.beobachter is not None:
@@ -138,6 +143,35 @@ class Kernweg:
             self.stand["ring voll"] += 1
             return False
         self.stand["ketten"] += 1
+        return True
+
+    @property
+    def kann_folge(self):
+        """#359: Kennt der Kern das Folgeziel (Version ab KL.FOLGE_AB)?"""
+        return (self.version or 0) >= KL.FOLGE_AB
+
+    def folge(self, nr, jetzt, ziel, art="gebaeude"):
+        """#359 (Daniel 15.11.2026 23:07): Faellt Gebaeude jetzt, greift die Einheit im selben Takt ziel an (0 = kein Folgeziel). Geht nur bei einer
+        Aenderung in den Ring. False, wenn der Ring voll ist."""
+        schl = (int(jetzt), int(ziel or 0), art)
+        if self.folge_gesendet.get(nr) == schl:
+            return True
+        try:
+            self._uebergeben([nr])
+            self.leitung.auftrag(
+                KL.FOLGE_EINHEIT if art == "einheit" else KL.FOLGE_GEBAEUDE,
+                nr,
+                schl[0],
+                schl[1],
+                0,
+                0,
+                self.auftraggeber,
+            )
+        except RuntimeError:
+            self.stand["ring voll"] += 1
+            return False
+        self.folge_gesendet[nr] = schl
+        self.stand["folge"] += 1
         return True
 
     def freigeben(self, einheiten):

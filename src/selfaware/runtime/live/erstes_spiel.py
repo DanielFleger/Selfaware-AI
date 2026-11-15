@@ -1132,7 +1132,7 @@ KETTE = None             # B-182 Kettenpruefung je Befehl (micro/chain_audit.Cha
 _kernweg_runde = 0
 
 
-def kernweg_senden(liste, assassinen, ereignis):
+def kernweg_senden(liste, assassinen, ereignis, folge=None):
     """Legt die Assassinen-Befehle dieser Runde in den Auftragsring des Kerns und gibt zurueck, was ans Modul gehen muss.
     Ohne bereiten Kern (Fassung mit Aufbau 4) bleibt alles beim Modul - einmal gemeldet, die Partie laeuft normal weiter."""
     global _kernweg, _kernweg_runde
@@ -1146,7 +1146,15 @@ def kernweg_senden(liste, assassinen, ereignis):
     if not _kernweg:
         return liste
     _kernweg.aufraeumen(assassinen)
-    rest = _kernweg.senden(liste)
+    rest = _kernweg.senden(liste) if liste else []
+    # #359 (Daniel 15.11.2026 23:07): Folgeziele - faellt das angegriffene Gebaeude, greift der Kern im selben Takt das naechste an
+    if folge and _kernweg.kann_folge:
+        lebend = set(assassinen)
+        for n, (gn, ziel) in sorted(folge.items()):
+            if n in lebend:
+                _kernweg.folge(n, gn, ziel)
+        for n in [n for n in _kernweg.folge_gesendet if n not in folge and n in lebend]:
+            _kernweg.folge(n, 0, 0)    # kein Folgeziel mehr - im Kern loeschen
     _kernweg_runde += 1
     if _kernweg_runde % 50 == 0:
         ereignis.append(_kernweg.bericht())
@@ -3411,8 +3419,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 erg = trupp.schritt(L, G, sichere_orte=[tuple(plan["lager_mitte"]), BERGFRIED], tick=st.get("t"))
                 if isinstance(erg, tuple):          # Einzeln: Befehle der Runde gesammelt in EINEM Aufruf
                     erg, liste = erg
-                    if liste and KERNWEG:           # 08.11. (P5, B-157): kernweg=ja - Einheitenbefehle ueber den Kern
-                        liste = kernweg_senden(liste, [n for n, e in L.items() if e["besitzer"] == SP and e["typ"] == 73], ereignis)
+                    if KERNWEG and (liste or getattr(trupp, "folgeziele", None)):   # 08.11. (P5, B-157): kernweg=ja; #359 Folgeziele
+                        liste = kernweg_senden(liste, [n for n, e in L.items() if e["besitzer"] == SP and e["typ"] == 73], ereignis,
+                                               folge=getattr(trupp, "folgeziele", None))
                     if liste:
                         sende({"befehle": [dict(b, player=1, id=neue_id()) for b in liste]}, 1.0,
                               bis="ANGRIFF" if any("angriff" in b for b in liste) else "HALTEN")

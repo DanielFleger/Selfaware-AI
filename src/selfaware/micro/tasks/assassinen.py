@@ -576,6 +576,7 @@ class Einzeln:
         # Zielwahl kein Ziel und steht er schon sicher nah an der Front, bleibt er stehen - ohne Befehl, die Entscheidung stand
         # nirgends, das Logbuch zeigte "ohne Auftrag". Assassine -> Grund dieser Runde (englisch wie das Logbuch)
         self.ohne_grund = {}
+        self.folgeziele = {}                 # #359: Assassine -> (Gebaeude, das er angreift, Folge-Gebaeude); setzt schritt
 
     def aufnehmen(self, nummern):
         self.mitglieder |= set(n for n in nummern if n not in self.bilanz["verluste"])
@@ -713,6 +714,72 @@ class Einzeln:
         fallback = [q for q in heime if schach(q, lord) > SCHUSSWEITE
                     and all(schach(q, p) > SCHUSSWEITE for _, p, _ in fern)]
         return min(fallback, key=lambda q: schach(q, lord)) if fallback else None
+
+    def _ziel_bewerten(self, n, ort, liste, zahl, L, G, g_r, rk, grenze, grenze_bew):
+        """Bestes Gebaeude fuer Assassine n von ort aus (Zielwahl, Risiko gegen Ertrag): (je_zeit, Kandidat, p_tod, saldo) oder None.
+        rk = Risiko-Karte von ort (g_r.risiko_von). Auch fuer das Folgeziel (#359): ort ist dann das Gebaeude, das er gerade angreift."""
+        beste, beste_bew = None, None
+        for k in liste:
+            if k[8] > zahl.get(k[0], 0) + 1:
+                continue                   # 4a: nicht dorthin, wo mehr Nahkampf-Wachen stehen als wir Angreifer haetten
+            if self._route_sperre.get((n, k[0]), -1) >= self.jetzt:
+                continue                   # 18.10. (1018n, Assassine 17): nach ROUTE GEFAEHRLICH nicht gleich dasselbe Ziel
+            if n in self.entdeckt and not self._weit_von_gesehen(n, ort, k[1], L):
+                continue                   # 19.10.: Aussendienst - Weg und Ziel ausser Reichweite der Schuetzen, die ihn sahen
+            b_ziel = self._beschuss_angriff(k[0], G, ort)
+            if L[n]["leben"] < self.EIN_TREFFER and (b_ziel > 0 or self._sicht.sicht_abstand(k[1]) < sicht.SICHT + self.RAND_SCHWACH):
+                continue                   # 19.10.: ein Bolzen toetet ihn - nur Ziele weit ab von jedem Spaeher
+            # 17.10.: Zeit am Ziel = gemessene Arbeit / Zahl der Angreifer (statt VERWEILEN 300 ungemessen); Beschuss am
+            # Ziel aus der Sicht (sichtbar nur bei waehlbarem Feind <= 20 Feldern, Schusslinie) statt Schadenssatz L73
+            verweilen = self._arbeit(k[2], zahl.get(k[0], 0) + 1)
+            if g_r is not None:
+                c = g_r.zelle_von(k[1])
+                r_weg, felder = rk.get(c, (1e9, 999))
+                risiko = (r_weg + b_ziel * verweilen) * self.KALIB
+            else:
+                felder = schach(ort, k[1])
+                risiko = b_ziel * (verweilen + felder * TEMPO) * self.KALIB
+            p_tod = min(1.0, risiko / max(1.0, float(L[n]["leben"])))
+            saldo = WERT.get(k[2], 10) * (1 - p_tod) - p_tod * self.KOSTEN
+            # 19.10. (Daniel: zwei Fronten, "hinten ist keine Verteidigung"): Ruhe-Bonus bis x2 fuer Ziele weit weg von jedem
+            # waehlbaren Feind (Sicht-Abstand in Feldern / RUHE_FELDER) - dort wird er nicht entdeckt, verliert keine Zeit
+            ruhe = 1.0 + min(self._sicht.sicht_abstand(k[1]) / 8.0, self.RUHE_FELDER) / self.RUHE_FELDER
+            je_zeit = ruhe * saldo / (felder * TEMPO + verweilen)
+            if saldo <= 0:
+                continue
+            if b_ziel <= 0:
+                if p_tod <= grenze and (beste is None or je_zeit > beste[0]):
+                    beste = (je_zeit, k, p_tod, saldo)
+            elif p_tod <= grenze_bew and (beste_bew is None or je_zeit > beste_bew[0]):
+                beste_bew = (je_zeit, k, p_tod, saldo)
+        return beste or beste_bew
+
+    def _folgeziele_rechnen(self, L, G, kand, zahl, platz):
+        """#359: {Assassine: (Gebaeude, das er angreift, Folge-Gebaeude)} - je Gebaeude ein Folgeziel fuer alle seine Angreifer."""
+        angreifer = {}
+        for n, gn in self.ziel.items():
+            if n in L and gn in G and n not in self.jagd and n not in self.flucht and n not in self.lordtrupp["mitglieder"]:
+                angreifer.setdefault(gn, []).append(n)
+        if not angreifer:
+            return {}
+        g_r = self._gitter(L, G)
+        zahl_f = dict(zahl)
+        aus = {}
+        for gn, ns in sorted(angreifer.items()):
+            ort = (G[gn]["x"], G[gn]["y"])
+            n = min(ns, key=lambda k: (L[k]["leben"], k))
+            schwach = L[n]["leben"] < self.SCHWACH * self.VOLL
+            grenze = self.ZIEL_RISIKO_SCHWACH if schwach else self.ZIEL_RISIKO_WEG
+            rk = g_r.risiko_von(ort, TEMPO) if g_r is not None else {}
+            liste = [k for k in kand if k[3] and k[0] != gn]
+            beste, _dazu = ZV.waehle(liste, lambda k: zahl_f.get(k[0], 0) < platz(k),
+                                     lambda li: self._ziel_bewerten(n, ort, li, zahl_f, L, G, g_r, rk, grenze, min(self.ZIEL_RISIKO, grenze)))
+            if beste:
+                ziel = beste[1][0]
+                zahl_f[ziel] = zahl_f.get(ziel, 0) + len(ns)
+                for k in ns:
+                    aus[k] = (gn, ziel)
+        return aus
 
     def _lord_schaden_je_assassine(self):
         """Lord-Leben, die ein Angreifer in den beendeten Lord-Angriffen DIESER Partie im Mittel abzog (Summe Schaden / Summe Angreifer).
@@ -2765,42 +2832,7 @@ class Einzeln:
             # berechnet, aber nicht angewendet: Assassine 163 zog mit 120 Leben los, 17 mit 3.100)
             grenze = self.ZIEL_RISIKO_SCHWACH if schwach else self.ZIEL_RISIKO_WEG
             grenze_bew = min(self.ZIEL_RISIKO, grenze)
-            def wahl(liste):
-                beste, beste_bew = None, None
-                for k in liste:
-                    if k[8] > zahl.get(k[0], 0) + 1:
-                        continue                   # 4a: nicht dorthin, wo mehr Nahkampf-Wachen stehen als wir Angreifer haetten
-                    if self._route_sperre.get((n, k[0]), -1) >= self.jetzt:
-                        continue                   # 18.10. (1018n, Assassine 17): nach ROUTE GEFAEHRLICH nicht gleich dasselbe Ziel
-                    if n in self.entdeckt and not self._weit_von_gesehen(n, ort, k[1], L):
-                        continue                   # 19.10.: Aussendienst - Weg und Ziel ausser Reichweite der Schuetzen, die ihn sahen
-                    b_ziel = self._beschuss_angriff(k[0], G, ort)
-                    if L[n]["leben"] < self.EIN_TREFFER and (b_ziel > 0 or self._sicht.sicht_abstand(k[1]) < sicht.SICHT + self.RAND_SCHWACH):
-                        continue                   # 19.10.: ein Bolzen toetet ihn - nur Ziele weit ab von jedem Spaeher
-                    # 17.10.: Zeit am Ziel = gemessene Arbeit / Zahl der Angreifer (statt VERWEILEN 300 ungemessen); Beschuss am
-                    # Ziel aus der Sicht (sichtbar nur bei waehlbarem Feind <= 20 Feldern, Schusslinie) statt Schadenssatz L73
-                    verweilen = self._arbeit(k[2], zahl.get(k[0], 0) + 1)
-                    if g_r is not None:
-                        c = g_r.zelle_von(k[1])
-                        r_weg, felder = rk.get(c, (1e9, 999))
-                        risiko = (r_weg + b_ziel * verweilen) * self.KALIB
-                    else:
-                        felder = schach(ort, k[1])
-                        risiko = b_ziel * (verweilen + felder * TEMPO) * self.KALIB
-                    p_tod = min(1.0, risiko / max(1.0, float(L[n]["leben"])))
-                    saldo = WERT.get(k[2], 10) * (1 - p_tod) - p_tod * self.KOSTEN
-                    # 19.10. (Daniel: zwei Fronten, "hinten ist keine Verteidigung"): Ruhe-Bonus bis x2 fuer Ziele weit weg von jedem
-                    # waehlbaren Feind (Sicht-Abstand in Feldern / RUHE_FELDER) - dort wird er nicht entdeckt, verliert keine Zeit
-                    ruhe = 1.0 + min(self._sicht.sicht_abstand(k[1]) / 8.0, self.RUHE_FELDER) / self.RUHE_FELDER
-                    je_zeit = ruhe * saldo / (felder * TEMPO + verweilen)
-                    if saldo <= 0:
-                        continue
-                    if b_ziel <= 0:
-                        if p_tod <= grenze and (beste is None or je_zeit > beste[0]):
-                            beste = (je_zeit, k, p_tod, saldo)
-                    elif p_tod <= grenze_bew and (beste_bew is None or je_zeit > beste_bew[0]):
-                        beste_bew = (je_zeit, k, p_tod, saldo)
-                return beste or beste_bew
+            wahl = lambda liste: self._ziel_bewerten(n, ort, liste, zahl, L, G, g_r, rk, grenze, grenze_bew)  # noqa: E731
             # Daniel 15.11.2026 22:29 (baukasten/zielvergabe.py): erst ein freies Gebaeude, ist keins annehmbar, stellt er sich zu einem
             # besetzten dazu - vorher warteten bis zu 77 Assassinen 'alle gefaehrlich', weil die sicheren Gebaeude je einen hatten
             beste, dazu = ZV.waehle(erreichbar, lambda k: zahl.get(k[0], 0) < platz(k), wahl)
@@ -2839,6 +2871,11 @@ class Einzeln:
                 front = self._front_platz(ort)
                 if front:
                     self._warten(n, front, halten)
+        # #359 (Daniel 15.11.2026 23:07: "brauchen immer noch zu lange um ziele zu waehlen und reagieren nicht nachdem sie eins kaputt gemacht
+        # haben"): je angegriffenem Gebaeude das Folgeziel vorab - mit derselben Bewertung, vom Ort dieses Gebaeudes aus, fuer den
+        # schwaechsten seiner Angreifer (das Ziel muss fuer alle annehmbar sein). Der Lenker gibt es dem Kern; faellt das Gebaeude, greifen
+        # alle im selben Takt an (Probe 23:05: sonst im Median 718 Takte bis zum neuen Ziel, nur 136 von 601 in der naechsten Runde).
+        self.folgeziele = self._folgeziele_rechnen(L, G, kand, zahl, platz)
         # 6. Stapel: viele Wartende -> alle gebuendelt auf EINEN erreichbaren Fernkaempfer am Boden, dann den naechsten
         stapel_befehl = None
         stp = self.stapel

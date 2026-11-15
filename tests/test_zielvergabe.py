@@ -109,3 +109,62 @@ def test_zwei_assassinen_greifen_dasselbe_gebaeude_an():
     ev = erg[0] if isinstance(erg, tuple) else erg
     assert a.ziel == {5: 33, 6: 33}, [z for z in ev if "ZIEL" in z or "ohne Ziel" in z]
     assert any(z.startswith("ZIELWAHL 6 -> 33") and "dazu (schon 1 dort)" in z for z in ev)
+
+
+def test_359_folgeziel_je_angegriffenem_gebaeude():
+    """#359 (Daniel 23:07): wer ein Gebaeude angreift, hat schon das naechste - vom Ort dieses Gebaeudes aus gewaehlt."""
+    try:
+        import selfaware.micro.tasks.assassinen as AS
+    except RuntimeError as ex:
+        pytest.skip(str(ex))
+
+    def e(nr, besitzer, typ, x, y, **k):
+        d = {
+            "nr": nr,
+            "gruppe": 0,
+            "besitzer": besitzer,
+            "typ": typ,
+            "x": x,
+            "y": y,
+            "leben": 10000,
+            "zustand": 1,
+            "zielart": 0,
+            "zieleinheit": 0,
+            "laufx": x,
+            "laufy": y,
+            "ladung": 0,
+            "arbeitsplatz": 0,
+            "erreichbar": 1,
+            "nahziel": -1,
+            "nahangreifer": -1,
+        }
+        d.update(k)
+        return d
+
+    def geb(nr, x):
+        return {
+            "besitzer": 2,
+            "typ": 3,
+            "x": x,
+            "y": 100,
+            "leben": 60,
+            "uid": nr,
+            "erreichbar": 1,
+            "vorrat": None,
+            "grenze": None,
+            "verbund": None,
+            "ware": None,
+        }
+
+    G = {33: geb(33, 265), 34: geb(34, 275)}
+    L = {
+        1: e(1, 1, 55, 100, 100, leben=150000),
+        5: e(5, 1, 73, 240, 100, leben=50000),
+        60: e(60, 2, 55, 340, 100, leben=150000),
+    }
+    a = AS.Einzeln(1)
+    a.aufnehmen([5])
+    a.schritt(L, G, sichere_orte=[(100, 100)], tick=1000)
+    assert a.ziel.get(5) in (33, 34)
+    jetzt = a.ziel[5]
+    assert a.folgeziele == {5: (jetzt, 34 if jetzt == 33 else 33)}

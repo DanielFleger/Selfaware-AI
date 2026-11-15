@@ -32,7 +32,7 @@ use haende::{Anspruch, Auftrag, Blick, Buch};
 use waechter::{Ereignis, Waechter};
 use welt::Welt;
 
-pub const VERSION: u32 = 35;   // 35 (15.11.2026, B-184): Plaetze beim Partiewechsel leeren (2 SamurAIs); 34 (15.11.2026, B-184): Sperre und Schwaerzung nach SamurAIs Plaetzen statt dem Platz des Menschen; 33 (15.11.2026, S160): kaputter Auftragsring (Lese vor Schreib) wird geheilt; 32 (15.11.2026, S159): Wegpunktkette mit Angriff am Ende (Art 20-22); 31 (15.11.2026, S156): am Laufziel (AM_LAUFZIEL) nichts durchsetzen; 30 (15.11.2026, S155): Laufauftrag durchsetzen (Art 18) ausser gegen den erlaubten Gegner (Art 19); 29 (14.11.2026, S148): Gebiet des Wegnetzes je Einheit (Aufbau 8); 28 (14.11.2026, S143): field320_0x413 je eigener Einheit (Aufbau 7); 27 (14.11.2026, S139): Filterfelder des Marschbefehls je eigener Einheit (Aufbau 6); 26 (13.11.2026, S123): Gebaeudeangriff wirkt ueber das Ziel der Gruppe
+pub const VERSION: u32 = 36;   // 36 (15.11.2026, #359): Folgeziel im Takt der Zerstoerung (Art 23/24); 35 (15.11.2026, B-184): Plaetze beim Partiewechsel leeren (2 SamurAIs); 34 (15.11.2026, B-184): Sperre und Schwaerzung nach SamurAIs Plaetzen statt dem Platz des Menschen; 33 (15.11.2026, S160): kaputter Auftragsring (Lese vor Schreib) wird geheilt; 32 (15.11.2026, S159): Wegpunktkette mit Angriff am Ende (Art 20-22); 31 (15.11.2026, S156): am Laufziel (AM_LAUFZIEL) nichts durchsetzen; 30 (15.11.2026, S155): Laufauftrag durchsetzen (Art 18) ausser gegen den erlaubten Gegner (Art 19); 29 (14.11.2026, S148): Gebiet des Wegnetzes je Einheit (Aufbau 8); 28 (14.11.2026, S143): field320_0x413 je eigener Einheit (Aufbau 7); 27 (14.11.2026, S139): Filterfelder des Marschbefehls je eigener Einheit (Aufbau 6); 26 (13.11.2026, S123): Gebaeudeangriff wirkt ueber das Ziel der Gruppe
 
 /// DAT_UnitsState 0x01387F38: +0 maxUnitCount; Einheiten-Array ab +0x614 = 0x0138854C, je Einheit 1.168 Byte, 2.500 Plaetze
 const UNITS_STATE: usize = 0x0138_7F38;
@@ -204,6 +204,11 @@ fn haende_takt(z: &mut Zustand, tick: i32) {
         };
         schreibe(&format!("wegkette tick {}: Einheit {} am Wegpunkt ({},{}) - weiter: {}, danach noch {}", tick, w.nr, w.von.0, w.von.1,
                           nach, w.rest));
+    }
+    // Daniel 23:07: faellt das angegriffene Gebaeude, kommt das Folgeziel im selben Takt
+    for (nr, jetzt, f) in buch.folge_weiter(|g| welt.gebaeude.iter().any(|x| x.nr == g), |e| welt.einheiten.iter().any(|x| x.nr == e)) {
+        schreibe(&format!("folge tick {}: Gebaeude {} faellt - Einheit {} sofort auf {} {}", tick, jetzt, nr,
+                          if f.art == haende::ANGRIFF_GEBAEUDE { "Gebaeude" } else { "Einheit" }, f.a));
     }
     // S155: wer einen durchzusetzenden Laufauftrag hat und gegen einen anderen als den erlaubten Gegner kaempft, bekommt ihn in
     // diesem Takt neu in die Schlange
@@ -422,6 +427,7 @@ fn ring_abarbeiten(z: &mut Zustand, tick: i32) {
             }
             haende::GEGNER_ERLAUBT => buch.erlauben(nr, a),
             haende::WEGPUNKT | haende::DANACH_EINHEIT | haende::DANACH_GEBAEUDE => buch.anhaengen(nr, art, a, b),
+            haende::FOLGE_GEBAEUDE | haende::FOLGE_EINHEIT => buch.folge_setzen(nr, art, a, b),
             ausweichen::AUSWEICHEN => match buch.eigene.get(&nr) {
                 None => haende::ERG_NICHT_UEBERNOMMEN,
                 Some(&besitzer) if besitzer != 0 && auftraggeber != 0 && besitzer != auftraggeber => haende::ERG_FREMD,

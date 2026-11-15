@@ -24,6 +24,13 @@ pub const AM_LAUFZIEL: i32 = 3;
 pub const WEGPUNKT: i32 = 20;
 pub const DANACH_EINHEIT: i32 = 21;
 pub const DANACH_GEBAEUDE: i32 = 22;
+/// Daniel 15.11.2026 23:07 ("Einheiten brauche immer noch zu lange um ziele zu waehlen und reagieren nicht nachdem sie eins kaputt gemacht
+/// haben"): das Folgeziel einer Einheit, die ein Gebaeude angreift - a = dieses Gebaeude, b = das naechste Ziel (FOLGE_GEBAEUDE: ein
+/// Gebaeude, FOLGE_EINHEIT: eine Einheit, 0 = keins). Faellt das Gebaeude, gibt der Kern den Angriff aufs Folgeziel im selben Takt - statt
+/// eine Lenker-Runde spaeter (Probe 23:05: Runde im Median 229 Takte, nur 136 von 601 Zerstoerungen mit neuem Ziel in der naechsten Runde).
+/// Ein anderer Auftrag an die Einheit loescht das Folgeziel - ausser dem Angriff auf dasselbe Gebaeude.
+pub const FOLGE_GEBAEUDE: i32 = 23;
+pub const FOLGE_EINHEIT: i32 = 24;
 /// Zustand einer Einheit im Kampf gegen eine Einheit (chain_audit ATTACK_STATES)
 pub const KAMPF_EINHEIT: i32 = 106;
 pub const ANGRIFF_EINHEIT: i32 = 4;
@@ -187,6 +194,10 @@ pub struct Buch {
     ketten: BTreeMap<i32, Kette>,
     /// S159: so oft gab der Kern den naechsten Schritt einer Kette
     pub kette_schritte: u64,
+    /// Daniel 23:07: Einheit -> (Gebaeude, das sie angreift, Auftrag aufs Folgeziel)
+    folge: BTreeMap<i32, (i32, Auftrag)>,
+    /// so oft gab der Kern ein Folgeziel im Takt der Zerstoerung
+    pub folge_schritte: u64,
 }
 
 /// S159: der jetzige Wegpunkt einer Einheit, ob er durchgesetzt wird, und was danach kommt
@@ -234,6 +245,7 @@ impl Buch {
         self.durchsetzen.remove(&nr);
         self.erlaubt.remove(&nr);
         self.ketten.remove(&nr);
+        self.folge.remove(&nr);
         self.wirkung.retain(|w| w.nr != nr);
         if let Some((_, an)) = self.aus_offen_nehmen(nr) {
             self.verfallen.extend(an.ring);
@@ -297,6 +309,10 @@ impl Buch {
                 self.ketten.insert(nr, Kette { jetzt: (a.a, a.b), durch, rest: Default::default() });
             } else {
                 self.ketten.remove(&nr);
+            }
+            // Daniel 23:07: ein anderer Auftrag loescht das Folgeziel - der Angriff auf dasselbe Gebaeude nicht
+            if !(a.art == ANGRIFF_GEBAEUDE && self.folge.get(&nr).is_some_and(|f| f.0 == a.a)) {
+                self.folge.remove(&nr);
             }
         }
         if self.letzter.get(&nr) == Some(&a) && !untaetig {
@@ -474,6 +490,60 @@ impl Buch {
             self.einreihen(nr, naechster, Anspruch::default());
             self.kette_schritte += 1;
             aus.push(Weiter { nr, von, nach: naechster, rest });
+        }
+        aus
+    }
+
+    /// Daniel 23:07: setzt das Folgeziel der Einheit (FOLGE_GEBAEUDE / FOLGE_EINHEIT; jetzt = Gebaeude, das sie angreift; ziel 0 = keins).
+    /// Ergebnis fuer den Ring.
+    pub fn folge_setzen(&mut self, nr: i32, art: i32, jetzt: i32, ziel: i32) -> i32 {
+        let auftrag = match art {
+            FOLGE_GEBAEUDE => Auftrag { art: ANGRIFF_GEBAEUDE, a: ziel, b: 0 },
+            FOLGE_EINHEIT => Auftrag { art: ANGRIFF_EINHEIT, a: ziel, b: 0 },
+            _ => return ERG_UNBEKANNT,
+        };
+        if !self.eigene.contains_key(&nr) {
+            return ERG_NICHT_UEBERNOMMEN;
+        }
+        if ziel == 0 {
+            self.folge.remove(&nr);
+        } else {
+            self.folge.insert(nr, (jetzt, auftrag));
+        }
+        ERG_ANGENOMMEN
+    }
+
+    /// Daniel 23:07: Steht das Gebaeude einer Einheit mit Folgeziel nicht mehr (steht(g) == false), kommt der Angriff aufs Folgeziel in diesem
+    /// Takt in die Schlange - wenn das Folgeziel noch da ist (Gebaeude: steht, Einheit: lebt) und die Einheit lebt. Eine laufende Wegkette
+    /// endet damit. Gibt (Einheit, gefallenes Gebaeude, Folgeauftrag) je gegebenem Schritt.
+    pub fn folge_weiter(&mut self, steht: impl Fn(i32) -> bool, lebt: impl Fn(i32) -> bool) -> Vec<(i32, i32, Auftrag)> {
+        let mut aus = Vec::new();
+        let nummern: Vec<i32> = self.folge.keys().copied().collect();
+        for nr in nummern {
+            if !self.eigene.contains_key(&nr) || !lebt(nr) {
+                self.folge.remove(&nr);
+                continue;
+            }
+            if self.leihe.contains_key(&nr) {
+                continue;
+            }
+            let Some(&(jetzt, f)) = self.folge.get(&nr) else { continue };
+            if steht(jetzt) {
+                continue;
+            }
+            self.folge.remove(&nr);
+            let da = if f.art == ANGRIFF_GEBAEUDE { steht(f.a) } else { lebt(f.a) };
+            if !da {
+                continue;
+            }
+            self.ketten.remove(&nr);
+            self.durchsetzen.remove(&nr);
+            if let Some((_, alt)) = self.aus_offen_nehmen(nr) {
+                self.verfallen.extend(alt.ring);
+            }
+            self.einreihen(nr, f, Anspruch::default());
+            self.folge_schritte += 1;
+            aus.push((nr, jetzt, f));
         }
         aus
     }
@@ -770,6 +840,45 @@ mod tests {
         assert!(b.ketten_weiter(|_| Some((119, 101))).is_empty());
         assert!(b.durchsetzen_pruefen(4, |_| Some(([400, 0], (130, 100)))).iter().all(|d| matches!(d, Durchsetzen::Ende { .. })));
         assert_eq!(b.kette_schritte, 2);
+    }
+
+    #[test]
+    fn folgeziel_kommt_im_takt_der_zerstoerung() {
+        // Daniel 15.11.2026 23:07: faellt das Gebaeude, geht es im selben Takt aufs Folgeziel
+        let mut b = Buch::default();
+        b.uebernehmen(5);
+        b.auftrag_mit(5, Auftrag { art: ANGRIFF_GEBAEUDE, a: 77, b: 0 }, true, Anspruch::default(), 0);
+        let _ = b.naechster_mit(0);
+        assert_eq!(b.folge_setzen(5, FOLGE_GEBAEUDE, 77, 88), ERG_ANGENOMMEN);
+        assert!(b.folge_weiter(|g| g == 77 || g == 88, |_| true).is_empty(), "77 steht noch");
+        let w = b.folge_weiter(|g| g == 88, |_| true);
+        assert_eq!(w, vec![(5, 77, Auftrag { art: ANGRIFF_GEBAEUDE, a: 88, b: 0 })]);
+        let ab = b.naechster_mit(1).expect("Folgeauftrag in der Schlange");
+        assert_eq!(ab.auftrag, Auftrag { art: ANGRIFF_GEBAEUDE, a: 88, b: 0 });
+        assert_eq!(b.folge_schritte, 1);
+        assert!(b.folge_weiter(|_| false, |_| true).is_empty(), "nur einmal");
+    }
+
+    #[test]
+    fn folgeziel_faellt_weg_bei_neuem_auftrag_aber_nicht_beim_selben_angriff() {
+        let mut b = Buch::default();
+        b.uebernehmen(5);
+        b.auftrag_mit(5, Auftrag { art: ANGRIFF_GEBAEUDE, a: 77, b: 0 }, true, Anspruch::default(), 0);
+        b.folge_setzen(5, FOLGE_EINHEIT, 77, 400);
+        b.auftrag_mit(5, Auftrag { art: ANGRIFF_GEBAEUDE, a: 77, b: 0 }, false, Anspruch::default(), 1); // derselbe Angriff
+        assert_eq!(b.folge_weiter(|_| false, |_| true).len(), 1, "Folge-Einheit nach dem selben Angriff");
+        b.folge_setzen(5, FOLGE_GEBAEUDE, 77, 88);
+        b.auftrag_mit(5, Auftrag { art: LAUF, a: 10, b: 10 }, false, Anspruch::default(), 2); // anderer Auftrag
+        assert!(b.folge_weiter(|_| false, |_| true).is_empty(), "anderer Auftrag loescht das Folgeziel");
+        b.folge_setzen(5, FOLGE_GEBAEUDE, 77, 88);
+        assert!(b.folge_weiter(|_| false, |_| true).is_empty(), "Folgeziel selbst schon weg: kein Befehl");
+        b.folge_setzen(5, FOLGE_GEBAEUDE, 77, 88);
+        assert!(b.folge_weiter(|g| g == 88, |e| e != 5).is_empty(), "Einheit tot: kein Befehl");
+        assert_eq!(b.folge_setzen(6, FOLGE_GEBAEUDE, 1, 2), ERG_NICHT_UEBERNOMMEN);
+        b.folge_setzen(5, FOLGE_GEBAEUDE, 77, 88);
+        b.freigeben(5);
+        b.uebernehmen(5);
+        assert!(b.folge_weiter(|g| g == 88, |_| true).is_empty(), "freigeben vergisst das Folgeziel");
     }
 
     #[test]

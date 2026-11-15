@@ -66,6 +66,11 @@ DURCHSETZEN_AB = (
 # gibt den naechsten Schritt im Takt, in dem die Einheit am jetzigen Wegpunkt ankommt
 WEGPUNKT, DANACH_EINHEIT, DANACH_GEBAEUDE = 20, 21, 22
 KETTE_AB = 32  # erste Kern-Version mit Wegpunktkette
+FOLGE_GEBAEUDE, FOLGE_EINHEIT = (
+    23,
+    24,
+)  # #359: Folgeziel - faellt Gebaeude a, greift die Einheit im selben Takt b an
+FOLGE_AB = 36  # erste Kern-Version mit Folgeziel
 VORRANG_REFLEX, VORRANG_FLUCHT, VORRANG_ANGRIFF, VORRANG_LAUFEN, VORRANG_ROUTINE = 1, 2, 3, 4, 5
 ERG_DOPPELT, ERG_ANGENOMMEN, ERG_ABGESETZT, ERG_WIRKT, ERG_GEPARKT = 0, 1, 2, 3, 4
 ERG_NICHT_UEBERNOMMEN, ERG_UNBEKANNT, ERG_FREMD = -4, -5, -6

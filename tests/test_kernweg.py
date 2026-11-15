@@ -271,3 +271,37 @@ def test_s159_kette_haengt_wegpunkte_und_den_angriff_an():
         assert f"pub const {name}: i32 = {getattr(KL, name)};" in haende
     lib = (KERN / "lib.rs").read_text(encoding="utf-8")
     assert int(re.search(r"pub const VERSION: u32 = (\d+);", lib).group(1)) >= KL.KETTE_AB
+
+
+def test_359_folgeziel_geht_einmal_in_den_ring_und_nach_neuem_auftrag_wieder():
+    """#359 (Daniel 15.11.2026 23:07): das Folgeziel steht im Kern; ein neuer Auftrag an die Einheit kann es dort loeschen - dann neu geben."""
+    ring = FalscherRing()
+    k = KW.Kernweg(ring)
+    k.version = KL.FOLGE_AB
+    assert k.kann_folge
+    assert k.folge(5, 77, 88) and k.folge(5, 77, 88)
+    folgen = [e for e in ring.liste if e[0] == KL.FOLGE_GEBAEUDE]
+    assert folgen == [(KL.FOLGE_GEBAEUDE, 5, 77, 88, 0, 0, KW.ASSASSINEN)], (
+        "nur bei einer Aenderung"
+    )
+    k.senden([{"angriff": {"einheiten": [5], "lauf": [10, 10]}}])
+    k.folge(5, 77, 88)
+    assert sum(1 for e in ring.liste if e[0] == KL.FOLGE_GEBAEUDE) == 2, (
+        "nach neuem Auftrag noch einmal"
+    )
+    k.folge(5, 77, 400, art="einheit")
+    assert ring.liste[-1][:4] == (KL.FOLGE_EINHEIT, 5, 77, 400)
+    k.version = KL.FOLGE_AB - 1
+    assert not k.kann_folge
+
+
+def test_359_folge_konstanten_wie_im_kern():
+    quelle = (KERN / "haende.rs").read_text(encoding="utf-8")
+    assert re.search(r"pub const FOLGE_GEBAEUDE: i32 = (\d+);", quelle).group(1) == str(
+        KL.FOLGE_GEBAEUDE
+    )
+    assert re.search(r"pub const FOLGE_EINHEIT: i32 = (\d+);", quelle).group(1) == str(
+        KL.FOLGE_EINHEIT
+    )
+    lib = (KERN / "lib.rs").read_text(encoding="utf-8")
+    assert int(re.search(r"pub const VERSION: u32 = (\d+);", lib).group(1)) >= KL.FOLGE_AB
