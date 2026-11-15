@@ -29,10 +29,12 @@ LAGER = 10
 
 
 class Stillstand:
-    def __init__(self, sp, teil_menge, baue_lager, lager_offen=lambda: False):
+    def __init__(self, sp, teil_menge, baue_lager, lager_offen=lambda: False, max_teile=None):
         """teil_menge(nr) -> Menge im Lagerteil nr (Speicher +0x184); baue_lager() -> Ort oder None;
-        lager_offen() -> True, solange ein Lagerbau im Auftragsbuch offen ist."""
+        lager_offen() -> True, solange ein Lagerbau im Auftragsbuch offen ist; max_teile: mehr Lagerteile baut der
+        Waechter nie (Daniel 15.11.2026 22:29 "nie mehr als 4 Vorratslager" - der Ueberschuss geht an den Markt)."""
         self.sp, self.teil_menge, self.baue_lager, self.lager_offen = sp, teil_menge, baue_lager, lager_offen
+        self.max_teile = max_teile
         self.ort = {}               # nr -> (ort, seit_tick, gemeldet, gehandelt)
         self.faelle = []
 
@@ -70,6 +72,9 @@ class Stillstand:
                     if frei[0] == 0:
                         if lager_stopp:
                             tat = " -> Lager voll, aber Endphase (lager_stopp): kein Anbau"
+                        elif self.max_teile is not None and frei[1] >= self.max_teile:
+                            tat = " -> Lager voll, %d von hoechstens %d Teilen: kein Anbau, Ueberschuss geht an den Markt" % (
+                                frei[1], self.max_teile)
                         elif self.lager_offen():
                             tat = " -> Lager voll, Lagerbau schon offen"
                         else:

@@ -375,6 +375,7 @@ def anhaengen():
     START_FERTIG = True
     return tick()
 
+LAGER_TEILE_MAX = 4  # Daniel 15.11.2026 22:29: nie mehr als 4 Vorratslager - Ueberschuss wird Gold fuer Einheiten
 UEBERNOMMEN_BEI = None  # Takt, bei dem die KI unseres Lobby-Platzes aus ging
 
 
@@ -924,6 +925,24 @@ def nahrung_auf_kante(bestand, puffer, hoechstens=12):
     return lose
 WAREN_NR = {"holz": 2, "stein": 4, "eisen": 6, "pech": 7, "apfel": 13, "brot": 10, "kaese": 11, "fleisch": 12, "weizen": 9, "hopfen": 3, "mehl": 16}
 
+VERKAUF_JE_SENDUNG = 15   # Lose je Befehlsliste: so grosse Buendel liefen schon (Mitschriften bis 13 Lose je Ware); mehr geht in weitere Listen
+
+
+def verkaufslose(menge, reserve, los, hart):
+    """Wie viele Lose dieser Ware jetzt an den Markt gehen.
+
+    Daniel 15.11.2026 22:29: "Es soll nur so viel gelagert werden wie fuer die geplante naechste Wirtschaft gebraucht
+    wird." reserve ist dieser Bedarf. Frueher ging je Ware und Runde EIN Los (5 Stein) - in Daniels Partie 22:22 stieg
+    der Stein so von 18 (Tick 10.107) auf 406 (Tick 34.766). Jetzt geht alles ueber dem Bedarf auf einmal.
+    Harte Obergrenze: bis unter die Grenze (aufgerundet). Bedarf: nie unter den Bedarf (abgerundet), mindestens ein
+    Los, sobald mehr als ein Los (4 Stueck Spiel) darueber liegt - wie bisher bei kleinem Ueberschuss."""
+    if hart:
+        return max(1, int(math.ceil((menge - reserve) / float(los)))) if menge > reserve else 0
+    if menge <= reserve + 4:
+        return 0
+    return max(1, (menge - reserve) // los)
+
+
 def verkaufen(st, stein_reserve=None, messer=None, holz_verkaufen=False, eisen_reserve=0, nahrung_puffer_h=None,
               obergrenzen=None):
     """Je Runde hoechstens ein Verkauf je Ware (Spielbefehl 38, verkaufen=1). Gibt Text oder None.
@@ -945,21 +964,15 @@ def verkaufen(st, stein_reserve=None, messer=None, holz_verkaufen=False, eisen_r
         hart = ware in obergrenzen
         if hart:
             reserve = min(reserve, obergrenzen[ware])
-        menge = st.get(ware, 0)
-        if menge > reserve + (0 if hart else 4):
-            # Harte Lagergrenzen werden in einem gebuendelten Spielschritt erreicht. Ein Verkauf je Runde konnte bei
-            # laufender Massenproduktion nie aufholen und liess das Vorratslager trotz Grenzwert volllaufen.
-            k = max(1, int(math.ceil((menge - reserve) / float(losgroesse[ware])))) if hart else 1
-            if hart:
-                auftraege += [{"player": 1, "id": neue_id(),
-                               "spielbefehl": {"nr": 38, "werte": [1, WAREN_NR[ware]]}} for _ in range(k)]
-            else:
-                befehl({"spielbefehl": {"nr": 38, "werte": [1, WAREN_NR[ware]]}}, 1.0, bis="SPIELBEFEHL")
+        k = verkaufslose(st.get(ware, 0), reserve, losgroesse[ware], hart)
+        if k:
+            auftraege += [{"player": 1, "id": neue_id(),
+                           "spielbefehl": {"nr": 38, "werte": [1, WAREN_NR[ware]]}} for _ in range(k)]
             teile.append("%s x%d" % (ware, k) if k > 1 else ware)
             if messer is not None:
                 messer.verkauft(ware, k)
-    if auftraege:
-        sende({"befehle": auftraege}, 1.5, bis="SPIELBEFEHL")
+    for i in range(0, len(auftraege), VERKAUF_JE_SENDUNG):
+        sende({"befehle": auftraege[i:i + VERKAUF_JE_SENDUNG]}, 1.5, bis="SPIELBEFEHL")
     lose = nahrung_auf_kante({k: st.get(k, 0) for k in NAHRUNG_PREIS},
                              nahrung_puffer(st.get("leute", 10)) if nahrung_puffer_h is None else nahrung_puffer_h)
     if messer is not None:
@@ -2326,8 +2339,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     plan["lager"] = list(gebaut_l)
             schreib("Lager am Plan-Platz fehlte - Ausweichplatz %s, gebaut %s" % (ort_l, wirt.lager_ort))
         schreib("Lager: Startlager bleibt, Anker %s" % (wirt.lager_ort,))
-    if streitkolben and weg == "produktion":
-        wirt.lager_max_teile = 8       # zwei Vorratslager; Ueberschuss wird verkauft statt ein drittes anzubauen
+    # Daniel 15.11.2026 22:29: "Theoretisch braucht es nie mehr als 4 Vorratslager ... sonst baut er einfach weitere ohne grund"
+    # - immer hoechstens 4 Lagerplatz-Teile (vorher nur bei Streitkolben-Produktion 8, sonst unbegrenzt); Ueberschuss wird Gold
+    wirt.lager_max_teile = LAGER_TEILE_MAX
     karte_laden()        # Begehbarkeit fuer kurze Rueckzuege - jetzt, solange das Spiel noch steht
     if trupp is not None:
         trupp.gelaende = list(_KARTE)   # einmal im Angriffsprotokoll: Gelände darf als Einfluss nicht vorab verschwinden
@@ -2626,7 +2640,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
     import selfaware.runtime.live.stillstand as STW
     still_w = STW.Stillstand(SP, lambda n: peek(0xF98520 + 0x14 + int(n) * 0x32C + 0x184)[0],
                              lambda: baue_schnell(10, wirt.lager_ort[0], wirt.lager_ort[1], 10, zweck="Stillstand"),
-                             lambda: BUCH is not None and any(a["typ"] == 10 for a in BUCH.offen))
+                             lambda: BUCH is not None and any(a["typ"] == 10 for a in BUCH.offen), max_teile=LAGER_TEILE_MAX)
     serie, fortgesetzt, ende_grund = PT.Serie(), 0, None      # 18.10. (1v1 robust, partner.py)
     korn = None                                                # 18.10.: Kornring (kornring.py), sobald ein Kornspeicher steht
     graben = None                                              # 19.10.: Burggraben um den Kornspeicher (kornring.Graben)
@@ -3314,10 +3328,10 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     if "stein_besetzt" not in fruehpruefung:
                         brueche = [n for o in V14_PLAN["brueche"] for n in steht_bei(G, 20, o)]
                         joche = stein_joche(G)
-                        voll = (len(brueche) == 2 and len(joche) >= 4
+                        brueche_voll = (len(brueche) == 2 and len(joche) >= 4
                                 and all(BUCH.hat.get(n, 0) >= ARBEITER_JE[20] for n in brueche)
                                 and all(BUCH.hat.get(n, 0) >= ARBEITER_JE[4] for n, _g in joche[:4]))
-                        if voll:
+                        if brueche_voll:  # eigener Name: frueher ueberschrieb dies 'voll' (volle Runde) - der Verkauf darunter lief dann nie
                             fruehpruefung["stein_besetzt"] = st["t"]
                             ausbau.ohne.add(20)
                             ereignis.append("STEINBRUECHE BESETZT bei Tick %d (6/6 + Joche 4/4) - Planer und restliche Holzfaeller frei" % st["t"])
@@ -3329,7 +3343,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
             # Ticks lang nichts verkauft - der Block stand im Assassinen-Teil; Gold am Ende 1.013, nur aus Steuern)
             if voll and not [n for n, g in G.items() if g["besitzer"] == SP and g["typ"] == 26] and runde % 20 == 2:
                 ereignis.append("Markt gesetzt %s" % (baue_schnell(26, BERGFRIED[0], BERGFRIED[1], 25),))
-            elif voll and runde % 3 == 0:
+            elif voll:  # Daniel 15.11.2026 22:29: nur lagern, was die naechste Wirtschaft braucht - jede volle Runde verkaufen (vorher jede 3.)
                 bremst = gold_bremst(st, G)
                 # 12 Stein fuer die Kaserne nicht verkaufen, solange sie fehlt (v2 Tick 5.246: "verkauft: stein" und "Kaserne
                 # gesetzt" in derselben Runde - danach reichte der Stein nicht mehr)
