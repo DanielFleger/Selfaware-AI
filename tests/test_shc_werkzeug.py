@@ -1,0 +1,69 @@
+"""Spielmechanik-Werkzeug (Daniel 15.11.2026 21:11): die reinen Rechnungen der Lobby, ohne Spiel gepruefte Werte vom 15.11.
+(Partie 36 auf Kykladen, VillageStudio/doku/Partie-starten.md Schritt 2a/2b/3)."""
+
+import pytest
+
+from selfaware.game.ucp import shc
+
+# Schilder auf Kykladen, gelesen 15.11.2026 20:44 (peek 0x1FE9A5C): 1 oben links, 2 oben rechts, 3 unten links, 4 unten Mitte
+KYKLADEN = {1: (53, 53), 2: (152, 68), 3: (53, 146), 4: (96, 145)}
+
+
+def test_karte_per_namen_mit_rollstand_und_zeile():
+    namen = ["Close Encounters"] * 42 + ["Cyclades", "Flood plains of Jordan"]
+    assert shc.karten_eintrag(namen, "cyclades") == (
+        42,
+        35,
+        7,
+    )  # gemessen 20:44: Eintrag 42 -> Rollstand 35, Zeile 7
+    assert shc.karten_eintrag(["A", "Cyclades"], "Cyclades") == (1, 0, 1)
+    with pytest.raises(shc.Fehler, match="englisch"):
+        shc.karten_eintrag(namen, "Kykladen")
+    with pytest.raises(shc.Fehler, match="mehrdeutig"):
+        shc.karten_eintrag(["Green Haven", "Green Trench"], "green")
+
+
+def test_plaetze_aus_daniels_woertern():
+    # Daniel 20:27: "samurais unten, kriegsfuerst oben rechts" - Spieler 1 Kriegsfuerst, 2 und 3 SamurAI
+    assert shc.schilder_nach_woertern(KYKLADEN, ["oben_rechts", "unten", "unten"]) == [2, 3, 4]
+    assert shc.schilder_nach_woertern(KYKLADEN, ["s4", "oben links"]) == [4, 1]
+    with pytest.raises(shc.Fehler):
+        shc.schilder_nach_woertern(KYKLADEN, ["hinten"])
+    with pytest.raises(shc.Fehler):
+        shc.schilder_nach_woertern(KYKLADEN, ["s2", "s2"])
+
+
+def test_tauschzuege_bringen_jede_zeile_auf_ihr_schild():
+    # Belegung vor dem Tausch, gelesen 20:45: Schild 1 Zeile 2, Schild 2 Zeile 1, Schild 4 Zeile 0
+    zuege, danach = shc.tauschzuege({1: 2, 2: 1, 4: 0}, {0: 2, 1: 3, 2: 4})
+    assert danach == {2: 0, 3: 1, 4: 2}
+    assert zuege[0] == (4, 2), "Zug auf ein besetztes Schild tauscht (gemessen 20:46)"
+    assert shc.tauschzuege({2: 0}, {0: 2}) == ([], {2: 0}), "steht schon richtig: kein Zug"
+    with pytest.raises(shc.Fehler):
+        shc.tauschzuege({1: 0}, {1: 2})
+
+
+def test_trefferpunkt_wie_gemessen():
+    assert shc.trefferpunkt((152, 68), (400, 150)) == (
+        1135,
+        237,
+    )  # 20:46: Kriegsfuerst auf Schild 2 abgelegt
+
+
+def test_runder_tisch_klicks():
+    assert shc.team_klicks([0, 1, 1]) == [2, 3]  # gemessen 20:45: Team-Bytes danach 00 01 01
+    assert shc.team_klicks([1, 1, 2, 2]) == [1, 2, 3, 4]
+    assert shc.team_klicks([1, 1, 1]) == [1, 2, 1, 3]
+    assert shc.team_klicks([0, 0]) == []
+
+
+def test_aufruf_ohne_befehl_zeigt_hilfe_und_scheitert(capsys):
+    assert shc.main([]) == 1
+    assert "Spielmechanik" in capsys.readouterr().out
+
+
+def test_kein_skript_gefecht_im_werkzeug():
+    """Daniel 15.11.: nie per Skript starten - das Werkzeug hat keinen eigenesGefecht-Weg, starten geht ueber den Lobby-Knopf."""
+    quelle = open(shc.__file__, encoding="utf-8").read()
+    assert "eigenesGefecht" not in quelle.replace("Skript-Gefecht", "")
+    assert "gefecht" not in shc.BEFEHLE

@@ -1,0 +1,615 @@
+# -*- coding: utf-8 -*-
+"""Spielmechanik - EIN Werkzeug fuer alles, was ein Versuch braucht (Daniel 15.11.2026 21:11: "spielmechanik (schnellster
+start/speichern laden/aufstellung, Testing/Creativemode Sandkasten etc.)").
+
+Uebernommen aus dem alten Zweig (archiv/alt-main-20261104, werkzeug/shc.py, B-150; Daniel 21.10.2026 18:42 "idiotensicher und
+instant ... ich kann nicht jedes Mal von vorne anfangen") und auf den heutigen Stand gebracht:
+  - start: tools/windows/spiel_starten.ps1 (rechter Bildschirm) und SOFORT ins Hauptmenue (Daniel 15.11. 20:42 "warum klickst du
+    am anfang nicht zum menue?").
+  - aufstellen: ueber die Lobby wie ein Mensch (Menue-Knoepfe, Mausposition), nie per Skript-Gefecht (Daniel 15.11., startsperre.py):
+    Karte per Name, KIs, Teams am Runden Tisch, Schilder tauschen. Gemessen 15.11. 20:42-20:47 (Partie 36).
+  - starten: nur mit Daniels Freigabe (data/research/partie_freigabe.json, prueft startsperre.py), haelt bei Takt 1.
+  - In Lobby-Partien ist der Mensch KEIN Spieler: bespielbar heisst hier Ansicht 14 und gameOver 0 (der alte Weg verlangte
+    zusaetzlich "wir auf Platz 1 als Mensch" - das gilt nur fuer Skript-Gefechte).
+Jede Ausgabe beginnt mit "OK:" oder "FEHLER:"; Rueckgabewert 0 bzw. 1.
+
+Aufruf:  uv run selfaware run shc <befehl> [schluessel=wert ...]     (Instanz ueber SHC_INSTANZ, Vorgabe team-liga)
+  zustand                      was laeuft gerade (Ansicht, Takt, Pause, Spielende)
+  start                        Spiel starten (falls es nicht laeuft) und sofort ins Hauptmenue
+  menue                        laufende oder beendete Partie -> Hauptmenue, angehalten
+  karten [teil=...]            Kartenliste der Lobby (englische Namen, z. B. Kykladen = Cyclades)
+  aufstellen karte=Cyclades kis=8,16,16 [teams=0,1,1] [plaetze=oben_rechts,unten,unten]
+                               Lobby aufstellen: KIs in dieser Reihenfolge = Spieler 1, 2, 3 ...; teams gleiche Zahl = verbuendet
+                               (0 = allein); plaetze je Spieler ein Wort (oben, unten, links, rechts, oben_rechts, ...) oder s1..s8
+  starten                      Start-Knopf mit Daniels Freigabe, haelt bei Takt 1
+  speichern name=...           laufende Partie speichern (hoechstens 32 Zeichen)
+  laden name=...               Spielstand laden - IMMER ueber das Hauptmenue, haelt beim ersten Takt
+  editor [groesse=4]           Sandbox: leere Karte im Landschaftseditor, Zeit laeuft, keine KI
+  setze spieler= typ= x= y= [anzahl=1]     Einheiten setzen (nur Test: Spiel veraendern, FAIRNESS R2)
+  spielende [n=5]              letzte Meldungen des Spielende-Melders
+Als Baustein: from selfaware.game.ucp import shc; shc.zustand()
+"""
+
+import os
+import re
+import subprocess
+import sys
+import time
+
+from selfaware import workspace
+
+ANSICHT, GAMEOVER, PAUSE, TICK = 0x01FE7D1C, 0x0117D500, 0x01FEA054, 0x0117CADC
+IN_PARTIE, HAUPTMENUE, ENDBILD = 14, 41, 30
+# Lobby (gemessen 15.11.2026 20:42-20:47, Partie 36; VillageStudio/doku/Partie-starten.md Schritt 2a/2b/3)
+KARTEN_INDEX, KARTEN_NAME, NAME_LAENGE = (
+    0x01126E28,
+    0x11BFCF8,
+    0x3E9,
+)  # Eintrag n -> Namensnummer k; Name bei NAME + k*LAENGE
+KARTEN_ZEILEN = 8  # sichtbare Zeilen der Kartentabelle (Rollstand n-7)
+BELEGUNG, SCHILDER, RAND = (
+    0x01A275D0,
+    0x1FE9A5C,
+    0xF98358,
+)  # Schild -> Listenzeile (0xF6 leer); x,y je Schild; Rand
+TEAMS = 0x01A275B5  # Team-Byte je Spieler (Index = Spielernummer)
+MAUS_X, MAUS_Y = 0xF2C9C0, 0xF2C9C4
+TREFFER_DX, TREFFER_DY = 583, 19  # Trefferpunkt = Schild + Rand + (583, 19)
+LEER = 0xF6
+WOERTER = {"oben": (0, -1), "unten": (0, 1), "links": (-1, 0), "rechts": (1, 0)}
+
+
+class Fehler(RuntimeError):
+    pass
+
+
+def _kanal():
+    from selfaware.game.ucp import befehl as B
+
+    return B
+
+
+def senden(liste, warte=2.5, bis=None):
+    """Befehlsliste (mit ids) in EINEM Aufruf schicken - im Menue kommen Knoepfe nur als Liste an (Partie-starten.md, gemessen
+    15.11.). Gibt die neuen Modul-Logzeilen zurueck."""
+    B = _kanal()
+    for c in liste:
+        c.setdefault("id", B.neue_id())
+    return B.sende({"befehle": liste}, warte, bis=bis)
+
+
+def lesen(stellen, warte=4.0):
+    """Mehrere Speicherstellen in EINEM Befehl lesen: stellen = [(adresse, worte)] -> {adresse: [int, ...]} (vorzeichenlos)."""
+    z = senden(
+        [{"peek": a, "worte": n} for a, n in stellen], warte, bis="PEEK 0x%08X" % stellen[-1][0]
+    )
+    aus = {}
+    for zeile in z:
+        m = re.search(r"PEEK 0x([0-9A-F]{8}): ([0-9A-F ]+)", zeile)
+        if m:
+            aus[int(m.group(1), 16)] = [int(w, 16) & 0xFFFFFFFF for w in m.group(2).split()]
+    fehlt = [hex(a) for a, _ in stellen if a not in aus]
+    if fehlt:
+        raise Fehler("keine Antwort auf peek %s" % ", ".join(fehlt))
+    return aus
+
+
+def bytes_von(worte, n):
+    return [b for w in worte for b in w.to_bytes(4, "little")][:n]
+
+
+def text_von(worte):
+    return b"".join(w.to_bytes(4, "little") for w in worte).split(b"\0")[0].decode("latin-1")
+
+
+# ---------------------------------------------------------------- reine Rechnungen (ohne Spiel pruefbar)
+
+
+def karten_eintrag(namen, teil):
+    """Eintrag einer Karte nach einem Namensteil (ohne Gross/klein). Gibt (n, rollstand, zeile). Mehrdeutig oder fehlend -> Fehler."""
+    t = teil.lower()
+    treffer = [i for i, nm in enumerate(namen) if t == nm.lower()] or [
+        i for i, nm in enumerate(namen) if t in nm.lower()
+    ]
+    if not treffer:
+        raise Fehler(
+            "Karte '%s' steht nicht in der Lobby-Liste (%d Karten; Namen sind englisch, z. B. Kykladen = Cyclades)"
+            % (teil, len(namen))
+        )
+    if len(treffer) > 1:
+        raise Fehler("Karte '%s' ist mehrdeutig: %s" % (teil, ", ".join(namen[i] for i in treffer)))
+    n = treffer[0]
+    roll = max(0, n - (KARTEN_ZEILEN - 1))
+    return n, roll, n - roll
+
+
+def schilder_nach_woertern(schilder, woerter):
+    """schilder = {schild: (x, y)} (benutzte Schilder der Karte), woerter = je Spieler ein Wort ("oben_rechts", "unten", "s3").
+    Gibt je Spieler das Schild - der Reihe nach das noch freie Schild, das am weitesten in Wortrichtung liegt."""
+    frei = dict(schilder)
+    aus = []
+    for w in woerter:
+        w = w.strip().lower()
+        if re.fullmatch(r"s\d", w):
+            s = int(w[1:])
+            if s not in frei:
+                raise Fehler(
+                    "Schild %s gibt es nicht oder ist schon vergeben (frei: %s)" % (w, sorted(frei))
+                )
+        else:
+            teile = [p for p in re.split(r"[_\s-]+", w) if p]
+            if not teile or any(p not in WOERTER for p in teile):
+                raise Fehler(
+                    "Platz '%s' unbekannt - erlaubt: %s oder s1..s8" % (w, ", ".join(WOERTER))
+                )
+            rx = sum(WOERTER[p][0] for p in teile)
+            ry = sum(WOERTER[p][1] for p in teile)
+            s = max(frei, key=lambda k: (rx * frei[k][0] + ry * frei[k][1], -k))
+        aus.append(s)
+        del frei[s]
+    return aus
+
+
+def tauschzuege(belegung, ziel):
+    """belegung = {schild: zeile} (aktuelle Lobby), ziel = {zeile: schild}. Ein Zug (von, nach) zieht das Schild der Zeile auf das
+    Zielschild; steht dort jemand, tauschen beide (gemessen 15.11. 20:46: Kriegsfuerst auf das besetzte Schild 2 -> SamurAI kam auf
+    Schild 4; auf ein leeres Schild = verschieben). Gibt die Zuege und die Belegung danach."""
+    b = dict(belegung)
+    zuege = []
+    for zeile, nach in ziel.items():
+        von = next((s for s, z in b.items() if z == zeile), None)
+        if von is None:
+            raise Fehler("Zeile %d steht auf keinem Schild (Belegung %s)" % (zeile, b))
+        if von == nach:
+            continue
+        anderer = b.get(nach)
+        b[nach] = zeile
+        if anderer is None:
+            del b[von]
+        else:
+            b[von] = anderer
+        zuege.append((von, nach))
+    return zuege, b
+
+
+def trefferpunkt(xy, rand):
+    return xy[0] + rand[0] + TREFFER_DX, xy[1] + rand[1] + TREFFER_DY
+
+
+def team_klicks(teams):
+    """teams je Spieler (Liste, Spieler 1 zuerst; gleiche Zahl > 0 = verbuendet). Runder Tisch: Sitz i waehlen, Sitz j dazusetzen
+    (Ghidra MenuItemActionHandler_Roundtable_Main 0x004AEA50; gemessen 15.11.: Sitze 2 und 3 -> Team-Bytes 00 01 01).
+    Sitz = Spielernummer ist nur fuer diesen einen Fall gemessen - aufstellen liest die Team-Bytes danach nach."""
+    klicks = []
+    for t in sorted({t for t in teams if t > 0}):
+        mit = [i + 1 for i, x in enumerate(teams) if x == t]
+        for j in mit[1:]:
+            klicks += [mit[0], j]
+    return klicks
+
+
+# ---------------------------------------------------------------- Spiel
+
+
+def zustand():
+    """dict: antwortet, ansicht, text, gameover, pause, tick."""
+    try:
+        w = lesen([(ANSICHT, 1), (GAMEOVER, 1), (PAUSE, 1), (TICK, 1)])
+    except Exception as e:  # Kanal antwortet nicht: Spiel aus oder Modul nicht aktiv
+        return {"antwortet": False, "text": "Spiel antwortet nicht (%s)" % str(e)[:80]}
+    a, g, p, t = w[ANSICHT][0], w[GAMEOVER][0], w[PAUSE][0], w[TICK][0]
+    if a == IN_PARTIE:
+        text = (
+            "Partie VORBEI (gameOver 1)" if g else "Partie laeuft" + (" (angehalten)" if p else "")
+        )
+    else:
+        text = {HAUPTMENUE: "Hauptmenue", ENDBILD: "Endbildschirm (Partie vorbei)"}.get(
+            a, "Ansicht %d" % a
+        )
+    return {"antwortet": True, "ansicht": a, "text": text, "gameover": g, "pause": p, "tick": t}
+
+
+def partie_sicher(z=None):
+    z = z or zustand()
+    if not (z.get("antwortet") and z["ansicht"] == IN_PARTIE and z["gameover"] == 0):
+        raise Fehler("keine bespielbare Partie: %s" % z)
+    return z
+
+
+def _instanz_nummer():
+    from selfaware.game.ucp import instanzen
+
+    return instanzen.eintrag()["nummer"]
+
+
+def start():
+    """Spiel starten (falls es nicht antwortet) und SOFORT ins Hauptmenue - im selben Aufruf."""
+    z = zustand()
+    if not z["antwortet"]:
+        skript = os.path.join(workspace.ROOT, "tools", "windows", "spiel_starten.ps1")
+        subprocess.run(
+            [
+                "powershell",
+                "-NoProfile",
+                "-ExecutionPolicy",
+                "Bypass",
+                "-File",
+                skript,
+                "-Instanz",
+                str(_instanz_nummer()),
+                "-Rechts",
+            ],
+            check=False,
+            capture_output=True,
+            text=True,
+            timeout=120,
+        )
+        ende = time.time() + 120
+        while time.time() < ende and not z["antwortet"]:
+            time.sleep(0.3)
+            z = zustand()
+        if not z["antwortet"]:
+            raise Fehler("Spiel antwortet 120 s nach dem Start nicht")
+    if z["ansicht"] != HAUPTMENUE:
+        menue()
+    return "Spiel laeuft, Hauptmenue: %s" % zustand()["text"]
+
+
+def warte_ansicht(soll, frist=5.0):
+    """Statt fester Wartezeit: alle 0,05 s nachsehen, bis die Ansicht soll ist (Daniel 15.11. 21:25 "jede sekunde hier entsprechend
+    stunden"; gemessen 21:29: ein Menue-Befehl ist nach 0,3 s quittiert). soll: Zahl oder Pruefung auf die Ansicht."""
+    pruefe = soll if callable(soll) else (lambda a: a == soll)
+    ende = time.time() + frist
+    while True:
+        z = zustand()
+        if z.get("antwortet") and pruefe(z["ansicht"]):
+            return z
+        if time.time() > ende:
+            raise Fehler("Ansicht %s nach %.0f s nicht erreicht: %s" % (soll, frist, z))
+        time.sleep(0.05)
+
+
+def menue():
+    """Laufende oder beendete Partie (oder Startbild, Editor) -> Hauptmenue, angehalten. Angehalten, damit ein folgendes Laden
+    im ersten Takt stehen bleibt (05.10.: ohne Pause setzte die Niederlage-Pruefung gameOver 1)."""
+    vorher = zustand()
+    if not vorher.get("antwortet"):
+        raise Fehler(vorher["text"])
+    if vorher["ansicht"] != HAUPTMENUE:
+        senden([{"menue": HAUPTMENUE}], 3.0)
+        warte_ansicht(HAUPTMENUE)
+    senden([{"pause": True}], 2.0)
+    z = zustand()
+    if z["pause"] != 1:
+        raise Fehler("Spiel laesst sich nicht anhalten: %s" % z)
+    return "Ansicht %d -> Hauptmenue, angehalten" % vorher["ansicht"]
+
+
+def kartenliste():
+    k = lesen([(KARTEN_INDEX, 200)])[KARTEN_INDEX]
+    n = next((i for i, v in enumerate(k) if v == 0 and i > 0), len(k))
+    stellen = [(KARTEN_NAME + kk * NAME_LAENGE, 10) for kk in k[:n]]
+    namen = lesen(stellen, 6.0)
+    return [text_von(namen[a]) for a, _ in stellen]
+
+
+def karten(teil=""):
+    namen = kartenliste()
+    zeigen = [(i, nm) for i, nm in enumerate(namen) if teil.lower() in nm.lower()]
+    return "%d Karten%s: %s" % (
+        len(zeigen),
+        " mit '%s'" % teil if teil else "",
+        "; ".join("%d %s" % x for x in zeigen),
+    )
+
+
+def lobby():
+    """Belegung, Schilder, Rand und Teams der Lobby."""
+    w = lesen([(BELEGUNG, 2), (SCHILDER, 16), (RAND, 2), (TEAMS, 3)])
+    bel = {i + 1: b for i, b in enumerate(bytes_von(w[BELEGUNG], 8)) if b != LEER}
+    sch = {
+        i + 1: (w[SCHILDER][2 * i], w[SCHILDER][2 * i + 1])
+        for i in range(8)
+        if w[SCHILDER][2 * i] != 0xFFFFFFFF
+    }
+    return {
+        "belegung": bel,
+        "schilder": sch,
+        "rand": tuple(w[RAND]),
+        "teams": bytes_von(w[TEAMS], 9),
+    }
+
+
+def aufstellen(karte, kis, teams="", plaetze=""):
+    """Lobby wie ein Mensch aufstellen: Hauptmenue -> Eigenes Gefecht, Karte, KIs, Teams, Schilder. Startet NICHT (das macht
+    starten mit Daniels Freigabe). Prueft am Ende Karte, Belegung und Teams aus dem Speicher."""
+    ki = [int(x) for x in str(kis).split(",") if x.strip()]
+    tm = [int(x) for x in str(teams).split(",") if x.strip()] if teams else []
+    pl = [x for x in str(plaetze).split(",") if x.strip()] if plaetze else []
+    if not ki:
+        raise Fehler("kis=... fehlt (KI-Nummern je Spieler, z. B. kis=8,16,16)")
+    if tm and len(tm) != len(ki) or pl and len(pl) != len(ki):
+        raise Fehler("teams und plaetze brauchen je %d Eintraege (einen je KI)" % len(ki))
+    t0 = time.time()
+    if zustand().get("ansicht") != HAUPTMENUE:
+        menue()
+    senden([{"kreuzzug": 2}], 3.0)
+    warte_ansicht(
+        lambda a: a != HAUPTMENUE
+    )  # Lobby (Ansicht 20, gemessen 21:29)  # eigener Aufruf, sonst zu frueh (gemessen 15.11.)
+    n, roll, zeile = karten_eintrag(kartenliste(), karte)
+    befehle = [
+        {"knopf": "LobbyMenu_MapSelectScrollbar", "nr": 0, "art": 3, "wert": roll},
+        {"knopf": "LobbyMenu_MapSelectTable", "nr": zeile},
+    ]
+    for k in ki:
+        befehle += [
+            {"knopf": "LobbyMenu_PlayerListAndNpcButtons", "nr": -101},
+            {"knopf": "AiLordSelect_Main", "nr": k},
+            {"knopf": "AiLordSelect_Main", "nr": 100},
+        ]
+    klicks = team_klicks(tm) if tm else []
+    if klicks:
+        befehle += [{"knopf": "LobbyMenu_PlayerListAndNpcButtons", "nr": -102}]
+        befehle += [{"knopf": "Roundtable_Main", "nr": s} for s in klicks] + [
+            {"knopf": "Roundtable_Main", "nr": 100}
+        ]
+    senden(befehle, 3.0)
+    lb = lobby()
+    if tm:
+        ist = lb["teams"][1 : 1 + len(ki)]
+        gleich = all(
+            (tm[a] == tm[b]) == (ist[a] == ist[b] and tm[a] > 0)
+            for a in range(len(ki))
+            for b in range(len(ki))
+            if a != b
+        )
+        if not gleich:
+            raise Fehler("Teams stehen nicht wie verlangt: soll %s, Team-Bytes %s" % (tm, ist))
+    zuege = []
+    if pl:
+        soll = schilder_nach_woertern(lb["schilder"], pl)
+        zuege, _ = tauschzuege(lb["belegung"], {z: s for z, s in enumerate(soll)})
+        b = []
+        for von, nach in zuege:
+            x1, y1 = trefferpunkt(lb["schilder"][von], lb["rand"])
+            x2, y2 = trefferpunkt(lb["schilder"][nach], lb["rand"])
+            b += [
+                {"poke": MAUS_X, "wert": x1},
+                {"poke": MAUS_Y, "wert": y1},
+                {"knopf": "LobbyMenu_LobbyscreenStartButtonClick", "nr": -200},
+                {"poke": MAUS_X, "wert": x2},
+                {"poke": MAUS_Y, "wert": y2},
+                {"knopf": "LobbyMenu_LobbyscreenStartButtonClick", "nr": -201},
+            ]
+        if b:
+            senden(b, 3.0)
+        lb = lobby()
+        ist = {z: s for s, z in lb["belegung"].items()}
+        falsch = {z: (soll[z], ist.get(z)) for z in range(len(ki)) if ist.get(z) != soll[z]}
+        if falsch:
+            raise Fehler("Schilder stehen nicht wie verlangt (Spieler: soll, ist): %s" % falsch)
+    return (
+        "Lobby steht in %.0f s: Karte '%s', KIs %s, Teams %s, Schilder %s (Zuege %s) - Start nur mit Daniels Freigabe: shc starten"
+        % (
+            time.time() - t0,
+            kartenliste()[n],
+            ki,
+            lb["teams"][1 : 1 + len(ki)],
+            lb["belegung"],
+            zuege,
+        )
+    )
+
+
+def starten():
+    """Start-Knopf - startsperre.py laesst ihn nur mit Daniels Freigabe durch; haelt bei Takt 1."""
+    z = senden(
+        [{"tickpause": {"bei": 1}}, {"knopf": "LobbyMenu_LobbyscreenStartButtonClick", "nr": 4}],
+        3.0,
+    )
+    if any("STARTSPERRE" in x and "verbraucht" not in x for x in z):
+        raise Fehler("Startsperre: %s" % [x for x in z if "STARTSPERRE" in x][-1][-200:])
+    ende = time.time() + 30
+    while time.time() < ende:
+        s = zustand()
+        if s.get("ansicht") == IN_PARTIE and s.get("tick", 0) >= 1:
+            return "Partie gestartet, haelt bei Takt %d: %s" % (s["tick"], s["text"])
+        time.sleep(0.5)
+    raise Fehler("Partie nach 30 s nicht gestartet: %s" % zustand())
+
+
+def speichern(name):
+    from selfaware.game.ucp.speichern import speichere
+
+    partie_sicher()
+    if len(name) > 32:
+        raise Fehler("Name hat %d Zeichen, hoechstens 32" % len(name))
+    pfad = speichere(name)
+    partie_sicher()
+    return "gespeichert als '%s' (%s)" % (name, os.path.basename(str(pfad)))
+
+
+def laden(name):
+    """Spielstand IMMER ueber das Hauptmenue laden (aus der laufenden Partie geladen setzte die Niederlage-Pruefung gameOver 1,
+    gemessen 05.10.); haelt beim ersten Takt und prueft die Partie."""
+    from selfaware.game.ucp import laden as LD
+
+    menue()
+    senden(
+        [{"hauptmenue": 8}, {"optionen": 2}], 3.0
+    )  # Einstellungen, dann Lade-Dialog - in EINEM Aufruf
+    anzahl = 0
+    ende = time.time() + 5.0
+    while not 0 < anzahl <= 500:
+        anzahl = lesen([(LD.ANZAHL, 1)])[LD.ANZAHL][0]
+        if time.time() > ende:
+            raise Fehler("Lade-Dialog nicht offen (Anzahl %d)" % anzahl)
+    k = lesen([(LD.LISTE, anzahl)])[LD.LISTE]
+    stellen = [(LD.NAMEN + kk * LD.NAMENSLAENGE, 10) for kk in k]
+    roh = lesen(stellen, 6.0)  # alle Namen in EINEM Befehl (vorher ein Befehl je Name)
+    namen = [text_von(roh[a]) for a, _ in stellen]
+    if name not in namen:
+        raise Fehler("'%s' steht nicht in der Liste (%d Spielstaende)" % (name, len(namen)))
+    n = namen.index(name)
+    roll = max(0, n - 15)
+    antwort = senden(
+        [
+            {"ladepause": True},
+            {"poke": LD.SCROLL, "wert": roll},
+            {"poke": LD.MARKIERT, "wert": n - roll},
+            {"laden": 2},
+        ],
+        8.0,
+        bis="LADEPAUSE: Laden erkannt",
+    )
+    senden(
+        [{"pause": True}, {"ladepause": "aus"}], 2.0
+    )  # Sicherheitsnetz, nichts scharf zuruecklassen
+    if not any("LADEPAUSE: Laden erkannt" in x for x in antwort):
+        raise Fehler("die Lade-Pause hat kein Laden erkannt - Stand unsicher: %s" % zustand())
+    t1 = zustand()
+    time.sleep(0.3)
+    z = partie_sicher()
+    if z["tick"] != t1["tick"] or z["pause"] != 1:
+        raise Fehler(
+            "Spiel steht nicht still (Tick %d / %d, Pause %d)" % (t1["tick"], z["tick"], z["pause"])
+        )
+    return "'%s' geladen, haelt bei Takt %d: %s" % (name, z["tick"], z["text"])
+
+
+def editor(groesse="4"):
+    """Sandbox im Spiel: Eigene Szenarien -> Neue Karte -> Landschaftseditor; Zeit laeuft, keine KI, keine Arbeiter (Rezept aus
+    dem alten Werkzeug, gemessen 21.10. 19 s). groesse: Knopf der Kartengroesse (1 = 160x160, 4 = 400x400)."""
+    menue()
+    schritte = [
+        ({"hauptmenue": 9}, 44, "Eigene Szenarien"),
+        ({"knopf": "CustomScenarios_Main", "nr": 2}, 18, "Kartentyp"),
+        ({"knopf": "NewMapMaptype_Buttons", "nr": 3}, 31, "Kartengroesse"),
+        ({"knopf": "NewMapMapsize_Buttons", "nr": int(groesse)}, 17, "Karteneigenschaften"),
+        ({"menue": 12}, None, "Landschaftseditor"),
+    ]
+    weg = []
+    for b, soll, name in schritte:
+        vorher = zustand().get("ansicht")
+        senden([b], 3.0)
+        try:
+            a = warte_ansicht(soll if soll is not None else (lambda x, v=vorher: x != v))["ansicht"]
+        except Fehler as e:
+            raise Fehler(
+                "Editor-Weg haengt bei '%s' (%s): %s" % (name, ", ".join(weg), e)
+            ) from None
+        weg.append("%s=%s" % (name, a))
+    senden([{"pause": False}], 2.0)
+    t0 = zustand()["tick"]
+    ende = time.time() + 3.0
+    z = zustand()
+    while z["tick"] <= t0 and time.time() < ende:
+        time.sleep(0.1)
+        z = zustand()
+    if z["tick"] <= t0:
+        raise Fehler(
+            "im Editor laeuft die Zeit nicht (Tick %d -> %d, %s)" % (t0, z["tick"], ", ".join(weg))
+        )
+    return "Editor offen (Ansicht %d), Zeit laeuft (Tick %d -> %d); Weg: %s" % (
+        z["ansicht"],
+        t0,
+        z["tick"],
+        ", ".join(weg),
+    )
+
+
+def setze(spieler="1", typ="26", x="200", y="200", anzahl="1"):
+    """Einheiten setzen - veraendert das Spiel, also nur im Test (FAIRNESS R2). Gemessen 17.10.: sie stehen 1 Feld weiter."""
+    z = senden(
+        [
+            {
+                "setzeEinheit": {
+                    "spieler": int(spieler),
+                    "typ": int(typ),
+                    "x": int(x),
+                    "y": int(y),
+                    "anzahl": int(anzahl),
+                }
+            }
+        ],
+        1.5,
+    )
+    for zeile in z:
+        m = re.search(r"Nummern ([0-9,]+)", zeile)
+        if m:
+            nrs = [int(n) for n in m.group(1).split(",") if int(n) > 0]
+            if len(nrs) != int(anzahl):
+                raise Fehler("nur %d von %s gesetzt: %s" % (len(nrs), anzahl, zeile))
+            return "Spieler %s Typ %s x%s bei (%s,%s): Nummern %s" % (
+                spieler,
+                typ,
+                anzahl,
+                x,
+                y,
+                nrs,
+            )
+    raise Fehler("setzeEinheit ohne Antwort")
+
+
+def spielende(n="5"):
+    """B-154: letzte Zeilen des Spielende-Melders (logik.lua schreibt ucp/villagestudio/spielende.txt)."""
+    try:
+        with open(
+            os.path.join(_kanal().SPIEL, "ucp", "villagestudio", "spielende.txt"),
+            encoding="utf-8",
+            errors="replace",
+        ) as f:
+            z = [x.rstrip("\n") for x in f.readlines()[-int(n) :]]
+    except OSError:
+        z = []
+    return "\n".join(z) if z else "noch kein Spielende gemeldet"
+
+
+def zustand_text():
+    z = zustand()
+    return "%s | %s" % (z["text"], z)
+
+
+BEFEHLE = {
+    "zustand": zustand_text,
+    "start": start,
+    "menue": menue,
+    "karten": karten,
+    "aufstellen": aufstellen,
+    "starten": starten,
+    "speichern": speichern,
+    "laden": laden,
+    "editor": editor,
+    "setze": setze,
+    "spielende": spielende,
+}
+
+
+def main(argv=None):
+    argv = sys.argv[1:] if argv is None else argv
+    if not argv or argv[0] not in BEFEHLE:
+        print(__doc__)
+        return 1
+    try:
+        args = dict(x.split("=", 1) for x in argv[1:])
+    except ValueError:
+        print("FEHLER: Angaben als schluessel=wert, z. B. karte=Cyclades", flush=True)
+        return 1
+    B = _kanal()
+    B.belege()
+    try:
+        print("OK:", BEFEHLE[argv[0]](**args), flush=True)
+        return 0
+    except Fehler as e:
+        print("FEHLER:", e, flush=True)
+        return 1
+    except Exception as e:  # auch Unerwartetes laut melden, nie still
+        print("FEHLER: %s: %s | Zustand jetzt: %s" % (type(e).__name__, e, zustand()), flush=True)
+        return 1
+    finally:
+        B.freigeben()
+
+
+if __name__ == "__main__":
+    sys.exit(main())

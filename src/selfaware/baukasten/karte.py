@@ -291,6 +291,10 @@ KARTE = {
             "runtime/live/partner.py runtime/live/stillstand.py runtime/live/zielwaechter.py runtime/live/samurai_wache.py",
         ),
         _m("Laden und Speichern", "game/ucp/laden.py game/ucp/speichern.py"),
+        _m(
+            "Spielmechanik: Start, Lobby, Speichern/Laden, Sandkasten (Daniel 15.11.)",
+            "game/ucp/shc.py",
+        ),
         _m("Baukasten", "baukasten/aufstellung.py baukasten/karte.py"),
     ),
 }

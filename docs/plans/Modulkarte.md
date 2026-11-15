@@ -4,7 +4,7 @@ Erzeugt mit `python -m selfaware.baukasten.karte --schreiben`, nicht von Hand ä
 
 Gemessen: Der Lenker `runtime/live/erstes_spiel.py` hat 4241 Zeilen, `phase2` davon 1645. Er kennt 103 Schalter. 20 Klassen haben einen eigenen `schritt`, mit 16 verschiedenen Aufrufen.
 
-Bausteine je Stand: Kern 1, eigene Datei 40, im Lenker 14, nicht benutzt 2, steckbar 18. Eine Stelle mit zwei Rollen zählt einmal.
+Bausteine je Stand: Kern 1, eigene Datei 41, im Lenker 14, nicht benutzt 2, steckbar 18. Eine Stelle mit zwei Rollen zählt einmal.
 
 | Stand | Bedeutung |
 |---|---|
@@ -185,4 +185,5 @@ Bausteine je Stand: Kern 1, eigene Datei 40, im Lenker 14, nicht benutzt 2, stec
 | Start und Ablauf | im Lenker | `Lenker signal_da`, `Lenker s32`, `Lenker schreib`, `Lenker partie_pruefen`, `Lenker warte_bis`, `Lenker saat_laden`, `Lenker saat_lesen`, `Lenker saat_merken`, `Lenker gefecht_starten`, `Lenker ki_aus`, `Lenker angleichen`, `Lenker eins_gegen_eins_start`, `Lenker anhaengen`, `Lenker uebernehmen_start`, `Lenker phase1`, `Lenker phase2`, `Lenker main` | `angleich_tick`, `anhaengen`, `bis_tick`, `eins_gegen_eins`, `experiment`, `fehlerprobe`, `gegner`, `gegner_erwartet`, `gegner_ki`, `karte`, `kurz`, `leere_ki`, `mensch`, `mensch_gegner`, `minuten`, `nur_phase2`, `pauseprobe`, `plan`, `plaetze`, `regel50`, `start`, `startliste`, `stopp_tote`, `tempo`, `uebernehmen`, `verbuendet`, `ziel_tick`, `zuschau_tempo` |
 | Wachen | eigene Datei | `runtime/live/partner.py`, `runtime/live/stillstand.py`, `runtime/live/zielwaechter.py`, `runtime/live/samurai_wache.py` |  |
 | Laden und Speichern | eigene Datei | `game/ucp/laden.py`, `game/ucp/speichern.py` |  |
+| Spielmechanik: Start, Lobby, Speichern/Laden, Sandkasten (Daniel 15.11.) | eigene Datei | `game/ucp/shc.py` |  |
 | Baukasten | eigene Datei | `baukasten/aufstellung.py`, `baukasten/karte.py` |  |

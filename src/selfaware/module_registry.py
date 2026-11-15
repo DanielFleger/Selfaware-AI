@@ -132,6 +132,7 @@ MODULES = {
     "schussfeld_pruefen": "selfaware.tools.checks.schussfeld_pruefen",
     "schussrate_messen": "selfaware.tools.analysis.schussrate_messen",
     "seasoning_bestaetigen_pruefen": "selfaware.tools.checks.seasoning_bestaetigen_pruefen",
+    "shc": "selfaware.game.ucp.shc",
     "selbstspiel": "selfaware.tools.experiments.selbstspiel",
     "serie": "selfaware.tools.experiments.serie",
     "sicht": "selfaware.services.sicht",
