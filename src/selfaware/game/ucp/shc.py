@@ -553,7 +553,15 @@ def laden(name):
     senden(
         [{"pause": True}, {"ladepause": "aus"}], 2.0
     )  # Sicherheitsnetz, nichts scharf zuruecklassen
-    if not any("LADEPAUSE: Laden erkannt" in x for x in antwort):
+    # Als Partner wartet der Kanal nur auf die Quittung, die vor der Lade-Meldung kommt (gemessen 22:04) - im Protokoll weiterlesen
+    erkannt = any("LADEPAUSE: Laden erkannt" in x for x in antwort)
+    frist = time.time() + 8.0
+    while not erkannt and time.time() < frist:
+        with open(_kanal().LOG, encoding="utf-8", errors="replace") as f:
+            f.seek(max(0, os.path.getsize(_kanal().LOG) - 20000))
+            erkannt = "LADEPAUSE: Laden erkannt" in f.read()
+        time.sleep(0.1)
+    if not erkannt:
         raise Fehler("die Lade-Pause hat kein Laden erkannt - Stand unsicher: %s" % zustand())
     t1 = zustand()
     time.sleep(0.3)

@@ -2152,9 +2152,24 @@ local function einzelbefehl(cmd)
     local WEGNETZ = 0x01DF70D8          -- (L174: vorher 0x01DF6FD8, 128 Felder daneben)
     local kannHin = core.exposeCode(0x004A5320, 5, 1)
     local function feld(x, y) return (core.readInteger(0x023372F8 + y * 12 + 8) or 0) + x end
-    local ex, ey = (lagebildVon or {})[1] or 165, (lagebildVon or {})[2] or 111
+    -- B-344 (15.11.2026): Startpunkt und Spieler kommen vom Lenker ({"lagebild": true, "von": [x, y], "fuer": sp}). Der feste
+    -- Ersatzpunkt (165,111) und der Platz am Rechner gaben in Lobby-Partien jedem Gebaeude 0 (gemessen 21:07 und 22:00: 49/49).
+    local von = (type(cmd.von) == "table" and cmd.von) or lagebildVon or {}
+    local ex, ey = tonumber(von[1]) or 165, tonumber(von[2]) or 111
     local vonGebiet = core.readSmallInteger(WEGNETZ + feld(ex, ey) * 2) or 0
-    local ich = core.readInteger(0x01A275DC) or 1
+    -- B-344: das Feld des Bergfried-Eingangs selbst liegt oft in keinem Gebiet (gemessen 22:03: (174,112) = 0, (172,112) = 1) -
+    -- dann das naechste begehbare Feld bis 4 Felder weiter nehmen
+    for r = 1, 4 do
+      if vonGebiet > 0 then break end
+      for dx = -r, r do
+        for dy = -r, r do
+          if vonGebiet == 0 then
+            vonGebiet = core.readSmallInteger(WEGNETZ + feld(ex + dx, ey + dy) * 2) or 0
+          end
+        end
+      end
+    end
+    local ich = tonumber(cmd.fuer) or core.readInteger(0x01A275DC) or 1
     local n, maxN = 0, core.readInteger(0x01387F38) or 0
     for i = 1, math.min(maxN, 2999) do
       local u = E + i * 1168

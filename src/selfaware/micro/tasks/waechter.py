@@ -49,7 +49,12 @@ def lies_gebaeude():
 
 def lies_lagebild(neu_holen=True):
     if neu_holen:
-        befehl({"lagebild": True}, 0.8)
+        # B-344: Erreichbarkeit vom EIGENEN Bergfried-Eingang und fuer den EIGENEN Spieler rechnen lassen (vorher fester Punkt -> alles 0)
+        from selfaware.game.ucp import befehl as _kanal
+        cmd = {"lagebild": True}
+        if BERGFRIED_EINGANG:
+            cmd.update(von=[int(BERGFRIED_EINGANG[0]), int(BERGFRIED_EINGANG[1])], fuer=_kanal.SPIELER)
+        befehl(cmd, 0.8)
     L = {}
     for z in open(LAGEBILD).read().split("\n")[2:]:
         w = z.split()
