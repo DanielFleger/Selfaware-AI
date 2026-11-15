@@ -84,3 +84,18 @@ def test_gemessener_bedarf_aus_dem_letzten_angriff():
         {"groesse": 50, "lord_vorher": 95000, "lord_nachher": 0}
     )  # laeuft noch: zaehlt nicht
     assert a._lord_bedarf_gemessen(95000) == 13
+
+
+def test_nach_gescheiterter_bereitstellung_alle_direkt_auf_den_lord():
+    """Probe 15.11.2026 23:29: zweimal 0 von 6/8 bereit nach ~3.100 Takten (B-185 #80) - danach geht es ohne Bereitstellung, alle zugleich."""
+    a, L = _szene(12)
+    _schritt(a, L, 20000)
+    assert a.lordtrupp["phase"] == "bereit"
+    ev = _schritt(a, L, 20000 + a.BEREIT_MAX + 10)  # keiner kam an
+    assert any("ABGEBROCHEN" in z for z in ev) and a._bereit_kaputt
+    a.lordtrupp["pause_bis"] = 0
+    ev = _schritt(a, L, 30000)
+    assert a.lordtrupp["phase"] == "angriff" and len(a.lordtrupp["mitglieder"]) == 12, [
+        z for z in ev if "LORD" in z
+    ]
+    assert any(z.startswith("LORD DIREKT") for z in ev)

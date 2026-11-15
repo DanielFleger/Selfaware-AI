@@ -93,8 +93,11 @@ def ziele(L, G, sp):
     from selfaware.micro.tasks import assassinen as AS
 
     aus = []
+    from selfaware.micro.tasks.waechter import brennt
+
     for n, g in G.items():
-        if g.get("besitzer") not in (0, sp) and g["typ"] in AS.WERT:
+        # Daniel 15.11.2026 23:31: ein brennendes Gebaeude faellt - kein Ziel fuer den Nahkampf-Raid (sonst verbrennen sie mit)
+        if g.get("besitzer") not in (0, sp) and g["typ"] in AS.WERT and not brennt(g):
             p = (g["x"], g["y"])
             aus.append(Ziel(("g", n), g["typ"], p, float(AS.WERT[g["typ"]]), *deckung(p)))
     for n, e in L.items():

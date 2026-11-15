@@ -18,7 +18,7 @@ Grenzen (offen): Reichweiten FERN/NAH sind Startwerte, nicht gemessen; Tuerme ni
 from selfaware import workspace as _workspace
 import math
 from selfaware.game.ucp.laden import befehl
-from selfaware.micro.tasks.waechter import sicherster_ort
+from selfaware.micro.tasks.waechter import brennt, sicherster_ort
 from selfaware.services.bedrohung import fingerabdruck, bedarf as lage_bedarf, lagen_laden
 import selfaware.services.schussfeld as schussfeld
 import selfaware.services.sicht as sicht
@@ -2143,6 +2143,12 @@ class Einzeln:
             self.leben[n], self.umfeld[n] = L[n]["leben"], u
         # 2. Erledigte Ziele, erledigte Jagd
         for n, z in list(self.ziel.items()):
+            if z in G and brennt(G[z]):
+                # Daniel 15.11.2026 23:31: "es brennt und sie verbrennen auch, das ist aber erwartbar, bitte sofort ein neues Gebaeude
+                # auswaehlen" - das brennende faellt ohnehin, in dieser Runde ein anderes Ziel
+                self._vergessen(n)
+                ereignis.append("BRENNT %d: Gebaeude %d brennt (faellt) - sofort ein anderes Ziel" % (n, z))
+                continue
             if z not in G:
                 typ = self.ziel_typ.pop(z, None)
                 if typ is not None:
@@ -2543,6 +2549,9 @@ class Einzeln:
             if lt["phase"] == "bereit" and self.jetzt - lt.get("seit_tick", self.jetzt) > self.BEREIT_MAX:
                 ereignis.append("LORD-BEREITSTELLUNG ABGEBROCHEN: nach %d Ticks erst %d von %d bereit - alle raiden" % (
                     self.jetzt - lt["seit_tick"], len(lt.get("bereit", ())), n_bedarf))
+                # #358 (Probe 15.11.2026 23:29: zweimal 0 von 6/8 bereit nach ~3.100 Takten, Wege 22-214 Felder zu EINEM verdeckten Platz;
+                # B-185 #80 offen): die Bereitstellung kommt hier nicht an - der naechste Lord-Angriff geht ohne sie, alle zugleich direkt
+                self._bereit_kaputt = True
                 for k in list(lt["mitglieder"]):
                     self._vergessen(k)
                 lt.update(mitglieder=set(), phase=None, pause_bis=self.jetzt + self.BEREIT_PAUSE)
@@ -2563,8 +2572,31 @@ class Einzeln:
                 if eindeutig:
                     ereignis.append("LORD EINDEUTIG: Lord %d mit %d Leben ohne Wachen bis %d Felder, Rechnung reicht - alle %d Assassinen auf ihn" % (
                         ln, le["leben"], self.LORD_WACHE_R, len(self.mitglieder)))
-                plaetze = self._bereit_plaetze(lp)
-                if plaetze:
+                plaetze = [] if getattr(self, "_bereit_kaputt", False) else self._bereit_plaetze(lp)
+                if not plaetze and getattr(self, "_bereit_kaputt", False):
+                    alle = sorted(k for k in self.mitglieder if k not in self.flucht
+                                  and not (self.RESERVE_PARKEN and L[k]["leben"] < self.RESERVE_LEBEN))
+                    for k in alle:
+                        self._vergessen(k)
+                        self.stapel["mitglieder"].discard(k)
+                        self.flucht.pop(k, None)
+                        if schach(pos(k), lp) > self.ANLAUF_NAH:
+                            lord_lauf.setdefault(lp, []).append(k)
+                        else:
+                            lord_ziel.append(k)
+                    lt.update(mitglieder=set(alle), warte=set(), lord=ln, phase="angriff", seit=self.runde, seit_tick=self.jetzt,
+                              angriff_tick=self.jetzt, sammelpunkt=None, platz={}, weg={}, neu={}, befohlen={}, bereit=set(alle), raus=set())
+                    self.bilanz["lordtrupps"] = self.bilanz.get("lordtrupps", 0) + 1
+                    wege = sorted(schach(pos(k), lp) for k in alle) or [0]
+                    self.angriffe.append({"runde": self.runde, "groesse": len(alle), "lord_vorher": le["leben"], "lord_nachher": le["leben"],
+                                          "fern": self._anzahl(lp, fern, self.LORD_UMKREIS), "nah": self._anzahl(lp, nah, self.LORD_UMKREIS),
+                                          "weg_min": wege[0], "weg_max": wege[-1], "am_lord_max": 0, "erreicht_runde": None,
+                                          "anderes": {}, "truppe": set(alle), "verluste": 0,
+                                          "bedarf": n_bedarf, "bedarf_art": bedarf_art, "bedarf_grund": self.bedarf_grund,
+                                          "fingerabdruck": self.bedarf_fa})
+                    ereignis.append("LORD DIREKT: Bereitstellung kam nicht an - alle %d Assassinen zugleich auf Lord %d (Wege %d-%d Felder, Lord %d Leben, Bedarf %d %s)" % (
+                        len(alle), ln, wege[0], wege[-1], le["leben"], n_bedarf, bedarf_art))
+                elif plaetze:
                     # Daniel 15.11.2026 23:10 ("es reicht locker fuer den kill ... je frueher der kill kommt desto besser") und 19.10. ("wir gehen
                     # alle gleichzeitig mit aller Macht auf den Lord"): ALLE gehen in die Gruppe, nicht nur der Bedarf - die Rechnung lag in
                     # Partie 23:05 um mehr als das Doppelte zu niedrig. Ausgenommen: auf der Flucht oder unter RESERVE_LEBEN (ein Treffer toetet)
@@ -2740,7 +2772,7 @@ class Einzeln:
             zahl[z] = zahl.get(z, 0) + 1
         kand = []
         for gn, g in G.items():
-            if g["besitzer"] in (0, self.sp) or g["typ"] not in WERT:
+            if g["besitzer"] in (0, self.sp) or g["typ"] not in WERT or brennt(g):    # Daniel 23:31: brennend = faellt, kein Ziel
                 continue
             p = (g["x"], g["y"])
             # 18.10.: Abstaende zu den Fernkaempfern einmal je Gebaeude, dann vier Zaehlungen (vorher vier Durchlaeufe)
