@@ -149,3 +149,10 @@ def test_einzeln_angekommene_zaehlen_nicht_fuer_den_bedarf():
         }
     )
     assert a._lord_bedarf_gemessen(103800) is None, "Probe 3: 14 einzeln geschickt - kein Massstab"
+
+
+def test_neuer_sammelpunkt_am_naechsten_sicheren_mitglied():
+    """Probe 5 Takt 19.557: Sammelplatz entdeckt - der Stapel geht zum naechsten sicheren Mitglied, nicht zum Ring."""
+    a, L = _szene(3)
+    a._sicht = None
+    assert a._sammelpunkt_neu(L, {200, 201, 202}, (340, 100), ausser=(250, 90)) == (250, 92)

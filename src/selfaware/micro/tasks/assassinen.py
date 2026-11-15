@@ -785,6 +785,12 @@ class Einzeln:
                     aus[k] = (gn, ziel)
         return aus
 
+    def _sammelpunkt_neu(self, L, mitglieder, lp, ausser):
+        """Ort des Mitglieds, das dem Lord am naechsten SICHER steht (nicht ausser) - None, wenn keiner sicher steht."""
+        orte = [(L[k]["x"], L[k]["y"]) for k in sorted(mitglieder) if k in L]
+        sicher_o = [q for q in orte if q != ausser and (self._sicht is None or self._sicht.sicher(q))]
+        return min(sicher_o, key=lambda q: (schach(q, lp), q), default=None)
+
     def _lord_schaden_je_assassine(self):
         """Lord-Leben, die ein Angreifer in den beendeten Lord-Angriffen DIESER Partie im Mittel abzog (Summe Schaden / Summe Angreifer).
         None ohne beendeten Angriff oder ohne Schaden."""
@@ -2675,7 +2681,11 @@ class Einzeln:
                         if k in verletzt or not self._sicht.sicher(platz):
                             lt["plaetze"] = [q for q in lt["plaetze"] if q != platz]
                             if not lt["plaetze"]:
-                                lt["plaetze"] = [q for q in self._bereit_plaetze(lp) if q != platz]
+                                # Daniel 16.11.2026 00:26 ("ja, beides"; Probe 5 Takt 19.557: Sammelplatz entdeckt, alle 19 zum Ring-Platz
+                                # (222,320) umgeleitet, Stapel zerrissen): beim Sammeln wandert der Stapel zum naechsten sicheren Ort eines
+                                # Mitglieds - erreichbar, dort steht schon einer - statt zum Ring, der nie ankam
+                                neu_s = self._sammelpunkt_neu(L, lt["mitglieder"], lp, platz) if getattr(self, "_sammelt", False) else None
+                                lt["plaetze"] = [neu_s] if neu_s else [q for q in self._bereit_plaetze(lp) if q != platz]
                             if lt["plaetze"]:
                                 neu_p = self._bereit_zuweisen(k, L, G, lt["plaetze"], ereignis)
                                 ereignis.append("LORD-BEREITSTELLUNG: Platz %s unsicher - %d nach %s" % (platz, k, neu_p))
