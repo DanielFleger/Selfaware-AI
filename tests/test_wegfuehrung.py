@@ -797,8 +797,9 @@ def test_der_posten_befehl_der_ersten_runde_laesst_die_schuetzen_des_vorstosses_
     assert halten and set(halten[0]["nr"]) == set(range(330, 337))
 
 
-def test_vorstoss_wartet_wenn_die_wegfuehrung_die_stelle_nicht_sicher_findet():
-    from selfaware.micro.tasks import raids as RA
+def test_vorstoss_rueckt_sofort_kuerzer_vor_wenn_die_wegfuehrung_die_stelle_nicht_sicher_findet():
+    """Daniel 16.11.2026 00:21: "bogenschuetzen warten immer noch ewig ... die sollten gefaelligst sofort rauskommen". Probe 5: nach
+    "gefahr" 10 Runden Pause (Takt 1.450 bis 2.886). Jetzt in derselben Runde ein neues, hoechstens halb so weites Vorruecken."""
     from selfaware.micro.tasks import vorstoss as V
 
     v = V.Vorstoss(1, (100, 100))
@@ -806,13 +807,13 @@ def test_vorstoss_wartet_wenn_die_wegfuehrung_die_stelle_nicht_sicher_findet():
     v.weg = w
     fern = {1: _e(1, 22, 100, 100), 2: _e(1, 22, 100, 101), 4: _e(2, 3, 260, 100)}
     v.schritt(500, fern, {}, Befehle())
-    assert w.auftraege[1][0] == "ort"
+    art, erst = w.auftraege[1]
+    assert art == "ort"
     w.st = {1: "gefahr", 2: "kein_weg"}
     aus = v.schritt(510, fern, {}, Befehle())
-    assert any("Vorruecken nicht sicher" in z for z in aus) and not w.auftraege
-    for i in range(RA.SPERRE_RUNDEN - 1):
-        v.schritt(520 + i, fern, {}, Befehle())
-        assert not w.auftraege
+    assert any("nicht sicher" in z for z in aus), aus
+    art2, zweit = w.auftraege[1]
+    assert art2 == "ort" and abs(zweit[0] - 100) <= abs(erst[0] - 100) // 2 + 1, (erst, zweit)
 
 
 def test_brandtrupp_waehlt_nur_gebaeude_die_die_wegfuehrung_annimmt():

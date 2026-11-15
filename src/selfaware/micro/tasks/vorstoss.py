@@ -335,13 +335,15 @@ class Vorstoss:
         SCHRITT (12) Felder vor, dann Stillstand bis zur naechsten Runde, die Stellung ~170 Felder weg. Jetzt der weiteste Punkt Richtung
         Stellung, bis zu dem jeder Zwischenpunkt (alle SCHRITT Felder) nach derselben Regel sicher ist; der erste unsichere beendet den
         Weg. Ist schon der erste unsicher, bleibt es der erste (der Aufrufer meldet dann advance_unsafe wie bisher)."""
-        d = schach(mitte, stand)
+        d = min(
+            schach(mitte, stand), getattr(self, "vor_max", None) or 10**6
+        )  # Daniel 00:21: nach "gefahr" hoechstens vor_max
         erster = _schritt_auf(mitte, stand, SCHRITT)
         if not self._sicher(erster, L, G, eigene):
             return erster
         bis = erster
         for w in range(2 * SCHRITT, d + SCHRITT, SCHRITT):
-            p = _schritt_auf(mitte, stand, w)
+            p = _schritt_auf(mitte, stand, min(w, d))  # nie ueber d (nach "gefahr": vor_max) hinaus
             if not self._sicher(p, L, G, eigene):
                 break
             bis = p
@@ -587,21 +589,18 @@ class Vorstoss:
             # "kein_weg", ist die Stelle nach ihrer Regel nicht sicher: SPERRE_RUNDEN Runden kein Vorruecken
             st = {self.weg.status(n) for n in meine if self.weg.fuehrt(n)}
             if self.vor_ort is not None and st and st <= {"gefahr", "kein_weg"}:
-                self.vor_bis = self.runde + SPERRE_RUNDEN
+                # Daniel 16.11.2026 00:21 ("bogenschuetzen warten immer noch ewig ... die sollten gefaelligst sofort rauskommen"): Probe 5 -
+                # nach "gefahr" warteten sie SPERRE_RUNDEN (10) Runden, Takt 1.450 bis 2.886. Jetzt kein Warten: das naechste Vorruecken geht
+                # hoechstens halb so weit, bis die Wegfuehrung es annimmt
+                weit = schach(mitte, self.vor_ort)
+                self.vor_max = max(SCHRITT, weit // 2)
                 self._loslassen(meine)
                 aus.append(
-                    "VORSTOSS: Vorruecken nicht sicher (%s), wartet %d Runden"
-                    % ("/".join(sorted(st)), SPERRE_RUNDEN)
+                    "VORSTOSS: Vorruecken bis %s nicht sicher (%s) - sofort hoechstens %d Felder"
+                    % (self.vor_ort, "/".join(sorted(st)), self.vor_max)
                 )
-                self._melde(
-                    meine,
-                    Action.WAIT_STAGING,
-                    point(mitte),
-                    "advance_refused_by_path",
-                    to=point(stelle),
-                )
-                self._sammeln(L, meine, mitte, aus)
-                return aus
+                self.vor_ort = None
+                stelle = self._weitester_sicherer(mitte, stand, L, G, len(meine))
             if self.vor_bis > self.runde:
                 self._melde(
                     meine,
