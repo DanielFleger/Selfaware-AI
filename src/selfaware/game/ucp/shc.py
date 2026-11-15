@@ -661,6 +661,17 @@ def spielende(n="5"):
     return "\n".join(z) if z else "noch kein Spielende gemeldet"
 
 
+def stopp():
+    """Daniel 15.11.2026 22:26 "Dein stop kam viel zu spaet, locker 30 sekunden, es sollte instant gehen": EIN Pause-Befehl als
+    Allererstes (in der Partie quittiert nach ~0,04 s), erst danach Lenker beenden - der wuerde ein stehendes Spiel sonst fortsetzen."""
+    t0 = time.time()
+    senden([{"pause": True}], 2.0)
+    dt = time.time() - t0
+    weg = lenker_stoppen()
+    senden([{"pause": True}], 2.0)
+    return "angehalten nach %.2f s, %d Lenker beendet: %s" % (dt, weg, zustand()["text"])
+
+
 def zustand_text():
     z = zustand()
     return "%s | %s" % (z["text"], z)
@@ -916,6 +927,7 @@ BEFEHLE = {
     "setze": setze,
     "spielende": spielende,
     "partie": partie,
+    "stopp": stopp,
     "losspielen": losspielen,
 }
 

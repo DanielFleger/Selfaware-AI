@@ -93,3 +93,17 @@ def test_lenker_aufstellung_uebernimmt_den_platz():
 
     arg, daten = aufstellung.anwenden({"aufstellung": "lobby_wie_partie34"})
     assert arg["uebernehmen"] == "ja" and daten["name"] == "lobby_wie_partie34"
+
+
+def test_stopp_haelt_zuerst_das_spiel_an_dann_die_lenker(monkeypatch):
+    """Daniel 15.11.2026 22:26: "Dein stop kam ... locker 30 sekunden ... es sollte instant gehen" - erst Pause (ein Befehl,
+    gemessen 0,04 s), dann die Lenker beenden, dann noch einmal Pause (falls ein Lenker sie in der Zwischenzeit aufhob)."""
+    folge = []
+    monkeypatch.setattr(
+        shc, "senden", lambda liste, *a, **k: folge.append(("pause", liste[0].get("pause")))
+    )
+    monkeypatch.setattr(shc, "lenker_stoppen", lambda: folge.append(("lenker",)) or 2)
+    monkeypatch.setattr(shc, "zustand", lambda: {"text": "Partie laeuft (angehalten)"})
+    text = shc.stopp()
+    assert folge == [("pause", True), ("lenker",), ("pause", True)] and "2 Lenker beendet" in text
+    assert shc.BEFEHLE["stopp"] is shc.stopp
