@@ -64,8 +64,12 @@ class Kernweg:
         self.version = None  # S159: Kern-Version beim Oeffnen (oeffnen setzt sie)
         # B-182 Kettenpruefung je Befehl (micro/chain_audit.ChainAudit): sieht jeden Ringauftrag und sein Ergebnis; setzt der Lenker
         self.beobachter = None
+        self.plaetze = ()  # B-184: Spieler-Plaetze dieses Lenkers (oeffnen setzt sie)
 
     def _uebergeben(self, einheiten):
+        if self.plaetze:
+            # B-184: vor jedem Auftrag neu melden - der Kern leert die Plaetze beim Partiewechsel, ein zweiter Lenker fuegt seine hinzu
+            self.leitung.eigene_plaetze_setzen(self.plaetze)
         for nr in einheiten:
             if nr not in self.uebergeben:
                 self.leitung.auftrag(KL.UEBERNEHMEN, nr, self.auftraggeber)
@@ -209,6 +213,7 @@ def oeffnen(spiel_ordner, auftraggeber=ASSASSINEN, mindestens=0, plaetze=()):
         if plaetze:
             leitung.eigene_plaetze_setzen(plaetze)
         k = Kernweg(leitung, auftraggeber)
+        k.plaetze = tuple(plaetze)
         k.version = w.kern
         return k
     except (OSError, ValueError, KL.FalscherAufbau):

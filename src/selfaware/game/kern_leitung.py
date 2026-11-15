@@ -360,6 +360,8 @@ class Leitung:
             maske |= 1 << int(p)
         if not maske:
             raise ValueError("keine Plaetze angegeben")
+        # 2 SamurAIs = 2 Lenker: jeder fuegt seinen Platz hinzu, keiner loescht den des anderen (der Kern leert bei Partiewechsel)
+        maske |= struct.unpack_from("<I", self.speicher, EIGENE_PLAETZE)[0]
         struct.pack_into("<I", self.speicher, EIGENE_PLAETZE, maske)
         return maske
 

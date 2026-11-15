@@ -72,3 +72,43 @@ def test_kern_liest_dieselbe_stelle():
         "if !darf_fuehren(platz, maske)" in lib
         and "i32_bei(SLOT_ICH) };\r\n    if platz != ich" not in lib
     )
+
+
+def test_zwei_lenker_behalten_beide_plaetze():
+    """Daniel 15.11.2026 20:27: 2 SamurAIs gegen den Kriegsfuerst - zwei Lenker, jeder meldet seinen Platz; keiner loescht den anderen."""
+    le = leitung_im_speicher()
+    le.eigene_plaetze_setzen([2])
+    le.eigene_plaetze_setzen([3])
+    assert le.eigene_plaetze() == [2, 3]
+
+
+def test_kernweg_meldet_seine_plaetze_vor_jedem_auftrag():
+    """Der Kern leert die Plaetze beim Partiewechsel - darum meldet der Kernweg sie vor jeder Uebernahme neu."""
+    folge = []
+
+    class Ring:
+        def eigene_plaetze_setzen(self, plaetze):
+            folge.append(("plaetze", tuple(plaetze)))
+
+        def auftrag(self, art, nr, *rest):
+            folge.append(("auftrag", art, nr))
+            return len(folge)
+
+    k = KW.Kernweg(Ring())
+    k._uebergeben([7])
+    assert folge == [("auftrag", KL.UEBERNEHMEN, 7)], "ohne Plaetze wie frueher"
+    folge.clear()
+    k.plaetze = (3,)
+    k._einreihen([8], KL.UEBERNEHMEN, 0, 0, 0, 100)
+    assert folge[0] == ("plaetze", (3,)) and ("auftrag", KL.UEBERNEHMEN, 8) in folge[1:], folge
+
+
+def test_kern_leert_die_plaetze_beim_partiewechsel():
+    rs = pathlib.Path(workspace.ROOT, "crates/samurai-kern/src/leitung.rs").read_text(
+        encoding="utf-8"
+    )
+    teil = rs[rs.index("pub fn eigene_plaetze_leeren") :]
+    assert "self.zaehler(8).store(0" in teil[: teil.index("}")]
+    lib = pathlib.Path(workspace.ROOT, "crates/samurai-kern/src/lib.rs").read_text(encoding="utf-8")
+    arm = lib[lib.index("Ereignis::Epoche { von, nach } => {") :]
+    assert "l.eigene_plaetze_leeren()" in arm[: arm.index("schreibe(")]

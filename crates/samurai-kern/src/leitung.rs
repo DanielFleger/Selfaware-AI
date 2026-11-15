@@ -97,6 +97,11 @@ impl Leitung {
         self.zaehler(8).load(Ordering::Acquire)
     }
 
+    /// B-184: beim Partiewechsel leeren - die Lenker der neuen Partie setzen ihre Plaetze vor jedem Auftrag neu.
+    pub fn eigene_plaetze_leeren(&self) {
+        self.zaehler(8).store(0, Ordering::Release);
+    }
+
     fn zaehler(&self, versatz: usize) -> &AtomicU32 {
         unsafe { &*(self.basis.add(RING_START + versatz) as *const AtomicU32) }
     }

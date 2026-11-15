@@ -32,7 +32,7 @@ use haende::{Anspruch, Auftrag, Blick, Buch};
 use waechter::{Ereignis, Waechter};
 use welt::Welt;
 
-pub const VERSION: u32 = 34;   // 34 (15.11.2026, B-184): Sperre und Schwaerzung nach SamurAIs Plaetzen statt dem Platz des Menschen; 33 (15.11.2026, S160): kaputter Auftragsring (Lese vor Schreib) wird geheilt; 32 (15.11.2026, S159): Wegpunktkette mit Angriff am Ende (Art 20-22); 31 (15.11.2026, S156): am Laufziel (AM_LAUFZIEL) nichts durchsetzen; 30 (15.11.2026, S155): Laufauftrag durchsetzen (Art 18) ausser gegen den erlaubten Gegner (Art 19); 29 (14.11.2026, S148): Gebiet des Wegnetzes je Einheit (Aufbau 8); 28 (14.11.2026, S143): field320_0x413 je eigener Einheit (Aufbau 7); 27 (14.11.2026, S139): Filterfelder des Marschbefehls je eigener Einheit (Aufbau 6); 26 (13.11.2026, S123): Gebaeudeangriff wirkt ueber das Ziel der Gruppe
+pub const VERSION: u32 = 35;   // 35 (15.11.2026, B-184): Plaetze beim Partiewechsel leeren (2 SamurAIs); 34 (15.11.2026, B-184): Sperre und Schwaerzung nach SamurAIs Plaetzen statt dem Platz des Menschen; 33 (15.11.2026, S160): kaputter Auftragsring (Lese vor Schreib) wird geheilt; 32 (15.11.2026, S159): Wegpunktkette mit Angriff am Ende (Art 20-22); 31 (15.11.2026, S156): am Laufziel (AM_LAUFZIEL) nichts durchsetzen; 30 (15.11.2026, S155): Laufauftrag durchsetzen (Art 18) ausser gegen den erlaubten Gegner (Art 19); 29 (14.11.2026, S148): Gebiet des Wegnetzes je Einheit (Aufbau 8); 28 (14.11.2026, S143): field320_0x413 je eigener Einheit (Aufbau 7); 27 (14.11.2026, S139): Filterfelder des Marschbefehls je eigener Einheit (Aufbau 6); 26 (13.11.2026, S123): Gebaeudeangriff wirkt ueber das Ziel der Gruppe
 
 /// DAT_UnitsState 0x01387F38: +0 maxUnitCount; Einheiten-Array ab +0x614 = 0x0138854C, je Einheit 1.168 Byte, 2.500 Plaetze
 const UNITS_STATE: usize = 0x0138_7F38;
@@ -522,6 +522,9 @@ fn takt(tick: i32, spieler: i32) -> i32 {
             leitung_schreiben(&mut z, tick);
         }
         Ereignis::Epoche { von, nach } => {
+            if let Some(Some(l)) = &z.leitung {
+                l.eigene_plaetze_leeren(); // B-184: Plaetze der alten Partie gelten nicht weiter
+            }
             schreibe(&format!("epoche {} tick {} von {} (Sprung {})", z.waechter.epoche, nach,
                               von.map_or("-".to_string(), |v| v.to_string()),
                               von.map_or("-".to_string(), |v| (nach as i64 - v as i64).to_string())));
