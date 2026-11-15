@@ -27,7 +27,9 @@ if not _ROH.isdigit() or int(_ROH) < 1:
     raise RuntimeError("SHC_INSTANZ=%r ist keine Instanznummer (1, 2, ...)" % _ROH)
 INSTANZ = int(_ROH)
 _STAMM = r"C:\Program Files (x86)\Steam\steamapps\common\Stronghold Crusader Extreme"
-SPIEL  = _STAMM if INSTANZ == 1 else "%s Instanz%d" % (_STAMM, INSTANZ)
+# B-192 (15.11.2026): SHC_SPIELORDNER ersetzt den Spielordner - nur fuer Tests auf Rechnern ohne Spiel (CI auf GitHub, siehe
+# tests/conftest.py); der echte Ablauf setzt es nie, dort bricht ein fehlender Ordner weiter sofort ab.
+SPIEL  = os.environ.get("SHC_SPIELORDNER") or (_STAMM if INSTANZ == 1 else "%s Instanz%d" % (_STAMM, INSTANZ))
 if not os.path.isdir(SPIEL):
     raise RuntimeError("Instanz %d gibt es nicht: %s" % (INSTANZ, SPIEL))
 _ENDUNG = "" if INSTANZ == 1 else str(INSTANZ)

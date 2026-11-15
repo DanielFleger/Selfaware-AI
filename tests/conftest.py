@@ -15,6 +15,16 @@ if importlib.util.find_spec("numpy") is None:  # numpy kommt nur mit dem Extra "
 if sys.platform != "win32":  # spielcode_rufen laedt Windows-Bibliotheken (ctypes.WinDLL)
     collect_ignore += ["test_spielcode_rufen.py"]
 
+# B-192 (15.11.2026): game/ucp/befehl.py bricht beim Laden ab, wenn es keinen Spielordner gibt (so auf GitHub). Tests, die den
+# Lenker laden, bekommen dann einen leeren Ersatzordner; senden tut dort kein Test. Die Ordner-Regel bleibt in befehl.py.
+try:
+    import selfaware.game.ucp.befehl  # noqa: F401
+except RuntimeError:
+    import os
+    import tempfile
+
+    os.environ["SHC_SPIELORDNER"] = tempfile.mkdtemp(prefix="shc_spielordner_test_")
+
 
 @pytest.fixture
 def session():
