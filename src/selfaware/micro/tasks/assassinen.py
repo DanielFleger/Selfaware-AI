@@ -788,7 +788,8 @@ class Einzeln:
     def _lord_schaden_je_assassine(self):
         """Lord-Leben, die ein Angreifer in den beendeten Lord-Angriffen DIESER Partie im Mittel abzog (Summe Schaden / Summe Angreifer).
         None ohne beendeten Angriff oder ohne Schaden."""
-        fertig = [a for a in self.angriffe if a.get("fertig") and a.get("groesse", 0) > 0]
+        # Daniel 16.11.2026 00:01: nur gestapelte Angriffe zaehlen - einzeln Ankommende sterben einzeln, ihr Schnitt sagt nichts ueber den Bedarf
+        fertig = [a for a in self.angriffe if a.get("fertig") and a.get("groesse", 0) > 0 and a.get("gestapelt") is not False]
         schaden = sum(max(0, a["lord_vorher"] - a["lord_nachher"]) for a in fertig)
         return schaden / float(sum(a["groesse"] for a in fertig)) if fertig and schaden > 0 else None
 
@@ -2567,6 +2568,8 @@ class Einzeln:
                     self.jetzt - lt["seit_tick"], len(lt.get("bereit", ())), n_bedarf))
                 # #358 (Probe 15.11.2026 23:29: zweimal 0 von 6/8 bereit nach ~3.100 Takten, Wege 22-214 Felder zu EINEM verdeckten Platz;
                 # B-185 #80 offen): die Bereitstellung kommt hier nicht an - der naechste Lord-Angriff geht ohne sie, alle zugleich direkt
+                if getattr(self, "_sammelt", False):
+                    self._sammel_kaputt = True      # auch der Sammelpunkt kam nicht an - der naechste Angriff geht direkt
                 self._bereit_kaputt = True
                 for k in list(lt["mitglieder"]):
                     self._vergessen(k)
@@ -2588,8 +2591,20 @@ class Einzeln:
                 if eindeutig:
                     ereignis.append("LORD EINDEUTIG: Lord %d mit %d Leben ohne Wachen bis %d Felder, Rechnung reicht - alle %d Assassinen auf ihn" % (
                         ln, le["leben"], self.LORD_WACHE_R, len(self.mitglieder)))
-                plaetze = [] if getattr(self, "_bereit_kaputt", False) else self._bereit_plaetze(lp)
-                if not plaetze and getattr(self, "_bereit_kaputt", False):
+                kaputt = getattr(self, "_bereit_kaputt", False)
+                if kaputt and not getattr(self, "_sammel_kaputt", False):
+                    # Daniel 16.11.2026 00:01 ("es kommt doch auf die sicherheit an, das stacking und die micro und natuerlich auf die
+                    # lordlebenspunkte ... 37 sind nur noetig weil du sie nicht gestackt hast sondern einzeln vorgeschickt"): erst stapeln,
+                    # dann zugleich. Sammelpunkt = Ort des Assassinen, der dem Lord am naechsten SICHER steht - dort steht schon einer, also
+                    # ist er erreichbar (die verdeckten Plaetze im Ring kamen in Probe 2 und 3 nie an, B-185 #80)
+                    frei_l = [k for k in self.mitglieder if k not in self.flucht]
+                    sicher_l = [k for k in frei_l if self._sicht is None or self._sicht.sicher(pos(k))] or frei_l
+                    vorn = min(sicher_l, key=lambda k: (schach(pos(k), lp), k), default=None)
+                    plaetze = [pos(vorn)] if vorn is not None else []
+                    self._sammelt = bool(plaetze)
+                else:
+                    plaetze = [] if kaputt else self._bereit_plaetze(lp)
+                if not plaetze and kaputt:
                     alle = sorted(k for k in self.mitglieder if k not in self.flucht
                                   and not (self.RESERVE_PARKEN and L[k]["leben"] < self.RESERVE_LEBEN))
                     for k in alle:
@@ -2607,10 +2622,10 @@ class Einzeln:
                     self.angriffe.append({"runde": self.runde, "groesse": len(alle), "lord_vorher": le["leben"], "lord_nachher": le["leben"],
                                           "fern": self._anzahl(lp, fern, self.LORD_UMKREIS), "nah": self._anzahl(lp, nah, self.LORD_UMKREIS),
                                           "weg_min": wege[0], "weg_max": wege[-1], "am_lord_max": 0, "erreicht_runde": None,
-                                          "anderes": {}, "truppe": set(alle), "verluste": 0,
+                                          "anderes": {}, "truppe": set(alle), "verluste": 0, "gestapelt": False,
                                           "bedarf": n_bedarf, "bedarf_art": bedarf_art, "bedarf_grund": self.bedarf_grund,
                                           "fingerabdruck": self.bedarf_fa})
-                    ereignis.append("LORD DIREKT: Bereitstellung kam nicht an - alle %d Assassinen zugleich auf Lord %d (Wege %d-%d Felder, Lord %d Leben, Bedarf %d %s)" % (
+                    ereignis.append("LORD DIREKT: Bereitstellung und Sammelpunkt kamen nicht an - alle %d Assassinen zugleich auf Lord %d (Wege %d-%d Felder, Lord %d Leben, Bedarf %d %s)" % (
                         len(alle), ln, wege[0], wege[-1], le["leben"], n_bedarf, bedarf_art))
                 elif plaetze:
                     # Daniel 15.11.2026 23:10 ("es reicht locker fuer den kill ... je frueher der kill kommt desto besser") und 19.10. ("wir gehen

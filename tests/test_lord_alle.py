@@ -86,16 +86,42 @@ def test_gemessener_bedarf_aus_dem_letzten_angriff():
     assert a._lord_bedarf_gemessen(95000) == 13
 
 
-def test_nach_gescheiterter_bereitstellung_alle_direkt_auf_den_lord():
-    """Probe 15.11.2026 23:29: zweimal 0 von 6/8 bereit nach ~3.100 Takten (B-185 #80) - danach geht es ohne Bereitstellung, alle zugleich."""
+def test_nach_gescheiterter_bereitstellung_erst_stapeln_dann_direkt():
+    """Probe 15.11.2026 23:29: zweimal 0 von 6/8 bereit (B-185 #80). Daniel 16.11.2026 00:01: "37 sind nur noetig weil du sie nicht gestackt
+    hast sondern einzeln vorgeschickt" - nach dem Abbruch sammeln sich alle am vordersten Assassinen (erreichbar), erst wenn auch das nicht
+    ankommt, gehen alle direkt."""
     a, L = _szene(12)
     _schritt(a, L, 20000)
-    assert a.lordtrupp["phase"] == "bereit"
     ev = _schritt(a, L, 20000 + a.BEREIT_MAX + 10)  # keiner kam an
     assert any("ABGEBROCHEN" in z for z in ev) and a._bereit_kaputt
     a.lordtrupp["pause_bis"] = 0
     ev = _schritt(a, L, 30000)
+    vorn = min(
+        range(200, 212), key=lambda k: (max(abs(L[k]["x"] - 340), abs(L[k]["y"] - 100)), k)
+    )  # Schachmass wie im Modul
+    assert a.lordtrupp["phase"] == "bereit" and set(a.lordtrupp["platz"].values()) == {
+        (L[vorn]["x"], L[vorn]["y"])
+    }, ev
+    ev = _schritt(a, L, 30000 + a.BEREIT_MAX + 10)  # auch der Sammelpunkt kam nicht an
+    assert a._sammel_kaputt
+    a.lordtrupp["pause_bis"] = 0
+    ev = _schritt(a, L, 40000)
     assert a.lordtrupp["phase"] == "angriff" and len(a.lordtrupp["mitglieder"]) == 12, [
         z for z in ev if "LORD" in z
     ]
     assert any(z.startswith("LORD DIREKT") for z in ev)
+    assert a.angriffe[-1]["gestapelt"] is False
+
+
+def test_einzeln_angekommene_zaehlen_nicht_fuer_den_bedarf():
+    a, _L = _szene(1)
+    a.angriffe.append(
+        {
+            "fertig": True,
+            "groesse": 14,
+            "lord_vorher": 165000,
+            "lord_nachher": 103800,
+            "gestapelt": False,
+        }
+    )
+    assert a._lord_bedarf_gemessen(103800) is None, "Probe 3: 14 einzeln geschickt - kein Massstab"
