@@ -24,6 +24,7 @@ import selfaware.services.schussfeld as schussfeld
 import selfaware.services.sicht as sicht
 import selfaware.services.spielwerte as spielwerte
 import selfaware.execution.lordschutz as lordschutz
+from selfaware.baukasten import zielvergabe as ZV
 import json as _json
 import os as _os
 
@@ -2726,52 +2727,56 @@ class Einzeln:
             ort = (L[n]["x"], L[n]["y"])
             schwach = L[n]["leben"] < self.SCHWACH * self.VOLL
             erreichbar = [k for k in kand if k[3]]
-            frei = [k for k in erreichbar if zahl.get(k[0], 0) < platz(k)]
             # 12.10. 01:54 RISIKO GEGEN ERTRAG statt fester Schwellen (Daniel 01:49 "warum wieder ein fixer Umkreis? frei entscheiden
             # und Risk/Reward abwaegen", 01:52 "ALLE Einheiten muessen wirklich aktiv raiden"): je Ziel kleinster erwarteter Schaden
             # auf dem Weg (Dijkstra ueber die GEMESSENE Gefahrenkarte schussfeld.SCHADEN_SATZ: Entdeckung + Deckung) plus Schaden
             # beim Angriff -> Todeswahrscheinlichkeit; Saldo = Wert x Ueberleben - Tod x Preis; das beste Saldo je Zeit.
             g_r = self._gitter(L, G)
             rk = g_r.risiko_von(ort, TEMPO) if g_r is not None else {}
-            beste, beste_bew = None, None     # 17.10.: unbeobachtete Ziele zuerst, beobachtete nur bis ZIEL_RISIKO
+            # 17.10.: unbeobachtete Ziele zuerst, beobachtete nur bis ZIEL_RISIKO
             # 18.10.: Grenzen fuer den ganzen Auftrag (Weg + Angriff) - schwach = unter SCHWACH x volles Leben (Regel war
             # berechnet, aber nicht angewendet: Assassine 163 zog mit 120 Leben los, 17 mit 3.100)
             grenze = self.ZIEL_RISIKO_SCHWACH if schwach else self.ZIEL_RISIKO_WEG
             grenze_bew = min(self.ZIEL_RISIKO, grenze)
-            for k in frei:
-                if k[8] > zahl.get(k[0], 0) + 1:
-                    continue                   # 4a: nicht dorthin, wo mehr Nahkampf-Wachen stehen als wir Angreifer haetten
-                if self._route_sperre.get((n, k[0]), -1) >= self.jetzt:
-                    continue                   # 18.10. (1018n, Assassine 17): nach ROUTE GEFAEHRLICH nicht gleich dasselbe Ziel
-                if n in self.entdeckt and not self._weit_von_gesehen(n, ort, k[1], L):
-                    continue                   # 19.10.: Aussendienst - Weg und Ziel ausser Reichweite der Schuetzen, die ihn sahen
-                b_ziel = self._beschuss_angriff(k[0], G, ort)
-                if L[n]["leben"] < self.EIN_TREFFER and (b_ziel > 0 or self._sicht.sicht_abstand(k[1]) < sicht.SICHT + self.RAND_SCHWACH):
-                    continue                   # 19.10.: ein Bolzen toetet ihn - nur Ziele weit ab von jedem Spaeher
-                # 17.10.: Zeit am Ziel = gemessene Arbeit / Zahl der Angreifer (statt VERWEILEN 300 ungemessen); Beschuss am
-                # Ziel aus der Sicht (sichtbar nur bei waehlbarem Feind <= 20 Feldern, Schusslinie) statt Schadenssatz L73
-                verweilen = self._arbeit(k[2], zahl.get(k[0], 0) + 1)
-                if g_r is not None:
-                    c = g_r.zelle_von(k[1])
-                    r_weg, felder = rk.get(c, (1e9, 999))
-                    risiko = (r_weg + b_ziel * verweilen) * self.KALIB
-                else:
-                    felder = schach(ort, k[1])
-                    risiko = b_ziel * (verweilen + felder * TEMPO) * self.KALIB
-                p_tod = min(1.0, risiko / max(1.0, float(L[n]["leben"])))
-                saldo = WERT.get(k[2], 10) * (1 - p_tod) - p_tod * self.KOSTEN
-                # 19.10. (Daniel: zwei Fronten, "hinten ist keine Verteidigung"): Ruhe-Bonus bis x2 fuer Ziele weit weg von jedem
-                # waehlbaren Feind (Sicht-Abstand in Feldern / RUHE_FELDER) - dort wird er nicht entdeckt, verliert keine Zeit
-                ruhe = 1.0 + min(self._sicht.sicht_abstand(k[1]) / 8.0, self.RUHE_FELDER) / self.RUHE_FELDER
-                je_zeit = ruhe * saldo / (felder * TEMPO + verweilen)
-                if saldo <= 0:
-                    continue
-                if b_ziel <= 0:
-                    if p_tod <= grenze and (beste is None or je_zeit > beste[0]):
-                        beste = (je_zeit, k, p_tod, saldo)
-                elif p_tod <= grenze_bew and (beste_bew is None or je_zeit > beste_bew[0]):
-                    beste_bew = (je_zeit, k, p_tod, saldo)
-            beste = beste or beste_bew
+            def wahl(liste):
+                beste, beste_bew = None, None
+                for k in liste:
+                    if k[8] > zahl.get(k[0], 0) + 1:
+                        continue                   # 4a: nicht dorthin, wo mehr Nahkampf-Wachen stehen als wir Angreifer haetten
+                    if self._route_sperre.get((n, k[0]), -1) >= self.jetzt:
+                        continue                   # 18.10. (1018n, Assassine 17): nach ROUTE GEFAEHRLICH nicht gleich dasselbe Ziel
+                    if n in self.entdeckt and not self._weit_von_gesehen(n, ort, k[1], L):
+                        continue                   # 19.10.: Aussendienst - Weg und Ziel ausser Reichweite der Schuetzen, die ihn sahen
+                    b_ziel = self._beschuss_angriff(k[0], G, ort)
+                    if L[n]["leben"] < self.EIN_TREFFER and (b_ziel > 0 or self._sicht.sicht_abstand(k[1]) < sicht.SICHT + self.RAND_SCHWACH):
+                        continue                   # 19.10.: ein Bolzen toetet ihn - nur Ziele weit ab von jedem Spaeher
+                    # 17.10.: Zeit am Ziel = gemessene Arbeit / Zahl der Angreifer (statt VERWEILEN 300 ungemessen); Beschuss am
+                    # Ziel aus der Sicht (sichtbar nur bei waehlbarem Feind <= 20 Feldern, Schusslinie) statt Schadenssatz L73
+                    verweilen = self._arbeit(k[2], zahl.get(k[0], 0) + 1)
+                    if g_r is not None:
+                        c = g_r.zelle_von(k[1])
+                        r_weg, felder = rk.get(c, (1e9, 999))
+                        risiko = (r_weg + b_ziel * verweilen) * self.KALIB
+                    else:
+                        felder = schach(ort, k[1])
+                        risiko = b_ziel * (verweilen + felder * TEMPO) * self.KALIB
+                    p_tod = min(1.0, risiko / max(1.0, float(L[n]["leben"])))
+                    saldo = WERT.get(k[2], 10) * (1 - p_tod) - p_tod * self.KOSTEN
+                    # 19.10. (Daniel: zwei Fronten, "hinten ist keine Verteidigung"): Ruhe-Bonus bis x2 fuer Ziele weit weg von jedem
+                    # waehlbaren Feind (Sicht-Abstand in Feldern / RUHE_FELDER) - dort wird er nicht entdeckt, verliert keine Zeit
+                    ruhe = 1.0 + min(self._sicht.sicht_abstand(k[1]) / 8.0, self.RUHE_FELDER) / self.RUHE_FELDER
+                    je_zeit = ruhe * saldo / (felder * TEMPO + verweilen)
+                    if saldo <= 0:
+                        continue
+                    if b_ziel <= 0:
+                        if p_tod <= grenze and (beste is None or je_zeit > beste[0]):
+                            beste = (je_zeit, k, p_tod, saldo)
+                    elif p_tod <= grenze_bew and (beste_bew is None or je_zeit > beste_bew[0]):
+                        beste_bew = (je_zeit, k, p_tod, saldo)
+                return beste or beste_bew
+            # Daniel 15.11.2026 22:29 (baukasten/zielvergabe.py): erst ein freies Gebaeude, ist keins annehmbar, stellt er sich zu einem
+            # besetzten dazu - vorher warteten bis zu 77 Assassinen 'alle gefaehrlich', weil die sicheren Gebaeude je einen hatten
+            beste, dazu = ZV.waehle(erreichbar, lambda k: zahl.get(k[0], 0) < platz(k), wahl)
             if beste:
                 _, k_b, p_tod, saldo = beste
                 gn, p, typ, _, f10, f20, f30, _, _ = k_b
@@ -2786,12 +2791,13 @@ class Einzeln:
                 self.warte.pop(n, None); self.warte_seit.pop(n, None)
                 angriffe.append((n, gn))
                 ereignis.append("ZIELWAHL %d -> %d Typ %d in %d: Saldo %.0f, Todesrisiko %.0f %%, Fern<=30 %d, Leben %d, "
-                                "Beschuss am Ziel %.2f/Takt, Arbeit %s %d Takte" % (
+                                "Beschuss am Ziel %.2f/Takt, Arbeit %s %d Takte%s" % (
                     n, gn, typ, schach(ort, p), saldo, 100 * p_tod, f30, L[n]["leben"], self._beschuss_angriff(gn, G, ort),
-                    "gemessen" if typ in ARBEIT else "geschaetzt", ARBEIT.get(typ, ARBEIT_SONST)))
+                    "gemessen" if typ in ARBEIT else "geschaetzt", ARBEIT.get(typ, ARBEIT_SONST),
+                    ", dazu (schon %d dort)" % (zahl[gn] - 1) if dazu else ""))
                 continue
             ohne += 1
-            g_ohne = "keins erreichbar" if not erreichbar else "alle voll" if not frei else "alle gefaehrlich"
+            g_ohne = "keins erreichbar" if not erreichbar else "alle gefaehrlich"     # besetzte zaehlen mit (zielvergabe)
             gruende[g_ohne] += 1
             self.ohne_grund[n] = OHNE_GRUND_LOG[g_ohne]
             # 17.10.: warten nur dort, wo ihn kein waehlbarer Feind sieht und kein Trupp ihm nachlaeuft (sicht.sicher) - statt

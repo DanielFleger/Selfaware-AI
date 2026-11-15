@@ -33,6 +33,7 @@ nur dann eins, wenn bis GEFAHR_FERN kein Schuetze steht, das letzte Stueck liegt
 import collections
 
 from selfaware.baukasten.ausweichen import Schussfeld
+from selfaware.baukasten import zielvergabe as ZV
 from selfaware.micro.unit_log import Action, building, point, unit
 
 SKLAVE, PFERDEBOGEN = 71, 74
@@ -135,6 +136,7 @@ class Brandtrupp:
         # B-182 Logbuch je Einheit (docs/plans/Plan_Unit_Status_Log.md): Sklave -> (Aktion, Ziel, Grund, Werte) dieser Runde
         self.absicht = {}
         self.ohne_ziel = collections.Counter()   # warum Gebaeude bei der letzten Zielwahl nicht in Frage kamen
+        self.dazu = False           # Daniel 15.11.2026 22:29: letzte Zielwahl stellte den Sklaven zu einem besetzten Gebaeude
 
     def einheiten(self, L):
         return {n for n, e in L.items() if e["besitzer"] == self.sp and e["typ"] == SKLAVE and e.get("leben", 1) > 0}
@@ -210,15 +212,22 @@ class Brandtrupp:
         aus.append("BRANDTRUPP: Sklave %d wartet vorne bei %s (kein Ziel frei)" % (s, p))
 
     def _ziele(self, L, G, ort, belegt):
+        """Ziele nach Wert je Feld, die freien zuerst. Daniel 15.11.2026 22:29 (baukasten/zielvergabe.py): ist kein Gebaeude frei,
+        stellt sich der Sklave zu einem, das schon ein anderer Sklave anzuendet, statt vorne zu warten. self.dazu sagt, ob es so kam."""
         kand = []
         self.ohne_ziel = collections.Counter()
         for n in G:
-            h = "taken" if n in belegt else self._hindernis(n, L, G)
+            h = self._hindernis(n, L, G)
             if h is None:
                 kand.append((WERT[G[n]["typ"]] / float(max(schach(ort, (G[n]["x"], G[n]["y"])), 1)), n))
             elif h != "not_target":
                 self.ohne_ziel[h] += 1
-        return [n for _, n in sorted(kand, reverse=True)]
+        reihe = [n for _, n in sorted(kand, reverse=True)]
+        besetzt = sum(1 for n in reihe if n in belegt)
+        if besetzt:
+            self.ohne_ziel["taken"] = besetzt
+        erst, self.dazu = ZV.waehle(reihe, lambda n: n not in belegt, lambda liste: liste[0])
+        return [] if erst is None else [erst] + [n for n in reihe if n != erst]
 
     def schritt(self, L, G, befehl):
         self.runde += 1
@@ -280,8 +289,9 @@ class Brandtrupp:
                 g = G[z[0]]
                 self.absicht[s] = (Action.SET_FIRE, building(z[0]), "best_value_per_distance",
                                    {"typ": g["typ"], "dist": schach((e["x"], e["y"]), (g["x"], g["y"]))})
-                aus.append("BRANDTRUPP: Sklave %d -> Gebaeude %d (Typ %d) bei (%d, %d), %d Felder" % (
-                    s, z[0], g["typ"], g["x"], g["y"], schach((e["x"], e["y"]), (g["x"], g["y"]))))
+                aus.append("BRANDTRUPP: Sklave %d -> Gebaeude %d (Typ %d) bei (%d, %d), %d Felder%s" % (
+                    s, z[0], g["typ"], g["x"], g["y"], schach((e["x"], e["y"]), (g["x"], g["y"])),
+                    ", dazu (schon besetzt, kein freies)" if self.dazu else ""))
             if mit_weg:
                 # B-182 (Plan_Wegfuehrung.md): den Weg fuehrt die Wegfuehrung, jede Runde neu gegen die aktuelle Lage
                 self.weg.fuehre(s, "gebaeude", self.ziel[s], "brandtrupp")

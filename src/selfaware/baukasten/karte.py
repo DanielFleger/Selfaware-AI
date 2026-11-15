@@ -136,7 +136,7 @@ KARTE = {
             "holzfaeller_max holzfaeller_je_baum holzfaeller_vorab holz_kaufen holz_spam stein_max stein_parallel "
             "steinbruch_zuerst steinbrueche_frueh joch_nach_stein",
         ),
-        _m("Markt", _l("verkaufen")),
+        _m("Markt", _l("verkaufen verkaufslose")),
     ),
     "bestellung_raid": (
         _m(
@@ -167,6 +167,7 @@ KARTE = {
     "bestellung_verteidigung": (_m("Notwerbung", _l("phase2"), "notwerbung"),),
     "einsatz_raid": (
         _m("Raid-Einsatz", "baukasten/raid.py:RaidEinsatz", "ohne_angriff"),
+        _m("Zielvergabe", "baukasten/zielvergabe.py"),
         _m("Nahkampf-Raid", "micro/tasks/nahkampf.py:NahkampfRaid"),
         _m("Brandtrupp", "micro/tasks/raids.py:Brandtrupp"),
         _m("Reiterjagd", "micro/tasks/raids.py:Reiterjagd"),

@@ -2,9 +2,9 @@
 
 Erzeugt mit `python -m selfaware.baukasten.karte --schreiben`, nicht von Hand ändern. Quelle: `src/selfaware/baukasten/karte.py`. Plan: [Plan_Baukasten.md](Plan_Baukasten.md).
 
-Gemessen: Der Lenker `runtime/live/erstes_spiel.py` hat 4251 Zeilen, `phase2` davon 1645. Er kennt 103 Schalter. 20 Klassen haben einen eigenen `schritt`, mit 16 verschiedenen Aufrufen.
+Gemessen: Der Lenker `runtime/live/erstes_spiel.py` hat 4265 Zeilen, `phase2` davon 1646. Er kennt 103 Schalter. 20 Klassen haben einen eigenen `schritt`, mit 16 verschiedenen Aufrufen.
 
-Bausteine je Stand: Kern 1, eigene Datei 41, im Lenker 14, nicht benutzt 2, steckbar 18. Eine Stelle mit zwei Rollen zählt einmal.
+Bausteine je Stand: Kern 1, eigene Datei 42, im Lenker 14, nicht benutzt 2, steckbar 18. Eine Stelle mit zwei Rollen zählt einmal.
 
 | Stand | Bedeutung |
 |---|---|
@@ -68,7 +68,7 @@ Bausteine je Stand: Kern 1, eigene Datei 41, im Lenker 14, nicht benutzt 2, stec
 | Lagerplatz | eigene Datei | `macro/standort.py` | `umzug` |
 | Bauen und Platz | im Lenker | `Lenker freier_platz`, `Lenker haus_noetig`, `Lenker kosten_spiel`, `Lenker preis`, `Lenker platz_sauber`, `Lenker speicher_nachbauen`, `Lenker baue_schnell`, `Lenker baue_haus`, `Lenker lager_knapp`, `Lenker baue_lager`, `Lenker kosten_aller`, `Lenker wohnraum_fehlt`, `Lenker v14_sperrflaechen` | `abriss`, `huetten_voraus`, `neubau_sicher` |
 | Holz und Stein | im Lenker | `Lenker v16_holzfaeller`, `Lenker haufen_hat_stein`, `Lenker stein_joche`, `Lenker v14_steinpflicht`, `Lenker stein_pflicht` | `holzfaeller_max`, `holzfaeller_je_baum`, `holzfaeller_vorab`, `holz_kaufen`, `holz_spam`, `stein_max`, `stein_parallel`, `steinbruch_zuerst`, `steinbrueche_frueh`, `joch_nach_stein` |
-| Markt | im Lenker | `Lenker verkaufen` |  |
+| Markt | im Lenker | `Lenker verkaufen`, `Lenker verkaufslose` |  |
 
 ## Bestellung Raid
 
@@ -99,6 +99,7 @@ Bausteine je Stand: Kern 1, eigene Datei 41, im Lenker 14, nicht benutzt 2, stec
 | Modul | Stand | Stelle | Schalter |
 |---|---|---|---|
 | Raid-Einsatz | steckbar | `baukasten/raid.py:RaidEinsatz` | `ohne_angriff` |
+| Zielvergabe | eigene Datei | `baukasten/zielvergabe.py` |  |
 | Nahkampf-Raid | steckbar | `micro/tasks/nahkampf.py:NahkampfRaid` |  |
 | Brandtrupp | steckbar | `micro/tasks/raids.py:Brandtrupp` |  |
 | Reiterjagd | steckbar | `micro/tasks/raids.py:Reiterjagd` |  |

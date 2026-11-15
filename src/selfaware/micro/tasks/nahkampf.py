@@ -19,6 +19,7 @@ import collections
 
 import selfaware.services.schussfeld as schussfeld
 from selfaware.baukasten import wirkung as WK
+from selfaware.baukasten import zielvergabe as ZV
 from selfaware.execution import kampfschutz
 from selfaware.micro.tasks import raids as RA
 from selfaware.micro.unit_log import Action, building, unit
@@ -54,6 +55,7 @@ class NahkampfRaid:
             None  # B-182: gemeinsame Wegfuehrung (micro/wegfuehrung.py), setzt der Raid-Einsatz
         )
         self.gesperrt = {}  # (Einheit, Ziel) -> Runde: nach "gefahr"/"kein_weg" waehlt diese Einheit das Ziel so lange nicht
+        self.dazu = False  # Daniel 15.11.2026 22:29: letzte Zielwahl stellte die Einheit zu einem schon besetzten Ziel
         self.greift = {}  # Einheit -> Ziel, das sie zuletzt am Ziel angriff (Status "greift_an" der Wegfuehrung)
         self.runde = 0
         self.zerstoert = self.getoetet = 0
@@ -130,15 +132,19 @@ class NahkampfRaid:
         return self.weg.weglaenge(raster[klasse], (e["x"], e["y"]))
 
     def _waehlen(self, n, e, ziele, belegt, L, G=None, laenge=None):
+        """Bestes Ziel nach Wert je Takt, die freien zuerst. Daniel 15.11.2026 22:29 (baukasten/zielvergabe.py): bringt kein freies
+        Ziel Wert, stellt sich die Einheit zu einem, das schon ein anderer Nahkaempfer angreift, statt zu warten."""
         ort = (e["x"], e["y"])
-        best = max(
-            self._werte(
-                n, e, ziele, belegt, laenge if laenge is not None else self._laenge(e, L, G, {})
-            ),
-            default=(0.0, None, None, None),
-            key=lambda x: x[0],
+        werte = self._werte(
+            n, e, ziele, (), laenge if laenge is not None else self._laenge(e, L, G, {})
         )
-        if best[2] is None or best[0] <= 0:
+
+        def wahl(liste):
+            best = max(liste, key=lambda x: x[0])
+            return best if best[2] is not None and best[0] > 0 else None
+
+        best, self.dazu = ZV.waehle(werte, lambda w: w[2].schluessel not in belegt, wahl)
+        if best is None:
             return None
         z = best[2]
         weg = []
@@ -403,7 +409,8 @@ class NahkampfRaid:
                         )
                         if laenge is not None
                         else WK.schach(ort, z.ort),
-                        ", Weg ueber die Wegfuehrung" if self.weg is not None else "",
+                        (", Weg ueber die Wegfuehrung" if self.weg is not None else "")
+                        + (", dazu (schon besetzt, kein freies)" if self.dazu else ""),
                     )
                 )
             art, nr = self.ziel[n]

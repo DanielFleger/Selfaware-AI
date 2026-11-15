@@ -1000,3 +1000,17 @@ def test_s164_unzerstoerbare_gebaeude_sind_nie_ziel():
         {}, {1: geb(100, 100, typ=10), 2: geb(110, 100, typ=21), 3: geb(120, 100, typ=31)}, 1
     )
     assert [x.schluessel for x in z] == [("g", 3)]
+
+
+def test_zwei_nahkaempfer_greifen_dasselbe_gebaeude_an():
+    """Daniel 15.11.2026 22:29 (baukasten/zielvergabe.py): ein einziges Ziel, zwei Schwertkaempfer - beide greifen an, der zweite
+    stellt sich dazu statt zu warten (vorher ein Ziel je Einheit)."""
+    r, bf = _raid(), Befehle()
+    L, G = {}, {1: geb(100, 30)}
+    r.schritt(L, G, bf)
+    L[2] = einheit(0, 0, SCHWERT, besitzer=1, leben=28000)
+    L[3] = einheit(0, 4, SCHWERT, besitzer=1, leben=28000)
+    r.bestellt(SCHWERT, 2)
+    aus = r.schritt(L, G, bf)
+    assert r.ziel.get(2) == r.ziel.get(3) == ("g", 1), aus
+    assert sum("dazu (schon besetzt" in z for z in aus) == 1, aus
