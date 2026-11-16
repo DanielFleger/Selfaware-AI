@@ -3428,6 +3428,13 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         and not loewen_am_posten(L, G, posten[0]) \
                         and not wirt.a_offen(G):   # Daniel 23:09: Farmen nicht vergessen - erst die fehlenden A-Plantagen (45 Gold)   # erst rollen (Daniel 18:51/19:05)
                     assassine_erlaubt = True
+            # Daniel 16.11.2026 23:56 ("mache weiter unter 500 gold ist der massstab"): Probe 23 liess spaet bis 671 Gold liegen, angeworben wurden
+            # nur 11 Assassinen je 2.000 Takte - jede Runde mit Gold ueber 150 ohne Anwerbung nennt die blockierende Bedingung (nur Mitschrift)
+            if trupp is not None and posten and not assassine_erlaubt and st["gold"] > 150:
+                warum = [n for n, w in (("Abstand", st["t"] - a_stand["zuletzt"] < WERB_ABSTAND), ("Planer braucht Gold", bool(ausbau.braucht_gold)),
+                                        ("Loewen am Posten", loewen_am_posten(L, G, posten[0])), ("A-Farmen offen", bool(wirt.a_offen(G))),
+                                        ("Zahl erreicht", assassinen >= 0 and a_stand["lebend"] >= ziel_a)) if w]
+                ereignis.append("ANWERBEN-BLOCKIERT: Gold %d, %s" % (st["gold"], ", ".join(warum) or "kein bekannter Grund"))
             if trupp is not None:
                 if voll and posten and runde % 50 == 0:     # ganz_1: in 28.700 Ticks nur 1 Assassine - welche Bedingung bremst?
                     ereignis.append("ANWERBEN-BREMSE: Gold %d (braucht %d), Feuer %d, Planer braucht Gold %s, A-Farmen offen %d" % (
