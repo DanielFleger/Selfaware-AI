@@ -400,7 +400,14 @@ class Einzeln:
     # Lord-Angriff bis 28.747). Gemessen mit 20 (gemeinsam_1, Codex): Verluste 10-18, 3 Siege.
     LORD_SAMMELN_AB = 20
     LORD_SAMMEL_ABSTAND = SCHUSSWEITE + 5
-    LORD_REST = 3          # weniger Ueberlebende aus dem Angriff -> vorbei, wieder raiden bis zum naechsten Bedarf
+    # Daniel 16.11.2026 23:13 ("jetzt wurden sogar assassinen beim push wieder zurueckgezogen ohne grund"): Probe 18 brach den Angriff bei 2
+    # Ueberlebenden ab ("vorbei ... wieder raiden"). Vorher 3; jetzt ist er erst vorbei, wenn keiner mehr lebt
+    LORD_REST = 1          # weniger Ueberlebende aus dem Angriff -> vorbei, wieder raiden bis zum naechsten Bedarf
+    # Probe 18 (partie_20261116_231110): Angriff mit 6 ("Bedarf 6 gerechnet") machte 13.500 von 165.000 Schaden; aus diesem kleinen Angriff
+    # wurde "Bedarf 99 gemessen", der naechste wartete bis Takt 27.679 auf 69 Assassinen (Kill 28.205). Gelungen sind in Probe 13c, 16, 17
+    # Angriffe mit 15-26, gescheitert jeder mit 6. Ein Angriff braucht mindestens LORD_MIN_GRUPPE, und nur Angriffe dieser Groesse zaehlen
+    # fuer den gemessenen Bedarf. Startwert zwischen 6 (gescheitert) und 15 (gelungen), nicht eigens gemessen:
+    LORD_MIN_GRUPPE = 12
     # 17.10. Laptop, Partie 1017h (Lageprotokoll): 35x lief genau EIN Assassine los ("1 laufen los"), 38 von 93 Toten starben
     # am Lord mit 4+ Fernkaempfern im Umkreis 20 - die Rechnung lord_machbar gilt nur, wenn alle zugleich ankommen. Dazu standen
     # im Mittel ~6 Assassinen (= eine Lord-Gruppe) an unserer Burg still (Zustand 105, Laufziel = eigener Ort, 77 % aller
@@ -838,7 +845,7 @@ class Einzeln:
         """Lord-Leben, die ein Angreifer in den beendeten Lord-Angriffen DIESER Partie im Mittel abzog (Summe Schaden / Summe Angreifer).
         None ohne beendeten Angriff oder ohne Schaden."""
         # Daniel 16.11.2026 00:01: nur gestapelte Angriffe zaehlen - einzeln Ankommende sterben einzeln, ihr Schnitt sagt nichts ueber den Bedarf
-        fertig = [a for a in self.angriffe if a.get("fertig") and a.get("groesse", 0) > 0 and a.get("gestapelt") is not False]
+        fertig = [a for a in self.angriffe if a.get("fertig") and a.get("groesse", 0) >= self.LORD_MIN_GRUPPE and a.get("gestapelt") is not False]
         schaden = sum(max(0, a["lord_vorher"] - a["lord_nachher"]) for a in fertig)
         return schaden / float(sum(a["groesse"] for a in fertig)) if fertig and schaden > 0 else None
 
@@ -2660,6 +2667,7 @@ class Einzeln:
                         ereignis.append("LORD-BEDARF gemessen: %d (Rechnung %d) - Lord %d Leben, je Assassine in dieser Partie %d" % (
                             n_mess, n_bedarf, le["leben"], self._lord_schaden_je_assassine()))
                     n_bedarf, bedarf_art, gruppe_leben = n_mess, "gemessen", None
+            n_bedarf = max(n_bedarf, self.LORD_MIN_GRUPPE)        # Probe 18: mit 6 gescheitert (siehe LORD_MIN_GRUPPE)
             # 17.10. Laptop (1017h): Bereitstellung statt gestaffeltem Anlauf - die Gruppe zaehlt ganz (unterwegs + bereit)
             if lt["phase"] == "angriff" and len(lt["mitglieder"]) < self.LORD_REST:
                 ereignis.append("GEMEINSAMER LORD-ANGRIFF vorbei: noch %d leben, Lord-Leben %d - wieder raiden bis %d" % (
@@ -2789,6 +2797,9 @@ class Einzeln:
                                  and k not in self.flucht),
                                 key=lambda k: (k in self.ziel or k in self.jagd, schach(pos(k), lp), -L[k]["leben"], k))
                 frei_k = [k for k in frei_k if not (self.RESERVE_PARKEN and L[k]["leben"] < self.RESERVE_LEBEN)]
+                # Daniel 16.11.2026 23:13 ("ein assassine ist auf eine waffenkammer, hat sie angeschlagen, ist dann aber wieder hunderte felder
+                # zurueck"): wer gerade auf sein Gebaeude schlaegt (Zustand 107), rueckt erst nach, wenn es faellt
+                frei_k = [k for k in frei_k if not (k in self.ziel and L[k]["zustand"] == 107)]
                 while frei_k:     # Daniel 23:10: alle - neue Anwerbungen gehoeren sofort dazu (vorher nur bis zum Bedarf)
                     k = frei_k.pop(0)
                     self._vergessen(k); self.stapel["mitglieder"].discard(k); self.flucht.pop(k, None)
@@ -2946,7 +2957,9 @@ class Einzeln:
                         continue
                     f, seit = self._steht.get(k, (None, self.jetzt))
                     will_nirgends = schach((L[k].get("laufx", -99), L[k].get("laufy", -99)), pos(k)) <= 1
-                    if f == pos(k) and will_nirgends and self.jetzt - seit >= self.STEH_TICKS                             and self.jetzt - lt.get("angriff_tick", 0) >= self.STEH_TICKS:
+                    # Daniel 16.11.2026 23:13 ("assassinen beim push wieder zurueckgezogen ohne grund"): neben dem Lord (hoechstens 3 Felder) faellt
+                    # keiner wegen Stillstand aus der Gruppe - dort wiederholt der Kern den Angriff (Kern 39)
+                    if f == pos(k) and will_nirgends and self.jetzt - seit >= self.STEH_TICKS                             and self.jetzt - lt.get("angriff_tick", 0) >= self.STEH_TICKS and schach(pos(k), lp) > 3:
                         ereignis.append("LORD-ANGRIFF: %d steht %d Ticks ohne Spielziel bei %s (Zustand %d, Lord %d Felder) - raus, raidet" % (
                             k, self.jetzt - seit, pos(k), L[k]["zustand"], schach(pos(k), lp)))
                         lt["mitglieder"].discard(k)

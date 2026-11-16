@@ -84,14 +84,15 @@ def test_nur_der_stapel_greift_an_wenn_alle_da_sind():
 
 
 def test_zeit_um_greift_nur_der_stapel_an():
-    a, L = _szene(12)
+    # Probe 18 (16.11.2026): der Stapel muss mindestens LORD_MIN_GRUPPE (12) gross sein - 12 von 16 stehen am Platz
+    a, L = _szene(16)
     _schritt(a, L, 20000)
     plaetze = dict(a.lordtrupp["platz"])
-    for k in sorted(plaetze)[:8]:
+    for k in sorted(plaetze)[:12]:
         L[k].update(x=plaetze[k][0], y=plaetze[k][1], laufx=plaetze[k][0], laufy=plaetze[k][1])
     _schritt(a, L, 20200)
-    ev = _schritt(a, L, 20000 + a.BEREIT_MAX + 10)
-    assert a.lordtrupp["phase"] == "angriff" and a.angriffe[-1]["groesse"] == 8, [
+    ev = _schritt(a, L, 20000 + a._bereit_frist() + 10)
+    assert a.lordtrupp["phase"] == "angriff" and a.angriffe[-1]["groesse"] == 12, [
         z for z in ev if "LORD" in z
     ]
     assert not any("ABGEBROCHEN" in z for z in ev)
@@ -100,14 +101,17 @@ def test_zeit_um_greift_nur_der_stapel_an():
 def test_gemessener_bedarf_aus_dem_letzten_angriff():
     a, _L = _szene(1)
     assert a._lord_bedarf_gemessen(165000) is None, "ohne beendeten Angriff keine Messung"
-    a.angriffe.append({"fertig": True, "groesse": 9, "lord_vorher": 165000, "lord_nachher": 95000})
+    # Probe 18 (16.11.2026): ein Angriff unter LORD_MIN_GRUPPE (dort 6) ergab "Bedarf 99" - kleine Angriffe zaehlen nicht mehr
+    a.angriffe.append({"fertig": True, "groesse": 6, "lord_vorher": 165000, "lord_nachher": 151500})
+    assert a._lord_bedarf_gemessen(165000) is None
+    a.angriffe.append({"fertig": True, "groesse": 14, "lord_vorher": 165000, "lord_nachher": 95000})
     assert (
-        a._lord_bedarf_gemessen(165000) == 22
-    )  # 70.000 / 9 = 7.778 je Assassine -> 165.000 / 7.778 = 21,2 -> 22
+        a._lord_bedarf_gemessen(165000) == 33
+    )  # 70.000 / 14 = 5.000 je Assassine -> 165.000 / 5.000 = 33
     a.angriffe.append(
         {"groesse": 50, "lord_vorher": 95000, "lord_nachher": 0}
     )  # laeuft noch: zaehlt nicht
-    assert a._lord_bedarf_gemessen(95000) == 13
+    assert a._lord_bedarf_gemessen(95000) == 19
 
 
 def test_nach_gescheiterter_bereitstellung_erst_stapeln_dann_direkt():
@@ -252,7 +256,7 @@ def test_im_lord_angriff_erst_die_schuetzen_neben_den_assassinen():
     """Daniel 16.11.2026 22:59 ("er verliert immer noch assassinen ohne ende weil sie nicht auf bogenschuetzen gehen"): ein feindlicher
     Bogenschuetze 3 Felder neben zwei Assassinen wird von hoechstens SCHUETZE_JE angegriffen (Angriff mit Wiederholung im Kern); die anderen
     gehen auf den Lord. Hat der Lord nur noch LORD_FERTIG seines Lebens, geht alles auf den Lord."""
-    a, L = _im_angriff(6)
+    a, L = _im_angriff(12)
     k1 = 200
     bx, by = L[k1]["x"] + 3, L[k1]["y"]
     L[900] = _e(900, 2, 22, bx, by, leben=1000)
@@ -287,3 +291,54 @@ def test_bereitstellungsplaetze_ausserhalb_der_burg():
         plaetze and min(max(abs(x - 200), abs(y - 200)) for x, y in plaetze) >= 28
     )  # Schach: 40 Felder im Kreis sind mind. 28 Schach
     assert min(((x - 200) ** 2 + (y - 200) ** 2) ** 0.5 for x, y in plaetze) >= 39.5
+
+
+def test_lord_angriff_braucht_mindestens_lord_min_gruppe():
+    """Probe 18 (16.11.2026): Angriff mit 6 gescheitert, Angriffe mit 15-26 gelungen - unter LORD_MIN_GRUPPE beginnt keine Bereitstellung, auch
+    wenn die Rechnung weniger verlangt; ab LORD_MIN_GRUPPE schon."""
+    a, L = _szene(_modul().Einzeln.LORD_MIN_GRUPPE - 1)
+    _schritt(a, L, 20000)
+    assert a.lordtrupp["phase"] is None
+    a, L = _szene(_modul().Einzeln.LORD_MIN_GRUPPE)
+    _schritt(a, L, 20000)
+    assert a.lordtrupp["phase"] == "bereit"
+
+
+def test_push_zieht_ueberlebende_nicht_ab():
+    """Daniel 16.11.2026 23:13 ("jetzt wurden sogar assassinen beim push wieder zurueckgezogen ohne grund"): der Angriff ist erst vorbei, wenn
+    keiner mehr lebt (LORD_REST 1, vorher 3) - mit 2 Ueberlebenden bleibt er."""
+    a, L = _im_angriff(12)
+    for k in range(202, 212):
+        del L[k]
+    for k in (200, 201):  # sie kaempfen am Lord (sonst griffe die Stillstandsregel)
+        L[k].update(zustand=106, zielart=4, zieleinheit=60)
+    _schritt(a, L, 20600)
+    assert a.lordtrupp["phase"] == "angriff" and a.lordtrupp["mitglieder"] == {200, 201}
+
+
+def test_wer_ein_gebaeude_schlaegt_rueckt_nicht_nach():
+    """Daniel 16.11.2026 23:13 ("ein assassine ist auf eine waffenkammer, hat sie angeschlagen, ist dann aber wieder hunderte felder zurueck"):
+    in der Bereitstellung rueckt eine Assassine, die gerade auf ihr Gebaeude schlaegt (Zustand 107), nicht nach; eine stehende schon."""
+    a, L = _szene(12)
+    _schritt(a, L, 20000)
+    assert a.lordtrupp["phase"] == "bereit"
+    L[300] = _e(300, 1, 73, 330, 150, leben=12500, zustand=107)
+    L[301] = _e(301, 1, 73, 330, 152, leben=12500)
+    a.aufnehmen([300, 301])
+    a.ziel[300] = a.ziel[301] = 999
+    G = {
+        999: {"nr": 999, "typ": 11, "besitzer": 2, "x": 331, "y": 150, "leben": 5000, "uid": 9}
+    }  # Waffenlager, sonst faellt das Ziel weg
+    a.schritt(L, G, sichere_orte=[(100, 100)], tick=20200)
+    assert 300 not in a.lordtrupp["mitglieder"] and 301 in a.lordtrupp["mitglieder"]
+
+
+def test_neben_dem_lord_faellt_keiner_wegen_stillstand_aus_der_gruppe():
+    """Daniel 16.11.2026 23:13 ("assassinen beim push wieder zurueckgezogen ohne grund"): wer neben dem Lord steht (hoechstens 3 Felder), bleibt in
+    der Gruppe, auch wenn er STEH_TICKS ohne Spielziel steht; weit weg greift die Stillstandsregel weiter."""
+    a, L = _im_angriff(12)
+    lx, ly = L[60]["x"], L[60]["y"]
+    L[200].update(x=lx - 2, y=ly, laufx=lx - 2, laufy=ly)
+    for t in (20400, 20500, 20700, 20900):
+        _schritt(a, L, t)
+    assert 200 in a.lordtrupp["mitglieder"]
