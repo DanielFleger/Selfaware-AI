@@ -15,19 +15,25 @@ Steinbruch sein.
 """
 
 
-def waehle(kandidaten, frei, wahl):
+def waehle(kandidaten, frei, wahl, wert=None, vorzug=0.0):
     """kandidaten: Liste der Ziele, die das Modul ueberhaupt nehmen wuerde; frei(k) -> True, solange k noch Platz hat;
     wahl(liste) -> das beste Ziel daraus oder None (die Bewertung des Moduls, unveraendert).
+    vorzug (Regler "Gemeinsam gewirkt", baukasten/regler.dazu_vorzug): so viel mehr zaehlt ein schon besetztes Ziel gegen das beste freie;
+    wert(ziel) -> die Zahl, nach der wahl entscheidet. Ohne vorzug wie vorher: ein freies zuerst, ein besetztes nur, wenn kein freies taugt.
 
     Gibt (Ziel, dazu): dazu=True heisst, das Ziel war schon besetzt und die Einheit stellt sich dazu."""
     kandidaten = list(kandidaten)
     erst = [k for k in kandidaten if frei(k)]
     ziel = wahl(erst) if erst else None
-    if ziel is not None:
+    if ziel is not None and (vorzug <= 0 or wert is None):
         return ziel, False
     besetzt = [k for k in kandidaten if not frei(k)]
-    ziel = wahl(besetzt) if besetzt else None
-    return ziel, ziel is not None
+    dazu = wahl(besetzt) if besetzt else None
+    if ziel is None:
+        return dazu, dazu is not None
+    if dazu is not None and wert(dazu) > 0 and wert(dazu) * (1.0 + vorzug) > wert(ziel):
+        return dazu, True
+    return ziel, False
 
 
 def brennt(g):

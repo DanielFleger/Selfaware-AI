@@ -57,6 +57,7 @@ class NahkampfRaid:
         )
         self.gesperrt = {}  # (Einheit, Ziel) -> Runde: nach "gefahr"/"kein_weg" waehlt diese Einheit das Ziel so lange nicht
         self.dazu = False  # Daniel 15.11.2026 22:29: letzte Zielwahl stellte die Einheit zu einem schon besetzten Ziel
+        self.chance = None  # Regler Chance verpasst: Felder, bis zu denen die letzte Zielwahl einen Arbeiter nahm (sonst None)
         self.greift = {}  # Einheit -> Ziel, das sie zuletzt am Ziel angriff (Status "greift_an" der Wegfuehrung)
         self.runde = 0
         self.zerstoert = self.getoetet = 0
@@ -98,24 +99,29 @@ class NahkampfRaid:
             befehl(b, 1.0, bis="ANGRIFF")
             self.befohlen[n] = (b, self.runde)
 
-    def _werte(self, n, e, ziele, belegt, laenge=None):
+    def _werte(self, n, e, ziele, belegt, laenge=None, arbeiter_mit=ARBEITER_MIT):
         """[(Wert je Takt, Felder, Ziel)] der erlaubten Ziele. B-182 S150 (Daniel 14.11.2026 23:29 "Niemals nach luftlinie warum
         auch?"): mit Wegfuehrung zaehlt die Laenge ihres sicheren Wegs (laenge = Wegfuehrung.weglaenge), ein Ziel ohne Weg faellt
-        heraus; ohne Wegfuehrung die Schachdistanz."""
+        heraus; ohne Wegfuehrung die Schachdistanz. Der Wert je Zielart traegt den Faktor ihrer Lohn-Regler (baukasten/regler.zielwert,
+        Daniel 16.11.2026 18:50 "alle kopplungen"); arbeiter_mit: bis so weit nimmt die Einheit einen Arbeiter (Regler Chance verpasst)."""
         ort = (e["x"], e["y"])
+        faktor = {
+            "g": _regler.zielwert("gebaeude", e["typ"]),
+            "e": _regler.zielwert("arbeiter", e["typ"]),
+        }
         aus = []
         for z in ziele.values():
             if z.schluessel in belegt or self.gesperrt.get((n, z.schluessel), -1) > self.runde:
                 continue
             # S161 (Daniel 15.11.2026 01:32: alle wie die Assassinen): einen Arbeiter nur mitnehmen, wenn er direkt am Weg steht - wie
             # die Assassinen (Daniel 19.10.: "nie gesagt aktiv jagen - mitnehmen, wenn er will"), nicht quer ueber die Karte jagen
-            if z.schluessel[0] == "e" and WK.schach(ort, z.ort) > ARBEITER_MIT:
+            if z.schluessel[0] == "e" and WK.schach(ort, z.ort) > arbeiter_mit:
                 continue
             felder = laenge(z.ort) if laenge is not None else WK.schach(ort, z.ort)
             if felder is None:
                 continue
             wert, dauer = self.wissen.wert_je_takt(e["typ"], ort, z, felder=felder)
-            aus.append((wert, felder, z, dauer))
+            aus.append((wert * faktor[z.schluessel[0]], felder, z, dauer))
         return aus
 
     @staticmethod
@@ -136,15 +142,29 @@ class NahkampfRaid:
         """Bestes Ziel nach Wert je Takt, die freien zuerst. Daniel 15.11.2026 22:29 (baukasten/zielvergabe.py): bringt kein freies
         Ziel Wert, stellt sich die Einheit zu einem, das schon ein anderer Nahkaempfer angreift, statt zu warten."""
         ort = (e["x"], e["y"])
-        werte = self._werte(
-            n, e, ziele, (), laenge if laenge is not None else self._laenge(e, L, G, {})
-        )
+        laenge = laenge if laenge is not None else self._laenge(e, L, G, {})
+        werte = self._werte(n, e, ziele, (), laenge)
 
         def wahl(liste):
             best = max(liste, key=lambda x: x[0])
             return best if best[2] is not None and best[0] > 0 else None
 
-        best, self.dazu = ZV.waehle(werte, lambda w: w[2].schluessel not in belegt, wahl)
+        def vergeben(werte):
+            return ZV.waehle(
+                werte,
+                lambda w: w[2].schluessel not in belegt,
+                wahl,
+                wert=lambda w: w[0],
+                vorzug=_regler.dazu_vorzug(e["typ"]),
+            )
+
+        best, self.dazu = vergeben(werte)
+        self.chance = None
+        weiter = _regler.chance_radius(e["typ"])
+        if best is None and weiter > ARBEITER_MIT:
+            # Regler Chance verpasst (Daniel 16.11.2026 18:50): statt zu warten nimmt sie einen Arbeiter bis zu so vielen Feldern
+            best, self.dazu = vergeben(self._werte(n, e, ziele, (), laenge, arbeiter_mit=weiter))
+            self.chance = weiter if best is not None else None
         if best is None:
             return None
         z = best[2]
@@ -225,6 +245,9 @@ class NahkampfRaid:
         weg_takte = felder * tempo
         w = z.wert * erfolg_w / max(weg_takte + takte_w, 1.0)
         k = z.wert * erfolg_k / max(t_tot + weg_takte + takte_k, 1.0)
+        # Regler (Daniel 16.11.2026 18:50 "alle kopplungen"): Weitergehen bringt den Lohn der Zielart, Zurueckschlagen den des Soldaten
+        w *= _regler.zielwert("gebaeude" if z.schluessel[0] == "g" else "arbeiter", typ)
+        k *= _regler.zielwert("soldat", typ)
         return w, k, {"t_tot": round(t_tot), "deckt": deckt, "dps": "%s/%s" % (h_wir, h_er)}
 
     def schritt(self, L, G, befehl):
@@ -419,7 +442,12 @@ class NahkampfRaid:
                         if laenge is not None
                         else WK.schach(ort, z.ort),
                         (", Weg ueber die Wegfuehrung" if self.weg is not None else "")
-                        + (", dazu (schon besetzt, kein freies)" if self.dazu else ""),
+                        + (", dazu (schon besetzt)" if self.dazu else "")
+                        + (
+                            ", Chance: Arbeiter bis %.0f Felder statt zu warten" % self.chance
+                            if self.chance
+                            else ""
+                        ),
                     )
                 )
             art, nr = self.ziel[n]

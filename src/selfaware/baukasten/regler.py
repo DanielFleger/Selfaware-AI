@@ -11,7 +11,13 @@ Kopplungen (jede an einer Stelle hier, die Module fragen nur):
   wechsel_huerde  Kehrtwende           -> nahkampf: ein neues Ziel muss um diesen Faktor besser sein als das jetzige
   leer_runden     Steht ohne Wirkung   -> wegfuehrung: Runden ohne Wirkung, bis die Einheit ein anderes Ziel nimmt (#362)
   behalten        Leben eingesetzt     -> gefecht: Rest-Leben, mit dem ein Gefecht als Sieg zaehlt (Vorstoss, Assassinen, Gegenangriff)
-Die Stufen je Staerke (HUERDE_JE, BEHALTEN_JE) sind Startwerte, nicht gemessen."""
+  dazu_vorzug     Gemeinsam gewirkt    -> zielvergabe: ein schon angegriffenes Ziel bekommt so viel mehr Wert (Nahkampf-Raid, Assassinen)
+  chance_radius   Chance verpasst      -> nahkampf: so weit schaut eine Einheit, die sonst wartet, nach Arbeitern (sonst nur direkt am Weg)
+  zielwert        Gebaeude/Arbeiter/   -> nahkampf: Faktor auf den Wert je Zielart (Gebaeudeschaden + Gebaeude zerstoert, Arbeiter getoetet)
+                  Soldat                  und aufs Zurueckschlagen gegen einen Soldaten (Soldat verletzt + Soldat getoetet)
+Daniel 16.11.2026 18:50: "versuche alle kopplungen zu machen". Der Lord ist nicht gekoppelt: auf ihn gehen alle ohne Wertrechnung, sobald die
+Assassinen ihn angreifen (Daniel 15.11.2026 01:50 "so schnell und erbarmungslos wie moeglich killen") - ein Lord-Regler haette dort
+nichts zu verstellen. Die Stufen je Staerke (HUERDE_JE, BEHALTEN_JE, VORZUG_JE, CHANCE_JE) sind Startwerte, nicht gemessen."""
 
 import json
 import os
@@ -25,6 +31,16 @@ HUERDE_JE = 0.1  # je Staerke ueber 1: so viel muss ein neues Ziel besser sein (
 BEHALTEN_JE = (
     0.05  # je Staerke ueber 1: so viel weniger Rest-Leben reicht fuer einen Sieg (Startwert)
 )
+VORZUG_JE = (
+    0.1  # je Staerke ueber 1: so viel mehr Wert bekommt ein schon angegriffenes Ziel (Startwert)
+)
+CHANCE_JE = 5.0  # Felder je Staerke ueber 1: so weit sieht eine sonst wartende Einheit nach Arbeitern (Startwert)
+# Zielart -> Lohn-Messgroessen, deren Gewichte ihren Wert bestimmen (Mittel; telemetry/wertung.MESSGROESSEN)
+ZIELWERT = {
+    "gebaeude": ("gebaeude_schaden", "gebaeude_zerstoert"),
+    "arbeiter": ("bevoelkerung_kill",),
+    "soldat": ("einheit_schaden", "einheit_kill"),
+}
 _merk = {"zeit": -1e18, "regler": None}
 
 
@@ -43,18 +59,25 @@ def _regler():
     return _merk["regler"]
 
 
-def staerke(messgroesse, typ=None):
-    """Betrag der Summe der aktiven Gewichte dieser Messgroesse fuer diese Art; 1.0 ohne Datei, 0.0 wenn kein Regler gilt (archiviert)."""
+def _gewichte(messgroesse, typ):
+    """Gewichte der aktiven Regler dieser Messgroesse fuer diese Art; None ohne Datei."""
     r = _regler()
     if not r:
-        return 1.0
-    ws = [
+        return None
+    return [
         x["gewicht"]
         for x in r
         if not x.get("archiviert")
         and x.get("messgroesse") == messgroesse
         and (x.get("arten", "alle") == "alle" or typ in x["arten"])
     ]
+
+
+def staerke(messgroesse, typ=None):
+    """Betrag der Summe der aktiven Gewichte dieser Messgroesse fuer diese Art; 1.0 ohne Datei, 0.0 wenn kein Regler gilt (archiviert)."""
+    ws = _gewichte(messgroesse, typ)
+    if ws is None:
+        return 1.0
     return abs(sum(ws)) if ws else 0.0
 
 
@@ -72,3 +95,28 @@ def leer_runden(basis, typ=None):
 def behalten(basis):
     """Rest-Leben fuer einen Sieg (basis = gefecht.BEHALTEN). Leben eingesetzt fuer andere staerker -> auch knappe Gefechte annehmen."""
     return min(0.9, max(0.05, basis - BEHALTEN_JE * (staerke("vorstoss") - 1.0)))
+
+
+def dazu_vorzug(typ=None):
+    """Mehrwert eines schon angegriffenen Ziels (0.0 = wie vorher: erst ein freies, nur ohne freies dazu). Gemeinsam gewirkt staerker ->
+    lieber zu einem Ziel, an dem schon einer kaempft."""
+    return max(0.0, VORZUG_JE * (staerke("gemeinsam", typ) - 1.0))
+
+
+def chance_radius(typ=None):
+    """Felder, bis zu denen eine sonst wartende Einheit einen Arbeiter als Ziel nimmt (0.0 = wie vorher: nur direkt am Weg).
+    Chance verpasst staerker -> weiter schauen."""
+    return max(0.0, CHANCE_JE * (staerke("chance_verpasst", typ) - 1.0))
+
+
+def zielwert(art, typ=None):
+    """Faktor auf den Wert einer Zielart (ZIELWERT): Mittel der Summen ihrer Lohn-Gewichte, nie unter 0; 1.0 ohne Datei und wenn keine
+    ihrer Messgroessen einen aktiven Regler hat (dann hat der Nutzer zu dieser Zielart nichts eingestellt)."""
+    summen = []
+    for m in ZIELWERT[art]:
+        ws = _gewichte(m, typ)
+        if ws:
+            summen.append(sum(ws))
+    if not summen:
+        return 1.0
+    return max(0.0, sum(summen) / len(summen))

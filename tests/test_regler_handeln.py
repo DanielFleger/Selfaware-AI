@@ -87,3 +87,107 @@ def test_steht_ohne_wirkung_staerker_wechselt_frueher(regler):
         normal,
         schnell,
     )  # 1 Runde Angriff, dann 3 bzw. 1 Runde ohne Wirkung
+
+
+# --- Daniel 16.11.2026 18:50 "versuche alle kopplungen zu machen": Gemeinsam gewirkt, Chance verpasst, Zielwerte ---
+from selfaware.baukasten import wirkung as WK  # noqa: E402
+from selfaware.baukasten import zielvergabe as ZV  # noqa: E402
+from selfaware.micro.tasks import nahkampf as NK  # noqa: E402
+
+
+class _Wissen:
+    """Wert je Takt = Wert / (Felder + 1); keine Messtabellen noetig."""
+
+    def wert_je_takt(self, typ, ort, z, felder=None):
+        return z.wert / (felder + 1.0), felder + 1.0
+
+    def dps(self, a, b):
+        return 100.0, "test"
+
+    def rechnen_mit(self, typ, z, leben=None, nah=None):
+        return 10.0, 1.0
+
+
+def _ziel(art, nr, ort, wert, typ=3):
+    return WK.Ziel((art, nr), typ, ort, float(wert), (), ())
+
+
+def _waehle(ziele, belegt=()):
+    nk = NK.NahkampfRaid(1, wissen=_Wissen())
+    z = nk._waehlen(1, _e(1, 24, 100, 100), {z.schluessel: z for z in ziele}, set(belegt), {})
+    return None if z is None else z.schluessel
+
+
+def test_neue_kopplungen_ohne_datei_und_mit_startgewichten_wie_vorher(regler):
+    assert RG.dazu_vorzug() == 0.0 and RG.chance_radius() == 0.0
+    assert RG.zielwert("gebaeude") == RG.zielwert("arbeiter") == RG.zielwert("soldat") == 1.0
+    regler(
+        gemeinsam=1,
+        chance_verpasst=-1,
+        gebaeude_schaden=1,
+        gebaeude_zerstoert=1,
+        bevoelkerung_kill=1,
+        einheit_schaden=1,
+        einheit_kill=1,
+    )
+    assert RG.dazu_vorzug() == 0.0 and RG.chance_radius() == 0.0
+    assert RG.zielwert("gebaeude") == RG.zielwert("arbeiter") == RG.zielwert("soldat") == 1.0
+
+
+def test_zielvergabe_vorzug_nimmt_das_besetzte_ziel():
+    frei = lambda k: k != "b"  # noqa: E731
+    wahl = lambda li: max(li, key=lambda k: {"a": 10, "b": 8}[k])  # noqa: E731
+    wert = {"a": 10, "b": 8}.get
+    assert ZV.waehle(["a", "b"], frei, wahl) == ("a", False)
+    assert ZV.waehle(["a", "b"], frei, wahl, wert=wert, vorzug=0.2) == (
+        "a",
+        False,
+    )  # 8 x 1,2 = 9,6 < 10
+    assert ZV.waehle(["a", "b"], frei, wahl, wert=wert, vorzug=0.3) == (
+        "b",
+        True,
+    )  # 8 x 1,3 = 10,4 > 10
+
+
+def test_gemeinsam_staerker_stellt_sich_dazu(regler):
+    # freies Gebaeude 5 Felder weg (Wert 60 -> 10 je Takt), besetztes 5 Felder weg (Wert 54 -> 9 je Takt)
+    ziele = [_ziel("g", 7, (105, 100), 60), _ziel("g", 8, (100, 105), 54)]
+    regler(gemeinsam=1)
+    assert _waehle(ziele, belegt={("g", 8)}) == ("g", 7)
+    regler(gemeinsam=3)  # Vorzug 0,2: 9 x 1,2 = 10,8 > 10
+    assert _waehle(ziele, belegt={("g", 8)}) == ("g", 8)
+
+
+def test_chance_verpasst_staerker_holt_den_arbeiter_statt_zu_warten(regler):
+    ziele = [_ziel("e", 9, (110, 100), 10)]  # Arbeiter 10 Felder weg, sonst nichts
+    regler(chance_verpasst=-1)
+    assert (
+        _waehle(ziele) is None
+    )  # wie vorher: Arbeiter nur direkt am Weg (ARBEITER_MIT), also warten
+    regler(chance_verpasst=-3)  # 10 Felder
+    assert _waehle(ziele) == ("e", 9)
+    regler(chance_verpasst=-2)  # 5 Felder: zu kurz
+    assert _waehle(ziele) is None
+
+
+def test_zielwerte_verschieben_gebaeude_gegen_arbeiter(regler):
+    # Gebaeude 5 Felder weg (60 -> 10 je Takt), Arbeiter direkt daneben (10 -> 5 je Takt)
+    ziele = [_ziel("g", 7, (105, 100), 60), _ziel("e", 9, (101, 100), 10)]
+    regler(gebaeude_schaden=1, gebaeude_zerstoert=1, bevoelkerung_kill=1)
+    assert _waehle(ziele) == ("g", 7)
+    regler(gebaeude_schaden=1, gebaeude_zerstoert=1, bevoelkerung_kill=3)  # Arbeiter x3: 15 > 10
+    assert _waehle(ziele) == ("e", 9)
+    regler(gebaeude_schaden=0, gebaeude_zerstoert=0, bevoelkerung_kill=1)  # Gebaeude ohne Lohn
+    assert _waehle(ziele) == ("e", 9)
+
+
+def test_soldat_lohn_staerker_schlaegt_zurueck(regler):
+    nk = NK.NahkampfRaid(1, wissen=_Wissen())
+    e, g = _e(1, 24, 100, 100), _e(2, 24, 101, 100, leben=1000)
+    z = _ziel("g", 7, (110, 100), 60)
+    regler(einheit_schaden=1, einheit_kill=1, gebaeude_schaden=1, gebaeude_zerstoert=1)
+    w, k, _ = nk._zurueckschlagen(e, g, z, 10)
+    assert w > k  # wie vorher: der Soldat deckt das Ziel nicht, also weiter
+    regler(einheit_schaden=5, einheit_kill=5, gebaeude_schaden=1, gebaeude_zerstoert=1)
+    w, k, _ = nk._zurueckschlagen(e, g, z, 10)
+    assert k > w

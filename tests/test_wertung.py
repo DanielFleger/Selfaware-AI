@@ -324,3 +324,23 @@ def test_ergebnis_und_kurzfassung(tmp_path):
     assert (
         "ohne_absicht" not in erg["einheiten"][0]["menge"]
     )  # ohne Logbuch kein Abzug fuers Nichtdenken
+    # Daniel 16.11.2026 18:50 "die punkte gesamt sollte positiv sein bei einem sieg": jede gewertete Einheit der Siegerseite bekommt 1
+    assert [e["menge"].get("sieg") for e in erg["einheiten"]] == [1.0] * len(erg["einheiten"])
+
+
+def test_niederlage_bringt_keinen_sieg(tmp_path):
+    p = _partie(
+        tmp_path,
+        [
+            (
+                1000,
+                [_e(10, SP, 24, 199, 101, 12500), _e(901, SP, 55, 10, 10, 100000), LORD_FEIND],
+                [],
+                {},
+            ),
+            (1100, [_e(10, SP, 24, 199, 101, 12500), LORD_FEIND], [], {}),
+        ],
+    )
+    erg = W.messen(p)
+    assert erg["ergebnis"] == "verloren"
+    assert not any(e["menge"].get("sieg") for e in erg["einheiten"])

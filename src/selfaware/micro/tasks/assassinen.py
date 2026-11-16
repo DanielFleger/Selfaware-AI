@@ -25,6 +25,7 @@ import selfaware.services.sicht as sicht
 import selfaware.services.spielwerte as spielwerte
 import selfaware.execution.lordschutz as lordschutz
 import selfaware.services.gefecht as _gefecht
+import selfaware.baukasten.regler as _regler
 from selfaware.baukasten import zielvergabe as ZV
 import json as _json
 import os as _os
@@ -777,7 +778,8 @@ class Einzeln:
             rk = g_r.risiko_von(ort, TEMPO) if g_r is not None else {}
             liste = [k for k in kand if k[3] and k[0] != gn]
             beste, _dazu = ZV.waehle(liste, lambda k: zahl_f.get(k[0], 0) < platz(k),
-                                     lambda li: self._ziel_bewerten(n, ort, li, zahl_f, L, G, g_r, rk, grenze, min(self.ZIEL_RISIKO, grenze)))
+                                     lambda li: self._ziel_bewerten(n, ort, li, zahl_f, L, G, g_r, rk, grenze, min(self.ZIEL_RISIKO, grenze)),
+                                     wert=lambda b: b[0], vorzug=_regler.dazu_vorzug(ASSASSINE))
             if beste:
                 ziel = beste[1][0]
                 zahl_f[ziel] = zahl_f.get(ziel, 0) + len(ns)
@@ -2922,7 +2924,8 @@ class Einzeln:
             wahl = lambda liste: self._ziel_bewerten(n, ort, liste, zahl, L, G, g_r, rk, grenze, grenze_bew)  # noqa: E731
             # Daniel 15.11.2026 22:29 (baukasten/zielvergabe.py): erst ein freies Gebaeude, ist keins annehmbar, stellt er sich zu einem
             # besetzten dazu - vorher warteten bis zu 77 Assassinen 'alle gefaehrlich', weil die sicheren Gebaeude je einen hatten
-            beste, dazu = ZV.waehle(erreichbar, lambda k: zahl.get(k[0], 0) < platz(k), wahl)
+            beste, dazu = ZV.waehle(erreichbar, lambda k: zahl.get(k[0], 0) < platz(k), wahl,
+                                    wert=lambda b: b[0], vorzug=_regler.dazu_vorzug(ASSASSINE))   # Regler Gemeinsam gewirkt (16.11.)
             if beste:
                 _, k_b, p_tod, saldo = beste
                 gn, p, typ, _, f10, f20, f30, _, _ = k_b

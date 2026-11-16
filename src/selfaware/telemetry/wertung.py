@@ -38,7 +38,7 @@ CHANCE_FERN, CHANCE_NAH = (
 )  # ungedeckt: kein feindlicher Schuetze so nah, kein Nahkaempfer so nah (wie raids.GEFAHR_*)
 FERN_REICH = 44  # Felder: ab hier trifft ein eigener Schuetze sein Einheitenziel nicht mehr (Bogen, sicht.REICHWEITE)
 KEHRT_MIN = 4  # Felder je Strecke, ab denen hin und zurueck als Kehrtwende zaehlt (Startwert, nicht gemessen)
-VERSION = 5  # aendert sich mit der Rechnung - die Seite rechnet ihren Zwischenspeicher dann neu
+VERSION = 6  # aendert sich mit der Rechnung - die Seite rechnet ihren Zwischenspeicher dann neu
 
 # Messgroessen: Schluessel -> (Name, dein Wort, Einheit der Menge, Richtung). Richtung +1 Lohn, -1 Abzug; das Startgewicht ist 1 bzw. -1
 # (Plan, Punkt 2: "bis dahin stehen alle auf 1, Abzuege auf -1"). Die Einheiten sind so gewaehlt, dass Gewicht 1 vergleichbar ist:
@@ -122,6 +122,14 @@ MESSGROESSEN = {
         "Anteil der Runden (0 bis 1)",
         -1,
     ),
+    # Daniel 16.11.2026 18:50 "Die punkte gesamt sollte positiv sein bei einem sieg": jede gewertete Einheit der gewinnenden Seite bekommt 1 -
+    # gleich viel fuer alle einer Partie, die Reihenfolge der Einheiten in einer Partie aendert sich dadurch nicht
+    "sieg": (
+        "Sieg",
+        "die punkte gesamt sollte positiv sein bei einem sieg",
+        "1 je Einheit einer gewonnenen Partie",
+        +1,
+    ),
 }
 # Rohwert je Messgroesse in echter Einheit (Daniel 16.11.2026 18:37 "steht ohne wirkung da fehlt mir eher noch das ticks ... in absolut wie
 # viel hat er denn jetzt an gebaeudeschaden gemacht? wie viele gebaeude hat er zerstoert"). Ohne eigenen Rohwert: Menge x ROH_FAKTOR.
@@ -143,6 +151,7 @@ ROH_EINHEIT = {
     "kehrtwende": "Wenden",
     "chance_verpasst": "Takte",
     "ohne_absicht": "Anteil Runden",
+    "sieg": "Siege",
 }
 ROH_FAKTOR = {
     "steht_ohne_wirkung": 1000,
@@ -627,6 +636,18 @@ def messen(pfad, sp=None):
         if a.runden and logbuch:
             a.menge["mit_grund"] = a.roh["mit_grund"] = a.runden_grund / float(a.runden)
             a.menge["ohne_absicht"] = a.roh["ohne_absicht"] = a.runden_ohne / float(a.runden)
+    ergebnis = (
+        "verloren"
+        if sp in lord_tod
+        else "gewonnen"
+        if lord_da
+        and all(b in lord_tod for b in lord_da if b != sp)
+        and any(b != sp for b in lord_da)
+        else "offen"
+    )
+    if ergebnis == "gewonnen":
+        for a in alle:
+            a.zaehle("sieg", 1.0, kill_takt, "Partie gewonnen")
     return {
         "partie": os.path.basename(pfad).replace(".jsonl.gz", ""),
         "spieler": sp,
@@ -637,15 +658,7 @@ def messen(pfad, sp=None):
         "spieler_liste": [
             {"nr": b, "lord_tod": lord_tod.get(b), "wir": b == sp} for b in sorted(lord_da)
         ],
-        "ergebnis": (
-            "verloren"
-            if sp in lord_tod
-            else "gewonnen"
-            if lord_da
-            and all(b in lord_tod for b in lord_da if b != sp)
-            and any(b != sp for b in lord_da)
-            else "offen"
-        ),
+        "ergebnis": ergebnis,
         "spieler_angenommen": re.search(r"_sp\d+", os.path.basename(pfad)) is None,
         "ohne_taeter": {k: round(v, 3) for k, v in ohne_taeter.items()},
         "einheiten": [
