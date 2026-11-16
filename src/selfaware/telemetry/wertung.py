@@ -38,7 +38,7 @@ CHANCE_FERN, CHANCE_NAH = (
 )  # ungedeckt: kein feindlicher Schuetze so nah, kein Nahkaempfer so nah (wie raids.GEFAHR_*)
 FERN_REICH = 44  # Felder: ab hier trifft ein eigener Schuetze sein Einheitenziel nicht mehr (Bogen, sicht.REICHWEITE)
 KEHRT_MIN = 4  # Felder je Strecke, ab denen hin und zurueck als Kehrtwende zaehlt (Startwert, nicht gemessen)
-VERSION = 4  # aendert sich mit der Rechnung - die Seite rechnet ihren Zwischenspeicher dann neu
+VERSION = 5  # aendert sich mit der Rechnung - die Seite rechnet ihren Zwischenspeicher dann neu
 
 # Messgroessen: Schluessel -> (Name, dein Wort, Einheit der Menge, Richtung). Richtung +1 Lohn, -1 Abzug; das Startgewicht ist 1 bzw. -1
 # (Plan, Punkt 2: "bis dahin stehen alle auf 1, Abzuege auf -1"). Die Einheiten sind so gewaehlt, dass Gewicht 1 vergleichbar ist:
@@ -122,6 +122,33 @@ MESSGROESSEN = {
         "Anteil der Runden (0 bis 1)",
         -1,
     ),
+}
+# Rohwert je Messgroesse in echter Einheit (Daniel 16.11.2026 18:37 "steht ohne wirkung da fehlt mir eher noch das ticks ... in absolut wie
+# viel hat er denn jetzt an gebaeudeschaden gemacht? wie viele gebaeude hat er zerstoert"). Ohne eigenen Rohwert: Menge x ROH_FAKTOR.
+ROH_EINHEIT = {
+    "gebaeude_schaden": "Leben",
+    "gebaeude_zerstoert": "Gebaeude",
+    "einheit_schaden": "Leben",
+    "einheit_kill": "Kills",
+    "bevoelkerung_kill": "Kills",
+    "lord_schaden": "Leben",
+    "lord_kill": "Kills",
+    "gemeinsam": "Leben",
+    "vorstoss": "Leben",
+    "mit_grund": "Anteil Runden",
+    "steht_ohne_wirkung": "Takte",
+    "wartet_mit_grund": "Takte",
+    "leben_beim_stehen": "Leben",
+    "weg_vom_ziel": "Felder",
+    "kehrtwende": "Wenden",
+    "chance_verpasst": "Takte",
+    "ohne_absicht": "Anteil Runden",
+}
+ROH_FAKTOR = {
+    "steht_ohne_wirkung": 1000,
+    "wartet_mit_grund": 1000,
+    "chance_verpasst": 1000,
+    "weg_vom_ziel": 10,
 }
 # Absichten, bei denen Stehen geplant ist (Logbuch, micro/unit_log.Action)
 WARTEN = {"WAIT_STAGING", "HOLD_POST", "DEFEND", "GUARD", "IDLE_PLANNED"}
@@ -227,13 +254,15 @@ class _Einheit:
         self.nr, self.typ, self.von, self.bis = nr, typ, t, t
         self.schluessel = "%d-%d-%d" % (nr, typ, t)
         self.menge = {k: 0.0 for k in MESSGROESSEN}
+        self.roh = {k: 0.0 for k in MESSGROESSEN}
         self.ereignisse = []  # (Takt, Messgroesse, Menge, Text)
         self.gestorben = False
         self.leben_max = 0
         self.runden, self.runden_grund, self.runden_ohne = 0, 0, 0
 
-    def zaehle(self, k, menge, t=None, text=None):
+    def zaehle(self, k, menge, t=None, text=None, roh=None):
         self.menge[k] += menge
+        self.roh[k] += menge * ROH_FAKTOR.get(k, 1) if roh is None else roh
         if text:
             self.ereignisse.append((t, k, round(menge, 3), text))
 
@@ -388,10 +417,10 @@ def messen(pfad, sp=None):
                 n = len(taeter)
                 name = typname(g0["typ"])
                 for x in taeter:
-                    x.zaehle("gebaeude_schaden", anteil / n)
+                    x.zaehle("gebaeude_schaden", anteil / n, roh=dl / n)
                     gewirkt.add(x.schluessel)
                     if n >= 2:
-                        x.zaehle("gemeinsam", anteil / n)
+                        x.zaehle("gemeinsam", anteil / n, roh=dl / n)
                     if g is None:
                         x.zaehle(
                             "gebaeude_zerstoert",
@@ -399,6 +428,7 @@ def messen(pfad, sp=None):
                             t,
                             "%s zerstoert%s"
                             % (name, (" (mit %d anderen)" % (n - 1)) if n > 1 else ""),
+                            roh=1.0 / n,
                         )
 
         # --- Einheiten: Schaden, Kills, Lord ---
@@ -421,7 +451,7 @@ def messen(pfad, sp=None):
                 for x in taeter:
                     gewirkt.add(x.schluessel)
                     if n >= 2:
-                        x.zaehle("gemeinsam", anteil / n)
+                        x.zaehle("gemeinsam", anteil / n, roh=dl / n)
                     if f0["typ"] == LORD:
                         x.zaehle(
                             "lord_schaden",
@@ -429,6 +459,7 @@ def messen(pfad, sp=None):
                             t,
                             "Lord: %.0f %% seines Lebens%s"
                             % (100 * anteil, " (zu %d)" % n if n > 1 else ""),
+                            roh=dl / n,
                         )
                         if tot:
                             x.zaehle(
@@ -439,7 +470,7 @@ def messen(pfad, sp=None):
                                 % (" (mit %d anderen)" % (n - 1) if n > 1 else ""),
                             )
                         continue
-                    x.zaehle("einheit_schaden", anteil / n)
+                    x.zaehle("einheit_schaden", anteil / n, roh=dl / n)
                     if tot:
                         k = "bevoelkerung_kill" if f0["typ"] in arbeiter else "einheit_kill"
                         x.zaehle(
@@ -517,6 +548,7 @@ def messen(pfad, sp=None):
                             if geplant
                             else " (Absicht: %s)" % ((it or {}).get("action") or "keine"),
                         ),
+                        roh=float(e0["leben"] - e["leben"]),
                     )
                 if e["typ"] not in (LORD,):
                     c = min(chancen, key=lambda q: schach(p, q), default=None)
@@ -588,12 +620,13 @@ def messen(pfad, sp=None):
                     t,
                     "%d feindliche Schuetzen zielten auf sie (%d Leben), andere in der Naehe wirkten"
                     % (beschiesst[nr], e0["leben"] - e["leben"]),
+                    roh=float(e0["leben"] - e["leben"]),
                 )
         vor = (t, E, B, ints)
     for a in alle:
         if a.runden and logbuch:
-            a.menge["mit_grund"] = a.runden_grund / float(a.runden)
-            a.menge["ohne_absicht"] = a.runden_ohne / float(a.runden)
+            a.menge["mit_grund"] = a.roh["mit_grund"] = a.runden_grund / float(a.runden)
+            a.menge["ohne_absicht"] = a.roh["ohne_absicht"] = a.runden_ohne / float(a.runden)
     return {
         "partie": os.path.basename(pfad).replace(".jsonl.gz", ""),
         "spieler": sp,
@@ -626,6 +659,7 @@ def messen(pfad, sp=None):
                 "bis": a.bis,
                 "gestorben": a.gestorben,
                 "menge": {k: round(v, 4) for k, v in a.menge.items() if v},
+                "roh": {k: round(v, 2) for k, v in a.roh.items() if v},
                 "ereignisse": a.ereignisse[-200:],
             }
             for a in alle

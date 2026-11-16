@@ -156,7 +156,10 @@ details.regler select { border: 1px solid var(--linie); border-radius: 6px; padd
 "use strict";
 const S = { partien: [], partie: null, regler: [], mg: {}, verlauf: [], ansicht: "einheiten", sort: { k: "gesamt", ab: true },
   artSort: { k: "summe", ab: true }, spSort: { k: "zeit", ab: true }, suche: "", art: "alle", offen: new Set(), spiele: null,
-  historie: [], wahl: new Set(), spFilter: { aufstellung: false, logbuch: false } };
+  historie: [], wahl: new Set(), spFilter: { aufstellung: false, logbuch: false }, anzeige: "punkte" };
+// Rohwert in echter Einheit (Daniel 18:37 "in absolut wie viel ... gebaeudeschaden ... wie viele gebaeude ... ticks")
+const roh = (e, mg) => (e.roh || {})[mg] || 0;
+const rohText = (x) => (Math.abs(x) < 0.005 ? '<span class="null">·</span>' : zahl(x, Math.abs(x) >= 100 ? 0 : 2));
 const $ = (s, w) => (w || document).querySelector(s);
 const esc = (t) => String(t == null ? "" : t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
 const zahl = (x, n) => (x == null ? "–" : Number(x).toLocaleString("de-DE", { maximumFractionDigits: n == null ? 1 : n }));
@@ -238,39 +241,43 @@ function zeichneEinheiten() {
   let L = P.einheiten.map((e) => ({ e, p: punkteVon(e) })); const hier = L.length;
   if (S.art !== "alle") L = L.filter((x) => String(x.e.typ) === S.art);
   const such = S.suche.trim().toLowerCase(); if (such) L = L.filter((x) => (x.e.name + " " + x.e.nr).toLowerCase().includes(such));
-  const w = (x) => S.sort.k === "gesamt" ? x.p.summe : S.sort.k === "name" ? x.e.name : S.sort.k === "lebte" ? x.e.bis - x.e.von : (x.p.je[S.sort.k] || 0);
+  const werte = S.anzeige === "werte";
+  const zelle = (x, r) => (werte ? roh(x.e, r.messgroesse) : x.p.je[r.id] || 0);
+  const w = (x) => S.sort.k === "gesamt" ? x.p.summe : S.sort.k === "name" ? x.e.name : S.sort.k === "lebte" ? x.e.bis - x.e.von : zelle(x, sp.find((r) => r.id === S.sort.k) || { messgroesse: "", id: "" });
   L.sort((a, b) => { const A = w(a), B = w(b), c = typeof A === "string" ? A.localeCompare(B) : A - B; return S.sort.ab ? -c : c; });
   const rang = new Map([...P.einheiten].map((e) => ({ e, s: punkteVon(e).summe })).sort((a, b) => b.s - a.s).map((x, i) => [x.e.schluessel, i + 1]));
   const max = Math.max(1e-9, ...P.einheiten.map((e) => Math.abs(punkteVon(e).summe)));
   const pf = (k) => `<span class="pf">${S.sort.k === k ? (S.sort.ab ? "▼" : "▲") : ""}</span>`;
   const kopfz = `<tr><th>#</th><th class="l" data-s="name">Einheit ${pf("name")}</th><th data-s="lebte">Lebte ${pf("lebte")}</th><th data-s="gesamt">Gesamt ${pf("gesamt")}</th><th class="l"></th>
-    ${sp.map((r) => `<th data-s="${esc(r.id)}" class="${r.gewicht >= 0 ? "lohn" : "abzug"}" title="${esc(S.mg[r.messgroesse].name)} · dein Wort: „${esc(S.mg[r.messgroesse].wort)}“ · Menge in ${esc(S.mg[r.messgroesse].einheit)} · Gewicht ${zahl(r.gewicht, 2)}">${esc(kurzName(r))} ${pf(r.id)}</th>`).join("")}</tr>`;
+    ${sp.map((r) => `<th data-s="${esc(r.id)}" class="${r.gewicht >= 0 ? "lohn" : "abzug"}" title="${esc(S.mg[r.messgroesse].name)} · dein Wort: „${esc(S.mg[r.messgroesse].wort)}“ · Menge in ${esc(S.mg[r.messgroesse].einheit)} · Gewicht ${zahl(r.gewicht, 2)}">${esc(kurzName(r))}${werte ? '<br><span class="hinweis">' + esc(S.mg[r.messgroesse].roh) + "</span>" : ""} ${pf(r.id)}</th>`).join("")}</tr>`;
   const sum = (f) => L.reduce((s, x) => s + f(x), 0);
   const zeilen = L.map((x) => { const e = x.e, r = rang.get(e.schluessel), o = S.offen.has(e.schluessel);
     return `<tr class="zeile${o ? " offen" : ""}" data-k="${esc(e.schluessel)}" title="Klicken: Punkte dieser Einheit ${o ? "zuklappen" : "aufklappen"}">
       <td><span class="rang${r <= 3 ? " top" : ""}">${r}</span></td>
       <td class="l"><div class="einheit">${bildEinheit(e.typ, e.name)}<div><div class="n">${esc(kurzArt(e.name))} ${e.nr}${e.gestorben ? '<span class="tot">gefallen</span>' : ""}</div><div class="s">${esc(codeArt(e.name))}</div></div></div></td>
       <td class="zahl hinweis">${zahl(e.von, 0)}–${zahl(e.bis, 0)}</td><td class="zahl gesamt">${pkt(x.p.summe)}</td><td class="balken-z">${balken(x.p.summe, max)}</td>
-      ${sp.map((rg) => `<td class="zahl">${pkt(x.p.je[rg.id] || 0)}</td>`).join("")}</tr>` + (o ? `<tr class="detail"><td colspan="${5 + sp.length}">${detail(e, x.p)}</td></tr>` : ""); }).join("");
+      ${sp.map((rg) => `<td class="zahl">${werte ? rohText(roh(e, rg.messgroesse)) : pkt(x.p.je[rg.id] || 0)}</td>`).join("")}</tr>` + (o ? `<tr class="detail"><td colspan="${5 + sp.length}">${detail(e, x.p)}</td></tr>` : ""); }).join("");
   v.innerHTML = `<div class="leiste"><div class="such"><input id="suche" placeholder="Suchen…" value="${esc(S.suche)}">${S.suche ? '<button class="leeren" id="leeren" title="Suche leeren">✕</button>' : ""}</div>
     <div class="chips">${[["alle", "Alle Arten"], ...arten.map(([t, n]) => [String(t), kurzArt(n)])].map(([w2, n]) => `<button class="chip" data-art="${esc(w2)}" aria-pressed="${S.art === w2}">${esc(n)}</button>`).join("")}</div>
+    <div class="chips"><button class="chip" data-anz="punkte" aria-pressed="${!werte}" title="Punkte = Wert × Gewicht des Reglers">Punkte</button><button class="chip" data-anz="werte" aria-pressed="${werte}" title="echte Werte: Leben, Gebäude, Takte, Felder">Werte</button></div>
     <span class="hinweis">${L.length === hier ? hier : L.length + " von " + hier} Einheiten · Kopfzeile anklicken zum Sortieren</span></div>
-    <div class="tafel">${L.length ? `<table><thead>${kopfz}</thead><tbody>${zeilen}</tbody><tfoot><tr><td></td><td class="l">${L.length} Einheiten</td><td></td><td class="zahl">${pkt(sum((x) => x.p.summe))}</td><td></td>${sp.map((r) => `<td class="zahl">${pkt(sum((x) => x.p.je[r.id] || 0))}</td>`).join("")}</tr></tfoot></table>` : '<div class="leer">Hier nichts.</div>'}</div>`;
+    <div class="tafel">${L.length ? `<table><thead>${kopfz}</thead><tbody>${zeilen}</tbody><tfoot><tr><td></td><td class="l">${L.length} Einheiten</td><td></td><td class="zahl">${pkt(sum((x) => x.p.summe))}</td><td></td>${sp.map((r) => `<td class="zahl">${werte ? rohText(sum((x) => roh(x.e, r.messgroesse))) : pkt(sum((x) => x.p.je[r.id] || 0))}</td>`).join("")}</tr></tfoot></table>` : '<div class="leer">Hier nichts.</div>'}</div>`;
   const s = $("#suche", v); s.oninput = () => { S.suche = s.value; const p = s.selectionStart; zeichneEinheiten(); const n = $("#suche"); n.focus(); n.setSelectionRange(p, p); };
   if ($("#leeren", v)) $("#leeren", v).onclick = () => { S.suche = ""; zeichneEinheiten(); };
   v.querySelectorAll(".chip[data-art]").forEach((b) => (b.onclick = () => { S.art = b.dataset.art; zeichneEinheiten(); }));
+  v.querySelectorAll(".chip[data-anz]").forEach((b) => (b.onclick = () => { S.anzeige = b.dataset.anz; zeichneEinheiten(); }));
   v.querySelectorAll("th[data-s]").forEach((th) => (th.onclick = () => { const k = th.dataset.s; S.sort = { k, ab: S.sort.k === k ? !S.sort.ab : k !== "name" }; zeichneEinheiten(); }));
   v.querySelectorAll("tr.zeile").forEach((tr) => (tr.onclick = () => { const k = tr.dataset.k; S.offen.has(k) ? S.offen.delete(k) : S.offen.add(k); zeichneEinheiten(); }));
   v.querySelectorAll(".zu").forEach((b) => (b.onclick = (ev) => { ev.stopPropagation(); S.offen.delete(b.dataset.k); zeichneEinheiten(); }));
 }
 function detail(e, p) {
   const z = aktiv().filter((r) => gilt(r, e.typ) && (e.menge[r.messgroesse] || 0)).sort((a, b) => Math.abs(p.je[b.id] || 0) - Math.abs(p.je[a.id] || 0)).map((r) => { const m = S.mg[r.messgroesse];
-    return `<tr><td class="l">${esc(m.name)}<div class="wort">dein Wort: „${esc(m.wort)}“</div></td><td class="zahl">${zahl(e.menge[r.messgroesse], 2)}<div class="wort">${esc(m.einheit)}</div></td><td class="zahl">× ${zahl(r.gewicht, 2)}</td><td class="zahl">${pkt(p.je[r.id] || 0)}</td></tr>`; }).join("");
+    return `<tr><td class="l">${esc(m.name)}<div class="wort">dein Wort: „${esc(m.wort)}“</div></td><td class="zahl">${rohText(roh(e, r.messgroesse))}<div class="wort">${esc(m.roh)}</div></td><td class="zahl">${zahl(e.menge[r.messgroesse], 2)}<div class="wort">${esc(m.einheit)}</div></td><td class="zahl">× ${zahl(r.gewicht, 2)}</td><td class="zahl">${pkt(p.je[r.id] || 0)}</td></tr>`; }).join("");
   const ev = [...e.ereignisse].sort((a, b) => b[0] - a[0]).map(([t, k, m, text]) => { const r = aktiv().find((x) => x.messgroesse === k && gilt(x, e.typ)); const pk = r ? m * r.gewicht : 0;
     return `<div class="ereignis"><span class="t zahl">${zahl(t, 0)}</span><span class="etikett ${pk >= 0 ? "pos" : "neg"}">${esc(S.mg[k].name)}${r ? " " + (pk > 0 ? "+" : "") + zahl(pk, 2) : ""}</span><span>${esc(text)}</span></div>`; }).join("");
   return `<div class="detail-innen"><button class="knopf zu" data-k="${esc(e.schluessel)}" title="Zuklappen">Zuklappen ✕</button>
-    <div><h3>Punkte wofür – ${esc(kurzArt(e.name))} ${e.nr}</h3><table class="aufstellung"><thead><tr><th class="l">Regler</th><th>Menge</th><th>Gewicht</th><th>Punkte</th></tr></thead>
-    <tbody>${z || '<tr><td colspan="4" class="l hinweis">Keine Punkte.</td></tr>'}<tr class="summe"><td class="l">Gesamt</td><td></td><td></td><td class="zahl">${pkt(p.summe)}</td></tr></tbody></table>
+    <div><h3>Punkte wofür – ${esc(kurzArt(e.name))} ${e.nr}</h3><table class="aufstellung"><thead><tr><th class="l">Regler</th><th>Wert</th><th>Menge</th><th>Gewicht</th><th>Punkte</th></tr></thead>
+    <tbody>${z || '<tr><td colspan="5" class="l hinweis">Keine Punkte.</td></tr>'}<tr class="summe"><td class="l">Gesamt</td><td></td><td></td><td></td><td class="zahl">${pkt(p.summe)}</td></tr></tbody></table>
     <p class="hinweis">Lebte von Takt ${zahl(e.von, 0)} bis ${zahl(e.bis, 0)}${e.gestorben ? ", gefallen" : ""} · ${e.runden} Lenker-Runden · Kennung ${esc(e.schluessel)}</p></div>
     <div><h3>Was geschah (neueste zuerst)</h3><div class="ereignisse">${ev || '<div class="leer">Keine einzelnen Ereignisse.</div>'}</div></div></div>`;
 }

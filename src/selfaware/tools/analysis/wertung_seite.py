@@ -128,11 +128,21 @@ def spieler_anzeige(name, erg):
                 sp,
                 name=a.get("name") or k.get("name") or "Spieler %d" % sp["nr"],
                 platz=a.get("platz"),
-                bild="/bild/ki/" + k["ordner"] if k.get("ordner") else None,
+                bild=_bild(k, a.get("name") or k.get("name")),
                 belegt=bool(a),
             )
         )
     return aus
+
+
+def _bild(k, name):
+    """Portrait: Team-Liga-Charakter des Platzes, sonst eigene KI aus assets/ai/<Name>/portrait_small.png (Daniel 16.11.2026 18:37
+    "unser samurai profilbild fehlt noch")."""
+    if k.get("ordner"):
+        return "/bild/ki/" + k["ordner"]
+    if name and os.path.exists(os.path.join(workspace.AI_ASSETS, name, "portrait_small.png")):
+        return "/bild/eigen/" + name
+    return None
 
 
 def partien():
@@ -303,7 +313,7 @@ def regler_antwort():
     return {
         "regler": W.regler_lesen(),
         "messgroessen": {
-            k: {"name": n, "wort": w, "einheit": e, "richtung": r}
+            k: {"name": n, "wort": w, "einheit": e, "richtung": r, "roh": W.ROH_EINHEIT.get(k, "")}
             for k, (n, w, e, r) in W.MESSGROESSEN.items()
         },
         "verlauf": [
@@ -405,6 +415,13 @@ class Seite(BaseHTTPRequestHandler):
                 self._json(historie())
             elif u.path.startswith("/bild/einheit/") and u.path[14:].isdigit():
                 self._datei(os.path.join(BILDER, "einheit_%d.png" % int(u.path[14:])), "image/png")
+            elif u.path.startswith("/bild/eigen/"):
+                name = urllib.parse.unquote(u.path[12:])
+                if name not in os.listdir(workspace.AI_ASSETS):
+                    raise ValueError("unbekannte eigene KI")
+                self._datei(
+                    os.path.join(workspace.AI_ASSETS, name, "portrait_small.png"), "image/png"
+                )
             elif u.path.startswith("/bild/ki/"):
                 ordner = u.path[9:]
                 if ordner not in {k["ordner"] for k in ki_tabelle().values()}:
