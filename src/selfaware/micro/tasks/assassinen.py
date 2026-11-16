@@ -555,6 +555,9 @@ class Einzeln:
         self.angriffe = []                   # je Alle-auf-den-Lord: Groesse, Weg, wer kam an, was hielt auf, Lord-Leben
         self.wellen_protokoll = None         # Datei fuer die S1-Messung je Runde (setzt erstes_spiel.py)
         self.gelaende = None                 # unveraenderte Kartenzeilen; einmal je Angriffsprotokoll geschrieben
+        # 16.11.2026 (Daniel 21:40 "warum Laufbefehle ... liegen bleiben ... am besten 0 takte"): Feld -> naechstes Feld, das die Weg-Ebene
+        # des Spiels erlaubt (setzt der Lenker: Wegfuehrung._begehbar_nah, die jede WEGKARTE-Runde neu liest). Ohne: Wegpunkte wie berechnet
+        self.feld_nah = None
         # Sichere Wege (12.10., Daniel 01:03/01:08: kuerzester Weg durch den toten Winkel statt geradeaus durch die Schuetzen):
         # n -> {"punkte": [Wegpunkte ohne Ziel], "gebaeude": Nr, "befohlen": Runde}; Gelaende-Gitter einmal je Partie
         self.route, self._frei, self.mit_wegen = {}, None, True
@@ -1068,6 +1071,10 @@ class Einzeln:
                 # Stuecken - dann prueft ROUTE GEFAEHRLICH jedes Stueck vor dem Betreten
                 k = schach(start, ziel) // self.GERADE_TEIL + 1
                 wp = [(start[0] + (ziel[0] - start[0]) * i // k, start[1] + (ziel[1] - start[1]) * i // k) for i in range(1, k)] + [ziel]
+            if len(wp) > 1 and self.feld_nah is not None:
+                # Probe 11: Wegpunkte (246,220), (247,215), (240,220) lagen nach der Gelaendekarte auf '.', in der Weg-Ebene des Spiels
+                # aber auf gesperrten Feldern - das Spiel verwarf den Laufbefehl, die Assassine stand bis zu 500 Takte
+                wp = [self.feld_nah(p) for p in wp[:-1]] + wp[-1:]
             if len(wp) > 1:
                 self.route[n] = {"punkte": wp[:-1], "gebaeude": gn, "befohlen": self.runde}
                 lauf.setdefault(wp[0], []).append(n)

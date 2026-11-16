@@ -2578,6 +2578,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         wegf = Wegfuehrung(SP, list(_KARTE) or None, trotz_gefahr=RB_w.TROTZ_GEFAHR)
     if raid_e is not None:
         raid_e.weg_selbst = False
+    if trupp is not None and wegf is not None:
+        # 16.11.2026 (#365): Assassinen-Wegpunkte auf Felder, die die Weg-Ebene des Spiels erlaubt (dieselbe Karte wie die Wegfuehrung)
+        trupp.feld_nah = wegf._begehbar_nah
     erster_angriff_uebergeben(raid_e, wegf)            # S167
     wegf_karte_runde = None           # B-182: Runde der letzten Weg-Ebene fuer die Wegfuehrung
     wegf_karte_geb = None             # S146: {Gebaeude: Art} beim letzten Lesen - kommt eines dazu, wird neu gelesen

@@ -108,3 +108,20 @@ def test_assassine_mit_fernem_laufziel_die_nicht_laeuft_wird_geloest_und_nimmt_d
     )
     assert a.ziel.get(5) is None
     assert a._route_sperre.get((5, 33), 0) > 1000 + a.STEH_TICKS
+
+
+@pytest.mark.skipif(AS is None, reason="Assassinen-Modul ohne Spielordner nicht ladbar")
+def test_wegpunkte_der_route_ruecken_auf_begehbare_felder(monkeypatch):
+    # Probe 11: der Wegpunkt (246, 220) lag in der Weg-Ebene des Spiels auf einem gesperrten Feld - das Spiel verwarf den Laufbefehl
+    a = AS.Einzeln(1)
+    a._gitter = lambda L, G: object()
+    monkeypatch.setattr(
+        AS.schussfeld,
+        "sicherer_weg",
+        lambda *x, **k: ([(240, 212), (246, 220), (265, 230)], 0.0, 0.0, None),
+    )
+    a.feld_nah = lambda p: (246, 226) if p == (246, 220) else p
+    L = {5: _e(5, 1, 73, 233, 210)}
+    G = {33: {"besitzer": 2, "typ": 20, "x": 265, "y": 230, "leben": 350, "uid": 1}}
+    a._wege(L, G, [(5, 33)], [])
+    assert a.route[5]["punkte"] == [(240, 212), (246, 226)]
