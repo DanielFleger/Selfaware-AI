@@ -1084,5 +1084,13 @@ def test_lenker_gibt_dem_vorstoss_den_lord_im_lord_angriff():
 def test_lenker_gibt_dem_kern_die_wegkette_der_bereitstellung():
     """16.11.2026 (Probe 14: Sammeln mit ~30 statt 16 Takten je Feld): die Wegpunkte der Bereitstellung gehen wie die Raid-Route als Kette an den
     Kern, ohne Gebaeude am Ende."""
-    assert "trupp.bereit_routen()" in LENKER
+    assert "KW_r.routen_vereinen(" in LENKER and "trupp.bereit_routen()" in LENKER
     assert '("gebaeude", r["gebaeude"]) if r.get("gebaeude") is not None else None' in LENKER
+    # Probe 15 (16.11.2026): die erste Fassung dict(a, **b) warf mit Zahlen-Schluesseln TypeError - der Text stand drin, gelaufen ist er nie.
+    # Jetzt der echte Aufruf mit Einheitennummern
+    from selfaware.execution import kernweg as KW
+
+    raid = {5: {"punkte": [(1, 1)], "gebaeude": 9}}
+    bereit = {7: {"punkte": [(2, 2)], "gebaeude": None}}
+    assert KW.routen_vereinen(raid, bereit) == {5: raid[5], 7: bereit[7]}
+    assert KW.routen_vereinen(None, bereit) == bereit and KW.routen_vereinen(raid, None) == raid

@@ -48,6 +48,15 @@ def uebersetze(befehl):
     return None
 
 
+def routen_vereinen(*quellen):
+    """Wegpunkt-Routen mehrerer Quellen ({Einheit: {"punkte": [...], "gebaeude": Nr oder None}}) zu einer - spaetere Quellen gewinnen.
+    16.11.2026 (Probe 15): dict(a, **b) mit Einheitennummern als Schluessel warf TypeError und liess 38 Lenker-Runden ausfallen."""
+    aus = {}
+    for q in quellen:
+        aus.update(q or {})
+    return aus
+
+
 def einheiten_von(befehl):
     """Einheiten eines Befehls, der beim Modul bleibt."""
     c = befehl.get("halten") or befehl.get("angriff") or {}

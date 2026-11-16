@@ -3437,9 +3437,11 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                 if isinstance(erg, tuple):          # Einzeln: Befehle der Runde gesammelt in EINEM Aufruf
                     erg, liste = erg
                     if KERNWEG and (liste or getattr(trupp, "folgeziele", None)):   # 08.11. (P5, B-157): kernweg=ja; #359 Folgeziele
+                        from selfaware.execution import kernweg as KW_r
                         liste = kernweg_senden(liste, [n for n, e in L.items() if e["besitzer"] == SP and e["typ"] == 73], ereignis,
                                                folge=getattr(trupp, "folgeziele", None),
-                                               routen=dict(getattr(trupp, "route", None) or {}, **(trupp.bereit_routen() if hasattr(trupp, "bereit_routen") else {})))
+                                               routen=KW_r.routen_vereinen(getattr(trupp, "route", None),
+                                                                           trupp.bereit_routen() if hasattr(trupp, "bereit_routen") else None))
                     if liste:
                         # Kern 39: "durchsetzen" gilt nur dem Kern (wie wegfuehrung._ueber_kern) - ans Modul ohne den Schluessel
                         liste = [dict(b, angriff={k: v for k, v in b["angriff"].items() if k != "durchsetzen"}) if isinstance(b.get("angriff"), dict)
