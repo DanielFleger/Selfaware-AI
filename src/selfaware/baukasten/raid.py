@@ -101,6 +101,31 @@ class RaidBestellung:
         return kaeufe
 
 
+PREIS = {typ: preis for typ, preis in EINHEITEN.values()}
+
+
+class RaidBestellungAlles(RaidBestellung):
+    """Daniel 16.11.2026 23:49 ("du kannst so viel von was auch immer machen wie du willst") und 23:56 ("unter 500 gold ist der massstab"):
+    Probe 24 kaufte mit RaidBestellung hoechstens eine Assassine je Runde - eine Runde dauerte bei Tempo 100 165-350 Takte, und ab Takt 16.000
+    lagen in 30 von 38 Runden mindestens 140 Gold bei freien Leuten am Feuer. Hier kaufen erst die Soeldner wie bei RaidBestellung (ungerade
+    Runden, nicht im Endspurt, eigene Ruecklage), dann so viele Assassinen, wie das Gold ueber der Ruecklage nach den Soeldnern und die Leute am
+    Feuer hergeben. Die Soeldner zuerst: sie sind durch ihr Soll begrenzt und billig, Daniel 23:13 wollte Sklaven in der Mischung."""
+
+    def schritt(self, b):
+        kaeufe = []
+        if b.soeldner_erlaubt and not b.endspurt and b.runde % 2 == 1:
+            kaeufe += RA.werbung(
+                b.gold - b.ruecklage_soeldner, b.feuer, b.sklaven, b.reiter, b.schleuderer
+            )
+        if b.assassine_erlaubt:
+            frei = b.gold - b.ruecklage - sum(PREIS[t] * n for t, n in kaeufe)
+            leute = b.feuer - sum(n for _t, n in kaeufe)
+            n = max(0, min(frei // ASSASSINE_GOLD, leute))
+            if n:
+                kaeufe.append((ASSASSINE, n))
+        return kaeufe
+
+
 class RaidBestellungMitKasse(RaidBestellung):
     """Eine Kasse fuer alle Raid-Einheiten: Was gekauft wird, fehlt dem naechsten. Fehlt eine Art weiter vorn, wartet alles dahinter, damit das Gold fuer sie zusammenkommt."""
 

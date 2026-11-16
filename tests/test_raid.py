@@ -284,3 +284,60 @@ def test_aufstellung_steckt_die_neue_bestellung():
     versionen = AF.laden("raid_kasse")["versionen"]
     assert AF.Steckplaetze(versionen).klasse("raidbestellung") is RB.RaidBestellungMitKasse
     assert AF.Steckplaetze().klasse("raidbestellung") is RB.RaidBestellung
+
+
+# Daniel 16.11.2026 23:49 ("du kannst so viel von was auch immer machen wie du willst") / 23:56 ("unter 500 gold ist der massstab"):
+# RaidBestellungAlles kauft so viele Assassinen, wie Gold und Leute am Feuer hergeben (Probe 24: hoechstens eine je Runde)
+ALLES = RB.RaidBestellungAlles()
+
+
+def test_alles_kauft_so_viele_assassinen_wie_das_gold_hergibt():
+    assert ALLES.schritt(lage(runde=2, gold=1000, feuer=20)) == [
+        (ASSASSINE, 1000 // RB.ASSASSINE_GOLD)
+    ]
+    assert ALT.schritt(lage(runde=2, gold=1000, feuer=20)) == [
+        (ASSASSINE, 1)
+    ]  # Gegenprobe: die alte bleibt bei einer
+
+
+def test_alles_kauft_nur_so_viele_wie_leute_am_feuer_stehen():
+    assert ALLES.schritt(lage(runde=2, gold=1000, feuer=3)) == [(ASSASSINE, 3)]
+    assert ALLES.schritt(lage(runde=2, gold=1000, feuer=0)) == []
+
+
+@pytest.mark.parametrize(
+    "felder", [{"gold": 69}, {"gold": 139, "ruecklage": 70}, {"assassine_erlaubt": False}]
+)
+def test_alles_achtet_ruecklage_und_erlaubnis(felder):
+    assert ALLES.schritt(lage(runde=2, **felder)) == []
+
+
+def test_alles_kauft_erst_die_soeldner_dann_die_assassinen_vom_rest():
+    fehlt = 2
+    k = ALLES.schritt(lage(runde=1, gold=300, sklaven=RA.SKLAVEN_SOLL - fehlt))
+    assert k == [(SKLAVE, fehlt), (ASSASSINE, (300 - fehlt * RA.SKLAVE_GOLD) // RB.ASSASSINE_GOLD)]
+    ausgegeben = sum(RB.PREIS[t] * n for t, n in k)
+    assert ausgegeben <= 300  # dasselbe Gold nie zweimal
+
+
+def test_alles_wirbt_soeldner_wie_die_alte_bestellung():
+    for felder in (
+        {"runde": 3, "sklaven": 0},
+        {"runde": 2, "sklaven": 0},
+        {"endspurt": True, "sklaven": 0},
+    ):
+        alt = [x for x in ALT.schritt(lage(**felder)) if x[0] != ASSASSINE]
+        neu = [x for x in ALLES.schritt(lage(**felder)) if x[0] != ASSASSINE]
+        assert neu == alt, felder
+
+
+def test_lobby_aufstellung_steckt_die_bestellung_alles():
+    versionen = AF.laden("lobby_wie_partie34")["versionen"]
+    assert AF.Steckplaetze(versionen).klasse("raidbestellung") is RB.RaidBestellungAlles
+
+
+def test_lenker_wirbt_alle_bestellten_assassinen_an():
+    """Die Bestellung liefert (ASSASSINE, n) - der Lenker muss n Werbebefehle senden, nicht einen."""
+    zweig = LENKER[LENKER.index("if typ_r == RB.ASSASSINE:") :]
+    zweig = zweig[: zweig.index("continue")]
+    assert "for i_r in range(n_r):" in zweig and zweig.index("range(n_r)") < zweig.index('"werbe"')

@@ -3810,12 +3810,17 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                             sklaven_platz=raid_e.sklaven_platz if raid_e is not None else None,
                             vorhanden=raid_e.vorhanden(L) if raid_e is not None else ())):
                         if typ_r == RB.ASSASSINE:
-                            befehl({"werbe": {"typ": RB.ASSASSINE, "gebaeude": posten[0]}}, 1.0, bis="WERBE")
-                            geworben += 1
+                            # 17.11.2026 (Daniel 16.11. 23:49/23:56, RaidBestellungAlles): die Bestellung kann mehrere je Runde kaufen - alle anwerben
+                            for i_r in range(n_r):
+                                befehl({"werbe": {"typ": RB.ASSASSINE, "gebaeude": posten[0]}}, 1.0, bis="WERBE")
+                                geworben += 1
+                                if geworben == 1 or geworben % 5 == 0:     # der erste zaehlt einzeln (gewinn_5: Zeitpunkt fehlte)
+                                    ereignis.append("%d Assassinen angeworben (Gold jetzt %d, %d leben, Soll %d%s)" % (
+                                        geworben, st["gold"], a_stand["lebend"] + i_r + 1, ziel_a, " mit Raid-Ueberschuss" if ziel_a > assassinen else ""))
+                            if n_r > 1:
+                                ereignis.append("ASSASSINEN ZUGLEICH: %d in dieser Runde angeworben (Gold %d, Ruecklage %d, Feuer %d)" % (
+                                    n_r, st["gold"], wirt.ruecklage(G)["gold"], st.get("feuer", 0)))
                             a_stand["zuletzt"] = st["t"]
-                            if geworben == 1 or geworben % 5 == 0:     # der erste zaehlt einzeln (gewinn_5: Zeitpunkt fehlte)
-                                ereignis.append("%d Assassinen angeworben (Gold jetzt %d, %d leben, Soll %d%s)" % (
-                                    geworben, st["gold"], a_stand["lebend"] + 1, ziel_a, " mit Raid-Ueberschuss" if ziel_a > assassinen else ""))
                             continue
                         for _ in range(n_r):
                             BA_r.werbe(typ_r, posten[0])
