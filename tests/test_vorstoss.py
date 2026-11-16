@@ -340,3 +340,33 @@ def test_ueberzahl_ist_nur_gefahr_ohne_erwarteten_sieg():
     v.mitglieder = {1, 2}
     L2 = _L(_e(1, 22, 100, 100), _e(1, 22, 100, 101), *fern)
     assert v._schussfeld((100, 100), L2, {}, 2) is not None
+
+
+def test_im_lord_angriff_ruecken_die_schuetzen_trotz_ueberzahl_auf_den_schuetzen_am_lord_vor():
+    """Daniel 16.11.2026 21:41 ("bogenschuetzen immer so weit vorpreschen wie nur moeglich viel riskanter"), 21:42 "das auch fixen": greifen
+    die Assassinen den Lord an, zieht der Vorstoss nicht vor einer Ueberzahl ab, sondern schiesst auf den feindlichen Schuetzen, der dem
+    Lord am naechsten steht. Ohne Lord-Angriff: Abziehen wie bisher (Gegenprobe)."""
+    from selfaware.micro.wegfuehrung import Wegfuehrung
+
+    eigene = [_e(1, 22, 100, 100 + i) for i in range(3)]
+    fern = [_e(2, 23, 132, 100 + i) for i in range(4)]  # Ueberzahl an der Gruppe (Nummern 4-7)
+    lord, am_lord = _e(2, 55, 220, 100), _e(2, 22, 214, 100)  # Nummern 8, 9
+    L = _L(*eigene, *fern, lord, am_lord)
+    v = V.Vorstoss(1, HEIM)
+    v.weg = Wegfuehrung(1)
+    _, b, aus = _lauf(L, v=v)
+    assert "Schussfeld" in aus[0] and not v.weg.auftraege, "ohne Lord-Angriff: abziehen"
+    v = V.Vorstoss(1, HEIM)
+    v.weg = Wegfuehrung(1)
+    v.lord = 8
+    _, b, aus = _lauf(L, v=v)
+    assert {n: (a.art, a.ziel, a.trotz) for n, a in v.weg.auftraege.items()} == {
+        n: ("einheit", 9, True) for n in (1, 2, 3)
+    }, aus
+    assert any("Lord-Angriff" in z for z in aus)
+    del L[9]
+    v.weg.auftraege.clear()
+    _lauf(L, v=v)
+    assert {a.ziel for a in v.weg.auftraege.values()} == {8}, (
+        "kein Schuetze am Lord: auf den Lord selbst"
+    )

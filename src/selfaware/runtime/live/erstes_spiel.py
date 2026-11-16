@@ -3764,6 +3764,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     # S162: greifen die Assassinen den Lord an, gehen die Raid-Nahkaempfer mit
                     lt_r = getattr(trupp, "lordtrupp", None) or {}
                     raid_e.nahkampf.lord = lt_r.get("lord") if LORD_SOFORT and lt_r.get("phase") == "angriff" else None
+                    # Daniel 16.11.2026 21:41/21:42: die Schuetzen des Vorstosses ruecken mit vor (vorstoss.LORD_SCHUETZEN_R)
+                    if vorstoss is not None:
+                        vorstoss.lord = raid_e.nahkampf.lord
                     ereignis += raid_e.schritt(st["t"], L, G, befehl)
                 except Exception as ex_r:
                     ereignis.append("RAIDS FEHLER %r - Partie laeuft weiter" % (ex_r,))

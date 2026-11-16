@@ -77,6 +77,12 @@ TREFF_WANDERT = 8
 STUR_RUNDEN = 6
 STUR_SPERRE = 30
 NEU_ALLE = 4  # Runden zwischen zwei gleichen Befehlen: jeder neue Befehl startet die Wegsuche neu
+# Daniel 16.11.2026 21:41 ("bogenschuetzen immer so weit vorpreschen wie nur moeglich viel riskanter"), 21:42 "das auch fixen": greifen die
+# Assassinen den Lord an (Lord-Trupp in Phase "angriff"), rueckt der Vorstoss mit vor - wie die Raid-Nahkaempfer (S162) - und schiesst auf
+# den feindlichen Schuetzen, der dem Lord am naechsten steht (er beschiesst die Assassinen am Lord), sonst auf den Lord selbst; die Gefahr
+# am eigenen Platz haelt ihn dabei nicht auf (Wegfuehrung trotz), nur Nahkaempfer an der Gruppe (WEICHEN). Probe 12: Kriegsfuerst hatte 18
+# Bogenschuetzen, wir 5 - allein vorgeprescht verloeren wir sie, im Lord-Angriff ziehen sie Feuer von den Assassinen. Startwert, nicht gemessen:
+LORD_SCHUETZEN_R = 40  # so weit vom Lord zaehlt ein feindlicher Schuetze als Schutz des Lords
 KARTE = 399
 # Laeufe unter Pfeilen, die der Kern im Zickzack fuehrt. Weichen vor Nahkaempfern bleibt gerade: Dort geht es um jedes Feld.
 AUSWEICHEN_BEI = {"vor", "abziehen"}
@@ -160,6 +166,7 @@ class Vorstoss:
         self._treff = None  # B-182: Treffpunkt der Nachzuegler
         self._nachzuegler = set()
         self.absicht = {}  # B-182 Logbuch je Einheit: Schuetze -> (Aktion, Ziel, Grund, Werte) dieser Runde
+        self.lord = None  # Daniel 21:41: Lord, den die Assassinen gerade angreifen (setzt der Lenker), sonst None
 
     def orte(self, L):
         return [ort(L[n]) for n in self.mitglieder if n in L]
@@ -276,6 +283,19 @@ class Vorstoss:
         if set(weit) - self._nachzuegler:
             aus.append("VORSTOSS: holt %d Nachzuegler zur Gruppe bei %s" % (len(weit), treff))
         self._nachzuegler = set(weit)
+
+    def _lord_ziel(self, L):
+        """Ziel im Lord-Angriff: der feindliche Schuetze bis LORD_SCHUETZEN_R vom Lord, der ihm am naechsten steht, sonst der Lord. None ohne
+        Lord-Angriff."""
+        if self.lord is None or self.lord not in L:
+            return None
+        lp = ort(L[self.lord])
+        schutz = sorted(
+            (_luft(ort(e), lp), n)
+            for n, e in self._feinde(L, FERN_FEIND)
+            if _luft(ort(e), lp) <= LORD_SCHUETZEN_R
+        )
+        return schutz[0][1] if schutz else self.lord
 
     def _schussfeld(self, stelle, L, G, eigene):
         """Ort der naechsten Gefahr, wenn an dieser Stelle eine Ueberzahl an Schuetzen oder ein Turm hinreicht, sonst None."""
@@ -514,6 +534,37 @@ class Vorstoss:
             if self._sende("weichen", _grob(ziel), befehl, meine, {"lauf": [ziel[0], ziel[1]]}):
                 aus.append(
                     "VORSTOSS: weicht Typ %d in %d Feldern aus -> %s" % (nah[2], nah[0], ziel)
+                )
+            return aus
+        k_lord = self._lord_ziel(L) if self.weg is not None else None
+        if k_lord is not None:
+            # Daniel 21:41/21:42: im Lord-Angriff mit vor - kein Abziehen vor einer Ueberzahl, die Wegfuehrung fuehrt trotz Gefahr am Platz
+            self._melde(
+                meine,
+                Action.ATTACK_UNIT,
+                unit(k_lord),
+                "lord_push",
+                typ=L[k_lord]["typ"],
+                dist=int(_luft(ort(L[k_lord]), mitte)),
+            )
+            self._frei(meine)
+            for art in ("vor", "weichen", "abziehen"):
+                self.letzter.pop(art, None)
+            for n in sorted(meine):
+                self.weg.fuehre(n, "einheit", k_lord, "vorstoss", trotz=True)
+            self.vor_ort = None
+            if self.gefuehrt != k_lord:
+                self.gefuehrt = k_lord
+                self.befehle["lord"] += 1
+                aus.append(
+                    "VORSTOSS: Lord-Angriff - %d Schuetzen auf %s %d (Typ %d) in %d Feldern"
+                    % (
+                        len(meine),
+                        "den Lord" if k_lord == self.lord else "Schuetze am Lord",
+                        k_lord,
+                        L[k_lord]["typ"],
+                        _luft(ort(L[k_lord]), mitte),
+                    )
                 )
             return aus
         gefahr = self._schussfeld(mitte, L, G, len(meine))
