@@ -234,7 +234,9 @@ def test_kauf_traut_reitern_nur_zu_was_die_reiterjagd_jagt():
         200: einheit(40, 0, 3),
         201: einheit(80, 0, 3),
         300: einheit(41, 2, BOGEN),
-    }  # 200 gedeckt, 201 frei
+        302: einheit(42, 2, BOGEN),
+        303: einheit(40, 3, BOGEN),
+    }  # 200 gedeckt (3 Boegen: mehr als raids.REITER_DECKUNG_MAX), 201 frei
     e = _einsatz()
     z = {x.schluessel: x for x in WK.ziele(L, {}, 1)}
     assert not e.greift_an(74, z[("e", 200)], L, {}) and e.greift_an(74, z[("e", 201)], L, {})
@@ -280,12 +282,14 @@ def _jagd(L):
 
 def test_reiterjagd_jagt_nur_ungedeckte_arbeiter_auch_ausser_reichweite():
     """Die Reiterjagd nimmt dieselbe Pruefung wie der Kauf (raids.Reiterjagd.moeglich): in Reichweite der wertvollste freie Arbeiter, sonst
-    der naechste freie irgendwo; gedeckte nie."""
+    der naechste freie irgendwo; gedeckte (seit Daniel 16.11.2026 21:41: mehr als REITER_DECKUNG_MAX Schuetzen) nie."""
     L = {
         1: einheit(30, 0, 74, besitzer=1),
-        200: einheit(20, 0, 3),  # Holzfaeller, frei: der Bogen steht 26 Felder weg
-        201: einheit(45, 0, 1),  # Bauer, mehr wert, aber der Bogen steht daneben
+        200: einheit(20, 0, 3),  # Holzfaeller, frei: die Boegen stehen 26 Felder weg
+        201: einheit(45, 0, 1),  # Bauer, mehr wert, aber drei Boegen stehen daneben
         300: einheit(46, 2, BOGEN),
+        304: einheit(47, 2, BOGEN),
+        305: einheit(46, 3, BOGEN),
     }
     ziele, gesendet = _jagd(L)
     assert ziele == {1: 200} and gesendet == [
@@ -296,6 +300,8 @@ def test_reiterjagd_jagt_nur_ungedeckte_arbeiter_auch_ausser_reichweite():
         202: einheit(60, 0, 3),
         203: einheit(90, 0, 3),
         301: einheit(92, 0, BOGEN),
+        306: einheit(92, 1, BOGEN),
+        307: einheit(93, 0, BOGEN),
     }
     ziele, gesendet = _jagd(L)
     assert (
@@ -723,7 +729,8 @@ def test_nahkampf_raid_greift_in_gefahr_nur_mit_freigabe_an():
     """Plan_Wegfuehrung.md: am Ziel in Gefahr greift nur an, wessen Zweck Daniel freigibt (raid.TROTZ_GEFAHR)."""
     # Daniel 11.11. 19:40 auf die Frage "Darf der Nahkampf-Raid Ziele unter Beschuss angreifen?": "Gerne freigeben"
     # Daniel 11.11. 21:48 auf die Frage "Sollen die Waechter ueber die Wegfuehrung laufen und unter Beschuss angreifen duerfen?": "Ja, freigeben"
-    assert RB.TROTZ_GEFAHR == ("nahkampfraid", "waechter")
+    # Daniel 16.11.2026 21:41/21:42 ("beritten ... nicht immer nur so risikoarm", "das auch fixen"): dazu "reiterjagd"
+    assert RB.TROTZ_GEFAHR == ("nahkampfraid", "waechter", "reiterjagd")
     for frei, erwartet in (((), "gefahr"), (("nahkampfraid",), "unterwegs")):
         r, bf = _raid_mit_weg(trotz_gefahr=frei), Befehle()
         L, G = huetten(n_bogen=1)  # ein Bogenschuetze deckt beide Huetten
@@ -767,10 +774,11 @@ def test_nahkaempfer_am_ziel_zaehlen_nur_fuer_nahkaempfer():
 
 
 def test_freigabe_gilt_nur_fuer_den_nahkampf_raid():
-    """Grundgesetz P1.37: Daniels Freigaben antworteten auf die Fragen nach dem Nahkampf-Raid und den Waechtern - Brandtrupp,
-    Reiterjagd und Vorstoss bleiben ohne Freigabe."""
+    """Grundgesetz P1.37: Daniels Freigaben antworteten auf die Fragen nach dem Nahkampf-Raid und den Waechtern; die Reiterjagd kam mit
+    seinem eigenen Wunsch 16.11.2026 21:41 ("beritten sollte nach vorne ... nicht immer nur so risikoarm laufen") und 21:42 "das auch
+    fixen" dazu (Lesart SAI, im Bericht genannt). Brandtrupp und Vorstoss bleiben ohne Freigabe."""
     e = _einsatz()
-    assert e.weg.trotz_gefahr == {"nahkampfraid", "waechter"}
+    assert e.weg.trotz_gefahr == {"nahkampfraid", "waechter", "reiterjagd"}
     L = {
         1: einheit(0, 0, SCHWERT, besitzer=1, leben=28000),
         2: einheit(0, 2, SKLAVE, besitzer=1),
@@ -1035,3 +1043,39 @@ def test_kein_wechsel_nur_weil_der_weg_zum_jetzigen_ziel_in_dieser_runde_fehlt()
     r.weg.weglaenge = ohne_weg_zu_1
     aus = r.schritt(L, G, bf)
     assert r.ziel[2] == ("g", 1) and not any("wechselt" in z for z in aus), aus
+
+
+def test_reiter_jagen_arbeiter_mit_bis_zu_zwei_schuetzen_und_reiten_ohne_ziel_vor():
+    """Daniel 16.11.2026 21:41 ("beritten sollte nach vorne und patroullieren/pfeilen ausweichen nicht immer nur so risikoarm laufen"), 21:42
+    "das auch fixen": ein Arbeiter, den 1-2 Schuetzen decken, wird gejagt; bei 3 nicht. Gibt es keinen jagdbaren, reitet der Reiter zum
+    naechsten feindlichen Wirtschaftsgebaeude ohne Turm (Streife), statt zu warten."""
+    from selfaware.micro.tasks import raids as RA
+
+    for n_bogen, gejagt in (
+        (1, True),
+        (RA.REITER_DECKUNG_MAX, True),
+        (RA.REITER_DECKUNG_MAX + 1, False),
+    ):
+        L = {1: einheit(0, 0, 74, besitzer=1), 201: einheit(45, 0, 1)}
+        L.update({310 + i: einheit(46, i, BOGEN) for i in range(n_bogen)})
+        ziele, _ = _jagd(L)
+        assert (ziele.get(1) == 201) is gejagt, (n_bogen, ziele)
+    # keiner jagdbar: vorreiten zum naechsten Wirtschaftsgebaeude (Holzfaellerhuette Typ 1 bei (80, 0))
+    e, gesendet = _einsatz(), []
+    L = {1: einheit(0, 0, 74, besitzer=1), 201: einheit(45, 0, 1)}
+    L.update({310 + i: einheit(46, i, BOGEN) for i in range(3)})
+    G = {9: dict(geb(80, 0), typ=1)}
+    aus = e.reiter.schritt(L, G, lambda b, *a, **k: gesendet.append(b))
+    assert e.weg.auftraege[1].art == "ort" and e.weg.auftraege[1].ziel == (80, 0), aus
+    assert any("reitet vor" in z for z in aus)
+
+
+def test_reiter_reiten_trotz_gefahr_am_standplatz():
+    """Daniel 21:41/21:42: raid.TROTZ_GEFAHR enthaelt die Reiterjagd - die Wegfuehrung meldet fuer sie nicht mehr "gefahr"."""
+    assert "reiterjagd" in RB.TROTZ_GEFAHR
+
+
+def test_lenker_gibt_dem_vorstoss_den_lord_im_lord_angriff():
+    """Daniel 16.11.2026 21:41/21:42: der Vorstoss rueckt mit vor, wenn die Assassinen den Lord angreifen - der Lenker gibt ihm denselben Lord wie
+    den Raid-Nahkaempfern (S162)."""
+    assert "vorstoss.lord = raid_e.nahkampf.lord" in LENKER

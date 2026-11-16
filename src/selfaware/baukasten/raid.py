@@ -23,7 +23,9 @@ REIHENFOLGE = ("sklaven", "schleuderer", "reiter", "assassinen")
 # Daniel 11.11. 19:40 auf die Frage "Darf der Nahkampf-Raid Ziele unter Beschuss angreifen?": "Gerne freigeben" - nur der
 # Nahkampf-Raid (Grundgesetz P1.37). Sein Standplatz ist das Ziel selbst (793 von 803 seiner Ziele vom 10.11. lagen in Gefahr,
 # S115), seine Zielwahl nach Wirkung zieht den Beschuss am Ziel ab; den Weg dorthin fuehrt die Wegfuehrung weiter um Gefahr herum.
-TROTZ_GEFAHR = ("nahkampfraid", "waechter")
+# Daniel 16.11.2026 21:41 ("beritten sollte nach vorne und patroullieren/pfeilen ausweichen nicht immer nur so risikoarm laufen"), 21:42 "das
+# auch fixen" - dazu "reiterjagd": der Reiter reitet auch, wenn sein Standplatz in Gefahr liegt (vorher Status "gefahr", Ziel abgegeben).
+TROTZ_GEFAHR = ("nahkampfraid", "waechter", "reiterjagd")
 # B-182 (Partie 11.11. 22:37, Daniel 22:41: "warum kam erst so spät ein sklave? ich hätte als effektive ki
 # so schnell wie möglich raid sklaven rausgespuckt und schonmal nach vorne geschickt und dann geraided"): von Takt 2922 bis 3774 lagen 53 Gold da, alles zurueckgelegt fuer
 # 4 offene B-Plantagen (4 x 15), der erste Sklave kam bei Takt 3902. Lebt kein Raid-Sklave, darf der erste die Ruecklage angreifen.

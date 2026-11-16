@@ -58,6 +58,12 @@ SAMMEL_ZIELE = 5      # so viele naechste feindliche Zielgebaeude prueft die Suc
 ABSCHUSS_RUNDEN = 4  # so viele Runden nach dem letzten Angriff in Reichweite zaehlt ein verschwundenes Opfer als eigener Abschuss
 GRUBE_R = 3
 FLUCHT_R = 8
+# Daniel 16.11.2026 21:41 ("beritten sollte nach vorne und patroullieren/pfeilen ausweichen nicht immer nur so risikoarm laufen"), 21:42
+# "das auch fixen": Probe 11 und 12 standen die Reiter 20 % ihrer Zeit untaetig mehr als 20 Felder vor ihrem Ziel (lage_20261116_210229 und
+# _213939, 50 von 251 Proben), sie jagten nur Arbeiter ohne einen einzigen feindlichen Schuetzen bis GEFAHR_FERN. Jetzt jagt ein Reiter auch
+# einen Arbeiter, den hoechstens REITER_DECKUNG_MAX Schuetzen decken (Tuerme und Nahkaempfer weiter nie) - ein einzelner Reiter, der sich
+# bewegt, wird selten getroffen (reference: Ausweichen gemessen, Einzelner 1-2 % ab 12 Feldern im Zickzack). Startwert, nicht gemessen:
+REITER_DECKUNG_MAX = 2
 JAGD_R = 20
 NEU_ALLE = 5                                     # Runden zwischen zwei Befehlen an dieselbe Einheit
 AUSWEICH_MAX = 8                                     # so viele Einzelbefehle je Feld kamen im Lauf zickzack2_g alle rechtzeitig (B-174, vorstoss.TRUPPS)
@@ -112,6 +118,23 @@ def gefaehrlich(ort, L, G, sp, schutz=()):
             return "Turm in %d" % schach(ort, (g["x"], g["y"]))
         # 11.11. (Daniel 00:10 "das einzige was verborgen ist sind holfallen und wo das pech ist", FAIRNESS F12): gegnerische
         # Fallgruben sind im Spiel verborgen - die Pruefung las sie aus der Gebaeudetabelle (Verstoss gegen R3), jetzt nicht mehr
+    return None
+
+
+def reiter_gefahr(ort, L, G, sp):
+    """Daniel 16.11.2026 21:41 ("nicht immer nur so risikoarm"): wie gefaehrlich, aber Schuetzen zaehlen erst ab mehr als REITER_DECKUNG_MAX
+    bis GEFAHR_FERN - Tuerme und Nahkaempfer wie dort. Grund oder None."""
+    schuetzen = 0
+    for typ, p in feinde(L, sp):
+        if typ in NAH and schach(ort, p) <= GEFAHR_NAH:
+            return "Nahkaempfer Typ %d in %d" % (typ, schach(ort, p))
+        if typ in FERN and schach(ort, p) <= GEFAHR_FERN:
+            schuetzen += 1
+    if schuetzen > REITER_DECKUNG_MAX:
+        return "%d Schuetzen bis %d" % (schuetzen, GEFAHR_FERN)
+    for g in G.values():
+        if g.get("besitzer") not in (0, sp) and g["typ"] in TUERME and schach(ort, (g["x"], g["y"])) <= GEFAHR_FERN:
+            return "Turm in %d" % schach(ort, (g["x"], g["y"]))
     return None
 
 
@@ -421,6 +444,15 @@ class Reiterjagd:
             # B-182: die Sperre gilt je Reiter - die Gefahr am Standplatz rechnet die Wegfuehrung von seiner Seite aus
             frei = [k for k in sicher if self.gesperrt.get((r, k), -1) <= self.runde]
             if not frei:
+                streife = self._streife(o, G) if self.weg is not None else None
+                if streife is not None:
+                    # Daniel 21:41 "nach vorne und patroullieren": vorreiten statt warten
+                    self.weg.fuehre(r, "ort", streife, "reiterjagd")
+                    if self.befohlen.get(r, (None, None))[:2] != ("streife", streife):
+                        self.befohlen[r] = ("streife", streife, self.runde)
+                        aus.append("REITERJAGD: Reiter %d reitet vor nach %s (kein jagdbarer Arbeiter)" % (r, streife))
+                    self.absicht[r] = (Action.MOVE_TO_STAGING, point(streife), "patrol_forward", {"safe": len(sicher)})
+                    continue
                 self.absicht[r] = (Action.WAIT_SAFE_TARGET, None, "no_safe_worker",
                                    {"safe": len(sicher), "blocked": len(sicher) - len(frei)})
                 continue
@@ -455,7 +487,16 @@ class Reiterjagd:
         a = L[k]
         if a["besitzer"] in (0, self.sp) or a["typ"] not in ARBEITER or a.get("leben", 1) <= 0:
             return False
-        return not gefaehrlich((a["x"], a["y"]), L, G, self.sp)
+        return not reiter_gefahr((a["x"], a["y"]), L, G, self.sp)
+
+    def _streife(self, o, G):
+        """Daniel 16.11.2026 21:41 ("beritten sollte nach vorne und patroullieren"): ohne jagdbaren Arbeiter reitet der Reiter vor - zum
+        naechsten feindlichen Wirtschaftsgebaeude (WERT), an dem kein Turm steht. Ort oder None."""
+        orte = [(schach(o, (g["x"], g["y"])), (g["x"], g["y"])) for g in G.values()
+                if g.get("besitzer") not in (0, self.sp) and g["typ"] in WERT
+                and not any(t["typ"] in TUERME and t.get("besitzer") not in (0, self.sp) and schach((g["x"], g["y"]), (t["x"], t["y"])) <= GEFAHR_FERN
+                            for t in G.values())]
+        return min(orte)[1] if orte else None
 
     def _abschuesse(self, L):
         """Ein gejagtes Ziel, das nicht mehr lebt, zaehlt genau einmal; der Reiter ist danach frei. B-182: Jeder Erfolg kommt in die Mitschrift,
