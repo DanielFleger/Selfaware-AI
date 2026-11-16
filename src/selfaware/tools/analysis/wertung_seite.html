@@ -1,0 +1,445 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>SamurAI · Wertung je Einheit</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
+<style>
+/* Farben und Masse aus der D-aiBubble (tools/d_aibubble/stil.css), dazu die Glut der UCP-Oberflaeche fuer Rang und Kopf.
+   Feste Bedeutung (GG 165): Gruen = Lohn, Rot = Abzug - nichts anderes nimmt diese Farben. */
+:root {
+  --flaeche: #f5f6f8; --karte: #ffffff; --tinte: #1d1d1f; --tinte-sanft: #6b6b70; --linie: #e2e2e6;
+  --akzent: #2b2b30; --akzent-tinte: #ffffff; --akzent-sanft: #ececed;
+  --lohn: #2f9e44; --lohn-sanft: #e7f5ea; --abzug: #c0392b; --abzug-sanft: #fbeaea;
+  --glut: #c9772b; --glut-sanft: #fbf1e6; --sand: #efe4cf;
+  --rund: 10px; --rund-pille: 20px; --schatten: 0 8px 24px rgba(0,0,0,.10), 0 2px 6px rgba(0,0,0,.06);
+  --t: 150ms;
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--flaeche); color: var(--tinte); font-family: Barlow, Arial, sans-serif; font-size: 14px; }
+button, input, select { font: inherit; }
+
+/* Kopf mit dem Bild der UCP-Oberflaeche */
+.kopf { position: relative; color: #fff; padding: 22px 32px 18px; min-height: 150px; overflow: hidden;
+  background: #3a2418 url("/bild/hintergrund") center 28% / cover no-repeat; }
+.kopf::before { content: ""; position: absolute; inset: 0;
+  background: linear-gradient(90deg, rgba(20,12,8,.92) 0%, rgba(30,16,10,.78) 45%, rgba(40,18,8,.35) 100%); }
+.kopf > * { position: relative; }
+.kopf .auge { font: 600 12px/1 "Barlow Condensed", Barlow, sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #f3c58e; }
+.kopf h1 { margin: 6px 0 12px; font: 700 30px/1.1 "Barlow Condensed", Barlow, sans-serif; letter-spacing: .01em; }
+.kopf .zeile { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.kopf select { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.35); border-radius: var(--rund-pille);
+  padding: 6px 14px; min-width: 300px; cursor: pointer; }
+.kopf select option { color: var(--tinte); }
+.kachel { background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.22); border-radius: var(--rund); padding: 6px 12px; }
+.kachel b { display: block; font: 700 18px/1.1 "Barlow Condensed", Barlow, sans-serif; }
+.kachel span { font-size: 11.5px; color: #f1dcc4; }
+
+/* Reiter */
+.reiter { display: flex; gap: 4px; padding: 0 32px; background: var(--karte); border-bottom: 1px solid var(--linie); position: sticky; top: 0; z-index: 5; }
+.reiter button { border: 0; background: none; padding: 13px 14px 11px; color: var(--tinte-sanft); cursor: pointer; border-bottom: 3px solid transparent; font-weight: 600; }
+.reiter button:hover { color: var(--tinte); }
+.reiter button[aria-selected="true"] { color: var(--tinte); border-bottom-color: var(--glut); }
+.reiter .rechts { margin-left: auto; align-self: center; font-size: 12px; color: var(--tinte-sanft); }
+
+main { padding: 18px 32px 60px; }
+.leiste { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
+.such { display: flex; align-items: center; gap: 6px; }
+.such input { width: 260px; border: 1px solid var(--linie); background: var(--karte); border-radius: var(--rund-pille); padding: 6px 12px 6px 30px;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b6b70' stroke-width='2.4'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E");
+  background-repeat: no-repeat; background-position: 10px center; }
+.such input:not(:placeholder-shown) { background-image: none; padding-left: 12px; }
+.such .leeren { border: 0; background: none; color: var(--tinte-sanft); cursor: pointer; font-size: 16px; visibility: hidden; }
+.chips { display: flex; gap: 6px; flex-wrap: wrap; }
+.chip { border: 1px solid var(--linie); background: var(--karte); border-radius: var(--rund-pille); padding: 5px 12px; cursor: pointer; color: var(--tinte); }
+.chip:hover { border-color: var(--akzent); }
+.chip[aria-pressed="true"] { background: var(--akzent); color: var(--akzent-tinte); border-color: var(--akzent); }
+.zahl { font-variant-numeric: tabular-nums; }
+.hinweis { color: var(--tinte-sanft); font-size: 12.5px; }
+
+/* Tabelle wie eine Monday-Liste: Kopf zum Sortieren, Summenzeile unten */
+.tafel { background: var(--karte); border: 1px solid var(--linie); border-radius: var(--rund); overflow: auto; box-shadow: 0 1px 2px rgba(0,0,0,.03); }
+table { border-collapse: separate; border-spacing: 0; width: 100%; }
+th, td { padding: 8px 10px; border-bottom: 1px solid var(--linie); text-align: right; white-space: nowrap; }
+th:first-child, td:first-child { text-align: center; }
+th.links, td.links { text-align: left; }
+thead th { position: sticky; top: 0; background: #fafafb; font-weight: 600; font-size: 12.5px; color: var(--tinte-sanft); cursor: pointer; user-select: none; z-index: 1; }
+thead th:hover { color: var(--tinte); background: var(--akzent-sanft); }
+thead th .pfeil { display: inline-block; width: 10px; color: var(--glut); }
+thead th.lohn { box-shadow: inset 0 -3px 0 var(--lohn); }
+thead th.abzug { box-shadow: inset 0 -3px 0 var(--abzug); }
+tbody tr.zeile { cursor: pointer; transition: background var(--t); }
+tbody tr.zeile:hover { background: #f8f8fa; box-shadow: inset 4px 0 0 var(--glut); }
+tbody tr.zeile.offen { background: var(--glut-sanft); box-shadow: inset 4px 0 0 var(--glut); }
+tfoot td { background: #fafafb; font-weight: 600; border-bottom: 0; border-top: 2px solid var(--linie); }
+.pos { color: var(--lohn); } .neg { color: var(--abzug); } .null { color: #c4c4c9; }
+.rang { font: 700 15px/1 "Barlow Condensed", Barlow, sans-serif; color: var(--tinte-sanft); }
+.rang.top { color: var(--glut); }
+.einheit { display: flex; align-items: center; gap: 10px; }
+.marke { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font: 700 12px/1 "Barlow Condensed", Barlow, sans-serif; color: #fff; flex: none; }
+.einheit .n { font-weight: 600; } .einheit .s { font-size: 12px; color: var(--tinte-sanft); }
+.tot { font-size: 11px; background: var(--akzent-sanft); color: var(--tinte-sanft); padding: 1px 7px; border-radius: 10px; margin-left: 6px; }
+.gesamt { display: flex; align-items: center; justify-content: flex-end; gap: 8px; font-weight: 700; font-size: 15px; }
+.balken { width: 70px; height: 6px; border-radius: 3px; background: var(--akzent-sanft); overflow: hidden; display: flex; }
+.balken i { display: block; height: 100%; }
+
+/* Aufgeklappt: Punkte wofuer */
+tr.detail td { background: #fcfcfd; text-align: left; padding: 0; white-space: normal; }
+.detail-innen { display: grid; grid-template-columns: minmax(420px, 1.1fr) 1fr; gap: 18px; padding: 16px 20px 18px;
+  position: sticky; left: 0; width: min(1480px, calc(100vw - 90px)); }
+.detail-innen h3 { margin: 0 0 8px; font: 700 15px/1.2 "Barlow Condensed", Barlow, sans-serif; letter-spacing: .02em; text-transform: uppercase; color: var(--tinte-sanft); }
+.zu { position: absolute; top: 10px; right: 12px; border: 1px solid var(--linie); background: var(--karte); border-radius: var(--rund-pille); padding: 3px 12px; cursor: pointer; }
+.zu:hover { border-color: var(--akzent); }
+.aufstellung { width: 100%; border: 1px solid var(--linie); border-radius: var(--rund); overflow: hidden; }
+.aufstellung td, .aufstellung th { padding: 6px 10px; font-size: 13px; }
+.aufstellung th { position: static; background: #f6f6f8; cursor: default; }
+.aufstellung .wort { font-size: 11.5px; color: var(--tinte-sanft); white-space: normal; }
+.aufstellung tr.summe td { font-weight: 700; background: #f6f6f8; }
+.ereignisse { max-height: 320px; overflow: auto; border: 1px solid var(--linie); border-radius: var(--rund); background: var(--karte); }
+.ereignis { display: flex; gap: 10px; padding: 6px 10px; border-bottom: 1px solid var(--linie); font-size: 13px; align-items: baseline; }
+.ereignis:last-child { border-bottom: 0; }
+.ereignis .t { font-variant-numeric: tabular-nums; color: var(--tinte-sanft); width: 64px; flex: none; text-align: right; }
+.etikett { font-size: 11px; padding: 1px 8px; border-radius: 10px; flex: none; }
+.etikett.pos { background: var(--lohn-sanft); color: var(--lohn); } .etikett.neg { background: var(--abzug-sanft); color: var(--abzug); }
+
+/* Regler */
+.regler-gitter { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 12px; }
+.regler { min-width: 0; overflow: hidden; }
+.regler { background: var(--karte); border: 1px solid var(--linie); border-radius: var(--rund); padding: 12px 14px; border-left: 4px solid var(--linie); }
+.regler.pos { border-left-color: var(--lohn); } .regler.neg { border-left-color: var(--abzug); }
+.regler .kopfz { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
+.regler .name { font-weight: 700; }
+.regler .wort { font-size: 12px; color: var(--tinte-sanft); margin: 2px 0 8px; }
+.regler .reihe { display: flex; gap: 10px; align-items: center; }
+.regler input[type=range] { flex: 1; accent-color: var(--glut); }
+.regler input[type=number] { width: 72px; border: 1px solid var(--linie); border-radius: 6px; padding: 4px 6px; text-align: right; }
+.regler select { border: 1px solid var(--linie); border-radius: 6px; padding: 3px 6px; background: var(--karte); max-width: 150px; min-width: 0; }
+.regler .reihe input[type=range] { min-width: 0; }
+.knopf { border: 1px solid var(--linie); background: var(--karte); border-radius: var(--rund-pille); padding: 5px 12px; cursor: pointer; }
+.knopf:hover { border-color: var(--akzent); }
+.knopf.voll { background: var(--akzent); color: var(--akzent-tinte); border-color: var(--akzent); }
+.knopf.voll:hover { background: #000; }
+.status { font-size: 12px; color: var(--tinte-sanft); }
+.abschnitt { margin: 22px 0 10px; font: 700 13px/1 "Barlow Condensed", Barlow, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--tinte-sanft); display: flex; align-items: center; gap: 10px; }
+.abschnitt::after { content: ""; flex: 1; height: 1px; background: var(--linie); }
+.neu-regler { background: var(--karte); border: 1px dashed #c9c9cf; border-radius: var(--rund); padding: 12px 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.fehler { background: var(--abzug-sanft); color: var(--abzug); border: 1px solid #f0c4c0; border-radius: var(--rund); padding: 10px 14px; margin-bottom: 12px; display: none; }
+.leer { padding: 40px; text-align: center; color: var(--tinte-sanft); }
+.verlauf .eintrag { background: var(--karte); border: 1px solid var(--linie); border-radius: var(--rund); padding: 10px 14px; margin-bottom: 8px; }
+.verlauf .eintrag .z { font-size: 12px; color: var(--tinte-sanft); }
+</style>
+</head>
+<body>
+<header class="kopf">
+  <div class="auge">SamurAI · Wertungsmesser · Prototyp</div>
+  <h1>Wertung je Einheit</h1>
+  <div class="zeile">
+    <select id="partie" title="Partie wählen (neueste zuerst)"></select>
+    <div class="kachel"><b id="k-kill" class="zahl">–</b><span>Kill bei Takt</span></div>
+    <div class="kachel"><b id="k-einheiten" class="zahl">–</b><span>Kämpfer gewertet</span></div>
+    <div class="kachel"><b id="k-gesamt" class="zahl">–</b><span>Punkte gesamt</span></div>
+    <div class="kachel" title="Schaden und Zerstörungen, für die das Protokoll keinen eigenen Täter zeigt (z. B. Feuer, das übersprang)"><b id="k-ohne" class="zahl">–</b><span>Gebäude ohne Täter</span></div>
+  </div>
+</header>
+<nav class="reiter" role="tablist">
+  <button data-ansicht="einheiten" aria-selected="true">Einheiten</button>
+  <button data-ansicht="arten">Arten</button>
+  <button data-ansicht="regler">Regler</button>
+  <button data-ansicht="verlauf">Verlauf</button>
+  <span class="rechts" id="stand"></span>
+</nav>
+<main>
+  <div class="fehler" id="fehler"></div>
+  <section id="v-einheiten"></section>
+  <section id="v-arten" hidden></section>
+  <section id="v-regler" hidden></section>
+  <section id="v-verlauf" hidden></section>
+</main>
+<script>
+"use strict";
+const S = { partien: [], partie: null, regler: [], mg: {}, verlauf: [], ansicht: "einheiten",
+  sort: { schl: "gesamt", ab: true }, artSort: { schl: "summe", ab: true }, suche: "", art: "alle", offen: new Set() };
+const FARBEN = ["#5b6cff", "#c9772b", "#0f8b8d", "#8e5bd8", "#d14d8b", "#3c8dbc", "#6d5d4b", "#b38b00", "#4f6f86"];
+const $ = (s, w) => (w || document).querySelector(s);
+const esc = (t) => String(t == null ? "" : t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
+const zahl = (x, n) => (x == null ? "–" : Number(x).toLocaleString("de-DE", { maximumFractionDigits: n == null ? 1 : n, minimumFractionDigits: 0 }));
+const punktText = (x) => (Math.abs(x) < 0.05 ? '<span class="null">·</span>' : `<span class="${x > 0 ? "pos" : "neg"}">${x > 0 ? "+" : ""}${zahl(x)}</span>`);
+
+function fehler(t) { const f = $("#fehler"); f.textContent = t || ""; f.style.display = t ? "block" : "none"; }
+async function holen(url, opt) {
+  const r = await fetch(url, opt);
+  const d = await r.json();
+  if (!r.ok || d.fehler) throw new Error(d.fehler || r.statusText);
+  return d;
+}
+
+// ---- Rechnung: Punkte = Menge x Gewicht je aktivem Regler (dieselbe wie telemetry/wertung.punkte) ----
+function aktiv() { return S.regler.filter((r) => !r.archiviert); }
+function punkteVon(e) {
+  const aus = {}; let summe = 0;
+  for (const r of aktiv()) {
+    if (r.arten !== "alle" && !r.arten.includes(e.typ)) continue;
+    const m = e.menge[r.messgroesse] || 0;
+    if (!m) continue;
+    const p = m * r.gewicht; aus[r.id] = p; summe += p;
+  }
+  return { je: aus, summe };
+}
+// je Partie feste Farbe je Art, der Reihe nach - nie Gruen oder Rot (die bedeuten Lohn und Abzug, GG 165)
+function artFarbe(typ) {
+  if (!S.farben) {
+    const typen = S.partie ? [...new Set(S.partie.einheiten.map((e) => e.typ))].sort((a, b) => a - b) : [];
+    S.farben = new Map(typen.map((t, i) => [t, FARBEN[i % FARBEN.length]]));
+  }
+  return S.farben.get(typ) || "#8a8a90";
+}
+function artKurz(name) { return name.split(" (")[0]; }
+
+// ---- Adresse traegt die Ansicht (UX 20) ----
+function adresseSetzen(ersetzen) {
+  const h = "#" + new URLSearchParams({ partie: S.partie ? S.partie.partie + ".jsonl.gz" : "", ansicht: S.ansicht }).toString();
+  if (location.hash !== h) (ersetzen ? history.replaceState : history.pushState).call(history, null, "", h);
+}
+function adresseLesen() { const p = new URLSearchParams(location.hash.slice(1)); return { partie: p.get("partie"), ansicht: p.get("ansicht") }; }
+window.addEventListener("popstate", async () => {
+  const a = adresseLesen();
+  if (a.ansicht) zeigeAnsicht(a.ansicht, true);
+  if (a.partie && (!S.partie || S.partie.partie + ".jsonl.gz" !== a.partie)) await ladePartie(a.partie, true);
+});
+
+// ---- Laden ----
+async function start() {
+  try {
+    const [p, r] = await Promise.all([holen("/api/partien"), holen("/api/regler")]);
+    S.partien = p; regAnnehmen(r);
+    const sel = $("#partie");
+    sel.innerHTML = p.map((x) => `<option value="${esc(x.datei)}">${esc(x.zeit)} · ${esc(x.datei.replace("lage_", "").replace(".jsonl.gz", ""))}${x.kill_takt ? " · Kill " + zahl(x.kill_takt, 0) : ""}</option>`).join("");
+    sel.onchange = () => ladePartie(sel.value);
+    const a = adresseLesen();
+    if (a.ansicht) zeigeAnsicht(a.ansicht, true);
+    await ladePartie(a.partie && p.some((x) => x.datei === a.partie) ? a.partie : (p[0] || {}).datei, true);
+  } catch (ex) { fehler("Laden fehlgeschlagen: " + ex.message); }
+}
+function regAnnehmen(r) { S.regler = r.regler; S.mg = r.messgroessen; S.verlauf = r.verlauf; }
+async function ladePartie(datei, ersetzen) {
+  if (!datei) { $("#v-einheiten").innerHTML = '<div class="leer">Noch keine Partie aufgezeichnet.</div>'; return; }
+  $("#partie").value = datei;
+  $("#stand").textContent = "rechne …";
+  try {
+    S.partie = await holen("/api/partie?datei=" + encodeURIComponent(datei));
+    S.offen.clear(); S.farben = null; fehler("");
+  } catch (ex) { fehler("Partie nicht lesbar: " + ex.message); return; }
+  adresseSetzen(ersetzen);
+  zeichneAlles();
+}
+
+// ---- Kopf ----
+function zeichneKopf() {
+  const P = S.partie; if (!P) return;
+  const summe = P.einheiten.reduce((s, e) => s + punkteVon(e).summe, 0);
+  $("#k-kill").textContent = P.kill_takt ? zahl(P.kill_takt, 0) : "kein Kill";
+  $("#k-einheiten").textContent = zahl(P.einheiten.length, 0);
+  $("#k-gesamt").textContent = (summe > 0 ? "+" : "") + zahl(summe);
+  $("#k-ohne").textContent = zahl(P.ohne_taeter.gebaeude_zerstoert, 0);
+  $("#stand").textContent = "Partie bis Takt " + zahl(P.letzter_takt, 0) + " · Rechnung v" + P.version;
+}
+
+// ---- Einheiten ----
+function spalten() {
+  // nur Regler, die in dieser Partie bei irgendwem Punkte geben - Lohn zuerst
+  const r = aktiv().filter((x) => S.partie.einheiten.some((e) => (e.menge[x.messgroesse] || 0) && (x.arten === "alle" || x.arten.includes(e.typ))));
+  return r.sort((a, b) => (b.gewicht > 0) - (a.gewicht > 0));
+}
+function zeichneEinheiten() {
+  const P = S.partie, v = $("#v-einheiten");
+  const arten = [...new Map(P.einheiten.map((e) => [e.typ, e.name])).entries()].sort((a, b) => a[1].localeCompare(b[1]));
+  const sp = spalten();
+  let liste = P.einheiten.map((e) => ({ e, p: punkteVon(e) }));
+  const such = S.suche.trim().toLowerCase();
+  const hier = liste.length;
+  if (S.art !== "alle") liste = liste.filter((x) => String(x.e.typ) === S.art);
+  if (such) liste = liste.filter((x) => (x.e.name + " " + x.e.nr).toLowerCase().includes(such));
+  const wert = (x) => S.sort.schl === "gesamt" ? x.p.summe : S.sort.schl === "nr" ? x.e.nr : S.sort.schl === "name" ? x.e.name
+    : S.sort.schl === "lebte" ? x.e.bis - x.e.von : (x.p.je[S.sort.schl] || 0);
+  liste.sort((a, b) => { const A = wert(a), B = wert(b); const c = typeof A === "string" ? A.localeCompare(B) : A - B; return S.sort.ab ? -c : c; });
+  const rangNach = [...P.einheiten].map((e) => ({ e, s: punkteVon(e).summe })).sort((a, b) => b.s - a.s);
+  const rang = new Map(rangNach.map((x, i) => [x.e.schluessel, i + 1]));
+  const maxAbs = Math.max(1, ...P.einheiten.map((e) => Math.abs(punkteVon(e).summe)));
+  const pf = (schl) => `<span class="pfeil">${S.sort.schl === schl ? (S.sort.ab ? "▼" : "▲") : ""}</span>`;
+  const kopf = `<tr><th title="Rang nach Gesamtpunkten">#</th><th class="links" data-sort="name">Einheit ${pf("name")}</th>
+    <th data-sort="lebte" title="Takte, die sie lebte">Lebte ${pf("lebte")}</th><th data-sort="gesamt">Gesamt ${pf("gesamt")}</th>
+    ${sp.map((r) => `<th data-sort="${esc(r.id)}" class="${r.gewicht >= 0 ? "lohn" : "abzug"}" title="${esc(S.mg[r.messgroesse].name)} · dein Wort: „${esc(S.mg[r.messgroesse].wort)}“ · Menge in ${esc(S.mg[r.messgroesse].einheit)} · Gewicht ${zahl(r.gewicht, 2)}${r.arten === "alle" ? "" : " · nur " + r.arten.join(", ")}">${esc(kurzName(r))} ${pf(r.id)}</th>`).join("")}</tr>`;
+  const sum = (f) => liste.reduce((s, x) => s + f(x), 0);
+  const fuss = `<tr><td></td><td class="links">${liste.length} Einheiten</td><td></td><td class="zahl">${punktText(sum((x) => x.p.summe))}</td>
+    ${sp.map((r) => `<td class="zahl">${punktText(sum((x) => x.p.je[r.id] || 0))}</td>`).join("")}</tr>`;
+  const zeilen = liste.map((x) => {
+    const e = x.e, r = rang.get(e.schluessel), offen = S.offen.has(e.schluessel);
+    const anteil = Math.min(100, (Math.abs(x.p.summe) / maxAbs) * 100);
+    const z = `<tr class="zeile${offen ? " offen" : ""}" data-schl="${esc(e.schluessel)}" title="Klicken: Punkte dieser Einheit ${offen ? "zuklappen" : "aufklappen"}">
+      <td><span class="rang${r <= 3 ? " top" : ""}">${r}</span></td>
+      <td class="links"><div class="einheit"><span class="marke" style="background:${artFarbe(e.typ)}">${esc(artKurz(e.name).slice(0, 2))}</span>
+        <div><div class="n">${esc(artKurz(e.name))} ${e.nr}${e.gestorben ? '<span class="tot">gefallen</span>' : ""}</div><div class="s">${esc(e.name.split(" (")[1] ? "(" + e.name.split(" (")[1] : "")}</div></div></div></td>
+      <td class="zahl hinweis">${zahl(e.von, 0)}–${zahl(e.bis, 0)}</td>
+      <td><div class="gesamt"><div class="balken"><i style="width:${anteil}%;background:${x.p.summe >= 0 ? "var(--lohn)" : "var(--abzug)"}"></i></div><span class="zahl">${punktText(x.p.summe)}</span></div></td>
+      ${sp.map((rg) => `<td class="zahl">${punktText(x.p.je[rg.id] || 0)}</td>`).join("")}</tr>`;
+    return z + (offen ? `<tr class="detail"><td colspan="${4 + sp.length}">${detail(e, x.p)}</td></tr>` : "");
+  }).join("");
+  v.innerHTML = `<div class="leiste">
+      <div class="such"><input id="suche" placeholder="Suchen…" value="${esc(S.suche)}"><button class="leeren" id="leeren" title="Suche leeren">✕</button></div>
+      <div class="chips">${[["alle", "Alle Arten"], ...arten.map(([t, n]) => [String(t), artKurz(n)])].map(([w, n]) =>
+        `<button class="chip" data-art="${esc(w)}" aria-pressed="${S.art === w}">${esc(n)}</button>`).join("")}</div>
+      <span class="hinweis">${liste.length === hier ? hier + " Einheiten" : liste.length + " von " + hier + " Einheiten"} · Kopfzeile anklicken zum Sortieren</span>
+    </div>
+    <div class="tafel">${liste.length ? `<table><thead>${kopf}</thead><tbody>${zeilen}</tbody><tfoot>${fuss}</tfoot></table>` : '<div class="leer">Hier nichts.</div>'}</div>`;
+  const s = $("#suche", v);
+  $("#leeren", v).style.visibility = S.suche ? "visible" : "hidden";
+  s.oninput = () => { S.suche = s.value; const pos = s.selectionStart; zeichneEinheiten(); const n = $("#suche"); n.focus(); n.setSelectionRange(pos, pos); };
+  $("#leeren", v).onclick = () => { S.suche = ""; zeichneEinheiten(); };
+  v.querySelectorAll(".chip[data-art]").forEach((b) => (b.onclick = () => { S.art = b.dataset.art; zeichneEinheiten(); }));
+  v.querySelectorAll("th[data-sort]").forEach((th) => (th.onclick = () => {
+    const k = th.dataset.sort; S.sort = { schl: k, ab: S.sort.schl === k ? !S.sort.ab : k !== "name" }; zeichneEinheiten(); }));
+  v.querySelectorAll("tr.zeile").forEach((tr) => (tr.onclick = () => {
+    const k = tr.dataset.schl; S.offen.has(k) ? S.offen.delete(k) : S.offen.add(k); zeichneEinheiten(); }));
+  v.querySelectorAll(".zu").forEach((b) => (b.onclick = (ev) => { ev.stopPropagation(); S.offen.delete(b.dataset.schl); zeichneEinheiten(); }));
+}
+function kurzName(r) {
+  const n = S.mg[r.messgroesse].name;
+  return r.arten === "alle" ? n : n + " · " + r.arten.join(",");
+}
+function detail(e, p) {
+  const zeilen = aktiv().filter((r) => (r.arten === "alle" || r.arten.includes(e.typ)) && (e.menge[r.messgroesse] || 0))
+    .sort((a, b) => Math.abs(p.je[b.id] || 0) - Math.abs(p.je[a.id] || 0))
+    .map((r) => { const m = S.mg[r.messgroesse];
+      return `<tr><td class="links">${esc(m.name)}<div class="wort">dein Wort: „${esc(m.wort)}“</div></td>
+        <td class="zahl">${zahl(e.menge[r.messgroesse], 2)}<div class="wort">${esc(m.einheit)}</div></td>
+        <td class="zahl">× ${zahl(r.gewicht, 2)}</td><td class="zahl">${punktText(p.je[r.id] || 0)}</td></tr>`; }).join("");
+  const nachMg = Object.keys(e.menge).filter((k) => !aktiv().some((r) => r.messgroesse === k && (r.arten === "alle" || r.arten.includes(e.typ))));
+  const ohne = nachMg.length ? `<p class="hinweis">Gemessen, aber ohne aktiven Regler: ${nachMg.map((k) => esc(S.mg[k].name) + " " + zahl(e.menge[k], 2)).join(" · ")}</p>` : "";
+  const ev = [...e.ereignisse].sort((a, b) => b[0] - a[0]).map(([t, k, menge, text]) => {
+    const r = aktiv().find((x) => x.messgroesse === k && (x.arten === "alle" || x.arten.includes(e.typ)));
+    const pkt = r ? menge * r.gewicht : 0;
+    return `<div class="ereignis"><span class="t">${zahl(t, 0)}</span><span class="etikett ${pkt >= 0 ? "pos" : "neg"}">${esc(S.mg[k].name)}${r ? " " + (pkt > 0 ? "+" : "") + zahl(pkt, 2) : ""}</span><span>${esc(text)}</span></div>`;
+  }).join("");
+  return `<div class="detail-innen"><button class="zu" data-schl="${esc(e.schluessel)}" title="Zuklappen">Zuklappen ✕</button>
+    <div><h3>Punkte wofür – ${esc(artKurz(e.name))} ${e.nr}</h3>
+      <table class="aufstellung"><thead><tr><th class="links">Regler</th><th>Menge</th><th>Gewicht</th><th>Punkte</th></tr></thead>
+      <tbody>${zeilen || '<tr><td colspan="4" class="links hinweis">Keine Punkte.</td></tr>'}<tr class="summe"><td class="links">Gesamt</td><td></td><td></td><td class="zahl">${punktText(p.summe)}</td></tr></tbody></table>${ohne}
+      <p class="hinweis">Lebte von Takt ${zahl(e.von, 0)} bis ${zahl(e.bis, 0)}${e.gestorben ? ", gefallen" : ""} · ${e.runden} Lenker-Runden · Kennung ${esc(e.schluessel)}</p></div>
+    <div><h3>Was geschah (neueste zuerst)</h3><div class="ereignisse">${ev || '<div class="leer">Keine einzelnen Ereignisse – die Punkte kommen aus laufenden Mengen (Schaden, Stehen, Wege).</div>'}</div></div></div>`;
+}
+
+// ---- Arten ----
+function zeichneArten() {
+  const P = S.partie, v = $("#v-arten");
+  const m = new Map();
+  for (const e of P.einheiten) {
+    const s = punkteVon(e).summe;
+    const a = m.get(e.typ) || { typ: e.typ, name: e.name, n: 0, summe: 0, bester: null, schlechtester: null, gefallen: 0 };
+    a.n++; a.summe += s; if (e.gestorben) a.gefallen++;
+    if (!a.bester || s > a.bester.s) a.bester = { s, e };
+    if (!a.schlechtester || s < a.schlechtester.s) a.schlechtester = { s, e };
+    m.set(e.typ, a);
+  }
+  const L = [...m.values()].map((a) => ({ ...a, mittel: a.summe / a.n }));
+  const k = S.artSort;
+  L.sort((a, b) => { const A = a[k.schl], B = b[k.schl]; const c = typeof A === "string" ? A.localeCompare(B) : A - B; return k.ab ? -c : c; });
+  const pf = (s) => `<span class="pfeil">${k.schl === s ? (k.ab ? "▼" : "▲") : ""}</span>`;
+  v.innerHTML = `<div class="leiste"><span class="hinweis">Je Einheitenart: wie viele, wie viele Punkte zusammen und je Einheit. Kopfzeile anklicken zum Sortieren.</span></div>
+    <div class="tafel"><table><thead><tr><th class="links" data-s="name">Art ${pf("name")}</th><th data-s="n">Einheiten ${pf("n")}</th><th data-s="gefallen">gefallen ${pf("gefallen")}</th>
+    <th data-s="summe">Punkte zusammen ${pf("summe")}</th><th data-s="mittel">je Einheit ${pf("mittel")}</th><th class="links">Beste</th><th class="links">Schwächste</th></tr></thead>
+    <tbody>${L.map((a) => `<tr class="zeile" data-typ="${a.typ}" title="Klicken: Einheiten dieser Art zeigen"><td class="links"><div class="einheit"><span class="marke" style="background:${artFarbe(a.typ)}">${esc(artKurz(a.name).slice(0, 2))}</span><div><div class="n">${esc(artKurz(a.name))}</div><div class="s">${esc(a.name.split(" (")[1] ? "(" + a.name.split(" (")[1] : "")}</div></div></div></td>
+      <td class="zahl">${a.n}</td><td class="zahl">${a.gefallen}</td><td class="zahl">${punktText(a.summe)}</td><td class="zahl">${punktText(a.mittel)}</td>
+      <td class="links">${a.bester.e.nr} (${punktText(a.bester.s)})</td><td class="links">${a.schlechtester.e.nr} (${punktText(a.schlechtester.s)})</td></tr>`).join("")}</tbody></table></div>`;
+  v.querySelectorAll("th[data-s]").forEach((th) => (th.onclick = () => { const s = th.dataset.s; S.artSort = { schl: s, ab: k.schl === s ? !k.ab : s !== "name" }; zeichneArten(); }));
+  v.querySelectorAll("tr[data-typ]").forEach((tr) => (tr.onclick = () => { S.art = tr.dataset.typ; zeigeAnsicht("einheiten"); }));
+}
+
+// ---- Regler ----
+let speicherUhr = null;
+function zeichneRegler() {
+  const v = $("#v-regler");
+  const typen = S.partie ? [...new Map(S.partie.einheiten.map((e) => [e.typ, e.name])).entries()] : [];
+  const artWahl = (r) => `<select data-feld="arten" data-id="${esc(r.id)}" title="Für welche Einheitenart dieser Regler gilt">
+      <option value="alle"${r.arten === "alle" ? " selected" : ""}>alle Arten</option>
+      ${typen.map(([t, n]) => `<option value="${t}"${r.arten !== "alle" && r.arten.length === 1 && r.arten[0] === t ? " selected" : ""}>nur ${esc(artKurz(n))}</option>`).join("")}</select>`;
+  const karte = (r) => { const m = S.mg[r.messgroesse];
+    return `<div class="regler ${r.gewicht >= 0 ? "pos" : "neg"}"><div class="kopfz"><span class="name">${esc(m.name)}</span>
+      <button class="knopf" data-arch="${esc(r.id)}" title="Archivieren: zählt nicht mehr mit, kommt mit einem Klick zurück">Archivieren</button></div>
+      <div class="wort">dein Wort: „${esc(m.wort)}“ · Menge in ${esc(m.einheit)} · ${esc(r.gesetzt_von || "")}</div>
+      <div class="reihe"><input type="range" min="-5" max="5" step="0.1" value="${r.gewicht}" data-feld="gewicht" data-id="${esc(r.id)}">
+      <input type="number" step="0.1" value="${r.gewicht}" data-feld="gewicht" data-id="${esc(r.id)}">${artWahl(r)}</div></div>`; };
+  const aktivL = S.regler.filter((r) => !r.archiviert), archiv = S.regler.filter((r) => r.archiviert);
+  v.innerHTML = `<div class="leiste"><button class="knopf" id="zurueck" title="Den Stand vor der letzten Änderung wiederherstellen (der Verlauf behält beides)">Letzte Änderung zurücknehmen</button>
+      <span class="status" id="regstatus">Änderungen werden sofort gespeichert und rechnen alle Partien neu.</span></div>
+    <div class="regler-gitter">${aktivL.map(karte).join("")}</div>
+    <div class="abschnitt">Neuer Regler</div>
+    <div class="neu-regler"><select id="neu-mg">${Object.entries(S.mg).map(([k, m]) => `<option value="${k}">${esc(m.name)}</option>`).join("")}</select>
+      <select id="neu-art"><option value="alle">alle Arten</option>${typen.map(([t, n]) => `<option value="${t}">nur ${esc(artKurz(n))}</option>`).join("")}</select>
+      <input type="number" id="neu-gewicht" step="0.1" value="1" style="width:80px" title="Gewicht">
+      <button class="knopf voll" id="neu">Regler anlegen</button>
+      <span class="hinweis">Beispiel: „Steht ohne Wirkung“ nur für Speerträger mit Gewicht −3.</span></div>
+    <div class="abschnitt">Archiv (${archiv.length})</div>
+    ${archiv.length ? `<div class="regler-gitter">${archiv.map((r) => `<div class="regler"><div class="kopfz"><span class="name">${esc(kurzName(r))}</span>
+      <button class="knopf" data-holen="${esc(r.id)}">Zurückholen</button></div><div class="wort">Gewicht ${zahl(r.gewicht, 2)}</div></div>`).join("")}</div>` : '<p class="hinweis">Leer.</p>'}`;
+  v.querySelectorAll("[data-feld]").forEach((el) => (el.oninput = () => {
+    const r = S.regler.find((x) => x.id === el.dataset.id);
+    if (el.dataset.feld === "gewicht") { const w = parseFloat(el.value); if (isNaN(w)) return; r.gewicht = w;
+      v.querySelectorAll(`[data-feld="gewicht"][data-id="${CSS.escape(r.id)}"]`).forEach((x) => { if (x !== el) x.value = w; }); }
+    else { r.arten = el.value === "alle" ? "alle" : [parseInt(el.value, 10)]; }
+    r.gesetzt_von = "von Hand gesetzt";
+    speichern("Regler " + S.mg[r.messgroesse].name + " geändert");
+  }));
+  v.querySelectorAll("[data-arch]").forEach((b) => (b.onclick = () => { const r = S.regler.find((x) => x.id === b.dataset.arch); r.archiviert = true; speichern("archiviert: " + kurzName(r), true); }));
+  v.querySelectorAll("[data-holen]").forEach((b) => (b.onclick = () => { const r = S.regler.find((x) => x.id === b.dataset.holen); r.archiviert = false; speichern("zurückgeholt: " + kurzName(r), true); }));
+  $("#neu", v).onclick = () => {
+    const mg = $("#neu-mg").value, art = $("#neu-art").value, w = parseFloat($("#neu-gewicht").value) || 0;
+    let id = mg + "_" + art, i = 2; while (S.regler.some((x) => x.id === id)) id = mg + "_" + art + "_" + i++;
+    S.regler.push({ id, messgroesse: mg, arten: art === "alle" ? "alle" : [parseInt(art, 10)], gewicht: w, name: S.mg[mg].name, wort: S.mg[mg].wort, archiviert: false, gesetzt_von: "von Hand angelegt" });
+    speichern("neu: " + S.mg[mg].name + (art === "alle" ? "" : " nur " + art), true);
+  };
+  $("#zurueck", v).onclick = async () => {
+    try { regAnnehmen(await holen("/api/regler/zurueck", { method: "POST", body: "{}" })); zeichneAlles(); $("#regstatus").textContent = "zurückgenommen"; }
+    catch (ex) { fehler(ex.message); }
+  };
+}
+function speichern(grund, gleich) {
+  zeichneKopf(); if (S.ansicht !== "regler") zeichneAnsicht();
+  $("#regstatus") && ($("#regstatus").textContent = "speichere …");
+  clearTimeout(speicherUhr);
+  const los = async () => {
+    try { regAnnehmen(await holen("/api/regler", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ regler: S.regler, grund }) }));
+      fehler(""); const st = $("#regstatus"); if (st) st.textContent = "gespeichert " + new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+      if (gleich) zeichneRegler(); zeichneKopf(); }
+    catch (ex) { fehler("Nicht gespeichert: " + ex.message); }
+  };
+  gleich ? los() : (speicherUhr = setTimeout(los, 600));
+}
+
+// ---- Verlauf ----
+function zeichneVerlauf() {
+  const v = $("#v-verlauf");
+  v.innerHTML = `<div class="leiste"><span class="hinweis">Jede Änderung an den Reglern, neueste zuerst. Zurücknehmen legt eine neue Änderung an, nichts verschwindet.</span></div>
+    <div class="verlauf">${S.verlauf.length ? S.verlauf.map((x) => `<div class="eintrag"><div class="z">${esc(x.zeit)} · ${esc(x.wer || "")}</div><b>${esc(x.grund || "Änderung")}</b>
+      <div class="hinweis">${x.aenderungen.map(esc).join(" · ") || "keine Werte geändert"}</div></div>`).join("") : '<div class="leer">Noch keine Änderung.</div>'}</div>`;
+}
+
+// ---- Ansichten ----
+function zeichneAnsicht() {
+  if (!S.partie && S.ansicht !== "regler" && S.ansicht !== "verlauf") return;
+  ({ einheiten: zeichneEinheiten, arten: zeichneArten, regler: zeichneRegler, verlauf: zeichneVerlauf })[S.ansicht]();
+}
+function zeichneAlles() { zeichneKopf(); zeichneAnsicht(); }
+function zeigeAnsicht(a, ohneVerlauf) {
+  S.ansicht = a;
+  document.querySelectorAll(".reiter button").forEach((b) => b.setAttribute("aria-selected", b.dataset.ansicht === a));
+  for (const n of ["einheiten", "arten", "regler", "verlauf"]) $("#v-" + n).hidden = n !== a;
+  if (!ohneVerlauf) adresseSetzen(false);
+  zeichneAnsicht();
+}
+document.querySelectorAll(".reiter button").forEach((b) => (b.onclick = () => zeigeAnsicht(b.dataset.ansicht)));
+start();
+</script>
+</body>
+</html>
