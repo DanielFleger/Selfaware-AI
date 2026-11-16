@@ -784,6 +784,9 @@ def _starte_lenker(sp, stempel, aufstellung):
             "set PYTHONPATH=%s" % os.path.join(workspace.ROOT, "src"),
             '"%s" -u -m selfaware.runtime.live.erstes_spiel aufstellung=%s > "%s" 2>&1'
             % (sys.executable, aufstellung, aus),
+            # Probe 13 (16.11.2026 22:20:37): der Lenker endete mitten in der Partie, die Mitschrift zeigt nur "^C" - wer ihn beendet,
+            # steht so wenigstens mit dem Rueckgabewert drin (-1073741510 = Strg+C, 1 = taskkill /F)
+            'echo LENKER-ENDE Rueckgabe %%ERRORLEVEL%% >> "%s"' % aus,
         ]
         f.write("".join(z + chr(13) + chr(10) for z in zeilen))
     befehl = (
