@@ -237,3 +237,47 @@ def test_im_lord_angriff_gehen_sklaven_auf_den_kornspeicher_am_lord():
     t.lord_ort = None
     t.schritt(L, G, Befehle())
     assert not t.korn
+
+
+def test_am_pennerhof_gibt_es_100_punkte():
+    """Daniel 17.11.2026 00:20 ("bitte mache das kuenftig immer etwas anzuzuenden was nahe am pennerhof ist gibt 100 punkte"): ein Gebaeude bis
+    PENNERHOF_R Felder vom Lagerfeuer seines Besitzers zieht den Sklaven einem naeheren, sonst wertvolleren vor. Gegenprobe: das Lagerfeuer
+    eines anderen Spielers zaehlt nicht, eines weiter als PENNERHOF_R auch nicht."""
+    assert RA.PENNERHOF_PUNKTE == 100
+    for feuer, erwartet in (
+        ((62, 10, 2), 101),
+        ((62, 10, 3), 100),
+        ((62 + RA.PENNERHOF_R + 3, 10, 2), 100),
+    ):
+        t = _trupp()
+        t.schuss = NieFeuer()
+        L = _sklaven((10, 10))
+        G = {
+            100: {"typ": 1, "x": 40, "y": 10, "besitzer": 2},
+            101: {"typ": 3, "x": 60, "y": 10, "besitzer": 2},
+        }
+        G[900] = {"typ": RA.PENNERHOF, "x": feuer[0], "y": feuer[1], "besitzer": feuer[2]}
+        t.schritt(L, G, Befehle())
+        assert t.ziel.get(1) == erwartet, (feuer, t.ziel)
+
+
+def test_im_lord_angriff_zuerst_das_gebaeude_am_pennerhof():
+    """Daniel 17.11.2026 00:20: die Sklaven, die im Lord-Angriff trotz Gefahr gehen, nehmen das Gebaeude am Pennerhof vor dem Kornspeicher
+    weiter weg; ohne Pennerhof-Gebaeude bleibt es der Kornspeicher (Test oben)."""
+    from selfaware.micro.wegfuehrung import Wegfuehrung
+
+    t = _trupp()
+    t.schuss = NieFeuer()
+    t.weg = Wegfuehrung(1)
+    L = _sklaven(*[(10, 10 + i) for i in range(RA.KORN_SKLAVEN)])
+    G = {
+        500: {"typ": RA.KORNSPEICHER, "x": 200, "y": 230, "besitzer": 2},
+        501: {"typ": 1, "x": 208, "y": 200, "besitzer": 2},
+        900: {"typ": RA.PENNERHOF, "x": 210, "y": 205, "besitzer": 2},
+    }
+    t.lord_ort = (200, 200)
+    aus = t.schritt(L, G, Befehle())
+    assert len(t.korn) == RA.KORN_SKLAVEN and all(
+        t.ziel[n] == 501 and t.weg.auftraege[n].trotz for n in t.korn
+    ), aus
+    assert any("am Pennerhof" in z for z in aus), aus

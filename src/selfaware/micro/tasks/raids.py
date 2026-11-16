@@ -104,6 +104,35 @@ def schach(a, b):
     return max(abs(a[0] - b[0]), abs(a[1] - b[1]))
 
 
+# Daniel 17.11.2026 00:20 (Bild: Feuer am feindlichen Bergfried - "jetzt hast du per zufall geschafft das zu machen von dem ich schon immer sage
+# dass es komplett op ist bitte mache das kuenftig immer etwas anzuzuenden was nahe am pennerhof ist gibt 100 punkte"): jedes Zielgebaeude bis
+# PENNERHOF_R Felder vom Lagerfeuer seines Besitzers (Gebaeude Typ PENNERHOF, dort warten die Bauern) bekommt PENNERHOF_PUNKTE zu seinem WERT.
+# Gemessen Probe 26 (lage_20261117_001738): der Kornspeicher 9 Felder vom Lagerfeuer brannte ab Takt 21.762, ab Takt 22.070 brannten das
+# Lagerfeuer selbst und ein Gebaeude 8 Felder daneben, danach Gebaeude in 13 und 19 Feldern. PENNERHOF_R ist ein Startwert an diesem einen Fall
+PENNERHOF = 55
+PENNERHOF_R = 10
+PENNERHOF_PUNKTE = 100
+
+
+def pennerhoefe(G):
+    """{Besitzer: [Ort des Lagerfeuers]} - einmal je Zielwahl, nicht je Gebaeude."""
+    aus = collections.defaultdict(list)
+    for g in G.values():
+        if g.get("typ") == PENNERHOF:
+            aus[g.get("besitzer")].append((g["x"], g["y"]))
+    return aus
+
+
+def am_pennerhof(g, hoefe):
+    """True, wenn das Gebaeude g hoechstens PENNERHOF_R Felder vom Lagerfeuer seines Besitzers steht."""
+    return any(schach(p, (g["x"], g["y"])) <= PENNERHOF_R for p in hoefe.get(g.get("besitzer"), ()))
+
+
+def wert(g, hoefe):
+    """Wert eines Zielgebaeudes fuer Brandtrupp und Deckung: WERT der Art, am Pennerhof PENNERHOF_PUNKTE dazu (Daniel 17.11.2026 00:20)."""
+    return WERT[g["typ"]] + (PENNERHOF_PUNKTE if am_pennerhof(g, hoefe) else 0)
+
+
 def feinde(L, sp):
     return [(e["typ"], (e["x"], e["y"])) for e in L.values() if e.get("besitzer") not in (0, sp) and e.get("leben", 1) > 0]
 
@@ -268,10 +297,11 @@ class Brandtrupp:
         stellt sich der Sklave zu einem, das schon ein anderer Sklave anzuendet, statt vorne zu warten. self.dazu sagt, ob es so kam."""
         kand = []
         self.ohne_ziel = collections.Counter()
+        hoefe = pennerhoefe(G)
         for n in G:
             h = self._hindernis(n, L, G)
             if h is None:
-                kand.append((WERT[G[n]["typ"]] / float(max(schach(ort, (G[n]["x"], G[n]["y"])), 1)), n))
+                kand.append((wert(G[n], hoefe) / float(max(schach(ort, (G[n]["x"], G[n]["y"])), 1)), n))
             elif h != "not_target":
                 self.ohne_ziel[h] += 1
         reihe = [n for _, n in sorted(kand, reverse=True)]
@@ -326,9 +356,9 @@ class Brandtrupp:
                     self.ziel.pop(s)
                     self.weg.loslassen(s)
                     aus.append("BRANDTRUPP: Sklave %d gibt Gebaeude %d auf (%s)" % (s, nr, st))
-        # Daniel 23:13: im Lord-Angriff bis zu KORN_SKLAVEN Sklaven auf den Kornspeicher am Lord, trotz Gefahr
+        # Daniel 23:13: im Lord-Angriff bis zu KORN_SKLAVEN Sklaven auf den Kornspeicher am Lord, trotz Gefahr; 17.11. 00:20: zuerst am Pennerhof
         self.korn &= meine
-        korn = self._kornspeicher(G) if self.lord_ort is not None else None
+        korn = self._lord_brandziel(G) if self.lord_ort is not None else None
         if korn is None:
             self.korn = set()
         else:
@@ -336,7 +366,8 @@ class Brandtrupp:
                 if len(self.korn) >= KORN_SKLAVEN and s not in self.korn:
                     break
                 if self.ziel.get(s) != korn:
-                    aus.append("BRANDTRUPP: Lord-Angriff - Sklave %d auf den Kornspeicher %d" % (s, korn))
+                    aus.append("BRANDTRUPP: Lord-Angriff - Sklave %d auf Gebaeude %d (Typ %d%s)" % (
+                        s, korn, G[korn]["typ"], ", am Pennerhof" if am_pennerhof(G[korn], pennerhoefe(G)) else ""))
                 self.ziel[s] = korn
                 self.korn.add(s)
         belegt = set(self.ziel.values())
@@ -382,12 +413,16 @@ class Brandtrupp:
                     self.befohlen[s] = self.runde
         return aus
 
-    def _kornspeicher(self, G):
-        """Daniel 23:13: der feindliche Kornspeicher bis KORN_R Felder vom Lord, der dem Lord am naechsten steht und noch nicht brennt."""
-        kand = sorted((schach((g["x"], g["y"]), self.lord_ort), n) for n, g in G.items()
-                      if g.get("typ") == KORNSPEICHER and g.get("besitzer") not in (0, self.sp) and n not in self.brennt
+    def _lord_brandziel(self, G):
+        """Ziel der Sklaven, die im Lord-Angriff trotz Gefahr gehen: ein feindliches Gebaeude bis KORN_R Felder vom Lord, das noch nicht brennt -
+        am Pennerhof (Daniel 17.11.2026 00:20, "immer etwas anzuzuenden was nahe am pennerhof ist") oder der Kornspeicher (Daniel 16.11. 23:13).
+        Das mit dem hoechsten Wert (wert), bei gleichem Wert das naechste am Lord."""
+        hoefe = pennerhoefe(G)
+        kand = sorted((-wert(g, hoefe), schach((g["x"], g["y"]), self.lord_ort), n) for n, g in G.items()
+                      if g.get("typ") in WERT and (g["typ"] == KORNSPEICHER or am_pennerhof(g, hoefe))
+                      and g.get("besitzer") not in (0, self.sp) and n not in self.brennt
                       and not ZV.brennt(g) and schach((g["x"], g["y"]), self.lord_ort) <= KORN_R)
-        return kand[0][1] if kand else None
+        return kand[0][2] if kand else None
 
     @property
     def im_ausweichen(self):
@@ -593,7 +628,8 @@ class Deckung:
         z = [G[nr] for nr in (brand.ziel.values() if brand else ()) if nr in G]
         if z:
             return (z[0]["x"], z[0]["y"])
-        kand = [(WERT[g["typ"]] / float(max(schach(self.heim, (g["x"], g["y"])), 1)), (g["x"], g["y"]))
+        hoefe = pennerhoefe(G)      # Daniel 17.11.2026 00:20: dieselbe Wertung wie der Brandtrupp
+        kand = [(wert(g, hoefe) / float(max(schach(self.heim, (g["x"], g["y"])), 1)), (g["x"], g["y"]))
                 for g in G.values() if g.get("besitzer") not in (0, self.sp) and g["typ"] in WERT and g["typ"] not in TUERME]
         return max(kand)[1] if kand else None
 
