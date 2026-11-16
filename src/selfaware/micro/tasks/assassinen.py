@@ -408,6 +408,10 @@ class Einzeln:
     # Angriffe mit 15-26, gescheitert jeder mit 6. Ein Angriff braucht mindestens LORD_MIN_GRUPPE, und nur Angriffe dieser Groesse zaehlen
     # fuer den gemessenen Bedarf. Startwert zwischen 6 (gescheitert) und 15 (gelungen), nicht eigens gemessen:
     LORD_MIN_GRUPPE = 12
+    # Probe 19 (partie_20261116_231927): die erste Bereitstellung brach mit "10 von 12 bereit" ab, die zweite griff erst bei Takt 25.268 an
+    # (Kill 26.509) - ein Abbruch kostet Pause und neuen Anmarsch (~4.000-6.000 Takte). Bei Fristende greift der Stapel an, wenn mindestens
+    # STAPEL_ANTEIL des Bedarfs bereitsteht. Startwert, nicht gemessen:
+    STAPEL_ANTEIL = 0.8
     # 17.10. Laptop, Partie 1017h (Lageprotokoll): 35x lief genau EIN Assassine los ("1 laufen los"), 38 von 93 Toten starben
     # am Lord mit 4+ Fernkaempfern im Umkreis 20 - die Rechnung lord_machbar gilt nur, wenn alle zugleich ankommen. Dazu standen
     # im Mittel ~6 Assassinen (= eine Lord-Gruppe) an unserer Burg still (Zustand 105, Laufziel = eigener Ort, 77 % aller
@@ -2668,6 +2672,7 @@ class Einzeln:
                             n_mess, n_bedarf, le["leben"], self._lord_schaden_je_assassine()))
                     n_bedarf, bedarf_art, gruppe_leben = n_mess, "gemessen", None
             n_bedarf = max(n_bedarf, self.LORD_MIN_GRUPPE)        # Probe 18: mit 6 gescheitert (siehe LORD_MIN_GRUPPE)
+            genug = max(1, int(math.ceil(self.STAPEL_ANTEIL * n_bedarf)))   # Probe 19: bei Fristende reicht dieser Stapel (STAPEL_ANTEIL)
             # 17.10. Laptop (1017h): Bereitstellung statt gestaffeltem Anlauf - die Gruppe zaehlt ganz (unterwegs + bereit)
             if lt["phase"] == "angriff" and len(lt["mitglieder"]) < self.LORD_REST:
                 ereignis.append("GEMEINSAMER LORD-ANGRIFF vorbei: noch %d leben, Lord-Leben %d - wieder raiden bis %d" % (
@@ -2708,7 +2713,7 @@ class Einzeln:
                     self._vergessen(k)
                 lt.update(mitglieder=set(), phase=None, pause_bis=self.jetzt + self.BEREIT_PAUSE)
             if lt["phase"] == "bereit" and self.jetzt - lt.get("seit_tick", self.jetzt) > self._bereit_frist() \
-                    and len(lt.get("bereit", ())) < n_bedarf:      # genug beisammen: dann greift unten der Stapel an statt abzubrechen
+                    and len(lt.get("bereit", ())) < genug:      # genug beisammen: dann greift unten der Stapel an statt abzubrechen
                 ereignis.append("LORD-BEREITSTELLUNG ABGEBROCHEN: nach %d Ticks erst %d von %d bereit - alle raiden" % (
                     self.jetzt - lt["seit_tick"], len(lt.get("bereit", ())), n_bedarf))
                 # #358 (Probe 15.11.2026 23:29: zweimal 0 von 6/8 bereit nach ~3.100 Takten, Wege 22-214 Felder zu EINEM verdeckten Platz;
@@ -2864,7 +2869,7 @@ class Einzeln:
                 # liefen auch die noch Anlaufenden los und kamen einzeln an
                 alle_da = len(bereit) >= len(lt["mitglieder"])
                 zeit_um = self.jetzt - lt.get("seit_tick", self.jetzt) > self._bereit_frist()
-                if len(bereit) >= n_bedarf and (alle_da or zeit_um) and lord_machbar(
+                if len(bereit) >= (genug if (alle_da or zeit_um) else n_bedarf) and (alle_da or zeit_um) and lord_machbar(
                         len(bereit), le["leben"], self._sicht.feuer_gesamt(lp) / len(bereit),
                         leben=self._anlauf_leben(self._anlauf_von(L, lp), lp, len(bereit)))[0]:
                     alle = sorted(bereit)

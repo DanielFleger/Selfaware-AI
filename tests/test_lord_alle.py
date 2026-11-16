@@ -342,3 +342,20 @@ def test_neben_dem_lord_faellt_keiner_wegen_stillstand_aus_der_gruppe():
     for t in (20400, 20500, 20700, 20900):
         _schritt(a, L, t)
     assert 200 in a.lordtrupp["mitglieder"]
+
+
+def test_bei_fristende_reicht_ein_stapel_von_stapel_anteil():
+    """Probe 19 (16.11.2026): Abbruch mit "10 von 12 bereit" kostete ~5.000 Takte bis zum naechsten Angriff. Bei Fristende greift der Stapel an,
+    wenn mindestens STAPEL_ANTEIL des Bedarfs (12) dasteht: 10 ja, 9 nicht (dann Abbruch wie bisher)."""
+    for am_platz, angriff in ((10, True), (9, False)):
+        a, L = _szene(14)
+        _schritt(a, L, 20000)
+        plaetze = dict(a.lordtrupp["platz"])
+        for k in sorted(plaetze)[:am_platz]:
+            L[k].update(x=plaetze[k][0], y=plaetze[k][1], laufx=plaetze[k][0], laufy=plaetze[k][1])
+        _schritt(a, L, 20200)
+        ev = _schritt(a, L, 20000 + a._bereit_frist() + 10)
+        assert (a.lordtrupp["phase"] == "angriff") is angriff, (
+            am_platz,
+            [z for z in ev if "LORD" in z],
+        )
