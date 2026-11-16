@@ -15,6 +15,15 @@ def _modul():
     return AS
 
 
+@pytest.fixture(autouse=True)
+def _stapel_wie_vorher(monkeypatch):
+    """Diese Szenen pruefen anderes (Gruppe, Frist, Kletterweg, Push) mit 12-14 Assassinen. Die Mindestgroesse des Stapels (LORD_STAPEL_MIN,
+    17.11.2026) und das Warten ueber die Frist (BEREIT_WARTEN) haben eigene Tests in test_lord_alle.py - hier wie vor dem 17.11."""
+    AS = _modul()
+    monkeypatch.setattr(AS.Einzeln, "LORD_STAPEL_MIN", 1)
+    monkeypatch.setattr(AS.Einzeln, "BEREIT_WARTEN", 1)
+
+
 def _e(nr, besitzer, typ, x, y, **k):
     d = {
         "nr": nr,
@@ -364,3 +373,61 @@ def test_bei_fristende_reicht_ein_stapel_von_stapel_anteil():
             am_platz,
             [z for z in ev if "LORD" in z],
         )
+
+
+def _stapel_am_platz(a, L, n):
+    plaetze = dict(a.lordtrupp["platz"])
+    for k in sorted(plaetze)[:n]:
+        L[k].update(x=plaetze[k][0], y=plaetze[k][1], laufx=plaetze[k][0], laufy=plaetze[k][1])
+
+
+def test_echte_werte_stapel_min_und_warten():
+    """17.11.2026: erste Lord-Angriffe mit 15-26 toeteten den Lord 6 von 6 Mal, mit 12-13 nur 1 von 3 (Proben 13c-26)."""
+    import inspect
+    import re
+
+    quelle = inspect.getsource(
+        _modul()
+    )  # die Klasse ist hier per Fixture umgestellt - der Wert im Code zaehlt
+    assert re.search(r"^    LORD_STAPEL_MIN = (\d+)$", quelle, re.M).group(1) == "15"
+    assert re.search(r"^    BEREIT_WARTEN = (\d+) ", quelle, re.M).group(1) == "2"
+
+
+def test_stapel_greift_erst_ab_lord_stapel_min_an_und_wartet_dafuer_ueber_die_frist(monkeypatch):
+    """Probe 24 und 26: bei Fristende griffen 13 bzw. 12 von 20 in der Gruppe an und scheiterten (Lord 78.300 / 31.800 Leben). Jetzt wartet
+    der Stapel bis LORD_STAPEL_MIN am Platz steht - auch ueber die Frist hinaus, hoechstens BEREIT_WARTEN Fristen."""
+    AS = _modul()
+    monkeypatch.setattr(AS.Einzeln, "LORD_STAPEL_MIN", 15)
+    monkeypatch.setattr(AS.Einzeln, "BEREIT_WARTEN", 2)
+    a, L = _szene(20)
+    _schritt(a, L, 20000)
+    assert a.lordtrupp["phase"] == "bereit"
+    frist = a._bereit_frist()
+    _stapel_am_platz(a, L, 12)
+    _schritt(a, L, 20200)
+    ev = _schritt(a, L, 20000 + frist + 10)
+    assert a.lordtrupp["phase"] == "bereit", (
+        "12 am Platz, Frist um: weder angreifen noch abbrechen",
+        [z for z in ev if "LORD" in z],
+    )
+    _stapel_am_platz(a, L, 15)
+    ev = _schritt(a, L, 20000 + frist + 200)
+    assert a.lordtrupp["phase"] == "angriff" and a.angriffe[-1]["groesse"] >= 15, [
+        z for z in ev if "LORD" in z
+    ]
+
+
+def test_nach_doppelter_frist_bricht_ein_zu_kleiner_stapel_ab(monkeypatch):
+    """Gegenprobe: kommen die 15 nie zusammen, bricht die Bereitstellung nach BEREIT_WARTEN Fristen ab (wie vorher nach einer)."""
+    AS = _modul()
+    monkeypatch.setattr(AS.Einzeln, "LORD_STAPEL_MIN", 15)
+    monkeypatch.setattr(AS.Einzeln, "BEREIT_WARTEN", 2)
+    a, L = _szene(20)
+    _schritt(a, L, 20000)
+    frist = a._bereit_frist()
+    _stapel_am_platz(a, L, 12)
+    _schritt(a, L, 20200)
+    ev = _schritt(a, L, 20000 + 2 * frist + 10)
+    assert a.lordtrupp["phase"] is None and any("ABGEBROCHEN" in z for z in ev), [
+        z for z in ev if "LORD" in z
+    ]

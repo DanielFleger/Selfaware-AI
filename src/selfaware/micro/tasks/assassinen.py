@@ -414,6 +414,14 @@ class Einzeln:
     # (Kill 26.509) - ein Abbruch kostet Pause und neuen Anmarsch (~4.000-6.000 Takte). Bei Fristende greift der Stapel an, wenn mindestens
     # STAPEL_ANTEIL des Bedarfs bereitsteht. Startwert, nicht gemessen:
     STAPEL_ANTEIL = 0.8
+    # Daniel 16.11.2026 23:23/23:56 (Massstab: niedrigstes Gegnergold bei fruehestem Lord-Kill, unter 500): erste Lord-Angriffe in den Proben
+    # 13c, 16, 17, 21, 22, 25 mit 15-26 Assassinen - alle 6 toeteten den Lord; mit 12-13 (Probe 23, 24, 26) nur 1 von 3 (Probe 24: 13 -> Lord
+    # 78.300 von 165.000, Probe 26: 12 -> 31.800). Jeder Fehlschlag kostete ~8.000 Takte bis zum Kill (24: 19.687 -> 27.793, 26: 18.487 -> 26.537).
+    # Beim Losschlagen standen 20-28 in der Gruppe, nur die Angekommenen griffen an. Darum greift der Stapel erst mit mindestens LORD_STAPEL_MIN
+    # an; ist die Frist um und weniger beisammen, wartet er bis zur doppelten Frist auf die Anlaufenden und neu Angeworbenen, statt abzubrechen.
+    # Kleinste Groesse, die in allen gemessenen Faellen reichte (6 Proben, Kriegsfuerst auf Battle Brother's Strife):
+    LORD_STAPEL_MIN = 15
+    BEREIT_WARTEN = 2      # so viele Fristen wartet die Bereitstellung auf LORD_STAPEL_MIN, bevor sie abbricht (Startwert, nicht gemessen)
     # 17.10. Laptop, Partie 1017h (Lageprotokoll): 35x lief genau EIN Assassine los ("1 laufen los"), 38 von 93 Toten starben
     # am Lord mit 4+ Fernkaempfern im Umkreis 20 - die Rechnung lord_machbar gilt nur, wenn alle zugleich ankommen. Dazu standen
     # im Mittel ~6 Assassinen (= eine Lord-Gruppe) an unserer Burg still (Zustand 105, Laufziel = eigener Ort, 77 % aller
@@ -2674,7 +2682,7 @@ class Einzeln:
                             n_mess, n_bedarf, le["leben"], self._lord_schaden_je_assassine()))
                     n_bedarf, bedarf_art, gruppe_leben = n_mess, "gemessen", None
             n_bedarf = max(n_bedarf, self.LORD_MIN_GRUPPE)        # Probe 18: mit 6 gescheitert (siehe LORD_MIN_GRUPPE)
-            genug = max(1, int(math.ceil(self.STAPEL_ANTEIL * n_bedarf)))   # Probe 19: bei Fristende reicht dieser Stapel (STAPEL_ANTEIL)
+            genug = max(1, int(math.ceil(self.STAPEL_ANTEIL * n_bedarf)), self.LORD_STAPEL_MIN)   # Probe 19: STAPEL_ANTEIL; 17.11.: LORD_STAPEL_MIN
             # 17.10. Laptop (1017h): Bereitstellung statt gestaffeltem Anlauf - die Gruppe zaehlt ganz (unterwegs + bereit)
             am_lord = [k for k in lt["mitglieder"] if k in L and (schach((L[k]["x"], L[k]["y"]), lp) <= 3
                                                                   or (L[k]["zustand"] == 106 and L[k].get("zieleinheit") == ln))]
@@ -2716,7 +2724,7 @@ class Einzeln:
                 for k in list(lt["mitglieder"]):
                     self._vergessen(k)
                 lt.update(mitglieder=set(), phase=None, pause_bis=self.jetzt + self.BEREIT_PAUSE)
-            if lt["phase"] == "bereit" and self.jetzt - lt.get("seit_tick", self.jetzt) > self._bereit_frist() \
+            if lt["phase"] == "bereit" and self.jetzt - lt.get("seit_tick", self.jetzt) > self._bereit_frist() * self.BEREIT_WARTEN \
                     and len(lt.get("bereit", ())) < genug:      # genug beisammen: dann greift unten der Stapel an statt abzubrechen
                 ereignis.append("LORD-BEREITSTELLUNG ABGEBROCHEN: nach %d Ticks erst %d von %d bereit - alle raiden" % (
                     self.jetzt - lt["seit_tick"], len(lt.get("bereit", ())), n_bedarf))

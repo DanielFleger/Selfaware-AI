@@ -15,6 +15,15 @@ def _modul():
     return AS
 
 
+@pytest.fixture(autouse=True)
+def _stapel_wie_vorher(monkeypatch):
+    """Diese Szenen pruefen anderes (Gruppe, Frist, Kletterweg, Push) mit 12-14 Assassinen. Die Mindestgroesse des Stapels (LORD_STAPEL_MIN,
+    17.11.2026) und das Warten ueber die Frist (BEREIT_WARTEN) haben eigene Tests in test_lord_alle.py - hier wie vor dem 17.11."""
+    AS = _modul()
+    monkeypatch.setattr(AS.Einzeln, "LORD_STAPEL_MIN", 1)
+    monkeypatch.setattr(AS.Einzeln, "BEREIT_WARTEN", 1)
+
+
 def _e(nr, besitzer, typ, x, y, **k):
     """Einheit wie im Lageprotokoll (gleiche Felder wie test_lord_alle._e - Testdateien importieren einander nicht, die CI kennt kein
     Paket tests)."""
