@@ -306,7 +306,7 @@ def test_lord_angriff_braucht_mindestens_lord_min_gruppe():
 
 def test_push_zieht_ueberlebende_nicht_ab():
     """Daniel 16.11.2026 23:13 ("jetzt wurden sogar assassinen beim push wieder zurueckgezogen ohne grund"): der Angriff ist erst vorbei, wenn
-    keiner mehr lebt (LORD_REST 1, vorher 3) - mit 2 Ueberlebenden bleibt er."""
+    keiner mehr am Lord ist - mit 2 Ueberlebenden am Lord bleibt er, mit 2 weit weg endet er."""
     a, L = _im_angriff(12)
     for k in range(202, 212):
         del L[k]
@@ -314,6 +314,11 @@ def test_push_zieht_ueberlebende_nicht_ab():
         L[k].update(zustand=106, zielart=4, zieleinheit=60)
     _schritt(a, L, 20600)
     assert a.lordtrupp["phase"] == "angriff" and a.lordtrupp["mitglieder"] == {200, 201}
+    # Selbstpruefung 23:32: sind die Ueberlebenden NICHT am Lord, endet der Angriff - sonst blockierte ein Einzelner weit weg den naechsten
+    for k in (200, 201):
+        L[k].update(zustand=101, zielart=0, zieleinheit=0, x=10, y=10, laufx=12, laufy=12)
+    ev = _schritt(a, L, 20800)
+    assert a.lordtrupp["phase"] != "angriff", [z for z in ev if "LORD" in z]
 
 
 def test_wer_ein_gebaeude_schlaegt_rueckt_nicht_nach():

@@ -401,8 +401,10 @@ class Einzeln:
     LORD_SAMMELN_AB = 20
     LORD_SAMMEL_ABSTAND = SCHUSSWEITE + 5
     # Daniel 16.11.2026 23:13 ("jetzt wurden sogar assassinen beim push wieder zurueckgezogen ohne grund"): Probe 18 brach den Angriff bei 2
-    # Ueberlebenden ab ("vorbei ... wieder raiden"). Vorher 3; jetzt ist er erst vorbei, wenn keiner mehr lebt
-    LORD_REST = 1          # weniger Ueberlebende aus dem Angriff -> vorbei, wieder raiden bis zum naechsten Bedarf
+    # Ueberlebenden ab ("vorbei ... wieder raiden"). Jetzt ist er bei weniger als LORD_REST nur vorbei, wenn keiner von ihnen am Lord ist (hoechstens
+    # 3 Felder oder im Kampf gegen ihn) - wer am Lord steht, bleibt. (Erst 1 gesetzt; Selbstpruefung 23:32: ein einzelner Ueberlebender weit weg
+    # haette den naechsten Lord-Angriff fuer immer blockiert)
+    LORD_REST = 3          # weniger Ueberlebende aus dem Angriff und keiner am Lord -> vorbei, wieder raiden bis zum naechsten Bedarf
     # Probe 18 (partie_20261116_231110): Angriff mit 6 ("Bedarf 6 gerechnet") machte 13.500 von 165.000 Schaden; aus diesem kleinen Angriff
     # wurde "Bedarf 99 gemessen", der naechste wartete bis Takt 27.679 auf 69 Assassinen (Kill 28.205). Gelungen sind in Probe 13c, 16, 17
     # Angriffe mit 15-26, gescheitert jeder mit 6. Ein Angriff braucht mindestens LORD_MIN_GRUPPE, und nur Angriffe dieser Groesse zaehlen
@@ -2674,7 +2676,9 @@ class Einzeln:
             n_bedarf = max(n_bedarf, self.LORD_MIN_GRUPPE)        # Probe 18: mit 6 gescheitert (siehe LORD_MIN_GRUPPE)
             genug = max(1, int(math.ceil(self.STAPEL_ANTEIL * n_bedarf)))   # Probe 19: bei Fristende reicht dieser Stapel (STAPEL_ANTEIL)
             # 17.10. Laptop (1017h): Bereitstellung statt gestaffeltem Anlauf - die Gruppe zaehlt ganz (unterwegs + bereit)
-            if lt["phase"] == "angriff" and len(lt["mitglieder"]) < self.LORD_REST:
+            am_lord = [k for k in lt["mitglieder"] if k in L and (schach((L[k]["x"], L[k]["y"]), lp) <= 3
+                                                                  or (L[k]["zustand"] == 106 and L[k].get("zieleinheit") == ln))]
+            if lt["phase"] == "angriff" and len(lt["mitglieder"]) < self.LORD_REST and not am_lord:
                 ereignis.append("GEMEINSAMER LORD-ANGRIFF vorbei: noch %d leben, Lord-Leben %d - wieder raiden bis %d" % (
                     len(lt["mitglieder"]), le["leben"], n_bedarf))
                 if self.angriffe:
