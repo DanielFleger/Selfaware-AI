@@ -736,7 +736,8 @@ class Einzeln:
                 continue                   # 19.10.: ein Bolzen toetet ihn - nur Ziele weit ab von jedem Spaeher
             # 17.10.: Zeit am Ziel = gemessene Arbeit / Zahl der Angreifer (statt VERWEILEN 300 ungemessen); Beschuss am
             # Ziel aus der Sicht (sichtbar nur bei waehlbarem Feind <= 20 Feldern, Schusslinie) statt Schadenssatz L73
-            verweilen = self._arbeit(k[2], zahl.get(k[0], 0) + 1)
+            # Daniel 16.11.2026 19:42 (Kornspeicher fast kaputt, keine Assassine ging hin): mit der Arbeit, die am Gebaeude noch fehlt
+            verweilen = self._arbeit(k[2], zahl.get(k[0], 0) + 1) * self._rest_anteil(k[0], G)
             if g_r is not None:
                 c = g_r.zelle_von(k[1])
                 r_weg, felder = rk.get(c, (1e9, 999))
@@ -979,6 +980,19 @@ class Einzeln:
     def _arbeit(self, typ, zahl):
         """Takte bis zerstoert bei zahl Assassinen (gemessene Arbeit / Zahl)."""
         return ARBEIT.get(typ, ARBEIT_SONST) / max(1, zahl)
+
+    REST_MIN = 0.05  # Startwert: so viel Arbeit bleibt mindestens (ein Gebaeude mit 0 Leben steht noch eine Runde)
+
+    def _rest_anteil(self, gn, G):
+        """Anteil der Arbeit, der an Gebaeude gn noch fehlt: Leben jetzt / hoechstes gesehenes Leben (wie _fertig_zuerst). Daniel 16.11.2026
+        19:42 "warum hier eine assassine sich nicht opfert um den kornspeicher der fast kaputt ist zu nehmen, die einheiten sollten die
+        lebenspunkte der gebaeude kennen": Zielwahl und letzte Tat rechneten mit der Arbeit fuer ein ganzes Gebaeude - ein fast
+        zerstoertes sah so lang und so gefaehrlich aus wie ein heiles."""
+        g = G.get(gn)
+        if g is None:
+            return 1.0
+        voll = max(getattr(self, "_gb_max", {}).get(gn, 0), g.get("leben", 0), 1)
+        return max(self.REST_MIN, g.get("leben", 0) / float(voll))
 
     def _gitter(self, L, G=None):
         """Gefahren-Gitter dieser Runde (schussfeld.py) mit der Sicht (17.10., sicht.py: sichtbar nur bei waehlbarem Feind
@@ -1833,7 +1847,7 @@ class Einzeln:
                 continue
             d = schach(ort, (g["x"], g["y"]))
             if d <= self.LETZT_R:
-                kand.append((WERT[g["typ"]], d * TEMPO + ARBEIT.get(g["typ"], ARBEIT_SONST), ("g", gn)))
+                kand.append((WERT[g["typ"]], d * TEMPO + ARBEIT.get(g["typ"], ARBEIT_SONST) * self._rest_anteil(gn, G), ("g", gn)))
         for k, e in L.items():
             if e["besitzer"] in (0, self.sp) or e["typ"] not in TRUPPE or e["typ"] == 55:
                 continue
