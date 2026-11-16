@@ -1102,3 +1102,8 @@ def test_lenker_gibt_den_assassinen_die_weg_ebene():
     assert (
         "trupp.karte_neu(neue_karte)" in LENKER and "trupp.feld_nah = wegf.erreichbar_nah" in LENKER
     )
+
+
+def test_lenker_gibt_dem_brandtrupp_den_lord_im_lord_angriff():
+    """Daniel 16.11.2026 23:13: im Lord-Angriff gehen Sklaven auf den Kornspeicher am Lord (Funktion: test_brandtrupp) - der Lenker setzt lord_ort."""
+    assert "raid_e.brand.lord_ort = " in LENKER

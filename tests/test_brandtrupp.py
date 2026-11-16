@@ -186,3 +186,54 @@ def test_brennt_das_gebaeude_laeuft_er_zum_naechsten_im_zickzack():
     t.schritt(L, G, b)
     x, y = k.ausweichend[-1][1]
     assert abs(x - 150) <= 1 and y == 200 - RA.AUSWEICH_HALT and t.im_ausweichen == 1
+
+
+class NieFeuer:
+    def neue_runde(self, L, G):
+        pass
+
+    def unter_feuer(self, nr, e):
+        return False
+
+
+def test_mit_wegfuehrung_unter_beschuss_zickzack_ueber_den_kern():
+    """Daniel 16.11.2026 22:59 ("sklaven werden noch abgeschossen"): auch mit Wegfuehrung fuehrt unter Beschuss der Kern den Sklaven im Zickzack
+    (die Wegfuehrung laesst ihn los); ohne Beschuss fuehrt wieder die Wegfuehrung, der Kern gibt ihn vorher frei."""
+    from selfaware.micro.wegfuehrung import Wegfuehrung
+
+    k = Kern()
+    t = _trupp(kern=k)
+    t.weg = Wegfuehrung(1)
+    L, G = _sklaven((10, 10)), _G((80, 10))
+    t.schritt(L, G, Befehle())
+    assert k.ausweichend and k.ausweichend[-1][0] == [1] and not t.weg.fuehrt(1)
+    t.schuss = NieFeuer()
+    t.schritt(L, G, Befehle())
+    assert [1] in k.frei and t.weg.fuehrt(1)
+
+
+def test_im_lord_angriff_gehen_sklaven_auf_den_kornspeicher_am_lord():
+    """Daniel 16.11.2026 23:13 ("wenn sie einfach nur ein paar sklaven in der mischung haetten, haetten sie den kornspeicher gebrannt bekommen und
+    damit garantiert gewonnen"): mit lord_ort gehen bis zu KORN_SKLAVEN Sklaven trotz Gefahr auf den Kornspeicher am Lord; ohne Lord-Angriff
+    nicht."""
+    from selfaware.micro.wegfuehrung import Wegfuehrung
+
+    t = _trupp()
+    t.schuss = NieFeuer()
+    t.weg = Wegfuehrung(1)
+    L = _sklaven(*[(10, 10 + i) for i in range(RA.KORN_SKLAVEN + 2)])
+    G = _G((40, 10))
+    G[500] = {"typ": RA.KORNSPEICHER, "x": 200, "y": 205, "besitzer": 2}
+    t.schritt(L, G, Befehle())
+    assert (
+        not t.korn and sum(1 for z in t.ziel.values() if z == 500) < RA.KORN_SKLAVEN
+    )  # ohne Lord-Angriff: gewoehnliche Zielwahl
+    t.lord_ort = (200, 200)
+    aus = t.schritt(L, G, Befehle())
+    korn = sorted(t.korn)
+    assert len(korn) == RA.KORN_SKLAVEN and all(
+        t.ziel[n] == 500 and t.weg.auftraege[n].trotz for n in korn
+    ), (korn, aus)
+    t.lord_ort = None
+    t.schritt(L, G, Befehle())
+    assert not t.korn

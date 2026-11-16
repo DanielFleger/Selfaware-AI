@@ -64,6 +64,13 @@ FLUCHT_R = 8
 # einen Arbeiter, den hoechstens REITER_DECKUNG_MAX Schuetzen decken (Tuerme und Nahkaempfer weiter nie) - ein einzelner Reiter, der sich
 # bewegt, wird selten getroffen (reference: Ausweichen gemessen, Einzelner 1-2 % ab 12 Feldern im Zickzack). Startwert, nicht gemessen:
 REITER_DECKUNG_MAX = 2
+# Daniel 16.11.2026 23:13 (Bild am feindlichen Kornspeicher: "wenn sie einfach nur ein paar sklaven in der mischung haetten, haetten sie den
+# kornspeicher gebrannt bekommen und damit garantiert gewonnen weil damit auch das pennerlager abgefackelt worden waere"): greifen die
+# Assassinen den Lord an (Brandtrupp.lord_ort, setzt der Lenker), gehen bis zu KORN_SKLAVEN Sklaven trotz Gefahr auf den Kornspeicher
+# (Typ KORNSPEICHER) bis KORN_R Felder vom Lord - das Feuer der Verteidiger liegt dann auf den Assassinen. Startwerte, nicht gemessen:
+KORNSPEICHER = 19
+KORN_R = 40
+KORN_SKLAVEN = 4
 JAGD_R = 20
 NEU_ALLE = 5                                     # Runden zwischen zwei Befehlen an dieselbe Einheit
 AUSWEICH_MAX = 8                                     # so viele Einzelbefehle je Feld kamen im Lauf zickzack2_g alle rechtzeitig (B-174, vorstoss.TRUPPS)
@@ -153,6 +160,8 @@ class Brandtrupp:
         self.runde = 0
         self.schutz = []            # B-129: Orte der Deckungs-Schuetzen, setzt der Lenker je Runde
         self.weg = None             # B-182: gemeinsame Wegfuehrung (micro/wegfuehrung.py), setzt der Raid-Einsatz
+        self.lord_ort = None        # Daniel 23:13: Ort des feindlichen Lords, solange die Assassinen ihn angreifen (setzt der Lenker)
+        self.korn = set()           # Sklaven, die gerade im Lord-Angriff auf den Kornspeicher gehen
         self._bild = None           # (Runde, Gefahr der Wegfuehrung) - je Runde einmal gerechnet
         self.gesperrt = {}          # Gebaeude -> Runde, bis zu der es nach "gefahr"/"kein_weg" nicht wieder gewaehlt wird
         self.warten = {}            # B-182: Sklave -> Wartplatz vorne, solange kein Ziel frei ist
@@ -317,6 +326,19 @@ class Brandtrupp:
                     self.ziel.pop(s)
                     self.weg.loslassen(s)
                     aus.append("BRANDTRUPP: Sklave %d gibt Gebaeude %d auf (%s)" % (s, nr, st))
+        # Daniel 23:13: im Lord-Angriff bis zu KORN_SKLAVEN Sklaven auf den Kornspeicher am Lord, trotz Gefahr
+        self.korn &= meine
+        korn = self._kornspeicher(G) if self.lord_ort is not None else None
+        if korn is None:
+            self.korn = set()
+        else:
+            for s in sorted(meine, key=lambda k: (k not in self.korn, schach((L[k]["x"], L[k]["y"]), (G[korn]["x"], G[korn]["y"])), k)):
+                if len(self.korn) >= KORN_SKLAVEN and s not in self.korn:
+                    break
+                if self.ziel.get(s) != korn:
+                    aus.append("BRANDTRUPP: Lord-Angriff - Sklave %d auf den Kornspeicher %d" % (s, korn))
+                self.ziel[s] = korn
+                self.korn.add(s)
         belegt = set(self.ziel.values())
         for s in sorted(meine):
             e = L[s]
@@ -343,14 +365,29 @@ class Brandtrupp:
                     s, z[0], g["typ"], g["x"], g["y"], schach((e["x"], e["y"]), (g["x"], g["y"])),
                     ", dazu (schon besetzt, kein freies)" if self.dazu else ""))
             if mit_weg:
+                # Daniel 16.11.2026 22:59 ("sklaven werden noch abgeschossen"; tode_ursache_probe14-16.txt: fast alle gefallenen Sklaven unter
+                # 5-18 feindlichen Schuetzen, auf dem Weg zum Brandziel): unter Beschuss fuehrt der Kern den Sklaven im Zickzack bis kurz vor das
+                # Gebaeude (gemessen: einzeln im Zickzack ab 12 Feldern 1-2 % Treffer, gerade 87 %) - die Wegfuehrung laesst ihn dafuer los
+                if self.kern is not None and self.schuss.unter_feuer(s, e) and self._im_ausweichen(s, e, self.ziel[s], G, True):
+                    self.weg.loslassen(s)
+                    continue
+                if s in self.ausweichend or self.halt.get(s):
+                    self._nicht_im_ausweichen(s, meine)       # zurueck an die Wegfuehrung: der Kern gibt ihn vorher frei
                 # B-182 (Plan_Wegfuehrung.md): den Weg fuehrt die Wegfuehrung, jede Runde neu gegen die aktuelle Lage
-                self.weg.fuehre(s, "gebaeude", self.ziel[s], "brandtrupp")
+                self.weg.fuehre(s, "gebaeude", self.ziel[s], "brandtrupp", trotz=s in self.korn)
                 continue
             if s in self.ausweichend or feuer or self.befohlen.get(s, -99) < self.runde - NEU_ALLE or e.get("zustand") in (0, 1):
                 if not self._im_ausweichen(s, e, self.ziel[s], G, feuer):
                     self._angreifen(s, self.ziel[s], befehl)
                     self.befohlen[s] = self.runde
         return aus
+
+    def _kornspeicher(self, G):
+        """Daniel 23:13: der feindliche Kornspeicher bis KORN_R Felder vom Lord, der dem Lord am naechsten steht und noch nicht brennt."""
+        kand = sorted((schach((g["x"], g["y"]), self.lord_ort), n) for n, g in G.items()
+                      if g.get("typ") == KORNSPEICHER and g.get("besitzer") not in (0, self.sp) and n not in self.brennt
+                      and not ZV.brennt(g) and schach((g["x"], g["y"]), self.lord_ort) <= KORN_R)
+        return kand[0][1] if kand else None
 
     @property
     def im_ausweichen(self):

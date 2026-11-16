@@ -3771,6 +3771,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     # Daniel 16.11.2026 21:41/21:42: die Schuetzen des Vorstosses ruecken mit vor (vorstoss.LORD_SCHUETZEN_R)
                     if vorstoss is not None:
                         vorstoss.lord = raid_e.nahkampf.lord
+                    # Daniel 16.11.2026 23:13: Sklaven auf den Kornspeicher am Lord (raids.KORN_SKLAVEN)
+                    l_r = raid_e.nahkampf.lord
+                    raid_e.brand.lord_ort = (L[l_r]["x"], L[l_r]["y"]) if l_r is not None and l_r in L else None
                     ereignis += raid_e.schritt(st["t"], L, G, befehl)
                 except Exception as ex_r:
                     ereignis.append("RAIDS FEHLER %r - Partie laeuft weiter" % (ex_r,))
