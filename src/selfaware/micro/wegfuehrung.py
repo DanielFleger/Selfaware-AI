@@ -38,6 +38,7 @@ import selfaware.baukasten.regler as _regler
 import selfaware.services.schussfeld as SF
 import selfaware.services.sicht as SI
 import selfaware.services.spielwerte as SW
+from selfaware.baukasten import zielvergabe as ZV
 
 NAH_AM_ZIEL = 4  # Felder (Schach): Nahkampf und Gebaeude gelten als am Ziel (wie Brandtrupp und Nahkampf-Raid)
 FERN_ANGRIFF = 2  # Startwert: Fernkaempfer greifen an, wenn die Luftlinie hoechstens Reichweite minus FERN_ANGRIFF ist
@@ -462,7 +463,8 @@ class Wegfuehrung:
         z = tabelle.get(a.ziel)
         if z is None or z.get("besitzer") in (0, self.sp) or z.get("leben", 1) <= 0:
             return None
-        kennung = (z.get("typ"), z.get("besitzer"))
+        # Gebaeude mit uid (baukasten/zielvergabe.kennung): unter der Nummer kann ein neues Gebaeude derselben Art stehen
+        kennung = ZV.kennung(z) if a.art == "gebaeude" else (z.get("typ"), z.get("besitzer"))
         if a.kennung is None:
             a.kennung = kennung
         elif a.kennung != kennung:

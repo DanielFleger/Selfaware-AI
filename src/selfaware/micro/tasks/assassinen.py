@@ -546,6 +546,7 @@ class Einzeln:
         self._kand, self._begehbar = {}, set()
         self.mitglieder = set()
         self.ziel, self.ziel_typ, self.jagd, self.warte, self.befohlen = {}, {}, {}, {}, {}
+        self.ziel_kennung = {}  # Gebaeude -> Kennung bei der Zielwahl (Art, Besitzer, uid) - die Nummer allein reicht nicht
         self.warte_seit = {}
         self.flucht = {}                     # 4a: n -> {seit, ruhig} - weicht einer Nahkampf-Uebermacht aus
         self.schlechte_orte = set()          # Warteplaetze, an die keiner hinlief (9g: Gebaeudemitten)
@@ -1871,6 +1872,7 @@ class Einzeln:
             if art == "g":
                 self.ziel[n] = nr
                 self.ziel_typ[nr] = G[nr]["typ"]
+                self.ziel_kennung[nr] = ZV.kennung(G[nr])
                 angriffe.append((n, nr))
             else:
                 self.jagd[n] = nr
@@ -2169,7 +2171,10 @@ class Einzeln:
             # 19.10. (1019j, 245: 9.000 Takte mit Gebaeude-Ziel und Route auf (210,146) gestanden, Zustand 1, zielart 3, Laufziel =
             # eigenes Feld - "zielart != 0" galt als Spielziel, die Uhr lief nie an; 22 % aller Assassinen-Takte standen gesunde
             # so >= 200 Takte, und die STEHEN-Zeile kam nie): Spielziel = Laufziel mehr als 1 Feld weg oder im Kampf/Abriss
-            spielziel = schach((L[n].get("laufx", f[0]), L[n].get("laufy", f[1])), f) > 1 or L[n]["zustand"] in (106, 107)
+            # 16.11.2026 (Probe 9b: Assassine 568 mit Laufziel 39 Felder weg stand 564 Takte auf (192, 157), "NO PROGRESS"; Daniel 20:52
+            # "fixe davor auch alles untaetige herumstehen"): ein fernes Laufziel zaehlt nur, solange er sich auch bewegt - wer
+            # STEH_TICKS auf demselben Feld steht, ohne zu kaempfen oder abzureissen, steht, auch mit Laufziel
+            spielziel = L[n]["zustand"] in (106, 107)
             if spielziel or self._steht.get(n, (None,))[0] != f or reisst:
                 self._steht[n] = (f, self.jetzt)
         verletzt = set()
@@ -2189,6 +2194,14 @@ class Einzeln:
                 self.akte.pop(n, None)       # wieder voll geheilt: neue Akte beim naechsten Treffer
             self.leben[n], self.umfeld[n] = L[n]["leben"], u
         # 2. Erledigte Ziele, erledigte Jagd
+        # 16.11.2026 (Daniel 20:57 "falschen gebaeudenummern mapping"): ein Ziel ist auch weg, wenn unter seiner Nummer ein anderes Gebaeude
+        # steht (andere Kennung: Art, Besitzer, uid - baukasten/zielvergabe.kennung)
+        kennung_alt = getattr(self, "ziel_kennung", None)
+        if kennung_alt is None:
+            kennung_alt = self.ziel_kennung = {}
+        neu_vergeben = {z for z in set(self.ziel.values()) if z in G and z in kennung_alt and ZV.kennung(G[z]) != kennung_alt[z]}
+        for z in neu_vergeben:
+            kennung_alt.pop(z, None)
         for n, z in list(self.ziel.items()):
             if z in G and brennt(G[z]):
                 # Daniel 15.11.2026 23:31: "es brennt und sie verbrennen auch, das ist aber erwartbar, bitte sofort ein neues Gebaeude
@@ -2196,7 +2209,7 @@ class Einzeln:
                 self._vergessen(n)
                 ereignis.append("BRENNT %d: Gebaeude %d brennt (faellt) - sofort ein anderes Ziel" % (n, z))
                 continue
-            if z not in G:
+            if z not in G or z in neu_vergeben:
                 typ = self.ziel_typ.pop(z, None)
                 if typ is not None:
                     self.bilanz["gebaeude"][typ] = self.bilanz["gebaeude"].get(typ, 0) + 1
@@ -2233,9 +2246,11 @@ class Einzeln:
             f, seit = self._steht.get(n, (None, self.jetzt))
             if n in self.lordtrupp["mitglieder"] or self.jetzt - seit < self.STEH_TICKS:
                 continue
-            if schach((L[n].get("laufx", -99), L[n].get("laufy", -99)), f) > 1:
-                continue
             if n in self.ziel or n in self.route or n in self.jagd or n in self.stapel["mitglieder"]:
+                # 16.11.2026 (Probe 10: Assassine 2 stand vor Steinbruch 15, "ATTACK DID NOT START", nach dem Loesen waehlte sie ihn sofort
+                # wieder): dieses Ziel ist fuer sie SPERRE_ROUTE Takte gesperrt, die naechste Wahl nimmt ein anderes
+                if n in self.ziel:
+                    self._route_sperre[(n, self.ziel[n])] = self.jetzt + self.SPERRE_ROUTE
                 stehen.append("%d (%s, %d Ticks bei %s)" % (n, "Route" if n in self.route else "Gebaeude" if n in self.ziel else
                                                           "Jagd" if n in self.jagd else "Stapel", self.jetzt - seit, f))
                 self._vergessen(n)
@@ -2891,6 +2906,8 @@ class Einzeln:
                     # Gebaeude nehmen - Assassine 183 pendelte 89 -> 30, 110 -> 30)
                     self.ziel[n] = b_k[0]
                     self.ziel_typ[b_k[0]] = b_k[2]
+                    if b_k[0] in G:
+                        self.ziel_kennung[b_k[0]] = ZV.kennung(G[b_k[0]])
                     zahl[gn] = max(0, zahl.get(gn, 1) - 1)
                     zahl[b_k[0]] = zahl.get(b_k[0], 0) + 1
                     self.befohlen[n] = self.runde
@@ -2948,6 +2965,7 @@ class Einzeln:
                                     "%d Schuetzen, die ihn sahen" % (n, gn, len(self.entdeckt[n]["schuetzen"])))
                 self.ziel[n] = gn
                 self.ziel_typ[gn] = typ
+                self.ziel_kennung[gn] = ZV.kennung(G[gn])
                 zahl[gn] = zahl.get(gn, 0) + 1
                 self.befohlen[n] = self.runde
                 self.warte.pop(n, None); self.warte_seit.pop(n, None)

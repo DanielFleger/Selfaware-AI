@@ -41,3 +41,11 @@ def brennt(g):
     ein brennendes Gebaeude (fireDuration > 0, Spalte feuer der Gebaeudeliste; B-150 L177: faellt erst auf 0, wenn es weg ist) ist kein
     Ziel mehr - wer es angreift, nimmt sofort ein anderes. Die EINE Stelle fuer alle Module."""
     return (g.get("feuer") or 0) > 0
+
+
+def kennung(g):
+    """Wer ein Gebaeude ist: (Art, Besitzer, uid). Das Spiel vergibt die Nummer eines zerstoerten Gebaeudes an das naechste neue (Probe 9b:
+    Holzfaellerhuette 75 fiel, unter Nummer 75 stand danach ein Lagerplatz, zwei Assassinen schlugen drei Runden auf ihn ein; Probe 10:
+    Holzfaellerhuette 83 -> Jaegerhuette 83). Die uid vergibt das Spiel je Gebaeude nur einmal (Daniel 16.11.2026 20:57 "es hoert sich nach
+    einem falschen gebaeudenummern mapping an?")."""
+    return (g.get("typ"), g.get("besitzer"), g.get("uid"))
