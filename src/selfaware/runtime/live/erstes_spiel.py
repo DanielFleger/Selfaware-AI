@@ -206,7 +206,7 @@ def gefecht_starten(tempo):
     return t_lords
 
 
-_ERSTER = {"nk": None, "wf": None, "zeit": 0.0}     # S167: Nahkampf-Rechnung und Wegfuehrung der Eroeffnung, bis der Raid sie uebernimmt
+_ERSTER = {"nk": None, "wf": None, "vs": None, "zeit": 0.0}     # S167: Nahkampf-Rechnung, Vorstoss und Wegfuehrung der Eroeffnung, bis der Raid sie uebernimmt
 
 
 def erster_angriff(wann):
@@ -234,20 +234,34 @@ def erster_angriff(wann):
         nk.weg, nk.bekannt = wf, {}
         _ERSTER.update(nk=nk, wf=wf)
     nk, wf = _ERSTER["nk"], _ERSTER["wf"]
+    # Daniel 16.11.2026 23:11 ("die bogenschuetzen kommen erst VIEL spaeter statt direkt am anfang wie es schon die speertraeger machen"):
+    # Probe 23/24 - der erste Laufbefehl der Schuetzen kam erst am Ende der ersten Runde von Phase 2 (Takt 1.572; die Runde dauerte 642 Takte),
+    # die Speertraeger liefen ab der Eroeffnung. Jetzt fuehrt derselbe Vorstoss sie schon hier, ueber dieselbe Wegfuehrung wie die Nahkaempfer
+    vs = _ERSTER.get("vs")
+    if VORSTOSS and vs is None:
+        vs = STECK.klasse("vorstoss")(SP, BERGFRIED, bis=VORSTOSS_BIS)
+        vs.weg = wf
+        _ERSTER["vs"] = vs
     if wf.kern is None:
         raid_kern(wf, 1, [])
     neu = sorted({n for n, e in L.items() if e.get("besitzer") == SP and e["typ"] in NK_s.KANN and e.get("leben", 1) > 0} - nk.mitglieder)
     nk.mitglieder |= set(neu)
-    if not nk.mitglieder:
-        schreib("ERSTER ANGRIFF %s bei Takt %s: noch kein eigener Nahkaempfer (die Starttruppe kommt spaeter)" % (wann, tick()))
+    schuetzen = vs.anspruch(_st["t"], L) if vs is not None else set()
+    if not nk.mitglieder and not schuetzen:
+        schreib("ERSTER ANGRIFF %s bei Takt %s: noch kein eigener Nahkaempfer und kein Schuetze (die Starttruppe kommt spaeter)" % (wann, tick()))
         return
     try:
-        nk.schritt(L, G, befehl)
+        aus_v = vs.schritt(_st["t"], L, G, befehl) if vs is not None else []
+        if nk.mitglieder:
+            nk.schritt(L, G, befehl)
         wf.schritt(L, G, befehl)
     except Exception as ex:
         schreib("ERSTER ANGRIFF %s FEHLER %r - der Raid uebernimmt in seiner ersten Runde" % (wann, ex))
         return
     _ERSTER["zeit"] += time.time() - t0
+    if aus_v or (vs is not None and schuetzen and vs.runde == 1):
+        schreib("ERSTER ANGRIFF %s bei Takt %s: Vorstoss mit %d Schuetzen %s%s" % (
+            wann, tick(), len(vs.mitglieder), sorted(vs.mitglieder), (" - " + "; ".join(aus_v)) if aus_v else ""))
     if neu:
         schreib("ERSTER ANGRIFF %s bei Takt %s: %d neue Nahkaempfer %s, Ziele %s, Kern %s (%.2f s)" % (
             wann, tick(), len(neu), neu, {n: nk.ziel.get(n) for n in neu}, "ja" if wf.kern is not None else "nein", time.time() - t0))
@@ -260,6 +274,9 @@ def erster_angriff_uebergeben(raid_e, wegf):
         return
     for n, z in nk.ziel.items():
         raid_e.nahkampf.ziel.setdefault(n, z)
+    if _ERSTER.get("vs") is not None and getattr(raid_e, "vorstoss", None) is not None:
+        # Daniel 23:11: derselbe Vorstoss fuehrt weiter (Mitglieder, Ziel, Vorrueck-Stelle) - die Wegfuehrung des Raids setzt RaidEinsatz.schritt
+        raid_e.vorstoss = _ERSTER["vs"]
     if wegf is not None and wegf.kern is None and _ERSTER["wf"].kern is not None:
         wegf.kern = _ERSTER["wf"].kern
         wegf.kern.beobachter = KETTE
@@ -2583,6 +2600,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         # 16.11.2026 (#365): Assassinen-Wegpunkte auf Felder, die die Weg-Ebene des Spiels erlaubt (dieselbe Karte wie die Wegfuehrung)
         trupp.feld_nah = wegf.erreichbar_nah   # 16.11.2026: im Gebiet der Einheit (Probe 16)
     erster_angriff_uebergeben(raid_e, wegf)            # S167
+    if raid_e is not None:
+        vorstoss = raid_e.vorstoss                      # Daniel 23:11: der Vorstoss der Eroeffnung (erster_angriff_uebergeben)
     wegf_karte_runde = None           # B-182: Runde der letzten Weg-Ebene fuer die Wegfuehrung
     wegf_karte_geb = None             # S146: {Gebaeude: Art} beim letzten Lesen - kommt eines dazu, wird neu gelesen
     if w is not None:

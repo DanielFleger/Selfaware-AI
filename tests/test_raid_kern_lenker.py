@@ -77,3 +77,48 @@ def test_s167_erster_angriff_nimmt_jede_welle_der_starttruppe_und_uebergibt_an_d
 
     ES.erster_angriff_uebergeben(Raid, None)
     assert Raid.nahkampf.ziel == {330: nk.ziel[330], 331: ("g", 77)}
+
+
+def test_bogenschuetzen_laufen_schon_in_der_eroeffnung_und_der_raid_uebernimmt_den_vorstoss(
+    monkeypatch,
+):
+    """Daniel 16.11.2026 23:11 ("die bogenschuetzen kommen erst VIEL spaeter statt direkt am anfang wie es schon die speertraeger
+    machen"): Probe 23/24 - ihr erster Laufbefehl kam erst bei Takt 1.572, am Ende der ersten Runde von Phase 2. Jetzt fuehrt der
+    Vorstoss sie schon in der Eroeffnung, und der Raid uebernimmt in Phase 2 genau diesen Vorstoss."""
+    G = {50: {"nr": 50, "besitzer": 2, "typ": 32, "x": 160, "y": 160, "leben": 1000}}
+    schuetzen = {310: _einheit(310, 1, 22, 20, 20), 311: _einheit(311, 1, 22, 21, 20)}
+    feind = {900: _einheit(900, 2, 22, 170, 170)}
+    gegeben, zeilen = [], []
+    monkeypatch.setattr(ES, "runde_lesen", lambda: ({"t": 410}, {**schuetzen, **feind}, G))
+    monkeypatch.setattr(ES, "befehl", lambda b, *a, **k: gegeben.append(b) or ["OK"])
+    monkeypatch.setattr(ES, "schreib", zeilen.append)
+    monkeypatch.setattr(ES, "tick", lambda: 410)
+    monkeypatch.setattr(ES, "raid_kern", lambda wegf, runde, ereignis: None)
+    monkeypatch.setattr(ES, "RAIDS", True)
+    monkeypatch.setattr(ES, "_KARTE", [])
+    monkeypatch.setattr(ES, "_ERSTER", {"nk": None, "wf": None, "vs": None, "zeit": 0.0})
+    for schalter, erwartet in (
+        (False, None),
+        (True, {310, 311}),
+    ):  # Gegenprobe: ohne Vorstoss-Schalter bleibt es wie bisher
+        monkeypatch.setattr(ES, "VORSTOSS", schalter)
+        monkeypatch.setattr(ES, "_ERSTER", {"nk": None, "wf": None, "vs": None, "zeit": 0.0})
+        gegeben.clear()
+        ES.erster_angriff("nach dem Werben")
+        vs = ES._ERSTER["vs"]
+        if erwartet is None:
+            assert vs is None and not gegeben
+            continue
+        assert vs.mitglieder == erwartet
+        lauf = [b for b in gegeben if "angriff" in b and set(b["angriff"]["einheiten"]) & erwartet]
+        assert lauf, "die Schuetzen bekamen in der Eroeffnung keinen Befehl: %r" % gegeben
+        assert any("Vorstoss mit 2 Schuetzen" in z for z in zeilen)
+
+    class Raid:
+        class nahkampf:
+            ziel = {}
+
+        vorstoss = object()  # der Vorstoss, den RaidEinsatz neu gebaut hat
+
+    ES.erster_angriff_uebergeben(Raid, None)
+    assert Raid.vorstoss is vs
