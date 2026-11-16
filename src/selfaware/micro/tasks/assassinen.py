@@ -410,7 +410,11 @@ class Einzeln:
     #   waehlbarer Feind sieht (sicht.sicher); erst wenn n_bedarf dort stehen, greifen genau diese zugleich an.
     #   Angriff: wer weiter als ANLAUF_NAH vom Lord steht, bekommt einen LAUFbefehl auf den Lord (Kletterweg), erst daneben
     #   den Angriffsbefehl. Wer STEH_TICKS ohne Spielziel auf demselben Feld steht, faellt aus der Gruppe und raidet.
-    BEREIT_R = (24, 28, 32)          # Felder vom Lord: ausserhalb der 20 Felder, in denen der Lord ihn sieht (L75)
+    # 16.11.2026 (vorher 24/28/32): in Probe 11, 12, 13c, 14, 16 und 17 scheiterte jede Bereitstellung an einem Ringplatz 22-31 Felder vom
+    # Lord - wer ankam, wurde am Burgrand entdeckt und abgezogen ("raus (entdeckt ...)"), es rueckten immer neue nach. Angekommen sind nur
+    # Plaetze 43-46 Felder vom Lord auf unserer Seite (13c (225, 245), 16 (244, 248), 17 Wege 39-45). Abgelesen aus diesen Partien, nicht
+    # eigens gemessen:
+    BEREIT_R = (40, 44, 48)          # Felder vom Lord: ausserhalb der Burg, nicht nur ausserhalb der 20 Felder, in denen der Lord sieht (L75)
     BEREIT_NAH = 3                   # so nah am Platz gilt er als bereit
     BEREIT_MAX = 3000                # Ticks fuer die Bereitstellung, dann Abbruch -> alle raiden (seit 16.11.2026 nur die Untergrenze)
     # 16.11.2026 (Daniel 21:54 "passt wertungen und ingame entscheidungen an bis du denkst dass die ki jetzt wirklich eine menace ist"):
@@ -427,6 +431,15 @@ class Einzeln:
     # kleinste Schaden auf dem Weg, dann erst die Laenge: so lag der Platz in Probe 11, 12, 13c, 14 hinter der feindlichen Burg (176-208
     # Schritte), der einzige, der ankam (13c, (225, 245)), auf unserer Seite (128 Schritte).
     LEBEN_TAKTE = 10000              # STARTWERT, nicht gemessen: so viele Takte Umweg ist eine ganze Assassine wert (x Lebensgewicht)
+    # Daniel 16.11.2026 22:59 ("er verliert immer noch assassinen ohne ende weil sie nicht auf bogenschuetzen gehen bzw. diese gar nicht
+    # erkennen ... ausserdem waere der lord sicherlich schon frueher gestorben waeren die assassinen nicht gestorben"). Gemessen
+    # (tode_ursache_probe14-16.txt): fast jede gefallene Assassine stand zuletzt in Reichweite von 4-16 feindlichen Schuetzen, die meisten im
+    # Lord-Angriff, am Lord standen Bogenschuetzen 3-4 Felder neben ihnen. Jetzt: im Lord-Angriff greift eine Assassine den naechsten
+    # feindlichen Schuetzen bis SCHUETZE_NAH Felder an (hoechstens SCHUETZE_JE je Schuetze), solange der Lord mehr als LORD_FERTIG seines
+    # Lebens beim Angriffsbeginn hat - danach geht alles auf den Lord. Startwerte, nicht gemessen:
+    SCHUETZE_NAH = 8
+    SCHUETZE_JE = 2
+    LORD_FERTIG = 0.3
     BEREIT_NEU = 3                   # hoechstens so viele Laufbefehle zum Platz, dann raus aus der Gruppe
     # 17.10. (1017i, Lageprotokoll Tick 30.567-31.005): der Lord stand OBEN auf seinem Bergfried (Typ 41 daneben, Zustand 13);
     # mit 6 schaltete die Gruppe 4-5 Felder vor ihm auf den Angriffsbefehl um, der nicht klettert - Lord 30.000 unveraendert,
@@ -833,6 +846,13 @@ class Einzeln:
         """Daniel 15.11.2026 23:10: so viele Angreifer, wie der Lord nach den Messungen dieser Partie braucht - None ohne Messung."""
         je = self._lord_schaden_je_assassine()
         return int(math.ceil(leben / je)) if je else None
+
+    def _schuetze_nah(self, k, L, fern, belegt):
+        """Daniel 16.11.2026 22:59: der naechste feindliche Schuetze bis SCHUETZE_NAH Felder von Assassine k, den noch keine SCHUETZE_JE
+        Assassinen angreifen (belegt: Schuetze -> Assassinen dieser Runde). Nummer oder None."""
+        p = (L[k]["x"], L[k]["y"])
+        kand = sorted((schach(p, q), nr) for nr, q, _t in fern if schach(p, q) <= self.SCHUETZE_NAH and len(belegt.get(nr, ())) < self.SCHUETZE_JE)
+        return kand[0][1] if kand else None
 
     def _platz_kosten(self, schaden, felder, leben):
         """Kosten eines Platzes in Takten: Anmarsch (felder x TEMPO) plus erwarteter Schaden auf dem Weg als Anteil des eigenen Lebens x
@@ -2589,6 +2609,7 @@ class Einzeln:
         # Ablauf wieder mit Raids.
         lord_befehl = None
         lord_lauf, lord_ziel = {}, []        # 17.10.: Laufbefehle {Ort: [n]} und Angriffsbefehle auf den Lord
+        schuetze_ziel = {}                   # Daniel 22:59: feindlicher Schuetze -> Assassinen, die ihn im Lord-Angriff angreifen
         lt = self.lordtrupp
         lt["mitglieder"] = {n for n in lt["mitglieder"] if n in self.mitglieder}
         lords = [(n, e) for n, e in L.items() if e["typ"] == 55 and e["besitzer"] not in (0, self.sp)]
@@ -2907,7 +2928,20 @@ class Einzeln:
                 # unsere schiessen kann"): wer nicht den Lord angreift, bekommt den Befehl JEDE Runde neu.
                 # 17.10. (1017h): weiter weg -> Laufbefehl auf den Lord (Kletterweg), erst daneben der Angriffsbefehl;
                 # wer STEH_TICKS ohne Spielziel steht, faellt aus der Gruppe (sonst stand er an unserer Burg bis Partieende)
+                lord_start = (self.angriffe[-1].get("lord_vorher") if self.angriffe else None) or le["leben"]
+                erst_schuetzen = le["leben"] > self.LORD_FERTIG * lord_start
+                am_schuetzen = {}
                 for k in sorted(lt["mitglieder"]):
+                    if erst_schuetzen:
+                        s_n = self._schuetze_nah(k, L, fern, am_schuetzen)
+                        if s_n is not None:
+                            am_schuetzen.setdefault(s_n, []).append(k)
+                            if not (L[k]["zielart"] == 4 and L[k].get("zieleinheit") == s_n):
+                                if self._lord_lauf_noetig(pos(k), L[s_n]):
+                                    lord_lauf.setdefault((L[s_n]["x"], L[s_n]["y"]), []).append(k)
+                                else:
+                                    schuetze_ziel.setdefault(s_n, []).append(k)
+                            continue
                     if L[k]["zielart"] == 4 and L[k].get("zieleinheit") == ln:
                         continue
                     f, seit = self._steht.get(k, (None, self.jetzt))
@@ -3167,9 +3201,12 @@ class Einzeln:
             befehle.append(lord_befehl)
         befehle += [{"angriff": {"einheiten": ns, "lauf": [o[0], o[1]]}} for o, ns in lord_lauf.items()]   # 17.10.: Kletterweg
         if lord_ziel:
+            schuetze_ziel.setdefault(self.lordtrupp.get("lord"), []).extend(lord_ziel)
+        for z_n, ns in sorted(schuetze_ziel.items()):
             # Kern 39 (Daniel 16.11.2026 21:42 "auf den lord zu spammklicken", 21:52 "Ja, bauen"): der Kern wiederholt diesen Angriff, solange
-            # die Assassine weder laeuft noch gegen den Lord kaempft (kernweg: Art 25, ab Kern 39; das Modul ignoriert den Schluessel)
-            befehle.append({"angriff": {"einheiten": sorted(lord_ziel), "ziel": self.lordtrupp.get("lord"), "durchsetzen": True}})
+            # die Assassine weder laeuft noch gegen ihr Ziel kaempft (kernweg: Art 25, ab Kern 39; das Modul ignoriert den Schluessel).
+            # Daniel 22:59: dieselbe Stelle fuer die Schuetzen neben den Assassinen im Lord-Angriff (Sperrtest: keine neue Befehlsstelle)
+            befehle.append({"angriff": {"einheiten": sorted(ns), "ziel": z_n, "durchsetzen": True}})
         # 17.10. (Daniel: "manche Assassinen stehen rum ohne Grund"): alle 50 Runden, wer STEH_TICKS ohne Spielziel steht und warum
         if self.runde % 50 == 0:
             st_alle = [n for n in self.mitglieder if self.jetzt - self._steht.get(n, (None, self.jetzt))[1] >= self.STEH_TICKS]

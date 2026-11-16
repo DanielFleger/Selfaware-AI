@@ -235,3 +235,55 @@ def test_bereitstellung_platz_und_wegpunkte_im_gebiet_der_assassine():
     a._frei, a._gitter_runde = [[True]], (a.runde, object())
     a.karte_neu(["." * 400] * 400)
     assert a.gelaende[0] == "." * 400 and a._frei is None and a._gitter_runde[0] is None
+
+
+def _im_angriff(n=6):
+    """Lord-Gruppe im Angriff: alle am Platz, der Stapel hat angegriffen."""
+    a, L = _szene(n)
+    _schritt(a, L, 20000)
+    for k, p in dict(a.lordtrupp["platz"]).items():
+        L[k].update(x=p[0], y=p[1], laufx=p[0], laufy=p[1])
+    _schritt(a, L, 20200)
+    assert a.lordtrupp["phase"] == "angriff"
+    return a, L
+
+
+def test_im_lord_angriff_erst_die_schuetzen_neben_den_assassinen():
+    """Daniel 16.11.2026 22:59 ("er verliert immer noch assassinen ohne ende weil sie nicht auf bogenschuetzen gehen"): ein feindlicher
+    Bogenschuetze 3 Felder neben zwei Assassinen wird von hoechstens SCHUETZE_JE angegriffen (Angriff mit Wiederholung im Kern); die anderen
+    gehen auf den Lord. Hat der Lord nur noch LORD_FERTIG seines Lebens, geht alles auf den Lord."""
+    a, L = _im_angriff(6)
+    k1 = 200
+    bx, by = L[k1]["x"] + 3, L[k1]["y"]
+    L[900] = _e(900, 2, 22, bx, by, leben=1000)
+    for k in range(201, 203):  # zwei weitere stehen auch neben dem Bogen
+        L[k].update(x=bx - 3, y=by + 1, laufx=bx - 3, laufy=by + 1)
+    ev, bef = a.schritt(L, {}, sichere_orte=[(100, 100)], tick=20400)
+    auf_bogen = [
+        n
+        for b in bef
+        if "angriff" in b and b["angriff"].get("ziel") == 900
+        for n in b["angriff"]["einheiten"]
+    ]
+    assert len(auf_bogen) == a.SCHUETZE_JE and all(
+        b["angriff"].get("durchsetzen") for b in bef if b.get("angriff", {}).get("ziel") == 900
+    ), bef
+    L[60]["leben"] = int(a.LORD_FERTIG * a.angriffe[-1]["lord_vorher"]) - 1
+    ev, bef = a.schritt(L, {}, sichere_orte=[(100, 100)], tick=20600)
+    # die Beute-Jagd der Freien (BEUTE_R) bleibt - im Lord-Angriff aber kein Angriff mit Wiederholung mehr auf den Bogen
+    assert not any(
+        b.get("angriff", {}).get("ziel") == 900 and b["angriff"].get("durchsetzen") for b in bef
+    ), "Lord fast tot: alles auf den Lord"
+
+
+def test_bereitstellungsplaetze_ausserhalb_der_burg():
+    """16.11.2026: Ringplaetze 22-31 Felder vom Lord kamen in sechs Partien nie an (am Burgrand entdeckt), 43-46 Felder schon - der Ring
+    liegt jetzt bei BEREIT_R = 40/44/48."""
+    AS = _modul()
+    a = AS.Einzeln(1)
+    a._sicht = None
+    plaetze = a._bereit_plaetze((200, 200))
+    assert (
+        plaetze and min(max(abs(x - 200), abs(y - 200)) for x, y in plaetze) >= 28
+    )  # Schach: 40 Felder im Kreis sind mind. 28 Schach
+    assert min(((x - 200) ** 2 + (y - 200) ** 2) ** 0.5 for x, y in plaetze) >= 39.5
