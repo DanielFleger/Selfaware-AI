@@ -45,10 +45,36 @@ REST = 0.05  # darunter gilt die gedachte Einheit als verloren
 ABGEDECKT = 0.5  # Startwert: hat ein Ziel schon so viel Aussicht, erledigt zu werden, zaehlt es fuer die naechste Einheit nicht mehr
 SPEER = 24  # Bezugsgegner fuer den Ersatz der Gebaeuderate
 RATEN = os.path.join(workspace.DATA, "angriff_raten.json")
+# Daniel 16.11.2026 19:54 "dann sollen sie wissen wie viele leben ein gebaeude hat weil das kann man auch als spieler sehen": volles Leben je
+# Gebaeudeart, gemessen (hoechstes Leben je Art in den Lageprotokollen der Team-Liga-Instanz, gebaeude_leben_messen.py)
+GEBAEUDE_LEBEN = os.path.join(workspace.DATA, "gebaeude_leben.json")
+REST_MIN = 0.05  # Startwert: so viel Arbeit bleibt mindestens (ein Gebaeude mit 0 Leben steht noch eine Runde)
+_leben_max = {}
 
 
 def schach(a, b):
     return max(abs(a[0] - b[0]), abs(a[1] - b[1]))
+
+
+def gebaeude_leben_max(typ, pfad=None):
+    """Volles Leben einer Gebaeudeart (gebaeude_leben.json) oder None, wenn die Art dort fehlt oder kein Leben hat."""
+    pfad = pfad or GEBAEUDE_LEBEN
+    if pfad not in _leben_max:
+        try:
+            with open(pfad, encoding="utf-8") as f:
+                _leben_max[pfad] = {
+                    int(k): v["leben_max"] for k, v in json.load(f)["gebaeude"].items()
+                }
+        except (OSError, ValueError, KeyError):
+            _leben_max[pfad] = {}
+    return _leben_max[pfad].get(typ) or None
+
+
+def rest_anteil(typ, leben, gesehen=0):
+    """Anteil der Arbeit, der an einem Gebaeude noch fehlt: Leben jetzt / volles Leben der Art (wie am Lebensbalken), ohne Eintrag das
+    hoechste gesehene Leben dieses Gebaeudes. Eine Stelle fuer Assassinen und Nahkaempfer (GG 161)."""
+    voll = max(gebaeude_leben_max(typ) or 0, gesehen or 0, leben or 0, 1)
+    return max(REST_MIN, (leben or 0) / float(voll))
 
 
 def _gebaeude_raten(pfad=RATEN):
@@ -67,7 +93,7 @@ class Ziel:
     wert: float
     schuetzen: tuple  # Arten der feindlichen Schuetzen, die den Ort erreichen
     nah: tuple  # Arten der feindlichen Nahkaempfer bis raids.GEFAHR_NAH
-    leben: float = 0.0  # S154: Leben eines Arbeiters (fuer die gemessene Zeit, bis er faellt)
+    leben: float = 0.0  # S154: Leben eines Arbeiters (fuer die gemessene Zeit, bis er faellt); seit 16.11. auch eines Gebaeudes
 
 
 def ziele(L, G, sp):
@@ -99,7 +125,16 @@ def ziele(L, G, sp):
         # Daniel 15.11.2026 23:31: ein brennendes Gebaeude faellt - kein Ziel fuer den Nahkampf-Raid (sonst verbrennen sie mit)
         if g.get("besitzer") not in (0, sp) and g["typ"] in AS.WERT and not brennt(g):
             p = (g["x"], g["y"])
-            aus.append(Ziel(("g", n), g["typ"], p, float(AS.WERT[g["typ"]]), *deckung(p)))
+            aus.append(
+                Ziel(
+                    ("g", n),
+                    g["typ"],
+                    p,
+                    float(AS.WERT[g["typ"]]),
+                    *deckung(p),
+                    leben=float(g.get("leben", 0)),
+                )
+            )
     for n, e in L.items():
         if e.get("besitzer") not in (0, sp) and e["typ"] in RA.ARBEITER and e.get("leben", 1) > 0:
             if e["typ"] in UNANGREIFBAR_BEI_ARBEIT and e.get("zustand") == 1:
@@ -215,6 +250,10 @@ class Wissen:
             takte = gemessen
         if z.schluessel[0] == "e" and (typ, z.typ) in ARBEITER_SCHADEN and z.leben > 0:
             takte = z.leben / ARBEITER_SCHADEN[(typ, z.typ)]  # S154: gemessen statt Ersatz
+        if z.schluessel[0] == "g" and z.leben > 0:
+            takte *= rest_anteil(
+                z.typ, z.leben
+            )  # Daniel 16.11.2026 19:54: nur die Arbeit, die am Gebaeude noch fehlt
         fern = EH.ARTEN[typ].kampf == "fern"
         rein = sum(self.dps(s, typ, fern=True)[0] for s in z.schuetzen)
         if not fern:

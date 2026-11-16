@@ -354,13 +354,16 @@ def test_an_assassin_without_target_who_stays_safe_near_the_front_says_why():
         d.update(k)
         return d
 
+    # 16.11.2026 schlaues Risiko (Daniel 19:54-19:57, keine feste 10-%-Grenze mehr): eine Holzfaellerhuette (Wert 60) ist bei 26 %
+    # Todesrisiko das Leben wert, die Assassine griffe an. Die Szene nimmt darum die Jaegerhuette (Wert 30, volles Leben 175): bei
+    # Armbrustschuetzen auf 285 lohnt sie das Risiko nicht (Warten mit Grund), auf 300 schon (gemessen 16.11. 20:08)
     G = {
         33: {
             "besitzer": 2,
-            "typ": 3,
+            "typ": 7,
             "x": 265,
             "y": 100,
-            "leben": 60,
+            "leben": 175,
             "uid": 1,
             "erreichbar": 1,
             "vorrat": None,
@@ -371,7 +374,7 @@ def test_an_assassin_without_target_who_stays_safe_near_the_front_says_why():
     }
     for armbrust_x, erwartet in (
         (285, (Action.WAIT_STAGING, "(240,100)", "all_targets_dangerous", {})),
-        (300, (Action.ATTACK_BUILDING, "B33", "raid_building", {"typ": 3})),
+        (300, (Action.ATTACK_BUILDING, "B33", "raid_building", {"typ": 7})),
     ):
         a = AS.Einzeln(1)
         L = {

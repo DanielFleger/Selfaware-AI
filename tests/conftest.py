@@ -76,6 +76,7 @@ def _regler_ohne_datei(tmp_path_factory, monkeypatch):
     monkeypatch.setattr(
         _rg, "SCHALTER_DATEI", str(tmp_path_factory.mktemp("schalter") / "keine.json")
     )
+    monkeypatch.setattr(_rg, "STELL_DATEI", str(tmp_path_factory.mktemp("stell") / "keine.json"))
     _rg.neu_lesen()
     yield
     _rg.neu_lesen()

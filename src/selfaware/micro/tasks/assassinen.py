@@ -534,6 +534,9 @@ class Einzeln:
     # Modell sah am Todesort 88-177 Beschuss je Takt): Risikogrenze auch fuer unbeobachtete Ziele; Schwache noch strenger
     ZIEL_RISIKO_WEG = 0.10
     ZIEL_RISIKO_SCHWACH = 0.02
+    # 16.11.2026 (Daniel 19:54 "wie kann ich moeglichst viel fuer alle rausholen", 19:57 "schlaues risiko"): ZIEL_RISIKO, ZIEL_RISIKO_WEG und
+    # ZIEL_RISIKO_SCHWACH begrenzen die Zielwahl nicht mehr - das schlaue Risiko in _ziel_bewerten wiegt Wert gegen Todesrisiko x Preis;
+    # die Werte bleiben als Beleg der alten Grenzen stehen
 
     def __init__(self, sp=1, pruefe_begehbar=None, wegtest=None):
         self.sp = sp
@@ -720,10 +723,14 @@ class Einzeln:
                     and all(schach(q, p) > SCHUSSWEITE for _, p, _ in fern)]
         return min(fallback, key=lambda q: schach(q, lord)) if fallback else None
 
-    def _ziel_bewerten(self, n, ort, liste, zahl, L, G, g_r, rk, grenze, grenze_bew):
+    def _ziel_bewerten(self, n, ort, liste, zahl, L, G, g_r, rk):
         """Bestes Gebaeude fuer Assassine n von ort aus (Zielwahl, Risiko gegen Ertrag): (je_zeit, Kandidat, p_tod, saldo) oder None.
-        rk = Risiko-Karte von ort (g_r.risiko_von). Auch fuer das Folgeziel (#359): ort ist dann das Gebaeude, das er gerade angreift."""
+        rk = Risiko-Karte von ort (g_r.risiko_von). Auch fuer das Folgeziel (#359): ort ist dann das Gebaeude, das er gerade angreift.
+        Schlaues Risiko (Daniel 16.11.2026 19:54 "wie kann ich moeglichst viel fuer alle rausholen", 19:57 "es sollte sowas wie schlaues
+        risiko sein"): keine festen Todesgrenzen mehr (vorher 10 %, beobachtet 5 %, geschwaecht 2 %) - ein Ziel lohnt sich, solange
+        Wert x Ueberleben groesser ist als Todesrisiko x Preis x Lebensgewicht (Regler "Schlaues Risiko", baukasten/regler.lebensgewicht)."""
         beste, beste_bew = None, None
+        gewicht = _regler.lebensgewicht()
         for k in liste:
             if k[8] > zahl.get(k[0], 0) + 1:
                 continue                   # 4a: nicht dorthin, wo mehr Nahkampf-Wachen stehen als wir Angreifer haetten
@@ -746,7 +753,7 @@ class Einzeln:
                 felder = schach(ort, k[1])
                 risiko = b_ziel * (verweilen + felder * TEMPO) * self.KALIB
             p_tod = min(1.0, risiko / max(1.0, float(L[n]["leben"])))
-            saldo = WERT.get(k[2], 10) * (1 - p_tod) - p_tod * self.KOSTEN
+            saldo = WERT.get(k[2], 10) * (1 - p_tod) - p_tod * self.KOSTEN * gewicht
             # 19.10. (Daniel: zwei Fronten, "hinten ist keine Verteidigung"): Ruhe-Bonus bis x2 fuer Ziele weit weg von jedem
             # waehlbaren Feind (Sicht-Abstand in Feldern / RUHE_FELDER) - dort wird er nicht entdeckt, verliert keine Zeit
             ruhe = 1.0 + min(self._sicht.sicht_abstand(k[1]) / 8.0, self.RUHE_FELDER) / self.RUHE_FELDER
@@ -754,9 +761,9 @@ class Einzeln:
             if saldo <= 0:
                 continue
             if b_ziel <= 0:
-                if p_tod <= grenze and (beste is None or je_zeit > beste[0]):
+                if beste is None or je_zeit > beste[0]:
                     beste = (je_zeit, k, p_tod, saldo)
-            elif p_tod <= grenze_bew and (beste_bew is None or je_zeit > beste_bew[0]):
+            elif beste_bew is None or je_zeit > beste_bew[0]:
                 beste_bew = (je_zeit, k, p_tod, saldo)
         return beste or beste_bew
 
@@ -774,12 +781,10 @@ class Einzeln:
         for gn, ns in sorted(angreifer.items()):
             ort = (G[gn]["x"], G[gn]["y"])
             n = min(ns, key=lambda k: (L[k]["leben"], k))
-            schwach = L[n]["leben"] < self.SCHWACH * self.VOLL
-            grenze = self.ZIEL_RISIKO_SCHWACH if schwach else self.ZIEL_RISIKO_WEG
             rk = g_r.risiko_von(ort, TEMPO) if g_r is not None else {}
             liste = [k for k in kand if k[3] and k[0] != gn]
             beste, _dazu = ZV.waehle(liste, lambda k: zahl_f.get(k[0], 0) < platz(k),
-                                     lambda li: self._ziel_bewerten(n, ort, li, zahl_f, L, G, g_r, rk, grenze, min(self.ZIEL_RISIKO, grenze)),
+                                     lambda li: self._ziel_bewerten(n, ort, li, zahl_f, L, G, g_r, rk),
                                      wert=lambda b: b[0], vorzug=_regler.dazu_vorzug(ASSASSINE))
             if beste:
                 ziel = beste[1][0]
@@ -981,18 +986,16 @@ class Einzeln:
         """Takte bis zerstoert bei zahl Assassinen (gemessene Arbeit / Zahl)."""
         return ARBEIT.get(typ, ARBEIT_SONST) / max(1, zahl)
 
-    REST_MIN = 0.05  # Startwert: so viel Arbeit bleibt mindestens (ein Gebaeude mit 0 Leben steht noch eine Runde)
-
     def _rest_anteil(self, gn, G):
-        """Anteil der Arbeit, der an Gebaeude gn noch fehlt: Leben jetzt / hoechstes gesehenes Leben (wie _fertig_zuerst). Daniel 16.11.2026
-        19:42 "warum hier eine assassine sich nicht opfert um den kornspeicher der fast kaputt ist zu nehmen, die einheiten sollten die
-        lebenspunkte der gebaeude kennen": Zielwahl und letzte Tat rechneten mit der Arbeit fuer ein ganzes Gebaeude - ein fast
-        zerstoertes sah so lang und so gefaehrlich aus wie ein heiles."""
+        """Anteil der Arbeit, der an Gebaeude gn noch fehlt (baukasten/wirkung.rest_anteil: Leben jetzt / volles Leben der Art, sonst das
+        hoechste gesehene). Daniel 16.11.2026 19:42 "warum hier eine assassine sich nicht opfert um den kornspeicher der fast kaputt ist zu
+        nehmen, die einheiten sollten die lebenspunkte der gebaeude kennen", 19:54 "das kann man auch als spieler sehen"."""
+        from selfaware.baukasten import wirkung as _WK
+
         g = G.get(gn)
         if g is None:
             return 1.0
-        voll = max(getattr(self, "_gb_max", {}).get(gn, 0), g.get("leben", 0), 1)
-        return max(self.REST_MIN, g.get("leben", 0) / float(voll))
+        return _WK.rest_anteil(g["typ"], g.get("leben", 0), getattr(self, "_gb_max", {}).get(gn, 0))
 
     def _gitter(self, L, G=None):
         """Gefahren-Gitter dieser Runde (schussfeld.py) mit der Sicht (17.10., sicht.py: sichtbar nur bei waehlbarem Feind
@@ -1709,9 +1712,8 @@ class Einzeln:
         g = G.get(gn)
         if g is None or L[n]["zustand"] != 107 or schach(ort, (g["x"], g["y"])) > self.ZIEL_NAH + 2:
             return False
-        voll = max(getattr(self, "_gb_max", {}).get(gn, 0), g["leben"], 1)
         zahl = max(1, sum(1 for z in self.ziel.values() if z == gn))
-        rest = ARBEIT.get(g["typ"], ARBEIT_SONST) * g["leben"] / float(voll) / zahl
+        rest = ARBEIT.get(g["typ"], ARBEIT_SONST) * self._rest_anteil(gn, G) / zahl
         if rest > self.FERTIG_TAKTE:
             return False
         # 19.10. (1018y: ein Markt im Bau - sein Leben stieg 20 -> 60, die Restarbeit sank nie, "fertig zuerst" hielt 86 zehn
@@ -2922,7 +2924,6 @@ class Einzeln:
                     or (n in self.warte and n in verletzt) or n in self.flucht:
                 continue
             ort = (L[n]["x"], L[n]["y"])
-            schwach = L[n]["leben"] < self.SCHWACH * self.VOLL
             erreichbar = [k for k in kand if k[3]]
             # 12.10. 01:54 RISIKO GEGEN ERTRAG statt fester Schwellen (Daniel 01:49 "warum wieder ein fixer Umkreis? frei entscheiden
             # und Risk/Reward abwaegen", 01:52 "ALLE Einheiten muessen wirklich aktiv raiden"): je Ziel kleinster erwarteter Schaden
@@ -2930,12 +2931,10 @@ class Einzeln:
             # beim Angriff -> Todeswahrscheinlichkeit; Saldo = Wert x Ueberleben - Tod x Preis; das beste Saldo je Zeit.
             g_r = self._gitter(L, G)
             rk = g_r.risiko_von(ort, TEMPO) if g_r is not None else {}
-            # 17.10.: unbeobachtete Ziele zuerst, beobachtete nur bis ZIEL_RISIKO
-            # 18.10.: Grenzen fuer den ganzen Auftrag (Weg + Angriff) - schwach = unter SCHWACH x volles Leben (Regel war
-            # berechnet, aber nicht angewendet: Assassine 163 zog mit 120 Leben los, 17 mit 3.100)
-            grenze = self.ZIEL_RISIKO_SCHWACH if schwach else self.ZIEL_RISIKO_WEG
-            grenze_bew = min(self.ZIEL_RISIKO, grenze)
-            wahl = lambda liste: self._ziel_bewerten(n, ort, liste, zahl, L, G, g_r, rk, grenze, grenze_bew)  # noqa: E731
+            # 17.10.: unbeobachtete Ziele zuerst. Die festen Todesgrenzen (17./18.10.: beobachtet 5 %, Weg 10 %, schwach 2 %) ersetzt
+            # seit 16.11.2026 das schlaue Risiko in _ziel_bewerten (Daniel 19:54-19:57) - eine schwache Assassine hat von selbst ein hoeheres
+            # Todesrisiko (Risiko / ihr Leben) und nimmt darum nur, was das wert ist
+            wahl = lambda liste: self._ziel_bewerten(n, ort, liste, zahl, L, G, g_r, rk)  # noqa: E731
             # Daniel 15.11.2026 22:29 (baukasten/zielvergabe.py): erst ein freies Gebaeude, ist keins annehmbar, stellt er sich zu einem
             # besetzten dazu - vorher warteten bis zu 77 Assassinen 'alle gefaehrlich', weil die sicheren Gebaeude je einen hatten
             beste, dazu = ZV.waehle(erreichbar, lambda k: zahl.get(k[0], 0) < platz(k), wahl,

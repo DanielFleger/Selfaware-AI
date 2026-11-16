@@ -253,3 +253,20 @@ def test_seite_zeigt_schalter_und_seinen_verlauf(regler, tmp_path, monkeypatch):
     assert [v["zeit"] for v in a["verlauf"]] == sorted(
         (v["zeit"] for v in a["verlauf"]), reverse=True
     )
+
+
+def test_seite_zeigt_schlaues_risiko(regler, tmp_path, monkeypatch):
+    from selfaware.telemetry import wertung as WT
+    from selfaware.tools.analysis import wertung_seite as WS
+
+    monkeypatch.setattr(WT, "REGLER_DATEI", str(tmp_path / "seite_regler.json"))
+    monkeypatch.setattr(WT, "VERLAUF_DATEI", str(tmp_path / "seite_verlauf.jsonl"))
+    monkeypatch.setattr(RG, "STELL_DATEI", str(tmp_path / "stell.json"))
+    a = WS.regler_antwort()["stell"]
+    assert a["risikofreude"] == 0.0 and a["lebensgewicht"] == 1.0
+    kaserne = next(b for b in a["beispiele"] if b["name"] == "Kaserne")
+    assert kaserne["bis"] == pytest.approx(800 / 870)
+    RG.stell_setzen(5, "Seite", "Test")
+    b = WS.regler_antwort()
+    assert b["stell"]["lebensgewicht"] == pytest.approx(0.5)
+    assert any("Schlaues Risiko: +0 -> +5" in x for v in b["verlauf"] for x in v["aenderungen"])

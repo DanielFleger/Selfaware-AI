@@ -13,6 +13,7 @@ Liefert lokal (nur 127.0.0.1) eine Seite und diese Wege:
   POST /api/regler            neue Regler (mit Grund) - alter und neuer Stand gehen in den Verlauf
   POST /api/regler/zurueck    letzte Aenderung zuruecknehmen (als neue Aenderung, der Verlauf behaelt beides)
   POST /api/handeln           Schalter "Regler wirken aufs Handeln" an/aus ({"an": bool}) - baukasten/regler.py, Daniel 16.11.2026 19:30
+  POST /api/stell             Regler "Schlaues Risiko" ({"risikofreude": -10..10}) - wirkt direkt aufs Handeln, Daniel 16.11.2026 19:54-19:57
   GET  /bild/hintergrund      Hintergrundbild der UCP3-Oberflaeche, wenn es auf diesem Rechner liegt
 Aufruf: python -m selfaware.tools.analysis.wertung_seite [port=8771]"""
 
@@ -311,30 +312,68 @@ def alle_rechnen():
     STAND["laeuft"] = False
 
 
+def stell_antwort():
+    """Regler "Schlaues Risiko": Stand und was er bedeutet (Lebensgewicht, Todesrisiko, bis zu dem sich Huette und Kaserne lohnen)."""
+    from selfaware.micro.tasks import assassinen as AS
+
+    st = RG.stell_lesen()
+    preis = AS.Einzeln.KOSTEN
+    return {
+        "risikofreude": st["risikofreude"],
+        "zeit": st.get("zeit"),
+        "wer": st.get("wer"),
+        "preis": preis,
+        "lebensgewicht": RG.lebensgewicht(),
+        "risiko_halb": RG.RISIKO_HALB,
+        "beispiele": [
+            {"name": "Huette", "wert": AS.WERT[1], "bis": RG.risiko_grenze(AS.WERT[1], preis)},
+            {
+                "name": "Kornspeicher",
+                "wert": AS.WERT[19],
+                "bis": RG.risiko_grenze(AS.WERT[19], preis),
+            },
+            {"name": "Kaserne", "wert": AS.WERT[9], "bis": RG.risiko_grenze(AS.WERT[9], preis)},
+        ],
+    }
+
+
 def regler_antwort():
     handeln = RG.handeln_lesen()
     # Regler-Verlauf und Schalter-Verlauf in einer Liste, neueste zuerst (ADR-072)
-    verlauf = [
-        {
-            "zeit": v["zeit"],
-            "wer": v.get("wer"),
-            "grund": v.get("grund"),
-            "aenderungen": _unterschied(v.get("alt") or [], v.get("neu") or []),
-        }
-        for v in W.verlauf_lesen()[-100:]
-    ] + [
-        {
-            "zeit": v["zeit"],
-            "wer": v.get("wer"),
-            "grund": v.get("grund") or "Schalter",
-            "aenderungen": [
-                "Regler wirken aufs Handeln: %s -> %s"
-                % ("an" if v.get("alt") else "aus", "an" if v.get("neu") else "aus")
-            ],
-        }
-        for v in (handeln.get("verlauf") or [])[-100:]
-    ]
+    verlauf = (
+        [
+            {
+                "zeit": v["zeit"],
+                "wer": v.get("wer"),
+                "grund": v.get("grund"),
+                "aenderungen": _unterschied(v.get("alt") or [], v.get("neu") or []),
+            }
+            for v in W.verlauf_lesen()[-100:]
+        ]
+        + [
+            {
+                "zeit": v["zeit"],
+                "wer": v.get("wer"),
+                "grund": v.get("grund") or "Schalter",
+                "aenderungen": [
+                    "Regler wirken aufs Handeln: %s -> %s"
+                    % ("an" if v.get("alt") else "aus", "an" if v.get("neu") else "aus")
+                ],
+            }
+            for v in (handeln.get("verlauf") or [])[-100:]
+        ]
+        + [
+            {
+                "zeit": v["zeit"],
+                "wer": v.get("wer"),
+                "grund": v.get("grund") or "Schlaues Risiko",
+                "aenderungen": ["Schlaues Risiko: %+g -> %+g" % (v.get("alt", 0), v.get("neu", 0))],
+            }
+            for v in (RG.stell_lesen().get("verlauf") or [])[-100:]
+        ]
+    )
     return {
+        "stell": stell_antwort(),
         "handeln": {k: handeln.get(k) for k in ("an", "zeit", "wer", "grund")},
         "regler": W.regler_lesen(),
         "messgroessen": {
@@ -481,6 +520,12 @@ class Seite(BaseHTTPRequestHandler):
             elif u.path == "/api/regler/zurueck":
                 if not W.regler_zuruecknehmen("Seite"):
                     raise ValueError("nichts zum Zuruecknehmen")
+                self._json(regler_antwort())
+            elif u.path == "/api/stell":
+                r = body.get("risikofreude")
+                if not isinstance(r, (int, float)) or isinstance(r, bool):
+                    raise ValueError("risikofreude muss eine Zahl von -10 bis 10 sein")
+                RG.stell_setzen(r, "Seite", body.get("grund") or "")
                 self._json(regler_antwort())
             elif u.path == "/api/handeln":
                 if not isinstance(body.get("an"), bool):

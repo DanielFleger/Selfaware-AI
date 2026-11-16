@@ -32,6 +32,12 @@ from selfaware import workspace
 
 DATEI = os.path.join(workspace.DATA, "wertung", "regler.json")
 SCHALTER_DATEI = os.path.join(workspace.DATA, "wertung", "handeln.json")
+# Stellgroessen, die direkt aufs Handeln wirken, unabhaengig vom Schalter (Daniel 16.11.2026 19:54 "als regler die todesrisiken rein", 19:56
+# "risiko dynamik ... damit man auch weniger und mal mehr risiko eingehen kann", 19:57 "es sollte sowas wie schlaues risiko sein")
+STELL_DATEI = os.path.join(workspace.DATA, "wertung", "stellgroessen.json")
+RISIKO_HALB = (
+    5.0  # Stufen des Reglers, um die das Lebensgewicht sich halbiert bzw. verdoppelt (Startwert)
+)
 NEU_LESEN = 5.0  # Sekunden
 HUERDE_JE = 0.1  # je Staerke ueber 1: so viel muss ein neues Ziel besser sein (Startwert)
 BEHALTEN_JE = (
@@ -158,3 +164,54 @@ def zielwert(art, typ=None):
     if not summen:
         return 1.0
     return max(0.0, sum(summen) / len(summen))
+
+
+def stell_lesen():
+    """{"risikofreude": -10..10, "verlauf": [...]}; ohne Datei 0 (Wert gegen Preis)."""
+    try:
+        with open(STELL_DATEI, encoding="utf-8") as f:
+            d = json.load(f)
+    except (OSError, ValueError):
+        d = {}
+    r = d.get("risikofreude", 0.0)
+    d["risikofreude"] = max(-10.0, min(10.0, float(r))) if isinstance(r, (int, float)) else 0.0
+    d.setdefault("verlauf", [])
+    return d
+
+
+def stell_setzen(risikofreude, wer, grund=""):
+    """Setzt den Regler "Schlaues Risiko" und haengt alt/neu an seinen Verlauf."""
+    import datetime
+
+    alt = stell_lesen()
+    neu_wert = max(-10.0, min(10.0, float(risikofreude)))
+    zeit = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    eintrag = {
+        "zeit": zeit,
+        "wer": wer,
+        "grund": grund,
+        "alt": alt["risikofreude"],
+        "neu": neu_wert,
+    }
+    neu = {
+        "risikofreude": neu_wert,
+        "zeit": zeit,
+        "wer": wer,
+        "grund": grund,
+        "verlauf": alt["verlauf"] + [eintrag],
+    }
+    os.makedirs(os.path.dirname(STELL_DATEI), exist_ok=True)
+    with open(STELL_DATEI, "w", encoding="utf-8") as f:
+        json.dump(neu, f, ensure_ascii=False, indent=1)
+    return neu
+
+
+def lebensgewicht():
+    """Wie viel das eigene Leben im schlauen Risiko zaehlt: 1 = sein Goldpreis (Regler 0), je RISIKO_HALB Stufen nach oben die Haelfte
+    (wagemutiger), nach unten das Doppelte (vorsichtiger)."""
+    return 2.0 ** (-stell_lesen()["risikofreude"] / RISIKO_HALB)
+
+
+def risiko_grenze(wert, preis):
+    """Todesrisiko, bis zu dem sich ein Ziel lohnt: Wert x (1 - p) - p x Preis x Lebensgewicht > 0  <=>  p < Wert / (Wert + Preis x Gewicht)."""
+    return wert / max(1e-9, wert + preis * lebensgewicht())
