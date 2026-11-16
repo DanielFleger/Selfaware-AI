@@ -79,6 +79,14 @@ DECKUNG_RING = (
     1  # Startwert, nicht gemessen: so viele Felder ausserhalb der Grundflaeche steht der Angreifer
 )
 DECKUNG_AM = 1  # Felder (Schach) vom Deckungsplatz, ab denen der Angriffsbefehl kommt
+# #362 (Daniel 16.11.2026 00:43 "bis nachweislich alle einheiten optimal eingesetzt werden"; Probe 6: Speertraeger standen in 40 % ihrer
+# Angriffsrunden am Ziel ohne Kampf, Median 251, hoechstens 1.442 Takte - Speer 218 bekam bei Takt 3.959 den Angriff, stand ab 4.222 still
+# und verlor unter Beschuss 12.000 Leben, ohne neuen Befehl): ein Nahangriff wirkt, wenn die Einheit kaempft (Zustand 106 Einheit, 107
+# Gebaeude - gemessen, tools/experiments/schlag_messen.py), sich bewegt oder ihr Ziel Leben verliert. Wirkt er nicht, geht er in der
+# naechsten Runde neu hinaus statt erst nach NEU_ALLE Runden; nach LEER_RUNDEN Runden ohne Wirkung meldet die Wegfuehrung "kein_weg",
+# und das Modul nimmt ein anderes Ziel.
+KAMPF_ZUSTAND = (106, 107)
+LEER_RUNDEN = 3  # Startwert, nicht gemessen
 
 
 def _luft(a, b):
@@ -227,6 +235,8 @@ class Auftrag:
         self.status = "neu"
         # #361: das Modul hat fuer die GRUPPE entschieden, dass sie dort gewinnt - Gefahr am Standplatz haelt diese Einheit nicht auf
         self.trotz = False
+        # #362: wirkt der Nahangriff? (griff: in der Vorrunde schon "greift_an"; Leben des Ziels damals; Runden ohne Wirkung)
+        self.griff, self.ziel_leben, self.leer, self.nachsetzen = False, None, 0, False
 
 
 class Wegfuehrung:
@@ -547,13 +557,33 @@ class Wegfuehrung:
                     or (r is None and SF.schach(ort, zielort) <= NAH_AM_ZIEL)
                 )
             # in Reichweite: angreifen
+            a.nachsetzen = False
             if am_ziel:
+                leben = ((L if a.art == "einheit" else G).get(a.ziel) or {}).get("leben")
+                if r is None and a.griff:
+                    wirkt = (
+                        e.get("zustand") in KAMPF_ZUSTAND
+                        or weit > 0
+                        or (leben is not None and a.ziel_leben is not None and leben < a.ziel_leben)
+                    )
+                    a.leer = 0 if wirkt else a.leer + 1
+                else:
+                    a.leer = 0
+                a.griff, a.ziel_leben = True, leben
+                if a.leer >= LEER_RUNDEN:
+                    a.status = "kein_weg"  # #362: der Angriff wirkt nicht - das Modul nimmt ein anderes Ziel
+                    a.griff, a.leer = False, 0
+                    continue
+                a.nachsetzen = (
+                    a.leer > 0
+                )  # #362: nicht wirkender Angriff geht sofort noch einmal hinaus
                 a.status = "greift_an"
                 schluessel = "ziel" if a.art == "einheit" else "gebaeude"
                 befehle.append(
                     (bild.an(ort, typ), nr, {"angriff": {"einheiten": [nr], schluessel: a.ziel}})
                 )
                 continue
+            a.griff, a.leer = False, 0
             if a.art == "ort" and SF.schach(ort, zielort) <= AM_WEGPUNKT:
                 a.status = "am_ziel"
                 continue
@@ -680,6 +710,7 @@ class Wegfuehrung:
                 alt is not None
                 and alt[0] == b
                 and (self.runde - alt[1] < NEU_ALLE or bewegt.get(nr))
+                and not self.auftraege[nr].nachsetzen
             ):
                 continue
             inhalt = tuple(
