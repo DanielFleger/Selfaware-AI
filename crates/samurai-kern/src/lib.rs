@@ -32,7 +32,7 @@ use haende::{Anspruch, Auftrag, Blick, Buch};
 use waechter::{Ereignis, Waechter};
 use welt::Welt;
 
-pub const VERSION: u32 = 38;   // 38 (16.11.2026, #362): ein Gebaeudeangriff an eine stehende Einheit ist kein Doppelt (Speertraeger stehen in Zustand 2); 37 (15.11.2026, #359): brennendes Gebaeude loest das Folgeziel aus; 36 (15.11.2026, #359): Folgeziel im Takt der Zerstoerung (Art 23/24); 35 (15.11.2026, B-184): Plaetze beim Partiewechsel leeren (2 SamurAIs); 34 (15.11.2026, B-184): Sperre und Schwaerzung nach SamurAIs Plaetzen statt dem Platz des Menschen; 33 (15.11.2026, S160): kaputter Auftragsring (Lese vor Schreib) wird geheilt; 32 (15.11.2026, S159): Wegpunktkette mit Angriff am Ende (Art 20-22); 31 (15.11.2026, S156): am Laufziel (AM_LAUFZIEL) nichts durchsetzen; 30 (15.11.2026, S155): Laufauftrag durchsetzen (Art 18) ausser gegen den erlaubten Gegner (Art 19); 29 (14.11.2026, S148): Gebiet des Wegnetzes je Einheit (Aufbau 8); 28 (14.11.2026, S143): field320_0x413 je eigener Einheit (Aufbau 7); 27 (14.11.2026, S139): Filterfelder des Marschbefehls je eigener Einheit (Aufbau 6); 26 (13.11.2026, S123): Gebaeudeangriff wirkt ueber das Ziel der Gruppe
+pub const VERSION: u32 = 39;   // 39 (16.11.2026, #365): Angriff auf eine Einheit, den der Kern wiederholt (Art 25, Lord); 38 (16.11.2026, #362): ein Gebaeudeangriff an eine stehende Einheit ist kein Doppelt (Speertraeger stehen in Zustand 2); 37 (15.11.2026, #359): brennendes Gebaeude loest das Folgeziel aus; 36 (15.11.2026, #359): Folgeziel im Takt der Zerstoerung (Art 23/24); 35 (15.11.2026, B-184): Plaetze beim Partiewechsel leeren (2 SamurAIs); 34 (15.11.2026, B-184): Sperre und Schwaerzung nach SamurAIs Plaetzen statt dem Platz des Menschen; 33 (15.11.2026, S160): kaputter Auftragsring (Lese vor Schreib) wird geheilt; 32 (15.11.2026, S159): Wegpunktkette mit Angriff am Ende (Art 20-22); 31 (15.11.2026, S156): am Laufziel (AM_LAUFZIEL) nichts durchsetzen; 30 (15.11.2026, S155): Laufauftrag durchsetzen (Art 18) ausser gegen den erlaubten Gegner (Art 19); 29 (14.11.2026, S148): Gebiet des Wegnetzes je Einheit (Aufbau 8); 28 (14.11.2026, S143): field320_0x413 je eigener Einheit (Aufbau 7); 27 (14.11.2026, S139): Filterfelder des Marschbefehls je eigener Einheit (Aufbau 6); 26 (13.11.2026, S123): Gebaeudeangriff wirkt ueber das Ziel der Gruppe
 
 /// DAT_UnitsState 0x01387F38: +0 maxUnitCount; Einheiten-Array ab +0x614 = 0x0138854C, je Einheit 1.168 Byte, 2.500 Plaetze
 const UNITS_STATE: usize = 0x0138_7F38;
@@ -226,6 +226,12 @@ fn haende_takt(z: &mut Zustand, tick: i32) {
                 "durchsetzen tick {}: Einheit {} kaempft nicht mehr gegen einen anderen - nach {} Takten, Laufauftrag {} mal neu",
                 tick, nr, takte, mal),
         });
+    }
+    // Kern 39 (Daniel 16.11.2026 21:52): wer einen wiederholten Angriff hat und weder laeuft noch gegen das Ziel kaempft, bekommt ihn neu
+    let zustand = |nr: i32| welt.einheiten.iter().find(|e| e.nr == nr).map(|e| (e.zustand as i32, e.nahziel as i32, e.zieleinheit as i32));
+    for w in buch.angriff_wiederholen(tick, zustand, |g| welt.einheiten.iter().any(|e| e.nr == g)) {
+        schreibe(&format!("angriff tick {}: Einheit {} (Zustand {}, Gegner {}) - Angriff auf {} wiederholt", tick, w.nr, w.zustand, w.gegner,
+                          w.ziel));
     }
     if let Some((g, e, t)) = &buch.warten {
         if !haende::in_gruppe(*g, e) && tick - *t < haende::WARTEN_TAKTE {

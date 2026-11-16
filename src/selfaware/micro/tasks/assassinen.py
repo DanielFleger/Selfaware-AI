@@ -418,6 +418,10 @@ class Einzeln:
     # mit 6 schaltete die Gruppe 4-5 Felder vor ihm auf den Angriffsbefehl um, der nicht klettert - Lord 30.000 unveraendert,
     # alle 5 tot. Beim 2. Angriff kam er herunter: -12.900 Leben. Darum Laufbefehl (Kletterweg) bis direkt neben ihn.
     ANLAUF_NAH = 1                   # naeher am Lord: Angriffsbefehl statt Laufbefehl
+    # Daniel 16.11.2026 21:42 ("assassinen schienen gar nicht immer auf den lord zu spammklicken sondern einfach nur auf das keep
+    # geschickt zu werden"), 21:52 "Ja, bauen": der Kletterweg (Laufbefehl) gilt nur, solange der Lord OBEN auf seinem Bergfried steht
+    # (sicht.auf_bergfried); steht er unten, geht aus jeder Entfernung sofort der Angriffsbefehl auf ihn hinaus - das Spiel laeuft
+    # dann selbst hin und folgt ihm. Siehe _lord_lauf_noetig.
     STEH_TICKS = 200                 # ohne Spielziel auf demselben Feld -> Lenker-Zustand loesen
     BEREIT_PAUSE = 1000              # nach Abbruch/Ende eines Lord-Versuchs so viele Ticks nur raiden (STARTWERT)
     # Raiden geht vor (Daniel 17.10. "prio ist am Anfang raiden und auch waehrend des laufs spaeter"): eine Lord-Gruppe
@@ -815,6 +819,13 @@ class Einzeln:
         """Daniel 15.11.2026 23:10: so viele Angreifer, wie der Lord nach den Messungen dieser Partie braucht - None ohne Messung."""
         je = self._lord_schaden_je_assassine()
         return int(math.ceil(leben / je)) if je else None
+
+    def _lord_lauf_noetig(self, p, le):
+        """Laufbefehl (Kletterweg) statt Angriffsbefehl auf den Lord? Nur, solange der Lord oben auf seinem Bergfried steht und p weiter
+        als ANLAUF_NAH von ihm ist (17.10.: oben klettert der Angriffsbefehl nicht). Unten: nie (Daniel 16.11.2026 21:52)."""
+        if schach(p, (le["x"], le["y"])) <= self.ANLAUF_NAH:
+            return False
+        return sicht.auf_bergfried(le, getattr(self, "_lord_g", None) or {})
 
     def _lord_bedarf(self, L, G, ereignis):
         """Bedarf fuer den Lord-Angriff in dieser Lage: (Zahl, Art, Gruppenleben). Meldet jede Aenderung einmal."""
@@ -2530,6 +2541,7 @@ class Einzeln:
         lt = self.lordtrupp
         lt["mitglieder"] = {n for n in lt["mitglieder"] if n in self.mitglieder}
         lords = [(n, e) for n, e in L.items() if e["typ"] == 55 and e["besitzer"] not in (0, self.sp)]
+        self._lord_g = G
         if not lords:
             lt.update(mitglieder=set(), phase=None, sammelpunkt=None)
         else:
@@ -2664,7 +2676,7 @@ class Einzeln:
                         self._vergessen(k)
                         self.stapel["mitglieder"].discard(k)
                         self.flucht.pop(k, None)
-                        if schach(pos(k), lp) > self.ANLAUF_NAH:
+                        if self._lord_lauf_noetig(pos(k), le):
                             lord_lauf.setdefault(lp, []).append(k)
                         else:
                             lord_ziel.append(k)
@@ -2770,7 +2782,7 @@ class Einzeln:
                         self._vergessen(k)            # nicht im Stapel: raidet weiter, laeuft nicht einzeln hinterher
                     lt.update(mitglieder=set(alle), phase="angriff", seit=self.runde, angriff_tick=self.jetzt)
                     for k in alle:
-                        if schach(pos(k), lp) > self.ANLAUF_NAH:
+                        if self._lord_lauf_noetig(pos(k), le):
                             lord_lauf.setdefault(lp, []).append(k)
                         else:
                             lord_ziel.append(k)
@@ -2854,7 +2866,7 @@ class Einzeln:
                     d_l = schach(pos(k), lp)
                     lauf_k = (L[k].get("laufx", -99), L[k].get("laufy", -99))
                     steht_k = schach(lauf_k, pos(k)) <= 1 or (f == pos(k) and self.jetzt - seit >= self.BLOCK_TICKS)
-                    if d_l <= self.ANLAUF_NAH or (d_l <= 3 and steht_k):
+                    if d_l <= self.ANLAUF_NAH or (d_l <= 3 and steht_k) or not self._lord_lauf_noetig(pos(k), le):
                         lord_ziel.append(k)
                     elif schach(lauf_k, lp) > 3 or steht_k:
                         lord_lauf.setdefault(lp, []).append(k)
@@ -3097,7 +3109,9 @@ class Einzeln:
             befehle.append(lord_befehl)
         befehle += [{"angriff": {"einheiten": ns, "lauf": [o[0], o[1]]}} for o, ns in lord_lauf.items()]   # 17.10.: Kletterweg
         if lord_ziel:
-            befehle.append({"angriff": {"einheiten": sorted(lord_ziel), "ziel": self.lordtrupp.get("lord")}})
+            # Kern 39 (Daniel 16.11.2026 21:42 "auf den lord zu spammklicken", 21:52 "Ja, bauen"): der Kern wiederholt diesen Angriff, solange
+            # die Assassine weder laeuft noch gegen den Lord kaempft (kernweg: Art 25, ab Kern 39; das Modul ignoriert den Schluessel)
+            befehle.append({"angriff": {"einheiten": sorted(lord_ziel), "ziel": self.lordtrupp.get("lord"), "durchsetzen": True}})
         # 17.10. (Daniel: "manche Assassinen stehen rum ohne Grund"): alle 50 Runden, wer STEH_TICKS ohne Spielziel steht und warum
         if self.runde % 50 == 0:
             st_alle = [n for n in self.mitglieder if self.jetzt - self._steht.get(n, (None, self.jetzt))[1] >= self.STEH_TICKS]

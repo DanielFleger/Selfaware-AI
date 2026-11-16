@@ -23,6 +23,7 @@ ART_NAMEN = {
     KL.LAUF: "laufen",
     KL.LAUF_DURCHSETZEN: "laufen_durch",
     KL.ANGRIFF_EINHEIT: "einheit",
+    KL.ANGRIFF_DURCHSETZEN: "einheit_durch",
     KL.ANGRIFF_GEBAEUDE: "gebaeude",
 }
 
@@ -39,7 +40,9 @@ def uebersetze(befehl):
         art = KL.LAUF_DURCHSETZEN if c.get("durchsetzen") else KL.LAUF
         return einheiten, art, int(c["lauf"][0]), int(c["lauf"][1]), vorrang
     if "ziel" in c:
-        return einheiten, KL.ANGRIFF_EINHEIT, int(c["ziel"]), 0, KL.VORRANG_ANGRIFF
+        # Kern 39: "durchsetzen" - der Kern wiederholt den Angriff, solange die Einheit weder laeuft noch gegen das Ziel kaempft
+        art = KL.ANGRIFF_DURCHSETZEN if c.get("durchsetzen") else KL.ANGRIFF_EINHEIT
+        return einheiten, art, int(c["ziel"]), 0, KL.VORRANG_ANGRIFF
     if "gebaeude" in c:
         return einheiten, KL.ANGRIFF_GEBAEUDE, int(c["gebaeude"]), 0, KL.VORRANG_ANGRIFF
     return None
@@ -192,6 +195,14 @@ class Kernweg:
             print(m, flush=True)
         for befehl in liste:
             u = uebersetze(befehl)
+            if (
+                u is not None
+                and u[1] == KL.ANGRIFF_DURCHSETZEN
+                and (self.version or 0) < KL.ANGRIFF_DURCH_AB
+            ):
+                # ein Kern vor Version 39 lehnte Art 25 als unbekannt ab - dann der gewoehnliche Angriff
+                u = (u[0], KL.ANGRIFF_EINHEIT) + tuple(u[2:])
+                self.stand["angriff ohne wiederholen (Kern zu alt)"] += 1
             beim_modul = u is None
             try:
                 if beim_modul:

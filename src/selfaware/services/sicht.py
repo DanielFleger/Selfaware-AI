@@ -85,6 +85,21 @@ def prio(typ, d):
 _GJ = os.path.join(_workspace.VILLAGE_STUDIO, 'lib', 'gebaeude.json')
 GROESSE = {int(v["laufzeit"]): int(v["b"]) for v in json.load(open(_GJ, encoding="utf-8"))["gebaeude"].values()
            if isinstance(v, dict) and v.get("laufzeit")}
+# Laufzeit-Typen des Bergfrieds (Gebaeudetabelle, Name "Bergfried" - heute nur 41)
+BERGFRIED = frozenset(int(v["laufzeit"]) for v in json.load(open(_GJ, encoding="utf-8"))["gebaeude"].values()
+                      if isinstance(v, dict) and v.get("laufzeit") and v.get("name") == "Bergfried")
+
+
+def auf_bergfried(einheit, G):
+    """Steht die Einheit auf der Grundflaeche eines Bergfrieds ihres Besitzers (= oben auf ihm)? G: {nr: Gebaeude mit x, y (Ecke),
+    typ, besitzer}. 16.11.2026: in Probe 9b, 11, 12 stand der Lord in allen 674 Runden dort (Zustand 13, im Kampf 106)."""
+    x, y = einheit["x"], einheit["y"]
+    for g in G.values():
+        if g.get("typ") in BERGFRIED and g.get("besitzer") == einheit.get("besitzer"):
+            b = GROESSE.get(g["typ"], 1) or 1
+            if g["x"] <= x < g["x"] + b and g["y"] <= y < g["y"] + b:
+                return True
+    return False
 
 
 def abstand_fein(a, b):

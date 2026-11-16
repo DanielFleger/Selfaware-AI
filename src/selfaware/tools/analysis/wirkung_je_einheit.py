@@ -25,7 +25,13 @@ from selfaware import workspace as _workspace
 SOLDAT = {22, 23, 24, 25, 26, 27, 28, 70, 71, 72, 73, 74, 75, 76}
 ARBEITER = {1, 3, 6, 7, 8, 9, 10, 11, 12, 13, 14, 19, 21, 31}
 LORD = 55
-BERGFRIED = {40, 41, 42, 43, 44}
+BERGFRIED = {
+    40,
+    41,
+    42,
+    43,
+    44,
+}  # breiter als services/sicht.BERGFRIED (Gebaeudetabelle: nur 41) - Auswertung, bleibt wie gemessen
 # Gehoeren zu anderen Gebaeuden oder verschwinden von selbst (Fallen beim Ausloesen)
 KEIN_ZIEL = {51, 52, 53, 55, 56, 57, 58, 59, 67, 68, 71, 72, 73}
 FERN = {22: 40, 23: 40, 70: 40, 74: 40, 72: 18, 76: 11}  # Reichweite in Feldern, S9

@@ -3439,6 +3439,9 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         liste = kernweg_senden(liste, [n for n, e in L.items() if e["besitzer"] == SP and e["typ"] == 73], ereignis,
                                                folge=getattr(trupp, "folgeziele", None), routen=getattr(trupp, "route", None))
                     if liste:
+                        # Kern 39: "durchsetzen" gilt nur dem Kern (wie wegfuehrung._ueber_kern) - ans Modul ohne den Schluessel
+                        liste = [dict(b, angriff={k: v for k, v in b["angriff"].items() if k != "durchsetzen"}) if isinstance(b.get("angriff"), dict)
+                                 else b for b in liste]
                         sende({"befehle": [dict(b, player=1, id=neue_id()) for b in liste]}, 1.0,
                               bis="ANGRIFF" if any("angriff" in b for b in liste) else "HALTEN")
                 ereignis += erg

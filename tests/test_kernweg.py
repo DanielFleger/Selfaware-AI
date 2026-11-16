@@ -321,3 +321,29 @@ def test_nicht_uebergeben_heisst_beim_naechsten_auftrag_neu_uebergeben():
     assert 5 not in k.uebergeben
     k.senden([{"angriff": {"einheiten": [5], "gebaeude": 19}}])
     assert len([z for z in ring.liste if z[0] == KL.UEBERNEHMEN and z[1] == 5]) == 2
+
+
+def test_kern39_lord_angriff_wiederholen_nur_ab_kern_39():
+    """Kern 39 (Daniel 16.11.2026 21:42 "auf den lord zu spammklicken", 21:52 "Ja, bauen"): ein Angriff mit "durchsetzen" geht als Art 25 in
+    den Ring - aber nur an einen Kern ab Version 39; ein aelterer lehnte Art 25 als unbekannt ab, er bekommt den gewoehnlichen Angriff."""
+    befehl = {"angriff": {"einheiten": [5], "ziel": 3, "durchsetzen": True}}
+    assert KW.uebersetze(befehl)[1] == KL.ANGRIFF_DURCHSETZEN
+    assert KW.uebersetze({"angriff": {"einheiten": [5], "ziel": 3}})[1] == KL.ANGRIFF_EINHEIT
+    for version, art in (
+        (KL.ANGRIFF_DURCH_AB, KL.ANGRIFF_DURCHSETZEN),
+        (KL.ANGRIFF_DURCH_AB - 1, KL.ANGRIFF_EINHEIT),
+    ):
+        ring = FalscherRing()
+        k = KW.Kernweg(ring)
+        k.version = version
+        assert k.senden([befehl]) == []
+        assert [z for z in ring.liste if z[0] != KL.UEBERNEHMEN] == [
+            (art, 5, 3, 0, KL.VORRANG_ANGRIFF, 0, KW.ASSASSINEN)
+        ]
+
+
+def test_kern39_art_und_version_wie_im_kern():
+    haende = (KERN / "haende.rs").read_text(encoding="utf-8")
+    assert f"pub const ANGRIFF_DURCHSETZEN: i32 = {KL.ANGRIFF_DURCHSETZEN};" in haende
+    lib = (KERN / "lib.rs").read_text(encoding="utf-8")
+    assert int(re.search(r"pub const VERSION: u32 = (\d+);", lib).group(1)) >= KL.ANGRIFF_DURCH_AB

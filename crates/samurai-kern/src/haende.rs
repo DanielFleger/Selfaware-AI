@@ -31,6 +31,15 @@ pub const DANACH_GEBAEUDE: i32 = 22;
 /// Ein anderer Auftrag an die Einheit loescht das Folgeziel - ausser dem Angriff auf dasselbe Gebaeude.
 pub const FOLGE_GEBAEUDE: i32 = 23;
 pub const FOLGE_EINHEIT: i32 = 24;
+/// Kern 39 (Daniel 16.11.2026 21:42 "assassinen schienen gar nicht immer auf den lord zu spammklicken", 21:52 "Ja, bauen"): ein Angriff
+/// auf Einheit a, den der Kern wiederholt wie ein Spieler, der immer wieder klickt. Laeuft die Einheit nicht (101) und kaempft sie nicht
+/// gegen das Ziel (106 mit nahziel oder zieleinheit = Ziel), kommt der Angriff neu in die Schlange - hoechstens alle ANGRIFF_WIEDERHOLEN
+/// Takte. Ein anderer Auftrag an die Einheit beendet das Wiederholen, ebenso der Tod des Ziels.
+pub const ANGRIFF_DURCHSETZEN: i32 = 25;
+/// STARTWERT, nicht gemessen: so viele Takte liegen mindestens zwischen zwei Wiederholungen. Jeden Takt waere zu oft - je Takt geht nur
+/// ein Gruppenbefehl hinaus (Vorrang Angriff vor Laufen, er verdraengte alle Laufbefehle), und ein Befehl braucht bis zu WIRK_TAKTE, bis
+/// er an der Einheit sichtbar ist. Gemessen wird mit den Zeilen "angriff tick" im Kern-Protokoll (Takte bis Kampf gegen das Ziel).
+pub const ANGRIFF_WIEDERHOLEN: i32 = 10;
 /// Zustand einer Einheit im Kampf gegen eine Einheit (chain_audit ATTACK_STATES)
 pub const KAMPF_EINHEIT: i32 = 106;
 /// #362 (16.11.2026): Zustand im Gebaeudekampf (schlag_messen.py) und beim Laufen (Lageprotokolle Probe 7 und 8: Assassinen in 101 bewegten
@@ -202,6 +211,19 @@ pub struct Buch {
     folge: BTreeMap<i32, (i32, Auftrag)>,
     /// so oft gab der Kern ein Folgeziel im Takt der Zerstoerung
     pub folge_schritte: u64,
+    /// Kern 39: Einheit -> (Angriffsauftrag, den der Kern wiederholt, Takt der letzten Wiederholung oder der Annahme)
+    angriff_durch: BTreeMap<i32, (Auftrag, i32)>,
+    /// Kern 39: so oft hat der Kern einen Angriff wiederholt
+    pub angriff_wiederholt: u64,
+}
+
+/// Kern 39: eine Wiederholung des Angriffs - fuer das Protokoll
+#[derive(Debug, PartialEq)]
+pub struct Wiederholt {
+    pub nr: i32,
+    pub ziel: i32,
+    pub zustand: i32,
+    pub gegner: i32,
 }
 
 /// S159: der jetzige Wegpunkt einer Einheit, ob er durchgesetzt wird, und was danach kommt
@@ -301,7 +323,14 @@ impl Buch {
     /// waehrend der Leihe wartet jeder andere Auftrag und kommt danach an die Reihe.
     pub fn auftrag_mit(&mut self, nr: i32, a: Auftrag, untaetig: bool, an: Anspruch, tick: i32) -> Annahme {
         let durch = a.art == LAUF_DURCHSETZEN;
-        let a = if durch { Auftrag { art: LAUF, ..a } } else { a };
+        let angriff_durch = a.art == ANGRIFF_DURCHSETZEN;
+        let a = if durch {
+            Auftrag { art: LAUF, ..a }
+        } else if angriff_durch {
+            Auftrag { art: ANGRIFF_EINHEIT, ..a }
+        } else {
+            a
+        };
         if ![LAUF, ANGRIFF_EINHEIT, ANGRIFF_GEBAEUDE].contains(&a.art) {
             return Annahme::UnbekannteArt;
         }
@@ -319,6 +348,12 @@ impl Buch {
             self.durchsetzen.insert(nr, a);
         } else if !reflex {
             self.durchsetzen.remove(&nr);
+        }
+        // Kern 39: ein wiederholter Angriff - jeder andere (nicht geliehene) Auftrag beendet das Wiederholen
+        if angriff_durch {
+            self.angriff_durch.insert(nr, (a, tick));
+        } else if !reflex {
+            self.angriff_durch.remove(&nr);
         }
         if !reflex {
             // S159: ein Laufauftrag beginnt eine neue Kette (auch wenn er doppelt ist - die Wegpunkte danach kommen neu), ein Angriff endet sie
@@ -624,6 +659,35 @@ impl Buch {
         aus
     }
 
+    /// Kern 39: Einheiten mit einem wiederholten Angriff, die nicht laufen und nicht gegen das Ziel kaempfen, bekommen ihn neu in die
+    /// Schlange - hoechstens alle ANGRIFF_WIEDERHOLEN Takte, und nicht, solange er dort noch liegt oder ein Reflex die Einheit geliehen hat.
+    /// zustand(nr): Some((Zustand, nahziel, zieleinheit)), None = Einheit weg; lebt(ziel): lebt das Ziel noch?
+    pub fn angriff_wiederholen(&mut self, tick: i32, zustand: impl Fn(i32) -> Option<(i32, i32, i32)>, lebt: impl Fn(i32) -> bool)
+                               -> Vec<Wiederholt> {
+        let mut aus = Vec::new();
+        let liste: Vec<(i32, Auftrag, i32)> = self.angriff_durch.iter().map(|(n, (a, t))| (*n, *a, *t)).collect();
+        for (nr, a, letzt) in liste {
+            let z = zustand(nr);
+            if !self.eigene.contains_key(&nr) || z.is_none() || !lebt(a.a) {
+                self.angriff_durch.remove(&nr);
+                continue;
+            }
+            let (zu, nahziel, zieleinheit) = z.unwrap_or_default();
+            if zu == LAEUFT || (zu == KAMPF_EINHEIT && (nahziel == a.a || zieleinheit == a.a)) || tick - letzt < ANGRIFF_WIEDERHOLEN {
+                continue;
+            }
+            let wartet = self.offen.values().any(|o| o.einheiten.contains_key(&nr)) || self.leihe.contains_key(&nr);
+            if wartet {
+                continue;
+            }
+            self.einreihen(nr, a, Anspruch::default());
+            self.angriff_durch.insert(nr, (a, tick));
+            self.angriff_wiederholt += 1;
+            aus.push(Wiederholt { nr, ziel: a.a, zustand: zu, gegner: if nahziel > 0 { nahziel } else { zieleinheit } });
+        }
+        aus
+    }
+
     pub fn offen_zahl(&self) -> usize {
         self.offen.values().map(|o| o.einheiten.len()).sum()
     }
@@ -775,6 +839,54 @@ unsafe fn absetzen_innen(a: Auftrag, einheiten: &[i32], platz: i32, alte_auswahl
 #[cfg(test)]
 mod tests {
     use super::*;
+
+    #[test]
+    fn kern39_angriff_wird_wiederholt_solange_die_einheit_nicht_gegen_das_ziel_kaempft() {
+        let mut b = Buch::default();
+        b.uebernehmen(5);
+        let a = Auftrag { art: ANGRIFF_DURCHSETZEN, a: 3, b: 0 };
+        assert_eq!(b.auftrag_mit(5, a, true, Anspruch::default(), 100), Annahme::Angenommen);
+        let angriff = Auftrag { art: ANGRIFF_EINHEIT, a: 3, b: 0 };
+        let x = b.naechster().unwrap();
+        assert_eq!(x.0, angriff);
+        b.abgesetzt(x.0, &x.1, 100, 1);
+        let lebt = |_| true;
+        let steht = |_| Some((1, 0, 0));
+        assert_eq!(b.angriff_wiederholen(100 + ANGRIFF_WIEDERHOLEN - 1, steht, lebt), vec![]); // zu frueh
+        assert_eq!(b.angriff_wiederholen(100 + ANGRIFF_WIEDERHOLEN, steht, lebt),
+                   vec![Wiederholt { nr: 5, ziel: 3, zustand: 1, gegner: 0 }]);
+        assert_eq!(b.naechster().unwrap().0, angriff);
+        // kaempft gegen das Ziel: nichts; laeuft: nichts
+        assert_eq!(b.angriff_wiederholen(200, |_| Some((KAMPF_EINHEIT, 3, 3)), lebt), vec![]);
+        assert_eq!(b.angriff_wiederholen(200, |_| Some((LAEUFT, 0, 3)), lebt), vec![]);
+        // kaempft gegen einen anderen (Leibwache 77): wieder auf das Ziel
+        assert_eq!(b.angriff_wiederholen(200, |_| Some((KAMPF_EINHEIT, 77, 77)), lebt),
+                   vec![Wiederholt { nr: 5, ziel: 3, zustand: KAMPF_EINHEIT, gegner: 77 }]);
+        // liegt noch in der Schlange: nicht doppelt
+        assert_eq!(b.angriff_wiederholen(300, steht, lebt), vec![]);
+        assert_eq!(b.angriff_wiederholt, 2);
+    }
+
+    #[test]
+    fn kern39_anderer_auftrag_oder_totes_ziel_beendet_das_wiederholen() {
+        let mut b = Buch::default();
+        b.uebernehmen(5);
+        b.uebernehmen(6);
+        b.auftrag_mit(5, Auftrag { art: ANGRIFF_DURCHSETZEN, a: 3, b: 0 }, true, Anspruch::default(), 0);
+        b.auftrag_mit(6, Auftrag { art: ANGRIFF_DURCHSETZEN, a: 3, b: 0 }, true, Anspruch::default(), 0);
+        b.naechster();
+        b.auftrag_mit(5, Auftrag { art: LAUF, a: 50, b: 50 }, true, Anspruch::default(), 1);
+        b.naechster();
+        let steht = |_| Some((1, 0, 0));
+        assert_eq!(b.angriff_wiederholen(100, steht, |_| true).iter().map(|w| w.nr).collect::<Vec<_>>(), vec![6]);
+        b.naechster();
+        assert_eq!(b.angriff_wiederholen(200, steht, |_| false), vec![]); // Ziel tot
+        assert_eq!(b.angriff_wiederholen(300, steht, |_| true), vec![]); // und bleibt vergessen
+        // ein gewoehnlicher Angriff wiederholt sich nicht
+        b.auftrag_mit(6, Auftrag { art: ANGRIFF_EINHEIT, a: 3, b: 0 }, true, Anspruch::default(), 301);
+        b.naechster();
+        assert_eq!(b.angriff_wiederholen(400, steht, |_| true), vec![]);
+    }
 
     #[test]
     fn s155_ein_durchzusetzender_laufauftrag_kommt_bei_kampf_jeden_takt_neu_in_die_schlange() {

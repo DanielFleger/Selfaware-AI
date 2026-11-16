@@ -71,6 +71,10 @@ FOLGE_GEBAEUDE, FOLGE_EINHEIT = (
     24,
 )  # #359: Folgeziel - faellt Gebaeude a, greift die Einheit im selben Takt b an
 FOLGE_AB = 36  # erste Kern-Version mit Folgeziel
+# Kern 39 (Daniel 16.11.2026 21:52 "Ja, bauen"): Angriff auf Einheit a, den der Kern wiederholt, solange die Einheit weder laeuft noch gegen
+# das Ziel kaempft (hoechstens alle ANGRIFF_WIEDERHOLEN Takte, haende.rs) - wie ein Spieler, der immer wieder auf den Lord klickt
+ANGRIFF_DURCHSETZEN = 25
+ANGRIFF_DURCH_AB = 39  # erste Kern-Version, die Art 25 kennt
 VORRANG_REFLEX, VORRANG_FLUCHT, VORRANG_ANGRIFF, VORRANG_LAUFEN, VORRANG_ROUTINE = 1, 2, 3, 4, 5
 ERG_DOPPELT, ERG_ANGENOMMEN, ERG_ABGESETZT, ERG_WIRKT, ERG_GEPARKT = 0, 1, 2, 3, 4
 ERG_NICHT_UEBERNOMMEN, ERG_UNBEKANNT, ERG_FREMD = -4, -5, -6
