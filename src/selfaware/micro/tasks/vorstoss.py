@@ -451,6 +451,10 @@ class Vorstoss:
             for n, e in self._feinde(L, NAHKAMPF | FERN_FEIND | {SKLAVE} | ARBEITER)
             if _luft(ort(e), mitte) <= FERNZIEL_MAX
         )
+        # Daniel 17.11.2026 00:22 ("sie sollten so schnell wie moeglich starten und am ziel sein das ist das ziel"): Probe 26 - das ferne Ziel
+        # sprang zwischen zwei etwa gleich weiten Feinden (U226/U250, Takt 2.475 bis 3.146), jede Wahl gab neue Laufpunkte; die letzten ~50
+        # Felder dauerten ~1.860 Takte. Wie B-186 #81 in Reichweite: das Ziel der Vorrunde zuerst, solange es erlaubt ist
+        kand = sorted(kand, key=lambda x: x[1] != self.gefuehrt)
         for d, k in kand:
             if self.stur.get(k, 0) > self.runde or self.gesperrt.get(k, -1) > self.runde:
                 continue

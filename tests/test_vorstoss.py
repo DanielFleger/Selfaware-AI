@@ -391,3 +391,38 @@ def test_vorrueck_stelle_springt_nicht_zwischen_zwei_arbeitern():
         _L(*eigene, _e(2, 3, 101, 230)), v=v
     )  # deutlich naeher (Rest 100 < 0,7 x 160): jetzt die neue Stelle
     assert v.vor_ort != alt and v.vor_ort[1] > alt[1], (v.vor_ort, alt)
+
+
+def test_fernziel_bleibt_statt_zwischen_zwei_feinden_zu_springen():
+    """Daniel 17.11.2026 00:22 ("sie sollten so schnell wie moeglich starten und am ziel sein das ist das ziel"): Probe 26 - das ferne Ziel
+    sprang zwischen zwei etwa gleich weiten Feinden (U226/U250, Takt 2.475 bis 3.146), jede Wahl gab neue Laufpunkte; die letzten ~50 Felder
+    dauerten ~1.860 Takte. Wie B-186 #81 in Reichweite: das ferne Ziel der Vorrunde bleibt, solange es erlaubt ist."""
+
+    class Weg:
+        def __init__(self):
+            self.auftraege = {}
+
+        def fuehre(self, nr, art, ziel, zweck="", trotz=False):
+            self.auftraege[nr] = (art, ziel)
+
+        def loslassen(self, nr):
+            self.auftraege.pop(nr, None)
+
+        def fuehrt(self, nr):
+            return nr in self.auftraege
+
+        def status(self, nr):
+            return None
+
+        def schuss_moeglich(self, typ, von, ziel_ort, L, G, zweck=""):
+            return True
+
+    v = V.Vorstoss(1, HEIM)
+    v.weg = Weg()
+    L = _L(_e(1, 22, 100, 100), _e(2, 3, 170, 100), _e(2, 3, 176, 100))
+    v.schritt(500, L, {}, Befehle())
+    erstes = v.gefuehrt
+    assert erstes in (2, 3) and v.weg.auftraege[1] == ("einheit", erstes)
+    L[2 if erstes == 3 else 3].update(x=165)  # das andere ist jetzt naeher, beide weiter als SCHUSS
+    v.schritt(700, L, {}, Befehle())
+    assert v.gefuehrt == erstes and v.weg.auftraege[1] == ("einheit", erstes)
