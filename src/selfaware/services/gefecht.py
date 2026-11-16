@@ -33,10 +33,18 @@ SCHRITT = 10              # Takte je Simulationsschritt
 TEMPO = spielwerte.TEMPO_ERSATZ["trupp"]   # nur Ersatz; simuliere nimmt das Tempo je Art (P3, S8)
 BIS = 1500                # laengstens so viele Takte rechnen
 # Ein Gefecht lohnt nur mit mindestens so viel eigenem Leben danach (Assassinen seit 19.10., Vorstoss seit 15.11.2026 23:58) -
-# die EINE Stelle fuer alle Module (vorher assassinen.Einzeln.GEGEN_BEHALTEN)
-BEHALTEN = 0.4
+# die EINE Stelle fuer alle Module (vorher assassinen.Einzeln.GEGEN_BEHALTEN); stand doppelt hier, aufgeraeumt 16.11.2026
 BEHALTEN = 0.4            # Anteil unseres eingesetzten Lebens, der nach dem Sieg mindestens bleiben muss (Stellgroesse)
 LORD = 55
+
+
+def behalten():
+    """BEHALTEN, verstellt durch den Regler "Leben eingesetzt fuer andere" (baukasten/regler.behalten, Daniel 16.11.2026 18:37)."""
+    from selfaware.baukasten import regler
+
+    return regler.behalten(BEHALTEN)
+
+
 LORD_LEBEN = spielwerte.LORD_LEBEN_NACH_LADEN   # nur Ersatz: im laufenden Spiel je KI 75.000-180.000 (K1), Leben aus dem Lagebild nehmen
 LORD_PROBEN = 5           # Lord-Werte aus Partien erst ab so vielen Proben (lord_messen.py)
 # Lauftempo im Trupp- oder Angriffsbefehl, Takte je Schachfeld (08.11., P3: gemessen in Lauf S, S8; vorher L80 aus
@@ -194,7 +202,7 @@ def bewerte(wir, sie, schaden=None):
     voll = sum(e["leben"] for e in wir)
     r_wir, r_sie, t, sieg = simuliere(wir, sie, schaden)
     anteil = r_wir / float(max(1, voll))
-    lohnt = sieg and anteil >= BEHALTEN
+    lohnt = sieg and anteil >= behalten()
     return lohnt, "%d eigene (%d Leben) gegen %d (%d Leben): %s nach %d Takten, uns bleiben %.0f %%" % (
         len(wir), voll, len(sie), sum(e["leben"] for e in sie), "Sieg" if sieg else "Niederlage" if r_wir <= 0 else "offen",
         t, 100 * anteil)

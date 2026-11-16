@@ -64,3 +64,15 @@ def intent(snapshot):
 @pytest.fixture
 def evolve():
     return replace
+
+
+@pytest.fixture(autouse=True)
+def _regler_ohne_datei(tmp_path_factory, monkeypatch):
+    """Tests lesen nie Daniels echte Regler (data/research/wertung/regler.json, Wertungsseite) - ohne Datei gilt das Verhalten der
+    Startgewichte (baukasten/regler.py). Tests, die Regler brauchen, setzen eigene (tests/test_regler_handeln.py)."""
+    from selfaware.baukasten import regler as _rg
+
+    monkeypatch.setattr(_rg, "DATEI", str(tmp_path_factory.mktemp("regler") / "keine.json"))
+    _rg.neu_lesen()
+    yield
+    _rg.neu_lesen()

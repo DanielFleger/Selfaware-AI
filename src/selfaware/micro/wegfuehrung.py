@@ -34,6 +34,7 @@ Sandkasten misst sie).
 import functools
 import math
 
+import selfaware.baukasten.regler as _regler
 import selfaware.services.schussfeld as SF
 import selfaware.services.sicht as SI
 import selfaware.services.spielwerte as SW
@@ -570,7 +571,9 @@ class Wegfuehrung:
                 else:
                     a.leer = 0
                 a.griff, a.ziel_leben = True, leben
-                if a.leer >= LEER_RUNDEN:
+                if a.leer >= _regler.leer_runden(
+                    LEER_RUNDEN, typ
+                ):  # Regler "Steht ohne Wirkung" (baukasten/regler.py)
                     a.status = "kein_weg"  # #362: der Angriff wirkt nicht - das Modul nimmt ein anderes Ziel
                     a.griff, a.leer = False, 0
                     continue

@@ -17,6 +17,7 @@ ein Erfolg zaehlt nur, wenn sie das Ziel am Ziel angriff ("greift_an"). Am Ziel 
 
 import collections
 
+import selfaware.baukasten.regler as _regler
 import selfaware.services.schussfeld as schussfeld
 from selfaware.baukasten import wirkung as WK
 from selfaware.baukasten import zielvergabe as ZV
@@ -327,7 +328,12 @@ class NahkampfRaid:
                 # Daniel 16.11.2026 00:09 ("ein speertraeger lief ewig in eine richtung nur um dann zurueckzugehen fuer ein anderes gebaeude"):
                 # Probe 4 - 39 Wechsel, ein Teil "statt kein Weg" (Weg zum jetzigen Ziel in DIESER Runde nicht gefunden). Ohne Weg in dieser
                 # Runde bleibt das Ziel; ein dauerhaft unerreichbares Ziel gibt die Wegfuehrung mit "kein_weg" ab (B-182 oben)
-                if best is not None and best[0] > 0 and jetzt is not None and best[0] > jetzt[0]:
+                if (
+                    best is not None
+                    and best[0] > 0
+                    and jetzt is not None
+                    and best[0] > jetzt[0] * _regler.wechsel_huerde(e["typ"])
+                ):
                     aus.append(
                         "NAHKAMPF-RAID: %d (Typ %d) wechselt von %s %d zu %s %d (Typ %d) bei %s - %.4f statt %s Wert je Takt "
                         "(mit %.1f Takten fuer den Wechsel), %d statt %s Felder auf dem sicheren Weg"

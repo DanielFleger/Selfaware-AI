@@ -4,7 +4,7 @@ Erzeugt mit `python -m selfaware.baukasten.karte --schreiben`, nicht von Hand ä
 
 Gemessen: Der Lenker `runtime/live/erstes_spiel.py` hat 4292 Zeilen, `phase2` davon 1647. Er kennt 103 Schalter. 20 Klassen haben einen eigenen `schritt`, mit 16 verschiedenen Aufrufen.
 
-Bausteine je Stand: Kern 1, eigene Datei 42, im Lenker 14, nicht benutzt 2, steckbar 18. Eine Stelle mit zwei Rollen zählt einmal.
+Bausteine je Stand: Kern 1, eigene Datei 43, im Lenker 14, nicht benutzt 2, steckbar 18. Eine Stelle mit zwei Rollen zählt einmal.
 
 | Stand | Bedeutung |
 |---|---|
@@ -100,6 +100,7 @@ Bausteine je Stand: Kern 1, eigene Datei 42, im Lenker 14, nicht benutzt 2, stec
 |---|---|---|---|
 | Raid-Einsatz | steckbar | `baukasten/raid.py:RaidEinsatz` | `ohne_angriff` |
 | Zielvergabe | eigene Datei | `baukasten/zielvergabe.py` |  |
+| Regler (Wertungsseite -> Handeln) | eigene Datei | `baukasten/regler.py` |  |
 | Nahkampf-Raid | steckbar | `micro/tasks/nahkampf.py:NahkampfRaid` |  |
 | Brandtrupp | steckbar | `micro/tasks/raids.py:Brandtrupp` |  |
 | Reiterjagd | steckbar | `micro/tasks/raids.py:Reiterjagd` |  |

@@ -168,6 +168,7 @@ KARTE = {
     "einsatz_raid": (
         _m("Raid-Einsatz", "baukasten/raid.py:RaidEinsatz", "ohne_angriff"),
         _m("Zielvergabe", "baukasten/zielvergabe.py"),
+        _m("Regler (Wertungsseite -> Handeln)", "baukasten/regler.py"),
         _m("Nahkampf-Raid", "micro/tasks/nahkampf.py:NahkampfRaid"),
         _m("Brandtrupp", "micro/tasks/raids.py:Brandtrupp"),
         _m("Reiterjagd", "micro/tasks/raids.py:Reiterjagd"),

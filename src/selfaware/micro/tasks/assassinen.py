@@ -1441,7 +1441,7 @@ class Einzeln:
         except Exception as ex:
             return False, "Rechnung fehlgeschlagen (%s)" % ex, wir_nr
         anteil = r_wir / float(max(1, voll))
-        erg = (sieg and anteil >= self.GEGEN_BEHALTEN, "%d eigene gegen %d feindliche (Trupp %d, Gewicht %.1f): %s, uns bleiben %.0f %%" % (
+        erg = (sieg and anteil >= _gefecht.behalten(), "%d eigene gegen %d feindliche (Trupp %d, Gewicht %.1f): %s, uns bleiben %.0f %%" % (
             len(wir), len(sie), len(trupp["mitglieder"]), trupp["gewicht"], "Sieg" if sieg else "kein Sieg", 100 * anteil), wir_nr)
         self._tr_merk = (schluessel, erg)
         return erg
@@ -1482,7 +1482,7 @@ class Einzeln:
         except Exception as ex:
             return False, "Rechnung fehlgeschlagen (%s)" % ex
         anteil = r_wir / float(max(1, voll))
-        return sieg and anteil >= self.GEGEN_BEHALTEN, "%d eigene gegen %d feindliche (%d Schuetzen erreichen das Ziel): %s, uns bleiben %.0f %%" % (
+        return sieg and anteil >= _gefecht.behalten(), "%d eigene gegen %d feindliche (%d Schuetzen erreichen das Ziel): %s, uns bleiben %.0f %%" % (
             len(wir), len(sie), schuetzen, "Sieg" if sieg else "kein Sieg", 100 * anteil)
 
     def _gemeinsam_angreifen(self, wir_nr, ziele, L, jagen):
@@ -1766,7 +1766,7 @@ class Einzeln:
         except Exception as ex:
             return False, "Rechnung fehlgeschlagen (%s)" % ex, wir_nr
         anteil = r_wir / float(max(1, voll))
-        return sieg and anteil >= self.GEGEN_BEHALTEN, "%d eigene gegen %d feindliche Nahkaempfer bis %d Felder: %s, uns bleiben %.0f %%" % (
+        return sieg and anteil >= _gefecht.behalten(), "%d eigene gegen %d feindliche Nahkaempfer bis %d Felder: %s, uns bleiben %.0f %%" % (
             len(wir), len(sie), self.GEGEN_UMKREIS, "Sieg" if sieg else "kein Sieg", 100 * anteil), wir_nr
 
     def _spaeher_erledigen(self, n, ort, sehen, L, ereignis, jagen):

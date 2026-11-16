@@ -344,7 +344,7 @@ class Vorstoss:
             r_wir, _r_sie, _t, sieg = gefecht.simuliere(wir, sie)
         except Exception:  # ohne Rechnung kein Gefecht - wie bisher zurueck
             return False
-        return bool(sieg) and r_wir >= gefecht.BEHALTEN * sum(w["leben"] for w in wir)
+        return bool(sieg) and r_wir >= gefecht.behalten() * sum(w["leben"] for w in wir)
 
     def _darf(self, k, L, G, mitte):
         """ "sicher" (die Wegfuehrung findet einen Platz, an dem niemand trifft), "sieg" (die Gruppe gewinnt am Platz vor dem Ziel, Beschuss
