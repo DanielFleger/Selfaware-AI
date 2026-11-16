@@ -789,9 +789,13 @@ def _starte_lenker(sp, stempel, aufstellung):
             'echo LENKER-ENDE Rueckgabe %%ERRORLEVEL%% >> "%s"' % aus,
         ]
         f.write("".join(z + chr(13) + chr(10) for z in zeilen))
+    # 16.11.2026 22:35 (Probe 13 und 13b: der Lenker endete mit "^C" bzw. schrieb keine Zeile): die Konsole des Lenkers ist unsichtbar
+    # (ShowWindow 0) - ein sichtbares Konsolenfenster laesst sich schliessen oder bekommt Strg+C, beides beendet den Lenker
     befehl = (
+        "$si = New-CimInstance -ClassName Win32_ProcessStartup -ClientOnly -Property @{ShowWindow=[uint16]0}; "
         "(Invoke-CimMethod -ClassName Win32_Process -MethodName Create -Arguments @{CommandLine='cmd /c \"%s\"'; "
-        "CurrentDirectory='%s'}).ProcessId" % (huelle, workspace.ROOT)
+        "CurrentDirectory='%s'; ProcessStartupInformation=$si}).ProcessId"
+        % (huelle, workspace.ROOT)
     )
     r = subprocess.run(
         ["powershell", "-NoProfile", "-Command", befehl],
