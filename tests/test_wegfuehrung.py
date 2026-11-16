@@ -1309,3 +1309,20 @@ def test_s159_ohne_ketten_im_kern_bleibt_alles_wie_bisher():
     w.fuehre(1, "einheit", 50, "nahkampfraid")
     _runde(w, {1: _e(1, 24, 100, 100), 50: _e(2, 3, 300, 100)})
     assert len(k.gesendet) == 1 and not hasattr(k, "ketten") and w._ketten == {}
+
+
+def test_erreichbar_nah_bleibt_im_gebiet_der_einheit():
+    """16.11.2026 (Probe 16: Wegpunkt (190, 158) begehbar, aber von (166, 134) aus nicht erreichbar - fuenf Assassinen standen): ein Laufpunkt
+    in einem abgeschlossenen Gebiet rueckt auf das naechste Feld im Gebiet der Einheit; ohne von wie bisher nur aufs naechste begehbare."""
+    zeilen = ["." * 40 for _ in range(40)]
+    for y in range(10, 21):  # Mauerring um (15, 15): innen begehbar, aber abgeschlossen
+        for x in range(10, 21):
+            if x in (10, 20) or y in (10, 20):
+                zeilen[y] = zeilen[y][:x] + "#" + zeilen[y][x + 1 :]
+    w = W.Wegfuehrung(1)
+    w.karte(zeilen)
+    assert w.gebiet_von((15, 15)) != w.gebiet_von((2, 2)) and w.gebiet_von((10, 10)) is None
+    assert w.erreichbar_nah((15, 15)) == (15, 15), "ohne von: das Feld ist begehbar"
+    q = w.erreichbar_nah((15, 15), von=(2, 2))
+    assert w.gebiet_von(q) == w.gebiet_von((2, 2)) and max(abs(q[0] - 15), abs(q[1] - 15)) == 6, q
+    assert w.erreichbar_nah((15, 15), von=(14, 14)) == (15, 15), "von innen: drinnen bleibt drinnen"

@@ -1094,3 +1094,11 @@ def test_lenker_gibt_dem_kern_die_wegkette_der_bereitstellung():
     bereit = {7: {"punkte": [(2, 2)], "gebaeude": None}}
     assert KW.routen_vereinen(raid, bereit) == {5: raid[5], 7: bereit[7]}
     assert KW.routen_vereinen(None, bereit) == bereit and KW.routen_vereinen(raid, None) == raid
+
+
+def test_lenker_gibt_den_assassinen_die_weg_ebene():
+    """Daniel 16.11.2026 21:44 ("was spricht dagegen die wegebene jeder unserer einheit zu geben?"), Probe 16: der Lenker reicht jede neue
+    Weg-Ebene an die Assassinen weiter und rueckt ihre Wegpunkte ins erreichbare Gebiet (Funktionen selbst: test_lord_alle, test_wegfuehrung)."""
+    assert (
+        "trupp.karte_neu(neue_karte)" in LENKER and "trupp.feld_nah = wegf.erreichbar_nah" in LENKER
+    )

@@ -81,11 +81,26 @@ def als_gelaende(k, groesse=400):
     FAIRNESS F12: Fallgruben (Gebaeudeart 67) und Pech sieht kein Spieler - ihre Felder gelten als freier Boden, gleich wem sie
     gehoeren (gemessen 22:47: 3 von 12 Fallgruben-Feldern sperrt das Spiel; Pech sperrt keines von 185)."""
     f = k["f"]
-    return ["".join(_zeichen(f.get((x, y))) for x in range(groesse)) for y in range(groesse)]
+    rein = _betretbar(f)
+    return ["".join(_zeichen(f.get((x, y)), (x, y) in rein) for x in range(groesse)) for y in range(groesse)]
 
 
-def _zeichen(v):
-    return "." if v is not None and (v[0] != 0 or v[5] == FALLGRUBE or v[3] & PECH) else "#"
+def _betretbar(f):
+    """Felder, auf die ein Nachbar einen Schritt erlaubt. 16.11.2026 (Probe 16): Wegpunkt (190, 158) auf einem Lagerplatz (Art 10) hatte
+    Ausgaenge, aber keinen Eingang - das Spiel fuehrte den Laufbefehl nie aus, fuenf Assassinen standen; 684 solche Felder (Art 0 und 10,
+    gebiet_messung.txt). Begehbar heisst jetzt: man kommt auch hinein."""
+    rein = set()
+    for (x, y), v in f.items():
+        links = v[0]
+        if links:
+            for bit, (dx, dy) in RICHTUNG.items():
+                if links & bit:
+                    rein.add((x + dx, y + dy))
+    return rein
+
+
+def _zeichen(v, betretbar=True):
+    return "." if v is not None and ((v[0] != 0 and betretbar) or v[5] == FALLGRUBE or v[3] & PECH) else "#"
 
 
 def neu_lesen(runde, letzte_runde, gebaeude, bekannt, alle):
@@ -150,10 +165,13 @@ def ausschnitt_holen(x0, y0, x1, y1, befehl_fn=None, warte=3.0):
 def flicken(karte, k):
     """Die Karte (Zeilen aus als_gelaende) mit dem Ausschnitt k: dessen Felder neu, alle anderen wie bisher."""
     zeilen = list(karte)
+    rein = _betretbar(k["f"])
     for y in range(k["y0"], k["y1"] + 1):
         z = list(zeilen[y])
         for x in range(k["x0"], k["x1"] + 1):
-            z[x] = _zeichen(k["f"].get((x, y)))
+            # am Rand des Ausschnitts liegt der Nachbar draussen - dort gilt ein Feld mit Ausgang weiter als betretbar
+            rand = x in (k["x0"], k["x1"]) or y in (k["y0"], k["y1"])
+            z[x] = _zeichen(k["f"].get((x, y)), rand or (x, y) in rein)
         zeilen[y] = "".join(z)
     return zeilen
 

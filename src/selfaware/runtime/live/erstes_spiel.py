@@ -2581,7 +2581,7 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
         raid_e.weg_selbst = False
     if trupp is not None and wegf is not None:
         # 16.11.2026 (#365): Assassinen-Wegpunkte auf Felder, die die Weg-Ebene des Spiels erlaubt (dieselbe Karte wie die Wegfuehrung)
-        trupp.feld_nah = wegf._begehbar_nah
+        trupp.feld_nah = wegf.erreichbar_nah   # 16.11.2026: im Gebiet der Einheit (Probe 16)
     erster_angriff_uebergeben(raid_e, wegf)            # S167
     wegf_karte_runde = None           # B-182: Runde der letzten Weg-Ebene fuer die Wegfuehrung
     wegf_karte_geb = None             # S146: {Gebaeude: Art} beim letzten Lesen - kommt eines dazu, wird neu gelesen
@@ -3874,6 +3874,10 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                         ereignis.append("WEGKARTE keine Antwort - die Wegfuehrung rechnet mit der alten Karte")
                     else:
                         wegf.karte(neue_karte)
+                        # Daniel 16.11.2026 21:44 ("was spricht dagegen die wegebene jeder unserer einheit zu geben?"): die Assassinen planen
+                        # auf derselben Weg-Ebene (Probe 16: Wegpunkte hinter eigenen Mauern/Graeben, die die Startkarte nicht kennt)
+                        if trupp is not None and hasattr(trupp, "karte_neu"):
+                            trupp.karte_neu(neue_karte)
                         ereignis.append("WEGKARTE gelesen Runde %d Takt %s (%s, %s), %.2f s" % (
                             runde, st.get("t"), wk_grund, wk_art, time.time() - t_wk))
                 except Exception as ex_wk:

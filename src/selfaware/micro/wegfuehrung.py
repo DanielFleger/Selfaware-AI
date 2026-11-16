@@ -66,6 +66,10 @@ DIREKT_BIS = 12  # Startwert: Felder (Schach) vom Ort der Uebergabe, ab denen di
 FREI_SUCHE = (
     8  # Startwert: Felder, in denen ein Laufpunkt auf das naechste begehbare Feld der Karte rueckt
 )
+# 16.11.2026 (Probe 16, partie_20261116_225559: fuenf Assassinen standen auf (166, 134), der Kern gab viermal "Lauf (190, 158)" - das Feld
+# ist begehbar, aber von dort aus nicht erreichbar, Weg-Ebene feld_166_134_wegebene.txt): ein Laufpunkt muss im selben zusammenhaengenden
+# Gebiet der Weg-Ebene liegen wie die Einheit. Startwert, nicht gemessen: so weit sucht erreichbar_nah ein Feld in ihrem Gebiet
+GEBIET_SUCHE = 30
 # B-182 (Partie 11.11. 23:25: Sklaven standen 12 % ihrer Zeit an einem erreichten Wegpunkt und warteten auf den naechsten Befehl):
 # der naechste Wegpunkt geht hinaus, solange die Einheit noch VORLAUF_RUNDEN Runden ihres eigenen Laufs (gemessen an der Vorrunde)
 # vor dem alten ist. Startwerte, nicht gemessen:
@@ -305,6 +309,7 @@ class Wegfuehrung:
         """Neue Begehbarkeit (Weg-Ebene des Spiels, services/wegkarte.als_gelaende): das Gitter wird neu gerechnet, und wen gerade
         die Wegsuche des Spiels fuehrt, den plant die Wegfuehrung mit der neuen Karte wieder selbst."""
         self.gelaende, self._frei = gelaende, None
+        self._gebiet = None  # 16.11.2026: Gebiete der neuen Karte erst bei Bedarf (gebiet_von)
         for a in self.auftraege.values():
             if a.direkt:
                 a.direkt, a.weg, a.steht, a.letzter = False, [], 0, None
@@ -316,6 +321,62 @@ class Wegfuehrung:
             return True
         x, y = int(q[0]), int(q[1])
         return 0 <= y < len(gel) and 0 <= x < len(gel[y]) and gel[y][x] in SF.BEGEHBAR
+
+    def gebiet_von(self, q):
+        """Nummer des zusammenhaengenden begehbaren Gebiets von Feld q (8 Nachbarn auf der Karte), None ausserhalb oder ohne Karte. Einmal
+        je Karte gerechnet (16.11.2026, siehe GEBIET_SUCHE)."""
+        gel = self.gelaende
+        if not gel:
+            return None
+        if getattr(self, "_gebiet", None) is None:
+            from collections import deque
+
+            h, b = len(gel), max(len(z) for z in gel)
+            nr = [[0] * b for _ in range(h)]
+            n = 0
+            for y0 in range(h):
+                for x0 in range(len(gel[y0])):
+                    if nr[y0][x0] or gel[y0][x0] not in SF.BEGEHBAR:
+                        continue
+                    n += 1
+                    nr[y0][x0] = n
+                    q_ = deque([(x0, y0)])
+                    while q_:
+                        x, y = q_.popleft()
+                        for dx in (-1, 0, 1):
+                            for dy in (-1, 0, 1):
+                                nx, ny = x + dx, y + dy
+                                if (
+                                    0 <= ny < h
+                                    and 0 <= nx < len(gel[ny])
+                                    and not nr[ny][nx]
+                                    and gel[ny][nx] in SF.BEGEHBAR
+                                ):
+                                    nr[ny][nx] = n
+                                    q_.append((nx, ny))
+            self._gebiet = nr
+        x, y = int(q[0]), int(q[1])
+        if 0 <= y < len(self._gebiet) and 0 <= x < len(self._gebiet[y]):
+            return self._gebiet[y][x] or None
+        return None
+
+    def erreichbar_nah(self, p, von=None):
+        """Wie _begehbar_nah, aber im Gebiet von von (der Einheit): das naechste begehbare Feld bei p, das von dort erreichbar ist (Ring um
+        Ring bis GEBIET_SUCHE). Ohne von, ohne Karte oder ohne Treffer wie _begehbar_nah (16.11.2026, Probe 16)."""
+        q = self._begehbar_nah(p)
+        if von is None or not self.gelaende:
+            return q
+        g = self.gebiet_von(self._begehbar_nah(von))
+        if g is None or self.gebiet_von(q) == g:
+            return q
+        x, y = int(p[0]), int(p[1])
+        for d in range(1, GEBIET_SUCHE + 1):
+            ring = [(x + dx, y + dy) for dx in range(-d, d + 1) for dy in (-d, d)]
+            ring += [(x + dx, y + dy) for dx in (-d, d) for dy in range(-d + 1, d)]
+            gut = [r for r in ring if self.gebiet_von(r) == g]
+            if gut:
+                return min(gut, key=lambda r: (_luft(r, (x, y)), r))
+        return q
 
     def _begehbar_nah(self, p):
         """Das naechste Feld, das die Karte begehbar nennt (Ring um Ring bis FREI_SUCHE); ohne Karte oder ohne freies Feld p selbst.

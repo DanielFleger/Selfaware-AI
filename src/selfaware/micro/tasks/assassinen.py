@@ -1045,6 +1045,12 @@ class Einzeln:
             return 1.0
         return _WK.rest_anteil(g["typ"], g.get("leben", 0), getattr(self, "_gb_max", {}).get(gn, 0))
 
+    def karte_neu(self, gelaende):
+        """Neue Begehbarkeit aus der Weg-Ebene des Spiels (Lenker je WEGKARTE-Runde): das Gefahren-Gitter rechnet die freien Zellen neu
+        (Daniel 16.11.2026 21:44, Probe 16)."""
+        self.gelaende, self._frei = list(gelaende), None
+        self._gitter_runde = (None, None)
+
     def _gitter(self, L, G=None):
         """Gefahren-Gitter dieser Runde (schussfeld.py) mit der Sicht (17.10., sicht.py: sichtbar nur bei waehlbarem Feind
         <= 20 Feldern, Beschuss je Schuetze mit freier/versperrter Linie); einmal je Runde, Gelaende einmal je Partie."""
@@ -1117,8 +1123,9 @@ class Einzeln:
                 wp = [(start[0] + (ziel[0] - start[0]) * i // k, start[1] + (ziel[1] - start[1]) * i // k) for i in range(1, k)] + [ziel]
             if len(wp) > 1 and self.feld_nah is not None:
                 # Probe 11: Wegpunkte (246,220), (247,215), (240,220) lagen nach der Gelaendekarte auf '.', in der Weg-Ebene des Spiels
-                # aber auf gesperrten Feldern - das Spiel verwarf den Laufbefehl, die Assassine stand bis zu 500 Takte
-                wp = [self.feld_nah(p) for p in wp[:-1]] + wp[-1:]
+                # aber auf gesperrten Feldern - das Spiel verwarf den Laufbefehl, die Assassine stand bis zu 500 Takte. Probe 16: auch
+                # begehbar reicht nicht - der Punkt muss von der Assassine aus erreichbar sein (feld_nah mit von)
+                wp = [self.feld_nah(p, start) for p in wp[:-1]] + wp[-1:]
             if len(wp) > 1:
                 self.route[n] = {"punkte": wp[:-1], "gebaeude": gn, "befohlen": self.runde}
                 lauf.setdefault(wp[0], []).append(n)
@@ -2126,10 +2133,17 @@ class Einzeln:
             return self._platz_kosten(r[0], r[1], leben) if r else self._platz_kosten(0.0, schach(ort, q), leben)
         platz = min(plaetze, key=lambda q: (kosten(q), q))
         punkte = [platz]
+        if self.feld_nah is not None:
+            # 16.11.2026 (Probe 16: Wegpunkt (190, 158) von (166, 134) aus nicht erreichbar, fuenf Assassinen standen dort): Platz und
+            # Wegpunkte der Bereitstellung im Gebiet der Assassine (Weg-Ebene, wegfuehrung.erreichbar_nah)
+            platz = self.feld_nah(platz, ort)
+            punkte = [platz]
         if g is not None:
             wp, bw, bg, _ = schussfeld.sicherer_weg(self.gelaende, L, self.sp, ort, platz, gitter=g)
             if len(wp) > 1:
                 punkte = list(wp[:-1]) + [platz]
+                if self.feld_nah is not None:
+                    punkte = [self.feld_nah(q, ort) for q in punkte[:-1]] + [platz]
         self.lordtrupp.setdefault("platz", {})[n] = platz
         self.lordtrupp.setdefault("weg", {})[n] = punkte
         # 16.11.2026: Laenge des Anmarschs entlang der Wegpunkte (Schachmass) - daraus die Frist der Bereitstellung (_bereit_frist)

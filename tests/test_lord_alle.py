@@ -216,3 +216,22 @@ def test_bereitstellung_gibt_den_naechsten_wegpunkt_jede_runde_und_die_kette_dem
     _schritt(a, L, 20200)
     assert a.lordtrupp["weg"][k][0] == (300, 98), a.lordtrupp["weg"][k]
     assert "Einzeln" in type(a).__name__
+
+
+def test_bereitstellung_platz_und_wegpunkte_im_gebiet_der_assassine():
+    """16.11.2026 (Probe 16): Platz und Wegpunkte der Bereitstellung gehen durch feld_nah(punkt, ort der Assassine) - die Wegfuehrung
+    rueckt sie ins erreichbare Gebiet. karte_neu gibt den Assassinen die Weg-Ebene und rechnet das Gitter neu."""
+    a, L = _szene(12)
+    gefragt = []
+    a.feld_nah = lambda p, von=None: (gefragt.append((tuple(p), von)), (p[0] + 1, p[1]))[1]
+    _schritt(a, L, 20000)
+    assert a.lordtrupp["phase"] == "bereit"
+    orte = {(L[k]["x"], L[k]["y"]) for k in range(200, 212)}
+    assert gefragt and all(v in orte for _, v in gefragt), gefragt[:3]
+    plaetze = set(a.lordtrupp["platz"].values())
+    assert all((q[0] - 1, q[1]) in {p for p, _ in gefragt} for q in plaetze), (
+        "der Platz selbst ging durch feld_nah"
+    )
+    a._frei, a._gitter_runde = [[True]], (a.runde, object())
+    a.karte_neu(["." * 400] * 400)
+    assert a.gelaende[0] == "." * 400 and a._frei is None and a._gitter_runde[0] is None

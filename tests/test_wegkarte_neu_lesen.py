@@ -96,3 +96,22 @@ def test_ausschnitt_holen_nimmt_nur_die_passende_antwort(monkeypatch):
         W.ausschnitt_holen(230, 160, 261, 190, befehl_fn=lambda b, w, bis=None: antwort) is None
     )  # anderes Rechteck
     assert W.ausschnitt_holen(230, 160, 260, 190, befehl_fn=lambda b, w, bis=None: []) is None
+
+
+def test_feld_ohne_eingang_ist_nicht_begehbar():
+    """16.11.2026 (Probe 16): Wegpunkt (190, 158) auf einem Lagerplatz hatte Ausgaenge, aber keinen Eingang - das Spiel fuehrte den Laufbefehl
+    nie aus. als_gelaende nennt nur betretbare Felder begehbar; flicken laesst Felder am Rand des Ausschnitts gelten (Nachbar draussen)."""
+    from selfaware.services import wegkarte as WK
+
+    alle = 0xFF
+    f = {(x, y): (alle, 0, 0, 0, 0, -1) for x in range(5) for y in range(5)}
+    for bit, (
+        dx,
+        dy,
+    ) in WK.RICHTUNG.items():  # (2, 2): kein Nachbar fuehrt hinein, er selbst fuehrt hinaus
+        f[(2 - dx, 2 - dy)] = (alle & ~bit, 0, 0, 0, 0, -1)
+    k = {"f": f, "x0": 0, "y0": 0, "x1": 4, "y1": 4}
+    gel = WK.als_gelaende(k, groesse=5)
+    assert gel[2][2] == "#" and gel[0][0] == "." and gel[2][1] == "."
+    zeilen = WK.flicken(["....."] * 5, {"f": f, "x0": 1, "y0": 1, "x1": 3, "y1": 3})
+    assert zeilen[2][2] == "#" and zeilen[1][1] == ".", zeilen
