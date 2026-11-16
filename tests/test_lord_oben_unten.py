@@ -6,7 +6,39 @@ jeder Entfernung (das Spiel laeuft dann selbst hin und folgt ihm)."""
 
 import pytest
 
-from tests.test_lord_alle import _e, _modul
+
+def _modul():
+    try:
+        import selfaware.micro.tasks.assassinen as AS
+    except RuntimeError as ex:  # ohne Spielinstanz laesst sich das Modul nicht laden
+        pytest.skip(str(ex))
+    return AS
+
+
+def _e(nr, besitzer, typ, x, y, **k):
+    """Einheit wie im Lageprotokoll (gleiche Felder wie test_lord_alle._e - Testdateien importieren einander nicht, die CI kennt kein
+    Paket tests)."""
+    d = {
+        "nr": nr,
+        "gruppe": 0,
+        "besitzer": besitzer,
+        "typ": typ,
+        "x": x,
+        "y": y,
+        "leben": 10000,
+        "zustand": 1,
+        "zielart": 0,
+        "zieleinheit": 0,
+        "laufx": x,
+        "laufy": y,
+        "ladung": 0,
+        "arbeitsplatz": 0,
+        "erreichbar": 1,
+        "nahziel": -1,
+        "nahangreifer": -1,
+    }
+    d.update(k)
+    return d
 
 
 def _angriff(lord_oben):
