@@ -107,3 +107,12 @@ def test_stopp_haelt_zuerst_das_spiel_an_dann_die_lenker(monkeypatch):
     text = shc.stopp()
     assert folge == [("pause", True), ("lenker",), ("pause", True)] and "2 Lenker beendet" in text
     assert shc.BEFEHLE["stopp"] is shc.stopp
+
+
+def test_lobby_aufstellung_ohne_assassinen_grenze():
+    """Daniel 16.11.2026 23:49 ("das ist bs du weisst dass das nur einmal ein test war und klar temporaer. du kannst so viel von was auch immer
+    machen wie du willst"): die Probe-Aufstellung begrenzt die Assassinen nicht mehr (-1 = ohne Grenze)."""
+    from selfaware.baukasten import aufstellung
+
+    arg, _daten = aufstellung.anwenden({"aufstellung": "lobby_wie_partie34"})
+    assert arg["assassinen"] == "-1"

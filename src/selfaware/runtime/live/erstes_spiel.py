@@ -3420,8 +3420,10 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     # nicht am Lagerplatz (9i: Markt/Soeldnerlager belegten ihn - 14 Holzfaeller warteten Tick 4500-9035)
                     soeldner = baue_schnell(8, BERGFRIED[0], BERGFRIED[1], 25)
                     ereignis.append("Soeldnerlager gesetzt %s (Gold %d)" % (soeldner, st["gold"]))
+                # Daniel 16.11.2026 23:49 ("du kannst so viel von was auch immer machen wie du willst"): kein Anwerbestopp mehr, wenn mehr als
+                # A_OHNE_ZIEL_MAX ohne Ziel warten (Probe 22: bis 641 Gold ungenutzt, waehrend Assassinen auf den Lord-Angriff warteten); die Zahl
+                # begrenzt nur noch die Aufstellung (lobby_wie_partie34: assassinen=-1, ohne Grenze)
                 elif posten and (assassinen < 0 or a_stand["lebend"] < ziel_a) and st["t"] - a_stand["zuletzt"] >= WERB_ABSTAND \
-                        and ((getattr(trupp, "ohne_ziel_zuletzt", None) or 0) < A_OHNE_ZIEL_MAX or lord_fehlt) \
                         and not ausbau.braucht_gold \
                         and not loewen_am_posten(L, G, posten[0]) \
                         and not wirt.a_offen(G):   # Daniel 23:09: Farmen nicht vergessen - erst die fehlenden A-Plantagen (45 Gold)   # erst rollen (Daniel 18:51/19:05)
