@@ -1159,7 +1159,8 @@ def kernweg_senden(liste, assassinen, ereignis, folge=None, routen=None):
             for n in c.get("einheiten") or ():
                 r = routen.get(n)
                 if r and r.get("punkte") and tuple(r["punkte"][0]) == tuple(c["lauf"]):
-                    _kernweg.kette(n, [tuple(q) for q in r["punkte"][1:]], ("gebaeude", r["gebaeude"]))
+                    # 16.11.2026: die Bereitstellung vor dem Lord (assassinen.bereit_routen) hat kein Gebaeude am Ende - nur die Wegpunkte
+                    _kernweg.kette(n, [tuple(q) for q in r["punkte"][1:]], ("gebaeude", r["gebaeude"]) if r.get("gebaeude") is not None else None)
     # #359 (Daniel 15.11.2026 23:07): Folgeziele - faellt das angegriffene Gebaeude, greift der Kern im selben Takt das naechste an
     if folge and _kernweg.kann_folge:
         lebend = set(assassinen)
@@ -3437,7 +3438,8 @@ def phase2(plan, minuten, tempo, mit_waechter=False, bis_tick=None, assassinen=0
                     erg, liste = erg
                     if KERNWEG and (liste or getattr(trupp, "folgeziele", None)):   # 08.11. (P5, B-157): kernweg=ja; #359 Folgeziele
                         liste = kernweg_senden(liste, [n for n, e in L.items() if e["besitzer"] == SP and e["typ"] == 73], ereignis,
-                                               folge=getattr(trupp, "folgeziele", None), routen=getattr(trupp, "route", None))
+                                               folge=getattr(trupp, "folgeziele", None),
+                                               routen=dict(getattr(trupp, "route", None) or {}, **(trupp.bereit_routen() if hasattr(trupp, "bereit_routen") else {})))
                     if liste:
                         # Kern 39: "durchsetzen" gilt nur dem Kern (wie wegfuehrung._ueber_kern) - ans Modul ohne den Schluessel
                         liste = [dict(b, angriff={k: v for k, v in b["angriff"].items() if k != "durchsetzen"}) if isinstance(b.get("angriff"), dict)

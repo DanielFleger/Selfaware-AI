@@ -420,6 +420,13 @@ class Einzeln:
     # Jetzt gilt der weiteste Weg der Gruppe (entlang ihrer Wegpunkte) x TEMPO x BEREIT_ZUSCHLAG + BEREIT_VORLAUF, mindestens BEREIT_MAX.
     BEREIT_ZUSCHLAG = 1.25           # STARTWERT, nicht gemessen: Umwege, Gedraenge, Schraegschritte
     BEREIT_VORLAUF = 400             # STARTWERT, nicht gemessen: bis der erste Laufbefehl ankommt (~2 Lenker-Runden)
+    # 16.11.2026 (Probe 14, lage_20261116_224149: erste Bereitstellung "0 von 6" trotz 4.515 Takten Frist fuer hoechstens 182 Felder):
+    # die Assassinen liefen im Mittel ~30 statt 16 Takte je Feld (Assassine 228: 120 Felder in 3.613 Takten, dazwischen Zustand 1) -
+    # der naechste Wegpunkt ging hoechstens jede zweite Runde hinaus. Jetzt jede Runde, der Kern fuehrt den Weg als Kette weiter
+    # (bereit_routen, wie die Raid-Route #359), und der Platz wird nach Zeit UND Gefahr gewaehlt (_platz_kosten) - vorher galt nur der
+    # kleinste Schaden auf dem Weg, dann erst die Laenge: so lag der Platz in Probe 11, 12, 13c, 14 hinter der feindlichen Burg (176-208
+    # Schritte), der einzige, der ankam (13c, (225, 245)), auf unserer Seite (128 Schritte).
+    LEBEN_TAKTE = 10000              # STARTWERT, nicht gemessen: so viele Takte Umweg ist eine ganze Assassine wert (x Lebensgewicht)
     BEREIT_NEU = 3                   # hoechstens so viele Laufbefehle zum Platz, dann raus aus der Gruppe
     # 17.10. (1017i, Lageprotokoll Tick 30.567-31.005): der Lord stand OBEN auf seinem Bergfried (Typ 41 daneben, Zustand 13);
     # mit 6 schaltete die Gruppe 4-5 Felder vor ihm auf den Angriffsbefehl um, der nicht klettert - Lord 30.000 unveraendert,
@@ -826,6 +833,18 @@ class Einzeln:
         """Daniel 15.11.2026 23:10: so viele Angreifer, wie der Lord nach den Messungen dieser Partie braucht - None ohne Messung."""
         je = self._lord_schaden_je_assassine()
         return int(math.ceil(leben / je)) if je else None
+
+    def _platz_kosten(self, schaden, felder, leben):
+        """Kosten eines Platzes in Takten: Anmarsch (felder x TEMPO) plus erwarteter Schaden auf dem Weg als Anteil des eigenen Lebens x
+        LEBEN_TAKTE x Lebensgewicht (Regler "Schlaues Risiko") - Zeit und Gefahr in derselben Waehrung (16.11.2026, siehe LEBEN_TAKTE)."""
+        return felder * TEMPO + min(1.0, schaden / float(leben)) * self.LEBEN_TAKTE * _regler.lebensgewicht()
+
+    def bereit_routen(self):
+        """Wegpunkte der Bereitstellung fuer die Kette des Kerns: {n: {"punkte": [...], "gebaeude": None}} (16.11.2026, wie self.route)."""
+        lt = self.lordtrupp
+        if lt.get("phase") != "bereit":
+            return {}
+        return {k: {"punkte": w, "gebaeude": None} for k, w in lt.get("weg", {}).items() if k in lt.get("mitglieder", ()) and w}
 
     def _bereit_frist(self):
         """Takte, die die laufende Bereitstellung bekommt: weitester Anmarsch der Gruppe x TEMPO x BEREIT_ZUSCHLAG + BEREIT_VORLAUF,
@@ -2101,10 +2120,11 @@ class Einzeln:
         ort = (L[n]["x"], L[n]["y"])
         g = self._gitter(L, G)
         rk = g.risiko_von(ort, TEMPO) if g is not None else {}
+        leben = max(1, L[n].get("leben", 1))
         def kosten(q):
             r = rk.get(g.zelle_von(q)) if g is not None else None
-            return (r[0], r[1]) if r else (0, schach(ort, q))
-        platz = min(plaetze, key=kosten)
+            return self._platz_kosten(r[0], r[1], leben) if r else self._platz_kosten(0.0, schach(ort, q), leben)
+        platz = min(plaetze, key=lambda q: (kosten(q), q))
         punkte = [platz]
         if g is not None:
             wp, bw, bg, _ = schussfeld.sicherer_weg(self.gelaende, L, self.sp, ort, platz, gitter=g)
@@ -2769,6 +2789,12 @@ class Einzeln:
                         weg.pop(0)
                         lt["neu"][k] = 0           # 18.10.: Wegpunkt erreicht = er laeuft; nur Befehle ohne Fortschritt zaehlen
                     lauf = (L[k].get("laufx", -99), L[k].get("laufy", -99))
+                    # 16.11.2026: fuehrt der Kern die Kette weiter, zeigt das Laufziel schon auf einen spaeteren Wegpunkt - die davor sind erledigt
+                    # (wie _route_pflegen, #359); sonst schickte die naechste Runde ihn zurueck
+                    spaeter = next((i for i, q in enumerate(weg[1:], 1) if schach(lauf, q) <= self.WEGPUNKT_NAH), None)
+                    if spaeter is not None:
+                        del weg[:spaeter]
+                        lt["neu"][k] = 0
                     # 18.10.: blockiert = steht STEH_TICKS ohne Spielziel auf demselben Feld, auch wenn das Laufziel noch stimmt
                     f_s, seit_s = self._steht.get(k, (None, self.jetzt))
                     blockiert = f_s == pos(k) and self.jetzt - seit_s >= self.STEH_TICKS
@@ -2776,7 +2802,7 @@ class Einzeln:
                     # Feld" heisst also nicht "steht". Gezaehlt werden nur Befehle ohne Fortschritt seit dem letzten Befehl
                     if schach(pos(k), lt.setdefault("ort_bef", {}).get(k, pos(k))) > 1:
                         lt["neu"][k] = 0
-                    if (schach(lauf, weg[0]) > 2 or blockiert) and self.runde - lt["befohlen"].get(k, -99) >= 2:
+                    if (schach(lauf, weg[0]) > 2 or blockiert) and self.runde - lt["befohlen"].get(k, -99) >= 1:
                         if lt["neu"].get(k, 0) >= self.BEREIT_NEU and (schach(lauf, pos(k)) <= 1 or blockiert):
                             ereignis.append("LORD-BEREITSTELLUNG: %d laeuft nach %d Befehlen nicht los (Feld %s, Zustand %d) - raus, raidet" % (
                                 k, lt["neu"][k], pos(k), L[k]["zustand"]))

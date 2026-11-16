@@ -1079,3 +1079,10 @@ def test_lenker_gibt_dem_vorstoss_den_lord_im_lord_angriff():
     """Daniel 16.11.2026 21:41/21:42: der Vorstoss rueckt mit vor, wenn die Assassinen den Lord angreifen - der Lenker gibt ihm denselben Lord wie
     den Raid-Nahkaempfern (S162)."""
     assert "vorstoss.lord = raid_e.nahkampf.lord" in LENKER
+
+
+def test_lenker_gibt_dem_kern_die_wegkette_der_bereitstellung():
+    """16.11.2026 (Probe 14: Sammeln mit ~30 statt 16 Takten je Feld): die Wegpunkte der Bereitstellung gehen wie die Raid-Route als Kette an den
+    Kern, ohne Gebaeude am Ende."""
+    assert "trupp.bereit_routen()" in LENKER
+    assert '("gebaeude", r["gebaeude"]) if r.get("gebaeude") is not None else None' in LENKER

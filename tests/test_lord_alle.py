@@ -186,3 +186,33 @@ def test_frist_der_bereitstellung_aus_dem_anmarsch():
     )
     ev = _schritt(b, L2, 20000 + frist + 10)
     assert any("ABGEBROCHEN" in z for z in ev), "nach der Frist: Abbruch wie bisher"
+
+
+def test_sammelplatz_nach_zeit_und_gefahr():
+    """16.11.2026 (Probe 11-14: der Platz mit dem kleinsten Schaden lag 176-208 Schritte weit hinter der Burg, keiner kam an; der eine mit
+    128 Schritten kam an): Kosten = Anmarsch x TEMPO + Schadensanteil x LEBEN_TAKTE x Lebensgewicht. Ein kleiner Schaden auf einem viel
+    kuerzeren Weg schlaegt den schadlosen Umweg; ein Weg, der eine halbe Assassine kostet, nicht."""
+    AS = _modul()
+    a = AS.Einzeln(1)
+    kurz_gekratzt = a._platz_kosten(250.0, 128, 12500)  # 2 % Leben auf 128 Feldern
+    lang_sauber = a._platz_kosten(0.0, 190, 12500)
+    kurz_toedlich = a._platz_kosten(6250.0, 128, 12500)  # halbe Assassine
+    assert kurz_gekratzt < lang_sauber < kurz_toedlich
+
+
+def test_bereitstellung_gibt_den_naechsten_wegpunkt_jede_runde_und_die_kette_dem_kern():
+    """16.11.2026 (Probe 14: ~30 statt 16 Takte je Feld, der naechste Wegpunkt kam hoechstens jede zweite Runde): bereit_routen gibt die
+    Wegpunkte fuer die Kette des Kerns; zeigt das Laufziel schon auf einen spaeteren Wegpunkt, gelten die davor als erledigt."""
+    a, L = _szene(12)
+    _schritt(a, L, 20000)
+    assert a.lordtrupp["phase"] == "bereit"
+    r = a.bereit_routen()
+    assert set(r) == set(range(200, 212)) and all(
+        v["gebaeude"] is None and v["punkte"] for v in r.values()
+    )
+    k = 200
+    a.lordtrupp["weg"][k] = [(260, 92), (280, 95), (300, 98), a.lordtrupp["platz"][k]]
+    L[k].update(laufx=300, laufy=98)  # der Kern fuehrt ihn schon zum dritten Wegpunkt
+    _schritt(a, L, 20200)
+    assert a.lordtrupp["weg"][k][0] == (300, 98), a.lordtrupp["weg"][k]
+    assert "Einzeln" in type(a).__name__
