@@ -12,6 +12,7 @@ Liefert lokal (nur 127.0.0.1) eine Seite und diese Wege:
   GET  /api/spiele            Kurzfassung jedes schon gerechneten Spiels und der Stand der Hintergrundrechnung
   POST /api/regler            neue Regler (mit Grund) - alter und neuer Stand gehen in den Verlauf
   POST /api/regler/zurueck    letzte Aenderung zuruecknehmen (als neue Aenderung, der Verlauf behaelt beides)
+  POST /api/handeln           Schalter "Regler wirken aufs Handeln" an/aus ({"an": bool}) - baukasten/regler.py, Daniel 16.11.2026 19:30
   GET  /bild/hintergrund      Hintergrundbild der UCP3-Oberflaeche, wenn es auf diesem Rechner liegt
 Aufruf: python -m selfaware.tools.analysis.wertung_seite [port=8771]"""
 
@@ -25,6 +26,7 @@ import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 from selfaware import workspace
+from selfaware.baukasten import regler as RG
 from selfaware.telemetry import wertung as W
 
 HIER = os.path.dirname(os.path.abspath(__file__))
@@ -310,21 +312,36 @@ def alle_rechnen():
 
 
 def regler_antwort():
+    handeln = RG.handeln_lesen()
+    # Regler-Verlauf und Schalter-Verlauf in einer Liste, neueste zuerst (ADR-072)
+    verlauf = [
+        {
+            "zeit": v["zeit"],
+            "wer": v.get("wer"),
+            "grund": v.get("grund"),
+            "aenderungen": _unterschied(v.get("alt") or [], v.get("neu") or []),
+        }
+        for v in W.verlauf_lesen()[-100:]
+    ] + [
+        {
+            "zeit": v["zeit"],
+            "wer": v.get("wer"),
+            "grund": v.get("grund") or "Schalter",
+            "aenderungen": [
+                "Regler wirken aufs Handeln: %s -> %s"
+                % ("an" if v.get("alt") else "aus", "an" if v.get("neu") else "aus")
+            ],
+        }
+        for v in (handeln.get("verlauf") or [])[-100:]
+    ]
     return {
+        "handeln": {k: handeln.get(k) for k in ("an", "zeit", "wer", "grund")},
         "regler": W.regler_lesen(),
         "messgroessen": {
             k: {"name": n, "wort": w, "einheit": e, "richtung": r, "roh": W.ROH_EINHEIT.get(k, "")}
             for k, (n, w, e, r) in W.MESSGROESSEN.items()
         },
-        "verlauf": [
-            {
-                "zeit": v["zeit"],
-                "wer": v.get("wer"),
-                "grund": v.get("grund"),
-                "aenderungen": _unterschied(v.get("alt") or [], v.get("neu") or []),
-            }
-            for v in reversed(W.verlauf_lesen()[-100:])
-        ],
+        "verlauf": sorted(verlauf, key=lambda v: v["zeit"], reverse=True),
     }
 
 
@@ -464,6 +481,11 @@ class Seite(BaseHTTPRequestHandler):
             elif u.path == "/api/regler/zurueck":
                 if not W.regler_zuruecknehmen("Seite"):
                     raise ValueError("nichts zum Zuruecknehmen")
+                self._json(regler_antwort())
+            elif u.path == "/api/handeln":
+                if not isinstance(body.get("an"), bool):
+                    raise ValueError("an muss true oder false sein")
+                RG.handeln_setzen(body["an"], "Seite", body.get("grund") or "")
                 self._json(regler_antwort())
             else:
                 self._json({"fehler": "nicht gefunden: %s" % u.path}, 404)

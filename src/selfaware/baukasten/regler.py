@@ -7,6 +7,11 @@ Summe aller aktiven Gewichte einer Messgroesse, die fuer die Einheitenart gelten
 Verhalten von vorher; ohne Datei gilt ebenfalls 1. Die Datei wird hoechstens alle NEU_LESEN Sekunden neu gelesen, damit ein Regler auch in
 einer laufenden Partie wirkt.
 
+SCHALTER (Daniel 16.11.2026 19:30 "Ja, so starten" auf "Regler nur bewerten lassen und Probe 9 mit Kern 38 starten?" - 19:03 "das wichtigste
+ist dass daraus eine aktion an den code folgt und nicht direkt an den regler"): Die Regler bewerten nur. Aufs Handeln wirken sie erst, wenn
+der Schalter in SCHALTER_DATEI an ist - gedacht fuer eine Testreihe mit genau einem Regler. Aus (Standard, auch ohne Datei) gilt das Verhalten
+der Startgewichte, also das vor den Kopplungen.
+
 Kopplungen (jede an einer Stelle hier, die Module fragen nur):
   wechsel_huerde  Kehrtwende           -> nahkampf: ein neues Ziel muss um diesen Faktor besser sein als das jetzige
   leer_runden     Steht ohne Wirkung   -> wegfuehrung: Runden ohne Wirkung, bis die Einheit ein anderes Ziel nimmt (#362)
@@ -26,6 +31,7 @@ import time
 from selfaware import workspace
 
 DATEI = os.path.join(workspace.DATA, "wertung", "regler.json")
+SCHALTER_DATEI = os.path.join(workspace.DATA, "wertung", "handeln.json")
 NEU_LESEN = 5.0  # Sekunden
 HUERDE_JE = 0.1  # je Staerke ueber 1: so viel muss ein neues Ziel besser sein (Startwert)
 BEHALTEN_JE = (
@@ -48,11 +54,42 @@ def neu_lesen():
     _merk["zeit"] = -1e18
 
 
+def handeln_lesen():
+    """Stand des Schalters: {"an": bool, "zeit", "wer", "grund", "verlauf": [...]}; ohne Datei aus."""
+    try:
+        with open(SCHALTER_DATEI, encoding="utf-8") as f:
+            d = json.load(f)
+        return dict(d, an=d.get("an") is True)
+    except (OSError, ValueError, AttributeError):
+        return {"an": False, "verlauf": []}
+
+
+def handeln_setzen(an, wer, grund=""):
+    """Schaltet um und haengt die Aenderung an den Verlauf des Schalters (der Rueckweg ist dasselbe mit dem alten Wert)."""
+    import datetime
+
+    alt = handeln_lesen()
+    zeit = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+    eintrag = {"zeit": zeit, "wer": wer, "grund": grund, "alt": alt["an"], "neu": bool(an)}
+    neu = {
+        "an": bool(an),
+        "zeit": zeit,
+        "wer": wer,
+        "grund": grund,
+        "verlauf": (alt.get("verlauf") or []) + [eintrag],
+    }
+    os.makedirs(os.path.dirname(SCHALTER_DATEI), exist_ok=True)
+    with open(SCHALTER_DATEI, "w", encoding="utf-8") as f:
+        json.dump(neu, f, ensure_ascii=False, indent=1)
+    neu_lesen()
+    return neu
+
+
 def _regler():
     if time.monotonic() - _merk["zeit"] > NEU_LESEN:
         try:
             with open(DATEI, encoding="utf-8") as f:
-                _merk["regler"] = json.load(f)["regler"]
+                _merk["regler"] = json.load(f)["regler"] if handeln_lesen()["an"] else None
         except (OSError, ValueError, KeyError):
             _merk["regler"] = None
         _merk["zeit"] = time.monotonic()
@@ -74,7 +111,8 @@ def _gewichte(messgroesse, typ):
 
 
 def staerke(messgroesse, typ=None):
-    """Betrag der Summe der aktiven Gewichte dieser Messgroesse fuer diese Art; 1.0 ohne Datei, 0.0 wenn kein Regler gilt (archiviert)."""
+    """Betrag der Summe der aktiven Gewichte dieser Messgroesse fuer diese Art; 1.0 ohne Datei oder bei Schalter aus, 0.0 wenn kein Regler
+    gilt (archiviert)."""
     ws = _gewichte(messgroesse, typ)
     if ws is None:
         return 1.0

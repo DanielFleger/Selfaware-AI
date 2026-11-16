@@ -73,6 +73,9 @@ def _regler_ohne_datei(tmp_path_factory, monkeypatch):
     from selfaware.baukasten import regler as _rg
 
     monkeypatch.setattr(_rg, "DATEI", str(tmp_path_factory.mktemp("regler") / "keine.json"))
+    monkeypatch.setattr(
+        _rg, "SCHALTER_DATEI", str(tmp_path_factory.mktemp("schalter") / "keine.json")
+    )
     _rg.neu_lesen()
     yield
     _rg.neu_lesen()

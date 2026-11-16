@@ -126,6 +126,10 @@ details.regler .reihe { display: flex; gap: 10px; align-items: center; margin-to
 details.regler input[type=range] { flex: 1; accent-color: var(--glut); min-width: 0; }
 details.regler input[type=number] { width: 74px; border: 1px solid var(--linie); border-radius: 6px; padding: 4px 6px; text-align: right; }
 details.regler select { border: 1px solid var(--linie); border-radius: 6px; padding: 3px 6px; background: var(--karte); }
+.schalter { background: var(--karte); border: 1px solid var(--linie); border-left: 4px solid var(--linie); border-radius: var(--rund); padding: 12px 14px; margin-bottom: 14px;
+  display: flex; gap: 14px; align-items: center; flex-wrap: wrap; }
+.schalter.an { border-left-color: var(--glut); background: var(--glut-sanft); }
+.schalter b { font-size: 14px; }
 .neu-regler { background: var(--karte); border: 1px dashed #c9c9cf; border-radius: var(--rund); padding: 12px 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .abschnitt { margin: 22px 0 10px; font: 700 13px/1 "Barlow Condensed", Barlow, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--tinte-sanft); display: flex; align-items: center; gap: 10px; }
 .abschnitt::after { content: ""; flex: 1; height: 1px; background: var(--linie); }
@@ -204,7 +208,7 @@ async function start() {
     await ladePartie(a.partie && p.some((x) => x.datei === a.partie) ? a.partie : (p[0] || {}).datei, true);
   } catch (ex) { fehler("Laden fehlgeschlagen: " + ex.message); }
 }
-function regAnnehmen(r) { S.regler = r.regler; S.mg = r.messgroessen; S.verlauf = r.verlauf; }
+function regAnnehmen(r) { S.regler = r.regler; S.mg = r.messgroessen; S.verlauf = r.verlauf; S.handeln = r.handeln || { an: false }; }
 async function ladePartie(datei, ersetzen) {
   if (!datei) return;
   $("#partie").value = datei; $("#stand").textContent = "rechne …";
@@ -384,7 +388,12 @@ function zeichneRegler() {
       <div class="reihe"><input type="range" min="-10" max="10" step="0.1" value="${r.gewicht}" data-f="gewicht" data-id="${esc(r.id)}"><input type="number" min="-10" max="10" step="0.1" value="${r.gewicht}" data-f="gewicht" data-id="${esc(r.id)}">${artWahl(r)}
       <button class="knopf" data-arch="${esc(r.id)}" title="Archivieren: zählt nicht mehr mit, kommt mit einem Klick zurück">Archivieren</button></div></div></details>`; };
   const A = S.regler.filter((r) => !r.archiviert), arch = S.regler.filter((r) => r.archiviert);
-  v.innerHTML = `<div class="leiste"><button class="knopf" id="zurueck" title="Stand vor der letzten Änderung wiederherstellen (der Verlauf behält beides)">Letzte Änderung zurücknehmen</button>
+  const h = S.handeln || { an: false };
+  const schalter = `<div class="schalter ${h.an ? "an" : ""}"><span><b>Regler wirken aufs Handeln: ${h.an ? "AN" : "AUS"}</b><br>
+      <span class="hinweis">${h.an ? "Die Gewichte verstellen gerade die Entscheidungen der Einheiten (Kopplungen). Gedacht für eine Testreihe mit genau einem Regler." : "Die Regler bewerten nur. Die Einheiten handeln wie mit den Startgewichten; Änderungen am Handeln kommen als Code."}
+      ${h.zeit ? " · zuletzt " + esc(h.zeit) + " von " + esc(h.wer || "") : ""}</span></span>
+      <button class="knopf${h.an ? " voll" : ""}" id="handeln" title="${h.an ? "Ausschalten: die Regler bewerten nur noch" : "Einschalten: die Gewichte verstellen ab der nächsten Runde das Handeln (wirkt auch in einer laufenden Partie)"}">${h.an ? "Ausschalten" : "Einschalten"}</button></div>`;
+  v.innerHTML = schalter + `<div class="leiste"><button class="knopf" id="zurueck" title="Stand vor der letzten Änderung wiederherstellen (der Verlauf behält beides)">Letzte Änderung zurücknehmen</button>
       <span class="hinweis" id="regstatus">Gewicht von −10 bis +10. Änderungen werden sofort gespeichert und rechnen alle Partien neu.</span></div>
     <div class="gruppe"><h4>Lohn</h4>${A.filter((r) => r.gewicht >= 0).map(klappe).join("")}</div>
     <div class="gruppe"><h4>Abzug</h4>${A.filter((r) => r.gewicht < 0).map(klappe).join("")}</div>
@@ -407,6 +416,9 @@ function zeichneRegler() {
     S.regler.push({ id, messgroesse: mg, arten: art === "alle" ? "alle" : [parseInt(art, 10)], gewicht: w2, name: S.mg[mg].name, wort: S.mg[mg].wort, archiviert: false, gesetzt_von: "von Hand angelegt" });
     speichern("neu: " + S.mg[mg].name + (art === "alle" ? "" : " nur " + art), true); };
   $("#zurueck", v).onclick = async () => { try { regAnnehmen(await holen("/api/regler/zurueck", { method: "POST", body: "{}" })); alles(); $("#regstatus").textContent = "zurückgenommen"; } catch (ex) { fehler(ex.message); } };
+  $("#handeln", v).onclick = async () => { const an = !h.an;
+    try { regAnnehmen(await holen("/api/handeln", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ an, grund: an ? "auf der Seite eingeschaltet" : "auf der Seite ausgeschaltet" }) }));
+      fehler(""); zeichneRegler(); } catch (ex) { fehler("Nicht umgeschaltet: " + ex.message); } };
 }
 function speichern(grund, gleich) {
   kopf(); $("#regstatus") && ($("#regstatus").textContent = "speichere …"); clearTimeout(uhr);

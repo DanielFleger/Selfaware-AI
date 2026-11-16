@@ -14,7 +14,10 @@ from selfaware.services import gefecht
 def regler(tmp_path, monkeypatch):
     datei = tmp_path / "regler.json"
     monkeypatch.setattr(RG, "DATEI", str(datei))
-    RG.neu_lesen()
+    monkeypatch.setattr(RG, "SCHALTER_DATEI", str(tmp_path / "handeln.json"))
+    RG.handeln_setzen(
+        True, "Test", "Kopplungen pruefen"
+    )  # die Kopplungstests brauchen den Schalter an
 
     def setzen(**gewichte):
         r = [
@@ -191,3 +194,62 @@ def test_soldat_lohn_staerker_schlaegt_zurueck(regler):
     regler(einheit_schaden=5, einheit_kill=5, gebaeude_schaden=1, gebaeude_zerstoert=1)
     w, k, _ = nk._zurueckschlagen(e, g, z, 10)
     assert k > w
+
+
+def test_schalter_aus_handelt_wie_die_startgewichte(regler):
+    # Daniel 16.11.2026 19:30 "Ja, so starten": Regler bewerten nur, aufs Handeln wirken sie erst mit dem Schalter
+    regler(
+        kehrtwende=-5,
+        vorstoss=5,
+        gemeinsam=5,
+        chance_verpasst=-5,
+        bevoelkerung_kill=5,
+        einheit_kill=5,
+    )
+    an = (
+        RG.wechsel_huerde(),
+        gefecht.behalten(),
+        RG.dazu_vorzug(),
+        RG.chance_radius(),
+        RG.zielwert("arbeiter"),
+    )
+    RG.handeln_setzen(False, "Test", "aus")
+    aus = (
+        RG.wechsel_huerde(),
+        gefecht.behalten(),
+        RG.dazu_vorzug(),
+        RG.chance_radius(),
+        RG.zielwert("arbeiter"),
+    )
+    assert aus == (1.0, gefecht.BEHALTEN, 0.0, 0.0, 1.0)
+    assert an != aus
+    st = RG.handeln_lesen()
+    assert st["an"] is False
+    assert [(v["alt"], v["neu"]) for v in st["verlauf"]] == [
+        (False, True),
+        (True, False),
+    ]  # Verlauf behaelt beides
+
+
+def test_ohne_schalterdatei_ist_der_schalter_aus(tmp_path, monkeypatch):
+    monkeypatch.setattr(RG, "SCHALTER_DATEI", str(tmp_path / "fehlt.json"))
+    assert RG.handeln_lesen()["an"] is False
+
+
+def test_seite_zeigt_schalter_und_seinen_verlauf(regler, tmp_path, monkeypatch):
+    from selfaware.telemetry import wertung as WT
+    from selfaware.tools.analysis import wertung_seite as WS
+
+    monkeypatch.setattr(WT, "REGLER_DATEI", str(tmp_path / "seite_regler.json"))
+    monkeypatch.setattr(WT, "VERLAUF_DATEI", str(tmp_path / "seite_verlauf.jsonl"))
+    RG.handeln_setzen(False, "Seite", "aus")
+    a = WS.regler_antwort()
+    assert a["handeln"]["an"] is False
+    texte = [x for v in a["verlauf"] for x in v["aenderungen"]]
+    assert (
+        "Regler wirken aufs Handeln: aus -> an" in texte
+        and "Regler wirken aufs Handeln: an -> aus" in texte
+    )
+    assert [v["zeit"] for v in a["verlauf"]] == sorted(
+        (v["zeit"] for v in a["verlauf"]), reverse=True
+    )
