@@ -8,33 +8,43 @@
 <link href="https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700&family=Barlow+Condensed:wght@600;700&display=swap" rel="stylesheet">
 <style>
 /* Farben und Masse aus der D-aiBubble (tools/d_aibubble/stil.css), dazu die Glut der UCP-Oberflaeche fuer Rang und Kopf.
-   Feste Bedeutung (GG 165): Gruen = Lohn, Rot = Abzug - nichts anderes nimmt diese Farben. */
+   Feste Bedeutung (GG 165): Gruen = Lohn/gewonnen, Rot = Abzug/verloren - nichts anderes nimmt diese Farben. */
 :root {
   --flaeche: #f5f6f8; --karte: #ffffff; --tinte: #1d1d1f; --tinte-sanft: #6b6b70; --linie: #e2e2e6;
   --akzent: #2b2b30; --akzent-tinte: #ffffff; --akzent-sanft: #ececed;
   --lohn: #2f9e44; --lohn-sanft: #e7f5ea; --abzug: #c0392b; --abzug-sanft: #fbeaea;
-  --glut: #c9772b; --glut-sanft: #fbf1e6; --sand: #efe4cf;
-  --rund: 10px; --rund-pille: 20px; --schatten: 0 8px 24px rgba(0,0,0,.10), 0 2px 6px rgba(0,0,0,.06);
-  --t: 150ms;
+  --glut: #c9772b; --glut-sanft: #fbf1e6;
+  --rund: 10px; --rund-pille: 20px; --t: 150ms;
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--flaeche); color: var(--tinte); font-family: Barlow, Arial, sans-serif; font-size: 14px; }
 button, input, select { font: inherit; }
+.zahl { font-variant-numeric: tabular-nums; }
+.hinweis { color: var(--tinte-sanft); font-size: 12.5px; }
+.pos { color: var(--lohn); } .neg { color: var(--abzug); } .null { color: #c4c4c9; }
 
-/* Kopf mit dem Bild der UCP-Oberflaeche */
-.kopf { position: relative; color: #fff; padding: 22px 32px 18px; min-height: 150px; overflow: hidden;
-  background: #3a2418 url("/bild/hintergrund") center 28% / cover no-repeat; }
-.kopf::before { content: ""; position: absolute; inset: 0;
-  background: linear-gradient(90deg, rgba(20,12,8,.92) 0%, rgba(30,16,10,.78) 45%, rgba(40,18,8,.35) 100%); }
+/* Kopf: wer gegen wen, wer fiel, gewonnen oder verloren - das Wichtigste zuerst (Daniel 18:16) */
+.kopf { position: relative; color: #fff; padding: 18px 32px 16px; overflow: hidden; background: #3a2418 url("/bild/hintergrund") center 28% / cover no-repeat; }
+.kopf::before { content: ""; position: absolute; inset: 0; background: linear-gradient(90deg, rgba(20,12,8,.94) 0%, rgba(30,16,10,.82) 50%, rgba(40,18,8,.45) 100%); }
 .kopf > * { position: relative; }
+.kopf .oben { display: flex; align-items: center; gap: 14px; justify-content: space-between; }
 .kopf .auge { font: 600 12px/1 "Barlow Condensed", Barlow, sans-serif; letter-spacing: .14em; text-transform: uppercase; color: #f3c58e; }
-.kopf h1 { margin: 6px 0 12px; font: 700 30px/1.1 "Barlow Condensed", Barlow, sans-serif; letter-spacing: .01em; }
-.kopf .zeile { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
-.kopf select { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.35); border-radius: var(--rund-pille);
-  padding: 6px 14px; min-width: 300px; cursor: pointer; }
+.kopf select { background: rgba(255,255,255,.12); color: #fff; border: 1px solid rgba(255,255,255,.35); border-radius: var(--rund-pille); padding: 5px 14px; max-width: 520px; cursor: pointer; }
 .kopf select option { color: var(--tinte); }
-.kachel { background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.22); border-radius: var(--rund); padding: 6px 12px; }
-.kachel b { display: block; font: 700 18px/1.1 "Barlow Condensed", Barlow, sans-serif; }
+.duell { display: flex; align-items: center; gap: 18px; margin-top: 14px; flex-wrap: wrap; }
+.spieler { display: flex; align-items: center; gap: 12px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.18); border-radius: 14px; padding: 8px 16px 8px 8px; min-width: 250px; }
+.spieler.wir { border-color: rgba(243,197,142,.7); }
+.spieler.tot { opacity: .62; }
+.avatar { width: 54px; height: 54px; border-radius: 12px; background: #2a1d16 center / cover no-repeat; display: grid; place-items: center; font: 700 20px/1 "Barlow Condensed", Barlow, sans-serif; color: #f3c58e; border: 2px solid rgba(255,255,255,.25); flex: none; }
+.spieler .name { font: 700 20px/1.1 "Barlow Condensed", Barlow, sans-serif; }
+.spieler .zusatz { font-size: 12px; color: #f1dcc4; }
+.spieler .lord { font-size: 12.5px; margin-top: 2px; }
+.gegen { font: 700 22px/1 "Barlow Condensed", Barlow, sans-serif; color: #f3c58e; }
+.ergebnis { font: 700 26px/1 "Barlow Condensed", Barlow, sans-serif; letter-spacing: .08em; padding: 10px 18px; border-radius: 12px; text-transform: uppercase; }
+.ergebnis.gewonnen { background: var(--lohn); } .ergebnis.verloren { background: var(--abzug); } .ergebnis.offen { background: rgba(255,255,255,.18); }
+.kacheln { display: flex; gap: 8px; margin-left: auto; flex-wrap: wrap; }
+.kachel { background: rgba(255,255,255,.10); border: 1px solid rgba(255,255,255,.22); border-radius: var(--rund); padding: 5px 11px; }
+.kachel b { display: block; font: 700 17px/1.1 "Barlow Condensed", Barlow, sans-serif; }
 .kachel span { font-size: 11.5px; color: #f1dcc4; }
 
 /* Reiter */
@@ -43,402 +53,376 @@ button, input, select { font: inherit; }
 .reiter button:hover { color: var(--tinte); }
 .reiter button[aria-selected="true"] { color: var(--tinte); border-bottom-color: var(--glut); }
 .reiter .rechts { margin-left: auto; align-self: center; font-size: 12px; color: var(--tinte-sanft); }
-
 main { padding: 18px 32px 60px; }
 .leiste { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; flex-wrap: wrap; }
 .such { display: flex; align-items: center; gap: 6px; }
-.such input { width: 260px; border: 1px solid var(--linie); background: var(--karte); border-radius: var(--rund-pille); padding: 6px 12px 6px 30px;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%236b6b70' stroke-width='2.4'%3E%3Ccircle cx='11' cy='11' r='7'/%3E%3Cpath d='M20 20l-3.5-3.5'/%3E%3C/svg%3E");
-  background-repeat: no-repeat; background-position: 10px center; }
-.such input:not(:placeholder-shown) { background-image: none; padding-left: 12px; }
-.such .leeren { border: 0; background: none; color: var(--tinte-sanft); cursor: pointer; font-size: 16px; visibility: hidden; }
+.such input { width: 240px; border: 1px solid var(--linie); background: var(--karte); border-radius: var(--rund-pille); padding: 6px 12px; }
+.such .leeren { border: 0; background: none; color: var(--tinte-sanft); cursor: pointer; font-size: 16px; }
 .chips { display: flex; gap: 6px; flex-wrap: wrap; }
-.chip { border: 1px solid var(--linie); background: var(--karte); border-radius: var(--rund-pille); padding: 5px 12px; cursor: pointer; color: var(--tinte); }
+.chip { border: 1px solid var(--linie); background: var(--karte); border-radius: var(--rund-pille); padding: 5px 12px; cursor: pointer; }
 .chip:hover { border-color: var(--akzent); }
 .chip[aria-pressed="true"] { background: var(--akzent); color: var(--akzent-tinte); border-color: var(--akzent); }
-.zahl { font-variant-numeric: tabular-nums; }
-.hinweis { color: var(--tinte-sanft); font-size: 12.5px; }
+.knopf { border: 1px solid var(--linie); background: var(--karte); border-radius: var(--rund-pille); padding: 5px 12px; cursor: pointer; }
+.knopf:hover { border-color: var(--akzent); }
+.knopf.voll { background: var(--akzent); color: var(--akzent-tinte); border-color: var(--akzent); }
 
-/* Tabelle wie eine Monday-Liste: Kopf zum Sortieren, Summenzeile unten */
-.tafel { background: var(--karte); border: 1px solid var(--linie); border-radius: var(--rund); overflow: auto; box-shadow: 0 1px 2px rgba(0,0,0,.03); }
+/* Tabellen wie eine Monday-Liste: Kopf zum Sortieren, Summenzeile unten */
+.tafel { background: var(--karte); border: 1px solid var(--linie); border-radius: var(--rund); overflow: auto; }
 table { border-collapse: separate; border-spacing: 0; width: 100%; }
-th, td { padding: 8px 10px; border-bottom: 1px solid var(--linie); text-align: right; white-space: nowrap; }
-th:first-child, td:first-child { text-align: center; }
-th.links, td.links { text-align: left; }
+th, td { padding: 7px 10px; border-bottom: 1px solid var(--linie); text-align: right; white-space: nowrap; }
+th.l, td.l { text-align: left; }
 thead th { position: sticky; top: 0; background: #fafafb; font-weight: 600; font-size: 12.5px; color: var(--tinte-sanft); cursor: pointer; user-select: none; z-index: 1; }
 thead th:hover { color: var(--tinte); background: var(--akzent-sanft); }
-thead th .pfeil { display: inline-block; width: 10px; color: var(--glut); }
-thead th.lohn { box-shadow: inset 0 -3px 0 var(--lohn); }
-thead th.abzug { box-shadow: inset 0 -3px 0 var(--abzug); }
+thead th .pf { display: inline-block; width: 10px; color: var(--glut); }
+thead th.lohn { box-shadow: inset 0 -3px 0 var(--lohn); } thead th.abzug { box-shadow: inset 0 -3px 0 var(--abzug); }
 tbody tr.zeile { cursor: pointer; transition: background var(--t); }
 tbody tr.zeile:hover { background: #f8f8fa; box-shadow: inset 4px 0 0 var(--glut); }
 tbody tr.zeile.offen { background: var(--glut-sanft); box-shadow: inset 4px 0 0 var(--glut); }
 tfoot td { background: #fafafb; font-weight: 600; border-bottom: 0; border-top: 2px solid var(--linie); }
-.pos { color: var(--lohn); } .neg { color: var(--abzug); } .null { color: #c4c4c9; }
-.rang { font: 700 15px/1 "Barlow Condensed", Barlow, sans-serif; color: var(--tinte-sanft); }
-.rang.top { color: var(--glut); }
+.rang { font: 700 15px/1 "Barlow Condensed", Barlow, sans-serif; color: var(--tinte-sanft); } .rang.top { color: var(--glut); }
 .einheit { display: flex; align-items: center; gap: 10px; }
-.marke { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font: 700 12px/1 "Barlow Condensed", Barlow, sans-serif; color: #fff; flex: none; }
+.bild { width: 34px; height: 34px; border-radius: 8px; background: #1b1b1f center / 140% no-repeat; flex: none; display: inline-grid; place-items: center; color: #fff; font: 700 12px/1 "Barlow Condensed", Barlow, sans-serif; vertical-align: middle; }
 .einheit .n { font-weight: 600; } .einheit .s { font-size: 12px; color: var(--tinte-sanft); }
 .tot { font-size: 11px; background: var(--akzent-sanft); color: var(--tinte-sanft); padding: 1px 7px; border-radius: 10px; margin-left: 6px; }
-.gesamt { display: flex; align-items: center; justify-content: flex-end; gap: 8px; font-weight: 700; font-size: 15px; }
-.balken { width: 70px; height: 6px; border-radius: 3px; background: var(--akzent-sanft); overflow: hidden; display: flex; }
+/* Balken: eigene Spalte, alle beginnen an derselben Kante (Daniel 18:14 "die balken sind nicht linksbuendig") */
+td.balken-z { text-align: left; width: 150px; }
+.balken { width: 140px; height: 8px; border-radius: 4px; background: var(--akzent-sanft); overflow: hidden; }
 .balken i { display: block; height: 100%; }
-
-/* Aufgeklappt: Punkte wofuer */
+td.gesamt { font-weight: 700; font-size: 15px; min-width: 70px; }
 tr.detail td { background: #fcfcfd; text-align: left; padding: 0; white-space: normal; }
-.detail-innen { display: grid; grid-template-columns: minmax(420px, 1.1fr) 1fr; gap: 18px; padding: 16px 20px 18px;
-  position: sticky; left: 0; width: min(1480px, calc(100vw - 90px)); }
+.detail-innen { display: grid; grid-template-columns: minmax(420px, 1.1fr) 1fr; gap: 18px; padding: 16px 20px 18px; position: sticky; left: 0; width: min(1480px, calc(100vw - 90px)); }
 .detail-innen h3 { margin: 0 0 8px; font: 700 15px/1.2 "Barlow Condensed", Barlow, sans-serif; letter-spacing: .02em; text-transform: uppercase; color: var(--tinte-sanft); }
-.zu { position: absolute; top: 10px; right: 12px; border: 1px solid var(--linie); background: var(--karte); border-radius: var(--rund-pille); padding: 3px 12px; cursor: pointer; }
-.zu:hover { border-color: var(--akzent); }
-.aufstellung { width: 100%; border: 1px solid var(--linie); border-radius: var(--rund); overflow: hidden; }
+.zu { position: absolute; top: 10px; right: 12px; }
+.aufstellung { border: 1px solid var(--linie); border-radius: var(--rund); overflow: hidden; }
 .aufstellung td, .aufstellung th { padding: 6px 10px; font-size: 13px; }
 .aufstellung th { position: static; background: #f6f6f8; cursor: default; }
 .aufstellung .wort { font-size: 11.5px; color: var(--tinte-sanft); white-space: normal; }
 .aufstellung tr.summe td { font-weight: 700; background: #f6f6f8; }
 .ereignisse { max-height: 320px; overflow: auto; border: 1px solid var(--linie); border-radius: var(--rund); background: var(--karte); }
 .ereignis { display: flex; gap: 10px; padding: 6px 10px; border-bottom: 1px solid var(--linie); font-size: 13px; align-items: baseline; }
-.ereignis:last-child { border-bottom: 0; }
-.ereignis .t { font-variant-numeric: tabular-nums; color: var(--tinte-sanft); width: 64px; flex: none; text-align: right; }
+.ereignis .t { color: var(--tinte-sanft); width: 64px; flex: none; text-align: right; }
 .etikett { font-size: 11px; padding: 1px 8px; border-radius: 10px; flex: none; }
-.etikett.pos { background: var(--lohn-sanft); color: var(--lohn); } .etikett.neg { background: var(--abzug-sanft); color: var(--abzug); }
+.etikett.pos { background: var(--lohn-sanft); } .etikett.neg { background: var(--abzug-sanft); }
+.marke { font-size: 11px; padding: 2px 8px; border-radius: 10px; font-weight: 600; }
+.marke.gewonnen { background: var(--lohn-sanft); color: var(--lohn); } .marke.verloren { background: var(--abzug-sanft); color: var(--abzug); } .marke.offen { background: var(--akzent-sanft); color: var(--tinte-sanft); }
+.mini { display: inline-flex; align-items: center; gap: 4px; }
+.mini .bild { width: 22px; height: 22px; border-radius: 6px; font-size: 10px; }
+.stern { color: var(--glut); font-weight: 700; }
+.historie td { background: #fbfaf7; font-size: 12px; color: var(--tinte-sanft); text-align: left; white-space: normal; }
+.historie code { font-size: 11.5px; background: var(--akzent-sanft); padding: 1px 6px; border-radius: 6px; margin-right: 6px; }
 
-/* Regler */
-.regler-gitter { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 12px; }
-.regler { min-width: 0; overflow: hidden; }
-.regler { background: var(--karte); border: 1px solid var(--linie); border-radius: var(--rund); padding: 12px 14px; border-left: 4px solid var(--linie); }
-.regler.pos { border-left-color: var(--lohn); } .regler.neg { border-left-color: var(--abzug); }
-.regler .kopfz { display: flex; justify-content: space-between; gap: 8px; align-items: baseline; }
-.regler .name { font-weight: 700; }
-.regler .wort { font-size: 12px; color: var(--tinte-sanft); margin: 2px 0 8px; }
-.regler .reihe { display: flex; gap: 10px; align-items: center; }
-.regler input[type=range] { flex: 1; accent-color: var(--glut); }
-.regler input[type=number] { width: 72px; border: 1px solid var(--linie); border-radius: 6px; padding: 4px 6px; text-align: right; }
-.regler select { border: 1px solid var(--linie); border-radius: 6px; padding: 3px 6px; background: var(--karte); max-width: 150px; min-width: 0; }
-.regler .reihe input[type=range] { min-width: 0; }
-.knopf { border: 1px solid var(--linie); background: var(--karte); border-radius: var(--rund-pille); padding: 5px 12px; cursor: pointer; }
-.knopf:hover { border-color: var(--akzent); }
-.knopf.voll { background: var(--akzent); color: var(--akzent-tinte); border-color: var(--akzent); }
-.knopf.voll:hover { background: #000; }
-.status { font-size: 12px; color: var(--tinte-sanft); }
+/* Regler als Klappen (Daniel 18:15 "mach die bitte dropdowns" - Lesart, ungeprueft) */
+.gruppe { margin-bottom: 14px; }
+.gruppe h4 { margin: 0 0 6px; font: 700 13px/1 "Barlow Condensed", Barlow, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--tinte-sanft); }
+details.regler { background: var(--karte); border: 1px solid var(--linie); border-left: 4px solid var(--linie); border-radius: var(--rund); margin-bottom: 6px; }
+details.regler.pos { border-left-color: var(--lohn); } details.regler.neg { border-left-color: var(--abzug); }
+details.regler summary { list-style: none; display: grid; grid-template-columns: 1fr 90px 150px 24px; gap: 10px; align-items: center; padding: 9px 14px; cursor: pointer; }
+details.regler summary::-webkit-details-marker { display: none; }
+details.regler summary:hover { background: #fafafb; }
+details.regler summary .pfeil { color: var(--tinte-sanft); transition: transform var(--t); }
+details.regler[open] summary .pfeil { transform: rotate(90deg); }
+details.regler .innen { padding: 4px 14px 12px; border-top: 1px solid var(--linie); }
+details.regler .reihe { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
+details.regler input[type=range] { flex: 1; accent-color: var(--glut); min-width: 0; }
+details.regler input[type=number] { width: 74px; border: 1px solid var(--linie); border-radius: 6px; padding: 4px 6px; text-align: right; }
+details.regler select { border: 1px solid var(--linie); border-radius: 6px; padding: 3px 6px; background: var(--karte); }
+.neu-regler { background: var(--karte); border: 1px dashed #c9c9cf; border-radius: var(--rund); padding: 12px 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .abschnitt { margin: 22px 0 10px; font: 700 13px/1 "Barlow Condensed", Barlow, sans-serif; letter-spacing: .12em; text-transform: uppercase; color: var(--tinte-sanft); display: flex; align-items: center; gap: 10px; }
 .abschnitt::after { content: ""; flex: 1; height: 1px; background: var(--linie); }
-.neu-regler { background: var(--karte); border: 1px dashed #c9c9cf; border-radius: var(--rund); padding: 12px 14px; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 .fehler { background: var(--abzug-sanft); color: var(--abzug); border: 1px solid #f0c4c0; border-radius: var(--rund); padding: 10px 14px; margin-bottom: 12px; display: none; }
 .leer { padding: 40px; text-align: center; color: var(--tinte-sanft); }
 .verlauf .eintrag { background: var(--karte); border: 1px solid var(--linie); border-radius: var(--rund); padding: 10px 14px; margin-bottom: 8px; }
-.verlauf .eintrag .z { font-size: 12px; color: var(--tinte-sanft); }
 </style>
 </head>
 <body>
 <header class="kopf">
-  <div class="auge">SamurAI · Wertungsmesser · Prototyp</div>
-  <h1>Wertung je Einheit</h1>
-  <div class="zeile">
-    <select id="partie" title="Partie wählen (neueste zuerst)"></select>
-    <div class="kachel"><b id="k-kill" class="zahl">–</b><span>Kill bei Takt</span></div>
-    <div class="kachel"><b id="k-einheiten" class="zahl">–</b><span>Kämpfer gewertet</span></div>
-    <div class="kachel"><b id="k-gesamt" class="zahl">–</b><span>Punkte gesamt</span></div>
-    <div class="kachel" title="Schaden und Zerstörungen, für die das Protokoll keinen eigenen Täter zeigt (z. B. Feuer, das übersprang)"><b id="k-ohne" class="zahl">–</b><span>Gebäude ohne Täter</span></div>
-  </div>
+  <div class="oben"><div class="auge">SamurAI · Wertungsmesser · Prototyp</div><select id="partie" title="Partie wählen (neueste zuerst)"></select></div>
+  <div class="duell" id="duell"></div>
 </header>
-<nav class="reiter" role="tablist">
+<nav class="reiter">
   <button data-ansicht="einheiten" aria-selected="true">Einheiten</button>
   <button data-ansicht="arten">Arten</button>
+  <button data-ansicht="spiele">Spiele</button>
   <button data-ansicht="regler">Regler</button>
-  <button data-ansicht="verlauf">Verlauf</button>
+  <button data-ansicht="verlauf">Regler-Verlauf</button>
   <span class="rechts" id="stand"></span>
 </nav>
 <main>
   <div class="fehler" id="fehler"></div>
-  <section id="v-einheiten"></section>
-  <section id="v-arten" hidden></section>
-  <section id="v-regler" hidden></section>
-  <section id="v-verlauf" hidden></section>
+  <section id="v-einheiten"></section><section id="v-arten" hidden></section><section id="v-spiele" hidden></section>
+  <section id="v-regler" hidden></section><section id="v-verlauf" hidden></section>
 </main>
 <script>
 "use strict";
-const S = { partien: [], partie: null, regler: [], mg: {}, verlauf: [], ansicht: "einheiten",
-  sort: { schl: "gesamt", ab: true }, artSort: { schl: "summe", ab: true }, suche: "", art: "alle", offen: new Set() };
-const FARBEN = ["#5b6cff", "#c9772b", "#0f8b8d", "#8e5bd8", "#d14d8b", "#3c8dbc", "#6d5d4b", "#b38b00", "#4f6f86"];
+const S = { partien: [], partie: null, regler: [], mg: {}, verlauf: [], ansicht: "einheiten", sort: { k: "gesamt", ab: true },
+  artSort: { k: "summe", ab: true }, spSort: { k: "zeit", ab: true }, suche: "", art: "alle", offen: new Set(), spiele: null,
+  historie: [], wahl: new Set(), spFilter: { aufstellung: false, logbuch: false } };
 const $ = (s, w) => (w || document).querySelector(s);
 const esc = (t) => String(t == null ? "" : t).replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]));
-const zahl = (x, n) => (x == null ? "–" : Number(x).toLocaleString("de-DE", { maximumFractionDigits: n == null ? 1 : n, minimumFractionDigits: 0 }));
-const punktText = (x) => (Math.abs(x) < 0.05 ? '<span class="null">·</span>' : `<span class="${x > 0 ? "pos" : "neg"}">${x > 0 ? "+" : ""}${zahl(x)}</span>`);
-
+const zahl = (x, n) => (x == null ? "–" : Number(x).toLocaleString("de-DE", { maximumFractionDigits: n == null ? 1 : n }));
+const pkt = (x) => (Math.abs(x) < 0.05 ? '<span class="null">·</span>' : `<span class="${x > 0 ? "pos" : "neg"}">${x > 0 ? "+" : ""}${zahl(x)}</span>`);
+const kurzArt = (n) => String(n).split(" (")[0];
+const codeArt = (n) => (String(n).split(" (")[1] ? "(" + String(n).split(" (")[1] : "");
+const ERG = { gewonnen: "Gewonnen", verloren: "Verloren", offen: "Offen" };
 function fehler(t) { const f = $("#fehler"); f.textContent = t || ""; f.style.display = t ? "block" : "none"; }
-async function holen(url, opt) {
-  const r = await fetch(url, opt);
-  const d = await r.json();
-  if (!r.ok || d.fehler) throw new Error(d.fehler || r.statusText);
-  return d;
+async function holen(url, opt) { const r = await fetch(url, opt); const d = await r.json(); if (!r.ok || d.fehler) throw new Error(d.fehler || r.statusText); return d; }
+const bildEinheit = (typ, name) => `<span class="bild" style="background-image:url('/bild/einheit/${typ}')" title="${esc(name)}"></span>`;
+function balken(wert, max) {
+  const b = Math.min(100, (Math.abs(wert) / Math.max(1e-9, max)) * 100);
+  return `<div class="balken"><i style="width:${b}%;background:${wert >= 0 ? "var(--lohn)" : "var(--abzug)"}"></i></div>`;
 }
 
 // ---- Rechnung: Punkte = Menge x Gewicht je aktivem Regler (dieselbe wie telemetry/wertung.punkte) ----
-function aktiv() { return S.regler.filter((r) => !r.archiviert); }
+const aktiv = () => S.regler.filter((r) => !r.archiviert);
+const gilt = (r, typ) => r.arten === "alle" || r.arten.includes(Number(typ));
 function punkteVon(e) {
-  const aus = {}; let summe = 0;
-  for (const r of aktiv()) {
-    if (r.arten !== "alle" && !r.arten.includes(e.typ)) continue;
-    const m = e.menge[r.messgroesse] || 0;
-    if (!m) continue;
-    const p = m * r.gewicht; aus[r.id] = p; summe += p;
-  }
-  return { je: aus, summe };
+  const je = {}; let summe = 0;
+  for (const r of aktiv()) { if (!gilt(r, e.typ)) continue; const m = e.menge[r.messgroesse] || 0; if (!m) continue; je[r.id] = m * r.gewicht; summe += je[r.id]; }
+  return { je, summe };
 }
-// je Partie feste Farbe je Art, der Reihe nach - nie Gruen oder Rot (die bedeuten Lohn und Abzug, GG 165)
-function artFarbe(typ) {
-  if (!S.farben) {
-    const typen = S.partie ? [...new Set(S.partie.einheiten.map((e) => e.typ))].sort((a, b) => a - b) : [];
-    S.farben = new Map(typen.map((t, i) => [t, FARBEN[i % FARBEN.length]]));
-  }
-  return S.farben.get(typ) || "#8a8a90";
-}
-function artKurz(name) { return name.split(" (")[0]; }
+function artPunkte(typ, a) { let s = 0; for (const r of aktiv()) if (gilt(r, typ)) s += (a.menge[r.messgroesse] || 0) * r.gewicht; return s; }
 
 // ---- Adresse traegt die Ansicht (UX 20) ----
-function adresseSetzen(ersetzen) {
-  const h = "#" + new URLSearchParams({ partie: S.partie ? S.partie.partie + ".jsonl.gz" : "", ansicht: S.ansicht }).toString();
+function adresse(ersetzen) {
+  const h = "#" + new URLSearchParams({ partie: S.partie ? S.partie.partie + ".jsonl.gz" : "", ansicht: S.ansicht });
   if (location.hash !== h) (ersetzen ? history.replaceState : history.pushState).call(history, null, "", h);
 }
-function adresseLesen() { const p = new URLSearchParams(location.hash.slice(1)); return { partie: p.get("partie"), ansicht: p.get("ansicht") }; }
-window.addEventListener("popstate", async () => {
-  const a = adresseLesen();
-  if (a.ansicht) zeigeAnsicht(a.ansicht, true);
-  if (a.partie && (!S.partie || S.partie.partie + ".jsonl.gz" !== a.partie)) await ladePartie(a.partie, true);
-});
+const adresseLesen = () => { const p = new URLSearchParams(location.hash.slice(1)); return { partie: p.get("partie"), ansicht: p.get("ansicht") }; };
+window.addEventListener("popstate", async () => { const a = adresseLesen(); if (a.ansicht) zeige(a.ansicht, true);
+  if (a.partie && (!S.partie || S.partie.partie + ".jsonl.gz" !== a.partie)) await ladePartie(a.partie, true); });
 
-// ---- Laden ----
 async function start() {
   try {
     const [p, r] = await Promise.all([holen("/api/partien"), holen("/api/regler")]);
     S.partien = p; regAnnehmen(r);
-    const sel = $("#partie");
-    sel.innerHTML = p.map((x) => `<option value="${esc(x.datei)}">${esc(x.zeit)} · ${esc(x.datei.replace("lage_", "").replace(".jsonl.gz", ""))}${x.kill_takt ? " · Kill " + zahl(x.kill_takt, 0) : ""}</option>`).join("");
-    sel.onchange = () => ladePartie(sel.value);
-    const a = adresseLesen();
-    if (a.ansicht) zeigeAnsicht(a.ansicht, true);
+    $("#partie").innerHTML = p.map((x) => `<option value="${esc(x.datei)}">${esc(x.zeit)} · ${x.kill_takt ? "Kill " + zahl(x.kill_takt, 0) : "kein Kill"} · ${esc(x.datei.replace("lage_", "").replace(".jsonl.gz", ""))}</option>`).join("");
+    $("#partie").onchange = () => ladePartie($("#partie").value);
+    const a = adresseLesen(); if (a.ansicht) zeige(a.ansicht, true);
     await ladePartie(a.partie && p.some((x) => x.datei === a.partie) ? a.partie : (p[0] || {}).datei, true);
   } catch (ex) { fehler("Laden fehlgeschlagen: " + ex.message); }
 }
 function regAnnehmen(r) { S.regler = r.regler; S.mg = r.messgroessen; S.verlauf = r.verlauf; }
 async function ladePartie(datei, ersetzen) {
-  if (!datei) { $("#v-einheiten").innerHTML = '<div class="leer">Noch keine Partie aufgezeichnet.</div>'; return; }
-  $("#partie").value = datei;
-  $("#stand").textContent = "rechne …";
-  try {
-    S.partie = await holen("/api/partie?datei=" + encodeURIComponent(datei));
-    S.offen.clear(); S.farben = null; fehler("");
-  } catch (ex) { fehler("Partie nicht lesbar: " + ex.message); return; }
-  adresseSetzen(ersetzen);
-  zeichneAlles();
+  if (!datei) return;
+  $("#partie").value = datei; $("#stand").textContent = "rechne …";
+  try { S.partie = await holen("/api/partie?datei=" + encodeURIComponent(datei)); S.offen.clear(); fehler(""); }
+  catch (ex) { fehler("Partie nicht lesbar: " + ex.message); return; }
+  adresse(ersetzen); alles();
 }
 
 // ---- Kopf ----
-function zeichneKopf() {
+function kopf() {
   const P = S.partie; if (!P) return;
   const summe = P.einheiten.reduce((s, e) => s + punkteVon(e).summe, 0);
-  $("#k-kill").textContent = P.kill_takt ? zahl(P.kill_takt, 0) : "kein Kill";
-  $("#k-einheiten").textContent = zahl(P.einheiten.length, 0);
-  $("#k-gesamt").textContent = (summe > 0 ? "+" : "") + zahl(summe);
-  $("#k-ohne").textContent = zahl(P.ohne_taeter.gebaeude_zerstoert, 0);
-  $("#stand").textContent = "Partie bis Takt " + zahl(P.letzter_takt, 0) + " · Rechnung v" + P.version;
+  const karten = (P.spieler_anzeige || []).map((sp) => {
+    const av = sp.bild ? `<span class="avatar" style="background-image:url('${esc(sp.bild)}')"></span>` : `<span class="avatar">${esc(sp.name.slice(0, 2))}</span>`;
+    return `<div class="spieler${sp.wir ? " wir" : ""}${sp.lord_tod ? " tot" : ""}">${av}<div><div class="name">${esc(sp.name)}${sp.wir ? " · wir" : ""}</div>
+      <div class="zusatz">Spieler ${sp.nr}${sp.platz ? " · KI-Platz " + sp.platz : ""}${sp.belegt ? "" : " · Name nicht aufgezeichnet"}</div>
+      <div class="lord">${sp.lord_tod ? "✝ Lord gefallen bei Takt " + zahl(sp.lord_tod, 0) : "♛ Lord lebt"}</div></div></div>`;
+  });
+  $("#duell").innerHTML = karten.join('<span class="gegen">gegen</span>') +
+    `<span class="ergebnis ${P.ergebnis}">${ERG[P.ergebnis] || P.ergebnis}</span>
+     <div class="kacheln"><div class="kachel"><b class="zahl">${P.kill_takt ? zahl(P.kill_takt, 0) : "–"}</b><span>Kill bei Takt</span></div>
+     <div class="kachel"><b class="zahl">${zahl(P.einheiten.length, 0)}</b><span>Kämpfer gewertet</span></div>
+     <div class="kachel"><b class="zahl">${summe > 0 ? "+" : ""}${zahl(summe)}</b><span>Punkte gesamt</span></div>
+     <div class="kachel" title="Zerstörungen, für die das Protokoll keinen eigenen Täter zeigt"><b class="zahl">${zahl(P.ohne_taeter.gebaeude_zerstoert, 0)}</b><span>Gebäude ohne Täter</span></div></div>`;
+  $("#stand").textContent = (P.logbuch ? "" : "ohne Logbuch: Denken und geplantes Warten nicht messbar · ") + (P.spieler_angenommen ? "Spieler angenommen · " : "") + "bis Takt " + zahl(P.letzter_takt, 0) + " · Rechnung v" + P.version;
 }
 
 // ---- Einheiten ----
-function spalten() {
-  // nur Regler, die in dieser Partie bei irgendwem Punkte geben - Lohn zuerst
-  const r = aktiv().filter((x) => S.partie.einheiten.some((e) => (e.menge[x.messgroesse] || 0) && (x.arten === "alle" || x.arten.includes(e.typ))));
-  return r.sort((a, b) => (b.gewicht > 0) - (a.gewicht > 0));
-}
+const kurzName = (r) => S.mg[r.messgroesse].name + (r.arten === "alle" ? "" : " · nur " + r.arten.join(","));
 function zeichneEinheiten() {
   const P = S.partie, v = $("#v-einheiten");
   const arten = [...new Map(P.einheiten.map((e) => [e.typ, e.name])).entries()].sort((a, b) => a[1].localeCompare(b[1]));
-  const sp = spalten();
-  let liste = P.einheiten.map((e) => ({ e, p: punkteVon(e) }));
-  const such = S.suche.trim().toLowerCase();
-  const hier = liste.length;
-  if (S.art !== "alle") liste = liste.filter((x) => String(x.e.typ) === S.art);
-  if (such) liste = liste.filter((x) => (x.e.name + " " + x.e.nr).toLowerCase().includes(such));
-  const wert = (x) => S.sort.schl === "gesamt" ? x.p.summe : S.sort.schl === "nr" ? x.e.nr : S.sort.schl === "name" ? x.e.name
-    : S.sort.schl === "lebte" ? x.e.bis - x.e.von : (x.p.je[S.sort.schl] || 0);
-  liste.sort((a, b) => { const A = wert(a), B = wert(b); const c = typeof A === "string" ? A.localeCompare(B) : A - B; return S.sort.ab ? -c : c; });
-  const rangNach = [...P.einheiten].map((e) => ({ e, s: punkteVon(e).summe })).sort((a, b) => b.s - a.s);
-  const rang = new Map(rangNach.map((x, i) => [x.e.schluessel, i + 1]));
-  const maxAbs = Math.max(1, ...P.einheiten.map((e) => Math.abs(punkteVon(e).summe)));
-  const pf = (schl) => `<span class="pfeil">${S.sort.schl === schl ? (S.sort.ab ? "▼" : "▲") : ""}</span>`;
-  const kopf = `<tr><th title="Rang nach Gesamtpunkten">#</th><th class="links" data-sort="name">Einheit ${pf("name")}</th>
-    <th data-sort="lebte" title="Takte, die sie lebte">Lebte ${pf("lebte")}</th><th data-sort="gesamt">Gesamt ${pf("gesamt")}</th>
-    ${sp.map((r) => `<th data-sort="${esc(r.id)}" class="${r.gewicht >= 0 ? "lohn" : "abzug"}" title="${esc(S.mg[r.messgroesse].name)} · dein Wort: „${esc(S.mg[r.messgroesse].wort)}“ · Menge in ${esc(S.mg[r.messgroesse].einheit)} · Gewicht ${zahl(r.gewicht, 2)}${r.arten === "alle" ? "" : " · nur " + r.arten.join(", ")}">${esc(kurzName(r))} ${pf(r.id)}</th>`).join("")}</tr>`;
-  const sum = (f) => liste.reduce((s, x) => s + f(x), 0);
-  const fuss = `<tr><td></td><td class="links">${liste.length} Einheiten</td><td></td><td class="zahl">${punktText(sum((x) => x.p.summe))}</td>
-    ${sp.map((r) => `<td class="zahl">${punktText(sum((x) => x.p.je[r.id] || 0))}</td>`).join("")}</tr>`;
-  const zeilen = liste.map((x) => {
-    const e = x.e, r = rang.get(e.schluessel), offen = S.offen.has(e.schluessel);
-    const anteil = Math.min(100, (Math.abs(x.p.summe) / maxAbs) * 100);
-    const z = `<tr class="zeile${offen ? " offen" : ""}" data-schl="${esc(e.schluessel)}" title="Klicken: Punkte dieser Einheit ${offen ? "zuklappen" : "aufklappen"}">
+  const sp = aktiv().filter((r) => P.einheiten.some((e) => (e.menge[r.messgroesse] || 0) && gilt(r, e.typ))).sort((a, b) => (b.gewicht > 0) - (a.gewicht > 0));
+  let L = P.einheiten.map((e) => ({ e, p: punkteVon(e) })); const hier = L.length;
+  if (S.art !== "alle") L = L.filter((x) => String(x.e.typ) === S.art);
+  const such = S.suche.trim().toLowerCase(); if (such) L = L.filter((x) => (x.e.name + " " + x.e.nr).toLowerCase().includes(such));
+  const w = (x) => S.sort.k === "gesamt" ? x.p.summe : S.sort.k === "name" ? x.e.name : S.sort.k === "lebte" ? x.e.bis - x.e.von : (x.p.je[S.sort.k] || 0);
+  L.sort((a, b) => { const A = w(a), B = w(b), c = typeof A === "string" ? A.localeCompare(B) : A - B; return S.sort.ab ? -c : c; });
+  const rang = new Map([...P.einheiten].map((e) => ({ e, s: punkteVon(e).summe })).sort((a, b) => b.s - a.s).map((x, i) => [x.e.schluessel, i + 1]));
+  const max = Math.max(1e-9, ...P.einheiten.map((e) => Math.abs(punkteVon(e).summe)));
+  const pf = (k) => `<span class="pf">${S.sort.k === k ? (S.sort.ab ? "▼" : "▲") : ""}</span>`;
+  const kopfz = `<tr><th>#</th><th class="l" data-s="name">Einheit ${pf("name")}</th><th data-s="lebte">Lebte ${pf("lebte")}</th><th data-s="gesamt">Gesamt ${pf("gesamt")}</th><th class="l"></th>
+    ${sp.map((r) => `<th data-s="${esc(r.id)}" class="${r.gewicht >= 0 ? "lohn" : "abzug"}" title="${esc(S.mg[r.messgroesse].name)} · dein Wort: „${esc(S.mg[r.messgroesse].wort)}“ · Menge in ${esc(S.mg[r.messgroesse].einheit)} · Gewicht ${zahl(r.gewicht, 2)}">${esc(kurzName(r))} ${pf(r.id)}</th>`).join("")}</tr>`;
+  const sum = (f) => L.reduce((s, x) => s + f(x), 0);
+  const zeilen = L.map((x) => { const e = x.e, r = rang.get(e.schluessel), o = S.offen.has(e.schluessel);
+    return `<tr class="zeile${o ? " offen" : ""}" data-k="${esc(e.schluessel)}" title="Klicken: Punkte dieser Einheit ${o ? "zuklappen" : "aufklappen"}">
       <td><span class="rang${r <= 3 ? " top" : ""}">${r}</span></td>
-      <td class="links"><div class="einheit"><span class="marke" style="background:${artFarbe(e.typ)}">${esc(artKurz(e.name).slice(0, 2))}</span>
-        <div><div class="n">${esc(artKurz(e.name))} ${e.nr}${e.gestorben ? '<span class="tot">gefallen</span>' : ""}</div><div class="s">${esc(e.name.split(" (")[1] ? "(" + e.name.split(" (")[1] : "")}</div></div></div></td>
-      <td class="zahl hinweis">${zahl(e.von, 0)}–${zahl(e.bis, 0)}</td>
-      <td><div class="gesamt"><div class="balken"><i style="width:${anteil}%;background:${x.p.summe >= 0 ? "var(--lohn)" : "var(--abzug)"}"></i></div><span class="zahl">${punktText(x.p.summe)}</span></div></td>
-      ${sp.map((rg) => `<td class="zahl">${punktText(x.p.je[rg.id] || 0)}</td>`).join("")}</tr>`;
-    return z + (offen ? `<tr class="detail"><td colspan="${4 + sp.length}">${detail(e, x.p)}</td></tr>` : "");
-  }).join("");
-  v.innerHTML = `<div class="leiste">
-      <div class="such"><input id="suche" placeholder="Suchen…" value="${esc(S.suche)}"><button class="leeren" id="leeren" title="Suche leeren">✕</button></div>
-      <div class="chips">${[["alle", "Alle Arten"], ...arten.map(([t, n]) => [String(t), artKurz(n)])].map(([w, n]) =>
-        `<button class="chip" data-art="${esc(w)}" aria-pressed="${S.art === w}">${esc(n)}</button>`).join("")}</div>
-      <span class="hinweis">${liste.length === hier ? hier + " Einheiten" : liste.length + " von " + hier + " Einheiten"} · Kopfzeile anklicken zum Sortieren</span>
-    </div>
-    <div class="tafel">${liste.length ? `<table><thead>${kopf}</thead><tbody>${zeilen}</tbody><tfoot>${fuss}</tfoot></table>` : '<div class="leer">Hier nichts.</div>'}</div>`;
-  const s = $("#suche", v);
-  $("#leeren", v).style.visibility = S.suche ? "visible" : "hidden";
-  s.oninput = () => { S.suche = s.value; const pos = s.selectionStart; zeichneEinheiten(); const n = $("#suche"); n.focus(); n.setSelectionRange(pos, pos); };
-  $("#leeren", v).onclick = () => { S.suche = ""; zeichneEinheiten(); };
+      <td class="l"><div class="einheit">${bildEinheit(e.typ, e.name)}<div><div class="n">${esc(kurzArt(e.name))} ${e.nr}${e.gestorben ? '<span class="tot">gefallen</span>' : ""}</div><div class="s">${esc(codeArt(e.name))}</div></div></div></td>
+      <td class="zahl hinweis">${zahl(e.von, 0)}–${zahl(e.bis, 0)}</td><td class="zahl gesamt">${pkt(x.p.summe)}</td><td class="balken-z">${balken(x.p.summe, max)}</td>
+      ${sp.map((rg) => `<td class="zahl">${pkt(x.p.je[rg.id] || 0)}</td>`).join("")}</tr>` + (o ? `<tr class="detail"><td colspan="${5 + sp.length}">${detail(e, x.p)}</td></tr>` : ""); }).join("");
+  v.innerHTML = `<div class="leiste"><div class="such"><input id="suche" placeholder="Suchen…" value="${esc(S.suche)}">${S.suche ? '<button class="leeren" id="leeren" title="Suche leeren">✕</button>' : ""}</div>
+    <div class="chips">${[["alle", "Alle Arten"], ...arten.map(([t, n]) => [String(t), kurzArt(n)])].map(([w2, n]) => `<button class="chip" data-art="${esc(w2)}" aria-pressed="${S.art === w2}">${esc(n)}</button>`).join("")}</div>
+    <span class="hinweis">${L.length === hier ? hier : L.length + " von " + hier} Einheiten · Kopfzeile anklicken zum Sortieren</span></div>
+    <div class="tafel">${L.length ? `<table><thead>${kopfz}</thead><tbody>${zeilen}</tbody><tfoot><tr><td></td><td class="l">${L.length} Einheiten</td><td></td><td class="zahl">${pkt(sum((x) => x.p.summe))}</td><td></td>${sp.map((r) => `<td class="zahl">${pkt(sum((x) => x.p.je[r.id] || 0))}</td>`).join("")}</tr></tfoot></table>` : '<div class="leer">Hier nichts.</div>'}</div>`;
+  const s = $("#suche", v); s.oninput = () => { S.suche = s.value; const p = s.selectionStart; zeichneEinheiten(); const n = $("#suche"); n.focus(); n.setSelectionRange(p, p); };
+  if ($("#leeren", v)) $("#leeren", v).onclick = () => { S.suche = ""; zeichneEinheiten(); };
   v.querySelectorAll(".chip[data-art]").forEach((b) => (b.onclick = () => { S.art = b.dataset.art; zeichneEinheiten(); }));
-  v.querySelectorAll("th[data-sort]").forEach((th) => (th.onclick = () => {
-    const k = th.dataset.sort; S.sort = { schl: k, ab: S.sort.schl === k ? !S.sort.ab : k !== "name" }; zeichneEinheiten(); }));
-  v.querySelectorAll("tr.zeile").forEach((tr) => (tr.onclick = () => {
-    const k = tr.dataset.schl; S.offen.has(k) ? S.offen.delete(k) : S.offen.add(k); zeichneEinheiten(); }));
-  v.querySelectorAll(".zu").forEach((b) => (b.onclick = (ev) => { ev.stopPropagation(); S.offen.delete(b.dataset.schl); zeichneEinheiten(); }));
-}
-function kurzName(r) {
-  const n = S.mg[r.messgroesse].name;
-  return r.arten === "alle" ? n : n + " · " + r.arten.join(",");
+  v.querySelectorAll("th[data-s]").forEach((th) => (th.onclick = () => { const k = th.dataset.s; S.sort = { k, ab: S.sort.k === k ? !S.sort.ab : k !== "name" }; zeichneEinheiten(); }));
+  v.querySelectorAll("tr.zeile").forEach((tr) => (tr.onclick = () => { const k = tr.dataset.k; S.offen.has(k) ? S.offen.delete(k) : S.offen.add(k); zeichneEinheiten(); }));
+  v.querySelectorAll(".zu").forEach((b) => (b.onclick = (ev) => { ev.stopPropagation(); S.offen.delete(b.dataset.k); zeichneEinheiten(); }));
 }
 function detail(e, p) {
-  const zeilen = aktiv().filter((r) => (r.arten === "alle" || r.arten.includes(e.typ)) && (e.menge[r.messgroesse] || 0))
-    .sort((a, b) => Math.abs(p.je[b.id] || 0) - Math.abs(p.je[a.id] || 0))
-    .map((r) => { const m = S.mg[r.messgroesse];
-      return `<tr><td class="links">${esc(m.name)}<div class="wort">dein Wort: „${esc(m.wort)}“</div></td>
-        <td class="zahl">${zahl(e.menge[r.messgroesse], 2)}<div class="wort">${esc(m.einheit)}</div></td>
-        <td class="zahl">× ${zahl(r.gewicht, 2)}</td><td class="zahl">${punktText(p.je[r.id] || 0)}</td></tr>`; }).join("");
-  const nachMg = Object.keys(e.menge).filter((k) => !aktiv().some((r) => r.messgroesse === k && (r.arten === "alle" || r.arten.includes(e.typ))));
-  const ohne = nachMg.length ? `<p class="hinweis">Gemessen, aber ohne aktiven Regler: ${nachMg.map((k) => esc(S.mg[k].name) + " " + zahl(e.menge[k], 2)).join(" · ")}</p>` : "";
-  const ev = [...e.ereignisse].sort((a, b) => b[0] - a[0]).map(([t, k, menge, text]) => {
-    const r = aktiv().find((x) => x.messgroesse === k && (x.arten === "alle" || x.arten.includes(e.typ)));
-    const pkt = r ? menge * r.gewicht : 0;
-    return `<div class="ereignis"><span class="t">${zahl(t, 0)}</span><span class="etikett ${pkt >= 0 ? "pos" : "neg"}">${esc(S.mg[k].name)}${r ? " " + (pkt > 0 ? "+" : "") + zahl(pkt, 2) : ""}</span><span>${esc(text)}</span></div>`;
-  }).join("");
-  return `<div class="detail-innen"><button class="zu" data-schl="${esc(e.schluessel)}" title="Zuklappen">Zuklappen ✕</button>
-    <div><h3>Punkte wofür – ${esc(artKurz(e.name))} ${e.nr}</h3>
-      <table class="aufstellung"><thead><tr><th class="links">Regler</th><th>Menge</th><th>Gewicht</th><th>Punkte</th></tr></thead>
-      <tbody>${zeilen || '<tr><td colspan="4" class="links hinweis">Keine Punkte.</td></tr>'}<tr class="summe"><td class="links">Gesamt</td><td></td><td></td><td class="zahl">${punktText(p.summe)}</td></tr></tbody></table>${ohne}
-      <p class="hinweis">Lebte von Takt ${zahl(e.von, 0)} bis ${zahl(e.bis, 0)}${e.gestorben ? ", gefallen" : ""} · ${e.runden} Lenker-Runden · Kennung ${esc(e.schluessel)}</p></div>
-    <div><h3>Was geschah (neueste zuerst)</h3><div class="ereignisse">${ev || '<div class="leer">Keine einzelnen Ereignisse – die Punkte kommen aus laufenden Mengen (Schaden, Stehen, Wege).</div>'}</div></div></div>`;
+  const z = aktiv().filter((r) => gilt(r, e.typ) && (e.menge[r.messgroesse] || 0)).sort((a, b) => Math.abs(p.je[b.id] || 0) - Math.abs(p.je[a.id] || 0)).map((r) => { const m = S.mg[r.messgroesse];
+    return `<tr><td class="l">${esc(m.name)}<div class="wort">dein Wort: „${esc(m.wort)}“</div></td><td class="zahl">${zahl(e.menge[r.messgroesse], 2)}<div class="wort">${esc(m.einheit)}</div></td><td class="zahl">× ${zahl(r.gewicht, 2)}</td><td class="zahl">${pkt(p.je[r.id] || 0)}</td></tr>`; }).join("");
+  const ev = [...e.ereignisse].sort((a, b) => b[0] - a[0]).map(([t, k, m, text]) => { const r = aktiv().find((x) => x.messgroesse === k && gilt(x, e.typ)); const pk = r ? m * r.gewicht : 0;
+    return `<div class="ereignis"><span class="t zahl">${zahl(t, 0)}</span><span class="etikett ${pk >= 0 ? "pos" : "neg"}">${esc(S.mg[k].name)}${r ? " " + (pk > 0 ? "+" : "") + zahl(pk, 2) : ""}</span><span>${esc(text)}</span></div>`; }).join("");
+  return `<div class="detail-innen"><button class="knopf zu" data-k="${esc(e.schluessel)}" title="Zuklappen">Zuklappen ✕</button>
+    <div><h3>Punkte wofür – ${esc(kurzArt(e.name))} ${e.nr}</h3><table class="aufstellung"><thead><tr><th class="l">Regler</th><th>Menge</th><th>Gewicht</th><th>Punkte</th></tr></thead>
+    <tbody>${z || '<tr><td colspan="4" class="l hinweis">Keine Punkte.</td></tr>'}<tr class="summe"><td class="l">Gesamt</td><td></td><td></td><td class="zahl">${pkt(p.summe)}</td></tr></tbody></table>
+    <p class="hinweis">Lebte von Takt ${zahl(e.von, 0)} bis ${zahl(e.bis, 0)}${e.gestorben ? ", gefallen" : ""} · ${e.runden} Lenker-Runden · Kennung ${esc(e.schluessel)}</p></div>
+    <div><h3>Was geschah (neueste zuerst)</h3><div class="ereignisse">${ev || '<div class="leer">Keine einzelnen Ereignisse.</div>'}</div></div></div>`;
 }
 
 // ---- Arten ----
 function zeichneArten() {
-  const P = S.partie, v = $("#v-arten");
-  const m = new Map();
-  for (const e of P.einheiten) {
-    const s = punkteVon(e).summe;
-    const a = m.get(e.typ) || { typ: e.typ, name: e.name, n: 0, summe: 0, bester: null, schlechtester: null, gefallen: 0 };
-    a.n++; a.summe += s; if (e.gestorben) a.gefallen++;
-    if (!a.bester || s > a.bester.s) a.bester = { s, e };
-    if (!a.schlechtester || s < a.schlechtester.s) a.schlechtester = { s, e };
-    m.set(e.typ, a);
-  }
-  const L = [...m.values()].map((a) => ({ ...a, mittel: a.summe / a.n }));
-  const k = S.artSort;
-  L.sort((a, b) => { const A = a[k.schl], B = b[k.schl]; const c = typeof A === "string" ? A.localeCompare(B) : A - B; return k.ab ? -c : c; });
-  const pf = (s) => `<span class="pfeil">${k.schl === s ? (k.ab ? "▼" : "▲") : ""}</span>`;
-  v.innerHTML = `<div class="leiste"><span class="hinweis">Je Einheitenart: wie viele, wie viele Punkte zusammen und je Einheit. Kopfzeile anklicken zum Sortieren.</span></div>
-    <div class="tafel"><table><thead><tr><th class="links" data-s="name">Art ${pf("name")}</th><th data-s="n">Einheiten ${pf("n")}</th><th data-s="gefallen">gefallen ${pf("gefallen")}</th>
-    <th data-s="summe">Punkte zusammen ${pf("summe")}</th><th data-s="mittel">je Einheit ${pf("mittel")}</th><th class="links">Beste</th><th class="links">Schwächste</th></tr></thead>
-    <tbody>${L.map((a) => `<tr class="zeile" data-typ="${a.typ}" title="Klicken: Einheiten dieser Art zeigen"><td class="links"><div class="einheit"><span class="marke" style="background:${artFarbe(a.typ)}">${esc(artKurz(a.name).slice(0, 2))}</span><div><div class="n">${esc(artKurz(a.name))}</div><div class="s">${esc(a.name.split(" (")[1] ? "(" + a.name.split(" (")[1] : "")}</div></div></div></td>
-      <td class="zahl">${a.n}</td><td class="zahl">${a.gefallen}</td><td class="zahl">${punktText(a.summe)}</td><td class="zahl">${punktText(a.mittel)}</td>
-      <td class="links">${a.bester.e.nr} (${punktText(a.bester.s)})</td><td class="links">${a.schlechtester.e.nr} (${punktText(a.schlechtester.s)})</td></tr>`).join("")}</tbody></table></div>`;
-  v.querySelectorAll("th[data-s]").forEach((th) => (th.onclick = () => { const s = th.dataset.s; S.artSort = { schl: s, ab: k.schl === s ? !k.ab : s !== "name" }; zeichneArten(); }));
-  v.querySelectorAll("tr[data-typ]").forEach((tr) => (tr.onclick = () => { S.art = tr.dataset.typ; zeigeAnsicht("einheiten"); }));
+  const P = S.partie, v = $("#v-arten"), m = new Map();
+  for (const e of P.einheiten) { const s = punkteVon(e).summe; const a = m.get(e.typ) || { typ: e.typ, name: e.name, n: 0, summe: 0, gefallen: 0, bester: null, schw: null };
+    a.n++; a.summe += s; if (e.gestorben) a.gefallen++; if (!a.bester || s > a.bester.s) a.bester = { s, e }; if (!a.schw || s < a.schw.s) a.schw = { s, e }; m.set(e.typ, a); }
+  const L = [...m.values()].map((a) => ({ ...a, mittel: a.summe / a.n })), k = S.artSort;
+  L.sort((a, b) => { const A = a[k.k], B = b[k.k], c = typeof A === "string" ? A.localeCompare(B) : A - B; return k.ab ? -c : c; });
+  const max = Math.max(1e-9, ...L.map((a) => Math.abs(a.mittel)));
+  const pf = (s) => `<span class="pf">${k.k === s ? (k.ab ? "▼" : "▲") : ""}</span>`;
+  v.innerHTML = `<div class="leiste"><span class="hinweis">Je Einheitenart dieser Partie. Klick auf eine Zeile zeigt ihre Einheiten.</span></div><div class="tafel"><table><thead><tr>
+    <th class="l" data-s="name">Art ${pf("name")}</th><th data-s="n">Einheiten ${pf("n")}</th><th data-s="gefallen">gefallen ${pf("gefallen")}</th><th data-s="summe">Punkte zusammen ${pf("summe")}</th>
+    <th data-s="mittel">je Einheit ${pf("mittel")}</th><th class="l"></th><th class="l">Beste</th><th class="l">Schwächste</th></tr></thead><tbody>
+    ${L.map((a) => `<tr class="zeile" data-typ="${a.typ}" title="Klicken: Einheiten dieser Art zeigen"><td class="l"><div class="einheit">${bildEinheit(a.typ, a.name)}<div><div class="n">${esc(kurzArt(a.name))}</div><div class="s">${esc(codeArt(a.name))}</div></div></div></td>
+      <td class="zahl">${a.n}</td><td class="zahl">${a.gefallen}</td><td class="zahl">${pkt(a.summe)}</td><td class="zahl gesamt">${pkt(a.mittel)}</td><td class="balken-z">${balken(a.mittel, max)}</td>
+      <td class="l">${a.bester.e.nr} (${pkt(a.bester.s)})</td><td class="l">${a.schw.e.nr} (${pkt(a.schw.s)})</td></tr>`).join("")}</tbody></table></div>`;
+  v.querySelectorAll("th[data-s]").forEach((th) => (th.onclick = () => { const s = th.dataset.s; S.artSort = { k: s, ab: k.k === s ? !k.ab : s !== "name" }; zeichneArten(); }));
+  v.querySelectorAll("tr[data-typ]").forEach((tr) => (tr.onclick = () => { S.art = tr.dataset.typ; zeige("einheiten"); }));
 }
 
-// ---- Regler ----
-let speicherUhr = null;
+// ---- Spiele: alle Partien, welche Art wann am besten war, Vergleich, und die Code-Aenderungen dazwischen ----
+async function ladeSpiele() {
+  try { const [sp, h] = await Promise.all([holen("/api/spiele"), S.historie.length ? Promise.resolve(S.historie) : holen("/api/historie")]); S.spiele = sp; S.historie = h; }
+  catch (ex) { fehler("Spiele nicht lesbar: " + ex.message); return; }
+  if (S.ansicht === "spiele") zeichneSpiele();
+  if (S.spiele.stand.laeuft) setTimeout(ladeSpiele, 4000);
+}
+function spielZeile(x) {
+  const arten = Object.entries(x.arten).map(([t, a]) => ({ typ: Number(t), name: a.name, n: a.n, summe: artPunkte(t, a), je: artPunkte(t, a) / a.n }));
+  const summe = arten.reduce((s, a) => s + a.summe, 0);
+  const beste = arten.filter((a) => a.n > 0).sort((a, b) => b.je - a.je)[0];
+  return { x, arten, summe, beste };
+}
+const aufstellungText = (x) => (x.spieler_anzeige || []).map((s) => s.name).join(" gegen ");
+function zeichneSpiele() {
+  const v = $("#v-spiele");
+  if (!S.spiele) { v.innerHTML = '<div class="leer">lade alle Spiele …</div>'; ladeSpiele(); return; }
+  const st = S.spiele.stand;
+  let L = S.spiele.spiele.map(spielZeile);
+  const jetzt = S.partie ? aufstellungText(S.partie) : "";
+  if (S.spFilter.aufstellung && jetzt) L = L.filter((z) => aufstellungText(z.x) === jetzt);
+  if (S.spFilter.logbuch) L = L.filter((z) => z.x.logbuch);
+  const typen = [...new Set(L.flatMap((z) => z.arten.map((a) => a.typ)))].sort((a, b) => a - b);
+  const namen = new Map(L.flatMap((z) => z.arten.map((a) => [a.typ, a.name])));
+  const k = S.spSort, w = (z) => k.k === "zeit" ? (z.x.datei.match(/\d{8}_\d{6}/) || [""])[0] : k.k === "summe" ? z.summe : k.k === "kill" ? (z.x.kill_takt || 1e9) : k.k.startsWith("t") ? ((z.arten.find((a) => a.typ === Number(k.k.slice(1))) || {}).je ?? -1e9) : 0;
+  L.sort((a, b) => { const A = w(a), B = w(b), c = typeof A === "string" ? A.localeCompare(B) : A - B; return k.ab ? -c : c; });
+  const max = Math.max(1e-9, ...L.map((z) => Math.abs(z.summe)));
+  const pf = (s) => `<span class="pf">${k.k === s ? (k.ab ? "▼" : "▲") : ""}</span>`;
+  const stempel = (z) => (z.x.datei.match(/\d{8}_\d{6}/) || [""])[0];
+  const zeilen = L.map((z, i) => {
+    const x = z.x, gew = S.wahl.has(x.datei);
+    const gegner = (x.spieler_anzeige || []).map((s) => `<span class="mini" title="${esc(s.name)}${s.lord_tod ? " – Lord gefallen bei Takt " + s.lord_tod : ""}">${s.bild ? `<span class="bild" style="background-image:url('${esc(s.bild)}');background-size:cover"></span>` : `<span class="bild">${esc(s.name.slice(0, 2))}</span>`}${esc(s.name)}${s.lord_tod ? " ✝" : ""}</span>`).join(' <span class="hinweis">gegen</span> ');
+    let hist = "";
+    if (k.k === "zeit" && k.ab && i > 0) { // Code-Aenderungen zwischen diesem und dem naechstneueren Spiel (Historie, Daniel 18:18)
+      const c = S.historie.filter((c2) => c2.zeit && c2.zeit < stempel(L[i - 1]) && c2.zeit >= stempel(z));
+      if (c.length) hist = `<tr class="historie"><td colspan="${7 + typen.length}">Danach geändert: ${c.slice(0, 6).map((c2) => `<code>${esc(c2.hash)}</code>${esc(c2.text.slice(0, 90))}`).join(" · ")}${c.length > 6 ? " · … " + (c.length - 6) + " weitere" : ""}</td></tr>`; }
+    return hist + `<tr class="zeile" data-d="${esc(x.datei)}" title="Klicken: dieses Spiel öffnen"><td><input type="checkbox" data-w="${esc(x.datei)}" ${gew ? "checked" : ""} title="zum Vergleich wählen"></td>
+      <td class="l zahl">${esc(x.zeit)}</td><td class="l">${gegner || '<span class="hinweis">–</span>'}</td><td class="l"><span class="marke ${x.ergebnis}">${ERG[x.ergebnis] || x.ergebnis}</span>${x.logbuch ? "" : ' <span class="hinweis" title="ohne Logbuch: Denken und geplantes Warten nicht messbar">ohne Logbuch</span>'}</td>
+      <td class="zahl">${x.kill_takt ? zahl(x.kill_takt, 0) : "–"}</td><td class="zahl gesamt">${pkt(z.summe)}</td><td class="balken-z">${balken(z.summe, max)}</td>
+      ${typen.map((t) => { const a = z.arten.find((y) => y.typ === t); return `<td class="zahl">${a ? pkt(a.je) + (z.beste && z.beste.typ === t ? ' <span class="stern" title="beste Art dieses Spiels (Punkte je Einheit)">★</span>' : "") : '<span class="null">·</span>'}</td>`; }).join("")}</tr>`;
+  }).join("");
+  v.innerHTML = `<div class="leiste"><div class="chips">
+      <button class="chip" id="f-auf" aria-pressed="${S.spFilter.aufstellung}" title="nur Spiele mit derselben Aufstellung wie das oben gewählte">nur gleiche Aufstellung${jetzt ? ": " + esc(jetzt) : ""}</button>
+      <button class="chip" id="f-log" aria-pressed="${S.spFilter.logbuch}">nur mit Logbuch</button></div>
+      <span class="hinweis">${L.length} Spiele${st.laeuft ? " · rechne noch: " + st.fertig + " von " + st.gesamt : ""}${st.fehler.length ? " · " + st.fehler.length + " nicht lesbar" : ""} · ★ = beste Art je Spiel (Punkte je Einheit) · Häkchen setzen zum Vergleichen · zwischen den Spielen: was am Code geändert wurde</span></div>
+    ${vergleich(L, typen, namen)}
+    <div class="tafel"><table><thead><tr><th></th><th class="l" data-s="zeit">Spiel ${pf("zeit")}</th><th class="l">Wer gegen wen</th><th class="l">Ergebnis</th><th data-s="kill">Kill bei Takt ${pf("kill")}</th><th data-s="summe">Punkte ${pf("summe")}</th><th class="l"></th>
+      ${typen.map((t) => `<th data-s="t${t}" title="${esc(namen.get(t))}: Punkte je Einheit">${bildEinheit(t, namen.get(t))} ${pf("t" + t)}</th>`).join("")}</tr></thead><tbody>${zeilen}</tbody></table></div>`;
+  $("#f-auf", v).onclick = () => { S.spFilter.aufstellung = !S.spFilter.aufstellung; zeichneSpiele(); };
+  $("#f-log", v).onclick = () => { S.spFilter.logbuch = !S.spFilter.logbuch; zeichneSpiele(); };
+  v.querySelectorAll("th[data-s]").forEach((th) => (th.onclick = () => { const s = th.dataset.s; S.spSort = { k: s, ab: k.k === s ? !k.ab : s !== "kill" }; zeichneSpiele(); }));
+  v.querySelectorAll("input[data-w]").forEach((c) => (c.onclick = (ev) => { ev.stopPropagation(); c.checked ? S.wahl.add(c.dataset.w) : S.wahl.delete(c.dataset.w); zeichneSpiele(); }));
+  v.querySelectorAll("tr[data-d]").forEach((tr) => (tr.onclick = (ev) => { if (ev.target.tagName === "INPUT") return; ladePartie(tr.dataset.d).then(() => zeige("einheiten")); }));
+  const z = $("#vgl-leeren", v); if (z) z.onclick = () => { S.wahl.clear(); zeichneSpiele(); };
+}
+function vergleich(L, typen, namen) {
+  const G = L.filter((z) => S.wahl.has(z.x.datei)).sort((a, b) => a.x.datei.localeCompare(b.x.datei));
+  if (G.length < 2) return '<p class="hinweis">Vergleich: mindestens zwei Spiele anhaken. Dann stehen je Art und je Regler die Punkte nebeneinander, das Beste je Zeile mit ★.</p>';
+  const zeile = (titel, werte, bild) => { const da = werte.filter((x) => x != null), best = Math.max(...da);
+    return `<tr><td class="l">${bild || ""}${esc(titel)}</td>${werte.map((x) => `<td class="zahl">${x == null ? '<span class="null">·</span>' : pkt(x) + (x === best && da.length > 1 ? ' <span class="stern">★</span>' : "")}</td>`).join("")}</tr>`; };
+  const artZ = typen.map((t) => zeile(kurzArt(namen.get(t)) + " je Einheit", G.map((z) => { const a = z.arten.find((y) => y.typ === t); return a ? a.je : null; }), bildEinheit(t, namen.get(t)) + " "));
+  const regZ = aktiv().map((r) => zeile(kurzName(r), G.map((z) => Object.entries(z.x.arten).reduce((s, [t, a]) => s + (gilt(r, t) ? (a.menge[r.messgroesse] || 0) * r.gewicht : 0), 0))));
+  const killZ = `<tr><td class="l">Kill bei Takt (früher ist besser)</td>${G.map((z) => { const ks = G.map((y) => y.x.kill_takt).filter(Boolean), best = Math.min(...ks);
+    return `<td class="zahl">${z.x.kill_takt ? zahl(z.x.kill_takt, 0) + (z.x.kill_takt === best && ks.length > 1 ? ' <span class="stern">★</span>' : "") : "–"}</td>`; }).join("")}</tr>`;
+  return `<div class="abschnitt">Vergleich von ${G.length} Spielen <button class="knopf" id="vgl-leeren">Auswahl leeren</button></div>
+    <div class="tafel" style="margin-bottom:14px"><table><thead><tr><th class="l">Zeile</th>${G.map((z) => `<th title="${esc(z.x.datei)}">${esc(z.x.zeit)}<br><span class="marke ${z.x.ergebnis}">${ERG[z.x.ergebnis]}</span></th>`).join("")}</tr></thead>
+    <tbody>${killZ}${zeile("Punkte gesamt", G.map((z) => z.summe))}${artZ.join("")}${regZ.join("")}</tbody></table></div>`;
+}
+
+// ---- Regler als Klappen ----
+let uhr = null;
 function zeichneRegler() {
   const v = $("#v-regler");
   const typen = S.partie ? [...new Map(S.partie.einheiten.map((e) => [e.typ, e.name])).entries()] : [];
-  const artWahl = (r) => `<select data-feld="arten" data-id="${esc(r.id)}" title="Für welche Einheitenart dieser Regler gilt">
-      <option value="alle"${r.arten === "alle" ? " selected" : ""}>alle Arten</option>
-      ${typen.map(([t, n]) => `<option value="${t}"${r.arten !== "alle" && r.arten.length === 1 && r.arten[0] === t ? " selected" : ""}>nur ${esc(artKurz(n))}</option>`).join("")}</select>`;
-  const karte = (r) => { const m = S.mg[r.messgroesse];
-    return `<div class="regler ${r.gewicht >= 0 ? "pos" : "neg"}"><div class="kopfz"><span class="name">${esc(m.name)}</span>
-      <button class="knopf" data-arch="${esc(r.id)}" title="Archivieren: zählt nicht mehr mit, kommt mit einem Klick zurück">Archivieren</button></div>
-      <div class="wort">dein Wort: „${esc(m.wort)}“ · Menge in ${esc(m.einheit)} · ${esc(r.gesetzt_von || "")}</div>
-      <div class="reihe"><input type="range" min="-5" max="5" step="0.1" value="${r.gewicht}" data-feld="gewicht" data-id="${esc(r.id)}">
-      <input type="number" step="0.1" value="${r.gewicht}" data-feld="gewicht" data-id="${esc(r.id)}">${artWahl(r)}</div></div>`; };
-  const aktivL = S.regler.filter((r) => !r.archiviert), archiv = S.regler.filter((r) => r.archiviert);
-  v.innerHTML = `<div class="leiste"><button class="knopf" id="zurueck" title="Den Stand vor der letzten Änderung wiederherstellen (der Verlauf behält beides)">Letzte Änderung zurücknehmen</button>
-      <span class="status" id="regstatus">Änderungen werden sofort gespeichert und rechnen alle Partien neu.</span></div>
-    <div class="regler-gitter">${aktivL.map(karte).join("")}</div>
+  const offen = new Set([...v.querySelectorAll("details[open]")].map((d) => d.dataset.id));
+  const artWahl = (r) => `<select data-f="arten" data-id="${esc(r.id)}"><option value="alle"${r.arten === "alle" ? " selected" : ""}>alle Arten</option>${typen.map(([t, n]) => `<option value="${t}"${r.arten !== "alle" && r.arten[0] === t ? " selected" : ""}>nur ${esc(kurzArt(n))}</option>`).join("")}</select>`;
+  const klappe = (r) => { const m = S.mg[r.messgroesse];
+    return `<details class="regler ${r.gewicht >= 0 ? "pos" : "neg"}" data-id="${esc(r.id)}"${offen.has(r.id) ? " open" : ""}><summary><span><b>${esc(kurzName(r))}</b></span>
+      <span class="zahl ${r.gewicht >= 0 ? "pos" : "neg"}" style="text-align:right;font-weight:700">${r.gewicht > 0 ? "+" : ""}${zahl(r.gewicht, 2)}</span><span class="hinweis">${r.arten === "alle" ? "alle Arten" : "nur " + r.arten.join(",")}</span><span class="pfeil">›</span></summary>
+      <div class="innen"><div class="hinweis">dein Wort: „${esc(m.wort)}“ · Menge in ${esc(m.einheit)} · ${esc(r.gesetzt_von || "")}</div>
+      <div class="reihe"><input type="range" min="-10" max="10" step="0.1" value="${r.gewicht}" data-f="gewicht" data-id="${esc(r.id)}"><input type="number" min="-10" max="10" step="0.1" value="${r.gewicht}" data-f="gewicht" data-id="${esc(r.id)}">${artWahl(r)}
+      <button class="knopf" data-arch="${esc(r.id)}" title="Archivieren: zählt nicht mehr mit, kommt mit einem Klick zurück">Archivieren</button></div></div></details>`; };
+  const A = S.regler.filter((r) => !r.archiviert), arch = S.regler.filter((r) => r.archiviert);
+  v.innerHTML = `<div class="leiste"><button class="knopf" id="zurueck" title="Stand vor der letzten Änderung wiederherstellen (der Verlauf behält beides)">Letzte Änderung zurücknehmen</button>
+      <span class="hinweis" id="regstatus">Gewicht von −10 bis +10. Änderungen werden sofort gespeichert und rechnen alle Partien neu.</span></div>
+    <div class="gruppe"><h4>Lohn</h4>${A.filter((r) => r.gewicht >= 0).map(klappe).join("")}</div>
+    <div class="gruppe"><h4>Abzug</h4>${A.filter((r) => r.gewicht < 0).map(klappe).join("")}</div>
     <div class="abschnitt">Neuer Regler</div>
-    <div class="neu-regler"><select id="neu-mg">${Object.entries(S.mg).map(([k, m]) => `<option value="${k}">${esc(m.name)}</option>`).join("")}</select>
-      <select id="neu-art"><option value="alle">alle Arten</option>${typen.map(([t, n]) => `<option value="${t}">nur ${esc(artKurz(n))}</option>`).join("")}</select>
-      <input type="number" id="neu-gewicht" step="0.1" value="1" style="width:80px" title="Gewicht">
-      <button class="knopf voll" id="neu">Regler anlegen</button>
+    <div class="neu-regler"><select id="neu-mg">${Object.entries(S.mg).map(([k2, m]) => `<option value="${k2}">${esc(m.name)}</option>`).join("")}</select>
+      <select id="neu-art"><option value="alle">alle Arten</option>${typen.map(([t, n]) => `<option value="${t}">nur ${esc(kurzArt(n))}</option>`).join("")}</select>
+      <input type="number" id="neu-gewicht" min="-10" max="10" step="0.1" value="1" style="width:80px"><button class="knopf voll" id="neu">Regler anlegen</button>
       <span class="hinweis">Beispiel: „Steht ohne Wirkung“ nur für Speerträger mit Gewicht −3.</span></div>
-    <div class="abschnitt">Archiv (${archiv.length})</div>
-    ${archiv.length ? `<div class="regler-gitter">${archiv.map((r) => `<div class="regler"><div class="kopfz"><span class="name">${esc(kurzName(r))}</span>
-      <button class="knopf" data-holen="${esc(r.id)}">Zurückholen</button></div><div class="wort">Gewicht ${zahl(r.gewicht, 2)}</div></div>`).join("")}</div>` : '<p class="hinweis">Leer.</p>'}`;
-  v.querySelectorAll("[data-feld]").forEach((el) => (el.oninput = () => {
-    const r = S.regler.find((x) => x.id === el.dataset.id);
-    if (el.dataset.feld === "gewicht") { const w = parseFloat(el.value); if (isNaN(w)) return; r.gewicht = w;
-      v.querySelectorAll(`[data-feld="gewicht"][data-id="${CSS.escape(r.id)}"]`).forEach((x) => { if (x !== el) x.value = w; }); }
-    else { r.arten = el.value === "alle" ? "alle" : [parseInt(el.value, 10)]; }
-    r.gesetzt_von = "von Hand gesetzt";
-    speichern("Regler " + S.mg[r.messgroesse].name + " geändert");
-  }));
+    <div class="abschnitt">Archiv (${arch.length})</div>${arch.length ? arch.map((r) => `<details class="regler"><summary><span>${esc(kurzName(r))}</span><span class="zahl">${zahl(r.gewicht, 2)}</span><span></span><button class="knopf" data-holen="${esc(r.id)}">Zurückholen</button></summary></details>`).join("") : '<p class="hinweis">Leer.</p>'}`;
+  v.querySelectorAll("[data-f]").forEach((el) => (el.oninput = () => { const r = S.regler.find((x) => x.id === el.dataset.id);
+    if (el.dataset.f === "gewicht") { let w2 = parseFloat(el.value); if (isNaN(w2)) return; w2 = Math.max(-10, Math.min(10, w2)); r.gewicht = w2;
+      v.querySelectorAll(`[data-f="gewicht"][data-id="${CSS.escape(r.id)}"]`).forEach((x) => { if (x !== el) x.value = w2; });
+      const d = el.closest("details").querySelector("summary .zahl"); d.textContent = (w2 > 0 ? "+" : "") + zahl(w2, 2); d.className = "zahl " + (w2 >= 0 ? "pos" : "neg"); }
+    else r.arten = el.value === "alle" ? "alle" : [parseInt(el.value, 10)];
+    r.gesetzt_von = "von Hand gesetzt"; speichern("Regler " + S.mg[r.messgroesse].name + " geändert"); }));
   v.querySelectorAll("[data-arch]").forEach((b) => (b.onclick = () => { const r = S.regler.find((x) => x.id === b.dataset.arch); r.archiviert = true; speichern("archiviert: " + kurzName(r), true); }));
-  v.querySelectorAll("[data-holen]").forEach((b) => (b.onclick = () => { const r = S.regler.find((x) => x.id === b.dataset.holen); r.archiviert = false; speichern("zurückgeholt: " + kurzName(r), true); }));
-  $("#neu", v).onclick = () => {
-    const mg = $("#neu-mg").value, art = $("#neu-art").value, w = parseFloat($("#neu-gewicht").value) || 0;
+  v.querySelectorAll("[data-holen]").forEach((b) => (b.onclick = (ev) => { ev.preventDefault(); const r = S.regler.find((x) => x.id === b.dataset.holen); r.archiviert = false; speichern("zurückgeholt: " + kurzName(r), true); }));
+  $("#neu", v).onclick = () => { const mg = $("#neu-mg").value, art = $("#neu-art").value, w2 = Math.max(-10, Math.min(10, parseFloat($("#neu-gewicht").value) || 0));
     let id = mg + "_" + art, i = 2; while (S.regler.some((x) => x.id === id)) id = mg + "_" + art + "_" + i++;
-    S.regler.push({ id, messgroesse: mg, arten: art === "alle" ? "alle" : [parseInt(art, 10)], gewicht: w, name: S.mg[mg].name, wort: S.mg[mg].wort, archiviert: false, gesetzt_von: "von Hand angelegt" });
-    speichern("neu: " + S.mg[mg].name + (art === "alle" ? "" : " nur " + art), true);
-  };
-  $("#zurueck", v).onclick = async () => {
-    try { regAnnehmen(await holen("/api/regler/zurueck", { method: "POST", body: "{}" })); zeichneAlles(); $("#regstatus").textContent = "zurückgenommen"; }
-    catch (ex) { fehler(ex.message); }
-  };
+    S.regler.push({ id, messgroesse: mg, arten: art === "alle" ? "alle" : [parseInt(art, 10)], gewicht: w2, name: S.mg[mg].name, wort: S.mg[mg].wort, archiviert: false, gesetzt_von: "von Hand angelegt" });
+    speichern("neu: " + S.mg[mg].name + (art === "alle" ? "" : " nur " + art), true); };
+  $("#zurueck", v).onclick = async () => { try { regAnnehmen(await holen("/api/regler/zurueck", { method: "POST", body: "{}" })); alles(); $("#regstatus").textContent = "zurückgenommen"; } catch (ex) { fehler(ex.message); } };
 }
 function speichern(grund, gleich) {
-  zeichneKopf(); if (S.ansicht !== "regler") zeichneAnsicht();
-  $("#regstatus") && ($("#regstatus").textContent = "speichere …");
-  clearTimeout(speicherUhr);
-  const los = async () => {
-    try { regAnnehmen(await holen("/api/regler", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ regler: S.regler, grund }) }));
-      fehler(""); const st = $("#regstatus"); if (st) st.textContent = "gespeichert " + new Date().toLocaleTimeString("de-DE", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-      if (gleich) zeichneRegler(); zeichneKopf(); }
-    catch (ex) { fehler("Nicht gespeichert: " + ex.message); }
-  };
-  gleich ? los() : (speicherUhr = setTimeout(los, 600));
+  kopf(); $("#regstatus") && ($("#regstatus").textContent = "speichere …"); clearTimeout(uhr);
+  const los = async () => { try { regAnnehmen(await holen("/api/regler", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ regler: S.regler, grund }) }));
+      fehler(""); const st = $("#regstatus"); if (st) st.textContent = "gespeichert " + new Date().toLocaleTimeString("de-DE"); if (gleich) zeichneRegler(); kopf(); }
+    catch (ex) { fehler("Nicht gespeichert: " + ex.message); } };
+  gleich ? los() : (uhr = setTimeout(los, 600));
 }
-
-// ---- Verlauf ----
 function zeichneVerlauf() {
-  const v = $("#v-verlauf");
-  v.innerHTML = `<div class="leiste"><span class="hinweis">Jede Änderung an den Reglern, neueste zuerst. Zurücknehmen legt eine neue Änderung an, nichts verschwindet.</span></div>
-    <div class="verlauf">${S.verlauf.length ? S.verlauf.map((x) => `<div class="eintrag"><div class="z">${esc(x.zeit)} · ${esc(x.wer || "")}</div><b>${esc(x.grund || "Änderung")}</b>
-      <div class="hinweis">${x.aenderungen.map(esc).join(" · ") || "keine Werte geändert"}</div></div>`).join("") : '<div class="leer">Noch keine Änderung.</div>'}</div>`;
+  $("#v-verlauf").innerHTML = `<div class="leiste"><span class="hinweis">Jede Änderung an den Reglern, neueste zuerst. Zurücknehmen legt eine neue Änderung an, nichts verschwindet.</span></div>
+    <div class="verlauf">${S.verlauf.length ? S.verlauf.map((x) => `<div class="eintrag"><div class="hinweis">${esc(x.zeit)} · ${esc(x.wer || "")}</div><b>${esc(x.grund || "Änderung")}</b><div class="hinweis">${x.aenderungen.map(esc).join(" · ") || "keine Werte geändert"}</div></div>`).join("") : '<div class="leer">Noch keine Änderung.</div>'}</div>`;
 }
-
-// ---- Ansichten ----
 function zeichneAnsicht() {
-  if (!S.partie && S.ansicht !== "regler" && S.ansicht !== "verlauf") return;
-  ({ einheiten: zeichneEinheiten, arten: zeichneArten, regler: zeichneRegler, verlauf: zeichneVerlauf })[S.ansicht]();
+  if (!S.partie && !["regler", "verlauf", "spiele"].includes(S.ansicht)) return;
+  ({ einheiten: zeichneEinheiten, arten: zeichneArten, spiele: zeichneSpiele, regler: zeichneRegler, verlauf: zeichneVerlauf })[S.ansicht]();
 }
-function zeichneAlles() { zeichneKopf(); zeichneAnsicht(); }
-function zeigeAnsicht(a, ohneVerlauf) {
-  S.ansicht = a;
-  document.querySelectorAll(".reiter button").forEach((b) => b.setAttribute("aria-selected", b.dataset.ansicht === a));
-  for (const n of ["einheiten", "arten", "regler", "verlauf"]) $("#v-" + n).hidden = n !== a;
-  if (!ohneVerlauf) adresseSetzen(false);
-  zeichneAnsicht();
+function alles() { kopf(); zeichneAnsicht(); }
+function zeige(a, ohneVerlauf) {
+  S.ansicht = a; document.querySelectorAll(".reiter button").forEach((b) => b.setAttribute("aria-selected", b.dataset.ansicht === a));
+  for (const n of ["einheiten", "arten", "spiele", "regler", "verlauf"]) $("#v-" + n).hidden = n !== a;
+  if (!ohneVerlauf) adresse(false); zeichneAnsicht();
 }
-document.querySelectorAll(".reiter button").forEach((b) => (b.onclick = () => zeigeAnsicht(b.dataset.ansicht)));
+document.querySelectorAll(".reiter button").forEach((b) => (b.onclick = () => zeige(b.dataset.ansicht)));
 start();
 </script>
 </body>

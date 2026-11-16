@@ -297,3 +297,30 @@ def test_seite_loescht_nie_sondern_archiviert(tmp_path, monkeypatch):
     with pytest.raises(ValueError):
         WS.regler_pruefen([{"id": "x", "messgroesse": "gibt_es_nicht", "gewicht": 1}])
     assert not WS.NAME_OK.match("../../geheim.jsonl.gz")
+
+
+def test_ergebnis_und_kurzfassung(tmp_path):
+    # Daniel 16.11.2026 18:16: wer gegen wen, wer gestorben, wer gewonnen
+    p = _partie(
+        tmp_path,
+        [
+            (
+                1000,
+                [_e(10, SP, 24, 199, 101, 12500), _e(901, SP, 55, 10, 10, 100000), LORD_FEIND],
+                [],
+                {},
+            ),
+            (1100, [_e(10, SP, 24, 199, 101, 12500), _e(901, SP, 55, 10, 10, 100000)], [], {}),
+        ],
+    )
+    erg = W.messen(p)
+    assert erg["ergebnis"] == "gewonnen" and erg["kill_takt"] == 1100
+    assert [(s["nr"], s["lord_tod"], s["wir"]) for s in erg["spieler_liste"]] == [
+        (1, 1100, False),
+        (2, None, True),
+    ]
+    k = W.kurzfassung(erg)
+    assert k["arten"]["24"]["n"] == 1 and k["ergebnis"] == "gewonnen" and not k["logbuch"]
+    assert (
+        "ohne_absicht" not in erg["einheiten"][0]["menge"]
+    )  # ohne Logbuch kein Abzug fuers Nichtdenken

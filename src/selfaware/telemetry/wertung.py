@@ -38,7 +38,7 @@ CHANCE_FERN, CHANCE_NAH = (
 )  # ungedeckt: kein feindlicher Schuetze so nah, kein Nahkaempfer so nah (wie raids.GEFAHR_*)
 FERN_REICH = 44  # Felder: ab hier trifft ein eigener Schuetze sein Einheitenziel nicht mehr (Bogen, sicht.REICHWEITE)
 KEHRT_MIN = 4  # Felder je Strecke, ab denen hin und zurueck als Kehrtwende zaehlt (Startwert, nicht gemessen)
-VERSION = 2  # aendert sich mit der Rechnung - die Seite rechnet ihren Zwischenspeicher dann neu
+VERSION = 4  # aendert sich mit der Rechnung - die Seite rechnet ihren Zwischenspeicher dann neu
 
 # Messgroessen: Schluessel -> (Name, dein Wort, Einheit der Menge, Richtung). Richtung +1 Lohn, -1 Abzug; das Startgewicht ist 1 bzw. -1
 # (Plan, Punkt 2: "bis dahin stehen alle auf 1, Abzuege auf -1"). Die Einheiten sind so gewaehlt, dass Gewicht 1 vergleichbar ist:
@@ -216,6 +216,8 @@ def zeilen(pfad):
 
 
 def spieler_aus_name(pfad):
+    """Spieler des Lenkers aus dem Dateinamen (_sp2); fehlt er (Aufzeichnungen bis 15.11., 183 von 222), gilt 1 - angenommen, nicht
+    gemessen: die Kurzfassung traegt dann spieler_angenommen."""
     m = re.search(r"_sp(\d+)", os.path.basename(pfad))
     return int(m.group(1)) if m else 1
 
@@ -258,6 +260,22 @@ def messen(pfad, sp=None):
     kill_takt = None
     t = None
     alle_zeilen = list(zeilen(pfad))
+    # Das Logbuch je Einheit gibt es seit 12.11. (161 von 222 Aufzeichnungen haben keins): ohne Logbuch sind Denken und geplantes Warten
+    # nicht messbar - die Mengen bleiben dann leer, statt allen "ohne Absicht" anzurechnen
+    logbuch = any(z[3] for z in alle_zeilen)
+    # Lords je Spieler: wer war dabei, wann fiel wer (Lord fehlt oder hat 0 Leben) - daraus das Ergebnis fuer uns
+    lord_da, lord_tod = {}, {}
+    for t_, E_, _B, _I in alle_zeilen:
+        lebt = {
+            e["besitzer"]
+            for e in E_.values()
+            if e["typ"] == LORD and e["leben"] > 0 and e["besitzer"] > 0
+        }
+        for b in lebt:
+            lord_da.setdefault(b, t_)
+        for b in lord_da:
+            if b not in lebt and b not in lord_tod:
+                lord_tod[b] = t_
     for i_z, (t, E, B, ints) in enumerate(alle_zeilen):
         nach = alle_zeilen[i_z + 1] if i_z + 1 < len(alle_zeilen) else None
         # eigene Einheiten: Leben einer Einheit = solange Nummer und Art gleich bleiben
@@ -573,7 +591,7 @@ def messen(pfad, sp=None):
                 )
         vor = (t, E, B, ints)
     for a in alle:
-        if a.runden:
+        if a.runden and logbuch:
             a.menge["mit_grund"] = a.runden_grund / float(a.runden)
             a.menge["ohne_absicht"] = a.runden_ohne / float(a.runden)
     return {
@@ -582,6 +600,20 @@ def messen(pfad, sp=None):
         "kill_takt": kill_takt,
         "letzter_takt": t,
         "version": VERSION,
+        "logbuch": logbuch,
+        "spieler_liste": [
+            {"nr": b, "lord_tod": lord_tod.get(b), "wir": b == sp} for b in sorted(lord_da)
+        ],
+        "ergebnis": (
+            "verloren"
+            if sp in lord_tod
+            else "gewonnen"
+            if lord_da
+            and all(b in lord_tod for b in lord_da if b != sp)
+            and any(b != sp for b in lord_da)
+            else "offen"
+        ),
+        "spieler_angenommen": re.search(r"_sp\d+", os.path.basename(pfad)) is None,
         "ohne_taeter": {k: round(v, 3) for k, v in ohne_taeter.items()},
         "einheiten": [
             {
@@ -599,6 +631,33 @@ def messen(pfad, sp=None):
             for a in alle
         ],
     }
+
+
+def kurzfassung(erg):
+    """Je Spiel je Art: Zahl, gefallen, Summe jeder Menge - genug, damit die Seite mit jedem Regler Punkte je Spiel rechnet, ohne alle
+    Einheiten von hunderten Spielen zu laden (Daniel 16.11.2026 18:14 "hunderte spiele und deren vergleich")."""
+    arten = {}
+    for e in erg["einheiten"]:
+        a = arten.setdefault(str(e["typ"]), {"name": e["name"], "n": 0, "gefallen": 0, "menge": {}})
+        a["n"] += 1
+        a["gefallen"] += 1 if e["gestorben"] else 0
+        for k, v in e["menge"].items():
+            a["menge"][k] = round(a["menge"].get(k, 0) + v, 4)
+    return {
+        k: erg.get(k)
+        for k in (
+            "partie",
+            "spieler",
+            "kill_takt",
+            "letzter_takt",
+            "version",
+            "logbuch",
+            "spieler_angenommen",
+            "ohne_taeter",
+            "spieler_liste",
+            "ergebnis",
+        )
+    } | {"einheiten": len(erg["einheiten"]), "arten": arten}
 
 
 # ---- Regler ---------------------------------------------------------------------------------------------------------

@@ -9,6 +9,7 @@ Liefert lokal (nur 127.0.0.1) eine Seite und diese Wege:
   GET  /api/partien           alle Lageprotokolle, neueste zuerst
   GET  /api/partie?datei=...  Wertung einer Partie (telemetry/wertung.messen, je Datei zwischengespeichert)
   GET  /api/regler            Regler, Messgroessen, Verlauf
+  GET  /api/spiele            Kurzfassung jedes schon gerechneten Spiels und der Stand der Hintergrundrechnung
   POST /api/regler            neue Regler (mit Grund) - alter und neuer Stand gehen in den Verlauf
   POST /api/regler/zurueck    letzte Aenderung zuruecknehmen (als neue Aenderung, der Verlauf behaelt beides)
   GET  /bild/hintergrund      Hintergrundbild der UCP3-Oberflaeche, wenn es auf diesem Rechner liegt
@@ -19,6 +20,7 @@ import json
 import os
 import re
 import sys
+import threading
 import urllib.parse
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
@@ -31,7 +33,106 @@ ZWISCHEN = os.path.join(workspace.DATA, "wertung", "zwischen")
 UCP_BILD = os.path.join(
     os.environ.get("LOCALAPPDATA", ""), "UCP3-GUI", "backgrounds", "bg_richard.webp"
 )
-NAME_OK = re.compile(r"^lage_[0-9_]+_i\w+_sp\d+\.jsonl\.gz$")
+# alle Aufzeichnungen seit 06.10., auch ohne _sp und mit Vorsilbe (lage_ablauf_fein_...) - nie mit Pfadteilen
+NAME_OK = re.compile(r"^lage_[A-Za-z0-9_]*?\d{8}_\d{6}_i\w+\.jsonl\.gz$")
+SPERRE = threading.Lock()
+BILDER = os.path.join(
+    workspace.DATA, "wertung", "bilder"
+)  # Einheitenbilder aus den Spieldateien (nicht in git: Spielgrafik)
+AUFSTELLUNGEN = os.path.join(workspace.DATA, "wertung", "aufstellungen.json")
+# Plaetze der KI-Auswahl in der Reihenfolge des Spiels (UCP3 ucp-config.yml, Abschnitt ai)
+PLAETZE = [
+    "rat",
+    "snake",
+    "pig",
+    "wolf",
+    "saladin",
+    "caliph",
+    "sultan",
+    "richard",
+    "frederick",
+    "phillip",
+    "wazir",
+    "emir",
+    "nizar",
+    "sheriff",
+    "marshal",
+    "abbot",
+]
+STAND = {"fertig": 0, "gesamt": 0, "laeuft": False, "fehler": []}
+
+
+def _spielordner():
+    try:
+        from selfaware.game.ucp import instanzen
+
+        return instanzen.spielordner("team-liga")
+    except Exception:
+        return None
+
+
+def ki_tabelle():
+    """Platz (1-16) -> {name, ordner} aus der ucp-config.yml der Team-Liga-Instanz: welcher Charakter des Team-Liga-Plugins auf welchem
+    KI-Platz sitzt; der Name kommt aus meta.json des Charakters, das Bild ist portrait_small.png daneben."""
+    sp = _spielordner()
+    aus = {}
+    if not sp:
+        return aus
+    try:
+        t = open(os.path.join(sp, "ucp-config.yml"), "rb").read().decode("utf-8", errors="replace")
+    except OSError:
+        return aus
+    i = t.find("\n        ai:")
+    for m in re.finditer(
+        r"\n          (\w+):\n            binks:\n(?:.*\n){0,4}?\s+root: ([^\n]+)",
+        t[i:] if i >= 0 else "",
+    ):
+        if m.group(1) not in PLAETZE:
+            continue
+        ordner = os.path.basename(m.group(2).strip().rstrip("/"))
+        meta = os.path.join(
+            sp, "ucp", "plugins", _plugin(sp), "resources", "ai", ordner, "meta.json"
+        )
+        try:
+            name = json.load(open(meta, encoding="utf-8"))["name"]
+        except (OSError, ValueError, KeyError):
+            name = ordner
+        aus[PLAETZE.index(m.group(1)) + 1] = {"name": name, "ordner": ordner}
+    return aus
+
+
+def _plugin(sp):
+    kand = sorted(glob.glob(os.path.join(sp, "ucp", "plugins", "Mod-KI-Team-Liga*")))
+    return os.path.basename(kand[-1]) if kand else "Mod-KI-Team-Liga"
+
+
+def spieler_anzeige(name, erg):
+    """Je Spieler mit Lord: Nummer, Name, Bild, wann sein Lord fiel, ob wir es sind. Namen nur aus aufstellungen.json (belegt) -
+    sonst 'Spieler N' (Daniel 18:16: wer gegen wen, wer gestorben, wer gewonnen)."""
+    try:
+        auf = (
+            json.load(open(AUFSTELLUNGEN, encoding="utf-8"))
+            .get("partien", {})
+            .get(name, {})
+            .get("plaetze", {})
+        )
+    except (OSError, ValueError):
+        auf = {}
+    ki = ki_tabelle() if auf else {}
+    aus = []
+    for sp in erg.get("spieler_liste") or []:
+        a = auf.get(str(sp["nr"])) or {}
+        k = ki.get(a.get("platz")) or {}
+        aus.append(
+            dict(
+                sp,
+                name=a.get("name") or k.get("name") or "Spieler %d" % sp["nr"],
+                platz=a.get("platz"),
+                bild="/bild/ki/" + k["ordner"] if k.get("ordner") else None,
+                belegt=bool(a),
+            )
+        )
+    return aus
 
 
 def partien():
@@ -40,7 +141,7 @@ def partien():
         n = os.path.basename(p)
         if not NAME_OK.match(n):
             continue
-        m = re.match(r"lage_(\d{4})(\d\d)(\d\d)_(\d\d)(\d\d)(\d\d)", n)
+        m = re.search(r"(\d{4})(\d\d)(\d\d)_(\d\d)(\d\d)(\d\d)", n)
         zeit = (
             "%s.%s.%s %s:%s" % (m.group(3), m.group(2), m.group(1), m.group(4), m.group(5))
             if m
@@ -51,7 +152,7 @@ def partien():
             {
                 "datei": n,
                 "zeit": zeit,
-                "sortier": n,
+                "sortier": (m.group(0) if m else "") + n,
                 "groesse_kb": os.path.getsize(p) // 1024,
                 "kill_takt": z.get("kill_takt") if z else None,
                 "einheiten": len(z["einheiten"]) if z else None,
@@ -80,12 +181,122 @@ def partie(name):
     if not NAME_OK.match(name or "") or not os.path.exists(os.path.join(workspace.DATA, name)):
         raise ValueError("unbekannte Partie: %r" % name)
     z = _zwischen_lesen(name)
+    if z is not None:
+        z["spieler_anzeige"] = spieler_anzeige(name, z)
     if z is None:
-        z = W.messen(os.path.join(workspace.DATA, name))
-        os.makedirs(ZWISCHEN, exist_ok=True)
-        with open(_zwischen_pfad(name), "w", encoding="utf-8") as f:
-            json.dump(z, f, ensure_ascii=False)
+        with SPERRE:
+            z = _zwischen_lesen(name)
+            if z is None:
+                z = W.messen(os.path.join(workspace.DATA, name))
+                os.makedirs(ZWISCHEN, exist_ok=True)
+                with open(_zwischen_pfad(name), "w", encoding="utf-8") as f:
+                    json.dump(z, f, ensure_ascii=False)
+                with open(_kurz_pfad(name), "w", encoding="utf-8") as f:
+                    json.dump(W.kurzfassung(z), f, ensure_ascii=False)
+            z["spieler_anzeige"] = spieler_anzeige(name, z)
     return z
+
+
+def _kurz_pfad(name):
+    return os.path.join(ZWISCHEN, name.replace(".jsonl.gz", "") + ".v%d.kurz.json" % W.VERSION)
+
+
+def kurz(name):
+    """Kurzfassung eines Spiels (wertung.kurzfassung), None solange es noch nicht gerechnet ist."""
+    p = _kurz_pfad(name)
+    try:
+        if os.path.getmtime(p) >= os.path.getmtime(os.path.join(workspace.DATA, name)):
+            with open(p, encoding="utf-8") as f:
+                return json.load(f)
+    except (OSError, ValueError):
+        pass
+    if _zwischen_lesen(name) is not None:  # voll gerechnet, Kurzfassung fehlt noch
+        z = W.kurzfassung(_zwischen_lesen(name))
+        with open(p, "w", encoding="utf-8") as f:
+            json.dump(z, f, ensure_ascii=False)
+        return z
+    return None
+
+
+def spiele():
+    aus = []
+    for x in partien():
+        k = kurz(x["datei"])
+        if k is not None:
+            aus.append(
+                dict(
+                    k,
+                    datei=x["datei"],
+                    zeit=x["zeit"],
+                    spieler_anzeige=spieler_anzeige(x["datei"], k),
+                )
+            )
+    return {"stand": dict(STAND), "spiele": aus}
+
+
+def historie(n=400):
+    """Die Code-Aenderungen (git log des Repos) - die Seite stellt sie zwischen die Spiele: was sich vor einem Spiel geaendert hat
+    (Daniel 18:18 "die historie wie es dazu gekommen ist")."""
+    import subprocess
+
+    try:
+        r = subprocess.run(
+            [
+                "git",
+                "-C",
+                workspace.ROOT,
+                "log",
+                "-%d" % n,
+                "--format=%h%x09%ad%x09%s",
+                "--date=format:%Y%m%d_%H%M%S",
+            ],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            timeout=20,
+        )
+        return [
+            dict(zip(("hash", "zeit", "text"), z.split("\t", 2), strict=False))
+            for z in r.stdout.splitlines()
+            if z.count("\t") >= 2
+        ]
+    except Exception as ex:
+        return [{"hash": "", "zeit": "", "text": "git log nicht lesbar: %s" % ex}]
+
+
+def einheit_bilder():
+    """Einheitenbilder einmal aus den Spieldateien umwandeln (tools/analysis/einheit_bilder.js mit dem TGX-Leser des AI-Toolkits)."""
+    import subprocess
+
+    if glob.glob(os.path.join(BILDER, "einheit_*.png")):
+        return
+    sp = _spielordner()
+    toolkit = os.path.join(os.path.dirname(workspace.ROOT), "AI-Toolkit")
+    if sp and os.path.isdir(toolkit):
+        subprocess.run(
+            [
+                "node",
+                os.path.join(HIER, "einheit_bilder.js"),
+                toolkit,
+                os.path.join(sp, "gfx"),
+                BILDER,
+            ],
+            capture_output=True,
+            timeout=120,
+        )
+
+
+def alle_rechnen():
+    """Im Hintergrund: jedes Spiel einmal werten (neueste zuerst) - danach liest die Seite nur noch die Kurzfassungen."""
+    liste = partien()
+    STAND.update(gesamt=len(liste), fertig=0, laeuft=True)
+    for x in liste:
+        try:
+            partie(x["datei"])
+        except Exception as ex:  # ein kaputtes Protokoll haelt die anderen nicht auf - es steht in der Liste der Fehler
+            STAND["fehler"].append("%s: %s: %s" % (x["datei"], type(ex).__name__, ex))
+        STAND["fertig"] += 1
+    STAND["laeuft"] = False
 
 
 def regler_antwort():
@@ -157,6 +368,17 @@ class Seite(BaseHTTPRequestHandler):
         self.end_headers()
         self.wfile.write(roh)
 
+    def _datei(self, pfad, art):
+        if not os.path.exists(pfad):
+            self._json({"fehler": "kein Bild"}, 404)
+            return
+        roh = open(pfad, "rb").read()
+        self.send_response(200)
+        self.send_header("Content-Type", art)
+        self.send_header("Cache-Control", "max-age=3600")
+        self.end_headers()
+        self.wfile.write(roh)
+
     def log_message(self, fmt, *args):
         sys.stderr.write("wertung_seite: " + (fmt % args) + "\n")
 
@@ -177,6 +399,30 @@ class Seite(BaseHTTPRequestHandler):
                 self._json(partie((q.get("datei") or [""])[0]))
             elif u.path == "/api/regler":
                 self._json(regler_antwort())
+            elif u.path == "/api/spiele":
+                self._json(spiele())
+            elif u.path == "/api/historie":
+                self._json(historie())
+            elif u.path.startswith("/bild/einheit/") and u.path[14:].isdigit():
+                self._datei(os.path.join(BILDER, "einheit_%d.png" % int(u.path[14:])), "image/png")
+            elif u.path.startswith("/bild/ki/"):
+                ordner = u.path[9:]
+                if ordner not in {k["ordner"] for k in ki_tabelle().values()}:
+                    raise ValueError("unbekannte KI")
+                sp = _spielordner()
+                self._datei(
+                    os.path.join(
+                        sp,
+                        "ucp",
+                        "plugins",
+                        _plugin(sp),
+                        "resources",
+                        "ai",
+                        ordner,
+                        "portrait_small.png",
+                    ),
+                    "image/png",
+                )
             elif u.path == "/bild/hintergrund" and os.path.exists(UCP_BILD):
                 roh = open(UCP_BILD, "rb").read()
                 self.send_response(200)
@@ -214,6 +460,8 @@ def main():
         if a.startswith("port="):
             port = int(a.split("=", 1)[1])
     srv = ThreadingHTTPServer(("127.0.0.1", port), Seite)
+    threading.Thread(target=alle_rechnen, daemon=True).start()
+    threading.Thread(target=einheit_bilder, daemon=True).start()
     print("Wertung: http://127.0.0.1:%d/" % port, flush=True)
     srv.serve_forever()
 
