@@ -83,6 +83,13 @@ NEU_ALLE = 4  # Runden zwischen zwei gleichen Befehlen: jeder neue Befehl starte
 # am eigenen Platz haelt ihn dabei nicht auf (Wegfuehrung trotz), nur Nahkaempfer an der Gruppe (WEICHEN). Probe 12: Kriegsfuerst hatte 18
 # Bogenschuetzen, wir 5 - allein vorgeprescht verloeren wir sie, im Lord-Angriff ziehen sie Feuer von den Assassinen. Startwert, nicht gemessen:
 LORD_SCHUETZEN_R = 40  # so weit vom Lord zaehlt ein feindlicher Schuetze als Schutz des Lords
+# Daniel 16.11.2026 23:11 ("die bogenschuetzen kommen erst VIEL spaeter statt direkt am anfang wie es schon die speertraeger machen"):
+# Probe 17 (partie_20261116_230431) - beide begannen bei Takt 892, die Speertraeger waren ab Takt 2.364 naeher als 70 Felder am feindlichen
+# Bergfried, die Schuetzen erst ab 3.517 (Probe 16: 4.752 gegen 5.982; bogen_vs_speer_anmarsch.txt). Die Vorrueck-Stelle sprang je Runde
+# zum gerade naechsten Arbeiter auf die andere Seite ((234,243) -> (193,247) -> (239,235)), jede neue Stelle begann die Wegsuche neu.
+# Jetzt bleibt sie, solange sie sicher und nicht erreicht ist - eine neue gilt nur, wenn sie weniger als VOR_WECHSEL des Restwegs weit
+# ist. Startwert, nicht gemessen:
+VOR_WECHSEL = 0.7
 KARTE = 399
 # Laeufe unter Pfeilen, die der Kern im Zickzack fuehrt. Weichen vor Nahkaempfern bleibt gerade: Dort geht es um jedes Feld.
 AUSWEICHEN_BEI = {"vor", "abziehen"}
@@ -661,6 +668,15 @@ class Vorstoss:
             self._sammeln(L, meine, mitte, aus)
             return aus
         stelle = self._weitester_sicherer(mitte, stand, L, G, len(meine))
+        alt = self.vor_ort
+        if (
+            alt is not None
+            and _grob(alt) != _grob(stelle)
+            and schach(mitte, alt) > SCHRITT
+            and self._sicher(alt, L, G, len(meine))
+            and schach(mitte, stelle) >= VOR_WECHSEL * schach(mitte, alt)
+        ):
+            stelle = alt  # Daniel 23:11: die alte Stelle bleibt - kein Hin und Her zwischen zwei Arbeitern
         if not self._sicher(stelle, L, G, len(meine)):
             self._melde(
                 meine, Action.WAIT_STAGING, point(mitte), "advance_unsafe", to=point(stelle)

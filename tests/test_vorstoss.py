@@ -370,3 +370,24 @@ def test_im_lord_angriff_ruecken_die_schuetzen_trotz_ueberzahl_auf_den_schuetzen
     assert {a.ziel for a in v.weg.auftraege.values()} == {8}, (
         "kein Schuetze am Lord: auf den Lord selbst"
     )
+
+
+def test_vorrueck_stelle_springt_nicht_zwischen_zwei_arbeitern():
+    """Daniel 16.11.2026 23:11 ("die bogenschuetzen kommen erst VIEL spaeter statt direkt am anfang wie es schon die speertraeger machen"):
+    Probe 17 - die Vorrueck-Stelle sprang je Runde zum gerade naechsten Arbeiter. Die alte Stelle bleibt, solange sie sicher und nicht
+    erreicht ist; eine neue gilt erst, wenn sie weniger als VOR_WECHSEL des Restwegs weit ist."""
+    from selfaware.micro.wegfuehrung import Wegfuehrung
+
+    eigene = [_e(1, 22, 100, 100 + i) for i in range(3)]
+    v = V.Vorstoss(1, HEIM)
+    v.weg = Wegfuehrung(1)
+    # Arbeiter weiter als FERNZIEL_MAX (120): sonst zieht die Gruppe zum Fernziel statt vorzuruecken
+    _lauf(_L(*eigene, _e(2, 3, 290, 101)), v=v)
+    alt = v.vor_ort
+    assert alt is not None and alt[0] > 200, alt
+    _lauf(_L(*eigene, _e(2, 3, 101, 290)), v=v)  # anderer Arbeiter, gleich weit, andere Seite
+    assert v.vor_ort == alt, (v.vor_ort, alt)
+    _lauf(
+        _L(*eigene, _e(2, 3, 101, 230)), v=v
+    )  # deutlich naeher (Rest 100 < 0,7 x 160): jetzt die neue Stelle
+    assert v.vor_ort != alt and v.vor_ort[1] > alt[1], (v.vor_ort, alt)
