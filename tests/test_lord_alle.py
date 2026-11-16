@@ -156,3 +156,33 @@ def test_neuer_sammelpunkt_am_naechsten_sicheren_mitglied():
     a, L = _szene(3)
     a._sicht = None
     assert a._sammelpunkt_neu(L, {200, 201, 202}, (340, 100), ausser=(250, 90)) == (250, 92)
+
+
+def test_frist_der_bereitstellung_aus_dem_anmarsch():
+    """16.11.2026 (Probe 11, 12, 13c: die erste Bereitstellung kam nie an - Wege bis 208 Felder, 16 Takte je Feld, Frist fest 3.000): die
+    Frist waechst mit dem weitesten Anmarsch der Gruppe. Nahe Gruppe: BEREIT_MAX wie bisher; ferne Gruppe: nach BEREIT_MAX + 10 kein
+    Abbruch, erst nach ihrer Frist."""
+    a, L = _szene(12)
+    _schritt(a, L, 20000)
+    assert a._bereit_frist() == a.BEREIT_MAX, "Anmarsch 60-90 Felder: die Untergrenze gilt"
+    AS = _modul()
+    b = AS.Einzeln(1)
+    b.lord_aus, b.LORD_SPAETESTENS = False, 0
+    L2 = {1: _e(1, 1, 55, 20, 20, leben=150000), 60: _e(60, 2, 55, 380, 380, leben=165000)}
+    for i in range(12):
+        L2[200 + i] = _e(200 + i, 1, 73, 40, 30 + 2 * i, leben=12500)
+    b.aufnehmen(list(range(200, 212)))
+    _schritt(b, L2, 20000)
+    assert b.lordtrupp["phase"] == "bereit"
+    frist = b._bereit_frist()
+    weite = max(b.lordtrupp["anmarsch"].values())
+    assert (
+        weite > 300
+        and frist == int(weite * AS.TEMPO * b.BEREIT_ZUSCHLAG + b.BEREIT_VORLAUF) > b.BEREIT_MAX
+    )
+    ev = _schritt(b, L2, 20000 + b.BEREIT_MAX + 10)
+    assert b.lordtrupp["phase"] == "bereit" and not any("ABGEBROCHEN" in z for z in ev), (
+        "ferne Gruppe: noch in der Frist"
+    )
+    ev = _schritt(b, L2, 20000 + frist + 10)
+    assert any("ABGEBROCHEN" in z for z in ev), "nach der Frist: Abbruch wie bisher"

@@ -412,7 +412,14 @@ class Einzeln:
     #   den Angriffsbefehl. Wer STEH_TICKS ohne Spielziel auf demselben Feld steht, faellt aus der Gruppe und raidet.
     BEREIT_R = (24, 28, 32)          # Felder vom Lord: ausserhalb der 20 Felder, in denen der Lord ihn sieht (L75)
     BEREIT_NAH = 3                   # so nah am Platz gilt er als bereit
-    BEREIT_MAX = 3000                # Ticks fuer die Bereitstellung, dann Abbruch -> alle raiden
+    BEREIT_MAX = 3000                # Ticks fuer die Bereitstellung, dann Abbruch -> alle raiden (seit 16.11.2026 nur die Untergrenze)
+    # 16.11.2026 (Daniel 21:54 "passt wertungen und ingame entscheidungen an bis du denkst dass die ki jetzt wirklich eine menace ist"):
+    # in Probe 11, 12 und 13c brach die erste Bereitstellung jedesmal ab ("nach ~3.000 Ticks erst 0 von 6 bereit"), danach 1.000 Takte
+    # Pause und eine zweite. Gemessen: die Plaetze waren begehbar und erreichbar (Weg-Ebene, 176-208 Schritte von unserer Burg,
+    # sammelplatz_wegebene.txt), eine Assassine braucht 16 Takte je Feld (TEMPO) - 185 Felder sind 2.960 Takte, mehr als die Frist.
+    # Jetzt gilt der weiteste Weg der Gruppe (entlang ihrer Wegpunkte) x TEMPO x BEREIT_ZUSCHLAG + BEREIT_VORLAUF, mindestens BEREIT_MAX.
+    BEREIT_ZUSCHLAG = 1.25           # STARTWERT, nicht gemessen: Umwege, Gedraenge, Schraegschritte
+    BEREIT_VORLAUF = 400             # STARTWERT, nicht gemessen: bis der erste Laufbefehl ankommt (~2 Lenker-Runden)
     BEREIT_NEU = 3                   # hoechstens so viele Laufbefehle zum Platz, dann raus aus der Gruppe
     # 17.10. (1017i, Lageprotokoll Tick 30.567-31.005): der Lord stand OBEN auf seinem Bergfried (Typ 41 daneben, Zustand 13);
     # mit 6 schaltete die Gruppe 4-5 Felder vor ihm auf den Angriffsbefehl um, der nicht klettert - Lord 30.000 unveraendert,
@@ -819,6 +826,13 @@ class Einzeln:
         """Daniel 15.11.2026 23:10: so viele Angreifer, wie der Lord nach den Messungen dieser Partie braucht - None ohne Messung."""
         je = self._lord_schaden_je_assassine()
         return int(math.ceil(leben / je)) if je else None
+
+    def _bereit_frist(self):
+        """Takte, die die laufende Bereitstellung bekommt: weitester Anmarsch der Gruppe x TEMPO x BEREIT_ZUSCHLAG + BEREIT_VORLAUF,
+        mindestens BEREIT_MAX (16.11.2026, siehe BEREIT_ZUSCHLAG)."""
+        lt = self.lordtrupp
+        weite = max((lt.get("anmarsch", {}).get(k, 0) for k in lt.get("mitglieder", ())), default=0)
+        return max(self.BEREIT_MAX, int(weite * TEMPO * self.BEREIT_ZUSCHLAG + self.BEREIT_VORLAUF))
 
     def _lord_lauf_noetig(self, p, le):
         """Laufbefehl (Kletterweg) statt Angriffsbefehl auf den Lord? Nur, solange der Lord oben auf seinem Bergfried steht und p weiter
@@ -2098,6 +2112,9 @@ class Einzeln:
                 punkte = list(wp[:-1]) + [platz]
         self.lordtrupp.setdefault("platz", {})[n] = platz
         self.lordtrupp.setdefault("weg", {})[n] = punkte
+        # 16.11.2026: Laenge des Anmarschs entlang der Wegpunkte (Schachmass) - daraus die Frist der Bereitstellung (_bereit_frist)
+        kette = [ort] + list(punkte)
+        self.lordtrupp.setdefault("anmarsch", {})[n] = sum(schach(kette[i], kette[i + 1]) for i in range(len(kette) - 1))
         self.lordtrupp.setdefault("neu", {})[n] = 0
         self.lordtrupp.setdefault("befohlen", {})[n] = -99
         return platz
@@ -2627,7 +2644,7 @@ class Einzeln:
                 for k in list(lt["mitglieder"]):
                     self._vergessen(k)
                 lt.update(mitglieder=set(), phase=None, pause_bis=self.jetzt + self.BEREIT_PAUSE)
-            if lt["phase"] == "bereit" and self.jetzt - lt.get("seit_tick", self.jetzt) > self.BEREIT_MAX \
+            if lt["phase"] == "bereit" and self.jetzt - lt.get("seit_tick", self.jetzt) > self._bereit_frist() \
                     and len(lt.get("bereit", ())) < n_bedarf:      # genug beisammen: dann greift unten der Stapel an statt abzubrechen
                 ereignis.append("LORD-BEREITSTELLUNG ABGEBROCHEN: nach %d Ticks erst %d von %d bereit - alle raiden" % (
                     self.jetzt - lt["seit_tick"], len(lt.get("bereit", ())), n_bedarf))
@@ -2706,10 +2723,11 @@ class Einzeln:
                         self.stapel["mitglieder"].discard(k)
                         self.flucht.pop(k, None)
                         self._bereit_zuweisen(k, L, G, plaetze, ereignis)
-                    ereignis.append("LORD-BEREITSTELLUNG: %d Assassinen zu %d verdeckten Plaetzen %s Felder vom Lord %d, Wege %d-%d Felder (Bedarf %d %s; %s; %d Raid-Plaetze)" % (
+                    ereignis.append("LORD-BEREITSTELLUNG: %d Assassinen zu %d verdeckten Plaetzen %s Felder vom Lord %d, Wege %d-%d Felder (Bedarf %d %s; %s; %d Raid-Plaetze; Frist %d Ticks)" % (
                         len(gruppe), len(set(lt["platz"].values())), "/".join(map(str, self.BEREIT_R)), ln,
                         min(schach(pos(k), lt["platz"][k]) for k in gruppe), max(schach(pos(k), lt["platz"][k]) for k in gruppe),
-                        n_bedarf, bedarf_art, "spaetestens" if spaet and ueber < n_bedarf else "Ueberschuss %d" % ueber, plaetze_r))
+                        n_bedarf, bedarf_art, "spaetestens" if spaet and ueber < n_bedarf else "Ueberschuss %d" % ueber, plaetze_r,
+                        self._bereit_frist()))
             if lt["phase"] == "bereit":
                 # Tote ersetzen (1017f: sonst Abbruch beim ersten Toten) - zuerst Freie ohne Raid-Ziel, dann die naechsten
                 frei_k = sorted((k for k in self.mitglieder if k not in lt["mitglieder"] and k not in lt.get("raus", ())
@@ -2773,7 +2791,7 @@ class Einzeln:
                 # steht -, und erst wenn alle angekommen sind oder BEREIT_MAX um ist und genug beisammen stehen. Vorher (meine Aenderung 23:10)
                 # liefen auch die noch Anlaufenden los und kamen einzeln an
                 alle_da = len(bereit) >= len(lt["mitglieder"])
-                zeit_um = self.jetzt - lt.get("seit_tick", self.jetzt) > self.BEREIT_MAX
+                zeit_um = self.jetzt - lt.get("seit_tick", self.jetzt) > self._bereit_frist()
                 if len(bereit) >= n_bedarf and (alle_da or zeit_um) and lord_machbar(
                         len(bereit), le["leben"], self._sicht.feuer_gesamt(lp) / len(bereit),
                         leben=self._anlauf_leben(self._anlauf_von(L, lp), lp, len(bereit)))[0]:
