@@ -32,7 +32,7 @@ use haende::{Anspruch, Auftrag, Blick, Buch};
 use waechter::{Ereignis, Waechter};
 use welt::Welt;
 
-pub const VERSION: u32 = 37;   // 37 (15.11.2026, #359): brennendes Gebaeude loest das Folgeziel aus; 36 (15.11.2026, #359): Folgeziel im Takt der Zerstoerung (Art 23/24); 35 (15.11.2026, B-184): Plaetze beim Partiewechsel leeren (2 SamurAIs); 34 (15.11.2026, B-184): Sperre und Schwaerzung nach SamurAIs Plaetzen statt dem Platz des Menschen; 33 (15.11.2026, S160): kaputter Auftragsring (Lese vor Schreib) wird geheilt; 32 (15.11.2026, S159): Wegpunktkette mit Angriff am Ende (Art 20-22); 31 (15.11.2026, S156): am Laufziel (AM_LAUFZIEL) nichts durchsetzen; 30 (15.11.2026, S155): Laufauftrag durchsetzen (Art 18) ausser gegen den erlaubten Gegner (Art 19); 29 (14.11.2026, S148): Gebiet des Wegnetzes je Einheit (Aufbau 8); 28 (14.11.2026, S143): field320_0x413 je eigener Einheit (Aufbau 7); 27 (14.11.2026, S139): Filterfelder des Marschbefehls je eigener Einheit (Aufbau 6); 26 (13.11.2026, S123): Gebaeudeangriff wirkt ueber das Ziel der Gruppe
+pub const VERSION: u32 = 38;   // 38 (16.11.2026, #362): ein Gebaeudeangriff an eine stehende Einheit ist kein Doppelt (Speertraeger stehen in Zustand 2); 37 (15.11.2026, #359): brennendes Gebaeude loest das Folgeziel aus; 36 (15.11.2026, #359): Folgeziel im Takt der Zerstoerung (Art 23/24); 35 (15.11.2026, B-184): Plaetze beim Partiewechsel leeren (2 SamurAIs); 34 (15.11.2026, B-184): Sperre und Schwaerzung nach SamurAIs Plaetzen statt dem Platz des Menschen; 33 (15.11.2026, S160): kaputter Auftragsring (Lese vor Schreib) wird geheilt; 32 (15.11.2026, S159): Wegpunktkette mit Angriff am Ende (Art 20-22); 31 (15.11.2026, S156): am Laufziel (AM_LAUFZIEL) nichts durchsetzen; 30 (15.11.2026, S155): Laufauftrag durchsetzen (Art 18) ausser gegen den erlaubten Gegner (Art 19); 29 (14.11.2026, S148): Gebiet des Wegnetzes je Einheit (Aufbau 8); 28 (14.11.2026, S143): field320_0x413 je eigener Einheit (Aufbau 7); 27 (14.11.2026, S139): Filterfelder des Marschbefehls je eigener Einheit (Aufbau 6); 26 (13.11.2026, S123): Gebaeudeangriff wirkt ueber das Ziel der Gruppe
 
 /// DAT_UnitsState 0x01387F38: +0 maxUnitCount; Einheiten-Array ab +0x614 = 0x0138854C, je Einheit 1.168 Byte, 2.500 Plaetze
 const UNITS_STATE: usize = 0x0138_7F38;
@@ -440,7 +440,7 @@ fn ring_abarbeiten(z: &mut Zustand, tick: i32) {
             },
             _ => {
                 z.ausweichen.entfernen(nr);
-                let untaetig = z.welt.einheiten.iter().find(|e| e.nr == nr).is_none_or(|e| matches!(e.zustand, 0 | 1));
+                let untaetig = z.welt.einheiten.iter().find(|e| e.nr == nr).is_none_or(|e| Buch::untaetig(e.zustand as i32, art));
                 let anspruch = Anspruch { vorrang, frist, auftraggeber, ring: Some(i) };
                 buch.auftrag_mit(nr, Auftrag { art, a, b }, untaetig, anspruch, tick).ergebnis()
             }
@@ -659,7 +659,7 @@ pub extern "C" fn samurai_freigeben(nr: i32) -> i32 {
 pub extern "C" fn samurai_auftrag(art: i32, nr: i32, a: i32, b: i32) -> i32 {
     geschuetzt("samurai_auftrag", || {
         let mut z = zustand();
-        let untaetig = z.welt.einheiten.iter().find(|e| e.nr == nr).is_none_or(|e| matches!(e.zustand, 0 | 1));
+        let untaetig = z.welt.einheiten.iter().find(|e| e.nr == nr).is_none_or(|e| Buch::untaetig(e.zustand as i32, art));
         z.buch.get_or_insert_with(Buch::default).auftrag(nr, Auftrag { art, a, b }, untaetig).ergebnis()
     })
 }

@@ -33,6 +33,10 @@ pub const FOLGE_GEBAEUDE: i32 = 23;
 pub const FOLGE_EINHEIT: i32 = 24;
 /// Zustand einer Einheit im Kampf gegen eine Einheit (chain_audit ATTACK_STATES)
 pub const KAMPF_EINHEIT: i32 = 106;
+/// #362 (16.11.2026): Zustand im Gebaeudekampf (schlag_messen.py) und beim Laufen (Lageprotokolle Probe 7 und 8: Assassinen in 101 bewegten
+/// sich 780 von 780 und 697 von 697 Runden)
+pub const KAMPF_GEBAEUDE: i32 = 107;
+pub const LAEUFT: i32 = 101;
 pub const ANGRIFF_EINHEIT: i32 = 4;
 pub const ANGRIFF_GEBAEUDE: i32 = 9;
 /// So lange wartet der naechste Gruppenbefehl hoechstens, bis die Einheiten des letzten in ihrer Gruppe stehen
@@ -274,6 +278,19 @@ impl Buch {
         let zaehler = self.zaehler;
         let o = self.offen.entry(schluessel).or_insert_with(|| Offen { eingang: zaehler, ..Offen::default() });
         o.einheiten.insert(nr, (an.frist, an.ring));
+    }
+
+    /// Tut die Einheit (Zustand) NICHT, was der Auftrag art will? Dann ist derselbe Auftrag noch einmal kein Dauer-Neubefehl, sondern noetig.
+    /// #362 (Daniel 16.11.2026 19:03 "das wichtigste ist dass daraus eine aktion an den code folgt"): untaetig hiess nur Zustand 0 oder 1 -
+    /// Speertraeger stehen aber im Zustand 2 (Probe 7 und 8: 27 bzw. 35 Stand-Runden in 2, 1 bzw. 2 in 1). Ihr wiederholter Gebaeudeangriff
+    /// kam als Doppelt zurueck, sie standen 25 bis 69 % der Zeit am Zielgebaeude ohne zu schlagen (Assassinen, Zustand 1: 0 bis 12 %).
+    /// Ein Gebaeudeangriff gilt darum als doppelt nur, solange die Einheit laeuft oder schon aufs Gebaeude schlaegt; alles andere wie vorher.
+    pub fn untaetig(zustand: i32, art: i32) -> bool {
+        if art == ANGRIFF_GEBAEUDE {
+            !matches!(zustand, LAEUFT | KAMPF_GEBAEUDE)
+        } else {
+            matches!(zustand, 0 | 1)
+        }
     }
 
     pub fn auftrag(&mut self, nr: i32, a: Auftrag, untaetig: bool) -> Annahme {
@@ -942,6 +959,26 @@ mod tests {
         assert_eq!(b.auftrag(5, L1, false), Annahme::Doppelt);
         assert_eq!(b.auftrag(5, L1, true), Annahme::Angenommen);   // steht untaetig -> neu befehlen ist richtig
         assert_eq!(b.auftrag(5, L2, false), Annahme::Angenommen);  // neues Ziel
+    }
+
+    #[test]
+    fn s362_gebaeudeangriff_an_einen_stehenden_speertraeger_ist_nicht_doppelt() {
+        let g = Auftrag { art: ANGRIFF_GEBAEUDE, a: 19, b: 0 };
+        let mut b = Buch::default();
+        b.uebernehmen(5);
+        b.auftrag(5, g, false);
+        let (a, e) = b.naechster().unwrap();
+        b.abgesetzt(a, &e, 7, 1000);
+        // steht im Zustand 2 am Gebaeude (Speertraeger, Probe 8): derselbe Angriff muss noch einmal hinaus
+        assert_eq!(b.auftrag(5, g, Buch::untaetig(2, ANGRIFF_GEBAEUDE)), Annahme::Angenommen);
+        let (a, e) = b.naechster().unwrap();
+        b.abgesetzt(a, &e, 7, 1001);
+        // schlaegt schon (107) oder laeuft hin (101): doppelt wie vorher
+        assert_eq!(b.auftrag(5, g, Buch::untaetig(107, ANGRIFF_GEBAEUDE)), Annahme::Doppelt);
+        assert_eq!(b.auftrag(5, g, Buch::untaetig(101, ANGRIFF_GEBAEUDE)), Annahme::Doppelt);
+        // Laufbefehle und Einheitenangriffe unveraendert: Zustand 2 ist dort nicht untaetig
+        assert!(!Buch::untaetig(2, LAUF) && !Buch::untaetig(2, ANGRIFF_EINHEIT));
+        assert!(Buch::untaetig(0, LAUF) && Buch::untaetig(1, ANGRIFF_EINHEIT));
     }
 
     #[test]
