@@ -92,7 +92,7 @@ class Kernweg:
                 nr, None
             )  # #359: ein neuer Auftrag kann das Folgeziel im Kern loeschen - danach neu geben
             ring = self.leitung.auftrag(art, nr, a, b, vorrang, frist, self.auftraggeber)
-            self.offen[ring] = art
+            self.offen[ring] = (art, nr)
             if self.beobachter is not None:
                 self.beobachter.from_ring(ring, nr, art, a, b, tick)
 
@@ -224,7 +224,16 @@ class Kernweg:
             if e is None or e in UNTERWEGS:
                 continue
             name = KL.ERGEBNIS_NAMEN.get(e, str(e))
-            self.stand[f"{name}/{ART_NAMEN[self.offen.pop(ring)]}"] += 1
+            art, nr = self.offen.pop(ring)
+            self.stand[f"{name}/{ART_NAMEN[art]}"] += 1
+            if e == KL.ERG_NICHT_UEBERNOMMEN and nr in self.uebergeben:
+                # #362 (Probe 9, 16.11.2026): der Kern kennt die Einheit nicht (neu geladen oder Partiewechsel) - Probe 9 lud Kern 38 nach dem
+                # Start, die vorher uebergebenen Starttruppen kamen bis zum Ende als "nicht uebergeben" zurueck (1.417 Auftraege). Der naechste
+                # Auftrag uebergibt sie neu
+                self.uebergeben.discard(nr)
+                self.erlaubt.pop(nr, None)
+                self.folge_gesendet.pop(nr, None)
+                self.stand["neu zu uebergeben"] += 1
             if self.beobachter is not None:
                 self.beobachter.ring_result(ring, name)
         return self.stand

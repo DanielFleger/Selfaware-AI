@@ -305,3 +305,19 @@ def test_359_folge_konstanten_wie_im_kern():
     )
     lib = (KERN / "lib.rs").read_text(encoding="utf-8")
     assert int(re.search(r"pub const VERSION: u32 = (\d+);", lib).group(1)) >= KL.FOLGE_AB
+
+
+def test_nicht_uebergeben_heisst_beim_naechsten_auftrag_neu_uebergeben():
+    # #362 (Probe 9, 16.11.2026): Kern 38 wurde nach dem Start geladen und kannte die schon uebergebenen Starttruppen nicht -
+    # ihre Auftraege kamen bis zum Ende als "nicht uebergeben" zurueck, weil der Kernweg sie nie neu uebergab
+    ring = FalscherRing()
+    k = KW.Kernweg(ring, auftraggeber=KW.VORSTOSS)
+    k.senden([{"angriff": {"einheiten": [5], "gebaeude": 19}}])
+    uebernahmen = [z for z in ring.liste if z[0] == KL.UEBERNEHMEN]
+    assert len(uebernahmen) == 1
+    angriff = next(i for i, z in enumerate(ring.liste) if z[0] != KL.UEBERNEHMEN)
+    ring.ergebnisse[angriff] = KL.ERG_NICHT_UEBERNOMMEN
+    k.fortgang()
+    assert 5 not in k.uebergeben
+    k.senden([{"angriff": {"einheiten": [5], "gebaeude": 19}}])
+    assert len([z for z in ring.liste if z[0] == KL.UEBERNEHMEN and z[1] == 5]) == 2
